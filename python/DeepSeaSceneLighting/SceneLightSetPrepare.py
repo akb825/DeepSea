@@ -38,15 +38,26 @@ class SceneLightSetPrepare(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def SceneLightSetPrepareStart(builder): builder.StartObject(2)
+def SceneLightSetPrepareStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return SceneLightSetPrepareStart(builder)
-def SceneLightSetPrepareAddLightSet(builder, lightSet): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(lightSet), 0)
+    SceneLightSetPrepareStart(builder)
+
+def SceneLightSetPrepareAddLightSet(builder, lightSet):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(lightSet), 0)
+
 def AddLightSet(builder, lightSet):
-    return SceneLightSetPrepareAddLightSet(builder, lightSet)
-def SceneLightSetPrepareAddIntensityThreshold(builder, intensityThreshold): builder.PrependFloat32Slot(1, intensityThreshold, 0.0)
+    SceneLightSetPrepareAddLightSet(builder, lightSet)
+
+def SceneLightSetPrepareAddIntensityThreshold(builder, intensityThreshold):
+    builder.PrependFloat32Slot(1, intensityThreshold, 0.0)
+
 def AddIntensityThreshold(builder, intensityThreshold):
-    return SceneLightSetPrepareAddIntensityThreshold(builder, intensityThreshold)
-def SceneLightSetPrepareEnd(builder): return builder.EndObject()
+    SceneLightSetPrepareAddIntensityThreshold(builder, intensityThreshold)
+
+def SceneLightSetPrepareEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return SceneLightSetPrepareEnd(builder)

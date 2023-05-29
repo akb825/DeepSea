@@ -52,21 +52,38 @@ class MaterialRemap(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def MaterialRemapStart(builder): builder.StartObject(4)
+def MaterialRemapStart(builder):
+    builder.StartObject(4)
+
 def Start(builder):
-    return MaterialRemapStart(builder)
-def MaterialRemapAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    MaterialRemapStart(builder)
+
+def MaterialRemapAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return MaterialRemapAddName(builder, name)
-def MaterialRemapAddModelList(builder, modelList): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(modelList), 0)
+    MaterialRemapAddName(builder, name)
+
+def MaterialRemapAddModelList(builder, modelList):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(modelList), 0)
+
 def AddModelList(builder, modelList):
-    return MaterialRemapAddModelList(builder, modelList)
-def MaterialRemapAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+    MaterialRemapAddModelList(builder, modelList)
+
+def MaterialRemapAddShader(builder, shader):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+
 def AddShader(builder, shader):
-    return MaterialRemapAddShader(builder, shader)
-def MaterialRemapAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+    MaterialRemapAddShader(builder, shader)
+
+def MaterialRemapAddMaterial(builder, material):
+    builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+
 def AddMaterial(builder, material):
-    return MaterialRemapAddMaterial(builder, material)
-def MaterialRemapEnd(builder): return builder.EndObject()
+    MaterialRemapAddMaterial(builder, material)
+
+def MaterialRemapEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return MaterialRemapEnd(builder)

@@ -49,18 +49,32 @@ class ParticleCylinder(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def ParticleCylinderStart(builder): builder.StartObject(3)
+def ParticleCylinderStart(builder):
+    builder.StartObject(3)
+
 def Start(builder):
-    return ParticleCylinderStart(builder)
-def ParticleCylinderAddCenter(builder, center): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(center), 0)
+    ParticleCylinderStart(builder)
+
+def ParticleCylinderAddCenter(builder, center):
+    builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(center), 0)
+
 def AddCenter(builder, center):
-    return ParticleCylinderAddCenter(builder, center)
-def ParticleCylinderAddRadius(builder, radius): builder.PrependFloat32Slot(1, radius, 0.0)
+    ParticleCylinderAddCenter(builder, center)
+
+def ParticleCylinderAddRadius(builder, radius):
+    builder.PrependFloat32Slot(1, radius, 0.0)
+
 def AddRadius(builder, radius):
-    return ParticleCylinderAddRadius(builder, radius)
-def ParticleCylinderAddHeight(builder, height): builder.PrependFloat32Slot(2, height, 0.0)
+    ParticleCylinderAddRadius(builder, radius)
+
+def ParticleCylinderAddHeight(builder, height):
+    builder.PrependFloat32Slot(2, height, 0.0)
+
 def AddHeight(builder, height):
-    return ParticleCylinderAddHeight(builder, height)
-def ParticleCylinderEnd(builder): return builder.EndObject()
+    ParticleCylinderAddHeight(builder, height)
+
+def ParticleCylinderEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ParticleCylinderEnd(builder)

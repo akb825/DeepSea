@@ -92,33 +92,62 @@ class SpotLight(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def SpotLightStart(builder): builder.StartObject(8)
+def SpotLightStart(builder):
+    builder.StartObject(8)
+
 def Start(builder):
-    return SpotLightStart(builder)
-def SpotLightAddPosition(builder, position): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(position), 0)
+    SpotLightStart(builder)
+
+def SpotLightAddPosition(builder, position):
+    builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(position), 0)
+
 def AddPosition(builder, position):
-    return SpotLightAddPosition(builder, position)
-def SpotLightAddDirection(builder, direction): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(direction), 0)
+    SpotLightAddPosition(builder, position)
+
+def SpotLightAddDirection(builder, direction):
+    builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(direction), 0)
+
 def AddDirection(builder, direction):
-    return SpotLightAddDirection(builder, direction)
-def SpotLightAddColor(builder, color): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+    SpotLightAddDirection(builder, direction)
+
+def SpotLightAddColor(builder, color):
+    builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+
 def AddColor(builder, color):
-    return SpotLightAddColor(builder, color)
-def SpotLightAddIntensity(builder, intensity): builder.PrependFloat32Slot(3, intensity, 0.0)
+    SpotLightAddColor(builder, color)
+
+def SpotLightAddIntensity(builder, intensity):
+    builder.PrependFloat32Slot(3, intensity, 0.0)
+
 def AddIntensity(builder, intensity):
-    return SpotLightAddIntensity(builder, intensity)
-def SpotLightAddLinearFalloff(builder, linearFalloff): builder.PrependFloat32Slot(4, linearFalloff, 0.0)
+    SpotLightAddIntensity(builder, intensity)
+
+def SpotLightAddLinearFalloff(builder, linearFalloff):
+    builder.PrependFloat32Slot(4, linearFalloff, 0.0)
+
 def AddLinearFalloff(builder, linearFalloff):
-    return SpotLightAddLinearFalloff(builder, linearFalloff)
-def SpotLightAddQuadraticFalloff(builder, quadraticFalloff): builder.PrependFloat32Slot(5, quadraticFalloff, 0.0)
+    SpotLightAddLinearFalloff(builder, linearFalloff)
+
+def SpotLightAddQuadraticFalloff(builder, quadraticFalloff):
+    builder.PrependFloat32Slot(5, quadraticFalloff, 0.0)
+
 def AddQuadraticFalloff(builder, quadraticFalloff):
-    return SpotLightAddQuadraticFalloff(builder, quadraticFalloff)
-def SpotLightAddInnerSpotAngle(builder, innerSpotAngle): builder.PrependFloat32Slot(6, innerSpotAngle, 0.0)
+    SpotLightAddQuadraticFalloff(builder, quadraticFalloff)
+
+def SpotLightAddInnerSpotAngle(builder, innerSpotAngle):
+    builder.PrependFloat32Slot(6, innerSpotAngle, 0.0)
+
 def AddInnerSpotAngle(builder, innerSpotAngle):
-    return SpotLightAddInnerSpotAngle(builder, innerSpotAngle)
-def SpotLightAddOuterSpotAngle(builder, outerSpotAngle): builder.PrependFloat32Slot(7, outerSpotAngle, 0.0)
+    SpotLightAddInnerSpotAngle(builder, innerSpotAngle)
+
+def SpotLightAddOuterSpotAngle(builder, outerSpotAngle):
+    builder.PrependFloat32Slot(7, outerSpotAngle, 0.0)
+
 def AddOuterSpotAngle(builder, outerSpotAngle):
-    return SpotLightAddOuterSpotAngle(builder, outerSpotAngle)
-def SpotLightEnd(builder): return builder.EndObject()
+    SpotLightAddOuterSpotAngle(builder, outerSpotAngle)
+
+def SpotLightEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return SpotLightEnd(builder)

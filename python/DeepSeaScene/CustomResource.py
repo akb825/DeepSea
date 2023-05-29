@@ -42,15 +42,26 @@ class CustomResource(object):
             return obj
         return None
 
-def CustomResourceStart(builder): builder.StartObject(2)
+def CustomResourceStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return CustomResourceStart(builder)
-def CustomResourceAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    CustomResourceStart(builder)
+
+def CustomResourceAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return CustomResourceAddName(builder, name)
-def CustomResourceAddResource(builder, resource): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(resource), 0)
+    CustomResourceAddName(builder, name)
+
+def CustomResourceAddResource(builder, resource):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(resource), 0)
+
 def AddResource(builder, resource):
-    return CustomResourceAddResource(builder, resource)
-def CustomResourceEnd(builder): return builder.EndObject()
+    CustomResourceAddResource(builder, resource)
+
+def CustomResourceEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return CustomResourceEnd(builder)

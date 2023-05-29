@@ -52,21 +52,38 @@ class DeferredShadowLightInfo(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def DeferredShadowLightInfoStart(builder): builder.StartObject(4)
+def DeferredShadowLightInfoStart(builder):
+    builder.StartObject(4)
+
 def Start(builder):
-    return DeferredShadowLightInfoStart(builder)
-def DeferredShadowLightInfoAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+    DeferredShadowLightInfoStart(builder)
+
+def DeferredShadowLightInfoAddShader(builder, shader):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+
 def AddShader(builder, shader):
-    return DeferredShadowLightInfoAddShader(builder, shader)
-def DeferredShadowLightInfoAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+    DeferredShadowLightInfoAddShader(builder, shader)
+
+def DeferredShadowLightInfoAddMaterial(builder, material):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+
 def AddMaterial(builder, material):
-    return DeferredShadowLightInfoAddMaterial(builder, material)
-def DeferredShadowLightInfoAddTransformGroup(builder, transformGroup): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(transformGroup), 0)
+    DeferredShadowLightInfoAddMaterial(builder, material)
+
+def DeferredShadowLightInfoAddTransformGroup(builder, transformGroup):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(transformGroup), 0)
+
 def AddTransformGroup(builder, transformGroup):
-    return DeferredShadowLightInfoAddTransformGroup(builder, transformGroup)
-def DeferredShadowLightInfoAddShadowTexture(builder, shadowTexture): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(shadowTexture), 0)
+    DeferredShadowLightInfoAddTransformGroup(builder, transformGroup)
+
+def DeferredShadowLightInfoAddShadowTexture(builder, shadowTexture):
+    builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(shadowTexture), 0)
+
 def AddShadowTexture(builder, shadowTexture):
-    return DeferredShadowLightInfoAddShadowTexture(builder, shadowTexture)
-def DeferredShadowLightInfoEnd(builder): return builder.EndObject()
+    DeferredShadowLightInfoAddShadowTexture(builder, shadowTexture)
+
+def DeferredShadowLightInfoEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return DeferredShadowLightInfoEnd(builder)

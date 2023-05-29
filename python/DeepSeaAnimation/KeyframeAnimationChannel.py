@@ -69,24 +69,44 @@ class KeyframeAnimationChannel(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         return o == 0
 
-def KeyframeAnimationChannelStart(builder): builder.StartObject(4)
+def KeyframeAnimationChannelStart(builder):
+    builder.StartObject(4)
+
 def Start(builder):
-    return KeyframeAnimationChannelStart(builder)
-def KeyframeAnimationChannelAddNode(builder, node): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(node), 0)
+    KeyframeAnimationChannelStart(builder)
+
+def KeyframeAnimationChannelAddNode(builder, node):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(node), 0)
+
 def AddNode(builder, node):
-    return KeyframeAnimationChannelAddNode(builder, node)
-def KeyframeAnimationChannelAddComponent(builder, component): builder.PrependUint8Slot(1, component, 0)
+    KeyframeAnimationChannelAddNode(builder, node)
+
+def KeyframeAnimationChannelAddComponent(builder, component):
+    builder.PrependUint8Slot(1, component, 0)
+
 def AddComponent(builder, component):
-    return KeyframeAnimationChannelAddComponent(builder, component)
-def KeyframeAnimationChannelAddInterpolation(builder, interpolation): builder.PrependUint8Slot(2, interpolation, 0)
+    KeyframeAnimationChannelAddComponent(builder, component)
+
+def KeyframeAnimationChannelAddInterpolation(builder, interpolation):
+    builder.PrependUint8Slot(2, interpolation, 0)
+
 def AddInterpolation(builder, interpolation):
-    return KeyframeAnimationChannelAddInterpolation(builder, interpolation)
-def KeyframeAnimationChannelAddValues(builder, values): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(values), 0)
+    KeyframeAnimationChannelAddInterpolation(builder, interpolation)
+
+def KeyframeAnimationChannelAddValues(builder, values):
+    builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(values), 0)
+
 def AddValues(builder, values):
-    return KeyframeAnimationChannelAddValues(builder, values)
-def KeyframeAnimationChannelStartValuesVector(builder, numElems): return builder.StartVector(16, numElems, 4)
+    KeyframeAnimationChannelAddValues(builder, values)
+
+def KeyframeAnimationChannelStartValuesVector(builder, numElems):
+    return builder.StartVector(16, numElems, 4)
+
 def StartValuesVector(builder, numElems):
     return KeyframeAnimationChannelStartValuesVector(builder, numElems)
-def KeyframeAnimationChannelEnd(builder): return builder.EndObject()
+
+def KeyframeAnimationChannelEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return KeyframeAnimationChannelEnd(builder)

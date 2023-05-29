@@ -74,21 +74,38 @@ class View(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def ViewStart(builder): builder.StartObject(2)
+def ViewStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return ViewStart(builder)
-def ViewAddSurfaces(builder, surfaces): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(surfaces), 0)
+    ViewStart(builder)
+
+def ViewAddSurfaces(builder, surfaces):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(surfaces), 0)
+
 def AddSurfaces(builder, surfaces):
-    return ViewAddSurfaces(builder, surfaces)
-def ViewStartSurfacesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    ViewAddSurfaces(builder, surfaces)
+
+def ViewStartSurfacesVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartSurfacesVector(builder, numElems):
     return ViewStartSurfacesVector(builder, numElems)
-def ViewAddFramebuffers(builder, framebuffers): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(framebuffers), 0)
+
+def ViewAddFramebuffers(builder, framebuffers):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(framebuffers), 0)
+
 def AddFramebuffers(builder, framebuffers):
-    return ViewAddFramebuffers(builder, framebuffers)
-def ViewStartFramebuffersVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    ViewAddFramebuffers(builder, framebuffers)
+
+def ViewStartFramebuffersVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartFramebuffersVector(builder, numElems):
     return ViewStartFramebuffersVector(builder, numElems)
-def ViewEnd(builder): return builder.EndObject()
+
+def ViewEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ViewEnd(builder)

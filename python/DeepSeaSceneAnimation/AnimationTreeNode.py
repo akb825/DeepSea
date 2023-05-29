@@ -83,27 +83,50 @@ class AnimationTreeNode(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         return o == 0
 
-def AnimationTreeNodeStart(builder): builder.StartObject(4)
+def AnimationTreeNodeStart(builder):
+    builder.StartObject(4)
+
 def Start(builder):
-    return AnimationTreeNodeStart(builder)
-def AnimationTreeNodeAddAnimationTree(builder, animationTree): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(animationTree), 0)
+    AnimationTreeNodeStart(builder)
+
+def AnimationTreeNodeAddAnimationTree(builder, animationTree):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(animationTree), 0)
+
 def AddAnimationTree(builder, animationTree):
-    return AnimationTreeNodeAddAnimationTree(builder, animationTree)
-def AnimationTreeNodeAddNodeMapCache(builder, nodeMapCache): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(nodeMapCache), 0)
+    AnimationTreeNodeAddAnimationTree(builder, animationTree)
+
+def AnimationTreeNodeAddNodeMapCache(builder, nodeMapCache):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(nodeMapCache), 0)
+
 def AddNodeMapCache(builder, nodeMapCache):
-    return AnimationTreeNodeAddNodeMapCache(builder, nodeMapCache)
-def AnimationTreeNodeAddChildren(builder, children): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(children), 0)
+    AnimationTreeNodeAddNodeMapCache(builder, nodeMapCache)
+
+def AnimationTreeNodeAddChildren(builder, children):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(children), 0)
+
 def AddChildren(builder, children):
-    return AnimationTreeNodeAddChildren(builder, children)
-def AnimationTreeNodeStartChildrenVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    AnimationTreeNodeAddChildren(builder, children)
+
+def AnimationTreeNodeStartChildrenVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartChildrenVector(builder, numElems):
     return AnimationTreeNodeStartChildrenVector(builder, numElems)
-def AnimationTreeNodeAddItemLists(builder, itemLists): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
+
+def AnimationTreeNodeAddItemLists(builder, itemLists):
+    builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
+
 def AddItemLists(builder, itemLists):
-    return AnimationTreeNodeAddItemLists(builder, itemLists)
-def AnimationTreeNodeStartItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    AnimationTreeNodeAddItemLists(builder, itemLists)
+
+def AnimationTreeNodeStartItemListsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartItemListsVector(builder, numElems):
     return AnimationTreeNodeStartItemListsVector(builder, numElems)
-def AnimationTreeNodeEnd(builder): return builder.EndObject()
+
+def AnimationTreeNodeEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return AnimationTreeNodeEnd(builder)

@@ -107,30 +107,56 @@ class ModelNode(object):
             return obj
         return None
 
-def ModelNodeStart(builder): builder.StartObject(4)
+def ModelNodeStart(builder):
+    builder.StartObject(4)
+
 def Start(builder):
-    return ModelNodeStart(builder)
-def ModelNodeAddEmbeddedResources(builder, embeddedResources): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(embeddedResources), 0)
+    ModelNodeStart(builder)
+
+def ModelNodeAddEmbeddedResources(builder, embeddedResources):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(embeddedResources), 0)
+
 def AddEmbeddedResources(builder, embeddedResources):
-    return ModelNodeAddEmbeddedResources(builder, embeddedResources)
-def ModelNodeStartEmbeddedResourcesVector(builder, numElems): return builder.StartVector(1, numElems, 1)
+    ModelNodeAddEmbeddedResources(builder, embeddedResources)
+
+def ModelNodeStartEmbeddedResourcesVector(builder, numElems):
+    return builder.StartVector(1, numElems, 1)
+
 def StartEmbeddedResourcesVector(builder, numElems):
     return ModelNodeStartEmbeddedResourcesVector(builder, numElems)
-def ModelNodeAddModels(builder, models): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(models), 0)
+
+def ModelNodeAddModels(builder, models):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(models), 0)
+
 def AddModels(builder, models):
-    return ModelNodeAddModels(builder, models)
-def ModelNodeStartModelsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    ModelNodeAddModels(builder, models)
+
+def ModelNodeStartModelsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartModelsVector(builder, numElems):
     return ModelNodeStartModelsVector(builder, numElems)
-def ModelNodeAddExtraItemLists(builder, extraItemLists): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(extraItemLists), 0)
+
+def ModelNodeAddExtraItemLists(builder, extraItemLists):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(extraItemLists), 0)
+
 def AddExtraItemLists(builder, extraItemLists):
-    return ModelNodeAddExtraItemLists(builder, extraItemLists)
-def ModelNodeStartExtraItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    ModelNodeAddExtraItemLists(builder, extraItemLists)
+
+def ModelNodeStartExtraItemListsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartExtraItemListsVector(builder, numElems):
     return ModelNodeStartExtraItemListsVector(builder, numElems)
-def ModelNodeAddBounds(builder, bounds): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(bounds), 0)
+
+def ModelNodeAddBounds(builder, bounds):
+    builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(bounds), 0)
+
 def AddBounds(builder, bounds):
-    return ModelNodeAddBounds(builder, bounds)
-def ModelNodeEnd(builder): return builder.EndObject()
+    ModelNodeAddBounds(builder, bounds)
+
+def ModelNodeEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ModelNodeEnd(builder)

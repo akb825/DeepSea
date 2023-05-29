@@ -73,27 +73,50 @@ class Texture(object):
             return obj
         return None
 
-def TextureStart(builder): builder.StartObject(6)
+def TextureStart(builder):
+    builder.StartObject(6)
+
 def Start(builder):
-    return TextureStart(builder)
-def TextureAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    TextureStart(builder)
+
+def TextureAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return TextureAddName(builder, name)
-def TextureAddUsage(builder, usage): builder.PrependUint32Slot(1, usage, 0)
+    TextureAddName(builder, name)
+
+def TextureAddUsage(builder, usage):
+    builder.PrependUint32Slot(1, usage, 0)
+
 def AddUsage(builder, usage):
-    return TextureAddUsage(builder, usage)
-def TextureAddMemoryHints(builder, memoryHints): builder.PrependUint32Slot(2, memoryHints, 0)
+    TextureAddUsage(builder, usage)
+
+def TextureAddMemoryHints(builder, memoryHints):
+    builder.PrependUint32Slot(2, memoryHints, 0)
+
 def AddMemoryHints(builder, memoryHints):
-    return TextureAddMemoryHints(builder, memoryHints)
-def TextureAddDataType(builder, dataType): builder.PrependUint8Slot(3, dataType, 0)
+    TextureAddMemoryHints(builder, memoryHints)
+
+def TextureAddDataType(builder, dataType):
+    builder.PrependUint8Slot(3, dataType, 0)
+
 def AddDataType(builder, dataType):
-    return TextureAddDataType(builder, dataType)
-def TextureAddData(builder, data): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+    TextureAddDataType(builder, dataType)
+
+def TextureAddData(builder, data):
+    builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+
 def AddData(builder, data):
-    return TextureAddData(builder, data)
-def TextureAddTextureInfo(builder, textureInfo): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(textureInfo), 0)
+    TextureAddData(builder, data)
+
+def TextureAddTextureInfo(builder, textureInfo):
+    builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(textureInfo), 0)
+
 def AddTextureInfo(builder, textureInfo):
-    return TextureAddTextureInfo(builder, textureInfo)
-def TextureEnd(builder): return builder.EndObject()
+    TextureAddTextureInfo(builder, textureInfo)
+
+def TextureEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return TextureEnd(builder)

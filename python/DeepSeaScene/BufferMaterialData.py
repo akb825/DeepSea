@@ -45,18 +45,32 @@ class BufferMaterialData(object):
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
-def BufferMaterialDataStart(builder): builder.StartObject(3)
+def BufferMaterialDataStart(builder):
+    builder.StartObject(3)
+
 def Start(builder):
-    return BufferMaterialDataStart(builder)
-def BufferMaterialDataAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    BufferMaterialDataStart(builder)
+
+def BufferMaterialDataAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return BufferMaterialDataAddName(builder, name)
-def BufferMaterialDataAddOffset(builder, offset): builder.PrependUint32Slot(1, offset, 0)
+    BufferMaterialDataAddName(builder, name)
+
+def BufferMaterialDataAddOffset(builder, offset):
+    builder.PrependUint32Slot(1, offset, 0)
+
 def AddOffset(builder, offset):
-    return BufferMaterialDataAddOffset(builder, offset)
-def BufferMaterialDataAddSize(builder, size): builder.PrependUint32Slot(2, size, 0)
+    BufferMaterialDataAddOffset(builder, offset)
+
+def BufferMaterialDataAddSize(builder, size):
+    builder.PrependUint32Slot(2, size, 0)
+
 def AddSize(builder, size):
-    return BufferMaterialDataAddSize(builder, size)
-def BufferMaterialDataEnd(builder): return builder.EndObject()
+    BufferMaterialDataAddSize(builder, size)
+
+def BufferMaterialDataEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return BufferMaterialDataEnd(builder)

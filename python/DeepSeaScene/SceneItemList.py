@@ -65,21 +65,38 @@ class SceneItemList(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         return o == 0
 
-def SceneItemListStart(builder): builder.StartObject(3)
+def SceneItemListStart(builder):
+    builder.StartObject(3)
+
 def Start(builder):
-    return SceneItemListStart(builder)
-def SceneItemListAddType(builder, type): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(type), 0)
+    SceneItemListStart(builder)
+
+def SceneItemListAddType(builder, type):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(type), 0)
+
 def AddType(builder, type):
-    return SceneItemListAddType(builder, type)
-def SceneItemListAddName(builder, name): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    SceneItemListAddType(builder, type)
+
+def SceneItemListAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return SceneItemListAddName(builder, name)
-def SceneItemListAddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+    SceneItemListAddName(builder, name)
+
+def SceneItemListAddData(builder, data):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+
 def AddData(builder, data):
-    return SceneItemListAddData(builder, data)
-def SceneItemListStartDataVector(builder, numElems): return builder.StartVector(1, numElems, 1)
+    SceneItemListAddData(builder, data)
+
+def SceneItemListStartDataVector(builder, numElems):
+    return builder.StartVector(1, numElems, 1)
+
 def StartDataVector(builder, numElems):
     return SceneItemListStartDataVector(builder, numElems)
-def SceneItemListEnd(builder): return builder.EndObject()
+
+def SceneItemListEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return SceneItemListEnd(builder)

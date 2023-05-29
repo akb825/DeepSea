@@ -52,21 +52,38 @@ class IndexBuffer(object):
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
-def IndexBufferStart(builder): builder.StartObject(4)
+def IndexBufferStart(builder):
+    builder.StartObject(4)
+
 def Start(builder):
-    return IndexBufferStart(builder)
-def IndexBufferAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    IndexBufferStart(builder)
+
+def IndexBufferAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return IndexBufferAddName(builder, name)
-def IndexBufferAddOffset(builder, offset): builder.PrependUint32Slot(1, offset, 0)
+    IndexBufferAddName(builder, name)
+
+def IndexBufferAddOffset(builder, offset):
+    builder.PrependUint32Slot(1, offset, 0)
+
 def AddOffset(builder, offset):
-    return IndexBufferAddOffset(builder, offset)
-def IndexBufferAddCount(builder, count): builder.PrependUint32Slot(2, count, 0)
+    IndexBufferAddOffset(builder, offset)
+
+def IndexBufferAddCount(builder, count):
+    builder.PrependUint32Slot(2, count, 0)
+
 def AddCount(builder, count):
-    return IndexBufferAddCount(builder, count)
-def IndexBufferAddIndexSize(builder, indexSize): builder.PrependUint8Slot(3, indexSize, 0)
+    IndexBufferAddCount(builder, count)
+
+def IndexBufferAddIndexSize(builder, indexSize):
+    builder.PrependUint8Slot(3, indexSize, 0)
+
 def AddIndexSize(builder, indexSize):
-    return IndexBufferAddIndexSize(builder, indexSize)
-def IndexBufferEnd(builder): return builder.EndObject()
+    IndexBufferAddIndexSize(builder, indexSize)
+
+def IndexBufferEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return IndexBufferEnd(builder)

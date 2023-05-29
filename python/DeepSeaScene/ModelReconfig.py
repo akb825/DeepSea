@@ -63,24 +63,44 @@ class ModelReconfig(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def ModelReconfigStart(builder): builder.StartObject(5)
+def ModelReconfigStart(builder):
+    builder.StartObject(5)
+
 def Start(builder):
-    return ModelReconfigStart(builder)
-def ModelReconfigAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    ModelReconfigStart(builder)
+
+def ModelReconfigAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return ModelReconfigAddName(builder, name)
-def ModelReconfigAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+    ModelReconfigAddName(builder, name)
+
+def ModelReconfigAddShader(builder, shader):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+
 def AddShader(builder, shader):
-    return ModelReconfigAddShader(builder, shader)
-def ModelReconfigAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+    ModelReconfigAddShader(builder, shader)
+
+def ModelReconfigAddMaterial(builder, material):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+
 def AddMaterial(builder, material):
-    return ModelReconfigAddMaterial(builder, material)
-def ModelReconfigAddDistanceRange(builder, distanceRange): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(distanceRange), 0)
+    ModelReconfigAddMaterial(builder, material)
+
+def ModelReconfigAddDistanceRange(builder, distanceRange):
+    builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(distanceRange), 0)
+
 def AddDistanceRange(builder, distanceRange):
-    return ModelReconfigAddDistanceRange(builder, distanceRange)
-def ModelReconfigAddModelList(builder, modelList): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(modelList), 0)
+    ModelReconfigAddDistanceRange(builder, distanceRange)
+
+def ModelReconfigAddModelList(builder, modelList):
+    builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(modelList), 0)
+
 def AddModelList(builder, modelList):
-    return ModelReconfigAddModelList(builder, modelList)
-def ModelReconfigEnd(builder): return builder.EndObject()
+    ModelReconfigAddModelList(builder, modelList)
+
+def ModelReconfigEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ModelReconfigEnd(builder)

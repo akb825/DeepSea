@@ -49,15 +49,26 @@ class KeyframeAnimation(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         return o == 0
 
-def KeyframeAnimationStart(builder): builder.StartObject(1)
+def KeyframeAnimationStart(builder):
+    builder.StartObject(1)
+
 def Start(builder):
-    return KeyframeAnimationStart(builder)
-def KeyframeAnimationAddKeyframes(builder, keyframes): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(keyframes), 0)
+    KeyframeAnimationStart(builder)
+
+def KeyframeAnimationAddKeyframes(builder, keyframes):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(keyframes), 0)
+
 def AddKeyframes(builder, keyframes):
-    return KeyframeAnimationAddKeyframes(builder, keyframes)
-def KeyframeAnimationStartKeyframesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    KeyframeAnimationAddKeyframes(builder, keyframes)
+
+def KeyframeAnimationStartKeyframesVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartKeyframesVector(builder, numElems):
     return KeyframeAnimationStartKeyframesVector(builder, numElems)
-def KeyframeAnimationEnd(builder): return builder.EndObject()
+
+def KeyframeAnimationEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return KeyframeAnimationEnd(builder)

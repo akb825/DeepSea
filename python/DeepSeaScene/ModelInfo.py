@@ -102,36 +102,68 @@ class ModelInfo(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def ModelInfoStart(builder): builder.StartObject(8)
+def ModelInfoStart(builder):
+    builder.StartObject(8)
+
 def Start(builder):
-    return ModelInfoStart(builder)
-def ModelInfoAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    ModelInfoStart(builder)
+
+def ModelInfoAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return ModelInfoAddName(builder, name)
-def ModelInfoAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+    ModelInfoAddName(builder, name)
+
+def ModelInfoAddShader(builder, shader):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+
 def AddShader(builder, shader):
-    return ModelInfoAddShader(builder, shader)
-def ModelInfoAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+    ModelInfoAddShader(builder, shader)
+
+def ModelInfoAddMaterial(builder, material):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+
 def AddMaterial(builder, material):
-    return ModelInfoAddMaterial(builder, material)
-def ModelInfoAddGeometry(builder, geometry): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(geometry), 0)
+    ModelInfoAddMaterial(builder, material)
+
+def ModelInfoAddGeometry(builder, geometry):
+    builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(geometry), 0)
+
 def AddGeometry(builder, geometry):
-    return ModelInfoAddGeometry(builder, geometry)
-def ModelInfoAddDistanceRange(builder, distanceRange): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(distanceRange), 0)
+    ModelInfoAddGeometry(builder, geometry)
+
+def ModelInfoAddDistanceRange(builder, distanceRange):
+    builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(distanceRange), 0)
+
 def AddDistanceRange(builder, distanceRange):
-    return ModelInfoAddDistanceRange(builder, distanceRange)
-def ModelInfoAddDrawRanges(builder, drawRanges): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(drawRanges), 0)
+    ModelInfoAddDistanceRange(builder, distanceRange)
+
+def ModelInfoAddDrawRanges(builder, drawRanges):
+    builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(drawRanges), 0)
+
 def AddDrawRanges(builder, drawRanges):
-    return ModelInfoAddDrawRanges(builder, drawRanges)
-def ModelInfoStartDrawRangesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    ModelInfoAddDrawRanges(builder, drawRanges)
+
+def ModelInfoStartDrawRangesVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartDrawRangesVector(builder, numElems):
     return ModelInfoStartDrawRangesVector(builder, numElems)
-def ModelInfoAddPrimitiveType(builder, primitiveType): builder.PrependUint8Slot(6, primitiveType, 0)
+
+def ModelInfoAddPrimitiveType(builder, primitiveType):
+    builder.PrependUint8Slot(6, primitiveType, 0)
+
 def AddPrimitiveType(builder, primitiveType):
-    return ModelInfoAddPrimitiveType(builder, primitiveType)
-def ModelInfoAddModelList(builder, modelList): builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(modelList), 0)
+    ModelInfoAddPrimitiveType(builder, primitiveType)
+
+def ModelInfoAddModelList(builder, modelList):
+    builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(modelList), 0)
+
 def AddModelList(builder, modelList):
-    return ModelInfoAddModelList(builder, modelList)
-def ModelInfoEnd(builder): return builder.EndObject()
+    ModelInfoAddModelList(builder, modelList)
+
+def ModelInfoEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ModelInfoEnd(builder)

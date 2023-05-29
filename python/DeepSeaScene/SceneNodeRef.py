@@ -31,12 +31,20 @@ class SceneNodeRef(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def SceneNodeRefStart(builder): builder.StartObject(1)
+def SceneNodeRefStart(builder):
+    builder.StartObject(1)
+
 def Start(builder):
-    return SceneNodeRefStart(builder)
-def SceneNodeRefAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    SceneNodeRefStart(builder)
+
+def SceneNodeRefAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return SceneNodeRefAddName(builder, name)
-def SceneNodeRefEnd(builder): return builder.EndObject()
+    SceneNodeRefAddName(builder, name)
+
+def SceneNodeRefEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return SceneNodeRefEnd(builder)

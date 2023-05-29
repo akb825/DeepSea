@@ -52,21 +52,38 @@ class ColorTable(object):
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
-def ColorTableStart(builder): builder.StartObject(4)
+def ColorTableStart(builder):
+    builder.StartObject(4)
+
 def Start(builder):
-    return ColorTableStart(builder)
-def ColorTableAddRed(builder, red): builder.PrependUint8Slot(0, red, 0)
+    ColorTableStart(builder)
+
+def ColorTableAddRed(builder, red):
+    builder.PrependUint8Slot(0, red, 0)
+
 def AddRed(builder, red):
-    return ColorTableAddRed(builder, red)
-def ColorTableAddGreen(builder, green): builder.PrependUint8Slot(1, green, 0)
+    ColorTableAddRed(builder, red)
+
+def ColorTableAddGreen(builder, green):
+    builder.PrependUint8Slot(1, green, 0)
+
 def AddGreen(builder, green):
-    return ColorTableAddGreen(builder, green)
-def ColorTableAddBlue(builder, blue): builder.PrependUint8Slot(2, blue, 0)
+    ColorTableAddGreen(builder, green)
+
+def ColorTableAddBlue(builder, blue):
+    builder.PrependUint8Slot(2, blue, 0)
+
 def AddBlue(builder, blue):
-    return ColorTableAddBlue(builder, blue)
-def ColorTableAddAlpha(builder, alpha): builder.PrependUint8Slot(3, alpha, 0)
+    ColorTableAddBlue(builder, blue)
+
+def ColorTableAddAlpha(builder, alpha):
+    builder.PrependUint8Slot(3, alpha, 0)
+
 def AddAlpha(builder, alpha):
-    return ColorTableAddAlpha(builder, alpha)
-def ColorTableEnd(builder): return builder.EndObject()
+    ColorTableAddAlpha(builder, alpha)
+
+def ColorTableEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ColorTableEnd(builder)

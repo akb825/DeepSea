@@ -52,21 +52,38 @@ class ShadowInstanceTransformData(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def ShadowInstanceTransformDataStart(builder): builder.StartObject(4)
+def ShadowInstanceTransformDataStart(builder):
+    builder.StartObject(4)
+
 def Start(builder):
-    return ShadowInstanceTransformDataStart(builder)
-def ShadowInstanceTransformDataAddShadowManager(builder, shadowManager): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
+    ShadowInstanceTransformDataStart(builder)
+
+def ShadowInstanceTransformDataAddShadowManager(builder, shadowManager):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
+
 def AddShadowManager(builder, shadowManager):
-    return ShadowInstanceTransformDataAddShadowManager(builder, shadowManager)
-def ShadowInstanceTransformDataAddShadows(builder, shadows): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shadows), 0)
+    ShadowInstanceTransformDataAddShadowManager(builder, shadowManager)
+
+def ShadowInstanceTransformDataAddShadows(builder, shadows):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shadows), 0)
+
 def AddShadows(builder, shadows):
-    return ShadowInstanceTransformDataAddShadows(builder, shadows)
-def ShadowInstanceTransformDataAddSurface(builder, surface): builder.PrependUint8Slot(2, surface, 0)
+    ShadowInstanceTransformDataAddShadows(builder, shadows)
+
+def ShadowInstanceTransformDataAddSurface(builder, surface):
+    builder.PrependUint8Slot(2, surface, 0)
+
 def AddSurface(builder, surface):
-    return ShadowInstanceTransformDataAddSurface(builder, surface)
-def ShadowInstanceTransformDataAddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
+    ShadowInstanceTransformDataAddSurface(builder, surface)
+
+def ShadowInstanceTransformDataAddVariableGroupDesc(builder, variableGroupDesc):
+    builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
+
 def AddVariableGroupDesc(builder, variableGroupDesc):
-    return ShadowInstanceTransformDataAddVariableGroupDesc(builder, variableGroupDesc)
-def ShadowInstanceTransformDataEnd(builder): return builder.EndObject()
+    ShadowInstanceTransformDataAddVariableGroupDesc(builder, variableGroupDesc)
+
+def ShadowInstanceTransformDataEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ShadowInstanceTransformDataEnd(builder)

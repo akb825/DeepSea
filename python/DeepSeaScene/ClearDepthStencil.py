@@ -38,15 +38,26 @@ class ClearDepthStencil(object):
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
-def ClearDepthStencilStart(builder): builder.StartObject(2)
+def ClearDepthStencilStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return ClearDepthStencilStart(builder)
-def ClearDepthStencilAddDepth(builder, depth): builder.PrependFloat32Slot(0, depth, 0.0)
+    ClearDepthStencilStart(builder)
+
+def ClearDepthStencilAddDepth(builder, depth):
+    builder.PrependFloat32Slot(0, depth, 0.0)
+
 def AddDepth(builder, depth):
-    return ClearDepthStencilAddDepth(builder, depth)
-def ClearDepthStencilAddStencil(builder, stencil): builder.PrependUint32Slot(1, stencil, 0)
+    ClearDepthStencilAddDepth(builder, depth)
+
+def ClearDepthStencilAddStencil(builder, stencil):
+    builder.PrependUint32Slot(1, stencil, 0)
+
 def AddStencil(builder, stencil):
-    return ClearDepthStencilAddStencil(builder, stencil)
-def ClearDepthStencilEnd(builder): return builder.EndObject()
+    ClearDepthStencilAddStencil(builder, stencil)
+
+def ClearDepthStencilEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ClearDepthStencilEnd(builder)

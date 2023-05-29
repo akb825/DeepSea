@@ -48,18 +48,32 @@ class VersionedShaderModule(object):
             return obj
         return None
 
-def VersionedShaderModuleStart(builder): builder.StartObject(3)
+def VersionedShaderModuleStart(builder):
+    builder.StartObject(3)
+
 def Start(builder):
-    return VersionedShaderModuleStart(builder)
-def VersionedShaderModuleAddVersion(builder, version): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(version), 0)
+    VersionedShaderModuleStart(builder)
+
+def VersionedShaderModuleAddVersion(builder, version):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(version), 0)
+
 def AddVersion(builder, version):
-    return VersionedShaderModuleAddVersion(builder, version)
-def VersionedShaderModuleAddDataType(builder, dataType): builder.PrependUint8Slot(1, dataType, 0)
+    VersionedShaderModuleAddVersion(builder, version)
+
+def VersionedShaderModuleAddDataType(builder, dataType):
+    builder.PrependUint8Slot(1, dataType, 0)
+
 def AddDataType(builder, dataType):
-    return VersionedShaderModuleAddDataType(builder, dataType)
-def VersionedShaderModuleAddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+    VersionedShaderModuleAddDataType(builder, dataType)
+
+def VersionedShaderModuleAddData(builder, data):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+
 def AddData(builder, data):
-    return VersionedShaderModuleAddData(builder, data)
-def VersionedShaderModuleEnd(builder): return builder.EndObject()
+    VersionedShaderModuleAddData(builder, data)
+
+def VersionedShaderModuleEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return VersionedShaderModuleEnd(builder)

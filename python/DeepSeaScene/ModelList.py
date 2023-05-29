@@ -74,24 +74,44 @@ class ModelList(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def ModelListStart(builder): builder.StartObject(4)
+def ModelListStart(builder):
+    builder.StartObject(4)
+
 def Start(builder):
-    return ModelListStart(builder)
-def ModelListAddInstanceData(builder, instanceData): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(instanceData), 0)
+    ModelListStart(builder)
+
+def ModelListAddInstanceData(builder, instanceData):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(instanceData), 0)
+
 def AddInstanceData(builder, instanceData):
-    return ModelListAddInstanceData(builder, instanceData)
-def ModelListStartInstanceDataVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    ModelListAddInstanceData(builder, instanceData)
+
+def ModelListStartInstanceDataVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartInstanceDataVector(builder, numElems):
     return ModelListStartInstanceDataVector(builder, numElems)
-def ModelListAddSortType(builder, sortType): builder.PrependUint8Slot(1, sortType, 0)
+
+def ModelListAddSortType(builder, sortType):
+    builder.PrependUint8Slot(1, sortType, 0)
+
 def AddSortType(builder, sortType):
-    return ModelListAddSortType(builder, sortType)
-def ModelListAddDynamicRenderStates(builder, dynamicRenderStates): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(dynamicRenderStates), 0)
+    ModelListAddSortType(builder, sortType)
+
+def ModelListAddDynamicRenderStates(builder, dynamicRenderStates):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(dynamicRenderStates), 0)
+
 def AddDynamicRenderStates(builder, dynamicRenderStates):
-    return ModelListAddDynamicRenderStates(builder, dynamicRenderStates)
-def ModelListAddCullList(builder, cullList): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(cullList), 0)
+    ModelListAddDynamicRenderStates(builder, dynamicRenderStates)
+
+def ModelListAddCullList(builder, cullList):
+    builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(cullList), 0)
+
 def AddCullList(builder, cullList):
-    return ModelListAddCullList(builder, cullList)
-def ModelListEnd(builder): return builder.EndObject()
+    ModelListAddCullList(builder, cullList)
+
+def ModelListEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ModelListEnd(builder)

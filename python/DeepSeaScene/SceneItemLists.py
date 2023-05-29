@@ -49,15 +49,26 @@ class SceneItemLists(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         return o == 0
 
-def SceneItemListsStart(builder): builder.StartObject(1)
+def SceneItemListsStart(builder):
+    builder.StartObject(1)
+
 def Start(builder):
-    return SceneItemListsStart(builder)
-def SceneItemListsAddItemLists(builder, itemLists): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
+    SceneItemListsStart(builder)
+
+def SceneItemListsAddItemLists(builder, itemLists):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
+
 def AddItemLists(builder, itemLists):
-    return SceneItemListsAddItemLists(builder, itemLists)
-def SceneItemListsStartItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    SceneItemListsAddItemLists(builder, itemLists)
+
+def SceneItemListsStartItemListsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartItemListsVector(builder, numElems):
     return SceneItemListsStartItemListsVector(builder, numElems)
-def SceneItemListsEnd(builder): return builder.EndObject()
+
+def SceneItemListsEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return SceneItemListsEnd(builder)

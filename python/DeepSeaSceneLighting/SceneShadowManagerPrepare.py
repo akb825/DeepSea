@@ -31,12 +31,20 @@ class SceneShadowManagerPrepare(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def SceneShadowManagerPrepareStart(builder): builder.StartObject(1)
+def SceneShadowManagerPrepareStart(builder):
+    builder.StartObject(1)
+
 def Start(builder):
-    return SceneShadowManagerPrepareStart(builder)
-def SceneShadowManagerPrepareAddShadowManager(builder, shadowManager): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
+    SceneShadowManagerPrepareStart(builder)
+
+def SceneShadowManagerPrepareAddShadowManager(builder, shadowManager):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
+
 def AddShadowManager(builder, shadowManager):
-    return SceneShadowManagerPrepareAddShadowManager(builder, shadowManager)
-def SceneShadowManagerPrepareEnd(builder): return builder.EndObject()
+    SceneShadowManagerPrepareAddShadowManager(builder, shadowManager)
+
+def SceneShadowManagerPrepareEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return SceneShadowManagerPrepareEnd(builder)

@@ -42,15 +42,26 @@ class ColorMaterial(object):
             return obj
         return None
 
-def ColorMaterialStart(builder): builder.StartObject(2)
+def ColorMaterialStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return ColorMaterialStart(builder)
-def ColorMaterialAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    ColorMaterialStart(builder)
+
+def ColorMaterialAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return ColorMaterialAddName(builder, name)
-def ColorMaterialAddColor(builder, color): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+    ColorMaterialAddName(builder, name)
+
+def ColorMaterialAddColor(builder, color):
+    builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+
 def AddColor(builder, color):
-    return ColorMaterialAddColor(builder, color)
-def ColorMaterialEnd(builder): return builder.EndObject()
+    ColorMaterialAddColor(builder, color)
+
+def ColorMaterialEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ColorMaterialEnd(builder)

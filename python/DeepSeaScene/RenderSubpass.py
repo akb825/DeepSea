@@ -118,33 +118,62 @@ class RenderSubpass(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         return o == 0
 
-def RenderSubpassStart(builder): builder.StartObject(5)
+def RenderSubpassStart(builder):
+    builder.StartObject(5)
+
 def Start(builder):
-    return RenderSubpassStart(builder)
-def RenderSubpassAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    RenderSubpassStart(builder)
+
+def RenderSubpassAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return RenderSubpassAddName(builder, name)
-def RenderSubpassAddInputAttachments(builder, inputAttachments): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(inputAttachments), 0)
+    RenderSubpassAddName(builder, name)
+
+def RenderSubpassAddInputAttachments(builder, inputAttachments):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(inputAttachments), 0)
+
 def AddInputAttachments(builder, inputAttachments):
-    return RenderSubpassAddInputAttachments(builder, inputAttachments)
-def RenderSubpassStartInputAttachmentsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    RenderSubpassAddInputAttachments(builder, inputAttachments)
+
+def RenderSubpassStartInputAttachmentsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartInputAttachmentsVector(builder, numElems):
     return RenderSubpassStartInputAttachmentsVector(builder, numElems)
-def RenderSubpassAddColorAttachments(builder, colorAttachments): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(colorAttachments), 0)
+
+def RenderSubpassAddColorAttachments(builder, colorAttachments):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(colorAttachments), 0)
+
 def AddColorAttachments(builder, colorAttachments):
-    return RenderSubpassAddColorAttachments(builder, colorAttachments)
-def RenderSubpassStartColorAttachmentsVector(builder, numElems): return builder.StartVector(8, numElems, 4)
+    RenderSubpassAddColorAttachments(builder, colorAttachments)
+
+def RenderSubpassStartColorAttachmentsVector(builder, numElems):
+    return builder.StartVector(8, numElems, 4)
+
 def StartColorAttachmentsVector(builder, numElems):
     return RenderSubpassStartColorAttachmentsVector(builder, numElems)
-def RenderSubpassAddDepthStencilAttachment(builder, depthStencilAttachment): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(depthStencilAttachment), 0)
+
+def RenderSubpassAddDepthStencilAttachment(builder, depthStencilAttachment):
+    builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(depthStencilAttachment), 0)
+
 def AddDepthStencilAttachment(builder, depthStencilAttachment):
-    return RenderSubpassAddDepthStencilAttachment(builder, depthStencilAttachment)
-def RenderSubpassAddDrawLists(builder, drawLists): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(drawLists), 0)
+    RenderSubpassAddDepthStencilAttachment(builder, depthStencilAttachment)
+
+def RenderSubpassAddDrawLists(builder, drawLists):
+    builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(drawLists), 0)
+
 def AddDrawLists(builder, drawLists):
-    return RenderSubpassAddDrawLists(builder, drawLists)
-def RenderSubpassStartDrawListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    RenderSubpassAddDrawLists(builder, drawLists)
+
+def RenderSubpassStartDrawListsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartDrawListsVector(builder, numElems):
     return RenderSubpassStartDrawListsVector(builder, numElems)
-def RenderSubpassEnd(builder): return builder.EndObject()
+
+def RenderSubpassEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return RenderSubpassEnd(builder)

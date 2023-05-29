@@ -56,18 +56,32 @@ class MaterialDesc(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def MaterialDescStart(builder): builder.StartObject(2)
+def MaterialDescStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return MaterialDescStart(builder)
-def MaterialDescAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    MaterialDescStart(builder)
+
+def MaterialDescAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return MaterialDescAddName(builder, name)
-def MaterialDescAddElements(builder, elements): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(elements), 0)
+    MaterialDescAddName(builder, name)
+
+def MaterialDescAddElements(builder, elements):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(elements), 0)
+
 def AddElements(builder, elements):
-    return MaterialDescAddElements(builder, elements)
-def MaterialDescStartElementsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    MaterialDescAddElements(builder, elements)
+
+def MaterialDescStartElementsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartElementsVector(builder, numElems):
     return MaterialDescStartElementsVector(builder, numElems)
-def MaterialDescEnd(builder): return builder.EndObject()
+
+def MaterialDescEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return MaterialDescEnd(builder)

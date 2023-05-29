@@ -42,15 +42,26 @@ class ParticleSphere(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def ParticleSphereStart(builder): builder.StartObject(2)
+def ParticleSphereStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return ParticleSphereStart(builder)
-def ParticleSphereAddCenter(builder, center): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(center), 0)
+    ParticleSphereStart(builder)
+
+def ParticleSphereAddCenter(builder, center):
+    builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(center), 0)
+
 def AddCenter(builder, center):
-    return ParticleSphereAddCenter(builder, center)
-def ParticleSphereAddRadius(builder, radius): builder.PrependFloat32Slot(1, radius, 0.0)
+    ParticleSphereAddCenter(builder, center)
+
+def ParticleSphereAddRadius(builder, radius):
+    builder.PrependFloat32Slot(1, radius, 0.0)
+
 def AddRadius(builder, radius):
-    return ParticleSphereAddRadius(builder, radius)
-def ParticleSphereEnd(builder): return builder.EndObject()
+    ParticleSphereAddRadius(builder, radius)
+
+def ParticleSphereEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ParticleSphereEnd(builder)

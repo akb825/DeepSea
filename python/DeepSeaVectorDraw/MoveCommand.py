@@ -35,12 +35,20 @@ class MoveCommand(object):
             return obj
         return None
 
-def MoveCommandStart(builder): builder.StartObject(1)
+def MoveCommandStart(builder):
+    builder.StartObject(1)
+
 def Start(builder):
-    return MoveCommandStart(builder)
-def MoveCommandAddPosition(builder, position): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(position), 0)
+    MoveCommandStart(builder)
+
+def MoveCommandAddPosition(builder, position):
+    builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(position), 0)
+
 def AddPosition(builder, position):
-    return MoveCommandAddPosition(builder, position)
-def MoveCommandEnd(builder): return builder.EndObject()
+    MoveCommandAddPosition(builder, position)
+
+def MoveCommandEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return MoveCommandEnd(builder)

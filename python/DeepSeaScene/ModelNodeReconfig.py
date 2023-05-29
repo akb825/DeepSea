@@ -76,24 +76,44 @@ class ModelNodeReconfig(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         return o == 0
 
-def ModelNodeReconfigStart(builder): builder.StartObject(3)
+def ModelNodeReconfigStart(builder):
+    builder.StartObject(3)
+
 def Start(builder):
-    return ModelNodeReconfigStart(builder)
-def ModelNodeReconfigAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    ModelNodeReconfigStart(builder)
+
+def ModelNodeReconfigAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return ModelNodeReconfigAddName(builder, name)
-def ModelNodeReconfigAddModels(builder, models): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(models), 0)
+    ModelNodeReconfigAddName(builder, name)
+
+def ModelNodeReconfigAddModels(builder, models):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(models), 0)
+
 def AddModels(builder, models):
-    return ModelNodeReconfigAddModels(builder, models)
-def ModelNodeReconfigStartModelsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    ModelNodeReconfigAddModels(builder, models)
+
+def ModelNodeReconfigStartModelsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartModelsVector(builder, numElems):
     return ModelNodeReconfigStartModelsVector(builder, numElems)
-def ModelNodeReconfigAddExtraItemLists(builder, extraItemLists): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(extraItemLists), 0)
+
+def ModelNodeReconfigAddExtraItemLists(builder, extraItemLists):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(extraItemLists), 0)
+
 def AddExtraItemLists(builder, extraItemLists):
-    return ModelNodeReconfigAddExtraItemLists(builder, extraItemLists)
-def ModelNodeReconfigStartExtraItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    ModelNodeReconfigAddExtraItemLists(builder, extraItemLists)
+
+def ModelNodeReconfigStartExtraItemListsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartExtraItemListsVector(builder, numElems):
     return ModelNodeReconfigStartExtraItemListsVector(builder, numElems)
-def ModelNodeReconfigEnd(builder): return builder.EndObject()
+
+def ModelNodeReconfigEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ModelNodeReconfigEnd(builder)

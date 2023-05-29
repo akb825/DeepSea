@@ -41,15 +41,26 @@ class ScenePipelineItem(object):
             return obj
         return None
 
-def ScenePipelineItemStart(builder): builder.StartObject(2)
+def ScenePipelineItemStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return ScenePipelineItemStart(builder)
-def ScenePipelineItemAddItemType(builder, itemType): builder.PrependUint8Slot(0, itemType, 0)
+    ScenePipelineItemStart(builder)
+
+def ScenePipelineItemAddItemType(builder, itemType):
+    builder.PrependUint8Slot(0, itemType, 0)
+
 def AddItemType(builder, itemType):
-    return ScenePipelineItemAddItemType(builder, itemType)
-def ScenePipelineItemAddItem(builder, item): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(item), 0)
+    ScenePipelineItemAddItemType(builder, itemType)
+
+def ScenePipelineItemAddItem(builder, item):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(item), 0)
+
 def AddItem(builder, item):
-    return ScenePipelineItemAddItem(builder, item)
-def ScenePipelineItemEnd(builder): return builder.EndObject()
+    ScenePipelineItemAddItem(builder, item)
+
+def ScenePipelineItemEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ScenePipelineItemEnd(builder)

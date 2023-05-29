@@ -52,21 +52,38 @@ class ClearColorFloat(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def ClearColorFloatStart(builder): builder.StartObject(4)
+def ClearColorFloatStart(builder):
+    builder.StartObject(4)
+
 def Start(builder):
-    return ClearColorFloatStart(builder)
-def ClearColorFloatAddRed(builder, red): builder.PrependFloat32Slot(0, red, 0.0)
+    ClearColorFloatStart(builder)
+
+def ClearColorFloatAddRed(builder, red):
+    builder.PrependFloat32Slot(0, red, 0.0)
+
 def AddRed(builder, red):
-    return ClearColorFloatAddRed(builder, red)
-def ClearColorFloatAddGreen(builder, green): builder.PrependFloat32Slot(1, green, 0.0)
+    ClearColorFloatAddRed(builder, red)
+
+def ClearColorFloatAddGreen(builder, green):
+    builder.PrependFloat32Slot(1, green, 0.0)
+
 def AddGreen(builder, green):
-    return ClearColorFloatAddGreen(builder, green)
-def ClearColorFloatAddBlue(builder, blue): builder.PrependFloat32Slot(2, blue, 0.0)
+    ClearColorFloatAddGreen(builder, green)
+
+def ClearColorFloatAddBlue(builder, blue):
+    builder.PrependFloat32Slot(2, blue, 0.0)
+
 def AddBlue(builder, blue):
-    return ClearColorFloatAddBlue(builder, blue)
-def ClearColorFloatAddAlpha(builder, alpha): builder.PrependFloat32Slot(3, alpha, 0.0)
+    ClearColorFloatAddBlue(builder, blue)
+
+def ClearColorFloatAddAlpha(builder, alpha):
+    builder.PrependFloat32Slot(3, alpha, 0.0)
+
 def AddAlpha(builder, alpha):
-    return ClearColorFloatAddAlpha(builder, alpha)
-def ClearColorFloatEnd(builder): return builder.EndObject()
+    ClearColorFloatAddAlpha(builder, alpha)
+
+def ClearColorFloatEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ClearColorFloatEnd(builder)

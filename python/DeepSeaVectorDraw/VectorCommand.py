@@ -41,15 +41,26 @@ class VectorCommand(object):
             return obj
         return None
 
-def VectorCommandStart(builder): builder.StartObject(2)
+def VectorCommandStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return VectorCommandStart(builder)
-def VectorCommandAddCommandType(builder, commandType): builder.PrependUint8Slot(0, commandType, 0)
+    VectorCommandStart(builder)
+
+def VectorCommandAddCommandType(builder, commandType):
+    builder.PrependUint8Slot(0, commandType, 0)
+
 def AddCommandType(builder, commandType):
-    return VectorCommandAddCommandType(builder, commandType)
-def VectorCommandAddCommand(builder, command): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(command), 0)
+    VectorCommandAddCommandType(builder, commandType)
+
+def VectorCommandAddCommand(builder, command):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(command), 0)
+
 def AddCommand(builder, command):
-    return VectorCommandAddCommand(builder, command)
-def VectorCommandEnd(builder): return builder.EndObject()
+    VectorCommandAddCommand(builder, command)
+
+def VectorCommandEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return VectorCommandEnd(builder)

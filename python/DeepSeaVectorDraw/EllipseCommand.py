@@ -46,15 +46,26 @@ class EllipseCommand(object):
             return obj
         return None
 
-def EllipseCommandStart(builder): builder.StartObject(2)
+def EllipseCommandStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return EllipseCommandStart(builder)
-def EllipseCommandAddCenter(builder, center): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(center), 0)
+    EllipseCommandStart(builder)
+
+def EllipseCommandAddCenter(builder, center):
+    builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(center), 0)
+
 def AddCenter(builder, center):
-    return EllipseCommandAddCenter(builder, center)
-def EllipseCommandAddRadius(builder, radius): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(radius), 0)
+    EllipseCommandAddCenter(builder, center)
+
+def EllipseCommandAddRadius(builder, radius):
+    builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(radius), 0)
+
 def AddRadius(builder, radius):
-    return EllipseCommandAddRadius(builder, radius)
-def EllipseCommandEnd(builder): return builder.EndObject()
+    EllipseCommandAddRadius(builder, radius)
+
+def EllipseCommandEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return EllipseCommandEnd(builder)

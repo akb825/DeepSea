@@ -102,30 +102,56 @@ class AnimationJointTreeNode(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         return o == 0
 
-def AnimationJointTreeNodeStart(builder): builder.StartObject(6)
+def AnimationJointTreeNodeStart(builder):
+    builder.StartObject(6)
+
 def Start(builder):
-    return AnimationJointTreeNodeStart(builder)
-def AnimationJointTreeNodeAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    AnimationJointTreeNodeStart(builder)
+
+def AnimationJointTreeNodeAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return AnimationJointTreeNodeAddName(builder, name)
-def AnimationJointTreeNodeAddScale(builder, scale): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(scale), 0)
+    AnimationJointTreeNodeAddName(builder, name)
+
+def AnimationJointTreeNodeAddScale(builder, scale):
+    builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(scale), 0)
+
 def AddScale(builder, scale):
-    return AnimationJointTreeNodeAddScale(builder, scale)
-def AnimationJointTreeNodeAddRotation(builder, rotation): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(rotation), 0)
+    AnimationJointTreeNodeAddScale(builder, scale)
+
+def AnimationJointTreeNodeAddRotation(builder, rotation):
+    builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(rotation), 0)
+
 def AddRotation(builder, rotation):
-    return AnimationJointTreeNodeAddRotation(builder, rotation)
-def AnimationJointTreeNodeAddTranslation(builder, translation): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(translation), 0)
+    AnimationJointTreeNodeAddRotation(builder, rotation)
+
+def AnimationJointTreeNodeAddTranslation(builder, translation):
+    builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(translation), 0)
+
 def AddTranslation(builder, translation):
-    return AnimationJointTreeNodeAddTranslation(builder, translation)
-def AnimationJointTreeNodeAddToLocalSpace(builder, toLocalSpace): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(toLocalSpace), 0)
+    AnimationJointTreeNodeAddTranslation(builder, translation)
+
+def AnimationJointTreeNodeAddToLocalSpace(builder, toLocalSpace):
+    builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(toLocalSpace), 0)
+
 def AddToLocalSpace(builder, toLocalSpace):
-    return AnimationJointTreeNodeAddToLocalSpace(builder, toLocalSpace)
-def AnimationJointTreeNodeAddChildren(builder, children): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(children), 0)
+    AnimationJointTreeNodeAddToLocalSpace(builder, toLocalSpace)
+
+def AnimationJointTreeNodeAddChildren(builder, children):
+    builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(children), 0)
+
 def AddChildren(builder, children):
-    return AnimationJointTreeNodeAddChildren(builder, children)
-def AnimationJointTreeNodeStartChildrenVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    AnimationJointTreeNodeAddChildren(builder, children)
+
+def AnimationJointTreeNodeStartChildrenVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartChildrenVector(builder, numElems):
     return AnimationJointTreeNodeStartChildrenVector(builder, numElems)
-def AnimationJointTreeNodeEnd(builder): return builder.EndObject()
+
+def AnimationJointTreeNodeEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return AnimationJointTreeNodeEnd(builder)

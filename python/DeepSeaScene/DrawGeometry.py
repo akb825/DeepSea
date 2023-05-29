@@ -67,21 +67,38 @@ class DrawGeometry(object):
             return obj
         return None
 
-def DrawGeometryStart(builder): builder.StartObject(3)
+def DrawGeometryStart(builder):
+    builder.StartObject(3)
+
 def Start(builder):
-    return DrawGeometryStart(builder)
-def DrawGeometryAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    DrawGeometryStart(builder)
+
+def DrawGeometryAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return DrawGeometryAddName(builder, name)
-def DrawGeometryAddVertexBuffers(builder, vertexBuffers): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(vertexBuffers), 0)
+    DrawGeometryAddName(builder, name)
+
+def DrawGeometryAddVertexBuffers(builder, vertexBuffers):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(vertexBuffers), 0)
+
 def AddVertexBuffers(builder, vertexBuffers):
-    return DrawGeometryAddVertexBuffers(builder, vertexBuffers)
-def DrawGeometryStartVertexBuffersVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    DrawGeometryAddVertexBuffers(builder, vertexBuffers)
+
+def DrawGeometryStartVertexBuffersVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartVertexBuffersVector(builder, numElems):
     return DrawGeometryStartVertexBuffersVector(builder, numElems)
-def DrawGeometryAddIndexBuffer(builder, indexBuffer): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(indexBuffer), 0)
+
+def DrawGeometryAddIndexBuffer(builder, indexBuffer):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(indexBuffer), 0)
+
 def AddIndexBuffer(builder, indexBuffer):
-    return DrawGeometryAddIndexBuffer(builder, indexBuffer)
-def DrawGeometryEnd(builder): return builder.EndObject()
+    DrawGeometryAddIndexBuffer(builder, indexBuffer)
+
+def DrawGeometryEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return DrawGeometryEnd(builder)

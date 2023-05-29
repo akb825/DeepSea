@@ -56,18 +56,32 @@ class FaceGroup(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def FaceGroupStart(builder): builder.StartObject(2)
+def FaceGroupStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return FaceGroupStart(builder)
-def FaceGroupAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    FaceGroupStart(builder)
+
+def FaceGroupAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return FaceGroupAddName(builder, name)
-def FaceGroupAddFaces(builder, faces): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(faces), 0)
+    FaceGroupAddName(builder, name)
+
+def FaceGroupAddFaces(builder, faces):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(faces), 0)
+
 def AddFaces(builder, faces):
-    return FaceGroupAddFaces(builder, faces)
-def FaceGroupStartFacesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    FaceGroupAddFaces(builder, faces)
+
+def FaceGroupStartFacesVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartFacesVector(builder, numElems):
     return FaceGroupStartFacesVector(builder, numElems)
-def FaceGroupEnd(builder): return builder.EndObject()
+
+def FaceGroupEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return FaceGroupEnd(builder)

@@ -49,15 +49,26 @@ class SceneResources(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         return o == 0
 
-def SceneResourcesStart(builder): builder.StartObject(1)
+def SceneResourcesStart(builder):
+    builder.StartObject(1)
+
 def Start(builder):
-    return SceneResourcesStart(builder)
-def SceneResourcesAddResources(builder, resources): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(resources), 0)
+    SceneResourcesStart(builder)
+
+def SceneResourcesAddResources(builder, resources):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(resources), 0)
+
 def AddResources(builder, resources):
-    return SceneResourcesAddResources(builder, resources)
-def SceneResourcesStartResourcesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    SceneResourcesAddResources(builder, resources)
+
+def SceneResourcesStartResourcesVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartResourcesVector(builder, numElems):
     return SceneResourcesStartResourcesVector(builder, numElems)
-def SceneResourcesEnd(builder): return builder.EndObject()
+
+def SceneResourcesEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return SceneResourcesEnd(builder)

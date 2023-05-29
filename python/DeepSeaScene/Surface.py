@@ -136,57 +136,110 @@ class Surface(object):
             return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
         return False
 
-def SurfaceStart(builder): builder.StartObject(16)
+def SurfaceStart(builder):
+    builder.StartObject(16)
+
 def Start(builder):
-    return SurfaceStart(builder)
-def SurfaceAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    SurfaceStart(builder)
+
+def SurfaceAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return SurfaceAddName(builder, name)
-def SurfaceAddType(builder, type): builder.PrependUint8Slot(1, type, 0)
+    SurfaceAddName(builder, name)
+
+def SurfaceAddType(builder, type):
+    builder.PrependUint8Slot(1, type, 0)
+
 def AddType(builder, type):
-    return SurfaceAddType(builder, type)
-def SurfaceAddUsage(builder, usage): builder.PrependUint32Slot(2, usage, 0)
+    SurfaceAddType(builder, type)
+
+def SurfaceAddUsage(builder, usage):
+    builder.PrependUint32Slot(2, usage, 0)
+
 def AddUsage(builder, usage):
-    return SurfaceAddUsage(builder, usage)
-def SurfaceAddMemoryHints(builder, memoryHints): builder.PrependUint32Slot(3, memoryHints, 0)
+    SurfaceAddUsage(builder, usage)
+
+def SurfaceAddMemoryHints(builder, memoryHints):
+    builder.PrependUint32Slot(3, memoryHints, 0)
+
 def AddMemoryHints(builder, memoryHints):
-    return SurfaceAddMemoryHints(builder, memoryHints)
-def SurfaceAddFormat(builder, format): builder.PrependUint8Slot(4, format, 0)
+    SurfaceAddMemoryHints(builder, memoryHints)
+
+def SurfaceAddFormat(builder, format):
+    builder.PrependUint8Slot(4, format, 0)
+
 def AddFormat(builder, format):
-    return SurfaceAddFormat(builder, format)
-def SurfaceAddDecoration(builder, decoration): builder.PrependUint8Slot(5, decoration, 0)
+    SurfaceAddFormat(builder, format)
+
+def SurfaceAddDecoration(builder, decoration):
+    builder.PrependUint8Slot(5, decoration, 0)
+
 def AddDecoration(builder, decoration):
-    return SurfaceAddDecoration(builder, decoration)
-def SurfaceAddDimension(builder, dimension): builder.PrependUint8Slot(6, dimension, 0)
+    SurfaceAddDecoration(builder, decoration)
+
+def SurfaceAddDimension(builder, dimension):
+    builder.PrependUint8Slot(6, dimension, 0)
+
 def AddDimension(builder, dimension):
-    return SurfaceAddDimension(builder, dimension)
-def SurfaceAddWidth(builder, width): builder.PrependUint32Slot(7, width, 0)
+    SurfaceAddDimension(builder, dimension)
+
+def SurfaceAddWidth(builder, width):
+    builder.PrependUint32Slot(7, width, 0)
+
 def AddWidth(builder, width):
-    return SurfaceAddWidth(builder, width)
-def SurfaceAddWidthRatio(builder, widthRatio): builder.PrependFloat32Slot(8, widthRatio, 0.0)
+    SurfaceAddWidth(builder, width)
+
+def SurfaceAddWidthRatio(builder, widthRatio):
+    builder.PrependFloat32Slot(8, widthRatio, 0.0)
+
 def AddWidthRatio(builder, widthRatio):
-    return SurfaceAddWidthRatio(builder, widthRatio)
-def SurfaceAddHeight(builder, height): builder.PrependUint32Slot(9, height, 0)
+    SurfaceAddWidthRatio(builder, widthRatio)
+
+def SurfaceAddHeight(builder, height):
+    builder.PrependUint32Slot(9, height, 0)
+
 def AddHeight(builder, height):
-    return SurfaceAddHeight(builder, height)
-def SurfaceAddHeightRatio(builder, heightRatio): builder.PrependFloat32Slot(10, heightRatio, 0.0)
+    SurfaceAddHeight(builder, height)
+
+def SurfaceAddHeightRatio(builder, heightRatio):
+    builder.PrependFloat32Slot(10, heightRatio, 0.0)
+
 def AddHeightRatio(builder, heightRatio):
-    return SurfaceAddHeightRatio(builder, heightRatio)
-def SurfaceAddDepth(builder, depth): builder.PrependUint32Slot(11, depth, 0)
+    SurfaceAddHeightRatio(builder, heightRatio)
+
+def SurfaceAddDepth(builder, depth):
+    builder.PrependUint32Slot(11, depth, 0)
+
 def AddDepth(builder, depth):
-    return SurfaceAddDepth(builder, depth)
-def SurfaceAddMipLevels(builder, mipLevels): builder.PrependUint32Slot(12, mipLevels, 0)
+    SurfaceAddDepth(builder, depth)
+
+def SurfaceAddMipLevels(builder, mipLevels):
+    builder.PrependUint32Slot(12, mipLevels, 0)
+
 def AddMipLevels(builder, mipLevels):
-    return SurfaceAddMipLevels(builder, mipLevels)
-def SurfaceAddSamples(builder, samples): builder.PrependUint32Slot(13, samples, 0)
+    SurfaceAddMipLevels(builder, mipLevels)
+
+def SurfaceAddSamples(builder, samples):
+    builder.PrependUint32Slot(13, samples, 0)
+
 def AddSamples(builder, samples):
-    return SurfaceAddSamples(builder, samples)
-def SurfaceAddResolve(builder, resolve): builder.PrependBoolSlot(14, resolve, 0)
+    SurfaceAddSamples(builder, samples)
+
+def SurfaceAddResolve(builder, resolve):
+    builder.PrependBoolSlot(14, resolve, 0)
+
 def AddResolve(builder, resolve):
-    return SurfaceAddResolve(builder, resolve)
-def SurfaceAddWindowFramebuffer(builder, windowFramebuffer): builder.PrependBoolSlot(15, windowFramebuffer, 0)
+    SurfaceAddResolve(builder, resolve)
+
+def SurfaceAddWindowFramebuffer(builder, windowFramebuffer):
+    builder.PrependBoolSlot(15, windowFramebuffer, 0)
+
 def AddWindowFramebuffer(builder, windowFramebuffer):
-    return SurfaceAddWindowFramebuffer(builder, windowFramebuffer)
-def SurfaceEnd(builder): return builder.EndObject()
+    SurfaceAddWindowFramebuffer(builder, windowFramebuffer)
+
+def SurfaceEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return SurfaceEnd(builder)

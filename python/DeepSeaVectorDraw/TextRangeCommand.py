@@ -119,48 +119,92 @@ class TextRangeCommand(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def TextRangeCommandStart(builder): builder.StartObject(13)
+def TextRangeCommandStart(builder):
+    builder.StartObject(13)
+
 def Start(builder):
-    return TextRangeCommandStart(builder)
-def TextRangeCommandAddStart(builder, start): builder.PrependUint32Slot(0, start, 0)
+    TextRangeCommandStart(builder)
+
+def TextRangeCommandAddStart(builder, start):
+    builder.PrependUint32Slot(0, start, 0)
+
 def AddStart(builder, start):
-    return TextRangeCommandAddStart(builder, start)
-def TextRangeCommandAddCount(builder, count): builder.PrependUint32Slot(1, count, 0)
+    TextRangeCommandAddStart(builder, start)
+
+def TextRangeCommandAddCount(builder, count):
+    builder.PrependUint32Slot(1, count, 0)
+
 def AddCount(builder, count):
-    return TextRangeCommandAddCount(builder, count)
-def TextRangeCommandAddPositionType(builder, positionType): builder.PrependUint8Slot(2, positionType, 0)
+    TextRangeCommandAddCount(builder, count)
+
+def TextRangeCommandAddPositionType(builder, positionType):
+    builder.PrependUint8Slot(2, positionType, 0)
+
 def AddPositionType(builder, positionType):
-    return TextRangeCommandAddPositionType(builder, positionType)
-def TextRangeCommandAddPosition(builder, position): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(position), 0)
+    TextRangeCommandAddPositionType(builder, positionType)
+
+def TextRangeCommandAddPosition(builder, position):
+    builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(position), 0)
+
 def AddPosition(builder, position):
-    return TextRangeCommandAddPosition(builder, position)
-def TextRangeCommandAddFillMaterial(builder, fillMaterial): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(fillMaterial), 0)
+    TextRangeCommandAddPosition(builder, position)
+
+def TextRangeCommandAddFillMaterial(builder, fillMaterial):
+    builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(fillMaterial), 0)
+
 def AddFillMaterial(builder, fillMaterial):
-    return TextRangeCommandAddFillMaterial(builder, fillMaterial)
-def TextRangeCommandAddOutlineMaterial(builder, outlineMaterial): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(outlineMaterial), 0)
+    TextRangeCommandAddFillMaterial(builder, fillMaterial)
+
+def TextRangeCommandAddOutlineMaterial(builder, outlineMaterial):
+    builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(outlineMaterial), 0)
+
 def AddOutlineMaterial(builder, outlineMaterial):
-    return TextRangeCommandAddOutlineMaterial(builder, outlineMaterial)
-def TextRangeCommandAddFillOpacity(builder, fillOpacity): builder.PrependFloat32Slot(6, fillOpacity, 0.0)
+    TextRangeCommandAddOutlineMaterial(builder, outlineMaterial)
+
+def TextRangeCommandAddFillOpacity(builder, fillOpacity):
+    builder.PrependFloat32Slot(6, fillOpacity, 0.0)
+
 def AddFillOpacity(builder, fillOpacity):
-    return TextRangeCommandAddFillOpacity(builder, fillOpacity)
-def TextRangeCommandAddOutlineOpacity(builder, outlineOpacity): builder.PrependFloat32Slot(7, outlineOpacity, 0.0)
+    TextRangeCommandAddFillOpacity(builder, fillOpacity)
+
+def TextRangeCommandAddOutlineOpacity(builder, outlineOpacity):
+    builder.PrependFloat32Slot(7, outlineOpacity, 0.0)
+
 def AddOutlineOpacity(builder, outlineOpacity):
-    return TextRangeCommandAddOutlineOpacity(builder, outlineOpacity)
-def TextRangeCommandAddSize(builder, size): builder.PrependFloat32Slot(8, size, 0.0)
+    TextRangeCommandAddOutlineOpacity(builder, outlineOpacity)
+
+def TextRangeCommandAddSize(builder, size):
+    builder.PrependFloat32Slot(8, size, 0.0)
+
 def AddSize(builder, size):
-    return TextRangeCommandAddSize(builder, size)
-def TextRangeCommandAddEmbolden(builder, embolden): builder.PrependFloat32Slot(9, embolden, 0.0)
+    TextRangeCommandAddSize(builder, size)
+
+def TextRangeCommandAddEmbolden(builder, embolden):
+    builder.PrependFloat32Slot(9, embolden, 0.0)
+
 def AddEmbolden(builder, embolden):
-    return TextRangeCommandAddEmbolden(builder, embolden)
-def TextRangeCommandAddSlant(builder, slant): builder.PrependFloat32Slot(10, slant, 0.0)
+    TextRangeCommandAddEmbolden(builder, embolden)
+
+def TextRangeCommandAddSlant(builder, slant):
+    builder.PrependFloat32Slot(10, slant, 0.0)
+
 def AddSlant(builder, slant):
-    return TextRangeCommandAddSlant(builder, slant)
-def TextRangeCommandAddOutlineWidth(builder, outlineWidth): builder.PrependFloat32Slot(11, outlineWidth, 0.0)
+    TextRangeCommandAddSlant(builder, slant)
+
+def TextRangeCommandAddOutlineWidth(builder, outlineWidth):
+    builder.PrependFloat32Slot(11, outlineWidth, 0.0)
+
 def AddOutlineWidth(builder, outlineWidth):
-    return TextRangeCommandAddOutlineWidth(builder, outlineWidth)
-def TextRangeCommandAddFuziness(builder, fuziness): builder.PrependFloat32Slot(12, fuziness, 0.0)
+    TextRangeCommandAddOutlineWidth(builder, outlineWidth)
+
+def TextRangeCommandAddFuziness(builder, fuziness):
+    builder.PrependFloat32Slot(12, fuziness, 0.0)
+
 def AddFuziness(builder, fuziness):
-    return TextRangeCommandAddFuziness(builder, fuziness)
-def TextRangeCommandEnd(builder): return builder.EndObject()
+    TextRangeCommandAddFuziness(builder, fuziness)
+
+def TextRangeCommandEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return TextRangeCommandEnd(builder)

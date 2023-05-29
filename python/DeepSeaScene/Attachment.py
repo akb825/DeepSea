@@ -69,27 +69,50 @@ class Attachment(object):
             return obj
         return None
 
-def AttachmentStart(builder): builder.StartObject(6)
+def AttachmentStart(builder):
+    builder.StartObject(6)
+
 def Start(builder):
-    return AttachmentStart(builder)
-def AttachmentAddUsage(builder, usage): builder.PrependUint32Slot(0, usage, 0)
+    AttachmentStart(builder)
+
+def AttachmentAddUsage(builder, usage):
+    builder.PrependUint32Slot(0, usage, 0)
+
 def AddUsage(builder, usage):
-    return AttachmentAddUsage(builder, usage)
-def AttachmentAddFormat(builder, format): builder.PrependUint8Slot(1, format, 0)
+    AttachmentAddUsage(builder, usage)
+
+def AttachmentAddFormat(builder, format):
+    builder.PrependUint8Slot(1, format, 0)
+
 def AddFormat(builder, format):
-    return AttachmentAddFormat(builder, format)
-def AttachmentAddDecoration(builder, decoration): builder.PrependUint8Slot(2, decoration, 0)
+    AttachmentAddFormat(builder, format)
+
+def AttachmentAddDecoration(builder, decoration):
+    builder.PrependUint8Slot(2, decoration, 0)
+
 def AddDecoration(builder, decoration):
-    return AttachmentAddDecoration(builder, decoration)
-def AttachmentAddSamples(builder, samples): builder.PrependUint32Slot(3, samples, 0)
+    AttachmentAddDecoration(builder, decoration)
+
+def AttachmentAddSamples(builder, samples):
+    builder.PrependUint32Slot(3, samples, 0)
+
 def AddSamples(builder, samples):
-    return AttachmentAddSamples(builder, samples)
-def AttachmentAddClearValueType(builder, clearValueType): builder.PrependUint8Slot(4, clearValueType, 0)
+    AttachmentAddSamples(builder, samples)
+
+def AttachmentAddClearValueType(builder, clearValueType):
+    builder.PrependUint8Slot(4, clearValueType, 0)
+
 def AddClearValueType(builder, clearValueType):
-    return AttachmentAddClearValueType(builder, clearValueType)
-def AttachmentAddClearValue(builder, clearValue): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(clearValue), 0)
+    AttachmentAddClearValueType(builder, clearValueType)
+
+def AttachmentAddClearValue(builder, clearValue):
+    builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(clearValue), 0)
+
 def AddClearValue(builder, clearValue):
-    return AttachmentAddClearValue(builder, clearValue)
-def AttachmentEnd(builder): return builder.EndObject()
+    AttachmentAddClearValue(builder, clearValue)
+
+def AttachmentEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return AttachmentEnd(builder)

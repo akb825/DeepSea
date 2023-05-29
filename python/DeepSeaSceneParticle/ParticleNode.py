@@ -51,18 +51,32 @@ class ParticleNode(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def ParticleNodeStart(builder): builder.StartObject(2)
+def ParticleNodeStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return ParticleNodeStart(builder)
-def ParticleNodeAddParticleEmitterFactory(builder, particleEmitterFactory): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(particleEmitterFactory), 0)
+    ParticleNodeStart(builder)
+
+def ParticleNodeAddParticleEmitterFactory(builder, particleEmitterFactory):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(particleEmitterFactory), 0)
+
 def AddParticleEmitterFactory(builder, particleEmitterFactory):
-    return ParticleNodeAddParticleEmitterFactory(builder, particleEmitterFactory)
-def ParticleNodeAddItemLists(builder, itemLists): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
+    ParticleNodeAddParticleEmitterFactory(builder, particleEmitterFactory)
+
+def ParticleNodeAddItemLists(builder, itemLists):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
+
 def AddItemLists(builder, itemLists):
-    return ParticleNodeAddItemLists(builder, itemLists)
-def ParticleNodeStartItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    ParticleNodeAddItemLists(builder, itemLists)
+
+def ParticleNodeStartItemListsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartItemListsVector(builder, numElems):
     return ParticleNodeStartItemListsVector(builder, numElems)
-def ParticleNodeEnd(builder): return builder.EndObject()
+
+def ParticleNodeEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ParticleNodeEnd(builder)

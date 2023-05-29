@@ -79,27 +79,50 @@ class VariableData(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         return o == 0
 
-def VariableDataStart(builder): builder.StartObject(5)
+def VariableDataStart(builder):
+    builder.StartObject(5)
+
 def Start(builder):
-    return VariableDataStart(builder)
-def VariableDataAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    VariableDataStart(builder)
+
+def VariableDataAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return VariableDataAddName(builder, name)
-def VariableDataAddType(builder, type): builder.PrependUint8Slot(1, type, 0)
+    VariableDataAddName(builder, name)
+
+def VariableDataAddType(builder, type):
+    builder.PrependUint8Slot(1, type, 0)
+
 def AddType(builder, type):
-    return VariableDataAddType(builder, type)
-def VariableDataAddFirst(builder, first): builder.PrependUint32Slot(2, first, 0)
+    VariableDataAddType(builder, type)
+
+def VariableDataAddFirst(builder, first):
+    builder.PrependUint32Slot(2, first, 0)
+
 def AddFirst(builder, first):
-    return VariableDataAddFirst(builder, first)
-def VariableDataAddCount(builder, count): builder.PrependUint32Slot(3, count, 0)
+    VariableDataAddFirst(builder, first)
+
+def VariableDataAddCount(builder, count):
+    builder.PrependUint32Slot(3, count, 0)
+
 def AddCount(builder, count):
-    return VariableDataAddCount(builder, count)
-def VariableDataAddData(builder, data): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+    VariableDataAddCount(builder, count)
+
+def VariableDataAddData(builder, data):
+    builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+
 def AddData(builder, data):
-    return VariableDataAddData(builder, data)
-def VariableDataStartDataVector(builder, numElems): return builder.StartVector(1, numElems, 1)
+    VariableDataAddData(builder, data)
+
+def VariableDataStartDataVector(builder, numElems):
+    return builder.StartVector(1, numElems, 1)
+
 def StartDataVector(builder, numElems):
     return VariableDataStartDataVector(builder, numElems)
-def VariableDataEnd(builder): return builder.EndObject()
+
+def VariableDataEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return VariableDataEnd(builder)

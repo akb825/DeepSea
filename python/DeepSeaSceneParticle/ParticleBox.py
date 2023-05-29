@@ -46,15 +46,26 @@ class ParticleBox(object):
             return obj
         return None
 
-def ParticleBoxStart(builder): builder.StartObject(2)
+def ParticleBoxStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return ParticleBoxStart(builder)
-def ParticleBoxAddMin(builder, min): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(min), 0)
+    ParticleBoxStart(builder)
+
+def ParticleBoxAddMin(builder, min):
+    builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(min), 0)
+
 def AddMin(builder, min):
-    return ParticleBoxAddMin(builder, min)
-def ParticleBoxAddMax(builder, max): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(max), 0)
+    ParticleBoxAddMin(builder, min)
+
+def ParticleBoxAddMax(builder, max):
+    builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(max), 0)
+
 def AddMax(builder, max):
-    return ParticleBoxAddMax(builder, max)
-def ParticleBoxEnd(builder): return builder.EndObject()
+    ParticleBoxAddMax(builder, max)
+
+def ParticleBoxEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ParticleBoxEnd(builder)

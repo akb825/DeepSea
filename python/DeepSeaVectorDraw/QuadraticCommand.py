@@ -46,15 +46,26 @@ class QuadraticCommand(object):
             return obj
         return None
 
-def QuadraticCommandStart(builder): builder.StartObject(2)
+def QuadraticCommandStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return QuadraticCommandStart(builder)
-def QuadraticCommandAddControl(builder, control): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(control), 0)
+    QuadraticCommandStart(builder)
+
+def QuadraticCommandAddControl(builder, control):
+    builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(control), 0)
+
 def AddControl(builder, control):
-    return QuadraticCommandAddControl(builder, control)
-def QuadraticCommandAddEnd(builder, end): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(end), 0)
+    QuadraticCommandAddControl(builder, control)
+
+def QuadraticCommandAddEnd(builder, end):
+    builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(end), 0)
+
 def AddEnd(builder, end):
-    return QuadraticCommandAddEnd(builder, end)
-def QuadraticCommandEnd(builder): return builder.EndObject()
+    QuadraticCommandAddEnd(builder, end)
+
+def QuadraticCommandEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return QuadraticCommandEnd(builder)

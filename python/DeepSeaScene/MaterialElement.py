@@ -59,24 +59,44 @@ class MaterialElement(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def MaterialElementStart(builder): builder.StartObject(5)
+def MaterialElementStart(builder):
+    builder.StartObject(5)
+
 def Start(builder):
-    return MaterialElementStart(builder)
-def MaterialElementAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    MaterialElementStart(builder)
+
+def MaterialElementAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return MaterialElementAddName(builder, name)
-def MaterialElementAddType(builder, type): builder.PrependUint8Slot(1, type, 0)
+    MaterialElementAddName(builder, name)
+
+def MaterialElementAddType(builder, type):
+    builder.PrependUint8Slot(1, type, 0)
+
 def AddType(builder, type):
-    return MaterialElementAddType(builder, type)
-def MaterialElementAddCount(builder, count): builder.PrependUint32Slot(2, count, 0)
+    MaterialElementAddType(builder, type)
+
+def MaterialElementAddCount(builder, count):
+    builder.PrependUint32Slot(2, count, 0)
+
 def AddCount(builder, count):
-    return MaterialElementAddCount(builder, count)
-def MaterialElementAddBinding(builder, binding): builder.PrependUint8Slot(3, binding, 0)
+    MaterialElementAddCount(builder, count)
+
+def MaterialElementAddBinding(builder, binding):
+    builder.PrependUint8Slot(3, binding, 0)
+
 def AddBinding(builder, binding):
-    return MaterialElementAddBinding(builder, binding)
-def MaterialElementAddShaderVariableGroupDesc(builder, shaderVariableGroupDesc): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(shaderVariableGroupDesc), 0)
+    MaterialElementAddBinding(builder, binding)
+
+def MaterialElementAddShaderVariableGroupDesc(builder, shaderVariableGroupDesc):
+    builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(shaderVariableGroupDesc), 0)
+
 def AddShaderVariableGroupDesc(builder, shaderVariableGroupDesc):
-    return MaterialElementAddShaderVariableGroupDesc(builder, shaderVariableGroupDesc)
-def MaterialElementEnd(builder): return builder.EndObject()
+    MaterialElementAddShaderVariableGroupDesc(builder, shaderVariableGroupDesc)
+
+def MaterialElementEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return MaterialElementEnd(builder)

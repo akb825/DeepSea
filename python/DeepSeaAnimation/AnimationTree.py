@@ -74,21 +74,38 @@ class AnimationTree(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def AnimationTreeStart(builder): builder.StartObject(2)
+def AnimationTreeStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return AnimationTreeStart(builder)
-def AnimationTreeAddRootNodes(builder, rootNodes): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(rootNodes), 0)
+    AnimationTreeStart(builder)
+
+def AnimationTreeAddRootNodes(builder, rootNodes):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(rootNodes), 0)
+
 def AddRootNodes(builder, rootNodes):
-    return AnimationTreeAddRootNodes(builder, rootNodes)
-def AnimationTreeStartRootNodesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    AnimationTreeAddRootNodes(builder, rootNodes)
+
+def AnimationTreeStartRootNodesVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartRootNodesVector(builder, numElems):
     return AnimationTreeStartRootNodesVector(builder, numElems)
-def AnimationTreeAddJointNodes(builder, jointNodes): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(jointNodes), 0)
+
+def AnimationTreeAddJointNodes(builder, jointNodes):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(jointNodes), 0)
+
 def AddJointNodes(builder, jointNodes):
-    return AnimationTreeAddJointNodes(builder, jointNodes)
-def AnimationTreeStartJointNodesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    AnimationTreeAddJointNodes(builder, jointNodes)
+
+def AnimationTreeStartJointNodesVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartJointNodesVector(builder, numElems):
     return AnimationTreeStartJointNodesVector(builder, numElems)
-def AnimationTreeEnd(builder): return builder.EndObject()
+
+def AnimationTreeEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return AnimationTreeEnd(builder)

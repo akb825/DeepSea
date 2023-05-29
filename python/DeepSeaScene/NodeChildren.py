@@ -56,18 +56,32 @@ class NodeChildren(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def NodeChildrenStart(builder): builder.StartObject(2)
+def NodeChildrenStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return NodeChildrenStart(builder)
-def NodeChildrenAddNode(builder, node): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(node), 0)
+    NodeChildrenStart(builder)
+
+def NodeChildrenAddNode(builder, node):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(node), 0)
+
 def AddNode(builder, node):
-    return NodeChildrenAddNode(builder, node)
-def NodeChildrenAddChildren(builder, children): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(children), 0)
+    NodeChildrenAddNode(builder, node)
+
+def NodeChildrenAddChildren(builder, children):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(children), 0)
+
 def AddChildren(builder, children):
-    return NodeChildrenAddChildren(builder, children)
-def NodeChildrenStartChildrenVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    NodeChildrenAddChildren(builder, children)
+
+def NodeChildrenStartChildrenVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartChildrenVector(builder, numElems):
     return NodeChildrenStartChildrenVector(builder, numElems)
-def NodeChildrenEnd(builder): return builder.EndObject()
+
+def NodeChildrenEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return NodeChildrenEnd(builder)

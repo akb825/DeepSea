@@ -128,48 +128,92 @@ class SceneLightShadows(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def SceneLightShadowsStart(builder): builder.StartObject(12)
+def SceneLightShadowsStart(builder):
+    builder.StartObject(12)
+
 def Start(builder):
-    return SceneLightShadowsStart(builder)
-def SceneLightShadowsAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    SceneLightShadowsStart(builder)
+
+def SceneLightShadowsAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return SceneLightShadowsAddName(builder, name)
-def SceneLightShadowsAddLightSet(builder, lightSet): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(lightSet), 0)
+    SceneLightShadowsAddName(builder, name)
+
+def SceneLightShadowsAddLightSet(builder, lightSet):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(lightSet), 0)
+
 def AddLightSet(builder, lightSet):
-    return SceneLightShadowsAddLightSet(builder, lightSet)
-def SceneLightShadowsAddLightType(builder, lightType): builder.PrependUint8Slot(2, lightType, 0)
+    SceneLightShadowsAddLightSet(builder, lightSet)
+
+def SceneLightShadowsAddLightType(builder, lightType):
+    builder.PrependUint8Slot(2, lightType, 0)
+
 def AddLightType(builder, lightType):
-    return SceneLightShadowsAddLightType(builder, lightType)
-def SceneLightShadowsAddLight(builder, light): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(light), 0)
+    SceneLightShadowsAddLightType(builder, lightType)
+
+def SceneLightShadowsAddLight(builder, light):
+    builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(light), 0)
+
 def AddLight(builder, light):
-    return SceneLightShadowsAddLight(builder, light)
-def SceneLightShadowsAddTransformGroupDesc(builder, transformGroupDesc): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(transformGroupDesc), 0)
+    SceneLightShadowsAddLight(builder, light)
+
+def SceneLightShadowsAddTransformGroupDesc(builder, transformGroupDesc):
+    builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(transformGroupDesc), 0)
+
 def AddTransformGroupDesc(builder, transformGroupDesc):
-    return SceneLightShadowsAddTransformGroupDesc(builder, transformGroupDesc)
-def SceneLightShadowsAddTransformGroupName(builder, transformGroupName): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(transformGroupName), 0)
+    SceneLightShadowsAddTransformGroupDesc(builder, transformGroupDesc)
+
+def SceneLightShadowsAddTransformGroupName(builder, transformGroupName):
+    builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(transformGroupName), 0)
+
 def AddTransformGroupName(builder, transformGroupName):
-    return SceneLightShadowsAddTransformGroupName(builder, transformGroupName)
-def SceneLightShadowsAddMaxCascades(builder, maxCascades): builder.PrependUint32Slot(6, maxCascades, 0)
+    SceneLightShadowsAddTransformGroupName(builder, transformGroupName)
+
+def SceneLightShadowsAddMaxCascades(builder, maxCascades):
+    builder.PrependUint32Slot(6, maxCascades, 0)
+
 def AddMaxCascades(builder, maxCascades):
-    return SceneLightShadowsAddMaxCascades(builder, maxCascades)
-def SceneLightShadowsAddMaxFirstSplitDistance(builder, maxFirstSplitDistance): builder.PrependFloat32Slot(7, maxFirstSplitDistance, 0.0)
+    SceneLightShadowsAddMaxCascades(builder, maxCascades)
+
+def SceneLightShadowsAddMaxFirstSplitDistance(builder, maxFirstSplitDistance):
+    builder.PrependFloat32Slot(7, maxFirstSplitDistance, 0.0)
+
 def AddMaxFirstSplitDistance(builder, maxFirstSplitDistance):
-    return SceneLightShadowsAddMaxFirstSplitDistance(builder, maxFirstSplitDistance)
-def SceneLightShadowsAddCascadeExpFactor(builder, cascadeExpFactor): builder.PrependFloat32Slot(8, cascadeExpFactor, 0.0)
+    SceneLightShadowsAddMaxFirstSplitDistance(builder, maxFirstSplitDistance)
+
+def SceneLightShadowsAddCascadeExpFactor(builder, cascadeExpFactor):
+    builder.PrependFloat32Slot(8, cascadeExpFactor, 0.0)
+
 def AddCascadeExpFactor(builder, cascadeExpFactor):
-    return SceneLightShadowsAddCascadeExpFactor(builder, cascadeExpFactor)
-def SceneLightShadowsAddMinDepthRanges(builder, minDepthRanges): builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(minDepthRanges), 0)
+    SceneLightShadowsAddCascadeExpFactor(builder, cascadeExpFactor)
+
+def SceneLightShadowsAddMinDepthRanges(builder, minDepthRanges):
+    builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(minDepthRanges), 0)
+
 def AddMinDepthRanges(builder, minDepthRanges):
-    return SceneLightShadowsAddMinDepthRanges(builder, minDepthRanges)
-def SceneLightShadowsStartMinDepthRangesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    SceneLightShadowsAddMinDepthRanges(builder, minDepthRanges)
+
+def SceneLightShadowsStartMinDepthRangesVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartMinDepthRangesVector(builder, numElems):
     return SceneLightShadowsStartMinDepthRangesVector(builder, numElems)
-def SceneLightShadowsAddFadeStartDistance(builder, fadeStartDistance): builder.PrependFloat32Slot(10, fadeStartDistance, 0.0)
+
+def SceneLightShadowsAddFadeStartDistance(builder, fadeStartDistance):
+    builder.PrependFloat32Slot(10, fadeStartDistance, 0.0)
+
 def AddFadeStartDistance(builder, fadeStartDistance):
-    return SceneLightShadowsAddFadeStartDistance(builder, fadeStartDistance)
-def SceneLightShadowsAddMaxDistance(builder, maxDistance): builder.PrependFloat32Slot(11, maxDistance, 0.0)
+    SceneLightShadowsAddFadeStartDistance(builder, fadeStartDistance)
+
+def SceneLightShadowsAddMaxDistance(builder, maxDistance):
+    builder.PrependFloat32Slot(11, maxDistance, 0.0)
+
 def AddMaxDistance(builder, maxDistance):
-    return SceneLightShadowsAddMaxDistance(builder, maxDistance)
-def SceneLightShadowsEnd(builder): return builder.EndObject()
+    SceneLightShadowsAddMaxDistance(builder, maxDistance)
+
+def SceneLightShadowsEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return SceneLightShadowsEnd(builder)

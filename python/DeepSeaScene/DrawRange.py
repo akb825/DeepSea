@@ -52,21 +52,38 @@ class DrawRange(object):
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
-def DrawRangeStart(builder): builder.StartObject(4)
+def DrawRangeStart(builder):
+    builder.StartObject(4)
+
 def Start(builder):
-    return DrawRangeStart(builder)
-def DrawRangeAddVertexCount(builder, vertexCount): builder.PrependUint32Slot(0, vertexCount, 0)
+    DrawRangeStart(builder)
+
+def DrawRangeAddVertexCount(builder, vertexCount):
+    builder.PrependUint32Slot(0, vertexCount, 0)
+
 def AddVertexCount(builder, vertexCount):
-    return DrawRangeAddVertexCount(builder, vertexCount)
-def DrawRangeAddInstanceCount(builder, instanceCount): builder.PrependUint32Slot(1, instanceCount, 0)
+    DrawRangeAddVertexCount(builder, vertexCount)
+
+def DrawRangeAddInstanceCount(builder, instanceCount):
+    builder.PrependUint32Slot(1, instanceCount, 0)
+
 def AddInstanceCount(builder, instanceCount):
-    return DrawRangeAddInstanceCount(builder, instanceCount)
-def DrawRangeAddFirstVertex(builder, firstVertex): builder.PrependUint32Slot(2, firstVertex, 0)
+    DrawRangeAddInstanceCount(builder, instanceCount)
+
+def DrawRangeAddFirstVertex(builder, firstVertex):
+    builder.PrependUint32Slot(2, firstVertex, 0)
+
 def AddFirstVertex(builder, firstVertex):
-    return DrawRangeAddFirstVertex(builder, firstVertex)
-def DrawRangeAddFirstInstance(builder, firstInstance): builder.PrependUint32Slot(3, firstInstance, 0)
+    DrawRangeAddFirstVertex(builder, firstVertex)
+
+def DrawRangeAddFirstInstance(builder, firstInstance):
+    builder.PrependUint32Slot(3, firstInstance, 0)
+
 def AddFirstInstance(builder, firstInstance):
-    return DrawRangeAddFirstInstance(builder, firstInstance)
-def DrawRangeEnd(builder): return builder.EndObject()
+    DrawRangeAddFirstInstance(builder, firstInstance)
+
+def DrawRangeEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return DrawRangeEnd(builder)

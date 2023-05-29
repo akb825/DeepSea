@@ -99,27 +99,50 @@ class VectorResources(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         return o == 0
 
-def VectorResourcesStart(builder): builder.StartObject(3)
+def VectorResourcesStart(builder):
+    builder.StartObject(3)
+
 def Start(builder):
-    return VectorResourcesStart(builder)
-def VectorResourcesAddTextures(builder, textures): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(textures), 0)
+    VectorResourcesStart(builder)
+
+def VectorResourcesAddTextures(builder, textures):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(textures), 0)
+
 def AddTextures(builder, textures):
-    return VectorResourcesAddTextures(builder, textures)
-def VectorResourcesStartTexturesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    VectorResourcesAddTextures(builder, textures)
+
+def VectorResourcesStartTexturesVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartTexturesVector(builder, numElems):
     return VectorResourcesStartTexturesVector(builder, numElems)
-def VectorResourcesAddFaceGroups(builder, faceGroups): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(faceGroups), 0)
+
+def VectorResourcesAddFaceGroups(builder, faceGroups):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(faceGroups), 0)
+
 def AddFaceGroups(builder, faceGroups):
-    return VectorResourcesAddFaceGroups(builder, faceGroups)
-def VectorResourcesStartFaceGroupsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    VectorResourcesAddFaceGroups(builder, faceGroups)
+
+def VectorResourcesStartFaceGroupsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartFaceGroupsVector(builder, numElems):
     return VectorResourcesStartFaceGroupsVector(builder, numElems)
-def VectorResourcesAddFonts(builder, fonts): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(fonts), 0)
+
+def VectorResourcesAddFonts(builder, fonts):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(fonts), 0)
+
 def AddFonts(builder, fonts):
-    return VectorResourcesAddFonts(builder, fonts)
-def VectorResourcesStartFontsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    VectorResourcesAddFonts(builder, fonts)
+
+def VectorResourcesStartFontsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartFontsVector(builder, numElems):
     return VectorResourcesStartFontsVector(builder, numElems)
-def VectorResourcesEnd(builder): return builder.EndObject()
+
+def VectorResourcesEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return VectorResourcesEnd(builder)

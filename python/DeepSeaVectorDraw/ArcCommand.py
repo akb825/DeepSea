@@ -67,24 +67,44 @@ class ArcCommand(object):
             return obj
         return None
 
-def ArcCommandStart(builder): builder.StartObject(5)
+def ArcCommandStart(builder):
+    builder.StartObject(5)
+
 def Start(builder):
-    return ArcCommandStart(builder)
-def ArcCommandAddRadius(builder, radius): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(radius), 0)
+    ArcCommandStart(builder)
+
+def ArcCommandAddRadius(builder, radius):
+    builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(radius), 0)
+
 def AddRadius(builder, radius):
-    return ArcCommandAddRadius(builder, radius)
-def ArcCommandAddRotation(builder, rotation): builder.PrependFloat32Slot(1, rotation, 0.0)
+    ArcCommandAddRadius(builder, radius)
+
+def ArcCommandAddRotation(builder, rotation):
+    builder.PrependFloat32Slot(1, rotation, 0.0)
+
 def AddRotation(builder, rotation):
-    return ArcCommandAddRotation(builder, rotation)
-def ArcCommandAddLargeArc(builder, largeArc): builder.PrependBoolSlot(2, largeArc, 0)
+    ArcCommandAddRotation(builder, rotation)
+
+def ArcCommandAddLargeArc(builder, largeArc):
+    builder.PrependBoolSlot(2, largeArc, 0)
+
 def AddLargeArc(builder, largeArc):
-    return ArcCommandAddLargeArc(builder, largeArc)
-def ArcCommandAddClockwise(builder, clockwise): builder.PrependBoolSlot(3, clockwise, 0)
+    ArcCommandAddLargeArc(builder, largeArc)
+
+def ArcCommandAddClockwise(builder, clockwise):
+    builder.PrependBoolSlot(3, clockwise, 0)
+
 def AddClockwise(builder, clockwise):
-    return ArcCommandAddClockwise(builder, clockwise)
-def ArcCommandAddEnd(builder, end): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(end), 0)
+    ArcCommandAddClockwise(builder, clockwise)
+
+def ArcCommandAddEnd(builder, end):
+    builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(end), 0)
+
 def AddEnd(builder, end):
-    return ArcCommandAddEnd(builder, end)
-def ArcCommandEnd(builder): return builder.EndObject()
+    ArcCommandAddEnd(builder, end)
+
+def ArcCommandEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ArcCommandEnd(builder)

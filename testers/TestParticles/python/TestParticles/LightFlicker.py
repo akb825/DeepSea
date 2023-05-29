@@ -52,21 +52,38 @@ class LightFlicker(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def LightFlickerStart(builder): builder.StartObject(4)
+def LightFlickerStart(builder):
+    builder.StartObject(4)
+
 def Start(builder):
-    return LightFlickerStart(builder)
-def LightFlickerAddMinTime(builder, minTime): builder.PrependFloat32Slot(0, minTime, 0.0)
+    LightFlickerStart(builder)
+
+def LightFlickerAddMinTime(builder, minTime):
+    builder.PrependFloat32Slot(0, minTime, 0.0)
+
 def AddMinTime(builder, minTime):
-    return LightFlickerAddMinTime(builder, minTime)
-def LightFlickerAddMaxTime(builder, maxTime): builder.PrependFloat32Slot(1, maxTime, 0.0)
+    LightFlickerAddMinTime(builder, minTime)
+
+def LightFlickerAddMaxTime(builder, maxTime):
+    builder.PrependFloat32Slot(1, maxTime, 0.0)
+
 def AddMaxTime(builder, maxTime):
-    return LightFlickerAddMaxTime(builder, maxTime)
-def LightFlickerAddMinIntensity(builder, minIntensity): builder.PrependFloat32Slot(2, minIntensity, 0.0)
+    LightFlickerAddMaxTime(builder, maxTime)
+
+def LightFlickerAddMinIntensity(builder, minIntensity):
+    builder.PrependFloat32Slot(2, minIntensity, 0.0)
+
 def AddMinIntensity(builder, minIntensity):
-    return LightFlickerAddMinIntensity(builder, minIntensity)
-def LightFlickerAddMaxIntensity(builder, maxIntensity): builder.PrependFloat32Slot(3, maxIntensity, 0.0)
+    LightFlickerAddMinIntensity(builder, minIntensity)
+
+def LightFlickerAddMaxIntensity(builder, maxIntensity):
+    builder.PrependFloat32Slot(3, maxIntensity, 0.0)
+
 def AddMaxIntensity(builder, maxIntensity):
-    return LightFlickerAddMaxIntensity(builder, maxIntensity)
-def LightFlickerEnd(builder): return builder.EndObject()
+    LightFlickerAddMaxIntensity(builder, maxIntensity)
+
+def LightFlickerEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return LightFlickerEnd(builder)

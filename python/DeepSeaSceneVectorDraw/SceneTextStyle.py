@@ -102,39 +102,74 @@ class SceneTextStyle(object):
             return obj
         return None
 
-def SceneTextStyleStart(builder): builder.StartObject(10)
+def SceneTextStyleStart(builder):
+    builder.StartObject(10)
+
 def Start(builder):
-    return SceneTextStyleStart(builder)
-def SceneTextStyleAddStart(builder, start): builder.PrependUint32Slot(0, start, 0)
+    SceneTextStyleStart(builder)
+
+def SceneTextStyleAddStart(builder, start):
+    builder.PrependUint32Slot(0, start, 0)
+
 def AddStart(builder, start):
-    return SceneTextStyleAddStart(builder, start)
-def SceneTextStyleAddCount(builder, count): builder.PrependUint32Slot(1, count, 0)
+    SceneTextStyleAddStart(builder, start)
+
+def SceneTextStyleAddCount(builder, count):
+    builder.PrependUint32Slot(1, count, 0)
+
 def AddCount(builder, count):
-    return SceneTextStyleAddCount(builder, count)
-def SceneTextStyleAddSize(builder, size): builder.PrependFloat32Slot(2, size, 0.0)
+    SceneTextStyleAddCount(builder, count)
+
+def SceneTextStyleAddSize(builder, size):
+    builder.PrependFloat32Slot(2, size, 0.0)
+
 def AddSize(builder, size):
-    return SceneTextStyleAddSize(builder, size)
-def SceneTextStyleAddEmbolden(builder, embolden): builder.PrependFloat32Slot(3, embolden, 0.0)
+    SceneTextStyleAddSize(builder, size)
+
+def SceneTextStyleAddEmbolden(builder, embolden):
+    builder.PrependFloat32Slot(3, embolden, 0.0)
+
 def AddEmbolden(builder, embolden):
-    return SceneTextStyleAddEmbolden(builder, embolden)
-def SceneTextStyleAddSlant(builder, slant): builder.PrependFloat32Slot(4, slant, 0.0)
+    SceneTextStyleAddEmbolden(builder, embolden)
+
+def SceneTextStyleAddSlant(builder, slant):
+    builder.PrependFloat32Slot(4, slant, 0.0)
+
 def AddSlant(builder, slant):
-    return SceneTextStyleAddSlant(builder, slant)
-def SceneTextStyleAddOutlineWidth(builder, outlineWidth): builder.PrependFloat32Slot(5, outlineWidth, 0.0)
+    SceneTextStyleAddSlant(builder, slant)
+
+def SceneTextStyleAddOutlineWidth(builder, outlineWidth):
+    builder.PrependFloat32Slot(5, outlineWidth, 0.0)
+
 def AddOutlineWidth(builder, outlineWidth):
-    return SceneTextStyleAddOutlineWidth(builder, outlineWidth)
-def SceneTextStyleAddFuziness(builder, fuziness): builder.PrependFloat32Slot(6, fuziness, 0.0)
+    SceneTextStyleAddOutlineWidth(builder, outlineWidth)
+
+def SceneTextStyleAddFuziness(builder, fuziness):
+    builder.PrependFloat32Slot(6, fuziness, 0.0)
+
 def AddFuziness(builder, fuziness):
-    return SceneTextStyleAddFuziness(builder, fuziness)
-def SceneTextStyleAddVerticalOffset(builder, verticalOffset): builder.PrependFloat32Slot(7, verticalOffset, 0.0)
+    SceneTextStyleAddFuziness(builder, fuziness)
+
+def SceneTextStyleAddVerticalOffset(builder, verticalOffset):
+    builder.PrependFloat32Slot(7, verticalOffset, 0.0)
+
 def AddVerticalOffset(builder, verticalOffset):
-    return SceneTextStyleAddVerticalOffset(builder, verticalOffset)
-def SceneTextStyleAddColor(builder, color): builder.PrependStructSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+    SceneTextStyleAddVerticalOffset(builder, verticalOffset)
+
+def SceneTextStyleAddColor(builder, color):
+    builder.PrependStructSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+
 def AddColor(builder, color):
-    return SceneTextStyleAddColor(builder, color)
-def SceneTextStyleAddOutlineColor(builder, outlineColor): builder.PrependStructSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(outlineColor), 0)
+    SceneTextStyleAddColor(builder, color)
+
+def SceneTextStyleAddOutlineColor(builder, outlineColor):
+    builder.PrependStructSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(outlineColor), 0)
+
 def AddOutlineColor(builder, outlineColor):
-    return SceneTextStyleAddOutlineColor(builder, outlineColor)
-def SceneTextStyleEnd(builder): return builder.EndObject()
+    SceneTextStyleAddOutlineColor(builder, outlineColor)
+
+def SceneTextStyleEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return SceneTextStyleEnd(builder)

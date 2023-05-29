@@ -49,18 +49,32 @@ class DirectAnimationChannel(object):
             return obj
         return None
 
-def DirectAnimationChannelStart(builder): builder.StartObject(3)
+def DirectAnimationChannelStart(builder):
+    builder.StartObject(3)
+
 def Start(builder):
-    return DirectAnimationChannelStart(builder)
-def DirectAnimationChannelAddNode(builder, node): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(node), 0)
+    DirectAnimationChannelStart(builder)
+
+def DirectAnimationChannelAddNode(builder, node):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(node), 0)
+
 def AddNode(builder, node):
-    return DirectAnimationChannelAddNode(builder, node)
-def DirectAnimationChannelAddComponent(builder, component): builder.PrependUint8Slot(1, component, 0)
+    DirectAnimationChannelAddNode(builder, node)
+
+def DirectAnimationChannelAddComponent(builder, component):
+    builder.PrependUint8Slot(1, component, 0)
+
 def AddComponent(builder, component):
-    return DirectAnimationChannelAddComponent(builder, component)
-def DirectAnimationChannelAddValue(builder, value): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(value), 0)
+    DirectAnimationChannelAddComponent(builder, component)
+
+def DirectAnimationChannelAddValue(builder, value):
+    builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(value), 0)
+
 def AddValue(builder, value):
-    return DirectAnimationChannelAddValue(builder, value)
-def DirectAnimationChannelEnd(builder): return builder.EndObject()
+    DirectAnimationChannelAddValue(builder, value)
+
+def DirectAnimationChannelEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return DirectAnimationChannelEnd(builder)

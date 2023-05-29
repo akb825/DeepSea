@@ -31,12 +31,17 @@
 #if DS_GCC || DS_CLANG
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
+#elif DS_MSC
+#pragma warning(push)
+#pragma warning(disable: 4244)
 #endif
 
 #include "Flatbuffers/AnimationTreeNode_generated.h"
 
 #if DS_GCC || DS_CLANG
 #pragma GCC diagnostic pop
+#elif DS_MSC
+#pragma warning(pop)
 #endif
 
 dsSceneNode* dsSceneAnimationTreeNode_load(const dsSceneLoadContext* loadContext,

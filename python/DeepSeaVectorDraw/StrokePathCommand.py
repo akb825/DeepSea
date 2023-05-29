@@ -77,30 +77,56 @@ class StrokePathCommand(object):
             return obj
         return None
 
-def StrokePathCommandStart(builder): builder.StartObject(7)
+def StrokePathCommandStart(builder):
+    builder.StartObject(7)
+
 def Start(builder):
-    return StrokePathCommandStart(builder)
-def StrokePathCommandAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+    StrokePathCommandStart(builder)
+
+def StrokePathCommandAddMaterial(builder, material):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+
 def AddMaterial(builder, material):
-    return StrokePathCommandAddMaterial(builder, material)
-def StrokePathCommandAddOpacity(builder, opacity): builder.PrependFloat32Slot(1, opacity, 0.0)
+    StrokePathCommandAddMaterial(builder, material)
+
+def StrokePathCommandAddOpacity(builder, opacity):
+    builder.PrependFloat32Slot(1, opacity, 0.0)
+
 def AddOpacity(builder, opacity):
-    return StrokePathCommandAddOpacity(builder, opacity)
-def StrokePathCommandAddJoinType(builder, joinType): builder.PrependUint8Slot(2, joinType, 0)
+    StrokePathCommandAddOpacity(builder, opacity)
+
+def StrokePathCommandAddJoinType(builder, joinType):
+    builder.PrependUint8Slot(2, joinType, 0)
+
 def AddJoinType(builder, joinType):
-    return StrokePathCommandAddJoinType(builder, joinType)
-def StrokePathCommandAddCapType(builder, capType): builder.PrependUint8Slot(3, capType, 0)
+    StrokePathCommandAddJoinType(builder, joinType)
+
+def StrokePathCommandAddCapType(builder, capType):
+    builder.PrependUint8Slot(3, capType, 0)
+
 def AddCapType(builder, capType):
-    return StrokePathCommandAddCapType(builder, capType)
-def StrokePathCommandAddWidth(builder, width): builder.PrependFloat32Slot(4, width, 0.0)
+    StrokePathCommandAddCapType(builder, capType)
+
+def StrokePathCommandAddWidth(builder, width):
+    builder.PrependFloat32Slot(4, width, 0.0)
+
 def AddWidth(builder, width):
-    return StrokePathCommandAddWidth(builder, width)
-def StrokePathCommandAddMiterLimit(builder, miterLimit): builder.PrependFloat32Slot(5, miterLimit, 0.0)
+    StrokePathCommandAddWidth(builder, width)
+
+def StrokePathCommandAddMiterLimit(builder, miterLimit):
+    builder.PrependFloat32Slot(5, miterLimit, 0.0)
+
 def AddMiterLimit(builder, miterLimit):
-    return StrokePathCommandAddMiterLimit(builder, miterLimit)
-def StrokePathCommandAddDashArray(builder, dashArray): builder.PrependStructSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(dashArray), 0)
+    StrokePathCommandAddMiterLimit(builder, miterLimit)
+
+def StrokePathCommandAddDashArray(builder, dashArray):
+    builder.PrependStructSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(dashArray), 0)
+
 def AddDashArray(builder, dashArray):
-    return StrokePathCommandAddDashArray(builder, dashArray)
-def StrokePathCommandEnd(builder): return builder.EndObject()
+    StrokePathCommandAddDashArray(builder, dashArray)
+
+def StrokePathCommandEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return StrokePathCommandEnd(builder)

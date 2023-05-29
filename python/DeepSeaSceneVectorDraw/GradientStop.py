@@ -42,15 +42,26 @@ class GradientStop(object):
             return obj
         return None
 
-def GradientStopStart(builder): builder.StartObject(2)
+def GradientStopStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return GradientStopStart(builder)
-def GradientStopAddPosition(builder, position): builder.PrependFloat32Slot(0, position, 0.0)
+    GradientStopStart(builder)
+
+def GradientStopAddPosition(builder, position):
+    builder.PrependFloat32Slot(0, position, 0.0)
+
 def AddPosition(builder, position):
-    return GradientStopAddPosition(builder, position)
-def GradientStopAddColor(builder, color): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+    GradientStopAddPosition(builder, position)
+
+def GradientStopAddColor(builder, color):
+    builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+
 def AddColor(builder, color):
-    return GradientStopAddColor(builder, color)
-def GradientStopEnd(builder): return builder.EndObject()
+    GradientStopAddColor(builder, color)
+
+def GradientStopEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return GradientStopEnd(builder)

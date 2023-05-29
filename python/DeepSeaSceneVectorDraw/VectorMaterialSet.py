@@ -56,18 +56,32 @@ class VectorMaterialSet(object):
             return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
         return False
 
-def VectorMaterialSetStart(builder): builder.StartObject(2)
+def VectorMaterialSetStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return VectorMaterialSetStart(builder)
-def VectorMaterialSetAddMaterials(builder, materials): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(materials), 0)
+    VectorMaterialSetStart(builder)
+
+def VectorMaterialSetAddMaterials(builder, materials):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(materials), 0)
+
 def AddMaterials(builder, materials):
-    return VectorMaterialSetAddMaterials(builder, materials)
-def VectorMaterialSetStartMaterialsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    VectorMaterialSetAddMaterials(builder, materials)
+
+def VectorMaterialSetStartMaterialsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartMaterialsVector(builder, numElems):
     return VectorMaterialSetStartMaterialsVector(builder, numElems)
-def VectorMaterialSetAddSrgb(builder, srgb): builder.PrependBoolSlot(1, srgb, 0)
+
+def VectorMaterialSetAddSrgb(builder, srgb):
+    builder.PrependBoolSlot(1, srgb, 0)
+
 def AddSrgb(builder, srgb):
-    return VectorMaterialSetAddSrgb(builder, srgb)
-def VectorMaterialSetEnd(builder): return builder.EndObject()
+    VectorMaterialSetAddSrgb(builder, srgb)
+
+def VectorMaterialSetEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return VectorMaterialSetEnd(builder)

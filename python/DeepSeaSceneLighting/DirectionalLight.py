@@ -53,18 +53,32 @@ class DirectionalLight(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def DirectionalLightStart(builder): builder.StartObject(3)
+def DirectionalLightStart(builder):
+    builder.StartObject(3)
+
 def Start(builder):
-    return DirectionalLightStart(builder)
-def DirectionalLightAddDirection(builder, direction): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(direction), 0)
+    DirectionalLightStart(builder)
+
+def DirectionalLightAddDirection(builder, direction):
+    builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(direction), 0)
+
 def AddDirection(builder, direction):
-    return DirectionalLightAddDirection(builder, direction)
-def DirectionalLightAddColor(builder, color): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+    DirectionalLightAddDirection(builder, direction)
+
+def DirectionalLightAddColor(builder, color):
+    builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+
 def AddColor(builder, color):
-    return DirectionalLightAddColor(builder, color)
-def DirectionalLightAddIntensity(builder, intensity): builder.PrependFloat32Slot(2, intensity, 0.0)
+    DirectionalLightAddColor(builder, color)
+
+def DirectionalLightAddIntensity(builder, intensity):
+    builder.PrependFloat32Slot(2, intensity, 0.0)
+
 def AddIntensity(builder, intensity):
-    return DirectionalLightAddIntensity(builder, intensity)
-def DirectionalLightEnd(builder): return builder.EndObject()
+    DirectionalLightAddIntensity(builder, intensity)
+
+def DirectionalLightEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return DirectionalLightEnd(builder)

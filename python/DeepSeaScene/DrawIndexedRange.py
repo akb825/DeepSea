@@ -59,24 +59,44 @@ class DrawIndexedRange(object):
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
-def DrawIndexedRangeStart(builder): builder.StartObject(5)
+def DrawIndexedRangeStart(builder):
+    builder.StartObject(5)
+
 def Start(builder):
-    return DrawIndexedRangeStart(builder)
-def DrawIndexedRangeAddIndexCount(builder, indexCount): builder.PrependUint32Slot(0, indexCount, 0)
+    DrawIndexedRangeStart(builder)
+
+def DrawIndexedRangeAddIndexCount(builder, indexCount):
+    builder.PrependUint32Slot(0, indexCount, 0)
+
 def AddIndexCount(builder, indexCount):
-    return DrawIndexedRangeAddIndexCount(builder, indexCount)
-def DrawIndexedRangeAddInstanceCount(builder, instanceCount): builder.PrependUint32Slot(1, instanceCount, 0)
+    DrawIndexedRangeAddIndexCount(builder, indexCount)
+
+def DrawIndexedRangeAddInstanceCount(builder, instanceCount):
+    builder.PrependUint32Slot(1, instanceCount, 0)
+
 def AddInstanceCount(builder, instanceCount):
-    return DrawIndexedRangeAddInstanceCount(builder, instanceCount)
-def DrawIndexedRangeAddFirstIndex(builder, firstIndex): builder.PrependUint32Slot(2, firstIndex, 0)
+    DrawIndexedRangeAddInstanceCount(builder, instanceCount)
+
+def DrawIndexedRangeAddFirstIndex(builder, firstIndex):
+    builder.PrependUint32Slot(2, firstIndex, 0)
+
 def AddFirstIndex(builder, firstIndex):
-    return DrawIndexedRangeAddFirstIndex(builder, firstIndex)
-def DrawIndexedRangeAddVertexOffset(builder, vertexOffset): builder.PrependUint32Slot(3, vertexOffset, 0)
+    DrawIndexedRangeAddFirstIndex(builder, firstIndex)
+
+def DrawIndexedRangeAddVertexOffset(builder, vertexOffset):
+    builder.PrependUint32Slot(3, vertexOffset, 0)
+
 def AddVertexOffset(builder, vertexOffset):
-    return DrawIndexedRangeAddVertexOffset(builder, vertexOffset)
-def DrawIndexedRangeAddFirstInstance(builder, firstInstance): builder.PrependUint32Slot(4, firstInstance, 0)
+    DrawIndexedRangeAddVertexOffset(builder, vertexOffset)
+
+def DrawIndexedRangeAddFirstInstance(builder, firstInstance):
+    builder.PrependUint32Slot(4, firstInstance, 0)
+
 def AddFirstInstance(builder, firstInstance):
-    return DrawIndexedRangeAddFirstInstance(builder, firstInstance)
-def DrawIndexedRangeEnd(builder): return builder.EndObject()
+    DrawIndexedRangeAddFirstInstance(builder, firstInstance)
+
+def DrawIndexedRangeEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return DrawIndexedRangeEnd(builder)

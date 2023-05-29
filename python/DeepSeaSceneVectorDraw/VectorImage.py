@@ -93,33 +93,62 @@ class VectorImage(object):
             return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
         return False
 
-def VectorImageStart(builder): builder.StartObject(7)
+def VectorImageStart(builder):
+    builder.StartObject(7)
+
 def Start(builder):
-    return VectorImageStart(builder)
-def VectorImageAddImageType(builder, imageType): builder.PrependUint8Slot(0, imageType, 0)
+    VectorImageStart(builder)
+
+def VectorImageAddImageType(builder, imageType):
+    builder.PrependUint8Slot(0, imageType, 0)
+
 def AddImageType(builder, imageType):
-    return VectorImageAddImageType(builder, imageType)
-def VectorImageAddImage(builder, image): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(image), 0)
+    VectorImageAddImageType(builder, imageType)
+
+def VectorImageAddImage(builder, image):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(image), 0)
+
 def AddImage(builder, image):
-    return VectorImageAddImage(builder, image)
-def VectorImageAddTargetSize(builder, targetSize): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(targetSize), 0)
+    VectorImageAddImage(builder, image)
+
+def VectorImageAddTargetSize(builder, targetSize):
+    builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(targetSize), 0)
+
 def AddTargetSize(builder, targetSize):
-    return VectorImageAddTargetSize(builder, targetSize)
-def VectorImageAddSharedMaterials(builder, sharedMaterials): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(sharedMaterials), 0)
+    VectorImageAddTargetSize(builder, targetSize)
+
+def VectorImageAddSharedMaterials(builder, sharedMaterials):
+    builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(sharedMaterials), 0)
+
 def AddSharedMaterials(builder, sharedMaterials):
-    return VectorImageAddSharedMaterials(builder, sharedMaterials)
-def VectorImageAddVectorShaders(builder, vectorShaders): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(vectorShaders), 0)
+    VectorImageAddSharedMaterials(builder, sharedMaterials)
+
+def VectorImageAddVectorShaders(builder, vectorShaders):
+    builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(vectorShaders), 0)
+
 def AddVectorShaders(builder, vectorShaders):
-    return VectorImageAddVectorShaders(builder, vectorShaders)
-def VectorImageAddResources(builder, resources): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(resources), 0)
+    VectorImageAddVectorShaders(builder, vectorShaders)
+
+def VectorImageAddResources(builder, resources):
+    builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(resources), 0)
+
 def AddResources(builder, resources):
-    return VectorImageAddResources(builder, resources)
-def VectorImageStartResourcesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    VectorImageAddResources(builder, resources)
+
+def VectorImageStartResourcesVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartResourcesVector(builder, numElems):
     return VectorImageStartResourcesVector(builder, numElems)
-def VectorImageAddSrgb(builder, srgb): builder.PrependBoolSlot(6, srgb, 0)
+
+def VectorImageAddSrgb(builder, srgb):
+    builder.PrependBoolSlot(6, srgb, 0)
+
 def AddSrgb(builder, srgb):
-    return VectorImageAddSrgb(builder, srgb)
-def VectorImageEnd(builder): return builder.EndObject()
+    VectorImageAddSrgb(builder, srgb)
+
+def VectorImageEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return VectorImageEnd(builder)

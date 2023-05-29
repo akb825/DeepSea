@@ -42,15 +42,26 @@ class SceneNode(object):
             return obj
         return None
 
-def SceneNodeStart(builder): builder.StartObject(2)
+def SceneNodeStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return SceneNodeStart(builder)
-def SceneNodeAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    SceneNodeStart(builder)
+
+def SceneNodeAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return SceneNodeAddName(builder, name)
-def SceneNodeAddNode(builder, node): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(node), 0)
+    SceneNodeAddName(builder, name)
+
+def SceneNodeAddNode(builder, node):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(node), 0)
+
 def AddNode(builder, node):
-    return SceneNodeAddNode(builder, node)
-def SceneNodeEnd(builder): return builder.EndObject()
+    SceneNodeAddNode(builder, node)
+
+def SceneNodeEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return SceneNodeEnd(builder)

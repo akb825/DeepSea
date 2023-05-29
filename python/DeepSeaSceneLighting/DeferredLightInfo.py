@@ -38,15 +38,26 @@ class DeferredLightInfo(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def DeferredLightInfoStart(builder): builder.StartObject(2)
+def DeferredLightInfoStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return DeferredLightInfoStart(builder)
-def DeferredLightInfoAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+    DeferredLightInfoStart(builder)
+
+def DeferredLightInfoAddShader(builder, shader):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+
 def AddShader(builder, shader):
-    return DeferredLightInfoAddShader(builder, shader)
-def DeferredLightInfoAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+    DeferredLightInfoAddShader(builder, shader)
+
+def DeferredLightInfoAddMaterial(builder, material):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+
 def AddMaterial(builder, material):
-    return DeferredLightInfoAddMaterial(builder, material)
-def DeferredLightInfoEnd(builder): return builder.EndObject()
+    DeferredLightInfoAddMaterial(builder, material)
+
+def DeferredLightInfoEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return DeferredLightInfoEnd(builder)

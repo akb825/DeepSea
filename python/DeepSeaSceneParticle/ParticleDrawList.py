@@ -56,18 +56,32 @@ class ParticleDrawList(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def ParticleDrawListStart(builder): builder.StartObject(2)
+def ParticleDrawListStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return ParticleDrawListStart(builder)
-def ParticleDrawListAddInstanceData(builder, instanceData): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(instanceData), 0)
+    ParticleDrawListStart(builder)
+
+def ParticleDrawListAddInstanceData(builder, instanceData):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(instanceData), 0)
+
 def AddInstanceData(builder, instanceData):
-    return ParticleDrawListAddInstanceData(builder, instanceData)
-def ParticleDrawListStartInstanceDataVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    ParticleDrawListAddInstanceData(builder, instanceData)
+
+def ParticleDrawListStartInstanceDataVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartInstanceDataVector(builder, numElems):
     return ParticleDrawListStartInstanceDataVector(builder, numElems)
-def ParticleDrawListAddCullList(builder, cullList): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(cullList), 0)
+
+def ParticleDrawListAddCullList(builder, cullList):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(cullList), 0)
+
 def AddCullList(builder, cullList):
-    return ParticleDrawListAddCullList(builder, cullList)
-def ParticleDrawListEnd(builder): return builder.EndObject()
+    ParticleDrawListAddCullList(builder, cullList)
+
+def ParticleDrawListEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ParticleDrawListEnd(builder)

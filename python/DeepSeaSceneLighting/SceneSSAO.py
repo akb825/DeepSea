@@ -38,15 +38,26 @@ class SceneSSAO(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def SceneSSAOStart(builder): builder.StartObject(2)
+def SceneSSAOStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return SceneSSAOStart(builder)
-def SceneSSAOAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+    SceneSSAOStart(builder)
+
+def SceneSSAOAddShader(builder, shader):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+
 def AddShader(builder, shader):
-    return SceneSSAOAddShader(builder, shader)
-def SceneSSAOAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+    SceneSSAOAddShader(builder, shader)
+
+def SceneSSAOAddMaterial(builder, material):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+
 def AddMaterial(builder, material):
-    return SceneSSAOAddMaterial(builder, material)
-def SceneSSAOEnd(builder): return builder.EndObject()
+    SceneSSAOAddMaterial(builder, material)
+
+def SceneSSAOEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return SceneSSAOEnd(builder)

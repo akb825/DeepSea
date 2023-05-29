@@ -49,15 +49,26 @@ class SceneShadowManager(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         return o == 0
 
-def SceneShadowManagerStart(builder): builder.StartObject(1)
+def SceneShadowManagerStart(builder):
+    builder.StartObject(1)
+
 def Start(builder):
-    return SceneShadowManagerStart(builder)
-def SceneShadowManagerAddShadows(builder, shadows): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shadows), 0)
+    SceneShadowManagerStart(builder)
+
+def SceneShadowManagerAddShadows(builder, shadows):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shadows), 0)
+
 def AddShadows(builder, shadows):
-    return SceneShadowManagerAddShadows(builder, shadows)
-def SceneShadowManagerStartShadowsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    SceneShadowManagerAddShadows(builder, shadows)
+
+def SceneShadowManagerStartShadowsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartShadowsVector(builder, numElems):
     return SceneShadowManagerStartShadowsVector(builder, numElems)
-def SceneShadowManagerEnd(builder): return builder.EndObject()
+
+def SceneShadowManagerEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return SceneShadowManagerEnd(builder)

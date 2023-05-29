@@ -49,18 +49,32 @@ class FullScreenResolve(object):
             return obj
         return None
 
-def FullScreenResolveStart(builder): builder.StartObject(3)
+def FullScreenResolveStart(builder):
+    builder.StartObject(3)
+
 def Start(builder):
-    return FullScreenResolveStart(builder)
-def FullScreenResolveAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+    FullScreenResolveStart(builder)
+
+def FullScreenResolveAddShader(builder, shader):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+
 def AddShader(builder, shader):
-    return FullScreenResolveAddShader(builder, shader)
-def FullScreenResolveAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+    FullScreenResolveAddShader(builder, shader)
+
+def FullScreenResolveAddMaterial(builder, material):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+
 def AddMaterial(builder, material):
-    return FullScreenResolveAddMaterial(builder, material)
-def FullScreenResolveAddDynamicRenderStates(builder, dynamicRenderStates): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(dynamicRenderStates), 0)
+    FullScreenResolveAddMaterial(builder, material)
+
+def FullScreenResolveAddDynamicRenderStates(builder, dynamicRenderStates):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(dynamicRenderStates), 0)
+
 def AddDynamicRenderStates(builder, dynamicRenderStates):
-    return FullScreenResolveAddDynamicRenderStates(builder, dynamicRenderStates)
-def FullScreenResolveEnd(builder): return builder.EndObject()
+    FullScreenResolveAddDynamicRenderStates(builder, dynamicRenderStates)
+
+def FullScreenResolveEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return FullScreenResolveEnd(builder)

@@ -63,21 +63,38 @@ class ShaderVariableGroup(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         return o == 0
 
-def ShaderVariableGroupStart(builder): builder.StartObject(3)
+def ShaderVariableGroupStart(builder):
+    builder.StartObject(3)
+
 def Start(builder):
-    return ShaderVariableGroupStart(builder)
-def ShaderVariableGroupAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    ShaderVariableGroupStart(builder)
+
+def ShaderVariableGroupAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return ShaderVariableGroupAddName(builder, name)
-def ShaderVariableGroupAddDescription(builder, description): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(description), 0)
+    ShaderVariableGroupAddName(builder, name)
+
+def ShaderVariableGroupAddDescription(builder, description):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(description), 0)
+
 def AddDescription(builder, description):
-    return ShaderVariableGroupAddDescription(builder, description)
-def ShaderVariableGroupAddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+    ShaderVariableGroupAddDescription(builder, description)
+
+def ShaderVariableGroupAddData(builder, data):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+
 def AddData(builder, data):
-    return ShaderVariableGroupAddData(builder, data)
-def ShaderVariableGroupStartDataVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    ShaderVariableGroupAddData(builder, data)
+
+def ShaderVariableGroupStartDataVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartDataVector(builder, numElems):
     return ShaderVariableGroupStartDataVector(builder, numElems)
-def ShaderVariableGroupEnd(builder): return builder.EndObject()
+
+def ShaderVariableGroupEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ShaderVariableGroupEnd(builder)

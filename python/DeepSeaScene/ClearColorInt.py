@@ -52,21 +52,38 @@ class ClearColorInt(object):
             return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
         return 0
 
-def ClearColorIntStart(builder): builder.StartObject(4)
+def ClearColorIntStart(builder):
+    builder.StartObject(4)
+
 def Start(builder):
-    return ClearColorIntStart(builder)
-def ClearColorIntAddRed(builder, red): builder.PrependInt32Slot(0, red, 0)
+    ClearColorIntStart(builder)
+
+def ClearColorIntAddRed(builder, red):
+    builder.PrependInt32Slot(0, red, 0)
+
 def AddRed(builder, red):
-    return ClearColorIntAddRed(builder, red)
-def ClearColorIntAddGreen(builder, green): builder.PrependInt32Slot(1, green, 0)
+    ClearColorIntAddRed(builder, red)
+
+def ClearColorIntAddGreen(builder, green):
+    builder.PrependInt32Slot(1, green, 0)
+
 def AddGreen(builder, green):
-    return ClearColorIntAddGreen(builder, green)
-def ClearColorIntAddBlue(builder, blue): builder.PrependInt32Slot(2, blue, 0)
+    ClearColorIntAddGreen(builder, green)
+
+def ClearColorIntAddBlue(builder, blue):
+    builder.PrependInt32Slot(2, blue, 0)
+
 def AddBlue(builder, blue):
-    return ClearColorIntAddBlue(builder, blue)
-def ClearColorIntAddAlpha(builder, alpha): builder.PrependInt32Slot(3, alpha, 0)
+    ClearColorIntAddBlue(builder, blue)
+
+def ClearColorIntAddAlpha(builder, alpha):
+    builder.PrependInt32Slot(3, alpha, 0)
+
 def AddAlpha(builder, alpha):
-    return ClearColorIntAddAlpha(builder, alpha)
-def ClearColorIntEnd(builder): return builder.EndObject()
+    ClearColorIntAddAlpha(builder, alpha)
+
+def ClearColorIntEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ClearColorIntEnd(builder)

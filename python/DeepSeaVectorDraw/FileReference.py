@@ -31,12 +31,20 @@ class FileReference(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def FileReferenceStart(builder): builder.StartObject(1)
+def FileReferenceStart(builder):
+    builder.StartObject(1)
+
 def Start(builder):
-    return FileReferenceStart(builder)
-def FileReferenceAddPath(builder, path): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(path), 0)
+    FileReferenceStart(builder)
+
+def FileReferenceAddPath(builder, path):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(path), 0)
+
 def AddPath(builder, path):
-    return FileReferenceAddPath(builder, path)
-def FileReferenceEnd(builder): return builder.EndObject()
+    FileReferenceAddPath(builder, path)
+
+def FileReferenceEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return FileReferenceEnd(builder)

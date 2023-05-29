@@ -44,15 +44,26 @@ class ViewMipmapList(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         return o == 0
 
-def ViewMipmapListStart(builder): builder.StartObject(1)
+def ViewMipmapListStart(builder):
+    builder.StartObject(1)
+
 def Start(builder):
-    return ViewMipmapListStart(builder)
-def ViewMipmapListAddTextures(builder, textures): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(textures), 0)
+    ViewMipmapListStart(builder)
+
+def ViewMipmapListAddTextures(builder, textures):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(textures), 0)
+
 def AddTextures(builder, textures):
-    return ViewMipmapListAddTextures(builder, textures)
-def ViewMipmapListStartTexturesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    ViewMipmapListAddTextures(builder, textures)
+
+def ViewMipmapListStartTexturesVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartTexturesVector(builder, numElems):
     return ViewMipmapListStartTexturesVector(builder, numElems)
-def ViewMipmapListEnd(builder): return builder.EndObject()
+
+def ViewMipmapListEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ViewMipmapListEnd(builder)

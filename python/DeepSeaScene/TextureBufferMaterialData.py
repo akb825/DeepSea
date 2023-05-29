@@ -59,24 +59,44 @@ class TextureBufferMaterialData(object):
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
-def TextureBufferMaterialDataStart(builder): builder.StartObject(5)
+def TextureBufferMaterialDataStart(builder):
+    builder.StartObject(5)
+
 def Start(builder):
-    return TextureBufferMaterialDataStart(builder)
-def TextureBufferMaterialDataAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    TextureBufferMaterialDataStart(builder)
+
+def TextureBufferMaterialDataAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return TextureBufferMaterialDataAddName(builder, name)
-def TextureBufferMaterialDataAddFormat(builder, format): builder.PrependUint8Slot(1, format, 0)
+    TextureBufferMaterialDataAddName(builder, name)
+
+def TextureBufferMaterialDataAddFormat(builder, format):
+    builder.PrependUint8Slot(1, format, 0)
+
 def AddFormat(builder, format):
-    return TextureBufferMaterialDataAddFormat(builder, format)
-def TextureBufferMaterialDataAddDecoration(builder, decoration): builder.PrependUint8Slot(2, decoration, 0)
+    TextureBufferMaterialDataAddFormat(builder, format)
+
+def TextureBufferMaterialDataAddDecoration(builder, decoration):
+    builder.PrependUint8Slot(2, decoration, 0)
+
 def AddDecoration(builder, decoration):
-    return TextureBufferMaterialDataAddDecoration(builder, decoration)
-def TextureBufferMaterialDataAddOffset(builder, offset): builder.PrependUint32Slot(3, offset, 0)
+    TextureBufferMaterialDataAddDecoration(builder, decoration)
+
+def TextureBufferMaterialDataAddOffset(builder, offset):
+    builder.PrependUint32Slot(3, offset, 0)
+
 def AddOffset(builder, offset):
-    return TextureBufferMaterialDataAddOffset(builder, offset)
-def TextureBufferMaterialDataAddCount(builder, count): builder.PrependUint32Slot(4, count, 0)
+    TextureBufferMaterialDataAddOffset(builder, offset)
+
+def TextureBufferMaterialDataAddCount(builder, count):
+    builder.PrependUint32Slot(4, count, 0)
+
 def AddCount(builder, count):
-    return TextureBufferMaterialDataAddCount(builder, count)
-def TextureBufferMaterialDataEnd(builder): return builder.EndObject()
+    TextureBufferMaterialDataAddCount(builder, count)
+
+def TextureBufferMaterialDataEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return TextureBufferMaterialDataEnd(builder)

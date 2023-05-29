@@ -69,27 +69,50 @@ class Buffer(object):
             return obj
         return None
 
-def BufferStart(builder): builder.StartObject(6)
+def BufferStart(builder):
+    builder.StartObject(6)
+
 def Start(builder):
-    return BufferStart(builder)
-def BufferAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    BufferStart(builder)
+
+def BufferAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return BufferAddName(builder, name)
-def BufferAddUsage(builder, usage): builder.PrependUint32Slot(1, usage, 0)
+    BufferAddName(builder, name)
+
+def BufferAddUsage(builder, usage):
+    builder.PrependUint32Slot(1, usage, 0)
+
 def AddUsage(builder, usage):
-    return BufferAddUsage(builder, usage)
-def BufferAddMemoryHints(builder, memoryHints): builder.PrependUint32Slot(2, memoryHints, 0)
+    BufferAddUsage(builder, usage)
+
+def BufferAddMemoryHints(builder, memoryHints):
+    builder.PrependUint32Slot(2, memoryHints, 0)
+
 def AddMemoryHints(builder, memoryHints):
-    return BufferAddMemoryHints(builder, memoryHints)
-def BufferAddSize(builder, size): builder.PrependUint32Slot(3, size, 0)
+    BufferAddMemoryHints(builder, memoryHints)
+
+def BufferAddSize(builder, size):
+    builder.PrependUint32Slot(3, size, 0)
+
 def AddSize(builder, size):
-    return BufferAddSize(builder, size)
-def BufferAddDataType(builder, dataType): builder.PrependUint8Slot(4, dataType, 0)
+    BufferAddSize(builder, size)
+
+def BufferAddDataType(builder, dataType):
+    builder.PrependUint8Slot(4, dataType, 0)
+
 def AddDataType(builder, dataType):
-    return BufferAddDataType(builder, dataType)
-def BufferAddData(builder, data): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+    BufferAddDataType(builder, dataType)
+
+def BufferAddData(builder, data):
+    builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+
 def AddData(builder, data):
-    return BufferAddData(builder, data)
-def BufferEnd(builder): return builder.EndObject()
+    BufferAddData(builder, data)
+
+def BufferEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return BufferEnd(builder)

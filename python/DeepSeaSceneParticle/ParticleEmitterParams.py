@@ -52,21 +52,38 @@ class ParticleEmitterParams(object):
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
-def ParticleEmitterParamsStart(builder): builder.StartObject(4)
+def ParticleEmitterParamsStart(builder):
+    builder.StartObject(4)
+
 def Start(builder):
-    return ParticleEmitterParamsStart(builder)
-def ParticleEmitterParamsAddMaxParticles(builder, maxParticles): builder.PrependUint32Slot(0, maxParticles, 0)
+    ParticleEmitterParamsStart(builder)
+
+def ParticleEmitterParamsAddMaxParticles(builder, maxParticles):
+    builder.PrependUint32Slot(0, maxParticles, 0)
+
 def AddMaxParticles(builder, maxParticles):
-    return ParticleEmitterParamsAddMaxParticles(builder, maxParticles)
-def ParticleEmitterParamsAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+    ParticleEmitterParamsAddMaxParticles(builder, maxParticles)
+
+def ParticleEmitterParamsAddShader(builder, shader):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+
 def AddShader(builder, shader):
-    return ParticleEmitterParamsAddShader(builder, shader)
-def ParticleEmitterParamsAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+    ParticleEmitterParamsAddShader(builder, shader)
+
+def ParticleEmitterParamsAddMaterial(builder, material):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+
 def AddMaterial(builder, material):
-    return ParticleEmitterParamsAddMaterial(builder, material)
-def ParticleEmitterParamsAddInstanceValueCount(builder, instanceValueCount): builder.PrependUint32Slot(3, instanceValueCount, 0)
+    ParticleEmitterParamsAddMaterial(builder, material)
+
+def ParticleEmitterParamsAddInstanceValueCount(builder, instanceValueCount):
+    builder.PrependUint32Slot(3, instanceValueCount, 0)
+
 def AddInstanceValueCount(builder, instanceValueCount):
-    return ParticleEmitterParamsAddInstanceValueCount(builder, instanceValueCount)
-def ParticleEmitterParamsEnd(builder): return builder.EndObject()
+    ParticleEmitterParamsAddInstanceValueCount(builder, instanceValueCount)
+
+def ParticleEmitterParamsEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ParticleEmitterParamsEnd(builder)

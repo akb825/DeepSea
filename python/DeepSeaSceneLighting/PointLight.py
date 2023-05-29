@@ -67,24 +67,44 @@ class PointLight(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def PointLightStart(builder): builder.StartObject(5)
+def PointLightStart(builder):
+    builder.StartObject(5)
+
 def Start(builder):
-    return PointLightStart(builder)
-def PointLightAddPosition(builder, position): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(position), 0)
+    PointLightStart(builder)
+
+def PointLightAddPosition(builder, position):
+    builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(position), 0)
+
 def AddPosition(builder, position):
-    return PointLightAddPosition(builder, position)
-def PointLightAddColor(builder, color): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+    PointLightAddPosition(builder, position)
+
+def PointLightAddColor(builder, color):
+    builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+
 def AddColor(builder, color):
-    return PointLightAddColor(builder, color)
-def PointLightAddIntensity(builder, intensity): builder.PrependFloat32Slot(2, intensity, 0.0)
+    PointLightAddColor(builder, color)
+
+def PointLightAddIntensity(builder, intensity):
+    builder.PrependFloat32Slot(2, intensity, 0.0)
+
 def AddIntensity(builder, intensity):
-    return PointLightAddIntensity(builder, intensity)
-def PointLightAddLinearFalloff(builder, linearFalloff): builder.PrependFloat32Slot(3, linearFalloff, 0.0)
+    PointLightAddIntensity(builder, intensity)
+
+def PointLightAddLinearFalloff(builder, linearFalloff):
+    builder.PrependFloat32Slot(3, linearFalloff, 0.0)
+
 def AddLinearFalloff(builder, linearFalloff):
-    return PointLightAddLinearFalloff(builder, linearFalloff)
-def PointLightAddQuadraticFalloff(builder, quadraticFalloff): builder.PrependFloat32Slot(4, quadraticFalloff, 0.0)
+    PointLightAddLinearFalloff(builder, linearFalloff)
+
+def PointLightAddQuadraticFalloff(builder, quadraticFalloff):
+    builder.PrependFloat32Slot(4, quadraticFalloff, 0.0)
+
 def AddQuadraticFalloff(builder, quadraticFalloff):
-    return PointLightAddQuadraticFalloff(builder, quadraticFalloff)
-def PointLightEnd(builder): return builder.EndObject()
+    PointLightAddQuadraticFalloff(builder, quadraticFalloff)
+
+def PointLightEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return PointLightEnd(builder)

@@ -94,27 +94,50 @@ class Scene(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         return o == 0
 
-def SceneStart(builder): builder.StartObject(3)
+def SceneStart(builder):
+    builder.StartObject(3)
+
 def Start(builder):
-    return SceneStart(builder)
-def SceneAddSharedItems(builder, sharedItems): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(sharedItems), 0)
+    SceneStart(builder)
+
+def SceneAddSharedItems(builder, sharedItems):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(sharedItems), 0)
+
 def AddSharedItems(builder, sharedItems):
-    return SceneAddSharedItems(builder, sharedItems)
-def SceneStartSharedItemsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    SceneAddSharedItems(builder, sharedItems)
+
+def SceneStartSharedItemsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartSharedItemsVector(builder, numElems):
     return SceneStartSharedItemsVector(builder, numElems)
-def SceneAddPipeline(builder, pipeline): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(pipeline), 0)
+
+def SceneAddPipeline(builder, pipeline):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(pipeline), 0)
+
 def AddPipeline(builder, pipeline):
-    return SceneAddPipeline(builder, pipeline)
-def SceneStartPipelineVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    SceneAddPipeline(builder, pipeline)
+
+def SceneStartPipelineVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartPipelineVector(builder, numElems):
     return SceneStartPipelineVector(builder, numElems)
-def SceneAddNodes(builder, nodes): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(nodes), 0)
+
+def SceneAddNodes(builder, nodes):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(nodes), 0)
+
 def AddNodes(builder, nodes):
-    return SceneAddNodes(builder, nodes)
-def SceneStartNodesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    SceneAddNodes(builder, nodes)
+
+def SceneStartNodesVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartNodesVector(builder, numElems):
     return SceneStartNodesVector(builder, numElems)
-def SceneEnd(builder): return builder.EndObject()
+
+def SceneEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return SceneEnd(builder)

@@ -76,24 +76,44 @@ class AnimationNode(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         return o == 0
 
-def AnimationNodeStart(builder): builder.StartObject(3)
+def AnimationNodeStart(builder):
+    builder.StartObject(3)
+
 def Start(builder):
-    return AnimationNodeStart(builder)
-def AnimationNodeAddNodeMapCache(builder, nodeMapCache): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(nodeMapCache), 0)
+    AnimationNodeStart(builder)
+
+def AnimationNodeAddNodeMapCache(builder, nodeMapCache):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(nodeMapCache), 0)
+
 def AddNodeMapCache(builder, nodeMapCache):
-    return AnimationNodeAddNodeMapCache(builder, nodeMapCache)
-def AnimationNodeAddChildren(builder, children): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(children), 0)
+    AnimationNodeAddNodeMapCache(builder, nodeMapCache)
+
+def AnimationNodeAddChildren(builder, children):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(children), 0)
+
 def AddChildren(builder, children):
-    return AnimationNodeAddChildren(builder, children)
-def AnimationNodeStartChildrenVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    AnimationNodeAddChildren(builder, children)
+
+def AnimationNodeStartChildrenVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartChildrenVector(builder, numElems):
     return AnimationNodeStartChildrenVector(builder, numElems)
-def AnimationNodeAddItemLists(builder, itemLists): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
+
+def AnimationNodeAddItemLists(builder, itemLists):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
+
 def AddItemLists(builder, itemLists):
-    return AnimationNodeAddItemLists(builder, itemLists)
-def AnimationNodeStartItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    AnimationNodeAddItemLists(builder, itemLists)
+
+def AnimationNodeStartItemListsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartItemListsVector(builder, numElems):
     return AnimationNodeStartItemListsVector(builder, numElems)
-def AnimationNodeEnd(builder): return builder.EndObject()
+
+def AnimationNodeEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return AnimationNodeEnd(builder)

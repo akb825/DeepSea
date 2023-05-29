@@ -31,12 +31,20 @@ class ParticleTransformData(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def ParticleTransformDataStart(builder): builder.StartObject(1)
+def ParticleTransformDataStart(builder):
+    builder.StartObject(1)
+
 def Start(builder):
-    return ParticleTransformDataStart(builder)
-def ParticleTransformDataAddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
+    ParticleTransformDataStart(builder)
+
+def ParticleTransformDataAddVariableGroupDesc(builder, variableGroupDesc):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
+
 def AddVariableGroupDesc(builder, variableGroupDesc):
-    return ParticleTransformDataAddVariableGroupDesc(builder, variableGroupDesc)
-def ParticleTransformDataEnd(builder): return builder.EndObject()
+    ParticleTransformDataAddVariableGroupDesc(builder, variableGroupDesc)
+
+def ParticleTransformDataEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ParticleTransformDataEnd(builder)

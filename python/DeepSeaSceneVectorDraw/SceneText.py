@@ -67,21 +67,38 @@ class SceneText(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         return o == 0
 
-def SceneTextStart(builder): builder.StartObject(3)
+def SceneTextStart(builder):
+    builder.StartObject(3)
+
 def Start(builder):
-    return SceneTextStart(builder)
-def SceneTextAddFont(builder, font): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(font), 0)
+    SceneTextStart(builder)
+
+def SceneTextAddFont(builder, font):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(font), 0)
+
 def AddFont(builder, font):
-    return SceneTextAddFont(builder, font)
-def SceneTextAddText(builder, text): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(text), 0)
+    SceneTextAddFont(builder, font)
+
+def SceneTextAddText(builder, text):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(text), 0)
+
 def AddText(builder, text):
-    return SceneTextAddText(builder, text)
-def SceneTextAddStyles(builder, styles): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(styles), 0)
+    SceneTextAddText(builder, text)
+
+def SceneTextAddStyles(builder, styles):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(styles), 0)
+
 def AddStyles(builder, styles):
-    return SceneTextAddStyles(builder, styles)
-def SceneTextStartStylesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    SceneTextAddStyles(builder, styles)
+
+def SceneTextStartStylesVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartStylesVector(builder, numElems):
     return SceneTextStartStylesVector(builder, numElems)
-def SceneTextEnd(builder): return builder.EndObject()
+
+def SceneTextEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return SceneTextEnd(builder)

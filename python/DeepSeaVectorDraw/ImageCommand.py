@@ -71,24 +71,44 @@ class ImageCommand(object):
             return obj
         return None
 
-def ImageCommandStart(builder): builder.StartObject(5)
+def ImageCommandStart(builder):
+    builder.StartObject(5)
+
 def Start(builder):
-    return ImageCommandStart(builder)
-def ImageCommandAddImage(builder, image): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(image), 0)
+    ImageCommandStart(builder)
+
+def ImageCommandAddImage(builder, image):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(image), 0)
+
 def AddImage(builder, image):
-    return ImageCommandAddImage(builder, image)
-def ImageCommandAddUpperLeft(builder, upperLeft): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(upperLeft), 0)
+    ImageCommandAddImage(builder, image)
+
+def ImageCommandAddUpperLeft(builder, upperLeft):
+    builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(upperLeft), 0)
+
 def AddUpperLeft(builder, upperLeft):
-    return ImageCommandAddUpperLeft(builder, upperLeft)
-def ImageCommandAddLowerRight(builder, lowerRight): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(lowerRight), 0)
+    ImageCommandAddUpperLeft(builder, upperLeft)
+
+def ImageCommandAddLowerRight(builder, lowerRight):
+    builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(lowerRight), 0)
+
 def AddLowerRight(builder, lowerRight):
-    return ImageCommandAddLowerRight(builder, lowerRight)
-def ImageCommandAddOpacity(builder, opacity): builder.PrependFloat32Slot(3, opacity, 0.0)
+    ImageCommandAddLowerRight(builder, lowerRight)
+
+def ImageCommandAddOpacity(builder, opacity):
+    builder.PrependFloat32Slot(3, opacity, 0.0)
+
 def AddOpacity(builder, opacity):
-    return ImageCommandAddOpacity(builder, opacity)
-def ImageCommandAddTransform(builder, transform): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
+    ImageCommandAddOpacity(builder, opacity)
+
+def ImageCommandAddTransform(builder, transform):
+    builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
+
 def AddTransform(builder, transform):
-    return ImageCommandAddTransform(builder, transform)
-def ImageCommandEnd(builder): return builder.EndObject()
+    ImageCommandAddTransform(builder, transform)
+
+def ImageCommandEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ImageCommandEnd(builder)

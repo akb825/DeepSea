@@ -48,18 +48,32 @@ class Material(object):
             return obj
         return None
 
-def MaterialStart(builder): builder.StartObject(3)
+def MaterialStart(builder):
+    builder.StartObject(3)
+
 def Start(builder):
-    return MaterialStart(builder)
-def MaterialAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    MaterialStart(builder)
+
+def MaterialAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return MaterialAddName(builder, name)
-def MaterialAddValueType(builder, valueType): builder.PrependUint8Slot(1, valueType, 0)
+    MaterialAddName(builder, name)
+
+def MaterialAddValueType(builder, valueType):
+    builder.PrependUint8Slot(1, valueType, 0)
+
 def AddValueType(builder, valueType):
-    return MaterialAddValueType(builder, valueType)
-def MaterialAddValue(builder, value): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(value), 0)
+    MaterialAddValueType(builder, valueType)
+
+def MaterialAddValue(builder, value):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(value), 0)
+
 def AddValue(builder, value):
-    return MaterialAddValue(builder, value)
-def MaterialEnd(builder): return builder.EndObject()
+    MaterialAddValue(builder, value)
+
+def MaterialEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return MaterialEnd(builder)

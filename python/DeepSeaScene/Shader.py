@@ -52,21 +52,38 @@ class Shader(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def ShaderStart(builder): builder.StartObject(4)
+def ShaderStart(builder):
+    builder.StartObject(4)
+
 def Start(builder):
-    return ShaderStart(builder)
-def ShaderAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    ShaderStart(builder)
+
+def ShaderAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return ShaderAddName(builder, name)
-def ShaderAddShaderModule(builder, shaderModule): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shaderModule), 0)
+    ShaderAddName(builder, name)
+
+def ShaderAddShaderModule(builder, shaderModule):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shaderModule), 0)
+
 def AddShaderModule(builder, shaderModule):
-    return ShaderAddShaderModule(builder, shaderModule)
-def ShaderAddPipeline(builder, pipeline): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(pipeline), 0)
+    ShaderAddShaderModule(builder, shaderModule)
+
+def ShaderAddPipeline(builder, pipeline):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(pipeline), 0)
+
 def AddPipeline(builder, pipeline):
-    return ShaderAddPipeline(builder, pipeline)
-def ShaderAddMaterialDesc(builder, materialDesc): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(materialDesc), 0)
+    ShaderAddPipeline(builder, pipeline)
+
+def ShaderAddMaterialDesc(builder, materialDesc):
+    builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(materialDesc), 0)
+
 def AddMaterialDesc(builder, materialDesc):
-    return ShaderAddMaterialDesc(builder, materialDesc)
-def ShaderEnd(builder): return builder.EndObject()
+    ShaderAddMaterialDesc(builder, materialDesc)
+
+def ShaderEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ShaderEnd(builder)

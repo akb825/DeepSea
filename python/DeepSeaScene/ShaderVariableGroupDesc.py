@@ -56,18 +56,32 @@ class ShaderVariableGroupDesc(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def ShaderVariableGroupDescStart(builder): builder.StartObject(2)
+def ShaderVariableGroupDescStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return ShaderVariableGroupDescStart(builder)
-def ShaderVariableGroupDescAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    ShaderVariableGroupDescStart(builder)
+
+def ShaderVariableGroupDescAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return ShaderVariableGroupDescAddName(builder, name)
-def ShaderVariableGroupDescAddElements(builder, elements): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(elements), 0)
+    ShaderVariableGroupDescAddName(builder, name)
+
+def ShaderVariableGroupDescAddElements(builder, elements):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(elements), 0)
+
 def AddElements(builder, elements):
-    return ShaderVariableGroupDescAddElements(builder, elements)
-def ShaderVariableGroupDescStartElementsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    ShaderVariableGroupDescAddElements(builder, elements)
+
+def ShaderVariableGroupDescStartElementsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartElementsVector(builder, numElems):
     return ShaderVariableGroupDescStartElementsVector(builder, numElems)
-def ShaderVariableGroupDescEnd(builder): return builder.EndObject()
+
+def ShaderVariableGroupDescEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ShaderVariableGroupDescEnd(builder)

@@ -57,18 +57,32 @@ class BezierCommand(object):
             return obj
         return None
 
-def BezierCommandStart(builder): builder.StartObject(3)
+def BezierCommandStart(builder):
+    builder.StartObject(3)
+
 def Start(builder):
-    return BezierCommandStart(builder)
-def BezierCommandAddControl1(builder, control1): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(control1), 0)
+    BezierCommandStart(builder)
+
+def BezierCommandAddControl1(builder, control1):
+    builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(control1), 0)
+
 def AddControl1(builder, control1):
-    return BezierCommandAddControl1(builder, control1)
-def BezierCommandAddControl2(builder, control2): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(control2), 0)
+    BezierCommandAddControl1(builder, control1)
+
+def BezierCommandAddControl2(builder, control2):
+    builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(control2), 0)
+
 def AddControl2(builder, control2):
-    return BezierCommandAddControl2(builder, control2)
-def BezierCommandAddEnd(builder, end): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(end), 0)
+    BezierCommandAddControl2(builder, control2)
+
+def BezierCommandAddEnd(builder, end):
+    builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(end), 0)
+
 def AddEnd(builder, end):
-    return BezierCommandAddEnd(builder, end)
-def BezierCommandEnd(builder): return builder.EndObject()
+    BezierCommandAddEnd(builder, end)
+
+def BezierCommandEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return BezierCommandEnd(builder)

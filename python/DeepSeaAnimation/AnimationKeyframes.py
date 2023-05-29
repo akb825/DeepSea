@@ -76,21 +76,38 @@ class AnimationKeyframes(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def AnimationKeyframesStart(builder): builder.StartObject(2)
+def AnimationKeyframesStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return AnimationKeyframesStart(builder)
-def AnimationKeyframesAddKeyframeTimes(builder, keyframeTimes): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(keyframeTimes), 0)
+    AnimationKeyframesStart(builder)
+
+def AnimationKeyframesAddKeyframeTimes(builder, keyframeTimes):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(keyframeTimes), 0)
+
 def AddKeyframeTimes(builder, keyframeTimes):
-    return AnimationKeyframesAddKeyframeTimes(builder, keyframeTimes)
-def AnimationKeyframesStartKeyframeTimesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    AnimationKeyframesAddKeyframeTimes(builder, keyframeTimes)
+
+def AnimationKeyframesStartKeyframeTimesVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartKeyframeTimesVector(builder, numElems):
     return AnimationKeyframesStartKeyframeTimesVector(builder, numElems)
-def AnimationKeyframesAddChannels(builder, channels): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(channels), 0)
+
+def AnimationKeyframesAddChannels(builder, channels):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(channels), 0)
+
 def AddChannels(builder, channels):
-    return AnimationKeyframesAddChannels(builder, channels)
-def AnimationKeyframesStartChannelsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    AnimationKeyframesAddChannels(builder, channels)
+
+def AnimationKeyframesStartChannelsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartChannelsVector(builder, numElems):
     return AnimationKeyframesStartChannelsVector(builder, numElems)
-def AnimationKeyframesEnd(builder): return builder.EndObject()
+
+def AnimationKeyframesEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return AnimationKeyframesEnd(builder)

@@ -48,18 +48,32 @@ class Light(object):
             return obj
         return None
 
-def LightStart(builder): builder.StartObject(3)
+def LightStart(builder):
+    builder.StartObject(3)
+
 def Start(builder):
-    return LightStart(builder)
-def LightAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    LightStart(builder)
+
+def LightAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return LightAddName(builder, name)
-def LightAddLightType(builder, lightType): builder.PrependUint8Slot(1, lightType, 0)
+    LightAddName(builder, name)
+
+def LightAddLightType(builder, lightType):
+    builder.PrependUint8Slot(1, lightType, 0)
+
 def AddLightType(builder, lightType):
-    return LightAddLightType(builder, lightType)
-def LightAddLight(builder, light): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(light), 0)
+    LightAddLightType(builder, lightType)
+
+def LightAddLight(builder, light):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(light), 0)
+
 def AddLight(builder, light):
-    return LightAddLight(builder, light)
-def LightEnd(builder): return builder.EndObject()
+    LightAddLight(builder, light)
+
+def LightEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return LightEnd(builder)

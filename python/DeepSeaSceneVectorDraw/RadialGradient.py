@@ -110,36 +110,68 @@ class RadialGradient(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
         return o == 0
 
-def RadialGradientStart(builder): builder.StartObject(8)
+def RadialGradientStart(builder):
+    builder.StartObject(8)
+
 def Start(builder):
-    return RadialGradientStart(builder)
-def RadialGradientAddCenter(builder, center): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(center), 0)
+    RadialGradientStart(builder)
+
+def RadialGradientAddCenter(builder, center):
+    builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(center), 0)
+
 def AddCenter(builder, center):
-    return RadialGradientAddCenter(builder, center)
-def RadialGradientAddRadius(builder, radius): builder.PrependFloat32Slot(1, radius, 0.0)
+    RadialGradientAddCenter(builder, center)
+
+def RadialGradientAddRadius(builder, radius):
+    builder.PrependFloat32Slot(1, radius, 0.0)
+
 def AddRadius(builder, radius):
-    return RadialGradientAddRadius(builder, radius)
-def RadialGradientAddFocus(builder, focus): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(focus), 0)
+    RadialGradientAddRadius(builder, radius)
+
+def RadialGradientAddFocus(builder, focus):
+    builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(focus), 0)
+
 def AddFocus(builder, focus):
-    return RadialGradientAddFocus(builder, focus)
-def RadialGradientAddFocusRadius(builder, focusRadius): builder.PrependFloat32Slot(3, focusRadius, 0.0)
+    RadialGradientAddFocus(builder, focus)
+
+def RadialGradientAddFocusRadius(builder, focusRadius):
+    builder.PrependFloat32Slot(3, focusRadius, 0.0)
+
 def AddFocusRadius(builder, focusRadius):
-    return RadialGradientAddFocusRadius(builder, focusRadius)
-def RadialGradientAddEdge(builder, edge): builder.PrependUint8Slot(4, edge, 0)
+    RadialGradientAddFocusRadius(builder, focusRadius)
+
+def RadialGradientAddEdge(builder, edge):
+    builder.PrependUint8Slot(4, edge, 0)
+
 def AddEdge(builder, edge):
-    return RadialGradientAddEdge(builder, edge)
-def RadialGradientAddCoordinateSpace(builder, coordinateSpace): builder.PrependUint8Slot(5, coordinateSpace, 0)
+    RadialGradientAddEdge(builder, edge)
+
+def RadialGradientAddCoordinateSpace(builder, coordinateSpace):
+    builder.PrependUint8Slot(5, coordinateSpace, 0)
+
 def AddCoordinateSpace(builder, coordinateSpace):
-    return RadialGradientAddCoordinateSpace(builder, coordinateSpace)
-def RadialGradientAddTransform(builder, transform): builder.PrependStructSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
+    RadialGradientAddCoordinateSpace(builder, coordinateSpace)
+
+def RadialGradientAddTransform(builder, transform):
+    builder.PrependStructSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
+
 def AddTransform(builder, transform):
-    return RadialGradientAddTransform(builder, transform)
-def RadialGradientAddStops(builder, stops): builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(stops), 0)
+    RadialGradientAddTransform(builder, transform)
+
+def RadialGradientAddStops(builder, stops):
+    builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(stops), 0)
+
 def AddStops(builder, stops):
-    return RadialGradientAddStops(builder, stops)
-def RadialGradientStartStopsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    RadialGradientAddStops(builder, stops)
+
+def RadialGradientStartStopsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartStopsVector(builder, numElems):
     return RadialGradientStartStopsVector(builder, numElems)
-def RadialGradientEnd(builder): return builder.EndObject()
+
+def RadialGradientEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return RadialGradientEnd(builder)

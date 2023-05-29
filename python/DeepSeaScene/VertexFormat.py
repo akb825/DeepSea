@@ -55,18 +55,32 @@ class VertexFormat(object):
             return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
         return False
 
-def VertexFormatStart(builder): builder.StartObject(2)
+def VertexFormatStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return VertexFormatStart(builder)
-def VertexFormatAddAttributes(builder, attributes): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(attributes), 0)
+    VertexFormatStart(builder)
+
+def VertexFormatAddAttributes(builder, attributes):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(attributes), 0)
+
 def AddAttributes(builder, attributes):
-    return VertexFormatAddAttributes(builder, attributes)
-def VertexFormatStartAttributesVector(builder, numElems): return builder.StartVector(8, numElems, 4)
+    VertexFormatAddAttributes(builder, attributes)
+
+def VertexFormatStartAttributesVector(builder, numElems):
+    return builder.StartVector(8, numElems, 4)
+
 def StartAttributesVector(builder, numElems):
     return VertexFormatStartAttributesVector(builder, numElems)
-def VertexFormatAddInstanced(builder, instanced): builder.PrependBoolSlot(1, instanced, 0)
+
+def VertexFormatAddInstanced(builder, instanced):
+    builder.PrependBoolSlot(1, instanced, 0)
+
 def AddInstanced(builder, instanced):
-    return VertexFormatAddInstanced(builder, instanced)
-def VertexFormatEnd(builder): return builder.EndObject()
+    VertexFormatAddInstanced(builder, instanced)
+
+def VertexFormatEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return VertexFormatEnd(builder)

@@ -135,36 +135,68 @@ class VectorImage(object):
             return obj
         return None
 
-def VectorImageStart(builder): builder.StartObject(5)
+def VectorImageStart(builder):
+    builder.StartObject(5)
+
 def Start(builder):
-    return VectorImageStart(builder)
-def VectorImageAddColorMaterials(builder, colorMaterials): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(colorMaterials), 0)
+    VectorImageStart(builder)
+
+def VectorImageAddColorMaterials(builder, colorMaterials):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(colorMaterials), 0)
+
 def AddColorMaterials(builder, colorMaterials):
-    return VectorImageAddColorMaterials(builder, colorMaterials)
-def VectorImageStartColorMaterialsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    VectorImageAddColorMaterials(builder, colorMaterials)
+
+def VectorImageStartColorMaterialsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartColorMaterialsVector(builder, numElems):
     return VectorImageStartColorMaterialsVector(builder, numElems)
-def VectorImageAddLinearGradients(builder, linearGradients): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(linearGradients), 0)
+
+def VectorImageAddLinearGradients(builder, linearGradients):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(linearGradients), 0)
+
 def AddLinearGradients(builder, linearGradients):
-    return VectorImageAddLinearGradients(builder, linearGradients)
-def VectorImageStartLinearGradientsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    VectorImageAddLinearGradients(builder, linearGradients)
+
+def VectorImageStartLinearGradientsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartLinearGradientsVector(builder, numElems):
     return VectorImageStartLinearGradientsVector(builder, numElems)
-def VectorImageAddRadialGradients(builder, radialGradients): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(radialGradients), 0)
+
+def VectorImageAddRadialGradients(builder, radialGradients):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(radialGradients), 0)
+
 def AddRadialGradients(builder, radialGradients):
-    return VectorImageAddRadialGradients(builder, radialGradients)
-def VectorImageStartRadialGradientsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    VectorImageAddRadialGradients(builder, radialGradients)
+
+def VectorImageStartRadialGradientsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartRadialGradientsVector(builder, numElems):
     return VectorImageStartRadialGradientsVector(builder, numElems)
-def VectorImageAddCommands(builder, commands): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(commands), 0)
+
+def VectorImageAddCommands(builder, commands):
+    builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(commands), 0)
+
 def AddCommands(builder, commands):
-    return VectorImageAddCommands(builder, commands)
-def VectorImageStartCommandsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    VectorImageAddCommands(builder, commands)
+
+def VectorImageStartCommandsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartCommandsVector(builder, numElems):
     return VectorImageStartCommandsVector(builder, numElems)
-def VectorImageAddSize(builder, size): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(size), 0)
+
+def VectorImageAddSize(builder, size):
+    builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(size), 0)
+
 def AddSize(builder, size):
-    return VectorImageAddSize(builder, size)
-def VectorImageEnd(builder): return builder.EndObject()
+    VectorImageAddSize(builder, size)
+
+def VectorImageEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return VectorImageEnd(builder)

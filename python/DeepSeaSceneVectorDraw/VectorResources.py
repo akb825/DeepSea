@@ -41,15 +41,26 @@ class VectorResources(object):
             return obj
         return None
 
-def VectorResourcesStart(builder): builder.StartObject(2)
+def VectorResourcesStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return VectorResourcesStart(builder)
-def VectorResourcesAddResourcesType(builder, resourcesType): builder.PrependUint8Slot(0, resourcesType, 0)
+    VectorResourcesStart(builder)
+
+def VectorResourcesAddResourcesType(builder, resourcesType):
+    builder.PrependUint8Slot(0, resourcesType, 0)
+
 def AddResourcesType(builder, resourcesType):
-    return VectorResourcesAddResourcesType(builder, resourcesType)
-def VectorResourcesAddResources(builder, resources): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(resources), 0)
+    VectorResourcesAddResourcesType(builder, resourcesType)
+
+def VectorResourcesAddResources(builder, resources):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(resources), 0)
+
 def AddResources(builder, resources):
-    return VectorResourcesAddResources(builder, resources)
-def VectorResourcesEnd(builder): return builder.EndObject()
+    VectorResourcesAddResources(builder, resources)
+
+def VectorResourcesEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return VectorResourcesEnd(builder)

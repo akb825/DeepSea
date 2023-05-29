@@ -116,45 +116,86 @@ class DynamicRenderStates(object):
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
-def DynamicRenderStatesStart(builder): builder.StartObject(12)
+def DynamicRenderStatesStart(builder):
+    builder.StartObject(12)
+
 def Start(builder):
-    return DynamicRenderStatesStart(builder)
-def DynamicRenderStatesAddLineWidth(builder, lineWidth): builder.PrependFloat32Slot(0, lineWidth, 0.0)
+    DynamicRenderStatesStart(builder)
+
+def DynamicRenderStatesAddLineWidth(builder, lineWidth):
+    builder.PrependFloat32Slot(0, lineWidth, 0.0)
+
 def AddLineWidth(builder, lineWidth):
-    return DynamicRenderStatesAddLineWidth(builder, lineWidth)
-def DynamicRenderStatesAddDepthBiasConstantFactor(builder, depthBiasConstantFactor): builder.PrependFloat32Slot(1, depthBiasConstantFactor, 0.0)
+    DynamicRenderStatesAddLineWidth(builder, lineWidth)
+
+def DynamicRenderStatesAddDepthBiasConstantFactor(builder, depthBiasConstantFactor):
+    builder.PrependFloat32Slot(1, depthBiasConstantFactor, 0.0)
+
 def AddDepthBiasConstantFactor(builder, depthBiasConstantFactor):
-    return DynamicRenderStatesAddDepthBiasConstantFactor(builder, depthBiasConstantFactor)
-def DynamicRenderStatesAddDepthBiasClamp(builder, depthBiasClamp): builder.PrependFloat32Slot(2, depthBiasClamp, 0.0)
+    DynamicRenderStatesAddDepthBiasConstantFactor(builder, depthBiasConstantFactor)
+
+def DynamicRenderStatesAddDepthBiasClamp(builder, depthBiasClamp):
+    builder.PrependFloat32Slot(2, depthBiasClamp, 0.0)
+
 def AddDepthBiasClamp(builder, depthBiasClamp):
-    return DynamicRenderStatesAddDepthBiasClamp(builder, depthBiasClamp)
-def DynamicRenderStatesAddDepthBiasSlopeFactor(builder, depthBiasSlopeFactor): builder.PrependFloat32Slot(3, depthBiasSlopeFactor, 0.0)
+    DynamicRenderStatesAddDepthBiasClamp(builder, depthBiasClamp)
+
+def DynamicRenderStatesAddDepthBiasSlopeFactor(builder, depthBiasSlopeFactor):
+    builder.PrependFloat32Slot(3, depthBiasSlopeFactor, 0.0)
+
 def AddDepthBiasSlopeFactor(builder, depthBiasSlopeFactor):
-    return DynamicRenderStatesAddDepthBiasSlopeFactor(builder, depthBiasSlopeFactor)
-def DynamicRenderStatesAddBlendConstants(builder, blendConstants): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(blendConstants), 0)
+    DynamicRenderStatesAddDepthBiasSlopeFactor(builder, depthBiasSlopeFactor)
+
+def DynamicRenderStatesAddBlendConstants(builder, blendConstants):
+    builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(blendConstants), 0)
+
 def AddBlendConstants(builder, blendConstants):
-    return DynamicRenderStatesAddBlendConstants(builder, blendConstants)
-def DynamicRenderStatesAddDepthBounds(builder, depthBounds): builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(depthBounds), 0)
+    DynamicRenderStatesAddBlendConstants(builder, blendConstants)
+
+def DynamicRenderStatesAddDepthBounds(builder, depthBounds):
+    builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(depthBounds), 0)
+
 def AddDepthBounds(builder, depthBounds):
-    return DynamicRenderStatesAddDepthBounds(builder, depthBounds)
-def DynamicRenderStatesAddFrontStencilCompareMask(builder, frontStencilCompareMask): builder.PrependUint32Slot(6, frontStencilCompareMask, 0)
+    DynamicRenderStatesAddDepthBounds(builder, depthBounds)
+
+def DynamicRenderStatesAddFrontStencilCompareMask(builder, frontStencilCompareMask):
+    builder.PrependUint32Slot(6, frontStencilCompareMask, 0)
+
 def AddFrontStencilCompareMask(builder, frontStencilCompareMask):
-    return DynamicRenderStatesAddFrontStencilCompareMask(builder, frontStencilCompareMask)
-def DynamicRenderStatesAddBackStencilCompareMask(builder, backStencilCompareMask): builder.PrependUint32Slot(7, backStencilCompareMask, 0)
+    DynamicRenderStatesAddFrontStencilCompareMask(builder, frontStencilCompareMask)
+
+def DynamicRenderStatesAddBackStencilCompareMask(builder, backStencilCompareMask):
+    builder.PrependUint32Slot(7, backStencilCompareMask, 0)
+
 def AddBackStencilCompareMask(builder, backStencilCompareMask):
-    return DynamicRenderStatesAddBackStencilCompareMask(builder, backStencilCompareMask)
-def DynamicRenderStatesAddFrontStencilWriteMask(builder, frontStencilWriteMask): builder.PrependUint32Slot(8, frontStencilWriteMask, 0)
+    DynamicRenderStatesAddBackStencilCompareMask(builder, backStencilCompareMask)
+
+def DynamicRenderStatesAddFrontStencilWriteMask(builder, frontStencilWriteMask):
+    builder.PrependUint32Slot(8, frontStencilWriteMask, 0)
+
 def AddFrontStencilWriteMask(builder, frontStencilWriteMask):
-    return DynamicRenderStatesAddFrontStencilWriteMask(builder, frontStencilWriteMask)
-def DynamicRenderStatesAddBackStencilWriteMask(builder, backStencilWriteMask): builder.PrependUint32Slot(9, backStencilWriteMask, 0)
+    DynamicRenderStatesAddFrontStencilWriteMask(builder, frontStencilWriteMask)
+
+def DynamicRenderStatesAddBackStencilWriteMask(builder, backStencilWriteMask):
+    builder.PrependUint32Slot(9, backStencilWriteMask, 0)
+
 def AddBackStencilWriteMask(builder, backStencilWriteMask):
-    return DynamicRenderStatesAddBackStencilWriteMask(builder, backStencilWriteMask)
-def DynamicRenderStatesAddFrontStencilReference(builder, frontStencilReference): builder.PrependUint32Slot(10, frontStencilReference, 0)
+    DynamicRenderStatesAddBackStencilWriteMask(builder, backStencilWriteMask)
+
+def DynamicRenderStatesAddFrontStencilReference(builder, frontStencilReference):
+    builder.PrependUint32Slot(10, frontStencilReference, 0)
+
 def AddFrontStencilReference(builder, frontStencilReference):
-    return DynamicRenderStatesAddFrontStencilReference(builder, frontStencilReference)
-def DynamicRenderStatesAddBackStencilReference(builder, backStencilReference): builder.PrependUint32Slot(11, backStencilReference, 0)
+    DynamicRenderStatesAddFrontStencilReference(builder, frontStencilReference)
+
+def DynamicRenderStatesAddBackStencilReference(builder, backStencilReference):
+    builder.PrependUint32Slot(11, backStencilReference, 0)
+
 def AddBackStencilReference(builder, backStencilReference):
-    return DynamicRenderStatesAddBackStencilReference(builder, backStencilReference)
-def DynamicRenderStatesEnd(builder): return builder.EndObject()
+    DynamicRenderStatesAddBackStencilReference(builder, backStencilReference)
+
+def DynamicRenderStatesEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return DynamicRenderStatesEnd(builder)

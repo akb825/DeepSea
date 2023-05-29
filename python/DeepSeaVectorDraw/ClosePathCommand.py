@@ -24,9 +24,14 @@ class ClosePathCommand(object):
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-def ClosePathCommandStart(builder): builder.StartObject(0)
+def ClosePathCommandStart(builder):
+    builder.StartObject(0)
+
 def Start(builder):
-    return ClosePathCommandStart(builder)
-def ClosePathCommandEnd(builder): return builder.EndObject()
+    ClosePathCommandStart(builder)
+
+def ClosePathCommandEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ClosePathCommandEnd(builder)

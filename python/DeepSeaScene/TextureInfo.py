@@ -73,30 +73,56 @@ class TextureInfo(object):
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
-def TextureInfoStart(builder): builder.StartObject(7)
+def TextureInfoStart(builder):
+    builder.StartObject(7)
+
 def Start(builder):
-    return TextureInfoStart(builder)
-def TextureInfoAddFormat(builder, format): builder.PrependUint8Slot(0, format, 0)
+    TextureInfoStart(builder)
+
+def TextureInfoAddFormat(builder, format):
+    builder.PrependUint8Slot(0, format, 0)
+
 def AddFormat(builder, format):
-    return TextureInfoAddFormat(builder, format)
-def TextureInfoAddDecoration(builder, decoration): builder.PrependUint8Slot(1, decoration, 0)
+    TextureInfoAddFormat(builder, format)
+
+def TextureInfoAddDecoration(builder, decoration):
+    builder.PrependUint8Slot(1, decoration, 0)
+
 def AddDecoration(builder, decoration):
-    return TextureInfoAddDecoration(builder, decoration)
-def TextureInfoAddDimension(builder, dimension): builder.PrependUint8Slot(2, dimension, 0)
+    TextureInfoAddDecoration(builder, decoration)
+
+def TextureInfoAddDimension(builder, dimension):
+    builder.PrependUint8Slot(2, dimension, 0)
+
 def AddDimension(builder, dimension):
-    return TextureInfoAddDimension(builder, dimension)
-def TextureInfoAddWidth(builder, width): builder.PrependUint32Slot(3, width, 0)
+    TextureInfoAddDimension(builder, dimension)
+
+def TextureInfoAddWidth(builder, width):
+    builder.PrependUint32Slot(3, width, 0)
+
 def AddWidth(builder, width):
-    return TextureInfoAddWidth(builder, width)
-def TextureInfoAddHeight(builder, height): builder.PrependUint32Slot(4, height, 0)
+    TextureInfoAddWidth(builder, width)
+
+def TextureInfoAddHeight(builder, height):
+    builder.PrependUint32Slot(4, height, 0)
+
 def AddHeight(builder, height):
-    return TextureInfoAddHeight(builder, height)
-def TextureInfoAddDepth(builder, depth): builder.PrependUint32Slot(5, depth, 0)
+    TextureInfoAddHeight(builder, height)
+
+def TextureInfoAddDepth(builder, depth):
+    builder.PrependUint32Slot(5, depth, 0)
+
 def AddDepth(builder, depth):
-    return TextureInfoAddDepth(builder, depth)
-def TextureInfoAddMipLevels(builder, mipLevels): builder.PrependUint8Slot(6, mipLevels, 0)
+    TextureInfoAddDepth(builder, depth)
+
+def TextureInfoAddMipLevels(builder, mipLevels):
+    builder.PrependUint8Slot(6, mipLevels, 0)
+
 def AddMipLevels(builder, mipLevels):
-    return TextureInfoAddMipLevels(builder, mipLevels)
-def TextureInfoEnd(builder): return builder.EndObject()
+    TextureInfoAddMipLevels(builder, mipLevels)
+
+def TextureInfoEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return TextureInfoEnd(builder)

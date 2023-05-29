@@ -35,12 +35,20 @@ class LineCommand(object):
             return obj
         return None
 
-def LineCommandStart(builder): builder.StartObject(1)
+def LineCommandStart(builder):
+    builder.StartObject(1)
+
 def Start(builder):
-    return LineCommandStart(builder)
-def LineCommandAddEnd(builder, end): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(end), 0)
+    LineCommandStart(builder)
+
+def LineCommandAddEnd(builder, end):
+    builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(end), 0)
+
 def AddEnd(builder, end):
-    return LineCommandAddEnd(builder, end)
-def LineCommandEnd(builder): return builder.EndObject()
+    LineCommandAddEnd(builder, end)
+
+def LineCommandEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return LineCommandEnd(builder)

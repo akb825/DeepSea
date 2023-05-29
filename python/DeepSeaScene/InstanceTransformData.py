@@ -31,12 +31,20 @@ class InstanceTransformData(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def InstanceTransformDataStart(builder): builder.StartObject(1)
+def InstanceTransformDataStart(builder):
+    builder.StartObject(1)
+
 def Start(builder):
-    return InstanceTransformDataStart(builder)
-def InstanceTransformDataAddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
+    InstanceTransformDataStart(builder)
+
+def InstanceTransformDataAddVariableGroupDesc(builder, variableGroupDesc):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
+
 def AddVariableGroupDesc(builder, variableGroupDesc):
-    return InstanceTransformDataAddVariableGroupDesc(builder, variableGroupDesc)
-def InstanceTransformDataEnd(builder): return builder.EndObject()
+    InstanceTransformDataAddVariableGroupDesc(builder, variableGroupDesc)
+
+def InstanceTransformDataEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return InstanceTransformDataEnd(builder)

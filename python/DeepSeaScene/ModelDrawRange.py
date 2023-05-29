@@ -41,15 +41,26 @@ class ModelDrawRange(object):
             return obj
         return None
 
-def ModelDrawRangeStart(builder): builder.StartObject(2)
+def ModelDrawRangeStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return ModelDrawRangeStart(builder)
-def ModelDrawRangeAddDrawRangeType(builder, drawRangeType): builder.PrependUint8Slot(0, drawRangeType, 0)
+    ModelDrawRangeStart(builder)
+
+def ModelDrawRangeAddDrawRangeType(builder, drawRangeType):
+    builder.PrependUint8Slot(0, drawRangeType, 0)
+
 def AddDrawRangeType(builder, drawRangeType):
-    return ModelDrawRangeAddDrawRangeType(builder, drawRangeType)
-def ModelDrawRangeAddDrawRange(builder, drawRange): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(drawRange), 0)
+    ModelDrawRangeAddDrawRangeType(builder, drawRangeType)
+
+def ModelDrawRangeAddDrawRange(builder, drawRange):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(drawRange), 0)
+
 def AddDrawRange(builder, drawRange):
-    return ModelDrawRangeAddDrawRange(builder, drawRange)
-def ModelDrawRangeEnd(builder): return builder.EndObject()
+    ModelDrawRangeAddDrawRange(builder, drawRange)
+
+def ModelDrawRangeEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ModelDrawRangeEnd(builder)

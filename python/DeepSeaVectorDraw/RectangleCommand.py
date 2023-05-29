@@ -57,18 +57,32 @@ class RectangleCommand(object):
             return obj
         return None
 
-def RectangleCommandStart(builder): builder.StartObject(3)
+def RectangleCommandStart(builder):
+    builder.StartObject(3)
+
 def Start(builder):
-    return RectangleCommandStart(builder)
-def RectangleCommandAddUpperLeft(builder, upperLeft): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(upperLeft), 0)
+    RectangleCommandStart(builder)
+
+def RectangleCommandAddUpperLeft(builder, upperLeft):
+    builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(upperLeft), 0)
+
 def AddUpperLeft(builder, upperLeft):
-    return RectangleCommandAddUpperLeft(builder, upperLeft)
-def RectangleCommandAddLowerRight(builder, lowerRight): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(lowerRight), 0)
+    RectangleCommandAddUpperLeft(builder, upperLeft)
+
+def RectangleCommandAddLowerRight(builder, lowerRight):
+    builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(lowerRight), 0)
+
 def AddLowerRight(builder, lowerRight):
-    return RectangleCommandAddLowerRight(builder, lowerRight)
-def RectangleCommandAddCornerRadius(builder, cornerRadius): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(cornerRadius), 0)
+    RectangleCommandAddLowerRight(builder, lowerRight)
+
+def RectangleCommandAddCornerRadius(builder, cornerRadius):
+    builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(cornerRadius), 0)
+
 def AddCornerRadius(builder, cornerRadius):
-    return RectangleCommandAddCornerRadius(builder, cornerRadius)
-def RectangleCommandEnd(builder): return builder.EndObject()
+    RectangleCommandAddCornerRadius(builder, cornerRadius)
+
+def RectangleCommandEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return RectangleCommandEnd(builder)

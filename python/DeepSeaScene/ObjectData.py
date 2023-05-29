@@ -58,18 +58,32 @@ class ObjectData(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def ObjectDataStart(builder): builder.StartObject(2)
+def ObjectDataStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return ObjectDataStart(builder)
-def ObjectDataAddType(builder, type): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(type), 0)
+    ObjectDataStart(builder)
+
+def ObjectDataAddType(builder, type):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(type), 0)
+
 def AddType(builder, type):
-    return ObjectDataAddType(builder, type)
-def ObjectDataAddData(builder, data): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+    ObjectDataAddType(builder, type)
+
+def ObjectDataAddData(builder, data):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+
 def AddData(builder, data):
-    return ObjectDataAddData(builder, data)
-def ObjectDataStartDataVector(builder, numElems): return builder.StartVector(1, numElems, 1)
+    ObjectDataAddData(builder, data)
+
+def ObjectDataStartDataVector(builder, numElems):
+    return builder.StartVector(1, numElems, 1)
+
 def StartDataVector(builder, numElems):
     return ObjectDataStartDataVector(builder, numElems)
-def ObjectDataEnd(builder): return builder.EndObject()
+
+def ObjectDataEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ObjectDataEnd(builder)

@@ -88,30 +88,56 @@ class Framebuffer(object):
             return obj
         return None
 
-def FramebufferStart(builder): builder.StartObject(6)
+def FramebufferStart(builder):
+    builder.StartObject(6)
+
 def Start(builder):
-    return FramebufferStart(builder)
-def FramebufferAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    FramebufferStart(builder)
+
+def FramebufferAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return FramebufferAddName(builder, name)
-def FramebufferAddSurfaces(builder, surfaces): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(surfaces), 0)
+    FramebufferAddName(builder, name)
+
+def FramebufferAddSurfaces(builder, surfaces):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(surfaces), 0)
+
 def AddSurfaces(builder, surfaces):
-    return FramebufferAddSurfaces(builder, surfaces)
-def FramebufferStartSurfacesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    FramebufferAddSurfaces(builder, surfaces)
+
+def FramebufferStartSurfacesVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartSurfacesVector(builder, numElems):
     return FramebufferStartSurfacesVector(builder, numElems)
-def FramebufferAddWidth(builder, width): builder.PrependFloat32Slot(2, width, 0.0)
+
+def FramebufferAddWidth(builder, width):
+    builder.PrependFloat32Slot(2, width, 0.0)
+
 def AddWidth(builder, width):
-    return FramebufferAddWidth(builder, width)
-def FramebufferAddHeight(builder, height): builder.PrependFloat32Slot(3, height, 0.0)
+    FramebufferAddWidth(builder, width)
+
+def FramebufferAddHeight(builder, height):
+    builder.PrependFloat32Slot(3, height, 0.0)
+
 def AddHeight(builder, height):
-    return FramebufferAddHeight(builder, height)
-def FramebufferAddLayers(builder, layers): builder.PrependUint32Slot(4, layers, 0)
+    FramebufferAddHeight(builder, height)
+
+def FramebufferAddLayers(builder, layers):
+    builder.PrependUint32Slot(4, layers, 0)
+
 def AddLayers(builder, layers):
-    return FramebufferAddLayers(builder, layers)
-def FramebufferAddViewport(builder, viewport): builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(viewport), 0)
+    FramebufferAddLayers(builder, layers)
+
+def FramebufferAddViewport(builder, viewport):
+    builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(viewport), 0)
+
 def AddViewport(builder, viewport):
-    return FramebufferAddViewport(builder, viewport)
-def FramebufferEnd(builder): return builder.EndObject()
+    FramebufferAddViewport(builder, viewport)
+
+def FramebufferEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return FramebufferEnd(builder)

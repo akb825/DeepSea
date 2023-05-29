@@ -38,15 +38,26 @@ class VectorResourceRef(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def VectorResourceRefStart(builder): builder.StartObject(2)
+def VectorResourceRefStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return VectorResourceRefStart(builder)
-def VectorResourceRefAddResources(builder, resources): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(resources), 0)
+    VectorResourceRefStart(builder)
+
+def VectorResourceRefAddResources(builder, resources):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(resources), 0)
+
 def AddResources(builder, resources):
-    return VectorResourceRefAddResources(builder, resources)
-def VectorResourceRefAddName(builder, name): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    VectorResourceRefAddResources(builder, resources)
+
+def VectorResourceRefAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return VectorResourceRefAddName(builder, name)
-def VectorResourceRefEnd(builder): return builder.EndObject()
+    VectorResourceRefAddName(builder, name)
+
+def VectorResourceRefEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return VectorResourceRefEnd(builder)

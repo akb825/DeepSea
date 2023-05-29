@@ -45,18 +45,32 @@ class ShadowCullList(object):
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
-def ShadowCullListStart(builder): builder.StartObject(3)
+def ShadowCullListStart(builder):
+    builder.StartObject(3)
+
 def Start(builder):
-    return ShadowCullListStart(builder)
-def ShadowCullListAddShadowManager(builder, shadowManager): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
+    ShadowCullListStart(builder)
+
+def ShadowCullListAddShadowManager(builder, shadowManager):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
+
 def AddShadowManager(builder, shadowManager):
-    return ShadowCullListAddShadowManager(builder, shadowManager)
-def ShadowCullListAddShadows(builder, shadows): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shadows), 0)
+    ShadowCullListAddShadowManager(builder, shadowManager)
+
+def ShadowCullListAddShadows(builder, shadows):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shadows), 0)
+
 def AddShadows(builder, shadows):
-    return ShadowCullListAddShadows(builder, shadows)
-def ShadowCullListAddSurface(builder, surface): builder.PrependUint8Slot(2, surface, 0)
+    ShadowCullListAddShadows(builder, shadows)
+
+def ShadowCullListAddSurface(builder, surface):
+    builder.PrependUint8Slot(2, surface, 0)
+
 def AddSurface(builder, surface):
-    return ShadowCullListAddSurface(builder, surface)
-def ShadowCullListEnd(builder): return builder.EndObject()
+    ShadowCullListAddSurface(builder, surface)
+
+def ShadowCullListEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ShadowCullListEnd(builder)

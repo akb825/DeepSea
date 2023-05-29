@@ -56,18 +56,32 @@ class ModelNodeRemap(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def ModelNodeRemapStart(builder): builder.StartObject(2)
+def ModelNodeRemapStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return ModelNodeRemapStart(builder)
-def ModelNodeRemapAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    ModelNodeRemapStart(builder)
+
+def ModelNodeRemapAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
-    return ModelNodeRemapAddName(builder, name)
-def ModelNodeRemapAddMaterialRemaps(builder, materialRemaps): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(materialRemaps), 0)
+    ModelNodeRemapAddName(builder, name)
+
+def ModelNodeRemapAddMaterialRemaps(builder, materialRemaps):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(materialRemaps), 0)
+
 def AddMaterialRemaps(builder, materialRemaps):
-    return ModelNodeRemapAddMaterialRemaps(builder, materialRemaps)
-def ModelNodeRemapStartMaterialRemapsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    ModelNodeRemapAddMaterialRemaps(builder, materialRemaps)
+
+def ModelNodeRemapStartMaterialRemapsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartMaterialRemapsVector(builder, numElems):
     return ModelNodeRemapStartMaterialRemapsVector(builder, numElems)
-def ModelNodeRemapEnd(builder): return builder.EndObject()
+
+def ModelNodeRemapEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ModelNodeRemapEnd(builder)

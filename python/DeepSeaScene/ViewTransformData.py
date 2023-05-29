@@ -31,12 +31,20 @@ class ViewTransformData(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def ViewTransformDataStart(builder): builder.StartObject(1)
+def ViewTransformDataStart(builder):
+    builder.StartObject(1)
+
 def Start(builder):
-    return ViewTransformDataStart(builder)
-def ViewTransformDataAddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
+    ViewTransformDataStart(builder)
+
+def ViewTransformDataAddVariableGroupDesc(builder, variableGroupDesc):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
+
 def AddVariableGroupDesc(builder, variableGroupDesc):
-    return ViewTransformDataAddVariableGroupDesc(builder, variableGroupDesc)
-def ViewTransformDataEnd(builder): return builder.EndObject()
+    ViewTransformDataAddVariableGroupDesc(builder, variableGroupDesc)
+
+def ViewTransformDataEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ViewTransformDataEnd(builder)
