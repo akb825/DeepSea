@@ -49,6 +49,16 @@ extern "C"
 #endif
 
 /**
+ * @brief Attributes a type to use a specific alignment for a parameter.
+ * @param x The alignment to use. This will most commonly be 16.
+ */
+#if DS_GCC || DS_CLANG
+#	define DS_ALIGN_PARAM(x) __attribute__((aligned(x)))
+#else
+#	define DS_ALIGN_PARAM(x)
+#endif
+
+/**
  * @brief Gets the aligned size for a custom alignment.
  * @param x The original size.
  * @param alignment The alignment. This must be a power of two.

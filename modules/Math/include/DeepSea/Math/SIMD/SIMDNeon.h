@@ -802,6 +802,25 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_abs(dsSIMD2d a)
 }
 
 /**
+ * @brief Transposes the values in 2 SIMD vectors.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The first SIMD values.
+ * @param b The second SIMD values.
+ */
+#if DS_SIMD_ALWAYS_DOUBLE2
+#define dsSIMD2d_transpose(a, b) \
+	do\
+	{ \
+		dsSIMD2d _newA = vtrn1q_f64((a), (b)); \
+		dsSIMD2d _newB = vtrn2q_f64((a), (b)); \
+		(a) = _newA; \
+		(b) = _newB; \
+	} while (0)
+#else
+#define dsSIMD2d_transpose(a, b) DS_ASSERT(false)
+#endif
+
+/**
  * @brief Gets the minimum elements between two SIMD values.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param a The first value to take the min of.
@@ -1318,7 +1337,15 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_abs(dsSIMD4d a)
  * @param c The third SIMD values.
  * @param d The fourth SIMD values.
  */
-#define dsSIMD4d_transpose(a, b, c, d) DS_ASSERT(false)
+#define dsSIMD4d_transpose(a, b, c, d) \
+	do \
+	{ \
+		DS_UNUSED((a)); \
+		DS_UNUSED((b)); \
+		DS_UNUSED((c)); \
+		DS_UNUSED((d)); \
+		DS_ASSERT(false); \
+	} while (0)
 
 /**
  * @brief Gets the minimum elements between two SIMD values.
@@ -1596,6 +1623,8 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_hadd(dsSIMD2d a, dsSIMD2d b)
 /**
  * @brief Performs a horizontal add between two SIMD values.
  * @remark This can be used when dsSIMDFeatures_HAdd and dsSIMD4Features_Double4 is available.
+ * @remark The order of outputs is different from dsSIMD4f_hadd() since the hardware treats each
+ *     dsSIMD4d as two dsSIMD2d elements that are processed in parallel.
  * @param a The first value to add.
  * @param b The second value to add.
  * @return The result of (a.x + a.y, b.x + b.y, a.z + a.w, b.z + b.w)

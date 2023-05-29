@@ -135,6 +135,24 @@ extern "C"
 
 /**
  * @brief Enum for SIMD features that are supported by the CPU.
+ *
+ * dsSIMDFeatures_Float4 is the base feature level to SIMD support. In other words, it can be
+ * assumed that if any other feature is available, Float4 will be available as well. On all current
+ * platforms if Double4 is available the other math-based features (e.g. HAdd, FMA) will be
+ * available as well, so there's no benefit for providing e.g. Double4 implementations with or
+ * without FMA for compatibility.
+ *
+ * The current platforms are supported based on the platform macro:
+ * - DS_X86_32: No features will be guaranteed at compile time unless explicitly enabled through
+ *   compiler flags. (e.g. with -march) All features may be available on the host CPU and can be
+ *   queried at runtime.
+ * - DS_X86_64: Float4 and Double2 will be guaranteed at compile time, though more may be explicitly
+ *   enabled through compiler flags. (e.g. with -march) All other features may be available on the
+ *   host CPU and can be queried at runtime.
+ * - DS_ARM_32: All features except for Double2 and Double4 are guaranteed to be available at compile
+ *   time. No additional features will be detected at runtime.
+ * - DS_ARM_64: All features except for Double4 are guaranteed to be available at compile time. No
+ *   additional features will be detected at runtime.
  */
 typedef enum dsSIMDFeatures
 {

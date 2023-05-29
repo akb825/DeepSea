@@ -36,7 +36,7 @@ typedef struct dsBVHNode
 	uint32_t rightNode;
 	const void* object;
 	// Double for worst-case alignment.
-	double bounds[];
+	DS_ALIGN(16) double bounds[];
 } dsBVHNode;
 
 struct dsBVH
@@ -171,8 +171,8 @@ static uint32_t buildBVHBalancedRec(dsBVH* bvh, uint32_t start, uint32_t count,
 		return node;
 	}
 
-	// Bounds for all current nodes. dsAlignedBox3d is the maximum storage size
-	dsAlignedBox3d bounds;
+	// Bounds for all current nodes. dsAlignedBox3d is the maximum storage size.
+	DS_ALIGN(16) dsAlignedBox3d bounds;
 	memcpy(&bounds, getNode(bvh->tempNodes, bvh->nodeSize, start)->bounds, bvh->boundsSize);
 	for (uint32_t i = 1; i < count; ++i)
 		addBoxFunc(&bounds, getNode(bvh->tempNodes, bvh->nodeSize, start + i)->bounds);

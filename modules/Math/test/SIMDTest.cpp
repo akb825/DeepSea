@@ -258,6 +258,17 @@ static void SIMDTest_Double2()
 	dsSIMD2d_store(&cpuResult, result);
 	EXPECT_EQ(-cpuB.x, cpuResult.x);
 	EXPECT_EQ(-cpuB.y, cpuResult.y);
+
+	dsSIMD2d_transpose(a, b);
+	dsVector2d cpuAT, cpuBT;
+	dsSIMD2d_store(&cpuAT, a);
+	dsSIMD2d_store(&cpuBT, b);
+
+	EXPECT_EQ(cpuA[0], cpuAT.x);
+	EXPECT_EQ(cpuB.x, cpuAT.y);
+
+	EXPECT_EQ(cpuA[1], cpuBT.x);
+	EXPECT_EQ(cpuB.y, cpuBT.y);
 }
 DS_SIMD_END();
 

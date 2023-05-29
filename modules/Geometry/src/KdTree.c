@@ -37,7 +37,7 @@ typedef struct dsKdTreeNode
 	uint32_t rightNode;
 	const void* object;
 	// Double for worst-case alignment.
-	double point[];
+	DS_ALIGN(16) double point[];
 } dsKdTreeNode;
 
 struct dsKdTree
