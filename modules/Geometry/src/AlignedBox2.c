@@ -79,12 +79,21 @@ double dsAlignedBox2d_dist2(const dsAlignedBox2d* box, const dsVector2d* point)
 	if (dsAlignedBox2_containsPoint(*box, *point))
 		return 0;
 
+#if DS_SIMD_ALWAYS_DOUBLE2
+	dsVector2d d;
+	d.simd = dsSIMD2d_max(dsSIMD2d_sub(box->min.simd, point->simd),
+		dsSIMD2d_sub(point->simd, box->max.simd));
+	d.simd = dsSIMD2d_max(d.simd, dsSIMD2d_set1(0.0));
+	d.simd = dsSIMD2d_mul(d.simd, d.simd);
+	return d.x + d.y;
+#else
 	double dx = dsMax(box->min.x - point->x, point->x - box->max.x);
 	dx = dsMax(dx, 0);
 	double dy = dsMax(box->min.y - point->y, point->y - box->max.y);
 	dy = dsMax(dy, 0);
 
 	return dsPow2(dx) + dsPow2(dy);
+#endif
 }
 
 int dsAlignedBox2i_dist2(const dsAlignedBox2i* box, const dsVector2i* point)

@@ -47,7 +47,8 @@ extern "C"
  * When using affine transforms (combinations of rotate, scale, and translate), it is faster to use
  * the affine functions and macros.
  *
- * The dsMatrix44f functions may use SIMD operations when guaranteed to be available.
+ * The dsMatrix44f and dsMatrix44d functions may use SIMD operations when guaranteed to be
+ * available.
  *
  * @see dsMatrix44f dsMatrix44d
  */

@@ -40,6 +40,8 @@ extern "C"
  * provided to accompany the macro to use when desired. The inline functions may also be addressed
  * in order to interface with other languages.
  *
+ * The dsOrientedBox2d functions may use SIMD operations when guaranteed to be available.
+ *
  * @see dsOrientedBox2f dsOrientedBox2d
  */
 
@@ -322,7 +324,14 @@ DS_GEOMETRY_EXPORT inline void dsOrientedBox2d_fromAlignedBox(dsOrientedBox2d* r
 {
 	DS_ASSERT(result);
 	DS_ASSERT(alignedBox);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	dsMatrix22_identity(result->orientation);
+	dsAlignedBox2d_center(&result->center, alignedBox);
+	dsAlignedBox2d_extents(&result->halfExtents, alignedBox);
+	result->halfExtents.simd = dsSIMD2d_mul(result->halfExtents.simd, dsSIMD2d_set1(0.5));
+#else
 	dsOrientedBox2_fromAlignedBox(*result, *alignedBox);
+#endif
 }
 
 /** @copydoc dsOrientedBox2_makeInvalid() */

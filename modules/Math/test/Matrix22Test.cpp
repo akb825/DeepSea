@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -294,6 +294,88 @@ TYPED_TEST(Matrix22Test, MakeScale)
 
 	EXPECT_EQ((TypeParam)0, matrix.values[1][0]);
 	EXPECT_EQ((TypeParam)-3.4, matrix.values[1][1]);
+}
+
+TEST(Matrix22, MultiplyDouble)
+{
+	double epsilon = Matrix22TypeSelector<double>::epsilon;
+
+	dsMatrix22d matrix1 =
+	{{
+		{0.1, -2.3},
+		{-4.5, 6.7}
+	}};
+
+	dsMatrix22d matrix2 =
+	{{
+		{-1.0, 3.2},
+		{-5.4, 7.6}
+	}};
+
+	dsMatrix22d result;
+	dsMatrix22d_mul(&result, &matrix1, &matrix2);
+
+	EXPECT_NEAR(-14.5, result.values[0][0], epsilon);
+	EXPECT_NEAR(23.74, result.values[0][1], epsilon);
+
+	EXPECT_NEAR(-34.74, result.values[1][0], epsilon);
+	EXPECT_NEAR(63.34, result.values[1][1], epsilon);
+}
+
+TEST(Matrix22, TransformDouble)
+{
+	double epsilon = Matrix22TypeSelector<double>::epsilon;
+
+	dsMatrix22d matrix =
+	{{
+		{0.1, -4.5},
+		{-2.3, 6.7}
+	}};
+
+	dsVector2d vector = {{-1.0, 3.2}};
+	dsVector2d result;
+
+	dsMatrix22d_transform(&result, &matrix, &vector);
+
+	EXPECT_NEAR(-7.46, result.values[0], epsilon);
+	EXPECT_NEAR(25.94, result.values[1], epsilon);
+}
+
+TEST(Matrix22, TransformTransposedDouble)
+{
+	double epsilon = Matrix22TypeSelector<double>::epsilon;
+
+	dsMatrix22d matrix =
+	{{
+		{0.1, -2.3},
+		{-4.5, 6.7}
+	}};
+
+	dsVector2d vector = {{-1.0, 3.2}};
+	dsVector2d result;
+
+	dsMatrix22d_transformTransposed(&result, &matrix, &vector);
+
+	EXPECT_NEAR(-7.46, result.values[0], epsilon);
+	EXPECT_NEAR(25.94, result.values[1], epsilon);
+}
+
+TEST(Matrix22, TransposeDouble)
+{
+	dsMatrix22d matrix =
+	{{
+		{0.1, -2.3},
+		{-4.5, 6.7}
+	}};
+
+	dsMatrix22d result;
+	dsMatrix22d_transpose(&result, &matrix);
+
+	EXPECT_EQ(0.1, result.values[0][0]);
+	EXPECT_EQ(-2.3, result.values[1][0]);
+
+	EXPECT_EQ(-4.5, result.values[0][1]);
+	EXPECT_EQ(6.7, result.values[1][1]);
 }
 
 TEST(Matrix22, ConvertFloatToDouble)

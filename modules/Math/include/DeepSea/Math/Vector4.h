@@ -39,9 +39,9 @@ extern "C"
  * provided to accompany the macro to use when desired. The inline functions may also be addressed
  * in order to interface with other languages.
  *
- * The dsVector4f functions may use SIMD operations when guaranteed to be available.
+ * The dsVector4f and dsVector4d functions may use SIMD operations when guaranteed to be available.
  *
- * @see dsVector4f dsVector4d dsVector4i
+ * @see dsVector4f dsVector4d dsVector4i dsVector4l
  */
 
 /**

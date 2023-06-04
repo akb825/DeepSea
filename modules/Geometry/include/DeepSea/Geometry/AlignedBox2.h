@@ -39,6 +39,8 @@ extern "C"
  * provided to accompany the macro to use when desired. The inline functions may also be addressed
  * in order to interface with other languages.
  *
+ * The dsAlignedBox2d functions may use SIMD operations when guaranteed to be available.
+ *
  * @see dsAlignedBox2f dsAlignedBox2d dsAlignedBox2i
  */
 
@@ -326,7 +328,12 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_addPoint(dsAlignedBox2d* box, cons
 {
 	DS_ASSERT(box);
 	DS_ASSERT(point);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	box->min.simd = dsSIMD2d_min(box->min.simd, point->simd);
+	box->max.simd = dsSIMD2d_max(box->max.simd, point->simd);
+#else
 	dsAlignedBox2_addPoint(*box, *point);
+#endif
 }
 
 /** @copydoc dsAlignedBox2_addPoint() */
@@ -352,7 +359,12 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_addBox(dsAlignedBox2d* box,
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	box->min.simd = dsSIMD2d_min(box->min.simd, otherBox->min.simd);
+	box->max.simd = dsSIMD2d_max(box->max.simd, otherBox->max.simd);
+#else
 	dsAlignedBox2_addBox(*box, *otherBox);
+#endif
 }
 
 /** @copydoc dsAlignedBox2_addBox() */
@@ -379,7 +391,15 @@ DS_GEOMETRY_EXPORT inline bool dsAlignedBox2d_containsPoint(const dsAlignedBox2d
 {
 	DS_ASSERT(box);
 	DS_ASSERT(point);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	dsSIMD2db inMin = dsSIMD2d_cmple(box->min.simd, point->simd);
+	dsSIMD2db inMax = dsSIMD2d_cmpge(box->max.simd, point->simd);
+	dsVector2l inside;
+	inside.simd = dsSIMD2db_and(inMin, inMax);
+	return inside.x && inside.y;
+#else
 	return dsAlignedBox2_containsPoint(*box, *point);
+#endif
 }
 
 /** @copydoc dsAlignedBox2_containsPoint() */
@@ -406,7 +426,15 @@ DS_GEOMETRY_EXPORT inline bool dsAlignedBox2d_containsBox(const dsAlignedBox2d* 
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	dsSIMD2d inMin = dsSIMD2d_cmple(box->min.simd, otherBox->min.simd);
+	dsSIMD2d inMax = dsSIMD2d_cmpge(box->max.simd, otherBox->max.simd);
+	dsVector2l inside;
+	inside.simd = dsSIMD2db_and(inMin, inMax);
+	return inside.x && inside.y;
+#else
 	return dsAlignedBox2_containsBox(*box, *otherBox);
+#endif
 }
 
 /** @copydoc dsAlignedBox2_containsBox() */
@@ -433,7 +461,15 @@ DS_GEOMETRY_EXPORT inline bool dsAlignedBox2d_intersects(const dsAlignedBox2d* b
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	dsSIMD2d inMin = dsSIMD2d_cmple(box->min.simd, otherBox->max.simd);
+	dsSIMD2d inMax = dsSIMD2d_cmpge(box->max.simd, otherBox->min.simd);
+	dsVector2l inside;
+	inside.simd = dsSIMD2db_and(inMin, inMax);
+	return inside.x && inside.y;
+#else
 	return dsAlignedBox2_intersects(*box, *otherBox);
+#endif
 }
 
 /** @copydoc dsAlignedBox2_intersects() */
@@ -462,7 +498,12 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_intersect(dsAlignedBox2d* result,
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(b);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	result->min.simd = dsSIMD2d_max(a->min.simd, a->min.simd);
+	result->max.simd = dsSIMD2d_min(a->max.simd, a->max.simd);
+#else
 	dsAlignedBox2_intersect(*result, *a, *b);
+#endif
 }
 
 /** @copydoc dsAlignedBox2_intersect() */
@@ -488,7 +529,12 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_center(dsVector2d* result, const d
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	dsSIMD2d half = dsSIMD2d_set1(0.5);
+	result->simd = dsSIMD2d_mul(dsSIMD2d_add(box->min.simd, box->max.simd), half);
+#else
 	dsAlignedBox2_center(*result, *box);
+#endif
 }
 
 /** @copydoc dsAlignedBox2_center() */
@@ -512,7 +558,11 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_extents(dsVector2d* result, const 
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	result->simd = dsSIMD2d_sub(box->max.simd, box->min.simd);
+#else
 	dsAlignedBox2_extents(*result, *box);
+#endif
 }
 
 /** @copydoc dsAlignedBox2_extents() */
@@ -601,7 +651,14 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_closestPoint(dsVector2d* result,
 	DS_ASSERT(result);
 	DS_ASSERT(box);
 	DS_ASSERT(point);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	if (dsAlignedBox2_isValid(*box))
+		result->simd = dsSIMD2d_min(box->max.simd, dsSIMD2d_max(box->min.simd, point->simd));
+	else
+		*result = *point;
+#else
 	dsAlignedBox2_closestPoint(*result, *box, *point);
+#endif
 }
 
 /** @copydoc dsAlignedBox2_closestPoint() */

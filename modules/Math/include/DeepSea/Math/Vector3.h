@@ -40,7 +40,7 @@ extern "C"
  * provided to accompany the macro to use when desired. The inline functions may also be addressed
  * in order to interface with other languages.
  *
- * @see dsVector3f dsVector3d dsVector3i
+ * @see dsVector3f dsVector3d dsVector3i dsVector3l
  */
 
 /**

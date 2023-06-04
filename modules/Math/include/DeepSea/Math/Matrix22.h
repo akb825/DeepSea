@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,8 @@ extern "C"
  * implementation cannot be practically done within a macro. There are also inline functions
  * provided to accompany the macro to use when desired. The inline functions may also be addressed
  * in order to interface with other languages.
+ *
+ * The dsMatrix22d functions may use SIMD operations when guaranteed to be available.
  *
  * @see dsMatrix22f dsMatrix22d
  */
@@ -218,7 +220,31 @@ DS_MATH_EXPORT inline void dsMatrix22d_mul(dsMatrix22d* result, const dsMatrix22
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(b);
+#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_ALWAYS_FMA
+	dsSIMD2d mul0 = dsSIMD2d_set1(b->columns[0].x);
+	dsSIMD2d mul1 = dsSIMD2d_set1(b->columns[0].y);
+	result->columns[0].simd = dsSIMD2d_fmadd(a->columns[0].simd, mul0,
+		dsSIMD2d_mul(a->columns[1].simd, mul1));
+
+	mul0 = dsSIMD2d_set1(b->columns[1].x);
+	mul1 = dsSIMD2d_set1(b->columns[1].y);
+	result->columns[1].simd = dsSIMD2d_fmadd(a->columns[0].simd, mul0,
+		dsSIMD2d_mul(a->columns[1].simd, mul1));
+#else
+	dsSIMD2d mul0 = dsSIMD2d_set1(b->columns[0].x);
+	dsSIMD2d mul1 = dsSIMD2d_set1(b->columns[0].y);
+	result->columns[0].simd = dsSIMD2d_add(dsSIMD2d_mul(a->columns[0].simd, mul0),
+		dsSIMD2d_mul(a->columns[1].simd, mul1));
+
+	mul0 = dsSIMD2d_set1(b->columns[1].x);
+	mul1 = dsSIMD2d_set1(b->columns[1].y);
+	result->columns[1].simd = dsSIMD2d_add(dsSIMD2d_mul(a->columns[0].simd, mul0),
+		dsSIMD2d_mul(a->columns[1].simd, mul1));
+#endif
+#else
 	dsMatrix22_mul(*result, *a, *b);
+#endif
 }
 
 /** @copydoc dsMatrix22_transform() */
@@ -238,7 +264,19 @@ DS_MATH_EXPORT inline void dsMatrix22d_transform(dsVector2d* result, const dsMat
 	DS_ASSERT(result);
 	DS_ASSERT(mat);
 	DS_ASSERT(vec);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	dsSIMD2d x = dsSIMD2d_set1(vec->x);
+	dsSIMD2d y = dsSIMD2d_set1(vec->y);
+
+#if DS_SIMD_ALWAYS_FMA
+	result->simd = dsSIMD2d_fmadd(mat->columns[0].simd, x, dsSIMD2d_mul(mat->columns[1].simd, y));
+#else
+	result->simd = dsSIMD2d_add(dsSIMD2d_mul(mat->columns[0].simd, x),
+		dsSIMD2d_mul(mat->columns[1].simd, y));
+#endif
+#else
 	dsMatrix22_transform(*result, *mat, *vec);
+#endif
 }
 
 /** @copydoc dsMatrix22_transformTransposed() */
@@ -258,7 +296,22 @@ DS_MATH_EXPORT inline void dsMatrix22d_transformTransposed(dsVector2d* result,
 	DS_ASSERT(result);
 	DS_ASSERT(mat);
 	DS_ASSERT(vec);
-	dsMatrix22_transformTransposed(*result, *mat, *vec);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	dsSIMD2d x = dsSIMD2d_set1(vec->x);
+	dsSIMD2d y = dsSIMD2d_set1(vec->y);
+
+	dsSIMD2d col0 = mat->columns[0].simd;
+	dsSIMD2d col1 = mat->columns[1].simd;
+	dsSIMD2d_transpose(col0, col1);
+
+#if DS_SIMD_ALWAYS_FMA
+	result->simd = dsSIMD2d_fmadd(col0, x, dsSIMD2d_mul(col1, y));
+#else
+	result->simd = dsSIMD2d_add(dsSIMD2d_mul(col0, x), dsSIMD2d_mul(col1, y));
+#endif
+#else
+	dsMatrix22_transform(*result, *mat, *vec);
+#endif
 }
 
 /** @copydoc dsMatrix22_transpose() */
@@ -274,7 +327,13 @@ DS_MATH_EXPORT inline void dsMatrix22d_transpose(dsMatrix22d* result, const dsMa
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	result->columns[0] = a->columns[0];
+	result->columns[1] = a->columns[1];
+	dsSIMD2d_transpose(result->columns[0].simd, result->columns[1].simd);
+#else
 	dsMatrix22_transpose(*result, *a);
+#endif
 }
 
 /** @copydoc dsMatrix22_determinant() */
