@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -173,7 +173,7 @@ static bool lineTo(dsVectorScratchData* scratchData, const dsVector2f* position,
 		pointType);
 }
 
-static bool addBezierPoint(void* userData, const void* point, uint32_t axisCount, double t)
+static bool addBezierPoint(void* userData, const void* point, uint32_t axisCount, float t)
 {
 	DS_ASSERT(axisCount == 2);
 	DS_UNUSED(axisCount);
@@ -182,16 +182,14 @@ static bool addBezierPoint(void* userData, const void* point, uint32_t axisCount
 		return true;
 
 	dsVectorScratchData* scratchData = (dsVectorScratchData*)userData;
-	const dsVector2d* pointDouble = (const dsVector2d*)point;
-	dsVector2f pointFloat = {{(float)pointDouble->x, (float)pointDouble->y}};
 	PointType pointType = t == 1.0 ? PointType_Corner : PointType_Normal;
-	return dsVectorScratchData_addPoint(scratchData, &pointFloat, pointType);
+	return dsVectorScratchData_addPoint(scratchData, (const dsVector2f*)point, pointType);
 }
 
-static bool addBezier(dsVectorScratchData* scratchData, const dsBezierCurve* curve,
+static bool addBezier(dsVectorScratchData* scratchData, const dsBezierCurvef* curve,
 	float pixelSize)
 {
-	return dsBezierCurve_tessellate(curve, pixelSize*0.25f, 10, &addBezierPoint, scratchData);
+	return dsBezierCurvef_tessellate(curve, pixelSize*0.25f, 10, &addBezierPoint, scratchData);
 }
 
 static bool addCubic(dsVectorScratchData* scratchData, const dsVector2f* control1,
@@ -200,14 +198,13 @@ static bool addCubic(dsVectorScratchData* scratchData, const dsVector2f* control
 	if (!inPathWithPoint(scratchData))
 		return false;
 
-	const dsVector2f* start = &scratchData->points[scratchData->pointCount - 1].point;
-	dsVector2d p0 = {{start->x, start->y}};
-	dsVector2d p1 = {{control1->x, control1->y}};
-	dsVector2d p2 = {{control2->x, control2->y}};
-	dsVector2d p3 = {{end->x, end->y}};
+	const dsVector2f* p0 = &scratchData->points[scratchData->pointCount - 1].point;
+	dsVector2f p1 = {{control1->x, control1->y}};
+	dsVector2f p2 = {{control2->x, control2->y}};
+	dsVector2f p3 = {{end->x, end->y}};
 
-	dsBezierCurve curve;
-	DS_VERIFY(dsBezierCurve_initialize(&curve, 2, &p0, &p1, &p2, &p3));
+	dsBezierCurvef curve;
+	DS_VERIFY(dsBezierCurvef_initialize(&curve, 2, p0, &p1, &p2, &p3));
 	return addBezier(scratchData, &curve, pixelSize);
 }
 
@@ -217,13 +214,12 @@ static bool addQuadratic(dsVectorScratchData* scratchData, const dsVector2f* con
 	if (!inPathWithPoint(scratchData))
 		return false;
 
-	const dsVector2f* start = &scratchData->points[scratchData->pointCount - 1].point;
-	dsVector2d p0 = {{start->x, start->y}};
-	dsVector2d p1 = {{control->x, control->y}};
-	dsVector2d p2 = {{end->x, end->y}};
+	const dsVector2f* p0 = &scratchData->points[scratchData->pointCount - 1].point;
+	dsVector2f p1 = {{control->x, control->y}};
+	dsVector2f p2 = {{end->x, end->y}};
 
-	dsBezierCurve curve;
-	DS_VERIFY(dsBezierCurve_initializeQuadratic(&curve, 2, &p0, &p1, &p2));
+	dsBezierCurvef curve;
+	DS_VERIFY(dsBezierCurvef_initializeQuadratic(&curve, 2, p0, &p1, &p2));
 	return addBezier(scratchData, &curve, pixelSize);
 }
 

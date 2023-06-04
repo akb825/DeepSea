@@ -106,9 +106,11 @@ struct dsFaceGroup
 	dsFontFace faces[];
 };
 
-#define CHORDAL_TOLERANCE 0.1
+#define CHORDAL_TOLERANCE 0.1f
 #define EQUAL_EPSILON 1e-7f
-static const unsigned int fixedScale = 1 << 6;
+#define FIXED_SCALE (1 << 6)
+static const unsigned int fixedScale = FIXED_SCALE;
+static const float invFixedScale = 1.0f/(float)FIXED_SCALE;
 
 static void* ftAlloc(FT_Memory memory, long size)
 {
@@ -367,16 +369,14 @@ static bool endGlyphLoop(dsGlyphGeometry* geometry)
 	return true;
 }
 
-static bool addGlyphBezierPoint(void* userData, const void* point, uint32_t axisCount, double t)
+static bool addGlyphBezierPoint(void* userData, const void* point, uint32_t axisCount, float t)
 {
 	DS_UNUSED(axisCount);
 	if (t == 0.0f)
 		return true;
 
 	dsGlyphGeometry* geometry = (dsGlyphGeometry*)userData;
-	const dsVector2d* doublePos = (const dsVector2d*)point;
-	dsVector2f floatPos = {{(float)doublePos->x, (float)doublePos->y}};
-	return addGlyphLine(geometry, &floatPos);
+	return addGlyphLine(geometry, (const dsVector2f*)point);
 }
 
 static int glyphMoveTo(const FT_Vector* to, void* user)
@@ -416,7 +416,7 @@ static int glyphMoveTo(const FT_Vector* to, void* user)
 static int glyphLineTo(const FT_Vector* to, void* user)
 {
 	dsGlyphGeometry* geometry = (dsGlyphGeometry*)user;
-	dsVector2f position = {{(float)to->x/(float)fixedScale, (float)-to->y/(float)fixedScale}};
+	dsVector2f position = {{(float)to->x*invFixedScale, (float)-to->y*invFixedScale}};
 	if (!addGlyphLine(geometry, &position))
 	{
 		DS_ASSERT(errno == ENOMEM);
@@ -431,16 +431,13 @@ static int glyphConicTo(const FT_Vector* control, const FT_Vector* to, void* use
 	dsGlyphGeometry* geometry = (dsGlyphGeometry*)user;
 	DS_ASSERT(geometry->pointCount > 0);
 
-	const dsVector2f* start = &geometry->points[geometry->pointCount - 1].position;
+	const dsVector2f* p0 = &geometry->points[geometry->pointCount - 1].position;
+	dsVector2f p1 = {{(float)control->x*invFixedScale, -(float)control->y*invFixedScale}};
+	dsVector2f p2 = {{(float)to->x*invFixedScale, -(float)to->y*invFixedScale}};
+	dsBezierCurvef curve;
+	DS_VERIFY(dsBezierCurvef_initializeQuadratic(&curve, 2, p0, &p1, &p2));
 
-	dsVector2d p0 = {{start->x, start->y}};
-	dsVector2d p1 = {{(double)control->x/(double)fixedScale,
-		(double)-control->y/(double)fixedScale}};
-	dsVector2d p2 = {{(double)to->x/(double)fixedScale, (double)-to->y/(double)fixedScale}};
-	dsBezierCurve curve;
-	DS_VERIFY(dsBezierCurve_initializeQuadratic(&curve, 2, &p0, &p1, &p2));
-
-	if (!dsBezierCurve_tessellate(&curve, CHORDAL_TOLERANCE, 10, &addGlyphBezierPoint, geometry))
+	if (!dsBezierCurvef_tessellate(&curve, CHORDAL_TOLERANCE, 10, &addGlyphBezierPoint, geometry))
 	{
 		DS_ASSERT(errno == ENOMEM);
 		return FT_Err_Out_Of_Memory;
@@ -455,18 +452,14 @@ static int glyphCubicTo(const FT_Vector* control1, const FT_Vector* control2, co
 	dsGlyphGeometry* geometry = (dsGlyphGeometry*)user;
 	DS_ASSERT(geometry->pointCount > 0);
 
-	const dsVector2f* start = &geometry->points[geometry->pointCount - 1].position;
+	const dsVector2f* p0 = &geometry->points[geometry->pointCount - 1].position;
+	dsVector2f p1 = {{(float)control1->x*invFixedScale, -(float)control1->y*invFixedScale}};
+	dsVector2f p2 = {{(float)control2->x*invFixedScale, (float)-control2->y*invFixedScale}};
+	dsVector2f p3 = {{(float)to->x*invFixedScale, -(float)to->y*invFixedScale}};
+	dsBezierCurvef curve;
+	DS_VERIFY(dsBezierCurvef_initialize(&curve, 2, p0, &p1, &p2, &p3));
 
-	dsVector2d p0 = {{start->x, start->y}};
-	dsVector2d p1 = {{(double)control1->x/(double)fixedScale,
-		(double)-control1->y/(double)fixedScale}};
-	dsVector2d p2 = {{(double)control2->x/(double)fixedScale,
-		(double)-control2->y/(double)fixedScale}};
-	dsVector2d p3 = {{(double)to->x/(double)fixedScale, (double)-to->y/(double)fixedScale}};
-	dsBezierCurve curve;
-	DS_VERIFY(dsBezierCurve_initialize(&curve, 2, &p0, &p1, &p2, &p3));
-
-	if (!dsBezierCurve_tessellate(&curve, CHORDAL_TOLERANCE, 10, &addGlyphBezierPoint, geometry))
+	if (!dsBezierCurvef_tessellate(&curve, CHORDAL_TOLERANCE, 10, &addGlyphBezierPoint, geometry))
 	{
 		DS_ASSERT(errno == ENOMEM);
 		return FT_Err_Out_Of_Memory;

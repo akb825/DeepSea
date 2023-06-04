@@ -533,7 +533,7 @@ dsSceneModelNode* dsSceneModelNode_cloneReconfigBase(dsAllocator* allocator,
 		return model;
 
 #if DS_GCC
-#pragma GCC diagnostic push
+#pragma GCC diagnostic pop
 #endif
 
 error:

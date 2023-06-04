@@ -494,6 +494,20 @@ typedef struct dsFrustum3d
  * @brief Callback function for adding a sample when tessellating a curve.
  * @remark errno should be set on failure.
  * @param userData The user data provided with the function.
+ * @param point The point being added. This will be either dsVector2f or dsVector3f depending on
+ *     axisCount.
+ * @param axisCount The number of axes. This will be either 2 or 3.
+ * @param t The parametric position along the curve. This will be in the range [0, 1].
+ * @return False if an error occured.
+ * @see BezierCurve.h
+ */
+typedef bool (*dsCurveSampleFunctionf)(void* userData, const void* point, uint32_t axisCount,
+	float t);
+
+/**
+ * @brief Callback function for adding a sample when tessellating a curve.
+ * @remark errno should be set on failure.
+ * @param userData The user data provided with the function.
  * @param point The point being added. This will be either dsVector2d or dsVector3d depending on
  *     axisCount.
  * @param axisCount The number of axes. This will be either 2 or 3.
@@ -501,14 +515,33 @@ typedef struct dsFrustum3d
  * @return False if an error occured.
  * @see BezierCurve.h
  */
-typedef bool (*dsCurveSampleFunction)(void* userData, const void* point, uint32_t axisCount,
+typedef bool (*dsCurveSampleFunctiond)(void* userData, const void* point, uint32_t axisCount,
 	double t);
 
 /**
- * @brief Structure for a Bezier curve.
+ * @brief Structure for a Bezier curve using floats.
  * @see BezierCurve.h
  */
-typedef struct dsBezierCurve
+typedef struct dsBezierCurvef
+{
+	/**
+	 * @brief The number of axes in the curve.
+	 */
+	uint32_t axisCount;
+
+	/**
+	 * @brief The control points for the curve.
+	 *
+	 * Each vector is the set of control values for a single axis.
+	 */
+	dsVector4f controlPoints[3];
+} dsBezierCurvef;
+
+/**
+ * @brief Structure for a Bezier curve using doubles.
+ * @see BezierCurve.h
+ */
+typedef struct dsBezierCurved
 {
 	/**
 	 * @brief The number of axes in the curve.
@@ -521,7 +554,7 @@ typedef struct dsBezierCurve
 	 * Each vector is the set of control values for a single axis.
 	 */
 	dsVector4d controlPoints[3];
-} dsBezierCurve;
+} dsBezierCurved;
 
 /**
  * @brief Structure for a bounding volume hierarchy spacial data structure.
