@@ -422,6 +422,10 @@ typedef union dsPlane3f
  *
  * This takes the form n.x + n.y + n.z + d = 0.
  *
+ * @remark This will be 16 byte aligned when SIMD is supported. Usage with dsSIMD4d must be done
+ *     manually, either using an unaligned load or manual alignment with DS_ALIGN() and allocation
+ *     alignment.
+ *
  * @see Plane3.h
  */
 typedef union dsPlane3d
@@ -430,6 +434,13 @@ typedef union dsPlane3d
 	 * @brief Array of the vector values.
 	 */
 	double values[4];
+
+	/**
+	 * @brief SIMD value as two doubles when supported.
+	 */
+#if DS_HAS_SIMD
+	dsSIMD2d simd2[2];
+#endif
 
 	struct
 	{

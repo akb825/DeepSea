@@ -269,11 +269,17 @@ dsIntersectResult dsPlane3d_intersectBoxMatrix(const dsPlane3d* plane,
 	const dsMatrix44d* boxMatrix);
 dsIntersectResult dsPlane3f_intersectBoxMatrixTranspose(const dsPlane3f* plane,
 	const dsMatrix44f* boxMatrix);
+dsIntersectResult dsPlane3d_intersectBoxMatrixTranspose(const dsPlane3d* plane,
+	const dsMatrix44d* boxMatrix);
 #if DS_HAS_SIMD
 dsIntersectResult dsPlane3f_intersectBoxMatrixTransposeSIMD(const dsPlane3f* plane,
 	const dsMatrix44f* boxMatrix);
 dsIntersectResult dsPlane3f_intersectBoxMatrixTransposeFMA(const dsPlane3f* plane,
 	const dsMatrix44f* boxMatrix);
-#endif
-dsIntersectResult dsPlane3d_intersectBoxMatrixTranspose(const dsPlane3d* plane,
+dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeSIMD2(const dsPlane3d* plane,
 	const dsMatrix44d* boxMatrix);
+dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeFMA2(const dsPlane3d* plane,
+	const dsMatrix44d* boxMatrix);
+dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeFMA4(
+	const dsPlane3d* DS_ALIGN_PARAM(32) plane, const dsMatrix44d* DS_ALIGN_PARAM(32) boxMatrix);
+#endif

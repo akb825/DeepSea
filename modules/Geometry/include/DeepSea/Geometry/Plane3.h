@@ -224,6 +224,39 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrixTranspos
  */
 DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrixTransposeFMA(
 	const dsPlane3f* plane, const dsMatrix44f* boxMatrix);
+
+/**
+ * @brief Intersects a plane with the transpose of a matrix representation of a box using SIMD
+ *     operations.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param plane The plane to intersect with the box.
+ * @param boxMatrix The matrix representation of the box.
+ * @return The side of the plane that the box lies.
+ */
+DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeSIMD2(
+	const dsPlane3d* plane, const dsMatrix44d* boxMatrix);
+
+/**
+ * @brief Intersects a plane with the transpose of a matrix representation of a box using fused
+ *     multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_FMA is available.
+ * @param plane The plane to intersect with the box.
+ * @param boxMatrix The matrix representation of the box.
+ * @return The side of the plane that the box lies.
+ */
+DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeFMA2(
+	const dsPlane3d* plane, const dsMatrix44d* boxMatrix);
+
+/**
+ * @brief Intersects a plane with the transpose of a matrix representation of a box using fused
+ *     multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_FMA is available.
+ * @param plane The plane to intersect with the box.
+ * @param boxMatrix The matrix representation of the box.
+ * @return The side of the plane that the box lies.
+ */
+DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeFMA4(
+	const dsPlane3d* DS_ALIGN_PARAM(32) plane, const dsMatrix44d* DS_ALIGN_PARAM(32) boxMatrix);
 #endif
 
 /** @copydoc dsPlane3f_intersectBoxMatrix() */
@@ -283,7 +316,7 @@ DS_GEOMETRY_EXPORT inline void dsPlane3d_normalize(dsPlane3d* result, const dsPl
 	DS_ASSERT(plane);
 
 	double invLength = 1/dsVector3d_len(&plane->n);
-	dsVector4_scale(*result, *plane, invLength);
+	dsVector4d_scale((dsVector4d*)result, (const dsVector4d*)plane, invLength);
 }
 
 DS_GEOMETRY_EXPORT inline void dsPlane3f_transform(dsPlane3f* result, const dsMatrix44f* transform,
@@ -311,7 +344,8 @@ DS_GEOMETRY_EXPORT inline void dsPlane3d_transform(dsPlane3d* result, const dsMa
 	dsMatrix44d inverse;
 	dsMatrix44d_affineInvert(&inverse, transform);
 	dsPlane3d transformedPlane; // Transform requires a different result pointer.
-	dsMatrix44_transformTransposed(transformedPlane, inverse, *plane);
+	dsMatrix44d_transformTransposed((dsVector4d*)&transformedPlane, &inverse,
+		(const dsVector4d*)plane);
 	dsPlane3d_normalize(result, &transformedPlane);
 }
 
@@ -335,7 +369,7 @@ DS_GEOMETRY_EXPORT inline void dsPlane3d_transformInverseTranspose(dsPlane3d* re
 	DS_ASSERT(transform);
 
 	dsPlane3d transformedPlane; // Transform requires a different result pointer.
-	dsMatrix44_transform(transformedPlane, *transform, *plane);
+	dsMatrix44d_transform((dsVector4d*)&transformedPlane, transform, (const dsVector4d*)plane);
 	dsPlane3d_normalize(result, &transformedPlane);
 }
 
@@ -372,7 +406,8 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrix(const d
 	// https://gdbooks.gitbooks.io/3dcollisions/content/Chapter2/static_aabb_plane.html
 	// Transform plane into box space then compare to to a box [-1, 1] for all dimensions.
 	dsPlane3d transformedPlane;
-	dsMatrix44_transformTransposed(transformedPlane, *boxMatrix, *plane);
+	dsMatrix44d_transformTransposed((dsVector4d*)&transformedPlane, boxMatrix,
+		(const dsVector4d*)plane);
 	dsPlane3d_normalize(&transformedPlane, &transformedPlane);
 
 	double radius = fabs(transformedPlane.n.x) + fabs(transformedPlane.n.y) +
@@ -400,6 +435,29 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrixTranspos
 
 	float radius = fabsf(transformedPlane.n.x) + fabsf(transformedPlane.n.y) +
 		fabsf(transformedPlane.n.z);
+
+	if (transformedPlane.d > radius)
+		return dsIntersectResult_Inside;
+	else if (transformedPlane.d < -radius)
+		return dsIntersectResult_Outside;
+	else
+		return dsIntersectResult_Intersects;
+}
+
+DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTranspose(
+	const dsPlane3d* plane, const dsMatrix44d* boxMatrix)
+{
+	DS_ASSERT(plane);
+	DS_ASSERT(boxMatrix);
+
+	// https://gdbooks.gitbooks.io/3dcollisions/content/Chapter2/static_aabb_plane.html
+	// Transform plane into box space then compare to to a box [-1, 1] for all dimensions.
+	dsPlane3d transformedPlane;
+	dsMatrix44_transform(transformedPlane, *boxMatrix, *plane);
+	dsPlane3d_normalize(&transformedPlane, &transformedPlane);
+
+	double radius = fabs(transformedPlane.n.x) + fabs(transformedPlane.n.y) +
+		fabs(transformedPlane.n.z);
 
 	if (transformedPlane.d > radius)
 		return dsIntersectResult_Inside;
@@ -462,9 +520,9 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrixTranspos
 		return dsIntersectResult_Intersects;
 }
 DS_SIMD_END()
-#endif
 
-DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTranspose(
+DS_SIMD_START(DS_SIMD_DOUBLE2)
+DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeSIMD2(
 	const dsPlane3d* plane, const dsMatrix44d* boxMatrix)
 {
 	DS_ASSERT(plane);
@@ -473,11 +531,14 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTranspos
 	// https://gdbooks.gitbooks.io/3dcollisions/content/Chapter2/static_aabb_plane.html
 	// Transform plane into box space then compare to to a box [-1, 1] for all dimensions.
 	dsPlane3d transformedPlane;
-	dsMatrix44_transform(transformedPlane, *boxMatrix, *plane);
+	dsMatrix44d_transformSIMD2((dsVector4d*)&transformedPlane, boxMatrix, (const dsVector4d*)plane);
 	dsPlane3d_normalize(&transformedPlane, &transformedPlane);
 
-	double radius = fabs(transformedPlane.n.x) + fabs(transformedPlane.n.y) +
-		fabs(transformedPlane.n.z);
+	// Simplification of AABB/plane intersection with extents = 1.
+	dsVector4d planeAbs;
+	planeAbs.simd2[0] = dsSIMD2d_abs(transformedPlane.simd2[0]);
+	planeAbs.simd2[1] = dsSIMD2d_abs(transformedPlane.simd2[1]);
+	double radius = planeAbs.x + planeAbs.y + planeAbs.z;
 
 	if (transformedPlane.d > radius)
 		return dsIntersectResult_Inside;
@@ -486,6 +547,62 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTranspos
 	else
 		return dsIntersectResult_Intersects;
 }
+DS_SIMD_END()
+
+DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_FMA)
+DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeFMA2(
+	const dsPlane3d* plane, const dsMatrix44d* boxMatrix)
+{
+	DS_ASSERT(plane);
+	DS_ASSERT(boxMatrix);
+
+	// https://gdbooks.gitbooks.io/3dcollisions/content/Chapter2/static_aabb_plane.html
+	// Transform plane into box space then compare to to a box [-1, 1] for all dimensions.
+	dsPlane3d transformedPlane;
+	dsMatrix44d_transformFMA2((dsVector4d*)&transformedPlane, boxMatrix, (const dsVector4d*)plane);
+	dsPlane3d_normalize(&transformedPlane, &transformedPlane);
+
+	dsVector4d planeAbs;
+	planeAbs.simd2[0] = dsSIMD2d_abs(transformedPlane.simd2[0]);
+	planeAbs.simd2[1] = dsSIMD2d_abs(transformedPlane.simd2[1]);
+	double radius = planeAbs.x + planeAbs.y + planeAbs.z;
+
+	if (transformedPlane.d > radius)
+		return dsIntersectResult_Inside;
+	else if (transformedPlane.d < -radius)
+		return dsIntersectResult_Outside;
+	else
+		return dsIntersectResult_Intersects;
+}
+DS_SIMD_END()
+
+DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_FMA)
+DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeFMA4(
+	const dsPlane3d* DS_ALIGN_PARAM(32) plane, const dsMatrix44d* DS_ALIGN_PARAM(32) boxMatrix)
+{
+	DS_ASSERT(plane);
+	DS_ASSERT(boxMatrix);
+
+	// https://gdbooks.gitbooks.io/3dcollisions/content/Chapter2/static_aabb_plane.html
+	// Transform plane into box space then compare to to a box [-1, 1] for all dimensions.
+	DS_ALIGN(32) dsPlane3d transformedPlane;
+	dsMatrix44d_transformFMA4((dsVector4d*)&transformedPlane, boxMatrix, (const dsVector4d*)plane);
+	dsPlane3d_normalize(&transformedPlane, &transformedPlane);
+
+	dsVector4d planeAbs;
+	planeAbs.simd2[0] = dsSIMD2d_abs(transformedPlane.simd2[0]);
+	planeAbs.simd2[1] = dsSIMD2d_abs(transformedPlane.simd2[1]);
+	double radius = planeAbs.x + planeAbs.y + planeAbs.z;
+
+	if (transformedPlane.d > radius)
+		return dsIntersectResult_Inside;
+	else if (transformedPlane.d < -radius)
+		return dsIntersectResult_Outside;
+	else
+		return dsIntersectResult_Intersects;
+}
+DS_SIMD_END()
+#endif
 
 #ifdef __cplusplus
 }

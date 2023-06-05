@@ -135,11 +135,8 @@ static void addPlane(dsShadowCullVolume* volume, dsPlane3d* planes, const dsPlan
 	for (uint32_t i = 0; i < volume->planeCount; ++i)
 	{
 		const dsPlane3d* curPlane = planes + i;
-		if (dsVector3d_epsilonEqual(&curPlane->n, &plane->n, epsilon) &&
-			dsRelativeEpsilonEquald(curPlane->d, plane->d, epsilon))
-		{
+		if (dsVector4d_epsilonEqual((const dsVector4d*)curPlane, (const dsVector4d*)plane, epsilon))
 			return;
-		}
 	}
 
 	planes[volume->planeCount++] = *plane;
