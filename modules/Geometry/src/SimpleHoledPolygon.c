@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -280,21 +280,48 @@ static bool canConnectEdge(const dsSimpleHoledPolygon* polygon, uint32_t fromVer
 	dsAlignedBox2_addPoint(edgeBounds, *toPos);
 
 	DS_ASSERT(polygon->mainEdgeCount <= base->edgeCount);
-	for (uint32_t i = polygon->mainEdgeCount; i < base->edgeCount; i += 2)
+#if DS_HAS_SIMD
+	if (dsHostSIMDFeatures & dsSIMDFeatures_Double2)
 	{
-		const Edge* otherEdge = base->edges + i;
-
-		// Don't count neighboring edges.
-		if (otherEdge->prevVertex == fromVertIdx || otherEdge->prevVertex == toVertIdx ||
-			otherEdge->nextVertex == fromVertIdx || otherEdge->nextVertex == toVertIdx)
+		for (uint32_t i = polygon->mainEdgeCount; i < base->edgeCount; i += 2)
 		{
-			continue;
-		}
+			const Edge* otherEdge = base->edges + i;
 
-		const dsVector2d* otherFrom = &base->vertices[otherEdge->prevVertex].point;
-		const dsVector2d* otherTo = &base->vertices[otherEdge->nextVertex].point;
-		if (dsPolygonEdgesIntersect(fromPos, toPos, otherFrom, otherTo, base->intersectEpsilon))
-			return false;
+			// Don't count neighboring edges.
+			if (otherEdge->prevVertex == fromVertIdx || otherEdge->prevVertex == toVertIdx ||
+				otherEdge->nextVertex == fromVertIdx || otherEdge->nextVertex == toVertIdx)
+			{
+				continue;
+			}
+
+			const dsVector2d* otherFrom = &base->vertices[otherEdge->prevVertex].point;
+			const dsVector2d* otherTo = &base->vertices[otherEdge->nextVertex].point;
+			if (dsPolygonEdgesIntersectSIMD(fromPos, toPos, otherFrom, otherTo,
+					base->intersectEpsilon))
+			{
+				return false;
+			}
+		}
+	}
+	else
+#endif
+	{
+		for (uint32_t i = polygon->mainEdgeCount; i < base->edgeCount; i += 2)
+		{
+			const Edge* otherEdge = base->edges + i;
+
+			// Don't count neighboring edges.
+			if (otherEdge->prevVertex == fromVertIdx || otherEdge->prevVertex == toVertIdx ||
+				otherEdge->nextVertex == fromVertIdx || otherEdge->nextVertex == toVertIdx)
+			{
+				continue;
+			}
+
+			const dsVector2d* otherFrom = &base->vertices[otherEdge->prevVertex].point;
+			const dsVector2d* otherTo = &base->vertices[otherEdge->nextVertex].point;
+			if (dsPolygonEdgesIntersect(fromPos, toPos, otherFrom, otherTo, base->intersectEpsilon))
+				return false;
+		}
 	}
 
 	return true;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Aaron Barany
+ * Copyright 2018-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ static bool getEdgeBounds(void* outBounds, const dsBVH* bvh, const void* object)
 	const Vertex* prevVert = polygon->vertices + polygonEdge->prevVertex;
 	const Vertex* nextVert = polygon->vertices +  polygonEdge->nextVertex;
 	bounds->min = bounds->max = prevVert->point;
-	dsAlignedBox2_addPoint(*bounds, nextVert->point);
+	dsAlignedBox2d_addPoint(bounds, &nextVert->point);
 	return true;
 }
 
@@ -76,6 +76,31 @@ static bool testEdgeIntersect(void* userData, const dsBVH* bvh, const void* obje
 		info->epsilon);
 	return !info->intersects;
 }
+
+#if DS_HAS_SIMD
+static bool testEdgeIntersectSIMD(void* userData, const dsBVH* bvh, const void* object,
+	const void* bounds)
+{
+	DS_UNUSED(bounds);
+	EdgeIntersectInfo* info = (EdgeIntersectInfo*)userData;
+	DS_ASSERT(!info->intersects);
+	const dsBasePolygon* polygon = (const dsBasePolygon*)dsBVH_getUserData(bvh);
+	const Edge* otherEdge = polygon->edges + (size_t)object;
+
+	// Don't count neighboring edges.
+	if (otherEdge->prevVertex == info->fromVert || otherEdge->prevVertex == info->toVert ||
+		otherEdge->nextVertex == info->fromVert || otherEdge->nextVertex == info->toVert)
+	{
+		return true;
+	}
+
+	const dsVector2d* otherFrom = &polygon->vertices[otherEdge->prevVertex].point;
+	const dsVector2d* otherTo = &polygon->vertices[otherEdge->nextVertex].point;
+	info->intersects = dsPolygonEdgesIntersectSIMD(&info->fromPos, &info->toPos, otherFrom, otherTo,
+		info->epsilon);
+	return !info->intersects;
+}
+#endif
 
 static bool isConnected(const dsBasePolygon* polygon, const EdgeConnectionList* connections,
 	uint32_t nextVertex)
@@ -142,6 +167,7 @@ static void insertEdge(dsBasePolygon* polygon, EdgeConnectionList* edgeList, uin
 	edgeList->tail = connectionIdx;
 }
 
+
 bool dsPolygonEdgesIntersect(const dsVector2d* from, const dsVector2d* to,
 	const dsVector2d* otherFrom, const dsVector2d* otherTo, double epsilon)
 {
@@ -183,12 +209,12 @@ bool dsPolygonEdgesIntersect(const dsVector2d* from, const dsVector2d* to,
 		return true;
 	}
 
+	double thisFactor = from->x*to->y - from->y*to->x;
+	double otherFactor = otherFrom->x*otherTo->y - otherFrom->y*otherTo->x;
 	dsVector2d intersect =
 	{{
-		(from->x*to->y - from->y*to->x)*(otherFrom->x - otherTo->x) -
-			(from->x - to->x)*(otherFrom->x*otherTo->y - otherFrom->y*otherTo->x),
-		(from->x*to->y - from->y*to->x)*(otherFrom->y - otherTo->y) -
-			(from->y - to->y)*(otherFrom->x*otherTo->y - otherFrom->y*otherTo->x)
+		thisFactor*(otherFrom->x - otherTo->x) - (from->x - to->x)*otherFactor,
+		thisFactor*(otherFrom->y - otherTo->y) - (from->y - to->y)*otherFactor
 	}};
 
 	divisor = 1.0/divisor;
@@ -213,6 +239,101 @@ bool dsPolygonEdgesIntersect(const dsVector2d* from, const dsVector2d* to,
 	// an intersection.
 	return t > epsilon && t < 1.0 - epsilon && otherT > -epsilon && otherT < 1.0 + epsilon;
 }
+
+#if DS_HAS_SIMD
+#if DS_X86_32 || DS_X86_64
+#define DS_SWAP_SIMD(a) _mm_shuffle_pd((a), (a), 0x1)
+#elif DS_ARM_64
+#define DS_SWAP_SIMD(a) vextq_f64((a), (a), 1)
+#else
+#define DS_SWAP_SIMD(a) a
+#endif
+
+DS_SIMD_START(DS_SIMD_DOUBLE2)
+bool dsPolygonEdgesIntersectSIMD(const dsVector2d* from, const dsVector2d* to,
+	const dsVector2d* otherFrom, const dsVector2d* otherTo, double epsilon)
+{
+	// https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+	dsVector2d offset;
+	offset.simd = dsSIMD2d_sub(to->simd, from->simd);
+
+	dsSIMD2d fromToDiff = dsSIMD2d_sub(from->simd, to->simd);
+	dsSIMD2d otherFromToDiff = dsSIMD2d_sub(otherFrom->simd, otherTo->simd);
+	dsVector2d divisor2;
+	divisor2.simd = dsSIMD2d_mul(fromToDiff, DS_SWAP_SIMD(otherFromToDiff));
+	double divisor = divisor2.x - divisor2.y;
+	if (dsEpsilonEqualsZerod(divisor, epsilon*epsilon))
+	{
+		// Check if the lines are on top of each other.
+		dsVector2d otherRef;
+		if (dsVector2d_epsilonEqual(otherFrom, to, epsilon))
+			otherRef = *otherTo;
+		else
+			otherRef = *otherFrom;
+		double betweenDivisor = (otherRef.x - to->x)*(from->y - otherTo->y) -
+			(otherRef.y - to->y)*(otherFrom->x - otherTo->x);
+		// Parallel, but not coincident.
+		if (!dsEpsilonEqualsZerod(betweenDivisor, epsilon))
+			return false;
+
+		double distance = dsVector2d_len(&offset);
+		dsVector2d otherFromOffset;
+		dsVector2d_sub(&otherFromOffset, otherFrom, from);
+		double otherFromOffsetSign = dsVector2d_dot(&otherFromOffset, &offset) >= 0.0 ? 1.0 : -1.0;
+		double otherFromT = dsVector2d_len(&otherFromOffset)*otherFromOffsetSign/distance;
+
+		dsVector2d otherToOffset;
+		dsVector2d_sub(&otherToOffset, otherTo, from);
+		double otherToOffsetSign = dsVector2d_dot(&otherToOffset, &offset) >= 0.0 ? 1.0 : -1.0;
+		double otherToT = dsVector2d_len(&otherToOffset)*otherToOffsetSign/distance;
+
+		double otherMinT = dsMin(otherFromT, otherToT);
+		double otherMaxT = dsMax(otherFromT, otherToT);
+		if (otherMaxT <= epsilon || otherMinT >= 1.0 - epsilon)
+			return false;
+		return true;
+	}
+
+	dsSIMD2d thisFactor2 = dsSIMD2d_mul(from->simd, DS_SWAP_SIMD(to->simd));
+	dsSIMD2d otherFactor2 = dsSIMD2d_mul(otherFrom->simd, DS_SWAP_SIMD(otherTo->simd));
+	dsSIMD2d_transpose(thisFactor2, otherFactor2);
+	dsVector2d factors2;
+	factors2.simd = dsSIMD2d_sub(thisFactor2, otherFactor2);
+	dsVector2d intersect;
+#if DS_SIMD_ALWAYS_FMA
+	intersect.simd = dsSIMD2d_fmsub(dsSIMD2d_set1(factors2.x), otherFromToDiff,
+		dsSIMD2d_mul(fromToDiff, dsSIMD2d_set1(factors2.y)));
+#else
+	intersect.simd = dsSIMD2d_sub(dsSIMD2d_mul(dsSIMD2d_set1(factors2.x), otherFromToDiff),
+		dsSIMD2d_mul(fromToDiff, dsSIMD2d_set1(factors2.y)));
+#endif
+
+	intersect.simd = dsSIMD2d_div(intersect.simd, dsSIMD2d_set1(divisor));
+
+	// Find T based on the largest difference to avoid issues with axis-aligned lines.
+	dsVector2d offsetAbs;
+	offsetAbs.simd = dsSIMD2d_abs(offset.simd);
+	double t;
+	if (offsetAbs.x > offsetAbs.y)
+		t = (intersect.x - from->x)/offset.x;
+	else
+		t = (intersect.y - from->y)/offset.y;
+
+	dsVector2d otherOffset;
+	dsVector2_sub(otherOffset, *otherTo, *otherFrom);
+	offsetAbs.simd = dsSIMD2d_abs(otherOffset.simd);
+	double otherT;
+	if (offsetAbs.x > offsetAbs.y)
+		otherT = (intersect.x - otherFrom->x)/otherOffset.x;
+	else
+		otherT = (intersect.y - otherFrom->y)/otherOffset.y;
+
+	// Don't count the endpoints of the first line, but count the endpoints of the second line as
+	// an intersection.
+	return t > epsilon && t < 1.0 - epsilon && otherT > -epsilon && otherT < 1.0 + epsilon;
+}
+DS_SIMD_END()
+#endif
 
 bool dsIsPolygonTriangleCCW(const dsVector2d* p0, const dsVector2d* p1, const dsVector2d* p2);
 int dsComparePolygonPoints(const dsVector2d* left, const dsVector2d* right);
@@ -328,7 +449,14 @@ bool dsBasePolygon_canConnectEdge(const dsBasePolygon* polygon, uint32_t fromVer
 
 	EdgeIntersectInfo info = {fromVert->point, toVert->point, polygon->intersectEpsilon,
 		fromVertIdx, toVertIdx, false};
-	dsBVH_intersectBounds(polygon->edgeBVH, &edgeBounds, &testEdgeIntersect, &info);
+	dsBVHVisitFunction visitorFunc;
+#if DS_HAS_SIMD
+	if (dsHostSIMDFeatures & dsSIMDFeatures_Double2)
+		visitorFunc = &testEdgeIntersectSIMD;
+	else
+#endif
+		visitorFunc = testEdgeIntersect;
+	dsBVH_intersectBounds(polygon->edgeBVH, &edgeBounds, visitorFunc, &info);
 	return !info.intersects;
 }
 

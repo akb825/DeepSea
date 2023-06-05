@@ -89,13 +89,17 @@ typedef struct dsBasePolygon
 // middle of the first edge unexpectedly, though.
 bool dsPolygonEdgesIntersect(const dsVector2d* from, const dsVector2d* to,
 	const dsVector2d* otherFrom, const dsVector2d* otherTo, double epsilon);
+#if DS_HAS_SIMD
+bool dsPolygonEdgesIntersectSIMD(const dsVector2d* from, const dsVector2d* to,
+	const dsVector2d* otherFrom, const dsVector2d* otherTo, double epsilon);
+#endif
 
 inline bool dsIsPolygonTriangleCCW(const dsVector2d* p0, const dsVector2d* p1,
 	const dsVector2d* p2)
 {
 	// Cross product of the triangle with Z = 0.
 	double cross = (p1->x - p0->x)*(p2->y - p0->y) - (p2->x - p0->x)*(p1->y - p0->y);
-	return cross >= 0.0f;
+	return cross >= 0;
 }
 
 inline int dsComparePolygonPoints(const dsVector2d* left, const dsVector2d* right)
