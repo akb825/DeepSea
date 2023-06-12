@@ -600,7 +600,7 @@ def convertModelNode(convertContext, data):
 	- embeddedResources: optional set of resources to embed with the node. This is an array of maps
 	  as expected by SceneResourcesConvert.convertSceneResources().
 	- modelGeometry: array of model geometry. Each element of the array has the following members:
-	  - type: the name of the geometry type, such as "obj" or "gltf". If ommitted, the type is
+	  - type: the name of the geometry type, such as "obj" or "gltf". If omitted, the type is
 	    inferred from the path extension.
 	  - path: the path to the geometry.
 	  - vertexFormat: 2D array of vertex attributes defining the vertex format. There may be up to

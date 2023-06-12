@@ -1,4 +1,4 @@
-# Copyright 2020-2021 Aaron Barany
+# Copyright 2020-2023 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ def convertVectorItemList(convertContext, data):
 	  the array has the following members:
 	  - type: the name of the instance data type.
 	  - Remaining members depend on the value of "type".
-	- dynamicRenderStates: dynamic render states to apply when rendering. This may be ommitted if
+	- dynamicRenderStates: dynamic render states to apply when rendering. This may be omitted if
 	  no dynamic render states are used. This is expected to contain any of the following members:
 	  - lineWidth: float width for the line. Defaults to 1.
 	  - depthBiasConstantFactor: float value for the depth bias constant factor. Defaults to 0.

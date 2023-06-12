@@ -41,7 +41,7 @@ def addAnimationTreeType(convertContext, typeName, convertFunc):
 	Adds an animation tree type with the name and the convert function.
 
 	The function should take the ConvertContext, path to the animation tree to convert, and the list
-	of root node names, and should return an array of AnimationTreeNode objects for the contents of
+	of root node names, and should return a list of AnimationTreeNode objects for the contents of
 	the animation tree.
 
 	An exception will be raised if the type is already registered.
@@ -57,8 +57,8 @@ def convertAnimationTree(convertContext, data):
 	"""
 	Converts an AnimationTree without joints. The data map is expected to contain the following
 	elements:
-	- file: file with the animation tree.
-	- fileType: the name of the type, such as "gltf". If ommitted, the type is inerred from the
+	- file: file with the animation tree. If omitted, the data will be provided inline.
+	- fileType: the name of the type, such as "gltf". If omitted, the type is inferred from the
 	  file extension.
 	- nodes: list of nodes to define the animation tree. If "file" is set, this will be the list
 	  of root node names. If "file" is not set, each element of the array has the following members:
@@ -67,7 +67,7 @@ def convertAnimationTree(convertContext, data):
 	  - scale: array with x, y, z scale factors. Defaults to [1, 1, 1].
 	  - rotation: array with x, y, z Euler angles in degrees. Defaults to [0, 0, 0].
 	  - children: array with the child nodes. Each element of the array has the same members as the
-	    "nodes" members. Defaults to no children if ommitted.
+	    "nodes" members. Defaults to no children if omitted.
 	"""
 	def readFloat(value, name):
 		try:

@@ -11,17 +11,17 @@ The following JSON formats are added to extend scene conversion.
 The following custom scene resource types are provided with the members that are expected:
 
 * `"AnimationTree"`: animation tree without joint nodes.
-	* `file`: file with the animation tree.
-	* `fileType`: the name of the type, such as "gltf". If ommitted, the type is inerred from the file extension.
+	* `file`: file with the animation tree. If omitted, the data will be provided inline.
+	* `fileType`: the name of the type, such as "gltf". If omitted, the type is inferred from the file extension.
 	* `nodes`: list of nodes to define the animation tree. If `file` is set, this will be the list of root node names. If `file` is not set, each element of the array has the following members:
 		* `name`: the name of the node.
 		* `translation`: array with x, y, z offset. Defaults to [0, 0, 0].
 		* `scale`: array with x, y, z scale factors. Defaults to [1, 1, 1].
 		* `rotation`: array with x, y, z Euler angles in degrees. Defaults to [0, 0, 0].
-		* `children`: array with the child nodes. Each element of the array has the same members as the `nodes` members. Defaults to no children if ommitted.
+		* `children`: array with the child nodes. Each element of the array has the same members as the `nodes` members. Defaults to no children if omitted.
 * `"AnimationJointTree"`: animation tree with joint nodes.
-	* `file`: file with the animation joint tree.
-	* `fileType`: the name of the type, such as "gltf". If ommitted, the type is inerred from the file extension.
+	* `file`: file with the animation joint tree. If omitted, the data will be provided inline.
+	* `fileType`: the name of the type, such as "gltf". If omitted, the type is inerred from the file extension.
 	* `nodes`: list of nodes to define the animation tree. If `file` is set, this will be the list of root node names. If `file` is not set, each element of the array has the following members:
 		* `name`: the name of the node.
 		* `translation`: array with x, y, z offset. Defaults to [0, 0, 0].
@@ -37,6 +37,16 @@ The following custom scene resource types are provided with the members that are
 			* `"Translation"`: x, y, z offset.
 			* `"Scale"`: x, y, z scale factors.
 			* `"Rotation"`: x, y, z Euler angles in degrees.
+* `"KeyframeAnimation"`: values to set on an animation tree interpolated by time value.
+	* `file`: file with the keyframe animation. If omitted, the data will be provided inline.
+	* `fileType`: the name of the type, such as "gltf". If omitted, the type is inferred from the file extension.
+	* `keyframes`: array of keyframes and channels that comprise the animation. If "file" is set, this will be the list of keyframe animation names. If "file" is not set, each element of the array has the following members:
+		* `keyframeTimes`: array of times for each keyframe in seconds.
+		* `channels`: array of channels associated with the keyframe times. Each element of the array has the following members:
+			* `node`: the name of the node the channel applies to.
+			* `component`: the component to apply the value to. See the `dsAnimationComponent` enum for values, removing the type prefix.
+			* `interpolation`: the interpolation method of the. See the `dsAnimationInterpolation` enum for values, removing the type prefix.
+			* `values`: The values for the animation component as an array of float arrays. The inner arrays have 3 elements for translation and scale, or 4 elements for a quaternion for rotation. The outer array has either one element for each keyframe time for step and linear interpolation, or three elements for each keyframe time for cubic interpolation. The three cubic values are the in tangent, value, and out tangent, respectively.
 * `"NodeMapCache"`: cache for node mappings between animations and animation trees. This contains no extra data members.
 
 ## Scene Nodes

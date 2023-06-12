@@ -1,4 +1,4 @@
-# Copyright 2020-2021 Aaron Barany
+# Copyright 2020-2023 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ def convertFullScreenResolve(convertContext, data):
 	Converts a FullScreenResolve. The data map is expected to contain the following elements:
 	- shader: the name of the shader to draw with.
 	- material: the name of the material to draw with.
-	- dynamicRenderStates: dynamic render states to apply when drawing. This may be ommitted if no
+	- dynamicRenderStates: dynamic render states to apply when drawing. This may be omitted if no
 	  dynamic render states are used. This is expected to contain any of the following members:
 	  - lineWidth: float width for the line. Defaults to 1.
 	  - depthBiasConstantFactor: float value for the depth bias constant factor. Defaults to 0.

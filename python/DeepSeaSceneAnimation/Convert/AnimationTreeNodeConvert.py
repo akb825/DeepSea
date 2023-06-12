@@ -19,7 +19,8 @@ from .. import AnimationTreeNode
 def convertAnimationTreeNode(convertContext, data):
 	"""
 	Converts a AnimationTreeNode. The data map is expected to contain the following elements:
-	- animationTree: the name of the animation tree to use for the node.
+	- animationTree: the name of the animation tree to use for the node. If omitted, the data will
+	  be provided inline.
 	- nodeMapCache: the name of the animation node map cache to use with the animation tree.
 	- children: an array of child nodes. Each element is an object with the following elements:
 	  - nodeType: the name of the node type.

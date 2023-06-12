@@ -31,6 +31,7 @@ from DeepSeaSceneAnimation.Convert.AnimationTreeNodeConvert import convertAnimat
 from DeepSeaSceneAnimation.Convert.DirectAnimationConvert import convertDirectAnimation
 from DeepSeaSceneAnimation.Convert.GLTFAnimationJointTree import registerGLTFAnimationJointTreeType
 from DeepSeaSceneAnimation.Convert.GLTFAnimationTree import registerGLTFAnimationTreeType
+from DeepSeaSceneAnimation.Convert.KeyframeAnimationConvert import convertKeyframeAnimation
 from DeepSeaSceneAnimation.Convert.NodeMapCacheConvert import convertNodeMapCache
 from DeepSeaSceneAnimation.Convert.SkinningDataConvert import convertSkinningData
 
@@ -65,6 +66,7 @@ def createSceneResourcesConvertContext(cuttlefish='cuttlefish', vfc='vfc', multi
 	convertContext.addCustomResourceType('AnimationJointTree', convertAnimationJointTree)
 	convertContext.addCustomResourceType('AnimationTree', convertAnimationTree)
 	convertContext.addCustomResourceType('DirectAnimation', convertDirectAnimation)
+	convertContext.addCustomResourceType('KeyframeAnimation', convertKeyframeAnimation)
 	convertContext.addCustomResourceType('NodeMapCache', convertNodeMapCache)
 	convertContext.addInstanceDataType('SkinningData', convertSkinningData)
 	convertContext.addNodeType('AnimationNode', convertAnimationNode)

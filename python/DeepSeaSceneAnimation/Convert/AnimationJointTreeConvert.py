@@ -44,8 +44,8 @@ def addAnimationJointTreeType(convertContext, typeName, convertFunc):
 	Adds an animation joint tree type with the name and the convert function.
 
 	The function should take the ConvertContext, path to the animation tree to convert, and the list
-	of root node names, and should return an array of AnimationJointTreeNode objects for the
-	contents of the animation joint tree.
+	of root node names, and should return a list of AnimationJointTreeNode objects for the contents
+	of the animation joint tree.
 
 	An exception will be raised if the type is already registered.
 	"""
@@ -61,7 +61,7 @@ def convertAnimationJointTree(convertContext, data):
 	Converts an AnimationTree with joints. The data map is expected to contain the following
 	elements:
 	- file: file with the animation joint tree.
-	- fileType: the name of the type, such as "gltf". If ommitted, the type is inerred from the
+	- fileType: the name of the type, such as "gltf". If omitted, the type is inerred from the
 	  file extension.
 	- nodes: list of nodes to define the animation tree. If "file" is set, this will be the list
 	  of root node names. If "file" is not set, each element of the array has the following members:

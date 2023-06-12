@@ -94,7 +94,7 @@ The following scene item lists are provided with the expected members:
 	* `instanceData`: optional list of instance data to include with the item list. Each element of the array has the following members:
 		* `type`: the name of the instance data type.
 		* Remaining members depend on the value of `type`.
-	* `dynamicRenderStates`: dynamic render states to apply when rendering. This may be ommitted if no dynamic render states are used. This is expected to contain any of the following members:
+	* `dynamicRenderStates`: dynamic render states to apply when rendering. This may be omitted if no dynamic render states are used. This is expected to contain any of the following members:
 		* `lineWidth`: float width for the line. Defaults to 1.
 		* `depthBiasConstantFactor`: float value for the depth bias constant factor. Defaults to 0.
 		* `depthBiasClamp`: float value for the depth bias clamp. Defaults to 0.

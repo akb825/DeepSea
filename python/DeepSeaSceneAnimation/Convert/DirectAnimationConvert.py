@@ -27,7 +27,7 @@ def convertDirectAnimation(convertContext, data):
 	"""
 	Converts a direct animation for a scene. The data map is expected to contain the following
 	elements:
-	- channels: array of channels for the animation. Each member of the array has the following
+	- channels: array of channels for the animation. Each element of the array has the following
 	  members:
 	  - node: the name of the node to apply the value to.
 	  - component: the component to apply the value to. See the dsAnimationComponent enum for
