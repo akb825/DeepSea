@@ -18,19 +18,24 @@
 
 #if DS_WINDOWS
 #include <intrin.h>
+#elif DS_X86_32 || DS_X86_64
+#include <cpuid.h>
 #endif
 
 #if DS_HAS_SIMD
 
 #if DS_X86_32 || DS_X86_64
 
-#if !DS_WINDOWS
-static void __cpuid(int cpuInfo[4], int function)
+#if DS_WINDOWS
+static void __get_cpuid(unsigned int level, unsigned int* eax, unsigned int* ebx, unsigned int* ecx,
+    unsigned int* edx)
 {
-	cpuInfo[0] = function;
-	cpuInfo[2] = 0;
-	asm volatile("cpuid\n\t" : "+a"(cpuInfo[0]), "=b"(cpuInfo[1]), "+c"(cpuInfo[2]),
-		"=d"(cpuInfo[3]));
+	int cpuInfo[4];
+	__cpuid(cpuInfo, level);
+	*eax = cpuInfo[0];
+	*ebx = cpuInfo[1];
+	*ecx = cpuInfo[2];
+	*edx = cpuInfo[3];
 }
 #endif
 
@@ -43,15 +48,13 @@ static dsSIMDFeatures detectSIMDFeatures()
 	// Function 1, ecx
 	const int sse3Bit = 1;
 	const int fmaBit = 1 << 12;
-	const int avxBit = 1 << 29;
+	const int avxBit = 1 << 28;
 	const int f16cBit = 1 << 29;
 
 	dsSIMDFeatures features = dsSIMDFeatures_None;
 
-	int cpuInfo[4];
-	__cpuid(cpuInfo, 1);
-	int ecx = cpuInfo[2];
-	int edx = cpuInfo[3];
+	unsigned int eax = 0, ebx = 0, ecx = 0, edx = 0;
+	__get_cpuid(1, &eax, &ebx, &ecx, &edx);
 	if (!(edx & sseBit))
 		return features;
 
