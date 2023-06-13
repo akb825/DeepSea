@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,8 +114,9 @@ static PolygonResult intersectScanline(const dsVector2f* point, const dsVector2f
 		return PolygonResult_Outside;
 
 	// Only care about the X coordinate, we already know the Y coordinate of the intersection.
-	float intersectX =
-		(point->y*(from->x - to->x) - (from->x*to->y - from->y*to->x))/(from->y - to->y);
+	// Take advantage of edge ordering and use a lerp to reduce precision loss.
+	float t = (point->y - from->y)/(to->y - from->y);
+	float intersectX = dsLerp(from->x, to->x, t);
 
 	if (intersectX < slightlyLeftX)
 		return PolygonResult_Outside;
