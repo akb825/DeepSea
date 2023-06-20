@@ -31,6 +31,7 @@ from DeepSeaSceneAnimation.Convert.AnimationTreeNodeConvert import convertAnimat
 from DeepSeaSceneAnimation.Convert.DirectAnimationConvert import convertDirectAnimation
 from DeepSeaSceneAnimation.Convert.GLTFAnimationJointTree import registerGLTFAnimationJointTreeType
 from DeepSeaSceneAnimation.Convert.GLTFAnimationTree import registerGLTFAnimationTreeType
+from DeepSeaSceneAnimation.Convert.GLTFKeyframeAnimation import registerGLTFKeyframeAnimationType
 from DeepSeaSceneAnimation.Convert.KeyframeAnimationConvert import convertKeyframeAnimation
 from DeepSeaSceneAnimation.Convert.NodeMapCacheConvert import convertNodeMapCache
 from DeepSeaSceneAnimation.Convert.SkinningDataConvert import convertSkinningData
@@ -72,8 +73,9 @@ def createSceneResourcesConvertContext(cuttlefish='cuttlefish', vfc='vfc', multi
 	convertContext.addNodeType('AnimationNode', convertAnimationNode)
 	convertContext.addNodeType('AnimationTransformNode', convertAnimationTransformNode)
 	convertContext.addNodeType('AnimationTreeNode', convertAnimationTreeNode)
-	registerGLTFAnimationTreeType(convertContext)
 	registerGLTFAnimationJointTreeType(convertContext)
+	registerGLTFAnimationTreeType(convertContext)
+	registerGLTFKeyframeAnimationType(convertContext)
 
 	# Lighting scene types.
 	convertContext.addCustomResourceType('LightSet', convertLightSet)
