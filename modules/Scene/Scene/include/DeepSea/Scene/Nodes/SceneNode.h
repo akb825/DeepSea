@@ -216,9 +216,10 @@ DS_SCENE_EXPORT bool dsSceneNode_reparentChildNode(dsSceneNode* node, dsSceneNod
  *
  * @remark errno will be set on failure.
  * @param baseNode The base node. This must only be instantiated once (i.e. have a single
- *     dsSceneTreeNode) to find any unique instances.
+ *     dsSceneTreeNode) to find any unique instances. This may be NULL if descendent node is itself
+ *     unique.
  * @param descendentNode The descendent node to find the unique tree node for.
- * @return The unique tree node or NULL if not found.
+ * @return The unique tree node for descendentNode or NULL if not found.
  */
 DS_SCENE_EXPORT dsSceneTreeNode* dsSceneNode_findUniqueTreeNode(const dsSceneNode* baseNode,
 	const dsSceneNode* descendentNode);

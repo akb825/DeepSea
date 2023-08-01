@@ -1,0 +1,301 @@
+[
+	{
+		"type": "SceneNode",
+		"nodeType": "ModelNode",
+		"name": "groundModelBase",
+		"modelGeometry":
+		[
+			{
+				"path": "@srcDir@/Assets/Ground.gltf",
+				"vertexFormat":
+				[
+					[
+						{
+							"attrib": "Position",
+							"format": "X32Y32Z32",
+							"decoration": "Float"
+						},
+						{
+							"attrib": "Normal",
+							"format": "W2Z10Y10X10",
+							"decoration": "UNorm"
+						},
+						{
+							"attrib": "Tangent",
+							"format": "W2Z10Y10X10",
+							"decoration": "UNorm"
+						},
+						{
+							"attrib": "TexCoord0",
+							"format": "X16Y16",
+							"decoration": "Float"
+						}
+					]
+				],
+				"indexSize": 2,
+				"transforms":
+				[
+					{
+						"attrib": "Normal",
+						"transform": "SNormToUNorm"
+					},
+					{
+						"attrib": "Tangent",
+						"transform": "SNormToUNorm"
+					}
+				],
+				"drawInfos":
+				[
+					{
+						"name": "Ground",
+						"modelLists": []
+					}
+				]
+			}
+		]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "ModelNode",
+		"name": "torchModelBase",
+		"modelGeometry":
+		[
+			{
+				"path": "@srcDir@/Assets/Torch.gltf",
+				"vertexFormat":
+				[
+					[
+						{
+							"attrib": "Position",
+							"format": "X32Y32Z32",
+							"decoration": "Float"
+						}
+					],
+					[
+						{
+							"attrib": "Normal",
+							"format": "W2Z10Y10X10",
+							"decoration": "UNorm"
+						},
+						{
+							"attrib": "TexCoord0",
+							"format": "X16Y16",
+							"decoration": "Float"
+						}
+					]
+				],
+				"indexSize": 2,
+				"transforms":
+				[
+					{
+						"attrib": "Normal",
+						"transform": "SNormToUNorm"
+					}
+				],
+				"drawInfos":
+				[
+					{
+						"name": "Shaft",
+						"modelLists": []
+					},
+					{
+						"name": "Pitch",
+						"modelLists": []
+					}
+				]
+			}
+		]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "ModelNode",
+		"name": "characterModelBase",
+		"modelGeometry":
+		[
+			{
+				"path": "@srcDir@/Assets/Character.gltf",
+				"vertexFormat":
+				[
+					[
+						{
+							"attrib": "Position",
+							"format": "X32Y32Z32",
+							"decoration": "Float"
+						},
+						{
+							"attrib": "BlendIndices",
+							"format": "X8Y8Z8W8",
+							"decoration": "UInt"
+						},
+						{
+							"attrib": "BlendWeights",
+							"format": "X16Y16Z16W16",
+							"decoration": "Float"
+						}
+					],
+					[
+						{
+							"attrib": "Normal",
+							"format": "W2Z10Y10X10",
+							"decoration": "UNorm"
+						}
+					]
+				],
+				"indexSize": 2,
+				"transforms":
+				[
+					{
+						"attrib": "Normal",
+						"transform": "SNormToUNorm"
+					}
+				],
+				"drawInfos":
+				[
+					{
+						"name": "Body",
+						"modelLists": []
+					}
+				]
+			}
+		]
+	},
+	{
+		"type": "AnimationJointTree",
+		"name": "characterAnimationTree",
+		"file": "@srcDir@/Assets/Character.gltf",
+		"nodes": ["Body"]
+	},
+	{
+		"type": "KeyframeAnimation",
+		"name": "idleAnimation",
+		"file": "@srcDir@/Assets/Character.gltf",
+		"keyframes": ["Idle"]
+	},
+	{
+		"type": "KeyframeAnimation",
+		"name": "walkAnimation",
+		"file": "@srcDir@/Assets/Character.gltf",
+		"keyframes": ["Walk"]
+	},
+	{
+		"type": "KeyframeAnimation",
+		"name": "runAnimation",
+		"file": "@srcDir@/Assets/Character.gltf",
+		"keyframes": ["Run"]
+	},
+	{
+		"type": "DirectAnimation",
+		"name": "holdTorchAnimation",
+		"channels":
+		[
+			{
+				"node": "Right Arm",
+				"component": "Rotation",
+				"value": [-88.0, 0.0, 0.0]
+			},
+			{
+				"node": "Right Forearm",
+				"component": "Rotation",
+				"value": [0.0, 0.0, 95.0]
+			}
+		]
+	},
+	{
+		"type": "Texture",
+		"name": "grassColor",
+		"path": "@srcDir@/Assets/GrassColor.png",
+		"textureInfo":
+		{
+			"format": "@rgbFormat@",
+			"decoration": "SRGB",
+			"mipLevels": 1000
+		}
+	},
+	{
+		"type": "Texture",
+		"name": "grassNormal",
+		"path": "@srcDir@/Assets/GrassBump.png",
+		"textureInfo":
+		{
+			"format": "@normalFormat@",
+			"decoration": "UNorm",
+			"normalmap": 10.0,
+			"normalWrap": "wrap",
+			"mipLevels": 1000
+		}
+	},
+	{
+		"type": "Texture",
+		"name": "grassSpecular",
+		"path": "@srcDir@/Assets/GrassSpecular.png",
+		"textureInfo":
+		{
+			"format": "@rgbFormat@",
+			"decoration": "SRGB",
+			"mipLevels": 1000
+		}
+	},
+	{
+		"type": "Texture",
+		"name": "woodGrain",
+		"path": "@srcDir@/Assets/WoodGrain.png",
+		"textureInfo":
+		{
+			"format": "@rgbFormat@",
+			"decoration": "SRGB",
+			"mipLevels": 1000
+		}
+	},
+	{
+		"type": "LightSet",
+		"name": "lightSet",
+		"lights":
+		[
+			{
+				"name": "sun",
+				"color": [1.0, 1.0, 0.8],
+				"intensity": 1.0,
+				"type": "Directional",
+				"direction": [0.25, 0.5, -2.0]
+			}
+		],
+		"ambientColor": [0.8, 0.8, 1.0],
+		"ambientIntensity": 0.3,
+		"mainLight": "sun",
+		"srgb": true
+	},
+	{
+		"type": "ShaderVariableGroupDesc",
+		"name": "shadowTransformDesc",
+		"elements":
+		[
+			{
+				"name": "matrix",
+				"type": "Mat4"
+			},
+			{
+				"name": "fadeDistances",
+				"type": "Vec2"
+			}
+		]
+	},
+	{
+		"type": "ShadowManager",
+		"name": "shadowManager",
+		"lightSet": "lightSet",
+		"shadows":
+		[
+			{
+				"name": "main",
+				"lightType": "Directional",
+				"light": "sun",
+				"transformGroupDesc": "shadowTransformDesc",
+				"transformGroupName": "ShadowTransform"
+			}
+		]
+	},
+	{
+		"type": "AnimationNodeMapCache",
+		"name": "nodeMapCache"
+	}
+]

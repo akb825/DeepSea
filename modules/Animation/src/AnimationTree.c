@@ -459,6 +459,8 @@ dsAnimationTree* dsAnimationTree_createJoints(dsAllocator* allocator,
 			rootNodes[nextRootNodeIndex++] = i;
 		}
 
+		toNodeLocalSpace[i] = node->toNodeLocalSpace;
+
 		dsAnimationJointTransform* jointTransform = jointTransforms + i;
 		dsMatrix44_identity(jointTransform->transform);
 
@@ -607,6 +609,8 @@ dsAnimationTree* dsAnimationTree_clone(dsAllocator* allocator, const dsAnimation
 		DS_ALIGNED_SIZE(sizeof(uint32_t)*tree->rootNodeCount) +
 		DS_ALIGNED_SIZE(sizeof(NamedHashNode))*tree->nodeCount +
 		dsHashTable_fullAllocSize(tableSize);
+	for (uint32_t i = 0; i < tree->nodeCount; ++i)
+		fullSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*tree->nodes[i].childCount);
 	if (tree->jointTransforms)
 	{
 		fullSize += DS_ALIGNED_SIZE(sizeof(dsMatrix44f)*tree->nodeCount) +

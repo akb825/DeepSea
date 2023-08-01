@@ -43,7 +43,9 @@
 #pragma warning(pop)
 #endif
 
+// 128 KB max stack usage through alloca.
 #define DS_MAX_STACK_KEYFRAMES_AND_CHANNELS 1024
+#define DS_MAX_STACK_VALUES 6144
 
 dsKeyframeAnimation* dsKeyframeAnimation_loadImpl(dsAllocator* allocator, dsAllocator* scratchAllocator,
 	const void* data, size_t size, const char* name)
@@ -80,6 +82,7 @@ dsKeyframeAnimation* dsKeyframeAnimation_loadImpl(dsAllocator* allocator, dsAllo
 	}
 
 	uint32_t totalChannelCount = 0;
+	uint32_t totalValueCount = 0;
 	for (auto curFbKeyframes : *fbKeyframes)
 	{
 		if (!curFbKeyframes)
@@ -164,6 +167,8 @@ dsKeyframeAnimation* dsKeyframeAnimation_loadImpl(dsAllocator* allocator, dsAllo
 				}
 				return nullptr;
 			}
+
+			totalValueCount += expectedValueCount;
 		}
 	}
 
@@ -206,7 +211,29 @@ dsKeyframeAnimation* dsKeyframeAnimation_loadImpl(dsAllocator* allocator, dsAllo
 		}
 	}
 
+	bool heapValues;
+	dsVector4f* values;
+	if (totalValueCount <= DS_MAX_STACK_VALUES)
+	{
+		heapValues = false;
+		values = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsVector4f, totalValueCount);
+	}
+	else
+	{
+		heapValues = scratchAllocator->freeFunc != nullptr;
+		values = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsVector4f, totalValueCount);
+		if (!values)
+		{
+			if (heapKeyframes)
+				DS_VERIFY(dsAllocator_free(scratchAllocator, keyframes));
+			if (heapChannels)
+				DS_VERIFY(dsAllocator_free(scratchAllocator, channels));
+			return nullptr;
+		}
+	}
+
 	dsKeyframeAnimationChannel* nextChannels = channels;
+	uint32_t valueOffset = 0;
 	for (uint32_t i = 0; i < keyframesCount; ++i)
 	{
 		auto curFbKeyframes = (*fbKeyframes)[i];
@@ -229,8 +256,11 @@ dsKeyframeAnimation* dsKeyframeAnimation_loadImpl(dsAllocator* allocator, dsAllo
 
 			auto fbValues = fbChannel->values();
 			channel->valueCount = fbValues->size();
-			// Expect this will only be copied and doesn't need to keep alignment.
-			channel->values = reinterpret_cast<const dsVector4f*>(fbValues->data());
+			// memcpy to avoid unaligned access when using SIMD.
+			for (uint32_t k = 0; k < channel->valueCount; ++k)
+				memcpy(values + valueOffset + k, (*fbValues)[k], sizeof(dsVector4f));
+			channel->values = values + valueOffset;
+			valueOffset += channel->valueCount;
 		}
 
 		curKeyframes->channelCount = channelCount;
@@ -238,6 +268,7 @@ dsKeyframeAnimation* dsKeyframeAnimation_loadImpl(dsAllocator* allocator, dsAllo
 		nextChannels += channelCount;
 	}
 	DS_ASSERT(nextChannels == channels + totalChannelCount);
+	DS_ASSERT(valueOffset == totalValueCount);
 
 	dsKeyframeAnimation* animation =
 		dsKeyframeAnimation_create(allocator, keyframes, keyframesCount);
@@ -245,5 +276,7 @@ dsKeyframeAnimation* dsKeyframeAnimation_loadImpl(dsAllocator* allocator, dsAllo
 		DS_VERIFY(dsAllocator_free(scratchAllocator, keyframes));
 	if (heapChannels)
 		DS_VERIFY(dsAllocator_free(scratchAllocator, channels));
+	if (heapValues)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, values));
 	return animation;
 }

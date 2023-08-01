@@ -43,6 +43,28 @@ DS_SCENEANIMATION_EXPORT extern const char* const dsSceneSkinningData_typeName;
 DS_SCENEANIMATION_EXPORT bool dsSceneSkinningData_useBuffers(dsResourceManager* resourceManager);
 
 /**
+ * @brief Creates the shader variable group description used for texture skinning info.
+ * @remark This should be shared among all dsSceneSkinningData instances.
+ * @remark errno will be set on failure.
+ * @param resourceManager The resource manager.
+ * @param allocator The allocator to create the shader variable group with. If NULL, the allocator
+ *     from resourceManager.
+ * @return The shader variable group description or NULL if an error occurred.
+ */
+DS_SCENEANIMATION_EXPORT dsShaderVariableGroupDesc*
+	dsSceneSkinningData_createTextureInfoShaderVariableGroupDesc(dsResourceManager* resourceManager,
+		dsAllocator* allocator);
+
+/**
+ * @brief Checks whether or not a shader variable group is compatible with texture info for
+ *     dsSceneSkinningData.
+ * @param textureInfoDesc The shader variable group for the transform.
+ * @return Whether or not transformDesc is compatible.
+ */
+DS_SCENEANIMATION_EXPORT bool dsSceneSkinningData_isTextureInfoShaderVariableGroupCompatible(
+	const dsShaderVariableGroupDesc* textureInfoDesc);
+
+/**
  * @brief Creates a scene skinning data to use with a dsSceneItemList.
  * @param allocator The allocator to create the skinning data with. This must support freeing
  *     memory.

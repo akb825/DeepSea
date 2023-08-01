@@ -36,7 +36,6 @@
 #include <DeepSea/RenderBootstrap/RenderBootstrap.h>
 
 #include <DeepSea/Scene/ItemLists/InstanceTransformData.h>
-#include <DeepSea/Scene/ItemLists/SceneModelList.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneTransformNode.h>
 #include <DeepSea/Scene/Scene.h>
@@ -209,7 +208,8 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 			return false;
 		case dsAppEventType_TouchFingerDown:
 			++testParticles->fingerCount;
-			testParticles->maxFingers = dsMax(testParticles->fingerCount, testParticles->maxFingers);
+			testParticles->maxFingers =
+				dsMax(testParticles->fingerCount, testParticles->maxFingers);
 			return true;
 		case dsAppEventType_TouchFingerUp:
 			if (testParticles->fingerCount == 0)
@@ -327,7 +327,8 @@ static bool setup(TestParticles* testParticles, dsApplication* application, dsAl
 		renderer->mainCommandBuffer);
 	if (!scratchData)
 	{
-		DS_LOG_ERROR_F("TestParticles", "Couldn't create load scratch data: %s", dsErrorString(errno));
+		DS_LOG_ERROR_F("TestParticles", "Couldn't create load scratch data: %s",
+			dsErrorString(errno));
 		dsSceneLoadContext_destroy(loadContext);
 		return false;
 	}
@@ -335,7 +336,8 @@ static bool setup(TestParticles* testParticles, dsApplication* application, dsAl
 	testParticles->builtinResources = dsSceneResources_create(allocator, 4);
 	if (!testParticles->builtinResources)
 	{
-		DS_LOG_ERROR_F("TestParticles", "Couldn't create scene resources: %s", dsErrorString(errno));
+		DS_LOG_ERROR_F("TestParticles", "Couldn't create scene resources: %s",
+			dsErrorString(errno));
 		dsSceneLoadContext_destroy(loadContext);
 		dsSceneLoadScratchData_destroy(scratchData);
 		return false;
@@ -434,52 +436,8 @@ static bool setup(TestParticles* testParticles, dsApplication* application, dsAl
 	DS_VERIFY(dsSceneLoadScratchData_pushSceneResources(
 		scratchData, &testParticles->sceneGraph, 1));
 
-	dsSceneResourceType curType;
-	dsSceneNode* curNode;
-	if (!dsSceneResources_findResource(&curType, (void**)&curNode, testParticles->sceneGraph,
-			"rootNode") ||
-		curType != dsSceneResourceType_SceneNode ||
-		!dsSceneNode_isOfType(curNode, dsSceneTransformNode_type()))
-	{
-		DS_LOG_ERROR("TestParticles", "Couldn't find rootNode.");
-		dsSceneLoadContext_destroy(loadContext);
-		dsSceneLoadScratchData_destroy(scratchData);
-		return false;
-	}
-	testParticles->rootNode = (dsSceneTransformNode*)dsSceneNode_addRef(curNode);
-
-	const char* nodeNames[] = {"rotatingTorch1", "rotatingTorch2"};
-	_Static_assert(DS_ARRAY_SIZE(nodeNames) == DS_ARRAY_SIZE(testParticles->rotatingTorches),
-		"Node array sizes don't match.");
-	for (unsigned int i = 0; i < DS_ARRAY_SIZE(nodeNames); ++i)
-	{
-		if (!dsSceneResources_findResource(&curType, (void**)&curNode, testParticles->sceneGraph,
-				nodeNames[i]) ||
-			curType != dsSceneResourceType_SceneNode ||
-			!dsSceneNode_isOfType(curNode, dsSceneTransformNode_type()))
-		{
-			DS_LOG_ERROR_F("TestParticles", "Couldn't find %s.", nodeNames[i]);
-			dsSceneLoadContext_destroy(loadContext);
-			dsSceneLoadScratchData_destroy(scratchData);
-			return false;
-		}
-		testParticles->rotatingTorches[i] = (dsSceneTransformNode*)dsSceneNode_addRef(curNode);
-	}
-
-	if (!dsSceneResources_findResource(&curType, (void**)&curNode, testParticles->sceneGraph,
-			"staticTorch") ||
-		curType != dsSceneResourceType_SceneNode ||
-		!dsSceneNode_isOfType(curNode, dsSceneTransformNode_type()))
-	{
-		DS_LOG_ERROR("TestParticles", "Couldn't find statictorch.");
-		dsSceneLoadContext_destroy(loadContext);
-		dsSceneLoadScratchData_destroy(scratchData);
-		return false;
-	}
-	testParticles->staticTorch = dsSceneNode_addRef(curNode);
-
-	testParticles->scene = dsScene_loadResource(allocator, NULL, loadContext, scratchData, NULL, NULL,
-		dsFileResourceType_Embedded, "Scene.dss");
+	testParticles->scene = dsScene_loadResource(allocator, NULL, loadContext, scratchData, NULL,
+		NULL, dsFileResourceType_Embedded, "Scene.dss");
 	if (!testParticles->scene)
 	{
 		DS_LOG_ERROR_F("TestParticles", "Couldn't load scene: %s", dsErrorString(errno));
@@ -508,6 +466,44 @@ static bool setup(TestParticles* testParticles, dsApplication* application, dsAl
 
 	dsSceneLoadContext_destroy(loadContext);
 	dsSceneLoadScratchData_destroy(scratchData);
+
+	dsSceneResourceType curType;
+	dsSceneNode* curNode;
+	if (!dsSceneResources_findResource(&curType, (void**)&curNode, testParticles->sceneGraph,
+			"rootNode") ||
+		curType != dsSceneResourceType_SceneNode ||
+		!dsSceneNode_isOfType(curNode, dsSceneTransformNode_type()))
+	{
+		DS_LOG_ERROR("TestParticles", "Couldn't find rootNode.");
+		return false;
+	}
+	testParticles->rootNode = (dsSceneTransformNode*)dsSceneNode_addRef(curNode);
+
+	const char* nodeNames[] = {"rotatingTorch1", "rotatingTorch2"};
+	_Static_assert(DS_ARRAY_SIZE(nodeNames) == DS_ARRAY_SIZE(testParticles->rotatingTorches),
+		"Node array sizes don't match.");
+	for (unsigned int i = 0; i < DS_ARRAY_SIZE(nodeNames); ++i)
+	{
+		if (!dsSceneResources_findResource(&curType, (void**)&curNode, testParticles->sceneGraph,
+				nodeNames[i]) ||
+			curType != dsSceneResourceType_SceneNode ||
+			!dsSceneNode_isOfType(curNode, dsSceneTransformNode_type()))
+		{
+			DS_LOG_ERROR_F("TestParticles", "Couldn't find %s.", nodeNames[i]);
+			return false;
+		}
+		testParticles->rotatingTorches[i] = (dsSceneTransformNode*)dsSceneNode_addRef(curNode);
+	}
+
+	if (!dsSceneResources_findResource(&curType, (void**)&curNode, testParticles->sceneGraph,
+			"staticTorch") ||
+		curType != dsSceneResourceType_SceneNode ||
+		!dsSceneNode_isOfType(curNode, dsSceneTransformNode_type()))
+	{
+		DS_LOG_ERROR("TestParticles", "Couldn't find statictorch.");
+		return false;
+	}
+	testParticles->staticTorch = dsSceneNode_addRef(curNode);
 
 	dsView_setPerspectiveProjection(testParticles->view, dsDegreesToRadiansf(45.0f), 0.1f, 100.0f);
 

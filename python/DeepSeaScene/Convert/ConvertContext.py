@@ -165,16 +165,21 @@ class ConvertContext:
 		ObjectData.AddData(builder, dataOffset)
 		return ObjectData.End(builder)
 
-	def addCustomResourceType(self, typeName, convertFunc):
+	def addCustomResourceType(self, typeName, convertFunc, flatbufferTypeName = None):
 		"""
 		Adds a custom resource type with the name and the convert function. The function should
 		take the ConvertContext and dict for the data as parameters and return the flatbuffer bytes.
+
+		flatbufferTypeName may be specified if the type name written to flatbuffers is different
+		from the Python type name for looking up the convert function.
 
 		An exception will be raised if the type is already registered.
 		"""
 		if typeName in self.customResourceTypeMap:
 			raise Exception('Custom resource type "' + typeName + '" is already registered.')
-		self.customResourceTypeMap[typeName] = convertFunc
+		if not flatbufferTypeName:
+			flatbufferTypeName = typeName
+		self.customResourceTypeMap[typeName] = convertFunc, flatbufferTypeName
 
 	def convertCustomResource(self, builder, typeName, data):
 		"""
@@ -184,9 +189,10 @@ class ConvertContext:
 		if typeName not in self.customResourceTypeMap:
 			raise Exception('Custom resource type "' + typeName + '" hasn\'t been registered.')
 
-		convertedData = self.customResourceTypeMap[typeName](self, data)
+		convertFunc, flatbufferTypeName = self.customResourceTypeMap[typeName]
+		convertedData = convertFunc(self, data)
 
-		typeNameOffset = builder.CreateString(typeName)
+		typeNameOffset = builder.CreateString(flatbufferTypeName)
 		dataOffset = builder.CreateByteVector(convertedData)
 
 		ObjectData.Start(builder)

@@ -135,13 +135,13 @@ Model nodes have the type string "ModelNode" and contains the following data mem
 			* `Bounds`: normalizes the values based on the original value's bounds
 			* `UNormToSNorm`: converts `UNorm` values to `SNorm` values.
 			* `SNormToUNorm`: converts `SNorm` values to `UNorm` values.
-		* `drawInfos`: array of definitions for drawing components of the geometry. Each element of the array has the following members:
-			* `name`: the name of the model component. Note that only model components referenced in the drawInfo array will be included in the final model.
-			* `distanceRange`: array of two floats for the minimum and maximum distance to draw at. Defaults to `[0, 3.402823466e38]`.
-			* `modelLists`: array of objects describing the lists to draw the model with the shader and material to draw with. This may be an explicitly empty list when used only for cloning. Each element of the array has the following members:
-				* `shader`: te name of the shader to draw with. This may be set to `null` if the model is only used for cloning.
-				* `material`: the name of the material to draw with. This may be set to `null` if the model is only used for cloning.
-				* `list`: the name of the item list to draw the model with. This may be set to `null` if the model is only used for cloning.
+	* `drawInfos`: array of definitions for drawing components of the geometry. Each element of the array has the following members:
+		* `name`: the name of the model component. Note that only model components referenced in the drawInfo array will be included in the final model.
+		* `distanceRange`: array of two floats for the minimum and maximum distance to draw at. Defaults to `[0, 3.402823466e38]`.
+		* `modelLists`: array of objects describing the lists to draw the model with the shader and material to draw with. This may be an explicitly empty list when used only for cloning. Each element of the array has the following members:
+			* `shader`: te name of the shader to draw with. This may be set to `null` if the model is only used for cloning.
+			* `material`: the name of the material to draw with. This may be set to `null` if the model is only used for cloning.
+			* `list`: the name of the item list to draw the model with. This may be set to `null` if the model is only used for cloning.
 * `models`: array of models to draw with manually provided geometry. (i.e. not converted from the `modelGeometry` array) Each element of the array has the following members:
 	* `name`: optional name for the model for use with material remapping.
 	* `geometry`: the name of the geometry to draw.

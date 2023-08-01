@@ -146,6 +146,8 @@ static uint64_t dsSceneAnimationList_addNode(dsSceneItemList* itemList, dsSceneN
 			--animationList->treeEntryCount;
 			return DS_NO_SCENE_NODE;
 		}
+		*thisItemData = entry->instance;
+
 		entry->nodeID = animationList->nextTreeNodeID++;
 		return entry->nodeID;
 	}
@@ -270,7 +272,7 @@ static void dsSceneAnimationList_preTransformUpdate(dsSceneItemList* itemList, c
 		entry->instance->dirty = true;
 	}
 
-	for (uint32_t i = 0; i < animationList->animationEntryCount; ++i)
+	for (uint32_t i = 0; i < animationList->transformEntryCount; ++i)
 	{
 		TransformEntry* entry = animationList->transformEntries + i;
 		dsSceneAnimationTreeInstance_updateUnlocked(entry->instance);
@@ -293,6 +295,7 @@ static void dsSceneAnimationList_destroy(dsSceneItemList* itemList)
 	for (uint32_t i = 0; i < animationList->treeEntryCount; ++i)
 		dsSceneAnimationTreeInstance_destroy(animationList->treeEntries[i].instance);
 	DS_VERIFY(dsAllocator_free(itemList->allocator, animationList->animationEntries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, animationList->treeEntries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, animationList->transformEntries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }

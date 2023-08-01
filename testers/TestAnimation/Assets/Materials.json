@@ -1,0 +1,281 @@
+[
+	{
+		"type": "MaterialDesc",
+		"name": "grassMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"binding": "Material"
+			},
+			{
+				"name": "normalTexture",
+				"type": "Texture",
+				"binding": "Material"
+			},
+			{
+				"name": "specularTexture",
+				"type": "Texture",
+				"binding": "Material"
+			},
+			{
+				"name": "shininess",
+				"type": "Float",
+				"binding": "Material"
+			},
+			{
+				"name": "InstanceTransformData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceTransformDesc"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			},
+			{
+				"name": "InstanceForwardLightData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceForwardLightDesc"
+			},
+			{
+				"name": "ShadowTransform",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "shadowTransformDesc"
+			},
+			{
+				"name": "shadowMap",
+				"type": "Texture",
+				"binding": "Global"
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "grassMaterial",
+		"description": "grassMaterialDesc",
+		"data":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"data": "grassColor"
+			},
+			{
+				"name": "normalTexture",
+				"type": "Texture",
+				"data": "grassNormal"
+			},
+			{
+				"name": "specularTexture",
+				"type": "Texture",
+				"data": "grassSpecular"
+			},
+			{
+				"name": "shininess",
+				"type": "Float",
+				"data": 20
+			}
+		]
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "woodMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"binding": "Material"
+			},
+			{
+				"name": "color",
+				"type": "Vec4",
+				"binding": "Material"
+			},
+			{
+				"name": "InstanceTransformData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceTransformDesc"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			},
+			{
+				"name": "InstanceForwardLightData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceForwardLightDesc"
+			},
+			{
+				"name": "ShadowTransform",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "shadowTransformDesc"
+			},
+			{
+				"name": "shadowMap",
+				"type": "Texture",
+				"binding": "Global"
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "woodMaterial",
+		"description": "woodMaterialDesc",
+		"data":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"data": "woodGrain"
+			},
+			{
+				"name": "color",
+				"type": "Vec4",
+				"data": [0.725, 0.511, 0.224, 1.0],
+				"srgb": true
+			}
+		]
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "pitchMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "color",
+				"type": "Vec4",
+				"binding": "Material"
+			},
+			{
+				"name": "InstanceTransformData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceTransformDesc"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			},
+			{
+				"name": "InstanceForwardLightData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceForwardLightDesc"
+			},
+			{
+				"name": "ShadowTransform",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "shadowTransformDesc"
+			},
+			{
+				"name": "shadowMap",
+				"type": "Texture",
+				"binding": "Global"
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "pitchMaterial",
+		"description": "pitchMaterialDesc",
+		"data":
+		[
+			{
+				"name": "color",
+				"type": "Vec4",
+				"data": [0.247, 0.174, 0.076, 1.0],
+				"srgb": true
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "characterMaterial",
+		"description": "characterMaterialDesc"
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "shadowCastMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "InstanceTransformData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceTransformDesc"
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "shadowCastMaterial",
+		"description": "shadowCastMaterialDesc"
+	},
+	{
+		"type": "Material",
+		"name": "characterShadowCastMaterial",
+		"description": "characterShadowCastMaterialDesc"
+	},
+	{
+		"type": "ShaderModule",
+		"name": "shaderModule",
+		"modules": @shaderModule@
+	},
+	{
+		"type": "Shader",
+		"name": "grassShader",
+		"module": "shaderModule",
+		"pipeline": "Grass",
+		"materialDesc": "grassMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "woodShader",
+		"module": "shaderModule",
+		"pipeline": "Wood",
+		"materialDesc": "woodMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "pitchShader",
+		"module": "shaderModule",
+		"pipeline": "Pitch",
+		"materialDesc": "pitchMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "characterShader",
+		"module": "shaderModule",
+		"pipeline": "Character",
+		"materialDesc": "characterMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "shadowCastShader",
+		"module": "shaderModule",
+		"pipeline": "ShadowCast",
+		"materialDesc": "shadowCastMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "characterShadowCastShader",
+		"module": "shaderModule",
+		"pipeline": "CharacterShadowCast",
+		"materialDesc": "characterShadowCastMaterialDesc"
+	}
+]

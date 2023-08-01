@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -268,14 +268,12 @@ static bool needToBindTexture(dsMTLBoundTextureSet* boundTextures, dsAllocator* 
 		memset(boundTextures->textures + prevCount, 0, addCount*sizeof(dsMTLBoundTexture));
 	}
 
-	if (boundTextures->textures[index].texture == texture &&
-		boundTextures->textures[index].sampler == sampler)
-	{
+	dsMTLBoundTexture* boundTexture = boundTextures->textures + index;
+	if (boundTexture->texture == texture && boundTexture->sampler == sampler)
 		return false;
-	}
 
-	boundTextures->textures[index].texture = texture;
-	boundTextures->textures[index].sampler = sampler;
+	boundTexture->texture = texture;
+	boundTexture->sampler = sampler;
 	return true;
 }
 
@@ -295,14 +293,12 @@ static bool needToBindBuffer(dsMTLBoundBufferSet* boundBuffers, dsAllocator* all
 		memset(boundBuffers->buffers + prevCount, 0, addCount*sizeof(dsMTLBoundBuffer));
 	}
 
-	if (boundBuffers->buffers[index].buffer == buffer &&
-		boundBuffers->buffers[index].offset == offset)
-	{
+	dsMTLBoundBuffer* boundBuffer = boundBuffers->buffers + index;
+	if (boundBuffer->buffer == buffer && boundBuffer->offset == offset)
 		return false;
-	}
 
-	boundBuffers->buffers[index].buffer = buffer;
-	boundBuffers->buffers[index].offset = offset;
+	boundBuffer->buffer = buffer;
+	boundBuffer->offset = offset;
 	return true;
 }
 
@@ -837,9 +833,17 @@ bool dsMTLHardwareCommandBuffer_bindPushConstants(dsCommandBuffer* commandBuffer
 	id<MTLRenderCommandEncoder> encoder =
 		(__bridge id<MTLRenderCommandEncoder>)mtlCommandBuffer->renderCommandEncoder;
 	if (vertex)
+	{
 		[encoder setVertexBuffer: mtlBuffer offset: offset atIndex: 0];
+		if (mtlCommandBuffer->boundBuffers[0].bufferCount > 0)
+			mtlCommandBuffer->boundBuffers[0].buffers[0].buffer = NULL;
+	}
 	if (fragment)
+	{
 		[encoder setFragmentBuffer: mtlBuffer offset: offset atIndex: 0];
+		if (mtlCommandBuffer->boundBuffers[1].bufferCount > 0)
+			mtlCommandBuffer->boundBuffers[1].buffers[0].buffer = NULL;
+	}
 	return true;
 }
 

@@ -114,9 +114,9 @@ static void applyKeyframeAnimationTransforms(WeightedTransform* transforms,
 
 		const dsKeyframeAnimationNodeMap* map = *curNodeMap;
 		DS_ASSERT(keyframeAnimation->keyframesCount == map->keyframesCount);
-		for (uint32_t j = 0; j < keyframeAnimation->keyframesCount; ++i)
+		for (uint32_t j = 0; j < keyframeAnimation->keyframesCount; ++j)
 		{
-			const dsAnimationKeyframes* keyframes = keyframeAnimation->keyframes + i;
+			const dsAnimationKeyframes* keyframes = keyframeAnimation->keyframes + j;
 			const dsAnimationKeyframesNodeMap* keyframesMap = map->keyframesMaps + j;
 			DS_ASSERT(keyframes->channelCount == keyframesMap->channelCount);
 
@@ -146,7 +146,11 @@ static void applyKeyframeAnimationTransforms(WeightedTransform* transforms,
 			for (uint32_t k = 0; k < keyframes->channelCount; ++k)
 			{
 				const dsKeyframeAnimationChannel* channel = keyframes->channels + k;
-				WeightedTransform* transform = transforms + keyframesMap->channelNodes[k];
+				uint32_t nodeIndex = keyframesMap->channelNodes[k];
+				if (nodeIndex == DS_NO_ANIMATION_NODE)
+					continue;
+
+				WeightedTransform* transform = transforms + nodeIndex;
 				dsVector4f value;
 				switch (channel->interpolation)
 				{
@@ -170,6 +174,8 @@ static void applyKeyframeAnimationTransforms(WeightedTransform* transforms,
 					{
 						uint32_t startValueIndex = startKeyframe*3;
 						uint32_t endValueIndex = endKeyframe*3;
+						DS_ASSERT(startValueIndex + 2 < channel->valueCount);
+						DS_ASSERT(endValueIndex + 2 < channel->valueCount);
 						evaluateCubicSpline(&value, channel->values + startValueIndex + 1,
 							channel->values + startValueIndex + 2,
 							channel->values + endValueIndex + 1, channel->values + endValueIndex,
@@ -230,10 +236,13 @@ static void applyDirectAnimationTransforms(WeightedTransform* transforms,
 
 		const dsDirectAnimationNodeMap* map = *curNodeMap;
 		DS_ASSERT(directAnimation->channelCount == map->channelCount);
-		for (uint32_t j = 0; j < directAnimation->channelCount; ++i)
+		for (uint32_t j = 0; j < directAnimation->channelCount; ++j)
 		{
 			const dsDirectAnimationChannel* channel = directAnimation->channels + j;
-			WeightedTransform* transform = transforms + map->channelNodes[j];
+			uint32_t nodeIndex = map->channelNodes[j];
+			if (nodeIndex == DS_NO_ANIMATION_NODE)
+				continue;
+			WeightedTransform* transform = transforms + nodeIndex;
 
 			dsVector4f weightedValue;
 			dsVector4f_scale(&weightedValue, &channel->value, entry->weight);
@@ -296,21 +305,21 @@ static int animationTreeNodeMapCompare(const void* left, const void* right, void
 {
 	uint32_t treeID = *(const uint32_t*)left;
 	const dsAnimationTreeNodeMap* nodeMap = (const dsAnimationTreeNodeMap*)right;
-	return DS_CMP(nodeMap->tree->id, treeID);
+	return DS_CMP(treeID, nodeMap->tree->id);
 }
 
 static int directAnimationRefCompare(const void* left, const void* right, void* context)
 {
 	const dsDirectAnimation* animation = (const dsDirectAnimation*)left;
 	const dsDirectAnimationRef* ref = (const dsDirectAnimationRef*)right;
-	return DS_CMP(ref->animation, animation);
+	return DS_CMP(animation,ref->animation);
 }
 
 static int keyframeAnimationRefCompare(const void* left, const void* right, void* context)
 {
 	const dsKeyframeAnimation* animation = (const dsKeyframeAnimation*)left;
 	const dsKeyframeAnimationRef* ref = (const dsKeyframeAnimationRef*)right;
-	return DS_CMP(ref->animation, animation);
+	return DS_CMP(animation, ref->animation);
 }
 
 static void freeAnimationTreeNodeMap(dsAnimationNodeMapCache* cache, dsAnimationTreeNodeMap* map)

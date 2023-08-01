@@ -31,7 +31,7 @@ The following custom scene resource types are provided with the members that are
 		* `childIndices`: array with the child node indices.
 * `"DirectAnimation"`: values to set directly on an animation tree.
 	* `channels`: array of channels for the animation. Each member of the array has the following members:
-	* `node`: the name of the node to apply the value to.
+		* `node`: the name of the node to apply the value to.
 		* `component`: the component to apply the value to. See the `dsAnimationComponent` enum for values, removing the type prefix.
 		* `value`: the value for the channel as an array of three floats based on the component:
 			* `"Translation"`: x, y, z offset.

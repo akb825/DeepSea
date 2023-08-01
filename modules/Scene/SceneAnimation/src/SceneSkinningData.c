@@ -105,6 +105,11 @@ typedef struct dsSceneSkinningData
 	uint32_t maxInstances;
 } dsSceneSkinningData;
 
+static dsShaderVariableElement textureInfoElements[] =
+{
+	{"instanceOffsetStep", dsMaterialType_Vec2, 0}
+};
+
 static dsGfxBuffer* getBuffer(dsSceneInstanceData* instanceData, size_t requestedSize)
 {
 	dsSceneSkinningData* skinningData = (dsSceneSkinningData*)instanceData;
@@ -255,7 +260,7 @@ static bool createTextures(dsSceneInstanceData* instanceData, uint32_t textureCo
 		return true;
 
 	uint32_t startIndex = skinningData->textureCount;
-	uint32_t addCount = startIndex - textureCount;
+	uint32_t addCount = textureCount - startIndex;
 	if (!DS_RESIZEABLE_ARRAY_ADD(instanceData->allocator, skinningData->textures,
 			skinningData->textureCount, skinningData->maxTextures, addCount))
 	{
@@ -330,7 +335,7 @@ static bool populateBufferTextureCopyData(dsSceneInstanceData* instanceData,
 	if (!skinningData->fallbackTextureInfo)
 	{
 		populateTextureInfoData(instanceData, bufferData, textureInfoStride);
-		bufferOffset = textureCount*skinningData->textureSize;
+		bufferOffset = textureInfoStride*usedInstanceCount;
 		bufferData += bufferOffset;
 	}
 
@@ -407,6 +412,7 @@ static bool populateTextureData(dsSceneInstanceData* instanceData,
 		if (!bufferData)
 			return false;
 
+		skinningData->curBuffer = buffer;
 		populateTextureInfoData(instanceData, bufferData, textureInfoStride);
 		if (!dsGfxBuffer_unmap(buffer))
 			return false;
@@ -560,7 +566,7 @@ static bool dsSceneSkinningData_bindInstance(dsSceneInstanceData* instanceData, 
 	{
 		return false;
 	}
-	return dsSharedMaterialValues_setTextureID(values, skinningData->skinningTextureInfoVar,
+	return dsSharedMaterialValues_setTextureID(values, skinningData->skinningDataVar,
 		instance->texture);
 }
 
@@ -609,6 +615,28 @@ bool dsSceneSkinningData_useBuffers(dsResourceManager* resourceManager)
 	return resourceManager && (resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBuffer);
 }
 
+dsShaderVariableGroupDesc* dsSceneSkinningData_createTextureInfoShaderVariableGroupDesc(
+	dsResourceManager* resourceManager, dsAllocator* allocator)
+{
+	if (!resourceManager)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	return dsShaderVariableGroupDesc_create(resourceManager, allocator, textureInfoElements,
+		DS_ARRAY_SIZE(textureInfoElements));
+}
+
+bool dsSceneSkinningData_isTextureInfoShaderVariableGroupCompatible(
+	const dsShaderVariableGroupDesc* textureInfoDesc)
+{
+	return textureInfoDesc &&
+		dsShaderVariableGroup_areElementsEqual(textureInfoElements,
+			DS_ARRAY_SIZE(textureInfoElements),
+			textureInfoDesc->elements, textureInfoDesc->elementCount);
+}
+
 dsSceneInstanceData* dsSceneSkinningData_create(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, dsResourceManager* resourceManager)
 {
@@ -635,7 +663,10 @@ dsSceneInstanceData* dsSceneSkinningData_create(dsAllocator* allocator,
 
 	dsSceneInstanceData* instanceData = (dsSceneInstanceData*)skinningData;
 	instanceData->allocator = dsAllocator_keepPointer(allocator);
-	instanceData->valueCount = 1;
+	if (useBuffers || !shaderVariableGroupBuffers)
+		instanceData->valueCount = 1;
+	else
+		instanceData->valueCount = 2;
 	instanceData->needsCommandBuffer = !useBuffers;
 	instanceData->populateDataFunc = &dsSceneSkinningData_populateData;
 	instanceData->bindInstanceFunc = &dsSceneSkinningData_bindInstance;
@@ -700,9 +731,9 @@ dsSceneInstanceData* dsSceneSkinningData_create(dsAllocator* allocator,
 
 	if (skinningData->skinningMethod != SkinningMethod_Buffers && !shaderVariableGroupBuffers)
 	{
-		dsShaderVariableElement element = {"instanceOffsetStep", dsMaterialType_Vec2, 0};
-		skinningData->fallbackTextureInfoDesc = dsShaderVariableGroupDesc_create(
-			resourceManager, allocator, &element, 1);
+		skinningData->fallbackTextureInfoDesc =
+			dsSceneSkinningData_createTextureInfoShaderVariableGroupDesc(resourceManager,
+				allocator);
 		if (!skinningData->fallbackTextureInfoDesc)
 		{
 			dsSceneSkinningData_destroy(instanceData);

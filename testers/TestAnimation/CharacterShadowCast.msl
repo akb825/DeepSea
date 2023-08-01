@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,20 @@
  */
 
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
+#include <DeepSea/SceneAnimation/Shaders/SceneSkinning.mslh>
 #include <DeepSea/Scene/Shaders/InstanceTransform.mslh>
 
 [[vertex]] layout(location = DS_POSITION) in vec3 position;
+[[vertex]] layout(location = DS_BLEND_INDICES) in DS_BONE_INDICES_TYPE boneIndices;
+[[vertex]] layout(location = DS_BLEND_WEIGHTS) in vec4 boneWeights;
+
 [[fragment]] out vec4 outputColor;
 
 [[vertex]]
 void vertexShader()
 {
-	vec4 position4 = vec4(position, 1.0);
+	mat4 skinTransform = dsComputeSkinTransform(boneIndices, boneWeights);
+	vec4 position4 = skinTransform*vec4(position, 1.0);
 	gl_Position = DS_ADJUST_CLIP(INSTANCE(dsInstanceTransform).worldViewProj*position4);
 }
 
@@ -33,7 +38,7 @@ void fragmentShader()
 	outputColor = vec4(0, 0, 0, 1);
 }
 
-pipeline ShadowCast
+pipeline CharacterShadowCast
 {
 	vertex = vertexShader;
 	fragment = fragmentShader;
@@ -43,4 +48,7 @@ pipeline ShadowCast
 	depth_bias_enable = true;
 	cull_mode = back;
 	attachment0_color_write_mask = 0;
+	depth_bias_constant_factor = -1.0;
+	depth_bias_slope_factor = -4.0;
+	depth_bias_clamp = 0.0;
 }

@@ -51,6 +51,7 @@
 
 #include <string.h>
 
+#define MAX_CASCADE_COUNT 4
 #define FRAME_DELAY 3
 #define INVALID_INDEX ((uint32_t)-1)
 
@@ -73,7 +74,7 @@ typedef struct DirectionalLightData
 
 typedef struct CascadedDirectionalLightData
 {
-	dsMatrix44f matrices[4];
+	dsMatrix44f matrices[MAX_CASCADE_COUNT];
 	dsVector4f splitDistances;
 	dsVector2f shadowDistance;
 	dsVector2f padding0;
@@ -223,6 +224,124 @@ static float getLargeBoxSize(float farPlane)
 	// too large and reduce precision.
 	const float ratio = 0.1f;
 	return farPlane*ratio;
+}
+
+static bool bindDummyTransforms(dsSceneLightShadows* shadows, const dsView* view)
+{
+	if (!shadows->fallback && !getBufferData(shadows))
+		return false;
+
+	dsMatrix44f identity;
+	dsMatrix44_identity(identity);
+	shadows->committedMatrices = 0;
+	memset(shadows->projectionSet, 0, sizeof(shadows->projectionSet));
+	dsVector2f dummyDist2 = {{0.0f, 1.0f}};
+	dsVector4f dummyDist4 = {{0.0f, 1.0f, 3.0f, 4.0f}};
+	dsVector3f dummyPos = {{0.0f, 0.0f, 0.0f}};
+	switch (shadows->lightType)
+	{
+		case dsSceneLightType_Directional:
+		{
+			shadows->totalMatrices = 1;
+			if (shadows->cascaded)
+			{
+				if (shadows->fallback)
+				{
+					for (uint32_t i = 0; i < MAX_CASCADE_COUNT; ++i)
+					{
+						DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 0,
+							&identity, dsMaterialType_Mat4, i, 1));
+					}
+					DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 1,
+						&dummyDist4, dsMaterialType_Vec4, 0, 1));
+					DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 2,
+						&dummyDist2, dsMaterialType_Vec2, 0, 1));
+				}
+				else
+				{
+					CascadedDirectionalLightData* data =
+						(CascadedDirectionalLightData*)shadows->curBufferData;
+					for (uint32_t i = 0; i < MAX_CASCADE_COUNT; ++i)
+						data->matrices[i] = identity;
+					data->splitDistances = dummyDist4;
+					data->shadowDistance = dummyDist2;
+				}
+			}
+			else
+			{
+				if (shadows->fallback)
+				{
+					DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 0,
+						&identity, dsMaterialType_Mat4, 0, 1));
+					DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 1,
+						&dummyDist2, dsMaterialType_Vec2, 0, 1));
+				}
+				else
+				{
+					DirectionalLightData* data = (DirectionalLightData*)shadows->curBufferData;
+					data->matrix = identity;
+					data->shadowDistance = dummyDist2;
+				}
+			}
+			break;
+		}
+		case dsSceneLightType_Point:
+		{
+			if (shadows->fallback)
+			{
+				for (uint32_t i = 0; i < 6; ++i)
+				{
+					DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 0,
+						&identity, dsMaterialType_Mat4, i, 1));
+				}
+				DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 1,
+					&dummyDist2, dsMaterialType_Vec2, 0, 1));
+				DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 3,
+					&dummyPos, dsMaterialType_Vec3, 0, 1));
+			}
+			else
+			{
+				PointLightData* data = (PointLightData*)shadows->curBufferData;
+				for (uint32_t i = 0; i < 6; ++i)
+					data->matrices[i] = identity;
+				data->shadowDistance = dummyDist2;
+				data->lightViewPos = dummyPos;
+			}
+			break;
+		}
+		case dsSceneLightType_Spot:
+		{
+			shadows->totalMatrices = 1;
+			if (shadows->fallback)
+			{
+				DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 0,
+					&identity, dsMaterialType_Mat4, 0, 1));
+				DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 1,
+					&dummyDist2, dsMaterialType_Vec2, 0, 1));
+			}
+			else
+			{
+				SpotLightData* data = (SpotLightData*)shadows->curBufferData;
+				data->matrix = identity;
+				data->shadowDistance = dummyDist2;
+			}
+			break;
+		}
+		default:
+			DS_ASSERT(false);
+			return false;
+	}
+
+	bool success = true;
+	if (shadows->transformGroupID)
+	{
+		success = dsSceneLightShadows_bindTransformGroup(shadows, view->globalValues,
+			shadows->transformGroupID);
+	}
+
+	// Need to keep matrices at 0 for the rest of the scene functions.
+	shadows->totalMatrices = 0;
+	return success;
 }
 
 dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator, const char* name,
@@ -443,7 +562,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 	shadows->totalMatrices = 0;
 	const dsSceneLight* light = dsSceneLightSet_findLightID(shadows->lightSet, shadows->lightID);
 	if (!light || light->type != shadows->lightType)
-		return true;
+		return bindDummyTransforms(shadows, view);
 
 	dsRenderer* renderer = shadows->resourceManager->renderer;
 	dsProjectionParams shadowedProjection = view->projectionParams;
@@ -465,7 +584,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 	dsFrustum3f cullFrustum;
 	DS_VERIFY(dsRenderer_frustumFromMatrix(&cullFrustum, renderer, &shadowedCullMtx));
 	if (!dsSceneLight_isInFrustum(light, &cullFrustum, intensityThreshold))
-		return true;
+		return bindDummyTransforms(shadows, view);
 
 	// Compute matrices in view space to be consistent with other lighting computations.
 	dsFrustum3f shadowedFrustum;

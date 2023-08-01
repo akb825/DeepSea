@@ -1,0 +1,152 @@
+[
+	{
+		"type": "SceneNode",
+		"nodeType": "ModelNodeReconfig",
+		"name": "torchModel",
+		"baseName": "torchModelBase",
+		"models":
+		[
+			{
+				"baseName": "Shaft",
+				"modelLists":
+				[
+					{
+						"shader": "woodShader",
+						"material": "woodMaterial",
+						"list": "modelList"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "shadowCastList"
+					}
+				]
+			},
+			{
+				"baseName": "Pitch",
+				"modelLists":
+				[
+					{
+						"shader": "pitchShader",
+						"material": "pitchMaterial",
+						"list": "modelList"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "shadowCastList"
+					}
+				]
+			}
+		],
+		"extraItemLists": ["cullList", "shadowCullList"]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "ModelNodeReconfig",
+		"name": "characterModel",
+		"baseName": "characterModelBase",
+		"models":
+		[
+			{
+				"baseName": "Body",
+				"modelLists":
+				[
+					{
+						"shader": "characterShader",
+						"material": "characterMaterial",
+						"list": "skinnedModelList"
+					},
+					{
+						"shader": "characterShadowCastShader",
+						"material": "characterShadowCastMaterial",
+						"list": "skinnedShadowCastList"
+					}
+				]
+			}
+		],
+		"extraItemLists": ["cullList", "shadowCullList"]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "AnimationTreeNode",
+		"name": "characterAnimationTreeNode",
+		"animationTree": "characterAnimationTree",
+		"nodeMapCache": "nodeMapCache",
+		"children":
+		[
+			{"nodeType": "ReferenceNode", "ref": "characterModel"},
+			{
+				"nodeType": "AnimationTransformNode",
+				"animationNode": "Right Forearm",
+				"nodeMapCache": "nodeMapCache",
+				"children":
+				[
+					{
+						"nodeType": "TransformNode",
+						"transformList":
+						[
+							{"type": "Rotate", "value": [0.0, -90.0, 0.0]},
+							{"type": "Translate", "value": [0.0, 0.35, -0.5]}
+						],
+						"children": [{"nodeType": "ReferenceNode", "ref": "torchModel"}]
+					}
+				],
+				"itemLists": ["animationList"]
+			}
+		],
+		"itemLists": ["animationList"]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "AnimationNode",
+		"name": "characterAnimationNode",
+		"nodeMapCache": "nodeMapCache",
+		"children": [{"nodeType": "ReferenceNode", "ref": "characterAnimationTreeNode"}],
+		"itemLists": ["animationList"]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "TransformNode",
+		"name": "firstCharacterNode",
+		"transformList": [{"type": "Translate", "value": [-1.0, 0.0, 0.0]}],
+		"children": [{"nodeType": "ReferenceNode", "ref": "characterAnimationNode"}]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "TransformNode",
+		"name": "secondCharacterNode",
+		"transformList": [{"type": "Translate", "value": [1.0, 0.0, 0.0]}],
+		"children": [{"nodeType": "ReferenceNode", "ref": "characterAnimationNode"}]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "TransformNode",
+		"name": "rootNode",
+		"children":
+		[
+			{
+				"type": "SceneNode",
+				"nodeType": "ModelNodeReconfig",
+				"baseName": "groundModelBase",
+				"models":
+				[
+					{
+						"baseName": "Ground",
+						"modelLists":
+						[
+							{
+								"shader": "grassShader",
+								"material": "grassMaterial",
+								"list": "modelList"
+							}
+						]
+					}
+				],
+				"extraItemLists": ["cullList"]
+			},
+			{"nodeType": "ReferenceNode", "ref": "firstCharacterNode"},
+			{"nodeType": "ReferenceNode", "ref": "secondCharacterNode"}
+		]
+	}
+]

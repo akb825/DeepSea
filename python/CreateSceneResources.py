@@ -63,11 +63,12 @@ def createSceneResourcesConvertContext(cuttlefish='cuttlefish', vfc='vfc', multi
 	convertContext = ConvertContext(cuttlefish, vfc, multithread)
 
 	# Animation scene types.
-	convertContext.addCustomResourceType('AnimationJointTree', convertAnimationJointTree)
+	convertContext.addCustomResourceType('AnimationJointTree', convertAnimationJointTree,
+		'AnimationTree')
 	convertContext.addCustomResourceType('AnimationTree', convertAnimationTree)
 	convertContext.addCustomResourceType('DirectAnimation', convertDirectAnimation)
 	convertContext.addCustomResourceType('KeyframeAnimation', convertKeyframeAnimation)
-	convertContext.addCustomResourceType('NodeMapCache', convertNodeMapCache)
+	convertContext.addCustomResourceType('AnimationNodeMapCache', convertNodeMapCache)
 	convertContext.addNodeType('AnimationNode', convertAnimationNode)
 	convertContext.addNodeType('AnimationTransformNode', convertAnimationTransformNode)
 	convertContext.addNodeType('AnimationTreeNode', convertAnimationTreeNode)

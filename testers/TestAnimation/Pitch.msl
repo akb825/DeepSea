@@ -1,0 +1,93 @@
+/*
+ * Copyright 2023 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include <DeepSea/Render/Shaders/Shadows/ShadowPCF4x4.mslh>
+#include <DeepSea/Render/Shaders/Shadows/ShadowMap.mslh>
+#include <DeepSea/Render/Shaders/VertexAttributes.mslh>
+
+#include <DeepSea/Scene/Shaders/InstanceTransform.mslh>
+#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
+#include <DeepSea/SceneLighting/Shaders/ForwardLights.mslh>
+
+uniform sampler2DShadow shadowMap;
+sampler_state shadowMap
+{
+	address_mode_u = clamp_to_edge;
+	address_mode_v = clamp_to_edge;
+	min_filter = linear;
+	mag_filter = linear;
+	compare_op = greater_or_equal;
+}
+
+uniform vec4 color;
+
+uniform ShadowTransform
+{
+	mat4 matrix;
+	vec2 fadeDistances;
+} dsShadowTransform;
+
+[[vertex]] layout(location = DS_POSITION) in vec3 position;
+[[vertex]] layout(location = DS_NORMAL) in vec3 normal;
+
+varying(vertex, fragment)
+{
+	vec3 vfViewPosition;
+	vec4 vfShadowPosition;
+	vec3 vfNormal;
+}
+
+[[fragment]] out vec4 outputColor;
+
+[[vertex]]
+void vertexShader()
+{
+	vec4 position4 = vec4(position, 1.0);
+	gl_Position = DS_ADJUST_CLIP(INSTANCE(dsInstanceTransform).worldViewProj*position4);
+	gl_Position.xy = dsRotateScreenPosition(gl_Position.xy);
+
+	vec4 viewPosition = INSTANCE(dsInstanceTransform).worldView*position4;
+	vfViewPosition = viewPosition.xyz;
+	vfShadowPosition = INSTANCE(dsShadowTransform).matrix*viewPosition;
+
+	vec3 fixedNormal = normal*2.0 - vec3(1.0);
+	vfNormal = INSTANCE(dsInstanceTransform).worldViewInvTrans*fixedNormal;
+}
+
+[[fragment]]
+void fragmentShader()
+{
+	float shadowValue = dsShadowMap(shadowMap, vfViewPosition,
+		vfShadowPosition.xyz/vfShadowPosition.w, INSTANCE(dsShadowTransform).fadeDistances,
+		INSTANCE(dsViewTransform).clipSpaceTexCoordTransform);
+
+	vec3 normal = normalize(vfNormal);
+	vec3 viewDirection = -normalize(vfViewPosition);
+	vec3 diffuseLight, specularLight;
+	dsComputeForwardLighting(diffuseLight, specularLight, vfViewPosition, normal, 1.0,
+		viewDirection, shadowValue);
+	outputColor = vec4(diffuseLight*uniforms.color.rgb, uniforms.color.a);
+}
+
+pipeline Pitch
+{
+	vertex = vertexShader;
+	fragment = fragmentShader;
+	depth_test_enable = true;
+	depth_compare_op = greater;
+	early_fragment_tests = true;
+	cull_mode = back;
+}

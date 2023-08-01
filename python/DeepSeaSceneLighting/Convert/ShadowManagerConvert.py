@@ -1,4 +1,4 @@
-# Copyright 2021 Aaron Barany
+# Copyright 2021-2023 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ def convertShadowManager(convertContext, data):
 	    to 100.
 	  - cascadeExpFactor: exponential factor for cascaded shadows in the range [0, 1], where 0 uses
 	    linear distances between the splits and 1 is fully exponential. Defaults to 0.5.
-	  - minDepthRanges: minimim distance between the near and far planes for each cascade. Spot and
+	  - minDepthRanges: minimum distance between the near and far planes for each cascade. Spot and
 	    point light shadows only use the first value. Can either be an array to set the cascade
 		values or a float to set all 4 possible cascade values.
 	  - fadeStartDistance: the distance to start fading out shadows. Defaults to 1000000, which is a

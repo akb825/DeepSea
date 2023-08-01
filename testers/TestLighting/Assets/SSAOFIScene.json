@@ -11,7 +11,7 @@
 		[
 			{
 				"type": "ShadowManagerPrepare",
-				"name": "shadowMangerPrepare",
+				"name": "shadowManagerPrepare",
 				"shadowManager": "shadowManager"
 			}
 		],

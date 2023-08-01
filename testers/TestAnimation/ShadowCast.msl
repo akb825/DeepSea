@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,4 +43,7 @@ pipeline ShadowCast
 	depth_bias_enable = true;
 	cull_mode = back;
 	attachment0_color_write_mask = 0;
+	depth_bias_constant_factor = -1.0;
+	depth_bias_slope_factor = -4.0;
+	depth_bias_clamp = 0.0;
 }

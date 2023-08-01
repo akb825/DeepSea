@@ -57,12 +57,8 @@ static void* dsSceneAnimationTree_load(const dsSceneLoadContext* loadContext,
 	DS_UNUSED(resourceAllocator);
 	DS_UNUSED(userData);
 
-	dsAnimationTree* animationTree = dsAnimationTree_loadData(allocator,
-		dsSceneLoadScratchData_getAllocator(scratchData), data, dataSize);
-	if (!animationTree)
-		return NULL;
-
-	return dsSceneAnimationTree_create(allocator, animationTree);
+	return dsAnimationTree_loadData(allocator, dsSceneLoadScratchData_getAllocator(scratchData),
+		data, dataSize);
 }
 
 static bool dsSceneAnimationTree_destroyResource(void* resource)

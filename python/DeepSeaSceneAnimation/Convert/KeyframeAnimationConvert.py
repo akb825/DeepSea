@@ -249,8 +249,8 @@ def convertKeyframeAnimation(convertContext, data):
 
 			KeyframeAnimationChannel.StartValuesVector(builder, len(channel.values))
 			for value in reversed(channel.values):
-				builder.PrependUOffsetTRelative(CreateVector4f(builder, value[0], value[1],
-					value[2], value[3] if len(value) == 4 else 0.0))
+				CreateVector4f(builder, value[0], value[1], value[2],
+					value[3] if len(value) == 4 else 0.0)
 			valuesOffset = builder.EndVector()
 
 			KeyframeAnimationChannel.Start(builder)

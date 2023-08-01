@@ -18,6 +18,8 @@
 
 #include "AnimationNodeMapCacheInternal.h"
 
+#include <DeepSea/Animation/AnimationTree.h>
+
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -31,14 +33,14 @@ static int directAnimationEntryCompare(const void* left, const void* right, void
 {
 	const dsDirectAnimation* animation = (const dsDirectAnimation*)left;
 	const dsDirectAnimationEntry* ref = (const dsDirectAnimationEntry*)right;
-	return DS_CMP(ref->animation, animation);
+	return DS_CMP(animation, ref->animation);
 }
 
 static int keyframeAnimationEntryCompare(const void* left, const void* right, void* context)
 {
 	const dsKeyframeAnimation* animation = (const dsKeyframeAnimation*)left;
 	const dsKeyframeAnimationEntry* ref = (const dsKeyframeAnimationEntry*)right;
-	return DS_CMP(ref->animation, animation);
+	return DS_CMP(animation, ref->animation);
 }
 
 dsAnimation* dsAnimation_create(dsAllocator* allocator, dsAnimationNodeMapCache* nodeMapCache)
@@ -264,7 +266,8 @@ bool dsAnimation_apply(const dsAnimation* animation, dsAnimationTree* tree)
 		return false;
 	}
 
-	return dsAnimationNodeMapCache_applyAnimation(animation->nodeMapCache, animation, tree);
+	return dsAnimationNodeMapCache_applyAnimation(animation->nodeMapCache, animation, tree) &&
+		dsAnimationTree_updateTransforms(tree);
 }
 
 void dsAnimation_destroy(dsAnimation* animation)

@@ -213,10 +213,10 @@ static id<MTLSamplerState> createSampler(dsRenderer* renderer, const mslSamplerS
 		descriptor.lodMaxClamp = samplerState->maxLod;
 	if (samplerState->mipFilter == mslMipFilter_Anisotropic)
 	{
-		if (samplerState->maxAnisotropy == MSL_UNKNOWN)
-			descriptor.maxAnisotropy = (NSUInteger)roundf(samplerState->maxAnisotropy);
-		else
+		if (samplerState->maxAnisotropy == MSL_UNKNOWN_FLOAT)
 			descriptor.maxAnisotropy = (NSUInteger)roundf(renderer->defaultAnisotropy);
+		else
+			descriptor.maxAnisotropy = (NSUInteger)roundf(samplerState->maxAnisotropy);
 	}
 
 #if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000

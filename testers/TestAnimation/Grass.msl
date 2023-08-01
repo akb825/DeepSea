@@ -1,0 +1,143 @@
+/*
+ * Copyright 2023 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include <DeepSea/Render/Shaders/VertexAttributes.mslh>
+#include <DeepSea/SceneLighting/Shaders/ForwardLights.mslh>
+#include <DeepSea/Scene/Shaders/InstanceTransform.mslh>
+#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
+
+#include <DeepSea/Render/Shaders/Shadows/ShadowPCF4x4.mslh>
+#include <DeepSea/Render/Shaders/Shadows/ShadowMap.mslh>
+
+uniform sampler2D diffuseTexture;
+sampler_state diffuseTexture
+{
+	address_mode_u = repeat;
+	address_mode_v = repeat;
+	min_filter = linear;
+	mag_filter = linear;
+	mip_filter = anisotropic;
+}
+
+uniform sampler2D normalTexture;
+sampler_state normalTexture
+{
+	address_mode_u = repeat;
+	address_mode_v = repeat;
+	min_filter = linear;
+	mag_filter = linear;
+	mip_filter = anisotropic;
+}
+
+uniform sampler2D specularTexture;
+sampler_state specularTexture
+{
+	address_mode_u = repeat;
+	address_mode_v = repeat;
+	min_filter = linear;
+	mag_filter = linear;
+	mip_filter = anisotropic;
+}
+
+uniform sampler2DShadow shadowMap;
+sampler_state shadowMap
+{
+	address_mode_u = clamp_to_edge;
+	address_mode_v = clamp_to_edge;
+	min_filter = linear;
+	mag_filter = linear;
+	compare_op = greater_or_equal;
+}
+
+uniform float shininess;
+
+uniform ShadowTransform
+{
+	mat4 matrix;
+	vec2 fadeDistances;
+} dsShadowTransform;
+
+[[vertex]] layout(location = DS_POSITION) in vec3 position;
+[[vertex]] layout(location = DS_NORMAL) in vec3 normal;
+[[vertex]] layout(location = DS_TANGENT) in vec3 tangent;
+[[vertex]] layout(location = DS_TEXCOORD0) in vec2 texCoord;
+
+varying(vertex, fragment)
+{
+	vec3 vfViewPosition;
+	vec4 vfShadowPosition;
+	vec4 vfNormalTexX;
+	vec4 vfTangentTexY;
+	vec3 vfBitangent;
+}
+
+[[fragment]] out vec4 outputColor;
+
+[[vertex]]
+void vertexShader()
+{
+	vec4 position4 = vec4(position, 1.0);
+	gl_Position = DS_ADJUST_CLIP(INSTANCE(dsInstanceTransform).worldViewProj*position4);
+	gl_Position.xy = dsRotateScreenPosition(gl_Position.xy);
+
+	vec4 viewPosition = INSTANCE(dsInstanceTransform).worldView*position4;
+	vfViewPosition = viewPosition.xyz;
+	vfShadowPosition = INSTANCE(dsShadowTransform).matrix*viewPosition;
+
+	vec3 fixedNormal = normal*2.0 - vec3(1.0);
+	vec3 fixedTangent = tangent*2.0 - vec3(1.0);
+	vfNormalTexX.xyz = INSTANCE(dsInstanceTransform).worldViewInvTrans*fixedNormal;
+	vfNormalTexX.w = texCoord.x;
+	vfTangentTexY.xyz = INSTANCE(dsInstanceTransform).worldViewInvTrans*fixedTangent;
+	vfTangentTexY.w = texCoord.y;
+	vfBitangent = cross(vfNormalTexX.xyz, vfTangentTexY.xyz);
+}
+
+[[fragment]]
+void fragmentShader()
+{
+	vec2 texCoord = vec2(vfNormalTexX.w, vfTangentTexY.w);
+	vec4 diffuseColor = texture(diffuseTexture, texCoord);
+	vec2 baseNormal = texture(normalTexture, texCoord).xy;
+	vec3 specularColor = texture(specularTexture, texCoord).rgb;
+
+	vec3 normal;
+	normal.xy = baseNormal*2.0 - vec2(1.0);
+	normal.z = sqrt(1.0 - min(dot(normal.xy, normal.xy), 1.0));
+	// Normalize just the original normal as a trdeoff between performance and quality.
+	normal = mat3(vfTangentTexY.xyz, vfBitangent, normalize(vfNormalTexX.xyz))*normal;
+
+	float shadowValue = dsShadowMap(shadowMap, vfViewPosition,
+		vfShadowPosition.xyz/vfShadowPosition.w, INSTANCE(dsShadowTransform).fadeDistances,
+		INSTANCE(dsViewTransform).clipSpaceTexCoordTransform);
+
+	vec3 viewDirection = -normalize(vfViewPosition);
+	vec3 diffuseLight, specularLight;
+	dsComputeForwardLighting(diffuseLight, specularLight, vfViewPosition, normal,
+		uniforms.shininess, viewDirection, shadowValue);
+	outputColor = vec4(diffuseLight*diffuseColor.rgb + specularLight*specularColor,
+		diffuseColor.a);
+}
+
+pipeline Grass
+{
+	vertex = vertexShader;
+	fragment = fragmentShader;
+	depth_test_enable = true;
+	depth_compare_op = greater;
+	early_fragment_tests = true;
+	cull_mode = back;
+}

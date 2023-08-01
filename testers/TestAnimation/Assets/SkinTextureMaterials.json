@@ -1,0 +1,73 @@
+[
+	{
+		"type": "MaterialDesc",
+		"name": "characterMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "InstanceTransformData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceTransformDesc"
+			},
+			{
+				"name": "SkinningData",
+				"type": "Texture",
+				"binding": "Instance"
+			},
+			{
+				"name": "SkinningTextureInfo",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "skinningTextureInfoDesc"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			},
+			{
+				"name": "InstanceForwardLightData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceForwardLightDesc"
+			},
+			{
+				"name": "ShadowTransform",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "shadowTransformDesc"
+			},
+			{
+				"name": "shadowMap",
+				"type": "Texture",
+				"binding": "Global"
+			}
+		]
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "characterShadowCastMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "InstanceTransformData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceTransformDesc"
+			},
+			{
+				"name": "SkinningData",
+				"type": "Texture",
+				"binding": "Instance"
+			},
+			{
+				"name": "SkinningTextureInfo",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "skinningTextureInfoDesc"
+			}
+		]
+	}
+]

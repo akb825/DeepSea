@@ -1,3 +1,4 @@
+add_subdirectory(TestAnimation)
 add_subdirectory(TestCube)
 add_subdirectory(TestLighting)
 add_subdirectory(TestParticles)

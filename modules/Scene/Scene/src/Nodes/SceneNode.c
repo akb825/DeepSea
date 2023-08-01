@@ -358,12 +358,14 @@ bool dsSceneNode_reparentChildNode(dsSceneNode* node, dsSceneNode* child, dsScen
 dsSceneTreeNode* dsSceneNode_findUniqueTreeNode(const dsSceneNode* baseNode,
 	const dsSceneNode* descendentNode)
 {
-	if (!baseNode || !descendentNode)
+	if (!descendentNode)
 	{
 		errno = EINVAL;
 		return NULL;
 	}
 
+	if (!baseNode)
+		baseNode = descendentNode;
 	if (baseNode->treeNodeCount != 1)
 	{
 		errno = EPERM;

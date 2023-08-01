@@ -98,7 +98,7 @@ static void dsViewTransformData_commit(dsSceneItemList* itemList, const dsView* 
 		dsMaterialType_IVec2, 0, 1));
 
 	if (DS_CHECK(DS_SCENE_LOG_TAG,
-		dsShaderVariableGroup_commit(viewData->variableGroup, commandBuffer)))
+			dsShaderVariableGroup_commit(viewData->variableGroup, commandBuffer)))
 	{
 		DS_VERIFY(dsSharedMaterialValues_setVariableGroupID(view->globalValues, viewData->nameID,
 			viewData->variableGroup));

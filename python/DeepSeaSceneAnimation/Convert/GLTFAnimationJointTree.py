@@ -75,17 +75,15 @@ def convertGLTFOrGLBAnimationJointTree(path, jsonData, binData, rootNodes):
 			except (TypeError, ValueError, IndexError):
 				raise Exception('Skin "' + rootName +
 					'" doesn\'t have inverseBindMatrix index in GLTF file "' + path + '".')
-		except (KeyError, TypeError, ValueError, IndexError):
-			raise Exception('Root node "' + rootName +
-				'" doesn\'t have valid skin index in GLTF file "' + path + '".')
 		except (TypeError, ValueError):
 			raise Exception('Skin "' + rootName + '" must be an object for GLTF file "' + path
-			+ '".')
+				+ '".')
 		except KeyError as e:
 			raise Exception('Skin "' + rootName + '" doesn\'t contain element "' + str(e) +
 				'" for GLTF file "' + path + '".')
 
 		toLocalSpaceData = toLocalSpaceAccessor.extractData()
+		matrixOffset = 0
 		for jointIndex in joints:
 			try:
 				jointIndex = int(jointIndex)
@@ -119,8 +117,8 @@ def convertGLTFOrGLBAnimationJointTree(path, jsonData, binData, rootNodes):
 			jsonRotation = jsonNode.get('rotation')
 			if jsonRotation:
 				try:
-					rotation = (float(jsonRotation[0]), float(jsonRotation[1]), float(jsonRotation[2]),
-						float(jsonRotation[3]))
+					rotation = (float(jsonRotation[0]), float(jsonRotation[1]),
+						float(jsonRotation[2]), float(jsonRotation[3]))
 				except:
 					raise Exception(
 						'Animation node "rotation" must be an array of 4 floats for GLTF file "' +
@@ -151,13 +149,13 @@ def convertGLTFOrGLBAnimationJointTree(path, jsonData, binData, rootNodes):
 				raise Exception('Node "children" must be an array of ints for node "' + name +
 					'" for GLTF file "' + path + '".')
 
-			baseOffset = jointIndex*matrixSize
 			toLocalSpace = (
-				struct.unpack_from('ffff', toLocalSpaceData, baseOffset),
-				struct.unpack_from('ffff', toLocalSpaceData, baseOffset + matrixStride),
-				struct.unpack_from('ffff', toLocalSpaceData, baseOffset + matrixStride*2),
-				struct.unpack_from('ffff', toLocalSpaceData, baseOffset + matrixStride*3)
+				struct.unpack_from('ffff', toLocalSpaceData, matrixOffset),
+				struct.unpack_from('ffff', toLocalSpaceData, matrixOffset + matrixStride),
+				struct.unpack_from('ffff', toLocalSpaceData, matrixOffset + matrixStride*2),
+				struct.unpack_from('ffff', toLocalSpaceData, matrixOffset + matrixStride*3)
 			)
+			matrixOffset += matrixSize
 
 			animationNodes.append(AnimationJointTreeNode(name, scale, rotation, translation,
 				toLocalSpace, childIndices))
