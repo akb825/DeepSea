@@ -1,4 +1,4 @@
-# Copyright 2017 Aaron Barany
+# Copyright 2017-2023 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@
 # DEPENDS_RECURSE - same as DEPENDS, except each pattern performs a GLOB_RECURSE.
 # WORKING_DIRECTORY - the working directory for creating the vector resources.
 function(ds_create_vector_resources container)
-	if (NOT PYTHONINTERP_FOUND)
+	if (NOT Python_FOUND)
 		message(FATAL_ERROR "Python not found on the path.")
 	endif()
 	if (NOT CUTTLEFISH)
@@ -60,7 +60,7 @@ function(ds_create_vector_resources container)
 	endif()
 
 	set(createVectorResources ${DEEPSEA_PYTHON_DIR}/CreateVectorResources.py)
-	set(command ${PYTHON_EXECUTABLE} ${createVectorResources} -i ${ARGS_FILE} -o ${ARGS_OUTPUT}
+	set(command ${Python_EXECUTABLE} ${createVectorResources} -i ${ARGS_FILE} -o ${ARGS_OUTPUT}
 		-c ${CUTTLEFISH})
 
 	# NOTE: Output file doesn't support generator expressions, so need to manually expand it.

@@ -144,12 +144,9 @@ def convertGLTFOrGLBAnimationJointTree(path, jsonData, binData, rootNodes):
 			childIndices = []
 			try:
 				for childIndex in jsonChildIndices:
-					childIndex = int(childIndex)
-					if childIndex not in indexMap:
-						raise Exception('Invalid child index for node "' + name +
-							'" for GLTF file "' + path + '".')
-						
-					childIndices.append(indexMap[int(childIndex)])
+					# Store the original indices at first, then resolve once we've read in all
+					# joints.
+					childIndices.append(int(childIndex))
 			except (TypeError, ValueError):
 				raise Exception('Node "children" must be an array of ints for node "' + name +
 					'" for GLTF file "' + path + '".')
@@ -168,7 +165,7 @@ def convertGLTFOrGLBAnimationJointTree(path, jsonData, binData, rootNodes):
 	# Now that we've read in all joints, need to remap child indices based on the final array.
 	for node in animationNodes:
 		try:
-			node.children = [indexMap[child] for child in node.children]
+			node.childIndices = [indexMap[child] for child in node.childIndices]
 		except IndexError:
 			raise Exception('Invalid child index for node "' + node.name +
 				'" for GLTF file "' + path + '".')

@@ -149,7 +149,9 @@ gltfTypeMap = {
 	('VEC4', 5122, False): ('X16Y16Z16W16', 'Int', 8),
 	('VEC4', 5123, True): ('X16Y16Z16W16', 'UNorm', 8),
 	('VEC4', 5123, False): ('X16Y16Z16W16', 'UInt', 8),
-	('VEC4', 5126, False): ('X32Y32Z32W32', 'Float', 16)
+	('VEC4', 5126, False): ('X32Y32Z32W32', 'Float', 16),
+
+	('MAT4', 5126, False): ('MAT4', 'Float', 64)
 }
 
 gltfPrimitiveTypeMap = ['PointList', 'LineList', 'LineStrip', 'LineStrip', 'TriangleList',
@@ -324,6 +326,9 @@ def convertGLTFOrGLBModel(convertContext, path, jsonData, binData):
 
 		vertexStreams = []
 		for attrib, accessor in mesh.attributes:
+			if not accessor.type.startswith('X'):
+				raise Exception('Unsupported vertex type "' + accessor.type + '" for GLTF file "' +
+					path + ".'")
 			vertexFormat = [(attrib, accessor.type, accessor.decorator)]
 			vertexStreams.append(ModelNodeVertexStream(vertexFormat, accessor.extractData(),
 				indexSize, indexData))

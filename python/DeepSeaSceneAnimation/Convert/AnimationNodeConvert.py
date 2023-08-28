@@ -27,7 +27,7 @@ def convertAnimationNode(convertContext, data):
 	"""
 	builder = flatbuffers.Builder(0)
 	try:
-		nodeMapCache = str(data['nodeMapcache'])
+		nodeMapCache = str(data['nodeMapCache'])
 
 		children = data.get('children', [])
 		childOffsets = []

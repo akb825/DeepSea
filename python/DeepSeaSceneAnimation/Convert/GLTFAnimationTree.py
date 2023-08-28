@@ -73,8 +73,8 @@ def convertGLTFOrGLBAnimationTree(path, jsonData, rootNodes):
 		childIndices = jsonNode.get('children', [])
 		try:
 			for childIndex in childIndices:
-				childJson = jsonNodes[childIndices]
-				childName = jsonNodes.get('name')
+				childJson = jsonNodes[childIndex]
+				childName = childJson.get('name')
 				if not childName:
 					raise Exception(
 						'Nodes part of an animation tree must contain names for GLTF file "' +
@@ -86,6 +86,8 @@ def convertGLTFOrGLBAnimationTree(path, jsonData, rootNodes):
 		except IndexError:
 			raise Exception('Invalid child index for node "' + name + '" for GLTF file "' + path +
 				'".')
+
+		return node
 
 	rootAnimationNodes = []
 	for rootName in rootNodes:

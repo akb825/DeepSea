@@ -95,7 +95,7 @@ def convertAnimationJointTree(convertContext, data):
 		if path:
 			fileType = str(data.get('fileType', ''))
 			if not fileType:
-				fileType = os.splittype(path)[1]
+				fileType = os.path.splitext(path)[1]
 				if fileType:
 					fileType = fileType[1:]
 				if not fileType:
@@ -187,7 +187,8 @@ def convertAnimationJointTree(convertContext, data):
 							for child in childNodeData:
 								treeNode.childIndices.append(int(child))
 						except (TypeError, ValueError):
-							raise Exception('AnimationJointTree node "children" must be an array of ints.')
+							raise Exception(
+								'AnimationJointTree node "childIndices" must be an array of ints.')
 					except KeyError as e:
 						raise Exception('AnimationJointTree node doesn\'t contain element ' +
 							str(e) + '.')

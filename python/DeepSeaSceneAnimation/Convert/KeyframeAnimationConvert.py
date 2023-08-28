@@ -139,7 +139,7 @@ def convertKeyframeAnimation(convertContext, data):
 		if path:
 			fileType = str(data.get('fileType', ''))
 			if not fileType:
-				fileType = os.splittype(path)[1]
+				fileType = os.path.splitext(path)[1]
 				if fileType:
 					fileType = fileType[1:]
 				if not fileType:
@@ -282,4 +282,5 @@ def convertKeyframeAnimation(convertContext, data):
 
 	KeyframeAnimation.Start(builder)
 	KeyframeAnimation.AddKeyframes(builder, keyframesOffset)
-	return KeyframeAnimation.End(builder)
+	builder.Finish(KeyframeAnimation.End(builder))
+	return builder.Output()

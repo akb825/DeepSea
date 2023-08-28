@@ -1,4 +1,4 @@
-# Copyright 2020 Aaron Barany
+# Copyright 2020-2023 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@
 # MODULE_DIRECTORIES - additional directories to use for the Python module path.
 # EXTENSIONS - list of Python modules to use as extensions.
 function(ds_create_scene container)
-	if (NOT PYTHONINTERP_FOUND)
+	if (NOT Python_FOUND)
 		message(FATAL_ERROR "Python not found on the path.")
 	endif()
 
@@ -77,7 +77,7 @@ function(ds_create_scene container)
 	endif()
 
 	set(createScene ${DEEPSEA_PYTHON_DIR}/CreateScene.py)
-	set(buildCommand ${CMAKE_COMMAND} -E env ${moduleDirs} ${PYTHON_EXECUTABLE} ${createScene}
+	set(buildCommand ${CMAKE_COMMAND} -E env ${moduleDirs} ${Python_EXECUTABLE} ${createScene}
 		-i ${ARGS_FILE} -o ${ARGS_OUTPUT} ${extensions})
 
 	# NOTE: Output file doesn't support generator expressions, so need to manually expand it.

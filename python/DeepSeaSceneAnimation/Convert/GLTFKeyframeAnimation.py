@@ -112,7 +112,7 @@ def convertGLTFOrGLBKeyframeAnimation(path, jsonData, binData, animations):
 					if not thisKeyframeChannels:
 						thisKeyframeChannels = []
 						keyframeChannels[keyframeAccessor] = thisKeyframeChannels
-					thisKeyframeChannels.apppend(
+					thisKeyframeChannels.append(
 						(nodeName, component, interpolation, channelAccessor))
 			except (TypeError, ValueError):
 				raise Exception('Animation "' + name +
@@ -168,11 +168,11 @@ def convertGLTFOrGLBKeyframeAnimation(path, jsonData, binData, animations):
 				componentSize = componentCount*4
 				componentFormat = 'f'*componentCount
 
-				channelByes = channelData.extractData()
+				channelBytes = channelData.extractData()
 				channelValues = []
 				for i in range(keyframeCount*perKeyframeCount):
 					channelValues.append(
-						struct.unpack_from(componentFormat, keyframeBytes, i*componentSize))
+						struct.unpack_from(componentFormat, channelBytes, i*componentSize))
 
 				thisKeyframeChannels.append(
 					Channel(nodeName, component, interpolation, channelValues))
@@ -185,7 +185,7 @@ def convertGLTFOrGLBKeyframeAnimation(path, jsonData, binData, animations):
 			animation = namedAnimations[animationName]
 		except KeyError:
 			raise Exception('Animation "' + animationName + '" not in GLTF file "' + path + '".')
-		keyframes.append(constructKeyframes(animationName, animation))
+		keyframes.extend(constructKeyframes(animationName, animation))
 
 	return keyframes 
 

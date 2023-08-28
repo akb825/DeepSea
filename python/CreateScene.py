@@ -23,6 +23,7 @@ from DeepSeaScene.Convert.ConvertContext import ConvertContext
 from DeepSeaScene.Convert.SceneConvert import convertScene
 
 from DeepSeaSceneAnimation.Convert.AnimationListConvert import convertAnimationList
+from DeepSeaSceneAnimation.Convert.SkinningDataConvert import convertSkinningData
 
 from DeepSeaSceneLighting.Convert.InstanceForwardLightDataConvert \
 	import convertInstanceForwardLightData
@@ -51,6 +52,7 @@ def createSceneConvertContext(customExtensions=None):
 
 	# Animation scene types.
 	convertContext.addItemListType('AnimationList', convertAnimationList)
+	convertContext.addInstanceDataType('SkinningData', convertSkinningData)
 
 	# Lighting scene types.
 	convertContext.addItemListType('ComputeSSAO', convertSSAO) # Same type as normal SSAO.

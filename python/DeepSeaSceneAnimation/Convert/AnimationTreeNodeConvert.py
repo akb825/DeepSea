@@ -30,7 +30,7 @@ def convertAnimationTreeNode(convertContext, data):
 	builder = flatbuffers.Builder(0)
 	try:
 		animationTree = str(data['animationTree'])
-		nodeMapCache = str(data['nodeMapcache'])
+		nodeMapCache = str(data['nodeMapCache'])
 
 		children = data.get('children', [])
 		childOffsets = []

@@ -128,7 +128,7 @@ static dsGfxBuffer* getBuffer(dsSceneInstanceData* instanceData, size_t requeste
 
 	BufferInfo* bufferInfo = skinningData->buffers + index;
 	bufferInfo->buffer = dsGfxBuffer_create(resourceManager, skinningData->resourceAllocator,
-		dsGfxBufferUsage_UniformBlock, dsGfxMemory_Stream | dsGfxMemory_Synchronize, NULL,
+		dsGfxBufferUsage_UniformBuffer, dsGfxMemory_Stream | dsGfxMemory_Synchronize, NULL,
 		requestedSize);
 	if (!bufferInfo->buffer)
 	{
@@ -143,7 +143,7 @@ static dsGfxBuffer* getBuffer(dsSceneInstanceData* instanceData, size_t requeste
 static bool populateBufferData(dsSceneInstanceData* instanceData)
 {
 	dsSceneSkinningData* skinningData = (dsSceneSkinningData*)instanceData;
-	uint32_t alignment = skinningData->resourceManager->minUniformBlockAlignment;
+	uint32_t alignment = skinningData->resourceManager->minUniformBufferAlignment;
 	size_t bufferSize = 0;
 	for (uint32_t i = 0; i < skinningData->instanceCount; ++i)
 	{
@@ -346,7 +346,7 @@ const char* const dsSceneSkinningData_typeName = "SkinningData";
 
 bool dsSceneSkinningData_useBuffers(dsResourceManager* resourceManager)
 {
-	return resourceManager && (resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock);
+	return resourceManager && (resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBuffer);
 }
 
 dsSceneInstanceData* dsSceneSkinningData_create(dsAllocator* allocator,

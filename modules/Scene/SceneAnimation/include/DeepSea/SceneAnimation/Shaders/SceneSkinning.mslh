@@ -16,7 +16,7 @@
 
 #pragma once
 
-#if HAS_UNIFORM_BUFFERS
+#if HAS_BUFFERS
 #include <DeepSea/Animation/Shaders/SkinBuffer.mslh>
 #else
 #include <DeepSea/Animation/Shaders/SkinTexture.mslh>
@@ -30,13 +30,21 @@
 /**
  * @brief Uniform containing the skinning data.
  */
-#if HAS_UNIFORM_BUFFERS
-uniform SkinningData
+#if HAS_BUFFERS
+
+/**
+ * @brief The type for the bone index vector.
+ */
+#define DS_BONE_INDICES_TYPE uvec4
+
+buffer SkinningData
 {
 	mat4[] matrices;
 } dsSkinningData;
 #else
-sampler2D SkinningData;
+#define DS_BONE_INDICES_TYPE vec4
+
+uniform sampler2D SkinningData;
 #endif
 
 /**
@@ -45,9 +53,10 @@ sampler2D SkinningData;
  * @param weights The transform weights.
  * @return The skin transform.
  */
-mat4 dsComputeSkinTransform(ivec4 bones, vec4 weights)
+[[vertex]]
+mat4 dsComputeSkinTransform(DS_BONE_INDICES_TYPE bones, vec4 weights)
 {
-#if HAS_UNIFORM_BUFFERS
+#if HAS_BUFFERS
 	return dsComputeSkinTransformBuffer(bones, weights, dsSkinningData.matrices);
 #else
 	return dsComputeSkinTransformTexture(bones, weights, SkinningData);
