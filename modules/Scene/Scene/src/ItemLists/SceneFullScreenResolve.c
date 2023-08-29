@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 Aaron Barany
+ * Copyright 2020-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -195,6 +195,7 @@ dsSceneFullScreenResolve* dsSceneFullScreenResolve_create(dsAllocator* allocator
 	itemList->removeNodeFunc = NULL;
 	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = NULL;
+	itemList->preRenderPassFunc = NULL;
 	itemList->commitFunc = &dsCommitSceneItemList_commit;
 	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsSceneFullScreenResolve_destroy;
 

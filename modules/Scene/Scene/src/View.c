@@ -1034,6 +1034,18 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 			if (!framebuffer->framebuffer)
 				continue;
 
+			// Execute any actions needed outside of the render pass.
+			for (uint32_t j = 0; j < renderPass->subpassCount; ++j)
+			{
+				dsSceneItemLists* drawLists = sceneRenderPass->drawLists + j;
+				for (uint32_t k = 0; k < drawLists->count; ++k)
+				{
+					dsSceneItemList* itemList = drawLists->itemLists[k];
+					if (itemList->preRenderPassFunc)
+						itemList->preRenderPassFunc(itemList, view, commandBuffer);
+				}
+			}
+
 			dsAlignedBox3f viewport = framebufferInfo->viewport;
 			dsView_adjustViewport(&viewport, view, framebuffer->rotated);
 			float width = (float)framebuffer->framebuffer->width;

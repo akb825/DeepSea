@@ -362,6 +362,7 @@ dsSceneItemList* dsSceneAnimationList_create(dsAllocator* allocator, const char*
 	itemList->preTransformUpdateFunc = &dsSceneAnimationList_preTransformUpdate;
 	itemList->updateFunc = NULL;
 	itemList->commitFunc = NULL;
+	itemList->preRenderPassFunc = NULL;
 	itemList->destroyFunc = &dsSceneAnimationList_destroy;
 
 	animationList->animationEntries = NULL;

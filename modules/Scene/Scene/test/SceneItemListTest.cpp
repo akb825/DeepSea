@@ -142,6 +142,7 @@ MockSceneItemList* createMockSceneItems(dsAllocator* allocator)
 	baseItems->updateNodeFunc = &updateMockSceneItem;
 	baseItems->preTransformUpdateFunc = NULL;
 	baseItems->updateFunc = NULL;
+	baseItems->preRenderPassFunc = NULL;
 	baseItems->commitFunc = &commitMockSceneItems;
 	baseItems->destroyFunc = &destroyMockSceneItems;
 

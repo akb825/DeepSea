@@ -298,6 +298,7 @@ dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const ch
 	itemList->removeNodeFunc = dsSceneParticleDrawList_removeNode;
 	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = NULL;
+	itemList->preRenderPassFunc = NULL;
 	itemList->commitFunc = &dsSceneParticleDrawList_commit;
 	itemList->destroyFunc = &dsSceneParticleDrawList_destroy;
 

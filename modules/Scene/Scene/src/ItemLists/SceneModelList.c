@@ -456,6 +456,7 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 	itemList->removeNodeFunc = &dsSceneModelList_removeNode;
 	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = NULL;
+	itemList->preRenderPassFunc = NULL;
 	itemList->commitFunc = &dsSceneModelList_commit;
 	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsSceneModelList_destroy;
 

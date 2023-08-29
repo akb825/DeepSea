@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,21 @@
  */
 
 #include <DeepSea/Scene/SceneThreadManager.h>
-#include "SceneThreadManagerInternal.h"
 
+#include "SceneThreadManagerInternal.h"
 #include "SceneTypes.h"
 #include "ViewInternal.h"
+
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Thread/ConditionVariable.h>
 #include <DeepSea/Core/Thread/Mutex.h>
-#include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Render/Resources/Framebuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Renderbuffer.h>
@@ -37,6 +39,7 @@
 #include <DeepSea/Render/CommandBuffer.h>
 #include <DeepSea/Render/CommandBufferPool.h>
 #include <DeepSea/Render/RenderPass.h>
+
 #include <string.h>
 
 // 512 KB
@@ -46,19 +49,26 @@ typedef enum ThreadState
 {
 	ThreadState_Initializing,
 	ThreadState_Waiting,
-	ThreadState_SharedItems,
-	ThreadState_Pipeline,
+	ThreadState_Processing,
 	ThreadState_Stop,
 	ThreadState_ThreadError,
 	ThreadState_ResourceContextError
 } ThreadState;
+
+typedef struct CommandBufferInfo
+{
+	dsCommandBuffer* commandBuffer;
+	dsSceneItemList* itemList;
+	dsSceneRenderPass* renderPass;
+	uint32_t subpass;
+	uint32_t framebuffer;
+} CommandBufferInfo;
 
 typedef struct DrawThread
 {
 	dsThread thread;
 	dsSceneThreadManager* threadManager;
 	ThreadState state;
-	uint32_t sharedItemsIndex;
 } DrawThread;
 
 struct dsSceneThreadManager
@@ -66,7 +76,6 @@ struct dsSceneThreadManager
 	dsAllocator* allocator;
 	dsRenderer* renderer;
 	dsMutex* stateMutex;
-	dsSpinlock itemLock;
 	dsConditionVariable* stateCondition;
 	DrawThread* threads;
 	uint32_t threadCount;
@@ -74,21 +83,17 @@ struct dsSceneThreadManager
 
 	dsCommandBufferPool* computeCommandBuffers;
 	dsCommandBufferPool* subpassCommandBuffers;
+	bool resetComputeCommandBuffers;
+	bool resetSubpassCommandBuffers;
 
-	dsCommandBuffer** commandBufferPointers;
-	uint32_t commandBufferPointerCount;
-	uint32_t maxCommandBufferPointers;
+	CommandBufferInfo* commandBufferInfos;
+	uint32_t commandBufferInfoCount;
+	uint32_t maxCommandBufferInfos;
 
 	const dsView* curView;
 	const dsViewFramebufferInfo* curFramebufferInfos;
 	const dsRotatedFramebuffer* curFramebuffers;
-	const uint32_t* curPipelineFramebuffers;
 
-	uint32_t nextComputeCommandBuffer;
-	uint32_t nextSubpassCommandBuffer;
-	uint32_t nextItem;
-	uint32_t nextSubpass;
-	uint32_t nextSubpassItem;
 	uint32_t nextCommandBuffer;
 	uint64_t lastFrame;
 };
@@ -98,113 +103,32 @@ static inline bool itemListNeedsCommandBuffer(const dsSceneItemList* itemList)
 	return itemList->needsCommandBuffer && itemList->commitFunc;
 }
 
-static void processSharedItems(dsSceneThreadManager* threadManager, uint32_t index)
+static void processCommandBuffers(dsSceneThreadManager* threadManager)
 {
 	const dsView* view = threadManager->curView;
-	const dsScene* scene = view->scene;
 	do
 	{
-		dsSceneItemList* itemList = NULL;
-		dsCommandBuffer* commandBuffer = NULL;
-		DS_VERIFY(dsSpinlock_lock(&threadManager->itemLock));
-		const dsSceneItemLists* sharedItems = scene->sharedItems + index;
-		if (threadManager->nextItem < sharedItems->count)
-		{
-			itemList = sharedItems->itemLists[threadManager->nextItem++];
-			if (itemListNeedsCommandBuffer(itemList))
-			{
-				commandBuffer =
-					threadManager->commandBufferPointers[threadManager->nextCommandBuffer++];
-				DS_ASSERT(threadManager->nextCommandBuffer <=
-					threadManager->commandBufferPointerCount);
-			}
-		}
-		DS_VERIFY(dsSpinlock_unlock(&threadManager->itemLock));
-
-		if (!itemList)
-			return;
-		else if (!itemList->commitFunc)
-			continue;
-
-		if (commandBuffer)
-		{
-			if (!dsCommandBuffer_begin(commandBuffer))
-				continue;
-		}
-
-		itemList->commitFunc(itemList, threadManager->curView, commandBuffer);
-
-		if (commandBuffer)
-			DS_VERIFY(dsCommandBuffer_end(commandBuffer));
-	} while (true);
-}
-
-static void processPipeline(dsSceneThreadManager* threadManager)
-{
-	const dsView* view = threadManager->curView;
-	const dsScene* scene = view->scene;
-	do
-	{
-		const dsScenePipelineItem* item = NULL;
-		uint32_t subpass = 0;
-		uint32_t subpassItem = 0;
-		const dsViewFramebufferInfo* framebufferInfo = NULL;
-		const dsRotatedFramebuffer* framebuffer = NULL;
-		dsCommandBuffer* commandBuffer = NULL;
-
-		DS_VERIFY(dsSpinlock_lock(&threadManager->itemLock));
-		if (threadManager->nextItem < scene->pipelineCount)
-		{
-			bool needsCommandBuffer;
-			item = scene->pipeline + threadManager->nextItem;
-			if (item->renderPass)
-			{
-				uint32_t framebufferIndex =
-					threadManager->curPipelineFramebuffers[threadManager->nextItem];
-				framebufferInfo = threadManager->curFramebufferInfos + framebufferIndex;
-				framebuffer = threadManager->curFramebuffers + framebufferIndex;
-
-				subpass = threadManager->nextSubpass;
-				subpassItem = threadManager->nextSubpassItem++;
-
-				if (threadManager->nextSubpassItem >= item->renderPass->drawLists[subpass].count)
-				{
-					++threadManager->nextSubpass;
-					threadManager->nextSubpassItem = 0;
-					if (threadManager->nextSubpass >= item->renderPass->renderPass->subpassCount)
-					{
-						++threadManager->nextItem;
-						threadManager->nextSubpass = 0;
-					}
-				}
-				needsCommandBuffer = true;
-			}
-			else
-			{
-				++threadManager->nextItem;
-				needsCommandBuffer = itemListNeedsCommandBuffer(item->computeItems);
-			}
-
-			if (needsCommandBuffer)
-			{
-				commandBuffer =
-					threadManager->commandBufferPointers[threadManager->nextCommandBuffer++];
-				DS_ASSERT(threadManager->nextCommandBuffer <=
-					threadManager->commandBufferPointerCount);
-			}
-		}
-		DS_VERIFY(dsSpinlock_unlock(&threadManager->itemLock));
-
-		if (!item)
+		uint32_t nextCommandBuffer = DS_ATOMIC_FETCH_ADD32(&threadManager->nextCommandBuffer, 1);
+		if (nextCommandBuffer >= threadManager->commandBufferInfoCount)
 			return;
 
-		if (item->renderPass)
+		const CommandBufferInfo* commandBufferInfo =
+			threadManager->commandBufferInfos + nextCommandBuffer;
+		dsCommandBuffer* commandBuffer = commandBufferInfo->commandBuffer;
+		dsSceneItemList* itemList = commandBufferInfo->itemList;
+		dsSceneRenderPass* renderPass = commandBufferInfo->renderPass;
+		if (renderPass)
 		{
+			DS_ASSERT(commandBuffer);
 			// Skipped due to framebuffer out of range. (e.g. support up to N layers, but have fewer
 			// in the currently bound offscreen)
+			const dsRotatedFramebuffer* framebuffer =
+				threadManager->curFramebuffers + commandBufferInfo->framebuffer;
 			if (!framebuffer->framebuffer)
 				continue;
 
+			const dsViewFramebufferInfo* framebufferInfo = threadManager->curFramebufferInfos +
+				commandBufferInfo->framebuffer;
 			dsAlignedBox3f viewport = framebufferInfo->viewport;
 			dsView_adjustViewport(&viewport, view, framebuffer->rotated);
 			viewport.min.x *= (float)framebuffer->framebuffer->width;
@@ -212,22 +136,20 @@ static void processPipeline(dsSceneThreadManager* threadManager)
 			viewport.min.y *= (float)framebuffer->framebuffer->height;
 			viewport.max.y *= (float)framebuffer->framebuffer->height;
 
-			dsRenderPass* renderPass = item->renderPass->renderPass;
-			if (!dsCommandBuffer_beginSecondary(commandBuffer, framebuffer->framebuffer, renderPass,
-					subpass, &viewport))
+			if (!dsCommandBuffer_beginSecondary(commandBuffer, framebuffer->framebuffer,
+					renderPass->renderPass, commandBufferInfo->subpass, &viewport))
 			{
 				continue;
 			}
 
-			dsSceneItemList* itemList = item->renderPass->drawLists[subpass].itemLists[subpassItem];
+			dsSceneItemList* itemList = commandBufferInfo->itemList;
 			DS_ASSERT(itemList->commitFunc);
-			itemList->commitFunc(itemList, threadManager->curView, commandBuffer);
+			itemList->commitFunc(itemList, view, commandBuffer);
 
 			DS_VERIFY(dsCommandBuffer_end(commandBuffer));
 		}
 		else
 		{
-			dsSceneItemList* itemList = item->computeItems;
 			if (!itemList->commitFunc)
 				continue;
 
@@ -237,7 +159,7 @@ static void processPipeline(dsSceneThreadManager* threadManager)
 					continue;
 			}
 
-			itemList->commitFunc(itemList, threadManager->curView, commandBuffer);
+			itemList->commitFunc(itemList, view, commandBuffer);
 
 			if (commandBuffer)
 				DS_VERIFY(dsCommandBuffer_end(commandBuffer));
@@ -278,11 +200,8 @@ static dsThreadReturnType threadFunc(void* userData)
 
 		switch (state)
 		{
-			case ThreadState_SharedItems:
-				processSharedItems(threadManager, drawThread->sharedItemsIndex);
-				break;
-			case ThreadState_Pipeline:
-				processPipeline(threadManager);
+			case ThreadState_Processing:
+				processCommandBuffers(threadManager);
 				break;
 			case ThreadState_Stop:
 				dsResourceManager_destroyResourceContext(resourceManager);
@@ -310,34 +229,45 @@ static void waitForThreads(dsSceneThreadManager* threadManager)
 	threadManager->finishedCount = 0;
 }
 
-static void triggerThreads(dsSceneThreadManager* threadManager, ThreadState state,
-	uint32_t sharedItemsIndex)
+static void triggerThreads(dsSceneThreadManager* threadManager)
 {
-	DS_ASSERT(threadManager->finishedCount == 0);
-	DS_VERIFY(dsMutex_lock(threadManager->stateMutex));
-	for (uint32_t i = 0; i < threadManager->threadCount; ++i)
+	uint32_t count = threadManager->commandBufferInfoCount - threadManager->nextCommandBuffer;
+	if (count == 0)
+		return;
+	else if (count == 1)
+		processCommandBuffers(threadManager);
+	else
 	{
-		threadManager->threads[i].state = state;
-		threadManager->threads[i].sharedItemsIndex = sharedItemsIndex;
+		DS_ASSERT(threadManager->finishedCount == 0);
+		DS_VERIFY(dsMutex_lock(threadManager->stateMutex));
+		for (uint32_t i = 0; i < threadManager->threadCount; ++i)
+			threadManager->threads[i].state = ThreadState_Processing;
+		DS_VERIFY(dsConditionVariable_notifyAll(threadManager->stateCondition));
+		DS_VERIFY(dsMutex_unlock(threadManager->stateMutex));
+
+		processCommandBuffers(threadManager);
+		waitForThreads(threadManager);
 	}
-	DS_VERIFY(dsConditionVariable_notifyAll(threadManager->stateCondition));
-	DS_VERIFY(dsMutex_unlock(threadManager->stateMutex));
+
+	// Over-counted in loop.
+	threadManager->nextCommandBuffer = threadManager->commandBufferInfoCount;
 }
 
 static dsCommandBuffer* getComputeCommandBuffer(dsSceneThreadManager* threadManager)
 {
-	uint32_t curBuffer = threadManager->nextComputeCommandBuffer;
 	if (!threadManager->computeCommandBuffers)
 	{
 		threadManager->computeCommandBuffers = dsCommandBufferPool_create(threadManager->renderer,
 			threadManager->allocator, dsCommandBufferUsage_Standard);
 		if (!threadManager->computeCommandBuffers)
 			return NULL;
+		threadManager->resetComputeCommandBuffers = false;
 	}
-	else if (curBuffer == 0)
+	else if (threadManager->resetComputeCommandBuffers)
 	{
 		if (!dsCommandBufferPool_reset(threadManager->computeCommandBuffers))
 			return NULL;
+		threadManager->resetComputeCommandBuffers = false;
 	}
 
 	dsCommandBuffer** commandBuffer =
@@ -345,75 +275,121 @@ static dsCommandBuffer* getComputeCommandBuffer(dsSceneThreadManager* threadMana
 	if (!commandBuffer)
 		return NULL;
 
-	++threadManager->nextComputeCommandBuffer;
 	return *commandBuffer;
 }
 
 static dsCommandBuffer** getSubpassCommandBuffers(dsSceneThreadManager* threadManager,
 	uint32_t count)
 {
-	uint32_t curBuffer = threadManager->nextSubpassCommandBuffer;
 	if (!threadManager->subpassCommandBuffers)
 	{
 		threadManager->subpassCommandBuffers = dsCommandBufferPool_create(threadManager->renderer,
 			threadManager->allocator, dsCommandBufferUsage_Secondary);
 		if (!threadManager->subpassCommandBuffers)
 			return NULL;
+		threadManager->resetSubpassCommandBuffers = false;
 	}
-	else if (curBuffer == 0)
+	else if (threadManager->resetSubpassCommandBuffers)
 	{
 		if (!dsCommandBufferPool_reset(threadManager->subpassCommandBuffers))
 			return NULL;
+		threadManager->resetSubpassCommandBuffers = false;
 	}
 
-	dsCommandBuffer** commandBuffers =
-		dsCommandBufferPool_createCommandBuffers(threadManager->subpassCommandBuffers, count);
-	if (!commandBuffers)
-		return NULL;
-
-	threadManager->nextSubpassCommandBuffer += count;
-	return commandBuffers;
+	return dsCommandBufferPool_createCommandBuffers(threadManager->subpassCommandBuffers, count);
 }
 
-static bool setupForDraw(dsSceneThreadManager* threadManager, const dsScene* scene)
+static bool triggerSharedItems(dsSceneThreadManager* threadManager, const dsScene* scene,
+	uint32_t index)
 {
-	for (uint32_t i = 0; i < scene->sharedItemCount; ++i)
+	DS_ASSERT(index < scene->sharedItemCount);
+	const dsSceneItemLists* sharedItems = scene->sharedItems + index;
+	uint32_t startIndex = threadManager->commandBufferInfoCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(threadManager->allocator,
+			threadManager->commandBufferInfos, threadManager->commandBufferInfoCount,
+			threadManager->maxCommandBufferInfos, sharedItems->count))
 	{
-		const dsSceneItemLists* sharedItems = scene->sharedItems + i;
-		for (uint32_t j = 0; j < sharedItems->count; ++j)
-		{
-			dsSceneItemList* itemList = sharedItems->itemLists[j];
-			if (!itemListNeedsCommandBuffer(itemList))
-				continue;
-
-			uint32_t index = threadManager->commandBufferPointerCount;
-			if (!DS_RESIZEABLE_ARRAY_ADD(threadManager->allocator,
-					threadManager->commandBufferPointers, threadManager->commandBufferPointerCount,
-					threadManager->maxCommandBufferPointers, 1))
-			{
-				return false;
-			}
-
-			threadManager->commandBufferPointers[index] = getComputeCommandBuffer(threadManager);
-			if (!threadManager->commandBufferPointers[index])
-				return false;
-		}
+		return false;
 	}
 
+	for (uint32_t i = 0; i < sharedItems->count; ++i)
+	{
+		dsSceneItemList* itemList = sharedItems->itemLists[i];
+		CommandBufferInfo* commandBufferInfo = threadManager->commandBufferInfos + startIndex + i;
+		commandBufferInfo->itemList = itemList;
+		commandBufferInfo->renderPass = NULL;
+		commandBufferInfo->subpass = 0;
+		commandBufferInfo->framebuffer = 0;
+		if (itemListNeedsCommandBuffer(itemList))
+		{
+			commandBufferInfo->commandBuffer = getComputeCommandBuffer(threadManager);
+			if (!commandBufferInfo->commandBuffer)
+				return false;
+		}
+		else
+			commandBufferInfo->commandBuffer = NULL;
+	}
+
+	triggerThreads(threadManager);
+	return true;
+}
+
+static bool triggerDraw(dsSceneThreadManager* threadManager, const dsScene* scene,
+	const uint32_t* pipelineFramebuffers)
+{
 	for (uint32_t i = 0; i < scene->pipelineCount; ++i)
 	{
 		dsSceneRenderPass* sceneRenderPass = scene->pipeline[i].renderPass;
 		if (sceneRenderPass)
 		{
 			dsRenderPass* renderPass = sceneRenderPass->renderPass;
+			uint32_t framebuffer = pipelineFramebuffers[i];
+			// Skipped due to framebuffer out of range. (e.g. support up to N layers, but have fewer
+			// in the currently bound offscreen)
+			if (!threadManager->curFramebuffers[framebuffer].framebuffer)
+				continue;
+
+			// Pre-renderpass command buffers.
 			for (uint32_t j = 0; j < renderPass->subpassCount; ++j)
 			{
 				const dsSceneItemLists* drawLists = sceneRenderPass->drawLists + j;
-				uint32_t index = threadManager->commandBufferPointerCount;
+				for (uint32_t k = 0; k < drawLists->count; ++k)
+				{
+					dsSceneItemList* itemList = drawLists->itemLists[k];
+					if (!itemList->preRenderPassFunc)
+						continue;
+
+					uint32_t index = threadManager->commandBufferInfoCount;
+					if (!DS_RESIZEABLE_ARRAY_ADD(threadManager->allocator,
+							threadManager->commandBufferInfos,
+							threadManager->commandBufferInfoCount,
+							threadManager->maxCommandBufferInfos, 1))
+					{
+						return false;
+					}
+
+					CommandBufferInfo* commandBufferInfo =
+						threadManager->commandBufferInfos + index;
+
+					commandBufferInfo->commandBuffer = getComputeCommandBuffer(threadManager);
+					if (!commandBufferInfo->commandBuffer)
+						return false;
+
+					commandBufferInfo->itemList = itemList;
+					commandBufferInfo->renderPass = NULL;
+					commandBufferInfo->subpass = 0;
+					commandBufferInfo->framebuffer = 0;
+				}
+			}
+
+			// Render pass command buffers.
+			for (uint32_t j = 0; j < renderPass->subpassCount; ++j)
+			{
+				const dsSceneItemLists* drawLists = sceneRenderPass->drawLists + j;
+				uint32_t startIndex = threadManager->commandBufferInfoCount;
 				if (!DS_RESIZEABLE_ARRAY_ADD(threadManager->allocator,
-						threadManager->commandBufferPointers,
-						threadManager->commandBufferPointerCount,
-						threadManager->maxCommandBufferPointers, drawLists->count))
+						threadManager->commandBufferInfos, threadManager->commandBufferInfoCount,
+						threadManager->maxCommandBufferInfos, drawLists->count))
 				{
 					return false;
 				}
@@ -423,115 +399,129 @@ static bool setupForDraw(dsSceneThreadManager* threadManager, const dsScene* sce
 				if (!commandBuffers)
 					return false;
 
-				memcpy(threadManager->commandBufferPointers + index, commandBuffers,
-					sizeof(dsCommandBuffer*)*drawLists->count);
+				for (uint32_t k = 0; k < drawLists->count; ++k)
+				{
+					CommandBufferInfo* commandBufferInfo =
+						threadManager->commandBufferInfos + startIndex + k;
+					commandBufferInfo->commandBuffer = commandBuffers[k];
+					commandBufferInfo->itemList = drawLists->itemLists[k];
+					commandBufferInfo->renderPass = sceneRenderPass;
+					commandBufferInfo->subpass = j;
+					commandBufferInfo->framebuffer = framebuffer;
+				}
 			}
 		}
 		else
 		{
 			dsSceneItemList* itemList = scene->pipeline[i].computeItems;
-			DS_ASSERT(itemList);
-			if (!itemListNeedsCommandBuffer(itemList))
-				continue;
-
-			uint32_t index = threadManager->commandBufferPointerCount;
+			uint32_t index = threadManager->commandBufferInfoCount;
 			if (!DS_RESIZEABLE_ARRAY_ADD(threadManager->allocator,
-					threadManager->commandBufferPointers, threadManager->commandBufferPointerCount,
-					threadManager->maxCommandBufferPointers, 1))
+					threadManager->commandBufferInfos, threadManager->commandBufferInfoCount,
+					threadManager->maxCommandBufferInfos, 1))
 			{
 				return false;
 			}
 
-			threadManager->commandBufferPointers[index] = getComputeCommandBuffer(threadManager);
-			if (!threadManager->commandBufferPointers[index])
-				return false;
+			CommandBufferInfo* commandBufferInfo =
+				threadManager->commandBufferInfos + index;
+
+			if (itemListNeedsCommandBuffer(itemList))
+			{
+				commandBufferInfo->commandBuffer = getComputeCommandBuffer(threadManager);
+				if (!commandBufferInfo->commandBuffer)
+					return false;
+			}
+			else
+				commandBufferInfo->commandBuffer = NULL;
+
+			commandBufferInfo->itemList = itemList;
+			commandBufferInfo->renderPass = NULL;
+			commandBufferInfo->subpass = 0;
+			commandBufferInfo->framebuffer = 0;
 		}
 	}
 
+	triggerThreads(threadManager);
 	return true;
 }
 
 static bool submitCommandBuffers(dsSceneThreadManager* threadManager,
 	dsCommandBuffer* commandBuffer)
 {
-	const dsScene* scene = threadManager->curView->scene;
-	uint32_t nextCommandBuffer = 0;
-	for (uint32_t i = 0; i < scene->sharedItemCount; ++i)
+	dsSceneRenderPass* prevRenderPass = NULL;
+	uint32_t prevSubpass = 0;
+	uint32_t prevFramebuffer = 0;
+	for (uint32_t i = 0; i < threadManager->commandBufferInfoCount; ++i)
 	{
-		const dsSceneItemLists* sharedItems = scene->sharedItems + i;
-		for (uint32_t j = 0; j < sharedItems->count; ++j)
+		CommandBufferInfo* commandBufferInfo = threadManager->commandBufferInfos + i;
+		if (!commandBufferInfo->commandBuffer)
 		{
-			if (!itemListNeedsCommandBuffer(sharedItems->itemLists[j]))
-				continue;
-
-			dsCommandBuffer* submitBuffer =
-				threadManager->commandBufferPointers[nextCommandBuffer++];
-			if (!dsCommandBuffer_submit(commandBuffer, submitBuffer))
-				return false;
+			DS_ASSERT(!commandBufferInfo->renderPass);
+			continue;
 		}
-	}
 
-	for (uint32_t i = 0; i < scene->pipelineCount; ++i)
-	{
-		dsSceneRenderPass* sceneRenderPass = scene->pipeline[i].renderPass;
-		if (sceneRenderPass)
+		if (commandBufferInfo->renderPass != prevRenderPass ||
+			commandBufferInfo->framebuffer != prevFramebuffer)
 		{
-			dsRenderPass* renderPass = sceneRenderPass->renderPass;
-			uint32_t framebufferIndex = threadManager->curPipelineFramebuffers[i];
-			const dsViewFramebufferInfo* framebufferInfo =
-				threadManager->curFramebufferInfos + framebufferIndex;
-			const dsRotatedFramebuffer* framebuffer = threadManager->curFramebuffers +
-				framebufferIndex;
-
-			// Skipped due to framebuffer out of range. (e.g. support up to N layers, but have fewer
-			// in the currently bound offscreen)
-			if (!framebuffer->framebuffer)
-				continue;
-
-			dsAlignedBox3f viewport = framebufferInfo->viewport;
-			dsView_adjustViewport(&viewport, threadManager->curView, framebuffer->rotated);
-			viewport.min.x *= (float)framebuffer->framebuffer->width;
-			viewport.max.x *= (float)framebuffer->framebuffer->width;
-			viewport.min.y *= (float)framebuffer->framebuffer->height;
-			viewport.max.y *= (float)framebuffer->framebuffer->height;
-			uint32_t clearValueCount =
-				sceneRenderPass->clearValues ? sceneRenderPass->renderPass->attachmentCount : 0;
-			if (!dsRenderPass_begin(renderPass, commandBuffer, framebuffer->framebuffer, &viewport,
-					sceneRenderPass->clearValues, clearValueCount, true))
+			if (prevRenderPass)
 			{
-				return false;
+				DS_ASSERT(prevSubpass + 1 == prevRenderPass->renderPass->subpassCount);
+				dsRenderPass_end(prevRenderPass->renderPass, commandBuffer);
+				prevRenderPass = NULL;
 			}
 
-			for (uint32_t j = 0; j < renderPass->subpassCount; ++j)
+			if (commandBufferInfo->renderPass)
 			{
-				dsSceneItemLists* drawLists = sceneRenderPass->drawLists + j;
-				for (uint32_t k = 0; k < drawLists->count; ++k)
+				dsSceneRenderPass* renderPass = commandBufferInfo->renderPass;
+				const dsViewFramebufferInfo* framebufferInfo =
+					threadManager->curFramebufferInfos + commandBufferInfo->framebuffer;
+				const dsRotatedFramebuffer* framebuffer = threadManager->curFramebuffers +
+					commandBufferInfo->framebuffer;
+				DS_ASSERT(framebuffer->framebuffer);
+
+				dsAlignedBox3f viewport = framebufferInfo->viewport;
+				dsView_adjustViewport(&viewport, threadManager->curView, framebuffer->rotated);
+				viewport.min.x *= (float)framebuffer->framebuffer->width;
+				viewport.max.x *= (float)framebuffer->framebuffer->width;
+				viewport.min.y *= (float)framebuffer->framebuffer->height;
+				viewport.max.y *= (float)framebuffer->framebuffer->height;
+				uint32_t clearValueCount =
+					renderPass->clearValues ? renderPass->renderPass->attachmentCount : 0;
+				if (!dsRenderPass_begin(renderPass->renderPass, commandBuffer,
+						framebuffer->framebuffer, &viewport, renderPass->clearValues,
+						clearValueCount, true))
 				{
-					dsCommandBuffer* submitBuffer =
-						threadManager->commandBufferPointers[nextCommandBuffer++];
-					if (!dsCommandBuffer_submit(commandBuffer, submitBuffer))
-						return false;
+					return false;
 				}
 
-				if (j != renderPass->subpassCount - 1)
-					DS_VERIFY(dsRenderPass_nextSubpass(renderPass, commandBuffer, true));
+				DS_ASSERT(commandBufferInfo->subpass == 0);
+				prevRenderPass = renderPass;
+				prevSubpass = 0;
+				prevFramebuffer = commandBufferInfo->framebuffer;
 			}
-
-			DS_VERIFY(dsRenderPass_end(renderPass, commandBuffer));
 		}
-		else
+		else if (commandBufferInfo->subpass != prevSubpass)
 		{
-			DS_ASSERT(scene->pipeline[i].computeItems);
-			if (!itemListNeedsCommandBuffer(scene->pipeline[i].computeItems))
-				continue;
-
-			dsCommandBuffer* submitBuffer =
-				threadManager->commandBufferPointers[nextCommandBuffer++];
-			if (!dsCommandBuffer_submit(commandBuffer, submitBuffer))
+			DS_ASSERT(prevRenderPass);
+			DS_ASSERT(commandBufferInfo->subpass == prevSubpass + 1);
+			DS_ASSERT(commandBufferInfo->framebuffer == prevFramebuffer);
+			if (!dsRenderPass_nextSubpass(prevRenderPass->renderPass, commandBuffer,
+					commandBufferInfo->subpass))
+			{
 				return false;
+			}
+		}
+
+		if (!dsCommandBuffer_submit(commandBuffer, commandBufferInfo->commandBuffer))
+		{
+			if (prevRenderPass)
+				dsRenderPass_end(prevRenderPass->renderPass, commandBuffer);
+			return false;
 		}
 	}
-	DS_ASSERT(nextCommandBuffer == threadManager->commandBufferPointerCount);
+
+	if (prevRenderPass && !dsRenderPass_end(prevRenderPass->renderPass, commandBuffer))
+		return false;
 
 	return true;
 }
@@ -570,7 +560,6 @@ dsSceneThreadManager* dsSceneThreadManager_create(dsAllocator* allocator, dsRend
 	threadManager->renderer = renderer;
 	threadManager->stateMutex = dsMutex_create((dsAllocator*)&bufferAlloc, "Scene Thread State");
 	DS_ASSERT(threadManager->stateMutex);
-	DS_VERIFY(dsSpinlock_initialize(&threadManager->itemLock));
 
 	threadManager->stateCondition = dsConditionVariable_create((dsAllocator*)&bufferAlloc,
 		"Scene Thread Condition");
@@ -639,75 +628,25 @@ bool dsSceneThreadManager_draw(dsSceneThreadManager* threadManager, const dsView
 	const dsScene* scene = view->scene;
 	dsRenderer* renderer = scene->renderer;
 
+	threadManager->commandBufferInfoCount = 0;
 	threadManager->curView = view;
 	threadManager->curFramebufferInfos = framebufferInfos;
 	threadManager->curFramebuffers = framebuffers;
-	threadManager->curPipelineFramebuffers = pipelineFramebuffers;
-	threadManager->commandBufferPointerCount = 0;
+	threadManager->nextCommandBuffer = 0;
 
 	if (threadManager->lastFrame != renderer->frameNumber)
 	{
-		threadManager->nextComputeCommandBuffer = 0;
-		threadManager->nextSubpassCommandBuffer = 0;
+		threadManager->resetComputeCommandBuffers = true;
+		threadManager->resetSubpassCommandBuffers = true;
 		threadManager->lastFrame = renderer->frameNumber;
 	}
 
-	if (!setupForDraw(threadManager, scene))
-		return false;
-
 	// Shared items first.
-	threadManager->nextCommandBuffer = 0;
 	for (uint32_t i = 0; i < scene->sharedItemCount; ++i)
-	{
-		// Check ahead of time if we need multiple threads for this stage.
-		const dsSceneItemLists* sharedItems = scene->sharedItems + i;
-		uint32_t commitCount = 0;
-		uint32_t lastCommitIndex = 0;
-		for (uint32_t j = 0; j < sharedItems->count; ++j)
-		{
-			if (sharedItems->itemLists[j]->commitFunc)
-			{
-				++commitCount;
-				lastCommitIndex = j;
-			}
-		}
-
-		if (commitCount == 0)
-			continue;
-		else if (commitCount == 1)
-		{
-			dsSceneItemList* itemList = sharedItems->itemLists[lastCommitIndex];
-			dsCommandBuffer* commandBuffer = NULL;
-			if (itemList->needsCommandBuffer)
-			{
-				commandBuffer =
-					threadManager->commandBufferPointers[threadManager->nextCommandBuffer++];
-				DS_ASSERT(threadManager->nextCommandBuffer <=
-					threadManager->commandBufferPointerCount);
-				if (!dsCommandBuffer_begin(commandBuffer))
-					return false;
-			}
-
-			itemList->commitFunc(itemList, view, commandBuffer);
-
-			if (commandBuffer)
-				DS_VERIFY(dsCommandBuffer_end(commandBuffer));
-			continue;
-		}
-
-		threadManager->nextItem = 0;
-		triggerThreads(threadManager, ThreadState_SharedItems, i);
-		processSharedItems(threadManager, i);
-		waitForThreads(threadManager);
-	}
+		triggerSharedItems(threadManager, scene, i);
 
 	// Once finished, main rendering pipeline.
-	threadManager->nextItem = 0;
-	threadManager->nextSubpass = 0;
-	threadManager->nextSubpassItem = 0;
-	triggerThreads(threadManager, ThreadState_Pipeline, 0);
-	processPipeline(threadManager);
-	waitForThreads(threadManager);
+	triggerDraw(threadManager, scene, pipelineFramebuffers);
 
 	return submitCommandBuffers(threadManager, commandBuffer);
 }
@@ -744,10 +683,9 @@ bool dsSceneThreadManager_destroy(dsSceneThreadManager* threadManager)
 	}
 
 	dsMutex_destroy(threadManager->stateMutex);
-	dsSpinlock_shutdown(&threadManager->itemLock);
 	dsConditionVariable_destroy(threadManager->stateCondition);
 
-	DS_VERIFY(dsAllocator_free(threadManager->allocator, threadManager->commandBufferPointers));
+	DS_VERIFY(dsAllocator_free(threadManager->allocator, threadManager->commandBufferInfos));
 	DS_VERIFY(dsAllocator_free(threadManager->allocator, threadManager));
 	return true;
 }

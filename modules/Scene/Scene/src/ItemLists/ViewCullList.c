@@ -313,6 +313,7 @@ dsSceneItemList* dsViewCullList_create(dsAllocator* allocator, const char* name)
 	itemList->removeNodeFunc = &dsViewCullList_removeNode;
 	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = NULL;
+	itemList->preRenderPassFunc = NULL;
 #if DS_HAS_SIMD
 	if (DS_SIMD_ALWAYS_FMA || dsHostSIMDFeatures & dsSIMDFeatures_FMA)
 		itemList->commitFunc = &dsViewCullList_commitFMA;

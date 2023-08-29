@@ -134,6 +134,7 @@ dsSceneComputeSSAO* dsSceneComputeSSAO_create(dsAllocator* allocator, dsResource
 	itemList->removeNodeFunc = NULL;
 	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = NULL;
+	itemList->preRenderPassFunc = NULL;
 	itemList->commitFunc = &dsSceneComputeSSAO_commit;
 	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsSceneComputeSSAO_destroy;
 

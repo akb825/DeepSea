@@ -191,6 +191,7 @@ dsSceneItemList* dsSceneParticlePrepare_create(dsAllocator* allocator, const cha
 	itemList->removeNodeFunc = &dsSceneParticlePrepare_removeNode;
 	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = &dsSceneParticlePrepare_update;
+	itemList->preRenderPassFunc = NULL;
 	itemList->commitFunc = NULL;
 	itemList->destroyFunc = &dsSceneParticlePrepare_destroy;
 

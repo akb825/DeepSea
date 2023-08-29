@@ -195,10 +195,19 @@ typedef void (*dsUpdateSceneItemListFunction)(dsSceneItemList* itemList, const d
 	float time);
 
 /**
- * @brief Function for drawing a scene item list.
- * @param itemList The scene item list to draw.
- * @param view The view to draw to.
- * @param commandBuffer The command buffer to draw to.
+ * @brief Function for execution operations for a scene item list before a render pass.
+ * @param itemList The scene item list to prepare.
+ * @param view The view used with the scene item list.
+ * @param commandBuffer The command buffer to execute with.
+ */
+typedef void (*dsPreRenderPassSceneItemListFunction)(dsSceneItemList* itemList, const dsView* view,
+	dsCommandBuffer* commandBuffer);
+
+/**
+ * @brief Function for executing a scene item list.
+ * @param itemList The scene item list to execute.
+ * @param view The view used with the scene item list.
+ * @param commandBuffer The command buffer to execute with.
  */
 typedef void (*dsCommitSceneItemListFunction)(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer);
@@ -291,6 +300,15 @@ struct dsSceneItemList
 	 * This may be NULL if the item list doesn't need to be udpated.
 	 */
 	dsUpdateSceneItemListFunction updateFunc;
+
+	/**
+	 * @brief Function for executing operations for the scene item list before the render pass.
+	 *
+	 * This is generally used for operations that need to be performed outside of a render pass,
+	 * such as GPU copies. This may be NULL if nothing needs to happen before the render pass. This
+	 * will be ignored if not a part of a render pass in the scene.
+	 */
+	dsPreRenderPassSceneItemListFunction preRenderPassFunc;
 
 	/**
 	 * @brief Function for committing the scene item list.
