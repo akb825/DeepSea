@@ -98,11 +98,6 @@ struct dsSceneThreadManager
 	uint64_t lastFrame;
 };
 
-static inline bool itemListNeedsCommandBuffer(const dsSceneItemList* itemList)
-{
-	return itemList->needsCommandBuffer && itemList->commitFunc;
-}
-
 static void processCommandBuffers(dsSceneThreadManager* threadManager)
 {
 	const dsView* view = threadManager->curView;
@@ -116,6 +111,7 @@ static void processCommandBuffers(dsSceneThreadManager* threadManager)
 			threadManager->commandBufferInfos + nextCommandBuffer;
 		dsCommandBuffer* commandBuffer = commandBufferInfo->commandBuffer;
 		dsSceneItemList* itemList = commandBufferInfo->itemList;
+		DS_ASSERT(itemList->commitFunc);
 		dsSceneRenderPass* renderPass = commandBufferInfo->renderPass;
 		if (renderPass)
 		{
@@ -142,17 +138,12 @@ static void processCommandBuffers(dsSceneThreadManager* threadManager)
 				continue;
 			}
 
-			dsSceneItemList* itemList = commandBufferInfo->itemList;
-			DS_ASSERT(itemList->commitFunc);
 			itemList->commitFunc(itemList, view, commandBuffer);
 
 			DS_VERIFY(dsCommandBuffer_end(commandBuffer));
 		}
 		else
 		{
-			if (!itemList->commitFunc)
-				continue;
-
 			if (commandBuffer)
 			{
 				if (!dsCommandBuffer_begin(commandBuffer))
@@ -304,10 +295,16 @@ static bool triggerSharedItems(dsSceneThreadManager* threadManager, const dsScen
 {
 	DS_ASSERT(index < scene->sharedItemCount);
 	const dsSceneItemLists* sharedItems = scene->sharedItems + index;
-	uint32_t startIndex = threadManager->commandBufferInfoCount;
+	uint32_t processCount = 0;
+	for (uint32_t i = 0; i < sharedItems->count; ++i)
+		processCount += sharedItems->itemLists[i]->commitFunc != NULL;
+	if (processCount == 0)
+		return true;
+
+	uint32_t commandBufferIndex = threadManager->commandBufferInfoCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(threadManager->allocator,
 			threadManager->commandBufferInfos, threadManager->commandBufferInfoCount,
-			threadManager->maxCommandBufferInfos, sharedItems->count))
+			threadManager->maxCommandBufferInfos, processCount))
 	{
 		return false;
 	}
@@ -315,12 +312,16 @@ static bool triggerSharedItems(dsSceneThreadManager* threadManager, const dsScen
 	for (uint32_t i = 0; i < sharedItems->count; ++i)
 	{
 		dsSceneItemList* itemList = sharedItems->itemLists[i];
-		CommandBufferInfo* commandBufferInfo = threadManager->commandBufferInfos + startIndex + i;
+		if (!itemList->commitFunc)
+			continue;
+
+		CommandBufferInfo* commandBufferInfo = threadManager->commandBufferInfos +
+			(commandBufferIndex++);
 		commandBufferInfo->itemList = itemList;
 		commandBufferInfo->renderPass = NULL;
 		commandBufferInfo->subpass = 0;
 		commandBufferInfo->framebuffer = 0;
-		if (itemListNeedsCommandBuffer(itemList))
+		if (itemList->needsCommandBuffer)
 		{
 			commandBufferInfo->commandBuffer = getComputeCommandBuffer(threadManager);
 			if (!commandBufferInfo->commandBuffer)
@@ -414,6 +415,9 @@ static bool triggerDraw(dsSceneThreadManager* threadManager, const dsScene* scen
 		else
 		{
 			dsSceneItemList* itemList = scene->pipeline[i].computeItems;
+			if (!itemList->commitFunc)
+				continue;
+
 			uint32_t index = threadManager->commandBufferInfoCount;
 			if (!DS_RESIZEABLE_ARRAY_ADD(threadManager->allocator,
 					threadManager->commandBufferInfos, threadManager->commandBufferInfoCount,
@@ -425,7 +429,7 @@ static bool triggerDraw(dsSceneThreadManager* threadManager, const dsScene* scen
 			CommandBufferInfo* commandBufferInfo =
 				threadManager->commandBufferInfos + index;
 
-			if (itemListNeedsCommandBuffer(itemList))
+			if (itemList->needsCommandBuffer)
 			{
 				commandBufferInfo->commandBuffer = getComputeCommandBuffer(threadManager);
 				if (!commandBufferInfo->commandBuffer)
