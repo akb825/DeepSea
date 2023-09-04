@@ -145,11 +145,19 @@ static size_t fullAllocSize(uint32_t* outNameCount, uint32_t* outGlobalValueCoun
 		}
 		else
 		{
-			if (item->computeItems->globalValueCount > 0)
+			dsSceneItemList* itemList = item->computeItems;
+			if (itemList->globalValueCount > 0)
 			{
 				DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
 					"Scene item list '%s' with global values must be a single entry in "
-					"sharedItem array.", item->computeItems->name);
+					"sharedItem array.", itemList->name);
+				return 0;
+			}
+			else if (itemList->preRenderPassFunc)
+			{
+				DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
+					"Compute scene item list '%s' may not have a preRenderPass function.",
+					itemList->name);
 				return 0;
 			}
 			++*outNameCount;
