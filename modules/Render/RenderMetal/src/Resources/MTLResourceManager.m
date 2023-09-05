@@ -892,16 +892,15 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 
 	baseResourceManager->minTextureBufferAlignment = getMinTextureBufferAlignment(resourceManager,
 		device);
-#if DS_IOS
-	// Strictly speaking 4-byte alignment is required, but elements like vec4 still need to be
-	// 16-byte aligned from the start of the buffer.
-	baseResourceManager->minUniformBlockAlignment = 16;
+	if (resourceManager->appleGpu)
+	{
+		// Strictly speaking 4-byte alignment is required, but elements like vec4 still need to be
+		// 16-byte aligned from the start of the buffer.
+		baseResourceManager->minUniformBlockAlignment = 16;
+	}
+	else
+		baseResourceManager->minUniformBlockAlignment = 256;
 	baseResourceManager->minUniformBufferAlignment = 16;
-#else
-	baseResourceManager->minUniformBlockAlignment = 256;
-	baseResourceManager->minUniformBufferAlignment = 256;
-#endif
-
 	baseResourceManager->supportedBuffers = getSupportedBuffers(device);
 	baseResourceManager->bufferMapSupport = dsGfxBufferMapSupport_Persistent;
 	baseResourceManager->canCopyBuffers = true;
