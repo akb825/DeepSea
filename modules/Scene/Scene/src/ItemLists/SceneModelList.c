@@ -85,17 +85,21 @@ struct dsSceneModelList
 	uint64_t nextNodeID;
 
 	const dsSceneTreeNode** instances;
-	DrawItem* drawItems;
+	uint32_t instanceCount;
 	uint32_t maxInstances;
+
+	DrawItem* drawItems;
+	uint32_t drawItemCount;
 	uint32_t maxDrawItems;
 };
 
-static void addInstances(dsSceneItemList* itemList, const dsView* view, uint32_t* instanceCount,
-	uint32_t* drawItemCount)
+static void addInstances(dsSceneItemList* itemList, const dsView* view)
 {
 	DS_PROFILE_FUNC_START();
 
 	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
+	modelList->instanceCount = 0;
+	modelList->drawItemCount = 0;
 
 	for (uint32_t i = 0; i < modelList->entryCount; ++i)
 	{
@@ -117,7 +121,7 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view, uint32_t
 		float flatDistance = -dsVector3_dot(direction, view->cameraMatrix.columns[2]);
 
 		bool hasAny = false;
-		uint32_t instanceIndex = *instanceCount;
+		uint32_t instanceIndex = modelList->instanceCount;
 		for (uint32_t j = 0; j < modelNode->modelCount; ++j)
 		{
 			dsSceneModelInfo* model = modelNode->models + j;
@@ -130,9 +134,9 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view, uint32_t
 				continue;
 			}
 
-			uint32_t itemIndex = *drawItemCount;
-			if (!DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, modelList->drawItems, *drawItemCount,
-					modelList->maxDrawItems, 1))
+			uint32_t itemIndex = modelList->drawItemCount;
+			if (!DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, modelList->drawItems,
+					modelList->drawItemCount, modelList->maxDrawItems, 1))
 			{
 				continue;
 			}
@@ -155,9 +159,9 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view, uint32_t
 			continue;
 
 		if (!DS_CHECK(DS_SCENE_LOG_TAG, DS_RESIZEABLE_ARRAY_ADD(itemList->allocator,
-				modelList->instances, *instanceCount, modelList->maxInstances, 1)))
+				modelList->instances, modelList->instanceCount, modelList->maxInstances, 1)))
 		{
-			--*instanceCount;
+			--modelList->instanceCount;
 			DS_PROFILE_FUNC_RETURN_VOID();
 		}
 
@@ -167,14 +171,15 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view, uint32_t
 	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
-static void setupInstances(dsSceneModelList* modelList, const dsView* view, uint32_t instanceCount)
+static void setupInstances(dsSceneModelList* modelList, const dsView* view,
+	dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_FUNC_START();
 
 	for (uint32_t i = 0; i < modelList->instanceDataCount; ++i)
 	{
 		DS_CHECK(DS_SCENE_LOG_TAG, dsSceneInstanceData_populateData(modelList->instanceData[i],
-			view, modelList->instances, instanceCount));
+			view, commandBuffer, modelList->instances, modelList->instanceCount));
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();
@@ -209,20 +214,23 @@ static int sortFrontToBack(const void* left, const void* right)
 	return DS_CMP(leftInfo->flatDistance, rightInfo->flatDistance);
 }
 
-static void sortGeometry(dsSceneModelList* modelList, uint32_t drawItemCount)
+static void sortGeometry(dsSceneModelList* modelList)
 {
 	DS_PROFILE_FUNC_START();
 
 	switch (modelList->sortType)
 	{
 		case dsModelSortType_Material:
-			qsort(modelList->drawItems, drawItemCount, sizeof(DrawItem), &sortByMaterial);
+			qsort(modelList->drawItems, modelList->drawItemCount, sizeof(DrawItem),
+				&sortByMaterial);
 			break;
 		case dsModelSortType_BackToFront:
-			qsort(modelList->drawItems, drawItemCount, sizeof(DrawItem), &sortBackToFront);
+			qsort(modelList->drawItems, modelList->drawItemCount, sizeof(DrawItem),
+				&sortBackToFront);
 			break;
 		case dsModelSortType_FrontToBack:
-			qsort(modelList->drawItems, drawItemCount, sizeof(DrawItem), &sortFrontToBack);
+			qsort(modelList->drawItems, modelList->drawItemCount, sizeof(DrawItem),
+				&sortFrontToBack);
 			break;
 		default:
 			break;
@@ -231,7 +239,7 @@ static void sortGeometry(dsSceneModelList* modelList, uint32_t drawItemCount)
 	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
-static void drawGeometry(dsSceneModelList* modelList, uint32_t drawItemCount, const dsView* view,
+static void drawGeometry(dsSceneModelList* modelList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_FUNC_START();
@@ -243,7 +251,7 @@ static void drawGeometry(dsSceneModelList* modelList, uint32_t drawItemCount, co
 	dsDynamicRenderStates* renderStates =
 		modelList->hasRenderStates ? &modelList->renderStates : NULL;
 	bool hasInstances = modelList->instanceDataCount > 0;
-	for (uint32_t i = 0; i < drawItemCount; ++i)
+	for (uint32_t i = 0; i < modelList->drawItemCount; ++i)
 	{
 		const DrawItem* drawItem = modelList->drawItems + i;
 		bool updateInstances = false;
@@ -368,6 +376,20 @@ static void dsSceneModelList_removeNode(dsSceneItemList* itemList, uint64_t node
 	}
 }
 
+static void dsSceneModelList_preRenderPass(dsSceneItemList* itemList, const dsView* view,
+	dsCommandBuffer* commandBuffer)
+{
+	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
+	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
+
+	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
+	addInstances(itemList, view);
+	setupInstances(modelList, view, commandBuffer);
+
+	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
+	DS_PROFILE_SCOPE_END();
+}
+
 static void dsSceneModelList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
@@ -375,12 +397,13 @@ static void dsSceneModelList_commit(dsSceneItemList* itemList, const dsView* vie
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
 	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
-	uint32_t instanceCount = 0;
-	uint32_t drawItemCount = 0;
-	addInstances(itemList, view, &instanceCount, &drawItemCount);
-	setupInstances(modelList, view, instanceCount);
-	sortGeometry(modelList, drawItemCount);
-	drawGeometry(modelList, drawItemCount, view, commandBuffer);
+	if (!itemList->preRenderPassFunc)
+	{
+		addInstances(itemList, view);
+		setupInstances(modelList, view, NULL);
+	}
+	sortGeometry(modelList);
+	drawGeometry(modelList, view, commandBuffer);
 	cleanup(modelList);
 
 	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
@@ -416,6 +439,7 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 	}
 
 	uint32_t valueCount = 0;
+	bool needsPreRenderPass = false;
 	for (uint32_t i = 0; i < instanceDataCount; ++i)
 	{
 		if (!instanceData[i])
@@ -425,6 +449,8 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 			return NULL;
 		}
 		valueCount += instanceData[i]->valueCount;
+		if (instanceData[i]->needsCommandBuffer)
+			needsPreRenderPass = true;
 	}
 
 	size_t nameLen = strlen(name);
@@ -456,7 +482,7 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 	itemList->removeNodeFunc = &dsSceneModelList_removeNode;
 	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = NULL;
-	itemList->preRenderPassFunc = NULL;
+	itemList->preRenderPassFunc = needsPreRenderPass ? &dsSceneModelList_preRenderPass : NULL;
 	itemList->commitFunc = &dsSceneModelList_commit;
 	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsSceneModelList_destroy;
 
@@ -498,8 +524,10 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 	modelList->maxEntries = 0;
 	modelList->nextNodeID = 0;
 	modelList->instances = NULL;
-	modelList->drawItems = NULL;
+	modelList->instanceCount = 0;
 	modelList->maxInstances = 0;
+	modelList->drawItems = NULL;
+	modelList->drawItemCount = 0;
 	modelList->maxDrawItems = 0;
 	return modelList;
 }

@@ -173,8 +173,11 @@ static bool reserveSpace(dsSceneInstanceVariables* variables, uint32_t maxInstan
 }
 
 static bool dsSceneInstanceVariables_populateData(dsSceneInstanceData* instanceData,
-	const dsView* view, const dsSceneTreeNode* const* instances, uint32_t instanceCount)
+	const dsView* view, dsCommandBuffer* commandBuffer, const dsSceneTreeNode* const* instances,
+	uint32_t instanceCount)
 {
+	DS_UNUSED(commandBuffer);
+
 	dsSceneInstanceVariables* variables = (dsSceneInstanceVariables*)instanceData;
 	DS_ASSERT(variables);
 	DS_ASSERT(view);
@@ -348,6 +351,7 @@ dsSceneInstanceData* dsSceneInstanceVariables_create(dsAllocator* allocator,
 	dsSceneInstanceData* instanceData = (dsSceneInstanceData*)variables;
 	instanceData->allocator = allocator;
 	instanceData->valueCount = 1;
+	instanceData->needsCommandBuffer = false;
 	instanceData->populateDataFunc = &dsSceneInstanceVariables_populateData;
 	instanceData->bindInstanceFunc = &dsSceneInstanceVariables_bindInstance;
 	instanceData->finishFunc = &dsSceneInstanceVariables_finish;

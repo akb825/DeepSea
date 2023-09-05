@@ -54,8 +54,8 @@ typedef struct dsSceneParticleDrawList
 	dsSceneItemList itemList;
 
 	dsSceneInstanceData** instanceData;
-	uint32_t instanceDataCount;
 	dsParticleDraw* drawer;
+	uint32_t instanceDataCount;
 	uint32_t cullListID;
 
 	Entry* entries;
@@ -63,8 +63,11 @@ typedef struct dsSceneParticleDrawList
 	uint32_t maxEntries;
 
 	const dsParticleEmitter** emitters;
-	const dsSceneTreeNode** instances;
+	uint32_t emitterCount;
 	uint32_t maxEmitters;
+
+	const dsSceneTreeNode** instances;
+	uint32_t instanceCount;
 	uint32_t maxInstances;
 
 	uint64_t nextNodeID;
@@ -75,6 +78,51 @@ static void destroyInstanceData(dsSceneInstanceData* const* instanceData,
 {
 	for (uint32_t i = 0; i < instanceDataCount; ++i)
 		dsSceneInstanceData_destroy(instanceData[i]);
+}
+
+static void setupInstances(dsSceneItemList* itemList, const dsView* view,
+	dsCommandBuffer* commandBuffer)
+{
+	dsSceneParticleDrawList* drawList = (dsSceneParticleDrawList*)itemList;
+	drawList->emitterCount = 0;
+	drawList->instanceCount = 0;
+	for (uint32_t i = 0; i < drawList->entryCount; ++i)
+	{
+		// Particle draw uses the view frustum for culling.
+		Entry* entry = drawList->entries + i;
+		// Non-zero cull result means out of view.
+		if (drawList->cullListID &&
+			dsSceneNodeItemData_findID(entry->itemData, drawList->cullListID))
+		{
+			continue;
+		}
+
+		uint32_t index = drawList->instanceCount;
+		if (!DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG, DS_RESIZEABLE_ARRAY_ADD(itemList->allocator,
+				drawList->emitters, drawList->emitterCount, drawList->maxEmitters, 1)))
+		{
+			return;
+		}
+
+		if (!DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG, DS_RESIZEABLE_ARRAY_ADD(itemList->allocator,
+				drawList->instances, drawList->instanceCount, drawList->maxInstances, 1)))
+		{
+			return;
+		}
+
+		drawList->emitters[index] = entry->emitter;
+		drawList->instances[index] = entry->treeNode;
+	}
+
+	if (drawList->instanceCount > 0)
+	{
+		for (uint32_t i = 0; i < drawList->instanceDataCount; ++i)
+		{
+			DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG, dsSceneInstanceData_populateData(
+				drawList->instanceData[i], view, commandBuffer, drawList->instances,
+				drawList->instanceCount));
+		}
+	}
 }
 
 static uint64_t dsSceneParticleDrawList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
@@ -142,59 +190,32 @@ static void dsSceneParticleDrawList_removeNode(dsSceneItemList* itemList, uint64
 	}
 }
 
+static void dsSceneParticleDrawList_preRenderPass(dsSceneItemList* itemList, const dsView* view,
+	dsCommandBuffer* commandBuffer)
+{
+	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
+	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
+
+	setupInstances(itemList, view, commandBuffer);
+
+	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
+	DS_PROFILE_SCOPE_END();
+}
+
 static void dsSceneParticleDrawList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
+	if (!itemList->preRenderPassFunc)
+		setupInstances(itemList, view, NULL);
+
 	dsSceneParticleDrawList* drawList = (dsSceneParticleDrawList*)itemList;
-
-	uint32_t emitterCount = 0;
-	uint32_t instanceCount = 0;
-	for (uint32_t i = 0; i < drawList->entryCount; ++i)
-	{
-		// Particle draw uses the view frustum for culling.
-		Entry* entry = drawList->entries + i;
-		// Non-zero cull result means out of view.
-		if (drawList->cullListID &&
-			dsSceneNodeItemData_findID(entry->itemData, drawList->cullListID))
-		{
-			continue;
-		}
-
-		uint32_t index = instanceCount;
-		if (!DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG, DS_RESIZEABLE_ARRAY_ADD(itemList->allocator,
-				drawList->emitters, emitterCount, drawList->maxEmitters, 1)))
-		{
-			dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
-			DS_PROFILE_SCOPE_END();
-			return;
-		}
-
-		if (!DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG, DS_RESIZEABLE_ARRAY_ADD(itemList->allocator,
-				drawList->instances, instanceCount, drawList->maxInstances, 1)))
-		{
-			dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
-			DS_PROFILE_SCOPE_END();
-			return;
-		}
-
-		drawList->emitters[index] = entry->emitter;
-		drawList->instances[index] = entry->treeNode;
-	}
-
-	if (instanceCount == 0)
+	if (drawList->instanceCount == 0)
 	{
 		dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
 		DS_PROFILE_SCOPE_END();
-		return;
-	}
-
-	for (uint32_t i = 0; i < drawList->instanceDataCount; ++i)
-	{
-		DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG, dsSceneInstanceData_populateData(
-				drawList->instanceData[i], view, drawList->instances, instanceCount));
 	}
 
 	dsSceneParticleInstanceData drawData =
@@ -202,10 +223,11 @@ static void dsSceneParticleDrawList_commit(dsSceneItemList* itemList, const dsVi
 		drawList->instanceData,
 		drawList->instances,
 		drawList->instanceDataCount,
-		instanceCount
+		drawList->instanceCount
 	};
 	DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG, dsParticleDraw_draw(drawList->drawer, commandBuffer,
-		view->globalValues, &view->viewMatrix, drawList->emitters, emitterCount, &drawData));
+		view->globalValues, &view->viewMatrix, drawList->emitters, drawList->emitterCount,
+		&drawData));
 
 	for (uint32_t i = 0; i < drawList->instanceDataCount; ++i)
 		DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG, dsSceneInstanceData_finish(drawList->instanceData[i]));
@@ -255,16 +277,19 @@ dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const ch
 	}
 
 	uint32_t instanceValueCount = 0;
+	bool needsPreRenderPass = false;
 	for (uint32_t i = 0; i < instanceDataCount; ++i)
 	{
-		if (instanceData[i])
-			instanceValueCount += instanceData[i]->valueCount;
-		else
+		if (!instanceData[i])
 		{
 			errno = EINVAL;
 			destroyInstanceData(instanceData, instanceDataCount);
 			return NULL;
 		}
+
+		instanceValueCount += instanceData[i]->valueCount;
+		if (instanceData[i]->needsCommandBuffer)
+			needsPreRenderPass = true;
 	}
 
 	size_t nameLen = strlen(name) + 1;
@@ -298,7 +323,7 @@ dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const ch
 	itemList->removeNodeFunc = dsSceneParticleDrawList_removeNode;
 	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = NULL;
-	itemList->preRenderPassFunc = NULL;
+	itemList->preRenderPassFunc = needsPreRenderPass ? dsSceneParticleDrawList_preRenderPass : NULL;
 	itemList->commitFunc = &dsSceneParticleDrawList_commit;
 	itemList->destroyFunc = &dsSceneParticleDrawList_destroy;
 
@@ -320,8 +345,10 @@ dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const ch
 	drawList->entryCount = 0;
 	drawList->maxEntries = 0;
 	drawList->emitters = NULL;
-	drawList->instances = NULL;
+	drawList->emitterCount = 0;
 	drawList->maxEmitters = 0;
+	drawList->instances = NULL;
+	drawList->instanceCount = 0;
 	drawList->maxInstances = 0;
 	drawList->nextNodeID = 0;
 

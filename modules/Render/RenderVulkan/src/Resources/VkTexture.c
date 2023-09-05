@@ -57,7 +57,7 @@ static bool isCombinedDepthStencil(dsGfxFormat format)
 		format == dsGfxFormat_D32S8_Float;
 }
 
-static bool createHostImageBuffer(dsVkDevice* device,  dsVkTexture* texture, const void* data,
+static bool createHostImageBuffer(dsVkDevice* device, dsVkTexture* texture, const void* data,
 	size_t dataSize)
 {
 	dsVkInstance* instance = &device->instance;

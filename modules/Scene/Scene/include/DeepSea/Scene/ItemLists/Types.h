@@ -60,12 +60,15 @@ typedef const int* dsSceneItemListType;
  * @remark errno should be set on failure.
  * @param instanceData The instance data.
  * @param view The view being drawn.
+ * @param commandBuffer The command buffer to process GPU operations. This may be NULL if
+ *     needsCommandBuffer is false.
  * @param instances The list of instances.
  * @param instanceCount The number of instances.
  * @return False if an error occurred.
  */
 typedef bool (*dsPopulateSceneInstanceDataFunction)(dsSceneInstanceData* instanceData,
-	const dsView* view, const dsSceneTreeNode* const* instances, uint32_t instanceCount);
+	const dsView* view, dsCommandBuffer* commandBuffer, const dsSceneTreeNode* const* instances,
+	uint32_t instanceCount);
 
 /**
  * @brief Function for binding scene instance data.
@@ -114,6 +117,14 @@ struct dsSceneInstanceData
 	 * @brief The number of values that will be stored on dsSharedMaterialValues.
 	 */
 	uint32_t valueCount;
+
+	/**
+	 * @brief Whether a command buffer is needed in populateDataFunc.
+	 *
+	 * If this is true, populateDataFunc will also be called before the render pass that uses the
+	 * instance data starts.
+	 */
+	bool needsCommandBuffer;
 
 	/**
 	 * @brief Data populate function.
@@ -306,7 +317,10 @@ struct dsSceneItemList
 	 *
 	 * This is generally used for operations that need to be performed outside of a render pass,
 	 * such as GPU copies. This may be NULL if nothing needs to happen before the render pass. This
-	 * will be ignored if not a part of a render pass in the scene.
+	 * must not be provided if not a part of a render pass in the scene.
+	 *
+	 * @remark This will always be called on the same thread as commitFunc. In other words, it's
+	 * safe to store state between preRenderPassFunc and commitFunc.
 	 */
 	dsPreRenderPassSceneItemListFunction preRenderPassFunc;
 
