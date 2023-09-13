@@ -36,10 +36,10 @@ struct Vector4f
 // Struct describing a quaternion.
 struct Quaternion4f
 {
-	r : float;
 	i : float;
 	j : float;
 	k : float;
+	r : float;
 }
 
 // Struct describing a 4x4 transform matrix.

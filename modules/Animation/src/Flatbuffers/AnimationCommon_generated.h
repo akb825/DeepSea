@@ -122,26 +122,23 @@ FLATBUFFERS_STRUCT_END(Vector4f, 16);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Quaternion4f FLATBUFFERS_FINAL_CLASS {
  private:
-  float r_;
   float i_;
   float j_;
   float k_;
+  float r_;
 
  public:
   Quaternion4f()
-      : r_(0),
-        i_(0),
+      : i_(0),
         j_(0),
-        k_(0) {
+        k_(0),
+        r_(0) {
   }
-  Quaternion4f(float _r, float _i, float _j, float _k)
-      : r_(::flatbuffers::EndianScalar(_r)),
-        i_(::flatbuffers::EndianScalar(_i)),
+  Quaternion4f(float _i, float _j, float _k, float _r)
+      : i_(::flatbuffers::EndianScalar(_i)),
         j_(::flatbuffers::EndianScalar(_j)),
-        k_(::flatbuffers::EndianScalar(_k)) {
-  }
-  float r() const {
-    return ::flatbuffers::EndianScalar(r_);
+        k_(::flatbuffers::EndianScalar(_k)),
+        r_(::flatbuffers::EndianScalar(_r)) {
   }
   float i() const {
     return ::flatbuffers::EndianScalar(i_);
@@ -151,6 +148,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Quaternion4f FLATBUFFERS_FINAL_CLASS {
   }
   float k() const {
     return ::flatbuffers::EndianScalar(k_);
+  }
+  float r() const {
+    return ::flatbuffers::EndianScalar(r_);
   }
 };
 FLATBUFFERS_STRUCT_END(Quaternion4f, 16);

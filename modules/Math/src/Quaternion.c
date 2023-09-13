@@ -20,37 +20,37 @@
 #define dsQuaternion4_fromEulerAnglesImpl(result, cosX, sinX, cosY, sinY, cosZ, sinZ) \
 	do \
 	{ \
-		(result).values[0] = cosX*cosY*cosZ + sinX*sinY*sinZ; \
-		(result).values[1] = sinX*cosY*cosZ - cosX*sinY*sinZ; \
-		(result).values[2] = cosX*sinY*cosZ + sinX*cosY*sinZ; \
-		(result).values[3] = cosX*cosY*sinZ - sinX*sinY*cosZ; \
+		(result).values[0] = sinX*cosY*cosZ - cosX*sinY*sinZ; \
+		(result).values[1] = cosX*sinY*cosZ + sinX*cosY*sinZ; \
+		(result).values[2] = cosX*cosY*sinZ - sinX*sinY*cosZ; \
+		(result).values[3] = cosX*cosY*cosZ + sinX*sinY*sinZ; \
 	} \
 	while (0)
 
 #define dsQuaternion4_fromMatrixImpl(result, matrix, w, inv4w) \
 	do \
 	{ \
-		(result).values[0] = w; \
-		(result).values[1] = ((matrix).values[1][2] - (matrix).values[2][1])*inv4w; \
-		(result).values[2] = ((matrix).values[2][0] - (matrix).values[0][2])*inv4w; \
-		(result).values[3] = ((matrix).values[0][1] - (matrix).values[1][0])*inv4w; \
+		(result).values[0] = ((matrix).values[1][2] - (matrix).values[2][1])*inv4w; \
+		(result).values[1] = ((matrix).values[2][0] - (matrix).values[0][2])*inv4w; \
+		(result).values[2] = ((matrix).values[0][1] - (matrix).values[1][0])*inv4w; \
+		(result).values[3] = w; \
 	} \
 	while (0)
 
 #define dsQuaternion4_toMatrixImpl(result, a) \
 	do \
 	{ \
-		(result).values[0][0] = 1 - 2*(dsPow2((a).values[2]) + dsPow2((a).values[3])); \
-		(result).values[0][1] = 2*((a).values[1]*(a).values[2] + (a).values[0]*(a).values[3]); \
-		(result).values[0][2] = 2*((a).values[1]*(a).values[3] - (a).values[0]*(a).values[2]); \
+		(result).values[0][0] = 1 - 2*(dsPow2((a).values[1]) + dsPow2((a).values[2])); \
+		(result).values[0][1] = 2*((a).values[0]*(a).values[1] + (a).values[3]*(a).values[2]); \
+		(result).values[0][2] = 2*((a).values[0]*(a).values[2] - (a).values[3]*(a).values[1]); \
 		\
-		(result).values[1][0] = 2*((a).values[1]*(a).values[2] - (a).values[0]*(a).values[3]); \
-		(result).values[1][1] = 1 - 2*(dsPow2((a).values[1]) + dsPow2((a).values[3])); \
-		(result).values[1][2] = 2*((a).values[0]*(a).values[1] + (a).values[2]*(a).values[3]); \
+		(result).values[1][0] = 2*((a).values[0]*(a).values[1] - (a).values[3]*(a).values[2]); \
+		(result).values[1][1] = 1 - 2*(dsPow2((a).values[0]) + dsPow2((a).values[2])); \
+		(result).values[1][2] = 2*((a).values[3]*(a).values[0] + (a).values[1]*(a).values[2]); \
 		\
-		(result).values[2][0] = 2*((a).values[0]*(a).values[2] + (a).values[1]*(a).values[3]); \
-		(result).values[2][1] = 2*((a).values[2]*(a).values[3] - (a).values[0]*(a).values[1]); \
-		(result).values[2][2] = 1 - 2*(dsPow2((a).values[1]) + dsPow2((a).values[2])); \
+		(result).values[2][0] = 2*((a).values[3]*(a).values[1] + (a).values[0]*(a).values[2]); \
+		(result).values[2][1] = 2*((a).values[1]*(a).values[2] - (a).values[3]*(a).values[0]); \
+		(result).values[2][2] = 1 - 2*(dsPow2((a).values[0]) + dsPow2((a).values[1])); \
 	} \
 	while (0)
 
@@ -91,10 +91,10 @@ void dsQuaternion4f_fromAxisAngle(dsQuaternion4f* result, const dsVector3f* axis
 	float cosAngle = cosf(angle*0.5f);
 	float sinAngle = sinf(angle*0.5f);
 
-	result->r = cosAngle;
 	result->i = axis->x*sinAngle;
 	result->j = axis->y*sinAngle;
 	result->k = axis->z*sinAngle;
+	result->r = cosAngle;
 }
 
 void dsQuaternion4d_fromAxisAngle(dsQuaternion4d* result, const dsVector3d* axis,
@@ -106,10 +106,10 @@ void dsQuaternion4d_fromAxisAngle(dsQuaternion4d* result, const dsVector3d* axis
 	double cosAngle = cos(angle*0.5);
 	double sinAngle = sin(angle*0.5);
 
-	result->r = cosAngle;
 	result->i = axis->x*sinAngle;
 	result->j = axis->y*sinAngle;
 	result->k = axis->z*sinAngle;
+	result->r = cosAngle;
 }
 
 void dsQuaternion4f_fromMatrix33(dsQuaternion4f* result, const dsMatrix33f* matrix)

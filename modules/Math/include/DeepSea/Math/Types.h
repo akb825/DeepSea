@@ -1257,11 +1257,6 @@ typedef union dsQuaternion4f
 	struct
 	{
 		/**
-		 * @brief The real coordinate.
-		 */
-		float r;
-
-		/**
 		 * @brief The i coordinate.
 		 */
 		float i;
@@ -1275,6 +1270,11 @@ typedef union dsQuaternion4f
 		 * @brief The k coordinate.
 		 */
 		float k;
+
+		/**
+		 * @brief The real coordinate.
+		 */
+		float r;
 	};
 } dsQuaternion4f;
 
@@ -1292,11 +1292,6 @@ typedef union dsQuaternion4d
 	struct
 	{
 		/**
-		 * @brief The real coordinate.
-		 */
-		double r;
-
-		/**
 		 * @brief The i coordinate.
 		 */
 		double i;
@@ -1310,6 +1305,11 @@ typedef union dsQuaternion4d
 		 * @brief The k coordinate.
 		 */
 		double k;
+
+		/**
+		 * @brief The real coordinate.
+		 */
+		double r;
 	};
 } dsQuaternion4d;
 

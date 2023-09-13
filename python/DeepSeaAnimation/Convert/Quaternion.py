@@ -26,7 +26,7 @@ def eulerToQuaternion(x, y, z):
 	sinZ = math.sin(halfZRad)
 
 	return (
-		cosX*cosY*cosZ + sinX*sinY*sinZ,
 		sinX*cosY*cosZ - cosX*sinY*sinZ,
 		cosX*sinY*cosZ + sinX*cosY*sinZ,
-		cosX*cosY*sinZ - sinX*sinY*cosZ)
+		cosX*cosY*sinZ - sinX*sinY*cosZ,
+		cosX*cosY*cosZ + sinX*sinY*sinZ)

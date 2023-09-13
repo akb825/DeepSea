@@ -18,18 +18,18 @@ class Quaternion4f(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # Quaternion4f
-    def R(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(0))
+    def I(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(0))
     # Quaternion4f
-    def I(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(4))
+    def J(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(4))
     # Quaternion4f
-    def J(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(8))
+    def K(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(8))
     # Quaternion4f
-    def K(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(12))
+    def R(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(12))
 
-def CreateQuaternion4f(builder, r, i, j, k):
+def CreateQuaternion4f(builder, i, j, k, r):
     builder.Prep(4, 16)
+    builder.PrependFloat32(r)
     builder.PrependFloat32(k)
     builder.PrependFloat32(j)
     builder.PrependFloat32(i)
-    builder.PrependFloat32(r)
     return builder.Offset()
