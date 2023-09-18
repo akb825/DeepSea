@@ -625,7 +625,7 @@ static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAl
 	dsView_setPerspectiveProjection(testAnimation->view, dsDegreesToRadiansf(45.0f), 0.1f, 100.0f);
 
 	dsVector3f eyePos = {{0.0f, -5.0f, 3.0f}};
-	dsVector3f lookAtPos = {{0.0f, 0.0f, 0.0f}};
+	dsVector3f lookAtPos = {{0.0f, 0.0f, 1.0f}};
 	dsVector3f upDir = {{0.0f, 0.0f, 1.0f}};
 	dsMatrix44f camera;
 	dsMatrix44f_lookAt(&camera, &eyePos, &lookAtPos, &upDir);

@@ -345,7 +345,7 @@ void dsShadowProjection_addPointsFMA(dsShadowProjection* shadowProj, const dsVec
 	for (uint32_t i = 0; i < pointCount; ++i)
 	{
 		dsVector4f worldPoint;
-		dsMatrix44f_transformSIMD(&worldPoint, &shadowProj->worldToShadowSpace, points + i);
+		dsMatrix44f_transformFMA(&worldPoint, &shadowProj->worldToShadowSpace, points + i);
 		if (dsEpsilonEqualsZerof(worldPoint.w, 1e-3f))
 			continue;
 

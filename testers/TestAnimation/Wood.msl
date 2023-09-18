@@ -49,6 +49,8 @@ uniform ShadowTransform
 	vec2 fadeDistances;
 } dsShadowTransform;
 
+uniform vec4 color;
+
 [[vertex]] layout(location = DS_POSITION) in vec3 position;
 [[vertex]] layout(location = DS_NORMAL) in vec3 normal;
 [[vertex]] layout(location = DS_TEXCOORD0) in vec2 texCoord;
@@ -82,7 +84,7 @@ void vertexShader()
 [[fragment]]
 void fragmentShader()
 {
-	vec4 diffuseColor = texture(diffuseTexture, vfTexCoord);
+	vec4 diffuseColor = texture(diffuseTexture, vfTexCoord)*uniforms.color;
 
 	float shadowValue = dsShadowMap(shadowMap, vfViewPosition,
 		vfShadowPosition.xyz/vfShadowPosition.w, INSTANCE(dsShadowTransform).fadeDistances,

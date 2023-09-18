@@ -17,7 +17,7 @@ The following keys can test behavior of the lighting:
 * `space`: pause/unpause spinning of the scene.
 * `enter`: cycle through the lighting modes in the order of forward, deferred, deferred with SSAO.
 
-On mobile platforms, a one-finger tap pauses/unpauses spinning of the scene and a two-finger tap cycles through the lighting moves.
+On mobile platforms, a one-finger tap pauses/unpauses spinning of the scene and a two-finger tap cycles through the lighting modes.
 
 ## Test cases
 
