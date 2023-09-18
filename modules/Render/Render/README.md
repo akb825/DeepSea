@@ -25,7 +25,9 @@ In general, drawing operations, including binding of shaders for drawing, must b
 DeepSea uses [Modular Shader Language](https://github.com/akb825/ModularShaderLanguage) for shaders. Shaders should either be compiled with a configuration provided with DeepSea or one that is based on a DeepSea configuration. Some notes to keep in mind:
 
 * gl_FragCoord is always in the upper-left.
-* Use the `DS_ADJUST_CLIP(x)` macro with the clip position (such as that assigned to gl_Position) to ensure the clip position x is transformed to the correct space. If using a direct clip position without a projection matrix, use `DS_ADJUST_DIRECT_CLIP(x)` instead.
+* Use the `DS_ADJUST_CLIP(x)` macro with the clip position (such as that assigned to gl_Position) to ensure the clip position x is transformed to the correct space.
+	* If using a direct clip position without a projection matrix, use `DS_ADJUST_DIRECT_CLIP(x)` instead.
+	* If used as a guaranteed texture target, such as a texture projection, use `DS_ADJUST_TEXTURE_CLIP(x)` instead.
 * When support for older hardware with OpenGL 2.x, use the `DS_RG_SWZL` macro for RG-format textures. (e.g. `color.DS_RG_SWZL`) This ensures compatibility with targets that use luminance-alpha textures instead.
 * Subpass inputs may always be used. Defines are provided to fall back to a standard texture lookup on targets that don't support them directly.
 * When declaring subpass inputs, instead of using `layout(input_attachment_index = i) uniform subpassInput input`, declare as `inputAttachment(i) input`.

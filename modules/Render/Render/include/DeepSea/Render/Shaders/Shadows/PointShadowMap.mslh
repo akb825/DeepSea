@@ -90,7 +90,7 @@ float DS_POINT_SHADOW_FUNCTION_NAME(sampler2DArrayShadow shadowMap, vec3 viewPos
 		surface = lightToPos.z > 0 ? 4 : 5;
 
 	mat4 projection = INSTANCE(DS_SHADOW_UNIFORM).matrices[surface];
-	vec4 shadowPos = DS_ADJUST_CLIP(projection*vec4(viewPos, 1.0));
+	vec4 shadowPos = DS_ADJUST_TEXTURE_CLIP(projection*vec4(viewPos, 1.0));
 	shadowPos /= shadowPos.w;
 	vec3 shadowTexCoords = shadowPos.xyz*texCoordTransform[0] + texCoordTransform[1];
 	shadowTexCoords.z = clamp(shadowTexCoords.z, 0.0, 1.0);

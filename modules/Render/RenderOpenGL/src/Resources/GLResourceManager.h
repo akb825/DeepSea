@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,8 @@
 dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRenderer* renderer);
 
 bool dsGLResourceManager_getVertexFormatInfo(GLenum* outFormat, GLint* outElements,
-	bool* outNormalized, const dsResourceManager* resourceManager, dsGfxFormat format);
+	bool* outNormalized, bool* outInteger, const dsResourceManager* resourceManager,
+	dsGfxFormat format);
 bool dsGLResourceManager_getTextureFormatInfo(GLenum* outInternalFormat, GLenum* outFormat,
 	GLenum* outType, const dsResourceManager* resourceManager, dsGfxFormat format);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -588,10 +588,9 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 				GLint blockIndex = glGetProgramResourceIndex(shader->programId,
 					GL_SHADER_STORAGE_BLOCK, name);
 				if (blockIndex >= 0)
-					setLocation(shader->uniforms + i, blockBindings);
+					setLocation(shader->uniforms + i, blockIndex);
 				else
 					shader->uniforms[i].location = -1;
-				++blockBindings;
 				break;
 			}
 			case dsMaterialType_VariableGroup:

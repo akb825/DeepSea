@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Aaron Barany
+ * Copyright 2018-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1018,8 +1018,8 @@ static bool beginDraw(dsCommandBuffer* commandBuffer, VkCommandBuffer submitBuff
 	if (vkCommandBuffer->activeVertexGeometry == geometry)
 		return true;
 
-	VkBuffer buffers[DS_MAX_ALLOWED_VERTEX_ATTRIBS];
-	VkDeviceSize offsets[DS_MAX_ALLOWED_VERTEX_ATTRIBS];
+	VkBuffer buffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS];
+	VkDeviceSize offsets[DS_MAX_GEOMETRY_VERTEX_BUFFERS];
 	uint32_t bindingCount = 0;
 	for (uint32_t i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
 	{
@@ -1028,22 +1028,15 @@ static bool beginDraw(dsCommandBuffer* commandBuffer, VkCommandBuffer submitBuff
 		if (!buffer)
 			continue;
 
-		const dsVertexFormat* format = &vertexBuffer->format;
 		dsVkGfxBufferData* bufferData = dsVkGfxBuffer_getData(buffer, commandBuffer);
-
 		if (!bufferData)
 			return false;
 
 		dsVkRenderer_processGfxBuffer(commandBuffer->renderer, bufferData);
 		VkBuffer vkBuffer = dsVkGfxBufferData_getBuffer(bufferData);
-		for (uint32_t curBitmask = format->enabledMask; curBitmask;
-			curBitmask = dsRemoveLastBit(curBitmask), ++bindingCount)
-		{
-			uint32_t i = dsBitmaskIndex(curBitmask);
-			DS_ASSERT(bindingCount < DS_MAX_ALLOWED_VERTEX_ATTRIBS);
-			buffers[bindingCount] = vkBuffer;
-			offsets[bindingCount] = vertexBuffer->offset + format->elements[i].offset;
-		}
+		buffers[bindingCount] = vkBuffer;
+		offsets[bindingCount] = vertexBuffer->offset;
+		++bindingCount;
 	}
 
 	vkCommandBuffer->activeVertexGeometry = geometry;

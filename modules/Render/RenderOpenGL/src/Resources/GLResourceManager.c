@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1470,7 +1470,8 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 }
 
 bool dsGLResourceManager_getVertexFormatInfo(GLenum* outFormat, GLint* outElements,
-	bool* outNormalized, const dsResourceManager* resourceManager, dsGfxFormat format)
+	bool* outNormalized, bool* outInteger, const dsResourceManager* resourceManager,
+	dsGfxFormat format)
 {
 	const dsGLResourceManager* glResourceManager = (const dsGLResourceManager*)resourceManager;
 	unsigned int standardIndex = dsGfxFormat_standardIndex(format);
@@ -1480,15 +1481,15 @@ bool dsGLResourceManager_getVertexFormatInfo(GLenum* outFormat, GLint* outElemen
 		if (!glResourceManager->standardVertexFormats[standardIndex][decoratorIndex])
 			return false;
 
+		int decorator = format & dsGfxFormat_DecoratorMask;
 		if (outFormat)
 			*outFormat = glResourceManager->standardVertexFormats[standardIndex][decoratorIndex];
 		if (outElements)
 			*outElements = glResourceManager->standardVertexElements[standardIndex][decoratorIndex];
 		if (outNormalized)
-		{
-			int decorator = format & dsGfxFormat_DecoratorMask;
 			*outNormalized = decorator == dsGfxFormat_UNorm || decorator == dsGfxFormat_SNorm;
-		}
+		if (outInteger)
+			*outInteger = decorator == dsGfxFormat_UInt || decorator == dsGfxFormat_SInt;
 		return true;
 	}
 
@@ -1504,6 +1505,8 @@ bool dsGLResourceManager_getVertexFormatInfo(GLenum* outFormat, GLint* outElemen
 			*outElements = glResourceManager->specialVertexElements[specialIndex];
 		if (outNormalized)
 			*outNormalized = false;
+		if (outInteger)
+			*outInteger = false;
 		return true;
 	}
 

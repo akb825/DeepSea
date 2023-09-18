@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,16 +56,25 @@ static void bindElements(dsGLDrawGeometry* geometry, int32_t baseVertex, bool tr
 			GLenum type = 0;
 			GLint elements = 0;
 			bool normalized = false;
+			bool integer = false;
 			// Format should have been pre-validated.
 			DS_VERIFY(dsGLResourceManager_getVertexFormatInfo(&type, &elements,
-				&normalized, resourceManager, element->format));
+				&normalized, &integer, resourceManager, element->format));
 
 			enabled[index] = true;
 			if (!track || !renderer->boundAttributes[index])
 				glEnableVertexAttribArray(index);
-			glVertexAttribPointer(index, elements, type, normalized,
-				vertexBuffer->format.size, (void*)(size_t)(vertexBuffer->offset + element->offset +
-				offset));
+			if (integer && ANYGL_SUPPORTED(glVertexAttribIPointer))
+			{
+				glVertexAttribIPointer(index, elements, type, vertexBuffer->format.size,
+					(void*)(size_t)(vertexBuffer->offset + element->offset + offset));
+			}
+			else
+			{
+				glVertexAttribPointer(index, elements, type, normalized,
+					vertexBuffer->format.size, (void*)(size_t)(vertexBuffer->offset + element->offset +
+					offset));
+			}
 			if (ANYGL_SUPPORTED(glVertexAttribDivisor))
 				glVertexAttribDivisor(index, vertexBuffer->format.instanced ? 1 : 0);
 		}

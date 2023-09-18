@@ -16,6 +16,7 @@
 
 #include <DeepSea/Render/Shaders/Shadows/ShadowPCF4x4.mslh>
 #include <DeepSea/Render/Shaders/Shadows/ShadowMap.mslh>
+#include <DeepSea/Render/Shaders/Color.mslh>
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
 
 #include <DeepSea/Scene/Shaders/InstanceTransform.mslh>
@@ -71,7 +72,7 @@ void vertexShader()
 
 	vec4 viewPosition = INSTANCE(dsInstanceTransform).worldView*position4;
 	vfViewPosition = viewPosition.xyz;
-	vfShadowPosition = INSTANCE(dsShadowTransform).matrix*viewPosition;
+	vfShadowPosition = DS_ADJUST_TEXTURE_CLIP(INSTANCE(dsShadowTransform).matrix*viewPosition);
 
 	vec3 fixedNormal = normal*2.0 - vec3(1.0);
 	vfNormal = INSTANCE(dsInstanceTransform).worldViewInvTrans*fixedNormal;
@@ -92,7 +93,7 @@ void fragmentShader()
 	vec3 diffuseLight, specularLight;
 	dsComputeForwardLighting(diffuseLight, specularLight, vfViewPosition, normal, 1.0,
 		viewDirection, shadowValue);
-	outputColor = vec4(diffuseLight*diffuseColor.rgb, diffuseColor.a);
+	outputColor = vec4(dsSRGBFromLinear(diffuseLight*diffuseColor.rgb), diffuseColor.a);
 }
 
 pipeline Wood

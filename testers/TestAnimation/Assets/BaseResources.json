@@ -254,13 +254,13 @@
 			{
 				"name": "sun",
 				"color": [1.0, 1.0, 0.8],
-				"intensity": 1.0,
+				"intensity": 0.8,
 				"type": "Directional",
-				"direction": [0.25, 0.5, -2.0]
+				"direction": [0.25, 0.5, -1.0]
 			}
 		],
 		"ambientColor": [0.8, 0.8, 1.0],
-		"ambientIntensity": 0.3,
+		"ambientIntensity": 0.2,
 		"mainLight": "sun",
 		"srgb": true
 	},

@@ -73,7 +73,7 @@ void fragmentShader()
 	vec3 viewDirection = -normalize(viewPosition);
 
 	vec4 shadowPosition =
-		DS_ADJUST_CLIP(INSTANCE(dsShadowTransform).matrix*vec4(viewPosition, 1.0));
+		DS_ADJUST_TEXTURE_CLIP(INSTANCE(dsShadowTransform).matrix*vec4(viewPosition, 1.0));
 	float shadowValue = dsShadowMap(shadowMap, viewPosition, shadowPosition.xyz/shadowPosition.w,
 		INSTANCE(dsShadowTransform).fadeDistances,
 		INSTANCE(dsViewTransform).clipSpaceTexCoordTransform);
