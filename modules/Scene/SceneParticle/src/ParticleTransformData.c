@@ -119,7 +119,7 @@ static void dsParticleTransformData_populateDataFMA(void* userData, const dsView
 		transform->worldView = worldView;
 		dsMatrix44f_affineInvert33FMA(transform->localWorldOrientation, &world);
 		dsMatrix44f_affineInvert33FMA(transform->localViewOrientation, &worldView);
-		dsMatrix44f_mulSIMD(&transform->worldViewProj, &view->projectionMatrix, &worldView);
+		dsMatrix44f_mulFMA(&transform->worldViewProj, &view->projectionMatrix, &worldView);
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();
