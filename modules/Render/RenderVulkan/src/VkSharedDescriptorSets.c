@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -296,6 +296,12 @@ static bool setupOffsets(dsVkSharedDescriptorSets* descriptors, dsShader* shader
 				descriptors->offsets[offsetIndex] = (uint32_t)offset;
 				break;
 			}
+			case dsMaterialType_Texture:
+			case dsMaterialType_Image:
+			case dsMaterialType_SubpassInput:
+			case dsMaterialType_TextureBuffer:
+			case dsMaterialType_ImageBuffer:
+				break;
 			default:
 				DS_ASSERT(false);
 		}

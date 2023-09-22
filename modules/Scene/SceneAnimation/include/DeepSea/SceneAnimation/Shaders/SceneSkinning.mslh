@@ -42,7 +42,11 @@ buffer SkinningData
 	mat4[] matrices;
 } dsSkinningData;
 #else
+#if HAS_INTEGERS
+#define DS_BONE_INDICES_TYPE uvec4
+#else
 #define DS_BONE_INDICES_TYPE vec4
+#endif
 
 uniform SkinningTextureInfo
 {
