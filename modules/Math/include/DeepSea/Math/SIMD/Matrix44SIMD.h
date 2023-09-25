@@ -511,7 +511,65 @@ DS_MATH_EXPORT inline void dsMatrix44d_inverseTransposeFMA2(dsVector4d result[3]
 DS_MATH_EXPORT inline void dsMatrix44d_inverseTransposeFMA4(dsVector4d* DS_ALIGN_PARAM(32) result,
 	const dsMatrix44d* DS_ALIGN_PARAM(32) a);
 
-DS_SIMD_START(DS_SIMD_FLOAT4);
+/**
+ * @brief Linearly interpolates between two affine transform matrices.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param[out] result The matrix for the result.
+ * @param a The first transform matrix to enterpolate.
+ * @param b The second transform matrix to interpolate.
+ * @param t The interpolation value between a and b. This must not be the same as a or b.
+ */
+DS_MATH_EXPORT void dsMatrix44f_affineLerpSIMD(dsMatrix44f* result, const dsMatrix44f* a,
+	const dsMatrix44f* b, float t);
+
+/**
+ * @brief Linearly interpolates between two affine transform matrices using fused multiply-add
+ *     operations.
+ * @remark This can be used when dsSIMDFeatures_FMA is available.
+ * @param[out] result The matrix for the result.
+ * @param a The first transform matrix to enterpolate.
+ * @param b The second transform matrix to interpolate.
+ * @param t The interpolation value between a and b. This must not be the same as a or b.
+ */
+DS_MATH_EXPORT void dsMatrix44f_affineLerpFMA(dsMatrix44f* result, const dsMatrix44f* a,
+	const dsMatrix44f* b, float t);
+
+/**
+ * @brief Linearly interpolates between two affine transform matrices.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param[out] result The matrix for the result.
+ * @param a The first transform matrix to enterpolate.
+ * @param b The second transform matrix to interpolate.
+ * @param t The interpolation value between a and b. This must not be the same as a or b.
+ */
+DS_MATH_EXPORT void dsMatrix44d_affineLerpSIMD2(dsMatrix44d* result, const dsMatrix44d* a,
+	const dsMatrix44d* b, double t);
+
+/**
+ * @brief Linearly interpolates between two affine transform matrices using fused multiply-add
+ *     operations.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_FMA is available.
+ * @param[out] result The matrix for the result.
+ * @param a The first transform matrix to enterpolate.
+ * @param b The second transform matrix to interpolate.
+ * @param t The interpolation value between a and b. This must not be the same as a or b.
+ */
+DS_MATH_EXPORT void dsMatrix44d_affineLerpFMA2(dsMatrix44d* result, const dsMatrix44d* a,
+	const dsMatrix44d* b, double t);
+
+/**
+ * @brief Linearly interpolates between two affine transform matrices using fused multiply-add
+ *     operations.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_FMA is available.
+ * @param[out] result The matrix for the result.
+ * @param a The first transform matrix to enterpolate.
+ * @param b The second transform matrix to interpolate.
+ * @param t The interpolation value between a and b.
+ */
+DS_MATH_EXPORT void dsMatrix44d_affineLerpFMA4(dsMatrix44d* DS_ALIGN_PARAM(32) result,
+	const dsMatrix44d* DS_ALIGN_PARAM(32) a, const dsMatrix44d* DS_ALIGN_PARAM(32) b, double t);
+
+DS_SIMD_START(DS_SIMD_FLOAT4)
 
 #if DS_X86_32 || DS_X86_64
 #define DS_SIMD_TRANSPOSE_33(elem0, elem1, elem2) \
@@ -1029,9 +1087,9 @@ DS_MATH_EXPORT inline void dsMatrix44f_inverseTransposeSIMD(dsVector4f result[3]
 #undef DS_MATRIX22_ADJ_MUL
 #undef DS_MATRIX22_MUL_ADJ
 
-DS_SIMD_END();
+DS_SIMD_END()
 
-DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA,DS_SIMD_HADD);
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA,DS_SIMD_HADD)
 
 #define DS_MATRIX22_MUL(result, a, b) \
 	do \
@@ -1357,9 +1415,9 @@ DS_MATH_EXPORT inline void dsMatrix44f_inverseTransposeFMA(dsVector4f result[3],
 #undef DS_SIMD_SHUFFLE1_2301
 #undef DS_SIMD_SHUFFLE1_0213
 
-DS_SIMD_END();
+DS_SIMD_END()
 
-DS_SIMD_START(DS_SIMD_DOUBLE2);
+DS_SIMD_START(DS_SIMD_DOUBLE2)
 
 #if DS_X86_32 || DS_X86_64
 #define DS_SIMD_TRANSPOSE_33(elem0, elem1, elem2) \
@@ -2035,9 +2093,9 @@ DS_MATH_EXPORT inline void dsMatrix44d_inverseTransposeSIMD2(dsVector4d result[3
 #undef DS_MATRIX22_ADJ_MUL
 #undef DS_MATRIX22_MUL_ADJ
 
-DS_SIMD_END();
+DS_SIMD_END()
 
-DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_FMA);
+DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_FMA)
 
 #define DS_MATRIX22_MUL(result, a, b) \
 	do \
@@ -2475,9 +2533,9 @@ DS_MATH_EXPORT inline void dsMatrix44d_inverseTransposeFMA2(dsVector4d result[3]
 #undef DS_SIMD_SHUFFLE1_2301
 #undef DS_SIMD_SHUFFLE1_0213
 
-DS_SIMD_END();
+DS_SIMD_END()
 
-DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_FMA);
+DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_FMA)
 
 DS_MATH_EXPORT inline void dsMatrix44d_mulFMA4(dsMatrix44d* DS_ALIGN_PARAM(32) result,
 	const dsMatrix44d* DS_ALIGN_PARAM(32) a, const dsMatrix44d* DS_ALIGN_PARAM(32) b)
@@ -2725,7 +2783,7 @@ DS_MATH_EXPORT inline void dsMatrix44d_inverseTransposeFMA4(dsVector4d* DS_ALIGN
 	dsSIMD4d_store(result + 2, col2);
 }
 
-DS_SIMD_END();
+DS_SIMD_END()
 
 #endif // DS_HAS_SIMD
 

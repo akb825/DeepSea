@@ -456,6 +456,20 @@ DS_MATH_EXPORT inline void dsMatrix44f_makeScale(dsMatrix44f* result, float x, f
 DS_MATH_EXPORT inline void dsMatrix44d_makeScale(dsMatrix44d* result, double x, double y, double z);
 
 /**
+ * @brief Linearly interpolates between two affine transform matrices.
+ * @param[out] result The matrix for the result.
+ * @param a The first transform matrix to enterpolate.
+ * @param b The second transform matrix to interpolate.
+ * @param t The interpolation value between a and b. This must not be the same as a or b.
+ */
+DS_MATH_EXPORT inline void dsMatrix44f_affineLerp(dsMatrix44f* result, const dsMatrix44f* a,
+	const dsMatrix44f* b, float t);
+
+/** @copydoc dsMatrix44f_affineLerp() */
+DS_MATH_EXPORT inline void dsMatrix44d_affineLerp(dsMatrix44d* result, const dsMatrix44d* a,
+	const dsMatrix44d* b, double t);
+
+/**
  * @brief Makes a matrix that looks at a position.
  * @param[out] result The matrix for the result.
  * @param eyePos The eye position for the center of the transform.
@@ -1243,6 +1257,41 @@ DS_MATH_EXPORT inline void dsMatrix44d_makeScale(dsMatrix44d* result, double x, 
 	result->values[3][1] = 0;
 	result->values[3][2] = 0;
 	result->values[3][3] = 1;
+}
+
+/// @cond
+// Internal versions of dsMatrix44*_affineLerp() when SIMD isn't guaranteed to be available. This
+// allows the top-level function to be inlined and dispatch to the optimal version.
+DS_MATH_EXPORT void dsMatrix44f_affineLerpScalar(dsMatrix44f* result, const dsMatrix44f* a,
+	const dsMatrix44f* b, float t);
+DS_MATH_EXPORT void dsMatrix44d_affineLerpScalar(dsMatrix44d* result, const dsMatrix44d* a,
+	const dsMatrix44d* b, double t);
+/// @endcond
+
+DS_MATH_EXPORT inline void dsMatrix44f_affineLerp(dsMatrix44f* result, const dsMatrix44f* a,
+	const dsMatrix44f* b, float t)
+{
+#if DS_SIMD_ALWAYS_FMA
+	dsMatrix44f_affineLerpFMA(result, a, b, t);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	dsMatrix44f_affineLerpSIMD(result, a, b, t);
+#else
+	dsMatrix44f_affineLerpScalar(result, a, b, t);
+#endif
+}
+
+DS_MATH_EXPORT inline void dsMatrix44d_affineLerp(dsMatrix44d* result, const dsMatrix44d* a,
+	const dsMatrix44d* b, double t)
+{
+#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_ALWAYS_FMA
+	dsMatrix44d_affineLerpFMA2(result, a, b, t);
+#else
+	dsMatrix44d_affineLerpSIMD2(result, a, b, t);
+#endif
+#else
+	dsMatrix44d_affineLerpScalar(result, a, b, t);
+#endif
 }
 
 #ifdef __cplusplus

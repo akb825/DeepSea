@@ -15,6 +15,7 @@
  */
 
 #include <DeepSea/Math/Matrix44.h>
+#include <DeepSea/Math/Quaternion.h>
 #include <DeepSea/Math/Vector3.h>
 #include <DeepSea/Math/Vector4.h>
 #include <gtest/gtest.h>
@@ -35,6 +36,7 @@ struct Matrix44TypeSelector<float>
 	typedef dsMatrix33f Matrix33Type;
 	typedef dsVector4f Vector4Type;
 	typedef dsVector3f Vector3Type;
+	typedef dsQuaternion4f Quaternion4Type;
 	static const float epsilon;
 	static const float inverseEpsilon;
 };
@@ -46,6 +48,7 @@ struct Matrix44TypeSelector<double>
 	typedef dsMatrix33d Matrix33Type;
 	typedef dsVector4d Vector4Type;
 	typedef dsVector3d Vector3Type;
+	typedef dsQuaternion4d Quaternion4Type;
 	static const double epsilon;
 	static const double inverseEpsilon;
 };
@@ -143,6 +146,18 @@ inline void dsMatrix44_makeScale(dsMatrix44d* result, double x, double y, double
 	dsMatrix44d_makeScale(result, x, y, z);
 }
 
+inline void dsMatrix44_affineLerp(dsMatrix44f* result, const dsMatrix44f* a,
+	const dsMatrix44f* b, float t)
+{
+	dsMatrix44f_affineLerp(result, a, b, t);
+}
+
+inline void dsMatrix44_affineLerp(dsMatrix44d* result, const dsMatrix44d* a,
+	const dsMatrix44d* b, double t)
+{
+	dsMatrix44d_affineLerp(result, a, b, t);
+}
+
 inline void dsMatrix44_lookAt(dsMatrix44f* result, const dsVector3f* eyePos,
 	const dsVector3f* lookAtPos, const dsVector3f* upDir)
 {
@@ -199,6 +214,48 @@ inline void dsVector3_normalize(dsVector3f* result, const dsVector3f* a)
 inline void dsVector3_normalize(dsVector3d* result, const dsVector3d* a)
 {
 	dsVector3d_normalize(result, a);
+}
+
+inline void dsQuaternion4_fromEulerAngles(dsQuaternion4f* result, float x, float y, float z)
+{
+	dsQuaternion4f_fromEulerAngles(result, x, y, z);
+}
+
+inline void dsQuaternion4_fromEulerAngles(dsQuaternion4d* result, double x, double y, double z)
+{
+	dsQuaternion4d_fromEulerAngles(result, x, y, z);
+}
+
+inline void dsQuaternion4_slerp(dsQuaternion4f* result, const dsQuaternion4f* a,
+	const dsQuaternion4f* b, float t)
+{
+	dsQuaternion4f_slerp(result, a, b, t);
+}
+
+inline void dsQuaternion4_slerp(dsQuaternion4d* result, const dsQuaternion4d* a,
+	const dsQuaternion4d* b, double t)
+{
+	dsQuaternion4d_slerp(result, a, b, t);
+}
+
+inline void dsQuaternion4_toMatrix44(dsMatrix44f* result, const dsQuaternion4f* a)
+{
+	dsQuaternion4f_toMatrix44(result, a);
+}
+
+inline void dsQuaternion4_toMatrix44(dsMatrix44d* result, const dsQuaternion4d* a)
+{
+	dsQuaternion4d_toMatrix44(result, a);
+}
+
+inline float dsRadiansToDegrees(float radians)
+{
+	return dsRadiansToDegreesf(radians);
+}
+
+inline double dsRadiansToDegrees(double radians)
+{
+	return dsRadiansToDegreesd(radians);
 }
 
 TYPED_TEST(Matrix44Test, Initialize)
@@ -680,6 +737,109 @@ TYPED_TEST(Matrix44Test, MakeScale)
 	EXPECT_EQ((TypeParam)0, matrix.values[3][1]);
 	EXPECT_EQ((TypeParam)0, matrix.values[3][2]);
 	EXPECT_EQ((TypeParam)1, matrix.values[3][3]);
+}
+
+TYPED_TEST(Matrix44Test, AffineLerp)
+{
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Vector3Type Vector3Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Quaternion4Type Quaternion4Type;
+	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
+
+	Vector3Type scaleA = {{(TypeParam)0.1, (TypeParam)0.2, (TypeParam)0.3}};
+	Quaternion4Type rotateA;
+	dsQuaternion4_fromEulerAngles(&rotateA, dsRadiansToDegrees((TypeParam)-10),
+		dsRadiansToDegrees((TypeParam)15), dsRadiansToDegrees((TypeParam)-20));
+	Vector3Type translateA = {{(TypeParam)-10, (TypeParam)20, (TypeParam)-30}};
+
+	Matrix44Type scaleMat, rotateMat, translateMat, tempMat;
+	Matrix44Type transformA;
+	dsMatrix44_makeScale(&scaleMat, scaleA.x, scaleA.y, scaleA.z);
+	dsQuaternion4_toMatrix44(&rotateMat, &rotateA);
+	dsMatrix44_makeTranslate(&translateMat, translateA.x, translateA.y, translateA.z);
+	dsMatrix44_affineMul(tempMat, rotateMat, scaleMat);
+	dsMatrix44_affineMul(transformA, translateMat, tempMat);
+
+	Vector3Type scaleB = {{(TypeParam)3.0, (TypeParam)2.0, (TypeParam)1.0}};
+	Quaternion4Type rotateB;
+	dsQuaternion4_fromEulerAngles(&rotateB, dsRadiansToDegrees((TypeParam)30),
+		dsRadiansToDegrees((TypeParam)-20), dsRadiansToDegrees((TypeParam)10));
+	Vector3Type translateB = {{(TypeParam)20, (TypeParam)-15, (TypeParam)10}};
+
+	Matrix44Type transformB;
+	dsMatrix44_makeScale(&scaleMat, scaleB.x, scaleB.y, scaleB.z);
+	dsQuaternion4_toMatrix44(&rotateMat, &rotateB);
+	dsMatrix44_makeTranslate(&translateMat, translateB.x, translateB.y, translateB.z);
+	dsMatrix44_affineMul(tempMat, rotateMat, scaleMat);
+	dsMatrix44_affineMul(transformB, translateMat, tempMat);
+
+	TypeParam t = (TypeParam)0.375;
+	Vector3Type scaleInterp;
+	Quaternion4Type rotateInterp;
+	Vector3Type translateInterp;
+	dsVector3_lerp(scaleInterp, scaleA, scaleB, t);
+	dsQuaternion4_slerp(&rotateInterp, &rotateA, &rotateB, t);
+	dsVector3_lerp(translateInterp, translateA, translateB, t);
+
+	Matrix44Type expectedResult;
+	dsMatrix44_makeScale(&scaleMat, scaleInterp.x, scaleInterp.y, scaleInterp.z);
+	dsQuaternion4_toMatrix44(&rotateMat, &rotateInterp);
+	dsMatrix44_makeTranslate(&translateMat, translateInterp.x, translateInterp.y,
+		translateInterp.z);
+	dsMatrix44_affineMul(tempMat, rotateMat, scaleMat);
+	dsMatrix44_affineMul(expectedResult, translateMat, tempMat);
+
+	Matrix44Type result;
+	dsMatrix44_affineLerp(&result, &transformA, &transformB, t);
+
+	EXPECT_NEAR(expectedResult.values[0][0], result.values[0][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[0][1], result.values[0][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[0][2], result.values[0][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[0][3], result.values[0][3], epsilon);
+
+	EXPECT_NEAR(expectedResult.values[1][0], result.values[1][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[1][1], result.values[1][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[1][2], result.values[1][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[1][3], result.values[1][3], epsilon);
+
+	EXPECT_NEAR(expectedResult.values[2][0], result.values[2][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[2][1], result.values[2][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[2][2], result.values[2][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[2][3], result.values[2][3], epsilon);
+
+	EXPECT_NEAR(expectedResult.values[3][0], result.values[3][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[3][1], result.values[3][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[3][2], result.values[3][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[3][3], result.values[3][3], epsilon);
+
+	dsMatrix44_makeScale(&scaleMat, scaleB.x, scaleB.y, scaleB.z);
+	dsQuaternion4_toMatrix44(&rotateMat, &rotateB);
+	dsMatrix44_makeTranslate(&translateMat, translateB.x, translateB.y, translateB.z);
+	dsMatrix44_affineMul(tempMat, scaleMat, translateMat);
+	dsMatrix44_affineMul(transformB, rotateMat, tempMat);
+
+	t = (TypeParam)1.0;
+	dsMatrix44_affineLerp(&result, &transformA, &transformB, t);
+
+	EXPECT_NEAR(transformB.values[0][0], result.values[0][0], epsilon);
+	EXPECT_NEAR(transformB.values[0][1], result.values[0][1], epsilon);
+	EXPECT_NEAR(transformB.values[0][2], result.values[0][2], epsilon);
+	EXPECT_NEAR(transformB.values[0][3], result.values[0][3], epsilon);
+
+	EXPECT_NEAR(transformB.values[1][0], result.values[1][0], epsilon);
+	EXPECT_NEAR(transformB.values[1][1], result.values[1][1], epsilon);
+	EXPECT_NEAR(transformB.values[1][2], result.values[1][2], epsilon);
+	EXPECT_NEAR(transformB.values[1][3], result.values[1][3], epsilon);
+
+	EXPECT_NEAR(transformB.values[2][0], result.values[2][0], epsilon);
+	EXPECT_NEAR(transformB.values[2][1], result.values[2][1], epsilon);
+	EXPECT_NEAR(transformB.values[2][2], result.values[2][2], epsilon);
+	EXPECT_NEAR(transformB.values[2][3], result.values[2][3], epsilon);
+
+	EXPECT_NEAR(transformB.values[3][0], result.values[3][0], epsilon);
+	EXPECT_NEAR(transformB.values[3][1], result.values[3][1], epsilon);
+	EXPECT_NEAR(transformB.values[3][2], result.values[3][2], epsilon);
+	EXPECT_NEAR(transformB.values[3][3], result.values[3][3], epsilon);
 }
 
 TYPED_TEST(Matrix44Test, LookAt)
@@ -3143,6 +3303,523 @@ TEST(Matrix44fTest, InverseTransposeDouble4FMA)
 	EXPECT_NEAR(inverseTransposeCheck.values[2][0], inverseTranspose[2].x, epsilon);
 	EXPECT_NEAR(inverseTransposeCheck.values[2][1], inverseTranspose[2].y, epsilon);
 	EXPECT_NEAR(inverseTransposeCheck.values[2][2], inverseTranspose[2].z, epsilon);
+}
+
+TEST(Matrix44fTest, AffineLerpSIMD)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		return;
+
+	const float epsilon = Matrix44TypeSelector<float>::epsilon;
+
+	dsVector3f scaleA = {{0.1f, 0.2f, 0.3f}};
+	dsQuaternion4f rotateA;
+	dsQuaternion4f_fromEulerAngles(&rotateA, dsRadiansToDegreesf(-10.0f),
+		dsRadiansToDegreesf(15.0f), dsRadiansToDegreesf(-20.0f));
+	dsVector3f translateA = {{-10.0f, 20.0f, -30.0f}};
+
+	dsMatrix44f scaleMat, rotateMat, translateMat, tempMat;
+	dsMatrix44f transformA;
+	dsMatrix44f_makeScale(&scaleMat, scaleA.x, scaleA.y, scaleA.z);
+	dsQuaternion4f_toMatrix44(&rotateMat, &rotateA);
+	dsMatrix44f_makeTranslate(&translateMat, translateA.x, translateA.y, translateA.z);
+	dsMatrix44f_affineMulSIMD(&tempMat, &rotateMat, &scaleMat);
+	dsMatrix44f_affineMulSIMD(&transformA, &translateMat, &tempMat);
+
+	dsVector3f scaleB = {{3.0f, 2.0f, 1.0f}};
+	dsQuaternion4f rotateB;
+	dsQuaternion4f_fromEulerAngles(&rotateB, dsRadiansToDegreesf(30.0f),
+		dsRadiansToDegreesf(-20.0f), dsRadiansToDegreesf(10.0f));
+	dsVector3f translateB = {{20.0f, -15.0f, 10.0f}};
+
+	dsMatrix44f transformB;
+	dsMatrix44f_makeScale(&scaleMat, scaleB.x, scaleB.y, scaleB.z);
+	dsQuaternion4f_toMatrix44(&rotateMat, &rotateB);
+	dsMatrix44f_makeTranslate(&translateMat, translateB.x, translateB.y, translateB.z);
+	dsMatrix44f_affineMulSIMD(&tempMat, &rotateMat, &scaleMat);
+	dsMatrix44f_affineMulSIMD(&transformB, &translateMat, &tempMat);
+
+	float t = 0.375f;
+	dsVector3f scaleInterp;
+	dsQuaternion4f rotateInterp;
+	dsVector3f translateInterp;
+	dsVector3_lerp(scaleInterp, scaleA, scaleB, t);
+	dsQuaternion4f_slerp(&rotateInterp, &rotateA, &rotateB, t);
+	dsVector3_lerp(translateInterp, translateA, translateB, t);
+
+	dsMatrix44f expectedResult;
+	dsMatrix44f_makeScale(&scaleMat, scaleInterp.x, scaleInterp.y, scaleInterp.z);
+	dsQuaternion4f_toMatrix44(&rotateMat, &rotateInterp);
+	dsMatrix44f_makeTranslate(&translateMat, translateInterp.x, translateInterp.y,
+		translateInterp.z);
+	dsMatrix44f_affineMulSIMD(&tempMat, &rotateMat, &scaleMat);
+	dsMatrix44f_affineMulSIMD(&expectedResult, &translateMat, &tempMat);
+
+	dsMatrix44f result;
+	dsMatrix44f_affineLerpSIMD(&result, &transformA, &transformB, t);
+
+	EXPECT_NEAR(expectedResult.values[0][0], result.values[0][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[0][1], result.values[0][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[0][2], result.values[0][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[0][3], result.values[0][3], epsilon);
+
+	EXPECT_NEAR(expectedResult.values[1][0], result.values[1][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[1][1], result.values[1][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[1][2], result.values[1][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[1][3], result.values[1][3], epsilon);
+
+	EXPECT_NEAR(expectedResult.values[2][0], result.values[2][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[2][1], result.values[2][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[2][2], result.values[2][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[2][3], result.values[2][3], epsilon);
+
+	EXPECT_NEAR(expectedResult.values[3][0], result.values[3][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[3][1], result.values[3][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[3][2], result.values[3][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[3][3], result.values[3][3], epsilon);
+
+	dsMatrix44f_makeScale(&scaleMat, scaleB.x, scaleB.y, scaleB.z);
+	dsQuaternion4f_toMatrix44(&rotateMat, &rotateB);
+	dsMatrix44f_makeTranslate(&translateMat, translateB.x, translateB.y, translateB.z);
+	dsMatrix44f_affineMulSIMD(&tempMat, &scaleMat, &translateMat);
+	dsMatrix44f_affineMulSIMD(&transformB, &rotateMat, &tempMat);
+
+	t = 1.0f;
+	dsMatrix44f_affineLerpSIMD(&result, &transformA, &transformB, t);
+
+	EXPECT_NEAR(transformB.values[0][0], result.values[0][0], epsilon);
+	EXPECT_NEAR(transformB.values[0][1], result.values[0][1], epsilon);
+	EXPECT_NEAR(transformB.values[0][2], result.values[0][2], epsilon);
+	EXPECT_NEAR(transformB.values[0][3], result.values[0][3], epsilon);
+
+	EXPECT_NEAR(transformB.values[1][0], result.values[1][0], epsilon);
+	EXPECT_NEAR(transformB.values[1][1], result.values[1][1], epsilon);
+	EXPECT_NEAR(transformB.values[1][2], result.values[1][2], epsilon);
+	EXPECT_NEAR(transformB.values[1][3], result.values[1][3], epsilon);
+
+	EXPECT_NEAR(transformB.values[2][0], result.values[2][0], epsilon);
+	EXPECT_NEAR(transformB.values[2][1], result.values[2][1], epsilon);
+	EXPECT_NEAR(transformB.values[2][2], result.values[2][2], epsilon);
+	EXPECT_NEAR(transformB.values[2][3], result.values[2][3], epsilon);
+
+	EXPECT_NEAR(transformB.values[3][0], result.values[3][0], epsilon);
+	EXPECT_NEAR(transformB.values[3][1], result.values[3][1], epsilon);
+	EXPECT_NEAR(transformB.values[3][2], result.values[3][2], epsilon);
+	EXPECT_NEAR(transformB.values[3][3], result.values[3][3], epsilon);
+}
+
+TEST(Matrix44fTest, AffineLerpFMA)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+		return;
+
+	const float epsilon = Matrix44TypeSelector<float>::epsilon;
+
+	dsVector3f scaleA = {{0.1f, 0.2f, 0.3f}};
+	dsQuaternion4f rotateA;
+	dsQuaternion4f_fromEulerAngles(&rotateA, dsRadiansToDegreesf(-10.0f),
+		dsRadiansToDegreesf(15.0f), dsRadiansToDegreesf(-20.0f));
+	dsVector3f translateA = {{-10.0f, 20.0f, -30.0f}};
+
+	dsMatrix44f scaleMat, rotateMat, translateMat, tempMat;
+	dsMatrix44f transformA;
+	dsMatrix44f_makeScale(&scaleMat, scaleA.x, scaleA.y, scaleA.z);
+	dsQuaternion4f_toMatrix44(&rotateMat, &rotateA);
+	dsMatrix44f_makeTranslate(&translateMat, translateA.x, translateA.y, translateA.z);
+	dsMatrix44f_affineMulFMA(&tempMat, &rotateMat, &scaleMat);
+	dsMatrix44f_affineMulFMA(&transformA, &translateMat, &tempMat);
+
+	dsVector3f scaleB = {{3.0f, 2.0f, 1.0f}};
+	dsQuaternion4f rotateB;
+	dsQuaternion4f_fromEulerAngles(&rotateB, dsRadiansToDegreesf(30.0f),
+		dsRadiansToDegreesf(-20.0f), dsRadiansToDegreesf(10.0f));
+	dsVector3f translateB = {{20.0f, -15.0f, 10.0f}};
+
+	dsMatrix44f transformB;
+	dsMatrix44f_makeScale(&scaleMat, scaleB.x, scaleB.y, scaleB.z);
+	dsQuaternion4f_toMatrix44(&rotateMat, &rotateB);
+	dsMatrix44f_makeTranslate(&translateMat, translateB.x, translateB.y, translateB.z);
+	dsMatrix44f_affineMulFMA(&tempMat, &rotateMat, &scaleMat);
+	dsMatrix44f_affineMulFMA(&transformB, &translateMat, &tempMat);
+
+	float t = 0.375f;
+	dsVector3f scaleInterp;
+	dsQuaternion4f rotateInterp;
+	dsVector3f translateInterp;
+	dsVector3_lerp(scaleInterp, scaleA, scaleB, t);
+	dsQuaternion4f_slerp(&rotateInterp, &rotateA, &rotateB, t);
+	dsVector3_lerp(translateInterp, translateA, translateB, t);
+
+	dsMatrix44f expectedResult;
+	dsMatrix44f_makeScale(&scaleMat, scaleInterp.x, scaleInterp.y, scaleInterp.z);
+	dsQuaternion4f_toMatrix44(&rotateMat, &rotateInterp);
+	dsMatrix44f_makeTranslate(&translateMat, translateInterp.x, translateInterp.y,
+		translateInterp.z);
+	dsMatrix44f_affineMulFMA(&tempMat, &rotateMat, &scaleMat);
+	dsMatrix44f_affineMulFMA(&expectedResult, &translateMat, &tempMat);
+
+	dsMatrix44f result;
+	dsMatrix44f_affineLerpFMA(&result, &transformA, &transformB, t);
+
+	EXPECT_NEAR(expectedResult.values[0][0], result.values[0][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[0][1], result.values[0][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[0][2], result.values[0][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[0][3], result.values[0][3], epsilon);
+
+	EXPECT_NEAR(expectedResult.values[1][0], result.values[1][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[1][1], result.values[1][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[1][2], result.values[1][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[1][3], result.values[1][3], epsilon);
+
+	EXPECT_NEAR(expectedResult.values[2][0], result.values[2][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[2][1], result.values[2][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[2][2], result.values[2][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[2][3], result.values[2][3], epsilon);
+
+	EXPECT_NEAR(expectedResult.values[3][0], result.values[3][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[3][1], result.values[3][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[3][2], result.values[3][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[3][3], result.values[3][3], epsilon);
+
+	dsMatrix44f_makeScale(&scaleMat, scaleB.x, scaleB.y, scaleB.z);
+	dsQuaternion4f_toMatrix44(&rotateMat, &rotateB);
+	dsMatrix44f_makeTranslate(&translateMat, translateB.x, translateB.y, translateB.z);
+	dsMatrix44f_affineMulFMA(&tempMat, &scaleMat, &translateMat);
+	dsMatrix44f_affineMulFMA(&transformB, &rotateMat, &tempMat);
+
+	t = 1.0f;
+	dsMatrix44f_affineLerpFMA(&result, &transformA, &transformB, t);
+
+	EXPECT_NEAR(transformB.values[0][0], result.values[0][0], epsilon);
+	EXPECT_NEAR(transformB.values[0][1], result.values[0][1], epsilon);
+	EXPECT_NEAR(transformB.values[0][2], result.values[0][2], epsilon);
+	EXPECT_NEAR(transformB.values[0][3], result.values[0][3], epsilon);
+
+	EXPECT_NEAR(transformB.values[1][0], result.values[1][0], epsilon);
+	EXPECT_NEAR(transformB.values[1][1], result.values[1][1], epsilon);
+	EXPECT_NEAR(transformB.values[1][2], result.values[1][2], epsilon);
+	EXPECT_NEAR(transformB.values[1][3], result.values[1][3], epsilon);
+
+	EXPECT_NEAR(transformB.values[2][0], result.values[2][0], epsilon);
+	EXPECT_NEAR(transformB.values[2][1], result.values[2][1], epsilon);
+	EXPECT_NEAR(transformB.values[2][2], result.values[2][2], epsilon);
+	EXPECT_NEAR(transformB.values[2][3], result.values[2][3], epsilon);
+
+	EXPECT_NEAR(transformB.values[3][0], result.values[3][0], epsilon);
+	EXPECT_NEAR(transformB.values[3][1], result.values[3][1], epsilon);
+	EXPECT_NEAR(transformB.values[3][2], result.values[3][2], epsilon);
+	EXPECT_NEAR(transformB.values[3][3], result.values[3][3], epsilon);
+}
+
+TEST(Matrix44fTest, AffineLerpDouble2SIMD)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
+		return;
+
+	const double epsilon = Matrix44TypeSelector<double>::epsilon;
+
+	dsVector3d scaleA = {{0.1, 0.2, 0.3}};
+	dsQuaternion4d rotateA;
+	dsQuaternion4d_fromEulerAngles(&rotateA, dsRadiansToDegreesf(-10.0),
+		dsRadiansToDegreesf(15.0), dsRadiansToDegreesf(-20.0));
+	dsVector3d translateA = {{-10.0, 20.0, -30.0}};
+
+	dsMatrix44d scaleMat, rotateMat, translateMat, tempMat;
+	dsMatrix44d transformA;
+	dsMatrix44d_makeScale(&scaleMat, scaleA.x, scaleA.y, scaleA.z);
+	dsQuaternion4d_toMatrix44(&rotateMat, &rotateA);
+	dsMatrix44d_makeTranslate(&translateMat, translateA.x, translateA.y, translateA.z);
+	dsMatrix44d_affineMulSIMD2(&tempMat, &rotateMat, &scaleMat);
+	dsMatrix44d_affineMulSIMD2(&transformA, &translateMat, &tempMat);
+
+	dsVector3d scaleB = {{3.0, 2.0, 1.0}};
+	dsQuaternion4d rotateB;
+	dsQuaternion4d_fromEulerAngles(&rotateB, dsRadiansToDegreesd(30.0),
+		dsRadiansToDegreesd(-20.0f), dsRadiansToDegreesd(10.0));
+	dsVector3f translateB = {{20.0f, -15.0f, 10.0f}};
+
+	dsMatrix44d transformB;
+	dsMatrix44d_makeScale(&scaleMat, scaleB.x, scaleB.y, scaleB.z);
+	dsQuaternion4d_toMatrix44(&rotateMat, &rotateB);
+	dsMatrix44d_makeTranslate(&translateMat, translateB.x, translateB.y, translateB.z);
+	dsMatrix44d_affineMulSIMD2(&tempMat, &rotateMat, &scaleMat);
+	dsMatrix44d_affineMulSIMD2(&transformB, &translateMat, &tempMat);
+
+	double t = 0.375;
+	dsVector3d scaleInterp;
+	dsQuaternion4d rotateInterp;
+	dsVector3d translateInterp;
+	dsVector3_lerp(scaleInterp, scaleA, scaleB, t);
+	dsQuaternion4d_slerp(&rotateInterp, &rotateA, &rotateB, t);
+	dsVector3_lerp(translateInterp, translateA, translateB, t);
+
+	dsMatrix44d expectedResult;
+	dsMatrix44d_makeScale(&scaleMat, scaleInterp.x, scaleInterp.y, scaleInterp.z);
+	dsQuaternion4d_toMatrix44(&rotateMat, &rotateInterp);
+	dsMatrix44d_makeTranslate(&translateMat, translateInterp.x, translateInterp.y,
+		translateInterp.z);
+	dsMatrix44d_affineMulSIMD2(&tempMat, &rotateMat, &scaleMat);
+	dsMatrix44d_affineMulSIMD2(&expectedResult, &translateMat, &tempMat);
+
+	dsMatrix44d result;
+	dsMatrix44d_affineLerpSIMD2(&result, &transformA, &transformB, t);
+
+	EXPECT_NEAR(expectedResult.values[0][0], result.values[0][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[0][1], result.values[0][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[0][2], result.values[0][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[0][3], result.values[0][3], epsilon);
+
+	EXPECT_NEAR(expectedResult.values[1][0], result.values[1][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[1][1], result.values[1][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[1][2], result.values[1][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[1][3], result.values[1][3], epsilon);
+
+	EXPECT_NEAR(expectedResult.values[2][0], result.values[2][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[2][1], result.values[2][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[2][2], result.values[2][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[2][3], result.values[2][3], epsilon);
+
+	EXPECT_NEAR(expectedResult.values[3][0], result.values[3][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[3][1], result.values[3][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[3][2], result.values[3][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[3][3], result.values[3][3], epsilon);
+
+	dsMatrix44d_makeScale(&scaleMat, scaleB.x, scaleB.y, scaleB.z);
+	dsQuaternion4d_toMatrix44(&rotateMat, &rotateB);
+	dsMatrix44d_makeTranslate(&translateMat, translateB.x, translateB.y, translateB.z);
+	dsMatrix44d_affineMulSIMD2(&tempMat, &scaleMat, &translateMat);
+	dsMatrix44d_affineMulSIMD2(&transformB, &rotateMat, &tempMat);
+
+	t = 1.0;
+	dsMatrix44d_affineLerpSIMD2(&result, &transformA, &transformB, t);
+
+	EXPECT_NEAR(transformB.values[0][0], result.values[0][0], epsilon);
+	EXPECT_NEAR(transformB.values[0][1], result.values[0][1], epsilon);
+	EXPECT_NEAR(transformB.values[0][2], result.values[0][2], epsilon);
+	EXPECT_NEAR(transformB.values[0][3], result.values[0][3], epsilon);
+
+	EXPECT_NEAR(transformB.values[1][0], result.values[1][0], epsilon);
+	EXPECT_NEAR(transformB.values[1][1], result.values[1][1], epsilon);
+	EXPECT_NEAR(transformB.values[1][2], result.values[1][2], epsilon);
+	EXPECT_NEAR(transformB.values[1][3], result.values[1][3], epsilon);
+
+	EXPECT_NEAR(transformB.values[2][0], result.values[2][0], epsilon);
+	EXPECT_NEAR(transformB.values[2][1], result.values[2][1], epsilon);
+	EXPECT_NEAR(transformB.values[2][2], result.values[2][2], epsilon);
+	EXPECT_NEAR(transformB.values[2][3], result.values[2][3], epsilon);
+
+	EXPECT_NEAR(transformB.values[3][0], result.values[3][0], epsilon);
+	EXPECT_NEAR(transformB.values[3][1], result.values[3][1], epsilon);
+	EXPECT_NEAR(transformB.values[3][2], result.values[3][2], epsilon);
+	EXPECT_NEAR(transformB.values[3][3], result.values[3][3], epsilon);
+}
+
+TEST(Matrix44fTest, AffineLerpDouble2FMA)
+{
+	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
+	if ((dsHostSIMDFeatures & features) != features)
+		return;
+
+	const double epsilon = Matrix44TypeSelector<double>::epsilon;
+
+	dsVector3d scaleA = {{0.1, 0.2, 0.3}};
+	dsQuaternion4d rotateA;
+	dsQuaternion4d_fromEulerAngles(&rotateA, dsRadiansToDegreesf(-10.0),
+		dsRadiansToDegreesf(15.0), dsRadiansToDegreesf(-20.0));
+	dsVector3d translateA = {{-10.0, 20.0, -30.0}};
+
+	dsMatrix44d scaleMat, rotateMat, translateMat, tempMat;
+	dsMatrix44d transformA;
+	dsMatrix44d_makeScale(&scaleMat, scaleA.x, scaleA.y, scaleA.z);
+	dsQuaternion4d_toMatrix44(&rotateMat, &rotateA);
+	dsMatrix44d_makeTranslate(&translateMat, translateA.x, translateA.y, translateA.z);
+	dsMatrix44d_affineMulFMA2(&tempMat, &rotateMat, &scaleMat);
+	dsMatrix44d_affineMulFMA2(&transformA, &translateMat, &tempMat);
+
+	dsVector3d scaleB = {{3.0, 2.0, 1.0}};
+	dsQuaternion4d rotateB;
+	dsQuaternion4d_fromEulerAngles(&rotateB, dsRadiansToDegreesd(30.0),
+		dsRadiansToDegreesd(-20.0f), dsRadiansToDegreesd(10.0));
+	dsVector3f translateB = {{20.0f, -15.0f, 10.0f}};
+
+	dsMatrix44d transformB;
+	dsMatrix44d_makeScale(&scaleMat, scaleB.x, scaleB.y, scaleB.z);
+	dsQuaternion4d_toMatrix44(&rotateMat, &rotateB);
+	dsMatrix44d_makeTranslate(&translateMat, translateB.x, translateB.y, translateB.z);
+	dsMatrix44d_affineMulFMA2(&tempMat, &rotateMat, &scaleMat);
+	dsMatrix44d_affineMulFMA2(&transformB, &translateMat, &tempMat);
+
+	double t = 0.375;
+	dsVector3d scaleInterp;
+	dsQuaternion4d rotateInterp;
+	dsVector3d translateInterp;
+	dsVector3_lerp(scaleInterp, scaleA, scaleB, t);
+	dsQuaternion4d_slerp(&rotateInterp, &rotateA, &rotateB, t);
+	dsVector3_lerp(translateInterp, translateA, translateB, t);
+
+	dsMatrix44d expectedResult;
+	dsMatrix44d_makeScale(&scaleMat, scaleInterp.x, scaleInterp.y, scaleInterp.z);
+	dsQuaternion4d_toMatrix44(&rotateMat, &rotateInterp);
+	dsMatrix44d_makeTranslate(&translateMat, translateInterp.x, translateInterp.y,
+		translateInterp.z);
+	dsMatrix44d_affineMulFMA2(&tempMat, &rotateMat, &scaleMat);
+	dsMatrix44d_affineMulFMA2(&expectedResult, &translateMat, &tempMat);
+
+	dsMatrix44d result;
+	dsMatrix44d_affineLerpFMA2(&result, &transformA, &transformB, t);
+
+	EXPECT_NEAR(expectedResult.values[0][0], result.values[0][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[0][1], result.values[0][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[0][2], result.values[0][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[0][3], result.values[0][3], epsilon);
+
+	EXPECT_NEAR(expectedResult.values[1][0], result.values[1][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[1][1], result.values[1][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[1][2], result.values[1][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[1][3], result.values[1][3], epsilon);
+
+	EXPECT_NEAR(expectedResult.values[2][0], result.values[2][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[2][1], result.values[2][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[2][2], result.values[2][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[2][3], result.values[2][3], epsilon);
+
+	EXPECT_NEAR(expectedResult.values[3][0], result.values[3][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[3][1], result.values[3][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[3][2], result.values[3][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[3][3], result.values[3][3], epsilon);
+
+	dsMatrix44d_makeScale(&scaleMat, scaleB.x, scaleB.y, scaleB.z);
+	dsQuaternion4d_toMatrix44(&rotateMat, &rotateB);
+	dsMatrix44d_makeTranslate(&translateMat, translateB.x, translateB.y, translateB.z);
+	dsMatrix44d_affineMulFMA2(&tempMat, &scaleMat, &translateMat);
+	dsMatrix44d_affineMulFMA2(&transformB, &rotateMat, &tempMat);
+
+	t = 1.0;
+	dsMatrix44d_affineLerpFMA2(&result, &transformA, &transformB, t);
+
+	EXPECT_NEAR(transformB.values[0][0], result.values[0][0], epsilon);
+	EXPECT_NEAR(transformB.values[0][1], result.values[0][1], epsilon);
+	EXPECT_NEAR(transformB.values[0][2], result.values[0][2], epsilon);
+	EXPECT_NEAR(transformB.values[0][3], result.values[0][3], epsilon);
+
+	EXPECT_NEAR(transformB.values[1][0], result.values[1][0], epsilon);
+	EXPECT_NEAR(transformB.values[1][1], result.values[1][1], epsilon);
+	EXPECT_NEAR(transformB.values[1][2], result.values[1][2], epsilon);
+	EXPECT_NEAR(transformB.values[1][3], result.values[1][3], epsilon);
+
+	EXPECT_NEAR(transformB.values[2][0], result.values[2][0], epsilon);
+	EXPECT_NEAR(transformB.values[2][1], result.values[2][1], epsilon);
+	EXPECT_NEAR(transformB.values[2][2], result.values[2][2], epsilon);
+	EXPECT_NEAR(transformB.values[2][3], result.values[2][3], epsilon);
+
+	EXPECT_NEAR(transformB.values[3][0], result.values[3][0], epsilon);
+	EXPECT_NEAR(transformB.values[3][1], result.values[3][1], epsilon);
+	EXPECT_NEAR(transformB.values[3][2], result.values[3][2], epsilon);
+	EXPECT_NEAR(transformB.values[3][3], result.values[3][3], epsilon);
+}
+
+TEST(Matrix44fTest, AffineLerpDouble4FMA)
+{
+	dsSIMDFeatures features = dsSIMDFeatures_Double4 | dsSIMDFeatures_FMA;
+	if ((dsHostSIMDFeatures & features) != features)
+		return;
+
+	const double epsilon = Matrix44TypeSelector<double>::epsilon;
+
+	dsVector3d scaleA = {{0.1, 0.2, 0.3}};
+	dsQuaternion4d rotateA;
+	dsQuaternion4d_fromEulerAngles(&rotateA, dsRadiansToDegreesf(-10.0),
+		dsRadiansToDegreesf(15.0), dsRadiansToDegreesf(-20.0));
+	dsVector3d translateA = {{-10.0, 20.0, -30.0}};
+
+	DS_ALIGN(32) dsMatrix44d scaleMat, rotateMat, translateMat, tempMat;
+	DS_ALIGN(32) dsMatrix44d transformA;
+	dsMatrix44d_makeScale(&scaleMat, scaleA.x, scaleA.y, scaleA.z);
+	dsQuaternion4d_toMatrix44(&rotateMat, &rotateA);
+	dsMatrix44d_makeTranslate(&translateMat, translateA.x, translateA.y, translateA.z);
+	dsMatrix44d_affineMulFMA4(&tempMat, &rotateMat, &scaleMat);
+	dsMatrix44d_affineMulFMA4(&transformA, &translateMat, &tempMat);
+
+	dsVector3d scaleB = {{3.0, 2.0, 1.0}};
+	dsQuaternion4d rotateB;
+	dsQuaternion4d_fromEulerAngles(&rotateB, dsRadiansToDegreesd(30.0),
+		dsRadiansToDegreesd(-20.0f), dsRadiansToDegreesd(10.0));
+	dsVector3f translateB = {{20.0f, -15.0f, 10.0f}};
+
+	DS_ALIGN(32) dsMatrix44d transformB;
+	dsMatrix44d_makeScale(&scaleMat, scaleB.x, scaleB.y, scaleB.z);
+	dsQuaternion4d_toMatrix44(&rotateMat, &rotateB);
+	dsMatrix44d_makeTranslate(&translateMat, translateB.x, translateB.y, translateB.z);
+	dsMatrix44d_affineMulFMA4(&tempMat, &rotateMat, &scaleMat);
+	dsMatrix44d_affineMulFMA4(&transformB, &translateMat, &tempMat);
+
+	double t = 0.375;
+	dsVector3d scaleInterp;
+	dsQuaternion4d rotateInterp;
+	dsVector3d translateInterp;
+	dsVector3_lerp(scaleInterp, scaleA, scaleB, t);
+	dsQuaternion4d_slerp(&rotateInterp, &rotateA, &rotateB, t);
+	dsVector3_lerp(translateInterp, translateA, translateB, t);
+
+	DS_ALIGN(32) dsMatrix44d expectedResult;
+	dsMatrix44d_makeScale(&scaleMat, scaleInterp.x, scaleInterp.y, scaleInterp.z);
+	dsQuaternion4d_toMatrix44(&rotateMat, &rotateInterp);
+	dsMatrix44d_makeTranslate(&translateMat, translateInterp.x, translateInterp.y,
+		translateInterp.z);
+	dsMatrix44d_affineMulFMA4(&tempMat, &rotateMat, &scaleMat);
+	dsMatrix44d_affineMulFMA4(&expectedResult, &translateMat, &tempMat);
+
+	DS_ALIGN(32) dsMatrix44d result;
+	dsMatrix44d_affineLerpFMA4(&result, &transformA, &transformB, t);
+
+	EXPECT_NEAR(expectedResult.values[0][0], result.values[0][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[0][1], result.values[0][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[0][2], result.values[0][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[0][3], result.values[0][3], epsilon);
+
+	EXPECT_NEAR(expectedResult.values[1][0], result.values[1][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[1][1], result.values[1][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[1][2], result.values[1][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[1][3], result.values[1][3], epsilon);
+
+	EXPECT_NEAR(expectedResult.values[2][0], result.values[2][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[2][1], result.values[2][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[2][2], result.values[2][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[2][3], result.values[2][3], epsilon);
+
+	EXPECT_NEAR(expectedResult.values[3][0], result.values[3][0], epsilon);
+	EXPECT_NEAR(expectedResult.values[3][1], result.values[3][1], epsilon);
+	EXPECT_NEAR(expectedResult.values[3][2], result.values[3][2], epsilon);
+	EXPECT_NEAR(expectedResult.values[3][3], result.values[3][3], epsilon);
+
+	dsMatrix44d_makeScale(&scaleMat, scaleB.x, scaleB.y, scaleB.z);
+	dsQuaternion4d_toMatrix44(&rotateMat, &rotateB);
+	dsMatrix44d_makeTranslate(&translateMat, translateB.x, translateB.y, translateB.z);
+	dsMatrix44d_affineMulFMA4(&tempMat, &scaleMat, &translateMat);
+	dsMatrix44d_affineMulFMA4(&transformB, &rotateMat, &tempMat);
+
+	t = 1.0;
+	dsMatrix44d_affineLerpFMA4(&result, &transformA, &transformB, t);
+
+	EXPECT_NEAR(transformB.values[0][0], result.values[0][0], epsilon);
+	EXPECT_NEAR(transformB.values[0][1], result.values[0][1], epsilon);
+	EXPECT_NEAR(transformB.values[0][2], result.values[0][2], epsilon);
+	EXPECT_NEAR(transformB.values[0][3], result.values[0][3], epsilon);
+
+	EXPECT_NEAR(transformB.values[1][0], result.values[1][0], epsilon);
+	EXPECT_NEAR(transformB.values[1][1], result.values[1][1], epsilon);
+	EXPECT_NEAR(transformB.values[1][2], result.values[1][2], epsilon);
+	EXPECT_NEAR(transformB.values[1][3], result.values[1][3], epsilon);
+
+	EXPECT_NEAR(transformB.values[2][0], result.values[2][0], epsilon);
+	EXPECT_NEAR(transformB.values[2][1], result.values[2][1], epsilon);
+	EXPECT_NEAR(transformB.values[2][2], result.values[2][2], epsilon);
+	EXPECT_NEAR(transformB.values[2][3], result.values[2][3], epsilon);
+
+	EXPECT_NEAR(transformB.values[3][0], result.values[3][0], epsilon);
+	EXPECT_NEAR(transformB.values[3][1], result.values[3][1], epsilon);
+	EXPECT_NEAR(transformB.values[3][2], result.values[3][2], epsilon);
+	EXPECT_NEAR(transformB.values[3][3], result.values[3][3], epsilon);
 }
 #endif
 
