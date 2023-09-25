@@ -245,7 +245,12 @@ TYPED_TEST(Vector2Test, Length)
 {
 	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
 
-	Vector2Type a = {{(TypeParam)-2.3, (TypeParam)4.5}};
+	// NOTE: When building release with ARM64 on Mac, using -2.3 for x will give different results
+	// for the dsVector2_len2() check, even if the exact same expression (dsVector2_len2(a)) is
+	// copy/pasted between them, even if the exact same expression is assigned to two separate
+	// variables. Use -2.25 instead to avoid any floating point precision loss regardless of how the
+	// compiler orders the multiplies and adds when optimizing.
+	Vector2Type a = {{(TypeParam)-2.25, (TypeParam)4.5}};
 
 	EXPECT_EQ(dsPow2(a.x) + dsPow2(a.y), dsVector2_len2(a));
 	EXPECT_EQ(std::sqrt(dsPow2(a.x) + dsPow2(a.y)), dsVector2_len(&a));
