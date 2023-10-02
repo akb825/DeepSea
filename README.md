@@ -133,6 +133,7 @@ To build the examples, an Android Studio project is provided in the android subd
 * `-DDEEPSEA_BUILD_PARTICLE=ON|OFF`: Set to `ON` to build the particle library. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_ANIMATION=ON|OFF`: Set to `ON` to build the animation library. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_SCENE=ON|OFF`: Set to `ON` to build the scene library. Defaults to `ON`.
+* `-DDEEPSEA_BUILD_PHYSICS=ON|OFF`: Set to `ON` to build the physics library. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_APPLICATION=ON|OFF`: Set to `ON` to build the application framework. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_APPLICATION_SDL=ON|OFF`: Set to `ON` to build the SDL application implementation. Defaults to `ON`.
 
@@ -180,6 +181,7 @@ DeepSea contains the following modules:
 * [SceneLighting](modules/Scene/SceneLighting/README.md): Library for managing lights and shadows within a scene.
 * [SceneVectorDraw](modules/Scene/SceneVectorDraw/README.md): Library for drawing vector images and text within a scene.
 * [SceneParticle](modules/Scene/SceneParticle/README.md): Library for managing particle emitters and particles within a scene.
+* [Physics](modules/Physics/Physics/README.md): Interface to the physics engine. This provides the interface that can be implemented to integrate with 3rd party physics implementations.
 * [Application](modules/Application/Application/README.md): Application library, providing functionality such as input and window events.
 * [ApplicationSDL](modules/Application/ApplicationSDL/README.md): SDL implementation of the Application library.
 

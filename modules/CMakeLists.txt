@@ -3,15 +3,20 @@ ds_start_modules()
 # Required libraries.
 ds_add_module(Core/Core)
 ds_add_module(Math)
+ds_add_module(Geometry)
 
 # Profiling
 if (DEEPSEA_PROFILING AND DEEPSEA_BUILD_EASY_PROFILER)
 	ds_add_module(Core/EasyProfiler)
 endif()
 
-# Render libraries
+# Phsyics libraries.
+if (DEEPSEA_BUILD_PHYSICS)
+	ds_add_module(Physics/Physics)
+endif()
+
+# Render libraries,
 if (DEEPSEA_BUILD_RENDER)
-	ds_add_module(Geometry)
 	ds_add_module(Render/Render)
 	if (DEEPSEA_BUILD_RENDER_MOCK)
 		ds_add_module(Render/RenderMock)

@@ -39,6 +39,8 @@ set(DEEPSEA_BUILD_ANIMATION ON CACHE BOOL "Build animation library.")
 
 set(DEEPSEA_BUILD_SCENE ON CACHE BOOL "Build scene library.")
 
+set(DEEPSEA_BUILD_PHYSICS ON CACHE BOOL "Build physics library.")
+
 set(DEEPSEA_BUILD_APPLICATION ON CACHE BOOL "Build application framework libraries.")
 set(DEEPSEA_BUILD_APPLICATION_SDL ON CACHE BOOL "Build SDL application implementation.")
 
