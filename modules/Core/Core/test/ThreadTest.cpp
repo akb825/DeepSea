@@ -184,9 +184,9 @@ TEST(Thread, ThreadId)
 	EXPECT_TRUE(dsThread_create(&thread2, &threadID, &data2, 0, nullptr));
 	EXPECT_TRUE(dsThread_create(&thread3, &threadID, &data3, 0, nullptr));
 
-	data1.threadID = dsThread_getID(thread1);
-	data2.threadID = dsThread_getID(thread2);
-	data3.threadID = dsThread_getID(thread3);
+	data1.threadID = dsThread_getID(&thread1);
+	data2.threadID = dsThread_getID(&thread2);
+	data3.threadID = dsThread_getID(&thread3);
 
 	EXPECT_TRUE(dsMutex_lock(mutex));
 	data1.ready = data2.ready = data3.ready = true;

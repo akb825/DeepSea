@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -167,6 +167,56 @@ typedef struct dsThreadStorage
 	pthread_key_t storage;
 #endif
 } dsThreadStorage;
+
+/**
+ * @brief Structure that manages threads to processes tasks held on task queues.
+ *
+ * Typically only one thread pool should be created for an application. This allows for greater
+ * control over parallelization to avoid context switches, and reduces overhead from keeping extra
+ * threads. Separate systems that need to manage their own tasks should be done by creating separate
+ * dsThreadTaskQueue instances.
+ *
+ * All operations on a task queue are thread-safe.
+ *
+ * @see dsThreadTaskQueue
+ * @see ThreadPool.h
+ */
+typedef struct dsThreadPool dsThreadPool;
+
+/**
+ * @brief Function to execute a task.
+ * @see ThreadTaskQueue.h
+ * @param userData The user data to process.
+ */
+typedef void (*dsThreadTaskFunction)(void* userData);
+
+/**
+ * @brief Struct describing a task to run on a thread.
+ * @see dsThreadTaskQueue
+ * @see ThreadTaskQueue.h
+ */
+typedef struct dsThreadTask
+{
+	/**
+	 * @brief The function to call for the task.
+	 */
+	dsThreadTaskFunction taskFunc;
+
+	/**
+	 * @brief The user data to provide to the task.
+	 */
+	void* userData;
+} dsThreadTask;
+
+/**
+ * @brief Struct describing a queue of tasks to execute across threads.
+ *
+ * All operations on a task queue are thread-safe.
+ *
+ * @see dsThreadPool
+ * @see ThreadTaskQueuel.h
+ */
+typedef struct dsThreadTaskQueue dsThreadTaskQueue;
 
 #ifdef __cplusplus
 }

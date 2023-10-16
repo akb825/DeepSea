@@ -1,0 +1,101 @@
+/*
+ * Copyright 2023 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Thread/Types.h>
+#include <DeepSea/Core/Export.h>
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+/**
+ * @file
+ * @brief Functions to create and manipulate a thread pool.
+ */
+
+/**
+ * @brief Constant for the maximum number of threads supported by the thread pool.
+ *
+ * This is set to be much higher than the expected amount of parallelism on a single machine while
+ * being low enough to make certain assumptions for internal operations.
+ */
+#define DS_THREAD_POOL_MAX_THREADS 1023
+
+/**
+ * @brief Gets the default thread count for a thread pool.
+ *
+ * This will equal the number of logical cores minus one, minimum of one, assuming that the main
+ * thread will also be utilized.
+ *
+ * @return The default thread count.
+ */
+DS_CORE_EXPORT unsigned int dsThreadPool_defaultThreadCount(void);
+
+/**
+ * @brief Creates a thread pool.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator for the thread pool. This must support freeing memory.
+ * @param threadCount The number of threads to use. This should typically one fewer thread than your
+ *     desired total concurrency to account for work performed on the main thread. A value of 0 is
+ *     valid for task queues to perform their work serially in dsThreadTaskQueue_waitForTasks().
+ *     Pass dsThreadPool_defaultThreadCount() for a default value based on the number of logical cores.
+ * @param stackSize The size of the stack of each thread in bytes. Set to 0 for the system default.
+ * @return The thread pool or NULL if it couldn't be created.
+ */
+DS_CORE_EXPORT dsThreadPool* dsThreadPool_create(dsAllocator* allocator, unsigned int threadCount,
+	size_t stackSize);
+
+/**
+ * @brief Gets the number of threads for a thread pool.
+ * @param threadPool The thread pool.
+ * @return The number of threads currently running.
+ */
+DS_CORE_EXPORT unsigned int dsThreadPool_getThreadCount(const dsThreadPool* threadPool);
+
+/**
+ * @brief Sets the number of threads for the thread pool.
+ *
+ * This may block until threads that are busy have finished executing.
+ *
+ * @remark errno will be set on failure.
+ * @param threadPool The thread pool.
+ * @param threadCount The number of threads to use. This should typically one fewer thread than your
+ *     desired total concurrency to account for work performed on the main thread. A value of 0 is
+ *     valid for task queues to perform their work serially in dsThreadTaskQueue_waitForTasks().
+ *     Pass dsThreadPool_defaultThreadCount() for a default value based on the number of logical cores.
+ * @return False if an error occurred. On failure the number of threads may not be the same as before
+ *     calling this function, call dsThreadPool_getThreadCount() to get the current state.
+ */
+DS_CORE_EXPORT bool dsThreadPool_setThreadCount(dsThreadPool* threadPool, unsigned int threadCount);
+
+/**
+ * @brief Destroys a thread pool.
+ *
+ * All task queues created with the thread pool must be destroyed before the thread pool.
+ *
+ * @remark errno will be set on failure.
+ * @param threadPool The thread pool to destroy.
+ * @return False if the thread pool couldn't be destroyed.
+ */
+DS_CORE_EXPORT bool dsThreadPool_destroy(dsThreadPool* threadPool);
+
+#ifdef __cplusplus
+}
+#endif

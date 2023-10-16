@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,13 +32,19 @@
 #include <unistd.h>
 #endif
 
-inline static bool isThreadSet(dsThread thread)
+#if !DS_WINDOWS
+static pthread_t zeroThread;
+#endif
+
+inline static bool isThreadSet(const dsThread* thread)
 {
+	if (!thread)
+		return false;
+
 #if DS_WINDOWS
-	return thread.thread != NULL;
+	return thread->thread != NULL;
 #else
-	static dsThread zeroThread;
-	return memcmp(&thread.thread, &zeroThread.thread, sizeof(zeroThread.thread)) != 0;
+	return memcmp(&thread->thread, &zeroThread, sizeof(pthread_t)) != 0;
 #endif
 }
 
@@ -74,7 +80,7 @@ unsigned int dsThread_logicalCoreCount(void)
 }
 
 bool dsThread_create(dsThread* thread, dsThreadFunction function, void* userData,
-	unsigned int stackSize, const char* name)
+	size_t stackSize, const char* name)
 {
 	if (!thread || !function)
 	{
@@ -119,7 +125,7 @@ bool dsThread_create(dsThread* thread, dsThreadFunction function, void* userData
 		int errorCode = pthread_attr_setstacksize(&attributes, stackSize);
 		if (errorCode != 0)
 		{
-			DS_LOG_ERROR_F(DS_CORE_LOG_TAG, "Invalid thread stack size: %u", stackSize);
+			DS_LOG_ERROR_F(DS_CORE_LOG_TAG, "Invalid thread stack size: %zu", stackSize);
 			DS_VERIFY(pthread_attr_destroy(&attributes) == 0);
 			errno = errorCode;
 			return false;
@@ -202,17 +208,20 @@ void dsThread_exit(dsThreadReturnType returnVal)
 #endif
 }
 
-dsThreadID dsThread_getID(dsThread thread)
+dsThreadID dsThread_getID(const dsThread* thread)
 {
+	if (!thread)
+		return dsThread_invalidID();
+
 	dsThreadID threadID;
 
 #if DS_WINDOWS
-	if (!thread.thread)
+	if (!thread->thread)
 		return dsThread_invalidID();
 
-	threadID.threadID = GetThreadId(thread.thread);
+	threadID.threadID = GetThreadId(thread->thread);
 #else
-	threadID.threadID = thread.thread;
+	threadID.threadID = thread->thread;
 #endif
 
 	return threadID;
@@ -242,8 +251,8 @@ bool dsThread_equal(dsThreadID thread1, dsThreadID thread2)
 #if DS_WINDOWS
 	return thread1.threadID == thread2.threadID;
 #else
-	bool thread1Set = isThreadSet(*(dsThread*)&thread1);
-	bool thread2Set = isThreadSet(*(dsThread*)&thread2);
+	bool thread1Set = memcmp(&thread1.threadID, &zeroThread, sizeof(pthread_t)) != 0;
+	bool thread2Set = memcmp(&thread2.threadID, &zeroThread, sizeof(pthread_t)) != 0;
 	if (!thread1Set || !thread2Set)
 		return thread1Set == thread2Set;
 
@@ -275,7 +284,7 @@ void dsThread_sleep(unsigned int milliseconds, const char* name)
 
 bool dsThread_detach(dsThread* thread)
 {
-	if (!thread || !isThreadSet(*thread))
+	if (!isThreadSet(thread))
 	{
 		errno = EINVAL;
 		return false;
@@ -311,7 +320,7 @@ bool dsThread_detach(dsThread* thread)
 
 bool dsThread_join(dsThread* thread, dsThreadReturnType* returnVal)
 {
-	if (!thread || !isThreadSet(*thread))
+	if (!isThreadSet(thread))
 	{
 		errno = EINVAL;
 		return false;

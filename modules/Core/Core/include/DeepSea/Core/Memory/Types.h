@@ -54,7 +54,7 @@ typedef struct dsAllocator dsAllocator;
  *     dsAllocator_alloc()) it will be DS_ALLOC_ALIGNMENT. If the allocator is interfaced with
  *     external libraries (e.g. Vulkan, physics libraries) it may have a different minimum
  *     alignment.
- * @return The allocated memory or NULL if an error occured. errno should be set if an error
+ * @return The allocated memory or NULL if an error occurred. errno should be set if an error
  *     occurred.
  */
 typedef void* (*dsAllocatorAllocFunction)(dsAllocator* allocator, size_t size,
@@ -74,7 +74,7 @@ typedef void* (*dsAllocatorAllocFunction)(dsAllocator* allocator, size_t size,
  *     dsAllocator_realloc()) it will be DS_ALLOC_ALIGNMENT. If the allocator is interfaced with
  *     external libraries (e.g. Vulkan, physics libraries) it may have a different minimum
  *     alignment.
- * @return The allocated memory or NULL if an error occured. errno should be set and the original
+ * @return The allocated memory or NULL if an error occurred. errno should be set and the original
  *     pointer should be unmodified if an error occurred.
  */
 typedef void* (*dsAllocatorReallocFunction)(dsAllocator* allocator, void* ptr, size_t size,

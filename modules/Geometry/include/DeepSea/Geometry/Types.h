@@ -509,7 +509,7 @@ typedef struct dsFrustum3d
  *     axisCount.
  * @param axisCount The number of axes. This will be either 2 or 3.
  * @param t The parametric position along the curve. This will be in the range [0, 1].
- * @return False if an error occured.
+ * @return False if an error occurred.
  * @see BezierCurve.h
  */
 typedef bool (*dsCurveSampleFunctionf)(void* userData, const void* point, uint32_t axisCount,
@@ -523,7 +523,7 @@ typedef bool (*dsCurveSampleFunctionf)(void* userData, const void* point, uint32
  *     axisCount.
  * @param axisCount The number of axes. This will be either 2 or 3.
  * @param t The parametric position along the curve. This will be in the range [0, 1].
- * @return False if an error occured.
+ * @return False if an error occurred.
  * @see BezierCurve.h
  */
 typedef bool (*dsCurveSampleFunctiond)(void* userData, const void* point, uint32_t axisCount,

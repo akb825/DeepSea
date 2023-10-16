@@ -63,7 +63,7 @@ DS_CORE_EXPORT bool dsPoolAllocator_initialize(dsPoolAllocator* allocator, size_
  * @param size The size to allocate. This must be equal to or less than the pool size.
  * @param alignment The minimum alignment of the allocation. This must fit within the original
  *     buffer and chunk size.
- * @return The allocated memory or NULL if an error occured.
+ * @return The allocated memory or NULL if an error occurred.
  */
 DS_CORE_EXPORT void* dsPoolAllocator_alloc(dsPoolAllocator* allocator, size_t size,
 	unsigned int alignment);

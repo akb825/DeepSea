@@ -125,7 +125,7 @@ DS_TEXT_EXPORT bool dsFont_applyHintingAndAntiAliasing(const dsFont* font, dsTex
  * @param commandBuffer The command buffer to place texture commands onto.
  * @param string The string containing code points to pre-load glyphs for.
  * @param type The unicode type for the string.
- * @return False if an error occured.
+ * @return False if an error occurred.
  */
 DS_TEXT_EXPORT bool dsFont_preloadGlyphs(dsFont* font, dsCommandBuffer* commandBuffer,
 	const void* string, dsUnicodeType type);
@@ -138,7 +138,7 @@ DS_TEXT_EXPORT bool dsFont_preloadGlyphs(dsFont* font, dsCommandBuffer* commandB
  * @param font The font to pre-load glyphs for.
  * @param commandBuffer The command buffer to place texture commands onto.
  * @param string The string containing code points to pre-load glyphs for in UTF-8.
- * @return False if an error occured.
+ * @return False if an error occurred.
  */
 DS_TEXT_EXPORT bool dsFont_preloadGlyphsUTF8(dsFont* font, dsCommandBuffer* commandBuffer,
 	const char* string);
@@ -151,7 +151,7 @@ DS_TEXT_EXPORT bool dsFont_preloadGlyphsUTF8(dsFont* font, dsCommandBuffer* comm
  * @param font The font to pre-load glyphs for.
  * @param commandBuffer The command buffer to place texture commands onto.
  * @param string The string containing code points to pre-load glyphs for in UTF-16.
- * @return False if an error occured.
+ * @return False if an error occurred.
  */
 DS_TEXT_EXPORT bool dsFont_preloadGlyphsUTF16(dsFont* font, dsCommandBuffer* commandBuffer,
 	const uint16_t* string);
@@ -164,7 +164,7 @@ DS_TEXT_EXPORT bool dsFont_preloadGlyphsUTF16(dsFont* font, dsCommandBuffer* com
  * @param font The font to pre-load glyphs for.
  * @param commandBuffer The command buffer to place texture commands onto.
  * @param string The string containing code points to pre-load glyphs for in UTF-32.
- * @return False if an error occured.
+ * @return False if an error occurred.
  */
 DS_TEXT_EXPORT bool dsFont_preloadGlyphsUTF32(dsFont* font, dsCommandBuffer* commandBuffer,
 	const uint32_t* string);
@@ -174,7 +174,7 @@ DS_TEXT_EXPORT bool dsFont_preloadGlyphsUTF32(dsFont* font, dsCommandBuffer* com
  * @remark errno will be set on failure.
  * @param font The font to pre-load glyphs for.
  * @param commandBuffer The command buffer to place texture commands onto.
- * @return False if an error occured.
+ * @return False if an error occurred.
  */
 DS_TEXT_EXPORT bool dsFont_preloadASCII(dsFont* font, dsCommandBuffer* commandBuffer);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,13 +43,13 @@ DS_CORE_EXPORT unsigned int dsThread_logicalCoreCount(void);
  * @param[out] thread The thread to create.
  * @param function The function to call.
  * @param userData The user data to pass to the function.
- * @param stackSize The size of the thread's stack. Set to 0 for the default size.
+ * @param stackSize The size of the thread's stack in bytes. Set to 0 for the default size.
  * @param name The name of the thread, used for profiling. The lifetime of the string should exceed
  *     the lifetime of the thread, such as with a string constant. If NULL, will be set to "Thread".
  * @return True if the thread was created.
  */
 DS_CORE_EXPORT bool dsThread_create(dsThread* thread, dsThreadFunction function, void* userData,
-	unsigned int stackSize, const char* name);
+	size_t stackSize, const char* name);
 
 /**
  * @brief Sets the name of this thread.
@@ -70,7 +70,7 @@ DS_CORE_EXPORT void dsThread_exit(dsThreadReturnType returnVal);
  * @param thread The thread to get the ID for.
  * @return The thread ID. This will be 0 if the thread is invalid.
  */
-DS_CORE_EXPORT dsThreadID dsThread_getID(dsThread thread);
+DS_CORE_EXPORT dsThreadID dsThread_getID(const dsThread* thread);
 
 /**
  * @brief Gets the ID of this thread.

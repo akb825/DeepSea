@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,44 +18,8 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 
-bool dsList_initialize(dsList* list)
+static void insertImpl(dsList* list, dsListNode* previous, dsListNode* node)
 {
-	if (!list)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	list->length = 0;
-	list->head = NULL;
-	list->tail = NULL;
-	return true;
-}
-
-bool dsList_prepend(dsList* list, dsListNode* node)
-{
-	return dsList_insert(list, NULL, node);
-}
-
-bool dsList_append(dsList* list, dsListNode* node)
-{
-	if (!list)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	return dsList_insert(list, list->tail, node);
-}
-
-bool dsList_insert(dsList* list, dsListNode* previous, dsListNode* node)
-{
-	if (!list || !node)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
 	// Asserts indicate a corrupt list. Don't return false in these cases since it indicates
 	// something is seriously wrong, and would probably crash somewhere regardless.
 	if (!previous)
@@ -94,6 +58,55 @@ bool dsList_insert(dsList* list, dsListNode* previous, dsListNode* node)
 	}
 
 	++list->length;
+}
+
+bool dsList_initialize(dsList* list)
+{
+	if (!list)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	list->length = 0;
+	list->head = NULL;
+	list->tail = NULL;
+	return true;
+}
+
+bool dsList_prepend(dsList* list, dsListNode* node)
+{
+	if (!list || !node)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	insertImpl(list, NULL, node);
+	return true;
+}
+
+bool dsList_append(dsList* list, dsListNode* node)
+{
+	if (!list || !node)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	insertImpl(list, list->tail, node);
+	return true;
+}
+
+bool dsList_insert(dsList* list, dsListNode* previous, dsListNode* node)
+{
+	if (!list || !node)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	insertImpl(list, previous, node);
 	return true;
 }
 

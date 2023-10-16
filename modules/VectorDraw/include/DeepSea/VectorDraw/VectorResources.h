@@ -305,7 +305,7 @@ DS_VECTORDRAW_EXPORT dsFont* dsVectorResources_findFont(const dsVectorResources*
  * @remark errno will be set on failure.
  * @param resources The vector resources.
  * @param commandBuffer The command buffer to place texture commands onto.
- * @return False if an error occured.
+ * @return False if an error occurred.
  */
 DS_VECTORDRAW_EXPORT bool dsVectorResources_preloadASCII(dsVectorResources* resources,
 	dsCommandBuffer* commandBuffer);

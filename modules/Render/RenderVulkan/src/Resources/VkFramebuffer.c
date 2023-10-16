@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,7 +91,7 @@ dsFramebuffer* dsVkFramebuffer_create(dsResourceManager* resourceManager, dsAllo
 	baseFramebuffer->layers = layers;
 
 	framebuffer->scratchAllocator = resourceManager->allocator;
-	dsSpinlock_initialize(&framebuffer->lock);
+	DS_VERIFY(dsSpinlock_initialize(&framebuffer->lock));
 	framebuffer->realFramebuffers = NULL;
 	framebuffer->framebufferCount = 0;
 	framebuffer->maxFramebuffers = 0;

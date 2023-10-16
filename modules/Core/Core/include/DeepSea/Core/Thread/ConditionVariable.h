@@ -91,7 +91,7 @@ DS_CORE_EXPORT dsConditionVariableResult dsConditionVariable_timedWait(
  *
  * @remark errno will be set on failure.
  * @param condition The condition variable to notify.
- * @return False if an error occured.
+ * @return False if an error occurred.
  */
 DS_CORE_EXPORT bool dsConditionVariable_notifyOne(dsConditionVariable* condition);
 
@@ -99,7 +99,7 @@ DS_CORE_EXPORT bool dsConditionVariable_notifyOne(dsConditionVariable* condition
  * @brief Notifies all threads waiting on the condition variable to continue.
  * @remark errno will be set on failure.
  * @param condition The condition variable to notify.
- * @return False if an error occured.
+ * @return False if an error occurred.
  */
 DS_CORE_EXPORT bool dsConditionVariable_notifyAll(dsConditionVariable* condition);
 

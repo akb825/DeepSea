@@ -52,7 +52,7 @@ DS_CORE_EXPORT bool dsBufferAllocator_initialize(dsBufferAllocator* allocator, v
  * @param size The size to allocate.
  * @param alignment The minimum alignment of the allocation. This may need to use additional space
  *     to align the memory. Use DS_REALIGNED_SIZE() to compute the size to take this into account.
- * @return The allocated memory or NULL if an error occured.
+ * @return The allocated memory or NULL if an error occurred.
  */
 DS_CORE_EXPORT void* dsBufferAllocator_alloc(dsBufferAllocator* allocator, size_t size,
 	unsigned int alignment);

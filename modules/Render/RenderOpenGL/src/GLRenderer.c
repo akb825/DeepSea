@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -845,24 +845,24 @@ void dsGLRenderer_destroyVao(dsRenderer* renderer, GLuint vao, uint32_t contextC
 		return;
 	}
 
-	dsMutex_lock(glRenderer->contextMutex);
+	DS_VERIFY(dsMutex_lock(glRenderer->contextMutex));
 	if (contextCount != glRenderer->contextCount)
 	{
-		dsMutex_unlock(glRenderer->contextMutex);
+		DS_VERIFY(dsMutex_unlock(glRenderer->contextMutex));
 		return;
 	}
 
 	size_t index = glRenderer->curDestroyVaos;
 	if (!DS_RESIZEABLE_ARRAY_ADD(renderer->allocator, glRenderer->destroyVaos,
-		glRenderer->curDestroyVaos, glRenderer->maxDestroyVaos, 1))
+			glRenderer->curDestroyVaos, glRenderer->maxDestroyVaos, 1))
 	{
-		dsMutex_unlock(glRenderer->contextMutex);
+		DS_VERIFY(dsMutex_unlock(glRenderer->contextMutex));
 		return;
 	}
 
 	DS_ASSERT(index < glRenderer->maxDestroyVaos);
 	glRenderer->destroyVaos[index++] = vao;
-	dsMutex_unlock(glRenderer->contextMutex);
+	DS_VERIFY(dsMutex_unlock(glRenderer->contextMutex));
 }
 
 void dsGLRenderer_destroyFbo(dsRenderer* renderer, GLuint fbo, uint32_t contextCount)
@@ -879,24 +879,24 @@ void dsGLRenderer_destroyFbo(dsRenderer* renderer, GLuint fbo, uint32_t contextC
 		return;
 	}
 
-	dsMutex_lock(glRenderer->contextMutex);
+	DS_VERIFY(dsMutex_lock(glRenderer->contextMutex));
 	if (contextCount != glRenderer->contextCount)
 	{
-		dsMutex_unlock(glRenderer->contextMutex);
+		DS_VERIFY(dsMutex_unlock(glRenderer->contextMutex));
 		return;
 	}
 
 	size_t index = glRenderer->curDestroyFbos;
 	if (!DS_RESIZEABLE_ARRAY_ADD(renderer->allocator, glRenderer->destroyFbos,
-		glRenderer->curDestroyFbos, glRenderer->maxDestroyFbos, 1))
+			glRenderer->curDestroyFbos, glRenderer->maxDestroyFbos, 1))
 	{
-		dsMutex_unlock(glRenderer->contextMutex);
+		DS_VERIFY(dsMutex_unlock(glRenderer->contextMutex));
 		return;
 	}
 
 	DS_ASSERT(index < glRenderer->maxDestroyFbos);
 	glRenderer->destroyFbos[index++] = fbo;
-	dsMutex_unlock(glRenderer->contextMutex);
+	DS_VERIFY(dsMutex_unlock(glRenderer->contextMutex));
 }
 
 void dsGLRenderer_destroyTexture(dsRenderer* renderer, GLuint texture)

@@ -118,7 +118,7 @@ DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_loadData(dsAllocator* alloc
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the animation tree with.
  * @param tree The animation tree.
- * @return The cloned animation tree or NULL if an error occured.
+ * @return The cloned animation tree or NULL if an error occurred.
  */
 DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_clone(dsAllocator* allocator,
 	const dsAnimationTree* tree);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,8 +45,7 @@ bool dsPoolAllocator_initialize(dsPoolAllocator* allocator, size_t chunkSize, si
 		return false;
 	}
 
-	if (!dsSpinlock_initialize(&allocator->lock))
-		return false;
+	DS_VERIFY(dsSpinlock_initialize(&allocator->lock));
 
 	((dsAllocator*)allocator)->size = 0;
 	((dsAllocator*)allocator)->totalAllocations = 0;
@@ -88,8 +87,7 @@ void* dsPoolAllocator_alloc(dsPoolAllocator* allocator, size_t size, unsigned in
 		return NULL;
 	}
 
-	if (!dsSpinlock_lock(&allocator->lock))
-		return NULL;
+	DS_VERIFY(dsSpinlock_lock(&allocator->lock));
 
 	// Check if there are any free nodes available.
 	void* retVal;
@@ -174,8 +172,7 @@ bool dsPoolAllocator_free(dsPoolAllocator* allocator, void* ptr)
 		return false;
 	}
 
-	if (!dsSpinlock_lock(&allocator->lock))
-		return false;
+	DS_VERIFY(dsSpinlock_lock(&allocator->lock));
 
 	// Add the node back to the free list.
 	DS_ASSERT(allocator->initializedCount > 0);
@@ -224,8 +221,7 @@ bool dsPoolAllocator_validate(dsPoolAllocator* allocator)
 		return false;
 	}
 
-	if (!dsSpinlock_lock(&allocator->lock))
-		return false;
+	DS_VERIFY(dsSpinlock_lock(&allocator->lock));
 
 	bool valid = true;
 	if (allocator->initializedCount > allocator->chunkCount ||
