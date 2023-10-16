@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -785,8 +785,8 @@ int dsSDLApplication_run(dsApplication* application)
 			}
 
 			// Flush between windows. This avoids render commands for multiple windows being batched
-			// together, increasing the amount of GPU synchronization.
-			if (i > 0 && i < application->windowCount - 1)
+			// together, allowing for render commands to be executed on the GPU sooner.
+			if (i < application->windowCount - 1)
 				dsRenderer_flush(application->renderer);
 		}
 		DS_PROFILE_SCOPE_END();
