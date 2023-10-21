@@ -376,7 +376,7 @@ bool dsGLRenderer_setDefaultSamples(dsRenderer* renderer, uint32_t samples)
 	return true;
 }
 
-bool dsGLRenderer_setVsync(dsRenderer* renderer, bool vsync)
+bool dsGLRenderer_setVSync(dsRenderer* renderer, dsVSync vsync)
 {
 	renderer->vsync = vsync;
 	return true;
@@ -694,9 +694,9 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		}
 	}
 
-	baseRenderer->doubleBuffer = options->doubleBuffer;
+	baseRenderer->singleBuffer = options->singleBuffer;
 	baseRenderer->stereoscopic = options->stereoscopic;
-	baseRenderer->vsync = false;
+	baseRenderer->vsync = dsVSync_Disabled;
 	baseRenderer->projectionOptions = dsProjectionMatrixOptions_None;
 	if (options->preferHalfDepthRange && ANYGL_SUPPORTED(glClipControl))
 		baseRenderer->projectionOptions |= dsProjectionMatrixOptions_HalfZRange;
@@ -762,7 +762,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->endFrameFunc = &dsGLRenderer_endFrame;
 	baseRenderer->setSurfaceSamplesFunc = &dsGLRenderer_setSurfaceSamples;
 	baseRenderer->setDefaultSamplesFunc = &dsGLRenderer_setDefaultSamples;
-	baseRenderer->setVsyncFunc = &dsGLRenderer_setVsync;
+	baseRenderer->setVSyncFunc = &dsGLRenderer_setVSync;
 	baseRenderer->setDefaultAnisotropyFunc = &dsGLRenderer_setDefaultAnisotropy;
 	baseRenderer->clearAttachmentsFunc = &dsGLCommandBuffer_clearAttachments;
 	baseRenderer->drawFunc = &dsGLCommandBuffer_draw;
@@ -787,7 +787,8 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 bool dsGLRenderer_bindSurface(dsRenderer* renderer, void* glSurface)
 {
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
-	bool setVSync = glRenderer->curGLSurfaceVSync != renderer->vsync;
+	bool vsyncEnabled = renderer->vsync != dsVSync_Disabled;
+	bool setVSync = glRenderer->curGLSurfaceVSync != vsyncEnabled;
 	if (glSurface != glRenderer->curGLSurface)
 	{
 		if (!dsBindGLContext(glRenderer->options.display, glRenderer->renderContext, glSurface))
@@ -810,7 +811,7 @@ bool dsGLRenderer_bindSurface(dsRenderer* renderer, void* glSurface)
 
 	if (setVSync)
 	{
-		dsSetGLVSync(glRenderer->options.display, glSurface, renderer->vsync);
+		dsSetGLVSync(glRenderer->options.display, glSurface, vsyncEnabled);
 		glRenderer->curGLSurfaceVSync = renderer->vsync;
 	}
 
@@ -1087,27 +1088,27 @@ void dsGLRenderer_bindFramebuffer(dsRenderer* renderer, GLSurfaceType surfaceTyp
 		GLenum bufferType;
 		if (renderer->stereoscopic)
 		{
-			if (renderer->doubleBuffer)
-			{
-				if (surfaceType == GLSurfaceType_Right)
-					bufferType = GL_BACK_RIGHT;
-				else
-					bufferType = GL_BACK_LEFT;
-			}
-			else
+			if (renderer->singleBuffer)
 			{
 				if (surfaceType == GLSurfaceType_Right)
 					bufferType = GL_RIGHT;
 				else
 					bufferType = GL_LEFT;
 			}
+			else
+			{
+				if (surfaceType == GLSurfaceType_Right)
+					bufferType = GL_BACK_RIGHT;
+				else
+					bufferType = GL_BACK_LEFT;
+			}
 		}
 		else
 		{
-			if (renderer->doubleBuffer)
-				bufferType = GL_BACK;
-			else
+			if (renderer->singleBuffer)
 				bufferType = GL_FRONT;
+			else
+				bufferType = GL_BACK;
 		}
 
 		if (draw)

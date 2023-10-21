@@ -613,7 +613,7 @@ int dsMain(int argc, const char** argv)
 		return 2;
 	}
 
-	dsRenderer_setVsync(renderer, true);
+	dsRenderer_setVSync(renderer, dsVSync_TripleBuffer);
 	dsRenderer_setDefaultAnisotropy(renderer, dsMin(4.0f, renderer->maxAnisotropy));
 #if DS_DEBUG
 	dsRenderer_setExtraDebugging(renderer, true);

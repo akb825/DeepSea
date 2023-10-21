@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ bool dsMockRenderer_setDefaultSamples(dsRenderer* renderer, uint32_t samples)
 	return true;
 }
 
-bool dsMockRenderer_setVsync(dsRenderer* renderer, bool vsync)
+bool dsMockRenderer_setVSync(dsRenderer* renderer, dsVSync vsync)
 {
 	DS_ASSERT(renderer);
 
@@ -426,7 +426,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->maxComputeWorkGroupSize[1] = 256;
 	renderer->maxComputeWorkGroupSize[2] = 256;
 	renderer->projectionOptions = dsProjectionMatrixOptions_HalfZRange;
-	renderer->doubleBuffer = true;
+	renderer->singleBuffer = false;
 	renderer->stereoscopic = false;
 	renderer->vsync = true;
 	renderer->hasGeometryShaders = true;
@@ -474,7 +474,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->endFrameFunc = &dsMockRenderer_endFrame;
 	renderer->setSurfaceSamplesFunc = &dsMockRenderer_setSurfaceSamples;
 	renderer->setDefaultSamplesFunc = &dsMockRenderer_setDefaultSamples;
-	renderer->setVsyncFunc = &dsMockRenderer_setVsync;
+	renderer->setVSyncFunc = &dsMockRenderer_setVSync;
 	renderer->setDefaultAnisotropyFunc = &dsMockRenderer_setDefaultAnisotropy;
 	renderer->setViewportFunc = &dsMockRenderer_setViewport;
 	renderer->drawFunc = &dsMockRenderer_draw;

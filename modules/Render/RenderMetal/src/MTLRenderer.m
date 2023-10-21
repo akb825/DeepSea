@@ -524,7 +524,7 @@ bool dsMTLRenderer_setDefaultSamples(dsRenderer* renderer, uint32_t samples)
 	return true;
 }
 
-bool dsMTLRenderer_setVsync(dsRenderer* renderer, bool vsync)
+bool dsMTLRenderer_setVSync(dsRenderer* renderer, dsVSync vsync)
 {
 	renderer->vsync = vsync;
 	return true;
@@ -880,9 +880,9 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		baseRenderer->projectionOptions = dsProjectionMatrixOptions_HalfZRange;
 		if (options->reverseZ)
 			baseRenderer->projectionOptions |= dsProjectionMatrixOptions_InvertZ;
-		baseRenderer->doubleBuffer = true;
+		baseRenderer->singleBuffer = false;
 		baseRenderer->stereoscopic = false;
-		baseRenderer->vsync = false;
+		baseRenderer->vsync = dsVSync_Disabled;
 		baseRenderer->hasGeometryShaders = false;
 		baseRenderer->hasTessellationShaders = hasTessellationShaders(device);
 
@@ -1012,7 +1012,7 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		baseRenderer->endFrameFunc = &dsMTLRenderer_endFrame;
 		baseRenderer->setSurfaceSamplesFunc = &dsMTLRenderer_setSurfaceSamples;
 		baseRenderer->setDefaultSamplesFunc = &dsMTLRenderer_setDefaultSamples;
-		baseRenderer->setVsyncFunc = &dsMTLRenderer_setVsync;
+		baseRenderer->setVSyncFunc = &dsMTLRenderer_setVSync;
 		baseRenderer->setDefaultAnisotropyFunc = &dsMTLRenderer_setDefaultAnisotropy;
 		baseRenderer->setViewportFunc = &dsMTLCommandBuffer_setViewport;
 		baseRenderer->clearAttachmentsFunc = &dsMTLCommandBuffer_clearAttachments;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -379,7 +379,7 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 
 		layer.pixelFormat = format;
 #if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-		layer.displaySyncEnabled = renderer->vsync;
+		layer.displaySyncEnabled = renderer->vsync != dsVSync_Disabled;
 #endif
 #if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101100
 		layer.wantsExtendedDynamicRangeContent = format == MTLPixelFormatRGBA16Float;
@@ -455,8 +455,9 @@ bool dsMTLRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurf
 		renderSurface->preRotateHeight = renderSurface->height;
 
 #if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-		if (layer.displaySyncEnabled != renderer->vsync)
-			layer.displaySyncEnabled = renderer->vsync;
+		bool vsync = renderer->vsync != dsVSync_Disabled;
+		if (layer.displaySyncEnabled != vsync)
+			layer.displaySyncEnabled = vsync;
 #endif
 
 		return createExtraSurfaces(renderer, renderSurface);

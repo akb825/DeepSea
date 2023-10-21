@@ -623,7 +623,7 @@ int dsMain(int argc, const char** argv)
 		return 2;
 	}
 
-	dsRenderer_setVsync(renderer, true);
+	dsRenderer_setVSync(renderer, dsVSync_TripleBuffer);
 #if DS_DEBUG
 	dsRenderer_setExtraDebugging(renderer, true);
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,11 +121,25 @@ extern "C"
 typedef enum dsRenderDeviceType
 {
 	dsRenderDeviceType_Discrete,   ///< Discrete GPU. (separate graphics card)
-	dsRenderDeviceType_Virtual,    ///< Virtual GPU in a virtualized environment.
+	dsRenderDeviceType_Virtual,    ///< GPU exposed in a virtualized environment.
 	dsRenderDeviceType_Integrated, ///< Integrated GPU. (built into CPU or mobile device)
 	dsRenderDeviceType_CPU,        ///< CPU without hardware graphics acceleration.
 	dsRenderDeviceType_Unknown     ///< Unknown device type.
 } dsRenderDeviceType;
+
+/**
+ * @brief Enum for adjusting vsync.
+ *
+ * Triple buffering may have better performance than double buffering, though may have increased
+ * latency. Triple buffering may not be available for all renderer implementations, in which case
+ * double buffering will be used instead.
+ */
+typedef enum dsVSync
+{
+	dsVSync_Disabled,     ///< Render as quickly as possible without waiting for vsync.
+	dsVSync_DoubleBuffer, ///< Wait for vsync with two render buffers.
+	dsVSync_TripleBuffer  ///< Wait for vsync with three render buffers.
+} dsVSync;
 
 /**
  * @brief Enum for how an image attachment will be used.
@@ -485,9 +499,9 @@ typedef struct dsRendererOptions
 	uint8_t defaultSamples;
 
 	/**
-	 * @brief True to double-buffer rendering, false to single-buffer.
+	 * @brief True to avoid using a back buffer for rendering if possible.
 	 */
-	bool doubleBuffer;
+	bool singleBuffer;
 
 	/**
 	 * @brief Use reverse Z rendering, inverting the depth range.
@@ -1636,12 +1650,12 @@ typedef bool (*dsEndFrameFunction)(dsRenderer* renderer);
 typedef bool (*dsSetRenderSamplesFunction)(dsRenderer* renderer, uint32_t samples);
 
 /**
- * @brief Function for setting whether or not to wait for vsync.
+ * @brief Function for setting how to wait for vsync.
  * @param renderer The renderer.
- * @param vsync True to wait for vsync.
+ * @param vsync How to wait for vsync.
  * @return False if the vsync couldn't be set.
  */
-typedef bool (*dsSetRenderVsyncFunction)(dsRenderer* renderer, bool vsync);
+typedef bool (*dsSetRenderVSyncFunction)(dsRenderer* renderer, dsVSync vsync);
 
 /**
  * @brief Function for setting the default anisotropy for anisotropic filtering.
@@ -2022,19 +2036,19 @@ struct dsRenderer
 	dsProjectionMatrixOptions projectionOptions;
 
 	/**
-	 * @brief True if render surfaces are double-buffered.
+	 * @brief How to wait for vsync when
 	 */
-	bool doubleBuffer;
+	dsVSync vsync;
+
+	/**
+	 * @brief True to avoid using a back buffer for rendering if possible.
+	 */
+	bool singleBuffer;
 
 	/**
 	 * @brief True if render surfaces are stereoscopic.
 	 */
 	bool stereoscopic;
-
-	/**
-	 * @brief True to wait for vsync when drawing to a render surface.
-	 */
-	bool vsync;
 
 	/**
 	 * @brief True if geometry shaders are supported.
@@ -2247,7 +2261,7 @@ struct dsRenderer
 	/**
 	 * @brief Vsync set function.
 	 */
-	dsSetRenderVsyncFunction setVsyncFunc;
+	dsSetRenderVSyncFunction setVSyncFunc;
 
 	/**
 	 * @brief Default anisotropy set function.

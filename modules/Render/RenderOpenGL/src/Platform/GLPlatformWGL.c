@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,7 +102,7 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 		extensions = wglGetExtensionsStringARB(display);
 
 	unsigned int pfdFlags = 0;
-	if (options->doubleBuffer)
+	if (!options->singleBuffer)
 		pfdFlags |= PFD_DOUBLEBUFFER;
 	if (options->stereoscopic)
 		pfdFlags |= PFD_STEREO;
@@ -139,7 +139,7 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 		addOption(attr, &optionCount, WGL_ALPHA_BITS_ARB, options->alphaBits);
 		addOption(attr, &optionCount, WGL_DEPTH_BITS_ARB, options->depthBits);
 		addOption(attr, &optionCount, WGL_STENCIL_BITS_ARB, options->stencilBits);
-		addOption(attr, &optionCount, WGL_DOUBLE_BUFFER_ARB, options->doubleBuffer);
+		addOption(attr, &optionCount, WGL_DOUBLE_BUFFER_ARB, !options->singleBuffer);
 		addOption(attr, &optionCount, WGL_STEREO_ARB, options->stereoscopic);
 		if (hasExtension(extensions, "WGL_ARB_multisample"))
 		{

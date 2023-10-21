@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,10 +131,10 @@ TEST_F(RendererTest, SetSamples)
 	EXPECT_TRUE(dsRenderer_setSamples(renderer, renderer->maxSurfaceSamples));
 }
 
-TEST_F(RendererTest, SetVsync)
+TEST_F(RendererTest, SetVSync)
 {
-	EXPECT_FALSE(dsRenderer_setVsync(NULL, false));
-	EXPECT_TRUE(dsRenderer_setVsync(renderer, false));
+	EXPECT_FALSE(dsRenderer_setVSync(NULL, dsVSync_Disabled));
+	EXPECT_TRUE(dsRenderer_setVSync(renderer, dsVSync_Disabled));
 }
 
 TEST_F(RendererTest, SetDefaultAnisotropy)

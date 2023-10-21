@@ -1404,7 +1404,7 @@ bool dsVkRenderer_setDefaultSamples(dsRenderer* renderer, uint32_t samples)
 	return true;
 }
 
-bool dsVkRenderer_setVsync(dsRenderer* renderer, bool vsync)
+bool dsVkRenderer_setVSync(dsRenderer* renderer, dsVSync vsync)
 {
 	if (renderer->vsync == vsync)
 		return true;
@@ -2161,7 +2161,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	for (int i = 0; i < 3; ++i)
 		baseRenderer->maxComputeWorkGroupSize[i] = limits->maxComputeWorkGroupCount[i];
 
-	baseRenderer->doubleBuffer = options->doubleBuffer;
+	baseRenderer->singleBuffer = false;
 	baseRenderer->stereoscopic = options->stereoscopic;
 	baseRenderer->vsync = false;
 	baseRenderer->hasGeometryShaders = deviceFeatures.geometryShader != 0;
@@ -2271,7 +2271,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->endFrameFunc = &dsVkRenderer_endFrame;
 	baseRenderer->setSurfaceSamplesFunc = &dsVkRenderer_setSurfaceSamples;
 	baseRenderer->setDefaultSamplesFunc = &dsVkRenderer_setDefaultSamples;
-	baseRenderer->setVsyncFunc = &dsVkRenderer_setVsync;
+	baseRenderer->setVSyncFunc = &dsVkRenderer_setVSync;
 	baseRenderer->setDefaultAnisotropyFunc = &dsVkRenderer_setDefaultAnisotropy;
 	baseRenderer->clearAttachmentsFunc = &dsVkRenderer_clearAttachments;
 	baseRenderer->drawFunc = &dsVkRenderer_draw;

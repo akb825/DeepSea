@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Aaron Barany
+ * Copyright 2018-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -692,7 +692,7 @@ struct dsVkRenderSurfaceData
 	uint32_t preRotateHeight;
 	dsRenderSurfaceRotation rotation;
 
-	bool vsync;
+	dsVSync vsync;
 
 	uint32_t imageIndex;
 	uint32_t imageDataIndex;

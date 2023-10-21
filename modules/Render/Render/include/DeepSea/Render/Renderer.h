@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -276,15 +276,15 @@ DS_RENDER_EXPORT bool dsRenderer_setDefaultSamples(dsRenderer* renderer, uint32_
 DS_RENDER_EXPORT bool dsRenderer_setSamples(dsRenderer* renderer, uint32_t samples);
 
 /**
- * @brief Sets whether or not to wait for vsync.
+ * @brief Sets how to wait for vsync.
  * @remark This shouldn't be changed in the middle of drawing. Ideally it should be set between
- * frames.
+ *     frames.
  * @remark errno will be set on failure.
  * @param renderer The renderer.
- * @param vsync True to wait for vsync.
+ * @param vsync How to wait for vsync.
  * @return False if the vsync couldn't be set.
  */
-DS_RENDER_EXPORT bool dsRenderer_setVsync(dsRenderer* renderer, bool vsync);
+DS_RENDER_EXPORT bool dsRenderer_setVSync(dsRenderer* renderer, dsVSync vsync);
 
 /**
  * @brief Sets the default anisotropy for anisotropic filtering.

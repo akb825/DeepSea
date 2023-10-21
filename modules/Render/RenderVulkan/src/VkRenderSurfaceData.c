@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Aaron Barany
+ * Copyright 2018-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,6 +115,22 @@ static VkPresentModeKHR getPresentMode(dsVkDevice* device, VkSurfaceKHR surface,
 	}
 
 	return VK_PRESENT_MODE_FIFO_KHR;
+}
+
+static uint32_t getImageCount(VkPresentModeKHR presentMode, dsVSync vsync)
+{
+	switch (presentMode)
+	{
+		case VK_PRESENT_MODE_IMMEDIATE_KHR:
+			// No need to have more than 2 images.
+			return 2;
+		case VK_PRESENT_MODE_MAILBOX_KHR:
+			// One image will be held on to for the sync interval, need two extra images to avoid
+			// stalling.
+			return 3;
+		default:
+			return vsync == dsVSync_TripleBuffer ? 3 : 2;
+	}
 }
 
 static bool createResolveImage(dsVkRenderSurfaceData* surfaceData, VkFormat format,
@@ -294,7 +310,7 @@ dsRenderSurfaceRotation dsVkRenderSurfaceData_getRotation(VkSurfaceTransformFlag
 }
 
 dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRenderer* renderer,
-	VkSurfaceKHR surface, bool vsync, VkSwapchainKHR prevSwapchain, dsRenderSurfaceUsage usage)
+	VkSurfaceKHR surface, dsVSync vsync, VkSwapchainKHR prevSwapchain, dsRenderSurfaceUsage usage)
 {
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	dsVkDevice* device = &vkRenderer->device;
@@ -372,7 +388,8 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	if (usage & dsRenderSurfaceUsage_BlitColorTo)
 		usageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
-	uint32_t imageCount = 3;
+	VkPresentModeKHR presentMode = getPresentMode(device, surface, vsync != dsVSync_Disabled);
+	uint32_t imageCount = getImageCount(presentMode, vsync);
 	uint32_t maxImageCount = surfaceInfo.maxImageCount ? surfaceInfo.maxImageCount : UINT_MAX;
 	imageCount = dsClamp(imageCount, surfaceInfo.minImageCount, maxImageCount);
 
@@ -416,7 +433,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 		0, NULL,
 		transform,
 		alphaFlags,
-		getPresentMode(device, surface, vsync),
+		presentMode,
 		true,
 		prevSwapchain
 	};

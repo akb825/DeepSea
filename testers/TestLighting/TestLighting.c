@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -780,7 +780,7 @@ int dsMain(int argc, const char** argv)
 		return 2;
 	}
 
-	dsRenderer_setVsync(renderer, true);
+	//dsRenderer_setVSync(renderer, dsVSync_TripleBuffer);
 	dsRenderer_setDefaultAnisotropy(renderer, dsMin(4.0f, renderer->maxAnisotropy));
 #if DS_DEBUG
 	dsRenderer_setExtraDebugging(renderer, true);

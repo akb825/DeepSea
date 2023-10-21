@@ -237,7 +237,12 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 				dsRenderer_setSamples(renderer, samples);
 			}
 			else if (event->key.key == dsKeyCode_2)
-				dsRenderer_setVsync(renderer, !renderer->vsync);
+			{
+				if (renderer->vsync == dsVSync_Disabled)
+					dsRenderer_setVSync(renderer, dsVSync_TripleBuffer);
+				else
+					dsRenderer_setVSync(renderer, dsVSync_Disabled);
+			}
 			else if (event->key.key == dsKeyCode_3)
 			{
 				float anisotropy = renderer->defaultAnisotropy;
@@ -560,7 +565,7 @@ int dsMain(int argc, const char** argv)
 		return 2;
 	}
 
-	dsRenderer_setVsync(renderer, true);
+	dsRenderer_setVSync(renderer, dsVSync_TripleBuffer);
 	dsRenderer_setDefaultAnisotropy(renderer, renderer->maxAnisotropy);
 #if DS_DEBUG
 	dsRenderer_setExtraDebugging(renderer, true);

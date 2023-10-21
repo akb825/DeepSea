@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -242,7 +242,7 @@ void dsRenderer_defaultOptions(dsRendererOptions* options, const char* applicati
 	options->forcedDepthStencilFormat = dsGfxFormat_Unknown;
 	options->surfaceSamples = 1;
 	options->defaultSamples = 1;
-	options->doubleBuffer = true;
+	options->singleBuffer = false;
 	options->reverseZ = false;
 	options->srgb = false;
 	options->preferHalfDepthRange = false;
@@ -723,9 +723,9 @@ bool dsRenderer_setSamples(dsRenderer* renderer, uint32_t samples)
 	return renderer->setDefaultSamplesFunc(renderer, dsMax(samples, 1U));
 }
 
-bool dsRenderer_setVsync(dsRenderer* renderer, bool vsync)
+bool dsRenderer_setVSync(dsRenderer* renderer, dsVSync vsync)
 {
-	if (!renderer || !renderer->setVsyncFunc)
+	if (!renderer || !renderer->setVSyncFunc)
 	{
 		errno = EINVAL;
 		return false;
@@ -734,11 +734,11 @@ bool dsRenderer_setVsync(dsRenderer* renderer, bool vsync)
 	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Vsync may only be set on the main thread.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "VSync may only be set on the main thread.");
 		return false;
 	}
 
-	bool success = renderer->setVsyncFunc(renderer, vsync);
+	bool success = renderer->setVSyncFunc(renderer, vsync);
 	return success;
 }
 

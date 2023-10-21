@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,8 +132,11 @@ bool dsGLRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** rende
 
 	// Since swap buffers may block, guarantee that the current commands are flushed first.
 	glFlush();
-	dsSwapGLBuffers(((dsGLRenderer*)renderer)->options.display, renderSurfaces, count,
-		renderer->vsync);
+	if (!renderer->singleBuffer)
+	{
+		dsSwapGLBuffers(((dsGLRenderer*)renderer)->options.display, renderSurfaces, count,
+			renderer->vsync != dsVSync_Disabled);
+	}
 	return true;
 }
 
