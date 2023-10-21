@@ -46,11 +46,25 @@ static dsThreadReturnType threadFunc(void* userData)
 	}
 	DS_ASSERT(threadIndex < threadPool->threadCount);
 
+	// Signal that this thread has started.
+	DS_ASSERT(threadPool->waitThreadCount > 0);
+	if (--threadPool->waitThreadCount == 0)
+		DS_VERIFY(dsConditionVariable_notifyAll(threadPool->waitThreadCondition));
+
 	dsThreadTask curTask = {NULL, NULL};
 	do
 	{
-		if (threadPool->stop || threadIndex >= threadPool->threadCount)
+		if (threadPool->stop)
 		{
+			DS_VERIFY(dsMutex_unlock(threadPool->stateMutex));
+			break;
+		}
+		else if (threadIndex >= threadPool->threadCount)
+		{
+			// Signal that this thread is stopping.
+			DS_ASSERT(threadPool->waitThreadCount > 0);
+			if (--threadPool->waitThreadCount == 0)
+				DS_VERIFY(dsConditionVariable_notifyAll(threadPool->waitThreadCondition));
 			DS_VERIFY(dsMutex_unlock(threadPool->stateMutex));
 			break;
 		}
@@ -183,19 +197,29 @@ dsThreadPool* dsThreadPool_create(dsAllocator* allocator, unsigned int threadCou
 	if (!threadPool->stateMutex)
 	{
 		DS_VERIFY(dsAllocator_free(allocator, threadPool));
-		return false;
+		return NULL;
 	}
 
 	threadPool->stateCondition = dsConditionVariable_create(allocator, "Thread Pool Condition");
 	if (!threadPool->stateCondition)
 	{
-		dsMutex_destroy(threadPool->stateMutex);
-		DS_VERIFY(dsAllocator_free(allocator, threadPool));
-		return false;
+		DS_VERIFY(dsThreadPool_destroy(threadPool));
+		return NULL;
+	}
+
+	threadPool->waitThreadCondition =
+		dsConditionVariable_create(allocator, "Thread Pool Start/Stop Condition");
+	if (!threadPool->waitThreadCondition)
+	{
+		DS_VERIFY(dsThreadPool_destroy(threadPool));
+		return NULL;
 	}
 
 	if (!dsThreadPool_setThreadCount(threadPool, threadCount))
+	{
 		DS_VERIFY(dsThreadPool_destroy(threadPool));
+		return NULL;
+	}
 
 	return threadPool;
 }
@@ -211,6 +235,11 @@ unsigned int dsThreadPool_getThreadCount(const dsThreadPool* threadPool)
 	return threadCount;
 }
 
+unsigned int dsThreadPool_getThreadCountUnlocked(const dsThreadPool* threadPool)
+{
+	return threadPool ? (unsigned int)threadPool->threadCount : 0U;
+}
+
 bool dsThreadPool_setThreadCount(dsThreadPool* threadPool, unsigned int threadCount)
 {
 	if (!threadPool || threadCount > DS_THREAD_POOL_MAX_THREADS)
@@ -220,15 +249,25 @@ bool dsThreadPool_setThreadCount(dsThreadPool* threadPool, unsigned int threadCo
 	}
 
 	bool success = true;
-	unsigned int waitThreadCount = 0;
+	uint32_t stopThreadCount = 0;
 	dsThread waitThreads[DS_THREAD_POOL_MAX_THREADS];
 
 	DS_VERIFY(dsMutex_lock(threadPool->stateMutex));
+
+	// Wait if in the middle of waiting for threads to start or stop when setting the number of
+	// threads concurrently.
+	while (threadPool->waitThreadCount > 0)
+		dsConditionVariable_wait(threadPool->waitThreadCondition, threadPool->stateMutex);
+
 	if (threadCount < threadPool->threadCount)
 	{
-		waitThreadCount = threadPool->threadCount - threadCount;
+		stopThreadCount = threadPool->threadCount - threadCount;
+		threadPool->waitThreadCount = stopThreadCount;
+
+		// Move the threads to the local array so joining doesn't depend on the thread pool state.
 		memcpy(waitThreads, threadPool->threads + threadCount, sizeof(dsThread));
 		threadPool->threadCount = threadCount;
+
 		// Wake threads so they can be shut down. Also ensures that thread queues with a limited
 		// concurrency will have the next tasks executed on threads that are still running.
 		DS_VERIFY(dsConditionVariable_notifyAll(threadPool->stateCondition));
@@ -237,6 +276,7 @@ bool dsThreadPool_setThreadCount(dsThreadPool* threadPool, unsigned int threadCo
 	{
 		uint32_t firstThread = threadPool->threadCount;
 		uint32_t newThreads = threadCount - firstThread;
+		threadPool->waitThreadCount = newThreads;
 		success = DS_RESIZEABLE_ARRAY_ADD(threadPool->allocator, threadPool->threads,
 			threadPool->threadCount, threadPool->maxThreads, newThreads);
 		if (success)
@@ -253,9 +293,16 @@ bool dsThreadPool_setThreadCount(dsThreadPool* threadPool, unsigned int threadCo
 			}
 		}
 	}
+
+	// Wait for the threads to either start or stop based on the new state. Avoids potential state
+	// conflicts if the number of threads is set concurrently.
+	while (threadPool->waitThreadCount > 0)
+		dsConditionVariable_wait(threadPool->waitThreadCondition, threadPool->stateMutex);
+
 	DS_VERIFY(dsMutex_unlock(threadPool->stateMutex));
 
-	for (unsigned int i = 0; i < waitThreadCount; ++i)
+	// Wait for any stopped threads. This no longer has any state tied directly to threadPool.
+	for (unsigned int i = 0; i < stopThreadCount; ++i)
 		dsThread_join(waitThreads + i, NULL);
 
 	return success;
@@ -290,6 +337,7 @@ bool dsThreadPool_destroy(dsThreadPool* threadPool)
 	DS_VERIFY(dsAllocator_free(threadPool->allocator, threadPool->threads));
 	dsMutex_destroy(threadPool->stateMutex);
 	dsConditionVariable_destroy(threadPool->stateCondition);
+	dsConditionVariable_destroy(threadPool->waitThreadCondition);
 	DS_VERIFY(dsAllocator_free(threadPool->allocator, threadPool));
 	return true;
 }

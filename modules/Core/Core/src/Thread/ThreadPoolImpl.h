@@ -33,7 +33,9 @@ struct dsThreadPool
 
 	dsMutex* stateMutex;
 	dsConditionVariable* stateCondition;
+	dsConditionVariable* waitThreadCondition;
 	uint32_t curTaskQueue;
+	uint32_t waitThreadCount;
 	bool stop;
 };
 

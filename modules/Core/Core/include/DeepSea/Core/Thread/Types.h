@@ -120,6 +120,8 @@ typedef dsThreadReturnType (*dsThreadFunction)(void* userData);
 
 /**
  * @brief Structure that holds the reference for a thread.
+ * @remark Threads may be copied to move to a different memory location, but must first wait for the
+ *     thread to start executing.
  * @see Thread.h
  */
 typedef struct dsThread

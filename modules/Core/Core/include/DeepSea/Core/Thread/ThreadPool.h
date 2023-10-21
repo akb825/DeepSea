@@ -28,6 +28,7 @@ extern "C"
 /**
  * @file
  * @brief Functions to create and manipulate a thread pool.
+ * @remark All functions are thread safe unless otherwise specified.
  */
 
 /**
@@ -55,7 +56,8 @@ DS_CORE_EXPORT unsigned int dsThreadPool_defaultThreadCount(void);
  * @param threadCount The number of threads to use. This should typically one fewer thread than your
  *     desired total concurrency to account for work performed on the main thread. A value of 0 is
  *     valid for task queues to perform their work serially in dsThreadTaskQueue_waitForTasks().
- *     Pass dsThreadPool_defaultThreadCount() for a default value based on the number of logical cores.
+ *     Pass dsThreadPool_defaultThreadCount() for a default value based on the number of logical
+ *     cores.
  * @param stackSize The size of the stack of each thread in bytes. Set to 0 for the system default.
  * @return The thread pool or NULL if it couldn't be created.
  */
@@ -70,18 +72,34 @@ DS_CORE_EXPORT dsThreadPool* dsThreadPool_create(dsAllocator* allocator, unsigne
 DS_CORE_EXPORT unsigned int dsThreadPool_getThreadCount(const dsThreadPool* threadPool);
 
 /**
+ * @brief Gets the number of threads for a thread pool.
+ *
+ * This is unlocked, which avoids locking overhead and potential delays while threads are searching
+ * for tasks to execute. However, it is only safe to use if you are very certain that
+ * dsThreadPool_setThreadCount() can't be called concurrently. For example, this should be safe to
+ * use when calling from the main application thread.
+ *
+ * @param threadPool The thread pool.
+ * @return The number of threads currently running.
+ */
+DS_CORE_EXPORT unsigned int dsThreadPool_getThreadCountUnlocked(const dsThreadPool* threadPool);
+
+/**
  * @brief Sets the number of threads for the thread pool.
  *
  * This may block until threads that are busy have finished executing.
+ *
+ * @remark This must not be called on a task thread, otherwise a deadlock may occur.
  *
  * @remark errno will be set on failure.
  * @param threadPool The thread pool.
  * @param threadCount The number of threads to use. This should typically one fewer thread than your
  *     desired total concurrency to account for work performed on the main thread. A value of 0 is
  *     valid for task queues to perform their work serially in dsThreadTaskQueue_waitForTasks().
- *     Pass dsThreadPool_defaultThreadCount() for a default value based on the number of logical cores.
- * @return False if an error occurred. On failure the number of threads may not be the same as before
- *     calling this function, call dsThreadPool_getThreadCount() to get the current state.
+ *     Pass dsThreadPool_defaultThreadCount() for a default value based on the number of logical
+ *     cores.
+ * @return False if an error occurred. On failure the number of threads may not be the same as
+ *     before calling this function, call dsThreadPool_getThreadCount() to get the current state.
  */
 DS_CORE_EXPORT bool dsThreadPool_setThreadCount(dsThreadPool* threadPool, unsigned int threadCount);
 

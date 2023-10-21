@@ -28,6 +28,7 @@ extern "C"
 /**
  * @file
  * @brief Functions to create and manipulate a thread task queue.
+ * @remark All functions are thread safe unless otherwise specified.
  */
 
 /**
