@@ -109,7 +109,7 @@ def AddSharedItems(builder, sharedItems):
 def SceneStartSharedItemsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartSharedItemsVector(builder, numElems):
+def StartSharedItemsVector(builder, numElems: int) -> int:
     return SceneStartSharedItemsVector(builder, numElems)
 
 def SceneAddPipeline(builder, pipeline):
@@ -121,7 +121,7 @@ def AddPipeline(builder, pipeline):
 def SceneStartPipelineVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartPipelineVector(builder, numElems):
+def StartPipelineVector(builder, numElems: int) -> int:
     return SceneStartPipelineVector(builder, numElems)
 
 def SceneAddNodes(builder, nodes):
@@ -133,7 +133,7 @@ def AddNodes(builder, nodes):
 def SceneStartNodesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartNodesVector(builder, numElems):
+def StartNodesVector(builder, numElems: int) -> int:
     return SceneStartNodesVector(builder, numElems)
 
 def SceneEnd(builder):

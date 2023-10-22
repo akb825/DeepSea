@@ -89,7 +89,7 @@ def AddSurfaces(builder, surfaces):
 def ViewStartSurfacesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartSurfacesVector(builder, numElems):
+def StartSurfacesVector(builder, numElems: int) -> int:
     return ViewStartSurfacesVector(builder, numElems)
 
 def ViewAddFramebuffers(builder, framebuffers):
@@ -101,7 +101,7 @@ def AddFramebuffers(builder, framebuffers):
 def ViewStartFramebuffersVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartFramebuffersVector(builder, numElems):
+def StartFramebuffersVector(builder, numElems: int) -> int:
     return ViewStartFramebuffersVector(builder, numElems)
 
 def ViewEnd(builder):

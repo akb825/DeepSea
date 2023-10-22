@@ -114,7 +114,7 @@ def AddItemLists(builder, itemLists):
 def LightNodeStartItemListsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartItemListsVector(builder, numElems):
+def StartItemListsVector(builder, numElems: int) -> int:
     return LightNodeStartItemListsVector(builder, numElems)
 
 def LightNodeEnd(builder):

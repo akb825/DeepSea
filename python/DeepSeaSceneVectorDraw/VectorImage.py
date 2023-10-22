@@ -138,7 +138,7 @@ def AddResources(builder, resources):
 def VectorImageStartResourcesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartResourcesVector(builder, numElems):
+def StartResourcesVector(builder, numElems: int) -> int:
     return VectorImageStartResourcesVector(builder, numElems)
 
 def VectorImageAddSrgb(builder, srgb):

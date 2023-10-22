@@ -72,7 +72,7 @@ def AddItemLists(builder, itemLists):
 def ParticleNodeStartItemListsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartItemListsVector(builder, numElems):
+def StartItemListsVector(builder, numElems: int) -> int:
     return ParticleNodeStartItemListsVector(builder, numElems)
 
 def ParticleNodeEnd(builder):

@@ -77,7 +77,7 @@ def AddFaces(builder, faces):
 def FaceGroupStartFacesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartFacesVector(builder, numElems):
+def StartFacesVector(builder, numElems: int) -> int:
     return FaceGroupStartFacesVector(builder, numElems)
 
 def FaceGroupEnd(builder):

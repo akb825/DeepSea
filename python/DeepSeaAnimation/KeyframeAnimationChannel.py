@@ -102,7 +102,7 @@ def AddValues(builder, values):
 def KeyframeAnimationChannelStartValuesVector(builder, numElems):
     return builder.StartVector(16, numElems, 4)
 
-def StartValuesVector(builder, numElems):
+def StartValuesVector(builder, numElems: int) -> int:
     return KeyframeAnimationChannelStartValuesVector(builder, numElems)
 
 def KeyframeAnimationChannelEnd(builder):

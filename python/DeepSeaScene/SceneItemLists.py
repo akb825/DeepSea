@@ -64,7 +64,7 @@ def AddItemLists(builder, itemLists):
 def SceneItemListsStartItemListsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartItemListsVector(builder, numElems):
+def StartItemListsVector(builder, numElems: int) -> int:
     return SceneItemListsStartItemListsVector(builder, numElems)
 
 def SceneItemListsEnd(builder):

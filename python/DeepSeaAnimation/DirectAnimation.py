@@ -64,7 +64,7 @@ def AddChannels(builder, channels):
 def DirectAnimationStartChannelsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartChannelsVector(builder, numElems):
+def StartChannelsVector(builder, numElems: int) -> int:
     return DirectAnimationStartChannelsVector(builder, numElems)
 
 def DirectAnimationEnd(builder):

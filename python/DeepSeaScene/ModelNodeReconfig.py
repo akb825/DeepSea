@@ -97,7 +97,7 @@ def AddModels(builder, models):
 def ModelNodeReconfigStartModelsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartModelsVector(builder, numElems):
+def StartModelsVector(builder, numElems: int) -> int:
     return ModelNodeReconfigStartModelsVector(builder, numElems)
 
 def ModelNodeReconfigAddExtraItemLists(builder, extraItemLists):
@@ -109,7 +109,7 @@ def AddExtraItemLists(builder, extraItemLists):
 def ModelNodeReconfigStartExtraItemListsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartExtraItemListsVector(builder, numElems):
+def StartExtraItemListsVector(builder, numElems: int) -> int:
     return ModelNodeReconfigStartExtraItemListsVector(builder, numElems)
 
 def ModelNodeReconfigEnd(builder):

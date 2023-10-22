@@ -89,7 +89,7 @@ def AddInstanceData(builder, instanceData):
 def ModelListStartInstanceDataVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartInstanceDataVector(builder, numElems):
+def StartInstanceDataVector(builder, numElems: int) -> int:
     return ModelListStartInstanceDataVector(builder, numElems)
 
 def ModelListAddSortType(builder, sortType):

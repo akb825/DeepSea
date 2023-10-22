@@ -77,7 +77,7 @@ def AddMaterialRemaps(builder, materialRemaps):
 def ModelNodeRemapStartMaterialRemapsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartMaterialRemapsVector(builder, numElems):
+def StartMaterialRemapsVector(builder, numElems: int) -> int:
     return ModelNodeRemapStartMaterialRemapsVector(builder, numElems)
 
 def ModelNodeRemapEnd(builder):

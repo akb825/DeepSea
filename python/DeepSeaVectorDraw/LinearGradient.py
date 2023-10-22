@@ -123,7 +123,7 @@ def AddGradient(builder, gradient):
 def LinearGradientStartGradientVector(builder, numElems):
     return builder.StartVector(8, numElems, 4)
 
-def StartGradientVector(builder, numElems):
+def StartGradientVector(builder, numElems: int) -> int:
     return LinearGradientStartGradientVector(builder, numElems)
 
 def LinearGradientAddStart(builder, start):

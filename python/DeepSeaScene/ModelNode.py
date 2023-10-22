@@ -122,7 +122,7 @@ def AddEmbeddedResources(builder, embeddedResources):
 def ModelNodeStartEmbeddedResourcesVector(builder, numElems):
     return builder.StartVector(1, numElems, 1)
 
-def StartEmbeddedResourcesVector(builder, numElems):
+def StartEmbeddedResourcesVector(builder, numElems: int) -> int:
     return ModelNodeStartEmbeddedResourcesVector(builder, numElems)
 
 def ModelNodeAddModels(builder, models):
@@ -134,7 +134,7 @@ def AddModels(builder, models):
 def ModelNodeStartModelsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartModelsVector(builder, numElems):
+def StartModelsVector(builder, numElems: int) -> int:
     return ModelNodeStartModelsVector(builder, numElems)
 
 def ModelNodeAddExtraItemLists(builder, extraItemLists):
@@ -146,7 +146,7 @@ def AddExtraItemLists(builder, extraItemLists):
 def ModelNodeStartExtraItemListsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartExtraItemListsVector(builder, numElems):
+def StartExtraItemListsVector(builder, numElems: int) -> int:
     return ModelNodeStartExtraItemListsVector(builder, numElems)
 
 def ModelNodeAddBounds(builder, bounds):

@@ -64,7 +64,7 @@ def AddKeyframes(builder, keyframes):
 def KeyframeAnimationStartKeyframesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartKeyframesVector(builder, numElems):
+def StartKeyframesVector(builder, numElems: int) -> int:
     return KeyframeAnimationStartKeyframesVector(builder, numElems)
 
 def KeyframeAnimationEnd(builder):

@@ -71,7 +71,7 @@ def AddMaterials(builder, materials):
 def VectorMaterialSetStartMaterialsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartMaterialsVector(builder, numElems):
+def StartMaterialsVector(builder, numElems: int) -> int:
     return VectorMaterialSetStartMaterialsVector(builder, numElems)
 
 def VectorMaterialSetAddSrgb(builder, srgb):

@@ -99,7 +99,7 @@ def AddFaces(builder, faces):
 def FontStartFacesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartFacesVector(builder, numElems):
+def StartFacesVector(builder, numElems: int) -> int:
     return FontStartFacesVector(builder, numElems)
 
 def FontAddQuality(builder, quality):

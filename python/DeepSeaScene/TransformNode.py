@@ -81,7 +81,7 @@ def AddChildren(builder, children):
 def TransformNodeStartChildrenVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartChildrenVector(builder, numElems):
+def StartChildrenVector(builder, numElems: int) -> int:
     return TransformNodeStartChildrenVector(builder, numElems)
 
 def TransformNodeEnd(builder):

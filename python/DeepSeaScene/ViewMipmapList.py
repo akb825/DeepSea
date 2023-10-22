@@ -59,7 +59,7 @@ def AddTextures(builder, textures):
 def ViewMipmapListStartTexturesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartTexturesVector(builder, numElems):
+def StartTexturesVector(builder, numElems: int) -> int:
     return ViewMipmapListStartTexturesVector(builder, numElems)
 
 def ViewMipmapListEnd(builder):

@@ -92,7 +92,7 @@ def AddData(builder, data):
 def SceneItemListStartDataVector(builder, numElems):
     return builder.StartVector(1, numElems, 1)
 
-def StartDataVector(builder, numElems):
+def StartDataVector(builder, numElems: int) -> int:
     return SceneItemListStartDataVector(builder, numElems)
 
 def SceneItemListEnd(builder):

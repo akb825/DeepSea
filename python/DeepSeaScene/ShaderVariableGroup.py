@@ -90,7 +90,7 @@ def AddData(builder, data):
 def ShaderVariableGroupStartDataVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartDataVector(builder, numElems):
+def StartDataVector(builder, numElems: int) -> int:
     return ShaderVariableGroupStartDataVector(builder, numElems)
 
 def ShaderVariableGroupEnd(builder):

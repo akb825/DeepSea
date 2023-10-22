@@ -70,7 +70,7 @@ def AddAttributes(builder, attributes):
 def VertexFormatStartAttributesVector(builder, numElems):
     return builder.StartVector(8, numElems, 4)
 
-def StartAttributesVector(builder, numElems):
+def StartAttributesVector(builder, numElems: int) -> int:
     return VertexFormatStartAttributesVector(builder, numElems)
 
 def VertexFormatAddInstanced(builder, instanced):

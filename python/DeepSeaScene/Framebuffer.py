@@ -109,7 +109,7 @@ def AddSurfaces(builder, surfaces):
 def FramebufferStartSurfacesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartSurfacesVector(builder, numElems):
+def StartSurfacesVector(builder, numElems: int) -> int:
     return FramebufferStartSurfacesVector(builder, numElems)
 
 def FramebufferAddWidth(builder, width):

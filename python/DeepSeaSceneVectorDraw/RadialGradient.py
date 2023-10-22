@@ -167,7 +167,7 @@ def AddStops(builder, stops):
 def RadialGradientStartStopsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartStopsVector(builder, numElems):
+def StartStopsVector(builder, numElems: int) -> int:
     return RadialGradientStartStopsVector(builder, numElems)
 
 def RadialGradientEnd(builder):

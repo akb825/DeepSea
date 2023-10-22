@@ -156,7 +156,7 @@ def AddEmbeddedResources(builder, embeddedResources):
 def TextNodeStartEmbeddedResourcesVector(builder, numElems):
     return builder.StartVector(1, numElems, 1)
 
-def StartEmbeddedResourcesVector(builder, numElems):
+def StartEmbeddedResourcesVector(builder, numElems: int) -> int:
     return TextNodeStartEmbeddedResourcesVector(builder, numElems)
 
 def TextNodeAddText(builder, text):
@@ -228,7 +228,7 @@ def AddItemLists(builder, itemLists):
 def TextNodeStartItemListsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartItemListsVector(builder, numElems):
+def StartItemListsVector(builder, numElems: int) -> int:
     return TextNodeStartItemListsVector(builder, numElems)
 
 def TextNodeEnd(builder):
