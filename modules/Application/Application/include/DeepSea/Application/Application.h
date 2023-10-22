@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,6 +75,26 @@ DS_APPLICATION_EXPORT uint32_t dsApplication_addEventResponder(dsApplication* ap
  */
 DS_APPLICATION_EXPORT bool dsApplication_removeEventResponder(dsApplication* application,
 	uint32_t responderID);
+
+/**
+ * @brief Sets the pre-input update function for the application.
+ *
+ * This function will be called before processing input and before the update function. This can be
+ * used for potentially expensive operations before input is processed to reduce input latency. Any
+ * CPU-based framerate limiting should be done inside this function.
+ *
+ * The update time passed won't include the previous frame's pre-input update function. When using
+ * this to perform CPU-side framerate limiting, this should sleep for the difference between the
+ * target frame time and the update time.
+ *
+ * @remark errno will be set on failure.
+ * @param application The application.
+ * @param function The udpate function.
+ * @param userData The user data to provide to the function.
+ * @return True if the function was set.
+ */
+DS_APPLICATION_EXPORT bool dsApplication_setPreInputUpdateFunction(dsApplication* application,
+	dsUpdateApplicationFunction function, void* userData);
 
 /**
  * @brief Sets the update function for the application.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1251,6 +1251,16 @@ struct dsApplication
 	 * @brief The number of motion sensors that can be held before the buffer is re-allocated.
 	 */
 	uint32_t motionSensorCapacity;
+
+	/**
+	 * @brief Function for updating the application before input has been processed.
+	 */
+	dsUpdateApplicationFunction preInputUpdateFunc;
+
+	/**
+	 * @brief User data for the pre-input update function.
+	 */
+	void* preInputUpdateUserData;
 
 	/**
 	 * @brief Function for updating the application.

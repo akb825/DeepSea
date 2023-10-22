@@ -37,7 +37,7 @@ static void applicationLogWrapper(void* userData, dsLogLevel level, const char* 
 	{
 		const char* name = "Exit";
 		dsApplication* application = (dsApplication*)userData;
-		dsApplication_showMessageBox(application, NULL, dsMessageBoxType_Error, "Fata error",
+		dsApplication_showMessageBox(application, NULL, dsMessageBoxType_Error, "Fatal Error",
 			message, &name, 1, 0, DS_MESSAGE_BOX_NO_BUTTON);
 		abort();
 	}
@@ -138,6 +138,20 @@ bool dsApplication_removeEventResponder(dsApplication* application, uint32_t res
 
 	errno = ENOTFOUND;
 	return false;
+}
+
+bool dsApplication_setPreInputUpdateFunction(dsApplication* application,
+	dsUpdateApplicationFunction function, void* userData)
+{
+	if (!application)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	application->preInputUpdateFunc = function;
+	application->preInputUpdateUserData = userData;
+	return true;
 }
 
 bool dsApplication_setUpdateFunction(dsApplication* application,

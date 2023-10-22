@@ -347,14 +347,33 @@ int dsSDLApplication_run(dsApplication* application)
 {
 	dsTimer timer = dsTimer_create();
 	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
-	double lastTime = dsTimer_time(timer);
+	double lastPreInputTime = dsTimer_time(timer);
+	double lastUpdateTime = lastPreInputTime;
 	while (!sdlApplication->quit && application->windowCount > 0)
 	{
 		DS_VERIFY(dsRenderer_beginFrame(application->renderer));
 
+		if (application->preInputUpdateFunc)
+		{
+			float lastFrameTime = (float)(dsTimer_time(timer) - lastPreInputTime);
+			DS_PROFILE_SCOPE_START("Pre-Input Update");
+			application->preInputUpdateFunc(application, lastFrameTime,
+				application->preInputUpdateUserData);
+			DS_PROFILE_SCOPE_END();
+		}
+
+		// Frame time for pre-input update doesn't include pre-input update itself to more easily
+		// support use cases such as framerate limiting.
+		lastPreInputTime = dsTimer_time(timer);
+
 		DS_PROFILE_SCOPE_START("Process Events");
+
+		// Need to pump events to get updated window sizes. Use implicit event pump from event poll
+		// to avoid double-pumping.
+		SDL_Event sdlEvent;
+		int hasEvent = SDL_PollEvent(&sdlEvent);
+
 		// Check if any size has changed.
-		SDL_PumpEvents();
 		for (uint32_t i = 0; i < application->windowCount; ++i)
 		{
 			dsWindow* window = application->windows[i];
@@ -387,8 +406,7 @@ int dsSDLApplication_run(dsApplication* application)
 		}
 
 		dsWindow* focusWindow = dsSDLWindow_getFocusWindow(application);
-		SDL_Event sdlEvent;
-		while (SDL_PollEvent(&sdlEvent))
+		while (hasEvent)
 		{
 			dsWindow* window = NULL;
 			dsEvent event;
@@ -419,7 +437,10 @@ int dsSDLApplication_run(dsApplication* application)
 				{
 					window = findWindow(application, sdlEvent.window.windowID);
 					if (!window)
+					{
+						hasEvent = SDL_PollEvent(&sdlEvent);
 						continue;
+					}
 
 					switch (sdlEvent.window.event)
 					{
@@ -455,9 +476,13 @@ int dsSDLApplication_run(dsApplication* application)
 								dsWindow_setHidden(window, true);
 							}
 							else
+							{
+								hasEvent = SDL_PollEvent(&sdlEvent);
 								continue;
+							}
 							break;
 						default:
+							hasEvent = SDL_PollEvent(&sdlEvent);
 							continue;
 					}
 					break;
@@ -493,7 +518,10 @@ int dsSDLApplication_run(dsApplication* application)
 				}
 				case SDL_MOUSEMOTION:
 					if (sdlEvent.motion.which == SDL_TOUCH_MOUSEID)
+					{
+						hasEvent = SDL_PollEvent(&sdlEvent);
 						continue;
+					}
 
 					window = findWindow(application, sdlEvent.motion.windowID);
 					event.type = dsAppEventType_MouseMove;
@@ -506,7 +534,10 @@ int dsSDLApplication_run(dsApplication* application)
 				case SDL_MOUSEBUTTONDOWN:
 				case SDL_MOUSEBUTTONUP:
 					if (sdlEvent.button.which == SDL_TOUCH_MOUSEID)
+					{
+						hasEvent = SDL_PollEvent(&sdlEvent);
 						continue;
+					}
 
 					window = findWindow(application, sdlEvent.button.windowID);
 					event.type = sdlEvent.type == SDL_MOUSEBUTTONUP ? dsAppEventType_MouseButtonUp :
@@ -519,7 +550,10 @@ int dsSDLApplication_run(dsApplication* application)
 					break;
 				case SDL_MOUSEWHEEL:
 					if (sdlEvent.wheel.which == SDL_TOUCH_MOUSEID)
+					{
+						hasEvent = SDL_PollEvent(&sdlEvent);
 						continue;
+					}
 
 					window = findWindow(application, sdlEvent.wheel.windowID);
 					event.type = dsAppEventType_MouseWheel;
@@ -575,6 +609,7 @@ int dsSDLApplication_run(dsApplication* application)
 						// May result in multiple events.
 						dsSDLGameInput_dispatchControllerDPadEvents(gameInput, application,
 							focusWindow, sdlEvent.jhat.hat, sdlEvent.jhat.value, event.time);
+						hasEvent = SDL_PollEvent(&sdlEvent);
 						continue;
 					}
 
@@ -605,6 +640,7 @@ int dsSDLApplication_run(dsApplication* application)
 					{
 						DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG,
 							"Couldn't add gameInput: %s", dsErrorString(errno));
+						hasEvent = SDL_PollEvent(&sdlEvent);
 						continue;
 					}
 
@@ -663,6 +699,7 @@ int dsSDLApplication_run(dsApplication* application)
 							event.motionSensor.type = dsMotionSensorType_Gyroscope;
 							break;
 						default:
+							hasEvent = SDL_PollEvent(&sdlEvent);
 							continue;
 					}
 					memcpy(&event.motionSensor.data, sdlEvent.csensor.data, sizeof(dsVector3f));
@@ -726,6 +763,7 @@ int dsSDLApplication_run(dsApplication* application)
 					event.custom.cleanupFunc = (dsCustomEventCleanupFunction)sdlEvent.user.data2;
 					break;
 				default:
+					hasEvent = SDL_PollEvent(&sdlEvent);
 					continue;
 			}
 
@@ -741,13 +779,15 @@ int dsSDLApplication_run(dsApplication* application)
 				((dsCustomEventCleanupFunction)sdlEvent.user.data2)(sdlEvent.user.code,
 					sdlEvent.user.data1);
 			}
+
+			hasEvent = SDL_PollEvent(&sdlEvent);
 		}
 		DS_PROFILE_SCOPE_END();
 
 		// Functions above may block if the app is paused, so get the current time here.
 		double curTime = dsTimer_time(timer);
-		float lastFrameTime = (float)(curTime - lastTime);
-		lastTime = curTime;
+		float lastFrameTime = (float)(curTime - lastUpdateTime);
+		lastUpdateTime = curTime;
 
 		if (application->updateFunc)
 		{
@@ -765,7 +805,7 @@ int dsSDLApplication_run(dsApplication* application)
 		dsRenderSurface* swapSurfaces[DS_MAX_WINDOWS];
 		if (application->windowCount > DS_MAX_WINDOWS)
 		{
-			DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "A maximum of %u windows is supported.",
+			DS_LOG_FATAL_F(DS_APPLICATION_SDL_LOG_TAG, "A maximum of %u windows is supported.",
 				DS_MAX_WINDOWS);
 			abort();
 		}
