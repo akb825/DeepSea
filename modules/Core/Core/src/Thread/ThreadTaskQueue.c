@@ -225,7 +225,7 @@ bool dsThreadTaskQueue_addTasks(dsThreadTaskQueue* taskQueue, const dsThreadTask
 			newTaskTail->next = newEntry;
 		else
 		{
-			DS_ASSERT(!taskQueue->taskHead);
+			DS_ASSERT(!newTaskHead);
 			newTaskHead = newEntry;
 		}
 		newTaskTail = newEntry;

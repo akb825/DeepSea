@@ -110,4 +110,7 @@ TEST(ResizeableArray, Remove)
 		EXPECT_EQ(i, buffer[i]);
 	for (uint32_t i = 30; i < count; ++i)
 		EXPECT_EQ(i + 6, buffer[i]);
+
+	EXPECT_TRUE(dsAllocator_free((dsAllocator*)&allocator, buffer));
+	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->size);
 }

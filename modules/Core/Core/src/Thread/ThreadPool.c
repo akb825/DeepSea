@@ -144,7 +144,7 @@ void dsThreadPool_removeTaskQueue(dsThreadPool* threadPool, dsThreadTaskQueue* t
 	{
 		dsThreadTaskQueue** curTaskQueue = threadPool->taskQueues + i;
 		if (*curTaskQueue != taskQueue)
-			break;
+			continue;
 
 		// Constant-time removal since order doesn't matter.
 		*curTaskQueue = threadPool->taskQueues[threadPool->taskQueueCount - 1];
@@ -265,7 +265,7 @@ bool dsThreadPool_setThreadCount(dsThreadPool* threadPool, unsigned int threadCo
 		threadPool->waitThreadCount = stopThreadCount;
 
 		// Move the threads to the local array so joining doesn't depend on the thread pool state.
-		memcpy(waitThreads, threadPool->threads + threadCount, sizeof(dsThread));
+		memcpy(waitThreads, threadPool->threads + threadCount, sizeof(dsThread)*stopThreadCount);
 		threadPool->threadCount = threadCount;
 
 		// Wake threads so they can be shut down. Also ensures that thread queues with a limited
