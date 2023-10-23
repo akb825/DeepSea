@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,24 +17,68 @@
 #include <DeepSea/Render/Resources/ResourceManager.h>
 
 #include <DeepSea/Core/Thread/Thread.h>
+#include <DeepSea/Core/Thread/ThreadPool.h>
 #include <DeepSea/Core/Thread/ThreadStorage.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Render/Types.h>
+
+#include <stdlib.h>
 #include <string.h>
+
+static void startThreadFunc(void* userData)
+{
+	dsResourceManager* resourceManager = (dsResourceManager*)userData;
+	if (!dsResourceManager_acquireResourceContext(resourceManager))
+	{
+		DS_LOG_FATAL(DS_RENDER_LOG_TAG,
+			"Couldn't acquire resource context for thread pool thread.");
+		abort();
+	}
+}
+
+static void endThreadFunc(void* userData)
+{
+	dsResourceManager* resourceManager = (dsResourceManager*)userData;
+	dsResourceManager_releaseResourceContext(resourceManager);
+}
 
 const char* dsResourceManager_noContextError = "Resources can only be manipulated from the main "
 	"thread or threads that have created a resource context.";
 
-bool dsResourceManager_createResourceContext(dsResourceManager* resourceManager)
+dsThreadPool* dsResourceManager_createThreadPool(dsAllocator* allocator,
+	dsResourceManager* resourceManager, unsigned int threadCount, size_t stackSize)
+{
+	if (!allocator || !resourceManager)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (threadCount > resourceManager->maxResourceContexts)
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+			"Thread pool thread count %u exceeds maximum number of resource contexts %u.",
+			threadCount, resourceManager->maxResourceContexts);
+		errno = EINVAL;
+		return NULL;
+	}
+
+	return dsThreadPool_create(allocator, threadCount, stackSize, &startThreadFunc, &endThreadFunc,
+		resourceManager);
+}
+
+bool dsResourceManager_acquireResourceContext(dsResourceManager* resourceManager)
 {
 	DS_PROFILE_FUNC_START();
 
 	if (!resourceManager || !resourceManager->renderer ||
-		!resourceManager->createResourceContextFunc || !resourceManager->destroyResourceContextFunc)
+		!resourceManager->acquireResourceContextFunc ||
+		!resourceManager->releaseResourceContextFunc)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -43,14 +87,14 @@ bool dsResourceManager_createResourceContext(dsResourceManager* resourceManager)
 	if (dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot create a resource context for the main thread.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot acquire a resource context for the main thread.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	if (dsThreadStorage_get(resourceManager->_resourceContext))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resource context already created for this thread.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resource context already acquired for this thread.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -73,7 +117,7 @@ bool dsResourceManager_createResourceContext(dsResourceManager* resourceManager)
 	while (!DS_ATOMIC_COMPARE_EXCHANGE32(&resourceManager->resourceContextCount,
 		&resourceContextCount, &newResourceContextCount, true));
 
-	dsResourceContext* context = resourceManager->createResourceContextFunc(resourceManager);
+	dsResourceContext* context = resourceManager->acquireResourceContextFunc(resourceManager);
 	if (!context)
 	{
 		// Allocation failed, decrement the context count incremented earlier.
@@ -84,7 +128,7 @@ bool dsResourceManager_createResourceContext(dsResourceManager* resourceManager)
 	if (!dsThreadStorage_set(resourceManager->_resourceContext, context))
 	{
 		// Setting the context failed, decrement the context count incremented earlier.
-		resourceManager->destroyResourceContextFunc(resourceManager, context);
+		resourceManager->releaseResourceContextFunc(resourceManager, context);
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->resourceContextCount, -1);
 		DS_PROFILE_FUNC_RETURN(false);
 	}
@@ -94,10 +138,10 @@ bool dsResourceManager_createResourceContext(dsResourceManager* resourceManager)
 
 bool dsResourceManager_flushResourceContext(dsResourceManager* resourceManager)
 {
-	if (!resourceManager || !resourceManager->flushResourceContextFunc)
-		return true;
-
 	DS_PROFILE_FUNC_START();
+
+	if (!resourceManager || !resourceManager->flushResourceContextFunc)
+		DS_PROFILE_FUNC_RETURN(true);
 
 	// Not needed for main thread.
 	if (dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()))
@@ -115,14 +159,11 @@ bool dsResourceManager_flushResourceContext(dsResourceManager* resourceManager)
 	DS_PROFILE_FUNC_RETURN(result);
 }
 
-bool dsResourceManager_destroyResourceContext(dsResourceManager* resourceManager)
+bool dsResourceManager_releaseResourceContext(dsResourceManager* resourceManager)
 {
-	if (!resourceManager)
-		return true;
-
 	DS_PROFILE_FUNC_START();
 
-	if (!resourceManager->destroyResourceContextFunc)
+	if (!resourceManager || !resourceManager->releaseResourceContextFunc)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -134,7 +175,7 @@ bool dsResourceManager_destroyResourceContext(dsResourceManager* resourceManager
 	if (!context)
 		DS_PROFILE_FUNC_RETURN(true);
 
-	if (!resourceManager->destroyResourceContextFunc(resourceManager, context))
+	if (!resourceManager->releaseResourceContextFunc(resourceManager, context))
 		DS_PROFILE_FUNC_RETURN(false);
 
 	DS_ATOMIC_FETCH_ADD32(&resourceManager->resourceContextCount, -1);

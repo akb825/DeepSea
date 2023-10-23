@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -831,13 +831,13 @@ bool dsMTLResourceManager_bufferTextureCopySupported(const dsResourceManager* re
 		!dsIsMTLFormatPVR(format);
 }
 
-dsResourceContext* dsMTLResourceManager_createResourceContext(dsResourceManager* resourceManager)
+dsResourceContext* dsMTLResourceManager_acquireResourceContext(dsResourceManager* resourceManager)
 {
 	DS_UNUSED(resourceManager);
 	return &dummyContext;
 }
 
-bool dsMTLResourceManager_destroyResourceContext(dsResourceManager* resourceManager,
+bool dsMTLResourceManager_releaseResourceContext(dsResourceManager* resourceManager,
 	dsResourceContext* context)
 {
 	DS_UNUSED(resourceManager);
@@ -995,8 +995,8 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 		&dsMTLResourceManager_bufferTextureCopySupported;
 	baseResourceManager->copyTextureToBufferSupportedFunc =
 		&dsMTLResourceManager_bufferTextureCopySupported;
-	baseResourceManager->createResourceContextFunc = &dsMTLResourceManager_createResourceContext;
-	baseResourceManager->destroyResourceContextFunc = &dsMTLResourceManager_destroyResourceContext;
+	baseResourceManager->acquireResourceContextFunc = &dsMTLResourceManager_acquireResourceContext;
+	baseResourceManager->releaseResourceContextFunc = &dsMTLResourceManager_releaseResourceContext;
 
 	// Buffers
 	baseResourceManager->createBufferFunc = &dsMTLGfxBuffer_create;

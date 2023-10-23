@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Thread/Types.h>
 #include <DeepSea/Render/Resources/Types.h>
 #include <DeepSea/Render/Export.h>
 
@@ -41,16 +42,40 @@ extern "C"
  */
 
 /**
- * @brief Create a resource context for the current thread.
+ * @brief Creates a thread pool that can be used with graphics resources.
+ *
+ * This provides start/end functions for the thread pool that acquires and releases resource
+ * contexts. If other operations must be performed on thread start and stop, a standard dsThreadPool
+ * may be created with custom thread start and end functions that call
+ * dsResourceManager_acquireResourceContext() on start and
+ * dsResourceManager_releaseResourceContext() on end.
+ *
+ * In general the number of threads shouldn't be changed after creation. If it is changed, the
+ * number of threads must not exceed the number of resource contexts. If acquiring a resource
+ * context fails on a thread, the application will be aborted.
+ *
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the thread pool with.
+ * @param resourceManager The resource manager to acquire resource contexts from.
+ * @param threadCount The initial number of threads. This may not exceed the maximum number of
+ *     resource contexts.
+ * @param stackSize The size of the stack of each thread in bytes. Set to 0 for the system default.
+ * @return The thread pool or NULL if an error occurred.
+ */
+DS_RENDER_EXPORT dsThreadPool* dsResourceManager_createThreadPool(dsAllocator* allocator,
+	dsResourceManager* resourceManager, unsigned int threadCount, size_t stackSize);
+
+/**
+ * @brief Acquires a resource context for the current thread.
  *
  * This will allow resources to be created and manipulated from the current thread. It will remain
- * valid until dsResourceManager_destroyResourceContext() is called.
+ * valid until dsResourceManager_releaseResourceContext() is called.
  *
  * @remark errno will be set on failure.
  * @param resourceManager The resource manager
  * @return False if the resource context couldn't be created.
  */
-DS_RENDER_EXPORT bool dsResourceManager_createResourceContext(dsResourceManager* resourceManager);
+DS_RENDER_EXPORT bool dsResourceManager_acquireResourceContext(dsResourceManager* resourceManager);
 
 /**
  * @brief Flushes the resource context for the current thread.
@@ -64,15 +89,16 @@ DS_RENDER_EXPORT bool dsResourceManager_createResourceContext(dsResourceManager*
 DS_RENDER_EXPORT bool dsResourceManager_flushResourceContext(dsResourceManager* resourceManager);
 
 /**
- * @brief Destroys the resource context for the current thread.
+ * @brief Releases the resource context for the current thread.
  *
- * Any remaining tasks are flushed.
+ * Any remaining tasks are flushed. Once released, the resource context will be free to be acquired
+ * from another thread.
  *
  * @remark errno will be set on failure.
  * @param resourceManager The resource manager
  * @return False if the resource context couldn't be destroyed.
  */
-DS_RENDER_EXPORT bool dsResourceManager_destroyResourceContext(dsResourceManager* resourceManager);
+DS_RENDER_EXPORT bool dsResourceManager_releaseResourceContext(dsResourceManager* resourceManager);
 
 /**
  * @brief Checks whether or not resources can be used on this thread.

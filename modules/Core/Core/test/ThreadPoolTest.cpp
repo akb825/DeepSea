@@ -21,6 +21,7 @@
 #include <DeepSea/Core/Thread/Mutex.h>
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Thread/ThreadPool.h>
+#include <DeepSea/Core/Atomic.h>
 #include <gtest/gtest.h>
 
 class ThreadPoolTest : public testing::Test
@@ -56,23 +57,56 @@ static uint64_t splitMix64(uint64_t& state)
 
 TEST_F(ThreadPoolTest, Create)
 {
-	EXPECT_NULL_ERRNO(EINVAL, dsThreadPool_create(NULL, 2, 0));
-	EXPECT_NULL_ERRNO(EINVAL, dsThreadPool_create(allocator, DS_THREAD_POOL_MAX_THREADS + 1, 0));
-	dsThreadPool* threadPool = dsThreadPool_create(allocator, 2, 0);
+	EXPECT_NULL_ERRNO(EINVAL, dsThreadPool_create(NULL, 2, 0, NULL, NULL, NULL));
+	EXPECT_NULL_ERRNO(EINVAL, dsThreadPool_create(allocator, DS_THREAD_POOL_MAX_THREADS + 1, 0,
+		NULL, NULL, NULL));
+	dsThreadPool* threadPool = dsThreadPool_create(allocator, 2, 0, NULL, NULL, NULL);
 	EXPECT_TRUE(threadPool);
 	EXPECT_TRUE(dsThreadPool_destroy(threadPool));
 }
 
 TEST_F(ThreadPoolTest, SetThreads)
 {
-	dsThreadPool* threadPool = dsThreadPool_create(allocator, 2, 0);
+	struct StartEndThreadData
+	{
+		uint32_t startCount = 0;
+		uint32_t endCount = 0;
+	};
+
+	StartEndThreadData threadData;
+
+	auto startThreadFunc = [](void* userData)
+	{
+		auto threadData = reinterpret_cast<StartEndThreadData*>(userData);
+		DS_ATOMIC_FETCH_ADD32(&threadData->startCount, 1);
+	};
+
+	auto endThreadFunc = [](void* userData)
+	{
+		auto threadData = reinterpret_cast<StartEndThreadData*>(userData);
+		DS_ATOMIC_FETCH_ADD32(&threadData->endCount, 1);
+	};
+
+	dsThreadPool* threadPool = dsThreadPool_create(allocator, 2, 0, startThreadFunc, endThreadFunc,
+		&threadData);
 	ASSERT_TRUE(threadPool);
 	EXPECT_EQ(2U, dsThreadPool_getThreadCount(threadPool));
+	EXPECT_EQ(2U, threadData.startCount);
+	EXPECT_EQ(0U, threadData.endCount);
+
 	EXPECT_TRUE(dsThreadPool_setThreadCount(threadPool, 4));
 	EXPECT_EQ(4U, dsThreadPool_getThreadCount(threadPool));
+	EXPECT_EQ(4U, threadData.startCount);
+	EXPECT_EQ(0U, threadData.endCount);
+
 	EXPECT_TRUE(dsThreadPool_setThreadCount(threadPool, 1));
 	EXPECT_EQ(1U, dsThreadPool_getThreadCount(threadPool));
+	EXPECT_EQ(4U, threadData.startCount);
+	EXPECT_EQ(3U, threadData.endCount);
+
 	EXPECT_TRUE(dsThreadPool_destroy(threadPool));
+	EXPECT_EQ(4U, threadData.startCount);
+	EXPECT_EQ(4U, threadData.endCount);
 }
 
 TEST_F(ThreadPoolTest, StressTestSetThreads)
@@ -97,7 +131,7 @@ TEST_F(ThreadPoolTest, StressTestSetThreads)
 	ASSERT_TRUE(startCondition);
 	bool start = false;
 
-	dsThreadPool* threadPool = dsThreadPool_create(allocator, 0, 0);
+	dsThreadPool* threadPool = dsThreadPool_create(allocator, 0, 0, NULL, NULL, NULL);
 	ASSERT_TRUE(threadPool);
 
 	uint64_t randomState = 0;

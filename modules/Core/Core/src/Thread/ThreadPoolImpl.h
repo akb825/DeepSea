@@ -22,6 +22,9 @@ struct dsThreadPool
 {
 	dsAllocator* allocator;
 	size_t stackSize;
+	dsThreadTaskFunction startThreadFunc;
+	dsThreadTaskFunction endThreadFunc;
+	void* startEndThreadUserData;
 
 	dsThread* threads;
 	uint32_t threadCount;

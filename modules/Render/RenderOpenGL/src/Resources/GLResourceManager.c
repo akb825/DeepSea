@@ -1136,7 +1136,7 @@ bool dsGLResourceManager_copyTextureToBufferSupported(const dsResourceManager* r
 	return formatSupported(glResourceManager, format, FormatBit_CopyTextureToBuffer);
 }
 
-dsResourceContext* dsGLResourceManager_createResourceContext(dsResourceManager* resourceManager)
+dsResourceContext* dsGLResourceManager_acquireResourceContext(dsResourceManager* resourceManager)
 {
 	DS_ASSERT(resourceManager);
 
@@ -1170,7 +1170,7 @@ bool dsGLResourceManager_flushResourceContext(dsResourceManager* resourceManager
 	return true;
 }
 
-bool dsGLResourceManager_destroyResourceContext(dsResourceManager* resourceManager,
+bool dsGLResourceManager_releaseResourceContext(dsResourceManager* resourceManager,
 	dsResourceContext* context)
 {
 	DS_ASSERT(resourceManager);
@@ -1275,9 +1275,9 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 		&dsGLResourceManager_copyTextureToBufferSupported;
 
 	// Resource contexts
-	baseResourceManager->createResourceContextFunc = &dsGLResourceManager_createResourceContext;
+	baseResourceManager->acquireResourceContextFunc = &dsGLResourceManager_acquireResourceContext;
 	baseResourceManager->flushResourceContextFunc = &dsGLResourceManager_flushResourceContext;
-	baseResourceManager->destroyResourceContextFunc = &dsGLResourceManager_destroyResourceContext;
+	baseResourceManager->releaseResourceContextFunc = &dsGLResourceManager_releaseResourceContext;
 
 	// Buffers
 	baseResourceManager->supportedBuffers = getSupportedBuffers(baseRenderer->shaderVersion);

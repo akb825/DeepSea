@@ -134,7 +134,7 @@ DS_RENDER_EXPORT bool dsTexture_cubeOrientation(dsMatrix44f* outOrientation, dsC
  * @brief Creates a texture.
  * @remark errno will be set on failure.
  * @param resourceManager The resource manager to create the texture from.
- * @param allocator The allocator to create the texture with. If NULL, it will use the same
+ * @param allocator The allocator to create the texture with. If NULL it will use the same
  *     allocator as the resource manager.
  * @param usage How the texture will be used. This should be a combination of dsTextureUsage flags.
  * @param memoryHints Hints for how the memory for the texture will be used. This should be a
@@ -149,7 +149,7 @@ DS_RENDER_EXPORT bool dsTexture_cubeOrientation(dsMatrix44f* outOrientation, dsC
  *     Data is tightly packed.
  * @param size The size of the data. This must match the size of the texture, and is used to ensure
  *     protect against incorrectly calculated buffer sizes.
- * @return The created texture, or NULL if it couldn't be created.
+ * @return The created texture or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsTexture* dsTexture_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsTextureUsage usage, dsGfxMemory memoryHints,
@@ -162,7 +162,7 @@ DS_RENDER_EXPORT dsTexture* dsTexture_create(dsResourceManager* resourceManager,
  *
  * @remark errno will be set on failure.
  * @param resourceManager The resource manager to create the offscreen from.
- * @param allocator The allocator to create the offscreen with. If NULL, it will use the same
+ * @param allocator The allocator to create the offscreen with. If NULL it will use the same
  *     allocator as the resource manager.
  * @param usage How the offscreen will be used. This should be a combination of dsTextureUsage
  *     flags.
@@ -171,7 +171,7 @@ DS_RENDER_EXPORT dsTexture* dsTexture_create(dsResourceManager* resourceManager,
  * @param info The info for the texture.
  * @param resolve True to resolve multisampled offscreens, false to leave unresolved to sample in
  *     the shader. When resolved, only the first mip level can be drawn to.
- * @return The created offscreen, or NULL if it couldn't be created.
+ * @return The created offscreen or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsTextureUsage usage, dsGfxMemory memoryHints,

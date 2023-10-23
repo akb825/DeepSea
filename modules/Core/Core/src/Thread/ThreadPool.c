@@ -34,6 +34,9 @@ static dsThreadReturnType threadFunc(void* userData)
 {
 	dsThreadPool* threadPool = (dsThreadPool*)userData;
 
+	if (threadPool->startThreadFunc)
+		threadPool->startThreadFunc(threadPool->startEndThreadUserData);
+
 	DS_VERIFY(dsMutex_lock(threadPool->stateMutex));
 
 	// Find the index for this thread.
@@ -110,6 +113,9 @@ static dsThreadReturnType threadFunc(void* userData)
 		DS_VERIFY(dsMutex_lock(threadPool->stateMutex));
 	} while (true);
 
+	if (threadPool->endThreadFunc)
+		threadPool->endThreadFunc(threadPool->startEndThreadUserData);
+
 	return 0;
 }
 
@@ -170,7 +176,8 @@ unsigned int dsThreadPool_defaultThreadCount(void)
 }
 
 dsThreadPool* dsThreadPool_create(dsAllocator* allocator, unsigned int threadCount,
-	size_t stackSize)
+	size_t stackSize, dsThreadTaskFunction startThreadFunc, dsThreadTaskFunction endThreadFunc,
+	void* startEndThreadUserData)
 {
 	if (!allocator || threadCount > DS_THREAD_POOL_MAX_THREADS)
 	{
@@ -192,6 +199,9 @@ dsThreadPool* dsThreadPool_create(dsAllocator* allocator, unsigned int threadCou
 	memset(threadPool, 0, sizeof(dsThreadPool));
 	threadPool->allocator = dsAllocator_keepPointer(allocator);
 	threadPool->stackSize = stackSize;
+	threadPool->startThreadFunc = startThreadFunc;
+	threadPool->endThreadFunc = endThreadFunc;
+	threadPool->startEndThreadUserData = startEndThreadUserData;
 
 	threadPool->stateMutex = dsMutex_create(allocator, "Thread Pool Mutex");
 	if (!threadPool->stateMutex)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,13 +98,13 @@ static bool copyBufferTextureSupported(const dsResourceManager* resourceManager,
 	return textureFormatSupported(resourceManager, format);
 }
 
-static dsResourceContext* createResourceContext(dsResourceManager* resourceManager)
+static dsResourceContext* acquireResourceContext(dsResourceManager* resourceManager)
 {
 	DS_ASSERT(resourceManager && resourceManager->allocator);
 	return (dsResourceContext*)dsAllocator_alloc(resourceManager->allocator, 1);
 }
 
-static bool destroyResourceContext(dsResourceManager* resourceManager, dsResourceContext* context)
+static bool releaseResourceContext(dsResourceManager* resourceManager, dsResourceContext* context)
 {
 	DS_ASSERT(resourceManager && resourceManager->allocator && context);
 	return dsAllocator_free(resourceManager->allocator, context);
@@ -189,8 +189,8 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->surfaceBlitFormatsSupportedFunc = &blitFormatsSupported;
 	resourceManager->copyBufferToTextureSupportedFunc = &copyBufferTextureSupported;
 	resourceManager->copyTextureToBufferSupportedFunc = &copyBufferTextureSupported;
-	resourceManager->createResourceContextFunc = &createResourceContext;
-	resourceManager->destroyResourceContextFunc = &destroyResourceContext;
+	resourceManager->acquireResourceContextFunc = &acquireResourceContext;
+	resourceManager->releaseResourceContextFunc = &releaseResourceContext;
 
 	resourceManager->createBufferFunc = &dsMockGfxBuffer_create;
 	resourceManager->destroyBufferFunc = &dsMockGfxBuffer_destroy;

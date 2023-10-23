@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Aaron Barany
+ * Copyright 2018-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -748,13 +748,13 @@ bool dsVkResourceManager_textureCopyFormatsSupported(const dsResourceManager* re
 	return dsGfxFormat_size(srcFormat) == dsGfxFormat_size(srcFormat);
 }
 
-dsResourceContext* dsVkResourceManager_createResourceContext(dsResourceManager* resourceManager)
+dsResourceContext* dsVkResourceManager_acquireResourceContext(dsResourceManager* resourceManager)
 {
 	DS_UNUSED(resourceManager);
 	return &dummyContext;
 }
 
-bool dsVkResourceManager_destroyResourceContext(dsResourceManager* resourceManager,
+bool dsVkResourceManager_releaseResourceContext(dsResourceManager* resourceManager,
 	dsResourceContext* context)
 {
 	DS_UNUSED(resourceManager);
@@ -865,8 +865,8 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 		&dsVkResourceManager_textureFormatSupported;
 	baseResourceManager->copyTextureToBufferSupportedFunc =
 		&dsVkResourceManager_textureFormatSupported;
-	baseResourceManager->createResourceContextFunc = &dsVkResourceManager_createResourceContext;
-	baseResourceManager->destroyResourceContextFunc = &dsVkResourceManager_destroyResourceContext;
+	baseResourceManager->acquireResourceContextFunc = &dsVkResourceManager_acquireResourceContext;
+	baseResourceManager->releaseResourceContextFunc = &dsVkResourceManager_releaseResourceContext;
 
 	// Buffers
 	baseResourceManager->createBufferFunc = &dsVkGfxBuffer_create;

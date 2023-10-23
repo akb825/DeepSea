@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1189,11 +1189,11 @@ typedef bool (*dsBufferTextureCopySupportedFunction)(const dsResourceManager* re
 	dsGfxFormat format);
 
 /**
- * @brief Function for creating a resource context for the current thread.
+ * @brief Function for acquiring a resource context for the current thread.
  * @param resourceManager The resource manager to create the resource context with.
- * @return The created resource context, or NULL if it could not be created.
+ * @return The acquired resource context or NULL if it could not be acquired.
  */
-typedef dsResourceContext* (*dsCreateResourceContextFunction)(dsResourceManager* resourceManager);
+typedef dsResourceContext* (*dsAcquireResourceContextFunction)(dsResourceManager* resourceManager);
 
 /**
  * @brief Function for flushing a resource context.
@@ -1205,15 +1205,15 @@ typedef bool (*dsFlushResourceContextFunction)(dsResourceManager* resourceManage
 	dsResourceContext* context);
 
 /**
- * @brief Function for destroying a resource context.
+ * @brief Function for releasing a resource context.
  *
  * This should flush any remaining tasks are flushed.
  *
  * @param resourceManager The resource manager that the context was created with.
- * @param context The resource context to destroy.
- * @return False if the destruction is invalid. errno should be set if the destruction failed.
+ * @param context The resource context to release.
+ * @return False if the release is invalid. errno should be set if the destruction failed.
  */
-typedef bool (*dsDestroyResourceContextFunction)(dsResourceManager* resourceManager,
+typedef bool (*dsReleaseResourceContextFunction)(dsResourceManager* resourceManager,
 	dsResourceContext* context);
 
 /**
@@ -2312,9 +2312,9 @@ struct dsResourceManager
 	dsBufferTextureCopySupportedFunction copyTextureToBufferSupportedFunc;
 
 	/**
-	 * @brief Resource context creation function.
+	 * @brief Resource context acquire function.
 	 */
-	dsCreateResourceContextFunction createResourceContextFunc;
+	dsAcquireResourceContextFunction acquireResourceContextFunc;
 
 	/**
 	 * @brief Resource context flush function.
@@ -2322,9 +2322,9 @@ struct dsResourceManager
 	dsFlushResourceContextFunction flushResourceContextFunc;
 
 	/**
-	 * @brief Resource context destruction function.
+	 * @brief Resource context release function.
 	 */
-	dsDestroyResourceContextFunction destroyResourceContextFunc;
+	dsReleaseResourceContextFunction releaseResourceContextFunc;
 
 	/**
 	 * @brief Buffer creation function.

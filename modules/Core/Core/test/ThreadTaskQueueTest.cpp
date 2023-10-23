@@ -35,7 +35,7 @@ public:
 	void SetUp() override
 	{
 		EXPECT_TRUE(dsSystemAllocator_initialize(&systemAllocator, DS_ALLOCATOR_NO_LIMIT));
-		threadPool = dsThreadPool_create(allocator, 0, 0);
+		threadPool = dsThreadPool_create(allocator, 0, 0, NULL, NULL, NULL);
 		ASSERT_TRUE(threadPool);
 	}
 

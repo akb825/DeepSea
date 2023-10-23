@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ struct RenderInfo
 
 		if (resourceManager->maxResourceContexts > 0)
 		{
-			ASSERT_TRUE(dsResourceManager_createResourceContext(resourceManager));
+			ASSERT_TRUE(dsResourceManager_acquireResourceContext(resourceManager));
 		}
 
 		const uint32_t width = 4, height = 2;
@@ -213,7 +213,7 @@ struct RenderInfo
 
 		if (resourceManager->maxResourceContexts > 0)
 		{
-			ASSERT_TRUE(dsResourceManager_destroyResourceContext(resourceManager));
+			ASSERT_TRUE(dsResourceManager_releaseResourceContext(resourceManager));
 		}
 	}
 
@@ -222,7 +222,7 @@ struct RenderInfo
 		dsResourceManager* resourceManager = fixture.resourceManager;
 		if (resourceManager->maxResourceContexts > 0)
 		{
-			ASSERT_TRUE(dsResourceManager_createResourceContext(resourceManager));
+			ASSERT_TRUE(dsResourceManager_acquireResourceContext(resourceManager));
 		}
 
 		EXPECT_TRUE(dsCommandBufferPool_destroy(secondaryCommands));
@@ -244,7 +244,7 @@ struct RenderInfo
 
 		if (resourceManager->maxResourceContexts > 0)
 		{
-			ASSERT_TRUE(dsResourceManager_destroyResourceContext(resourceManager));
+			ASSERT_TRUE(dsResourceManager_releaseResourceContext(resourceManager));
 		}
 	}
 

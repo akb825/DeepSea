@@ -59,10 +59,16 @@ DS_CORE_EXPORT unsigned int dsThreadPool_defaultThreadCount(void);
  *     Pass dsThreadPool_defaultThreadCount() for a default value based on the number of logical
  *     cores.
  * @param stackSize The size of the stack of each thread in bytes. Set to 0 for the system default.
+ * @param startThreadFunc Function to call when a worker thread starts to set up any per-thread
+ *     resources. May be NULL if no setup is needed.
+ * @param endThreadFunc Function to call when a worker thread ends to tear down any per-thread
+ *     resources. May be NULL if no tear down is needed.
+ * @param startEndThreadUserData User data to provide to startThreadFunc and endThreadFunc.
  * @return The thread pool or NULL if it couldn't be created.
  */
 DS_CORE_EXPORT dsThreadPool* dsThreadPool_create(dsAllocator* allocator, unsigned int threadCount,
-	size_t stackSize);
+	size_t stackSize, dsThreadTaskFunction startThreadFunc, dsThreadTaskFunction endThreadFunc,
+	void* startEndThreadUserData);
 
 /**
  * @brief Gets the number of threads for a thread pool.
