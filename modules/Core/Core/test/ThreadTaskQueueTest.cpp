@@ -343,3 +343,49 @@ TEST_F(ThreadTaskQueueTest, MaxConcurrency)
 	dsMutex_destroy(state.stateMutex);
 	dsConditionVariable_destroy(state.finishCondition);
 }
+
+TEST_F(ThreadTaskQueueTest, AddTaskWithinTask)
+{
+	constexpr unsigned int taskCount = 5;
+	dsThreadTaskQueue* taskQueue = dsThreadTaskQueue_create(allocator, threadPool, taskCount, 0);
+	ASSERT_TRUE(taskQueue);
+
+	struct TaskState
+	{
+		unsigned int index;
+		unsigned int* finishedCounter;
+		dsThreadTaskQueue* taskQueue;
+		dsThreadTask* nextTask;
+	};
+
+	auto taskFunc = [](void* userData)
+	{
+		auto state = reinterpret_cast<TaskState*>(userData);
+		EXPECT_EQ(state->index, *state->finishedCounter);
+		++*state->finishedCounter;
+		if (state->nextTask)
+		{
+			EXPECT_TRUE(dsThreadTaskQueue_addTasks(state->taskQueue, state->nextTask, 1));
+		}
+	};
+
+	unsigned int finishedCounter = 0;
+	TaskState states[taskCount];
+	dsThreadTask tasks[taskCount];
+	for (unsigned int i = 0; i < taskCount; ++i)
+	{
+		states[i].index = i;
+		states[i].finishedCounter = &finishedCounter;
+		states[i].taskQueue = taskQueue;
+		states[i].nextTask = i < taskCount - 1 ? tasks + i + 1 : nullptr;
+		tasks[i].taskFunc = taskFunc;
+		tasks[i].userData = states + i;
+	}
+
+	EXPECT_TRUE(dsThreadTaskQueue_addTasks(taskQueue, tasks, 1));
+	EXPECT_EQ(0U, finishedCounter);
+	EXPECT_TRUE(dsThreadTaskQueue_waitForTasks(taskQueue));
+	EXPECT_EQ(taskCount, finishedCounter);
+
+	dsThreadTaskQueue_destroy(taskQueue);
+}
