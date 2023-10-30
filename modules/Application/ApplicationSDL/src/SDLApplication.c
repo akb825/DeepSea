@@ -1188,7 +1188,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 					displayModes[curIndex].displayIndex = i;
 					displayModes[curIndex].width = mode.w;
 					displayModes[curIndex].height = mode.h;
-					displayModes[curIndex].refreshRate = mode.refresh_rate;
+					displayModes[curIndex].refreshRate = (float)mode.refresh_rate;
 
 					if (mode.format == defaultMode.format && mode.w == defaultMode.w &&
 						mode.h == defaultMode.h && mode.refresh_rate == defaultMode.refresh_rate)

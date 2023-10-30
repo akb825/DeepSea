@@ -288,9 +288,9 @@ typedef struct dsDisplayMode
 	uint32_t height;
 
 	/**
-	 * @brief The refresh rate of the display.
+	 * @brief The refresh rate of the display in Hz.
 	 */
-	uint32_t refreshRate;
+	float refreshRate;
 } dsDisplayMode;
 
 /**
