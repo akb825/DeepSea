@@ -1005,6 +1005,7 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 	}
 
 	// Then process the shared items.
+	DS_PROFILE_SCOPE_START("Shared Items");
 	for (uint32_t i = 0; i < scene->sharedItemCount; ++i)
 	{
 		dsSceneItemLists* sharedItems = scene->sharedItems + i;
@@ -1012,11 +1013,17 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 		{
 			dsSceneItemList* itemList = sharedItems->itemLists[j];
 			if (itemList->commitFunc)
+			{
+				DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
 				itemList->commitFunc(itemList, view, commandBuffer);
+				DS_PROFILE_SCOPE_END();
+			}
 		}
 	}
+	DS_PROFILE_SCOPE_END();
 
 	// Then process the scene pipeline.
+	DS_PROFILE_SCOPE_START("Draw");
 	for (uint32_t i = 0; i < scene->pipelineCount; ++i)
 	{
 		dsSceneRenderPass* sceneRenderPass = scene->pipeline[i].renderPass;
@@ -1042,7 +1049,11 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 				{
 					dsSceneItemList* itemList = drawLists->itemLists[k];
 					if (itemList->preRenderPassFunc)
+					{
+						DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
 						itemList->preRenderPassFunc(itemList, view, commandBuffer);
+						DS_PROFILE_SCOPE_END();
+					}
 				}
 			}
 
@@ -1073,7 +1084,9 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 				{
 					dsSceneItemList* itemList = drawLists->itemLists[k];
 					DS_ASSERT(itemList->commitFunc);
+					DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
 					itemList->commitFunc(itemList, view, commandBuffer);
+					DS_PROFILE_SCOPE_END();
 				}
 
 				if (j != renderPass->subpassCount - 1)
@@ -1090,6 +1103,7 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 				computeItems->commitFunc(computeItems, view, commandBuffer);
 		}
 	}
+	DS_PROFILE_SCOPE_END();
 
 	DS_PROFILE_FUNC_RETURN(true);
 }

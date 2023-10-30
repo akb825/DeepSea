@@ -20,9 +20,11 @@
 #include <DeepSea/Core/Memory/SystemAllocator.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
+#include <DeepSea/Core/Thread/ThreadPool.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
 
@@ -38,6 +40,7 @@
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/Scene/SceneResources.h>
+#include <DeepSea/Scene/SceneThreadManager.h>
 #include <DeepSea/Scene/View.h>
 #include <DeepSea/Scene/ViewTransformData.h>
 
@@ -66,6 +69,9 @@ typedef struct TestLighting
 	dsAllocator* allocator;
 	dsRenderer* renderer;
 	dsWindow* window;
+	dsThreadPool* threadPool;
+	dsSceneThreadManager* threadManager;
+
 	dsSceneResources* builtinResources;
 	dsSceneResources* baseResources;
 
@@ -362,7 +368,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	dsRenderer* renderer = testLighting->renderer;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 
-	DS_VERIFY(dsView_draw(testLighting->curView, commandBuffer, NULL));
+	DS_VERIFY(dsView_draw(testLighting->curView, commandBuffer, testLighting->threadManager));
 }
 
 static bool setupLightingScene(dsSceneResources** outShaders, dsSceneResources** outMaterials,
@@ -541,6 +547,16 @@ static bool setup(TestLighting* testLighting, dsApplication* application, dsAllo
 	testLighting->allocator = allocator;
 	testLighting->renderer = renderer;
 
+	testLighting->threadPool = dsResourceManager_createThreadPool(allocator, resourceManager,
+		dsThreadPool_defaultThreadCount(), 0);
+	if (!testLighting->threadPool)
+		return false;
+
+	testLighting->threadManager =
+		dsSceneThreadManager_create(allocator, renderer, testLighting->threadPool);
+	if (!testLighting->threadManager)
+		return false;
+
 	dsEventResponder responder = {&processEvent, testLighting, 0, 0};
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
 	DS_VERIFY(dsApplication_setUpdateFunction(application, &update, testLighting));
@@ -699,6 +715,9 @@ static void shutdown(TestLighting* testLighting)
 	dsSceneResources_freeRef(testLighting->baseResources);
 	dsSceneResources_freeRef(testLighting->builtinResources);
 	DS_VERIFY(dsWindow_destroy(testLighting->window));
+
+	dsSceneThreadManager_destroy(testLighting->threadManager);
+	DS_VERIFY(dsThreadPool_destroy(testLighting->threadPool));
 }
 
 int dsMain(int argc, const char** argv)
@@ -772,6 +791,7 @@ int dsMain(int argc, const char** argv)
 	rendererOptions.reverseZ = true;
 	rendererOptions.preferHalfDepthRange = true;
 	rendererOptions.deviceName = deviceName;
+	rendererOptions.maxResourceThreads = dsThreadPool_defaultThreadCount();
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
 		(dsAllocator*)&renderAllocator, &rendererOptions);
 	if (!renderer)
@@ -780,7 +800,7 @@ int dsMain(int argc, const char** argv)
 		return 2;
 	}
 
-	//dsRenderer_setVSync(renderer, dsVSync_TripleBuffer);
+	dsRenderer_setVSync(renderer, dsVSync_TripleBuffer);
 	dsRenderer_setDefaultAnisotropy(renderer, dsMin(4.0f, renderer->maxAnisotropy));
 #if DS_DEBUG
 	dsRenderer_setExtraDebugging(renderer, true);

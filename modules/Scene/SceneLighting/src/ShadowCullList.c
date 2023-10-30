@@ -22,7 +22,6 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
-#include <DeepSea/Core/Profile.h>
 
 #include <DeepSea/Geometry/OrientedBox3.h>
 #include <DeepSea/Geometry/Frustum3.h>
@@ -154,8 +153,6 @@ static void dsShadowCullList_commitSIMD(dsSceneItemList* itemList, const dsView*
 	dsCommandBuffer* commandBuffer)
 {
 	DS_UNUSED(commandBuffer);
-	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-
 	dsShadowCullList* cullList = (dsShadowCullList*)itemList;
 	if (cullList->surface >= dsSceneLightShadows_getSurfaceCount(cullList->shadows))
 	{
@@ -169,7 +166,6 @@ static void dsShadowCullList_commitSIMD(dsSceneItemList* itemList, const dsView*
 			const DynamicEntry* entry = cullList->dynamicEntries + i;
 			*entry->result = true;
 		}
-		DS_PROFILE_SCOPE_END();
 		return;
 	}
 
@@ -201,8 +197,6 @@ static void dsShadowCullList_commitSIMD(dsSceneItemList* itemList, const dsView*
 			"Couldn't compute projection for shadows '%s' surface %d.",
 			dsSceneLightShadows_getName(cullList->shadows), cullList->surface);
 	}
-
-	DS_PROFILE_SCOPE_END();
 }
 DS_SIMD_END()
 
@@ -211,8 +205,6 @@ static void dsShadowCullList_commitFMA(dsSceneItemList* itemList, const dsView* 
 	dsCommandBuffer* commandBuffer)
 {
 	DS_UNUSED(commandBuffer);
-	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-
 	dsShadowCullList* cullList = (dsShadowCullList*)itemList;
 	if (cullList->surface >= dsSceneLightShadows_getSurfaceCount(cullList->shadows))
 	{
@@ -226,7 +218,6 @@ static void dsShadowCullList_commitFMA(dsSceneItemList* itemList, const dsView* 
 			const DynamicEntry* entry = cullList->dynamicEntries + i;
 			*entry->result = true;
 		}
-		DS_PROFILE_SCOPE_END();
 		return;
 	}
 
@@ -258,8 +249,6 @@ static void dsShadowCullList_commitFMA(dsSceneItemList* itemList, const dsView* 
 			"Couldn't compute projection for shadows '%s' surface %d.",
 			dsSceneLightShadows_getName(cullList->shadows), cullList->surface);
 	}
-
-	DS_PROFILE_SCOPE_END();
 }
 DS_SIMD_END()
 #endif
@@ -268,8 +257,6 @@ static void dsShadowCullList_commit(dsSceneItemList* itemList, const dsView* vie
 	dsCommandBuffer* commandBuffer)
 {
 	DS_UNUSED(commandBuffer);
-	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-
 	dsShadowCullList* cullList = (dsShadowCullList*)itemList;
 	if (cullList->surface >= dsSceneLightShadows_getSurfaceCount(cullList->shadows))
 	{
@@ -283,7 +270,6 @@ static void dsShadowCullList_commit(dsSceneItemList* itemList, const dsView* vie
 			const DynamicEntry* entry = cullList->dynamicEntries + i;
 			*entry->result = true;
 		}
-		DS_PROFILE_SCOPE_END();
 		return;
 	}
 
@@ -315,8 +301,6 @@ static void dsShadowCullList_commit(dsSceneItemList* itemList, const dsView* vie
 			"Couldn't compute projection for shadows '%s' surface %d.",
 			dsSceneLightShadows_getName(cullList->shadows), cullList->surface);
 	}
-
-	DS_PROFILE_SCOPE_END();
 }
 
 static void dsShadowCullList_destroy(dsSceneItemList* itemList)

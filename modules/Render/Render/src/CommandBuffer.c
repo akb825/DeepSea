@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Math/Vector3.h>
+
+#define SCOPE_SIZE 256
 
 bool dsCommandBuffer_begin(dsCommandBuffer* commandBuffer)
 {
@@ -57,27 +59,25 @@ bool dsCommandBuffer_beginSecondary(dsCommandBuffer* commandBuffer,
 	const dsFramebuffer* framebuffer, const dsRenderPass* renderPass, uint32_t subpass,
 	const dsAlignedBox3f* viewport)
 {
-	DS_PROFILE_FUNC_START();
-
 	if (!commandBuffer || !commandBuffer->renderer ||
 		!commandBuffer->renderer->beginSecondaryCommandBufferFunc ||
 		!commandBuffer->renderer->endCommandBufferFunc || !renderPass)
 	{
 		errno = EINVAL;
-		DS_PROFILE_FUNC_RETURN(false);
+		return false;
 	}
 
 	if (subpass >= renderPass->subpassCount)
 	{
 		errno = EINDEX;
-		DS_PROFILE_FUNC_RETURN(false);
+		return false;
 	}
 
 	if (!framebuffer && !viewport)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Either framebuffer or viewport must be specified.");
-		DS_PROFILE_FUNC_RETURN(false);
+		return false;
 	}
 
 	dsRenderer* renderer = commandBuffer->renderer;
@@ -85,7 +85,7 @@ bool dsCommandBuffer_beginSecondary(dsCommandBuffer* commandBuffer,
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot begin the main command buffer.");
-		DS_PROFILE_FUNC_RETURN(false);
+		return false;
 	}
 
 	if (!(commandBuffer->usage & dsCommandBufferUsage_Secondary))
@@ -93,7 +93,7 @@ bool dsCommandBuffer_beginSecondary(dsCommandBuffer* commandBuffer,
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Must use dsCommandBuffer_begin() to begin a non-secondary command buffer.");
-		DS_PROFILE_FUNC_RETURN(false);
+		return false;
 	}
 
 	if (viewport && (viewport->min.x < 0 || viewport->min.y < 0 || viewport->min.z < 0 ||
@@ -102,8 +102,27 @@ bool dsCommandBuffer_beginSecondary(dsCommandBuffer* commandBuffer,
 	{
 		errno = ERANGE;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Viewport is out of range.");
-		DS_PROFILE_FUNC_RETURN(false);
+		return false;
 	}
+
+#if DS_PROFILING_ENABLED
+
+	if (framebuffer)
+	{
+		char buffer[SCOPE_SIZE];
+		int result = snprintf(buffer, SCOPE_SIZE, "%s: %s", framebuffer->name,
+			renderPass->subpasses[subpass].name);
+		DS_UNUSED(result);
+		DS_ASSERT(result > 0 && result < SCOPE_SIZE);
+
+		DS_PROFILE_DYNAMIC_SCOPE_START(buffer);
+	}
+	else
+		DS_PROFILE_DYNAMIC_SCOPE_START(renderPass->subpasses[subpass].name);
+
+#endif
+
+	DS_PROFILE_FUNC_START();
 
 	bool success = renderer->beginSecondaryCommandBufferFunc(renderer, commandBuffer, framebuffer,
 		renderPass, subpass, viewport);
@@ -179,7 +198,10 @@ bool dsCommandBuffer_end(dsCommandBuffer* commandBuffer)
 	}
 
 	bool success = renderer->endCommandBufferFunc(renderer, commandBuffer);
-	DS_PROFILE_FUNC_RETURN(success);
+	DS_PROFILE_FUNC_END();
+	if ((commandBuffer->usage & dsCommandBufferUsage_Secondary))
+		DS_PROFILE_SCOPE_END();
+	return success;
 }
 
 bool dsCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuffer* submitBuffer)

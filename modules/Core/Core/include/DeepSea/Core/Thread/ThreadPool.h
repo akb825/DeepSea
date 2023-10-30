@@ -40,10 +40,25 @@ extern "C"
 #define DS_THREAD_POOL_MAX_THREADS 1023
 
 /**
- * @brief Gets the default thread count for a thread pool.
+ * @brief Gets the full maximal thread count for a thread pool.
  *
  * This will equal the number of logical cores minus one, minimum of one, assuming that the main
- * thread will also be utilized.
+ * thread will also be utilized. This is ideal if you assume nothing else will run on the system.
+ * However, if other background processes run on the machine, including threads not controled by
+ * the thread pool such as audio threads, delays may occur as unscheduled threads may hold onto
+ * locks.
+ *
+ * @return The full thread count.
+ */
+DS_CORE_EXPORT unsigned int dsThreadPool_fullThreadCount(void);
+
+/**
+ * @brief Gets the default thread count for a thread pool.
+ *
+ * This will use 3/4 of the logical cores, minimum of one. This allows extra cores to remain idle to
+ * account for other background processes to run on the system, including threads not controled by
+ * the thread pool such as audio threads. This can avoid potential delays caused by unscheduled
+ * threads holding onto locks.
  *
  * @return The default thread count.
  */

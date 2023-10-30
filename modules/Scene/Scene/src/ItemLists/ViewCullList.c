@@ -22,7 +22,6 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
-#include <DeepSea/Core/Profile.h>
 
 #include <DeepSea/Geometry/Frustum3.h>
 
@@ -149,8 +148,6 @@ static void dsViewCullList_commitSIMD(dsSceneItemList* itemList, const dsView* v
 	dsCommandBuffer* commandBuffer)
 {
 	DS_UNUSED(commandBuffer);
-	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
 	for (uint32_t i = 0; i < cullList->staticEntryCount; ++i)
 	{
@@ -173,8 +170,6 @@ static void dsViewCullList_commitSIMD(dsSceneItemList* itemList, const dsView* v
 		else
 			*entry->result = true;
 	}
-
-	DS_PROFILE_SCOPE_END();
 }
 DS_SIMD_END()
 
@@ -183,8 +178,6 @@ static void dsViewCullList_commitFMA(dsSceneItemList* itemList, const dsView* vi
 	dsCommandBuffer* commandBuffer)
 {
 	DS_UNUSED(commandBuffer);
-	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
 	for (uint32_t i = 0; i < cullList->staticEntryCount; ++i)
 	{
@@ -207,8 +200,6 @@ static void dsViewCullList_commitFMA(dsSceneItemList* itemList, const dsView* vi
 		else
 			*entry->result = true;
 	}
-
-	DS_PROFILE_SCOPE_END();
 }
 DS_SIMD_END()
 #endif
@@ -217,8 +208,6 @@ static void dsViewCullList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
 	DS_UNUSED(commandBuffer);
-	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
 	for (uint32_t i = 0; i < cullList->staticEntryCount; ++i)
 	{
@@ -241,8 +230,6 @@ static void dsViewCullList_commit(dsSceneItemList* itemList, const dsView* view,
 		else
 			*entry->result = true;
 	}
-
-	DS_PROFILE_SCOPE_END();
 }
 
 static void dsViewCullList_destroy(dsSceneItemList* itemList)

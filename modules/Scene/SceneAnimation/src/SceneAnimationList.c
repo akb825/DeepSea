@@ -28,7 +28,6 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
-#include <DeepSea/Core/Profile.h>
 
 #include <DeepSea/Math/Matrix44.h>
 
@@ -252,8 +251,6 @@ static void dsSceneAnimationList_preTransformUpdate(dsSceneItemList* itemList, c
 	float time)
 {
 	DS_UNUSED(scene);
-	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-
 	dsSceneAnimationList* animationList = (dsSceneAnimationList*)itemList;
 
 	if (time != 0)
@@ -283,8 +280,6 @@ static void dsSceneAnimationList_preTransformUpdate(dsSceneItemList* itemList, c
 			entry->prevTransform = *treeNode->baseTransform;
 		}
 	}
-
-	DS_PROFILE_SCOPE_END();
 }
 
 static void dsSceneAnimationList_destroy(dsSceneItemList* itemList)

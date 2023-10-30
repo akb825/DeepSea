@@ -24,7 +24,6 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
-#include <DeepSea/Core/Profile.h>
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
@@ -113,8 +112,6 @@ static void dsSceneVectorDrawPrepare_commit(dsSceneItemList* itemList, const dsV
 	dsCommandBuffer* commandBuffer)
 {
 	DS_UNUSED(view);
-	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-
 	dsSceneVectorDrawPrepare* prepareList = (dsSceneVectorDrawPrepare*)itemList;
 	for (uint32_t i = 0; i < prepareList->entryCount; ++i)
 	{
@@ -147,8 +144,6 @@ static void dsSceneVectorDrawPrepare_commit(dsSceneItemList* itemList, const dsV
 			dsVectorImage_updateText(entry->imageNode->vectorImage, commandBuffer);
 		}
 	}
-
-	DS_PROFILE_SCOPE_END();
 }
 
 static void dsSceneVectorDrawPrepare_destroy(dsSceneItemList* itemList)

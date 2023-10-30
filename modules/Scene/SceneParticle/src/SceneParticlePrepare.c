@@ -24,7 +24,6 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
-#include <DeepSea/Core/Profile.h>
 
 #include <DeepSea/Particle/ParticleEmitter.h>
 #include <DeepSea/Particle/ParticleDraw.h>
@@ -105,8 +104,6 @@ static void dsSceneParticlePrepare_update(dsSceneItemList* itemList, const dsSce
 	float time)
 {
 	DS_UNUSED(scene);
-	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-
 	dsSceneParticlePrepare* prepareList = (dsSceneParticlePrepare*)itemList;
 	for (uint32_t i = 0; i < prepareList->entryCount; ++i)
 	{
@@ -114,8 +111,6 @@ static void dsSceneParticlePrepare_update(dsSceneItemList* itemList, const dsSce
 		DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG,
 			dsSceneParticleNode_updateEmitter(entry->node, entry->emitter, entry->treeNode, time));
 	}
-
-	DS_PROFILE_SCOPE_END();
 }
 
 static void dsSceneParticlePrepare_destroy(dsSceneItemList* itemList)

@@ -37,6 +37,8 @@ struct dsThreadTaskQueue
 	uint32_t maxConcurrency;
 	uint32_t executingTasks;
 	dsSpinlock addTaskLock;
+	dsConditionVariable* finishTasksCondition;
 };
 
 bool dsThreadTaskQueue_popTask(dsThreadTask* outTask, dsThreadTaskQueue* taskQueue);
+void dsThreadTaskQueue_finishTask(dsThreadTaskQueue* taskQueue);

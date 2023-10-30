@@ -126,7 +126,7 @@ TEST_F(ResourceManagerTest, AcquireResourceContextContention)
 		threadData[i].resourceManager = resourceManager;
 
 	for (unsigned int i = 0; i < threadCount; ++i)
-		dsThread_create(threads + i, &acquireResourceContextThread, threadData + 1, 0, NULL);
+		dsThread_create(threads + i, &acquireResourceContextThread, threadData + i, 0, NULL);
 
 	for (unsigned int i = 0; i < threadCount; ++i)
 		dsThread_join(threads + i, NULL);
@@ -137,6 +137,7 @@ TEST_F(ResourceManagerTest, AcquireResourceContextContention)
 TEST_F(ResourceManagerTest, CreateThreadPool)
 {
 	constexpr unsigned int threadCount = 4;
+	resourceManager->maxResourceContexts = threadCount;
 
 	ThreadData threadData =
 	{
@@ -191,4 +192,6 @@ TEST_F(ResourceManagerTest, CreateThreadPool)
 	EXPECT_TRUE(dsThreadPool_destroy(threadPool));
 	dsConditionVariable_destroy(threadData.condition);
 	dsMutex_destroy(threadData.mutex);
+
+	EXPECT_EQ(0U, resourceManager->resourceContextCount);
 }

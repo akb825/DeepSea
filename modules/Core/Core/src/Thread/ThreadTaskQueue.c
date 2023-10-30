@@ -28,6 +28,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/Profile.h>
 
 bool dsThreadTaskQueue_popTask(dsThreadTask* outTask, dsThreadTaskQueue* taskQueue)
 {
@@ -44,6 +45,14 @@ bool dsThreadTaskQueue_popTask(dsThreadTask* outTask, dsThreadTaskQueue* taskQue
 	return true;
 }
 
+void dsThreadTaskQueue_finishTask(dsThreadTaskQueue* taskQueue)
+{
+	uint32_t prevExecutingTasks = DS_ATOMIC_FETCH_ADD32(&taskQueue->executingTasks, -1);
+	DS_ASSERT(prevExecutingTasks > 0);
+	if (prevExecutingTasks == 1 && !taskQueue->taskHead)
+		DS_VERIFY(dsConditionVariable_notifyAll(taskQueue->finishTasksCondition));
+}
+
 size_t dsThreadTaskQueue_sizeof(void)
 {
 	return sizeof(dsThreadTaskQueue);
@@ -54,7 +63,7 @@ size_t dsThreadTaskQueue_fullAllocSize(uint32_t maxTasks)
 	if (maxTasks == 0)
 		return 0;
 
-	return DS_ALIGNED_SIZE(sizeof(dsThreadTaskQueue)) +
+	return DS_ALIGNED_SIZE(sizeof(dsThreadTaskQueue)) + dsConditionVariable_fullAllocSize() +
 		dsPoolAllocator_bufferSize(sizeof(dsThreadTaskEntry), maxTasks);
 }
 
@@ -91,12 +100,24 @@ dsThreadTaskQueue* dsThreadTaskQueue_create(dsAllocator* allocator,
 
 	taskQueue->maxConcurrency = maxConcurrency;
 	taskQueue->executingTasks = 0;
+
+	taskQueue->finishTasksCondition =
+		dsConditionVariable_create((dsAllocator*)&bufferAlloc, "Finish Tasks Condition");
+	if (!taskQueue->finishTasksCondition)
+	{
+		if (taskQueue->allocator)
+			DS_VERIFY(dsAllocator_free(taskQueue->allocator, taskQueue));
+		return NULL;
+	}
+
 	DS_VERIFY(dsSpinlock_initialize(&taskQueue->addTaskLock));
 	if (!dsThreadPool_addTaskQueue(threadPool, taskQueue))
 	{
 		dsSpinlock_shutdown(&taskQueue->addTaskLock);
+		dsConditionVariable_destroy(taskQueue->finishTasksCondition);
 		if (taskQueue->allocator)
 			DS_VERIFY(dsAllocator_free(taskQueue->allocator, taskQueue));
+		return NULL;
 	}
 
 	return taskQueue;
@@ -137,21 +158,23 @@ bool dsThreadTaskQueue_setMaxConcurrency(dsThreadTaskQueue* taskQueue, uint32_t 
 bool dsThreadTaskQueue_addTasks(dsThreadTaskQueue* taskQueue, const dsThreadTask* tasks,
 	uint32_t taskCount)
 {
+	DS_PROFILE_FUNC_START();
+
 	if (!taskQueue || (taskCount > 0 && !tasks))
 	{
 		errno = EINVAL;
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	if (taskCount == 0)
-		return true;
+		DS_PROFILE_FUNC_RETURN(true);
 
 	for (uint32_t i = 0; i < taskCount; ++i)
 	{
 		if (!tasks[i].taskFunc)
 		{
 			errno = EINVAL;
-			return false;
+			DS_PROFILE_FUNC_RETURN(false);
 		}
 	}
 
@@ -244,59 +267,53 @@ bool dsThreadTaskQueue_addTasks(dsThreadTaskQueue* taskQueue, const dsThreadTask
 		taskQueue->taskHead = newTaskHead;
 	taskQueue->taskTail = newTaskTail;
 
-	DS_VERIFY(dsConditionVariable_notifyAll(taskQueue->threadPool->stateCondition));
+	DS_VERIFY(dsConditionVariable_notifyAll(threadPool->stateCondition));
+	// Also wake up any threads waiting for finish so they can also process tasks.
+	DS_VERIFY(dsConditionVariable_notifyAll(taskQueue->finishTasksCondition));
 	DS_VERIFY(dsMutex_unlock(threadPool->stateMutex));
-	return true;
+	DS_PROFILE_FUNC_RETURN(true);
 }
 
 bool dsThreadTaskQueue_waitForTasks(dsThreadTaskQueue* taskQueue)
 {
+	DS_PROFILE_FUNC_START();
+
 	if (!taskQueue)
 	{
 		errno = EINVAL;
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	dsThreadPool* threadPool = taskQueue->threadPool;
-	dsThreadTask curTask = {NULL, NULL};
+	// Queue list is synchronized with the thread pool.
+	DS_VERIFY(dsMutex_lock(threadPool->stateMutex));
 	do
 	{
-		// Queue list is synchronized with the thread pool.
-		DS_VERIFY(dsMutex_lock(threadPool->stateMutex));
-
 		// Try to pull a task off a queue.
-		bool isDone;
+		dsThreadTask curTask;
 		if (dsThreadTaskQueue_popTask(&curTask, taskQueue))
 		{
 			// Increment the number of current executing tasks to allow other threads to respect the
 			// max concurrency, but don't avoid executing the task here if it's exceeded.
 			DS_ATOMIC_FETCH_ADD32(&taskQueue->executingTasks, 1);
-			isDone = false;
+			DS_VERIFY(dsMutex_unlock(threadPool->stateMutex));
+			curTask.taskFunc(curTask.userData);
+			DS_VERIFY(dsMutex_lock(threadPool->stateMutex));
+			dsThreadTaskQueue_finishTask(taskQueue);
 		}
 		else
 		{
 			// Need to keep waiting if there's tasks currently executing on other threads.
 			uint32_t executingTasks;
 			DS_ATOMIC_LOAD32(&taskQueue->executingTasks, &executingTasks);
-			isDone = executingTasks == 0;
-			curTask.taskFunc = NULL;
+			if (executingTasks == 0)
+				break;
+			else
+				dsConditionVariable_wait(taskQueue->finishTasksCondition, threadPool->stateMutex);
 		}
-
-		DS_VERIFY(dsMutex_unlock(threadPool->stateMutex));
-
-		if (isDone)
-			break;
-
-		// Execute the task if we pulled one off, otherwise yeild for other processes.
-		if (curTask.taskFunc)
-		{
-			curTask.taskFunc(curTask.userData);
-			DS_ATOMIC_FETCH_ADD32(&taskQueue->executingTasks, -1);
-		}
-		else
-			dsThread_yield();
 	} while (true);
-	return true;
+	DS_VERIFY(dsMutex_unlock(threadPool->stateMutex));
+	DS_PROFILE_FUNC_RETURN(true);
 }
 
 void dsThreadTaskQueue_destroy(dsThreadTaskQueue* taskQueue)
@@ -307,6 +324,7 @@ void dsThreadTaskQueue_destroy(dsThreadTaskQueue* taskQueue)
 	DS_VERIFY(dsThreadTaskQueue_waitForTasks(taskQueue));
 	dsThreadPool_removeTaskQueue(taskQueue->threadPool, taskQueue);
 	dsSpinlock_shutdown(&taskQueue->addTaskLock);
+	dsConditionVariable_destroy(taskQueue->finishTasksCondition);
 	if (taskQueue->allocator)
 		DS_VERIFY(dsAllocator_free(taskQueue->allocator, taskQueue));
 }

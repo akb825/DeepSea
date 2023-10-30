@@ -27,8 +27,10 @@
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Profile.h>
 
 #include <string.h>
+#include <math.h>
 
 static dsThreadReturnType threadFunc(void* userData)
 {
@@ -107,10 +109,8 @@ static dsThreadReturnType threadFunc(void* userData)
 		DS_ASSERT(curTask.taskFunc);
 		curTask.taskFunc(curTask.userData);
 
-		// Decrement doesn't need to be locked.
-		DS_ATOMIC_FETCH_ADD32(&curTaskQueue->executingTasks, -1);
-
 		DS_VERIFY(dsMutex_lock(threadPool->stateMutex));
+		dsThreadTaskQueue_finishTask(curTaskQueue);
 	} while (true);
 
 	if (threadPool->endThreadFunc)
@@ -164,7 +164,7 @@ void dsThreadPool_removeTaskQueue(dsThreadPool* threadPool, dsThreadTaskQueue* t
 	DS_VERIFY(dsMutex_unlock(threadPool->stateMutex));
 }
 
-unsigned int dsThreadPool_defaultThreadCount(void)
+unsigned int dsThreadPool_fullThreadCount(void)
 {
 	unsigned int threadCount = dsThread_logicalCoreCount();
 	if (threadCount <= 1)
@@ -173,6 +173,20 @@ unsigned int dsThreadPool_defaultThreadCount(void)
 		return DS_THREAD_POOL_MAX_THREADS;
 
 	return threadCount - 1;
+}
+
+unsigned int dsThreadPool_defaultThreadCount(void)
+{
+	unsigned int threadCount = dsThread_logicalCoreCount();
+	if (threadCount <= 1)
+		return 1;
+	else if (threadCount < 4)
+		return threadCount - 1;
+
+	threadCount = (unsigned int)roundf((float)threadCount*0.75f);
+	if (threadCount > DS_THREAD_POOL_MAX_THREADS)
+		return DS_THREAD_POOL_MAX_THREADS;
+	return threadCount;
 }
 
 dsThreadPool* dsThreadPool_create(dsAllocator* allocator, unsigned int threadCount,
@@ -252,10 +266,12 @@ unsigned int dsThreadPool_getThreadCountUnlocked(const dsThreadPool* threadPool)
 
 bool dsThreadPool_setThreadCount(dsThreadPool* threadPool, unsigned int threadCount)
 {
+	DS_PROFILE_FUNC_START();
+
 	if (!threadPool || threadCount > DS_THREAD_POOL_MAX_THREADS)
 	{
 		errno = EINVAL;
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	bool success = true;
@@ -315,7 +331,7 @@ bool dsThreadPool_setThreadCount(dsThreadPool* threadPool, unsigned int threadCo
 	for (unsigned int i = 0; i < stopThreadCount; ++i)
 		dsThread_join(waitThreads + i, NULL);
 
-	return success;
+	DS_PROFILE_FUNC_RETURN(success);
 }
 
 bool dsThreadPool_destroy(dsThreadPool* threadPool)

@@ -379,7 +379,6 @@ static void dsSceneModelList_removeNode(dsSceneItemList* itemList, uint64_t node
 static void dsSceneModelList_preRenderPass(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
-	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
 	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
@@ -387,13 +386,11 @@ static void dsSceneModelList_preRenderPass(dsSceneItemList* itemList, const dsVi
 	setupInstances(modelList, view, commandBuffer);
 
 	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
-	DS_PROFILE_SCOPE_END();
 }
 
 static void dsSceneModelList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
-	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
 	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
@@ -407,7 +404,6 @@ static void dsSceneModelList_commit(dsSceneItemList* itemList, const dsView* vie
 	cleanup(modelList);
 
 	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
-	DS_PROFILE_SCOPE_END();
 }
 
 const char* const dsSceneModelList_typeName = "ModelList";

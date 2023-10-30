@@ -53,7 +53,7 @@ static uint32_t geometryRefCount;
 static dsGfxBuffer* vertexData;
 static dsDrawGeometry* geometry;
 
-static void dsCommitSceneItemList_commit(dsSceneItemList* itemList, const dsView* view,
+static void dsSceneFullScreenResolve_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
 	dsSceneFullScreenResolve* resolve = (dsSceneFullScreenResolve*)itemList;
@@ -196,7 +196,7 @@ dsSceneFullScreenResolve* dsSceneFullScreenResolve_create(dsAllocator* allocator
 	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = NULL;
 	itemList->preRenderPassFunc = NULL;
-	itemList->commitFunc = &dsCommitSceneItemList_commit;
+	itemList->commitFunc = &dsSceneFullScreenResolve_commit;
 	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsSceneFullScreenResolve_destroy;
 
 	resolve->shader = shader;

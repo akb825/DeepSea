@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Thread/Types.h>
 #include <DeepSea/Scene/Export.h>
 #include <DeepSea/Scene/Types.h>
 
@@ -32,17 +33,21 @@ extern "C"
  */
 
 /**
- * @brief Creates a thread manager.
+ * @brief Creates a scene thread manager.
+ *
+ * The item lists declared within a dsScene will be executed in parallel within the thread pool.
+ *
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the thread manager with. This must support freeing
  *     memory.
  * @param renderer The renderer.
- * @param threadCount The number of additional threads to create. This must be at least one, and
- *     each thread will request a resource context from the dsResourceManager held by renderer.
- * @return The
+ * @param threadPool The thread pool to execute commands on. This must be set up to acquire resource
+ *     contexts on each thread, such as by using dsResourceManager_createThreadPool().
+ * @return The scene thread manager or NULL if an error occurred. This must be destroyed before the
+ *     resource manager.
  */
 DS_SCENE_EXPORT dsSceneThreadManager* dsSceneThreadManager_create(dsAllocator* allocator,
-	dsRenderer* renderer, uint32_t threadCount);
+	dsRenderer* renderer, dsThreadPool* threadPool);
 
 /**
  * @brief Destroys a thread manager.

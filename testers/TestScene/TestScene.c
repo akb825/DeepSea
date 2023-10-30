@@ -21,9 +21,11 @@
 #include <DeepSea/Core/Memory/SystemAllocator.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
+#include <DeepSea/Core/Thread/ThreadPool.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
 
@@ -60,6 +62,7 @@ typedef struct TestScene
 	dsSceneTransformNode* secondaryTransform;
 	dsScene* scene;
 	dsView* view;
+	dsThreadPool* threadPool;
 	dsSceneThreadManager* threadManager;
 
 	uint64_t invalidatedFrame;
@@ -344,7 +347,13 @@ static bool setup(TestScene* testScene, dsApplication* application, dsAllocator*
 	dsView_setPerspectiveProjection(testScene->view, dsDegreesToRadiansf(45.0f), 0.1f, 100.0f);
 	testScene->secondarySceneSet = true;
 
-	testScene->threadManager = dsSceneThreadManager_create(allocator, renderer, 1);
+	testScene->threadPool = dsResourceManager_createThreadPool(allocator, renderer->resourceManager,
+		dsThreadPool_defaultThreadCount(), 0);
+	if (!testScene->threadPool)
+		return false;
+
+	testScene->threadManager = dsSceneThreadManager_create(allocator, renderer,
+		testScene->threadPool);
 	if (!testScene->threadManager)
 		return false;
 
@@ -356,6 +365,7 @@ static void shutdown(TestScene* testScene)
 	DS_VERIFY(dsView_destroy(testScene->view));
 	dsScene_destroy(testScene->scene);
 	dsSceneThreadManager_destroy(testScene->threadManager);
+	dsThreadPool_destroy(testScene->threadPool);
 	dsSceneResources_freeRef(testScene->resources);
 	DS_VERIFY(dsWindow_destroy(testScene->window));
 }
@@ -425,7 +435,7 @@ int dsMain(int argc, const char** argv)
 	dsRendererOptions rendererOptions;
 	dsRenderer_defaultOptions(&rendererOptions, "TestScene", 0);
 	rendererOptions.surfaceSamples = 4;
-	rendererOptions.maxResourceThreads = 1;
+	rendererOptions.maxResourceThreads = dsThreadPool_defaultThreadCount();
 	rendererOptions.deviceName = deviceName;
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
 		(dsAllocator*)&renderAllocator, &rendererOptions);

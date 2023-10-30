@@ -538,7 +538,7 @@ typedef struct dsRendererOptions
 	/**
 	 * @brief The maximum number of resource threads.
 	 */
-	uint8_t maxResourceThreads;
+	uint32_t maxResourceThreads;
 
 	/**
 	 * @brief Directory to cache shader binaries.
@@ -887,8 +887,8 @@ struct dsRenderPass
 /**
  * @brief Struct for a pool of command buffers.
  *
- * Multiple command buffers may be used to queue draw commands in parallel before submitting them to
- * the GPU. The pool is double-buffered, allowing for
+ * Command buffers within the same pool should not be used concurrently across threads. To avoid
+ * this, a separate command buffer pool should be used for each thread..
  *
  * Render implementations can effectively subclass this type by having it as the first member of
  * the structure. This can be done to add additional data to the structure and have it be freely
@@ -910,6 +910,9 @@ typedef struct dsCommandBufferPool
 
 	/**
 	 * @brief The command buffers to use.
+	 *
+	 * This pointer may change when calling dsCommandBufferPool_reset() if the implementation double
+	 * or triple buffers the internal usage.
 	 */
 	dsCommandBuffer** commandBuffers;
 

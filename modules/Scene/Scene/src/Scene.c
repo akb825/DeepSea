@@ -591,7 +591,11 @@ bool dsScene_update(dsScene* scene, float time)
 	{
 		dsSceneItemList* itemList = ((dsSceneItemListNode*)node)->list;
 		if (itemList->preTransformUpdateFunc)
+		{
+			DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
 			itemList->preTransformUpdateFunc(itemList, scene, time);
+			DS_PROFILE_SCOPE_END();
+		}
 	}
 
 	for (uint32_t i = 0; i < scene->dirtyNodeCount; ++i)
@@ -602,7 +606,11 @@ bool dsScene_update(dsScene* scene, float time)
 	{
 		dsSceneItemList* itemList = ((dsSceneItemListNode*)node)->list;
 		if (itemList->updateFunc)
+		{
+			DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
 			itemList->updateFunc(itemList, scene, time);
+			DS_PROFILE_SCOPE_END();
+		}
 	}
 
 	DS_PROFILE_FUNC_RETURN(true);

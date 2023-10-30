@@ -414,7 +414,6 @@ static void dsSceneVectorItemList_removeNode(dsSceneItemList* itemList, uint64_t
 static void dsSceneVectorItemList_preRenderPass(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
-	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
 	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
@@ -422,13 +421,11 @@ static void dsSceneVectorItemList_preRenderPass(dsSceneItemList* itemList, const
 	setupInstances(vectorList, view, commandBuffer);
 
 	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
-	DS_PROFILE_SCOPE_END();
 }
 
 static void dsSceneVectorItemList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
-	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
 	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
@@ -442,7 +439,6 @@ static void dsSceneVectorItemList_commit(dsSceneItemList* itemList, const dsView
 	cleanup(vectorList);
 
 	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
-	DS_PROFILE_SCOPE_END();
 }
 
 const char* const dsSceneVectorItemList_typeName = "VectorItemList";

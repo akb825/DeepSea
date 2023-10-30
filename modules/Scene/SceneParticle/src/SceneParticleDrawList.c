@@ -23,7 +23,6 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
-#include <DeepSea/Core/Profile.h>
 
 #include <DeepSea/Geometry/Frustum3.h>
 
@@ -193,19 +192,14 @@ static void dsSceneParticleDrawList_removeNode(dsSceneItemList* itemList, uint64
 static void dsSceneParticleDrawList_preRenderPass(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
-	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
-
 	setupInstances(itemList, view, commandBuffer);
-
 	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
-	DS_PROFILE_SCOPE_END();
 }
 
 static void dsSceneParticleDrawList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
-	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
 	if (!itemList->preRenderPassFunc)
@@ -213,10 +207,7 @@ static void dsSceneParticleDrawList_commit(dsSceneItemList* itemList, const dsVi
 
 	dsSceneParticleDrawList* drawList = (dsSceneParticleDrawList*)itemList;
 	if (drawList->instanceCount == 0)
-	{
 		dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
-		DS_PROFILE_SCOPE_END();
-	}
 
 	dsSceneParticleInstanceData drawData =
 	{
@@ -233,7 +224,6 @@ static void dsSceneParticleDrawList_commit(dsSceneItemList* itemList, const dsVi
 		DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG, dsSceneInstanceData_finish(drawList->instanceData[i]));
 
 	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
-	DS_PROFILE_SCOPE_END();
 }
 
 static void dsSceneParticleDrawList_destroy(dsSceneItemList* itemList)

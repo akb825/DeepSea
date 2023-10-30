@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -486,7 +486,7 @@ struct dsView
 };
 
 /**
- * @brief Struct that manages threads used to draw across multiple threads.
+ * @brief Struct that manages resources used to draw across multiple threads.
  *
  * A thread manager may optionally be provided to dsView_draw() to perform draws across multiple
  * threads. The same thread manager may not itself be used concurrently across threads.
