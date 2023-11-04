@@ -66,68 +66,6 @@ static bool pointInVolume(const dsShadowCullVolume* volume, const dsPlane3d* pla
 	return true;
 }
 
-static double relaxedRayIntersection(const dsPlane3d* plane, const dsRay3d* ray, double epsilon)
-{
-	const double epsilon2 = dsPow2(epsilon);
-	double denom = dsVector3_dot(plane->n, ray->direction);
-	if (fabs(denom) < epsilon2)
-		return DBL_MAX;
-
-	return -(dsVector3_dot(plane->n, ray->origin) + plane->d)/denom;
-}
-
-static bool getTRange(double* outMinT, uint32_t* outMinPlane, double* outMaxT,
-	uint32_t* outMaxPlane, const dsShadowCullVolume* volume, const dsPlane3d* planes,
-	const dsRay3d* ray, uint32_t firstPlane, uint32_t secondPlane, double epsilon)
-{
-	*outMinT = -DBL_MAX;
-	*outMinPlane = 0;
-	*outMaxT = DBL_MAX;
-	*outMaxPlane = 0;
-	bool anySet = false;
-	for (uint32_t i = 0; i < volume->planeCount; ++i)
-	{
-		if (i == firstPlane || i == secondPlane)
-			continue;
-
-		const dsPlane3d* plane = planes + i;
-		// Even though we check for point containment, still need to have a relaxed intersection
-		// check due to volumes for directional lights not being fully closed.
-		double t = relaxedRayIntersection(plane, ray, baseEpsilon);
-		if (t == DBL_MAX)
-			continue;
-
-		// Only take into account points in the final volume.
-		dsVector3d point;
-		dsVector3_scale(point, ray->direction, t);
-		dsVector3_add(point, point, ray->origin);
-		if (!pointInVolume(volume, planes, &point, epsilon))
-			continue;
-
-		if (dsVector3_dot(plane->n, ray->direction) < 0)
-		{
-			if (t < *outMaxT)
-			{
-				*outMaxT = t;
-				*outMaxPlane = i;
-				anySet = true;
-			}
-		}
-		else
-		{
-			if (t > *outMinT)
-			{
-				*outMinT = t;
-				*outMinPlane = i;
-				anySet = true;
-			}
-		}
-	}
-
-	// If the T range is inverted, we're outside of the volume.
-	return anySet && *outMinT < *outMaxT + epsilon;
-}
-
 static void addPlane(dsShadowCullVolume* volume, dsPlane3d* planes, const dsPlane3d* plane,
 	double epsilon)
 {
@@ -170,68 +108,33 @@ static void addCorner(dsShadowCullVolume* volume, dsVector3d* cornerPoints,
 	corner->planes = planes;
 }
 
-static void computeEdgesAndCorners(dsShadowCullVolume* volume, const dsPlane3d* planes,
+static void computeCorners(dsShadowCullVolume* volume, const dsPlane3d* planes,
 	double epsilon)
 {
 	for (uint32_t i = 0; i < volume->planeCount; ++i)
 		dsConvertDoubleToFloat(volume->planes[i], planes[i]);
 
-	// Find all intersecting lines between pairs of planes.
 	dsVector3d cornerPoints[DS_MAX_SHADOW_CULL_CORNERS];
 	for (uint32_t i = 0; i < volume->planeCount - 1; ++i)
 	{
 		const dsPlane3d* firstPlane = planes + i;
 		for (uint32_t j = i + 1; j < volume->planeCount; ++j)
 		{
-			const dsPlane3d* secondPlane = planes + j;
 			dsRay3d ray;
-			if (!dsPlane3d_intersectingLine(&ray, firstPlane, secondPlane))
+			if (!dsPlane3d_intersectingLine(&ray, firstPlane, planes + j))
 				continue;
 
-			double minT, maxT;
-			uint32_t minPlane, maxPlane;
-			if (!getTRange(&minT, &minPlane, &maxT, &maxPlane, volume, planes, &ray, i, j, epsilon))
-				continue;
-
-			if (dsRelativeEpsilonEquald(minT, maxT, epsilon))
+			for (uint32_t k = j + 1; k < volume->planeCount; ++k)
 			{
+				double t = dsPlane3d_rayIntersection(planes + k, &ray);
+				if (t == DBL_MAX)
+					continue;
+
 				dsVector3d point;
-				dsVector3_scale(point, ray.direction, minT);
-				dsVector3_add(point, point, ray.origin);
+				dsRay3_evaluate(point, ray, t);
 				if (pointInVolume(volume, planes, &point, epsilon))
-				{
-					uint32_t planes = bitmaskTripple(i, j, minPlane) | (1 << maxPlane);
-					addCorner(volume, cornerPoints, &point, planes, epsilon);
-				}
-				continue;
+					addCorner(volume, cornerPoints, &point, bitmaskTripple(i, j, k), epsilon);
 			}
-
-			// Add the min and max point assuming they didn't go to infinity. The line isn't
-			// considered inside the volume if either point is outside of the volume.
-			if (minT != -DBL_MAX)
-			{
-				dsVector3d point;
-				dsVector3_scale(point, ray.direction, minT);
-				dsVector3_add(point, point, ray.origin);
-				if (!pointInVolume(volume, planes, &point, epsilon))
-					continue;
-				addCorner(volume, cornerPoints, &point, bitmaskTripple(i, j, minPlane), epsilon);
-			}
-
-			if (maxT != DBL_MAX)
-			{
-				dsVector3d point;
-				dsVector3_scale(point, ray.direction, maxT);
-				dsVector3_add(point, point, ray.origin);
-				if (!pointInVolume(volume, planes, &point, epsilon))
-					continue;
-				addCorner(volume, cornerPoints, &point, bitmaskTripple(i, j, maxPlane), epsilon);
-			}
-
-			DS_ASSERT(volume->edgeCount < DS_MAX_SHADOW_CULL_EDGES);
-			dsShadowCullEdge* edge = volume->edges + (volume->edgeCount++);
-			dsConvertDoubleToFloat(edge->edge, ray);
-			edge->planes = (1 << i) | (1 << j);
 		}
 	}
 }
@@ -266,13 +169,6 @@ static void removeUnusedPlanes(dsShadowCullVolume* volume)
 
 		// Also shift the bits for all higher index planes.
 		uint32_t prevPlanesMask = (1 << i) - 1;
-		for (uint32_t j = 0; j < volume->edgeCount; ++j)
-		{
-			dsShadowCullEdge* edge = volume->edges + j;
-			edge->planes = (edge->planes & prevPlanesMask) |
-				((edge->planes & ~prevPlanesMask) >> 1);
-		}
-
 		for (uint32_t j = 0; j < volume->cornerCount; ++j)
 		{
 			dsShadowCullCorner* corner = volume->corners + j;
@@ -420,7 +316,6 @@ bool dsShadowCullVolume_buildDirectional(dsShadowCullVolume* volume,
 	}
 
 	volume->planeCount = 0;
-	volume->edgeCount = 0;
 	volume->cornerCount = 0;
 
 	// Use doubles for intersections to avoid large frustums causing numeric instability.
@@ -489,7 +384,7 @@ bool dsShadowCullVolume_buildDirectional(dsShadowCullVolume* volume,
 		addPlane(volume, planes, &boundaryPlane, baseEpsilon);
 	}
 
-	computeEdgesAndCorners(volume, planes, baseEpsilon);
+	computeCorners(volume, planes, baseEpsilon);
 	return true;
 }
 
@@ -503,7 +398,6 @@ bool dsShadowCullVolume_buildSpot(dsShadowCullVolume* volume, const dsFrustum3f*
 	}
 
 	volume->planeCount = 0;
-	volume->edgeCount = 0;
 	volume->cornerCount = 0;
 
 	// Add the planes from both the view frustum and light frustum (minus the near plane for the
@@ -525,7 +419,7 @@ bool dsShadowCullVolume_buildSpot(dsShadowCullVolume* volume, const dsFrustum3f*
 		}
 	}
 
-	computeEdgesAndCorners(volume, planes, baseEpsilon);
+	computeCorners(volume, planes, baseEpsilon);
 	removeUnusedPlanes(volume);
 	return true;
 }

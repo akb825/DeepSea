@@ -694,7 +694,7 @@ bool dsBezierCurved_tessellate(const dsBezierCurved* curve, double chordalTolera
 	{
 #if DS_HAS_SIMD
 		const dsSIMDFeatures fma4 = dsSIMDFeatures_Double4 | dsSIMDFeatures_FMA;
-		const dsSIMDFeatures fma2 = dsSIMDFeatures_Double4 | dsSIMDFeatures_FMA;
+		const dsSIMDFeatures fma2 = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
 		if ((dsHostSIMDFeatures & fma4) == fma4)
 		{
 			DS_ALIGN(32) dsVector4d alignedControlPoints[3];

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,14 +36,6 @@ extern "C"
  * @brief Maximum number of planes in a shadow cull volume.
  */
 #define DS_MAX_SHADOW_CULL_PLANES 12U
-
-/**
- * @brief Maximum number of edges in a shadow cull volume.
- *
- * The worst case considered here is one box embedded in another and tilted so the corners poke
- * through.
- */
-#define DS_MAX_SHADOW_CULL_EDGES 36U
 
 /**
  * @brief Maximum number of corners in a shadow cull volume.
@@ -103,25 +95,6 @@ typedef struct dsShadowProjection
 } dsShadowProjection;
 
 /**
- * @brief Struct defining an edge between two planes in a shadow cull volume.
- * @see ShadowCullVolume.h
- */
-typedef struct dsShadowCullEdge
-{
-	/**
-	 * @brief A ray defining the edge.
-	 */
-	dsRay3f edge;
-
-	/**
-	 * @brief Bitmask for the indices of the planes that intersect at the edge.
-	 *
-	 * There will alwyas be 2 bits set.
-	 */
-	uint32_t planes;
-} dsShadowCullEdge;
-
-/**
  * @brief Struct defining a corner between three planes in a shadow cull volume.
  * @see ShadowCullVolume.h
  */
@@ -152,11 +125,6 @@ typedef struct dsShadowCullVolume
 	dsPlane3f planes[DS_MAX_SHADOW_CULL_PLANES];
 
 	/**
-	 * @brief Edges within the cull volume.
-	 */
-	dsShadowCullEdge edges[DS_MAX_SHADOW_CULL_EDGES];
-
-	/**
 	 * @brief Corners within the cull volume.
 	 */
 	dsShadowCullCorner corners[DS_MAX_SHADOW_CULL_CORNERS];
@@ -165,11 +133,6 @@ typedef struct dsShadowCullVolume
 	 * @brief The number of planes in the cull volume.
 	 */
 	uint32_t planeCount;
-
-	/**
-	 * @brief The number of edges in the cull volume.
-	 */
-	uint32_t edgeCount;
 
 	/**
 	 * @brief The number of corners in the cull volume.

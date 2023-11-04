@@ -126,7 +126,6 @@ bool dsPlane3d_intersectingPoint(dsVector3d* result, const dsPlane3d* firstPlane
 	const dsPlane3d* secondPlane, const dsPlane3d* thirdPlane)
 {
 	// http://geomalgorithms.com/a05-_intersect-1.html
-	// D is inverted due to using form A + B + C = D.
 	DS_ASSERT(result);
 	DS_ASSERT(firstPlane);
 	DS_ASSERT(secondPlane);

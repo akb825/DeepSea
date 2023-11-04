@@ -124,9 +124,7 @@ TEST_F(ShadowCullVolumeTest, DirectionalPerpendicular)
 	EXPECT_NE(notFound, near);
 	EXPECT_NE(notFound, far);
 
-	ASSERT_EQ(8U, volume.edgeCount);
 	ASSERT_EQ(4U, volume.cornerCount);
-
 	EXPECT_TRUE(hasCorner(&volume, -2.0f, -3.0f, -1.0f, left, bottom, near));
 	EXPECT_TRUE(hasCorner(&volume, 4.0f, -3.0f, -1.0f, right, bottom, near));
 	EXPECT_TRUE(hasCorner(&volume, -200.0f, -300.0f, -100.0f, left, bottom, far));
@@ -158,9 +156,7 @@ TEST_F(ShadowCullVolumeTest, DirectionalOrthoPerpendicular)
 	EXPECT_NE(notFound, near);
 	EXPECT_NE(notFound, far);
 
-	ASSERT_EQ(8U, volume.edgeCount);
 	ASSERT_EQ(4U, volume.cornerCount);
-
 	EXPECT_TRUE(hasCorner(&volume, -2.0f, -3.0f, -1.0f, left, bottom, near));
 	EXPECT_TRUE(hasCorner(&volume, 4.0f, -3.0f, -1.0f, right, bottom, near));
 	EXPECT_TRUE(hasCorner(&volume, -2.0f, -3.0f, -100.0f, left, bottom, far));
@@ -193,9 +189,7 @@ TEST_F(ShadowCullVolumeTest, DirectionalAngled)
 	EXPECT_EQ(notFound, near);
 	EXPECT_NE(notFound, far);
 
-	ASSERT_EQ(15U, volume.edgeCount);
 	ASSERT_EQ(7U, volume.cornerCount);
-
 	EXPECT_TRUE(hasCorner(&volume, -0.5f, -0.9f, -1.0f));
 	EXPECT_TRUE(hasCorner(&volume, 0.7f, -0.9f, -1.0f));
 	EXPECT_TRUE(hasCorner(&volume, 0.7f, 1.1f, -1.0f));
@@ -228,7 +222,6 @@ TEST_F(ShadowCullVolumeTest, SpotNonIntersecting)
 	dsShadowCullVolume_buildSpot(&volume, &frustum, &lightFrustum);
 
 	EXPECT_EQ(0U, volume.planeCount);
-	EXPECT_EQ(0U, volume.edgeCount);
 	EXPECT_EQ(0U, volume.cornerCount);
 }
 
@@ -267,7 +260,6 @@ TEST_F(ShadowCullVolumeTest, SpotIntersecting)
 	ASSERT_NE(notFound, lightBottom);
 	ASSERT_NE(notFound, lightTop);
 
-	EXPECT_EQ(11U, volume.edgeCount);
 	EXPECT_EQ(7U, volume.cornerCount);
 
 	// Transform is world to local. Take inverse for local to world, where the last column is the
