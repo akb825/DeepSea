@@ -15,6 +15,7 @@
  */
 
 #include "FontImpl.h"
+
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/HashTable.h>
 #include <DeepSea/Core/Containers/ResizeableArray.h>
@@ -29,10 +30,13 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Core/Sort.h>
+
 #include <DeepSea/Geometry/AlignedBox2.h>
 #include <DeepSea/Geometry/CubicCurve.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Vector2.h>
+
 #include <DeepSea/Text/FaceGroup.h>
 #include <DeepSea/Text/Unicode.h>
 
@@ -109,7 +113,6 @@ struct dsFaceGroup
 #define CHORDAL_TOLERANCE 0.1f
 #define EQUAL_EPSILON 1e-7f
 #define FIXED_SCALE (1 << 6)
-static const unsigned int fixedScale = FIXED_SCALE;
 static const float invFixedScale = 1.0f/(float)FIXED_SCALE;
 
 static void* ftAlloc(FT_Memory memory, long size)
@@ -237,7 +240,7 @@ static uint32_t* createCodepointMapping(dsFaceGroup* group, uint32_t length)
 {
 	uint32_t codepointMappingCount = 0;
 	if (!DS_RESIZEABLE_ARRAY_ADD(group->scratchAllocator, group->codepointMapping,
-		codepointMappingCount, group->maxCodepointMappingCount, length))
+			codepointMappingCount, group->maxCodepointMappingCount, length))
 	{
 		return NULL;
 	}
@@ -250,7 +253,7 @@ static bool addGlyphPoint(dsGlyphGeometry* geometry, const dsVector2f* position)
 {
 	uint32_t curPointIndex = geometry->pointCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(geometry->allocator, geometry->points, geometry->pointCount,
-		geometry->maxPoints, 1))
+			geometry->maxPoints, 1))
 	{
 		return false;
 	}
@@ -392,7 +395,7 @@ static int glyphMoveTo(const FT_Vector* to, void* user)
 
 	uint32_t loopIndex = geometry->loopCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(geometry->allocator, geometry->loops, geometry->loopCount,
-		geometry->maxLoops, 1))
+			geometry->maxLoops, 1))
 	{
 		DS_ASSERT(errno == ENOMEM);
 		return FT_Err_Out_Of_Memory;
@@ -403,7 +406,7 @@ static int glyphMoveTo(const FT_Vector* to, void* user)
 	loop->pointCount = 0;
 	dsAlignedBox2f_makeInvalid(&loop->bounds);
 
-	dsVector2f position = {{(float)to->x/(float)fixedScale, (float)-to->y/(float)fixedScale}};
+	dsVector2f position = {{(float)to->x*invFixedScale, (float)-to->y*invFixedScale}};
 	if (!addGlyphPoint(geometry, &position))
 	{
 		DS_ASSERT(errno == ENOMEM);
@@ -675,7 +678,7 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 	// Create the runs.
 	tempArrayCount = 0;
 	if (!DS_RESIZEABLE_ARRAY_ADD(group->scratchAllocator, group->runs, tempArrayCount,
-		group->maxRuns, *outCount))
+			group->maxRuns, *outCount))
 	{
 		for (unsigned int i = 0; i < paragraphCount; ++i)
 		{
@@ -754,7 +757,7 @@ dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length)
 		return &group->scratchText;
 
 	if (!DS_RESIZEABLE_ARRAY_ADD(group->scratchAllocator, group->scratchCodepoints,
-		group->scratchText.characterCount, group->scratchMaxCodepoints, length))
+			group->scratchText.characterCount, group->scratchMaxCodepoints, length))
 	{
 		return NULL;
 	}
@@ -770,7 +773,7 @@ bool dsFaceGroup_scratchRanges(dsFaceGroup* group, uint32_t rangeCount)
 
 	group->scratchText.rangeCount = 0;
 	if (!DS_RESIZEABLE_ARRAY_ADD(group->scratchAllocator, group->scratchRanges,
-		group->scratchText.rangeCount, group->scratchMaxRanges, rangeCount))
+			group->scratchText.rangeCount, group->scratchMaxRanges, rangeCount))
 	{
 		return false;
 	}
@@ -789,7 +792,7 @@ bool dsFaceGroup_scratchGlyphs(dsFaceGroup* group, uint32_t length)
 	}
 
 	if (!DS_RESIZEABLE_ARRAY_ADD(group->scratchAllocator, group->scratchGlyphs,
-		group->scratchGlyphCount, group->scratchMaxGlyphs, length - group->scratchGlyphCount))
+			group->scratchGlyphCount, group->scratchMaxGlyphs, length - group->scratchGlyphCount))
 	{
 		return false;
 	}
@@ -1218,7 +1221,7 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 	range->newlineCount = newlineCount;
 	range->backward = HB_DIRECTION_IS_BACKWARD(properties.direction);
 
-	float scale = 1.0f/(float)(fixedScale*font->glyphSize);
+	float scale = 1.0f/(float)(FIXED_SCALE*font->glyphSize);
 	dsGlyph* glyphs = (dsGlyph*)(text->glyphs + glyphOffset);
 	for (unsigned int i = 0; i < glyphCount; ++i)
 	{
