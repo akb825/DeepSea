@@ -22,6 +22,7 @@
 #include "VectorScratchDataImpl.h"
 #include "VectorStroke.h"
 #include "VectorText.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Streams/FileStream.h>
@@ -31,14 +32,17 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Geometry/AlignedBox2.h>
-#include <DeepSea/Geometry/BezierCurve.h>
+#include <DeepSea/Geometry/CubicCurve.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix22.h>
 #include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Math/Vector4.h>
+
 #include <DeepSea/Render/Resources/DrawGeometry.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
@@ -47,10 +51,13 @@
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <DeepSea/Render/Renderer.h>
+
 #include <DeepSea/Text/TextLayout.h>
 #include <DeepSea/Text/TextRenderBuffer.h>
+
 #include <DeepSea/VectorDraw/VectorMaterialSet.h>
 #include <DeepSea/VectorDraw/VectorResources.h>
+
 #include <limits.h>
 #include <string.h>
 
@@ -186,10 +193,10 @@ static bool addBezierPoint(void* userData, const void* point, uint32_t axisCount
 	return dsVectorScratchData_addPoint(scratchData, (const dsVector2f*)point, pointType);
 }
 
-static bool addBezier(dsVectorScratchData* scratchData, const dsBezierCurvef* curve,
+static bool addBezier(dsVectorScratchData* scratchData, const dsCubicCurvef* curve,
 	float pixelSize)
 {
-	return dsBezierCurvef_tessellate(curve, pixelSize*0.25f, 10, &addBezierPoint, scratchData);
+	return dsCubicCurvef_tessellate(curve, pixelSize*0.25f, 10, &addBezierPoint, scratchData);
 }
 
 static bool addCubic(dsVectorScratchData* scratchData, const dsVector2f* control1,
@@ -203,8 +210,8 @@ static bool addCubic(dsVectorScratchData* scratchData, const dsVector2f* control
 	dsVector2f p2 = {{control2->x, control2->y}};
 	dsVector2f p3 = {{end->x, end->y}};
 
-	dsBezierCurvef curve;
-	DS_VERIFY(dsBezierCurvef_initialize(&curve, 2, p0, &p1, &p2, &p3));
+	dsCubicCurvef curve;
+	DS_VERIFY(dsCubicCurvef_initializeBezier(&curve, 2, p0, &p1, &p2, &p3));
 	return addBezier(scratchData, &curve, pixelSize);
 }
 
@@ -218,8 +225,8 @@ static bool addQuadratic(dsVectorScratchData* scratchData, const dsVector2f* con
 	dsVector2f p1 = {{control->x, control->y}};
 	dsVector2f p2 = {{end->x, end->y}};
 
-	dsBezierCurvef curve;
-	DS_VERIFY(dsBezierCurvef_initializeQuadratic(&curve, 2, p0, &p1, &p2));
+	dsCubicCurvef curve;
+	DS_VERIFY(dsCubicCurvef_initializeQuadratic(&curve, 2, p0, &p1, &p2));
 	return addBezier(scratchData, &curve, pixelSize);
 }
 

@@ -141,11 +141,17 @@ static void computeCorners(dsShadowCullVolume* volume, const dsPlane3d* planes,
 
 static void removeUnusedPlanes(dsShadowCullVolume* volume)
 {
+	// If no corners the full shadow volume is out of view.
+	if (volume->cornerCount == 0)
+	{
+		volume->planeCount = 0;
+		return;
+	}
+
 	for (uint32_t i = 0; i < volume->planeCount;)
 	{
 		uint32_t planeMask = 1 << i;
-		// Only need to check corners for plane referneces, since edges will only be added if they
-		// have a corresponding edge.
+		// Remove any plane that isn't referenced by a corner.
 		bool hasPlane = false;
 		for (uint32_t j = 0; j < volume->cornerCount; ++j)
 		{
@@ -401,7 +407,7 @@ bool dsShadowCullVolume_buildSpot(dsShadowCullVolume* volume, const dsFrustum3f*
 	volume->cornerCount = 0;
 
 	// Add the planes from both the view frustum and light frustum (minus the near plane for the
-	// light), then let the edge and corner computation take care of the rest.
+	// light), then let the corner computation take care of the rest.
 	dsPlane3d planes[DS_MAX_SHADOW_CULL_PLANES];
 	for (int i = 0; i < dsFrustumPlanes_Count; ++i)
 	{

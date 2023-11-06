@@ -30,7 +30,7 @@
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Core/Sort.h>
 #include <DeepSea/Geometry/AlignedBox2.h>
-#include <DeepSea/Geometry/BezierCurve.h>
+#include <DeepSea/Geometry/CubicCurve.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Text/FaceGroup.h>
@@ -434,10 +434,10 @@ static int glyphConicTo(const FT_Vector* control, const FT_Vector* to, void* use
 	const dsVector2f* p0 = &geometry->points[geometry->pointCount - 1].position;
 	dsVector2f p1 = {{(float)control->x*invFixedScale, -(float)control->y*invFixedScale}};
 	dsVector2f p2 = {{(float)to->x*invFixedScale, -(float)to->y*invFixedScale}};
-	dsBezierCurvef curve;
-	DS_VERIFY(dsBezierCurvef_initializeQuadratic(&curve, 2, p0, &p1, &p2));
+	dsCubicCurvef curve;
+	DS_VERIFY(dsCubicCurvef_initializeQuadratic(&curve, 2, p0, &p1, &p2));
 
-	if (!dsBezierCurvef_tessellate(&curve, CHORDAL_TOLERANCE, 10, &addGlyphBezierPoint, geometry))
+	if (!dsCubicCurvef_tessellate(&curve, CHORDAL_TOLERANCE, 10, &addGlyphBezierPoint, geometry))
 	{
 		DS_ASSERT(errno == ENOMEM);
 		return FT_Err_Out_Of_Memory;
@@ -456,10 +456,10 @@ static int glyphCubicTo(const FT_Vector* control1, const FT_Vector* control2, co
 	dsVector2f p1 = {{(float)control1->x*invFixedScale, -(float)control1->y*invFixedScale}};
 	dsVector2f p2 = {{(float)control2->x*invFixedScale, (float)-control2->y*invFixedScale}};
 	dsVector2f p3 = {{(float)to->x*invFixedScale, -(float)to->y*invFixedScale}};
-	dsBezierCurvef curve;
-	DS_VERIFY(dsBezierCurvef_initialize(&curve, 2, p0, &p1, &p2, &p3));
+	dsCubicCurvef curve;
+	DS_VERIFY(dsCubicCurvef_initializeBezier(&curve, 2, p0, &p1, &p2, &p3));
 
-	if (!dsBezierCurvef_tessellate(&curve, CHORDAL_TOLERANCE, 10, &addGlyphBezierPoint, geometry))
+	if (!dsCubicCurvef_tessellate(&curve, CHORDAL_TOLERANCE, 10, &addGlyphBezierPoint, geometry))
 	{
 		DS_ASSERT(errno == ENOMEM);
 		return FT_Err_Out_Of_Memory;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,23 +17,30 @@
 #include <DeepSea/VectorDraw/VectorScratchData.h>
 
 #include "VectorScratchDataImpl.h"
+
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Sort.h>
+
 #include <DeepSea/Geometry/AlignedBox2.h>
 #include <DeepSea/Geometry/ComplexPolygon.h>
 #include <DeepSea/Geometry/SimpleHoledPolygon.h>
+
 #include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Vector2.h>
+
 #include <DeepSea/Render/Resources/GfxBuffer.h>
+
 #include <DeepSea/Text/FaceGroup.h>
 #include <DeepSea/Text/Font.h>
 #include <DeepSea/Text/Text.h>
 #include <DeepSea/Text/TextLayout.h>
+
 #include <DeepSea/VectorDraw/VectorMaterialSet.h>
+
 #include <limits.h>
 #include <string.h>
 
@@ -240,16 +247,16 @@ bool dsVectorScratchData_addPoint(dsVectorScratchData* data, const dsVector2f* p
 	uint32_t type)
 {
 	const float epsilon = 1e-5f;
-	if (data->pointCount > 0 && dsVector2f_epsilonEqual(&data->points[data->pointCount - 1].point,
-		point, epsilon))
+	if (data->pointCount > 0 &&
+		dsVector2f_epsilonEqual(&data->points[data->pointCount - 1].point, point, epsilon))
 	{
 		data->points[data->pointCount - 1].type |= type;
 		return true;
 	}
 
 	uint32_t index = data->pointCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->points, data->pointCount, data->maxPoints,
-		1))
+	if (!DS_RESIZEABLE_ARRAY_ADD(
+			data->allocator, data->points, data->pointCount, data->maxPoints, 1))
 	{
 		return false;
 	}

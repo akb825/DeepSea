@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Geometry/BezierCurve.h>
+#include <DeepSea/Geometry/CubicCurve.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Math/Vector3.h>
@@ -27,9 +27,6 @@
 #define TYPED_TEST_SUITE TYPED_TEST_CASE
 #endif
 
-namespace
-{
-
 template <typename T, int N>
 struct CurveSelector {};
 
@@ -39,9 +36,10 @@ struct CurveSelector<float, 2>
 	using RealType = float;
 	using VectorType = dsVector2f;
 	using CurveSampleFunctionType = dsCurveSampleFunctionf;
-	using BezierCurveType = dsBezierCurvef;
-	static constexpr uint32_t axisCount = 2;
+	using CubicCurveType = dsCubicCurvef;
+	static constexpr unsigned int axisCount = 2;
 	static constexpr float epsilon = 1e-6f;
+	static constexpr float relaxedEpsilon = 1e-5f;
 
 	static VectorType createPoint(RealType x, RealType y, RealType)
 	{
@@ -69,9 +67,10 @@ struct CurveSelector<double, 2>
 	using RealType = double;
 	using VectorType = dsVector2d;
 	using CurveSampleFunctionType = dsCurveSampleFunctiond;
-	using BezierCurveType = dsBezierCurved;
-	static constexpr uint32_t axisCount = 2;
+	using CubicCurveType = dsCubicCurved;
+	static constexpr unsigned int axisCount = 2;
 	static constexpr double epsilon = 1e-14;
+	static constexpr double relaxedEpsilon = 1e-7;
 
 	static VectorType createPoint(RealType x, RealType y, RealType)
 	{
@@ -99,9 +98,10 @@ struct CurveSelector<float, 3>
 	using RealType = float;
 	using VectorType = dsVector3f;
 	using CurveSampleFunctionType = dsCurveSampleFunctionf;
-	using BezierCurveType = dsBezierCurvef;
-	static constexpr uint32_t axisCount = 3;
+	using CubicCurveType = dsCubicCurvef;
+	static constexpr unsigned int axisCount = 3;
 	static constexpr float epsilon = 1e-6f;
+	static constexpr float relaxedEpsilon = 1e-5f;
 
 	static VectorType createPoint(RealType x, RealType y, RealType z)
 	{
@@ -129,9 +129,10 @@ struct CurveSelector<double, 3>
 	using RealType = double;
 	using VectorType = dsVector3d;
 	using CurveSampleFunctionType = dsCurveSampleFunctiond;
-	using BezierCurveType = dsBezierCurved;
-	static constexpr uint32_t axisCount = 3;
+	using CubicCurveType = dsCubicCurved;
+	static constexpr unsigned int axisCount = 3;
 	static constexpr double epsilon = 1e-14;
+	static constexpr double relaxedEpsilon = 1e-7;
 
 	static VectorType createPoint(RealType x, RealType y, RealType z)
 	{
@@ -154,15 +155,16 @@ struct CurveSelector<double, 3>
 };
 
 template <typename SelectorT>
-class BezierCurveTest : public testing::Test
+class CubicCurveTest : public testing::Test
 {
 public:
 	using RealType = typename SelectorT::RealType;
 	using VectorType = typename SelectorT::VectorType;
 	using CurveSampleFunctionType = typename SelectorT::CurveSampleFunctionType;
-	using BezierCurveType = typename SelectorT::BezierCurveType;
+	using CubicCurveType = typename SelectorT::CubicCurveType;
 	static constexpr uint32_t axisCount = SelectorT::axisCount;
 	static constexpr RealType epsilon = SelectorT::epsilon;
+	static constexpr RealType relaxedEpsilon = SelectorT::relaxedEpsilon;
 
 	static VectorType createPoint(double x, double y, double z)
 	{
@@ -195,93 +197,105 @@ public:
 	}
 };
 
-bool dsBezierCurve_initialize(dsBezierCurvef* curve, uint32_t axisCount,
+bool dsCubicCurve_initializeBezier(dsCubicCurvef* curve, unsigned int axisCount,
 	const void* p0, const void* p1, const void* p2, const void* p3)
 {
-	return dsBezierCurvef_initialize(curve, axisCount, p0, p1, p2, p3);
+	return dsCubicCurvef_initializeBezier(curve, axisCount, p0, p1, p2, p3);
 }
 
-bool dsBezierCurve_initialize(dsBezierCurved* curve, uint32_t axisCount,
+bool dsCubicCurve_initializeBezier(dsCubicCurved* curve, unsigned int axisCount,
 	const void* p0, const void* p1, const void* p2, const void* p3)
 {
-	return dsBezierCurved_initialize(curve, axisCount, p0, p1, p2, p3);
+	return dsCubicCurved_initializeBezier(curve, axisCount, p0, p1, p2, p3);
 }
 
-bool dsBezierCurve_initializeQuadratic(dsBezierCurvef* curve,
-	uint32_t axisCount, const void* p0, const void* p1, const void* p2)
+bool dsCubicCurve_initializeQuadratic(dsCubicCurvef* curve, unsigned int axisCount,
+	const void* p0, const void* p1, const void* p2)
 {
-	return dsBezierCurvef_initializeQuadratic(curve, axisCount, p0, p1, p2);
+	return dsCubicCurvef_initializeQuadratic(curve, axisCount, p0, p1, p2);
 }
 
-bool dsBezierCurve_initializeQuadratic(dsBezierCurved* curve,
-	uint32_t axisCount, const void* p0, const void* p1, const void* p2)
+bool dsCubicCurve_initializeQuadratic(dsCubicCurved* curve, unsigned int axisCount,
+	const void* p0, const void* p1, const void* p2)
 {
-	return dsBezierCurved_initializeQuadratic(curve, axisCount, p0, p1, p2);
+	return dsCubicCurved_initializeQuadratic(curve, axisCount, p0, p1, p2);
 }
 
-bool dsBezierCurve_evaluate(void* outPoint, const dsBezierCurvef* curve, float t)
+bool dsCubicCurve_initializeHermite(dsCubicCurvef* curve, unsigned int axisCount,
+	const void* p0, const void* t0, const void* p1, const void* t1)
 {
-	return dsBezierCurvef_evaluate(outPoint, curve, t);
+	return dsCubicCurvef_initializeHermite(curve, axisCount, p0, t0, p1, t1);
 }
 
-bool dsBezierCurve_evaluate(void* outPoint, const dsBezierCurved* curve, double t)
+bool dsCubicCurve_initializeHermite(dsCubicCurved* curve, unsigned int axisCount,
+	const void* p0, const void* t0, const void* p1, const void* t1)
 {
-	return dsBezierCurved_evaluate(outPoint, curve, t);
+	return dsCubicCurved_initializeHermite(curve, axisCount, p0, t0, p1, t1);
 }
 
-bool dsBezierCurve_evaluateTangent(void* outTangent, const dsBezierCurvef* curve, float t)
+bool dsCubicCurve_evaluate(void* outPoint, const dsCubicCurvef* curve, float t)
 {
-	return dsBezierCurvef_evaluateTangent(outTangent, curve, t);
+	return dsCubicCurvef_evaluate(outPoint, curve, t);
 }
 
-bool dsBezierCurve_evaluateTangent(void* outTangent, const dsBezierCurved* curve, double t)
+bool dsCubicCurve_evaluate(void* outPoint, const dsCubicCurved* curve, double t)
 {
-	return dsBezierCurved_evaluateTangent(outTangent, curve, t);
+	return dsCubicCurved_evaluate(outPoint, curve, t);
 }
 
-bool dsBezierCurve_tessellate(const dsBezierCurvef* curve, float chordalTolerance,
-	uint32_t maxRecursions, dsCurveSampleFunctionf sampleFunc, void* userData)
+bool dsCubicCurve_evaluateTangent(void* outTangent, const dsCubicCurvef* curve, float t)
 {
-	return dsBezierCurvef_tessellate(curve, chordalTolerance, maxRecursions, sampleFunc, userData);
+	return dsCubicCurvef_evaluateTangent(outTangent, curve, t);
 }
 
-bool dsBezierCurve_tessellate(const dsBezierCurved* curve, double chordalTolerance,
-	uint32_t maxRecursions, dsCurveSampleFunctiond sampleFunc, void* userData)
+bool dsCubicCurve_evaluateTangent(void* outTangent, const dsCubicCurved* curve, double t)
 {
-	return dsBezierCurved_tessellate(curve, chordalTolerance, maxRecursions, sampleFunc, userData);
+	return dsCubicCurved_evaluateTangent(outTangent, curve, t);
+}
+
+bool dsCubicCurve_tessellate(const dsCubicCurvef* curve, float chordalTolerance,
+	unsigned int maxRecursions, dsCurveSampleFunctionf sampleFunc, void* userData)
+{
+	return dsCubicCurvef_tessellate(curve, chordalTolerance, maxRecursions, sampleFunc, userData);
+}
+
+bool dsCubicCurve_tessellate(const dsCubicCurved* curve, double chordalTolerance,
+	unsigned int maxRecursions, dsCurveSampleFunctiond sampleFunc, void* userData)
+{
+	return dsCubicCurved_tessellate(curve, chordalTolerance, maxRecursions, sampleFunc, userData);
 }
 
 using CurveTypes = testing::Types<CurveSelector<float, 2>, CurveSelector<double, 2>,
 	CurveSelector<float, 3>, CurveSelector<double, 3>>;
-TYPED_TEST_SUITE(BezierCurveTest, CurveTypes);
+TYPED_TEST_SUITE(CubicCurveTest, CurveTypes);
 
-TYPED_TEST(BezierCurveTest, EvaluateCubic)
+TYPED_TEST(CubicCurveTest, EvaluateBezier)
 {
 	using RealType = typename TestFixture::RealType;
 	using VectorType = typename TestFixture::VectorType;
-	using BezierCurveType = typename TestFixture::BezierCurveType;
+	using CubicCurveType = typename TestFixture::CubicCurveType;
 
 	VectorType p0 = TestFixture::createPoint(0.0, 0.1, 0.2);
 	VectorType p1 = TestFixture::createPoint(0.5, -0.3, 0.8);
 	VectorType p2 = TestFixture::createPoint(1.4, 3.2, -3.4);
 	VectorType p3 = TestFixture::createPoint(5.2, 0.9, 2.5);
 
-	BezierCurveType curve;
-	EXPECT_TRUE(dsBezierCurve_initialize(&curve, TestFixture::axisCount, &p0, &p1, &p2, &p3));
+	CubicCurveType curve;
+	EXPECT_TRUE(dsCubicCurve_initializeBezier(&curve, TestFixture::axisCount, &p0, &p1, &p2, &p3));
 
 	VectorType point;
-	EXPECT_TRUE(dsBezierCurve_evaluate(&point, &curve, RealType(0)));
-	for (uint32_t i = 0; i < curve.axisCount; ++i)
-		EXPECT_NEAR(p0.values[i], point.values[i], TestFixture::epsilon);
+	EXPECT_TRUE(dsCubicCurve_evaluate(&point, &curve, RealType(0)));
+	for (unsigned int i = 0; i < curve.axisCount; ++i)
+		EXPECT_EQ(p0.values[i], point.values[i]);
 
-	EXPECT_TRUE(dsBezierCurve_evaluate(&point, &curve, RealType(1)));
-	for (uint32_t i = 0; i < curve.axisCount; ++i)
-		EXPECT_NEAR(p3.values[i], point.values[i], TestFixture::epsilon);
+	EXPECT_TRUE(dsCubicCurve_evaluate(&point, &curve, RealType(1)));
+	for (unsigned int i = 0; i < curve.axisCount; ++i)
+		EXPECT_EQ(p3.values[i], point.values[i]);
 
 	VectorType tangent;
-	EXPECT_TRUE(dsBezierCurve_evaluate(&point, &curve, RealType(0.3)));
-	EXPECT_TRUE(dsBezierCurve_evaluateTangent(&tangent, &curve, RealType(0.3)));
-	for (uint32_t i = 0; i < curve.axisCount; ++i)
+	EXPECT_TRUE(dsCubicCurve_evaluate(&point, &curve, RealType(0.3)));
+	EXPECT_TRUE(dsCubicCurve_evaluateTangent(&tangent, &curve, RealType(0.3)));
+	for (unsigned int i = 0; i < curve.axisCount; ++i)
 	{
 		EXPECT_NEAR(dsPow3(0.7)*p0.values[i] + 3.0*dsPow2(0.7)*0.3*p1.values[i] +
 			3.0*dsPow2(0.3)*0.7*p2.values[i] + dsPow3(0.3)*p3.values[i], point.values[i],
@@ -293,73 +307,123 @@ TYPED_TEST(BezierCurveTest, EvaluateCubic)
 	}
 }
 
-TYPED_TEST(BezierCurveTest, EvaluateQuadratic)
+TYPED_TEST(CubicCurveTest, EvaluateQuadratic)
 {
 	using RealType = typename TestFixture::RealType;
 	using VectorType = typename TestFixture::VectorType;
-	using BezierCurveType = typename TestFixture::BezierCurveType;
+	using CubicCurveType = typename TestFixture::CubicCurveType;
 
 	VectorType p0 = TestFixture::createPoint(0.0, 0.1, 0.2);
 	VectorType p1 = TestFixture::createPoint(0.5, -0.3, 0.8);
 	VectorType p2 = TestFixture::createPoint(1.4, 3.2, -3.4);
 
-	BezierCurveType curve;
-	EXPECT_TRUE(dsBezierCurve_initializeQuadratic(&curve, TestFixture::axisCount, &p0, &p1, &p2));
+	CubicCurveType curve;
+	EXPECT_TRUE(dsCubicCurve_initializeQuadratic(&curve, TestFixture::axisCount, &p0, &p1, &p2));
 
 	VectorType point;
-	EXPECT_TRUE(dsBezierCurve_evaluate(&point, &curve, RealType(0)));
-	for (uint32_t i = 0; i < curve.axisCount; ++i)
-		EXPECT_NEAR(p0.values[i], point.values[i], TestFixture::epsilon);
+	EXPECT_TRUE(dsCubicCurve_evaluate(&point, &curve, RealType(0)));
+	for (unsigned int i = 0; i < curve.axisCount; ++i)
+		EXPECT_EQ(p0.values[i], point.values[i]);
 
-	EXPECT_TRUE(dsBezierCurve_evaluate(&point, &curve, RealType(1)));
-	for (uint32_t i = 0; i < curve.axisCount; ++i)
-		EXPECT_NEAR(p2.values[i], point.values[i], TestFixture::epsilon);
+	EXPECT_TRUE(dsCubicCurve_evaluate(&point, &curve, RealType(1)));
+	for (unsigned int i = 0; i < curve.axisCount; ++i)
+		EXPECT_EQ(p2.values[i], point.values[i]);
 
 	VectorType tangent;
-	EXPECT_TRUE(dsBezierCurve_evaluate(&point, &curve, RealType(0.3)));
-	EXPECT_TRUE(dsBezierCurve_evaluateTangent(&tangent, &curve, RealType(0.3)));
-	for (uint32_t i = 0; i < curve.axisCount; ++i)
+	EXPECT_TRUE(dsCubicCurve_evaluate(&point, &curve, RealType(0.3)));
+	EXPECT_TRUE(dsCubicCurve_evaluateTangent(&tangent, &curve, RealType(0.3)));
+	for (unsigned int i = 0; i < curve.axisCount; ++i)
 	{
 		EXPECT_NEAR(dsPow2(0.7)*p0.values[i] + 2.0*0.7*0.3*p1.values[i] +
-			dsPow2(0.3)*p2.values[i], point.values[i], TestFixture::epsilon);
+			dsPow2(0.3)*p2.values[i], point.values[i], TestFixture::relaxedEpsilon);
 		EXPECT_NEAR(2.0*0.7*(p1.values[i] - p0.values[i]) + 2.0*0.3*(p2.values[i] - p1.values[i]),
-			tangent.values[i], TestFixture::epsilon);
+			tangent.values[i], TestFixture::relaxedEpsilon);
 	}
 }
 
-TYPED_TEST(BezierCurveTest, Tessellate)
+TYPED_TEST(CubicCurveTest, EvaluateHermite)
 {
 	using RealType = typename TestFixture::RealType;
 	using VectorType = typename TestFixture::VectorType;
-	using BezierCurveType = typename TestFixture::BezierCurveType;
+	using CubicCurveType = typename TestFixture::CubicCurveType;
+
+	VectorType p0 = TestFixture::createPoint(0.0, 0.1, 0.2);
+	VectorType t0 = TestFixture::createPoint(0.5, -0.3, 0.8);
+	VectorType p1 = TestFixture::createPoint(5.2, 0.9, 2.5);
+	VectorType t1 = TestFixture::createPoint(1.4, 3.2, -3.4);
+
+	CubicCurveType curve;
+	EXPECT_TRUE(dsCubicCurve_initializeHermite(&curve, TestFixture::axisCount, &p0, &t0, &p1, &t1));
+
+	VectorType point;
+	EXPECT_TRUE(dsCubicCurve_evaluate(&point, &curve, RealType(0)));
+	for (unsigned int i = 0; i < curve.axisCount; ++i)
+		EXPECT_EQ(p0.values[i], point.values[i]);
+
+	EXPECT_TRUE(dsCubicCurve_evaluate(&point, &curve, RealType(1)));
+	for (unsigned int i = 0; i < curve.axisCount; ++i)
+		EXPECT_EQ(p1.values[i], point.values[i]);
+
+	EXPECT_TRUE(dsCubicCurve_evaluate(&point, &curve, RealType(0.3)));
+	for (unsigned int i = 0; i < curve.axisCount; ++i)
+	{
+		EXPECT_NEAR((2*dsPow3(0.3) - 3*dsPow2(0.3) + 1)*p0.values[i] +
+			(dsPow3(0.3) - 2*dsPow2(0.3) + 0.3)*t0.values[i] +
+			(-2*dsPow3(0.3) + 3*dsPow2(0.3))*p1.values[i] +
+			(dsPow3(0.3) - dsPow2(0.3))*t1.values[i], point.values[i], TestFixture::epsilon);
+	}
+
+	VectorType startTangent, endTangent;
+	EXPECT_TRUE(dsCubicCurve_evaluateTangent(&startTangent, &curve, 0));
+	EXPECT_TRUE(dsCubicCurve_evaluateTangent(&endTangent, &curve, 1));
+	for (unsigned int i = 0; i < curve.axisCount; ++i)
+	{
+		EXPECT_NEAR(t0.values[i], startTangent.values[i], TestFixture::relaxedEpsilon);
+		EXPECT_NEAR(t1.values[i], endTangent.values[i], TestFixture::relaxedEpsilon);
+	}
+}
+
+TYPED_TEST(CubicCurveTest, Tessellate)
+{
+	using RealType = typename TestFixture::RealType;
+	using VectorType = typename TestFixture::VectorType;
+	using CubicCurveType = typename TestFixture::CubicCurveType;
 
 	VectorType p0 = TestFixture::createPoint(0.0, 0.1, 0.2);
 	VectorType p1 = TestFixture::createPoint(0.5, -0.3, 0.8);
 	VectorType p2 = TestFixture::createPoint(1.4, 3.2, -3.4);
 	VectorType p3 = TestFixture::createPoint(5.2, 0.9, 2.5);
 
-	BezierCurveType curve;
-	EXPECT_TRUE(dsBezierCurve_initialize(&curve, TestFixture::axisCount, &p0, &p1, &p2, &p3));
+	CubicCurveType curve;
+	EXPECT_TRUE(dsCubicCurve_initializeBezier(&curve, TestFixture::axisCount, &p0, &p1, &p2, &p3));
 
 	std::vector<std::pair<VectorType, RealType>> points;
 	auto pointFunc = [&curve, &points](const VectorType& point, RealType t)
 	{
 		VectorType expectedPoint;
-		EXPECT_TRUE(dsBezierCurve_evaluate(&expectedPoint, &curve, t));
-		for (uint32_t i = 0; i < curve.axisCount; ++i)
+		EXPECT_TRUE(dsCubicCurve_evaluate(&expectedPoint, &curve, t));
+		for (unsigned int i = 0; i < curve.axisCount; ++i)
 			EXPECT_NEAR(expectedPoint.values[i], point.values[i], TestFixture::epsilon);
 
 		points.emplace_back(point, t);
 	};
 
-	EXPECT_TRUE(dsBezierCurve_tessellate(&curve, RealType(0.01), 0,
+	const auto chordalTolerance = RealType(0.01);
+	EXPECT_TRUE(dsCubicCurve_tessellate(&curve, chordalTolerance, 0,
 		TestFixture::lambdaAdapter(pointFunc), &pointFunc));
 	ASSERT_EQ(2U, points.size());
 	EXPECT_EQ(0, points[0].second);
 	EXPECT_EQ(1, points[1].second);
 
 	points.clear();
-	EXPECT_TRUE(dsBezierCurve_tessellate(&curve, 10, DS_MAX_CURVE_RECURSIONS,
+	EXPECT_TRUE(dsCubicCurve_tessellate(&curve, 10, DS_MAX_CURVE_RECURSIONS,
+		TestFixture::lambdaAdapter(pointFunc), &pointFunc));
+	ASSERT_EQ(2U, points.size());
+	EXPECT_EQ(0, points[0].second);
+	EXPECT_EQ(1, points[1].second);
+
+	points.clear();
+	EXPECT_TRUE(dsCubicCurve_tessellate(&curve, chordalTolerance, 1,
 		TestFixture::lambdaAdapter(pointFunc), &pointFunc));
 	ASSERT_EQ(3U, points.size());
 	EXPECT_EQ(0, points[0].second);
@@ -367,19 +431,16 @@ TYPED_TEST(BezierCurveTest, Tessellate)
 	EXPECT_EQ(1, points[2].second);
 
 	points.clear();
-	const auto chordalTolerance = RealType(0.01);
-	EXPECT_TRUE(dsBezierCurve_tessellate(&curve, chordalTolerance, DS_MAX_CURVE_RECURSIONS,
+	EXPECT_TRUE(dsCubicCurve_tessellate(&curve, chordalTolerance, DS_MAX_CURVE_RECURSIONS,
 		TestFixture::lambdaAdapter(pointFunc), &pointFunc));
-	for (uint32_t i = 0; i < points.size() - 1; ++i)
+	for (unsigned int i = 0; i < points.size() - 1; ++i)
 	{
 		EXPECT_LT(points[i].second, points[i + 1].second);
 		VectorType middle = TestFixture::middle(points[i].first, points[i + 1].first);
 		VectorType curveMiddle;
-		EXPECT_TRUE(dsBezierCurve_evaluate(&curveMiddle, &curve,
+		EXPECT_TRUE(dsCubicCurve_evaluate(&curveMiddle, &curve,
 			(points[i].second + points[i + 1].second)/2));
 		RealType distance = TestFixture::distance(middle, curveMiddle);
 		EXPECT_GT(chordalTolerance + TestFixture::epsilon, distance);
 	}
 }
-
-} // namespace

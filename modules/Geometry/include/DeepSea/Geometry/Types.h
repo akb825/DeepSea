@@ -512,7 +512,7 @@ typedef struct dsFrustum3d
  * @return False if an error occurred.
  * @see BezierCurve.h
  */
-typedef bool (*dsCurveSampleFunctionf)(void* userData, const void* point, uint32_t axisCount,
+typedef bool (*dsCurveSampleFunctionf)(void* userData, const void* point, unsigned int axisCount,
 	float t);
 
 /**
@@ -526,14 +526,17 @@ typedef bool (*dsCurveSampleFunctionf)(void* userData, const void* point, uint32
  * @return False if an error occurred.
  * @see BezierCurve.h
  */
-typedef bool (*dsCurveSampleFunctiond)(void* userData, const void* point, uint32_t axisCount,
+typedef bool (*dsCurveSampleFunctiond)(void* userData, const void* point, unsigned int axisCount,
 	double t);
 
 /**
- * @brief Structure for a Bezier curve using floats.
+ * @brief Structure for a cubic curve using floats.
+ *
+ * When evaluating and tessellating the curve, the start and end points will be preserved exactly.
+ *
  * @see BezierCurve.h
  */
-typedef struct dsBezierCurvef
+typedef struct dsCubicCurvef
 {
 	/**
 	 * @brief The number of axes in the curve.
@@ -541,18 +544,27 @@ typedef struct dsBezierCurvef
 	uint32_t axisCount;
 
 	/**
-	 * @brief The control points for the curve.
-	 *
-	 * Each vector is the set of control values for a single axis.
+	 * @brief The exact end point of the curve.
 	 */
-	dsVector4f controlPoints[3];
-} dsBezierCurvef;
+	float endPoint[3];
+
+	/**
+	 * @brief The polynomial factors for the curve.
+	 *
+	 * Each vector is the set of polynomial values for a single axis. The first values will always
+	 * equal exactly the start of the curve, and the sum will equal the end point.
+	 */
+	dsVector4f polynomials[3];
+} dsCubicCurvef;
 
 /**
- * @brief Structure for a Bezier curve using doubles.
+ * @brief Structure for a cubic curve using doubles.
+ *
+ * When evaluating and tessellating the curve, the start and end points will be preserved exactly.
+ *
  * @see BezierCurve.h
  */
-typedef struct dsBezierCurved
+typedef struct dsCubicCurved
 {
 	/**
 	 * @brief The number of axes in the curve.
@@ -560,12 +572,18 @@ typedef struct dsBezierCurved
 	uint32_t axisCount;
 
 	/**
-	 * @brief The control points for the curve.
-	 *
-	 * Each vector is the set of control values for a single axis.
+	 * @brief The exact end point of the curve.
 	 */
-	dsVector4d controlPoints[3];
-} dsBezierCurved;
+	double endPoint[3];
+
+	/**
+	 * @brief The polynomial factors for the curve.
+	 *
+	 * Each vector is the set of polynomial values for a single axis. The first values will always
+	 * equal exactly the start of the curve, and the sum will equal the end point.
+	 */
+	dsVector4d polynomials[3];
+} dsCubicCurved;
 
 /**
  * @brief Structure for a bounding volume hierarchy spacial data structure.

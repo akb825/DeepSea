@@ -51,7 +51,7 @@ bool dsPlane3f_intersectingLine(dsRay3f* result, const dsPlane3f* firstPlane,
 	dsVector3_cross(result->origin, diff, result->direction);
 	dsVector3_scale(result->origin, result->origin, invLen2);
 
-	float invLen = 1/sqrtf(len2);
+	float invLen = sqrtf(invLen2);
 	dsVector3_scale(result->direction, result->direction, invLen);
 	return true;
 }
@@ -83,7 +83,7 @@ bool dsPlane3d_intersectingLine(dsRay3d* result, const dsPlane3d* firstPlane,
 	dsVector3_cross(result->origin, diff, result->direction);
 	dsVector3_scale(result->origin, result->origin, invLen2);
 
-	double invLen = 1/sqrt(len2);
+	double invLen = sqrt(invLen2);
 	dsVector3_scale(result->direction, result->direction, invLen);
 	return true;
 }

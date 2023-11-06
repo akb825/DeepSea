@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 Aaron Barany
+ * Copyright 2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,12 @@ extern "C"
 
 /**
  * @file
- * @brief Functions for creating and sampling Bezier curves.
+ * @brief Functions for creating and sampling cubic curves.
  * @see dsBezierCurve
  */
 
 /**
- * @brief Initializes a Bezier curve with the control points.
+ * @brief Initializes a cubic curve with Bezier control points.
  * @remark errno will be set on failure.
  * @param[out] curve The curve to initialize.
  * @param axisCount The number of axes. This must be 2 or 3.
@@ -42,11 +42,11 @@ extern "C"
  * @param p3 The fourth control point. This must be dsVector2f or dsVector3f depending on axisCount.
  * @return False if the parameters are invalid.
  */
-DS_GEOMETRY_EXPORT bool dsBezierCurvef_initialize(dsBezierCurvef* curve, uint32_t axisCount,
+DS_GEOMETRY_EXPORT bool dsCubicCurvef_initializeBezier(dsCubicCurvef* curve, unsigned int axisCount,
 	const void* p0, const void* p1, const void* p2, const void* p3);
 
 /**
- * @brief Initializes a Bezier curve with the control points.
+ * @brief Initializes a cubic curve with Bezier control points.
  * @remark errno will be set on failure.
  * @param[out] curve The curve to initialize.
  * @param axisCount The number of axes. This must be 2 or 3.
@@ -56,11 +56,11 @@ DS_GEOMETRY_EXPORT bool dsBezierCurvef_initialize(dsBezierCurvef* curve, uint32_
  * @param p3 The fourth control point. This must be dsVector2d or dsVector3d depending on axisCount.
  * @return False if the parameters are invalid.
  */
-DS_GEOMETRY_EXPORT bool dsBezierCurved_initialize(dsBezierCurved* curve, uint32_t axisCount,
+DS_GEOMETRY_EXPORT bool dsCubicCurved_initializeBezier(dsCubicCurved* curve, unsigned int axisCount,
 	const void* p0, const void* p1, const void* p2, const void* p3);
 
 /**
- * @brief Initializes a quadratic Bezier curve with the control points.
+ * @brief Initializes a cubic curve with quadratic Bezier control points.
  * @remark errno will be set on failure.
  * @param curve The curve to initialize.
  * @param axisCount The number of axes. This must be 2 or 3.
@@ -70,11 +70,11 @@ DS_GEOMETRY_EXPORT bool dsBezierCurved_initialize(dsBezierCurved* curve, uint32_
  * @param p2 The third control point. This must be dsVector2f or dsVector3f depending on axisCount.
  * @return False if the parameters are invalid.
  */
-DS_GEOMETRY_EXPORT bool dsBezierCurvef_initializeQuadratic(dsBezierCurvef* curve,
-	uint32_t axisCount, const void* p0, const void* p1, const void* p2);
+DS_GEOMETRY_EXPORT bool dsCubicCurvef_initializeQuadratic(dsCubicCurvef* curve,
+	unsigned int axisCount, const void* p0, const void* p1, const void* p2);
 
 /**
- * @brief Initializes a quadratic Bezier curve with the control points.
+ * @brief Initializes a cubic curve with quadratic Bezier control points.
  * @remark errno will be set on failure.
  * @param curve The curve to initialize.
  * @param axisCount The number of axes. This must be 2 or 3.
@@ -84,11 +84,43 @@ DS_GEOMETRY_EXPORT bool dsBezierCurvef_initializeQuadratic(dsBezierCurvef* curve
  * @param p2 The third control point. This must be dsVector2d or dsVector3d depending on axisCount.
  * @return False if the parameters are invalid.
  */
-DS_GEOMETRY_EXPORT bool dsBezierCurved_initializeQuadratic(dsBezierCurved* curve,
-	uint32_t axisCount, const void* p0, const void* p1, const void* p2);
+DS_GEOMETRY_EXPORT bool dsCubicCurved_initializeQuadratic(dsCubicCurved* curve,
+	unsigned int axisCount, const void* p0, const void* p1, const void* p2);
 
 /**
- * @brief Evaluates the position of a curve.
+ * @brief Initializes a cubic curve Hermite endpoints and tangents.
+ * @remark errno will be set on failure.
+ * @param[out] curve The curve to initialize.
+ * @param axisCount The number of axes. This must be 2 or 3.
+ * @param p0 The start point. This must be dsVector2f or dsVector3f depending on axisCount.
+ * @param t0 The tangent at the start point. This must be dsVector2f or dsVector3f depending on
+ *     axisCount.
+ * @param p1 The end point. This must be dsVector2f or dsVector3f depending on axisCount.
+ * @param t1 The tangent at the end point. This must be dsVector2f or dsVector3f depending on
+ *     axisCount.
+ * @return False if the parameters are invalid.
+ */
+DS_GEOMETRY_EXPORT bool dsCubicCurvef_initializeHermite(dsCubicCurvef* curve,
+	unsigned int axisCount, const void* p0, const void* t0, const void* p1, const void* t1);
+
+/**
+ * @brief Initializes a cubic curve Hermite endpoints and tangents.
+ * @remark errno will be set on failure.
+ * @param[out] curve The curve to initialize.
+ * @param axisCount The number of axes. This must be 2 or 3.
+ * @param p0 The start point. This must be dsVector2d or dsVector3d depending on axisCount.
+ * @param t0 The tangent at the start point. This must be dsVector2d or dsVector3d depending on
+ *     axisCount.
+ * @param p1 The end point. This must be dsVector2d or dsVector3d depending on axisCount.
+ * @param t1 The tangent at the end point. This must be dsVector2d or dsVector3d depending on
+ *     axisCount.
+ * @return False if the parameters are invalid.
+ */
+DS_GEOMETRY_EXPORT bool dsCubicCurved_initializeHermite(dsCubicCurved* curve,
+	unsigned int axisCount, const void* p0, const void* t0, const void* p1, const void* t1);
+
+/**
+ * @brief Evaluates the position of a cubic curve.
  * @remark errno will be set on failure.
  * @param[out] outPoint The evaluated position. This must be dsVector2d or dsVector3d depending on
  *     the axis count.
@@ -96,15 +128,15 @@ DS_GEOMETRY_EXPORT bool dsBezierCurved_initializeQuadratic(dsBezierCurved* curve
  * @param t The parametric position on the curve to evaluate. This must be in the range [0, 1].
  * @return False if the parameters are invalid.
  */
-DS_GEOMETRY_EXPORT bool dsBezierCurvef_evaluate(void* outPoint, const dsBezierCurvef* curve,
+DS_GEOMETRY_EXPORT bool dsCubicCurvef_evaluate(void* outPoint, const dsCubicCurvef* curve,
 	float t);
 
-/** @copydoc dsBezierCurvef_evaluate() */
-DS_GEOMETRY_EXPORT bool dsBezierCurved_evaluate(void* outPoint, const dsBezierCurved* curve,
+/** @copydoc dsCubicCurvef_evaluate() */
+DS_GEOMETRY_EXPORT bool dsCubicCurved_evaluate(void* outPoint, const dsCubicCurved* curve,
 	double t);
 
 /**
- * @brief Evaluates the tangent of a curve.
+ * @brief Evaluates the tangent of a cubic curve.
  * @remark errno will be set on failure.
  * @param[out] outTangent The evaluated tangent. This must be dsVector2d or dsVector3d depending on
  *     the axis count.
@@ -112,15 +144,15 @@ DS_GEOMETRY_EXPORT bool dsBezierCurved_evaluate(void* outPoint, const dsBezierCu
  * @param t The parametric position on the curve to evaluate. This must be in the range [0, 1].
  * @return False if the parameters are invalid.
  */
-DS_GEOMETRY_EXPORT bool dsBezierCurvef_evaluateTangent(void* outTangent,
-	const dsBezierCurvef* curve, float t);
+DS_GEOMETRY_EXPORT bool dsCubicCurvef_evaluateTangent(void* outTangent,
+	const dsCubicCurvef* curve, float t);
 
-/** @copydoc dsBezierCurvef_evaluateTangent() */
-DS_GEOMETRY_EXPORT bool dsBezierCurved_evaluateTangent(void* outTangent,
-	const dsBezierCurved* curve, double t);
+/** @copydoc dsCubicCurvef_evaluateTangent() */
+DS_GEOMETRY_EXPORT bool dsCubicCurved_evaluateTangent(void* outTangent,
+	const dsCubicCurved* curve, double t);
 
 /**
- * @brief Tessellates a bezier curve.
+ * @brief Tessellates a cubic curve.
  * @remark errno will be set on failure.
  * @param curve The curve to tessellate.
  * @param chordalTolerance The maximum distance between the centerpoint of a line and the curve to
@@ -131,13 +163,13 @@ DS_GEOMETRY_EXPORT bool dsBezierCurved_evaluateTangent(void* outTangent,
  * @param userData The user data to provide to sampleFunc.
  * @return False if the parameters are invalid.
  */
-DS_GEOMETRY_EXPORT bool dsBezierCurvef_tessellate(const dsBezierCurvef* curve,
-	float chordalTolerance, uint32_t maxRecursions, dsCurveSampleFunctionf sampleFunc,
+DS_GEOMETRY_EXPORT bool dsCubicCurvef_tessellate(const dsCubicCurvef* curve,
+	float chordalTolerance, unsigned int maxRecursions, dsCurveSampleFunctionf sampleFunc,
 	void* userData);
 
-/** @copydoc dsBezierCurvef_tessellate() */
-DS_GEOMETRY_EXPORT bool dsBezierCurved_tessellate(const dsBezierCurved* curve,
-	double chordalTolerance, uint32_t maxRecursions, dsCurveSampleFunctiond sampleFunc,
+/** @copydoc dsCubicCurvef_tessellate() */
+DS_GEOMETRY_EXPORT bool dsCubicCurved_tessellate(const dsCubicCurved* curve,
+	double chordalTolerance, unsigned int maxRecursions, dsCurveSampleFunctiond sampleFunc,
 	void* userData);
 
 #ifdef __cplusplus
