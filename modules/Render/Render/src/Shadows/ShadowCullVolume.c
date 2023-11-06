@@ -37,10 +37,10 @@
 // This maximum should never occur, but should be safe regardless.
 #define MAX_ADDED_SHADOW_POINTS (SHADOW_BOX_SEGMENTS*2 + DS_MAX_SHADOW_CULL_CORNERS)
 
-typedef bool (*PointInBoxFunction)(const void* box, const dsVector3f* point);
-
 // Since the original computations were done with floats, be a bit loose with the epsilon values.
-const double baseEpsilon = 1e-5;
+#define BASE_EPSILON 1e-5
+
+typedef bool (*PointInBoxFunction)(const void* box, const dsVector3f* point);
 
 static dsVector4f normalizedBoxCorners[DS_BOX3_CORNER_COUNT] =
 {
@@ -108,28 +108,33 @@ static void addCorner(dsShadowCullVolume* volume, dsVector3d* cornerPoints,
 	corner->planes = planes;
 }
 
-static void computeCorners(dsShadowCullVolume* volume, const dsPlane3d* planes,
-	double epsilon)
+static void computeCorners(dsShadowCullVolume* volume, const dsPlane3d* planes, double epsilon)
 {
 	for (uint32_t i = 0; i < volume->planeCount; ++i)
 		dsConvertDoubleToFloat(volume->planes[i], planes[i]);
 
+	double epsilon2 = dsPow2(epsilon);
 	dsVector3d cornerPoints[DS_MAX_SHADOW_CULL_CORNERS];
 	for (uint32_t i = 0; i < volume->planeCount - 1; ++i)
 	{
 		const dsPlane3d* firstPlane = planes + i;
 		for (uint32_t j = i + 1; j < volume->planeCount; ++j)
 		{
+			const dsPlane3d* secondPlane = planes + j;
 			dsRay3d ray;
-			if (!dsPlane3d_intersectingLine(&ray, firstPlane, planes + j))
+			if (!dsPlane3d_intersectingLine(&ray, firstPlane, secondPlane))
 				continue;
 
 			for (uint32_t k = j + 1; k < volume->planeCount; ++k)
 			{
-				double t = dsPlane3d_rayIntersection(planes + k, &ray);
-				if (t == DBL_MAX)
+				const dsPlane3d* thirdPlane = planes + k;
+
+				// Relaxed intersection check to avoid nearly infinite points.
+				double denom = dsVector3_dot(thirdPlane->n, ray.direction);
+				if (fabs(denom) < epsilon2)
 					continue;
 
+				double t = -(dsVector3_dot(thirdPlane->n, ray.origin) + thirdPlane->d)/denom;
 				dsVector3d point;
 				dsRay3_evaluate(point, ray, t);
 				if (pointInVolume(volume, planes, &point, epsilon))
@@ -332,7 +337,7 @@ bool dsShadowCullVolume_buildDirectional(dsShadowCullVolume* volume,
 	// Add any planes that face the light.
 	for (int i = 0; i < dsFrustumPlanes_Count; ++i)
 	{
-		if (dsVector3_dot(viewFrustumd.planes[i].n, *toLight) < -baseEpsilon)
+		if (dsVector3_dot(viewFrustumd.planes[i].n, *toLight) < -BASE_EPSILON)
 			continue;
 
 		dsPlane3d* plane = planes + (volume->planeCount++);
@@ -368,8 +373,8 @@ bool dsShadowCullVolume_buildDirectional(dsShadowCullVolume* volume,
 		const dsPlane3d* first = viewFrustumd.planes + (*curPlanes)[0];
 		const dsPlane3d* second = viewFrustumd.planes + (*curPlanes)[1];
 
-		bool firstAway = dsVector3_dot(first->n, *toLight) < -baseEpsilon;
-		bool secondAway = dsVector3_dot(second->n, *toLight) < -baseEpsilon;
+		bool firstAway = dsVector3_dot(first->n, *toLight) < -BASE_EPSILON;
+		bool secondAway = dsVector3_dot(second->n, *toLight) < -BASE_EPSILON;
 		if (firstAway == secondAway)
 			continue;
 
@@ -387,10 +392,10 @@ bool dsShadowCullVolume_buildDirectional(dsShadowCullVolume* volume,
 		if (flip)
 			dsVector3_neg(boundaryPlane.n, boundaryPlane.n);
 		boundaryPlane.d = -dsVector3_dot(boundaryPlane.n, line.origin);
-		addPlane(volume, planes, &boundaryPlane, baseEpsilon);
+		addPlane(volume, planes, &boundaryPlane, BASE_EPSILON);
 	}
 
-	computeCorners(volume, planes, baseEpsilon);
+	computeCorners(volume, planes, BASE_EPSILON);
 	return true;
 }
 
@@ -415,17 +420,17 @@ bool dsShadowCullVolume_buildSpot(dsShadowCullVolume* volume, const dsFrustum3f*
 		if (i != dsFrustumPlanes_Far || !dsFrustum3f_isInfinite(viewFrustum))
 		{
 			dsConvertFloatToDouble(plane, viewFrustum->planes[i]);
-			addPlane(volume, planes, &plane, baseEpsilon);
+			addPlane(volume, planes, &plane, BASE_EPSILON);
 		}
 
 		if (i != dsFrustumPlanes_Near)
 		{
 			dsConvertFloatToDouble(plane, lightFrustum->planes[i]);
-			addPlane(volume, planes, &plane, baseEpsilon);
+			addPlane(volume, planes, &plane, BASE_EPSILON);
 		}
 	}
 
-	computeCorners(volume, planes, baseEpsilon);
+	computeCorners(volume, planes, BASE_EPSILON);
 	removeUnusedPlanes(volume);
 	return true;
 }
