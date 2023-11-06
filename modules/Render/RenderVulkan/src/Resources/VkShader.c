@@ -881,7 +881,25 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	uint32_t samplerCount = 0;
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
-		samplerCount += materialDesc->elements[i].type == dsMaterialType_Texture;
+	{
+		dsMaterialElement* element = materialDesc->elements + i;
+		if (element->type != dsMaterialType_Texture)
+			continue;
+
+		// Make sure the uniform is in use.
+		bool found = false;
+		for (uint32_t j = 0; j < pipeline.uniformCount; ++j)
+		{
+			mslUniform uniform;
+			DS_VERIFY(mslModule_uniform(&uniform, module->module, shaderIndex, j));
+			if (strcmp(uniform.name, element->name) == 0)
+			{
+				found = true;
+				break;
+			}
+		}
+		samplerCount += found;
+	}
 
 	bool samplersHaveDefaultAnisotropy = false;
 	for (uint32_t i = 0; i < pipeline.uniformCount; ++i)
