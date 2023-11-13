@@ -23,74 +23,6 @@
 
 #include <string.h>
 
-// [p0, p1, p2, p3]
-static const dsMatrix44f bezierToCubicf =
-{{
-	{1.0f, -3.0f,  3.0f, -1.0f},
-	{0.0f,  3.0f, -6.0f,  3.0f},
-	{0.0f,  0.0f,  3.0f, -3.0f},
-	{0.0f,  0.0f,  0.0f,  1.0f}
-}};
-
-static const dsMatrix44d bezierToCubicd =
-{{
-	{1.0, -3.0,  3.0, -1.0},
-	{0.0,  3.0, -6.0,  3.0},
-	{0.0,  0.0,  3.0, -3.0},
-	{0.0,  0.0,  0.0,  1.0}
-}};
-
-// If need inverse in the future.
-/*static const dsMatrix44f cubicToBezierf =
-{{
-	{1.0f, 1.0f     , 1.0f     , 1.0f},
-	{0.0f, 1.0f/3.0f, 2.0f/3.0f, 1.0f},
-	{0.0f, 0.0f     , 1.0f/3.0f, 1.0f},
-	{0.0f, 0.0f     , 0.0f     , 1.0f}
-}};
-
-static const dsMatrix44d cubicToBezierd =
-{{
-	{1.0, 1.0    , 1.0    , 1.0},
-	{0.0, 1.0/3.0, 2.0/3.0, 1.0},
-	{0.0, 0.0    , 1.0/3.0, 1.0},
-	{0.0, 0.0    , 0.0    , 1.0}
-}};*/
-
-// [p0, p1, t0, t1]
-static const dsMatrix44f hermiteToCubicf =
-{{
-	{ 1.0f, 0.0f, -3.0f,  2.0f},
-	{ 0.0f, 0.0f,  3.0f, -2.0f},
-	{ 0.0f, 1.0f, -2.0f,  1.0f},
-	{ 0.0f, 0.0f, -1.0f,  1.0f}
-}};
-
-static const dsMatrix44d hermiteToCubicd =
-{{
-	{ 1.0, 0.0, -3.0,  2.0},
-	{ 0.0, 0.0,  3.0, -2.0},
-	{ 0.0, 1.0, -2.0,  1.0},
-	{ 0.0, 0.0, -1.0,  1.0}
-}};
-
-// If need inverse in the future.
-/*static const dsMatrix44f cubicToHermitef =
-{{
-	{1.0f, 1.0f, 0.0f, 0.0f},
-	{0.0f, 1.0f, 1.0f, 1.0f},
-	{0.0f, 1.0f, 0.0f, 2.0f},
-	{0.0f, 1.0f, 0.0f, 3.0f}
-}};
-
-static const dsMatrix44d cubicToHermited =
-{{
-	{1.0, 1.0, 0.0, 0.0},
-	{0.0, 1.0, 1.0, 1.0},
-	{0.0, 1.0, 0.0, 2.0},
-	{0.0, 1.0, 0.0, 3.0}
-}};*/
-
 inline static void evaluatef(void* outPoint, const dsCubicCurvef* curve, float t)
 {
 	float t2 = t*t;
@@ -275,6 +207,70 @@ static bool tessellateRecd(const dsCubicCurved* curve, double chordalTolerance2,
 	return true;
 }
 
+const dsMatrix44f dsCubicCurvef_bezierToCubic =
+{{
+	{1.0f, -3.0f,  3.0f, -1.0f},
+	{0.0f,  3.0f, -6.0f,  3.0f},
+	{0.0f,  0.0f,  3.0f, -3.0f},
+	{0.0f,  0.0f,  0.0f,  1.0f}
+}};
+
+DS_ALIGN(32) const dsMatrix44d dsCubicCurved_bezierToCubic =
+{{
+	{1.0, -3.0,  3.0, -1.0},
+	{0.0,  3.0, -6.0,  3.0},
+	{0.0,  0.0,  3.0, -3.0},
+	{0.0,  0.0,  0.0,  1.0}
+}};
+
+const dsMatrix44f dsCubicCurvef_cubicToBezier =
+{{
+	{1.0f, 1.0f     , 1.0f     , 1.0f},
+	{0.0f, 1.0f/3.0f, 2.0f/3.0f, 1.0f},
+	{0.0f, 0.0f     , 1.0f/3.0f, 1.0f},
+	{0.0f, 0.0f     , 0.0f     , 1.0f}
+}};
+
+DS_ALIGN(32) const dsMatrix44d dsCubicCurved_cubicToBezier =
+{{
+	{1.0, 1.0    , 1.0    , 1.0},
+	{0.0, 1.0/3.0, 2.0/3.0, 1.0},
+	{0.0, 0.0    , 1.0/3.0, 1.0},
+	{0.0, 0.0    , 0.0    , 1.0}
+}};
+
+const dsMatrix44f dsCubicCurvef_hermiteToCubic =
+{{
+	{ 1.0f, 0.0f, -3.0f,  2.0f},
+	{ 0.0f, 0.0f,  3.0f, -2.0f},
+	{ 0.0f, 1.0f, -2.0f,  1.0f},
+	{ 0.0f, 0.0f, -1.0f,  1.0f}
+}};
+
+DS_ALIGN(32) const dsMatrix44d dsCubicCurved_hermiteToCubic =
+{{
+	{ 1.0, 0.0, -3.0,  2.0},
+	{ 0.0, 0.0,  3.0, -2.0},
+	{ 0.0, 1.0, -2.0,  1.0},
+	{ 0.0, 0.0, -1.0,  1.0}
+}};
+
+const dsMatrix44f dsCubicCurvef_cubicToHermite =
+{{
+	{1.0f, 1.0f, 0.0f, 0.0f},
+	{0.0f, 1.0f, 1.0f, 1.0f},
+	{0.0f, 1.0f, 0.0f, 2.0f},
+	{0.0f, 1.0f, 0.0f, 3.0f}
+}};
+
+DS_ALIGN(32) const dsMatrix44d dsCubicCurved_cubicToHermite =
+{{
+	{1.0, 1.0, 0.0, 0.0},
+	{0.0, 1.0, 1.0, 1.0},
+	{0.0, 1.0, 0.0, 2.0},
+	{0.0, 1.0, 0.0, 3.0}
+}};
+
 bool dsCubicCurvef_initializeBezier(dsCubicCurvef* curve, unsigned int axisCount,
 	const void* p0, const void* p1, const void* p2, const void* p3)
 {
@@ -291,7 +287,7 @@ bool dsCubicCurvef_initializeBezier(dsCubicCurvef* curve, unsigned int axisCount
 	{
 		dsVector4f thisDim = {{((const float*)p0)[i], ((const float*)p1)[i], ((const float*)p2)[i],
 			((const float*)p3)[i]}};
-		dsMatrix44f_transform(curve->polynomials + i, &bezierToCubicf, &thisDim);
+		dsMatrix44f_transform(curve->polynomials + i, &dsCubicCurvef_bezierToCubic, &thisDim);
 	}
 
 	return true;
@@ -313,7 +309,7 @@ bool dsCubicCurved_initializeBezier(dsCubicCurved* curve, uint32_t axisCount,
 	{
 		dsVector4d thisDim = {{((const double*)p0)[i], ((const double*)p1)[i],
 			((const double*)p2)[i], ((const double*)p3)[i]}};
-		dsMatrix44d_transform(curve->polynomials + i, &bezierToCubicd, &thisDim);
+		dsMatrix44d_transform(curve->polynomials + i, &dsCubicCurved_bezierToCubic, &thisDim);
 	}
 
 	return true;
@@ -340,7 +336,7 @@ bool dsCubicCurvef_initializeQuadratic(dsCubicCurvef* curve, unsigned int axisCo
 		float end = ((const float*)p2)[i];
 		dsVector4f thisDim = {{start, start + (control - start)*controlT,
 			end + (control - end)*controlT, end}};
-		dsMatrix44f_transform(curve->polynomials + i, &bezierToCubicf, &thisDim);
+		dsMatrix44f_transform(curve->polynomials + i, &dsCubicCurvef_bezierToCubic, &thisDim);
 	}
 
 	return true;
@@ -367,7 +363,7 @@ bool dsCubicCurved_initializeQuadratic(dsCubicCurved* curve, uint32_t axisCount,
 		double end = ((const double*)p2)[i];
 		dsVector4d thisDim = {{start, start + (control - start)*controlT,
 			end + (control - end)*controlT, end}};
-		dsMatrix44d_transform(curve->polynomials + i, &bezierToCubicd, &thisDim);
+		dsMatrix44d_transform(curve->polynomials + i, &dsCubicCurved_bezierToCubic, &thisDim);
 	}
 
 	return true;
@@ -389,7 +385,7 @@ bool dsCubicCurvef_initializeHermite(dsCubicCurvef* curve, unsigned int axisCoun
 	{
 		dsVector4f thisDim = {{((const float*)p0)[i], ((const float*)p1)[i], ((const float*)t0)[i],
 			((const float*)t1)[i]}};
-		dsMatrix44f_transform(curve->polynomials + i, &hermiteToCubicf, &thisDim);
+		dsMatrix44f_transform(curve->polynomials + i, &dsCubicCurvef_hermiteToCubic, &thisDim);
 	}
 
 	return true;
@@ -411,7 +407,7 @@ bool dsCubicCurved_initializeHermite(dsCubicCurved* curve, unsigned int axisCoun
 	{
 		dsVector4d thisDim = {{((const double*)p0)[i], ((const double*)p1)[i],
 			((const double*)t0)[i], ((const double*)t1)[i]}};
-		dsMatrix44d_transform(curve->polynomials + i, &hermiteToCubicd, &thisDim);
+		dsMatrix44d_transform(curve->polynomials + i, &dsCubicCurved_hermiteToCubic, &thisDim);
 	}
 
 	return true;

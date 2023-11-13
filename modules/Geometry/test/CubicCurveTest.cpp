@@ -16,6 +16,7 @@
 
 #include <DeepSea/Geometry/CubicCurve.h>
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Math/Vector3.h>
 #include <gtest/gtest.h>
@@ -268,6 +269,102 @@ bool dsCubicCurve_tessellate(const dsCubicCurved* curve, double chordalTolerance
 using CurveTypes = testing::Types<CurveSelector<float, 2>, CurveSelector<double, 2>,
 	CurveSelector<float, 3>, CurveSelector<double, 3>>;
 TYPED_TEST_SUITE(CubicCurveTest, CurveTypes);
+
+TEST(CubicCurveTest, FloatMtrices)
+{
+	dsMatrix44f forwardInverse;
+	dsMatrix44f_mul(&forwardInverse, &dsCubicCurvef_cubicToBezier, &dsCubicCurvef_bezierToCubic);
+
+	EXPECT_FLOAT_EQ(1, forwardInverse.values[0][0]);
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[0][1]);
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[0][2]);
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[0][3]);
+
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[1][0]);
+	EXPECT_FLOAT_EQ(1, forwardInverse.values[1][1]);
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[1][2]);
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[1][3]);
+
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[2][0]);
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[2][1]);
+	EXPECT_FLOAT_EQ(1, forwardInverse.values[2][2]);
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[2][3]);
+
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[3][0]);
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[3][1]);
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[3][2]);
+	EXPECT_FLOAT_EQ(1, forwardInverse.values[3][3]);
+
+	dsMatrix44f_mul(&forwardInverse, &dsCubicCurvef_cubicToHermite, &dsCubicCurvef_hermiteToCubic);
+
+	EXPECT_FLOAT_EQ(1, forwardInverse.values[0][0]);
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[0][1]);
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[0][2]);
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[0][3]);
+
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[1][0]);
+	EXPECT_FLOAT_EQ(1, forwardInverse.values[1][1]);
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[1][2]);
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[1][3]);
+
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[2][0]);
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[2][1]);
+	EXPECT_FLOAT_EQ(1, forwardInverse.values[2][2]);
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[2][3]);
+
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[3][0]);
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[3][1]);
+	EXPECT_FLOAT_EQ(0, forwardInverse.values[3][2]);
+	EXPECT_FLOAT_EQ(1, forwardInverse.values[3][3]);
+}
+
+TEST(CubicCurveTest, DoubleMtrices)
+{
+	dsMatrix44d forwardInverse;
+	dsMatrix44d_mul(&forwardInverse, &dsCubicCurved_cubicToBezier, &dsCubicCurved_bezierToCubic);
+
+	EXPECT_DOUBLE_EQ(1, forwardInverse.values[0][0]);
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[0][1]);
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[0][2]);
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[0][3]);
+
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[1][0]);
+	EXPECT_DOUBLE_EQ(1, forwardInverse.values[1][1]);
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[1][2]);
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[1][3]);
+
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[2][0]);
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[2][1]);
+	EXPECT_DOUBLE_EQ(1, forwardInverse.values[2][2]);
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[2][3]);
+
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[3][0]);
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[3][1]);
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[3][2]);
+	EXPECT_DOUBLE_EQ(1, forwardInverse.values[3][3]);
+
+	dsMatrix44d_mul(&forwardInverse, &dsCubicCurved_cubicToHermite, &dsCubicCurved_hermiteToCubic);
+
+	EXPECT_DOUBLE_EQ(1, forwardInverse.values[0][0]);
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[0][1]);
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[0][2]);
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[0][3]);
+
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[1][0]);
+	EXPECT_DOUBLE_EQ(1, forwardInverse.values[1][1]);
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[1][2]);
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[1][3]);
+
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[2][0]);
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[2][1]);
+	EXPECT_DOUBLE_EQ(1, forwardInverse.values[2][2]);
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[2][3]);
+
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[3][0]);
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[3][1]);
+	EXPECT_DOUBLE_EQ(0, forwardInverse.values[3][2]);
+	EXPECT_DOUBLE_EQ(1, forwardInverse.values[3][3]);
+}
 
 TYPED_TEST(CubicCurveTest, EvaluateBezier)
 {

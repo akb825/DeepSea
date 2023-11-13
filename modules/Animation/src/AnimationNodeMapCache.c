@@ -35,6 +35,7 @@
 #include <DeepSea/Core/Sort.h>
 
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Quaternion.h>
 #include <DeepSea/Math/Vector4.h>
 
@@ -52,9 +53,10 @@ typedef struct WeightedTransform
 
 static uint32_t findEndKeyframe(const float* keyframeTimes, uint32_t keyframeCount, double time)
 {
-	// NOTE: If there's regularly many keyframes can use a binary search. Expected to be fairly
-	// on average, so a linear search should be fine and in many cases faster.
-	for (uint32_t i = 0; i < keyframeCount; ++i)
+	// NOTE: If there's regularly many keyframes can use a binary search. Expected to be a fairly
+	// small number of keyframes on average, so a linear search should be fine and in many cases
+	// faster.
+	for (uint32_t i = 1; i < keyframeCount; ++i)
 	{
 		if (keyframeTimes[i] > time)
 			return i;
@@ -63,33 +65,11 @@ static uint32_t findEndKeyframe(const float* keyframeTimes, uint32_t keyframeCou
 	return keyframeCount - 1;
 }
 
-static void evaluateCubicSpline(dsVector4f* result, const dsVector4f* vi, const dsVector4f* bi,
-	const dsVector4f* vj, const dsVector4f* aj, float t)
+static void evaluateCubicSpline(dsVector4f* result, const dsMatrix44f* cubicTransposed, float t)
 {
 	float t2 = t*t;
-	float t3 = t2*t;
-
-	float viMul = 2*t3 - 3*t2 + 1;
-	float biMul = t3 - 2*t2 + t;
-	float vjMul = -2*t3 + 3*t2;
-	float ajMul = t3 - t2;
-
-#if DS_SIMD_ALWAYS_FMA
-	result->simd = dsSIMD4f_mul(vi->simd, dsSIMD4f_set1(viMul));
-	result->simd = dsSIMD4f_fmadd(bi->simd, dsSIMD4f_set1(biMul), result->simd);
-	result->simd = dsSIMD4f_fmadd(vj->simd, dsSIMD4f_set1(vjMul), result->simd);
-	result->simd = dsSIMD4f_fmadd(aj->simd, dsSIMD4f_set1(ajMul), result->simd);
-#else
-	dsVector4f viScaled, biScaled, vjScaled, ajScaled;
-	dsVector4f_scale(&viScaled, vi, viMul);
-	dsVector4f_scale(&biScaled, bi, biMul);
-	dsVector4f_scale(&vjScaled, vj, vjMul);
-	dsVector4f_scale(&ajScaled, aj, ajMul);
-
-	dsVector4f_add(result, &viScaled, &biScaled);
-	dsVector4f_add(result, result, &vjScaled);
-	dsVector4f_add(result, result, &ajScaled);
-#endif
+	dsVector4f eval = {{1.0f, t, t2, t2*t}};
+	dsMatrix44f_transform(result, cubicTransposed, &eval);
 }
 
 static void applyKeyframeAnimationTransforms(WeightedTransform* transforms,
@@ -121,22 +101,23 @@ static void applyKeyframeAnimationTransforms(WeightedTransform* transforms,
 			DS_ASSERT(keyframes->channelCount == keyframesMap->channelCount);
 
 			// Find wich pair of keyframes to interpolate between.
-			uint32_t startKeyframe, endKeyframe;
+			uint32_t startKeyframe;
 			float t;
-			if (entry->time <= keyframes->keyframeTimes[0])
+			if (entry->time <= keyframes->keyframeTimes[0] || keyframes->keyframeCount == 1)
 			{
-				startKeyframe = endKeyframe = 0;
+				startKeyframe = 0;
 				t = 0;
 			}
 			else if (entry->time >= keyframes->keyframeTimes[keyframes->keyframeCount - 1])
 			{
-				startKeyframe = endKeyframe = keyframes->keyframeCount - 1;
-				t = 0;
+				startKeyframe = keyframes->keyframeCount - 2;
+				t = 1;
 			}
 			else
 			{
-				endKeyframe = findEndKeyframe(keyframes->keyframeTimes, keyframes->keyframeCount,
-					entry->time);
+				uint32_t endKeyframe = findEndKeyframe(keyframes->keyframeTimes,
+					keyframes->keyframeCount, entry->time);
+				DS_ASSERT(endKeyframe > 0);
 				startKeyframe = endKeyframe - 1;
 				float startTime = keyframes->keyframeTimes[startKeyframe];
 				float endTime = keyframes->keyframeTimes[endKeyframe];
@@ -158,33 +139,25 @@ static void applyKeyframeAnimationTransforms(WeightedTransform* transforms,
 						value = channel->values[startKeyframe];
 						break;
 					case dsAnimationInterpolation_Linear:
+						DS_ASSERT(keyframes->keyframeCount > 1);
 						if (channel->component == dsAnimationComponent_Rotation)
 						{
-							dsQuaternion4f_slerp((dsQuaternion4f*)&value,
-								(const dsQuaternion4f*)(channel->values + startKeyframe),
-								(const dsQuaternion4f*)(channel->values + endKeyframe), t);
+							const dsQuaternion4f* firstValue =
+								(dsQuaternion4f*)channel->values + startKeyframe;
+							dsQuaternion4f_slerp((dsQuaternion4f*)&value, firstValue,
+								firstValue + 1, t);
 						}
 						else
 						{
-							dsVector4f_lerp(&value, channel->values + startKeyframe,
-								channel->values + endKeyframe, t);
+							const dsVector4f* firstValue = channel->values + startKeyframe;
+							dsVector4f_lerp(&value, firstValue, firstValue + 1, t);
 						}
 						break;
 					case dsAnimationInterpolation_Cubic:
 					{
-						uint32_t startValueIndex = startKeyframe*3;
-						uint32_t endValueIndex = endKeyframe*3;
-						DS_ASSERT(startValueIndex + 2 < channel->valueCount);
-						DS_ASSERT(endValueIndex + 2 < channel->valueCount);
-						evaluateCubicSpline(&value, channel->values + startValueIndex + 1,
-							channel->values + startValueIndex + 2,
-							channel->values + endValueIndex + 1, channel->values + endValueIndex,
-							t);
-						if (channel->component == dsAnimationComponent_Rotation)
-						{
-							dsQuaternion4f_normalize((dsQuaternion4f*)&value,
-								(const dsQuaternion4f*)&value);
-						}
+						const dsMatrix44f* cubicTransposed =
+							(const dsMatrix44f*)channel->values + startKeyframe;
+						evaluateCubicSpline(&value, cubicTransposed, t);
 						break;
 					}
 					default:
@@ -812,8 +785,7 @@ bool dsAnimationNodeMapCache_applyAnimation(dsAnimationNodeMapCache* cache,
 
 		if (transform->totalRotationWeight > 0)
 		{
-			dsVector4f_scale(&transform->rotation, &transform->rotation,
-				1/transform->totalRotationWeight);
+			// With normalization no need to scale based on the total weight.
 			dsQuaternion4f_normalize(&node->rotation, (const dsQuaternion4f*)&transform->rotation);
 		}
 

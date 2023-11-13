@@ -32,6 +32,47 @@ extern "C"
  */
 
 /**
+ * @brief Matrix to multiply Bezier control points to convert to cubic curve polynomials.
+ *
+ * The input vector to transform should be in the order [p0, p1, p2, p3] for the four Bezier control
+ * points. This should be performed separately for each axis of the curve. The resulting polynomials
+ * may be dotted with the vector [1, t, t^2, t^3] to evaluate the curve.
+ */
+DS_GEOMETRY_EXPORT extern const dsMatrix44f dsCubicCurvef_bezierToCubic;
+
+/** @see dsCubicCurvef_bezierToCubic */
+DS_GEOMETRY_EXPORT DS_ALIGN(32) extern const dsMatrix44d dsCubicCurved_bezierToCubic;
+
+/**
+  * @brief Matrix to multiply the cubic curve polynomials to extract the Bezier control points.
+  */
+DS_GEOMETRY_EXPORT extern const dsMatrix44f dsCubicCurvef_cubicToBezier;
+
+/** @see dsCubicCurvef_cubicToBezier */
+DS_GEOMETRY_EXPORT DS_ALIGN(32) extern const dsMatrix44d dsCubicCurved_cubicToBezier;
+
+/**
+ * @brief Matrix to multiply Hermite endpoints and tangents to convert to cubic curve polynomials.
+ *
+ * The input vector to transform should be in the order [p0, p1, t0, t1] for the two endpoints and
+ * tangents that define the curve. This should be performed separately for each axis of the curve.
+ * The resulting polynomials may be dotted with the vector [1, t, t^2, t^3] to evaluate the curve.
+ */
+DS_GEOMETRY_EXPORT extern const dsMatrix44f dsCubicCurvef_hermiteToCubic;
+
+/** @see dsCubicCurvef_hermiteToCubic */
+DS_GEOMETRY_EXPORT DS_ALIGN(32) extern const dsMatrix44d dsCubicCurved_hermiteToCubic;
+
+/**
+  * @brief Matrix to multiply the cubic curve polynomials to extract the Hermite endpoints and
+  * tangents.
+  */
+DS_GEOMETRY_EXPORT extern const dsMatrix44f dsCubicCurvef_cubicToHermite;
+
+/** @see dsCubicCurvef_cubicToHermite */
+DS_GEOMETRY_EXPORT DS_ALIGN(32) extern const dsMatrix44d dsCubicCurved_cubicToHermite;
+
+/**
  * @brief Initializes a cubic curve with Bezier control points.
  * @remark errno will be set on failure.
  * @param[out] curve The curve to initialize.

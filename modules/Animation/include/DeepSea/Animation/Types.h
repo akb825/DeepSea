@@ -292,6 +292,20 @@ typedef struct dsAnimationTree
  *
  * A channel applies a transform to a component of a transform of an animation node.
  *
+ * The number of values will depend on the interpolation type. Step and linear interpolation will
+ * have the same number of values as valueCount. These values will be unchanged when creating a
+ * dsKeyframeAnimation.
+ *
+ * Cubic interpolation is initialized with a piecewise Hermite curve. Each keyframe has three
+ * values: an input tangent, the value, and the output tangent.
+ *
+ * During initialization, the piecewise Hermite curve is converted to cubic polynomials for faster
+ * evaluation. The number of values will be 4*(keyframeCount - 1), where the last value is
+ * implicitly the end of the final curve. The polynomials will be transposed so they can be
+ * evaluated by transforming the vector [1, t, t^2, t^3].
+ *
+ * When valueCount is 1, the interpolation type will always be converted to step on initialization.
+ *
  * @see dsAnimationKeyframes
  * @see dsKeyframeAnimation
  * @see KeyframeAnimation.h
@@ -315,21 +329,16 @@ typedef struct dsKeyframeAnimationChannel
 
 	/**
 	 * @brief The number of total values.
-	 *
-	 * Multiplier for the number of base values based on interpolation type:
-	 * - Step and linear: 1
-	 * - Cubic: 3
-	 *
-	 * The total number of values is the number of keyframes multiplied the number of base values
-	 * and interpolation multiplier.
 	 */
 	uint32_t valueCount;
 
 	/**
 	 * @brief The values for the animation component.
 	 *
-	 * When a cubic spline, the order of data will be ai, vi, bi where "a" is the input tangent, "v"
-	 * is the vector, and "b" is the output tangent.
+	 * When provided as an input to create a keyframe animation, cubic interpolated curves will
+	 * have three values for each keyframe to define a piecewise Hermite curve: the input tangent,
+	 * the target value, and output tangent. After initialization, this is will be the cubic
+	 * polynomials for the curve, transposed so you can transform with the vector [1, t, t^2, t^3].
 	 */
 	const dsVector4f* values;
 } dsKeyframeAnimationChannel;

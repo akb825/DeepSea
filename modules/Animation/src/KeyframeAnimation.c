@@ -27,6 +27,9 @@
 #include <DeepSea/Core/Log.h>
 
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Matrix44.h>
+
+#include <DeepSea/Geometry/CubicCurve.h>
 
 #include <float.h>
 #include <string.h>
@@ -75,6 +78,7 @@ dsKeyframeAnimation* dsKeyframeAnimation_create(dsAllocator* allocator,
 		{
 			const dsKeyframeAnimationChannel* curChannel = curKeyframes->channels + j;
 			uint32_t expectedValueCount = curKeyframes->keyframeCount;
+			uint32_t finalValueCount = curKeyframes->keyframeCount;
 			switch (curChannel->component)
 			{
 				case dsAnimationComponent_Translation:
@@ -93,6 +97,8 @@ dsKeyframeAnimation* dsKeyframeAnimation_create(dsAllocator* allocator,
 					break;
 				case dsAnimationInterpolation_Cubic:
 					expectedValueCount *= 3;
+					if (finalValueCount > 1)
+						finalValueCount = 4*(finalValueCount - 1);
 					break;
 				default:
 					errno = EINVAL;
@@ -107,7 +113,7 @@ dsKeyframeAnimation* dsKeyframeAnimation_create(dsAllocator* allocator,
 			}
 
 			fullSize += DS_ALIGNED_SIZE(strlen(curChannel->node) + 1) +
-				DS_ALIGNED_SIZE(sizeof(dsVector4f)*expectedValueCount);
+				DS_ALIGNED_SIZE(sizeof(dsVector4f)*finalValueCount);
 		}
 	}
 
@@ -125,6 +131,9 @@ dsKeyframeAnimation* dsKeyframeAnimation_create(dsAllocator* allocator,
 	animation->minTime = minTime;
 	animation->maxTime = maxTime;
 	animation->keyframesCount = keyframesCount;
+
+	dsMatrix44f cubicToHermiteTransposed;
+	dsMatrix44f_transpose(&cubicToHermiteTransposed, &dsCubicCurvef_hermiteToCubic);
 
 	dsAnimationKeyframes* animationKeyframes = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc,
 		dsAnimationKeyframes, keyframesCount);
@@ -159,12 +168,49 @@ dsKeyframeAnimation* dsKeyframeAnimation_create(dsAllocator* allocator,
 
 			toChannel->component = fromChannel->component;
 			toChannel->interpolation = fromChannel->interpolation;
-			toChannel->valueCount = fromChannel->valueCount;
+
+			uint32_t finalValueCount = fromChannel->valueCount;
+			if (fromKeyframes->keyframeCount == 1)
+			{
+				// Force to step if only a single keyframe.
+				toChannel->interpolation = dsAnimationInterpolation_Step;
+				finalValueCount = 1;
+			}
+			else if (fromChannel->interpolation == dsAnimationInterpolation_Cubic)
+				finalValueCount = 4*(fromKeyframes->keyframeCount - 1);
+			toChannel->valueCount = finalValueCount;
 
 			dsVector4f* values =
-				DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsVector4f, fromChannel->valueCount);
+				DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsVector4f, finalValueCount);
 			DS_ASSERT(values);
-			memcpy(values, fromChannel->values, sizeof(dsVector4f)*fromChannel->valueCount);
+
+			switch (fromChannel->interpolation)
+			{
+				case dsAnimationInterpolation_Step:
+				case dsAnimationInterpolation_Linear:
+					DS_ASSERT(fromChannel->valueCount == finalValueCount);
+					memcpy(values, fromChannel->values, sizeof(dsVector4f)*finalValueCount);
+					break;
+				case dsAnimationInterpolation_Cubic:
+					if (finalValueCount == 1)
+						values[0] = fromChannel->values[1];
+					else
+					{
+						for (uint32_t k = 0; k < fromKeyframes->keyframeCount - 1; ++k)
+						{
+							dsMatrix44f hermite;
+							hermite.columns[0] = fromChannel->values[k*3 + 1]; // p0
+							hermite.columns[1] = fromChannel->values[(k + 1)*3 + 1]; // p1
+							hermite.columns[2] = fromChannel->values[k*3 + 2]; // t0
+							hermite.columns[3] = fromChannel->values[(k + 1)*3]; // t1
+
+							// Transposed cubic factors for faster evaluation.
+							dsMatrix44f_mul((dsMatrix44f*)values + k, &hermite,
+								&cubicToHermiteTransposed);
+						}
+					}
+					break;
+			}
 			toChannel->values = values;
 		}
 		toKeyframes->channels = channels;
