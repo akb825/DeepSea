@@ -499,6 +499,11 @@ bool dsCubicCurved_evaluateTangent(void* outTangent, const dsCubicCurved* curve,
 	return true;
 }
 
+#if DS_GCC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+
 bool dsCubicCurvef_tessellate(const dsCubicCurvef* curve, float chordalTolerance,
 	unsigned int maxRecursions, dsCurveSampleFunctionf sampleFunc, void* userData)
 {
@@ -509,19 +514,57 @@ bool dsCubicCurvef_tessellate(const dsCubicCurvef* curve, float chordalTolerance
 		return false;
 	}
 
-	// Exact start and end points.
-	dsVector3f startPoint, endPoint;
+	// Exact start and end points. Also check if linear, where t^2 and t^3 ppolynomial factors are
+	// zero, in which case we can avoid any recursion.
+	const float linearEpsilon = 1e-6f;
+	bool isLinear = true;
+	dsVector3f startPoint;
 	for (uint32_t i = 0; i < curve->axisCount; ++i)
+	{
+		if (isLinear && (!dsEpsilonEqualsZerof(curve->polynomials[i].z, linearEpsilon) ||
+			!dsEpsilonEqualsZerof(curve->polynomials[i].w, linearEpsilon)))
+		{
+			isLinear = false;
+		}
+
 		startPoint.values[i] = curve->polynomials[i].x;
+	}
+
+	dsVector3f endPoint;
 	memcpy(&endPoint, curve->endPoint, sizeof(float)*curve->axisCount);
 
 	if (!sampleFunc(userData, &startPoint, curve->axisCount, 0.0f))
 		return false;
 
-	if (maxRecursions > 0 && !tessellateRecf(curve, dsPow2(chordalTolerance), maxRecursions,
-			sampleFunc, userData, &startPoint, 0.0f, &endPoint, 1.0f, 1))
+	if (!isLinear && maxRecursions > 0)
 	{
-		return false;
+		// Force at least one recursion to handle curves that pass through the midpoint with the
+		// same tangent direction as a line, which wouldn't recurse
+		float chordalTolerance2 = dsPow2(chordalTolerance);
+
+		dsVector3f midPoint;
+		evaluatef(&midPoint, curve, 0.5f);
+
+		if (maxRecursions > 1)
+		{
+			if (!tessellateRecf(curve, chordalTolerance2, maxRecursions,
+					sampleFunc, userData, &startPoint, 0.0f, &midPoint, 0.5f, 2))
+			{
+				return false;
+			}
+		}
+
+		if (!sampleFunc(userData, &midPoint, curve->axisCount, 0.5f))
+			return false;
+
+		if (maxRecursions > 1)
+		{
+			if (!tessellateRecf(curve, chordalTolerance2, maxRecursions,
+					sampleFunc, userData, &midPoint, 0.5f, &endPoint, 1.0f, 2))
+			{
+				return false;
+			}
+		}
 	}
 
 	return sampleFunc(userData, &endPoint, curve->axisCount, 1.0f);
@@ -537,20 +580,63 @@ bool dsCubicCurved_tessellate(const dsCubicCurved* curve, double chordalToleranc
 		return false;
 	}
 
-	// Exact start and end points.
-	dsVector3d startPoint, endPoint;
+	// Exact start and end points. Also check if linear, where t^2 and t^3 ppolynomial factors are
+	// zero, in which case we can avoid any recursion.
+	const double linearEpsilon = 1e-14;
+	bool isLinear = true;
+	dsVector3d startPoint;
 	for (uint32_t i = 0; i < curve->axisCount; ++i)
+	{
+		if (isLinear && (!dsEpsilonEqualsZerod(curve->polynomials[i].z, linearEpsilon) ||
+			!dsEpsilonEqualsZerod(curve->polynomials[i].w, linearEpsilon)))
+		{
+			isLinear = false;
+		}
+
 		startPoint.values[i] = curve->polynomials[i].x;
+	}
+
+	dsVector3d endPoint;
 	memcpy(&endPoint, curve->endPoint, sizeof(double)*curve->axisCount);
 
 	if (!sampleFunc(userData, &startPoint, curve->axisCount, 0.0))
 		return false;
 
-	if (maxRecursions > 0 && !tessellateRecd(curve, dsPow2(chordalTolerance), maxRecursions,
-			sampleFunc, userData, &startPoint, 0.0, &endPoint, 1.0, 1))
+
+	if (!isLinear && maxRecursions > 0)
 	{
-		return false;
+		// Force at least one recursion to handle curves that pass through the midpoint with the
+		// same tangent direction as a line, which wouldn't recurse
+		double chordalTolerance2 = dsPow2(chordalTolerance);
+
+		dsVector3d midPoint;
+		evaluated(&midPoint, curve, 0.5f);
+
+		if (maxRecursions > 1)
+		{
+			if (!tessellateRecd(curve, chordalTolerance2, maxRecursions,
+					sampleFunc, userData, &startPoint, 0.0, &midPoint, 0.5, 2))
+			{
+				return false;
+			}
+		}
+
+		if (!sampleFunc(userData, &midPoint, curve->axisCount, 0.5))
+			return false;
+
+		if (maxRecursions > 1)
+		{
+			if (!tessellateRecd(curve, chordalTolerance2, maxRecursions,
+					sampleFunc, userData, &midPoint, 0.5, &endPoint, 1.0, 2))
+			{
+				return false;
+			}
+		}
 	}
 
 	return sampleFunc(userData, &endPoint, curve->axisCount, 1.0);
 }
+
+#if DS_GCC
+#pragma GCC diagnostic pop
+#endif

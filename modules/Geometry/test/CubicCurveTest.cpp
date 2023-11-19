@@ -486,6 +486,7 @@ TYPED_TEST(CubicCurveTest, Tessellate)
 	using VectorType = typename TestFixture::VectorType;
 	using CubicCurveType = typename TestFixture::CubicCurveType;
 
+	const auto chordalTolerance = RealType(0.01);
 	VectorType p0 = TestFixture::createPoint(0.0, 0.1, 0.2);
 	VectorType p1 = TestFixture::createPoint(0.5, -0.3, 0.8);
 	VectorType p2 = TestFixture::createPoint(1.4, 3.2, -3.4);
@@ -505,15 +506,7 @@ TYPED_TEST(CubicCurveTest, Tessellate)
 		points.emplace_back(point, t);
 	};
 
-	const auto chordalTolerance = RealType(0.01);
 	EXPECT_TRUE(dsCubicCurve_tessellate(&curve, chordalTolerance, 0,
-		TestFixture::lambdaAdapter(pointFunc), &pointFunc));
-	ASSERT_EQ(2U, points.size());
-	EXPECT_EQ(0, points[0].second);
-	EXPECT_EQ(1, points[1].second);
-
-	points.clear();
-	EXPECT_TRUE(dsCubicCurve_tessellate(&curve, 10, DS_MAX_CURVE_RECURSIONS,
 		TestFixture::lambdaAdapter(pointFunc), &pointFunc));
 	ASSERT_EQ(2U, points.size());
 	EXPECT_EQ(0, points[0].second);
@@ -528,6 +521,30 @@ TYPED_TEST(CubicCurveTest, Tessellate)
 	EXPECT_EQ(1, points[2].second);
 
 	points.clear();
+	EXPECT_TRUE(dsCubicCurve_tessellate(&curve, chordalTolerance, 2,
+		TestFixture::lambdaAdapter(pointFunc), &pointFunc));
+	ASSERT_EQ(5U, points.size());
+	EXPECT_EQ(0, points[0].second);
+	EXPECT_NEAR(0.25, points[1].second, TestFixture::epsilon);
+	EXPECT_NEAR(0.5, points[2].second, TestFixture::epsilon);
+	EXPECT_NEAR(0.75, points[3].second, TestFixture::epsilon);
+	EXPECT_EQ(1, points[4].second);
+
+	points.clear();
+	EXPECT_TRUE(dsCubicCurve_tessellate(&curve, chordalTolerance, 3,
+		TestFixture::lambdaAdapter(pointFunc), &pointFunc));
+	ASSERT_EQ(9U, points.size());
+	EXPECT_EQ(0, points[0].second);
+	EXPECT_NEAR(0.125, points[1].second, TestFixture::epsilon);
+	EXPECT_NEAR(0.25, points[2].second, TestFixture::epsilon);
+	EXPECT_NEAR(0.375, points[3].second, TestFixture::epsilon);
+	EXPECT_NEAR(0.5, points[4].second, TestFixture::epsilon);
+	EXPECT_NEAR(0.625, points[5].second, TestFixture::epsilon);
+	EXPECT_NEAR(0.75, points[6].second, TestFixture::epsilon);
+	EXPECT_NEAR(0.875, points[7].second, TestFixture::epsilon);
+	EXPECT_EQ(1, points[8].second);
+
+	points.clear();
 	EXPECT_TRUE(dsCubicCurve_tessellate(&curve, chordalTolerance, DS_MAX_CURVE_RECURSIONS,
 		TestFixture::lambdaAdapter(pointFunc), &pointFunc));
 	for (unsigned int i = 0; i < points.size() - 1; ++i)
@@ -540,4 +557,53 @@ TYPED_TEST(CubicCurveTest, Tessellate)
 		RealType distance = TestFixture::distance(middle, curveMiddle);
 		EXPECT_GT(chordalTolerance + TestFixture::epsilon, distance);
 	}
+}
+
+TYPED_TEST(CubicCurveTest, TessellateChordalToleranceInsufficient)
+{
+	using RealType = typename TestFixture::RealType;
+	using VectorType = typename TestFixture::VectorType;
+	using CubicCurveType = typename TestFixture::CubicCurveType;
+
+	const auto chordalTolerance = RealType(0.01);
+	VectorType p0 = TestFixture::createPoint(-5.0, -5.0, 0.2);
+	VectorType p1 = TestFixture::createPoint(5.2, 0.9, 2.5);
+	VectorType t0 = TestFixture::createPoint(2.6, -2.0, 0.3);
+	VectorType lineTangent = TestFixture::createPoint(10.2, 5.9, 2.3);
+	VectorType zero = TestFixture::createPoint(0, 0, 0);
+
+	CubicCurveType curve;
+	std::vector<VectorType> points;
+	auto pointFunc = [&curve, &points](const VectorType& point, RealType t)
+	{
+		VectorType expectedPoint;
+		EXPECT_TRUE(dsCubicCurve_evaluate(&expectedPoint, &curve, t));
+		for (unsigned int i = 0; i < curve.axisCount; ++i)
+			EXPECT_NEAR(expectedPoint.values[i], point.values[i], TestFixture::epsilon);
+
+		points.push_back(point);
+	};
+
+	// Passes through midpoint.
+	EXPECT_TRUE(dsCubicCurve_initializeHermite(&curve, TestFixture::axisCount, &p0, &t0, &p1,
+		&t0));
+	EXPECT_TRUE(dsCubicCurve_tessellate(&curve, chordalTolerance, DS_MAX_CURVE_RECURSIONS,
+		TestFixture::lambdaAdapter(pointFunc), &pointFunc));
+	EXPECT_LT(2U, points.size());
+
+	// Passes through midpoint with tangent direction same as a straight line.
+	points.clear();
+	EXPECT_TRUE(dsCubicCurve_initializeHermite(&curve, TestFixture::axisCount, &p0, &zero, &p1,
+		&zero));
+	EXPECT_TRUE(dsCubicCurve_tessellate(&curve, chordalTolerance, DS_MAX_CURVE_RECURSIONS,
+		TestFixture::lambdaAdapter(pointFunc), &pointFunc));
+	EXPECT_LT(2U, points.size());
+
+	// Resolves into a line..
+	points.clear();
+	EXPECT_TRUE(dsCubicCurve_initializeHermite(&curve, TestFixture::axisCount, &p0, &lineTangent,
+		&p1, &lineTangent));
+	EXPECT_TRUE(dsCubicCurve_tessellate(&curve, chordalTolerance, DS_MAX_CURVE_RECURSIONS,
+		TestFixture::lambdaAdapter(pointFunc), &pointFunc));
+	EXPECT_EQ(2U, points.size());
 }
