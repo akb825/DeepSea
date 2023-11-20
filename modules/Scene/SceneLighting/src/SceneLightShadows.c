@@ -44,7 +44,7 @@
 #include <DeepSea/Render/ProjectionParams.h>
 #include <DeepSea/Render/Renderer.h>
 
-#include <DeepSea/Scene/Types.h>
+#include <DeepSea/Scene/View.h>
 
 #include <DeepSea/SceneLighting/SceneLight.h>
 #include <DeepSea/SceneLighting/SceneLightSet.h>
@@ -226,7 +226,8 @@ static float getLargeBoxSize(float farPlane)
 	return farPlane*ratio;
 }
 
-static bool bindDummyTransforms(dsSceneLightShadows* shadows, const dsView* view)
+static bool bindDummyTransforms(dsSceneLightShadows* shadows, const dsView* view,
+	const dsSceneItemList* itemList)
 {
 	if (!shadows->fallback && !getBufferData(shadows))
 		return false;
@@ -335,8 +336,11 @@ static bool bindDummyTransforms(dsSceneLightShadows* shadows, const dsView* view
 	bool success = true;
 	if (shadows->transformGroupID)
 	{
-		success = dsSceneLightShadows_bindTransformGroup(shadows, view->globalValues,
+		dsSharedMaterialValues* globalValues = dsView_lockGlobalValues(view, itemList);
+		DS_ASSERT(globalValues);
+		success = dsSceneLightShadows_bindTransformGroup(shadows, globalValues,
 			shadows->transformGroupID);
+		DS_VERIFY(dsView_unlockGlobalValues(view, itemList));
 	}
 
 	// Need to keep matrices at 0 for the rest of the scene functions.
@@ -551,9 +555,11 @@ bool dsSceneLightShadows_setMaxDistance(dsSceneLightShadows* shadows, float dist
 	return true;
 }
 
-bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* view)
+bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* view,
+	const dsSceneItemList* itemList)
 {
-	if (!shadows || !view)
+	if (!shadows || !view || !itemList ||
+		(shadows->transformGroupID != 0 && itemList->globalValueCount == 0))
 	{
 		errno = EINVAL;
 		return false;
@@ -562,7 +568,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 	shadows->totalMatrices = 0;
 	const dsSceneLight* light = dsSceneLightSet_findLightID(shadows->lightSet, shadows->lightID);
 	if (!light || light->type != shadows->lightType)
-		return bindDummyTransforms(shadows, view);
+		return bindDummyTransforms(shadows, view, itemList);
 
 	dsRenderer* renderer = shadows->resourceManager->renderer;
 	dsProjectionParams shadowedProjection = view->projectionParams;
@@ -584,7 +590,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 	dsFrustum3f cullFrustum;
 	DS_VERIFY(dsRenderer_frustumFromMatrix(&cullFrustum, renderer, &shadowedCullMtx));
 	if (!dsSceneLight_isInFrustum(light, &cullFrustum, intensityThreshold))
-		return bindDummyTransforms(shadows, view);
+		return bindDummyTransforms(shadows, view, itemList);
 
 	// Compute matrices in view space to be consistent with other lighting computations.
 	dsFrustum3f shadowedFrustum;
@@ -781,12 +787,16 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 			return false;
 	}
 
+	bool success = true;
 	if (shadows->transformGroupID)
 	{
-		return dsSceneLightShadows_bindTransformGroup(shadows, view->globalValues,
+		dsSharedMaterialValues* globalValues = dsView_lockGlobalValues(view, itemList);
+		DS_ASSERT(globalValues);
+		success = dsSceneLightShadows_bindTransformGroup(shadows, globalValues,
 			shadows->transformGroupID);
+		DS_VERIFY(dsView_unlockGlobalValues(view, itemList));
 	}
-	return true;
+	return success;
 }
 
 bool dsSceneLightShadows_bindTransformGroup(

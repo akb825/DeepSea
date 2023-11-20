@@ -480,9 +480,17 @@ struct dsView
 
 	/**
 	 * @brief Global material values to do while drawing.
-	 * @remark The contents of this may be modified as needed.
+	 *
+	 * The contents of this may be modified as needed within the sharedItems list of a scene before
+	 * drawing occurs. To do so, call dsView_lockGlobalValues() to lock it for writing, followed by
+	 * dsView_unlockGlobalValues() to unlock it.
 	 */
-	dsSharedMaterialValues* globalValues;
+	const dsSharedMaterialValues* globalValues;
+
+	/**
+	 * @brief Lock for modifying globalValues.
+	 */
+	dsSpinlock globalValuesLock;
 };
 
 /**

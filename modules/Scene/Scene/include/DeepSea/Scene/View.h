@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -278,6 +278,33 @@ DS_SCENE_EXPORT bool dsView_setPerspectiveProjection(dsView* view, float fovy, f
  * @return False if the parameters are invalid.
  */
 DS_SCENE_EXPORT bool dsView_setProjectionParams(dsView* view, const dsProjectionParams* params);
+
+/**
+ * @brief Locks the global values for modification.
+ *
+ * This will generally be called within the commit function of an item list inside of the
+ * sharedItems of a scene.
+ *
+ * @remark errno will be set on failure.
+ * @param view The view with the global values.
+ * @param itemList The item list to lock the global values for.
+ * @return The global values or NULL the view or itemList isn't valid to lock the global values.
+ */
+DS_SCENE_EXPORT dsSharedMaterialValues* dsView_lockGlobalValues(const dsView* view,
+	const dsSceneItemList* itemList);
+
+/**
+ * @brief Unlocks the global values after modification.
+ *
+ * This will generally be called within the commit function of an item list inside of the
+ * sharedItems of a scene.
+ *
+ * @remark errno will be set on failure.
+ * @param view The view with the global values.
+ * @param itemList The item list the global values were locked for.
+ * @return False if the view or itemList isn't valid to lock the global values.
+ */
+DS_SCENE_EXPORT bool dsView_unlockGlobalValues(const dsView* view, const dsSceneItemList* itemList);
 
 /**
  * @brief Updates the view.

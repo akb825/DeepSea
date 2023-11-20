@@ -38,7 +38,7 @@ static void dsSceneShadowManagerPrepare_commit(dsSceneItemList* itemList,
 {
 	DS_UNUSED(commandBuffer);
 	dsSceneShadowManagerPrepare* prepare = (dsSceneShadowManagerPrepare*)itemList;
-	dsSceneShadowManager_prepare(prepare->shadowManager, view);
+	dsSceneShadowManager_prepare(prepare->shadowManager, view, itemList);
 }
 
 static void dsSceneShadowManagerPrepare_destroy(dsSceneItemList* itemList)

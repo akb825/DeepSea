@@ -15,17 +15,23 @@
  */
 
 #include "LightData.h"
+
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
+
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Vector3.h>
+
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
+
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
+#include <DeepSea/Scene/View.h>
+
 #include <string.h>
 
 #if DS_GCC || DS_CLANG
@@ -66,8 +72,12 @@ static void dsLightData_commit(dsSceneItemList* itemList, const dsView* view,
 	DS_VERIFY(dsShaderVariableGroup_setElementData(lightData->variableGroup, 0, &viewDirection,
 		dsMaterialType_Vec3, 0, 1));
 	DS_CHECK("TestScene", dsShaderVariableGroup_commit(lightData->variableGroup, commandBuffer));
-	DS_VERIFY(dsSharedMaterialValues_setVariableGroupID(view->globalValues,
+
+	dsSharedMaterialValues* globalValues = dsView_lockGlobalValues(view, itemList);
+	DS_ASSERT(globalValues);
+	DS_VERIFY(dsSharedMaterialValues_setVariableGroupID(globalValues,
 		lightData->variableGroupNameID, lightData->variableGroup));
+	DS_VERIFY(dsView_unlockGlobalValues(view, itemList));
 }
 
 static void dsLightData_destroy(dsSceneItemList* itemList)

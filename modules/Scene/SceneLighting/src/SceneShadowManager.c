@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -282,9 +282,10 @@ bool dsSceneShadowManager_setShadowsLightID(dsSceneShadowManager* shadowManager,
 	return true;
 }
 
-bool dsSceneShadowManager_prepare(dsSceneShadowManager* shadowManager, const dsView* view)
+bool dsSceneShadowManager_prepare(dsSceneShadowManager* shadowManager, const dsView* view,
+	const dsSceneItemList* itemList)
 {
-	if (!shadowManager || !view)
+	if (!shadowManager || !view || !itemList)
 	{
 		errno = EINVAL;
 		return false;
@@ -295,7 +296,7 @@ bool dsSceneShadowManager_prepare(dsSceneShadowManager* shadowManager, const dsV
 	for (dsListNode* node = shadowManager->namedShadowsTable->list.head; node; node = node->next)
 	{
 		dsSceneLightShadows* shadows = ((NamedShadowsNode*)node)->lightShadows;
-		if (!dsSceneLightShadows_prepare(shadows, view))
+		if (!dsSceneLightShadows_prepare(shadows, view, itemList))
 			return false;
 	}
 

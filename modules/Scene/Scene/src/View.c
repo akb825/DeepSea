@@ -27,6 +27,7 @@
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Streams/Stream.h>
+#include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Profile.h>
@@ -248,7 +249,8 @@ static bool isLayerInRange(const dsFramebufferSurface* surface, uint32_t layers)
 
 static void destroyMidCreate(dsView* view)
 {
-	dsSharedMaterialValues_destroy(view->globalValues);
+	dsSharedMaterialValues_destroy((dsSharedMaterialValues*)view->globalValues);
+	dsSpinlock_shutdown(&view->globalValuesLock);
 	if (view->destroyUserDataFunc)
 		view->destroyUserDataFunc(view->userData);
 	if (view->allocator)
@@ -288,8 +290,8 @@ static bool bindOffscreenVariables(dsView* view)
 	{
 		const dsViewSurfaceInfo* surfaceInfo = viewPrivate->surfaceInfos + i;
 		if (surfaceInfo->surfaceType == dsGfxSurfaceType_Offscreen &&
-			!dsSharedMaterialValues_setTextureName(view->globalValues, surfaceInfo->name,
-				(dsTexture*)viewPrivate->surfaces[i]))
+			!dsSharedMaterialValues_setTextureName((dsSharedMaterialValues*)view->globalValues,
+				surfaceInfo->name, (dsTexture*)viewPrivate->surfaces[i]))
 		{
 			DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't bind view offscreen '%s'.",
 				surfaceInfo->name);
@@ -393,6 +395,7 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator, dsAllocator*
 	}
 	else
 		view->globalValues = NULL;
+	DS_VERIFY(dsSpinlock_initialize(&view->globalValuesLock));
 
 	privateView->surfaceInfos = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsViewSurfaceInfo,
 		surfaceCount);
@@ -819,6 +822,30 @@ bool dsView_setProjectionParams(dsView* view, const dsProjectionParams* params)
 	return true;
 }
 
+dsSharedMaterialValues* dsView_lockGlobalValues(const dsView* view, const dsSceneItemList* itemList)
+{
+	if (!view || !view->globalValues || !itemList || itemList->globalValueCount == 0)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	DS_VERIFY(dsSpinlock_lock((dsSpinlock*)&view->globalValuesLock));
+	return (dsSharedMaterialValues*)view->globalValues;
+}
+
+bool dsView_unlockGlobalValues(const dsView* view, const dsSceneItemList* itemList)
+{
+	if (!view || !view->globalValues || !itemList || itemList->globalValueCount == 0)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	DS_VERIFY(dsSpinlock_unlock((dsSpinlock*)&view->globalValuesLock));
+	return true;
+}
+
 bool dsView_update(dsView* view)
 {
 	DS_PROFILE_FUNC_START();
@@ -1143,7 +1170,8 @@ bool dsView_destroy(dsView* view)
 		}
 	}
 
-	dsSharedMaterialValues_destroy(view->globalValues);
+	dsSharedMaterialValues_destroy((dsSharedMaterialValues*)view->globalValues);
+	dsSpinlock_shutdown(&view->globalValuesLock);
 	if (view->destroyUserDataFunc)
 		view->destroyUserDataFunc(view->userData);
 	if (view->allocator)

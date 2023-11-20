@@ -22,11 +22,16 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Math/Matrix44.h>
+
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/Render/RenderSurface.h>
+
+#include <DeepSea/Scene/View.h>
+
 #include <string.h>
 
 static dsShaderVariableElement elements[] =
@@ -100,8 +105,11 @@ static void dsViewTransformData_commit(dsSceneItemList* itemList, const dsView* 
 	if (DS_CHECK(DS_SCENE_LOG_TAG,
 			dsShaderVariableGroup_commit(viewData->variableGroup, commandBuffer)))
 	{
-		DS_VERIFY(dsSharedMaterialValues_setVariableGroupID(view->globalValues, viewData->nameID,
+		dsSharedMaterialValues* globalValues = dsView_lockGlobalValues(view, itemList);
+		DS_ASSERT(globalValues);
+		DS_VERIFY(dsSharedMaterialValues_setVariableGroupID(globalValues, viewData->nameID,
 			viewData->variableGroup));
+		DS_VERIFY(dsView_unlockGlobalValues(view, itemList));
 	}
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,13 +90,6 @@ static size_t fullAllocSize(uint32_t* outNameCount, uint32_t* outGlobalValueCoun
 				return 0;
 
 			*outGlobalValueCount += itemList->globalValueCount;
-			if (itemList->globalValueCount > 0 && itemLists->count > 1)
-			{
-				DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
-					"Scene item list '%s' with global values must be a single entry in "
-					"sharedItems array.", itemList->name);
-				return 0;
-			}
 		}
 
 		*outNameCount += itemLists->count;
@@ -135,8 +128,8 @@ static size_t fullAllocSize(uint32_t* outNameCount, uint32_t* outGlobalValueCoun
 					else if (itemList->globalValueCount > 0)
 					{
 						DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
-							"Scene item list '%s' with global values must be a single entry in "
-							"sharedItems array.", itemList->name);
+							"Scene item list '%s' with global values must be in the sharedItems "
+							"array.", itemList->name);
 						return 0;
 					}
 				}
@@ -149,8 +142,8 @@ static size_t fullAllocSize(uint32_t* outNameCount, uint32_t* outGlobalValueCoun
 			if (itemList->globalValueCount > 0)
 			{
 				DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
-					"Scene item list '%s' with global values must be a single entry in "
-					"sharedItem array.", itemList->name);
+					"Scene item list '%s' with global values must be in the sharedItem array.",
+					itemList->name);
 				return 0;
 			}
 			else if (itemList->preRenderPassFunc)

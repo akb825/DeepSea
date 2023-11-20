@@ -85,7 +85,7 @@ The following item list types are provided with the members that are expected:
 * `"LightSetPrepare"`: prepares a light set to be used in a scene before drawing.
 	* `lightSet`: name of the light set to prepare.
 	* `intensityThreshold`: the threshold below which the light is considered out of view. If unset this will use the default.
-* `"ShadowManagerPrepare"`: prepares a shadow manager to be used in a scene before drawing. This must be after a `LightSetPrepare` and be a single element in the `sharedItems` array of the scene.
+* `"ShadowManagerPrepare"`: prepares a shadow manager to be used in a scene before drawing. This must be after a `LightSetPrepare` and be in the `sharedItems` array of the scene.
 	* `shadowManager`: name of the shadow manager to prepare.
 * `"DeferredLightResolve"`: resolves the results of deferred lighting to the screen.
 	* `lightSet`: name of the light set to draw the lights from.

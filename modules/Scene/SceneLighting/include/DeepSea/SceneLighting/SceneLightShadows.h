@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 Aaron Barany
+ * Copyright 2021-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -226,10 +226,12 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_setMaxDistance(
  * @remark errno will be set on failure.
  * @param shadows The scene light shadows to prepare.
  * @param view The view to prepare for.
+ * @param itemList The item list this is prepared for. This will be used to lock the global values
+ *     from the view if needed.
  * @return False if an error occurred.
  */
 DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows,
-	const dsView* view);
+	const dsView* view, const dsSceneItemList* itemList);
 
 /**
  * @brief Binds the transform shader variable group.

@@ -267,10 +267,6 @@ The scene describes the how to process and draw a scene, as well as the list of 
 			* `dstStages`: array of stages for the destination dependency. See the `dsGfxPipelineStage` enum for values, removing the type prefix.
 			* `dstAccess`: array of access types for the destination dependency. See the `dsGfxAccess` enum for values, removing the type prefix.
 			* `regionDependency`: `true` to have the dependency can be applied separately for different regions of the attachment, `false` if it must be applied for the entire subpass.
-* `globalData`: optional array of items to store data globally in the scene. Each element of the
-	  array has the following members:
-	* `type`: the name of the global data type.
-	* Remaining members depend on the value of `type`.
 * `nodes`: array of string node names to set on the scene.
 	
 ## Item Lists
@@ -283,7 +279,7 @@ View transform data has the type name "ViewTransformData" and sets standard view
 
 * `variableGroupDesc`: string name for the shader variable group to use.
 
-> **Note:** View transform data contains global variables and must be a single element in the `sharedItems` array of the scene. 
+> **Note:** View transform data contains global shader variables and must be in the `sharedItems` array of the scene.
 
 ### View Cull List
 

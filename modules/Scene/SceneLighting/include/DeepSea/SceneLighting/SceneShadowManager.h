@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,10 +123,12 @@ DS_SCENELIGHTING_EXPORT bool dsSceneShadowManager_setShadowsLightID(
  * @remark errno will be set on failure.
  * @param shadowManager The shadow manager.
  * @param view The view to prepare for.
+ * @param itemList The item list this is prepared for. This will be used to lock the global values
+ *     from the view if needed.
  * @return False if an error occurred.
  */
 DS_SCENELIGHTING_EXPORT bool dsSceneShadowManager_prepare(dsSceneShadowManager* shadowManager,
-	const dsView* view);
+	const dsView* view, const dsSceneItemList* itemList);
 
 /**
  * @brief Gets the number of global transform groups in the light shadows within the shadow manager.
