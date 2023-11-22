@@ -38,10 +38,12 @@ extern "C"
  * @param allocator The allocator to create the physics scene with. If NULL, it will use the same
  *     allocator as the physics engine.
  * @param limits The limits for the physics scene.
+ * @param threadPool The thread pool to use for multithreaded processing, or NULL for
+ *     single-threaded processing.
  * @return The physics scene or NULL if it couldn't be created.
  */
 DS_PHYSICS_EXPORT dsPhysicsScene* dsPhysicsScene_create(dsPhysicsEngine* engine,
-	dsAllocator* allocator, const dsPhysicsSceneLimits* limits);
+	dsAllocator* allocator, const dsPhysicsSceneLimits* limits, dsThreadPool* threadPool);
 
 /**
  * @brief Destroys a physics scene.

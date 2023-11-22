@@ -406,10 +406,7 @@ dsSceneNode* dsSceneNode_addRef(dsSceneNode* node)
 
 void dsSceneNode_freeRef(dsSceneNode* node)
 {
-	if (!node)
-		return;
-
-	if (DS_ATOMIC_FETCH_ADD32(&node->refCount, -1) != 1)
+	if (!node || DS_ATOMIC_FETCH_ADD32(&node->refCount, -1) != 1)
 		return;
 
 	if (node->destroyUserDataFunc)

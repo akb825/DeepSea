@@ -231,20 +231,20 @@ DS_SCENE_EXPORT dsSceneTreeNode* dsSceneNode_findUniqueTreeNode(const dsSceneNod
 DS_SCENE_EXPORT void dsSceneNode_clear(dsSceneNode* node);
 
 /**
- * @brief Adds the reference count to the node.
+ * @brief Increments the reference count to the node.
  * @remark This function is thread-safe.
- * @param node The node to add the reference to.
- * @return The node with a reference added.
+ * @param node The node to increment the reference count.
+ * @return The node with a reference incremented.
  */
 DS_SCENE_EXPORT dsSceneNode* dsSceneNode_addRef(dsSceneNode* node);
 
 /**
- * @brief Subtracts the reference count to the node.
+ * @brief Decrements the reference count to the node.
  *
  * Once the reference count reaches 0 the node will be destroyed.
  *
  * @remark This function is thread-safe.
- * @param node The node to subtract the reference from.
+ * @param node The node to decrement the reference count from.
  */
 DS_SCENE_EXPORT void dsSceneNode_freeRef(dsSceneNode* node);
 

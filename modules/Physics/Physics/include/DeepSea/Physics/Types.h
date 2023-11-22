@@ -18,6 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Types.h>
+#include <DeepSea/Physics/Shapes/Types.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -28,6 +29,11 @@ extern "C"
  * @file
  * @brief Includes all of the types used in the DeepSea/Physics library.
  */
+
+/**
+ * @brief Log tag used by the physics library.
+ */
+#define DS_PHYSICS_LOG_TAG "physics"
 
 /// @cond
 typedef struct dsPhysicsEngine dsPhysicsEngine;
@@ -111,6 +117,7 @@ typedef struct dsPhysicsSceneLimits
 
 /**
  * @brief Struct defining a scene of objects in a physics simulation.
+ * @remark None of the members should be modified outside of the implementation.
  * @see dsPhysicsSceneLimits
  * @see PhysicsScene.h
  */
@@ -128,14 +135,23 @@ typedef struct dsPhysicsScene
 } dsPhysicsScene;
 
 /**
+ * @brief Function to destroy a physics engine.
+ * @param engine The physics engine to destroy.
+ * @return False if the physics engine couldn't be destroyed.
+ */
+typedef bool (*dsDestroyPhysicsEngineFunction)(dsPhysicsEngine* engine);
+
+/**
  * @brief Function to create a physics scene.
  * @param engine The physics engine to create the scene with.
  * @param allocator The allocator to create the scene with.
  * @param limits The limits for the physics scene.
+ * @param threadPool The thread pool to use for multithreaded processing, or NULL for
+ *     single-threaded processing.
  * @return The created physics scene or NULL if it couldn't be created.
  */
 typedef dsPhysicsScene* (*dsCreatePhysicsSceneFunction)(dsPhysicsEngine* engine,
-	dsAllocator* allocator, const dsPhysicsSceneLimits* limits);
+	dsAllocator* allocator, const dsPhysicsSceneLimits* limits, dsThreadPool* threadPool);
 
 /**
  * @brief Function to destroy a physics scene.
@@ -146,13 +162,77 @@ typedef dsPhysicsScene* (*dsCreatePhysicsSceneFunction)(dsPhysicsEngine* engine,
 typedef bool (*dsDestroyPhysicsSceneFunction)(dsPhysicsEngine* engine, dsPhysicsScene* scene);
 
 /**
+ * @brief Function to create a physics sphere.
+ * @param engine The physics engine to create the sphere with.
+ * @param allocator The allocator to create the sphere with.
+ * @param radius The radius of the sphere.
+ * @return The sphere or NULL if it couldn't be created.
+ */
+typedef dsPhysicsSphere* (*dsCreatePhysicsSphereFunction)(dsPhysicsEngine* engine,
+	dsAllocator* allocator, float radius);
+
+/**
+ * @brief Function to create a physics box.
+ * @param engine The physics engine to create the box with.
+ * @param allocator The allocator to create the box with.
+ * @param halfExtents The half extents for each axis.
+ * @param convexRadius The convex radius used for collision checks.
+ * @return The box or NULL if it couldn't be created.
+ */
+typedef dsPhysicsBox* (*dsCreatePhysicsBoxFunction)(dsPhysicsEngine* engine,
+	dsAllocator* allocator, const dsVector3f* halfExtents, float convexRadius);
+
+/**
+ * @brief Function to create a physics capsule.
+ * @param engine The physics engine to create the capsule with.
+ * @param allocator The allocator to create the capsule with.
+ * @param halfHeight The half height of the cylinder portion of the capsule.
+ * @param radius The radius of the capsule.
+ * @param axis The axis the capsule is aligned with.
+ * @return The capsule or NULL if it couldn't be created.
+ */
+typedef dsPhysicsCapsule* (*dsCreatePhysicsCapsuleFunction)(dsPhysicsEngine* engine,
+	dsAllocator* allocator, float halfHeight, float radius, dsPhysicsAxis axis);
+
+/**
+ * @brief Function to create a physics cylinder.
+ * @param engine The physics engine to create the cylinder with.
+ * @param allocator The allocator to create the cylinder with.
+ * @param halfHeight The half height of the cylinder.
+ * @param radius The radius of the cylinder.
+ * @param axis The axis the cylinder is aligned with.
+ * @param convexRadius The convex radius used for collision checks.
+ * @return The cylinder or NULL if it couldn't be created.
+ */
+typedef dsPhysicsCylinder* (*dsCreatePhysicsCylinderFunction)(dsPhysicsEngine* engine,
+	dsAllocator* allocator, float halfHeight, float radius, dsPhysicsAxis axis,
+	float convexRadius);
+
+/**
+ * @brief Function to create a physics cone.
+ * @param engine The physics engine to create the cone with.
+ * @param allocator The allocator to create the cone with.
+ * @param height The height of the cone.
+ * @param radius The radius of the cone.
+ * @param axis The axis the cone is aligned with.
+ * @param convexRadius The convex radius used for collision checks.
+ * @return The cone or NULL if it couldn't be created.
+ */
+typedef dsPhysicsCone* (*dsCreatePhysicsConeFunction)(dsPhysicsEngine* engine,
+	dsAllocator* allocator, float height, float radius, dsPhysicsAxis axis,
+	float convexRadius);
+
+/**
  * @brief Struct describing the core engine for managing physics.
  *
  * This is a base type for the physics engine, which is implemented to either integrate to a 3rd
  * party physics engine or with a custom engine. It contains function pointers to create and destroy
  * the various physics objects and any other central management.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ * @see PhysicsEngine.h
  */
-typedef struct dsPhysicsEngine
+struct dsPhysicsEngine
 {
 	/**
 	 * @brief Allocator for the physics engine.
@@ -164,6 +244,16 @@ typedef struct dsPhysicsEngine
 	dsAllocator* allocator;
 
 	/**
+	 * @brief The maximum number of vertices allowed for a convex hull.
+	 */
+	uint32_t maxConvexHullVertices;
+
+	/**
+	 * @brief Function to destroy the physics engine.
+	 */
+	dsDestroyPhysicsEngineFunction destroyFunc;
+
+	/**
 	 * @brief Function to create a physics scene.
 	 */
 	dsCreatePhysicsSceneFunction createSceneFunc;
@@ -172,7 +262,32 @@ typedef struct dsPhysicsEngine
 	 * @brief Function to destroy a physics scene.
 	 */
 	dsDestroyPhysicsSceneFunction destroySceneFunc;
-} dsPhysicsEngine;
+
+	/**
+	 * @brief Function to create a physics sphere.
+	 */
+	dsCreatePhysicsSphereFunction createSphereFunc;
+
+	/**
+	 * @brief Function to create a physics box.
+	 */
+	dsCreatePhysicsBoxFunction createBoxFunc;
+
+	/**
+	 * @brief Function to create a physics capsule.
+	 */
+	dsCreatePhysicsCapsuleFunction createCapsuleFunc;
+
+	/**
+	 * @brief Function to create a physics cylinder.
+	 */
+	dsCreatePhysicsCylinderFunction createCylinderFunc;
+
+	/**
+	 * @brief Function to create a physics cone.
+	 */
+	dsCreatePhysicsConeFunction createConeFunc;
+};
 
 #ifdef __cplusplus
 }

@@ -14,32 +14,37 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Physics/PhysicsScene.h>
-#include <DeepSea/Core/Error.h>
+#include <DeepSea/Physics/Shapes/PhysicsSphere.h>
 
-dsPhysicsScene* dsPhysicsScene_create(dsPhysicsEngine* engine, dsAllocator* allocator,
-	const dsPhysicsSceneLimits* limits, dsThreadPool* threadPool)
+#include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/Log.h>
+
+#include <DeepSea/Physics/Types.h>
+
+static dsPhysicsShapeType sphereType = {false};
+const dsPhysicsShapeType* dsPhysicsSphere_type(void)
 {
-	if (!engine || (!allocator && !engine->allocator) || !limits || !engine->createSceneFunc ||
-		!engine->destroySceneFunc)
+	return &sphereType;
+}
+
+dsPhysicsSphere* dsPhysicsSphere_create(dsPhysicsEngine* engine, dsAllocator* allocator,
+	float radius)
+{
+	if (!engine || !engine->createSphereFunc)
 	{
 		errno = EINVAL;
 		return NULL;
 	}
 
-	return engine->createSceneFunc(engine, allocator, limits, threadPool);
-}
-
-bool dsPhysicsScene_destroy(dsPhysicsScene* scene)
-{
-	if (!scene)
-		return true;
-
-	if (!scene->engine || !scene->engine->destroySceneFunc)
+	if (radius <= 0)
 	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Sphere radius must be > 0.");
 		errno = EINVAL;
-		return false;
+		return NULL;
 	}
 
-	return scene->engine->destroySceneFunc(scene->engine, scene);
+	if (!allocator)
+		allocator = engine->allocator;
+
+	return engine->createSphereFunc(engine, allocator, radius);
 }
