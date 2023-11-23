@@ -76,6 +76,12 @@ typedef struct dsPhysicsShapeType
 typedef void (*dsDestroyPhysicsShapeFunction)(dsPhysicsShape* shape);
 
 /**
+ * @brief Function to destroy debug data.
+ * @param data The data to destroy.
+ */
+typedef void (*dsDestroyPhysicsDebugDataFunction)(void* data);
+
+/**
  * @brief Base type for a physics shape.
  *
  * Shapes are the individual pieces of geometry that may be colided. Individual types of shapes may
@@ -117,6 +123,24 @@ struct dsPhysicsShape
 	 * physics implementation.
 	 */
 	void* impl;
+
+	/**
+	 * @brief Data used for debugging.
+	 *
+	 * When used in a graphical application, this may be the model used to draw with.
+	 *
+	 * @remark This may be assigned as needed outside of the implementation.
+	 */
+	void* debugData;
+
+	/**
+	 * @brief Function used to destroy debugData.
+	 *
+	 * This may be NULL if debugData doesn't need to be destroyed.
+	 *
+	 * @remark This may be assigned as needed outside of the implementation.
+	 */
+	dsDestroyPhysicsDebugDataFunction destroyDebugDataFunc;
 
 	/**
 	 * @brief Reference count for the shape.
@@ -288,6 +312,29 @@ typedef struct dsPhysicsCone
 	 */
 	float convexRadius;
 } dsPhysicsCone;
+
+/**
+ * @brief Physics shape implementation for a convex hull.
+ * @remark None of the members should be modified outside of the implementation.
+ * @see PhysicsCone.h
+ */
+typedef struct dsPhysicsConvexHull
+{
+	/**
+	 * @brief The base shape information.
+	 */
+	dsPhysicsShape shape;
+
+	/**
+	 * @brief The number of vertices in the convex hull.
+	 */
+	uint32_t vertexCount;
+
+	/**
+	 * @brief The number of faces in the convex hull.
+	 */
+	uint32_t faceCount;
+} dsPhysicsConvexHull;
 
 #ifdef __cplusplus
 }

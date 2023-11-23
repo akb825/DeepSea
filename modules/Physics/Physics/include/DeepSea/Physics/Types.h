@@ -223,6 +223,58 @@ typedef dsPhysicsCone* (*dsCreatePhysicsConeFunction)(dsPhysicsEngine* engine,
 	float convexRadius);
 
 /**
+ * @brief Function to create a physics convex hull.
+ * @param engine The physics engine to create the convex hull with.
+ * @param allocator The allocator to create the convex hull with.
+ * @param vertices Pointer to the vertices.
+ * @param vertexCount The number of vertices.
+ * @param vertexStride The stride in bytes between each vertex.
+ * @param convexRadius The convex radius used for collision checks.
+ * @param cacheName Unique name used to cache the result.
+ * @return The conex hull or NULL if it couldn't be created.
+ */
+typedef dsPhysicsConvexHull* (*dsCreatePhysicsConvexHullFunction)(dsPhysicsEngine* engine,
+	dsAllocator* allocator, const void* vertices, uint32_t vertexCount, size_t vertexStride,
+	float convexRadius, const char* cacheName);
+
+/**
+ * @brief Function to get a vertex from the convex hull.
+ * @param[out] outVertex The value to set for the vertex.
+ * @param engine The physics engine that created the convex hull.
+ * @param convexHull The convex hull to get the vertex from.
+ * @param vertexIndex The index to the vertex to get.
+ */
+typedef void (*dsGetPhysicsConvexHullVertexFunction)(dsVector3f* outVertex, dsPhysicsEngine* engine,
+	const dsPhysicsConvexHull* convexHull, uint32_t vertexIndex);
+
+/**
+ * @brief Function to get the number of vertices for a face in the convex hull.
+ * @remark This may not provide any data if debug is false in the physics engine.
+ * @param engine The physics engine that created the convex hull.
+ * @param convexHull The convex hull to get the face vertex from.
+ * @param faceIndex The index of the face to get the index count from.
+ * @return The number of vertex indices for the face.
+ */
+typedef uint32_t (*dsGetPhysicsConvexHullFaceVertexCountFunction)(dsPhysicsEngine* engine,
+	const dsPhysicsConvexHull* convexHull, uint32_t faceIndex);
+
+/**
+ * @brief Function to get the face for a convex hull.
+ * @remark This may not provide any data if debug is false in the physics engine.
+ * @remark errno should be set to ESIZE and return 0 if outIndexCapacity is too small.
+ * @param[out] outIndices The indices for the face vertices. This will only be populated if there is
+ *     enough capacity.
+ * @param outIndexCapacity The capacity of outIndices.
+ * @param[out] outNormal The normal for the face. This may be NULL if no normal is needed.
+ * @param convexHull The convex hull to get the face vertex from.
+ * @param faceIndex The index of the face to get.
+ * @return The number of vertex indices for the face.
+ */
+typedef uint32_t (*dsGetPhysicsConvexHullFaceFunction)(uint32_t* outIndices,
+	uint32_t outIndexCapacity, dsVector3f* outNormal, dsPhysicsEngine* engine,
+	const dsPhysicsConvexHull* convexHull, uint32_t faceIndex);
+
+/**
  * @brief Struct describing the core engine for managing physics.
  *
  * This is a base type for the physics engine, which is implemented to either integrate to a 3rd
@@ -244,9 +296,22 @@ struct dsPhysicsEngine
 	dsAllocator* allocator;
 
 	/**
+	 * @brief True to enable debugging.
+	 *
+	 * Internally this may compute extra data for use for debugging. Externally this may be used to
+	 * populate debugData on shapes, such as for geometry to visualize the physics geometry.
+	 */
+	bool debug;
+
+	/**
 	 * @brief The maximum number of vertices allowed for a convex hull.
 	 */
 	uint32_t maxConvexHullVertices;
+
+	/**
+	 * @brief Directory to cache pre-computed physics data.
+	 */
+	const char* cacheDir;
 
 	/**
 	 * @brief Function to destroy the physics engine.
@@ -287,6 +352,26 @@ struct dsPhysicsEngine
 	 * @brief Function to create a physics cone.
 	 */
 	dsCreatePhysicsConeFunction createConeFunc;
+
+	/**
+	 * @brief Function to create a physics convex hull.
+	 */
+	dsCreatePhysicsConvexHullFunction createConvexHullFunc;
+
+	/**
+	 * @brief Function to get the vertex of a convex hull.
+	 */
+	dsGetPhysicsConvexHullVertexFunction getConvexHullVertexFunc;
+
+	/**
+	 * @brief Function to get the number of vertices for the face of a convex hull.
+	 */
+	dsGetPhysicsConvexHullFaceVertexCountFunction getConvexHullFaceVertexCountFunc;
+
+	/**
+	 * @brief Function to get the face of a convex hull.
+	 */
+	dsGetPhysicsConvexHullFaceFunction getConvexHullFaceFunc;
 };
 
 #ifdef __cplusplus

@@ -34,6 +34,8 @@ bool dsPhysicsShape_initialize(dsPhysicsShape* shape, dsPhysicsEngine* engine,
 	shape->allocator = dsAllocator_keepPointer(allocator);
 	shape->type = type;
 	shape->impl = impl;
+	shape->debugData = NULL;
+	shape->destroyDebugDataFunc = NULL;
 	shape->refCount = 1;
 	shape->destroyFunc = destroyFunc;
 	return true;
@@ -50,6 +52,10 @@ dsPhysicsShape* dsPhysicsShape_addRef(dsPhysicsShape* shape)
 
 void dsPhysicsShape_freeRef(dsPhysicsShape* shape)
 {
-	if (shape && DS_ATOMIC_FETCH_ADD32(&shape->refCount, -1) == 1)
-		shape->destroyFunc(shape);
+	if (!shape || DS_ATOMIC_FETCH_ADD32(&shape->refCount, -1) != 1)
+		return;
+
+	if (shape->destroyDebugDataFunc)
+		shape->destroyDebugDataFunc(shape->debugData);
+	shape->destroyFunc(shape);
 }
