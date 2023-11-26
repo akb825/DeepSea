@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,9 @@ typedef struct dsSDLGameInput
 	dsGameInput gameInput;
 	SDL_Joystick* joystick;
 	SDL_GameController* controller;
+#if !SDL_VERSION_ATLEAST(2, 0, 9)
 	SDL_Haptic* haptic;
+#endif
 	dsVector2i* dpadValues;
 } dsSDLGameInput;
 
@@ -58,9 +60,11 @@ bool dsSDLGameInput_isControllerButtonPressed(const dsApplication* application,
 	const dsGameInput* gameInput, dsGameControllerMap mapping);
 bool dsSDLGameInput_getDPadDirection(dsVector2i* outDirection, const dsApplication* application,
 	const dsGameInput* gameInput, uint32_t dpad);
-bool dsSDLGameInput_startRumble(dsApplication* application, dsGameInput* gameInput,
-	float strength, float duration);
-bool dsSDLGameInput_stopRumble(dsApplication* application, dsGameInput* gameInput);
+bool dsSDLGameInput_setRumble(dsApplication* application, dsGameInput* gameInput,
+	float lowFrequencyStrength, float highFrequencyStrength, float duration);
+bool dsSDLGameInput_setTriggerRumble(dsApplication* application, dsGameInput* gameInput,
+	float leftStrength, float rightStrength, float duration);
+bool dsSDLGameInput_setLEDColor(dsApplication* application, dsGameInput* gameInput, dsColor color);
 bool dsSDLGameInput_hasMotionSensor(const dsApplication* application, const dsGameInput* gameInput,
 	dsMotionSensorType type);
 bool dsSDLGameInput_getMotionSensorData(dsVector3f* outData, const dsApplication* application,

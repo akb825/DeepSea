@@ -1285,8 +1285,9 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	baseApplication->isGameInputControllerButtonPressedFunc =
 		&dsSDLGameInput_isControllerButtonPressed;
 	baseApplication->getGameInputDPadDirectionFunc = &dsSDLGameInput_getDPadDirection;
-	baseApplication->startGameInputRumbleFunc = &dsSDLGameInput_startRumble;
-	baseApplication->stopGameInputRumbleFunc = &dsSDLGameInput_stopRumble;
+	baseApplication->setGameInputRumbleFunc = &dsSDLGameInput_setRumble;
+	baseApplication->setGameInputTriggerRumbleFunc = &dsSDLGameInput_setTriggerRumble;
+	baseApplication->setGameInputLEDColorFunc = &dsSDLGameInput_setLEDColor;
 	baseApplication->gameInputHasMotionSensorFunc = &dsSDLGameInput_hasMotionSensor;
 	baseApplication->getGameInputMotionSensorDataFunc = &dsSDLGameInput_getMotionSensorData;
 

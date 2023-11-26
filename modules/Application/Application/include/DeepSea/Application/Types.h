@@ -1009,24 +1009,26 @@ typedef bool (*dsIsGameInputControllerButtonPressedFunction)(const dsApplication
 	const dsGameInput* gameInput, dsGameControllerMap mapping);
 
 /**
- * @brief Function for starting rumble on a game input.
+ * @brief Function for setting rumble on a game input.
  * @param application The application.
  * @param gameInput The game input device to start the rumble on.
- * @param strength The strength of the rumble.
+ * @param leftStrength The strength of the rumble on the left side or low frequency.
+ * @param rightStrength The strength of the rumble on the right side or high frequency.
  * @param duration The duration to rumble for.
  * @return False if rumble couldn't be started.
  */
-typedef bool (*dsStartGameInputRumbleFunction)(dsApplication* application,
-	dsGameInput* gameInput, float strength, float duration);
+typedef bool (*dsSetGameInputRumbleFunction)(dsApplication* application, dsGameInput* gameInput,
+	float leftStrength, float rightStrength, float duration);
 
 /**
- * @brief Function for stopping rumble on a game input.
+ * @brief Function for setting the LED color on a game input.
  * @param application The application.
- * @param gameInput The game input device to stop the rumble on.
- * @return False if rumble couldn't be stopped.
+ * @param gameInput The game input device to set the LED color on.
+ * @param color The color of the LED.
+ * @return False if the LED color couldn't be set.
  */
-typedef bool (*dsStopGameInputRumbleFunction)(dsApplication* application,
-	dsGameInput* gameInput);
+typedef bool (*dsSetGameInputLEDColorFunction)(dsApplication* application,
+	dsGameInput* gameInput, dsColor color);
 
 /**
  * @brief Function to get whether or not a game input has a motion sensor.
@@ -1519,14 +1521,19 @@ struct dsApplication
 	dsGetGameInputDPadDirectionFunction getGameInputDPadDirectionFunc;
 
 	/**
-	 * @brief Function for starting rumble on a game input.
+	 * @brief Function for setting rumble on a game input.
 	 */
-	dsStartGameInputRumbleFunction startGameInputRumbleFunc;
+	dsSetGameInputRumbleFunction setGameInputRumbleFunc;
 
 	/**
-	 * @brief Function for stopping rumble on a game input.
+	 * @brief Function for setting trigger rumble on a game input.
 	 */
-	dsStopGameInputRumbleFunction stopGameInputRumbleFunc;
+	dsSetGameInputRumbleFunction setGameInputTriggerRumbleFunc;
+
+	/**
+	 * @brief Function to set the LED color on a game input.
+	 */
+	dsSetGameInputLEDColorFunction setGameInputLEDColorFunc;
 
 	/**
 	 * @brief Function to get whether or not a game input has a motion sensor.
@@ -1677,9 +1684,19 @@ struct dsGameInput
 	bool hasControllerMappings;
 
 	/**
-	 * @brief True if rumble is supported.
+	 * @brief Whether rumble is supported.
 	 */
 	bool rumbleSupported;
+
+	/**
+	 * @brief Whether rumble on trigger buttons is supported.
+	 */
+	bool triggerRumbleSupported;
+
+	/**
+	 * @brief Whether an LED is present.
+	 */
+	bool hasLED;
 };
 
 /**

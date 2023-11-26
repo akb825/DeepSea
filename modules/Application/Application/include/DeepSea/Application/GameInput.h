@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,24 +128,41 @@ DS_APPLICATION_EXPORT bool dsGameInput_getDPadDirection(dsVector2i* outDirection
 	const dsGameInput* gameInput, uint32_t dpad);
 
 /**
- * @brief Starts rumble on a game input.
+ * @brief Sets rumble on a game input.
  * @remark errno will be set on failure.
  * @param gameInput The game input device to start the rumble on.
- * @param strength The strength of the rumble, in the range [0, 1].
- * @param duration The duration to rumble for in seconds. If a value < 0, the rumble will continue
- *     until stopped.
- * @return False if rumble couldn't be started.
+ * @param lowFrequencyStrength The strength of the low frequency rumble, typically on the left, in
+ *     the range [0, 1].
+ * @param highFrequencyStrength The strength of the high frequency rumble, typically on the right,
+ *     in the range [0, 1].
+ * @param duration The duration to rumble for in seconds. This shouldn't be set to long values, as
+ *     values larger than 1 minute may be ignored.
+ * @return False if rumble couldn't be set.
  */
-DS_APPLICATION_EXPORT bool dsGameInput_startRumble(dsGameInput* gameInput, float strength,
-	float duration);
+DS_APPLICATION_EXPORT bool dsGameInput_setRumble(dsGameInput* gameInput, float lowFrequencyStrength,
+	float highFrequencyStrength, float duration);
 
 /**
- * @brief Stops rumble on a game input.
+ * @brief Sets rumble on the triggers of a game input.
  * @remark errno will be set on failure.
- * @param gameInput The game input device to stopthe rumble on.
- * @return False if rumble couldn't be stopped.
+ * @param gameInput The game input device to start the rumble on.
+ * @param leftStrength The strength of the left trigger in the range [0, 1].
+ * @param rightStrength The strength of the right trigger in the range [0, 1].
+ * @param duration The duration to rumble for in seconds. This shouldn't be set to long values, as
+ *     values larger than 1 minute may be ignored.
+ * @return False if rumble couldn't be set.
  */
-DS_APPLICATION_EXPORT bool dsGameInput_stopRumble(dsGameInput* gameInput);
+DS_APPLICATION_EXPORT bool dsGameInput_setTriggerRumble(dsGameInput* gameInput, float leftStrength,
+	float rightStrength, float duration);
+
+/**
+ * @brief Sets the color of the LED on a game input.
+ * @remark errno will be set on failure.
+ * @param gameInput The game input to set the LED color on.
+ * @param color The color of the LED.
+ * @return False if the LED color couldn't be set.
+ */
+DS_APPLICATION_EXPORT bool dsGameInput_setLEDColor(dsGameInput* gameInput, dsColor color);
 
 /**
  * @brief Gets wwhether or not a game input has a motion sensor.

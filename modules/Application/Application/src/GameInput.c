@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,9 +128,15 @@ bool dsGameInput_getDPadDirection(dsVector2i* outDirection, const dsGameInput* g
 	uint32_t dpad)
 {
 	if (!outDirection || !gameInput || !gameInput->application ||
-		!gameInput->application->getGameInputDPadDirectionFunc || dpad >= gameInput->dpadCount)
+		!gameInput->application->getGameInputDPadDirectionFunc)
 	{
 		errno = EINVAL;
+		return false;
+	}
+
+	if (dpad >= gameInput->dpadCount)
+	{
+		errno = EINDEX;
 		return false;
 	}
 
@@ -138,17 +144,66 @@ bool dsGameInput_getDPadDirection(dsVector2i* outDirection, const dsGameInput* g
 	return application->getGameInputDPadDirectionFunc(outDirection, application, gameInput, dpad);
 }
 
-bool dsGameInput_startRumble(dsGameInput* gameInput, float strength, float duration)
+bool dsGameInput_setRumble(dsGameInput* gameInput, float lowFrequencyStrength,
+	float highFrequencyStrength, float duration)
 {
-	if (!gameInput || !gameInput->rumbleSupported || !gameInput->application ||
-		!gameInput->application->startGameInputRumbleFunc)
+	if (!gameInput || !gameInput->application || !gameInput->application->setGameInputRumbleFunc ||
+		lowFrequencyStrength < 0 || lowFrequencyStrength > 1 ||
+		highFrequencyStrength < 0 || highFrequencyStrength > 1 || duration < 0)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
+	if (!gameInput->rumbleSupported)
+	{
+		errno = EPERM;
+		return false;
+	}
+
 	dsApplication* application = gameInput->application;
-	return application->startGameInputRumbleFunc(application, gameInput, strength, duration);
+	return application->setGameInputRumbleFunc(application, gameInput, lowFrequencyStrength,
+		highFrequencyStrength, duration);
+}
+
+bool dsGameInput_setTriggerRumble(dsGameInput* gameInput, float leftStrength,
+	float rightStrength, float duration)
+{
+	if (!gameInput || !gameInput->application ||
+		!gameInput->application->setGameInputTriggerRumbleFunc || leftStrength < 0 ||
+		leftStrength > 1 || rightStrength < 0 || rightStrength > 1 || duration < 0)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!gameInput->triggerRumbleSupported)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	dsApplication* application = gameInput->application;
+	return application->setGameInputTriggerRumbleFunc(application, gameInput, leftStrength,
+		rightStrength, duration);
+}
+
+bool dsGameInput_setLEDColor(dsGameInput* gameInput, dsColor color)
+{
+	if (!gameInput || !gameInput->application || !gameInput->application->setGameInputLEDColorFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!gameInput->hasLED)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	dsApplication* application = gameInput->application;
+	return application->setGameInputLEDColorFunc(application, gameInput, color);
 }
 
 bool dsGameInput_hasMotionSensor(const dsGameInput* gameInput, dsMotionSensorType type)

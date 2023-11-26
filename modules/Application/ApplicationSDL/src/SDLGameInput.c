@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -220,7 +220,9 @@ static dsGameInput* createGameInput(dsApplication* application, uint32_t index)
 	else
 		baseGameInput->hasControllerMappings = false;
 
+#if !SDL_VERSION_ATLEAST(2, 0, 9)
 	gameInput->haptic = SDL_HapticOpenFromJoystick(gameInput->joystick);
+#endif
 
 	baseGameInput->application = application;
 	baseGameInput->allocator = application->allocator;
@@ -312,8 +314,31 @@ static dsGameInput* createGameInput(dsApplication* application, uint32_t index)
 	else
 #endif
 		baseGameInput->touchpadCount = 0;
+#if SDL_VERSION_ATLEAST(2, 0, 18)
+	baseGameInput->rumbleSupported = SDL_JoystickHasRumble(gameInput->joystick);
+#elif SDL_VERSION_ATLEAST(2, 0, 9)
+	// Guess as there's no way to query without setting a rumble.
+	baseGameInput->rumbleSupported = baseGameInput->type >= dsGameInputType_UnknownController;
+#else
 	baseGameInput->rumbleSupported = gameInput->haptic &&
 		SDL_HapticRumbleSupported(gameInput->haptic);
+#endif
+
+#if SDL_VERSION_ATLEAST(2, 0, 18)
+	baseGameInput->triggerRumbleSupported = SDL_JoystickHasRumbleTriggers(gameInput->joystick);
+#elif SDL_VERSION_ATLEAST(2, 0, 14)
+	// Guess as there's no way to query without setting a rumble.
+	baseGameInput->triggerRumbleSupported =
+		baseGameInput->type == dsGameInputType_XBoxOneController;
+#else
+	baseGameInput->triggerRumbleSupported = false;
+#endif
+
+#if SDL_VERSION_ATLEAST(2, 0, 14)
+	baseGameInput->hasLED = SDL_JoystickHasLED(gameInput->joystick);
+#else
+	baseGameInput->hasLED = false;
+#endif
 
 #if SDL_VERSION_ATLEAST(2, 0, 14)
 	if (gameInput->controller && dsSDLApplication_useMotionSensors(application))
@@ -334,8 +359,10 @@ static void freeGameInput(dsGameInput* gameInput)
 		return;
 
 	dsSDLGameInput* sdlGameInput = (dsSDLGameInput*)gameInput;
+#if !SDL_VERSION_ATLEAST(2, 0, 9)
 	if (sdlGameInput->haptic)
 		SDL_HapticClose(sdlGameInput->haptic);
+#endif
 	if (sdlGameInput->controller)
 		SDL_GameControllerClose(sdlGameInput->controller);
 	else
@@ -689,30 +716,85 @@ bool dsSDLGameInput_getDPadDirection(dsVector2i* outDirection, const dsApplicati
 	return true;
 }
 
-bool dsSDLGameInput_startRumble(dsApplication* application, dsGameInput* gameInput, float strength,
-	float duration)
+bool dsSDLGameInput_setRumble(dsApplication* application, dsGameInput* gameInput,
+	float lowFrequencyStrength, float highFrequencyStrength, float duration)
 {
 	DS_UNUSED(application);
-	if (SDL_HapticRumblePlay(((dsSDLGameInput*)gameInput)->haptic, strength,
-			(unsigned int)roundf(duration*1000.0f)) != 0)
+#if SDL_VERSION_ATLEAST(2, 0, 9)
+	if (!SDL_JoystickRumble(((dsSDLGameInput*)gameInput)->joystick,
+			(uint16_t)roundf(lowFrequencyStrength*0xFFFF),
+			(uint16_t)roundf(highFrequencyStrength*0xFFFF),
+			(uint32_t)roundf(duration*1000.0f)))
 	{
 		errno = EPERM;
 		return false;
 	}
+#else
+	float strength = (lowFrequencyStrength + highFrequencyStrength) * 0.5f;
+	bool success;
+	if (strength == 0)
+		success = SDL_HapticRumbleStop(((dsSDLGameInput*)gameInput)->haptic) == 0;
+	else
+	{
+		success = SDL_HapticRumblePlay(((dsSDLGameInput*)gameInput)->haptic, strength,
+			(unsigned int)roundf(duration*1000.0f)) == 0;
+	}
+
+	if (!success)
+	{
+		errno = EPERM;
+		return false;
+	}
+#endif
 
 	return true;
 }
 
-bool dsSDLGameInput_stopRumble(dsApplication* application, dsGameInput* gameInput)
+bool dsSDLGameInput_setTriggerRumble(dsApplication* application, dsGameInput* gameInput,
+	float leftStrength, float rightStrength, float duration)
 {
 	DS_UNUSED(application);
-	if (SDL_HapticRumbleStop(((dsSDLGameInput*)gameInput)->haptic) != 0)
+#if SDL_VERSION_ATLEAST(2, 0, 14)
+	if (!SDL_JoystickRumbleTriggers(((dsSDLGameInput*)gameInput)->joystick,
+			(uint16_t)roundf(leftStrength*0xFFFF),
+			(uint16_t)roundf(rightStrength*0xFFFF),
+			(uint32_t)roundf(duration*1000.0f)))
 	{
 		errno = EPERM;
 		return false;
 	}
 
 	return true;
+#else
+	DS_UNUSED(gameInput);
+	DS_UNUSED(leftStrength);
+	DS_UNUSED(rightStrength);
+	DS_UNUSED(duration);
+
+	errno = EPERM;
+	return false;
+#endif
+}
+
+bool dsSDLGameInput_setLEDColor(dsApplication* application, dsGameInput* gameInput, dsColor color)
+{
+	DS_UNUSED(application);
+
+#if SDL_VERSION_ATLEAST(2, 0, 14)
+	if (SDL_JoystickSetLED(((dsSDLGameInput*)gameInput)->joystick, color.r, color.g, color.b) != 0)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	return true;
+#else
+	DS_UNUSED(gameInput);
+	DS_UNUSED(color);
+
+	errno = EPERM;
+	return false;
+#endif
 }
 
 bool dsSDLGameInput_hasMotionSensor(const dsApplication* application, const dsGameInput* gameInput,
