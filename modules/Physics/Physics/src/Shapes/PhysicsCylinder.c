@@ -21,7 +21,7 @@
 
 #include <DeepSea/Physics/Types.h>
 
-static dsPhysicsShapeType cylinderType = {false};
+static dsPhysicsShapeType cylinderType = {.staticBodiesOnly = false, .uniformScaleOnly = true};
 const dsPhysicsShapeType* dsPhysicsCylinder_type(void)
 {
 	return &cylinderType;

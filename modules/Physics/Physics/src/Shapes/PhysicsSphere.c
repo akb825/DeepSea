@@ -21,7 +21,7 @@
 
 #include <DeepSea/Physics/Types.h>
 
-static dsPhysicsShapeType sphereType = {false};
+static dsPhysicsShapeType sphereType = {.staticBodiesOnly = false, .uniformScaleOnly = true};
 const dsPhysicsShapeType* dsPhysicsSphere_type(void)
 {
 	return &sphereType;

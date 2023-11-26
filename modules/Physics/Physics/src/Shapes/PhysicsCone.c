@@ -21,7 +21,7 @@
 
 #include <DeepSea/Physics/Types.h>
 
-static dsPhysicsShapeType coneType = {false};
+static dsPhysicsShapeType coneType = {.staticBodiesOnly = false, .uniformScaleOnly = true};
 const dsPhysicsShapeType* dsPhysicsCone_type(void)
 {
 	return &coneType;

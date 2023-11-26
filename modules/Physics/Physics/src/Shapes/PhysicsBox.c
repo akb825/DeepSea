@@ -21,7 +21,7 @@
 
 #include <DeepSea/Physics/Types.h>
 
-static dsPhysicsShapeType boxType = {false};
+static dsPhysicsShapeType boxType = {.staticBodiesOnly = false, .uniformScaleOnly = false};
 const dsPhysicsShapeType* dsPhysicsBox_type(void)
 {
 	return &boxType;

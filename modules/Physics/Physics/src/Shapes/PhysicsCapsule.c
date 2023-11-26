@@ -21,7 +21,7 @@
 
 #include <DeepSea/Physics/Types.h>
 
-static dsPhysicsShapeType capsuleType = {false};
+static dsPhysicsShapeType capsuleType = {.staticBodiesOnly = false, .uniformScaleOnly = true};
 const dsPhysicsShapeType* dsPhysicsCapsule_type(void)
 {
 	return &capsuleType;

@@ -22,7 +22,7 @@
 
 #include <DeepSea/Physics/Types.h>
 
-static dsPhysicsShapeType convexHullType = {false};
+static dsPhysicsShapeType convexHullType = {.staticBodiesOnly = false, .uniformScaleOnly = false};
 const dsPhysicsShapeType* dsPhysicsConvexHull_type(void)
 {
 	return &convexHullType;

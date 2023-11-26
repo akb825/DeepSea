@@ -30,6 +30,16 @@ extern "C"
  * @brief Includes all of the types for shapes in the DeepSea/Physics library.
  *
  * The shape types are roughly listed in order of cheapest to most expensive to evaluate.
+ *
+ * Heightfield types are omitted as they are quite inconsistent across various physics library
+ * implementations. For example, Jolt only supports square heightfields, and can't differentiate
+ * between the two triangles for each sample for material information. Only PhysX gives full control
+ * for the splitting edge for each sample's square. Jolt only supports float inputs, PhysX only
+ * signed 16-bit integers mixed with material indices, and Bullet supports many different input
+ * formats.
+ *
+ * dsPhysicsMesh should be used in place of a heightfield with the explicitly triangulated result,
+ * and can have consistent features across all implementations.
  */
 
 /**
@@ -67,7 +77,32 @@ typedef struct dsPhysicsShapeType
 	 * @brief Whether shapes of this type may only be used with static bodies.
 	 */
 	bool staticBodiesOnly;
+
+	/**
+	 * @brief Whether shapes of this type may only be scaled with a uniform scale across all three
+	 * axes.
+	 *
+	 * Typically shapes that have a radius as part of their parameters may only be uniformly scaled.
+	 */
+	bool uniformScaleOnly;
 } dsPhysicsShapeType;
+
+/**
+ * @brief Material to apply to an individual part of a shape, such as a triangle.
+ */
+typedef struct dsPhysicsShapePartMaterial
+{
+	/**
+	 * @brief The coefficient of friction, with 0 meaning no friction and increasing values having
+	 * higher friction.
+	 */
+	float friction;
+
+	/**
+	 * @brief The restitution value, where 0 is fully inelastic and 1 is fully elastic.
+	 */
+	float restitution;
+} dsPhysicsShapePartMaterial;
 
 /**
  * @brief Function to destroy a physics shape.
@@ -335,6 +370,21 @@ typedef struct dsPhysicsConvexHull
 	 */
 	uint32_t faceCount;
 } dsPhysicsConvexHull;
+
+/**
+ * @brief Physics shape implementation for a triangle mesh.
+ * @remark Meshes may not be used for dynamic bodies. They are intended for static objects such as
+ *     terrain.
+ * @remark None of the members should be modified outside of the implementation.
+ * @see PhysicsCone.h
+ */
+typedef struct dsPhysicsMesh
+{
+	/**
+	 * @brief The base shape information.
+	 */
+	dsPhysicsShape shape;
+} dsPhysicsMesh;
 
 #ifdef __cplusplus
 }

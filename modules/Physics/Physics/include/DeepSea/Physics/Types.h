@@ -275,6 +275,32 @@ typedef uint32_t (*dsGetPhysicsConvexHullFaceFunction)(uint32_t* outIndices,
 	const dsPhysicsConvexHull* convexHull, uint32_t faceIndex);
 
 /**
+ * @brief Function to create a physics mesh.
+ * @param engine The physics engine to create the mesh with.
+ * @param allocator The allocator to create the mesh with.
+ * @param vertices Pointer to the first vertex. Each vertex is defined as 3 floats.
+ * @param vertexCount The number of vertices. At least 3 vertices must be provided.
+ * @param vertexStride The stride in bytes between each vertex.
+ * @param indices The pointer to the first index. Three indices are expected for each triangle.
+ * @param triangleCount The number of triangles in the mesh.
+ * @param indexSize The size of each index.
+ * @param triangleMaterialIndices Material indices for each triangle, which index into the
+ *     triangleMaterials array. May be NULL if per-triangle materials aren't used.
+ * @param triangleMaterialIndexSize The size of each triangle material index.
+ * @param triangleMaterials The per-triangle materials, or NULL if per-triangle materials aren't
+ *     used.
+ * @param triangleMaterialCount The number of per-triangle materials.
+ * @param cacheName Unique name used to cache the result.
+ * @return The mesh or NULL if it couldn't be created.
+ */
+typedef dsPhysicsMesh* (*dsCreatePhysicsMeshFunction)(dsPhysicsEngine* engine,
+	dsAllocator* allocator, const void* vertices, uint32_t vertexCount, size_t vertexStride,
+	const void* indices, uint32_t triangleCount, size_t indexSize,
+	const void* triangleMaterialIndices, size_t triangleMaterialIndexSize,
+	const dsPhysicsShapePartMaterial* triangleMaterials, uint32_t triangleMaterialCount,
+	const char* cacheName);
+
+/**
  * @brief Struct describing the core engine for managing physics.
  *
  * This is a base type for the physics engine, which is implemented to either integrate to a 3rd
@@ -312,6 +338,8 @@ struct dsPhysicsEngine
 	 * @brief Directory to cache pre-computed physics data.
 	 */
 	const char* cacheDir;
+
+	// ------------------------------------------ Shape creation -----------------------------------
 
 	/**
 	 * @brief Function to destroy the physics engine.
@@ -372,6 +400,11 @@ struct dsPhysicsEngine
 	 * @brief Function to get the face of a convex hull.
 	 */
 	dsGetPhysicsConvexHullFaceFunction getConvexHullFaceFunc;
+
+	/**
+	 * @brief Function to create a physics mesh.
+	 */
+	dsCreatePhysicsMeshFunction createMeshFunc;
 };
 
 #ifdef __cplusplus
