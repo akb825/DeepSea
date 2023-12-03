@@ -55,7 +55,7 @@ extern "C"
 DS_SCENE_EXPORT dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	const dsSceneItemLists* sharedItems, uint32_t sharedItemCount,
 	const dsScenePipelineItem* pipeline, uint32_t pipelineCount, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc);
+	dsDestroyUserDataFunction destroyUserDataFunc);
 
 /**
  * @brief Loads a scene from a file.
@@ -72,7 +72,7 @@ DS_SCENE_EXPORT dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* rend
  */
 DS_SCENE_EXPORT dsScene* dsScene_loadFile(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
-	void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc, const char* filePath);
+	void* userData, dsDestroyUserDataFunction destroyUserDataFunc, const char* filePath);
 
 /**
  * @brief Loads a scene from a resource file.
@@ -91,7 +91,7 @@ DS_SCENE_EXPORT dsScene* dsScene_loadFile(dsAllocator* allocator, dsAllocator* r
 DS_SCENE_EXPORT dsScene* dsScene_loadResource(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc, dsFileResourceType type,
+	dsDestroyUserDataFunction destroyUserDataFunc, dsFileResourceType type,
 	const char* filePath);
 
 /**
@@ -109,7 +109,7 @@ DS_SCENE_EXPORT dsScene* dsScene_loadResource(dsAllocator* allocator,
  */
 DS_SCENE_EXPORT dsScene* dsScene_loadStream(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc, dsStream* stream);
+	dsDestroyUserDataFunction destroyUserDataFunc, dsStream* stream);
 
 /**
  * @brief Loads scene from a data buffer.
@@ -127,7 +127,7 @@ DS_SCENE_EXPORT dsScene* dsScene_loadStream(dsAllocator* allocator, dsAllocator*
  */
 DS_SCENE_EXPORT dsScene* dsScene_loadData(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc, const void* data, size_t size);
+	dsDestroyUserDataFunction destroyUserDataFunc, const void* data, size_t size);
 
 /**
  * @brief Gets the allocator used for a scene.

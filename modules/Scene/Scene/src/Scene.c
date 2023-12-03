@@ -42,7 +42,7 @@
 
 static void destroyObjects(const dsSceneItemLists* sharedItems, uint32_t sharedItemCount,
 	const dsScenePipelineItem* pipeline, uint32_t pipelineCount, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc)
+	dsDestroyUserDataFunction destroyUserDataFunc)
 {
 	if (sharedItems)
 	{
@@ -182,13 +182,13 @@ static void dummyDestroyFunc(dsSceneNode* node)
 
 dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, const void* data,
-	size_t dataSize, void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc,
+	size_t dataSize, void* userData, dsDestroyUserDataFunction destroyUserDataFunc,
 	const char* fileName);
 
 dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	const dsSceneItemLists* sharedItems, uint32_t sharedItemCount,
 	const dsScenePipelineItem* pipeline, uint32_t pipelineCount,
-	void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc)
+	void* userData, dsDestroyUserDataFunction destroyUserDataFunc)
 {
 	if (!allocator || !renderer || (!sharedItems && sharedItemCount > 0) || !pipeline ||
 		pipelineCount == 0)
@@ -356,7 +356,7 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 
 dsScene* dsScene_loadFile(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
-	void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc, const char* filePath)
+	void* userData, dsDestroyUserDataFunction destroyUserDataFunc, const char* filePath)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -390,7 +390,7 @@ dsScene* dsScene_loadFile(dsAllocator* allocator, dsAllocator* resourceAllocator
 
 dsScene* dsScene_loadResource(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
-	void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc, dsFileResourceType type,
+	void* userData, dsDestroyUserDataFunction destroyUserDataFunc, dsFileResourceType type,
 	const char* filePath)
 {
 	DS_PROFILE_FUNC_START();
@@ -422,7 +422,7 @@ dsScene* dsScene_loadResource(dsAllocator* allocator, dsAllocator* resourceAlloc
 
 dsScene* dsScene_loadStream(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc, dsStream* stream)
+	dsDestroyUserDataFunction destroyUserDataFunc, dsStream* stream)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -445,7 +445,7 @@ dsScene* dsScene_loadStream(dsAllocator* allocator, dsAllocator* resourceAllocat
 
 dsScene* dsScene_loadData(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc, const void* data, size_t size)
+	dsDestroyUserDataFunction destroyUserDataFunc, const void* data, size_t size)
 {
 	DS_PROFILE_FUNC_START();
 

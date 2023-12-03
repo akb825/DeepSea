@@ -111,12 +111,6 @@ typedef struct dsPhysicsShapePartMaterial
 typedef void (*dsDestroyPhysicsShapeFunction)(dsPhysicsShape* shape);
 
 /**
- * @brief Function to destroy debug data.
- * @param data The data to destroy.
- */
-typedef void (*dsDestroyPhysicsDebugDataFunction)(void* data);
-
-/**
  * @brief Base type for a physics shape.
  *
  * Shapes are the individual pieces of geometry that may be colided. Individual types of shapes may
@@ -175,7 +169,7 @@ struct dsPhysicsShape
 	 *
 	 * @remark This may be assigned as needed outside of the implementation.
 	 */
-	dsDestroyPhysicsDebugDataFunction destroyDebugDataFunc;
+	dsDestroyUserDataFunction destroyDebugDataFunc;
 
 	/**
 	 * @brief Reference count for the shape.

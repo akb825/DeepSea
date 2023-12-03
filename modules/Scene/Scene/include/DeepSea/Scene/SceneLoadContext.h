@@ -84,7 +84,7 @@ DS_SCENE_EXPORT dsRenderer* dsSceneLoadContext_getRenderer(const dsSceneLoadCont
  */
 DS_SCENE_EXPORT bool dsSceneLoadContext_registerNodeType(dsSceneLoadContext* context,
 	const char* name, dsLoadSceneNodeFunction loadFunc, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc);
+	dsDestroyUserDataFunction destroyUserDataFunc);
 
 /**
  * @brief Registers an item list type that can be loaded.
@@ -106,7 +106,7 @@ DS_SCENE_EXPORT bool dsSceneLoadContext_registerNodeType(dsSceneLoadContext* con
  */
 DS_SCENE_EXPORT bool dsSceneLoadContext_registerItemListType(dsSceneLoadContext* context,
 	const char* name, dsLoadSceneItemListFunction loadFunc, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc);
+	dsDestroyUserDataFunction destroyUserDataFunc);
 
 /**
  * @brief Registers a local data type that can be loaded.
@@ -128,7 +128,7 @@ DS_SCENE_EXPORT bool dsSceneLoadContext_registerItemListType(dsSceneLoadContext*
  */
 DS_SCENE_EXPORT bool dsSceneLoadContext_registerInstanceDataType(dsSceneLoadContext* context,
 	const char* name, dsLoadSceneInstanceDataFunction loadFunc, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc);
+	dsDestroyUserDataFunction destroyUserDataFunc);
 
 /**
  * @brief Registers a custom resource type that can be loaded.
@@ -156,7 +156,7 @@ DS_SCENE_EXPORT bool dsSceneLoadContext_registerCustomResourceType(dsSceneLoadCo
 	const char* name, const dsCustomSceneResourceType* type,
 	dsLoadCustomSceneResourceFunction loadFunc,
 	dsDestroyCustomSceneResourceFunction destroyResourceFunc, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc, uint32_t additionalResources);
+	dsDestroyUserDataFunction destroyUserDataFunc, uint32_t additionalResources);
 
 /**
  * @brief Gets the number of additional resources added for a custom resource.
@@ -191,7 +191,7 @@ DS_SCENE_EXPORT uint32_t dsSceneLoadContext_getCustomResourceAdditionalResources
  */
 DS_SCENE_EXPORT bool dsSceneLoadContext_registerResourceActionType(dsSceneLoadContext* context,
 	const char* name, dsLoadSceneResourceActionFunction loadFunc, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc, uint32_t additionalResources);
+	dsDestroyUserDataFunction destroyUserDataFunc, uint32_t additionalResources);
 
 /**
  * @brief Gets the number of additional resources added for a resource action.

@@ -70,7 +70,7 @@ DS_SCENEPARTICLE_EXPORT const dsSceneNodeType* dsSceneParticleNode_setupParentTy
 DS_SCENEPARTICLE_EXPORT dsSceneParticleNode* dsSceneParticleNode_create(dsAllocator* allocator,
 	dsAllocator* emitterAllocator, dsCreateSceneParticleNodeEmitterFunction createEmitterFunc,
 	dsUpdateSceneParticleNodeEmitterFunction updateEmitterFunc, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc, const char* const* itemLists,
+	dsDestroyUserDataFunction destroyUserDataFunc, const char* const* itemLists,
 	uint32_t itemListCount);
 
 /**

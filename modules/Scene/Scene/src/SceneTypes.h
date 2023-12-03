@@ -47,7 +47,7 @@ struct dsScene
 	dsRenderer* renderer;
 
 	void* userData;
-	dsDestroySceneUserDataFunction destroyUserDataFunc;
+	dsDestroyUserDataFunction destroyUserDataFunc;
 
 	dsSceneNode rootNode;
 	dsSceneTreeRootNode rootTreeNode;
@@ -79,7 +79,7 @@ typedef struct dsLoadSceneNodeItem
 	char name[DS_MAX_SCENE_NAME_LENGTH];
 	dsLoadSceneNodeFunction loadFunc;
 	void* userData;
-	dsDestroySceneUserDataFunction destroyUserDataFunc;
+	dsDestroyUserDataFunction destroyUserDataFunc;
 } dsLoadSceneNodeItem;
 
 typedef struct dsLoadSceneItemListItem
@@ -88,7 +88,7 @@ typedef struct dsLoadSceneItemListItem
 	char name[DS_MAX_SCENE_NAME_LENGTH];
 	dsLoadSceneItemListFunction loadFunc;
 	void* userData;
-	dsDestroySceneUserDataFunction destroyUserDataFunc;
+	dsDestroyUserDataFunction destroyUserDataFunc;
 } dsLoadSceneItemListItem;
 
 typedef struct dsLoadSceneInstanceDataItem
@@ -97,7 +97,7 @@ typedef struct dsLoadSceneInstanceDataItem
 	char name[DS_MAX_SCENE_NAME_LENGTH];
 	dsLoadSceneInstanceDataFunction loadFunc;
 	void* userData;
-	dsDestroySceneUserDataFunction destroyUserDataFunc;
+	dsDestroyUserDataFunction destroyUserDataFunc;
 } dsLoadSceneInstanceDataItem;
 
 typedef struct dsLoadCustomSceneResourceItem
@@ -108,7 +108,7 @@ typedef struct dsLoadCustomSceneResourceItem
 	dsLoadCustomSceneResourceFunction loadFunc;
 	dsDestroyCustomSceneResourceFunction destroyResourceFunc;
 	void* userData;
-	dsDestroySceneUserDataFunction destroyUserDataFunc;
+	dsDestroyUserDataFunction destroyUserDataFunc;
 	uint32_t additionalResources;
 } dsLoadCustomSceneResourceItem;
 
@@ -118,7 +118,7 @@ typedef struct dsLoadSceneResourceActionItem
 	char name[DS_MAX_SCENE_NAME_LENGTH];
 	dsLoadSceneResourceActionFunction loadFunc;
 	void* userData;
-	dsDestroySceneUserDataFunction destroyUserDataFunc;
+	dsDestroyUserDataFunction destroyUserDataFunc;
 	uint32_t additionalResources;
 } dsLoadSceneResourceActionItem;
 

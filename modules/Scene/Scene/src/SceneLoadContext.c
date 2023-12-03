@@ -118,7 +118,7 @@ dsRenderer* dsSceneLoadContext_getRenderer(const dsSceneLoadContext* context)
 
 bool dsSceneLoadContext_registerNodeType(dsSceneLoadContext* context, const char* name,
 	dsLoadSceneNodeFunction loadFunc, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc)
+	dsDestroyUserDataFunction destroyUserDataFunc)
 {
 	if (!context || !name || !loadFunc)
 	{
@@ -159,7 +159,7 @@ bool dsSceneLoadContext_registerNodeType(dsSceneLoadContext* context, const char
 
 bool dsSceneLoadContext_registerItemListType(dsSceneLoadContext* context, const char* name,
 	dsLoadSceneItemListFunction loadFunc, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc)
+	dsDestroyUserDataFunction destroyUserDataFunc)
 {
 	if (!context || !name || !loadFunc)
 	{
@@ -200,7 +200,7 @@ bool dsSceneLoadContext_registerItemListType(dsSceneLoadContext* context, const 
 
 bool dsSceneLoadContext_registerInstanceDataType(dsSceneLoadContext* context, const char* name,
 	dsLoadSceneInstanceDataFunction loadFunc, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc)
+	dsDestroyUserDataFunction destroyUserDataFunc)
 {
 	if (!context || !name || !loadFunc)
 	{
@@ -245,7 +245,7 @@ bool dsSceneLoadContext_registerCustomResourceType(dsSceneLoadContext* context,
 	const char* name, const dsCustomSceneResourceType* type,
 	dsLoadCustomSceneResourceFunction loadFunc,
 	dsDestroyCustomSceneResourceFunction destroyResourceFunc, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc, uint32_t additionalResources)
+	dsDestroyUserDataFunction destroyUserDataFunc, uint32_t additionalResources)
 {
 	if (!context || !name || !type || !loadFunc)
 	{
@@ -306,7 +306,7 @@ uint32_t dsSceneLoadContext_getCustomResourceAdditionalResources(const dsSceneLo
 
 bool dsSceneLoadContext_registerResourceActionType(dsSceneLoadContext* context,
 	const char* name, dsLoadSceneResourceActionFunction loadFunc, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc, uint32_t additionalResources)
+	dsDestroyUserDataFunction destroyUserDataFunc, uint32_t additionalResources)
 {
 	if (!context || !name || !loadFunc)
 	{

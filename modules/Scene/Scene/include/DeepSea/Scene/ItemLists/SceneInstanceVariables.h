@@ -52,7 +52,7 @@ DS_SCENE_EXPORT dsSceneInstanceData* dsSceneInstanceVariables_create(dsAllocator
 	dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
 	const dsShaderVariableGroupDesc* dataDesc, uint32_t nameID,
 	dsPopulateSceneInstanceVariablesFunction populateDataFunc, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc);
+	dsDestroyUserDataFunction destroyUserDataFunc);
 
 #ifdef __cplusplus
 }

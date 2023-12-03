@@ -62,7 +62,7 @@ typedef struct dsSceneInstanceVariables
 
 	dsPopulateSceneInstanceVariablesFunction populateDataFunc;
 	void* userData;
-	dsDestroySceneUserDataFunction destroyUserDataFunc;
+	dsDestroyUserDataFunction destroyUserDataFunc;
 
 	BufferInfo* buffers;
 	uint32_t bufferCount;
@@ -305,7 +305,7 @@ dsSceneInstanceData* dsSceneInstanceVariables_create(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
 	const dsShaderVariableGroupDesc* dataDesc, uint32_t nameID,
 	dsPopulateSceneInstanceVariablesFunction populateDataFunc, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc)
+	dsDestroyUserDataFunction destroyUserDataFunc)
 {
 	if (!allocator || !resourceManager || !dataDesc || !populateDataFunc)
 	{

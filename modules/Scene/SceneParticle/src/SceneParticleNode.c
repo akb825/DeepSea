@@ -41,7 +41,7 @@ struct dsSceneParticleNode
 	dsCreateSceneParticleNodeEmitterFunction createEmitterFunc;
 	dsUpdateSceneParticleNodeEmitterFunction updateEmitterFunc;
 	void* createEmitterUserData;
-	dsDestroySceneUserDataFunction destroyCreateEmitterUserDataFunc;
+	dsDestroyUserDataFunction destroyCreateEmitterUserDataFunc;
 };
 
 static bool dsSceneParticleNode_getBounds(dsMatrix44f* outBoxMatrix, const dsSceneCullNode* node,
@@ -81,7 +81,7 @@ const dsSceneNodeType* dsSceneParticleNode_setupParentType(dsSceneNodeType* type
 dsSceneParticleNode* dsSceneParticleNode_create(dsAllocator* allocator,
 	dsAllocator* emitterAllocator, dsCreateSceneParticleNodeEmitterFunction createEmitterFunc,
 	dsUpdateSceneParticleNodeEmitterFunction updateEmitterFunc, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc, const char* const* itemLists,
+	dsDestroyUserDataFunction destroyUserDataFunc, const char* const* itemLists,
 	uint32_t itemListCount)
 {
 	if (!allocator || !createEmitterFunc || (!itemLists && itemListCount > 0))

@@ -101,7 +101,7 @@ typedef struct dsSceneParticleEmitterFactory
 	/**
 	 * @brief Function to destroy the user data.
 	 */
-	dsDestroySceneUserDataFunction destroyUserDataFunc;
+	dsDestroyUserDataFunction destroyUserDataFunc;
 } dsSceneParticleEmitterFactory;
 
 /**

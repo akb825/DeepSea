@@ -43,7 +43,6 @@ typedef enum dsModelSortType
 /// @cond
 typedef struct dsScene dsScene;
 typedef struct dsView dsView;
-typedef void (*dsDestroySceneUserDataFunction)(void* userData);
 typedef struct dsSceneItemList dsSceneItemList;
 typedef struct dsSceneInstanceData dsSceneInstanceData;
 /// @endcond

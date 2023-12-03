@@ -249,6 +249,12 @@
 	((offset) <= (bufferSize) && ((bufferSize) - (offset)) >= (rangeSize))
 
 /**
+ * @brief Common function type for destruction of user data.
+ * @param userData The user data to destroy.
+ */
+typedef void (*dsDestroyUserDataFunction)(void* userData);
+
+/**
  * @brief Packs four characters into an integer.
  * @param a The first character.
  * @param b The second character.

@@ -52,7 +52,7 @@ DS_SCENEPARTICLE_EXPORT const dsCustomSceneResourceType* dsSceneParticleEmitterF
 DS_SCENEPARTICLE_EXPORT dsSceneParticleEmitterFactory* dsSceneParticleEmitterFactory_create(
 	dsAllocator* allocator, dsCreateSceneParticleNodeEmitterFunction createEmitterFunc,
 	dsUpdateSceneParticleNodeEmitterFunction updateEmitterFunc, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc);
+	dsDestroyUserDataFunction destroyUserDataFunc);
 
 /**
  * @brief Destroys a scene particle emitter factory.

@@ -37,7 +37,6 @@ typedef struct dsSceneNode dsSceneNode;
 typedef struct dsSceneNodeType dsSceneNodeType;
 typedef struct dsSceneResources dsSceneResources;
 typedef struct dsSceneTreeNode dsSceneTreeNode;
-typedef void (*dsDestroySceneUserDataFunction)(void* userData);
 /// @endcond
 
 /**
@@ -167,7 +166,7 @@ struct dsSceneNode
 	/**
 	 * @brief Function called on destruction to destroy the user data.
 	 */
-	dsDestroySceneUserDataFunction destroyUserDataFunc;
+	dsDestroyUserDataFunction destroyUserDataFunc;
 
 	/**
 	 * @brief Function to setup a scene tree node.

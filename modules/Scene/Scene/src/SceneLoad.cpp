@@ -401,7 +401,7 @@ static dsSceneRenderPass* createRenderPass(dsAllocator* allocator, dsAllocator* 
 extern "C"
 dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, const void* data,
-	size_t dataSize, void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc,
+	size_t dataSize, void* userData, dsDestroyUserDataFunction destroyUserDataFunc,
 	const char* fileName)
 {
 	flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(data), dataSize);

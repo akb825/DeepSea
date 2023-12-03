@@ -55,7 +55,7 @@ DS_SCENE_EXPORT dsView* dsView_create(const dsScene* scene, dsAllocator* allocat
 	dsAllocator* resourceAllocator, const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount,
 	const dsViewFramebufferInfo* framebuffers, uint32_t framebufferCount, uint32_t width,
 	uint32_t height, dsRenderSurfaceRotation rotation, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc);
+	dsDestroyUserDataFunction destroyUserDataFunc);
 
 /**
  * @brief Loads a view from a file.
@@ -79,7 +79,7 @@ DS_SCENE_EXPORT dsView* dsView_loadFile(const dsScene* scene, dsAllocator* alloc
 	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
 	dsRenderSurfaceRotation rotation, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc, const char* filePath);
+	dsDestroyUserDataFunction destroyUserDataFunc, const char* filePath);
 
 /**
  * @brief Loads a view from a resource file.
@@ -104,7 +104,7 @@ DS_SCENE_EXPORT dsView* dsView_loadResource(const dsScene* scene, dsAllocator* a
 	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
 	dsRenderSurfaceRotation rotation, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc, dsFileResourceType type,
+	dsDestroyUserDataFunction destroyUserDataFunc, dsFileResourceType type,
 	const char* filePath);
 
 /**
@@ -129,7 +129,7 @@ DS_SCENE_EXPORT dsView* dsView_loadStream(const dsScene* scene, dsAllocator* all
 	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
 	dsRenderSurfaceRotation rotation, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc, dsStream* stream);
+	dsDestroyUserDataFunction destroyUserDataFunc, dsStream* stream);
 
 /**
  * @brief Loads view from a data buffer.
@@ -154,7 +154,7 @@ DS_SCENE_EXPORT dsView* dsView_loadData(const dsScene* scene, dsAllocator* alloc
 	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
 	dsRenderSurfaceRotation rotation, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc, const void* data, size_t size);
+	dsDestroyUserDataFunction destroyUserDataFunc, const void* data, size_t size);
 
 /**
  * @brief Sets the dimensions of the view.

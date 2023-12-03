@@ -306,13 +306,13 @@ dsView* dsView_loadImpl(const dsScene* scene, dsAllocator* allocator,
 	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData, const void* data,
 	size_t dataSize,  const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width,
 	uint32_t height, dsRenderSurfaceRotation rotation, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc, const char* fileName);
+	dsDestroyUserDataFunction destroyUserDataFunc, const char* fileName);
 
 dsView* dsView_create(const dsScene* scene, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount,
 	const dsViewFramebufferInfo* framebuffers, uint32_t framebufferCount, uint32_t width,
 	uint32_t height, dsRenderSurfaceRotation rotation, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc)
+	dsDestroyUserDataFunction destroyUserDataFunc)
 {
 	if (!scene || !surfaces || surfaceCount == 0 || !framebuffers || framebufferCount == 0)
 	{
@@ -558,7 +558,7 @@ dsView* dsView_loadFile(const dsScene* scene, dsAllocator* allocator,
 	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
 	dsRenderSurfaceRotation rotation, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc, const char* filePath)
+	dsDestroyUserDataFunction destroyUserDataFunc, const char* filePath)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -594,7 +594,7 @@ dsView* dsView_loadResource(const dsScene* scene, dsAllocator* allocator,
 	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
 	dsRenderSurfaceRotation rotation, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc, dsFileResourceType type,
+	dsDestroyUserDataFunction destroyUserDataFunc, dsFileResourceType type,
 	const char* filePath)
 {
 	DS_PROFILE_FUNC_START();
@@ -628,7 +628,7 @@ dsView* dsView_loadStream(const dsScene* scene, dsAllocator* allocator,
 	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
 	dsRenderSurfaceRotation rotation, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc, dsStream* stream)
+	dsDestroyUserDataFunction destroyUserDataFunc, dsStream* stream)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -653,7 +653,7 @@ dsView* dsView_loadData(const dsScene* scene, dsAllocator* allocator,
 	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
 	dsRenderSurfaceRotation rotation, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc, const void* data, size_t size)
+	dsDestroyUserDataFunction destroyUserDataFunc, const void* data, size_t size)
 {
 	DS_PROFILE_FUNC_START();
 

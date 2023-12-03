@@ -139,12 +139,6 @@ typedef struct dsCustomSceneResource
 } dsCustomSceneResource;
 
 /**
- * @brief Function to destroy the user data stored within various scene objects.
- * @param userData The user data to destroy.
- */
-typedef void (*dsDestroySceneUserDataFunction)(void* userData);
-
-/**
  * @brief Struct that holds a list of dsSceneItemList instances.
  */
 typedef struct dsSceneItemLists
@@ -400,7 +394,7 @@ struct dsView
 	/**
 	 * @brief Function to destroy user data.
 	 */
-	dsDestroySceneUserDataFunction destroyUserDataFunc;
+	dsDestroyUserDataFunction destroyUserDataFunc;
 
 	/**
 	 * @brief The width of the view.
