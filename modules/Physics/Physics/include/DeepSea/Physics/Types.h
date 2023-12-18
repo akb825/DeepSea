@@ -46,8 +46,383 @@ typedef enum dsPhysicsLayer
 {
 	dsPhsyicsLayer_StaticWorld, ///< Static world collision that cannot collide with itself.
 	dsPhysicsLayer_Objects,     ///< Standard physics objects that can collide with anything.
-	dsPhysicsLayer_Projectiles  ///< Projectiles that can cannot collide with each-other.
+	/** Projectiles that can collide with everything but other projectiles. */
+	dsPhysicsLayer_Projectiles
 } dsPhysicsLayer;
+
+/**
+ * @brief Enum for a mask of degrees of freedom for physics objects.
+ */
+typedef enum dsPhysicsDOFMask
+{
+	dsPhysicsDOFMask_None = 0,     ///< No degrees of freedom.
+	dsPhysicsDOFMask_TransX = 0x1, ///< Translation along the X axis.
+	dsPhysicsDOFMask_TransY = 0x2, ///< Translation along the Y axis.
+	dsPhysicsDOFMask_TransZ = 0x4, ///< Translation along the Z axis.
+	dsPhysicsDOFMask_RotX = 0x8,   ///< Rotation along the X axis.
+	dsPhysicsDOFMask_RotY = 0x10,  ///< Rotation along the Y axis.
+	dsPhysicsDOFMask_RotZ = 0x20,  ///< Rotationalong the Z axis.
+
+	/** Translation along all axes. */
+	dsPhysicsDOFMask_TransAll = dsPhysicsDOFMask_TransX | dsPhysicsDOFMask_TransY |
+		dsPhysicsDOFMask_TransZ,
+	/** Rotation along all axes. */
+	dsPhysicsDOFMask_RotAll = dsPhysicsDOFMask_RotX | dsPhysicsDOFMask_RotY |
+		dsPhysicsDOFMask_RotZ,
+	/** Translation and rotation along all axes. */
+	dsPhysicsDOFMask_All = dsPhysicsDOFMask_TransAll | dsPhysicsDOFMask_RotAll
+} dsPhysicsDOFMask;
+
+/**
+ * @brief Enum for how a physics option does, or doesn't, move.
+ */
+typedef enum dsPhysicsMotionType
+{
+	/**
+	 * Object that that won't be moved by the physics simulation. While static objects may be moved
+	 * manually, they may not properly interact with other objects.
+	 */
+	dsPhysicsMotionType_Static,
+
+	/**
+	 * Object that may be moved directly or by setting the velocities, but won't be affected by
+	 * forces. When moved, it will be treated as an object with infinite mass and always move
+	 * dynamic objects away.
+	 */
+	dsPhysicsMotionType_Kinematic,
+
+	/**
+	 * Object that will be moved based on the physics simulation with the various forces applied.
+	 */
+	dsPhysicsMotionType_Dynamic
+} dsPhysicsMotionType;
+
+/**
+ * @brief Enum for flags to control the behavior of rigid bodies.
+ *
+ * Flags may be toggled after creation unless otherwise specified.
+ */
+typedef enum dsRigidBodyFlags
+{
+	dsRigidBodyFlags_Default = 0,  ///< Default behavior.
+	/** Can change the motion type. This flag can't be changed after creation. */
+	dsRigidBodyFlags_MutableMotionType = 0x1,
+	/**
+	 * Shapes may be added, removed, or transformed after creation. This flag can't be changed after
+	 * creation.
+	 */
+	dsRigidBodyFlags_MutableShape = 0x2,
+	/** Allow the body to be scaled. This flag can't be changed after creation. */
+	dsRigidBodyFlags_Scalable = 0x4,
+	/** Use linear collision to avoid fast-moving objects missing collisions. */
+	dsRigidBodyFlags_LinearCollision = 0x8,
+	dsRigidBodyFlags_Sensor = 0x10,             ///< Detect collisions but don't interact.
+	dsRigidBodyFlags_SensorDetectStatic = 0x20, ///< Allow detecting static objects as a sensor.
+	/** Always consider the body to be active, not allowing it to go to sleep. */
+	dsRigidBodyFlags_AlwaysActive = 0x40,
+	dsRigidBodyFlags_DisableGravity = 0x80,    ///< Disable gravity for the body.
+	dsRigidBodyFlags_GyroscopicForces = 0x100, ///< Apply gyroscopic forces to the body.
+	/** Avoid combining similar contact points from the same collision pair. */
+	dsRigidBodyFlags_AllContacts = 0x200,
+	dsRigidBodyFlags_CustomContactProperties = 0x400 ///< Contact properties may be overridden.
+} dsRigidBodyFlags;
+
+/**
+ * @brief Function to check whether two collision groups may collide.
+ * @param firstGroup The first collision group.
+ * @param secondGroup The second collision group.
+ * @return True if the groups may collide.
+ */
+typedef bool (*dsCanCollisionGroupsCollidFunction)(uint64_t firstGroup, uint64_t secondGroup);
+
+/**
+ * @brief Struct describing the initialization parameters for a rigid body.
+ *
+ * This groups together the body-specific parameters for creation for easier creation. Convenience
+ * functions may be used to set commonly changed values while leaving others at default.
+ *
+ * @see RigidBodyInit.h
+ */
+typedef struct dsRigidBodyInit
+{
+	/**
+	 * @brief User data associated with the rigid body.
+	 */
+	void* userData;
+
+	/**
+	 * @brief Function to destroy the user data.
+	 */
+	dsDestroyUserDataFunction destroyUserDataFunc;
+
+	/**
+	 * @brief Flags to control the behavior of the rigid body.
+	 */
+	dsRigidBodyFlags flags;
+
+	/**
+	 * @brief The type of motion for the rigid body.
+	 */
+	dsPhysicsMotionType motionType;
+
+	/**
+	 * @brief The mask of degrees of freedom the simulation may modify.
+	 */
+	dsPhysicsDOFMask dofMask;
+
+	/**
+	 * @brief The layer the rigid body is associated with.
+	 */
+	dsPhysicsLayer layer;
+
+	/**
+	 * @brief Collision group ID that the body belongs to.
+	 */
+	uint64_t collisionGroup;
+
+	/**
+	 * @brief Function to check whether two collision groups can collide.
+	 *
+	 * When checking a pair of intersecting bodies, they will collide if both set this function
+	 * to NULL or the function returns true. Behavior is undefined if the function is set on both
+	 * bodies and would return true for one body but false the other.
+	 */
+	dsCanCollisionGroupsCollidFunction canCollisionGroupsCollideFunc;
+
+	/**
+	 * @brief The position of the body in world space.
+	 */
+	dsVector3f position;
+
+	/**
+	 * @brief The orientation of the body in world space.
+	 */
+	dsQuaternion4f orientation;
+
+	/**
+	 * @brief The scale factor of the body.
+	 *
+	 * This will only be used if dsRigidBodyFlags_Scalable is set.
+	 */
+	dsVector3f scale;
+
+	/**
+	 * @brief The initial linear velocity of the body.
+	 */
+	dsVector3f linearVelocity;
+
+	/**
+	 * @brief The initial angular velocity of the body.
+	 */
+	dsVector3f angularVelocity;
+
+	/**
+	 * @brief Explicit center of mass for the body.
+	 */
+	dsVector3f centerOfMass;
+
+	/**
+	 * @brief True if centerOfMass is set, false to compute the center of mass.
+	 */
+	bool centerOfMassSet;
+
+	/**
+	 * @brief The mass of the body.
+	 */
+	float mass;
+
+	/**
+	 * @brief The coefficient of friction, with 0 meaning no friction and increasing values having
+	 * higher friction.
+	 */
+	float friction;
+
+	/**
+	 * @brief The restitution value, where 0 is fully inelastic and 1 is fully elastic.
+	 */
+	float restitution;
+
+	/**
+	 * @brief Linear damping factor in the range [0, 1] to reduce the velocity over time.
+	 *
+	 * Defaults to a small value to avoid moving forever.
+	 */
+	float linearDamping;
+
+	/**
+	 * @brief Angular damping factor in the range [0, 1] to reduce the angular velocity over time.
+	 *
+	 * Defaults to a small value to avoid moving forever.
+	 */
+	float angularDamping;
+
+	/**
+	 * @brief The maximum linear velocity.
+	 *
+	 * Defaults to a large value to avoid simulation instability.
+	 */
+	float maxLinearVelocity;
+
+	/**
+	 * @brief The maximum angular velocity in radians/s.
+	 *
+	 * Defaults to a large value to avoid simulation instability.
+	 */
+	float maxAngularVelocity;
+
+	/**
+	 * @brief The expected number of shapes.
+	 *
+	 * If the number of shapes is known ahead of time, this may be set to a non-zero number to
+	 * allocate space for those shapes ahead of time. This doesn't limit the number of final shapes
+	 * that may be added.
+	 */
+	uint32_t shapeCount;
+} dsRigidBodyInit;
+
+/**
+ * @brief Struct describing a rigid body for use by physics simulations.
+ *
+ * Rigid bodies may not be deformed, with the shape remaining the same as they are simulated, though
+ * a limited form of deformation may be achieved by connecting multiple rigid bodies with
+ * constraints.
+ *
+ * Physics implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsRigidBody and the true internal type.
+ *
+ * Members that won't be modified during simulation are stored by value for easy access. Members
+ * that may be updated on a per-frame basis, such as the velocity, must be queried to avoid
+ * unnecessary copies. The exception to this is the position and rotation, since these will almost
+ * always be used.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ * @see RigidBody.h
+ */
+typedef struct dsRigidBody
+{
+	/**
+	 * @brief The physics engine the rigid body was created with.
+	 */
+	dsPhysicsEngine* engine;
+
+	/**
+	 * @brief The allocator the rigid body was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief User data associated with the rigid body.
+	 */
+	void* userData;
+
+	/**
+	 * @brief Function to destroy the user data.
+	 */
+	dsDestroyUserDataFunction destroyUserDataFunc;
+
+	/**
+	 * @brief Flags to control the behavior of the rigid body.
+	 */
+	dsRigidBodyFlags flags;
+
+	/**
+	 * @brief The type of motion for the rigid body.
+	 */
+	dsPhysicsMotionType motionType;
+
+	/**
+	 * @brief The mask of degrees of freedom the simulation may modify.
+	 */
+	dsPhysicsDOFMask dofMask;
+
+	/**
+	 * @brief The layer the rigid body is associated with.
+	 */
+	dsPhysicsLayer layer;
+
+	/**
+	 * @brief Collision group ID that the body belongs to.
+	 */
+	uint64_t collisionGroup;
+
+	/**
+	 * @brief Function to check whether two collision groups can collide.
+	 *
+	 * When checking a pair of intersecting bodies, they will collide if both set this function
+	 * to NULL or the function returns true. Behavior is undefined if the function is set on both
+	 * bodies and would return true for one body but false the other.
+	 */
+	dsCanCollisionGroupsCollidFunction canCollisionGroupsCollideFunc;
+
+	/**
+	 * @brief The position of the body in world space.
+	 */
+	dsVector3f position;
+
+	/**
+	 * @brief The orientation of the body in world space.
+	 */
+	dsVector4f orientation;
+
+	/**
+	 * @brief The scale factor of the body.
+	 *
+	 * This will only be used if dsRigidBodyFlags_Scalable is set.
+	 */
+	dsVector3f scale;
+
+	/**
+	 * @brief The mass of the body.
+	 */
+	float mass;
+
+	/**
+	 * @brief The coefficient of friction, with 0 meaning no friction and increasing values having
+	 * higher friction.
+	 */
+	float friction;
+
+	/**
+	 * @brief The restitution value, where 0 is fully inelastic and 1 is fully elastic.
+	 */
+	float restitution;
+
+	/**
+	 * @brief Linear damping factor in the range [0, 1] to reduce the velocity over time.
+	 */
+	float linearDamping;
+
+	/**
+	 * @brief Angular damping factor in the range [0, 1] to reduce the angular velocity over time.
+	 */
+	float angularDamping;
+
+	/**
+	 * @brief The maximum linear velocity.
+	 */
+	float maxLinearVelocity;
+
+	/**
+	 * @brief The maximum angular velocity in radians/s.
+	 */
+	float maxAngularVelocity;
+
+	/**
+	 * @brief The shapes associated with the body.
+	 */
+	dsTransformedPhysicsShape* shapes;
+
+	/**
+	 * @brief The number of shapes in the body.
+	 */
+	uint32_t shapeCount;
+
+	/**
+	 * @brief The maximum number of shapes before re-allocation is needed.
+	 */
+	uint32_t maxShapes;
+} dsRigidBody;
 
 /**
  * @brief Struct describing limits for objects within a scene.
@@ -410,3 +785,9 @@ struct dsPhysicsEngine
 #ifdef __cplusplus
 }
 #endif
+
+// Needs to be after the extern "C" block.
+/// @cond
+DS_ENUM_BITMASK_OPERATORS(dsPhysicsDOFMask);
+DS_ENUM_BITMASK_OPERATORS(dsRigidBodyFlags);
+/// @endcond

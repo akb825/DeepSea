@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,19 @@ extern "C"
  *
  * @see dsQuaternion4f dsQuaternion4d
  */
+
+/**
+ * @brief Sets a quaternion to an identity rotation value.
+ * @param[out] result The quaternion to set.
+ */
+#define dsQuaternion4_identityRotation(result) \
+	do \
+	{ \
+		(result).values[0] = 0; \
+		(result).values[1] = 0; \
+		(result).values[2] = 0; \
+		(result).values[3] = 1; \
+	} while (0)
 
 /**
  * @brief Multiplies two quaternions.
