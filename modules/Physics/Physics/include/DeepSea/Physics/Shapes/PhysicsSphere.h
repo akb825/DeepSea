@@ -49,6 +49,14 @@ DS_PHYSICS_EXPORT const dsPhysicsShapeType* dsPhysicsSphere_type(void);
 DS_PHYSICS_EXPORT dsPhysicsSphere* dsPhysicsSphere_create(dsPhysicsEngine* engine,
 	dsAllocator* allocator, float radius);
 
+/**
+ * @brief Destroys a physics sphere.
+ * @remark errno will be set on failure.
+ * @param sphere The sphere to destroy.
+ * @return False if the sphere couldn't be destroyed.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsSphere_destroy(dsPhysicsSphere* sphere);
+
 #ifdef __cplusplus
 }
 #endif

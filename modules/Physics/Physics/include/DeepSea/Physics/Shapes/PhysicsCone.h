@@ -55,6 +55,14 @@ DS_PHYSICS_EXPORT dsPhysicsCone* dsPhysicsCone_create(dsPhysicsEngine* engine,
 	dsAllocator* allocator, float height, float radius, dsPhysicsAxis axis,
 	float convexRadius);
 
+/**
+ * @brief Destroys a physics cone.
+ * @remark errno will be set on failure.
+ * @param cone The cone to destroy.
+ * @return False if the cone couldn't be destroyed.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsCone_destroy(dsPhysicsCone* cone);
+
 #ifdef __cplusplus
 }
 #endif

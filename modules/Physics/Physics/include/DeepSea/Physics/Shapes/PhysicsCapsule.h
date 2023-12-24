@@ -51,6 +51,14 @@ DS_PHYSICS_EXPORT const dsPhysicsShapeType* dsPhysicsCapsule_type(void);
 DS_PHYSICS_EXPORT dsPhysicsCapsule* dsPhysicsCapsule_create(dsPhysicsEngine* engine,
 	dsAllocator* allocator, float halfHeight, float radius, dsPhysicsAxis axis);
 
+/**
+ * @brief Destroys a physics capsule.
+ * @remark errno will be set on failure.
+ * @param capsule The capsule to destroy.
+ * @return False if the capsule couldn't be destroyed.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsCapsule_destroy(dsPhysicsCapsule* capsule);
+
 #ifdef __cplusplus
 }
 #endif

@@ -30,7 +30,7 @@ const dsPhysicsShapeType* dsPhysicsSphere_type(void)
 dsPhysicsSphere* dsPhysicsSphere_create(dsPhysicsEngine* engine, dsAllocator* allocator,
 	float radius)
 {
-	if (!engine || !engine->createSphereFunc)
+	if (!engine || !engine->createSphereFunc || !engine->destroySphereFunc)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -47,4 +47,19 @@ dsPhysicsSphere* dsPhysicsSphere_create(dsPhysicsEngine* engine, dsAllocator* al
 		allocator = engine->allocator;
 
 	return engine->createSphereFunc(engine, allocator, radius);
+}
+
+bool dsPhysicsSphere_destroy(dsPhysicsSphere* sphere)
+{
+	if (!sphere)
+		return true;
+
+	dsPhysicsEngine* engine = ((dsPhysicsShape*)sphere)->engine;
+	if (!engine || !engine->destroySphereFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	return engine->destroySphereFunc(engine, sphere);
 }

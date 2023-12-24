@@ -95,6 +95,14 @@ DS_PHYSICS_EXPORT uint32_t dsPhysicsConvexHull_getFace(uint32_t* outIndices,
 	uint32_t outIndexCapacity, dsVector3f* outNormal, const dsPhysicsConvexHull* convexHull,
 	uint32_t faceIndex);
 
+/**
+ * @brief Destroys a physics convex hull.
+ * @remark errno will be set on failure.
+ * @param convexHull The convex hull to destroy.
+ * @return False if the convex hull couldn't be destroyed.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsConvexHull_destroy(dsPhysicsConvexHull* convexHull);
+
 #ifdef __cplusplus
 }
 #endif

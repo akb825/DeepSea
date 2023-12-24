@@ -547,6 +547,14 @@ typedef dsPhysicsSphere* (*dsCreatePhysicsSphereFunction)(dsPhysicsEngine* engin
 	dsAllocator* allocator, float radius);
 
 /**
+ * @brief Function to destroy a physics sphere.
+ * @param engine The physics engine the sphere was created with.
+ * @param sphere The sphere to destroy.
+ * @return False if the sphere couldn't be destroyed.
+ */
+typedef bool (*dsDestroyPhysicsSphereFunction)(dsPhysicsEngine* engine, dsPhysicsSphere* sphere);
+
+/**
  * @brief Function to create a physics box.
  * @param engine The physics engine to create the box with.
  * @param allocator The allocator to create the box with.
@@ -556,6 +564,14 @@ typedef dsPhysicsSphere* (*dsCreatePhysicsSphereFunction)(dsPhysicsEngine* engin
  */
 typedef dsPhysicsBox* (*dsCreatePhysicsBoxFunction)(dsPhysicsEngine* engine,
 	dsAllocator* allocator, const dsVector3f* halfExtents, float convexRadius);
+
+/**
+ * @brief Function to destroy a physics box.
+ * @param engine The physics engine the box was created with.
+ * @param box The sphere to destroy.
+ * @return False if the box couldn't be destroyed.
+ */
+typedef bool (*dsDestroyPhysicsBoxFunction)(dsPhysicsEngine* engine, dsPhysicsBox* box);
 
 /**
  * @brief Function to create a physics capsule.
@@ -568,6 +584,14 @@ typedef dsPhysicsBox* (*dsCreatePhysicsBoxFunction)(dsPhysicsEngine* engine,
  */
 typedef dsPhysicsCapsule* (*dsCreatePhysicsCapsuleFunction)(dsPhysicsEngine* engine,
 	dsAllocator* allocator, float halfHeight, float radius, dsPhysicsAxis axis);
+
+/**
+ * @brief Function to destroy a physics capsule.
+ * @param engine The physics engine the capsule was created with.
+ * @param capsule The capsule to destroy.
+ * @return False if the capsule couldn't be destroyed.
+ */
+typedef bool (*dsDestroyPhysicsCapsuleFunction)(dsPhysicsEngine* engine, dsPhysicsCapsule* capsule);
 
 /**
  * @brief Function to create a physics cylinder.
@@ -584,6 +608,15 @@ typedef dsPhysicsCylinder* (*dsCreatePhysicsCylinderFunction)(dsPhysicsEngine* e
 	float convexRadius);
 
 /**
+ * @brief Function to destroy a physics cylinder.
+ * @param engine The physics engine the cylinder was created with.
+ * @param cylinder The cylinder to destroy.
+ * @return False if the cylinder couldn't be destroyed.
+ */
+typedef bool (*dsDestroyPhysicsCylinderFunction)(dsPhysicsEngine* engine,
+	dsPhysicsCylinder* cylinder);
+
+/**
  * @brief Function to create a physics cone.
  * @param engine The physics engine to create the cone with.
  * @param allocator The allocator to create the cone with.
@@ -596,6 +629,14 @@ typedef dsPhysicsCylinder* (*dsCreatePhysicsCylinderFunction)(dsPhysicsEngine* e
 typedef dsPhysicsCone* (*dsCreatePhysicsConeFunction)(dsPhysicsEngine* engine,
 	dsAllocator* allocator, float height, float radius, dsPhysicsAxis axis,
 	float convexRadius);
+
+/**
+ * @brief Function to destroy a physics cone.
+ * @param engine The physics engine the cone was created with.
+ * @param cone The cone to destroy.
+ * @return False if the cone couldn't be destroyed.
+ */
+typedef bool (*dsDestroyPhysicsConeFunction)(dsPhysicsEngine* engine, dsPhysicsCone* cone);
 
 /**
  * @brief Function to create a physics convex hull.
@@ -611,6 +652,15 @@ typedef dsPhysicsCone* (*dsCreatePhysicsConeFunction)(dsPhysicsEngine* engine,
 typedef dsPhysicsConvexHull* (*dsCreatePhysicsConvexHullFunction)(dsPhysicsEngine* engine,
 	dsAllocator* allocator, const void* vertices, uint32_t vertexCount, size_t vertexStride,
 	float convexRadius, const char* cacheName);
+
+/**
+ * @brief Function to destroy a physics convex hull.
+ * @param engine The physics engine the convex hull was created with.
+ * @param convexHull The convex hull to destroy.
+ * @return False if the convex hull couldn't be destroyed.
+ */
+typedef bool (*dsDestroyPhysicsConvexHullFunction)(dsPhysicsEngine* engine,
+	dsPhysicsConvexHull* convexHull);
 
 /**
  * @brief Function to get a vertex from the convex hull.
@@ -676,6 +726,32 @@ typedef dsPhysicsMesh* (*dsCreatePhysicsMeshFunction)(dsPhysicsEngine* engine,
 	const char* cacheName);
 
 /**
+ * @brief Function to destroy a physics mesh.
+ * @param engine The physics engine the mesh was created with.
+ * @param mesh The mesh to destroy.
+ * @return False if the mesh couldn't be destroyed.
+ */
+typedef bool (*dsDestroyPhysicsMeshFunction)(dsPhysicsEngine* engine, dsPhysicsMesh* mesh);
+
+/**
+ * @brief Function to create a rigid body.
+ * @param engine The physics engine to create the rigid body with.
+ * @param allocator The allocator to create the rigid body with.
+ * @param initParams The initialization parameters.
+ * @return The rigid body or NULL if it couldn't be created.
+ */
+typedef dsRigidBody* (*dsCreateRigidBodyFunction)(dsPhysicsEngine* engine, dsAllocator* allocator,
+	const dsRigidBodyInit* initParams);
+
+/**
+ * @brief Function to destroy a rigid body.
+ * @param engine The physics engine the rigid body was created with.
+ * @param rigidBody The rigid body to destroy.
+ * @return False if the rigid body couldn't be destroyed.
+ */
+typedef bool (*dsDestroyRigidBodyFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody);
+
+/**
  * @brief Struct describing the core engine for managing physics.
  *
  * This is a base type for the physics engine, which is implemented to either integrate to a 3rd
@@ -714,8 +790,6 @@ struct dsPhysicsEngine
 	 */
 	const char* cacheDir;
 
-	// ------------------------------------------ Shape creation -----------------------------------
-
 	/**
 	 * @brief Function to destroy the physics engine.
 	 */
@@ -731,10 +805,17 @@ struct dsPhysicsEngine
 	 */
 	dsDestroyPhysicsSceneFunction destroySceneFunc;
 
+	// ------------------------------------------ Shape creation -----------------------------------
+
 	/**
 	 * @brief Function to create a physics sphere.
 	 */
 	dsCreatePhysicsSphereFunction createSphereFunc;
+
+	/**
+	 * @brief Function to destroy a physics sphere.
+	 */
+	dsDestroyPhysicsSphereFunction destroySphereFunc;
 
 	/**
 	 * @brief Function to create a physics box.
@@ -742,9 +823,19 @@ struct dsPhysicsEngine
 	dsCreatePhysicsBoxFunction createBoxFunc;
 
 	/**
+	 * @brief Function to destroy a physics box.
+	 */
+	dsDestroyPhysicsBoxFunction destroyBoxFunc;
+
+	/**
 	 * @brief Function to create a physics capsule.
 	 */
 	dsCreatePhysicsCapsuleFunction createCapsuleFunc;
+
+	/**
+	 * @brief Function to destroy a physics capsule.
+	 */
+	dsDestroyPhysicsCapsuleFunction destroyCapsuleFunc;
 
 	/**
 	 * @brief Function to create a physics cylinder.
@@ -752,14 +843,29 @@ struct dsPhysicsEngine
 	dsCreatePhysicsCylinderFunction createCylinderFunc;
 
 	/**
+	 * @brief Function to destroy a physics cylinder.
+	 */
+	dsDestroyPhysicsCylinderFunction destroyCylinderFunc;
+
+	/**
 	 * @brief Function to create a physics cone.
 	 */
 	dsCreatePhysicsConeFunction createConeFunc;
 
 	/**
+	 * @brief Function to destroy a physics cone.
+	 */
+	dsDestroyPhysicsConeFunction destroyConeFunc;
+
+	/**
 	 * @brief Function to create a physics convex hull.
 	 */
 	dsCreatePhysicsConvexHullFunction createConvexHullFunc;
+
+	/**
+	 * @brief Function to destroy a physics convex hull.
+	 */
+	dsDestroyPhysicsConvexHullFunction destroyConvexHullFunc;
 
 	/**
 	 * @brief Function to get the vertex of a convex hull.
@@ -780,6 +886,23 @@ struct dsPhysicsEngine
 	 * @brief Function to create a physics mesh.
 	 */
 	dsCreatePhysicsMeshFunction createMeshFunc;
+
+	/**
+	 * @brief Function to destroy a physics mesh.
+	 */
+	dsDestroyPhysicsMeshFunction destroyMeshFunc;
+
+	// ------------------------------------------- Rigid bodies ------------------------------------
+
+	/**
+	 * @brief Function to create a rigid body.
+	 */
+	dsCreateRigidBodyFunction createRigidBodyFunc;
+
+	/**
+	 * @brief Function to destroy a rigid body.
+	 */
+	dsDestroyRigidBodyFunction destroyRigidBodyFunc;
 };
 
 #ifdef __cplusplus

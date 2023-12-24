@@ -30,7 +30,8 @@ const dsPhysicsShapeType* dsPhysicsCylinder_type(void)
 dsPhysicsCylinder* dsPhysicsCylinder_create(dsPhysicsEngine* engine, dsAllocator* allocator,
 	float halfHeight, float radius, dsPhysicsAxis axis, float convexRadius)
 {
-	if (!engine || !engine->createCylinderFunc || axis < dsPhysicsAxis_X || axis > dsPhysicsAxis_Z)
+	if (!engine || !engine->createCylinderFunc || !engine->destroyConvexHullFunc ||
+		axis < dsPhysicsAxis_X || axis > dsPhysicsAxis_Z)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -61,4 +62,19 @@ dsPhysicsCylinder* dsPhysicsCylinder_create(dsPhysicsEngine* engine, dsAllocator
 		allocator = engine->allocator;
 
 	return engine->createCylinderFunc(engine, allocator, halfHeight, radius, axis, convexRadius);
+}
+
+bool dsPhysicsCylinder_destroy(dsPhysicsCylinder* cylinder)
+{
+	if (!cylinder)
+		return true;
+
+	dsPhysicsEngine* engine = ((dsPhysicsShape*)cylinder)->engine;
+	if (!engine || !engine->destroyCylinderFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	return engine->destroyCylinderFunc(engine, cylinder);
 }

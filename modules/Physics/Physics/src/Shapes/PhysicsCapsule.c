@@ -30,7 +30,8 @@ const dsPhysicsShapeType* dsPhysicsCapsule_type(void)
 dsPhysicsCapsule* dsPhysicsCapsule_create(dsPhysicsEngine* engine, dsAllocator* allocator,
 	float halfHeight, float radius, dsPhysicsAxis axis)
 {
-	if (!engine || !engine->createCapsuleFunc || axis < dsPhysicsAxis_X || axis > dsPhysicsAxis_Z)
+	if (!engine || !engine->createCapsuleFunc || !engine->destroyCapsuleFunc ||
+		axis < dsPhysicsAxis_X || axis > dsPhysicsAxis_Z)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -54,4 +55,19 @@ dsPhysicsCapsule* dsPhysicsCapsule_create(dsPhysicsEngine* engine, dsAllocator* 
 		allocator = engine->allocator;
 
 	return engine->createCapsuleFunc(engine, allocator, halfHeight, radius, axis);
+}
+
+bool dsPhysicsCapsule_destroy(dsPhysicsCapsule* capsule)
+{
+	if (!capsule)
+		return true;
+
+	dsPhysicsEngine* engine = ((dsPhysicsShape*)capsule)->engine;
+	if (!engine || !engine->destroyCapsuleFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	return engine->destroyCapsuleFunc(engine, capsule);
 }

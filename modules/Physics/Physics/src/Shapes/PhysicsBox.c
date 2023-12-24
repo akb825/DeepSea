@@ -30,7 +30,7 @@ const dsPhysicsShapeType* dsPhysicsBox_type(void)
 dsPhysicsBox* dsPhysicsBox_create(dsPhysicsEngine* engine, dsAllocator* allocator,
 	const dsVector3f* halfExtents, float convexRadius)
 {
-	if (!engine || !engine->createBoxFunc || !halfExtents)
+	if (!engine || !engine->createBoxFunc || !engine->destroyBoxFunc || !halfExtents)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -54,4 +54,19 @@ dsPhysicsBox* dsPhysicsBox_create(dsPhysicsEngine* engine, dsAllocator* allocato
 		allocator = engine->allocator;
 
 	return engine->createBoxFunc(engine, allocator, halfExtents, convexRadius);
+}
+
+bool dsPhysicsBox_destroy(dsPhysicsBox* box)
+{
+	if (!box)
+		return true;
+
+	dsPhysicsEngine* engine = ((dsPhysicsShape*)box)->engine;
+	if (!engine || !engine->destroyBoxFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	return engine->destroyBoxFunc(engine, box);
 }

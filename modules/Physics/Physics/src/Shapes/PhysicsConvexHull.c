@@ -34,7 +34,8 @@ dsPhysicsConvexHull* dsPhysicsConvexHull_create(dsPhysicsEngine* engine, dsAlloc
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!engine || !engine->createConvexHullFunc || !vertices || vertexCount < 3)
+	if (!engine || !engine->createConvexHullFunc || !engine->destroyConvexHullFunc || !vertices ||
+		vertexCount < 3)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -139,4 +140,19 @@ uint32_t dsPhysicsConvexHull_getFace(uint32_t* outIndices, uint32_t outIndexCapa
 
 	return shape->engine->getConvexHullFaceFunc(outIndices, outIndexCapacity, outNormal,
 		shape->engine, convexHull, faceIndex);
+}
+
+bool dsPhysicsConvexHull_destroy(dsPhysicsConvexHull* convexHull)
+{
+	if (!convexHull)
+		return true;
+
+	dsPhysicsEngine* engine = ((dsPhysicsShape*)convexHull)->engine;
+	if (!engine || !engine->destroyConvexHullFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	return engine->destroyConvexHullFunc(engine, convexHull);
 }

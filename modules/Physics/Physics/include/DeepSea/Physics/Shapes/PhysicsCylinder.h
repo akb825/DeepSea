@@ -55,6 +55,14 @@ DS_PHYSICS_EXPORT dsPhysicsCylinder* dsPhysicsCylinder_create(dsPhysicsEngine* e
 	dsAllocator* allocator, float halfHeight, float radius, dsPhysicsAxis axis,
 	float convexRadius);
 
+/**
+ * @brief Destroys a physics cylinder.
+ * @remark errno will be set on failure.
+ * @param cylinder The cylinder to destroy.
+ * @return False if the cylinder couldn't be destroyed.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsCylinder_destroy(dsPhysicsCylinder* cylinder);
+
 #ifdef __cplusplus
 }
 #endif

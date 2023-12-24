@@ -68,6 +68,14 @@ DS_PHYSICS_EXPORT dsPhysicsMesh* dsPhysicsMesh_create(dsPhysicsEngine* engine,
 	const dsPhysicsShapePartMaterial* triangleMaterials, uint32_t triangleMaterialCount,
 	const char* cacheName);
 
+/**
+ * @brief Destroys a physics mesh.
+ * @remark errno will be set on failure.
+ * @param mesh The mesh to destroy.
+ * @return False if the mesh couldn't be destroyed.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsMesh_destroy(dsPhysicsMesh* mesh);
+
 #ifdef __cplusplus
 }
 #endif

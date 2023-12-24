@@ -36,8 +36,9 @@ dsPhysicsMesh* dsPhysicsMesh_create(dsPhysicsEngine* engine, dsAllocator* alloca
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!engine || !engine->createMeshFunc || !vertices || vertexCount < 3 || !indices ||
-		triangleCount == 0 || (!triangleMaterials && triangleMaterialCount > 0))
+	if (!engine || !engine->createMeshFunc || !engine->destroyMeshFunc || !vertices ||
+		vertexCount < 3 || !indices || triangleCount == 0 ||
+		(!triangleMaterials && triangleMaterialCount > 0))
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -82,4 +83,19 @@ dsPhysicsMesh* dsPhysicsMesh_create(dsPhysicsEngine* engine, dsAllocator* alloca
 		vertexStride, indices, triangleCount, indexSize, triangleMaterialIndices,
 		triangleMaterialIndexSize, triangleMaterials, triangleMaterialCount, cacheName);
 	DS_PROFILE_FUNC_RETURN(mesh);
+}
+
+bool dsPhysicsMesh_destroy(dsPhysicsMesh* mesh)
+{
+	if (!mesh)
+		return true;
+
+	dsPhysicsEngine* engine = ((dsPhysicsShape*)mesh)->engine;
+	if (!engine || !engine->destroyMeshFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	return engine->destroyMeshFunc(engine, mesh);
 }

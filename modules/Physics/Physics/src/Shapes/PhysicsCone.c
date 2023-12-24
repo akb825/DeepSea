@@ -30,7 +30,8 @@ const dsPhysicsShapeType* dsPhysicsCone_type(void)
 dsPhysicsCone* dsPhysicsCone_create(dsPhysicsEngine* engine, dsAllocator* allocator,
 	float halfHeight, float radius, dsPhysicsAxis axis, float convexRadius)
 {
-	if (!engine || !engine->createConeFunc || axis < dsPhysicsAxis_X || axis > dsPhysicsAxis_Z)
+	if (!engine || !engine->createConeFunc || !engine->destroyConeFunc || axis < dsPhysicsAxis_X ||
+		axis > dsPhysicsAxis_Z)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -61,4 +62,19 @@ dsPhysicsCone* dsPhysicsCone_create(dsPhysicsEngine* engine, dsAllocator* alloca
 		allocator = engine->allocator;
 
 	return engine->createConeFunc(engine, allocator, halfHeight, radius, axis, convexRadius);
+}
+
+bool dsPhysicsCone_destroy(dsPhysicsCone* cone)
+{
+	if (!cone)
+		return true;
+
+	dsPhysicsEngine* engine = ((dsPhysicsShape*)cone)->engine;
+	if (!engine || !engine->destroyConeFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	return engine->destroyConeFunc(engine, cone);
 }

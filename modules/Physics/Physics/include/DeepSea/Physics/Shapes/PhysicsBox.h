@@ -53,6 +53,14 @@ DS_PHYSICS_EXPORT const dsPhysicsShapeType* dsPhysicsBox_type(void);
 DS_PHYSICS_EXPORT dsPhysicsBox* dsPhysicsBox_create(dsPhysicsEngine* engine,
 	dsAllocator* allocator, const dsVector3f* halfExtents, float convexRadius);
 
+/**
+ * @brief Destroys a physics box.
+ * @remark errno will be set on failure.
+ * @param box The box to destroy.
+ * @return False if the box couldn't be destroyed.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsBox_destroy(dsPhysicsBox* box);
+
 #ifdef __cplusplus
 }
 #endif
