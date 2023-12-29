@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,3 +116,11 @@ void dsMatrix22d_transpose(dsMatrix22d* result, const dsMatrix22d* a);
 
 float dsMatrix22f_determinant(const dsMatrix22f* a);
 double dsMatrix22d_determinant(const dsMatrix22d* a);
+
+bool dsMatrix22f_jacobiEigenvalues(dsMatrix22f* outEigenvectors, dsVector2f* outEigenvalues,
+	const dsMatrix22f* a);
+bool dsMatrix22d_jacobiEigenvalues(dsMatrix22d* outEigenvectors, dsVector2d* outEigenvalues,
+	const dsMatrix22d* a);
+
+void dsMatrix22f_sortEigenvalues(dsMatrix22f* eigenvectors, dsVector2f* eigenvalues);
+void dsMatrix22d_sortEigenvalues(dsMatrix22d* eigenvectors, dsVector2d* eigenvalues);

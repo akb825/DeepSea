@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -393,3 +393,11 @@ double dsMatrix33d_determinant(dsMatrix33d* a);
 
 void dsMatrix33f_fastInvert(dsMatrix33f* result, const dsMatrix33f* a);
 void dsMatrix33d_fastInvert(dsMatrix33d* result, const dsMatrix33d* a);
+
+bool dsMatrix33f_jacobiEigenvalues(dsMatrix33f* outEigenvectors, dsVector3f* outEigenvalues,
+	const dsMatrix33f* a);
+bool dsMatrix33d_jacobiEigenvalues(dsMatrix33d* outEigenvectors, dsVector3d* outEigenvalues,
+	const dsMatrix33d* a);
+
+void dsMatrix33f_sortEigenvalues(dsMatrix33f* eigenvectors, dsVector3f* eigenvalues);
+void dsMatrix33d_sortEigenvalues(dsMatrix33d* eigenvectors, dsVector3d* eigenvalues);

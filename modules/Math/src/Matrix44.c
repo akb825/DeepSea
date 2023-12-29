@@ -836,35 +836,57 @@ void dsMatrix44d_makePerspective(dsMatrix44d* result, double fovy, double aspect
 
 void dsMatrix44f_identity(dsMatrix44f* result);
 void dsMatrix44d_identity(dsMatrix44d* result);
+
 void dsMatrix44f_mul(dsMatrix44f* result, const dsMatrix44f* a, const dsMatrix44f* b);
 void dsMatrix44d_mul(dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b);
+
 void dsMatrix44f_affineMul(dsMatrix44f* result, const dsMatrix44f* a, const dsMatrix44f* b);
 void dsMatrix44d_affineMul(dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b);
+
 void dsMatrix44f_transform(dsVector4f* result, const dsMatrix44f* mat, const dsVector4f* vec);
 void dsMatrix44d_transform(dsVector4d* result, const dsMatrix44d* mat, const dsVector4d* vec);
+
 void dsMatrix44f_transformTransposed(dsVector4f* result, const dsMatrix44f* mat,
 	const dsVector4f* vec);
 void dsMatrix44d_transformTransposed(dsVector4d* result, const dsMatrix44d* mat,
 	const dsVector4d* vec);
+
 void dsMatrix44f_transpose(dsMatrix44f* result, const dsMatrix44f* a);
 void dsMatrix44d_transpose(dsMatrix44d* result, const dsMatrix44d* a);
+
 float dsMatrix44f_determinant(dsMatrix44f* a);
 double dsMatrix44d_determinant(dsMatrix44d* a);
+
 void dsMatrix44f_fastInvert(dsMatrix44f* result, const dsMatrix44f* a);
 void dsMatrix44d_fastInvert(dsMatrix44d* result, const dsMatrix44d* a);
+
 void dsMatrix44f_affineInvert(dsMatrix44f* result, const dsMatrix44f* a);
 void dsMatrix44d_affineInvert(dsMatrix44d* result, const dsMatrix44d* a);
+
 void dsMatrix44f_affineInvert33(dsMatrix33f* result, const dsMatrix44f* a);
 void dsMatrix44d_affineInvert33(dsMatrix33d* result, const dsMatrix44d* a);
+
 void dsMatrix44f_invert(dsMatrix44f* result, const dsMatrix44f* a);
 void dsMatrix44d_invert(dsMatrix44d* result, const dsMatrix44d* a);
+
 void dsMatrix44f_inverseTranspose(dsMatrix33f* result, const dsMatrix44f* a);
 void dsMatrix44d_inverseTranspose(dsMatrix33d* result, const dsMatrix44d* a);
+
 void dsMatrix44f_makeTranslate(dsMatrix44f* result, float x, float y, float z);
 void dsMatrix44d_makeTranslate(dsMatrix44d* result, double x, double y, double z);
+
 void dsMatrix44f_makeScale(dsMatrix44f* result, float x, float y, float z);
 void dsMatrix44d_makeScale(dsMatrix44d* result, double x, double y, double z);
+
 void dsMatrix44f_affineLerpScalar(dsMatrix44f* result, const dsMatrix44f* a, const dsMatrix44f* b,
 	float t);
 void dsMatrix44d_affineLerpScalar(dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b,
 	double t);
+
+bool dsMatrix44f_jacobiEigenvalues(dsMatrix44f* outEigenvectors, dsVector4f* outEigenvalues,
+	const dsMatrix44f* a);
+bool dsMatrix44d_jacobiEigenvalues(dsMatrix44d* outEigenvectors, dsVector4d* outEigenvalues,
+	const dsMatrix44d* a);
+
+void dsMatrix44f_sortEigenvalues(dsMatrix44f* eigenvectors, dsVector4f* eigenvalues);
+void dsMatrix44d_sortEigenvalues(dsMatrix44d* eigenvectors, dsVector4d* eigenvalues);

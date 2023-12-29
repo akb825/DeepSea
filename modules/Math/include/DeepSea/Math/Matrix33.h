@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Math/Export.h>
+#include <DeepSea/Math/JacobiEigenvalues.h>
 #include <DeepSea/Math/Types.h>
 
 #ifdef __cplusplus
@@ -370,6 +371,32 @@ DS_MATH_EXPORT void dsMatrix33f_makeScale3D(dsMatrix33f* result, float x, float 
 /** @copydoc dsMatrix33f_makeScale3D() */
 DS_MATH_EXPORT void dsMatrix33d_makeScale3D(dsMatrix33d* result, double x, double y, double z);
 
+/**
+ * @brief Extracts eigenvalues for a symmetric matrix using Jacobi iteration.
+ * @param[out] outEigenvectors The resulting eigenvectors.
+ * @param[out] outEigenvalues The resulting eigenvalues.
+ * @param a The matrix to extract the eigenvalues for.
+ * @return False if the eigenvalues couldn't be extracted.
+ */
+DS_MATH_EXPORT inline bool dsMatrix33f_jacobiEigenvalues(dsMatrix33f* outEigenvectors,
+	dsVector3f* outEigenvalues, const dsMatrix33f* a);
+
+/** @copydoc dsMatrix22f_jacobiEigenvalues() */
+DS_MATH_EXPORT inline bool dsMatrix33d_jacobiEigenvalues(dsMatrix33d* outEigenvectors,
+	dsVector3d* outEigenvalues, const dsMatrix33d* a);
+
+/**
+ * @brief Sorts eigenvalues and corresponding eigenvectors from largest to smallest.
+ * @param[inout] eigenvectors The eigenvectors to sort.
+ * @param[inout] eigenvalues The eigenvalues to sort.
+ */
+DS_MATH_EXPORT inline void dsMatrix33f_sortEigenvalues(dsMatrix33f* eigenvectors,
+	dsVector3f* eigenvalues);
+
+/** @copydoc dsMatrix22f_sortEigenvalues() */
+DS_MATH_EXPORT inline void dsMatrix33d_sortEigenvalues(dsMatrix33d* eigenvectors,
+	dsVector3d* eigenvalues);
+
 /// @cond
 #define dsMatrix33_determinantImpl(a, i0, i1, i2, j0, j1, j2) \
 	((a).values[i0][j0]*(a).values[i1][j1]*(a).values[i2][j2] + \
@@ -518,6 +545,30 @@ DS_MATH_EXPORT inline void dsMatrix33d_fastInvert(dsMatrix33d* result, const dsM
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	dsMatrix33_fastInvert(*result, *a);
+}
+
+inline bool dsMatrix33f_jacobiEigenvalues(dsMatrix33f* outEigenvectors, dsVector3f* outEigenvalues,
+	const dsMatrix33f* a)
+{
+	return dsJacobiEigenvaluesClassicf((float*)outEigenvectors, (float*)outEigenvalues,
+		(const float*)a, 3, 6);
+}
+
+inline bool dsMatrix33d_jacobiEigenvalues(dsMatrix33d* outEigenvectors, dsVector3d* outEigenvalues,
+	const dsMatrix33d* a)
+{
+	return dsJacobiEigenvaluesClassicd((double*)outEigenvectors, (double*)outEigenvalues,
+		(const double*)a, 3, 12);
+}
+
+inline void dsMatrix33f_sortEigenvalues(dsMatrix33f* eigenvectors, dsVector3f* eigenvalues)
+{
+	dsSortEigenvaluesf((float*)eigenvectors, (float*)eigenvalues, 3);
+}
+
+inline void dsMatrix33d_sortEigenvalues(dsMatrix33d* eigenvectors, dsVector3d* eigenvalues)
+{
+	dsSortEigenvaluesd((double*)eigenvectors, (double*)eigenvalues, 3);
 }
 
 #ifdef __cplusplus

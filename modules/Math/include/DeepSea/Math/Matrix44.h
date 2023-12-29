@@ -22,6 +22,7 @@
 #include <DeepSea/Math/SIMD/Matrix44SIMD.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Export.h>
+#include <DeepSea/Math/JacobiEigenvalues.h>
 #include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Types.h>
 #include <DeepSea/Math/Vector3.h>
@@ -538,6 +539,32 @@ DS_MATH_EXPORT void dsMatrix44f_makePerspective(dsMatrix44f* result, float fovy,
 /** @copydoc dsMatrix44f_makePerspective() */
 DS_MATH_EXPORT void dsMatrix44d_makePerspective(dsMatrix44d* result, double fovy, double aspect,
 	double near, double far, dsProjectionMatrixOptions options);
+
+/**
+ * @brief Extracts eigenvalues for a symmetric matrix using Jacobi iteration.
+ * @param[out] outEigenvectors The resulting eigenvectors.
+ * @param[out] outEigenvalues The resulting eigenvalues.
+ * @param a The matrix to extract the eigenvalues for.
+ * @return False if the eigenvalues couldn't be extracted.
+ */
+DS_MATH_EXPORT inline bool dsMatrix44f_jacobiEigenvalues(dsMatrix44f* outEigenvectors,
+	dsVector4f* outEigenvalues, const dsMatrix44f* a);
+
+/** @copydoc dsMatrix44f_jacobiEigenvalues() */
+DS_MATH_EXPORT inline bool dsMatrix44d_jacobiEigenvalues(dsMatrix44d* outEigenvectors,
+	dsVector4d* outEigenvalues, const dsMatrix44d* a);
+
+/**
+ * @brief Sorts eigenvalues and corresponding eigenvectors from largest to smallest.
+ * @param[inout] eigenvectors The eigenvectors to sort.
+ * @param[inout] eigenvalues The eigenvalues to sort.
+ */
+DS_MATH_EXPORT inline void dsMatrix44f_sortEigenvalues(dsMatrix44f* eigenvectors,
+	dsVector4f* eigenvalues);
+
+/** @copydoc dsMatrix44f_sortEigenvalues() */
+DS_MATH_EXPORT inline void dsMatrix44d_sortEigenvalues(dsMatrix44d* eigenvectors,
+	dsVector4d* eigenvalues);
 
 /** @copydoc dsMatrix44_identity() */
 DS_MATH_EXPORT inline void dsMatrix44f_identity(dsMatrix44f* result)
@@ -1292,6 +1319,30 @@ DS_MATH_EXPORT inline void dsMatrix44d_affineLerp(dsMatrix44d* result, const dsM
 #else
 	dsMatrix44d_affineLerpScalar(result, a, b, t);
 #endif
+}
+
+inline bool dsMatrix44f_jacobiEigenvalues(dsMatrix44f* outEigenvectors, dsVector4f* outEigenvalues,
+	const dsMatrix44f* a)
+{
+	return dsJacobiEigenvaluesClassicf((float*)outEigenvectors, (float*)outEigenvalues,
+		(const float*)a, 4, 12);
+}
+
+inline bool dsMatrix44d_jacobiEigenvalues(dsMatrix44d* outEigenvectors, dsVector4d* outEigenvalues,
+	const dsMatrix44d* a)
+{
+	return dsJacobiEigenvaluesClassicd((double*)outEigenvectors, (double*)outEigenvalues,
+		(const double*)a, 4, 24);
+}
+
+inline void dsMatrix44f_sortEigenvalues(dsMatrix44f* eigenvectors, dsVector4f* eigenvalues)
+{
+	dsSortEigenvaluesf((float*)eigenvectors, (float*)eigenvalues, 4);
+}
+
+inline void dsMatrix44d_sortEigenvalues(dsMatrix44d* eigenvectors, dsVector4d* eigenvalues)
+{
+	dsSortEigenvaluesd((double*)eigenvectors, (double*)eigenvalues, 4);
 }
 
 #ifdef __cplusplus

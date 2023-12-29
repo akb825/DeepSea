@@ -32,7 +32,6 @@ extern "C"
  * @brief Includes types used for rigid bodies and functions pointers for the implementation.
  */
 
-
 /**
  * @brief Enum for flags to control the behavior of rigid bodies.
  *
