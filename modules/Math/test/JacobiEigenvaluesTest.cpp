@@ -107,7 +107,7 @@ TYPED_TEST(JacobiEigenvaluesTest, Classic)
 
 	Matrix44Type eigenvectors;
 	Vector4Type eigenvalues;
-	ASSERT_TRUE(dsJacobiEigenvaluesClassic(eigenvectors, eigenvalues, matrix, 5));
+	ASSERT_TRUE(dsJacobiEigenvaluesClassic(eigenvectors, eigenvalues, matrix, 3));
 	dsSortEigenvalues(eigenvectors, eigenvalues);
 
 	Matrix44Type eigenvectorsTrans;
@@ -171,7 +171,7 @@ TYPED_TEST(JacobiEigenvaluesTest, Cyclic)
 
 	Matrix44Type eigenvectors;
 	Vector4Type eigenvalues;
-	ASSERT_TRUE(dsJacobiEigenvaluesCyclic(eigenvectors, eigenvalues, matrix, 8));
+	ASSERT_TRUE(dsJacobiEigenvaluesCyclic(eigenvectors, eigenvalues, matrix, 5));
 	dsSortEigenvalues(eigenvectors, eigenvalues);
 
 	Matrix44Type eigenvectorsTrans;
