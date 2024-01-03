@@ -275,7 +275,7 @@ bool dsRigidBody_setTransformMatrix(dsRigidBody* rigidBody, const dsMatrix44f* t
 	dsQuaternion4f orientation;
 	if (unitScale)
 	{
-		if (scalable)
+		if (scalable && !dsVector3f_equal(&one, &rigidBody->scale))
 			scalePtr = &one; // Avoid unit scales that are slightly off.
 		dsQuaternion4f_fromMatrix44(&orientation, transform);
 	}
@@ -319,7 +319,10 @@ bool dsRigidBody_setTransformMatrix(dsRigidBody* rigidBody, const dsMatrix44f* t
 			}
 		}
 
-		scalePtr = &scale;
+		// Only change the scale if it's different from the previous, since this may be more
+		// expensive than changing the position and rotation.
+		if (!dsVector3f_epsilonEqual(&scale, &rigidBody->scale, scaleEpsilon))
+			scalePtr = &scale;
 
 		dsVector3f invScale;
 		dsVector3_div(invScale, one, scale);

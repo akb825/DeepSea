@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Aaron Barany
+ * Copyright 2020-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -291,6 +291,19 @@ DS_MATH_EXPORT inline void dsQuaternion4d_invert(dsQuaternion4d* result, const d
 }
 
 /// @cond
+#define dsQuaternion4_mulQuatVec(result, a, b) \
+	do \
+	{ \
+		(result).values[0] = (a).values[3]*(b).values[0] + (a).values[1]*(b).values[2] - \
+			(a).values[2]*(b).values[1]; \
+		(result).values[1] = (a).values[3]*(b).values[1] + (a).values[2]*(b).values[0] - \
+			(a).values[0]*(b).values[2]; \
+		(result).values[2] = (a).values[3]*(b).values[2] + (a).values[0]*(b).values[1] - \
+			(a).values[1]*(b).values[0]; \
+		(result).values[3] = -(a).values[0]*(b).values[0] - (a).values[1]*(b).values[1] - \
+			(a).values[2]*(b).values[2]; \
+	} while (0)
+
 #define dsQuaternion4_mulToVector(result, a, b) \
 	do \
 	{ \
@@ -413,10 +426,9 @@ inline void dsQuaternion4f_rotate(dsVector3f* result, const dsQuaternion4f* a, c
 	DS_ASSERT(a);
 	DS_ASSERT(v);
 
-	dsQuaternion4f quatV = {{v->values[0], v->values[1], v->values[2], 0}};
 	dsQuaternion4f invA, tempQuat;
 	dsQuaternion4_invert(invA, *a);
-	dsQuaternion4_mul(tempQuat, *a, quatV);
+	dsQuaternion4_mulQuatVec(tempQuat, *a, *v);
 	dsQuaternion4_mulToVector(*result, tempQuat, invA);
 }
 
@@ -426,12 +438,14 @@ inline void dsQuaternion4d_rotate(dsVector3d* result, const dsQuaternion4d* a, c
 	DS_ASSERT(a);
 	DS_ASSERT(v);
 
-	dsQuaternion4d quatV = {{v->values[0], v->values[1], v->values[2], 0}};
 	dsQuaternion4d invA, tempQuat;
 	dsQuaternion4_invert(invA, *a);
-	dsQuaternion4_mul(tempQuat, *a, quatV);
+	dsQuaternion4_mulQuatVec(tempQuat, *a, *v);
 	dsQuaternion4_mulToVector(*result, tempQuat, invA);
 }
+
+#undef dsQuaternion4_mulQuatVec
+#undef dsQuaternion4_mulToVector
 
 #ifdef __cplusplus
 }

@@ -77,26 +77,6 @@ void dsMatrix22d_makeRotate(dsMatrix22d* result, double angle)
 	result->values[1][1] = cosAngle;
 }
 
-void dsMatrix22f_makeScale(dsMatrix22f* result, float x, float y)
-{
-	DS_ASSERT(result);
-	result->values[0][0] = x;
-	result->values[0][1] = 0;
-
-	result->values[1][0] = 0;
-	result->values[1][1] = y;
-}
-
-void dsMatrix22d_makeScale(dsMatrix22d* result, double x, double y)
-{
-	DS_ASSERT(result);
-	result->values[0][0] = x;
-	result->values[0][1] = 0;
-
-	result->values[1][0] = 0;
-	result->values[1][1] = y;
-}
-
 void dsMatrix22f_identity(dsMatrix22f* result);
 void dsMatrix22d_identity(dsMatrix22d* result);
 
@@ -116,6 +96,9 @@ void dsMatrix22d_transpose(dsMatrix22d* result, const dsMatrix22d* a);
 
 float dsMatrix22f_determinant(const dsMatrix22f* a);
 double dsMatrix22d_determinant(const dsMatrix22d* a);
+
+void dsMatrix22f_makeScale(dsMatrix22f* result, float x, float y);
+void dsMatrix22d_makeScale(dsMatrix22d* result, double x, double y);
 
 bool dsMatrix22f_jacobiEigenvalues(dsMatrix22f* outEigenvectors, dsVector2f* outEigenvalues,
 	const dsMatrix22f* a);

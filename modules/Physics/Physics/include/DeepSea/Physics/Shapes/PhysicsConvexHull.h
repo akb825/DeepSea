@@ -70,7 +70,6 @@ DS_PHYSICS_EXPORT bool dsPhysicsConvexHull_getVertex(dsVector3f* outVertex,
 
 /**
  * @brief Gets the number of vertices in a face for a convex hull.
- * @remark This is only valid to call if debug is true in the physics engine.
  * @remark errno will be set on failure.
  * @param convexHull The convex hull to get the face vertex count from.
  * @param faceIndex The index of the face.
@@ -81,7 +80,6 @@ DS_PHYSICS_EXPORT uint32_t dsPhysicsConvexHull_getFaceVertexCount(
 
 /**
  * @brief Gets the information for a face of a convex hull.
- * @remark This is only valid to call if debug is true in the physics engine.
  * @remark errno will be set on failure.
  * @param[out] outIndices The storage to hold the indives for the face.
  * @param outIndexCapacity The number of indies outIndices has space for. This must be at least as

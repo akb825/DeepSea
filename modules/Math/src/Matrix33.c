@@ -272,102 +272,6 @@ void dsMatrix33d_makeRotate3DAxisAngle(dsMatrix33d* result, const dsVector3d* ax
 	dsMatrix33_makeRotate3DAxisAngleImpl(*result, *axis, cosAngle, sinAngle, invCosAngle);
 }
 
-void dsMatrix33f_makeTranslate(dsMatrix33f* result, float x, float y)
-{
-	DS_ASSERT(result);
-	result->values[0][0] = 1;
-	result->values[0][1] = 0;
-	result->values[0][2] = 0;
-
-	result->values[1][0] = 0;
-	result->values[1][1] = 1;
-	result->values[1][2] = 0;
-
-	result->values[2][0] = x;
-	result->values[2][1] = y;
-	result->values[2][2] = 1;
-}
-
-void dsMatrix33d_makeTranslate(dsMatrix33d* result, double x, double y)
-{
-	DS_ASSERT(result);
-	result->values[0][0] = 1;
-	result->values[0][1] = 0;
-	result->values[0][2] = 0;
-
-	result->values[1][0] = 0;
-	result->values[1][1] = 1;
-	result->values[1][2] = 0;
-
-	result->values[2][0] = x;
-	result->values[2][1] = y;
-	result->values[2][2] = 1;
-}
-
-void dsMatrix33f_makeScale(dsMatrix33f* result, float x, float y)
-{
-	DS_ASSERT(result);
-	result->values[0][0] = x;
-	result->values[0][1] = 0;
-	result->values[0][2] = 0;
-
-	result->values[1][0] = 0;
-	result->values[1][1] = y;
-	result->values[1][2] = 0;
-
-	result->values[2][0] = 0;
-	result->values[2][1] = 0;
-	result->values[2][2] = 1;
-}
-
-void dsMatrix33d_makeScale(dsMatrix33d* result, double x, double y)
-{
-	DS_ASSERT(result);
-	result->values[0][0] = x;
-	result->values[0][1] = 0;
-	result->values[0][2] = 0;
-
-	result->values[1][0] = 0;
-	result->values[1][1] = y;
-	result->values[1][2] = 0;
-
-	result->values[2][0] = 0;
-	result->values[2][1] = 0;
-	result->values[2][2] = 1;
-}
-
-void dsMatrix33f_makeScale3D(dsMatrix33f* result, float x, float y, float z)
-{
-	DS_ASSERT(result);
-	result->values[0][0] = x;
-	result->values[0][1] = 0;
-	result->values[0][2] = 0;
-
-	result->values[1][0] = 0;
-	result->values[1][1] = y;
-	result->values[1][2] = 0;
-
-	result->values[2][0] = 0;
-	result->values[2][1] = 0;
-	result->values[2][2] = z;
-}
-
-void dsMatrix33d_makeScale3D(dsMatrix33d* result, double x, double y, double z)
-{
-	DS_ASSERT(result);
-	result->values[0][0] = x;
-	result->values[0][1] = 0;
-	result->values[0][2] = 0;
-
-	result->values[1][0] = 0;
-	result->values[1][1] = y;
-	result->values[1][2] = 0;
-
-	result->values[2][0] = 0;
-	result->values[2][1] = 0;
-	result->values[2][2] = z;
-}
-
 void dsMatrix33f_identity(dsMatrix33f* result);
 void dsMatrix33d_identity(dsMatrix33d* result);
 
@@ -393,6 +297,15 @@ double dsMatrix33d_determinant(dsMatrix33d* a);
 
 void dsMatrix33f_fastInvert(dsMatrix33f* result, const dsMatrix33f* a);
 void dsMatrix33d_fastInvert(dsMatrix33d* result, const dsMatrix33d* a);
+
+void dsMatrix33f_makeTranslate(dsMatrix33f* result, float x, float y);
+void dsMatrix33d_makeTranslate(dsMatrix33d* result, double x, double y);
+
+void dsMatrix33f_makeScale(dsMatrix33f* result, float x, float y);
+void dsMatrix33d_makeScale(dsMatrix33d* result, double x, double y);
+
+void dsMatrix33f_makeScale3D(dsMatrix33f* result, float x, float y, float z);
+void dsMatrix33d_makeScale3D(dsMatrix33d* result, double x, double y, double z);
 
 bool dsMatrix33f_jacobiEigenvalues(dsMatrix33f* outEigenvectors, dsVector3f* outEigenvalues,
 	const dsMatrix33f* a);

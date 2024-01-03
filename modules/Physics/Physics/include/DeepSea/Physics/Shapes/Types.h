@@ -348,6 +348,9 @@ typedef struct dsPhysicsCylinder
 /**
  * @brief Physics shape implementation for a cone.
  *
+ * The origin of the cone is at the tip, while the center of mass is at 3/4 the height along the
+ * given axis.
+ *
  * Some implementations may approximate the cone with a convex hull.
  *
  * @remark None of the members should be modified outside of the implementation.

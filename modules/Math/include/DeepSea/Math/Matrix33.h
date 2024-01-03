@@ -343,10 +343,10 @@ DS_MATH_EXPORT void dsMatrix33d_makeRotate3DAxisAngle(dsMatrix33d* result, const
  * @param x The transition in the x axis.
  * @param y The transition in the y axis.
  */
-DS_MATH_EXPORT void dsMatrix33f_makeTranslate(dsMatrix33f* result, float x, float y);
+DS_MATH_EXPORT inline void dsMatrix33f_makeTranslate(dsMatrix33f* result, float x, float y);
 
 /** @copydoc dsMatrix33f_makeTranslate() */
-DS_MATH_EXPORT void dsMatrix33d_makeTranslate(dsMatrix33d* result, double x, double y);
+DS_MATH_EXPORT inline void dsMatrix33d_makeTranslate(dsMatrix33d* result, double x, double y);
 
 /**
  * @brief Makes a 2D scale matrix.
@@ -354,10 +354,10 @@ DS_MATH_EXPORT void dsMatrix33d_makeTranslate(dsMatrix33d* result, double x, dou
  * @param x The scale in the x axis.
  * @param y The scale in the y axis.
  */
-DS_MATH_EXPORT void dsMatrix33f_makeScale(dsMatrix33f* result, float x, float y);
+DS_MATH_EXPORT inline void dsMatrix33f_makeScale(dsMatrix33f* result, float x, float y);
 
 /** @copydoc dsMatrix33f_makeScale() */
-DS_MATH_EXPORT void dsMatrix33d_makeScale(dsMatrix33d* result, double x, double y);
+DS_MATH_EXPORT inline void dsMatrix33d_makeScale(dsMatrix33d* result, double x, double y);
 
 /**
  * @brief Makes a 3D scale matrix.
@@ -366,10 +366,11 @@ DS_MATH_EXPORT void dsMatrix33d_makeScale(dsMatrix33d* result, double x, double 
  * @param y The scale in the y axis.
  * @param z The scale in the z axis.
  */
-DS_MATH_EXPORT void dsMatrix33f_makeScale3D(dsMatrix33f* result, float x, float y, float z);
+DS_MATH_EXPORT inline void dsMatrix33f_makeScale3D(dsMatrix33f* result, float x, float y, float z);
 
 /** @copydoc dsMatrix33f_makeScale3D() */
-DS_MATH_EXPORT void dsMatrix33d_makeScale3D(dsMatrix33d* result, double x, double y, double z);
+DS_MATH_EXPORT inline void dsMatrix33d_makeScale3D(dsMatrix33d* result, double x, double y,
+	double z);
 
 /**
  * @brief Extracts eigenvalues for a symmetric matrix using Jacobi iteration.
@@ -545,6 +546,102 @@ DS_MATH_EXPORT inline void dsMatrix33d_fastInvert(dsMatrix33d* result, const dsM
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	dsMatrix33_fastInvert(*result, *a);
+}
+
+inline void dsMatrix33f_makeTranslate(dsMatrix33f* result, float x, float y)
+{
+	DS_ASSERT(result);
+	result->values[0][0] = 1;
+	result->values[0][1] = 0;
+	result->values[0][2] = 0;
+
+	result->values[1][0] = 0;
+	result->values[1][1] = 1;
+	result->values[1][2] = 0;
+
+	result->values[2][0] = x;
+	result->values[2][1] = y;
+	result->values[2][2] = 1;
+}
+
+inline void dsMatrix33d_makeTranslate(dsMatrix33d* result, double x, double y)
+{
+	DS_ASSERT(result);
+	result->values[0][0] = 1;
+	result->values[0][1] = 0;
+	result->values[0][2] = 0;
+
+	result->values[1][0] = 0;
+	result->values[1][1] = 1;
+	result->values[1][2] = 0;
+
+	result->values[2][0] = x;
+	result->values[2][1] = y;
+	result->values[2][2] = 1;
+}
+
+inline void dsMatrix33f_makeScale(dsMatrix33f* result, float x, float y)
+{
+	DS_ASSERT(result);
+	result->values[0][0] = x;
+	result->values[0][1] = 0;
+	result->values[0][2] = 0;
+
+	result->values[1][0] = 0;
+	result->values[1][1] = y;
+	result->values[1][2] = 0;
+
+	result->values[2][0] = 0;
+	result->values[2][1] = 0;
+	result->values[2][2] = 1;
+}
+
+inline void dsMatrix33d_makeScale(dsMatrix33d* result, double x, double y)
+{
+	DS_ASSERT(result);
+	result->values[0][0] = x;
+	result->values[0][1] = 0;
+	result->values[0][2] = 0;
+
+	result->values[1][0] = 0;
+	result->values[1][1] = y;
+	result->values[1][2] = 0;
+
+	result->values[2][0] = 0;
+	result->values[2][1] = 0;
+	result->values[2][2] = 1;
+}
+
+inline void dsMatrix33f_makeScale3D(dsMatrix33f* result, float x, float y, float z)
+{
+	DS_ASSERT(result);
+	result->values[0][0] = x;
+	result->values[0][1] = 0;
+	result->values[0][2] = 0;
+
+	result->values[1][0] = 0;
+	result->values[1][1] = y;
+	result->values[1][2] = 0;
+
+	result->values[2][0] = 0;
+	result->values[2][1] = 0;
+	result->values[2][2] = z;
+}
+
+inline void dsMatrix33d_makeScale3D(dsMatrix33d* result, double x, double y, double z)
+{
+	DS_ASSERT(result);
+	result->values[0][0] = x;
+	result->values[0][1] = 0;
+	result->values[0][2] = 0;
+
+	result->values[1][0] = 0;
+	result->values[1][1] = y;
+	result->values[1][2] = 0;
+
+	result->values[2][0] = 0;
+	result->values[2][1] = 0;
+	result->values[2][2] = z;
 }
 
 inline bool dsMatrix33f_jacobiEigenvalues(dsMatrix33f* outEigenvectors, dsVector3f* outEigenvalues,

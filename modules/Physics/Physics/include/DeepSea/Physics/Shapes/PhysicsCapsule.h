@@ -45,7 +45,7 @@ DS_PHYSICS_EXPORT const dsPhysicsShapeType* dsPhysicsCapsule_type(void);
  *     used.
  * @param halfHeight The half height of the cylinder portion of the capsule. This must be > 0.
  * @param radius The radius of the capsule. This must be > 0.
- * @param axis The axis to align the capsule with. This must not be unaligned.
+ * @param axis The axis to align the capsule with.
  * @return The capsule or NULL if it couldn't be created.
  */
 DS_PHYSICS_EXPORT dsPhysicsCapsule* dsPhysicsCapsule_create(dsPhysicsEngine* engine,

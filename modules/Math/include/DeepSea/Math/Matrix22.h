@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -185,10 +185,10 @@ DS_MATH_EXPORT void dsMatrix22d_makeRotate(dsMatrix22d* result, double angle);
  * @param x The scale in the x axis.
  * @param y The scale in the y axis.
  */
-DS_MATH_EXPORT void dsMatrix22f_makeScale(dsMatrix22f* result, float x, float y);
+DS_MATH_EXPORT inline void dsMatrix22f_makeScale(dsMatrix22f* result, float x, float y);
 
 /** @copydoc dsMatrix22f_makeScale() */
-DS_MATH_EXPORT void dsMatrix22d_makeScale(dsMatrix22d* result, double x, double y);
+DS_MATH_EXPORT inline void dsMatrix22d_makeScale(dsMatrix22d* result, double x, double y);
 
 /**
  * @brief Extracts eigenvalues for a symmetric matrix using Jacobi iteration.
@@ -375,6 +375,26 @@ DS_MATH_EXPORT inline double dsMatrix22d_determinant(const dsMatrix22d* a)
 {
 	DS_ASSERT(a);
 	return dsMatrix22_determinant(*a);
+}
+
+inline void dsMatrix22f_makeScale(dsMatrix22f* result, float x, float y)
+{
+	DS_ASSERT(result);
+	result->values[0][0] = x;
+	result->values[0][1] = 0;
+
+	result->values[1][0] = 0;
+	result->values[1][1] = y;
+}
+
+inline void dsMatrix22d_makeScale(dsMatrix22d* result, double x, double y)
+{
+	DS_ASSERT(result);
+	result->values[0][0] = x;
+	result->values[0][1] = 0;
+
+	result->values[1][0] = 0;
+	result->values[1][1] = y;
 }
 
 inline bool dsMatrix22f_jacobiEigenvalues(dsMatrix22f* outEigenvectors, dsVector2f* outEigenvalues,

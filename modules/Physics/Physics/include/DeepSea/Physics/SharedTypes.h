@@ -18,6 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Types.h>
+#include <DeepSea/Math/Types.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -91,6 +92,51 @@ typedef enum dsPhysicsMotionType
 	 */
 	dsPhysicsMotionType_Dynamic
 } dsPhysicsMotionType;
+
+/**
+ * @brief Struct describing the mass and moment of inertia of a physics object.
+ *
+ * Instances are typically created from dsShape instances, and may be modified or combined from
+ * there. If the mass properties are known ahead of time, the values may be initialized explicitly.
+ *
+ * Default inertia for shapes will be computed using this and its accompanying functions. This
+ * ensures consistent and realistic inertia across implementations.
+ *
+ * The inertia is represented in local shape space, allowing for more accurate application of
+ * forces relative to the shape itself. inertiaRotate and inertiaTranslate, applied in that order,
+ * would transform the inertia (and shape it represents) relative the coordinate space for the
+ * overall object. For example, if you were to have a box where the local origin is at the base of
+ * the box, inertiaTranslate would be shifted up to the center of box.
+ *
+ * @see PhysicsMassProperties.h
+ */
+typedef struct dsPhysicsMassProperties
+{
+	/**
+	 * @brief The tensor matrix for the moment of inertia.
+	 */
+	dsMatrix33f inertia;
+	/**
+	 * @brief Translation for the frame of reference of the inertia tensor.
+	 *
+	 * This will be the point around which the object will rotate when in free-fall and is usually
+	 * the center of mass.
+	 */
+	dsVector3f inertiaTranslate;
+
+	/**
+	 * @brief Rotation for the frame of reference of the inertia tensor.
+	 */
+	dsQuaternion4f inertiaRotate;
+
+	/**
+	 * @brief The total mass for the object.
+	 *
+	 * @remark This is the unscaled mass. To get the final mass, call
+	 * dsPhysicsMassProperties_getScaledMass().
+	 */
+	float mass;
+} dsPhysicsMassProperties;
 
 #ifdef __cplusplus
 }

@@ -101,12 +101,6 @@ uint32_t dsPhysicsConvexHull_getFaceVertexCount(const dsPhysicsConvexHull* conve
 		return 0;
 	}
 
-	if (!shape->engine->debug)
-	{
-		errno = EPERM;
-		return 0;
-	}
-
 	if (faceIndex >= convexHull->faceCount)
 	{
 		errno = EINDEX;
@@ -123,12 +117,6 @@ uint32_t dsPhysicsConvexHull_getFace(uint32_t* outIndices, uint32_t outIndexCapa
 	if (!outIndices || !convexHull || !shape->engine || !shape->engine->getConvexHullFaceFunc)
 	{
 		errno = EINVAL;
-		return 0;
-	}
-
-	if (!shape->engine->debug)
-	{
-		errno = EPERM;
 		return 0;
 	}
 

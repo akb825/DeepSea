@@ -45,7 +45,7 @@ DS_PHYSICS_EXPORT const dsPhysicsShapeType* dsPhysicsCylinder_type(void);
  *     used.
  * @param halfHeight The half height of the cylinder. This must be > 0.
  * @param radius The radius of the cylinder. This must be > 0.
- * @param axis The axis to align the cylinder with. This must not be unaligned.
+ * @param axis The axis to align the cylinder with.
  * @param convexRadius The convex radius used for collision checks. Larger values will improve
  *     performance at the expense of precision by rounding the corners of the shape. This must be
  *     >= 0. Set to DS_DEFAULT_PHYSICS_SHAPE_CONVEX_RADIUS for typical shapes in meter space.
