@@ -72,28 +72,31 @@ TEST(PhysicsMassPropertiesTest, InitializeBox)
 	float volume = width*height*depth;
 	float mass = volume*density;
 	EXPECT_FLOAT_EQ(mass, massProperties.mass);
+	EXPECT_EQ(0, massProperties.centerOfMass.x);
+	EXPECT_EQ(0, massProperties.centerOfMass.y);
+	EXPECT_EQ(0, massProperties.centerOfMass.z);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.x);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.y);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.z);
 	EXPECT_EQ(0, massProperties.inertiaRotate.i);
 	EXPECT_EQ(0, massProperties.inertiaRotate.j);
 	EXPECT_EQ(0, massProperties.inertiaRotate.k);
 	EXPECT_EQ(1, massProperties.inertiaRotate.r);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.x);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.y);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.z);
 
-	EXPECT_FLOAT_EQ(1.0f/12.0f*mass*(dsPow2(height) + dsPow2(depth)),
-		massProperties.inertia.values[0][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][2]);
+	dsMatrix33f inertia;
+	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
 
-	EXPECT_EQ(0, massProperties.inertia.values[1][0]);
-	EXPECT_FLOAT_EQ(1.0f/12.0f*mass*(dsPow2(width) + dsPow2(depth)),
-		massProperties.inertia.values[1][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[1][2]);
+	EXPECT_FLOAT_EQ(1.0f/12.0f*mass*(dsPow2(height) + dsPow2(depth)), inertia.values[0][0]);
+	EXPECT_EQ(0, inertia.values[0][1]);
+	EXPECT_EQ(0, inertia.values[0][2]);
 
-	EXPECT_EQ(0, massProperties.inertia.values[2][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[2][1]);
-	EXPECT_FLOAT_EQ(1.0f/12.0f*mass*(dsPow2(width) + dsPow2(height)),
-		massProperties.inertia.values[2][2]);
+	EXPECT_EQ(0, inertia.values[1][0]);
+	EXPECT_FLOAT_EQ(1.0f/12.0f*mass*(dsPow2(width) + dsPow2(depth)), inertia.values[1][1]);
+	EXPECT_EQ(0, inertia.values[1][2]);
+
+	EXPECT_EQ(0, inertia.values[2][0]);
+	EXPECT_EQ(0, inertia.values[2][1]);
+	EXPECT_FLOAT_EQ(1.0f/12.0f*mass*(dsPow2(width) + dsPow2(height)), inertia.values[2][2]);
 }
 
 TEST(PhysicsMassPropertiesTest, InitializeSphere)
@@ -107,25 +110,31 @@ TEST(PhysicsMassPropertiesTest, InitializeSphere)
 	float volume = 4.0f/3.0f*(float)M_PI*dsPow3(radius);
 	float mass = volume*density;
 	EXPECT_FLOAT_EQ(mass, massProperties.mass);
+	EXPECT_EQ(0, massProperties.centerOfMass.x);
+	EXPECT_EQ(0, massProperties.centerOfMass.y);
+	EXPECT_EQ(0, massProperties.centerOfMass.z);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.x);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.y);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.z);
 	EXPECT_EQ(0, massProperties.inertiaRotate.i);
 	EXPECT_EQ(0, massProperties.inertiaRotate.j);
 	EXPECT_EQ(0, massProperties.inertiaRotate.k);
 	EXPECT_EQ(1, massProperties.inertiaRotate.r);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.x);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.y);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.z);
 
-	EXPECT_FLOAT_EQ(2.0f/5.0f*mass*dsPow2(radius), massProperties.inertia.values[0][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][2]);
+	dsMatrix33f inertia;
+	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
 
-	EXPECT_EQ(0, massProperties.inertia.values[1][0]);
-	EXPECT_FLOAT_EQ(2.0f/5.0f*mass*dsPow2(radius), massProperties.inertia.values[1][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[1][2]);
+	EXPECT_FLOAT_EQ(2.0f/5.0f*mass*dsPow2(radius), inertia.values[0][0]);
+	EXPECT_EQ(0, inertia.values[0][1]);
+	EXPECT_EQ(0, inertia.values[0][2]);
 
-	EXPECT_EQ(0, massProperties.inertia.values[2][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[2][1]);
-	EXPECT_FLOAT_EQ(2.0f/5.0f*mass*dsPow2(radius), massProperties.inertia.values[2][2]);
+	EXPECT_EQ(0, inertia.values[1][0]);
+	EXPECT_FLOAT_EQ(2.0f/5.0f*mass*dsPow2(radius), inertia.values[1][1]);
+	EXPECT_EQ(0, inertia.values[1][2]);
+
+	EXPECT_EQ(0, inertia.values[2][0]);
+	EXPECT_EQ(0, inertia.values[2][1]);
+	EXPECT_FLOAT_EQ(2.0f/5.0f*mass*dsPow2(radius), inertia.values[2][2]);
 }
 
 TEST(PhysicsMassPropertiesTest, InitializeCylinder)
@@ -141,61 +150,72 @@ TEST(PhysicsMassPropertiesTest, InitializeCylinder)
 	float volume = (float)M_PI*dsPow2(radius)*height;
 	float mass = volume*density;
 	EXPECT_FLOAT_EQ(mass, massProperties.mass);
+	EXPECT_EQ(0, massProperties.centerOfMass.x);
+	EXPECT_EQ(0, massProperties.centerOfMass.y);
+	EXPECT_EQ(0, massProperties.centerOfMass.z);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.x);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.y);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.z);
 	EXPECT_EQ(0, massProperties.inertiaRotate.i);
 	EXPECT_EQ(0, massProperties.inertiaRotate.j);
 	EXPECT_EQ(0, massProperties.inertiaRotate.k);
 	EXPECT_EQ(1, massProperties.inertiaRotate.r);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.x);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.y);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.z);
 
 	float heightInertia = 1/2.0f*mass*dsPow2(radius);
 	float radiusInertia = 1/12.0f*mass*(3*dsPow2(radius) + dsPow2(height));
-	EXPECT_FLOAT_EQ(heightInertia, massProperties.inertia.values[0][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][2]);
 
-	EXPECT_EQ(0, massProperties.inertia.values[1][0]);
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[1][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[1][2]);
+	dsMatrix33f inertia;
+	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
 
-	EXPECT_EQ(0, massProperties.inertia.values[2][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[2][1]);
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[2][2]);
+	EXPECT_FLOAT_EQ(heightInertia, inertia.values[0][0]);
+	EXPECT_EQ(0, inertia.values[0][1]);
+	EXPECT_EQ(0, inertia.values[0][2]);
+
+	EXPECT_EQ(0, inertia.values[1][0]);
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[1][1]);
+	EXPECT_EQ(0, inertia.values[1][2]);
+
+	EXPECT_EQ(0, inertia.values[2][0]);
+	EXPECT_EQ(0, inertia.values[2][1]);
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[2][2]);
 
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeCylinder(&massProperties, height/2, radius,
 		dsPhysicsAxis_Y, density));
 
 	EXPECT_FLOAT_EQ(mass, massProperties.mass);
 
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[0][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][2]);
+	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
 
-	EXPECT_EQ(0, massProperties.inertia.values[1][0]);
-	EXPECT_FLOAT_EQ(heightInertia, massProperties.inertia.values[1][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[1][2]);
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[0][0]);
+	EXPECT_EQ(0, inertia.values[0][1]);
+	EXPECT_EQ(0, inertia.values[0][2]);
 
-	EXPECT_EQ(0, massProperties.inertia.values[2][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[2][1]);
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[2][2]);
+	EXPECT_EQ(0, inertia.values[1][0]);
+	EXPECT_FLOAT_EQ(heightInertia, inertia.values[1][1]);
+	EXPECT_EQ(0, inertia.values[1][2]);
+
+	EXPECT_EQ(0, inertia.values[2][0]);
+	EXPECT_EQ(0, inertia.values[2][1]);
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[2][2]);
 
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeCylinder(&massProperties, height/2, radius,
 		dsPhysicsAxis_Z, density));
 
 	EXPECT_FLOAT_EQ(mass, massProperties.mass);
 
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[0][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][2]);
+	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
 
-	EXPECT_EQ(0, massProperties.inertia.values[1][0]);
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[1][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[1][2]);
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[0][0]);
+	EXPECT_EQ(0, inertia.values[0][1]);
+	EXPECT_EQ(0, inertia.values[0][2]);
 
-	EXPECT_EQ(0, massProperties.inertia.values[2][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[2][1]);
-	EXPECT_FLOAT_EQ(heightInertia, massProperties.inertia.values[2][2]);
+	EXPECT_EQ(0, inertia.values[1][0]);
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[1][1]);
+	EXPECT_EQ(0, inertia.values[1][2]);
+
+	EXPECT_EQ(0, inertia.values[2][0]);
+	EXPECT_EQ(0, inertia.values[2][1]);
+	EXPECT_FLOAT_EQ(heightInertia, inertia.values[2][2]);
 }
 
 TEST(PhysicsMassPropertiesTest, InitializeCapsule)
@@ -214,13 +234,16 @@ TEST(PhysicsMassPropertiesTest, InitializeCapsule)
 	float cylinderMass = cylinderVolume*density;
 	float mass = 2*hemisphereMass + cylinderMass;
 	EXPECT_FLOAT_EQ(mass, massProperties.mass);
+	EXPECT_EQ(0, massProperties.centerOfMass.x);
+	EXPECT_EQ(0, massProperties.centerOfMass.y);
+	EXPECT_EQ(0, massProperties.centerOfMass.z);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.x);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.y);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.z);
 	EXPECT_EQ(0, massProperties.inertiaRotate.i);
 	EXPECT_EQ(0, massProperties.inertiaRotate.j);
 	EXPECT_EQ(0, massProperties.inertiaRotate.k);
 	EXPECT_EQ(1, massProperties.inertiaRotate.r);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.x);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.y);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.z);
 
 	// https://www.gamedev.net/resources/_/technical/math-and-physics/capsule-inertia-tensor-r3856
 	// NOTE: The final equation has an error showing H^2/2 rather than H^2/4 (or (H/2)^2)
@@ -230,51 +253,58 @@ TEST(PhysicsMassPropertiesTest, InitializeCapsule)
 	float radiusInertia = cylinderMass*(dsPow2(height)/12.0f + dsPow2(radius)/4.0f) +
 		2*hemisphereMass*(2/5.0f*dsPow2(radius) + dsPow2(height)/4.0f + 3/8.0f*height*radius);
 
-	EXPECT_FLOAT_EQ(heightInertia, massProperties.inertia.values[0][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][2]);
+	dsMatrix33f inertia;
+	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
 
-	EXPECT_EQ(0, massProperties.inertia.values[1][0]);
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[1][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[1][2]);
+	EXPECT_FLOAT_EQ(heightInertia, inertia.values[0][0]);
+	EXPECT_EQ(0, inertia.values[0][1]);
+	EXPECT_EQ(0, inertia.values[0][2]);
 
-	EXPECT_EQ(0, massProperties.inertia.values[2][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[2][1]);
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[2][2]);
+	EXPECT_EQ(0, inertia.values[1][0]);
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[1][1]);
+	EXPECT_EQ(0, inertia.values[1][2]);
+
+	EXPECT_EQ(0, inertia.values[2][0]);
+	EXPECT_EQ(0, inertia.values[2][1]);
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[2][2]);
 
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeCapsule(&massProperties, height/2, radius,
 		dsPhysicsAxis_Y, density));
 
 	EXPECT_FLOAT_EQ(mass, massProperties.mass);
 
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[0][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][2]);
+	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
 
-	EXPECT_EQ(0, massProperties.inertia.values[1][0]);
-	EXPECT_FLOAT_EQ(heightInertia, massProperties.inertia.values[1][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[1][2]);
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[0][0]);
+	EXPECT_EQ(0, inertia.values[0][1]);
+	EXPECT_EQ(0, inertia.values[0][2]);
 
-	EXPECT_EQ(0, massProperties.inertia.values[2][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[2][1]);
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[2][2]);
+	EXPECT_EQ(0, inertia.values[1][0]);
+	EXPECT_FLOAT_EQ(heightInertia, inertia.values[1][1]);
+	EXPECT_EQ(0, inertia.values[1][2]);
+
+	EXPECT_EQ(0, inertia.values[2][0]);
+	EXPECT_EQ(0, inertia.values[2][1]);
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[2][2]);
 
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeCapsule(&massProperties, height/2, radius,
 		dsPhysicsAxis_Z, density));
 
 	EXPECT_FLOAT_EQ(mass, massProperties.mass);
 
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[0][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][2]);
+	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
 
-	EXPECT_EQ(0, massProperties.inertia.values[1][0]);
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[1][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[1][2]);
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[0][0]);
+	EXPECT_EQ(0, inertia.values[0][1]);
+	EXPECT_EQ(0, inertia.values[0][2]);
 
-	EXPECT_EQ(0, massProperties.inertia.values[2][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[2][1]);
-	EXPECT_FLOAT_EQ(heightInertia, massProperties.inertia.values[2][2]);
+	EXPECT_EQ(0, inertia.values[1][0]);
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[1][1]);
+	EXPECT_EQ(0, inertia.values[1][2]);
+
+	EXPECT_EQ(0, inertia.values[2][0]);
+	EXPECT_EQ(0, inertia.values[2][1]);
+	EXPECT_FLOAT_EQ(heightInertia, inertia.values[2][2]);
 }
 
 TEST(PhysicsMassPropertiesTest, InitializeCone)
@@ -291,67 +321,84 @@ TEST(PhysicsMassPropertiesTest, InitializeCone)
 	float mass = volume*density;
 	float centerOfMass = 3/4.0f*height;
 	EXPECT_FLOAT_EQ(mass, massProperties.mass);
+	EXPECT_FLOAT_EQ(centerOfMass, massProperties.centerOfMass.x);
+	EXPECT_EQ(0, massProperties.centerOfMass.y);
+	EXPECT_EQ(0, massProperties.centerOfMass.z);
+	EXPECT_FLOAT_EQ(centerOfMass, massProperties.inertiaTranslate.x);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.y);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.z);
 	EXPECT_EQ(0, massProperties.inertiaRotate.i);
 	EXPECT_EQ(0, massProperties.inertiaRotate.j);
 	EXPECT_EQ(0, massProperties.inertiaRotate.k);
 	EXPECT_EQ(1, massProperties.inertiaRotate.r);
-	EXPECT_FLOAT_EQ(centerOfMass, massProperties.inertiaTranslate.x);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.y);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.z);
 
 	float heightInertia = 3/10.0f*mass*dsPow2(radius);
 	float radiusInertia = mass*(3/20.0f*dsPow2(radius) + 3/80.0f*dsPow2(height));
-	EXPECT_FLOAT_EQ(heightInertia, massProperties.inertia.values[0][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][2]);
 
-	EXPECT_EQ(0, massProperties.inertia.values[1][0]);
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[1][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[1][2]);
+	dsMatrix33f inertia;
+	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
 
-	EXPECT_EQ(0, massProperties.inertia.values[2][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[2][1]);
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[2][2]);
+	EXPECT_FLOAT_EQ(heightInertia, inertia.values[0][0]);
+	EXPECT_EQ(0, inertia.values[0][1]);
+	EXPECT_EQ(0, inertia.values[0][2]);
+
+	EXPECT_EQ(0, inertia.values[1][0]);
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[1][1]);
+	EXPECT_EQ(0, inertia.values[1][2]);
+
+	EXPECT_EQ(0, inertia.values[2][0]);
+	EXPECT_EQ(0, inertia.values[2][1]);
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[2][2]);
 
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeCone(&massProperties, height, radius,
 		dsPhysicsAxis_Y, density));
 
 	EXPECT_FLOAT_EQ(mass, massProperties.mass);
+	EXPECT_EQ(0, massProperties.centerOfMass.x);
+	EXPECT_FLOAT_EQ(centerOfMass, massProperties.centerOfMass.y);
+	EXPECT_EQ(0, massProperties.centerOfMass.z);
 	EXPECT_EQ(0, massProperties.inertiaTranslate.x);
 	EXPECT_FLOAT_EQ(centerOfMass, massProperties.inertiaTranslate.y);
 	EXPECT_EQ(0, massProperties.inertiaTranslate.z);
 
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[0][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][2]);
+	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
 
-	EXPECT_EQ(0, massProperties.inertia.values[1][0]);
-	EXPECT_FLOAT_EQ(heightInertia, massProperties.inertia.values[1][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[1][2]);
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[0][0]);
+	EXPECT_EQ(0, inertia.values[0][1]);
+	EXPECT_EQ(0, inertia.values[0][2]);
 
-	EXPECT_EQ(0, massProperties.inertia.values[2][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[2][1]);
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[2][2]);
+	EXPECT_EQ(0, inertia.values[1][0]);
+	EXPECT_FLOAT_EQ(heightInertia, inertia.values[1][1]);
+	EXPECT_EQ(0, inertia.values[1][2]);
+
+	EXPECT_EQ(0, inertia.values[2][0]);
+	EXPECT_EQ(0, inertia.values[2][1]);
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[2][2]);
 
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeCone(&massProperties, height, radius,
 		dsPhysicsAxis_Z, density));
 
 	EXPECT_FLOAT_EQ(mass, massProperties.mass);
+	EXPECT_EQ(0, massProperties.centerOfMass.x);
+	EXPECT_EQ(0, massProperties.centerOfMass.y);
+	EXPECT_FLOAT_EQ(centerOfMass, massProperties.centerOfMass.z);
 	EXPECT_EQ(0, massProperties.inertiaTranslate.x);
 	EXPECT_EQ(0, massProperties.inertiaTranslate.y);
 	EXPECT_FLOAT_EQ(centerOfMass, massProperties.inertiaTranslate.z);
 
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[0][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][2]);
+	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
 
-	EXPECT_EQ(0, massProperties.inertia.values[1][0]);
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[1][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[1][2]);
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[0][0]);
+	EXPECT_EQ(0, inertia.values[0][1]);
+	EXPECT_EQ(0, inertia.values[0][2]);
 
-	EXPECT_EQ(0, massProperties.inertia.values[2][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[2][1]);
-	EXPECT_FLOAT_EQ(heightInertia, massProperties.inertia.values[2][2]);
+	EXPECT_EQ(0, inertia.values[1][0]);
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[1][1]);
+	EXPECT_EQ(0, inertia.values[1][2]);
+
+	EXPECT_EQ(0, inertia.values[2][0]);
+	EXPECT_EQ(0, inertia.values[2][1]);
+	EXPECT_FLOAT_EQ(heightInertia, inertia.values[2][2]);
 }
 
 TEST(PhysicsMassPropertiesTest, InitializeMesh)
@@ -379,19 +426,22 @@ TEST(PhysicsMassPropertiesTest, InitializeMesh)
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeBox(&boxMassProperties, &halfExtents, density));
 
 	EXPECT_FLOAT_EQ(boxMassProperties.mass, massProperties.mass);
+	EXPECT_FLOAT_EQ(center.x, massProperties.centerOfMass.x);
+	EXPECT_FLOAT_EQ(center.y, massProperties.centerOfMass.y);
+	EXPECT_FLOAT_EQ(center.z, massProperties.centerOfMass.z);
 	EXPECT_EQ(0, massProperties.inertiaRotate.i);
 	EXPECT_EQ(0, massProperties.inertiaRotate.j);
 	EXPECT_EQ(0, massProperties.inertiaRotate.k);
 	EXPECT_EQ(1, massProperties.inertiaRotate.r);
-	EXPECT_FLOAT_EQ(center.x, massProperties.inertiaTranslate.x);
-	EXPECT_FLOAT_EQ(center.y, massProperties.inertiaTranslate.y);
-	EXPECT_FLOAT_EQ(center.z, massProperties.inertiaTranslate.z);
+
+	dsMatrix33f inertia;
+	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
 
 	for (unsigned int i = 0; i < 3; ++i)
 	{
 		for (unsigned int j = 0; j < 3; ++j)
 		{
-			EXPECT_NEAR(boxMassProperties.inertia.values[i][j], massProperties.inertia.values[i][j],
+			EXPECT_NEAR(boxMassProperties.centeredInertia.values[i][j], inertia.values[i][j],
 				1e-3f) << i << ", " << j;
 		}
 	}
@@ -523,6 +573,9 @@ TEST(PhysicsMassPropertiesTest, InitializeCapsuleMesh)
 	EXPECT_GT(capsuleMassProperties.mass, meshMassProperties.mass);
 	EXPECT_NEAR(capsuleMassProperties.mass, meshMassProperties.mass, epsilon);
 
+	EXPECT_NEAR(0, meshMassProperties.centerOfMass.x, 1e-6f);
+	EXPECT_NEAR(0, meshMassProperties.centerOfMass.y, 1e-6f);
+	EXPECT_NEAR(0, meshMassProperties.centerOfMass.z, 1e-6f);
 	EXPECT_NEAR(0, meshMassProperties.inertiaTranslate.x, 1e-6f);
 	EXPECT_NEAR(0, meshMassProperties.inertiaTranslate.y, 1e-6f);
 	EXPECT_NEAR(0, meshMassProperties.inertiaTranslate.z, 1e-6f);
@@ -533,285 +586,13 @@ TEST(PhysicsMassPropertiesTest, InitializeCapsuleMesh)
 	{
 		for (unsigned int j = 0; j < 3; ++j)
 		{
-			EXPECT_NEAR(capsuleMassProperties.inertia.values[i][j],
-				meshMassProperties.inertia.values[i][j], inertiaEpsilon) << i << ", " << j;
+			EXPECT_NEAR(capsuleMassProperties.centeredInertia.values[i][j],
+				meshMassProperties.centeredInertia.values[i][j], inertiaEpsilon) << i << ", " << j;
 		}
 	}
 }
 
-TEST(PhysicsMassPropertiesTest, SetMass)
-{
-	float width = 2.0f;
-	float height = 3.0f;
-	float depth = 4.0f;
-	float density = 2.5f;
-
-	dsVector3f halfExtents = {{width/2, height/2, depth/2}};
-	dsPhysicsMassProperties massProperties;
-	ASSERT_TRUE(dsPhysicsMassProperties_initializeBox(&massProperties, &halfExtents, density));
-	ASSERT_TRUE(dsPhysicsMassProperties_setMass(&massProperties, massProperties.mass*3.0f));
-
-	dsPhysicsMassProperties scaledMassProperties;
-	ASSERT_TRUE(dsPhysicsMassProperties_initializeBox(&scaledMassProperties, &halfExtents,
-		density*3.0f));
-
-	EXPECT_FLOAT_EQ(scaledMassProperties.mass, massProperties.mass);
-	for (unsigned int i = 0; i < 3; ++i)
-	{
-		for (unsigned int j = 0; j < 3; ++j)
-		{
-			EXPECT_FLOAT_EQ(scaledMassProperties.inertia.values[i][j],
-				massProperties.inertia.values[i][j]) << i << ", " << j;
-		}
-	}
-}
-
-TEST(PhysicsMassPropertiesTest, Transform)
-{
-	float width = 2.0f;
-	float height = 3.0f;
-	float depth = 4.0f;
-	float density = 2.5f;
-
-	dsVector3f halfExtents = {{width/2, height/2, depth/2}};
-	dsPhysicsMassProperties boxMassProperties;
-	ASSERT_TRUE(dsPhysicsMassProperties_initializeBox(&boxMassProperties, &halfExtents, density));
-
-	dsQuaternion4f rotateA, rotateB;
-	dsQuaternion4f_fromEulerAngles(&rotateA, dsDegreesToRadiansf(30.0f),
-		dsDegreesToRadiansf(-20.0f), dsDegreesToRadiansf(40.0f));
-	dsQuaternion4f_fromEulerAngles(&rotateB, dsDegreesToRadiansf(-5.0f),
-		dsDegreesToRadiansf(45.0f), dsDegreesToRadiansf(-65.0f));
-
-	dsVector3f translateA = {{5.0f, -10.0f, 15.0f}};
-	dsVector3f translateB = {{-20.0f, 25.0f, -30.0f}};
-
-	halfExtents.x = halfExtents.y = halfExtents.z = 0.5f;
-	dsPhysicsMassProperties massProperties;
-	ASSERT_TRUE(dsPhysicsMassProperties_initializeBox(&massProperties, &halfExtents, density));
-
-	dsVector3f scale = {{width/2, height/2, depth/2}};
-	ASSERT_TRUE(dsPhysicsMassProperties_transform(&massProperties, &translateA, &rotateA, &scale));
-
-	// Can't apply a non-uniform scale once rotated.
-	EXPECT_FALSE(dsPhysicsMassProperties_transform(&massProperties, &translateB, &rotateB, &scale));
-
-	// Can apply a uniform scale.
-	scale.x = scale.y = scale.z = 2.0f;
-	ASSERT_TRUE(dsPhysicsMassProperties_transform(&massProperties, &translateB, &rotateB, &scale));
-
-	EXPECT_FLOAT_EQ(boxMassProperties.mass, massProperties.mass);
-	for (unsigned int i = 0; i < 3; ++i)
-	{
-		for (unsigned int j = 0; j < 3; ++j)
-		{
-			EXPECT_FLOAT_EQ(boxMassProperties.inertia.values[i][j],
-				massProperties.inertia.values[i][j]) << i << ", " << j;
-		}
-	}
-
-	dsMatrix44f transformA;
-	dsQuaternion4f_toMatrix44(&transformA, &rotateA);
-	*reinterpret_cast<dsVector3f*>(transformA.columns + 3) = translateA;
-
-	dsMatrix44f transformB;
-	dsQuaternion4f_toMatrix44(&transformB, &rotateB);
-	dsVector4f_scale(&transformB.columns[0], &transformB.columns[0], 2.0f);
-	dsVector4f_scale(&transformB.columns[1], &transformB.columns[1], 2.0f);
-	dsVector4f_scale(&transformB.columns[2], &transformB.columns[2], 2.0f);
-	*reinterpret_cast<dsVector3f*>(transformB.columns + 3) = translateB;
-
-	dsMatrix44f finalTransform;
-	dsMatrix44f_mul(&finalTransform, &transformB, &transformA);
-
-	dsMatrix44f normalizedFinalTransform;
-	dsVector4f_normalize(normalizedFinalTransform.columns, finalTransform.columns);
-	dsVector4f_normalize(normalizedFinalTransform.columns + 1, finalTransform.columns + 1);
-	dsVector4f_normalize(normalizedFinalTransform.columns + 2, finalTransform.columns + 2);
-	normalizedFinalTransform.columns[3] = finalTransform.columns[3];
-
-	dsQuaternion4f finalRotate;
-	dsQuaternion4f_fromMatrix44(&finalRotate, &normalizedFinalTransform);
-
-	const float rotateEpsilon = 1e-6f;
-	EXPECT_NEAR(finalRotate.i, massProperties.inertiaRotate.i, rotateEpsilon);
-	EXPECT_NEAR(finalRotate.j, massProperties.inertiaRotate.j, rotateEpsilon);
-	EXPECT_NEAR(finalRotate.k, massProperties.inertiaRotate.k, rotateEpsilon);
-	EXPECT_NEAR(finalRotate.r, massProperties.inertiaRotate.r, rotateEpsilon);
-	EXPECT_FLOAT_EQ(finalTransform.columns[3].x, massProperties.inertiaTranslate.x);
-	EXPECT_FLOAT_EQ(finalTransform.columns[3].y, massProperties.inertiaTranslate.y);
-	EXPECT_FLOAT_EQ(finalTransform.columns[3].z, massProperties.inertiaTranslate.z);
-}
-
-TEST(PhysicsMassPropertiesTest, ShiftTranslate)
-{
-	// Cone center of mass is offset from the shape origin, which is at the tip. Translate back to
-	// the tip and compare to the provided formula for the moment of inertia at the tip.
-	float height = 3.5f;
-	float radius = 1.5f;
-	float density = 2.5f;
-
-	dsPhysicsMassProperties massProperties;
-	ASSERT_TRUE(dsPhysicsMassProperties_initializeCone(&massProperties, height, radius,
-		dsPhysicsAxis_X, density));
-
-	dsVector3f offset;
-	dsVector3_neg(offset, massProperties.inertiaTranslate);
-	ASSERT_TRUE(dsPhysicsMassProperties_shift(&massProperties, &offset, NULL));
-
-	float volume = (float)M_PI*dsPow2(radius)*height/3.0f;
-	float mass = volume*density;
-	EXPECT_FLOAT_EQ(mass, massProperties.mass);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.x);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.y);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.z);
-
-	float heightInertia = 3/10.0f*mass*dsPow2(radius);
-	float radiusInertia = mass*(3/20.0f*dsPow2(radius) + 3/5.0f*dsPow2(height));
-	EXPECT_FLOAT_EQ(heightInertia, massProperties.inertia.values[0][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][2]);
-
-	EXPECT_EQ(0, massProperties.inertia.values[1][0]);
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[1][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[1][2]);
-
-	EXPECT_EQ(0, massProperties.inertia.values[2][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[2][1]);
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[2][2]);
-
-	ASSERT_TRUE(dsPhysicsMassProperties_initializeCone(&massProperties, height, radius,
-		dsPhysicsAxis_Y, density));
-	dsVector3_neg(offset, massProperties.inertiaTranslate);
-	ASSERT_TRUE(dsPhysicsMassProperties_shift(&massProperties, &offset, NULL));
-
-	EXPECT_FLOAT_EQ(mass, massProperties.mass);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.x);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.y);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.z);
-
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[0][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][2]);
-
-	EXPECT_EQ(0, massProperties.inertia.values[1][0]);
-	EXPECT_FLOAT_EQ(heightInertia, massProperties.inertia.values[1][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[1][2]);
-
-	EXPECT_EQ(0, massProperties.inertia.values[2][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[2][1]);
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[2][2]);
-
-	ASSERT_TRUE(dsPhysicsMassProperties_initializeCone(&massProperties, height, radius,
-		dsPhysicsAxis_Z, density));
-	dsVector3_neg(offset, massProperties.inertiaTranslate);
-	ASSERT_TRUE(dsPhysicsMassProperties_shift(&massProperties, &offset, NULL));
-
-	EXPECT_FLOAT_EQ(mass, massProperties.mass);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.x);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.y);
-	EXPECT_EQ(0, massProperties.inertiaTranslate.z);
-
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[0][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[0][2]);
-
-	EXPECT_EQ(0, massProperties.inertia.values[1][0]);
-	EXPECT_FLOAT_EQ(radiusInertia, massProperties.inertia.values[1][1]);
-	EXPECT_EQ(0, massProperties.inertia.values[1][2]);
-
-	EXPECT_EQ(0, massProperties.inertia.values[2][0]);
-	EXPECT_EQ(0, massProperties.inertia.values[2][1]);
-	EXPECT_FLOAT_EQ(heightInertia, massProperties.inertia.values[2][2]);
-}
-
-TEST(PhysicsMassPropertiesTest, ShiftRotate)
-{
-	float width = 2.0f;
-	float height = 3.0f;
-	float depth = 4.0f;
-	float density = 2.5f;
-
-	dsQuaternion4f orientation;
-	dsQuaternion4f_fromEulerAngles(&orientation, dsDegreesToRadiansf(-5.0f),
-		dsDegreesToRadiansf(45.0f), dsDegreesToRadiansf(-65.0f));
-
-	dsOrientedBox3f box;
-	dsQuaternion4f_toMatrix33(&box.orientation, &orientation);
-	box.center.x = 5.0f;
-	box.center.y = -10.0f;
-	box.center.z = 15.0f;
-	box.halfExtents.x = width/2;
-	box.halfExtents.y = height/2;
-	box.halfExtents.z = depth/2;
-
-	dsVector3f corners[DS_BOX3_CORNER_COUNT];
-	dsOrientedBox3f_corners(corners, &box);
-
-	dsPhysicsMassProperties meshMassProperties;
-	ASSERT_TRUE(dsPhysicsMassProperties_initializeMesh(&meshMassProperties, corners,
-		DS_BOX3_CORNER_COUNT, sizeof(dsVector3f), boxIndices, boxIndexCount,
-		sizeof(*boxIndices), density));
-	EXPECT_FLOAT_EQ(box.center.x, meshMassProperties.inertiaTranslate.x);
-	EXPECT_FLOAT_EQ(box.center.y, meshMassProperties.inertiaTranslate.y);
-	EXPECT_FLOAT_EQ(box.center.z, meshMassProperties.inertiaTranslate.z);
-
-	// Translate first.
-	dsPhysicsMassProperties massProperties;
-	ASSERT_TRUE(dsPhysicsMassProperties_initializeBox(&massProperties, &box.halfExtents, density));
-
-	dsQuaternion4f orientationInv;
-	dsQuaternion4_invert(orientationInv, orientation);
-	dsVector3f orientationSpaceCenter;
-	dsQuaternion4f_rotate(&orientationSpaceCenter, &orientation, &box.center);
-
-	ASSERT_TRUE(dsPhysicsMassProperties_transform(
-		&massProperties, &orientationSpaceCenter, NULL, NULL));
-	ASSERT_TRUE(dsPhysicsMassProperties_shift(&massProperties, NULL, &orientationInv));
-
-	EXPECT_FLOAT_EQ(meshMassProperties.mass, massProperties.mass);
-	float inertiaEpsilon = 1e-3f;
-	for (unsigned int i = 0; i < 3; ++i)
-	{
-		for (unsigned int j = 0; j < 3; ++j)
-		{
-			EXPECT_NEAR(meshMassProperties.inertia.values[i][j],
-				massProperties.inertia.values[i][j], inertiaEpsilon) << i << ", " << j;
-		}
-	}
-	EXPECT_FLOAT_EQ(orientationInv.i, massProperties.inertiaRotate.i);
-	EXPECT_FLOAT_EQ(orientationInv.j, massProperties.inertiaRotate.j);
-	EXPECT_FLOAT_EQ(orientationInv.k, massProperties.inertiaRotate.k);
-	EXPECT_FLOAT_EQ(orientationInv.r, massProperties.inertiaRotate.r);
-	EXPECT_FLOAT_EQ(box.center.x, massProperties.inertiaTranslate.x);
-	EXPECT_FLOAT_EQ(box.center.y, massProperties.inertiaTranslate.y);
-	EXPECT_FLOAT_EQ(box.center.z, massProperties.inertiaTranslate.z);
-
-	// Rotate first.
-	ASSERT_TRUE(dsPhysicsMassProperties_initializeBox(&massProperties, &box.halfExtents, density));
-	ASSERT_TRUE(dsPhysicsMassProperties_shift(&massProperties, NULL, &orientationInv));
-	ASSERT_TRUE(dsPhysicsMassProperties_transform(
-		&massProperties, &box.center, NULL, NULL));
-
-	EXPECT_FLOAT_EQ(meshMassProperties.mass, massProperties.mass);
-	for (unsigned int i = 0; i < 3; ++i)
-	{
-		for (unsigned int j = 0; j < 3; ++j)
-		{
-			EXPECT_NEAR(meshMassProperties.inertia.values[i][j],
-				massProperties.inertia.values[i][j], inertiaEpsilon) << i << ", " << j;
-		}
-	}
-	EXPECT_FLOAT_EQ(orientationInv.i, massProperties.inertiaRotate.i);
-	EXPECT_FLOAT_EQ(orientationInv.j, massProperties.inertiaRotate.j);
-	EXPECT_FLOAT_EQ(orientationInv.k, massProperties.inertiaRotate.k);
-	EXPECT_FLOAT_EQ(orientationInv.r, massProperties.inertiaRotate.r);
-	EXPECT_FLOAT_EQ(box.center.x, massProperties.inertiaTranslate.x);
-	EXPECT_FLOAT_EQ(box.center.y, massProperties.inertiaTranslate.y);
-	EXPECT_FLOAT_EQ(box.center.z, massProperties.inertiaTranslate.z);
-}
-
-TEST(PhysicsMassPropertiesTest, Combine)
+TEST(PhysicsMassPropertiesTest, InitializeCombined)
 {
 	float width = 2.0f;
 	float height = 3.0f;
@@ -865,11 +646,289 @@ TEST(PhysicsMassPropertiesTest, Combine)
 		&leftBoxMassProperties, &box.center, &orientation, NULL));
 
 	// Combine into one.
+	const dsPhysicsMassProperties* componentProperties[] =
+		{&rightBoxMassProperties, &leftBoxMassProperties};
 	dsPhysicsMassProperties massProperties;
-	ASSERT_TRUE(dsPhysicsMassProperties_initializeEmpty(&massProperties));
-	ASSERT_TRUE(dsPhysicsMassProperties_transform(&massProperties, &box.center, NULL, NULL));
-	ASSERT_TRUE(dsPhysicsMassProperties_combine(&massProperties, &rightBoxMassProperties));
-	ASSERT_TRUE(dsPhysicsMassProperties_combine(&massProperties, &leftBoxMassProperties));
+	ASSERT_TRUE(dsPhysicsMassProperties_initializeCombined(
+		&massProperties, componentProperties, 2));
+
+	EXPECT_FLOAT_EQ(meshMassProperties.mass, massProperties.mass);
+	EXPECT_FLOAT_EQ(meshMassProperties.centerOfMass.x, massProperties.centerOfMass.x);
+	EXPECT_FLOAT_EQ(meshMassProperties.centerOfMass.y, massProperties.centerOfMass.y);
+	EXPECT_FLOAT_EQ(meshMassProperties.centerOfMass.z, massProperties.centerOfMass.z);
+	EXPECT_FLOAT_EQ(meshMassProperties.inertiaTranslate.x, massProperties.inertiaTranslate.x);
+	EXPECT_FLOAT_EQ(meshMassProperties.inertiaTranslate.y, massProperties.inertiaTranslate.y);
+	EXPECT_FLOAT_EQ(meshMassProperties.inertiaTranslate.z, massProperties.inertiaTranslate.z);
+	EXPECT_FLOAT_EQ(meshMassProperties.inertiaRotate.i, massProperties.inertiaRotate.i);
+	EXPECT_FLOAT_EQ(meshMassProperties.inertiaRotate.j, massProperties.inertiaRotate.j);
+	EXPECT_FLOAT_EQ(meshMassProperties.inertiaRotate.k, massProperties.inertiaRotate.k);
+	EXPECT_FLOAT_EQ(meshMassProperties.inertiaRotate.r, massProperties.inertiaRotate.r);
+
+	float inertiaEpsilon = 1e-3f;
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		for (unsigned int j = 0; j < 3; ++j)
+		{
+			EXPECT_NEAR(meshMassProperties.centeredInertia.values[i][j],
+				massProperties.centeredInertia.values[i][j], inertiaEpsilon) << i << ", " << j;
+		}
+	}
+}
+
+TEST(PhysicsMassPropertiesTest, SetMass)
+{
+	float width = 2.0f;
+	float height = 3.0f;
+	float depth = 4.0f;
+	float density = 2.5f;
+
+	dsVector3f halfExtents = {{width/2, height/2, depth/2}};
+	dsPhysicsMassProperties massProperties;
+	ASSERT_TRUE(dsPhysicsMassProperties_initializeBox(&massProperties, &halfExtents, density));
+	ASSERT_TRUE(dsPhysicsMassProperties_setMass(&massProperties, massProperties.mass*3.0f));
+
+	dsPhysicsMassProperties scaledMassProperties;
+	ASSERT_TRUE(dsPhysicsMassProperties_initializeBox(&scaledMassProperties, &halfExtents,
+		density*3.0f));
+
+	EXPECT_FLOAT_EQ(scaledMassProperties.mass, massProperties.mass);
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		for (unsigned int j = 0; j < 3; ++j)
+		{
+			EXPECT_FLOAT_EQ(scaledMassProperties.centeredInertia.values[i][j],
+				massProperties.centeredInertia.values[i][j]) << i << ", " << j;
+		}
+	}
+}
+
+TEST(PhysicsMassPropertiesTest, Transform)
+{
+	float width = 2.0f;
+	float height = 3.0f;
+	float depth = 4.0f;
+	float density = 2.5f;
+
+	dsVector3f halfExtents = {{width/2, height/2, depth/2}};
+	dsPhysicsMassProperties boxMassProperties;
+	ASSERT_TRUE(dsPhysicsMassProperties_initializeBox(&boxMassProperties, &halfExtents, density));
+
+	dsQuaternion4f rotateA, rotateB;
+	dsQuaternion4f_fromEulerAngles(&rotateA, dsDegreesToRadiansf(30.0f),
+		dsDegreesToRadiansf(-20.0f), dsDegreesToRadiansf(40.0f));
+	dsQuaternion4f_fromEulerAngles(&rotateB, dsDegreesToRadiansf(-5.0f),
+		dsDegreesToRadiansf(45.0f), dsDegreesToRadiansf(-65.0f));
+
+	dsVector3f translateA = {{5.0f, -10.0f, 15.0f}};
+	dsVector3f translateB = {{-20.0f, 25.0f, -30.0f}};
+
+	halfExtents.x = halfExtents.y = halfExtents.z = 0.5f;
+	dsPhysicsMassProperties massProperties;
+	ASSERT_TRUE(dsPhysicsMassProperties_initializeBox(&massProperties, &halfExtents, density));
+
+	dsVector3f scale = {{width/2, height/2, depth/2}};
+	ASSERT_TRUE(dsPhysicsMassProperties_transform(&massProperties, &translateA, &rotateA, &scale));
+
+	// Can't apply a non-uniform scale once rotated.
+	EXPECT_FALSE(dsPhysicsMassProperties_transform(&massProperties, &translateB, &rotateB, &scale));
+
+	// Can apply a uniform scale.
+	scale.x = scale.y = scale.z = 2.0f;
+	ASSERT_TRUE(dsPhysicsMassProperties_transform(&massProperties, &translateB, &rotateB, &scale));
+
+	EXPECT_FLOAT_EQ(boxMassProperties.mass, massProperties.mass);
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		for (unsigned int j = 0; j < 3; ++j)
+		{
+			EXPECT_FLOAT_EQ(boxMassProperties.centeredInertia.values[i][j],
+				massProperties.centeredInertia.values[i][j]) << i << ", " << j;
+		}
+	}
+
+	dsMatrix44f transformA;
+	dsQuaternion4f_toMatrix44(&transformA, &rotateA);
+	*reinterpret_cast<dsVector3f*>(transformA.columns + 3) = translateA;
+
+	dsMatrix44f transformB;
+	dsQuaternion4f_toMatrix44(&transformB, &rotateB);
+	dsVector4f_scale(&transformB.columns[0], &transformB.columns[0], 2.0f);
+	dsVector4f_scale(&transformB.columns[1], &transformB.columns[1], 2.0f);
+	dsVector4f_scale(&transformB.columns[2], &transformB.columns[2], 2.0f);
+	*reinterpret_cast<dsVector3f*>(transformB.columns + 3) = translateB;
+
+	dsMatrix44f finalTransform;
+	dsMatrix44f_mul(&finalTransform, &transformB, &transformA);
+
+	dsMatrix44f normalizedFinalTransform;
+	dsVector4f_normalize(normalizedFinalTransform.columns, finalTransform.columns);
+	dsVector4f_normalize(normalizedFinalTransform.columns + 1, finalTransform.columns + 1);
+	dsVector4f_normalize(normalizedFinalTransform.columns + 2, finalTransform.columns + 2);
+	normalizedFinalTransform.columns[3] = finalTransform.columns[3];
+
+	dsQuaternion4f finalRotate;
+	dsQuaternion4f_fromMatrix44(&finalRotate, &normalizedFinalTransform);
+
+	const float rotateEpsilon = 1e-6f;
+	EXPECT_FLOAT_EQ(finalTransform.columns[3].x, massProperties.centerOfMass.x);
+	EXPECT_FLOAT_EQ(finalTransform.columns[3].y, massProperties.centerOfMass.y);
+	EXPECT_FLOAT_EQ(finalTransform.columns[3].z, massProperties.centerOfMass.z);
+	EXPECT_FLOAT_EQ(finalTransform.columns[3].x, massProperties.inertiaTranslate.x);
+	EXPECT_FLOAT_EQ(finalTransform.columns[3].y, massProperties.inertiaTranslate.y);
+	EXPECT_FLOAT_EQ(finalTransform.columns[3].z, massProperties.inertiaTranslate.z);
+	EXPECT_NEAR(finalRotate.i, massProperties.inertiaRotate.i, rotateEpsilon);
+	EXPECT_NEAR(finalRotate.j, massProperties.inertiaRotate.j, rotateEpsilon);
+	EXPECT_NEAR(finalRotate.k, massProperties.inertiaRotate.k, rotateEpsilon);
+	EXPECT_NEAR(finalRotate.r, massProperties.inertiaRotate.r, rotateEpsilon);
+}
+
+TEST(PhysicsMassPropertiesTest, ShiftTranslate)
+{
+	// Cone center of mass is offset from the shape origin, which is at the tip. Translate back to
+	// the tip and compare to the provided formula for the moment of inertia at the tip.
+	float height = 3.5f;
+	float radius = 1.5f;
+	float density = 2.5f;
+
+	dsPhysicsMassProperties massProperties;
+	ASSERT_TRUE(dsPhysicsMassProperties_initializeCone(&massProperties, height, radius,
+		dsPhysicsAxis_X, density));
+
+	dsVector3f offset;
+	dsVector3_neg(offset, massProperties.inertiaTranslate);
+	ASSERT_TRUE(dsPhysicsMassProperties_shift(&massProperties, &offset, NULL));
+
+	float volume = (float)M_PI*dsPow2(radius)*height/3.0f;
+	float mass = volume*density;
+	float centerOfMass = 3/4.0f*height;
+	EXPECT_FLOAT_EQ(mass, massProperties.mass);
+	EXPECT_FLOAT_EQ(centerOfMass, massProperties.centerOfMass.x);
+	EXPECT_EQ(0, massProperties.centerOfMass.y);
+	EXPECT_EQ(0, massProperties.centerOfMass.z);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.x);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.y);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.z);
+
+	float heightInertia = 3/10.0f*mass*dsPow2(radius);
+	float radiusInertia = mass*(3/20.0f*dsPow2(radius) + 3/5.0f*dsPow2(height));
+
+	dsMatrix33f inertia;
+	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
+
+	EXPECT_FLOAT_EQ(heightInertia, inertia.values[0][0]);
+	EXPECT_EQ(0, inertia.values[0][1]);
+	EXPECT_EQ(0, inertia.values[0][2]);
+
+	EXPECT_EQ(0, inertia.values[1][0]);
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[1][1]);
+	EXPECT_EQ(0, inertia.values[1][2]);
+
+	EXPECT_EQ(0, inertia.values[2][0]);
+	EXPECT_EQ(0, inertia.values[2][1]);
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[2][2]);
+
+	// Move back to undo the shift.
+	dsVector3_neg(offset, massProperties.inertiaTranslate);
+	ASSERT_TRUE(dsPhysicsMassProperties_shift(&massProperties, &offset, NULL));
+
+	ASSERT_TRUE(dsPhysicsMassProperties_initializeCone(&massProperties, height, radius,
+		dsPhysicsAxis_Y, density));
+	dsVector3_neg(offset, massProperties.inertiaTranslate);
+	ASSERT_TRUE(dsPhysicsMassProperties_shift(&massProperties, &offset, NULL));
+
+	EXPECT_FLOAT_EQ(mass, massProperties.mass);
+	EXPECT_EQ(0, massProperties.centerOfMass.x);
+	EXPECT_FLOAT_EQ(centerOfMass, massProperties.centerOfMass.y);
+	EXPECT_EQ(0, massProperties.centerOfMass.z);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.x);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.y);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.z);
+
+	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
+
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[0][0]);
+	EXPECT_EQ(0, inertia.values[0][1]);
+	EXPECT_EQ(0, inertia.values[0][2]);
+
+	EXPECT_EQ(0, inertia.values[1][0]);
+	EXPECT_FLOAT_EQ(heightInertia, inertia.values[1][1]);
+	EXPECT_EQ(0, inertia.values[1][2]);
+
+	EXPECT_EQ(0, inertia.values[2][0]);
+	EXPECT_EQ(0, inertia.values[2][1]);
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[2][2]);
+
+	ASSERT_TRUE(dsPhysicsMassProperties_initializeCone(&massProperties, height, radius,
+		dsPhysicsAxis_Z, density));
+	dsVector3_neg(offset, massProperties.inertiaTranslate);
+	ASSERT_TRUE(dsPhysicsMassProperties_shift(&massProperties, &offset, NULL));
+
+	EXPECT_FLOAT_EQ(mass, massProperties.mass);
+	EXPECT_EQ(0, massProperties.centerOfMass.x);
+	EXPECT_EQ(0, massProperties.centerOfMass.y);
+	EXPECT_FLOAT_EQ(centerOfMass, massProperties.centerOfMass.z);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.x);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.y);
+	EXPECT_EQ(0, massProperties.inertiaTranslate.z);
+
+	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
+
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[0][0]);
+	EXPECT_EQ(0, inertia.values[0][1]);
+	EXPECT_EQ(0, inertia.values[0][2]);
+
+	EXPECT_EQ(0, inertia.values[1][0]);
+	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[1][1]);
+	EXPECT_EQ(0, inertia.values[1][2]);
+
+	EXPECT_EQ(0, inertia.values[2][0]);
+	EXPECT_EQ(0, inertia.values[2][1]);
+	EXPECT_FLOAT_EQ(heightInertia, inertia.values[2][2]);
+}
+
+TEST(PhysicsMassPropertiesTest, ShiftRotate)
+{
+	float width = 2.0f;
+	float height = 3.0f;
+	float depth = 4.0f;
+	float density = 2.5f;
+
+	dsQuaternion4f orientation;
+	dsQuaternion4f_fromEulerAngles(&orientation, dsDegreesToRadiansf(-5.0f),
+		dsDegreesToRadiansf(45.0f), dsDegreesToRadiansf(-65.0f));
+
+	dsOrientedBox3f box;
+	dsQuaternion4f_toMatrix33(&box.orientation, &orientation);
+	box.center.x = 5.0f;
+	box.center.y = -10.0f;
+	box.center.z = 15.0f;
+	box.halfExtents.x = width/2;
+	box.halfExtents.y = height/2;
+	box.halfExtents.z = depth/2;
+
+	dsVector3f corners[DS_BOX3_CORNER_COUNT];
+	dsOrientedBox3f_corners(corners, &box);
+
+	dsPhysicsMassProperties meshMassProperties;
+	ASSERT_TRUE(dsPhysicsMassProperties_initializeMesh(&meshMassProperties, corners,
+		DS_BOX3_CORNER_COUNT, sizeof(dsVector3f), boxIndices, boxIndexCount,
+		sizeof(*boxIndices), density));
+	EXPECT_FLOAT_EQ(box.center.x, meshMassProperties.inertiaTranslate.x);
+	EXPECT_FLOAT_EQ(box.center.y, meshMassProperties.inertiaTranslate.y);
+	EXPECT_FLOAT_EQ(box.center.z, meshMassProperties.inertiaTranslate.z);
+
+	// Translate first.
+	dsPhysicsMassProperties massProperties;
+	ASSERT_TRUE(dsPhysicsMassProperties_initializeBox(&massProperties, &box.halfExtents, density));
+
+	dsQuaternion4f orientationInv;
+	dsQuaternion4_invert(orientationInv, orientation);
+	dsVector3f orientationSpaceCenter;
+	dsQuaternion4f_rotate(&orientationSpaceCenter, &orientation, &box.center);
+
+	ASSERT_TRUE(dsPhysicsMassProperties_transform(
+		&massProperties, &orientationSpaceCenter, NULL, NULL));
+	ASSERT_TRUE(dsPhysicsMassProperties_shift(&massProperties, NULL, &orientationInv));
 
 	EXPECT_FLOAT_EQ(meshMassProperties.mass, massProperties.mass);
 	float inertiaEpsilon = 1e-3f;
@@ -877,15 +936,92 @@ TEST(PhysicsMassPropertiesTest, Combine)
 	{
 		for (unsigned int j = 0; j < 3; ++j)
 		{
-			EXPECT_NEAR(meshMassProperties.inertia.values[i][j],
-				massProperties.inertia.values[i][j], inertiaEpsilon) << i << ", " << j;
+			EXPECT_NEAR(meshMassProperties.centeredInertia.values[i][j],
+				massProperties.centeredInertia.values[i][j], inertiaEpsilon) << i << ", " << j;
 		}
 	}
-	EXPECT_FLOAT_EQ(meshMassProperties.inertiaRotate.i, massProperties.inertiaRotate.i);
-	EXPECT_FLOAT_EQ(meshMassProperties.inertiaRotate.j, massProperties.inertiaRotate.j);
-	EXPECT_FLOAT_EQ(meshMassProperties.inertiaRotate.k, massProperties.inertiaRotate.k);
-	EXPECT_FLOAT_EQ(meshMassProperties.inertiaRotate.r, massProperties.inertiaRotate.r);
-	EXPECT_FLOAT_EQ(meshMassProperties.inertiaTranslate.x, massProperties.inertiaTranslate.x);
-	EXPECT_FLOAT_EQ(meshMassProperties.inertiaTranslate.y, massProperties.inertiaTranslate.y);
-	EXPECT_FLOAT_EQ(meshMassProperties.inertiaTranslate.z, massProperties.inertiaTranslate.z);
+	EXPECT_FLOAT_EQ(box.center.x, massProperties.centerOfMass.x);
+	EXPECT_FLOAT_EQ(box.center.y, massProperties.centerOfMass.y);
+	EXPECT_FLOAT_EQ(box.center.z, massProperties.centerOfMass.z);
+	EXPECT_FLOAT_EQ(box.center.x, massProperties.inertiaTranslate.x);
+	EXPECT_FLOAT_EQ(box.center.y, massProperties.inertiaTranslate.y);
+	EXPECT_FLOAT_EQ(box.center.z, massProperties.inertiaTranslate.z);
+	EXPECT_FLOAT_EQ(orientationInv.i, massProperties.inertiaRotate.i);
+	EXPECT_FLOAT_EQ(orientationInv.j, massProperties.inertiaRotate.j);
+	EXPECT_FLOAT_EQ(orientationInv.k, massProperties.inertiaRotate.k);
+	EXPECT_FLOAT_EQ(orientationInv.r, massProperties.inertiaRotate.r);
+
+	// Rotate first.
+	ASSERT_TRUE(dsPhysicsMassProperties_initializeBox(&massProperties, &box.halfExtents, density));
+	ASSERT_TRUE(dsPhysicsMassProperties_shift(&massProperties, NULL, &orientationInv));
+	ASSERT_TRUE(dsPhysicsMassProperties_transform(
+		&massProperties, &box.center, NULL, NULL));
+
+	EXPECT_FLOAT_EQ(meshMassProperties.mass, massProperties.mass);
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		for (unsigned int j = 0; j < 3; ++j)
+		{
+			EXPECT_NEAR(meshMassProperties.centeredInertia.values[i][j],
+				massProperties.centeredInertia.values[i][j], inertiaEpsilon) << i << ", " << j;
+		}
+	}
+	EXPECT_FLOAT_EQ(box.center.x, massProperties.centerOfMass.x);
+	EXPECT_FLOAT_EQ(box.center.y, massProperties.centerOfMass.y);
+	EXPECT_FLOAT_EQ(box.center.z, massProperties.centerOfMass.z);
+	EXPECT_FLOAT_EQ(box.center.x, massProperties.inertiaTranslate.x);
+	EXPECT_FLOAT_EQ(box.center.y, massProperties.inertiaTranslate.y);
+	EXPECT_FLOAT_EQ(box.center.z, massProperties.inertiaTranslate.z);
+	EXPECT_FLOAT_EQ(orientationInv.i, massProperties.inertiaRotate.i);
+	EXPECT_FLOAT_EQ(orientationInv.j, massProperties.inertiaRotate.j);
+	EXPECT_FLOAT_EQ(orientationInv.k, massProperties.inertiaRotate.k);
+	EXPECT_FLOAT_EQ(orientationInv.r, massProperties.inertiaRotate.r);
+}
+
+TEST(PhysicsMassPropertiesTest, DecomposeInertia)
+{
+	float width = 2.0f;
+	float height = 3.0f;
+	float depth = 4.0f;
+	float density = 2.5f;
+
+	dsQuaternion4f orientation;
+	dsQuaternion4f_fromEulerAngles(&orientation, dsDegreesToRadiansf(-5.0f),
+		dsDegreesToRadiansf(45.0f), dsDegreesToRadiansf(-65.0f));
+	dsVector3f translate = {{5.0f, -10.0f, 15.0f}};
+
+	dsVector3f halfExtents = {{width/2, height/2, depth/2}};
+	dsPhysicsMassProperties massProperties;
+	ASSERT_TRUE(dsPhysicsMassProperties_initializeBox(&massProperties, &halfExtents, density));
+	ASSERT_TRUE(dsPhysicsMassProperties_shift(&massProperties, &translate, &orientation));
+
+	dsMatrix33f rotate;
+	dsVector3f diagonal;
+	EXPECT_TRUE(dsPhysicsMassProperties_getDecomposedInertia(&rotate, &diagonal, &massProperties));
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		for (unsigned int j = 0; j < 3; ++j)
+		{
+			EXPECT_NE(1, rotate.values[i][j]);
+			EXPECT_NE(0, rotate.values[i][j]);
+		}
+	}
+
+	dsMatrix33f rotateTrans, diagonalMat;
+	dsMatrix33_transpose(rotateTrans, rotate);
+	dsMatrix33f_makeScale3D(&diagonalMat, diagonal.x, diagonal.y, diagonal.z);
+
+	dsMatrix33f temp, restoredInertia;
+	dsMatrix33_mul(temp, rotate, diagonalMat);
+	dsMatrix33_mul(restoredInertia, temp, rotateTrans);
+
+	dsMatrix33f inertia;
+	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
+
+	const float inertiaEpsilon = 2e-3f;
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		for (unsigned int j = 0; j < 3; ++j)
+			EXPECT_NEAR(inertia.values[i][j], restoredInertia.values[i][j], inertiaEpsilon);
+	}
 }

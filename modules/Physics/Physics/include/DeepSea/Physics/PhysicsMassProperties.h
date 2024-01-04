@@ -128,6 +128,23 @@ DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_initializeMesh(
 	float density);
 
 /**
+ * @brief Initializes mass properties by combining multiple mass properties together.
+ *
+ * This can be used to create inertia for a compound shape. The inertia frame of reference will be
+ * at the center of mass and identity rotation.
+ *
+ * @remark errno will be set on failure.
+ * @param[out] massProperties The mass properties to initialize.
+ * @param componentMassProperties Array of pointers to the mass properties to combine.
+ * @param componentMassPropertiesCount The number of mass properties to combine.
+ * @return False if the parameters are invalid.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_initializeCombined(
+	dsPhysicsMassProperties* massProperties,
+	const dsPhysicsMassProperties* const* componentMassProperties,
+	uint32_t componentMassPropertiesCount);
+
+/**
  * @brief Sets the mass for the mass properties.
  *
  * This will scale the inertia for the change in mass.
@@ -181,19 +198,34 @@ DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_shift(dsPhysicsMassProperties* ma
 	const dsVector3f* translate, const dsQuaternion4f* rotate);
 
 /**
- * @brief Combines two physics mass properties into one.
- *
- * This may be used to accumulate mass properties from multiple shapes into a single object. The
- * other mass properties will first be shifted into the current mass properties' frame before
- * it's combined.
- *
+ * @brief Gets the final inertia tensor for mass properties relative to inertiaTranslate and
+ *     inertiaRotate.
  * @remark errno will be set on failure.
+ * @param[out] outInertia The final inertia tensor.
  * @param massProperties The mass properties.
- * @param otherMassProperties The mass properties to combine with massProperties.
  * @return False if the parameters are invalid.
  */
-DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_combine(dsPhysicsMassProperties* massProperties,
-	const dsPhysicsMassProperties* otherMassProperties);
+DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_getInertia(dsMatrix33f* outInertia,
+	const dsPhysicsMassProperties* massProperties);
+
+/**
+ * @brief Gets the final inertia tensor for mass properties relative to inertiaTranslate and
+ * inertiaRotate, decomposed into the rotation and diagonal.
+ *
+ * Multiplying the matrices
+ * outInertiaRotate*diagonal(outInertiaDiagonal)*transpose(outInertiaRotate) will give the same
+ * matrix as dsPhysicsMassProperties_getInertia().
+ *
+ * @remark errno will be set on failure.
+ * @param[out] outInertiaRotate The rotation for the final inertia tensor. This does NOT include the
+ *     rotation from inertiaRotate.
+ * @param[out] outInertiaDiagonal The diagonal factor for the inertia. These are the scales applied
+ *     in the frame of outInertiaRotate to restore the original matrix.
+ * @param massProperties The mass properties.
+ * @return False if the parameters are invalid.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_getDecomposedInertia(dsMatrix33f* outInertiaRotate,
+	dsVector3f* outInertiaDiagonal, const dsPhysicsMassProperties* massProperties);
 
 #ifdef __cplusplus
 }

@@ -113,9 +113,22 @@ typedef enum dsPhysicsMotionType
 typedef struct dsPhysicsMassProperties
 {
 	/**
-	 * @brief The tensor matrix for the moment of inertia.
+	 * @brief The tensor matrix for the moment of inertia around the center of mass.
+	 *
+	 * The final inertia should be queried with dsPhysicsMassProperties_getInertia() to apply any
+	 * offset of the center of mass relative to inertiaTranslate. The translated inertia tensor
+	 * isn't stored here since translating is a lossy process, where translating by a then b isn't
+	 * the same result as translating once by (a + b).
 	 */
-	dsMatrix33f inertia;
+	dsMatrix33f centeredInertia;
+
+	/**
+	 * @brief The center of mass.
+	 *
+	 * This will usually equal inertiaTranslate, but may differ if shifted.
+	 */
+	dsVector3f centerOfMass;
+
 	/**
 	 * @brief Translation for the frame of reference of the inertia tensor.
 	 *

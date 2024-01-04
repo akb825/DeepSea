@@ -248,7 +248,8 @@ bool dsPhysicsMassProperties_initializeEmpty(dsPhysicsMassProperties* massProper
 		return false;
 	}
 
-	memset(&massProperties->inertia, 0, sizeof(dsMatrix33f));
+	memset(&massProperties->centeredInertia, 0, sizeof(dsMatrix33f));
+	memset(&massProperties->centerOfMass, 0, sizeof(dsVector3f));
 	memset(&massProperties->inertiaTranslate, 0, sizeof(dsVector3f));
 	dsQuaternion4_identityRotation(massProperties->inertiaRotate);
 	massProperties->mass = 0.0f;
@@ -272,9 +273,10 @@ bool dsPhysicsMassProperties_initializeBox(dsPhysicsMassProperties* massProperti
 
 	massProperties->mass = density*volume;
 	float inertiaScale = massProperties->mass/3.0f;
-	dsMatrix33f_makeScale3D(&massProperties->inertia, (y2 + z2)*inertiaScale,
+	dsMatrix33f_makeScale3D(&massProperties->centeredInertia, (y2 + z2)*inertiaScale,
 		(x2 + z2)*inertiaScale, (x2 + y2)*inertiaScale);
 
+	memset(&massProperties->centerOfMass, 0, sizeof(dsVector3f));
 	memset(&massProperties->inertiaTranslate, 0, sizeof(dsVector3f));
 	dsQuaternion4_identityRotation(massProperties->inertiaRotate);
 	return true;
@@ -294,7 +296,10 @@ bool dsPhysicsMassProperties_initializeSphere(dsPhysicsMassProperties* massPrope
 
 	massProperties->mass = density*volume;
 	float inertiaScale = 0.4f*radius2*massProperties->mass;
-	dsMatrix33f_makeScale3D(&massProperties->inertia, inertiaScale, inertiaScale, inertiaScale);
+	dsMatrix33f_makeScale3D(&massProperties->centeredInertia, inertiaScale, inertiaScale,
+		inertiaScale);
+
+	memset(&massProperties->centerOfMass, 0, sizeof(dsVector3f));
 	memset(&massProperties->inertiaTranslate, 0, sizeof(dsVector3f));
 	dsQuaternion4_identityRotation(massProperties->inertiaRotate);
 	return true;
@@ -319,18 +324,20 @@ bool dsPhysicsMassProperties_initializeCylinder(dsPhysicsMassProperties* massPro
 	switch (axis)
 	{
 		case dsPhysicsAxis_X:
-			dsMatrix33f_makeScale3D(&massProperties->inertia, heightInertia, radiusInertia,
+			dsMatrix33f_makeScale3D(&massProperties->centeredInertia, heightInertia, radiusInertia,
 				radiusInertia);
 			break;
 		case dsPhysicsAxis_Y:
-			dsMatrix33f_makeScale3D(&massProperties->inertia, radiusInertia, heightInertia,
+			dsMatrix33f_makeScale3D(&massProperties->centeredInertia, radiusInertia, heightInertia,
 				radiusInertia);
 			break;
 		case dsPhysicsAxis_Z:
-			dsMatrix33f_makeScale3D(&massProperties->inertia, radiusInertia, radiusInertia,
+			dsMatrix33f_makeScale3D(&massProperties->centeredInertia, radiusInertia, radiusInertia,
 				heightInertia);
 			break;
 	}
+
+	memset(&massProperties->centerOfMass, 0, sizeof(dsVector3f));
 	memset(&massProperties->inertiaTranslate, 0, sizeof(dsVector3f));
 	dsQuaternion4_identityRotation(massProperties->inertiaRotate);
 	return true;
@@ -371,18 +378,20 @@ bool dsPhysicsMassProperties_initializeCapsule(dsPhysicsMassProperties* massProp
 	switch (axis)
 	{
 		case dsPhysicsAxis_X:
-			dsMatrix33f_makeScale3D(&massProperties->inertia, heightInertia, radiusInertia,
+			dsMatrix33f_makeScale3D(&massProperties->centeredInertia, heightInertia, radiusInertia,
 				radiusInertia);
 			break;
 		case dsPhysicsAxis_Y:
-			dsMatrix33f_makeScale3D(&massProperties->inertia, radiusInertia, heightInertia,
+			dsMatrix33f_makeScale3D(&massProperties->centeredInertia, radiusInertia, heightInertia,
 				radiusInertia);
 			break;
 		case dsPhysicsAxis_Z:
-			dsMatrix33f_makeScale3D(&massProperties->inertia, radiusInertia, radiusInertia,
+			dsMatrix33f_makeScale3D(&massProperties->centeredInertia, radiusInertia, radiusInertia,
 				heightInertia);
 			break;
 	}
+
+	memset(&massProperties->centerOfMass, 0, sizeof(dsVector3f));
 	memset(&massProperties->inertiaTranslate, 0, sizeof(dsVector3f));
 	dsQuaternion4_identityRotation(massProperties->inertiaRotate);
 	return true;
@@ -408,27 +417,29 @@ bool dsPhysicsMassProperties_initializeCone(dsPhysicsMassProperties* massPropert
 	switch (axis)
 	{
 		case dsPhysicsAxis_X:
-			dsMatrix33f_makeScale3D(&massProperties->inertia, heightInertia, radiusInertia,
+			dsMatrix33f_makeScale3D(&massProperties->centeredInertia, heightInertia, radiusInertia,
 				radiusInertia);
-			massProperties->inertiaTranslate.x = 0.75f*height;
-			massProperties->inertiaTranslate.y = 0.0f;
-			massProperties->inertiaTranslate.z = 0.0f;
+			massProperties->centerOfMass.x = 0.75f*height;
+			massProperties->centerOfMass.y = 0.0f;
+			massProperties->centerOfMass.z = 0.0f;
 			break;
 		case dsPhysicsAxis_Y:
-			dsMatrix33f_makeScale3D(&massProperties->inertia, radiusInertia, heightInertia,
+			dsMatrix33f_makeScale3D(&massProperties->centeredInertia, radiusInertia, heightInertia,
 				radiusInertia);
-			massProperties->inertiaTranslate.x = 0.0f;
-			massProperties->inertiaTranslate.y = 0.75f*height;
-			massProperties->inertiaTranslate.z = 0.0f;
+			massProperties->centerOfMass.x = 0.0f;
+			massProperties->centerOfMass.y = 0.75f*height;
+			massProperties->centerOfMass.z = 0.0f;
 			break;
 		case dsPhysicsAxis_Z:
-			dsMatrix33f_makeScale3D(&massProperties->inertia, radiusInertia, radiusInertia,
+			dsMatrix33f_makeScale3D(&massProperties->centeredInertia, radiusInertia, radiusInertia,
 				heightInertia);
-			massProperties->inertiaTranslate.x = 0.0f;
-			massProperties->inertiaTranslate.y = 0.0f;
-			massProperties->inertiaTranslate.z = 0.75f*height;
+			massProperties->centerOfMass.x = 0.0f;
+			massProperties->centerOfMass.y = 0.0f;
+			massProperties->centerOfMass.z = 0.75f*height;
 			break;
 	}
+
+	massProperties->inertiaTranslate = massProperties->centerOfMass;
 	dsQuaternion4_identityRotation(massProperties->inertiaRotate);
 	return true;
 }
@@ -447,7 +458,7 @@ bool dsPhysicsMassProperties_initializeMesh(dsPhysicsMassProperties* massPropert
 
 	// First need to compute the center of mass and volume.
 	float volume;
-	if (!computeCenterOfMassAndVolume(&massProperties->inertiaTranslate, &volume, vertices,
+	if (!computeCenterOfMassAndVolume(&massProperties->centerOfMass, &volume, vertices,
 			vertexCount, vertexStride, indices, indexCount, indexSize))
 	{
 		return false;
@@ -479,9 +490,9 @@ bool dsPhysicsMassProperties_initializeMesh(dsPhysicsMassProperties* massPropert
 
 		// Mapping for tetrahedron to the canonical.
 		dsMatrix33f tetraMap;
-		dsVector3_sub(tetraMap.columns[0], a, massProperties->inertiaTranslate);
-		dsVector3_sub(tetraMap.columns[1], b, massProperties->inertiaTranslate);
-		dsVector3_sub(tetraMap.columns[2], c, massProperties->inertiaTranslate);
+		dsVector3_sub(tetraMap.columns[0], a, massProperties->centerOfMass);
+		dsVector3_sub(tetraMap.columns[1], b, massProperties->centerOfMass);
+		dsVector3_sub(tetraMap.columns[2], c, massProperties->centerOfMass);
 
 		dsMatrix33f covariance, temp;
 		mulBTransposed(&temp, &canonicalTetraCovariance, &tetraMap);
@@ -500,19 +511,93 @@ bool dsPhysicsMassProperties_initializeMesh(dsPhysicsMassProperties* massPropert
 	float traceCovariance = totalCovariance.values[0][0] + totalCovariance.values[1][1] +
 		totalCovariance.values[2][2];
 
-	massProperties->inertia.values[0][0] = (traceCovariance - totalCovariance.values[0][0])*density;
-	massProperties->inertia.values[0][1] = -totalCovariance.values[0][1]*density;
-	massProperties->inertia.values[0][2] = -totalCovariance.values[0][2]*density;
+	massProperties->centeredInertia.values[0][0] =
+		(traceCovariance - totalCovariance.values[0][0])*density;
+	massProperties->centeredInertia.values[0][1] = -totalCovariance.values[0][1]*density;
+	massProperties->centeredInertia.values[0][2] = -totalCovariance.values[0][2]*density;
 
-	massProperties->inertia.values[1][0] = -totalCovariance.values[1][0]*density;
-	massProperties->inertia.values[1][1] = (traceCovariance - totalCovariance.values[1][1])*density;
-	massProperties->inertia.values[1][2] = -totalCovariance.values[1][2]*density;
+	massProperties->centeredInertia.values[1][0] = -totalCovariance.values[1][0]*density;
+	massProperties->centeredInertia.values[1][1] =
+		(traceCovariance - totalCovariance.values[1][1])*density;
+	massProperties->centeredInertia.values[1][2] = -totalCovariance.values[1][2]*density;
 
-	massProperties->inertia.values[2][0] = -totalCovariance.values[2][0]*density;
-	massProperties->inertia.values[2][1] = -totalCovariance.values[2][1]*density;
-	massProperties->inertia.values[2][2] = (traceCovariance - totalCovariance.values[2][2])*density;
+	massProperties->centeredInertia.values[2][0] = -totalCovariance.values[2][0]*density;
+	massProperties->centeredInertia.values[2][1] = -totalCovariance.values[2][1]*density;
+	massProperties->centeredInertia.values[2][2] =
+		(traceCovariance - totalCovariance.values[2][2])*density;
 
+	massProperties->inertiaTranslate = massProperties->centerOfMass;
 	dsQuaternion4_identityRotation(massProperties->inertiaRotate);
+	return true;
+}
+
+bool dsPhysicsMassProperties_initializeCombined(
+	dsPhysicsMassProperties* massProperties,
+	const dsPhysicsMassProperties* const* componentMassProperties,
+	uint32_t componentMassPropertiesCount)
+{
+	if (!massProperties || (!componentMassProperties && componentMassPropertiesCount > 0))
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	float totalMass = 0.0f;
+	dsVector3f scaledCenterOfMass = {{0.0f, 0.0f, 0.0f}};
+	for (uint32_t i = 0; i < componentMassPropertiesCount; ++i)
+	{
+		const dsPhysicsMassProperties* curMassProperties = componentMassProperties[i];
+		if (!curMassProperties)
+		{
+			errno = EINVAL;
+			return false;
+		}
+
+		dsVector3f scaledCenter;
+		dsVector3_scale(scaledCenter, curMassProperties->centerOfMass, curMassProperties->mass);
+		dsVector3_add(scaledCenterOfMass, scaledCenterOfMass, scaledCenter);
+		totalMass += curMassProperties->mass;
+	}
+
+	memset(&massProperties->centeredInertia, 0, sizeof(dsMatrix33f));
+	dsQuaternion4_identityRotation(massProperties->inertiaRotate);
+	massProperties->mass = totalMass;
+	if (totalMass == 0.0f)
+	{
+		// Empty, but keep transform information.
+		memset(&massProperties->centerOfMass, 0, sizeof(dsVector3f));
+		memset(&massProperties->inertiaTranslate, 0, sizeof(dsVector3f));
+		return true;
+	}
+
+	float invTotalMass = 1/totalMass;
+	dsVector3_scale(massProperties->centerOfMass, scaledCenterOfMass, invTotalMass);
+	massProperties->inertiaTranslate = massProperties->centerOfMass;
+	dsQuaternion4_identityRotation(massProperties->inertiaRotate);
+
+	for (uint32_t i = 0; i < componentMassPropertiesCount; ++i)
+	{
+		const dsPhysicsMassProperties* curMassProperties = componentMassProperties[i];
+
+		// Shift the current mass properties' inertia into the current reference frame. Shift will
+		// be the inverse of the transform to go to the same reference frame in order to move the
+		// inertia back to its original position and orientation.
+		dsVector3f shiftTranslate;
+		dsVector3_sub(shiftTranslate, curMassProperties->centerOfMass,
+			massProperties->centerOfMass);
+
+		dsMatrix33f shiftedInertia;
+		rotateInertia(&shiftedInertia, &curMassProperties->centeredInertia,
+			&curMassProperties->inertiaRotate);
+		translateInertia(&shiftedInertia, &shiftedInertia, curMassProperties->mass,
+			&shiftTranslate);
+
+		for (unsigned int i = 0; i < 3; ++i)
+		{
+			dsVector3_add(massProperties->centeredInertia.columns[i],
+				massProperties->centeredInertia.columns[i], shiftedInertia.columns[i]);
+		}
+	}
 	return true;
 }
 
@@ -525,9 +610,12 @@ bool dsPhysicsMassProperties_setMass(dsPhysicsMassProperties* massProperties, fl
 	}
 
 	float scale = mass/massProperties->mass;
-	dsVector3_scale(massProperties->inertia.columns[0], massProperties->inertia.columns[0], scale);
-	dsVector3_scale(massProperties->inertia.columns[1], massProperties->inertia.columns[1], scale);
-	dsVector3_scale(massProperties->inertia.columns[2], massProperties->inertia.columns[2], scale);
+	dsVector3_scale(massProperties->centeredInertia.columns[0],
+		massProperties->centeredInertia.columns[0], scale);
+	dsVector3_scale(massProperties->centeredInertia.columns[1],
+		massProperties->centeredInertia.columns[1], scale);
+	dsVector3_scale(massProperties->centeredInertia.columns[2],
+		massProperties->centeredInertia.columns[2], scale);
 	massProperties->mass = mass;
 	return true;
 }
@@ -561,13 +649,15 @@ bool dsPhysicsMassProperties_transform(dsPhysicsMassProperties* massProperties,
 			return false;
 		}
 
-		massProperties->mass = scaleInertia(&massProperties->inertia, &massProperties->inertia,
-			massProperties->mass, scale);
+		massProperties->mass = scaleInertia(&massProperties->centeredInertia,
+			&massProperties->centeredInertia, massProperties->mass, scale);
+		dsVector3_mul(massProperties->centerOfMass, massProperties->centerOfMass, *scale);
 		dsVector3_mul(massProperties->inertiaTranslate, massProperties->inertiaTranslate, *scale);
 	}
 
 	if (rotate)
 	{
+		dsQuaternion4f_rotate(&massProperties->centerOfMass, rotate, &massProperties->centerOfMass);
 		dsQuaternion4f_rotate(&massProperties->inertiaTranslate, rotate,
 			&massProperties->inertiaTranslate);
 		dsQuaternion4f curRotate = massProperties->inertiaRotate;
@@ -576,6 +666,7 @@ bool dsPhysicsMassProperties_transform(dsPhysicsMassProperties* massProperties,
 
 	if (translate)
 	{
+		dsVector3_add(massProperties->centerOfMass, massProperties->centerOfMass, *translate);
 		dsVector3_add(massProperties->inertiaTranslate, massProperties->inertiaTranslate,
 			*translate);
 	}
@@ -597,19 +688,20 @@ bool dsPhysicsMassProperties_shift(dsPhysicsMassProperties* massProperties,
 		// Rotate by the inverse to move back to the original location.
 		dsQuaternion4f rotateInv;
 		dsQuaternion4_invert(rotateInv, *rotate);
-		rotateInertia(&massProperties->inertia, &massProperties->inertia, &rotateInv);
+		rotateInertia(&massProperties->centeredInertia, &massProperties->centeredInertia,
+			&rotateInv);
 
 		dsQuaternion4f curRotate = massProperties->inertiaRotate;
 		dsQuaternion4f_mul(&massProperties->inertiaRotate, rotate, &curRotate);
+		dsQuaternion4f_rotate(&massProperties->centerOfMass, rotate, &massProperties->centerOfMass);
 		dsQuaternion4f_rotate(&massProperties->inertiaTranslate, rotate,
 			&massProperties->inertiaTranslate);
 	}
 
 	if (translate)
 	{
-		// Theoretically need to translate inertia by the inverse, but gives the same result.
-		translateInertia(
-			&massProperties->inertia, &massProperties->inertia, massProperties->mass, translate);
+		// Move translateInertia but not center of mass. The final shift will be done later when
+		// querying the final non-centered inertia.
 		dsVector3_add(massProperties->inertiaTranslate, massProperties->inertiaTranslate,
 			*translate);
 	}
@@ -617,41 +709,62 @@ bool dsPhysicsMassProperties_shift(dsPhysicsMassProperties* massProperties,
 	return true;
 }
 
-bool dsPhysicsMassProperties_combine(dsPhysicsMassProperties* massProperties,
-	const dsPhysicsMassProperties* otherMassProperties)
+bool dsPhysicsMassProperties_getInertia(dsMatrix33f* outInertia,
+	const dsPhysicsMassProperties* massProperties)
 {
-	if (!massProperties || !otherMassProperties)
+	if (!outInertia || !massProperties)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	float totalMass = massProperties->mass + otherMassProperties->mass;
-	if (totalMass == 0)
-		return true;
+	if (dsVector3_equal(massProperties->centerOfMass, massProperties->inertiaTranslate))
+		*outInertia = massProperties->centeredInertia;
+	else
+	{
+		dsVector3f shiftTranslate;
+		dsVector3_sub(shiftTranslate, massProperties->inertiaTranslate,
+			massProperties->centerOfMass);
+		translateInertia(outInertia, &massProperties->centeredInertia, massProperties->mass,
+			&shiftTranslate);
+	}
+	return true;
+}
 
-	// Shift the other mass properties' inertia into the current reference frame. Shift will be the
-	// inverse of the transform to go to the same reference frame in order to move the inertia back
-	// to its original position and orientation.
-	dsQuaternion4f otherRotateInv, shiftRotate;
-	dsQuaternion4_invert(otherRotateInv, otherMassProperties->inertiaRotate);
-	dsQuaternion4f_mul(&shiftRotate, &massProperties->inertiaRotate, &otherRotateInv);
-	dsQuaternion4_invert(shiftRotate, shiftRotate);
+bool dsPhysicsMassProperties_getDecomposedInertia(dsMatrix33f* outInertiaRotate,
+	dsVector3f* outInertiaDiagonal, const dsPhysicsMassProperties* massProperties)
+{
+	if (!outInertiaRotate || !outInertiaDiagonal || !massProperties)
+	{
+		errno = EINVAL;
+		return false;
+	}
 
-	dsVector3f shiftTranslate;
-	dsVector3_sub(shiftTranslate, otherMassProperties->inertiaTranslate,
-		massProperties->inertiaTranslate);
+	dsMatrix33f inertia;
+	const dsMatrix33f* inertiaPtr;
+	if (dsVector3_equal(massProperties->centerOfMass, massProperties->inertiaTranslate))
+		inertiaPtr = &massProperties->centeredInertia;
+	else
+	{
+		dsVector3f shiftTranslate;
+		dsVector3_sub(shiftTranslate, massProperties->inertiaTranslate,
+			massProperties->centerOfMass);
+		translateInertia(&inertia, &massProperties->centeredInertia, massProperties->mass,
+			&shiftTranslate);
+		inertiaPtr = &inertia;
+	}
 
-	dsMatrix33f shiftedInertia;
-	rotateInertia(&shiftedInertia, &otherMassProperties->inertia, &shiftRotate);
-	translateInertia(&shiftedInertia, &shiftedInertia, otherMassProperties->mass, &shiftTranslate);
+	if (!dsMatrix33f_jacobiEigenvalues(outInertiaRotate, outInertiaDiagonal, inertiaPtr))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Couldn't decompose mass properties inertia tensor.");
+		return false;
+	}
 
-	dsVector3_add(massProperties->inertia.columns[0], massProperties->inertia.columns[0],
-		shiftedInertia.columns[0]);
-	dsVector3_add(massProperties->inertia.columns[1], massProperties->inertia.columns[1],
-		shiftedInertia.columns[1]);
-	dsVector3_add(massProperties->inertia.columns[2], massProperties->inertia.columns[2],
-		shiftedInertia.columns[2]);
-	massProperties->mass = totalMass;
+	// May have created a non right-handed rotation.
+	dsVector3f expectedDir;
+	dsVector3_cross(expectedDir, outInertiaRotate->columns[0], outInertiaRotate->columns[1]);
+	if (dsVector3_dot(expectedDir, outInertiaRotate->columns[2]) < 0.0f)
+		dsVector3_neg(outInertiaRotate->columns[2], outInertiaRotate->columns[2]);
 	return true;
 }

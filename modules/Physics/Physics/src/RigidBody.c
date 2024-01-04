@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -275,7 +275,7 @@ bool dsRigidBody_setTransformMatrix(dsRigidBody* rigidBody, const dsMatrix44f* t
 	dsQuaternion4f orientation;
 	if (unitScale)
 	{
-		if (scalable && !dsVector3f_equal(&one, &rigidBody->scale))
+		if (scalable && !dsVector3_equal(one, rigidBody->scale))
 			scalePtr = &one; // Avoid unit scales that are slightly off.
 		dsQuaternion4f_fromMatrix44(&orientation, transform);
 	}
