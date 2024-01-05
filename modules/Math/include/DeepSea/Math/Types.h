@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -692,7 +692,7 @@ typedef union dsVector4d
 
 #if DS_HAS_SIMD
 	/**
-	 * @brief SIMD value as 2 doubles when supported.
+	 * @brief SIMD value as 2 double vectors when supported.
 	 */
 	dsSIMD2d simd2[2];
 #endif
@@ -1288,6 +1288,13 @@ typedef union dsQuaternion4d
 	 * @brief The values fo the quaternion.
 	 */
 	double values[4];
+
+#if DS_HAS_SIMD
+	/**
+	 * @brief SIMD value as 2 double vectors when supported.
+	 */
+	dsSIMD2d simd2[2];
+#endif
 
 	struct
 	{

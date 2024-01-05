@@ -65,6 +65,34 @@ static void SIMDTest_Float4()
 	EXPECT_EQ(-cpuB.z, cpuResult.z);
 	EXPECT_EQ(-cpuB.w, cpuResult.w);
 
+	result = dsSIMD4f_negComponents(b, 1, 0, 0, 0);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_EQ(-cpuB.x, cpuResult.x);
+	EXPECT_EQ(cpuB.y, cpuResult.y);
+	EXPECT_EQ(cpuB.z, cpuResult.z);
+	EXPECT_EQ(cpuB.w, cpuResult.w);
+
+	result = dsSIMD4f_negComponents(b, 0, 1, 0, 0);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_EQ(cpuB.x, cpuResult.x);
+	EXPECT_EQ(-cpuB.y, cpuResult.y);
+	EXPECT_EQ(cpuB.z, cpuResult.z);
+	EXPECT_EQ(cpuB.w, cpuResult.w);
+
+	result = dsSIMD4f_negComponents(b, 0, 0, 1, 0);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_EQ(cpuB.x, cpuResult.x);
+	EXPECT_EQ(cpuB.y, cpuResult.y);
+	EXPECT_EQ(-cpuB.z, cpuResult.z);
+	EXPECT_EQ(cpuB.w, cpuResult.w);
+
+	result = dsSIMD4f_negComponents(b, 0, 0, 0, 1);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_EQ(cpuB.x, cpuResult.x);
+	EXPECT_EQ(cpuB.y, cpuResult.y);
+	EXPECT_EQ(cpuB.z, cpuResult.z);
+	EXPECT_EQ(-cpuB.w, cpuResult.w);
+
 	result = dsSIMD4f_add(a, b);
 	dsSIMD4f_store(&cpuResult, result);
 	EXPECT_EQ(cpuA[0] + cpuB.x, cpuResult.x);
@@ -214,6 +242,16 @@ static void SIMDTest_Double2()
 	EXPECT_EQ(-cpuB.x, cpuResult.x);
 	EXPECT_EQ(-cpuB.y, cpuResult.y);
 
+	result = dsSIMD2d_negComponents(b, 1, 0);
+	dsSIMD2d_store(&cpuResult, result);
+	EXPECT_EQ(-cpuB.x, cpuResult.x);
+	EXPECT_EQ(cpuB.y, cpuResult.y);
+
+	result = dsSIMD2d_negComponents(b, 0, 1);
+	dsSIMD2d_store(&cpuResult, result);
+	EXPECT_EQ(cpuB.x, cpuResult.x);
+	EXPECT_EQ(-cpuB.y, cpuResult.y);
+
 	result = dsSIMD2d_add(a, b);
 	dsSIMD2d_store(&cpuResult, result);
 	EXPECT_EQ(cpuA[0] + cpuB.x, cpuResult.x);
@@ -330,6 +368,34 @@ static void SIMDTest_Double4()
 	EXPECT_EQ(-cpuB.x, cpuResult.x);
 	EXPECT_EQ(-cpuB.y, cpuResult.y);
 	EXPECT_EQ(-cpuB.z, cpuResult.z);
+	EXPECT_EQ(-cpuB.w, cpuResult.w);
+
+	result = dsSIMD4d_negComponents(b, 1, 0, 0, 0);
+	dsSIMD4d_store(&cpuResult, result);
+	EXPECT_EQ(-cpuB.x, cpuResult.x);
+	EXPECT_EQ(cpuB.y, cpuResult.y);
+	EXPECT_EQ(cpuB.z, cpuResult.z);
+	EXPECT_EQ(cpuB.w, cpuResult.w);
+
+	result = dsSIMD4d_negComponents(b, 0, 1, 0, 0);
+	dsSIMD4d_store(&cpuResult, result);
+	EXPECT_EQ(cpuB.x, cpuResult.x);
+	EXPECT_EQ(-cpuB.y, cpuResult.y);
+	EXPECT_EQ(cpuB.z, cpuResult.z);
+	EXPECT_EQ(cpuB.w, cpuResult.w);
+
+	result = dsSIMD4d_negComponents(b, 0, 0, 1, 0);
+	dsSIMD4d_store(&cpuResult, result);
+	EXPECT_EQ(cpuB.x, cpuResult.x);
+	EXPECT_EQ(cpuB.y, cpuResult.y);
+	EXPECT_EQ(-cpuB.z, cpuResult.z);
+	EXPECT_EQ(cpuB.w, cpuResult.w);
+
+	result = dsSIMD4d_negComponents(b, 0, 0, 0, 1);
+	dsSIMD4d_store(&cpuResult, result);
+	EXPECT_EQ(cpuB.x, cpuResult.x);
+	EXPECT_EQ(cpuB.y, cpuResult.y);
+	EXPECT_EQ(cpuB.z, cpuResult.z);
 	EXPECT_EQ(-cpuB.w, cpuResult.w);
 
 	result = dsSIMD4d_add(a, b);

@@ -18,6 +18,8 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Assert.h>
+
+#include <DeepSea/Math/SIMD/SIMD.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Export.h>
 #include <DeepSea/Math/Types.h>
@@ -40,6 +42,8 @@ extern "C"
  * implementation cannot be practically done within a macro. There are also inline functions
  * provided to accompany the macro to use when desired. The inline functions may also be addressed
  * in order to interface with other languages.
+ *
+ * The dsVector4f and dsVector4d functions may use SIMD operations when guaranteed to be available.
  *
  * @see dsQuaternion4f dsQuaternion4d
  */
@@ -82,11 +86,14 @@ extern "C"
 	} while (0)
 
 /**
- * @brief Inverts a quaternion.
- * @param[out] result The inverted result. This may be the same as a.
- * @param a The quaternion to invert. It is assumed that a is a unit quaternion.
+ * @brief Takes the conjugate of a quaternion.
+ *
+ * When a unit cquaternion, such as for a rotation, this is the same as the inverse.
+ *
+ * @param[out] result The conjugated result. This may be the same as a.
+ * @param a The quaternion to conjugate.
  */
-#define dsQuaternion4_invert(result, a) \
+#define dsQuaternion4_conjugate(result, a) \
 	do \
 	{ \
 		(result).values[0] = -(a).values[0]; \
@@ -223,7 +230,7 @@ DS_MATH_EXPORT void dsQuaternion4d_toMatrix44(dsMatrix44d* result, const dsQuate
 DS_MATH_EXPORT inline void dsQuaternion4f_normalize(dsQuaternion4f* result,
 	const dsQuaternion4f* a);
 
-/** @copydoc dsQuaternion4f_normalize */
+/** @copydoc dsQuaternion4f_normalize() */
 DS_MATH_EXPORT inline void dsQuaternion4d_normalize(dsQuaternion4d* result,
 	const dsQuaternion4d* a);
 
@@ -254,42 +261,6 @@ DS_MATH_EXPORT void dsQuaternion4f_slerp(dsQuaternion4f* result, const dsQuatern
 DS_MATH_EXPORT void dsQuaternion4d_slerp(dsQuaternion4d* result, const dsQuaternion4d* a,
 	const dsQuaternion4d* b, double t);
 
-/** @copydoc dsQuaternion4_mul() */
-DS_MATH_EXPORT inline void dsQuaternion4f_mul(dsQuaternion4f* result, const dsQuaternion4f* a,
-	const dsQuaternion4f* b)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(a);
-	DS_ASSERT(b);
-	dsQuaternion4_mul(*result, *a, *b);
-}
-
-/** @copydoc dsQuaternion4_mul() */
-DS_MATH_EXPORT inline void dsQuaternion4d_mul(dsQuaternion4d* result, const dsQuaternion4d* a,
-	const dsQuaternion4d* b)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(a);
-	DS_ASSERT(b);
-	dsQuaternion4_mul(*result, *a, *b);
-}
-
-/** @copydoc dsQuaternion4_invert() */
-DS_MATH_EXPORT inline void dsQuaternion4f_invert(dsQuaternion4f* result, const dsQuaternion4f* a)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(a);
-	dsQuaternion4_invert(*result, *a);
-}
-
-/** @copydoc dsQuaternion4_invert() */
-DS_MATH_EXPORT inline void dsQuaternion4d_invert(dsQuaternion4d* result, const dsQuaternion4d* a)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(a);
-	dsQuaternion4_invert(*result, *a);
-}
-
 /// @cond
 #define dsQuaternion4_mulQuatVec(result, a, b) \
 	do \
@@ -314,7 +285,101 @@ DS_MATH_EXPORT inline void dsQuaternion4d_invert(dsQuaternion4d* result, const d
 		(result).values[2] = (a).values[3]*(b).values[2] + (b).values[3]*(a).values[2] + \
 			(a).values[0]*(b).values[1] - (a).values[1]*(b).values[0]; \
 	} while (0)
+
+#if DS_HAS_SIMD && (DS_X86_32 || DS_X86_64)
+// NOTE: Only SSE instructions have efficient shuffle. Without it, there aren't enough operations to
+// offset the cost for manually shuffling the vectors with MOV operations. (e.g. on NEON)
+#define dsQuaternion4f_shuffle_0120_1201_2012_3333(a0120, a1201, a2012, a3333, a) \
+	do \
+	{ \
+		(a0120) = _mm_shuffle_ps(((a).simd), ((a).simd), _MM_SHUFFLE(0, 2, 1, 0)); \
+		(a1201) = _mm_shuffle_ps(((a).simd), ((a).simd), _MM_SHUFFLE(1, 0, 2, 1)); \
+		(a2012) = _mm_shuffle_ps(((a).simd), ((a).simd), _MM_SHUFFLE(2, 1, 0, 2)); \
+		(a3333) = _mm_shuffle_ps(((a).simd), ((a).simd), _MM_SHUFFLE(3, 3, 3, 3)); \
+	} while (0)
+
+#define dsQuaternion4f_shuffle_3330_2011_1202(a3330, a2011, a1202, a) \
+	do \
+	{ \
+		(a3330) = _mm_shuffle_ps(((a).simd), ((a).simd), _MM_SHUFFLE(0, 3, 3, 3)); \
+		(a2011) = _mm_shuffle_ps(((a).simd), ((a).simd), _MM_SHUFFLE(1, 1, 0, 2)); \
+		(a1202) = _mm_shuffle_ps(((a).simd), ((a).simd), _MM_SHUFFLE(2, 0, 2, 1)); \
+	} while (0)
+#endif
 /// @endcond
+
+/** @copydoc dsQuaternion4_mul() */
+DS_MATH_EXPORT inline void dsQuaternion4f_mul(dsQuaternion4f* result, const dsQuaternion4f* a,
+	const dsQuaternion4f* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+
+#if DS_SIMD_ALWAYS_FLOAT4 && defined(dsQuaternion4f_shuffle_0120_1201_2012_3333)
+	dsSIMD4f a0120, a1201, a2012, a3333;
+	dsQuaternion4f_shuffle_0120_1201_2012_3333(a0120, a1201, a2012, a3333, *a);
+
+	dsSIMD4f b3330, b2011, b1202;
+	dsQuaternion4f_shuffle_3330_2011_1202(b3330, b2011, b1202, *b);
+
+	dsSIMD4f t2 = dsSIMD4f_mul(a1201, b2011);
+#if DS_SIMD_ALWAYS_FMA
+	dsSIMD4f t12 = dsSIMD4f_fmadd(a0120, b3330, t2);
+#else
+	dsSIMD4f t1 = dsSIMD4f_mul(a0120, b3330);
+	dsSIMD4f t12 = dsSIMD4f_add(t1, t2);
+#endif
+	t12 = dsSIMD4f_negComponents(t12, 0, 0, 0, 1);
+
+	dsSIMD4f t3 = dsSIMD4f_mul(a2012, b1202);
+#if DS_SIMD_ALWAYS_FMA
+	dsSIMD4f t03 = dsSIMD4f_fmsub(a3333, b->simd, t3);
+#else
+	dsSIMD4f t0 = dsSIMD4f_mul(a3333, b->simd);
+	dsSIMD4f t03 = dsSIMD4f_sub(t0, t3);
+#endif
+
+	result->simd = dsSIMD4f_add(t03, t12);
+#else
+	dsQuaternion4_mul(*result, *a, *b);
+#endif
+}
+
+/** @copydoc dsQuaternion4_mul() */
+DS_MATH_EXPORT inline void dsQuaternion4d_mul(dsQuaternion4d* result, const dsQuaternion4d* a,
+	const dsQuaternion4d* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsQuaternion4_mul(*result, *a, *b);
+}
+
+/** @copydoc dsQuaternion4_conjugate() */
+DS_MATH_EXPORT inline void dsQuaternion4f_conjugate(dsQuaternion4f* result, const dsQuaternion4f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+#if DS_SIMD_ALWAYS_FLOAT4
+	result->simd = dsSIMD4f_negComponents(a->simd, 1, 1, 1, 0);
+#else
+	dsQuaternion4_conjugate(*result, *a);
+#endif
+}
+
+/** @copydoc dsQuaternion4_conjugate() */
+DS_MATH_EXPORT inline void dsQuaternion4d_conjugate(dsQuaternion4d* result, const dsQuaternion4d* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	result->simd2[0] = dsSIMD2d_neg(a->simd2[0]);
+	result->simd2[1] = dsSIMD2d_negComponents(a->simd2[1], 1, 0);
+#else
+	dsQuaternion4_conjugate(*result, *a);
+#endif
+}
 
 inline float dsQuaternion4f_getXAngle(const dsQuaternion4f* a)
 {
@@ -427,7 +492,7 @@ inline void dsQuaternion4f_rotate(dsVector3f* result, const dsQuaternion4f* a, c
 	DS_ASSERT(v);
 
 	dsQuaternion4f invA, tempQuat;
-	dsQuaternion4_invert(invA, *a);
+	dsQuaternion4_conjugate(invA, *a);
 	dsQuaternion4_mulQuatVec(tempQuat, *a, *v);
 	dsQuaternion4_mulToVector(*result, tempQuat, invA);
 }
@@ -439,13 +504,15 @@ inline void dsQuaternion4d_rotate(dsVector3d* result, const dsQuaternion4d* a, c
 	DS_ASSERT(v);
 
 	dsQuaternion4d invA, tempQuat;
-	dsQuaternion4_invert(invA, *a);
+	dsQuaternion4_conjugate(invA, *a);
 	dsQuaternion4_mulQuatVec(tempQuat, *a, *v);
 	dsQuaternion4_mulToVector(*result, tempQuat, invA);
 }
 
 #undef dsQuaternion4_mulQuatVec
 #undef dsQuaternion4_mulToVector
+#undef dsQuaternion4f_shuffle_0120_1201_2012_3333
+#undef dsQuaternion4f_shuffle_3330_2011_1202
 
 #ifdef __cplusplus
 }

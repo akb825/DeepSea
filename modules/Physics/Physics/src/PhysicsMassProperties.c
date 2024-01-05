@@ -687,7 +687,7 @@ bool dsPhysicsMassProperties_shift(dsPhysicsMassProperties* massProperties,
 	{
 		// Rotate by the inverse to move back to the original location.
 		dsQuaternion4f rotateInv;
-		dsQuaternion4_invert(rotateInv, *rotate);
+		dsQuaternion4f_conjugate(&rotateInv, rotate);
 		rotateInertia(&massProperties->centeredInertia, &massProperties->centeredInertia,
 			&rotateInv);
 

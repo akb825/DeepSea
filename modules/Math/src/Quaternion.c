@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -257,16 +257,16 @@ void dsQuaternion4d_slerp(dsQuaternion4d* result, const dsQuaternion4d* a, const
 	dsQuaternion4d negB;
 	if (cosAB < 0)
 	{
-		dsVector4_neg(negB, *b);
+		dsVector4d_neg((dsVector4d*)&negB, (const dsVector4d*)b);
 		b = &negB;
 		cosAB = -cosAB;
 	}
 
 	// If too close, do a lerp instead.
-	const double epsilon = 1e-15f;
-	if (cosAB > (1.0f - epsilon))
+	const double epsilon = 1e-15;
+	if (cosAB > (1.0 - epsilon))
 	{
-		dsVector4_lerp(*result, *a, *b, t);
+		dsVector4d_lerp((dsVector4d*)result, (const dsVector4d*)a, (const dsVector4d*)b, t);
 		dsQuaternion4d_normalize(result, result);
 		return;
 	}
@@ -279,10 +279,17 @@ void dsQuaternion4d_slerp(dsQuaternion4d* result, const dsQuaternion4d* a, const
 	double scaleB = sinTheta/sinThetaAB;
 	double scaleA = cos(theta) - cosAB*scaleB;
 
-	dsQuaternion4d scaledA, scaledB;
-	dsVector4_scale(scaledA, *a, scaleA);
-	dsVector4_scale(scaledB, *b, scaleB);
-	dsVector4_add(*result, scaledA, scaledB);
+#if DS_SIMD_ALWAYS_DOUBLE2 && DS_SIMD_ALWAYS_FMA
+	result->simd2[0] = dsSIMD2d_fmadd(a->simd2[0], dsSIMD2d_set1(scaleA),
+		dsSIMD2d_mul(b->simd2[0], dsSIMD2d_set1(scaleB)));
+	result->simd2[1] = dsSIMD2d_fmadd(a->simd2[1], dsSIMD2d_set1(scaleA),
+		dsSIMD2d_mul(b->simd2[1], dsSIMD2d_set1(scaleB)));
+#else
+	dsVector4d scaledA, scaledB;
+	dsVector4d_scale(&scaledA, (const dsVector4d*)a, scaleA);
+	dsVector4d_scale(&scaledB, (const dsVector4d*)b, scaleB);
+	dsVector4d_add((dsVector4d*)result, &scaledA, &scaledB);
+#endif
 }
 
 float dsQuaternion4f_getXAngle(const dsQuaternion4f* a);
@@ -309,5 +316,5 @@ void dsQuaternion4d_rotate(dsVector3d* result, const dsQuaternion4d* a, const ds
 void dsQuaternion4f_mul(dsQuaternion4f* result, const dsQuaternion4f* a, const dsQuaternion4f* b);
 void dsQuaternion4d_mul(dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b);
 
-void dsQuaternion4f_invert(dsQuaternion4f* result, const dsQuaternion4f* a);
-void dsQuaternion4d_invert(dsQuaternion4d* result, const dsQuaternion4d* a);
+void dsQuaternion4f_conjugate(dsQuaternion4f* result, const dsQuaternion4f* a);
+void dsQuaternion4d_conjugate(dsQuaternion4d* result, const dsQuaternion4d* a);

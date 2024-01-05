@@ -18,7 +18,6 @@
 #include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <gtest/gtest.h>
-#include <cmath>
 
 // Handle older versions of gtest.
 #ifndef TYPED_TEST_SUITE
@@ -372,7 +371,7 @@ TYPED_TEST(QuaternionTest, Multiply)
 	}
 }
 
-TYPED_TEST(QuaternionTest, Invert)
+TYPED_TEST(QuaternionTest, Conjugate)
 {
 	typedef typename QuaternionTypeSelector<TypeParam>::QuaternionType QuaternionType;
 	TypeParam epsilon = QuaternionTypeSelector<TypeParam>::epsilon;
@@ -383,7 +382,7 @@ TYPED_TEST(QuaternionTest, Invert)
 
 	QuaternionType q, invQ, ident;
 	dsQuaternion4_fromEulerAngles(&q, x, y, z);
-	dsQuaternion4_invert(invQ, q);
+	dsQuaternion4_conjugate(invQ, q);
 	dsQuaternion4_mul(ident, q, invQ);
 
 	EXPECT_NEAR(1, ident.r, epsilon);
@@ -455,4 +454,66 @@ TYPED_TEST(QuaternionTest, Slerp)
 	EXPECT_NEAR(q01.i, sq01.i, epsilon);
 	EXPECT_NEAR(q01.j, sq01.j, epsilon);
 	EXPECT_NEAR(q01.k, sq01.k, epsilon);
+}
+
+TEST(Quaternion4fTest, MultiplySIMD)
+{
+	float epsilon = QuaternionTypeSelector<float>::epsilon;
+
+	auto x = float(M_PI*3/4);
+	auto y = float(-M_PI/3);
+	auto z = float(-M_PI/5);
+
+	dsVector3f axis = {{1.2f, -3.4f, 2.1f}};
+	dsVector3_normalize(&axis, &axis);
+	auto theta = float(M_PI/3);
+
+	dsQuaternion4f qa, qb, qab, qabRef;
+	dsQuaternion4_fromEulerAngles(&qa, x, y, z);
+	dsQuaternion4_fromAxisAngle(&qb, &axis, theta);
+	dsQuaternion4f_mul(&qab, &qa, &qb);
+	dsQuaternion4_mul(qabRef, qa, qb);
+
+	EXPECT_NEAR(qabRef.i, qab.i, epsilon);
+	EXPECT_NEAR(qabRef.j, qab.j, epsilon);
+	EXPECT_NEAR(qabRef.k, qab.k, epsilon);
+	EXPECT_NEAR(qabRef.r, qab.r, epsilon);
+}
+
+TEST(Quaternion4fTest, ConjugateSIMD)
+{
+	float epsilon = QuaternionTypeSelector<float>::epsilon;
+
+	auto x = float(M_PI*3/4);
+	auto y = float(-M_PI/3);
+	auto z = float(-M_PI/5);
+
+	dsQuaternion4f q, invQ, ident;
+	dsQuaternion4_fromEulerAngles(&q, x, y, z);
+	dsQuaternion4f_conjugate(&invQ, &q);
+	dsQuaternion4_mul(ident, q, invQ);
+
+	EXPECT_NEAR(1, ident.r, epsilon);
+	EXPECT_NEAR(0, ident.i, epsilon);
+	EXPECT_NEAR(0, ident.j, epsilon);
+	EXPECT_NEAR(0, ident.k, epsilon);
+}
+
+TEST(Quaternion4dfTest, ConjugateSIMD)
+{
+	double epsilon = QuaternionTypeSelector<double>::epsilon;
+
+	double x = M_PI*3/4;
+	double y = -M_PI/3;
+	double z = -M_PI/5;
+
+	dsQuaternion4d q, invQ, ident;
+	dsQuaternion4_fromEulerAngles(&q, x, y, z);
+	dsQuaternion4d_conjugate(&invQ, &q);
+	dsQuaternion4_mul(ident, q, invQ);
+
+	EXPECT_NEAR(1, ident.r, epsilon);
+	EXPECT_NEAR(0, ident.i, epsilon);
+	EXPECT_NEAR(0, ident.j, epsilon);
+	EXPECT_NEAR(0, ident.k, epsilon);
 }

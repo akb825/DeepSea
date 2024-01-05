@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Aaron Barany
+ * Copyright 2022-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -245,6 +245,20 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_neg(dsSIMD4f a)
 {
 	return _mm_xor_ps(_mm_set1_ps(-0.0f), a);
 }
+
+/**
+ * @brief Negates specific components of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The value to negate.
+ * @param negX Constant 1 to negate the X component or 0 to leave it unchanged.
+ * @param negY Constant 1 to negate the Y component or 0 to leave it unchanged.
+ * @param negZ Constant 1 to negate the Z component or 0 to leave it unchanged.
+ * @param negW Constant 1 to negate the W component or 0 to leave it unchanged.
+ * @return The result of the negation.
+ */
+#define dsSIMD4f_negComponents(a, negX, negY, negZ, negW) \
+	_mm_xor_ps(_mm_set_ps((negW) ? -0.0f : 0.0f, (negZ) ? -0.0f : 0.0f, (negY) ? -0.0f : 0.0f, \
+		(negX) ? -0.0f : 0.0f), (a))
 
 /**
  * @brief Adds two SIMD values.
@@ -659,6 +673,17 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_neg(dsSIMD2d a)
 {
 	return _mm_xor_pd(_mm_set1_pd(-0.0), a);
 }
+
+/**
+ * @brief Negates specific components of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The value to negate.
+ * @param negX Constant 1 to negate the X component or 0 to leave it unchanged.
+ * @param negY Constant 1 to negate the Y component or 0 to leave it unchanged.
+ * @return The result of the negation.
+ */
+#define dsSIMD2d_negComponents(a, negX, negY) \
+	_mm_xor_pd(_mm_set_pd((negY) ? -0.0 : 0.0, (negX) ? -0.0 : 0.0), (a))
 
 /**
  * @brief Adds two SIMD values.
@@ -1080,6 +1105,20 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_neg(dsSIMD4d a)
 {
 	return _mm256_xor_pd(_mm256_set1_pd(-0.0), a);
 }
+
+/**
+ * @brief Negates specific components of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The value to negate.
+ * @param negX Constant 1 to negate the X component or 0 to leave it unchanged.
+ * @param negY Constant 1 to negate the Y component or 0 to leave it unchanged.
+ * @param negZ Constant 1 to negate the Z component or 0 to leave it unchanged.
+ * @param negW Constant 1 to negate the W component or 0 to leave it unchanged.
+ * @return The result of the negation.
+ */
+#define dsSIMD4d_negComponents(a, negX, negY, negZ, negW) \
+	_mm256_xor_pd(_mm256_set_pd((negW) ? -0.0 : 0.0, (negZ) ? -0.0 : 0.0, (negY) ? -0.0 : 0.0, \
+		(negX) ? -0.0 : 0.0), (a))
 
 /**
  * @brief Adds two SIMD values.

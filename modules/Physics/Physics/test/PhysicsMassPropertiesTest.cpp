@@ -922,7 +922,7 @@ TEST(PhysicsMassPropertiesTest, ShiftRotate)
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeBox(&massProperties, &box.halfExtents, density));
 
 	dsQuaternion4f orientationInv;
-	dsQuaternion4_invert(orientationInv, orientation);
+	dsQuaternion4f_conjugate(&orientationInv, &orientation);
 	dsVector3f orientationSpaceCenter;
 	dsQuaternion4f_rotate(&orientationSpaceCenter, &orientation, &box.center);
 

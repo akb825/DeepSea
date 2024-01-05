@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -202,6 +202,23 @@ DS_ALWAYS_INLINE void dsSIMD4f_storeUnaligned(void* fp, dsSIMD4f a)
 DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_neg(dsSIMD4f a)
 {
 	return vnegq_f32(a);
+}
+
+/**
+ * @brief Negates specific components of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The value to negate.
+ * @param negX Constant 1 to negate the X component or 0 to leave it unchanged.
+ * @param negY Constant 1 to negate the Y component or 0 to leave it unchanged.
+ * @param negZ Constant 1 to negate the Z component or 0 to leave it unchanged.
+ * @param negW Constant 1 to negate the W component or 0 to leave it unchanged.
+ * @return The result of the negation.
+ */
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_negComponents(dsSIMD4f a, uint32_t negX, uint32_t negY,
+	uint32_t negZ, uint32_t negW)
+{
+	uint32x4_t mask = {negX, negY, negZ, negW};
+	return vreinterpretq_f32_u32(veorq_u32(vshlq_n_u32(mask, 31), vreinterpretq_u32_f32(a)));
 }
 
 /**
@@ -663,6 +680,25 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_neg(dsSIMD2d a)
 {
 #if DS_SIMD_ALWAYS_DOUBLE2
 	return vnegq_f64(a);
+#else
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+#endif
+}
+
+/**
+ * @brief Negates specific components of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The value to negate.
+ * @param negX Constant 1 to negate the X component or 0 to leave it unchanged.
+ * @param negY Constant 1 to negate the Y component or 0 to leave it unchanged.
+ * @return The result of the negation.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_negComponents(dsSIMD4f a, uint64_t negX, uint64_t negY)
+{
+#if DS_SIMD_ALWAYS_DOUBLE2
+	uint64x2_t mask = {negX, negY};
+	return vreinterpretq_f64_u64(veorq_u64(vshlq_n_u64(mask, 63), vreinterpretq_u64_f64(a)));
 #else
 	DS_ASSERT(false);
 	DS_UNREACHABLE();
@@ -1224,6 +1260,23 @@ DS_ALWAYS_INLINE void dsSIMD4d_storeUnaligned(void* dp, dsSIMD4d a)
  * @return The result of -a.
  */
 DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_neg(dsSIMD4d a)
+{
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+}
+
+/**
+ * @brief Negates specific components of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The value to negate.
+ * @param negX Constant 1 to negate the X component or 0 to leave it unchanged.
+ * @param negY Constant 1 to negate the Y component or 0 to leave it unchanged.
+ * @param negZ Constant 1 to negate the Z component or 0 to leave it unchanged.
+ * @param negW Constant 1 to negate the W component or 0 to leave it unchanged.
+ * @return The result of the negation.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_negComponents(dsSIMD4d a, uint64_t negX, uint64_t negY,
+	uint64_t negZ, uint64_t negW)
 {
 	DS_ASSERT(false);
 	DS_UNREACHABLE();
