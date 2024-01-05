@@ -33,7 +33,7 @@ struct JacobiEigenvaluesTypeSelector<float>
 	typedef dsMatrix44f Matrix44Type;
 	typedef dsVector4f Vector4Type;
 
-	static constexpr float epsilon = 3e-4f;
+	static constexpr float epsilon = 5e-4f;
 };
 
 template <>

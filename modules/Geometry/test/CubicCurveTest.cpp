@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 Aaron Barany
+ * Copyright 2018-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -272,98 +272,100 @@ TYPED_TEST_SUITE(CubicCurveTest, CurveTypes);
 
 TEST(CubicCurveTest, FloatMtrices)
 {
+	const float epsilon = 1e-7f;
 	dsMatrix44f forwardInverse;
 	dsMatrix44f_mul(&forwardInverse, &dsCubicCurvef_cubicToBezier, &dsCubicCurvef_bezierToCubic);
 
-	EXPECT_FLOAT_EQ(1, forwardInverse.values[0][0]);
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[0][1]);
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[0][2]);
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[0][3]);
+	EXPECT_NEAR(1, forwardInverse.values[0][0], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[0][1], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[0][2], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[0][3], epsilon);
 
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[1][0]);
-	EXPECT_FLOAT_EQ(1, forwardInverse.values[1][1]);
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[1][2]);
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[1][3]);
+	EXPECT_NEAR(0, forwardInverse.values[1][0], epsilon);
+	EXPECT_NEAR(1, forwardInverse.values[1][1], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[1][2], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[1][3], epsilon);
 
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[2][0]);
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[2][1]);
-	EXPECT_FLOAT_EQ(1, forwardInverse.values[2][2]);
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[2][3]);
+	EXPECT_NEAR(0, forwardInverse.values[2][0], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[2][1], epsilon);
+	EXPECT_NEAR(1, forwardInverse.values[2][2], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[2][3], epsilon);
 
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[3][0]);
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[3][1]);
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[3][2]);
-	EXPECT_FLOAT_EQ(1, forwardInverse.values[3][3]);
+	EXPECT_NEAR(0, forwardInverse.values[3][0], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[3][1], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[3][2], epsilon);
+	EXPECT_NEAR(1, forwardInverse.values[3][3], epsilon);
 
 	dsMatrix44f_mul(&forwardInverse, &dsCubicCurvef_cubicToHermite, &dsCubicCurvef_hermiteToCubic);
 
-	EXPECT_FLOAT_EQ(1, forwardInverse.values[0][0]);
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[0][1]);
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[0][2]);
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[0][3]);
+	EXPECT_NEAR(1, forwardInverse.values[0][0], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[0][1], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[0][2], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[0][3], epsilon);
 
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[1][0]);
-	EXPECT_FLOAT_EQ(1, forwardInverse.values[1][1]);
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[1][2]);
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[1][3]);
+	EXPECT_NEAR(0, forwardInverse.values[1][0], epsilon);
+	EXPECT_NEAR(1, forwardInverse.values[1][1], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[1][2], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[1][3], epsilon);
 
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[2][0]);
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[2][1]);
-	EXPECT_FLOAT_EQ(1, forwardInverse.values[2][2]);
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[2][3]);
+	EXPECT_NEAR(0, forwardInverse.values[2][0], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[2][1], epsilon);
+	EXPECT_NEAR(1, forwardInverse.values[2][2], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[2][3], epsilon);
 
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[3][0]);
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[3][1]);
-	EXPECT_FLOAT_EQ(0, forwardInverse.values[3][2]);
-	EXPECT_FLOAT_EQ(1, forwardInverse.values[3][3]);
+	EXPECT_NEAR(0, forwardInverse.values[3][0], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[3][1], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[3][2], epsilon);
+	EXPECT_NEAR(1, forwardInverse.values[3][3], epsilon);
 }
 
 TEST(CubicCurveTest, DoubleMtrices)
 {
+	const double epsilon = 1e-15;
 	dsMatrix44d forwardInverse;
 	dsMatrix44d_mul(&forwardInverse, &dsCubicCurved_cubicToBezier, &dsCubicCurved_bezierToCubic);
 
-	EXPECT_DOUBLE_EQ(1, forwardInverse.values[0][0]);
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[0][1]);
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[0][2]);
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[0][3]);
+	EXPECT_NEAR(1, forwardInverse.values[0][0], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[0][1], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[0][2], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[0][3], epsilon);
 
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[1][0]);
-	EXPECT_DOUBLE_EQ(1, forwardInverse.values[1][1]);
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[1][2]);
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[1][3]);
+	EXPECT_NEAR(0, forwardInverse.values[1][0], epsilon);
+	EXPECT_NEAR(1, forwardInverse.values[1][1], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[1][2], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[1][3], epsilon);
 
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[2][0]);
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[2][1]);
-	EXPECT_DOUBLE_EQ(1, forwardInverse.values[2][2]);
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[2][3]);
+	EXPECT_NEAR(0, forwardInverse.values[2][0], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[2][1], epsilon);
+	EXPECT_NEAR(1, forwardInverse.values[2][2], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[2][3], epsilon);
 
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[3][0]);
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[3][1]);
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[3][2]);
-	EXPECT_DOUBLE_EQ(1, forwardInverse.values[3][3]);
+	EXPECT_NEAR(0, forwardInverse.values[3][0], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[3][1], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[3][2], epsilon);
+	EXPECT_NEAR(1, forwardInverse.values[3][3], epsilon);
 
 	dsMatrix44d_mul(&forwardInverse, &dsCubicCurved_cubicToHermite, &dsCubicCurved_hermiteToCubic);
 
-	EXPECT_DOUBLE_EQ(1, forwardInverse.values[0][0]);
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[0][1]);
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[0][2]);
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[0][3]);
+	EXPECT_NEAR(1, forwardInverse.values[0][0], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[0][1], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[0][2], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[0][3], epsilon);
 
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[1][0]);
-	EXPECT_DOUBLE_EQ(1, forwardInverse.values[1][1]);
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[1][2]);
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[1][3]);
+	EXPECT_NEAR(0, forwardInverse.values[1][0], epsilon);
+	EXPECT_NEAR(1, forwardInverse.values[1][1], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[1][2], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[1][3], epsilon);
 
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[2][0]);
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[2][1]);
-	EXPECT_DOUBLE_EQ(1, forwardInverse.values[2][2]);
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[2][3]);
+	EXPECT_NEAR(0, forwardInverse.values[2][0], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[2][1], epsilon);
+	EXPECT_NEAR(1, forwardInverse.values[2][2], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[2][3], epsilon);
 
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[3][0]);
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[3][1]);
-	EXPECT_DOUBLE_EQ(0, forwardInverse.values[3][2]);
-	EXPECT_DOUBLE_EQ(1, forwardInverse.values[3][3]);
+	EXPECT_NEAR(0, forwardInverse.values[3][0], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[3][1], epsilon);
+	EXPECT_NEAR(0, forwardInverse.values[3][2], epsilon);
+	EXPECT_NEAR(1, forwardInverse.values[3][3], epsilon);
 }
 
 TYPED_TEST(CubicCurveTest, EvaluateBezier)

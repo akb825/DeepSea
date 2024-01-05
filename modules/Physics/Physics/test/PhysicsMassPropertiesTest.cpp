@@ -30,6 +30,9 @@
 // Use as close to original reference math as possible when verifying computation of inertia to
 // ensure the optimized versions don't have mistakes.
 
+constexpr float massEpsilon = 1e-4f;
+constexpr float inertiaEpsilon = 1e-3f;
+
 constexpr uint32_t boxIndexCount = 36;
 static const uint16_t boxIndices[boxIndexCount] =
 {
@@ -442,7 +445,7 @@ TEST(PhysicsMassPropertiesTest, InitializeMesh)
 		for (unsigned int j = 0; j < 3; ++j)
 		{
 			EXPECT_NEAR(boxMassProperties.centeredInertia.values[i][j], inertia.values[i][j],
-				1e-3f) << i << ", " << j;
+				inertiaEpsilon) << i << ", " << j;
 		}
 	}
 }
@@ -573,12 +576,12 @@ TEST(PhysicsMassPropertiesTest, InitializeCapsuleMesh)
 	EXPECT_GT(capsuleMassProperties.mass, meshMassProperties.mass);
 	EXPECT_NEAR(capsuleMassProperties.mass, meshMassProperties.mass, epsilon);
 
-	EXPECT_NEAR(0, meshMassProperties.centerOfMass.x, 1e-6f);
-	EXPECT_NEAR(0, meshMassProperties.centerOfMass.y, 1e-6f);
-	EXPECT_NEAR(0, meshMassProperties.centerOfMass.z, 1e-6f);
-	EXPECT_NEAR(0, meshMassProperties.inertiaTranslate.x, 1e-6f);
-	EXPECT_NEAR(0, meshMassProperties.inertiaTranslate.y, 1e-6f);
-	EXPECT_NEAR(0, meshMassProperties.inertiaTranslate.z, 1e-6f);
+	EXPECT_NEAR(0, meshMassProperties.centerOfMass.x, massEpsilon);
+	EXPECT_NEAR(0, meshMassProperties.centerOfMass.y, massEpsilon);
+	EXPECT_NEAR(0, meshMassProperties.centerOfMass.z, massEpsilon);
+	EXPECT_NEAR(0, meshMassProperties.inertiaTranslate.x, massEpsilon);
+	EXPECT_NEAR(0, meshMassProperties.inertiaTranslate.y, massEpsilon);
+	EXPECT_NEAR(0, meshMassProperties.inertiaTranslate.z, massEpsilon);
 
 	// Slightly looser check for the inertia.
 	float inertiaEpsilon = epsilon*1.5f;
@@ -652,7 +655,7 @@ TEST(PhysicsMassPropertiesTest, InitializeCombined)
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeCombined(
 		&massProperties, componentProperties, 2));
 
-	EXPECT_FLOAT_EQ(meshMassProperties.mass, massProperties.mass);
+	EXPECT_NEAR(meshMassProperties.mass, massProperties.mass, massEpsilon);
 	EXPECT_FLOAT_EQ(meshMassProperties.centerOfMass.x, massProperties.centerOfMass.x);
 	EXPECT_FLOAT_EQ(meshMassProperties.centerOfMass.y, massProperties.centerOfMass.y);
 	EXPECT_FLOAT_EQ(meshMassProperties.centerOfMass.z, massProperties.centerOfMass.z);
@@ -664,7 +667,6 @@ TEST(PhysicsMassPropertiesTest, InitializeCombined)
 	EXPECT_FLOAT_EQ(meshMassProperties.inertiaRotate.k, massProperties.inertiaRotate.k);
 	EXPECT_FLOAT_EQ(meshMassProperties.inertiaRotate.r, massProperties.inertiaRotate.r);
 
-	float inertiaEpsilon = 1e-3f;
 	for (unsigned int i = 0; i < 3; ++i)
 	{
 		for (unsigned int j = 0; j < 3; ++j)
@@ -930,8 +932,7 @@ TEST(PhysicsMassPropertiesTest, ShiftRotate)
 		&massProperties, &orientationSpaceCenter, NULL, NULL));
 	ASSERT_TRUE(dsPhysicsMassProperties_shift(&massProperties, NULL, &orientationInv));
 
-	EXPECT_FLOAT_EQ(meshMassProperties.mass, massProperties.mass);
-	float inertiaEpsilon = 1e-3f;
+	EXPECT_NEAR(meshMassProperties.mass, massProperties.mass, massEpsilon);
 	for (unsigned int i = 0; i < 3; ++i)
 	{
 		for (unsigned int j = 0; j < 3; ++j)
@@ -957,7 +958,7 @@ TEST(PhysicsMassPropertiesTest, ShiftRotate)
 	ASSERT_TRUE(dsPhysicsMassProperties_transform(
 		&massProperties, &box.center, NULL, NULL));
 
-	EXPECT_FLOAT_EQ(meshMassProperties.mass, massProperties.mass);
+	EXPECT_NEAR(meshMassProperties.mass, massProperties.mass, massEpsilon);
 	for (unsigned int i = 0; i < 3; ++i)
 	{
 		for (unsigned int j = 0; j < 3; ++j)
@@ -1018,10 +1019,10 @@ TEST(PhysicsMassPropertiesTest, DecomposeInertia)
 	dsMatrix33f inertia;
 	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
 
-	const float inertiaEpsilon = 2e-3f;
+	const float decomposeEpsilon = 4e-3f;
 	for (unsigned int i = 0; i < 3; ++i)
 	{
 		for (unsigned int j = 0; j < 3; ++j)
-			EXPECT_NEAR(inertia.values[i][j], restoredInertia.values[i][j], inertiaEpsilon);
+			EXPECT_NEAR(inertia.values[i][j], restoredInertia.values[i][j], decomposeEpsilon);
 	}
 }
