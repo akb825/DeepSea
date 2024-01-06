@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,28 @@
 
 #include <DeepSea/Physics/Shapes/PhysicsCylinder.h>
 
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
 #include <DeepSea/Physics/Types.h>
+#include <DeepSea/Physics/PhysicsMassProperties.h>
 
-static dsPhysicsShapeType cylinderType = {.staticBodiesOnly = false, .uniformScaleOnly = true};
+static bool dsPhysicsCylinder_getMassProperties(dsPhysicsMassProperties* outMassProperties,
+	const dsPhysicsShape* shape, float density)
+{
+	DS_ASSERT(outMassProperties);
+	DS_ASSERT(shape);
+	DS_ASSERT(shape->type == dsPhysicsCylinder_type());
+	DS_ASSERT(density > 0);
+
+	const dsPhysicsCylinder* cylinder = (const dsPhysicsCylinder*)shape;
+	return dsPhysicsMassProperties_initializeCylinder(outMassProperties, cylinder->halfHeight,
+		cylinder->radius, cylinder->axis, density);
+}
+
+static dsPhysicsShapeType cylinderType = {.staticBodiesOnly = false, .uniformScaleOnly = true,
+	.getMassPropertiesFunc = dsPhysicsCylinder_getMassProperties};
 const dsPhysicsShapeType* dsPhysicsCylinder_type(void)
 {
 	return &cylinderType;
@@ -61,7 +77,34 @@ dsPhysicsCylinder* dsPhysicsCylinder_create(dsPhysicsEngine* engine, dsAllocator
 	if (!allocator)
 		allocator = engine->allocator;
 
-	return engine->createCylinderFunc(engine, allocator, halfHeight, radius, axis, convexRadius);
+	dsPhysicsCylinder* cylinder = engine->createCylinderFunc(
+		engine, allocator, halfHeight, radius, axis, convexRadius);
+	if (!cylinder)
+		return NULL;
+
+	dsPhysicsShape* shape = (dsPhysicsShape*)cylinder;
+	switch (axis)
+	{
+		case dsPhysicsAxis_X:
+			shape->bounds.min.x = -halfHeight;
+			shape->bounds.min.y = shape->bounds.min.z = -radius;
+			shape->bounds.max.x = halfHeight;
+			shape->bounds.max.y = shape->bounds.max.z = radius;
+			break;
+		case dsPhysicsAxis_Y:
+			shape->bounds.min.y = -halfHeight;
+			shape->bounds.min.x = shape->bounds.min.z = -radius;
+			shape->bounds.max.y = halfHeight;
+			shape->bounds.max.x = shape->bounds.max.z = radius;
+			break;
+		case dsPhysicsAxis_Z:
+			shape->bounds.min.z = -halfHeight;
+			shape->bounds.min.x = shape->bounds.min.y = -radius;
+			shape->bounds.max.z = halfHeight;
+			shape->bounds.max.x = shape->bounds.max.y = radius;
+			break;
+	}
+	return cylinder;
 }
 
 bool dsPhysicsCylinder_destroy(dsPhysicsCylinder* cylinder)

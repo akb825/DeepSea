@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,12 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 
+#include <DeepSea/Geometry/AlignedBox3.h>
+
 #include <DeepSea/Physics/Types.h>
 
-static dsPhysicsShapeType meshType = {.staticBodiesOnly = true, .uniformScaleOnly = false};
+static dsPhysicsShapeType meshType = {.staticBodiesOnly = true, .uniformScaleOnly = false,
+	.getMassPropertiesFunc = NULL};
 const dsPhysicsShapeType* dsPhysicsMesh_type(void)
 {
 	return &meshType;
@@ -82,6 +85,17 @@ dsPhysicsMesh* dsPhysicsMesh_create(dsPhysicsEngine* engine, dsAllocator* alloca
 	dsPhysicsMesh* mesh = engine->createMeshFunc(engine, allocator, vertices, vertexCount,
 		vertexStride, indices, triangleCount, indexSize, triangleMaterialIndices,
 		triangleMaterialIndexSize, triangleMaterials, triangleMaterialCount, cacheName);
+	if (!mesh)
+		DS_PROFILE_FUNC_RETURN(NULL);
+
+	const uint8_t* vertexBytes = (const uint8_t*)vertices;
+	dsPhysicsShape* shape = (dsPhysicsShape*)mesh;
+	dsAlignedBox3f_makeInvalid(&shape->bounds);
+	for (uint32_t i = 0; i < vertexCount; ++i)
+	{
+		const dsVector3f* point = (const dsVector3f*)(vertexBytes + i*vertexStride);
+		dsAlignedBox3_addPoint(shape->bounds, *point);
+	}
 	DS_PROFILE_FUNC_RETURN(mesh);
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,25 @@ bool dsPhysicsShape_initialize(dsPhysicsShape* shape, dsPhysicsEngine* engine,
 	shape->refCount = 1;
 	shape->destroyFunc = destroyFunc;
 	return true;
+}
+
+bool dsPhysicsShape_getMassProperties(dsPhysicsMassProperties* outMassProperties,
+	const dsPhysicsShape* shape, float density)
+{
+	if (!outMassProperties || !shape || !shape->type || density <= 0)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!shape->type->getMassPropertiesFunc)
+	{
+		// Mass properties not allowed for this shape.
+		errno = EPERM;
+		return false;
+	}
+
+	return shape->type->getMassPropertiesFunc(outMassProperties, shape, density);
 }
 
 dsPhysicsShape* dsPhysicsShape_addRef(dsPhysicsShape* shape)

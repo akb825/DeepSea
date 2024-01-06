@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,27 @@
 
 #include <DeepSea/Physics/Shapes/PhysicsSphere.h>
 
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
 #include <DeepSea/Physics/Types.h>
+#include <DeepSea/Physics/PhysicsMassProperties.h>
 
-static dsPhysicsShapeType sphereType = {.staticBodiesOnly = false, .uniformScaleOnly = true};
+static bool dsPhysicsSphere_getMassProperties(dsPhysicsMassProperties* outMassProperties,
+	const dsPhysicsShape* shape, float density)
+{
+	DS_ASSERT(outMassProperties);
+	DS_ASSERT(shape);
+	DS_ASSERT(shape->type == dsPhysicsSphere_type());
+	DS_ASSERT(density > 0);
+
+	const dsPhysicsSphere* sphere = (const dsPhysicsSphere*)shape;
+	return dsPhysicsMassProperties_initializeSphere(outMassProperties, sphere->radius, density);
+}
+
+static dsPhysicsShapeType sphereType = {.staticBodiesOnly = false, .uniformScaleOnly = true,
+	.getMassPropertiesFunc = &dsPhysicsSphere_getMassProperties};
 const dsPhysicsShapeType* dsPhysicsSphere_type(void)
 {
 	return &sphereType;
@@ -46,7 +61,14 @@ dsPhysicsSphere* dsPhysicsSphere_create(dsPhysicsEngine* engine, dsAllocator* al
 	if (!allocator)
 		allocator = engine->allocator;
 
-	return engine->createSphereFunc(engine, allocator, radius);
+	dsPhysicsSphere* sphere = engine->createSphereFunc(engine, allocator, radius);
+	if (!sphere)
+		return NULL;
+
+	dsPhysicsShape* shape = (dsPhysicsShape*)sphere;
+	shape->bounds.min.x = shape->bounds.min.y = shape->bounds.min.z = -radius;
+	shape->bounds.max.x = shape->bounds.max.y = shape->bounds.max.z = radius;
+	return sphere;
 }
 
 bool dsPhysicsSphere_destroy(dsPhysicsSphere* sphere)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,35 @@
 
 #include <DeepSea/Physics/Shapes/PhysicsCone.h>
 
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
 #include <DeepSea/Physics/Types.h>
+#include <DeepSea/Physics/PhysicsMassProperties.h>
 
-static dsPhysicsShapeType coneType = {.staticBodiesOnly = false, .uniformScaleOnly = true};
+static bool dsPhysicsCone_getMassProperties(dsPhysicsMassProperties* outMassProperties,
+	const dsPhysicsShape* shape, float density)
+{
+	DS_ASSERT(outMassProperties);
+	DS_ASSERT(shape);
+	DS_ASSERT(shape->type == dsPhysicsCone_type());
+	DS_ASSERT(density > 0);
+
+	const dsPhysicsCone* cone = (const dsPhysicsCone*)shape;
+	return dsPhysicsMassProperties_initializeCone(outMassProperties, cone->height,
+		cone->radius, cone->axis, density);
+}
+
+static dsPhysicsShapeType coneType = {.staticBodiesOnly = false, .uniformScaleOnly = true,
+	.getMassPropertiesFunc = &dsPhysicsCone_getMassProperties};
 const dsPhysicsShapeType* dsPhysicsCone_type(void)
 {
 	return &coneType;
 }
 
 dsPhysicsCone* dsPhysicsCone_create(dsPhysicsEngine* engine, dsAllocator* allocator,
-	float halfHeight, float radius, dsPhysicsAxis axis, float convexRadius)
+	float height, float radius, dsPhysicsAxis axis, float convexRadius)
 {
 	if (!engine || !engine->createConeFunc || !engine->destroyConeFunc || axis < dsPhysicsAxis_X ||
 		axis > dsPhysicsAxis_Z)
@@ -37,9 +53,9 @@ dsPhysicsCone* dsPhysicsCone_create(dsPhysicsEngine* engine, dsAllocator* alloca
 		return NULL;
 	}
 
-	if (halfHeight <= 0)
+	if (height <= 0)
 	{
-		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cone half height must be > 0.");
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cone height must be > 0.");
 		errno = EINVAL;
 		return NULL;
 	}
@@ -61,7 +77,34 @@ dsPhysicsCone* dsPhysicsCone_create(dsPhysicsEngine* engine, dsAllocator* alloca
 	if (!allocator)
 		allocator = engine->allocator;
 
-	return engine->createConeFunc(engine, allocator, halfHeight, radius, axis, convexRadius);
+	dsPhysicsCone* cone = engine->createConeFunc(
+		engine, allocator, height, radius, axis, convexRadius);
+	if (!cone)
+		return NULL;
+
+	dsPhysicsShape* shape = (dsPhysicsShape*)cone;
+	switch (axis)
+	{
+		case dsPhysicsAxis_X:
+			shape->bounds.min.x = 0.0f;
+			shape->bounds.min.y = shape->bounds.min.z = -radius;
+			shape->bounds.max.x = height;
+			shape->bounds.max.y = shape->bounds.max.z = radius;
+			break;
+		case dsPhysicsAxis_Y:
+			shape->bounds.min.y = 0.0f;
+			shape->bounds.min.x = shape->bounds.min.z = -radius;
+			shape->bounds.max.y = height;
+			shape->bounds.max.x = shape->bounds.max.z = radius;
+			break;
+		case dsPhysicsAxis_Z:
+			shape->bounds.min.z = 0.0f;
+			shape->bounds.min.x = shape->bounds.min.y = -radius;
+			shape->bounds.max.z = height;
+			shape->bounds.max.x = shape->bounds.max.y = radius;
+			break;
+	}
+	return cone;
 }
 
 bool dsPhysicsCone_destroy(dsPhysicsCone* cone)

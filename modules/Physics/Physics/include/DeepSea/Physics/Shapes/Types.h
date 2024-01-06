@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Types.h>
+#include <DeepSea/Geometry/Types.h>
 #include <DeepSea/Math/Types.h>
+#include <DeepSea/Physics/SharedTypes.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -63,7 +65,24 @@ typedef enum dsPhysicsAxis
 /// @cond
 typedef struct dsPhysicsEngine dsPhysicsEngine;
 typedef struct dsPhysicsShape dsPhysicsShape;
+typedef struct dsPhysicsMassProperties dsPhysicsMassProperties;
 /// @endcond
+
+/**
+ * @brief Function to get the mass properties from a shape.
+ * @param[out] outMassProperties The mass properties to populate.
+ * @param shape The shape to get the mass properties for
+ * @param density The density of the shape.
+ * @return False if the shape is invalid for mass properties.
+ */
+typedef bool (*dsGetPhysicsShapeMassPropertiesFunction)(dsPhysicsMassProperties* outMassProperties,
+	const dsPhysicsShape* shape, float density);
+
+/**
+ * @brief Function to destroy a physics shape.
+ * @param shape The shape to destroy.
+ */
+typedef void (*dsDestroyPhysicsShapeFunction)(dsPhysicsShape* shape);
 
 /**
  * @brief Struct defining the type of a physics shape.
@@ -85,6 +104,11 @@ typedef struct dsPhysicsShapeType
 	 * Typically shapes that have a radius as part of their parameters may only be uniformly scaled.
 	 */
 	bool uniformScaleOnly;
+
+	/**
+	 * @brief Function to get the mass properties for the shape.
+	 */
+	dsGetPhysicsShapeMassPropertiesFunction getMassPropertiesFunc;
 } dsPhysicsShapeType;
 
 /**
@@ -103,12 +127,6 @@ typedef struct dsPhysicsShapePartMaterial
 	 */
 	float restitution;
 } dsPhysicsShapePartMaterial;
-
-/**
- * @brief Function to destroy a physics shape.
- * @param shape The shape to destroy.
- */
-typedef void (*dsDestroyPhysicsShapeFunction)(dsPhysicsShape* shape);
 
 /**
  * @brief Base type for a physics shape.
@@ -144,6 +162,13 @@ struct dsPhysicsShape
 	 * @brief The type of the shape.
 	 */
 	const dsPhysicsShapeType* type;
+
+	/**
+	 * @brief Bounds for the shape.
+	 *
+	 * This will be populated by the base implementations in the Physics library.
+	 */
+	dsAlignedBox3f bounds;
 
 	/**
 	 * @brief Pointer to the shape implementation.
@@ -408,6 +433,13 @@ typedef struct dsPhysicsConvexHull
 	 * @brief The number of faces in the convex hull.
 	 */
 	uint32_t faceCount;
+
+	/**
+	 * @brief Cached base mass properties for the convex hull.
+	 *
+	 * This will be populated by the base dsPhysicsConvexHull in the Physics library.
+	 */
+	dsPhysicsMassProperties baseMassProperties;
 } dsPhysicsConvexHull;
 
 /**

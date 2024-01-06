@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,35 @@
 
 #include <DeepSea/Physics/Shapes/PhysicsBox.h>
 
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
-#include <DeepSea/Physics/Types.h>
+#include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Vector3.h>
 
-static dsPhysicsShapeType boxType = {.staticBodiesOnly = false, .uniformScaleOnly = false};
+#include <DeepSea/Physics/Types.h>
+#include <DeepSea/Physics/PhysicsMassProperties.h>
+
+static bool dsPhysicsBox_getMassProperties(dsPhysicsMassProperties* outMassProperties,
+	const dsPhysicsShape* shape, float density)
+{
+	DS_ASSERT(outMassProperties);
+	DS_ASSERT(shape);
+	DS_ASSERT(shape->type == dsPhysicsBox_type());
+	DS_ASSERT(density > 0);
+
+	const dsPhysicsBox* box = (const dsPhysicsBox*)shape;
+	dsVector3f halfExtents = box->halfExtents;
+	// Make no extent is zero.
+	halfExtents.x = dsMax(halfExtents.x, box->convexRadius);
+	halfExtents.x = dsMax(halfExtents.y, box->convexRadius);
+	halfExtents.x = dsMax(halfExtents.z, box->convexRadius);
+	return dsPhysicsMassProperties_initializeBox(outMassProperties, &halfExtents, density);
+}
+
+static dsPhysicsShapeType boxType = {.staticBodiesOnly = false, .uniformScaleOnly = false,
+	.getMassPropertiesFunc = &dsPhysicsBox_getMassProperties};
 const dsPhysicsShapeType* dsPhysicsBox_type(void)
 {
 	return &boxType;
@@ -53,7 +76,14 @@ dsPhysicsBox* dsPhysicsBox_create(dsPhysicsEngine* engine, dsAllocator* allocato
 	if (!allocator)
 		allocator = engine->allocator;
 
-	return engine->createBoxFunc(engine, allocator, halfExtents, convexRadius);
+	dsPhysicsBox* box = engine->createBoxFunc(engine, allocator, halfExtents, convexRadius);
+	if (!box)
+		return NULL;
+
+	dsPhysicsShape* shape = (dsPhysicsShape*)box;
+	dsVector3_neg(shape->bounds.min, *halfExtents);
+	shape->bounds.max = *halfExtents;
+	return box;
 }
 
 bool dsPhysicsBox_destroy(dsPhysicsBox* box)

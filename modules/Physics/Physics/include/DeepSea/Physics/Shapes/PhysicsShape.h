@@ -51,6 +51,17 @@ DS_PHYSICS_EXPORT bool dsPhysicsShape_initialize(dsPhysicsShape* shape, dsPhysic
 	dsDestroyPhysicsShapeFunction destroyFunc);
 
 /**
+ * @brief Gets the mass properties for a shape.
+ * @remark errno will be set on failure.
+ * @param[out] outMassProperties The mass properties to populate.
+ * @param shape The shape to get the mass properties for.
+ * @param density The density of the shape. This must be > 0.
+ * @return False if the parameters are invalid or the shape isn't valid to get mass properties for.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsShape_getMassProperties(dsPhysicsMassProperties* outMassProperties,
+	const dsPhysicsShape* shape, float density);
+
+/**
  * @brief Increments the reference count to the shape.
  * @remark This function is thread-safe.
  * @param shape The shape to increment the reference count to.
