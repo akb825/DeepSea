@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,8 +47,8 @@ typedef enum dsRigidBodyFlags
 	 * creation.
 	 */
 	dsRigidBodyFlags_MutableShape = 0x2,
-	/** Can move the center of mass. This flag can't be changed after creation. */
-	dsRigidBodyFlags_MutableCenterOfMass = 0x4,
+	/** Can modify the mass properties after creation. This flag can't be changed after creation. */
+	dsRigidBodyFlags_MutableMassProperties = 0x4,
 	/** Allow the body to be scaled. This flag can't be changed after creation. */
 	dsRigidBodyFlags_Scalable = 0x8,
 	/** Use linear collision to avoid fast-moving objects missing collisions. */
@@ -153,11 +153,6 @@ typedef struct dsRigidBodyInit
 	 * @brief The initial angular velocity of the body.
 	 */
 	dsVector3f angularVelocity;
-
-	/**
-	 * @brief Offset for the center of mass relative to the rigid body local coordinates.
-	 */
-	dsVector3f centerOfMassOffset;
 
 	/**
 	 * @brief The mass of the body.
@@ -310,16 +305,9 @@ typedef struct dsRigidBody
 	dsVector3f scale;
 
 	/**
-	 * @brief The center of mass relative to the origin of the local coordinate space.
+	 * @brief The mass properties of the rigid body.
 	 */
-	dsVector3f centerOfMass;
-
-	/**
-	 * @brief The mass of the body.
-	 *
-	 * The mass will be impacted by the scale.
-	 */
-	float mass;
+	dsPhysicsMassProperties massProperties;
 
 	/**
 	 * @brief The coefficient of friction, with 0 meaning no friction and increasing values having
@@ -355,7 +343,7 @@ typedef struct dsRigidBody
 	/**
 	 * @brief The shapes associated with the body.
 	 */
-	dsTransformedPhysicsShape* shapes;
+	dsPhysicsShapeInstance* shapes;
 
 	/**
 	 * @brief The number of shapes in the body.
@@ -449,14 +437,14 @@ typedef bool (*dsSetRigidBodyTransformFunction)(dsPhysicsEngine* engine, dsRigid
 	const dsVector3f* position, const dsQuaternion4f* orientation, const dsVector3f* scale);
 
 /**
- * @brief Function to set the center of mass for a rigid body.
+ * @brief Function to set the mass properties for a rigid body.
  * @param engine The physics engine the rigid body was created with.
  * @param rigidBody The rigid body to set the center of mass on.
- * @param centerOfMass The new center of mass relative to the local coordinate space.
- * @return False if the center of mass couldn't be set.
+ * @param massProperties The new mass properties.
+ * @return False if the mass properties couldn't be set.
  */
-typedef bool (*dsSetRigidBodyCenterOfMassFunction)(dsPhysicsEngine* engine,
-	const dsRigidBody* rigidBody, const dsVector3f* centerOfMass);
+typedef bool (*dsSetRigidBodyMassPropertiesFunction)(dsPhysicsEngine* engine,
+	const dsRigidBody* rigidBody, const dsPhysicsMassProperties* massProperties);
 
 /**
  * @brief Function to set the mass of a rigid body.

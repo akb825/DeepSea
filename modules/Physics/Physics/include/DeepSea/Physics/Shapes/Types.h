@@ -210,15 +210,19 @@ struct dsPhysicsShape
 };
 
 /**
- * @brief Struct describing a physics shape with a transform.
- * @remark The ordering of members is set to reduce padding.
+ * @brief Struct describing an instance of a  physics shape with a transform.
  */
-typedef struct dsTransformedPhysicsShape
+typedef struct dsPhysicsShapeInstance
 {
 	/**
 	 * @brief The physics shape.
 	 */
 	dsPhysicsShape* shape;
+
+	/**
+	 * @brief The density of the shape.
+	 */
+	float density;
 
 	/**
 	 * @brief Whether the translate portion of the transform should be used.
@@ -249,7 +253,7 @@ typedef struct dsTransformedPhysicsShape
 	 * @brief The rotation for the shape.
 	 */
 	dsQuaternion4f rotate;
-} dsTransformedPhysicsShape;
+} dsPhysicsShapeInstance;
 
 /**
  * @brief Physics shape implementation for a sphere.

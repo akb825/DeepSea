@@ -70,10 +70,10 @@ bool dsRigidBody_addFlags(dsRigidBody* rigidBody, dsRigidBodyFlags flags)
 		return false;
 	}
 
-	if (flags & dsRigidBodyFlags_MutableCenterOfMass)
+	if (flags & dsRigidBodyFlags_MutableMassProperties)
 	{
 		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
-			"Rigid body mutable center of mass flag may not be changed after creation.");
+			"Rigid body mutable mass properties flag may not be changed after creation.");
 		errno = EPERM;
 		return false;
 	}
@@ -106,10 +106,10 @@ bool dsRigidBody_removeFlags(dsRigidBody* rigidBody, dsRigidBodyFlags flags)
 		return false;
 	}
 
-	if (flags & dsRigidBodyFlags_MutableCenterOfMass)
+	if (flags & dsRigidBodyFlags_MutableMassProperties)
 	{
 		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
-			"Rigid body mutable center of mass flag may not be changed after creation.");
+			"Rigid body mutable mass properties flag may not be changed after creation.");
 		errno = EPERM;
 		return false;
 	}
@@ -202,8 +202,8 @@ bool dsRigidBody_setTransform(dsRigidBody* rigidBody, const dsVector3f* position
 		{
 			for (uint32_t i = 0; i < rigidBody->shapeCount; ++i)
 			{
-				const dsTransformedPhysicsShape* transformedShape = rigidBody->shapes + i;
-				if (transformedShape->hasRotate)
+				const dsPhysicsShapeInstance* shapeInstance = rigidBody->shapes + i;
+				if (shapeInstance->hasRotate)
 				{
 					DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
 						"Attempting to set non-uniform scale on rigid body with a rotated shape.");
@@ -211,7 +211,7 @@ bool dsRigidBody_setTransform(dsRigidBody* rigidBody, const dsVector3f* position
 					return false;
 				}
 
-				if (transformedShape->shape->type->uniformScaleOnly)
+				if (shapeInstance->shape->type->uniformScaleOnly)
 				{
 					DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
 						"Attempting to set non-uniform scale on rigid body with a shape that "
@@ -299,8 +299,8 @@ bool dsRigidBody_setTransformMatrix(dsRigidBody* rigidBody, const dsMatrix44f* t
 		{
 			for (uint32_t i = 0; i < rigidBody->shapeCount; ++i)
 			{
-				const dsTransformedPhysicsShape* transformedShape = rigidBody->shapes + i;
-				if (transformedShape->hasRotate)
+				const dsPhysicsShapeInstance* shapeInstance = rigidBody->shapes + i;
+				if (shapeInstance->hasRotate)
 				{
 					DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
 						"Attempting to set non-uniform scale on rigid body with a rotated shape.");
@@ -308,7 +308,7 @@ bool dsRigidBody_setTransformMatrix(dsRigidBody* rigidBody, const dsMatrix44f* t
 					return false;
 				}
 
-				if (transformedShape->shape->type->uniformScaleOnly)
+				if (shapeInstance->shape->type->uniformScaleOnly)
 				{
 					DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
 						"Attempting to set non-uniform scale on rigid body with a shape that "
@@ -338,25 +338,26 @@ bool dsRigidBody_setTransformMatrix(dsRigidBody* rigidBody, const dsMatrix44f* t
 		(const dsVector3f*)(transform->columns + 3), &orientation, scalePtr);
 }
 
-bool dsRigidBody_setCenterOfMass(dsRigidBody* rigidBody, const dsVector3f* centerOfMass)
+bool dsRigidBody_setMassProperties(dsRigidBody* rigidBody,
+	const dsPhysicsMassProperties* massProperties)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyCenterOfMassFunc ||
-		!centerOfMass)
+	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyMassPropertiesFunc ||
+		!massProperties)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	if (!(rigidBody->flags & dsRigidBodyFlags_MutableCenterOfMass))
+	if (!(rigidBody->flags & dsRigidBodyFlags_MutableMassProperties))
 	{
 		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
-			"Rigid body must have mutable center of mass flag set to modify the center of mass.");
+			"Rigid body must have mutable mass properties flag set to modify the mass properties.");
 		errno = EPERM;
 		return false;
 	}
 
 	dsPhysicsEngine* engine = rigidBody->engine;
-	return engine->setRigidBodyCenterOfMassFunc(engine, rigidBody, centerOfMass);
+	return engine->setRigidBodyMassPropertiesFunc(engine, rigidBody, massProperties);
 }
 
 bool dsRigidBody_setMass(dsRigidBody* rigidBody, float mass)

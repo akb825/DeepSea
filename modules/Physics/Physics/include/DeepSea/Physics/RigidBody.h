@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,15 +132,14 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setTransformMatrix(dsRigidBody* rigidBody,
 	const dsMatrix44f* transform);
 
 /**
- * @brief Sets the center of mass of a rigid body.
+ * @brief Sets the mass properties of a rigid body.
  * @remark errno will be set on failure.
- * @param rigidBody The rigid body to set the center of mass on.
- * @param centerOfMass The new center of mass reltive to the local coordinate space of the rigid
- *     body.
- * @return False if the center of mass couldn't be set.
+ * @param rigidBody The rigid body to set the mass properties on.
+ * @param massProperties The new mass properties of the rigid body.
+ * @return False if the mass properties couldn't be set.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_setCenterOfMass(dsRigidBody* rigidBody,
-	const dsVector3f* centerOfMass);
+DS_PHYSICS_EXPORT bool dsRigidBody_setMassProperties(dsRigidBody* rigidBody,
+	const dsPhysicsMassProperties* massProperties);
 
 /**
  * @brief Sets the mass for a rigid body.

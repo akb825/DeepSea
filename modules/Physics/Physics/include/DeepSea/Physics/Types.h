@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -529,9 +529,9 @@ struct dsPhysicsEngine
 	dsSetRigidBodyTransformFunction setRigidBodyTransformFunc;
 
 	/**
-	 * @brief Function to set the center of mass on a rigid body.
+	 * @brief Function to set the mass properties on a rigid body.
 	 */
-	dsSetRigidBodyCenterOfMassFunction setRigidBodyCenterOfMassFunc;
+	dsSetRigidBodyMassPropertiesFunction setRigidBodyMassPropertiesFunc;
 
 	/**
 	 * @brief Function to set the mass on a rigid body.

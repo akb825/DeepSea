@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,6 @@ bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit,
 
 	memset(&rigidBodyInit->linearVelocity, 0, sizeof(rigidBodyInit->linearVelocity));
 	memset(&rigidBodyInit->angularVelocity, 0, sizeof(rigidBodyInit->angularVelocity));
-	memset(&rigidBodyInit->centerOfMassOffset, 0, sizeof(rigidBodyInit->centerOfMassOffset));
 
 	rigidBodyInit->mass = mass;
 	rigidBodyInit->friction = friction;
