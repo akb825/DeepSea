@@ -262,16 +262,16 @@ DS_MATH_EXPORT void dsQuaternion4d_slerp(dsQuaternion4d* result, const dsQuatern
 	const dsQuaternion4d* b, double t);
 
 /// @cond
-#define dsQuaternion4_mulQuatVec(result, a, b) \
+#define dsQuaternion4_mulVecQuatConj(result, a, b) \
 	do \
 	{ \
-		(result).values[0] = (a).values[3]*(b).values[0] + (a).values[1]*(b).values[2] - \
+		(result).values[0] = (b).values[3]*(a).values[0] - (a).values[1]*(b).values[2] + \
 			(a).values[2]*(b).values[1]; \
-		(result).values[1] = (a).values[3]*(b).values[1] + (a).values[2]*(b).values[0] - \
+		(result).values[1] = (b).values[3]*(a).values[1] - (a).values[2]*(b).values[0] + \
 			(a).values[0]*(b).values[2]; \
-		(result).values[2] = (a).values[3]*(b).values[2] + (a).values[0]*(b).values[1] - \
+		(result).values[2] = (b).values[3]*(a).values[2] - (a).values[0]*(b).values[1] + \
 			(a).values[1]*(b).values[0]; \
-		(result).values[3] = -(a).values[0]*(b).values[0] - (a).values[1]*(b).values[1] - \
+		(result).values[3] = (a).values[0]*(b).values[0] + (a).values[1]*(b).values[1] + \
 			(a).values[2]*(b).values[2]; \
 	} while (0)
 
@@ -491,10 +491,9 @@ inline void dsQuaternion4f_rotate(dsVector3f* result, const dsQuaternion4f* a, c
 	DS_ASSERT(a);
 	DS_ASSERT(v);
 
-	dsQuaternion4f invA, tempQuat;
-	dsQuaternion4_conjugate(invA, *a);
-	dsQuaternion4_mulQuatVec(tempQuat, *a, *v);
-	dsQuaternion4_mulToVector(*result, tempQuat, invA);
+	dsQuaternion4f tempQuat;
+	dsQuaternion4_mulVecQuatConj(tempQuat, *v, *a);
+	dsQuaternion4_mulToVector(*result, *a, tempQuat);
 }
 
 inline void dsQuaternion4d_rotate(dsVector3d* result, const dsQuaternion4d* a, const dsVector3d* v)
@@ -503,13 +502,12 @@ inline void dsQuaternion4d_rotate(dsVector3d* result, const dsQuaternion4d* a, c
 	DS_ASSERT(a);
 	DS_ASSERT(v);
 
-	dsQuaternion4d invA, tempQuat;
-	dsQuaternion4_conjugate(invA, *a);
-	dsQuaternion4_mulQuatVec(tempQuat, *a, *v);
-	dsQuaternion4_mulToVector(*result, tempQuat, invA);
+	dsQuaternion4d tempQuat;
+	dsQuaternion4_mulVecQuatConj(tempQuat, *v, *a);
+	dsQuaternion4_mulToVector(*result, *a, tempQuat);
 }
 
-#undef dsQuaternion4_mulQuatVec
+#undef dsQuaternion4_mulVecQuatConj
 #undef dsQuaternion4_mulToVector
 #undef dsQuaternion4f_shuffle_0120_1201_2012_3333
 #undef dsQuaternion4f_shuffle_3330_2011_1202
