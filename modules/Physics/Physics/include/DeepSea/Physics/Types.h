@@ -642,6 +642,16 @@ struct dsPhysicsEngine
 	 * @brief Function to clear the accumulated angular impulses on a rigid body.
 	 */
 	dsClearRigidBodyForceFunction clearRigidBodyAngularImpulseFunc;
+
+	/**
+	 * @brief Function to get whether a rigid body is active.
+	 */
+	dsGetRigidBodyActiveFunction getRigidBodyActiveFunc;
+
+	/**
+	 * @brief Function to set whether a rigid body is active.
+	 */
+	dsSetRigidBodyActiveFunction setRigidBodyActiveFunc;
 };
 
 #ifdef __cplusplus

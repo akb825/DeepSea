@@ -113,12 +113,16 @@ dsRigidBody* dsRigidBody_create(dsPhysicsEngine* engine, dsAllocator* allocator,
 	if (!engine || !engine->createRigidBodyFunc || !engine->destroyRigidBodyFunc || !allocator ||
 		!dsRigidBodyInit_isValid(initParams))
 	{
+		if (initParams && initParams->destroyUserDataFunc)
+			initParams->destroyUserDataFunc(initParams->userData);
 		errno = EINVAL;
 		return NULL;
 	}
 
 	if (!allocator->freeFunc)
 	{
+		if (initParams && initParams->destroyUserDataFunc)
+			initParams->destroyUserDataFunc(initParams->userData);
 		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Rigid body allocator must support freeing memory.");
 		errno = EINVAL;
 		return NULL;
@@ -1142,6 +1146,38 @@ bool dsRigidBody_clearAngularImpulse(dsRigidBody* rigidBody)
 
 	dsPhysicsEngine* engine = rigidBody->engine;
 	return engine->clearRigidBodyAngularImpulseFunc(engine, rigidBody);
+}
+
+bool dsRigidBody_getActive(const dsRigidBody* rigidBody)
+{
+	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->getRigidBodyActiveFunc ||
+		!rigidBody->shapesFinalized)
+	{
+		return false;
+	}
+
+	dsPhysicsEngine* engine = rigidBody->engine;
+	return engine->getRigidBodyActiveFunc(engine, rigidBody);
+}
+
+bool dsRigidBody_setActive(dsRigidBody* rigidBody, bool active)
+{
+	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyActiveFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!rigidBody->shapesFinalized)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot change the active state for a rigid body that "
+			"hasn't had its shapes finalized.");
+		errno = EPERM;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = rigidBody->engine;
+	return engine->setRigidBodyActiveFunc(engine, rigidBody, active);
 }
 
 bool dsRigidBody_destroy(dsRigidBody* rigidBody)

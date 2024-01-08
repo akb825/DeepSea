@@ -527,6 +527,29 @@ DS_PHYSICS_EXPORT bool dsRigidBody_addAngularImpulse(dsRigidBody* rigidBody,
 DS_PHYSICS_EXPORT bool dsRigidBody_clearAngularImpulse(dsRigidBody* rigidBody);
 
 /**
+ * @brief Gets whether a rigid body is active.
+ *
+ * A rigid body may become inactive if it's at rest and not moving.
+ *
+ * @param rigidBody The rigid body to get the active state from.
+ * @return Whether the rigid body is active.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_getActive(const dsRigidBody* rigidBody);
+
+/**
+ * @brief Sets whether a rigid body is active.
+ *
+ * An inactive rigid body is considered at rest and not moving.
+ *
+ * @remark The shapes must be finalized before calling this function.
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to set the active state on.
+ * @param active Whether the rigid body is active.
+ * @return False if the active state couldn't be set.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_setActive(dsRigidBody* rigidBody, bool active);
+
+/**
  * @brief Destroys a rigid body.
  * @remark errno will be set on failure.
  * @param rigidBody The rigid body to destroy.

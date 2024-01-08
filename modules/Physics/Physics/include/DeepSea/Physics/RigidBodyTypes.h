@@ -87,6 +87,8 @@ typedef struct dsRigidBodyInit
 
 	/**
 	 * @brief Function to destroy the user data.
+	 *
+	 * This will be called even if the creation of the body fails.
 	 */
 	dsDestroyUserDataFunction destroyUserDataFunc;
 
@@ -591,6 +593,24 @@ typedef bool (*dsAddRigidBodyForceFunction)(dsPhysicsEngine* engine, dsRigidBody
  * @return False if the force couldn't be cleared.
  */
 typedef bool (*dsClearRigidBodyForceFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody);
+
+/**
+ * @brief Function to get whether a rigid body is active.
+ * @param engine The physics engine the rigid body was created with.
+ * @param rigidBody The rigid body to get the active state from.
+ * @return Whether the rigid body is active.
+ */
+typedef bool (*dsGetRigidBodyActiveFunction)(dsPhysicsEngine* engine, const dsRigidBody* rigidBody);
+
+/**
+ * @brief Function to set whether a rigid body is active.
+ * @param engine The physics engine the rigid body was created with.
+ * @param rigidBody The rigid body to set the active state on.
+ * @param active Whether the rigid body is active.
+ * @return False if the active state couldn't be set.
+ */
+typedef bool (*dsSetRigidBodyActiveFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
+	bool active);
 
 #ifdef __cplusplus
 }
