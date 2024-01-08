@@ -311,6 +311,9 @@ typedef struct dsRigidBody
 	 *
 	 * This isn't modified by the scale, though implementations will internally scale the mass
 	 * properties when interfacing with the underlying physics library.
+	 *
+	 * Implementations may want to initialize this to empty, but otherwise it will be managed by the
+	 * base functions in the Physics library.
 	 */
 	dsPhysicsMassProperties massProperties;
 
@@ -532,44 +535,62 @@ typedef bool (*dsSetRigidBodyRestitutionFunction)(dsPhysicsEngine* engine, dsRig
 	float restitution);
 
 /**
- * @brief Function to set the linear damping of a rigid body.
+ * @brief Function to set the linear or angular damping of a rigid body.
  * @param engine The physics engine the rigid body was created with.
  * @param rigidBody The rigid body to change the linear damping on.
- * @param linearDamping The new linear damping.
- * @return False if the linear damping couldn't be set.
+ * @param damping The new damping.
+ * @return False if the damping couldn't be set.
  */
-typedef bool (*dsSetRigidBodyLinearDampingFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
-	float linearDamping);
+typedef bool (*dsSetRigidBodyDampingFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
+	float damping);
 
 /**
- * @brief Function to set the angular damping of a rigid body.
- * @param engine The physics engine the rigid body was created with.
- * @param rigidBody The rigid body to change the angular damping on.
- * @param angularDamping The new angular damping.
- * @return False if the angular damping couldn't be set.
- */
-typedef bool (*dsSetRigidBodyAngularDampingFunction)(dsPhysicsEngine* engine,
-	dsRigidBody* rigidBody, float angularDamping);
-
-/**
- * @brief Function to set the max linear velocity of a rigid body.
+ * @brief Function to set the max linear or angular velocity of a rigid body.
  * @param engine The physics engine the rigid body was created with.
  * @param rigidBody The rigid body to change the max linear velocity on.
- * @param maxLinearVelocity The new max linear velocity.
- * @return False if the max linear velocity couldn't be set.
+ * @param maxVelocity The new max velocity.
+ * @return False if the max velocity couldn't be set.
  */
-typedef bool (*dsSetRigidBodyMaxLinearVelocityFunction)(dsPhysicsEngine* engine,
-	dsRigidBody* rigidBody, float maxLinearVelocity);
+typedef bool (*dsSetRigidBodyMaxVelocityFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
+	float maxVelocity);
 
 /**
- * @brief Function to set the max angular velocity of a rigid body.
+ * @brief Function to get the linear or angular velocity from a rigid body.
+ * @param[out] outVelocity The velocity to set.
  * @param engine The physics engine the rigid body was created with.
- * @param rigidBody The rigid body to change the max angular velocity on.
- * @param maxAngularVelocity The new max angular velocity.
- * @return False if the max angular velocity couldn't be set.
+ * @param rigidBody The rigid body to change the velocity on.
+ * @return False if the velocity couldn't be queried.
  */
-typedef bool (*dsSetRigidBodyMaxAngularVelocityFunction)(dsPhysicsEngine* engine,
-	dsRigidBody* rigidBody, float maxAngularVelocity);
+typedef bool (*dsGetRigidBodyVelocityFunction)(dsVector3f* outVelocity, dsPhysicsEngine* engine,
+	const dsRigidBody* rigidBody);
+
+/**
+ * @brief Function to set the linear or angular velocity from a rigid body.
+ * @param engine The physics engine the rigid body was created with.
+ * @param rigidBody The rigid body to change the velocity on.
+ * @param velocity The new velocity
+ * @return False if the velocity couldn't be set.
+ */
+typedef bool (*dsSetRigidBodyVelocityFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
+	const dsVector3f* velocity);
+
+/**
+ * @brief Function to add a force, torque, or impulse on a rigid body.
+ * @param engine The physics engine the rigid body was created with.
+ * @param rigidBody The rigid body to add the force on.
+ * @param force The force to add.
+ * @return False if the force couldn't be added.
+ */
+typedef bool (*dsAddRigidBodyForceFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
+	const dsVector3f* force);
+
+/**
+ * @brief Function to clear the accumulated force, torque, or impulse on a rigid body.
+ * @param engine The physics engine the rigid body was created with.
+ * @param rigidBody The rigid body to clear the force on.
+ * @return False if the force couldn't be cleared.
+ */
+typedef bool (*dsClearRigidBodyForceFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody);
 
 #ifdef __cplusplus
 }

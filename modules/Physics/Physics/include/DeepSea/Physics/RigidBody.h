@@ -287,10 +287,23 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setTransformMatrix(dsRigidBody* rigidBody,
 	const dsMatrix44f* transform);
 
 /**
+ * @brief Gets the position around which the rigid body will rotate in world space.
+ * @remark The shapes must be finalized before calling this function.
+ * @remark errno will be set on failure.
+ * @param[out] outPosition The center of rotation in world space.
+ * @param rigidBody The rigid body to change the mass on.
+ * @return False if the rotation position qouldn't be queried.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_getWorldRotationPosition(dsVector3f* outPosition,
+	const dsRigidBody* rigidBody);
+
+/**
  * @brief Sets the mass for a rigid body.
+ * @remark This will not conserve momentum.
+ * @remark The shapes must be finalized before calling this function.
  * @remark errno will be set on failure.
  * @param rigidBody The rigid body to change the mass on.
- * @param mass The new mass.
+ * @param mass The new mass. This must be > 0.
  * @return False if the mass couldn't be set.
  */
 DS_PHYSICS_EXPORT bool dsRigidBody_setMass(dsRigidBody* rigidBody, float mass);
@@ -350,6 +363,168 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setMaxLinearVelocity(dsRigidBody* rigidBody,
  */
 DS_PHYSICS_EXPORT bool dsRigidBody_setMaxAngularVelocity(dsRigidBody* rigidBody,
 	float maxAngularVelocity);
+
+/**
+ * @brief Gets the current linear velocity for a rigid body.
+ * @remark errno will be set on failure.
+ * @param[out] outVelocity The storage for the linear velocity.
+ * @param rigidBody The rigid body to get the linear velocity for.
+ * @return False if the linear velocity couldn't be queried.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_getLinearVelocity(dsVector3f* outVelocity,
+	const dsRigidBody* rigidBody);
+
+/**
+ * @brief Sets the current linear velocity for a rigid body.
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to set the linear velocity on.
+ * @param velocity The new linear velocity.
+ * @return False if the linear velocity couldn't be set.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_setLinearVelocity(dsRigidBody* rigidBody,
+	const dsVector3f* velocity);
+
+/**
+ * @brief Gets the current linear angular for a rigid body.
+ * @remark errno will be set on failure.
+ * @param[out] outAngular The storage for the linear angular.
+ * @param rigidBody The rigid body to get the linear angular for.
+ * @return False if the linear angular couldn't be queried.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_getLinearAngular(dsVector3f* outAngular,
+	const dsRigidBody* rigidBody);
+
+/**
+ * @brief Sets the current linear angular for a rigid body.
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to set the linear angular on.
+ * @param angular The new linear angular.
+ * @return False if the linear angular couldn't be set.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_setLinearAngular(dsRigidBody* rigidBody,
+	const dsVector3f* angular);
+
+/**
+ * @brief Adds a force to a rigid body.
+ *
+ * The force will only be active until the next time the physics scene is stepped.
+ *
+ * @remark The shapes must be finalized before calling this function.
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to add the force to.
+ * @param force The force, or mass times acceleration.
+ * @return False if the force couldn't be added.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_addForce(dsRigidBody* rigidBody, const dsVector3f* force);
+
+/**
+ * @brief Adds a force to a rigid body at a point.
+ *
+ * This may add torque as well if the force isn't aligned with the center of rotation.
+ * The force will only be active until the next time the physics scene is stepped.
+ *
+ * @remark The shapes must be finalized before calling this function.
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to add the force to.
+ * @param force The force, or mass times acceleration.
+ * @param point The point the force is applied to.
+ * @return False if the force couldn't be added.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_addForceAtPoint(dsRigidBody* rigidBody, const dsVector3f* force,
+	const dsVector3f* point);
+
+/**
+ * @brief Clears the previously accumulated force for a rigid body.
+ *
+ * This will clear any forces previously added with dsRigidBody_addForce() since the previous step
+ * of the physics scene.
+ *
+ * @remark The shapes must be finalized before calling this function.
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to clear the force on.
+ * @return False if the force couldn't be cleared.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_clearForce(dsRigidBody* rigidBody);
+
+/**
+ * @brief Adds a torque to a rigid body.
+ *
+ * The torque will only be active until the next time the physics scene is stepped.
+ *
+ * @remark The shapes must be finalized before calling this function.
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to add the force to.
+ * @param torque The torque, or mass times angular acceleration.
+ * @return False if the force couldn't be added.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_addTorque(dsRigidBody* rigidBody, const dsVector3f* torque);
+
+/**
+ * @brief Clears the previously accumulated torque for a rigid body.
+ *
+ * This will clear any torque previously added with dsRigidBody_addTorque() since the previous step
+ * of the physics scene.
+ *
+ * @remark The shapes must be finalized before calling this function.
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to clear the torque on.
+ * @return False if the torque couldn't be cleared.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_clearTorque(dsRigidBody* rigidBody);
+
+/**
+ * @brief Adds a linear impulse to a rigid body.
+ *
+ * The torque will only be active until the next time the physics scene is stepped.
+ *
+ * @remark The shapes must be finalized before calling this function.
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to add the force to.
+ * @param impulse The linear impulse, or mass times linear velocity.
+ * @return False if the force couldn't be added.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_addLinearImpulse(dsRigidBody* rigidBody,
+	const dsVector3f* impulse);
+
+/**
+ * @brief Clears the previously accumulated linear impulse for a rigid body.
+ *
+ * This will clear any linear impulse previously added with dsRigidBody_addLinearImpulse() since the
+ * previous step of the physics scene.
+ *
+ * @remark The shapes must be finalized before calling this function.
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to clear the linear impulse on.
+ * @return False if the linear impulse couldn't be cleared.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_clearLinearImpulse(dsRigidBody* rigidBody);
+
+/**
+ * @brief Adds a angular impulse to a rigid body.
+ *
+ * The torque will only be active until the next time the physics scene is stepped.
+ *
+ * @remark The shapes must be finalized before calling this function.
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to add the force to.
+ * @param impulse The angular impulse, or mass times angular velocity.
+ * @return False if the force couldn't be added.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_addAngularImpulse(dsRigidBody* rigidBody,
+	const dsVector3f* impulse);
+
+/**
+ * @brief Clears the previously accumulated angular impulse for a rigid body.
+ *
+ * This will clear any angular impulse previously added with dsRigidBody_addAngularImpulse() since
+ * the previous step of the physics scene.
+ *
+ * @remark The shapes must be finalized before calling this function.
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to clear the angular impulse on.
+ * @return False if the angular impulse couldn't be cleared.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_clearAngularImpulse(dsRigidBody* rigidBody);
 
 /**
  * @brief Destroys a rigid body.

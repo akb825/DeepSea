@@ -566,22 +566,82 @@ struct dsPhysicsEngine
 	/**
 	 * @brief Function to set the linear damping on a rigid body.
 	 */
-	dsSetRigidBodyLinearDampingFunction setRigidBodyLinearDampingFunc;
+	dsSetRigidBodyDampingFunction setRigidBodyLinearDampingFunc;
 
 	/**
 	 * @brief Function to set the angular damping on a rigid body.
 	 */
-	dsSetRigidBodyAngularDampingFunction setRigidBodyAngularDampingFunc;
+	dsSetRigidBodyDampingFunction setRigidBodyAngularDampingFunc;
 
 	/**
 	 * @brief Function to set the max linear velocity on a rigid body.
 	 */
-	dsSetRigidBodyMaxLinearVelocityFunction setRigidBodyMaxLinearVelocityFunc;
+	dsSetRigidBodyMaxVelocityFunction setRigidBodyMaxLinearVelocityFunc;
 
 	/**
 	 * @brief Function to set the max angular velocity on a rigid body.
 	 */
-	dsSetRigidBodyMaxAngularVelocityFunction setRigidBodyMaxAngularVelocityFunc;
+	dsSetRigidBodyMaxVelocityFunction setRigidBodyMaxAngularVelocityFunc;
+
+	/**
+	 * @brief Function to get the linear velocity on a rigid body.
+	 */
+	dsGetRigidBodyVelocityFunction getRigidBodyLinearVelocityFunc;
+
+	/**
+	 * @brief Function to set the linear velocity on a rigid body.
+	 */
+	dsSetRigidBodyVelocityFunction setRigidBodyLinearVelocityFunc;
+
+	/**
+	 * @brief Function to get the angular velocity on a rigid body.
+	 */
+	dsGetRigidBodyVelocityFunction getRigidBodyAngularVelocityFunc;
+
+	/**
+	 * @brief Function to set the angular velocity on a rigid body.
+	 */
+	dsSetRigidBodyVelocityFunction setRigidBodyAngularVelocityFunc;
+
+	/**
+	 * @brief Function to add force to a rigid body.
+	 */
+	dsAddRigidBodyForceFunction addRigidBodyForceFunc;
+
+	/**
+	 * @brief Function to clear the accumulated forces on a rigid body.
+	 */
+	dsClearRigidBodyForceFunction clearRigidBodyForceFunc;
+
+	/**
+	 * @brief Function to add torque to a rigid body.
+	 */
+	dsAddRigidBodyForceFunction addRigidBodyTorqueFunc;
+
+	/**
+	 * @brief Function to clear the accumulated torque on a rigid body.
+	 */
+	dsClearRigidBodyForceFunction clearRigidBodyTorqueFunc;
+
+	/**
+	 * @brief Function to add linear impulse to a rigid body.
+	 */
+	dsAddRigidBodyForceFunction addRigidBodyLinearImpulseFunc;
+
+	/**
+	 * @brief Function to clear the accumulated linear impulses on a rigid body.
+	 */
+	dsClearRigidBodyForceFunction clearRigidBodyLinearImpulseFunc;
+
+	/**
+	 * @brief Function to add angular impulse to a rigid body.
+	 */
+	dsAddRigidBodyForceFunction addRigidBodyAngularImpulseFunc;
+
+	/**
+	 * @brief Function to clear the accumulated angular impulses on a rigid body.
+	 */
+	dsClearRigidBodyForceFunction clearRigidBodyAngularImpulseFunc;
 };
 
 #ifdef __cplusplus

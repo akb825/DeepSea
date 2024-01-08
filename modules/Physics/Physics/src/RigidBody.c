@@ -374,7 +374,7 @@ bool dsRigidBody_computeDefaultMassProperties(dsPhysicsMassProperties* outMassPr
 	if (!hasMassProperties(rigidBody))
 	{
 		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot compute the default mass properties for a rigid "
-			"body that isn't dynamic motion type or with the mutable motion type flag set.");
+			"body that isn't dynamic or have the mutable motion type flag set.");
 		errno = EPERM;
 		return false;
 	}
@@ -739,16 +739,65 @@ bool dsRigidBody_setTransformMatrix(dsRigidBody* rigidBody, const dsMatrix44f* t
 		(const dsVector3f*)(transform->columns + 3), &orientation, scalePtr);
 }
 
-bool dsRigidBody_setMass(dsRigidBody* rigidBody, float mass)
+bool dsRigidBody_getWorldRotationPosition(dsVector3f* outPosition, const dsRigidBody* rigidBody)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyMassFunc || mass < 0)
+	if (!outPosition || !rigidBody)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
+	if (!hasMassProperties(rigidBody))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot get the rotation position on a rigid body that "
+			"isn't dynamic or have the mutable motion type set.");
+		errno = EPERM;
+		return false;
+	}
+
+	if (!rigidBody->shapesFinalized)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Cannot rotation position on a rigid body that hasn't had its shapes finalized.");
+		errno = EPERM;
+		return false;
+	}
+
+	dsVector3_mul(*outPosition, rigidBody->massProperties.inertiaTranslate, rigidBody->scale);
+	dsQuaternion4f_rotate(outPosition, &rigidBody->orientation, outPosition);
+	dsVector3_add(*outPosition, *outPosition, rigidBody->position);
+	return true;
+}
+
+bool dsRigidBody_setMass(dsRigidBody* rigidBody, float mass)
+{
+	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyMassFunc || mass <= 0)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!hasMassProperties(rigidBody))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot set the mass on a rigid body that isn't dynamic "
+			"or have the mutable motion type set.");
+		errno = EPERM;
+		return false;
+	}
+
+	if (!rigidBody->shapesFinalized)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Cannot set the mass on a rigid body that hasn't had its shapes finalized.");
+		errno = EPERM;
+		return false;
+	}
+
 	dsPhysicsEngine* engine = rigidBody->engine;
-	return engine->setRigidBodyMassFunc(engine, rigidBody, mass);
+	bool success = engine->setRigidBodyMassFunc(engine, rigidBody, mass);
+	if (success)
+		DS_VERIFY(dsPhysicsMassProperties_setMass(&rigidBody->massProperties, mass));
+	return success;
 }
 
 bool dsRigidBody_setFriction(dsRigidBody* rigidBody, float friction)
@@ -827,6 +876,272 @@ bool dsRigidBody_setMaxAngularVelocity(dsRigidBody* rigidBody, float maxAngularV
 
 	dsPhysicsEngine* engine = rigidBody->engine;
 	return engine->setRigidBodyMaxAngularVelocityFunc(engine, rigidBody, maxAngularVelocity);
+}
+
+bool dsRigidBody_addForce(dsRigidBody* rigidBody, const dsVector3f* force)
+{
+	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->addRigidBodyForceFunc || !force)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!hasMassProperties(rigidBody))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic "
+			"or have the mutable motion type set.");
+		errno = EPERM;
+		return false;
+	}
+
+	if (!rigidBody->shapesFinalized)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Cannot apply forces to a rigid body that hasn't had its shapes finalized.");
+		errno = EPERM;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = rigidBody->engine;
+	return engine->addRigidBodyForceFunc(engine, rigidBody, force);
+}
+
+bool dsRigidBody_addForceAtPoint(dsRigidBody* rigidBody, const dsVector3f* force,
+	const dsVector3f* point)
+{
+	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->addRigidBodyForceFunc ||
+		!rigidBody->engine->addRigidBodyTorqueFunc || !force || !point)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!hasMassProperties(rigidBody))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic "
+			"or have the mutable motion type set.");
+		errno = EPERM;
+		return false;
+	}
+
+	if (!rigidBody->shapesFinalized)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Cannot apply forces to a rigid body that hasn't had its shapes finalized.");
+		errno = EPERM;
+		return false;
+	}
+
+	dsVector3f rotationPos;
+	dsVector3_mul(rotationPos, rigidBody->massProperties.inertiaTranslate, rigidBody->scale);
+	dsQuaternion4f_rotate(&rotationPos, &rigidBody->orientation, &rotationPos);
+	dsVector3_add(rotationPos, rotationPos, rigidBody->position);
+
+	dsVector3f relativePos, torque;
+	dsVector3_sub(relativePos, *point, rotationPos);
+	dsVector3_cross(torque, relativePos, *force);
+
+	dsPhysicsEngine* engine = rigidBody->engine;
+	return engine->addRigidBodyForceFunc(engine, rigidBody, force) &&
+		engine->addRigidBodyTorqueFunc(engine, rigidBody, &torque);
+}
+
+bool dsRigidBody_clearForce(dsRigidBody* rigidBody)
+{
+	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->clearRigidBodyForceFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!hasMassProperties(rigidBody))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic "
+			"or have the mutable motion type set.");
+		errno = EPERM;
+		return false;
+	}
+
+	if (!rigidBody->shapesFinalized)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Cannot apply forces to a rigid body that hasn't had its shapes finalized.");
+		errno = EPERM;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = rigidBody->engine;
+	return engine->clearRigidBodyForceFunc(engine, rigidBody);
+}
+
+bool dsRigidBody_addTorque(dsRigidBody* rigidBody, const dsVector3f* torque)
+{
+	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->addRigidBodyTorqueFunc || !torque)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!hasMassProperties(rigidBody))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic "
+			"or have the mutable motion type set.");
+		errno = EPERM;
+		return false;
+	}
+
+	if (!rigidBody->shapesFinalized)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Cannot apply forces to a rigid body that hasn't had its shapes finalized.");
+		errno = EPERM;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = rigidBody->engine;
+	return engine->addRigidBodyTorqueFunc(engine, rigidBody, torque);
+}
+
+bool dsRigidBody_clearTorque(dsRigidBody* rigidBody)
+{
+	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->clearRigidBodyTorqueFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!hasMassProperties(rigidBody))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic "
+			"or have the mutable motion type set.");
+		errno = EPERM;
+		return false;
+	}
+
+	if (!rigidBody->shapesFinalized)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Cannot apply forces to a rigid body that hasn't had its shapes finalized.");
+		errno = EPERM;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = rigidBody->engine;
+	return engine->clearRigidBodyTorqueFunc(engine, rigidBody);
+}
+
+bool dsRigidBody_addLinearImpulse(dsRigidBody* rigidBody, const dsVector3f* impulse)
+{
+	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->addRigidBodyLinearImpulseFunc ||
+		!impulse)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!hasMassProperties(rigidBody))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic "
+			"or have the mutable motion type set.");
+		errno = EPERM;
+		return false;
+	}
+
+	if (!rigidBody->shapesFinalized)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Cannot apply forces to a rigid body that hasn't had its shapes finalized.");
+		errno = EPERM;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = rigidBody->engine;
+	return engine->addRigidBodyLinearImpulseFunc(engine, rigidBody, impulse);
+}
+
+bool dsRigidBody_clearLinearImpulse(dsRigidBody* rigidBody)
+{
+	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->clearRigidBodyLinearImpulseFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!hasMassProperties(rigidBody))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic "
+			"or have the mutable motion type set.");
+		errno = EPERM;
+		return false;
+	}
+
+	if (!rigidBody->shapesFinalized)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Cannot apply forces to a rigid body that hasn't had its shapes finalized.");
+		errno = EPERM;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = rigidBody->engine;
+	return engine->clearRigidBodyLinearImpulseFunc(engine, rigidBody);
+}
+
+bool dsRigidBody_addAngularImpulse(dsRigidBody* rigidBody, const dsVector3f* impulse)
+{
+	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->addRigidBodyAngularImpulseFunc ||
+		!impulse)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!hasMassProperties(rigidBody))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic "
+			"or have the mutable motion type set.");
+		errno = EPERM;
+		return false;
+	}
+
+	if (!rigidBody->shapesFinalized)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Cannot apply forces to a rigid body that hasn't had its shapes finalized.");
+		errno = EPERM;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = rigidBody->engine;
+	return engine->addRigidBodyAngularImpulseFunc(engine, rigidBody, impulse);
+}
+
+bool dsRigidBody_clearAngularImpulse(dsRigidBody* rigidBody)
+{
+	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->clearRigidBodyAngularImpulseFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!hasMassProperties(rigidBody))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic "
+			"or have the mutable motion type set.");
+		errno = EPERM;
+		return false;
+	}
+
+	if (!rigidBody->shapesFinalized)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Cannot apply forces to a rigid body that hasn't had its shapes finalized.");
+		errno = EPERM;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = rigidBody->engine;
+	return engine->clearRigidBodyAngularImpulseFunc(engine, rigidBody);
 }
 
 bool dsRigidBody_destroy(dsRigidBody* rigidBody)
