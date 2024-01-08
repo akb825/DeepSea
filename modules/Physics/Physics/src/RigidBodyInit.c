@@ -80,7 +80,6 @@ bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit,
 	memset(&rigidBodyInit->linearVelocity, 0, sizeof(rigidBodyInit->linearVelocity));
 	memset(&rigidBodyInit->angularVelocity, 0, sizeof(rigidBodyInit->angularVelocity));
 
-	rigidBodyInit->mass = mass;
 	rigidBodyInit->friction = friction;
 	rigidBodyInit->restitution = restitution;
 	rigidBodyInit->linearDamping = 0.05f;
@@ -111,8 +110,8 @@ bool dsRigidBodyInit_isValid(const dsRigidBodyInit* rigidBodyInit)
 	}
 
 	// General ranges.
-	return rigidBodyInit->mass >= 0 && rigidBodyInit->friction >= 0 &&
-		rigidBodyInit->restitution >= 0 && rigidBodyInit->restitution <= 1 &&
-		rigidBodyInit->linearDamping >= 0 && rigidBodyInit->angularDamping >= 0 &&
-		rigidBodyInit->maxLinearVelocity >= 0 && rigidBodyInit->maxAngularVelocity >= 0;
+	return rigidBodyInit->friction >= 0 && rigidBodyInit->restitution >= 0 &&
+		rigidBodyInit->restitution <= 1 && rigidBodyInit->linearDamping >= 0 &&
+		rigidBodyInit->angularDamping >= 0 && rigidBodyInit->maxLinearVelocity >= 0 &&
+		rigidBodyInit->maxAngularVelocity >= 0;
 }

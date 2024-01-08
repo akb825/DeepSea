@@ -155,11 +155,6 @@ typedef struct dsRigidBodyInit
 	dsVector3f angularVelocity;
 
 	/**
-	 * @brief The mass of the body.
-	 */
-	float mass;
-
-	/**
 	 * @brief The coefficient of friction, with 0 meaning no friction and increasing values having
 	 * higher friction.
 	 */

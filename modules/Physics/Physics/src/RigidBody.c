@@ -78,10 +78,10 @@ static bool computeDefaultMassProperties(dsPhysicsMassProperties* outMassPropert
 
 	for (uint32_t i = 0; i < rigidBody->shapeCount; ++i)
 	{
-		massPropertiesPtrs[i] = shapeMassProperties + i;
+		dsPhysicsMassProperties* thisMassProperties = shapeMassProperties + 1;
+		massPropertiesPtrs[i] = thisMassProperties;
 		const dsPhysicsShapeInstance* shape = rigidBody->shapes + i;
-		if (!dsPhysicsShape_getMassProperties(
-				shapeMassProperties + i, shape->shape, shape->density))
+		if (!dsPhysicsShape_getMassProperties(thisMassProperties, shape->shape, shape->density))
 		{
 			if (heapMassProperties)
 			{
@@ -90,6 +90,10 @@ static bool computeDefaultMassProperties(dsPhysicsMassProperties* outMassPropert
 			}
 			return false;
 		}
+
+		DS_VERIFY(dsPhysicsMassProperties_transform(thisMassProperties,
+			shape->hasTranslate ? &shape->translate : NULL,
+			shape->hasRotate ? &shape->rotate : NULL, shape->hasScale ? &shape->scale : NULL));
 	}
 
 	DS_VERIFY(dsPhysicsMassProperties_initializeCombined(outMassProperties, massPropertiesPtrs,

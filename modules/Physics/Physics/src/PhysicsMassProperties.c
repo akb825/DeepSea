@@ -542,6 +542,22 @@ bool dsPhysicsMassProperties_initializeCombined(
 		return false;
 	}
 
+	// Identity cases.
+	if (componentMassPropertiesCount == 0)
+		return dsPhysicsMassProperties_initializeEmpty(massProperties);
+	else if (componentMassPropertiesCount == 1)
+	{
+		const dsPhysicsMassProperties* curMassProperties = componentMassProperties[0];
+		if (!curMassProperties)
+		{
+			errno = EINVAL;
+			return false;
+		}
+
+		*massProperties = *curMassProperties;
+		return true;
+	}
+
 	float totalMass = 0.0f;
 	dsVector3f scaledCenterOfMass = {{0.0f, 0.0f, 0.0f}};
 	for (uint32_t i = 0; i < componentMassPropertiesCount; ++i)

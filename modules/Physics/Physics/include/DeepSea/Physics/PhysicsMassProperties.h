@@ -131,7 +131,8 @@ DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_initializeMesh(
  * @brief Initializes mass properties by combining multiple mass properties together.
  *
  * This can be used to create inertia for a compound shape. The inertia frame of reference will be
- * at the center of mass and identity rotation.
+ * at the center of mass and identity rotation, unless only a single mass properties is present in
+ * which case it will be copied directly.
  *
  * @remark errno will be set on failure.
  * @param[out] massProperties The mass properties to initialize.
