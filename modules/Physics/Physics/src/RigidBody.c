@@ -16,6 +16,8 @@
 
 #include <DeepSea/Physics/RigidBody.h>
 
+#include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
@@ -24,7 +26,86 @@
 #include <DeepSea/Math/Quaternion.h>
 #include <DeepSea/Math/Vector3.h>
 
+#include <DeepSea/Physics/Shapes/PhysicsShape.h>
+#include <DeepSea/Physics/PhysicsMassProperties.h>
 #include <DeepSea/Physics/RigidBodyInit.h>
+
+#define MAX_STACK_MASS_PROPERTIES 256
+
+static bool hasMassProperties(const dsRigidBody* rigidBody)
+{
+	return rigidBody->motionType == dsPhysicsMotionType_Dynamic ||
+		(rigidBody->flags & dsRigidBodyFlags_MutableMotionType);
+}
+
+// For some reason GCC (at least with 13.2) complains that massPropertiesPtrs is maybe
+// uninitialized, despite very clearly being assigned in all code paths, even if explicitly
+// initializing to NULL on declaration. Only option is to disable the warning for the function.
+#if DS_GCC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+
+static bool computeDefaultMassProperties(dsPhysicsMassProperties* outMassProperties,
+	const dsRigidBody* rigidBody)
+{
+	dsAllocator* scratchAllocator = rigidBody->engine->allocator;
+	bool heapMassProperties = rigidBody->shapeCount > MAX_STACK_MASS_PROPERTIES;
+	dsPhysicsMassProperties* shapeMassProperties;
+	const dsPhysicsMassProperties** massPropertiesPtrs;
+	if (heapMassProperties)
+	{
+		shapeMassProperties = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsPhysicsMassProperties,
+			rigidBody->shapeCount);
+		if (!shapeMassProperties)
+			return false;
+
+		massPropertiesPtrs = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator,
+			const dsPhysicsMassProperties*,  rigidBody->shapeCount);
+		if (!massPropertiesPtrs)
+		{
+			DS_VERIFY(dsAllocator_free(scratchAllocator, (void*)massPropertiesPtrs));
+			return false;
+		}
+	}
+	else
+	{
+		shapeMassProperties =
+			DS_ALLOCATE_STACK_OBJECT_ARRAY(dsPhysicsMassProperties, rigidBody->shapeCount);
+		massPropertiesPtrs =
+			DS_ALLOCATE_STACK_OBJECT_ARRAY(const dsPhysicsMassProperties*, rigidBody->shapeCount);
+	}
+
+	for (uint32_t i = 0; i < rigidBody->shapeCount; ++i)
+	{
+		massPropertiesPtrs[i] = shapeMassProperties + i;
+		const dsPhysicsShapeInstance* shape = rigidBody->shapes + i;
+		if (!dsPhysicsShape_getMassProperties(
+				shapeMassProperties + i, shape->shape, shape->density))
+		{
+			if (heapMassProperties)
+			{
+				DS_VERIFY(dsAllocator_free(scratchAllocator, shapeMassProperties));
+				DS_VERIFY(dsAllocator_free(scratchAllocator, (void*)massPropertiesPtrs));
+			}
+			return false;
+		}
+	}
+
+	DS_VERIFY(dsPhysicsMassProperties_initializeCombined(outMassProperties, massPropertiesPtrs,
+		rigidBody->shapeCount));
+
+	if (heapMassProperties)
+	{
+		DS_VERIFY(dsAllocator_free(scratchAllocator, shapeMassProperties));
+		DS_VERIFY(dsAllocator_free(scratchAllocator, (void*)massPropertiesPtrs));
+	}
+	return true;
+}
+
+#if DS_GCC
+#pragma GCC diagnostic pop
+#endif
 
 dsRigidBody* dsRigidBody_create(dsPhysicsEngine* engine, dsAllocator* allocator,
 	const dsRigidBodyInit* initParams)
@@ -44,6 +125,341 @@ dsRigidBody* dsRigidBody_create(dsPhysicsEngine* engine, dsAllocator* allocator,
 	}
 
 	return engine->createRigidBodyFunc(engine, allocator, initParams);
+}
+
+uint32_t dsRigidBody_addShape(dsRigidBody* rigidBody, dsPhysicsShape* shape,
+	const dsVector3f* translate, const dsQuaternion4f* rotate, const dsVector3f* scale,
+	float density)
+{
+	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->addRigidBodyShapeFunc || !shape ||
+		!shape->type || (scale && (scale->x == 0.0f || scale->y == 0.0f || scale->z == 0.0f)) ||
+		(density <= 0 && hasMassProperties(rigidBody)))
+	{
+		errno = EINVAL;
+		return DS_NO_PHYSICS_SHAPE_ID;
+	}
+
+	if (rigidBody->shapesFinalized && !(rigidBody->flags & dsRigidBodyFlags_MutableShape))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot add a shape to a rigid body with finalized shapes "
+			"unless mutable shape flag is set.");
+		errno = EPERM;
+		return DS_NO_PHYSICS_SHAPE_ID;
+	}
+
+	if (shape->type->staticBodiesOnly && (rigidBody->motionType != dsPhysicsMotionType_Static ||
+		(rigidBody->flags & dsRigidBodyFlags_MutableMotionType)))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot add static-only shape to a rigid body that isn't "
+			"static or has the mutable motion type flag set.");
+		errno = EPERM;
+		return DS_NO_PHYSICS_SHAPE_ID;
+	}
+
+	if (scale && shape->type->uniformScaleOnly && (scale->x != scale->y || scale->x != scale->z))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Attempting to set non-uniform scale a shape that "
+			"requires uniform scaling.");
+		errno = EPERM;
+		return DS_NO_PHYSICS_SHAPE_ID;
+	}
+
+	if (rotate &&
+		(rigidBody->scale.x != rigidBody->scale.y || rigidBody->scale.x != rigidBody->scale.z))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Attempting to set rotation for a shape on a rigid body with non-uniform scale.");
+		errno = EPERM;
+		return DS_NO_PHYSICS_SHAPE_ID;
+	}
+
+	dsPhysicsEngine* engine = rigidBody->engine;
+	uint32_t shapeID = engine->addRigidBodyShapeFunc(engine, rigidBody, shape, translate, rotate,
+		scale, density);
+	if (shapeID != DS_NO_PHYSICS_SHAPE_ID)
+		rigidBody->shapesFinalized = false;
+	return shapeID;
+}
+
+bool dsRigidBody_setShapeTransformID(dsRigidBody* rigidBody, uint32_t shapeID,
+	const dsVector3f* translate, const dsQuaternion4f* rotate, const dsVector3f* scale)
+{
+	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyShapeTransformFunc ||
+		(scale && (scale->x == 0.0f || scale->y == 0.0f || scale->z == 0.0f)))
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (rigidBody->shapesFinalized && !(rigidBody->flags & dsRigidBodyFlags_MutableShape))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot set a shape transform on a rigid body with "
+			"finalized shapes unless mutable shape flag is set.");
+		errno = EPERM;
+		return false;
+	}
+
+	uint32_t index = 0;
+	const dsPhysicsShapeInstance* shape = NULL;
+	for (uint32_t i = 0; i < rigidBody->shapeCount; ++i)
+	{
+		if (rigidBody->shapes[i].id == shapeID)
+		{
+			index = i;
+			shape = rigidBody->shapes + i;
+			break;
+		}
+	}
+
+	if (!shape)
+	{
+		errno = ENOTFOUND;
+		return false;
+	}
+
+	if ((!shape->hasTranslate && translate) || (!shape->hasRotate && rotate) ||
+		(!shape->hasScale && scale))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot set a shape transform element that was previously "
+			"NULL when adding to the rigid body.");
+		errno = EPERM;
+		return false;
+	}
+
+	if (scale && shape->shape->type->uniformScaleOnly &&
+		(scale->x != scale->y || scale->x != scale->z))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Attempting to set non-uniform scale a shape that "
+			"requires uniform scaling.");
+		errno = EPERM;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = rigidBody->engine;
+	bool success = engine->setRigidBodyShapeTransformFunc(
+		engine, rigidBody, index, translate, rotate, scale);
+	if (success)
+		rigidBody->shapesFinalized = false;
+	return success;
+}
+
+bool dsRigidBody_setShapeTransformIndex(dsRigidBody* rigidBody, uint32_t shapeIndex,
+	const dsVector3f* translate, const dsQuaternion4f* rotate, const dsVector3f* scale)
+{
+	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyShapeTransformFunc ||
+		(scale && (scale->x == 0.0f || scale->y == 0.0f || scale->z == 0.0f)))
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (rigidBody->shapesFinalized && !(rigidBody->flags & dsRigidBodyFlags_MutableShape))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot set a shape transform on a rigid body with "
+			"finalized shapes unless mutable shape flag is set.");
+		errno = EPERM;
+		return false;
+	}
+
+	if (shapeIndex >= rigidBody->shapeCount)
+	{
+		errno = EINDEX;
+		return false;
+	}
+
+	const dsPhysicsShapeInstance* shape = rigidBody->shapes + shapeIndex;
+	if ((!shape->hasTranslate && translate) || (!shape->hasRotate && rotate) ||
+		(!shape->hasScale && scale))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot set a shape transform element that was previously "
+			"NULL when adding to the rigid body.");
+		errno = EPERM;
+		return false;
+	}
+
+	if (scale && shape->shape->type->uniformScaleOnly &&
+		(scale->x != scale->y || scale->x != scale->z))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Attempting to set non-uniform scale a shape that "
+			"requires uniform scaling.");
+		errno = EPERM;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = rigidBody->engine;
+	bool success = engine->setRigidBodyShapeTransformFunc(
+		engine, rigidBody, shapeIndex, translate, rotate, scale);
+	if (success)
+		rigidBody->shapesFinalized = false;
+	return success;
+}
+
+bool dsRigidBody_removeShapeID(dsRigidBody* rigidBody, uint32_t shapeID)
+{
+	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->removeRigidBodyShapeFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (rigidBody->shapesFinalized && !(rigidBody->flags & dsRigidBodyFlags_MutableShape))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot remove a shape from a rigid body with finalized "
+			"shapes unless mutable shape flag is set.");
+		errno = EPERM;
+		return false;
+	}
+
+	uint32_t index = DS_NO_PHYSICS_SHAPE_ID;
+	for (uint32_t i = 0; i < rigidBody->shapeCount; ++i)
+	{
+		if (rigidBody->shapes[i].id == shapeID)
+		{
+			index = i;
+			break;
+		}
+	}
+
+	if (index == DS_NO_PHYSICS_SHAPE_ID)
+	{
+		errno = ENOTFOUND;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = rigidBody->engine;
+	bool success = engine->removeRigidBodyShapeFunc(engine, rigidBody, index);
+	if (success)
+		rigidBody->shapesFinalized = false;
+	return success;
+}
+
+bool dsRigidBody_removeShapeIndex(dsRigidBody* rigidBody, uint32_t shapeIndex)
+{
+	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->removeRigidBodyShapeFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (rigidBody->shapesFinalized && !(rigidBody->flags & dsRigidBodyFlags_MutableShape))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot remove a shape from a rigid body with finalized "
+			"shapes unless mutable shape flag is set.");
+		errno = EPERM;
+		return false;
+	}
+
+	if (shapeIndex >= rigidBody->shapeCount)
+	{
+		errno = ENOTFOUND;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = rigidBody->engine;
+	bool success = engine->removeRigidBodyShapeFunc(engine, rigidBody, shapeIndex);
+	if (success)
+		rigidBody->shapesFinalized = false;
+	return success;
+}
+
+bool dsRigidBody_computeDefaultMassProperties(dsPhysicsMassProperties* outMassProperties,
+	const dsRigidBody* rigidBody)
+{
+	if (!outMassProperties || !rigidBody)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!hasMassProperties(rigidBody))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot compute the default mass properties for a rigid "
+			"body that isn't dynamic motion type or with the mutable motion type flag set.");
+		errno = EPERM;
+		return false;
+	}
+
+	return computeDefaultMassProperties(outMassProperties, rigidBody);
+}
+
+bool dsRigidBody_finalizeShapes(dsRigidBody* rigidBody, const float* mass,
+	const dsVector3f* rotationPointShift)
+{
+	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->finalizeRigidBodyShapesFunc ||
+		(mass && mass <= 0))
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (rigidBody->shapesFinalized && !(rigidBody->flags & dsRigidBodyFlags_MutableShape))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot finalize shapes on a rigid body with already "
+			"finalized shapes unless mutable shape flag is set.");
+		errno = EPERM;
+		return false;
+	}
+
+	if (rigidBody->shapeCount == 0)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Rigid body must have at least one shape added before finalizing the shapes.");
+		errno = EPERM;
+		return false;
+	}
+
+	dsPhysicsMassProperties massProperties;
+	if (hasMassProperties(rigidBody))
+	{
+		if (!computeDefaultMassProperties(&massProperties, rigidBody))
+			return false;
+
+		if (mass)
+			DS_VERIFY(dsPhysicsMassProperties_setMass(&massProperties, *mass));
+		if (rotationPointShift)
+			DS_VERIFY(dsPhysicsMassProperties_shift(&massProperties, rotationPointShift, NULL));
+	}
+	else
+		DS_VERIFY(dsPhysicsMassProperties_initializeEmpty(&massProperties));
+
+	dsPhysicsEngine* engine = rigidBody->engine;
+	bool success = engine->finalizeRigidBodyShapesFunc(engine, rigidBody, &massProperties);
+	if (success)
+		rigidBody->shapesFinalized = true;
+	return success;
+}
+
+bool dsRigidBody_finalizeShapesCustomMassProperties(dsRigidBody* rigidBody,
+	const dsPhysicsMassProperties* massProperties)
+{
+	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->finalizeRigidBodyShapesFunc ||
+		!massProperties)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (rigidBody->shapesFinalized && !(rigidBody->flags & dsRigidBodyFlags_MutableShape))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot finalize shapes on a rigid body with already "
+			"finalized shapes unless mutable shape flag is set.");
+		errno = EPERM;
+		return false;
+	}
+
+	if (rigidBody->shapeCount == 0)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Rigid body must have at least one shape added before finalizing the shapes.");
+		errno = EPERM;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = rigidBody->engine;
+	bool success = engine->finalizeRigidBodyShapesFunc(engine, rigidBody, massProperties);
+	if (success)
+		rigidBody->shapesFinalized = true;
+	return success;
 }
 
 bool dsRigidBody_addFlags(dsRigidBody* rigidBody, dsRigidBodyFlags flags)
@@ -66,14 +482,6 @@ bool dsRigidBody_addFlags(dsRigidBody* rigidBody, dsRigidBodyFlags flags)
 	{
 		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
 			"Rigid body mutable shape flag may not be changed after creation.");
-		errno = EPERM;
-		return false;
-	}
-
-	if (flags & dsRigidBodyFlags_MutableMassProperties)
-	{
-		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
-			"Rigid body mutable mass properties flag may not be changed after creation.");
 		errno = EPERM;
 		return false;
 	}
@@ -102,14 +510,6 @@ bool dsRigidBody_removeFlags(dsRigidBody* rigidBody, dsRigidBodyFlags flags)
 	{
 		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
 			"Rigid body mutable shape flag may not be changed after creation.");
-		errno = EPERM;
-		return false;
-	}
-
-	if (flags & dsRigidBodyFlags_MutableMassProperties)
-	{
-		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
-			"Rigid body mutable mass properties flag may not be changed after creation.");
 		errno = EPERM;
 		return false;
 	}
@@ -182,7 +582,8 @@ bool dsRigidBody_setCanCollisionGroupsCollideFunction(dsRigidBody* rigidBody,
 bool dsRigidBody_setTransform(dsRigidBody* rigidBody, const dsVector3f* position,
 	const dsQuaternion4f* orientation, const dsVector3f* scale)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyTransformFunc)
+	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyTransformFunc ||
+		(scale && (scale->x == 0.0f || scale->y == 0.0f || scale->z == 0.0f)))
 	{
 		errno = EINVAL;
 		return false;
@@ -336,28 +737,6 @@ bool dsRigidBody_setTransformMatrix(dsRigidBody* rigidBody, const dsMatrix44f* t
 	dsPhysicsEngine* engine = rigidBody->engine;
 	return engine->setRigidBodyTransformFunc(engine, rigidBody,
 		(const dsVector3f*)(transform->columns + 3), &orientation, scalePtr);
-}
-
-bool dsRigidBody_setMassProperties(dsRigidBody* rigidBody,
-	const dsPhysicsMassProperties* massProperties)
-{
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyMassPropertiesFunc ||
-		!massProperties)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	if (!(rigidBody->flags & dsRigidBodyFlags_MutableMassProperties))
-	{
-		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
-			"Rigid body must have mutable mass properties flag set to modify the mass properties.");
-		errno = EPERM;
-		return false;
-	}
-
-	dsPhysicsEngine* engine = rigidBody->engine;
-	return engine->setRigidBodyMassPropertiesFunc(engine, rigidBody, massProperties);
 }
 
 bool dsRigidBody_setMass(dsRigidBody* rigidBody, float mass)

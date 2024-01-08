@@ -47,21 +47,19 @@ typedef enum dsRigidBodyFlags
 	 * creation.
 	 */
 	dsRigidBodyFlags_MutableShape = 0x2,
-	/** Can modify the mass properties after creation. This flag can't be changed after creation. */
-	dsRigidBodyFlags_MutableMassProperties = 0x4,
 	/** Allow the body to be scaled. This flag can't be changed after creation. */
-	dsRigidBodyFlags_Scalable = 0x8,
+	dsRigidBodyFlags_Scalable = 0x4,
 	/** Use linear collision to avoid fast-moving objects missing collisions. */
-	dsRigidBodyFlags_LinearCollision = 0x10,
-	dsRigidBodyFlags_Sensor = 0x20,             ///< Detect collisions but don't interact.
-	dsRigidBodyFlags_SensorDetectStatic = 0x40, ///< Allow detecting static objects as a sensor.
+	dsRigidBodyFlags_LinearCollision = 0x8,
+	dsRigidBodyFlags_Sensor = 0x10,             ///< Detect collisions but don't interact.
+	dsRigidBodyFlags_SensorDetectStatic = 0x20, ///< Allow detecting static objects as a sensor.
 	/** Always consider the body to be active, not allowing it to go to sleep. */
-	dsRigidBodyFlags_AlwaysActive = 0x80,
-	dsRigidBodyFlags_DisableGravity = 0x100,   ///< Disable gravity for the body.
-	dsRigidBodyFlags_GyroscopicForces = 0x200, ///< Apply gyroscopic forces to the body.
+	dsRigidBodyFlags_AlwaysActive = 0x40,
+	dsRigidBodyFlags_DisableGravity = 0x80,    ///< Disable gravity for the body.
+	dsRigidBodyFlags_GyroscopicForces = 0x100, ///< Apply gyroscopic forces to the body.
 	/** Avoid combining similar contact points from the same collision pair. */
-	dsRigidBodyFlags_AllContacts = 0x400,
-	dsRigidBodyFlags_CustomContactProperties = 0x800 ///< Contact properties may be overridden.
+	dsRigidBodyFlags_AllContacts = 0x200,
+	dsRigidBodyFlags_CustomContactProperties = 0x400 ///< Contact properties may be overridden.
 } dsRigidBodyFlags;
 
 /**
@@ -219,6 +217,10 @@ typedef struct dsRigidBodyInit
  * the structure. This can be done to add additional data to the structure and have it be freely
  * casted between dsRigidBody and the true internal type.
  *
+ * After creation, one or more shapes must be added with dsRigidBody_addShape(). After all component
+ * shapes have been added, they must be finalized by calling dsRigidBody_finalizeShapes() or
+ * dsRigidBody_finalizeShapesCustomMassProperties().
+ *
  * Members that won't be modified during simulation are stored by value for easy access. Members
  * that may be updated on a per-frame basis, such as the velocity, must be queried to avoid
  * unnecessary copies. The exception to this is the position and rotation, since these will almost
@@ -306,6 +308,9 @@ typedef struct dsRigidBody
 
 	/**
 	 * @brief The mass properties of the rigid body.
+	 *
+	 * This isn't modified by the scale, though implementations will internally scale the mass
+	 * properties when interfacing with the underlying physics library.
 	 */
 	dsPhysicsMassProperties massProperties;
 
@@ -354,6 +359,17 @@ typedef struct dsRigidBody
 	 * @brief The maximum number of shapes before re-allocation is needed.
 	 */
 	uint32_t maxShapes;
+
+	/**
+	 * @brief Whether the shapes have been finalized.
+	 *
+	 * If false, the rigid body is in an intermediate state that can't be used. Once finalized, the
+	 * shapes may only be modified if the dsRigidBodyFlags_MutableShape flag is set.
+	 *
+	 * Implementations should initialize this to false, but further changes should be left to the
+	 * base Physics library.
+	 */
+	bool shapesFinalized;
 } dsRigidBody;
 
 /**
@@ -373,6 +389,55 @@ typedef dsRigidBody* (*dsCreateRigidBodyFunction)(dsPhysicsEngine* engine, dsAll
  * @return False if the rigid body couldn't be destroyed.
  */
 typedef bool (*dsDestroyRigidBodyFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody);
+
+/**
+ * @brief Function to add a shape to a rigid body.
+ * @param engine The physics engine the rigid body was created with.
+ * @param rigidBody The rigid body to add the shape to.
+ * @param shape The shape to add.
+ * @param translate The translation for the shape or NULL to leave at origin.
+ * @param rotate The rotation for the shape or NULL to leave unrotated.
+ * @param scale The scale of the shape or NULL to leave unscaled.
+ * @param density The density of the shape.
+ * @return The ID for the added shape instance or DS_NO_PHYSICS_SHAPE_ID if it couldn't be added.
+ */
+typedef uint32_t (*dsAddRigidBodyShapeFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
+	dsPhysicsShape* shape, const dsVector3f* translate, const dsQuaternion4f* rotate,
+	const dsVector3f* scale, float density);
+
+/**
+ * @brief Function to set the transform for a shape within a rigid body.
+ * @param engine The physics engine the rigid body was created with.
+ * @param rigidBody The rigid body to shape set the shape transform on.
+ * @param index The index of the shape.
+ * @param translate The new translation or NULL to leave unchanged.
+ * @param rotate The new rotation or NULL to leave unchanged.
+ * @param scale The new scale or NULL to leave unchanged.
+ * @return False if the transform couldn't be changed.
+ */
+typedef bool (*dsSetRigidBodyShapeTransformFunction)(dsPhysicsEngine* engine,
+	dsRigidBody* rigidBody, uint32_t index, const dsVector3f* translate,
+	const dsQuaternion4f* rotate, const dsVector3f* scale);
+
+/**
+ * @brief Function to remove a shape from a rigid body.
+ * @param engine The physics engine the rigid body was created with.
+ * @param rigidBody The rigid body to remove the shape from.
+ * @param index The index of the shape to remove.
+ * @return False if the shape couldn't be removed.
+ */
+typedef bool (*dsRemoveRigidBodyShapeFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
+	uint32_t index);
+
+/**
+ * @brief Function to finalize the shapes on a rigid body.
+ * @param engine The physics engine the rigid body was created with.
+ * @param rigidBody The rigid body to finalize the shapes on.
+ * @param massProperties The mass properties for the rigid body.
+ * @return False if the shapes couldn't be finalized.
+ */
+typedef bool (*dsFinalizeRigidBodyShapesFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
+	const dsPhysicsMassProperties* massProperties);
 
 /**
  * @brief Function to set the flags for a rigid body.
@@ -435,16 +500,6 @@ typedef bool (*dsSetRigidBodyCanCollisionGroupsCollideFunction)(dsPhysicsEngine*
  */
 typedef bool (*dsSetRigidBodyTransformFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
 	const dsVector3f* position, const dsQuaternion4f* orientation, const dsVector3f* scale);
-
-/**
- * @brief Function to set the mass properties for a rigid body.
- * @param engine The physics engine the rigid body was created with.
- * @param rigidBody The rigid body to set the center of mass on.
- * @param massProperties The new mass properties.
- * @return False if the mass properties couldn't be set.
- */
-typedef bool (*dsSetRigidBodyMassPropertiesFunction)(dsPhysicsEngine* engine,
-	const dsRigidBody* rigidBody, const dsPhysicsMassProperties* massProperties);
 
 /**
  * @brief Function to set the mass of a rigid body.

@@ -53,6 +53,11 @@ extern "C"
 #define DS_DEFAULT_PHYSICS_SHAPE_CONVEX_RADIUS 0.05f
 
 /**
+ * @brief Constant for an ID that represents no physics shape.
+ */
+#define DS_NO_PHYSICS_SHAPE_ID (uint32_t)-1
+
+/**
  * @brief Enum for the axis to align a physics shape to.
  */
 typedef enum dsPhysicsAxis
@@ -218,6 +223,13 @@ typedef struct dsPhysicsShapeInstance
 	 * @brief The physics shape.
 	 */
 	dsPhysicsShape* shape;
+
+	/**
+	 * @brief The ID for the shape.
+	 *
+	 * This will be unique within a rigid body, but may be shared across multiple rigid bodies.
+	 */
+	uint32_t id;
 
 	/**
 	 * @brief The density of the shape.

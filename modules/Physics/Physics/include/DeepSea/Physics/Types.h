@@ -499,6 +499,26 @@ struct dsPhysicsEngine
 	dsDestroyRigidBodyFunction destroyRigidBodyFunc;
 
 	/**
+	 * @brief Function to add a shape to a rigid body.
+	 */
+	dsAddRigidBodyShapeFunction addRigidBodyShapeFunc;
+
+	/**
+	 * @brief Function to set the transform of a shape on a rigid body.
+	 */
+	dsSetRigidBodyShapeTransformFunction setRigidBodyShapeTransformFunc;
+
+	/**
+	 * @brief Function to remove a shape from a rigid body.
+	 */
+	dsRemoveRigidBodyShapeFunction removeRigidBodyShapeFunc;
+
+	/**
+	 * @brief Function to finalize the shapes on a rigid body.
+	 */
+	dsFinalizeRigidBodyShapesFunction finalizeRigidBodyShapesFunc;
+
+	/**
 	 * @brief Function to set flags on a rigid body.
 	 */
 	dsSetRigidBodyFlagsFunction setRigidBodyFlagsFunc;
@@ -527,11 +547,6 @@ struct dsPhysicsEngine
 	 * @brief Function to set the transform on a rigid body.
 	 */
 	dsSetRigidBodyTransformFunction setRigidBodyTransformFunc;
-
-	/**
-	 * @brief Function to set the mass properties on a rigid body.
-	 */
-	dsSetRigidBodyMassPropertiesFunction setRigidBodyMassPropertiesFunc;
 
 	/**
 	 * @brief Function to set the mass on a rigid body.

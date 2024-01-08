@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -130,6 +130,14 @@ typedef struct dsPhysicsMassProperties
 	dsVector3f centerOfMass;
 
 	/**
+	 * @brief The total mass for the object.
+	 *
+	 * @remark This is the unscaled mass. To get the final mass, call
+	 * dsPhysicsMassProperties_getScaledMass().
+	 */
+	float mass;
+
+	/**
 	 * @brief Translation for the frame of reference of the inertia tensor.
 	 *
 	 * This will be the point around which the object will rotate when in free-fall and is usually
@@ -141,14 +149,6 @@ typedef struct dsPhysicsMassProperties
 	 * @brief Rotation for the frame of reference of the inertia tensor.
 	 */
 	dsQuaternion4f inertiaRotate;
-
-	/**
-	 * @brief The total mass for the object.
-	 *
-	 * @remark This is the unscaled mass. To get the final mass, call
-	 * dsPhysicsMassProperties_getScaledMass().
-	 */
-	float mass;
 } dsPhysicsMassProperties;
 
 #ifdef __cplusplus

@@ -42,6 +42,161 @@ DS_PHYSICS_EXPORT dsRigidBody* dsRigidBody_create(dsPhysicsEngine* engine, dsAll
 	const dsRigidBodyInit* initParams);
 
 /**
+ * @brief Adds a shape to a rigid body.
+ *
+ * This may not be called on a rigid body where shapesFinalized is true unless the
+ * dsRigidBodyFlags_MutableShape flag is set, in which case shapesFinalized is set to false.
+ *
+ * @remark Transform factors that are NULL are an indication that they will never be set, and cannot
+ *     be changed later with dsRigidBody_setShapeTransform*().
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to add the shape to.
+ * @param shape The shape to add.
+ * @param translate The translation of the shape or NULL to leave at the origin.
+ * @param rotate The rotation of the shape or NULL to leave unrotated.
+ * @param scale The scale of the shape or NULL to leave unscaled. No dimension of scale may be 0.
+ * @param density The density of the shape. This will be ignored if the motion type is not dynamic
+ *     and dsRigidBodyFlags_MutableShape is not set, otherwise it must be > 0.
+ * @return The ID of the shape or DS_NO_PHYSICS_SHAPE_ID if the shape couldn't be added.
+ */
+DS_PHYSICS_EXPORT uint32_t dsRigidBody_addShape(dsRigidBody* rigidBody, dsPhysicsShape* shape,
+	const dsVector3f* translate, const dsQuaternion4f* rotate, const dsVector3f* scale,
+	float density);
+
+/**
+ * @brief Sets the transform for a shape on a rigid body.
+ *
+ * This may not be called on a rigid body where shapesFinalized is true unless the
+ * dsRigidBodyFlags_MutableShape flag is set, in which case shapesFinalized is set to false.
+ *
+ * @remark Any transform factors that were originally NULL for dsRigidBody_addShape() must also be
+ *     NULL when setting the transform.
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to set the shape transform on.
+ * @param shapeID The ID of the shape to set the transform on.
+ * @param translate The translation of the shape or NULL to leave unchanged.
+ * @param rotate The rotation of the shape or NULL to leave unchanged.
+ * @param scale The scale of the shape or NULL to leave unchanged. No dimension of scale may be 0.
+ * @return False if the transform couldn't be set on the shape.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_setShapeTransformID(dsRigidBody* rigidBody, uint32_t shapeID,
+	const dsVector3f* translate, const dsQuaternion4f* rotate, const dsVector3f* scale);
+
+/**
+ * @brief Sets the transform for a shape on a rigid body.
+ *
+ * This may not be called on a rigid body where shapesFinalized is true unless the
+ * dsRigidBodyFlags_MutableShape flag is set, in which case shapesFinalized is set to false.
+ *
+ * @remark Any transform factors that were originally NULL for dsRigidBody_addShape() must also be
+ *     NULL when setting the transform.
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to set the shape transform on.
+ * @param shapeIndex The index of the shape to set the transform on.
+ * @param translate The translation of the shape or NULL to leave unchanged.
+ * @param rotate The rotation of the shape or NULL to leave unchanged.
+ * @param scale The scale of the shape or NULL to leave unchanged. No dimension of scale may be 0.
+ * @return False if the transform couldn't be set on the shape.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_setShapeTransformIndex(dsRigidBody* rigidBody,
+	uint32_t shapeIndex, const dsVector3f* translate, const dsQuaternion4f* rotate,
+	const dsVector3f* scale);
+
+/**
+ * @brief Removes a shape from a rigid body.
+ *
+ * This may not be called on a rigid body where shapesFinalized is true unless the
+ * dsRigidBodyFlags_MutableShape flag is set, in which case shapesFinalized is set to false.
+ *
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to set the shape transform on.
+ * @param shapeID The ID of the shape to remove.
+ * @return False if the shape couldn't be removed.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_removeShapeID(dsRigidBody* rigidBody, uint32_t shapeID);
+
+/**
+ * @brief Removes a shape from a rigid body.
+ *
+ * This may not be called on a rigid body where shapesFinalized is true unless the
+ * dsRigidBodyFlags_MutableShape flag is set, in which case shapesFinalized is set to false.
+ *
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to set the shape transform on.
+ * @param shapeIndex The index of the shape to remove.
+ * @return False if the shape couldn't be removed.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_removeShapeIndex(dsRigidBody* rigidBody, uint32_t shapeIndex);
+
+/**
+ * @brief Computes the default mass properties for the rigid body.
+ *
+ * This will be the mass properties used for dsRigidBody_finalizeShapes() when passing NULL for mass
+ * and rotationPointShift. This may be used as a starting point when providing mass properties for
+ * dsRigidBody_finalizeShapesCustomMassProperties(), such as transforming the mass properties (as
+ * opposed to shifting it) to simulate a non-uniform density.
+ *
+ * This may not be called on a rigid body if the motion type isn't
+ * dsPhysicsMotionType_Dynamic and the dsRigidBodyFlags_MutableMotionType flag isn't set.
+ *
+ * @remark errno will be set on failure.
+ * @param[out] outMassProperties The mass properties to populate.
+ * @param rigidBody The rigid body to compute the mass properties for.
+ * @return False if the mass properties couldn't be computed.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_computeDefaultMassProperties(
+	dsPhysicsMassProperties* outMassProperties, const dsRigidBody* rigidBody);
+
+/**
+ * @brief Finalizes the shapes on a rigid body, allowing it to be used for physics simulations.
+ *
+ * This will compute the mass properties based on the component shapes. By default the mass will be
+ * computed by the density of each shape, though an explicit mass may be passed in instead if
+ * desired. When an explicit mass is provided, the shape densities will still be used to determine
+ * how much to contribute to the moment of inertia.
+ *
+ * By default the point of rotation will be the center of mass, but rotationPointShift may be used
+ * to shift the point of rotation. For example, shifting the point of rotation up will put the
+ * center of mass below the point of rotation, which can make an object more stable. (common when
+ * creating vehicles)
+ *
+ * This will toggle the shapesFinalized flag to true. It may not be called on a rigid body where
+ * shapesFinalized is already true unless dsRigidBodyFlags_MutableShape flag is set, in which case
+ * this may be used to re-compute the mass properties.
+ *
+ * Computing the mass properties will be skipped if the motion type isn't
+ * dsPhysicsMotionType_Dynamic and the dsRigidBodyFlags_MutableMotionType flag isn't set.
+ *
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to finalize the shapes on.
+ * @param mass The mass for the rigid body or NULL to use the mass based on the shape densities.
+ *     This must be > 0 if set.
+ * @param rotationPointShift The amount to shift the point of rotation relative to the center of
+ *     mass or NULL to leave the point of rotation at the center of mass.
+ * @return False if the shapes couldn't be finalized.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_finalizeShapes(dsRigidBody* rigidBody, const float* mass,
+	const dsVector3f* rotationPointShift);
+
+/**
+ * @brief Finalizes the shapes on a rigid body, allowing it to be used for physics simulations.
+ *
+ * This may be used when a special moment of inertia is desired, such as simulating shapes with
+ * non-uniform density or hollow shapes.
+ *
+ * This will toggle the shapesFinalized flag to true. It may not be called on a rigid body where
+ * shapesFinalized is already true unless dsRigidBodyFlags_MutableShape flag is set, in which case
+ * this may be used to replace the mass properties.
+ *
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to finalize the shapes on.
+ * @param massProperties The mass properties to use.
+ * @return False if the shapes couldn't be finalized.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_finalizeShapesCustomMassProperties(dsRigidBody* rigidBody,
+	const dsPhysicsMassProperties* massProperties);
+
+/**
  * @brief Adds flags to the rigid body.
  * @remark errno will be set on failure.
  * @param rigidBody The rigid body to add flags to.
@@ -105,7 +260,7 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setCanCollisionGroupsCollideFunction(dsRigidB
  * @param rigidBody The rigid body to change the transform on.
  * @param position The new position or NULL to leave unchanged.
  * @param orientation The new orientation or NULL to leave unchanged
- * @param scale The new scale or NULL to leave unchanged.
+ * @param scale The new scale or NULL to leave unchanged. No dimension of scale may be 0.
  * @return False if the transform couldn't be set.
  */
 DS_PHYSICS_EXPORT bool dsRigidBody_setTransform(dsRigidBody* rigidBody, const dsVector3f* position,
@@ -130,16 +285,6 @@ DS_PHYSICS_EXPORT bool dsRigidBody_getTransformMatrix(dsMatrix44f* outTransform,
  */
 DS_PHYSICS_EXPORT bool dsRigidBody_setTransformMatrix(dsRigidBody* rigidBody,
 	const dsMatrix44f* transform);
-
-/**
- * @brief Sets the mass properties of a rigid body.
- * @remark errno will be set on failure.
- * @param rigidBody The rigid body to set the mass properties on.
- * @param massProperties The new mass properties of the rigid body.
- * @return False if the mass properties couldn't be set.
- */
-DS_PHYSICS_EXPORT bool dsRigidBody_setMassProperties(dsRigidBody* rigidBody,
-	const dsPhysicsMassProperties* massProperties);
 
 /**
  * @brief Sets the mass for a rigid body.
