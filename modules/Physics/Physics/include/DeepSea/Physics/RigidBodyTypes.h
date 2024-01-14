@@ -62,6 +62,10 @@ typedef enum dsRigidBodyFlags
 	dsRigidBodyFlags_CustomContactProperties = 0x400 ///< Contact properties may be overridden.
 } dsRigidBodyFlags;
 
+/// @cond
+typedef struct dsRigidBody dsRigidBody;
+/// @endcond
+
 /**
  * @brief Function to check whether two collision groups may collide.
  * @param firstGroup The first collision group.
@@ -69,6 +73,63 @@ typedef enum dsRigidBodyFlags
  * @return True if the groups may collide.
  */
 typedef bool (*dsCanCollisionGroupsCollideFunction)(uint64_t firstGroup, uint64_t secondGroup);
+
+/**
+ * @brief Struct to group together multiple associated rigid bodies.
+ *
+ * Rigid bodies may optionally be created as part of a group, in which case they will be added and
+ * removed from physics scenes together and may improve the speed of collision checks on some
+ * implementations. The rigid bodies are expected to be near each-other, such as connected by
+ * constraints.
+ *
+ * Rigid bodies that are part of a group must share the same motion type, and may not have the
+ * dsRigidBodyFlags_MutableMotionType flag set.
+ *
+ * Physics implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsRigidBodyGroup and the true internal type.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ * @remark Implementations must make managing of rigid body groups thread-safe.
+ * @remark Implementations may use the functions in DefaultRigidBodyGroup.h for the physics engine
+ *    functon pointers when the underlying physics library doesn't natively support rigid body
+ *    groups.
+ * @see RigidBodyGroup.h
+ */
+typedef struct dsRigidBodyGroup
+{
+	/**
+	 * @brief The physics engine the rigid body group was created with.
+	 */
+	dsPhysicsEngine* engine;
+
+	/**
+	 * @brief The allocator the rigid body group was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The motion type for all rigid bodies.
+	 */
+	dsPhysicsMotionType motionType;
+
+	/**
+	 * @brief The rigid bodies that are part of the group.
+	 * @remark This should only be accessed if you're sure that another thread cannot create or
+	 *     destroy rigid bodies connected to the group.
+	 */
+	dsRigidBody** rigidBodies;
+
+	/**
+	 * @brief The number of rigid bodies.
+	 */
+	uint32_t rigidBodyCount;
+
+	/**
+	 * @brief The maximum number of rigid bodies before re-allocation is needed.
+	 */
+	uint32_t maxRigidBodies;
+} dsRigidBodyGroup;
 
 /**
  * @brief Struct describing the initialization parameters for a rigid body.
@@ -91,6 +152,13 @@ typedef struct dsRigidBodyInit
 	 * This will be called even if the creation of the body fails.
 	 */
 	dsDestroyUserDataFunction destroyUserDataFunc;
+
+	/**
+	 * @brief The group the rigid body will be associated with.
+	 *
+	 * This may be NULL to have it not be associated with a group.
+	 */
+	dsRigidBodyGroup* group;
 
 	/**
 	 * @brief Flags to control the behavior of the rigid body.
@@ -253,6 +321,11 @@ typedef struct dsRigidBody
 	dsDestroyUserDataFunction destroyUserDataFunc;
 
 	/**
+	 * @brief The group the rigid body is associated with, or NULL if not associated with the group.
+	 */
+	dsRigidBodyGroup* group;
+
+	/**
 	 * @brief Flags to control the behavior of the rigid body.
 	 */
 	dsRigidBodyFlags flags;
@@ -371,6 +444,23 @@ typedef struct dsRigidBody
 	 */
 	bool shapesFinalized;
 } dsRigidBody;
+
+/**
+ * @brief Function to create a rigid body group.
+ * @param engine The physics engine to create the rigid body group with.
+ * @param allocator The allocator to create the rigid body group with.
+ * @param motionType The motion type for the rigid bodies that are part of the group.
+ */
+typedef dsRigidBodyGroup* (*dsCreateRigidBodyGroupFunction)(dsPhysicsEngine* engine,
+	dsAllocator* allocator, dsPhysicsMotionType motionType);
+
+/**
+ * @brief Function to destroy a rigid body group.
+ * @param engine The physics engine the rigid body group was created with.
+ * @param group The rigid body group to destroy.
+ * @return False if the rigid body group couldn't be destroyed.
+ */
+typedef bool (*dsDestroyRigidBodyGroupFunction)(dsPhysicsEngine* engine, dsRigidBodyGroup* group);
 
 /**
  * @brief Function to create a rigid body.

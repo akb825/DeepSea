@@ -37,6 +37,7 @@ extern "C"
  * @param engine The physics engine to create the rigid body with.
  * @param allocator The allocator to create the rigid body with. This must support freeing memory.
  * @param initParams The initialization parameters to describe the rigid body.
+ * @return The rigid body or NULL if it couldn't be created.
  */
 DS_PHYSICS_EXPORT dsRigidBody* dsRigidBody_create(dsPhysicsEngine* engine, dsAllocator* allocator,
 	const dsRigidBodyInit* initParams);

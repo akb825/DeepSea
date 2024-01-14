@@ -489,6 +489,16 @@ struct dsPhysicsEngine
 	// ------------------------------------------- Rigid bodies ------------------------------------
 
 	/**
+	 * @brief Function to create a rigid body group.
+	 */
+	dsCreateRigidBodyGroupFunction createRigidBodyGroupFunc;
+
+	/**
+	 * @brief Function to destroy a rigid body group.
+	 */
+	dsDestroyRigidBodyGroupFunction destroyRigidBodyGroupFunc;
+
+	/**
 	 * @brief Function to create a rigid body.
 	 */
 	dsCreateRigidBodyFunction createRigidBodyFunc;

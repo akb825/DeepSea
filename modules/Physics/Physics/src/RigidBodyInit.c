@@ -25,10 +25,10 @@
 
 bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit,
 	dsRigidBodyFlags flags, dsPhysicsMotionType motionType, dsPhysicsLayer layer,
-	const dsVector3f* position, dsQuaternion4f* orientation, const dsVector3f* scale, float mass,
+	const dsVector3f* position, dsQuaternion4f* orientation, const dsVector3f* scale,
 	float friction, float restitution)
 {
-	if (!rigidBodyInit || mass < 0 || friction < 0 || restitution < 0 || restitution > 1)
+	if (!rigidBodyInit || friction < 0 || restitution < 0 || restitution > 1)
 	{
 		errno = EINVAL;
 		return false;
@@ -42,6 +42,7 @@ bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit,
 
 	rigidBodyInit->userData = NULL;
 	rigidBodyInit->destroyUserDataFunc = NULL;
+	rigidBodyInit->group = NULL;
 	rigidBodyInit->flags = flags;
 	rigidBodyInit->motionType = motionType;
 	rigidBodyInit->dofMask = dsPhysicsDOFMask_All;
@@ -90,10 +91,38 @@ bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit,
 	return true;
 }
 
+bool dsRigidBodyInit_initializeGroup(dsRigidBodyInit* rigidBodyInit,
+	dsRigidBodyGroup* group, dsRigidBodyFlags flags, dsPhysicsLayer layer,
+	const dsVector3f* position, dsQuaternion4f* orientation, const dsVector3f* scale,
+	float friction, float restitution)
+{
+	if (!rigidBodyInit || !group)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!dsRigidBodyInit_initialize(rigidBodyInit, flags, group->motionType, layer, position,
+			orientation, scale, friction, restitution))
+	{
+		return false;
+	}
+
+	rigidBodyInit->group = group;
+	return true;
+}
+
 bool dsRigidBodyInit_isValid(const dsRigidBodyInit* rigidBodyInit)
 {
 	if (!rigidBodyInit)
 		return false;
+
+	// If the group is set, must share the same motion type and not allow changing motion type.
+	if (rigidBodyInit->group && ((rigidBodyInit->flags & dsRigidBodyFlags_MutableMotionType) ||
+		rigidBodyInit->group->motionType != rigidBodyInit->motionType))
+	{
+		return false;
+	}
 
 	// Sensors can't be dynamic.
 	if ((rigidBodyInit->flags & dsRigidBodyFlags_Sensor) &&
