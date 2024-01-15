@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Aaron Barany
+ * Copyright 2018-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -888,10 +888,10 @@ TYPED_TEST(BVHTest, SeparateBoxesFrustum)
 
 	TestObject data[] =
 	{
-		{TestFixture::createBounds(-2, -2, 0, -1, -1, 0), 0},
-		{TestFixture::createBounds( 1, -2, 0,  2, -1, 0), 1},
-		{TestFixture::createBounds(-2,  1, 0, -1,  2, 0), 2},
-		{TestFixture::createBounds( 1,  1, 0,  2,  2, 0), 3}
+		{TestFixture::createBounds(-2, -2, -1, -1, -1, 1), 0},
+		{TestFixture::createBounds( 1, -2, -1,  2, -1, 1), 1},
+		{TestFixture::createBounds(-2,  1, -1, -1,  2, 1), 2},
+		{TestFixture::createBounds( 1,  1, -1,  2,  2, 1), 3}
 	};
 
 	EXPECT_TRUE(dsBVH_empty(bvh));
@@ -974,11 +974,11 @@ TYPED_TEST(BVHTest, OverlappingBoxesFrustum)
 
 	TestObject data[] =
 	{
-		{TestFixture::createBounds(-3, -3, 0, -1, -1, 0), 0},
-		{TestFixture::createBounds( 1, -3, 0,  3, -1, 0), 1},
-		{TestFixture::createBounds(-3,  1, 0, -1,  3, 0), 2},
-		{TestFixture::createBounds( 1,  1, 0,  3,  3, 0), 3},
-		{TestFixture::createBounds(-2, -2, 0,  2,  2, 0), 4}
+		{TestFixture::createBounds(-3, -3, -1, -1, -1, 1), 0},
+		{TestFixture::createBounds( 1, -3, -1,  3, -1, 1), 1},
+		{TestFixture::createBounds(-3,  1, -1, -1,  3, 1), 2},
+		{TestFixture::createBounds( 1,  1, -1,  3,  3, 1), 3},
+		{TestFixture::createBounds(-2, -2, -1,  2,  2, 1), 4}
 	};
 
 	EXPECT_TRUE(dsBVH_empty(bvh));

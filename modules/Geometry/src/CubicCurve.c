@@ -602,7 +602,6 @@ bool dsCubicCurved_tessellate(const dsCubicCurved* curve, double chordalToleranc
 	if (!sampleFunc(userData, &startPoint, curve->axisCount, 0.0))
 		return false;
 
-
 	if (!isLinear && maxRecursions > 0)
 	{
 		// Force at least one recursion to handle curves that pass through the midpoint with the

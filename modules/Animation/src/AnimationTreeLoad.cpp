@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ static uint32_t countNodes(
 	const flatbuffers::Vector<flatbuffers::Offset<DeepSeaAnimation::AnimationTreeNode>>& fbNodes)
 {
 	uint32_t count = 0;
-	for (const auto& node : fbNodes)
+	for (auto node : fbNodes)
 	{
 		if (!node)
 			continue;
@@ -72,7 +72,7 @@ static dsAnimationBuildNode* createBuildNodesRec(const DeepSeaAnimation::Animati
 	buildNode.childCount = 0;
 	if (fbChildren)
 	{
-		for (const auto& child : *fbChildren)
+		for (auto child : *fbChildren)
 		{
 			if (child)
 				++buildNode.childCount;
@@ -131,7 +131,7 @@ static dsAnimationBuildNode* createBuildNodesRec(const DeepSeaAnimation::Animati
 		buildNode.children = children;
 		buildNodePtrsIndex += buildNode.childCount;
 		uint32_t childIndex = 0;
-		for (const auto& child : *fbChildren)
+		for (auto child : *fbChildren)
 		{
 			if (child)
 			{
@@ -190,7 +190,7 @@ static dsAnimationTree* dsAnimationTree_loadNodes(dsAllocator* allocator,
 
 
 	uint32_t rootNodeCount = 0;
-	for (const auto& fbRootNode : fbRootNodes)
+	for (auto fbRootNode : fbRootNodes)
 	{
 		if (fbRootNode)
 			++rootNodeCount;
@@ -200,7 +200,7 @@ static dsAnimationTree* dsAnimationTree_loadNodes(dsAllocator* allocator,
 	uint32_t buildNodePtrsIndex = rootNodeCount;
 	const dsAnimationBuildNode** rootNodes = buildNodePtrs;
 	uint32_t rootNodeIndex = 0;
-	for (const auto& fbRootNode : fbRootNodes)
+	for (auto fbRootNode : fbRootNodes)
 	{
 		if (fbRootNode)
 		{

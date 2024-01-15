@@ -170,7 +170,7 @@ public:
 	static VectorType createPoint(double x, double y, double z)
 	{
 		return SelectorT::createPoint(static_cast<RealType>(x), static_cast<RealType>(y),
-			static_cast<RealType>(x));
+			static_cast<RealType>(z));
 	}
 
 	static RealType distance(const VectorType& p0, const VectorType& p1)
