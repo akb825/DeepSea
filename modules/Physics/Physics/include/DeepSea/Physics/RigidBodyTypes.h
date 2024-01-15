@@ -114,21 +114,9 @@ typedef struct dsRigidBodyGroup
 	dsPhysicsMotionType motionType;
 
 	/**
-	 * @brief The rigid bodies that are part of the group.
-	 * @remark This should only be accessed if you're sure that another thread cannot create or
-	 *     destroy rigid bodies connected to the group.
-	 */
-	dsRigidBody** rigidBodies;
-
-	/**
-	 * @brief The number of rigid bodies.
+	 * @brief The number of rigid bodies in the group.
 	 */
 	uint32_t rigidBodyCount;
-
-	/**
-	 * @brief The maximum number of rigid bodies before re-allocation is needed.
-	 */
-	uint32_t maxRigidBodies;
 } dsRigidBodyGroup;
 
 /**

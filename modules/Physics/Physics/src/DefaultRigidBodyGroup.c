@@ -25,6 +25,8 @@ typedef struct dsDefaultRigidBodyGroup
 {
 	dsRigidBodyGroup group;
 	dsSpinlock lock;
+	uint32_t maxRigidBodies;
+	dsRigidBody** rigidBodies;
 } dsDefaultRigidBodyGroup;
 
 dsRigidBodyGroup* dsDefaultRigidBodyGroup_create(dsPhysicsEngine* engine, dsAllocator* allocator,
@@ -39,14 +41,14 @@ dsRigidBodyGroup* dsDefaultRigidBodyGroup_create(dsPhysicsEngine* engine, dsAllo
 		return NULL;
 
 	DS_VERIFY(dsSpinlock_initialize(&defaultGroup->lock));
+	defaultGroup->rigidBodies = NULL;
+	defaultGroup->maxRigidBodies = 0;
 
 	dsRigidBodyGroup* group = (dsRigidBodyGroup*)defaultGroup;
 	group->engine = engine;
 	group->allocator = allocator;
 	group->motionType = motionType;
-	group->rigidBodies = NULL;
 	group->rigidBodyCount = 0;
-	group->maxRigidBodies = 0;
 	return group;
 }
 
@@ -58,14 +60,14 @@ bool dsDefaultRigidBodyGroup_addRigidBody(dsRigidBodyGroup* group, dsRigidBody* 
 	dsDefaultRigidBodyGroup* defaultGroup = (dsDefaultRigidBodyGroup*)group;
 	DS_VERIFY(dsSpinlock_lock(&defaultGroup->lock));
 	uint32_t index = group->rigidBodyCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(group->allocator, group->rigidBodies, group->rigidBodyCount,
-			group->maxRigidBodies, 1))
+	if (!DS_RESIZEABLE_ARRAY_ADD(group->allocator, defaultGroup->rigidBodies, group->rigidBodyCount,
+			defaultGroup->maxRigidBodies, 1))
 	{
 		DS_VERIFY(dsSpinlock_unlock(&defaultGroup->lock));
 		return false;
 	}
 
-	group->rigidBodies[index] = rigidBody;
+	defaultGroup->rigidBodies[index] = rigidBody;
 	DS_VERIFY(dsSpinlock_unlock(&defaultGroup->lock));
 	return true;
 }
@@ -79,11 +81,11 @@ bool dsDefaultRigidBodyGroup_removeRigidBody(dsRigidBodyGroup* group, dsRigidBod
 	DS_VERIFY(dsSpinlock_lock(&defaultGroup->lock));
 	for (uint32_t i = 0; i < group->rigidBodyCount; ++i)
 	{
-		if (group->rigidBodies[i] != rigidBody)
+		if (defaultGroup->rigidBodies[i] != rigidBody)
 			continue;
 
 		// Constant-time removal since order doesn't matter.
-		group->rigidBodies[i] = group->rigidBodies[group->rigidBodyCount - 1];
+		defaultGroup->rigidBodies[i] = defaultGroup->rigidBodies[group->rigidBodyCount - 1];
 		--group->rigidBodyCount;
 		DS_VERIFY(dsSpinlock_unlock(&defaultGroup->lock));
 		return true;
@@ -99,12 +101,11 @@ bool dsDefaultRigidBodyGroup_destroy(dsPhysicsEngine* engine, dsRigidBodyGroup* 
 	DS_ASSERT(engine);
 	DS_UNUSED(engine);
 	DS_ASSERT(group);
-	DS_ASSERT(group->rigidBodyCount == 0);
 
 	dsDefaultRigidBodyGroup* defaultGroup = (dsDefaultRigidBodyGroup*)group;
 	dsSpinlock_shutdown(&defaultGroup->lock);
 
-	DS_VERIFY(dsAllocator_free(group->allocator, group->rigidBodies));
+	DS_VERIFY(dsAllocator_free(group->allocator, defaultGroup->rigidBodies));
 	DS_VERIFY(dsAllocator_free(group->allocator, group));
 	return true;
 }
