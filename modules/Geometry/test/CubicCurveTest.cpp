@@ -187,7 +187,18 @@ public:
 	static bool lambdaAdapterImpl(void* userData, const void* point, uint32_t count, RealType t)
 	{
 		EXPECT_EQ((uint32_t)axisCount, count);
+#if DS_CLANG && (DS_X86_32 || DS_X86_64)
+		// HACK: When using the original code below to cast the point parameter on clang with x86
+		// release builds (at least on Mac), it somehow gets a null reference in the lambda when
+		// pushing back on a vector. Work around this by explicitly creating a copy. It must call
+		// memcpy for this point: simply assigning the cast value will optimize out the copy line
+		// and still trigger the bug.
+		VectorType pointCopy;
+		std::memcpy(&pointCopy, point, sizeof(VectorType));
+		(*(T*)userData)(pointCopy, t);
+#else
 		(*(T*)userData)(*(const VectorType*)point, t);
+#endif
 		return true;
 	}
 
