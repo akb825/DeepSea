@@ -60,6 +60,7 @@ DS_PHYSICS_EXPORT bool dsDefaultRigidBodyGroup_addRigidBody(dsRigidBodyGroup* gr
 
 /**
  * @brief Removes a rigid body from a default rigid body group.
+ * @remark The caller is responsible for removing the rigid body from the scene if needed.
  * @remark errno will be set on failure.
  * @param group The rigid body group.
  * @param rigidBody The rigid body to remove.
@@ -67,6 +68,31 @@ DS_PHYSICS_EXPORT bool dsDefaultRigidBodyGroup_addRigidBody(dsRigidBodyGroup* gr
  */
 DS_PHYSICS_EXPORT bool dsDefaultRigidBodyGroup_removeRigidBody(dsRigidBodyGroup* group,
 	dsRigidBody* rigidBody);
+
+/**
+ * @brief Adds a default rigid body group to a scene.
+ * @remark errno will be set on failure.
+ * @param engine The physics engine the rigid body group was created with. This is mainly provided
+ *     to assign the function pointer on dsPhysicsEngine.
+ * @param scene The scene to add the rigid body group to.
+ * @param group The rigid body group.
+ * @param activate Whether the rigid bodies should be activated on insertion.
+ * @return False if the rigid body group couldn't be added.
+ */
+DS_PHYSICS_EXPORT bool dsDefaultRigidBodyGroup_addToScene(dsPhysicsEngine* engine,
+	dsPhysicsScene* scene, dsRigidBodyGroup* group, bool activate);
+
+/**
+ * @brief Removes a default rigid body group from a scene.
+ * @remark errno will be set on failure.
+ * @param engine The physics engine the rigid body group was created with. This is mainly provided
+ *     to assign the function pointer on dsPhysicsEngine.
+ * @param scene The scene to remove the rigid body group from.
+ * @param group The rigid body group.
+ * @return False if the rigid body group couldn't be removed.
+ */
+DS_PHYSICS_EXPORT bool dsDefaultRigidBodyGroup_removeFromScene(dsPhysicsEngine* engine,
+	dsPhysicsScene* scene, dsRigidBodyGroup* group);
 
 /**
  * @brief Destroys a default rigid body group.

@@ -20,6 +20,9 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Atomic.h>
+
+#include <DeepSea/Physics/Types.h>
 
 typedef struct dsDefaultRigidBodyGroup
 {
@@ -94,6 +97,55 @@ bool dsDefaultRigidBodyGroup_removeRigidBody(dsRigidBodyGroup* group, dsRigidBod
 	DS_VERIFY(dsSpinlock_unlock(&defaultGroup->lock));
 	errno = ENOTFOUND;
 	return false;
+}
+
+bool dsDefaultRigidBodyGroup_addToScene(dsPhysicsEngine* engine, dsPhysicsScene* scene,
+	dsRigidBodyGroup* group, bool activate)
+{
+	DS_ASSERT(engine);
+	DS_ASSERT(engine->addSceneRigidBodiesFunc);
+	DS_ASSERT(scene);
+	DS_ASSERT(group);
+
+	dsDefaultRigidBodyGroup* defaultGroup = (dsDefaultRigidBodyGroup*)group;
+	DS_VERIFY(dsSpinlock_lock(&defaultGroup->lock));
+	// Don't bother explicitly error checking for thread contention in adding to scene.
+	DS_ASSERT(!group->scene);
+	if (!engine->addSceneRigidBodiesFunc(
+			engine, scene, defaultGroup->rigidBodies, group->rigidBodyCount, activate))
+	{
+		DS_VERIFY(dsSpinlock_unlock(&defaultGroup->lock));
+		return false;
+	}
+
+	DS_ATOMIC_STORE_PTR(&group->scene, &scene);
+	DS_VERIFY(dsSpinlock_unlock(&defaultGroup->lock));
+	return true;
+}
+
+bool dsDefaultRigidBodyGroup_removeFromScene(dsPhysicsEngine* engine, dsPhysicsScene* scene,
+	dsRigidBodyGroup* group)
+{
+	DS_ASSERT(engine);
+	DS_ASSERT(engine->removeSceneRigidBodiesFunc);
+	DS_ASSERT(scene);
+	DS_ASSERT(group);
+
+	dsDefaultRigidBodyGroup* defaultGroup = (dsDefaultRigidBodyGroup*)group;
+	DS_VERIFY(dsSpinlock_lock(&defaultGroup->lock));
+	// Don't bother explicitly error checking for thread contention in adding to scene.
+	DS_ASSERT(group->scene == scene);
+	if (!engine->removeSceneRigidBodiesFunc(
+			engine, scene, defaultGroup->rigidBodies, group->rigidBodyCount))
+	{
+		DS_VERIFY(dsSpinlock_unlock(&defaultGroup->lock));
+		return false;
+	}
+
+	dsPhysicsScene* nullScene = NULL;
+	DS_ATOMIC_STORE_PTR(&group->scene, &nullScene);
+	DS_VERIFY(dsSpinlock_unlock(&defaultGroup->lock));
+	return true;
 }
 
 bool dsDefaultRigidBodyGroup_destroy(dsPhysicsEngine* engine, dsRigidBodyGroup* group)

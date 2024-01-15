@@ -65,7 +65,7 @@ DS_PHYSICS_EXPORT bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit
  * @remark errno will be set on failure.
  * @param rigidBodyInit The rigid body initialization object to initialize.
  * @param group The group the rigid body will be a member of. The rigid body group must live longer
- *     than the rigid body.
+ *     than the rigid body. This must not be associated with a scene on rigid body creation.
  * @param flags The flags for the rigid body.
  * @param layer The layer the rigid body will be associated with.
  * @param position The position of the rigid body or NULL if at the origin.

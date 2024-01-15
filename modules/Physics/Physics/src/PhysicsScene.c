@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,11 @@
  */
 
 #include <DeepSea/Physics/PhysicsScene.h>
+
+#include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Profile.h>
 
 dsPhysicsScene* dsPhysicsScene_create(dsPhysicsEngine* engine, dsAllocator* allocator,
 	const dsPhysicsSceneLimits* limits, dsThreadPool* threadPool)
@@ -28,6 +32,147 @@ dsPhysicsScene* dsPhysicsScene_create(dsPhysicsEngine* engine, dsAllocator* allo
 	}
 
 	return engine->createSceneFunc(engine, allocator, limits, threadPool);
+}
+
+bool dsPhysicsScene_addRigidBodies(dsPhysicsScene* scene,
+	dsRigidBody* const* rigidBodies, uint32_t rigidBodyCount, bool activate)
+{
+	DS_PROFILE_FUNC_START();
+	if (!scene || !scene->engine || !scene->engine->addSceneRigidBodiesFunc ||
+		(!rigidBodies && rigidBodyCount > 0))
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (rigidBodyCount == 0)
+		DS_PROFILE_FUNC_RETURN(true);
+
+	for (uint32_t i = 0; i < rigidBodyCount; ++i)
+	{
+		dsRigidBody* rigidBody = rigidBodies[i];
+		if (!rigidBody)
+		{
+			errno = EINVAL;
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		if (rigidBody->group)
+		{
+			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+				"Cannot add a rigid body to a scene when associated with a group.");
+			errno = EPERM;
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		// Assume that the rigid bodywon't be added/removed across threads for this sanity check.
+		if (rigidBody->scene)
+		{
+			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+				"Cannot add a rigid body to a scene when already associated with a scene.");
+			errno = EPERM;
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+	}
+
+	dsPhysicsEngine* engine = scene->engine;
+	bool success = engine->addSceneRigidBodiesFunc(
+		engine, scene, rigidBodies, rigidBodyCount, activate);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
+bool dsPhysicsScene_removeRigidBodies(dsPhysicsScene* scene, dsRigidBody* const* rigidBodies,
+	uint32_t rigidBodyCount)
+{
+	DS_PROFILE_FUNC_START();
+	if (!scene || !scene->engine || !scene->engine->removeSceneRigidBodiesFunc ||
+		(!rigidBodies && rigidBodyCount > 0))
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (rigidBodyCount == 0)
+		DS_PROFILE_FUNC_RETURN(true);
+
+	for (uint32_t i = 0; i < rigidBodyCount; ++i)
+	{
+		dsRigidBody* rigidBody = rigidBodies[i];
+		if (!rigidBody)
+		{
+			errno = EINVAL;
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		if (rigidBody->group)
+		{
+			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+				"Cannot remove a rigid body from a scene when associated with a group.");
+			errno = EPERM;
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		// Assume that the rigid bodywon't be added/removed across threads for this sanity check.
+		if (rigidBody->scene != scene)
+		{
+			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+				"Cannot remove a rigid body from a scene it's not associated with.");
+			errno = EPERM;
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+	}
+
+	dsPhysicsEngine* engine = scene->engine;
+	bool success = engine->removeSceneRigidBodiesFunc(engine, scene, rigidBodies, rigidBodyCount);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
+bool dsPhysicsScene_addRigidBodyGroup(dsPhysicsScene* scene, dsRigidBodyGroup* group, bool activate)
+{
+	DS_PROFILE_FUNC_START();
+	if (!scene || !scene->engine || !scene->engine->addSceneRigidBodyGroupFunc || !group)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsPhysicsScene* groupScene;
+	DS_ATOMIC_LOAD_PTR(&group->scene, &groupScene);
+	if (groupScene)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Cannot add a rigid body group to a scene when already associated with a scene.");
+		errno = EPERM;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsPhysicsEngine* engine = scene->engine;
+	bool success = engine->addSceneRigidBodyGroupFunc(engine, scene, group, activate);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
+bool dsPhysicsScene_removeRigidBodyGroup(dsPhysicsScene* scene, dsRigidBodyGroup* group)
+{
+	DS_PROFILE_FUNC_START();
+	if (!scene || !scene->engine || !scene->engine->removeSceneRigidBodyGroupFunc || !group)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsPhysicsScene* groupScene;
+	DS_ATOMIC_LOAD_PTR(&group->scene, &groupScene);
+	if (groupScene != scene)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Cannot remove a rigid body group from a scene it's not associated with.");
+		errno = EPERM;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsPhysicsEngine* engine = scene->engine;
+	bool success = engine->removeSceneRigidBodyGroupFunc(engine, scene, group);
+	DS_PROFILE_FUNC_RETURN(success);
 }
 
 bool dsPhysicsScene_destroy(dsPhysicsScene* scene)

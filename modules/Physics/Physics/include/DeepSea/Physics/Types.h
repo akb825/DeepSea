@@ -149,6 +149,50 @@ typedef dsPhysicsScene* (*dsCreatePhysicsSceneFunction)(dsPhysicsEngine* engine,
 typedef bool (*dsDestroyPhysicsSceneFunction)(dsPhysicsEngine* engine, dsPhysicsScene* scene);
 
 /**
+ * @brief Function to add rigid bodies to a physics scene.
+ * @param engine The physics engine the scene was created with.
+ * @param scene The scene to add the rigid body to.
+ * @param rigidBodies The rigid bodies to add.
+ * @param rigidBodyCount The number of rigid bodies to add.
+ * @param activate Whether the rigid bodies should be activated on insertion.
+ * @return False if the rigid body couldn't be added.
+ */
+typedef bool (*dsPhysicsSceneAddRigidBodiesFunction)(dsPhysicsEngine* engine, dsPhysicsScene* scene,
+	dsRigidBody* const* rigidBodies, uint32_t rigidBodyCount, bool activate);
+
+/**
+ * @brief Function to remove rigid bodies from a physics scene.
+ * @param engine The physics engine the scene was created with.
+ * @param scene The scene to remove the rigid bodies from.
+ * @param rigidBodies The rigid bodies to remove.
+ * @param rigidBodyCount The number of rigid bodies to remove.
+ * @return False if the rigid body couldn't be removed.
+ */
+typedef bool (*dsPhysicsSceneRemoveRigidBodiesFunction)(dsPhysicsEngine* engine,
+	dsPhysicsScene* scene, dsRigidBody* const* rigidBodies, uint32_t rigidBodyCount);
+
+/**
+ * @brief Function to add a rigid body group to a physics scene.
+ * @param engine The physics engine the scene was created with.
+ * @param scene The scene to add the rigid body group to.
+ * @param group The rigid body group to add.
+ * @param activate Whether the rigid bodies should be activated on insertion.
+ * @return False if the rigid group body group couldn't be added.
+ */
+typedef bool (*dsPhysicsSceneAddRigidBodyGroupFunction)(dsPhysicsEngine* engine,
+	dsPhysicsScene* scene, dsRigidBodyGroup* group, bool activate);
+
+/**
+ * @brief Function to remove a rigid body group from a physics scene.
+ * @param engine The physics engine the scene was created with.
+ * @param scene The scene to remove the rigid body group from.
+ * @param group The rigid body group to remove.
+ * @return False if the rigid body group couldn't be removed.
+ */
+typedef bool (*dsPhysicsSceneRemoveRigidBodyGroupFunction)(dsPhysicsEngine* engine,
+	dsPhysicsScene* scene, dsRigidBodyGroup* group);
+
+/**
  * @brief Function to create a physics sphere.
  * @param engine The physics engine to create the sphere with.
  * @param allocator The allocator to create the sphere with.
@@ -389,6 +433,8 @@ struct dsPhysicsEngine
 	 */
 	dsDestroyPhysicsEngineFunction destroyFunc;
 
+	// ---------------------------------------------- Scenes ---------------------------------------
+
 	/**
 	 * @brief Function to create a physics scene.
 	 */
@@ -398,6 +444,26 @@ struct dsPhysicsEngine
 	 * @brief Function to destroy a physics scene.
 	 */
 	dsDestroyPhysicsSceneFunction destroySceneFunc;
+
+	/**
+	 * @brief Function to add rigid bodies to a physics scene.
+	 */
+	dsPhysicsSceneAddRigidBodiesFunction addSceneRigidBodiesFunc;
+
+	/**
+	 * @brief Function to remove rigid bodies from a physics scene.
+	 */
+	dsPhysicsSceneRemoveRigidBodiesFunction removeSceneRigidBodiesFunc;
+
+	/**
+	 * @brief Function to add a rigid body group to a physics scene.
+	 */
+	dsPhysicsSceneAddRigidBodyGroupFunction addSceneRigidBodyGroupFunc;
+
+	/**
+	 * @brief Function to remove a rigid body group from a physics scene.
+	 */
+	dsPhysicsSceneRemoveRigidBodyGroupFunction removeSceneRigidBodyGroupFunc;
 
 	// ------------------------------------------ Shape creation -----------------------------------
 

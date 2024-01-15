@@ -16,8 +16,10 @@
 
 #include <DeepSea/Physics/RigidBodyInit.h>
 
+#include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Quaternion.h>
 
@@ -117,11 +119,21 @@ bool dsRigidBodyInit_isValid(const dsRigidBodyInit* rigidBodyInit)
 	if (!rigidBodyInit)
 		return false;
 
-	// If the group is set, must share the same motion type and not allow changing motion type.
-	if (rigidBodyInit->group && ((rigidBodyInit->flags & dsRigidBodyFlags_MutableMotionType) ||
-		rigidBodyInit->group->motionType != rigidBodyInit->motionType))
+	if (rigidBodyInit->group)
 	{
-		return false;
+		// Must share the same motion type with the group and not allow changing motion type.
+		if ((rigidBodyInit->flags & dsRigidBodyFlags_MutableMotionType) ||
+			rigidBodyInit->group->motionType != rigidBodyInit->motionType)
+		{
+			return false;
+		}
+
+		// Group may not be associated with a scene. Not a perfect check as it may be added to the
+		// scene immediately after, but should be good enough to catch most mistakes.
+		dsPhysicsScene* scene;
+		DS_ATOMIC_LOAD_PTR(&rigidBodyInit->group->scene, &scene);
+		if (scene)
+			return false;
 	}
 
 	// Sensors can't be dynamic.

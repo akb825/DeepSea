@@ -33,6 +33,8 @@ extern "C"
 
 /**
  * @brief Creates a rigid body.
+ * @remark If the rigid body is part of a group, the group must not be added to a scene before
+ *    creation.
  * @remark errno will be set on failure.
  * @param engine The physics engine to create the rigid body with.
  * @param allocator The allocator to create the rigid body with. This must support freeing memory.
@@ -552,6 +554,9 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setActive(dsRigidBody* rigidBody, bool active
 
 /**
  * @brief Destroys a rigid body.
+ *
+ * If the rigid body is part of a group or scene, it will be implicitly removed from both.
+ *
  * @remark errno will be set on failure.
  * @param rigidBody The rigid body to destroy.
  * @return False if the rigid body couldn't be destroyed.

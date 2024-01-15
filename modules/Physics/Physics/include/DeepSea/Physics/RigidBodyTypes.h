@@ -64,6 +64,7 @@ typedef enum dsRigidBodyFlags
 
 /// @cond
 typedef struct dsRigidBody dsRigidBody;
+typedef struct dsPhysicsScene dsPhysicsScene;
 /// @endcond
 
 /**
@@ -107,6 +108,17 @@ typedef struct dsRigidBodyGroup
 	 * @brief The allocator the rigid body group was created with.
 	 */
 	dsAllocator* allocator;
+
+	/**
+	 * @brief The physics scene the rigid body group is a member of, or NULL if not associated with
+	 *     a scene.
+	 *
+	 * The rigid body group may only be associated at most one scene at a time.
+	 *
+	 * Implementations should assign this with atomics to avoid contention when checking during
+	 * rigid body creation that the group isn't part of a scene.
+	 */
+	dsPhysicsScene* scene;
 
 	/**
 	 * @brief The motion type for all rigid bodies.
@@ -309,9 +321,17 @@ typedef struct dsRigidBody
 	dsDestroyUserDataFunction destroyUserDataFunc;
 
 	/**
-	 * @brief The group the rigid body is associated with, or NULL if not associated with the group.
+	 * @brief The group the rigid body is associated with, or NULL if not associated with a group.
 	 */
 	dsRigidBodyGroup* group;
+
+	/**
+	 * @brief The physics scene the rigid body is a member of, or NULL if not associated with a
+	 *     scene.
+	 *
+	 * The rigid body may only be associated at most one scene at a time
+	 */
+	dsPhysicsScene* scene;
 
 	/**
 	 * @brief Flags to control the behavior of the rigid body.
@@ -444,6 +464,10 @@ typedef dsRigidBodyGroup* (*dsCreateRigidBodyGroupFunction)(dsPhysicsEngine* eng
 
 /**
  * @brief Function to destroy a rigid body group.
+ *
+ * If the rigid body is a member of a group or scene, the implementation should remove it during
+ * destruction.
+ *
  * @param engine The physics engine the rigid body group was created with.
  * @param group The rigid body group to destroy.
  * @return False if the rigid body group couldn't be destroyed.
