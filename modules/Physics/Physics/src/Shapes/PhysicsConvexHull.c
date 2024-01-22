@@ -53,7 +53,7 @@ static bool dsPhysicsConvexHull_getMassProperties(dsPhysicsMassProperties* outMa
 }
 
 static dsPhysicsShapeType convexHullType = {.staticBodiesOnly = false, .uniformScaleOnly = false,
-	.getMassPropertiesFunc = &dsPhysicsConvexHull_getMassProperties};
+	.getMassPropertiesFunc = &dsPhysicsConvexHull_getMassProperties, .getMaterialFunc = NULL};
 const dsPhysicsShapeType* dsPhysicsConvexHull_type(void)
 {
 	return &convexHullType;

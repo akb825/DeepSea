@@ -200,6 +200,30 @@ DS_PHYSICS_EXPORT bool dsRigidBody_finalizeShapesCustomMassProperties(dsRigidBod
 	const dsPhysicsMassProperties* massProperties);
 
 /**
+ * @brief Gets the material for a shape in a rigid body by ID.
+ * @remark errno will be set on failure.
+ * @param[out] outMaterial The shape material.
+ * @param rigidBody The rigid body.
+ * @param shapeID The ID for the shape.
+ * @param faceIndex The index for the face for shapes that support per-face materials.
+ * @return False if the material couldn't be queried.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_getShapeMaterialID(dsPhysicsShapePartMaterial* outMaterial,
+	const dsRigidBody* rigidBody, uint32_t shapeID, uint32_t faceIndex);
+
+/**
+ * @brief Gets the material for a shape in a rigid body by index.
+ * @remark errno will be set on failure.
+ * @param[out] outMaterial The shape material.
+ * @param rigidBody The rigid body.
+ * @param shapeIndex The index for the shape.
+ * @param faceIndex The index for the face for shapes that support per-face materials.
+ * @return False if the material couldn't be queried.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_getShapeMaterialIndex(dsPhysicsShapePartMaterial* outMaterial,
+	const dsRigidBody* rigidBody, uint32_t shapeIndex, uint32_t faceIndex);
+
+/**
  * @brief Adds flags to the rigid body.
  * @remark errno will be set on failure.
  * @param rigidBody The rigid body to add flags to.

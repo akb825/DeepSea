@@ -37,7 +37,7 @@ static bool dsPhysicsCylinder_getMassProperties(dsPhysicsMassProperties* outMass
 }
 
 static dsPhysicsShapeType cylinderType = {.staticBodiesOnly = false, .uniformScaleOnly = true,
-	.getMassPropertiesFunc = dsPhysicsCylinder_getMassProperties};
+	.getMassPropertiesFunc = dsPhysicsCylinder_getMassProperties, .getMaterialFunc = NULL};
 const dsPhysicsShapeType* dsPhysicsCylinder_type(void)
 {
 	return &cylinderType;

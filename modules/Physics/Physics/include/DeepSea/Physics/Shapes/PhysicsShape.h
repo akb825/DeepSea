@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,17 @@ DS_PHYSICS_EXPORT bool dsPhysicsShape_initialize(dsPhysicsShape* shape, dsPhysic
  */
 DS_PHYSICS_EXPORT bool dsPhysicsShape_getMassProperties(dsPhysicsMassProperties* outMassProperties,
 	const dsPhysicsShape* shape, float density);
+
+/**
+ * @brief Gets the material for a shape.
+ * @remark errno will be set on failure.
+ * @param[out] outMaterial The material to populate.
+ * @param shape The shape to get the material for.
+ * @param faceIndex The face index to get the material for.
+ * @return False if no material is available.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsShape_getMaterial(dsPhysicsShapePartMaterial* outMaterial,
+	const dsPhysicsShape* shape, uint32_t faceIndex);
 
 /**
  * @brief Increments the reference count to the shape.

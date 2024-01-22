@@ -37,7 +37,7 @@ static bool dsPhysicsCone_getMassProperties(dsPhysicsMassProperties* outMassProp
 }
 
 static dsPhysicsShapeType coneType = {.staticBodiesOnly = false, .uniformScaleOnly = true,
-	.getMassPropertiesFunc = &dsPhysicsCone_getMassProperties};
+	.getMassPropertiesFunc = &dsPhysicsCone_getMassProperties, .getMaterialFunc = NULL};
 const dsPhysicsShapeType* dsPhysicsCone_type(void)
 {
 	return &coneType;

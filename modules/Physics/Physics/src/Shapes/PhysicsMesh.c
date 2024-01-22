@@ -24,8 +24,46 @@
 
 #include <DeepSea/Physics/Types.h>
 
+static bool dsPhysicsMesh_getMaterial(dsPhysicsShapePartMaterial* outMaterial,
+	const dsPhysicsShape* shape, uint32_t faceIndex)
+{
+	DS_ASSERT(outMaterial);
+	DS_ASSERT(shape);
+
+	const dsPhysicsMesh* mesh = (const dsPhysicsMesh*)shape;
+	if (mesh->materialCount == 0)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	if (faceIndex >= mesh->triangleCount)
+	{
+		errno = EINDEX;
+		return false;
+	}
+
+	uint32_t materialIndex;
+	switch (mesh->materialIndexSize)
+	{
+		case sizeof(uint16_t):
+			materialIndex = ((const uint16_t*)mesh->materialIndices)[faceIndex];
+			break;
+		case sizeof(uint32_t):
+			materialIndex = ((const uint32_t*)mesh->materialIndices)[faceIndex];
+			break;
+		default:
+			errno = EINVAL;
+			return false;
+	}
+
+	DS_ASSERT(materialIndex < mesh->materialCount);
+	*outMaterial = mesh->materials[materialIndex];
+	return true;
+}
+
 static dsPhysicsShapeType meshType = {.staticBodiesOnly = true, .uniformScaleOnly = false,
-	.getMassPropertiesFunc = NULL};
+	.getMassPropertiesFunc = NULL, .getMaterialFunc = &dsPhysicsMesh_getMaterial};
 const dsPhysicsShapeType* dsPhysicsMesh_type(void)
 {
 	return &meshType;

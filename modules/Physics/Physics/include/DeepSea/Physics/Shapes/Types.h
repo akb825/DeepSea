@@ -70,6 +70,7 @@ typedef enum dsPhysicsAxis
 /// @cond
 typedef struct dsPhysicsEngine dsPhysicsEngine;
 typedef struct dsPhysicsShape dsPhysicsShape;
+typedef struct dsPhysicsShapePartMaterial dsPhysicsShapePartMaterial;
 typedef struct dsPhysicsMassProperties dsPhysicsMassProperties;
 /// @endcond
 
@@ -82,6 +83,16 @@ typedef struct dsPhysicsMassProperties dsPhysicsMassProperties;
  */
 typedef bool (*dsGetPhysicsShapeMassPropertiesFunction)(dsPhysicsMassProperties* outMassProperties,
 	const dsPhysicsShape* shape, float density);
+
+/**
+ * @brief Function to get the physics material for a face of a shape.
+ * @param[out] outMaterial The material to populate.
+ * @param shape the shape to get the material for.
+ * @param faceIndex The index of the face to get the material for.
+ * @return False if the material couldn't be queried.
+ */
+typedef bool (*dsGetPhysicsShapeMaterialFunction)(dsPhysicsShapePartMaterial* outMaterial,
+	const dsPhysicsShape* shape, uint32_t faceIndex);
 
 /**
  * @brief Function to destroy a physics shape.
@@ -114,6 +125,11 @@ typedef struct dsPhysicsShapeType
 	 * @brief Function to get the mass properties for the shape.
 	 */
 	dsGetPhysicsShapeMassPropertiesFunction getMassPropertiesFunc;
+
+	/**
+	 * @brief Function to get the material for the shape.
+	 */
+	dsGetPhysicsShapeMaterialFunction getMaterialFunc;
 } dsPhysicsShapeType;
 
 /**
@@ -477,6 +493,31 @@ typedef struct dsPhysicsMesh
 	 * @brief The base shape information.
 	 */
 	dsPhysicsShape shape;
+
+	/**
+	 * @brief The number of triangles in the mesh.
+	 */
+	uint32_t triangleCount;
+
+	/**
+	 * @brief The number of materials in the mesh.
+	 */
+	uint32_t materialCount;
+
+	/**
+	 * @brief The size of a material index, either sizeof(uint16_t) or sizeof(uint32_t).
+	 */
+	uint32_t materialIndexSize;
+
+	/**
+	 * @brief The mapping from triangle to material index.
+	 */
+	const void* materialIndices;
+
+	/**
+	 * @brief The materials for the mesh.
+	 */
+	const dsPhysicsShapePartMaterial* materials;
 } dsPhysicsMesh;
 
 #ifdef __cplusplus

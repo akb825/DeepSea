@@ -36,7 +36,7 @@ static bool dsPhysicsSphere_getMassProperties(dsPhysicsMassProperties* outMassPr
 }
 
 static dsPhysicsShapeType sphereType = {.staticBodiesOnly = false, .uniformScaleOnly = true,
-	.getMassPropertiesFunc = &dsPhysicsSphere_getMassProperties};
+	.getMassPropertiesFunc = &dsPhysicsSphere_getMassProperties, .getMaterialFunc = NULL};
 const dsPhysicsShapeType* dsPhysicsSphere_type(void)
 {
 	return &sphereType;

@@ -44,7 +44,7 @@ static bool dsPhysicsBox_getMassProperties(dsPhysicsMassProperties* outMassPrope
 }
 
 static dsPhysicsShapeType boxType = {.staticBodiesOnly = false, .uniformScaleOnly = false,
-	.getMassPropertiesFunc = &dsPhysicsBox_getMassProperties};
+	.getMassPropertiesFunc = &dsPhysicsBox_getMassProperties, .getMaterialFunc = NULL};
 const dsPhysicsShapeType* dsPhysicsBox_type(void)
 {
 	return &boxType;

@@ -60,6 +60,25 @@ bool dsPhysicsShape_getMassProperties(dsPhysicsMassProperties* outMassProperties
 	return shape->type->getMassPropertiesFunc(outMassProperties, shape, density);
 }
 
+bool dsPhysicsShape_getMaterial(dsPhysicsShapePartMaterial* outMaterial,
+	const dsPhysicsShape* shape, uint32_t faceIndex)
+{
+	if (!outMaterial || !shape || !shape->type)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!shape->type->getMassPropertiesFunc)
+	{
+		// No material for this shape.
+		errno = EPERM;
+		return false;
+	}
+
+	return shape->type->getMaterialFunc(outMaterial, shape, faceIndex);
+}
+
 dsPhysicsShape* dsPhysicsShape_addRef(dsPhysicsShape* shape)
 {
 	if (!shape)

@@ -37,7 +37,7 @@ static bool dsPhysicsCapsule_getMassProperties(dsPhysicsMassProperties* outMassP
 }
 
 static dsPhysicsShapeType capsuleType = {.staticBodiesOnly = false, .uniformScaleOnly = true,
-	.getMassPropertiesFunc = &dsPhysicsCapsule_getMassProperties};
+	.getMassPropertiesFunc = &dsPhysicsCapsule_getMassProperties, .getMaterialFunc = NULL};
 const dsPhysicsShapeType* dsPhysicsCapsule_type(void)
 {
 	return &capsuleType;

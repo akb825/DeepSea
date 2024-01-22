@@ -111,6 +111,24 @@ static bool computeDefaultMassProperties(dsPhysicsMassProperties* outMassPropert
 #pragma GCC diagnostic pop
 #endif
 
+inline static bool getShapeMaterial(dsPhysicsShapePartMaterial* outMaterial,
+	const dsRigidBody* rigidBody, const dsPhysicsShape* shape, uint32_t faceIndex)
+{
+	const dsPhysicsShapeType* type = shape->type;
+	if (type->getMassPropertiesFunc)
+	{
+		if (type->getMaterialFunc(outMaterial, shape, faceIndex))
+			return true;
+		else if (errno != EPERM)
+			return false;
+	}
+
+	outMaterial->friction = rigidBody->friction;
+	outMaterial->restitution = rigidBody->restitution;
+	outMaterial->hardness = rigidBody->hardness;
+	return true;
+}
+
 dsRigidBody* dsRigidBody_create(dsPhysicsEngine* engine, dsAllocator* allocator,
 	const dsRigidBodyInit* initParams)
 {
@@ -468,6 +486,44 @@ bool dsRigidBody_finalizeShapesCustomMassProperties(dsRigidBody* rigidBody,
 	if (success)
 		rigidBody->shapesFinalized = true;
 	return success;
+}
+
+bool dsRigidBody_getShapeMaterialID(dsPhysicsShapePartMaterial* outMaterial,
+	const dsRigidBody* rigidBody, uint32_t shapeID, uint32_t faceIndex)
+{
+	if (!outMaterial || !rigidBody)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	for (uint32_t i = 0; i < rigidBody->shapeCount; ++i)
+	{
+		const dsPhysicsShapeInstance* shape = rigidBody->shapes + i;
+		if (shape->id == shapeID)
+			return getShapeMaterial(outMaterial, rigidBody, shape->shape, faceIndex);
+	}
+
+	errno = ENOTFOUND;
+	return false;
+}
+
+bool dsRigidBody_getShapeMaterialIndex(dsPhysicsShapePartMaterial* outMaterial,
+	const dsRigidBody* rigidBody, uint32_t shapeIndex, uint32_t faceIndex)
+{
+	if (!outMaterial || !rigidBody)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (faceIndex >= rigidBody->shapeCount)
+	{
+		errno = EINDEX;
+		return false;
+	}
+
+	return getShapeMaterial(outMaterial, rigidBody, rigidBody->shapes[shapeIndex].shape, faceIndex);
 }
 
 bool dsRigidBody_addFlags(dsRigidBody* rigidBody, dsRigidBodyFlags flags)
