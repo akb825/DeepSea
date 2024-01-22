@@ -131,6 +131,12 @@ typedef struct dsPhysicsShapePartMaterial
 	 * @brief The restitution value, where 0 is fully inelastic and 1 is fully elastic.
 	 */
 	float restitution;
+
+	/**
+	 * @brief The hardness value, where 0 indicates to use this body's restitution on collision and
+	 *     1 indicates to use the other body's restitution.
+	 */
+	float hardness;
 } dsPhysicsShapePartMaterial;
 
 /**

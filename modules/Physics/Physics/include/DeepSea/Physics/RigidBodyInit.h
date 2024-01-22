@@ -49,12 +49,14 @@ extern "C"
  *     having higher friction.
  * @param restitution The restitution of the rigid body, where 0 is fully inelastic and 1 is fully
  *     elastic.
+ * @param hardness The hardness value, where 0 indicates to use this body's restitution on collision
+ *     and 1 indicates to use the other body's restitution.
  * @return False if the parameters are invalid.
  */
 DS_PHYSICS_EXPORT bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit,
 	dsRigidBodyFlags flags, dsPhysicsMotionType motionType, dsPhysicsLayer layer,
 	const dsVector3f* position, dsQuaternion4f* orientation, const dsVector3f* scale,
-	float friction, float restitution);
+	float friction, float restitution, float hardness);
 
 /**
  * @brief Initializes a rigid body initialization for a rigid body that will be a part of a group.
@@ -75,12 +77,14 @@ DS_PHYSICS_EXPORT bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit
  *     having higher friction.
  * @param restitution The restitution of the rigid body, where 0 is fully inelastic and 1 is fully
  *     elastic.
+ * @param hardness The hardness value, where 0 indicates to use this body's restitution on collision
+ *     and 1 indicates to use the other body's restitution.
  * @return False if the parameters are invalid.
  */
 DS_PHYSICS_EXPORT bool dsRigidBodyInit_initializeGroup(dsRigidBodyInit* rigidBodyInit,
 	dsRigidBodyGroup* group, dsRigidBodyFlags flags, dsPhysicsLayer layer,
 	const dsVector3f* position, dsQuaternion4f* orientation, const dsVector3f* scale,
-	float friction, float restitution);
+	float friction, float restitution, float hardness);
 
 /**
  * @brief Checks whether a rigid body initialization object is valid.

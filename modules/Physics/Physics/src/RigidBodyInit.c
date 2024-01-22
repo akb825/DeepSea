@@ -28,9 +28,10 @@
 bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit,
 	dsRigidBodyFlags flags, dsPhysicsMotionType motionType, dsPhysicsLayer layer,
 	const dsVector3f* position, dsQuaternion4f* orientation, const dsVector3f* scale,
-	float friction, float restitution)
+	float friction, float restitution, float hardness)
 {
-	if (!rigidBodyInit || friction < 0 || restitution < 0 || restitution > 1)
+	if (!rigidBodyInit || friction < 0 || restitution < 0 || restitution > 1 || hardness < 0 ||
+		hardness > 1)
 	{
 		errno = EINVAL;
 		return false;
@@ -85,6 +86,7 @@ bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit,
 
 	rigidBodyInit->friction = friction;
 	rigidBodyInit->restitution = restitution;
+	rigidBodyInit->hardness = hardness;
 	rigidBodyInit->linearDamping = 0.05f;
 	rigidBodyInit->angularDamping = 0.05f;
 	rigidBodyInit->maxLinearVelocity = 500.0f;
@@ -96,7 +98,7 @@ bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit,
 bool dsRigidBodyInit_initializeGroup(dsRigidBodyInit* rigidBodyInit,
 	dsRigidBodyGroup* group, dsRigidBodyFlags flags, dsPhysicsLayer layer,
 	const dsVector3f* position, dsQuaternion4f* orientation, const dsVector3f* scale,
-	float friction, float restitution)
+	float friction, float restitution, float hardness)
 {
 	if (!rigidBodyInit || !group)
 	{
@@ -105,7 +107,7 @@ bool dsRigidBodyInit_initializeGroup(dsRigidBodyInit* rigidBodyInit,
 	}
 
 	if (!dsRigidBodyInit_initialize(rigidBodyInit, flags, group->motionType, layer, position,
-			orientation, scale, friction, restitution))
+			orientation, scale, friction, restitution, hardness))
 	{
 		return false;
 	}
@@ -152,7 +154,8 @@ bool dsRigidBodyInit_isValid(const dsRigidBodyInit* rigidBodyInit)
 
 	// General ranges.
 	return rigidBodyInit->friction >= 0 && rigidBodyInit->restitution >= 0 &&
-		rigidBodyInit->restitution <= 1 && rigidBodyInit->linearDamping >= 0 &&
+		rigidBodyInit->restitution <= 1 && rigidBodyInit->hardness <= 0 &&
+		rigidBodyInit->hardness >= 1 && rigidBodyInit->linearDamping >= 0 &&
 		rigidBodyInit->angularDamping >= 0 && rigidBodyInit->maxLinearVelocity >= 0 &&
 		rigidBodyInit->maxAngularVelocity >= 0;
 }

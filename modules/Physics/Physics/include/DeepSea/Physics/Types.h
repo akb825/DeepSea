@@ -103,6 +103,25 @@ typedef struct dsPhysicsSceneLimits
 } dsPhysicsSceneLimits;
 
 /**
+ * @brief Function to combine friction values.
+ * @param frictionA The first friction value.
+ * @param frictionB The second friction value.
+ * @return The combined friction value.
+ */
+typedef float (*dsCombineFrictionFunction)(float frictionA, float frictionB);
+
+/**
+ * @brief Function to combine restitution values.
+ * @param restitutionA The first restitution value.
+ * @param hardnessA The first hardness value.
+ * @param restitutionB The second restitution value.
+ * @param hardnessB The second hardness value.
+ * @return The combined restitution value.
+ */
+typedef float (*dsCombineRestitutionFunction)(float restitutionA, float hardnessA,
+	float restitutionB, float hardnessB);
+
+/**
  * @brief Struct defining a scene of objects in a physics simulation.
  * @remark None of the members should be modified outside of the implementation.
  * @see dsPhysicsSceneLimits
@@ -119,6 +138,20 @@ typedef struct dsPhysicsScene
 	 * @brief The allocator the scene was created with.
 	 */
 	dsAllocator* allocator;
+
+	/**
+	 * @brief The function to combine friction values.
+	 *
+	 * This defaults to dsPhysicsScene_defaultCombineFriction.
+	 */
+	dsCombineFrictionFunction combineFrictionFunc;
+
+	/**
+	 * @brief The function to combine restitution values.
+	 *
+	 * This defaults to dsPhysicsScene_defaultCombineRestitution.
+	 */
+	dsCombineRestitutionFunction combineRestitutionFunc;
 } dsPhysicsScene;
 
 /**
@@ -147,6 +180,26 @@ typedef dsPhysicsScene* (*dsCreatePhysicsSceneFunction)(dsPhysicsEngine* engine,
  * @return False if the physics scene couldn't be destroyed.
  */
 typedef bool (*dsDestroyPhysicsSceneFunction)(dsPhysicsEngine* engine, dsPhysicsScene* scene);
+
+/**
+ * @brief Function to set the combine friction function on a physics scene.
+ * @param engine The physics engine the scene was created with.
+ * @param scene The physics scene to set the combine function on.
+ * @param combineFunc The friction combine function.
+ * @return False if the friction combine function couldn't be set.
+ */
+typedef bool (*dsSetPhysicsSceneCombineFrictionFunction)(dsPhysicsEngine* engine,
+	dsPhysicsScene* scene, dsCombineFrictionFunction combineFunc);
+
+/**
+ * @brief Function to set the combine restitution function on a physics scene.
+ * @param engine The physics engine the scene was created with.
+ * @param scene The physics scene to set the combine function on.
+ * @param combineFunc The restitution combine function.
+ * @return False if the restitution combine function couldn't be set.
+ */
+typedef bool (*dsSetPhysicsSceneCombineRestitutionFunction)(dsPhysicsEngine* engine,
+	dsPhysicsScene* scene, dsCombineRestitutionFunction combineFunc);
 
 /**
  * @brief Function to add rigid bodies to a physics scene.
@@ -446,6 +499,16 @@ struct dsPhysicsEngine
 	dsDestroyPhysicsSceneFunction destroySceneFunc;
 
 	/**
+	 * @brief Function to set the combine friction function on a physics scene.
+	 */
+	dsSetPhysicsSceneCombineFrictionFunction setSceneCombineFrictionFunc;
+
+	/**
+	 * @brief Function to set the combine restitution function on a physics scene.
+	 */
+	dsSetPhysicsSceneCombineRestitutionFunction setSceneCombineRestitutionFunc;
+
+	/**
 	 * @brief Function to add rigid bodies to a physics scene.
 	 */
 	dsPhysicsSceneAddRigidBodiesFunction addSceneRigidBodiesFunc;
@@ -627,62 +690,67 @@ struct dsPhysicsEngine
 	/**
 	 * @brief Function to set the mass on a rigid body.
 	 */
-	dsSetRigidBodyMassFunction setRigidBodyMassFunc;
+	dsSetRigidBodyFloatValueFunction setRigidBodyMassFunc;
 
 	/**
 	 * @brief Function to set the friction on a rigid body.
 	 */
-	dsSetRigidBodyFrictionFunction setRigidBodyFrictionFunc;
+	dsSetRigidBodyFloatValueFunction setRigidBodyFrictionFunc;
 
 	/**
 	 * @brief Function to set the restitution on a rigid body.
 	 */
-	dsSetRigidBodyRestitutionFunction setRigidBodyRestitutionFunc;
+	dsSetRigidBodyFloatValueFunction setRigidBodyRestitutionFunc;
+
+	/**
+	 * @brief Function to set the restitution on a hardness body.
+	 */
+	dsSetRigidBodyFloatValueFunction setRigidBodyHardnessFunc;
 
 	/**
 	 * @brief Function to set the linear damping on a rigid body.
 	 */
-	dsSetRigidBodyDampingFunction setRigidBodyLinearDampingFunc;
+	dsSetRigidBodyFloatValueFunction setRigidBodyLinearDampingFunc;
 
 	/**
 	 * @brief Function to set the angular damping on a rigid body.
 	 */
-	dsSetRigidBodyDampingFunction setRigidBodyAngularDampingFunc;
+	dsSetRigidBodyFloatValueFunction setRigidBodyAngularDampingFunc;
 
 	/**
 	 * @brief Function to set the max linear velocity on a rigid body.
 	 */
-	dsSetRigidBodyMaxVelocityFunction setRigidBodyMaxLinearVelocityFunc;
+	dsSetRigidBodyFloatValueFunction setRigidBodyMaxLinearVelocityFunc;
 
 	/**
 	 * @brief Function to set the max angular velocity on a rigid body.
 	 */
-	dsSetRigidBodyMaxVelocityFunction setRigidBodyMaxAngularVelocityFunc;
+	dsSetRigidBodyFloatValueFunction setRigidBodyMaxAngularVelocityFunc;
 
 	/**
 	 * @brief Function to get the linear velocity on a rigid body.
 	 */
-	dsGetRigidBodyVelocityFunction getRigidBodyLinearVelocityFunc;
+	dsGetRigidBodyVectorValueFunction getRigidBodyLinearVelocityFunc;
 
 	/**
 	 * @brief Function to set the linear velocity on a rigid body.
 	 */
-	dsSetRigidBodyVelocityFunction setRigidBodyLinearVelocityFunc;
+	dsSetRigidBodyVectorValueFunction setRigidBodyLinearVelocityFunc;
 
 	/**
 	 * @brief Function to get the angular velocity on a rigid body.
 	 */
-	dsGetRigidBodyVelocityFunction getRigidBodyAngularVelocityFunc;
+	dsGetRigidBodyVectorValueFunction getRigidBodyAngularVelocityFunc;
 
 	/**
 	 * @brief Function to set the angular velocity on a rigid body.
 	 */
-	dsSetRigidBodyVelocityFunction setRigidBodyAngularVelocityFunc;
+	dsSetRigidBodyVectorValueFunction setRigidBodyAngularVelocityFunc;
 
 	/**
 	 * @brief Function to add force to a rigid body.
 	 */
-	dsAddRigidBodyForceFunction addRigidBodyForceFunc;
+	dsSetRigidBodyVectorValueFunction addRigidBodyForceFunc;
 
 	/**
 	 * @brief Function to clear the accumulated forces on a rigid body.
@@ -692,7 +760,7 @@ struct dsPhysicsEngine
 	/**
 	 * @brief Function to add torque to a rigid body.
 	 */
-	dsAddRigidBodyForceFunction addRigidBodyTorqueFunc;
+	dsSetRigidBodyVectorValueFunction addRigidBodyTorqueFunc;
 
 	/**
 	 * @brief Function to clear the accumulated torque on a rigid body.
@@ -702,7 +770,7 @@ struct dsPhysicsEngine
 	/**
 	 * @brief Function to add linear impulse to a rigid body.
 	 */
-	dsAddRigidBodyForceFunction addRigidBodyLinearImpulseFunc;
+	dsSetRigidBodyVectorValueFunction addRigidBodyLinearImpulseFunc;
 
 	/**
 	 * @brief Function to clear the accumulated linear impulses on a rigid body.
@@ -712,7 +780,7 @@ struct dsPhysicsEngine
 	/**
 	 * @brief Function to add angular impulse to a rigid body.
 	 */
-	dsAddRigidBodyForceFunction addRigidBodyAngularImpulseFunc;
+	dsSetRigidBodyVectorValueFunction addRigidBodyAngularImpulseFunc;
 
 	/**
 	 * @brief Function to clear the accumulated angular impulses on a rigid body.

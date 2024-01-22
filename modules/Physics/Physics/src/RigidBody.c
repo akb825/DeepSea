@@ -834,6 +834,19 @@ bool dsRigidBody_setRestitution(dsRigidBody* rigidBody, float restitution)
 	return engine->setRigidBodyRestitutionFunc(engine, rigidBody, restitution);
 }
 
+bool dsRigidBody_setHardness(dsRigidBody* rigidBody, float hardness)
+{
+	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyHardnessFunc ||
+		hardness < 0 || hardness > 1)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = rigidBody->engine;
+	return engine->setRigidBodyHardnessFunc(engine, rigidBody, hardness);
+}
+
 bool dsRigidBody_setLinearDamping(dsRigidBody* rigidBody, float linearDamping)
 {
 	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyLinearDampingFunc ||

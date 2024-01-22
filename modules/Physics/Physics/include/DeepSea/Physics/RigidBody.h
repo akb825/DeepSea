@@ -330,6 +330,15 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setFriction(dsRigidBody* rigidBody, float fri
 DS_PHYSICS_EXPORT bool dsRigidBody_setRestitution(dsRigidBody* rigidBody, float restitution);
 
 /**
+ * @brief Sets the hardness for a rigid body.
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to change the hardness on.
+ * @param hardness The new hardness.
+ * @return False if the restitution couldn't be set.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_setHardness(dsRigidBody* rigidBody, float hardness);
+
+/**
  * @brief Sets the linear damping for a rigid body.
  * @remark errno will be set on failure.
  * @param rigidBody The rigid body to change the linear damping on.

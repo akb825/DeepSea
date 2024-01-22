@@ -34,6 +34,32 @@ dsPhysicsScene* dsPhysicsScene_create(dsPhysicsEngine* engine, dsAllocator* allo
 	return engine->createSceneFunc(engine, allocator, limits, threadPool);
 }
 
+bool dsPhysicsScene_setCombineFrictionFunction(dsPhysicsScene* scene,
+	dsCombineFrictionFunction combineFunc)
+{
+	if (!scene || !scene->engine || !scene->engine->setSceneCombineFrictionFunc || !combineFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = scene->engine;
+	return engine->setSceneCombineFrictionFunc(engine, scene, combineFunc);
+}
+
+bool dsPhysicsScene_setCombineRestitutionFunction(dsPhysicsScene* scene,
+	dsCombineRestitutionFunction combineFunc)
+{
+	if (!scene || !scene->engine || !scene->engine->setSceneCombineRestitutionFunc || !combineFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = scene->engine;
+	return engine->setSceneCombineRestitutionFunc(engine, scene, combineFunc);
+}
+
 bool dsPhysicsScene_addRigidBodies(dsPhysicsScene* scene,
 	dsRigidBody* const* rigidBodies, uint32_t rigidBodyCount, bool activate)
 {
@@ -188,3 +214,10 @@ bool dsPhysicsScene_destroy(dsPhysicsScene* scene)
 
 	return scene->engine->destroySceneFunc(scene->engine, scene);
 }
+
+float dsPhysicsScene_defaultCombineFriction(float frictionA, float frictionB);
+float dsPhysicsScene_defaultCombineRestitution(float restitutionA, float hardnessA,
+	float restitutionB, float hardnessB);
+float dsPhysicsScene_combineFriction(const dsPhysicsScene* scene, float frictionA, float frictionB);
+float dsPhysicsScene_combineRestitution(const dsPhysicsScene* scene, float restitutionA,
+	float hardnessA, float restitutionB, float hardnessB);

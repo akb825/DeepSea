@@ -17,8 +17,11 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Physics/Export.h>
 #include <DeepSea/Physics/Types.h>
+#include <math.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -30,6 +33,36 @@ extern "C"
  * @brief Functions to create and manipulate physics scenes.
  * @see dsPhysicsScene
  */
+
+/**
+ * @brief Default combine friction function used by the physics scene.
+ * @param frictionA The first friction value.
+ * @param frictionB The second friction value.
+ * @return The combined friction value as a geometric mean, or sqrt(frictionA*frictionB).
+ */
+DS_PHYSICS_EXPORT inline float dsPhysicsScene_defaultCombineFriction(
+	float frictionA, float frictionB);
+
+/**
+ * @brief Default combine friction restitution used by the physics scene.
+ *
+ * The hardness values are used to weigh between the restitution values. A harder surface (hardness
+ * closer to 1) will bias more to the other restitution value, while a softer surface (hardness
+ * closer to 0) will bias more to its restitution value. For example, concrete is a hard surface
+ * that isn't very bouncy (low restitution, high hardness) but a rubber ball will bounce very well
+ * off of it. On the other hand, a cushion (low restitution, low hardness) will have nothing bounce
+ * well off of it.
+ *
+ * @param restitutionA The first restitution value.
+ * @param hardnessA The first hardness value.
+ * @param restitutionB The secon restitution value.
+ * @param hardnessB The second hardness value.
+ * @return The combined restitution value as a weighted average based on the hardness. The weight
+ *     of restitutionA is sqrt(hardnessA*(1 - hardnessB)), while the weight of restitutionB is
+ *     sqrt(hardnessB*(1 - hardnessA)).
+ */
+DS_PHYSICS_EXPORT inline float dsPhysicsScene_defaultCombineRestitution(
+	float restitutionA, float hardnessA, float restitutionB, float hardnessB);
 
 /**
  * @brief Creates a physics scene.
@@ -44,6 +77,50 @@ extern "C"
  */
 DS_PHYSICS_EXPORT dsPhysicsScene* dsPhysicsScene_create(dsPhysicsEngine* engine,
 	dsAllocator* allocator, const dsPhysicsSceneLimits* limits, dsThreadPool* threadPool);
+
+/**
+ * @brief Sets the combine friction function for a scene.
+ * @remark errno will be set on failure.
+ * @param scene The physics scene to set the combine function on.
+ * @param combineFunc The combine friction function.
+ * @return False if the combine friction function couldn't be set.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsScene_setCombineFrictionFunction(dsPhysicsScene* scene,
+	dsCombineFrictionFunction combineFunc);
+
+/**
+ * @brief Sets the combine restitution function for a scene.
+ * @remark errno will be set on failure.
+ * @param scene The physics scene to set the combine function on.
+ * @param combineFunc The combine friction function.
+ * @return False if the combine friction restitution couldn't be set.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsScene_setCombineRestitutionFunction(dsPhysicsScene* scene,
+	dsCombineRestitutionFunction combineFunc);
+
+/**
+ * @brief Combines two friction values.
+ * @remark For performance this won't perform any error checks apart from asserts.
+ * @param scene The physics scene.
+ * @param frictionA The first friction value.
+ * @param frictionB The second friction value.
+ * @return The combined friction value.
+ */
+DS_PHYSICS_EXPORT inline float dsPhysicsScene_combineFriction(const dsPhysicsScene* scene,
+	float frictionA, float frictionB);
+
+/**
+ * @brief Combines two restitution values.
+ * @remark For performance this won't perform any error checks apart from asserts.
+ * @param scene The physics scene.
+ * @param restitutionA The first restitution value.
+ * @param hardnessA The first hardness value.
+ * @param restitutionB The second restitution value.
+ * @param hardnessB The second hardness value.
+ * @return The combined friction value.
+ */
+DS_PHYSICS_EXPORT inline float dsPhysicsScene_combineRestitution(const dsPhysicsScene* scene,
+	float restitutionA, float hardnessA, float restitutionB, float hardnessB);
 
 /**
  * @brief Adds rigid bodies to a physics scene.
@@ -96,6 +173,44 @@ DS_PHYSICS_EXPORT bool dsPhysicsScene_removeRigidBodyGroup(dsPhysicsScene* scene
  * @return False if the scene couldn't be destroyed.
  */
 DS_PHYSICS_EXPORT bool dsPhysicsScene_destroy(dsPhysicsScene* scene);
+
+inline float dsPhysicsScene_defaultCombineFriction(float frictionA, float frictionB)
+{
+	DS_ASSERT(frictionA >= 0);
+	DS_ASSERT(frictionB >= 0);
+	return sqrtf(frictionA*frictionB);
+}
+
+inline float dsPhysicsScene_defaultCombineRestitution(
+	float restitutionA, float hardnessA, float restitutionB, float hardnessB)
+{
+	DS_ASSERT(hardnessA >= 0);
+	DS_ASSERT(hardnessB >= 0);
+
+	// Use average if both hardness values are 0 to avoid divide by zero.
+	if (hardnessA == 0 && hardnessB == 0)
+		return (restitutionA + restitutionB)*0.5f;
+
+	float weightA = sqrtf(hardnessA*(1 - hardnessB));
+	float weightB = sqrtf(hardnessB*(1 - hardnessA));
+	return (restitutionA*weightA + restitutionB*weightB)/(weightA + weightB);
+}
+
+inline float dsPhysicsScene_combineFriction(const dsPhysicsScene* scene,
+	float frictionA, float frictionB)
+{
+	DS_ASSERT(scene);
+	DS_ASSERT(scene->combineFrictionFunc);
+	return scene->combineFrictionFunc(frictionA, frictionB);
+}
+
+inline float dsPhysicsScene_combineRestitution(const dsPhysicsScene* scene,
+	float restitutionA, float hardnessA, float restitutionB, float hardnessB)
+{
+	DS_ASSERT(scene);
+	DS_ASSERT(scene->combineRestitutionFunc);
+	return scene->combineRestitutionFunc(restitutionA, hardnessA, restitutionB, hardnessB);
+}
 
 #ifdef __cplusplus
 }
