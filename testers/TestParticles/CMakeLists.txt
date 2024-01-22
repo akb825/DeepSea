@@ -137,6 +137,7 @@ add_custom_target(deepsea_test_particles_app_assets
 add_dependencies(deepsea_test_particles_app deepsea_test_particles_app_assets)
 
 ds_set_folder(deepsea_test_particles_app tests/gui)
+ds_set_folder(deepsea_test_particles_app_flatbuffers tests/gui/Resources)
 ds_set_folder(deepsea_test_particles_app_prepare tests/gui/Resources)
 ds_set_folder(deepsea_test_particles_app_shaders tests/gui/Resources)
 ds_set_folder(deepsea_test_particles_app_scene_resources tests/gui/Resources)
