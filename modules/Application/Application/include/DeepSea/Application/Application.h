@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,10 +91,13 @@ DS_APPLICATION_EXPORT bool dsApplication_removeEventResponder(dsApplication* app
  * @param application The application.
  * @param function The udpate function.
  * @param userData The user data to provide to the function.
+ * @param destroyUserDataFunc The function to destroy the user data when the application is
+ *     destoyed, the pre-input update function is changed, or setting the function fails.
  * @return True if the function was set.
  */
 DS_APPLICATION_EXPORT bool dsApplication_setPreInputUpdateFunction(dsApplication* application,
-	dsUpdateApplicationFunction function, void* userData);
+	dsUpdateApplicationFunction function, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc);
 
 /**
  * @brief Sets the update function for the application.
@@ -105,10 +108,13 @@ DS_APPLICATION_EXPORT bool dsApplication_setPreInputUpdateFunction(dsApplication
  * @param application The application.
  * @param function The udpate function.
  * @param userData The user data to provide to the function.
+ * @param destroyUserDataFunc The function to destroy the user data when the application is
+ *     destoyed, the update function is changed, or setting the function fails.
  * @return True if the function was set.
  */
 DS_APPLICATION_EXPORT bool dsApplication_setUpdateFunction(dsApplication* application,
-	dsUpdateApplicationFunction function, void* userData);
+	dsUpdateApplicationFunction function, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc);
 
 /**
  * @brief Sets the function for finishing a frame in the application.
@@ -119,10 +125,13 @@ DS_APPLICATION_EXPORT bool dsApplication_setUpdateFunction(dsApplication* applic
  * @param application The application.
  * @param function The finish frame function.
  * @param userData The user data to provide to the function.
+ * @param destroyUserDataFunc The function to destroy the user data when the application is
+ *     destoyed, the finish frame function is changed, or setting the function fails.
  * @return True if the function was set.
  */
 DS_APPLICATION_EXPORT bool dsApplication_setFinishFrameFunction(dsApplication* application,
-	dsFinishApplicationFrameFunction function, void* userData);
+	dsFinishApplicationFrameFunction function, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc);
 
 /**
  * @brief Adds an existing window to the application.

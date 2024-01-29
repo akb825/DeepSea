@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,44 +141,62 @@ bool dsApplication_removeEventResponder(dsApplication* application, uint32_t res
 }
 
 bool dsApplication_setPreInputUpdateFunction(dsApplication* application,
-	dsUpdateApplicationFunction function, void* userData)
+	dsUpdateApplicationFunction function, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc)
 {
 	if (!application)
 	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		errno = EINVAL;
 		return false;
 	}
 
+	if (application->destroyPreInputUpdateUserDataFunc)
+		application->destroyPreInputUpdateUserDataFunc(application->preInputUpdateUserData);
 	application->preInputUpdateFunc = function;
 	application->preInputUpdateUserData = userData;
+	application->destroyPreInputUpdateUserDataFunc = destroyUserDataFunc;
 	return true;
 }
 
 bool dsApplication_setUpdateFunction(dsApplication* application,
-	dsUpdateApplicationFunction function, void* userData)
+	dsUpdateApplicationFunction function, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc)
 {
 	if (!application)
 	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		errno = EINVAL;
 		return false;
 	}
 
+	if (application->destroyUpdateUserDataFunc)
+		application->destroyUpdateUserDataFunc(application->updateUserData);
 	application->updateFunc = function;
 	application->updateUserData = userData;
+	application->destroyUpdateUserDataFunc = destroyUserDataFunc;
 	return true;
 }
 
 bool dsApplication_setFinishFrameFunction(dsApplication* application,
-	dsFinishApplicationFrameFunction function, void* userData)
+	dsFinishApplicationFrameFunction function, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc)
 {
 	if (!application)
 	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		errno = EINVAL;
 		return false;
 	}
 
+	if (application->destroyFinishFrameUserDataFunc)
+		application->destroyFinishFrameUserDataFunc(application->finishFrameUserData);
 	application->finishFrameFunc = function;
 	application->finishFrameUserData = userData;
+	application->destroyFinishFrameUserDataFunc = destroyUserDataFunc;
 	return true;
 }
 
@@ -632,6 +650,13 @@ void dsApplication_shutdown(dsApplication* application)
 	DS_VERIFY(dsAllocator_free(application->allocator, application->windows));
 	DS_VERIFY(dsAllocator_free(application->allocator, application->gameInputs));
 	DS_VERIFY(dsAllocator_free(application->allocator, application->motionSensors));
+
+	if (application->destroyPreInputUpdateUserDataFunc)
+		application->destroyPreInputUpdateUserDataFunc(application->preInputUpdateUserData);
+	if (application->destroyUpdateUserDataFunc)
+		application->destroyUpdateUserDataFunc(application->updateUserData);
+	if (application->destroyFinishFrameUserDataFunc)
+		application->destroyFinishFrameUserDataFunc(application->finishFrameUserData);
 
 	if (dsLog_getFunction() == &applicationLogWrapper)
 		dsLog_clearFunction();

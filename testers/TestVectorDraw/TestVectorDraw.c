@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 Aaron Barany
+ * Copyright 2018-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #include <DeepSea/Application/Application.h>
 #include <DeepSea/Application/Window.h>
 #include <DeepSea/ApplicationSDL/SDLApplication.h>
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/SystemAllocator.h>
 #include <DeepSea/Core/Streams/Path.h>
@@ -24,9 +25,12 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+#include <DeepSea/Core/Timer.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Vector2.h>
+
 #include <DeepSea/Render/Resources/Framebuffer.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
@@ -40,13 +44,15 @@
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderPass.h>
 #include <DeepSea/Render/RenderSurface.h>
+
 #include <DeepSea/RenderBootstrap/RenderBootstrap.h>
+
 #include <DeepSea/VectorDraw/VectorImage.h>
 #include <DeepSea/VectorDraw/VectorResources.h>
 #include <DeepSea/VectorDraw/VectorScratchData.h>
 #include <DeepSea/VectorDraw/VectorShaderModule.h>
 #include <DeepSea/VectorDraw/VectorShaders.h>
-#include <DeepSea/Core/Timer.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -374,7 +380,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 		return false;
 	}
 
-	DS_VERIFY(dsWindow_setDrawFunction(testVectorDraw->window, &draw, testVectorDraw));
+	DS_VERIFY(dsWindow_setDrawFunction(testVectorDraw->window, &draw, testVectorDraw, NULL));
 
 	if (!createFramebuffer(testVectorDraw))
 		DS_PROFILE_FUNC_RETURN(false);

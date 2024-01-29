@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,11 @@
  */
 
 #include "LightData.h"
+
 #include <DeepSea/Application/Application.h>
 #include <DeepSea/Application/Window.h>
 #include <DeepSea/ApplicationSDL/SDLApplication.h>
+
 #include <DeepSea/Core/Memory/SystemAllocator.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
@@ -227,7 +229,7 @@ static bool setup(TestScene* testScene, dsApplication* application, dsAllocator*
 
 	dsEventResponder responder = {&processEvent, testScene, 0, 0};
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
-	DS_VERIFY(dsApplication_setUpdateFunction(application, &update, testScene));
+	DS_VERIFY(dsApplication_setUpdateFunction(application, &update, testScene, NULL));
 
 	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
 	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
@@ -249,7 +251,7 @@ static bool setup(TestScene* testScene, dsApplication* application, dsAllocator*
 		return false;
 	}
 
-	DS_VERIFY(dsWindow_setDrawFunction(testScene->window, &draw, testScene));
+	DS_VERIFY(dsWindow_setDrawFunction(testScene->window, &draw, testScene, NULL));
 
 	dsSceneLoadContext* loadContext = dsSceneLoadContext_create(allocator, renderer);
 	if (!loadContext)

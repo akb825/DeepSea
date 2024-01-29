@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,16 @@
 #include <DeepSea/Application/Application.h>
 #include <DeepSea/Application/Window.h>
 #include <DeepSea/ApplicationSDL/SDLApplication.h>
+
 #include <DeepSea/Core/Memory/SystemAllocator.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
+
 #include <DeepSea/Render/Resources/DrawGeometry.h>
 #include <DeepSea/Render/Resources/Framebuffer.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
@@ -43,7 +46,9 @@
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderPass.h>
 #include <DeepSea/Render/RenderSurface.h>
+
 #include <DeepSea/RenderBootstrap/RenderBootstrap.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -495,7 +500,7 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 
 	dsEventResponder responder = {&processEvent, testRenderSubpass, 0, 0};
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
-	DS_VERIFY(dsApplication_setUpdateFunction(application, &update, testRenderSubpass));
+	DS_VERIFY(dsApplication_setUpdateFunction(application, &update, testRenderSubpass, NULL));
 
 	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
 	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
@@ -520,7 +525,7 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 		return false;
 	}
 
-	DS_VERIFY(dsWindow_setDrawFunction(testRenderSubpass->window, &draw, testRenderSubpass));
+	DS_VERIFY(dsWindow_setDrawFunction(testRenderSubpass->window, &draw, testRenderSubpass, NULL));
 
 	dsGfxFormat depthFormat = dsGfxFormat_D24S8;
 	if (!dsGfxFormat_renderTargetSupported(resourceManager, depthFormat))

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -299,7 +299,7 @@ static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAl
 
 	dsEventResponder responder = {&processEvent, testAnimation, 0, 0};
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
-	DS_VERIFY(dsApplication_setUpdateFunction(application, &update, testAnimation));
+	DS_VERIFY(dsApplication_setUpdateFunction(application, &update, testAnimation, NULL));
 
 	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
 	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
@@ -321,7 +321,7 @@ static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAl
 		return false;
 	}
 
-	DS_VERIFY(dsWindow_setDrawFunction(testAnimation->window, &draw, testAnimation));
+	DS_VERIFY(dsWindow_setDrawFunction(testAnimation->window, &draw, testAnimation, NULL));
 
 	dsSceneLoadContext* loadContext = dsSceneLoadContext_create(allocator, renderer);
 	if (!loadContext)

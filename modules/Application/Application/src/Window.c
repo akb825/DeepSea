@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,30 +75,41 @@ bool dsWindow_createSurface(dsWindow* window)
 	return application->createWindowSurfaceFunc(application, window);
 }
 
-bool dsWindow_setDrawFunction(dsWindow* window, dsDrawWindowFunction drawFunc, void* userData)
+bool dsWindow_setDrawFunction(dsWindow* window, dsDrawWindowFunction drawFunc, void* userData,
+	dsDestroyUserDataFunction destroyUserData)
 {
 	if (!window)
 	{
+		if (destroyUserData)
+			destroyUserData(userData);
 		errno = EINVAL;
 		return false;
 	}
 
+	if (window->destroyDrawUserDataFunc)
+		window->destroyDrawUserDataFunc(window->drawUserData);
 	window->drawFunc = drawFunc;
 	window->drawUserData = userData;
+	window->destroyDrawUserDataFunc = destroyUserData;
 	return true;
 }
 
 bool dsWindow_setCloseFunction(dsWindow* window, dsInterceptCloseWindowFunction closeFunc,
-	void* userData)
+	void* userData, dsDestroyUserDataFunction destroyUserData)
 {
 	if (!window)
 	{
+		if (destroyUserData)
+			destroyUserData(userData);
 		errno = EINVAL;
 		return false;
 	}
 
+	if (window->destroyCloseUserDataFunc)
+		window->destroyCloseUserDataFunc(window->closeUserData);
 	window->closeFunc = closeFunc;
 	window->closeUserData = userData;
+	window->destroyCloseUserDataFunc = destroyUserData;
 	return true;
 }
 

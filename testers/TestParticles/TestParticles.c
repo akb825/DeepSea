@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Aaron Barany
+ * Copyright 2022-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -287,7 +287,7 @@ static bool setup(TestParticles* testParticles, dsApplication* application, dsAl
 
 	dsEventResponder responder = {&processEvent, testParticles, 0, 0};
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
-	DS_VERIFY(dsApplication_setUpdateFunction(application, &update, testParticles));
+	DS_VERIFY(dsApplication_setUpdateFunction(application, &update, testParticles, NULL));
 
 	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
 	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
@@ -309,7 +309,7 @@ static bool setup(TestParticles* testParticles, dsApplication* application, dsAl
 		return false;
 	}
 
-	DS_VERIFY(dsWindow_setDrawFunction(testParticles->window, &draw, testParticles));
+	DS_VERIFY(dsWindow_setDrawFunction(testParticles->window, &draw, testParticles, NULL));
 
 	dsSceneLoadContext* loadContext = dsSceneLoadContext_create(allocator, renderer);
 	if (!loadContext)

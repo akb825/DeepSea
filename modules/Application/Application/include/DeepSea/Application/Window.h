@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,10 +74,12 @@ DS_APPLICATION_EXPORT bool dsWindow_createSurface(dsWindow* window);
  * @param window The window.
  * @param drawFunc The draw function to set.
  * @param userData The user data to provide to the draw function.
+ * @param destroyUserDataFunc The function to destroy the user data when the window is
+ *     destoyed, the draw function is changed, or setting the function fails.
  * @return True if the draw function was set.
  */
 DS_APPLICATION_EXPORT bool dsWindow_setDrawFunction(dsWindow* window, dsDrawWindowFunction drawFunc,
-	void* userData);
+	void* userData, dsDestroyUserDataFunction destroyUserData);
 
 /**
  * @brief Sets the function to respond to closing the window.
@@ -88,10 +90,13 @@ DS_APPLICATION_EXPORT bool dsWindow_setDrawFunction(dsWindow* window, dsDrawWind
  * @param window The window.
  * @param closeFunc The close function to set.
  * @param userData The user data to provide to the draw function.
+ * @param destroyUserDataFunc The function to destroy the user data when the window is
+ *     destoyed, the close function is changed, or setting the function fails.
  * @return True if the draw function was set.
  */
 DS_APPLICATION_EXPORT bool dsWindow_setCloseFunction(dsWindow* window,
-	dsInterceptCloseWindowFunction closeFunc, void* userData);
+	dsInterceptCloseWindowFunction closeFunc, void* userData,
+	dsDestroyUserDataFunction destroyUserData);
 
 /**
  * @brief Sets the title of a window.

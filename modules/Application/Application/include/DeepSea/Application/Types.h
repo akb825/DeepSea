@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1265,6 +1265,11 @@ struct dsApplication
 	void* preInputUpdateUserData;
 
 	/**
+	 * @brief Function to destroy the pre-input update user data.
+	 */
+	dsDestroyUserDataFunction destroyPreInputUpdateUserDataFunc;
+
+	/**
 	 * @brief Function for updating the application.
 	 */
 	dsUpdateApplicationFunction updateFunc;
@@ -1275,6 +1280,11 @@ struct dsApplication
 	void* updateUserData;
 
 	/**
+	 * @brief Function to destroy the update user data.
+	 */
+	dsDestroyUserDataFunction destroyUpdateUserDataFunc;
+
+	/**
 	 * @brief Function for finishing a frame in the application.
 	 */
 	dsFinishApplicationFrameFunction finishFrameFunc;
@@ -1283,6 +1293,11 @@ struct dsApplication
 	 * @brief User data for the finish frame function.
 	 */
 	void* finishFrameUserData;
+
+	/**
+	 * @brief Function to destroy the finish frame user data.
+	 */
+	dsDestroyUserDataFunction destroyFinishFrameUserDataFunc;
 
 	/**
 	 * @brief Function for showing a message box.
@@ -1595,6 +1610,11 @@ struct dsWindow
 	void* drawUserData;
 
 	/**
+	 * @brief Function to destroy the draw user data.
+	 */
+	dsDestroyUserDataFunction destroyDrawUserDataFunc;
+
+	/**
 	 * @brief The function to intercept closing the window.
 	 */
 	dsInterceptCloseWindowFunction closeFunc;
@@ -1603,6 +1623,11 @@ struct dsWindow
 	 * @brief User data to provide when calling windowCloseFunc.
 	 */
 	void* closeUserData;
+
+	/**
+	 * @brief Function to destroy the close user data.
+	 */
+	dsDestroyUserDataFunction destroyCloseUserDataFunc;
 
 	/**
 	 * @brief The style of the window.

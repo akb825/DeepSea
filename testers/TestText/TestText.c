@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #include <DeepSea/Application/Application.h>
 #include <DeepSea/Application/Window.h>
 #include <DeepSea/ApplicationSDL/SDLApplication.h>
+
 #include <DeepSea/Core/Memory/SystemAllocator.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Assert.h>
@@ -24,9 +25,11 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Core/Timer.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Vector2.h>
+
 #include <DeepSea/Render/Resources/DrawGeometry.h>
 #include <DeepSea/Render/Resources/Framebuffer.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
@@ -43,12 +46,15 @@
 #include <DeepSea/Render/CommandBufferPool.h>
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderPass.h>
+
 #include <DeepSea/RenderBootstrap/RenderBootstrap.h>
+
 #include <DeepSea/Text/FaceGroup.h>
 #include <DeepSea/Text/Font.h>
 #include <DeepSea/Text/Text.h>
 #include <DeepSea/Text/TextLayout.h>
 #include <DeepSea/Text/TextRenderBuffer.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1173,7 +1179,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 		textInitialized = true;
 	}
 
-	DS_VERIFY(dsWindow_setDrawFunction(testText->window, &draw, testText));
+	DS_VERIFY(dsWindow_setDrawFunction(testText->window, &draw, testText, NULL));
 
 	dsAttachmentInfo attachment = {dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter,
 		renderer->surfaceColorFormat, DS_SURFACE_ANTIALIAS_SAMPLES};
