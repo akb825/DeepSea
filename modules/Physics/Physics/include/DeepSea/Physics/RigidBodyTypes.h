@@ -464,11 +464,12 @@ typedef bool (*dsDestroyRigidBodyFunction)(dsPhysicsEngine* engine, dsRigidBody*
  * @param rotate The rotation for the shape or NULL to leave unrotated.
  * @param scale The scale of the shape or NULL to leave unscaled.
  * @param density The density of the shape.
+ * @param material The material of the shape or NULL to use the material of the rigid body.
  * @return The ID for the added shape instance or DS_NO_PHYSICS_SHAPE_ID if it couldn't be added.
  */
 typedef uint32_t (*dsAddRigidBodyShapeFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
 	dsPhysicsShape* shape, const dsVector3f* translate, const dsQuaternion4f* rotate,
-	const dsVector3f* scale, float density);
+	const dsVector3f* scale, float density, const dsPhysicsShapePartMaterial* material);
 
 /**
  * @brief Function to set the transform for a shape within a rigid body.
@@ -483,6 +484,17 @@ typedef uint32_t (*dsAddRigidBodyShapeFunction)(dsPhysicsEngine* engine, dsRigid
 typedef bool (*dsSetRigidBodyShapeTransformFunction)(dsPhysicsEngine* engine,
 	dsRigidBody* rigidBody, uint32_t index, const dsVector3f* translate,
 	const dsQuaternion4f* rotate, const dsVector3f* scale);
+
+/**
+ * @brief Function to set the material for a shape within a rigid body.
+ * @param engine The physics engine the rigid body was created with.
+ * @param rigidBody The rigid body to shape set the shape material on.
+ * @param index The index of the shape.
+ * @param material The new material for the shape or NULL to use the rigid body's material.
+ * @return False if the material couldn't be changed.
+ */
+typedef bool (*dsSetRigidBodyShapeMaterialFunction)(dsPhysicsEngine* engine,
+	dsRigidBody* rigidBody, uint32_t index, const dsPhysicsShapePartMaterial* material);
 
 /**
  * @brief Function to remove a shape from a rigid body.

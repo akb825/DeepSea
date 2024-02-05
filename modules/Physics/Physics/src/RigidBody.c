@@ -30,6 +30,8 @@
 #include <DeepSea/Physics/PhysicsMassProperties.h>
 #include <DeepSea/Physics/RigidBodyInit.h>
 
+#include <string.h>
+
 #define MAX_STACK_MASS_PROPERTIES 256
 
 static bool hasMassProperties(const dsRigidBody* rigidBody)
@@ -112,8 +114,9 @@ static bool computeDefaultMassProperties(dsPhysicsMassProperties* outMassPropert
 #endif
 
 inline static bool getShapeMaterial(dsPhysicsShapePartMaterial* outMaterial,
-	const dsRigidBody* rigidBody, const dsPhysicsShape* shape, uint32_t faceIndex)
+	const dsRigidBody* rigidBody, const dsPhysicsShapeInstance* shapeInstance, uint32_t faceIndex)
 {
+	const dsPhysicsShape* shape = shapeInstance->shape;
 	const dsPhysicsShapeType* type = shape->type;
 	if (type->getMassPropertiesFunc)
 	{
@@ -123,9 +126,14 @@ inline static bool getShapeMaterial(dsPhysicsShapePartMaterial* outMaterial,
 			return false;
 	}
 
-	outMaterial->friction = rigidBody->friction;
-	outMaterial->restitution = rigidBody->restitution;
-	outMaterial->hardness = rigidBody->hardness;
+	if (shapeInstance->hasMaterial)
+		memcpy(outMaterial, &shapeInstance->material, sizeof(dsPhysicsShapePartMaterial));
+	else
+	{
+		outMaterial->friction = rigidBody->friction;
+		outMaterial->restitution = rigidBody->restitution;
+		outMaterial->hardness = rigidBody->hardness;
+	}
 	return true;
 }
 
@@ -155,12 +163,14 @@ dsRigidBody* dsRigidBody_create(dsPhysicsEngine* engine, dsAllocator* allocator,
 
 uint32_t dsRigidBody_addShape(dsRigidBody* rigidBody, dsPhysicsShape* shape,
 	const dsVector3f* translate, const dsQuaternion4f* rotate, const dsVector3f* scale,
-	float density)
+	float density, const dsPhysicsShapePartMaterial* material)
 {
 	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
 	if (!rigidBody || !actor->engine || !actor->engine->addRigidBodyShapeFunc || !shape ||
 		!shape->type || (scale && (scale->x == 0.0f || scale->y == 0.0f || scale->z == 0.0f)) ||
-		(density <= 0 && hasMassProperties(rigidBody)))
+		(density <= 0 && hasMassProperties(rigidBody)) || (material && (material->friction < 0.0f ||
+			material->restitution < 0.0f || material->restitution > 1.0f ||
+			material->hardness < 0.0f || material->hardness > 1.0f)))
 	{
 		errno = EINVAL;
 		return DS_NO_PHYSICS_SHAPE_ID;
@@ -202,7 +212,7 @@ uint32_t dsRigidBody_addShape(dsRigidBody* rigidBody, dsPhysicsShape* shape,
 
 	dsPhysicsEngine* engine = actor->engine;
 	uint32_t shapeID = engine->addRigidBodyShapeFunc(engine, rigidBody, shape, translate, rotate,
-		scale, density);
+		scale, density, material);
 	if (shapeID != DS_NO_PHYSICS_SHAPE_ID)
 		rigidBody->shapesFinalized = false;
 	return shapeID;
@@ -321,6 +331,68 @@ bool dsRigidBody_setShapeTransformIndex(dsRigidBody* rigidBody, uint32_t shapeIn
 	if (success)
 		rigidBody->shapesFinalized = false;
 	return success;
+}
+
+bool dsRigidBody_setShapeMaterialID(dsRigidBody* rigidBody, uint32_t shapeID,
+	const dsPhysicsShapePartMaterial* material)
+{
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyShapeMaterialFunc ||
+		(material && (material->friction < 0.0f || material->restitution < 0.0f ||
+			material->restitution > 1.0f || material->hardness < 0.0f ||
+			material->hardness > 1.0f)))
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	uint32_t index = 0;
+	const dsPhysicsShapeInstance* shape = NULL;
+	for (uint32_t i = 0; i < rigidBody->shapeCount; ++i)
+	{
+		if (rigidBody->shapes[i].id == shapeID)
+		{
+			index = i;
+			shape = rigidBody->shapes + i;
+			break;
+		}
+	}
+
+	if (!shape)
+	{
+		errno = ENOTFOUND;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = actor->engine;
+	return engine->setRigidBodyShapeMaterialFunc(engine, rigidBody, index, material);
+}
+
+bool dsRigidBody_setShapeMaterialIndex(dsRigidBody* rigidBody, uint32_t shapeIndex,
+	const dsPhysicsShapePartMaterial* material)
+{
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyShapeMaterialFunc ||
+		(material && (material->friction < 0.0f || material->restitution < 0.0f ||
+			material->restitution > 1.0f || material->hardness < 0.0f ||
+			material->hardness > 1.0f)))
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (shapeIndex >= rigidBody->shapeCount)
+	{
+		errno = EINDEX;
+		return false;
+	}
+	{
+		errno = ENOTFOUND;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = actor->engine;
+	return engine->setRigidBodyShapeMaterialFunc(engine, rigidBody, shapeIndex, material);
 }
 
 bool dsRigidBody_removeShapeID(dsRigidBody* rigidBody, uint32_t shapeID)
@@ -508,7 +580,7 @@ bool dsRigidBody_getShapeMaterialID(dsPhysicsShapePartMaterial* outMaterial,
 	{
 		const dsPhysicsShapeInstance* shape = rigidBody->shapes + i;
 		if (shape->id == shapeID)
-			return getShapeMaterial(outMaterial, rigidBody, shape->shape, faceIndex);
+			return getShapeMaterial(outMaterial, rigidBody, shape, faceIndex);
 	}
 
 	errno = ENOTFOUND;
@@ -530,7 +602,7 @@ bool dsRigidBody_getShapeMaterialIndex(dsPhysicsShapePartMaterial* outMaterial,
 		return false;
 	}
 
-	return getShapeMaterial(outMaterial, rigidBody, rigidBody->shapes[shapeIndex].shape, faceIndex);
+	return getShapeMaterial(outMaterial, rigidBody, rigidBody->shapes + shapeIndex, faceIndex);
 }
 
 bool dsRigidBody_addFlags(dsRigidBody* rigidBody, dsRigidBodyFlags flags)

@@ -957,6 +957,11 @@ struct dsPhysicsEngine
 	dsSetRigidBodyShapeTransformFunction setRigidBodyShapeTransformFunc;
 
 	/**
+	 * @brief Function to set the material of a shape on a rigid body.
+	 */
+	dsSetRigidBodyShapeMaterialFunction setRigidBodyShapeMaterialFunc;
+
+	/**
 	 * @brief Function to remove a shape from a rigid body.
 	 */
 	dsRemoveRigidBodyShapeFunction removeRigidBodyShapeFunc;

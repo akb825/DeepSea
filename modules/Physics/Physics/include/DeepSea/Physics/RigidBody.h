@@ -60,11 +60,13 @@ DS_PHYSICS_EXPORT dsRigidBody* dsRigidBody_create(dsPhysicsEngine* engine, dsAll
  * @param scale The scale of the shape or NULL to leave unscaled. No dimension of scale may be 0.
  * @param density The density of the shape. This will be ignored if the motion type is not dynamic
  *     and dsRigidBodyFlags_MutableShape is not set, otherwise it must be > 0.
+ * @param material The material for the shape or NULL to use the rigid body's material. This will be
+ *     ignored if the shape has per-face materials.
  * @return The ID of the shape or DS_NO_PHYSICS_SHAPE_ID if the shape couldn't be added.
  */
 DS_PHYSICS_EXPORT uint32_t dsRigidBody_addShape(dsRigidBody* rigidBody, dsPhysicsShape* shape,
 	const dsVector3f* translate, const dsQuaternion4f* rotate, const dsVector3f* scale,
-	float density);
+	float density, const dsPhysicsShapePartMaterial* material);
 
 /**
  * @brief Sets the transform for a shape on a rigid body.
@@ -104,6 +106,32 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setShapeTransformID(dsRigidBody* rigidBody, u
 DS_PHYSICS_EXPORT bool dsRigidBody_setShapeTransformIndex(dsRigidBody* rigidBody,
 	uint32_t shapeIndex, const dsVector3f* translate, const dsQuaternion4f* rotate,
 	const dsVector3f* scale);
+
+/**
+ * @brief Sets the material for a shape on a rigid body.
+ * @remark This may be called even if the dsRigidBodyFlags_MutableShape flag isn't set.
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to set the shape material on.
+ * @param shapeID The ID of the shape to set the material on.
+ * @param material The material for the shape or NULL to use the rigid body's material. This will be
+ *     ignored if the shape has per-face materials.
+ * @return False if the transform couldn't be set on the shape.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_setShapeMaterialID(dsRigidBody* rigidBody, uint32_t shapeID,
+	const dsPhysicsShapePartMaterial* material);
+
+/**
+ * @brief Sets the material for a shape on a rigid body.
+ * @remark This may be called even if the dsRigidBodyFlags_MutableShape flag isn't set.
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to set the shape material on.
+ * @param shapeIndex The index of the shape to set the transform on.
+ * @param material The material for the shape or NULL to use the rigid body's material. This will be
+ *     ignored if the shape has per-face materials.
+ * @return False if the transform couldn't be set on the shape.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_setShapeMaterialIndex(dsRigidBody* rigidBody,
+	uint32_t shapeIndex, const dsPhysicsShapePartMaterial* material);
 
 /**
  * @brief Removes a shape from a rigid body.

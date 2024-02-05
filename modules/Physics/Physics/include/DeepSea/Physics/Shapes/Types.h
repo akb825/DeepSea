@@ -274,6 +274,11 @@ typedef struct dsPhysicsShapeInstance
 	bool hasScale;
 
 	/**
+	 * @brief Whether the material should be used.
+	 */
+	bool hasMaterial;
+
+	/**
 	 * @brief The translation for the shape.
 	 */
 	dsVector3f translate;
@@ -287,6 +292,11 @@ typedef struct dsPhysicsShapeInstance
 	 * @brief The rotation for the shape.
 	 */
 	dsQuaternion4f rotate;
+
+	/**
+	 * @brief The material to use for the shape.
+	 */
+	dsPhysicsShapePartMaterial material;
 } dsPhysicsShapeInstance;
 
 /**
