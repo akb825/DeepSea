@@ -46,16 +46,19 @@ DS_PHYSICS_EXPORT bool dsPhysicsActorContactManifold_getContactPoint(
 	uint32_t index);
 
 /**
- * @brief Gets contact properties for a contact manifold.
+ * @brief Gets the default contact properties for a contact point.
+ *
+ * These are the contact properties that are used if they aren't explicitly updated.
+ *
  * @remark errno will be set on failure.
  * @param[out] outProperties The storage for the contact properties.
  * @param manifold The contact manifold to get the contact properties for.
- * @param index The index of the contact properties.
+ * @param point The contact point to get the contact properties for.
  * @return False if the contact properties couldn't be queried.
  */
-DS_PHYSICS_EXPORT bool dsPhysicsActorContactManifold_getContactProperties(
+DS_PHYSICS_EXPORT bool dsPhysicsActorContactManifold_getDefaultContactProperties(
 	dsPhysicsActorContactProperties* outProperties, const dsPhysicsActorContactManifold* manifold,
-	uint32_t index);
+	const dsPhysicsActorContactPoint* point);
 
 /**
  * @brief Sets contact properties for a contact manifold.

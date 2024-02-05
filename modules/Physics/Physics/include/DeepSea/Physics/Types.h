@@ -109,9 +109,9 @@ typedef struct dsPhysicsActorContactPoint
 typedef struct dsPhysicsActorContactManifold
 {
 	/**
-	 * @brief The physics engine the contact manifold was created with.
+	 * @brief The physics scene the contact manifold was created with.
 	 */
-	dsPhysicsEngine* engine;
+	dsPhysicsScene* scene;
 
 	/**
 	 * @brief The first actor for the contact.
@@ -266,8 +266,11 @@ typedef void (*dsPhysicsActorContactManifoldFunction)(dsPhysicsScene* scene,
  * @param scene The physics scene the event came from.
  * @param manifold The contact manifold to update the properties on.
  * @param userData User data supplied for the event.
+ * @return True if the properties were updated, in which case the implementation will assume all
+ *     properties were set on the manifold, or false if the properties were left unchanged, in which
+ *     case the implementation will assume the defaults should be used for all properties.
  */
-typedef void (*dsUpdatePhysicsActorContactPropertiesFunction)(dsPhysicsScene* scene,
+typedef bool (*dsUpdatePhysicsActorContactPropertiesFunction)(dsPhysicsScene* scene,
 	dsPhysicsActorContactManifold* manifold, void* userData);
 
 /**
@@ -689,18 +692,6 @@ typedef bool (*dsGetPhysicsActorContactPointFunction)(dsPhysicsActorContactPoint
 	dsPhysicsEngine* engine, const dsPhysicsActorContactManifold* manifold, uint32_t index);
 
 /**
- * @brief Function to get contact properties within a contact manifold.
- * @param[out] outProperties Storage for the contact properties.
- * @param engine The physics engine the contact manifold was created with.
- * @param manifold The contact manifold to get the contact properties from.
- * @param index The index of the contact properties.
- * @return False if the contact properties couldn't be queried.
- */
-typedef bool (*dsGetPhysicsActorContactPropertiesFunction)(
-	dsPhysicsActorContactProperties* outProperties, dsPhysicsEngine* engine,
-	const dsPhysicsActorContactManifold* manifold, uint32_t index);
-
-/**
  * @brief Function to set contact properties within a contact manifold.
  * @param engine The physics engine the contact manifold was created with.
  * @param manifold The contact manifold to set the contact properties on.
@@ -826,11 +817,6 @@ struct dsPhysicsEngine
 	 * @brief Function to get a contact point from a contact manifold.
 	 */
 	dsGetPhysicsActorContactPointFunction getPhysicsActorContactPointFunc;
-
-	/**
-	 * @brief Function to get contact properties from a contact manifold.
-	 */
-	dsGetPhysicsActorContactPropertiesFunction getPhysicsActorContactPropertiesFunc;
 
 	/**
 	 * @brief Function to set contact properties on a contact manifold.

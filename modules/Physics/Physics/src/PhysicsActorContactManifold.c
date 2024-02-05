@@ -17,12 +17,13 @@
 #include <DeepSea/Physics/PhysicsActorContactManifold.h>
 
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Physics/RigidBody.h>
 
 bool dsPhysicsActorContactManifold_getContactPoint(dsPhysicsActorContactPoint* outPoint,
 	const dsPhysicsActorContactManifold* manifold, uint32_t index)
 {
-	if (!outPoint || !manifold || !manifold->engine ||
-		!manifold->engine->getPhysicsActorContactPointFunc)
+	if (!outPoint || !manifold || !manifold->scene || !manifold->scene->engine ||
+		!manifold->scene->engine->getPhysicsActorContactPointFunc)
 	{
 		errno = EINVAL;
 		return false;
@@ -34,42 +35,74 @@ bool dsPhysicsActorContactManifold_getContactPoint(dsPhysicsActorContactPoint* o
 		return false;
 	}
 
-	dsPhysicsEngine* engine = manifold->engine;
+	dsPhysicsEngine* engine = manifold->scene->engine;
 	return engine->getPhysicsActorContactPointFunc(outPoint, engine, manifold, index);
 }
 
-bool dsPhysicsActorContactManifold_getContactProperties(
+bool dsPhysicsActorContactManifold_getDefaultContactProperties(
 	dsPhysicsActorContactProperties* outProperties, const dsPhysicsActorContactManifold* manifold,
-	uint32_t index)
+	const dsPhysicsActorContactPoint* point)
 {
-	if (!outProperties || !manifold || !manifold->engine ||
-		!manifold->engine->getPhysicsActorContactPropertiesFunc)
+	if (!outProperties || !manifold || !manifold->scene || !manifold->scene->combineFrictionFunc ||
+		!manifold->scene->combineRestitutionFunc || !manifold->actorA || !manifold->actorB ||
+		!point)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	if (index >= manifold->contactPropertiesCount)
+	dsPhysicsShapePartMaterial materialA;
+	switch (manifold->actorA->type)
 	{
-		errno = EINDEX;
-		return false;
+		case dsPhysicsActorType_RigidBody:
+			if (!dsRigidBody_getShapeMaterialIndex(&materialA, (const dsRigidBody*)manifold->actorA,
+					point->shapeIndexA, point->faceIndexA))
+			{
+				return false;
+			}
+			break;
+		default:
+			errno = EPERM;
+			return false;
 	}
 
-	dsPhysicsEngine* engine = manifold->engine;
-	return engine->getPhysicsActorContactPropertiesFunc(outProperties, engine, manifold, index);
+	dsPhysicsShapePartMaterial materialB;
+	switch (manifold->actorB->type)
+	{
+		case dsPhysicsActorType_RigidBody:
+			if (!dsRigidBody_getShapeMaterialIndex(&materialB, (const dsRigidBody*)manifold->actorB,
+					point->shapeIndexB, point->faceIndexB))
+			{
+				return false;
+			}
+			break;
+		default:
+			errno = EPERM;
+			return false;
+	}
+
+	dsPhysicsScene* scene = manifold->scene;
+	outProperties->combinedFriction =
+		scene->combineFrictionFunc(materialA.friction, materialB.friction);
+	outProperties->combinedRestitution = scene->combineRestitutionFunc(materialA.restitution,
+		materialA.hardness, materialB.friction, materialB.hardness);
+	outProperties->targetVelocity.x = outProperties->targetVelocity.y =
+		outProperties->targetVelocity.z = 0.0f;
+	return true;
 }
 
 bool dsPhysicsActorContactManifold_setContactSetting(dsPhysicsActorContactManifold* manifold,
 	uint32_t index, const dsPhysicsActorContactProperties* properties)
 {
-	if (!manifold || !manifold->engine || !manifold->engine->setPhysicsActorContactPropertiesFunc ||
-		!properties || properties->combinedFriction < 0.0f ||
-		properties->combinedRestitution < 0.0f || properties->combinedRestitution > 1.0f)
+	if (!manifold || !manifold->scene || !manifold->scene->engine ||
+		!manifold->scene->engine->setPhysicsActorContactPropertiesFunc || !properties ||
+		properties->combinedFriction < 0.0f || properties->combinedRestitution < 0.0f ||
+		properties->combinedRestitution > 1.0f)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	dsPhysicsEngine* engine = manifold->engine;
+	dsPhysicsEngine* engine = manifold->scene->engine;
 	return engine->setPhysicsActorContactPropertiesFunc(engine, manifold, index, properties);
 }
