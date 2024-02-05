@@ -49,7 +49,7 @@ static bool hasMassProperties(const dsRigidBody* rigidBody)
 static bool computeDefaultMassProperties(dsPhysicsMassProperties* outMassProperties,
 	const dsRigidBody* rigidBody)
 {
-	dsAllocator* scratchAllocator = rigidBody->engine->allocator;
+	dsAllocator* scratchAllocator = ((const dsPhysicsActor*)rigidBody)->engine->allocator;
 	bool heapMassProperties = rigidBody->shapeCount > MAX_STACK_MASS_PROPERTIES;
 	dsPhysicsMassProperties* shapeMassProperties;
 	const dsPhysicsMassProperties** massPropertiesPtrs;
@@ -157,7 +157,8 @@ uint32_t dsRigidBody_addShape(dsRigidBody* rigidBody, dsPhysicsShape* shape,
 	const dsVector3f* translate, const dsQuaternion4f* rotate, const dsVector3f* scale,
 	float density)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->addRigidBodyShapeFunc || !shape ||
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->addRigidBodyShapeFunc || !shape ||
 		!shape->type || (scale && (scale->x == 0.0f || scale->y == 0.0f || scale->z == 0.0f)) ||
 		(density <= 0 && hasMassProperties(rigidBody)))
 	{
@@ -199,7 +200,7 @@ uint32_t dsRigidBody_addShape(dsRigidBody* rigidBody, dsPhysicsShape* shape,
 		return DS_NO_PHYSICS_SHAPE_ID;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	uint32_t shapeID = engine->addRigidBodyShapeFunc(engine, rigidBody, shape, translate, rotate,
 		scale, density);
 	if (shapeID != DS_NO_PHYSICS_SHAPE_ID)
@@ -210,7 +211,8 @@ uint32_t dsRigidBody_addShape(dsRigidBody* rigidBody, dsPhysicsShape* shape,
 bool dsRigidBody_setShapeTransformID(dsRigidBody* rigidBody, uint32_t shapeID,
 	const dsVector3f* translate, const dsQuaternion4f* rotate, const dsVector3f* scale)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyShapeTransformFunc ||
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyShapeTransformFunc ||
 		(scale && (scale->x == 0.0f || scale->y == 0.0f || scale->z == 0.0f)))
 	{
 		errno = EINVAL;
@@ -261,7 +263,7 @@ bool dsRigidBody_setShapeTransformID(dsRigidBody* rigidBody, uint32_t shapeID,
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	bool success = engine->setRigidBodyShapeTransformFunc(
 		engine, rigidBody, index, translate, rotate, scale);
 	if (success)
@@ -272,7 +274,8 @@ bool dsRigidBody_setShapeTransformID(dsRigidBody* rigidBody, uint32_t shapeID,
 bool dsRigidBody_setShapeTransformIndex(dsRigidBody* rigidBody, uint32_t shapeIndex,
 	const dsVector3f* translate, const dsQuaternion4f* rotate, const dsVector3f* scale)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyShapeTransformFunc ||
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyShapeTransformFunc ||
 		(scale && (scale->x == 0.0f || scale->y == 0.0f || scale->z == 0.0f)))
 	{
 		errno = EINVAL;
@@ -312,7 +315,7 @@ bool dsRigidBody_setShapeTransformIndex(dsRigidBody* rigidBody, uint32_t shapeIn
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	bool success = engine->setRigidBodyShapeTransformFunc(
 		engine, rigidBody, shapeIndex, translate, rotate, scale);
 	if (success)
@@ -322,7 +325,8 @@ bool dsRigidBody_setShapeTransformIndex(dsRigidBody* rigidBody, uint32_t shapeIn
 
 bool dsRigidBody_removeShapeID(dsRigidBody* rigidBody, uint32_t shapeID)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->removeRigidBodyShapeFunc)
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->removeRigidBodyShapeFunc)
 	{
 		errno = EINVAL;
 		return false;
@@ -352,7 +356,7 @@ bool dsRigidBody_removeShapeID(dsRigidBody* rigidBody, uint32_t shapeID)
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	bool success = engine->removeRigidBodyShapeFunc(engine, rigidBody, index);
 	if (success)
 		rigidBody->shapesFinalized = false;
@@ -361,7 +365,8 @@ bool dsRigidBody_removeShapeID(dsRigidBody* rigidBody, uint32_t shapeID)
 
 bool dsRigidBody_removeShapeIndex(dsRigidBody* rigidBody, uint32_t shapeIndex)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->removeRigidBodyShapeFunc)
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->removeRigidBodyShapeFunc)
 	{
 		errno = EINVAL;
 		return false;
@@ -381,7 +386,7 @@ bool dsRigidBody_removeShapeIndex(dsRigidBody* rigidBody, uint32_t shapeIndex)
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	bool success = engine->removeRigidBodyShapeFunc(engine, rigidBody, shapeIndex);
 	if (success)
 		rigidBody->shapesFinalized = false;
@@ -411,7 +416,8 @@ bool dsRigidBody_computeDefaultMassProperties(dsPhysicsMassProperties* outMassPr
 bool dsRigidBody_finalizeShapes(dsRigidBody* rigidBody, const float* mass,
 	const dsVector3f* rotationPointShift)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->finalizeRigidBodyShapesFunc ||
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->finalizeRigidBodyShapesFunc ||
 		(mass && mass <= 0))
 	{
 		errno = EINVAL;
@@ -448,7 +454,7 @@ bool dsRigidBody_finalizeShapes(dsRigidBody* rigidBody, const float* mass,
 	else
 		DS_VERIFY(dsPhysicsMassProperties_initializeEmpty(&massProperties));
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	bool success = engine->finalizeRigidBodyShapesFunc(engine, rigidBody, &massProperties);
 	if (success)
 		rigidBody->shapesFinalized = true;
@@ -458,7 +464,8 @@ bool dsRigidBody_finalizeShapes(dsRigidBody* rigidBody, const float* mass,
 bool dsRigidBody_finalizeShapesCustomMassProperties(dsRigidBody* rigidBody,
 	const dsPhysicsMassProperties* massProperties)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->finalizeRigidBodyShapesFunc ||
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->finalizeRigidBodyShapesFunc ||
 		!massProperties)
 	{
 		errno = EINVAL;
@@ -481,7 +488,7 @@ bool dsRigidBody_finalizeShapesCustomMassProperties(dsRigidBody* rigidBody,
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	bool success = engine->finalizeRigidBodyShapesFunc(engine, rigidBody, massProperties);
 	if (success)
 		rigidBody->shapesFinalized = true;
@@ -528,7 +535,8 @@ bool dsRigidBody_getShapeMaterialIndex(dsPhysicsShapePartMaterial* outMaterial,
 
 bool dsRigidBody_addFlags(dsRigidBody* rigidBody, dsRigidBodyFlags flags)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyFlagsFunc)
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyFlagsFunc)
 	{
 		errno = EINVAL;
 		return false;
@@ -550,13 +558,14 @@ bool dsRigidBody_addFlags(dsRigidBody* rigidBody, dsRigidBodyFlags flags)
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->setRigidBodyFlagsFunc(engine, rigidBody, rigidBody->flags | flags);
 }
 
 bool dsRigidBody_removeFlags(dsRigidBody* rigidBody, dsRigidBodyFlags flags)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyFlagsFunc)
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyFlagsFunc)
 	{
 		errno = EINVAL;
 		return false;
@@ -578,13 +587,14 @@ bool dsRigidBody_removeFlags(dsRigidBody* rigidBody, dsRigidBodyFlags flags)
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->setRigidBodyFlagsFunc(engine, rigidBody, rigidBody->flags & (~flags));
 }
 
 bool dsRigidBody_setMotionType(dsRigidBody* rigidBody, dsPhysicsMotionType motionType)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyMotionTypeFunc)
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyMotionTypeFunc)
 	{
 		errno = EINVAL;
 		return false;
@@ -601,52 +611,55 @@ bool dsRigidBody_setMotionType(dsRigidBody* rigidBody, dsPhysicsMotionType motio
 	if (rigidBody->motionType == motionType)
 		return true;
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->setRigidBodyMotionTypeFunc(engine, rigidBody, motionType);
 }
 
 bool dsRigidBody_setDOFMask(dsRigidBody* rigidBody, dsPhysicsDOFMask dofMask)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyDOFMaskFunc)
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyDOFMaskFunc)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->setRigidBodyDOFMaskFunc(engine, rigidBody, dofMask);
 }
 
 bool dsRigidBody_setCollisionGroup(dsRigidBody* rigidBody, uint64_t collisionGroup)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyCollisionGroupFunc)
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyCollisionGroupFunc)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->setRigidBodyCollisionGroupFunc(engine, rigidBody, collisionGroup);
 }
 
 bool dsRigidBody_setCanCollisionGroupsCollideFunction(dsRigidBody* rigidBody,
 	dsCanCollisionGroupsCollideFunction canCollideFunc)
 {
-	if (!rigidBody || !rigidBody->engine ||
-		!rigidBody->engine->setRigidBodyCanCollisionGroupsCollideFunc)
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyCanCollisionGroupsCollideFunc)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->setRigidBodyCanCollisionGroupsCollideFunc(engine, rigidBody, canCollideFunc);
 }
 
 bool dsRigidBody_setTransform(dsRigidBody* rigidBody, const dsVector3f* position,
 	const dsQuaternion4f* orientation, const dsVector3f* scale)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyTransformFunc ||
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyTransformFunc ||
 		(scale && (scale->x == 0.0f || scale->y == 0.0f || scale->z == 0.0f)))
 	{
 		errno = EINVAL;
@@ -688,7 +701,7 @@ bool dsRigidBody_setTransform(dsRigidBody* rigidBody, const dsVector3f* position
 		}
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->setRigidBodyTransformFunc(engine, rigidBody, position, orientation, scale);
 }
 
@@ -720,8 +733,8 @@ bool dsRigidBody_getTransformMatrix(dsMatrix44f* outTransform, const dsRigidBody
 
 bool dsRigidBody_setTransformMatrix(dsRigidBody* rigidBody, const dsMatrix44f* transform)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyTransformFunc ||
-		!transform)
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyTransformFunc || !transform)
 	{
 		errno = EINVAL;
 		return false;
@@ -798,7 +811,7 @@ bool dsRigidBody_setTransformMatrix(dsRigidBody* rigidBody, const dsMatrix44f* t
 		dsQuaternion4f_fromMatrix33(&orientation, &rotationMatrix);
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->setRigidBodyTransformFunc(engine, rigidBody,
 		(const dsVector3f*)(transform->columns + 3), &orientation, scalePtr);
 }
@@ -835,7 +848,8 @@ bool dsRigidBody_getWorldRotationPosition(dsVector3f* outPosition, const dsRigid
 
 bool dsRigidBody_setMass(dsRigidBody* rigidBody, float mass)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyMassFunc || mass <= 0)
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyMassFunc || mass <= 0)
 	{
 		errno = EINVAL;
 		return false;
@@ -857,7 +871,7 @@ bool dsRigidBody_setMass(dsRigidBody* rigidBody, float mass)
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	bool success = engine->setRigidBodyMassFunc(engine, rigidBody, mass);
 	if (success)
 		DS_VERIFY(dsPhysicsMassProperties_setMass(&rigidBody->massProperties, mass));
@@ -866,98 +880,106 @@ bool dsRigidBody_setMass(dsRigidBody* rigidBody, float mass)
 
 bool dsRigidBody_setFriction(dsRigidBody* rigidBody, float friction)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyFrictionFunc ||
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyFrictionFunc ||
 		friction < 0)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->setRigidBodyFrictionFunc(engine, rigidBody, friction);
 }
 
 bool dsRigidBody_setRestitution(dsRigidBody* rigidBody, float restitution)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyRestitutionFunc ||
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyRestitutionFunc ||
 		restitution < 0 || restitution > 1)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->setRigidBodyRestitutionFunc(engine, rigidBody, restitution);
 }
 
 bool dsRigidBody_setHardness(dsRigidBody* rigidBody, float hardness)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyHardnessFunc ||
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyHardnessFunc ||
 		hardness < 0 || hardness > 1)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->setRigidBodyHardnessFunc(engine, rigidBody, hardness);
 }
 
 bool dsRigidBody_setLinearDamping(dsRigidBody* rigidBody, float linearDamping)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyLinearDampingFunc ||
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyLinearDampingFunc ||
 		linearDamping < 0)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->setRigidBodyLinearDampingFunc(engine, rigidBody, linearDamping);
 }
 
 bool dsRigidBody_setAngularDamping(dsRigidBody* rigidBody, float angularDamping)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyAngularDampingFunc ||
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyAngularDampingFunc ||
 		angularDamping < 0)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->setRigidBodyAngularDampingFunc(engine, rigidBody, angularDamping);
 }
 
 bool dsRigidBody_setMaxLinearVelocity(dsRigidBody* rigidBody, float maxLinearVelocity)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyMaxLinearVelocityFunc ||
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyMaxLinearVelocityFunc ||
 		maxLinearVelocity < 0)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->setRigidBodyMaxLinearVelocityFunc(engine, rigidBody, maxLinearVelocity);
 }
 
 bool dsRigidBody_setMaxAngularVelocity(dsRigidBody* rigidBody, float maxAngularVelocity)
 {
-	if (!rigidBody || !rigidBody->engine ||
-		!rigidBody->engine->setRigidBodyMaxAngularVelocityFunc || maxAngularVelocity < 0)
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyMaxAngularVelocityFunc ||
+		maxAngularVelocity < 0)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->setRigidBodyMaxAngularVelocityFunc(engine, rigidBody, maxAngularVelocity);
 }
 
 bool dsRigidBody_addForce(dsRigidBody* rigidBody, const dsVector3f* force)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->addRigidBodyForceFunc || !force)
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->addRigidBodyForceFunc || !force)
 	{
 		errno = EINVAL;
 		return false;
@@ -979,15 +1001,16 @@ bool dsRigidBody_addForce(dsRigidBody* rigidBody, const dsVector3f* force)
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->addRigidBodyForceFunc(engine, rigidBody, force);
 }
 
 bool dsRigidBody_addForceAtPoint(dsRigidBody* rigidBody, const dsVector3f* force,
 	const dsVector3f* point)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->addRigidBodyForceFunc ||
-		!rigidBody->engine->addRigidBodyTorqueFunc || !force || !point)
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->addRigidBodyForceFunc ||
+		!actor->engine->addRigidBodyTorqueFunc || !force || !point)
 	{
 		errno = EINVAL;
 		return false;
@@ -1018,14 +1041,15 @@ bool dsRigidBody_addForceAtPoint(dsRigidBody* rigidBody, const dsVector3f* force
 	dsVector3_sub(relativePos, *point, rotationPos);
 	dsVector3_cross(torque, relativePos, *force);
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->addRigidBodyForceFunc(engine, rigidBody, force) &&
 		engine->addRigidBodyTorqueFunc(engine, rigidBody, &torque);
 }
 
 bool dsRigidBody_clearForce(dsRigidBody* rigidBody)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->clearRigidBodyForceFunc)
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->clearRigidBodyForceFunc)
 	{
 		errno = EINVAL;
 		return false;
@@ -1047,13 +1071,14 @@ bool dsRigidBody_clearForce(dsRigidBody* rigidBody)
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->clearRigidBodyForceFunc(engine, rigidBody);
 }
 
 bool dsRigidBody_addTorque(dsRigidBody* rigidBody, const dsVector3f* torque)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->addRigidBodyTorqueFunc || !torque)
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->addRigidBodyTorqueFunc || !torque)
 	{
 		errno = EINVAL;
 		return false;
@@ -1075,13 +1100,14 @@ bool dsRigidBody_addTorque(dsRigidBody* rigidBody, const dsVector3f* torque)
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->addRigidBodyTorqueFunc(engine, rigidBody, torque);
 }
 
 bool dsRigidBody_clearTorque(dsRigidBody* rigidBody)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->clearRigidBodyTorqueFunc)
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->clearRigidBodyTorqueFunc)
 	{
 		errno = EINVAL;
 		return false;
@@ -1103,14 +1129,14 @@ bool dsRigidBody_clearTorque(dsRigidBody* rigidBody)
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->clearRigidBodyTorqueFunc(engine, rigidBody);
 }
 
 bool dsRigidBody_addLinearImpulse(dsRigidBody* rigidBody, const dsVector3f* impulse)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->addRigidBodyLinearImpulseFunc ||
-		!impulse)
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->addRigidBodyLinearImpulseFunc || !impulse)
 	{
 		errno = EINVAL;
 		return false;
@@ -1132,13 +1158,14 @@ bool dsRigidBody_addLinearImpulse(dsRigidBody* rigidBody, const dsVector3f* impu
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->addRigidBodyLinearImpulseFunc(engine, rigidBody, impulse);
 }
 
 bool dsRigidBody_clearLinearImpulse(dsRigidBody* rigidBody)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->clearRigidBodyLinearImpulseFunc)
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->clearRigidBodyLinearImpulseFunc)
 	{
 		errno = EINVAL;
 		return false;
@@ -1160,14 +1187,14 @@ bool dsRigidBody_clearLinearImpulse(dsRigidBody* rigidBody)
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->clearRigidBodyLinearImpulseFunc(engine, rigidBody);
 }
 
 bool dsRigidBody_addAngularImpulse(dsRigidBody* rigidBody, const dsVector3f* impulse)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->addRigidBodyAngularImpulseFunc ||
-		!impulse)
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->addRigidBodyAngularImpulseFunc || !impulse)
 	{
 		errno = EINVAL;
 		return false;
@@ -1189,13 +1216,14 @@ bool dsRigidBody_addAngularImpulse(dsRigidBody* rigidBody, const dsVector3f* imp
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->addRigidBodyAngularImpulseFunc(engine, rigidBody, impulse);
 }
 
 bool dsRigidBody_clearAngularImpulse(dsRigidBody* rigidBody)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->clearRigidBodyAngularImpulseFunc)
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->clearRigidBodyAngularImpulseFunc)
 	{
 		errno = EINVAL;
 		return false;
@@ -1217,25 +1245,27 @@ bool dsRigidBody_clearAngularImpulse(dsRigidBody* rigidBody)
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->clearRigidBodyAngularImpulseFunc(engine, rigidBody);
 }
 
 bool dsRigidBody_getActive(const dsRigidBody* rigidBody)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->getRigidBodyActiveFunc ||
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->getRigidBodyActiveFunc ||
 		!rigidBody->shapesFinalized)
 	{
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->getRigidBodyActiveFunc(engine, rigidBody);
 }
 
 bool dsRigidBody_setActive(dsRigidBody* rigidBody, bool active)
 {
-	if (!rigidBody || !rigidBody->engine || !rigidBody->engine->setRigidBodyActiveFunc)
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyActiveFunc)
 	{
 		errno = EINVAL;
 		return false;
@@ -1249,7 +1279,7 @@ bool dsRigidBody_setActive(dsRigidBody* rigidBody, bool active)
 		return false;
 	}
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = actor->engine;
 	return engine->setRigidBodyActiveFunc(engine, rigidBody, active);
 }
 
@@ -1258,7 +1288,7 @@ bool dsRigidBody_destroy(dsRigidBody* rigidBody)
 	if (!rigidBody)
 		return true;
 
-	dsPhysicsEngine* engine = rigidBody->engine;
+	dsPhysicsEngine* engine = ((dsPhysicsActor*)rigidBody)->engine;
 	if (!engine || !engine->destroyRigidBodyFunc)
 	{
 		errno = EINVAL;

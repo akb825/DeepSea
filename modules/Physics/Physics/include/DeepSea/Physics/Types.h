@@ -37,6 +37,137 @@ extern "C"
 #define DS_PHYSICS_LOG_TAG "physics"
 
 /**
+ * @brief Struct containing the information for a point of contact between two physics actors.
+ * @see dsPhysicsActorContactManifold
+ * @see PhysicsActorContactManifold.h
+ */
+typedef struct dsPhysicsActorContactPoint
+{
+	/**
+	 * @brief The index of the shape on the first actor.
+	 */
+	uint32_t shapeIndexA;
+
+	/**
+	 * @brief The index of the face on the shape of the first actor.
+	 */
+	uint32_t faceIndexA;
+
+	/**
+	 * @brief The index of the shape on the second actor.
+	 */
+	uint32_t shapeIndexB;
+
+	/**
+	 * @brief The index of the face on the shape of the second actor.
+	 */
+	uint32_t faceIndexB;
+
+	/**
+	 * @brief The point on the first actor.
+	 */
+	dsVector3f pointA;
+
+	/**
+	 * @brief The point on the second actor.
+	 */
+	dsVector3f pointB;
+
+	/**
+	 * @brief The normal relative to the first actor.
+	 *
+	 * Negate to have the normal relative to the second actor.
+	 */
+	dsVector3f normal;
+
+	/**
+	 * @brief The signed distance between the points.
+	 *
+	 * A negative value indicates that the actors inter-penetrate.
+	 */
+	float distance;
+} dsPhysicsActorContactPoint;
+
+/**
+ * @brief Struct holding the contacts for a pair of physics actors.
+ *
+ * Depending on the implementation, there may either be a single contact manifold between a pair of
+ * actors or multiple. Therefore, it should not be assumed that when a contact manifold is added or
+ * removed that it is the first or last contact between the actor pair.
+ *
+ * When modifying contact points, contactSettingCount will be non-zero, in which case the properties
+ * such as combined friction and restitution may be set. The manifold may not necessarily be the
+ * same between modifying the contact properties and responding to contact events.
+ *
+ * Physics implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsPhysiscActorContactProperties and the true internal type.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ * @see PhysicsActorContactManifold.h
+ */
+typedef struct dsPhysicsActorContactManifold
+{
+	/**
+	 * @brief The physics engine the contact manifold was created with.
+	 */
+	dsPhysicsEngine* engine;
+
+	/**
+	 * @brief The first actor for the contact.
+	 */
+	const dsPhysicsActor* actorA;
+
+	/**
+	 * @brief The second actor for the contact.
+	 */
+	const dsPhysicsActor* actorB;
+
+	/**
+	 * @brief The number of contact points.
+	 */
+	uint32_t pointCount;
+
+	/**
+	 * @brief The number of contact properties that may be modified.
+	 *
+	 * The contact properties include the combined friction and restitution values.
+	 *
+	 * This will be one of the following values:
+	 * - 0: the contact properties may not be set, this is for responding to events only.
+	 * - 1: Only a single set of contact properties is maintained for all the contact points in this
+	 *   manifold. All of the points in the manifold will have the same shape and face indices. In
+	 *   this case, the callback need only set the contact properties once for all points.
+	 * - pointCount: the contact properties are maintained separately for each point. In this case,
+	 *   the shape and face indices may differ for each point and the callback should set the
+	 *   contact properties for all points.
+	 */
+	uint32_t contactPropertiesCount;
+} dsPhysicsActorContactManifold;
+
+/**
+ * @brief Struct describing the contact properties between two physics actors.
+ * @see PhysicsActorContactManifold.h
+ */
+typedef struct dsPhysicsActorContactProperties
+{
+	/**
+	 * @brief The friction between both actors at the contact.
+	 */
+	float combinedFriction;
+
+	/**
+	 * @brief The restitution between both actors at the contact.
+	 */
+	float combinedRestitution;
+
+	/**
+	 * @brief The target velocity relative to the first actor.
+	 */
+	dsVector3f targetVelocity;
+} dsPhysicsActorContactProperties;
+
+/**
  * @brief Struct describing limits for objects within a scene.
  *
  * Some implementations may view these as strict upper limits, others may use them as hints to
@@ -122,6 +253,24 @@ typedef float (*dsCombineRestitutionFunction)(float restitutionA, float hardness
 	float restitutionB, float hardnessB);
 
 /**
+ * @brief Function to respond to physics actor contact manifold events.
+ * @param scene The physics scene the event came from.
+ * @param manifold The contact manifold for the event.
+ * @param userData User data supplied for the event.
+ */
+typedef void (*dsPhysicsActorContactManifoldFunction)(dsPhysicsScene* scene,
+	const dsPhysicsActorContactManifold* manifold, void* userData);
+
+/**
+ * @brief Function to update to physics actor contact properties.
+ * @param scene The physics scene the event came from.
+ * @param manifold The contact manifold to update the properties on.
+ * @param userData User data supplied for the event.
+ */
+typedef void (*dsUpdatePhysicsActorContactPropertiesFunction)(dsPhysicsScene* scene,
+	dsPhysicsActorContactManifold* manifold, void* userData);
+
+/**
  * @brief Struct defining a scene of objects in a physics simulation.
  * @remark None of the members should be modified outside of the implementation.
  * @see dsPhysicsSceneLimits
@@ -152,6 +301,66 @@ typedef struct dsPhysicsScene
 	 * This defaults to dsPhysicsScene_defaultCombineRestitution.
 	 */
 	dsCombineRestitutionFunction combineRestitutionFunc;
+
+	/**
+	 * @brief Function to update contact properties betnween physics actors.
+	 */
+	dsUpdatePhysicsActorContactPropertiesFunction updatePhysicsActorContactPropertiesFunc;
+
+	/**
+	 * @brief User data provided to updatePhysicsActorContactPropertiesFunc.
+	 */
+	void* updatePhysicsActorContactPropertiesUserData;
+
+	/**
+	 * @brief Function to destroy the update physics actor contact properties user data.
+	 */
+	dsDestroyUserDataFunction destroyUpdatePhysicsActionContactPropertiesUserDataFunc;
+
+	/**
+	 * @brief Function to respond to a physics actor contact manifold being added..
+	 */
+	dsPhysicsActorContactManifoldFunction physicsActorContactManifoldAddedFunc;
+
+	/**
+	 * @brief User data provided to physicsActorContactManifoldAddedFunc.
+	 */
+	void* physicsActorContactManifoldAddedUserData;
+
+	/**
+	 * @brief Function to destroy the physics actor contact manifold added user data.
+	 */
+	dsDestroyUserDataFunction destroyPhysicsActorContactManifoldAddedUserDataFunc;
+
+	/**
+	 * @brief Function to respond to a physics actor contact manifold being updated..
+	 */
+	dsPhysicsActorContactManifoldFunction physicsActorContactManifoldUpdatedFunc;
+
+	/**
+	 * @brief User data provided to physicsActorContactManifoldUpdatedFunc.
+	 */
+	void* physicsActorContactManifoldUpdatedUserData;
+
+	/**
+	 * @brief Function to destroy the physics actor contact manifold updated user data.
+	 */
+	dsDestroyUserDataFunction destroyPhysicsActorContactManifoldUpdatedUserDataFunc;
+
+	/**
+	 * @brief Function to respond to a physics actor contact manifold being removed..
+	 */
+	dsPhysicsActorContactManifoldFunction physicsActorContactManifoldRemovedFunc;
+
+	/**
+	 * @brief User data provided to physicsActorContactManifoldRemovedFunc.
+	 */
+	void* physicsActorContactManifoldRemovedUserData;
+
+	/**
+	 * @brief Function to destroy the physics actor contact manifold removed user data.
+	 */
+	dsDestroyUserDataFunction destroyPhysicsActorContactManifoldRemovedUserDataFunc;
 } dsPhysicsScene;
 
 /**
@@ -244,6 +453,32 @@ typedef bool (*dsPhysicsSceneAddRigidBodyGroupFunction)(dsPhysicsEngine* engine,
  */
 typedef bool (*dsPhysicsSceneRemoveRigidBodyGroupFunction)(dsPhysicsEngine* engine,
 	dsPhysicsScene* scene, dsRigidBodyGroup* group);
+
+/**
+ * @brief Function to set a physics actor contact manifold callback on a physics scene.
+ * @param engine The physics engine the scene was created with.
+ * @param scene The physics scene to set the callback on.
+ * @param function The callback to respond to contact manifold events.
+ * @param userData The user data to forward to the callback.
+ * @param destroyUserDataFunc Function to destroy the user data.
+ * @return False if the callback couldn't be set.
+ */
+typedef bool (*dsSetPhysicsSceneContactManifoldFunction)(dsPhysicsEngine* engine,
+	dsPhysicsScene* scene, dsPhysicsActorContactManifoldFunction function, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc);
+
+/**
+ * @brief Function to set a callback to update physics actor contact properties on a physics scene.
+ * @param engine The physics engine the scene was created with.
+ * @param scene The physics scene to set the callback on.
+ * @param function The callback to respond to update contact properties.
+ * @param userData The user data to forward to the callback.
+ * @param destroyUserDataFunc Function to destroy the user data.
+ * @return False if the callback couldn't be set.
+ */
+typedef bool (*dsSetPhysicsSceneUpdateContactPropertiesFunction)(dsPhysicsEngine* engine,
+	dsPhysicsScene* scene, dsUpdatePhysicsActorContactPropertiesFunction function, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc);
 
 /**
  * @brief Function to create a physics sphere.
@@ -443,6 +678,41 @@ typedef dsPhysicsMesh* (*dsCreatePhysicsMeshFunction)(dsPhysicsEngine* engine,
 typedef bool (*dsDestroyPhysicsMeshFunction)(dsPhysicsEngine* engine, dsPhysicsMesh* mesh);
 
 /**
+ * @brief Function to get a contact point within a contact manifold.
+ * @param[out] outPoint Storage for the contact point.
+ * @param engine The physics engine the contact manifold was created with.
+ * @param manifold The contact manifold to get the contact point from.
+ * @param index The index of the contact point.
+ * @return False if the contact point couldn't be queried.
+ */
+typedef bool (*dsGetPhysicsActorContactPointFunction)(dsPhysicsActorContactPoint* outPoint,
+	dsPhysicsEngine* engine, const dsPhysicsActorContactManifold* manifold, uint32_t index);
+
+/**
+ * @brief Function to get contact properties within a contact manifold.
+ * @param[out] outProperties Storage for the contact properties.
+ * @param engine The physics engine the contact manifold was created with.
+ * @param manifold The contact manifold to get the contact properties from.
+ * @param index The index of the contact properties.
+ * @return False if the contact properties couldn't be queried.
+ */
+typedef bool (*dsGetPhysicsActorContactPropertiesFunction)(
+	dsPhysicsActorContactProperties* outProperties, dsPhysicsEngine* engine,
+	const dsPhysicsActorContactManifold* manifold, uint32_t index);
+
+/**
+ * @brief Function to set contact properties within a contact manifold.
+ * @param engine The physics engine the contact manifold was created with.
+ * @param manifold The contact manifold to set the contact properties on.
+ * @param index The index of the contact properties.
+ * @param properties The contact properties to set.
+ * @return False if the contact properties couldn't be set.
+ */
+typedef bool (*dsSetPhysicsActorContactPropertiesFunction)(dsPhysicsEngine* engine,
+	dsPhysicsActorContactManifold* manifold, uint32_t index,
+	const dsPhysicsActorContactProperties* properties);
+
+/**
  * @brief Struct describing the core engine for managing physics.
  *
  * This is a base type for the physics engine, which is implemented to either integrate to a 3rd
@@ -527,6 +797,45 @@ struct dsPhysicsEngine
 	 * @brief Function to remove a rigid body group from a physics scene.
 	 */
 	dsPhysicsSceneRemoveRigidBodyGroupFunction removeSceneRigidBodyGroupFunc;
+
+	/**
+	 * @brief Function to set the physics actor contact properties update callback on a physics scene.
+	 */
+	dsSetPhysicsSceneUpdateContactPropertiesFunction setSceneUpdateContactPropertiesFunc;
+
+	/**
+	 * @brief Function to set the physics actor contact manifold added callback on a physics scene.
+	 */
+	dsSetPhysicsSceneContactManifoldFunction setSceneContactManifoldAddedFunc;
+
+	/**
+	 * @brief Function to set the physics actor contact manifold updated callback on a physics
+	 *     scene.
+	 */
+	dsSetPhysicsSceneContactManifoldFunction setSceneContactManifoldUpdatedFunc;
+
+	/**
+	 * @brief Function to set the physics actor contact manifold removed callback on a physics
+	 *     scene.
+	 */
+	dsSetPhysicsSceneContactManifoldFunction setSceneContactManifoldRemovedFunc;
+
+	// ---------------------------------------- Contact manifolds ----------------------------------
+
+	/**
+	 * @brief Function to get a contact point from a contact manifold.
+	 */
+	dsGetPhysicsActorContactPointFunction getPhysicsActorContactPointFunc;
+
+	/**
+	 * @brief Function to get contact properties from a contact manifold.
+	 */
+	dsGetPhysicsActorContactPropertiesFunction getPhysicsActorContactPropertiesFunc;
+
+	/**
+	 * @brief Function to set contact properties on a contact manifold.
+	 */
+	dsSetPhysicsActorContactPropertiesFunction setPhysicsActorContactPropertiesFunc;
 
 	// ------------------------------------------ Shape creation -----------------------------------
 

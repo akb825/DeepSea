@@ -92,7 +92,7 @@ bool dsPhysicsScene_addRigidBodies(dsPhysicsScene* scene,
 		}
 
 		// Assume that the rigid bodywon't be added/removed across threads for this sanity check.
-		if (rigidBody->scene)
+		if (((dsPhysicsActor*)rigidBody)->scene)
 		{
 			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
 				"Cannot add a rigid body to a scene when already associated with a scene.");
@@ -139,7 +139,7 @@ bool dsPhysicsScene_removeRigidBodies(dsPhysicsScene* scene, dsRigidBody* const*
 		}
 
 		// Assume that the rigid bodywon't be added/removed across threads for this sanity check.
-		if (rigidBody->scene != scene)
+		if (((dsPhysicsActor*)rigidBody)->scene != scene)
 		{
 			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
 				"Cannot remove a rigid body from a scene it's not associated with.");
@@ -199,6 +199,106 @@ bool dsPhysicsScene_removeRigidBodyGroup(dsPhysicsScene* scene, dsRigidBodyGroup
 	dsPhysicsEngine* engine = scene->engine;
 	bool success = engine->removeSceneRigidBodyGroupFunc(engine, scene, group);
 	DS_PROFILE_FUNC_RETURN(success);
+}
+
+bool dsPhysicsScene_setUpdateContactSettingsFunction(dsPhysicsScene* scene,
+	dsUpdatePhysicsActorContactPropertiesFunction function, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc)
+{
+	if (!scene || !scene->engine || !scene->engine->setSceneUpdateContactPropertiesFunc ||
+		!function)
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		errno = EINVAL;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = scene->engine;
+	if (!engine->setSceneUpdateContactPropertiesFunc(engine, scene, function, userData,
+			destroyUserDataFunc))
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		return false;
+	}
+
+	return true;
+}
+
+bool dsPhysicsScene_setContactManifoldAddedFunction(dsPhysicsScene* scene,
+	dsPhysicsActorContactManifoldFunction function, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc)
+{
+	if (!scene || !scene->engine || !scene->engine->setSceneContactManifoldAddedFunc ||
+		!function)
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		errno = EINVAL;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = scene->engine;
+	if (!engine->setSceneContactManifoldAddedFunc(engine, scene, function, userData,
+			destroyUserDataFunc))
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		return false;
+	}
+
+	return true;
+}
+
+bool dsPhysicsScene_setContactManifoldUpdatedFunction(dsPhysicsScene* scene,
+	dsPhysicsActorContactManifoldFunction function, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc)
+{
+	if (!scene || !scene->engine || !scene->engine->setSceneContactManifoldUpdatedFunc ||
+		!function)
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		errno = EINVAL;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = scene->engine;
+	if (!engine->setSceneContactManifoldUpdatedFunc(engine, scene, function, userData,
+			destroyUserDataFunc))
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		return false;
+	}
+
+	return true;
+}
+
+bool dsPhysicsScene_setContactManifoldRemovedFunction(dsPhysicsScene* scene,
+	dsPhysicsActorContactManifoldFunction function, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc)
+{
+	if (!scene || !scene->engine || !scene->engine->setSceneContactManifoldRemovedFunc ||
+		!function)
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		errno = EINVAL;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = scene->engine;
+	if (!engine->setSceneContactManifoldAddedFunc(engine, scene, function, userData,
+			destroyUserDataFunc))
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		return false;
+	}
+
+	return true;
 }
 
 bool dsPhysicsScene_destroy(dsPhysicsScene* scene)

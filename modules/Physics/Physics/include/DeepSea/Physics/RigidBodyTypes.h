@@ -59,21 +59,14 @@ typedef enum dsRigidBodyFlags
 	dsRigidBodyFlags_GyroscopicForces = 0x100, ///< Apply gyroscopic forces to the body.
 	/** Avoid combining similar contact points from the same collision pair. */
 	dsRigidBodyFlags_AllContacts = 0x200,
-	dsRigidBodyFlags_CustomContactProperties = 0x400 ///< Contact properties may be overridden.
+	dsRigidBodyFlags_CustomContactProperties = 0x400, ///< Contact properties may be overridden.
+	/** Invoke callbacks on the physics scene when it comes into contact with other bodies. */
+	dsRigidBodyFlags_ContactCallbacks = 800
 } dsRigidBodyFlags;
 
 /// @cond
 typedef struct dsRigidBody dsRigidBody;
-typedef struct dsPhysicsScene dsPhysicsScene;
 /// @endcond
-
-/**
- * @brief Function to check whether two collision groups may collide.
- * @param firstGroup The first collision group.
- * @param secondGroup The second collision group.
- * @return True if the groups may collide.
- */
-typedef bool (*dsCanCollisionGroupsCollideFunction)(uint64_t firstGroup, uint64_t secondGroup);
 
 /**
  * @brief Struct to group together multiple associated rigid bodies.
@@ -307,37 +300,14 @@ typedef struct dsRigidBodyInit
 typedef struct dsRigidBody
 {
 	/**
-	 * @brief The physics engine the rigid body was created with.
+	 * @brief The actor base fields.
 	 */
-	dsPhysicsEngine* engine;
-
-	/**
-	 * @brief The allocator the rigid body was created with.
-	 */
-	dsAllocator* allocator;
-
-	/**
-	 * @brief User data associated with the rigid body.
-	 */
-	void* userData;
-
-	/**
-	 * @brief Function to destroy the user data.
-	 */
-	dsDestroyUserDataFunction destroyUserDataFunc;
+	dsPhysicsActor actor;
 
 	/**
 	 * @brief The group the rigid body is associated with, or NULL if not associated with a group.
 	 */
 	dsRigidBodyGroup* group;
-
-	/**
-	 * @brief The physics scene the rigid body is a member of, or NULL if not associated with a
-	 *     scene.
-	 *
-	 * The rigid body may only be associated at most one scene at a time
-	 */
-	dsPhysicsScene* scene;
 
 	/**
 	 * @brief Flags to control the behavior of the rigid body.
@@ -353,25 +323,6 @@ typedef struct dsRigidBody
 	 * @brief The mask of degrees of freedom the simulation may modify.
 	 */
 	dsPhysicsDOFMask dofMask;
-
-	/**
-	 * @brief The layer the rigid body is associated with.
-	 */
-	dsPhysicsLayer layer;
-
-	/**
-	 * @brief Collision group ID that the body belongs to.
-	 */
-	uint64_t collisionGroup;
-
-	/**
-	 * @brief Function to check whether two collision groups can collide.
-	 *
-	 * When checking a pair of intersecting bodies, they will collide if both set this function
-	 * to NULL or the function returns true. Behavior is undefined if the function is set on both
-	 * bodies and would return true for one body but false the other.
-	 */
-	dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc;
 
 	/**
 	 * @brief The position of the body in world space.

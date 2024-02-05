@@ -79,7 +79,7 @@ DS_APPLICATION_EXPORT bool dsWindow_createSurface(dsWindow* window);
  * @return True if the draw function was set.
  */
 DS_APPLICATION_EXPORT bool dsWindow_setDrawFunction(dsWindow* window, dsDrawWindowFunction drawFunc,
-	void* userData, dsDestroyUserDataFunction destroyUserData);
+	void* userData, dsDestroyUserDataFunction destroyUserDataFunc);
 
 /**
  * @brief Sets the function to respond to closing the window.
@@ -96,7 +96,7 @@ DS_APPLICATION_EXPORT bool dsWindow_setDrawFunction(dsWindow* window, dsDrawWind
  */
 DS_APPLICATION_EXPORT bool dsWindow_setCloseFunction(dsWindow* window,
 	dsInterceptCloseWindowFunction closeFunc, void* userData,
-	dsDestroyUserDataFunction destroyUserData);
+	dsDestroyUserDataFunction destroyUserDataFunc);
 
 /**
  * @brief Sets the title of a window.

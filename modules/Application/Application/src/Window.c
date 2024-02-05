@@ -76,12 +76,12 @@ bool dsWindow_createSurface(dsWindow* window)
 }
 
 bool dsWindow_setDrawFunction(dsWindow* window, dsDrawWindowFunction drawFunc, void* userData,
-	dsDestroyUserDataFunction destroyUserData)
+	dsDestroyUserDataFunction destroyUserDataFunc)
 {
 	if (!window)
 	{
-		if (destroyUserData)
-			destroyUserData(userData);
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		errno = EINVAL;
 		return false;
 	}
@@ -90,17 +90,17 @@ bool dsWindow_setDrawFunction(dsWindow* window, dsDrawWindowFunction drawFunc, v
 		window->destroyDrawUserDataFunc(window->drawUserData);
 	window->drawFunc = drawFunc;
 	window->drawUserData = userData;
-	window->destroyDrawUserDataFunc = destroyUserData;
+	window->destroyDrawUserDataFunc = destroyUserDataFunc;
 	return true;
 }
 
 bool dsWindow_setCloseFunction(dsWindow* window, dsInterceptCloseWindowFunction closeFunc,
-	void* userData, dsDestroyUserDataFunction destroyUserData)
+	void* userData, dsDestroyUserDataFunction destroyUserDataFunc)
 {
 	if (!window)
 	{
-		if (destroyUserData)
-			destroyUserData(userData);
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		errno = EINVAL;
 		return false;
 	}
@@ -109,7 +109,7 @@ bool dsWindow_setCloseFunction(dsWindow* window, dsInterceptCloseWindowFunction 
 		window->destroyCloseUserDataFunc(window->closeUserData);
 	window->closeFunc = closeFunc;
 	window->closeUserData = userData;
-	window->destroyCloseUserDataFunc = destroyUserData;
+	window->destroyCloseUserDataFunc = destroyUserDataFunc;
 	return true;
 }
 

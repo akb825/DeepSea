@@ -167,6 +167,62 @@ DS_PHYSICS_EXPORT bool dsPhysicsScene_removeRigidBodyGroup(dsPhysicsScene* scene
 	dsRigidBodyGroup* group);
 
 /**
+ * @brief Sets the function to update a physics actor contact properties.
+ * @remark errno will be set on failure.
+ * @param scene The scene to set the function on.
+ * @param function The function to call to update the physics actor contact properties.
+ * @param userData The user data to provide to the callback function.
+ * @param destroyUserDataFunc The function called to destroy the user data when the scene is
+ *     destroyed, the update contact properties function is changed, or setting the function fails.
+ * @return False if the function couldn't be set.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsScene_setUpdateContactPropertiesFunction(dsPhysicsScene* scene,
+	dsUpdatePhysicsActorContactPropertiesFunction function, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc);
+
+/**
+ * @brief Sets the function to respond a physics actor contact manifold being added.
+ * @remark errno will be set on failure.
+ * @param scene The scene to set the function on.
+ * @param function The function to call when a physics actor contact manifold is added.
+ * @param userData The user data to provide to the callback function.
+ * @param destroyUserDataFunc The function called to destroy the user data when the scene is
+ *     destroyed, the contact manifold added function is changed, or setting the function fails.
+ * @return False if the function couldn't be set.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsScene_setContactManifoldAddedFunction(dsPhysicsScene* scene,
+	dsPhysicsActorContactManifoldFunction function, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc);
+
+/**
+ * @brief Sets the function to respond a physics actor contact manifold being updated.
+ * @remark errno will be set on failure.
+ * @param scene The scene to set the function on.
+ * @param function The function to call when a physics actor contact manifold is updated.
+ * @param userData The user data to provide to the callback function.
+ * @param destroyUserDataFunc The function called to destroy the user data when the scene is
+ *     destroyed, the contact manifold updated function is changed, or setting the function fails.
+ * @return False if the function couldn't be set.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsScene_setContactManifoldUpdatedFunction(dsPhysicsScene* scene,
+	dsPhysicsActorContactManifoldFunction function, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc);
+
+/**
+ * @brief Sets the function to respond a physics actor contact manifold being removed.
+ * @remark errno will be set on failure.
+ * @param scene The scene to set the function on.
+ * @param function The function to call when a physics actor contact manifold is removed.
+ * @param userData The user data to provide to the callback function.
+ * @param destroyUserDataFunc The function called to destroy the user data when the scene is
+ *     destroyed, the contact manifold removed function is changed, or setting the function fails.
+ * @return False if the function couldn't be set.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsScene_setContactManifoldRemovedFunction(dsPhysicsScene* scene,
+	dsPhysicsActorContactManifoldFunction function, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc);
+
+/**
  * @brief Destroys a physics scene.
  * @remark errno will be set on failure.
  * @param scene The physics scene to destroy.

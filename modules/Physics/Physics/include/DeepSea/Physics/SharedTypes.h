@@ -31,10 +31,6 @@ extern "C"
  * getting too long.
  */
 
-/// @cond
-typedef struct dsPhysicsEngine dsPhysicsEngine;
-/// @endcond
-
 /**
  * @brief Enum describing a layer of physics objects.
  */
@@ -45,6 +41,14 @@ typedef enum dsPhysicsLayer
 	/** Projectiles that can collide with everything but other projectiles. */
 	dsPhysicsLayer_Projectiles
 } dsPhysicsLayer;
+
+/**
+ * @brief Enum for the type of a physics actor.
+ */
+typedef enum dsPhysicsActorType
+{
+	dsPhysicsActorType_RigidBody ///< Non-deformable object represented with dsRigidBody.
+} dsPhysicsActorType;
 
 /**
  * @brief Enum for a mask of degrees of freedom for physics objects.
@@ -92,6 +96,82 @@ typedef enum dsPhysicsMotionType
 	 */
 	dsPhysicsMotionType_Dynamic
 } dsPhysicsMotionType;
+
+/// @cond
+typedef struct dsPhysicsEngine dsPhysicsEngine;
+typedef struct dsPhysicsScene dsPhysicsScene;
+/// @endcond
+
+/**
+ * @brief Function to check whether two collision groups may collide.
+ * @param firstGroup The first collision group.
+ * @param secondGroup The second collision group.
+ * @return True if the groups may collide.
+ */
+typedef bool (*dsCanCollisionGroupsCollideFunction)(uint64_t firstGroup, uint64_t secondGroup);
+
+/**
+ * @brief Base type of a physics actor.
+ *
+ * This shares the common fields across the concrete physics actor types, allowing them to be shared
+ * for uses such as managing contact points. The most commonly used concrete actor type is
+ * dsRigidBody.
+ */
+typedef struct dsPhysicsActor
+{
+	/**
+	 * @brief The physics engine the actor was created with.
+	 */
+	dsPhysicsEngine* engine;
+
+	/**
+	 * @brief The allocator the actor was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief User data associated with the actor.
+	 */
+	void* userData;
+
+	/**
+	 * @brief Function to destroy the user data.
+	 */
+	dsDestroyUserDataFunction destroyUserDataFunc;
+
+	/**
+	 * @brief The physics scene the actor is a member of, or NULL if not associated with a scene.
+	 *
+	 * The actor may only be associated at most one scene at a time
+	 */
+	dsPhysicsScene* scene;
+
+	/**
+	 * @brief The type of the actor.
+	 *
+	 * This will denote which concrete type the actor is.
+	 */
+	dsPhysicsActorType type;
+
+	/**
+	 * @brief The layer the actor is associated with.
+	 */
+	dsPhysicsLayer layer;
+
+	/**
+	 * @brief Collision group ID that the actor belongs to.
+	 */
+	uint64_t collisionGroup;
+
+	/**
+	 * @brief Function to check whether two collision groups can collide.
+	 *
+	 * When checking a pair of intersecting actors, they will collide if both set this function
+	 * to NULL or the function returns true. Behavior is undefined if the function is set on both
+	 * bodies and would return true for one body but false the other.
+	 */
+	dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc;
+} dsPhysicsActor;
 
 /**
  * @brief Struct describing the mass and moment of inertia of a physics object.
