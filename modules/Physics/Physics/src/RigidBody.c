@@ -173,7 +173,7 @@ uint32_t dsRigidBody_addShape(dsRigidBody* rigidBody, dsPhysicsShape* shape,
 			material->hardness < 0.0f || material->hardness > 1.0f)))
 	{
 		errno = EINVAL;
-		return DS_NO_PHYSICS_SHAPE_ID;
+		return DS_INVALID_PHYSICS_ID;
 	}
 
 	if (rigidBody->shapesFinalized && !(rigidBody->flags & dsRigidBodyFlags_MutableShape))
@@ -181,7 +181,7 @@ uint32_t dsRigidBody_addShape(dsRigidBody* rigidBody, dsPhysicsShape* shape,
 		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot add a shape to a rigid body with finalized shapes "
 			"unless mutable shape flag is set.");
 		errno = EPERM;
-		return DS_NO_PHYSICS_SHAPE_ID;
+		return DS_INVALID_PHYSICS_ID;
 	}
 
 	if (shape->type->staticBodiesOnly && (rigidBody->motionType != dsPhysicsMotionType_Static ||
@@ -190,7 +190,7 @@ uint32_t dsRigidBody_addShape(dsRigidBody* rigidBody, dsPhysicsShape* shape,
 		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot add static-only shape to a rigid body that isn't "
 			"static or has the mutable motion type flag set.");
 		errno = EPERM;
-		return DS_NO_PHYSICS_SHAPE_ID;
+		return DS_INVALID_PHYSICS_ID;
 	}
 
 	if (scale && shape->type->uniformScaleOnly && (scale->x != scale->y || scale->x != scale->z))
@@ -198,7 +198,7 @@ uint32_t dsRigidBody_addShape(dsRigidBody* rigidBody, dsPhysicsShape* shape,
 		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Attempting to set non-uniform scale a shape that "
 			"requires uniform scaling.");
 		errno = EPERM;
-		return DS_NO_PHYSICS_SHAPE_ID;
+		return DS_INVALID_PHYSICS_ID;
 	}
 
 	if (rotate &&
@@ -207,13 +207,13 @@ uint32_t dsRigidBody_addShape(dsRigidBody* rigidBody, dsPhysicsShape* shape,
 		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
 			"Attempting to set rotation for a shape on a rigid body with non-uniform scale.");
 		errno = EPERM;
-		return DS_NO_PHYSICS_SHAPE_ID;
+		return DS_INVALID_PHYSICS_ID;
 	}
 
 	dsPhysicsEngine* engine = actor->engine;
 	uint32_t shapeID = engine->addRigidBodyShapeFunc(engine, rigidBody, shape, translate, rotate,
 		scale, density, material);
-	if (shapeID != DS_NO_PHYSICS_SHAPE_ID)
+	if (shapeID != DS_INVALID_PHYSICS_ID)
 		rigidBody->shapesFinalized = false;
 	return shapeID;
 }
@@ -412,7 +412,7 @@ bool dsRigidBody_removeShapeID(dsRigidBody* rigidBody, uint32_t shapeID)
 		return false;
 	}
 
-	uint32_t index = DS_NO_PHYSICS_SHAPE_ID;
+	uint32_t index = DS_INVALID_PHYSICS_ID;
 	for (uint32_t i = 0; i < rigidBody->shapeCount; ++i)
 	{
 		if (rigidBody->shapes[i].id == shapeID)
@@ -422,7 +422,7 @@ bool dsRigidBody_removeShapeID(dsRigidBody* rigidBody, uint32_t shapeID)
 		}
 	}
 
-	if (index == DS_NO_PHYSICS_SHAPE_ID)
+	if (index == DS_INVALID_PHYSICS_ID)
 	{
 		errno = ENOTFOUND;
 		return false;

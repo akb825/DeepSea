@@ -169,7 +169,7 @@ DS_PHYSICS_EXPORT bool dsPhysicsScene_removeRigidBodyGroup(dsPhysicsScene* scene
 /**
  * @brief Sets the function to update a physics actor contact properties.
  * @remark errno will be set on failure.
- * @param scene The scene to set the function on.
+ * @param scene The physics scene to set the function on.
  * @param function The function to call to update the physics actor contact properties.
  * @param userData The user data to provide to the callback function.
  * @param destroyUserDataFunc The function called to destroy the user data when the scene is
@@ -183,7 +183,7 @@ DS_PHYSICS_EXPORT bool dsPhysicsScene_setUpdateContactPropertiesFunction(dsPhysi
 /**
  * @brief Sets the function to respond a physics actor contact manifold being added.
  * @remark errno will be set on failure.
- * @param scene The scene to set the function on.
+ * @param scene The physics scene to set the function on.
  * @param function The function to call when a physics actor contact manifold is added.
  * @param userData The user data to provide to the callback function.
  * @param destroyUserDataFunc The function called to destroy the user data when the scene is
@@ -197,7 +197,7 @@ DS_PHYSICS_EXPORT bool dsPhysicsScene_setContactManifoldAddedFunction(dsPhysicsS
 /**
  * @brief Sets the function to respond a physics actor contact manifold being updated.
  * @remark errno will be set on failure.
- * @param scene The scene to set the function on.
+ * @param scene The physics scene to set the function on.
  * @param function The function to call when a physics actor contact manifold is updated.
  * @param userData The user data to provide to the callback function.
  * @param destroyUserDataFunc The function called to destroy the user data when the scene is
@@ -211,7 +211,7 @@ DS_PHYSICS_EXPORT bool dsPhysicsScene_setContactManifoldUpdatedFunction(dsPhysic
 /**
  * @brief Sets the function to respond a physics actor contact manifold being removed.
  * @remark errno will be set on failure.
- * @param scene The scene to set the function on.
+ * @param scene The physics scene to set the function on.
  * @param function The function to call when a physics actor contact manifold is removed.
  * @param userData The user data to provide to the callback function.
  * @param destroyUserDataFunc The function called to destroy the user data when the scene is
@@ -221,6 +221,45 @@ DS_PHYSICS_EXPORT bool dsPhysicsScene_setContactManifoldUpdatedFunction(dsPhysic
 DS_PHYSICS_EXPORT bool dsPhysicsScene_setContactManifoldRemovedFunction(dsPhysicsScene* scene,
 	dsPhysicsActorContactManifoldFunction function, void* userData,
 	dsDestroyUserDataFunction destroyUserDataFunc);
+
+/**
+ * @brief Adds a callback function to before a physics scene is stepped.
+ *
+ * Multiple callbacks may be executed in parallel, allowing for effecient bulk updates. Components
+ * of the physic scene may not be added or removed in the callback, and care should be made to not
+ * modify the same objects from multiple callbacks to avoid potential thread contention.
+
+ * @remark errno will be set on failure.
+ * @param scene The physics scene to add the listener to.
+ * @param function The function to call before a physics scene step.
+ * @param userData The user data to provide to the listener.
+ * @param destroyUserDataFunc The function called to destroy the user data when the scene is
+ *     destroyed, the function is removed, or adding the function fails.
+ * @return The ID for the added step listener or DS_INVALID_PHYSICS_ID if the listener couldn't be
+ *     added.
+ */
+DS_PHYSICS_EXPORT uint32_t dsPhysicsScene_addStepListener(dsPhysicsScene* scene,
+	dsOnPhysicsSceneStepFunction function, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc);
+
+/**
+ * @brief Removes a previously added step listener.
+ * @remark errno will be set on failure.
+ * @param scene The physics scene to remove the listener from.
+ * @param listenerID The ID for the listener returned from dsPhysicsScene_addStepListener().
+ * @return False if the step listener couldn't be removed.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsScene_removeStepListener(
+	dsPhysicsScene* scene, uint32_t listenerID);
+
+/**
+ * @brief Sets the gravity on a physics scene.
+ * @remark errno will be set on failure.
+ * @param scene The physics scene to set the gravity on.
+ * @param gravity The new gravity for the physics scene.
+ * @return False if the gravity couldn't be set.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsScene_setGravity(dsPhysicsScene* scene, const dsVector3f* gravity);
 
 /**
  * @brief Destroys a physics scene.

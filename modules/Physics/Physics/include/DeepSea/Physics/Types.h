@@ -253,6 +253,14 @@ typedef float (*dsCombineRestitutionFunction)(float restitutionA, float hardness
 	float restitutionB, float hardnessB);
 
 /**
+ * @brief Function to respond to a physics scene being stepped.
+ * @param scene The physics scene being stepped.
+ * @param time The time delta for the step.
+ * @param userData The user data supplied for the event.
+ */
+typedef void (*dsOnPhysicsSceneStepFunction)(dsPhysicsScene* scene, float time, void* userData);
+
+/**
  * @brief Function to respond to physics actor contact manifold events.
  * @param scene The physics scene the event came from.
  * @param manifold The contact manifold for the event.
@@ -364,6 +372,11 @@ typedef struct dsPhysicsScene
 	 * @brief Function to destroy the physics actor contact manifold removed user data.
 	 */
 	dsDestroyUserDataFunction destroyPhysicsActorContactManifoldRemovedUserDataFunc;
+
+	/**
+	 * @brief The gravity applied to the scene.
+	 */
+	dsVector3f gravity;
 } dsPhysicsScene;
 
 /**
@@ -482,6 +495,39 @@ typedef bool (*dsSetPhysicsSceneContactManifoldFunction)(dsPhysicsEngine* engine
 typedef bool (*dsSetPhysicsSceneUpdateContactPropertiesFunction)(dsPhysicsEngine* engine,
 	dsPhysicsScene* scene, dsUpdatePhysicsActorContactPropertiesFunction function, void* userData,
 	dsDestroyUserDataFunction destroyUserDataFunc);
+
+/**
+ * @brief Function to add a callback for when a physics scene has an update step.
+ * @param engine The physics engine the scene was created with.
+ * @param scene The physics scene to add the callback to.
+ * @param function The callback to respond to a physics scene step.
+ * @param userData The user data to forward to the callback.
+ * @param destroyUserDataFunc Function to destroy the user data.
+ * @return The ID for the callback or DS_INVALID_PHYSICS_ID if it couldn't be added.
+ */
+typedef uint32_t (*dsAddPhysicsSceneStepListenerFunction)(dsPhysicsEngine* engine,
+	dsPhysicsScene* scene, dsOnPhysicsSceneStepFunction function, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc);
+
+/**
+ * @brief Function to remove a callback for when a physics scene has an update step.
+ * @param engine The physics engine the scene was created with.
+ * @param scene The physics scene to remove the callback from.
+ * @param listenerID The ID for the listener returned when it was added.
+ * @return False if the listener couldn't be removed.
+ */
+typedef bool (*dsRemovePhysicsSceneStepListenerFunction)(dsPhysicsEngine* engine,
+	dsPhysicsScene* scene, uint32_t listenerID);
+
+/**
+ * @brief Sets the gravity for the physics scene.
+ * @param engine The physics engine the scene was created with.
+ * @param scene The physics scene to set the gravity on.
+ * @param gravity The new gravity.
+ * @return False if the gravity couldn't be set.
+ */
+typedef bool (*dsSetPhysicsSceneGravityFunction)(dsPhysicsEngine* engine, dsPhysicsScene* scene,
+	const dsVector3f* gravity);
 
 /**
  * @brief Function to create a physics sphere.
@@ -810,6 +856,21 @@ struct dsPhysicsEngine
 	 *     scene.
 	 */
 	dsSetPhysicsSceneContactManifoldFunction setSceneContactManifoldRemovedFunc;
+
+	/**
+	 * @brief Function to add a step listener on a physics scene.
+	 */
+	dsAddPhysicsSceneStepListenerFunction addSceneStepListenerFunc;
+
+	/**
+	 * @brief Function to remove a step listener on a physics scene.
+	 */
+	dsRemovePhysicsSceneStepListenerFunction removeSceneStepListenerFunc;
+
+	/**
+	 * @brief Function to set the gravity on a physics scene.
+	 */
+	dsSetPhysicsSceneGravityFunction setPhysicsSceneGravityFunc;
 
 	// ---------------------------------------- Contact manifolds ----------------------------------
 

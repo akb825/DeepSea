@@ -465,7 +465,7 @@ typedef bool (*dsDestroyRigidBodyFunction)(dsPhysicsEngine* engine, dsRigidBody*
  * @param scale The scale of the shape or NULL to leave unscaled.
  * @param density The density of the shape.
  * @param material The material of the shape or NULL to use the material of the rigid body.
- * @return The ID for the added shape instance or DS_NO_PHYSICS_SHAPE_ID if it couldn't be added.
+ * @return The ID for the added shape instance or DS_INVALID_PHYSICS_ID if it couldn't be added.
  */
 typedef uint32_t (*dsAddRigidBodyShapeFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
 	dsPhysicsShape* shape, const dsVector3f* translate, const dsQuaternion4f* rotate,

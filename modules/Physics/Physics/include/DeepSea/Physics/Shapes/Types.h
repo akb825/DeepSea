@@ -53,11 +53,6 @@ extern "C"
 #define DS_DEFAULT_PHYSICS_SHAPE_CONVEX_RADIUS 0.05f
 
 /**
- * @brief Constant for an ID that represents no physics shape.
- */
-#define DS_NO_PHYSICS_SHAPE_ID (uint32_t)-1
-
-/**
  * @brief Enum for the axis to align a physics shape to.
  */
 typedef enum dsPhysicsAxis
@@ -423,8 +418,6 @@ typedef struct dsPhysicsCylinder
  *
  * The origin of the cone is at the tip, while the center of mass is at 3/4 the height along the
  * given axis.
- *
- * Some implementations may approximate the cone with a convex hull.
  *
  * @remark None of the members should be modified outside of the implementation.
  * @see PhysicsCone.h

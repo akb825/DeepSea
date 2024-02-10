@@ -32,6 +32,11 @@ extern "C"
  */
 
 /**
+ * @brief Constant for an invalid ID for a physics object.
+ */
+#define DS_INVALID_PHYSICS_ID (uint32_t)-1
+
+/**
  * @brief Enum describing a layer of physics objects.
  */
 typedef enum dsPhysicsLayer

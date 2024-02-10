@@ -301,6 +301,51 @@ bool dsPhysicsScene_setContactManifoldRemovedFunction(dsPhysicsScene* scene,
 	return true;
 }
 
+uint32_t dsPhysicsScene_addStepListener(dsPhysicsScene* scene,
+	dsOnPhysicsSceneStepFunction function, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc)
+{
+	if (!scene || !scene->engine || !scene->engine->addSceneStepListenerFunc || !function)
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		errno = EINVAL;
+		return DS_INVALID_PHYSICS_ID;
+	}
+
+	dsPhysicsEngine* engine = scene->engine;
+	uint32_t listenerID = engine->addSceneStepListenerFunc(
+		engine, scene, function, userData, destroyUserDataFunc);
+	if (listenerID == DS_INVALID_PHYSICS_ID && destroyUserDataFunc)
+		destroyUserDataFunc(userData);
+	return listenerID;
+}
+
+bool dsPhysicsScene_removeStepListener(dsPhysicsScene* scene, uint32_t listenerID)
+{
+	if (!scene || !scene->engine || !scene->engine->removeSceneStepListenerFunc ||
+		listenerID == DS_INVALID_PHYSICS_ID)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = scene->engine;
+	return engine->removeSceneStepListenerFunc(engine, scene, listenerID);
+}
+
+bool dsPhysicsScene_setGravity(dsPhysicsScene* scene, const dsVector3f* gravity)
+{
+	if (!scene || !scene->engine || !scene->engine->setPhysicsSceneGravityFunc || !gravity)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = scene->engine;
+	return engine->setPhysicsSceneGravityFunc(engine, scene, gravity);
+}
+
 bool dsPhysicsScene_destroy(dsPhysicsScene* scene)
 {
 	if (!scene)

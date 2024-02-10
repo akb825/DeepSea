@@ -62,7 +62,7 @@ DS_PHYSICS_EXPORT dsRigidBody* dsRigidBody_create(dsPhysicsEngine* engine, dsAll
  *     and dsRigidBodyFlags_MutableShape is not set, otherwise it must be > 0.
  * @param material The material for the shape or NULL to use the rigid body's material. This will be
  *     ignored if the shape has per-face materials.
- * @return The ID of the shape or DS_NO_PHYSICS_SHAPE_ID if the shape couldn't be added.
+ * @return The ID of the shape or DS_INVALID_PHYSICS_ID if the shape couldn't be added.
  */
 DS_PHYSICS_EXPORT uint32_t dsRigidBody_addShape(dsRigidBody* rigidBody, dsPhysicsShape* shape,
 	const dsVector3f* translate, const dsQuaternion4f* rotate, const dsVector3f* scale,
