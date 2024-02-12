@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,8 +45,9 @@ DS_CORE_EXPORT bool dsSpinlock_initialize(dsSpinlock* spinlock);
 
 /**
  * @brief Locks the spinlock if it isn't already locked.
+ * @remark errno will be set on failure.
  * @param spinlock The spinlock to lock.
- * @return False if the spinlock is NULL.
+ * @return True if the spinlock could be locked.
  */
 DS_CORE_EXPORT bool dsSpinlock_tryLock(dsSpinlock* spinlock);
 

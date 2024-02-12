@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Aaron Barany
+ * Copyright 2016-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,10 @@ dsMutex* dsMutex_create(dsAllocator* allocator, const char* name)
 bool dsMutex_tryLock(dsMutex* mutex)
 {
 	if (!mutex)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	bool retVal;
 #if DS_WINDOWS

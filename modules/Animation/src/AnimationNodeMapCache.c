@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
-#include <DeepSea/Core/Thread/Spinlock.h>
+#include <DeepSea/Core/Thread/ReadWriteSpinlock.h>
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
@@ -239,41 +239,6 @@ static void applyDirectAnimationTransforms(WeightedTransform* transforms,
 	}
 }
 
-static void lockWrite(dsAnimationNodeMapCache* cache)
-{
-	DS_VERIFY(dsSpinlock_lock(&cache->lock));
-
-	// Wait until not reading.
-	do
-	{
-		uint32_t readCount;
-		DS_ATOMIC_LOAD32(&cache->readCount, &readCount);
-		if (readCount == 0)
-			break;
-
-		// Let other thread that is reading continue. Keep spinlock locked since the read unlock
-		// uses atomics.
-		dsThread_yield();
-	} while (true);
-}
-
-static void unlockWrite(dsAnimationNodeMapCache* cache)
-{
-	DS_VERIFY(dsSpinlock_unlock(&cache->lock));
-}
-
-static void lockRead(dsAnimationNodeMapCache* cache)
-{
-	DS_VERIFY(dsSpinlock_lock(&cache->lock));
-	DS_ATOMIC_FETCH_ADD32(&cache->readCount, 1);
-	DS_VERIFY(dsSpinlock_unlock(&cache->lock));
-}
-
-static void unlockRead(dsAnimationNodeMapCache* cache)
-{
-	DS_ATOMIC_FETCH_ADD32(&cache->readCount, -1);
-}
-
 static int animationTreeNodeMapCompare(const void* left, const void* right, void* context)
 {
 	uint32_t treeID = *(const uint32_t*)left;
@@ -338,8 +303,7 @@ dsAnimationNodeMapCache* dsAnimationNodeMapCache_create(dsAllocator* allocator)
 	cache->treeMaps = NULL;
 	cache->treeMapCount = 0;
 	cache->maxTreeMaps = 0;
-	DS_VERIFY(dsSpinlock_initialize(&cache->lock));
-	cache->readCount = 0;
+	DS_VERIFY(dsReadWriteSpinlock_initialize(&cache->lock));
 	return cache;
 }
 
@@ -351,7 +315,7 @@ bool dsAnimationNodeMapCache_addAnimationTree(dsAnimationNodeMapCache* cache, ds
 		return false;
 	}
 
-	lockWrite(cache);
+	DS_VERIFY(dsReadWriteSpinlock_lockWrite(&cache->lock));
 
 	dsAnimationTreeNodeMap* prevTreeNodeMap = (dsAnimationTreeNodeMap*)dsBinarySearchLowerBound(
 		&tree->id, cache->treeMaps, cache->treeMapCount, sizeof(dsAnimationTreeNodeMap),
@@ -362,7 +326,7 @@ bool dsAnimationNodeMapCache_addAnimationTree(dsAnimationNodeMapCache* cache, ds
 		if (!DS_RESIZEABLE_ARRAY_ADD(cache->allocator, cache->treeMaps, cache->treeMapCount,
 				cache->maxTreeMaps, 1))
 		{
-			unlockWrite(cache);
+			DS_VERIFY(dsReadWriteSpinlock_unlockWrite(&cache->lock));
 			return false;
 		}
 
@@ -372,7 +336,7 @@ bool dsAnimationNodeMapCache_addAnimationTree(dsAnimationNodeMapCache* cache, ds
 		if (!newTreeMap.tree)
 		{
 			--cache->treeMapCount;
-			unlockWrite(cache);
+			DS_VERIFY(dsReadWriteSpinlock_unlockWrite(&cache->lock));
 			return false;
 		}
 
@@ -384,7 +348,7 @@ bool dsAnimationNodeMapCache_addAnimationTree(dsAnimationNodeMapCache* cache, ds
 			{
 				dsAnimationTree_destroy(newTreeMap.tree);
 				--cache->treeMapCount;
-				unlockWrite(cache);
+				DS_VERIFY(dsReadWriteSpinlock_unlockWrite(&cache->lock));
 				return false;
 			}
 
@@ -401,7 +365,7 @@ bool dsAnimationNodeMapCache_addAnimationTree(dsAnimationNodeMapCache* cache, ds
 
 					dsAnimationTree_destroy(newTreeMap.tree);
 					--cache->treeMapCount;
-					unlockWrite(cache);
+					DS_VERIFY(dsReadWriteSpinlock_unlockWrite(&cache->lock));
 					return false;
 				}
 			}
@@ -420,7 +384,7 @@ bool dsAnimationNodeMapCache_addAnimationTree(dsAnimationNodeMapCache* cache, ds
 			{
 				dsAnimationTree_destroy(newTreeMap.tree);
 				--cache->treeMapCount;
-				unlockWrite(cache);
+				DS_VERIFY(dsReadWriteSpinlock_unlockWrite(&cache->lock));
 				return false;
 			}
 
@@ -441,7 +405,7 @@ bool dsAnimationNodeMapCache_addAnimationTree(dsAnimationNodeMapCache* cache, ds
 
 					dsAnimationTree_destroy(newTreeMap.tree);
 					--cache->treeMapCount;
-					unlockWrite(cache);
+					DS_VERIFY(dsReadWriteSpinlock_unlockWrite(&cache->lock));
 					return false;
 				}
 			}
@@ -460,7 +424,7 @@ bool dsAnimationNodeMapCache_addAnimationTree(dsAnimationNodeMapCache* cache, ds
 	else
 		++prevTreeNodeMap->refCount;
 
-	unlockWrite(cache);
+	DS_VERIFY(dsReadWriteSpinlock_unlockWrite(&cache->lock));
 	return true;
 }
 
@@ -473,7 +437,7 @@ bool dsAnimationNodeMapCache_removeAnimationTree(dsAnimationNodeMapCache* cache,
 		return false;
 	}
 
-	lockWrite(cache);
+	DS_VERIFY(dsReadWriteSpinlock_lockWrite(&cache->lock));
 
 	bool found;
 	dsAnimationTreeNodeMap* treeNodeMap = (dsAnimationTreeNodeMap*)dsBinarySearch(
@@ -496,7 +460,7 @@ bool dsAnimationNodeMapCache_removeAnimationTree(dsAnimationNodeMapCache* cache,
 		found = false;
 	}
 
-	unlockWrite(cache);
+	DS_VERIFY(dsReadWriteSpinlock_unlockWrite(&cache->lock));
 	return found;
 }
 
@@ -506,7 +470,7 @@ bool dsAnimationNodeMapCache_addKeyframeAnimation(dsAnimationNodeMapCache* cache
 	DS_ASSERT(cache);
 	DS_ASSERT(animation);
 
-	lockWrite(cache);
+	DS_VERIFY(dsReadWriteSpinlock_lockWrite(&cache->lock));
 
 	dsKeyframeAnimationRef* prevKeyframeRef = (dsKeyframeAnimationRef*)dsBinarySearchLowerBound(
 		animation, cache->keyframeAnimations, cache->keyframeAnimationCount,
@@ -518,7 +482,7 @@ bool dsAnimationNodeMapCache_addKeyframeAnimation(dsAnimationNodeMapCache* cache
 		if (!DS_RESIZEABLE_ARRAY_ADD(cache->allocator, cache->keyframeAnimations,
 				cache->keyframeAnimationCount, cache->maxKeyframeAnimations, 1))
 		{
-			unlockWrite(cache);
+			DS_VERIFY(dsReadWriteSpinlock_unlockWrite(&cache->lock));
 			return false;
 		}
 
@@ -557,7 +521,7 @@ bool dsAnimationNodeMapCache_addKeyframeAnimation(dsAnimationNodeMapCache* cache
 						cache->treeMaps[k] = cache->treeMaps[k + 1];
 				}
 
-				unlockWrite(cache);
+				DS_VERIFY(dsReadWriteSpinlock_unlockWrite(&cache->lock));
 				return false;
 			}
 		}
@@ -574,7 +538,7 @@ bool dsAnimationNodeMapCache_addKeyframeAnimation(dsAnimationNodeMapCache* cache
 	else
 		++prevKeyframeRef->refCount;
 
-	unlockWrite(cache);
+	DS_VERIFY(dsReadWriteSpinlock_unlockWrite(&cache->lock));
 	return true;
 
 }
@@ -585,7 +549,7 @@ bool dsAnimationNodeMapCache_removeKeyframeAnimation(dsAnimationNodeMapCache* ca
 	DS_ASSERT(cache);
 	DS_ASSERT(animation);
 
-	lockWrite(cache);
+	DS_VERIFY(dsReadWriteSpinlock_lockWrite(&cache->lock));
 
 	bool found;
 	dsKeyframeAnimationRef* keyframeRef = (dsKeyframeAnimationRef*)dsBinarySearch(animation,
@@ -617,7 +581,7 @@ bool dsAnimationNodeMapCache_removeKeyframeAnimation(dsAnimationNodeMapCache* ca
 		found = false;
 	}
 
-	unlockWrite(cache);
+	DS_VERIFY(dsReadWriteSpinlock_unlockWrite(&cache->lock));
 	return found;
 }
 
@@ -627,7 +591,7 @@ bool dsAnimationNodeMapCache_addDirectAnimation(dsAnimationNodeMapCache* cache,
 	DS_ASSERT(cache);
 	DS_ASSERT(animation);
 
-	lockWrite(cache);
+	DS_VERIFY(dsReadWriteSpinlock_lockWrite(&cache->lock));
 
 	dsDirectAnimationRef* prevDirectRef = (dsDirectAnimationRef*)dsBinarySearchLowerBound(
 		animation, cache->directAnimations, cache->directAnimationCount,
@@ -639,7 +603,7 @@ bool dsAnimationNodeMapCache_addDirectAnimation(dsAnimationNodeMapCache* cache,
 		if (!DS_RESIZEABLE_ARRAY_ADD(cache->allocator, cache->directAnimations,
 				cache->directAnimationCount, cache->maxDirectAnimations, 1))
 		{
-			unlockWrite(cache);
+			DS_VERIFY(dsReadWriteSpinlock_unlockWrite(&cache->lock));
 			return false;
 		}
 
@@ -678,7 +642,7 @@ bool dsAnimationNodeMapCache_addDirectAnimation(dsAnimationNodeMapCache* cache,
 						cache->treeMaps[k] = cache->treeMaps[k + 1];
 				}
 
-				unlockWrite(cache);
+				DS_VERIFY(dsReadWriteSpinlock_unlockWrite(&cache->lock));
 				return false;
 			}
 		}
@@ -695,7 +659,7 @@ bool dsAnimationNodeMapCache_addDirectAnimation(dsAnimationNodeMapCache* cache,
 	else
 		++prevDirectRef->refCount;
 
-	unlockWrite(cache);
+	DS_VERIFY(dsReadWriteSpinlock_unlockWrite(&cache->lock));
 	return true;
 }
 
@@ -705,7 +669,7 @@ bool dsAnimationNodeMapCache_removeDirectAnimation(dsAnimationNodeMapCache* cach
 	DS_ASSERT(cache);
 	DS_ASSERT(animation);
 
-	lockWrite(cache);
+	DS_VERIFY(dsReadWriteSpinlock_lockWrite(&cache->lock));
 
 	bool found;
 	dsDirectAnimationRef* directRef = (dsDirectAnimationRef*)dsBinarySearch(animation,
@@ -737,7 +701,7 @@ bool dsAnimationNodeMapCache_removeDirectAnimation(dsAnimationNodeMapCache* cach
 		found = false;
 	}
 
-	unlockWrite(cache);
+	DS_VERIFY(dsReadWriteSpinlock_unlockWrite(&cache->lock));
 	return found;
 }
 
@@ -748,7 +712,7 @@ bool dsAnimationNodeMapCache_applyAnimation(dsAnimationNodeMapCache* cache,
 	DS_ASSERT(animation);
 	DS_ASSERT(tree);
 
-	lockRead(cache);
+	DS_VERIFY(dsReadWriteSpinlock_lockRead(&cache->lock));
 
 	const dsAnimationTreeNodeMap* treeNodeMap = (const dsAnimationTreeNodeMap*)dsBinarySearch(
 		&tree->id, cache->treeMaps, cache->treeMapCount, sizeof(dsAnimationTreeNodeMap),
@@ -756,7 +720,7 @@ bool dsAnimationNodeMapCache_applyAnimation(dsAnimationNodeMapCache* cache,
 	if (!treeNodeMap)
 	{
 		errno = ENOTFOUND;
-		unlockRead(cache);
+		DS_VERIFY(dsReadWriteSpinlock_unlockRead(&cache->lock));
 		return true;
 	}
 
@@ -797,7 +761,7 @@ bool dsAnimationNodeMapCache_applyAnimation(dsAnimationNodeMapCache* cache,
 		}
 	}
 
-	unlockRead(cache);
+	DS_VERIFY(dsReadWriteSpinlock_unlockRead(&cache->lock));
 	return true;
 }
 
@@ -812,6 +776,7 @@ void dsAnimationNodeMapCache_destroy(dsAnimationNodeMapCache* cache)
 	for (uint32_t i = 0; i < cache->treeMapCount; ++i)
 		freeAnimationTreeNodeMap(cache, cache->treeMaps + i);
 	DS_VERIFY(dsAllocator_free(cache->allocator, cache->treeMaps));
+	dsReadWriteSpinlock_shutdown(&cache->lock);
 
 	DS_VERIFY(dsAllocator_free(cache->allocator, cache));
 }

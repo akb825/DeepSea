@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@ DS_CORE_EXPORT dsMutex* dsMutex_create(dsAllocator* allocator, const char* name)
 
 /**
  * @brief Locks the mutex if it isn't already locked.
+ * @remark errno will be set on failure.
  * @param mutex The mutex to lock.
  * @return True if the mutex could be locked.
  */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,7 +80,7 @@ TEST(Mutex, CreateAllocatorNoFree)
 TEST(Mutex, Null)
 {
 	EXPECT_FALSE_ERRNO(EINVAL, dsMutex_lock(nullptr));
-	EXPECT_FALSE(dsMutex_tryLock(nullptr));
+	EXPECT_FALSE_ERRNO(EINVAL, dsMutex_tryLock(nullptr));
 	EXPECT_FALSE_ERRNO(EINVAL, dsMutex_unlock(nullptr));
 }
 

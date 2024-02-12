@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,12 +45,6 @@ typedef struct dsAllocator dsAllocator;
 /// @endcond
 
 /**
- * @brief Type for a thread condition variable.
- * @see ConditionVariable.h
- */
-typedef struct dsConditionVariable dsConditionVariable;
-
-/**
  * @brief Result of a condition variable wait.
  * @see ConditionVariable.h
  */
@@ -60,6 +54,12 @@ typedef enum dsConditionVariableResult
 	dsConditionVariableResult_Error,   ///< There was an error when waiting.
 	dsConditionVariableResult_Timeout  ///< The wait timed out.
 } dsConditionVariableResult;
+
+/**
+ * @brief Type for a thread condition variable.
+ * @see ConditionVariable.h
+ */
+typedef struct dsConditionVariable dsConditionVariable;
 
 /**
  * @brief Type for a mutex lock.
@@ -80,6 +80,33 @@ typedef struct dsSpinlock
 	pthread_spinlock_t spinlock;
 #endif
 } dsSpinlock;
+
+/**
+ * @brief Struct defining a lock that allows concurrent reads but synchronized writes.
+ * @see ReadWriteLock.h
+ */
+typedef struct dsReadWriteLock dsReadWriteLock;
+
+/**
+ * @brief Struct defining a lock that allows concurrent but synchronized writes using spinlocks.
+ *
+ * This should be used when thread contention is expected to be low and neither read nor write locks
+ * are held for a long time. If either of these are the case, dsReadWriteLock should be used instead.
+ *
+ * @see ReadWriteSpinlock.h
+ */
+typedef struct dsReadWriteSpinlock
+{
+	/**
+	 * @brief The underlying lock.
+	 */
+	dsSpinlock lock;
+
+	/**
+	 * @brief The number of read locks.
+	 */
+	uint32_t readCount;
+} dsReadWriteSpinlock;
 
 /**
  * @brief Type of a thread ID.

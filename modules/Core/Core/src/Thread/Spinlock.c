@@ -49,7 +49,10 @@ bool dsSpinlock_initialize(dsSpinlock* spinlock)
 bool dsSpinlock_tryLock(dsSpinlock* spinlock)
 {
 	if (!spinlock)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 #if DS_CUSTOM_SPINLOCK
 
@@ -107,7 +110,12 @@ bool dsSpinlock_unlock(dsSpinlock* spinlock)
 
 	uint32_t expected = 1;
 	uint32_t value = 0;
-	return DS_ATOMIC_COMPARE_EXCHANGE32(&spinlock->counter, &expected, &value, false);
+	if (!DS_ATOMIC_COMPARE_EXCHANGE32(&spinlock->counter, &expected, &value, false))
+	{
+		errno = EPERM;
+		return false;
+	}
+	return true;
 
 #else
 	int errorCode = pthread_spin_unlock(&spinlock->spinlock);

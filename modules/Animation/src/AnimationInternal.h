@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,8 +87,7 @@ struct dsAnimationNodeMapCache
 	uint32_t treeMapCount;
 	uint32_t maxTreeMaps;
 
-	dsSpinlock lock;
-	uint32_t readCount;
+	dsReadWriteSpinlock lock;
 };
 
 #ifdef __cplusplus
