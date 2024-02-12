@@ -316,10 +316,11 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setCanCollisionGroupsCollideFunction(dsRigidB
  * @param position The new position or NULL to leave unchanged.
  * @param orientation The new orientation or NULL to leave unchanged
  * @param scale The new scale or NULL to leave unchanged. No dimension of scale may be 0.
+ * @param activate Whether to activate the rigid body if it's currently inactive.
  * @return False if the transform couldn't be set.
  */
 DS_PHYSICS_EXPORT bool dsRigidBody_setTransform(dsRigidBody* rigidBody, const dsVector3f* position,
-	const dsQuaternion4f* orientation, const dsVector3f* scale);
+	const dsQuaternion4f* orientation, const dsVector3f* scale, bool activate);
 
 /**
  * @brief Gets the transform matrix for a rigid body.
@@ -336,10 +337,11 @@ DS_PHYSICS_EXPORT bool dsRigidBody_getTransformMatrix(dsMatrix44f* outTransform,
  * @remark errno will be set on failure.
  * @param rigidBody The rigid body to change the transform on.
  * @param transform The transform matrix. This is expected to be orthogonal and not contain sheer.
+ * @param activate Whether to activate the rigid body if it's currently inactive.
  * @return False if the transform couldn't be set.
  */
 DS_PHYSICS_EXPORT bool dsRigidBody_setTransformMatrix(dsRigidBody* rigidBody,
-	const dsMatrix44f* transform);
+	const dsMatrix44f* transform, bool activate);
 
 /**
  * @brief Gets the position around which the rigid body will rotate in world space.
@@ -589,16 +591,6 @@ DS_PHYSICS_EXPORT bool dsRigidBody_addAngularImpulse(dsRigidBody* rigidBody,
  * @return False if the angular impulse couldn't be cleared.
  */
 DS_PHYSICS_EXPORT bool dsRigidBody_clearAngularImpulse(dsRigidBody* rigidBody);
-
-/**
- * @brief Gets whether a rigid body is active.
- *
- * A rigid body may become inactive if it's at rest and not moving.
- *
- * @param rigidBody The rigid body to get the active state from.
- * @return Whether the rigid body is active.
- */
-DS_PHYSICS_EXPORT bool dsRigidBody_getActive(const dsRigidBody* rigidBody);
 
 /**
  * @brief Sets whether a rigid body is active.

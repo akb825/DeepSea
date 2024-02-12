@@ -728,7 +728,7 @@ bool dsRigidBody_setCanCollisionGroupsCollideFunction(dsRigidBody* rigidBody,
 }
 
 bool dsRigidBody_setTransform(dsRigidBody* rigidBody, const dsVector3f* position,
-	const dsQuaternion4f* orientation, const dsVector3f* scale)
+	const dsQuaternion4f* orientation, const dsVector3f* scale, bool activate)
 {
 	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
 	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyTransformFunc ||
@@ -774,7 +774,8 @@ bool dsRigidBody_setTransform(dsRigidBody* rigidBody, const dsVector3f* position
 	}
 
 	dsPhysicsEngine* engine = actor->engine;
-	return engine->setRigidBodyTransformFunc(engine, rigidBody, position, orientation, scale);
+	return engine->setRigidBodyTransformFunc(
+		engine, rigidBody, position, orientation, scale, activate);
 }
 
 bool dsRigidBody_getTransformMatrix(dsMatrix44f* outTransform, const dsRigidBody* rigidBody)
@@ -803,7 +804,8 @@ bool dsRigidBody_getTransformMatrix(dsMatrix44f* outTransform, const dsRigidBody
 	return true;
 }
 
-bool dsRigidBody_setTransformMatrix(dsRigidBody* rigidBody, const dsMatrix44f* transform)
+bool dsRigidBody_setTransformMatrix(dsRigidBody* rigidBody, const dsMatrix44f* transform,
+	bool activate)
 {
 	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
 	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyTransformFunc || !transform)
@@ -885,7 +887,7 @@ bool dsRigidBody_setTransformMatrix(dsRigidBody* rigidBody, const dsMatrix44f* t
 
 	dsPhysicsEngine* engine = actor->engine;
 	return engine->setRigidBodyTransformFunc(engine, rigidBody,
-		(const dsVector3f*)(transform->columns + 3), &orientation, scalePtr);
+		(const dsVector3f*)(transform->columns + 3), &orientation, scalePtr, activate);
 }
 
 bool dsRigidBody_getWorldRotationPosition(dsVector3f* outPosition, const dsRigidBody* rigidBody)
@@ -1319,19 +1321,6 @@ bool dsRigidBody_clearAngularImpulse(dsRigidBody* rigidBody)
 
 	dsPhysicsEngine* engine = actor->engine;
 	return engine->clearRigidBodyAngularImpulseFunc(engine, rigidBody);
-}
-
-bool dsRigidBody_getActive(const dsRigidBody* rigidBody)
-{
-	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
-	if (!rigidBody || !actor->engine || !actor->engine->getRigidBodyActiveFunc ||
-		!rigidBody->shapesFinalized)
-	{
-		return false;
-	}
-
-	dsPhysicsEngine* engine = actor->engine;
-	return engine->getRigidBodyActiveFunc(engine, rigidBody);
 }
 
 bool dsRigidBody_setActive(dsRigidBody* rigidBody, bool active)

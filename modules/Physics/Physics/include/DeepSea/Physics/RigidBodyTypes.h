@@ -295,6 +295,9 @@ typedef struct dsRigidBodyInit
  * error checking performed beforehand that changes are valid.
  *
  * @remark None of the members should be modified outside of the implementation.
+ * @remark The transform members are at the top and closest to the user data pointer from
+ *     dsPhysicsActor to improve cache locality as they will be the most commonly accessed
+ *     members.
  * @see RigidBody.h
  */
 typedef struct dsRigidBody
@@ -305,9 +308,30 @@ typedef struct dsRigidBody
 	dsPhysicsActor actor;
 
 	/**
-	 * @brief The group the rigid body is associated with, or NULL if not associated with a group.
+	 * @brief Whether the rigid body is active.
+	 *
+	 * When not active, the rigid body will not be in motion and the position and orientation will
+	 * not be changed by the physics simulation.
 	 */
-	dsRigidBodyGroup* group;
+	bool active;
+
+	/**
+	 * @brief The position of the body in world space.
+	 */
+	dsVector3f position;
+
+	/**
+	 * @brief The orientation of the body in world space.
+	 */
+	dsQuaternion4f orientation;
+
+	/**
+	 * @brief The scale factor of the body.
+	 *
+	 * This will only be used if dsRigidBodyFlags_Scalable is set, and will not be updated by the
+	 * physics simulation.
+	 */
+	dsVector3f scale;
 
 	/**
 	 * @brief Flags to control the behavior of the rigid body.
@@ -323,23 +347,6 @@ typedef struct dsRigidBody
 	 * @brief The mask of degrees of freedom the simulation may modify.
 	 */
 	dsPhysicsDOFMask dofMask;
-
-	/**
-	 * @brief The position of the body in world space.
-	 */
-	dsVector3f position;
-
-	/**
-	 * @brief The orientation of the body in world space.
-	 */
-	dsQuaternion4f orientation;
-
-	/**
-	 * @brief The scale factor of the body.
-	 *
-	 * This will only be used if dsRigidBodyFlags_Scalable is set.
-	 */
-	dsVector3f scale;
 
 	/**
 	 * @brief The mass properties of the rigid body.
@@ -388,6 +395,11 @@ typedef struct dsRigidBody
 	 * @brief The maximum angular velocity in radians/s.
 	 */
 	float maxAngularVelocity;
+
+	/**
+	 * @brief The group the rigid body is associated with, or NULL if not associated with a group.
+	 */
+	dsRigidBodyGroup* group;
 
 	/**
 	 * @brief The shapes associated with the body.
@@ -573,10 +585,12 @@ typedef bool (*dsSetRigidBodyCanCollisionGroupsCollideFunction)(dsPhysicsEngine*
  * @param position The new position or NULL to leave unchanged.
  * @param orientation The new orientation or NULL to leave unchanged.
  * @param scale The new scale or NULL to leave unchanged.
+ * @param activate Whether to activate the rigid body if it's currently inactive.
  * @return False if the transform couldn't be set.
  */
 typedef bool (*dsSetRigidBodyTransformFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
-	const dsVector3f* position, const dsQuaternion4f* orientation, const dsVector3f* scale);
+	const dsVector3f* position, const dsQuaternion4f* orientation, const dsVector3f* scale,
+	bool activate);
 
 /**
  * @brief Function to set a float value on a rigid body.
@@ -615,14 +629,6 @@ typedef bool (*dsSetRigidBodyVectorValueFunction)(dsPhysicsEngine* engine, dsRig
  * @return False if the force couldn't be cleared.
  */
 typedef bool (*dsClearRigidBodyForceFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody);
-
-/**
- * @brief Function to get whether a rigid body is active.
- * @param engine The physics engine the rigid body was created with.
- * @param rigidBody The rigid body to get the active state from.
- * @return Whether the rigid body is active.
- */
-typedef bool (*dsGetRigidBodyActiveFunction)(dsPhysicsEngine* engine, const dsRigidBody* rigidBody);
 
 /**
  * @brief Function to set whether a rigid body is active.

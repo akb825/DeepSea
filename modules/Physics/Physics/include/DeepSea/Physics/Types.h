@@ -1149,11 +1149,6 @@ struct dsPhysicsEngine
 	dsClearRigidBodyForceFunction clearRigidBodyAngularImpulseFunc;
 
 	/**
-	 * @brief Function to get whether a rigid body is active.
-	 */
-	dsGetRigidBodyActiveFunction getRigidBodyActiveFunc;
-
-	/**
 	 * @brief Function to set whether a rigid body is active.
 	 */
 	dsSetRigidBodyActiveFunction setRigidBodyActiveFunc;

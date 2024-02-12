@@ -135,11 +135,6 @@ typedef struct dsPhysicsActor
 	dsAllocator* allocator;
 
 	/**
-	 * @brief User data associated with the actor.
-	 */
-	void* userData;
-
-	/**
 	 * @brief Function to destroy the user data.
 	 */
 	dsDestroyUserDataFunction destroyUserDataFunc;
@@ -176,6 +171,13 @@ typedef struct dsPhysicsActor
 	 * bodies and would return true for one body but false the other.
 	 */
 	dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc;
+
+	/**
+	 * @brief User data associated with the actor.
+	 *
+	 * This is declared last so it can be nearest the most commonly accessed members in subclasses.
+	 */
+	void* userData;
 } dsPhysicsActor;
 
 /**
