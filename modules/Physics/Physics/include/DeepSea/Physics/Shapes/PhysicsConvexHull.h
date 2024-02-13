@@ -94,12 +94,25 @@ DS_PHYSICS_EXPORT uint32_t dsPhysicsConvexHull_getFace(uint32_t* outIndices,
 	uint32_t faceIndex);
 
 /**
- * @brief Destroys a physics convex hull.
+ * @brief Initializes a physics convex hull.
+ *
+ * This is called by the physics implementation to initialize the common members.
+ *
  * @remark errno will be set on failure.
- * @param convexHull The convex hull to destroy.
- * @return False if the convex hull couldn't be destroyed.
+ * @param[out] convexHull The convex hull to initialize.
+ * @param engine The physics engine the convex hull was created with.
+ * @param allocator The allocator the convex hull was created with.
+ * @param impl The underlying implementation of the shape.
+ * @param vertices Pointer to the first vertex.
+ * @param vertexCount The number of vertices.
+ * @param vertexStride The stride in bytes between each vertex.
+ * @param faceCount The number of faces for the convex hull.
+ * @param convexRadius The convex radius used for collision checks
+ * @return False if there was an allocation error computing the components.
  */
-DS_PHYSICS_EXPORT bool dsPhysicsConvexHull_destroy(dsPhysicsConvexHull* convexHull);
+DS_PHYSICS_EXPORT bool dsPhysicsConvexHull_initialize(dsPhysicsConvexHull* convexHull,
+	dsPhysicsEngine* engine, dsAllocator* allocator, void* impl, const void* vertices,
+	uint32_t vertexCount, size_t vertexStride, uint32_t faceCount, float convexRadius);
 
 #ifdef __cplusplus
 }

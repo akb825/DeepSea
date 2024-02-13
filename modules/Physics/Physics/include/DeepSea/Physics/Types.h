@@ -168,15 +168,15 @@ typedef struct dsPhysicsActorContactProperties
 } dsPhysicsActorContactProperties;
 
 /**
- * @brief Struct describing limits for objects within a scene.
+ * @brief Struct describing settings for a scene a scene.
  *
- * Some implementations may view these as strict upper limits, others may use them as hints to
- * pre-allocate, while others may ignore them completely.
+ * Some implementations may view the limit values as strict upper limits, others may use them as
+ * hints to pre-allocate, while others may ignore them completely.
  *
  * @param dsPhysicsScene
  * @see PhysicsScene.h
  */
-typedef struct dsPhysicsSceneLimits
+typedef struct dsPhysicsSceneSettings
 {
 	/**
 	 * @brief The maximum number of bodies that are only used for collision and not affected by
@@ -231,7 +231,48 @@ typedef struct dsPhysicsSceneLimits
 	 * exceeded, further contacts may be discarded.
 	 */
 	uint32_t maxContactPoints;
-} dsPhysicsSceneLimits;
+
+	/**
+	 * @brief The initial gravity for the scene.
+	 */
+	dsVector3f gravity;
+
+	/**
+	 * @brief Whether modifications may be made across threads.
+	 *
+	 * When false, the locking functions will become NOPs that only enforce that the proper locking
+	 * functions are used. This can reduce overhead when locking isn't required.
+	 *
+	 * This should be true if any of the following may happen:
+	 * - Actors or constraints may be added or removed from the scene on separate threads.
+	 * - Queries or changes may be made conocurrent to updating the physics scene.
+	 *
+	 * The following common multi-threaded access does *not* require this to be true:
+	 * - Creation of physics objects across threads, so long as they are only added to or removed
+	 *   from the scene on the main thread.
+	 * - Usage of a thread pool to enable multi-threaded processing.
+	 */
+	bool multiThreadedModifications;
+} dsPhysicsSceneSettings;
+
+/**
+ * @brief Struct holding the state for whether a lock is held with the physics scene.
+ * @remark This should only be held for short periods, such as in a function scope.
+ * @see dsPhysicsScene
+ * @see PhysicsScene.h
+ */
+typedef struct dsPhysicsSceneLock
+{
+	/**
+	 * @brief Arbitrary value indicating whether a read lock is held.
+	 */
+	void* readLock;
+
+	/**
+	 * @brief Arbitrary value indicating whether a write lock is held.
+	 */
+	void* writeLock;
+} dsPhysicsSceneLock;
 
 /**
  * @brief Function to combine friction values.
@@ -256,9 +297,11 @@ typedef float (*dsCombineRestitutionFunction)(float restitutionA, float hardness
  * @brief Function to respond to a physics scene being stepped.
  * @param scene The physics scene being stepped.
  * @param time The time delta for the step.
+ * @param lock The physics lock from updating. This supports reading data.
  * @param userData The user data supplied for the event.
  */
-typedef void (*dsOnPhysicsSceneStepFunction)(dsPhysicsScene* scene, float time, void* userData);
+typedef void (*dsOnPhysicsSceneStepFunction)(dsPhysicsScene* scene, float time,
+	const dsPhysicsSceneLock* lock, void* userData);
 
 /**
  * @brief Function to respond to physics actor contact manifold events.
@@ -285,6 +328,7 @@ typedef bool (*dsUpdatePhysicsActorContactPropertiesFunction)(dsPhysicsScene* sc
  * @brief Struct defining a scene of objects in a physics simulation.
  * @remark None of the members should be modified outside of the implementation.
  * @see dsPhysicsSceneLimits
+ * @see dsPhysicsSceneLock
  * @see PhysicsScene.h
  */
 typedef struct dsPhysicsScene
@@ -298,6 +342,11 @@ typedef struct dsPhysicsScene
 	 * @brief The allocator the scene was created with.
 	 */
 	dsAllocator* allocator;
+
+	/**
+	 * @brief Lock for the multi-threaded access.
+	 */
+	dsReadWriteLock* lock;
 
 	/**
 	 * @brief The function to combine friction values.
@@ -326,7 +375,7 @@ typedef struct dsPhysicsScene
 	/**
 	 * @brief Function to destroy the update physics actor contact properties user data.
 	 */
-	dsDestroyUserDataFunction destroyUpdatePhysicsActionContactPropertiesUserDataFunc;
+	dsDestroyUserDataFunction destroyUpdatePhysicsActorContactPropertiesUserDataFunc;
 
 	/**
 	 * @brief Function to respond to a physics actor contact manifold being added..
@@ -377,6 +426,14 @@ typedef struct dsPhysicsScene
 	 * @brief The gravity applied to the scene.
 	 */
 	dsVector3f gravity;
+
+	/**
+	 * @brief The number of actors in the scene.
+	 *
+	 * The implementation is responsible for keeping this up to date. Clients should only query this
+	 * when the scene is locked.
+	 */
+	uint32_t actorCount;
 } dsPhysicsScene;
 
 /**
@@ -390,13 +447,13 @@ typedef bool (*dsDestroyPhysicsEngineFunction)(dsPhysicsEngine* engine);
  * @brief Function to create a physics scene.
  * @param engine The physics engine to create the scene with.
  * @param allocator The allocator to create the scene with.
- * @param limits The limits for the physics scene.
+ * @param settings The settings for the physics scene.
  * @param threadPool The thread pool to use for multithreaded processing, or NULL for
  *     single-threaded processing.
  * @return The created physics scene or NULL if it couldn't be created.
  */
 typedef dsPhysicsScene* (*dsCreatePhysicsSceneFunction)(dsPhysicsEngine* engine,
-	dsAllocator* allocator, const dsPhysicsSceneLimits* limits, dsThreadPool* threadPool);
+	dsAllocator* allocator, const dsPhysicsSceneSettings* settings, dsThreadPool* threadPool);
 
 /**
  * @brief Function to destroy a physics scene.
@@ -425,50 +482,6 @@ typedef bool (*dsSetPhysicsSceneCombineFrictionFunction)(dsPhysicsEngine* engine
  */
 typedef bool (*dsSetPhysicsSceneCombineRestitutionFunction)(dsPhysicsEngine* engine,
 	dsPhysicsScene* scene, dsCombineRestitutionFunction combineFunc);
-
-/**
- * @brief Function to add rigid bodies to a physics scene.
- * @param engine The physics engine the scene was created with.
- * @param scene The scene to add the rigid body to.
- * @param rigidBodies The rigid bodies to add.
- * @param rigidBodyCount The number of rigid bodies to add.
- * @param activate Whether the rigid bodies should be activated on insertion.
- * @return False if the rigid body couldn't be added.
- */
-typedef bool (*dsPhysicsSceneAddRigidBodiesFunction)(dsPhysicsEngine* engine, dsPhysicsScene* scene,
-	dsRigidBody* const* rigidBodies, uint32_t rigidBodyCount, bool activate);
-
-/**
- * @brief Function to remove rigid bodies from a physics scene.
- * @param engine The physics engine the scene was created with.
- * @param scene The scene to remove the rigid bodies from.
- * @param rigidBodies The rigid bodies to remove.
- * @param rigidBodyCount The number of rigid bodies to remove.
- * @return False if the rigid body couldn't be removed.
- */
-typedef bool (*dsPhysicsSceneRemoveRigidBodiesFunction)(dsPhysicsEngine* engine,
-	dsPhysicsScene* scene, dsRigidBody* const* rigidBodies, uint32_t rigidBodyCount);
-
-/**
- * @brief Function to add a rigid body group to a physics scene.
- * @param engine The physics engine the scene was created with.
- * @param scene The scene to add the rigid body group to.
- * @param group The rigid body group to add.
- * @param activate Whether the rigid bodies should be activated on insertion.
- * @return False if the rigid group body group couldn't be added.
- */
-typedef bool (*dsPhysicsSceneAddRigidBodyGroupFunction)(dsPhysicsEngine* engine,
-	dsPhysicsScene* scene, dsRigidBodyGroup* group, bool activate);
-
-/**
- * @brief Function to remove a rigid body group from a physics scene.
- * @param engine The physics engine the scene was created with.
- * @param scene The scene to remove the rigid body group from.
- * @param group The rigid body group to remove.
- * @return False if the rigid body group couldn't be removed.
- */
-typedef bool (*dsPhysicsSceneRemoveRigidBodyGroupFunction)(dsPhysicsEngine* engine,
-	dsPhysicsScene* scene, dsRigidBodyGroup* group);
 
 /**
  * @brief Function to set a physics actor contact manifold callback on a physics scene.
@@ -528,6 +541,74 @@ typedef bool (*dsRemovePhysicsSceneStepListenerFunction)(dsPhysicsEngine* engine
  */
 typedef bool (*dsSetPhysicsSceneGravityFunction)(dsPhysicsEngine* engine, dsPhysicsScene* scene,
 	const dsVector3f* gravity);
+
+/**
+ * @brief Function to add rigid bodies to a physics scene.
+ * @param engine The physics engine the scene was created with.
+ * @param scene The scene to add the rigid body to.
+ * @param rigidBodies The rigid bodies to add.
+ * @param rigidBodyCount The number of rigid bodies to add.
+ * @param activate Whether the rigid bodies should be activated on insertion.
+ * @return False if the rigid body couldn't be added.
+ */
+typedef bool (*dsPhysicsSceneAddRigidBodiesFunction)(dsPhysicsEngine* engine, dsPhysicsScene* scene,
+	dsRigidBody* const* rigidBodies, uint32_t rigidBodyCount, bool activate);
+
+/**
+ * @brief Function to remove rigid bodies from a physics scene.
+ * @param engine The physics engine the scene was created with.
+ * @param scene The scene to remove the rigid bodies from.
+ * @param rigidBodies The rigid bodies to remove.
+ * @param rigidBodyCount The number of rigid bodies to remove.
+ * @return False if the rigid body couldn't be removed.
+ */
+typedef bool (*dsPhysicsSceneRemoveRigidBodiesFunction)(dsPhysicsEngine* engine,
+	dsPhysicsScene* scene, dsRigidBody* const* rigidBodies, uint32_t rigidBodyCount);
+
+/**
+ * @brief Function to add a rigid body group to a physics scene.
+ * @param engine The physics engine the scene was created with.
+ * @param scene The scene to add the rigid body group to.
+ * @param group The rigid body group to add.
+ * @param activate Whether the rigid bodies should be activated on insertion.
+ * @return False if the rigid group body group couldn't be added.
+ */
+typedef bool (*dsPhysicsSceneAddRigidBodyGroupFunction)(dsPhysicsEngine* engine,
+	dsPhysicsScene* scene, dsRigidBodyGroup* group, bool activate);
+
+/**
+ * @brief Function to remove a rigid body group from a physics scene.
+ * @param engine The physics engine the scene was created with.
+ * @param scene The scene to remove the rigid body group from.
+ * @param group The rigid body group to remove.
+ * @return False if the rigid body group couldn't be removed.
+ */
+typedef bool (*dsPhysicsSceneRemoveRigidBodyGroupFunction)(dsPhysicsEngine* engine,
+	dsPhysicsScene* scene, dsRigidBodyGroup* group);
+
+/**
+ * @brief Function to get actors from a physics scene.
+ * @param[out] outActors Storage for the actor pointers.
+ * @param engine The physics engine the scene was created with.
+ * @param scene The physics scene to get the actors from.
+ * @param firstIndex The first index to get the actors for.
+ * @param count The number of actors to request.
+ * @return The number of actors populated, up to and including count.
+ */
+typedef uint32_t (*dsPhysicsSceneGetActorsFunction)(dsPhysicsActor** outActors,
+	dsPhysicsEngine* engine, const dsPhysicsScene* scene, uint32_t firstIndex, uint32_t count);
+
+/**
+ * @brief Function for updating a physics scene.
+ * @param engine The physics engine the scene was created with.
+ * @param scene The physics scene to update.
+ * @param time The total amount of time to advance the physics simulation.
+ * @param stepCount The number of steps to perform to update the simulation.
+ * @param lock The lock to forward to the step update function.
+ * @return False if the physics scene couldn't be updated.
+ */
+typedef bool (*dsPhysicsSceneUpdateFunction)(dsPhysicsEngine* engine, dsPhysicsScene* scene,
+	float time, unsigned int stepCount, const dsPhysicsSceneLock* lock);
 
 /**
  * @brief Function to create a physics sphere.
@@ -816,26 +897,6 @@ struct dsPhysicsEngine
 	dsSetPhysicsSceneCombineRestitutionFunction setSceneCombineRestitutionFunc;
 
 	/**
-	 * @brief Function to add rigid bodies to a physics scene.
-	 */
-	dsPhysicsSceneAddRigidBodiesFunction addSceneRigidBodiesFunc;
-
-	/**
-	 * @brief Function to remove rigid bodies from a physics scene.
-	 */
-	dsPhysicsSceneRemoveRigidBodiesFunction removeSceneRigidBodiesFunc;
-
-	/**
-	 * @brief Function to add a rigid body group to a physics scene.
-	 */
-	dsPhysicsSceneAddRigidBodyGroupFunction addSceneRigidBodyGroupFunc;
-
-	/**
-	 * @brief Function to remove a rigid body group from a physics scene.
-	 */
-	dsPhysicsSceneRemoveRigidBodyGroupFunction removeSceneRigidBodyGroupFunc;
-
-	/**
 	 * @brief Function to set the physics actor contact properties update callback on a physics scene.
 	 */
 	dsSetPhysicsSceneUpdateContactPropertiesFunction setSceneUpdateContactPropertiesFunc;
@@ -871,6 +932,36 @@ struct dsPhysicsEngine
 	 * @brief Function to set the gravity on a physics scene.
 	 */
 	dsSetPhysicsSceneGravityFunction setPhysicsSceneGravityFunc;
+
+	/**
+	 * @brief Function to add rigid bodies to a physics scene.
+	 */
+	dsPhysicsSceneAddRigidBodiesFunction addSceneRigidBodiesFunc;
+
+	/**
+	 * @brief Function to remove rigid bodies from a physics scene.
+	 */
+	dsPhysicsSceneRemoveRigidBodiesFunction removeSceneRigidBodiesFunc;
+
+	/**
+	 * @brief Function to add a rigid body group to a physics scene.
+	 */
+	dsPhysicsSceneAddRigidBodyGroupFunction addSceneRigidBodyGroupFunc;
+
+	/**
+	 * @brief Function to remove a rigid body group from a physics scene.
+	 */
+	dsPhysicsSceneRemoveRigidBodyGroupFunction removeSceneRigidBodyGroupFunc;
+
+	/**
+	 * @brief Function to get the actors from a physics scene.
+	 */
+	dsPhysicsSceneGetActorsFunction getSceneActorsFunc;
+
+	/**
+	 * @brief Function to update a physics scene.
+	 */
+	dsPhysicsSceneUpdateFunction updateSceneFunc;
 
 	// ---------------------------------------- Contact manifolds ----------------------------------
 

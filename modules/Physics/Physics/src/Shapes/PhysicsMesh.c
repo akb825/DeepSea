@@ -16,6 +16,7 @@
 
 #include <DeepSea/Physics/Shapes/PhysicsMesh.h>
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
@@ -123,31 +124,44 @@ dsPhysicsMesh* dsPhysicsMesh_create(dsPhysicsEngine* engine, dsAllocator* alloca
 	dsPhysicsMesh* mesh = engine->createMeshFunc(engine, allocator, vertices, vertexCount,
 		vertexStride, indices, triangleCount, indexSize, triangleMaterialIndices,
 		triangleMaterialIndexSize, triangleMaterials, triangleMaterialCount, cacheName);
-	if (!mesh)
-		DS_PROFILE_FUNC_RETURN(NULL);
+	DS_PROFILE_FUNC_RETURN(mesh);
+}
+
+void dsPhysicsMesh_initialize(dsPhysicsMesh* mesh, dsPhysicsEngine* engine, dsAllocator* allocator,
+	void* impl, const void* vertices, uint32_t vertexCount, size_t vertexStride,
+	uint32_t triangleCount, const void* triangleMaterialIndices,
+	size_t triangleMaterialIndexSize, const dsPhysicsShapePartMaterial* triangleMaterials,
+	uint32_t triangleMaterialCount)
+{
+	DS_ASSERT(mesh);
+	DS_ASSERT(engine);
+	DS_ASSERT(vertices);
+	DS_ASSERT(vertexCount > 0);
+	DS_ASSERT(vertexStride >= sizeof(dsVector3f));
+	DS_ASSERT(triangleCount > 0);
+	DS_ASSERT(triangleMaterialCount == 0 || (triangleMaterialIndices && triangleMaterials));
+
+	dsPhysicsShape* shape = (dsPhysicsShape*)mesh;
+	shape->engine = engine;
+	shape->allocator = dsAllocator_keepPointer(allocator);
+	shape->type = dsPhysicsMesh_type();
+	shape->impl = impl;
+	shape->debugData = NULL;
+	shape->destroyDebugDataFunc = NULL;
+	shape->refCount = 1;
+	shape->destroyFunc = (dsDestroyPhysicsShapeFunction)engine->destroyMeshFunc;
 
 	const uint8_t* vertexBytes = (const uint8_t*)vertices;
-	dsPhysicsShape* shape = (dsPhysicsShape*)mesh;
 	dsAlignedBox3f_makeInvalid(&shape->bounds);
 	for (uint32_t i = 0; i < vertexCount; ++i)
 	{
 		const dsVector3f* point = (const dsVector3f*)(vertexBytes + i*vertexStride);
 		dsAlignedBox3_addPoint(shape->bounds, *point);
 	}
-	DS_PROFILE_FUNC_RETURN(mesh);
-}
 
-bool dsPhysicsMesh_destroy(dsPhysicsMesh* mesh)
-{
-	if (!mesh)
-		return true;
-
-	dsPhysicsEngine* engine = ((dsPhysicsShape*)mesh)->engine;
-	if (!engine || !engine->destroyMeshFunc)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	return engine->destroyMeshFunc(engine, mesh);
+	mesh->triangleCount = triangleCount;
+	mesh->materialCount = triangleMaterialCount;
+	mesh->materialIndexSize = (uint32_t)triangleMaterialIndexSize;
+	mesh->materialIndices = triangleMaterialIndices;
+	mesh->materials = triangleMaterials;
 }

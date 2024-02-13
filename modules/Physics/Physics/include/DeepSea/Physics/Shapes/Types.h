@@ -91,9 +91,10 @@ typedef bool (*dsGetPhysicsShapeMaterialFunction)(dsPhysicsShapePartMaterial* ou
 
 /**
  * @brief Function to destroy a physics shape.
+ * @param engine The physics engine the shape was created with.
  * @param shape The shape to destroy.
  */
-typedef void (*dsDestroyPhysicsShapeFunction)(dsPhysicsShape* shape);
+typedef void (*dsDestroyPhysicsShapeFunction)(dsPhysicsEngine* engine, dsPhysicsShape* shape);
 
 /**
  * @brief Struct defining the type of a physics shape.

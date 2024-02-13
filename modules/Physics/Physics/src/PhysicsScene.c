@@ -16,22 +16,43 @@
 
 #include <DeepSea/Physics/PhysicsScene.h>
 
+#include <DeepSea/Core/Thread/ReadWriteLock.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 
-dsPhysicsScene* dsPhysicsScene_create(dsPhysicsEngine* engine, dsAllocator* allocator,
-	const dsPhysicsSceneLimits* limits, dsThreadPool* threadPool)
+inline static bool isReadLocked(const dsPhysicsScene* scene, const dsPhysicsSceneLock* lock)
 {
-	if (!engine || (!allocator && !engine->allocator) || !limits || !engine->createSceneFunc ||
+	return lock->readLock == scene || lock->writeLock == scene;
+}
+
+inline static bool isWriteLocked(const dsPhysicsScene* scene, const dsPhysicsSceneLock* lock)
+{
+	return lock->writeLock == scene;
+}
+
+dsPhysicsScene* dsPhysicsScene_create(dsPhysicsEngine* engine, dsAllocator* allocator,
+	const dsPhysicsSceneSettings* settings, dsThreadPool* threadPool)
+{
+	if (!engine || (!allocator && !engine->allocator) || !settings || !engine->createSceneFunc ||
 		!engine->destroySceneFunc)
 	{
 		errno = EINVAL;
 		return NULL;
 	}
 
-	return engine->createSceneFunc(engine, allocator, limits, threadPool);
+	if (!allocator)
+		allocator = engine->allocator;
+
+	if (!allocator->freeFunc)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Physics scene allocator must support freeing memory.");
+		errno = EINVAL;
+		return NULL;
+	}
+
+	return engine->createSceneFunc(engine, allocator, settings, threadPool);
 }
 
 bool dsPhysicsScene_setCombineFrictionFunction(dsPhysicsScene* scene,
@@ -58,147 +79,6 @@ bool dsPhysicsScene_setCombineRestitutionFunction(dsPhysicsScene* scene,
 
 	dsPhysicsEngine* engine = scene->engine;
 	return engine->setSceneCombineRestitutionFunc(engine, scene, combineFunc);
-}
-
-bool dsPhysicsScene_addRigidBodies(dsPhysicsScene* scene,
-	dsRigidBody* const* rigidBodies, uint32_t rigidBodyCount, bool activate)
-{
-	DS_PROFILE_FUNC_START();
-	if (!scene || !scene->engine || !scene->engine->addSceneRigidBodiesFunc ||
-		(!rigidBodies && rigidBodyCount > 0))
-	{
-		errno = EINVAL;
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	if (rigidBodyCount == 0)
-		DS_PROFILE_FUNC_RETURN(true);
-
-	for (uint32_t i = 0; i < rigidBodyCount; ++i)
-	{
-		dsRigidBody* rigidBody = rigidBodies[i];
-		if (!rigidBody)
-		{
-			errno = EINVAL;
-			DS_PROFILE_FUNC_RETURN(false);
-		}
-
-		if (rigidBody->group)
-		{
-			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
-				"Cannot add a rigid body to a scene when associated with a group.");
-			errno = EPERM;
-			DS_PROFILE_FUNC_RETURN(false);
-		}
-
-		// Assume that the rigid bodywon't be added/removed across threads for this sanity check.
-		if (((dsPhysicsActor*)rigidBody)->scene)
-		{
-			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
-				"Cannot add a rigid body to a scene when already associated with a scene.");
-			errno = EPERM;
-			DS_PROFILE_FUNC_RETURN(false);
-		}
-	}
-
-	dsPhysicsEngine* engine = scene->engine;
-	bool success = engine->addSceneRigidBodiesFunc(
-		engine, scene, rigidBodies, rigidBodyCount, activate);
-	DS_PROFILE_FUNC_RETURN(success);
-}
-
-bool dsPhysicsScene_removeRigidBodies(dsPhysicsScene* scene, dsRigidBody* const* rigidBodies,
-	uint32_t rigidBodyCount)
-{
-	DS_PROFILE_FUNC_START();
-	if (!scene || !scene->engine || !scene->engine->removeSceneRigidBodiesFunc ||
-		(!rigidBodies && rigidBodyCount > 0))
-	{
-		errno = EINVAL;
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	if (rigidBodyCount == 0)
-		DS_PROFILE_FUNC_RETURN(true);
-
-	for (uint32_t i = 0; i < rigidBodyCount; ++i)
-	{
-		dsRigidBody* rigidBody = rigidBodies[i];
-		if (!rigidBody)
-		{
-			errno = EINVAL;
-			DS_PROFILE_FUNC_RETURN(false);
-		}
-
-		if (rigidBody->group)
-		{
-			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
-				"Cannot remove a rigid body from a scene when associated with a group.");
-			errno = EPERM;
-			DS_PROFILE_FUNC_RETURN(false);
-		}
-
-		// Assume that the rigid bodywon't be added/removed across threads for this sanity check.
-		if (((dsPhysicsActor*)rigidBody)->scene != scene)
-		{
-			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
-				"Cannot remove a rigid body from a scene it's not associated with.");
-			errno = EPERM;
-			DS_PROFILE_FUNC_RETURN(false);
-		}
-	}
-
-	dsPhysicsEngine* engine = scene->engine;
-	bool success = engine->removeSceneRigidBodiesFunc(engine, scene, rigidBodies, rigidBodyCount);
-	DS_PROFILE_FUNC_RETURN(success);
-}
-
-bool dsPhysicsScene_addRigidBodyGroup(dsPhysicsScene* scene, dsRigidBodyGroup* group, bool activate)
-{
-	DS_PROFILE_FUNC_START();
-	if (!scene || !scene->engine || !scene->engine->addSceneRigidBodyGroupFunc || !group)
-	{
-		errno = EINVAL;
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	dsPhysicsScene* groupScene;
-	DS_ATOMIC_LOAD_PTR(&group->scene, &groupScene);
-	if (groupScene)
-	{
-		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
-			"Cannot add a rigid body group to a scene when already associated with a scene.");
-		errno = EPERM;
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	dsPhysicsEngine* engine = scene->engine;
-	bool success = engine->addSceneRigidBodyGroupFunc(engine, scene, group, activate);
-	DS_PROFILE_FUNC_RETURN(success);
-}
-
-bool dsPhysicsScene_removeRigidBodyGroup(dsPhysicsScene* scene, dsRigidBodyGroup* group)
-{
-	DS_PROFILE_FUNC_START();
-	if (!scene || !scene->engine || !scene->engine->removeSceneRigidBodyGroupFunc || !group)
-	{
-		errno = EINVAL;
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	dsPhysicsScene* groupScene;
-	DS_ATOMIC_LOAD_PTR(&group->scene, &groupScene);
-	if (groupScene != scene)
-	{
-		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
-			"Cannot remove a rigid body group from a scene it's not associated with.");
-		errno = EPERM;
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	dsPhysicsEngine* engine = scene->engine;
-	bool success = engine->removeSceneRigidBodyGroupFunc(engine, scene, group);
-	DS_PROFILE_FUNC_RETURN(success);
 }
 
 bool dsPhysicsScene_setUpdateContactSettingsFunction(dsPhysicsScene* scene,
@@ -346,6 +226,309 @@ bool dsPhysicsScene_setGravity(dsPhysicsScene* scene, const dsVector3f* gravity)
 	return engine->setPhysicsSceneGravityFunc(engine, scene, gravity);
 }
 
+bool dsPhysicsScene_lockRead(dsPhysicsSceneLock* outLock, dsPhysicsScene* scene)
+{
+	if (!outLock || !scene)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (scene->lock && !dsReadWriteLock_lockRead(scene->lock))
+		return false;
+
+	outLock->readLock = scene;
+	outLock->writeLock = NULL;
+	return true;
+}
+
+bool dsPhysicsScene_unlockRead(dsPhysicsSceneLock* outLock, dsPhysicsScene* scene)
+{
+	if (!outLock || !scene)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (outLock->readLock != scene)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	if (scene->lock && !dsReadWriteLock_unlockRead(scene->lock))
+		return false;
+
+	outLock->readLock = outLock->writeLock = NULL;
+	return true;
+}
+
+bool dsPhysicsScene_lockWrite(dsPhysicsSceneLock* outLock, dsPhysicsScene* scene)
+{
+	if (!outLock || !scene)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (scene->lock && !dsReadWriteLock_lockWrite(scene->lock))
+		return false;
+
+	outLock->readLock = NULL;
+	outLock->writeLock = scene;
+	return true;
+}
+
+bool dsPhysicsScene_unlockWrite(dsPhysicsSceneLock* outLock, dsPhysicsScene* scene)
+{
+	if (!outLock || !scene)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (outLock->writeLock != scene)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	if (scene->lock && !dsReadWriteLock_unlockWrite(scene->lock))
+		return false;
+
+	outLock->readLock = outLock->writeLock = NULL;
+	return true;
+}
+
+bool dsPhysicsScene_addRigidBodies(dsPhysicsScene* scene,
+	dsRigidBody* const* rigidBodies, uint32_t rigidBodyCount, bool activate,
+	const dsPhysicsSceneLock* lock)
+{
+	DS_PROFILE_FUNC_START();
+	if (!scene || !scene->engine || !scene->engine->addSceneRigidBodiesFunc ||
+		(!rigidBodies && rigidBodyCount > 0) || !lock)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!isWriteLocked(scene, lock))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Physics scene must have been locked for writing before adding rigid bodies.");
+		errno = EPERM;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (rigidBodyCount == 0)
+		DS_PROFILE_FUNC_RETURN(true);
+
+	for (uint32_t i = 0; i < rigidBodyCount; ++i)
+	{
+		dsRigidBody* rigidBody = rigidBodies[i];
+		if (!rigidBody)
+		{
+			errno = EINVAL;
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		if (rigidBody->group)
+		{
+			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+				"Cannot add a rigid body to a scene when associated with a group.");
+			errno = EPERM;
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		// Assume that the rigid bodywon't be added/removed across threads for this sanity check.
+		if (((dsPhysicsActor*)rigidBody)->scene)
+		{
+			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+				"Cannot add a rigid body to a scene when already associated with a scene.");
+			errno = EPERM;
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+	}
+
+	dsPhysicsEngine* engine = scene->engine;
+	bool success = engine->addSceneRigidBodiesFunc(
+		engine, scene, rigidBodies, rigidBodyCount, activate);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
+bool dsPhysicsScene_removeRigidBodies(dsPhysicsScene* scene, dsRigidBody* const* rigidBodies,
+	uint32_t rigidBodyCount, const dsPhysicsSceneLock* lock)
+{
+	DS_PROFILE_FUNC_START();
+	if (!scene || !scene->engine || !scene->engine->removeSceneRigidBodiesFunc ||
+		(!rigidBodies && rigidBodyCount > 0) || !lock)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!isWriteLocked(scene, lock))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Physics scene must have been locked for writing before removing rigid bodies.");
+		errno = EPERM;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (rigidBodyCount == 0)
+		DS_PROFILE_FUNC_RETURN(true);
+
+	for (uint32_t i = 0; i < rigidBodyCount; ++i)
+	{
+		dsRigidBody* rigidBody = rigidBodies[i];
+		if (!rigidBody)
+		{
+			errno = EINVAL;
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		if (rigidBody->group)
+		{
+			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+				"Cannot remove a rigid body from a scene when associated with a group.");
+			errno = EPERM;
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		// Assume that the rigid bodywon't be added/removed across threads for this sanity check.
+		if (((dsPhysicsActor*)rigidBody)->scene != scene)
+		{
+			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+				"Cannot remove a rigid body from a scene it's not associated with.");
+			errno = EPERM;
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+	}
+
+	dsPhysicsEngine* engine = scene->engine;
+	bool success = engine->removeSceneRigidBodiesFunc(engine, scene, rigidBodies, rigidBodyCount);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
+bool dsPhysicsScene_addRigidBodyGroup(dsPhysicsScene* scene, dsRigidBodyGroup* group, bool activate,
+	const dsPhysicsSceneLock* lock)
+{
+	DS_PROFILE_FUNC_START();
+	if (!scene || !scene->engine || !scene->engine->addSceneRigidBodyGroupFunc || !group || !lock)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!isWriteLocked(scene, lock))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Physics scene must have been locked for writing before adding rigid body groups.");
+		errno = EPERM;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsPhysicsScene* groupScene;
+	DS_ATOMIC_LOAD_PTR(&group->scene, &groupScene);
+	if (groupScene)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Cannot add a rigid body group to a scene when already associated with a scene.");
+		errno = EPERM;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsPhysicsEngine* engine = scene->engine;
+	bool success = engine->addSceneRigidBodyGroupFunc(engine, scene, group, activate);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
+bool dsPhysicsScene_removeRigidBodyGroup(dsPhysicsScene* scene, dsRigidBodyGroup* group,
+	const dsPhysicsSceneLock* lock)
+{
+	DS_PROFILE_FUNC_START();
+	if (!scene || !scene->engine || !scene->engine->removeSceneRigidBodyGroupFunc || !group ||
+		!lock)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!isWriteLocked(scene, lock))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Physics scene must have been locked for writing before removing rigid body groups.");
+		errno = EPERM;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsPhysicsScene* groupScene;
+	DS_ATOMIC_LOAD_PTR(&group->scene, &groupScene);
+	if (groupScene != scene)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Cannot remove a rigid body group from a scene it's not associated with.");
+		errno = EPERM;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsPhysicsEngine* engine = scene->engine;
+	bool success = engine->removeSceneRigidBodyGroupFunc(engine, scene, group);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
+uint32_t dsPhysicsScene_getActors(dsPhysicsActor** outActors, const dsPhysicsScene* scene,
+	uint32_t firstIndex, uint32_t count, const dsPhysicsSceneLock* lock)
+{
+	if ((!outActors && count > 0) || !scene || !scene->engine ||
+		!scene->engine->getSceneActorsFunc || !lock)
+	{
+		errno = EINVAL;
+		return DS_INVALID_PHYSICS_ID;
+	}
+
+	if (!isReadLocked(scene, lock))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Physics scene must have been locked for reading or writing before querying actors.");
+		errno = EPERM;
+		return false;
+	}
+
+	if (count == 0 || firstIndex >= scene->actorCount)
+		return 0;
+
+	dsPhysicsEngine* engine = scene->engine;
+	return engine->getSceneActorsFunc(outActors, engine, scene, firstIndex, count);
+}
+
+bool dsPhysicsScene_update(dsPhysicsScene* scene, float time, unsigned int stepCount)
+{
+	DS_PROFILE_FUNC_START();
+	if (!scene || !scene->engine || !scene->engine->updateSceneFunc || time < 0.0f ||
+		stepCount == 0)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (time == 0.0f)
+		DS_PROFILE_FUNC_RETURN(true);
+
+	if (scene->lock && !dsReadWriteLock_lockWrite(scene->lock))
+		DS_PROFILE_FUNC_RETURN(false);
+
+	// Forward a read lock even though we lock for writing so that the step callbacks cannot change
+	// members.
+	dsPhysicsSceneLock sceneLock = {.readLock = scene, .writeLock = NULL};
+	dsPhysicsEngine* engine = scene->engine;
+	bool success = engine->updateSceneFunc(engine, scene, time, stepCount, &sceneLock);
+
+	if (scene->lock)
+		dsReadWriteLock_unlockWrite(scene->lock);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
 bool dsPhysicsScene_destroy(dsPhysicsScene* scene)
 {
 	if (!scene)
@@ -358,6 +541,69 @@ bool dsPhysicsScene_destroy(dsPhysicsScene* scene)
 	}
 
 	return scene->engine->destroySceneFunc(scene->engine, scene);
+}
+
+bool dsPhysicsScene_initialize(dsPhysicsScene* scene, dsPhysicsEngine* engine,
+	dsAllocator* allocator, const dsPhysicsSceneSettings* settings)
+{
+	DS_ASSERT(scene);
+	DS_ASSERT(engine);
+	DS_ASSERT(allocator);
+	DS_ASSERT(settings);
+
+	scene->engine = engine;
+	scene->allocator = allocator;
+	if (settings->multiThreadedModifications)
+	{
+		scene->lock = dsReadWriteLock_create(allocator, "Physics Scene Read", "Physics Scene Write");
+		if (!scene->lock)
+			return false;
+	}
+	else
+		scene->lock = NULL;
+	scene->combineFrictionFunc = &dsPhysicsScene_defaultCombineFriction;
+	scene->combineRestitutionFunc = &dsPhysicsScene_defaultCombineRestitution;
+	scene->updatePhysicsActorContactPropertiesFunc = NULL;
+	scene->updatePhysicsActorContactPropertiesUserData = NULL;
+	scene->destroyUpdatePhysicsActorContactPropertiesUserDataFunc = NULL;
+	scene->physicsActorContactManifoldAddedFunc = NULL;
+	scene->physicsActorContactManifoldAddedUserData = NULL;
+	scene->destroyPhysicsActorContactManifoldAddedUserDataFunc = NULL;
+	scene->physicsActorContactManifoldUpdatedFunc = NULL;
+	scene->physicsActorContactManifoldUpdatedUserData = NULL;
+	scene->destroyPhysicsActorContactManifoldUpdatedUserDataFunc = NULL;
+	scene->physicsActorContactManifoldRemovedFunc = NULL;
+	scene->physicsActorContactManifoldRemovedUserData = NULL;
+	scene->destroyPhysicsActorContactManifoldRemovedUserDataFunc = NULL;
+	scene->gravity = settings->gravity;
+	return true;
+}
+
+void dsPhysicsScene_shutdown(dsPhysicsScene* scene)
+{
+	DS_ASSERT(scene);
+
+	dsReadWriteLock_destroy(scene->lock);
+	if (scene->destroyUpdatePhysicsActorContactPropertiesUserDataFunc)
+	{
+		scene->destroyUpdatePhysicsActorContactPropertiesUserDataFunc(
+			scene->updatePhysicsActorContactPropertiesUserData);
+	}
+	if (scene->destroyPhysicsActorContactManifoldAddedUserDataFunc)
+	{
+		scene->destroyPhysicsActorContactManifoldAddedUserDataFunc(
+			scene->physicsActorContactManifoldAddedUserData);
+	}
+	if (scene->destroyPhysicsActorContactManifoldUpdatedUserDataFunc)
+	{
+		scene->destroyPhysicsActorContactManifoldUpdatedUserDataFunc(
+			scene->physicsActorContactManifoldUpdatedUserData);
+	}
+	if (scene->destroyPhysicsActorContactManifoldRemovedUserDataFunc)
+	{
+		scene->destroyPhysicsActorContactManifoldRemovedUserDataFunc(
+			scene->physicsActorContactManifoldRemovedUserData);
+	}
 }
 
 float dsPhysicsScene_defaultCombineFriction(float frictionA, float frictionB);

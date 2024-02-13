@@ -16,6 +16,7 @@
 
 #include <DeepSea/Physics/Shapes/PhysicsSphere.h>
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -61,27 +62,27 @@ dsPhysicsSphere* dsPhysicsSphere_create(dsPhysicsEngine* engine, dsAllocator* al
 	if (!allocator)
 		allocator = engine->allocator;
 
-	dsPhysicsSphere* sphere = engine->createSphereFunc(engine, allocator, radius);
-	if (!sphere)
-		return NULL;
-
-	dsPhysicsShape* shape = (dsPhysicsShape*)sphere;
-	shape->bounds.min.x = shape->bounds.min.y = shape->bounds.min.z = -radius;
-	shape->bounds.max.x = shape->bounds.max.y = shape->bounds.max.z = radius;
-	return sphere;
+	return engine->createSphereFunc(engine, allocator, radius);
 }
 
-bool dsPhysicsSphere_destroy(dsPhysicsSphere* sphere)
+void dsPhysicsSphere_initialize(dsPhysicsSphere* sphere, dsPhysicsEngine* engine,
+	dsAllocator* allocator, void* impl, float radius)
 {
-	if (!sphere)
-		return true;
+	DS_ASSERT(sphere);
+	DS_ASSERT(engine);
+	DS_ASSERT(radius > 0);
 
-	dsPhysicsEngine* engine = ((dsPhysicsShape*)sphere)->engine;
-	if (!engine || !engine->destroySphereFunc)
-	{
-		errno = EINVAL;
-		return false;
-	}
+	dsPhysicsShape* shape = (dsPhysicsShape*)sphere;
+	shape->engine = engine;
+	shape->allocator = dsAllocator_keepPointer(allocator);
+	shape->type = dsPhysicsSphere_type();
+	shape->bounds.min.x = shape->bounds.min.y = shape->bounds.min.z = -radius;
+	shape->bounds.max.x = shape->bounds.max.y = shape->bounds.max.z = radius;
+	shape->impl = impl;
+	shape->debugData = NULL;
+	shape->destroyDebugDataFunc = NULL;
+	shape->refCount = 1;
+	shape->destroyFunc = (dsDestroyPhysicsShapeFunction)engine->destroySphereFunc;
 
-	return engine->destroySphereFunc(engine, sphere);
+	sphere->radius = radius;
 }

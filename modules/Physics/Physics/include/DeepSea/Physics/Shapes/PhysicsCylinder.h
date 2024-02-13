@@ -56,12 +56,22 @@ DS_PHYSICS_EXPORT dsPhysicsCylinder* dsPhysicsCylinder_create(dsPhysicsEngine* e
 	float convexRadius);
 
 /**
- * @brief Destroys a physics cylinder.
- * @remark errno will be set on failure.
- * @param cylinder The cylinder to destroy.
- * @return False if the cylinder couldn't be destroyed.
+ * @brief Initializes a physics cylinder.
+ *
+ * This is called by the physics implementation to initialize the common members.
+ *
+ * @param[out] cylinder The cylinder to initialize.
+ * @param engine The physics engine the cylinder was created with.
+ * @param allocator The allocator the capsule was created with.
+ * @param impl The underlying implementation of the shape.
+ * @param halfHeight The half height of the cylinder.
+ * @param radius The radius of the cylinder.
+ * @param axis The axis to align the cylinder with.
+ * @param convexRadius The convex radius used for collision checks.
  */
-DS_PHYSICS_EXPORT bool dsPhysicsCylinder_destroy(dsPhysicsCylinder* cylinder);
+DS_PHYSICS_EXPORT void dsPhysicsCylinder_initialize(dsPhysicsCylinder* cylinder,
+	dsPhysicsEngine* engine, dsAllocator* allocator, void* impl, float halfHeight, float radius,
+	dsPhysicsAxis axis, float convexRadius);
 
 #ifdef __cplusplus
 }

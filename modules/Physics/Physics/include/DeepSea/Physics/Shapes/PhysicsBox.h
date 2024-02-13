@@ -54,12 +54,19 @@ DS_PHYSICS_EXPORT dsPhysicsBox* dsPhysicsBox_create(dsPhysicsEngine* engine,
 	dsAllocator* allocator, const dsVector3f* halfExtents, float convexRadius);
 
 /**
- * @brief Destroys a physics box.
- * @remark errno will be set on failure.
- * @param box The box to destroy.
- * @return False if the box couldn't be destroyed.
+ * @brief Initializes a physics box
+ *
+ * This is called by the physics implementation to initialize the common members.
+ *
+ * @param[out] box The box to initialize.
+ * @param engine The physics engine the box was created with.
+ * @param allocator The allocator the box was created with.
+ * @param impl The underlying implementation of the shape.
+ * @param halfExtents The half extents for each axis.
+ * @param convexRadius The convex radius used for collision checks.
  */
-DS_PHYSICS_EXPORT bool dsPhysicsBox_destroy(dsPhysicsBox* box);
+DS_PHYSICS_EXPORT void dsPhysicsBox_initialize(dsPhysicsBox* box, dsPhysicsEngine* engine,
+	dsAllocator* allocator, void* impl, const dsVector3f* halfExtents, float convexRadius);
 
 #ifdef __cplusplus
 }

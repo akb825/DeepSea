@@ -16,6 +16,7 @@
 
 #include <DeepSea/Physics/Shapes/PhysicsBox.h>
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -76,27 +77,29 @@ dsPhysicsBox* dsPhysicsBox_create(dsPhysicsEngine* engine, dsAllocator* allocato
 	if (!allocator)
 		allocator = engine->allocator;
 
-	dsPhysicsBox* box = engine->createBoxFunc(engine, allocator, halfExtents, convexRadius);
-	if (!box)
-		return NULL;
-
-	dsPhysicsShape* shape = (dsPhysicsShape*)box;
-	dsVector3_neg(shape->bounds.min, *halfExtents);
-	shape->bounds.max = *halfExtents;
-	return box;
+	return engine->createBoxFunc(engine, allocator, halfExtents, convexRadius);
 }
 
-bool dsPhysicsBox_destroy(dsPhysicsBox* box)
+void dsPhysicsBox_initialize(dsPhysicsBox* box, dsPhysicsEngine* engine, dsAllocator* allocator,
+	void* impl, const dsVector3f* halfExtents, float convexRadius)
 {
-	if (!box)
-		return true;
+	DS_ASSERT(box);
+	DS_ASSERT(engine);
+	DS_ASSERT(halfExtents && halfExtents->x >= 0 && halfExtents->y >= 0 && halfExtents->z >= 0);
+	DS_ASSERT(convexRadius >= 0);
 
-	dsPhysicsEngine* engine = ((dsPhysicsShape*)box)->engine;
-	if (!engine || !engine->destroyBoxFunc)
-	{
-		errno = EINVAL;
-		return false;
-	}
+	dsPhysicsShape* shape = (dsPhysicsShape*)box;
+	shape->engine = engine;
+	shape->allocator = dsAllocator_keepPointer(allocator);
+	shape->type = dsPhysicsBox_type();
+	dsVector3_neg(shape->bounds.min, *halfExtents);
+	shape->bounds.max = *halfExtents;
+	shape->impl = impl;
+	shape->debugData = NULL;
+	shape->destroyDebugDataFunc = NULL;
+	shape->refCount = 1;
+	shape->destroyFunc = (dsDestroyPhysicsShapeFunction)engine->destroyBoxFunc;
 
-	return engine->destroyBoxFunc(engine, box);
+	box->halfExtents = *halfExtents;
+	box->convexRadius = convexRadius;
 }

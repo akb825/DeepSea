@@ -99,69 +99,6 @@ dsPhysicsConvexHull* dsPhysicsConvexHull_create(dsPhysicsEngine* engine, dsAlloc
 
 	dsPhysicsConvexHull* convexHull = engine->createConvexHullFunc(engine, allocator, vertices,
 		vertexCount, vertexStride, convexRadius, cacheName);
-	if (!convexHull)
-		DS_PROFILE_FUNC_RETURN(NULL);
-
-	// Bounding box for the shape.
-	const uint8_t* vertexBytes = (const uint8_t*)vertices;
-	dsPhysicsShape* shape = (dsPhysicsShape*)convexHull;
-	dsAlignedBox3f_makeInvalid(&shape->bounds);
-	for (uint32_t i = 0; i < vertexCount; ++i)
-	{
-		const dsVector3f* point = (const dsVector3f*)(vertexBytes + i*vertexStride);
-		dsAlignedBox3_addPoint(shape->bounds, *point);
-	}
-
-	// Get the indices for the shape to compute the base mass properties.
-	uint32_t indexCount = 0, maxFaceVertices = 0;
-	for (uint32_t i = 0; i < convexHull->faceCount; ++i)
-	{
-		uint32_t faceVertexCount = engine->getConvexHullFaceVertexCountFunc(engine, convexHull, i);
-		DS_ASSERT(faceVertexCount >= 3);
-		maxFaceVertices = dsMax(maxFaceVertices, faceVertexCount);
-		indexCount += (faceVertexCount - 2)*3;
-	}
-
-	uint32_t* indices;
-	bool heapIndices = indexCount > MAX_STACK_INDICES;
-	if (heapIndices)
-	{
-		indices = DS_ALLOCATE_OBJECT_ARRAY(engine->allocator, uint32_t, indexCount);
-		if (!indices)
-		{
-			dsPhysicsConvexHull_destroy(convexHull);
-			DS_PROFILE_FUNC_RETURN(NULL);
-		}
-	}
-	else
-		indices = DS_ALLOCATE_STACK_OBJECT_ARRAY(uint32_t, indexCount);
-	uint32_t* faceVertices = DS_ALLOCATE_STACK_OBJECT_ARRAY(uint32_t, maxFaceVertices);
-
-	for (uint32_t i = 0, index = 0; i < convexHull->faceCount; ++i)
-	{
-		uint32_t faceVertexCount = engine->getConvexHullFaceFunc(faceVertices, maxFaceVertices, NULL,
-			engine, convexHull, i);
-		// Triangulate as a vertex fan.
-		DS_ASSERT(faceVertexCount >= 3);
-		for (uint32_t j = 2; j < faceVertexCount; ++j)
-		{
-			indices[index++] = faceVertices[0];
-			indices[index++] = faceVertices[j - 1];
-			indices[index++] = faceVertices[j];
-		}
-	}
-
-	// Get the mass properties with a density of one to re-use when getting mass properties later.
-	// If it fails, the convex hull degenerates into a plane, clear out the mass properties to throw
-	// an error if requested later. (e.g. a static body won't need mass properties)
-	if (!dsPhysicsMassProperties_initializeMesh(&convexHull->baseMassProperties, vertices,
-			vertexCount, vertexStride, indices, indexCount, sizeof(uint32_t), 1.0f))
-	{
-		DS_VERIFY(dsPhysicsMassProperties_initializeEmpty(&convexHull->baseMassProperties));
-	}
-
-	if (heapIndices)
-		DS_VERIFY(dsAllocator_free(engine->allocator, indices));
 	DS_PROFILE_FUNC_RETURN(convexHull);
 }
 
@@ -224,17 +161,86 @@ uint32_t dsPhysicsConvexHull_getFace(uint32_t* outIndices, uint32_t outIndexCapa
 		shape->engine, convexHull, faceIndex);
 }
 
-bool dsPhysicsConvexHull_destroy(dsPhysicsConvexHull* convexHull)
+bool dsPhysicsConvexHull_initialize(dsPhysicsConvexHull* convexHull, dsPhysicsEngine* engine,
+	dsAllocator* allocator, void* impl, const void* vertices, uint32_t vertexCount,
+	size_t vertexStride, uint32_t faceCount, float convexRadius)
 {
-	if (!convexHull)
-		return true;
+	DS_ASSERT(convexHull);
+	DS_ASSERT(engine);
+	DS_ASSERT(vertices);
+	DS_ASSERT(vertexCount > 0);
+	DS_ASSERT(vertexStride >= sizeof(dsVector3f));
+	DS_ASSERT(convexRadius >= 0);
 
-	dsPhysicsEngine* engine = ((dsPhysicsShape*)convexHull)->engine;
-	if (!engine || !engine->destroyConvexHullFunc)
+	dsPhysicsShape* shape = (dsPhysicsShape*)convexHull;
+	shape->engine = engine;
+	shape->allocator = dsAllocator_keepPointer(allocator);
+	shape->type = dsPhysicsConvexHull_type();
+	shape->impl = impl;
+	shape->debugData = NULL;
+	shape->destroyDebugDataFunc = NULL;
+	shape->refCount = 1;
+	shape->destroyFunc = (dsDestroyPhysicsShapeFunction)engine->destroyConvexHullFunc;
+
+	convexHull->vertexCount = vertexCount;
+	convexHull->faceCount = faceCount;
+
+	// Bounding box for the shape.
+	const uint8_t* vertexBytes = (const uint8_t*)vertices;
+	dsAlignedBox3f_makeInvalid(&shape->bounds);
+	for (uint32_t i = 0; i < vertexCount; ++i)
 	{
-		errno = EINVAL;
-		return false;
+		const dsVector3f* point = (const dsVector3f*)(vertexBytes + i*vertexStride);
+		dsAlignedBox3_addPoint(shape->bounds, *point);
 	}
 
-	return engine->destroyConvexHullFunc(engine, convexHull);
+	// Get the indices for the shape to compute the base mass properties.
+	uint32_t indexCount = 0, maxFaceVertices = 0;
+	for (uint32_t i = 0; i < convexHull->faceCount; ++i)
+	{
+		uint32_t faceVertexCount = engine->getConvexHullFaceVertexCountFunc(engine, convexHull, i);
+		DS_ASSERT(faceVertexCount >= 3);
+		maxFaceVertices = dsMax(maxFaceVertices, faceVertexCount);
+		indexCount += (faceVertexCount - 2)*3;
+	}
+
+	uint32_t* indices;
+	bool heapIndices = indexCount > MAX_STACK_INDICES;
+	if (heapIndices)
+	{
+		indices = DS_ALLOCATE_OBJECT_ARRAY(engine->allocator, uint32_t, indexCount);
+		if (!indices)
+			return false;
+	}
+	else
+		indices = DS_ALLOCATE_STACK_OBJECT_ARRAY(uint32_t, indexCount);
+	uint32_t* faceVertices = DS_ALLOCATE_STACK_OBJECT_ARRAY(uint32_t, maxFaceVertices);
+
+	for (uint32_t i = 0, index = 0; i < convexHull->faceCount; ++i)
+	{
+		uint32_t faceVertexCount = engine->getConvexHullFaceFunc(faceVertices, maxFaceVertices, NULL,
+			engine, convexHull, i);
+		// Triangulate as a vertex fan.
+		DS_ASSERT(faceVertexCount >= 3);
+		for (uint32_t j = 2; j < faceVertexCount; ++j)
+		{
+			indices[index++] = faceVertices[0];
+			indices[index++] = faceVertices[j - 1];
+			indices[index++] = faceVertices[j];
+		}
+	}
+
+	// Get the mass properties with a density of one to re-use when getting mass properties later.
+	// If it fails, the convex hull degenerates into a plane, clear out the mass properties to throw
+	// an error if requested later. (e.g. a static body won't need mass properties)
+	if (!dsPhysicsMassProperties_initializeMesh(&convexHull->baseMassProperties, vertices,
+			vertexCount, vertexStride, indices, indexCount, sizeof(uint32_t), 1.0f))
+	{
+		DS_VERIFY(dsPhysicsMassProperties_initializeEmpty(&convexHull->baseMassProperties));
+	}
+
+	if (heapIndices)
+		DS_VERIFY(dsAllocator_free(engine->allocator, indices));
+
+	return true;
 }

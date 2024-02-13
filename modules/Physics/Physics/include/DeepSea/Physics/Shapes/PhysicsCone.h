@@ -56,12 +56,22 @@ DS_PHYSICS_EXPORT dsPhysicsCone* dsPhysicsCone_create(dsPhysicsEngine* engine,
 	float convexRadius);
 
 /**
- * @brief Destroys a physics cone.
- * @remark errno will be set on failure.
- * @param cone The cone to destroy.
- * @return False if the cone couldn't be destroyed.
+ * @brief Initializes a physics cone.
+ *
+ * This is called by the physics implementation to initialize the common members.
+ *
+ * @param[out] cone The cone to initialize.
+ * @param engine The physics engine the cone was created with.
+ * @param allocator The allocator the cone was created with.
+ * @param impl The underlying implementation of the shape.
+ * @param height The height of the cone.
+ * @param radius The radius of the cone.
+ * @param axis The axis to align the cone with.
+ * @param convexRadius The convex radius used for collision checks.
  */
-DS_PHYSICS_EXPORT bool dsPhysicsCone_destroy(dsPhysicsCone* cone);
+DS_PHYSICS_EXPORT void dsPhysicsCone_initialize(dsPhysicsCone* cone,
+	dsPhysicsEngine* engine, dsAllocator* allocator, void* impl, float height, float radius,
+	dsPhysicsAxis axis, float convexRadius);
 
 #ifdef __cplusplus
 }

@@ -50,12 +50,18 @@ DS_PHYSICS_EXPORT dsPhysicsSphere* dsPhysicsSphere_create(dsPhysicsEngine* engin
 	dsAllocator* allocator, float radius);
 
 /**
- * @brief Destroys a physics sphere.
- * @remark errno will be set on failure.
- * @param sphere The sphere to destroy.
- * @return False if the sphere couldn't be destroyed.
+ * @brief Initializes a physics sphere.
+ *
+ * This is called by the physics implementation to initialize the common members.
+ *
+ * @param[out] sphere The sphere to initialize.
+ * @param engine The physics engine the sphere was created with.
+ * @param allocator The allocator the sphere was created with.
+ * @param impl The underlying implementation of the shape.
+ * @param radius The radius of the sphere.
  */
-DS_PHYSICS_EXPORT bool dsPhysicsSphere_destroy(dsPhysicsSphere* sphere);
+DS_PHYSICS_EXPORT void dsPhysicsSphere_initialize(dsPhysicsSphere* sphere, dsPhysicsEngine* engine,
+	dsAllocator* allocator, void* impl, float radius);
 
 #ifdef __cplusplus
 }

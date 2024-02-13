@@ -69,12 +69,31 @@ DS_PHYSICS_EXPORT dsPhysicsMesh* dsPhysicsMesh_create(dsPhysicsEngine* engine,
 	const char* cacheName);
 
 /**
- * @brief Destroys a physics mesh.
+ * @brief Initializes a physics mesh.
+ *
+ * This is called by the physics implementation to initialize the common members.
+ *
  * @remark errno will be set on failure.
- * @param mesh The mesh to destroy.
- * @return False if the mesh couldn't be destroyed.
+ * @param[out] mesh The mesh to initialize.
+ * @param engine The physics engine the mesh was created with.
+ * @param allocator The allocator the mesh was created with.
+ * @param impl The underlying implementation of the shape.
+ * @param vertices Pointer to the first vertex.
+ * @param vertexCount The number of vertices.
+ * @param vertexStride The stride in bytes between each vertex.
+ * @param triangleCount The number of triangles.
+ * @param triangleMaterialIndices Material indices for each triangle, which index into the
+ *     triangleMaterials array. This should be copied into the mesh memory if not NULL.
+ * @param triangleMaterialIndexSize The size of each triangle material index
+ * @param triangleMaterials The per-triangle materials.  This should be copied into the mesh memory
+ *     if not NULL.
+ * @param triangleMaterialCount The number of per-triangle materials.
  */
-DS_PHYSICS_EXPORT bool dsPhysicsMesh_destroy(dsPhysicsMesh* mesh);
+DS_PHYSICS_EXPORT void dsPhysicsMesh_initialize(dsPhysicsMesh* mesh, dsPhysicsEngine* engine,
+	dsAllocator* allocator, void* impl, const void* vertices, uint32_t vertexCount,
+	size_t vertexStride, uint32_t triangleCount, const void* triangleMaterialIndices,
+	size_t triangleMaterialIndexSize, const dsPhysicsShapePartMaterial* triangleMaterials,
+	uint32_t triangleMaterialCount);
 
 #ifdef __cplusplus
 }

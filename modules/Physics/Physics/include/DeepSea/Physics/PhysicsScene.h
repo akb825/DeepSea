@@ -69,14 +69,14 @@ DS_PHYSICS_EXPORT inline float dsPhysicsScene_defaultCombineRestitution(
  * @remark errno will be set on failure.
  * @param engine The physics engine to create the physics scene with.
  * @param allocator The allocator to create the physics scene with. If NULL, it will use the same
- *     allocator as the physics engine.
- * @param limits The limits for the physics scene.
+ *     allocator as the physics engine.This must support freeing memory.
+ * @param settings The settings for the physics scene.
  * @param threadPool The thread pool to use for multithreaded processing, or NULL for
  *     single-threaded processing.
  * @return The physics scene or NULL if it couldn't be created.
  */
 DS_PHYSICS_EXPORT dsPhysicsScene* dsPhysicsScene_create(dsPhysicsEngine* engine,
-	dsAllocator* allocator, const dsPhysicsSceneLimits* limits, dsThreadPool* threadPool);
+	dsAllocator* allocator, const dsPhysicsSceneSettings* settings, dsThreadPool* threadPool);
 
 /**
  * @brief Sets the combine friction function for a scene.
@@ -121,50 +121,6 @@ DS_PHYSICS_EXPORT inline float dsPhysicsScene_combineFriction(const dsPhysicsSce
  */
 DS_PHYSICS_EXPORT inline float dsPhysicsScene_combineRestitution(const dsPhysicsScene* scene,
 	float restitutionA, float hardnessA, float restitutionB, float hardnessB);
-
-/**
- * @brief Adds rigid bodies to a physics scene.
- * @remark errno will be set on failure.
- * @param scene The physics scene to add the rigid body to.
- * @param rigidBodies The rigid bodies to add. These must not be part of a rigid body group.
- * @param rigidBodyCount The number of rigid bodies to add.
- * @param activate Whether the rigid bodies should be activated on insertion.
- * @return False if the rigid body couldn't be added.
- */
-DS_PHYSICS_EXPORT bool dsPhysicsScene_addRigidBodies(dsPhysicsScene* scene,
-	dsRigidBody* const* rigidBodies, uint32_t rigidBodyCount, bool activate);
-
-/**
- * @brief Removes a rigid body from a physics scene.
- * @remark errno will be set on failure.
- * @param scene The physics scene to remove the rigid body from.
- * @param rigidBodies The rigid bodies to remove. These must not be part of a rigid body group.
- * @param rigidBodyCount The number of rigid bodies to remove.
- * @return False if the rigid body couldn't be removed.
- */
-DS_PHYSICS_EXPORT bool dsPhysicsScene_removeRigidBodies(dsPhysicsScene* scene,
-	dsRigidBody* const* rigidBodies, uint32_t rigidBodyCount);
-
-/**
- * @brief Adds a rigid body group to a physics scene.
- * @remark errno will be set on failure.
- * @param scene The physics scene to add the rigid body group to.
- * @param group The rigid body group to add.
- * @param activate Whether the rigid bodies should be activated on insertion.
- * @return False if the rigid body group couldn't be added.
- */
-DS_PHYSICS_EXPORT bool dsPhysicsScene_addRigidBodyGroup(dsPhysicsScene* scene,
-	dsRigidBodyGroup* group, bool activate);
-
-/**
- * @brief Removes a rigid body group from a physics scene.
- * @remark errno will be set on failure.
- * @param scene The physics scene to remove the rigid body group from.
- * @param group The rigid body group to remove.
- * @return False if the rigid body group couldn't be removed.
- */
-DS_PHYSICS_EXPORT bool dsPhysicsScene_removeRigidBodyGroup(dsPhysicsScene* scene,
-	dsRigidBodyGroup* group);
 
 /**
  * @brief Sets the function to update a physics actor contact properties.
@@ -262,12 +218,153 @@ DS_PHYSICS_EXPORT bool dsPhysicsScene_removeStepListener(
 DS_PHYSICS_EXPORT bool dsPhysicsScene_setGravity(dsPhysicsScene* scene, const dsVector3f* gravity);
 
 /**
+ * @brief Locks the physics scene for reading.
+ * @remark errno will be set on failure.
+ * @param[out] outLock The lock to populate.
+ * @param scene The physics scene to lock.
+ * @return False if the physics scene couldn't be locked.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsScene_lockRead(dsPhysicsSceneLock* outLock, dsPhysicsScene* scene);
+
+/**
+ * @brief Unlocks the physics scene for reading.
+ * @remark errno will be set on failure.
+ * @param[inout] outLock The lock to update.
+ * @param scene The physics scene to lock.
+ * @return False if the physics scene couldn't be unlocked.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsScene_unlockRead(
+	dsPhysicsSceneLock* outLock, dsPhysicsScene* scene);
+
+/**
+ * @brief Locks the physics scene for writing.
+ * @remark errno will be set on failure.
+ * @param[out] outLock The lock to populate.
+ * @param scene The physics scene to lock.
+ * @return False if the physics scene couldn't be locked.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsScene_lockWrite(dsPhysicsSceneLock* outLock, dsPhysicsScene* scene);
+
+/**
+ * @brief Unlocks the physics scene for writing.
+ * @remark errno will be set on failure.
+ * @param[inout] outLock The lock to update.
+ * @param scene The physics scene to lock.
+ * @return False if the physics scene couldn't be unlocked.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsScene_unlockWrite(
+	dsPhysicsSceneLock* outLock, dsPhysicsScene* scene);
+
+/**
+ * @brief Adds rigid bodies to a physics scene.
+ * @remark errno will be set on failure.
+ * @param scene The physics scene to add the rigid body to.
+ * @param rigidBodies The rigid bodies to add. These must not be part of a rigid body group.
+ * @param rigidBodyCount The number of rigid bodies to add.
+ * @param activate Whether the rigid bodies should be activated on insertion.
+ * @param lock The previously acquired lock. This must have been locked for writing.
+ * @return False if the rigid body couldn't be added.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsScene_addRigidBodies(dsPhysicsScene* scene,
+	dsRigidBody* const* rigidBodies, uint32_t rigidBodyCount, bool activate,
+	const dsPhysicsSceneLock* lock);
+
+/**
+ * @brief Removes a rigid body from a physics scene.
+ * @remark errno will be set on failure.
+ * @param scene The physics scene to remove the rigid body from.
+ * @param rigidBodies The rigid bodies to remove. These must not be part of a rigid body group.
+ * @param rigidBodyCount The number of rigid bodies to remove.
+ * @param lock The previously acquired lock. This must have been locked for writing.
+ * @return False if the rigid body couldn't be removed.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsScene_removeRigidBodies(dsPhysicsScene* scene,
+	dsRigidBody* const* rigidBodies, uint32_t rigidBodyCount, const dsPhysicsSceneLock* lock);
+
+/**
+ * @brief Adds a rigid body group to a physics scene.
+ * @remark errno will be set on failure.
+ * @param scene The physics scene to add the rigid body group to.
+ * @param group The rigid body group to add.
+ * @param activate Whether the rigid bodies should be activated on insertion.
+ * @param lock The previously acquired lock. This must have been locked for writing.
+ * @return False if the rigid body group couldn't be added.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsScene_addRigidBodyGroup(dsPhysicsScene* scene,
+	dsRigidBodyGroup* group, bool activate, const dsPhysicsSceneLock* lock);
+
+/**
+ * @brief Removes a rigid body group from a physics scene.
+ * @remark errno will be set on failure.
+ * @param scene The physics scene to remove the rigid body group from.
+ * @param group The rigid body group to remove.
+ * @param lock The previously acquired lock. This must have been locked for writing.
+ * @return False if the rigid body group couldn't be removed.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsScene_removeRigidBodyGroup(dsPhysicsScene* scene,
+	dsRigidBodyGroup* group, const dsPhysicsSceneLock* lock);
+
+/**
+ * @brief Gets actors from a physics scene.
+ * @remark errno will be set on failure.
+ * @param[out] outActors Storage for the actor pointers. This must have space for at least count
+ *     pointers.
+ * @param scene The physics scene to get the actors from.
+ * @param firstIndex The first index to get actors from.
+ * @param count The number of actors to get.
+ * @param lock The previously acquired lock. This must have been locked for reading or writing.
+ * @return The number of actors that were read or DS_INVALID_PHYSICS_ID if the actors couldn't be
+ *     queried.
+ */
+DS_PHYSICS_EXPORT uint32_t dsPhysicsScene_getActors(dsPhysicsActor** outActors,
+	const dsPhysicsScene* scene, uint32_t firstIndex, uint32_t count,
+	const dsPhysicsSceneLock* lock);
+
+/**
+ * @brief updates the simulation for the physics scene.
+ *
+ * This will implicilty lock the scene for writing for the duration of the update.
+ *
+ * @remark errno will be set on failure.
+ * @param scene The physics scene to update.
+ * @param time The total amount of time to advance the physics simulation. This must be >= 0.
+ * @param stepCount The number of steps to perform to update the simulation. This must be at least
+ *     1.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsScene_update(
+	dsPhysicsScene* scene, float time, unsigned int stepCount);
+
+/**
  * @brief Destroys a physics scene.
  * @remark errno will be set on failure.
  * @param scene The physics scene to destroy.
  * @return False if the scene couldn't be destroyed.
  */
 DS_PHYSICS_EXPORT bool dsPhysicsScene_destroy(dsPhysicsScene* scene);
+
+/**
+ * @brief Initializes a physics scene.
+ *
+ * This is called by the physics implementation to initialize the common members.
+ *
+ * @remark errno will be set on failure.
+ * @param[out] scene The physics scene to initialize.
+ * @param engine The physics engine the scene was created with.
+ * @param allocator The allocator the scene was created with.
+ * @param settings The settings for the physics scene.
+ * @return False if internal allocations failed.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsScene_initialize(dsPhysicsScene* scene, dsPhysicsEngine* engine,
+	dsAllocator* allocator, const dsPhysicsSceneSettings* settings);
+
+/**
+ * @brief Shuts down a physics scene.
+ *
+ * This is called by the physics implementation to shut down the common members.
+ *
+ * @param scene The scene to shut down.
+ */
+DS_PHYSICS_EXPORT void dsPhysicsScene_shutdown(dsPhysicsScene* scene);
 
 inline float dsPhysicsScene_defaultCombineFriction(float frictionA, float frictionB)
 {

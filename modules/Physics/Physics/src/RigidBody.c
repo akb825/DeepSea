@@ -1358,3 +1358,56 @@ bool dsRigidBody_destroy(dsRigidBody* rigidBody)
 
 	return engine->destroyRigidBodyFunc(engine, rigidBody);
 }
+
+void dsRigidBody_initialize(dsRigidBody* rigidBody, dsPhysicsEngine* engine,
+	dsAllocator* allocator, const dsRigidBodyInit* initParams)
+{
+	DS_ASSERT(rigidBody);
+	DS_ASSERT(engine);
+	DS_ASSERT(allocator);
+	DS_ASSERT(initParams);
+
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	actor->engine = engine;
+	actor->allocator = allocator;
+	actor->destroyUserDataFunc = initParams->destroyUserDataFunc;
+	actor->scene = NULL;
+	actor->type = dsPhysicsActorType_RigidBody;
+	actor->layer = initParams->layer;
+	actor->collisionGroup = initParams->collisionGroup;
+	actor->canCollisionGroupsCollideFunc = initParams->canCollisionGroupsCollideFunc;
+	actor->userData = initParams->userData;
+
+	rigidBody->active = false;
+	rigidBody->position = initParams->position;
+	rigidBody->orientation = initParams->orientation;
+	rigidBody->scale = initParams->scale;
+	rigidBody->flags = initParams->flags;
+	rigidBody->motionType = initParams->motionType;
+	rigidBody->dofMask = initParams->dofMask;
+	DS_VERIFY(dsPhysicsMassProperties_initializeEmpty(&rigidBody->massProperties));
+	rigidBody->friction = initParams->friction;
+	rigidBody->restitution = initParams->restitution;
+	rigidBody->hardness = initParams->hardness;
+	rigidBody->linearDamping = initParams->linearDamping;
+	rigidBody->angularDamping = initParams->angularDamping;
+	rigidBody->maxLinearVelocity = initParams->maxLinearVelocity;
+	rigidBody->maxAngularVelocity = initParams->maxAngularVelocity;
+	rigidBody->group = initParams->group;
+	if (initParams->shapeCount > 0)
+	{
+		rigidBody->shapes =
+			DS_ALLOCATE_OBJECT_ARRAY(allocator, dsPhysicsShapeInstance, initParams->shapeCount);
+		if (rigidBody->shapes)
+			rigidBody->maxShapes = initParams->shapeCount;
+		else
+			rigidBody->maxShapes = 0;
+	}
+	else
+	{
+		rigidBody->shapes = NULL;
+		rigidBody->maxShapes = 0;
+	}
+	rigidBody->shapeCount = 0;
+	rigidBody->shapesFinalized = false;
+}

@@ -16,6 +16,7 @@
 
 #include <DeepSea/Physics/Shapes/PhysicsCapsule.h>
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -70,12 +71,22 @@ dsPhysicsCapsule* dsPhysicsCapsule_create(dsPhysicsEngine* engine, dsAllocator* 
 	if (!allocator)
 		allocator = engine->allocator;
 
-	dsPhysicsCapsule* capsule =
-		engine->createCapsuleFunc(engine, allocator, halfHeight, radius, axis);
-	if (!capsule)
-		return NULL;
+	return engine->createCapsuleFunc(engine, allocator, halfHeight, radius, axis);
+}
+
+void dsPhysicsCapsule_initialize(dsPhysicsCapsule* capsule, dsPhysicsEngine* engine,
+	dsAllocator* allocator, void* impl, float halfHeight, float radius, dsPhysicsAxis axis)
+{
+	DS_ASSERT(capsule);
+	DS_ASSERT(engine);
+	DS_ASSERT(halfHeight > 0);
+	DS_ASSERT(radius > 0);
+	DS_ASSERT(axis >= dsPhysicsAxis_X && axis <= dsPhysicsAxis_Z);
 
 	dsPhysicsShape* shape = (dsPhysicsShape*)capsule;
+	shape->engine = engine;
+	shape->allocator = dsAllocator_keepPointer(allocator);
+	shape->type = dsPhysicsCapsule_type();
 	switch (axis)
 	{
 		case dsPhysicsAxis_X:
@@ -97,20 +108,13 @@ dsPhysicsCapsule* dsPhysicsCapsule_create(dsPhysicsEngine* engine, dsAllocator* 
 			shape->bounds.max.x = shape->bounds.max.y = radius;
 			break;
 	}
-	return capsule;
-}
+	shape->impl = impl;
+	shape->debugData = NULL;
+	shape->destroyDebugDataFunc = NULL;
+	shape->refCount = 1;
+	shape->destroyFunc = (dsDestroyPhysicsShapeFunction)engine->destroyCapsuleFunc;
 
-bool dsPhysicsCapsule_destroy(dsPhysicsCapsule* capsule)
-{
-	if (!capsule)
-		return true;
-
-	dsPhysicsEngine* engine = ((dsPhysicsShape*)capsule)->engine;
-	if (!engine || !engine->destroyCapsuleFunc)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	return engine->destroyCapsuleFunc(engine, capsule);
+	capsule->halfHeight = halfHeight;
+	capsule->radius = radius;
+	capsule->axis = axis;
 }

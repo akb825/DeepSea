@@ -616,6 +616,19 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setActive(dsRigidBody* rigidBody, bool active
  */
 DS_PHYSICS_EXPORT bool dsRigidBody_destroy(dsRigidBody* rigidBody);
 
+/**
+ * @brief Initializes a rigid body.
+ *
+ * This is called by the physics implementation to initialize the common members.
+ *
+ * @param[out] rigidBody The rigid body to initialize.
+ * @param engine The physics engine the rigid body was created with.
+ * @param allocator The allocator the rigid body was created with.
+ * @param initParams The initialization parameters for the rigid body.
+ */
+DS_PHYSICS_EXPORT void dsRigidBody_initialize(dsRigidBody* rigidBody, dsPhysicsEngine* engine,
+	dsAllocator* allocator, const dsRigidBodyInit* initParams);
+
 #ifdef __cplusplus
 }
 #endif

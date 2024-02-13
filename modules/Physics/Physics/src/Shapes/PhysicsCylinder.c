@@ -16,6 +16,7 @@
 
 #include <DeepSea/Physics/Shapes/PhysicsCylinder.h>
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -77,12 +78,23 @@ dsPhysicsCylinder* dsPhysicsCylinder_create(dsPhysicsEngine* engine, dsAllocator
 	if (!allocator)
 		allocator = engine->allocator;
 
-	dsPhysicsCylinder* cylinder = engine->createCylinderFunc(
-		engine, allocator, halfHeight, radius, axis, convexRadius);
-	if (!cylinder)
-		return NULL;
+	return engine->createCylinderFunc(engine, allocator, halfHeight, radius, axis, convexRadius);
+}
+
+void dsPhysicsCylinder_initialize(dsPhysicsCylinder* cylinder, dsPhysicsEngine* engine,
+	dsAllocator* allocator, void* impl, float halfHeight, float radius, dsPhysicsAxis axis,
+	float convexRadius)
+{
+	DS_ASSERT(cylinder);
+	DS_ASSERT(engine);
+	DS_ASSERT(halfHeight > 0);
+	DS_ASSERT(radius > 0);
+	DS_ASSERT(axis >= dsPhysicsAxis_X && axis <= dsPhysicsAxis_Z);
 
 	dsPhysicsShape* shape = (dsPhysicsShape*)cylinder;
+	shape->engine = engine;
+	shape->allocator = dsAllocator_keepPointer(allocator);
+	shape->type = dsPhysicsCylinder_type();
 	switch (axis)
 	{
 		case dsPhysicsAxis_X:
@@ -104,20 +116,14 @@ dsPhysicsCylinder* dsPhysicsCylinder_create(dsPhysicsEngine* engine, dsAllocator
 			shape->bounds.max.x = shape->bounds.max.y = radius;
 			break;
 	}
-	return cylinder;
-}
+	shape->impl = impl;
+	shape->debugData = NULL;
+	shape->destroyDebugDataFunc = NULL;
+	shape->refCount = 1;
+	shape->destroyFunc = (dsDestroyPhysicsShapeFunction)engine->destroyCylinderFunc;
 
-bool dsPhysicsCylinder_destroy(dsPhysicsCylinder* cylinder)
-{
-	if (!cylinder)
-		return true;
-
-	dsPhysicsEngine* engine = ((dsPhysicsShape*)cylinder)->engine;
-	if (!engine || !engine->destroyCylinderFunc)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	return engine->destroyCylinderFunc(engine, cylinder);
+	cylinder->halfHeight = halfHeight;
+	cylinder->radius = radius;
+	cylinder->axis = axis;
+	cylinder->convexRadius = convexRadius;
 }

@@ -95,5 +95,5 @@ void dsPhysicsShape_freeRef(dsPhysicsShape* shape)
 
 	if (shape->destroyDebugDataFunc)
 		shape->destroyDebugDataFunc(shape->debugData);
-	shape->destroyFunc(shape);
+	shape->destroyFunc(shape->engine, shape);
 }

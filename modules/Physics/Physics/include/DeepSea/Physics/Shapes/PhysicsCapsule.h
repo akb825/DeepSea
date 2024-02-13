@@ -52,12 +52,21 @@ DS_PHYSICS_EXPORT dsPhysicsCapsule* dsPhysicsCapsule_create(dsPhysicsEngine* eng
 	dsAllocator* allocator, float halfHeight, float radius, dsPhysicsAxis axis);
 
 /**
- * @brief Destroys a physics capsule.
- * @remark errno will be set on failure.
- * @param capsule The capsule to destroy.
- * @return False if the capsule couldn't be destroyed.
+ * @brief Initializes a physics capsule.
+ *
+ * This is called by the physics implementation to initialize the common members.
+ *
+ * @param[out] capsule The capsule to initialize.
+ * @param engine The physics engine the capsule was created with.
+ * @param allocator The allocator the capsule was created with.
+ * @param impl The underlying implementation of the shape.
+ * @param halfHeight The half height of the cylinder portion of the capsule.
+ * @param radius The radius of the capsule.
+ * @param axis The axis to align the capsule with.
  */
-DS_PHYSICS_EXPORT bool dsPhysicsCapsule_destroy(dsPhysicsCapsule* capsule);
+DS_PHYSICS_EXPORT void dsPhysicsCapsule_initialize(dsPhysicsCapsule* capsule,
+	dsPhysicsEngine* engine, dsAllocator* allocator, void* impl, float halfHeight, float radius,
+	dsPhysicsAxis axis);
 
 #ifdef __cplusplus
 }

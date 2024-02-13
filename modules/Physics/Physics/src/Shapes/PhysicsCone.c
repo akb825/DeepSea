@@ -16,6 +16,7 @@
 
 #include <DeepSea/Physics/Shapes/PhysicsCone.h>
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -107,17 +108,50 @@ dsPhysicsCone* dsPhysicsCone_create(dsPhysicsEngine* engine, dsAllocator* alloca
 	return cone;
 }
 
-bool dsPhysicsCone_destroy(dsPhysicsCone* cone)
+void dsPhysicsCone_initialize(dsPhysicsCone* cone, dsPhysicsEngine* engine,
+	dsAllocator* allocator, void* impl, float height, float radius, dsPhysicsAxis axis,
+	float convexRadius)
 {
-	if (!cone)
-		return true;
+	DS_ASSERT(cone);
+	DS_ASSERT(engine);
+	DS_ASSERT(height > 0);
+	DS_ASSERT(radius > 0);
+	DS_ASSERT(axis >= dsPhysicsAxis_X && axis <= dsPhysicsAxis_Z);
+	DS_ASSERT(convexRadius >= 0);
 
-	dsPhysicsEngine* engine = ((dsPhysicsShape*)cone)->engine;
-	if (!engine || !engine->destroyConeFunc)
+	dsPhysicsShape* shape = (dsPhysicsShape*)cone;
+	shape->engine = engine;
+	shape->allocator = dsAllocator_keepPointer(allocator);
+	shape->type = dsPhysicsCone_type();
+	switch (axis)
 	{
-		errno = EINVAL;
-		return false;
+		case dsPhysicsAxis_X:
+			shape->bounds.min.x = 0.0f;
+			shape->bounds.min.y = shape->bounds.min.z = -radius;
+			shape->bounds.max.x = height;
+			shape->bounds.max.y = shape->bounds.max.z = radius;
+			break;
+		case dsPhysicsAxis_Y:
+			shape->bounds.min.y = 0.0f;
+			shape->bounds.min.x = shape->bounds.min.z = -radius;
+			shape->bounds.max.y = height;
+			shape->bounds.max.x = shape->bounds.max.z = radius;
+			break;
+		case dsPhysicsAxis_Z:
+			shape->bounds.min.z = 0.0f;
+			shape->bounds.min.x = shape->bounds.min.y = -radius;
+			shape->bounds.max.z = height;
+			shape->bounds.max.x = shape->bounds.max.y = radius;
+			break;
 	}
+	shape->impl = impl;
+	shape->debugData = NULL;
+	shape->destroyDebugDataFunc = NULL;
+	shape->refCount = 1;
+	shape->destroyFunc = (dsDestroyPhysicsShapeFunction)engine->destroyConeFunc;
 
-	return engine->destroyConeFunc(engine, cone);
+	cone->height = height;
+	cone->radius = radius;
+	cone->axis = axis;
+	cone->convexRadius = convexRadius;
 }
