@@ -29,7 +29,7 @@ jobs:
           cmake_args: "-DDEEPSEA_SINGLE_SHARED=ON"
     steps:
     - name: checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Download submodules
       run: |-
         ./update.sh -s -t -l linux
@@ -82,7 +82,7 @@ jobs:
         - Release
     steps:
     - name: checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Download submodules
       run: "./update.sh -s -t -l android-all"
       working-directory: "${{ github.workspace }}"
@@ -102,7 +102,7 @@ jobs:
           cmake_args: "-DDEEPSEA_SINGLE_SHARED=ON"
     steps:
     - name: checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Download submodules
       run: "./update.sh -s -t -l mac-x86_64"
       working-directory: "${{ github.workspace }}"
@@ -174,7 +174,7 @@ jobs:
           cmake_args: "-DDEEPSEA_SINGLE_SHARED=ON"
     steps:
     - name: checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Download submodules
       run: "./update.sh -m -t -l ${{ matrix.libs }}"
       shell: bash
