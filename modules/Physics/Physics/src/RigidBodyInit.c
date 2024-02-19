@@ -152,6 +152,15 @@ bool dsRigidBodyInit_isValid(const dsRigidBodyInit* rigidBodyInit)
 		return false;
 	}
 
+	// Cannot have a velocity set if not dynamic.
+	if (rigidBodyInit->motionType != dsPhysicsMotionType_Dynamic &&
+		(rigidBodyInit->linearVelocity.x != 0 || rigidBodyInit->linearVelocity.y != 0 ||
+		rigidBodyInit->linearVelocity.z != 0 || rigidBodyInit->angularVelocity.x != 0 ||
+		rigidBodyInit->angularVelocity.y != 0 || rigidBodyInit->angularVelocity.z != 0))
+	{
+		return false;
+	}
+
 	// General ranges.
 	return rigidBodyInit->friction >= 0 && rigidBodyInit->restitution >= 0 &&
 		rigidBodyInit->restitution <= 1 && rigidBodyInit->hardness <= 0 &&

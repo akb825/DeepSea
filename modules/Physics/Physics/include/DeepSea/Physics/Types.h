@@ -1140,6 +1140,11 @@ struct dsPhysicsEngine
 	dsSetRigidBodyTransformFunction setRigidBodyTransformFunc;
 
 	/**
+	 * @brief Function to set the transform target for a kinematic rigid body.
+	 */
+	dsSetRigidBodyKinematicTargetFunction setRigidBodyKinematicTargetFunc;
+
+	/**
 	 * @brief Function to set the mass on a rigid body.
 	 */
 	dsSetRigidBodyFloatValueFunction setRigidBodyMassFunc;

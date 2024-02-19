@@ -90,9 +90,8 @@ typedef enum dsPhysicsMotionType
 	dsPhysicsMotionType_Static,
 
 	/**
-	 * Object that may be moved directly or by setting the velocities, but won't be affected by
-	 * forces. When moved, it will be treated as an object with infinite mass and always move
-	 * dynamic objects away.
+	 * Object that may be moved directly, but won't be affected by forces. When moved, it will be
+	 * treated as an object with infinite mass and always move dynamic objects away.
 	 */
 	dsPhysicsMotionType_Kinematic,
 

@@ -344,6 +344,48 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setTransformMatrix(dsRigidBody* rigidBody,
 	const dsMatrix44f* transform, bool activate);
 
 /**
+ * @brief Sets the target transform for a kinematic rigid body.
+ *
+ * This will linearly move the kinematic body for the next step of the physics simulation. When
+ * using linear collision, this allows for the full linear step to be considered. Most commonly
+ * this will be called as part of a dsOnPhysicsSceneStepFunction callback.
+ *
+ * This is only valid for a kinematic rigid body currently a part of a scene.
+ *
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to set the kinematic target transform on.
+ * @param time The time for the step, most commonly forwarded from the time parameter of a
+ *     dsOnPhysicsSceneStepFunction callback.
+ * @param position The new position or NULL to leave unchanged.
+ * @param orientation The new orientation or NULL to leave unchanged.
+ * @return False if the kinematic target couldn't be set.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_setKinematicTarget(dsRigidBody* rigidBody,
+	float time, const dsVector3f* position, const dsQuaternion4f* orientation);
+
+/**
+ * @brief Sets the target transform for a kinematic rigid body based on a transform matrix.
+ *
+ * This will linearly move the kinematic body for the next step of the physics simulation. When
+ * using linear collision, this allows for the full linear step to be considered. Most commonly
+ * this will be called as part of a dsOnPhysicsSceneStepFunction callback.
+ *
+ * This is only valid for a kinematic rigid body currently a part of a scene.
+ *
+ * @remark errno will be set on failure.
+ * @param rigidBody The rigid body to set the kinematic target transform on.
+ * @param time The time for the step, most commonly forwarded from the time parameter of a
+ *     dsOnPhysicsSceneStepFunction callback.
+ * @param transform The transform matrix. This is expected to be orthogonal and not contain sheer.
+ *     If the transform has scale that's different from the current scale factor, it will be set
+ *     as weith dsRigidBody_setTransform(), meaning that it will be immediately applied rather than
+ *     over the time step.
+ * @return False if the kinematic target couldn't be set.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_setKinematicTargetMatrix(dsRigidBody* rigidBody,
+	float time, const dsMatrix44f* transform);
+
+/**
  * @brief Gets the position around which the rigid body will rotate in world space.
  * @remark The shapes must be finalized before calling this function.
  * @remark errno will be set on failure.
@@ -432,6 +474,9 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setMaxAngularVelocity(dsRigidBody* rigidBody,
 
 /**
  * @brief Gets the current linear velocity for a rigid body.
+ *
+ * This is only valid if the motion type is dynamic.
+ *
  * @remark errno will be set on failure.
  * @param[out] outVelocity The storage for the linear velocity.
  * @param rigidBody The rigid body to get the linear velocity for.
@@ -442,6 +487,9 @@ DS_PHYSICS_EXPORT bool dsRigidBody_getLinearVelocity(dsVector3f* outVelocity,
 
 /**
  * @brief Sets the current linear velocity for a rigid body.
+ *
+ * The volicty may only be set if the motion type is dynamic.
+ *
  * @remark errno will be set on failure.
  * @param rigidBody The rigid body to set the linear velocity on.
  * @param velocity The new linear velocity.
@@ -451,27 +499,35 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setLinearVelocity(dsRigidBody* rigidBody,
 	const dsVector3f* velocity);
 
 /**
- * @brief Gets the current linear angular for a rigid body.
+ * @brief Gets the current angular velocity for a rigid body.
+ *
+ * This is only valid if the motion type is dynamic.
+ *
  * @remark errno will be set on failure.
- * @param[out] outAngular The storage for the linear angular.
- * @param rigidBody The rigid body to get the linear angular for.
- * @return False if the linear angular couldn't be queried.
+ * @param[out] outVelocity The storage for the angular velocity.
+ * @param rigidBody The rigid body to get the angular velocity for.
+ * @return False if the angular velocity couldn't be queried.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_getLinearAngular(dsVector3f* outAngular,
+DS_PHYSICS_EXPORT bool dsRigidBody_getAngularVelocity(dsVector3f* outVelocity,
 	const dsRigidBody* rigidBody);
 
 /**
- * @brief Sets the current linear angular for a rigid body.
+ * @brief Sets the current angular velocity for a rigid body.
+ *
+ * The volicty may only be set if the motion type is dynamic.
+ *
  * @remark errno will be set on failure.
- * @param rigidBody The rigid body to set the linear angular on.
- * @param angular The new linear angular.
- * @return False if the linear angular couldn't be set.
+ * @param rigidBody The rigid body to set the angular velocity on.
+ * @param velocity The new angular velocity.
+ * @return False if the angular velocity couldn't be set.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_setLinearAngular(dsRigidBody* rigidBody,
-	const dsVector3f* angular);
+DS_PHYSICS_EXPORT bool dsRigidBody_setAngularVelocity(dsRigidBody* rigidBody,
+	const dsVector3f* velocity);
 
 /**
  * @brief Adds a force to a rigid body.
+ *
+ * Forces may only be applied if the motion type is dynamic.
  *
  * The force will only be active until the next time the physics scene is stepped.
  *
@@ -485,6 +541,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_addForce(dsRigidBody* rigidBody, const dsVect
 
 /**
  * @brief Adds a force to a rigid body at a point.
+ *
+ * Forces may only be applied if the motion type is dynamic.
  *
  * This may add torque as well if the force isn't aligned with the center of rotation.
  * The force will only be active until the next time the physics scene is stepped.
@@ -502,6 +560,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_addForceAtPoint(dsRigidBody* rigidBody, const
 /**
  * @brief Clears the previously accumulated force for a rigid body.
  *
+ * Forces may only be applied if the motion type is dynamic.
+ *
  * This will clear any forces previously added with dsRigidBody_addForce() since the previous step
  * of the physics scene.
  *
@@ -514,6 +574,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_clearForce(dsRigidBody* rigidBody);
 
 /**
  * @brief Adds a torque to a rigid body.
+ *
+ * Forces may only be applied if the motion type is dynamic.
  *
  * The torque will only be active until the next time the physics scene is stepped.
  *
@@ -528,6 +590,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_addTorque(dsRigidBody* rigidBody, const dsVec
 /**
  * @brief Clears the previously accumulated torque for a rigid body.
  *
+ * Forces may only be applied if the motion type is dynamic.
+ *
  * This will clear any torque previously added with dsRigidBody_addTorque() since the previous step
  * of the physics scene.
  *
@@ -540,6 +604,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_clearTorque(dsRigidBody* rigidBody);
 
 /**
  * @brief Adds a linear impulse to a rigid body.
+ *
+ * Forces may only be applied if the motion type is dynamic.
  *
  * The torque will only be active until the next time the physics scene is stepped.
  *
@@ -555,6 +621,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_addLinearImpulse(dsRigidBody* rigidBody,
 /**
  * @brief Clears the previously accumulated linear impulse for a rigid body.
  *
+ * Forces may only be applied if the motion type is dynamic.
+ *
  * This will clear any linear impulse previously added with dsRigidBody_addLinearImpulse() since the
  * previous step of the physics scene.
  *
@@ -567,6 +635,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_clearLinearImpulse(dsRigidBody* rigidBody);
 
 /**
  * @brief Adds a angular impulse to a rigid body.
+ *
+ * Forces may only be applied if the motion type is dynamic.
  *
  * The torque will only be active until the next time the physics scene is stepped.
  *
@@ -581,6 +651,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_addAngularImpulse(dsRigidBody* rigidBody,
 
 /**
  * @brief Clears the previously accumulated angular impulse for a rigid body.
+ *
+ * Forces may only be applied if the motion type is dynamic.
  *
  * This will clear any angular impulse previously added with dsRigidBody_addAngularImpulse() since
  * the previous step of the physics scene.

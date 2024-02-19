@@ -137,6 +137,77 @@ inline static bool getShapeMaterial(dsPhysicsShapePartMaterial* outMaterial,
 	return true;
 }
 
+static bool extractTransformFromMatrix(dsVector3f* outPosition, dsQuaternion4f* outOrientation,
+	dsVector3f* outScale, bool* outHasScale, const dsRigidBody* rigidBody,
+	const dsMatrix44f* transform)
+{
+	outScale->x = dsVector3f_len((const dsVector3f*)transform->columns);
+	outScale->y = dsVector3f_len((const dsVector3f*)(transform->columns + 1));
+	outScale->z = dsVector3f_len((const dsVector3f*)(transform->columns + 2));
+
+	const float scaleEpsilon = 1e-5f;
+	dsVector3f one = {{1.0f, 1.0f, 1.0f}};
+	bool unitScale = dsVector3f_epsilonEqual(outScale, &one, scaleEpsilon);
+	bool scalable = (rigidBody->flags & dsRigidBodyFlags_Scalable) != 0;
+	if (unitScale)
+	{
+		*outScale = one; // Avoid unit scales that are slightly off.
+		dsQuaternion4f_fromMatrix44(outOrientation, transform);
+	}
+	else
+	{
+		if (!scalable)
+		{
+			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+				"Rigid body must have scalable flag set to modify the scale.");
+			errno = EPERM;
+			return false;
+		}
+
+		if (dsEpsilonEqualf(outScale->x, outScale->y, scaleEpsilon) &&
+			dsEpsilonEqualf(outScale->x, outScale->z, scaleEpsilon))
+		{
+			// Avoid uniform scales that are slightly off.
+			outScale->y = outScale->z = outScale->x;
+		}
+		else
+		{
+			for (uint32_t i = 0; i < rigidBody->shapeCount; ++i)
+			{
+				const dsPhysicsShapeInstance* shapeInstance = rigidBody->shapes + i;
+				if (shapeInstance->hasRotate)
+				{
+					DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+						"Attempting to set non-uniform scale on rigid body with a rotated shape.");
+					errno = EPERM;
+					return false;
+				}
+
+				if (shapeInstance->shape->type->uniformScaleOnly)
+				{
+					DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+						"Attempting to set non-uniform scale on rigid body with a shape that "
+						"requires uniform scales.");
+					errno = EPERM;
+					return false;
+				}
+			}
+		}
+
+		dsVector3f invScale;
+		dsVector3_div(invScale, one, *outScale);
+		dsMatrix33f rotationMatrix;
+		dsVector3_scale(rotationMatrix.columns[0], transform->columns[0], invScale.x);
+		dsVector3_scale(rotationMatrix.columns[1], transform->columns[1], invScale.y);
+		dsVector3_scale(rotationMatrix.columns[2], transform->columns[2], invScale.z);
+		dsQuaternion4f_fromMatrix33(outOrientation, &rotationMatrix);
+	}
+
+	*outPosition = *(const dsVector3f*)(transform->columns + 3);
+	*outHasScale = !dsVector3f_epsilonEqual(outScale, &rigidBody->scale, scaleEpsilon);
+	return true;
+}
+
 dsRigidBody* dsRigidBody_create(dsPhysicsEngine* engine, dsAllocator* allocator,
 	const dsRigidBodyInit* initParams)
 {
@@ -814,80 +885,76 @@ bool dsRigidBody_setTransformMatrix(dsRigidBody* rigidBody, const dsMatrix44f* t
 		return false;
 	}
 
-	dsVector3f scale;
-	scale.x = dsVector3f_len((const dsVector3f*)transform->columns);
-	scale.y = dsVector3f_len((const dsVector3f*)(transform->columns + 1));
-	scale.z = dsVector3f_len((const dsVector3f*)(transform->columns + 2));
-
-	const float scaleEpsilon = 1e-5f;
-	dsVector3f one = {{1.0f, 1.0f, 1.0f}};
-	dsVector3f* scalePtr = NULL;
-	bool unitScale = dsVector3f_epsilonEqual(&scale, &one, scaleEpsilon);
-	bool scalable = (rigidBody->flags & dsRigidBodyFlags_Scalable) != 0;
+	dsVector3f position, scale;
 	dsQuaternion4f orientation;
-	if (unitScale)
+	bool hasScale;
+	if (!extractTransformFromMatrix(
+			&position, &orientation, &scale, &hasScale, rigidBody, transform))
 	{
-		if (scalable && !dsVector3_equal(one, rigidBody->scale))
-			scalePtr = &one; // Avoid unit scales that are slightly off.
-		dsQuaternion4f_fromMatrix44(&orientation, transform);
-	}
-	else
-	{
-		if (!scalable)
-		{
-			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
-				"Rigid body must have scalable flag set to modify the scale.");
-			errno = EPERM;
-			return false;
-		}
-
-		if (dsEpsilonEqualf(scale.x, scale.y, scaleEpsilon) &&
-			dsEpsilonEqualf(scale.x, scale.z, scaleEpsilon))
-		{
-			// Avoid uniform scales that are slightly off.
-			scale.y = scale.z = scale.x;
-		}
-		else
-		{
-			for (uint32_t i = 0; i < rigidBody->shapeCount; ++i)
-			{
-				const dsPhysicsShapeInstance* shapeInstance = rigidBody->shapes + i;
-				if (shapeInstance->hasRotate)
-				{
-					DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
-						"Attempting to set non-uniform scale on rigid body with a rotated shape.");
-					errno = EPERM;
-					return false;
-				}
-
-				if (shapeInstance->shape->type->uniformScaleOnly)
-				{
-					DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
-						"Attempting to set non-uniform scale on rigid body with a shape that "
-						"requires uniform scales.");
-					errno = EPERM;
-					return false;
-				}
-			}
-		}
-
-		// Only change the scale if it's different from the previous, since this may be more
-		// expensive than changing the position and rotation.
-		if (!dsVector3f_epsilonEqual(&scale, &rigidBody->scale, scaleEpsilon))
-			scalePtr = &scale;
-
-		dsVector3f invScale;
-		dsVector3_div(invScale, one, scale);
-		dsMatrix33f rotationMatrix;
-		dsVector3_scale(rotationMatrix.columns[0], transform->columns[0], invScale.x);
-		dsVector3_scale(rotationMatrix.columns[1], transform->columns[1], invScale.y);
-		dsVector3_scale(rotationMatrix.columns[2], transform->columns[2], invScale.z);
-		dsQuaternion4f_fromMatrix33(&orientation, &rotationMatrix);
+		return false;
 	}
 
 	dsPhysicsEngine* engine = actor->engine;
-	return engine->setRigidBodyTransformFunc(engine, rigidBody,
-		(const dsVector3f*)(transform->columns + 3), &orientation, scalePtr, activate);
+	return engine->setRigidBodyTransformFunc(engine, rigidBody, &position, &orientation,
+		hasScale ? &scale : NULL, activate);
+}
+
+bool dsRigidBody_setKinematicTarget(dsRigidBody* rigidBody, float time, const dsVector3f* position,
+	const dsQuaternion4f* orientation)
+{
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyKinematicTargetFunc ||
+		time < 0)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (rigidBody->motionType != dsPhysicsMotionType_Kinematic || !actor->scene)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Kinematic target may only be set on a rigid body that's part of a physics scene.");
+		errno = EPERM;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = actor->engine;
+	return engine->setRigidBodyKinematicTargetFunc(engine, rigidBody, time, position, orientation);
+}
+
+bool dsRigidBody_setKinematicTargetMatrix(dsRigidBody* rigidBody, float time,
+	const dsMatrix44f* transform)
+{
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyKinematicTargetFunc ||
+		!actor->engine->setRigidBodyTransformFunc || time < 0 || !transform)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (rigidBody->motionType != dsPhysicsMotionType_Kinematic || !actor->scene)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Kinematic target may only be set on a rigid body that's part of a physics scene.");
+		errno = EPERM;
+		return false;
+	}
+
+	dsVector3f position, scale;
+	dsQuaternion4f orientation;
+	bool hasScale;
+	if (!extractTransformFromMatrix(
+			&position, &orientation, &scale, &hasScale, rigidBody, transform))
+	{
+		return false;
+	}
+
+	dsPhysicsEngine* engine = actor->engine;
+	if (hasScale)
+		engine->setRigidBodyTransformFunc(engine, rigidBody, NULL, NULL, &scale, false);
+	return engine->setRigidBodyKinematicTargetFunc(
+		engine, rigidBody, time, &position, &orientation);
 }
 
 bool dsRigidBody_getWorldRotationPosition(dsVector3f* outPosition, const dsRigidBody* rigidBody)
@@ -1050,6 +1117,94 @@ bool dsRigidBody_setMaxAngularVelocity(dsRigidBody* rigidBody, float maxAngularV
 	return engine->setRigidBodyMaxAngularVelocityFunc(engine, rigidBody, maxAngularVelocity);
 }
 
+bool dsRigidBody_getLinearVelocity(dsVector3f* outVelocity, const dsRigidBody* rigidBody)
+{
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!outVelocity || !rigidBody || !actor->engine ||
+		!actor->engine->getRigidBodyLinearVelocityFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (rigidBody->motionType != dsPhysicsMotionType_Dynamic)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Velocities are only valid on a rigid body that is dynamic.");
+		errno = EPERM;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = actor->engine;
+	return engine->getRigidBodyLinearVelocityFunc(outVelocity, engine, rigidBody);
+}
+
+bool dsRigidBody_setLinearVelocity(dsRigidBody* rigidBody, const dsVector3f* velocity)
+{
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyLinearVelocityFunc ||
+		!velocity)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (rigidBody->motionType != dsPhysicsMotionType_Dynamic)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Cannot apply velocities to a rigid body that isn't dynamic.");
+		errno = EPERM;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = actor->engine;
+	return engine->setRigidBodyLinearVelocityFunc(engine, rigidBody, velocity);
+}
+
+bool dsRigidBody_getAngularVelocity(dsVector3f* outVelocity, const dsRigidBody* rigidBody)
+{
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!outVelocity || !rigidBody || !actor->engine ||
+		!actor->engine->getRigidBodyAngularVelocityFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (rigidBody->motionType != dsPhysicsMotionType_Dynamic)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Velocities are only valid on a rigid body that is dynamic.");
+		errno = EPERM;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = actor->engine;
+	return engine->getRigidBodyAngularVelocityFunc(outVelocity, engine, rigidBody);
+}
+
+bool dsRigidBody_setAngularVelocity(dsRigidBody* rigidBody, const dsVector3f* velocity)
+{
+	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyAngularVelocityFunc ||
+		!velocity)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (rigidBody->motionType != dsPhysicsMotionType_Dynamic)
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Cannot apply velocities to a rigid body that isn't dynamic.");
+		errno = EPERM;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = actor->engine;
+	return engine->setRigidBodyAngularVelocityFunc(engine, rigidBody, velocity);
+}
+
 bool dsRigidBody_addForce(dsRigidBody* rigidBody, const dsVector3f* force)
 {
 	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
@@ -1059,10 +1214,9 @@ bool dsRigidBody_addForce(dsRigidBody* rigidBody, const dsVector3f* force)
 		return false;
 	}
 
-	if (!hasMassProperties(rigidBody))
+	if (rigidBody->motionType != dsPhysicsMotionType_Dynamic)
 	{
-		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic "
-			"or have the mutable motion type set.");
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic.");
 		errno = EPERM;
 		return false;
 	}
@@ -1090,10 +1244,9 @@ bool dsRigidBody_addForceAtPoint(dsRigidBody* rigidBody, const dsVector3f* force
 		return false;
 	}
 
-	if (!hasMassProperties(rigidBody))
+	if (rigidBody->motionType != dsPhysicsMotionType_Dynamic)
 	{
-		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic "
-			"or have the mutable motion type set.");
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic.");
 		errno = EPERM;
 		return false;
 	}
@@ -1129,10 +1282,9 @@ bool dsRigidBody_clearForce(dsRigidBody* rigidBody)
 		return false;
 	}
 
-	if (!hasMassProperties(rigidBody))
+	if (rigidBody->motionType != dsPhysicsMotionType_Dynamic)
 	{
-		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic "
-			"or have the mutable motion type set.");
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic.");
 		errno = EPERM;
 		return false;
 	}
@@ -1158,10 +1310,9 @@ bool dsRigidBody_addTorque(dsRigidBody* rigidBody, const dsVector3f* torque)
 		return false;
 	}
 
-	if (!hasMassProperties(rigidBody))
+	if (rigidBody->motionType != dsPhysicsMotionType_Dynamic)
 	{
-		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic "
-			"or have the mutable motion type set.");
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic.");
 		errno = EPERM;
 		return false;
 	}
@@ -1187,10 +1338,9 @@ bool dsRigidBody_clearTorque(dsRigidBody* rigidBody)
 		return false;
 	}
 
-	if (!hasMassProperties(rigidBody))
+	if (rigidBody->motionType != dsPhysicsMotionType_Dynamic)
 	{
-		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic "
-			"or have the mutable motion type set.");
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic.");
 		errno = EPERM;
 		return false;
 	}
@@ -1216,10 +1366,9 @@ bool dsRigidBody_addLinearImpulse(dsRigidBody* rigidBody, const dsVector3f* impu
 		return false;
 	}
 
-	if (!hasMassProperties(rigidBody))
+	if (rigidBody->motionType != dsPhysicsMotionType_Dynamic)
 	{
-		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic "
-			"or have the mutable motion type set.");
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic.");
 		errno = EPERM;
 		return false;
 	}
@@ -1245,10 +1394,9 @@ bool dsRigidBody_clearLinearImpulse(dsRigidBody* rigidBody)
 		return false;
 	}
 
-	if (!hasMassProperties(rigidBody))
+	if (rigidBody->motionType != dsPhysicsMotionType_Dynamic)
 	{
-		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic "
-			"or have the mutable motion type set.");
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic.");
 		errno = EPERM;
 		return false;
 	}
@@ -1274,10 +1422,9 @@ bool dsRigidBody_addAngularImpulse(dsRigidBody* rigidBody, const dsVector3f* imp
 		return false;
 	}
 
-	if (!hasMassProperties(rigidBody))
+	if (rigidBody->motionType != dsPhysicsMotionType_Dynamic)
 	{
-		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic "
-			"or have the mutable motion type set.");
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic.");
 		errno = EPERM;
 		return false;
 	}
@@ -1303,10 +1450,9 @@ bool dsRigidBody_clearAngularImpulse(dsRigidBody* rigidBody)
 		return false;
 	}
 
-	if (!hasMassProperties(rigidBody))
+	if (rigidBody->motionType != dsPhysicsMotionType_Dynamic)
 	{
-		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic "
-			"or have the mutable motion type set.");
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Cannot apply forces to a rigid body that isn't dynamic.");
 		errno = EPERM;
 		return false;
 	}

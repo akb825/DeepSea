@@ -581,7 +581,7 @@ typedef bool (*dsSetRigidBodyCanCollisionGroupsCollideFunction)(dsPhysicsEngine*
 /**
  * @brief Function to set the transform on a rigid body.
  * @param engine The physics engine the rigid body was created with.
- * @param rigidBody The rigid body to change the position on.
+ * @param rigidBody The rigid body to set the transform on.
  * @param position The new position or NULL to leave unchanged.
  * @param orientation The new orientation or NULL to leave unchanged.
  * @param scale The new scale or NULL to leave unchanged.
@@ -591,6 +591,19 @@ typedef bool (*dsSetRigidBodyCanCollisionGroupsCollideFunction)(dsPhysicsEngine*
 typedef bool (*dsSetRigidBodyTransformFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
 	const dsVector3f* position, const dsQuaternion4f* orientation, const dsVector3f* scale,
 	bool activate);
+
+/**
+ * @brief Function to set the transform target for moving a kinematic rigid body.
+ * @param engine The physics engine the rigid body was created with.
+ * @param rigidBody The rigid body to set the kinmatic target transform on.
+ * @param time The time over which the kinematic transform occurs.
+ * @param position The new position or NULL to leave unchanged.
+ * @param orientation The new orientation or NULL to leave unchanged.
+ * @return False if the kinematic target couldn't be set.
+ */
+typedef bool (*dsSetRigidBodyKinematicTargetFunction)(dsPhysicsEngine* engine,
+	dsRigidBody* rigidBody, float time, const dsVector3f* position,
+	const dsQuaternion4f* orientation);
 
 /**
  * @brief Function to set a float value on a rigid body.
