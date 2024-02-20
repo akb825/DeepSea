@@ -321,6 +321,64 @@ DS_PHYSICS_EXPORT uint32_t dsPhysicsScene_getActors(dsPhysicsActor** outActors,
 	const dsPhysicsSceneLock* lock);
 
 /**
+ * @brief Casts a ray with a physics scene.
+ * @remark errno will be set on failure.
+ * @param scene The physics scene to cast the ray with.
+ * @param ray The ray to intersect with the scene. The direction should be scaled by the maximum
+ *     distance of the intersection.
+ * @param queryType The query type to perform.
+ * @param userData The user data to forward to the callback functions.
+ * @param layer The physics layer to perform the query on. This will follow the same rules as any
+ *     physics actor in the same layer.
+ * @param collisionGroup The collision group of the ray.
+ * @param canCollisionGroupsCollideFunc The function to call for whether collision groups can
+ *     collide. This will be called in place of any actor's canCollisionGroupsCollideFunc if set,
+ *     otherwise the actor's function will be called if present.
+ * @param canCollidePhysicsActorFunc The function to call for whether a specific physics actor and
+ *     shape may collide with the query. If NULL all actors that pass the layer and collision group
+ *     tests will be intersected.
+ * @param addResultFunc Function to call to add a collision result. This may be NULL to simply count
+ *     the number of intersections.
+ * @param lock The previously acquired lock. This must have been locked for reading or writing.
+ * @return The number of collisions or DS_INVALID_PHYSICS_ID if an error occurred.
+ */
+DS_PHYSICS_EXPORT uint32_t dsPhysicsScene_castRay(const dsPhysicsScene* scene,
+	const dsRay3f* ray, dsPhysicsQueryType queryType, void* userData, dsPhysicsLayer layer,
+	uint64_t collisionGroup, dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc,
+	dsCanIntersectPhysicsActorFunction canCollidePhysicsActorFunc,
+	dsAddPhysicsRayIntersectionResult addResultFunc, const dsPhysicsSceneLock* lock);
+
+/**
+ * @brief Intersects shapes with a physics scene.
+ * @remark errno will be set on failure.
+ * @param scene The physics scene to cast the shapes with.
+ * @param shapes The shapes to intersect with the scene.
+ * @param shapeCount The number of shapes to intersect.
+ * @param queryType The query type to perform.
+ * @param userData The user data to forward to the callback functions.
+ * @param layer The physics layer to perform the query on. This will follow the same rules as any
+ *     physics actor in the same layer.
+ * @param collisionGroup The collision group of the shapes.
+ * @param canCollisionGroupsCollideFunc The function to call for whether collision groups can
+ *     collide. This will be called in place of any actor's canCollisionGroupsCollideFunc if set,
+ *     otherwise the actor's function will be called if present.
+ * @param canCollidePhysicsActorFunc The function to call for whether a specific physics actor and
+ *     shape may collide with the query. If NULL all actors that pass the layer and collision group
+ *     tests will be intersected.
+ * @param addResultFunc Function to call to add a collision result. This may be NULL to simply count
+ *     the number of intersections.
+ * @param lock The previously acquired lock. This must have been locked for reading or writing.
+ * @return The number of collisions or DS_INVALID_PHYSICS_ID if an error occurred.
+ */
+DS_PHYSICS_EXPORT uint32_t dsPhysicsScene_intersectShapes(const dsPhysicsScene* scene,
+	const dsPhysicsShapeInstance* shapes, uint32_t shapeCount, dsPhysicsQueryType queryType,
+	void* userData, dsPhysicsLayer layer, uint64_t collisionGroup,
+	dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc,
+	dsCanIntersectPhysicsActorFunction canCollidePhysicsActorFunc,
+	dsAddPhysicsShapeIntersectionResult addResultFunc,
+	const dsPhysicsSceneLock* lock);
+
+/**
  * @brief updates the simulation for the physics scene.
  *
  * This will implicilty lock the scene for writing for the duration of the update.

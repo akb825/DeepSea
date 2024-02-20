@@ -502,6 +502,76 @@ uint32_t dsPhysicsScene_getActors(dsPhysicsActor** outActors, const dsPhysicsSce
 	return engine->getSceneActorsFunc(outActors, engine, scene, firstIndex, count);
 }
 
+uint32_t dsPhysicsScene_castRay(const dsPhysicsScene* scene, const dsRay3f* ray,
+	dsPhysicsQueryType queryType, void* userData, dsPhysicsLayer layer, uint64_t collisionGroup,
+	dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc,
+	dsCanIntersectPhysicsActorFunction canCollidePhysicsActorFunc,
+	dsAddPhysicsRayIntersectionResult addResultFunc, const dsPhysicsSceneLock* lock)
+{
+	DS_PROFILE_FUNC_START();
+	if (!scene || !scene->engine || !scene->engine->sceneCastRayFunc || !ray || !lock)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(DS_INVALID_PHYSICS_ID);
+	}
+
+	if (!isReadLocked(scene, lock))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Physics scene must have been locked for reading or "
+			"writing before performing a ray cast.");
+		errno = EPERM;
+		DS_PROFILE_FUNC_RETURN(DS_INVALID_PHYSICS_ID);
+	}
+
+	dsPhysicsEngine* engine = scene->engine;
+	uint32_t count = engine->sceneCastRayFunc(engine, scene, ray, queryType, userData, layer,
+		collisionGroup, canCollisionGroupsCollideFunc, canCollidePhysicsActorFunc, addResultFunc);
+	DS_PROFILE_FUNC_RETURN(count);
+}
+
+uint32_t dsPhysicsScene_intersectShapes(const dsPhysicsScene* scene,
+	const dsPhysicsShapeInstance* shapes, uint32_t shapeCount, dsPhysicsQueryType queryType,
+	void* userData, dsPhysicsLayer layer, uint64_t collisionGroup,
+	dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc,
+	dsCanIntersectPhysicsActorFunction canCollidePhysicsActorFunc,
+	dsAddPhysicsShapeIntersectionResult addResultFunc,
+	const dsPhysicsSceneLock* lock)
+{
+	DS_PROFILE_FUNC_START();
+	if (!scene || !scene->engine || !scene->engine->sceneIntersectShapesFunc ||
+		(!shapes && shapeCount > 0) || !lock)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(DS_INVALID_PHYSICS_ID);
+	}
+
+	for (uint32_t i = 0; i < shapeCount; ++i)
+	{
+		if (!shapes[i].shape)
+		{
+			errno = EINVAL;
+			DS_PROFILE_FUNC_RETURN(DS_INVALID_PHYSICS_ID);
+		}
+	}
+
+	if (!isReadLocked(scene, lock))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Physics scene must have been locked for reading or "
+			"writing before performing a ray cast.");
+		errno = EPERM;
+		DS_PROFILE_FUNC_RETURN(DS_INVALID_PHYSICS_ID);
+	}
+
+	if (shapeCount == 0)
+		DS_PROFILE_FUNC_RETURN(0);
+
+	dsPhysicsEngine* engine = scene->engine;
+	uint32_t count = engine->sceneIntersectShapesFunc(engine, scene, shapes, shapeCount, queryType,
+		userData, layer, collisionGroup, canCollisionGroupsCollideFunc, canCollidePhysicsActorFunc,
+		addResultFunc);
+	DS_PROFILE_FUNC_RETURN(count);
+}
+
 bool dsPhysicsScene_update(dsPhysicsScene* scene, float time, unsigned int stepCount)
 {
 	DS_PROFILE_FUNC_START();

@@ -37,6 +37,16 @@ extern "C"
 #define DS_PHYSICS_LOG_TAG "physics"
 
 /**
+ * @brief Enum to determine how to perform a physics query.
+ */
+typedef enum dsPhysicsQueryType
+{
+	dsPhysicsQueryType_Closest, ///< Only collect the closest intersection.
+	dsPhysicsQueryType_All,     ///< Collect all intersections.
+	dsPhysicsQueryType_Any      ///< Collect any arbitrary intersection.
+} dsPhysicsQueryType;
+
+/**
  * @brief Struct containing the information for a point of contact between two physics actors.
  * @see dsPhysicsActorContactManifold
  * @see PhysicsActorContactManifold.h
@@ -325,6 +335,40 @@ typedef bool (*dsUpdatePhysicsActorContactPropertiesFunction)(dsPhysicsScene* sc
 	dsPhysicsActorContactManifold* manifold, void* userData);
 
 /**
+ * @brief Function to check whether a physics actor may be intersected with for a query.
+ * @param userData The user data provided with the query.
+ * @param actor The actor to check the intersection with.
+ * @param shapeIndex The index of the shape within the actor.
+ * @return True if the actor may be collided with.
+ */
+typedef bool (*dsCanIntersectPhysicsActorFunction)(
+	void* userData, const dsPhysicsActor* actor, uint32_t shapeIndex);
+
+/**
+ * @brief Function to add an intersection result for a ray cast.
+ * @param userData The user data provided with the query.
+ * @param actor The actor that was intersected.
+ * @param shapeIndex The index of the shape within the actor.
+ * @param faceIndex The index of the face within the shape.
+ * @param t The t value along the ray.
+ * @param point The intersection point.
+ * @param normal The normal of the intersected shape.
+ */
+typedef void (*dsAddPhysicsRayIntersectionResult)(void* userData, const dsPhysicsActor* actor,
+	uint32_t shapeIndex, uint32_t faceIndex, float t, const dsVector3f* point,
+	const dsVector3f* normal);
+
+/**
+ * @brief Function to add an intersection result for a shape intersection.
+ * @param userData The user data provided with the query.
+ * @param actor The actor that was intersected.
+ * @param contactPoint The contact point of the intersection. Shape A is for the input shape
+ *     instances, while shape B is for the actor parameter.
+ */
+typedef void (*dsAddPhysicsShapeIntersectionResult)(void* userData, const dsPhysicsActor* actor,
+	const dsPhysicsActorContactPoint* contactPoint);
+
+/**
  * @brief Struct defining a scene of objects in a physics simulation.
  * @remark None of the members should be modified outside of the implementation.
  * @see dsPhysicsSceneLimits
@@ -597,6 +641,51 @@ typedef bool (*dsPhysicsSceneRemoveRigidBodyGroupFunction)(dsPhysicsEngine* engi
  */
 typedef uint32_t (*dsPhysicsSceneGetActorsFunction)(dsPhysicsActor** outActors,
 	dsPhysicsEngine* engine, const dsPhysicsScene* scene, uint32_t firstIndex, uint32_t count);
+
+/**
+ * @brief Function to perform a ray cast on a physics scene.
+ * @param engine The physics engine the scene was created with.
+ * @param scene The physics scene to query the ray for.
+ * @param ray The ray to cast. The direction is scaled by the maximum distance.
+ * @param queryType The query type to perform.
+ * @param userData The user data to provide to the callback functions.
+ * @param layer The physics layer to perform the query on.
+ * @param collisionGroup The collision group for the ray.
+ * @param canCollisionGroupsCollideFunc The function to check if a collision group can collide.
+ * @param canCollidePhysicsActorFunc The function to check if a physics actor and shape may collide
+ *     with the query.
+ * @param addResultFunc Function to add a result.
+ * @return The number of collided results.
+ */
+typedef uint32_t (*dsPhysicsSceneCastRayFunction)(dsPhysicsEngine* engine,
+	const dsPhysicsScene* scene, const dsRay3f* ray, dsPhysicsQueryType queryType, void* userData,
+	dsPhysicsLayer layer, uint64_t collisionGroup,
+	dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc,
+	dsCanIntersectPhysicsActorFunction canCollidePhysicsActorFunc,
+	dsAddPhysicsRayIntersectionResult addResultFunc);
+
+/**
+ * @brief Function to perform a shape intersection on a physics scene.
+ * @param engine The physics engine the scene was created with.
+ * @param scene The physics scene to query the ray for.
+ * @param shapes The shape instances to intersect.
+ * @param shapeCount The number of shapes to intersect.
+ * @param queryType The query type to perform.
+ * @param userData The user data to provide to the callback functions.
+ * @param layer The physics layer to perform the query on.
+ * @param collisionGroup The collision group for the shapes.
+ * @param canCollisionGroupsCollideFunc The function to check if a collision group can collide.
+ * @param canCollidePhysicsActorFunc The function to check if a physics actor and shape may collide
+ *     with the query.
+ * @param addResultFunc Function to add a result.
+ * @return The number of collided results.
+ */
+typedef uint32_t (*dsPhysicsSceneIntersectShapesFunction)(dsPhysicsEngine* engine,
+	const dsPhysicsScene* scene, const dsPhysicsShapeInstance* shapes, uint32_t shapeCount,
+	dsPhysicsQueryType queryType, void* userData, dsPhysicsLayer layer, uint64_t collisionGroup,
+	dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc,
+	dsCanIntersectPhysicsActorFunction canCollidePhysicsActorFunc,
+	dsAddPhysicsShapeIntersectionResult addResultFunc);
 
 /**
  * @brief Function for updating a physics scene.
@@ -957,6 +1046,16 @@ struct dsPhysicsEngine
 	 * @brief Function to get the actors from a physics scene.
 	 */
 	dsPhysicsSceneGetActorsFunction getSceneActorsFunc;
+
+	/**
+	 * @brief Function to cast a ray with a physics scene.
+	 */
+	dsPhysicsSceneCastRayFunction sceneCastRayFunc;
+
+	/**
+	 * @brief Function to intersect shapes with a physics scene.
+	 */
+	dsPhysicsSceneIntersectShapesFunction sceneIntersectShapesFunc;
 
 	/**
 	 * @brief Function to update a physics scene.
