@@ -110,7 +110,7 @@ def AddChildren(builder, children):
 def AnimationTreeNodeStartChildrenVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartChildrenVector(builder, numElems: int) -> int:
+def StartChildrenVector(builder, numElems):
     return AnimationTreeNodeStartChildrenVector(builder, numElems)
 
 def AnimationTreeNodeAddItemLists(builder, itemLists):
@@ -122,7 +122,7 @@ def AddItemLists(builder, itemLists):
 def AnimationTreeNodeStartItemListsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartItemListsVector(builder, numElems: int) -> int:
+def StartItemListsVector(builder, numElems):
     return AnimationTreeNodeStartItemListsVector(builder, numElems)
 
 def AnimationTreeNodeEnd(builder):

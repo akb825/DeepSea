@@ -118,7 +118,7 @@ def AddData(builder, data):
 def VariableDataStartDataVector(builder, numElems):
     return builder.StartVector(1, numElems, 1)
 
-def StartDataVector(builder, numElems: int) -> int:
+def StartDataVector(builder, numElems):
     return VariableDataStartDataVector(builder, numElems)
 
 def VariableDataEnd(builder):

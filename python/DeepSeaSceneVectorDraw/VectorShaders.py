@@ -159,7 +159,7 @@ def AddModules(builder, modules):
 def VectorShadersStartModulesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartModulesVector(builder, numElems: int) -> int:
+def StartModulesVector(builder, numElems):
     return VectorShadersStartModulesVector(builder, numElems)
 
 def VectorShadersAddExtraElements(builder, extraElements):
@@ -171,7 +171,7 @@ def AddExtraElements(builder, extraElements):
 def VectorShadersStartExtraElementsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartExtraElementsVector(builder, numElems: int) -> int:
+def StartExtraElementsVector(builder, numElems):
     return VectorShadersStartExtraElementsVector(builder, numElems)
 
 def VectorShadersAddMaterialDesc(builder, materialDesc):

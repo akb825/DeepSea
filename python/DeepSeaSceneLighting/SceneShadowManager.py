@@ -64,7 +64,7 @@ def AddShadows(builder, shadows):
 def SceneShadowManagerStartShadowsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartShadowsVector(builder, numElems: int) -> int:
+def StartShadowsVector(builder, numElems):
     return SceneShadowManagerStartShadowsVector(builder, numElems)
 
 def SceneShadowManagerEnd(builder):

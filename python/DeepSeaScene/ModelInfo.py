@@ -147,7 +147,7 @@ def AddDrawRanges(builder, drawRanges):
 def ModelInfoStartDrawRangesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartDrawRangesVector(builder, numElems: int) -> int:
+def StartDrawRangesVector(builder, numElems):
     return ModelInfoStartDrawRangesVector(builder, numElems)
 
 def ModelInfoAddPrimitiveType(builder, primitiveType):

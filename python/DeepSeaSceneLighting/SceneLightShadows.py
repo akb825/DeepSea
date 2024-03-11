@@ -197,7 +197,7 @@ def AddMinDepthRanges(builder, minDepthRanges):
 def SceneLightShadowsStartMinDepthRangesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartMinDepthRangesVector(builder, numElems: int) -> int:
+def StartMinDepthRangesVector(builder, numElems):
     return SceneLightShadowsStartMinDepthRangesVector(builder, numElems)
 
 def SceneLightShadowsAddFadeStartDistance(builder, fadeStartDistance):

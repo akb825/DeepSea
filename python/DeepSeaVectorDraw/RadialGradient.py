@@ -137,7 +137,7 @@ def AddGradient(builder, gradient):
 def RadialGradientStartGradientVector(builder, numElems):
     return builder.StartVector(8, numElems, 4)
 
-def StartGradientVector(builder, numElems: int) -> int:
+def StartGradientVector(builder, numElems):
     return RadialGradientStartGradientVector(builder, numElems)
 
 def RadialGradientAddCenter(builder, center):

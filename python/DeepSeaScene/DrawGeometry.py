@@ -88,7 +88,7 @@ def AddVertexBuffers(builder, vertexBuffers):
 def DrawGeometryStartVertexBuffersVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartVertexBuffersVector(builder, numElems: int) -> int:
+def StartVertexBuffersVector(builder, numElems):
     return DrawGeometryStartVertexBuffersVector(builder, numElems)
 
 def DrawGeometryAddIndexBuffer(builder, indexBuffer):

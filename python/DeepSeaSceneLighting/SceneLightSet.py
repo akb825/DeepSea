@@ -96,7 +96,7 @@ def AddLights(builder, lights):
 def SceneLightSetStartLightsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartLightsVector(builder, numElems: int) -> int:
+def StartLightsVector(builder, numElems):
     return SceneLightSetStartLightsVector(builder, numElems)
 
 def SceneLightSetAddMaxLights(builder, maxLights):

@@ -75,7 +75,7 @@ def AddInstanceData(builder, instanceData):
 def VectorItemListStartInstanceDataVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartInstanceDataVector(builder, numElems: int) -> int:
+def StartInstanceDataVector(builder, numElems):
     return VectorItemListStartInstanceDataVector(builder, numElems)
 
 def VectorItemListAddDynamicRenderStates(builder, dynamicRenderStates):

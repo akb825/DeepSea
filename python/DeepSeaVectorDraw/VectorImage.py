@@ -150,7 +150,7 @@ def AddColorMaterials(builder, colorMaterials):
 def VectorImageStartColorMaterialsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartColorMaterialsVector(builder, numElems: int) -> int:
+def StartColorMaterialsVector(builder, numElems):
     return VectorImageStartColorMaterialsVector(builder, numElems)
 
 def VectorImageAddLinearGradients(builder, linearGradients):
@@ -162,7 +162,7 @@ def AddLinearGradients(builder, linearGradients):
 def VectorImageStartLinearGradientsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartLinearGradientsVector(builder, numElems: int) -> int:
+def StartLinearGradientsVector(builder, numElems):
     return VectorImageStartLinearGradientsVector(builder, numElems)
 
 def VectorImageAddRadialGradients(builder, radialGradients):
@@ -174,7 +174,7 @@ def AddRadialGradients(builder, radialGradients):
 def VectorImageStartRadialGradientsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartRadialGradientsVector(builder, numElems: int) -> int:
+def StartRadialGradientsVector(builder, numElems):
     return VectorImageStartRadialGradientsVector(builder, numElems)
 
 def VectorImageAddCommands(builder, commands):
@@ -186,7 +186,7 @@ def AddCommands(builder, commands):
 def VectorImageStartCommandsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartCommandsVector(builder, numElems: int) -> int:
+def StartCommandsVector(builder, numElems):
     return VectorImageStartCommandsVector(builder, numElems)
 
 def VectorImageAddSize(builder, size):

@@ -91,7 +91,7 @@ def AddKeyframeTimes(builder, keyframeTimes):
 def AnimationKeyframesStartKeyframeTimesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartKeyframeTimesVector(builder, numElems: int) -> int:
+def StartKeyframeTimesVector(builder, numElems):
     return AnimationKeyframesStartKeyframeTimesVector(builder, numElems)
 
 def AnimationKeyframesAddChannels(builder, channels):
@@ -103,7 +103,7 @@ def AddChannels(builder, channels):
 def AnimationKeyframesStartChannelsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartChannelsVector(builder, numElems: int) -> int:
+def StartChannelsVector(builder, numElems):
     return AnimationKeyframesStartChannelsVector(builder, numElems)
 
 def AnimationKeyframesEnd(builder):

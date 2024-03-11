@@ -114,7 +114,7 @@ def AddTextures(builder, textures):
 def VectorResourcesStartTexturesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartTexturesVector(builder, numElems: int) -> int:
+def StartTexturesVector(builder, numElems):
     return VectorResourcesStartTexturesVector(builder, numElems)
 
 def VectorResourcesAddFaceGroups(builder, faceGroups):
@@ -126,7 +126,7 @@ def AddFaceGroups(builder, faceGroups):
 def VectorResourcesStartFaceGroupsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartFaceGroupsVector(builder, numElems: int) -> int:
+def StartFaceGroupsVector(builder, numElems):
     return VectorResourcesStartFaceGroupsVector(builder, numElems)
 
 def VectorResourcesAddFonts(builder, fonts):
@@ -138,7 +138,7 @@ def AddFonts(builder, fonts):
 def VectorResourcesStartFontsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartFontsVector(builder, numElems: int) -> int:
+def StartFontsVector(builder, numElems):
     return VectorResourcesStartFontsVector(builder, numElems)
 
 def VectorResourcesEnd(builder):

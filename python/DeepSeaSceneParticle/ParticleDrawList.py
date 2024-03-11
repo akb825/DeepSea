@@ -71,7 +71,7 @@ def AddInstanceData(builder, instanceData):
 def ParticleDrawListStartInstanceDataVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartInstanceDataVector(builder, numElems: int) -> int:
+def StartInstanceDataVector(builder, numElems):
     return ParticleDrawListStartInstanceDataVector(builder, numElems)
 
 def ParticleDrawListAddCullList(builder, cullList):

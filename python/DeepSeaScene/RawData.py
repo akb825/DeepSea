@@ -66,7 +66,7 @@ def AddData(builder, data):
 def RawDataStartDataVector(builder, numElems):
     return builder.StartVector(1, numElems, 1)
 
-def StartDataVector(builder, numElems: int) -> int:
+def StartDataVector(builder, numElems):
     return RawDataStartDataVector(builder, numElems)
 
 def RawDataEnd(builder):

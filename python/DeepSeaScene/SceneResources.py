@@ -64,7 +64,7 @@ def AddResources(builder, resources):
 def SceneResourcesStartResourcesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartResourcesVector(builder, numElems: int) -> int:
+def StartResourcesVector(builder, numElems):
     return SceneResourcesStartResourcesVector(builder, numElems)
 
 def SceneResourcesEnd(builder):

@@ -139,7 +139,7 @@ def AddInputAttachments(builder, inputAttachments):
 def RenderSubpassStartInputAttachmentsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartInputAttachmentsVector(builder, numElems: int) -> int:
+def StartInputAttachmentsVector(builder, numElems):
     return RenderSubpassStartInputAttachmentsVector(builder, numElems)
 
 def RenderSubpassAddColorAttachments(builder, colorAttachments):
@@ -151,7 +151,7 @@ def AddColorAttachments(builder, colorAttachments):
 def RenderSubpassStartColorAttachmentsVector(builder, numElems):
     return builder.StartVector(8, numElems, 4)
 
-def StartColorAttachmentsVector(builder, numElems: int) -> int:
+def StartColorAttachmentsVector(builder, numElems):
     return RenderSubpassStartColorAttachmentsVector(builder, numElems)
 
 def RenderSubpassAddDepthStencilAttachment(builder, depthStencilAttachment):
@@ -169,7 +169,7 @@ def AddDrawLists(builder, drawLists):
 def RenderSubpassStartDrawListsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartDrawListsVector(builder, numElems: int) -> int:
+def StartDrawListsVector(builder, numElems):
     return RenderSubpassStartDrawListsVector(builder, numElems)
 
 def RenderSubpassEnd(builder):

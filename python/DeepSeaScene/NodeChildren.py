@@ -77,7 +77,7 @@ def AddChildren(builder, children):
 def NodeChildrenStartChildrenVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartChildrenVector(builder, numElems: int) -> int:
+def StartChildrenVector(builder, numElems):
     return NodeChildrenStartChildrenVector(builder, numElems)
 
 def NodeChildrenEnd(builder):

@@ -77,7 +77,7 @@ def AddModules(builder, modules):
 def ShaderModuleStartModulesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartModulesVector(builder, numElems: int) -> int:
+def StartModulesVector(builder, numElems):
     return ShaderModuleStartModulesVector(builder, numElems)
 
 def ShaderModuleEnd(builder):

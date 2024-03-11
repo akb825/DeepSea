@@ -119,7 +119,7 @@ jobs:
       run: ctest ${{ env.ctest_args }}
       working-directory: "${{ github.workspace }}/build/Debug"
     - name: Publish test results
-      uses: EnricoMi/publish-unit-test-result-action/composite@v2
+      uses: EnricoMi/publish-unit-test-result-action/macos@v2
       with:
         check_name: Tests (Mac ${{ matrix.lib_type }} Debug)
         junit_files: "${{ env.test_results_location }}/*.xml"
@@ -139,7 +139,7 @@ jobs:
       run: ctest ${{ env.ctest_args }}
       working-directory: "${{ github.workspace }}/build/Release"
     - name: Publish test results
-      uses: EnricoMi/publish-unit-test-result-action/composite@v2
+      uses: EnricoMi/publish-unit-test-result-action/macos@v2
       with:
         check_name: Tests (Mac ${{ matrix.lib_type }} Release)
         junit_files: "${{ env.test_results_location }}/*.xml"
@@ -194,7 +194,7 @@ jobs:
       run: ctest ${{ env.ctest_args }} -C Debug
       working-directory: "${{ github.workspace }}/build"
     - name: Publish test results
-      uses: EnricoMi/publish-unit-test-result-action/composite@v2
+      uses: EnricoMi/publish-unit-test-result-action/windows@v2
       with:
         check_name: Tests (Windows ${{ matrix.arch }} ${{ matrix.lib_type }} Debug)
         junit_files: "${{ env.test_results_location }}/*.xml"
@@ -211,7 +211,7 @@ jobs:
       run: ctest ${{ env.ctest_args }} -C Release
       working-directory: "${{ github.workspace }}/build"
     - name: Publish test results
-      uses: EnricoMi/publish-unit-test-result-action/composite@v2
+      uses: EnricoMi/publish-unit-test-result-action/windows@v2
       with:
         check_name: Tests (Windows ${{ matrix.arch }} ${{ matrix.lib_type }} Release)
         junit_files: "${{ env.test_results_location }}/*.xml"

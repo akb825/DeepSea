@@ -89,7 +89,7 @@ def AddRootNodes(builder, rootNodes):
 def AnimationTreeStartRootNodesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartRootNodesVector(builder, numElems: int) -> int:
+def StartRootNodesVector(builder, numElems):
     return AnimationTreeStartRootNodesVector(builder, numElems)
 
 def AnimationTreeAddJointNodes(builder, jointNodes):
@@ -101,7 +101,7 @@ def AddJointNodes(builder, jointNodes):
 def AnimationTreeStartJointNodesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartJointNodesVector(builder, numElems: int) -> int:
+def StartJointNodesVector(builder, numElems):
     return AnimationTreeStartJointNodesVector(builder, numElems)
 
 def AnimationTreeEnd(builder):

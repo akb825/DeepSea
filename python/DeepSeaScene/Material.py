@@ -90,7 +90,7 @@ def AddData(builder, data):
 def MaterialStartDataVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartDataVector(builder, numElems: int) -> int:
+def StartDataVector(builder, numElems):
     return MaterialStartDataVector(builder, numElems)
 
 def MaterialEnd(builder):

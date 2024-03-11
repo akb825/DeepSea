@@ -141,7 +141,7 @@ def AddStops(builder, stops):
 def LinearGradientStartStopsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartStopsVector(builder, numElems: int) -> int:
+def StartStopsVector(builder, numElems):
     return LinearGradientStartStopsVector(builder, numElems)
 
 def LinearGradientEnd(builder):

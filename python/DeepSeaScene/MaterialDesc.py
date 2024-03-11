@@ -77,7 +77,7 @@ def AddElements(builder, elements):
 def MaterialDescStartElementsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartElementsVector(builder, numElems: int) -> int:
+def StartElementsVector(builder, numElems):
     return MaterialDescStartElementsVector(builder, numElems)
 
 def MaterialDescEnd(builder):

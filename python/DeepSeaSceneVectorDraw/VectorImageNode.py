@@ -125,7 +125,7 @@ def AddEmbeddedResources(builder, embeddedResources):
 def VectorImageNodeStartEmbeddedResourcesVector(builder, numElems):
     return builder.StartVector(1, numElems, 1)
 
-def StartEmbeddedResourcesVector(builder, numElems: int) -> int:
+def StartEmbeddedResourcesVector(builder, numElems):
     return VectorImageNodeStartEmbeddedResourcesVector(builder, numElems)
 
 def VectorImageNodeAddVectorImage(builder, vectorImage):
@@ -167,7 +167,7 @@ def AddItemLists(builder, itemLists):
 def VectorImageNodeStartItemListsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartItemListsVector(builder, numElems: int) -> int:
+def StartItemListsVector(builder, numElems):
     return VectorImageNodeStartItemListsVector(builder, numElems)
 
 def VectorImageNodeEnd(builder):

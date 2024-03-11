@@ -77,7 +77,7 @@ def AddElements(builder, elements):
 def ShaderVariableGroupDescStartElementsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartElementsVector(builder, numElems: int) -> int:
+def StartElementsVector(builder, numElems):
     return ShaderVariableGroupDescStartElementsVector(builder, numElems)
 
 def ShaderVariableGroupDescEnd(builder):

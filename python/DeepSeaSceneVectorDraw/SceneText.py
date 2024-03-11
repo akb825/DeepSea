@@ -94,7 +94,7 @@ def AddStyles(builder, styles):
 def SceneTextStartStylesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartStylesVector(builder, numElems: int) -> int:
+def StartStylesVector(builder, numElems):
     return SceneTextStartStylesVector(builder, numElems)
 
 def SceneTextEnd(builder):

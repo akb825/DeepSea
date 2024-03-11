@@ -126,7 +126,7 @@ def AddAttachments(builder, attachments):
 def RenderPassStartAttachmentsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartAttachmentsVector(builder, numElems: int) -> int:
+def StartAttachmentsVector(builder, numElems):
     return RenderPassStartAttachmentsVector(builder, numElems)
 
 def RenderPassAddSubpasses(builder, subpasses):
@@ -138,7 +138,7 @@ def AddSubpasses(builder, subpasses):
 def RenderPassStartSubpassesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartSubpassesVector(builder, numElems: int) -> int:
+def StartSubpassesVector(builder, numElems):
     return RenderPassStartSubpassesVector(builder, numElems)
 
 def RenderPassAddDependencies(builder, dependencies):
@@ -150,7 +150,7 @@ def AddDependencies(builder, dependencies):
 def RenderPassStartDependenciesVector(builder, numElems):
     return builder.StartVector(28, numElems, 4)
 
-def StartDependenciesVector(builder, numElems: int) -> int:
+def StartDependenciesVector(builder, numElems):
     return RenderPassStartDependenciesVector(builder, numElems)
 
 def RenderPassEnd(builder):
