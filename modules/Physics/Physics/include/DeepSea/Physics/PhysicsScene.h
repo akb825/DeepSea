@@ -194,18 +194,48 @@ DS_PHYSICS_EXPORT bool dsPhysicsScene_setContactManifoldRemovedFunction(dsPhysic
  * @return The ID for the added step listener or DS_INVALID_PHYSICS_ID if the listener couldn't be
  *     added.
  */
-DS_PHYSICS_EXPORT uint32_t dsPhysicsScene_addStepListener(dsPhysicsScene* scene,
+DS_PHYSICS_EXPORT uint32_t dsPhysicsScene_addPreStepListener(dsPhysicsScene* scene,
 	dsOnPhysicsSceneStepFunction function, void* userData,
 	dsDestroyUserDataFunction destroyUserDataFunc);
 
 /**
- * @brief Removes a previously added step listener.
+ * @brief Removes a previously added pre-step listener.
  * @remark errno will be set on failure.
  * @param scene The physics scene to remove the listener from.
- * @param listenerID The ID for the listener returned from dsPhysicsScene_addStepListener().
+ * @param listenerID The ID for the listener returned from dsPhysicsScene_addPreStepListener().
  * @return False if the step listener couldn't be removed.
  */
-DS_PHYSICS_EXPORT bool dsPhysicsScene_removeStepListener(
+DS_PHYSICS_EXPORT bool dsPhysicsScene_removePreStepListener(
+	dsPhysicsScene* scene, uint32_t listenerID);
+
+/**
+ * @brief Adds a callback function to after a physics scene is stepped.
+ *
+ * Multiple callbacks may be executed in parallel, allowing for effecient bulk updates. Components
+ * of the physic scene may not be added or removed in the callback, and care should be made to not
+ * modify the same objects from multiple callbacks to avoid potential thread contention.
+
+ * @remark errno will be set on failure.
+ * @param scene The physics scene to add the listener to.
+ * @param function The function to call after a physics scene step.
+ * @param userData The user data to provide to the listener.
+ * @param destroyUserDataFunc The function called to destroy the user data when the scene is
+ *     destroyed, the function is removed, or adding the function fails.
+ * @return The ID for the added step listener or DS_INVALID_PHYSICS_ID if the listener couldn't be
+ *     added.
+ */
+DS_PHYSICS_EXPORT uint32_t dsPhysicsScene_addPostStepListener(dsPhysicsScene* scene,
+	dsOnPhysicsSceneStepFunction function, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc);
+
+/**
+ * @brief Removes a previously added post-step listener.
+ * @remark errno will be set on failure.
+ * @param scene The physics scene to remove the listener from.
+ * @param listenerID The ID for the listener returned from dsPhysicsScene_addPostStepListener().
+ * @return False if the step listener couldn't be removed.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsScene_removePostStepListener(
 	dsPhysicsScene* scene, uint32_t listenerID);
 
 /**

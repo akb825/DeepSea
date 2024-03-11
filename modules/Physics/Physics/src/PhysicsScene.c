@@ -181,11 +181,11 @@ bool dsPhysicsScene_setContactManifoldRemovedFunction(dsPhysicsScene* scene,
 	return true;
 }
 
-uint32_t dsPhysicsScene_addStepListener(dsPhysicsScene* scene,
+uint32_t dsPhysicsScene_addPreStepListener(dsPhysicsScene* scene,
 	dsOnPhysicsSceneStepFunction function, void* userData,
 	dsDestroyUserDataFunction destroyUserDataFunc)
 {
-	if (!scene || !scene->engine || !scene->engine->addSceneStepListenerFunc || !function)
+	if (!scene || !scene->engine || !scene->engine->addScenePreStepListenerFunc || !function)
 	{
 		if (destroyUserDataFunc)
 			destroyUserDataFunc(userData);
@@ -194,16 +194,16 @@ uint32_t dsPhysicsScene_addStepListener(dsPhysicsScene* scene,
 	}
 
 	dsPhysicsEngine* engine = scene->engine;
-	uint32_t listenerID = engine->addSceneStepListenerFunc(
+	uint32_t listenerID = engine->addScenePreStepListenerFunc(
 		engine, scene, function, userData, destroyUserDataFunc);
 	if (listenerID == DS_INVALID_PHYSICS_ID && destroyUserDataFunc)
 		destroyUserDataFunc(userData);
 	return listenerID;
 }
 
-bool dsPhysicsScene_removeStepListener(dsPhysicsScene* scene, uint32_t listenerID)
+bool dsPhysicsScene_removePreStepListener(dsPhysicsScene* scene, uint32_t listenerID)
 {
-	if (!scene || !scene->engine || !scene->engine->removeSceneStepListenerFunc ||
+	if (!scene || !scene->engine || !scene->engine->removeScenePreStepListenerFunc ||
 		listenerID == DS_INVALID_PHYSICS_ID)
 	{
 		errno = EINVAL;
@@ -211,7 +211,40 @@ bool dsPhysicsScene_removeStepListener(dsPhysicsScene* scene, uint32_t listenerI
 	}
 
 	dsPhysicsEngine* engine = scene->engine;
-	return engine->removeSceneStepListenerFunc(engine, scene, listenerID);
+	return engine->removeScenePreStepListenerFunc(engine, scene, listenerID);
+}
+
+uint32_t dsPhysicsScene_addPostStepListener(dsPhysicsScene* scene,
+	dsOnPhysicsSceneStepFunction function, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc)
+{
+	if (!scene || !scene->engine || !scene->engine->addScenePostStepListenerFunc || !function)
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		errno = EINVAL;
+		return DS_INVALID_PHYSICS_ID;
+	}
+
+	dsPhysicsEngine* engine = scene->engine;
+	uint32_t listenerID = engine->addScenePostStepListenerFunc(
+		engine, scene, function, userData, destroyUserDataFunc);
+	if (listenerID == DS_INVALID_PHYSICS_ID && destroyUserDataFunc)
+		destroyUserDataFunc(userData);
+	return listenerID;
+}
+
+bool dsPhysicsScene_removePostStepListener(dsPhysicsScene* scene, uint32_t listenerID)
+{
+	if (!scene || !scene->engine || !scene->engine->removeScenePostStepListenerFunc ||
+		listenerID == DS_INVALID_PHYSICS_ID)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = scene->engine;
+	return engine->removeScenePostStepListenerFunc(engine, scene, listenerID);
 }
 
 bool dsPhysicsScene_setGravity(dsPhysicsScene* scene, const dsVector3f* gravity)

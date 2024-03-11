@@ -1008,14 +1008,24 @@ struct dsPhysicsEngine
 	dsSetPhysicsSceneContactManifoldFunction setSceneContactManifoldRemovedFunc;
 
 	/**
-	 * @brief Function to add a step listener on a physics scene.
+	 * @brief Function to add a pre-step listener on a physics scene.
 	 */
-	dsAddPhysicsSceneStepListenerFunction addSceneStepListenerFunc;
+	dsAddPhysicsSceneStepListenerFunction addScenePreStepListenerFunc;
 
 	/**
-	 * @brief Function to remove a step listener on a physics scene.
+	 * @brief Function to remove a pre-step listener on a physics scene.
 	 */
-	dsRemovePhysicsSceneStepListenerFunction removeSceneStepListenerFunc;
+	dsRemovePhysicsSceneStepListenerFunction removeScenePreStepListenerFunc;
+
+	/**
+	 * @brief Function to add a post-step listener on a physics scene.
+	 */
+	dsAddPhysicsSceneStepListenerFunction addScenePostStepListenerFunc;
+
+	/**
+	 * @brief Function to remove a post-step listener on a physics scene.
+	 */
+	dsRemovePhysicsSceneStepListenerFunction removeScenePostStepListenerFunc;
 
 	/**
 	 * @brief Function to set the gravity on a physics scene.
