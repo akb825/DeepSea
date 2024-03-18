@@ -21,8 +21,9 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
-#include <DeepSea/Physics/Types.h>
+#include <DeepSea/Physics/Shapes/PhysicsShape.h>
 #include <DeepSea/Physics/PhysicsMassProperties.h>
+#include <DeepSea/Physics/Types.h>
 
 static bool dsPhysicsSphere_getMassProperties(dsPhysicsMassProperties* outMassProperties,
 	const dsPhysicsShape* shape, float density)
@@ -72,17 +73,13 @@ void dsPhysicsSphere_initialize(dsPhysicsSphere* sphere, dsPhysicsEngine* engine
 	DS_ASSERT(engine);
 	DS_ASSERT(radius > 0);
 
-	dsPhysicsShape* shape = (dsPhysicsShape*)sphere;
-	shape->engine = engine;
-	shape->allocator = dsAllocator_keepPointer(allocator);
-	shape->type = dsPhysicsSphere_type();
-	shape->bounds.min.x = shape->bounds.min.y = shape->bounds.min.z = -radius;
-	shape->bounds.max.x = shape->bounds.max.y = shape->bounds.max.z = radius;
-	shape->impl = impl;
-	shape->debugData = NULL;
-	shape->destroyDebugDataFunc = NULL;
-	shape->refCount = 1;
-	shape->destroyFunc = (dsDestroyPhysicsShapeFunction)engine->destroySphereFunc;
+	dsAlignedBox3f bounds;
+	bounds.min.x = bounds.min.y = bounds.min.z = -radius;
+	bounds.max.x = bounds.max.y = bounds.max.z = radius;
+
+	DS_VERIFY(dsPhysicsShape_initialize((dsPhysicsShape*)sphere, engine, allocator,
+		dsPhysicsSphere_type(), &bounds, impl,
+		(dsDestroyPhysicsShapeFunction)engine->destroySphereFunc));
 
 	sphere->radius = radius;
 }

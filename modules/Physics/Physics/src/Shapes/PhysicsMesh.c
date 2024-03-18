@@ -23,6 +23,7 @@
 
 #include <DeepSea/Geometry/AlignedBox3.h>
 
+#include <DeepSea/Physics/Shapes/PhysicsShape.h>
 #include <DeepSea/Physics/Types.h>
 
 static bool dsPhysicsMesh_getMaterial(dsPhysicsShapePartMaterial* outMaterial,
@@ -141,23 +142,18 @@ void dsPhysicsMesh_initialize(dsPhysicsMesh* mesh, dsPhysicsEngine* engine, dsAl
 	DS_ASSERT(triangleCount > 0);
 	DS_ASSERT(triangleMaterialCount == 0 || (triangleMaterialIndices && triangleMaterials));
 
-	dsPhysicsShape* shape = (dsPhysicsShape*)mesh;
-	shape->engine = engine;
-	shape->allocator = dsAllocator_keepPointer(allocator);
-	shape->type = dsPhysicsMesh_type();
-	shape->impl = impl;
-	shape->debugData = NULL;
-	shape->destroyDebugDataFunc = NULL;
-	shape->refCount = 1;
-	shape->destroyFunc = (dsDestroyPhysicsShapeFunction)engine->destroyMeshFunc;
-
 	const uint8_t* vertexBytes = (const uint8_t*)vertices;
-	dsAlignedBox3f_makeInvalid(&shape->bounds);
+	dsAlignedBox3f bounds;
+	dsAlignedBox3f_makeInvalid(&bounds);
 	for (uint32_t i = 0; i < vertexCount; ++i)
 	{
 		const dsVector3f* point = (const dsVector3f*)(vertexBytes + i*vertexStride);
-		dsAlignedBox3_addPoint(shape->bounds, *point);
+		dsAlignedBox3_addPoint(bounds, *point);
 	}
+
+	DS_VERIFY(dsPhysicsShape_initialize((dsPhysicsShape*)mesh, engine, allocator,
+		dsPhysicsMesh_type(), &bounds, impl,
+		(dsDestroyPhysicsShapeFunction)engine->destroyMeshFunc));
 
 	mesh->triangleCount = triangleCount;
 	mesh->materialCount = triangleMaterialCount;

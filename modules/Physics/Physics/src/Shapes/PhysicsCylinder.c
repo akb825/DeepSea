@@ -21,8 +21,9 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
-#include <DeepSea/Physics/Types.h>
+#include <DeepSea/Physics/Shapes/PhysicsShape.h>
 #include <DeepSea/Physics/PhysicsMassProperties.h>
+#include <DeepSea/Physics/Types.h>
 
 static bool dsPhysicsCylinder_getMassProperties(dsPhysicsMassProperties* outMassProperties,
 	const dsPhysicsShape* shape, float density)
@@ -91,36 +92,32 @@ void dsPhysicsCylinder_initialize(dsPhysicsCylinder* cylinder, dsPhysicsEngine* 
 	DS_ASSERT(radius > 0);
 	DS_ASSERT(axis >= dsPhysicsAxis_X && axis <= dsPhysicsAxis_Z);
 
-	dsPhysicsShape* shape = (dsPhysicsShape*)cylinder;
-	shape->engine = engine;
-	shape->allocator = dsAllocator_keepPointer(allocator);
-	shape->type = dsPhysicsCylinder_type();
+	dsAlignedBox3f bounds;
 	switch (axis)
 	{
 		case dsPhysicsAxis_X:
-			shape->bounds.min.x = -halfHeight;
-			shape->bounds.min.y = shape->bounds.min.z = -radius;
-			shape->bounds.max.x = halfHeight;
-			shape->bounds.max.y = shape->bounds.max.z = radius;
+			bounds.min.x = -halfHeight;
+			bounds.min.y = bounds.min.z = -radius;
+			bounds.max.x = halfHeight;
+			bounds.max.y = bounds.max.z = radius;
 			break;
 		case dsPhysicsAxis_Y:
-			shape->bounds.min.y = -halfHeight;
-			shape->bounds.min.x = shape->bounds.min.z = -radius;
-			shape->bounds.max.y = halfHeight;
-			shape->bounds.max.x = shape->bounds.max.z = radius;
+			bounds.min.y = -halfHeight;
+			bounds.min.x = bounds.min.z = -radius;
+			bounds.max.y = halfHeight;
+			bounds.max.x = bounds.max.z = radius;
 			break;
 		case dsPhysicsAxis_Z:
-			shape->bounds.min.z = -halfHeight;
-			shape->bounds.min.x = shape->bounds.min.y = -radius;
-			shape->bounds.max.z = halfHeight;
-			shape->bounds.max.x = shape->bounds.max.y = radius;
+			bounds.min.z = -halfHeight;
+			bounds.min.x = bounds.min.y = -radius;
+			bounds.max.z = halfHeight;
+			bounds.max.x = bounds.max.y = radius;
 			break;
 	}
-	shape->impl = impl;
-	shape->debugData = NULL;
-	shape->destroyDebugDataFunc = NULL;
-	shape->refCount = 1;
-	shape->destroyFunc = (dsDestroyPhysicsShapeFunction)engine->destroyCylinderFunc;
+
+	DS_VERIFY(dsPhysicsShape_initialize((dsPhysicsShape*)cylinder, engine, allocator,
+		dsPhysicsCylinder_type(), &bounds, impl,
+		(dsDestroyPhysicsShapeFunction)engine->destroyCylinderFunc));
 
 	cylinder->halfHeight = halfHeight;
 	cylinder->radius = radius;

@@ -21,8 +21,9 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
-#include <DeepSea/Physics/Types.h>
+#include <DeepSea/Physics/Shapes/PhysicsShape.h>
 #include <DeepSea/Physics/PhysicsMassProperties.h>
+#include <DeepSea/Physics/Types.h>
 
 static bool dsPhysicsCone_getMassProperties(dsPhysicsMassProperties* outMassProperties,
 	const dsPhysicsShape* shape, float density)
@@ -119,36 +120,32 @@ void dsPhysicsCone_initialize(dsPhysicsCone* cone, dsPhysicsEngine* engine,
 	DS_ASSERT(axis >= dsPhysicsAxis_X && axis <= dsPhysicsAxis_Z);
 	DS_ASSERT(convexRadius >= 0);
 
-	dsPhysicsShape* shape = (dsPhysicsShape*)cone;
-	shape->engine = engine;
-	shape->allocator = dsAllocator_keepPointer(allocator);
-	shape->type = dsPhysicsCone_type();
+	dsAlignedBox3f bounds;
 	switch (axis)
 	{
 		case dsPhysicsAxis_X:
-			shape->bounds.min.x = 0.0f;
-			shape->bounds.min.y = shape->bounds.min.z = -radius;
-			shape->bounds.max.x = height;
-			shape->bounds.max.y = shape->bounds.max.z = radius;
+			bounds.min.x = 0.0f;
+			bounds.min.y = bounds.min.z = -radius;
+			bounds.max.x = height;
+			bounds.max.y = bounds.max.z = radius;
 			break;
 		case dsPhysicsAxis_Y:
-			shape->bounds.min.y = 0.0f;
-			shape->bounds.min.x = shape->bounds.min.z = -radius;
-			shape->bounds.max.y = height;
-			shape->bounds.max.x = shape->bounds.max.z = radius;
+			bounds.min.y = 0.0f;
+			bounds.min.x = bounds.min.z = -radius;
+			bounds.max.y = height;
+			bounds.max.x = bounds.max.z = radius;
 			break;
 		case dsPhysicsAxis_Z:
-			shape->bounds.min.z = 0.0f;
-			shape->bounds.min.x = shape->bounds.min.y = -radius;
-			shape->bounds.max.z = height;
-			shape->bounds.max.x = shape->bounds.max.y = radius;
+			bounds.min.z = 0.0f;
+			bounds.min.x = bounds.min.y = -radius;
+			bounds.max.z = height;
+			bounds.max.x = bounds.max.y = radius;
 			break;
 	}
-	shape->impl = impl;
-	shape->debugData = NULL;
-	shape->destroyDebugDataFunc = NULL;
-	shape->refCount = 1;
-	shape->destroyFunc = (dsDestroyPhysicsShapeFunction)engine->destroyConeFunc;
+
+	DS_VERIFY(dsPhysicsShape_initialize((dsPhysicsShape*)cone, engine, allocator,
+		dsPhysicsCone_type(), &bounds, impl,
+		(dsDestroyPhysicsShapeFunction)engine->destroyConeFunc));
 
 	cone->height = height;
 	cone->radius = radius;

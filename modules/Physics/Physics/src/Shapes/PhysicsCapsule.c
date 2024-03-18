@@ -21,8 +21,9 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
-#include <DeepSea/Physics/Types.h>
+#include <DeepSea/Physics/Shapes/PhysicsShape.h>
 #include <DeepSea/Physics/PhysicsMassProperties.h>
+#include <DeepSea/Physics/Types.h>
 
 static bool dsPhysicsCapsule_getMassProperties(dsPhysicsMassProperties* outMassProperties,
 	const dsPhysicsShape* shape, float density)
@@ -83,36 +84,32 @@ void dsPhysicsCapsule_initialize(dsPhysicsCapsule* capsule, dsPhysicsEngine* eng
 	DS_ASSERT(radius > 0);
 	DS_ASSERT(axis >= dsPhysicsAxis_X && axis <= dsPhysicsAxis_Z);
 
-	dsPhysicsShape* shape = (dsPhysicsShape*)capsule;
-	shape->engine = engine;
-	shape->allocator = dsAllocator_keepPointer(allocator);
-	shape->type = dsPhysicsCapsule_type();
+	dsAlignedBox3f bounds;
 	switch (axis)
 	{
 		case dsPhysicsAxis_X:
-			shape->bounds.min.x = -halfHeight - radius;
-			shape->bounds.min.y = shape->bounds.min.z = -radius;
-			shape->bounds.max.x = halfHeight + radius;
-			shape->bounds.max.y = shape->bounds.max.z = radius;
+			bounds.min.x = -halfHeight - radius;
+			bounds.min.y = bounds.min.z = -radius;
+			bounds.max.x = halfHeight + radius;
+			bounds.max.y = bounds.max.z = radius;
 			break;
 		case dsPhysicsAxis_Y:
-			shape->bounds.min.y = -halfHeight - radius;
-			shape->bounds.min.x = shape->bounds.min.z = -radius;
-			shape->bounds.max.y = halfHeight + radius;
-			shape->bounds.max.x = shape->bounds.max.z = radius;
+			bounds.min.y = -halfHeight - radius;
+			bounds.min.x = bounds.min.z = -radius;
+			bounds.max.y = halfHeight + radius;
+			bounds.max.x = bounds.max.z = radius;
 			break;
 		case dsPhysicsAxis_Z:
-			shape->bounds.min.z = -halfHeight - radius;
-			shape->bounds.min.x = shape->bounds.min.y = -radius;
-			shape->bounds.max.z = halfHeight + radius;
-			shape->bounds.max.x = shape->bounds.max.y = radius;
+			bounds.min.z = -halfHeight - radius;
+			bounds.min.x = bounds.min.y = -radius;
+			bounds.max.z = halfHeight + radius;
+			bounds.max.x = bounds.max.y = radius;
 			break;
 	}
-	shape->impl = impl;
-	shape->debugData = NULL;
-	shape->destroyDebugDataFunc = NULL;
-	shape->refCount = 1;
-	shape->destroyFunc = (dsDestroyPhysicsShapeFunction)engine->destroyCapsuleFunc;
+
+	DS_VERIFY(dsPhysicsShape_initialize((dsPhysicsShape*)capsule, engine, allocator,
+		dsPhysicsCapsule_type(), &bounds, impl,
+		(dsDestroyPhysicsShapeFunction)engine->destroyCapsuleFunc));
 
 	capsule->halfHeight = halfHeight;
 	capsule->radius = radius;

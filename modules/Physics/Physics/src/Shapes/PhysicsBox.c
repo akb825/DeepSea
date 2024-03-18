@@ -24,8 +24,9 @@
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Vector3.h>
 
-#include <DeepSea/Physics/Types.h>
+#include <DeepSea/Physics/Shapes/PhysicsShape.h>
 #include <DeepSea/Physics/PhysicsMassProperties.h>
+#include <DeepSea/Physics/Types.h>
 
 static bool dsPhysicsBox_getMassProperties(dsPhysicsMassProperties* outMassProperties,
 	const dsPhysicsShape* shape, float density)
@@ -88,17 +89,11 @@ void dsPhysicsBox_initialize(dsPhysicsBox* box, dsPhysicsEngine* engine, dsAlloc
 	DS_ASSERT(halfExtents && halfExtents->x >= 0 && halfExtents->y >= 0 && halfExtents->z >= 0);
 	DS_ASSERT(convexRadius >= 0);
 
-	dsPhysicsShape* shape = (dsPhysicsShape*)box;
-	shape->engine = engine;
-	shape->allocator = dsAllocator_keepPointer(allocator);
-	shape->type = dsPhysicsBox_type();
-	dsVector3_neg(shape->bounds.min, *halfExtents);
-	shape->bounds.max = *halfExtents;
-	shape->impl = impl;
-	shape->debugData = NULL;
-	shape->destroyDebugDataFunc = NULL;
-	shape->refCount = 1;
-	shape->destroyFunc = (dsDestroyPhysicsShapeFunction)engine->destroyBoxFunc;
+	dsAlignedBox3f bounds;
+	dsVector3_neg(bounds.min, *halfExtents);
+	bounds.max = *halfExtents;
+	DS_VERIFY(dsPhysicsShape_initialize((dsPhysicsShape*)box, engine, allocator,
+		dsPhysicsBox_type(), &bounds, impl, (dsDestroyPhysicsShapeFunction)engine->destroyBoxFunc));
 
 	box->halfExtents = *halfExtents;
 	box->convexRadius = convexRadius;

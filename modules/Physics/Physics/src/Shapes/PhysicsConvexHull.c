@@ -27,8 +27,9 @@
 
 #include <DeepSea/Math/Core.h>
 
-#include <DeepSea/Physics/Types.h>
+#include <DeepSea/Physics/Shapes/PhysicsShape.h>
 #include <DeepSea/Physics/PhysicsMassProperties.h>
+#include <DeepSea/Physics/Types.h>
 
 #define MAX_STACK_INDICES 2048
 
@@ -172,26 +173,14 @@ bool dsPhysicsConvexHull_initialize(dsPhysicsConvexHull* convexHull, dsPhysicsEn
 	DS_ASSERT(vertexStride >= sizeof(dsVector3f));
 	DS_ASSERT(convexRadius >= 0);
 
-	dsPhysicsShape* shape = (dsPhysicsShape*)convexHull;
-	shape->engine = engine;
-	shape->allocator = dsAllocator_keepPointer(allocator);
-	shape->type = dsPhysicsConvexHull_type();
-	shape->impl = impl;
-	shape->debugData = NULL;
-	shape->destroyDebugDataFunc = NULL;
-	shape->refCount = 1;
-	shape->destroyFunc = (dsDestroyPhysicsShapeFunction)engine->destroyConvexHullFunc;
-
-	convexHull->vertexCount = vertexCount;
-	convexHull->faceCount = faceCount;
-
 	// Bounding box for the shape.
 	const uint8_t* vertexBytes = (const uint8_t*)vertices;
-	dsAlignedBox3f_makeInvalid(&shape->bounds);
+	dsAlignedBox3f bounds;
+	dsAlignedBox3f_makeInvalid(&bounds);
 	for (uint32_t i = 0; i < vertexCount; ++i)
 	{
 		const dsVector3f* point = (const dsVector3f*)(vertexBytes + i*vertexStride);
-		dsAlignedBox3_addPoint(shape->bounds, *point);
+		dsAlignedBox3_addPoint(bounds, *point);
 	}
 
 	// Get the indices for the shape to compute the base mass properties.
@@ -242,5 +231,11 @@ bool dsPhysicsConvexHull_initialize(dsPhysicsConvexHull* convexHull, dsPhysicsEn
 	if (heapIndices)
 		DS_VERIFY(dsAllocator_free(engine->allocator, indices));
 
+	DS_VERIFY(dsPhysicsShape_initialize((dsPhysicsShape*)convexHull, engine, allocator,
+		dsPhysicsConvexHull_type(), &bounds, impl,
+		(dsDestroyPhysicsShapeFunction)engine->destroyConvexHullFunc));
+
+	convexHull->vertexCount = vertexCount;
+	convexHull->faceCount = faceCount;
 	return true;
 }

@@ -34,21 +34,21 @@ extern "C"
 /**
  * @brief Initializes a physics shape.
  *
- * This should be called by physics implementations when creating a shape to initialize the shared
- * members.
+ * This is called by the specific shape's initialize functions.
  *
  * @remark errno will be set on failure.
  * @param shape The shape to initialize.
  * @param engine The physics engine creating the shape.
  * @param allocator The allocator the shape was created with.
  * @param type The type of the shape.
+ * @param bounds The bounds of the shape.
  * @param impl The underlying implementation of the shape.
  * @param destroyFunc The function to destroy the shape with when the reference count reaches 0.
  * @return False if the parameters are invalid.
  */
 DS_PHYSICS_EXPORT bool dsPhysicsShape_initialize(dsPhysicsShape* shape, dsPhysicsEngine* engine,
-	dsAllocator* allocator, const dsPhysicsShapeType* type, void* impl,
-	dsDestroyPhysicsShapeFunction destroyFunc);
+	dsAllocator* allocator, const dsPhysicsShapeType* type, const dsAlignedBox3f* bounds,
+	void* impl, dsDestroyPhysicsShapeFunction destroyFunc);
 
 /**
  * @brief Gets the mass properties for a shape.

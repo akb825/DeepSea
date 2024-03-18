@@ -21,10 +21,10 @@
 #include <DeepSea/Core/Error.h>
 
 bool dsPhysicsShape_initialize(dsPhysicsShape* shape, dsPhysicsEngine* engine,
-	dsAllocator* allocator, const dsPhysicsShapeType* type, void* impl,
-	dsDestroyPhysicsShapeFunction destroyFunc)
+	dsAllocator* allocator, const dsPhysicsShapeType* type, const dsAlignedBox3f* bounds,
+	void* impl, dsDestroyPhysicsShapeFunction destroyFunc)
 {
-	if (!shape || !engine || !allocator || !type || !impl || !destroyFunc)
+	if (!shape || !engine || !allocator || !type || !bounds || !impl || !destroyFunc)
 	{
 		errno = EINVAL;
 		return false;
@@ -33,6 +33,7 @@ bool dsPhysicsShape_initialize(dsPhysicsShape* shape, dsPhysicsEngine* engine,
 	shape->engine = engine;
 	shape->allocator = dsAllocator_keepPointer(allocator);
 	shape->type = type;
+	shape->bounds = *bounds;
 	shape->impl = impl;
 	shape->debugData = NULL;
 	shape->destroyDebugDataFunc = NULL;
