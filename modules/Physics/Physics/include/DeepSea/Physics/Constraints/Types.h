@@ -18,6 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Types.h>
+#include <DeepSea/Math/Types.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -25,6 +26,7 @@ extern "C"
 #endif
 
 /// @cond
+typedef struct dsPhysicsActor dsPhysicsActor;
 typedef struct dsPhysicsConstraint dsPhysicsConstraint;
 typedef struct dsPhysicsEngine dsPhysicsEngine;
 /// @endcond
@@ -47,6 +49,16 @@ typedef const int* dsPhysicsConstraintType;
  */
 typedef bool (*dsDestroyPhysicsConstraintFunction)(dsPhysicsEngine* engine,
 	dsPhysicsConstraint* constraint);
+
+/**
+ * @brief Function to get the applied force for a physics constraint.
+ * @param[out] outForce The force applied to the constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constraint to get the force for.
+ * @return False if the force couldn't be queried.
+ */
+typedef bool (*dsGetPhysicsConstraintForceFunction)(dsVector3f* outForce,
+	dsPhysicsEngine* engine, const dsPhysicsConstraint* constraint);
 
 /**
  * @brief Base type for a physics constraint.
@@ -81,6 +93,16 @@ typedef struct dsPhysicsConstraint
 	bool enabled;
 
 	/**
+	 * @brief The first actor for the constraint.
+	 */
+	const dsPhysicsActor* firstActor;
+
+	/**
+	 * @brief The second actor for the constraint.
+	 */
+	const dsPhysicsActor* secondActor;
+
+	/**
 	 * @brief Pointer to the constraint implementation.
 	 *
 	 * This is a convenience to avoid needing to check the type to get the underlying constraint for
@@ -89,10 +111,30 @@ typedef struct dsPhysicsConstraint
 	void* impl;
 
 	/**
+	 * @brief Function to get the applied force for the constraint.
+	 */
+	dsGetPhysicsConstraintForceFunction getForceFunc;
+
+	/**
+	 * @brief Function to get the applied torque for the constraint.
+	 */
+	dsGetPhysicsConstraintForceFunction getTorqueFunc;
+
+	/**
 	 * @brief Function to destroy the constraint.
 	 */
 	dsDestroyPhysicsConstraintFunction destroyFunc;
 } dsPhysicsConstraint;
+
+/**
+ * @brief Function to set whether a physics constraint is enabled.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constrant to set the enabled state on.
+ * @param enabled Whether the constraint is enabled and will be enforced.
+ * @return False if the enabled state couldn't be set.
+ */
+typedef bool (*dsSetPhysicsConstraintEnabledFunction)(dsPhysicsEngine* engine,
+	dsPhysicsConstraint* constraint, bool enabled);
 
 #ifdef __cplusplus
 }

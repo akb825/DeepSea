@@ -41,14 +41,62 @@ extern "C"
  * @param engine The physics engine the constraint was created with.
  * @param allocator The allocator the constraint was created with.
  * @param type The type of the constraint.
+ * @param firstActor The first actor for the constraint.
+ * @param secondActor The second actor for the constraint.
  * @param enabled Whether the constraint is enabled.
  * @param impl The underlying implementation of the constraint.
+ * @param getForceFunc Function to get the last applied force for the constraint.
+ * @param getTorqueFunc Function to get the last applied torque for the constraint.
  * @param destroyFunc The destroy function of the constraint.
  * @return False if the parameters are invalid.
  */
 DS_PHYSICS_EXPORT bool dsPhysicsConstraint_initialize(dsPhysicsConstraint* constraint,
-	dsPhysicsEngine* engine, dsAllocator* allocator, dsPhysicsConstraintType type, bool enabled,
-	void* impl, dsDestroyPhysicsConstraintFunction destroyFunc);
+	dsPhysicsEngine* engine, dsAllocator* allocator, dsPhysicsConstraintType type,
+	const dsPhysicsActor* firstActor, const dsPhysicsActor* secondActor, bool enabled,
+	void* impl, dsGetPhysicsConstraintForceFunction getForceFunc,
+	dsGetPhysicsConstraintForceFunction getTorqueFunc,
+	dsDestroyPhysicsConstraintFunction destroyFunc);
+
+/**
+ * @brief Sets whether a physics constraint is enabled.
+ *
+ * When a constraint is disabled it will not be enforced.
+ *
+ * @remark errno will be set on failure.
+ * @param constraint The constraint to set the enabled state on.
+ * @param enabled Whether the constraint is enabled.
+ * @return False if the enabled state couldn't be set.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsConstraint_setEnabled(
+	dsPhysicsConstraint* constraint, bool enabled);
+
+/**
+ * @brief Gets the force applied in the previous step to enforce a physics constraint.
+ *
+ * It is only valid to query the last applied force for an enabled constraint.
+ *
+ * @remark errno will be set on failure.
+ * @param[out] outForce The last applied force for the constraint. This will be relative to the
+ *     first body of the constraint.
+ * @param constraint The physics constraint to get the force for.
+ * @return False if the force couldn't be queried.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsConstraint_getLastAppliedForce(dsVector3f* outForce,
+	const dsPhysicsConstraint* constraint);
+
+/**
+ * @brief Gets the torque applied in the previous step to enforce a physics constraint.
+ *
+ * It is only valid to query the last applied torque for an enabled constraint.
+ *
+ * @remark errno will be set on failure.
+ * @param[out] outTorque The last applied torque for the constraint. This will be relative to the
+ *     first body of the constraint.
+ * @param constraint The physics constraint to get the torque for.
+ * @return False if the force couldn't be queried.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsConstraint_getLastAppliedTorque(dsVector3f* outTorque,
+	const dsPhysicsConstraint* constraint);
 
 /**
  * @brief Destroys a physics constraint.

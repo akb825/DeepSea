@@ -19,11 +19,17 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Error.h>
 
+#include <DeepSea/Physics/Types.h>
+
 bool dsPhysicsConstraint_initialize(dsPhysicsConstraint* constraint, dsPhysicsEngine* engine,
-	dsAllocator* allocator, dsPhysicsConstraintType type, bool enabled, void* impl,
+	dsAllocator* allocator, dsPhysicsConstraintType type, const dsPhysicsActor* firstActor,
+	const dsPhysicsActor* secondActor, bool enabled, void* impl,
+	dsGetPhysicsConstraintForceFunction getForceFunc,
+	dsGetPhysicsConstraintForceFunction getTorqueFunc,
 	dsDestroyPhysicsConstraintFunction destroyFunc)
 {
-	if (!constraint || !engine || !allocator || !impl || !destroyFunc)
+	if (!constraint || !engine || !allocator || !firstActor || !secondActor || !impl ||
+		!getForceFunc || !getTorqueFunc || !destroyFunc)
 	{
 		errno = EINVAL;
 		return false;
@@ -33,15 +39,73 @@ bool dsPhysicsConstraint_initialize(dsPhysicsConstraint* constraint, dsPhysicsEn
 	constraint->allocator = dsAllocator_keepPointer(allocator);
 	constraint->type = type;
 	constraint->enabled = enabled;
+	constraint->firstActor = firstActor;
+	constraint->secondActor = secondActor;
 	constraint->impl = impl;
+	constraint->getForceFunc = getForceFunc;
+	constraint->getTorqueFunc = getTorqueFunc;
 	constraint->destroyFunc = destroyFunc;
 	return true;
+}
+
+bool dsPhysicsConstraint_setEnabled(dsPhysicsConstraint* constraint, bool enabled)
+{
+	if (!constraint || !constraint->engine || !constraint->engine->setConstraintEnabledFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = constraint->engine;
+	return engine->setConstraintEnabledFunc(engine, constraint, enabled);
+}
+
+bool dsPhysicsConstraint_getLastAppliedForce(
+	dsVector3f* outForce, const dsPhysicsConstraint* constraint)
+{
+	if (!outForce || !constraint || !constraint->engine || !constraint->getForceFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!constraint->enabled)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	return constraint->getForceFunc(outForce, constraint->engine, constraint);
+}
+
+bool dsPhysicsConstraint_getLastAppliedTorque(
+	dsVector3f* outTorque, const dsPhysicsConstraint* constraint)
+{
+	if (!outTorque || !constraint || !constraint->engine || !constraint->getTorqueFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!constraint->enabled)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	return constraint->getTorqueFunc(outTorque, constraint->engine, constraint);
 }
 
 bool dsPhysicsConstraint_destroy(dsPhysicsConstraint* constraint)
 {
 	if (!constraint)
 		return true;
+
+	if (!constraint->destroyFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
 
 	return constraint->destroyFunc(constraint->engine, constraint);
 }

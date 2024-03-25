@@ -18,8 +18,9 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Types.h>
-#include <DeepSea/Physics/Shapes/Types.h>
+#include <DeepSea/Physics/Constraints/Types.h>
 #include <DeepSea/Physics/RigidBodyTypes.h>
+#include <DeepSea/Physics/Shapes/Types.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -1357,6 +1358,13 @@ struct dsPhysicsEngine
 	 * @brief Function to set whether a rigid body is active.
 	 */
 	dsSetRigidBodyActiveFunction setRigidBodyActiveFunc;
+
+	// ------------------------------------------- Constraints -------------------------------------
+
+	/**
+	 * @brief Function to set whether a constraint is enabled.
+	 */
+	dsSetPhysicsConstraintEnabledFunction setConstraintEnabledFunc;
 };
 
 #ifdef __cplusplus
