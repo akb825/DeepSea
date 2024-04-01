@@ -211,7 +211,7 @@ static bool extractTransformFromMatrix(dsVector3f* outPosition, dsQuaternion4f* 
 dsRigidBody* dsRigidBody_create(dsPhysicsEngine* engine, dsAllocator* allocator,
 	const dsRigidBodyInit* initParams)
 {
-	if (!engine || !engine->createRigidBodyFunc || !engine->destroyRigidBodyFunc || !allocator ||
+	if (!engine || !engine->createRigidBodyFunc || !engine->destroyRigidBodyFunc ||
 		!dsRigidBodyInit_isValid(initParams))
 	{
 		if (initParams && initParams->destroyUserDataFunc)
@@ -219,6 +219,9 @@ dsRigidBody* dsRigidBody_create(dsPhysicsEngine* engine, dsAllocator* allocator,
 		errno = EINVAL;
 		return NULL;
 	}
+
+	if (!allocator)
+		allocator = engine->allocator;
 
 	if (!allocator->freeFunc)
 	{

@@ -127,6 +127,46 @@ typedef struct dsPhysicsConstraint
 } dsPhysicsConstraint;
 
 /**
+ * @brief Struct describing a physics constraint that has zero degrees of freedom.
+ *
+ * This effectively glues two actors together so they move as one rigid object.
+ *
+ * Transforms are relative to the local coordinate space of each actor. The transforms are
+ * immutable, so changing the attachment location and orientation requires creating a new
+ * constraint.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ * @see PhysicsConstraint.h
+ */
+typedef struct dsFixedPhysicsConstraint
+{
+	/**
+	 * @brief The base constraint type.
+	 */
+	dsPhysicsConstraint constraint;
+
+	/**
+	 * @brief The position of the constraint relative to the first actor.
+	 */
+	dsVector3f firstPosition;
+
+	/**
+	 * @brief The position of the constraint relative to the second actor.
+	 */
+	dsVector3f secondPosition;
+
+	/**
+	 * @brief The rotation of the constraint relative to the first actor.
+	 */
+	dsQuaternion4f firstRotation;
+
+	/**
+	 * @brief The rotation of the constraint relative to the second actor.
+	 */
+	dsQuaternion4f secondRotation;
+} dsFixedPhysicsConstraint;
+
+/**
  * @brief Function to set whether a physics constraint is enabled.
  * @param engine The physics engine the constraint was created with.
  * @param constraint The physics constrant to set the enabled state on.
@@ -135,6 +175,34 @@ typedef struct dsPhysicsConstraint
  */
 typedef bool (*dsSetPhysicsConstraintEnabledFunction)(dsPhysicsEngine* engine,
 	dsPhysicsConstraint* constraint, bool enabled);
+
+/**
+ * @brief Function to create a fixed physics constraint.
+ * @param engine The physics engine to create the constraint with.
+ * @param allocator The allocator to create the constraint with.
+ * @param enabled Whether the constraint is enabled after creation.
+ * @param firstActor The first physics actor the constraint is attached to.
+ * @param firstPosition The position of the constraint on the first actor.
+ * @param firstRotation The rotation of the constraint on the first actor.
+ * @param secondActor The second physics actor the constraint is attached to.
+ * @param secondPosition The position of the constraint on the second actor.
+ * @param secondRotation The rotation of the constraint on the second actor.
+ * @return The fixed constraint or NULL if it couldn't be created.
+ */
+typedef dsFixedPhysicsConstraint* (*dsCreateFixedPhysicsConstraintFunction)(dsPhysicsEngine* engine,
+	dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
+	const dsQuaternion4f* secondRotation);
+
+/**
+ * @brief Destroys a fixed physics constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The constraint to destroy.
+ * @return False if the constraint couldn't be destroyed.
+ */
+typedef bool (*dsDestroyFixedPhysicsConstraintFunction)(dsPhysicsEngine* engine,
+	dsFixedPhysicsConstraint* constraint);
 
 #ifdef __cplusplus
 }

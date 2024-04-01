@@ -28,7 +28,7 @@ extern "C"
 /**
  * @file
  * @brief Functions for manipulating physics constraints.
- * @see dsPhysicsShape
+ * @see dsPhysicsConstraint
  */
 
 /**

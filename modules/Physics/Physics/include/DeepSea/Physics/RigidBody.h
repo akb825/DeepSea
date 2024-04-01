@@ -37,7 +37,8 @@ extern "C"
  *    creation.
  * @remark errno will be set on failure.
  * @param engine The physics engine to create the rigid body with.
- * @param allocator The allocator to create the rigid body with. This must support freeing memory.
+ * @param allocator The allocator to create the rigid body with.  If NULL the engine's allocator
+ *     will be used. This must support freeing memory.
  * @param initParams The initialization parameters to describe the rigid body.
  * @return The rigid body or NULL if it couldn't be created.
  */

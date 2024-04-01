@@ -24,7 +24,7 @@ bool dsPhysicsShape_initialize(dsPhysicsShape* shape, dsPhysicsEngine* engine,
 	dsAllocator* allocator, const dsPhysicsShapeType* type, const dsAlignedBox3f* bounds,
 	void* impl, dsDestroyPhysicsShapeFunction destroyFunc)
 {
-	if (!shape || !engine || !allocator || !type || !bounds || !impl || !destroyFunc)
+	if (!shape || !engine || !allocator || !type || !bounds || !destroyFunc)
 	{
 		errno = EINVAL;
 		return false;

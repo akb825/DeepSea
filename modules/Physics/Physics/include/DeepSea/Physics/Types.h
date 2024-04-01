@@ -1365,6 +1365,16 @@ struct dsPhysicsEngine
 	 * @brief Function to set whether a constraint is enabled.
 	 */
 	dsSetPhysicsConstraintEnabledFunction setConstraintEnabledFunc;
+
+	/**
+	 * @brief Function to create a fixed physics constraint.
+	 */
+	dsCreateFixedPhysicsConstraintFunction createFixedConstraintFunc;
+
+	/**
+	 * @brief Function to destroy a fixed physics constraint.
+	 */
+	dsDestroyFixedPhysicsConstraintFunction destroyFixedConstraintFunc;
 };
 
 #ifdef __cplusplus

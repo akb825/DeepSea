@@ -28,8 +28,8 @@ bool dsPhysicsConstraint_initialize(dsPhysicsConstraint* constraint, dsPhysicsEn
 	dsGetPhysicsConstraintForceFunction getTorqueFunc,
 	dsDestroyPhysicsConstraintFunction destroyFunc)
 {
-	if (!constraint || !engine || !allocator || !firstActor || !secondActor || !impl ||
-		!getForceFunc || !getTorqueFunc || !destroyFunc)
+	if (!constraint || !engine || !allocator || !firstActor || !secondActor || !getForceFunc ||
+		!getTorqueFunc || !destroyFunc)
 	{
 		errno = EINVAL;
 		return false;
