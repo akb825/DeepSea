@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -282,6 +282,22 @@ TYPED_TEST(QuaternionTest, AxisAngle)
 	EXPECT_NEAR(axis.z, qAxis.z, epsilon);
 
 	EXPECT_NEAR(theta, dsQuaternion4_getAxisAngle(&q), epsilon);
+
+	dsQuaternion4_identityRotation(q);
+	dsQuaternion4_getRotationAxis(&qAxis, &q);
+	EXPECT_EQ(0, qAxis.x);
+	EXPECT_EQ(0, qAxis.y);
+	EXPECT_EQ(1, qAxis.z);
+
+	EXPECT_NEAR(0, dsQuaternion4_getAxisAngle(&q), epsilon);
+
+	q.r = -q.r;
+	dsQuaternion4_getRotationAxis(&qAxis, &q);
+	EXPECT_EQ(0, qAxis.x);
+	EXPECT_EQ(0, qAxis.y);
+	EXPECT_EQ(-1, qAxis.z);
+
+	EXPECT_NEAR(0, dsQuaternion4_getAxisAngle(&q), epsilon);
 }
 
 TYPED_TEST(QuaternionTest, Matrix33)

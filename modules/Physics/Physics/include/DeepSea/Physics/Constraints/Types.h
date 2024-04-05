@@ -136,7 +136,7 @@ typedef struct dsPhysicsConstraint
  * constraint.
  *
  * @remark None of the members should be modified outside of the implementation.
- * @see PhysicsConstraint.h
+ * @see FixedPhysicsConstraint.h
  */
 typedef struct dsFixedPhysicsConstraint
 {
@@ -165,6 +165,80 @@ typedef struct dsFixedPhysicsConstraint
 	 */
 	dsQuaternion4f secondRotation;
 } dsFixedPhysicsConstraint;
+
+/**
+ * @brief Struct describing a physics constraint that has free rotation around a point.
+ *
+ * This is akin to a ball-socket and has no limits to the rotation.
+ *
+ * Points are relative to the local coordinate space of each actor and are immutable, so changing
+ * the attachment location requires creating a new constraint.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ * @see PointPhysicsConstraint.h
+ */
+typedef struct dsPointPhysicsConstraint
+{
+	/**
+	 * @brief The base constraint type.
+	 */
+	dsPhysicsConstraint constraint;
+
+	/**
+	 * @brief The position of the constraint relative to the first actor.
+	 */
+	dsVector3f firstPosition;
+
+	/**
+	 * @brief The position of the constraint relative to the second actor.
+	 */
+	dsVector3f secondPosition;
+} dsPointPhysicsConstraint;
+
+/**
+ * @brief Struct describing a physics constraint that has limited rotation at a point.
+ *
+ * This is akin to a ball-socket that has a hard limit to a cone.
+ *
+ * Transforms are relative to the local coordinate space of each actor. The transforms are
+ * immutable, so changing the attachment location and orientation requires creating a new
+ * constraint. The limiting angle may be adjusted after creation.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ * @see FixedPhysicsConstraint.h
+ */
+typedef struct dsConePhysicsConstraint
+{
+	/**
+	 * @brief The base constraint type.
+	 */
+	dsPhysicsConstraint constraint;
+
+	/**
+	 * @brief The position of the constraint relative to the first actor.
+	 */
+	dsVector3f firstPosition;
+
+	/**
+	 * @brief The position of the constraint relative to the second actor.
+	 */
+	dsVector3f secondPosition;
+
+	/**
+	 * @brief The rotation of the constraint relative to the first actor.
+	 */
+	dsQuaternion4f firstRotation;
+
+	/**
+	 * @brief The rotation of the constraint relative to the second actor.
+	 */
+	dsQuaternion4f secondRotation;
+
+	/**
+	 * @brief The maximum angle of the constraint relative to the attachment rotation axes.
+	 */
+	float maxAngle;
+} dsConePhysicsConstraint;
 
 /**
  * @brief Function to set whether a physics constraint is enabled.
@@ -196,13 +270,77 @@ typedef dsFixedPhysicsConstraint* (*dsCreateFixedPhysicsConstraintFunction)(dsPh
 	const dsQuaternion4f* secondRotation);
 
 /**
- * @brief Destroys a fixed physics constraint.
+ * @brief Function to destroy a fixed physics constraint.
  * @param engine The physics engine the constraint was created with.
  * @param constraint The constraint to destroy.
  * @return False if the constraint couldn't be destroyed.
  */
 typedef bool (*dsDestroyFixedPhysicsConstraintFunction)(dsPhysicsEngine* engine,
 	dsFixedPhysicsConstraint* constraint);
+
+/**
+ * @brief Function to create a point physics constraint.
+ * @param engine The physics engine to create the constraint with.
+ * @param allocator The allocator to create the constraint with.
+ * @param enabled Whether the constraint is enabled after creation.
+ * @param firstActor The first physics actor the constraint is attached to.
+ * @param firstPosition The position of the constraint on the first actor.
+ * @param secondActor The second physics actor the constraint is attached to.
+ * @param secondPosition The position of the constraint on the second actor.
+ * @return The point constraint or NULL if it couldn't be created.
+ */
+typedef dsPointPhysicsConstraint* (*dsCreatePointPhysicsConstraintFunction)(dsPhysicsEngine* engine,
+	dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
+	const dsVector3f* firstPosition, const dsPhysicsActor* secondActor,
+	const dsVector3f* secondPosition);
+
+/**
+ * @brief Function to destroy a point physics constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The constraint to destroy.
+ * @return False if the constraint couldn't be destroyed.
+ */
+typedef bool (*dsDestroyPointPhysicsConstraintFunction)(dsPhysicsEngine* engine,
+	dsPointPhysicsConstraint* constraint);
+
+/**
+ * @brief Function to create a cone physics constraint.
+ * @param engine The physics engine to create the constraint with.
+ * @param allocator The allocator to create the constraint with.
+ * @param enabled Whether the constraint is enabled after creation.
+ * @param firstActor The first physics actor the constraint is attached to.
+ * @param firstPosition The position of the constraint on the first actor.
+ * @param firstRotation The rotation of the constraint on the first actor.
+ * @param secondActor The second physics actor the constraint is attached to.
+ * @param secondPosition The position of the constraint on the second actor.
+ * @param secondRotation The rotation of the constraint on the second actor.
+ * @param maxAngle The maximum angle of the constraint relative to the attachment rotation axes.
+ * @return The fixed constraint or NULL if it couldn't be created.
+ */
+typedef dsConePhysicsConstraint* (*dsCreateConePhysicsConstraintFunction)(dsPhysicsEngine* engine,
+	dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
+	const dsQuaternion4f* secondRotation, float maxAngle);
+
+/**
+ * @brief Function to destroy a cone physics constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The constraint to destroy.
+ * @return False if the constraint couldn't be destroyed.
+ */
+typedef bool (*dsDestroyConePhysicsConstraintFunction)(dsPhysicsEngine* engine,
+	dsConePhysicsConstraint* constraint);
+
+/**
+ * @brief Function to set the max angle for a cone physics constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The constraint to set the max angle on.
+ * @param maxAngle The maximum angle of the constraint relative to the attachment rotation axes.
+ * @return False if the angle couldn't be set.
+ */
+typedef bool (*dsSetConePhysicsConstraintMaxAngleFunction)(dsPhysicsEngine* engine,
+	dsConePhysicsConstraint* constraint, float maxAngle);
 
 #ifdef __cplusplus
 }

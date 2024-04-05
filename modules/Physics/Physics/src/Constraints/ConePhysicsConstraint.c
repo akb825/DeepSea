@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Physics/Constraints/FixedPhysicsConstraint.h>
+#include <DeepSea/Physics/Constraints/ConePhysicsConstraint.h>
 
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -22,21 +22,23 @@
 #include <DeepSea/Physics/Constraints/PhysicsConstraint.h>
 #include <DeepSea/Physics/Types.h>
 
-dsPhysicsConstraintType dsFixedPhysicsConstraint_type(void)
+#include <math.h>
+
+dsPhysicsConstraintType dsConePhysicsConstraint_type(void)
 {
 	static int type;
 	return &type;
 }
 
-dsFixedPhysicsConstraint* dsFixedPhysicsConstraint_create(dsPhysicsEngine* engine,
+dsConePhysicsConstraint* dsConePhysicsConstraint_create(dsPhysicsEngine* engine,
 	dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation)
+	const dsQuaternion4f* secondRotation, float maxAngle)
 {
-	if (!engine || !engine->createFixedConstraintFunc || !engine->destroyFixedConstraintFunc ||
+	if (!engine || !engine->createConeConstraintFunc || !engine->destroyConeConstraintFunc ||
 		!firstActor || !firstPosition || !firstRotation || !secondActor || !secondPosition ||
-		!secondRotation)
+		!secondRotation || maxAngle < 0 || maxAngle > M_PI)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -45,15 +47,29 @@ dsFixedPhysicsConstraint* dsFixedPhysicsConstraint_create(dsPhysicsEngine* engin
 	if (!allocator)
 		allocator = engine->allocator;
 
-	return engine->createFixedConstraintFunc(engine, allocator, enabled, firstActor, firstPosition,
-		firstRotation, secondActor, secondPosition, secondRotation);
+	return engine->createConeConstraintFunc(engine, allocator, enabled, firstActor, firstPosition,
+		firstRotation, secondActor, secondPosition, secondRotation, maxAngle);
 }
 
-void dsFixedPhysicsConstraint_initialize(dsFixedPhysicsConstraint* constraint,
+bool dsConePhysicsConstraint_setMaxAngle(dsConePhysicsConstraint* constraint, float maxAngle)
+{
+	dsPhysicsConstraint* baseConstraint = (dsPhysicsConstraint*)constraint;
+	if (!constraint || !baseConstraint->engine ||
+		!baseConstraint->engine->setConeConstraintMaxAngleFunc || maxAngle < 0 || maxAngle > M_PI)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsPhysicsEngine* engine = baseConstraint->engine;
+	return engine->setConeConstraintMaxAngleFunc(engine, constraint, maxAngle);
+}
+
+void dsConePhysicsConstraint_initialize(dsConePhysicsConstraint* constraint,
 	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation, void* impl,
+	const dsQuaternion4f* secondRotation, float maxAngle, void* impl,
 	dsGetPhysicsConstraintForceFunction getForceFunc,
 	dsGetPhysicsConstraintForceFunction getTorqueFunc)
 {
@@ -63,13 +79,16 @@ void dsFixedPhysicsConstraint_initialize(dsFixedPhysicsConstraint* constraint,
 	DS_ASSERT(secondPosition);
 	DS_ASSERT(secondRotation);
 	DS_ASSERT(getTorqueFunc);
+	DS_ASSERT(maxAngle >= 0.0f);
+	DS_ASSERT(maxAngle <= M_PI);
 
 	DS_VERIFY(dsPhysicsConstraint_initialize((dsPhysicsConstraint*)constraint, engine, allocator,
-		dsFixedPhysicsConstraint_type(), firstActor, secondActor, enabled, impl, getForceFunc,
-		getTorqueFunc, (dsDestroyPhysicsConstraintFunction)engine->destroyFixedConstraintFunc));
+		dsConePhysicsConstraint_type(), firstActor, secondActor, enabled, impl, getForceFunc,
+		getTorqueFunc, (dsDestroyPhysicsConstraintFunction)engine->destroyConeConstraintFunc));
 
 	constraint->firstPosition = *firstPosition;
 	constraint->secondPosition = *secondPosition;
 	constraint->firstRotation = *firstRotation;
 	constraint->secondRotation = *secondRotation;
+	constraint->maxAngle = maxAngle;
 }

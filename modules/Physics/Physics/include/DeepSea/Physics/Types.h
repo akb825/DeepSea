@@ -1375,6 +1375,31 @@ struct dsPhysicsEngine
 	 * @brief Function to destroy a fixed physics constraint.
 	 */
 	dsDestroyFixedPhysicsConstraintFunction destroyFixedConstraintFunc;
+
+	/**
+	 * @brief Function to create a point physics constraint.
+	 */
+	dsCreatePointPhysicsConstraintFunction createPointConstraintFunc;
+
+	/**
+	 * @brief Function to destroy a point physics constraint.
+	 */
+	dsDestroyPointPhysicsConstraintFunction destroyPointConstraintFunc;
+
+	/**
+	 * @brief Function to create a cone physics constraint.
+	 */
+	dsCreateConePhysicsConstraintFunction createConeConstraintFunc;
+
+	/**
+	 * @brief Function to destroy a cone physics constraint.
+	 */
+	dsDestroyConePhysicsConstraintFunction destroyConeConstraintFunc;
+
+	/**
+	 * @brief Function to set the max angle on cone physics constraint.
+	 */
+	dsSetConePhysicsConstraintMaxAngleFunction setConeConstraintMaxAngleFunc;
 };
 
 #ifdef __cplusplus

@@ -422,10 +422,21 @@ inline void dsQuaternion4f_getRotationAxis(dsVector3f* result, const dsQuaternio
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 
-	result->x = a->i;
-	result->y = a->j;
-	result->z = a->k;
-	dsVector3f_normalize(result, result);
+	float len2 = dsVector3_len2(*a);
+	const float epsilon2 = 1e-12f;
+	if (len2 < epsilon2)
+	{
+		result->x = result->y = 0.0f;
+		result->z = 1.0f;
+	}
+	else
+	{
+		float invLen = 1.0f/sqrtf(len2);
+		dsVector3_scale(*result, *a, invLen);
+	}
+
+	if (a->r < 0)
+		dsVector3_neg(*result, *result);
 }
 
 inline void dsQuaternion4d_getRotationAxis(dsVector3d* result, const dsQuaternion4d* a)
@@ -433,22 +444,33 @@ inline void dsQuaternion4d_getRotationAxis(dsVector3d* result, const dsQuaternio
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 
-	result->x = a->i;
-	result->y = a->j;
-	result->z = a->k;
-	dsVector3d_normalize(result, result);
+	double len2 = dsVector3_len2(*a);
+	const double epsilon2 = 1e-32;
+	if (len2 < epsilon2)
+	{
+		result->x = result->y = 0.0;
+		result->z = 1.0;
+	}
+	else
+	{
+		double invLen = 1.0/sqrt(len2);
+		dsVector3_scale(*result, *a, invLen);
+	}
+
+	if (a->r < 0)
+		dsVector3_neg(*result, *result);
 }
 
 inline float dsQuaternion4f_getAxisAngle(const dsQuaternion4f* a)
 {
 	DS_ASSERT(a);
-	return acosf(a->r)*2;
+	return acosf(fabsf(a->r))*2;
 }
 
 inline double dsQuaternion4d_getAxisAngle(const dsQuaternion4d* a)
 {
 	DS_ASSERT(a);
-	return acos(a->r)*2;
+	return acos(fabs(a->r))*2;
 }
 
 inline void dsQuaternion4f_normalize(dsQuaternion4f* result, const dsQuaternion4f* a)
