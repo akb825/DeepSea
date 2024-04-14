@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Aaron Barany
+ * Copyright 2016-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,31 @@ extern "C"
  * @file
  * @brief Core math functions and macros.
  */
+
+/**
+ * @brief M_PI as a float.
+ */
+#define M_PIf ((float)M_PI)
+
+/**
+ * @brief M_PI_2 as a float.
+ */
+#define M_PI_2f ((float)M_PI_2)
+
+/**
+ * @brief M_PI_4 as a float.
+ */
+#define M_PI_4f ((float)M_PI_4)
+
+/**
+ * @brief M_1_PI as a float.
+ */
+#define M_1_PIf ((float)M_1_PI)
+
+/**
+ * @brief M_2_PI as a float.
+ */
+#define M_2_PIf ((float)M_2_PI)
 
 /**
  * @brief Returns the minimum between x and y.
@@ -298,7 +323,7 @@ DS_MATH_EXPORT inline double dsDegreesToRadiansd(double degrees)
 
 DS_MATH_EXPORT inline float dsDegreesToRadiansf(float degrees)
 {
-	return degrees*(float)M_PI/180;
+	return degrees*M_PIf/180;
 }
 
 DS_MATH_EXPORT inline double dsRadiansToDegreesd(double radians)
@@ -308,7 +333,7 @@ DS_MATH_EXPORT inline double dsRadiansToDegreesd(double radians)
 
 DS_MATH_EXPORT inline float dsRadiansToDegreesf(float radians)
 {
-	return radians*180/(float)M_PI;
+	return radians*180/M_PIf;
 }
 
 DS_MATH_EXPORT inline uint32_t dsNextPowerOf2(uint32_t i)

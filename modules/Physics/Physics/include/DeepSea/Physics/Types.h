@@ -1400,6 +1400,36 @@ struct dsPhysicsEngine
 	 * @brief Function to set the max angle on cone physics constraint.
 	 */
 	dsSetConePhysicsConstraintMaxAngleFunction setConeConstraintMaxAngleFunc;
+
+	/**
+	 * @brief Function to create a swing twist physics constraint.
+	 */
+	dsCreateSwingTwistPhysicsConstraintFunction createSwingTwistConstraintFunc;
+
+	/**
+	 * @brief Function to destroy a swing twist physics constraint.
+	 */
+	dsDestroySwingTwistPhysicsConstraintFunction destroySwingTwistConstraintFunc;
+
+	/**
+	 * @brief Function to set the max angles on swing twist physics constraint.
+	 */
+	dsSetSwingTwistPhysicsConstraintMaxAnglesFunction setSwingTwistConstraintMaxAnglesFunc;
+
+	/**
+	 * @brief Function to set the damping on a swing twist physics constraint.
+	 */
+	dsSetSwingTwistPhysicsConstraintDampingFunction setSwingTwistConstraintDampingFunc;
+
+	/**
+	 * @brief Function to set the motor parameters on a swing twist physics constraint.
+	 */
+	dsSetSwingTwistPhysicsConstraintMotorFunction setSwingTwistConstraintMotorFunc;
+
+	/**
+	 * @brief Function to set the motor enabled on a swing twist physics constraint.
+	 */
+	dsSetSwingTwistPhysicsConstraintMotorEnabledFunction setSwingTwistConstraintMotorEnabledFunc;
 };
 
 #ifdef __cplusplus

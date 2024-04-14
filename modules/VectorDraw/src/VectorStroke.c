@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Aaron Barany
+ * Copyright 2018-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,7 +121,7 @@ static bool addCap(dsVectorScratchData* scratchData, const dsVector2f* position,
 			float pixelTheta = dsVectorPixelTheta(pixelSize, lineWidth);
 			unsigned int pointCount = (unsigned int)(M_PI/pixelTheta);
 			pointCount = dsMax(pointCount, 2U);
-			float incr = (float)M_PI/(float)pointCount;
+			float incr = M_PIf/(float)pointCount;
 			if (start)
 				incr = -incr;
 
@@ -395,7 +395,7 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 	 */
 
 	// We have the outside angle, we need the inside angle.
-	float miterTheta = ((float)M_PI - theta)/2.0f;
+	float miterTheta = (M_PIf - theta)/2.0f;
 	float extendLength = halfWidth/tanf(miterTheta);
 	float innerExtendLength = dsMin(extendLength, segmentDistance);
 
@@ -706,7 +706,7 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 
 			float thetaOffset = 0.0f;
 			if (right)
-				thetaOffset = (float)M_PI;
+				thetaOffset = M_PIf;
 
 			float pixelTheta = dsVectorPixelTheta(pixelSize, lineWidth);
 			unsigned int pointCount = (unsigned int)(theta/pixelTheta);
@@ -867,7 +867,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 		 * Theta is based on the inside angle. We use the outside angle with the dot product.
 		 */
 		DS_ASSERT(stroke->miterLimit >= 1.0f);
-		float theta = (float)M_PI - asinf(1.0f/stroke->miterLimit)*2.0f;
+		float theta = M_PIf - asinf(1.0f/stroke->miterLimit)*2.0f;
 		cosMiterThetaLimit = cosf(theta);
 	}
 

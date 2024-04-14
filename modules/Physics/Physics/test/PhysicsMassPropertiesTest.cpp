@@ -110,7 +110,7 @@ TEST(PhysicsMassPropertiesTest, InitializeSphere)
 	dsPhysicsMassProperties massProperties;
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeSphere(&massProperties, radius, density));
 
-	float volume = 4.0f/3.0f*(float)M_PI*dsPow3(radius);
+	float volume = 4.0f/3.0f*M_PIf*dsPow3(radius);
 	float mass = volume*density;
 	EXPECT_FLOAT_EQ(mass, massProperties.mass);
 	EXPECT_EQ(0, massProperties.centerOfMass.x);
@@ -150,7 +150,7 @@ TEST(PhysicsMassPropertiesTest, InitializeCylinder)
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeCylinder(&massProperties, height/2, radius,
 		dsPhysicsAxis_X, density));
 
-	float volume = (float)M_PI*dsPow2(radius)*height;
+	float volume = M_PIf*dsPow2(radius)*height;
 	float mass = volume*density;
 	EXPECT_FLOAT_EQ(mass, massProperties.mass);
 	EXPECT_EQ(0, massProperties.centerOfMass.x);
@@ -231,9 +231,9 @@ TEST(PhysicsMassPropertiesTest, InitializeCapsule)
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeCapsule(&massProperties, height/2, radius,
 		dsPhysicsAxis_X, density));
 
-	float hemisphereVolume = 4.0f/3.0f*(float)M_PI*dsPow3(radius)/2;
+	float hemisphereVolume = 4.0f/3.0f*M_PIf*dsPow3(radius)/2;
 	float hemisphereMass = hemisphereVolume*density;
-	float cylinderVolume = (float)M_PI*dsPow2(radius)*height;
+	float cylinderVolume = M_PIf*dsPow2(radius)*height;
 	float cylinderMass = cylinderVolume*density;
 	float mass = 2*hemisphereMass + cylinderMass;
 	EXPECT_FLOAT_EQ(mass, massProperties.mass);
@@ -320,7 +320,7 @@ TEST(PhysicsMassPropertiesTest, InitializeCone)
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeCone(&massProperties, height, radius,
 		dsPhysicsAxis_X, density));
 
-	float volume = (float)M_PI*dsPow2(radius)*height/3.0f;
+	float volume = M_PIf*dsPow2(radius)*height/3.0f;
 	float mass = volume*density;
 	float centerOfMass = 3/4.0f*height;
 	EXPECT_FLOAT_EQ(mass, massProperties.mass);
@@ -473,7 +473,7 @@ TEST(PhysicsMassPropertiesTest, InitializeCapsuleMesh)
 		curTopIndex = hemisphereTriangleCount*3, curCylinderIndex = hemisphereTriangleCount*6;
 	for (uint32_t i = 0; i < hemisphereRows; ++i)
 	{
-		float phi = (float)M_PI_2*(float)i/(float)hemisphereRows;
+		float phi = M_PI_2f*(float)i/(float)hemisphereRows;
 		float sinPhi = sinf(phi);
 		float cosPhi = cosf(phi);
 		uint32_t botRowStartVertex = curBotVertex;
@@ -482,7 +482,7 @@ TEST(PhysicsMassPropertiesTest, InitializeCapsuleMesh)
 		uint32_t stepTriangles = lastRow ? 3 : 6;
 		for (uint32_t j = 0; j < circleSteps; ++j)
 		{
-			float theta = 2*(float)M_PI*(float)j/(float)(circleSteps - 1);
+			float theta = 2*M_PIf*(float)j/(float)(circleSteps - 1);
 			float sinTheta = sinf(theta);
 			float cosTheta = cosf(theta);
 
@@ -800,7 +800,7 @@ TEST(PhysicsMassPropertiesTest, ShiftTranslate)
 	dsVector3_neg(offset, massProperties.inertiaTranslate);
 	ASSERT_TRUE(dsPhysicsMassProperties_shift(&massProperties, &offset, NULL));
 
-	float volume = (float)M_PI*dsPow2(radius)*height/3.0f;
+	float volume = M_PIf*dsPow2(radius)*height/3.0f;
 	float mass = volume*density;
 	float centerOfMass = 3/4.0f*height;
 	EXPECT_FLOAT_EQ(mass, massProperties.mass);

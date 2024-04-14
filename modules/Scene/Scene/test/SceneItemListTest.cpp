@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -201,7 +201,7 @@ TEST_F(SceneItemListTest, NodeHierarchy)
 	ASSERT_TRUE(mockNode2);
 
 	dsMatrix44f matrix1, matrix2;
-	dsMatrix44f_makeRotate(&matrix1, (float)M_PI_2, (float)-M_PI_4, (float)M_PI);
+	dsMatrix44f_makeRotate(&matrix1, M_PI_2f, -M_PI_4f, M_PIf);
 	dsMatrix44f_makeTranslate(&matrix2, 3.2f, -5.3f, 1.3f);
 	dsSceneTransformNode* transform1 =
 		dsSceneTransformNode_create((dsAllocator*)&allocator, &matrix1);
@@ -267,7 +267,7 @@ TEST_F(SceneItemListTest, UpdateTransforms)
 	ASSERT_TRUE(mockNode2);
 
 	dsMatrix44f matrix1, matrix2;
-	dsMatrix44f_makeRotate(&matrix1, (float)M_PI_2, (float)-M_PI_4, (float)M_PI);
+	dsMatrix44f_makeRotate(&matrix1, M_PI_2f, -M_PI_4f, M_PIf);
 	dsMatrix44f_makeTranslate(&matrix2, 3.2f, -5.3f, 1.3f);
 	dsSceneTransformNode* transform1 =
 		dsSceneTransformNode_create((dsAllocator*)&allocator, &matrix1);
@@ -311,7 +311,7 @@ TEST_F(SceneItemListTest, UpdateTransforms)
 	EXPECT_EQ(1U, mockSceneItems->items[2].updateCount);
 	EXPECT_TRUE(matricesEqual(&expectedTransform, mockSceneItems->items[2].transform));
 
-	dsMatrix44f_makeRotate(&matrix1, (float)M_PI_4, (float)M_PI, (float)-M_PI_2);
+	dsMatrix44f_makeRotate(&matrix1, M_PI_4f, M_PIf, -M_PI_2f);
 	EXPECT_TRUE(dsSceneTransformNode_setTransform(transform1, &matrix1));
 	EXPECT_TRUE(dsScene_update(scene, 0.0f));
 

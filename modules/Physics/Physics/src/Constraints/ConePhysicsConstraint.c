@@ -19,10 +19,10 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 
+#include <DeepSea/Math/Core.h>
+
 #include <DeepSea/Physics/Constraints/PhysicsConstraint.h>
 #include <DeepSea/Physics/Types.h>
-
-#include <math.h>
 
 dsPhysicsConstraintType dsConePhysicsConstraint_type(void)
 {
@@ -38,7 +38,7 @@ dsConePhysicsConstraint* dsConePhysicsConstraint_create(dsPhysicsEngine* engine,
 {
 	if (!engine || !engine->createConeConstraintFunc || !engine->destroyConeConstraintFunc ||
 		!firstActor || !firstPosition || !firstRotation || !secondActor || !secondPosition ||
-		!secondRotation || maxAngle < 0 || maxAngle > M_PI)
+		!secondRotation || maxAngle < 0 || maxAngle > M_PIf)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -55,7 +55,7 @@ bool dsConePhysicsConstraint_setMaxAngle(dsConePhysicsConstraint* constraint, fl
 {
 	dsPhysicsConstraint* baseConstraint = (dsPhysicsConstraint*)constraint;
 	if (!constraint || !baseConstraint->engine ||
-		!baseConstraint->engine->setConeConstraintMaxAngleFunc || maxAngle < 0 || maxAngle > M_PI)
+		!baseConstraint->engine->setConeConstraintMaxAngleFunc || maxAngle < 0 || maxAngle > M_PIf)
 	{
 		errno = EINVAL;
 		return false;

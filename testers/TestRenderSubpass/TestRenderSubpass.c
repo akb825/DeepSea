@@ -367,10 +367,10 @@ static void update(dsApplication* application, float lastFrameTime, void* userDa
 	TestRenderSubpass* testRenderSubpass = (TestRenderSubpass*)userData;
 
 	// radians/s
-	const float rate = (float)M_PI_2;
+	const float rate = M_PI_2f;
 	testRenderSubpass->rotation += lastFrameTime*rate;
-	while (testRenderSubpass->rotation > 2*M_PI)
-		testRenderSubpass->rotation = testRenderSubpass->rotation - (float)(2*M_PI);
+	while (testRenderSubpass->rotation > 2*M_PIf)
+		testRenderSubpass->rotation = testRenderSubpass->rotation - 2*M_PIf;
 
 	dsMatrix44f model;
 	dsMatrix44f_makeRotate(&model, 0, testRenderSubpass->rotation, 0);

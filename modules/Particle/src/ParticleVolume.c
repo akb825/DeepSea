@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,8 +49,8 @@ void dsParticleVolume_randomPosition(dsVector3f* result, dsRandom* random,
 		}
 		case dsParticleVolumeType_Sphere:
 		{
-			float theta = dsRandom_nextFloatRange(random, 0, (float)(2*M_PI));
-			float phi = dsRandom_nextFloatRange(random, (float)-M_PI, (float)M_PI);
+			float theta = dsRandom_nextFloatRange(random, 0, 2*M_PIf);
+			float phi = dsRandom_nextFloatRange(random, -M_PIf, M_PIf);
 			float cosPhi = cosf(phi);
 			dsVector3f offset;
 			offset.x = cosf(theta)*cosPhi;
@@ -64,7 +64,7 @@ void dsParticleVolume_randomPosition(dsVector3f* result, dsRandom* random,
 		}
 		case dsParticleVolumeType_Cylinder:
 		{
-			float theta = dsRandom_nextFloatRange(random, 0, (float)(2*M_PI));
+			float theta = dsRandom_nextFloatRange(random, 0, 2*M_PIf);
 			float radius = dsRandom_nextFloatRange(random, 0, volume->sphere.radius);
 			dsVector3f offset;
 			offset.x = cosf(theta)*radius;

@@ -343,7 +343,7 @@ static void update(dsApplication* application, float lastFrameTime, void* userDa
 	if (!testLighting->stop && !testLighting->ignoreTime)
 	{
 		testLighting->rotation = dsWrapf(testLighting->rotation + lastFrameTime*speed,
-			0.0f, (float)(2*M_PI));
+			0.0f, 2*M_PIf);
 	}
 	if (testLighting->ignoreTime)
 		testLighting->ignoreTime = false;

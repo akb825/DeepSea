@@ -188,10 +188,10 @@ static void update(dsApplication* application, float lastFrameTime, void* userDa
 	else
 	{
 		// radians/s
-		const float rate = (float)M_PI_2;
+		const float rate = M_PI_2f;
 		testScene->rotation += lastFrameTime*rate;
-		while (testScene->rotation > 2*M_PI)
-			testScene->rotation = testScene->rotation - (float)(2*M_PI);
+		while (testScene->rotation > 2*M_PIf)
+			testScene->rotation = testScene->rotation - 2*M_PIf;
 	}
 
 	dsMatrix44f transform;

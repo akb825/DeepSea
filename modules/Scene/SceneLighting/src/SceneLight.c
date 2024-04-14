@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Aaron Barany
+ * Copyright 2020-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -486,7 +486,7 @@ bool dsSceneLight_getPointLightProjection(dsMatrix44f* result,
 	if (near >= distance)
 		near = distance*0.5f;
 
-	DS_VERIFY(dsRenderer_makePerspective(result, renderer, (float)M_PI_2, 1.0f, near, distance));
+	DS_VERIFY(dsRenderer_makePerspective(result, renderer, M_PI_2f, 1.0f, near, distance));
 	return true;
 }
 

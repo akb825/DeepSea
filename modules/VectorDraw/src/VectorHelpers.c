@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ float dsVectorPixelTheta(float pixelSize, float radius)
 	 */
 	pixelSize *= 0.5f;
 	if (pixelSize > radius)
-		return (float)M_PI;
+		return M_PIf;
 
 	return acosf(1.0f - pixelSize/radius);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -312,9 +312,9 @@ static bool addArc(dsVectorScratchData* scratchData, const dsVector2f* end,
 		deltaTheta = -deltaTheta;
 
 	if (clockwise && deltaTheta < 0.0f)
-		deltaTheta += (float)(2*M_PI);
+		deltaTheta += 2*M_PIf;
 	else if (!clockwise && deltaTheta > 0.0f)
-		deltaTheta -= (float)(2*M_PI);
+		deltaTheta -= 2*M_PIf;
 
 	// Target a max curve error of one pixel.
 	float pixelTheta = dsVectorPixelTheta(pixelSize, dsMax(radius->x, radius->y));
@@ -362,7 +362,7 @@ static bool addEllipse(dsVectorScratchData* scratchData, const dsVector2f* cente
 		return false;
 
 	float pixelTheta = dsVectorPixelTheta(pixelSize, dsMax(radius->x, radius->y));
-	float deltaTheta = (float)(2*M_PI);
+	float deltaTheta = 2*M_PIf;
 	unsigned int pointCount = (unsigned int)(deltaTheta/pixelTheta);
 	// Amortize the remainder across all points.
 	float incr = deltaTheta/(float)pointCount;
@@ -464,7 +464,7 @@ static bool addRectangle(dsVectorScratchData* scratchData, const dsAlignedBox2f*
 	dsAlignedBox2_center(center, *bounds);
 
 	float pixelTheta = dsVectorPixelTheta(pixelSize, dsMax(rx, ry));
-	float deltaTheta = (float)M_PI_2;
+	float deltaTheta = M_PI_2f;
 	unsigned int pointCount = (unsigned int)(deltaTheta/pixelTheta);
 	// Amortize the remainder across all points.
 	float incr = deltaTheta/(float)pointCount;
@@ -482,7 +482,7 @@ static bool addRectangle(dsVectorScratchData* scratchData, const dsAlignedBox2f*
 
 	// Upper-left
 	cornerCenter.x = center.x - halfExtents.x + rx;
-	if (!addCorner(scratchData, &cornerCenter, &finalRadius, (float)M_PI_2, incr, pointCount, false,
+	if (!addCorner(scratchData, &cornerCenter, &finalRadius, M_PI_2f, incr, pointCount, false,
 			rx < halfExtents.x))
 	{
 		return false;
@@ -490,7 +490,7 @@ static bool addRectangle(dsVectorScratchData* scratchData, const dsAlignedBox2f*
 
 	// Lower-left
 	cornerCenter.y = center.y - halfExtents.y + ry;
-	if (!addCorner(scratchData, &cornerCenter, &finalRadius, (float)M_PI, incr, pointCount, false,
+	if (!addCorner(scratchData, &cornerCenter, &finalRadius, M_PIf, incr, pointCount, false,
 			ry < halfExtents.y))
 	{
 		return false;
@@ -498,8 +498,8 @@ static bool addRectangle(dsVectorScratchData* scratchData, const dsAlignedBox2f*
 
 	// Lower-right
 	cornerCenter.x = center.x + halfExtents.x - rx;
-	if (!addCorner(scratchData, &cornerCenter, &finalRadius, (float)(M_PI + M_PI_2), incr,
-		pointCount, false, rx < halfExtents.x))
+	if (!addCorner(scratchData, &cornerCenter, &finalRadius, M_PIf + M_PI_2f, incr,
+			pointCount, false, rx < halfExtents.x))
 	{
 		return false;
 	}

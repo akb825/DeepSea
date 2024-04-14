@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Aaron Barany
+ * Copyright 2022-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,7 +110,7 @@ void dsParticle_randomDirection(dsVector3f* outDirection, dsRandom* random,
 		return;
 	}
 
-	float theta = dsRandom_nextFloatRange(random, 0, (float)(2*M_PI));
+	float theta = dsRandom_nextFloatRange(random, 0, 2*M_PIf);
 	float phi = dsRandom_nextFloatRange(random, 0, directionSpread);
 	float cosPhi = cosf(phi);
 	float sinPhi = sinf(phi);
@@ -126,8 +126,8 @@ void dsParticle_randomRotation(dsParticle* particle, dsRandom* random,
 	DS_ASSERT(xRotationRange);
 	DS_ASSERT(yRotationRange);
 
-	const float minWrapVal = (float)(-M_PI);
-	const float maxWrapVal = (float)(M_PI);
+	const float minWrapVal = -M_PIf;
+	const float maxWrapVal = M_PIf;
 	particle->rotation.x =
 		randomWrappedFloat(random, xRotationRange->x, xRotationRange->y, minWrapVal, maxWrapVal);
 	particle->rotation.y =

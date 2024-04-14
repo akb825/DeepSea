@@ -270,10 +270,10 @@ static void update(dsApplication* application, float lastFrameTime, void* userDa
 	TestCube* testCube = (TestCube*)userData;
 
 	// radians/s
-	const float rate = (float)M_PI_2;
+	const float rate = M_PI_2f;
 	testCube->rotation += lastFrameTime*rate;
-	while (testCube->rotation > 2*M_PI)
-		testCube->rotation = testCube->rotation - (float)(2*M_PI);
+	while (testCube->rotation > 2*M_PIf)
+		testCube->rotation = testCube->rotation - 2*M_PIf;
 
 	dsMatrix44f model;
 	dsMatrix44f_makeRotate(&model, 0, testCube->rotation, 0);

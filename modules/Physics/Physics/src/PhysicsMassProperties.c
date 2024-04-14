@@ -292,7 +292,7 @@ bool dsPhysicsMassProperties_initializeSphere(dsPhysicsMassProperties* massPrope
 	}
 
 	float radius2 = dsPow2(radius);
-	float volume = 4.0f/3.0f*(float)M_PI*radius*radius2;
+	float volume = 4.0f/3.0f*M_PIf*radius*radius2;
 
 	massProperties->mass = density*volume;
 	float inertiaScale = 0.4f*radius2*massProperties->mass;
@@ -316,7 +316,7 @@ bool dsPhysicsMassProperties_initializeCylinder(dsPhysicsMassProperties* massPro
 	}
 
 	float radius2 = dsPow2(radius);
-	float volume = (float)M_PI*radius2*2.0f*halfHeight;
+	float volume = M_PIf*radius2*2.0f*halfHeight;
 
 	massProperties->mass = density*volume;
 	float heightInertia = 0.5f*radius2*massProperties->mass;
@@ -358,7 +358,7 @@ bool dsPhysicsMassProperties_initializeCapsule(dsPhysicsMassProperties* massProp
 
 	float radius2 = dsPow2(radius);
 	float halfHeight2 = dsPow2(halfHeight);
-	float circleArea = (float)M_PI*radius2;
+	float circleArea = M_PIf*radius2;
 	float cylinderVolume = circleArea*2.0f*halfHeight;
 	float sphereVolume = 4.0f/3.0f*circleArea*radius;
 
@@ -408,7 +408,7 @@ bool dsPhysicsMassProperties_initializeCone(dsPhysicsMassProperties* massPropert
 	}
 
 	float radius2 = dsPow2(radius);
-	float volume = (float)M_PI*radius2*height/3.0f;
+	float volume = M_PIf*radius2*height/3.0f;
 
 	// Inertia through center of mass, which unlike most shapes is offset from the origin.
 	massProperties->mass = density*volume;

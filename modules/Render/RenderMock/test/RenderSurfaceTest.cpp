@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ TEST_F(RenderSurfaceTest, Roation22)
 	}
 
 	EXPECT_TRUE(dsRenderSurface_makeRotationMatrix22(&rotation, dsRenderSurfaceRotation_90));
-	dsMatrix22f_makeRotate(&expected, (float)M_PI_2);
+	dsMatrix22f_makeRotate(&expected, M_PI_2f);
 	for (unsigned int i = 0; i < 2; ++i)
 	{
 		for (unsigned int j = 0; j < 2; ++j)
@@ -49,7 +49,7 @@ TEST_F(RenderSurfaceTest, Roation22)
 	}
 
 	EXPECT_TRUE(dsRenderSurface_makeRotationMatrix22(&rotation, dsRenderSurfaceRotation_180));
-	dsMatrix22f_makeRotate(&expected, (float)M_PI);
+	dsMatrix22f_makeRotate(&expected, M_PIf);
 	for (unsigned int i = 0; i < 2; ++i)
 	{
 		for (unsigned int j = 0; j < 2; ++j)
@@ -57,7 +57,7 @@ TEST_F(RenderSurfaceTest, Roation22)
 	}
 
 	EXPECT_TRUE(dsRenderSurface_makeRotationMatrix22(&rotation, dsRenderSurfaceRotation_270));
-	dsMatrix22f_makeRotate(&expected, (float)(M_PI*1.5));
+	dsMatrix22f_makeRotate(&expected, M_PIf*1.5f);
 	for (unsigned int i = 0; i < 2; ++i)
 	{
 		for (unsigned int j = 0; j < 2; ++j)
@@ -79,7 +79,7 @@ TEST_F(RenderSurfaceTest, Roation44)
 	}
 
 	EXPECT_TRUE(dsRenderSurface_makeRotationMatrix44(&rotation, dsRenderSurfaceRotation_90));
-	dsMatrix44f_makeRotate(&expected, 0.0f, 0.0f, (float)M_PI_2);
+	dsMatrix44f_makeRotate(&expected, 0.0f, 0.0f, M_PI_2f);
 	for (unsigned int i = 0; i < 4; ++i)
 	{
 		for (unsigned int j = 0; j < 4; ++j)
@@ -87,7 +87,7 @@ TEST_F(RenderSurfaceTest, Roation44)
 	}
 
 	EXPECT_TRUE(dsRenderSurface_makeRotationMatrix44(&rotation, dsRenderSurfaceRotation_180));
-	dsMatrix44f_makeRotate(&expected, 0.0f, 0.0f, (float)M_PI);
+	dsMatrix44f_makeRotate(&expected, 0.0f, 0.0f, M_PIf);
 	for (unsigned int i = 0; i < 4; ++i)
 	{
 		for (unsigned int j = 0; j < 4; ++j)
@@ -95,7 +95,7 @@ TEST_F(RenderSurfaceTest, Roation44)
 	}
 
 	EXPECT_TRUE(dsRenderSurface_makeRotationMatrix44(&rotation, dsRenderSurfaceRotation_270));
-	dsMatrix44f_makeRotate(&expected, 0.0f, 0.0f, (float)(M_PI*1.5));
+	dsMatrix44f_makeRotate(&expected, 0.0f, 0.0f, M_PIf*1.5f);
 	for (unsigned int i = 0; i < 4; ++i)
 	{
 		for (unsigned int j = 0; j < 4; ++j)

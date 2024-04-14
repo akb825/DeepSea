@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,8 +94,8 @@ dsGfxBuffer* dsSceneSSAO_createRandomOffsets(dsResourceManager* resourceManager,
 	for (unsigned int i = 0; i < DS_MAX_SCENE_SSAO_SAMPLES; ++i)
 	{
 		// Spherical coordinates for a hemisphere.
-		float theta = dsRandom_nextFloatRange(&random, 0.0f, (float)(2*M_PI));
-		float phi = dsRandom_nextFloatRange(&random, 0.0f, (float)M_PI_2);
+		float theta = dsRandom_nextFloatRange(&random, 0.0f, 2*M_PIf);
+		float phi = dsRandom_nextFloatRange(&random, 0.0f, M_PI_2f);
 
 		// Randomly scale within the hemisphere, biasing towards the center with a reasonable
 		// minimum.
@@ -129,7 +129,7 @@ dsTexture* dsSceneSSAO_createRandomRotations(dsResourceManager* resourceManager,
 	{
 		for (uint32_t j = 0; j < DS_SCENE_SSAO_ROTATION_SIZE; ++j)
 		{
-			float theta = dsRandom_nextFloatRange(&random, 0.0f, (float)(2*M_PI));
+			float theta = dsRandom_nextFloatRange(&random, 0.0f, 2*M_PIf);
 			float x = cosf(theta);
 			float y = sinf(theta);
 			randomRotations[i][j][0] = (uint8_t)roundf((x*0.5f + 0.5f)*255);

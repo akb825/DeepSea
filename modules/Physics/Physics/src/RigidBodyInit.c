@@ -90,7 +90,7 @@ bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit,
 	rigidBodyInit->linearDamping = 0.05f;
 	rigidBodyInit->angularDamping = 0.05f;
 	rigidBodyInit->maxLinearVelocity = 500.0f;
-	rigidBodyInit->maxAngularVelocity = (float)M_PI*15;
+	rigidBodyInit->maxAngularVelocity = M_PIf*15;
 	rigidBodyInit->shapeCount = 0;
 	return true;
 }
