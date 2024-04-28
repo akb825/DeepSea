@@ -36,14 +36,16 @@ dsSwingTwistPhysicsConstraint* dsSwingTwistPhysicsConstraint_create(dsPhysicsEng
 	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
 	const dsQuaternion4f* secondRotation, float maxSwingXAngle, float maxSwingYAngle,
-	float maxTwistZAngle, float damping)
+	float maxTwistZAngle, dsPhysicsConstraintMotorType motorType,
+	const dsQuaternion4f* targetRotation, float maxTorque)
 {
 	if (!engine || !engine->createSwingTwistConstraintFunc ||
 		!engine->destroySwingTwistConstraintFunc || !firstActor || !firstPosition ||
 		!firstRotation || !secondActor || !secondPosition || !secondRotation ||
-		maxSwingXAngle < 0 || maxSwingXAngle > M_PIf || maxSwingYAngle < 0 ||
-		maxSwingYAngle > M_PIf || maxTwistZAngle < 0 || maxTwistZAngle > M_PIf ||
-		damping < 0.0f || damping > 1.0f)
+		maxSwingXAngle < 0.0f || maxSwingXAngle > M_PIf || maxSwingYAngle < 0.0f ||
+		maxSwingYAngle > M_PIf || maxTwistZAngle < 0.0f || maxTwistZAngle > M_PIf ||
+		motorType < dsPhysicsConstraintMotorType_Disabled ||
+		motorType >= dsPhysicsConstraintMotorType_Velocity || maxTorque < 0.0f)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -54,7 +56,7 @@ dsSwingTwistPhysicsConstraint* dsSwingTwistPhysicsConstraint_create(dsPhysicsEng
 
 	return engine->createSwingTwistConstraintFunc(engine, allocator, enabled, firstActor,
 		firstPosition, firstRotation, secondActor, secondPosition, secondRotation, maxSwingXAngle,
-		maxSwingYAngle, maxTwistZAngle, damping);
+		maxSwingYAngle, maxTwistZAngle, motorType, targetRotation, maxTorque);
 }
 
 bool dsSwingTwistPhysicsConstraint_setMaxAngle(dsSwingTwistPhysicsConstraint* constraint,
@@ -76,34 +78,21 @@ bool dsSwingTwistPhysicsConstraint_setMaxAngle(dsSwingTwistPhysicsConstraint* co
 }
 
 bool dsSwingTwistPhysicsConstraint_setMotor(dsSwingTwistPhysicsConstraint* constraint,
-	const dsQuaternion4f* targetRotation, float maxTorque)
+	dsPhysicsConstraintMotorType motorType, const dsQuaternion4f* targetRotation, float maxTorque)
 {
 	dsPhysicsConstraint* baseConstraint = (dsPhysicsConstraint*)constraint;
 	if (!constraint || !baseConstraint->engine ||
-		!baseConstraint->engine->setSwingTwistConstraintMotorFunc || !targetRotation ||
-		maxTorque < 0.0f)
+		!baseConstraint->engine->setSwingTwistConstraintMotorFunc ||
+		motorType < dsPhysicsConstraintMotorType_Disabled ||
+		motorType >= dsPhysicsConstraintMotorType_Velocity || maxTorque < 0.0f)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
 	dsPhysicsEngine* engine = baseConstraint->engine;
-	return engine->setSwingTwistConstraintMotorFunc(engine, constraint, targetRotation, maxTorque);
-}
-
-bool dsSwingTwistPhysicsConstraint_setMotorEnabled(dsSwingTwistPhysicsConstraint* constraint,
-	bool enabled)
-{
-	dsPhysicsConstraint* baseConstraint = (dsPhysicsConstraint*)constraint;
-	if (!constraint || !baseConstraint->engine ||
-		!baseConstraint->engine->setSwingTwistConstraintMotorEnabledFunc)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	dsPhysicsEngine* engine = baseConstraint->engine;
-	return engine->setSwingTwistConstraintMotorEnabledFunc(engine, constraint, enabled);
+	return engine->setSwingTwistConstraintMotorFunc(
+		engine, constraint, motorType, targetRotation, maxTorque);
 }
 
 void dsSwingTwistPhysicsConstraint_initialize(dsSwingTwistPhysicsConstraint* constraint,
@@ -111,7 +100,8 @@ void dsSwingTwistPhysicsConstraint_initialize(dsSwingTwistPhysicsConstraint* con
 	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
 	const dsQuaternion4f* secondRotation, float maxSwingXAngle, float maxSwingYAngle,
-	float maxTwistZAngle, float damping, void* impl,
+	float maxTwistZAngle, dsPhysicsConstraintMotorType motorType,
+	const dsQuaternion4f* targetRotation, float maxTorque, void* impl,
 	dsGetPhysicsConstraintForceFunction getForceFunc,
 	dsGetPhysicsConstraintForceFunction getTorqueFunc)
 {
@@ -120,13 +110,14 @@ void dsSwingTwistPhysicsConstraint_initialize(dsSwingTwistPhysicsConstraint* con
 	DS_ASSERT(firstRotation);
 	DS_ASSERT(secondPosition);
 	DS_ASSERT(secondRotation);
+	DS_ASSERT(maxSwingXAngle >= 0.0f && maxSwingXAngle <= M_PI);
+	DS_ASSERT(maxSwingYAngle >= 0.0f && maxSwingYAngle <= M_PI);
+	DS_ASSERT(maxTwistZAngle >= 0.0f && maxTwistZAngle <= M_PI);
+	DS_ASSERT(motorType >= dsPhysicsConstraintMotorType_Disabled &&
+		motorType < dsPhysicsConstraintMotorType_Velocity);
+	DS_ASSERT(maxTorque >= 0.0f);
+	DS_ASSERT(getForceFunc);
 	DS_ASSERT(getTorqueFunc);
-	DS_ASSERT(maxSwingXAngle >= 0.0f);
-	DS_ASSERT(maxSwingXAngle <= M_PI);
-	DS_ASSERT(maxSwingYAngle >= 0.0f);
-	DS_ASSERT(maxSwingYAngle <= M_PI);
-	DS_ASSERT(maxTwistZAngle >= 0.0f);
-	DS_ASSERT(maxTwistZAngle <= M_PI);
 
 	DS_VERIFY(dsPhysicsConstraint_initialize((dsPhysicsConstraint*)constraint, engine, allocator,
 		dsSwingTwistPhysicsConstraint_type(), firstActor, secondActor, enabled, impl, getForceFunc,
@@ -140,8 +131,10 @@ void dsSwingTwistPhysicsConstraint_initialize(dsSwingTwistPhysicsConstraint* con
 	constraint->maxSwingXAngle = maxSwingXAngle;
 	constraint->maxSwingYAngle = maxSwingYAngle;
 	constraint->maxTwistZAngle = maxTwistZAngle;
-	constraint->damping = damping;
-	constraint->motorEnabled = false;
-	dsQuaternion4_identityRotation(constraint->targetRotation);
-	constraint->maxTorque = 0.0f;
+	constraint->motorType = motorType;
+	if (targetRotation)
+		constraint->targetRotation = *targetRotation;
+	else
+		dsQuaternion4_identityRotation(constraint->targetRotation);
+	constraint->maxTorque = maxTorque;
 }

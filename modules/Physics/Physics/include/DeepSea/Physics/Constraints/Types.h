@@ -37,6 +37,17 @@ typedef struct dsPhysicsEngine dsPhysicsEngine;
  */
 
 /**
+ * @brief Enum for the type of motor to apply to a physicsconstraint.
+ */
+typedef enum dsPhysicsConstraintMotorType
+{
+	dsPhysicsConstraintMotorType_Disabled, ///< The motor is disabled and doesn't apply force.
+	/** Forces are applied to reach a target position or orientation. */
+	dsPhysicsConstraintMotorType_Position,
+	dsPhysicsConstraintMotorType_Velocity  ///< Forces are applied to reach a target velocity.
+} dsPhysicsConstraintMotorType;
+
+/**
  * @brief Value that denotes the type of a physics constraint.
  */
 typedef const int* dsPhysicsConstraintType;
@@ -300,11 +311,11 @@ typedef struct dsSwingTwistPhysicsConstraint
 	float maxTwistZAngle;
 
 	/**
-	 * @brief Damping to apply when the motor is disabled.
+	 * @brief The type of motor to use for the constraint.
 	 *
-	 * A value of 0 is no damping, while a value of 1 will immediately stop motion.
+	 * dsPhysicsConstraintMotorType_Velocity is not supported.
 	 */
-	float damping;
+	dsPhysicsConstraintMotorType motorType;
 
 	/**
 	 * @brief The target rotation for the motor relative to the first actor.
@@ -312,15 +323,104 @@ typedef struct dsSwingTwistPhysicsConstraint
 	dsQuaternion4f targetRotation;
 
 	/**
-	 * @brief Whether the motor is enabled.
-	 */
-	bool motorEnabled;
-
-	/**
 	 * @brief The maximum torque for the motor.
+	 *
+	 * If the motor is disabled this is the maximum amount of torque to applied to stop motion.
 	 */
 	float maxTorque;
 } dsSwingTwistPhysicsConstraint;
+
+/**
+ * @brief Struct describing a revolute physics constraint, or constraint that can rotate around an
+ *     arbitrary axis.
+ *
+ * This may be used to represent a hinge or axle.
+ *
+ * Transforms are relative to the local coordinate space of each actor. The transforms are
+ * immutable, so changing the attachment location and orientation requires creating a new
+ * constraint. The limiting angles and motor may be adjusted after creation.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ * @see RevolutePhysicsConstraint.h
+ */
+typedef struct dsRevolutePhysicsConstraint
+{
+	/**
+	 * @brief The base constraint type.
+	 */
+	dsPhysicsConstraint constraint;
+
+	/**
+	 * @brief The position of the constraint relative to the first actor.
+	 */
+	dsVector3f firstPosition;
+
+	/**
+	 * @brief The position of the constraint relative to the second actor.
+	 */
+	dsVector3f secondPosition;
+
+	/**
+	 * @brief The rotation of the constraint relative to the first actor.
+	 *
+	 * The axis of the quaternion represents the axis that will be rotated around, while the
+	 * rotation will be used relative to any rotation limits.
+	 */
+	dsQuaternion4f firstRotation;
+
+	/**
+	 * @brief The rotation of the constraint relative to the second actor.
+	 *
+	 * The axis of the quaternion represents the axis that will be rotated around, while the
+	 * rotation will be used relative to any rotation limits.
+	 */
+	dsQuaternion4f secondRotation;
+
+	/**
+	 * @brief Whether the angle is enabled.
+	 */
+	bool limitEnabled;
+
+	/**
+	 * @brief The minimum angle when the limit is enabled.
+	 */
+	float minAngle;
+
+	/**
+	 * @brief The maximum angle when the limit is enabled.
+	 */
+	float maxAngle;
+
+	/**
+	 * @brief The spring stiffness applied when limiting the angle.
+	 */
+	float limitStiffness;
+
+	/**
+	 * @brief The spring damping applied when limiting the angle.
+	 */
+	float limitDamping;
+
+	/**
+	 * @brief The type of the motor to apply to the constraint.
+	 */
+	dsPhysicsConstraintMotorType motorType;
+
+	/**
+	 * @brief The target for the motor.
+	 *
+	 * This will be an angle if motorType is dsPhysicsConstraintMotorType_Position or an angular
+	 * velocity if motorType is dsPhysicsConstraintMotorType_Velocity.
+	 */
+	float motorTarget;
+
+	/**
+	 * @brief The maximum torque for the motor.
+	 *
+	 * If the motor is disabled this is the maximum amount of torque to applied to stop motion.
+	 */
+	float maxTorque;
+} dsRevolutePhysicsConstraint;
 
 /**
  * @brief Function to set whether a physics constraint is enabled.
@@ -438,15 +538,18 @@ typedef bool (*dsSetConePhysicsConstraintMaxAngleFunction)(dsPhysicsEngine* engi
  * @param maxSwingXAngle The maximum angle of the constraint along the X axis.
  * @param maxSwingYAngle The maximum angle of the constraint along the Y axis.
  * @param maxTwistZAngle The maximum angle of the constraint along the Z axis.
- * @param damping The damping to apply when the motor is disabled.
- * @return The fixed constraint or NULL if it couldn't be created.
+ * @param motorType The type of motor to use.
+ * @param targetRotation The target rotation to reach when the motor is enabled.
+ * @param maxTorque The maximum torque to apply for the motor.
+ * @return The swing twist constraint or NULL if it couldn't be created.
  */
 typedef dsSwingTwistPhysicsConstraint* (*dsCreateSwingTwistPhysicsConstraintFunction)(
 	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled,
 	const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
 	const dsQuaternion4f* firstRotation, const dsPhysicsActor* secondActor,
 	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation, float maxSwingXAngle,
-	float maxSwingYAngle, float maxTwistZAngle, float damping);
+	float maxSwingYAngle, float maxTwistZAngle, dsPhysicsConstraintMotorType motorType,
+	const dsQuaternion4f* targetRotation, float maxTorque);
 
 /**
  * @brief Function to destroy a swing twist physics constraint.
@@ -471,36 +574,91 @@ typedef bool (*dsSetSwingTwistPhysicsConstraintMaxAnglesFunction)(dsPhysicsEngin
 	float maxTwistZAngle);
 
 /**
- * @brief Function to set the damping for a swing twist physics constraint.
- * @param engine The physics engine the constraint was created with.
- * @param constraint The constraint to set the max angle on.
- * @param damping The damping to apply when the motor is disabled.
- * @return False if the angle couldn't be set.
- */
-typedef bool (*dsSetSwingTwistPhysicsConstraintDampingFunction)(dsPhysicsEngine* engine,
-	dsSwingTwistPhysicsConstraint* constraint, float damping);
-
-/**
  * @brief Function to set the motor parameters for a swing twist physics constraint.
  * @param engine The physics engine the constraint was created with.
  * @param constraint The constraint to set the max angle on.
- * @param targetRotation The target rotation of the joint.
- * @param maxTorque The maximum torque to reach the target rotation.
+ * @param motorType The type of motor to use.
+ * @param targetRotation The target rotation of the joint or NULL to leave unchanged.
+ * @param maxTorque The maximum torque to apply for the motor.
  * @return False if the motor parameters couldn't be set.
  */
 typedef bool (*dsSetSwingTwistPhysicsConstraintMotorFunction)(dsPhysicsEngine* engine,
-	dsSwingTwistPhysicsConstraint* constraint, const dsQuaternion4f* targetRotation,
-	float maxTorque);
+	dsSwingTwistPhysicsConstraint* constraint, dsPhysicsConstraintMotorType motorType,
+	const dsQuaternion4f* targetRotation, float maxTorque);
 
 /**
- * @brief Function to set whether the motor is enabled for a swing twist physics constraint.
+ * @brief Function to create a revolute physics constraint.
+ * @param engine The physics engine to create the constraint with.
+ * @param allocator The allocator to create the constraint with.
+ * @param enabled Whether the constraint is enabled after creation.
+ * @param firstActor The first physics actor the constraint is attached to.
+ * @param firstPosition The position of the constraint on the first actor.
+ * @param firstRotation The rotation of the constraint on the first actor.
+ * @param secondActor The second physics actor the constraint is attached to.
+ * @param secondPosition The position of the constraint on the second actor.
+ * @param secondRotation The rotation of the constraint on the second actor.
+ * @param limitEnabled Whether the rotation limit is enabled.
+ * @param minAngle The minimum angle for the rotation.
+ * @param maxAngle The maximum angle for the rotation.
+ * @param limitStiffness The spring stiffness applied when limiting the angle.
+ * @param limitDamping The spring damping applied when limiting the angle.
+ * @param motorType The type of motor to use.
+ * @param motorTarget The target of the motor, either as an angle or an angular velocity.
+ * @param maxTorque The maximum torque to apply for the motor.
+ * @return The revolute constraint or NULL if it couldn't be created.
+ */
+typedef dsRevolutePhysicsConstraint* (*dsCreateRevolutePhysicsConstraintFunction)(
+	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled,
+	const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
+	const dsQuaternion4f* firstRotation, const dsPhysicsActor* secondActor,
+	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation, bool limitEnabled,
+	float minAngle, float maxAngle, float limitStiffness, float limitDamping,
+	dsPhysicsConstraintMotorType motorType, float motorTarget, float maxTorque);
+
+/**
+ * @brief Function to destroy a revolute physics constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The constraint to destroy.
+ * @return False if the constraint couldn't be destroyed.
+ */
+typedef bool (*dsDestroyRevolutePhysicsConstraintFunction)(dsPhysicsEngine* engine,
+	dsRevolutePhysicsConstraint* constraint);
+
+/**
+ * @brief Function to set the angle limits on a revolute physics constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The constraint to set the angle limits on.
+ * @param minAngle The minimum angle for the rotation.
+ * @param maxAngle The maximum angle for the rotation.
+ * @param limitStiffness The spring stiffness applied when limiting the angle.
+ * @param limitDamping The spring damping applied when limiting the angle.
+ * @return False if the angle limits couldn't be set.
+ */
+typedef bool (*dsSetRevolutePhysicsConstraintLimitFunction)(dsPhysicsEngine* engine,
+	dsRevolutePhysicsConstraint* constraint, float minAngle, float maxAngle, float limitStiffness,
+	float limitDamping);
+
+/**
+ * @brief Function to disable the angle limits on a revolute physics constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The constraint to disable the angle limits.
+ * @return False if the angle limits couldn't be disabled.
+ */
+typedef bool (*dsDisableRevolutePhysicsConstraintLimitFunction)(dsPhysicsEngine* engine,
+	dsRevolutePhysicsConstraint* constraint);
+
+/**
+ * @brief Function to set the motor parameters for a revolute  physics constraint.
  * @param engine The physics engine the constraint was created with.
  * @param constraint The constraint to set the max angle on.
- * @param enabled Whether the motor is enabled.
- * @return False if the motor couldn't be set.
+ * @param motorType The type of motor to use.
+ * @param target The target angle or rotational velocity for the motor.
+ * @param maxTorque The maximum torque to apply for the motor.
+ * @return False if the motor parameters couldn't be set.
  */
-typedef bool (*dsSetSwingTwistPhysicsConstraintMotorEnabledFunction)(dsPhysicsEngine* engine,
-	dsSwingTwistPhysicsConstraint* constraint, bool enabled);
+typedef bool (*dsSetRevolutePhysicsConstraintMotorFunction)(dsPhysicsEngine* engine,
+	dsRevolutePhysicsConstraint* constraint, dsPhysicsConstraintMotorType motorType, float target,
+	float maxTorque);
 
 #ifdef __cplusplus
 }

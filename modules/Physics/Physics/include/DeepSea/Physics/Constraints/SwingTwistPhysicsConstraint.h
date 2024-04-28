@@ -53,7 +53,11 @@ DS_PHYSICS_EXPORT dsPhysicsConstraintType dsSwingTwistPhysicsConstraint_type(voi
  * @param maxSwingXAngle The maximum angle of the constraint along the X axis.
  * @param maxSwingYAngle The maximum angle of the constraint along the Y axis.
  * @param maxTwistZAngle The maximum angle of the constraint along the Z axis.
- * @param damping The damping to apply when the motor is disabled.
+ * @param motorType The type of motor to use. This may not be dsPhysicsConstraintMotorType_Velocity.
+ * @param targetRotation The target rotation relative to the first actor when the motor is enabled.
+ *     If NULL the identity rotation will be used.
+ * @param maxTorque The maximum torque to apply for the motor. When the motor is disabled, the
+ *     torque will be applied to stop motion.
  * @return The swing twist constraint or NULL if it couldn't be created.
  */
 DS_PHYSICS_EXPORT dsSwingTwistPhysicsConstraint* dsSwingTwistPhysicsConstraint_create(
@@ -61,16 +65,17 @@ DS_PHYSICS_EXPORT dsSwingTwistPhysicsConstraint* dsSwingTwistPhysicsConstraint_c
 	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
 	const dsQuaternion4f* secondRotation, float maxSwingXAngle, float maxSwingYAngle,
-	float maxTwistZAngle, float damping);
+	float maxTwistZAngle, dsPhysicsConstraintMotorType motorType,
+	const dsQuaternion4f* targetRotation, float maxTorque);
 
 /**
- * @brief Sets the max angles for a swing twist physics constraint.
+ * @brief Sets the maximum angles for a swing twist physics constraint.
  * @remark errno will be set on failure.
- * @param constraint The constraint to set the max angle on.
+ * @param constraint The constraint to set the maximum angles on.
  * @param maxSwingXAngle The maximum angle of the constraint along the X axis.
  * @param maxSwingYAngle The maximum angle of the constraint along the Y axis.
  * @param maxTwistZAngle The maximum angle of the constraint along the Z axis.
- * @return False if the max angles couldn't be set.
+ * @return False if the maximum angles couldn't be set.
  */
 DS_PHYSICS_EXPORT bool dsSwingTwistPhysicsConstraint_setMaxAngles(
 	dsSwingTwistPhysicsConstraint* constraint, float maxSwingXAngle, float maxSwingYAngle,
@@ -80,26 +85,19 @@ DS_PHYSICS_EXPORT bool dsSwingTwistPhysicsConstraint_setMaxAngles(
  * @brief Sets the motor parameters for a swing twist physics constraint.
  * @remark errno will be set on failure.
  * @param constraint The constraint to set the motor parameters on.
- * @param targetRotation The target rotation for the constraint relative to the first actor.
- * @param maxTorque The maximum torque to reach the target rotation.
+ * @param motorType The type of motor to use. This may not be dsPhysicsConstraintMotorType_Velocity.
+ * @param targetRotation The target rotation relative to the first actor when the motor is enabled.
+ *     If NULL the target rotation will be unchanged
+ * @param maxTorque The maximum torque to apply for the motor. When the motor is disabled, the
+ *     torque will be applied to stop motion.
  * @return False if the motor parameters couldn't be set.
  */
 DS_PHYSICS_EXPORT bool dsSwingTwistPhysicsConstraint_setMotor(
-	dsSwingTwistPhysicsConstraint* constraint, const dsQuaternion4f* targetRotation,
-	float maxTorque);
+	dsSwingTwistPhysicsConstraint* constraint, dsPhysicsConstraintMotorType motorType,
+	const dsQuaternion4f* targetRotation, float maxTorque);
 
 /**
- * @brief Sets whether the motor is enabled for a swing twist physics constraint.
- * @remark errno will be set on failure.
- * @param constraint The constraint to set the motor parameters on.
- * @param enabled Whether the motor is enabled.
- * @return False if the motor state couldn't be set.
- */
-DS_PHYSICS_EXPORT bool dsSwingTwistPhysicsConstraint_setMotorEnabled(
-	dsSwingTwistPhysicsConstraint* constraint, bool enabled);
-
-/**
- * @brief Initializes a swing twist physics constraint
+ * @brief Initializes a swing twist physics constraint.
  *
  * This is called by the physics implementation to initialize the common members.
  *
@@ -116,7 +114,11 @@ DS_PHYSICS_EXPORT bool dsSwingTwistPhysicsConstraint_setMotorEnabled(
  * @param maxSwingXAngle The maximum angle of the constraint along the X axis.
  * @param maxSwingYAngle The maximum angle of the constraint along the Y axis.
  * @param maxTwistZAngle The maximum angle of the constraint along the Z axis.
- * @param damping The damping to apply when the motor is disabled.
+ * @param motorType The type of motor to use. This may not be dsPhysicsConstraintMotorType_Velocity.
+ * @param targetRotation The target rotation relative to the first actor when the motor is enabled.
+ *     If NULL the identity rotation will be used.
+ * @param maxTorque The maximum torque to apply for the motor. When the motor is disabled, the
+ *     torque will be applied to stop motion.
  * @param impl The underlying implementation for the constraint.
  * @param getForceFunc Function to get the last applied force for the constraint.
  * @param getTorqueFunc Function to get the last applied torque for the constraint.
@@ -126,7 +128,8 @@ DS_PHYSICS_EXPORT void dsSwingTwistPhysicsConstraint_initialize(
 	bool enabled, const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
 	const dsQuaternion4f* firstRotation, const dsPhysicsActor* secondActor,
 	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation, float maxSwingXAngle,
-	float maxSwingYAngle, float maxTwistZAngle, float damping, void* impl,
+	float maxSwingYAngle, float maxTwistZAngle, dsPhysicsConstraintMotorType motorType,
+	const dsQuaternion4f* targetRotation, float maxTorque, void* impl,
 	dsGetPhysicsConstraintForceFunction getForceFunc,
 	dsGetPhysicsConstraintForceFunction getTorqueFunc);
 

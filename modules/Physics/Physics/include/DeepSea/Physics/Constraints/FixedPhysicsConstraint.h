@@ -59,7 +59,7 @@ DS_PHYSICS_EXPORT dsFixedPhysicsConstraint* dsFixedPhysicsConstraint_create(dsPh
 	const dsQuaternion4f* secondRotation);
 
 /**
- * @brief Initializes a fixed physics constraint
+ * @brief Initializes a fixed physics constraint.
  *
  * This is called by the physics implementation to initialize the common members.
  *

@@ -1417,19 +1417,34 @@ struct dsPhysicsEngine
 	dsSetSwingTwistPhysicsConstraintMaxAnglesFunction setSwingTwistConstraintMaxAnglesFunc;
 
 	/**
-	 * @brief Function to set the damping on a swing twist physics constraint.
-	 */
-	dsSetSwingTwistPhysicsConstraintDampingFunction setSwingTwistConstraintDampingFunc;
-
-	/**
 	 * @brief Function to set the motor parameters on a swing twist physics constraint.
 	 */
 	dsSetSwingTwistPhysicsConstraintMotorFunction setSwingTwistConstraintMotorFunc;
 
 	/**
-	 * @brief Function to set the motor enabled on a swing twist physics constraint.
+	 * @brief Function to create a revolute physics constraint.
 	 */
-	dsSetSwingTwistPhysicsConstraintMotorEnabledFunction setSwingTwistConstraintMotorEnabledFunc;
+	dsCreateRevolutePhysicsConstraintFunction createRevoluteConstraintFunc;
+
+	/**
+	 * @brief Function to destroy a revolute physics constraint.
+	 */
+	dsDestroyRevolutePhysicsConstraintFunction destroyRevoluteConstraintFunc;
+
+	/**
+	 * @brief Function to set the angle limit for a revolute physics constraint.
+	 */
+	dsSetRevolutePhysicsConstraintLimitFunction setRevoluteConstraintLimitFunc;
+
+	/**
+	 * @brief Function to disable the angle limit for a revolute physics constraint.
+	 */
+	dsDisableRevolutePhysicsConstraintLimitFunction disableRevoluteConstraintLimitFunc;
+
+	/**
+	 * @brief Function to set the motor parameters for a revolute physics constraint.
+	 */
+	dsSetRevolutePhysicsConstraintMotorFunction setRevoluteConstraintMotorFunc;
 };
 
 #ifdef __cplusplus
