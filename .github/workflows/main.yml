@@ -9,7 +9,7 @@ on:
 env:
   CTEST_OUTPUT_ON_FAILURE: '1'
   GTEST_OUTPUT: xml:${{ github.workspace }}/test-results/
-  cores_count: '2'
+  cores_count: '4'
   cores_mac_count: '3'
   ctest_args: "-E DeepSeaRenderBootstrapTest"
   dependency_location: "${{ github.workspace }}/dependencies"
@@ -104,7 +104,7 @@ jobs:
     - name: checkout
       uses: actions/checkout@v4
     - name: Download submodules
-      run: "./update.sh -s -t -l mac-x86_64"
+      run: "./update.sh -s -t -l mac"
       working-directory: "${{ github.workspace }}"
     - name: Build debug
       run: |-
