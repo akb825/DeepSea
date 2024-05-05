@@ -27,7 +27,7 @@ extern "C"
 
 /**
  * @file
- * @brief Functions for creating and manipulating swing twist physics constraints.
+ * @brief Functions for creating and manipulating revolute physics constraints.
  * @see dsRevolutePhysicsConstraint
  */
 

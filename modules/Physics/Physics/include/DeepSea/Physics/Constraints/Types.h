@@ -423,6 +423,50 @@ typedef struct dsRevolutePhysicsConstraint
 } dsRevolutePhysicsConstraint;
 
 /**
+ * @brief Struct describing a distance physics constraint, which keeps two actors within a distance
+ *     range of each-other.
+ *
+ * This generally models a spring connecting both objects with no limits on rotation.
+ */
+typedef struct dsDistancePhysicsConstraint
+{
+	/**
+	 * @brief The base constraint type.
+	 */
+	dsPhysicsConstraint constraint;
+
+	/**
+	 * @brief The position of the constraint relative to the first actor.
+	 */
+	dsVector3f firstPosition;
+
+	/**
+	 * @brief The position of the constraint relative to the second actor.
+	 */
+	dsVector3f secondPosition;
+
+	/**
+	 * @brief The minimum distance between the actors.
+	 */
+	float minDistance;
+
+	/**
+	 * @brief The maximum distance between the actors.
+	 */
+	float maxDistance;
+
+	/**
+	 * @brief The stiffness for the spring to keep within the distance range.
+	 */
+	float stiffness;
+
+	/**
+	 * @brief The damping for the spring to keep within the distance range.
+	 */
+	float damping;
+} dsDistancePhysicsConstraint;
+
+/**
  * @brief Function to set whether a physics constraint is enabled.
  * @param engine The physics engine the constraint was created with.
  * @param constraint The physics constrant to set the enabled state on.
@@ -659,6 +703,58 @@ typedef bool (*dsDisableRevolutePhysicsConstraintLimitFunction)(dsPhysicsEngine*
 typedef bool (*dsSetRevolutePhysicsConstraintMotorFunction)(dsPhysicsEngine* engine,
 	dsRevolutePhysicsConstraint* constraint, dsPhysicsConstraintMotorType motorType, float target,
 	float maxTorque);
+
+/**
+ * @brief Function to create a distance physics constraint.
+ * @param engine The physics engine to create the constraint with.
+ * @param allocator The allocator to create the constraint with.
+ * @param enabled Whether the constraint is enabled after creation.
+ * @param firstActor The first physics actor the constraint is attached to.
+ * @param firstPosition The position of the constraint on the first actor.
+ * @param secondActor The second physics actor the constraint is attached to.
+ * @param secondPosition The position of the constraint on the second actor.
+ * @param minDistance The minimum distance to keep between the actors.
+ * @param maxDistance The maximum distance to keep between the actors.
+ * @param stiffness The stiffness for the spring for the constraint.
+ * @param damping The damping for the spring for the constraint.
+ * @return The distance constraint or NULL if it couldn't be created.
+ */
+typedef dsDistancePhysicsConstraint* (*dsCreateDistancePhysicsConstraintFunction)(
+	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
+	const dsVector3f* firstPosition, const dsPhysicsActor* secondActor,
+	const dsVector3f* secondPosition, float minDistance, float maxDistance, float stiffness,
+	float damping);
+
+/**
+ * @brief Function to destroy a distance physics constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The constraint to destroy.
+ * @return False if the constraint couldn't be destroyed.
+ */
+typedef bool (*dsDestroyDistancePhysicsConstraintFunction)(dsPhysicsEngine* engine,
+	dsDistancePhysicsConstraint* constraint);
+
+/**
+ * @brief Function to set the limits for a distance physics constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The constraint to set the limits on.
+ * @param minDistance The minimum distance to keep between the actors.
+ * @param maxDistance The maximum distance to keep between the actors.
+ * @return False if the limits couldn't be set.
+ */
+typedef bool (*dsSetDistancePhysicsConstraintLimitFunction)(dsPhysicsEngine* engine,
+	dsDistancePhysicsConstraint* constraint, float minDistance, float maxDistance);
+
+/**
+ * @brief Function to set the spring parameters for a distance physics constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The constraint to set the limits on.
+ * @param stiffness The stiffness for the spring.
+ * @param damping The damping for the spring.
+ * @return False if the spring parameters couldn't be set.
+ */
+typedef bool (*dsSetDistancePhysicsConstraintSpringFunction)(dsPhysicsEngine* engine,
+	dsDistancePhysicsConstraint* constraint, float stiffness, float damping);
 
 #ifdef __cplusplus
 }

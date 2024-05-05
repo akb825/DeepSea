@@ -52,6 +52,7 @@ void dsPointPhysicsConstraint_initialize(dsPointPhysicsConstraint* constraint,
 	const dsVector3f* firstPosition, const dsPhysicsActor* secondActor,
 	const dsVector3f* secondPosition, void* impl, dsGetPhysicsConstraintForceFunction getForceFunc)
 {
+	DS_ASSERT(constraint);
 	DS_ASSERT(engine);
 	DS_ASSERT(firstPosition);
 	DS_ASSERT(secondPosition);

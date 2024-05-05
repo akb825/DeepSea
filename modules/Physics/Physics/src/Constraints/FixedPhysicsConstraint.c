@@ -57,6 +57,7 @@ void dsFixedPhysicsConstraint_initialize(dsFixedPhysicsConstraint* constraint,
 	dsGetPhysicsConstraintForceFunction getForceFunc,
 	dsGetPhysicsConstraintForceFunction getTorqueFunc)
 {
+	DS_ASSERT(constraint);
 	DS_ASSERT(engine);
 	DS_ASSERT(firstPosition);
 	DS_ASSERT(firstRotation);

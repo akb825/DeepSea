@@ -49,6 +49,9 @@ dsRevolutePhysicsConstraint* dsRevolutePhysicsConstraint_create(dsPhysicsEngine*
 		return false;
 	}
 
+	if (!allocator)
+		allocator = engine->allocator;
+
 	return engine->createRevoluteConstraintFunc(engine, allocator, enabled, firstActor,
 		firstPosition, firstRotation, secondActor, secondPosition, secondRotation, limitEnabled,
 		minAngle, maxAngle, limitStiffness, limitDamping, motorType, motorTarget, maxTorque);
@@ -113,6 +116,7 @@ void dsRevolutePhysicsConstraint_initialize(dsRevolutePhysicsConstraint* constra
 	dsGetPhysicsConstraintForceFunction getForceFunc,
 	dsGetPhysicsConstraintForceFunction getTorqueFunc)
 {
+	DS_ASSERT(constraint);
 	DS_ASSERT(engine);
 	DS_ASSERT(firstPosition);
 	DS_ASSERT(firstRotation);

@@ -105,6 +105,7 @@ void dsSwingTwistPhysicsConstraint_initialize(dsSwingTwistPhysicsConstraint* con
 	dsGetPhysicsConstraintForceFunction getForceFunc,
 	dsGetPhysicsConstraintForceFunction getTorqueFunc)
 {
+	DS_ASSERT(constraint);
 	DS_ASSERT(engine);
 	DS_ASSERT(firstPosition);
 	DS_ASSERT(firstRotation);

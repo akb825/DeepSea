@@ -1445,6 +1445,26 @@ struct dsPhysicsEngine
 	 * @brief Function to set the motor parameters for a revolute physics constraint.
 	 */
 	dsSetRevolutePhysicsConstraintMotorFunction setRevoluteConstraintMotorFunc;
+
+	/**
+	 * @brief Function to create a distance physics constraint.
+	 */
+	dsCreateDistancePhysicsConstraintFunction createDistanceConstraintFunc;
+
+	/**
+	 * @brief Function to destroy a distance physics constraint.
+	 */
+	dsDestroyDistancePhysicsConstraintFunction destroyDistanceConstraintFunc;
+
+	/**
+	 * @brief Function to set the limits of a distance physics constraint.
+	 */
+	dsSetDistancePhysicsConstraintLimitFunction setDistanceConstraintLimitFunc;
+
+	/**
+	 * @brief Function to set the spring parameters of a distance physics constraint.
+	 */
+	dsSetDistancePhysicsConstraintSpringFunction setDistanceConstraintSpringFunc;
 };
 
 #ifdef __cplusplus
