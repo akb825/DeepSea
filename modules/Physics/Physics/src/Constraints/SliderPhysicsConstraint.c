@@ -14,36 +14,34 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Physics/Constraints/RevolutePhysicsConstraint.h>
+#include <DeepSea/Physics/Constraints/SliderPhysicsConstraint.h>
 
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 
-#include <DeepSea/Math/Core.h>
-
 #include <DeepSea/Physics/Constraints/PhysicsConstraint.h>
 #include <DeepSea/Physics/Types.h>
 
-dsPhysicsConstraintType dsRevolutePhysicsConstraint_type(void)
+dsPhysicsConstraintType dsSliderPhysicsConstraint_type(void)
 {
 	static int type;
 	return &type;
 }
 
-dsRevolutePhysicsConstraint* dsRevolutePhysicsConstraint_create(dsPhysicsEngine* engine,
+dsSliderPhysicsConstraint* dsSliderPhysicsConstraint_create(dsPhysicsEngine* engine,
 	dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation, bool limitEnabled, float minAngle, float maxAngle,
+	const dsQuaternion4f* secondRotation, bool limitEnabled, float minDistance, float maxDistance,
 	float limitStiffness, float limitDamping, dsPhysicsConstraintMotorType motorType,
-	float motorTarget, float maxMotorTorque)
+	float motorTarget, float maxMotorForce)
 {
-	if (!engine || !engine->createRevoluteConstraintFunc ||
-		!engine->destroyRevoluteConstraintFunc || !firstRotation || !secondActor ||
-		!secondPosition || !secondRotation || minAngle < -M_PIf || minAngle > 0.0f ||
-		maxAngle < 0.0f || maxAngle > M_PIf || limitStiffness < 0.0f || limitDamping < 0.0f ||
-		limitDamping > 1.0f || motorType < dsPhysicsConstraintMotorType_Disabled ||
-		motorType > dsPhysicsConstraintMotorType_Velocity || maxMotorTorque < 0.0f)
+	if (!engine || !engine->createSliderConstraintFunc ||
+		!engine->destroySliderConstraintFunc || !firstRotation || !secondActor ||
+		!secondPosition || !secondRotation || minDistance > 0.0f || maxDistance< 0.0f ||
+		limitStiffness < 0.0f || limitDamping < 0.0f || limitDamping > 1.0f ||
+		motorType < dsPhysicsConstraintMotorType_Disabled ||
+		motorType > dsPhysicsConstraintMotorType_Velocity || maxMotorForce < 0.0f)
 	{
 		errno = EINVAL;
 		return false;
@@ -52,67 +50,67 @@ dsRevolutePhysicsConstraint* dsRevolutePhysicsConstraint_create(dsPhysicsEngine*
 	if (!allocator)
 		allocator = engine->allocator;
 
-	return engine->createRevoluteConstraintFunc(engine, allocator, enabled, firstActor,
+	return engine->createSliderConstraintFunc(engine, allocator, enabled, firstActor,
 		firstPosition, firstRotation, secondActor, secondPosition, secondRotation, limitEnabled,
-		minAngle, maxAngle, limitStiffness, limitDamping, motorType, motorTarget, maxMotorTorque);
+		minDistance, maxDistance, limitStiffness, limitDamping, motorType, motorTarget,
+		maxMotorForce);
 }
 
-bool dsRevolutePhysicsConstraint_setLimit(dsRevolutePhysicsConstraint* constraint, float minAngle,
-	float maxAngle, float limitStiffness, float limitDamping)
+bool dsSliderPhysicsConstraint_setLimit(dsSliderPhysicsConstraint* constraint, float minDistance,
+	float maxDistance, float limitStiffness, float limitDamping)
 {
 	dsPhysicsConstraint* baseConstraint = (dsPhysicsConstraint*)constraint;
 	if (!constraint || !baseConstraint->engine ||
-		!baseConstraint->engine->setRevoluteConstraintLimitFunc || minAngle < -M_PIf ||
-		minAngle > 0.0f || maxAngle < 0.0f || maxAngle > M_PIf || limitStiffness < 0.0f ||
-		limitDamping < 0.0f || limitDamping > 1.0f)
+		!baseConstraint->engine->setSliderConstraintLimitFunc || minDistance > 0.0f ||
+		maxDistance < 0.0f || limitStiffness < 0.0f || limitDamping < 0.0f || limitDamping > 1.0f)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
 	dsPhysicsEngine* engine = baseConstraint->engine;
-	return engine->setRevoluteConstraintLimitFunc(
-		engine, constraint, minAngle, maxAngle, limitStiffness, limitDamping);
+	return engine->setSliderConstraintLimitFunc(
+		engine, constraint, minDistance, maxDistance, limitStiffness, limitDamping);
 }
 
-bool dsRevolutePhysicsConstraint_disableLimit(dsRevolutePhysicsConstraint* constraint)
+bool dsSliderPhysicsConstraint_disableLimit(dsSliderPhysicsConstraint* constraint)
 {
 	dsPhysicsConstraint* baseConstraint = (dsPhysicsConstraint*)constraint;
 	if (!constraint || !baseConstraint->engine ||
-		!baseConstraint->engine->disableRevoluteConstraintLimitFunc)
+		!baseConstraint->engine->disableSliderConstraintLimitFunc)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
 	dsPhysicsEngine* engine = baseConstraint->engine;
-	return engine->disableRevoluteConstraintLimitFunc(engine, constraint);
+	return engine->disableSliderConstraintLimitFunc(engine, constraint);
 }
 
-bool dsRevolutePhysicsConstraint_setMotor(dsRevolutePhysicsConstraint* constraint,
-	dsPhysicsConstraintMotorType motorType, float target, float maxTorque)
+bool dsSliderPhysicsConstraint_setMotor(dsSliderPhysicsConstraint* constraint,
+	dsPhysicsConstraintMotorType motorType, float target, float maxForce)
 {
 	dsPhysicsConstraint* baseConstraint = (dsPhysicsConstraint*)constraint;
 	if (!constraint || !baseConstraint->engine ||
-		!baseConstraint->engine->setRevoluteConstraintMotorFunc ||
+		!baseConstraint->engine->setSliderConstraintMotorFunc ||
 		motorType < dsPhysicsConstraintMotorType_Disabled ||
-		motorType > dsPhysicsConstraintMotorType_Velocity || maxTorque < 0.0f)
+		motorType > dsPhysicsConstraintMotorType_Velocity || maxForce < 0.0f)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
 	dsPhysicsEngine* engine = baseConstraint->engine;
-	return engine->setRevoluteConstraintMotorFunc(engine, constraint, motorType, target, maxTorque);
+	return engine->setSliderConstraintMotorFunc(engine, constraint, motorType, target, maxForce);
 }
 
-void dsRevolutePhysicsConstraint_initialize(dsRevolutePhysicsConstraint* constraint,
+void dsSliderPhysicsConstraint_initialize(dsSliderPhysicsConstraint* constraint,
 	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation, bool limitEnabled, float minAngle, float maxAngle,
+	const dsQuaternion4f* secondRotation, bool limitEnabled, float minDistance, float maxDistance,
 	float limitStiffness, float limitDamping, dsPhysicsConstraintMotorType motorType,
-	float motorTarget, float maxMotorTorque, void* impl,
+	float motorTarget, float maxMotorForce, void* impl,
 	dsGetPhysicsConstraintForceFunction getForceFunc,
 	dsGetPhysicsConstraintForceFunction getTorqueFunc)
 {
@@ -122,30 +120,30 @@ void dsRevolutePhysicsConstraint_initialize(dsRevolutePhysicsConstraint* constra
 	DS_ASSERT(firstRotation);
 	DS_ASSERT(secondPosition);
 	DS_ASSERT(secondRotation);
-	DS_ASSERT(minAngle >= -M_PIf && minAngle <= 0.0f);
-	DS_ASSERT(maxAngle >= 0.0f && maxAngle <= M_PIf);
+	DS_ASSERT(minDistance <= 0.0f);
+	DS_ASSERT(maxDistance >= 0.0f);
 	DS_ASSERT(limitStiffness >= 0.0f);
 	DS_ASSERT(limitDamping >= 0.0f && limitDamping <= 1.0f);
 	DS_ASSERT(motorType >= dsPhysicsConstraintMotorType_Disabled &&
 		motorType < dsPhysicsConstraintMotorType_Velocity);
-	DS_ASSERT(maxMotorTorque >= 0.0f);
+	DS_ASSERT(maxMotorForce >= 0.0f);
 	DS_ASSERT(getForceFunc);
 	DS_ASSERT(getTorqueFunc);
 
 	DS_VERIFY(dsPhysicsConstraint_initialize((dsPhysicsConstraint*)constraint, engine, allocator,
-		dsRevolutePhysicsConstraint_type(), firstActor, secondActor, enabled, impl, getForceFunc,
-		getTorqueFunc, (dsDestroyPhysicsConstraintFunction)engine->destroyRevoluteConstraintFunc));
+		dsSliderPhysicsConstraint_type(), firstActor, secondActor, enabled, impl, getForceFunc,
+		getTorqueFunc, (dsDestroyPhysicsConstraintFunction)engine->destroySliderConstraintFunc));
 
 	constraint->firstPosition = *firstPosition;
 	constraint->secondPosition = *secondPosition;
 	constraint->firstRotation = *firstRotation;
 	constraint->secondRotation = *secondRotation;
 	constraint->limitEnabled = limitEnabled;
-	constraint->minAngle = minAngle;
-	constraint->maxAngle = maxAngle;
+	constraint->minDistance = minDistance;
+	constraint->maxDistance = maxDistance;
 	constraint->limitStiffness = limitStiffness;
 	constraint->limitDamping = limitDamping;
 	constraint->motorType = motorType;
 	constraint->motorTarget = motorTarget;
-	constraint->maxMotorTorque = maxMotorTorque;
+	constraint->maxMotorForce = maxMotorForce;
 }

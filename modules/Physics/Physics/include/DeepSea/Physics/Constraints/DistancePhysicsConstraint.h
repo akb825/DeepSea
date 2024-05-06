@@ -47,39 +47,31 @@ DS_PHYSICS_EXPORT dsPhysicsConstraintType dsDistancePhysicsConstraint_type(void)
  * @param firstPosition The position of the constraint on the first actor.
  * @param secondActor The second physics actor the constraint is attached to.
  * @param secondPosition The position of the constraint on the second actor.
- * @param minDistance The minimum distance to keep between the actors.
- * @param maxDistance The maximum distance to keep between the actors.
- * @param stiffness The stiffness for the spring for the constraint.
- * @param damping The damping for the spring for the constraint in the range [0, 1].
+ * @param minDistance The minimum distance to keep between reference points.
+ * @param maxDistance The maximum distance to keep between reference points.
+ * @param limitStiffness The stiffness for the spring for the distance limit.
+ * @param limitDamping The damping for the spring for the distance limit in the range [0, 1].
  * @return The distance constraint or NULL if it couldn't be created.
  */
 DS_PHYSICS_EXPORT dsDistancePhysicsConstraint* dsDistancePhysicsConstraint_create(
 	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstPosition, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, float minDistance, float maxDistance, float stiffness,
-	float damping);
+	const dsVector3f* secondPosition, float minDistance, float maxDistance, float limitStiffness,
+	float limitDamping);
 
 /**
  * @brief Sets the limits for a distance physics constraint.
  * @remark errno will be set on failure.
  * @param constraint The constraint to set the limits on.
- * @param minDistance The minimum distance to keep between the actors.
- * @param maxDistance The maximum distance to keep between the actors.
- * @return False if the limits couldn't be set.
- */
-DS_PHYSICS_EXPORT bool dsDistancePhysicsConstraint_setLimits(
-	dsDistancePhysicsConstraint* constraint, float minDistance, float maxDistance);
-
-/**
- * @brief Sets the spring parameter for a distance physics constraint.
- * @remark errno will be set on failure.
- * @param constraint The constraint to set the limits on.
+ * @param minDistance The minimum distance to keep between reference points.
+ * @param maxDistance The maximum distance to keep between reference points.
  * @param stiffness The stiffness for the spring for the constraint.
  * @param damping The damping for the spring for the constraint in the range [0, 1].
- * @return False if the spring parameters couldn't be set.
+ * @return False if the limits couldn't be set.
  */
-DS_PHYSICS_EXPORT bool dsDistancePhysicsConstraint_setSpring(
-	dsDistancePhysicsConstraint* constraint, float stiffness, float damping);
+DS_PHYSICS_EXPORT bool dsDistancePhysicsConstraint_setLimit(
+	dsDistancePhysicsConstraint* constraint, float minDistance, float maxDistance, float stiffness,
+	float damping);
 
 /**
  * @brief Initializes a distance physics constraint.
@@ -94,10 +86,10 @@ DS_PHYSICS_EXPORT bool dsDistancePhysicsConstraint_setSpring(
  * @param firstPosition The position of the constraint on the first actor.
  * @param secondActor The second physics actor the constraint is attached to.
  * @param secondPosition The position of the constraint on the second actor.
- * @param minDistance The minimum distance to keep between the actors.
- * @param maxDistance The maximum distance to keep between the actors.
- * @param stiffness The stiffness for the spring for the constraint.
- * @param damping The damping for the spring for the constraint in the range [0, 1].
+ * @param minDistance The minimum distance to keep between reference points.
+ * @param maxDistance The maximum distance to keep between reference points.
+ * @param limitStiffness The stiffness for the spring for the distance limit.
+ * @param limitDamping The damping for the spring for the distance limit in the range [0, 1].
  * @param impl The underlying implementation for the constraint.
  * @param getForceFunc Function to get the last applied force for the constraint.
  */
@@ -105,7 +97,7 @@ DS_PHYSICS_EXPORT void dsDistancePhysicsConstraint_initialize(
 	dsDistancePhysicsConstraint* constraint, dsPhysicsEngine* engine, dsAllocator* allocator,
 	bool enabled, const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition, float minDistance,
-	float maxDistance, float stiffness, float damping, void* impl,
+	float maxDistance, float limitStiffness, float limitDamping, void* impl,
 	dsGetPhysicsConstraintForceFunction getForceFunc);
 
 #ifdef __cplusplus

@@ -27,18 +27,18 @@ extern "C"
 
 /**
  * @file
- * @brief Functions for creating and manipulating revolute physics constraints.
- * @see dsRevolutePhysicsConstraint
+ * @brief Functions for creating and manipulating slider physics constraints.
+ * @see dsSliderPhysicsConstraint
  */
 
 /**
- * @brief Gets the type for a revolute physics constraint.
- * @return The type for a revolute physics constraint.
+ * @brief Gets the type for a slider physics constraint.
+ * @return The type for a slider physics constraint.
  */
-DS_PHYSICS_EXPORT dsPhysicsConstraintType dsRevolutePhysicsConstraint_type(void);
+DS_PHYSICS_EXPORT dsPhysicsConstraintType dsSliderPhysicsConstraint_type(void);
 
 /**
- * @brief Creates a revolute physics constraint.
+ * @brief Creates a slider physics constraint.
  * @remark errno will be set on failure.
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with.
@@ -49,62 +49,62 @@ DS_PHYSICS_EXPORT dsPhysicsConstraintType dsRevolutePhysicsConstraint_type(void)
  * @param secondActor The second physics actor the constraint is attached to.
  * @param secondPosition The position of the constraint on the second actor.
  * @param secondRotation The rotation of the constraint on the second actor.
- * @param limitEnabled Whether the rotation limit is enabled.
- * @param minAngle The minimum angle for the rotation in the range [-pi, 0].
- * @param maxAngle The maximum angle for the rotation in the range [0, pi].
- * @param limitStiffness The spring stiffness applied when limiting the angle.
- * @param limitDamping The spring damping applied when limiting the angle in the range [0, 1].
+ * @param limitEnabled Whether the distance limit is enabled.
+ * @param minDistance The minimum distance between the reference points in the range [-FLT_MAX, 0].
+ * @param maxDistance The maximum distance between the reference points in the range [0, FLT_MAX].
+ * @param limitStiffness The spring stiffness applied when limiting the distance.
+ * @param limitDamping The spring damping applied when limiting the distance in the range [0, 1].
  * @param motorType The type of motor to use.
  * @param motorTarget The target of the motor, either as an angle or an angular velocity.
- * @param maxMotorTorque The maximum torque to apply for the motor. When the motor is disabled, the
- *     torque will be applied to stop motion.
- * @return The revolute constraint or NULL if it couldn't be created.
+ * @param maxMotorForce The maximum force to apply for the motor. When the motor is disabled, the
+ *     force will be applied to stop motion.
+ * @return The slider constraint or NULL if it couldn't be created.
  */
-DS_PHYSICS_EXPORT dsRevolutePhysicsConstraint* dsRevolutePhysicsConstraint_create(
+DS_PHYSICS_EXPORT dsSliderPhysicsConstraint* dsSliderPhysicsConstraint_create(
 	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation, bool limitEnabled, float minAngle, float maxAngle,
+	const dsQuaternion4f* secondRotation, bool limitEnabled, float minDistance, float maxDistance,
 	float limitStiffness, float limitDamping, dsPhysicsConstraintMotorType motorType,
-	float motorTarget, float maxMotorTorque);
+	float motorTarget, float maxMotorForce);
 
 /**
- * @brief Enables the angle limit and sets the limit parameters for a revolute physics constraint.
+ * @brief Enables the angle limit and sets the limit parameters for a slider physics constraint.
  * @remark errno will be set on failure.
  * @param constraint The constraint to set the angle limits on.
- * @param minAngle The minimum angle for the rotation in the range [-pi, 0].
- * @param maxAngle The maximum angle for the rotation in the range [0, pi].
- * @param limitStiffness The spring stiffness applied when limiting the angle.
- * @param limitDamping The spring damping applied when limiting the angle in the range [0, 1].
+ * @param minDistance The minimum distance between the reference points in the range [-FLT_MAX, 0].
+ * @param maxDistance The maximum distance between the reference points in the range [0, FLT_MAX].
+ * @param limitStiffness The spring stiffness applied when limiting the distance.
+ * @param limitDamping The spring damping applied when limiting the distance in the range [0, 1].
  * @return False if the limit couldn't be set.
  */
-DS_PHYSICS_EXPORT bool dsRevolutePhysicsConstraint_setLimit(dsRevolutePhysicsConstraint* constraint,
-	float minAngle, float maxAngle, float limitStiffness, float limitDamping);
+DS_PHYSICS_EXPORT bool dsSliderPhysicsConstraint_setLimit(dsSliderPhysicsConstraint* constraint,
+	float minDistance, float maxDistance, float limitStiffness, float limitDamping);
 
 /**
- * @brief Disables the angle limit for a revolute physics constraint.
+ * @brief Disables the angle limit for a slider physics constraint.
  * @remark errno will be set on failure.
  * @param constraint The constraint to disable the angle limits on.
  * @return False if the limit couldn't be disabled.
  */
-DS_PHYSICS_EXPORT bool dsRevolutePhysicsConstraint_disableLimit(
-	dsRevolutePhysicsConstraint* constraint);
+DS_PHYSICS_EXPORT bool dsSliderPhysicsConstraint_disableLimit(
+	dsSliderPhysicsConstraint* constraint);
 
 /**
- * @brief Sets the motor parameters for a revolute physics constraint.
+ * @brief Sets the motor parameters for a slider physics constraint.
  * @remark errno will be set on failure.
  * @param constraint The constraint to set the motor parameters on.
  * @param motorType The type of motor to use.
- * @param target The target angle if motorType is dsPhysicsConstraintMotorType_Position or target
- *    rotational velocity if motorType is dsPhysicsConstraintMotorType_Velocity.
- * @param maxTorque The maximum torque to apply for the motor. When the motor is disabled, the
- *     torque will be applied to stop motion.
+ * @param target The target distance if motorType is dsPhysicsConstraintMotorType_Position or target
+ *    velocity if motorType is dsPhysicsConstraintMotorType_Velocity.
+ * @param maxForce The maximum force to apply for the motor. When the motor is disabled, the
+ *     force will be applied to stop motion.
  */
-DS_PHYSICS_EXPORT bool dsRevolutePhysicsConstraint_setMotor(dsRevolutePhysicsConstraint* constraint,
-	dsPhysicsConstraintMotorType motorType, float target, float maxTorque);
+DS_PHYSICS_EXPORT bool dsSliderPhysicsConstraint_setMotor(dsSliderPhysicsConstraint* constraint,
+	dsPhysicsConstraintMotorType motorType, float target, float maxForce);
 
 /**
- * @brief Initializes a revolute physics constraint.
+ * @brief Initializes a slider physics constraint.
  *
  * This is called by the physics implementation to initialize the common members.
  *
@@ -118,26 +118,26 @@ DS_PHYSICS_EXPORT bool dsRevolutePhysicsConstraint_setMotor(dsRevolutePhysicsCon
  * @param secondActor The second physics actor the constraint is attached to.
  * @param secondPosition The position of the constraint on the second actor.
  * @param secondRotation The rotation of the constraint on the second actor.
- * @param limitEnabled Whether the rotation limit is enabled.
- * @param minAngle The minimum angle for the rotation in the range [-pi, 0].
- * @param maxAngle The maximum angle for the rotation in the range [0, pi].
- * @param limitStiffness The spring stiffness applied when limiting the angle.
- * @param limitDamping The spring damping applied when limiting the angle in the range [0, 1].
+ * @param limitEnabled Whether the distance limit is enabled.
+ * @param minDistance The minimum distance between the reference points in the range [-FLT_MAX, 0].
+ * @param maxDistance The maximum distance between the reference points in the range [0, FLT_MAX].
+ * @param limitStiffness The spring stiffness applied when limiting the distance.
+ * @param limitDamping The spring damping applied when limiting the distance in the range [0, 1].
  * @param motorType The type of motor to use.
  * @param motorTarget The target of the motor, either as an angle or an angular velocity.
- * @param maxMotorTorque The maximum torque to apply for the motor. When the motor is disabled, the
- *     torque will be applied to stop motion.
+ * @param maxMotorForce The maximum force to apply for the motor. When the motor is disabled, the
+ *     force will be applied to stop motion.
  * @param impl The underlying implementation for the constraint.
  * @param getForceFunc Function to get the last applied force for the constraint.
  * @param getTorqueFunc Function to get the last applied torque for the constraint.
  */
-DS_PHYSICS_EXPORT void dsRevolutePhysicsConstraint_initialize(
-	dsRevolutePhysicsConstraint* constraint, dsPhysicsEngine* engine, dsAllocator* allocator,
+DS_PHYSICS_EXPORT void dsSliderPhysicsConstraint_initialize(
+	dsSliderPhysicsConstraint* constraint, dsPhysicsEngine* engine, dsAllocator* allocator,
 	bool enabled, const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
 	const dsQuaternion4f* firstRotation, const dsPhysicsActor* secondActor,
 	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation, bool limitEnabled,
-	float minAngle, float maxAngle, float limitStiffness, float limitDamping,
-	dsPhysicsConstraintMotorType motorType, float motorTarget, float maxMotorTorque, void* impl,
+	float minDistance, float maxDistance, float limitStiffness, float limitDamping,
+	dsPhysicsConstraintMotorType motorType, float motorTarget, float maxMotorForce, void* impl,
 	dsGetPhysicsConstraintForceFunction getForceFunc,
 	dsGetPhysicsConstraintForceFunction getTorqueFunc);
 

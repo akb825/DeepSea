@@ -257,7 +257,8 @@ typedef struct dsConePhysicsConstraint
  * This is akin to a ball-socket that has a hard limit to the swing and the twist. Each axis may
  * have an independnent angle limit, allowing for a non-symmiterical cone. The XY plane is normal
  * to the connecting point, meaning the X and Y axis angles are along the swing and the Z axis is
- * the twist. A motor may be applied to rotate towards a goal rotation.
+ * the twist. A motor may be applied to rotate towards a goal rotation, and a force may be applied
+ * to stop movement when the motor is disabled.
  *
  * This joint is suitable for ragdolls applied to a skeleton.
  *
@@ -334,7 +335,10 @@ typedef struct dsSwingTwistPhysicsConstraint
  * @brief Struct describing a revolute physics constraint, or constraint that can rotate around an
  *     arbitrary axis.
  *
- * This may be used to represent a hinge or axle.
+ * This may be used to represent a hinge or axle depending on whether an angle limit is enabled.
+ * Spring parameters may be used to determine how soft the limit is when enabled. A motor may be
+ * used to reach a target location or velocity, and a torque may be applied to stop rotation when
+ * the motor is disabled.
  *
  * Transforms are relative to the local coordinate space of each actor. The transforms are
  * immutable, so changing the attachment location and orientation requires creating a new
@@ -419,7 +423,7 @@ typedef struct dsRevolutePhysicsConstraint
 	 *
 	 * If the motor is disabled this is the maximum amount of torque to applied to stop motion.
 	 */
-	float maxTorque;
+	float maxMotorTorque;
 } dsRevolutePhysicsConstraint;
 
 /**
@@ -427,6 +431,12 @@ typedef struct dsRevolutePhysicsConstraint
  *     range of each-other.
  *
  * This generally models a spring connecting both objects with no limits on rotation.
+ *
+ * Positions are relative to the local coordinate space of each actor. The positions are
+ * immutable, so changing the attachment location and orientation requires creating a new
+ * constraint. The limiting angles and spring parameters may be adjusted after creation.
+ *
+ * @see DistancePhysicsConstraint.h
  */
 typedef struct dsDistancePhysicsConstraint
 {
@@ -446,25 +456,114 @@ typedef struct dsDistancePhysicsConstraint
 	dsVector3f secondPosition;
 
 	/**
-	 * @brief The minimum distance between the actors.
+	 * @brief The minimum distance between reference points.
 	 */
 	float minDistance;
 
 	/**
-	 * @brief The maximum distance between the actors.
+	 * @brief The maximum distance between reference points.
 	 */
 	float maxDistance;
 
 	/**
 	 * @brief The stiffness for the spring to keep within the distance range.
 	 */
-	float stiffness;
+	float limitStiffness;
 
 	/**
 	 * @brief The damping for the spring to keep within the distance range.
 	 */
-	float damping;
+	float limitDamping;
 } dsDistancePhysicsConstraint;
+
+/**
+ * @brief Struct describing a slider physics constraint, which limits movement along a single axis
+ *     with no rotation.
+ *
+ * The distance between points may optionally be limited with spring parameters to adjust the
+ * limit's softness. A motor may also optionally be enabled to reach a target distance or velocity,
+ * and a force may be applied to stop motion when the motor is disabled.
+ *
+ * Transforms are relative to the local coordinate space of each actor. The transforms are
+ * immutable, so changing the attachment location and orientation requires creating a new
+ * constraint. The limits, spring parameters, and motor may be adjusted after creation.
+ *
+ * @see SliderPhysicsConstraint.h
+ */
+typedef struct dsSliderPhysicsConstraint
+{
+	/**
+	 * @brief The base constraint type.
+	 */
+	dsPhysicsConstraint constraint;
+
+	/**
+	 * @brief The position of the constraint relative to the first actor.
+	 */
+	dsVector3f firstPosition;
+
+	/**
+	 * @brief The position of the constraint relative to the second actor.
+	 */
+	dsVector3f secondPosition;
+
+	/**
+	 * @brief The rotation of the constraint relative to the first actor.
+	 */
+	dsQuaternion4f firstRotation;
+
+	/**
+	 * @brief The rotation of the constraint relative to the second actor.
+	 */
+	dsQuaternion4f secondRotation;
+
+	/**
+	 * @brief Whether the distance limit is enabled.
+	 */
+	bool limitEnabled;
+
+	/**
+	 * @brief The minimum distance between reference points.
+	 *
+	 * This may be negative to have the two reference points pass beyond each-other.
+	 */
+	float minDistance;
+
+	/**
+	 * @brief The maximum distance between reference points.
+	 */
+	float maxDistance;
+
+	/**
+	 * @brief The stiffness for the spring to keep within the distance range.
+	 */
+	float limitStiffness;
+
+	/**
+	 * @brief The damping for the spring to keep within the distance range.
+	 */
+	float limitDamping;
+
+	/**
+	 * @brief The type of the motor to apply to the constraint.
+	 */
+	dsPhysicsConstraintMotorType motorType;
+
+	/**
+	 * @brief The target for the motor.
+	 *
+	 * This will be an distance if motorType is dsPhysicsConstraintMotorType_Position or velocity if
+	 * motorType is dsPhysicsConstraintMotorType_Velocity.
+	 */
+	float motorTarget;
+
+	/**
+	 * @brief The maximum force for the motor.
+	 *
+	 * If the motor is disabled this is the maximum amount of force to applied to stop motion.
+	 */
+	float maxMotorForce;
+} dsSliderPhysicsConstraint;
 
 /**
  * @brief Function to set whether a physics constraint is enabled.
@@ -648,7 +747,7 @@ typedef bool (*dsSetSwingTwistPhysicsConstraintMotorFunction)(dsPhysicsEngine* e
  * @param limitDamping The spring damping applied when limiting the angle.
  * @param motorType The type of motor to use.
  * @param motorTarget The target of the motor, either as an angle or an angular velocity.
- * @param maxTorque The maximum torque to apply for the motor.
+ * @param maxMotorTorque The maximum torque to apply for the motor.
  * @return The revolute constraint or NULL if it couldn't be created.
  */
 typedef dsRevolutePhysicsConstraint* (*dsCreateRevolutePhysicsConstraintFunction)(
@@ -657,7 +756,7 @@ typedef dsRevolutePhysicsConstraint* (*dsCreateRevolutePhysicsConstraintFunction
 	const dsQuaternion4f* firstRotation, const dsPhysicsActor* secondActor,
 	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation, bool limitEnabled,
 	float minAngle, float maxAngle, float limitStiffness, float limitDamping,
-	dsPhysicsConstraintMotorType motorType, float motorTarget, float maxTorque);
+	dsPhysicsConstraintMotorType motorType, float motorTarget, float maxMotorTorque);
 
 /**
  * @brief Function to destroy a revolute physics constraint.
@@ -692,7 +791,7 @@ typedef bool (*dsDisableRevolutePhysicsConstraintLimitFunction)(dsPhysicsEngine*
 	dsRevolutePhysicsConstraint* constraint);
 
 /**
- * @brief Function to set the motor parameters for a revolute  physics constraint.
+ * @brief Function to set the motor parameters for a revolute physics constraint.
  * @param engine The physics engine the constraint was created with.
  * @param constraint The constraint to set the max angle on.
  * @param motorType The type of motor to use.
@@ -713,17 +812,17 @@ typedef bool (*dsSetRevolutePhysicsConstraintMotorFunction)(dsPhysicsEngine* eng
  * @param firstPosition The position of the constraint on the first actor.
  * @param secondActor The second physics actor the constraint is attached to.
  * @param secondPosition The position of the constraint on the second actor.
- * @param minDistance The minimum distance to keep between the actors.
- * @param maxDistance The maximum distance to keep between the actors.
- * @param stiffness The stiffness for the spring for the constraint.
- * @param damping The damping for the spring for the constraint.
+ * @param minDistance The minimum distance to keep between reference points.
+ * @param maxDistance The maximum distance to keep between reference points.
+ * @param limitStiffness The stiffness for the spring for the distance limit.
+ * @param limitDamping The damping for the spring for the distance limit.
  * @return The distance constraint or NULL if it couldn't be created.
  */
 typedef dsDistancePhysicsConstraint* (*dsCreateDistancePhysicsConstraintFunction)(
 	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstPosition, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, float minDistance, float maxDistance, float stiffness,
-	float damping);
+	const dsVector3f* secondPosition, float minDistance, float maxDistance, float limitStiffness,
+	float limitDamping);
 
 /**
  * @brief Function to destroy a distance physics constraint.
@@ -738,23 +837,89 @@ typedef bool (*dsDestroyDistancePhysicsConstraintFunction)(dsPhysicsEngine* engi
  * @brief Function to set the limits for a distance physics constraint.
  * @param engine The physics engine the constraint was created with.
  * @param constraint The constraint to set the limits on.
- * @param minDistance The minimum distance to keep between the actors.
- * @param maxDistance The maximum distance to keep between the actors.
+ * @param minDistance The minimum distance to keep between reference points.
+ * @param maxDistance The maximum distance to keep between reference points.
+ * @param limitStiffness The stiffness for the spring.
+ * @param limitDamping The damping for the spring.
  * @return False if the limits couldn't be set.
  */
 typedef bool (*dsSetDistancePhysicsConstraintLimitFunction)(dsPhysicsEngine* engine,
-	dsDistancePhysicsConstraint* constraint, float minDistance, float maxDistance);
+	dsDistancePhysicsConstraint* constraint, float minDistance, float maxDistance,
+	float limitStiffness, float limitDamping);
 
 /**
- * @brief Function to set the spring parameters for a distance physics constraint.
+ * @brief Function to create a slider physics constraint.
+ * @param engine The physics engine to create the constraint with.
+ * @param allocator The allocator to create the constraint with.
+ * @param enabled Whether the constraint is enabled after creation.
+ * @param firstActor The first physics actor the constraint is attached to.
+ * @param firstPosition The position of the constraint on the first actor.
+ * @param firstRotation The rotation of the constraint on the first actor.
+ * @param secondActor The second physics actor the constraint is attached to.
+ * @param secondPosition The position of the constraint on the second actor.
+ * @param secondRotation The rotation of the constraint on the second actor.
+ * @param limitEnabled Whether the distance limit is enabled.
+ * @param minDistance The minimum distance between reference points.
+ * @param maxDistance The maximum distance between reference points.
+ * @param limitStiffness The spring stiffness applied when limiting the distance.
+ * @param limitDamping The spring damping applied when limiting the distance.
+ * @param motorType The type of motor to use.
+ * @param motorTarget The target of the motor, either as a distance or velocity.
+ * @param maxMotorForce The maximum force to apply for the motor.
+ * @return The slider constraint or NULL if it couldn't be created.
+ */
+typedef dsSliderPhysicsConstraint* (*dsCreateSliderPhysicsConstraintFunction)(
+	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled,
+	const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
+	const dsQuaternion4f* firstRotation, const dsPhysicsActor* secondActor,
+	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation, bool limitEnabled,
+	float minDistance, float maxDistance, float limitStiffness, float limitDamping,
+	dsPhysicsConstraintMotorType motorType, float motorTarget, float maxMotorForce);
+
+/**
+ * @brief Function to destroy a slider physics constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The constraint to destroy.
+ * @return False if the constraint couldn't be destroyed.
+ */
+typedef bool (*dsDestroySliderPhysicsConstraintFunction)(dsPhysicsEngine* engine,
+	dsSliderPhysicsConstraint* constraint);
+
+/**
+ * @brief Function to set the limits for a slider physics constraint.
  * @param engine The physics engine the constraint was created with.
  * @param constraint The constraint to set the limits on.
- * @param stiffness The stiffness for the spring.
- * @param damping The damping for the spring.
- * @return False if the spring parameters couldn't be set.
+ * @param minDistance The minimum distance to keep between reference points.
+ * @param maxDistance The maximum distance to keep between reference points.
+ * @param limitStiffness The stiffness for the spring.
+ * @param limitDamping The damping for the spring.
+ * @return False if the limits couldn't be set.
  */
-typedef bool (*dsSetDistancePhysicsConstraintSpringFunction)(dsPhysicsEngine* engine,
-	dsDistancePhysicsConstraint* constraint, float stiffness, float damping);
+typedef bool (*dsSetSliderPhysicsConstraintLimitFunction)(dsPhysicsEngine* engine,
+	dsSliderPhysicsConstraint* constraint, float minDistance, float maxDistance,
+	float limitStiffness, float limitDamping);
+
+/**
+ * @brief Function to disable the distance limits on a slider physics constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The constraint to disable the distance limits.
+ * @return False if the distance limits couldn't be disabled.
+ */
+typedef bool (*dsDisableSliderPhysicsConstraintLimitFunction)(dsPhysicsEngine* engine,
+	dsSliderPhysicsConstraint* constraint);
+
+/**
+ * @brief Function to set the motor parameters for a slider physics constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The constraint to set the max angle on.
+ * @param motorType The type of motor to use.
+ * @param target The target distance or velocity for the motor.
+ * @param maxForce The maximum force to apply for the motor.
+ * @return False if the motor parameters couldn't be set.
+ */
+typedef bool (*dsSetSliderPhysicsConstraintMotorFunction)(dsPhysicsEngine* engine,
+	dsSliderPhysicsConstraint* constraint, dsPhysicsConstraintMotorType motorType, float target,
+	float maxForce);
 
 #ifdef __cplusplus
 }

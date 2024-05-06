@@ -33,13 +33,13 @@ dsPhysicsConstraintType dsDistancePhysicsConstraint_type(void)
 dsDistancePhysicsConstraint* dsDistancePhysicsConstraint_create(dsPhysicsEngine* engine,
 	dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstPosition, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, float minDistance, float maxDistance, float stiffness,
-	float damping)
+	const dsVector3f* secondPosition, float minDistance, float maxDistance, float limitStiffness,
+	float limitDamping)
 {
 	if (!engine || !engine->createDistanceConstraintFunc ||
 		!engine->destroyDistanceConstraintFunc || !firstActor || !firstPosition || !secondActor ||
 		!secondPosition || minDistance < 0.0f || maxDistance < 0.0f || minDistance > maxDistance ||
-		stiffness < 0.0f || damping < 0.0f || damping > 0.0f)
+		limitStiffness < 0.0f || limitDamping < 0.0f || limitDamping > 0.0f)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -49,46 +49,34 @@ dsDistancePhysicsConstraint* dsDistancePhysicsConstraint_create(dsPhysicsEngine*
 		allocator = engine->allocator;
 
 	return engine->createDistanceConstraintFunc(engine, allocator, enabled, firstActor,
-		firstPosition, secondActor, secondPosition, minDistance, maxDistance, stiffness, damping);
+		firstPosition, secondActor, secondPosition, minDistance, maxDistance, limitStiffness,
+		limitDamping);
 }
 
-bool dsDistancePhysicsConstraint_setLimits(dsDistancePhysicsConstraint* constraint,
-	float minDistance, float maxDistance)
+bool dsDistancePhysicsConstraint_setLimit(dsDistancePhysicsConstraint* constraint,
+	float minDistance, float maxDistance, float stiffness,
+float damping)
 {
 	dsPhysicsConstraint* baseConstraint = (dsPhysicsConstraint*)constraint;
 	if (!constraint || !baseConstraint->engine ||
 		!baseConstraint->engine->setDistanceConstraintLimitFunc || minDistance < 0.0f ||
-		maxDistance < 0.0f || minDistance > maxDistance)
+		maxDistance < 0.0f || minDistance > maxDistance || stiffness < 0.0f || damping < 0.0f ||
+		damping > 1.0f)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
 	dsPhysicsEngine* engine = baseConstraint->engine;
-	return engine->setDistanceConstraintLimitFunc(engine, constraint, minDistance, maxDistance);
-}
-
-bool dsDistancePhysicsConstraint_setSpring(
-	dsDistancePhysicsConstraint* constraint, float stiffness, float damping)
-{
-	dsPhysicsConstraint* baseConstraint = (dsPhysicsConstraint*)constraint;
-	if (!constraint || !baseConstraint->engine ||
-		!baseConstraint->engine->setDistanceConstraintSpringFunc || stiffness < 0.0f ||
-		damping < 0.0f || damping > 1.0f)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	dsPhysicsEngine* engine = baseConstraint->engine;
-	return engine->setDistanceConstraintSpringFunc(engine, constraint, stiffness, damping);
+	return engine->setDistanceConstraintLimitFunc(engine, constraint, minDistance, maxDistance,
+		stiffness, damping);
 }
 
 void dsDistancePhysicsConstraint_initialize(dsDistancePhysicsConstraint* constraint,
 	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstPosition, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, float minDistance, float maxDistance, float stiffness,
-	float damping, void* impl, dsGetPhysicsConstraintForceFunction getForceFunc)
+	const dsVector3f* secondPosition, float minDistance, float maxDistance, float limitStiffness,
+	float limitDamping, void* impl, dsGetPhysicsConstraintForceFunction getForceFunc)
 {
 	DS_ASSERT(constraint);
 	DS_ASSERT(engine);
@@ -97,8 +85,8 @@ void dsDistancePhysicsConstraint_initialize(dsDistancePhysicsConstraint* constra
 	DS_ASSERT(minDistance >= 0.0f);
 	DS_ASSERT(maxDistance >= 0.0f);
 	DS_ASSERT(minDistance < maxDistance);
-	DS_ASSERT(stiffness >= 0.0f);
-	DS_ASSERT(damping >= 0.0f && damping <= 1.0f);
+	DS_ASSERT(limitStiffness >= 0.0f);
+	DS_ASSERT(limitDamping >= 0.0f && limitDamping <= 1.0f);
 	DS_ASSERT(getForceFunc);
 
 	DS_VERIFY(dsPhysicsConstraint_initialize((dsPhysicsConstraint*)constraint, engine, allocator,
@@ -109,6 +97,6 @@ void dsDistancePhysicsConstraint_initialize(dsDistancePhysicsConstraint* constra
 	constraint->secondPosition = *secondPosition;
 	constraint->minDistance = minDistance;
 	constraint->maxDistance = maxDistance;
-	constraint->stiffness = stiffness;
-	constraint->damping = damping;
+	constraint->limitStiffness = limitStiffness;
+	constraint->limitDamping = limitDamping;
 }

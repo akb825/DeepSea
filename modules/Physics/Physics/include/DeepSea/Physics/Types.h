@@ -1457,14 +1457,34 @@ struct dsPhysicsEngine
 	dsDestroyDistancePhysicsConstraintFunction destroyDistanceConstraintFunc;
 
 	/**
-	 * @brief Function to set the limits of a distance physics constraint.
+	 * @brief Function to set the distance limit of a distance physics constraint.
 	 */
 	dsSetDistancePhysicsConstraintLimitFunction setDistanceConstraintLimitFunc;
 
 	/**
-	 * @brief Function to set the spring parameters of a distance physics constraint.
+	 * @brief Function to create a slider physics constraint.
 	 */
-	dsSetDistancePhysicsConstraintSpringFunction setDistanceConstraintSpringFunc;
+	dsCreateSliderPhysicsConstraintFunction createSliderConstraintFunc;
+
+	/**
+	 * @brief Function to destroy a slider physics constraint.
+	 */
+	dsDestroySliderPhysicsConstraintFunction destroySliderConstraintFunc;
+
+	/**
+	 * @brief Function to set the distance limit of a slider physics constraint.
+	 */
+	dsSetSliderPhysicsConstraintLimitFunction setSliderConstraintLimitFunc;
+
+	/**
+	 * @brief Function to disable the distance limit for a revolute physics constraint.
+	 */
+	dsDisableSliderPhysicsConstraintLimitFunction disableSliderConstraintLimitFunc;
+
+	/**
+	 * @brief Function to set the motor parameters for a slider physics constraint.
+	 */
+	dsSetSliderPhysicsConstraintMotorFunction setSliderConstraintMotorFunc;
 };
 
 #ifdef __cplusplus
