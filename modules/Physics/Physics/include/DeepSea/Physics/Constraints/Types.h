@@ -37,6 +37,11 @@ typedef struct dsPhysicsEngine dsPhysicsEngine;
  */
 
 /**
+ * @brief Constant for the number of degrees of freedom for a physics constraint.
+ */
+#define DS_PHYSICS_CONSTRAINT_DOF_COUNT 6
+
+/**
  * @brief Enum for the type of motor to apply to a physicsconstraint.
  */
 typedef enum dsPhysicsConstraintMotorType
@@ -46,6 +51,29 @@ typedef enum dsPhysicsConstraintMotorType
 	dsPhysicsConstraintMotorType_Position,
 	dsPhysicsConstraintMotorType_Velocity  ///< Forces are applied to reach a target velocity.
 } dsPhysicsConstraintMotorType;
+
+/**
+ * @brief Enumf or the type of a physics constraint limit.
+ */
+typedef enum dsPhysicsConstraintLimitType
+{
+	dsPhysicsConstraintLimitType_Fixed, ///< The limit is fixed and unmoving.
+	dsPhysicsConstraintLimitType_Free,  ///< The limit is free and unchecked.
+	dsPhysicsConstraintLimitType_Range  ///< The limit is checked within a range.
+} dsPhysicsConstraintLimitType;
+
+/**
+ * @brief Enum for a degree of freedom of a physics constraint.
+ */
+typedef enum dsPhysicsConstraintDOF
+{
+	dsPhysicsConstraintDOF_TranslateX, ///< Translation along the X axis.
+	dsPhysicsConstraintDOF_TranslateY, ///< Translation along the Y axis.
+	dsPhysicsConstraintDOF_TranslateZ, ///< Translation along the Z axis.
+	dsPhysicsConstraintDOF_RotateX,    ///< Rotation along the X axis, or part of the swing.
+	dsPhysicsConstraintDOF_RotateY,    ///< Rotation along the Y axis, or part of the swing.
+	dsPhysicsConstraintDOF_RotateZ     ///< Rotation along the Z axis, or the twist.
+} dsPhysicsConstraintDOF;
 
 /**
  * @brief Value that denotes the type of a physics constraint.
@@ -326,7 +354,7 @@ typedef struct dsSwingTwistPhysicsConstraint
 	/**
 	 * @brief The maximum torque for the motor.
 	 *
-	 * If the motor is disabled this is the maximum amount of torque to applied to stop motion.
+	 * If the motor is disabled this is the maximum amount of torque to apply to stop motion.
 	 */
 	float maxTorque;
 } dsSwingTwistPhysicsConstraint;
@@ -421,7 +449,7 @@ typedef struct dsRevolutePhysicsConstraint
 	/**
 	 * @brief The maximum torque for the motor.
 	 *
-	 * If the motor is disabled this is the maximum amount of torque to applied to stop motion.
+	 * If the motor is disabled this is the maximum amount of torque to apply to stop motion.
 	 */
 	float maxMotorTorque;
 } dsRevolutePhysicsConstraint;
@@ -560,10 +588,139 @@ typedef struct dsSliderPhysicsConstraint
 	/**
 	 * @brief The maximum force for the motor.
 	 *
-	 * If the motor is disabled this is the maximum amount of force to applied to stop motion.
+	 * If the motor is disabled this is the maximum amount of force to apply to stop motion.
 	 */
 	float maxMotorForce;
 } dsSliderPhysicsConstraint;
+
+/**
+ * @brief Struct describing a limit for a single degree of freedom of a generic physics constraint.
+ *
+ * @see dsGenericPhysicsConstraint
+ * @see GenericPhysicsConstraint.h
+ */
+typedef struct dsGenericPhysicsConstraintLimit
+{
+	/**
+	 * @brief The type of the limit.
+	 */
+	dsPhysicsConstraintLimitType limitType;
+
+	/**
+	 * @brief The minimum value of the limit.
+	 *
+	 * For angles, this can be in the range [-pi, pi].
+	 */
+	float minValue;
+
+	/**
+	 * @brief The maximum value of the limit.
+	 *
+	 * For angles, this can be in the range [-pi, pi].
+	 */
+	float maxValue;
+
+	/**
+	 * @brief The stiffness for the spring when range limited.
+	 */
+	float stiffness;
+
+	/**
+	 * @brief The damping for the spring when range limited in the range [0, 1].
+	 */
+	float damping;
+} dsGenericPhysicsConstraintLimit;
+
+/**
+ * @brief Struct describing a motor for a single degree of freedom of a generic physics constraint.
+ *
+ * @see dsGenericPhysicsConstraint
+ * @see GenericPhysicsConstraint.h
+ */
+typedef struct dsGenericPhysicsConstraintMotor
+{
+	/**
+	 * @brief The type of the motor to apply to the degree of freedom.
+	 */
+	dsPhysicsConstraintMotorType motorType;
+
+	/**
+	 * @brief The target of the motor, either as a position or a velocity.
+	 */
+	float target;
+
+	/**
+	 * @brief The maximum force or torque of the motor.
+	 *
+	 * If the motor is disabled this is the maximum amount of force to apply to stop motion.
+	 */
+	float maxForce;
+} dsGenericPhysicsConstraintMotor;
+
+/**
+ * @brief Struct describing a generic physics constraint, which provides control over all 6 degrees
+ *     of freedom. (3 translation axes and 3 rotation axes)
+ *
+ * Most physics constraints may be modeled using a dsGenericPhysicsConstraint, though the
+ * specialized constraints are typically faster and may be more stable. Each degree may be fixed,
+ * free without limits, or limited within a range with spring parameters for the limits. A motor may
+ * also optionally be enabled to reach a target position or velocity for each degree, and a force
+ * may be applied to stop motion when the motor is disabled. The motor may be set individually for
+ * each translational axis, and either for the swing and twist separately or for all angles together
+ * for the rotational axes.
+ *
+ * Transforms are relative to the local coordinate space of each actor. The transforms are
+ * immutable, so changing the attachment location and orientation requires creating a new
+ * constraint. The limits, spring parameters, and motors may be adjusted after creation.
+ *
+ * @see GenericPhysicsConstraint.h
+ */
+typedef struct dsGenericPhysicsConstraint
+{
+	/**
+	 * @brief The base constraint type.
+	 */
+	dsPhysicsConstraint constraint;
+
+	/**
+	 * @brief The position of the constraint relative to the first actor.
+	 */
+	dsVector3f firstPosition;
+
+	/**
+	 * @brief The position of the constraint relative to the second actor.
+	 */
+	dsVector3f secondPosition;
+
+	/**
+	 * @brief The rotation of the constraint relative to the first actor.
+	 */
+	dsQuaternion4f firstRotation;
+
+	/**
+	 * @brief The rotation of the constraint relative to the second actor.
+	 */
+	dsQuaternion4f secondRotation;
+
+	/**
+	 * @brief The limits for each degree of freedom for the constraint.
+	 */
+	dsGenericPhysicsConstraintLimit limits[DS_PHYSICS_CONSTRAINT_DOF_COUNT];
+
+	/**
+	 * @brief The motors for each degree of freedom of the constraint.
+	 *
+	 * The motor type and maximum torque for RotationX will apply for RotationY as well. If
+	 * combineSwingTwistMotors is true, the motor type and maximum torque of RotationX will also
+	 * apply to RotationZ.
+	 */
+	dsGenericPhysicsConstraintMotor motors[DS_PHYSICS_CONSTRAINT_DOF_COUNT];
+
+	/**
+	 * @brief Whether the swing and twist motors are combined.
+	 */
+	bool combineSwingTwistMotors;
+} dsGenericPhysicsConstraint;
 
 /**
  * @brief Function to set whether a physics constraint is enabled.
@@ -920,6 +1077,83 @@ typedef bool (*dsDisableSliderPhysicsConstraintLimitFunction)(dsPhysicsEngine* e
 typedef bool (*dsSetSliderPhysicsConstraintMotorFunction)(dsPhysicsEngine* engine,
 	dsSliderPhysicsConstraint* constraint, dsPhysicsConstraintMotorType motorType, float target,
 	float maxForce);
+
+/**
+ * @brief Function to create a generic physics constraint.
+ * @param engine The physics engine to create the constraint with.
+ * @param allocator The allocator to create the constraint with.
+ * @param enabled Whether the constraint is enabled after creation.
+ * @param firstActor The first physics actor the constraint is attached to.
+ * @param firstPosition The position of the constraint on the first actor.
+ * @param firstRotation The rotation of the constraint on the first actor.
+ * @param secondActor The second physics actor the constraint is attached to.
+ * @param secondPosition The position of the constraint on the second actor.
+ * @param secondRotation The rotation of the constraint on the second actor.
+ * @param limits The limits for each degree of freedom.
+ * @param motors The motors for each degree of freedom.
+ * @param combineSwingTwistMotors Whether the swing and twist motors are combined.
+ * @return The generic constraint or NULL if it couldn't be created.
+ */
+typedef dsGenericPhysicsConstraint* (*dsCreateGenericPhysicsConstraintFunction)(
+	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
+	const dsQuaternion4f* secondRotation,
+	const dsGenericPhysicsConstraintLimit limits[DS_PHYSICS_CONSTRAINT_DOF_COUNT],
+	const dsGenericPhysicsConstraintMotor motors[DS_PHYSICS_CONSTRAINT_DOF_COUNT],
+	bool combineSwingTwistMotors);
+
+
+/**
+ * @brief Function to destroy a generic physics constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The constraint to destroy.
+ * @return False if the constraint couldn't be destroyed.
+ */
+typedef bool (*dsDestroyGenericPhysicsConstraintFunction)(dsPhysicsEngine* engine,
+	dsGenericPhysicsConstraint* constraint);
+
+/**
+ * @brief Function to set the limit for a degree of freedon of a generic physics constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The constraint to set the limit on.
+ * @param dof The degree of freedom to set the limit for.
+ * @param limitType The type of the limit.
+ * @param minValue The minimum value of the limit.
+ * @param maxValue The maximum value of the limit.
+ * @param stiffness The stiffness when the limited by range.
+ * @param damping The damping when the limited by range.
+ * @return False if the limit couldn't be set.
+ */
+typedef bool (*dsSetGenericPhysicsConstraintLimitFunction)(dsPhysicsEngine* engine,
+	dsGenericPhysicsConstraint* constraint, dsPhysicsConstraintDOF dof,
+	dsPhysicsConstraintLimitType limitType, float minValue, float maxValue, float stiffness,
+	float damping);
+
+/**
+ * @brief Function to set the motor for a degree of freedom of a generic physics constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The constraint to set the motor on.
+ * @param dof The degree of freedom to set the motor for.
+ * @param motorType The type of the motor.
+ * @param target The target of the motor, either a position or velocity.
+ * @param maxForce The maximum force to apply for the motor.
+ * @return False if the motor couldn't be set.
+ */
+typedef bool (*dsSetGenericPhysicsConstraintMotorFunction)(dsPhysicsEngine* engine,
+	dsGenericPhysicsConstraint* constraint, dsPhysicsConstraintDOF dof,
+	dsPhysicsConstraintMotorType motorType, float target, float maxForce);
+
+/**
+ * @brief Function to set whether the swing and twist motors are combined for a generic physics
+ *     constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The constraint to set the combine swing twist state on.
+ * @param combineSwingTwist Whether the swing and twist motors should be combined.
+ * @return False if the combine swing twist state couldn't be set.
+ */
+typedef bool (*dsSetGenericPhysicsConstraintCombineSwingTwistMotorFunction)(dsPhysicsEngine* engine,
+	dsGenericPhysicsConstraint* constraint, bool combineSwingTwist);
 
 #ifdef __cplusplus
 }

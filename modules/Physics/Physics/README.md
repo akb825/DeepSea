@@ -34,11 +34,11 @@ Here are some notes for specific implementations as a reminder if or when they g
 
 Constraints will need to have force limits converted to impulses each step. For btConeTwistConstraint, the maximum stopping force will need to be converted to a damping value each step, while for other constraints the target velocity will need to be adjusted when using position based motors. Maximum force will need to be adjusted based on whether the motor is enabled or disabled to use the maximum motor force or stopping force.
 
-At least in the case of btHingeConstraint, and likely for others as well, the `BT_CONSTRAINT_STOP_ERP` parameter corresponds to stiffness and relaxation factor corresponds to damping.
+At least in the case of btHingeConstraint, and likely for others as well, the `BT_CONSTRAINT_STOP_ERP` parameter appears to correspond to stiffness and relaxation factor corresponds to damping.
 
 ### Jolt
 
-SwingTwistConstraint will need to have its maximum force values set per axis based on the separating axis between the current rotation and the target rotation.
+SwingTwistConstraint will need to have its maximum force values set per axis based on the separating axis between the current rotation and the target rotation. Same will need to be done with SixDOFConstraint when choosing between swing/twist motors (where the swing is two axes) and slerp constraint.
 
 ### PhysX
 

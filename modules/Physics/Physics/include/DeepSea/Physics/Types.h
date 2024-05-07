@@ -1485,6 +1485,33 @@ struct dsPhysicsEngine
 	 * @brief Function to set the motor parameters for a slider physics constraint.
 	 */
 	dsSetSliderPhysicsConstraintMotorFunction setSliderConstraintMotorFunc;
+
+	/**
+	 * @brief Function to create a generic physics constraint.
+	 */
+	dsCreateGenericPhysicsConstraintFunction createGenericConstraintFunc;
+
+	/**
+	 * @brief Function to destroy a generic physics constraint.
+	 */
+	dsDestroyGenericPhysicsConstraintFunction destroyGenericConstraintFunc;
+
+	/**
+	 * @brief Function to set the limit for a degree of freedom of a generic physics constraint.
+	 */
+	dsSetGenericPhysicsConstraintLimitFunction setGenericConstraintLimitFunc;
+
+	/**
+	 * @brief Function to set the limit for a degree of freedom of a generic physics constraint.
+	 */
+	dsSetGenericPhysicsConstraintMotorFunction setGenericConstraintMotorFunc;
+
+	/**
+	 * @brief Function to set whether the swing and twist motors are combined for a generic physics
+	 *     constraint.
+	 */
+	dsSetGenericPhysicsConstraintCombineSwingTwistMotorFunction
+		setGenericConstraintCombineSwingTwistMotorFunc;
 };
 
 #ifdef __cplusplus
