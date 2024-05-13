@@ -41,14 +41,17 @@ DS_PHYSICS_EXPORT dsPhysicsConstraintType dsSliderPhysicsConstraint_type(void);
  * @brief Creates a slider physics constraint.
  * @remark errno will be set on failure.
  * @param engine The physics engine to create the constraint with.
- * @param allocator The allocator to create the constraint with.
+ * @param allocator The allocator to create the constraint with. If NULL the engine's allocator will
+ *     be used.
  * @param enabled Whether the constraint is enabled after creation.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
- * @param firstRotation The rotation of the constraint on the first actor.
+ * @param firstRotation The rotation of the constraint on the first actor. The slider will be
+ *     limited to the axis of the quaternion.
  * @param secondActor The second physics actor the constraint is attached to.
  * @param secondPosition The position of the constraint on the second actor.
- * @param secondRotation The rotation of the constraint on the second actor.
+ * @param secondRotation The rotation of the constraint on the second actor. The slider will be
+ *     limited to the axis of the quaternion.
  * @param limitEnabled Whether the distance limit is enabled.
  * @param minDistance The minimum distance between the reference points in the range [-FLT_MAX, 0].
  * @param maxDistance The maximum distance between the reference points in the range [0, FLT_MAX].
@@ -114,10 +117,12 @@ DS_PHYSICS_EXPORT bool dsSliderPhysicsConstraint_setMotor(dsSliderPhysicsConstra
  * @param enabled Whether the constraint is enabled after creation.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
- * @param firstRotation The rotation of the constraint on the first actor.
+ * @param firstRotation The rotation of the constraint on the first actor. The slider will be
+ *     limited to the axis of the quaternion.
  * @param secondActor The second physics actor the constraint is attached to.
  * @param secondPosition The position of the constraint on the second actor.
- * @param secondRotation The rotation of the constraint on the second actor.
+ * @param secondRotation The rotation of the constraint on the second actor. The slider will be
+ *     limited to the axis of the quaternion.
  * @param limitEnabled Whether the distance limit is enabled.
  * @param minDistance The minimum distance between the reference points in the range [-FLT_MAX, 0].
  * @param maxDistance The maximum distance between the reference points in the range [0, FLT_MAX].

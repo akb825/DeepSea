@@ -537,11 +537,15 @@ typedef struct dsSliderPhysicsConstraint
 
 	/**
 	 * @brief The rotation of the constraint relative to the first actor.
+	 *
+	 * The slider will be limited to the axis of the quaternion.
 	 */
 	dsQuaternion4f firstRotation;
 
 	/**
 	 * @brief The rotation of the constraint relative to the second actor.
+	 *
+	 * The slider will be limited to the axis of the quaternion.
 	 */
 	dsQuaternion4f secondRotation;
 
@@ -721,6 +725,110 @@ typedef struct dsGenericPhysicsConstraint
 	 */
 	bool combineSwingTwistMotors;
 } dsGenericPhysicsConstraint;
+
+/**
+ * @brief Struct describing a gear physics constraint, ensuring the rotation of two actors are
+ *     locked based on the gear ratio.
+ *
+ * This expects that each actor has revolute constraint to limit movement to a single axis. The
+ * revolute constraints may optionally be provided to improve precision and avoid the relative
+ * rotations drifting over time.
+ *
+ * Axes are relative to the local coordinate space of each actor. The axes are immutable, so
+ * changing the rotation axes requires creating a new constraint. The ratio may be adjusted after
+ * creation.
+ *
+ * @see GearPhysicsConstraint.h
+ */
+typedef struct dsGearPhysicsConstraint
+{
+	/**
+	 * @brief The base constraint type.
+	 */
+	dsPhysicsConstraint constraint;
+
+	/**
+	 * @brief The axis of translation for the first actor.
+	 */
+	dsVector3f firstAxis;
+
+	/**
+	 * @brief The axis of rotation for the second actor.
+	 */
+	dsVector3f secondAxis;
+
+	/**
+	 * @brief The slider constraint for the first actor.
+	 */
+	const dsRevolutePhysicsConstraint* firstConstraint;
+
+	/**
+	 * @brief The revolute constraint for the second actor.
+	 */
+	const dsRevolutePhysicsConstraint* secondConstraint;
+
+	/**
+	 * @brief The gear ratio.
+	 *
+	 * The ratio is defined as firstActorToothCount/secondActorToothCount. The ratio may be negative
+	 * if the axes are flipped.
+	 */
+	float ratio;
+} dsGearPhysicsConstraint;
+
+/**
+ * @brief Struct describing a rack and pinion physics constraint, ensuring the translation of a rack
+ *     and rotation of a pinion are locked based on the gear ratio.
+ *
+ * The first actor will correspond to the rack, while the second actor will correspond to the
+ * pinion.
+ *
+ * This expects that the rack has a slider constraint to limit translation along a single axis and
+ * the pinion has a revolute constraint to limit the rotation along a single axis. The onstraints
+ * may optionally be provided to improve precision and avoid the relative position and rotation
+ * drifting over time.
+ *
+ * Axes are relative to the local coordinate space of each actor. The axes are immutable, so
+ * changing the translation and rotation axes requires creating a new constraint. The ratio may be
+ * adjusted after creation.
+ *
+ * @see RackAndPinionPhysicsConstraint.h
+ */
+typedef struct dsRackAndPinionPhysicsConstraint
+{
+	/**
+	 * @brief The base constraint type.
+	 */
+	dsPhysicsConstraint constraint;
+
+	/**
+	 * @brief The axis of revolution for the first actor.
+	 */
+	dsVector3f firstAxis;
+
+	/**
+	 * @brief The axis of revolution for the second actor.
+	 */
+	dsVector3f secondAxis;
+
+	/**
+	 * @brief The revolute constraint for the first actor.
+	 */
+	const dsSliderPhysicsConstraint* firstConstraint;
+
+	/**
+	 * @brief The revolute constraint for the second actor.
+	 */
+	const dsRevolutePhysicsConstraint* secondConstraint;
+
+	/**
+	 * @brief The gear ratio.
+	 *
+	 * The ratio is defined as 2*PI*rackToothCount/(rackLength*pinionToothCount). The ratio may be
+	 * negative if the axes are flipped.
+	 */
+	float ratio;
+} dsRackAndPinionPhysicsConstraint;
 
 /**
  * @brief Function to set whether a physics constraint is enabled.
@@ -1103,7 +1211,6 @@ typedef dsGenericPhysicsConstraint* (*dsCreateGenericPhysicsConstraintFunction)(
 	const dsGenericPhysicsConstraintMotor motors[DS_PHYSICS_CONSTRAINT_DOF_COUNT],
 	bool combineSwingTwistMotors);
 
-
 /**
  * @brief Function to destroy a generic physics constraint.
  * @param engine The physics engine the constraint was created with.
@@ -1154,6 +1261,84 @@ typedef bool (*dsSetGenericPhysicsConstraintMotorFunction)(dsPhysicsEngine* engi
  */
 typedef bool (*dsSetGenericPhysicsConstraintCombineSwingTwistMotorFunction)(dsPhysicsEngine* engine,
 	dsGenericPhysicsConstraint* constraint, bool combineSwingTwist);
+
+/**
+ * @brief Function to create a gear constraint.
+ * @param engine The physics engine to create the constraint with.
+ * @param allocator The allocator to create the constraint with.
+ * @param enabled Whether the constraint is enabled after creation.
+ * @param firstActor The first physics actor the constraint is attached to.
+ * @param firstAxis The axis of rotation for the first actor.
+ * @param firstConstraint The revolute constraint for the first actor.
+ * @param secondActor The second physics actor the constraint is attached to.
+ * @param secondAxis The axis of rotation for the second actor.
+ * @param secondConstraint The revolute constraint for the second actor.
+ * @param ratio The gear ratio between the two actors.
+ * @return The gear constraint or NULL if it couldn't be created.
+ */
+typedef dsGearPhysicsConstraint* (*dsCreateGearPhysicsConstraintFunction)(dsPhysicsEngine* engine,
+	dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
+	const dsVector3f* firstAxis, const dsRevolutePhysicsConstraint* firstConstraint,
+	const dsPhysicsActor* secondActor, const dsVector3f* secondAxis,
+	const dsRevolutePhysicsConstraint* secondConstraint, float ratio);
+
+/**
+ * @brief Function to destroy a gear physics constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The constraint to destroy.
+ * @return False if the constraint couldn't be destroyed.
+ */
+typedef bool (*dsDestroyGearPhysicsConstraintFunction)(dsPhysicsEngine* engine,
+	dsGearPhysicsConstraint* constraint);
+
+/**
+ * @brief Function to set the gear ratio for a gear physics constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The constraint to set the gear ratio on.
+ * @param ratio The gear ratio.
+ * @return False if the gear ratio couldn't be set.
+ */
+typedef bool (*dsSetGearPhysicsConstraintRatioFunction)(dsPhysicsEngine* engine,
+	dsGearPhysicsConstraint* constraint, float ratio);
+
+/**
+ * @brief Function to create a rack and pinion constraint.
+ * @param engine The physics engine to create the constraint with.
+ * @param allocator The allocator to create the constraint with.
+ * @param enabled Whether the constraint is enabled after creation.
+ * @param rackActor The physics actor for the rack the constraint is attached to.
+ * @param rackAxis The axis of translation for the rack actor.
+ * @param rackConstraint The slider constraint for the rack actor.
+ * @param pinionActor The physics actor for the pinion the constraint is attached to.
+ * @param pinionAxis The axis of rotation for the pinion actor.
+ * @param pinionConstraint The revolute constraint for the pinion actor.
+ * @param ratio The gear ratio between the two actors.
+ * @return The rack and pinion constraint or NULL if it couldn't be created.
+ */
+typedef dsRackAndPinionPhysicsConstraint* (*dsCreateRackAndPinionPhysicsConstraintFunction)(
+	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled,
+	const dsPhysicsActor* rackActor, const dsVector3f* rackAxis,
+	const dsSliderPhysicsConstraint* rackConstraint, const dsPhysicsActor* pinionActor,
+	const dsVector3f* pinionAxis, const dsRevolutePhysicsConstraint* pinionConstraint, float ratio);
+
+/**
+ * @brief Function to destroy a rack and pinion physics constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The constraint to destroy.
+ * @return False if the constraint couldn't be destroyed.
+ */
+typedef bool (*dsDestroyRackAndPinionPhysicsConstraintFunction)(dsPhysicsEngine* engine,
+	dsRackAndPinionPhysicsConstraint* constraint);
+
+/**
+ * @brief Function to set the rack and pinion ratio for a gear physics constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The constraint to set the gear ratio on.
+ * @param ratio The gear ratio.
+ * @return False if the gear ratio couldn't be set.
+ */
+typedef bool (*dsSetRackAndPinionPhysicsConstraintRatioFunction)(dsPhysicsEngine* engine,
+	dsRackAndPinionPhysicsConstraint* constraint, float ratio);
 
 #ifdef __cplusplus
 }

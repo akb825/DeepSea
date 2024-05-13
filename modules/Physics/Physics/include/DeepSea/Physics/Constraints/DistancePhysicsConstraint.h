@@ -41,7 +41,8 @@ DS_PHYSICS_EXPORT dsPhysicsConstraintType dsDistancePhysicsConstraint_type(void)
  * @brief Creates a distance physics constraint.
  * @remark errno will be set on failure.
  * @param engine The physics engine to create the constraint with.
- * @param allocator The allocator to create the constraint with.
+ * @param allocator The allocator to create the constraint with. If NULL the engine's allocator will
+ *     be used.
  * @param enabled Whether the constraint is enabled after creation.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.

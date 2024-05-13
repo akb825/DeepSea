@@ -45,7 +45,8 @@ extern "C"
  * @param secondActor The second actor for the constraint.
  * @param enabled Whether the constraint is enabled.
  * @param impl The underlying implementation of the constraint.
- * @param getForceFunc Function to get the last applied force for the constraint.
+ * @param getForceFunc Function to get the last applied force for the constraint. This may be NULL
+ *     for constraints that have no limits on position.
  * @param getTorqueFunc Function to get the last applied torque for the constraint. This may be NULL
  *     for constraints that have no limits on rotation.
  * @param destroyFunc The destroy function of the constraint.

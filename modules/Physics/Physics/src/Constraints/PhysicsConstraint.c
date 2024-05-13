@@ -28,8 +28,7 @@ bool dsPhysicsConstraint_initialize(dsPhysicsConstraint* constraint, dsPhysicsEn
 	dsGetPhysicsConstraintForceFunction getTorqueFunc,
 	dsDestroyPhysicsConstraintFunction destroyFunc)
 {
-	if (!constraint || !engine || !allocator || !firstActor || !secondActor || !getForceFunc ||
-		!destroyFunc)
+	if (!constraint || !engine || !allocator || !firstActor || !secondActor || !destroyFunc)
 	{
 		errno = EINVAL;
 		return false;
@@ -63,7 +62,7 @@ bool dsPhysicsConstraint_setEnabled(dsPhysicsConstraint* constraint, bool enable
 bool dsPhysicsConstraint_getLastAppliedForce(
 	dsVector3f* outForce, const dsPhysicsConstraint* constraint)
 {
-	if (!outForce || !constraint || !constraint->engine || !constraint->getForceFunc)
+	if (!outForce || !constraint || !constraint->engine)
 	{
 		errno = EINVAL;
 		return false;
@@ -75,7 +74,11 @@ bool dsPhysicsConstraint_getLastAppliedForce(
 		return false;
 	}
 
-	return constraint->getForceFunc(outForce, constraint->engine, constraint);
+	if (constraint->getForceFunc)
+		return constraint->getForceFunc(outForce, constraint->engine, constraint);
+
+	outForce->x = outForce->y = outForce->z = 0.0f;
+	return true;
 }
 
 bool dsPhysicsConstraint_getLastAppliedTorque(

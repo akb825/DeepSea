@@ -41,14 +41,19 @@ DS_PHYSICS_EXPORT dsPhysicsConstraintType dsRevolutePhysicsConstraint_type(void)
  * @brief Creates a revolute physics constraint.
  * @remark errno will be set on failure.
  * @param engine The physics engine to create the constraint with.
- * @param allocator The allocator to create the constraint with.
+ * @param allocator The allocator to create the constraint with. If NULL the engine's allocator will
+ *     be used.
  * @param enabled Whether the constraint is enabled after creation.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
- * @param firstRotation The rotation of the constraint on the first actor.
+ * @param firstRotation The rotation of the constraint on the first actor. The axis of the
+ *     quaternion represents the axis that will be rotated around, while the rotation will be used
+ *     relative to any rotation limits.
  * @param secondActor The second physics actor the constraint is attached to.
  * @param secondPosition The position of the constraint on the second actor.
- * @param secondRotation The rotation of the constraint on the second actor.
+ * @param secondRotation The rotation of the constraint on the second actor. The axis of the
+ *     quaternion represents the axis that will be rotated around, while the rotation will be used
+ *     relative to any rotation limits.
  * @param limitEnabled Whether the rotation limit is enabled.
  * @param minAngle The minimum angle for the rotation in the range [-pi, 0].
  * @param maxAngle The maximum angle for the rotation in the range [0, pi].
@@ -114,10 +119,14 @@ DS_PHYSICS_EXPORT bool dsRevolutePhysicsConstraint_setMotor(dsRevolutePhysicsCon
  * @param enabled Whether the constraint is enabled after creation.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
- * @param firstRotation The rotation of the constraint on the first actor.
+ * @param firstRotation The rotation of the constraint on the first actor. The axis of the
+ *     quaternion represents the axis that will be rotated around, while the rotation will be used
+ *     relative to any rotation limits.
  * @param secondActor The second physics actor the constraint is attached to.
  * @param secondPosition The position of the constraint on the second actor.
- * @param secondRotation The rotation of the constraint on the second actor.
+ * @param secondRotation The rotation of the constraint on the second actor. The axis of the
+ *     quaternion represents the axis that will be rotated around, while the rotation will be used
+ *     relative to any rotation limits.
  * @param limitEnabled Whether the rotation limit is enabled.
  * @param minAngle The minimum angle for the rotation in the range [-pi, 0].
  * @param maxAngle The maximum angle for the rotation in the range [0, pi].

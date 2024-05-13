@@ -1512,6 +1512,36 @@ struct dsPhysicsEngine
 	 */
 	dsSetGenericPhysicsConstraintCombineSwingTwistMotorFunction
 		setGenericConstraintCombineSwingTwistMotorFunc;
+
+	/**
+	 * @brief Function to create a gear physics constraint.
+	 */
+	dsCreateGearPhysicsConstraintFunction createGearConstraintFunc;
+
+	/**
+	 * @brief Function to destroy a gear physics constraint.
+	 */
+	dsDestroyGearPhysicsConstraintFunction destroyGearConstraintFunc;
+
+	/**
+	 * @brief Function to set the gear ratio for a gear physics constraint.
+	 */
+	dsSetGearPhysicsConstraintRatioFunction setGearConstraintRatioFunc;
+
+	/**
+	 * @brief Function to create a rack and pinion physics constraint.
+	 */
+	dsCreateRackAndPinionPhysicsConstraintFunction createRackAndPinionConstraintFunc;
+
+	/**
+	 * @brief Function to destroy a rack and pinion physics constraint.
+	 */
+	dsDestroyRackAndPinionPhysicsConstraintFunction destroyRackAndPinionConstraintFunc;
+
+	/**
+	 * @brief Function to set the rack and pinion ratio for a rack and pinion physics constraint.
+	 */
+	dsSetRackAndPinionPhysicsConstraintRatioFunction setRackAndPinionConstraintRatioFunc;
 };
 
 #ifdef __cplusplus
