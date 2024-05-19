@@ -144,7 +144,7 @@ jobs:
         check_name: Tests (Mac ${{ matrix.lib_type }} Release)
         junit_files: "${{ env.test_results_location }}/*.xml"
   Windows:
-    runs-on: windows-latest
+    runs-on: windows-2019
     strategy:
       matrix:
         include:
