@@ -43,8 +43,8 @@ extern "C"
  * @param type The type of the constraint.
  * @param firstActor The first actor for the constraint.
  * @param secondActor The second actor for the constraint.
- * @param enabled Whether the constraint is enabled.
  * @param impl The underlying implementation of the constraint.
+ * @param setEnabledFunc Function to set whether the constraint is enabled.
  * @param getForceFunc Function to get the last applied force for the constraint. This may be NULL
  *     for constraints that have no limits on position.
  * @param getTorqueFunc Function to get the last applied torque for the constraint. This may be NULL
@@ -54,15 +54,17 @@ extern "C"
  */
 DS_PHYSICS_EXPORT bool dsPhysicsConstraint_initialize(dsPhysicsConstraint* constraint,
 	dsPhysicsEngine* engine, dsAllocator* allocator, dsPhysicsConstraintType type,
-	const dsPhysicsActor* firstActor, const dsPhysicsActor* secondActor, bool enabled,
-	void* impl, dsGetPhysicsConstraintForceFunction getForceFunc,
+	const dsPhysicsActor* firstActor, const dsPhysicsActor* secondActor, void* impl,
+	dsSetPhysicsConstraintEnabledFunction setEnabledFunc,
+	dsGetPhysicsConstraintForceFunction getForceFunc,
 	dsGetPhysicsConstraintForceFunction getTorqueFunc,
 	dsDestroyPhysicsConstraintFunction destroyFunc);
 
 /**
  * @brief Sets whether a physics constraint is enabled.
  *
- * When a constraint is disabled it will not be enforced.
+ * The constraint must be a part of a scene before it can be enabled. When a constraint is disabled
+ * it will not be enforced.
  *
  * @remark errno will be set on failure.
  * @param constraint The constraint to set the enabled state on.
@@ -102,6 +104,9 @@ DS_PHYSICS_EXPORT bool dsPhysicsConstraint_getLastAppliedTorque(dsVector3f* outT
 
 /**
  * @brief Destroys a physics constraint.
+ *
+ * If the constraint is part of a physics scene it will be implicitly removed.
+ *
  * @remark errno will be set on failure.
  * @param constraint The constraint to destroy.
  * @return False if the constraint couldn't be destroyed.

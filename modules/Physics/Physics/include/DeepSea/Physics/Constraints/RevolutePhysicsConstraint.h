@@ -43,7 +43,6 @@ DS_PHYSICS_EXPORT dsPhysicsConstraintType dsRevolutePhysicsConstraint_type(void)
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with. If NULL the engine's allocator will
  *     be used.
- * @param enabled Whether the constraint is enabled after creation.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
  * @param firstRotation The rotation of the constraint on the first actor. The axis of the
@@ -66,7 +65,7 @@ DS_PHYSICS_EXPORT dsPhysicsConstraintType dsRevolutePhysicsConstraint_type(void)
  * @return The revolute constraint or NULL if it couldn't be created.
  */
 DS_PHYSICS_EXPORT dsRevolutePhysicsConstraint* dsRevolutePhysicsConstraint_create(
-	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
+	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
 	const dsQuaternion4f* secondRotation, bool limitEnabled, float minAngle, float maxAngle,
@@ -116,7 +115,6 @@ DS_PHYSICS_EXPORT bool dsRevolutePhysicsConstraint_setMotor(dsRevolutePhysicsCon
  * @param[out] constraint The constraint to initialize.
  * @param engine The physics engine the constraint was created with.
  * @param allocator The allocator the constraint was created with.
- * @param enabled Whether the constraint is enabled after creation.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
  * @param firstRotation The rotation of the constraint on the first actor. The axis of the
@@ -137,18 +135,14 @@ DS_PHYSICS_EXPORT bool dsRevolutePhysicsConstraint_setMotor(dsRevolutePhysicsCon
  * @param maxMotorTorque The maximum torque to apply for the motor. When the motor is disabled, the
  *     torque will be applied to stop motion.
  * @param impl The underlying implementation for the constraint.
- * @param getForceFunc Function to get the last applied force for the constraint.
- * @param getTorqueFunc Function to get the last applied torque for the constraint.
  */
 DS_PHYSICS_EXPORT void dsRevolutePhysicsConstraint_initialize(
 	dsRevolutePhysicsConstraint* constraint, dsPhysicsEngine* engine, dsAllocator* allocator,
-	bool enabled, const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
+	const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
 	const dsQuaternion4f* firstRotation, const dsPhysicsActor* secondActor,
 	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation, bool limitEnabled,
 	float minAngle, float maxAngle, float limitStiffness, float limitDamping,
-	dsPhysicsConstraintMotorType motorType, float motorTarget, float maxMotorTorque, void* impl,
-	dsGetPhysicsConstraintForceFunction getForceFunc,
-	dsGetPhysicsConstraintForceFunction getTorqueFunc);
+	dsPhysicsConstraintMotorType motorType, float motorTarget, float maxMotorTorque, void* impl);
 
 #ifdef __cplusplus
 }

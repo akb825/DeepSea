@@ -288,7 +288,7 @@ DS_PHYSICS_EXPORT bool dsPhysicsScene_unlockWrite(
 /**
  * @brief Adds rigid bodies to a physics scene.
  * @remark errno will be set on failure.
- * @param scene The physics scene to add the rigid body to.
+ * @param scene The physics scene to add the rigid bodies to.
  * @param rigidBodies The rigid bodies to add. These must not be part of a rigid body group.
  * @param rigidBodyCount The number of rigid bodies to add.
  * @param activate Whether the rigid bodies should be activated on insertion.
@@ -300,9 +300,9 @@ DS_PHYSICS_EXPORT bool dsPhysicsScene_addRigidBodies(dsPhysicsScene* scene,
 	const dsPhysicsSceneLock* lock);
 
 /**
- * @brief Removes a rigid body from a physics scene.
+ * @brief Removes rigid bodies from a physics scene.
  * @remark errno will be set on failure.
- * @param scene The physics scene to remove the rigid body from.
+ * @param scene The physics scene to remove the rigid bodies from.
  * @param rigidBodies The rigid bodies to remove. These must not be part of a rigid body group.
  * @param rigidBodyCount The number of rigid bodies to remove.
  * @param lock The previously acquired lock. This must have been locked for writing.
@@ -336,6 +336,9 @@ DS_PHYSICS_EXPORT bool dsPhysicsScene_removeRigidBodyGroup(dsPhysicsScene* scene
 
 /**
  * @brief Gets actors from a physics scene.
+ *
+ * The ordering may change when actors are added or removed.
+ *
  * @remark errno will be set on failure.
  * @param[out] outActors Storage for the actor pointers. This must have space for at least count
  *     pointers.
@@ -343,10 +346,57 @@ DS_PHYSICS_EXPORT bool dsPhysicsScene_removeRigidBodyGroup(dsPhysicsScene* scene
  * @param firstIndex The first index to get actors from.
  * @param count The number of actors to get.
  * @param lock The previously acquired lock. This must have been locked for reading or writing.
- * @return The number of actors that were read or DS_INVALID_PHYSICS_ID if the actors couldn't be
- *     queried.
+ * @return The number of actors that were populated or DS_INVALID_PHYSICS_ID if the actors couldn't
+ *     be queried.
  */
 DS_PHYSICS_EXPORT uint32_t dsPhysicsScene_getActors(dsPhysicsActor** outActors,
+	const dsPhysicsScene* scene, uint32_t firstIndex, uint32_t count,
+	const dsPhysicsSceneLock* lock);
+
+/**
+ * @brief Adds constraints to a physics scene.
+ * @remark errno will be set on failure.
+ * @param scene The physics scene to add the constraints to.
+ * @param constraints The constraints to add. The actors the constraints reference must have already
+ *     been added to this scene.
+ * @param constraintCount The number of constraints to add.
+ * @param enable Whether the constraints should be enabled on insertion.
+ * @param lock The previously acquired lock. This must have been locked for writing.
+ * @return False if the constraints couldn't be added.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsScene_addConstraints(dsPhysicsScene* scene,
+	dsPhysicsConstraint* const* constraints, uint32_t constraintCount, bool enable,
+	const dsPhysicsSceneLock* lock);
+
+/**
+ * @brief Removes constraints from a physics scene.
+ * @remark errno will be set on failure.
+ * @param scene The physics scene to remove the constraints from.
+ * @param constraints The constraints to remove.
+ * @param constraintCount The number of constraints to remove.
+ * @param lock The previously acquired lock. This must have been locked for writing.
+ * @return False if the constraints couldn't be removed.
+ */
+DS_PHYSICS_EXPORT bool dsPhysicsScene_removeConstraints(dsPhysicsScene* scene,
+	dsPhysicsConstraint* const* constraints, uint32_t constraintCount,
+	const dsPhysicsSceneLock* lock);
+
+/**
+ * @brief Gets constraints from a physics scene.
+ *
+ * The ordering may change when constraints are added or removed.
+ *
+ * @remark errno will be set on failure.
+ * @param[out] outConstraints Storage for the constraint pointers. This must have space for at least
+ *     count pointers.
+ * @param scene The physics scene to get the constraints from.
+ * @param firstIndex The first index to get constraints from.
+ * @param count The number of constraints to get.
+ * @param lock The previously acquired lock. This must have been locked for reading or writing.
+ * @return The number of constraints that were populated or DS_INVALID_PHYSICS_ID if the actors
+ *     couldn't be queried.
+ */
+DS_PHYSICS_EXPORT uint32_t dsPhysicsScene_getConstraints(dsPhysicsConstraint** outConstraints,
 	const dsPhysicsScene* scene, uint32_t firstIndex, uint32_t count,
 	const dsPhysicsSceneLock* lock);
 

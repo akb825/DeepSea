@@ -43,7 +43,6 @@ DS_PHYSICS_EXPORT dsPhysicsConstraintType dsDistancePhysicsConstraint_type(void)
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with. If NULL the engine's allocator will
  *     be used.
- * @param enabled Whether the constraint is enabled after creation.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
  * @param secondActor The second physics actor the constraint is attached to.
@@ -55,7 +54,7 @@ DS_PHYSICS_EXPORT dsPhysicsConstraintType dsDistancePhysicsConstraint_type(void)
  * @return The distance constraint or NULL if it couldn't be created.
  */
 DS_PHYSICS_EXPORT dsDistancePhysicsConstraint* dsDistancePhysicsConstraint_create(
-	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
+	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstPosition, const dsPhysicsActor* secondActor,
 	const dsVector3f* secondPosition, float minDistance, float maxDistance, float limitStiffness,
 	float limitDamping);
@@ -82,7 +81,6 @@ DS_PHYSICS_EXPORT bool dsDistancePhysicsConstraint_setLimit(
  * @param[out] constraint The constraint to initialize.
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with.
- * @param enabled Whether the constraint is enabled after creation.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
  * @param secondActor The second physics actor the constraint is attached to.
@@ -92,14 +90,12 @@ DS_PHYSICS_EXPORT bool dsDistancePhysicsConstraint_setLimit(
  * @param limitStiffness The stiffness for the spring for the distance limit.
  * @param limitDamping The damping for the spring for the distance limit in the range [0, 1].
  * @param impl The underlying implementation for the constraint.
- * @param getForceFunc Function to get the last applied force for the constraint.
  */
 DS_PHYSICS_EXPORT void dsDistancePhysicsConstraint_initialize(
 	dsDistancePhysicsConstraint* constraint, dsPhysicsEngine* engine, dsAllocator* allocator,
-	bool enabled, const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
+	const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition, float minDistance,
-	float maxDistance, float limitStiffness, float limitDamping, void* impl,
-	dsGetPhysicsConstraintForceFunction getForceFunc);
+	float maxDistance, float limitStiffness, float limitDamping, void* impl);
 
 #ifdef __cplusplus
 }

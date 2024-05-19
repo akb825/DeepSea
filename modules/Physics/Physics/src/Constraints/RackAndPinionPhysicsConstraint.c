@@ -110,10 +110,9 @@ float dsRackAndPinionPhysicsConstraint_computeRatio(unsigned int rackToothCount,
 }
 
 dsRackAndPinionPhysicsConstraint* dsRackAndPinionPhyiscsConstraint_create(dsPhysicsEngine* engine,
-	dsAllocator* allocator, bool enabled, const dsPhysicsActor* rackActor,
-	const dsVector3f* rackAxis, const dsSliderPhysicsConstraint* rackConstraint,
-	const dsPhysicsActor* pinionActor, const dsVector3f* pinionAxis,
-	const dsRevolutePhysicsConstraint* pinionConstraint, float ratio)
+	dsAllocator* allocator, const dsPhysicsActor* rackActor, const dsVector3f* rackAxis,
+	const dsSliderPhysicsConstraint* rackConstraint, const dsPhysicsActor* pinionActor,
+	const dsVector3f* pinionAxis, const dsRevolutePhysicsConstraint* pinionConstraint, float ratio)
 {
 	if (!engine || !engine->createRackAndPinionConstraintFunc ||
 		!engine->destroyRackAndPinionConstraintFunc || !rackActor || !rackAxis ||
@@ -129,8 +128,8 @@ dsRackAndPinionPhysicsConstraint* dsRackAndPinionPhyiscsConstraint_create(dsPhys
 	if (!allocator)
 		allocator = engine->allocator;
 
-	return engine->createRackAndPinionConstraintFunc(engine, allocator, enabled, rackActor,
-		rackAxis, rackConstraint, pinionActor, pinionAxis, pinionConstraint, ratio);
+	return engine->createRackAndPinionConstraintFunc(engine, allocator, rackActor, rackAxis,
+		rackConstraint, pinionActor, pinionAxis, pinionConstraint, ratio);
 }
 
 bool dsRackAndPinionPhysicsConstraint_setRatio(dsRackAndPinionPhysicsConstraint* constraint, float ratio)
@@ -149,11 +148,10 @@ bool dsRackAndPinionPhysicsConstraint_setRatio(dsRackAndPinionPhysicsConstraint*
 
 void dsRackAndPinionPhyiscsConstraint_initialize(
 	dsRackAndPinionPhysicsConstraint* constraint, dsPhysicsEngine* engine, dsAllocator* allocator,
-	bool enabled, const dsPhysicsActor* rackActor, const dsVector3f* rackAxis,
+	const dsPhysicsActor* rackActor, const dsVector3f* rackAxis,
 	const dsSliderPhysicsConstraint* rackConstraint, const dsPhysicsActor* pinionActor,
 	const dsVector3f* pinionAxis, const dsRevolutePhysicsConstraint* pinionConstraint, float ratio,
-	void* impl, dsGetPhysicsConstraintForceFunction getForceFunc,
-	dsGetPhysicsConstraintForceFunction getTorqueFunc)
+	void* impl)
 {
 	DS_ASSERT(constraint);
 	DS_ASSERT(engine);
@@ -166,12 +164,13 @@ void dsRackAndPinionPhyiscsConstraint_initialize(
 	DS_ASSERT(isConstraintValid(
 		(const dsPhysicsConstraint*)pinionConstraint, pinionActor, pinionAxis));
 	DS_ASSERT(ratio != 0.0f);
-	DS_ASSERT(getForceFunc);
-	DS_ASSERT(getTorqueFunc);
 
 	DS_VERIFY(dsPhysicsConstraint_initialize((dsPhysicsConstraint*)constraint, engine, allocator,
-		dsRackAndPinionPhysicsConstraint_type(), rackActor, pinionActor, enabled, impl, getForceFunc,
-		getTorqueFunc, (dsDestroyPhysicsConstraintFunction)engine->destroyRevoluteConstraintFunc));
+		dsRackAndPinionPhysicsConstraint_type(), rackActor, pinionActor, impl,
+		(dsSetPhysicsConstraintEnabledFunction)engine->setRackAndPinionConstraintEnabledFunc,
+		(dsGetPhysicsConstraintForceFunction)engine->getRackAndPinionConstraintForceFunc,
+		(dsGetPhysicsConstraintForceFunction)engine->getRackAndPinionConstraintTorqueFunc,
+		(dsDestroyPhysicsConstraintFunction)engine->destroyRackAndPinionConstraintFunc));
 
 	constraint->firstAxis = *rackAxis;
 	constraint->secondAxis = *pinionAxis;

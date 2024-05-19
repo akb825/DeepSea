@@ -29,9 +29,8 @@ dsPhysicsConstraintType dsPointPhysicsConstraint_type(void)
 }
 
 dsPointPhysicsConstraint* dsPointPhysicsConstraint_create(dsPhysicsEngine* engine,
-	dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition)
+	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
+	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition)
 {
 	if (!engine || !engine->createPointConstraintFunc || !engine->destroyPointConstraintFunc ||
 		!firstActor || !firstPosition || !secondActor || !secondPosition)
@@ -43,14 +42,14 @@ dsPointPhysicsConstraint* dsPointPhysicsConstraint_create(dsPhysicsEngine* engin
 	if (!allocator)
 		allocator = engine->allocator;
 
-	return engine->createPointConstraintFunc(engine, allocator, enabled, firstActor, firstPosition,
+	return engine->createPointConstraintFunc(engine, allocator, firstActor, firstPosition,
 		secondActor, secondPosition);
 }
 
 void dsPointPhysicsConstraint_initialize(dsPointPhysicsConstraint* constraint,
-	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
+	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstPosition, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, void* impl, dsGetPhysicsConstraintForceFunction getForceFunc)
+	const dsVector3f* secondPosition, void* impl)
 {
 	DS_ASSERT(constraint);
 	DS_ASSERT(engine);
@@ -58,8 +57,10 @@ void dsPointPhysicsConstraint_initialize(dsPointPhysicsConstraint* constraint,
 	DS_ASSERT(secondPosition);
 
 	DS_VERIFY(dsPhysicsConstraint_initialize((dsPhysicsConstraint*)constraint, engine, allocator,
-		dsPointPhysicsConstraint_type(), firstActor, secondActor, enabled, impl, getForceFunc,
-		NULL, (dsDestroyPhysicsConstraintFunction)engine->destroyPointConstraintFunc));
+		dsPointPhysicsConstraint_type(), firstActor, secondActor, impl,
+		(dsSetPhysicsConstraintEnabledFunction)engine->setPointConstraintEnabledFunc,
+		(dsGetPhysicsConstraintForceFunction)engine->getPointConstraintForceFunc, NULL,
+		(dsDestroyPhysicsConstraintFunction)engine->destroyPointConstraintFunc));
 
 	constraint->firstPosition = *firstPosition;
 	constraint->secondPosition = *secondPosition;

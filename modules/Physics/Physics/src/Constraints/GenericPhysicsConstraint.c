@@ -33,7 +33,7 @@ dsPhysicsConstraintType dsGenericPhysicsConstraint_type(void)
 }
 
 dsGenericPhysicsConstraint* dsGenericPhysicsConstraint_create(
-	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
+	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
 	const dsQuaternion4f* secondRotation,
@@ -87,9 +87,9 @@ dsGenericPhysicsConstraint* dsGenericPhysicsConstraint_create(
 	if (!allocator)
 		allocator = engine->allocator;
 
-	return engine->createGenericConstraintFunc(engine, allocator, enabled, firstActor,
-		firstPosition, firstRotation, secondActor, secondPosition, secondRotation, limits,
-		motors, combineSwingTwistMotors);
+	return engine->createGenericConstraintFunc(engine, allocator, firstActor, firstPosition,
+		firstRotation, secondActor, secondPosition, secondRotation, limits, motors,
+		combineSwingTwistMotors);
 }
 
 bool dsGenericPhysicsConstraint_setLimit(dsGenericPhysicsConstraint* constraint,
@@ -157,14 +157,13 @@ bool dsGenericPhysicsConstraint_setCombineSwingTwistMotor(
 }
 
 void dsGenericPhysicsConstraint_initialize(dsGenericPhysicsConstraint* constraint,
-	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
+	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
 	const dsQuaternion4f* secondRotation,
 	const dsGenericPhysicsConstraintLimit limits[DS_PHYSICS_CONSTRAINT_DOF_COUNT],
 	const dsGenericPhysicsConstraintMotor motors[DS_PHYSICS_CONSTRAINT_DOF_COUNT],
-	bool combineSwingTwistMotors, void* impl, dsGetPhysicsConstraintForceFunction getForceFunc,
-	dsGetPhysicsConstraintForceFunction getTorqueFunc)
+	bool combineSwingTwistMotors, void* impl)
 {
 	DS_ASSERT(constraint);
 	DS_ASSERT(engine);
@@ -177,12 +176,13 @@ void dsGenericPhysicsConstraint_initialize(dsGenericPhysicsConstraint* constrain
 	DS_ASSERT(secondRotation);
 	DS_ASSERT(limits);
 	DS_ASSERT(motors);
-	DS_ASSERT(getForceFunc);
-	DS_ASSERT(getTorqueFunc);
 
 	DS_VERIFY(dsPhysicsConstraint_initialize((dsPhysicsConstraint*)constraint, engine, allocator,
-		dsGenericPhysicsConstraint_type(), firstActor, secondActor, enabled, impl, getForceFunc,
-		getTorqueFunc, (dsDestroyPhysicsConstraintFunction)engine->destroyConeConstraintFunc));
+		dsGenericPhysicsConstraint_type(), firstActor, secondActor, impl,
+		(dsSetPhysicsConstraintEnabledFunction)engine->setGenericConstraintEnabledFunc,
+		(dsGetPhysicsConstraintForceFunction)engine->getGenericConstraintForceFunc,
+		(dsGetPhysicsConstraintForceFunction)engine->getGenericConstraintTorqueFunc,
+		(dsDestroyPhysicsConstraintFunction)engine->destroyGenericConstraintFunc));
 
 	constraint->firstPosition = *firstPosition;
 	constraint->secondPosition = *secondPosition;

@@ -54,7 +54,6 @@ DS_PHYSICS_EXPORT float dsRackAndPinionPhysicsConstraint_computeRatio(unsigned i
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with. If NULL the engine's allocator will
  *     be used.
- * @param enabled Whether the constraint is enabled after creation.
  * @param rackActor The physics actor for the rack the constraint is attached to.
  * @param rackAxis The axis of translation for the rack actor.
  * @param rackConstraint The slider constraint for the rack actor.This may be NULL, but providing it
@@ -69,7 +68,7 @@ DS_PHYSICS_EXPORT float dsRackAndPinionPhysicsConstraint_computeRatio(unsigned i
  * @return The rack and pinion constraint or NULL if it couldn't be created.
  */
 DS_PHYSICS_EXPORT dsRackAndPinionPhysicsConstraint* dsRackAndPinionPhyiscsConstraint_create(
-	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled, const dsPhysicsActor* rackActor,
+	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* rackActor,
 	const dsVector3f* rackAxis, const dsSliderPhysicsConstraint* rackConstraint,
 	const dsPhysicsActor* pinionActor, const dsVector3f* pinionAxis,
 	const dsRevolutePhysicsConstraint* pinionConstraint, float ratio);
@@ -94,7 +93,6 @@ DS_PHYSICS_EXPORT bool dsRackAndPinionPhysicsConstraint_setRatio(dsRackAndPinion
  * @param[out] constraint The constraint to initialize.
  * @param engine The physics engine the constraint was created with.
  * @param allocator The allocator the constraint was created with.
- * @param enabled Whether the constraint is enabled after creation.
  * @param rackActor The physics actor for the rack the constraint is attached to.
  * @param rackAxis The axis of translation for the rack actor.
  * @param rackConstraint The slider constraint for the rack actor.This may be NULL, but providing it
@@ -107,17 +105,13 @@ DS_PHYSICS_EXPORT bool dsRackAndPinionPhysicsConstraint_setRatio(dsRackAndPinion
  *     2*PI*rackToothCount/(rackLength*pinionToothCount). The ratio may be negative if the axes are
  *     flipped.
  * @param impl The underlying implementation for the constraint.
- * @param getForceFunc Function to get the last applied force for the constraint.
- * @param getTorqueFunc Function to get the last applied torque for the constraint.
  */
 DS_PHYSICS_EXPORT void dsRackAndPinionPhyiscsConstraint_initialize(
 	dsRackAndPinionPhysicsConstraint* constraint, dsPhysicsEngine* engine, dsAllocator* allocator,
-	bool enabled, const dsPhysicsActor* rackActor, const dsVector3f* rackAxis,
-	const dsSliderPhysicsConstraint* rackConstraint,
-	const dsPhysicsActor* pinionActor, const dsVector3f* pinionAxis,
-	const dsRevolutePhysicsConstraint* pinionConstraint, float ratio, void* impl,
-	dsGetPhysicsConstraintForceFunction getForceFunc,
-	dsGetPhysicsConstraintForceFunction getTorqueFunc);
+	const dsPhysicsActor* rackActor, const dsVector3f* rackAxis,
+	const dsSliderPhysicsConstraint* rackConstraint, const dsPhysicsActor* pinionActor,
+	const dsVector3f* pinionAxis, const dsRevolutePhysicsConstraint* pinionConstraint, float ratio,
+	void* impl);
 
 #ifdef __cplusplus
 }

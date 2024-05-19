@@ -75,6 +75,10 @@ typedef enum dsPhysicsConstraintDOF
 	dsPhysicsConstraintDOF_RotateZ     ///< Rotation along the Z axis, or the twist.
 } dsPhysicsConstraintDOF;
 
+/// @cond
+typedef struct dsPhysicsScene dsPhysicsScene;
+/// @endcond
+
 /**
  * @brief Value that denotes the type of a physics constraint.
  */
@@ -90,6 +94,16 @@ typedef bool (*dsDestroyPhysicsConstraintFunction)(dsPhysicsEngine* engine,
 	dsPhysicsConstraint* constraint);
 
 /**
+ * @brief Function to set whether a physics constraint is enabled.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constrant to set the enabled state on.
+ * @param enabled Whether the constraint is enabled and will be enforced.
+ * @return False if the enabled state couldn't be set.
+ */
+typedef bool (*dsSetPhysicsConstraintEnabledFunction)(dsPhysicsEngine* engine,
+	dsPhysicsConstraint* constraint, bool enabled);
+
+/**
  * @brief Function to get the applied force for a physics constraint.
  * @param[out] outForce The force applied to the constraint.
  * @param engine The physics engine the constraint was created with.
@@ -102,9 +116,12 @@ typedef bool (*dsGetPhysicsConstraintForceFunction)(dsVector3f* outForce,
 /**
  * @brief Base type for a physics constraint.
  *
- * Constraints place requirements of the positions of physics bodies relative to each-other. Forces
- * will be applied to the bodies to ensure the constraints are satisfied to the best of the physics
- * engine's capabilities.
+ * Constraints place requirements of the positions and orientations of physics actors relative to
+ * each-other. Forces will be applied to the actors to ensure the constraints are satisfied to the
+ * best of the physics engine's capabilities.
+ *
+ * Actors do not track what constraints they are used with. Callers are responsible for ensuring
+ * that all constraints that reference an actor are removed before that actor is removed.
  *
  * @remark None of the members should be modified outside of the implementation.
  * @see PhysicsConstraint.h
@@ -120,6 +137,14 @@ typedef struct dsPhysicsConstraint
 	 * @brief The allocator the shape was created with.
 	 */
 	dsAllocator* allocator;
+
+	/**
+	 * @brief The physics scene the constraint is a member of, or NULL if not associated with a
+	 *     scene.
+	 *
+	 * The constraint may only be associated at most one scene at a time
+	 */
+	dsPhysicsScene* scene;
 
 	/**
 	 * @brief The type of the constraint.
@@ -148,6 +173,11 @@ typedef struct dsPhysicsConstraint
 	 * the physics implementation.
 	 */
 	void* impl;
+
+	/**
+	 * @brief Function to set whether the constraint is enabled.
+	 */
+	dsSetPhysicsConstraintEnabledFunction setEnabledFunc;
 
 	/**
 	 * @brief Function to get the applied force for the constraint.
@@ -831,20 +861,9 @@ typedef struct dsRackAndPinionPhysicsConstraint
 } dsRackAndPinionPhysicsConstraint;
 
 /**
- * @brief Function to set whether a physics constraint is enabled.
- * @param engine The physics engine the constraint was created with.
- * @param constraint The physics constrant to set the enabled state on.
- * @param enabled Whether the constraint is enabled and will be enforced.
- * @return False if the enabled state couldn't be set.
- */
-typedef bool (*dsSetPhysicsConstraintEnabledFunction)(dsPhysicsEngine* engine,
-	dsPhysicsConstraint* constraint, bool enabled);
-
-/**
  * @brief Function to create a fixed physics constraint.
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with.
- * @param enabled Whether the constraint is enabled after creation.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
  * @param firstRotation The rotation of the constraint on the first actor.
@@ -854,7 +873,7 @@ typedef bool (*dsSetPhysicsConstraintEnabledFunction)(dsPhysicsEngine* engine,
  * @return The fixed constraint or NULL if it couldn't be created.
  */
 typedef dsFixedPhysicsConstraint* (*dsCreateFixedPhysicsConstraintFunction)(dsPhysicsEngine* engine,
-	dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
+	dsAllocator* allocator, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
 	const dsQuaternion4f* secondRotation);
@@ -869,10 +888,29 @@ typedef bool (*dsDestroyFixedPhysicsConstraintFunction)(dsPhysicsEngine* engine,
 	dsFixedPhysicsConstraint* constraint);
 
 /**
+ * @brief Function to set whether a fixed physics constraint is enabled.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constrant to set the enabled state on.
+ * @param enabled Whether the constraint is enabled and will be enforced.
+ * @return False if the enabled state couldn't be set.
+ */
+typedef bool (*dsSetFixedPhysicsConstraintEnabledFunction)(dsPhysicsEngine* engine,
+	dsFixedPhysicsConstraint* constraint, bool enabled);
+
+/**
+ * @brief Function to get the applied force for a fixed physics constraint.
+ * @param[out] outForce The force applied to the constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constraint to get the force for.
+ * @return False if the force couldn't be queried.
+ */
+typedef bool (*dsGetFixedPhysicsConstraintForceFunction)(dsVector3f* outForce,
+	dsPhysicsEngine* engine, const dsFixedPhysicsConstraint* constraint);
+
+/**
  * @brief Function to create a point physics constraint.
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with.
- * @param enabled Whether the constraint is enabled after creation.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
  * @param secondActor The second physics actor the constraint is attached to.
@@ -880,7 +918,7 @@ typedef bool (*dsDestroyFixedPhysicsConstraintFunction)(dsPhysicsEngine* engine,
  * @return The point constraint or NULL if it couldn't be created.
  */
 typedef dsPointPhysicsConstraint* (*dsCreatePointPhysicsConstraintFunction)(dsPhysicsEngine* engine,
-	dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
+	dsAllocator* allocator, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstPosition, const dsPhysicsActor* secondActor,
 	const dsVector3f* secondPosition);
 
@@ -894,10 +932,29 @@ typedef bool (*dsDestroyPointPhysicsConstraintFunction)(dsPhysicsEngine* engine,
 	dsPointPhysicsConstraint* constraint);
 
 /**
+ * @brief Function to set whether a point physics constraint is enabled.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constrant to set the enabled state on.
+ * @param enabled Whether the constraint is enabled and will be enforced.
+ * @return False if the enabled state couldn't be set.
+ */
+typedef bool (*dsSetPointPhysicsConstraintEnabledFunction)(dsPhysicsEngine* engine,
+	dsPointPhysicsConstraint* constraint, bool enabled);
+
+/**
+ * @brief Function to get the applied force for a point physics constraint.
+ * @param[out] outForce The force applied to the constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constraint to get the force for.
+ * @return False if the force couldn't be queried.
+ */
+typedef bool (*dsGetPointPhysicsConstraintForceFunction)(dsVector3f* outForce,
+	dsPhysicsEngine* engine, const dsPointPhysicsConstraint* constraint);
+
+/**
  * @brief Function to create a cone physics constraint.
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with.
- * @param enabled Whether the constraint is enabled after creation.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
  * @param firstRotation The rotation of the constraint on the first actor.
@@ -908,10 +965,9 @@ typedef bool (*dsDestroyPointPhysicsConstraintFunction)(dsPhysicsEngine* engine,
  * @return The fixed constraint or NULL if it couldn't be created.
  */
 typedef dsConePhysicsConstraint* (*dsCreateConePhysicsConstraintFunction)(dsPhysicsEngine* engine,
-	dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
-	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation, float maxAngle);
+	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
+	const dsQuaternion4f* firstRotation, const dsPhysicsActor* secondActor,
+	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation, float maxAngle);
 
 /**
  * @brief Function to destroy a cone physics constraint.
@@ -921,6 +977,26 @@ typedef dsConePhysicsConstraint* (*dsCreateConePhysicsConstraintFunction)(dsPhys
  */
 typedef bool (*dsDestroyConePhysicsConstraintFunction)(dsPhysicsEngine* engine,
 	dsConePhysicsConstraint* constraint);
+
+/**
+ * @brief Function to set whether a cone physics constraint is enabled.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constrant to set the enabled state on.
+ * @param enabled Whether the constraint is enabled and will be enforced.
+ * @return False if the enabled state couldn't be set.
+ */
+typedef bool (*dsSetConePhysicsConstraintEnabledFunction)(dsPhysicsEngine* engine,
+	dsConePhysicsConstraint* constraint, bool enabled);
+
+/**
+ * @brief Function to get the applied force for a cone physics constraint.
+ * @param[out] outForce The force applied to the constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constraint to get the force for.
+ * @return False if the force couldn't be queried.
+ */
+typedef bool (*dsGetConePhysicsConstraintForceFunction)(dsVector3f* outForce,
+	dsPhysicsEngine* engine, const dsConePhysicsConstraint* constraint);
 
 /**
  * @brief Function to set the max angle for a cone physics constraint.
@@ -936,7 +1012,6 @@ typedef bool (*dsSetConePhysicsConstraintMaxAngleFunction)(dsPhysicsEngine* engi
  * @brief Function to create a swing twist physics constraint.
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with.
- * @param enabled Whether the constraint is enabled after creation.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
  * @param firstRotation The rotation of the constraint on the first actor.
@@ -952,11 +1027,11 @@ typedef bool (*dsSetConePhysicsConstraintMaxAngleFunction)(dsPhysicsEngine* engi
  * @return The swing twist constraint or NULL if it couldn't be created.
  */
 typedef dsSwingTwistPhysicsConstraint* (*dsCreateSwingTwistPhysicsConstraintFunction)(
-	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled,
-	const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
-	const dsQuaternion4f* firstRotation, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation, float maxSwingXAngle,
-	float maxSwingYAngle, float maxTwistZAngle, dsPhysicsConstraintMotorType motorType,
+	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
+	const dsQuaternion4f* secondRotation, float maxSwingXAngle, float maxSwingYAngle,
+	float maxTwistZAngle, dsPhysicsConstraintMotorType motorType,
 	const dsQuaternion4f* targetRotation, float maxTorque);
 
 /**
@@ -967,6 +1042,26 @@ typedef dsSwingTwistPhysicsConstraint* (*dsCreateSwingTwistPhysicsConstraintFunc
  */
 typedef bool (*dsDestroySwingTwistPhysicsConstraintFunction)(dsPhysicsEngine* engine,
 	dsSwingTwistPhysicsConstraint* constraint);
+
+/**
+ * @brief Function to set whether a swing twist physics constraint is enabled.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constrant to set the enabled state on.
+ * @param enabled Whether the constraint is enabled and will be enforced.
+ * @return False if the enabled state couldn't be set.
+ */
+typedef bool (*dsSetSwingTwistPhysicsConstraintEnabledFunction)(dsPhysicsEngine* engine,
+	dsSwingTwistPhysicsConstraint* constraint, bool enabled);
+
+/**
+ * @brief Function to get the applied force for a swing twist physics constraint.
+ * @param[out] outForce The force applied to the constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constraint to get the force for.
+ * @return False if the force couldn't be queried.
+ */
+typedef bool (*dsGetSwingTwistPhysicsConstraintForceFunction)(dsVector3f* outForce,
+	dsPhysicsEngine* engine, const dsSwingTwistPhysicsConstraint* constraint);
 
 /**
  * @brief Function to set the max angles for a swing twist physics constraint.
@@ -998,7 +1093,6 @@ typedef bool (*dsSetSwingTwistPhysicsConstraintMotorFunction)(dsPhysicsEngine* e
  * @brief Function to create a revolute physics constraint.
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with.
- * @param enabled Whether the constraint is enabled after creation.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
  * @param firstRotation The rotation of the constraint on the first actor.
@@ -1016,12 +1110,12 @@ typedef bool (*dsSetSwingTwistPhysicsConstraintMotorFunction)(dsPhysicsEngine* e
  * @return The revolute constraint or NULL if it couldn't be created.
  */
 typedef dsRevolutePhysicsConstraint* (*dsCreateRevolutePhysicsConstraintFunction)(
-	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled,
-	const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
-	const dsQuaternion4f* firstRotation, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation, bool limitEnabled,
-	float minAngle, float maxAngle, float limitStiffness, float limitDamping,
-	dsPhysicsConstraintMotorType motorType, float motorTarget, float maxMotorTorque);
+	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
+	const dsQuaternion4f* secondRotation, bool limitEnabled, float minAngle, float maxAngle,
+	float limitStiffness, float limitDamping, dsPhysicsConstraintMotorType motorType,
+	float motorTarget, float maxMotorTorque);
 
 /**
  * @brief Function to destroy a revolute physics constraint.
@@ -1031,6 +1125,26 @@ typedef dsRevolutePhysicsConstraint* (*dsCreateRevolutePhysicsConstraintFunction
  */
 typedef bool (*dsDestroyRevolutePhysicsConstraintFunction)(dsPhysicsEngine* engine,
 	dsRevolutePhysicsConstraint* constraint);
+
+/**
+ * @brief Function to set whether a revolute physics constraint is enabled.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constrant to set the enabled state on.
+ * @param enabled Whether the constraint is enabled and will be enforced.
+ * @return False if the enabled state couldn't be set.
+ */
+typedef bool (*dsSetRevolutePhysicsConstraintEnabledFunction)(dsPhysicsEngine* engine,
+	dsRevolutePhysicsConstraint* constraint, bool enabled);
+
+/**
+ * @brief Function to get the applied force for a revolute physics constraint.
+ * @param[out] outForce The force applied to the constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constraint to get the force for.
+ * @return False if the force couldn't be queried.
+ */
+typedef bool (*dsGetRevolutePhysicsConstraintForceFunction)(dsVector3f* outForce,
+	dsPhysicsEngine* engine, const dsRevolutePhysicsConstraint* constraint);
 
 /**
  * @brief Function to set the angle limits on a revolute physics constraint.
@@ -1072,7 +1186,6 @@ typedef bool (*dsSetRevolutePhysicsConstraintMotorFunction)(dsPhysicsEngine* eng
  * @brief Function to create a distance physics constraint.
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with.
- * @param enabled Whether the constraint is enabled after creation.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
  * @param secondActor The second physics actor the constraint is attached to.
@@ -1084,7 +1197,7 @@ typedef bool (*dsSetRevolutePhysicsConstraintMotorFunction)(dsPhysicsEngine* eng
  * @return The distance constraint or NULL if it couldn't be created.
  */
 typedef dsDistancePhysicsConstraint* (*dsCreateDistancePhysicsConstraintFunction)(
-	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
+	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstPosition, const dsPhysicsActor* secondActor,
 	const dsVector3f* secondPosition, float minDistance, float maxDistance, float limitStiffness,
 	float limitDamping);
@@ -1097,6 +1210,26 @@ typedef dsDistancePhysicsConstraint* (*dsCreateDistancePhysicsConstraintFunction
  */
 typedef bool (*dsDestroyDistancePhysicsConstraintFunction)(dsPhysicsEngine* engine,
 	dsDistancePhysicsConstraint* constraint);
+
+/**
+ * @brief Function to set whether a distance physics constraint is enabled.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constrant to set the enabled state on.
+ * @param enabled Whether the constraint is enabled and will be enforced.
+ * @return False if the enabled state couldn't be set.
+ */
+typedef bool (*dsSetDistancePhysicsConstraintEnabledFunction)(dsPhysicsEngine* engine,
+	dsDistancePhysicsConstraint* constraint, bool enabled);
+
+/**
+ * @brief Function to get the applied force for a distance physics constraint.
+ * @param[out] outForce The force applied to the constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constraint to get the force for.
+ * @return False if the force couldn't be queried.
+ */
+typedef bool (*dsGetDistancePhysicsConstraintForceFunction)(dsVector3f* outForce,
+	dsPhysicsEngine* engine, const dsDistancePhysicsConstraint* constraint);
 
 /**
  * @brief Function to set the limits for a distance physics constraint.
@@ -1116,7 +1249,6 @@ typedef bool (*dsSetDistancePhysicsConstraintLimitFunction)(dsPhysicsEngine* eng
  * @brief Function to create a slider physics constraint.
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with.
- * @param enabled Whether the constraint is enabled after creation.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
  * @param firstRotation The rotation of the constraint on the first actor.
@@ -1134,12 +1266,12 @@ typedef bool (*dsSetDistancePhysicsConstraintLimitFunction)(dsPhysicsEngine* eng
  * @return The slider constraint or NULL if it couldn't be created.
  */
 typedef dsSliderPhysicsConstraint* (*dsCreateSliderPhysicsConstraintFunction)(
-	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled,
-	const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
-	const dsQuaternion4f* firstRotation, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation, bool limitEnabled,
-	float minDistance, float maxDistance, float limitStiffness, float limitDamping,
-	dsPhysicsConstraintMotorType motorType, float motorTarget, float maxMotorForce);
+	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
+	const dsQuaternion4f* secondRotation, bool limitEnabled, float minDistance, float maxDistance,
+	float limitStiffness, float limitDamping, dsPhysicsConstraintMotorType motorType,
+	float motorTarget, float maxMotorForce);
 
 /**
  * @brief Function to destroy a slider physics constraint.
@@ -1149,6 +1281,26 @@ typedef dsSliderPhysicsConstraint* (*dsCreateSliderPhysicsConstraintFunction)(
  */
 typedef bool (*dsDestroySliderPhysicsConstraintFunction)(dsPhysicsEngine* engine,
 	dsSliderPhysicsConstraint* constraint);
+
+/**
+ * @brief Function to set whether a slider physics constraint is enabled.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constrant to set the enabled state on.
+ * @param enabled Whether the constraint is enabled and will be enforced.
+ * @return False if the enabled state couldn't be set.
+ */
+typedef bool (*dsSetSliderPhysicsConstraintEnabledFunction)(dsPhysicsEngine* engine,
+	dsSliderPhysicsConstraint* constraint, bool enabled);
+
+/**
+ * @brief Function to get the applied force for a slider physics constraint.
+ * @param[out] outForce The force applied to the constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constraint to get the force for.
+ * @return False if the force couldn't be queried.
+ */
+typedef bool (*dsGetSliderPhysicsConstraintForceFunction)(dsVector3f* outForce,
+	dsPhysicsEngine* engine, const dsSliderPhysicsConstraint* constraint);
 
 /**
  * @brief Function to set the limits for a slider physics constraint.
@@ -1190,7 +1342,6 @@ typedef bool (*dsSetSliderPhysicsConstraintMotorFunction)(dsPhysicsEngine* engin
  * @brief Function to create a generic physics constraint.
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with.
- * @param enabled Whether the constraint is enabled after creation.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
  * @param firstRotation The rotation of the constraint on the first actor.
@@ -1203,7 +1354,7 @@ typedef bool (*dsSetSliderPhysicsConstraintMotorFunction)(dsPhysicsEngine* engin
  * @return The generic constraint or NULL if it couldn't be created.
  */
 typedef dsGenericPhysicsConstraint* (*dsCreateGenericPhysicsConstraintFunction)(
-	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
+	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
 	const dsQuaternion4f* secondRotation,
@@ -1219,6 +1370,26 @@ typedef dsGenericPhysicsConstraint* (*dsCreateGenericPhysicsConstraintFunction)(
  */
 typedef bool (*dsDestroyGenericPhysicsConstraintFunction)(dsPhysicsEngine* engine,
 	dsGenericPhysicsConstraint* constraint);
+
+/**
+ * @brief Function to set whether a generic physics constraint is enabled.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constrant to set the enabled state on.
+ * @param enabled Whether the constraint is enabled and will be enforced.
+ * @return False if the enabled state couldn't be set.
+ */
+typedef bool (*dsSetGenericPhysicsConstraintEnabledFunction)(dsPhysicsEngine* engine,
+	dsGenericPhysicsConstraint* constraint, bool enabled);
+
+/**
+ * @brief Function to get the applied force for a generic physics constraint.
+ * @param[out] outForce The force applied to the constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constraint to get the force for.
+ * @return False if the force couldn't be queried.
+ */
+typedef bool (*dsGetGenericPhysicsConstraintForceFunction)(dsVector3f* outForce,
+	dsPhysicsEngine* engine, const dsGenericPhysicsConstraint* constraint);
 
 /**
  * @brief Function to set the limit for a degree of freedon of a generic physics constraint.
@@ -1266,7 +1437,6 @@ typedef bool (*dsSetGenericPhysicsConstraintCombineSwingTwistMotorFunction)(dsPh
  * @brief Function to create a gear constraint.
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with.
- * @param enabled Whether the constraint is enabled after creation.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstAxis The axis of rotation for the first actor.
  * @param firstConstraint The revolute constraint for the first actor.
@@ -1277,10 +1447,9 @@ typedef bool (*dsSetGenericPhysicsConstraintCombineSwingTwistMotorFunction)(dsPh
  * @return The gear constraint or NULL if it couldn't be created.
  */
 typedef dsGearPhysicsConstraint* (*dsCreateGearPhysicsConstraintFunction)(dsPhysicsEngine* engine,
-	dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstAxis, const dsRevolutePhysicsConstraint* firstConstraint,
-	const dsPhysicsActor* secondActor, const dsVector3f* secondAxis,
-	const dsRevolutePhysicsConstraint* secondConstraint, float ratio);
+	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3f* firstAxis,
+	const dsRevolutePhysicsConstraint* firstConstraint, const dsPhysicsActor* secondActor,
+	const dsVector3f* secondAxis, const dsRevolutePhysicsConstraint* secondConstraint, float ratio);
 
 /**
  * @brief Function to destroy a gear physics constraint.
@@ -1290,6 +1459,26 @@ typedef dsGearPhysicsConstraint* (*dsCreateGearPhysicsConstraintFunction)(dsPhys
  */
 typedef bool (*dsDestroyGearPhysicsConstraintFunction)(dsPhysicsEngine* engine,
 	dsGearPhysicsConstraint* constraint);
+
+/**
+ * @brief Function to set whether a gear physics constraint is enabled.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constrant to set the enabled state on.
+ * @param enabled Whether the constraint is enabled and will be enforced.
+ * @return False if the enabled state couldn't be set.
+ */
+typedef bool (*dsSetGearPhysicsConstraintEnabledFunction)(dsPhysicsEngine* engine,
+	dsGearPhysicsConstraint* constraint, bool enabled);
+
+/**
+ * @brief Function to get the applied force for a gear physics constraint.
+ * @param[out] outForce The force applied to the constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constraint to get the force for.
+ * @return False if the force couldn't be queried.
+ */
+typedef bool (*dsGetGearPhysicsConstraintForceFunction)(dsVector3f* outForce,
+	dsPhysicsEngine* engine, const dsGearPhysicsConstraint* constraint);
 
 /**
  * @brief Function to set the gear ratio for a gear physics constraint.
@@ -1305,7 +1494,6 @@ typedef bool (*dsSetGearPhysicsConstraintRatioFunction)(dsPhysicsEngine* engine,
  * @brief Function to create a rack and pinion constraint.
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with.
- * @param enabled Whether the constraint is enabled after creation.
  * @param rackActor The physics actor for the rack the constraint is attached to.
  * @param rackAxis The axis of translation for the rack actor.
  * @param rackConstraint The slider constraint for the rack actor.
@@ -1316,10 +1504,10 @@ typedef bool (*dsSetGearPhysicsConstraintRatioFunction)(dsPhysicsEngine* engine,
  * @return The rack and pinion constraint or NULL if it couldn't be created.
  */
 typedef dsRackAndPinionPhysicsConstraint* (*dsCreateRackAndPinionPhysicsConstraintFunction)(
-	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled,
-	const dsPhysicsActor* rackActor, const dsVector3f* rackAxis,
-	const dsSliderPhysicsConstraint* rackConstraint, const dsPhysicsActor* pinionActor,
-	const dsVector3f* pinionAxis, const dsRevolutePhysicsConstraint* pinionConstraint, float ratio);
+	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* rackActor,
+	const dsVector3f* rackAxis, const dsSliderPhysicsConstraint* rackConstraint,
+	const dsPhysicsActor* pinionActor, const dsVector3f* pinionAxis,
+	const dsRevolutePhysicsConstraint* pinionConstraint, float ratio);
 
 /**
  * @brief Function to destroy a rack and pinion physics constraint.
@@ -1329,6 +1517,26 @@ typedef dsRackAndPinionPhysicsConstraint* (*dsCreateRackAndPinionPhysicsConstrai
  */
 typedef bool (*dsDestroyRackAndPinionPhysicsConstraintFunction)(dsPhysicsEngine* engine,
 	dsRackAndPinionPhysicsConstraint* constraint);
+
+/**
+ * @brief Function to set whether a rack and pinion physics constraint is enabled.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constrant to set the enabled state on.
+ * @param enabled Whether the constraint is enabled and will be enforced.
+ * @return False if the enabled state couldn't be set.
+ */
+typedef bool (*dsSetRackAndPinionPhysicsConstraintEnabledFunction)(dsPhysicsEngine* engine,
+	dsRackAndPinionPhysicsConstraint* constraint, bool enabled);
+
+/**
+ * @brief Function to get the applied force for a rack and pinion physics constraint.
+ * @param[out] outForce The force applied to the constraint.
+ * @param engine The physics engine the constraint was created with.
+ * @param constraint The physics constraint to get the force for.
+ * @return False if the force couldn't be queried.
+ */
+typedef bool (*dsGetRackAndPinionPhysicsConstraintForceFunction)(dsVector3f* outForce,
+	dsPhysicsEngine* engine, const dsRackAndPinionPhysicsConstraint* constraint);
 
 /**
  * @brief Function to set the rack and pinion ratio for a gear physics constraint.

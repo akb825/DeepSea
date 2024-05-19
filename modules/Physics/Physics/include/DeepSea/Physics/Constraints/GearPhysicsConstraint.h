@@ -53,7 +53,6 @@ DS_PHYSICS_EXPORT float dsGearPhysicsConstraint_computeRatio(unsigned int firstA
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with. If NULL the engine's allocator will
  *     be used.
- * @param enabled Whether the constraint is enabled after creation.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstAxis The axis of rotation for the first actor.
  * @param firstConstraint The revolute constraint for the first actor. This may be NULL, but
@@ -68,10 +67,9 @@ DS_PHYSICS_EXPORT float dsGearPhysicsConstraint_computeRatio(unsigned int firstA
  * @return The gear constraint or NULL if it couldn't be created.
  */
 DS_PHYSICS_EXPORT dsGearPhysicsConstraint* dsGearPhyiscsConstraint_create(dsPhysicsEngine* engine,
-	dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstAxis, const dsRevolutePhysicsConstraint* firstConstraint,
-	const dsPhysicsActor* secondActor, const dsVector3f* secondAxis,
-	const dsRevolutePhysicsConstraint* secondConstraint, float ratio);
+	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3f* firstAxis,
+	const dsRevolutePhysicsConstraint* firstConstraint, const dsPhysicsActor* secondActor,
+	const dsVector3f* secondAxis, const dsRevolutePhysicsConstraint* secondConstraint, float ratio);
 
 /**
  * @brief Sets the gear ratio for a gear physics constraint.
@@ -93,7 +91,6 @@ DS_PHYSICS_EXPORT bool dsGearPhysicsConstraint_setRatio(dsGearPhysicsConstraint*
  * @param[out] constraint The constraint to initialize.
  * @param engine The physics engine the constraint was created with.
  * @param allocator The allocator the constraint was created with.
- * @param enabled Whether the constraint is enabled after creation.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstAxis The axis of rotation for the first actor.
  * @param firstConstraint The revolute constraint for the first actor. This may be NULL, but
@@ -106,14 +103,12 @@ DS_PHYSICS_EXPORT bool dsGearPhysicsConstraint_setRatio(dsGearPhysicsConstraint*
  *     firstActorToothCount/secondActorToothCount. The ratio may be negative if the axes are
  *     flipped.
  * @param impl The underlying implementation for the constraint.
- * @param getTorqueFunc Function to get the last applied torque for the constraint.
  */
 DS_PHYSICS_EXPORT void dsGearPhyiscsConstraint_initialize(dsGearPhysicsConstraint* constraint,
-	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
+	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstAxis, const dsRevolutePhysicsConstraint* firstConstraint,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondAxis,
-	const dsRevolutePhysicsConstraint* secondConstraint, float ratio, void* impl,
-	dsGetPhysicsConstraintForceFunction getTorqueFunc);
+	const dsRevolutePhysicsConstraint* secondConstraint, float ratio, void* impl);
 
 #ifdef __cplusplus
 }

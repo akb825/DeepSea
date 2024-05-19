@@ -524,6 +524,203 @@ typedef struct dsPhysicsMesh
 	const dsPhysicsShapePartMaterial* materials;
 } dsPhysicsMesh;
 
+/**
+ * @brief Function to create a physics sphere.
+ * @param engine The physics engine to create the sphere with.
+ * @param allocator The allocator to create the sphere with.
+ * @param radius The radius of the sphere.
+ * @return The sphere or NULL if it couldn't be created.
+ */
+typedef dsPhysicsSphere* (*dsCreatePhysicsSphereFunction)(dsPhysicsEngine* engine,
+	dsAllocator* allocator, float radius);
+
+/**
+ * @brief Function to destroy a physics sphere.
+ * @param engine The physics engine the sphere was created with.
+ * @param sphere The sphere to destroy.
+ * @return False if the sphere couldn't be destroyed.
+ */
+typedef bool (*dsDestroyPhysicsSphereFunction)(dsPhysicsEngine* engine, dsPhysicsSphere* sphere);
+
+/**
+ * @brief Function to create a physics box.
+ * @param engine The physics engine to create the box with.
+ * @param allocator The allocator to create the box with.
+ * @param halfExtents The half extents for each axis.
+ * @param convexRadius The convex radius used for collision checks.
+ * @return The box or NULL if it couldn't be created.
+ */
+typedef dsPhysicsBox* (*dsCreatePhysicsBoxFunction)(dsPhysicsEngine* engine,
+	dsAllocator* allocator, const dsVector3f* halfExtents, float convexRadius);
+
+/**
+ * @brief Function to destroy a physics box.
+ * @param engine The physics engine the box was created with.
+ * @param box The sphere to destroy.
+ * @return False if the box couldn't be destroyed.
+ */
+typedef bool (*dsDestroyPhysicsBoxFunction)(dsPhysicsEngine* engine, dsPhysicsBox* box);
+
+/**
+ * @brief Function to create a physics capsule.
+ * @param engine The physics engine to create the capsule with.
+ * @param allocator The allocator to create the capsule with.
+ * @param halfHeight The half height of the cylinder portion of the capsule.
+ * @param radius The radius of the capsule.
+ * @param axis The axis the capsule is aligned with.
+ * @return The capsule or NULL if it couldn't be created.
+ */
+typedef dsPhysicsCapsule* (*dsCreatePhysicsCapsuleFunction)(dsPhysicsEngine* engine,
+	dsAllocator* allocator, float halfHeight, float radius, dsPhysicsAxis axis);
+
+/**
+ * @brief Function to destroy a physics capsule.
+ * @param engine The physics engine the capsule was created with.
+ * @param capsule The capsule to destroy.
+ * @return False if the capsule couldn't be destroyed.
+ */
+typedef bool (*dsDestroyPhysicsCapsuleFunction)(dsPhysicsEngine* engine, dsPhysicsCapsule* capsule);
+
+/**
+ * @brief Function to create a physics cylinder.
+ * @param engine The physics engine to create the cylinder with.
+ * @param allocator The allocator to create the cylinder with.
+ * @param halfHeight The half height of the cylinder.
+ * @param radius The radius of the cylinder.
+ * @param axis The axis the cylinder is aligned with.
+ * @param convexRadius The convex radius used for collision checks.
+ * @return The cylinder or NULL if it couldn't be created.
+ */
+typedef dsPhysicsCylinder* (*dsCreatePhysicsCylinderFunction)(dsPhysicsEngine* engine,
+	dsAllocator* allocator, float halfHeight, float radius, dsPhysicsAxis axis,
+	float convexRadius);
+
+/**
+ * @brief Function to destroy a physics cylinder.
+ * @param engine The physics engine the cylinder was created with.
+ * @param cylinder The cylinder to destroy.
+ * @return False if the cylinder couldn't be destroyed.
+ */
+typedef bool (*dsDestroyPhysicsCylinderFunction)(dsPhysicsEngine* engine,
+	dsPhysicsCylinder* cylinder);
+
+/**
+ * @brief Function to create a physics cone.
+ * @param engine The physics engine to create the cone with.
+ * @param allocator The allocator to create the cone with.
+ * @param height The height of the cone.
+ * @param radius The radius of the cone.
+ * @param axis The axis the cone is aligned with.
+ * @param convexRadius The convex radius used for collision checks.
+ * @return The cone or NULL if it couldn't be created.
+ */
+typedef dsPhysicsCone* (*dsCreatePhysicsConeFunction)(dsPhysicsEngine* engine,
+	dsAllocator* allocator, float height, float radius, dsPhysicsAxis axis,
+	float convexRadius);
+
+/**
+ * @brief Function to destroy a physics cone.
+ * @param engine The physics engine the cone was created with.
+ * @param cone The cone to destroy.
+ * @return False if the cone couldn't be destroyed.
+ */
+typedef bool (*dsDestroyPhysicsConeFunction)(dsPhysicsEngine* engine, dsPhysicsCone* cone);
+
+/**
+ * @brief Function to create a physics convex hull.
+ * @param engine The physics engine to create the convex hull with.
+ * @param allocator The allocator to create the convex hull with.
+ * @param vertices Pointer to the vertices.
+ * @param vertexCount The number of vertices.
+ * @param vertexStride The stride in bytes between each vertex.
+ * @param convexRadius The convex radius used for collision checks.
+ * @param cacheName Unique name used to cache the result.
+ * @return The conex hull or NULL if it couldn't be created.
+ */
+typedef dsPhysicsConvexHull* (*dsCreatePhysicsConvexHullFunction)(dsPhysicsEngine* engine,
+	dsAllocator* allocator, const void* vertices, uint32_t vertexCount, size_t vertexStride,
+	float convexRadius, const char* cacheName);
+
+/**
+ * @brief Function to destroy a physics convex hull.
+ * @param engine The physics engine the convex hull was created with.
+ * @param convexHull The convex hull to destroy.
+ * @return False if the convex hull couldn't be destroyed.
+ */
+typedef bool (*dsDestroyPhysicsConvexHullFunction)(dsPhysicsEngine* engine,
+	dsPhysicsConvexHull* convexHull);
+
+/**
+ * @brief Function to get a vertex from the convex hull.
+ * @param[out] outVertex The value to set for the vertex.
+ * @param engine The physics engine that created the convex hull.
+ * @param convexHull The convex hull to get the vertex from.
+ * @param vertexIndex The index to the vertex to get.
+ */
+typedef void (*dsGetPhysicsConvexHullVertexFunction)(dsVector3f* outVertex, dsPhysicsEngine* engine,
+	const dsPhysicsConvexHull* convexHull, uint32_t vertexIndex);
+
+/**
+ * @brief Function to get the number of vertices for a face in the convex hull.
+ * @remark This may not provide any data if debug is false in the physics engine.
+ * @param engine The physics engine that created the convex hull.
+ * @param convexHull The convex hull to get the face vertex from.
+ * @param faceIndex The index of the face to get the index count from.
+ * @return The number of vertex indices for the face.
+ */
+typedef uint32_t (*dsGetPhysicsConvexHullFaceVertexCountFunction)(dsPhysicsEngine* engine,
+	const dsPhysicsConvexHull* convexHull, uint32_t faceIndex);
+
+/**
+ * @brief Function to get the face for a convex hull.
+ * @remark This may not provide any data if debug is false in the physics engine.
+ * @remark errno should be set to ESIZE and return 0 if outIndexCapacity is too small.
+ * @param[out] outIndices The indices for the face vertices. This will only be populated if there is
+ *     enough capacity.
+ * @param outIndexCapacity The capacity of outIndices.
+ * @param[out] outNormal The normal for the face. This may be NULL if no normal is needed.
+ * @param convexHull The convex hull to get the face vertex from.
+ * @param faceIndex The index of the face to get.
+ * @return The number of vertex indices for the face.
+ */
+typedef uint32_t (*dsGetPhysicsConvexHullFaceFunction)(uint32_t* outIndices,
+	uint32_t outIndexCapacity, dsVector3f* outNormal, dsPhysicsEngine* engine,
+	const dsPhysicsConvexHull* convexHull, uint32_t faceIndex);
+
+/**
+ * @brief Function to create a physics mesh.
+ * @param engine The physics engine to create the mesh with.
+ * @param allocator The allocator to create the mesh with.
+ * @param vertices Pointer to the first vertex. Each vertex is defined as 3 floats.
+ * @param vertexCount The number of vertices. At least 3 vertices must be provided.
+ * @param vertexStride The stride in bytes between each vertex.
+ * @param indices The pointer to the first index. Three indices are expected for each triangle.
+ * @param triangleCount The number of triangles in the mesh.
+ * @param indexSize The size of each index.
+ * @param triangleMaterialIndices Material indices for each triangle, which index into the
+ *     triangleMaterials array. May be NULL if per-triangle materials aren't used.
+ * @param triangleMaterialIndexSize The size of each triangle material index.
+ * @param triangleMaterials The per-triangle materials, or NULL if per-triangle materials aren't
+ *     used.
+ * @param triangleMaterialCount The number of per-triangle materials.
+ * @param cacheName Unique name used to cache the result.
+ * @return The mesh or NULL if it couldn't be created.
+ */
+typedef dsPhysicsMesh* (*dsCreatePhysicsMeshFunction)(dsPhysicsEngine* engine,
+	dsAllocator* allocator, const void* vertices, uint32_t vertexCount, size_t vertexStride,
+	const void* indices, uint32_t triangleCount, size_t indexSize,
+	const void* triangleMaterialIndices, size_t triangleMaterialIndexSize,
+	const dsPhysicsShapePartMaterial* triangleMaterials, uint32_t triangleMaterialCount,
+	const char* cacheName);
+
+/**
+ * @brief Function to destroy a physics mesh.
+ * @param engine The physics engine the mesh was created with.
+ * @param mesh The mesh to destroy.
+ * @return False if the mesh couldn't be destroyed.
+ */
+typedef bool (*dsDestroyPhysicsMeshFunction)(dsPhysicsEngine* engine, dsPhysicsMesh* mesh);
+
 #ifdef __cplusplus
 }
 #endif

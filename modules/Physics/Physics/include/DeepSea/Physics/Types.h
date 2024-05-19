@@ -256,7 +256,8 @@ typedef struct dsPhysicsSceneSettings
 	 *
 	 * This should be true if any of the following may happen:
 	 * - Actors or constraints may be added or removed from the scene on separate threads.
-	 * - Queries or changes may be made conocurrent to updating the physics scene.
+	 * - Queries or changes may be made conocurrent to updating the physics scene or modifications
+	 *   to the scene.
 	 *
 	 * The following common multi-threaded access does *not* require this to be true:
 	 * - Creation of physics objects across threads, so long as they are only added to or removed
@@ -644,6 +645,41 @@ typedef uint32_t (*dsPhysicsSceneGetActorsFunction)(dsPhysicsActor** outActors,
 	dsPhysicsEngine* engine, const dsPhysicsScene* scene, uint32_t firstIndex, uint32_t count);
 
 /**
+ * @brief Function to add constraints to a physics scene.
+ * @param engine The physics engine the scene was created with.
+ * @param scene The scene to add the rigid body to.
+ * @param constraints The constraints to add.
+ * @param constraintCount The number of constraints to add.
+ * @param enable Whether the constraints should be enabled on insertion.
+ * @return False if the constraints couldn't be added.
+ */
+typedef bool (*dsPhysicsSceneAddConstraintsFunction)(dsPhysicsEngine* engine, dsPhysicsScene* scene,
+	dsPhysicsConstraint* const* constraints, uint32_t constraintCount, bool enable);
+
+/**
+ * @brief Function to remove constrints from a physics scene.
+ * @param engine The physics engine the scene was created with.
+ * @param scene The scene to remove the constrints from.
+ * @param constraints The constrints to remove.
+ * @param constraintCount The number of constrints to remove.
+ * @return False if the constrint couldn't be removed.
+ */
+typedef bool (*dsPhysicsSceneRemoveConstraintsFunction)(dsPhysicsEngine* engine,
+	dsPhysicsScene* scene, dsPhysicsConstraint* const* constraints, uint32_t constraintCount);
+
+/**
+ * @brief Function to get constraints from a physics scene.
+ * @param[out] outConstraints Storage for the constraint pointers.
+ * @param engine The physics engine the scene was created with.
+ * @param scene The physics scene to get the constraints from.
+ * @param firstIndex The first index to get the constraints for.
+ * @param count The number of constraints to request.
+ * @return The number of constraints populated, up to and including count.
+ */
+typedef uint32_t (*dsPhysicsSceneGetConstraintsFunction)(dsPhysicsConstraint** outConstraints,
+	dsPhysicsEngine* engine, const dsPhysicsScene* scene, uint32_t firstIndex, uint32_t count);
+
+/**
  * @brief Function to perform a ray cast on a physics scene.
  * @param engine The physics engine the scene was created with.
  * @param scene The physics scene to query the ray for.
@@ -699,203 +735,6 @@ typedef uint32_t (*dsPhysicsSceneIntersectShapesFunction)(dsPhysicsEngine* engin
  */
 typedef bool (*dsPhysicsSceneUpdateFunction)(dsPhysicsEngine* engine, dsPhysicsScene* scene,
 	float time, unsigned int stepCount, const dsPhysicsSceneLock* lock);
-
-/**
- * @brief Function to create a physics sphere.
- * @param engine The physics engine to create the sphere with.
- * @param allocator The allocator to create the sphere with.
- * @param radius The radius of the sphere.
- * @return The sphere or NULL if it couldn't be created.
- */
-typedef dsPhysicsSphere* (*dsCreatePhysicsSphereFunction)(dsPhysicsEngine* engine,
-	dsAllocator* allocator, float radius);
-
-/**
- * @brief Function to destroy a physics sphere.
- * @param engine The physics engine the sphere was created with.
- * @param sphere The sphere to destroy.
- * @return False if the sphere couldn't be destroyed.
- */
-typedef bool (*dsDestroyPhysicsSphereFunction)(dsPhysicsEngine* engine, dsPhysicsSphere* sphere);
-
-/**
- * @brief Function to create a physics box.
- * @param engine The physics engine to create the box with.
- * @param allocator The allocator to create the box with.
- * @param halfExtents The half extents for each axis.
- * @param convexRadius The convex radius used for collision checks.
- * @return The box or NULL if it couldn't be created.
- */
-typedef dsPhysicsBox* (*dsCreatePhysicsBoxFunction)(dsPhysicsEngine* engine,
-	dsAllocator* allocator, const dsVector3f* halfExtents, float convexRadius);
-
-/**
- * @brief Function to destroy a physics box.
- * @param engine The physics engine the box was created with.
- * @param box The sphere to destroy.
- * @return False if the box couldn't be destroyed.
- */
-typedef bool (*dsDestroyPhysicsBoxFunction)(dsPhysicsEngine* engine, dsPhysicsBox* box);
-
-/**
- * @brief Function to create a physics capsule.
- * @param engine The physics engine to create the capsule with.
- * @param allocator The allocator to create the capsule with.
- * @param halfHeight The half height of the cylinder portion of the capsule.
- * @param radius The radius of the capsule.
- * @param axis The axis the capsule is aligned with.
- * @return The capsule or NULL if it couldn't be created.
- */
-typedef dsPhysicsCapsule* (*dsCreatePhysicsCapsuleFunction)(dsPhysicsEngine* engine,
-	dsAllocator* allocator, float halfHeight, float radius, dsPhysicsAxis axis);
-
-/**
- * @brief Function to destroy a physics capsule.
- * @param engine The physics engine the capsule was created with.
- * @param capsule The capsule to destroy.
- * @return False if the capsule couldn't be destroyed.
- */
-typedef bool (*dsDestroyPhysicsCapsuleFunction)(dsPhysicsEngine* engine, dsPhysicsCapsule* capsule);
-
-/**
- * @brief Function to create a physics cylinder.
- * @param engine The physics engine to create the cylinder with.
- * @param allocator The allocator to create the cylinder with.
- * @param halfHeight The half height of the cylinder.
- * @param radius The radius of the cylinder.
- * @param axis The axis the cylinder is aligned with.
- * @param convexRadius The convex radius used for collision checks.
- * @return The cylinder or NULL if it couldn't be created.
- */
-typedef dsPhysicsCylinder* (*dsCreatePhysicsCylinderFunction)(dsPhysicsEngine* engine,
-	dsAllocator* allocator, float halfHeight, float radius, dsPhysicsAxis axis,
-	float convexRadius);
-
-/**
- * @brief Function to destroy a physics cylinder.
- * @param engine The physics engine the cylinder was created with.
- * @param cylinder The cylinder to destroy.
- * @return False if the cylinder couldn't be destroyed.
- */
-typedef bool (*dsDestroyPhysicsCylinderFunction)(dsPhysicsEngine* engine,
-	dsPhysicsCylinder* cylinder);
-
-/**
- * @brief Function to create a physics cone.
- * @param engine The physics engine to create the cone with.
- * @param allocator The allocator to create the cone with.
- * @param height The height of the cone.
- * @param radius The radius of the cone.
- * @param axis The axis the cone is aligned with.
- * @param convexRadius The convex radius used for collision checks.
- * @return The cone or NULL if it couldn't be created.
- */
-typedef dsPhysicsCone* (*dsCreatePhysicsConeFunction)(dsPhysicsEngine* engine,
-	dsAllocator* allocator, float height, float radius, dsPhysicsAxis axis,
-	float convexRadius);
-
-/**
- * @brief Function to destroy a physics cone.
- * @param engine The physics engine the cone was created with.
- * @param cone The cone to destroy.
- * @return False if the cone couldn't be destroyed.
- */
-typedef bool (*dsDestroyPhysicsConeFunction)(dsPhysicsEngine* engine, dsPhysicsCone* cone);
-
-/**
- * @brief Function to create a physics convex hull.
- * @param engine The physics engine to create the convex hull with.
- * @param allocator The allocator to create the convex hull with.
- * @param vertices Pointer to the vertices.
- * @param vertexCount The number of vertices.
- * @param vertexStride The stride in bytes between each vertex.
- * @param convexRadius The convex radius used for collision checks.
- * @param cacheName Unique name used to cache the result.
- * @return The conex hull or NULL if it couldn't be created.
- */
-typedef dsPhysicsConvexHull* (*dsCreatePhysicsConvexHullFunction)(dsPhysicsEngine* engine,
-	dsAllocator* allocator, const void* vertices, uint32_t vertexCount, size_t vertexStride,
-	float convexRadius, const char* cacheName);
-
-/**
- * @brief Function to destroy a physics convex hull.
- * @param engine The physics engine the convex hull was created with.
- * @param convexHull The convex hull to destroy.
- * @return False if the convex hull couldn't be destroyed.
- */
-typedef bool (*dsDestroyPhysicsConvexHullFunction)(dsPhysicsEngine* engine,
-	dsPhysicsConvexHull* convexHull);
-
-/**
- * @brief Function to get a vertex from the convex hull.
- * @param[out] outVertex The value to set for the vertex.
- * @param engine The physics engine that created the convex hull.
- * @param convexHull The convex hull to get the vertex from.
- * @param vertexIndex The index to the vertex to get.
- */
-typedef void (*dsGetPhysicsConvexHullVertexFunction)(dsVector3f* outVertex, dsPhysicsEngine* engine,
-	const dsPhysicsConvexHull* convexHull, uint32_t vertexIndex);
-
-/**
- * @brief Function to get the number of vertices for a face in the convex hull.
- * @remark This may not provide any data if debug is false in the physics engine.
- * @param engine The physics engine that created the convex hull.
- * @param convexHull The convex hull to get the face vertex from.
- * @param faceIndex The index of the face to get the index count from.
- * @return The number of vertex indices for the face.
- */
-typedef uint32_t (*dsGetPhysicsConvexHullFaceVertexCountFunction)(dsPhysicsEngine* engine,
-	const dsPhysicsConvexHull* convexHull, uint32_t faceIndex);
-
-/**
- * @brief Function to get the face for a convex hull.
- * @remark This may not provide any data if debug is false in the physics engine.
- * @remark errno should be set to ESIZE and return 0 if outIndexCapacity is too small.
- * @param[out] outIndices The indices for the face vertices. This will only be populated if there is
- *     enough capacity.
- * @param outIndexCapacity The capacity of outIndices.
- * @param[out] outNormal The normal for the face. This may be NULL if no normal is needed.
- * @param convexHull The convex hull to get the face vertex from.
- * @param faceIndex The index of the face to get.
- * @return The number of vertex indices for the face.
- */
-typedef uint32_t (*dsGetPhysicsConvexHullFaceFunction)(uint32_t* outIndices,
-	uint32_t outIndexCapacity, dsVector3f* outNormal, dsPhysicsEngine* engine,
-	const dsPhysicsConvexHull* convexHull, uint32_t faceIndex);
-
-/**
- * @brief Function to create a physics mesh.
- * @param engine The physics engine to create the mesh with.
- * @param allocator The allocator to create the mesh with.
- * @param vertices Pointer to the first vertex. Each vertex is defined as 3 floats.
- * @param vertexCount The number of vertices. At least 3 vertices must be provided.
- * @param vertexStride The stride in bytes between each vertex.
- * @param indices The pointer to the first index. Three indices are expected for each triangle.
- * @param triangleCount The number of triangles in the mesh.
- * @param indexSize The size of each index.
- * @param triangleMaterialIndices Material indices for each triangle, which index into the
- *     triangleMaterials array. May be NULL if per-triangle materials aren't used.
- * @param triangleMaterialIndexSize The size of each triangle material index.
- * @param triangleMaterials The per-triangle materials, or NULL if per-triangle materials aren't
- *     used.
- * @param triangleMaterialCount The number of per-triangle materials.
- * @param cacheName Unique name used to cache the result.
- * @return The mesh or NULL if it couldn't be created.
- */
-typedef dsPhysicsMesh* (*dsCreatePhysicsMeshFunction)(dsPhysicsEngine* engine,
-	dsAllocator* allocator, const void* vertices, uint32_t vertexCount, size_t vertexStride,
-	const void* indices, uint32_t triangleCount, size_t indexSize,
-	const void* triangleMaterialIndices, size_t triangleMaterialIndexSize,
-	const dsPhysicsShapePartMaterial* triangleMaterials, uint32_t triangleMaterialCount,
-	const char* cacheName);
-
-/**
- * @brief Function to destroy a physics mesh.
- * @param engine The physics engine the mesh was created with.
- * @param mesh The mesh to destroy.
- * @return False if the mesh couldn't be destroyed.
- */
-typedef bool (*dsDestroyPhysicsMeshFunction)(dsPhysicsEngine* engine, dsPhysicsMesh* mesh);
 
 /**
  * @brief Function to get a contact point within a contact manifold.
@@ -1057,6 +896,21 @@ struct dsPhysicsEngine
 	 * @brief Function to get the actors from a physics scene.
 	 */
 	dsPhysicsSceneGetActorsFunction getSceneActorsFunc;
+
+	/**
+	 * @brief Function to add constraints to a physics scene.
+	 */
+	dsPhysicsSceneAddConstraintsFunction addSceneConstraintsFunc;
+
+	/**
+	 * @brief Function to remove constraints to a physics scene.
+	 */
+	dsPhysicsSceneRemoveConstraintsFunction removeSceneConstraintsFunc;
+
+	/**
+	 * @brief Function to get the constraints from a physics scene.
+	 */
+	dsPhysicsSceneGetConstraintsFunction getSceneConstraintsFunc;
 
 	/**
 	 * @brief Function to cast a ray with a physics scene.
@@ -1362,11 +1216,6 @@ struct dsPhysicsEngine
 	// ------------------------------------------- Constraints -------------------------------------
 
 	/**
-	 * @brief Function to set whether a constraint is enabled.
-	 */
-	dsSetPhysicsConstraintEnabledFunction setConstraintEnabledFunc;
-
-	/**
 	 * @brief Function to create a fixed physics constraint.
 	 */
 	dsCreateFixedPhysicsConstraintFunction createFixedConstraintFunc;
@@ -1375,6 +1224,21 @@ struct dsPhysicsEngine
 	 * @brief Function to destroy a fixed physics constraint.
 	 */
 	dsDestroyFixedPhysicsConstraintFunction destroyFixedConstraintFunc;
+
+	/**
+	 * @brief Function to set whether a fixed physics constraint is enabled.
+	 */
+	dsSetFixedPhysicsConstraintEnabledFunction setFixedConstraintEnabledFunc;
+
+	/**
+	 * @brief Function to get the force applied to enforce a fixed physics constraint.
+	 */
+	dsGetFixedPhysicsConstraintForceFunction getFixedConstraintForceFunc;
+
+	/**
+	 * @brief Function to get the torque applied to enforce a fixed physics constraint.
+	 */
+	dsGetFixedPhysicsConstraintForceFunction getFixedConstraintTorqueFunc;
 
 	/**
 	 * @brief Function to create a point physics constraint.
@@ -1387,6 +1251,16 @@ struct dsPhysicsEngine
 	dsDestroyPointPhysicsConstraintFunction destroyPointConstraintFunc;
 
 	/**
+	 * @brief Function to set whether a point physics constraint is enabled.
+	 */
+	dsSetPointPhysicsConstraintEnabledFunction setPointConstraintEnabledFunc;
+
+	/**
+	 * @brief Function to get the force applied to enforce a point physics constraint.
+	 */
+	dsGetPointPhysicsConstraintForceFunction getPointConstraintForceFunc;
+
+	/**
 	 * @brief Function to create a cone physics constraint.
 	 */
 	dsCreateConePhysicsConstraintFunction createConeConstraintFunc;
@@ -1395,6 +1269,21 @@ struct dsPhysicsEngine
 	 * @brief Function to destroy a cone physics constraint.
 	 */
 	dsDestroyConePhysicsConstraintFunction destroyConeConstraintFunc;
+
+	/**
+	 * @brief Function to set whether a cone physics constraint is enabled.
+	 */
+	dsSetConePhysicsConstraintEnabledFunction setConeConstraintEnabledFunc;
+
+	/**
+	 * @brief Function to get the force applied to enforce a cone physics constraint.
+	 */
+	dsGetConePhysicsConstraintForceFunction getConeConstraintForceFunc;
+
+	/**
+	 * @brief Function to get the torque applied to enforce a cone physics constraint.
+	 */
+	dsGetConePhysicsConstraintForceFunction getConeConstraintTorqueFunc;
 
 	/**
 	 * @brief Function to set the max angle on cone physics constraint.
@@ -1410,6 +1299,21 @@ struct dsPhysicsEngine
 	 * @brief Function to destroy a swing twist physics constraint.
 	 */
 	dsDestroySwingTwistPhysicsConstraintFunction destroySwingTwistConstraintFunc;
+
+	/**
+	 * @brief Function to set whether a swing twist physics constraint is enabled.
+	 */
+	dsSetSwingTwistPhysicsConstraintEnabledFunction setSwingTwistConstraintEnabledFunc;
+
+	/**
+	 * @brief Function to get the force applied to enforce a swing twist physics constraint.
+	 */
+	dsGetSwingTwistPhysicsConstraintForceFunction getSwingTwistConstraintForceFunc;
+
+	/**
+	 * @brief Function to get the torque applied to enforce a swing twist physics constraint.
+	 */
+	dsGetSwingTwistPhysicsConstraintForceFunction getSwingTwistConstraintTorqueFunc;
 
 	/**
 	 * @brief Function to set the max angles on swing twist physics constraint.
@@ -1430,6 +1334,21 @@ struct dsPhysicsEngine
 	 * @brief Function to destroy a revolute physics constraint.
 	 */
 	dsDestroyRevolutePhysicsConstraintFunction destroyRevoluteConstraintFunc;
+
+	/**
+	 * @brief Function to set whether a revolute physics constraint is enabled.
+	 */
+	dsSetRevolutePhysicsConstraintEnabledFunction setRevoluteConstraintEnabledFunc;
+
+	/**
+	 * @brief Function to get the force applied to enforce a revolute physics constraint.
+	 */
+	dsGetRevolutePhysicsConstraintForceFunction getRevoluteConstraintForceFunc;
+
+	/**
+	 * @brief Function to get the torque applied to enforce a revolute physics constraint.
+	 */
+	dsGetRevolutePhysicsConstraintForceFunction getRevoluteConstraintTorqueFunc;
 
 	/**
 	 * @brief Function to set the angle limit for a revolute physics constraint.
@@ -1457,6 +1376,16 @@ struct dsPhysicsEngine
 	dsDestroyDistancePhysicsConstraintFunction destroyDistanceConstraintFunc;
 
 	/**
+	 * @brief Function to set whether a distance physics constraint is enabled.
+	 */
+	dsSetDistancePhysicsConstraintEnabledFunction setDistanceConstraintEnabledFunc;
+
+	/**
+	 * @brief Function to get the force applied to enforce a distance physics constraint.
+	 */
+	dsGetDistancePhysicsConstraintForceFunction getDistanceConstraintForceFunc;
+
+	/**
 	 * @brief Function to set the distance limit of a distance physics constraint.
 	 */
 	dsSetDistancePhysicsConstraintLimitFunction setDistanceConstraintLimitFunc;
@@ -1470,6 +1399,21 @@ struct dsPhysicsEngine
 	 * @brief Function to destroy a slider physics constraint.
 	 */
 	dsDestroySliderPhysicsConstraintFunction destroySliderConstraintFunc;
+
+	/**
+	 * @brief Function to set whether a slider physics constraint is enabled.
+	 */
+	dsSetSliderPhysicsConstraintEnabledFunction setSliderConstraintEnabledFunc;
+
+	/**
+	 * @brief Function to get the force applied to enforce a slider physics constraint.
+	 */
+	dsGetSliderPhysicsConstraintForceFunction getSliderConstraintForceFunc;
+
+	/**
+	 * @brief Function to get the torque applied to enforce a slider physics constraint.
+	 */
+	dsGetSliderPhysicsConstraintForceFunction getSliderConstraintTorqueFunc;
 
 	/**
 	 * @brief Function to set the distance limit of a slider physics constraint.
@@ -1495,6 +1439,21 @@ struct dsPhysicsEngine
 	 * @brief Function to destroy a generic physics constraint.
 	 */
 	dsDestroyGenericPhysicsConstraintFunction destroyGenericConstraintFunc;
+
+	/**
+	 * @brief Function to set whether a generic physics constraint is enabled.
+	 */
+	dsSetGenericPhysicsConstraintEnabledFunction setGenericConstraintEnabledFunc;
+
+	/**
+	 * @brief Function to get the force applied to enforce a generic physics constraint.
+	 */
+	dsGetGenericPhysicsConstraintForceFunction getGenericConstraintForceFunc;
+
+	/**
+	 * @brief Function to get the torque applied to enforce a generic physics constraint.
+	 */
+	dsGetGenericPhysicsConstraintForceFunction getGenericConstraintTorqueFunc;
 
 	/**
 	 * @brief Function to set the limit for a degree of freedom of a generic physics constraint.
@@ -1524,6 +1483,16 @@ struct dsPhysicsEngine
 	dsDestroyGearPhysicsConstraintFunction destroyGearConstraintFunc;
 
 	/**
+	 * @brief Function to set whether a gear physics constraint is enabled.
+	 */
+	dsSetGearPhysicsConstraintEnabledFunction setGearConstraintEnabledFunc;
+
+	/**
+	 * @brief Function to get the torque applied to enforce a gear physics constraint.
+	 */
+	dsGetGearPhysicsConstraintForceFunction getGearConstraintTorqueFunc;
+
+	/**
 	 * @brief Function to set the gear ratio for a gear physics constraint.
 	 */
 	dsSetGearPhysicsConstraintRatioFunction setGearConstraintRatioFunc;
@@ -1537,6 +1506,21 @@ struct dsPhysicsEngine
 	 * @brief Function to destroy a rack and pinion physics constraint.
 	 */
 	dsDestroyRackAndPinionPhysicsConstraintFunction destroyRackAndPinionConstraintFunc;
+
+	/**
+	 * @brief Function to set whether a rack and pinion physics constraint is enabled.
+	 */
+	dsSetRackAndPinionPhysicsConstraintEnabledFunction setRackAndPinionConstraintEnabledFunc;
+
+	/**
+	 * @brief Function to get the force applied to enforce a rack and pinion physics constraint.
+	 */
+	dsGetRackAndPinionPhysicsConstraintForceFunction getRackAndPinionConstraintForceFunc;
+
+	/**
+	 * @brief Function to get the torque applied to enforce a rack and pinion physics constraint.
+	 */
+	dsGetRackAndPinionPhysicsConstraintForceFunction getRackAndPinionConstraintTorqueFunc;
 
 	/**
 	 * @brief Function to set the rack and pinion ratio for a rack and pinion physics constraint.

@@ -29,12 +29,11 @@ dsPhysicsConstraintType dsSliderPhysicsConstraint_type(void)
 }
 
 dsSliderPhysicsConstraint* dsSliderPhysicsConstraint_create(dsPhysicsEngine* engine,
-	dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
-	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation, bool limitEnabled, float minDistance, float maxDistance,
-	float limitStiffness, float limitDamping, dsPhysicsConstraintMotorType motorType,
-	float motorTarget, float maxMotorForce)
+	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
+	const dsQuaternion4f* firstRotation, const dsPhysicsActor* secondActor,
+	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation, bool limitEnabled,
+	float minDistance, float maxDistance, float limitStiffness, float limitDamping,
+	dsPhysicsConstraintMotorType motorType, float motorTarget, float maxMotorForce)
 {
 	if (!engine || !engine->createSliderConstraintFunc ||
 		!engine->destroySliderConstraintFunc || !firstRotation || !secondActor ||
@@ -50,10 +49,9 @@ dsSliderPhysicsConstraint* dsSliderPhysicsConstraint_create(dsPhysicsEngine* eng
 	if (!allocator)
 		allocator = engine->allocator;
 
-	return engine->createSliderConstraintFunc(engine, allocator, enabled, firstActor,
-		firstPosition, firstRotation, secondActor, secondPosition, secondRotation, limitEnabled,
-		minDistance, maxDistance, limitStiffness, limitDamping, motorType, motorTarget,
-		maxMotorForce);
+	return engine->createSliderConstraintFunc(engine, allocator, firstActor, firstPosition,
+		firstRotation, secondActor, secondPosition, secondRotation, limitEnabled, minDistance,
+		maxDistance, limitStiffness, limitDamping, motorType, motorTarget, maxMotorForce);
 }
 
 bool dsSliderPhysicsConstraint_setLimit(dsSliderPhysicsConstraint* constraint, float minDistance,
@@ -105,14 +103,12 @@ bool dsSliderPhysicsConstraint_setMotor(dsSliderPhysicsConstraint* constraint,
 }
 
 void dsSliderPhysicsConstraint_initialize(dsSliderPhysicsConstraint* constraint,
-	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
+	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
 	const dsQuaternion4f* secondRotation, bool limitEnabled, float minDistance, float maxDistance,
 	float limitStiffness, float limitDamping, dsPhysicsConstraintMotorType motorType,
-	float motorTarget, float maxMotorForce, void* impl,
-	dsGetPhysicsConstraintForceFunction getForceFunc,
-	dsGetPhysicsConstraintForceFunction getTorqueFunc)
+	float motorTarget, float maxMotorForce, void* impl)
 {
 	DS_ASSERT(constraint);
 	DS_ASSERT(engine);
@@ -127,12 +123,13 @@ void dsSliderPhysicsConstraint_initialize(dsSliderPhysicsConstraint* constraint,
 	DS_ASSERT(motorType >= dsPhysicsConstraintMotorType_Disabled &&
 		motorType < dsPhysicsConstraintMotorType_Velocity);
 	DS_ASSERT(maxMotorForce >= 0.0f);
-	DS_ASSERT(getForceFunc);
-	DS_ASSERT(getTorqueFunc);
 
 	DS_VERIFY(dsPhysicsConstraint_initialize((dsPhysicsConstraint*)constraint, engine, allocator,
-		dsSliderPhysicsConstraint_type(), firstActor, secondActor, enabled, impl, getForceFunc,
-		getTorqueFunc, (dsDestroyPhysicsConstraintFunction)engine->destroySliderConstraintFunc));
+		dsSliderPhysicsConstraint_type(), firstActor, secondActor, impl,
+		(dsSetPhysicsConstraintEnabledFunction)engine->setSliderConstraintEnabledFunc,
+		(dsGetPhysicsConstraintForceFunction)engine->getSliderConstraintForceFunc,
+		(dsGetPhysicsConstraintForceFunction)engine->getSliderConstraintTorqueFunc,
+		(dsDestroyPhysicsConstraintFunction)engine->destroySliderConstraintFunc));
 
 	constraint->firstPosition = *firstPosition;
 	constraint->secondPosition = *secondPosition;

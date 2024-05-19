@@ -43,7 +43,6 @@ DS_PHYSICS_EXPORT dsPhysicsConstraintType dsGenericPhysicsConstraint_type(void);
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with. If NULL the engine's allocator will
  *     be used.
- * @param enabled Whether the constraint is enabled after creation.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
  * @param firstRotation The rotation of the constraint on the first actor.
@@ -56,7 +55,7 @@ DS_PHYSICS_EXPORT dsPhysicsConstraintType dsGenericPhysicsConstraint_type(void);
  * @return The generic constraint or NULL if it couldn't be created.
  */
 DS_PHYSICS_EXPORT dsGenericPhysicsConstraint* dsGenericPhysicsConstraint_create(
-	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
+	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
 	const dsQuaternion4f* secondRotation,
@@ -112,7 +111,6 @@ DS_PHYSICS_EXPORT bool dsGenericPhysicsConstraint_setCombineSwingTwistMotor(
  * @param[out] constraint The constraint to initialize.
  * @param engine The physics engine the constraint was created with.
  * @param allocator The allocator the constraint was created with.
- * @param enabled Whether the constraint is enabled after creation.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
  * @param firstRotation The rotation of the constraint on the first actor.
@@ -123,18 +121,15 @@ DS_PHYSICS_EXPORT bool dsGenericPhysicsConstraint_setCombineSwingTwistMotor(
  * @param motors The motors for each degree of freedom.
  * @param combineSwingTwistMotors Whether the swing and twist motors are combined.
  * @param impl The underlying implementation for the constraint.
- * @param getForceFunc Function to get the last applied force for the constraint.
- * @param getTorqueFunc Function to get the last applied torque for the constraint.
  */
 DS_PHYSICS_EXPORT void dsGenericPhysicsConstraint_initialize(dsGenericPhysicsConstraint* constraint,
-	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
+	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
 	const dsQuaternion4f* secondRotation,
 	const dsGenericPhysicsConstraintLimit limits[DS_PHYSICS_CONSTRAINT_DOF_COUNT],
 	const dsGenericPhysicsConstraintMotor motors[DS_PHYSICS_CONSTRAINT_DOF_COUNT],
-	bool combineSwingTwistMotors, void* impl, dsGetPhysicsConstraintForceFunction getForceFunc,
-	dsGetPhysicsConstraintForceFunction getTorqueFunc);
+	bool combineSwingTwistMotors, void* impl);
 
 #ifdef __cplusplus
 }

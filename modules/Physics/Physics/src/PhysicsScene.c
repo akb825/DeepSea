@@ -373,7 +373,7 @@ bool dsPhysicsScene_addRigidBodies(dsPhysicsScene* scene,
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 
-		// Assume that the rigid bodywon't be added/removed across threads for this sanity check.
+		// Assume that the rigid body won't be added/removed across threads for this sanity check.
 		if (((dsPhysicsActor*)rigidBody)->scene)
 		{
 			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
@@ -428,7 +428,7 @@ bool dsPhysicsScene_removeRigidBodies(dsPhysicsScene* scene, dsRigidBody* const*
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 
-		// Assume that the rigid bodywon't be added/removed across threads for this sanity check.
+		// Assume that the rigid body won't be added/removed across threads for this sanity check.
 		if (((dsPhysicsActor*)rigidBody)->scene != scene)
 		{
 			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
@@ -533,6 +533,137 @@ uint32_t dsPhysicsScene_getActors(dsPhysicsActor** outActors, const dsPhysicsSce
 
 	dsPhysicsEngine* engine = scene->engine;
 	return engine->getSceneActorsFunc(outActors, engine, scene, firstIndex, count);
+}
+
+bool dsPhysicsScene_addConstraints(dsPhysicsScene* scene,
+	dsPhysicsConstraint* const* constraints, uint32_t constraintCount, bool enable,
+	const dsPhysicsSceneLock* lock)
+{
+	DS_PROFILE_FUNC_START();
+	if (!scene || !scene->engine || !scene->engine->addSceneConstraintsFunc ||
+		(!constraints && constraintCount > 0) || !lock)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!isWriteLocked(scene, lock))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Physics scene must have been locked for writing before adding constraints.");
+		errno = EPERM;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (constraintCount == 0)
+		DS_PROFILE_FUNC_RETURN(true);
+
+	for (uint32_t i = 0; i < constraintCount; ++i)
+	{
+		dsPhysicsConstraint* constraint = constraints[i];
+		if (!constraint || !constraint->firstActor || !constraint->secondActor)
+		{
+			errno = EINVAL;
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		// Assume that the actors won't be added/removed across threads for this sanity check.
+		if (constraint->firstActor->scene != scene || constraint->secondActor->scene != scene)
+		{
+			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+				"Cannot add a constraint to a scene without first adding its actors to the scene.");
+			errno = EPERM;
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		// Assume that the constraint won't be added/removed across threads for this sanity check.
+		if (constraint->scene)
+		{
+			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+				"Cannot add a constraint to a scene when already associated with a scene.");
+			errno = EPERM;
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+	}
+
+	dsPhysicsEngine* engine = scene->engine;
+	bool success = engine->addSceneConstraintsFunc(
+		engine, scene, constraints, constraintCount, enable);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
+bool dsPhysicsScene_removeConstraints(dsPhysicsScene* scene,
+	dsPhysicsConstraint* const* constraints, uint32_t constraintCount,
+	const dsPhysicsSceneLock* lock)
+{
+	DS_PROFILE_FUNC_START();
+	if (!scene || !scene->engine || !scene->engine->removeSceneConstraintsFunc ||
+		(!constraints && constraintCount > 0) || !lock)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!isWriteLocked(scene, lock))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Physics scene must have been locked for writing before removing constraints.");
+		errno = EPERM;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (constraintCount == 0)
+		DS_PROFILE_FUNC_RETURN(true);
+
+	for (uint32_t i = 0; i < constraintCount; ++i)
+	{
+		dsPhysicsConstraint* constraint = constraints[i];
+		if (!constraint)
+		{
+			errno = EINVAL;
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		// Assume that the rigid body won't be added/removed across threads for this sanity check.
+		if (constraint->scene != scene)
+		{
+			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+				"Cannot remove a constraint from a scene it's not associated with.");
+			errno = EPERM;
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+	}
+
+	dsPhysicsEngine* engine = scene->engine;
+	bool success = engine->removeSceneConstraintsFunc(engine, scene, constraints, constraintCount);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
+uint32_t dsPhysicsScene_getConstraints(dsPhysicsConstraint** outConstraints,
+	const dsPhysicsScene* scene, uint32_t firstIndex, uint32_t count,
+	const dsPhysicsSceneLock* lock)
+{
+	if ((!outConstraints && count > 0) || !scene || !scene->engine ||
+		!scene->engine->getSceneConstraintsFunc || !lock)
+	{
+		errno = EINVAL;
+		return DS_INVALID_PHYSICS_ID;
+	}
+
+	if (!isReadLocked(scene, lock))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Physics scene must have been locked for reading or writing before querying "
+			"constraints.");
+		errno = EPERM;
+		return false;
+	}
+
+	if (count == 0 || firstIndex >= scene->actorCount)
+		return 0;
+
+	dsPhysicsEngine* engine = scene->engine;
+	return engine->getSceneConstraintsFunc(outConstraints, engine, scene, firstIndex, count);
 }
 
 uint32_t dsPhysicsScene_castRay(const dsPhysicsScene* scene, const dsRay3f* ray,
@@ -658,7 +789,8 @@ bool dsPhysicsScene_initialize(dsPhysicsScene* scene, dsPhysicsEngine* engine,
 	scene->allocator = allocator;
 	if (settings->multiThreadedModifications)
 	{
-		scene->lock = dsReadWriteLock_create(allocator, "Physics Scene Read", "Physics Scene Write");
+		scene->lock = dsReadWriteLock_create(
+			allocator, "Physics Scene Read", "Physics Scene Write");
 		if (!scene->lock)
 			return false;
 	}

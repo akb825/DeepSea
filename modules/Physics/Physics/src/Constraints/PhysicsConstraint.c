@@ -23,12 +23,14 @@
 
 bool dsPhysicsConstraint_initialize(dsPhysicsConstraint* constraint, dsPhysicsEngine* engine,
 	dsAllocator* allocator, dsPhysicsConstraintType type, const dsPhysicsActor* firstActor,
-	const dsPhysicsActor* secondActor, bool enabled, void* impl,
+	const dsPhysicsActor* secondActor, void* impl,
+	dsSetPhysicsConstraintEnabledFunction setEnabledFunc,
 	dsGetPhysicsConstraintForceFunction getForceFunc,
 	dsGetPhysicsConstraintForceFunction getTorqueFunc,
 	dsDestroyPhysicsConstraintFunction destroyFunc)
 {
-	if (!constraint || !engine || !allocator || !firstActor || !secondActor || !destroyFunc)
+	if (!constraint || !engine || !allocator || !firstActor || !secondActor || !setEnabledFunc ||
+		!destroyFunc)
 	{
 		errno = EINVAL;
 		return false;
@@ -37,10 +39,11 @@ bool dsPhysicsConstraint_initialize(dsPhysicsConstraint* constraint, dsPhysicsEn
 	constraint->engine = engine;
 	constraint->allocator = dsAllocator_keepPointer(allocator);
 	constraint->type = type;
-	constraint->enabled = enabled;
+	constraint->enabled = false;
 	constraint->firstActor = firstActor;
 	constraint->secondActor = secondActor;
 	constraint->impl = impl;
+	constraint->setEnabledFunc = setEnabledFunc;
 	constraint->getForceFunc = getForceFunc;
 	constraint->getTorqueFunc = getTorqueFunc;
 	constraint->destroyFunc = destroyFunc;
@@ -49,14 +52,19 @@ bool dsPhysicsConstraint_initialize(dsPhysicsConstraint* constraint, dsPhysicsEn
 
 bool dsPhysicsConstraint_setEnabled(dsPhysicsConstraint* constraint, bool enabled)
 {
-	if (!constraint || !constraint->engine || !constraint->engine->setConstraintEnabledFunc)
+	if (!constraint || !constraint->setEnabledFunc || !constraint->engine)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	dsPhysicsEngine* engine = constraint->engine;
-	return engine->setConstraintEnabledFunc(engine, constraint, enabled);
+	if (!constraint->scene)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	return constraint->setEnabledFunc(constraint->engine, constraint, enabled);
 }
 
 bool dsPhysicsConstraint_getLastAppliedForce(
@@ -68,7 +76,7 @@ bool dsPhysicsConstraint_getLastAppliedForce(
 		return false;
 	}
 
-	if (!constraint->enabled)
+	if (!constraint->scene || !constraint->enabled)
 	{
 		errno = EPERM;
 		return false;
@@ -90,7 +98,7 @@ bool dsPhysicsConstraint_getLastAppliedTorque(
 		return false;
 	}
 
-	if (!constraint->enabled)
+	if (!constraint->scene || !constraint->enabled)
 	{
 		errno = EPERM;
 		return false;

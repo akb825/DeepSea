@@ -76,10 +76,9 @@ float dsGearPhysicsConstraint_computeRatio(unsigned int firstActorToothCount,
 }
 
 dsGearPhysicsConstraint* dsGearPhyiscsConstraint_create(dsPhysicsEngine* engine,
-	dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstAxis, const dsRevolutePhysicsConstraint* firstConstraint,
-	const dsPhysicsActor* secondActor, const dsVector3f* secondAxis,
-	const dsRevolutePhysicsConstraint* secondConstraint, float ratio)
+	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3f* firstAxis,
+	const dsRevolutePhysicsConstraint* firstConstraint, const dsPhysicsActor* secondActor,
+	const dsVector3f* secondAxis, const dsRevolutePhysicsConstraint* secondConstraint, float ratio)
 {
 	if (!engine || !engine->createGearConstraintFunc || !engine->destroyGearConstraintFunc ||
 		!firstActor || !firstAxis || !isConstraintValid(firstConstraint, firstActor, firstAxis) ||
@@ -93,7 +92,7 @@ dsGearPhysicsConstraint* dsGearPhyiscsConstraint_create(dsPhysicsEngine* engine,
 	if (!allocator)
 		allocator = engine->allocator;
 
-	return engine->createGearConstraintFunc(engine, allocator, enabled, firstActor, firstAxis,
+	return engine->createGearConstraintFunc(engine, allocator, firstActor, firstAxis,
 		firstConstraint, secondActor, secondAxis, secondConstraint, ratio);
 }
 
@@ -112,11 +111,10 @@ bool dsGearPhysicsConstraint_setRatio(dsGearPhysicsConstraint* constraint, float
 }
 
 void dsGearPhyiscsConstraint_initialize(dsGearPhysicsConstraint* constraint,
-	dsPhysicsEngine* engine, dsAllocator* allocator, bool enabled, const dsPhysicsActor* firstActor,
+	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstAxis, const dsRevolutePhysicsConstraint* firstConstraint,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondAxis,
-	const dsRevolutePhysicsConstraint* secondConstraint, float ratio, void* impl,
-	dsGetPhysicsConstraintForceFunction getTorqueFunc)
+	const dsRevolutePhysicsConstraint* secondConstraint, float ratio, void* impl)
 {
 	DS_ASSERT(constraint);
 	DS_ASSERT(engine);
@@ -128,11 +126,12 @@ void dsGearPhyiscsConstraint_initialize(dsGearPhysicsConstraint* constraint,
 	DS_ASSERT(secondAxis);
 	DS_ASSERT(isConstraintValid(secondConstraint, secondActor, secondAxis));
 	DS_ASSERT(ratio != 0.0f);
-	DS_ASSERT(getTorqueFunc);
 
 	DS_VERIFY(dsPhysicsConstraint_initialize((dsPhysicsConstraint*)constraint, engine, allocator,
-		dsGearPhysicsConstraint_type(), firstActor, secondActor, enabled, impl, NULL, getTorqueFunc,
-		(dsDestroyPhysicsConstraintFunction)engine->destroyRevoluteConstraintFunc));
+		dsGearPhysicsConstraint_type(), firstActor, secondActor, impl,
+		(dsSetPhysicsConstraintEnabledFunction)engine->setGearConstraintEnabledFunc, NULL,
+		(dsGetPhysicsConstraintForceFunction)engine->getGearConstraintTorqueFunc,
+		(dsDestroyPhysicsConstraintFunction)engine->destroyGearConstraintFunc));
 
 	constraint->firstAxis = *firstAxis;
 	constraint->secondAxis = *secondAxis;
