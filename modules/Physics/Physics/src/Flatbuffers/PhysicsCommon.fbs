@@ -1,0 +1,57 @@
+/*
+ * Copyright 2024 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+namespace DeepSeaPhysics;
+
+// Struct describing a 3-dimensional vector.
+struct Vector3f
+{
+	x : float;
+	y : float;
+	z : float;
+}
+
+// Struct describing a quaternion.
+struct Quaternion4f
+{
+	i : float;
+	j : float;
+	k : float;
+	r : float;
+}
+
+// Enum for the axis to align a physics shape to.
+enum Axis : uint8
+{
+	X,
+	Y,
+	Z
+}
+
+// Struct defining the material to apply to an individual part of a shape, such as a triangle.
+struct ShapePartMaterial
+{
+	// The coefficient of friction, with 0 meaning no friction and increasing values having higher
+	// friction.
+	friction : float;
+
+	// The restitution value, where 0 is fully inelastic and 1 is fully elastic.
+	restitution : float;
+
+	// The hardness value, where 0 indicates to use this body's restitution on collision and 1
+	// indicates to use the other body's restitution.
+	hardness : float;
+}

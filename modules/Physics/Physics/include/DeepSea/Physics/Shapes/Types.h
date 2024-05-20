@@ -431,7 +431,7 @@ typedef struct dsPhysicsCone
 	dsPhysicsShape shape;
 
 	/**
-	 * @brief Half the height of the cone.
+	 * @brief The height of the cone.
 	 */
 	float height;
 
@@ -697,20 +697,20 @@ typedef uint32_t (*dsGetPhysicsConvexHullFaceFunction)(uint32_t* outIndices,
  * @param indices The pointer to the first index. Three indices are expected for each triangle.
  * @param triangleCount The number of triangles in the mesh.
  * @param indexSize The size of each index.
- * @param triangleMaterialIndices Material indices for each triangle, which index into the
- *     triangleMaterials array. May be NULL if per-triangle materials aren't used.
- * @param triangleMaterialIndexSize The size of each triangle material index.
  * @param triangleMaterials The per-triangle materials, or NULL if per-triangle materials aren't
  *     used.
  * @param triangleMaterialCount The number of per-triangle materials.
+ * @param triangleMaterialIndices Material indices for each triangle, which index into the
+ *     triangleMaterials array. May be NULL if per-triangle materials aren't used.
+ * @param triangleMaterialIndexSize The size of each triangle material index.
  * @param cacheName Unique name used to cache the result.
  * @return The mesh or NULL if it couldn't be created.
  */
 typedef dsPhysicsMesh* (*dsCreatePhysicsMeshFunction)(dsPhysicsEngine* engine,
 	dsAllocator* allocator, const void* vertices, uint32_t vertexCount, size_t vertexStride,
 	const void* indices, uint32_t triangleCount, size_t indexSize,
-	const void* triangleMaterialIndices, size_t triangleMaterialIndexSize,
 	const dsPhysicsShapePartMaterial* triangleMaterials, uint32_t triangleMaterialCount,
+	const void* triangleMaterialIndices, size_t triangleMaterialIndexSize,
 	const char* cacheName);
 
 /**

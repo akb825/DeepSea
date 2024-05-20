@@ -73,9 +73,9 @@ const dsPhysicsShapeType* dsPhysicsMesh_type(void)
 
 dsPhysicsMesh* dsPhysicsMesh_create(dsPhysicsEngine* engine, dsAllocator* allocator,
 	const void* vertices, uint32_t vertexCount, size_t vertexStride, const void* indices,
-	uint32_t triangleCount, size_t indexSize, const void* triangleMaterialIndices,
-	size_t triangleMaterialIndexSize, const dsPhysicsShapePartMaterial* triangleMaterials,
-	uint32_t triangleMaterialCount, const char* cacheName)
+	uint32_t triangleCount, size_t indexSize, const dsPhysicsShapePartMaterial* triangleMaterials,
+	uint32_t triangleMaterialCount, const void* triangleMaterialIndices,
+	size_t triangleMaterialIndexSize, const char* cacheName)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -123,8 +123,8 @@ dsPhysicsMesh* dsPhysicsMesh_create(dsPhysicsEngine* engine, dsAllocator* alloca
 	}
 
 	dsPhysicsMesh* mesh = engine->createMeshFunc(engine, allocator, vertices, vertexCount,
-		vertexStride, indices, triangleCount, indexSize, triangleMaterialIndices,
-		triangleMaterialIndexSize, triangleMaterials, triangleMaterialCount, cacheName);
+		vertexStride, indices, triangleCount, indexSize, triangleMaterials, triangleMaterialCount,
+		triangleMaterialIndices, triangleMaterialIndexSize, cacheName);
 	DS_PROFILE_FUNC_RETURN(mesh);
 }
 

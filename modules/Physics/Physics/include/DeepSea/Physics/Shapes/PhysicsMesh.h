@@ -48,14 +48,14 @@ DS_PHYSICS_EXPORT const dsPhysicsShapeType* dsPhysicsMesh_type(void);
  * @param indices The pointer to the first index. Three indices are expected for each triangle.
  * @param triangleCount The number of triangles in the mesh.
  * @param indexSize The size of each index. Must be either sizeof(uint16_t) or sizeof(uint32_t).
+ * @param triangleMaterials The per-triangle materials, or NULL if per-triangle materials aren't
+ *     used.
+ * @param triangleMaterialCount The number of per-triangle materials.
  * @param triangleMaterialIndices Material indices for each triangle, which index into the
  *     triangleMaterials array. May be NULL if per-triangle materials aren't used.
  * @param triangleMaterialIndexSize The size of each triangle material index. Must be either
  *     sizeof(uint16_t) or sizeof(uint32_t). If triangleMaterialIndices is unused, the value will
  *     be ignored.
- * @param triangleMaterials The per-triangle materials, or NULL if per-triangle materials aren't
- *     used.
- * @param triangleMaterialCount The number of per-triangle materials.
  * @param cacheName Unique name of the mesh. If not NULL, and a cache directory is set on
  *     engine, the pre-computed mesh will be loaded from the cache if present or saved to the cache
  *     if not.
@@ -64,8 +64,8 @@ DS_PHYSICS_EXPORT const dsPhysicsShapeType* dsPhysicsMesh_type(void);
 DS_PHYSICS_EXPORT dsPhysicsMesh* dsPhysicsMesh_create(dsPhysicsEngine* engine,
 	dsAllocator* allocator, const void* vertices, uint32_t vertexCount, size_t vertexStride,
 	const void* indices, uint32_t triangleCount, size_t indexSize,
-	const void* triangleMaterialIndices, size_t triangleMaterialIndexSize,
 	const dsPhysicsShapePartMaterial* triangleMaterials, uint32_t triangleMaterialCount,
+	const void* triangleMaterialIndices, size_t triangleMaterialIndexSize,
 	const char* cacheName);
 
 /**
