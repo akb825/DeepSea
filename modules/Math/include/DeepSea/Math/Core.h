@@ -32,6 +32,9 @@ extern "C"
  * @brief Core math functions and macros.
  */
 
+// Some systems already have float defines available.
+#ifndef M_PIf
+
 /**
  * @brief M_PI as a float.
  */
@@ -56,6 +59,8 @@ extern "C"
  * @brief M_2_PI as a float.
  */
 #define M_2_PIf ((float)M_2_PI)
+
+#endif
 
 /**
  * @brief Returns the minimum between x and y.
