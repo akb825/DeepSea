@@ -85,7 +85,7 @@ DS_PHYSICS_EXPORT dsPhysicsMesh* dsPhysicsMesh_create(dsPhysicsEngine* engine,
  * @param triangleMaterialIndices Material indices for each triangle, which index into the
  *     triangleMaterials array. This should be copied into the mesh memory if not NULL.
  * @param triangleMaterialIndexSize The size of each triangle material index
- * @param triangleMaterials The per-triangle materials.  This should be copied into the mesh memory
+ * @param triangleMaterials The per-triangle materials. This should be copied into the mesh memory
  *     if not NULL.
  * @param triangleMaterialCount The number of per-triangle materials.
  */

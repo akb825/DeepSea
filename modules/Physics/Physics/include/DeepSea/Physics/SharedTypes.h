@@ -56,7 +56,7 @@ typedef enum dsPhysicsActorType
 } dsPhysicsActorType;
 
 /**
- * @brief Enum for a mask of degrees of freedom for physics objects.
+ * @brief Enum for a mask of degrees of freedom for physics actors.
  */
 typedef enum dsPhysicsDOFMask
 {
@@ -79,7 +79,7 @@ typedef enum dsPhysicsDOFMask
 } dsPhysicsDOFMask;
 
 /**
- * @brief Enum for how a physics option does, or doesn't, move.
+ * @brief Enum for how a physics actor does, or doesn't, move.
  */
 typedef enum dsPhysicsMotionType
 {

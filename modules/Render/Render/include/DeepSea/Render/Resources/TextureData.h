@@ -112,7 +112,7 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadStream(dsAllocator* allocator,
  * @param resourceManager The resource manager to create the texture from.
  * @param textureAllocator The allocator to create the texture with. If NULL, it will use the same
  *     allocator as the resource manager.
- * @param tempAllocator The allocator to use for temporary memory.  If NULL, it will use the same
+ * @param tempAllocator The allocator to use for temporary memory. If NULL, it will use the same
  *     allocator as the texture.
  * @param filePath The file to load.
  * @param options Options for converting the texture data to a texture. If NULL, the texture will be
@@ -135,7 +135,7 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_loadFileToTexture(dsResourceManager* r
  * @param resourceManager The resource manager to create the texture from.
  * @param textureAllocator The allocator to create the texture with. If NULL, it will use the same
  *     allocator as the resource manager.
- * @param tempAllocator The allocator to use for temporary memory.  If NULL, it will use the same
+ * @param tempAllocator The allocator to use for temporary memory. If NULL, it will use the same
  *     allocator as the texture.
  * @param type The resource type.
  * @param filePath The file to load.
@@ -160,7 +160,7 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_loadResourceToTexture(dsResourceManage
  * @param resourceManager The resource manager to create the texture from.
  * @param textureAllocator The allocator to create the texture with. If NULL, it will use the same
  *     allocator as the resource manager.
- * @param tempAllocator The allocator to use for temporary memory.  If NULL, it will use the same
+ * @param tempAllocator The allocator to use for temporary memory. If NULL, it will use the same
  *     allocator as the texture.
  * @param stream The file to load the texture from. This must support seeking.
  * @param options Options for converting the texture data to a texture. If NULL, the texture will be
@@ -211,7 +211,7 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadDDSStream(dsAllocator* allocat
  * @param resourceManager The resource manager to create the texture from.
  * @param textureAllocator The allocator to create the texture with. If NULL, it will use the same
  *     allocator as the resource manager.
- * @param tempAllocator The allocator to use for temporary memory.  If NULL, it will use the same
+ * @param tempAllocator The allocator to use for temporary memory. If NULL, it will use the same
  *     allocator as the texture.
  * @param filePath The file to load.
  * @param options Options for converting the texture data to a texture. If NULL, the texture will be
@@ -231,7 +231,7 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_loadDDSFileToTexture(dsResourceManager
  * @param resourceManager The resource manager to create the texture from.
  * @param textureAllocator The allocator to create the texture with. If NULL, it will use the same
  *     allocator as the resource manager.
- * @param tempAllocator The allocator to use for temporary memory.  If NULL, it will use the same
+ * @param tempAllocator The allocator to use for temporary memory. If NULL, it will use the same
  *     allocator as the texture.
  * @param type The resource type.
  * @param filePath The file to load.
@@ -253,7 +253,7 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_loadDDSResourceToTexture(
  * @param resourceManager The resource manager to create the texture from.
  * @param textureAllocator The allocator to create the texture with. If NULL, it will use the same
  *     allocator as the resource manager.
- * @param tempAllocator The allocator to use for temporary memory.  If NULL, it will use the same
+ * @param tempAllocator The allocator to use for temporary memory. If NULL, it will use the same
  *     allocator as the texture.
  * @param stream The file to load the texture from.
  * @param options Options for converting the texture data to a texture. If NULL, the texture will be
@@ -304,7 +304,7 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadKTXStream(dsAllocator* allocat
  * @param resourceManager The resource manager to create the texture from.
  * @param textureAllocator The allocator to create the texture with. If NULL, it will use the same
  *     allocator as the resource manager.
- * @param tempAllocator The allocator to use for temporary memory.  If NULL, it will use the same
+ * @param tempAllocator The allocator to use for temporary memory. If NULL, it will use the same
  *     allocator as the texture.
  * @param filePath The file to load.
  * @param options Options for converting the texture data to a texture. If NULL, the texture will be
@@ -324,7 +324,7 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_loadKTXFileToTexture(dsResourceManager
  * @param resourceManager The resource manager to create the texture from.
  * @param textureAllocator The allocator to create the texture with. If NULL, it will use the same
  *     allocator as the resource manager.
- * @param tempAllocator The allocator to use for temporary memory.  If NULL, it will use the same
+ * @param tempAllocator The allocator to use for temporary memory. If NULL, it will use the same
  *     allocator as the texture.
  * @param type The resource type.
  * @param filePath The file to load.
@@ -346,7 +346,7 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_loadKTXResourceToTexture(
  * @param resourceManager The resource manager to create the texture from.
  * @param textureAllocator The allocator to create the texture with. If NULL, it will use the same
  *     allocator as the resource manager.
- * @param tempAllocator The allocator to use for temporary memory.  If NULL, it will use the same
+ * @param tempAllocator The allocator to use for temporary memory. If NULL, it will use the same
  *     allocator as the texture.
  * @param stream The file to load the texture from.
  * @param options Options for converting the texture data to a texture. If NULL, the texture will be
@@ -397,7 +397,7 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadPVRStream(dsAllocator* allocat
  * @param resourceManager The resource manager to create the texture from.
  * @param textureAllocator The allocator to create the texture with. If NULL, it will use the same
  *     allocator as the resource manager.
- * @param tempAllocator The allocator to use for temporary memory.  If NULL, it will use the same
+ * @param tempAllocator The allocator to use for temporary memory. If NULL, it will use the same
  *     allocator as the texture.
  * @param filePath The file to load.
  * @param options Options for converting the texture data to a texture. If NULL, the texture will be
@@ -417,7 +417,7 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_loadPVRFileToTexture(dsResourceManager
  * @param resourceManager The resource manager to create the texture from.
  * @param textureAllocator The allocator to create the texture with. If NULL, it will use the same
  *     allocator as the resource manager.
- * @param tempAllocator The allocator to use for temporary memory.  If NULL, it will use the same
+ * @param tempAllocator The allocator to use for temporary memory. If NULL, it will use the same
  *     allocator as the texture.
  * @param type The resource type.
  * @param filePath The file to load.
@@ -439,7 +439,7 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_loadPVRResourceToTexture(
  * @param resourceManager The resource manager to create the texture from.
  * @param textureAllocator The allocator to create the texture with. If NULL, it will use the same
  *     allocator as the resource manager.
- * @param tempAllocator The allocator to use for temporary memory.  If NULL, it will use the same
+ * @param tempAllocator The allocator to use for temporary memory. If NULL, it will use the same
  *     allocator as the texture.
  * @param stream The file to load the texture from.
  * @param options Options for converting the texture data to a texture. If NULL, the texture will be

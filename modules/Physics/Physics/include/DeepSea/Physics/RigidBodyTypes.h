@@ -142,7 +142,7 @@ typedef struct dsRigidBodyInit
 	/**
 	 * @brief Function to destroy the user data.
 	 *
-	 * This will be called even if the creation of the body fails.
+	 * This will be called even if the creation of the rigid body fails.
 	 */
 	dsDestroyUserDataFunction destroyUserDataFunc;
 
@@ -427,6 +427,124 @@ typedef struct dsRigidBody
 	 */
 	bool shapesFinalized;
 } dsRigidBody;
+
+/**
+ * @brief Struct defining a template to create similar rigid body instances.
+ *
+ * This is a factory object to create rigid bodies that are similar, typically instances of the same
+ * object. This will store the shape information and common attributes, while the per-instance
+ * information is provided when creating the rigid body. This is more convenient than going through
+ * dsRigidBodyInit to create a dsRigidBody directly when multiple similar rigid bodies are created.
+ *
+ * All members apart from the shape members may be modified directly as needed.
+ *
+ * @see RigidBodyDemplate.h
+ */
+typedef struct dsRigidBodyTemplate
+{
+	/**
+	 * @brief The physics engine the rigid body template was created with.
+	 */
+	dsPhysicsEngine* engine;
+
+	/**
+	 * @brief The allocator the rigid body template was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief Flags to control the behavior of the rigid body.
+	 */
+	dsRigidBodyFlags flags;
+
+	/**
+	 * @brief The type of motion for the rigid body.
+	 */
+	dsPhysicsMotionType motionType;
+
+	/**
+	 * @brief The mask of degrees of freedom the simulation may modify.
+	 */
+	dsPhysicsDOFMask dofMask;
+
+	/**
+	 * @brief The layer the rigid body will be associated with.
+	 */
+	dsPhysicsLayer layer;
+
+	/**
+	 * @brief Collision group ID that the rigid body will belong to.
+	 */
+	uint64_t collisionGroup;
+
+	/**
+	 * @brief Function to check whether two collision groups can collide.
+	 *
+	 * When checking a pair of intersecting actors, they will collide if both set this function
+	 * to NULL or the function returns true. Behavior is undefined if the function is set on both
+	 * bodies and would return true for one body but false the other.
+	 */
+	dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc;
+
+	/**
+	 * @brief The mass properties of the rigid body.
+	 */
+	dsPhysicsMassProperties massProperties;
+
+	/**
+	 * @brief The coefficient of friction, with 0 meaning no friction and increasing values having
+	 * higher friction.
+	 */
+	float friction;
+
+	/**
+	 * @brief The restitution value, where 0 is fully inelastic and 1 is fully elastic.
+	 */
+	float restitution;
+
+	/**
+	 * @brief The hardness value, where 0 indicates to use this body's restitution on collision and
+	 *     1 indicates to use the other body's restitution.
+	 */
+	float hardness;
+
+	/**
+	 * @brief Linear damping factor in the range [0, 1] to reduce the velocity over time.
+	 */
+	float linearDamping;
+
+	/**
+	 * @brief Angular damping factor in the range [0, 1] to reduce the angular velocity over time.
+	 */
+	float angularDamping;
+
+	/**
+	 * @brief The maximum linear velocity.
+	 */
+	float maxLinearVelocity;
+
+	/**
+	 * @brief The maximum angular velocity in radians/s.
+	 */
+	float maxAngularVelocity;
+
+	/**
+	 * @brief The shapes associated with the body.
+	 * @remark The instance IDs aren't set and won't be guaranteed to match the rigid bodies created.
+	 *     They will be added in the same order as listed here on creation.
+	 */
+	dsPhysicsShapeInstance* shapes;
+
+	/**
+	 * @brief The number of shapes in the body.
+	 */
+	uint32_t shapeCount;
+
+	/**
+	 * @brief The maximum number of shapes before re-allocation is needed.
+	 */
+	uint32_t maxShapes;
+} dsRigidBodyTemplate;
 
 /**
  * @brief Function to create a rigid body group.

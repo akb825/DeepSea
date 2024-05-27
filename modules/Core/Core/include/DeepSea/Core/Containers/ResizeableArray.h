@@ -38,7 +38,7 @@ extern "C"
  *     starts as empty. The value of array will be re-assigned if the array is re-allocated.
  * @param[inout] elementCount The number of elements in the buffer. (passed by value, not by
  *     pointer)
- * @param[inout] maxElements The naximum number of elements held by the buffer.  (passed by value,
+ * @param[inout] maxElements The naximum number of elements held by the buffer. (passed by value,
  *     not by pointer)
  * @param addCount The number of elements to add.
  * @return False if the parameters are invalid or the buffer couldn't be allocated.

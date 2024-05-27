@@ -245,7 +245,7 @@ typedef struct dsPhysicsShapeInstance
 	/**
 	 * @brief The ID for the shape.
 	 *
-	 * This will be unique within a rigid body, but may be shared across multiple rigid bodies.
+	 * This will be unique within a rigid body, but may overlap across multiple rigid bodies.
 	 */
 	uint32_t id;
 
