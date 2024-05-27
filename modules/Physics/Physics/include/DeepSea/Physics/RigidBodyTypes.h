@@ -33,6 +33,21 @@ extern "C"
  */
 
 /**
+ * @brief Default damping value for physics actors.
+ */
+#define DS_DEFAULT_PHYSICS_DAMPING 0.05f
+
+/**
+ * @brief Default maximum linear velocity for physics actors.
+ */
+#define DS_DEFAULT_PHYSICS_MAX_LINEAR_VELOCITY 500.0f
+
+/**
+ * @brief Default maximum angular velocity for physics actors.
+ */
+#define DS_DEFAULT_PHYSICS_MAX_ANGULAR_VELOCITY 47.123890f
+
+/**
  * @brief Enum for flags to control the behavior of rigid bodies.
  *
  * Flags may be toggled after creation unless otherwise specified.

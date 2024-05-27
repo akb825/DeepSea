@@ -121,6 +121,8 @@ DS_PHYSICS_EXPORT bool dsRigidBodyTemplate_finalizeShapes(dsRigidBodyTemplate* r
  * @param destroyUserDataFunc Function to destroy the user data. This will be called even if the
  *     creation of the rigid body fails.
  * @param scale The scale of the rigid body or NULL if not scaled.
+ * @return The rigid body or NULL if it couldn't be created. The shapes will be finalized unless
+ *     there are no shapes in the template.
  */
 DS_PHYSICS_EXPORT dsRigidBody* dsRigidBodyTemplate_instantiate(
 	const dsRigidBodyTemplate* rigidBodyTemplate, dsAllocator* allocator, dsRigidBodyGroup* group,

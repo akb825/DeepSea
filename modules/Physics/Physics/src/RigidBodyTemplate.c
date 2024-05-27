@@ -149,10 +149,10 @@ dsRigidBodyTemplate* dsRigidBodyTemplate_create(dsPhysicsEngine* engine, dsAlloc
 	rigidBodyTemplate->friction = friction;
 	rigidBodyTemplate->restitution = restitution;
 	rigidBodyTemplate->hardness = hardness;
-	rigidBodyTemplate->linearDamping = 0.05f;
-	rigidBodyTemplate->angularDamping = 0.05f;
-	rigidBodyTemplate->maxLinearVelocity = 500.0f;
-	rigidBodyTemplate->maxAngularVelocity = M_PIf*15;
+	rigidBodyTemplate->linearDamping = DS_DEFAULT_PHYSICS_DAMPING;
+	rigidBodyTemplate->angularDamping = DS_DEFAULT_PHYSICS_DAMPING;
+	rigidBodyTemplate->maxLinearVelocity = DS_DEFAULT_PHYSICS_MAX_LINEAR_VELOCITY;
+	rigidBodyTemplate->maxAngularVelocity = DS_DEFAULT_PHYSICS_MAX_ANGULAR_VELOCITY;
 	rigidBodyTemplate->shapes = NULL;
 	rigidBodyTemplate->shapeCount = 0;
 	rigidBodyTemplate->maxShapes = shapeCount;
@@ -372,7 +372,7 @@ dsRigidBody* dsRigidBodyTemplate_instantiate(const dsRigidBodyTemplate* rigidBod
 		}
 	}
 
-	if (!dsRigidBody_finalizeShapesCustomMassProperties(
+	if (rigidBodyTemplate->shapeCount > 0 && !dsRigidBody_finalizeShapesCustomMassProperties(
 			rigidBody, &rigidBodyTemplate->massProperties))
 	{
 		dsRigidBody_destroy(rigidBody);

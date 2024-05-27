@@ -87,10 +87,10 @@ bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit,
 	rigidBodyInit->friction = friction;
 	rigidBodyInit->restitution = restitution;
 	rigidBodyInit->hardness = hardness;
-	rigidBodyInit->linearDamping = 0.05f;
-	rigidBodyInit->angularDamping = 0.05f;
-	rigidBodyInit->maxLinearVelocity = 500.0f;
-	rigidBodyInit->maxAngularVelocity = M_PIf*15;
+	rigidBodyInit->linearDamping = DS_DEFAULT_PHYSICS_DAMPING;
+	rigidBodyInit->angularDamping = DS_DEFAULT_PHYSICS_DAMPING;
+	rigidBodyInit->maxLinearVelocity = DS_DEFAULT_PHYSICS_MAX_LINEAR_VELOCITY;
+	rigidBodyInit->maxAngularVelocity = DS_DEFAULT_PHYSICS_MAX_ANGULAR_VELOCITY;
 	rigidBodyInit->shapeCount = 0;
 	return true;
 }
