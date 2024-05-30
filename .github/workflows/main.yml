@@ -74,7 +74,7 @@ jobs:
         check_name: Tests (Linux ${{ matrix.lib_type }} Release)
         junit_files: "${{ env.test_results_location }}/*.xml"
   Android:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         config:
