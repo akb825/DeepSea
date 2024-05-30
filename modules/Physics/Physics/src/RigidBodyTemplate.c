@@ -40,6 +40,7 @@ static bool hasMassProperties(const dsRigidBodyTemplate* rigidBodyTemplate)
 	return rigidBodyTemplate->motionType == dsPhysicsMotionType_Dynamic ||
 		(rigidBodyTemplate->flags & dsRigidBodyFlags_MutableMotionType);
 }
+
 // For some reason GCC (at least with 13.2) complains that massPropertiesPtrs is maybe
 // uninitialized, despite very clearly being assigned in all code paths, even if explicitly
 // initializing to NULL on declaration. Only option is to disable the warning for the function.

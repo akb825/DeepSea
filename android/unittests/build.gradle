@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 33
+    compileSdk 34
     ndkVersion "25.1.8937393"
     defaultConfig {
         applicationId "com.akb825.deepsea.unittest"
-        minSdkVersion 18
-        targetSdkVersion 33
+        minSdkVersion 21
+        targetSdkVersion 34
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
@@ -30,7 +30,7 @@ android {
         }
     }
 
-    flavorDimensions "unittest"
+    flavorDimensions += "unittest"
     productFlavors {
         CoreUnitTests {
             externalNativeBuild {
@@ -69,6 +69,10 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.6.0'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+}
+
+configurations.implementation {
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
 }
