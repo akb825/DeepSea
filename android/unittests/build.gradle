@@ -36,6 +36,7 @@ android {
             externalNativeBuild {
                 cmake {
                     targets "deepsea_core_test"
+                    arguments "-DDEEPSEA_ANDROID_ASSETS_DIR=src/CoreUnitTests/assets"
                 }
             }
             dimension "unittest"
@@ -50,6 +51,7 @@ android {
             externalNativeBuild {
                 cmake {
                     targets "deepsea_render_bootstrap_test"
+                    arguments "-DDEEPSEA_ANDROID_ASSETS_DIR=src/RenderBootstrapUnitTests/assets"
                 }
             }
             dimension "unittest"
@@ -68,7 +70,6 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 }

@@ -35,26 +35,26 @@ android {
         }
     }
     // Only include libraries that aren't referenced directly in CMake.
-    task copyArm32Libraries(type: Copy) {
-        from ("${projectDir}/../../dependencies/libs/android-armeabi-v7a/lib") {
+    tasks.register('copyArm32Libraries', Copy) {
+        from("${projectDir}/../../dependencies/libs/android-armeabi-v7a/lib") {
             include "libSDL2.so"
         }
         into "${projectDir}/src/main/jniLibs/armeabi-v7a"
     }
-    task copyArm64Libraries(type: Copy) {
-        from ("${projectDir}/../../dependencies/libs/android-arm64-v8a/lib") {
+    tasks.register('copyArm64Libraries', Copy) {
+        from("${projectDir}/../../dependencies/libs/android-arm64-v8a/lib") {
             include "libSDL2.so"
         }
         into "${projectDir}/src/main/jniLibs/arm64-v8a"
     }
-    task copyX86Libraries(type: Copy) {
-        from ("${projectDir}/../../dependencies/libs/android-x86/lib") {
+    tasks.register('copyX86Libraries', Copy) {
+        from("${projectDir}/../../dependencies/libs/android-x86/lib") {
             include "libSDL2.so"
         }
         into "${projectDir}/src/main/jniLibs/x86"
     }
-    task copyX86_64Libraries(type: Copy) {
-        from ("${projectDir}/../../dependencies/libs/android-x86_64/lib") {
+    tasks.register('copyX86_64Libraries', Copy) {
+        from("${projectDir}/../../dependencies/libs/android-x86_64/lib") {
             include "libSDL2.so"
         }
         into "${projectDir}/src/main/jniLibs/x86_64"
@@ -65,6 +65,7 @@ android {
             externalNativeBuild {
                 cmake {
                     targets "deepsea_test_cube_app"
+                    arguments "-DDEEPSEA_ANDROID_ASSETS_DIR=src/TestCube/assets"
                 }
             }
             dimension "tester"
@@ -78,6 +79,7 @@ android {
             externalNativeBuild {
                 cmake {
                     targets "deepsea_test_render_subpass_app"
+                    arguments "-DDEEPSEA_ANDROID_ASSETS_DIR=src/TestRenderSubpass/assets"
                 }
             }
             dimension "tester"
@@ -90,6 +92,7 @@ android {
             externalNativeBuild {
                 cmake {
                     targets "deepsea_test_text_app"
+                    arguments "-DDEEPSEA_ANDROID_ASSETS_DIR=src/TestText/assets"
                 }
             }
             dimension "tester"
@@ -102,6 +105,7 @@ android {
             externalNativeBuild {
                 cmake {
                     targets "deepsea_test_vector_draw_app"
+                    arguments "-DDEEPSEA_ANDROID_ASSETS_DIR=src/TestVectorDrawApp/assets"
                 }
             }
             dimension "tester"
@@ -114,6 +118,7 @@ android {
             externalNativeBuild {
                 cmake {
                     targets "deepsea_test_scene_app"
+                    arguments "-DDEEPSEA_ANDROID_ASSETS_DIR=src/TestScene/assets"
                 }
             }
             dimension "tester"
@@ -126,6 +131,7 @@ android {
             externalNativeBuild {
                 cmake {
                     targets "deepsea_test_vector_draw_scene_app"
+                    arguments "-DDEEPSEA_ANDROID_ASSETS_DIR=src/TestVectorDrawScene/assets"
                 }
             }
             dimension "tester"
@@ -138,6 +144,7 @@ android {
             externalNativeBuild {
                 cmake {
                     targets "deepsea_test_lighting_app"
+                    arguments "-DDEEPSEA_ANDROID_ASSETS_DIR=src/TestLighting/assets"
                 }
             }
             dimension "tester"
@@ -150,6 +157,7 @@ android {
             externalNativeBuild {
                 cmake {
                     targets "deepsea_test_particles_app"
+                    arguments "-DDEEPSEA_ANDROID_ASSETS_DIR=src/TestParticles/assets"
                 }
             }
             dimension "tester"
@@ -172,7 +180,6 @@ preBuild.dependsOn(copyX86Libraries)
 preBuild.dependsOn(copyX86_64Libraries)
 
 dependencies {
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.appcompat:appcompat:1.7.0'
 }
 

@@ -1,4 +1,4 @@
 /build
-/src/main/assets
+/src/*/assets
 /src/main/jniLibs
 /src/main/jniLibs-disabled

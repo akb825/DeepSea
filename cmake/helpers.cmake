@@ -1,4 +1,4 @@
-# Copyright 2018 Aaron Barany
+# Copyright 2018-2024 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -56,7 +56,12 @@ macro(ds_build_assets_dir output target)
 		else()
 			set(_assetsDir src/main/assets)
 		endif()
-		set(${output} ${_appDir}/${_assetsDir})
+
+		if (IS_ABSOLUTE ${_assetsDir})
+			set(${output} ${_assetsDir})
+		else()
+			set(${output} ${_appDir}/${_assetsDir})
+		endif()
 	else()
 		if (CMAKE_RUNTIME_OUTPUT_DIRECTORY)
 			set(${output} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
