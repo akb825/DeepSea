@@ -1,0 +1,84 @@
+/*
+ * Copyright 2024 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+include "PhysicsCommon.fbs";
+include "PhysicsShape.fbs";
+
+namespace DeepSeaPhysics;
+
+// Struct describing a rigid body physics actor.
+table RigidBody
+{
+	// The flags to control the behavior of the rigid body.
+	flags : RigidBodyFlags;
+
+	// The type of motion for the rigid body.
+	motionType : MotionType;
+
+	// The mask of degrees of freedom the simulation may modify.
+	dofMask : DOFMask;
+
+	// The layer the rigid body is associated with.
+	layer : PhysicsLayer;
+
+	// Collision group ID that the body belongs to.
+	collisionGroup : uint64;
+
+	// The position of the body in world space.
+	position : Vector3f;
+
+	// The orientation of the body in world space.
+	orientation : Quaternion4f;
+
+	// The scale factor of the body. This will only be used if the Scalable flag is set.
+	scale : Vector3f;
+
+	// The initial linear velocity of the body.
+	linearVelocity : Vector3f;
+
+	// The initial angular velocity of the body.
+	angularVelocity : Vector3f;
+
+	// The coefficient of friction, with 0 meaning no friction and increasing values having higher
+	// friction.
+	friction : float;
+
+	// The restitution value, where 0 is fully inelastic and 1 is fully elastic.
+	restitution : float;
+
+	// The hardness value, where 0 indicates to use this body's restitution on collision and 1
+	// indicates to use the other body's restitution.
+	hardness : float;
+
+	// Linear damping factor in the range [0, 1] to reduce the velocity over time. Set to a value <
+	// 0 for the default.
+	linearDamping : float = -1;
+
+	// Angular damping factor in the range [0, 1] to reduce the velocity over time. Set to a value <
+	// 0 for the default.
+	angularDamping : float = -1;
+
+	// The maximum linear velocity. Set to a value < 0 for the default.
+	maxLinearVelocity : float;
+
+	// The maximum angular velocity. Set to a value < 0 for the default.
+	maxAngularVelocity : float;
+
+	// The shapes for the rigid body.
+	shapes : [ShapeInstance];
+}
+
+root_type RigidBody;

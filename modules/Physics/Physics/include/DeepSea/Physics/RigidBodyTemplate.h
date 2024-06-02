@@ -32,7 +32,7 @@ extern "C"
  */
 
 /**
- * @param Creates a rigid body template.
+ * @brief Creates a rigid body template.
  *
  * This takes the most commonly changed attributes and sets the default values for the remaining
  * members.

@@ -54,6 +54,168 @@ inline const char *EnumNameAxis(Axis e) {
   return EnumNamesAxis()[index];
 }
 
+enum class MotionType : uint8_t {
+  Static = 0,
+  Kinematic = 1,
+  Dynamic = 2,
+  MIN = Static,
+  MAX = Dynamic
+};
+
+inline const MotionType (&EnumValuesMotionType())[3] {
+  static const MotionType values[] = {
+    MotionType::Static,
+    MotionType::Kinematic,
+    MotionType::Dynamic
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesMotionType() {
+  static const char * const names[4] = {
+    "Static",
+    "Kinematic",
+    "Dynamic",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameMotionType(MotionType e) {
+  if (::flatbuffers::IsOutRange(e, MotionType::Static, MotionType::Dynamic)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesMotionType()[index];
+}
+
+enum class DOFMask : uint8_t {
+  TransX = 0,
+  TransY = 1,
+  TransZ = 2,
+  RotX = 3,
+  RotY = 4,
+  RotZ = 5,
+  MIN = TransX,
+  MAX = RotZ
+};
+
+inline const DOFMask (&EnumValuesDOFMask())[6] {
+  static const DOFMask values[] = {
+    DOFMask::TransX,
+    DOFMask::TransY,
+    DOFMask::TransZ,
+    DOFMask::RotX,
+    DOFMask::RotY,
+    DOFMask::RotZ
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesDOFMask() {
+  static const char * const names[7] = {
+    "TransX",
+    "TransY",
+    "TransZ",
+    "RotX",
+    "RotY",
+    "RotZ",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameDOFMask(DOFMask e) {
+  if (::flatbuffers::IsOutRange(e, DOFMask::TransX, DOFMask::RotZ)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesDOFMask()[index];
+}
+
+enum class PhysicsLayer : uint8_t {
+  StaticWorld = 0,
+  Objects = 1,
+  Projectiles = 2,
+  MIN = StaticWorld,
+  MAX = Projectiles
+};
+
+inline const PhysicsLayer (&EnumValuesPhysicsLayer())[3] {
+  static const PhysicsLayer values[] = {
+    PhysicsLayer::StaticWorld,
+    PhysicsLayer::Objects,
+    PhysicsLayer::Projectiles
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesPhysicsLayer() {
+  static const char * const names[4] = {
+    "StaticWorld",
+    "Objects",
+    "Projectiles",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNamePhysicsLayer(PhysicsLayer e) {
+  if (::flatbuffers::IsOutRange(e, PhysicsLayer::StaticWorld, PhysicsLayer::Projectiles)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesPhysicsLayer()[index];
+}
+
+enum class RigidBodyFlags : uint32_t {
+  MutableMotionType = 1,
+  MutableShape = 2,
+  Scalable = 4,
+  LinearCollision = 8,
+  Sensor = 16,
+  SensorDetectStatic = 32,
+  AlwaysActive = 64,
+  DisableGravity = 128,
+  GyroscopicForces = 256,
+  AllContacts = 512,
+  CustomContactProperties = 1024,
+  ContactCallbacks = 2048,
+  NONE = 0,
+  ANY = 4095
+};
+FLATBUFFERS_DEFINE_BITMASK_OPERATORS(RigidBodyFlags, uint32_t)
+
+inline const RigidBodyFlags (&EnumValuesRigidBodyFlags())[12] {
+  static const RigidBodyFlags values[] = {
+    RigidBodyFlags::MutableMotionType,
+    RigidBodyFlags::MutableShape,
+    RigidBodyFlags::Scalable,
+    RigidBodyFlags::LinearCollision,
+    RigidBodyFlags::Sensor,
+    RigidBodyFlags::SensorDetectStatic,
+    RigidBodyFlags::AlwaysActive,
+    RigidBodyFlags::DisableGravity,
+    RigidBodyFlags::GyroscopicForces,
+    RigidBodyFlags::AllContacts,
+    RigidBodyFlags::CustomContactProperties,
+    RigidBodyFlags::ContactCallbacks
+  };
+  return values;
+}
+
+inline const char *EnumNameRigidBodyFlags(RigidBodyFlags e) {
+  switch (e) {
+    case RigidBodyFlags::MutableMotionType: return "MutableMotionType";
+    case RigidBodyFlags::MutableShape: return "MutableShape";
+    case RigidBodyFlags::Scalable: return "Scalable";
+    case RigidBodyFlags::LinearCollision: return "LinearCollision";
+    case RigidBodyFlags::Sensor: return "Sensor";
+    case RigidBodyFlags::SensorDetectStatic: return "SensorDetectStatic";
+    case RigidBodyFlags::AlwaysActive: return "AlwaysActive";
+    case RigidBodyFlags::DisableGravity: return "DisableGravity";
+    case RigidBodyFlags::GyroscopicForces: return "GyroscopicForces";
+    case RigidBodyFlags::AllContacts: return "AllContacts";
+    case RigidBodyFlags::CustomContactProperties: return "CustomContactProperties";
+    case RigidBodyFlags::ContactCallbacks: return "ContactCallbacks";
+    default: return "";
+  }
+}
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3f FLATBUFFERS_FINAL_CLASS {
  private:
   float x_;

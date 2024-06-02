@@ -55,3 +55,74 @@ struct ShapePartMaterial
 	// indicates to use the other body's restitution.
 	hardness : float;
 }
+
+// Enum for how a physics actor does, or doesn't, move.
+enum MotionType : uint8
+{
+	// Object that that won't be moved by the physics simulation. While static objects may be moved
+	// manually, they may not properly interact with other objects.
+	Static,
+	// Object that may be moved directly, but won't be affected by forces. When moved, it will be
+	// treated as an object with infinite mass and always move dynamic objects away.
+	Kinematic,
+	// Object that will be moved based on the physics simulation with the various forces applied.
+	Dynamic
+}
+
+// Enum for a mask of degrees of freedom for physics actors.
+enum DOFMask : uint8
+{
+	// Translation along the X axis.
+	TransX = 0,
+	// Translation along the Y axis.
+	TransY = 1,
+	// Translation along the Z axis.
+	TransZ = 2,
+	// Rotation along the X axis.
+	RotX = 3,
+	// Rotation along the Y axis.
+	RotY = 4,
+	// Rotation along the Z axis.
+	RotZ = 5
+}
+
+// Enum describing a layer of physics objects.
+enum PhysicsLayer : uint8
+{
+	// Static world collision that cannot collide with itself.
+	StaticWorld,
+	// Standard physics objects that can collide with anything.
+	Objects,
+	// Projectiles that can collide with everything but other projectiles.
+	Projectiles
+}
+
+// Enum for flags to apply to rigid bodies.
+enum RigidBodyFlags : uint32 (bit_flags)
+{
+	// Can change the motion type. This flag can't be changed after creation.
+	MutableMotionType = 0,
+	// Shapes may be added, removed, or transformed after creation. This flag can't be changed after
+	// creation.
+	MutableShape = 1,
+	// Allow the body to be scaled. This flag can't be changed after creation.
+	Scalable = 2,
+	// Use linear collision to avoid fast-moving objects missing collisions.
+	LinearCollision = 3,
+	// Detect collisions but don't interact.
+	Sensor = 4,
+	// Allow detecting static objects as a sensor.
+	SensorDetectStatic = 5,
+	// Always consider the body to be active, not allowing it to go to sleep.
+	AlwaysActive = 6,
+	// Disable gravity for the body.
+	DisableGravity = 7,
+	// Apply gyroscopic forces to the body.
+	GyroscopicForces = 8,
+	// Avoid combining similar contact points from the same collision pair.
+	AllContacts = 9,
+	// Contact properties may be overridden.
+	CustomContactProperties = 10,
+	// Invoke callbacks on the physics scene when it comes into contact with other bodies.
+	ContactCallbacks = 11
+}
