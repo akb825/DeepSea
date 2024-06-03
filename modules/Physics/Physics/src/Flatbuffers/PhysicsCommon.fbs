@@ -126,3 +126,14 @@ enum RigidBodyFlags : uint32 (bit_flags)
 	// Invoke callbacks on the physics scene when it comes into contact with other bodies.
 	ContactCallbacks = 11
 }
+
+// Enum for the type of motor to apply to a physics constraint.
+enum ConstraintMotorType : uint8
+{
+	// The motor is disabled and doesn't apply force.
+	Disabled,
+	// Forces are applied to reach a target position or orientation.
+	Position,
+	// Forces are applied to reach a target velocity.
+	Velocity
+}

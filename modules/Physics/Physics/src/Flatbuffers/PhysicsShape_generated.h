@@ -30,7 +30,10 @@ struct ShapeRefBuilder;
 struct ShapeInstance;
 struct ShapeInstanceBuilder;
 
-enum class Shape : uint8_t {
+struct Shape;
+struct ShapeBuilder;
+
+enum class ShapeUnion : uint8_t {
   NONE = 0,
   Box = 1,
   Capsule = 2,
@@ -44,22 +47,22 @@ enum class Shape : uint8_t {
   MAX = ShapeRef
 };
 
-inline const Shape (&EnumValuesShape())[9] {
-  static const Shape values[] = {
-    Shape::NONE,
-    Shape::Box,
-    Shape::Capsule,
-    Shape::Cone,
-    Shape::ConvexHull,
-    Shape::Cylinder,
-    Shape::Mesh,
-    Shape::Sphere,
-    Shape::ShapeRef
+inline const ShapeUnion (&EnumValuesShapeUnion())[9] {
+  static const ShapeUnion values[] = {
+    ShapeUnion::NONE,
+    ShapeUnion::Box,
+    ShapeUnion::Capsule,
+    ShapeUnion::Cone,
+    ShapeUnion::ConvexHull,
+    ShapeUnion::Cylinder,
+    ShapeUnion::Mesh,
+    ShapeUnion::Sphere,
+    ShapeUnion::ShapeRef
   };
   return values;
 }
 
-inline const char * const *EnumNamesShape() {
+inline const char * const *EnumNamesShapeUnion() {
   static const char * const names[10] = {
     "NONE",
     "Box",
@@ -75,50 +78,50 @@ inline const char * const *EnumNamesShape() {
   return names;
 }
 
-inline const char *EnumNameShape(Shape e) {
-  if (::flatbuffers::IsOutRange(e, Shape::NONE, Shape::ShapeRef)) return "";
+inline const char *EnumNameShapeUnion(ShapeUnion e) {
+  if (::flatbuffers::IsOutRange(e, ShapeUnion::NONE, ShapeUnion::ShapeRef)) return "";
   const size_t index = static_cast<size_t>(e);
-  return EnumNamesShape()[index];
+  return EnumNamesShapeUnion()[index];
 }
 
-template<typename T> struct ShapeTraits {
-  static const Shape enum_value = Shape::NONE;
+template<typename T> struct ShapeUnionTraits {
+  static const ShapeUnion enum_value = ShapeUnion::NONE;
 };
 
-template<> struct ShapeTraits<DeepSeaPhysics::Box> {
-  static const Shape enum_value = Shape::Box;
+template<> struct ShapeUnionTraits<DeepSeaPhysics::Box> {
+  static const ShapeUnion enum_value = ShapeUnion::Box;
 };
 
-template<> struct ShapeTraits<DeepSeaPhysics::Capsule> {
-  static const Shape enum_value = Shape::Capsule;
+template<> struct ShapeUnionTraits<DeepSeaPhysics::Capsule> {
+  static const ShapeUnion enum_value = ShapeUnion::Capsule;
 };
 
-template<> struct ShapeTraits<DeepSeaPhysics::Cone> {
-  static const Shape enum_value = Shape::Cone;
+template<> struct ShapeUnionTraits<DeepSeaPhysics::Cone> {
+  static const ShapeUnion enum_value = ShapeUnion::Cone;
 };
 
-template<> struct ShapeTraits<DeepSeaPhysics::ConvexHull> {
-  static const Shape enum_value = Shape::ConvexHull;
+template<> struct ShapeUnionTraits<DeepSeaPhysics::ConvexHull> {
+  static const ShapeUnion enum_value = ShapeUnion::ConvexHull;
 };
 
-template<> struct ShapeTraits<DeepSeaPhysics::Cylinder> {
-  static const Shape enum_value = Shape::Cylinder;
+template<> struct ShapeUnionTraits<DeepSeaPhysics::Cylinder> {
+  static const ShapeUnion enum_value = ShapeUnion::Cylinder;
 };
 
-template<> struct ShapeTraits<DeepSeaPhysics::Mesh> {
-  static const Shape enum_value = Shape::Mesh;
+template<> struct ShapeUnionTraits<DeepSeaPhysics::Mesh> {
+  static const ShapeUnion enum_value = ShapeUnion::Mesh;
 };
 
-template<> struct ShapeTraits<DeepSeaPhysics::Sphere> {
-  static const Shape enum_value = Shape::Sphere;
+template<> struct ShapeUnionTraits<DeepSeaPhysics::Sphere> {
+  static const ShapeUnion enum_value = ShapeUnion::Sphere;
 };
 
-template<> struct ShapeTraits<DeepSeaPhysics::ShapeRef> {
-  static const Shape enum_value = Shape::ShapeRef;
+template<> struct ShapeUnionTraits<DeepSeaPhysics::ShapeRef> {
+  static const ShapeUnion enum_value = ShapeUnion::ShapeRef;
 };
 
-bool VerifyShape(::flatbuffers::Verifier &verifier, const void *obj, Shape type);
-bool VerifyShapeVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Shape> *types);
+bool VerifyShapeUnion(::flatbuffers::Verifier &verifier, const void *obj, ShapeUnion type);
+bool VerifyShapeUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ShapeUnion> *types);
 
 struct ShapeRef FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ShapeRefBuilder Builder;
@@ -183,36 +186,36 @@ struct ShapeInstance FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_SCALE = 14,
     VT_MATERIAL = 16
   };
-  DeepSeaPhysics::Shape shape_type() const {
-    return static_cast<DeepSeaPhysics::Shape>(GetField<uint8_t>(VT_SHAPE_TYPE, 0));
+  DeepSeaPhysics::ShapeUnion shape_type() const {
+    return static_cast<DeepSeaPhysics::ShapeUnion>(GetField<uint8_t>(VT_SHAPE_TYPE, 0));
   }
   const void *shape() const {
     return GetPointer<const void *>(VT_SHAPE);
   }
   template<typename T> const T *shape_as() const;
   const DeepSeaPhysics::Box *shape_as_Box() const {
-    return shape_type() == DeepSeaPhysics::Shape::Box ? static_cast<const DeepSeaPhysics::Box *>(shape()) : nullptr;
+    return shape_type() == DeepSeaPhysics::ShapeUnion::Box ? static_cast<const DeepSeaPhysics::Box *>(shape()) : nullptr;
   }
   const DeepSeaPhysics::Capsule *shape_as_Capsule() const {
-    return shape_type() == DeepSeaPhysics::Shape::Capsule ? static_cast<const DeepSeaPhysics::Capsule *>(shape()) : nullptr;
+    return shape_type() == DeepSeaPhysics::ShapeUnion::Capsule ? static_cast<const DeepSeaPhysics::Capsule *>(shape()) : nullptr;
   }
   const DeepSeaPhysics::Cone *shape_as_Cone() const {
-    return shape_type() == DeepSeaPhysics::Shape::Cone ? static_cast<const DeepSeaPhysics::Cone *>(shape()) : nullptr;
+    return shape_type() == DeepSeaPhysics::ShapeUnion::Cone ? static_cast<const DeepSeaPhysics::Cone *>(shape()) : nullptr;
   }
   const DeepSeaPhysics::ConvexHull *shape_as_ConvexHull() const {
-    return shape_type() == DeepSeaPhysics::Shape::ConvexHull ? static_cast<const DeepSeaPhysics::ConvexHull *>(shape()) : nullptr;
+    return shape_type() == DeepSeaPhysics::ShapeUnion::ConvexHull ? static_cast<const DeepSeaPhysics::ConvexHull *>(shape()) : nullptr;
   }
   const DeepSeaPhysics::Cylinder *shape_as_Cylinder() const {
-    return shape_type() == DeepSeaPhysics::Shape::Cylinder ? static_cast<const DeepSeaPhysics::Cylinder *>(shape()) : nullptr;
+    return shape_type() == DeepSeaPhysics::ShapeUnion::Cylinder ? static_cast<const DeepSeaPhysics::Cylinder *>(shape()) : nullptr;
   }
   const DeepSeaPhysics::Mesh *shape_as_Mesh() const {
-    return shape_type() == DeepSeaPhysics::Shape::Mesh ? static_cast<const DeepSeaPhysics::Mesh *>(shape()) : nullptr;
+    return shape_type() == DeepSeaPhysics::ShapeUnion::Mesh ? static_cast<const DeepSeaPhysics::Mesh *>(shape()) : nullptr;
   }
   const DeepSeaPhysics::Sphere *shape_as_Sphere() const {
-    return shape_type() == DeepSeaPhysics::Shape::Sphere ? static_cast<const DeepSeaPhysics::Sphere *>(shape()) : nullptr;
+    return shape_type() == DeepSeaPhysics::ShapeUnion::Sphere ? static_cast<const DeepSeaPhysics::Sphere *>(shape()) : nullptr;
   }
   const DeepSeaPhysics::ShapeRef *shape_as_ShapeRef() const {
-    return shape_type() == DeepSeaPhysics::Shape::ShapeRef ? static_cast<const DeepSeaPhysics::ShapeRef *>(shape()) : nullptr;
+    return shape_type() == DeepSeaPhysics::ShapeUnion::ShapeRef ? static_cast<const DeepSeaPhysics::ShapeRef *>(shape()) : nullptr;
   }
   float density() const {
     return GetField<float>(VT_DENSITY, 0.0f);
@@ -233,7 +236,7 @@ struct ShapeInstance FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_SHAPE_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_SHAPE) &&
-           VerifyShape(verifier, shape(), shape_type()) &&
+           VerifyShapeUnion(verifier, shape(), shape_type()) &&
            VerifyField<float>(verifier, VT_DENSITY, 4) &&
            VerifyField<DeepSeaPhysics::Vector3f>(verifier, VT_TRANSLATE, 4) &&
            VerifyField<DeepSeaPhysics::Quaternion4f>(verifier, VT_ROTATE, 4) &&
@@ -279,7 +282,7 @@ struct ShapeInstanceBuilder {
   typedef ShapeInstance Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_shape_type(DeepSeaPhysics::Shape shape_type) {
+  void add_shape_type(DeepSeaPhysics::ShapeUnion shape_type) {
     fbb_.AddElement<uint8_t>(ShapeInstance::VT_SHAPE_TYPE, static_cast<uint8_t>(shape_type), 0);
   }
   void add_shape(::flatbuffers::Offset<void> shape) {
@@ -314,7 +317,7 @@ struct ShapeInstanceBuilder {
 
 inline ::flatbuffers::Offset<ShapeInstance> CreateShapeInstance(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    DeepSeaPhysics::Shape shape_type = DeepSeaPhysics::Shape::NONE,
+    DeepSeaPhysics::ShapeUnion shape_type = DeepSeaPhysics::ShapeUnion::NONE,
     ::flatbuffers::Offset<void> shape = 0,
     float density = 0.0f,
     const DeepSeaPhysics::Vector3f *translate = nullptr,
@@ -332,40 +335,149 @@ inline ::flatbuffers::Offset<ShapeInstance> CreateShapeInstance(
   return builder_.Finish();
 }
 
-inline bool VerifyShape(::flatbuffers::Verifier &verifier, const void *obj, Shape type) {
+struct Shape FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef ShapeBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_SHAPE_TYPE = 4,
+    VT_SHAPE = 6
+  };
+  DeepSeaPhysics::ShapeUnion shape_type() const {
+    return static_cast<DeepSeaPhysics::ShapeUnion>(GetField<uint8_t>(VT_SHAPE_TYPE, 0));
+  }
+  const void *shape() const {
+    return GetPointer<const void *>(VT_SHAPE);
+  }
+  template<typename T> const T *shape_as() const;
+  const DeepSeaPhysics::Box *shape_as_Box() const {
+    return shape_type() == DeepSeaPhysics::ShapeUnion::Box ? static_cast<const DeepSeaPhysics::Box *>(shape()) : nullptr;
+  }
+  const DeepSeaPhysics::Capsule *shape_as_Capsule() const {
+    return shape_type() == DeepSeaPhysics::ShapeUnion::Capsule ? static_cast<const DeepSeaPhysics::Capsule *>(shape()) : nullptr;
+  }
+  const DeepSeaPhysics::Cone *shape_as_Cone() const {
+    return shape_type() == DeepSeaPhysics::ShapeUnion::Cone ? static_cast<const DeepSeaPhysics::Cone *>(shape()) : nullptr;
+  }
+  const DeepSeaPhysics::ConvexHull *shape_as_ConvexHull() const {
+    return shape_type() == DeepSeaPhysics::ShapeUnion::ConvexHull ? static_cast<const DeepSeaPhysics::ConvexHull *>(shape()) : nullptr;
+  }
+  const DeepSeaPhysics::Cylinder *shape_as_Cylinder() const {
+    return shape_type() == DeepSeaPhysics::ShapeUnion::Cylinder ? static_cast<const DeepSeaPhysics::Cylinder *>(shape()) : nullptr;
+  }
+  const DeepSeaPhysics::Mesh *shape_as_Mesh() const {
+    return shape_type() == DeepSeaPhysics::ShapeUnion::Mesh ? static_cast<const DeepSeaPhysics::Mesh *>(shape()) : nullptr;
+  }
+  const DeepSeaPhysics::Sphere *shape_as_Sphere() const {
+    return shape_type() == DeepSeaPhysics::ShapeUnion::Sphere ? static_cast<const DeepSeaPhysics::Sphere *>(shape()) : nullptr;
+  }
+  const DeepSeaPhysics::ShapeRef *shape_as_ShapeRef() const {
+    return shape_type() == DeepSeaPhysics::ShapeUnion::ShapeRef ? static_cast<const DeepSeaPhysics::ShapeRef *>(shape()) : nullptr;
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<uint8_t>(verifier, VT_SHAPE_TYPE, 1) &&
+           VerifyOffset(verifier, VT_SHAPE) &&
+           VerifyShapeUnion(verifier, shape(), shape_type()) &&
+           verifier.EndTable();
+  }
+};
+
+template<> inline const DeepSeaPhysics::Box *Shape::shape_as<DeepSeaPhysics::Box>() const {
+  return shape_as_Box();
+}
+
+template<> inline const DeepSeaPhysics::Capsule *Shape::shape_as<DeepSeaPhysics::Capsule>() const {
+  return shape_as_Capsule();
+}
+
+template<> inline const DeepSeaPhysics::Cone *Shape::shape_as<DeepSeaPhysics::Cone>() const {
+  return shape_as_Cone();
+}
+
+template<> inline const DeepSeaPhysics::ConvexHull *Shape::shape_as<DeepSeaPhysics::ConvexHull>() const {
+  return shape_as_ConvexHull();
+}
+
+template<> inline const DeepSeaPhysics::Cylinder *Shape::shape_as<DeepSeaPhysics::Cylinder>() const {
+  return shape_as_Cylinder();
+}
+
+template<> inline const DeepSeaPhysics::Mesh *Shape::shape_as<DeepSeaPhysics::Mesh>() const {
+  return shape_as_Mesh();
+}
+
+template<> inline const DeepSeaPhysics::Sphere *Shape::shape_as<DeepSeaPhysics::Sphere>() const {
+  return shape_as_Sphere();
+}
+
+template<> inline const DeepSeaPhysics::ShapeRef *Shape::shape_as<DeepSeaPhysics::ShapeRef>() const {
+  return shape_as_ShapeRef();
+}
+
+struct ShapeBuilder {
+  typedef Shape Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_shape_type(DeepSeaPhysics::ShapeUnion shape_type) {
+    fbb_.AddElement<uint8_t>(Shape::VT_SHAPE_TYPE, static_cast<uint8_t>(shape_type), 0);
+  }
+  void add_shape(::flatbuffers::Offset<void> shape) {
+    fbb_.AddOffset(Shape::VT_SHAPE, shape);
+  }
+  explicit ShapeBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<Shape> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<Shape>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<Shape> CreateShape(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    DeepSeaPhysics::ShapeUnion shape_type = DeepSeaPhysics::ShapeUnion::NONE,
+    ::flatbuffers::Offset<void> shape = 0) {
+  ShapeBuilder builder_(_fbb);
+  builder_.add_shape(shape);
+  builder_.add_shape_type(shape_type);
+  return builder_.Finish();
+}
+
+inline bool VerifyShapeUnion(::flatbuffers::Verifier &verifier, const void *obj, ShapeUnion type) {
   switch (type) {
-    case Shape::NONE: {
+    case ShapeUnion::NONE: {
       return true;
     }
-    case Shape::Box: {
+    case ShapeUnion::Box: {
       auto ptr = reinterpret_cast<const DeepSeaPhysics::Box *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case Shape::Capsule: {
+    case ShapeUnion::Capsule: {
       auto ptr = reinterpret_cast<const DeepSeaPhysics::Capsule *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case Shape::Cone: {
+    case ShapeUnion::Cone: {
       auto ptr = reinterpret_cast<const DeepSeaPhysics::Cone *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case Shape::ConvexHull: {
+    case ShapeUnion::ConvexHull: {
       auto ptr = reinterpret_cast<const DeepSeaPhysics::ConvexHull *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case Shape::Cylinder: {
+    case ShapeUnion::Cylinder: {
       auto ptr = reinterpret_cast<const DeepSeaPhysics::Cylinder *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case Shape::Mesh: {
+    case ShapeUnion::Mesh: {
       auto ptr = reinterpret_cast<const DeepSeaPhysics::Mesh *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case Shape::Sphere: {
+    case ShapeUnion::Sphere: {
       auto ptr = reinterpret_cast<const DeepSeaPhysics::Sphere *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case Shape::ShapeRef: {
+    case ShapeUnion::ShapeRef: {
       auto ptr = reinterpret_cast<const DeepSeaPhysics::ShapeRef *>(obj);
       return verifier.VerifyTable(ptr);
     }
@@ -373,16 +485,46 @@ inline bool VerifyShape(::flatbuffers::Verifier &verifier, const void *obj, Shap
   }
 }
 
-inline bool VerifyShapeVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Shape> *types) {
+inline bool VerifyShapeUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ShapeUnion> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
-    if (!VerifyShape(
-        verifier,  values->Get(i), types->GetEnum<Shape>(i))) {
+    if (!VerifyShapeUnion(
+        verifier,  values->Get(i), types->GetEnum<ShapeUnion>(i))) {
       return false;
     }
   }
   return true;
+}
+
+inline const DeepSeaPhysics::Shape *GetShape(const void *buf) {
+  return ::flatbuffers::GetRoot<DeepSeaPhysics::Shape>(buf);
+}
+
+inline const DeepSeaPhysics::Shape *GetSizePrefixedShape(const void *buf) {
+  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaPhysics::Shape>(buf);
+}
+
+inline bool VerifyShapeBuffer(
+    ::flatbuffers::Verifier &verifier) {
+  return verifier.VerifyBuffer<DeepSeaPhysics::Shape>(nullptr);
+}
+
+inline bool VerifySizePrefixedShapeBuffer(
+    ::flatbuffers::Verifier &verifier) {
+  return verifier.VerifySizePrefixedBuffer<DeepSeaPhysics::Shape>(nullptr);
+}
+
+inline void FinishShapeBuffer(
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaPhysics::Shape> root) {
+  fbb.Finish(root);
+}
+
+inline void FinishSizePrefixedShapeBuffer(
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaPhysics::Shape> root) {
+  fbb.FinishSizePrefixed(root);
 }
 
 }  // namespace DeepSeaPhysics

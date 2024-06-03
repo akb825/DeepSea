@@ -1,0 +1,48 @@
+/*
+ * Copyright 2024 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+include "PhysicsCommon.fbs";
+
+namespace DeepSeaPhysics;
+
+// Struct describing a rack and pinion physics constraint, ensuring the translation of a rack and
+// rotation of a pinion are locked based on the gear ratio.
+table RackAndPinionConstraint
+{
+	// The name of the actor used for the rack in the constraint.
+	rackActor : string (required);
+
+	// The axis of translation for the rack.
+	rackAxis : Vector3f (required);
+
+	// The slider constraint for the rack. This is optional to improve accuracy.
+	rackConstraint : string;
+
+	// The name of the actor used for the pinion in the constraint.
+	pinionActor : string (required);
+
+	// The axis of rotation for the pinion.
+	pinionAxis : Vector3f (required);
+
+	// The revolute constraint for the pinion. This is optional to improve accuracy.
+	pinionConstraint : string;
+
+	// The gear ratio. The ratio is defined as 2*PI*rackToothCount/(rackLength*pinionToothCount).
+	// The ratio may be negative if the axes are flipped.
+	ratio : float;
+}
+
+root_type RackAndPinionConstraint;

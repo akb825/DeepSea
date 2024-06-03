@@ -32,8 +32,8 @@ table ShapeRef
 	name : string (required);
 }
 
-// Union of the different physics shapes or a reference to an external shape..
-union Shape
+// Union of the different physics shapes or a reference to an external shape.
+union ShapeUnion
 {
 	Box,
 	Capsule,
@@ -49,7 +49,7 @@ union Shape
 table ShapeInstance
 {
 	// The shape that is instanced.
-	shape : Shape (required);
+	shape : ShapeUnion (required);
 
 	// The density of the shape.
 	density : float;
@@ -66,3 +66,12 @@ table ShapeInstance
 	// The material to use for the shape or null to use the rigid body default.
 	material : ShapePartMaterial;
 }
+
+// Struct that allows writing out an arbitrary shape.
+table Shape
+{
+	// The shape.
+	shape : ShapeUnion;
+}
+
+root_type Shape;

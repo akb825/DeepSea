@@ -42,7 +42,7 @@ typedef struct dsPhysicsEngine dsPhysicsEngine;
 #define DS_PHYSICS_CONSTRAINT_DOF_COUNT 6
 
 /**
- * @brief Enum for the type of motor to apply to a physicsconstraint.
+ * @brief Enum for the type of motor to apply to a physics constraint.
  */
 typedef enum dsPhysicsConstraintMotorType
 {
@@ -53,7 +53,7 @@ typedef enum dsPhysicsConstraintMotorType
 } dsPhysicsConstraintMotorType;
 
 /**
- * @brief Enumf or the type of a physics constraint limit.
+ * @brief Enum for the type of a physics constraint limit.
  */
 typedef enum dsPhysicsConstraintLimitType
 {
@@ -379,14 +379,14 @@ typedef struct dsSwingTwistPhysicsConstraint
 	/**
 	 * @brief The target rotation for the motor relative to the first actor.
 	 */
-	dsQuaternion4f targetRotation;
+	dsQuaternion4f motorTargetRotation;
 
 	/**
 	 * @brief The maximum torque for the motor.
 	 *
 	 * If the motor is disabled this is the maximum amount of torque to apply to stop motion.
 	 */
-	float maxTorque;
+	float maxMotorTorque;
 } dsSwingTwistPhysicsConstraint;
 
 /**
@@ -655,12 +655,12 @@ typedef struct dsGenericPhysicsConstraintLimit
 	float maxValue;
 
 	/**
-	 * @brief The stiffness for the spring when range limited.
+	 * @brief The stiffness for the spring when the range is limited.
 	 */
 	float stiffness;
 
 	/**
-	 * @brief The damping for the spring when range limited in the range [0, 1].
+	 * @brief The damping for the spring in the range [0, 1] when the range is limited.
 	 */
 	float damping;
 } dsGenericPhysicsConstraintLimit;
@@ -778,7 +778,7 @@ typedef struct dsGearPhysicsConstraint
 	dsPhysicsConstraint constraint;
 
 	/**
-	 * @brief The axis of translation for the first actor.
+	 * @brief The axis of rotation for the first actor.
 	 */
 	dsVector3f firstAxis;
 
@@ -832,12 +832,12 @@ typedef struct dsRackAndPinionPhysicsConstraint
 	dsPhysicsConstraint constraint;
 
 	/**
-	 * @brief The axis of revolution for the first actor.
+	 * @brief The axis of translation for the first actor.
 	 */
 	dsVector3f firstAxis;
 
 	/**
-	 * @brief The axis of revolution for the second actor.
+	 * @brief The axis of rotation for the second actor.
 	 */
 	dsVector3f secondAxis;
 
@@ -1022,8 +1022,8 @@ typedef bool (*dsSetConePhysicsConstraintMaxAngleFunction)(dsPhysicsEngine* engi
  * @param maxSwingYAngle The maximum angle of the constraint along the Y axis.
  * @param maxTwistZAngle The maximum angle of the constraint along the Z axis.
  * @param motorType The type of motor to use.
- * @param targetRotation The target rotation to reach when the motor is enabled.
- * @param maxTorque The maximum torque to apply for the motor.
+ * @param motorTargetRotation The target rotation to reach when the motor is enabled.
+ * @param maxMotorTorque The maximum torque to apply for the motor.
  * @return The swing twist constraint or NULL if it couldn't be created.
  */
 typedef dsSwingTwistPhysicsConstraint* (*dsCreateSwingTwistPhysicsConstraintFunction)(
@@ -1032,7 +1032,7 @@ typedef dsSwingTwistPhysicsConstraint* (*dsCreateSwingTwistPhysicsConstraintFunc
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
 	const dsQuaternion4f* secondRotation, float maxSwingXAngle, float maxSwingYAngle,
 	float maxTwistZAngle, dsPhysicsConstraintMotorType motorType,
-	const dsQuaternion4f* targetRotation, float maxTorque);
+	const dsQuaternion4f* motorTargetRotation, float maxMotorTorque);
 
 /**
  * @brief Function to destroy a swing twist physics constraint.

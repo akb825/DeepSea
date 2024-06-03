@@ -216,6 +216,39 @@ inline const char *EnumNameRigidBodyFlags(RigidBodyFlags e) {
   }
 }
 
+enum class ConstraintMotorType : uint8_t {
+  Disabled = 0,
+  Position = 1,
+  Velocity = 2,
+  MIN = Disabled,
+  MAX = Velocity
+};
+
+inline const ConstraintMotorType (&EnumValuesConstraintMotorType())[3] {
+  static const ConstraintMotorType values[] = {
+    ConstraintMotorType::Disabled,
+    ConstraintMotorType::Position,
+    ConstraintMotorType::Velocity
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesConstraintMotorType() {
+  static const char * const names[4] = {
+    "Disabled",
+    "Position",
+    "Velocity",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameConstraintMotorType(ConstraintMotorType e) {
+  if (::flatbuffers::IsOutRange(e, ConstraintMotorType::Disabled, ConstraintMotorType::Velocity)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesConstraintMotorType()[index];
+}
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3f FLATBUFFERS_FINAL_CLASS {
  private:
   float x_;

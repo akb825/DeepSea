@@ -6,33 +6,33 @@ import flatbuffers
 from flatbuffers.compat import import_numpy
 np = import_numpy()
 
-class Shape(object):
+class Constraint(object):
     __slots__ = ['_tab']
 
     @classmethod
     def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = Shape()
+        x = Constraint()
         x.Init(buf, n + offset)
         return x
 
     @classmethod
-    def GetRootAsShape(cls, buf, offset=0):
+    def GetRootAsConstraint(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
-    # Shape
+    # Constraint
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-    # Shape
-    def ShapeType(self):
+    # Constraint
+    def ConstraintType(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
-    # Shape
-    def Shape(self):
+    # Constraint
+    def Constraint(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             from flatbuffers.table import Table
@@ -41,26 +41,26 @@ class Shape(object):
             return obj
         return None
 
-def ShapeStart(builder):
+def ConstraintStart(builder):
     builder.StartObject(2)
 
 def Start(builder):
-    ShapeStart(builder)
+    ConstraintStart(builder)
 
-def ShapeAddShapeType(builder, shapeType):
-    builder.PrependUint8Slot(0, shapeType, 0)
+def ConstraintAddConstraintType(builder, constraintType):
+    builder.PrependUint8Slot(0, constraintType, 0)
 
-def AddShapeType(builder, shapeType):
-    ShapeAddShapeType(builder, shapeType)
+def AddConstraintType(builder, constraintType):
+    ConstraintAddConstraintType(builder, constraintType)
 
-def ShapeAddShape(builder, shape):
-    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shape), 0)
+def ConstraintAddConstraint(builder, constraint):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(constraint), 0)
 
-def AddShape(builder, shape):
-    ShapeAddShape(builder, shape)
+def AddConstraint(builder, constraint):
+    ConstraintAddConstraint(builder, constraint)
 
-def ShapeEnd(builder):
+def ConstraintEnd(builder):
     return builder.EndObject()
 
 def End(builder):
-    return ShapeEnd(builder)
+    return ConstraintEnd(builder)
