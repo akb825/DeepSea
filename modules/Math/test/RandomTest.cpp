@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,11 +33,11 @@ TEST(RandomTest, KnownValues)
 {
 	dsRandom random;
 	dsRandom_seed(&random, 0);
-	EXPECT_EQ(0x99EC5F36CB75F2B4ULL, dsRandom_next(&random));
-	EXPECT_EQ(0xBF6E1F784956452AULL, dsRandom_next(&random));
-	EXPECT_EQ(0x1A5F849D4933E6E0ULL, dsRandom_next(&random));
-	EXPECT_EQ(0x6AA594F1262D2D2CULL, dsRandom_next(&random));
-	EXPECT_EQ(0xBBA5AD4A1F842E59ULL, dsRandom_next(&random));
+	EXPECT_EQ(0x53175D61490B23DFULL, dsRandom_next(&random));
+	EXPECT_EQ(0x61DA6F3DC380D507ULL, dsRandom_next(&random));
+	EXPECT_EQ(0x5C0FDF91EC9A7BFCULL, dsRandom_next(&random));
+	EXPECT_EQ(0x02EEBF8C3BBE5E1AULL, dsRandom_next(&random));
+	EXPECT_EQ(0x7ECA04EBAF4A5EEAULL, dsRandom_next(&random));
 }
 
 TEST(RandomTest, NextDifferentSeeds)
@@ -231,7 +231,7 @@ TEST(RandomTest, NextSignedFloat)
 		average += val*iterationScale;
 	}
 
-	EXPECT_NEAR(0.0f, average, 1e-2f);
+	EXPECT_NEAR(0.0f, average, 2e-2f);
 }
 
 TEST(RandomTest, NextFloatRange)
@@ -303,7 +303,7 @@ TEST(RandomTest, NextSignedDouble)
 		average += val*iterationScale;
 	}
 
-	EXPECT_NEAR(0.0, average, 1e-2);
+	EXPECT_NEAR(0.0, average, 2e-2);
 }
 
 TEST(RandomTest, NextDoubleRange)

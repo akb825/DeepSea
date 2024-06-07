@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,10 @@ extern "C"
  * @file
  * @brief Functions to generate random numbers.
  *
- * Random numbers are generated with the xoshiro256** algorithm. This has a large period (2^256 - 1)
- * and is statistically indistinguishable from true random numbers for all known tests.
+ * Random numbers are generated with the xoshiro256++ algorithm. This has a large period (2^256 - 1)
+ * and is statistically indistinguishable from true random numbers for all known tests. The ++
+ * scrambler is chosen over the ** scrambler as it is harder to accidentally reduce the quality of
+ * scrambling, such as by multiplying by certain factors.
  *
  * See https://prng.di.unimi.it for more informtion.
  *
@@ -255,12 +257,12 @@ DS_MATH_EXPORT inline uint64_t dsRandom_nextSeed(uint64_t* state)
 DS_MATH_EXPORT inline uint64_t dsRandom_next(dsRandom* random)
 {
 /// @cond
-#define SD_RANDOM_ROTL(x, k)  (((x) << (k)) | ((x) >> (64 - (k))))
+#define DS_RANDOM_ROTL(x, k) (((x) << (k)) | ((x) >> (64 - (k))))
 /// @endcond
 
 	DS_ASSERT(random);
-	uint64_t temp = random->state[1]*5;
-	uint64_t next = SD_RANDOM_ROTL(temp, 7)*9;
+	uint64_t temp = random->state[0] + random->state[3];
+	uint64_t next = DS_RANDOM_ROTL(temp, 23) + random->state[0];
 	temp = random->state[1] << 17;
 
 	random->state[2] ^= random->state[0];
@@ -269,11 +271,11 @@ DS_MATH_EXPORT inline uint64_t dsRandom_next(dsRandom* random)
 	random->state[0] ^= random->state[3];
 
 	random->state[2] ^= temp;
-	random->state[3] = SD_RANDOM_ROTL(random->state[3], 45);
+	random->state[3] = DS_RANDOM_ROTL(random->state[3], 45);
 
 	return next;
 
-#undef SD_RANDOM_ROTL
+#undef DS_RANDOM_ROTL
 }
 
 DS_MATH_EXPORT inline bool dsRandom_nextBool(dsRandom* random)
