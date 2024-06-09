@@ -59,8 +59,13 @@ DS_MATH_EXPORT uint64_t dsRandom_createSeed(void);
 /**
  * @brief Gets the next seed based on a state.
  *
- * This can be useful to very rapidly and deterministically seed multiple dsRandom instances with
- * different states.
+ * This is useful for expanding a seed to multiple uint64_t values or as a quick and dirty way to
+ * seed multiple dsRandom instances.
+ *
+ * When seeding multiple dsRandom instances with this method, note that there is no guarantee how
+ * many calls to dsRandom_next() will be needed before sequences start to overlap. Overlaps are
+ * extremely unlikely and won't be an issue for most uses, but if this guarantee is important you
+ * may use dsRandom_jump() to create multiple non-overlapping dsRandom instances.
  *
  * @param[inout] state The current state to get the next seed from. The initial value can be any
  *      64-bit number.
@@ -84,6 +89,24 @@ DS_MATH_EXPORT void dsRandom_seed(dsRandom* random, uint64_t seed);
  * @param[out] random The random number generator to initialize.
  */
 DS_MATH_EXPORT void dsRandom_initialize(dsRandom* random);
+
+/**
+ * @brief Jumps a random number generator forward 2^128 numbers.
+ *
+ * This is equivalent to calling dsRandom_next() 2^128 times. This can be used to create 2^128
+ * independent streams of 2^128 random numbers. These separate streams may generate numbers in
+ * parallel, such as across threads without locking, and guarantee no overlapping sequences between
+ * them. Both the number of streams and random numbers per streams will be effectively infinite in
+ * practice.
+ *
+ * The intended usage is to initialize or seed a source dsRandom instance, then create new dsRandom
+ * instances by copying the source to a destination instance then calling dsRandom_jump() on the
+ * source instance. In other words, the source dsRandom instance is copied, then advanced to the
+ * next stream before it is copied again, repeating this process as needed.
+ *
+ * @param[inout] random The random number generator to jump ofrward.
+ */
+DS_MATH_EXPORT void dsRandom_jump(dsRandom* random);
 
 /**
  * @brief Gets the next raw random number.

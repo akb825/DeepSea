@@ -33,6 +33,7 @@ TEST(RandomTest, KnownValues)
 {
 	dsRandom random;
 	dsRandom_seed(&random, 0);
+	// Values generated from reference implementation.
 	EXPECT_EQ(0x53175D61490B23DFULL, dsRandom_next(&random));
 	EXPECT_EQ(0x61DA6F3DC380D507ULL, dsRandom_next(&random));
 	EXPECT_EQ(0x5C0FDF91EC9A7BFCULL, dsRandom_next(&random));
@@ -56,6 +57,26 @@ TEST(RandomTest, Initialize)
 	dsRandom_initialize(&random2);
 	for (unsigned int i = 0; i < iterationCount; ++i)
 		EXPECT_NE(dsRandom_next(&random1), dsRandom_next(&random2));
+}
+
+TEST(RandomTest, Jump)
+{
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+	dsRandom_jump(&random);
+	// Values generated from reference implementation.
+	EXPECT_EQ(0x2107D23F5380538BULL, dsRandom_next(&random));
+	EXPECT_EQ(0x860C46FBA09246F0ULL, dsRandom_next(&random));
+	EXPECT_EQ(0xE824E1AC3BB3B014ULL, dsRandom_next(&random));
+	EXPECT_EQ(0x5FCEC05A1C2523C9ULL, dsRandom_next(&random));
+	EXPECT_EQ(0x92790AB81295CBDBULL, dsRandom_next(&random));
+
+	dsRandom_seed(&random, 0);
+	EXPECT_EQ(0x53175D61490B23DFULL, dsRandom_next(&random));
+	EXPECT_EQ(0x61DA6F3DC380D507ULL, dsRandom_next(&random));
+	dsRandom_jump(&random);
+	EXPECT_EQ(0xE824E1AC3BB3B014ULL, dsRandom_next(&random));
+	EXPECT_EQ(0x5FCEC05A1C2523C9ULL, dsRandom_next(&random));
 }
 
 TEST(RandomTest, NextBool)

@@ -19,6 +19,7 @@
 #include <DeepSea/Core/DeviceRandom.h>
 #include <DeepSea/Core/Atomic.h>
 
+#include <string.h>
 #include <time.h>
 
 #if DS_WINDOWS
@@ -86,6 +87,35 @@ void dsRandom_initialize(dsRandom* random)
 		(random->state[0] | random->state[1] | random->state[2] | random->state[3]) == 0)
 	{
 		dsRandom_seed(random, createFallbackSeed());
+	}
+}
+
+void dsRandom_jump(dsRandom* random)
+{
+	DS_ASSERT(random);
+
+	const uint64_t jumpMask[4] =
+	{
+		0x180EC6D33CFD0ABAULL,
+		0xD5A61266F0C9392CULL,
+		0xA9582618E03FC9AAULL,
+		0x39ABDC4529B1661CULL
+	};
+
+	dsRandom temp = *random;
+	memset(random, 0, sizeof(dsRandom));
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		uint64_t thisJumpMask = jumpMask[i];
+		for (unsigned int j = 0; j < 64; ++j)
+		{
+			if (thisJumpMask & (1ULL << j))
+			{
+				for (unsigned int k = 0; k < 4; ++k)
+					random->state[k] ^= temp.state[k];
+			}
+			dsRandom_next(&temp);
+		}
 	}
 }
 
