@@ -19,7 +19,7 @@ include "PhysicsCommon.fbs";
 namespace DeepSeaPhysics;
 
 // Enum for the type of a physics constraint limit.
-enum ConstraintLimitType : uint8
+enum ConstraintLimitType : ubyte
 {
 	// The limit is fixed and unmoving.
 	Fixed,

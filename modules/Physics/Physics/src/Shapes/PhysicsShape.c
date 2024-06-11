@@ -16,9 +16,17 @@
 
 #include <DeepSea/Physics/Shapes/PhysicsShape.h>
 
+#include "Shapes/PhysicsShapeLoad.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Streams/FileStream.h>
+#include <DeepSea/Core/Streams/ResourceStream.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/Log.h>
+
+#include <DeepSea/Physics/Types.h>
 
 bool dsPhysicsShape_initialize(dsPhysicsShape* shape, dsPhysicsEngine* engine,
 	dsAllocator* allocator, const dsPhysicsShapeType* type, const dsAlignedBox3f* bounds,
@@ -40,6 +48,97 @@ bool dsPhysicsShape_initialize(dsPhysicsShape* shape, dsPhysicsEngine* engine,
 	shape->refCount = 1;
 	shape->destroyFunc = destroyFunc;
 	return true;
+}
+
+dsPhysicsShape* dsPhysicsShape_loadFile(dsPhysicsEngine* engine, dsAllocator* allocator,
+	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData, const char* filePath)
+{
+	if (!engine || !filePath)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	dsFileStream stream;
+	if (!dsFileStream_openPath(&stream, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG, "Couldn't open physics shape file '%s'.", filePath);
+		return NULL;
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, engine->allocator);
+	dsFileStream_close(&stream);
+	if (!buffer)
+		return NULL;
+
+	dsPhysicsShape* shape = dsPhysicsShape_loadImpl(engine, allocator, findShapeFunc,
+		findShapeUserData, buffer, size, filePath);
+	DS_VERIFY(dsAllocator_free(engine->allocator, buffer));
+	return shape;
+}
+
+dsPhysicsShape* dsPhysicsShape_loadResource(dsPhysicsEngine* engine, dsAllocator* allocator,
+	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData, dsFileResourceType type,
+	const char* filePath)
+{
+	if (!engine || !filePath)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	dsResourceStream stream;
+	if (!dsResourceStream_open(&stream, type, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG, "Couldn't open physics shape file '%s'.", filePath);
+		return NULL;
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, engine->allocator);
+	dsResourceStream_close(&stream);
+	if (!buffer)
+		return NULL;
+
+	dsPhysicsShape* shape = dsPhysicsShape_loadImpl(engine, allocator, findShapeFunc,
+		findShapeUserData, buffer, size, filePath);
+	DS_VERIFY(dsAllocator_free(engine->allocator, buffer));
+	return shape;
+}
+
+dsPhysicsShape* dsPhysicsShape_loadStream(dsPhysicsEngine* engine, dsAllocator* allocator,
+	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData, dsStream* stream)
+{
+	if (!engine || !stream)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, engine->allocator);
+	if (!buffer)
+		return NULL;
+
+	dsPhysicsShape* shape = dsPhysicsShape_loadImpl(engine, allocator, findShapeFunc,
+		findShapeUserData, buffer, size, NULL);
+	DS_VERIFY(dsAllocator_free(engine->allocator, buffer));
+	return shape;
+}
+
+dsPhysicsShape* dsPhysicsShape_loadData(dsPhysicsEngine* engine, dsAllocator* allocator,
+	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData, const void* data,
+	size_t size)
+{
+	if (!engine || !data || size == 0)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	return dsPhysicsShape_loadImpl(
+		engine, allocator, findShapeFunc, findShapeUserData, data, size, NULL);
 }
 
 bool dsPhysicsShape_getMassProperties(dsPhysicsMassProperties* outMassProperties,

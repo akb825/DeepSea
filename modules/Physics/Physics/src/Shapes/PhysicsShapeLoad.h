@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-namespace DeepSeaPhysics;
+#include <DeepSea/Physics/Shapes/Types.h>
 
-// Struct defining a convex hull used as a physics shape.
-table ConvexHull
+#ifdef __cplusplus
+extern "C"
 {
-	// The vertices for the convex hull with 3 floats per vertex.
-	vertices : [float] (required);
+#endif
 
-	// The convex radius for collision checks. A value < 0 will use the default.
-	convexRadius : float = -1;
+dsPhysicsShape* dsPhysicsShape_loadImpl(dsPhysicsEngine* engine, dsAllocator* allocator,
+	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData, const void* data,
+	size_t size, const char* name);
 
-	// Unique name of the convex hull to cache the cooked result.
-	cacheName : string;
+#ifdef __cplusplus
 }
-
-root_type ConvexHull;
+#endif

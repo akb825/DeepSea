@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ DS_ANIMATION_EXPORT dsKeyframeAnimation* dsKeyframeAnimation_create(dsAllocator*
 /**
  * @brief Loads an keyframe animation from a file.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the keyframe animation.
+ * @param allocator The allocator to create the keyframe animation with.
  * @param scratchAllocator The allocator for temporary data. If NULL, it will use the keyframe
  *     animation allocator.
  * @param filePath The file path for the keyframe animation to load.
@@ -58,7 +58,7 @@ DS_ANIMATION_EXPORT dsKeyframeAnimation* dsKeyframeAnimation_loadFile(dsAllocato
 	dsAllocator* scratchAllocator, const char* filePath);
 
 /**
- * @brief Loads an keyframe animation from a file.
+ * @brief Loads an keyframe animation from a resource file.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the keyframe animation.
  * @param scratchAllocator The allocator for temporary data. If NULL, it will use the keyframe
@@ -73,7 +73,7 @@ DS_ANIMATION_EXPORT dsKeyframeAnimation* dsKeyframeAnimation_loadResource(dsAllo
 /**
  * @brief Loads an keyframe animation from a stream.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the keyframe animation.
+ * @param allocator The allocator to create the keyframe animation with.
  * @param scratchAllocator The allocator for temporary data. If NULL, it will use the keyframe
  *     animation allocator.
  * @param stream The stream to load the keyframe animation from. This stream will be read from the
@@ -86,7 +86,7 @@ DS_ANIMATION_EXPORT dsKeyframeAnimation* dsKeyframeAnimation_loadStream(dsAlloca
 /**
  * @brief Loads an keyframe animation from a data buffer.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the keyframe animation.
+ * @param allocator The allocator to create the keyframe animation with.
  * @param scratchAllocator The allocator for temporary data. If NULL, it will use the keyframe
  *     animation allocator.
  * @param data The data for the keyframe animation. The data isn't used after this call.

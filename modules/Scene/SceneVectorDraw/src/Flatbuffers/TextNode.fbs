@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ include "SceneVectorCommon.fbs";
 namespace DeepSeaSceneVectorDraw;
 
 // Enum for alignment of the text.
-enum TextAlign : uint8
+enum TextAlign : ubyte
 {
 	Start, // Align in the side of the bounds at the start of the text.
 	End,   // Align in the side of the bounds at the end of the text.

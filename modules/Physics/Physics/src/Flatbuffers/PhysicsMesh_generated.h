@@ -20,57 +20,26 @@ namespace DeepSeaPhysics {
 struct Mesh;
 struct MeshBuilder;
 
-enum class IndexType : uint8_t {
-  UInt16 = 0,
-  UInt32 = 1,
-  MIN = UInt16,
-  MAX = UInt32
-};
-
-inline const IndexType (&EnumValuesIndexType())[2] {
-  static const IndexType values[] = {
-    IndexType::UInt16,
-    IndexType::UInt32
-  };
-  return values;
-}
-
-inline const char * const *EnumNamesIndexType() {
-  static const char * const names[3] = {
-    "UInt16",
-    "UInt32",
-    nullptr
-  };
-  return names;
-}
-
-inline const char *EnumNameIndexType(IndexType e) {
-  if (::flatbuffers::IsOutRange(e, IndexType::UInt16, IndexType::UInt32)) return "";
-  const size_t index = static_cast<size_t>(e);
-  return EnumNamesIndexType()[index];
-}
-
 struct Mesh FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef MeshBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_VERTICES = 4,
-    VT_INDICES = 6,
-    VT_INDEXTYPE = 8,
+    VT_INDICES16 = 6,
+    VT_INDICES32 = 8,
     VT_TRIANGLECOUNT = 10,
     VT_TRIANGLEMATERIALS = 12,
-    VT_MATERIALINDICES = 14,
-    VT_MATERIALINDEXTYPE = 16,
-    VT_CONVEXRADIUS = 18,
-    VT_CACHENAME = 20
+    VT_MATERIALINDICES16 = 14,
+    VT_MATERIALINDICES32 = 16,
+    VT_CACHENAME = 18
   };
-  const ::flatbuffers::Vector<uint8_t> *vertices() const {
-    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_VERTICES);
+  const ::flatbuffers::Vector<float> *vertices() const {
+    return GetPointer<const ::flatbuffers::Vector<float> *>(VT_VERTICES);
   }
-  const ::flatbuffers::Vector<uint8_t> *indices() const {
-    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_INDICES);
+  const ::flatbuffers::Vector<uint16_t> *indices16() const {
+    return GetPointer<const ::flatbuffers::Vector<uint16_t> *>(VT_INDICES16);
   }
-  DeepSeaPhysics::IndexType indexType() const {
-    return static_cast<DeepSeaPhysics::IndexType>(GetField<uint8_t>(VT_INDEXTYPE, 0));
+  const ::flatbuffers::Vector<uint32_t> *indices32() const {
+    return GetPointer<const ::flatbuffers::Vector<uint32_t> *>(VT_INDICES32);
   }
   uint32_t triangleCount() const {
     return GetField<uint32_t>(VT_TRIANGLECOUNT, 0);
@@ -78,14 +47,11 @@ struct Mesh FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<const DeepSeaPhysics::ShapePartMaterial *> *triangleMaterials() const {
     return GetPointer<const ::flatbuffers::Vector<const DeepSeaPhysics::ShapePartMaterial *> *>(VT_TRIANGLEMATERIALS);
   }
-  const ::flatbuffers::Vector<uint8_t> *materialIndices() const {
-    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_MATERIALINDICES);
+  const ::flatbuffers::Vector<uint16_t> *materialIndices16() const {
+    return GetPointer<const ::flatbuffers::Vector<uint16_t> *>(VT_MATERIALINDICES16);
   }
-  DeepSeaPhysics::IndexType materialIndexType() const {
-    return static_cast<DeepSeaPhysics::IndexType>(GetField<uint8_t>(VT_MATERIALINDEXTYPE, 0));
-  }
-  float convexRadius() const {
-    return GetField<float>(VT_CONVEXRADIUS, -1.0f);
+  const ::flatbuffers::Vector<uint32_t> *materialIndices32() const {
+    return GetPointer<const ::flatbuffers::Vector<uint32_t> *>(VT_MATERIALINDICES32);
   }
   const ::flatbuffers::String *cacheName() const {
     return GetPointer<const ::flatbuffers::String *>(VT_CACHENAME);
@@ -94,16 +60,17 @@ struct Mesh FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_VERTICES) &&
            verifier.VerifyVector(vertices()) &&
-           VerifyOffsetRequired(verifier, VT_INDICES) &&
-           verifier.VerifyVector(indices()) &&
-           VerifyField<uint8_t>(verifier, VT_INDEXTYPE, 1) &&
+           VerifyOffset(verifier, VT_INDICES16) &&
+           verifier.VerifyVector(indices16()) &&
+           VerifyOffset(verifier, VT_INDICES32) &&
+           verifier.VerifyVector(indices32()) &&
            VerifyField<uint32_t>(verifier, VT_TRIANGLECOUNT, 4) &&
            VerifyOffset(verifier, VT_TRIANGLEMATERIALS) &&
            verifier.VerifyVector(triangleMaterials()) &&
-           VerifyOffset(verifier, VT_MATERIALINDICES) &&
-           verifier.VerifyVector(materialIndices()) &&
-           VerifyField<uint8_t>(verifier, VT_MATERIALINDEXTYPE, 1) &&
-           VerifyField<float>(verifier, VT_CONVEXRADIUS, 4) &&
+           VerifyOffset(verifier, VT_MATERIALINDICES16) &&
+           verifier.VerifyVector(materialIndices16()) &&
+           VerifyOffset(verifier, VT_MATERIALINDICES32) &&
+           verifier.VerifyVector(materialIndices32()) &&
            VerifyOffset(verifier, VT_CACHENAME) &&
            verifier.VerifyString(cacheName()) &&
            verifier.EndTable();
@@ -114,14 +81,14 @@ struct MeshBuilder {
   typedef Mesh Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_vertices(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> vertices) {
+  void add_vertices(::flatbuffers::Offset<::flatbuffers::Vector<float>> vertices) {
     fbb_.AddOffset(Mesh::VT_VERTICES, vertices);
   }
-  void add_indices(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> indices) {
-    fbb_.AddOffset(Mesh::VT_INDICES, indices);
+  void add_indices16(::flatbuffers::Offset<::flatbuffers::Vector<uint16_t>> indices16) {
+    fbb_.AddOffset(Mesh::VT_INDICES16, indices16);
   }
-  void add_indexType(DeepSeaPhysics::IndexType indexType) {
-    fbb_.AddElement<uint8_t>(Mesh::VT_INDEXTYPE, static_cast<uint8_t>(indexType), 0);
+  void add_indices32(::flatbuffers::Offset<::flatbuffers::Vector<uint32_t>> indices32) {
+    fbb_.AddOffset(Mesh::VT_INDICES32, indices32);
   }
   void add_triangleCount(uint32_t triangleCount) {
     fbb_.AddElement<uint32_t>(Mesh::VT_TRIANGLECOUNT, triangleCount, 0);
@@ -129,14 +96,11 @@ struct MeshBuilder {
   void add_triangleMaterials(::flatbuffers::Offset<::flatbuffers::Vector<const DeepSeaPhysics::ShapePartMaterial *>> triangleMaterials) {
     fbb_.AddOffset(Mesh::VT_TRIANGLEMATERIALS, triangleMaterials);
   }
-  void add_materialIndices(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> materialIndices) {
-    fbb_.AddOffset(Mesh::VT_MATERIALINDICES, materialIndices);
+  void add_materialIndices16(::flatbuffers::Offset<::flatbuffers::Vector<uint16_t>> materialIndices16) {
+    fbb_.AddOffset(Mesh::VT_MATERIALINDICES16, materialIndices16);
   }
-  void add_materialIndexType(DeepSeaPhysics::IndexType materialIndexType) {
-    fbb_.AddElement<uint8_t>(Mesh::VT_MATERIALINDEXTYPE, static_cast<uint8_t>(materialIndexType), 0);
-  }
-  void add_convexRadius(float convexRadius) {
-    fbb_.AddElement<float>(Mesh::VT_CONVEXRADIUS, convexRadius, -1.0f);
+  void add_materialIndices32(::flatbuffers::Offset<::flatbuffers::Vector<uint32_t>> materialIndices32) {
+    fbb_.AddOffset(Mesh::VT_MATERIALINDICES32, materialIndices32);
   }
   void add_cacheName(::flatbuffers::Offset<::flatbuffers::String> cacheName) {
     fbb_.AddOffset(Mesh::VT_CACHENAME, cacheName);
@@ -149,61 +113,58 @@ struct MeshBuilder {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<Mesh>(end);
     fbb_.Required(o, Mesh::VT_VERTICES);
-    fbb_.Required(o, Mesh::VT_INDICES);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<Mesh> CreateMesh(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> vertices = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> indices = 0,
-    DeepSeaPhysics::IndexType indexType = DeepSeaPhysics::IndexType::UInt16,
+    ::flatbuffers::Offset<::flatbuffers::Vector<float>> vertices = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint16_t>> indices16 = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint32_t>> indices32 = 0,
     uint32_t triangleCount = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<const DeepSeaPhysics::ShapePartMaterial *>> triangleMaterials = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> materialIndices = 0,
-    DeepSeaPhysics::IndexType materialIndexType = DeepSeaPhysics::IndexType::UInt16,
-    float convexRadius = -1.0f,
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint16_t>> materialIndices16 = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint32_t>> materialIndices32 = 0,
     ::flatbuffers::Offset<::flatbuffers::String> cacheName = 0) {
   MeshBuilder builder_(_fbb);
   builder_.add_cacheName(cacheName);
-  builder_.add_convexRadius(convexRadius);
-  builder_.add_materialIndices(materialIndices);
+  builder_.add_materialIndices32(materialIndices32);
+  builder_.add_materialIndices16(materialIndices16);
   builder_.add_triangleMaterials(triangleMaterials);
   builder_.add_triangleCount(triangleCount);
-  builder_.add_indices(indices);
+  builder_.add_indices32(indices32);
+  builder_.add_indices16(indices16);
   builder_.add_vertices(vertices);
-  builder_.add_materialIndexType(materialIndexType);
-  builder_.add_indexType(indexType);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<Mesh> CreateMeshDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<uint8_t> *vertices = nullptr,
-    const std::vector<uint8_t> *indices = nullptr,
-    DeepSeaPhysics::IndexType indexType = DeepSeaPhysics::IndexType::UInt16,
+    const std::vector<float> *vertices = nullptr,
+    const std::vector<uint16_t> *indices16 = nullptr,
+    const std::vector<uint32_t> *indices32 = nullptr,
     uint32_t triangleCount = 0,
     const std::vector<DeepSeaPhysics::ShapePartMaterial> *triangleMaterials = nullptr,
-    const std::vector<uint8_t> *materialIndices = nullptr,
-    DeepSeaPhysics::IndexType materialIndexType = DeepSeaPhysics::IndexType::UInt16,
-    float convexRadius = -1.0f,
+    const std::vector<uint16_t> *materialIndices16 = nullptr,
+    const std::vector<uint32_t> *materialIndices32 = nullptr,
     const char *cacheName = nullptr) {
-  auto vertices__ = vertices ? _fbb.CreateVector<uint8_t>(*vertices) : 0;
-  auto indices__ = indices ? _fbb.CreateVector<uint8_t>(*indices) : 0;
+  auto vertices__ = vertices ? _fbb.CreateVector<float>(*vertices) : 0;
+  auto indices16__ = indices16 ? _fbb.CreateVector<uint16_t>(*indices16) : 0;
+  auto indices32__ = indices32 ? _fbb.CreateVector<uint32_t>(*indices32) : 0;
   auto triangleMaterials__ = triangleMaterials ? _fbb.CreateVectorOfStructs<DeepSeaPhysics::ShapePartMaterial>(*triangleMaterials) : 0;
-  auto materialIndices__ = materialIndices ? _fbb.CreateVector<uint8_t>(*materialIndices) : 0;
+  auto materialIndices16__ = materialIndices16 ? _fbb.CreateVector<uint16_t>(*materialIndices16) : 0;
+  auto materialIndices32__ = materialIndices32 ? _fbb.CreateVector<uint32_t>(*materialIndices32) : 0;
   auto cacheName__ = cacheName ? _fbb.CreateString(cacheName) : 0;
   return DeepSeaPhysics::CreateMesh(
       _fbb,
       vertices__,
-      indices__,
-      indexType,
+      indices16__,
+      indices32__,
       triangleCount,
       triangleMaterials__,
-      materialIndices__,
-      materialIndexType,
-      convexRadius,
+      materialIndices16__,
+      materialIndices32__,
       cacheName__);
 }
 

@@ -25,8 +25,8 @@ struct ConvexHull FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_CONVEXRADIUS = 6,
     VT_CACHENAME = 8
   };
-  const ::flatbuffers::Vector<uint8_t> *vertices() const {
-    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_VERTICES);
+  const ::flatbuffers::Vector<float> *vertices() const {
+    return GetPointer<const ::flatbuffers::Vector<float> *>(VT_VERTICES);
   }
   float convexRadius() const {
     return GetField<float>(VT_CONVEXRADIUS, -1.0f);
@@ -49,7 +49,7 @@ struct ConvexHullBuilder {
   typedef ConvexHull Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_vertices(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> vertices) {
+  void add_vertices(::flatbuffers::Offset<::flatbuffers::Vector<float>> vertices) {
     fbb_.AddOffset(ConvexHull::VT_VERTICES, vertices);
   }
   void add_convexRadius(float convexRadius) {
@@ -72,7 +72,7 @@ struct ConvexHullBuilder {
 
 inline ::flatbuffers::Offset<ConvexHull> CreateConvexHull(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> vertices = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<float>> vertices = 0,
     float convexRadius = -1.0f,
     ::flatbuffers::Offset<::flatbuffers::String> cacheName = 0) {
   ConvexHullBuilder builder_(_fbb);
@@ -84,10 +84,10 @@ inline ::flatbuffers::Offset<ConvexHull> CreateConvexHull(
 
 inline ::flatbuffers::Offset<ConvexHull> CreateConvexHullDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<uint8_t> *vertices = nullptr,
+    const std::vector<float> *vertices = nullptr,
     float convexRadius = -1.0f,
     const char *cacheName = nullptr) {
-  auto vertices__ = vertices ? _fbb.CreateVector<uint8_t>(*vertices) : 0;
+  auto vertices__ = vertices ? _fbb.CreateVector<float>(*vertices) : 0;
   auto cacheName__ = cacheName ? _fbb.CreateString(cacheName) : 0;
   return DeepSeaPhysics::CreateConvexHull(
       _fbb,

@@ -18,24 +18,17 @@ include "PhysicsCommon.fbs";
 
 namespace DeepSeaPhysics;
 
-// Enum for the type of an index within a mesh.
-enum IndexType : uint8
-{
-	UInt16,
-	UInt32
-}
-
 // Struct defining a mesh used as a physics shape.
 table Mesh
 {
-	// The vertices for the mesh as a raw buffer of 3 floats per vertex.
-	vertices : [ubyte] (required);
+	// The vertices for the mesh with 3 floats per vertex.
+	vertices : [float] (required);
 
-	// The indices for the mesh vertices as a raw buffer of 16 or 32-bit values.
-	indices : [ubyte] (required);
+	// The indices for the mesh triangles as 16-bit values.
+	indices16 : [ushort];
 
-	// The type of index.
-	indexType : IndexType;
+	// The indices for the mesh triangles as 32-bit values.
+	indices32 : [uint];
 
 	// The number of triangles.
 	triangleCount : uint;
@@ -43,14 +36,11 @@ table Mesh
 	// The per-triangle materials for the mesh.
 	triangleMaterials : [ShapePartMaterial];
 
-	// The indices for the mesh materials as a raw buffer of 16 or 32-bit values.
-	materialIndices : [ubyte];
+	// The indices for the mesh materials as 16-bit values.
+	materialIndices16 : [ushort];
 
-	// The type of index for materials.
-	materialIndexType : IndexType;
-
-	// The convex radius for collision checks. A value < 0 will use the default.
-	convexRadius : float = -1;
+	// The indices for the mesh materials as 32-bit values.
+	materialIndices32 : [uint];
 
 	// Unique name of the mesh to cache the cooked result.
 	cacheName : string;

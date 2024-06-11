@@ -29,14 +29,14 @@ class Mesh(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             a = self._tab.Vector(o)
-            return self._tab.Get(flatbuffers.number_types.Uint8Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 1))
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
         return 0
 
     # Mesh
     def VerticesAsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
-            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint8Flags, o)
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Float32Flags, o)
         return 0
 
     # Mesh
@@ -52,38 +52,58 @@ class Mesh(object):
         return o == 0
 
     # Mesh
-    def Indices(self, j):
+    def Indices16(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             a = self._tab.Vector(o)
-            return self._tab.Get(flatbuffers.number_types.Uint8Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 1))
+            return self._tab.Get(flatbuffers.number_types.Uint16Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 2))
         return 0
 
     # Mesh
-    def IndicesAsNumpy(self):
+    def Indices16AsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
-            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint8Flags, o)
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint16Flags, o)
         return 0
 
     # Mesh
-    def IndicesLength(self):
+    def Indices16Length(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # Mesh
-    def IndicesIsNone(self):
+    def Indices16IsNone(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
     # Mesh
-    def IndexType(self):
+    def Indices32(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
+            a = self._tab.Vector(o)
+            return self._tab.Get(flatbuffers.number_types.Uint32Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
         return 0
+
+    # Mesh
+    def Indices32AsNumpy(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint32Flags, o)
+        return 0
+
+    # Mesh
+    def Indices32Length(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # Mesh
+    def Indices32IsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        return o == 0
 
     # Mesh
     def TriangleCount(self):
@@ -117,55 +137,68 @@ class Mesh(object):
         return o == 0
 
     # Mesh
-    def MaterialIndices(self, j):
+    def MaterialIndices16(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             a = self._tab.Vector(o)
-            return self._tab.Get(flatbuffers.number_types.Uint8Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 1))
+            return self._tab.Get(flatbuffers.number_types.Uint16Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 2))
         return 0
 
     # Mesh
-    def MaterialIndicesAsNumpy(self):
+    def MaterialIndices16AsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
-            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint8Flags, o)
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint16Flags, o)
         return 0
 
     # Mesh
-    def MaterialIndicesLength(self):
+    def MaterialIndices16Length(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # Mesh
-    def MaterialIndicesIsNone(self):
+    def MaterialIndices16IsNone(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         return o == 0
 
     # Mesh
-    def MaterialIndexType(self):
+    def MaterialIndices32(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
+            a = self._tab.Vector(o)
+            return self._tab.Get(flatbuffers.number_types.Uint32Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
         return 0
 
     # Mesh
-    def ConvexRadius(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
+    def MaterialIndices32AsNumpy(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
-        return -1.0
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint32Flags, o)
+        return 0
+
+    # Mesh
+    def MaterialIndices32Length(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # Mesh
+    def MaterialIndices32IsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
+        return o == 0
 
     # Mesh
     def CacheName(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
 def MeshStart(builder):
-    builder.StartObject(9)
+    builder.StartObject(8)
 
 def Start(builder):
     MeshStart(builder)
@@ -177,28 +210,34 @@ def AddVertices(builder, vertices):
     MeshAddVertices(builder, vertices)
 
 def MeshStartVerticesVector(builder, numElems):
-    return builder.StartVector(1, numElems, 1)
+    return builder.StartVector(4, numElems, 4)
 
 def StartVerticesVector(builder, numElems):
     return MeshStartVerticesVector(builder, numElems)
 
-def MeshAddIndices(builder, indices):
-    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(indices), 0)
+def MeshAddIndices16(builder, indices16):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(indices16), 0)
 
-def AddIndices(builder, indices):
-    MeshAddIndices(builder, indices)
+def AddIndices16(builder, indices16):
+    MeshAddIndices16(builder, indices16)
 
-def MeshStartIndicesVector(builder, numElems):
-    return builder.StartVector(1, numElems, 1)
+def MeshStartIndices16Vector(builder, numElems):
+    return builder.StartVector(2, numElems, 2)
 
-def StartIndicesVector(builder, numElems):
-    return MeshStartIndicesVector(builder, numElems)
+def StartIndices16Vector(builder, numElems):
+    return MeshStartIndices16Vector(builder, numElems)
 
-def MeshAddIndexType(builder, indexType):
-    builder.PrependUint8Slot(2, indexType, 0)
+def MeshAddIndices32(builder, indices32):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(indices32), 0)
 
-def AddIndexType(builder, indexType):
-    MeshAddIndexType(builder, indexType)
+def AddIndices32(builder, indices32):
+    MeshAddIndices32(builder, indices32)
+
+def MeshStartIndices32Vector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
+def StartIndices32Vector(builder, numElems):
+    return MeshStartIndices32Vector(builder, numElems)
 
 def MeshAddTriangleCount(builder, triangleCount):
     builder.PrependUint32Slot(3, triangleCount, 0)
@@ -218,32 +257,32 @@ def MeshStartTriangleMaterialsVector(builder, numElems):
 def StartTriangleMaterialsVector(builder, numElems):
     return MeshStartTriangleMaterialsVector(builder, numElems)
 
-def MeshAddMaterialIndices(builder, materialIndices):
-    builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(materialIndices), 0)
+def MeshAddMaterialIndices16(builder, materialIndices16):
+    builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(materialIndices16), 0)
 
-def AddMaterialIndices(builder, materialIndices):
-    MeshAddMaterialIndices(builder, materialIndices)
+def AddMaterialIndices16(builder, materialIndices16):
+    MeshAddMaterialIndices16(builder, materialIndices16)
 
-def MeshStartMaterialIndicesVector(builder, numElems):
-    return builder.StartVector(1, numElems, 1)
+def MeshStartMaterialIndices16Vector(builder, numElems):
+    return builder.StartVector(2, numElems, 2)
 
-def StartMaterialIndicesVector(builder, numElems):
-    return MeshStartMaterialIndicesVector(builder, numElems)
+def StartMaterialIndices16Vector(builder, numElems):
+    return MeshStartMaterialIndices16Vector(builder, numElems)
 
-def MeshAddMaterialIndexType(builder, materialIndexType):
-    builder.PrependUint8Slot(6, materialIndexType, 0)
+def MeshAddMaterialIndices32(builder, materialIndices32):
+    builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(materialIndices32), 0)
 
-def AddMaterialIndexType(builder, materialIndexType):
-    MeshAddMaterialIndexType(builder, materialIndexType)
+def AddMaterialIndices32(builder, materialIndices32):
+    MeshAddMaterialIndices32(builder, materialIndices32)
 
-def MeshAddConvexRadius(builder, convexRadius):
-    builder.PrependFloat32Slot(7, convexRadius, -1.0)
+def MeshStartMaterialIndices32Vector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
 
-def AddConvexRadius(builder, convexRadius):
-    MeshAddConvexRadius(builder, convexRadius)
+def StartMaterialIndices32Vector(builder, numElems):
+    return MeshStartMaterialIndices32Vector(builder, numElems)
 
 def MeshAddCacheName(builder, cacheName):
-    builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(cacheName), 0)
+    builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(cacheName), 0)
 
 def AddCacheName(builder, cacheName):
     MeshAddCacheName(builder, cacheName)

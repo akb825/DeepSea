@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ struct Matrix44f
 }
 
 // Enum for a component of an animation.
-enum AnimationComponent : uint8
+enum AnimationComponent : ubyte
 {
 	Translation,
 	Rotation,

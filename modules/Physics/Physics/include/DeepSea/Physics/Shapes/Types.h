@@ -721,6 +721,16 @@ typedef dsPhysicsMesh* (*dsCreatePhysicsMeshFunction)(dsPhysicsEngine* engine,
  */
 typedef bool (*dsDestroyPhysicsMeshFunction)(dsPhysicsEngine* engine, dsPhysicsMesh* mesh);
 
+/**
+ * @brief Function to find a physics shape by name.
+ * @param engine The physics engine the shape was created with.
+ * @param userData User data to find the shape with.
+ * @param name The name of the shape.
+ * @return The shape or NULL if it couldn't be found. The reference count should be incremented.
+ */
+typedef dsPhysicsShape* (*dsFindPhysicsShapeFunction)(
+	dsPhysicsEngine* engine, void* userData, const char* name);
+
 #ifdef __cplusplus
 }
 #endif

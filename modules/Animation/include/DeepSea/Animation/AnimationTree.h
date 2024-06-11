@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Aaron Barany
+ * Copyright 2022-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_createJoints(dsAllocator* a
 /**
  * @brief Loads an animation tree from a file.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the animation tree.
+ * @param allocator The allocator to create the animation tree with.
  * @param scratchAllocator The allocator for temporary data. If NULL, it will use the animation tree
  *     allocator.
  * @param filePath The file path for the animation tree to load.
@@ -71,9 +71,9 @@ DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_loadFile(dsAllocator* alloc
 	dsAllocator* scratchAllocator, const char* filePath);
 
 /**
- * @brief Loads an animation tree from a file.
+ * @brief Loads an animation tree from a resource file.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the animation tree.
+ * @param allocator The allocator to create the animation tree with.
  * @param scratchAllocator The allocator for temporary data. If NULL, it will use the animation tree
  *     allocator.
  * @param type The resource type.
@@ -86,7 +86,7 @@ DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_loadResource(dsAllocator* a
 /**
  * @brief Loads an animation tree from a stream.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the animation tree.
+ * @param allocator The allocator to create the animation tree with.
  * @param scratchAllocator The allocator for temporary data. If NULL, it will use the animation tree
  *     allocator.
  * @param stream The stream to load the animation tree from. This stream will be read from the
@@ -99,7 +99,7 @@ DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_loadStream(dsAllocator* all
 /**
  * @brief Loads an animation tree from a data buffer.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the animation tree.
+ * @param allocator The allocator to create the animation tree with.
  * @param scratchAllocator The allocator for temporary data. If NULL, it will use the animation tree
  *     allocator.
  * @param data The data for the animation tree. The data isn't used after this call.

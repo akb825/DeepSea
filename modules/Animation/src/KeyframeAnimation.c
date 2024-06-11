@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Aaron Barany
+ * Copyright 2022-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -220,8 +220,8 @@ dsKeyframeAnimation* dsKeyframeAnimation_create(dsAllocator* allocator,
 	return animation;
 }
 
-dsKeyframeAnimation* dsKeyframeAnimation_loadFile(dsAllocator* allocator, dsAllocator* scratchAllocator,
-	const char* filePath)
+dsKeyframeAnimation* dsKeyframeAnimation_loadFile(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, const char* filePath)
 {
 	if (!allocator || !filePath)
 	{
@@ -235,7 +235,8 @@ dsKeyframeAnimation* dsKeyframeAnimation_loadFile(dsAllocator* allocator, dsAllo
 	dsFileStream stream;
 	if (!dsFileStream_openPath(&stream, filePath, "rb"))
 	{
-		DS_LOG_ERROR_F(DS_ANIMATION_LOG_TAG, "Couldn't open keyframe animation file '%s'.", filePath);
+		DS_LOG_ERROR_F(DS_ANIMATION_LOG_TAG, "Couldn't open keyframe animation file '%s'.",
+			filePath);
 		return NULL;
 	}
 
@@ -245,8 +246,8 @@ dsKeyframeAnimation* dsKeyframeAnimation_loadFile(dsAllocator* allocator, dsAllo
 	if (!buffer)
 		return NULL;
 
-	dsKeyframeAnimation* tree = dsKeyframeAnimation_loadImpl(allocator, scratchAllocator, buffer, size,
-		filePath);
+	dsKeyframeAnimation* tree = dsKeyframeAnimation_loadImpl(allocator, scratchAllocator, buffer,
+		size, filePath);
 	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
 	return tree;
 }
@@ -266,7 +267,8 @@ dsKeyframeAnimation* dsKeyframeAnimation_loadResource(dsAllocator* allocator,
 	dsResourceStream stream;
 	if (!dsResourceStream_open(&stream, type, filePath, "rb"))
 	{
-		DS_LOG_ERROR_F(DS_ANIMATION_LOG_TAG, "Couldn't open keyframe animation file '%s'.", filePath);
+		DS_LOG_ERROR_F(DS_ANIMATION_LOG_TAG, "Couldn't open keyframe animation file '%s'.",
+			filePath);
 		return NULL;
 	}
 
@@ -276,8 +278,8 @@ dsKeyframeAnimation* dsKeyframeAnimation_loadResource(dsAllocator* allocator,
 	if (!buffer)
 		return NULL;
 
-	dsKeyframeAnimation* tree = dsKeyframeAnimation_loadImpl(allocator, scratchAllocator, buffer, size,
-		filePath);
+	dsKeyframeAnimation* tree = dsKeyframeAnimation_loadImpl(allocator, scratchAllocator,
+		buffer, size, filePath);
 	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
 	return tree;
 }
@@ -299,14 +301,14 @@ dsKeyframeAnimation* dsKeyframeAnimation_loadStream(dsAllocator* allocator,
 	if (!buffer)
 		return NULL;
 
-	dsKeyframeAnimation* tree = dsKeyframeAnimation_loadImpl(allocator, scratchAllocator, buffer, size,
-		NULL);
+	dsKeyframeAnimation* tree = dsKeyframeAnimation_loadImpl(allocator, scratchAllocator, buffer,
+		size, NULL);
 	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
 	return tree;
 }
 
-dsKeyframeAnimation* dsKeyframeAnimation_loadData(dsAllocator* allocator, dsAllocator* scratchAllocator,
-	const void* data, size_t size)
+dsKeyframeAnimation* dsKeyframeAnimation_loadData(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, const void* data, size_t size)
 {
 	if (!allocator || !data || size == 0)
 	{

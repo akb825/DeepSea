@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ include "AnimationCommon.fbs";
 namespace DeepSeaAnimation;
 
 // Enum for how to interpolate animation values.
-enum AnimationInterpolation : uint8
+enum AnimationInterpolation : ubyte
 {
 	Step,   // Instantly switch to the new value.
 	Linear, // Linearly interpolate between values.

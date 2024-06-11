@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ DS_ANIMATION_EXPORT dsDirectAnimation* dsDirectAnimation_create(dsAllocator* all
 /**
  * @brief Loads an direct animation from a file.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the direct animation.
+ * @param allocator The allocator to create the direct animation with.
  * @param scratchAllocator The allocator for temporary data. If NULL, it will use the direct
  *     animation allocator.
  * @param filePath The file path for the direct animation to load.
@@ -58,9 +58,9 @@ DS_ANIMATION_EXPORT dsDirectAnimation* dsDirectAnimation_loadFile(dsAllocator* a
 	dsAllocator* scratchAllocator, const char* filePath);
 
 /**
- * @brief Loads an direct animation from a file.
+ * @brief Loads an direct animation from a resource file.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the direct animation.
+ * @param allocator The allocator to create the direct animation with.
  * @param scratchAllocator The allocator for temporary data. If NULL, it will use the direct
  *     animation allocator.
  * @param type The resource type.
@@ -73,7 +73,7 @@ DS_ANIMATION_EXPORT dsDirectAnimation* dsDirectAnimation_loadResource(dsAllocato
 /**
  * @brief Loads an direct animation from a stream.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the direct animation.
+ * @param allocator The allocator to create the direct animation with.
  * @param scratchAllocator The allocator for temporary data. If NULL, it will use the direct
  *     animation allocator.
  * @param stream The stream to load the direct animation from. This stream will be read from the
@@ -86,7 +86,7 @@ DS_ANIMATION_EXPORT dsDirectAnimation* dsDirectAnimation_loadStream(dsAllocator*
 /**
  * @brief Loads an direct animation from a data buffer.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the direct animation.
+ * @param allocator The allocator to create the direct animation with.
  * @param scratchAllocator The allocator for temporary data. If NULL, it will use the direct
  *     animation allocator.
  * @param data The data for the direct animation. The data isn't used after this call.

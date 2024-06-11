@@ -1,6 +1,7 @@
 file(GLOB_RECURSE sources src/*.c src/*.cpp src/*.h include/*.h include/*.mslh)
 file(GLOB_RECURSE flatbuffers src/*.fbs)
 ds_add_library(deepsea_physics MODULE Physics FILES ${sources} ${flatbuffers})
+ds_target_include_directories(deepsea_physics PRIVATE src ${FLATBUFFERS_INCLUDE_DIRS})
 ds_install_library(TARGET deepsea_physics MODULE Physics DEPENDS Geometry)
 
 ds_convert_flatbuffers(generatedFlatbuffers FILE ${flatbuffers}

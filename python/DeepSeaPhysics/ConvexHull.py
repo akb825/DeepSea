@@ -29,14 +29,14 @@ class ConvexHull(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             a = self._tab.Vector(o)
-            return self._tab.Get(flatbuffers.number_types.Uint8Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 1))
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
         return 0
 
     # ConvexHull
     def VerticesAsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
-            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint8Flags, o)
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Float32Flags, o)
         return 0
 
     # ConvexHull
@@ -78,7 +78,7 @@ def AddVertices(builder, vertices):
     ConvexHullAddVertices(builder, vertices)
 
 def ConvexHullStartVerticesVector(builder, numElems):
-    return builder.StartVector(1, numElems, 1)
+    return builder.StartVector(4, numElems, 4)
 
 def StartVerticesVector(builder, numElems):
     return ConvexHullStartVerticesVector(builder, numElems)

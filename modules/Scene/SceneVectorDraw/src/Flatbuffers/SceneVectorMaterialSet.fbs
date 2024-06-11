@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,14 @@ namespace DeepSeaSceneVectorDraw;
 // Struct describing a color. This uses a flatbuffer table to use within a union.
 table ColorTable
 {
-	red : uint8;
-	green : uint8;
-	blue : uint8;
-	alpha : uint8;
+	red : ubyte;
+	green : ubyte;
+	blue : ubyte;
+	alpha : ubyte;
 }
 
 // Enum for what to do beyond the edge of a gradient.
-enum GradientEdge : uint8
+enum GradientEdge : ubyte
 {
 	Clamp,  // Clamp to the edge.
 	Repeat, // Repeat the gradient beyond the edge.
@@ -37,7 +37,7 @@ enum GradientEdge : uint8
 }
 
 // Enum for what coordinate space to use.
-enum MaterialSpace : uint8
+enum MaterialSpace : ubyte
 {
 	Local, // Local coordinate space of the object.
 	Bounds // Space determined by the bounding box of the element.

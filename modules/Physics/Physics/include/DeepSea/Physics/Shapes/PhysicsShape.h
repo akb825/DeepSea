@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Streams/Types.h>
 #include <DeepSea/Physics/Shapes/Types.h>
 #include <DeepSea/Physics/Export.h>
 
@@ -49,6 +50,72 @@ extern "C"
 DS_PHYSICS_EXPORT bool dsPhysicsShape_initialize(dsPhysicsShape* shape, dsPhysicsEngine* engine,
 	dsAllocator* allocator, const dsPhysicsShapeType* type, const dsAlignedBox3f* bounds,
 	void* impl, dsDestroyPhysicsShapeFunction destroyFunc);
+
+/**
+ * @brief Loads a physics shape from a file.
+ * @remark errno will be set on failure.
+ * @param engine The physics engine to create the shape with.
+ * @param allocator The allocator to create the shape with. If NULL the engine's allocator will be
+ *     used.
+ * @param findShapeFunc Function to find a shape by name. This will be used if a shape reference is
+ *     used. All lookups will fail if this function is NULL.
+ * @param findShapeUserData User data to pass to findShapeFunc.
+ * @param filePath The file path for the physics shape to load.
+ * @return The loaded physics shape or NULL if it couldn't be loaded.
+ */
+DS_PHYSICS_EXPORT dsPhysicsShape* dsPhysicsShape_loadFile(dsPhysicsEngine* engine,
+	dsAllocator* allocator, dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData,
+	const char* filePath);
+
+/**
+ * @brief Loads a physics shape from a resource file.
+ * @remark errno will be set on failure.
+ * @param engine The physics engine to create the shape with.
+ * @param allocator The allocator to create the shape with. If NULL the engine's allocator will be
+ *     used.
+ * @param findShapeFunc Function to find a shape by name. This will be used if a shape reference is
+ *     used. All lookups will fail if this function is NULL.
+ * @param findShapeUserData User data to pass to findShapeFunc.
+ * @param type The type of resource to load.
+ * @param filePath The file path for the physics shape to load.
+ * @return The loaded physics shape or NULL if it couldn't be loaded.
+ */
+DS_PHYSICS_EXPORT dsPhysicsShape* dsPhysicsShape_loadResource(dsPhysicsEngine* engine,
+	dsAllocator* allocator, dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData,
+	dsFileResourceType type, const char* filePath);
+
+/**
+ * @brief Loads a physics shape from a stream.
+ * @remark errno will be set on failure.
+ * @param engine The physics engine to create the shape with.
+ * @param allocator The allocator to create the shape with. If NULL the engine's allocator will be
+ *     used.
+ * @param findShapeFunc Function to find a shape by name. This will be used if a shape reference is
+ *     used. All lookups will fail if this function is NULL.
+ * @param findShapeUserData User data to pass to findShapeFunc.
+ * @param stream The stream to load from.
+ * @return The loaded physics shape or NULL if it couldn't be loaded.
+ */
+DS_PHYSICS_EXPORT dsPhysicsShape* dsPhysicsShape_loadStream(dsPhysicsEngine* engine,
+	dsAllocator* allocator, dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData,
+	dsStream* stream);
+
+/**
+ * @brief Loads a physics shape from a data buffer.
+ * @remark errno will be set on failure.
+ * @param engine The physics engine to create the shape with.
+ * @param allocator The allocator to create the shape with. If NULL the engine's allocator will be
+ *     used.
+ * @param findShapeFunc Function to find a shape by name. This will be used if a shape reference is
+ *     used. All lookups will fail if this function is NULL.
+ * @param findShapeUserData User data to pass to findShapeFunc.
+ * @param data The data buffer to load from.
+ * @param size The size of the data buffer.
+ * @return The loaded physics shape or NULL if it couldn't be loaded.
+ */
+DS_PHYSICS_EXPORT dsPhysicsShape* dsPhysicsShape_loadData(dsPhysicsEngine* engine,
+	dsAllocator* allocator, dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData,
+	const void* data, size_t size);
 
 /**
  * @brief Gets the mass properties for a shape.

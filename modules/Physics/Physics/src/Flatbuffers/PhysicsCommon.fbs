@@ -34,7 +34,7 @@ struct Quaternion4f
 }
 
 // Enum for the axis to align a physics shape to.
-enum Axis : uint8
+enum Axis : ubyte
 {
 	X,
 	Y,
@@ -57,7 +57,7 @@ struct ShapePartMaterial
 }
 
 // Enum for how a physics actor does, or doesn't, move.
-enum MotionType : uint8
+enum MotionType : ubyte
 {
 	// Object that that won't be moved by the physics simulation. While static objects may be moved
 	// manually, they may not properly interact with other objects.
@@ -70,7 +70,7 @@ enum MotionType : uint8
 }
 
 // Enum for a mask of degrees of freedom for physics actors.
-enum DOFMask : uint8
+enum DOFMask : ubyte
 {
 	// Translation along the X axis.
 	TransX = 0,
@@ -87,7 +87,7 @@ enum DOFMask : uint8
 }
 
 // Enum describing a layer of physics objects.
-enum PhysicsLayer : uint8
+enum PhysicsLayer : ubyte
 {
 	// Static world collision that cannot collide with itself.
 	StaticWorld,
@@ -98,7 +98,7 @@ enum PhysicsLayer : uint8
 }
 
 // Enum for flags to apply to rigid bodies.
-enum RigidBodyFlags : uint32 (bit_flags)
+enum RigidBodyFlags : uint (bit_flags)
 {
 	// Can change the motion type. This flag can't be changed after creation.
 	MutableMotionType = 0,
@@ -128,7 +128,7 @@ enum RigidBodyFlags : uint32 (bit_flags)
 }
 
 // Enum for the type of motor to apply to a physics constraint.
-enum ConstraintMotorType : uint8
+enum ConstraintMotorType : ubyte
 {
 	// The motor is disabled and doesn't apply force.
 	Disabled,

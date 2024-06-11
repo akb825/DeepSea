@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ table ShadowInstanceTransformData
 	shadows : string (required);
 
 	// The index of the surface within the shadows.
-	surface : uint8;
+	surface : ubyte;
 
 	// The name of the shader variable group description for the transform data.
 	variableGroupDesc : string (required);
