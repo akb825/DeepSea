@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Aaron Barany
+ * Copyright 2016-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,12 @@ typedef struct ScopeInfo
 #define MAX_PROFILE_DEPTH 128
 #define PROFILE_LOG_TAG "profile"
 
+typedef struct ThreadScope
+{
+	ScopeInfo scopes[MAX_PROFILE_DEPTH];
+	uint32_t curScope;
+} ThreadScope;
+
 static const char* gScopeNames[] =
 {
 	"Function",
@@ -42,15 +48,14 @@ static const char* gScopeNames[] =
 	"Lock"
 };
 
-static DS_THREAD_LOCAL ScopeInfo gThreadScopes[MAX_PROFILE_DEPTH];
-static DS_THREAD_LOCAL uint32_t gCurThreadScope;
+static DS_THREAD_LOCAL ThreadScope gThreadScope;
 
 static void printCurrentScopes(const char* file, unsigned int line, const char* function)
 {
 	dsLog_message(dsLogLevel_Fatal, PROFILE_LOG_TAG, file, line, function, "Current scopes:");
-	for (uint32_t i = 0; i < gCurThreadScope; ++i)
+	for (uint32_t i = 0; i < gThreadScope.curScope; ++i)
 	{
-		const ScopeInfo* scope = gThreadScopes + i;
+		const ScopeInfo* scope = gThreadScope.scopes + i;
 		dsLog_message(dsLogLevel_Fatal, PROFILE_LOG_TAG, scope->file, scope->line, scope->function,
 			gScopeNames[scope->type]);
 	}
@@ -97,7 +102,7 @@ void dsProfile_registerThread(const char* name)
 void dsProfile_startFrame(void)
 {
 #if DS_DEBUG
-	if (gCurThreadScope > 0)
+	if (gThreadScope.curScope > 0)
 	{
 		DS_LOG_FATAL(PROFILE_LOG_TAG, "Start frame must not be inside another profile scope.");
 		printCurrentScopes(__FILE__, __LINE__, __FUNCTION__);
@@ -115,7 +120,7 @@ void dsProfile_startFrame(void)
 void dsProfile_endFrame()
 {
 #if DS_DEBUG
-	if (gCurThreadScope > 0)
+	if (gThreadScope.curScope > 0)
 	{
 		DS_LOG_FATAL(PROFILE_LOG_TAG, "End frame must not be inside another profile scope.");
 		printCurrentScopes(__FILE__, __LINE__, __FUNCTION__);
@@ -134,7 +139,7 @@ void dsProfile_push(void** localData, dsProfileType type, const char* name, cons
 	const char* function, unsigned int line, bool dynamicName)
 {
 #if DS_DEBUG
-	if (gCurThreadScope >= MAX_PROFILE_DEPTH)
+	if (gThreadScope.curScope >= MAX_PROFILE_DEPTH)
 	{
 		dsLog_messagef(dsLogLevel_Fatal, PROFILE_LOG_TAG, file, line, function,
 			"Profile depth exceeds max of %u.", MAX_PROFILE_DEPTH);
@@ -143,7 +148,7 @@ void dsProfile_push(void** localData, dsProfileType type, const char* name, cons
 		abort();
 	}
 
-	ScopeInfo* scope = gThreadScopes + gCurThreadScope++;
+	ScopeInfo* scope = gThreadScope.scopes + gThreadScope.curScope++;
 	scope->file = file;
 	scope->function = function;
 	scope->line = line;
@@ -159,7 +164,7 @@ void dsProfile_push(void** localData, dsProfileType type, const char* name, cons
 void dsProfile_pop(dsProfileType type, const char* file, const char* function, unsigned int line)
 {
 #if DS_DEBUG
-	if (gCurThreadScope == 0)
+	if (gThreadScope.curScope == 0)
 	{
 		dsLog_messagef(dsLogLevel_Fatal, PROFILE_LOG_TAG, file, line, function,
 			"Profile pop with no corresponding push.");
@@ -167,7 +172,7 @@ void dsProfile_pop(dsProfileType type, const char* file, const char* function, u
 		abort();
 	}
 
-	const ScopeInfo* scope = gThreadScopes + gCurThreadScope - 1;
+	const ScopeInfo* scope = gThreadScope.scopes + gThreadScope.curScope - 1;
 	if (scope->type != type)
 	{
 		dsLog_messagef(dsLogLevel_Fatal, PROFILE_LOG_TAG, file, line, function,
@@ -185,7 +190,7 @@ void dsProfile_pop(dsProfileType type, const char* file, const char* function, u
 		DS_DEBUG_BREAK();
 		abort();
 	}
-	--gCurThreadScope;
+	--gThreadScope.curScope;
 #endif
 
 	if (!gFunctions.popFunc)
