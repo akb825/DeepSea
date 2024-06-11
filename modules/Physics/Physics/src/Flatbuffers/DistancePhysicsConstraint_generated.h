@@ -161,36 +161,6 @@ inline ::flatbuffers::Offset<DistanceConstraint> CreateDistanceConstraintDirect(
       limitDamping);
 }
 
-inline const DeepSeaPhysics::DistanceConstraint *GetDistanceConstraint(const void *buf) {
-  return ::flatbuffers::GetRoot<DeepSeaPhysics::DistanceConstraint>(buf);
-}
-
-inline const DeepSeaPhysics::DistanceConstraint *GetSizePrefixedDistanceConstraint(const void *buf) {
-  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaPhysics::DistanceConstraint>(buf);
-}
-
-inline bool VerifyDistanceConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaPhysics::DistanceConstraint>(nullptr);
-}
-
-inline bool VerifySizePrefixedDistanceConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaPhysics::DistanceConstraint>(nullptr);
-}
-
-inline void FinishDistanceConstraintBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::DistanceConstraint> root) {
-  fbb.Finish(root);
-}
-
-inline void FinishSizePrefixedDistanceConstraintBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::DistanceConstraint> root) {
-  fbb.FinishSizePrefixed(root);
-}
-
 }  // namespace DeepSeaPhysics
 
 #endif  // FLATBUFFERS_GENERATED_DISTANCEPHYSICSCONSTRAINT_DEEPSEAPHYSICS_H_

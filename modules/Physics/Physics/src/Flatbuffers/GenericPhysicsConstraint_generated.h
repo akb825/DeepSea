@@ -304,36 +304,6 @@ inline ::flatbuffers::Offset<GenericConstraint> CreateGenericConstraintDirect(
       combineSwingTwistMotors);
 }
 
-inline const DeepSeaPhysics::GenericConstraint *GetGenericConstraint(const void *buf) {
-  return ::flatbuffers::GetRoot<DeepSeaPhysics::GenericConstraint>(buf);
-}
-
-inline const DeepSeaPhysics::GenericConstraint *GetSizePrefixedGenericConstraint(const void *buf) {
-  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaPhysics::GenericConstraint>(buf);
-}
-
-inline bool VerifyGenericConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaPhysics::GenericConstraint>(nullptr);
-}
-
-inline bool VerifySizePrefixedGenericConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaPhysics::GenericConstraint>(nullptr);
-}
-
-inline void FinishGenericConstraintBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::GenericConstraint> root) {
-  fbb.Finish(root);
-}
-
-inline void FinishSizePrefixedGenericConstraintBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::GenericConstraint> root) {
-  fbb.FinishSizePrefixed(root);
-}
-
 }  // namespace DeepSeaPhysics
 
 #endif  // FLATBUFFERS_GENERATED_GENERICPHYSICSCONSTRAINT_DEEPSEAPHYSICS_H_

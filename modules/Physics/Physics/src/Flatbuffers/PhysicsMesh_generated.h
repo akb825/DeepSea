@@ -168,36 +168,6 @@ inline ::flatbuffers::Offset<Mesh> CreateMeshDirect(
       cacheName__);
 }
 
-inline const DeepSeaPhysics::Mesh *GetMesh(const void *buf) {
-  return ::flatbuffers::GetRoot<DeepSeaPhysics::Mesh>(buf);
-}
-
-inline const DeepSeaPhysics::Mesh *GetSizePrefixedMesh(const void *buf) {
-  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaPhysics::Mesh>(buf);
-}
-
-inline bool VerifyMeshBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaPhysics::Mesh>(nullptr);
-}
-
-inline bool VerifySizePrefixedMeshBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaPhysics::Mesh>(nullptr);
-}
-
-inline void FinishMeshBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::Mesh> root) {
-  fbb.Finish(root);
-}
-
-inline void FinishSizePrefixedMeshBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::Mesh> root) {
-  fbb.FinishSizePrefixed(root);
-}
-
 }  // namespace DeepSeaPhysics
 
 #endif  // FLATBUFFERS_GENERATED_PHYSICSMESH_DEEPSEAPHYSICS_H_

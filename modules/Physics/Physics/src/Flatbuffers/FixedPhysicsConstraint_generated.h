@@ -139,36 +139,6 @@ inline ::flatbuffers::Offset<FixedConstraint> CreateFixedConstraintDirect(
       secondRotation);
 }
 
-inline const DeepSeaPhysics::FixedConstraint *GetFixedConstraint(const void *buf) {
-  return ::flatbuffers::GetRoot<DeepSeaPhysics::FixedConstraint>(buf);
-}
-
-inline const DeepSeaPhysics::FixedConstraint *GetSizePrefixedFixedConstraint(const void *buf) {
-  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaPhysics::FixedConstraint>(buf);
-}
-
-inline bool VerifyFixedConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaPhysics::FixedConstraint>(nullptr);
-}
-
-inline bool VerifySizePrefixedFixedConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaPhysics::FixedConstraint>(nullptr);
-}
-
-inline void FinishFixedConstraintBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::FixedConstraint> root) {
-  fbb.Finish(root);
-}
-
-inline void FinishSizePrefixedFixedConstraintBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::FixedConstraint> root) {
-  fbb.FinishSizePrefixed(root);
-}
-
 }  // namespace DeepSeaPhysics
 
 #endif  // FLATBUFFERS_GENERATED_FIXEDPHYSICSCONSTRAINT_DEEPSEAPHYSICS_H_

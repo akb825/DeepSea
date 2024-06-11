@@ -72,36 +72,6 @@ inline ::flatbuffers::Offset<Box> CreateBox(
   return builder_.Finish();
 }
 
-inline const DeepSeaPhysics::Box *GetBox(const void *buf) {
-  return ::flatbuffers::GetRoot<DeepSeaPhysics::Box>(buf);
-}
-
-inline const DeepSeaPhysics::Box *GetSizePrefixedBox(const void *buf) {
-  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaPhysics::Box>(buf);
-}
-
-inline bool VerifyBoxBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaPhysics::Box>(nullptr);
-}
-
-inline bool VerifySizePrefixedBoxBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaPhysics::Box>(nullptr);
-}
-
-inline void FinishBoxBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::Box> root) {
-  fbb.Finish(root);
-}
-
-inline void FinishSizePrefixedBoxBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::Box> root) {
-  fbb.FinishSizePrefixed(root);
-}
-
 }  // namespace DeepSeaPhysics
 
 #endif  // FLATBUFFERS_GENERATED_PHYSICSBOX_DEEPSEAPHYSICS_H_

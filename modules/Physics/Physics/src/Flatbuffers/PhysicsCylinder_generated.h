@@ -91,36 +91,6 @@ inline ::flatbuffers::Offset<Cylinder> CreateCylinder(
   return builder_.Finish();
 }
 
-inline const DeepSeaPhysics::Cylinder *GetCylinder(const void *buf) {
-  return ::flatbuffers::GetRoot<DeepSeaPhysics::Cylinder>(buf);
-}
-
-inline const DeepSeaPhysics::Cylinder *GetSizePrefixedCylinder(const void *buf) {
-  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaPhysics::Cylinder>(buf);
-}
-
-inline bool VerifyCylinderBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaPhysics::Cylinder>(nullptr);
-}
-
-inline bool VerifySizePrefixedCylinderBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaPhysics::Cylinder>(nullptr);
-}
-
-inline void FinishCylinderBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::Cylinder> root) {
-  fbb.Finish(root);
-}
-
-inline void FinishSizePrefixedCylinderBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::Cylinder> root) {
-  fbb.FinishSizePrefixed(root);
-}
-
 }  // namespace DeepSeaPhysics
 
 #endif  // FLATBUFFERS_GENERATED_PHYSICSCYLINDER_DEEPSEAPHYSICS_H_

@@ -153,36 +153,6 @@ inline ::flatbuffers::Offset<RackAndPinionConstraint> CreateRackAndPinionConstra
       ratio);
 }
 
-inline const DeepSeaPhysics::RackAndPinionConstraint *GetRackAndPinionConstraint(const void *buf) {
-  return ::flatbuffers::GetRoot<DeepSeaPhysics::RackAndPinionConstraint>(buf);
-}
-
-inline const DeepSeaPhysics::RackAndPinionConstraint *GetSizePrefixedRackAndPinionConstraint(const void *buf) {
-  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaPhysics::RackAndPinionConstraint>(buf);
-}
-
-inline bool VerifyRackAndPinionConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaPhysics::RackAndPinionConstraint>(nullptr);
-}
-
-inline bool VerifySizePrefixedRackAndPinionConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaPhysics::RackAndPinionConstraint>(nullptr);
-}
-
-inline void FinishRackAndPinionConstraintBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::RackAndPinionConstraint> root) {
-  fbb.Finish(root);
-}
-
-inline void FinishSizePrefixedRackAndPinionConstraintBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::RackAndPinionConstraint> root) {
-  fbb.FinishSizePrefixed(root);
-}
-
 }  // namespace DeepSeaPhysics
 
 #endif  // FLATBUFFERS_GENERATED_RACKANDPINIONPHYSICSCONSTRAINT_DEEPSEAPHYSICS_H_

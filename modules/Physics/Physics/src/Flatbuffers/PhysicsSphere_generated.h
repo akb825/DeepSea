@@ -59,36 +59,6 @@ inline ::flatbuffers::Offset<Sphere> CreateSphere(
   return builder_.Finish();
 }
 
-inline const DeepSeaPhysics::Sphere *GetSphere(const void *buf) {
-  return ::flatbuffers::GetRoot<DeepSeaPhysics::Sphere>(buf);
-}
-
-inline const DeepSeaPhysics::Sphere *GetSizePrefixedSphere(const void *buf) {
-  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaPhysics::Sphere>(buf);
-}
-
-inline bool VerifySphereBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaPhysics::Sphere>(nullptr);
-}
-
-inline bool VerifySizePrefixedSphereBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaPhysics::Sphere>(nullptr);
-}
-
-inline void FinishSphereBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::Sphere> root) {
-  fbb.Finish(root);
-}
-
-inline void FinishSizePrefixedSphereBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::Sphere> root) {
-  fbb.FinishSizePrefixed(root);
-}
-
 }  // namespace DeepSeaPhysics
 
 #endif  // FLATBUFFERS_GENERATED_PHYSICSSPHERE_DEEPSEAPHYSICS_H_

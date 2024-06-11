@@ -93,5 +93,3 @@ table GenericConstraint
 	// Whether the swing and twist motors are combined.
 	combineSwingTwistMotors : bool;
 }
-
-root_type GenericConstraint;

@@ -223,36 +223,6 @@ inline ::flatbuffers::Offset<SwingTwistConstraint> CreateSwingTwistConstraintDir
       maxMotorTorque);
 }
 
-inline const DeepSeaPhysics::SwingTwistConstraint *GetSwingTwistConstraint(const void *buf) {
-  return ::flatbuffers::GetRoot<DeepSeaPhysics::SwingTwistConstraint>(buf);
-}
-
-inline const DeepSeaPhysics::SwingTwistConstraint *GetSizePrefixedSwingTwistConstraint(const void *buf) {
-  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaPhysics::SwingTwistConstraint>(buf);
-}
-
-inline bool VerifySwingTwistConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaPhysics::SwingTwistConstraint>(nullptr);
-}
-
-inline bool VerifySizePrefixedSwingTwistConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaPhysics::SwingTwistConstraint>(nullptr);
-}
-
-inline void FinishSwingTwistConstraintBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::SwingTwistConstraint> root) {
-  fbb.Finish(root);
-}
-
-inline void FinishSizePrefixedSwingTwistConstraintBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::SwingTwistConstraint> root) {
-  fbb.FinishSizePrefixed(root);
-}
-
 }  // namespace DeepSeaPhysics
 
 #endif  // FLATBUFFERS_GENERATED_SWINGTWISTPHYSICSCONSTRAINT_DEEPSEAPHYSICS_H_

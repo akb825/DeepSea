@@ -22,5 +22,3 @@ table Sphere
 	// The radius of the sphere.
 	radius : float;
 }
-
-root_type Sphere;

@@ -44,5 +44,3 @@ table GearConstraint
 	// may be negative if the axes are flipped.
 	ratio : float;
 }
-
-root_type GearConstraint;

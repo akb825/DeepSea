@@ -91,36 +91,6 @@ inline ::flatbuffers::Offset<Cone> CreateCone(
   return builder_.Finish();
 }
 
-inline const DeepSeaPhysics::Cone *GetCone(const void *buf) {
-  return ::flatbuffers::GetRoot<DeepSeaPhysics::Cone>(buf);
-}
-
-inline const DeepSeaPhysics::Cone *GetSizePrefixedCone(const void *buf) {
-  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaPhysics::Cone>(buf);
-}
-
-inline bool VerifyConeBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaPhysics::Cone>(nullptr);
-}
-
-inline bool VerifySizePrefixedConeBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaPhysics::Cone>(nullptr);
-}
-
-inline void FinishConeBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::Cone> root) {
-  fbb.Finish(root);
-}
-
-inline void FinishSizePrefixedConeBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::Cone> root) {
-  fbb.FinishSizePrefixed(root);
-}
-
 }  // namespace DeepSeaPhysics
 
 #endif  // FLATBUFFERS_GENERATED_PHYSICSCONE_DEEPSEAPHYSICS_H_

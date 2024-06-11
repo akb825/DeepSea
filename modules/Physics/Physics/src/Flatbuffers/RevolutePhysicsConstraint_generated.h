@@ -235,36 +235,6 @@ inline ::flatbuffers::Offset<RevoluteConstraint> CreateRevoluteConstraintDirect(
       maxMotorTorque);
 }
 
-inline const DeepSeaPhysics::RevoluteConstraint *GetRevoluteConstraint(const void *buf) {
-  return ::flatbuffers::GetRoot<DeepSeaPhysics::RevoluteConstraint>(buf);
-}
-
-inline const DeepSeaPhysics::RevoluteConstraint *GetSizePrefixedRevoluteConstraint(const void *buf) {
-  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaPhysics::RevoluteConstraint>(buf);
-}
-
-inline bool VerifyRevoluteConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaPhysics::RevoluteConstraint>(nullptr);
-}
-
-inline bool VerifySizePrefixedRevoluteConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaPhysics::RevoluteConstraint>(nullptr);
-}
-
-inline void FinishRevoluteConstraintBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::RevoluteConstraint> root) {
-  fbb.Finish(root);
-}
-
-inline void FinishSizePrefixedRevoluteConstraintBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::RevoluteConstraint> root) {
-  fbb.FinishSizePrefixed(root);
-}
-
 }  // namespace DeepSeaPhysics
 
 #endif  // FLATBUFFERS_GENERATED_REVOLUTEPHYSICSCONSTRAINT_DEEPSEAPHYSICS_H_

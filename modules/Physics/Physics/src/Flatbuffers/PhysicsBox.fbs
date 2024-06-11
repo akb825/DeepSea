@@ -28,5 +28,3 @@ table Box
 	// The convex radius for collision checks. A value < 0 will use the default.
 	convexRadius : float = -1;
 }
-
-root_type Box;

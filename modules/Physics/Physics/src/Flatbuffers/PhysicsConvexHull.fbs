@@ -28,5 +28,3 @@ table ConvexHull
 	// Unique name of the convex hull to cache the cooked result.
 	cacheName : string;
 }
-
-root_type ConvexHull;

@@ -235,36 +235,6 @@ inline ::flatbuffers::Offset<SliderConstraint> CreateSliderConstraintDirect(
       maxMotorForce);
 }
 
-inline const DeepSeaPhysics::SliderConstraint *GetSliderConstraint(const void *buf) {
-  return ::flatbuffers::GetRoot<DeepSeaPhysics::SliderConstraint>(buf);
-}
-
-inline const DeepSeaPhysics::SliderConstraint *GetSizePrefixedSliderConstraint(const void *buf) {
-  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaPhysics::SliderConstraint>(buf);
-}
-
-inline bool VerifySliderConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaPhysics::SliderConstraint>(nullptr);
-}
-
-inline bool VerifySizePrefixedSliderConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaPhysics::SliderConstraint>(nullptr);
-}
-
-inline void FinishSliderConstraintBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::SliderConstraint> root) {
-  fbb.Finish(root);
-}
-
-inline void FinishSizePrefixedSliderConstraintBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::SliderConstraint> root) {
-  fbb.FinishSizePrefixed(root);
-}
-
 }  // namespace DeepSeaPhysics
 
 #endif  // FLATBUFFERS_GENERATED_SLIDERPHYSICSCONSTRAINT_DEEPSEAPHYSICS_H_

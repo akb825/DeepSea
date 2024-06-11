@@ -96,36 +96,6 @@ inline ::flatbuffers::Offset<ConvexHull> CreateConvexHullDirect(
       cacheName__);
 }
 
-inline const DeepSeaPhysics::ConvexHull *GetConvexHull(const void *buf) {
-  return ::flatbuffers::GetRoot<DeepSeaPhysics::ConvexHull>(buf);
-}
-
-inline const DeepSeaPhysics::ConvexHull *GetSizePrefixedConvexHull(const void *buf) {
-  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaPhysics::ConvexHull>(buf);
-}
-
-inline bool VerifyConvexHullBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaPhysics::ConvexHull>(nullptr);
-}
-
-inline bool VerifySizePrefixedConvexHullBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaPhysics::ConvexHull>(nullptr);
-}
-
-inline void FinishConvexHullBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::ConvexHull> root) {
-  fbb.Finish(root);
-}
-
-inline void FinishSizePrefixedConvexHullBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::ConvexHull> root) {
-  fbb.FinishSizePrefixed(root);
-}
-
 }  // namespace DeepSeaPhysics
 
 #endif  // FLATBUFFERS_GENERATED_PHYSICSCONVEXHULL_DEEPSEAPHYSICS_H_

@@ -151,36 +151,6 @@ inline ::flatbuffers::Offset<ConeConstraint> CreateConeConstraintDirect(
       maxAngle);
 }
 
-inline const DeepSeaPhysics::ConeConstraint *GetConeConstraint(const void *buf) {
-  return ::flatbuffers::GetRoot<DeepSeaPhysics::ConeConstraint>(buf);
-}
-
-inline const DeepSeaPhysics::ConeConstraint *GetSizePrefixedConeConstraint(const void *buf) {
-  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaPhysics::ConeConstraint>(buf);
-}
-
-inline bool VerifyConeConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaPhysics::ConeConstraint>(nullptr);
-}
-
-inline bool VerifySizePrefixedConeConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaPhysics::ConeConstraint>(nullptr);
-}
-
-inline void FinishConeConstraintBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::ConeConstraint> root) {
-  fbb.Finish(root);
-}
-
-inline void FinishSizePrefixedConeConstraintBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::ConeConstraint> root) {
-  fbb.FinishSizePrefixed(root);
-}
-
 }  // namespace DeepSeaPhysics
 
 #endif  // FLATBUFFERS_GENERATED_CONEPHYSICSCONSTRAINT_DEEPSEAPHYSICS_H_

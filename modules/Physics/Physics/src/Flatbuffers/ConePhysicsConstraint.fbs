@@ -42,5 +42,3 @@ table ConeConstraint
 	// The maximum angle of the constraint relative to the attachment rotation axes.
 	maxAngle : float;
 }
-
-root_type ConeConstraint;

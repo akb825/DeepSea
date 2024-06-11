@@ -113,36 +113,6 @@ inline ::flatbuffers::Offset<PointConstraint> CreatePointConstraintDirect(
       secondPosition);
 }
 
-inline const DeepSeaPhysics::PointConstraint *GetPointConstraint(const void *buf) {
-  return ::flatbuffers::GetRoot<DeepSeaPhysics::PointConstraint>(buf);
-}
-
-inline const DeepSeaPhysics::PointConstraint *GetSizePrefixedPointConstraint(const void *buf) {
-  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaPhysics::PointConstraint>(buf);
-}
-
-inline bool VerifyPointConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaPhysics::PointConstraint>(nullptr);
-}
-
-inline bool VerifySizePrefixedPointConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaPhysics::PointConstraint>(nullptr);
-}
-
-inline void FinishPointConstraintBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::PointConstraint> root) {
-  fbb.Finish(root);
-}
-
-inline void FinishSizePrefixedPointConstraintBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::PointConstraint> root) {
-  fbb.FinishSizePrefixed(root);
-}
-
 }  // namespace DeepSeaPhysics
 
 #endif  // FLATBUFFERS_GENERATED_POINTPHYSICSCONSTRAINT_DEEPSEAPHYSICS_H_

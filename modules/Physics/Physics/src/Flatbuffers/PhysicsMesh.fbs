@@ -45,5 +45,3 @@ table Mesh
 	// Unique name of the mesh to cache the cooked result.
 	cacheName : string;
 }
-
-root_type Mesh;

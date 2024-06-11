@@ -30,5 +30,3 @@ table Capsule
 	// The axis the capsule is aligned with.
 	axis : Axis;
 }
-
-root_type Capsule;

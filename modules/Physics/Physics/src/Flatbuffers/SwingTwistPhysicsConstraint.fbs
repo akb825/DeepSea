@@ -61,5 +61,3 @@ table SwingTwistConstraint
 	// torque to apply to stop motion.
 	maxMotorTorque : float;
 }
-
-root_type SwingTwistConstraint;

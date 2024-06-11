@@ -39,5 +39,3 @@ table FixedConstraint
 	// The rotation of the constraint relative to the second actor.
 	secondRotation : Quaternion4f (required);
 }
-
-root_type FixedConstraint;

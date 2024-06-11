@@ -46,5 +46,3 @@ table DistanceConstraint
 	// The damping for the spring to keep within the distance range.
 	limitDamping : float;
 }
-
-root_type DistanceConstraint;

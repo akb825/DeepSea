@@ -81,36 +81,6 @@ inline ::flatbuffers::Offset<Capsule> CreateCapsule(
   return builder_.Finish();
 }
 
-inline const DeepSeaPhysics::Capsule *GetCapsule(const void *buf) {
-  return ::flatbuffers::GetRoot<DeepSeaPhysics::Capsule>(buf);
-}
-
-inline const DeepSeaPhysics::Capsule *GetSizePrefixedCapsule(const void *buf) {
-  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaPhysics::Capsule>(buf);
-}
-
-inline bool VerifyCapsuleBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaPhysics::Capsule>(nullptr);
-}
-
-inline bool VerifySizePrefixedCapsuleBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaPhysics::Capsule>(nullptr);
-}
-
-inline void FinishCapsuleBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::Capsule> root) {
-  fbb.Finish(root);
-}
-
-inline void FinishSizePrefixedCapsuleBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::Capsule> root) {
-  fbb.FinishSizePrefixed(root);
-}
-
 }  // namespace DeepSeaPhysics
 
 #endif  // FLATBUFFERS_GENERATED_PHYSICSCAPSULE_DEEPSEAPHYSICS_H_

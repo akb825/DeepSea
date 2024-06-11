@@ -153,36 +153,6 @@ inline ::flatbuffers::Offset<GearConstraint> CreateGearConstraintDirect(
       ratio);
 }
 
-inline const DeepSeaPhysics::GearConstraint *GetGearConstraint(const void *buf) {
-  return ::flatbuffers::GetRoot<DeepSeaPhysics::GearConstraint>(buf);
-}
-
-inline const DeepSeaPhysics::GearConstraint *GetSizePrefixedGearConstraint(const void *buf) {
-  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaPhysics::GearConstraint>(buf);
-}
-
-inline bool VerifyGearConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaPhysics::GearConstraint>(nullptr);
-}
-
-inline bool VerifySizePrefixedGearConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaPhysics::GearConstraint>(nullptr);
-}
-
-inline void FinishGearConstraintBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::GearConstraint> root) {
-  fbb.Finish(root);
-}
-
-inline void FinishSizePrefixedGearConstraintBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaPhysics::GearConstraint> root) {
-  fbb.FinishSizePrefixed(root);
-}
-
 }  // namespace DeepSeaPhysics
 
 #endif  // FLATBUFFERS_GENERATED_GEARPHYSICSCONSTRAINT_DEEPSEAPHYSICS_H_

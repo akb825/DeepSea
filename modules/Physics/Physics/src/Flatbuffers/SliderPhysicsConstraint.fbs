@@ -70,5 +70,3 @@ table SliderConstraint
 	// force to apply to stop motion.
 	maxMotorForce : float;
 }
-
-root_type SliderConstraint;
