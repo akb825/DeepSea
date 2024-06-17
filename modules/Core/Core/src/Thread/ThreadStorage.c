@@ -49,10 +49,12 @@ bool dsThreadStorage_initialize(dsThreadStorage* storage)
 	return true;
 
 #else
+
 	int errorCode = pthread_key_create(&storage->storage, NULL);
 	if (errorCode != 0)
 		errno = errorCode;
 	return errorCode == 0;
+
 #endif
 }
 

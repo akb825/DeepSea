@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,14 +51,14 @@ extern "C"
 DS_CORE_EXPORT bool dsThreadStorage_initialize(dsThreadStorage* storage);
 
 /**
- * @brief Gets the thread-specific data.
+ * @brief Gets the thread-specific data for the current thread.
  * @param storage The thread-local storage.
- * @return The thread-specific data or NULL if no data is specified.
+ * @return The thread-specific data or NULL if no data was previously set.
  */
 DS_CORE_EXPORT void* dsThreadStorage_get(dsThreadStorage storage);
 
 /**
- * @brief Sets the thread-specific data.
+ * @brief Sets the thread-specific data for the current thread.
  * @remark Any resources associated with the value should be destroyed before the thread exits.
  * @remark errno will be set on failure.
  * @param storage The thread-local storage.

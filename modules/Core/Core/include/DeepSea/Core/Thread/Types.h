@@ -198,6 +198,19 @@ typedef struct dsThreadStorage
 } dsThreadStorage;
 
 /**
+ * @brief Structure that holds thread-local storage of objects that require cleanup.
+ *
+ * A destructor callback is used to clean up stored objects when threads exit, objects are replaced,
+ * or the dsThreadObjectStorage instance is destroyed.
+ *
+ * This has higher overhead compared to dsThreadStorage. If no cleanup is required, dsThreadStorage
+ * should be used instead.
+ *
+ * @see ThreadObjectStorage.h
+ */
+typedef struct dsThreadObjectStorage dsThreadObjectStorage;
+
+/**
  * @brief Structure that manages threads to processes tasks held on task queues.
  *
  * Typically only one thread pool should be created for an application. This allows for greater
