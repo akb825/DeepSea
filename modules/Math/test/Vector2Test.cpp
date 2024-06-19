@@ -126,14 +126,16 @@ inline bool dsVector2_epsilonEqual(const dsVector2d* a, const dsVector2d* b, dou
 	return dsVector2d_epsilonEqual(a, b, epsilon);
 }
 
-inline bool dsVector2_relativeEpsilonEqual(const dsVector2f* a, const dsVector2f* b, float epsilon)
+inline bool dsVector2_relativeEpsilonEqual(const dsVector2f* a, const dsVector2f* b,
+	float absoluteEps, float relativeEps)
 {
-	return dsVector2f_relativeEpsilonEqual(a, b, epsilon);
+	return dsVector2f_relativeEpsilonEqual(a, b, absoluteEps, relativeEps);
 }
 
-inline bool dsVector2_relativeEpsilonEqual(const dsVector2d* a, const dsVector2d* b, double epsilon)
+inline bool dsVector2_relativeEpsilonEqual(const dsVector2d* a, const dsVector2d* b,
+	double absoluteEps, double relativeEps)
 {
-	return dsVector2d_relativeEpsilonEqual(a, b, epsilon);
+	return dsVector2d_relativeEpsilonEqual(a, b, absoluteEps, relativeEps);
 }
 
 TYPED_TEST(Vector2Test, Initialize)
@@ -335,16 +337,20 @@ TYPED_TEST(Vector2FloatTest, EpsilonEqual)
 TYPED_TEST(Vector2FloatTest, RelativeEpsilonEqual)
 {
 	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
-	TypeParam epsilon = (TypeParam)1e-3;
+	TypeParam smallEpsilon = (TypeParam)1e-5;
+	TypeParam mediumEpsilon = (TypeParam)1e-4;
+	TypeParam largeEpsilon = (TypeParam)1.001e-3;
 
 	Vector2Type a = {{(TypeParam)-23.0, (TypeParam)45.0}};
 	Vector2Type b = {{(TypeParam)-23.001, (TypeParam)45.001}};
 	Vector2Type c = {{(TypeParam)-23.1, (TypeParam)45.0}};
 	Vector2Type d = {{(TypeParam)-23.0, (TypeParam)45.1}};
 
-	EXPECT_TRUE(dsVector2_relativeEpsilonEqual(&a, &b, epsilon));
-	EXPECT_FALSE(dsVector2_relativeEpsilonEqual(&a, &c, epsilon));
-	EXPECT_FALSE(dsVector2_relativeEpsilonEqual(&a, &d, epsilon));
+	EXPECT_FALSE(dsVector2_relativeEpsilonEqual(&a, &b, smallEpsilon, smallEpsilon));
+	EXPECT_TRUE(dsVector2_relativeEpsilonEqual(&a, &b, largeEpsilon, smallEpsilon));
+	EXPECT_TRUE(dsVector2_relativeEpsilonEqual(&a, &b, smallEpsilon, mediumEpsilon));
+	EXPECT_FALSE(dsVector2_relativeEpsilonEqual(&a, &c, largeEpsilon, largeEpsilon));
+	EXPECT_FALSE(dsVector2_relativeEpsilonEqual(&a, &d, largeEpsilon, largeEpsilon));
 }
 
 TEST(Vector2, ConvertFloatToDouble)

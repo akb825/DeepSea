@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,5 +92,7 @@ void dsVector3d_normalize(dsVector3d* result, const dsVector3d* a);
 bool dsVector3f_epsilonEqual(const dsVector3f* a, const dsVector3f* b, float epsilon);
 bool dsVector3d_epsilonEqual(const dsVector3d* a, const dsVector3d* b, double epsilon);
 
-bool dsVector3f_relativeEpsilonEqual(const dsVector3f* a, const dsVector3f* b, float epsilon);
-bool dsVector3d_relativeEpsilonEqual(const dsVector3d* a, const dsVector3d* b, double epsilon);
+bool dsVector3f_relativeEpsilonEqual(const dsVector3f* a, const dsVector3f* b, float absoluteEps,
+	float relativeEps);
+bool dsVector3d_relativeEpsilonEqual(const dsVector3d* a, const dsVector3d* b, double absoluteEps,
+	double relativeEps);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -256,15 +256,17 @@ DS_MATH_EXPORT inline bool dsVector4d_epsilonEqual(const dsVector4d* a, const ds
  * @brief Checks to see if two values are equal within a relative epsilon.
  * @param a The first value.
  * @param b The second value.
- * @param epsilon The epsilon to compare with.
+ * @param absoluteEps The absolute epsilon to compare with.
+ * @param relativeEps The relative epsilon to compare with. This will be scaled based on the values
+ *     being compared.
  * @return True the values of a and b are within epsilon.
  */
 DS_MATH_EXPORT inline bool dsVector4f_relativeEpsilonEqual(const dsVector4f* a, const dsVector4f* b,
-	float epsilon);
+	float absoluteEps, float relativeEps);
 
-/** @copydoc dsVector4f_epsilonEqual() */
+/** @copydoc dsVector4f_relativeEpsilonEqual() */
 DS_MATH_EXPORT inline bool dsVector4d_relativeEpsilonEqual(const dsVector4d* a, const dsVector4d* b,
-	double epsilon);
+	double absoluteEps, double relativeEps);
 
 /** @copydoc dsVector4_add() */
 DS_MATH_EXPORT inline void dsVector4f_add(dsVector4f* result, const dsVector4f* a,
@@ -883,54 +885,57 @@ DS_MATH_EXPORT inline bool dsVector4d_epsilonEqual(const dsVector4d* a, const ds
 }
 
 DS_MATH_EXPORT inline bool dsVector4f_relativeEpsilonEqual(const dsVector4f* a, const dsVector4f* b,
-	float epsilon)
+	float absoluteEps, float relativeEps)
 {
 #if DS_SIMD_ALWAYS_FLOAT4
 	dsSIMD4f diff = dsSIMD4f_abs(dsSIMD4f_sub(a->simd, b->simd));
-	dsSIMD4f eps4 = dsSIMD4f_set1(epsilon);
-	dsSIMD4fb epsEqual = dsSIMD4f_cmple(diff, eps4);
+	dsSIMD4fb epsEqual = dsSIMD4f_cmple(diff, dsSIMD4f_set1(absoluteEps));
 	dsSIMD4fb relativeEqual = dsSIMD4f_cmple(diff,
-		dsSIMD4f_mul(dsSIMD4f_max(dsSIMD4f_abs(a->simd), dsSIMD4f_abs(b->simd)), eps4));
+		dsSIMD4f_mul(dsSIMD4f_max(dsSIMD4f_abs(a->simd), dsSIMD4f_abs(b->simd)),
+		dsSIMD4f_set1(relativeEps)));
 
 	dsVector4i result;
 	result.simd = dsSIMD4fb_or(epsEqual, relativeEqual);
 	return result.x && result.y && result.z && result.w;
 #else
-	return dsRelativeEpsilonEqualf(a->values[0], b->values[0], epsilon) &&
-		dsRelativeEpsilonEqualf(a->values[1], b->values[1], epsilon) &&
-		dsRelativeEpsilonEqualf(a->values[2], b->values[2], epsilon) &&
-		dsRelativeEpsilonEqualf(a->values[3], b->values[3], epsilon);
+	return dsRelativeEpsilonEqualf(a->values[0], b->values[0], absoluteEps, relativeEps) &&
+		dsRelativeEpsilonEqualf(a->values[1], b->values[1], absoluteEps, relativeEps) &&
+		dsRelativeEpsilonEqualf(a->values[2], b->values[2], absoluteEps, relativeEps) &&
+		dsRelativeEpsilonEqualf(a->values[3], b->values[3], absoluteEps, relativeEps);
 #endif
 }
 
 DS_MATH_EXPORT inline bool dsVector4d_relativeEpsilonEqual(const dsVector4d* a, const dsVector4d* b,
-	double epsilon)
+	double absoluteEps, double relativeEps)
 {
 #if DS_SIMD_ALWAYS_DOUBLE2
 	dsVector4d diff;
 	diff.simd2[0] = dsSIMD2d_abs(dsSIMD2d_sub(a->simd2[0], b->simd2[0]));
 	diff.simd2[1] = dsSIMD2d_abs(dsSIMD2d_sub(a->simd2[1], b->simd2[1]));
-	dsSIMD2d eps2 = dsSIMD2d_set1(epsilon);
+	dsSIMD2d absoluteEps2 = dsSIMD2d_set1(absoluteEps);
+	dsSIMD2d relativeEps2 = dsSIMD2d_set1(relativeEps);
 
 	dsVector4l epsEqual;
-	epsEqual.simd2[0] = dsSIMD2d_cmple(diff.simd2[0], eps2);
-	epsEqual.simd2[1] = dsSIMD2d_cmple(diff.simd2[1], eps2);
+	epsEqual.simd2[0] = dsSIMD2d_cmple(diff.simd2[0], absoluteEps2);
+	epsEqual.simd2[1] = dsSIMD2d_cmple(diff.simd2[1], absoluteEps2);
 
 	dsVector4l relativeEqual;
 	relativeEqual.simd2[0] = dsSIMD2d_cmple(diff.simd2[0],
-		dsSIMD2d_mul(dsSIMD2d_max(dsSIMD2d_abs(a->simd2[0]), dsSIMD2d_abs(b->simd2[0])), eps2));
+		dsSIMD2d_mul(dsSIMD2d_max(dsSIMD2d_abs(a->simd2[0]), dsSIMD2d_abs(b->simd2[0])),
+			relativeEps2));
 	relativeEqual.simd2[1] = dsSIMD2d_cmple(diff.simd2[1],
-		dsSIMD2d_mul(dsSIMD2d_max(dsSIMD2d_abs(a->simd2[1]), dsSIMD2d_abs(b->simd2[1])), eps2));
+		dsSIMD2d_mul(dsSIMD2d_max(dsSIMD2d_abs(a->simd2[1]), dsSIMD2d_abs(b->simd2[1])),
+			relativeEps2));
 
 	dsVector4l result;
 	result.simd2[0] = dsSIMD2db_or(epsEqual.simd2[0], relativeEqual.simd2[0]);
 	result.simd2[1] = dsSIMD2db_or(epsEqual.simd2[1], relativeEqual.simd2[1]);
 	return result.x && result.y && result.z && result.w;
 #else
-	return dsRelativeEpsilonEquald(a->values[0], b->values[0], epsilon) &&
-		dsRelativeEpsilonEquald(a->values[1], b->values[1], epsilon) &&
-		dsRelativeEpsilonEquald(a->values[2], b->values[2], epsilon) &&
-		dsRelativeEpsilonEquald(a->values[3], b->values[3], epsilon);
+	return dsRelativeEpsilonEquald(a->values[0], b->values[0], absoluteEps, relativeEps) &&
+		dsRelativeEpsilonEquald(a->values[1], b->values[1], absoluteEps, relativeEps) &&
+		dsRelativeEpsilonEquald(a->values[2], b->values[2], absoluteEps, relativeEps) &&
+		dsRelativeEpsilonEquald(a->values[3], b->values[3], absoluteEps, relativeEps);
 #endif
 }
 

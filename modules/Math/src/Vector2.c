@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,5 +87,7 @@ void dsVector2d_normalize(dsVector2d* result, const dsVector2d* a);
 bool dsVector2f_epsilonEqual(const dsVector2f* a, const dsVector2f* b, float epsilon);
 bool dsVector2d_epsilonEqual(const dsVector2d* a, const dsVector2d* b, double epsilon);
 
-bool dsVector2f_relativeEpsilonEqual(const dsVector2f* a, const dsVector2f* b, float epsilon);
-bool dsVector2d_relativeEpsilonEqual(const dsVector2d* a, const dsVector2d* b, double epsilon);
+bool dsVector2f_relativeEpsilonEqual(const dsVector2f* a, const dsVector2f* b, float absoluteEps,
+	float relativeEps);
+bool dsVector2d_relativeEpsilonEqual(const dsVector2d* a, const dsVector2d* b, double absoluteEps,
+	double relativeEps);

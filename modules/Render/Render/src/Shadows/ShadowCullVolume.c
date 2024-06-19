@@ -95,7 +95,7 @@ static void addCorner(dsShadowCullVolume* volume, dsVector3d* cornerPoints,
 		dsShadowCullCorner* corner = volume->corners + i;
 		if ((corner->planes & planes) == planes)
 			return;
-		else if (dsVector3d_relativeEpsilonEqual(cornerPoints + i, point, epsilon))
+		else if (dsVector3d_relativeEpsilonEqual(cornerPoints + i, point, epsilon, epsilon))
 		{
 			corner->planes |= planes;
 			return;

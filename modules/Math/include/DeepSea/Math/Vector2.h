@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -234,15 +234,17 @@ DS_MATH_EXPORT inline bool dsVector2d_epsilonEqual(const dsVector2d* a, const ds
  * @brief Checks to see if two values are equal within a relative epsilon.
  * @param a The first value.
  * @param b The second value.
- * @param epsilon The epsilon to compare with.
+ * @param absoluteEps The absolute epsilon to compare with.
+ * @param relativeEps The relative epsilon to compare with. This will be scaled based on the values
+ *     being compared.
  * @return True the values of a and b are within epsilon.
  */
 DS_MATH_EXPORT inline bool dsVector2f_relativeEpsilonEqual(const dsVector2f* a, const dsVector2f* b,
-	float epsilon);
+	float absoluteEps, float relativeEps);
 
-/** @copydoc dsVector2f_epsilonEqual() */
+/** @copydoc dsVector2f_relativeEpsilonEqual() */
 DS_MATH_EXPORT inline bool dsVector2d_relativeEpsilonEqual(const dsVector2d* a, const dsVector2d* b,
-	double epsilon);
+	double absoluteEps, double relativeEps);
 
 /** @copydoc dsVector2_add() */
 DS_MATH_EXPORT inline void dsVector2f_add(dsVector2f* result, const dsVector2f* a,
@@ -767,17 +769,31 @@ inline bool dsVector2d_epsilonEqual(const dsVector2d* a, const dsVector2d* b, do
 #endif
 }
 
-inline bool dsVector2f_relativeEpsilonEqual(const dsVector2f* a, const dsVector2f* b, float epsilon)
+inline bool dsVector2f_relativeEpsilonEqual(const dsVector2f* a, const dsVector2f* b,
+	float absoluteEps, float relativeEps)
 {
-	return dsRelativeEpsilonEqualf(a->values[0], b->values[0], epsilon) &&
-		dsRelativeEpsilonEqualf(a->values[1], b->values[1], epsilon);
+	return dsRelativeEpsilonEqualf(a->values[0], b->values[0], absoluteEps, relativeEps) &&
+		dsRelativeEpsilonEqualf(a->values[1], b->values[1], absoluteEps, relativeEps);
 }
 
 inline bool dsVector2d_relativeEpsilonEqual(const dsVector2d* a, const dsVector2d* b,
-	double epsilon)
+	double absoluteEps, double relativeEps)
 {
-	return dsRelativeEpsilonEquald(a->values[0], b->values[0], epsilon) &&
-		dsRelativeEpsilonEquald(a->values[1], b->values[1], epsilon);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	dsSIMD2d diff = dsSIMD2d_abs(dsSIMD2d_sub(a->simd, b->simd));
+
+	dsSIMD2d epsEqual = dsSIMD2d_cmple(diff, dsSIMD2d_set1(absoluteEps));
+	dsSIMD2d relativeEqual = dsSIMD2d_cmple(diff,
+		dsSIMD2d_mul(dsSIMD2d_max(dsSIMD2d_abs(a->simd), dsSIMD2d_abs(b->simd)),
+			dsSIMD2d_set1(relativeEps)));
+
+	dsVector2l result;
+	result.simd = dsSIMD2db_or(epsEqual, relativeEqual);
+	return result.x && result.y;
+#else
+	return dsRelativeEpsilonEquald(a->values[0], b->values[0], absoluteEps, relativeEps) &&
+		dsRelativeEpsilonEquald(a->values[1], b->values[1], absoluteEps, relativeEps);
+#endif
 }
 
 #ifdef __cplusplus

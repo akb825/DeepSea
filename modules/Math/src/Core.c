@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Aaron Barany
+ * Copyright 2016-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ double dsWrapd(double x, double min, double max);
 bool dsEpsilonEqualf(float x, float y, float epsilon);
 bool dsEpsilonEquald(double x, double y, double epsilon);
 
-bool dsRelativeEpsilonEqualf(float x, float y, float epsilon);
-bool dsRelativeEpsilonEquald(double x, double y, double epsilon);
+bool dsRelativeEpsilonEqualf(float x, float y, float absoluteEps, float relativeEps);
+bool dsRelativeEpsilonEquald(double x, double y, double absoluteEps, double relativeEps);
 
 bool dsEpsilonEqualsZerof(float x, float epsilon);
 bool dsEpsilonEqualsZerod(double x, double epsilon);

@@ -302,13 +302,17 @@ DS_MATH_EXPORT inline bool dsEpsilonEquald(double x, double y, double epsilon);
  *
  * @param x The first value.
  * @param y The second value.
- * @param epsilon The epsilon to compare with.
+ * @param absoluteEps The absolute epsilon to compare with.
+ * @param relativeEps The relative epsilon to compare with. This will be scaled based on the values
+ *     being compared.
  * @return True the values of x and y are within epsilon.
  */
-DS_MATH_EXPORT inline bool dsRelativeEpsilonEqualf(float x, float y, float epsilon);
+DS_MATH_EXPORT inline bool dsRelativeEpsilonEqualf(float x, float y, float absoluteEps,
+	float relativeEps);
 
-/** @copydoc dsEpsilonEqualf() */
-DS_MATH_EXPORT inline bool dsRelativeEpsilonEquald(double x, double y, double epsilon);
+/** @copydoc dsRelativeEpsilonEqualf() */
+DS_MATH_EXPORT inline bool dsRelativeEpsilonEquald(double x, double y, double absoluteEps,
+	double relativeEps);
 
 /**
  * @brief Checks to see if a value is equal to zero within an epsilon.
@@ -379,26 +383,28 @@ DS_MATH_EXPORT inline bool dsEpsilonEquald(double x, double y, double epsilon)
 	return fabs(x - y) <= epsilon;
 }
 
-DS_MATH_EXPORT inline bool dsRelativeEpsilonEqualf(float x, float y, float epsilon)
+DS_MATH_EXPORT inline bool dsRelativeEpsilonEqualf(float x, float y, float absoluteEps,
+	float relativeEps)
 {
 	float diff = fabsf(x - y);
-	if (diff <= epsilon)
+	if (diff <= absoluteEps)
 		return true;
 
 	float absX = fabsf(x);
 	float absY = fabsf(y);
-	return diff <= dsMax(absX, absY)*epsilon;
+	return diff <= dsMax(absX, absY)*relativeEps;
 }
 
-DS_MATH_EXPORT inline bool dsRelativeEpsilonEquald(double x, double y, double epsilon)
+DS_MATH_EXPORT inline bool dsRelativeEpsilonEquald(double x, double y, double absoluteEps,
+	double relativeEps)
 {
 	double diff = fabs(x - y);
-	if (diff <= epsilon)
+	if (diff <= absoluteEps)
 		return true;
 
 	double absX = fabs(x);
 	double absY = fabs(y);
-	return diff <= dsMax(absX, absY)*epsilon;
+	return diff <= dsMax(absX, absY)*relativeEps;
 }
 
 DS_MATH_EXPORT inline bool dsEpsilonEqualsZerof(float x, float epsilon)
