@@ -503,6 +503,8 @@ typedef struct dsRigidBodyTemplate
 
 	/**
 	 * @brief The mass properties of the rigid body.
+	 *
+	 * This may be assigned directly if custom mass properties are used.
 	 */
 	dsPhysicsMassProperties massProperties;
 

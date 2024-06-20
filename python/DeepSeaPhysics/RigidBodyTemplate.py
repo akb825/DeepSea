@@ -60,57 +60,74 @@ class RigidBodyTemplate(object):
         return 0
 
     # RigidBodyTemplate
-    def Friction(self):
+    def CustomMassPropertiesType(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
-        return 0.0
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
+        return 0
 
     # RigidBodyTemplate
-    def Restitution(self):
+    def CustomMassProperties(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
-        return 0.0
+            from flatbuffers.table import Table
+            obj = Table(bytearray(), 0)
+            self._tab.Union(obj, o)
+            return obj
+        return None
 
     # RigidBodyTemplate
-    def Hardness(self):
+    def Friction(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
     # RigidBodyTemplate
-    def LinearDamping(self):
+    def Restitution(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return 0.0
+
+    # RigidBodyTemplate
+    def Hardness(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return 0.0
+
+    # RigidBodyTemplate
+    def LinearDamping(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return -1.0
 
     # RigidBodyTemplate
     def AngularDamping(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return -1.0
 
     # RigidBodyTemplate
     def MaxLinearVelocity(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(28))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
     # RigidBodyTemplate
     def MaxAngularVelocity(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(30))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
     # RigidBodyTemplate
     def Shapes(self, j):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(28))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(32))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
@@ -123,18 +140,18 @@ class RigidBodyTemplate(object):
 
     # RigidBodyTemplate
     def ShapesLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(28))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(32))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # RigidBodyTemplate
     def ShapesIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(28))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(32))
         return o == 0
 
 def RigidBodyTemplateStart(builder):
-    builder.StartObject(13)
+    builder.StartObject(15)
 
 def Start(builder):
     RigidBodyTemplateStart(builder)
@@ -169,50 +186,62 @@ def RigidBodyTemplateAddCollisionGroup(builder, collisionGroup):
 def AddCollisionGroup(builder, collisionGroup):
     RigidBodyTemplateAddCollisionGroup(builder, collisionGroup)
 
+def RigidBodyTemplateAddCustomMassPropertiesType(builder, customMassPropertiesType):
+    builder.PrependUint8Slot(5, customMassPropertiesType, 0)
+
+def AddCustomMassPropertiesType(builder, customMassPropertiesType):
+    RigidBodyTemplateAddCustomMassPropertiesType(builder, customMassPropertiesType)
+
+def RigidBodyTemplateAddCustomMassProperties(builder, customMassProperties):
+    builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(customMassProperties), 0)
+
+def AddCustomMassProperties(builder, customMassProperties):
+    RigidBodyTemplateAddCustomMassProperties(builder, customMassProperties)
+
 def RigidBodyTemplateAddFriction(builder, friction):
-    builder.PrependFloat32Slot(5, friction, 0.0)
+    builder.PrependFloat32Slot(7, friction, 0.0)
 
 def AddFriction(builder, friction):
     RigidBodyTemplateAddFriction(builder, friction)
 
 def RigidBodyTemplateAddRestitution(builder, restitution):
-    builder.PrependFloat32Slot(6, restitution, 0.0)
+    builder.PrependFloat32Slot(8, restitution, 0.0)
 
 def AddRestitution(builder, restitution):
     RigidBodyTemplateAddRestitution(builder, restitution)
 
 def RigidBodyTemplateAddHardness(builder, hardness):
-    builder.PrependFloat32Slot(7, hardness, 0.0)
+    builder.PrependFloat32Slot(9, hardness, 0.0)
 
 def AddHardness(builder, hardness):
     RigidBodyTemplateAddHardness(builder, hardness)
 
 def RigidBodyTemplateAddLinearDamping(builder, linearDamping):
-    builder.PrependFloat32Slot(8, linearDamping, -1.0)
+    builder.PrependFloat32Slot(10, linearDamping, -1.0)
 
 def AddLinearDamping(builder, linearDamping):
     RigidBodyTemplateAddLinearDamping(builder, linearDamping)
 
 def RigidBodyTemplateAddAngularDamping(builder, angularDamping):
-    builder.PrependFloat32Slot(9, angularDamping, -1.0)
+    builder.PrependFloat32Slot(11, angularDamping, -1.0)
 
 def AddAngularDamping(builder, angularDamping):
     RigidBodyTemplateAddAngularDamping(builder, angularDamping)
 
 def RigidBodyTemplateAddMaxLinearVelocity(builder, maxLinearVelocity):
-    builder.PrependFloat32Slot(10, maxLinearVelocity, 0.0)
+    builder.PrependFloat32Slot(12, maxLinearVelocity, 0.0)
 
 def AddMaxLinearVelocity(builder, maxLinearVelocity):
     RigidBodyTemplateAddMaxLinearVelocity(builder, maxLinearVelocity)
 
 def RigidBodyTemplateAddMaxAngularVelocity(builder, maxAngularVelocity):
-    builder.PrependFloat32Slot(11, maxAngularVelocity, 0.0)
+    builder.PrependFloat32Slot(13, maxAngularVelocity, 0.0)
 
 def AddMaxAngularVelocity(builder, maxAngularVelocity):
     RigidBodyTemplateAddMaxAngularVelocity(builder, maxAngularVelocity)
 
 def RigidBodyTemplateAddShapes(builder, shapes):
-    builder.PrependUOffsetTRelativeSlot(12, flatbuffers.number_types.UOffsetTFlags.py_type(shapes), 0)
+    builder.PrependUOffsetTRelativeSlot(14, flatbuffers.number_types.UOffsetTFlags.py_type(shapes), 0)
 
 def AddShapes(builder, shapes):
     RigidBodyTemplateAddShapes(builder, shapes)

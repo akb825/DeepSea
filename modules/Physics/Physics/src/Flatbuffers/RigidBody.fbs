@@ -37,6 +37,10 @@ table RigidBody
 	// Collision group ID that the body belongs to.
 	collisionGroup : uint64;
 
+	// Custom mass properties for the rigid body. If unset, the computed mass properties will be
+	// used.
+	customMassProperties : CustomMassProperties;
+
 	// The position of the body in world space.
 	position : Vector3f;
 

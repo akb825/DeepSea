@@ -24,6 +24,14 @@ struct Vector3f
 	z : float;
 }
 
+// Struct describing a 3x3 transform matrix.
+struct Matrix33f
+{
+	column0 : Vector3f;
+	column1 : Vector3f;
+	column2 : Vector3f;
+}
+
 // Struct describing a quaternion.
 struct Quaternion4f
 {
@@ -136,4 +144,46 @@ enum ConstraintMotorType : ubyte
 	Position,
 	// Forces are applied to reach a target velocity.
 	Velocity
+}
+
+// Struct describing customizing the mass of a physics object while using the computed moment of
+// inertia.
+table ShiftedMass
+{
+	// The mass of the object. Set to a value < 0 to compute from the shape density.
+	mass : float = -1;
+
+	// The amount to shift the point of rotation relative to the center of mass. If unset the center
+	// of mass will be used.
+	rotationPointShift : Vector3f;
+}
+
+// Struct describing the mass and moment of inertia of a physics object.
+table MassProperties
+{
+	// The tensor matrix for the moment of inertia around the center of mass.
+	centeredInertia : Matrix33f (required);
+
+	// The center of mass. If unset it will be the same as inertiaTranslate.
+	centerOfMass : Vector3f;
+
+	// The total mass for the object.
+	mass : float;
+
+	// Translation for the frame of reference of the inertia tensor. This will be the point around
+	// which the object will rotate when in free-fall and is usually the center of mass. If unset it
+	// will use the origin.
+	inertiaTranslate : Vector3f;
+
+	// Rotation for the frame of reference of the inertia tensor. If unset the identity rotation
+	// will be used.
+	inertiaRotate : Quaternion4f;
+}
+
+// Union for customizing the mass and moment of inertia for a physics object. This may either adjust
+// the computed mass properties or have custom pre-computed mass properties.
+union CustomMassProperties
+{
+	ShiftedMass,
+	MassProperties
 }

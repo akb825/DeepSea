@@ -17,9 +17,17 @@ namespace DeepSeaPhysics {
 
 struct Vector3f;
 
+struct Matrix33f;
+
 struct Quaternion4f;
 
 struct ShapePartMaterial;
+
+struct ShiftedMass;
+struct ShiftedMassBuilder;
+
+struct MassProperties;
+struct MassPropertiesBuilder;
 
 enum class Axis : uint8_t {
   X = 0,
@@ -249,6 +257,54 @@ inline const char *EnumNameConstraintMotorType(ConstraintMotorType e) {
   return EnumNamesConstraintMotorType()[index];
 }
 
+enum class CustomMassProperties : uint8_t {
+  NONE = 0,
+  ShiftedMass = 1,
+  MassProperties = 2,
+  MIN = NONE,
+  MAX = MassProperties
+};
+
+inline const CustomMassProperties (&EnumValuesCustomMassProperties())[3] {
+  static const CustomMassProperties values[] = {
+    CustomMassProperties::NONE,
+    CustomMassProperties::ShiftedMass,
+    CustomMassProperties::MassProperties
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesCustomMassProperties() {
+  static const char * const names[4] = {
+    "NONE",
+    "ShiftedMass",
+    "MassProperties",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameCustomMassProperties(CustomMassProperties e) {
+  if (::flatbuffers::IsOutRange(e, CustomMassProperties::NONE, CustomMassProperties::MassProperties)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesCustomMassProperties()[index];
+}
+
+template<typename T> struct CustomMassPropertiesTraits {
+  static const CustomMassProperties enum_value = CustomMassProperties::NONE;
+};
+
+template<> struct CustomMassPropertiesTraits<DeepSeaPhysics::ShiftedMass> {
+  static const CustomMassProperties enum_value = CustomMassProperties::ShiftedMass;
+};
+
+template<> struct CustomMassPropertiesTraits<DeepSeaPhysics::MassProperties> {
+  static const CustomMassProperties enum_value = CustomMassProperties::MassProperties;
+};
+
+bool VerifyCustomMassProperties(::flatbuffers::Verifier &verifier, const void *obj, CustomMassProperties type);
+bool VerifyCustomMassPropertiesVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<CustomMassProperties> *types);
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3f FLATBUFFERS_FINAL_CLASS {
  private:
   float x_;
@@ -277,6 +333,35 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3f FLATBUFFERS_FINAL_CLASS {
   }
 };
 FLATBUFFERS_STRUCT_END(Vector3f, 12);
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Matrix33f FLATBUFFERS_FINAL_CLASS {
+ private:
+  DeepSeaPhysics::Vector3f column0_;
+  DeepSeaPhysics::Vector3f column1_;
+  DeepSeaPhysics::Vector3f column2_;
+
+ public:
+  Matrix33f()
+      : column0_(),
+        column1_(),
+        column2_() {
+  }
+  Matrix33f(const DeepSeaPhysics::Vector3f &_column0, const DeepSeaPhysics::Vector3f &_column1, const DeepSeaPhysics::Vector3f &_column2)
+      : column0_(_column0),
+        column1_(_column1),
+        column2_(_column2) {
+  }
+  const DeepSeaPhysics::Vector3f &column0() const {
+    return column0_;
+  }
+  const DeepSeaPhysics::Vector3f &column1() const {
+    return column1_;
+  }
+  const DeepSeaPhysics::Vector3f &column2() const {
+    return column2_;
+  }
+};
+FLATBUFFERS_STRUCT_END(Matrix33f, 36);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Quaternion4f FLATBUFFERS_FINAL_CLASS {
  private:
@@ -341,6 +426,168 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) ShapePartMaterial FLATBUFFERS_FINAL_CLASS
   }
 };
 FLATBUFFERS_STRUCT_END(ShapePartMaterial, 12);
+
+struct ShiftedMass FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef ShiftedMassBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_MASS = 4,
+    VT_ROTATIONPOINTSHIFT = 6
+  };
+  float mass() const {
+    return GetField<float>(VT_MASS, -1.0f);
+  }
+  const DeepSeaPhysics::Vector3f *rotationPointShift() const {
+    return GetStruct<const DeepSeaPhysics::Vector3f *>(VT_ROTATIONPOINTSHIFT);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<float>(verifier, VT_MASS, 4) &&
+           VerifyField<DeepSeaPhysics::Vector3f>(verifier, VT_ROTATIONPOINTSHIFT, 4) &&
+           verifier.EndTable();
+  }
+};
+
+struct ShiftedMassBuilder {
+  typedef ShiftedMass Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_mass(float mass) {
+    fbb_.AddElement<float>(ShiftedMass::VT_MASS, mass, -1.0f);
+  }
+  void add_rotationPointShift(const DeepSeaPhysics::Vector3f *rotationPointShift) {
+    fbb_.AddStruct(ShiftedMass::VT_ROTATIONPOINTSHIFT, rotationPointShift);
+  }
+  explicit ShiftedMassBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<ShiftedMass> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<ShiftedMass>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<ShiftedMass> CreateShiftedMass(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    float mass = -1.0f,
+    const DeepSeaPhysics::Vector3f *rotationPointShift = nullptr) {
+  ShiftedMassBuilder builder_(_fbb);
+  builder_.add_rotationPointShift(rotationPointShift);
+  builder_.add_mass(mass);
+  return builder_.Finish();
+}
+
+struct MassProperties FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef MassPropertiesBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_CENTEREDINERTIA = 4,
+    VT_CENTEROFMASS = 6,
+    VT_MASS = 8,
+    VT_INERTIATRANSLATE = 10,
+    VT_INERTIAROTATE = 12
+  };
+  const DeepSeaPhysics::Matrix33f *centeredInertia() const {
+    return GetStruct<const DeepSeaPhysics::Matrix33f *>(VT_CENTEREDINERTIA);
+  }
+  const DeepSeaPhysics::Vector3f *centerOfMass() const {
+    return GetStruct<const DeepSeaPhysics::Vector3f *>(VT_CENTEROFMASS);
+  }
+  float mass() const {
+    return GetField<float>(VT_MASS, 0.0f);
+  }
+  const DeepSeaPhysics::Vector3f *inertiaTranslate() const {
+    return GetStruct<const DeepSeaPhysics::Vector3f *>(VT_INERTIATRANSLATE);
+  }
+  const DeepSeaPhysics::Quaternion4f *inertiaRotate() const {
+    return GetStruct<const DeepSeaPhysics::Quaternion4f *>(VT_INERTIAROTATE);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyFieldRequired<DeepSeaPhysics::Matrix33f>(verifier, VT_CENTEREDINERTIA, 4) &&
+           VerifyField<DeepSeaPhysics::Vector3f>(verifier, VT_CENTEROFMASS, 4) &&
+           VerifyField<float>(verifier, VT_MASS, 4) &&
+           VerifyField<DeepSeaPhysics::Vector3f>(verifier, VT_INERTIATRANSLATE, 4) &&
+           VerifyField<DeepSeaPhysics::Quaternion4f>(verifier, VT_INERTIAROTATE, 4) &&
+           verifier.EndTable();
+  }
+};
+
+struct MassPropertiesBuilder {
+  typedef MassProperties Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_centeredInertia(const DeepSeaPhysics::Matrix33f *centeredInertia) {
+    fbb_.AddStruct(MassProperties::VT_CENTEREDINERTIA, centeredInertia);
+  }
+  void add_centerOfMass(const DeepSeaPhysics::Vector3f *centerOfMass) {
+    fbb_.AddStruct(MassProperties::VT_CENTEROFMASS, centerOfMass);
+  }
+  void add_mass(float mass) {
+    fbb_.AddElement<float>(MassProperties::VT_MASS, mass, 0.0f);
+  }
+  void add_inertiaTranslate(const DeepSeaPhysics::Vector3f *inertiaTranslate) {
+    fbb_.AddStruct(MassProperties::VT_INERTIATRANSLATE, inertiaTranslate);
+  }
+  void add_inertiaRotate(const DeepSeaPhysics::Quaternion4f *inertiaRotate) {
+    fbb_.AddStruct(MassProperties::VT_INERTIAROTATE, inertiaRotate);
+  }
+  explicit MassPropertiesBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<MassProperties> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<MassProperties>(end);
+    fbb_.Required(o, MassProperties::VT_CENTEREDINERTIA);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<MassProperties> CreateMassProperties(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const DeepSeaPhysics::Matrix33f *centeredInertia = nullptr,
+    const DeepSeaPhysics::Vector3f *centerOfMass = nullptr,
+    float mass = 0.0f,
+    const DeepSeaPhysics::Vector3f *inertiaTranslate = nullptr,
+    const DeepSeaPhysics::Quaternion4f *inertiaRotate = nullptr) {
+  MassPropertiesBuilder builder_(_fbb);
+  builder_.add_inertiaRotate(inertiaRotate);
+  builder_.add_inertiaTranslate(inertiaTranslate);
+  builder_.add_mass(mass);
+  builder_.add_centerOfMass(centerOfMass);
+  builder_.add_centeredInertia(centeredInertia);
+  return builder_.Finish();
+}
+
+inline bool VerifyCustomMassProperties(::flatbuffers::Verifier &verifier, const void *obj, CustomMassProperties type) {
+  switch (type) {
+    case CustomMassProperties::NONE: {
+      return true;
+    }
+    case CustomMassProperties::ShiftedMass: {
+      auto ptr = reinterpret_cast<const DeepSeaPhysics::ShiftedMass *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case CustomMassProperties::MassProperties: {
+      auto ptr = reinterpret_cast<const DeepSeaPhysics::MassProperties *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    default: return true;
+  }
+}
+
+inline bool VerifyCustomMassPropertiesVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<CustomMassProperties> *types) {
+  if (!values || !types) return !values && !types;
+  if (values->size() != types->size()) return false;
+  for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
+    if (!VerifyCustomMassProperties(
+        verifier,  values->Get(i), types->GetEnum<CustomMassProperties>(i))) {
+      return false;
+    }
+  }
+  return true;
+}
 
 }  // namespace DeepSeaPhysics
 

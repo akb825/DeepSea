@@ -29,19 +29,21 @@ struct RigidBody FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_DOFMASK = 8,
     VT_LAYER = 10,
     VT_COLLISIONGROUP = 12,
-    VT_POSITION = 14,
-    VT_ORIENTATION = 16,
-    VT_SCALE = 18,
-    VT_LINEARVELOCITY = 20,
-    VT_ANGULARVELOCITY = 22,
-    VT_FRICTION = 24,
-    VT_RESTITUTION = 26,
-    VT_HARDNESS = 28,
-    VT_LINEARDAMPING = 30,
-    VT_ANGULARDAMPING = 32,
-    VT_MAXLINEARVELOCITY = 34,
-    VT_MAXANGULARVELOCITY = 36,
-    VT_SHAPES = 38
+    VT_CUSTOMMASSPROPERTIES_TYPE = 14,
+    VT_CUSTOMMASSPROPERTIES = 16,
+    VT_POSITION = 18,
+    VT_ORIENTATION = 20,
+    VT_SCALE = 22,
+    VT_LINEARVELOCITY = 24,
+    VT_ANGULARVELOCITY = 26,
+    VT_FRICTION = 28,
+    VT_RESTITUTION = 30,
+    VT_HARDNESS = 32,
+    VT_LINEARDAMPING = 34,
+    VT_ANGULARDAMPING = 36,
+    VT_MAXLINEARVELOCITY = 38,
+    VT_MAXANGULARVELOCITY = 40,
+    VT_SHAPES = 42
   };
   DeepSeaPhysics::RigidBodyFlags flags() const {
     return static_cast<DeepSeaPhysics::RigidBodyFlags>(GetField<uint32_t>(VT_FLAGS, 0));
@@ -57,6 +59,19 @@ struct RigidBody FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   uint64_t collisionGroup() const {
     return GetField<uint64_t>(VT_COLLISIONGROUP, 0);
+  }
+  DeepSeaPhysics::CustomMassProperties customMassProperties_type() const {
+    return static_cast<DeepSeaPhysics::CustomMassProperties>(GetField<uint8_t>(VT_CUSTOMMASSPROPERTIES_TYPE, 0));
+  }
+  const void *customMassProperties() const {
+    return GetPointer<const void *>(VT_CUSTOMMASSPROPERTIES);
+  }
+  template<typename T> const T *customMassProperties_as() const;
+  const DeepSeaPhysics::ShiftedMass *customMassProperties_as_ShiftedMass() const {
+    return customMassProperties_type() == DeepSeaPhysics::CustomMassProperties::ShiftedMass ? static_cast<const DeepSeaPhysics::ShiftedMass *>(customMassProperties()) : nullptr;
+  }
+  const DeepSeaPhysics::MassProperties *customMassProperties_as_MassProperties() const {
+    return customMassProperties_type() == DeepSeaPhysics::CustomMassProperties::MassProperties ? static_cast<const DeepSeaPhysics::MassProperties *>(customMassProperties()) : nullptr;
   }
   const DeepSeaPhysics::Vector3f *position() const {
     return GetStruct<const DeepSeaPhysics::Vector3f *>(VT_POSITION);
@@ -104,6 +119,9 @@ struct RigidBody FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyField<uint8_t>(verifier, VT_DOFMASK, 1) &&
            VerifyField<uint8_t>(verifier, VT_LAYER, 1) &&
            VerifyField<uint64_t>(verifier, VT_COLLISIONGROUP, 8) &&
+           VerifyField<uint8_t>(verifier, VT_CUSTOMMASSPROPERTIES_TYPE, 1) &&
+           VerifyOffset(verifier, VT_CUSTOMMASSPROPERTIES) &&
+           VerifyCustomMassProperties(verifier, customMassProperties(), customMassProperties_type()) &&
            VerifyField<DeepSeaPhysics::Vector3f>(verifier, VT_POSITION, 4) &&
            VerifyField<DeepSeaPhysics::Quaternion4f>(verifier, VT_ORIENTATION, 4) &&
            VerifyField<DeepSeaPhysics::Vector3f>(verifier, VT_SCALE, 4) &&
@@ -123,6 +141,14 @@ struct RigidBody FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
 };
 
+template<> inline const DeepSeaPhysics::ShiftedMass *RigidBody::customMassProperties_as<DeepSeaPhysics::ShiftedMass>() const {
+  return customMassProperties_as_ShiftedMass();
+}
+
+template<> inline const DeepSeaPhysics::MassProperties *RigidBody::customMassProperties_as<DeepSeaPhysics::MassProperties>() const {
+  return customMassProperties_as_MassProperties();
+}
+
 struct RigidBodyBuilder {
   typedef RigidBody Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
@@ -141,6 +167,12 @@ struct RigidBodyBuilder {
   }
   void add_collisionGroup(uint64_t collisionGroup) {
     fbb_.AddElement<uint64_t>(RigidBody::VT_COLLISIONGROUP, collisionGroup, 0);
+  }
+  void add_customMassProperties_type(DeepSeaPhysics::CustomMassProperties customMassProperties_type) {
+    fbb_.AddElement<uint8_t>(RigidBody::VT_CUSTOMMASSPROPERTIES_TYPE, static_cast<uint8_t>(customMassProperties_type), 0);
+  }
+  void add_customMassProperties(::flatbuffers::Offset<void> customMassProperties) {
+    fbb_.AddOffset(RigidBody::VT_CUSTOMMASSPROPERTIES, customMassProperties);
   }
   void add_position(const DeepSeaPhysics::Vector3f *position) {
     fbb_.AddStruct(RigidBody::VT_POSITION, position);
@@ -199,6 +231,8 @@ inline ::flatbuffers::Offset<RigidBody> CreateRigidBody(
     DeepSeaPhysics::DOFMask dofMask = DeepSeaPhysics::DOFMask::TransX,
     DeepSeaPhysics::PhysicsLayer layer = DeepSeaPhysics::PhysicsLayer::StaticWorld,
     uint64_t collisionGroup = 0,
+    DeepSeaPhysics::CustomMassProperties customMassProperties_type = DeepSeaPhysics::CustomMassProperties::NONE,
+    ::flatbuffers::Offset<void> customMassProperties = 0,
     const DeepSeaPhysics::Vector3f *position = nullptr,
     const DeepSeaPhysics::Quaternion4f *orientation = nullptr,
     const DeepSeaPhysics::Vector3f *scale = nullptr,
@@ -227,7 +261,9 @@ inline ::flatbuffers::Offset<RigidBody> CreateRigidBody(
   builder_.add_scale(scale);
   builder_.add_orientation(orientation);
   builder_.add_position(position);
+  builder_.add_customMassProperties(customMassProperties);
   builder_.add_flags(flags);
+  builder_.add_customMassProperties_type(customMassProperties_type);
   builder_.add_layer(layer);
   builder_.add_dofMask(dofMask);
   builder_.add_motionType(motionType);
@@ -241,6 +277,8 @@ inline ::flatbuffers::Offset<RigidBody> CreateRigidBodyDirect(
     DeepSeaPhysics::DOFMask dofMask = DeepSeaPhysics::DOFMask::TransX,
     DeepSeaPhysics::PhysicsLayer layer = DeepSeaPhysics::PhysicsLayer::StaticWorld,
     uint64_t collisionGroup = 0,
+    DeepSeaPhysics::CustomMassProperties customMassProperties_type = DeepSeaPhysics::CustomMassProperties::NONE,
+    ::flatbuffers::Offset<void> customMassProperties = 0,
     const DeepSeaPhysics::Vector3f *position = nullptr,
     const DeepSeaPhysics::Quaternion4f *orientation = nullptr,
     const DeepSeaPhysics::Vector3f *scale = nullptr,
@@ -262,6 +300,8 @@ inline ::flatbuffers::Offset<RigidBody> CreateRigidBodyDirect(
       dofMask,
       layer,
       collisionGroup,
+      customMassProperties_type,
+      customMassProperties,
       position,
       orientation,
       scale,

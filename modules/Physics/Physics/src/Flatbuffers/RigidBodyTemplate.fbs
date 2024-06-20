@@ -37,6 +37,10 @@ table RigidBodyTemplate
 	// Collision group ID that the body belongs to.
 	collisionGroup : uint64;
 
+	// Custom mass properties for the rigid body. If unset, the computed mass properties will be
+	// used.
+	customMassProperties : CustomMassProperties;
+
 	// The coefficient of friction, with 0 meaning no friction and increasing values having higher
 	// friction.
 	friction : float;
