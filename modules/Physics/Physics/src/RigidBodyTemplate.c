@@ -16,9 +16,13 @@
 
 #include <DeepSea/Physics/RigidBodyTemplate.h>
 
+#include "RigidBodyTemplateLoad.h"
+
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
+#include <DeepSea/Core/Streams/FileStream.h>
+#include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -170,6 +174,121 @@ dsRigidBodyTemplate* dsRigidBodyTemplate_create(dsPhysicsEngine* engine, dsAlloc
 	return rigidBodyTemplate;
 }
 
+dsRigidBodyTemplate* dsRigidBodyTemplate_loadFile(dsPhysicsEngine* engine, dsAllocator* allocator,
+	dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc,
+	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData, const char* filePath)
+{
+	if (!engine || !filePath)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!allocator)
+		allocator = engine->allocator;
+
+	dsFileStream stream;
+	if (!dsFileStream_openPath(&stream, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG, "Couldn't open rigid body template file '%s'.",
+			filePath);
+		return NULL;
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, engine->allocator);
+	dsFileStream_close(&stream);
+	if (!buffer)
+	{
+		return NULL;
+	}
+
+	dsRigidBodyTemplate* rigidBodyTemplate = dsRigidBodyTemplate_loadImpl(engine, allocator,
+		canCollisionGroupsCollideFunc, findShapeFunc, findShapeUserData, buffer, size, filePath);
+	DS_VERIFY(dsAllocator_free(engine->allocator, buffer));
+	return rigidBodyTemplate;
+}
+
+dsRigidBodyTemplate* dsRigidBodyTemplate_loadResource(dsPhysicsEngine* engine,
+	dsAllocator* allocator, dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc,
+	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData, dsFileResourceType type,
+	const char* filePath)
+{
+	if (!engine || !filePath)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!allocator)
+		allocator = engine->allocator;
+
+	dsResourceStream stream;
+	if (!dsResourceStream_open(&stream, type, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG, "Couldn't open rigid body file '%s'.", filePath);
+		return NULL;
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, engine->allocator);
+	dsResourceStream_close(&stream);
+	if (!buffer)
+	{
+		return NULL;
+	}
+
+	dsRigidBodyTemplate* rigidBodyTemplate = dsRigidBodyTemplate_loadImpl(engine, allocator,
+		canCollisionGroupsCollideFunc, findShapeFunc, findShapeUserData, buffer, size, filePath);
+	DS_VERIFY(dsAllocator_free(engine->allocator, buffer));
+	return rigidBodyTemplate;
+}
+
+dsRigidBodyTemplate* dsRigidBodyTemplate_loadStream(dsPhysicsEngine* engine, dsAllocator* allocator,
+	dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc,
+	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData, dsStream* stream)
+{
+	if (!engine || !stream)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!allocator)
+		allocator = engine->allocator;
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, engine->allocator);
+	if (!buffer)
+	{
+		return NULL;
+	}
+
+	dsRigidBodyTemplate* rigidBodyTemplate = dsRigidBodyTemplate_loadImpl(engine, allocator,
+		canCollisionGroupsCollideFunc, findShapeFunc, findShapeUserData, buffer, size, NULL);
+	DS_VERIFY(dsAllocator_free(engine->allocator, buffer));
+	return rigidBodyTemplate;
+}
+
+dsRigidBodyTemplate* dsRigidBodyTemplate_loadData(dsPhysicsEngine* engine, dsAllocator* allocator,
+	dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc,
+	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData, const void* data,
+	size_t size)
+{
+	if (!engine || !data || size == 0)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!allocator)
+		allocator = engine->allocator;
+
+	dsRigidBodyTemplate* rigidBodyTemplate = dsRigidBodyTemplate_loadImpl(engine, allocator,
+		canCollisionGroupsCollideFunc, findShapeFunc, findShapeUserData, data, size, NULL);
+	return rigidBodyTemplate;
+}
+
 bool dsRigidBodyTemplate_addShape(dsRigidBodyTemplate* rigidBodyTemplate, dsPhysicsShape* shape,
 	const dsVector3f* translate, const dsQuaternion4f* rotate, const dsVector3f* scale,
 	float density, const dsPhysicsShapePartMaterial* material)
@@ -299,10 +418,9 @@ bool dsRigidBodyTemplate_finalizeShapes(dsRigidBodyTemplate* rigidBodyTemplate, 
 }
 
 dsRigidBody* dsRigidBodyTemplate_instantiate(const dsRigidBodyTemplate* rigidBodyTemplate,
-	dsAllocator* allocator, dsRigidBodyGroup* group, const dsVector3f* position,
-	dsQuaternion4f* orientation, const dsVector3f* scale, const dsVector3f* linearVelocity,
-	const dsVector3f* angularVelocity, void* userData,
-	dsDestroyUserDataFunction destroyUserDataFunc)
+	dsAllocator* allocator, void* userData, dsDestroyUserDataFunction destroyUserDataFunc,
+	dsRigidBodyGroup* group, const dsVector3f* position, dsQuaternion4f* orientation,
+	const dsVector3f* scale, const dsVector3f* linearVelocity, const dsVector3f* angularVelocity)
 {
 	if (!rigidBodyTemplate || !rigidBodyTemplate->engine)
 	{

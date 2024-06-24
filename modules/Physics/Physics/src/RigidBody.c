@@ -16,8 +16,12 @@
 
 #include <DeepSea/Physics/RigidBody.h>
 
+#include "RigidBodyLoad.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
+#include <DeepSea/Core/Streams/FileStream.h>
+#include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
@@ -233,6 +237,150 @@ dsRigidBody* dsRigidBody_create(dsPhysicsEngine* engine, dsAllocator* allocator,
 	}
 
 	return engine->createRigidBodyFunc(engine, allocator, initParams);
+}
+
+dsRigidBody* dsRigidBody_loadFile(dsPhysicsEngine* engine, dsAllocator* allocator,
+	void* userData, dsDestroyUserDataFunction destroyUserDataFunc,
+	dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc,
+	dsFindRigidBodyGroupFunction findRigidBodyGroupFunc, void* findRigidBodyGroupUserData,
+	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData, const char* filePath)
+{
+	if (!engine || !filePath)
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!allocator)
+		allocator = engine->allocator;
+
+	dsFileStream stream;
+	if (!dsFileStream_openPath(&stream, filePath, "rb"))
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG, "Couldn't open rigid body file '%s'.", filePath);
+		return NULL;
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, engine->allocator);
+	dsFileStream_close(&stream);
+	if (!buffer)
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		return NULL;
+	}
+
+	dsRigidBody* rigidBody = dsRigidBody_loadImpl(engine, allocator, userData, destroyUserDataFunc,
+		canCollisionGroupsCollideFunc, findRigidBodyGroupFunc, findRigidBodyGroupUserData,
+		findShapeFunc, findShapeUserData, buffer, size, filePath);
+	DS_VERIFY(dsAllocator_free(engine->allocator, buffer));
+	return rigidBody;
+}
+
+dsRigidBody* dsRigidBody_loadResource(dsPhysicsEngine* engine, dsAllocator* allocator,
+	void* userData, dsDestroyUserDataFunction destroyUserDataFunc,
+	dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc,
+	dsFindRigidBodyGroupFunction findRigidBodyGroupFunc, void* findRigidBodyGroupUserData,
+	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData, dsFileResourceType type,
+	const char* filePath)
+{
+	if (!engine || !filePath)
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!allocator)
+		allocator = engine->allocator;
+
+	dsResourceStream stream;
+	if (!dsResourceStream_open(&stream, type, filePath, "rb"))
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG, "Couldn't open rigid body file '%s'.", filePath);
+		return NULL;
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, engine->allocator);
+	dsResourceStream_close(&stream);
+	if (!buffer)
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		return NULL;
+	}
+
+	dsRigidBody* rigidBody = dsRigidBody_loadImpl(engine, allocator, userData, destroyUserDataFunc,
+		canCollisionGroupsCollideFunc, findRigidBodyGroupFunc, findRigidBodyGroupUserData,
+		findShapeFunc, findShapeUserData, buffer, size, filePath);
+	DS_VERIFY(dsAllocator_free(engine->allocator, buffer));
+	return rigidBody;
+}
+
+dsRigidBody* dsRigidBody_loadStream(dsPhysicsEngine* engine, dsAllocator* allocator,
+	void* userData, dsDestroyUserDataFunction destroyUserDataFunc,
+	dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc,
+	dsFindRigidBodyGroupFunction findRigidBodyGroupFunc, void* findRigidBodyGroupUserData,
+	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData, dsStream* stream)
+{
+	if (!engine || !stream)
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!allocator)
+		allocator = engine->allocator;
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, engine->allocator);
+	if (!buffer)
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		return NULL;
+	}
+
+	dsRigidBody* rigidBody = dsRigidBody_loadImpl(engine, allocator, userData, destroyUserDataFunc,
+		canCollisionGroupsCollideFunc, findRigidBodyGroupFunc, findRigidBodyGroupUserData,
+		findShapeFunc, findShapeUserData, buffer, size, NULL);
+	DS_VERIFY(dsAllocator_free(engine->allocator, buffer));
+	return rigidBody;
+}
+
+dsRigidBody* dsRigidBody_loadData(dsPhysicsEngine* engine, dsAllocator* allocator,
+	void* userData, dsDestroyUserDataFunction destroyUserDataFunc,
+	dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc,
+	dsFindRigidBodyGroupFunction findRigidBodyGroupFunc, void* findRigidBodyGroupUserData,
+	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData, const void* data,
+	size_t size)
+{
+	if (!engine || !data || size == 0)
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!allocator)
+		allocator = engine->allocator;
+
+	dsRigidBody* rigidBody = dsRigidBody_loadImpl(engine, allocator, userData, destroyUserDataFunc,
+		canCollisionGroupsCollideFunc, findRigidBodyGroupUserData, findRigidBodyGroupUserData,
+		findShapeFunc, findShapeUserData, data, size, NULL);
+	return rigidBody;
 }
 
 uint32_t dsRigidBody_addShape(dsRigidBody* rigidBody, dsPhysicsShape* shape,

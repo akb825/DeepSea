@@ -24,27 +24,31 @@ struct RigidBodyBuilder;
 struct RigidBody FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef RigidBodyBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_FLAGS = 4,
-    VT_MOTIONTYPE = 6,
-    VT_DOFMASK = 8,
-    VT_LAYER = 10,
-    VT_COLLISIONGROUP = 12,
-    VT_CUSTOMMASSPROPERTIES_TYPE = 14,
-    VT_CUSTOMMASSPROPERTIES = 16,
-    VT_POSITION = 18,
-    VT_ORIENTATION = 20,
-    VT_SCALE = 22,
-    VT_LINEARVELOCITY = 24,
-    VT_ANGULARVELOCITY = 26,
-    VT_FRICTION = 28,
-    VT_RESTITUTION = 30,
-    VT_HARDNESS = 32,
-    VT_LINEARDAMPING = 34,
-    VT_ANGULARDAMPING = 36,
-    VT_MAXLINEARVELOCITY = 38,
-    VT_MAXANGULARVELOCITY = 40,
-    VT_SHAPES = 42
+    VT_GROUP = 4,
+    VT_FLAGS = 6,
+    VT_MOTIONTYPE = 8,
+    VT_DOFMASK = 10,
+    VT_LAYER = 12,
+    VT_COLLISIONGROUP = 14,
+    VT_CUSTOMMASSPROPERTIES_TYPE = 16,
+    VT_CUSTOMMASSPROPERTIES = 18,
+    VT_POSITION = 20,
+    VT_ORIENTATION = 22,
+    VT_SCALE = 24,
+    VT_LINEARVELOCITY = 26,
+    VT_ANGULARVELOCITY = 28,
+    VT_FRICTION = 30,
+    VT_RESTITUTION = 32,
+    VT_HARDNESS = 34,
+    VT_LINEARDAMPING = 36,
+    VT_ANGULARDAMPING = 38,
+    VT_MAXLINEARVELOCITY = 40,
+    VT_MAXANGULARVELOCITY = 42,
+    VT_SHAPES = 44
   };
+  const ::flatbuffers::String *group() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_GROUP);
+  }
   DeepSeaPhysics::RigidBodyFlags flags() const {
     return static_cast<DeepSeaPhysics::RigidBodyFlags>(GetField<uint32_t>(VT_FLAGS, 0));
   }
@@ -114,6 +118,8 @@ struct RigidBody FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_GROUP) &&
+           verifier.VerifyString(group()) &&
            VerifyField<uint32_t>(verifier, VT_FLAGS, 4) &&
            VerifyField<uint8_t>(verifier, VT_MOTIONTYPE, 1) &&
            VerifyField<uint8_t>(verifier, VT_DOFMASK, 1) &&
@@ -153,6 +159,9 @@ struct RigidBodyBuilder {
   typedef RigidBody Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
+  void add_group(::flatbuffers::Offset<::flatbuffers::String> group) {
+    fbb_.AddOffset(RigidBody::VT_GROUP, group);
+  }
   void add_flags(DeepSeaPhysics::RigidBodyFlags flags) {
     fbb_.AddElement<uint32_t>(RigidBody::VT_FLAGS, static_cast<uint32_t>(flags), 0);
   }
@@ -226,6 +235,7 @@ struct RigidBodyBuilder {
 
 inline ::flatbuffers::Offset<RigidBody> CreateRigidBody(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> group = 0,
     DeepSeaPhysics::RigidBodyFlags flags = static_cast<DeepSeaPhysics::RigidBodyFlags>(0),
     DeepSeaPhysics::MotionType motionType = DeepSeaPhysics::MotionType::Static,
     DeepSeaPhysics::DOFMask dofMask = DeepSeaPhysics::DOFMask::TransX,
@@ -263,6 +273,7 @@ inline ::flatbuffers::Offset<RigidBody> CreateRigidBody(
   builder_.add_position(position);
   builder_.add_customMassProperties(customMassProperties);
   builder_.add_flags(flags);
+  builder_.add_group(group);
   builder_.add_customMassProperties_type(customMassProperties_type);
   builder_.add_layer(layer);
   builder_.add_dofMask(dofMask);
@@ -272,6 +283,7 @@ inline ::flatbuffers::Offset<RigidBody> CreateRigidBody(
 
 inline ::flatbuffers::Offset<RigidBody> CreateRigidBodyDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *group = nullptr,
     DeepSeaPhysics::RigidBodyFlags flags = static_cast<DeepSeaPhysics::RigidBodyFlags>(0),
     DeepSeaPhysics::MotionType motionType = DeepSeaPhysics::MotionType::Static,
     DeepSeaPhysics::DOFMask dofMask = DeepSeaPhysics::DOFMask::TransX,
@@ -292,9 +304,11 @@ inline ::flatbuffers::Offset<RigidBody> CreateRigidBodyDirect(
     float maxLinearVelocity = 0.0f,
     float maxAngularVelocity = 0.0f,
     const std::vector<::flatbuffers::Offset<DeepSeaPhysics::ShapeInstance>> *shapes = nullptr) {
+  auto group__ = group ? _fbb.CreateString(group) : 0;
   auto shapes__ = shapes ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaPhysics::ShapeInstance>>(*shapes) : 0;
   return DeepSeaPhysics::CreateRigidBody(
       _fbb,
+      group__,
       flags,
       motionType,
       dofMask,

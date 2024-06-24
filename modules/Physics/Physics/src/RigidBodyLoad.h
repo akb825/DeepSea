@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Physics/Shapes/Types.h>
+#include <DeepSea/Physics/Types.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-dsPhysicsShape* dsPhysicsShape_fromFlatbufferShape(dsPhysicsEngine* engine, dsAllocator* allocator,
-	const void* fbShapePtr, dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData,
-	const char* name);
-
-dsPhysicsShape* dsPhysicsShape_loadImpl(dsPhysicsEngine* engine, dsAllocator* allocator,
+dsRigidBody* dsRigidBody_loadImpl(dsPhysicsEngine* engine, dsAllocator* allocator,
+	void* userData, dsDestroyUserDataFunction destroyUserDataFunc,
+	dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc,
+	dsFindRigidBodyGroupFunction findRigidBodyGroupFunc, void* findRigidBodyGroupUserData,
 	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData, const void* data,
 	size_t size, const char* name);
 

@@ -788,6 +788,16 @@ typedef bool (*dsClearRigidBodyForceFunction)(dsPhysicsEngine* engine, dsRigidBo
 typedef bool (*dsSetRigidBodyActiveFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
 	bool active);
 
+/**
+ * @brief Function to find a rigid body group by name.
+ * @param engine The physics engine the rigid body group was created with.
+ * @param userData User data to find the rigid body group with.
+ * @param name The name of the rigid body group.
+ * @return The rigid body group or NULL if it couldn't be found.
+ */
+typedef dsRigidBodyGroup* (*dsFindRigidBodyGroupFunction)(
+	dsPhysicsEngine* engine, void* userData, const char* name);
+
 #ifdef __cplusplus
 }
 #endif

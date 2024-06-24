@@ -59,6 +59,9 @@ dsPhysicsShape* dsPhysicsShape_loadFile(dsPhysicsEngine* engine, dsAllocator* al
 		return NULL;
 	}
 
+	if (!allocator)
+		allocator = engine->allocator;
+
 	dsFileStream stream;
 	if (!dsFileStream_openPath(&stream, filePath, "rb"))
 	{
@@ -88,6 +91,9 @@ dsPhysicsShape* dsPhysicsShape_loadResource(dsPhysicsEngine* engine, dsAllocator
 		return NULL;
 	}
 
+	if (!allocator)
+		allocator = engine->allocator;
+
 	dsResourceStream stream;
 	if (!dsResourceStream_open(&stream, type, filePath, "rb"))
 	{
@@ -116,6 +122,9 @@ dsPhysicsShape* dsPhysicsShape_loadStream(dsPhysicsEngine* engine, dsAllocator* 
 		return NULL;
 	}
 
+	if (!allocator)
+		allocator = engine->allocator;
+
 	size_t size;
 	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, engine->allocator);
 	if (!buffer)
@@ -136,6 +145,9 @@ dsPhysicsShape* dsPhysicsShape_loadData(dsPhysicsEngine* engine, dsAllocator* al
 		errno = EINVAL;
 		return NULL;
 	}
+
+	if (!allocator)
+		allocator = engine->allocator;
 
 	return dsPhysicsShape_loadImpl(
 		engine, allocator, findShapeFunc, findShapeUserData, data, size, NULL);

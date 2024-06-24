@@ -276,22 +276,11 @@ dsPhysicsShape* loadSphere(dsPhysicsEngine* engine, dsAllocator* allocator,
 
 } // namespace
 
-dsPhysicsShape* dsPhysicsShape_loadImpl(dsPhysicsEngine* engine, dsAllocator* allocator,
-	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData, const void* data,
-	size_t size, const char* name)
+dsPhysicsShape* dsPhysicsShape_fromFlatbufferShape(dsPhysicsEngine* engine, dsAllocator* allocator,
+	const void* fbShapePtr, dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData,
+	const char* name)
 {
-	flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(data), size);
-	if (!DeepSeaPhysics::VerifyShapeBuffer(verifier))
-	{
-		errno = EFORMAT;
-		if (name)
-			DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG, "Invalid shape flatbuffer format for '%s'.", name);
-		else
-			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Invalid shape flatbuffer format.");
-		return nullptr;
-	}
-
-	auto fbShape = DeepSeaPhysics::GetShape(data);
+	auto fbShape = reinterpret_cast<const DeepSeaPhysics::Shape*>(fbShapePtr);
 	switch (fbShape->shape_type())
 	{
 		case DeepSeaPhysics::ShapeUnion::Box:
@@ -337,4 +326,23 @@ dsPhysicsShape* dsPhysicsShape_loadImpl(dsPhysicsEngine* engine, dsAllocator* al
 				DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Invalid shape flatbuffer format.");
 			return nullptr;
 	}
+}
+
+dsPhysicsShape* dsPhysicsShape_loadImpl(dsPhysicsEngine* engine, dsAllocator* allocator,
+	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData, const void* data,
+	size_t size, const char* name)
+{
+	flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(data), size);
+	if (!DeepSeaPhysics::VerifyShapeBuffer(verifier))
+	{
+		errno = EFORMAT;
+		if (name)
+			DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG, "Invalid shape flatbuffer format for '%s'.", name);
+		else
+			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Invalid shape flatbuffer format.");
+		return nullptr;
+	}
+
+	return dsPhysicsShape_fromFlatbufferShape(engine, allocator, DeepSeaPhysics::GetShape(data),
+		findShapeFunc, findShapeUserData, name);
 }

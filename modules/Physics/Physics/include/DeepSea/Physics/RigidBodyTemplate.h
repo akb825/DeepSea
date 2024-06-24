@@ -59,6 +59,78 @@ DS_PHYSICS_EXPORT dsRigidBodyTemplate* dsRigidBodyTemplate_create(dsPhysicsEngin
 	dsPhysicsLayer layer, float friction, float restitution, float hardness, uint32_t shapeCount);
 
 /**
+ * @brief Loads a rigid body template from a file.
+ * @remark errno will be set on failure.
+ * @param engine The physics engine to create the rigid body template with.
+ * @param allocator The allocator to create the rigid body template with. If NULL the engine's
+ *     allocator will be used.
+ * @param canCollisionGroupsCollideFunc Function to check whether two collision groups can collide.
+ * @param findShapeFunc Function to find a shape by name. This will be used if a shape reference is
+ *     used. All lookups will fail if this function is NULL.
+ * @param findShapeUserData User data to pass to findShapeFunc.
+ * @param filePath The file path for the physics rigid body to load.
+ * @return The loaded rigid body template or NULL if it couldn't be loaded.
+ */
+DS_PHYSICS_EXPORT dsRigidBodyTemplate* dsRigidBodyTemplate_loadFile(dsPhysicsEngine* engine,
+	dsAllocator* allocator, dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc,
+	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData, const char* filePath);
+
+/**
+ * @brief Loads a rigid body template from a resource file.
+ * @remark errno will be set on failure.
+ * @param engine The physics engine to create the rigid body template with.
+ * @param allocator The allocator to create the rigid body template with. If NULL the engine's
+ *     allocator will be used.
+ * @param canCollisionGroupsCollideFunc Function to check whether two collision groups can collide.
+ * @param findShapeFunc Function to find a shape by name. This will be used if a shape reference is
+ *     used. All lookups will fail if this function is NULL.
+ * @param findShapeUserData User data to pass to findShapeFunc.
+ * @param type The type of resource to load.
+ * @param filePath The file path for the physics shape to load.
+ * @return The loaded physics rigid body or NULL if it couldn't be loaded.
+ */
+DS_PHYSICS_EXPORT dsRigidBodyTemplate* dsRigidBodyTemplate_loadResource(dsPhysicsEngine* engine,
+	dsAllocator* allocator, dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc,
+	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData,
+	dsFileResourceType type, const char* filePath);
+
+/**
+ * @brief Loads a rigid body template from a stream.
+ * @remark errno will be set on failure.
+ * @param engine The physics engine to create the rigid body template with.
+ * @param allocator The allocator to create the rigid body template with. If NULL the engine's
+ *     allocator will be used.
+ * @param canCollisionGroupsCollideFunc Function to check whether two collision groups can collide.
+ * @param findShapeFunc Function to find a shape by name. This will be used if a shape reference is
+ *     used. All lookups will fail if this function is NULL.
+ * @param findShapeUserData User data to pass to findShapeFunc.
+ * @param stream The stream to load from.
+ * @return The loaded rigid body template or NULL if it couldn't be loaded.
+ */
+DS_PHYSICS_EXPORT dsRigidBodyTemplate* dsRigidBodyTemplate_loadStream(dsPhysicsEngine* engine,
+	dsAllocator* allocator, dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc,
+	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData, dsStream* stream);
+
+/**
+ * @brief Loads a rigid body template from a data buffer.
+ * @remark errno will be set on failure.
+ * @param engine The physics engine to create the rigid body template with.
+ * @param allocator The allocator to create the rigid body template with. If NULL the engine's
+ *     allocator will be used.
+ * @param canCollisionGroupsCollideFunc Function to check whether two collision groups can collide.
+ * @param findShapeFunc Function to find a shape by name. This will be used if a shape reference is
+ *     used. All lookups will fail if this function is NULL.
+ * @param findShapeUserData User data to pass to findShapeFunc.
+ * @param data The data buffer to load from.
+ * @param size The size of the data buffer.
+ * @return The loaded physics rigid body or NULL if it couldn't be loaded.
+ */
+DS_PHYSICS_EXPORT dsRigidBodyTemplate* dsRigidBodyTemplate_loadData(dsPhysicsEngine* engine,
+	dsAllocator* allocator, dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc,
+	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData, const void* data,
+	size_t size);
+
+/**
  * @brief Adds a shape to a rigid body template.
  * @remark Transform factors that are NULL are an indication that they will never be set, and cannot
  *     be changed later with dsRigidBody_setShapeTransform*().
@@ -111,24 +183,24 @@ DS_PHYSICS_EXPORT bool dsRigidBodyTemplate_finalizeShapes(dsRigidBodyTemplate* r
  * @param rigidBodyTemplate The rigid body to create the template from.
  * @param allocator The allocator to create the rigid body with or NULL to use the template's
  *     allocator.
+ * @param userData The user data for the rigid body.
+ * @param destroyUserDataFunc Function to destroy the user data. This will be called even if the
+ *     creation of the rigid body fails.
  * @param group The rigid body group to create the rigid body with or NULL to not associate with a
  *     group.
  * @param position The position of the rigid body or NULL if at the origin.
  * @param orientation The orientation of the rigid body or NULL if not rotated.
  * @param linearVelocity The initial linear velocity or NULL to start at rest.
  * @param angularVelocity The initial angular velocity or NULL to start at rest.
- * @param userData The user data for the rigid body.
- * @param destroyUserDataFunc Function to destroy the user data. This will be called even if the
- *     creation of the rigid body fails.
  * @param scale The scale of the rigid body or NULL if not scaled.
  * @return The rigid body or NULL if it couldn't be created. The shapes will be finalized unless
  *     there are no shapes in the template.
  */
 DS_PHYSICS_EXPORT dsRigidBody* dsRigidBodyTemplate_instantiate(
-	const dsRigidBodyTemplate* rigidBodyTemplate, dsAllocator* allocator, dsRigidBodyGroup* group,
+	const dsRigidBodyTemplate* rigidBodyTemplate, dsAllocator* allocator,
+	void* userData, dsDestroyUserDataFunction destroyUserDataFunc, dsRigidBodyGroup* group,
 	const dsVector3f* position, dsQuaternion4f* orientation, const dsVector3f* scale,
-	const dsVector3f* linearVelocity, const dsVector3f* angularVelocity,
-	void* userData, dsDestroyUserDataFunction destroyUserDataFunc);
+	const dsVector3f* linearVelocity, const dsVector3f* angularVelocity);
 
 /**
  * @brief Destroys a rigid body template.

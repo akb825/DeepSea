@@ -22,6 +22,9 @@ namespace DeepSeaPhysics;
 // Struct describing a rigid body physics actor.
 table RigidBody
 {
+	// The name of the rigid body group, or unset if not part of a group.
+	group : string;
+
 	// The flags to control the behavior of the rigid body.
 	flags : RigidBodyFlags;
 
