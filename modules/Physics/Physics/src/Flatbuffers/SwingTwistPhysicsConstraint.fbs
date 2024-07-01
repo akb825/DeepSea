@@ -39,9 +39,6 @@ table SwingTwistConstraint
 	// The rotation of the constraint relative to the second actor.
 	secondRotation : Quaternion4f (required);
 
-	// The maximum angle of the constraint relative to the attachment rotation axes.
-	maxAngle : float;
-
 	// The maximum angle of the constraint along the X axis.
 	maxSwingXAngle : float;
 
@@ -49,7 +46,7 @@ table SwingTwistConstraint
 	maxSwingYAngle : float;
 
 	// The maximum angle of the constraint along the Z axis.
-	maxSwingZAngle : float;
+	maxTwistZAngle : float;
 
 	// The type of motor to use for the constraint. Velocity is not supported.
 	motorType : ConstraintMotorType;

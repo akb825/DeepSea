@@ -237,6 +237,16 @@ typedef struct dsPhysicsMassProperties
 	dsQuaternion4f inertiaRotate;
 } dsPhysicsMassProperties;
 
+/**
+ * @brief Function to find a physics actor by name.
+ * @param engine The physics engine the physics actor was created with.
+ * @param userData User data to find the physics actor with.
+ * @param name The name of the physics actor.
+ * @return The physics actor or NULL if it couldn't be found.
+ */
+typedef dsPhysicsActor* (*dsFindPhysicsActorFunction)(
+	dsPhysicsEngine* engine, void* userData, const char* name);
+
 #ifdef __cplusplus
 }
 #endif

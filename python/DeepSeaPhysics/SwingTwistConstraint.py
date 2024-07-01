@@ -83,43 +83,36 @@ class SwingTwistConstraint(object):
         return None
 
     # SwingTwistConstraint
-    def MaxAngle(self):
+    def MaxSwingXangle(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
     # SwingTwistConstraint
-    def MaxSwingXangle(self):
+    def MaxSwingYangle(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
     # SwingTwistConstraint
-    def MaxSwingYangle(self):
+    def MaxTwistZangle(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
     # SwingTwistConstraint
-    def MaxSwingZangle(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
-        if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
-        return 0.0
-
-    # SwingTwistConstraint
     def MotorType(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
     # SwingTwistConstraint
     def MotorTargetRotation(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
         if o != 0:
             x = o + self._tab.Pos
             from DeepSeaPhysics.Quaternion4f import Quaternion4f
@@ -130,13 +123,13 @@ class SwingTwistConstraint(object):
 
     # SwingTwistConstraint
     def MaxMotorTorque(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(28))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
 def SwingTwistConstraintStart(builder):
-    builder.StartObject(13)
+    builder.StartObject(12)
 
 def Start(builder):
     SwingTwistConstraintStart(builder)
@@ -177,44 +170,38 @@ def SwingTwistConstraintAddSecondRotation(builder, secondRotation):
 def AddSecondRotation(builder, secondRotation):
     SwingTwistConstraintAddSecondRotation(builder, secondRotation)
 
-def SwingTwistConstraintAddMaxAngle(builder, maxAngle):
-    builder.PrependFloat32Slot(6, maxAngle, 0.0)
-
-def AddMaxAngle(builder, maxAngle):
-    SwingTwistConstraintAddMaxAngle(builder, maxAngle)
-
 def SwingTwistConstraintAddMaxSwingXangle(builder, maxSwingXangle):
-    builder.PrependFloat32Slot(7, maxSwingXangle, 0.0)
+    builder.PrependFloat32Slot(6, maxSwingXangle, 0.0)
 
 def AddMaxSwingXangle(builder, maxSwingXangle):
     SwingTwistConstraintAddMaxSwingXangle(builder, maxSwingXangle)
 
 def SwingTwistConstraintAddMaxSwingYangle(builder, maxSwingYangle):
-    builder.PrependFloat32Slot(8, maxSwingYangle, 0.0)
+    builder.PrependFloat32Slot(7, maxSwingYangle, 0.0)
 
 def AddMaxSwingYangle(builder, maxSwingYangle):
     SwingTwistConstraintAddMaxSwingYangle(builder, maxSwingYangle)
 
-def SwingTwistConstraintAddMaxSwingZangle(builder, maxSwingZangle):
-    builder.PrependFloat32Slot(9, maxSwingZangle, 0.0)
+def SwingTwistConstraintAddMaxTwistZangle(builder, maxTwistZangle):
+    builder.PrependFloat32Slot(8, maxTwistZangle, 0.0)
 
-def AddMaxSwingZangle(builder, maxSwingZangle):
-    SwingTwistConstraintAddMaxSwingZangle(builder, maxSwingZangle)
+def AddMaxTwistZangle(builder, maxTwistZangle):
+    SwingTwistConstraintAddMaxTwistZangle(builder, maxTwistZangle)
 
 def SwingTwistConstraintAddMotorType(builder, motorType):
-    builder.PrependUint8Slot(10, motorType, 0)
+    builder.PrependUint8Slot(9, motorType, 0)
 
 def AddMotorType(builder, motorType):
     SwingTwistConstraintAddMotorType(builder, motorType)
 
 def SwingTwistConstraintAddMotorTargetRotation(builder, motorTargetRotation):
-    builder.PrependStructSlot(11, flatbuffers.number_types.UOffsetTFlags.py_type(motorTargetRotation), 0)
+    builder.PrependStructSlot(10, flatbuffers.number_types.UOffsetTFlags.py_type(motorTargetRotation), 0)
 
 def AddMotorTargetRotation(builder, motorTargetRotation):
     SwingTwistConstraintAddMotorTargetRotation(builder, motorTargetRotation)
 
 def SwingTwistConstraintAddMaxMotorTorque(builder, maxMotorTorque):
-    builder.PrependFloat32Slot(12, maxMotorTorque, 0.0)
+    builder.PrependFloat32Slot(11, maxMotorTorque, 0.0)
 
 def AddMaxMotorTorque(builder, maxMotorTorque):
     SwingTwistConstraintAddMaxMotorTorque(builder, maxMotorTorque)

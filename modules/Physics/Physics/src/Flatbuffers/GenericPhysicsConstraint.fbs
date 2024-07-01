@@ -84,10 +84,11 @@ table GenericConstraint
 	// The rotation of the constraint relative to the second actor.
 	secondRotation : Quaternion4f (required);
 
-	// The limits for each degree of freedom for the constraint.
-	limits : [GenericConstraintLimit];
+	// The limits for each degree of freedom for the constraint. This must have 6 elements.
+	limits : [GenericConstraintLimit] (required);
 
-	// The motors for each degree of freedom for the constraint.
+	// The motors for each degree of freedom for the constraint. This may either be unset or have 6
+	// elements. Motors that are unset will be disabled with no stopping force.
 	motors : [GenericConstraintMotor];
 
 	// Whether the swing and twist motors are combined.

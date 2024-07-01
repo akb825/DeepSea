@@ -109,7 +109,10 @@ dsRigidBody* dsRigidBody_loadImpl(dsPhysicsEngine* engine, dsAllocator* allocato
 					fbGroup->c_str(), name);
 			}
 			else
-				DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG, "Shape '%s' not found.", fbGroup->c_str());
+			{
+				DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG, "Rigid body group '%s' not found.",
+					fbGroup->c_str());
+			}
 			return nullptr;
 		}
 	}

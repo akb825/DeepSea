@@ -66,7 +66,7 @@ DS_PHYSICS_EXPORT float dsGearPhysicsConstraint_computeRatio(unsigned int firstA
  *     flipped.
  * @return The gear constraint or NULL if it couldn't be created.
  */
-DS_PHYSICS_EXPORT dsGearPhysicsConstraint* dsGearPhyiscsConstraint_create(dsPhysicsEngine* engine,
+DS_PHYSICS_EXPORT dsGearPhysicsConstraint* dsGearPhysicsConstraint_create(dsPhysicsEngine* engine,
 	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3f* firstAxis,
 	const dsRevolutePhysicsConstraint* firstConstraint, const dsPhysicsActor* secondActor,
 	const dsVector3f* secondAxis, const dsRevolutePhysicsConstraint* secondConstraint, float ratio);
@@ -104,7 +104,7 @@ DS_PHYSICS_EXPORT bool dsGearPhysicsConstraint_setRatio(dsGearPhysicsConstraint*
  *     flipped.
  * @param impl The underlying implementation for the constraint.
  */
-DS_PHYSICS_EXPORT void dsGearPhyiscsConstraint_initialize(dsGearPhysicsConstraint* constraint,
+DS_PHYSICS_EXPORT void dsGearPhysicsConstraint_initialize(dsGearPhysicsConstraint* constraint,
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstAxis, const dsRevolutePhysicsConstraint* firstConstraint,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondAxis,

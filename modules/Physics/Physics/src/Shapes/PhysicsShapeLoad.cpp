@@ -319,11 +319,11 @@ dsPhysicsShape* dsPhysicsShape_fromFlatbufferShape(dsPhysicsEngine* engine, dsAl
 			errno = EFORMAT;
 			if (name)
 			{
-				DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG, "Invalid shape flatbuffer format for '%s'.",
-					name);
+				DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG,
+					"Invalid physics shape flatbuffer format for '%s'.", name);
 			}
 			else
-				DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Invalid shape flatbuffer format.");
+				DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Invalid physics shape flatbuffer format.");
 			return nullptr;
 	}
 }
@@ -337,9 +337,12 @@ dsPhysicsShape* dsPhysicsShape_loadImpl(dsPhysicsEngine* engine, dsAllocator* al
 	{
 		errno = EFORMAT;
 		if (name)
-			DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG, "Invalid shape flatbuffer format for '%s'.", name);
+		{
+			DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG, "Invalid physics shape flatbuffer format for '%s'.",
+				name);
+		}
 		else
-			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Invalid shape flatbuffer format.");
+			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Invalid physics shape flatbuffer format.");
 		return nullptr;
 	}
 

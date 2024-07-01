@@ -109,7 +109,7 @@ float dsRackAndPinionPhysicsConstraint_computeRatio(unsigned int rackToothCount,
 	return 2.0f*M_PIf*(float)rackToothCount/(rackLength*(float)pinionToothCount);
 }
 
-dsRackAndPinionPhysicsConstraint* dsRackAndPinionPhyiscsConstraint_create(dsPhysicsEngine* engine,
+dsRackAndPinionPhysicsConstraint* dsRackAndPinionPhysicsConstraint_create(dsPhysicsEngine* engine,
 	dsAllocator* allocator, const dsPhysicsActor* rackActor, const dsVector3f* rackAxis,
 	const dsSliderPhysicsConstraint* rackConstraint, const dsPhysicsActor* pinionActor,
 	const dsVector3f* pinionAxis, const dsRevolutePhysicsConstraint* pinionConstraint, float ratio)
@@ -146,7 +146,7 @@ bool dsRackAndPinionPhysicsConstraint_setRatio(dsRackAndPinionPhysicsConstraint*
 	return engine->setRackAndPinionConstraintRatioFunc(engine, constraint, ratio);
 }
 
-void dsRackAndPinionPhyiscsConstraint_initialize(
+void dsRackAndPinionPhysicsConstraint_initialize(
 	dsRackAndPinionPhysicsConstraint* constraint, dsPhysicsEngine* engine, dsAllocator* allocator,
 	const dsPhysicsActor* rackActor, const dsVector3f* rackAxis,
 	const dsSliderPhysicsConstraint* rackConstraint, const dsPhysicsActor* pinionActor,

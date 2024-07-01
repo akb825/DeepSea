@@ -184,9 +184,6 @@ dsRigidBodyTemplate* dsRigidBodyTemplate_loadFile(dsPhysicsEngine* engine, dsAll
 		return NULL;
 	}
 
-	if (!allocator)
-		allocator = engine->allocator;
-
 	dsFileStream stream;
 	if (!dsFileStream_openPath(&stream, filePath, "rb"))
 	{
@@ -220,9 +217,6 @@ dsRigidBodyTemplate* dsRigidBodyTemplate_loadResource(dsPhysicsEngine* engine,
 		return NULL;
 	}
 
-	if (!allocator)
-		allocator = engine->allocator;
-
 	dsResourceStream stream;
 	if (!dsResourceStream_open(&stream, type, filePath, "rb"))
 	{
@@ -254,9 +248,6 @@ dsRigidBodyTemplate* dsRigidBodyTemplate_loadStream(dsPhysicsEngine* engine, dsA
 		return NULL;
 	}
 
-	if (!allocator)
-		allocator = engine->allocator;
-
 	size_t size;
 	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, engine->allocator);
 	if (!buffer)
@@ -280,9 +271,6 @@ dsRigidBodyTemplate* dsRigidBodyTemplate_loadData(dsPhysicsEngine* engine, dsAll
 		errno = EINVAL;
 		return NULL;
 	}
-
-	if (!allocator)
-		allocator = engine->allocator;
 
 	dsRigidBodyTemplate* rigidBodyTemplate = dsRigidBodyTemplate_loadImpl(engine, allocator,
 		canCollisionGroupsCollideFunc, findShapeFunc, findShapeUserData, data, size, NULL);

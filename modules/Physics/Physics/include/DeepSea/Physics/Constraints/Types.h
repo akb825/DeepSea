@@ -1548,6 +1548,16 @@ typedef bool (*dsGetRackAndPinionPhysicsConstraintForceFunction)(dsVector3f* out
 typedef bool (*dsSetRackAndPinionPhysicsConstraintRatioFunction)(dsPhysicsEngine* engine,
 	dsRackAndPinionPhysicsConstraint* constraint, float ratio);
 
+/**
+ * @brief Function to find a physics constraint by name.
+ * @param engine The physics engine the physics constraint was created with.
+ * @param userData User data to find the physics constraint with.
+ * @param name The name of the physics constraint.
+ * @return The physics constraint or NULL if it couldn't be found.
+ */
+typedef dsPhysicsConstraint* (*dsFindPhysicsConstraintFunction)(
+	dsPhysicsEngine* engine, void* userData, const char* name);
+
 #ifdef __cplusplus
 }
 #endif

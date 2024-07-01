@@ -195,7 +195,7 @@ struct GenericConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
            verifier.VerifyString(secondActor()) &&
            VerifyFieldRequired<DeepSeaPhysics::Vector3f>(verifier, VT_SECONDPOSITION, 4) &&
            VerifyFieldRequired<DeepSeaPhysics::Quaternion4f>(verifier, VT_SECONDROTATION, 4) &&
-           VerifyOffset(verifier, VT_LIMITS) &&
+           VerifyOffsetRequired(verifier, VT_LIMITS) &&
            verifier.VerifyVector(limits()) &&
            VerifyOffset(verifier, VT_MOTORS) &&
            verifier.VerifyVector(motors()) &&
@@ -248,6 +248,7 @@ struct GenericConstraintBuilder {
     fbb_.Required(o, GenericConstraint::VT_SECONDACTOR);
     fbb_.Required(o, GenericConstraint::VT_SECONDPOSITION);
     fbb_.Required(o, GenericConstraint::VT_SECONDROTATION);
+    fbb_.Required(o, GenericConstraint::VT_LIMITS);
     return o;
   }
 };

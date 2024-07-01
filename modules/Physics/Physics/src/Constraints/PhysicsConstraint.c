@@ -16,8 +16,14 @@
 
 #include <DeepSea/Physics/Constraints/PhysicsConstraint.h>
 
+#include "Constraints/PhysicsConstraintLoad.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Streams/FileStream.h>
+#include <DeepSea/Core/Streams/ResourceStream.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/Log.h>
 
 #include <DeepSea/Physics/Types.h>
 
@@ -48,6 +54,104 @@ bool dsPhysicsConstraint_initialize(dsPhysicsConstraint* constraint, dsPhysicsEn
 	constraint->getTorqueFunc = getTorqueFunc;
 	constraint->destroyFunc = destroyFunc;
 	return true;
+}
+
+dsPhysicsConstraint* dsPhysicsConstraint_loadFile(dsPhysicsEngine* engine, dsAllocator* allocator,
+	dsFindPhysicsActorFunction findActorFunc, void* findActorUserData,
+	dsFindPhysicsConstraintFunction findConstraintFunc, void* findConstraintUserData,
+	const char* filePath)
+{
+	if (!engine || !findActorFunc || !filePath)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	dsFileStream stream;
+	if (!dsFileStream_openPath(&stream, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG, "Couldn't open physics constraint file '%s'.", filePath);
+		return NULL;
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, engine->allocator);
+	dsFileStream_close(&stream);
+	if (!buffer)
+		return NULL;
+
+	dsPhysicsConstraint* constraint = dsPhysicsConstraint_loadImpl(engine, allocator,
+		findActorFunc, findActorUserData, findConstraintFunc, findConstraintUserData, buffer, size,
+		filePath);
+	DS_VERIFY(dsAllocator_free(engine->allocator, buffer));
+	return constraint;
+}
+
+dsPhysicsConstraint* dsPhysicsConstraint_loadResource(dsPhysicsEngine* engine,
+	dsAllocator* allocator, dsFindPhysicsActorFunction findActorFunc, void* findActorUserData,
+	dsFindPhysicsConstraintFunction findConstraintFunc, void* findConstraintUserData,
+	dsFileResourceType type, const char* filePath)
+{
+	if (!engine || !findActorFunc || !filePath)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	dsResourceStream stream;
+	if (!dsResourceStream_open(&stream, type, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG, "Couldn't open physics constraint file '%s'.", filePath);
+		return NULL;
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, engine->allocator);
+	dsResourceStream_close(&stream);
+	if (!buffer)
+		return NULL;
+
+	dsPhysicsConstraint* constraint = dsPhysicsConstraint_loadImpl(engine, allocator, findActorFunc,
+		findActorUserData, findConstraintFunc, findConstraintUserData, buffer, size, filePath);
+	DS_VERIFY(dsAllocator_free(engine->allocator, buffer));
+	return constraint;
+}
+
+dsPhysicsConstraint* dsPhysicsConstraint_loadStream(dsPhysicsEngine* engine, dsAllocator* allocator,
+	dsFindPhysicsActorFunction findActorFunc, void* findActorUserData,
+	dsFindPhysicsConstraintFunction findConstraintFunc, void* findConstraintUserData,
+	dsStream* stream)
+{
+	if (!engine || !findActorFunc || !stream)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, engine->allocator);
+	if (!buffer)
+		return NULL;
+
+	dsPhysicsConstraint* constraint = dsPhysicsConstraint_loadImpl(engine, allocator, findActorFunc,
+		findActorUserData, findConstraintFunc, findConstraintUserData, buffer, size, NULL);
+	DS_VERIFY(dsAllocator_free(engine->allocator, buffer));
+	return constraint;
+}
+
+dsPhysicsConstraint* dsPhysicsConstraint_loadData(dsPhysicsEngine* engine, dsAllocator* allocator,
+	dsFindPhysicsActorFunction findActorFunc, void* findActorUserData,
+	dsFindPhysicsConstraintFunction findConstraintFunc, void* findConstraintUserData,
+	const void* data, size_t size)
+{
+	if (!engine || !findActorFunc || !data || size == 0)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	return dsPhysicsConstraint_loadImpl(engine, allocator, findActorFunc, findActorUserData,
+		findConstraintFunc, findConstraintUserData, data, size, NULL);
 }
 
 bool dsPhysicsConstraint_setEnabled(dsPhysicsConstraint* constraint, bool enabled)

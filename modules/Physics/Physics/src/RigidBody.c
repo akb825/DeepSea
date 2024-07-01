@@ -22,6 +22,7 @@
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
@@ -253,9 +254,6 @@ dsRigidBody* dsRigidBody_loadFile(dsPhysicsEngine* engine, dsAllocator* allocato
 		return NULL;
 	}
 
-	if (!allocator)
-		allocator = engine->allocator;
-
 	dsFileStream stream;
 	if (!dsFileStream_openPath(&stream, filePath, "rb"))
 	{
@@ -297,9 +295,6 @@ dsRigidBody* dsRigidBody_loadResource(dsPhysicsEngine* engine, dsAllocator* allo
 		return NULL;
 	}
 
-	if (!allocator)
-		allocator = engine->allocator;
-
 	dsResourceStream stream;
 	if (!dsResourceStream_open(&stream, type, filePath, "rb"))
 	{
@@ -340,9 +335,6 @@ dsRigidBody* dsRigidBody_loadStream(dsPhysicsEngine* engine, dsAllocator* alloca
 		return NULL;
 	}
 
-	if (!allocator)
-		allocator = engine->allocator;
-
 	size_t size;
 	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, engine->allocator);
 	if (!buffer)
@@ -373,9 +365,6 @@ dsRigidBody* dsRigidBody_loadData(dsPhysicsEngine* engine, dsAllocator* allocato
 		errno = EINVAL;
 		return NULL;
 	}
-
-	if (!allocator)
-		allocator = engine->allocator;
 
 	dsRigidBody* rigidBody = dsRigidBody_loadImpl(engine, allocator, userData, destroyUserDataFunc,
 		canCollisionGroupsCollideFunc, findRigidBodyGroupUserData, findRigidBodyGroupUserData,

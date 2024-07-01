@@ -17,7 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/Physics/Constraints/Types.h>
+#include <DeepSea/Physics/Types.h>
 #include <DeepSea/Physics/Export.h>
 
 #ifdef __cplusplus
@@ -59,6 +59,84 @@ DS_PHYSICS_EXPORT bool dsPhysicsConstraint_initialize(dsPhysicsConstraint* const
 	dsGetPhysicsConstraintForceFunction getForceFunc,
 	dsGetPhysicsConstraintForceFunction getTorqueFunc,
 	dsDestroyPhysicsConstraintFunction destroyFunc);
+
+/**
+ * @brief Loads a physics constraint from a file.
+ * @remark errno will be set on failure.
+ * @param engine The physics engine to create the constraint with.
+ * @param allocator The allocator to create the constraint with. If NULL the engine's allocator will
+ *     be used.
+ * @param findActorFunc Function to find an actor by name. This is required.
+ * @param findActorUserData User data to pass to findActorFunc.
+ * @param findConstraintFunc Function to find a constraint by name. This will be used if a
+ *     constraint reference is used. All lookups will fail if this function is NULL.
+ * @param findConstraintUserData User data to pass to findConstraintFunc.
+ * @param filePath The file path for the physics constraint to load.
+ * @return The loaded physics constraint or NULL if it couldn't be loaded.
+ */
+DS_PHYSICS_EXPORT dsPhysicsConstraint* dsPhysicsConstraint_loadFile(dsPhysicsEngine* engine,
+	dsAllocator* allocator, dsFindPhysicsActorFunction findActorFunc, void* findActorUserData,
+	dsFindPhysicsConstraintFunction findConstraintFunc, void* findConstraintUserData,
+	const char* filePath);
+
+/**
+ * @brief Loads a physics constraint from a resource file.
+ * @remark errno will be set on failure.
+ * @param engine The physics engine to create the constraint with.
+ * @param allocator The allocator to create the constraint with. If NULL the engine's allocator will
+ *     be used.
+ * @param findActorFunc Function to find an actor by name. This is required.
+ * @param findActorUserData User data to pass to findActorFunc.
+ * @param findConstraintFunc Function to find a constraint by name. This will be used if a
+ *     constraint reference is used. All lookups will fail if this function is NULL.
+ * @param findConstraintUserData User data to pass to findConstraintFunc.
+ * @param type The type of resource to load.
+ * @param filePath The file path for the physics constraint to load.
+ * @return The loaded physics constraint or NULL if it couldn't be loaded.
+ */
+DS_PHYSICS_EXPORT dsPhysicsConstraint* dsPhysicsConstraint_loadResource(dsPhysicsEngine* engine,
+	dsAllocator* allocator, dsFindPhysicsActorFunction findActorFunc, void* findActorUserData,
+	dsFindPhysicsConstraintFunction findConstraintFunc, void* findConstraintUserData,
+	dsFileResourceType type, const char* filePath);
+
+/**
+ * @brief Loads a physics constraint from a stream.
+ * @remark errno will be set on failure.
+ * @param engine The physics engine to create the constraint with.
+ * @param allocator The allocator to create the constraint with. If NULL the engine's allocator will
+ *     be used.
+ * @param findActorFunc Function to find an actor by name. This is required.
+ * @param findActorUserData User data to pass to findActorFunc.
+ * @param findConstraintFunc Function to find a constraint by name. This will be used if a
+ *     constraint reference is used. All lookups will fail if this function is NULL.
+ * @param findConstraintUserData User data to pass to findConstraintFunc.
+ * @param stream The stream to load from.
+ * @return The loaded physics constraint or NULL if it couldn't be loaded.
+ */
+DS_PHYSICS_EXPORT dsPhysicsConstraint* dsPhysicsConstraint_loadStream(dsPhysicsEngine* engine,
+	dsAllocator* allocator, dsFindPhysicsActorFunction findActorFunc, void* findActorUserData,
+	dsFindPhysicsConstraintFunction findConstraintFunc, void* findConstraintUserData,
+	dsStream* stream);
+
+/**
+ * @brief Loads a physics constraint from a data buffer.
+ * @remark errno will be set on failure.
+ * @param engine The physics engine to create the constraint with.
+ * @param allocator The allocator to create the constraint with. If NULL the engine's allocator will
+ *     be used.
+ * @param findActorFunc Function to find an actor by name. This is required.
+ * @param findActorUserData User data to pass to findActorFunc.
+ * @param findConstraintFunc Function to find a constraint by name. This will be used if a
+ *     constraint reference is used. All lookups will fail if this function is NULL.
+ * @param findConstraintUserData User data to pass to findConstraintFunc.
+ * @param data The data buffer to load from.
+ * @param size The size of the data buffer.
+ * @return The loaded physics constraint or NULL if it couldn't be loaded.
+ */
+DS_PHYSICS_EXPORT dsPhysicsConstraint* dsPhysicsConstraint_loadData(dsPhysicsEngine* engine,
+	dsAllocator* allocator, dsFindPhysicsActorFunction findActorFunc, void* findActorUserData,
+	dsFindPhysicsConstraintFunction findConstraintFunc, void* findConstraintUserData,
+	const void* data, size_t size);
 
 /**
  * @brief Sets whether a physics constraint is enabled.

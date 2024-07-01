@@ -67,7 +67,7 @@ DS_PHYSICS_EXPORT float dsRackAndPinionPhysicsConstraint_computeRatio(unsigned i
  *     flipped.
  * @return The rack and pinion constraint or NULL if it couldn't be created.
  */
-DS_PHYSICS_EXPORT dsRackAndPinionPhysicsConstraint* dsRackAndPinionPhyiscsConstraint_create(
+DS_PHYSICS_EXPORT dsRackAndPinionPhysicsConstraint* dsRackAndPinionPhysicsConstraint_create(
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* rackActor,
 	const dsVector3f* rackAxis, const dsSliderPhysicsConstraint* rackConstraint,
 	const dsPhysicsActor* pinionActor, const dsVector3f* pinionAxis,
@@ -106,7 +106,7 @@ DS_PHYSICS_EXPORT bool dsRackAndPinionPhysicsConstraint_setRatio(dsRackAndPinion
  *     flipped.
  * @param impl The underlying implementation for the constraint.
  */
-DS_PHYSICS_EXPORT void dsRackAndPinionPhyiscsConstraint_initialize(
+DS_PHYSICS_EXPORT void dsRackAndPinionPhysicsConstraint_initialize(
 	dsRackAndPinionPhysicsConstraint* constraint, dsPhysicsEngine* engine, dsAllocator* allocator,
 	const dsPhysicsActor* rackActor, const dsVector3f* rackAxis,
 	const dsSliderPhysicsConstraint* rackConstraint, const dsPhysicsActor* pinionActor,

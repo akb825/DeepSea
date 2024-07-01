@@ -75,7 +75,7 @@ float dsGearPhysicsConstraint_computeRatio(unsigned int firstActorToothCount,
 	return (float)firstActorToothCount/(float)secondActorToothCount;
 }
 
-dsGearPhysicsConstraint* dsGearPhyiscsConstraint_create(dsPhysicsEngine* engine,
+dsGearPhysicsConstraint* dsGearPhysicsConstraint_create(dsPhysicsEngine* engine,
 	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3f* firstAxis,
 	const dsRevolutePhysicsConstraint* firstConstraint, const dsPhysicsActor* secondActor,
 	const dsVector3f* secondAxis, const dsRevolutePhysicsConstraint* secondConstraint, float ratio)
@@ -110,7 +110,7 @@ bool dsGearPhysicsConstraint_setRatio(dsGearPhysicsConstraint* constraint, float
 	return engine->setGearConstraintRatioFunc(engine, constraint, ratio);
 }
 
-void dsGearPhyiscsConstraint_initialize(dsGearPhysicsConstraint* constraint,
+void dsGearPhysicsConstraint_initialize(dsGearPhysicsConstraint* constraint,
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
 	const dsVector3f* firstAxis, const dsRevolutePhysicsConstraint* firstConstraint,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondAxis,
