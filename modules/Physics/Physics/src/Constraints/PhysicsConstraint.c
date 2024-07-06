@@ -28,15 +28,14 @@
 #include <DeepSea/Physics/Types.h>
 
 bool dsPhysicsConstraint_initialize(dsPhysicsConstraint* constraint, dsPhysicsEngine* engine,
-	dsAllocator* allocator, dsPhysicsConstraintType type, const dsPhysicsActor* firstActor,
+	dsAllocator* allocator, const dsPhysicsConstraintType* type, const dsPhysicsActor* firstActor,
 	const dsPhysicsActor* secondActor, void* impl,
 	dsSetPhysicsConstraintEnabledFunction setEnabledFunc,
 	dsGetPhysicsConstraintForceFunction getForceFunc,
 	dsGetPhysicsConstraintForceFunction getTorqueFunc,
 	dsDestroyPhysicsConstraintFunction destroyFunc)
 {
-	if (!constraint || !engine || !allocator || !firstActor || !secondActor || !setEnabledFunc ||
-		!destroyFunc)
+	if (!constraint || !engine || !type || !allocator || !setEnabledFunc || !destroyFunc)
 	{
 		errno = EINVAL;
 		return false;
@@ -154,6 +153,30 @@ dsPhysicsConstraint* dsPhysicsConstraint_loadData(dsPhysicsEngine* engine, dsAll
 		findConstraintFunc, findConstraintUserData, data, size, NULL);
 }
 
+dsPhysicsConstraint* dsPhysicsConstraint_clone(const dsPhysicsConstraint* constraint,
+	dsAllocator* allocator, const dsPhysicsActor* firstActor,
+	const dsPhysicsConstraint* firstConnectedConstraint, const dsPhysicsActor* secondActor,
+	const dsPhysicsConstraint* secondConnectedConstraint)
+{
+	if (!constraint || !constraint->type || !constraint->type->cloneConstraintFunc)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!allocator)
+		allocator = constraint->allocator;
+
+	if (!firstActor)
+		firstActor = constraint->firstActor;
+
+	if (!secondActor)
+		secondActor = constraint->secondActor;
+
+	return constraint->type->cloneConstraintFunc(constraint, allocator, firstActor,
+		firstConnectedConstraint, secondActor, secondConnectedConstraint);
+}
+
 bool dsPhysicsConstraint_setEnabled(dsPhysicsConstraint* constraint, bool enabled)
 {
 	if (!constraint || !constraint->setEnabledFunc || !constraint->engine)
@@ -228,3 +251,5 @@ bool dsPhysicsConstraint_destroy(dsPhysicsConstraint* constraint)
 
 	return constraint->destroyFunc(constraint->engine, constraint);
 }
+
+bool dsPhysicsConstraint_isValid(const dsPhysicsConstraint* constraint);

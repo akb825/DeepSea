@@ -32,7 +32,7 @@
 static bool isConstraintValid(const dsPhysicsConstraint* constraint,
 	const dsPhysicsActor* actor, const dsVector3f* axis)
 {
-	if (!constraint)
+	if (!constraint || !actor)
 		return true;
 
 	bool isRevolute = constraint->type == dsRevolutePhysicsConstraint_type();
@@ -91,9 +91,45 @@ static bool isConstraintValid(const dsPhysicsConstraint* constraint,
 	return true;
 }
 
-dsPhysicsConstraintType dsRackAndPinionPhysicsConstraint_type(void)
+static dsPhysicsConstraint* dsRackAndPinionPhysicsConstraint_clone(
+	const dsPhysicsConstraint* constraint, dsAllocator* allocator, const dsPhysicsActor* firstActor,
+	const dsPhysicsConstraint* firstConnectedConstraint, const dsPhysicsActor* secondActor,
+	const dsPhysicsConstraint* secondConnectedConstraint)
 {
-	static int type;
+	DS_ASSERT(constraint);
+	DS_ASSERT(constraint->type == dsRackAndPinionPhysicsConstraint_type());
+
+	if (firstConnectedConstraint &&
+		firstConnectedConstraint->type != dsSliderPhysicsConstraint_type())
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Rack and pinion first connected constraint must be a slider constraint.");
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (firstConnectedConstraint &&
+		firstConnectedConstraint->type != dsRevolutePhysicsConstraint_type())
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Rack and pinion second connected constraint must be a revolute constraint.");
+		errno = EINVAL;
+		return NULL;
+	}
+
+	const dsRackAndPinionPhysicsConstraint* rackAndPinionConstraint =
+		(const dsRackAndPinionPhysicsConstraint*)constraint;
+	return (dsPhysicsConstraint*)dsRackAndPinionPhysicsConstraint_create(
+		constraint->engine, allocator, firstActor, &rackAndPinionConstraint->firstAxis,
+		(const dsSliderPhysicsConstraint*)firstConnectedConstraint, secondActor,
+		&rackAndPinionConstraint->secondAxis,
+		(const dsRevolutePhysicsConstraint*)secondConnectedConstraint,
+		rackAndPinionConstraint->ratio);
+}
+
+const dsPhysicsConstraintType* dsRackAndPinionPhysicsConstraint_type(void)
+{
+	static dsPhysicsConstraintType type = {&dsRackAndPinionPhysicsConstraint_clone};
 	return &type;
 }
 
@@ -115,9 +151,9 @@ dsRackAndPinionPhysicsConstraint* dsRackAndPinionPhysicsConstraint_create(dsPhys
 	const dsVector3f* pinionAxis, const dsRevolutePhysicsConstraint* pinionConstraint, float ratio)
 {
 	if (!engine || !engine->createRackAndPinionConstraintFunc ||
-		!engine->destroyRackAndPinionConstraintFunc || !rackActor || !rackAxis ||
+		!engine->destroyRackAndPinionConstraintFunc || !rackAxis ||
 		!isConstraintValid((const dsPhysicsConstraint*)rackConstraint, rackActor, rackAxis) ||
-		!pinionActor || !pinionAxis ||
+		!pinionAxis ||
 		!isConstraintValid((const dsPhysicsConstraint*)pinionConstraint, pinionActor, pinionAxis) ||
 		ratio == 0.0f)
 	{
@@ -132,7 +168,8 @@ dsRackAndPinionPhysicsConstraint* dsRackAndPinionPhysicsConstraint_create(dsPhys
 		rackConstraint, pinionActor, pinionAxis, pinionConstraint, ratio);
 }
 
-bool dsRackAndPinionPhysicsConstraint_setRatio(dsRackAndPinionPhysicsConstraint* constraint, float ratio)
+bool dsRackAndPinionPhysicsConstraint_setRatio(
+	dsRackAndPinionPhysicsConstraint* constraint, float ratio)
 {
 	dsPhysicsConstraint* baseConstraint = (dsPhysicsConstraint*)constraint;
 	if (!constraint || !baseConstraint->engine ||
@@ -156,10 +193,8 @@ void dsRackAndPinionPhysicsConstraint_initialize(
 	DS_ASSERT(constraint);
 	DS_ASSERT(engine);
 	DS_ASSERT(allocator);
-	DS_ASSERT(rackActor);
 	DS_ASSERT(rackAxis);
 	DS_ASSERT(isConstraintValid((const dsPhysicsConstraint*)rackConstraint, rackActor, rackAxis));
-	DS_ASSERT(pinionActor);
 	DS_ASSERT(pinionAxis);
 	DS_ASSERT(isConstraintValid(
 		(const dsPhysicsConstraint*)pinionConstraint, pinionActor, pinionAxis));

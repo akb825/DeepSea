@@ -35,7 +35,7 @@ extern "C"
  * @brief Gets the type for a revolute physics constraint.
  * @return The type for a revolute physics constraint.
  */
-DS_PHYSICS_EXPORT dsPhysicsConstraintType dsRevolutePhysicsConstraint_type(void);
+DS_PHYSICS_EXPORT const dsPhysicsConstraintType* dsRevolutePhysicsConstraint_type(void);
 
 /**
  * @brief Creates a revolute physics constraint.
@@ -43,12 +43,14 @@ DS_PHYSICS_EXPORT dsPhysicsConstraintType dsRevolutePhysicsConstraint_type(void)
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with. If NULL the engine's allocator will
  *     be used.
- * @param firstActor The first physics actor the constraint is attached to.
+ * @param firstActor The first physics actor the constraint is attached to. This may be NULL to set
+ *     later by cloning.
  * @param firstPosition The position of the constraint on the first actor.
  * @param firstRotation The rotation of the constraint on the first actor. The axis of the
  *     quaternion represents the axis that will be rotated around, while the rotation will be used
  *     relative to any rotation limits.
- * @param secondActor The second physics actor the constraint is attached to.
+ * @param secondActor The second physics actor the constraint is attached to. This may be NULL to
+ *     set later by cloning.
  * @param secondPosition The position of the constraint on the second actor.
  * @param secondRotation The rotation of the constraint on the second actor. The axis of the
  *     quaternion represents the axis that will be rotated around, while the rotation will be used

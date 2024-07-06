@@ -54,12 +54,12 @@ struct RackAndPinionConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_RACKACTOR) &&
+           VerifyOffset(verifier, VT_RACKACTOR) &&
            verifier.VerifyString(rackActor()) &&
            VerifyFieldRequired<DeepSeaPhysics::Vector3f>(verifier, VT_RACKAXIS, 4) &&
            VerifyOffset(verifier, VT_RACKCONSTRAINT) &&
            verifier.VerifyString(rackConstraint()) &&
-           VerifyOffsetRequired(verifier, VT_PINIONACTOR) &&
+           VerifyOffset(verifier, VT_PINIONACTOR) &&
            verifier.VerifyString(pinionActor()) &&
            VerifyFieldRequired<DeepSeaPhysics::Vector3f>(verifier, VT_PINIONAXIS, 4) &&
            VerifyOffset(verifier, VT_PINIONCONSTRAINT) &&
@@ -101,9 +101,7 @@ struct RackAndPinionConstraintBuilder {
   ::flatbuffers::Offset<RackAndPinionConstraint> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<RackAndPinionConstraint>(end);
-    fbb_.Required(o, RackAndPinionConstraint::VT_RACKACTOR);
     fbb_.Required(o, RackAndPinionConstraint::VT_RACKAXIS);
-    fbb_.Required(o, RackAndPinionConstraint::VT_PINIONACTOR);
     fbb_.Required(o, RackAndPinionConstraint::VT_PINIONAXIS);
     return o;
   }

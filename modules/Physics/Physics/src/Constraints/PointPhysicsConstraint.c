@@ -22,9 +22,24 @@
 #include <DeepSea/Physics/Constraints/PhysicsConstraint.h>
 #include <DeepSea/Physics/Types.h>
 
-dsPhysicsConstraintType dsPointPhysicsConstraint_type(void)
+static dsPhysicsConstraint* dsPointPhysicsConstraint_clone(const dsPhysicsConstraint* constraint,
+	dsAllocator* allocator, const dsPhysicsActor* firstActor,
+	const dsPhysicsConstraint* firstConnectedConstraint, const dsPhysicsActor* secondActor,
+	const dsPhysicsConstraint* secondConnectedConstraint)
 {
-	static int type;
+	DS_ASSERT(constraint);
+	DS_ASSERT(constraint->type == dsPointPhysicsConstraint_type());
+	DS_UNUSED(firstConnectedConstraint);
+	DS_UNUSED(secondConnectedConstraint);
+
+	const dsPointPhysicsConstraint* pointConstraint = (const dsPointPhysicsConstraint*)constraint;
+	return (dsPhysicsConstraint*)dsPointPhysicsConstraint_create(constraint->engine, allocator,
+		firstActor, &pointConstraint->firstPosition, secondActor, &pointConstraint->secondPosition);
+}
+
+const dsPhysicsConstraintType* dsPointPhysicsConstraint_type(void)
+{
+	static dsPhysicsConstraintType type = {&dsPointPhysicsConstraint_clone};
 	return &type;
 }
 
@@ -33,7 +48,7 @@ dsPointPhysicsConstraint* dsPointPhysicsConstraint_create(dsPhysicsEngine* engin
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition)
 {
 	if (!engine || !engine->createPointConstraintFunc || !engine->destroyPointConstraintFunc ||
-		!firstActor || !firstPosition || !secondActor || !secondPosition)
+		!firstPosition || !secondPosition)
 	{
 		errno = EINVAL;
 		return NULL;

@@ -35,7 +35,7 @@ extern "C"
  * @brief Gets the type for a slider physics constraint.
  * @return The type for a slider physics constraint.
  */
-DS_PHYSICS_EXPORT dsPhysicsConstraintType dsSliderPhysicsConstraint_type(void);
+DS_PHYSICS_EXPORT const dsPhysicsConstraintType* dsSliderPhysicsConstraint_type(void);
 
 /**
  * @brief Creates a slider physics constraint.
@@ -43,11 +43,13 @@ DS_PHYSICS_EXPORT dsPhysicsConstraintType dsSliderPhysicsConstraint_type(void);
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with. If NULL the engine's allocator will
  *     be used.
- * @param firstActor The first physics actor the constraint is attached to.
+ * @param firstActor The first physics actor the constraint is attached to. This may be NULL to set
+ *     later by cloning.
  * @param firstPosition The position of the constraint on the first actor.
  * @param firstRotation The rotation of the constraint on the first actor. The slider will be
  *     limited to the axis of the quaternion.
- * @param secondActor The second physics actor the constraint is attached to.
+ * @param secondActor The second physics actor the constraint is attached to. This may be NULL to
+ *     set later by cloning.
  * @param secondPosition The position of the constraint on the second actor.
  * @param secondRotation The rotation of the constraint on the second actor. The slider will be
  *     limited to the axis of the quaternion.

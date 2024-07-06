@@ -35,7 +35,7 @@ extern "C"
  * @brief Gets the type for a rack and pinion physics constraint.
  * @return The type for a rack and pinion physics constraint.
  */
-DS_PHYSICS_EXPORT dsPhysicsConstraintType dsRackAndPinionPhysicsConstraint_type(void);
+DS_PHYSICS_EXPORT const dsPhysicsConstraintType* dsRackAndPinionPhysicsConstraint_type(void);
 
 /**
  * @brief Computes the ratio for a rack and pinion physics constraint.
@@ -54,11 +54,13 @@ DS_PHYSICS_EXPORT float dsRackAndPinionPhysicsConstraint_computeRatio(unsigned i
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with. If NULL the engine's allocator will
  *     be used.
- * @param rackActor The physics actor for the rack the constraint is attached to.
+ * @param rackActor The physics actor for the rack the constraint is attached to. This may be NULL
+ *     to set later by cloning.
  * @param rackAxis The axis of translation for the rack actor.
  * @param rackConstraint The slider constraint for the rack actor.This may be NULL, but providing it
  *     can avoid positional drift over time.
- * @param pinionActor The physics actor for the pinion the constraint is attached to.
+ * @param pinionActor The physics actor for the pinion the constraint is attached to. This may be
+ *     NULL to set later by cloning.
  * @param pinionAxis The axis of rotation for the pinion actor.
  * @param pinionConstraint The revolute constraint for the pinion actor. This may be NULL, but
  *     providing it can avoid angle drift over time.

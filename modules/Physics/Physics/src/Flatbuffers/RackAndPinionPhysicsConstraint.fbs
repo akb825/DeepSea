@@ -23,7 +23,7 @@ namespace DeepSeaPhysics;
 table RackAndPinionConstraint
 {
 	// The name of the actor used for the rack in the constraint.
-	rackActor : string (required);
+	rackActor : string;
 
 	// The axis of translation for the rack.
 	rackAxis : Vector3f (required);
@@ -32,7 +32,7 @@ table RackAndPinionConstraint
 	rackConstraint : string;
 
 	// The name of the actor used for the pinion in the constraint.
-	pinionActor : string (required);
+	pinionActor : string;
 
 	// The axis of rotation for the pinion.
 	pinionAxis : Vector3f (required);

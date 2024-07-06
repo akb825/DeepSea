@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Physics/Constraints/SwingTwistPhysicsConstraint.h>
+#include <DeepSea/Physics/Constraints/GenericPhysicsConstraint.h>
 
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -26,9 +26,28 @@
 
 #include <string.h>
 
-dsPhysicsConstraintType dsGenericPhysicsConstraint_type(void)
+static dsPhysicsConstraint* dsGenericPhysicsConstraint_clone(const dsPhysicsConstraint* constraint,
+	dsAllocator* allocator, const dsPhysicsActor* firstActor,
+	const dsPhysicsConstraint* firstConnectedConstraint, const dsPhysicsActor* secondActor,
+	const dsPhysicsConstraint* secondConnectedConstraint)
 {
-	static int type;
+	DS_ASSERT(constraint);
+	DS_ASSERT(constraint->type == dsGenericPhysicsConstraint_type());
+	DS_UNUSED(firstConnectedConstraint);
+	DS_UNUSED(secondConnectedConstraint);
+
+	const dsGenericPhysicsConstraint* genericConstraint =
+		(const dsGenericPhysicsConstraint*)constraint;
+	return (dsPhysicsConstraint*)dsGenericPhysicsConstraint_create(constraint->engine, allocator,
+		firstActor, &genericConstraint->firstPosition, &genericConstraint->firstRotation,
+		secondActor, &genericConstraint->secondPosition, &genericConstraint->secondRotation,
+		genericConstraint->limits, genericConstraint->motors,
+		genericConstraint->combineSwingTwistMotors);
+}
+
+const dsPhysicsConstraintType* dsGenericPhysicsConstraint_type(void)
+{
+	static dsPhysicsConstraintType type = {&dsGenericPhysicsConstraint_clone};
 	return &type;
 }
 
@@ -42,9 +61,8 @@ dsGenericPhysicsConstraint* dsGenericPhysicsConstraint_create(
 	bool combineSwingTwistMotors)
 {
 	if (!engine || !engine->createSwingTwistConstraintFunc ||
-		!engine->destroySwingTwistConstraintFunc || !firstActor || !firstPosition ||
-		!firstRotation || !secondActor || !secondPosition || !secondRotation || !limits ||
-		!motors)
+		!engine->destroySwingTwistConstraintFunc || !firstPosition || !firstRotation ||
+		!secondPosition || !secondRotation || !limits || !motors)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -168,10 +186,8 @@ void dsGenericPhysicsConstraint_initialize(dsGenericPhysicsConstraint* constrain
 	DS_ASSERT(constraint);
 	DS_ASSERT(engine);
 	DS_ASSERT(allocator);
-	DS_ASSERT(firstActor);
 	DS_ASSERT(firstPosition);
 	DS_ASSERT(firstRotation);
-	DS_ASSERT(secondActor);
 	DS_ASSERT(secondPosition);
 	DS_ASSERT(secondRotation);
 	DS_ASSERT(limits);

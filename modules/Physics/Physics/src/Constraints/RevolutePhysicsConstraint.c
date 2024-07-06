@@ -24,9 +24,30 @@
 #include <DeepSea/Physics/Constraints/PhysicsConstraint.h>
 #include <DeepSea/Physics/Types.h>
 
-dsPhysicsConstraintType dsRevolutePhysicsConstraint_type(void)
+static dsPhysicsConstraint* dsRevolutePhysicsConstraint_clone(const dsPhysicsConstraint* constraint,
+	dsAllocator* allocator, const dsPhysicsActor* firstActor,
+	const dsPhysicsConstraint* firstConnectedConstraint, const dsPhysicsActor* secondActor,
+	const dsPhysicsConstraint* secondConnectedConstraint)
 {
-	static int type;
+	DS_ASSERT(constraint);
+	DS_ASSERT(constraint->type == dsRevolutePhysicsConstraint_type());
+	DS_UNUSED(firstConnectedConstraint);
+	DS_UNUSED(secondConnectedConstraint);
+
+	const dsRevolutePhysicsConstraint* revoluteConstraint =
+		(const dsRevolutePhysicsConstraint*)constraint;
+	return (dsPhysicsConstraint*)dsRevolutePhysicsConstraint_create(constraint->engine, allocator,
+		firstActor, &revoluteConstraint->firstPosition, &revoluteConstraint->firstRotation,
+		secondActor, &revoluteConstraint->secondPosition, &revoluteConstraint->secondRotation,
+		revoluteConstraint->limitEnabled, revoluteConstraint->minAngle,
+		revoluteConstraint->maxAngle, revoluteConstraint->limitStiffness,
+		revoluteConstraint->limitDamping, revoluteConstraint->motorType,
+		revoluteConstraint->motorTarget, revoluteConstraint->maxMotorTorque);
+}
+
+const dsPhysicsConstraintType* dsRevolutePhysicsConstraint_type(void)
+{
+	static dsPhysicsConstraintType type = {&dsRevolutePhysicsConstraint_clone};
 	return &type;
 }
 
@@ -38,7 +59,7 @@ dsRevolutePhysicsConstraint* dsRevolutePhysicsConstraint_create(dsPhysicsEngine*
 	dsPhysicsConstraintMotorType motorType, float motorTarget, float maxMotorTorque)
 {
 	if (!engine || !engine->createRevoluteConstraintFunc ||
-		!engine->destroyRevoluteConstraintFunc || !firstRotation || !secondActor ||
+		!engine->destroyRevoluteConstraintFunc || !firstPosition || !firstRotation ||
 		!secondPosition || !secondRotation || minAngle < -M_PIf || minAngle > 0.0f ||
 		maxAngle < 0.0f || maxAngle > M_PIf || limitStiffness < 0.0f || limitDamping < 0.0f ||
 		limitDamping > 1.0f || motorType < dsPhysicsConstraintMotorType_Disabled ||

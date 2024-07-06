@@ -35,7 +35,7 @@ extern "C"
  * @brief Gets the type for a gear physics constraint.
  * @return The type for a gear physics constraint.
  */
-DS_PHYSICS_EXPORT dsPhysicsConstraintType dsGearPhysicsConstraint_type(void);
+DS_PHYSICS_EXPORT const dsPhysicsConstraintType* dsGearPhysicsConstraint_type(void);
 
 /**
  * @brief Computes the ratio for a gear physics constraint.
@@ -53,11 +53,13 @@ DS_PHYSICS_EXPORT float dsGearPhysicsConstraint_computeRatio(unsigned int firstA
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with. If NULL the engine's allocator will
  *     be used.
- * @param firstActor The first physics actor the constraint is attached to.
+ * @param firstActor The first physics actor the constraint is attached to. This may be NULL to set
+ *     later by cloning.
  * @param firstAxis The axis of rotation for the first actor.
  * @param firstConstraint The revolute constraint for the first actor. This may be NULL, but
  *     providing it can avoid angle drift over time.
- * @param secondActor The second physics actor the constraint is attached to.
+ * @param secondActor The second physics actor the constraint is attached to. This may be NULL to
+ *     set later by cloning.
  * @param secondAxis The axis of rotation for the second actor.
  * @param secondConstraint The revolute constraint for the second actor. This may be NULL, but
  *     providing it can avoid angle drift over time.

@@ -82,11 +82,11 @@ struct RevoluteConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_FIRSTACTOR) &&
+           VerifyOffset(verifier, VT_FIRSTACTOR) &&
            verifier.VerifyString(firstActor()) &&
            VerifyFieldRequired<DeepSeaPhysics::Vector3f>(verifier, VT_FIRSTPOSITION, 4) &&
            VerifyFieldRequired<DeepSeaPhysics::Quaternion4f>(verifier, VT_FIRSTROTATION, 4) &&
-           VerifyOffsetRequired(verifier, VT_SECONDACTOR) &&
+           VerifyOffset(verifier, VT_SECONDACTOR) &&
            verifier.VerifyString(secondActor()) &&
            VerifyFieldRequired<DeepSeaPhysics::Vector3f>(verifier, VT_SECONDPOSITION, 4) &&
            VerifyFieldRequired<DeepSeaPhysics::Quaternion4f>(verifier, VT_SECONDROTATION, 4) &&
@@ -155,10 +155,8 @@ struct RevoluteConstraintBuilder {
   ::flatbuffers::Offset<RevoluteConstraint> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<RevoluteConstraint>(end);
-    fbb_.Required(o, RevoluteConstraint::VT_FIRSTACTOR);
     fbb_.Required(o, RevoluteConstraint::VT_FIRSTPOSITION);
     fbb_.Required(o, RevoluteConstraint::VT_FIRSTROTATION);
-    fbb_.Required(o, RevoluteConstraint::VT_SECONDACTOR);
     fbb_.Required(o, RevoluteConstraint::VT_SECONDPOSITION);
     fbb_.Required(o, RevoluteConstraint::VT_SECONDROTATION);
     return o;

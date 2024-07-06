@@ -80,9 +80,32 @@ typedef struct dsPhysicsScene dsPhysicsScene;
 /// @endcond
 
 /**
- * @brief Value that denotes the type of a physics constraint.
+ * @brief Function to clone a physics constraint.
+ * @param constraint The constraint to clone.
+ * @param allocator The allocator to create the cloned constraint with.
+ * @param firstActor The first actor for the cloned constraint.
+ * @param firstConnectedConstraint Optional constraint for the first actor that is related to
+ *     this constraint.
+ * @param secondActor The second actor for the cloned constraint.
+ * @param secondConnectedConstraint Optional constraint for the second actor that is related to
+ *     this constraint.
+ * @return The constraint or NULL if it couldn't be created.
  */
-typedef const int* dsPhysicsConstraintType;
+typedef dsPhysicsConstraint* (*dsClonePhysicsConstraintFunction)(
+	const dsPhysicsConstraint* constraint, dsAllocator* allocator, const dsPhysicsActor* firstActor,
+	const dsPhysicsConstraint* firstConnectedConstraint, const dsPhysicsActor* secondActor,
+	const dsPhysicsConstraint* secondConnectedConstraint);
+
+/**
+ * @brief Struct defining the type of a physics constraint.
+ */
+typedef struct dsPhysicsConstraintType
+{
+	/**
+	 * @brief Function to clone the physics constraint.
+	 */
+	dsClonePhysicsConstraintFunction cloneConstraintFunc;
+} dsPhysicsConstraintType;
 
 /**
  * @brief Function to destroy a physics constraint.
@@ -149,7 +172,7 @@ typedef struct dsPhysicsConstraint
 	/**
 	 * @brief The type of the constraint.
 	 */
-	dsPhysicsConstraintType type;
+	const dsPhysicsConstraintType* type;
 
 	/**
 	 * @brief Whether the constraint is enabled.

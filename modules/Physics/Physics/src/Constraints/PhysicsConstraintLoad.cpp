@@ -107,18 +107,28 @@ dsPhysicsConstraint* loadFixedConstraint(dsPhysicsEngine* engine, dsAllocator* a
 	dsFindPhysicsActorFunction findActorFunc, void* findActorUserData,
 	const DeepSeaPhysics::FixedConstraint& fbConstraint, const char* name)
 {
-	dsPhysicsActor* firstActor = findActor(
-		engine, findActorFunc, findActorUserData, fbConstraint.firstActor()->c_str(), name);
-	if (!firstActor)
-		return nullptr;
+	auto fbFirstActor = fbConstraint.firstActor();
+	dsPhysicsActor* firstActor = nullptr;
+	if (fbFirstActor)
+	{
+		firstActor = findActor(
+			engine, findActorFunc, findActorUserData, fbFirstActor->c_str(), name);
+		if (!firstActor)
+			return nullptr;
+	}
 
 	dsVector3f firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
 	dsQuaternion4f firstRotation = DeepSeaPhysics::convert(*fbConstraint.firstRotation());
 
-	dsPhysicsActor* secondActor = findActor(
-		engine, findActorFunc, findActorUserData, fbConstraint.secondActor()->c_str(), name);
-	if (!secondActor)
-		return nullptr;
+	auto fbSecondActor = fbConstraint.secondActor();
+	dsPhysicsActor* secondActor = nullptr;
+	if (fbSecondActor)
+	{
+		secondActor = findActor(
+			engine, findActorFunc, findActorUserData, fbSecondActor->c_str(), name);
+		if (!secondActor)
+			return nullptr;
+	}
 
 	dsVector3f secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
 	dsQuaternion4f secondRotation = DeepSeaPhysics::convert(*fbConstraint.secondRotation());
@@ -131,17 +141,27 @@ dsPhysicsConstraint* loadPointConstraint(dsPhysicsEngine* engine, dsAllocator* a
 	dsFindPhysicsActorFunction findActorFunc, void* findActorUserData,
 	const DeepSeaPhysics::PointConstraint& fbConstraint, const char* name)
 {
-	dsPhysicsActor* firstActor = findActor(
-		engine, findActorFunc, findActorUserData, fbConstraint.firstActor()->c_str(), name);
-	if (!firstActor)
-		return nullptr;
+	auto fbFirstActor = fbConstraint.firstActor();
+	dsPhysicsActor* firstActor = nullptr;
+	if (fbFirstActor)
+	{
+		firstActor = findActor(
+			engine, findActorFunc, findActorUserData, fbFirstActor->c_str(), name);
+		if (!firstActor)
+			return nullptr;
+	}
 
 	dsVector3f firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
 
-	dsPhysicsActor* secondActor = findActor(
-		engine, findActorFunc, findActorUserData, fbConstraint.secondActor()->c_str(), name);
-	if (!secondActor)
-		return nullptr;
+	auto fbSecondActor = fbConstraint.secondActor();
+	dsPhysicsActor* secondActor = nullptr;
+	if (fbSecondActor)
+	{
+		secondActor = findActor(
+			engine, findActorFunc, findActorUserData, fbSecondActor->c_str(), name);
+		if (!secondActor)
+			return nullptr;
+	}
 
 	dsVector3f secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
 
@@ -153,18 +173,28 @@ dsPhysicsConstraint* loadConeConstraint(dsPhysicsEngine* engine, dsAllocator* al
 	dsFindPhysicsActorFunction findActorFunc, void* findActorUserData,
 	const DeepSeaPhysics::ConeConstraint& fbConstraint, const char* name)
 {
-	dsPhysicsActor* firstActor = findActor(
-		engine, findActorFunc, findActorUserData, fbConstraint.firstActor()->c_str(), name);
-	if (!firstActor)
-		return nullptr;
+	auto fbFirstActor = fbConstraint.firstActor();
+	dsPhysicsActor* firstActor = nullptr;
+	if (fbFirstActor)
+	{
+		firstActor = findActor(
+			engine, findActorFunc, findActorUserData, fbFirstActor->c_str(), name);
+		if (!firstActor)
+			return nullptr;
+	}
 
 	dsVector3f firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
 	dsQuaternion4f firstRotation = DeepSeaPhysics::convert(*fbConstraint.firstRotation());
 
-	dsPhysicsActor* secondActor = findActor(
-		engine, findActorFunc, findActorUserData, fbConstraint.secondActor()->c_str(), name);
-	if (!secondActor)
-		return nullptr;
+	auto fbSecondActor = fbConstraint.secondActor();
+	dsPhysicsActor* secondActor = nullptr;
+	if (fbSecondActor)
+	{
+		secondActor = findActor(
+			engine, findActorFunc, findActorUserData, fbSecondActor->c_str(), name);
+		if (!secondActor)
+			return nullptr;
+	}
 
 	dsVector3f secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
 	dsQuaternion4f secondRotation = DeepSeaPhysics::convert(*fbConstraint.secondRotation());
@@ -178,18 +208,28 @@ dsPhysicsConstraint* loadSwingTwistConstraint(dsPhysicsEngine* engine, dsAllocat
 	dsFindPhysicsActorFunction findActorFunc, void* findActorUserData,
 	const DeepSeaPhysics::SwingTwistConstraint& fbConstraint, const char* name)
 {
-	dsPhysicsActor* firstActor = findActor(
-		engine, findActorFunc, findActorUserData, fbConstraint.firstActor()->c_str(), name);
-	if (!firstActor)
-		return nullptr;
+	auto fbFirstActor = fbConstraint.firstActor();
+	dsPhysicsActor* firstActor = nullptr;
+	if (fbFirstActor)
+	{
+		firstActor = findActor(
+			engine, findActorFunc, findActorUserData, fbFirstActor->c_str(), name);
+		if (!firstActor)
+			return nullptr;
+	}
 
 	dsVector3f firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
 	dsQuaternion4f firstRotation = DeepSeaPhysics::convert(*fbConstraint.firstRotation());
 
-	dsPhysicsActor* secondActor = findActor(
-		engine, findActorFunc, findActorUserData, fbConstraint.secondActor()->c_str(), name);
-	if (!secondActor)
-		return nullptr;
+	auto fbSecondActor = fbConstraint.secondActor();
+	dsPhysicsActor* secondActor = nullptr;
+	if (fbSecondActor)
+	{
+		secondActor = findActor(
+			engine, findActorFunc, findActorUserData, fbSecondActor->c_str(), name);
+		if (!secondActor)
+			return nullptr;
+	}
 
 	dsVector3f secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
 	dsQuaternion4f secondRotation = DeepSeaPhysics::convert(*fbConstraint.secondRotation());
@@ -211,18 +251,28 @@ dsPhysicsConstraint* loadRevoluteConstraint(dsPhysicsEngine* engine, dsAllocator
 	dsFindPhysicsActorFunction findActorFunc, void* findActorUserData,
 	const DeepSeaPhysics::RevoluteConstraint& fbConstraint, const char* name)
 {
-	dsPhysicsActor* firstActor = findActor(
-		engine, findActorFunc, findActorUserData, fbConstraint.firstActor()->c_str(), name);
-	if (!firstActor)
-		return nullptr;
+	auto fbFirstActor = fbConstraint.firstActor();
+	dsPhysicsActor* firstActor = nullptr;
+	if (fbFirstActor)
+	{
+		firstActor = findActor(
+			engine, findActorFunc, findActorUserData, fbFirstActor->c_str(), name);
+		if (!firstActor)
+			return nullptr;
+	}
 
 	dsVector3f firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
 	dsQuaternion4f firstRotation = DeepSeaPhysics::convert(*fbConstraint.firstRotation());
 
-	dsPhysicsActor* secondActor = findActor(
-		engine, findActorFunc, findActorUserData, fbConstraint.secondActor()->c_str(), name);
-	if (!secondActor)
-		return nullptr;
+	auto fbSecondActor = fbConstraint.secondActor();
+	dsPhysicsActor* secondActor = nullptr;
+	if (fbSecondActor)
+	{
+		secondActor = findActor(
+			engine, findActorFunc, findActorUserData, fbSecondActor->c_str(), name);
+		if (!secondActor)
+			return nullptr;
+	}
 
 	dsVector3f secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
 	dsQuaternion4f secondRotation = DeepSeaPhysics::convert(*fbConstraint.secondRotation());
@@ -239,17 +289,27 @@ dsPhysicsConstraint* loadDistanceConstraint(dsPhysicsEngine* engine, dsAllocator
 	dsFindPhysicsActorFunction findActorFunc, void* findActorUserData,
 	const DeepSeaPhysics::DistanceConstraint& fbConstraint, const char* name)
 {
-	dsPhysicsActor* firstActor = findActor(
-		engine, findActorFunc, findActorUserData, fbConstraint.firstActor()->c_str(), name);
-	if (!firstActor)
-		return nullptr;
+	auto fbFirstActor = fbConstraint.firstActor();
+	dsPhysicsActor* firstActor = nullptr;
+	if (fbFirstActor)
+	{
+		firstActor = findActor(
+			engine, findActorFunc, findActorUserData, fbFirstActor->c_str(), name);
+		if (!firstActor)
+			return nullptr;
+	}
 
 	dsVector3f firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
 
-	dsPhysicsActor* secondActor = findActor(
-		engine, findActorFunc, findActorUserData, fbConstraint.secondActor()->c_str(), name);
-	if (!secondActor)
-		return nullptr;
+	auto fbSecondActor = fbConstraint.secondActor();
+	dsPhysicsActor* secondActor = nullptr;
+	if (fbSecondActor)
+	{
+		secondActor = findActor(
+			engine, findActorFunc, findActorUserData, fbSecondActor->c_str(), name);
+		if (!secondActor)
+			return nullptr;
+	}
 
 	dsVector3f secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
 
@@ -263,18 +323,28 @@ dsPhysicsConstraint* loadSliderConstraint(dsPhysicsEngine* engine, dsAllocator* 
 	dsFindPhysicsActorFunction findActorFunc, void* findActorUserData,
 	const DeepSeaPhysics::SliderConstraint& fbConstraint, const char* name)
 {
-	dsPhysicsActor* firstActor = findActor(
-		engine, findActorFunc, findActorUserData, fbConstraint.firstActor()->c_str(), name);
-	if (!firstActor)
-		return nullptr;
+	auto fbFirstActor = fbConstraint.firstActor();
+	dsPhysicsActor* firstActor = nullptr;
+	if (fbFirstActor)
+	{
+		firstActor = findActor(
+			engine, findActorFunc, findActorUserData, fbFirstActor->c_str(), name);
+		if (!firstActor)
+			return nullptr;
+	}
 
 	dsVector3f firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
 	dsQuaternion4f firstRotation = DeepSeaPhysics::convert(*fbConstraint.firstRotation());
 
-	dsPhysicsActor* secondActor = findActor(
-		engine, findActorFunc, findActorUserData, fbConstraint.secondActor()->c_str(), name);
-	if (!secondActor)
-		return nullptr;
+	auto fbSecondActor = fbConstraint.secondActor();
+	dsPhysicsActor* secondActor = nullptr;
+	if (fbSecondActor)
+	{
+		secondActor = findActor(
+			engine, findActorFunc, findActorUserData, fbSecondActor->c_str(), name);
+		if (!secondActor)
+			return nullptr;
+	}
 
 	dsVector3f secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
 	dsQuaternion4f secondRotation = DeepSeaPhysics::convert(*fbConstraint.secondRotation());
@@ -291,18 +361,28 @@ dsPhysicsConstraint* loadGenericConstraint(dsPhysicsEngine* engine, dsAllocator*
 	dsFindPhysicsActorFunction findActorFunc, void* findActorUserData,
 	const DeepSeaPhysics::GenericConstraint& fbConstraint, const char* name)
 {
-	dsPhysicsActor* firstActor = findActor(
-		engine, findActorFunc, findActorUserData, fbConstraint.firstActor()->c_str(), name);
-	if (!firstActor)
-		return nullptr;
+	auto fbFirstActor = fbConstraint.firstActor();
+	dsPhysicsActor* firstActor = nullptr;
+	if (fbFirstActor)
+	{
+		firstActor = findActor(
+			engine, findActorFunc, findActorUserData, fbFirstActor->c_str(), name);
+		if (!firstActor)
+			return nullptr;
+	}
 
 	dsVector3f firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
 	dsQuaternion4f firstRotation = DeepSeaPhysics::convert(*fbConstraint.firstRotation());
 
-	dsPhysicsActor* secondActor = findActor(
-		engine, findActorFunc, findActorUserData, fbConstraint.secondActor()->c_str(), name);
-	if (!secondActor)
-		return nullptr;
+	auto fbSecondActor = fbConstraint.secondActor();
+	dsPhysicsActor* secondActor = nullptr;
+	if (fbSecondActor)
+	{
+		secondActor = findActor(
+			engine, findActorFunc, findActorUserData, fbSecondActor->c_str(), name);
+		if (!secondActor)
+			return nullptr;
+	}
 
 	dsVector3f secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
 	dsQuaternion4f secondRotation = DeepSeaPhysics::convert(*fbConstraint.secondRotation());
@@ -389,10 +469,15 @@ dsPhysicsConstraint* loadGearConstraint(dsPhysicsEngine* engine, dsAllocator* al
 	dsFindPhysicsConstraintFunction findConstraintFunc, void* findConstraintUserData,
 	const DeepSeaPhysics::GearConstraint& fbConstraint, const char* name)
 {
-	dsPhysicsActor* firstActor = findActor(
-		engine, findActorFunc, findActorUserData, fbConstraint.firstActor()->c_str(), name);
-	if (!firstActor)
-		return nullptr;
+	auto fbFirstActor = fbConstraint.firstActor();
+	dsPhysicsActor* firstActor = nullptr;
+	if (fbFirstActor)
+	{
+		firstActor = findActor(
+			engine, findActorFunc, findActorUserData, fbFirstActor->c_str(), name);
+		if (!firstActor)
+			return nullptr;
+	}
 
 	dsVector3f firstAxis = DeepSeaPhysics::convert(*fbConstraint.firstAxis());
 
@@ -424,10 +509,15 @@ dsPhysicsConstraint* loadGearConstraint(dsPhysicsEngine* engine, dsAllocator* al
 		}
 	}
 
-	dsPhysicsActor* secondActor = findActor(
-		engine, findActorFunc, findActorUserData, fbConstraint.secondActor()->c_str(), name);
-	if (!secondActor)
-		return nullptr;
+	auto fbSecondActor = fbConstraint.secondActor();
+	dsPhysicsActor* secondActor = nullptr;
+	if (fbSecondActor)
+	{
+		secondActor = findActor(
+			engine, findActorFunc, findActorUserData, fbSecondActor->c_str(), name);
+		if (!secondActor)
+			return nullptr;
+	}
 
 	dsVector3f secondAxis = DeepSeaPhysics::convert(*fbConstraint.secondAxis());
 
@@ -470,10 +560,15 @@ dsPhysicsConstraint* loadRackAndPinionConstraint(dsPhysicsEngine* engine, dsAllo
 	dsFindPhysicsConstraintFunction findConstraintFunc, void* findConstraintUserData,
 	const DeepSeaPhysics::RackAndPinionConstraint& fbConstraint, const char* name)
 {
-	dsPhysicsActor* rackActor = findActor(
-		engine, findActorFunc, findActorUserData, fbConstraint.rackActor()->c_str(), name);
-	if (!rackActor)
-		return nullptr;
+	auto fbRackActor = fbConstraint.rackActor();
+	dsPhysicsActor* rackActor = nullptr;
+	if (fbRackActor)
+	{
+		rackActor = findActor(
+			engine, findActorFunc, findActorUserData, fbRackActor->c_str(), name);
+		if (!rackActor)
+			return nullptr;
+	}
 
 	dsVector3f rackAxis = DeepSeaPhysics::convert(*fbConstraint.rackAxis());
 
@@ -505,10 +600,15 @@ dsPhysicsConstraint* loadRackAndPinionConstraint(dsPhysicsEngine* engine, dsAllo
 		}
 	}
 
-	dsPhysicsActor* pinionActor = findActor(
-		engine, findActorFunc, findActorUserData, fbConstraint.pinionActor()->c_str(), name);
-	if (!pinionActor)
-		return nullptr;
+	auto fbPinionActor = fbConstraint.pinionActor();
+	dsPhysicsActor* pinionActor = nullptr;
+	if (fbPinionActor)
+	{
+		pinionActor = findActor(
+			engine, findActorFunc, findActorUserData, fbPinionActor->c_str(), name);
+		if (!pinionActor)
+			return nullptr;
+	}
 
 	dsVector3f pinionAxis = DeepSeaPhysics::convert(*fbConstraint.pinionAxis());
 

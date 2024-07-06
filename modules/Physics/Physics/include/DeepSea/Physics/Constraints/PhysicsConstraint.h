@@ -53,7 +53,7 @@ extern "C"
  * @return False if the parameters are invalid.
  */
 DS_PHYSICS_EXPORT bool dsPhysicsConstraint_initialize(dsPhysicsConstraint* constraint,
-	dsPhysicsEngine* engine, dsAllocator* allocator, dsPhysicsConstraintType type,
+	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsConstraintType* type,
 	const dsPhysicsActor* firstActor, const dsPhysicsActor* secondActor, void* impl,
 	dsSetPhysicsConstraintEnabledFunction setEnabledFunc,
 	dsGetPhysicsConstraintForceFunction getForceFunc,
@@ -139,6 +139,38 @@ DS_PHYSICS_EXPORT dsPhysicsConstraint* dsPhysicsConstraint_loadData(dsPhysicsEng
 	const void* data, size_t size);
 
 /**
+ * @brief Clones a physics constraint.
+ * @remark errno will be set on failure.
+ * @param constraint The constraint to clone.
+ * @param allocator The allocator to create the cloned constraint with. If NULL the original
+ *     constraint's allocator will be used.
+ * @param firstActor The first actor for the cloned constraint. If NULL the original constraint's
+ *     first actor will be used.
+ * @param firstConnectedConstraint Optional constraint for the first actor that is related to
+ *     this constraint.
+ * @param secondActor The second actor for the cloned constraint. If NULL the original constraint's
+ *     second actor will be used.
+ * @param secondConnectedConstraint Optional constraint for the second actor that is related to
+ *     this constraint.
+ * @return The constraint or NULL if it couldn't be created.
+ */
+DS_PHYSICS_EXPORT dsPhysicsConstraint* dsPhysicsConstraint_clone(
+	const dsPhysicsConstraint* constraint, dsAllocator* allocator, const dsPhysicsActor* firstActor,
+	const dsPhysicsConstraint* firstConnectedConstraint, const dsPhysicsActor* secondActor,
+	const dsPhysicsConstraint* secondConnectedConstraint);
+
+/**
+ * @brief Function to check whether a physics constraint is valid for use.
+ *
+ * A constraint is valid if both actors are set. An invalid constraint may be used as a template to
+ * clone.
+ *
+ * @param constraint The constraing to check.
+ * @return Whether the constraint is valid.
+ */
+DS_PHYSICS_EXPORT inline bool dsPhysicsConstraint_isValid(const dsPhysicsConstraint* constraint);
+
+/**
  * @brief Sets whether a physics constraint is enabled.
  *
  * The constraint must be a part of a scene before it can be enabled. When a constraint is disabled
@@ -190,6 +222,11 @@ DS_PHYSICS_EXPORT bool dsPhysicsConstraint_getLastAppliedTorque(dsVector3f* outT
  * @return False if the constraint couldn't be destroyed.
  */
 DS_PHYSICS_EXPORT bool dsPhysicsConstraint_destroy(dsPhysicsConstraint* constraint);
+
+inline bool dsPhysicsConstraint_isValid(const dsPhysicsConstraint* constraint)
+{
+	return constraint && constraint->firstActor && constraint->secondActor;
+}
 
 #ifdef __cplusplus
 }

@@ -22,6 +22,8 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 
+#include <DeepSea/Physics/Constraints/PhysicsConstraint.h>
+
 inline static bool isReadLocked(const dsPhysicsScene* scene, const dsPhysicsSceneLock* lock)
 {
 	return lock->readLock == scene || lock->writeLock == scene;
@@ -561,7 +563,7 @@ bool dsPhysicsScene_addConstraints(dsPhysicsScene* scene,
 	for (uint32_t i = 0; i < constraintCount; ++i)
 	{
 		dsPhysicsConstraint* constraint = constraints[i];
-		if (!constraint || !constraint->firstActor || !constraint->secondActor)
+		if (!dsPhysicsConstraint_isValid(constraint))
 		{
 			errno = EINVAL;
 			DS_PROFILE_FUNC_RETURN(false);

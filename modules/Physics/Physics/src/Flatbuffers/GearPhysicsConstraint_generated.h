@@ -54,12 +54,12 @@ struct GearConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_FIRSTACTOR) &&
+           VerifyOffset(verifier, VT_FIRSTACTOR) &&
            verifier.VerifyString(firstActor()) &&
            VerifyFieldRequired<DeepSeaPhysics::Vector3f>(verifier, VT_FIRSTAXIS, 4) &&
            VerifyOffset(verifier, VT_FIRSTCONSTRAINT) &&
            verifier.VerifyString(firstConstraint()) &&
-           VerifyOffsetRequired(verifier, VT_SECONDACTOR) &&
+           VerifyOffset(verifier, VT_SECONDACTOR) &&
            verifier.VerifyString(secondActor()) &&
            VerifyFieldRequired<DeepSeaPhysics::Vector3f>(verifier, VT_SECONDAXIS, 4) &&
            VerifyOffset(verifier, VT_SECONDCONSTRAINT) &&
@@ -101,9 +101,7 @@ struct GearConstraintBuilder {
   ::flatbuffers::Offset<GearConstraint> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<GearConstraint>(end);
-    fbb_.Required(o, GearConstraint::VT_FIRSTACTOR);
     fbb_.Required(o, GearConstraint::VT_FIRSTAXIS);
-    fbb_.Required(o, GearConstraint::VT_SECONDACTOR);
     fbb_.Required(o, GearConstraint::VT_SECONDAXIS);
     return o;
   }

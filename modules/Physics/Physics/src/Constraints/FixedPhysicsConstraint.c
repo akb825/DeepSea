@@ -22,9 +22,25 @@
 #include <DeepSea/Physics/Constraints/PhysicsConstraint.h>
 #include <DeepSea/Physics/Types.h>
 
-dsPhysicsConstraintType dsFixedPhysicsConstraint_type(void)
+static dsPhysicsConstraint* dsFixedPhysicsConstraint_clone(const dsPhysicsConstraint* constraint,
+	dsAllocator* allocator, const dsPhysicsActor* firstActor,
+	const dsPhysicsConstraint* firstConnectedConstraint, const dsPhysicsActor* secondActor,
+	const dsPhysicsConstraint* secondConnectedConstraint)
 {
-	static int type;
+	DS_ASSERT(constraint);
+	DS_ASSERT(constraint->type == dsFixedPhysicsConstraint_type());
+	DS_UNUSED(firstConnectedConstraint);
+	DS_UNUSED(secondConnectedConstraint);
+
+	const dsFixedPhysicsConstraint* fixedConstraint = (const dsFixedPhysicsConstraint*)constraint;
+	return (dsPhysicsConstraint*)dsFixedPhysicsConstraint_create(constraint->engine, allocator,
+		firstActor, &fixedConstraint->firstPosition, &fixedConstraint->firstRotation, secondActor,
+		&fixedConstraint->secondPosition, &fixedConstraint->secondRotation);
+}
+
+const dsPhysicsConstraintType* dsFixedPhysicsConstraint_type(void)
+{
+	static dsPhysicsConstraintType type = {&dsFixedPhysicsConstraint_clone};
 	return &type;
 }
 
@@ -34,8 +50,7 @@ dsFixedPhysicsConstraint* dsFixedPhysicsConstraint_create(dsPhysicsEngine* engin
 	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation)
 {
 	if (!engine || !engine->createFixedConstraintFunc || !engine->destroyFixedConstraintFunc ||
-		!firstActor || !firstPosition || !firstRotation || !secondActor || !secondPosition ||
-		!secondRotation)
+		!firstPosition || !firstRotation || !secondPosition || !secondRotation)
 	{
 		errno = EINVAL;
 		return NULL;

@@ -24,9 +24,26 @@
 #include <DeepSea/Physics/Constraints/PhysicsConstraint.h>
 #include <DeepSea/Physics/Types.h>
 
-dsPhysicsConstraintType dsConePhysicsConstraint_type(void)
+static dsPhysicsConstraint* dsConePhysicsConstraint_clone(const dsPhysicsConstraint* constraint,
+	dsAllocator* allocator, const dsPhysicsActor* firstActor,
+	const dsPhysicsConstraint* firstConnectedConstraint, const dsPhysicsActor* secondActor,
+	const dsPhysicsConstraint* secondConnectedConstraint)
 {
-	static int type;
+	DS_ASSERT(constraint);
+	DS_ASSERT(constraint->type == dsConePhysicsConstraint_type());
+	DS_UNUSED(firstConnectedConstraint);
+	DS_UNUSED(secondConnectedConstraint);
+
+	const dsConePhysicsConstraint* coneConstraint = (const dsConePhysicsConstraint*)constraint;
+	return (dsPhysicsConstraint*)dsConePhysicsConstraint_create(constraint->engine, allocator,
+		firstActor, &coneConstraint->firstPosition, &coneConstraint->firstRotation, secondActor,
+		&coneConstraint->secondPosition, &coneConstraint->secondRotation,
+		coneConstraint->maxAngle);
+}
+
+const dsPhysicsConstraintType* dsConePhysicsConstraint_type(void)
+{
+	static dsPhysicsConstraintType type = {&dsConePhysicsConstraint_clone};
 	return &type;
 }
 
@@ -36,8 +53,8 @@ dsConePhysicsConstraint* dsConePhysicsConstraint_create(dsPhysicsEngine* engine,
 	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation, float maxAngle)
 {
 	if (!engine || !engine->createConeConstraintFunc || !engine->destroyConeConstraintFunc ||
-		!firstActor || !firstPosition || !firstRotation || !secondActor || !secondPosition ||
-		!secondRotation || maxAngle < 0 || maxAngle > M_PIf)
+		!firstPosition || !firstRotation || !secondPosition || !secondRotation || maxAngle < 0 ||
+		maxAngle > M_PIf)
 	{
 		errno = EINVAL;
 		return NULL;

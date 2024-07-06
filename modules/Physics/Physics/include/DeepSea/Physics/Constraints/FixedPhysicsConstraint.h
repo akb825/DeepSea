@@ -35,7 +35,7 @@ extern "C"
  * @brief Gets the type for a fixed physics constraint.
  * @return The type for a fixed physics constraint.
  */
-DS_PHYSICS_EXPORT dsPhysicsConstraintType dsFixedPhysicsConstraint_type(void);
+DS_PHYSICS_EXPORT const dsPhysicsConstraintType* dsFixedPhysicsConstraint_type(void);
 
 /**
  * @brief Creates a fixed physics constraint.
@@ -43,10 +43,12 @@ DS_PHYSICS_EXPORT dsPhysicsConstraintType dsFixedPhysicsConstraint_type(void);
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with. If NULL the engine's allocator will
  *     be used.
- * @param firstActor The first physics actor the constraint is attached to.
+ * @param firstActor The first physics actor the constraint is attached to. This may be NULL to set
+ *     later by cloning.
  * @param firstPosition The position of the constraint on the first actor.
  * @param firstRotation The rotation of the constraint on the first actor.
- * @param secondActor The second physics actor the constraint is attached to.
+ * @param secondActor The second physics actor the constraint is attached to. This may be NULL to
+ *     set later by cloning.
  * @param secondPosition The position of the constraint on the second actor.
  * @param secondRotation The rotation of the constraint on the second actor.
  * @return The fixed constraint or NULL if it couldn't be created.

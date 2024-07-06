@@ -22,9 +22,30 @@
 #include <DeepSea/Physics/Constraints/PhysicsConstraint.h>
 #include <DeepSea/Physics/Types.h>
 
-dsPhysicsConstraintType dsSliderPhysicsConstraint_type(void)
+static dsPhysicsConstraint* dsSliderPhysicsConstraint_clone(const dsPhysicsConstraint* constraint,
+	dsAllocator* allocator, const dsPhysicsActor* firstActor,
+	const dsPhysicsConstraint* firstConnectedConstraint, const dsPhysicsActor* secondActor,
+	const dsPhysicsConstraint* secondConnectedConstraint)
 {
-	static int type;
+	DS_ASSERT(constraint);
+	DS_ASSERT(constraint->type == dsSliderPhysicsConstraint_type());
+	DS_UNUSED(firstConnectedConstraint);
+	DS_UNUSED(secondConnectedConstraint);
+
+	const dsSliderPhysicsConstraint* sliderConstraint =
+		(const dsSliderPhysicsConstraint*)constraint;
+	return (dsPhysicsConstraint*)dsSliderPhysicsConstraint_create(constraint->engine, allocator,
+		firstActor, &sliderConstraint->firstPosition, &sliderConstraint->firstRotation,
+		secondActor, &sliderConstraint->secondPosition, &sliderConstraint->secondRotation,
+		sliderConstraint->limitEnabled, sliderConstraint->minDistance,
+		sliderConstraint->maxDistance, sliderConstraint->limitStiffness,
+		sliderConstraint->limitDamping, sliderConstraint->motorType,
+		sliderConstraint->motorTarget, sliderConstraint->maxMotorForce);
+}
+
+const dsPhysicsConstraintType* dsSliderPhysicsConstraint_type(void)
+{
+	static dsPhysicsConstraintType type = {&dsSliderPhysicsConstraint_clone};
 	return &type;
 }
 
@@ -36,7 +57,7 @@ dsSliderPhysicsConstraint* dsSliderPhysicsConstraint_create(dsPhysicsEngine* eng
 	dsPhysicsConstraintMotorType motorType, float motorTarget, float maxMotorForce)
 {
 	if (!engine || !engine->createSliderConstraintFunc ||
-		!engine->destroySliderConstraintFunc || !firstRotation || !secondActor ||
+		!engine->destroySliderConstraintFunc || !firstPosition || !firstRotation ||
 		!secondPosition || !secondRotation || minDistance > 0.0f || maxDistance< 0.0f ||
 		limitStiffness < 0.0f || limitDamping < 0.0f || limitDamping > 1.0f ||
 		motorType < dsPhysicsConstraintMotorType_Disabled ||

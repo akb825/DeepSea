@@ -25,12 +25,13 @@
 #include <DeepSea/Math/Vector3.h>
 
 #include <DeepSea/Physics/Constraints/PhysicsConstraint.h>
+#include <DeepSea/Physics/Constraints/RevolutePhysicsConstraint.h>
 #include <DeepSea/Physics/Types.h>
 
 static bool isConstraintValid(const dsRevolutePhysicsConstraint* constraint,
 	const dsPhysicsActor* actor, const dsVector3f* axis)
 {
-	if (!constraint)
+	if (!constraint || !actor)
 		return true;
 
 	const dsPhysicsConstraint* baseConstraint = (const dsPhysicsConstraint*)constraint;
@@ -57,9 +58,43 @@ static bool isConstraintValid(const dsRevolutePhysicsConstraint* constraint,
 	return true;
 }
 
-dsPhysicsConstraintType dsGearPhysicsConstraint_type(void)
+static dsPhysicsConstraint* dsGearPhysicsConstraint_clone(const dsPhysicsConstraint* constraint,
+	dsAllocator* allocator, const dsPhysicsActor* firstActor,
+	const dsPhysicsConstraint* firstConnectedConstraint, const dsPhysicsActor* secondActor,
+	const dsPhysicsConstraint* secondConnectedConstraint)
 {
-	static int type;
+	DS_ASSERT(constraint);
+	DS_ASSERT(constraint->type == dsGearPhysicsConstraint_type());
+
+	if (firstConnectedConstraint &&
+		firstConnectedConstraint->type != dsRevolutePhysicsConstraint_type())
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Gear first connected constraint must be a revolute constraint.");
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (firstConnectedConstraint &&
+		firstConnectedConstraint->type != dsRevolutePhysicsConstraint_type())
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Gear second connected constraint must be a revolute constraint.");
+		errno = EINVAL;
+		return NULL;
+	}
+
+	const dsGearPhysicsConstraint* gearConstraint = (const dsGearPhysicsConstraint*)constraint;
+	return (dsPhysicsConstraint*)dsGearPhysicsConstraint_create(constraint->engine, allocator,
+		firstActor, &gearConstraint->firstAxis,
+		(const dsRevolutePhysicsConstraint*)firstConnectedConstraint, secondActor,
+		&gearConstraint->secondAxis, (const dsRevolutePhysicsConstraint*)firstConnectedConstraint,
+		gearConstraint->ratio);
+}
+
+const dsPhysicsConstraintType* dsGearPhysicsConstraint_type(void)
+{
+	static dsPhysicsConstraintType type = {&dsGearPhysicsConstraint_clone};
 	return &type;
 }
 
@@ -81,8 +116,7 @@ dsGearPhysicsConstraint* dsGearPhysicsConstraint_create(dsPhysicsEngine* engine,
 	const dsVector3f* secondAxis, const dsRevolutePhysicsConstraint* secondConstraint, float ratio)
 {
 	if (!engine || !engine->createGearConstraintFunc || !engine->destroyGearConstraintFunc ||
-		!firstActor || !firstAxis || !isConstraintValid(firstConstraint, firstActor, firstAxis) ||
-		!secondActor || !secondAxis ||
+		!firstAxis || !isConstraintValid(firstConstraint, firstActor, firstAxis) || !secondAxis ||
 		!isConstraintValid(secondConstraint, secondActor, secondAxis) || ratio == 0.0f)
 	{
 		errno = EINVAL;
@@ -119,10 +153,8 @@ void dsGearPhysicsConstraint_initialize(dsGearPhysicsConstraint* constraint,
 	DS_ASSERT(constraint);
 	DS_ASSERT(engine);
 	DS_ASSERT(allocator);
-	DS_ASSERT(firstActor);
 	DS_ASSERT(firstAxis);
-	DS_ASSERT(isConstraintValid(firstConstraint, firstActor, firstAxis));
-	DS_ASSERT(secondActor);
+	DS_ASSERT(isConstraintValid(firstConstraint, firstActor, firstAxis));;
 	DS_ASSERT(secondAxis);
 	DS_ASSERT(isConstraintValid(secondConstraint, secondActor, secondAxis));
 	DS_ASSERT(ratio != 0.0f);

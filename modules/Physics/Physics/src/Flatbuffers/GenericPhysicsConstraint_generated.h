@@ -187,11 +187,11 @@ struct GenericConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_FIRSTACTOR) &&
+           VerifyOffset(verifier, VT_FIRSTACTOR) &&
            verifier.VerifyString(firstActor()) &&
            VerifyFieldRequired<DeepSeaPhysics::Vector3f>(verifier, VT_FIRSTPOSITION, 4) &&
            VerifyFieldRequired<DeepSeaPhysics::Quaternion4f>(verifier, VT_FIRSTROTATION, 4) &&
-           VerifyOffsetRequired(verifier, VT_SECONDACTOR) &&
+           VerifyOffset(verifier, VT_SECONDACTOR) &&
            verifier.VerifyString(secondActor()) &&
            VerifyFieldRequired<DeepSeaPhysics::Vector3f>(verifier, VT_SECONDPOSITION, 4) &&
            VerifyFieldRequired<DeepSeaPhysics::Quaternion4f>(verifier, VT_SECONDROTATION, 4) &&
@@ -242,10 +242,8 @@ struct GenericConstraintBuilder {
   ::flatbuffers::Offset<GenericConstraint> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<GenericConstraint>(end);
-    fbb_.Required(o, GenericConstraint::VT_FIRSTACTOR);
     fbb_.Required(o, GenericConstraint::VT_FIRSTPOSITION);
     fbb_.Required(o, GenericConstraint::VT_FIRSTROTATION);
-    fbb_.Required(o, GenericConstraint::VT_SECONDACTOR);
     fbb_.Required(o, GenericConstraint::VT_SECONDPOSITION);
     fbb_.Required(o, GenericConstraint::VT_SECONDROTATION);
     fbb_.Required(o, GenericConstraint::VT_LIMITS);

@@ -357,8 +357,8 @@ DS_PHYSICS_EXPORT uint32_t dsPhysicsScene_getActors(dsPhysicsActor** outActors,
  * @brief Adds constraints to a physics scene.
  * @remark errno will be set on failure.
  * @param scene The physics scene to add the constraints to.
- * @param constraints The constraints to add. The actors the constraints reference must have already
- *     been added to this scene.
+ * @param constraints The constraints to add. All constraints must be valid, and the actors the
+ *     constraints reference must have already been added to this scene.
  * @param constraintCount The number of constraints to add.
  * @param enable Whether the constraints should be enabled on insertion.
  * @param lock The previously acquired lock. This must have been locked for writing.

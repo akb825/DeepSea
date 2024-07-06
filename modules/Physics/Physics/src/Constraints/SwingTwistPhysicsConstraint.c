@@ -25,9 +25,29 @@
 #include <DeepSea/Physics/Constraints/PhysicsConstraint.h>
 #include <DeepSea/Physics/Types.h>
 
-dsPhysicsConstraintType dsSwingTwistPhysicsConstraint_type(void)
+static dsPhysicsConstraint* dsSwingTwistPhysicsConstraint_clone(
+	const dsPhysicsConstraint* constraint, dsAllocator* allocator, const dsPhysicsActor* firstActor,
+	const dsPhysicsConstraint* firstConnectedConstraint, const dsPhysicsActor* secondActor,
+	const dsPhysicsConstraint* secondConnectedConstraint)
 {
-	static int type;
+	DS_ASSERT(constraint);
+	DS_ASSERT(constraint->type == dsSwingTwistPhysicsConstraint_type());
+	DS_UNUSED(firstConnectedConstraint);
+	DS_UNUSED(secondConnectedConstraint);
+
+	const dsSwingTwistPhysicsConstraint* swingTwistConstraint =
+		(const dsSwingTwistPhysicsConstraint*)constraint;
+	return (dsPhysicsConstraint*)dsSwingTwistPhysicsConstraint_create(constraint->engine, allocator,
+		firstActor, &swingTwistConstraint->firstPosition, &swingTwistConstraint->firstRotation,
+		secondActor, &swingTwistConstraint->secondPosition, &swingTwistConstraint->secondRotation,
+		swingTwistConstraint->maxSwingXAngle, swingTwistConstraint->maxSwingYAngle,
+		swingTwistConstraint->maxTwistZAngle, swingTwistConstraint->motorType,
+		&swingTwistConstraint->motorTargetRotation, swingTwistConstraint->maxMotorTorque);
+}
+
+const dsPhysicsConstraintType* dsSwingTwistPhysicsConstraint_type(void)
+{
+	static dsPhysicsConstraintType type = {&dsSwingTwistPhysicsConstraint_clone};
 	return &type;
 }
 
@@ -39,11 +59,10 @@ dsSwingTwistPhysicsConstraint* dsSwingTwistPhysicsConstraint_create(dsPhysicsEng
 	const dsQuaternion4f* motorTargetRotation, float maxMotorTorque)
 {
 	if (!engine || !engine->createSwingTwistConstraintFunc ||
-		!engine->destroySwingTwistConstraintFunc || !firstActor || !firstPosition ||
-		!firstRotation || !secondActor || !secondPosition || !secondRotation ||
-		maxSwingXAngle < 0.0f || maxSwingXAngle > M_PIf || maxSwingYAngle < 0.0f ||
-		maxSwingYAngle > M_PIf || maxTwistZAngle < 0.0f || maxTwistZAngle > M_PIf ||
-		motorType < dsPhysicsConstraintMotorType_Disabled ||
+		!engine->destroySwingTwistConstraintFunc || !firstPosition || !firstRotation ||
+		!secondPosition || !secondRotation || maxSwingXAngle < 0.0f || maxSwingXAngle > M_PIf ||
+		maxSwingYAngle < 0.0f || maxSwingYAngle > M_PIf || maxTwistZAngle < 0.0f ||
+		maxTwistZAngle > M_PIf || motorType < dsPhysicsConstraintMotorType_Disabled ||
 		motorType >= dsPhysicsConstraintMotorType_Velocity || maxMotorTorque < 0.0f)
 	{
 		errno = EINVAL;

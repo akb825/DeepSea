@@ -24,9 +24,28 @@
 #include <DeepSea/Physics/Constraints/PhysicsConstraint.h>
 #include <DeepSea/Physics/Types.h>
 
-dsPhysicsConstraintType dsDistancePhysicsConstraint_type(void)
+static dsPhysicsConstraint* dsDistancePhysicsConstraint_clone(const dsPhysicsConstraint* constraint,
+	dsAllocator* allocator, const dsPhysicsActor* firstActor,
+	const dsPhysicsConstraint* firstConnectedConstraint, const dsPhysicsActor* secondActor,
+	const dsPhysicsConstraint* secondConnectedConstraint)
 {
-	static int type;
+	DS_ASSERT(constraint);
+	DS_ASSERT(constraint->type == dsDistancePhysicsConstraint_type());
+	DS_UNUSED(firstConnectedConstraint);
+	DS_UNUSED(secondConnectedConstraint);
+
+	const dsDistancePhysicsConstraint* distanceConstraint =
+		(const dsDistancePhysicsConstraint*)constraint;
+	return (dsPhysicsConstraint*)dsDistancePhysicsConstraint_create(constraint->engine, allocator,
+		firstActor, &distanceConstraint->firstPosition, secondActor,
+		&distanceConstraint->secondPosition, distanceConstraint->minDistance,
+		distanceConstraint->maxDistance, distanceConstraint->limitStiffness,
+		distanceConstraint->limitDamping);
+}
+
+const dsPhysicsConstraintType* dsDistancePhysicsConstraint_type(void)
+{
+	static dsPhysicsConstraintType type = {&dsDistancePhysicsConstraint_clone};
 	return &type;
 }
 
@@ -36,8 +55,8 @@ dsDistancePhysicsConstraint* dsDistancePhysicsConstraint_create(dsPhysicsEngine*
 	float maxDistance, float limitStiffness, float limitDamping)
 {
 	if (!engine || !engine->createDistanceConstraintFunc ||
-		!engine->destroyDistanceConstraintFunc || !firstActor || !firstPosition || !secondActor ||
-		!secondPosition || minDistance < 0.0f || maxDistance < 0.0f || minDistance > maxDistance ||
+		!engine->destroyDistanceConstraintFunc || !firstPosition || !secondPosition ||
+		minDistance < 0.0f || maxDistance < 0.0f || minDistance > maxDistance ||
 		limitStiffness < 0.0f || limitDamping < 0.0f || limitDamping > 0.0f)
 	{
 		errno = EINVAL;

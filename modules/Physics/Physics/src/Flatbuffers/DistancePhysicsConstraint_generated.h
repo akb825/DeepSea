@@ -58,10 +58,10 @@ struct DistanceConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_FIRSTACTOR) &&
+           VerifyOffset(verifier, VT_FIRSTACTOR) &&
            verifier.VerifyString(firstActor()) &&
            VerifyFieldRequired<DeepSeaPhysics::Vector3f>(verifier, VT_FIRSTPOSITION, 4) &&
-           VerifyOffsetRequired(verifier, VT_SECONDACTOR) &&
+           VerifyOffset(verifier, VT_SECONDACTOR) &&
            verifier.VerifyString(secondActor()) &&
            VerifyFieldRequired<DeepSeaPhysics::Vector3f>(verifier, VT_SECONDPOSITION, 4) &&
            VerifyField<float>(verifier, VT_MINDISTANCE, 4) &&
@@ -107,9 +107,7 @@ struct DistanceConstraintBuilder {
   ::flatbuffers::Offset<DistanceConstraint> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<DistanceConstraint>(end);
-    fbb_.Required(o, DistanceConstraint::VT_FIRSTACTOR);
     fbb_.Required(o, DistanceConstraint::VT_FIRSTPOSITION);
-    fbb_.Required(o, DistanceConstraint::VT_SECONDACTOR);
     fbb_.Required(o, DistanceConstraint::VT_SECONDPOSITION);
     return o;
   }

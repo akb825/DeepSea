@@ -22,13 +22,13 @@ namespace DeepSeaPhysics;
 table PointConstraint
 {
 	// The name of the first actor used in the constraint.
-	firstActor : string (required);
+	firstActor : string;
 
 	// The position of the constraint relative to the first actor.
 	firstPosition : Vector3f (required);
 
 	// The name of the second actor used in the constraint.
-	secondActor : string (required);
+	secondActor : string;
 
 	// The position of the constraint relative to the second actor.
 	secondPosition : Vector3f (required);
