@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ DS_SCENE_EXPORT const char* const* dsSceneNode_copyItemLists(dsAllocator* alloca
  * In order to support further subclassing, each node should have a
  * xxx_setupParentType(dsSceneNodeType* type) function like so:
  *
- * ```
+ * ```c
  * static dsSceneNodeType mySceneNodeType;
  * const dsSceneNodeType* dsMySceneNode_setupParentType(dsSceneNodeType* type)
  * {
@@ -86,7 +86,7 @@ DS_SCENE_EXPORT const char* const* dsSceneNode_copyItemLists(dsAllocator* alloca
  * The type should be set up in the create function for your node. This guarantees that the parent
  * type for the full hierarchy is initialized before it's ever needed.
  *
- * ```
+ * ```c
  * dsMySceneNode* dsMySceneNode_create(...)
  * {
  *     ...

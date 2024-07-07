@@ -43,6 +43,14 @@ DS_SCENEANIMATION_EXPORT extern const char* const dsSceneAnimationTransformNode_
 DS_SCENEANIMATION_EXPORT const dsSceneNodeType* dsSceneAnimationTransformNode_type(void);
 
 /**
+ * @brief Sets up the parent type for a node type subclassing from dsSceneAnimationTransformNode.
+ * @param type The subclass type for dsSceneAnimationTransformNode.
+ * @return The type parameter or the type for dsSceneAnimationTransformNode if type is NULL.
+ */
+DS_SCENEANIMATION_EXPORT const dsSceneNodeType* dsSceneAnimationTransformNode_setupParentType(
+	dsSceneNodeType* type);
+
+/**
  * @brief Creates an animation transform node.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the node with. This must support freeing memory.
