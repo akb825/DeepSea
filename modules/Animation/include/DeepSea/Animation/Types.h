@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Aaron Barany
+ * Copyright 2022-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -225,6 +225,12 @@ typedef struct dsAnimationNode
 } dsAnimationNode;
 
 /**
+ * @brief Struct for a shared table of node names in an animation tree.
+ * @see dsAnimationTree
+ */
+typedef struct dsAnimationTreeNodeTable dsAnimationTreeNodeTable;
+
+/**
  * @brief Struct describing a tree of nodes transformed for animations.
  * @see dsAnimationBuildNode
  * @see dsAnimationJointBuildNode
@@ -284,7 +290,7 @@ typedef struct dsAnimationTree
 	/**
 	 * @brief Hash table from name ID to node index.
 	 */
-	const dsHashTable* nodeTable;
+	dsAnimationTreeNodeTable* nodeTable;
 } dsAnimationTree;
 
 /**

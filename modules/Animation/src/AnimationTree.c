@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Aaron Barany
+ * Copyright 2022-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,10 +39,75 @@
 typedef struct NamedHashNode
 {
 	dsHashTableNode node;
+	uint32_t nameID;
 	uint32_t index;
 } NamedHashNode;
 
+struct dsAnimationTreeNodeTable
+{
+	dsAllocator* allocator;
+	dsHashTable* hashTable;
+	NamedHashNode* nodes;
+	uint32_t refCount;
+};
+
 static uint32_t nextID;
+
+static dsAnimationTreeNodeTable* dsAnimationTreeNodeTable_create(dsAllocator* allocator,
+	uint32_t nodeCount)
+{
+	uint32_t tableSize = dsHashTable_tableSize(nodeCount);
+	size_t tableFullSize = dsHashTable_fullAllocSize(tableSize);
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsAnimationTreeNodeTable)) + tableFullSize +
+		DS_ALIGNED_SIZE(sizeof(NamedHashNode)*nodeCount);
+	void* buffer = dsAllocator_alloc(allocator, fullSize);
+	if (!buffer)
+		return NULL;
+
+	dsBufferAllocator bufferAlloc;
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
+
+	dsAnimationTreeNodeTable* table = DS_ALLOCATE_OBJECT(&bufferAlloc, dsAnimationTreeNodeTable);
+	DS_ASSERT(table);
+
+	table->allocator = dsAllocator_keepPointer(allocator);
+	table->hashTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, tableFullSize);
+	DS_ASSERT(table->hashTable);
+	DS_VERIFY(dsHashTable_initialize(table->hashTable, tableSize, &dsHashIdentity, &dsHash32Equal));
+
+	table->nodes = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, NamedHashNode, nodeCount);
+	DS_ASSERT(table->nodes);
+
+	table->refCount = 1;
+	return table;
+}
+
+static bool dsAnimationTreeNodeTable_insert(dsAnimationTreeNodeTable* table, uint32_t index,
+	uint32_t nameID, const char* name)
+{
+	NamedHashNode* node = table->nodes + table->hashTable->list.length;
+	node->nameID = nameID;
+	node->index = index;
+	if (!dsHashTable_insert(table->hashTable, &node->nameID, (dsHashTableNode*)node, NULL))
+	{
+		DS_LOG_ERROR_F(DS_ANIMATION_LOG_TAG, "Animation tree has multiple nodes named '%s'.", name);
+		errno = EINVAL;
+		return false;
+	}
+	return true;
+}
+
+static dsAnimationTreeNodeTable* dsAnimationTreeNodeTable_addRef(dsAnimationTreeNodeTable* table)
+{
+	DS_ATOMIC_FETCH_ADD32(&table->refCount, 1);
+	return table;
+}
+
+static void dsAnimationTreeNodeTable_freeRef(dsAnimationTreeNodeTable* table)
+{
+	if (DS_ATOMIC_FETCH_ADD32(&table->refCount, -1) == 1 && table->allocator)
+		DS_VERIFY(dsAllocator_free(table->allocator, table));
+}
 
 static size_t fullAllocSizeRec(uint32_t* outNodeCount, const dsAnimationBuildNode* node)
 {
@@ -87,9 +152,6 @@ static size_t fullAllocSize(uint32_t* outNodeCount, const dsAnimationBuildNode* 
 
 	fullSize += DS_ALIGNED_SIZE(sizeof(dsAnimationNode)*(*outNodeCount)) +
 		DS_ALIGNED_SIZE(sizeof(uint32_t)*rootNodeCount);
-
-	fullSize += DS_ALIGNED_SIZE(sizeof(NamedHashNode))*(*outNodeCount) +
-		dsHashTable_fullAllocSize(dsHashTable_tableSize(*outNodeCount));
 	return fullSize;
 }
 
@@ -101,9 +163,7 @@ static size_t fullAllocSizeJoints(uint32_t* outParentNodes, uint32_t* outRootNod
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsAnimationTree)) +
 		DS_ALIGNED_SIZE(sizeof(dsAnimationNode)*nodeCount) +
 		DS_ALIGNED_SIZE(sizeof(dsMatrix44f)*nodeCount) +
-		DS_ALIGNED_SIZE(sizeof(dsAnimationJointTransform)*nodeCount) +
-		DS_ALIGNED_SIZE(sizeof(NamedHashNode))*nodeCount +
-		dsHashTable_fullAllocSize(dsHashTable_tableSize(nodeCount));
+		DS_ALIGNED_SIZE(sizeof(dsAnimationJointTransform)*nodeCount);
 	for (uint32_t i = 0; i < nodeCount; ++i)
 	{
 		const dsAnimationJointBuildNode* node = nodes + i;
@@ -149,7 +209,8 @@ static size_t fullAllocSizeJoints(uint32_t* outParentNodes, uint32_t* outRootNod
 }
 
 static uint32_t buildTreeRec(dsAllocator* allocator, uint32_t* nextIndex, uint32_t parent,
-	const dsAnimationBuildNode* buildNode, dsAnimationNode* nodes, dsHashTable* nodeTable)
+	const dsAnimationBuildNode* buildNode, dsAnimationNode* nodes,
+	dsAnimationTreeNodeTable* nodeTable)
 {
 	uint32_t index = (*nextIndex)++;
 	dsAnimationNode* node = nodes + index;
@@ -177,15 +238,8 @@ static uint32_t buildTreeRec(dsAllocator* allocator, uint32_t* nextIndex, uint32
 	else
 		node->children = NULL;
 
-	NamedHashNode* hashNode = DS_ALLOCATE_OBJECT(allocator, NamedHashNode);
-	DS_ASSERT(hashNode);
-	hashNode->index = index;
-	if (!dsHashTable_insert(nodeTable, &node->nameID, (dsHashTableNode*)hashNode, NULL))
-	{
-		DS_LOG_ERROR_F(DS_ANIMATION_LOG_TAG, "Animation tree has multiple nodes named '%s'.",
-			buildNode->name);
+	if (!dsAnimationTreeNodeTable_insert(nodeTable, index, node->nameID, buildNode->name))
 		return DS_NO_ANIMATION_NODE;
-	}
 
 	return index;
 }
@@ -322,9 +376,16 @@ dsAnimationTree* dsAnimationTree_create(dsAllocator* allocator,
 		return NULL;
 	}
 
+	dsAnimationTreeNodeTable* nodeTable = dsAnimationTreeNodeTable_create(allocator, nodeCount);
+	if (!nodeTable)
+		return NULL;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
+	{
+		dsAnimationTreeNodeTable_freeRef(nodeTable);
 		return NULL;
+	}
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
@@ -336,6 +397,7 @@ dsAnimationTree* dsAnimationTree_create(dsAllocator* allocator,
 	tree->id = DS_ATOMIC_FETCH_ADD32(&nextID, 1);
 	tree->nodeCount = nodeCount;
 	tree->rootNodeCount = rootNodeCount;
+	tree->nodeTable = nodeTable;
 
 	dsAnimationNode* nodes = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsAnimationNode, nodeCount);
 	DS_ASSERT(nodes);
@@ -347,13 +409,6 @@ dsAnimationTree* dsAnimationTree_create(dsAllocator* allocator,
 
 	tree->toNodeLocalSpace = NULL;
 	tree->jointTransforms = NULL;
-
-	uint32_t tableSize = dsHashTable_tableSize(nodeCount);
-	dsHashTable* nodeTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		dsHashTable_fullAllocSize(tableSize));
-	DS_ASSERT(nodeTable);
-	DS_VERIFY(dsHashTable_initialize(nodeTable, tableSize, &dsHashIdentity, &dsHash32Equal));
-	tree->nodeTable = nodeTable;
 
 	uint32_t nextIndex = 0;
 	for (uint32_t i = 0; i < rootNodeCount; ++i)
@@ -390,9 +445,16 @@ dsAnimationTree* dsAnimationTree_createJoints(dsAllocator* allocator,
 		return false;
 	}
 
+	dsAnimationTreeNodeTable* nodeTable = dsAnimationTreeNodeTable_create(allocator, nodeCount);
+	if (!nodeTable)
+		return NULL;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
+	{
+		dsAnimationTreeNodeTable_freeRef(nodeTable);
 		return NULL;
+	}
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
@@ -404,6 +466,7 @@ dsAnimationTree* dsAnimationTree_createJoints(dsAllocator* allocator,
 	tree->id = DS_ATOMIC_FETCH_ADD32(&nextID, 1);
 	tree->nodeCount = nodeCount;
 	tree->rootNodeCount = rootNodeCount;
+	tree->nodeTable = nodeTable;
 
 	dsAnimationNode* treeNodes = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsAnimationNode, nodeCount);
 	DS_ASSERT(treeNodes);
@@ -421,13 +484,6 @@ dsAnimationTree* dsAnimationTree_createJoints(dsAllocator* allocator,
 		dsAnimationJointTransform, nodeCount);
 	DS_ASSERT(jointTransforms);
 	tree->jointTransforms = jointTransforms;
-
-	uint32_t tableSize = dsHashTable_tableSize(nodeCount);
-	dsHashTable* nodeTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		dsHashTable_fullAllocSize(tableSize));
-	DS_ASSERT(nodeTable);
-	DS_VERIFY(dsHashTable_initialize(nodeTable, tableSize, &dsHashIdentity, &dsHash32Equal));
-	tree->nodeTable = nodeTable;
 
 	uint32_t nextRootNodeIndex = 0;
 	for (uint32_t i = 0; i < nodeCount; ++i)
@@ -482,11 +538,8 @@ dsAnimationTree* dsAnimationTree_createJoints(dsAllocator* allocator,
 		NamedHashNode* hashNode = DS_ALLOCATE_OBJECT(&bufferAlloc, NamedHashNode);
 		DS_ASSERT(hashNode);
 		hashNode->index = i;
-		if (!dsHashTable_insert(nodeTable, &treeNode->nameID, (dsHashTableNode*)hashNode, NULL))
+		if (!dsAnimationTreeNodeTable_insert(nodeTable, i, treeNode->nameID, node->name))
 		{
-			DS_LOG_ERROR_F(DS_ANIMATION_LOG_TAG, "Animation tree has multiple nodes named '%s'.",
-				node->name);
-			errno = EINVAL;
 			dsAnimationTree_destroy(tree);
 			return NULL;
 		}
@@ -603,12 +656,9 @@ dsAnimationTree* dsAnimationTree_clone(dsAllocator* allocator, const dsAnimation
 		return NULL;
 	}
 
-	uint32_t tableSize = dsHashTable_tableSize(tree->nodeCount);
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsAnimationTree)) +
 		DS_ALIGNED_SIZE(sizeof(dsAnimationNode)*tree->nodeCount) +
-		DS_ALIGNED_SIZE(sizeof(uint32_t)*tree->rootNodeCount) +
-		DS_ALIGNED_SIZE(sizeof(NamedHashNode))*tree->nodeCount +
-		dsHashTable_fullAllocSize(tableSize);
+		DS_ALIGNED_SIZE(sizeof(uint32_t)*tree->rootNodeCount);
 	for (uint32_t i = 0; i < tree->nodeCount; ++i)
 		fullSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*tree->nodes[i].childCount);
 	if (tree->jointTransforms)
@@ -630,6 +680,7 @@ dsAnimationTree* dsAnimationTree_clone(dsAllocator* allocator, const dsAnimation
 	clone->id = tree->id;
 	clone->nodeCount = tree->nodeCount;
 	clone->rootNodeCount = tree->rootNodeCount;
+	clone->nodeTable = dsAnimationTreeNodeTable_addRef(tree->nodeTable);
 
 	dsAnimationNode* nodeClones =
 		DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsAnimationNode, tree->nodeCount);
@@ -660,12 +711,6 @@ dsAnimationTree* dsAnimationTree_clone(dsAllocator* allocator, const dsAnimation
 	else
 		clone->toNodeLocalSpace = NULL;
 
-	dsHashTable* nodeTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		dsHashTable_fullAllocSize(tableSize));
-	DS_ASSERT(nodeTable);
-	DS_VERIFY(dsHashTable_initialize(nodeTable, tableSize, &dsHashIdentity, &dsHash32Equal));
-	clone->nodeTable = nodeTable;
-
 	for (uint32_t i = 0; i < tree->nodeCount; ++i)
 	{
 		const dsAnimationNode* node = tree->nodes + i;
@@ -678,11 +723,6 @@ dsAnimationTree* dsAnimationTree_clone(dsAllocator* allocator, const dsAnimation
 			nodeClone->children = children;
 			memcpy(children, node->children, sizeof(uint32_t)*node->childCount);
 		}
-
-		NamedHashNode* hashNode = DS_ALLOCATE_OBJECT(&bufferAlloc, NamedHashNode);
-		DS_ASSERT(hashNode);
-		hashNode->index = i;
-		DS_VERIFY(dsHashTable_insert(nodeTable, &node->nameID, (dsHashTableNode*)hashNode, NULL));
 	}
 
 	return clone;
@@ -697,7 +737,7 @@ const dsAnimationNode* dsAnimationTree_findNodeName(const dsAnimationTree* tree,
 	}
 
 	uint32_t nameID = dsHashString(name);
-	NamedHashNode* hashNode = (NamedHashNode*)dsHashTable_find(tree->nodeTable, &nameID);
+	NamedHashNode* hashNode = (NamedHashNode*)dsHashTable_find(tree->nodeTable->hashTable, &nameID);
 	if (!hashNode)
 	{
 		errno = ENOTFOUND;
@@ -715,7 +755,7 @@ const dsAnimationNode* dsAnimationTree_findNodeID(const dsAnimationTree* tree, u
 		return NULL;
 	}
 
-	NamedHashNode* hashNode = (NamedHashNode*)dsHashTable_find(tree->nodeTable, &nameID);
+	NamedHashNode* hashNode = (NamedHashNode*)dsHashTable_find(tree->nodeTable->hashTable, &nameID);
 	if (!hashNode)
 	{
 		errno = ENOTFOUND;
@@ -734,7 +774,7 @@ uint32_t dsAnimationTree_findNodeIndexName(const dsAnimationTree* tree, const ch
 	}
 
 	uint32_t nameID = dsHashString(name);
-	NamedHashNode* hashNode = (NamedHashNode*)dsHashTable_find(tree->nodeTable, &nameID);
+	NamedHashNode* hashNode = (NamedHashNode*)dsHashTable_find(tree->nodeTable->hashTable, &nameID);
 	if (!hashNode)
 	{
 		errno = ENOTFOUND;
@@ -752,7 +792,7 @@ uint32_t dsAnimationTree_findNodeIndexID(const dsAnimationTree* tree, uint32_t n
 		return DS_NO_ANIMATION_NODE;
 	}
 
-	NamedHashNode* hashNode = (NamedHashNode*)dsHashTable_find(tree->nodeTable, &nameID);
+	NamedHashNode* hashNode = (NamedHashNode*)dsHashTable_find(tree->nodeTable->hashTable, &nameID);
 	if (!hashNode)
 	{
 		errno = ENOTFOUND;
@@ -829,6 +869,10 @@ bool dsAnimationTree_updateTransforms(dsAnimationTree* tree)
 
 void dsAnimationTree_destroy(dsAnimationTree* tree)
 {
-	if (tree && tree->allocator)
+	if (!tree)
+		return;
+
+	dsAnimationTreeNodeTable_freeRef(tree->nodeTable);
+	if (tree->allocator)
 		DS_VERIFY(dsAllocator_free(tree->allocator, tree));
 }
