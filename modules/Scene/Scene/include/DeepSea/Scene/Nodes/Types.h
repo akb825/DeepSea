@@ -555,8 +555,7 @@ typedef struct dsSceneItemEntry
  * Each dsSceneNode instance may have multiple dsSceneTreeNode instances associated with it based
  * on how many times it appears when traversing the full scene graph.
  *
- * No members should be modified directly. This type is exposed to allow for efficient querying of
- * the transform and traversal of the structure.
+ * No members should be modified directly unless otherwise stated.
  *
  * @see SceneTreeNode.h
  */
@@ -608,9 +607,19 @@ struct dsSceneTreeNode
 	bool dirty;
 
 	/**
+	 * @brief Whether the parent transform should be ignored.
+	 *
+	 * Specialized node types may set this to true to use baseTransform as-is without using the
+	 * parent transform.
+	 */
+	bool noParentTransform;
+
+	/**
 	 * @brief The base transform for the node.
 	 *
-	 * If non-NULL, this will multiply with the parent transform.
+	 * If non-NULL, this will multiply with the parent transform. This is primarily set by
+	 * dsSceneTransformNode, but may be set by other node types when specialized control over the
+	 * transform is needed.
 	 */
 	const dsMatrix44f* baseTransform;
 

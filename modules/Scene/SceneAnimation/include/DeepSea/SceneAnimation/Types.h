@@ -100,7 +100,7 @@ typedef struct dsSceneAnimationTransformNode
 	/**
 	 * @brief The base node.
 	 */
-	dsSceneTransformNode node;
+	dsSceneNode node;
 
 	/**
 	 * @brief The name of the animation node to take the transform from.

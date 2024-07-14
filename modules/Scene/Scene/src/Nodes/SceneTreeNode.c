@@ -33,7 +33,7 @@ static void updateTransform(dsSceneTreeNode* node)
 {
 	if (node->baseTransform)
 	{
-		if (node->parent)
+		if (node->parent && !node->noParentTransform)
 			dsMatrix44f_affineMul(&node->transform, &node->parent->transform, node->baseTransform);
 		else
 			node->transform = *node->baseTransform;
@@ -42,14 +42,6 @@ static void updateTransform(dsSceneTreeNode* node)
 	{
 		if (node->parent)
 			node->transform = node->parent->transform;
-		else
-			dsMatrix44_identity(node->transform);
-	}
-
-	if (node->parent == NULL)
-	{
-		if (node->node->type == dsSceneTransformNode_type())
-			node->transform = ((dsSceneTransformNode*)node)->transform;
 		else
 			dsMatrix44_identity(node->transform);
 	}
@@ -98,6 +90,7 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child,
 	childTreeNode->childCount = 0;
 	childTreeNode->maxChildren = 0;
 	childTreeNode->dirty = false;
+	childTreeNode->noParentTransform = false;
 	childTreeNode->baseTransform = NULL;
 	if (child->setupTreeNodeFunc)
 		child->setupTreeNodeFunc(child, childTreeNode);

@@ -22,9 +22,6 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 
-#include <DeepSea/Math/Matrix44.h>
-
-#include <DeepSea/Scene/Nodes/SceneTransformNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
 #include <string.h>
@@ -40,12 +37,6 @@ static dsSceneNodeType nodeType;
 const dsSceneNodeType* dsSceneAnimationTransformNode_type(void)
 {
 	return &nodeType;
-}
-
-const dsSceneNodeType* dsSceneAnimationTransformNode_setupParentType(dsSceneNodeType* type)
-{
-	dsSceneNode_setupParentType(&nodeType, dsSceneTransformNode_type());
-	return dsSceneNode_setupParentType(type, &nodeType);
 }
 
 dsSceneAnimationTransformNode* dsSceneAnimationTransformNode_create(dsAllocator* allocator,
@@ -75,15 +66,13 @@ dsSceneAnimationTransformNode* dsSceneAnimationTransformNode_create(dsAllocator*
 	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator,
-			dsSceneAnimationTransformNode_setupParentType(NULL), itemListsCopy, itemListCount,
+			dsSceneAnimationTransformNode_type(), itemListsCopy, itemListCount,
 			&dsSceneAnimationTransformNode_destroy))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, node));
 		return NULL;
 	}
-
-	dsMatrix44_identity(((dsSceneTransformNode*)node)->transform);
 
 	char* nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(nameCopy);
