@@ -99,7 +99,7 @@ static uint64_t dsSceneAnimationList_addNode(dsSceneItemList* itemList, dsSceneN
 			return DS_NO_SCENE_NODE;
 		}
 
-		AnimationEntry* entry = animationList->animationEntries + index;;
+		AnimationEntry* entry = animationList->animationEntries + index;
 		entry->animation = dsAnimation_create(node->allocator, animationNode->nodeMapCache);
 		if (!DS_CHECK_MESSAGE(DS_SCENE_ANIMATION_LOG_TAG, entry->animation != NULL,
 				"dsSceneAnimation_create(node->allocator, animationNode->nodeMapCache)"))

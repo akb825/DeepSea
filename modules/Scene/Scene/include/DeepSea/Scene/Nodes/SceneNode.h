@@ -251,11 +251,27 @@ DS_SCENE_EXPORT void dsSceneNode_freeRef(dsSceneNode* node);
 /**
  * @brief Marks a scene tree node as dirty.
  *
- * This should be called anytime the contents of treeNode->baseTransform change.
+ * This should be called anytime the contents of treeNode->baseTransform changes. This is intended
+ * only be called in very specialized scenarios when the transform is manually manipulated. Due to
+ * this, no error checking is done apart from asserts for performance.
  *
  * @param node The node to mark as dirty.
  */
 DS_SCENE_EXPORT void dsSceneTreeNode_markDirty(dsSceneTreeNode* node);
+
+/**
+ * @brief Gets the current transform for a scene tree node.
+ *
+ * This may be used in situations where the transform may not be fully updated, for example inside
+ * of the preTransformUpdateFunc of a dsSceneItemList. This is intended to only be used in very
+ * specialized circumstances, and as such no error checking is done apart from asserts for
+ * performance.
+ *
+ * @param[out] outTransform The current transform value.
+ * @param node The scene tree node to get the transform for.
+ */
+DS_SCENE_EXPORT void dsSceneTreeNode_getCurrentTransform(dsMatrix44f* outTransform,
+	dsSceneTreeNode* node);
 
 #ifdef __cplusplus
 }

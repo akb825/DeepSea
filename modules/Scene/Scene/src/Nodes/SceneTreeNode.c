@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,9 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+
 #include <DeepSea/Math/Matrix44.h>
+
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneTransformNode.h>
 
@@ -327,6 +329,19 @@ bool dsSceneTreeNode_reparentSubtree(dsSceneNode* node, dsSceneNode* child, dsSc
 	return true;
 }
 
+void dsSceneTreeNode_updateSubtree(dsSceneTreeNode* node)
+{
+	// This may have already been updated by a different subtree.
+	if (!node->dirty)
+		return;
+
+	// Find the top-most dirty node to update from.
+	while (node->parent && node->parent->dirty)
+		node = node->parent;
+
+	updateSubtreeRec(node);
+}
+
 void dsSceneTreeNode_markDirty(dsSceneTreeNode* node)
 {
 	DS_ASSERT(node);
@@ -343,15 +358,16 @@ void dsSceneTreeNode_markDirty(dsSceneTreeNode* node)
 	}
 }
 
-void dsSceneTreeNode_updateSubtree(dsSceneTreeNode* node)
+void dsSceneTreeNode_getCurrentTransform(dsMatrix44f* outTransform, dsSceneTreeNode* node)
 {
-	// This may have already been updated by a different subtree.
-	if (!node->dirty)
-		return;
+	DS_ASSERT(outTransform);
+	DS_ASSERT(node);
 
-	// Find the top-most dirty node to update from.
-	while (node->parent && node->parent->dirty)
+	dsMatrix44_identity(*outTransform);
+	while (node && !node->noParentTransform)
+	{
+		if (node->baseTransform)
+			dsMatrix44f_affineMul(outTransform, node->baseTransform, outTransform);
 		node = node->parent;
-
-	updateSubtreeRec(node);
+	}
 }
