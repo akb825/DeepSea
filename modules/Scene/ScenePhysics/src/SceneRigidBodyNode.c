@@ -67,16 +67,14 @@ dsSceneRigidBodyNode* dsSceneRigidBodyNode_create(dsAllocator* allocator, const 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
-	dsSceneRigidBodyNode* node = DS_ALLOCATE_OBJECT(&bufferAlloc,
-		dsSceneRigidBodyNode);
+	dsSceneRigidBodyNode* node = DS_ALLOCATE_OBJECT(&bufferAlloc, dsSceneRigidBodyNode);
 
 	const char* const* itemListsCopy = dsSceneNode_copyItemLists((dsAllocator*)&bufferAlloc,
 		itemLists, itemListCount);
 	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
-	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator,
-			dsSceneRigidBodyNode_type(), itemListsCopy, itemListCount,
-			&dsSceneRigidBodyNode_destroy))
+	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneRigidBodyNode_type(),
+			itemListsCopy, itemListCount, &dsSceneRigidBodyNode_destroy))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, node));

@@ -92,6 +92,8 @@ typedef struct dsScenePhysicsConstraint
 /**
  * @brief Struct describing a node that synchronizes the transform with a rigid body.
  *
+ * None of the members should be modified directly.
+ *
  * @see SceneRigidBodyNode.h
  */
 typedef struct dsSceneRigidBodyNode
@@ -105,7 +107,7 @@ typedef struct dsSceneRigidBodyNode
 	 * @brief The name of the rigid body to manage.
 	 *
 	 * This will be set when dynamically getting the rigid body from a parent
-	 * dsScenePhysicsInstanceNode.
+	 * dsSceneRigidBodyGroupNode.
 	 */
 	const char* rigidBodyName;
 
@@ -121,6 +123,90 @@ typedef struct dsSceneRigidBodyNode
 	 */
 	dsRigidBody* rigidBody;
 } dsSceneRigidBodyNode;
+
+/**
+ * @brief Struct describiing a rigid body template with a name.
+ *
+ * This is used when initializing a dsSceneRigidBodyGroupNode with its component rigid bodies.
+ *
+ * @see dsSceneRigidBodyGroupNode
+ * @see SceneRigidBodyGroupNode.h
+ */
+typedef struct dsNamedSceneRigidBodyTemplate
+{
+	/**
+	 * @brief The name of the rigid body.
+	 */
+	const char* name;
+
+	/**
+	 * @brief The rigid body template.
+	 *
+	 * This will be used to create the rigid bodies when instantiated in the scene graph.
+	 */
+	dsRigidBodyTemplate* rigidBodyTemplate;
+
+	/**
+	 * @brief Whether to transfer ownership to the node.
+	 *
+	 * If true the rigid body template will be deleted even if node creation failed.
+	 */
+	bool transferOwnership;
+} dsNamedSceneRigidBodyTemplate;
+
+/**
+ * @brief Struct describiing a physics constraint with a name.
+ *
+ * This is used when initializing a dsSceneRigidBodyGroupNode with its component constraints.
+ *
+ * @see dsSceneRigidBodyGroupNode
+ * @see SceneRigidBodyGroupNode.h
+ */
+typedef struct dsNamedScenePhysicsConstraint
+{
+	/**
+	 * @brief The name of the rigid body.
+	 */
+	const char* name;
+
+	/**
+	 * @brief The constraint.
+	 *
+	 * This will be cloned when instantiated in the scene graph.
+	 */
+	dsPhysicsConstraint* constraint;
+
+	/**
+	 * @brief The name of the first rigid body on the constraint.
+	 *
+	 * If NULL the rigid body originally set on the constraint will be used.
+	 */
+	const char* firstRigidBody;
+
+	/**
+	 * @brief The name of the second rigid body on the constraint.
+	 *
+	 * If NULL the rigid body originally set on the constraint will be used.
+	 */
+	const char* secondRigidBody;
+
+	/**
+	 * @brief Whether to transfer ownership to the node.
+	 *
+	 * If true the constraint will be deleted even if node creation failed.
+	 */
+	bool transferOwnership;
+} dsNamedScenePhysicsConstraint;
+
+/**
+ * @brief Struct describing a ndoe that holds rigid bodies and constraints for a sub-graph.
+ *
+ * dsSceneRigidBodyNode instances below this in the scene graph hierarchy may reference rigid bodies
+ * by name.
+ *
+ * @see SceneRigidBodyGroupNode.h
+ */
+typedef struct dsSceneRigidBodyGroupNode dsSceneRigidBodyGroupNode;
 
 #ifdef __cplusplus
 }

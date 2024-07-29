@@ -43,7 +43,7 @@ DS_SCENEPHYSICS_EXPORT extern const char* const dsSceneRigidBodyNode_typeName;
 DS_SCENEPHYSICS_EXPORT const dsSceneNodeType* dsSceneRigidBodyNode_type(void);
 
 /**
- * @brief Creates an rigid body node.
+ * @brief Creates a rigid body node.
  *
  * Only one of rigidBodyName or rigidBody should be set.
  *
@@ -53,8 +53,8 @@ DS_SCENEPHYSICS_EXPORT const dsSceneNodeType* dsSceneRigidBodyNode_type(void);
  *     dynamically getting the rigid body from a parent dsScenePhysicsInstanceNode.
  * @param rigidBody The rigid body to get the transform from. This will be set when the node can
  *     only be instantiated once from a rigid body.
- * @param itemLists The list of item list names that will be used to draw and process the node.
- *     These will be copied.
+ * @param itemLists The list of item list names that will be used to process the node. These will be
+ *     copied.
  * @param itemListCount The number of item lists.
  * @return The rigid body node or NULL if an error occurred.
  */
