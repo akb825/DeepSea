@@ -66,31 +66,34 @@ enum class MotionType : uint8_t {
   Static = 0,
   Kinematic = 1,
   Dynamic = 2,
+  Unknown = 3,
   MIN = Static,
-  MAX = Dynamic
+  MAX = Unknown
 };
 
-inline const MotionType (&EnumValuesMotionType())[3] {
+inline const MotionType (&EnumValuesMotionType())[4] {
   static const MotionType values[] = {
     MotionType::Static,
     MotionType::Kinematic,
-    MotionType::Dynamic
+    MotionType::Dynamic,
+    MotionType::Unknown
   };
   return values;
 }
 
 inline const char * const *EnumNamesMotionType() {
-  static const char * const names[4] = {
+  static const char * const names[5] = {
     "Static",
     "Kinematic",
     "Dynamic",
+    "Unknown",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameMotionType(MotionType e) {
-  if (::flatbuffers::IsOutRange(e, MotionType::Static, MotionType::Dynamic)) return "";
+  if (::flatbuffers::IsOutRange(e, MotionType::Static, MotionType::Unknown)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesMotionType()[index];
 }

@@ -30,8 +30,9 @@ bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit,
 	const dsVector3f* position, dsQuaternion4f* orientation, const dsVector3f* scale,
 	float friction, float restitution, float hardness)
 {
-	if (!rigidBodyInit || friction < 0 || restitution < 0 || restitution > 1 || hardness < 0 ||
-		hardness > 1)
+	if (!rigidBodyInit || motionType < dsPhysicsMotionType_Static ||
+		motionType > dsPhysicsMotionType_Dynamic || friction < 0 || restitution < 0 ||
+		restitution > 1 || hardness < 0 || hardness > 1)
 	{
 		errno = EINVAL;
 		return false;
@@ -96,18 +97,25 @@ bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit,
 }
 
 bool dsRigidBodyInit_initializeGroup(dsRigidBodyInit* rigidBodyInit,
-	dsRigidBodyGroup* group, dsRigidBodyFlags flags, dsPhysicsLayer layer,
-	const dsVector3f* position, dsQuaternion4f* orientation, const dsVector3f* scale,
-	float friction, float restitution, float hardness)
+	dsRigidBodyGroup* group, dsRigidBodyFlags flags, dsPhysicsMotionType motionType,
+	dsPhysicsLayer layer, const dsVector3f* position, dsQuaternion4f* orientation,
+	const dsVector3f* scale, float friction, float restitution, float hardness)
 {
-	if (!rigidBodyInit || !group)
+	if (!rigidBodyInit || !group || (group->motionType == dsPhysicsMotionType_Unknown &&
+			(motionType < dsPhysicsMotionType_Static ||
+			motionType > dsPhysicsMotionType_Dynamic)) ||
+		(group->motionType != dsPhysicsMotionType_Unknown && motionType != group->motionType &&
+			motionType != dsPhysicsMotionType_Unknown))
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	if (!dsRigidBodyInit_initialize(rigidBodyInit, flags, group->motionType, layer, position,
-			orientation, scale, friction, restitution, hardness))
+	if (motionType == dsPhysicsMotionType_Unknown)
+		motionType = group->motionType;
+
+	if (!dsRigidBodyInit_initialize(rigidBodyInit, flags, motionType, layer, position, orientation,
+			scale, friction, restitution, hardness))
 	{
 		return false;
 	}
@@ -121,11 +129,20 @@ bool dsRigidBodyInit_isValid(const dsRigidBodyInit* rigidBodyInit)
 	if (!rigidBodyInit)
 		return false;
 
+	// Must be a valid motion type.
+	if (rigidBodyInit->motionType < dsPhysicsMotionType_Static ||
+		rigidBodyInit->motionType > dsPhysicsMotionType_Dynamic)
+	{
+		return false;
+	}
+
 	if (rigidBodyInit->group)
 	{
-		// Must share the same motion type with the group and not allow changing motion type.
-		if ((rigidBodyInit->flags & dsRigidBodyFlags_MutableMotionType) ||
-			rigidBodyInit->group->motionType != rigidBodyInit->motionType)
+		// Unless the group is unkown motion type, must share the same motion type with the group
+		// and not allow changing motion type.
+		if (rigidBodyInit->group->motionType != dsPhysicsMotionType_Unknown &&
+			((rigidBodyInit->flags & dsRigidBodyFlags_MutableMotionType) ||
+				rigidBodyInit->group->motionType != rigidBodyInit->motionType))
 		{
 			return false;
 		}

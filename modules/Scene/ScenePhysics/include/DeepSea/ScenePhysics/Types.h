@@ -184,11 +184,25 @@ typedef struct dsNamedScenePhysicsConstraint
 	const char* firstRigidBody;
 
 	/**
+	 * @brief The name of the first connected constraint.
+	 *
+	 * If NULL the connected constraint originally set on the constraint will be used.
+	 */
+	const char* firstConnectedConstraint;
+
+	/**
 	 * @brief The name of the second rigid body on the constraint.
 	 *
 	 * If NULL the rigid body originally set on the constraint will be used.
 	 */
 	const char* secondRigidBody;
+
+	/**
+	 * @brief The name of the second connected constraint.
+	 *
+	 * If NULL the connected constraint originally set on the constraint will be used.
+	 */
+	const char* secondConnectedConstraint;
 
 	/**
 	 * @brief Whether to transfer ownership to the node.

@@ -16,6 +16,8 @@
 
 #include <DeepSea/ScenePhysics/SceneRigidBodyGroupNode.h>
 
+#include "SceneRigidBodyGroupNodeData.h"
+
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/HashTable.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -30,36 +32,9 @@
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
+#include <DeepSea/ScenePhysics/ScenePhysicsList.h>
+
 #include <string.h>
-
-typedef struct RigidBodyNode
-{
-	dsHashTableNode node;
-	uint32_t nameID;
-	uint32_t index;
-	bool owned;
-	dsRigidBodyTemplate* rigidBody;
-} RigidBodyNode;
-
-typedef struct ConstraintNode
-{
-	dsHashTableNode node;
-	uint32_t nameID;
-	uint32_t index;
-	bool owned;
-	uint32_t firstRigidBodyID;
-	uint32_t secondRigidBodyID;
-	dsPhysicsConstraint* constraint;
-} ConstraintNode;
-
-struct dsSceneRigidBodyGroupNode
-{
-	dsSceneNode node;
-	uint32_t rigidBodyCount;
-	uint32_t constraintCount;
-	dsHashTable* rigidBodies;
-	dsHashTable* constraints;
-};
 
 static void cleanup(const dsNamedSceneRigidBodyTemplate* rigidBodies, uint32_t rigidBodyCount,
 	const dsNamedScenePhysicsConstraint* constraints, uint32_t constraintCount)
@@ -122,11 +97,12 @@ const dsSceneNodeType* dsSceneRigidBodyGroupNode_type(void)
 }
 
 dsSceneRigidBodyGroupNode* dsSceneRigidBodyGroupNode_create(dsAllocator* allocator,
-	const dsNamedSceneRigidBodyTemplate* rigidBodies, uint32_t rigidBodyCount,
-	const dsNamedScenePhysicsConstraint* constraints, uint32_t constraintCount,
-	const char* const* itemLists, uint32_t itemListCount)
+	dsPhysicsMotionType motionType, const dsNamedSceneRigidBodyTemplate* rigidBodies,
+	uint32_t rigidBodyCount, const dsNamedScenePhysicsConstraint* constraints,
+	uint32_t constraintCount, const char* const* itemLists, uint32_t itemListCount)
 {
-	if (!allocator || !rigidBodies || rigidBodyCount == 0 ||
+	if (!allocator || motionType < dsPhysicsMotionType_Static ||
+		motionType > dsPhysicsMotionType_Unknown || !rigidBodies || rigidBodyCount == 0 ||
 		(!constraints && constraintCount > 0) || (!itemLists && itemListCount > 0))
 	{
 		cleanup(rigidBodies, rigidBodyCount, constraints, constraintCount);
@@ -142,6 +118,18 @@ dsSceneRigidBodyGroupNode* dsSceneRigidBodyGroupNode_create(dsAllocator* allocat
 		const dsNamedSceneRigidBodyTemplate* rigidBody = rigidBodies + i;
 		if (!rigidBody->name || !rigidBody->rigidBodyTemplate)
 		{
+			cleanup(rigidBodies, rigidBodyCount, constraints, constraintCount);
+			errno = EINVAL;
+			return NULL;
+		}
+
+		if (motionType != dsPhysicsMotionType_Unknown &&
+			((rigidBody->rigidBodyTemplate->flags & dsRigidBodyFlags_MutableMotionType) ||
+			rigidBody->rigidBodyTemplate->motionType != motionType))
+		{
+			DS_LOG_ERROR_F(DS_SCENE_PHYSICS_LOG_TAG,
+				"Rigid body '%s' doesn't have compatble motion type for rigid body group node.",
+				rigidBody->name);
 			cleanup(rigidBodies, rigidBodyCount, constraints, constraintCount);
 			errno = EINVAL;
 			return NULL;
@@ -250,8 +238,12 @@ dsSceneRigidBodyGroupNode* dsSceneRigidBodyGroupNode_create(dsAllocator* allocat
 			constraintNode->index = i;
 			constraintNode->firstRigidBodyID =
 				constraint->firstRigidBody ? dsHashString(constraint->firstRigidBody) : 0;
+			constraintNode->firstConnectedConstraintID = constraint->firstConnectedConstraint ?
+				dsHashString(constraint->firstConnectedConstraint) : 0;
 			constraintNode->secondRigidBodyID =
 				constraint->secondRigidBody ? dsHashString(constraint->secondRigidBody) : 0;
+			constraintNode->secondConnectedConstraintID = constraint->secondConnectedConstraint ?
+				dsHashString(constraint->secondConnectedConstraint) : 0;
 			constraintNode->constraint = constraint->constraint;
 			constraintNode->owned = constraint->transferOwnership;
 
@@ -287,10 +279,128 @@ dsSceneRigidBodyGroupNode* dsSceneRigidBodyGroupNode_create(dsAllocator* allocat
 				}
 			}
 		}
+
+		// Check for invalid connected constraints.
+		for (uint32_t i = 0; i < constraintCount; ++i)
+		{
+			const dsNamedScenePhysicsConstraint* constraint = constraints + i;
+			const char* connectedConstraintNames[2] = {constraint->firstConnectedConstraint,
+				constraint->secondConnectedConstraint};
+			for (unsigned int j = 0; j < 2; ++j)
+			{
+				const char* constraintName = connectedConstraintNames[j];
+				uint32_t constraintID = dsHashString(constraintName);
+				ConstraintNode* foundConstraint = (ConstraintNode*)dsHashTable_find(
+					node->constraints, &constraintID);
+				bool error = false;
+				if (!foundConstraint)
+				{
+					DS_LOG_ERROR_F(DS_SCENE_PHYSICS_LOG_TAG, "Connected constraint '%s' not found "
+						"for constraint '%s' for scene rigid body group node.",
+						constraintName, constraint->name);
+					error = true;
+				}
+				else if (foundConstraint->firstConnectedConstraintID ||
+					foundConstraint->secondConnectedConstraintID)
+				{
+					DS_LOG_ERROR_F(DS_SCENE_PHYSICS_LOG_TAG, "Connected constraint '%s' must not "
+						"itself have connected constraints for scene rigid body group node.",
+						constraintName);
+					error = true;
+				}
+
+				if (error)
+				{
+					if (allocator->freeFunc)
+						DS_VERIFY(dsAllocator_free(allocator, node));
+					cleanup(rigidBodies, constraintCount, constraints, constraintCount);
+					errno = EINVAL;
+					return NULL;
+				}
+			}
+		}
 	}
 	else
 		node->constraints = NULL;
 	node->constraintCount = constraintCount;
 
 	return node;
+}
+
+dsRigidBody* dsSceneRigidBodyGroupNode_findRigidBodyForInstanceName(const dsSceneTreeNode* treeNode,
+	const char* name)
+{
+	if (!treeNode || !name)
+		return NULL;
+
+	return dsSceneRigidBodyGroupNode_findRigidBodyForInstanceID(treeNode, dsHashString(name));
+}
+
+dsRigidBody* dsSceneRigidBodyGroupNode_findRigidBodyForInstanceID(const dsSceneTreeNode* treeNode,
+	uint32_t nameID)
+{
+	while (treeNode && !dsSceneNode_isOfType(treeNode->node, dsSceneRigidBodyGroupNode_type()))
+		treeNode = treeNode->parent;
+	if (!treeNode)
+		return NULL;
+
+	dsSceneRigidBodyGroupNode* groupNode = (dsSceneRigidBodyGroupNode*)treeNode->node;
+	const dsSceneNodeItemData* itemData = &treeNode->itemData;
+	DS_ASSERT(itemData->count == treeNode->node->itemListCount);
+	for (uint32_t i = 0; i < itemData->count; ++i)
+	{
+		const dsSceneItemList* itemList = treeNode->itemLists[i].list;
+		if (!itemList || itemList->type != dsScenePhysicsList_type())
+			continue;
+
+		RigidBodyNode* foundRigidBody = (RigidBodyNode*)dsHashTable_find(
+			groupNode->rigidBodies, &nameID);
+		if (!foundRigidBody)
+			return NULL;
+
+		dsSceneRigidBodyGroupNodeData* data =
+			(dsSceneRigidBodyGroupNodeData*)itemData->itemData[i].data;
+		return data->rigidBodies[foundRigidBody->index];
+	}
+
+	return NULL;
+}
+
+dsPhysicsConstraint* dsSceneRigidBodyGroupNode_findConstraintForInstanceName(
+	const dsSceneTreeNode* treeNode, const char* name)
+{
+	if (!treeNode || !name)
+		return NULL;
+
+	return dsSceneRigidBodyGroupNode_findConstraintForInstanceID(treeNode, dsHashString(name));
+}
+
+dsPhysicsConstraint* dsSceneRigidBodyGroupNode_findConstraintForInstanceID(
+	const dsSceneTreeNode* treeNode, uint32_t nameID)
+{
+	while (treeNode && !dsSceneNode_isOfType(treeNode->node, dsSceneRigidBodyGroupNode_type()))
+		treeNode = treeNode->parent;
+	if (!treeNode)
+		return NULL;
+
+	dsSceneRigidBodyGroupNode* groupNode = (dsSceneRigidBodyGroupNode*)treeNode->node;
+	const dsSceneNodeItemData* itemData = &treeNode->itemData;
+	DS_ASSERT(itemData->count == treeNode->node->itemListCount);
+	for (uint32_t i = 0; i < itemData->count; ++i)
+	{
+		const dsSceneItemList* itemList = treeNode->itemLists[i].list;
+		if (!itemList || itemList->type != dsScenePhysicsList_type())
+			continue;
+
+		ConstraintNode* foundConstraint = (ConstraintNode*)dsHashTable_find(
+			groupNode->constraints, &nameID);
+		if (!foundConstraint)
+			return NULL;
+
+		dsSceneRigidBodyGroupNodeData* data =
+			(dsSceneRigidBodyGroupNodeData*)itemData->itemData[i].data;
+		return data->constraints[foundConstraint->index];
+	}
+
+	return NULL;
 }

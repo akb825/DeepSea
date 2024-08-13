@@ -69,6 +69,9 @@ DS_PHYSICS_EXPORT bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit
  * @param group The group the rigid body will be a member of. The rigid body group must live longer
  *     than the rigid body. This must not be associated with a scene on rigid body creation.
  * @param flags The flags for the rigid body.
+ * @param motionType The motion type of the rigid body. If the group's motion type is
+ *    dsPhysicsMotionType_Unknown this will be used, otherwise it must either be the same as the
+ *    group's motion type or dsPhysicsMotionType_Unknown.
  * @param layer The layer the rigid body will be associated with.
  * @param position The position of the rigid body or NULL if at the origin.
  * @param orientation The orientation of the rigid body or NULL if not rotated.
@@ -82,9 +85,9 @@ DS_PHYSICS_EXPORT bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit
  * @return False if the parameters are invalid.
  */
 DS_PHYSICS_EXPORT bool dsRigidBodyInit_initializeGroup(dsRigidBodyInit* rigidBodyInit,
-	dsRigidBodyGroup* group, dsRigidBodyFlags flags, dsPhysicsLayer layer,
-	const dsVector3f* position, dsQuaternion4f* orientation, const dsVector3f* scale,
-	float friction, float restitution, float hardness);
+	dsRigidBodyGroup* group, dsRigidBodyFlags flags, dsPhysicsMotionType motionType,
+	dsPhysicsLayer layer, const dsVector3f* position, dsQuaternion4f* orientation,
+	const dsVector3f* scale, float friction, float restitution, float hardness);
 
 /**
  * @brief Checks whether a rigid body initialization object is valid.

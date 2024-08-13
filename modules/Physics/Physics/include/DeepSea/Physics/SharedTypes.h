@@ -98,7 +98,13 @@ typedef enum dsPhysicsMotionType
 	/**
 	 * Object that will be moved based on the physics simulation with the various forces applied.
 	 */
-	dsPhysicsMotionType_Dynamic
+	dsPhysicsMotionType_Dynamic,
+
+	/**
+	 * The motion type is unknown. This is only valid for a dsRigidBodyGroup, in which case the
+	 * group may contain multiple motion types.
+	 */
+	dsPhysicsMotionType_Unknown
 } dsPhysicsMotionType;
 
 /// @cond

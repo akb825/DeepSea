@@ -37,11 +37,13 @@ extern "C"
  * @param engine The physics engine to create the rigid body group with.
  * @param allocator The allocator to create the rigid body group with. This must support freeing
  *     memory.
- * @param motionType The motion type for the rigid bodies created with the group.
+ * @param motionType The motion type for the rigid bodies created with the group. This may be set to
+ *     dsPhysicsMotionType_Unknown to allow for any motion type for component rigid bodies, but
+ *     having a consistent motion type may be more efficient for some implementations.
  * @return The rigid body group or NULL if it couldn't be created.
  */
-dsRigidBodyGroup* dsRigidBodyGroup_create(dsPhysicsEngine* engine, dsAllocator* allocator,
-	dsPhysicsMotionType motionType);
+DS_PHYSICS_EXPORT dsRigidBodyGroup* dsRigidBodyGroup_create(dsPhysicsEngine* engine,
+	dsAllocator* allocator, dsPhysicsMotionType motionType);
 
 /**
  * @brief Destroys a rigid body group.
@@ -53,7 +55,7 @@ dsRigidBodyGroup* dsRigidBodyGroup_create(dsPhysicsEngine* engine, dsAllocator* 
  * @param group The rigid body group to destroy.
  * @return False if the rigid body group couldn't be destroyed.
  */
-bool dsRigidBodyGroup_destroy(dsRigidBodyGroup* group);
+DS_PHYSICS_EXPORT bool dsRigidBodyGroup_destroy(dsRigidBodyGroup* group);
 
 #ifdef __cplusplus
 }

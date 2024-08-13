@@ -121,8 +121,9 @@ dsRigidBodyTemplate* dsRigidBodyTemplate_create(dsPhysicsEngine* engine, dsAlloc
 	dsRigidBodyFlags flags, dsPhysicsMotionType motionType, dsPhysicsLayer layer,
 	float friction, float restitution, float hardness, uint32_t shapeCount)
 {
-	if (!engine || friction < 0 || restitution < 0 || restitution > 1 || hardness < 0 ||
-		hardness > 1)
+	if (!engine || motionType < dsPhysicsMotionType_Static ||
+		motionType > dsPhysicsMotionType_Dynamic || friction < 0 || restitution < 0 ||
+		restitution > 1 || hardness < 0 || hardness > 1)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -410,7 +411,9 @@ dsRigidBody* dsRigidBodyTemplate_instantiate(const dsRigidBodyTemplate* rigidBod
 	dsRigidBodyGroup* group, const dsVector3f* position, dsQuaternion4f* orientation,
 	const dsVector3f* scale, const dsVector3f* linearVelocity, const dsVector3f* angularVelocity)
 {
-	if (!rigidBodyTemplate || !rigidBodyTemplate->engine)
+	if (!rigidBodyTemplate || !rigidBodyTemplate->engine ||
+		(group && group->motionType != dsPhysicsMotionType_Unknown &&
+			rigidBodyTemplate->motionType != group->motionType))
 	{
 		if (destroyUserDataFunc)
 			destroyUserDataFunc(userData);

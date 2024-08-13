@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,10 @@
 
 #include <DeepSea/ScenePhysics/ScenePhysicsList.h>
 
+#include "SceneRigidBodyGroupNodeData.h"
+
 #include <DeepSea/Core/Containers/Hash.h>
+#include <DeepSea/Core/Containers/HashTable.h>
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
@@ -30,10 +33,15 @@
 #include <DeepSea/Physics/RigidBody.h>
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+#include <DeepSea/Scene/Nodes/SceneNodeItemData.h>
 
 #include <DeepSea/ScenePhysics/SceneRigidBodyNode.h>
+#include <DeepSea/ScenePhysics/SceneRigidBodyGroupNode.h>
 
+#include <limits.h>
 #include <string.h>
+
+#define MIN_GROUP_ENTRY_ID (ULLONG_MAX/2)
 
 typedef struct RigidBodyEntry
 {
@@ -48,6 +56,14 @@ typedef struct RigidBodyEntry
 	uint64_t nodeID;
 } RigidBodyEntry;
 
+typedef struct RigidBodyGroupEntry
+{
+	const dsSceneRigidBodyGroupNode* groupNode;
+	dsSceneTreeNode* treeNode;
+	dsSceneRigidBodyGroupNodeData* data;
+	uint64_t nodeID;
+} RigidBodyGroupEntry;
+
 typedef struct dsScenePhysicsList
 {
 	dsSceneItemList itemList;
@@ -59,6 +75,11 @@ typedef struct dsScenePhysicsList
 	uint32_t rigidBodyEntryCount;
 	uint32_t maxRigidBodyEntries;
 	uint64_t nextRigidBodyNodeID;
+
+	RigidBodyGroupEntry* groupEntries;
+	uint32_t groupEntryCount;
+	uint32_t maxGroupEntries;
+	uint64_t nextGroupNodeID;
 } dsScenePhysicsList;
 
 static uint64_t dsScenePhysicsList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
@@ -79,13 +100,14 @@ static uint64_t dsScenePhysicsList_addNode(dsSceneItemList* itemList, dsSceneNod
 		}
 
 		RigidBodyEntry* entry = physicsList->rigidBodyEntries + index;
+		dsRigidBody* rigidBody;
 		if (rigidBodyNode->rigidBody)
 		{
 			dsPhysicsSceneLock lock;
 			DS_VERIFY(dsPhysicsScene_lockWrite(&lock, physicsList->physicsScene));
-			entry->rigidBody = rigidBodyNode->rigidBody;
-			bool added = dsPhysicsScene_addRigidBodies(physicsList->physicsScene, &entry->rigidBody,
-				1, true, &lock);
+			rigidBody = rigidBodyNode->rigidBody;
+			bool added = dsPhysicsScene_addRigidBodies(
+				physicsList->physicsScene, &entry->rigidBody, 1, false, &lock);
 			DS_VERIFY(dsPhysicsScene_unlockWrite(&lock, physicsList->physicsScene));
 			if (!added)
 			{
@@ -95,7 +117,19 @@ static uint64_t dsScenePhysicsList_addNode(dsSceneItemList* itemList, dsSceneNod
 		}
 		else
 		{
-			// TODO: Look up rigid body instance from parent.
+			DS_ASSERT(rigidBodyNode->rigidBodyName);
+
+			// Search for a parent dsSceneRigidBodyGroupNode.
+			rigidBody = dsSceneRigidBodyGroupNode_findRigidBodyForInstanceID(
+				treeNode, rigidBodyNode->rigidBodyID);
+			if (!rigidBody)
+			{
+				DS_LOG_ERROR_F(DS_SCENE_PHYSICS_LOG_TAG,
+					"Rigid body node '%s' not found for scene rigid body node.",
+					rigidBodyNode->rigidBodyName);
+				--physicsList->rigidBodyEntryCount;
+				return DS_NO_SCENE_NODE;
+			}
 		}
 		*thisItemData = entry->rigidBody;
 
@@ -105,13 +139,68 @@ static uint64_t dsScenePhysicsList_addNode(dsSceneItemList* itemList, dsSceneNod
 			treeNode->baseTransform = &entry->transform;
 			treeNode->noParentTransform = true;
 		}
-		entry->prevOrientation = entry->rigidBody->orientation;
-		entry->prevPosition = entry->rigidBody->position;
-		entry->prevScale = entry->rigidBody->scale;
-		entry->prevMotionType = entry->rigidBody->motionType;
-		DS_VERIFY(dsRigidBody_getTransformMatrix(&entry->prevTransform, entry->rigidBody));
+
+		// Set the initial transform based on the current node.
+		dsMatrix44f transform;
+		if (treeNode->parent)
+			dsSceneTreeNode_getCurrentTransform(&transform, treeNode->parent);
+		else
+			dsMatrix44_identity(transform);
+
+		entry->rigidBody = rigidBody;
+		DS_VERIFY(dsRigidBody_setTransformMatrix(rigidBody, &transform, true));
+		entry->prevOrientation = rigidBody->orientation;
+		entry->prevPosition = rigidBody->position;
+		entry->prevScale = rigidBody->scale;
+		entry->prevMotionType = rigidBody->motionType;
+
+		// Extract transform based on components to ensure consistent results when not in motion.
+		DS_VERIFY(dsRigidBody_getTransformMatrix(&entry->transform, entry->rigidBody));
+		entry->prevTransform = entry->transform;
 
 		entry->nodeID = physicsList->nextRigidBodyNodeID++;
+		return entry->nodeID;
+	}
+	else if (dsSceneNode_isOfType(node, dsSceneRigidBodyGroupNode_type()))
+	{
+		const dsSceneRigidBodyGroupNode* groupNode = (const dsSceneRigidBodyGroupNode*)node;
+		uint32_t index = physicsList->rigidBodyEntryCount;
+		if (!DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, physicsList->groupEntries,
+				physicsList->groupEntryCount, physicsList->maxGroupEntries, 1))
+		{
+			return DS_NO_SCENE_NODE;
+		}
+
+		dsSceneRigidBodyGroupNodeData* data = dsSceneRigidBodyGroupNodeData_create(
+			node->allocator, physicsList->physicsScene->engine, groupNode);
+		if (!data)
+		{
+			--physicsList->groupEntryCount;
+			return DS_NO_SCENE_NODE;
+		}
+
+		dsPhysicsSceneLock lock;
+		DS_VERIFY(dsPhysicsScene_lockWrite(&lock, physicsList->physicsScene));
+		// Don't activate rigid bodies yet as the transform will be set for dsRigidBodyNode.
+		bool added = dsPhysicsScene_addRigidBodyGroup(
+			physicsList->physicsScene, data->group, false, &lock);
+		added |= dsPhysicsScene_addConstraints(physicsList->physicsScene,
+			data->constraints, data->constraintCount, true, &lock);
+		DS_VERIFY(dsPhysicsScene_unlockWrite(&lock, physicsList->physicsScene));
+		if (!added)
+		{
+			dsSceneRigidBodyGroupNodeData_destroy(data);
+			--physicsList->groupEntryCount;
+			return DS_NO_SCENE_NODE;
+		}
+
+		*thisItemData = data;
+
+		RigidBodyGroupEntry* entry = physicsList->groupEntries + index;
+		entry->groupNode = groupNode;
+		entry->treeNode = treeNode;
+		entry->data = data;
+		entry->nodeID = physicsList->nextGroupNodeID++;
 		return entry->nodeID;
 	}
 	return DS_NO_SCENE_NODE;
@@ -120,27 +209,53 @@ static uint64_t dsScenePhysicsList_addNode(dsSceneItemList* itemList, dsSceneNod
 static void dsScenePhysicsList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
 {
 	dsScenePhysicsList* physicsList = (dsScenePhysicsList*)itemList;
-	for (uint32_t i = 0; i < physicsList->rigidBodyEntryCount; ++i)
+	if (nodeID < MIN_GROUP_ENTRY_ID)
 	{
-		RigidBodyEntry* entry = physicsList->rigidBodyEntries + i;
-		if (entry->nodeID != nodeID)
-			continue;
-
-		dsSceneRigidBodyNode* node = (dsSceneRigidBodyNode*)entry->treeNode->node;
-		if (entry->rigidBody == node->rigidBody)
+		for (uint32_t i = 0; i < physicsList->rigidBodyEntryCount; ++i)
 		{
+			RigidBodyEntry* entry = physicsList->rigidBodyEntries + i;
+			if (entry->nodeID != nodeID)
+				continue;
+
+			dsSceneRigidBodyNode* node = (dsSceneRigidBodyNode*)entry->treeNode->node;
+			if (entry->rigidBody == node->rigidBody)
+			{
+				dsPhysicsSceneLock lock;
+				DS_VERIFY(dsPhysicsScene_lockWrite(&lock, physicsList->physicsScene));
+				DS_VERIFY(dsPhysicsScene_removeRigidBodies(physicsList->physicsScene,
+					&entry->rigidBody, 1, &lock));
+				DS_VERIFY(dsPhysicsScene_unlockWrite(&lock, physicsList->physicsScene));
+			}
+
+			// Order shouldn't matter, so use constant-time removal.
+			physicsList->rigidBodyEntries[i] =
+				physicsList->rigidBodyEntries[physicsList->rigidBodyEntryCount - 1];
+			--physicsList->rigidBodyEntryCount;
+			break;
+		}
+	}
+	else
+	{
+		for (uint32_t i = 0; i < physicsList->groupEntryCount; ++i)
+		{
+			RigidBodyGroupEntry* entry = physicsList->groupEntries + i;
+			if (entry->nodeID != nodeID)
+				continue;
+
 			dsPhysicsSceneLock lock;
 			DS_VERIFY(dsPhysicsScene_lockWrite(&lock, physicsList->physicsScene));
-			DS_VERIFY(dsPhysicsScene_removeRigidBodies(physicsList->physicsScene, &entry->rigidBody,
-				1, &lock));
+			DS_VERIFY(dsPhysicsScene_removeConstraints(physicsList->physicsScene,
+				entry->data->constraints, entry->data->constraintCount, &lock));
+			DS_VERIFY(dsPhysicsScene_removeRigidBodyGroup(physicsList->physicsScene,
+				entry->data->group, &lock));
 			DS_VERIFY(dsPhysicsScene_unlockWrite(&lock, physicsList->physicsScene));
-		}
 
-		// Order shouldn't matter, so use constant-time removal.
-		physicsList->rigidBodyEntries[i] =
-			physicsList->rigidBodyEntries[physicsList->rigidBodyEntryCount - 1];
-		--physicsList->rigidBodyEntryCount;
-		break;
+			// Order shouldn't matter, so use constant-time removal.
+			physicsList->groupEntries[i] =
+				physicsList->groupEntries[physicsList->groupEntryCount - 1];
+			--physicsList->groupEntryCount;
+			break;
+		}
 	}
 }
 
@@ -171,14 +286,14 @@ static void dsScenePhysicsList_preTransformUpdate(dsSceneItemList* itemList, con
 
 		switch (entry->rigidBody->motionType)
 		{
-			case dsPhysicsMotionType_Static:
+			case dsPhysicsMotionType_Dynamic:
 			{
 				dsMatrix44f transform;
 				dsSceneTreeNode_getCurrentTransform(&transform, entry->treeNode->parent);
 				if (memcmp(&transform, &entry->prevTransform, sizeof(dsMatrix44f)) != 0)
 				{
 					DS_VERIFY(dsRigidBody_setTransformMatrix(entry->rigidBody, &transform, false));
-					entry->prevTransform = transform;
+					entry->transform = entry->prevTransform = transform;
 					entry->prevOrientation = entry->rigidBody->orientation;
 					entry->prevPosition = entry->rigidBody->position;
 					entry->prevScale = entry->rigidBody->scale;
@@ -190,7 +305,8 @@ static void dsScenePhysicsList_preTransformUpdate(dsSceneItemList* itemList, con
 				// TODO: Interpolate for each step.
 				break;
 			}
-			case dsPhysicsMotionType_Dynamic:
+			case dsPhysicsMotionType_Static:
+			case dsPhysicsMotionType_Unknown:
 				break;
 		}
 	}
@@ -211,7 +327,7 @@ static void dsScenePhysicsList_preTransformUpdate(dsSceneItemList* itemList, con
 			memcmp(&entry->rigidBody->scale, &entry->prevScale, sizeof(dsVector3f)) != 0))
 		{
 			DS_VERIFY(dsRigidBody_getTransformMatrix(&entry->transform, entry->rigidBody));
-			entry->prevTransform = entry->transform;
+			entry->transform  = entry->prevTransform = entry->transform;
 			entry->prevOrientation = entry->rigidBody->orientation;
 			entry->prevPosition = entry->rigidBody->position;
 			entry->prevScale = entry->rigidBody->scale;
@@ -224,6 +340,7 @@ static void dsScenePhysicsList_destroy(dsSceneItemList* itemList)
 	dsScenePhysicsList* physicsList = (dsScenePhysicsList*)itemList;
 	dsPhysicsSceneLock lock;
 	DS_VERIFY(dsPhysicsScene_lockWrite(&lock, physicsList->physicsScene));
+
 	for (uint32_t i = 0; i < physicsList->rigidBodyEntryCount; ++i)
 	{
 		RigidBodyEntry* entry = physicsList->rigidBodyEntries + i;
@@ -235,6 +352,19 @@ static void dsScenePhysicsList_destroy(dsSceneItemList* itemList)
 		}
 	}
 	DS_VERIFY(dsAllocator_free(itemList->allocator, physicsList->rigidBodyEntries));
+
+	for (uint32_t i = 0; i < physicsList->groupEntryCount; ++i)
+	{
+		RigidBodyGroupEntry* entry = physicsList->groupEntries + i;
+		DS_VERIFY(dsPhysicsScene_removeConstraints(physicsList->physicsScene,
+			entry->data->constraints, entry->data->constraintCount, &lock));
+		DS_VERIFY(dsPhysicsScene_removeRigidBodyGroup(physicsList->physicsScene,
+			entry->data->group, &lock));
+		dsSceneRigidBodyGroupNodeData_destroy(entry->data);
+	}
+	DS_VERIFY(dsAllocator_free(itemList->allocator, physicsList->groupEntries));
+
+	DS_VERIFY(dsPhysicsScene_unlockWrite(&lock, physicsList->physicsScene));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
 
@@ -294,10 +424,16 @@ dsSceneItemList* dsScenePhysicsList_create(dsAllocator* allocator, const char* n
 
 	physicsList->physicsScene = physicsScene;
 	physicsList->targetStepTime = targetStepTime;
+
 	physicsList->rigidBodyEntries = NULL;
 	physicsList->rigidBodyEntryCount = 0;
 	physicsList->maxRigidBodyEntries = 0;
 	physicsList->nextRigidBodyNodeID = 0;
+
+	physicsList->groupEntries = NULL;
+	physicsList->groupEntryCount = 0;
+	physicsList->maxGroupEntries = 0;
+	physicsList->nextGroupNodeID = MIN_GROUP_ENTRY_ID;
 
 	return itemList;
 }

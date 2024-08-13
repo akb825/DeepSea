@@ -38,6 +38,7 @@
 #include <string.h>
 
 #define MAX_STACK_MASS_PROPERTIES 256
+#define SCALE_EPSILON 1e-5f
 
 static bool hasMassProperties(const dsRigidBody* rigidBody)
 {
@@ -142,18 +143,24 @@ inline static bool getShapeMaterial(dsPhysicsShapePartMaterial* outMaterial,
 	return true;
 }
 
-static bool extractTransformFromMatrix(dsVector3f* outPosition, dsQuaternion4f* outOrientation,
-	dsVector3f* outScale, bool* outHasScale, const dsRigidBody* rigidBody,
-	const dsMatrix44f* transform)
+bool dsRigidBody_extractTransformFromMatrix(dsVector3f* outPosition, dsQuaternion4f* outOrientation,
+	dsVector3f* outScale, bool* outHasScale, const dsMatrix44f* transform, dsRigidBodyFlags flags,
+	const dsPhysicsShapeInstance* shapes, uint32_t shapeCount)
 {
+	if (!outPosition || !outOrientation || !outScale || !outHasScale || !transform ||
+		(!shapes && shapeCount > 0))
+	{
+		errno = EINVAL;
+		return false;
+	}
+
 	outScale->x = dsVector3f_len((const dsVector3f*)transform->columns);
 	outScale->y = dsVector3f_len((const dsVector3f*)(transform->columns + 1));
 	outScale->z = dsVector3f_len((const dsVector3f*)(transform->columns + 2));
 
-	const float scaleEpsilon = 1e-5f;
 	dsVector3f one = {{1.0f, 1.0f, 1.0f}};
-	bool unitScale = dsVector3f_epsilonEqual(outScale, &one, scaleEpsilon);
-	bool scalable = (rigidBody->flags & dsRigidBodyFlags_Scalable) != 0;
+	bool unitScale = dsVector3f_epsilonEqual(outScale, &one, SCALE_EPSILON);
+	bool scalable = (flags & dsRigidBodyFlags_Scalable) != 0;
 	if (unitScale)
 	{
 		*outScale = one; // Avoid unit scales that are slightly off.
@@ -169,17 +176,17 @@ static bool extractTransformFromMatrix(dsVector3f* outPosition, dsQuaternion4f* 
 			return false;
 		}
 
-		if (dsEpsilonEqualf(outScale->x, outScale->y, scaleEpsilon) &&
-			dsEpsilonEqualf(outScale->x, outScale->z, scaleEpsilon))
+		if (dsEpsilonEqualf(outScale->x, outScale->y, SCALE_EPSILON) &&
+			dsEpsilonEqualf(outScale->x, outScale->z, SCALE_EPSILON))
 		{
 			// Avoid uniform scales that are slightly off.
 			outScale->y = outScale->z = outScale->x;
 		}
 		else
 		{
-			for (uint32_t i = 0; i < rigidBody->shapeCount; ++i)
+			for (uint32_t i = 0; i < shapeCount; ++i)
 			{
-				const dsPhysicsShapeInstance* shapeInstance = rigidBody->shapes + i;
+				const dsPhysicsShapeInstance* shapeInstance = shapes + i;
 				if (shapeInstance->hasRotate)
 				{
 					DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
@@ -209,7 +216,7 @@ static bool extractTransformFromMatrix(dsVector3f* outPosition, dsQuaternion4f* 
 	}
 
 	*outPosition = *(const dsVector3f*)(transform->columns + 3);
-	*outHasScale = !dsVector3f_epsilonEqual(outScale, &rigidBody->scale, scaleEpsilon);
+	*outHasScale = !unitScale;
 	return true;
 }
 
@@ -1028,12 +1035,14 @@ bool dsRigidBody_setTransformMatrix(dsRigidBody* rigidBody, const dsMatrix44f* t
 	dsVector3f position, scale;
 	dsQuaternion4f orientation;
 	bool hasScale;
-	if (!extractTransformFromMatrix(
-			&position, &orientation, &scale, &hasScale, rigidBody, transform))
+	if (!dsRigidBody_extractTransformFromMatrix(&position, &orientation, &scale, &hasScale,
+			transform, rigidBody->flags, rigidBody->shapes, rigidBody->shapeCount))
 	{
 		return false;
 	}
 
+	// Check if scale has changed rather than any scale at all.
+	hasScale = !dsVector3f_epsilonEqual(&scale, &rigidBody->scale, SCALE_EPSILON);
 	dsPhysicsEngine* engine = actor->engine;
 	return engine->setRigidBodyTransformFunc(engine, rigidBody, &position, &orientation,
 		hasScale ? &scale : NULL, activate);
@@ -1084,14 +1093,14 @@ bool dsRigidBody_setKinematicTargetMatrix(dsRigidBody* rigidBody, float time,
 	dsVector3f position, scale;
 	dsQuaternion4f orientation;
 	bool hasScale;
-	if (!extractTransformFromMatrix(
-			&position, &orientation, &scale, &hasScale, rigidBody, transform))
+	if (!dsRigidBody_extractTransformFromMatrix(&position, &orientation, &scale, &hasScale,
+			transform, rigidBody->flags, rigidBody->shapes, rigidBody->shapeCount))
 	{
 		return false;
 	}
 
 	dsPhysicsEngine* engine = actor->engine;
-	if (hasScale)
+	if (!dsVector3f_epsilonEqual(&scale, &rigidBody->scale, SCALE_EPSILON))
 		engine->setRigidBodyTransformFunc(engine, rigidBody, NULL, NULL, &scale, false);
 	return engine->setRigidBodyKinematicTargetFunc(
 		engine, rigidBody, time, &position, &orientation);

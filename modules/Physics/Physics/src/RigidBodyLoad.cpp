@@ -122,8 +122,10 @@ dsRigidBody* dsRigidBody_loadImpl(dsPhysicsEngine* engine, dsAllocator* allocato
 	init.destroyUserDataFunc = destroyUserDataFunc;
 	init.group = group;
 	init.flags = static_cast<dsRigidBodyFlags>(fbRigidBody->flags());
-	init.motionType =
-		group ? group->motionType : static_cast<dsPhysicsMotionType>(fbRigidBody->motionType());
+	if (group && group->motionType != dsPhysicsMotionType_Unknown)
+		init.motionType = group->motionType;
+	else
+		init.motionType = static_cast<dsPhysicsMotionType>(fbRigidBody->motionType());
 	init.dofMask = static_cast<dsPhysicsDOFMask>(fbRigidBody->dofMask());
 	init.layer = static_cast<dsPhysicsLayer>(fbRigidBody->layer());
 	init.collisionGroup = fbRigidBody->collisionGroup();

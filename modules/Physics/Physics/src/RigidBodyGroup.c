@@ -25,7 +25,8 @@ dsRigidBodyGroup* dsRigidBodyGroup_create(dsPhysicsEngine* engine, dsAllocator* 
 	dsPhysicsMotionType motionType)
 {
 	if (!engine || !engine->createRigidBodyGroupFunc || !engine->destroyRigidBodyGroupFunc ||
-		!allocator)
+		!allocator || motionType < dsPhysicsMotionType_Static ||
+		motionType > dsPhysicsMotionType_Unknown)
 	{
 		errno = EINVAL;
 		return false;

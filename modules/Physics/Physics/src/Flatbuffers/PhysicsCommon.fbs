@@ -74,7 +74,10 @@ enum MotionType : ubyte
 	// treated as an object with infinite mass and always move dynamic objects away.
 	Kinematic,
 	// Object that will be moved based on the physics simulation with the various forces applied.
-	Dynamic
+	Dynamic,
+	// The motion type is unknown. This is only valid for a RigidBodyGroup, in which case the group
+	// may contain multiple motion types.
+	Unknown
 }
 
 // Enum for a mask of degrees of freedom for physics actors.

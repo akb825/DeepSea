@@ -32,6 +32,24 @@ extern "C"
  */
 
 /**
+ * @brief Extracts the transform components from a matrix.
+ * @remark errno will be set on failure.
+ * @param[out] outPosition The position component of the transform.
+ * @param[out] outOrientation The orientation component of the transform.
+ * @param[out] outScale The scale component of the transform.
+ * @param[out] outHasScale Whether a scale is present in the transform.
+ * @param transform The transofmr matrix to extract the components from.
+ * @param flags The flags for the rigid body.
+ * @param shapes The shapes for the rigid body.
+ * @param shapeCount The number of shapes in the rigid body.
+ * @return Whether the transform is valid for the rigid body flags.
+ */
+DS_PHYSICS_EXPORT bool dsRigidBody_extractTransformFromMatrix(dsVector3f* outPosition,
+	dsQuaternion4f* outOrientation, dsVector3f* outScale, bool* outHasScale,
+	const dsMatrix44f* transform, dsRigidBodyFlags flags, const dsPhysicsShapeInstance* shapes,
+	uint32_t shapeCount);
+
+/**
  * @brief Creates a rigid body.
  * @remark If the rigid body is part of a group, the group must not be added to a scene before
  *    creation.
