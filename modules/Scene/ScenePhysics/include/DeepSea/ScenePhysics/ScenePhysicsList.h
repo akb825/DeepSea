@@ -30,7 +30,7 @@ extern "C"
  * @brief Functions for creating and manipulating scene physics lists.
  *
  * This is responsible for creating the per-instance data for dsRigidBodyNode and updating and
- * managing a dsPhysicsScene.
+ * managing a dsPhysicsScene. There should only be a single physics scene list within a scene.
  */
 
 /**
@@ -50,12 +50,25 @@ DS_SCENEPHYSICS_EXPORT dsSceneItemListType dsScenePhysicsList_type(void);
  * @param allocator The allocator to create the list with. This must support freeing memory.
  * @param name The name of the scene physics list. This will be copied.
  * @param physicsScene The physics scene to manage.
+ * @param takeOwnership Whether to take ownership of the physics scene. If true and creation fails,
+ *     the physics scene will be destroyed immediately.
  * @param targetStepTime The step time that is desired. This will keep each step as close to this
  *     time as possible.
  * @return The scene physics list or NULL if an error occurred.
  */
 DS_SCENEPHYSICS_EXPORT dsSceneItemList* dsScenePhysicsList_create(dsAllocator* allocator,
-	const char* name, dsPhysicsScene* physicsScene, float targetStepTime);
+	const char* name, dsPhysicsScene* physicsScene, bool takeOwnership, float targetStepTime);
+
+/**
+ * @brief Gets a physics scene from a scene.
+ *
+ * This will check for a scene physics list within the scene.
+ *
+ * @remark errno will be set on failure.
+ * @param scene The scene to find the physics scene in.
+ * @return The physics scene or NULL if there isn't one present.
+ */
+DS_SCENEPHYSICS_EXPORT dsPhysicsScene* dsScenePhysicsList_getPhysicsScene(dsScene* scene);
 
 #ifdef __cplusplus
 }
