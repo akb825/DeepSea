@@ -285,6 +285,10 @@ View transform data has the type name "ViewTransformData" and sets standard view
 
 View cull list has the type name "ViewCullList" and performs cull checks for bounding boxes in nodes that derive from `dsSceneCullNode` against the view frustum. The data is ignored and may be omitted.
 
+### User Data List
+
+User data list has the type name "UserDataList" and creates instance data for `dsSceneUserDataNode` nodes. The data is ignored and may be omitted.
+
 ### Model List
 
 Model lists have the type name "ModelList" and define how to draw models that reference it by name. It contains the following members:

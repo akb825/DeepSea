@@ -36,6 +36,7 @@
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneNodeItemData.h>
+#include <DeepSea/Scene/Nodes/SceneUserDataNode.h>
 #include <DeepSea/Scene/Scene.h>
 
 #include <DeepSea/ScenePhysics/SceneRigidBodyNode.h>
@@ -269,8 +270,9 @@ static uint64_t dsScenePhysicsList_addNode(dsSceneItemList* itemList, dsSceneNod
 			return DS_NO_SCENE_NODE;
 		}
 
+		void* userData = dsSceneUserDataNode_getInstanceData(treeNode);
 		dsSceneRigidBodyGroupNodeData* data = dsSceneRigidBodyGroupNodeData_create(
-			node->allocator, physicsList->physicsScene->engine, groupNode);
+			node->allocator, physicsList->physicsScene->engine, groupNode, userData);
 		if (!data)
 		{
 			--physicsList->groupEntryCount;

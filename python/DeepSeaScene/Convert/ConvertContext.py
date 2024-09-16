@@ -1,4 +1,4 @@
-# Copyright 2020-2022 Aaron Barany
+# Copyright 2020-2024 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ from .NodeChildrenConvert import convertNodeChildren
 from .OBJModel import registerOBJModelType
 from .SceneNodeRefConvert import convertReferenceNode
 from .TransformNodeConvert import convertTransformNode
+from .UserDataListConvert import convertUserDataList
 from .ViewCullListConvert import convertViewCullList
 from .ViewMipmapListConvert import convertViewMipmapList
 from .ViewTransformDataConvert import convertViewTransformData
@@ -56,6 +57,7 @@ class ConvertContext:
 		self.itemListTypeMap = {
 			'FullScreenResolve': convertFullScreenResolve,
 			'ModelList': convertModelList,
+			'UserDataList': convertUserDataList,
 			'ViewCullList': convertViewCullList,
 			'ViewMipmapList': convertViewMipmapList,
 			'ViewTransformData': convertViewTransformData

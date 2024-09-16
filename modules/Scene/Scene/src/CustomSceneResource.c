@@ -17,6 +17,8 @@
 #include <DeepSea/Scene/CustomSceneResource.h>
 
 #include "SceneLoadContextInternal.h"
+#include "SceneTypes.h"
+
 #include <DeepSea/Core/Containers/HashTable.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>

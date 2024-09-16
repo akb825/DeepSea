@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include "SceneTypes.h"
+#include <DeepSea/Scene/Types.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -44,6 +44,9 @@ dsSceneItemList* dsSceneFullScreenResolve_load(const dsSceneLoadContext* loadCon
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const char* name, const uint8_t* data, size_t dataSize);
 dsSceneItemList* dsSceneModelList_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const char* name, const uint8_t* data, size_t dataSize);
+dsSceneItemList* dsSceneUserDataList_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const char* name, const uint8_t* data, size_t dataSize);
 dsSceneItemList* dsViewCullList_load(const dsSceneLoadContext* loadContext,

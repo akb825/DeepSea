@@ -36,8 +36,8 @@ size_t dsSceneRigidBodyGroupNodeData_fullAllocSize(const dsSceneRigidBodyGroupNo
 		DS_ALIGNED_SIZE(node->constraintCount*sizeof(dsPhysicsConstraint*));
 }
 
-dsSceneRigidBodyGroupNodeData* dsSceneRigidBodyGroupNodeData_create(
-	dsAllocator* allocator, dsPhysicsEngine* physicsEngine, const dsSceneRigidBodyGroupNode* node)
+dsSceneRigidBodyGroupNodeData* dsSceneRigidBodyGroupNodeData_create(dsAllocator* allocator,
+	dsPhysicsEngine* physicsEngine, const dsSceneRigidBodyGroupNode* node, void* userData)
 {
 	DS_ASSERT(allocator);
 	DS_ASSERT(physicsEngine);
@@ -76,9 +76,8 @@ dsSceneRigidBodyGroupNodeData* dsSceneRigidBodyGroupNodeData_create(
 	{
 		RigidBodyNode* rigidBodyNode = (RigidBodyNode*)iterNode;
 		dsRigidBodyTemplate* rigidBodyTemplate = rigidBodyNode->rigidBody;
-		// TODO: Generalized user data management.
 		dsRigidBody* rigidBody = dsRigidBodyTemplate_instantiate(rigidBodyTemplate,
-			allocator, NULL, NULL, data->group, NULL, NULL, NULL, NULL, NULL);
+			allocator, userData, NULL, data->group, NULL, NULL, NULL, NULL, NULL);
 		if (!rigidBody)
 		{
 			for (uint32_t i = 0; i < data->rigidBodyCount; ++i)

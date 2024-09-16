@@ -63,6 +63,6 @@ typedef struct dsSceneRigidBodyGroupNodeData
 } dsSceneRigidBodyGroupNodeData;
 
 size_t dsSceneRigidBodyGroupNodeData_fullAllocSize(const dsSceneRigidBodyGroupNode* node);
-dsSceneRigidBodyGroupNodeData* dsSceneRigidBodyGroupNodeData_create(
-	dsAllocator* allocator, dsPhysicsEngine* physicsEngine, const dsSceneRigidBodyGroupNode* node);
+dsSceneRigidBodyGroupNodeData* dsSceneRigidBodyGroupNodeData_create(dsAllocator* allocator,
+	dsPhysicsEngine* physicsEngine, const dsSceneRigidBodyGroupNode* node, void* userData);
 void dsSceneRigidBodyGroupNodeData_destroy(dsSceneRigidBodyGroupNodeData* data);

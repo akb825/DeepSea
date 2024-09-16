@@ -69,7 +69,7 @@ DS_SCENEPHYSICS_EXPORT dsSceneRigidBodyNode* dsSceneRigidBodyNode_create(dsAlloc
  * until a dsSceneRigidBodyNode is found. This assumes that the rigid body was created from a
  * dsScenePhysicsList.
  *
- * @param treeNode The tree node to get the animation for.
+ * @param treeNode The tree node to get the rigid body for.
  * @return The rigid body or NULL if there isn't one present.
  */
 DS_SCENEPHYSICS_EXPORT dsRigidBody* dsSceneRigidBodyNode_getRigidBodyForInstance(

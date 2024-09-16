@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,9 @@
 #include <DeepSea/Core/Log.h>
 
 #include <DeepSea/Scene/ItemLists/InstanceTransformData.h>
-#include <DeepSea/Scene/ItemLists/SceneModelList.h>
 #include <DeepSea/Scene/ItemLists/SceneFullScreenResolve.h>
+#include <DeepSea/Scene/ItemLists/SceneModelList.h>
+#include <DeepSea/Scene/ItemLists/SceneUserDataList.h>
 #include <DeepSea/Scene/ItemLists/ViewCullList.h>
 #include <DeepSea/Scene/ItemLists/ViewMipmapList.h>
 #include <DeepSea/Scene/Nodes/SceneModelNode.h>
@@ -88,6 +89,8 @@ dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator, dsRenderer
 		&dsSceneFullScreenResolve_load, NULL, NULL);
 	dsSceneLoadContext_registerItemListType(context, dsSceneModelList_typeName,
 		&dsSceneModelList_load, NULL, NULL);
+	dsSceneLoadContext_registerItemListType(context, dsSceneUserDataList_typeName,
+		&dsSceneUserDataList_load, NULL, NULL);
 	dsSceneLoadContext_registerItemListType(context, dsViewCullList_typeName,
 		&dsViewCullList_load, NULL, NULL);
 	dsSceneLoadContext_registerItemListType(context, dsViewMipmapList_typeName,

@@ -67,6 +67,15 @@ typedef void (*dsDestroySceneNodeFunction)(dsSceneNode* node);
 typedef void (*dsSetupSceneTreeNodeFunction)(dsSceneNode* node, dsSceneTreeNode* treeNode);
 
 /**
+ * @brief Function to create user data for an instance.
+ * @param treeNode The scene tree node for the instance.
+ * @param userData The base user data.
+ * @return The instance user data.
+ */
+typedef void* (*dsCreateSceneInstanceUserDataFunction)(
+	const dsSceneTreeNode* treeNode, void* userData);
+
+/**
  * @brief Struct for a node within a scene graph.
  *
  * Scene nodes are reference counted. They may be referenced multiple times, or even within
@@ -494,6 +503,32 @@ typedef struct dsSceneModelReconfig
 	 */
 	const char* modelList;
 } dsSceneModelReconfig;
+
+/**
+ * @brief Struct defining a node that holds user data.
+ *
+ * This may create unique user data for part of the sub-tree it is a part of when a member of a
+ * dsSceneUserDataList.
+ *
+ * @see SceneUserDataNode.h
+ */
+typedef struct dsSceneUserDataNode
+{
+	/**
+	 * @brief The base node.
+	 */
+	dsSceneNode node;
+
+	/**
+	 * @brief Function to create instance data for each sub-tree.
+	 */
+	dsCreateSceneInstanceUserDataFunction createInstanceDataFunc;
+
+	/**
+	 * @brief Function to destroy the instance data for each sub-tree.
+	 */
+	dsDestroyUserDataFunction destroyInstanceDataFunc;
+} dsSceneUserDataNode;
 
 /**
  * @brief Struct holding data for an item in a scene item list.
