@@ -1,0 +1,70 @@
+/*
+ * Copyright 2024 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
+
+namespace DeepSeaScenePhysics;
+
+// Struct describing a scene item list that manages physics objects.
+table PhysicsList
+{
+	// The maximum number of bodies that are only used for collision and not affected by physics.
+	maxStaticBodoes : uint;
+
+	// The maximum number of bodies that are affected by physics.
+	maxDynamicBodies : uint;
+
+	// The maximum number of groups of bodies that are connected through constraints.
+	maxConstrainedBodyGroups : uint;
+
+	// The maximum number of shapes used by static bodies. If 0 maxStaticBodies will be used.
+	maxStaticShapes : uint = 0;
+
+	// The maximum number of shapes used by dynamic bodies. If 0 maxDynamicBodies will be used.
+	maxDynamicShapes : uint = 0;
+
+	// The maximum number of constraints.
+	maxConstraints : uint;
+
+	// The maximum number of pairs of bodies that may collide.
+	//
+	// The implementation is only guaranteed to process this many pairs of potentially colliding
+	// bodies. If it is exceeded, further collisions may be ignored.
+	//
+	// This should be much larger than the maximum number of contact points as the collision pairs
+	// may not actually touch.
+	maxBodyCollisionPairs : uint;
+
+	// The maximum number of contact points between colliding bodies.
+	//
+	// The implementation is only guaranteed to process this many contacts between bodies. If it is
+	// exceeded, further contacts may be discarded.
+	maxContactPoints : uint;
+
+	// The initial gravity for the scene.
+	gravity : DeepSeaScene.Vector3f (required);
+
+	// Whether modifications may be made across threads.  When false, the locking functions will
+	// become NOPs that only enforce that the proper locking functions are used. This can reduce
+	// overhead when locking isn't required.
+	multiThreadedModifications : bool = false;
+
+	// The step time that is desired when updating the physics list. This will keep each step as
+	// close to this time as possible. Defaults to 1/60 s.
+	targetStepTime : float = 0.01666667;
+}
+
+root_type PhysicsList;

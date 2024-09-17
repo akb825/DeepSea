@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Aaron Barany
+ * Copyright 2020-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@
 #pragma warning(disable: 4244)
 #endif
 
-#include "Flatbuffers/VectorItemList_generated.h"
+#include "Flatbuffers/SceneVectorItemList_generated.h"
 
 #if DS_GCC || DS_CLANG
 #pragma GCC diagnostic pop

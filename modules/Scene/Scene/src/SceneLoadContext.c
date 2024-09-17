@@ -125,6 +125,8 @@ bool dsSceneLoadContext_registerNodeType(dsSceneLoadContext* context, const char
 {
 	if (!context || !name || !loadFunc)
 	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		errno = EINVAL;
 		return false;
 	}
@@ -133,6 +135,8 @@ bool dsSceneLoadContext_registerNodeType(dsSceneLoadContext* context, const char
 	size_t index = hashTable->list.length;
 	if (index >= DS_MAX_SCENE_TYPES)
 	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		errno = ENOMEM;
 		return false;
 	}
@@ -140,9 +144,11 @@ bool dsSceneLoadContext_registerNodeType(dsSceneLoadContext* context, const char
 	size_t nameLength = strlen(name);
 	if (nameLength >= DS_MAX_SCENE_NAME_LENGTH)
 	{
-		errno = EINVAL;
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Node type name '%s' exceeds maximum size of %u.",
 			name, DS_MAX_SCENE_NAME_LENGTH);
+		errno = EINVAL;
 		return false;
 	}
 
@@ -153,8 +159,10 @@ bool dsSceneLoadContext_registerNodeType(dsSceneLoadContext* context, const char
 	nodeType->destroyUserDataFunc = destroyUserDataFunc;
 	if (!dsHashTable_insert(hashTable, nodeType->name, (dsHashTableNode*)nodeType, NULL))
 	{
-		errno = EPERM;
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Node type '%s' has already been registered.", name);
+		errno = EPERM;
 		return false;
 	}
 	return true;
@@ -166,6 +174,8 @@ bool dsSceneLoadContext_registerItemListType(dsSceneLoadContext* context, const 
 {
 	if (!context || !name || !loadFunc)
 	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		errno = EINVAL;
 		return false;
 	}
@@ -174,6 +184,8 @@ bool dsSceneLoadContext_registerItemListType(dsSceneLoadContext* context, const 
 	size_t index = hashTable->list.length;
 	if (index >= DS_MAX_SCENE_TYPES)
 	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		errno = ENOMEM;
 		return false;
 	}
@@ -181,9 +193,11 @@ bool dsSceneLoadContext_registerItemListType(dsSceneLoadContext* context, const 
 	size_t nameLength = strlen(name);
 	if (nameLength >= DS_MAX_SCENE_NAME_LENGTH)
 	{
-		errno = EINVAL;
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Item list type name '%s' exceeds maximum size of %u.",
 			name, DS_MAX_SCENE_NAME_LENGTH);
+		errno = EINVAL;
 		return false;
 	}
 
@@ -194,8 +208,10 @@ bool dsSceneLoadContext_registerItemListType(dsSceneLoadContext* context, const 
 	itemListType->destroyUserDataFunc = destroyUserDataFunc;
 	if (!dsHashTable_insert(hashTable, itemListType->name, (dsHashTableNode*)itemListType, NULL))
 	{
-		errno = EPERM;
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Item list type '%s' has already been registered.", name);
+		errno = EPERM;
 		return false;
 	}
 	return true;
@@ -207,6 +223,8 @@ bool dsSceneLoadContext_registerInstanceDataType(dsSceneLoadContext* context, co
 {
 	if (!context || !name || !loadFunc)
 	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		errno = EINVAL;
 		return false;
 	}
@@ -215,6 +233,8 @@ bool dsSceneLoadContext_registerInstanceDataType(dsSceneLoadContext* context, co
 	size_t index = hashTable->list.length;
 	if (index >= DS_MAX_SCENE_TYPES)
 	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		errno = ENOMEM;
 		return false;
 	}
@@ -222,9 +242,11 @@ bool dsSceneLoadContext_registerInstanceDataType(dsSceneLoadContext* context, co
 	size_t nameLength = strlen(name);
 	if (nameLength >= DS_MAX_SCENE_NAME_LENGTH)
 	{
-		errno = EINVAL;
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Instance data type name '%s' exceeds maximum size of %u.",
 			name, DS_MAX_SCENE_NAME_LENGTH);
+		errno = EINVAL;
 		return false;
 	}
 
@@ -236,9 +258,11 @@ bool dsSceneLoadContext_registerInstanceDataType(dsSceneLoadContext* context, co
 	if (!dsHashTable_insert(hashTable, instanceDataType->name, (dsHashTableNode*)instanceDataType,
 			NULL))
 	{
-		errno = EPERM;
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Instance data type '%s' has already been registered.",
 			name);
+		errno = EPERM;
 		return false;
 	}
 	return true;
@@ -252,6 +276,8 @@ bool dsSceneLoadContext_registerCustomResourceType(dsSceneLoadContext* context,
 {
 	if (!context || !name || !type || !loadFunc)
 	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		errno = EINVAL;
 		return false;
 	}
@@ -260,6 +286,8 @@ bool dsSceneLoadContext_registerCustomResourceType(dsSceneLoadContext* context,
 	size_t index = hashTable->list.length;
 	if (index >= DS_MAX_SCENE_TYPES)
 	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		errno = ENOMEM;
 		return false;
 	}
@@ -267,10 +295,12 @@ bool dsSceneLoadContext_registerCustomResourceType(dsSceneLoadContext* context,
 	size_t nameLength = strlen(name);
 	if (nameLength >= DS_MAX_SCENE_NAME_LENGTH)
 	{
-		errno = EINVAL;
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
 			"Custom scene resource type name '%s' exceeds maximum size of %u.", name,
 			DS_MAX_SCENE_NAME_LENGTH);
+		errno = EINVAL;
 		return false;
 	}
 
@@ -285,9 +315,11 @@ bool dsSceneLoadContext_registerCustomResourceType(dsSceneLoadContext* context,
 	if (!dsHashTable_insert(hashTable, customResourceType->name,
 			(dsHashTableNode*)customResourceType, NULL))
 	{
-		errno = EPERM;
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
 			"Custom scene resource type '%s' has already been registered.", name);
+		errno = EPERM;
 		return false;
 	}
 	return true;
@@ -313,6 +345,8 @@ bool dsSceneLoadContext_registerResourceActionType(dsSceneLoadContext* context,
 {
 	if (!context || !name || !loadFunc)
 	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		errno = EINVAL;
 		return false;
 	}
@@ -321,6 +355,8 @@ bool dsSceneLoadContext_registerResourceActionType(dsSceneLoadContext* context,
 	size_t index = hashTable->list.length;
 	if (index >= DS_MAX_SCENE_TYPES)
 	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		errno = ENOMEM;
 		return false;
 	}
@@ -328,10 +364,12 @@ bool dsSceneLoadContext_registerResourceActionType(dsSceneLoadContext* context,
 	size_t nameLength = strlen(name);
 	if (nameLength >= DS_MAX_SCENE_NAME_LENGTH)
 	{
-		errno = EINVAL;
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
 			"Scene resource action type name '%s' exceeds maximum size of %u.", name,
 			DS_MAX_SCENE_NAME_LENGTH);
+		errno = EINVAL;
 		return false;
 	}
 
@@ -344,9 +382,11 @@ bool dsSceneLoadContext_registerResourceActionType(dsSceneLoadContext* context,
 	if (!dsHashTable_insert(hashTable, resourceActionType->name,
 			(dsHashTableNode*)resourceActionType, NULL))
 	{
-		errno = EPERM;
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
 		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
 			"Scene resource action type '%s' has already been registered.", name);
+		errno = EPERM;
 		return false;
 	}
 	return true;

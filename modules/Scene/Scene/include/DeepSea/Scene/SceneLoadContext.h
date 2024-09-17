@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,8 @@ DS_SCENE_EXPORT dsRenderer* dsSceneLoadContext_getRenderer(const dsSceneLoadCont
  * @param loadFunc The function to call to perform the load.
  * @param userData The user data associated with the type. Any modifications made to this should be
  *     thread-safe if the same dsSceneLoadContext is used across multiple threads. This may be NULL.
- * @param destroyUserDataFunc The function to destroy the user data. This may be NULL.
+ * @param destroyUserDataFunc The function to destroy the user data. This may be NULL. This will be
+ *     called if registration fails.
  * @return False if the type couldn't be registered.
  */
 DS_SCENE_EXPORT bool dsSceneLoadContext_registerNodeType(dsSceneLoadContext* context,
@@ -101,7 +102,8 @@ DS_SCENE_EXPORT bool dsSceneLoadContext_registerNodeType(dsSceneLoadContext* con
  * @param loadFunc The function to call to perform the load.
  * @param userData The user data associated with the type. Any modifications made to this should be
  *     thread-safe if the same dsSceneLoadContext is used across multiple threads. This may be NULL.
- * @param destroyUserDataFunc The function to destroy the user data. This may be NULL.
+ * @param destroyUserDataFunc The function to destroy the user data. This may be NULL. This will be
+ *     called if registration fails.
  * @return False if the type couldn't be registered.
  */
 DS_SCENE_EXPORT bool dsSceneLoadContext_registerItemListType(dsSceneLoadContext* context,
@@ -123,7 +125,8 @@ DS_SCENE_EXPORT bool dsSceneLoadContext_registerItemListType(dsSceneLoadContext*
  * @param loadFunc The function to call to perform the load.
  * @param userData The user data associated with the type. Any modifications made to this should be
  *     thread-safe if the same dsSceneLoadContext is used across multiple threads. This may be NULL.
- * @param destroyUserDataFunc The function to destroy the user data. This may be NULL.
+ * @param destroyUserDataFunc The function to destroy the user data. This may be NULL. This will be
+ *     called if registration fails.
  * @return False if the type couldn't be registered.
  */
 DS_SCENE_EXPORT bool dsSceneLoadContext_registerInstanceDataType(dsSceneLoadContext* context,
@@ -147,7 +150,8 @@ DS_SCENE_EXPORT bool dsSceneLoadContext_registerInstanceDataType(dsSceneLoadCont
  * @param destroyResourceFunc The function to destroy resources of this type.
  * @param userData The user data associated with the type. Any modifications made to this should be
  *     thread-safe if the same dsSceneLoadContext is used across multiple threads. This may be NULL.
- * @param destroyUserDataFunc The function to destroy the user data. This may be NULL.
+ * @param destroyUserDataFunc The function to destroy the user data. This may be NULL. This will be
+ *     called if registration fails.
  * @param additionalResources The number of additional resources that will be added by the custom
  *     resource on load.
  * @return False if the type couldn't be registered.

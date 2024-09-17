@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,8 +98,8 @@ static bool destroySceneText(void* text)
 	return true;
 }
 
-bool dsSceneVectorDrawLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAllocator* allocator,
-	dsCommandBuffer* commandBuffer, const dsTextQuality* qualityRemap,
+bool dsSceneVectorDrawLoadConext_registerTypes(dsSceneLoadContext* loadContext,
+	dsAllocator* allocator, dsCommandBuffer* commandBuffer, const dsTextQuality* qualityRemap,
 	const dsTextSubstitutionTable* substitutionTable,
 	const dsSceneTextRenderBufferInfo* textRenderInfo, float pixelSize)
 {
@@ -131,7 +131,6 @@ bool dsSceneVectorDrawLoadConext_registerTypes(dsSceneLoadContext* loadContext, 
 				(dsDestroyCustomSceneResourceFunction)&dsVectorResources_destroy, userData,
 				&VectorResourcesUserData_destroy, 1))
 		{
-			VectorResourcesUserData_destroy(userData);
 			return false;
 		}
 	}
@@ -177,7 +176,6 @@ bool dsSceneVectorDrawLoadConext_registerTypes(dsSceneLoadContext* loadContext, 
 				dsSceneText_typeName, dsSceneText_type(), &dsSceneText_load, destroySceneText,
 				userData, &SceneTextUserData_destroy, 0))
 		{
-			SceneTextUserData_destroy(userData);
 			return false;
 		}
 	}
@@ -204,7 +202,6 @@ bool dsSceneVectorDrawLoadConext_registerTypes(dsSceneLoadContext* loadContext, 
 				(dsDestroyCustomSceneResourceFunction)&dsVectorImage_destroy,
 				userData, &SceneVectorImageUserData_destroy, 0))
 		{
-			SceneVectorImageUserData_destroy(userData);
 			return false;
 		}
 	}
