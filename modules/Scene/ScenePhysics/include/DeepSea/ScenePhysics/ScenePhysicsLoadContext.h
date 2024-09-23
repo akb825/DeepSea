@@ -35,17 +35,21 @@ extern "C"
  * @brief Registers the scene physics types for loading.
  * @remark errno will be set on failure.
  * @param loadContext The load context to register the types with.
- * @param allocator The allocator to use for extra data used for registration.
+ * @param allocator The allocator to use for physics objects. If NULL the physics engine's allocator
+ *     will be used.
  * @param physicsEngine The physics engine to create physics resources with.
  * @param takeOwnership Whether to take ownership of the physics engine. If true and creation fails,
  *     the physics engine will be destroyed immediately.
  * @param threadPool The thread pool to use when processing physics scenes, or NULL to process
  *     single-threaded.
+ * @param canCollisionGroupsCollideFunc Function to check whether two collision groups can collide.
+ *     If NULL all collision groups can colide.
  * @return False if not all of the types could be registered.
  */
 DS_SCENEPHYSICS_EXPORT bool dsScenePhysicsLoadConext_registerTypes(
 	dsSceneLoadContext* loadContext, dsAllocator* allocator, dsPhysicsEngine* physicsEngine,
-	bool takeOwnership, dsThreadPool* threadPool);
+	bool takeOwnership, dsThreadPool* threadPool,
+	dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc);
 
 #ifdef __cplusplus
 }

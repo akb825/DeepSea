@@ -25,9 +25,14 @@ extern "C"
 {
 #endif
 
-dsSceneItemList* dsScenePhysicsList_load(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const char* name, const uint8_t* data, size_t dataSize);
+typedef struct dsScenePhysicsLoadData
+{
+	dsAllocator* allocator;
+	dsPhysicsEngine* engine;
+	dsThreadPool* threadPool;
+	dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc;
+	bool ownsEngine;
+} dsScenePhysicsLoadData;
 
 #ifdef __cplusplus
 }

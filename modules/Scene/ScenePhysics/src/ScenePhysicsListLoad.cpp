@@ -16,6 +16,8 @@
 
 #include "ScenePhysicsListLoad.h"
 
+#include "ScenePhysicsTypes.h"
+
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -70,7 +72,7 @@ dsSceneItemList* dsScenePhysicsList_load(const dsSceneLoadContext* loadContext,
 	settings.gravity = DeepSeaScene::convert(*fbPhysicsList->gravity());
 	settings.multiThreadedModifications = fbPhysicsList->multiThreadedModifications();
 
-	dsScenePhysicsListData* listData = (dsScenePhysicsListData*)userData;
+	dsScenePhysicsLoadData* listData = (dsScenePhysicsLoadData*)userData;
 	dsPhysicsScene* physicsScene = dsPhysicsScene_create(
 		listData->engine, allocator, &settings, listData->threadPool);
 	if (!physicsScene)
