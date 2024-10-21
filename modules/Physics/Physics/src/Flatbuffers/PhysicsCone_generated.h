@@ -13,7 +13,7 @@ static_assert(FLATBUFFERS_VERSION_MAJOR == 24 &&
               FLATBUFFERS_VERSION_REVISION == 25,
              "Non-compatible flatbuffers version included");
 
-#include "PhysicsCommon_generated.h"
+#include "DeepSea/Physics/Flatbuffers/PhysicsCommon_generated.h"
 
 namespace DeepSeaPhysics {
 

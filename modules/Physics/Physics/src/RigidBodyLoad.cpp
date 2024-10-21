@@ -16,7 +16,6 @@
 
 #include "RigidBodyLoad.h"
 
-#include "Flatbuffers/PhysicsFlatbufferHelpers.h"
 #include "Shapes/PhysicsShapeLoad.h"
 
 #include <DeepSea/Core/Error.h>
@@ -24,6 +23,7 @@
 
 #include <DeepSea/Math/Quaternion.h>
 
+#include <DeepSea/Physics/Flatbuffers/PhysicsFlatbufferHelpers.h>
 #include <DeepSea/Physics/Shapes/PhysicsShape.h>
 #include <DeepSea/Physics/RigidBody.h>
 
@@ -121,13 +121,13 @@ dsRigidBody* dsRigidBody_loadImpl(dsPhysicsEngine* engine, dsAllocator* allocato
 	init.userData = userData;
 	init.destroyUserDataFunc = destroyUserDataFunc;
 	init.group = group;
-	init.flags = static_cast<dsRigidBodyFlags>(fbRigidBody->flags());
+	init.flags = DeepSeaPhysics::convert(fbRigidBody->flags());
 	if (group && group->motionType != dsPhysicsMotionType_Unknown)
 		init.motionType = group->motionType;
 	else
-		init.motionType = static_cast<dsPhysicsMotionType>(fbRigidBody->motionType());
-	init.dofMask = static_cast<dsPhysicsDOFMask>(fbRigidBody->dofMask());
-	init.layer = static_cast<dsPhysicsLayer>(fbRigidBody->layer());
+		init.motionType = DeepSeaPhysics::convert(fbRigidBody->motionType());
+	init.dofMask = DeepSeaPhysics::convert(fbRigidBody->dofMask());
+	init.layer = DeepSeaPhysics::convert(fbRigidBody->layer());
 	init.collisionGroup = fbRigidBody->collisionGroup();
 	init.canCollisionGroupsCollideFunc = canCollisionGroupsCollideFunc;
 

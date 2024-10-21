@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-include "DeepSea/Physics/Flatbuffers/PhysicsCommon.fbs";
+#include <DeepSea/Core/Config.h>
+#include <DeepSea/ScenePhysics/Types.h>
 
-namespace DeepSeaPhysics;
-
-// Struct defining a cone used as a physics shape.
-table Cone
+#ifdef __cplusplus
+extern "C"
 {
-	// The height of the cone.
-	height : float;
+#endif
 
-	// The radius of the cone.
-	radius : float;
+dsSceneNode* dsSceneRigidBodyGroupNode_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const uint8_t* data, size_t dataSize);
 
-	// The axis the cone is aligned with.
-	axis : Axis;
-
-	// The convex radius for collision checks. A value < 0 will use the default.
-	convexRadius : float = -1;
+#ifdef __cplusplus
 }
+#endif

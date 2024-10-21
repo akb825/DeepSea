@@ -16,7 +16,6 @@
 
 #include "Constraints/PhysicsConstraintLoad.h"
 
-#include "Flatbuffers/PhysicsFlatbufferHelpers.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Error.h>
@@ -32,6 +31,7 @@
 #include <DeepSea/Physics/Constraints/RevolutePhysicsConstraint.h>
 #include <DeepSea/Physics/Constraints/SliderPhysicsConstraint.h>
 #include <DeepSea/Physics/Constraints/SwingTwistPhysicsConstraint.h>
+#include <DeepSea/Physics/Flatbuffers/PhysicsFlatbufferHelpers.h>
 
 #if DS_GCC || DS_CLANG
 #pragma GCC diagnostic push

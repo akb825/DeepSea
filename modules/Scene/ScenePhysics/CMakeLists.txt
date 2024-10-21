@@ -6,7 +6,8 @@ ds_install_library(TARGET deepsea_scene_physics MODULE ScenePhysics DEPENDS Scen
 
 ds_convert_flatbuffers(generatedFlatbuffers FILE ${flatbuffers}
 	DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/Flatbuffers
-	INCLUDE ${DEEPSEA_MODULE_DIR}/Scene/Scene/include ${CMAKE_CURRENT_SOURCE_DIR}/include
+	INCLUDE ${DEEPSEA_MODULE_DIR}/Scene/Scene/include ${DEEPSEA_MODULE_DIR}/Physics/Physics/include
+		${CMAKE_CURRENT_SOURCE_DIR}/include
 	PYTHON ${DEEPSEA_SOURCE_DIR}/python)
 ds_convert_flatbuffers_target(deepsea_scene_physics_flatbuffers generatedFlatbuffers)
 add_dependencies(deepsea_scene_physics deepsea_scene_physics_flatbuffers)

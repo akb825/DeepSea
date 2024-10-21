@@ -16,7 +16,7 @@
 
 include "PhysicsBox.fbs";
 include "PhysicsCapsule.fbs";
-include "PhysicsCommon.fbs";
+include "DeepSea/Physics/Flatbuffers/PhysicsCommon.fbs";
 include "PhysicsCone.fbs";
 include "PhysicsConvexHull.fbs";
 include "PhysicsCylinder.fbs";

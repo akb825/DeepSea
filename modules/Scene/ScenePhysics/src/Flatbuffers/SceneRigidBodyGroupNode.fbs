@@ -16,20 +16,22 @@
 
 include "DeepSea/Physics/Flatbuffers/PhysicsCommon.fbs";
 
-namespace DeepSeaPhysics;
+namespace DeepSeaScenePhysics;
 
-// Struct defining a cone used as a physics shape.
-table Cone
+// Struct describing a node that groups together multiple rigid bodies and constraints.
+table RigidBodyGroupNode
 {
-	// The height of the cone.
-	height : float;
+	// The motion type of the rigid bodies within the rigid body group.
+	motionType : DeepSeaPhysics.MotionType;
 
-	// The radius of the cone.
-	radius : float;
+	// The names of the rigid body templates in the group.
+	rigidBodyTemplates : [string];
 
-	// The axis the cone is aligned with.
-	axis : Axis;
+	// The names of the constraints in the group.
+	constraints : [string];
 
-	// The convex radius for collision checks. A value < 0 will use the default.
-	convexRadius : float = -1;
+	// The item lists to process the node with.
+	itemLists : [string];
 }
+
+root_type RigidBodyGroupNode;

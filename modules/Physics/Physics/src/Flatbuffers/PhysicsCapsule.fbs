@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-include "PhysicsCommon.fbs";
+include "DeepSea/Physics/Flatbuffers/PhysicsCommon.fbs";
 
 namespace DeepSeaPhysics;
 

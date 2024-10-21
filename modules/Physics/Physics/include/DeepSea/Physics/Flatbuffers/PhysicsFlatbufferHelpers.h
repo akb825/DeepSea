@@ -31,7 +31,7 @@
 #pragma warning(disable: 4244)
 #endif
 
-#include "Flatbuffers/PhysicsCommon_generated.h"
+#include <DeepSea/Physics/Flatbuffers/PhysicsCommon_generated.h>
 
 #if DS_GCC || DS_CLANG
 #pragma GCC diagnostic pop
@@ -39,14 +39,29 @@
 #pragma warning(pop)
 #endif
 
+/**
+ * @file
+ * @brief Helper functions for working with Physics flatbuffer types.
+ */
+
 namespace DeepSeaPhysics
 {
 
+/**
+ * @brief Converts from a flatbuffer Vector3f to a dsVector3f.
+ * @param vector The vector to convert.
+ * @return The converted vector.
+ */
 inline const dsVector3f& convert(const Vector3f& vector)
 {
 	return reinterpret_cast<const dsVector3f&>(vector);
 }
 
+/**
+ * @brief Converts from a flatbuffer Quaternion4f to a dsQuaternion4f.
+ * @param quaternion The quaternion to convert.
+ * @return The converted quaternion.
+ */
 inline dsQuaternion4f convert(const Quaternion4f& quaternion)
 {
 	// Avoid unaligned access.
@@ -54,16 +69,31 @@ inline dsQuaternion4f convert(const Quaternion4f& quaternion)
 	return value;
 }
 
+/**
+ * @brief Converts from a flatbuffer Matrix33f to a dsMatrix33f.
+ * @param matrix The matr9x to convert.
+ * @return The converted matrix.
+ */
 inline const dsMatrix33f& convert(const Matrix33f& matrix)
 {
 	return reinterpret_cast<const dsMatrix33f&>(matrix);
 }
 
+/**
+ * @brief Converts from a flatbuffer Axis to a dsPhysicsAxis.
+ * @param axis The axis to convert.
+ * @return The converted axis.
+ */
 inline dsPhysicsAxis convert(Axis axis)
 {
 	return static_cast<dsPhysicsAxis>(axis);
 }
 
+/**
+ * @brief Converts from a flatbuffer ShapePartMaterial to a dsPhysicsShapePartMaterial.
+ * @param material The shape part material to convert.
+ * @return The converted shape part material.
+ */
 inline dsPhysicsShapePartMaterial convert(const ShapePartMaterial& material)
 {
 	dsPhysicsShapePartMaterial value =
@@ -71,6 +101,51 @@ inline dsPhysicsShapePartMaterial convert(const ShapePartMaterial& material)
 	return value;
 }
 
+/**
+ * @brief Converts from a flatbuffer MotionType to a dsPhysicsMotionType.
+ * @param motionType The motion type to convert.
+ * @return The converted motion type.
+ */
+inline dsPhysicsMotionType convert(MotionType motionType)
+{
+	return static_cast<dsPhysicsMotionType>(motionType);
+}
+
+/**
+ * @brief Converts from a flatbuffer DOFMask to a dsPhysicsDOFMask.
+ * @param mask The DOF mask to convert.
+ * @return The converted DOF mask.
+ */
+inline dsPhysicsDOFMask convert(DOFMask mask)
+{
+	return static_cast<dsPhysicsDOFMask>(mask);
+}
+
+/**
+ * @brief Converts from a flatbuffer PhysicsLayer to a dsPhysicsLayer.
+ * @param layer The physics layer to convert.
+ * @return The converted physics layer.
+ */
+inline dsPhysicsLayer convert(PhysicsLayer layer)
+{
+	return static_cast<dsPhysicsLayer>(layer);
+}
+
+/**
+ * @brief Converts from a flatbuffer RigidBodyFlags to a dsRigidBodyFlags.
+ * @param flags The rigid body flags to convert.
+ * @return The converted physics rigid body flags.
+ */
+inline dsRigidBodyFlags convert(RigidBodyFlags flags)
+{
+	return static_cast<dsRigidBodyFlags>(flags);
+}
+
+/**
+ * @brief Converts from a flatbuffer MassProperties to a dsPhysicsMassProperties.
+ * @param massProperties The mass properties to convert.
+ * @return The converted mass properties.
+ */
 inline dsPhysicsMassProperties convert(const MassProperties& massProperties)
 {
 	dsPhysicsMassProperties value;

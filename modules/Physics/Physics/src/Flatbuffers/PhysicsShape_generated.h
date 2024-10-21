@@ -13,9 +13,9 @@ static_assert(FLATBUFFERS_VERSION_MAJOR == 24 &&
               FLATBUFFERS_VERSION_REVISION == 25,
              "Non-compatible flatbuffers version included");
 
+#include "DeepSea/Physics/Flatbuffers/PhysicsCommon_generated.h"
 #include "PhysicsBox_generated.h"
 #include "PhysicsCapsule_generated.h"
-#include "PhysicsCommon_generated.h"
 #include "PhysicsCone_generated.h"
 #include "PhysicsConvexHull_generated.h"
 #include "PhysicsCylinder_generated.h"

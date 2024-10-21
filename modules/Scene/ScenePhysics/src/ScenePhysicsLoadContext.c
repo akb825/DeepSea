@@ -2,6 +2,7 @@
 
 #include "ScenePhysicsListLoad.h"
 #include "ScenePhysicsTypes.h"
+#include "SceneRigidBodyGroupNodeLoad.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -20,6 +21,7 @@
 #include <DeepSea/ScenePhysics/ScenePhysicsList.h>
 #include <DeepSea/ScenePhysics/ScenePhysicsShape.h>
 #include <DeepSea/ScenePhysics/SceneRigidBody.h>
+#include <DeepSea/ScenePhysics/SceneRigidBodyGroupNode.h>
 #include <DeepSea/ScenePhysics/SceneRigidBodyTemplate.h>
 
 static dsPhysicsShape* findShape(dsPhysicsEngine* engine, void* userData, const char* name)
@@ -218,6 +220,12 @@ bool dsScenePhysicsLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsA
 			dsScenePhysicsConstraint_typeName, dsScenePhysicsConstraint_type(),
 			&dsScenePhysicsConstraint_load,
 			(dsDestroyCustomSceneResourceFunction)&dsPhysicsConstraint_destroy, loadData, NULL, 0))
+	{
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerNodeType(loadContext, dsSceneRigidBodyGroupNode_typeName,
+			&dsSceneRigidBodyGroupNode_load, NULL, NULL))
 	{
 		return false;
 	}

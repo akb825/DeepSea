@@ -16,7 +16,6 @@
 
 #include "RigidBodyTemplateLoad.h"
 
-#include "Flatbuffers/PhysicsFlatbufferHelpers.h"
 #include "Shapes/PhysicsShapeLoad.h"
 
 #include <DeepSea/Core/Error.h>
@@ -24,6 +23,7 @@
 
 #include <DeepSea/Math/Quaternion.h>
 
+#include <DeepSea/Physics/Flatbuffers/PhysicsFlatbufferHelpers.h>
 #include <DeepSea/Physics/Shapes/PhysicsShape.h>
 #include <DeepSea/Physics/RigidBodyTemplate.h>
 
@@ -90,9 +90,9 @@ dsRigidBodyTemplate* dsRigidBodyTemplate_loadImpl(dsPhysicsEngine* engine, dsAll
 	}
 
 	dsRigidBodyTemplate* rigidBodyTemplate = dsRigidBodyTemplate_create(engine, allocator,
-		static_cast<dsRigidBodyFlags>(fbTemplate->flags()),
-		static_cast<dsPhysicsMotionType>(fbTemplate->motionType()),
-		static_cast<dsPhysicsLayer>(fbTemplate->layer()), fbTemplate->friction(),
+		DeepSeaPhysics::convert(fbTemplate->flags()),
+		DeepSeaPhysics::convert(fbTemplate->motionType()),
+		DeepSeaPhysics::convert(fbTemplate->layer()), fbTemplate->friction(),
 		fbTemplate->restitution(), fbTemplate->hardness(), fbShapes ? fbShapes->size() : 0);
 	if (!rigidBodyTemplate)
 		return nullptr;

@@ -16,13 +16,12 @@
 
 #include "Shapes/PhysicsShapeLoad.h"
 
-#include "Flatbuffers/PhysicsFlatbufferHelpers.h"
-
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
+#include <DeepSea/Physics/Flatbuffers/PhysicsFlatbufferHelpers.h>
 #include <DeepSea/Physics/Shapes/PhysicsBox.h>
 #include <DeepSea/Physics/Shapes/PhysicsCapsule.h>
 #include <DeepSea/Physics/Shapes/PhysicsCone.h>

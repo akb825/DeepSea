@@ -84,8 +84,8 @@ dsSceneNode* dsSceneAnimationNode_load(const dsSceneLoadContext* loadContext,
 			auto fbItemList = (*fbItemLists)[i];
 			if (!fbItemList)
 			{
-				errno = EFORMAT;
 				DS_LOG_ERROR(DS_SCENE_ANIMATION_LOG_TAG, "Animation node item list name is null.");
+				errno = EFORMAT;
 				return nullptr;
 			}
 
