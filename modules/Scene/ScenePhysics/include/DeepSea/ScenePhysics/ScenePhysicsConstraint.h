@@ -45,23 +45,24 @@ DS_SCENEPHYSICS_EXPORT const dsCustomSceneResourceType* dsScenePhysicsConstraint
  * @brief Creates a scene physics constraint.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the scene constraint.
- * @param constraint The base physics constraint. This will take ownership of the constraint.
- * @param firstRigidBodyInstanceName The instance name for the first rigid body, or NULL to use what
- *     exists in the base constraint.
- * @param firstConnectedConstraintInstanceName The instance name for the constraint for the first
- *     actor that is related to this constraint, or NULL to use what exists in the base constraint.
- *     This will be copied if not NULL.
- * @param secondRigidBodyInstanceName The instance name for the second rigid body, or NULL to use
- *     what exists in the base constraint. This will be copied if not NULL.
- * @param secondConnectedConstraintInstanceName The instance name for the constraint for the second
- *     actor that is related to this constraint, or NULL to use what exists in the base constraint.
- *     This will be copied if not NULL.
+ * @param constraint The base physics constraint. This will take ownership of the constraint,
+ *     and destroy it immediately if creation fails.
+ * @param firstRigidBody The name for the first rigid body, or NULL to use what exists in the base
+ *     constraint.
+ * @param firstConnectedConstraint The name for the constraint for the first actor that is related
+ *     to this constraint, or NULL to use what exists in the base constraint. This will be copied if
+ *     not NULL.
+ * @param secondRigidBody The name for the second rigid body, or NULL to use what exists in the base
+ *     constraint. This will be copied if not NULL.
+ * @param secondConnectedConstraint The name for the constraint for the second actor that is related
+ *     to this constraint, or NULL to use what exists in the base constraint. This will be copied if
+ *     not NULL.
  * @return The scene constraint or NULL if an error occurred.
  */
 DS_SCENEPHYSICS_EXPORT dsScenePhysicsConstraint* dsScenePhysicsConstraint_create(
-	dsAllocator* allocator, dsPhysicsConstraint* constraint, const char* firstRigidBodyInstanceName,
-	const char* firstConnectedConstraintInstanceName, const char* secondRigidBodyInstanceName,
-	const char* secondConnectedConstraintInstanceName);
+	dsAllocator* allocator, dsPhysicsConstraint* constraint, const char* firstRigidBody,
+	const char* firstConnectedConstraint, const char* secondRigidBody,
+	const char* secondConnectedConstraint);
 
 /**
  * @brief Destroys a scene physics constraint.

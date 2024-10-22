@@ -33,33 +33,37 @@ const dsCustomSceneResourceType* dsScenePhysicsConstraint_type(void)
 }
 
 dsScenePhysicsConstraint* dsScenePhysicsConstraint_create(dsAllocator* allocator,
-	dsPhysicsConstraint* constraint, const char* firstRigidBodyInstanceName,
-	const char* firstConnectedConstraintInstanceName, const char* secondRigidBodyInstanceName,
-	const char* secondConnectedConstraintInstanceName)
+	dsPhysicsConstraint* constraint, const char* firstRigidBodyInstance,
+	const char* firstConnectedConstraintInstance, const char* secondRigidBodyInstance,
+	const char* secondConnectedConstraintInstance)
 {
 	if (!allocator || !constraint)
 	{
 		errno = EINVAL;
+		dsPhysicsConstraint_destroy(constraint);
 		return NULL;
 	}
 
-	size_t firstRigidBodyInstanceNameLen =
-		firstRigidBodyInstanceName ? strlen(firstRigidBodyInstanceName) + 1 : 0;
-	size_t firstConnectedConstraintInstanceNameLen =
-		firstConnectedConstraintInstanceName ? strlen(firstConnectedConstraintInstanceName) + 1 : 0;
-	size_t secondRigidBodyInstanceNameLen =
-		secondRigidBodyInstanceName ? strlen(secondRigidBodyInstanceName) + 1 : 0;
-	size_t secondConnectedConstraintInstanceNameLen = secondConnectedConstraintInstanceName ?
-		strlen(secondConnectedConstraintInstanceName) + 1 : 0;
+	size_t firstRigidBodyInstanceLen =
+		firstRigidBodyInstance ? strlen(firstRigidBodyInstance) + 1 : 0;
+	size_t firstConnectedConstraintInstanceLen =
+		firstConnectedConstraintInstance ? strlen(firstConnectedConstraintInstance) + 1 : 0;
+	size_t secondRigidBodyInstanceLen =
+		secondRigidBodyInstance ? strlen(secondRigidBodyInstance) + 1 : 0;
+	size_t secondConnectedConstraintInstanceLen = secondConnectedConstraintInstance ?
+		strlen(secondConnectedConstraintInstance) + 1 : 0;
 
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsScenePhysicsConstraint)) +
-		DS_ALIGNED_SIZE(firstRigidBodyInstanceNameLen) +
-		DS_ALIGNED_SIZE(firstConnectedConstraintInstanceNameLen) +
-		DS_ALIGNED_SIZE(secondRigidBodyInstanceNameLen) +
-		DS_ALIGNED_SIZE(secondConnectedConstraintInstanceNameLen);
+		DS_ALIGNED_SIZE(firstRigidBodyInstanceLen) +
+		DS_ALIGNED_SIZE(firstConnectedConstraintInstanceLen) +
+		DS_ALIGNED_SIZE(secondRigidBodyInstanceLen) +
+		DS_ALIGNED_SIZE(secondConnectedConstraintInstanceLen);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
+	{
+		dsPhysicsConstraint_destroy(constraint);
 		return NULL;
+	}
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
@@ -71,49 +75,48 @@ dsScenePhysicsConstraint* dsScenePhysicsConstraint_create(dsAllocator* allocator
 	sceneConstraint->constraint = constraint;
 
 	char* nameCopy;
-	if (firstRigidBodyInstanceName)
+	if (firstRigidBodyInstance)
 	{
-		nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, firstRigidBodyInstanceNameLen);
+		nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, firstRigidBodyInstanceLen);
 		DS_ASSERT(nameCopy);
-		memcpy(nameCopy, firstRigidBodyInstanceName, firstRigidBodyInstanceNameLen);
-		sceneConstraint->firstRigidBodyInstanceName = nameCopy;
+		memcpy(nameCopy, firstRigidBodyInstance, firstRigidBodyInstanceLen);
+		sceneConstraint->firstRigidBodyInstance = nameCopy;
 	}
 	else
-		sceneConstraint->firstRigidBodyInstanceName = NULL;
+		sceneConstraint->firstRigidBodyInstance = NULL;
 
-	if (firstConnectedConstraintInstanceName)
+	if (firstConnectedConstraintInstance)
 	{
 		nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char,
-			firstConnectedConstraintInstanceNameLen);
+			firstConnectedConstraintInstanceLen);
 		DS_ASSERT(nameCopy);
-		memcpy(nameCopy, firstConnectedConstraintInstanceName,
-			firstConnectedConstraintInstanceNameLen);
-		sceneConstraint->firstConnectedConstraintInstanceName = nameCopy;
+		memcpy(nameCopy, firstConnectedConstraintInstance, firstConnectedConstraintInstanceLen);
+		sceneConstraint->firstConnectedConstraintInstance = nameCopy;
 	}
 	else
-		sceneConstraint->firstConnectedConstraintInstanceName = NULL;
+		sceneConstraint->firstConnectedConstraintInstance = NULL;
 
-	if (secondRigidBodyInstanceName)
+	if (secondRigidBodyInstance)
 	{
-		nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, secondRigidBodyInstanceNameLen);
+		nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, secondRigidBodyInstanceLen);
 		DS_ASSERT(nameCopy);
-		memcpy(nameCopy, secondRigidBodyInstanceName, secondRigidBodyInstanceNameLen);
-		sceneConstraint->secondRigidBodyInstanceName = nameCopy;
+		memcpy(nameCopy, secondRigidBodyInstance, secondRigidBodyInstanceLen);
+		sceneConstraint->secondRigidBodyInstance = nameCopy;
 	}
 	else
-		sceneConstraint->secondRigidBodyInstanceName = NULL;
+		sceneConstraint->secondRigidBodyInstance = NULL;
 
-	if (secondConnectedConstraintInstanceName)
+	if (secondConnectedConstraintInstance)
 	{
 		nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char,
-			secondConnectedConstraintInstanceNameLen);
+			secondConnectedConstraintInstanceLen);
 		DS_ASSERT(nameCopy);
-		memcpy(nameCopy, secondConnectedConstraintInstanceName,
-			secondConnectedConstraintInstanceNameLen);
-		sceneConstraint->secondConnectedConstraintInstanceName = nameCopy;
+		memcpy(nameCopy, secondConnectedConstraintInstance,
+			secondConnectedConstraintInstanceLen);
+		sceneConstraint->secondConnectedConstraintInstance = nameCopy;
 	}
 	else
-		sceneConstraint->secondConnectedConstraintInstanceName = NULL;
+		sceneConstraint->secondConnectedConstraintInstance = NULL;
 
 	return sceneConstraint;
 }

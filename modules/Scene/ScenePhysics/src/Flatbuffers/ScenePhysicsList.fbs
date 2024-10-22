@@ -57,7 +57,7 @@ table PhysicsList
 	// The initial gravity for the scene.
 	gravity : DeepSeaScene.Vector3f (required);
 
-	// Whether modifications may be made across threads.  When false, the locking functions will
+	// Whether modifications may be made across threads. When false, the locking functions will
 	// become NOPs that only enforce that the proper locking functions are used. This can reduce
 	// overhead when locking isn't required.
 	multiThreadedModifications : bool = false;

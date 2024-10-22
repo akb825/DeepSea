@@ -69,24 +69,24 @@ typedef struct dsScenePhysicsConstraint
 	/**
 	 * @brief The instance name for the first rigid body.
 	 */
-	const char* firstRigidBodyInstanceName;
+	const char* firstRigidBodyInstance;
 
 	/**
 	 * @brief The instance name for the constraint for the first actor that is related to this
-	 *     constraint.
+	 * constraint.
 	 */
-	const char* firstConnectedConstraintInstanceName;
+	const char* firstConnectedConstraintInstance;
 
 	/**
 	 * @brief The instance name for the second rigid body.
 	 */
-	const char* secondRigidBodyInstanceName;
+	const char* secondRigidBodyInstance;
 
 	/**
 	 * @brief The instance name for the constraint for the second actor that is related to this
-	 *     constraint.
+	 * constraint.
 	 */
-	const char* secondConnectedConstraintInstanceName;
+	const char* secondConnectedConstraintInstance;
 } dsScenePhysicsConstraint;
 
 /**

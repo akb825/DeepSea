@@ -45,7 +45,7 @@
 #pragma warning(pop)
 #endif
 
-dsSceneNode* dsSceneRigidBodyGroupNode_load(const dsSceneLoadContext* loadContext,
+dsSceneNode* dsSceneRigidBodyGroupNode_load(const dsSceneLoadContext*,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*,
 	void*, const uint8_t* data, size_t dataSize)
 {
@@ -138,15 +138,16 @@ dsSceneNode* dsSceneRigidBodyGroupNode_load(const dsSceneLoadContext* loadContex
 			dsNamedScenePhysicsConstraint* constraint = constraints + i;
 			constraint->name = constraintName;
 			constraint->constraint = scenePhysicsConstraint->constraint;
-			constraint->firstRigidBody = scenePhysicsConstraint->firstRigidBodyInstanceName;
+			constraint->firstRigidBody = scenePhysicsConstraint->firstRigidBodyInstance;
 			constraint->firstConnectedConstraint =
-				scenePhysicsConstraint->firstConnectedConstraintInstanceName;
-			constraint->secondRigidBody = scenePhysicsConstraint->secondRigidBodyInstanceName;
+				scenePhysicsConstraint->firstConnectedConstraintInstance;
+			constraint->secondRigidBody = scenePhysicsConstraint->secondRigidBodyInstance;
 			constraint->secondConnectedConstraint =
-				scenePhysicsConstraint->secondConnectedConstraintInstanceName;
+				scenePhysicsConstraint->secondConnectedConstraintInstance;
 			constraint->transferOwnership = false;
 		}
 	}
+
 	auto fbItemLists = fbRigidBodyGroupNode->itemLists();
 	uint32_t itemListCount = fbItemLists ? fbItemLists->size() : 0U;
 	const char** itemLists = NULL;

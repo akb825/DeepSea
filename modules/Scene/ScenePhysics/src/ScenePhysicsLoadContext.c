@@ -1,8 +1,10 @@
 #include <DeepSea/ScenePhysics/ScenePhysicsLoadContext.h>
 
+#include "ScenePhysicsConstraintLoad.h"
 #include "ScenePhysicsListLoad.h"
 #include "ScenePhysicsTypes.h"
 #include "SceneRigidBodyGroupNodeLoad.h"
+#include "SceneRigidBodyNodeLoad.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -22,6 +24,7 @@
 #include <DeepSea/ScenePhysics/ScenePhysicsShape.h>
 #include <DeepSea/ScenePhysics/SceneRigidBody.h>
 #include <DeepSea/ScenePhysics/SceneRigidBodyGroupNode.h>
+#include <DeepSea/ScenePhysics/SceneRigidBodyNode.h>
 #include <DeepSea/ScenePhysics/SceneRigidBodyTemplate.h>
 
 static dsPhysicsShape* findShape(dsPhysicsEngine* engine, void* userData, const char* name)
@@ -40,43 +43,6 @@ static dsPhysicsShape* findShape(dsPhysicsEngine* engine, void* userData, const 
 	}
 
 	return dsPhysicsShape_addRef((dsPhysicsShape*)resource->resource);
-}
-
-static dsPhysicsActor* findActor(dsPhysicsEngine* engine, void* userData, const char* name)
-{
-	DS_UNUSED(engine);
-
-	dsSceneLoadScratchData* scratchData = (dsSceneLoadScratchData*)userData;
-	dsSceneResourceType type;
-	dsCustomSceneResource* resource;
-	if (!dsSceneLoadScratchData_findResource(&type, (void**)&resource, scratchData, name) ||
-		type != dsSceneResourceType_Custom || resource->type != dsSceneRigidBody_type())
-	{
-		DS_LOG_ERROR_F(DS_SCENE_PHYSICS_LOG_TAG, "Couldn't find physics actor '%s'.", name);
-		errno = ENOTFOUND;
-		return NULL;
-	}
-
-	return (dsPhysicsActor*)resource->resource;
-}
-
-static dsPhysicsConstraint* findConstraint(
-	dsPhysicsEngine* engine, void* userData, const char* name)
-{
-	DS_UNUSED(engine);
-
-	dsSceneLoadScratchData* scratchData = (dsSceneLoadScratchData*)userData;
-	dsSceneResourceType type;
-	dsCustomSceneResource* resource;
-	if (!dsSceneLoadScratchData_findResource(&type, (void**)&resource, scratchData, name) ||
-		type != dsSceneResourceType_Custom || resource->type != dsScenePhysicsConstraint_type())
-	{
-		DS_LOG_ERROR_F(DS_SCENE_PHYSICS_LOG_TAG, "Couldn't find physics constraint '%s'.", name);
-		errno = ENOTFOUND;
-		return NULL;
-	}
-
-	return (dsPhysicsConstraint*)resource->resource;
 }
 
 static void dsScenePhysicsLoadData_destroy(void* userData)
@@ -141,20 +107,6 @@ static bool dsSceneRigidBodyTemplate_destroyResource(void* resource)
 	dsRigidBodyTemplate* rigidBodyTemplate = (dsRigidBodyTemplate*)resource;
 	dsRigidBodyTemplate_destroy(rigidBodyTemplate);
 	return true;
-}
-
-static void* dsScenePhysicsConstraint_load(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize)
-{
-	DS_UNUSED(loadContext);
-	DS_UNUSED(allocator);
-	DS_UNUSED(resourceAllocator);
-
-	dsScenePhysicsLoadData* loadData = (dsScenePhysicsLoadData*)userData;
-	// NOTE: No support for rigid body groups for individual rigid bodies.
-	return dsPhysicsConstraint_loadData(loadData->engine, loadData->allocator, &findActor,
-		scratchData, &findConstraint, scratchData, data, dataSize);
 }
 
 bool dsScenePhysicsLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAllocator* allocator,
@@ -226,6 +178,18 @@ bool dsScenePhysicsLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsA
 
 	if (!dsSceneLoadContext_registerNodeType(loadContext, dsSceneRigidBodyGroupNode_typeName,
 			&dsSceneRigidBodyGroupNode_load, NULL, NULL))
+	{
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerNodeType(loadContext, dsSceneRigidBodyNode_typeName,
+			&dsSceneRigidBodyNode_load, NULL, NULL))
+	{
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerNodeType(loadContext, "UniqueRigidBodyNode",
+			&dsSceneRigidBodyNode_loadUnique, NULL, NULL))
 	{
 		return false;
 	}
