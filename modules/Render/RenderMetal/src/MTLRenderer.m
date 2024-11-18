@@ -97,6 +97,8 @@ static uint32_t getMaxColorAttachments(id<MTLDevice> device)
 	DS_UNUSED(device);
 #if __IPHONE_OS_VERSION_MIN_REQUIRED == 80000
 	return 4;
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
+	return [device supportsFamily: MTLGPUFamilyApple2] ? 8 : 4;
 #elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily2_v1] ? 8 : 4;
 #else
@@ -894,6 +896,8 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 
 #if DS_MAC
 		baseRenderer->hasStartInstance = true;
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
+		baseRenderer->hasStartInstance = [device supportsFamily: MTLGPUFamilyApple3];
 #elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 		baseRenderer->hasStartInstance =
 			[device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1];
@@ -903,6 +907,9 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 
 #if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
 		baseRenderer->hasDualSrcBlend = true;
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
+		baseRenderer->hasDualSrcBlend = baseRenderer->hasDepthClamp =
+			[device supportsFamily: MTLGPUFamilyApple4];
 #elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
 		baseRenderer->hasDualSrcBlend = baseRenderer->hasDepthClamp =
 			[device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily4_v1];
@@ -922,11 +929,14 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		baseRenderer->hasDepthBiasClamp = true;
 #if DS_MAC
 		baseRenderer->hasDepthStencilMultisampleResolve = true;
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
+		baseRenderer->hasDepthStencilMultisampleResolve =
+			[device supportsFamily: MTLGPUFamilyApple3];
 #else
 		baseRenderer->hasDepthStencilMultisampleResolve =
 			[device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1];
 #endif
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 110000
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101500 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
 		baseRenderer->hasFragmentInputs = [device supportsFamily: MTLGPUFamilyApple4];
 #elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
 		baseRenderer->hasFragmentInputs =

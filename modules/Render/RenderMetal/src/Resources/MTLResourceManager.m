@@ -220,6 +220,10 @@ static void initializePixelFormats(dsMTLResourceManager* resourceManager, id<MTL
 			[dsGfxFormat_compressedIndex(dsGfxFormat_EAC_R11G11)][snormIndex] =
 				MTLPixelFormatEAC_RG11Snorm;
 
+		// PVRTC is deprecated in newer versions of macOS and iOS, but may still be useful for older
+		// devices.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 		resourceManager->compressedPixelFormats
 			[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGB_2BPP)][unormIndex] =
 				MTLPixelFormatPVRTC_RGB_2BPP;
@@ -247,13 +251,14 @@ static void initializePixelFormats(dsMTLResourceManager* resourceManager, id<MTL
 		resourceManager->compressedPixelFormats
 			[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGBA_4BPP)][srgbIndex] =
 				MTLPixelFormatPVRTC_RGBA_4BPP_sRGB;
+#pragma GCC diagnostic pop
 
 		bool hasASTC = false;
-	#if DS_IOS
-		hasASTC = [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily2_v1];
-	#elif DS_MAC
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
 		hasASTC = [device supportsFamily: MTLGPUFamilyApple2];
-	#endif
+#else
+		hasASTC = [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily2_v1];
+#endif
 		if (hasASTC)
 		{
 			resourceManager->compressedPixelFormats
@@ -578,6 +583,9 @@ static dsGfxBufferUsage getSupportedBuffers(id<MTLDevice> device)
 #if DS_MAC
 	DS_UNUSED(device);
 	usage |= dsGfxBufferUsage_IndirectDraw | dsGfxBufferUsage_IndirectDispatch;
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
+	if ([device supportsFamily: MTLGPUFamilyApple3])
+		usage |= dsGfxBufferUsage_IndirectDraw | dsGfxBufferUsage_IndirectDispatch;
 #elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	if ([device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1])
 		usage |= dsGfxBufferUsage_IndirectDraw | dsGfxBufferUsage_IndirectDispatch;
@@ -607,6 +615,8 @@ static uint32_t getMaxTextureSize(id<MTLDevice> device)
 	DS_UNUSED(device);
 #if __IPHONE_OS_VERSION_MIN_REQUIRED == 80000
 	return 4096;
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
+	return [device supportsFamily: MTLGPUFamilyApple3] ? 16384 : 8192;
 #elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1] ? 16384 : 8192;
 #else
@@ -618,7 +628,9 @@ static bool hasLayeredRendering(id<MTLDevice> device)
 {
 	DS_UNUSED(device);
 #if DS_IOS
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
+	return [device supportsFamily: MTLGPUFamilyApple5];
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
 	return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily5_v1];
 #else
 	return false;
@@ -632,7 +644,9 @@ static bool hasCubeArrays(id<MTLDevice> device)
 {
 	DS_UNUSED(device);
 #if DS_IOS
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
+	return [device supportsFamily: MTLGPUFamilyApple4];
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
 	return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily4_v1];
 #else
 	return false;
@@ -742,13 +756,16 @@ bool dsMTLResourceManager_imageFormatSupported(const dsResourceManager* resource
 				case dsGfxFormat_R5G5B5A1:
 				case dsGfxFormat_A1R5G5B5:
 					return false;
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 				case dsGfxFormat_A2R10G10B10:
 				case dsGfxFormat_A2B10G10R10:
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
+					if (![device supportsFamily: MTLGPUFamilyApple3])
+						return false;
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 					if (![device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1])
 						return false;
-					break;
 #endif
+					break;
 				default:
 					break;
 			}
@@ -762,6 +779,8 @@ bool dsMTLResourceManager_imageFormatSupported(const dsResourceManager* resource
 		{
 #if DS_MAC
 			return true;
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
+			return [device supportsFamily: MTLGPUFamilyApple3];
 #elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 			return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1];
 #else
@@ -769,10 +788,16 @@ bool dsMTLResourceManager_imageFormatSupported(const dsResourceManager* resource
 #endif
 		}
 
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 		if (format == dsGfxFormat_E5B9G9R9_UFloat)
+		{
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101500 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
+			return [device supportsFamily: MTLGPUFamilyApple3];
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 			return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1];
+#else
+			return false;
 #endif
+		}
 
 		return false;
 	}
@@ -863,7 +888,7 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 
 #if __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
 	resourceManager->appleGpu = true;
-#elif __MAC_OS_X_VERSION_MIN_REQUIRED >= 110000
+#elif __MAC_OS_X_VERSION_MIN_REQUIRED >= 101500
 	resourceManager->appleGpu = [device supportsFamily: MTLGPUFamilyApple1];
 #else
 	resourceManager->appleGpu = false;

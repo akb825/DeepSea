@@ -1,1 +1,6 @@
-set_property(GLOBAL PROPERTY spirv-1.0 ${CMAKE_CURRENT_LIST_DIR}/spirv-1.0.conf)
+file(GLOB configFiles ${CMAKE_CURRENT_LIST_DIR}/*.conf)
+foreach (configFile ${configFiles})
+	get_filename_component(configName ${configFile} NAME)
+	string(REPLACE ".conf" "" configName ${configName})
+	set_property(GLOBAL PROPERTY ${configName} ${configFile})
+endforeach()
