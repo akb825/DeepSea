@@ -23,8 +23,8 @@ extern "C"
 #endif
 
 dsSceneNode* dsSceneRigidBodyNode_load(const dsSceneLoadContext*,
-dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-void* userData, const uint8_t* data, size_t dataSize);
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const uint8_t* data, size_t dataSize);
 
 dsSceneNode* dsSceneRigidBodyNode_loadUnique(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,

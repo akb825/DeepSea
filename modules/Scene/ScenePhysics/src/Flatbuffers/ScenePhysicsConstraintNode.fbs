@@ -1,0 +1,95 @@
+/*
+ * Copyright 2024 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+namespace DeepSeaScenePhysics;
+
+// Struct for a reference to a rigid body or constraint instance within a rigid body group.
+table InstanceReference
+{
+	// The name of a distinctroot node. If empty, the rigid body group node will be assumed to be
+	// distinct within the scene.
+	rootNode : string;
+
+	// The name of the rigid body group node.
+	rigidBodyGroupNode : string (required);
+
+	// The name of the instance within the rigid body group.
+	instance : string (required);
+}
+
+// Struct for a reference to a physics actor resource.
+table ActorResourceReference
+{
+	// The name of the actor.
+	actor : string (required);
+}
+
+// Struct for a reference to a constraint node.
+table ConstraintNodeReference
+{
+	// The name of the constraint node.
+	constraintNode : string (required);
+}
+
+// Struct for a reference to a constraint resource.
+table ConstraintResourceReference
+{
+	// The name of the constraint.
+	constraint : string (required);
+}
+
+// Union for a reference to a physics actor.
+union ActorReference
+{
+	InstanceReference,
+	ActorResourceReference
+}
+
+// Union for a reference to a physics constraint.
+union ConstraintReference
+{
+	InstanceReference,
+	ConstraintNodeReference,
+	ConstraintResourceReference
+}
+
+// Struct describing a node that maintains a constraint between two rigid bodies.
+table PhysicsConstraintNode
+{
+	// The name of the base constraint.
+	constraint : string (required);
+
+	// The reference to the first actor. If not provided, the first actor for the base constraint
+	// will be used.
+	firstActor : ActorReference;
+
+	// The reference to the first connected constraint. If not provided, the first connected
+	// constraint for the base constraint will be used if available.
+	firstConnectedConstraint : ConstraintReference;
+
+	// The reference to the second actor. If not provided, the first actor for the base constraint
+	// will be used.
+	secondActor : ActorReference;
+
+	// The reference to the second connected constraint. If not provided, the second connected
+	// constraint for the base constraint will be used if available.
+	secondConnectedConstraint : ConstraintReference;
+
+	// The item lists to process the node with.
+	itemLists : [string];
+}
+
+root_type PhysicsConstraintNode;

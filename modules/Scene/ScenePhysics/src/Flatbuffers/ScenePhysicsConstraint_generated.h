@@ -15,11 +15,11 @@ static_assert(FLATBUFFERS_VERSION_MAJOR == 24 &&
 
 namespace DeepSeaScenePhysics {
 
-struct ScenePhysicsConstraint;
-struct ScenePhysicsConstraintBuilder;
+struct PhysicsConstraint;
+struct PhysicsConstraintBuilder;
 
-struct ScenePhysicsConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef ScenePhysicsConstraintBuilder Builder;
+struct PhysicsConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef PhysicsConstraintBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_CONSTRAINT = 4,
     VT_FIRSTRIGIDBODYINSTANCE = 6,
@@ -58,45 +58,45 @@ struct ScenePhysicsConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::T
   }
 };
 
-struct ScenePhysicsConstraintBuilder {
-  typedef ScenePhysicsConstraint Table;
+struct PhysicsConstraintBuilder {
+  typedef PhysicsConstraint Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
   void add_constraint(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> constraint) {
-    fbb_.AddOffset(ScenePhysicsConstraint::VT_CONSTRAINT, constraint);
+    fbb_.AddOffset(PhysicsConstraint::VT_CONSTRAINT, constraint);
   }
   void add_firstRigidBodyInstance(::flatbuffers::Offset<::flatbuffers::String> firstRigidBodyInstance) {
-    fbb_.AddOffset(ScenePhysicsConstraint::VT_FIRSTRIGIDBODYINSTANCE, firstRigidBodyInstance);
+    fbb_.AddOffset(PhysicsConstraint::VT_FIRSTRIGIDBODYINSTANCE, firstRigidBodyInstance);
   }
   void add_firstConnectedConstraintInstance(::flatbuffers::Offset<::flatbuffers::String> firstConnectedConstraintInstance) {
-    fbb_.AddOffset(ScenePhysicsConstraint::VT_FIRSTCONNECTEDCONSTRAINTINSTANCE, firstConnectedConstraintInstance);
+    fbb_.AddOffset(PhysicsConstraint::VT_FIRSTCONNECTEDCONSTRAINTINSTANCE, firstConnectedConstraintInstance);
   }
   void add_secondRigidBodyInstance(::flatbuffers::Offset<::flatbuffers::String> secondRigidBodyInstance) {
-    fbb_.AddOffset(ScenePhysicsConstraint::VT_SECONDRIGIDBODYINSTANCE, secondRigidBodyInstance);
+    fbb_.AddOffset(PhysicsConstraint::VT_SECONDRIGIDBODYINSTANCE, secondRigidBodyInstance);
   }
   void add_secondConnectedConstraintInstance(::flatbuffers::Offset<::flatbuffers::String> secondConnectedConstraintInstance) {
-    fbb_.AddOffset(ScenePhysicsConstraint::VT_SECONDCONNECTEDCONSTRAINTINSTANCE, secondConnectedConstraintInstance);
+    fbb_.AddOffset(PhysicsConstraint::VT_SECONDCONNECTEDCONSTRAINTINSTANCE, secondConnectedConstraintInstance);
   }
-  explicit ScenePhysicsConstraintBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+  explicit PhysicsConstraintBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ::flatbuffers::Offset<ScenePhysicsConstraint> Finish() {
+  ::flatbuffers::Offset<PhysicsConstraint> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = ::flatbuffers::Offset<ScenePhysicsConstraint>(end);
-    fbb_.Required(o, ScenePhysicsConstraint::VT_CONSTRAINT);
+    auto o = ::flatbuffers::Offset<PhysicsConstraint>(end);
+    fbb_.Required(o, PhysicsConstraint::VT_CONSTRAINT);
     return o;
   }
 };
 
-inline ::flatbuffers::Offset<ScenePhysicsConstraint> CreateScenePhysicsConstraint(
+inline ::flatbuffers::Offset<PhysicsConstraint> CreatePhysicsConstraint(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> constraint = 0,
     ::flatbuffers::Offset<::flatbuffers::String> firstRigidBodyInstance = 0,
     ::flatbuffers::Offset<::flatbuffers::String> firstConnectedConstraintInstance = 0,
     ::flatbuffers::Offset<::flatbuffers::String> secondRigidBodyInstance = 0,
     ::flatbuffers::Offset<::flatbuffers::String> secondConnectedConstraintInstance = 0) {
-  ScenePhysicsConstraintBuilder builder_(_fbb);
+  PhysicsConstraintBuilder builder_(_fbb);
   builder_.add_secondConnectedConstraintInstance(secondConnectedConstraintInstance);
   builder_.add_secondRigidBodyInstance(secondRigidBodyInstance);
   builder_.add_firstConnectedConstraintInstance(firstConnectedConstraintInstance);
@@ -105,7 +105,7 @@ inline ::flatbuffers::Offset<ScenePhysicsConstraint> CreateScenePhysicsConstrain
   return builder_.Finish();
 }
 
-inline ::flatbuffers::Offset<ScenePhysicsConstraint> CreateScenePhysicsConstraintDirect(
+inline ::flatbuffers::Offset<PhysicsConstraint> CreatePhysicsConstraintDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const std::vector<uint8_t> *constraint = nullptr,
     const char *firstRigidBodyInstance = nullptr,
@@ -117,7 +117,7 @@ inline ::flatbuffers::Offset<ScenePhysicsConstraint> CreateScenePhysicsConstrain
   auto firstConnectedConstraintInstance__ = firstConnectedConstraintInstance ? _fbb.CreateString(firstConnectedConstraintInstance) : 0;
   auto secondRigidBodyInstance__ = secondRigidBodyInstance ? _fbb.CreateString(secondRigidBodyInstance) : 0;
   auto secondConnectedConstraintInstance__ = secondConnectedConstraintInstance ? _fbb.CreateString(secondConnectedConstraintInstance) : 0;
-  return DeepSeaScenePhysics::CreateScenePhysicsConstraint(
+  return DeepSeaScenePhysics::CreatePhysicsConstraint(
       _fbb,
       constraint__,
       firstRigidBodyInstance__,
@@ -126,33 +126,33 @@ inline ::flatbuffers::Offset<ScenePhysicsConstraint> CreateScenePhysicsConstrain
       secondConnectedConstraintInstance__);
 }
 
-inline const DeepSeaScenePhysics::ScenePhysicsConstraint *GetScenePhysicsConstraint(const void *buf) {
-  return ::flatbuffers::GetRoot<DeepSeaScenePhysics::ScenePhysicsConstraint>(buf);
+inline const DeepSeaScenePhysics::PhysicsConstraint *GetPhysicsConstraint(const void *buf) {
+  return ::flatbuffers::GetRoot<DeepSeaScenePhysics::PhysicsConstraint>(buf);
 }
 
-inline const DeepSeaScenePhysics::ScenePhysicsConstraint *GetSizePrefixedScenePhysicsConstraint(const void *buf) {
-  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaScenePhysics::ScenePhysicsConstraint>(buf);
+inline const DeepSeaScenePhysics::PhysicsConstraint *GetSizePrefixedPhysicsConstraint(const void *buf) {
+  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaScenePhysics::PhysicsConstraint>(buf);
 }
 
-inline bool VerifyScenePhysicsConstraintBuffer(
+inline bool VerifyPhysicsConstraintBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaScenePhysics::ScenePhysicsConstraint>(nullptr);
+  return verifier.VerifyBuffer<DeepSeaScenePhysics::PhysicsConstraint>(nullptr);
 }
 
-inline bool VerifySizePrefixedScenePhysicsConstraintBuffer(
+inline bool VerifySizePrefixedPhysicsConstraintBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaScenePhysics::ScenePhysicsConstraint>(nullptr);
+  return verifier.VerifySizePrefixedBuffer<DeepSeaScenePhysics::PhysicsConstraint>(nullptr);
 }
 
-inline void FinishScenePhysicsConstraintBuffer(
+inline void FinishPhysicsConstraintBuffer(
     ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaScenePhysics::ScenePhysicsConstraint> root) {
+    ::flatbuffers::Offset<DeepSeaScenePhysics::PhysicsConstraint> root) {
   fbb.Finish(root);
 }
 
-inline void FinishSizePrefixedScenePhysicsConstraintBuffer(
+inline void FinishSizePrefixedPhysicsConstraintBuffer(
     ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaScenePhysics::ScenePhysicsConstraint> root) {
+    ::flatbuffers::Offset<DeepSeaScenePhysics::PhysicsConstraint> root) {
   fbb.FinishSizePrefixed(root);
 }
 

@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-namespace DeepSeaScenePhysics;
+#include <DeepSea/Core/Config.h>
+#include <DeepSea/ScenePhysics/Types.h>
 
-// Struct describing a node that synchronizes the transform with a rigid body.
-table RigidBodyNode
+#ifdef __cplusplus
+extern "C"
 {
-	// The rigid body for the node.
-	rigidBody : string (required);
+#endif
 
-	// The item lists to process the node with.
-	itemLists : [string];
+dsSceneNode* dsScenePhysicsConstraintNode_load(const dsSceneLoadContext*,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const uint8_t* data, size_t dataSize);
+
+#ifdef __cplusplus
 }
-
-root_type RigidBodyNode;
+#endif

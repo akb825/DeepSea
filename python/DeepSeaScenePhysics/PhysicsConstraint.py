@@ -6,25 +6,25 @@ import flatbuffers
 from flatbuffers.compat import import_numpy
 np = import_numpy()
 
-class ScenePhysicsConstraint(object):
+class PhysicsConstraint(object):
     __slots__ = ['_tab']
 
     @classmethod
     def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = ScenePhysicsConstraint()
+        x = PhysicsConstraint()
         x.Init(buf, n + offset)
         return x
 
     @classmethod
-    def GetRootAsScenePhysicsConstraint(cls, buf, offset=0):
+    def GetRootAsPhysicsConstraint(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
-    # ScenePhysicsConstraint
+    # PhysicsConstraint
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-    # ScenePhysicsConstraint
+    # PhysicsConstraint
     def Constraint(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
@@ -32,97 +32,97 @@ class ScenePhysicsConstraint(object):
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 1))
         return 0
 
-    # ScenePhysicsConstraint
+    # PhysicsConstraint
     def ConstraintAsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint8Flags, o)
         return 0
 
-    # ScenePhysicsConstraint
+    # PhysicsConstraint
     def ConstraintLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
-    # ScenePhysicsConstraint
+    # PhysicsConstraint
     def ConstraintIsNone(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         return o == 0
 
-    # ScenePhysicsConstraint
+    # PhysicsConstraint
     def FirstRigidBodyInstance(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
-    # ScenePhysicsConstraint
+    # PhysicsConstraint
     def FirstConnectedConstraintInstance(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
-    # ScenePhysicsConstraint
+    # PhysicsConstraint
     def SecondRigidBodyInstance(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
-    # ScenePhysicsConstraint
+    # PhysicsConstraint
     def SecondConnectedConstraintInstance(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def ScenePhysicsConstraintStart(builder):
+def PhysicsConstraintStart(builder):
     builder.StartObject(5)
 
 def Start(builder):
-    ScenePhysicsConstraintStart(builder)
+    PhysicsConstraintStart(builder)
 
-def ScenePhysicsConstraintAddConstraint(builder, constraint):
+def PhysicsConstraintAddConstraint(builder, constraint):
     builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(constraint), 0)
 
 def AddConstraint(builder, constraint):
-    ScenePhysicsConstraintAddConstraint(builder, constraint)
+    PhysicsConstraintAddConstraint(builder, constraint)
 
-def ScenePhysicsConstraintStartConstraintVector(builder, numElems):
+def PhysicsConstraintStartConstraintVector(builder, numElems):
     return builder.StartVector(1, numElems, 1)
 
 def StartConstraintVector(builder, numElems):
-    return ScenePhysicsConstraintStartConstraintVector(builder, numElems)
+    return PhysicsConstraintStartConstraintVector(builder, numElems)
 
-def ScenePhysicsConstraintAddFirstRigidBodyInstance(builder, firstRigidBodyInstance):
+def PhysicsConstraintAddFirstRigidBodyInstance(builder, firstRigidBodyInstance):
     builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(firstRigidBodyInstance), 0)
 
 def AddFirstRigidBodyInstance(builder, firstRigidBodyInstance):
-    ScenePhysicsConstraintAddFirstRigidBodyInstance(builder, firstRigidBodyInstance)
+    PhysicsConstraintAddFirstRigidBodyInstance(builder, firstRigidBodyInstance)
 
-def ScenePhysicsConstraintAddFirstConnectedConstraintInstance(builder, firstConnectedConstraintInstance):
+def PhysicsConstraintAddFirstConnectedConstraintInstance(builder, firstConnectedConstraintInstance):
     builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(firstConnectedConstraintInstance), 0)
 
 def AddFirstConnectedConstraintInstance(builder, firstConnectedConstraintInstance):
-    ScenePhysicsConstraintAddFirstConnectedConstraintInstance(builder, firstConnectedConstraintInstance)
+    PhysicsConstraintAddFirstConnectedConstraintInstance(builder, firstConnectedConstraintInstance)
 
-def ScenePhysicsConstraintAddSecondRigidBodyInstance(builder, secondRigidBodyInstance):
+def PhysicsConstraintAddSecondRigidBodyInstance(builder, secondRigidBodyInstance):
     builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(secondRigidBodyInstance), 0)
 
 def AddSecondRigidBodyInstance(builder, secondRigidBodyInstance):
-    ScenePhysicsConstraintAddSecondRigidBodyInstance(builder, secondRigidBodyInstance)
+    PhysicsConstraintAddSecondRigidBodyInstance(builder, secondRigidBodyInstance)
 
-def ScenePhysicsConstraintAddSecondConnectedConstraintInstance(builder, secondConnectedConstraintInstance):
+def PhysicsConstraintAddSecondConnectedConstraintInstance(builder, secondConnectedConstraintInstance):
     builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(secondConnectedConstraintInstance), 0)
 
 def AddSecondConnectedConstraintInstance(builder, secondConnectedConstraintInstance):
-    ScenePhysicsConstraintAddSecondConnectedConstraintInstance(builder, secondConnectedConstraintInstance)
+    PhysicsConstraintAddSecondConnectedConstraintInstance(builder, secondConnectedConstraintInstance)
 
-def ScenePhysicsConstraintEnd(builder):
+def PhysicsConstraintEnd(builder):
     return builder.EndObject()
 
 def End(builder):
-    return ScenePhysicsConstraintEnd(builder)
+    return PhysicsConstraintEnd(builder)

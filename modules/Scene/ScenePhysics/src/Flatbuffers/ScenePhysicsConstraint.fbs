@@ -17,7 +17,7 @@
 namespace DeepSeaScenePhysics;
 
 // Struct describing a constraint within a scene.
-table ScenePhysicsConstraint
+table PhysicsConstraint
 {
 	// The constraint.
 	constraint : [ubyte] (required);
@@ -37,4 +37,4 @@ table ScenePhysicsConstraint
 	secondConnectedConstraintInstance : string;
 }
 
-root_type ScenePhysicsConstraint;
+root_type PhysicsConstraint;

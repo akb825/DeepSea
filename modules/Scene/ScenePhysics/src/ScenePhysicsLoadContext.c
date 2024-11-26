@@ -1,6 +1,7 @@
 #include <DeepSea/ScenePhysics/ScenePhysicsLoadContext.h>
 
 #include "ScenePhysicsConstraintLoad.h"
+#include "ScenePhysicsConstraintNodeLoad.h"
 #include "ScenePhysicsListLoad.h"
 #include "ScenePhysicsTypes.h"
 #include "SceneRigidBodyGroupNodeLoad.h"
@@ -20,6 +21,7 @@
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 
 #include <DeepSea/ScenePhysics/ScenePhysicsConstraint.h>
+#include <DeepSea/ScenePhysics/ScenePhysicsConstraintNode.h>
 #include <DeepSea/ScenePhysics/ScenePhysicsList.h>
 #include <DeepSea/ScenePhysics/ScenePhysicsShape.h>
 #include <DeepSea/ScenePhysics/SceneRigidBody.h>
@@ -190,6 +192,12 @@ bool dsScenePhysicsLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsA
 
 	if (!dsSceneLoadContext_registerNodeType(loadContext, "UniqueRigidBodyNode",
 			&dsSceneRigidBodyNode_loadUnique, NULL, NULL))
+	{
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerNodeType(loadContext, dsScenePhysicsConstraintNode_typeName,
+			&dsScenePhysicsConstraintNode_load, NULL, NULL))
 	{
 		return false;
 	}

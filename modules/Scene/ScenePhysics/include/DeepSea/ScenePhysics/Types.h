@@ -35,6 +35,10 @@ extern "C"
  */
 #define DS_SCENE_PHYSICS_LOG_TAG "scene-physics"
 
+/// @cond
+typedef struct dsScenePhysicsConstraintNode dsScenePhysicsConstraintNode;
+/// @endcond
+
 /**
  * @brief Struct describing a scene node that instantiates physics objects as needed.
  *
@@ -221,6 +225,169 @@ typedef struct dsNamedScenePhysicsConstraint
  * @see SceneRigidBodyGroupNode.h
  */
 typedef struct dsSceneRigidBodyGroupNode dsSceneRigidBodyGroupNode;
+
+/**
+ * @brief Struct describing a reference to a physics actor in a scene, typically used for a physics
+ * constraint node.
+ *
+ * One of rigidBodyInstance or actor must be set. If rigidBodyInstance is set, rigidBodyGroupNode
+ * must also be set.
+ *
+ * @see dsScenePhysicsConstraintNode
+ */
+typedef struct dsScenePhysicsActorReference
+{
+	/**
+	 * @brief The root node used to search for instances for the rigid body group node.
+	 *
+	 * If NULL, searches will be done directy from rigidBodyGroupNode.
+	 */
+	const dsSceneNode* rootNode;
+
+	/**
+	 * @brief The rigid body group node to search for the rigid body by name.
+	 *
+	 * This may be NULL when the actor is provided by pointer.
+	 */
+	const dsSceneRigidBodyGroupNode* rigidBodyGroupNode;
+
+	/**
+	 * @brief The instance name for the rigid body.
+	 *
+	 * If set, this will be searched for within rigidBodyGroupNode.
+	 */
+	const char* instanceName;
+
+	/**
+	 * @brief A direct pointer to the actor.
+	 *
+	 * This should be set when not searching by instance name.
+	 */
+	const dsPhysicsActor* actor;
+} dsScenePhysicsActorReference;
+
+/**
+ * @brief Struct describing a reference to a physics constraint in a scene, typically used for a
+ * physics constraint node.
+ *
+ * One of constraintInstance, constraintNode, or constraint must be set. If constraintInstance is
+ * set, rigidBodyGroupNode must also be set.
+ *
+ * @see dsScenePhysicsConstraintNode
+ */
+typedef struct dsScenePhysicsConstraintReference
+{
+	/**
+	 * @brief The root node used to search for instances for the rigid body group node or physics
+	 * constraint node.
+	 *
+	 * If NULL, searches will be done directy from rigidBodyGroupNode or constraintNode.
+	 */
+	const dsSceneNode* rootNode;
+
+	/**
+	 * @brief The rigid body group node to search for the constraint by name.
+	 *
+	 * This may be NULL when the constraint is provided by pointer.
+	 */
+	const dsSceneRigidBodyGroupNode* rigidBodyGroupNode;
+
+	/**
+	 * @brief The instance name for the constraint.
+	 *
+	 * If set, this will be searched for within rigidBodyGroupNode.
+	 */
+	const char* instanceName;
+
+	/**
+	 * @brief The constraint node to get the constraint from.
+	 *
+	 * This will use the instance within the scene graph relative to rootNode. If rootNode is not
+	 * set, constraintNode must only exist once in the scene graph.
+	 */
+	const dsScenePhysicsConstraintNode* constraintNode;
+
+	/**
+	 * @brief A direct pointer to the constraint.
+	 *
+	 * This should be set when not searching by instance name or from a constraint node.
+	 */
+	const dsPhysicsConstraint* constraint;
+} dsScenePhysicsConstraintReference;
+
+/**
+ * @brief Struct describing a node that maintains a constraint between two rigid bodies.
+ *
+ * This allows for connecting constraints between actors (typically rigid bodies) between different
+ * sub-trees in the scene graph. While a dsRigidBodyGroupNode typically contains both rigid bodies
+ * and constraints that are part of a single logical group of ojbects, this allows for constraints
+ * between two such groups.
+ *
+ * This will not keep a reference count to any of the node pointers for the actor and constraint
+ * references, as it may introduce circular references. It is the responsibility of the owner of a
+ * constraint node to destroy it before any nodes, actors, or other constraints it depends on.
+ *
+ * None of the members should be modified directly.
+ *
+ * @see ScenePhysicsConstraintNode.h
+ */
+struct dsScenePhysicsConstraintNode
+{
+	/**
+	 * @brief The base node.
+	 */
+	dsSceneNode node;
+
+	/**
+	 * @brief The base physics constraint.
+	 */
+	dsPhysicsConstraint* constraint;
+
+	/**
+	 * @brief Reference to the first actor in the constraint.
+	 */
+	dsScenePhysicsActorReference firstActor;
+
+	/**
+	 * @brief Reference to the first connected constraint.
+	 */
+	dsScenePhysicsConstraintReference firstConnectedConstraint;
+
+	/**
+	 * @brief Reference to the second actor in the constraint.
+	 */
+	dsScenePhysicsActorReference secondActor;
+
+	/**
+	 * @brief Reference to the second connected constraint.
+	 */
+	dsScenePhysicsConstraintReference secondConnectedConstraint;
+
+	/**
+	 * @brief Whether this node owns the base constraint.
+	 */
+	bool ownsConstraint;
+
+	/**
+	 * @brief Instance ID for the first actor.
+	 */
+	uint32_t firstActorInstanceID;
+
+	/**
+	 * @brief Instance ID for the first connected constraint.
+	 */
+	uint32_t firstConnectedConstraintInstanceID;
+
+	/**
+	 * @brief Instance ID for the second actor.
+	 */
+	uint32_t secondActorInstanceID;
+
+	/**
+	 * @brief Instance ID for the second connected constraint.
+	 */
+	uint32_t secondConnectedConstraintInstanceID;
+};
 
 #ifdef __cplusplus
 }

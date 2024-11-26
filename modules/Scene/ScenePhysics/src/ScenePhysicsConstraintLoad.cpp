@@ -90,7 +90,7 @@ void* dsScenePhysicsConstraint_load(const dsSceneLoadContext*, dsSceneLoadScratc
 	void* userData, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
-	if (!DeepSeaScenePhysics::VerifyScenePhysicsConstraintBuffer(verifier))
+	if (!DeepSeaScenePhysics::VerifyPhysicsConstraintBuffer(verifier))
 	{
 		errno = EFORMAT;
 		DS_LOG_ERROR(DS_SCENE_PHYSICS_LOG_TAG,
@@ -99,7 +99,7 @@ void* dsScenePhysicsConstraint_load(const dsSceneLoadContext*, dsSceneLoadScratc
 	}
 
 	dsScenePhysicsLoadData* loadData = (dsScenePhysicsLoadData*)userData;
-	auto fbSceneConstraint = DeepSeaScenePhysics::GetScenePhysicsConstraint(data);
+	auto fbSceneConstraint = DeepSeaScenePhysics::GetPhysicsConstraint(data);
 
 	auto fbConstraint = fbSceneConstraint->constraint();
 	dsPhysicsConstraint* constraint = dsPhysicsConstraint_loadData(loadData->engine,
