@@ -6,25 +6,25 @@ import flatbuffers
 from flatbuffers.compat import import_numpy
 np = import_numpy()
 
-class PhysicsConstraint(object):
+class Constraint(object):
     __slots__ = ['_tab']
 
     @classmethod
     def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = PhysicsConstraint()
+        x = Constraint()
         x.Init(buf, n + offset)
         return x
 
     @classmethod
-    def GetRootAsPhysicsConstraint(cls, buf, offset=0):
+    def GetRootAsConstraint(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
-    # PhysicsConstraint
+    # Constraint
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-    # PhysicsConstraint
+    # Constraint
     def Constraint(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
@@ -32,97 +32,97 @@ class PhysicsConstraint(object):
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 1))
         return 0
 
-    # PhysicsConstraint
+    # Constraint
     def ConstraintAsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint8Flags, o)
         return 0
 
-    # PhysicsConstraint
+    # Constraint
     def ConstraintLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
-    # PhysicsConstraint
+    # Constraint
     def ConstraintIsNone(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         return o == 0
 
-    # PhysicsConstraint
+    # Constraint
     def FirstRigidBodyInstance(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
-    # PhysicsConstraint
+    # Constraint
     def FirstConnectedConstraintInstance(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
-    # PhysicsConstraint
+    # Constraint
     def SecondRigidBodyInstance(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
-    # PhysicsConstraint
+    # Constraint
     def SecondConnectedConstraintInstance(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def PhysicsConstraintStart(builder):
+def ConstraintStart(builder):
     builder.StartObject(5)
 
 def Start(builder):
-    PhysicsConstraintStart(builder)
+    ConstraintStart(builder)
 
-def PhysicsConstraintAddConstraint(builder, constraint):
+def ConstraintAddConstraint(builder, constraint):
     builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(constraint), 0)
 
 def AddConstraint(builder, constraint):
-    PhysicsConstraintAddConstraint(builder, constraint)
+    ConstraintAddConstraint(builder, constraint)
 
-def PhysicsConstraintStartConstraintVector(builder, numElems):
+def ConstraintStartConstraintVector(builder, numElems):
     return builder.StartVector(1, numElems, 1)
 
 def StartConstraintVector(builder, numElems):
-    return PhysicsConstraintStartConstraintVector(builder, numElems)
+    return ConstraintStartConstraintVector(builder, numElems)
 
-def PhysicsConstraintAddFirstRigidBodyInstance(builder, firstRigidBodyInstance):
+def ConstraintAddFirstRigidBodyInstance(builder, firstRigidBodyInstance):
     builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(firstRigidBodyInstance), 0)
 
 def AddFirstRigidBodyInstance(builder, firstRigidBodyInstance):
-    PhysicsConstraintAddFirstRigidBodyInstance(builder, firstRigidBodyInstance)
+    ConstraintAddFirstRigidBodyInstance(builder, firstRigidBodyInstance)
 
-def PhysicsConstraintAddFirstConnectedConstraintInstance(builder, firstConnectedConstraintInstance):
+def ConstraintAddFirstConnectedConstraintInstance(builder, firstConnectedConstraintInstance):
     builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(firstConnectedConstraintInstance), 0)
 
 def AddFirstConnectedConstraintInstance(builder, firstConnectedConstraintInstance):
-    PhysicsConstraintAddFirstConnectedConstraintInstance(builder, firstConnectedConstraintInstance)
+    ConstraintAddFirstConnectedConstraintInstance(builder, firstConnectedConstraintInstance)
 
-def PhysicsConstraintAddSecondRigidBodyInstance(builder, secondRigidBodyInstance):
+def ConstraintAddSecondRigidBodyInstance(builder, secondRigidBodyInstance):
     builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(secondRigidBodyInstance), 0)
 
 def AddSecondRigidBodyInstance(builder, secondRigidBodyInstance):
-    PhysicsConstraintAddSecondRigidBodyInstance(builder, secondRigidBodyInstance)
+    ConstraintAddSecondRigidBodyInstance(builder, secondRigidBodyInstance)
 
-def PhysicsConstraintAddSecondConnectedConstraintInstance(builder, secondConnectedConstraintInstance):
+def ConstraintAddSecondConnectedConstraintInstance(builder, secondConnectedConstraintInstance):
     builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(secondConnectedConstraintInstance), 0)
 
 def AddSecondConnectedConstraintInstance(builder, secondConnectedConstraintInstance):
-    PhysicsConstraintAddSecondConnectedConstraintInstance(builder, secondConnectedConstraintInstance)
+    ConstraintAddSecondConnectedConstraintInstance(builder, secondConnectedConstraintInstance)
 
-def PhysicsConstraintEnd(builder):
+def ConstraintEnd(builder):
     return builder.EndObject()
 
 def End(builder):
-    return PhysicsConstraintEnd(builder)
+    return ConstraintEnd(builder)

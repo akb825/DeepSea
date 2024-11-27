@@ -10,6 +10,23 @@ The following JSON formats are added to extend scene conversion.
 
 The following custom scene resource types are provided with the members that are expected:
 
+* `"PhysicsBox"`: physics shape for a box.
+	* `halfExtents`: array of 3 floats for the half extents of the box. The full box geometry ranges from `-halfExtents` to `+halfExtents`.
+	* `convexRadius`: the convex radius for collision checks. If unset or a value < 0 the physics system's default will be used.
+* `"PhysicsCapsule"`: physics shape for a capsule.
+	* `halfHeight`: half the height of the capsule.
+	* `radius`: the radius of the capsule.
+	* `axis`: the axis of the capsule. Valid values or `X`, `Y`, and `Z`.
+* `"PhysicsCone"`: physics shape for a cone.
+	* `height`: the height of the cone.
+	* `radius`: the radius of the cone.
+	* `axis`: the axis of the cone. Valid values or `X`, `Y`, and `Z`.
+	* `convexRadius`: the convex radius for collision checks. If unset or a value < 0 the physics system's default will be used.
+* `"PhysicsSphere"`: physics shape for a sphere.
+	* `radius`: the radius of the sphere.
+* `"PhysicsShapeRef"`: reference to a physics shape.
+	* `shape`: the name of the referenced shape.
+
 ## Scene Nodes
 
 The following scene node types are provided with the members that are expected:

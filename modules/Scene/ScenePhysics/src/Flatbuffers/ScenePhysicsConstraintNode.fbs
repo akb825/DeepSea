@@ -67,7 +67,7 @@ union ConstraintReference
 }
 
 // Struct describing a node that maintains a constraint between two rigid bodies.
-table PhysicsConstraintNode
+table ConstraintNode
 {
 	// The name of the base constraint.
 	constraint : string (required);
@@ -92,4 +92,4 @@ table PhysicsConstraintNode
 	itemLists : [string];
 }
 
-root_type PhysicsConstraintNode;
+root_type ConstraintNode;

@@ -135,14 +135,14 @@ dsSceneNode* dsScenePhysicsConstraintNode_load(const dsSceneLoadContext*,
 	void*, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
-	if (!DeepSeaScenePhysics::VerifyPhysicsConstraintNodeBuffer(verifier))
+	if (!DeepSeaScenePhysics::VerifyConstraintNodeBuffer(verifier))
 	{
 		errno = EFORMAT;
 		DS_LOG_ERROR(DS_SCENE_PHYSICS_LOG_TAG, "Invalid physics constraint node flatbuffer format.");
 		return nullptr;
 	}
 
-	auto fbConstraintNode = DeepSeaScenePhysics::GetPhysicsConstraintNode(data);
+	auto fbConstraintNode = DeepSeaScenePhysics::GetConstraintNode(data);
 
 	const char* constraintName = fbConstraintNode->constraint()->c_str();
 	dsPhysicsConstraint* constraint = findConstraint(scratchData, constraintName);

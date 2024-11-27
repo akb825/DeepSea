@@ -18,7 +18,7 @@ from .. import ParticleDrawList
 
 def convertParticleDrawList(convertContext, data):
 	"""
-	Converts a ParticleDrawList.  The data map is expected to contain the following elements:
+	Converts a ParticleDrawList. The data map is expected to contain the following elements:
 	- instanceData: optional list of instance data to include with the particle draw list. Each
 	  element of the array has the following members:
 	  - type: the name of the instance data type.

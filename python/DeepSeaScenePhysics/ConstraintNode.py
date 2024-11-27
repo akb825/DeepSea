@@ -6,39 +6,39 @@ import flatbuffers
 from flatbuffers.compat import import_numpy
 np = import_numpy()
 
-class PhysicsConstraintNode(object):
+class ConstraintNode(object):
     __slots__ = ['_tab']
 
     @classmethod
     def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = PhysicsConstraintNode()
+        x = ConstraintNode()
         x.Init(buf, n + offset)
         return x
 
     @classmethod
-    def GetRootAsPhysicsConstraintNode(cls, buf, offset=0):
+    def GetRootAsConstraintNode(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
-    # PhysicsConstraintNode
+    # ConstraintNode
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-    # PhysicsConstraintNode
+    # ConstraintNode
     def Constraint(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
-    # PhysicsConstraintNode
+    # ConstraintNode
     def FirstActorType(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
-    # PhysicsConstraintNode
+    # ConstraintNode
     def FirstActor(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
@@ -48,14 +48,14 @@ class PhysicsConstraintNode(object):
             return obj
         return None
 
-    # PhysicsConstraintNode
+    # ConstraintNode
     def FirstConnectedConstraintType(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
-    # PhysicsConstraintNode
+    # ConstraintNode
     def FirstConnectedConstraint(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
@@ -65,14 +65,14 @@ class PhysicsConstraintNode(object):
             return obj
         return None
 
-    # PhysicsConstraintNode
+    # ConstraintNode
     def SecondActorType(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
-    # PhysicsConstraintNode
+    # ConstraintNode
     def SecondActor(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
@@ -82,14 +82,14 @@ class PhysicsConstraintNode(object):
             return obj
         return None
 
-    # PhysicsConstraintNode
+    # ConstraintNode
     def SecondConnectedConstraintType(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
-    # PhysicsConstraintNode
+    # ConstraintNode
     def SecondConnectedConstraint(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
         if o != 0:
@@ -99,7 +99,7 @@ class PhysicsConstraintNode(object):
             return obj
         return None
 
-    # PhysicsConstraintNode
+    # ConstraintNode
     def ItemLists(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         if o != 0:
@@ -107,92 +107,92 @@ class PhysicsConstraintNode(object):
             return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
         return ""
 
-    # PhysicsConstraintNode
+    # ConstraintNode
     def ItemListsLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
-    # PhysicsConstraintNode
+    # ConstraintNode
     def ItemListsIsNone(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         return o == 0
 
-def PhysicsConstraintNodeStart(builder):
+def ConstraintNodeStart(builder):
     builder.StartObject(10)
 
 def Start(builder):
-    PhysicsConstraintNodeStart(builder)
+    ConstraintNodeStart(builder)
 
-def PhysicsConstraintNodeAddConstraint(builder, constraint):
+def ConstraintNodeAddConstraint(builder, constraint):
     builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(constraint), 0)
 
 def AddConstraint(builder, constraint):
-    PhysicsConstraintNodeAddConstraint(builder, constraint)
+    ConstraintNodeAddConstraint(builder, constraint)
 
-def PhysicsConstraintNodeAddFirstActorType(builder, firstActorType):
+def ConstraintNodeAddFirstActorType(builder, firstActorType):
     builder.PrependUint8Slot(1, firstActorType, 0)
 
 def AddFirstActorType(builder, firstActorType):
-    PhysicsConstraintNodeAddFirstActorType(builder, firstActorType)
+    ConstraintNodeAddFirstActorType(builder, firstActorType)
 
-def PhysicsConstraintNodeAddFirstActor(builder, firstActor):
+def ConstraintNodeAddFirstActor(builder, firstActor):
     builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(firstActor), 0)
 
 def AddFirstActor(builder, firstActor):
-    PhysicsConstraintNodeAddFirstActor(builder, firstActor)
+    ConstraintNodeAddFirstActor(builder, firstActor)
 
-def PhysicsConstraintNodeAddFirstConnectedConstraintType(builder, firstConnectedConstraintType):
+def ConstraintNodeAddFirstConnectedConstraintType(builder, firstConnectedConstraintType):
     builder.PrependUint8Slot(3, firstConnectedConstraintType, 0)
 
 def AddFirstConnectedConstraintType(builder, firstConnectedConstraintType):
-    PhysicsConstraintNodeAddFirstConnectedConstraintType(builder, firstConnectedConstraintType)
+    ConstraintNodeAddFirstConnectedConstraintType(builder, firstConnectedConstraintType)
 
-def PhysicsConstraintNodeAddFirstConnectedConstraint(builder, firstConnectedConstraint):
+def ConstraintNodeAddFirstConnectedConstraint(builder, firstConnectedConstraint):
     builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(firstConnectedConstraint), 0)
 
 def AddFirstConnectedConstraint(builder, firstConnectedConstraint):
-    PhysicsConstraintNodeAddFirstConnectedConstraint(builder, firstConnectedConstraint)
+    ConstraintNodeAddFirstConnectedConstraint(builder, firstConnectedConstraint)
 
-def PhysicsConstraintNodeAddSecondActorType(builder, secondActorType):
+def ConstraintNodeAddSecondActorType(builder, secondActorType):
     builder.PrependUint8Slot(5, secondActorType, 0)
 
 def AddSecondActorType(builder, secondActorType):
-    PhysicsConstraintNodeAddSecondActorType(builder, secondActorType)
+    ConstraintNodeAddSecondActorType(builder, secondActorType)
 
-def PhysicsConstraintNodeAddSecondActor(builder, secondActor):
+def ConstraintNodeAddSecondActor(builder, secondActor):
     builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(secondActor), 0)
 
 def AddSecondActor(builder, secondActor):
-    PhysicsConstraintNodeAddSecondActor(builder, secondActor)
+    ConstraintNodeAddSecondActor(builder, secondActor)
 
-def PhysicsConstraintNodeAddSecondConnectedConstraintType(builder, secondConnectedConstraintType):
+def ConstraintNodeAddSecondConnectedConstraintType(builder, secondConnectedConstraintType):
     builder.PrependUint8Slot(7, secondConnectedConstraintType, 0)
 
 def AddSecondConnectedConstraintType(builder, secondConnectedConstraintType):
-    PhysicsConstraintNodeAddSecondConnectedConstraintType(builder, secondConnectedConstraintType)
+    ConstraintNodeAddSecondConnectedConstraintType(builder, secondConnectedConstraintType)
 
-def PhysicsConstraintNodeAddSecondConnectedConstraint(builder, secondConnectedConstraint):
+def ConstraintNodeAddSecondConnectedConstraint(builder, secondConnectedConstraint):
     builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(secondConnectedConstraint), 0)
 
 def AddSecondConnectedConstraint(builder, secondConnectedConstraint):
-    PhysicsConstraintNodeAddSecondConnectedConstraint(builder, secondConnectedConstraint)
+    ConstraintNodeAddSecondConnectedConstraint(builder, secondConnectedConstraint)
 
-def PhysicsConstraintNodeAddItemLists(builder, itemLists):
+def ConstraintNodeAddItemLists(builder, itemLists):
     builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
 
 def AddItemLists(builder, itemLists):
-    PhysicsConstraintNodeAddItemLists(builder, itemLists)
+    ConstraintNodeAddItemLists(builder, itemLists)
 
-def PhysicsConstraintNodeStartItemListsVector(builder, numElems):
+def ConstraintNodeStartItemListsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
 def StartItemListsVector(builder, numElems):
-    return PhysicsConstraintNodeStartItemListsVector(builder, numElems)
+    return ConstraintNodeStartItemListsVector(builder, numElems)
 
-def PhysicsConstraintNodeEnd(builder):
+def ConstraintNodeEnd(builder):
     return builder.EndObject()
 
 def End(builder):
-    return PhysicsConstraintNodeEnd(builder)
+    return ConstraintNodeEnd(builder)

@@ -27,8 +27,8 @@ struct ConstraintNodeReferenceBuilder;
 struct ConstraintResourceReference;
 struct ConstraintResourceReferenceBuilder;
 
-struct PhysicsConstraintNode;
-struct PhysicsConstraintNodeBuilder;
+struct ConstraintNode;
+struct ConstraintNodeBuilder;
 
 enum class ActorReference : uint8_t {
   NONE = 0,
@@ -370,8 +370,8 @@ inline ::flatbuffers::Offset<ConstraintResourceReference> CreateConstraintResour
       constraint__);
 }
 
-struct PhysicsConstraintNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef PhysicsConstraintNodeBuilder Builder;
+struct ConstraintNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef ConstraintNodeBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_CONSTRAINT = 4,
     VT_FIRSTACTOR_TYPE = 6,
@@ -471,93 +471,93 @@ struct PhysicsConstraintNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Ta
   }
 };
 
-template<> inline const DeepSeaScenePhysics::InstanceReference *PhysicsConstraintNode::firstActor_as<DeepSeaScenePhysics::InstanceReference>() const {
+template<> inline const DeepSeaScenePhysics::InstanceReference *ConstraintNode::firstActor_as<DeepSeaScenePhysics::InstanceReference>() const {
   return firstActor_as_InstanceReference();
 }
 
-template<> inline const DeepSeaScenePhysics::ActorResourceReference *PhysicsConstraintNode::firstActor_as<DeepSeaScenePhysics::ActorResourceReference>() const {
+template<> inline const DeepSeaScenePhysics::ActorResourceReference *ConstraintNode::firstActor_as<DeepSeaScenePhysics::ActorResourceReference>() const {
   return firstActor_as_ActorResourceReference();
 }
 
-template<> inline const DeepSeaScenePhysics::InstanceReference *PhysicsConstraintNode::firstConnectedConstraint_as<DeepSeaScenePhysics::InstanceReference>() const {
+template<> inline const DeepSeaScenePhysics::InstanceReference *ConstraintNode::firstConnectedConstraint_as<DeepSeaScenePhysics::InstanceReference>() const {
   return firstConnectedConstraint_as_InstanceReference();
 }
 
-template<> inline const DeepSeaScenePhysics::ConstraintNodeReference *PhysicsConstraintNode::firstConnectedConstraint_as<DeepSeaScenePhysics::ConstraintNodeReference>() const {
+template<> inline const DeepSeaScenePhysics::ConstraintNodeReference *ConstraintNode::firstConnectedConstraint_as<DeepSeaScenePhysics::ConstraintNodeReference>() const {
   return firstConnectedConstraint_as_ConstraintNodeReference();
 }
 
-template<> inline const DeepSeaScenePhysics::ConstraintResourceReference *PhysicsConstraintNode::firstConnectedConstraint_as<DeepSeaScenePhysics::ConstraintResourceReference>() const {
+template<> inline const DeepSeaScenePhysics::ConstraintResourceReference *ConstraintNode::firstConnectedConstraint_as<DeepSeaScenePhysics::ConstraintResourceReference>() const {
   return firstConnectedConstraint_as_ConstraintResourceReference();
 }
 
-template<> inline const DeepSeaScenePhysics::InstanceReference *PhysicsConstraintNode::secondActor_as<DeepSeaScenePhysics::InstanceReference>() const {
+template<> inline const DeepSeaScenePhysics::InstanceReference *ConstraintNode::secondActor_as<DeepSeaScenePhysics::InstanceReference>() const {
   return secondActor_as_InstanceReference();
 }
 
-template<> inline const DeepSeaScenePhysics::ActorResourceReference *PhysicsConstraintNode::secondActor_as<DeepSeaScenePhysics::ActorResourceReference>() const {
+template<> inline const DeepSeaScenePhysics::ActorResourceReference *ConstraintNode::secondActor_as<DeepSeaScenePhysics::ActorResourceReference>() const {
   return secondActor_as_ActorResourceReference();
 }
 
-template<> inline const DeepSeaScenePhysics::InstanceReference *PhysicsConstraintNode::secondConnectedConstraint_as<DeepSeaScenePhysics::InstanceReference>() const {
+template<> inline const DeepSeaScenePhysics::InstanceReference *ConstraintNode::secondConnectedConstraint_as<DeepSeaScenePhysics::InstanceReference>() const {
   return secondConnectedConstraint_as_InstanceReference();
 }
 
-template<> inline const DeepSeaScenePhysics::ConstraintNodeReference *PhysicsConstraintNode::secondConnectedConstraint_as<DeepSeaScenePhysics::ConstraintNodeReference>() const {
+template<> inline const DeepSeaScenePhysics::ConstraintNodeReference *ConstraintNode::secondConnectedConstraint_as<DeepSeaScenePhysics::ConstraintNodeReference>() const {
   return secondConnectedConstraint_as_ConstraintNodeReference();
 }
 
-template<> inline const DeepSeaScenePhysics::ConstraintResourceReference *PhysicsConstraintNode::secondConnectedConstraint_as<DeepSeaScenePhysics::ConstraintResourceReference>() const {
+template<> inline const DeepSeaScenePhysics::ConstraintResourceReference *ConstraintNode::secondConnectedConstraint_as<DeepSeaScenePhysics::ConstraintResourceReference>() const {
   return secondConnectedConstraint_as_ConstraintResourceReference();
 }
 
-struct PhysicsConstraintNodeBuilder {
-  typedef PhysicsConstraintNode Table;
+struct ConstraintNodeBuilder {
+  typedef ConstraintNode Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
   void add_constraint(::flatbuffers::Offset<::flatbuffers::String> constraint) {
-    fbb_.AddOffset(PhysicsConstraintNode::VT_CONSTRAINT, constraint);
+    fbb_.AddOffset(ConstraintNode::VT_CONSTRAINT, constraint);
   }
   void add_firstActor_type(DeepSeaScenePhysics::ActorReference firstActor_type) {
-    fbb_.AddElement<uint8_t>(PhysicsConstraintNode::VT_FIRSTACTOR_TYPE, static_cast<uint8_t>(firstActor_type), 0);
+    fbb_.AddElement<uint8_t>(ConstraintNode::VT_FIRSTACTOR_TYPE, static_cast<uint8_t>(firstActor_type), 0);
   }
   void add_firstActor(::flatbuffers::Offset<void> firstActor) {
-    fbb_.AddOffset(PhysicsConstraintNode::VT_FIRSTACTOR, firstActor);
+    fbb_.AddOffset(ConstraintNode::VT_FIRSTACTOR, firstActor);
   }
   void add_firstConnectedConstraint_type(DeepSeaScenePhysics::ConstraintReference firstConnectedConstraint_type) {
-    fbb_.AddElement<uint8_t>(PhysicsConstraintNode::VT_FIRSTCONNECTEDCONSTRAINT_TYPE, static_cast<uint8_t>(firstConnectedConstraint_type), 0);
+    fbb_.AddElement<uint8_t>(ConstraintNode::VT_FIRSTCONNECTEDCONSTRAINT_TYPE, static_cast<uint8_t>(firstConnectedConstraint_type), 0);
   }
   void add_firstConnectedConstraint(::flatbuffers::Offset<void> firstConnectedConstraint) {
-    fbb_.AddOffset(PhysicsConstraintNode::VT_FIRSTCONNECTEDCONSTRAINT, firstConnectedConstraint);
+    fbb_.AddOffset(ConstraintNode::VT_FIRSTCONNECTEDCONSTRAINT, firstConnectedConstraint);
   }
   void add_secondActor_type(DeepSeaScenePhysics::ActorReference secondActor_type) {
-    fbb_.AddElement<uint8_t>(PhysicsConstraintNode::VT_SECONDACTOR_TYPE, static_cast<uint8_t>(secondActor_type), 0);
+    fbb_.AddElement<uint8_t>(ConstraintNode::VT_SECONDACTOR_TYPE, static_cast<uint8_t>(secondActor_type), 0);
   }
   void add_secondActor(::flatbuffers::Offset<void> secondActor) {
-    fbb_.AddOffset(PhysicsConstraintNode::VT_SECONDACTOR, secondActor);
+    fbb_.AddOffset(ConstraintNode::VT_SECONDACTOR, secondActor);
   }
   void add_secondConnectedConstraint_type(DeepSeaScenePhysics::ConstraintReference secondConnectedConstraint_type) {
-    fbb_.AddElement<uint8_t>(PhysicsConstraintNode::VT_SECONDCONNECTEDCONSTRAINT_TYPE, static_cast<uint8_t>(secondConnectedConstraint_type), 0);
+    fbb_.AddElement<uint8_t>(ConstraintNode::VT_SECONDCONNECTEDCONSTRAINT_TYPE, static_cast<uint8_t>(secondConnectedConstraint_type), 0);
   }
   void add_secondConnectedConstraint(::flatbuffers::Offset<void> secondConnectedConstraint) {
-    fbb_.AddOffset(PhysicsConstraintNode::VT_SECONDCONNECTEDCONSTRAINT, secondConnectedConstraint);
+    fbb_.AddOffset(ConstraintNode::VT_SECONDCONNECTEDCONSTRAINT, secondConnectedConstraint);
   }
   void add_itemLists(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> itemLists) {
-    fbb_.AddOffset(PhysicsConstraintNode::VT_ITEMLISTS, itemLists);
+    fbb_.AddOffset(ConstraintNode::VT_ITEMLISTS, itemLists);
   }
-  explicit PhysicsConstraintNodeBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+  explicit ConstraintNodeBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ::flatbuffers::Offset<PhysicsConstraintNode> Finish() {
+  ::flatbuffers::Offset<ConstraintNode> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = ::flatbuffers::Offset<PhysicsConstraintNode>(end);
-    fbb_.Required(o, PhysicsConstraintNode::VT_CONSTRAINT);
+    auto o = ::flatbuffers::Offset<ConstraintNode>(end);
+    fbb_.Required(o, ConstraintNode::VT_CONSTRAINT);
     return o;
   }
 };
 
-inline ::flatbuffers::Offset<PhysicsConstraintNode> CreatePhysicsConstraintNode(
+inline ::flatbuffers::Offset<ConstraintNode> CreateConstraintNode(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::String> constraint = 0,
     DeepSeaScenePhysics::ActorReference firstActor_type = DeepSeaScenePhysics::ActorReference::NONE,
@@ -569,7 +569,7 @@ inline ::flatbuffers::Offset<PhysicsConstraintNode> CreatePhysicsConstraintNode(
     DeepSeaScenePhysics::ConstraintReference secondConnectedConstraint_type = DeepSeaScenePhysics::ConstraintReference::NONE,
     ::flatbuffers::Offset<void> secondConnectedConstraint = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> itemLists = 0) {
-  PhysicsConstraintNodeBuilder builder_(_fbb);
+  ConstraintNodeBuilder builder_(_fbb);
   builder_.add_itemLists(itemLists);
   builder_.add_secondConnectedConstraint(secondConnectedConstraint);
   builder_.add_secondActor(secondActor);
@@ -583,7 +583,7 @@ inline ::flatbuffers::Offset<PhysicsConstraintNode> CreatePhysicsConstraintNode(
   return builder_.Finish();
 }
 
-inline ::flatbuffers::Offset<PhysicsConstraintNode> CreatePhysicsConstraintNodeDirect(
+inline ::flatbuffers::Offset<ConstraintNode> CreateConstraintNodeDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *constraint = nullptr,
     DeepSeaScenePhysics::ActorReference firstActor_type = DeepSeaScenePhysics::ActorReference::NONE,
@@ -597,7 +597,7 @@ inline ::flatbuffers::Offset<PhysicsConstraintNode> CreatePhysicsConstraintNodeD
     const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists = nullptr) {
   auto constraint__ = constraint ? _fbb.CreateString(constraint) : 0;
   auto itemLists__ = itemLists ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*itemLists) : 0;
-  return DeepSeaScenePhysics::CreatePhysicsConstraintNode(
+  return DeepSeaScenePhysics::CreateConstraintNode(
       _fbb,
       constraint__,
       firstActor_type,
@@ -673,33 +673,33 @@ inline bool VerifyConstraintReferenceVector(::flatbuffers::Verifier &verifier, c
   return true;
 }
 
-inline const DeepSeaScenePhysics::PhysicsConstraintNode *GetPhysicsConstraintNode(const void *buf) {
-  return ::flatbuffers::GetRoot<DeepSeaScenePhysics::PhysicsConstraintNode>(buf);
+inline const DeepSeaScenePhysics::ConstraintNode *GetConstraintNode(const void *buf) {
+  return ::flatbuffers::GetRoot<DeepSeaScenePhysics::ConstraintNode>(buf);
 }
 
-inline const DeepSeaScenePhysics::PhysicsConstraintNode *GetSizePrefixedPhysicsConstraintNode(const void *buf) {
-  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaScenePhysics::PhysicsConstraintNode>(buf);
+inline const DeepSeaScenePhysics::ConstraintNode *GetSizePrefixedConstraintNode(const void *buf) {
+  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaScenePhysics::ConstraintNode>(buf);
 }
 
-inline bool VerifyPhysicsConstraintNodeBuffer(
+inline bool VerifyConstraintNodeBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaScenePhysics::PhysicsConstraintNode>(nullptr);
+  return verifier.VerifyBuffer<DeepSeaScenePhysics::ConstraintNode>(nullptr);
 }
 
-inline bool VerifySizePrefixedPhysicsConstraintNodeBuffer(
+inline bool VerifySizePrefixedConstraintNodeBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaScenePhysics::PhysicsConstraintNode>(nullptr);
+  return verifier.VerifySizePrefixedBuffer<DeepSeaScenePhysics::ConstraintNode>(nullptr);
 }
 
-inline void FinishPhysicsConstraintNodeBuffer(
+inline void FinishConstraintNodeBuffer(
     ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaScenePhysics::PhysicsConstraintNode> root) {
+    ::flatbuffers::Offset<DeepSeaScenePhysics::ConstraintNode> root) {
   fbb.Finish(root);
 }
 
-inline void FinishSizePrefixedPhysicsConstraintNodeBuffer(
+inline void FinishSizePrefixedConstraintNodeBuffer(
     ::flatbuffers::FlatBufferBuilder &fbb,
-    ::flatbuffers::Offset<DeepSeaScenePhysics::PhysicsConstraintNode> root) {
+    ::flatbuffers::Offset<DeepSeaScenePhysics::ConstraintNode> root) {
   fbb.FinishSizePrefixed(root);
 }
 

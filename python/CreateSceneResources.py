@@ -43,6 +43,13 @@ from DeepSeaSceneParticle.Convert.ParticleNodeConvert import convertParticleNode
 from DeepSeaSceneParticle.Convert.StandardParticleEmitterFactoryConvert import \
 	convertStandardParticleEmitterFactory
 
+from DeepSeaScenePhysics.Convert.PhysicsBoxConvert import convertPhysicsBox
+from DeepSeaScenePhysics.Convert.PhysicsCapsuleConvert import convertPhysicsCapsule
+from DeepSeaScenePhysics.Convert.PhysicsConeConvert import convertPhysicsCone
+from DeepSeaScenePhysics.Convert.PhysicsCylinderConvert import convertPhysicsCylinder
+from DeepSeaScenePhysics.Convert.PhysicsSphereConvert import convertPhysicsSphere
+from DeepSeaScenePhysics.Convert.PhysicsShapeRefConvert import convertPhysicsShapeRef
+
 from DeepSeaSceneVectorDraw.Convert.TextConvert import convertText
 from DeepSeaSceneVectorDraw.Convert.TextNodeConvert import convertTextNode
 from DeepSeaSceneVectorDraw.Convert.VectorImageConvert import convertVectorImage
@@ -85,6 +92,14 @@ def createSceneResourcesConvertContext(cuttlefish='cuttlefish', vfc='vfc', multi
 	convertContext.addCustomResourceType('StandardParticleEmitterFactory',
 		convertStandardParticleEmitterFactory)
 	convertContext.addNodeType('ParticleNode', convertParticleNode)
+
+	# Physics scene types.
+	convertContext.addCustomResourceType("PhysicsBox", convertPhysicsBox, "PhysicsShape")
+	convertContext.addCustomResourceType("PhysicsCapsule", convertPhysicsCapsule, "PhysicsShape")
+	convertContext.addCustomResourceType("PhysicsCone", convertPhysicsCone, "PhysicsShape")
+	convertContext.addCustomResourceType("PhysicsCylinder", convertPhysicsCylinder, "PhysicsShape")
+	convertContext.addCustomResourceType("PhysicsSphere", convertPhysicsSphere, "PhysicsShape")
+	convertContext.addCustomResourceType("PhysicsShapeRef", convertPhysicsShapeRef, "PhysicsShape")
 
 	# Vector draw scene types.
 	convertContext.addCustomResourceType('Text', convertText)
