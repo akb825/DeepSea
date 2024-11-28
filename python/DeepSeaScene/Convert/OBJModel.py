@@ -1,4 +1,4 @@
-# Copyright 2020 Aaron Barany
+# Copyright 2020-2024 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,15 +13,15 @@
 # limitations under the License.
 
 import struct
-from .ModelNodeConvert import ModelNodeVertexStream, ModelNodeGeometryData, addModelType
-from .SceneResourcesConvert import modelVertexAttribEnum
+from .ModelConvert import ModelVertexStream, ModelGeometryData, VertexAttrib, addModelType, \
+	modelVertexAttribEnum
 
 class Object:
 	pass
 
 def convertOBJModel(convertContext, path):
 	"""
-	Converts an OBJ model for use with ModelNodeConvert.
+	Converts an OBJ model for use with ModelConvert.
 
 	Each object and group is a separate group name. The name will be:
 	- object.group (for object name and group name )when an object contains multiple groups.
@@ -59,25 +59,28 @@ def convertOBJModel(convertContext, path):
 		if not data.primitiveType:
 			return
 
-		streams = [ModelNodeVertexStream([(modelVertexAttribEnum['Position'], 'X32Y32Z32W32',
-			'Float')], data.positions, 4, data.positionIndices)]
+		streams = [ModelVertexStream(
+			[VertexAttrib(modelVertexAttribEnum['Position'], 'X32Y32Z32W32', 'Float')],
+			data.positions, 4, data.positionIndices)]
 		data.positionIndices = bytearray()
 
 		if data.texCoordIndices:
-			streams.append(ModelNodeVertexStream([(modelVertexAttribEnum['TexCoord0'], 'X32Y32Z32',
-				'Float')], data.texCoords, 4, data.texCoordIndices))
+			streams.append(ModelVertexStream(
+				[VertexAttrib(modelVertexAttribEnum['TexCoord0'], 'X32Y32Z32', 'Float')],
+				data.texCoords, 4, data.texCoordIndices))
 			data.texCoordIndices = bytearray()
 
 		if data.normalIndices:
-			streams.append(ModelNodeVertexStream([(modelVertexAttribEnum['Normal'], 'X32Y32Z32',
-				'Float')], data.normals, 4, data.normalIndices))
+			streams.append(ModelVertexStream(
+				[VertexAttrib(modelVertexAttribEnum['Normal'], 'X32Y32Z32', 'Float')],
+				data.normals, 4, data.normalIndices))
 			data.normalIndices = bytearray()
 
 		if groupName:
 			name = objectName + '.' + groupName
 		else:
 			name = objectName
-		geometry.append(ModelNodeGeometryData(name, streams, data.primitiveType))
+		geometry.append(ModelGeometryData(name, streams, data.primitiveType))
 		data.primitiveType = None
 
 	def resolveIndex(index, count, indexType):

@@ -1,4 +1,4 @@
-# Copyright 2020-2023 Aaron Barany
+# Copyright 2020-2024 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,8 @@ import os
 from subprocess import Popen, PIPE
 
 import flatbuffers
-from .SceneResourcesConvert import convertSceneResources, readVertexAttrib
+from .ModelConvert import VertexAttrib, loadAndConvertModelGeometry, readVertexAttrib
+from .SceneResourcesConvert import convertSceneResources
 from .. import DrawIndexedRange
 from .. import DrawRange
 from ..FormatDecoration import FormatDecoration
@@ -37,63 +38,6 @@ class Object:
 
 FLT_MAX = 3.402823466e38
 
-validModelVertexTransforms = {
-	'Identity',
-	'Bounds',
-	'UNormToSNorm',
-	'SNormToUNorm'
-}
-
-class ModelNodeVertexStream:
-	"""
-	Class containing information for a vertex stream of a model. The following members are present:
-	- vertexFormat: array of vertex attributes defining the vertex format. Each attribute is a tuple
-	  containing the attribute index, format, and type decoration.
-	- vertexData: bytes for the vertices.
-	- indexSize: the number of bytes for each index. A value of 0 indicates no indices.
-	- indexData: bytes for the indices, or None if no indices.
-	"""
-	def __init__(self, vertexFormat, vertexData, indexSize = 0, indexData = None):
-		self.vertexFormat = vertexFormat
-		self.vertexData = vertexData
-		self.indexSize = indexSize
-		self.indexData = indexData
-
-class ModelNodeGeometryData:
-	"""
-	Class containing data for a piece of geometry. The following members are present:
-	- name: the name of the geometry.
-	- vertexStreams: array of ModelVertexStream objects for the vertices.
-	- primitiveType: the type of primitives to use.
-	- patchPoints: the number of patch points. This must be non-zero of primitiveType is
-	  'PatchList'.
-	"""
-	def __init__(self, name, vertexStreams, primitiveType = 'TriangleList', patchPoints = 0):
-		self.name = name
-		self.vertexStreams = vertexStreams
-		if not hasattr(PrimitiveType, primitiveType):
-			raise Exception('Invalid geometry primitive type "' + primitiveType + '".')
-		self.primitiveType = primitiveType
-		if primitiveType == 'PatchList' and patchPoints < 1:
-			raise Exception(
-				'Geometry patch points must be provided when primitiveType is "PatchPoints".')
-		self.patchPoints = patchPoints
-
-def addModelType(convertContext, typeName, convertFunc):
-	"""
-	Adds a model type with the name and the convert function.
-
-	The function should take the ConvertContext and path to the model to convert, and should return
-	an array of ModelNodeGeometryData objects for the contents of the model.
-	An exception will be raised if the type is already registered.
-	"""
-	if not hasattr(convertContext, 'modelTypeMap'):
-		convertContext.modelTypeMap = dict()
-
-	if typeName in convertContext.modelTypeMap:
-		raise Exception('Model type "' + typeName + '" is already registered.')
-	convertContext.modelTypeMap[typeName] = convertFunc
-
 def validateModelDistanceRange(distanceRange):
 	try:
 		if len(distanceRange) != 2:
@@ -105,169 +49,6 @@ def validateModelDistanceRange(distanceRange):
 		raise Exception('Invalid model draw distance range "' + str(distanceRange) + '".')
 
 def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
-	def appendBuffer(combinedBuffer, data, pad = True):
-		# Some graphics APIs require offsets to be aligned to 4 bytes.
-		if pad:
-			for i in range(len(combinedBuffer) % 4):
-				combinedBuffer.append(0)
-
-		offset = len(combinedBuffer)
-		combinedBuffer.extend(data)
-		return offset
-
-	def convertGeometry(convertContext, modelType, path, vertexFormat, indexSize, transforms,
-			includedComponents, combinedBuffer, modelBounds):
-		def getIndexType(indexSize):
-			if indexSize == 2:
-				return 'UInt16'
-			elif indexSize == 4:
-				return 'UInt32'
-			else:
-				return None
-
-		convertFunc = convertContext.modelTypeMap.get(modelType) \
-			if hasattr(convertContext, 'modelTypeMap') else None
-		if not convertFunc:
-			raise Exception('Model type "' + modelType + '" hasn\'t been registered.')
-
-		vfcVertexFormat = []
-		for streamFormat in vertexFormat:
-			vfcStreamFormat = []
-			for attrib, attribFormat, decoration in streamFormat:
-				vfcStreamFormat.append({
-					'name': str(attrib),
-					'layout': attribFormat,
-					'type': decoration
-				})
-			vfcVertexFormat.append(vfcStreamFormat)
-
-		indexType = getIndexType(indexSize)
-
-		vfcTransforms = []
-		for attrib, transform in transforms:
-			vfcTransforms.append({'name': str(attrib), 'transform': transform})
-
-		geometryDataList = convertFunc(convertContext, path)
-		convertedGeometry = dict()
-		try:
-			for geometryData in geometryDataList:
-				if geometryData.name not in includedComponents:
-					continue
-
-				if geometryData.name in convertedGeometry:
-					raise Exception('Geometry data "' + geometryData.name + '" appears multiple '
-						'times in model "' + path + '".')
-
-				# Prepare the input for the vfc tool.
-				vertexStreams = []
-				for vertexStream in geometryData.vertexStreams:
-					streamVertexFormat = []
-					for attrib, attribFormat, decoration in vertexStream.vertexFormat:
-						streamVertexFormat.append({
-							'name': str(attrib),
-							'layout': attribFormat,
-							'type': decoration
-						})
-
-					vfcVertexStream = {
-						'vertexFormat': streamVertexFormat,
-						'vertexData': 'base64:' + base64.b64encode(vertexStream.vertexData).decode()
-					}
-					if vertexStream.indexSize > 0:
-						vfcVertexStream['indexType'] = getIndexType(vertexStream.indexSize)
-						vfcVertexStream['indexData'] = 'base64:' + \
-							base64.b64encode(vertexStream.indexData).decode()
-					vertexStreams.append(vfcVertexStream)
-
-				primitiveType = geometryData.primitiveType
-				if primitiveType == 'TriangleListAdjacency':
-					primitiveType = 'TriangleList'
-				elif primitiveType == 'TriangleStripAdjacency':
-					primitiveType = 'TriangleStrip'
-				vfcInput = {
-					'vertexFormat': vfcVertexFormat,
-					'indexType': indexType,
-					'primitiveType': primitiveType,
-					'patchPoints': geometryData.patchPoints,
-					'vertexStreams': vertexStreams,
-					'vertexTransforms': vfcTransforms
-				}
-
-				# Call into vfc as a subprocess to convert the vertex format.
-				vfc = Popen([convertContext.vfc], stdin = PIPE, stdout = PIPE, stderr = PIPE,
-					universal_newlines = True)
-				stdinStr = json.dumps(vfcInput)
-				stdoutStr = ''
-				stderrStr = ''
-				while True:
-					stdoutData, stderrData = vfc.communicate(stdinStr)
-					stdinStr = None
-					stdoutStr += stdoutData
-					stderrStr += stderrData
-					if vfc.returncode is None:
-						continue
-
-					if vfc.returncode == 0:
-						vfcOutput = json.loads(stdoutStr)
-						break
-					else:
-						raise Exception('Error converting geometry data "' + path + '":\n' + 
-							stderrStr.replace('stdin: ', '').replace('error: ', ''))
-
-				try:
-					# Parse the final geometry info.
-					geometry = Object()
-					geometry.vertexCount = vfcOutput['vertexCount']
-					geometry.vertices = []
-
-					vfcVertices = vfcOutput['vertices']
-					for i in range(len(vfcVertices)):
-						vertexInfo = Object()
-						vertexInfo.vertexFormat = vertexFormat[i]
-						vertexInfo.vertexData = appendBuffer(combinedBuffer,
-							base64.b64decode(vfcVertices[i]['vertexData'][7:]))
-						geometry.vertices.append(vertexInfo)
-
-						# Update the bounds.
-						for attribFormat in vfcVertices[i]['vertexFormat']:
-							if attribFormat['name'] == '0':
-								minValue = attribFormat['minValue']
-								maxValue = attribFormat['maxValue']
-								for i in range(3):
-									modelBounds[0][i] = min(modelBounds[0][i], minValue[i])
-									modelBounds[1][i] = max(modelBounds[1][i], maxValue[i])
-
-					geometry.primitiveType = geometryData.primitiveType
-
-					geometry.indexBuffers = []
-					if indexType:
-						for vfcIndexBuffer in vfcOutput['indexBuffers']:
-							indexBuffer = Object()
-							indexBuffer.indexCount = vfcIndexBuffer['indexCount']
-							indexBuffer.vertexOffset = vfcIndexBuffer['baseVertex']
-							indexBuffer.offset = len(combinedBuffer)
-							indexData = appendBuffer(combinedBuffer,
-								base64.b64decode(vfcIndexBuffer['indexData'][7:]),
-								len(geometry.indexBuffers) == 0)
-							if geometry.indexBuffers:
-								indexBuffer.indexData = geometry.indexBuffers[0].indexData
-								indexBuffer.firstIndex = \
-									(indexData - indexBuffer.indexData)/indexSize
-							else:
-								indexBuffer.indexData = indexData
-								indexBuffer.firstIndex = 0
-							indexBuffer.indexSize = indexSize
-							geometry.indexBuffers.append(indexBuffer)
-				except Exception as e:
-					raise Exception('Internal error: unexpected output from vfc.')
-
-				convertedGeometry[geometryData.name] = geometry
-		except (ValueError, AttributeError):
-			raise Exception('Unexpected data from conversion function for model type "' +
-				modelType + '".')
-
-		return convertedGeometry
-
 	embeddedBufferName = '_DSEmbeddedModelBuffer'
 	embeddedGeometryName = '_DSEmbeddedModelGeometry'
 	combinedBuffer = bytearray()
@@ -286,16 +67,16 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 					if not modelType:
 						raise Exception('ModelNode geometry has no known model type.')
 
-				vertexFormat = geometryData['vertexFormat']
-				vfcVertexFormat = []
+				vertexFormatData = geometryData['vertexFormat']
+				vertexFormat = []
 				try:
-					if len(vertexFormat) > 4:
+					if len(vertexFormatData) > 4:
 						raise Exception(
 							'ModuleNode geometry "vertexFormat" must have at most 4 elements.')
 
-					for streamFormat in vertexFormat:
-						vfcStreamFormat = []
-						for vertexAttrib in streamFormat:
+					for streamFormatData in vertexFormatData:
+						streamFormat = []
+						for vertexAttrib in streamFormatData:
 							try:
 								attrib = readVertexAttrib(vertexAttrib['attrib'])
 
@@ -308,13 +89,13 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 									raise Exception(
 										'Invalid vertex format decoration "' + decoration + '".')
 
-								vfcStreamFormat.append((attrib, attribFormat, decoration))
+								streamFormat.append(VertexAttrib(attrib, attribFormat, decoration))
 							except KeyError as e:
 								raise Exception(
 									'ModelNode geometry vertex format doesn\'t contain element ' +
 									str(e) + '.')
 
-						vfcVertexFormat.append(vfcStreamFormat)
+						vertexFormat.append(streamFormat)
 				except (TypeError, ValueError):
 					raise Exception(
 						'ModelNode geometry "vertexFormat" must be a 2D array of objects.')
@@ -323,19 +104,15 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 				if indexSize not in (0, 2, 4):
 					raise Exception('Invalid geometry indexSize "' + str(indexSize) + '".')
 
-				transforms = geometryData.get('transforms')
-				vfcTransforms = []
-				if transforms:
+				transformData = geometryData.get('transforms')
+				transforms = []
+				if transformData:
 					try:
-						for transform in transforms:
+						for transform in transformData:
 							try:
 								attrib = readVertexAttrib(transform['attrib'])
 								transformType = transform['transform']
-								if transformType not in validModelVertexTransforms:
-									raise Exception('Invalid geometry transform "' +
-										str(transformType) + '".')
-
-								vfcTransforms.append((attrib, transformType))
+								transforms.append((attrib, transformType))
 							except KeyError as e:
 								raise Exception(
 									'ModelNode geometry transform doesn\'t contain element ' +
@@ -359,23 +136,24 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 				raise Exception(
 					'ModelNode "modelGeometry" doesn\'t contain element ' + str(e) + '.')
 
-			convertedGeometry = convertGeometry(convertContext, modelType, path, vfcVertexFormat,
-				indexSize, vfcTransforms, includedComponents, combinedBuffer, modelBounds)
+			convertedGeometry = loadAndConvertModelGeometry(convertContext, modelType, path,
+				includedComponents, vertexFormat, indexSize, transforms, combinedBuffer,
+				modelBounds)
 
 			# Geometries to be added to the embedded resources.
 			for geometry in convertedGeometry.values():
 				vertexBuffers = []
-				for vertexBufferInfo in geometry.vertices:
+				for vertexBufferInfo in geometry.vertexBuffers:
 					vertexAttributes = []
-					for attrib, attribFormat, decoration in vertexBufferInfo.vertexFormat:
+					for vertexAttrib in vertexBufferInfo.vertexFormat:
 						vertexAttributes.append({
-							'attrib': attrib,
-							'format': attribFormat,
-							'decoration': decoration
+							'attrib': vertexAttrib.attrib,
+							'format': vertexAttrib.format,
+							'decoration': vertexAttrib.decoration
 						})
 					vertexBuffers.append({
 						'name': embeddedBufferName,
-						'offset': vertexBufferInfo.vertexData,
+						'offset': vertexBufferInfo.offset,
 						'count': geometry.vertexCount,
 						'format': {'attributes': vertexAttributes}
 					})

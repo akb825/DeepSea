@@ -1,4 +1,4 @@
-# Copyright 2020-2023 Aaron Barany
+# Copyright 2020-2024 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@ import base64
 import json
 import os
 import struct
-from .ModelNodeConvert import ModelNodeVertexStream, ModelNodeGeometryData, addModelType
-from .SceneResourcesConvert import modelVertexAttribEnum
+from .ModelConvert import ModelVertexStream, ModelGeometryData, VertexAttrib, addModelType, \
+	modelVertexAttribEnum
 
 class Object:
 	pass
@@ -329,11 +329,11 @@ def convertGLTFOrGLBModel(convertContext, path, jsonData, binData):
 			if not accessor.type.startswith('X'):
 				raise Exception('Unsupported vertex type "' + accessor.type + '" for GLTF file "' +
 					path + ".'")
-			vertexFormat = [(attrib, accessor.type, accessor.decorator)]
-			vertexStreams.append(ModelNodeVertexStream(vertexFormat, accessor.extractData(),
+			vertexFormat = [VertexAttrib(attrib, accessor.type, accessor.decorator)]
+			vertexStreams.append(ModelVertexStream(vertexFormat, accessor.extractData(),
 				indexSize, indexData))
 
-		geometry.append(ModelNodeGeometryData(mesh.name, vertexStreams, mesh.primitiveType))
+		geometry.append(ModelGeometryData(mesh.name, vertexStreams, mesh.primitiveType))
 	return geometry
 
 def readGLTFData(path):
@@ -372,7 +372,7 @@ def readGLBData(path):
 
 def convertGLTFModel(convertContext, path):
 	"""
-	Converts an glTF model for use with ModelNodeConvert.
+	Converts an glTF model for use with ModelConvert.
 
 	If the "name" element is provided for a mesh, it will be used for the name of the model
 	geometry. Otherwise, the name will be "mesh#", where # is the index of the mesh. If multiple
@@ -391,7 +391,7 @@ def convertGLTFModel(convertContext, path):
 
 def convertGLBModel(convertContext, path):
 	"""
-	Converts an GLB model for use with ModelNodeConvert.
+	Converts an GLB model for use with ModelConvert.
 
 	If the "name" element is provided for a mesh, it will be used for the name of the model
 	geometry. Otherwise, the name will be "mesh#", where # is the index of the mesh. If multiple
