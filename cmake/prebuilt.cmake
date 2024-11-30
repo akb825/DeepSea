@@ -1,4 +1,4 @@
-# Copyright 2018-2022 Aaron Barany
+# Copyright 2018-2024 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -48,6 +48,10 @@ if (NOT DEEPSEA_NO_PREBUILT_LIBS)
 	endif()
 
 	if (DEEPSEA_PREBUILT_LIBS_DIR AND IS_DIRECTORY ${DEEPSEA_PREBUILT_LIBS_DIR})
+		if (WIN32 AND DEEPSEA_STATIC_RUNTIME)
+			message(FATAL_ERROR "Cannot use DEEPSEA_STATIC_RUNTIME with pre-built libraries.")
+		endif()
+
 		set(CMAKE_FIND_ROOT_PATH ${CMAKE_FIND_ROOT_PATH} ${DEEPSEA_PREBUILT_LIBS_DIR})
 		set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${DEEPSEA_PREBUILT_LIBS_DIR})
 

@@ -8,7 +8,7 @@ DeepSea is a game engine written in C. It is designed to be modular, allowing on
 
 The following software is required to build DeepSea:
 
-* [cmake](https://cmake.org/) 3.5 or later
+* [cmake](https://cmake.org/) 3.12 or later
 * [Modular Shader Language](https://github.com/akb825/ModularShaderLanguage) (required for rendering, provided as submodule; will only build the client library without tests, which doesn't have extra required dependencies; tool should be downloaded via `update.sh` or built separately and available on `PATH` to compile shaders)
 * [EasyProfiler](https://github.com/yse/easy_profiler) (optional default profiling implementation, provided as submodule)
 * [SDL2](https://www.libsdl.org/) (optional)
@@ -113,7 +113,8 @@ To build the examples, an Android Studio project is provided in the android subd
 * `-DCMAKE_BUILD_TYPE=Debug|Release`: Building in `Debug` or `Release`. This should always be specified.
 * `-DCMAKE_INSTALL_PREFIX=path`: Sets the path to install to when running make install.
 * `-DDEEPSEA_SHARED=ON|OFF`: Set to `ON` to build with shared libraries, `OFF` to build with static libraries. Default is `OFF`.
-* `-DDEEPSEA_SHARED=ON|OFF`: Set to `ON` to build all libraries into a single shared library. Default is `OFF`.
+* `-DDEEPSEA_SINGLE_SHARED=ON|OFF`: Set to `ON` to build all libraries into a single shared library. Default is `OFF`.
+* `-DDEEPSEA_STATIC_RUNTIME=ON|OFF`: Set to `ON` to use the static runtime library on Windows. When `OFF`, it will respect the existing value of `CMAKE_MSVC_RUNTIME_LIBRARY`, or use dynamic runtime if otherwise unset. It is not recommended to set this to `ON` when `DEEPSEA_SHARED` is also `ON`. This option is also incompatible with using the pre-built library packages, you will need to build the dependencies yourself. Default is `OFF`.
 * `-DDEEPSEA_PROFILING=ON|OFF`: Set to `ON` to enable profiling of code, `OFF` to compile out all profiling macros. Default is `ON`.
 * `-DDEEPSEA_GPU_PROFILING=ON|OFF`: Set to `ON` to enable profiling of the GPU, `OFF` to remove all GPU timing instrumentation. This can be used to independently disable GPU profiling while still leaving CPU profiling enabled. If `DEEPSEA_PROFILING` is set to `OFF`, then GPU profiling will also be disabled. Default is `OFF`.
 * `-DDEEPSEA_SYSTEM_MSL=ON|OFF`: Set to `ON` to use the system installed version of Modular Shader Language, `OFF` to build the embedded submodule. Setting this to `ON` is useful when creating system packages, such as for a Linux distribution, but `OFF` is usually desired when cross-compiling for multiple platforms. When set to `ON`, you may need to have the lib/cmake/MSL directory (relative to the MSL install path) in `CMAKE_PREFIX_PATH`. Default is `OFF`.

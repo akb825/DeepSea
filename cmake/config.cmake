@@ -1,4 +1,4 @@
-# Copyright 2017-2022 Aaron Barany
+# Copyright 2017-2024 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -48,6 +48,13 @@ elseif (DEEPSEA_ARCH MATCHES "^arm" OR DEEPSEA_ARCH STREQUAL "aarch64")
 endif()
 
 if (MSVC)
+	if (DEEPSEA_STATIC_RUNTIME)
+		set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+		if (DEEPSEA_SHARED)
+			message(WARNING
+				"It is not recommended to have DEEPSEA_SHARED and DEEPSEA_STATIC_RUNTIME both set to ON.")
+		endif()
+	endif()
 	# NOTE: Warning 5105 is to work around an (embarrassing) bug win the Windows headers for
 	# Visual Studio 2019 16.8.0.
 	add_compile_options(/W3 /WX /wd4146 /wd5105 /MP)

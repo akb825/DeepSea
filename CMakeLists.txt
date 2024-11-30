@@ -1,4 +1,12 @@
-cmake_minimum_required(VERSION 3.12)
+if (WIN32)
+	# Needs 3.15 for CMAKE_MSVC_RUNTIME_LIBRARY.
+	cmake_minimum_required(VERSION 3.15)
+else()
+	cmake_minimum_required(VERSION 3.12)
+endif()
+if (POLICY CMP0144)
+	cmake_policy(SET CMP0144 NEW)
+endif()
 project(DeepSea)
 
 # Build options
@@ -10,6 +18,7 @@ else()
 endif()
 set(DEEPSEA_SHARED ${DEEPSEA_SHARED_DEFAULT} CACHE BOOL "Build DeepSea using shared libraries.")
 set(DEEPSEA_SINGLE_SHARED OFF CACHE BOOL "Build DeepSea as a single shared library for all modules.")
+set(DEEPSEA_STATIC_RUNTIME OFF CACHE BOOL "Use static runtime library on Windows.")
 set(DEEPSEA_PROFILING ON CACHE BOOL "Enable profiling of code.")
 set(DEEPSEA_GPU_PROFILING OFF CACHE BOOL "Enable profiling of the GPU.")
 set(DEEPSEA_SYSTEM_MSL OFF CACHE BOOL "Use the system installed version of MSL.")
