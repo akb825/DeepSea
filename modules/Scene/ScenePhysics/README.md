@@ -22,6 +22,28 @@ The following custom scene resource types are provided with the members that are
 	* `radius`: the radius of the cone.
 	* `axis`: the axis of the cone. Valid values or `X`, `Y`, and `Z`.
 	* `convexRadius`: the convex radius for collision checks. If unset or a value < 0 the physics system's default will be used.
+* `"PhysicsConvexHull"`: physics shape for a convex hull.
+	* The following elements are used when providing data from a model:
+		* `type`: the name of the geometry type, such as "obj" or "gltf". If omitted, the type is inferred from the path extension.
+		* `path`: the path to the geometry.
+		* `component`: the name of the component of the model.
+	* The following elements are used when providing data directly:
+		* `vertices`: array of floats for the raw vertex data. This must be divisible by 3, with each vertex having three values.
+	* `convexRadius`: the convex radius for collision checks. If unset or a value < 0 the physics system's default will be used.
+	* `cacheName`: name used for caching pre-computed data. If not set, the pre-computed data will not be cached.
+* `"PhysicsMesh"`: physics shape for a triangle mesh.
+	* The following elements are used when providing data from a model:
+		* `modelType`: the name of the model type, such as "obj" or "gltf". If omitted, the type is inferred from the path extension.
+		* `path`: the path to the geometry.
+		* `component`: the name of the component of the model. The component must use a triangle list.
+		* `triangleMaterialAttrib`: the attribute to gather per-triangle material values from. The attribute must have three values per vertex, corresponding to friction, restitution, and hardness, respectively. The values for for each vertex that comprises a triangle will be averaged. Most commonly the color attribute will be used, as it is the easiest to set in modeling programs. If not set, no per-trinagle materials will be used.
+		* `frictionScale`: scale value to apply to the friction for the per-triangle material attributes. This can be used to allow for friction values > 1 when used with normalized attributes, such as colors. Defaults to 1.
+	* The following elements are used when providing data directly:
+		* vertices: array of floats for the raw vertex data. This must be divisible by 3, with each vertex having three values.
+		* indices: array of ints for the indices for each triangle. Must be divisible by 3, with each triangle having three values
+		* triangleMaterials: array of floats for the raw per-triangle material. This must be divisible by 3, with each triangle having three values for the friction, restitution, and hardness, respectively. Defaults to no per-triangle materials.
+		* materialIndices: array of ints for which material each triangle uses.
+	* cacheName: name used for caching pre-computed data. If not set, the pre-computed data will not be cached.
 * `"PhysicsSphere"`: physics shape for a sphere.
 	* `radius`: the radius of the sphere.
 * `"PhysicsShapeRef"`: reference to a physics shape.

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import flatbuffers
-
+from .Helpers import readFloat
 from DeepSeaPhysics.ShapeUnion import ShapeUnion
 from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import Box
@@ -27,15 +27,6 @@ def convertPhysicsBox(convertContext, data):
 	- convexRadius: the convex radius for collision checks. If unset or a value < 0 the physics
 	  system's default will be used.
 	"""
-	def readFloat(value, name, minValue = None):
-		try:
-			floatVal = float(value)
-			if minValue is not None and value < minValue:
-				raise Exception()
-			return floatVal
-		except:
-			raise Exception('Invalid ' + name + ' value "' + str(value) + '".')
-
 	try:
 		halfExtentsData = data['halfExtents']
 		if not isinstance(halfExtentsData, list) or len(halfExtentsData) != 3:

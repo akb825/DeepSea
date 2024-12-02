@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import flatbuffers
-
 from DeepSeaPhysics.Axis import Axis
 from DeepSeaPhysics.ShapeUnion import ShapeUnion
 from DeepSeaPhysics.Vector3f import CreateVector3f

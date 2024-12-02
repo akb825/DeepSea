@@ -46,7 +46,9 @@ from DeepSeaSceneParticle.Convert.StandardParticleEmitterFactoryConvert import \
 from DeepSeaScenePhysics.Convert.PhysicsBoxConvert import convertPhysicsBox
 from DeepSeaScenePhysics.Convert.PhysicsCapsuleConvert import convertPhysicsCapsule
 from DeepSeaScenePhysics.Convert.PhysicsConeConvert import convertPhysicsCone
+from DeepSeaScenePhysics.Convert.PhysicsConvexHullConvert import convertPhysicsConvexHull
 from DeepSeaScenePhysics.Convert.PhysicsCylinderConvert import convertPhysicsCylinder
+from DeepSeaScenePhysics.Convert.PhysicsMeshConvert import convertPhysicsMesh
 from DeepSeaScenePhysics.Convert.PhysicsSphereConvert import convertPhysicsSphere
 from DeepSeaScenePhysics.Convert.PhysicsShapeRefConvert import convertPhysicsShapeRef
 
@@ -97,7 +99,10 @@ def createSceneResourcesConvertContext(cuttlefish='cuttlefish', vfc='vfc', multi
 	convertContext.addCustomResourceType("PhysicsBox", convertPhysicsBox, "PhysicsShape")
 	convertContext.addCustomResourceType("PhysicsCapsule", convertPhysicsCapsule, "PhysicsShape")
 	convertContext.addCustomResourceType("PhysicsCone", convertPhysicsCone, "PhysicsShape")
+	convertContext.addCustomResourceType("PhysicsConvexHull", convertPhysicsConvexHull,
+		"PhysicsShape")
 	convertContext.addCustomResourceType("PhysicsCylinder", convertPhysicsCylinder, "PhysicsShape")
+	convertContext.addCustomResourceType("PhysicsMesh", convertPhysicsMesh, "PhysicsShape")
 	convertContext.addCustomResourceType("PhysicsSphere", convertPhysicsSphere, "PhysicsShape")
 	convertContext.addCustomResourceType("PhysicsShapeRef", convertPhysicsShapeRef, "PhysicsShape")
 

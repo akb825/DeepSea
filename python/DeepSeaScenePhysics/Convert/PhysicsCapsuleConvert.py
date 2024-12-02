@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import flatbuffers
-
+from .Helpers import readFloat
 from DeepSeaPhysics.Axis import Axis
 from DeepSeaPhysics.ShapeUnion import ShapeUnion
 from DeepSeaPhysics.Vector3f import CreateVector3f
@@ -27,15 +27,6 @@ def convertPhysicsCapsule(convertContext, data):
 	- radius: the radius of the capsule.
 	- axis: the axis of the capsule. Valid values or X, Y, and Z.
 	"""
-	def readFloat(value, name, minValue = None):
-		try:
-			floatVal = float(value)
-			if minValue is not None and value < minValue:
-				raise Exception()
-			return floatVal
-		except:
-			raise Exception('Invalid ' + name + ' value "' + str(value) + '".')
-
 	try:
 		halfHeight = readFloat(data['halfHeight'], 0, 'halfHeight')
 		radius = readFloat(data['radius'], 0, 'radius')
