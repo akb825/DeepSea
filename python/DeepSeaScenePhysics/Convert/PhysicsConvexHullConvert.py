@@ -24,22 +24,7 @@ from DeepSeaPhysics import Shape
 from DeepSeaScene.Convert.ModelConvert import VertexAttrib, loadAndConvertModelGeometry, \
 	modelVertexAttribEnum
 
-def convertPhysicsConvexHull(convertContext, data):
-	"""
-	Converts a PhysicsConvexHull. The data map is expected to contain the following elements:
-	- The following elements are used when providing data from a model:
-	  - modelType: the name of the model type, such as "obj" or "gltf". If omitted, the type is
-	    inferred from the path extension.
-	  - path: the path to the geometry.
-	  - component: the name of the component of the model.
-	- The following elements are used when providing data directly:
-	  - vertices: array of floats for the raw vertex data. This must be divisible by 3, with each
-	    vertex having three values.
-	- convexRadius: the convex radius for collision checks. If unset or a value < 0 the physics
-	  system's default will be used.
-	- cacheName: name used for caching pre-computed data. If not set, the pre-computed data will
-	  not be cached.
-	"""
+def convertPhysicsConvexHullOffset(convertContext, data, builder):
 	try:
 		vertexData = data.get('vertices')
 		vertices = []
@@ -66,14 +51,12 @@ def convertPhysicsConvexHull(convertContext, data):
 			for i in range(len(vertexBytes)/12):
 				vertices.extend(struct.unpack_from('fff', vertexBytes, i*12))
 
-		convexRadius = readFloat(data.get('convexRadius', -1), 'convexRadius')
+		convexRadius = readFloat(data.get('convexRadius', -1), 'convex radius')
 		cacheName = str(data.get('cacheName', ''))
 	except (TypeError, ValueError):
 		raise Exception('PhysicsConvexHull data must be an object.')
 	except KeyError as e:
 		raise Exception('PhysicsConvexHull data doesn\'t contain element ' + str(e) + '.')
-
-	builder = flatbuffers.Builder(0)
 
 	ConvexHull.StartVerticesVector(builder, len(vertices))
 	for f in reversed(vertices):
@@ -94,5 +77,24 @@ def convertPhysicsConvexHull(convertContext, data):
 	Shape.Start(builder)
 	Shape.AddShapeType(builder, ShapeUnion.ConvexHull)
 	Shape.AddShape(builder, convexHullOffset)
-	builder.Finish(Shape.End(builder))
+	return Shape.End(builder)
+
+def convertPhysicsConvexHull(convertContext, data):
+	"""
+	Converts a PhysicsConvexHull. The data map is expected to contain the following elements:
+	- The following elements are used when providing data from a model:
+	  - modelType: the name of the model type, such as "obj" or "gltf". If omitted, the type is
+	    inferred from the path extension.
+	  - path: the path to the geometry.
+	  - component: the name of the component of the model.
+	- The following elements are used when providing data directly:
+	  - vertices: array of floats for the raw vertex data. This must be divisible by 3, with each
+	    vertex having three values.
+	- convexRadius: the convex radius for collision checks. If unset or a value < 0 the physics
+	  system's default will be used.
+	- cacheName: name used for caching pre-computed data. If not set, the pre-computed data will
+	  not be cached.
+	"""
+	builder = flatbuffers.Builder(0)
+	builder.Finish(convertPhysicsConvexHullOffset(builder, data, builder))
 	return builder.Output()

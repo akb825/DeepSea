@@ -51,6 +51,8 @@ from DeepSeaScenePhysics.Convert.PhysicsCylinderConvert import convertPhysicsCyl
 from DeepSeaScenePhysics.Convert.PhysicsMeshConvert import convertPhysicsMesh
 from DeepSeaScenePhysics.Convert.PhysicsSphereConvert import convertPhysicsSphere
 from DeepSeaScenePhysics.Convert.PhysicsShapeRefConvert import convertPhysicsShapeRef
+from DeepSeaScenePhysics.Convert.RigidBodyConvert import convertRigidBody
+from DeepSeaScenePhysics.Convert.RigidBodyTemplateConvert import convertRigidBodyTemplate
 
 from DeepSeaSceneVectorDraw.Convert.TextConvert import convertText
 from DeepSeaSceneVectorDraw.Convert.TextNodeConvert import convertTextNode
@@ -105,6 +107,9 @@ def createSceneResourcesConvertContext(cuttlefish='cuttlefish', vfc='vfc', multi
 	convertContext.addCustomResourceType("PhysicsMesh", convertPhysicsMesh, "PhysicsShape")
 	convertContext.addCustomResourceType("PhysicsSphere", convertPhysicsSphere, "PhysicsShape")
 	convertContext.addCustomResourceType("PhysicsShapeRef", convertPhysicsShapeRef, "PhysicsShape")
+	convertContext.addCustomResourceType("RigidBody", convertRigidBody, "RigidBody")
+	convertContext.addCustomResourceType("RigidBodyTemplate",
+		convertRigidBodyTemplate, "RigidBodyTemplate")
 
 	# Vector draw scene types.
 	convertContext.addCustomResourceType('Text', convertText)

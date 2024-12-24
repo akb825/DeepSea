@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
+
 def readFloat(value, name, minValue = None):
 	try:
 		floatVal = float(value)
@@ -29,3 +31,20 @@ def readInt(value, name, minValue = None):
 		return intVal
 	except:
 		raise Exception('Invalid ' + name + ' value "' + str(value) + '".')
+
+def eulerToQuaternion(x, y, z):
+	halfXRad = math.radians(x)*0.5
+	halfYRad = math.radians(y)*0.5
+	halfZRad = math.radians(z)*0.5
+	cosX = math.cos(halfXRad)
+	sinX = math.sin(halfXRad)
+	cosY = math.cos(halfYRad)
+	sinY = math.sin(halfYRad)
+	cosZ = math.cos(halfZRad)
+	sinZ = math.sin(halfZRad)
+
+	return (
+		sinX*cosY*cosZ - cosX*sinY*sinZ,
+		cosX*sinY*cosZ + sinX*cosY*sinZ,
+		cosX*cosY*sinZ - sinX*sinY*cosZ,
+		cosX*cosY*cosZ + sinX*sinY*sinZ)

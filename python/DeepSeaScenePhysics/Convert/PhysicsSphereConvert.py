@@ -20,19 +20,13 @@ from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import Sphere
 from DeepSeaPhysics import Shape
 
-def convertPhysicsSphere(convertContext, data):
-	"""
-	Converts a PhysicsSphere. The data map is expected to contain the following elements:
-	- radius: the radius of the sphere.
-	"""
+def convertPhysicsSphereOffset(convertContext, data, builder):
 	try:
 		radius = readFloat(data['radius'], 0, 'radius')
 	except (TypeError, ValueError):
 		raise Exception('PhysicsSphere data must be an object.')
 	except KeyError as e:
 		raise Exception('PhysicsSphere data doesn\'t contain element ' + str(e) + '.')
-
-	builder = flatbuffers.Builder(0)
 
 	Sphere.Start(builder)
 	Sphere.AddRadius(builder, radius)
@@ -41,5 +35,13 @@ def convertPhysicsSphere(convertContext, data):
 	Shape.Start(builder)
 	Shape.AddShapeType(builder, ShapeUnion.Sphere)
 	Shape.AddShape(builder, sphereOffset)
-	builder.Finish(Shape.End(builder))
+	return Shape.End(builder)
+
+def convertPhysicsSphere(convertContext, data):
+	"""
+	Converts a PhysicsSphere. The data map is expected to contain the following elements:
+	- radius: the radius of the sphere.
+	"""
+	builder = flatbuffers.Builder(0)
+	builder.Finish(convertPhysicsSphereOffset(convertContext, data, builder))
 	return builder.Output()

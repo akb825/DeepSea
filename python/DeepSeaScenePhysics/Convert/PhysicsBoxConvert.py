@@ -19,27 +19,18 @@ from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import Box
 from DeepSeaPhysics import Shape
 
-def convertPhysicsBox(convertContext, data):
-	"""
-	Converts a PhysicsBox. The data map is expected to contain the following elements:
-	- halfExtents: array of 3 floats for the half extents of the box. The full box geometry ranges
-	  from -halfExtents to +halfExtents.
-	- convexRadius: the convex radius for collision checks. If unset or a value < 0 the physics
-	  system's default will be used.
-	"""
+def convertPhysicsBoxOffset(convertContext, data, builder):
 	try:
 		halfExtentsData = data['halfExtents']
 		if not isinstance(halfExtentsData, list) or len(halfExtentsData) != 3:
 			raise Exception('PhysicsBox halfExtents must be an array of three floats.')
-		halfExtents = (readFloat(value, 'halfExtents', 0) for value in halfExtentsData)
+		halfExtents = (readFloat(value, 'half extents', 0) for value in halfExtentsData)
 
-		convexRadius = readFloat(data.get('convexRadius', -1), 'convexRadius')
+		convexRadius = readFloat(data.get('convexRadius', -1), 'convex radius')
 	except (TypeError, ValueError):
 		raise Exception('PhysicsBox data must be an object.')
 	except KeyError as e:
 		raise Exception('PhysicsBox data doesn\'t contain element ' + str(e) + '.')
-
-	builder = flatbuffers.Builder(0)
 
 	Box.Start(builder)
 	Box.AddHalfExtents(builder, CreateVector3f(builder, *halfExtents))
@@ -49,5 +40,16 @@ def convertPhysicsBox(convertContext, data):
 	Shape.Start(builder)
 	Shape.AddShapeType(builder, ShapeUnion.Box)
 	Shape.AddShape(builder, boxOffset)
-	builder.Finish(Shape.End(builder))
+	return Shape.End(builder)
+
+def convertPhysicsBox(convertContext, data):
+	"""
+	Converts a PhysicsBox. The data map is expected to contain the following elements:
+	- halfExtents: array of 3 floats for the half extents of the box. The full box geometry ranges
+	  from -halfExtents to +halfExtents.
+	- convexRadius: the convex radius for collision checks. If unset or a value < 0 the physics
+	  system's default will be used.
+	"""
+	builder = flatbuffers.Builder(0)
+	builder.Finish(convertPhysicsBoxOffset(convertContext, data, builder))
 	return builder.Output()

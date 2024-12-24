@@ -25,34 +25,7 @@ from DeepSeaPhysics import Shape
 from DeepSeaScene.Convert.ModelConvert import VertexAttrib, convertModelGeometry, loadModel, \
 	modelVertexAttribEnum, readVertexAttrib
 
-def convertPhysicsMesh(convertContext, data):
-	"""
-	Converts a PhysicsMesh. The data map is expected to contain the following elements:
-	- The following elements are used when providing data from a model:
-	  - modelType: the name of the model type, such as "obj" or "gltf". If omitted, the type is
-	    inferred from the path extension.
-	  - path: the path to the geometry.
-	  - component: the name of the component of the model. The component must use a triangle list.
-	  - triangleMaterialAttrib: the attribute to gather per-triangle material values from. The
-	    attribute must have three values per vertex, corresponding to friction, restitution, and
-	    hardness, respectively. The values for for each vertex that comprises a triangle will be
-		averaged. Most commonly the color attribute will be used, as it is the easiest to set in
-	    modeling programs. If not set, no per-trinagle materials will be used.
-	  - frictionScale: scale value to apply to the friction for the per-triangle material
-	    attributes. This can be used to allow for friction values > 1 when used with normalized
-	    attributes, such as colors. Defaults to 1.
-	- The following elements are used when providing data directly:
-	  - vertices: array of floats for the raw vertex data. This must be divisible by 3, with each
-	    vertex having three values.
-	  - indices: array of ints for the indices for each triangle. Must be divisible by 3, with each
-	    triangle having three values
-	  - triangleMaterials: array of floats for the raw per-triangle material. This must be divisible
-	    by 3, with each triangle having three values for the friction, restitution, and hardness,
-	    respectively. Defaults to no per-triangle materials.
-	  - materialIndices: array of ints for which material each triangle uses.
-	- cacheName: name used for caching pre-computed data. If not set, the pre-computed data will
-	  not be cached.
-	"""
+def convertPhysicsMeshOffset(convertContext, data, builder):
 	try:
 		vertexData = data.get('vertices')
 		vertices = []
@@ -147,8 +120,6 @@ def convertPhysicsMesh(convertContext, data):
 	except KeyError as e:
 		raise Exception('PhysicsMesh data doesn\'t contain element ' + str(e) + '.')
 
-	builder = flatbuffers.Builder(0)
-
 	Mesh.StartVerticesVector(builder, len(vertices))
 	for f in reversed(vertices):
 		builder.PrependFloat32(f)
@@ -213,5 +184,36 @@ def convertPhysicsMesh(convertContext, data):
 	Shape.Start(builder)
 	Shape.AddShapeType(builder, ShapeUnion.Mesh)
 	Shape.AddShape(builder, meshOffset)
-	builder.Finish(Shape.End(builder))
+	return Shape.End(builder)
+
+def convertPhysicsMesh(convertContext, data):
+	"""
+	Converts a PhysicsMesh. The data map is expected to contain the following elements:
+	- The following elements are used when providing data from a model:
+	  - modelType: the name of the model type, such as "obj" or "gltf". If omitted, the type is
+	    inferred from the path extension.
+	  - path: the path to the geometry.
+	  - component: the name of the component of the model. The component must use a triangle list.
+	  - triangleMaterialAttrib: the attribute to gather per-triangle material values from. The
+	    attribute must have three values per vertex, corresponding to friction, restitution, and
+	    hardness, respectively. The values for for each vertex that comprises a triangle will be
+		averaged. Most commonly the color attribute will be used, as it is the easiest to set in
+	    modeling programs. If not set, no per-trinagle materials will be used.
+	  - frictionScale: scale value to apply to the friction for the per-triangle material
+	    attributes. This can be used to allow for friction values > 1 when used with normalized
+	    attributes, such as colors. Defaults to 1.
+	- The following elements are used when providing data directly:
+	  - vertices: array of floats for the raw vertex data. This must be divisible by 3, with each
+	    vertex having three values.
+	  - indices: array of ints for the indices for each triangle. Must be divisible by 3, with each
+	    triangle having three values
+	  - triangleMaterials: array of floats for the raw per-triangle material. This must be divisible
+	    by 3, with each triangle having three values for the friction, restitution, and hardness,
+	    respectively. Defaults to no per-triangle materials.
+	  - materialIndices: array of ints for which material each triangle uses.
+	- cacheName: name used for caching pre-computed data. If not set, the pre-computed data will
+	  not be cached.
+	"""
+	builder = flatbuffers.Builder(0)
+	builder.Finish(convertPhysicsMeshOffset(convertContext, data, builder))
 	return builder.Output()

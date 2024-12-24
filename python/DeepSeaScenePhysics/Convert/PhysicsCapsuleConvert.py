@@ -20,15 +20,9 @@ from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import Capsule
 from DeepSeaPhysics import Shape
 
-def convertPhysicsCapsule(convertContext, data):
-	"""
-	Converts a PhysicsCapsule. The data map is expected to contain the following elements:
-	- halfHeight: half the height of the capsule.
-	- radius: the radius of the capsule.
-	- axis: the axis of the capsule. Valid values or X, Y, and Z.
-	"""
+def convertPhysicsCapsuleOffset(convertContext, data, builder):
 	try:
-		halfHeight = readFloat(data['halfHeight'], 0, 'halfHeight')
+		halfHeight = readFloat(data['halfHeight'], 0, 'half height')
 		radius = readFloat(data['radius'], 0, 'radius')
 
 		axisStr = str(data['axis'])
@@ -41,8 +35,6 @@ def convertPhysicsCapsule(convertContext, data):
 	except KeyError as e:
 		raise Exception('PhysicsCapsule data doesn\'t contain element ' + str(e) + '.')
 
-	builder = flatbuffers.Builder(0)
-
 	Capsule.Start(builder)
 	Capsule.AddHalfHeight(builder, halfHeight)
 	Capsule.AddRadius(builder, radius)
@@ -52,5 +44,15 @@ def convertPhysicsCapsule(convertContext, data):
 	Shape.Start(builder)
 	Shape.AddShapeType(builder, ShapeUnion.Capsule)
 	Shape.AddShape(builder, capsuleOffset)
-	builder.Finish(Shape.End(builder))
+	return Shape.End(builder)
+
+def convertPhysicsCapsule(convertContext, data):
+	"""
+	Converts a PhysicsCapsule. The data map is expected to contain the following elements:
+	- halfHeight: half the height of the capsule.
+	- radius: the radius of the capsule.
+	- axis: the axis of the capsule. Valid values are X, Y, and Z.
+	"""
+	builder = flatbuffers.Builder(0)
+	builder.Finish(convertPhysicsCapsuleOffset(convertContext, data, builder))
 	return builder.Output()

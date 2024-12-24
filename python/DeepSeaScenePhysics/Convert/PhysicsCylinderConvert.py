@@ -20,17 +20,9 @@ from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import Cylinder
 from DeepSeaPhysics import Shape
 
-def convertPhysicsCylinder(convertContext, data):
-	"""
-	Converts a PhysicsCylinder. The data map is expected to contain the following elements:
-	- halfHeight: half the height of the cylinder.
-	- radius: the radius of the cylinder.
-	- axis: the axis of the cylinder. Valid values or X, Y, and Z.
-	- convexRadius: the convex radius for collision checks. If unset or a value < 0 the physics
-	  system's default will be used.
-	"""
+def convertPhysicsCylinderOffset(convertContext, data, builder):
 	try:
-		halfHeight = readFloat(data['halfHeight'], 0, 'halfHeight')
+		halfHeight = readFloat(data['halfHeight'], 0, 'half height')
 		radius = readFloat(data['radius'], 0, 'radius')
 
 		axisStr = str(data['axis'])
@@ -39,13 +31,11 @@ def convertPhysicsCylinder(convertContext, data):
 		except AttributeError:
 			raise Exception('Invalid axis "' + axisStr + '".')
 
-		convexRadius = readFloat(data.get('convexRadius', -1), 'convexRadius')
+		convexRadius = readFloat(data.get('convexRadius', -1), 'convex radius')
 	except (TypeError, ValueError):
 		raise Exception('PhysicsCylinder data must be an object.')
 	except KeyError as e:
 		raise Exception('PhysicsCylinder data doesn\'t contain element ' + str(e) + '.')
-
-	builder = flatbuffers.Builder(0)
 
 	Cylinder.Start(builder)
 	Cylinder.AddHalfHeight(builder, halfHeight)
@@ -57,5 +47,17 @@ def convertPhysicsCylinder(convertContext, data):
 	Shape.Start(builder)
 	Shape.AddShapeType(builder, ShapeUnion.Cylinder)
 	Shape.AddShape(builder, cylinderOffset)
-	builder.Finish(Shape.End(builder))
+	return Shape.End(builder)
+
+def convertPhysicsCylinder(convertContext, data):
+	"""
+	Converts a PhysicsCylinder. The data map is expected to contain the following elements:
+	- halfHeight: half the height of the cylinder.
+	- radius: the radius of the cylinder.
+	- axis: the axis of the cylinder. Valid values or X, Y, and Z.
+	- convexRadius: the convex radius for collision checks. If unset or a value < 0 the physics
+	  system's default will be used.
+	"""
+	builder = flatbuffers.Builder(0)
+	builder.Finish(convertPhysicsCylinderOffset(convertContext, data, builder))
 	return builder.Output()

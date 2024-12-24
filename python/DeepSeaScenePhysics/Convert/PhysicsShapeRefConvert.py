@@ -19,11 +19,7 @@ from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import ShapeRef
 from DeepSeaPhysics import Shape
 
-def convertPhysicsShapeRef(convertContext, data):
-	"""
-	Converts a PhysicsShapeRef. The data map is expected to contain the following elements:
-	- shape: the name of the referenced shape.
-	"""
+def convertPhysicsShapeRefOffset(convertContext, data, builder):
 	try:
 		shapeName = str(data['shape'])
 	except (TypeError, ValueError):
@@ -31,8 +27,6 @@ def convertPhysicsShapeRef(convertContext, data):
 	except KeyError as e:
 		raise Exception('PhysicsShapeRef data doesn\'t contain element ' + str(e) + '.')
 
-	builder = flatbuffers.Builder(0)
-	
 	shapeNameOffset = builder.CreateString(shapeName)
 
 	ShapeRef.Start(builder)
@@ -42,5 +36,13 @@ def convertPhysicsShapeRef(convertContext, data):
 	Shape.Start(builder)
 	Shape.AddShapeType(builder, ShapeUnion.ShapeRef)
 	Shape.AddShape(builder, shapeRefOffset)
-	builder.Finish(Shape.End(builder))
+	return Shape.End(builder)
+
+def convertPhysicsShapeRef(convertContext, data):
+	"""
+	Converts a PhysicsShapeRef. The data map is expected to contain the following elements:
+	- shape: the name of the referenced shape.
+	"""
+	builder = flatbuffers.Builder(0)
+	builder.Finish(convertPhysicsShapeRefOffset(convertContext, data, builder))
 	return builder.Output()
