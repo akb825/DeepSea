@@ -61,7 +61,7 @@ dsSceneItemList* dsScenePhysicsList_load(const dsSceneLoadContext* loadContext,
 	auto fbPhysicsList = DeepSeaScenePhysics::GetPhysicsList(data);
 
 	dsPhysicsSceneSettings settings;
-	settings.maxStaticBodies = fbPhysicsList->maxStaticBodoes();
+	settings.maxStaticBodies = fbPhysicsList->maxStaticBodies();
 	settings.maxDynamicBodies = fbPhysicsList->maxDynamicBodies();
 	settings.maxConstrainedBodyGroups = fbPhysicsList->maxConstrainedBodyGroups();
 	settings.maxStaticShapes = fbPhysicsList->maxStaticShapes();

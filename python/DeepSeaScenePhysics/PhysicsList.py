@@ -25,7 +25,7 @@ class PhysicsList(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # PhysicsList
-    def MaxStaticBodoes(self):
+    def MaxStaticBodies(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
@@ -111,11 +111,11 @@ def PhysicsListStart(builder):
 def Start(builder):
     PhysicsListStart(builder)
 
-def PhysicsListAddMaxStaticBodoes(builder, maxStaticBodoes):
-    builder.PrependUint32Slot(0, maxStaticBodoes, 0)
+def PhysicsListAddMaxStaticBodies(builder, maxStaticBodies):
+    builder.PrependUint32Slot(0, maxStaticBodies, 0)
 
-def AddMaxStaticBodoes(builder, maxStaticBodoes):
-    PhysicsListAddMaxStaticBodoes(builder, maxStaticBodoes)
+def AddMaxStaticBodies(builder, maxStaticBodies):
+    PhysicsListAddMaxStaticBodies(builder, maxStaticBodies)
 
 def PhysicsListAddMaxDynamicBodies(builder, maxDynamicBodies):
     builder.PrependUint32Slot(1, maxDynamicBodies, 0)

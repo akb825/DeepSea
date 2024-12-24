@@ -22,7 +22,7 @@ namespace DeepSeaScenePhysics;
 table PhysicsList
 {
 	// The maximum number of bodies that are only used for collision and not affected by physics.
-	maxStaticBodoes : uint;
+	maxStaticBodies : uint;
 
 	// The maximum number of bodies that are affected by physics.
 	maxDynamicBodies : uint;

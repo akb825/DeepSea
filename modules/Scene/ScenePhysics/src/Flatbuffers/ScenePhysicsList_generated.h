@@ -23,7 +23,7 @@ struct PhysicsListBuilder;
 struct PhysicsList FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef PhysicsListBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_MAXSTATICBODOES = 4,
+    VT_MAXSTATICBODIES = 4,
     VT_MAXDYNAMICBODIES = 6,
     VT_MAXCONSTRAINEDBODYGROUPS = 8,
     VT_MAXSTATICSHAPES = 10,
@@ -35,8 +35,8 @@ struct PhysicsList FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_MULTITHREADEDMODIFICATIONS = 22,
     VT_TARGETSTEPTIME = 24
   };
-  uint32_t maxStaticBodoes() const {
-    return GetField<uint32_t>(VT_MAXSTATICBODOES, 0);
+  uint32_t maxStaticBodies() const {
+    return GetField<uint32_t>(VT_MAXSTATICBODIES, 0);
   }
   uint32_t maxDynamicBodies() const {
     return GetField<uint32_t>(VT_MAXDYNAMICBODIES, 0);
@@ -70,7 +70,7 @@ struct PhysicsList FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint32_t>(verifier, VT_MAXSTATICBODOES, 4) &&
+           VerifyField<uint32_t>(verifier, VT_MAXSTATICBODIES, 4) &&
            VerifyField<uint32_t>(verifier, VT_MAXDYNAMICBODIES, 4) &&
            VerifyField<uint32_t>(verifier, VT_MAXCONSTRAINEDBODYGROUPS, 4) &&
            VerifyField<uint32_t>(verifier, VT_MAXSTATICSHAPES, 4) &&
@@ -89,8 +89,8 @@ struct PhysicsListBuilder {
   typedef PhysicsList Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_maxStaticBodoes(uint32_t maxStaticBodoes) {
-    fbb_.AddElement<uint32_t>(PhysicsList::VT_MAXSTATICBODOES, maxStaticBodoes, 0);
+  void add_maxStaticBodies(uint32_t maxStaticBodies) {
+    fbb_.AddElement<uint32_t>(PhysicsList::VT_MAXSTATICBODIES, maxStaticBodies, 0);
   }
   void add_maxDynamicBodies(uint32_t maxDynamicBodies) {
     fbb_.AddElement<uint32_t>(PhysicsList::VT_MAXDYNAMICBODIES, maxDynamicBodies, 0);
@@ -136,7 +136,7 @@ struct PhysicsListBuilder {
 
 inline ::flatbuffers::Offset<PhysicsList> CreatePhysicsList(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    uint32_t maxStaticBodoes = 0,
+    uint32_t maxStaticBodies = 0,
     uint32_t maxDynamicBodies = 0,
     uint32_t maxConstrainedBodyGroups = 0,
     uint32_t maxStaticShapes = 0,
@@ -157,7 +157,7 @@ inline ::flatbuffers::Offset<PhysicsList> CreatePhysicsList(
   builder_.add_maxStaticShapes(maxStaticShapes);
   builder_.add_maxConstrainedBodyGroups(maxConstrainedBodyGroups);
   builder_.add_maxDynamicBodies(maxDynamicBodies);
-  builder_.add_maxStaticBodoes(maxStaticBodoes);
+  builder_.add_maxStaticBodies(maxStaticBodies);
   builder_.add_multiThreadedModifications(multiThreadedModifications);
   return builder_.Finish();
 }

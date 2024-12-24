@@ -39,6 +39,8 @@ from DeepSeaSceneParticle.Convert.ParticleDrawListConvert import convertParticle
 from DeepSeaSceneParticle.Convert.ParticlePrepareConvert import convertParticlePrepare
 from DeepSeaSceneParticle.Convert.ParticleTransformDataConvert import convertParticleTransformData
 
+from DeepSeaScenePhysics.Convert.PhysicsListConvert import convertPhysicsList
+
 from DeepSeaSceneVectorDraw.Convert.VectorDrawPrepareConvert import convertVectorDrawPrepare
 from DeepSeaSceneVectorDraw.Convert.VectorItemListConvert import convertVectorItemList
 
@@ -69,6 +71,9 @@ def createSceneConvertContext(customExtensions=None):
 	convertContext.addItemListType('ParticleDrawList', convertParticleDrawList)
 	convertContext.addItemListType('ParticlePrepare', convertParticlePrepare)
 	convertContext.addInstanceDataType('ParticleTransformData', convertParticleTransformData)
+
+	# Physics scene types.
+	convertContext.addItemListType('PhysicsList', convertPhysicsList)
 
 	# Vector draw scene types.
 	convertContext.addItemListType('VectorDrawPrepare', convertVectorDrawPrepare)
