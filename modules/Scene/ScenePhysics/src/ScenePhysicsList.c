@@ -34,6 +34,7 @@
 #include <DeepSea/Physics/Constraints/PhysicsConstraint.h>
 #include <DeepSea/Physics/PhysicsScene.h>
 #include <DeepSea/Physics/RigidBody.h>
+#include <DeepSea/Physics/RigidBodyTemplate.h>
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneNodeItemData.h>
@@ -254,6 +255,7 @@ static uint64_t dsScenePhysicsList_addNode(dsSceneItemList* itemList, dsSceneNod
 			{
 				DS_LOG_ERROR(DS_SCENE_PHYSICS_LOG_TAG, "Scene rigid body node with explicit rigid "
 					"body may only be present once in the scene graph.");
+				--physicsList->rigidBodyEntryCount;
 				return DS_NO_SCENE_NODE;
 			}
 
@@ -265,6 +267,28 @@ static uint64_t dsScenePhysicsList_addNode(dsSceneItemList* itemList, dsSceneNod
 			DS_VERIFY(dsPhysicsScene_unlockWrite(&lock, physicsList->physicsScene));
 			if (!added)
 			{
+				--physicsList->rigidBodyEntryCount;
+				return DS_NO_SCENE_NODE;
+			}
+		}
+		else if (rigidBodyNode->rigidBodyTemplate)
+		{
+			rigidBody = dsRigidBodyTemplate_instantiate(rigidBodyNode->rigidBodyTemplate,
+				node->allocator, node->userData, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+			if (!rigidBody)
+			{
+				--physicsList->rigidBodyEntryCount;
+				return DS_NO_SCENE_NODE;
+			}
+
+			dsPhysicsSceneLock lock;
+			DS_VERIFY(dsPhysicsScene_lockWrite(&lock, physicsList->physicsScene));
+			bool added = dsPhysicsScene_addRigidBodies(
+				physicsList->physicsScene, &rigidBody, 1, false, &lock);
+			DS_VERIFY(dsPhysicsScene_unlockWrite(&lock, physicsList->physicsScene));
+			if (!added)
+			{
+				dsRigidBody_destroy(rigidBody);
 				--physicsList->rigidBodyEntryCount;
 				return DS_NO_SCENE_NODE;
 			}
@@ -494,13 +518,18 @@ static void dsScenePhysicsList_removeNode(dsSceneItemList* itemList, uint64_t no
 				continue;
 
 			dsSceneRigidBodyNode* node = (dsSceneRigidBodyNode*)entry->treeNode->node;
-			if (entry->rigidBody == node->rigidBody)
+			if (!node->rigidBodyName)
 			{
+				// Should be removed from the physics scene if not part of a rigid body group node.
 				dsPhysicsSceneLock lock;
 				DS_VERIFY(dsPhysicsScene_lockWrite(&lock, physicsList->physicsScene));
 				DS_VERIFY(dsPhysicsScene_removeRigidBodies(physicsList->physicsScene,
 					&entry->rigidBody, 1, &lock));
 				DS_VERIFY(dsPhysicsScene_unlockWrite(&lock, physicsList->physicsScene));
+
+				// If created from a template, also responsible for deleting the rigid body.
+				if (node->rigidBodyTemplate)
+					dsRigidBody_destroy(entry->rigidBody);
 			}
 
 			// Order shouldn't matter, so use constant-time removal.

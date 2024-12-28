@@ -30,6 +30,10 @@ dsSceneNode* dsSceneRigidBodyNode_loadUnique(const dsSceneLoadContext* loadConte
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const uint8_t* data, size_t dataSize);
 
+dsSceneNode* dsSceneRigidBodyNode_loadTemplate(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const uint8_t* data, size_t dataSize);
+
 #ifdef __cplusplus
 }
 #endif

@@ -25,6 +25,7 @@
 
 #include <DeepSea/ScenePhysics/SceneRigidBody.h>
 #include <DeepSea/ScenePhysics/SceneRigidBodyNode.h>
+#include <DeepSea/ScenePhysics/SceneRigidBodyTemplate.h>
 
 #if DS_GCC || DS_CLANG
 #pragma GCC diagnostic push
@@ -76,8 +77,8 @@ dsSceneNode* dsSceneRigidBodyNode_load(const dsSceneLoadContext*,
 		}
 	}
 
-	return reinterpret_cast<dsSceneNode*>(dsSceneRigidBodyNode_create(
-		allocator, fbRigidBodyNode->rigidBody()->c_str(), nullptr, itemLists, itemListCount));
+	return reinterpret_cast<dsSceneNode*>(dsSceneRigidBodyNode_create(allocator,
+		fbRigidBodyNode->rigidBody()->c_str(), nullptr, nullptr, false, itemLists, itemListCount));
 }
 
 dsSceneNode* dsSceneRigidBodyNode_loadUnique(const dsSceneLoadContext* loadContext,
@@ -130,5 +131,59 @@ dsSceneNode* dsSceneRigidBodyNode_loadUnique(const dsSceneLoadContext* loadConte
 	}
 
 	return reinterpret_cast<dsSceneNode*>(dsSceneRigidBodyNode_create(
-		allocator, nullptr, rigidBody, itemLists, itemListCount));
+		allocator, nullptr, rigidBody, nullptr, false, itemLists, itemListCount));
+}
+
+dsSceneNode* dsSceneRigidBodyNode_loadTemplate(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*,
+	void*, const uint8_t* data, size_t dataSize)
+{
+	flatbuffers::Verifier verifier(data, dataSize);
+	if (!DeepSeaScenePhysics::VerifyRigidBodyNodeBuffer(verifier))
+	{
+		errno = EFORMAT;
+		DS_LOG_ERROR(DS_SCENE_PHYSICS_LOG_TAG, "Invalid rigid body node flatbuffer format.");
+		return nullptr;
+	}
+
+	auto fbRigidBodyNode = DeepSeaScenePhysics::GetRigidBodyNode(data);
+
+	const char* rigidBodyName = fbRigidBodyNode->rigidBody()->c_str();
+	dsSceneResourceType resourceType;
+	dsCustomSceneResource* resource;
+	if (!dsSceneLoadScratchData_findResource(&resourceType, reinterpret_cast<void**>(&resource),
+			scratchData, rigidBodyName) ||
+		resourceType != dsSceneResourceType_Custom ||
+		resource->type != dsSceneRigidBodyTemplate_type())
+	{
+		DS_LOG_ERROR_F(DS_SCENE_PHYSICS_LOG_TAG, "Couldn't find rigid body template '%s'.",
+			rigidBodyName);
+		errno = ENOTFOUND;
+		return nullptr;
+	}
+
+	auto rigidBodyTemplate = reinterpret_cast<dsRigidBodyTemplate*>(resource->resource);
+
+	auto fbItemLists = fbRigidBodyNode->itemLists();
+	uint32_t itemListCount = fbItemLists ? fbItemLists->size() : 0U;
+	const char** itemLists = NULL;
+	if (itemListCount > 0)
+	{
+		itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+		for (uint32_t i = 0; i < itemListCount; ++i)
+		{
+			auto fbItemList = (*fbItemLists)[i];
+			if (!fbItemList)
+			{
+				DS_LOG_ERROR(DS_SCENE_PHYSICS_LOG_TAG, "Rigid body node item list name is null.");
+				errno = EFORMAT;
+				return nullptr;
+			}
+
+			itemLists[i] = fbItemList->c_str();
+		}
+	}
+
+	return reinterpret_cast<dsSceneNode*>(dsSceneRigidBodyNode_create(
+		allocator, nullptr, nullptr, rigidBodyTemplate, false, itemLists, itemListCount));
 }

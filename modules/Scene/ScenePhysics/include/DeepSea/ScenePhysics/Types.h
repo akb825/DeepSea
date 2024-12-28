@@ -121,11 +121,24 @@ typedef struct dsSceneRigidBodyNode
 	uint32_t rigidBodyID;
 
 	/**
+	 * @brief Whether this owns the rigidBody or rigidBodyTemplate pointer.
+	 */
+	bool ownsPointer;
+
+	/**
 	 * @brief The rigid body to manage.
 	 *
 	 * This will be set when the node can only be instantiated once from a rigid body.
 	 */
 	dsRigidBody* rigidBody;
+
+	/**
+	 * @brief The rigid body template to manage.
+	 *
+	 * This will be set when the node can be instantiated from a rigid body template independent of
+	 * a dsSceneRigidBodyGroupNode.
+	 */
+	dsRigidBodyTemplate* rigidBodyTemplate;
 } dsSceneRigidBodyNode;
 
 /**

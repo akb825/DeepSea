@@ -196,6 +196,12 @@ bool dsScenePhysicsLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsA
 		return false;
 	}
 
+	if (!dsSceneLoadContext_registerNodeType(loadContext, "RigidBodyTemplateNode",
+			&dsSceneRigidBodyNode_loadTemplate, NULL, NULL))
+	{
+		return false;
+	}
+
 	if (!dsSceneLoadContext_registerNodeType(loadContext, dsScenePhysicsConstraintNode_typeName,
 			&dsScenePhysicsConstraintNode_load, NULL, NULL))
 	{

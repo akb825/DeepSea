@@ -22,13 +22,23 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 
+#include <DeepSea/Physics/RigidBody.h>
+#include <DeepSea/Physics/RigidBodyTemplate.h>
+
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+
 #include <DeepSea/ScenePhysics/ScenePhysicsList.h>
 
 #include <string.h>
 
 static void dsSceneRigidBodyNode_destroy(dsSceneNode* node)
 {
+	dsSceneRigidBodyNode* rigidBodyNode = (dsSceneRigidBodyNode*)node;
+	if (rigidBodyNode->ownsPointer)
+	{
+		dsRigidBody_destroy(rigidBodyNode->rigidBody);
+		dsRigidBodyTemplate_destroy(rigidBodyNode->rigidBodyTemplate);
+	}
 	DS_VERIFY(dsAllocator_free(node->allocator, node));
 }
 
@@ -41,18 +51,32 @@ const dsSceneNodeType* dsSceneRigidBodyNode_type(void)
 }
 
 dsSceneRigidBodyNode* dsSceneRigidBodyNode_create(dsAllocator* allocator, const char* rigidBodyName,
-	dsRigidBody* rigidBody, const char* const* itemLists, uint32_t itemListCount)
+	dsRigidBody* rigidBody, dsRigidBodyTemplate* rigidBodyTemplate, bool transferOwnership,
+	const char* const* itemLists, uint32_t itemListCount)
 {
-	if (!allocator || (!rigidBodyName && !rigidBody) || (!itemLists && itemListCount > 0))
+	if (!allocator || (!rigidBodyName && !rigidBody && !rigidBodyTemplate) ||
+		(!itemLists && itemListCount > 0))
 	{
+		if (transferOwnership)
+		{
+			dsRigidBody_destroy(rigidBody);
+			dsRigidBodyTemplate_destroy(rigidBodyTemplate);
+		}
 		errno = EINVAL;
 		return NULL;
 	}
 
-	if (rigidBodyName && rigidBody)
+	unsigned int setCount =
+		(rigidBodyName != NULL) + (rigidBody != NULL) + (rigidBodyTemplate != NULL);
+	if (setCount != 1)
 	{
-		DS_LOG_ERROR(DS_SCENE_PHYSICS_LOG_TAG, "Only one of rigidBodyName or rigidBody should be "
-			"set for a rigid body transform node.");
+		DS_LOG_ERROR(DS_SCENE_PHYSICS_LOG_TAG, "Only one of rigidBodyName, rigidBody, or "
+			"rigidBodyTemplate should be set for a rigid body transform node.");
+		if (transferOwnership)
+		{
+			dsRigidBody_destroy(rigidBody);
+			dsRigidBodyTemplate_destroy(rigidBodyTemplate);
+		}
 		errno = EINVAL;
 		return NULL;
 	}
@@ -62,7 +86,14 @@ dsSceneRigidBodyNode* dsSceneRigidBodyNode_create(dsAllocator* allocator, const 
 		DS_ALIGNED_SIZE(nameLen) + dsSceneNode_itemListsAllocSize(itemLists, itemListCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
+	{
+		if (transferOwnership)
+		{
+			dsRigidBody_destroy(rigidBody);
+			dsRigidBodyTemplate_destroy(rigidBodyTemplate);
+		}
 		return NULL;
+	}
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
@@ -78,6 +109,11 @@ dsSceneRigidBodyNode* dsSceneRigidBodyNode_create(dsAllocator* allocator, const 
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, node));
+		if (transferOwnership)
+		{
+			dsRigidBody_destroy(rigidBody);
+			dsRigidBodyTemplate_destroy(rigidBodyTemplate);
+		}
 		return NULL;
 	}
 
@@ -89,6 +125,8 @@ dsSceneRigidBodyNode* dsSceneRigidBodyNode_create(dsAllocator* allocator, const 
 		node->rigidBodyName = nameCopy;
 		node->rigidBodyID = dsHashString(rigidBodyName);
 		node->rigidBody = NULL;
+		node->rigidBodyTemplate = NULL;
+		node->ownsPointer = false;
 	}
 	else
 	{
@@ -96,6 +134,8 @@ dsSceneRigidBodyNode* dsSceneRigidBodyNode_create(dsAllocator* allocator, const 
 		node->rigidBodyName = NULL;
 		node->rigidBodyID = 0;
 		node->rigidBody = rigidBody;
+		node->rigidBodyTemplate = rigidBodyTemplate;
+		node->ownsPointer = transferOwnership;
 	}
 
 	return node;

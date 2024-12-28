@@ -45,7 +45,7 @@ DS_SCENEPHYSICS_EXPORT const dsSceneNodeType* dsSceneRigidBodyNode_type(void);
 /**
  * @brief Creates a rigid body node.
  *
- * Only one of rigidBodyName or rigidBody should be set.
+ * Only one of rigidBodyName, rigidBody, or rigidBodyTemplate should be set.
  *
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the node with. This must support freeing memory.
@@ -53,14 +53,20 @@ DS_SCENEPHYSICS_EXPORT const dsSceneNodeType* dsSceneRigidBodyNode_type(void);
  *     dynamically getting the rigid body from a parent dsScenePhysicsInstanceNode.
  * @param rigidBody The rigid body to get the transform from. This will be set when the node can
  *     only be instantiated once from a rigid body.
+ * @param rigidBodyTemplate The rigid body template to instantiate and take the transform from. This
+ *     will be set when the node can be instantiated multiple times from a rigid body template
+ *     independent of a dsScenePhysicsInstanceNode.
+ * @param transferOwnership Whether ownership of rigidBody or rigidBodyTemplate should be
+ *     transferred to the node. If this is true and an error occurs during creation, the rigidBody
+ *     or rigidBodyTemplate pointers will be destroyed immediately.
  * @param itemLists The list of item list names that will be used to process the node. These will be
  *     copied.
  * @param itemListCount The number of item lists.
  * @return The rigid body node or NULL if an error occurred.
  */
 DS_SCENEPHYSICS_EXPORT dsSceneRigidBodyNode* dsSceneRigidBodyNode_create(dsAllocator* allocator,
-	const char* rigidBodyName, dsRigidBody* rigidBody, const char* const* itemLists,
-	uint32_t itemListCount);
+	const char* rigidBodyName, dsRigidBody* rigidBody, dsRigidBodyTemplate* rigidBodyTemplate,
+	bool transferOwnership, const char* const* itemLists, uint32_t itemListCount);
 
 /**
  * @brief Gets the rigid body for a tree node.
