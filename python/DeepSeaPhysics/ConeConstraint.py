@@ -43,7 +43,7 @@ class ConeConstraint(object):
         return None
 
     # ConeConstraint
-    def FirstRotation(self):
+    def FirstOrientation(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             x = o + self._tab.Pos
@@ -72,7 +72,7 @@ class ConeConstraint(object):
         return None
 
     # ConeConstraint
-    def SecondRotation(self):
+    def SecondOrientation(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             x = o + self._tab.Pos
@@ -107,11 +107,11 @@ def ConeConstraintAddFirstPosition(builder, firstPosition):
 def AddFirstPosition(builder, firstPosition):
     ConeConstraintAddFirstPosition(builder, firstPosition)
 
-def ConeConstraintAddFirstRotation(builder, firstRotation):
-    builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(firstRotation), 0)
+def ConeConstraintAddFirstOrientation(builder, firstOrientation):
+    builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(firstOrientation), 0)
 
-def AddFirstRotation(builder, firstRotation):
-    ConeConstraintAddFirstRotation(builder, firstRotation)
+def AddFirstOrientation(builder, firstOrientation):
+    ConeConstraintAddFirstOrientation(builder, firstOrientation)
 
 def ConeConstraintAddSecondActor(builder, secondActor):
     builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(secondActor), 0)
@@ -125,11 +125,11 @@ def ConeConstraintAddSecondPosition(builder, secondPosition):
 def AddSecondPosition(builder, secondPosition):
     ConeConstraintAddSecondPosition(builder, secondPosition)
 
-def ConeConstraintAddSecondRotation(builder, secondRotation):
-    builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(secondRotation), 0)
+def ConeConstraintAddSecondOrientation(builder, secondOrientation):
+    builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(secondOrientation), 0)
 
-def AddSecondRotation(builder, secondRotation):
-    ConeConstraintAddSecondRotation(builder, secondRotation)
+def AddSecondOrientation(builder, secondOrientation):
+    ConeConstraintAddSecondOrientation(builder, secondOrientation)
 
 def ConeConstraintAddMaxAngle(builder, maxAngle):
     builder.PrependFloat32Slot(6, maxAngle, 0.0)

@@ -37,9 +37,9 @@ static bool isConstraintValid(const dsRevolutePhysicsConstraint* constraint,
 	const dsPhysicsConstraint* baseConstraint = (const dsPhysicsConstraint*)constraint;
 	dsVector3f constraintAxis;
 	if (baseConstraint->firstActor == actor)
-		dsQuaternion4f_getRotationAxis(&constraintAxis, &constraint->firstRotation);
+		dsQuaternion4f_getRotationAxis(&constraintAxis, &constraint->firstOrientation);
 	else if (baseConstraint->secondActor == actor)
-		dsQuaternion4f_getRotationAxis(&constraintAxis, &constraint->secondRotation);
+		dsQuaternion4f_getRotationAxis(&constraintAxis, &constraint->secondOrientation);
 	else
 	{
 		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,

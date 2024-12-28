@@ -46,11 +46,11 @@ DS_PHYSICS_EXPORT const dsPhysicsConstraintType* dsGenericPhysicsConstraint_type
  * @param firstActor The first physics actor the constraint is attached to. This may be NULL to set
  *     later by cloning.
  * @param firstPosition The position of the constraint on the first actor.
- * @param firstRotation The rotation of the constraint on the first actor.
- * @param secondActor The second physics actor the constraint is attached to. This may be NULL to set
- *     later by cloning.
+ * @param firstOrientation The orientation of the constraint on the first actor.
+ * @param secondActor The second physics actor the constraint is attached to. This may be NULL to
+ *     set later by cloning.
  * @param secondPosition The position of the constraint on the second actor.
- * @param secondRotation The rotation of the constraint on the second actor.
+ * @param secondOrientation The orientation of the constraint on the second actor.
  * @param limits The limits for each degree of freedom.
  * @param motors The motors for each degree of freedom.
  * @param combineSwingTwistMotors Whether the swing and twist motors are combined.
@@ -58,9 +58,9 @@ DS_PHYSICS_EXPORT const dsPhysicsConstraintType* dsGenericPhysicsConstraint_type
  */
 DS_PHYSICS_EXPORT dsGenericPhysicsConstraint* dsGenericPhysicsConstraint_create(
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstOrientation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation,
+	const dsQuaternion4f* secondOrientation,
 	const dsGenericPhysicsConstraintLimit limits[DS_PHYSICS_CONSTRAINT_DOF_COUNT],
 	const dsGenericPhysicsConstraintMotor motors[DS_PHYSICS_CONSTRAINT_DOF_COUNT],
 	bool combineSwingTwistMotors);
@@ -115,10 +115,10 @@ DS_PHYSICS_EXPORT bool dsGenericPhysicsConstraint_setCombineSwingTwistMotor(
  * @param allocator The allocator the constraint was created with.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
- * @param firstRotation The rotation of the constraint on the first actor.
+ * @param firstOrientation The orientation of the constraint on the first actor.
  * @param secondActor The second physics actor the constraint is attached to.
  * @param secondPosition The position of the constraint on the second actor.
- * @param secondRotation The rotation of the constraint on the second actor.
+ * @param secondOrientation The orientation of the constraint on the second actor.
  * @param limits The limits for each degree of freedom.
  * @param motors The motors for each degree of freedom.
  * @param combineSwingTwistMotors Whether the swing and twist motors are combined.
@@ -126,9 +126,9 @@ DS_PHYSICS_EXPORT bool dsGenericPhysicsConstraint_setCombineSwingTwistMotor(
  */
 DS_PHYSICS_EXPORT void dsGenericPhysicsConstraint_initialize(dsGenericPhysicsConstraint* constraint,
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstOrientation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation,
+	const dsQuaternion4f* secondOrientation,
 	const dsGenericPhysicsConstraintLimit limits[DS_PHYSICS_CONSTRAINT_DOF_COUNT],
 	const dsGenericPhysicsConstraintMotor motors[DS_PHYSICS_CONSTRAINT_DOF_COUNT],
 	bool combineSwingTwistMotors, void* impl);

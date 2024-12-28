@@ -27,8 +27,8 @@ table ConeConstraint
 	// The position of the constraint relative to the first actor.
 	firstPosition : Vector3f (required);
 
-	// The rotation of the constraint relative to the first actor.
-	firstRotation : Quaternion4f (required);
+	// The orientation of the constraint relative to the first actor.
+	firstOrientation : Quaternion4f (required);
 
 	// The name of the second actor used in the constraint.
 	secondActor : string;
@@ -36,9 +36,9 @@ table ConeConstraint
 	// The position of the constraint relative to the second actor.
 	secondPosition : Vector3f (required);
 
-	// The rotation of the constraint relative to the second actor.
-	secondRotation : Quaternion4f (required);
+	// The orientation of the constraint relative to the second actor.
+	secondOrientation : Quaternion4f (required);
 
-	// The maximum angle of the constraint relative to the attachment rotation axes.
+	// The maximum angle of the constraint relative to the attachment orientation axes.
 	maxAngle : float;
 }

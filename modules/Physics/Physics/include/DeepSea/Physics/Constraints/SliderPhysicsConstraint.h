@@ -46,12 +46,12 @@ DS_PHYSICS_EXPORT const dsPhysicsConstraintType* dsSliderPhysicsConstraint_type(
  * @param firstActor The first physics actor the constraint is attached to. This may be NULL to set
  *     later by cloning.
  * @param firstPosition The position of the constraint on the first actor.
- * @param firstRotation The rotation of the constraint on the first actor. The slider will be
+ * @param firstOrientation The rotation of the constraint on the first actor. The slider will be
  *     limited to the axis of the quaternion.
  * @param secondActor The second physics actor the constraint is attached to. This may be NULL to
  *     set later by cloning.
  * @param secondPosition The position of the constraint on the second actor.
- * @param secondRotation The rotation of the constraint on the second actor. The slider will be
+ * @param secondOrientation The rotation of the constraint on the second actor. The slider will be
  *     limited to the axis of the quaternion.
  * @param limitEnabled Whether the distance limit is enabled.
  * @param minDistance The minimum distance between the reference points in the range [-FLT_MAX, 0].
@@ -66,11 +66,11 @@ DS_PHYSICS_EXPORT const dsPhysicsConstraintType* dsSliderPhysicsConstraint_type(
  */
 DS_PHYSICS_EXPORT dsSliderPhysicsConstraint* dsSliderPhysicsConstraint_create(
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstOrientation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation, bool limitEnabled, float minDistance, float maxDistance,
-	float limitStiffness, float limitDamping, dsPhysicsConstraintMotorType motorType,
-	float motorTarget, float maxMotorForce);
+	const dsQuaternion4f* secondOrientation, bool limitEnabled, float minDistance,
+	float maxDistance, float limitStiffness, float limitDamping,
+	dsPhysicsConstraintMotorType motorType, float motorTarget, float maxMotorForce);
 
 /**
  * @brief Enables the angle limit and sets the limit parameters for a slider physics constraint.
@@ -117,11 +117,11 @@ DS_PHYSICS_EXPORT bool dsSliderPhysicsConstraint_setMotor(dsSliderPhysicsConstra
  * @param allocator The allocator the constraint was created with.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
- * @param firstRotation The rotation of the constraint on the first actor. The slider will be
+ * @param firstOrientation The rotation of the constraint on the first actor. The slider will be
  *     limited to the axis of the quaternion.
  * @param secondActor The second physics actor the constraint is attached to.
  * @param secondPosition The position of the constraint on the second actor.
- * @param secondRotation The rotation of the constraint on the second actor. The slider will be
+ * @param secondOrientation The rotation of the constraint on the second actor. The slider will be
  *     limited to the axis of the quaternion.
  * @param limitEnabled Whether the distance limit is enabled.
  * @param minDistance The minimum distance between the reference points in the range [-FLT_MAX, 0].
@@ -137,8 +137,8 @@ DS_PHYSICS_EXPORT bool dsSliderPhysicsConstraint_setMotor(dsSliderPhysicsConstra
 DS_PHYSICS_EXPORT void dsSliderPhysicsConstraint_initialize(
 	dsSliderPhysicsConstraint* constraint, dsPhysicsEngine* engine, dsAllocator* allocator,
 	const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
-	const dsQuaternion4f* firstRotation, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation, bool limitEnabled,
+	const dsQuaternion4f* firstOrientation, const dsPhysicsActor* secondActor,
+	const dsVector3f* secondPosition, const dsQuaternion4f* secondOrientation, bool limitEnabled,
 	float minDistance, float maxDistance, float limitStiffness, float limitDamping,
 	dsPhysicsConstraintMotorType motorType, float motorTarget, float maxMotorForce, void* impl);
 

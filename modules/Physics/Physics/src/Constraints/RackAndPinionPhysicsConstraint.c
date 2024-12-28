@@ -45,16 +45,16 @@ static bool isConstraintValid(const dsPhysicsConstraint* constraint,
 	if (constraint->firstActor == actor)
 	{
 		if (isRevolute)
-			dsQuaternion4f_getRotationAxis(&constraintAxis, &revoluteConstraint->firstRotation);
+			dsQuaternion4f_getRotationAxis(&constraintAxis, &revoluteConstraint->firstOrientation);
 		else
-			dsQuaternion4f_getRotationAxis(&constraintAxis, &sliderConstraint->firstRotation);
+			dsQuaternion4f_getRotationAxis(&constraintAxis, &sliderConstraint->firstOrientation);
 	}
 	else if (constraint->secondActor == actor)
 	{
 		if (isRevolute)
-			dsQuaternion4f_getRotationAxis(&constraintAxis, &revoluteConstraint->secondRotation);
+			dsQuaternion4f_getRotationAxis(&constraintAxis, &revoluteConstraint->secondOrientation);
 		else
-			dsQuaternion4f_getRotationAxis(&constraintAxis, &sliderConstraint->secondRotation);
+			dsQuaternion4f_getRotationAxis(&constraintAxis, &sliderConstraint->secondOrientation);
 	}
 	else
 	{

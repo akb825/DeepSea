@@ -10,6 +10,8 @@ The following JSON formats are added to extend scene conversion.
 
 The following custom scene resource types are provided with the members that are expected:
 
+### Shape Resources
+
 * `"PhysicsBox"`: physics shape for a box.
 	* `halfExtents`: array of 3 floats for the half extents of the box. The full box geometry ranges from `-halfExtents` to `+halfExtents`.
 	* `convexRadius`: the convex radius for collision checks. If unset or a value < 0 the physics system's default will be used.
@@ -48,11 +50,128 @@ The following custom scene resource types are provided with the members that are
 	* `radius`: the radius of the sphere.
 * `"PhysicsShapeRef"`: reference to a physics shape.
 	* `shape`: the name of the referenced shape.
+
+### Constraint Resources
+
+* `"FixedConstraint"`: constraint that has zero degrees of freedom.
+	* `firstActor`: the name of the first actor used in the constraint. This may be unset if the actor will be provided later.
+	* `firstPosition`: array of 3 floats for the position of the constraint relative to the first actor.
+	* `firstOrientation`: array of x, y, z Euler angles in degrees for the orientation of the constraint relative to the first actor.
+	* `secondActor`: the name of the second actor used in the constraint. This may be unset if the actor will be provided later.
+	* `secondPosition`: array of 3 floats for the position of the constraint relative to the second actor.
+	* `secondOrientation`: array of x, y, z Euler angles in degrees for the orientation of the constraint relative to the second actor.
+* `"PointConstraint"`: constraint that has free rotation around a point.
+	* `firstActor`: the name of the first actor used in the constraint. This may be unset if the actor will be provided later.
+	* `firstPosition`: array of 3 floats for the position of the constraint relative to the first actor.
+	* `secondActor`: the name of the second actor used in the constraint. This may be unset if the actor will be provided later.
+	* `secondPosition`: array of 3 floats for the position of the constraint relative to the second actor.
+* `"ConeConstraint"`: constraint that has limited rotation around a point.
+	* `firstActor`: the name of the first actor used in the constraint. This may be unset if the actor will be provided later.
+	* `firstPosition`: array of 3 floats for the position of the constraint relative to the first actor.
+	* `firstOrientation`: array of x, y, z Euler angles in degrees for the orientation of the constraint relative to the first actor.
+	* `secondActor`: the name of the second actor used in the constraint. This may be unset if the actor will be provided later.
+	* `secondPosition`: array of 3 floats for the position of the constraint relative to the second actor.
+	* `secondOrientation`: array of x, y, z Euler angles in degrees for the orientation of the constraint relative to the second actor.
+	* `maxAngle`: the maximum angle in degrees of the constraint relative to the attachment orientation axes.
+* `"SwingTwistConstraint"`: constraint that has limited rotation around a point.
+	* `firstActor`: the name of the first actor used in the constraint. This may be unset if the actor will be provided later.
+	* `firstPosition`: array of 3 floats for the position of the constraint relative to the first actor.
+	* `firstOrientation`: array of x, y, z Euler angles in degrees for the orientation of the constraint relative to the first actor.
+	* `secondActor`: the name of the second actor used in the constraint. This may be unset if the actor will be provided later.
+	* `secondPosition`: array of 3 floats for the position of the constraint relative to the second actor.
+	* `secondOrientation`: array of x, y, z Euler angles in degrees for the orientation of the constraint relative to the second actor.
+	* `maxSwingXAngle`: the maximum angle in degrees of the constraint along the X axis.
+	* `maxSwingYAngle`: the maximum angle in degrees of the constraint along the Y axis.
+	* `maxTwistZAngle`: the maximum angle in degrees of the constraint along the Z axis.
+	* `motorType`: the type of the motor to apply to the constraint. See the `dsPhysicsConstraintMotorType` enum for valid values, omitting the type prefix. `Velocity` is not supported. Defaults to `Disabled`.
+	* `motorTargetOrientation`: array of x, y, z Euler angles in degrees for the target orientation of the motor relative to the second actor. Defaults to the identity rotation.
+	* `maxMotorTorque`: the maximum torque of the motor to reach the target orientation. If the motor is disabled, this will be the toque used to apply to stop motion. Defaults to 0.
+* `"RevolutePhysicsConstraint"`: constraint that can rotate around an arbitrary axis.
+	* `firstActor`: the name of the first actor used in the constraint. This may be unset if the actor will be provided later.
+	* `firstPosition`: array of 3 floats for the position of the constraint relative to the first actor.
+	* `firstOrientation`: array of x, y, z Euler angles in degrees for the orientation of the constraint relative to the first actor.
+	* `secondActor`: the name of the second actor used in the constraint. This may be unset if the actor will be provided later.
+	* `secondPosition`: array of 3 floats for the position of the constraint relative to the second actor.
+	* `secondOrientation`: array of x, y, z Euler angles in degrees for the orientation of the constraint relative to the second actor.
+	* `limitEnabled`: whether the limit is enabled. Defaults to false.
+	* `minAngle`: the minimum angle in degrees in the range [-180, 0] when the limit is enabled. Defaults to -180 degrees.
+	* `maxAngle`: the maximum angle in degrees in the range [0, 180] when the limit is enabled. Defaults to 180 degrees.
+	* `limitStiffness`: the spring stiffness applied when limiting the angle. Defaults to 100.
+	* `limitDamping`: the spring damping in the range [0, 1] applied when limiting the angle. Defaults to 1.
+	* `motorType`: the type of the motor to apply to the constraint. See the `dsPhysicsConstraintMotorType` enum for valid values, omitting the type prefix. Defaults to `Disabled`.
+	* `motorTarget`: the target for the motor. This will be an angle in degrees if `motorType` is `Position` or an angular velocity (typically `degrees/second`) if `motorType` is `Velocity`. Defaults to 0.
+	* `maxMotorTorque`: the maximum torque of the motor to reach the target. If the motor is disabled, this will be the toque used to apply to stop motion. Defaults to 0.
+* `"DistancePhysicsConstraint"`: constraint that limits the distance between two points.
+	* `firstActor`: the name of the first actor used in the constraint. This may be unset if the actor will be provided later.
+	* `firstPosition`: array of 3 floats for the position of the constraint relative to the first actor.
+	* `secondActor`: the name of the second actor used in the constraint. This may be unset if the actor will be provided later.
+	* `secondPosition`: array of 3 floats for the position of the constraint relative to the second actor.
+	* `minDistance`: the minimum distance between reference points.
+	* `maxDistance`: the maximum distance between reference points.
+	* `limitStiffness`: the stiffness for the spring to keep within the distance range.
+	* `limitDamping`: the damping in the range [0, 1] to keep within the distance range.
+* `"SliderPhysicsConstraint"`: constraint that limits movement along a single axis.
+	* `firstActor`: the name of the first actor used in the constraint. This may be unset if the actor will be provided later.
+	* `firstPosition`: array of 3 floats for the position of the constraint relative to the first actor.
+	* `firstOrientation`: array of x, y, z Euler angles in degrees for the orientation of the constraint relative to the first actor.
+	* `secondActor`: the name of the second actor used in the constraint. This may be unset if the actor will be provided later.
+	* `secondPosition`: array of 3 floats for the position of the constraint relative to the second actor.
+	* `secondOrientation`: array of x, y, z Euler angles in degrees for the orientation of the constraint relative to the second actor.
+	* `limitEnabled`: whether the limit is enabled. Defaults to false.
+	* `minDistance`: the minimum distance when the limit is enabled.  Defaults to 0.
+	* `maxDistance`: the maximum distance when the limit is enabled. Defaults to 100.
+	* `limitStiffness`: the spring stiffness applied when limiting the angle. Defaults to 100.
+	* `limitDamping`: the spring damping in the range [0, 1] applied when limiting the angle. Defaults to 1.
+	* `motorType`: the type of the motor to apply to the constraint. See the `dsPhysicsConstraintMotorType` enum for valid values, omitting the type prefix. Defaults to `Disabled`.
+	* `motorTarget`: the target for the motor. This will be a distance if `motorType` is `Position` or an velocity if `motorType` is `Velocity`. Defaults to 0.
+	* `maxMotorForce`: the maximum force of the motor to reach the target. If the motor is disabled, this will be the force used to apply to stop motion. Defaults to 0.
+* `"GenericPhysicsConstraint"`: constraint that allows for control along all 6 degrees of freedom.
+	* `firstActor`: the name of the first actor used in the constraint. This may be unset if the actor will be provided later.
+	* `firstPosition`: array of 3 floats for the position of the constraint relative to the first actor.
+	* `firstOrientation`: array of x, y, z Euler angles in degrees for the orientation of the constraint relative to the first actor.
+	* `secondActor`: the name of the second actor used in the constraint. This may be unset if the actor will be provided later.
+	* `secondPosition`: array of 3 floats for the position of the constraint relative to the second actor.
+	* `secondOrientation`: array of x, y, z Euler angles in degrees for the orientation of the constraint relative to the second actor.
+	* `limits`: the limits for the degrees of freedom. Missing DOfs will have their limits implicitly set to Free. Each array element is expected to have the following members:
+		* `dof`: the degree of freedom. See the `dsPhysicsConstraintDOF` enum for valid values, omitting the type prefix.
+		* `limitType`: the type of limit. See the `dsPhysicsConstraintLimitType` enum for valid values, omitting the type prefix.
+		* `minValue`: the minimum value. For the rotation DOFs the value will be in degrees.
+		* `maxValue`: the maximum value. For the rotation DOFs the value will be in degrees.
+		* `stiffness`: the stiffness of the spring to limit the value.
+		* `damping`: the damping in the range of [0, 1] for the spring to limit the value.
+	* `motors`: the motors for the degrees of freedom. Missing DOFs will have their motors implicitly disabled. Each array element is expected to have the following members:
+		* `dof`: the degree of freedom. See the `dsPhysicsConstraintDOF` enum for valid values, omitting the type prefix.
+		* `motorType`: the type of the motor to apply. See the `dsPhysicsConstraintMotorType` enum for valid values, omitting the type prefix. Defaults to `Disabled`.
+		* `target`: the target of the motor, as either a position or velocity. Rotation DOFs have the target in degrees or `degrees/second`.
+		* `maxForce`: the maximum force or torque of the motor. If the motor is disabled this is the maximum amount of force to apply to stop motion.
+	* `combineSwingTwistMotors`: whether the swing and twist motors are combined. Defaults to false.
+* `"GearPhysicsConstraint"`: constraint that locks the rotation of two actors together based on a gear ratio. It is expected that each actor has a revolute constraint used with it.
+	*  `firstActor`: the name of the first actor used in the constraint. This may be unset if the actor will be provided later.
+	* `firstAxis`: array of 3 floats for the axis of rotation of the first actor.
+	* `firstConstraint`: the name of the revolute constraint for the first actor. This may be unset if the constraint won't be set or will be provided later.
+	* `firstToothCount`: the number of teeth for the first actor's gear to compute the gear ratio. This may be negative if it is flipped.
+	* `secondActor`: the name of the second actor used in the constraint. This may be unset if the actor will be provided later.
+	* `secondAxis`: array of 3 floats for the axis of rotation of the second actor.
+	* `secondConstraint`: the name of the revolute constraint for the second actor. This may be unset if the constraint won't be set or will be provided later.
+	* `secondToothCount`: the number of teeth for the second actor's gear to compute the gear ratio. This may be negative if it is flipped.
+* `"RackAndPinionPhysicsConstraint"`: constraint that locks the translation of one actor and rotation of another actor together based on a gear ratio. It is expected that each actor has a revolute constraint used with it.
+	*  `rackActor`: the name of the rack actor used in the constraint. This may be unset if the actor will be provided later.
+	* `rackAxis`: array of 3 floats for the axis of translation of the rack actor.
+	* `rackConstraint`: the name of the slider constraint for the rack actor. This may be unset if the constraint won't be set or will be provided later.
+	* `rackToothCount`: the number of teeth for the rack to compute the gear ratio. This may be negative if it is flipped.
+	* `rackLength`: the length of the rack to compute the gear ratio.
+	* `pinionActor`: the name of the pinion actor used in the constraint. This may be unset if the actor will be provided later.
+	* `pinionAxis`: array of 3 floats for the axis of rotation of the pinion actor.
+	* `pinionConstraint`: the name of the revolute constraint for the pinion actor. This may be unset if the constraint won't be set or will be provided later.
+	* `pinionToothCount`: the number of teeth for the pinion actor to compute the gear ratio. This may be negative if it is flipped.
+
+### Other Resources
+
 * `"RigidBody"`: unique rigid body instance.
 	* `group`: the name of the rigid body group, or unset if not part of a group.
 	* `flags`: list of flags control the behavior of the rigid body. See the `dsRigidBodyFlags` enum for the valid values, omitting the type prefix.
 	* `motionType`: the type of motion for the rigid body. See the `dsPhysicsMotionType` enum for valid values, omitting the type prefix.
-	* `dofMask`: list of DOF mask values to apply. See the `dsPhysicsDOFMask` enum for valid values, omitting the type prefix.
+	* `dofMask`: list of DOF mask values to apply. See the `dsPhysicsDOFMask` enum for valid values, omitting the type prefix. Defaults to `["All"]`.
 	* `layer`: the physics layer the rigid body is a member of. See the `dsPhysicsLayer` enum for valid values, omitting the type prefix.
 	* `collisionGroup`: integer ID for the collision group. Defaults to 0 if not provided.
 	* `customMassProperties`: either a shifted mass or mass properties to customize the mass and inertia. If unset, the mass properties will be computed based on the shapes in the rigid body. If set, it is expected to contain the following elements based on the type of mass properties:
@@ -90,7 +209,7 @@ The following custom scene resource types are provided with the members that are
 * `"RigidBodyTemplate"`: template to create rigid body instances.
 	* `flags`: list of flags control the behavior of the rigid body. See the `dsRigidBodyFlags` enum for the valid values, omitting the type prefix.
 	* `motionType`: the type of motion for the rigid body. See the `dsPhysicsMotionType` enum for valid values, omitting the type prefix.
-	* `dofMask`: list of DOF mask values to apply. See the `dsPhysicsDOFMask` enum for valid values, omitting the type prefix.
+	* `dofMask`: list of DOF mask values to apply. See the `dsPhysicsDOFMask` enum for valid values, omitting the type prefix. Defaults to `["All"]`.
 	* `layer`: the physics layer the rigid body is a member of. See the `dsPhysicsLayer` enum for valid values, omitting the type prefix.
 	* `collisionGroup`: integer ID for the collision group. Defaults to 0 if not provided.
 	* `customMassProperties`: either a shifted mass or mass properties to customize the mass and inertia. If unset, the mass properties will be computed based on the shapes in the rigid body. If set, it is expected to contain the following elements based on the type of mass properties:

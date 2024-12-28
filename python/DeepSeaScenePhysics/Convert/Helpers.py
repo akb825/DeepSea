@@ -14,10 +14,12 @@
 
 import math
 
-def readFloat(value, name, minValue = None):
+def readFloat(value, name, minValue = None, maxValue = None):
 	try:
 		floatVal = float(value)
 		if minValue is not None and floatVal < minValue:
+			raise Exception()
+		if maxValue is not None and floatVal > maxValue:
 			raise Exception()
 		return floatVal
 	except:

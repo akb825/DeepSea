@@ -48,7 +48,7 @@ extern "C"
  * @param getForceFunc Function to get the last applied force for the constraint. This may be NULL
  *     for constraints that have no limits on position.
  * @param getTorqueFunc Function to get the last applied torque for the constraint. This may be NULL
- *     for constraints that have no limits on rotation.
+ *     for constraints that have no limits on orientation.
  * @param destroyFunc The destroy function of the constraint.
  * @return False if the parameters are invalid.
  */

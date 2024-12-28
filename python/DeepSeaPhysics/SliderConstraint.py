@@ -43,7 +43,7 @@ class SliderConstraint(object):
         return None
 
     # SliderConstraint
-    def FirstRotation(self):
+    def FirstOrientation(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             x = o + self._tab.Pos
@@ -72,7 +72,7 @@ class SliderConstraint(object):
         return None
 
     # SliderConstraint
-    def SecondRotation(self):
+    def SecondOrientation(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             x = o + self._tab.Pos
@@ -156,11 +156,11 @@ def SliderConstraintAddFirstPosition(builder, firstPosition):
 def AddFirstPosition(builder, firstPosition):
     SliderConstraintAddFirstPosition(builder, firstPosition)
 
-def SliderConstraintAddFirstRotation(builder, firstRotation):
-    builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(firstRotation), 0)
+def SliderConstraintAddFirstOrientation(builder, firstOrientation):
+    builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(firstOrientation), 0)
 
-def AddFirstRotation(builder, firstRotation):
-    SliderConstraintAddFirstRotation(builder, firstRotation)
+def AddFirstOrientation(builder, firstOrientation):
+    SliderConstraintAddFirstOrientation(builder, firstOrientation)
 
 def SliderConstraintAddSecondActor(builder, secondActor):
     builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(secondActor), 0)
@@ -174,11 +174,11 @@ def SliderConstraintAddSecondPosition(builder, secondPosition):
 def AddSecondPosition(builder, secondPosition):
     SliderConstraintAddSecondPosition(builder, secondPosition)
 
-def SliderConstraintAddSecondRotation(builder, secondRotation):
-    builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(secondRotation), 0)
+def SliderConstraintAddSecondOrientation(builder, secondOrientation):
+    builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(secondOrientation), 0)
 
-def AddSecondRotation(builder, secondRotation):
-    SliderConstraintAddSecondRotation(builder, secondRotation)
+def AddSecondOrientation(builder, secondOrientation):
+    SliderConstraintAddSecondOrientation(builder, secondOrientation)
 
 def SliderConstraintAddLimitEnabled(builder, limitEnabled):
     builder.PrependBoolSlot(6, limitEnabled, 0)

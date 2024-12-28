@@ -118,7 +118,7 @@ dsPhysicsConstraint* loadFixedConstraint(dsPhysicsEngine* engine, dsAllocator* a
 	}
 
 	dsVector3f firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
-	dsQuaternion4f firstRotation = DeepSeaPhysics::convert(*fbConstraint.firstRotation());
+	dsQuaternion4f firstOrientation = DeepSeaPhysics::convert(*fbConstraint.firstOrientation());
 
 	auto fbSecondActor = fbConstraint.secondActor();
 	dsPhysicsActor* secondActor = nullptr;
@@ -131,10 +131,11 @@ dsPhysicsConstraint* loadFixedConstraint(dsPhysicsEngine* engine, dsAllocator* a
 	}
 
 	dsVector3f secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
-	dsQuaternion4f secondRotation = DeepSeaPhysics::convert(*fbConstraint.secondRotation());
+	dsQuaternion4f secondOrientation = DeepSeaPhysics::convert(*fbConstraint.secondOrientation());
 
 	return reinterpret_cast<dsPhysicsConstraint*>(dsFixedPhysicsConstraint_create(engine, allocator,
-		firstActor, &firstPosition, &firstRotation, secondActor, &secondPosition, &secondRotation));
+		firstActor, &firstPosition, &firstOrientation, secondActor, &secondPosition,
+		&secondOrientation));
 }
 
 dsPhysicsConstraint* loadPointConstraint(dsPhysicsEngine* engine, dsAllocator* allocator,
@@ -184,7 +185,7 @@ dsPhysicsConstraint* loadConeConstraint(dsPhysicsEngine* engine, dsAllocator* al
 	}
 
 	dsVector3f firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
-	dsQuaternion4f firstRotation = DeepSeaPhysics::convert(*fbConstraint.firstRotation());
+	dsQuaternion4f firstOrientation = DeepSeaPhysics::convert(*fbConstraint.firstOrientation());
 
 	auto fbSecondActor = fbConstraint.secondActor();
 	dsPhysicsActor* secondActor = nullptr;
@@ -197,10 +198,10 @@ dsPhysicsConstraint* loadConeConstraint(dsPhysicsEngine* engine, dsAllocator* al
 	}
 
 	dsVector3f secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
-	dsQuaternion4f secondRotation = DeepSeaPhysics::convert(*fbConstraint.secondRotation());
+	dsQuaternion4f secondOrientation = DeepSeaPhysics::convert(*fbConstraint.secondOrientation());
 
 	return reinterpret_cast<dsPhysicsConstraint*>(dsConePhysicsConstraint_create(engine, allocator,
-		firstActor, &firstPosition, &firstRotation, secondActor, &secondPosition, &secondRotation,
+		firstActor, &firstPosition, &firstOrientation, secondActor, &secondPosition, &secondOrientation,
 		fbConstraint.maxAngle()));
 }
 
@@ -219,7 +220,7 @@ dsPhysicsConstraint* loadSwingTwistConstraint(dsPhysicsEngine* engine, dsAllocat
 	}
 
 	dsVector3f firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
-	dsQuaternion4f firstRotation = DeepSeaPhysics::convert(*fbConstraint.firstRotation());
+	dsQuaternion4f firstOrientation = DeepSeaPhysics::convert(*fbConstraint.firstOrientation());
 
 	auto fbSecondActor = fbConstraint.secondActor();
 	dsPhysicsActor* secondActor = nullptr;
@@ -232,19 +233,19 @@ dsPhysicsConstraint* loadSwingTwistConstraint(dsPhysicsEngine* engine, dsAllocat
 	}
 
 	dsVector3f secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
-	dsQuaternion4f secondRotation = DeepSeaPhysics::convert(*fbConstraint.secondRotation());
+	dsQuaternion4f secondOrientation = DeepSeaPhysics::convert(*fbConstraint.secondOrientation());
 
-	dsQuaternion4f motorTargetRotation;
-	auto fbMotorTargetRotation = fbConstraint.motorTargetRotation();
-	if (fbMotorTargetRotation)
-		motorTargetRotation = DeepSeaPhysics::convert(*fbMotorTargetRotation);
+	dsQuaternion4f motorTargetOrientation;
+	auto fbMotorTargetOrientation = fbConstraint.motorTargetOrientation();
+	if (fbMotorTargetOrientation)
+		motorTargetOrientation = DeepSeaPhysics::convert(*fbMotorTargetOrientation);
 
 	return reinterpret_cast<dsPhysicsConstraint*>(dsSwingTwistPhysicsConstraint_create(engine,
-		allocator, firstActor, &firstPosition, &firstRotation, secondActor, &secondPosition,
-		&secondRotation, fbConstraint.maxSwingXAngle(), fbConstraint.maxSwingYAngle(),
+		allocator, firstActor, &firstPosition, &firstOrientation, secondActor, &secondPosition,
+		&secondOrientation, fbConstraint.maxSwingXAngle(), fbConstraint.maxSwingYAngle(),
 		fbConstraint.maxTwistZAngle(),
 		static_cast<dsPhysicsConstraintMotorType>(fbConstraint.motorType()),
-		fbMotorTargetRotation ? &motorTargetRotation : nullptr, fbConstraint.maxMotorTorque()));
+		fbMotorTargetOrientation ? &motorTargetOrientation : nullptr, fbConstraint.maxMotorTorque()));
 }
 
 dsPhysicsConstraint* loadRevoluteConstraint(dsPhysicsEngine* engine, dsAllocator* allocator,
@@ -262,7 +263,7 @@ dsPhysicsConstraint* loadRevoluteConstraint(dsPhysicsEngine* engine, dsAllocator
 	}
 
 	dsVector3f firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
-	dsQuaternion4f firstRotation = DeepSeaPhysics::convert(*fbConstraint.firstRotation());
+	dsQuaternion4f firstOrientation = DeepSeaPhysics::convert(*fbConstraint.firstOrientation());
 
 	auto fbSecondActor = fbConstraint.secondActor();
 	dsPhysicsActor* secondActor = nullptr;
@@ -275,11 +276,11 @@ dsPhysicsConstraint* loadRevoluteConstraint(dsPhysicsEngine* engine, dsAllocator
 	}
 
 	dsVector3f secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
-	dsQuaternion4f secondRotation = DeepSeaPhysics::convert(*fbConstraint.secondRotation());
+	dsQuaternion4f secondOrientation = DeepSeaPhysics::convert(*fbConstraint.secondOrientation());
 
 	return reinterpret_cast<dsPhysicsConstraint*>(dsRevolutePhysicsConstraint_create(engine,
-		allocator, firstActor, &firstPosition, &firstRotation, secondActor, &secondPosition,
-		&secondRotation, fbConstraint.limitEnabled(), fbConstraint.minAngle(),
+		allocator, firstActor, &firstPosition, &firstOrientation, secondActor, &secondPosition,
+		&secondOrientation, fbConstraint.limitEnabled(), fbConstraint.minAngle(),
 		fbConstraint.maxAngle(), fbConstraint.limitStiffness(), fbConstraint.limitDamping(),
 		static_cast<dsPhysicsConstraintMotorType>(fbConstraint.motorType()),
 		fbConstraint.motorTarget(), fbConstraint.maxMotorTorque()));
@@ -334,7 +335,7 @@ dsPhysicsConstraint* loadSliderConstraint(dsPhysicsEngine* engine, dsAllocator* 
 	}
 
 	dsVector3f firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
-	dsQuaternion4f firstRotation = DeepSeaPhysics::convert(*fbConstraint.firstRotation());
+	dsQuaternion4f firstOrientation = DeepSeaPhysics::convert(*fbConstraint.firstOrientation());
 
 	auto fbSecondActor = fbConstraint.secondActor();
 	dsPhysicsActor* secondActor = nullptr;
@@ -347,11 +348,11 @@ dsPhysicsConstraint* loadSliderConstraint(dsPhysicsEngine* engine, dsAllocator* 
 	}
 
 	dsVector3f secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
-	dsQuaternion4f secondRotation = DeepSeaPhysics::convert(*fbConstraint.secondRotation());
+	dsQuaternion4f secondOrientation = DeepSeaPhysics::convert(*fbConstraint.secondOrientation());
 
 	return reinterpret_cast<dsPhysicsConstraint*>(dsSliderPhysicsConstraint_create(engine,
-		allocator, firstActor, &firstPosition, &firstRotation, secondActor, &secondPosition,
-		&secondRotation, fbConstraint.limitEnabled(), fbConstraint.minDistance(),
+		allocator, firstActor, &firstPosition, &firstOrientation, secondActor, &secondPosition,
+		&secondOrientation, fbConstraint.limitEnabled(), fbConstraint.minDistance(),
 		fbConstraint.maxDistance(), fbConstraint.limitStiffness(), fbConstraint.limitDamping(),
 		static_cast<dsPhysicsConstraintMotorType>(fbConstraint.motorType()),
 		fbConstraint.motorTarget(), fbConstraint.maxMotorForce()));
@@ -372,7 +373,7 @@ dsPhysicsConstraint* loadGenericConstraint(dsPhysicsEngine* engine, dsAllocator*
 	}
 
 	dsVector3f firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
-	dsQuaternion4f firstRotation = DeepSeaPhysics::convert(*fbConstraint.firstRotation());
+	dsQuaternion4f firstOrientation = DeepSeaPhysics::convert(*fbConstraint.firstOrientation());
 
 	auto fbSecondActor = fbConstraint.secondActor();
 	dsPhysicsActor* secondActor = nullptr;
@@ -385,83 +386,94 @@ dsPhysicsConstraint* loadGenericConstraint(dsPhysicsEngine* engine, dsAllocator*
 	}
 
 	dsVector3f secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
-	dsQuaternion4f secondRotation = DeepSeaPhysics::convert(*fbConstraint.secondRotation());
-
-	auto fbLimits = fbConstraint.limits();
-	if (fbLimits->size() != DS_PHYSICS_CONSTRAINT_DOF_COUNT)
-	{
-		errno = EFORMAT;
-		if (name)
-		{
-			DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG,
-				"Invalid generic physics constraint limits for '%s'.", name);
-		}
-		else
-			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Invalid generic physics constraint limits.");
-		return nullptr;
-	}
+	dsQuaternion4f secondOrientation = DeepSeaPhysics::convert(*fbConstraint.secondOrientation());
 
 	dsGenericPhysicsConstraintLimit limits[DS_PHYSICS_CONSTRAINT_DOF_COUNT];
+	dsGenericPhysicsConstraintMotor motors[DS_PHYSICS_CONSTRAINT_DOF_COUNT];
+
 	for (uint32_t i = 0; i < DS_PHYSICS_CONSTRAINT_DOF_COUNT; ++i)
 	{
-		auto fbLimit = (*fbLimits)[i];
-		if (!fbLimit)
-		{
-			errno = EFORMAT;
-			if (name)
-			{
-				DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG,
-					"Invalid generic physics constraint limits for '%s'.", name);
-			}
-			else
-				DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Invalid generic physics constraint limits.");
-			return nullptr;
-		}
-
 		dsGenericPhysicsConstraintLimit& limit = limits[i];
-		limit.limitType = static_cast<dsPhysicsConstraintLimitType>(fbLimit->limitType());
-		limit.minValue = limit.minValue;
-		limit.maxValue = limit.maxValue;
-		limit.stiffness = limit.stiffness;
-		limit.damping = limit.damping;
+		limit.limitType = dsPhysicsConstraintLimitType_Free;
+		limit.minValue = 0.0f;
+		limit.maxValue = 0.0f;
+		limit.stiffness = 0.0f;
+		limit.damping = 0.0f;
+
+		dsGenericPhysicsConstraintMotor& motor = motors[i];
+		motor.motorType = dsPhysicsConstraintMotorType_Disabled;
+		motor.target = 0.0f;
+		motor.maxForce = 0.0f;
+	}
+
+	auto fbLimits = fbConstraint.limits();
+	if (fbLimits)
+	{
+		for (uint32_t i = 0; i < fbLimits->size(); ++i)
+		{
+			auto fbLimit = (*fbLimits)[i];
+			if (!fbLimit)
+				continue;
+
+			auto dofIndex = static_cast<uint32_t>(fbLimit->dof());
+			if (dofIndex >= DS_PHYSICS_CONSTRAINT_DOF_COUNT)
+			{
+				errno = EFORMAT;
+				if (name)
+				{
+					DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG,
+						"Invalid generic physics constraint limit DOF for '%s'.", name);
+				}
+				else
+				{
+					DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+						"Invalid generic physics constraint limit DOF.");
+				}
+				return nullptr;
+			}
+
+			dsGenericPhysicsConstraintLimit& limit = limits[dofIndex];
+			limit.limitType = static_cast<dsPhysicsConstraintLimitType>(fbLimit->limitType());
+			limit.minValue = limit.minValue;
+			limit.maxValue = limit.maxValue;
+			limit.stiffness = limit.stiffness;
+			limit.damping = limit.damping;
+		}
 	}
 
 	auto fbMotors = fbConstraint.motors();
-	if (fbMotors && fbMotors->size() != DS_PHYSICS_CONSTRAINT_DOF_COUNT)
+	if (fbMotors)
 	{
-		errno = EFORMAT;
-		if (name)
+		for (uint32_t i = 0; i < fbMotors->size(); ++i)
 		{
-			DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG,
-				"Invalid generic physics constraint limits for '%s'.", name);
-		}
-		else
-			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Invalid generic physics constraint limits.");
-		return nullptr;
-	}
+			auto fbMotor = (*fbMotors)[i];
+			if (!fbMotor)
+				continue;
 
-	dsGenericPhysicsConstraintMotor motors[DS_PHYSICS_CONSTRAINT_DOF_COUNT];
-	for (uint32_t i = 0; i < DS_PHYSICS_CONSTRAINT_DOF_COUNT; ++i)
-	{
-		dsGenericPhysicsConstraintMotor& motor = motors[i];
-		auto fbMotor = fbMotors ? (*fbMotors)[i] : nullptr;
-		if (fbMotor)
-		{
+			auto dofIndex = static_cast<uint32_t>(fbMotor->dof());
+			if (dofIndex >= DS_PHYSICS_CONSTRAINT_DOF_COUNT)
+			{
+				errno = EFORMAT;
+				if (name)
+				{
+					DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG,
+						"Invalid generic physics constraint motor DOF for '%s'.", name);
+				}
+				else
+					DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Invalid generic physics constraint motor DOF.");
+				return nullptr;
+			}
+
+			dsGenericPhysicsConstraintMotor& motor = motors[dofIndex];
 			motor.motorType = static_cast<dsPhysicsConstraintMotorType>(fbMotor->motorType());
 			motor.target = fbMotor->target();
 			motor.maxForce = fbMotor->maxForce();
 		}
-		else
-		{
-			motor.motorType = dsPhysicsConstraintMotorType_Disabled;
-			motor.target = 0.0f;
-			motor.maxForce = 0.0f;
-		}
 	}
 
 	return reinterpret_cast<dsPhysicsConstraint*>(dsGenericPhysicsConstraint_create(engine,
-		allocator, firstActor, &firstPosition, &firstRotation, secondActor, &secondPosition,
-		&secondRotation, limits, motors, fbConstraint.combineSwingTwistMotors()));
+		allocator, firstActor, &firstPosition, &firstOrientation, secondActor, &secondPosition,
+		&secondOrientation, limits, motors, fbConstraint.combineSwingTwistMotors()));
 }
 
 dsPhysicsConstraint* loadGearConstraint(dsPhysicsEngine* engine, dsAllocator* allocator,
@@ -480,6 +492,7 @@ dsPhysicsConstraint* loadGearConstraint(dsPhysicsEngine* engine, dsAllocator* al
 	}
 
 	dsVector3f firstAxis = DeepSeaPhysics::convert(*fbConstraint.firstAxis());
+	dsVector3f_normalize(&firstAxis, &firstAxis);
 
 	auto fbFirstConstraint = fbConstraint.firstConstraint();
 	dsPhysicsConstraint* firstConstraint = nullptr;
@@ -520,6 +533,7 @@ dsPhysicsConstraint* loadGearConstraint(dsPhysicsEngine* engine, dsAllocator* al
 	}
 
 	dsVector3f secondAxis = DeepSeaPhysics::convert(*fbConstraint.secondAxis());
+	dsVector3f_normalize(&secondAxis, &secondAxis);
 
 	auto fbSecondConstraint = fbConstraint.secondConstraint();
 	dsPhysicsConstraint* secondConstraint = nullptr;
@@ -571,6 +585,7 @@ dsPhysicsConstraint* loadRackAndPinionConstraint(dsPhysicsEngine* engine, dsAllo
 	}
 
 	dsVector3f rackAxis = DeepSeaPhysics::convert(*fbConstraint.rackAxis());
+	dsVector3f_normalize(&rackAxis, &rackAxis);
 
 	auto fbRackConstraint = fbConstraint.rackConstraint();
 	dsPhysicsConstraint* rackConstraint = nullptr;
@@ -611,6 +626,7 @@ dsPhysicsConstraint* loadRackAndPinionConstraint(dsPhysicsEngine* engine, dsAllo
 	}
 
 	dsVector3f pinionAxis = DeepSeaPhysics::convert(*fbConstraint.pinionAxis());
+	dsVector3f_normalize(&pinionAxis, &pinionAxis);
 
 	auto fbPinionConstraint = fbConstraint.pinionConstraint();
 	dsPhysicsConstraint* pinionConstraint = nullptr;

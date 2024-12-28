@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,13 @@ extern "C"
 /**
  * @brief The alignment of allocated memory.
  *
- * This is the alignment used within the DeepSea libraries, and allows for SIMD types to be used
- * directly.
+ * This is the alignment used within the DeepSea libraries, and allows for 128 bit SIMD types to be
+ * used directly.
+ *
+ * TODO: If 256 bit SIMD operations become commonplace to use, should set this to 32 for platforms
+ * where such instructions are possible (currently just x86 32/64), allowing them to be used without
+ * explicit alignment. For now this isn't done to reduce waste for extra padding, since
+ * single-precsion floats are almost exclusively used..
  */
 #define DS_ALLOC_ALIGNMENT 16
 

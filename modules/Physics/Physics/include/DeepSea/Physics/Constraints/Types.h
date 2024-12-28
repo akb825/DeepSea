@@ -248,20 +248,20 @@ typedef struct dsFixedPhysicsConstraint
 	dsVector3f secondPosition;
 
 	/**
-	 * @brief The rotation of the constraint relative to the first actor.
+	 * @brief The orientation of the constraint relative to the first actor.
 	 */
-	dsQuaternion4f firstRotation;
+	dsQuaternion4f firstOrientation;
 
 	/**
-	 * @brief The rotation of the constraint relative to the second actor.
+	 * @brief The orientation of the constraint relative to the second actor.
 	 */
-	dsQuaternion4f secondRotation;
+	dsQuaternion4f secondOrientation;
 } dsFixedPhysicsConstraint;
 
 /**
- * @brief Struct describing a physics constraint that has free rotation around a point.
+ * @brief Struct describing a physics constraint that has free orientation around a point.
  *
- * This is akin to a ball-socket and has no limits to the rotation.
+ * This is akin to a ball-socket and has no limits to the orientation.
  *
  * Points are relative to the local coordinate space of each actor and are immutable, so changing
  * the attachment location requires creating a new constraint.
@@ -317,17 +317,17 @@ typedef struct dsConePhysicsConstraint
 	dsVector3f secondPosition;
 
 	/**
-	 * @brief The rotation of the constraint relative to the first actor.
+	 * @brief The orientation of the constraint relative to the first actor.
 	 */
-	dsQuaternion4f firstRotation;
+	dsQuaternion4f firstOrientation;
 
 	/**
-	 * @brief The rotation of the constraint relative to the second actor.
+	 * @brief The orientation of the constraint relative to the second actor.
 	 */
-	dsQuaternion4f secondRotation;
+	dsQuaternion4f secondOrientation;
 
 	/**
-	 * @brief The maximum angle of the constraint relative to the attachment rotation axes.
+	 * @brief The maximum angle of the constraint relative to the attachment orientation axes.
 	 */
 	float maxAngle;
 } dsConePhysicsConstraint;
@@ -338,7 +338,7 @@ typedef struct dsConePhysicsConstraint
  * This is akin to a ball-socket that has a hard limit to the swing and the twist. Each axis may
  * have an independnent angle limit, allowing for a non-symmiterical cone. The XY plane is normal
  * to the connecting point, meaning the X and Y axis angles are along the swing and the Z axis is
- * the twist. A motor may be applied to rotate towards a goal rotation, and a force may be applied
+ * the twist. A motor may be applied to rotate towards a goal orientation, and a force may be applied
  * to stop movement when the motor is disabled.
  *
  * This joint is suitable for ragdolls applied to a skeleton.
@@ -368,14 +368,14 @@ typedef struct dsSwingTwistPhysicsConstraint
 	dsVector3f secondPosition;
 
 	/**
-	 * @brief The rotation of the constraint relative to the first actor.
+	 * @brief The orientation of the constraint relative to the first actor.
 	 */
-	dsQuaternion4f firstRotation;
+	dsQuaternion4f firstOrientation;
 
 	/**
-	 * @brief The rotation of the constraint relative to the second actor.
+	 * @brief The orientation of the constraint relative to the second actor.
 	 */
-	dsQuaternion4f secondRotation;
+	dsQuaternion4f secondOrientation;
 
 	/**
 	 * @brief The maximum angle of the constraint along the X axis.
@@ -400,9 +400,9 @@ typedef struct dsSwingTwistPhysicsConstraint
 	dsPhysicsConstraintMotorType motorType;
 
 	/**
-	 * @brief The target rotation for the motor relative to the first actor.
+	 * @brief The target orientation for the motor relative to the first actor.
 	 */
-	dsQuaternion4f motorTargetRotation;
+	dsQuaternion4f motorTargetOrientation;
 
 	/**
 	 * @brief The maximum torque for the motor.
@@ -418,7 +418,7 @@ typedef struct dsSwingTwistPhysicsConstraint
  *
  * This may be used to represent a hinge or axle depending on whether an angle limit is enabled.
  * Spring parameters may be used to determine how soft the limit is when enabled. A motor may be
- * used to reach a target location or velocity, and a torque may be applied to stop rotation when
+ * used to reach a target location or velocity, and a torque may be applied to stop orientation when
  * the motor is disabled.
  *
  * Transforms are relative to the local coordinate space of each actor. The transforms are
@@ -446,20 +446,20 @@ typedef struct dsRevolutePhysicsConstraint
 	dsVector3f secondPosition;
 
 	/**
-	 * @brief The rotation of the constraint relative to the first actor.
+	 * @brief The orientation of the constraint relative to the first actor.
 	 *
 	 * The axis of the quaternion represents the axis that will be rotated around, while the
-	 * rotation will be used relative to any rotation limits.
+	 * orientation will be used relative to any orientation limits.
 	 */
-	dsQuaternion4f firstRotation;
+	dsQuaternion4f firstOrientation;
 
 	/**
-	 * @brief The rotation of the constraint relative to the second actor.
+	 * @brief The orientation of the constraint relative to the second actor.
 	 *
 	 * The axis of the quaternion represents the axis that will be rotated around, while the
-	 * rotation will be used relative to any rotation limits.
+	 * orientation will be used relative to any orientation limits.
 	 */
-	dsQuaternion4f secondRotation;
+	dsQuaternion4f secondOrientation;
 
 	/**
 	 * @brief Whether the angle is enabled.
@@ -511,7 +511,7 @@ typedef struct dsRevolutePhysicsConstraint
  * @brief Struct describing a distance physics constraint, which keeps two actors within a distance
  *     range of each-other.
  *
- * This generally models a spring connecting both objects with no limits on rotation.
+ * This generally models a spring connecting both objects with no limits on orientation.
  *
  * Positions are relative to the local coordinate space of each actor. The positions are
  * immutable, so changing the attachment location and orientation requires creating a new
@@ -559,7 +559,7 @@ typedef struct dsDistancePhysicsConstraint
 
 /**
  * @brief Struct describing a slider physics constraint, which limits movement along a single axis
- *     with no rotation.
+ *     with no orientation.
  *
  * The distance between points may optionally be limited with spring parameters to adjust the
  * limit's softness. A motor may also optionally be enabled to reach a target distance or velocity,
@@ -589,18 +589,18 @@ typedef struct dsSliderPhysicsConstraint
 	dsVector3f secondPosition;
 
 	/**
-	 * @brief The rotation of the constraint relative to the first actor.
+	 * @brief The orientation of the constraint relative to the first actor.
 	 *
 	 * The slider will be limited to the axis of the quaternion.
 	 */
-	dsQuaternion4f firstRotation;
+	dsQuaternion4f firstOrientation;
 
 	/**
-	 * @brief The rotation of the constraint relative to the second actor.
+	 * @brief The orientation of the constraint relative to the second actor.
 	 *
 	 * The slider will be limited to the axis of the quaternion.
 	 */
-	dsQuaternion4f secondRotation;
+	dsQuaternion4f secondOrientation;
 
 	/**
 	 * @brief Whether the distance limit is enabled.
@@ -724,7 +724,7 @@ typedef struct dsGenericPhysicsConstraintMotor
  * also optionally be enabled to reach a target position or velocity for each degree, and a force
  * may be applied to stop motion when the motor is disabled. The motor may be set individually for
  * each translational axis, and either for the swing and twist separately or for all angles together
- * for the rotational axes.
+ * for the orientational axes.
  *
  * Transforms are relative to the local coordinate space of each actor. The transforms are
  * immutable, so changing the attachment location and orientation requires creating a new
@@ -750,14 +750,14 @@ typedef struct dsGenericPhysicsConstraint
 	dsVector3f secondPosition;
 
 	/**
-	 * @brief The rotation of the constraint relative to the first actor.
+	 * @brief The orientation of the constraint relative to the first actor.
 	 */
-	dsQuaternion4f firstRotation;
+	dsQuaternion4f firstOrientation;
 
 	/**
-	 * @brief The rotation of the constraint relative to the second actor.
+	 * @brief The orientation of the constraint relative to the second actor.
 	 */
-	dsQuaternion4f secondRotation;
+	dsQuaternion4f secondOrientation;
 
 	/**
 	 * @brief The limits for each degree of freedom for the constraint.
@@ -767,9 +767,9 @@ typedef struct dsGenericPhysicsConstraint
 	/**
 	 * @brief The motors for each degree of freedom of the constraint.
 	 *
-	 * The motor type and maximum torque for RotationX will apply for RotationY as well. If
-	 * combineSwingTwistMotors is true, the motor type and maximum torque of RotationX will also
-	 * apply to RotationZ.
+	 * The motor type and maximum torque for OrientationX will apply for OrientationY as well. If
+	 * combineSwingTwistMotors is true, the motor type and maximum torque of OrientationX will also
+	 * apply to OrientationZ.
 	 */
 	dsGenericPhysicsConstraintMotor motors[DS_PHYSICS_CONSTRAINT_DOF_COUNT];
 
@@ -780,15 +780,15 @@ typedef struct dsGenericPhysicsConstraint
 } dsGenericPhysicsConstraint;
 
 /**
- * @brief Struct describing a gear physics constraint, ensuring the rotation of two actors are
+ * @brief Struct describing a gear physics constraint, ensuring the orientation of two actors are
  *     locked based on the gear ratio.
  *
  * This expects that each actor has revolute constraint to limit movement to a single axis. The
  * revolute constraints may optionally be provided to improve precision and avoid the relative
- * rotations drifting over time.
+ * orientations drifting over time.
  *
  * Axes are relative to the local coordinate space of each actor. The axes are immutable, so
- * changing the rotation axes requires creating a new constraint. The ratio may be adjusted after
+ * changing the orientation axes requires creating a new constraint. The ratio may be adjusted after
  * creation.
  *
  * @see GearPhysicsConstraint.h
@@ -801,12 +801,12 @@ typedef struct dsGearPhysicsConstraint
 	dsPhysicsConstraint constraint;
 
 	/**
-	 * @brief The axis of rotation for the first actor.
+	 * @brief The axis of orientation for the first actor.
 	 */
 	dsVector3f firstAxis;
 
 	/**
-	 * @brief The axis of rotation for the second actor.
+	 * @brief The axis of orientation for the second actor.
 	 */
 	dsVector3f secondAxis;
 
@@ -831,18 +831,18 @@ typedef struct dsGearPhysicsConstraint
 
 /**
  * @brief Struct describing a rack and pinion physics constraint, ensuring the translation of a rack
- *     and rotation of a pinion are locked based on the gear ratio.
+ *     and orientation of a pinion are locked based on the gear ratio.
  *
  * The first actor will correspond to the rack, while the second actor will correspond to the
  * pinion.
  *
  * This expects that the rack has a slider constraint to limit translation along a single axis and
- * the pinion has a revolute constraint to limit the rotation along a single axis. The onstraints
- * may optionally be provided to improve precision and avoid the relative position and rotation
+ * the pinion has a revolute constraint to limit the orientation along a single axis. The onstraints
+ * may optionally be provided to improve precision and avoid the relative position and orientation
  * drifting over time.
  *
  * Axes are relative to the local coordinate space of each actor. The axes are immutable, so
- * changing the translation and rotation axes requires creating a new constraint. The ratio may be
+ * changing the translation and orientation axes requires creating a new constraint. The ratio may be
  * adjusted after creation.
  *
  * @see RackAndPinionPhysicsConstraint.h
@@ -860,7 +860,7 @@ typedef struct dsRackAndPinionPhysicsConstraint
 	dsVector3f firstAxis;
 
 	/**
-	 * @brief The axis of rotation for the second actor.
+	 * @brief The axis of orientation for the second actor.
 	 */
 	dsVector3f secondAxis;
 
@@ -889,17 +889,17 @@ typedef struct dsRackAndPinionPhysicsConstraint
  * @param allocator The allocator to create the constraint with.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
- * @param firstRotation The rotation of the constraint on the first actor.
+ * @param firstOrientation The orientation of the constraint on the first actor.
  * @param secondActor The second physics actor the constraint is attached to.
  * @param secondPosition The position of the constraint on the second actor.
- * @param secondRotation The rotation of the constraint on the second actor.
+ * @param secondOrientation The orientation of the constraint on the second actor.
  * @return The fixed constraint or NULL if it couldn't be created.
  */
 typedef dsFixedPhysicsConstraint* (*dsCreateFixedPhysicsConstraintFunction)(dsPhysicsEngine* engine,
 	dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstOrientation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation);
+	const dsQuaternion4f* secondOrientation);
 
 /**
  * @brief Function to destroy a fixed physics constraint.
@@ -980,17 +980,17 @@ typedef bool (*dsGetPointPhysicsConstraintForceFunction)(dsVector3f* outForce,
  * @param allocator The allocator to create the constraint with.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
- * @param firstRotation The rotation of the constraint on the first actor.
+ * @param firstOrientation The orientation of the constraint on the first actor.
  * @param secondActor The second physics actor the constraint is attached to.
  * @param secondPosition The position of the constraint on the second actor.
- * @param secondRotation The rotation of the constraint on the second actor.
- * @param maxAngle The maximum angle of the constraint relative to the attachment rotation axes.
+ * @param secondOrientation The orientation of the constraint on the second actor.
+ * @param maxAngle The maximum angle of the constraint relative to the attachment orientation axes.
  * @return The fixed constraint or NULL if it couldn't be created.
  */
 typedef dsConePhysicsConstraint* (*dsCreateConePhysicsConstraintFunction)(dsPhysicsEngine* engine,
 	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
-	const dsQuaternion4f* firstRotation, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation, float maxAngle);
+	const dsQuaternion4f* firstOrientation, const dsPhysicsActor* secondActor,
+	const dsVector3f* secondPosition, const dsQuaternion4f* secondOrientation, float maxAngle);
 
 /**
  * @brief Function to destroy a cone physics constraint.
@@ -1025,7 +1025,7 @@ typedef bool (*dsGetConePhysicsConstraintForceFunction)(dsVector3f* outForce,
  * @brief Function to set the max angle for a cone physics constraint.
  * @param engine The physics engine the constraint was created with.
  * @param constraint The constraint to set the max angle on.
- * @param maxAngle The maximum angle of the constraint relative to the attachment rotation axes.
+ * @param maxAngle The maximum angle of the constraint relative to the attachment orientation axes.
  * @return False if the angle couldn't be set.
  */
 typedef bool (*dsSetConePhysicsConstraintMaxAngleFunction)(dsPhysicsEngine* engine,
@@ -1037,25 +1037,25 @@ typedef bool (*dsSetConePhysicsConstraintMaxAngleFunction)(dsPhysicsEngine* engi
  * @param allocator The allocator to create the constraint with.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
- * @param firstRotation The rotation of the constraint on the first actor.
+ * @param firstOrientation The orientation of the constraint on the first actor.
  * @param secondActor The second physics actor the constraint is attached to.
  * @param secondPosition The position of the constraint on the second actor.
- * @param secondRotation The rotation of the constraint on the second actor.
+ * @param secondOrientation The orientation of the constraint on the second actor.
  * @param maxSwingXAngle The maximum angle of the constraint along the X axis.
  * @param maxSwingYAngle The maximum angle of the constraint along the Y axis.
  * @param maxTwistZAngle The maximum angle of the constraint along the Z axis.
  * @param motorType The type of motor to use.
- * @param motorTargetRotation The target rotation to reach when the motor is enabled.
+ * @param motorTargetOrientation The target orientation to reach when the motor is enabled.
  * @param maxMotorTorque The maximum torque to apply for the motor.
  * @return The swing twist constraint or NULL if it couldn't be created.
  */
 typedef dsSwingTwistPhysicsConstraint* (*dsCreateSwingTwistPhysicsConstraintFunction)(
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstOrientation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation, float maxSwingXAngle, float maxSwingYAngle,
+	const dsQuaternion4f* secondOrientation, float maxSwingXAngle, float maxSwingYAngle,
 	float maxTwistZAngle, dsPhysicsConstraintMotorType motorType,
-	const dsQuaternion4f* motorTargetRotation, float maxMotorTorque);
+	const dsQuaternion4f* motorTargetOrientation, float maxMotorTorque);
 
 /**
  * @brief Function to destroy a swing twist physics constraint.
@@ -1104,13 +1104,13 @@ typedef bool (*dsSetSwingTwistPhysicsConstraintMaxAnglesFunction)(dsPhysicsEngin
  * @param engine The physics engine the constraint was created with.
  * @param constraint The constraint to set the max angle on.
  * @param motorType The type of motor to use.
- * @param targetRotation The target rotation of the joint or NULL to leave unchanged.
+ * @param targetOrientation The target orientation of the joint or NULL to leave unchanged.
  * @param maxTorque The maximum torque to apply for the motor.
  * @return False if the motor parameters couldn't be set.
  */
 typedef bool (*dsSetSwingTwistPhysicsConstraintMotorFunction)(dsPhysicsEngine* engine,
 	dsSwingTwistPhysicsConstraint* constraint, dsPhysicsConstraintMotorType motorType,
-	const dsQuaternion4f* targetRotation, float maxTorque);
+	const dsQuaternion4f* targetOrientation, float maxTorque);
 
 /**
  * @brief Function to create a revolute physics constraint.
@@ -1118,13 +1118,13 @@ typedef bool (*dsSetSwingTwistPhysicsConstraintMotorFunction)(dsPhysicsEngine* e
  * @param allocator The allocator to create the constraint with.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
- * @param firstRotation The rotation of the constraint on the first actor.
+ * @param firstOrientation The orientation of the constraint on the first actor.
  * @param secondActor The second physics actor the constraint is attached to.
  * @param secondPosition The position of the constraint on the second actor.
- * @param secondRotation The rotation of the constraint on the second actor.
- * @param limitEnabled Whether the rotation limit is enabled.
- * @param minAngle The minimum angle for the rotation.
- * @param maxAngle The maximum angle for the rotation.
+ * @param secondOrientation The orientation of the constraint on the second actor.
+ * @param limitEnabled Whether the orientation limit is enabled.
+ * @param minAngle The minimum angle for the orientation.
+ * @param maxAngle The maximum angle for the orientation.
  * @param limitStiffness The spring stiffness applied when limiting the angle.
  * @param limitDamping The spring damping applied when limiting the angle.
  * @param motorType The type of motor to use.
@@ -1134,9 +1134,9 @@ typedef bool (*dsSetSwingTwistPhysicsConstraintMotorFunction)(dsPhysicsEngine* e
  */
 typedef dsRevolutePhysicsConstraint* (*dsCreateRevolutePhysicsConstraintFunction)(
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstOrientation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation, bool limitEnabled, float minAngle, float maxAngle,
+	const dsQuaternion4f* secondOrientation, bool limitEnabled, float minAngle, float maxAngle,
 	float limitStiffness, float limitDamping, dsPhysicsConstraintMotorType motorType,
 	float motorTarget, float maxMotorTorque);
 
@@ -1173,8 +1173,8 @@ typedef bool (*dsGetRevolutePhysicsConstraintForceFunction)(dsVector3f* outForce
  * @brief Function to set the angle limits on a revolute physics constraint.
  * @param engine The physics engine the constraint was created with.
  * @param constraint The constraint to set the angle limits on.
- * @param minAngle The minimum angle for the rotation.
- * @param maxAngle The maximum angle for the rotation.
+ * @param minAngle The minimum angle for the orientation.
+ * @param maxAngle The maximum angle for the orientation.
  * @param limitStiffness The spring stiffness applied when limiting the angle.
  * @param limitDamping The spring damping applied when limiting the angle.
  * @return False if the angle limits couldn't be set.
@@ -1197,7 +1197,7 @@ typedef bool (*dsDisableRevolutePhysicsConstraintLimitFunction)(dsPhysicsEngine*
  * @param engine The physics engine the constraint was created with.
  * @param constraint The constraint to set the max angle on.
  * @param motorType The type of motor to use.
- * @param target The target angle or rotational velocity for the motor.
+ * @param target The target angle or orientational velocity for the motor.
  * @param maxTorque The maximum torque to apply for the motor.
  * @return False if the motor parameters couldn't be set.
  */
@@ -1274,10 +1274,10 @@ typedef bool (*dsSetDistancePhysicsConstraintLimitFunction)(dsPhysicsEngine* eng
  * @param allocator The allocator to create the constraint with.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
- * @param firstRotation The rotation of the constraint on the first actor.
+ * @param firstOrientation The orientation of the constraint on the first actor.
  * @param secondActor The second physics actor the constraint is attached to.
  * @param secondPosition The position of the constraint on the second actor.
- * @param secondRotation The rotation of the constraint on the second actor.
+ * @param secondOrientation The orientation of the constraint on the second actor.
  * @param limitEnabled Whether the distance limit is enabled.
  * @param minDistance The minimum distance between reference points.
  * @param maxDistance The maximum distance between reference points.
@@ -1290,11 +1290,11 @@ typedef bool (*dsSetDistancePhysicsConstraintLimitFunction)(dsPhysicsEngine* eng
  */
 typedef dsSliderPhysicsConstraint* (*dsCreateSliderPhysicsConstraintFunction)(
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstOrientation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation, bool limitEnabled, float minDistance, float maxDistance,
-	float limitStiffness, float limitDamping, dsPhysicsConstraintMotorType motorType,
-	float motorTarget, float maxMotorForce);
+	const dsQuaternion4f* secondOrientation, bool limitEnabled, float minDistance,
+	float maxDistance, float limitStiffness, float limitDamping,
+	dsPhysicsConstraintMotorType motorType, float motorTarget, float maxMotorForce);
 
 /**
  * @brief Function to destroy a slider physics constraint.
@@ -1367,10 +1367,10 @@ typedef bool (*dsSetSliderPhysicsConstraintMotorFunction)(dsPhysicsEngine* engin
  * @param allocator The allocator to create the constraint with.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
- * @param firstRotation The rotation of the constraint on the first actor.
+ * @param firstOrientation The orientation of the constraint on the first actor.
  * @param secondActor The second physics actor the constraint is attached to.
  * @param secondPosition The position of the constraint on the second actor.
- * @param secondRotation The rotation of the constraint on the second actor.
+ * @param secondOrientation The orientation of the constraint on the second actor.
  * @param limits The limits for each degree of freedom.
  * @param motors The motors for each degree of freedom.
  * @param combineSwingTwistMotors Whether the swing and twist motors are combined.
@@ -1378,9 +1378,9 @@ typedef bool (*dsSetSliderPhysicsConstraintMotorFunction)(dsPhysicsEngine* engin
  */
 typedef dsGenericPhysicsConstraint* (*dsCreateGenericPhysicsConstraintFunction)(
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstOrientation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation,
+	const dsQuaternion4f* secondOrientation,
 	const dsGenericPhysicsConstraintLimit limits[DS_PHYSICS_CONSTRAINT_DOF_COUNT],
 	const dsGenericPhysicsConstraintMotor motors[DS_PHYSICS_CONSTRAINT_DOF_COUNT],
 	bool combineSwingTwistMotors);
@@ -1461,10 +1461,10 @@ typedef bool (*dsSetGenericPhysicsConstraintCombineSwingTwistMotorFunction)(dsPh
  * @param engine The physics engine to create the constraint with.
  * @param allocator The allocator to create the constraint with.
  * @param firstActor The first physics actor the constraint is attached to.
- * @param firstAxis The axis of rotation for the first actor.
+ * @param firstAxis The axis of orientation for the first actor.
  * @param firstConstraint The revolute constraint for the first actor.
  * @param secondActor The second physics actor the constraint is attached to.
- * @param secondAxis The axis of rotation for the second actor.
+ * @param secondAxis The axis of orientation for the second actor.
  * @param secondConstraint The revolute constraint for the second actor.
  * @param ratio The gear ratio between the two actors.
  * @return The gear constraint or NULL if it couldn't be created.
@@ -1521,7 +1521,7 @@ typedef bool (*dsSetGearPhysicsConstraintRatioFunction)(dsPhysicsEngine* engine,
  * @param rackAxis The axis of translation for the rack actor.
  * @param rackConstraint The slider constraint for the rack actor.
  * @param pinionActor The physics actor for the pinion the constraint is attached to.
- * @param pinionAxis The axis of rotation for the pinion actor.
+ * @param pinionAxis The axis of orientation for the pinion actor.
  * @param pinionConstraint The revolute constraint for the pinion actor.
  * @param ratio The gear ratio between the two actors.
  * @return The rack and pinion constraint or NULL if it couldn't be created.

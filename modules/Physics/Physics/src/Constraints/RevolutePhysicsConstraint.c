@@ -37,8 +37,8 @@ static dsPhysicsConstraint* dsRevolutePhysicsConstraint_clone(const dsPhysicsCon
 	const dsRevolutePhysicsConstraint* revoluteConstraint =
 		(const dsRevolutePhysicsConstraint*)constraint;
 	return (dsPhysicsConstraint*)dsRevolutePhysicsConstraint_create(constraint->engine, allocator,
-		firstActor, &revoluteConstraint->firstPosition, &revoluteConstraint->firstRotation,
-		secondActor, &revoluteConstraint->secondPosition, &revoluteConstraint->secondRotation,
+		firstActor, &revoluteConstraint->firstPosition, &revoluteConstraint->firstOrientation,
+		secondActor, &revoluteConstraint->secondPosition, &revoluteConstraint->secondOrientation,
 		revoluteConstraint->limitEnabled, revoluteConstraint->minAngle,
 		revoluteConstraint->maxAngle, revoluteConstraint->limitStiffness,
 		revoluteConstraint->limitDamping, revoluteConstraint->motorType,
@@ -53,14 +53,14 @@ const dsPhysicsConstraintType* dsRevolutePhysicsConstraint_type(void)
 
 dsRevolutePhysicsConstraint* dsRevolutePhysicsConstraint_create(dsPhysicsEngine* engine,
 	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
-	const dsQuaternion4f* firstRotation, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation, bool limitEnabled,
+	const dsQuaternion4f* firstOrientation, const dsPhysicsActor* secondActor,
+	const dsVector3f* secondPosition, const dsQuaternion4f* secondOrientation, bool limitEnabled,
 	float minAngle, float maxAngle, float limitStiffness, float limitDamping,
 	dsPhysicsConstraintMotorType motorType, float motorTarget, float maxMotorTorque)
 {
 	if (!engine || !engine->createRevoluteConstraintFunc ||
-		!engine->destroyRevoluteConstraintFunc || !firstPosition || !firstRotation ||
-		!secondPosition || !secondRotation || minAngle < -M_PIf || minAngle > 0.0f ||
+		!engine->destroyRevoluteConstraintFunc || !firstPosition || !firstOrientation ||
+		!secondPosition || !secondOrientation || minAngle < -M_PIf || minAngle > 0.0f ||
 		maxAngle < 0.0f || maxAngle > M_PIf || limitStiffness < 0.0f || limitDamping < 0.0f ||
 		limitDamping > 1.0f || motorType < dsPhysicsConstraintMotorType_Disabled ||
 		motorType > dsPhysicsConstraintMotorType_Velocity || maxMotorTorque < 0.0f)
@@ -73,7 +73,7 @@ dsRevolutePhysicsConstraint* dsRevolutePhysicsConstraint_create(dsPhysicsEngine*
 		allocator = engine->allocator;
 
 	return engine->createRevoluteConstraintFunc(engine, allocator, firstActor, firstPosition,
-		firstRotation, secondActor, secondPosition, secondRotation, limitEnabled, minAngle,
+		firstOrientation, secondActor, secondPosition, secondOrientation, limitEnabled, minAngle,
 		maxAngle, limitStiffness, limitDamping, motorType, motorTarget, maxMotorTorque);
 }
 
@@ -128,18 +128,18 @@ bool dsRevolutePhysicsConstraint_setMotor(dsRevolutePhysicsConstraint* constrain
 
 void dsRevolutePhysicsConstraint_initialize(dsRevolutePhysicsConstraint* constraint,
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstOrientation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation, bool limitEnabled, float minAngle, float maxAngle,
+	const dsQuaternion4f* secondOrientation, bool limitEnabled, float minAngle, float maxAngle,
 	float limitStiffness, float limitDamping, dsPhysicsConstraintMotorType motorType,
 	float motorTarget, float maxMotorTorque, void* impl)
 {
 	DS_ASSERT(constraint);
 	DS_ASSERT(engine);
 	DS_ASSERT(firstPosition);
-	DS_ASSERT(firstRotation);
+	DS_ASSERT(firstOrientation);
 	DS_ASSERT(secondPosition);
-	DS_ASSERT(secondRotation);
+	DS_ASSERT(secondOrientation);
 	DS_ASSERT(minAngle >= -M_PIf && minAngle <= 0.0f);
 	DS_ASSERT(maxAngle >= 0.0f && maxAngle <= M_PIf);
 	DS_ASSERT(limitStiffness >= 0.0f);
@@ -157,8 +157,8 @@ void dsRevolutePhysicsConstraint_initialize(dsRevolutePhysicsConstraint* constra
 
 	constraint->firstPosition = *firstPosition;
 	constraint->secondPosition = *secondPosition;
-	constraint->firstRotation = *firstRotation;
-	constraint->secondRotation = *secondRotation;
+	constraint->firstOrientation = *firstOrientation;
+	constraint->secondOrientation = *secondOrientation;
 	constraint->limitEnabled = limitEnabled;
 	constraint->minAngle = minAngle;
 	constraint->maxAngle = maxAngle;

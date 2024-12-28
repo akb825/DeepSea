@@ -43,7 +43,7 @@ class SwingTwistConstraint(object):
         return None
 
     # SwingTwistConstraint
-    def FirstRotation(self):
+    def FirstOrientation(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             x = o + self._tab.Pos
@@ -72,7 +72,7 @@ class SwingTwistConstraint(object):
         return None
 
     # SwingTwistConstraint
-    def SecondRotation(self):
+    def SecondOrientation(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             x = o + self._tab.Pos
@@ -111,7 +111,7 @@ class SwingTwistConstraint(object):
         return 0
 
     # SwingTwistConstraint
-    def MotorTargetRotation(self):
+    def MotorTargetOrientation(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
         if o != 0:
             x = o + self._tab.Pos
@@ -146,11 +146,11 @@ def SwingTwistConstraintAddFirstPosition(builder, firstPosition):
 def AddFirstPosition(builder, firstPosition):
     SwingTwistConstraintAddFirstPosition(builder, firstPosition)
 
-def SwingTwistConstraintAddFirstRotation(builder, firstRotation):
-    builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(firstRotation), 0)
+def SwingTwistConstraintAddFirstOrientation(builder, firstOrientation):
+    builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(firstOrientation), 0)
 
-def AddFirstRotation(builder, firstRotation):
-    SwingTwistConstraintAddFirstRotation(builder, firstRotation)
+def AddFirstOrientation(builder, firstOrientation):
+    SwingTwistConstraintAddFirstOrientation(builder, firstOrientation)
 
 def SwingTwistConstraintAddSecondActor(builder, secondActor):
     builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(secondActor), 0)
@@ -164,11 +164,11 @@ def SwingTwistConstraintAddSecondPosition(builder, secondPosition):
 def AddSecondPosition(builder, secondPosition):
     SwingTwistConstraintAddSecondPosition(builder, secondPosition)
 
-def SwingTwistConstraintAddSecondRotation(builder, secondRotation):
-    builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(secondRotation), 0)
+def SwingTwistConstraintAddSecondOrientation(builder, secondOrientation):
+    builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(secondOrientation), 0)
 
-def AddSecondRotation(builder, secondRotation):
-    SwingTwistConstraintAddSecondRotation(builder, secondRotation)
+def AddSecondOrientation(builder, secondOrientation):
+    SwingTwistConstraintAddSecondOrientation(builder, secondOrientation)
 
 def SwingTwistConstraintAddMaxSwingXangle(builder, maxSwingXangle):
     builder.PrependFloat32Slot(6, maxSwingXangle, 0.0)
@@ -194,11 +194,11 @@ def SwingTwistConstraintAddMotorType(builder, motorType):
 def AddMotorType(builder, motorType):
     SwingTwistConstraintAddMotorType(builder, motorType)
 
-def SwingTwistConstraintAddMotorTargetRotation(builder, motorTargetRotation):
-    builder.PrependStructSlot(10, flatbuffers.number_types.UOffsetTFlags.py_type(motorTargetRotation), 0)
+def SwingTwistConstraintAddMotorTargetOrientation(builder, motorTargetOrientation):
+    builder.PrependStructSlot(10, flatbuffers.number_types.UOffsetTFlags.py_type(motorTargetOrientation), 0)
 
-def AddMotorTargetRotation(builder, motorTargetRotation):
-    SwingTwistConstraintAddMotorTargetRotation(builder, motorTargetRotation)
+def AddMotorTargetOrientation(builder, motorTargetOrientation):
+    SwingTwistConstraintAddMotorTargetOrientation(builder, motorTargetOrientation)
 
 def SwingTwistConstraintAddMaxMotorTorque(builder, maxMotorTorque):
     builder.PrependFloat32Slot(11, maxMotorTorque, 0.0)

@@ -39,8 +39,8 @@ static dsPhysicsConstraint* dsGenericPhysicsConstraint_clone(const dsPhysicsCons
 	const dsGenericPhysicsConstraint* genericConstraint =
 		(const dsGenericPhysicsConstraint*)constraint;
 	return (dsPhysicsConstraint*)dsGenericPhysicsConstraint_create(constraint->engine, allocator,
-		firstActor, &genericConstraint->firstPosition, &genericConstraint->firstRotation,
-		secondActor, &genericConstraint->secondPosition, &genericConstraint->secondRotation,
+		firstActor, &genericConstraint->firstPosition, &genericConstraint->firstOrientation,
+		secondActor, &genericConstraint->secondPosition, &genericConstraint->secondOrientation,
 		genericConstraint->limits, genericConstraint->motors,
 		genericConstraint->combineSwingTwistMotors);
 }
@@ -53,16 +53,16 @@ const dsPhysicsConstraintType* dsGenericPhysicsConstraint_type(void)
 
 dsGenericPhysicsConstraint* dsGenericPhysicsConstraint_create(
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstOrientation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation,
+	const dsQuaternion4f* secondOrientation,
 	const dsGenericPhysicsConstraintLimit limits[DS_PHYSICS_CONSTRAINT_DOF_COUNT],
 	const dsGenericPhysicsConstraintMotor motors[DS_PHYSICS_CONSTRAINT_DOF_COUNT],
 	bool combineSwingTwistMotors)
 {
 	if (!engine || !engine->createSwingTwistConstraintFunc ||
-		!engine->destroySwingTwistConstraintFunc || !firstPosition || !firstRotation ||
-		!secondPosition || !secondRotation || !limits || !motors)
+		!engine->destroySwingTwistConstraintFunc || !firstPosition || !firstOrientation ||
+		!secondPosition || !secondOrientation || !limits || !motors)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -106,7 +106,7 @@ dsGenericPhysicsConstraint* dsGenericPhysicsConstraint_create(
 		allocator = engine->allocator;
 
 	return engine->createGenericConstraintFunc(engine, allocator, firstActor, firstPosition,
-		firstRotation, secondActor, secondPosition, secondRotation, limits, motors,
+		firstOrientation, secondActor, secondPosition, secondOrientation, limits, motors,
 		combineSwingTwistMotors);
 }
 
@@ -176,9 +176,9 @@ bool dsGenericPhysicsConstraint_setCombineSwingTwistMotor(
 
 void dsGenericPhysicsConstraint_initialize(dsGenericPhysicsConstraint* constraint,
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstOrientation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation,
+	const dsQuaternion4f* secondOrientation,
 	const dsGenericPhysicsConstraintLimit limits[DS_PHYSICS_CONSTRAINT_DOF_COUNT],
 	const dsGenericPhysicsConstraintMotor motors[DS_PHYSICS_CONSTRAINT_DOF_COUNT],
 	bool combineSwingTwistMotors, void* impl)
@@ -187,9 +187,9 @@ void dsGenericPhysicsConstraint_initialize(dsGenericPhysicsConstraint* constrain
 	DS_ASSERT(engine);
 	DS_ASSERT(allocator);
 	DS_ASSERT(firstPosition);
-	DS_ASSERT(firstRotation);
+	DS_ASSERT(firstOrientation);
 	DS_ASSERT(secondPosition);
-	DS_ASSERT(secondRotation);
+	DS_ASSERT(secondOrientation);
 	DS_ASSERT(limits);
 	DS_ASSERT(motors);
 
@@ -202,8 +202,8 @@ void dsGenericPhysicsConstraint_initialize(dsGenericPhysicsConstraint* constrain
 
 	constraint->firstPosition = *firstPosition;
 	constraint->secondPosition = *secondPosition;
-	constraint->firstRotation = *firstRotation;
-	constraint->secondRotation = *secondRotation;
+	constraint->firstOrientation = *firstOrientation;
+	constraint->secondOrientation = *secondOrientation;
 	memcpy(constraint->limits, limits,
 		sizeof(dsGenericPhysicsConstraintLimit)*DS_PHYSICS_CONSTRAINT_DOF_COUNT);
 	memcpy(constraint->motors, motors,

@@ -18,16 +18,19 @@ class GenericConstraintMotor(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # GenericConstraintMotor
-    def MotorType(self): return self._tab.Get(flatbuffers.number_types.Uint8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(0))
+    def Dof(self): return self._tab.Get(flatbuffers.number_types.Uint8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(0))
+    # GenericConstraintMotor
+    def MotorType(self): return self._tab.Get(flatbuffers.number_types.Uint8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(1))
     # GenericConstraintMotor
     def Target(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(4))
     # GenericConstraintMotor
     def MaxForce(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(8))
 
-def CreateGenericConstraintMotor(builder, motorType, target, maxForce):
+def CreateGenericConstraintMotor(builder, dof, motorType, target, maxForce):
     builder.Prep(4, 12)
     builder.PrependFloat32(maxForce)
     builder.PrependFloat32(target)
-    builder.Pad(3)
+    builder.Pad(2)
     builder.PrependUint8(motorType)
+    builder.PrependUint8(dof)
     return builder.Offset()

@@ -54,9 +54,7 @@ def convertShapeInstance(convertContext, data, builder):
 		if not isinstance(translateData, list) or len(translateData) != 3:
 			raise Exception(
 				'PhysicsShapeInstance translate must ben an array of three floats.')
-		translate = (readFloat(translateData[0], 'translate'),
-			readFloat(translateData[1], 'translate'),
-			readFloat(translateData[2], 'translate'))
+		translate = (readFloat(value, 'translate') for value in translateData)
 	else:
 		translate = None
 
@@ -65,9 +63,7 @@ def convertShapeInstance(convertContext, data, builder):
 		if not isinstance(rotateData, list) or len(rotateData) != 3:
 			raise Exception(
 				'PhysicsShapeInstance rotate must ben an array of three floats.')
-		rotate = eulerToQuaternion(readFloat(rotateData[0], 'rotate'),
-			readFloat(rotateData[1], 'rotate'),
-			readFloat(rotateData[2], 'rotate'))
+		rotate = (readFloat(value, 'rotate') for value in rotateData)
 	else:
 		rotate = None
 
@@ -76,9 +72,7 @@ def convertShapeInstance(convertContext, data, builder):
 		if not isinstance(scaleData, list) or len(scaleData) != 3:
 			raise Exception(
 				'PhysicsShapeInstance scale must ben an array of three floats.')
-		scale = (readFloat(scaleData[0], 'scale'),
-			readFloat(scaleData[1], 'scale'),
-			readFloat(scaleData[2], 'scale'))
+		scale = (readFloat(value, 'scale') for value in scaleData)
 	else:
 		scale = None
 
@@ -86,8 +80,8 @@ def convertShapeInstance(convertContext, data, builder):
 	if materialData:
 		try:
 			material = (readFloat(materialData['friction'], 'friction', 0),
-				readFloat(materialData['restitution'], 'restitution', 0),
-				readFloat(materialData['hardness'], 'hardness', 0))
+				readFloat(materialData['restitution'], 'restitution', 0, 1),
+				readFloat(materialData['hardness'], 'hardness', 0, 1))
 		except (TypeError, ValueError):
 			raise Exception('PhysicsShapeInstance material data must be an object.')
 		except KeyError as e:

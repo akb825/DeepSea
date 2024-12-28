@@ -36,8 +36,8 @@ static dsPhysicsConstraint* dsConePhysicsConstraint_clone(const dsPhysicsConstra
 
 	const dsConePhysicsConstraint* coneConstraint = (const dsConePhysicsConstraint*)constraint;
 	return (dsPhysicsConstraint*)dsConePhysicsConstraint_create(constraint->engine, allocator,
-		firstActor, &coneConstraint->firstPosition, &coneConstraint->firstRotation, secondActor,
-		&coneConstraint->secondPosition, &coneConstraint->secondRotation,
+		firstActor, &coneConstraint->firstPosition, &coneConstraint->firstOrientation, secondActor,
+		&coneConstraint->secondPosition, &coneConstraint->secondOrientation,
 		coneConstraint->maxAngle);
 }
 
@@ -49,12 +49,12 @@ const dsPhysicsConstraintType* dsConePhysicsConstraint_type(void)
 
 dsConePhysicsConstraint* dsConePhysicsConstraint_create(dsPhysicsEngine* engine,
 	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
-	const dsQuaternion4f* firstRotation, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation, float maxAngle)
+	const dsQuaternion4f* firstOrientation, const dsPhysicsActor* secondActor,
+	const dsVector3f* secondPosition, const dsQuaternion4f* secondOrientation, float maxAngle)
 {
 	if (!engine || !engine->createConeConstraintFunc || !engine->destroyConeConstraintFunc ||
-		!firstPosition || !firstRotation || !secondPosition || !secondRotation || maxAngle < 0 ||
-		maxAngle > M_PIf)
+		!firstPosition || !firstOrientation || !secondPosition || !secondOrientation ||
+		maxAngle < 0 || maxAngle > M_PIf)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -64,7 +64,7 @@ dsConePhysicsConstraint* dsConePhysicsConstraint_create(dsPhysicsEngine* engine,
 		allocator = engine->allocator;
 
 	return engine->createConeConstraintFunc(engine, allocator, firstActor, firstPosition,
-		firstRotation, secondActor, secondPosition, secondRotation, maxAngle);
+		firstOrientation, secondActor, secondPosition, secondOrientation, maxAngle);
 }
 
 bool dsConePhysicsConstraint_setMaxAngle(dsConePhysicsConstraint* constraint, float maxAngle)
@@ -83,15 +83,15 @@ bool dsConePhysicsConstraint_setMaxAngle(dsConePhysicsConstraint* constraint, fl
 
 void dsConePhysicsConstraint_initialize(dsConePhysicsConstraint* constraint,
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstOrientation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation, float maxAngle, void* impl)
+	const dsQuaternion4f* secondOrientation, float maxAngle, void* impl)
 {
 	DS_ASSERT(engine);
 	DS_ASSERT(firstPosition);
-	DS_ASSERT(firstRotation);
+	DS_ASSERT(firstOrientation);
 	DS_ASSERT(secondPosition);
-	DS_ASSERT(secondRotation);
+	DS_ASSERT(secondOrientation);
 	DS_ASSERT(maxAngle >= 0.0f);
 	DS_ASSERT(maxAngle <= M_PI);
 
@@ -104,7 +104,7 @@ void dsConePhysicsConstraint_initialize(dsConePhysicsConstraint* constraint,
 
 	constraint->firstPosition = *firstPosition;
 	constraint->secondPosition = *secondPosition;
-	constraint->firstRotation = *firstRotation;
-	constraint->secondRotation = *secondRotation;
+	constraint->firstOrientation = *firstOrientation;
+	constraint->secondOrientation = *secondOrientation;
 	constraint->maxAngle = maxAngle;
 }

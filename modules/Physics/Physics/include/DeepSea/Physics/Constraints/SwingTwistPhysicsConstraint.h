@@ -46,28 +46,28 @@ DS_PHYSICS_EXPORT const dsPhysicsConstraintType* dsSwingTwistPhysicsConstraint_t
  * @param firstActor The first physics actor the constraint is attached to. This may be NULL to set
  *     later by cloning.
  * @param firstPosition The position of the constraint on the first actor.
- * @param firstRotation The rotation of the constraint on the first actor.
+ * @param firstOrientation The orientation of the constraint on the first actor.
  * @param secondActor The second physics actor the constraint is attached to. This may be NULL to
  *     set later by cloning.
  * @param secondPosition The position of the constraint on the second actor.
- * @param secondRotation The rotation of the constraint on the second actor.
+ * @param secondOrientation The orientation of the constraint on the second actor.
  * @param maxSwingXAngle The maximum angle of the constraint along the X axis.
  * @param maxSwingYAngle The maximum angle of the constraint along the Y axis.
  * @param maxTwistZAngle The maximum angle of the constraint along the Z axis.
  * @param motorType The type of motor to use. This may not be dsPhysicsConstraintMotorType_Velocity.
- * @param motorTargetRotation The target rotation relative to the first actor when the motor is
- *     enabled. If NULL the identity rotation will be used.
+ * @param motorTargetOrientation The target orientation relative to the first actor when the motor
+ *     is enabled. If NULL the identity rotation will be used.
  * @param maxMotorTorque The maximum torque to apply for the motor. When the motor is disabled, the
  *     torque will be applied to stop motion.
  * @return The swing twist constraint or NULL if it couldn't be created.
  */
 DS_PHYSICS_EXPORT dsSwingTwistPhysicsConstraint* dsSwingTwistPhysicsConstraint_create(
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstOrientation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation, float maxSwingXAngle, float maxSwingYAngle,
+	const dsQuaternion4f* secondOrientation, float maxSwingXAngle, float maxSwingYAngle,
 	float maxTwistZAngle, dsPhysicsConstraintMotorType motorType,
-	const dsQuaternion4f* motorTargetRotation, float maxMotorTorque);
+	const dsQuaternion4f* motorTargetOrientation, float maxMotorTorque);
 
 /**
  * @brief Sets the maximum angles for a swing twist physics constraint.
@@ -87,15 +87,15 @@ DS_PHYSICS_EXPORT bool dsSwingTwistPhysicsConstraint_setMaxAngles(
  * @remark errno will be set on failure.
  * @param constraint The constraint to set the motor parameters on.
  * @param motorType The type of motor to use. This may not be dsPhysicsConstraintMotorType_Velocity.
- * @param targetRotation The target rotation relative to the first actor when the motor is enabled.
- *     If NULL the target rotation will be unchanged
+ * @param targetOrientation The target orientation relative to the first actor when the motor is
+ *     enabled. If NULL the target orientation will be unchanged
  * @param maxTorque The maximum torque to apply for the motor. When the motor is disabled, the
  *     torque will be applied to stop motion.
  * @return False if the motor parameters couldn't be set.
  */
 DS_PHYSICS_EXPORT bool dsSwingTwistPhysicsConstraint_setMotor(
 	dsSwingTwistPhysicsConstraint* constraint, dsPhysicsConstraintMotorType motorType,
-	const dsQuaternion4f* targetRotation, float maxTorque);
+	const dsQuaternion4f* targetOrientation, float maxTorque);
 
 /**
  * @brief Initializes a swing twist physics constraint.
@@ -107,16 +107,16 @@ DS_PHYSICS_EXPORT bool dsSwingTwistPhysicsConstraint_setMotor(
  * @param allocator The allocator the constraint was created with.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
- * @param firstRotation The rotation of the constraint on the first actor.
+ * @param firstOrientation The orientation of the constraint on the first actor.
  * @param secondActor The second physics actor the constraint is attached to.
  * @param secondPosition The position of the constraint on the second actor.
- * @param secondRotation The rotation of the constraint on the second actor.
+ * @param secondOrientation The orientation of the constraint on the second actor.
  * @param maxSwingXAngle The maximum angle of the constraint along the X axis.
  * @param maxSwingYAngle The maximum angle of the constraint along the Y axis.
  * @param maxTwistZAngle The maximum angle of the constraint along the Z axis.
  * @param motorType The type of motor to use. This may not be dsPhysicsConstraintMotorType_Velocity.
- * @param motorTargetRotation The target rotation relative to the first actor when the motor is
- *     enabled. If NULL the identity rotation will be used.
+ * @param motorTargetOrientation The target orientation relative to the first actor when the motor
+ *     is enabled. If NULL the identity rotation will be used.
  * @param maxMotorTorque The maximum torque to apply for the motor. When the motor is disabled, the
  *     torque will be applied to stop motion.
  * @param impl The underlying implementation for the constraint.
@@ -124,10 +124,10 @@ DS_PHYSICS_EXPORT bool dsSwingTwistPhysicsConstraint_setMotor(
 DS_PHYSICS_EXPORT void dsSwingTwistPhysicsConstraint_initialize(
 	dsSwingTwistPhysicsConstraint* constraint, dsPhysicsEngine* engine, dsAllocator* allocator,
 	const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
-	const dsQuaternion4f* firstRotation, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation, float maxSwingXAngle,
+	const dsQuaternion4f* firstOrientation, const dsPhysicsActor* secondActor,
+	const dsVector3f* secondPosition, const dsQuaternion4f* secondOrientation, float maxSwingXAngle,
 	float maxSwingYAngle, float maxTwistZAngle, dsPhysicsConstraintMotorType motorType,
-	const dsQuaternion4f* motorTargetRotation, float maxMotorTorque, void* impl);
+	const dsQuaternion4f* motorTargetOrientation, float maxMotorTorque, void* impl);
 
 #ifdef __cplusplus
 }

@@ -34,8 +34,8 @@ static dsPhysicsConstraint* dsFixedPhysicsConstraint_clone(const dsPhysicsConstr
 
 	const dsFixedPhysicsConstraint* fixedConstraint = (const dsFixedPhysicsConstraint*)constraint;
 	return (dsPhysicsConstraint*)dsFixedPhysicsConstraint_create(constraint->engine, allocator,
-		firstActor, &fixedConstraint->firstPosition, &fixedConstraint->firstRotation, secondActor,
-		&fixedConstraint->secondPosition, &fixedConstraint->secondRotation);
+		firstActor, &fixedConstraint->firstPosition, &fixedConstraint->firstOrientation,
+		secondActor, &fixedConstraint->secondPosition, &fixedConstraint->secondOrientation);
 }
 
 const dsPhysicsConstraintType* dsFixedPhysicsConstraint_type(void)
@@ -46,11 +46,11 @@ const dsPhysicsConstraintType* dsFixedPhysicsConstraint_type(void)
 
 dsFixedPhysicsConstraint* dsFixedPhysicsConstraint_create(dsPhysicsEngine* engine,
 	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
-	const dsQuaternion4f* firstRotation, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation)
+	const dsQuaternion4f* firstOrientation, const dsPhysicsActor* secondActor,
+	const dsVector3f* secondPosition, const dsQuaternion4f* secondOrientation)
 {
 	if (!engine || !engine->createFixedConstraintFunc || !engine->destroyFixedConstraintFunc ||
-		!firstPosition || !firstRotation || !secondPosition || !secondRotation)
+		!firstPosition || !firstOrientation || !secondPosition || !secondOrientation)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -60,21 +60,21 @@ dsFixedPhysicsConstraint* dsFixedPhysicsConstraint_create(dsPhysicsEngine* engin
 		allocator = engine->allocator;
 
 	return engine->createFixedConstraintFunc(engine, allocator, firstActor, firstPosition,
-		firstRotation, secondActor, secondPosition, secondRotation);
+		firstOrientation, secondActor, secondPosition, secondOrientation);
 }
 
 void dsFixedPhysicsConstraint_initialize(dsFixedPhysicsConstraint* constraint,
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstOrientation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation, void* impl)
+	const dsQuaternion4f* secondOrientation, void* impl)
 {
 	DS_ASSERT(constraint);
 	DS_ASSERT(engine);
 	DS_ASSERT(firstPosition);
-	DS_ASSERT(firstRotation);
+	DS_ASSERT(firstOrientation);
 	DS_ASSERT(secondPosition);
-	DS_ASSERT(secondRotation);
+	DS_ASSERT(secondOrientation);
 
 	DS_VERIFY(dsPhysicsConstraint_initialize((dsPhysicsConstraint*)constraint, engine, allocator,
 		dsFixedPhysicsConstraint_type(), firstActor, secondActor, impl,
@@ -85,6 +85,6 @@ void dsFixedPhysicsConstraint_initialize(dsFixedPhysicsConstraint* constraint,
 
 	constraint->firstPosition = *firstPosition;
 	constraint->secondPosition = *secondPosition;
-	constraint->firstRotation = *firstRotation;
-	constraint->secondRotation = *secondRotation;
+	constraint->firstOrientation = *firstOrientation;
+	constraint->secondOrientation = *secondOrientation;
 }

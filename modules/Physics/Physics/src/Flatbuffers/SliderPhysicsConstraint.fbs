@@ -28,9 +28,9 @@ table SliderConstraint
 	// The position of the constraint relative to the first actor.
 	firstPosition : Vector3f (required);
 
-	// The rotation of the constraint relative to the first actor. The slider will be limited to
+	// The orientation of the constraint relative to the first actor. The slider will be limited to
 	// the axis of the quaternion.
-	firstRotation : Quaternion4f (required);
+	firstOrientation : Quaternion4f (required);
 
 	// The name of the second actor used in the constraint.
 	secondActor : string;
@@ -38,9 +38,9 @@ table SliderConstraint
 	// The position of the constraint relative to the second actor.
 	secondPosition : Vector3f (required);
 
-	// The rotation of the constraint relative to the second actor. The slider will be limited to
+	// The orientation of the constraint relative to the second actor. The slider will be limited to
 	// the axis of the quaternion.
-	secondRotation : Quaternion4f (required);
+	secondOrientation : Quaternion4f (required);
 
 	// Whether the distance limit is enabled.
 	limitEnabled : bool;

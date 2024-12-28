@@ -43,7 +43,7 @@ class RevoluteConstraint(object):
         return None
 
     # RevoluteConstraint
-    def FirstRotation(self):
+    def FirstOrientation(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             x = o + self._tab.Pos
@@ -72,7 +72,7 @@ class RevoluteConstraint(object):
         return None
 
     # RevoluteConstraint
-    def SecondRotation(self):
+    def SecondOrientation(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             x = o + self._tab.Pos
@@ -156,11 +156,11 @@ def RevoluteConstraintAddFirstPosition(builder, firstPosition):
 def AddFirstPosition(builder, firstPosition):
     RevoluteConstraintAddFirstPosition(builder, firstPosition)
 
-def RevoluteConstraintAddFirstRotation(builder, firstRotation):
-    builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(firstRotation), 0)
+def RevoluteConstraintAddFirstOrientation(builder, firstOrientation):
+    builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(firstOrientation), 0)
 
-def AddFirstRotation(builder, firstRotation):
-    RevoluteConstraintAddFirstRotation(builder, firstRotation)
+def AddFirstOrientation(builder, firstOrientation):
+    RevoluteConstraintAddFirstOrientation(builder, firstOrientation)
 
 def RevoluteConstraintAddSecondActor(builder, secondActor):
     builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(secondActor), 0)
@@ -174,11 +174,11 @@ def RevoluteConstraintAddSecondPosition(builder, secondPosition):
 def AddSecondPosition(builder, secondPosition):
     RevoluteConstraintAddSecondPosition(builder, secondPosition)
 
-def RevoluteConstraintAddSecondRotation(builder, secondRotation):
-    builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(secondRotation), 0)
+def RevoluteConstraintAddSecondOrientation(builder, secondOrientation):
+    builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(secondOrientation), 0)
 
-def AddSecondRotation(builder, secondRotation):
-    RevoluteConstraintAddSecondRotation(builder, secondRotation)
+def AddSecondOrientation(builder, secondOrientation):
+    RevoluteConstraintAddSecondOrientation(builder, secondOrientation)
 
 def RevoluteConstraintAddLimitEnabled(builder, limitEnabled):
     builder.PrependBoolSlot(6, limitEnabled, 0)

@@ -43,6 +43,12 @@ from DeepSeaSceneParticle.Convert.ParticleNodeConvert import convertParticleNode
 from DeepSeaSceneParticle.Convert.StandardParticleEmitterFactoryConvert import \
 	convertStandardParticleEmitterFactory
 
+from DeepSeaScenePhysics.Convert.DistancePhysicsConstraintConvert import \
+	convertDistancePhysicsConstraint
+from DeepSeaScenePhysics.Convert.FixedPhysicsConstraintConvert import convertFixedPhysicsConstraint
+from DeepSeaScenePhysics.Convert.GearPhysicsConstraintConvert import convertGearPhysicsConstraint
+from DeepSeaScenePhysics.Convert.GenericPhysicsConstraintConvert import \
+	convertGenericPhysicsConstraint
 from DeepSeaScenePhysics.Convert.PhysicsBoxConvert import convertPhysicsBox
 from DeepSeaScenePhysics.Convert.PhysicsCapsuleConvert import convertPhysicsCapsule
 from DeepSeaScenePhysics.Convert.PhysicsConeConvert import convertPhysicsCone
@@ -51,8 +57,17 @@ from DeepSeaScenePhysics.Convert.PhysicsCylinderConvert import convertPhysicsCyl
 from DeepSeaScenePhysics.Convert.PhysicsMeshConvert import convertPhysicsMesh
 from DeepSeaScenePhysics.Convert.PhysicsSphereConvert import convertPhysicsSphere
 from DeepSeaScenePhysics.Convert.PhysicsShapeRefConvert import convertPhysicsShapeRef
+from DeepSeaScenePhysics.Convert.PointPhysicsConstraintConvert import convertPointPhysicsConstraint
 from DeepSeaScenePhysics.Convert.RigidBodyConvert import convertRigidBody
 from DeepSeaScenePhysics.Convert.RigidBodyTemplateConvert import convertRigidBodyTemplate
+from DeepSeaScenePhysics.Convert.RackAndPinionPhysicsConstraintConvert import \
+	convertRackAndPinionPhysicsConstraint
+from DeepSeaScenePhysics.Convert.RevolutePhysicsConstraintConvert import \
+	convertRevolutePhysicsConstraint
+from DeepSeaScenePhysics.Convert.SliderPhysicsConstraintConvert import \
+	convertSliderPhysicsConstraint
+from DeepSeaScenePhysics.Convert.SwingTwistPhysicsConstraintConvert import \
+	convertSwingTwistPhysicsConstraint
 
 from DeepSeaSceneVectorDraw.Convert.TextConvert import convertText
 from DeepSeaSceneVectorDraw.Convert.TextNodeConvert import convertTextNode
@@ -98,6 +113,7 @@ def createSceneResourcesConvertContext(cuttlefish='cuttlefish', vfc='vfc', multi
 	convertContext.addNodeType('ParticleNode', convertParticleNode)
 
 	# Physics scene types.
+	#Shapes
 	convertContext.addCustomResourceType("PhysicsBox", convertPhysicsBox, "PhysicsShape")
 	convertContext.addCustomResourceType("PhysicsCapsule", convertPhysicsCapsule, "PhysicsShape")
 	convertContext.addCustomResourceType("PhysicsCone", convertPhysicsCone, "PhysicsShape")
@@ -107,6 +123,26 @@ def createSceneResourcesConvertContext(cuttlefish='cuttlefish', vfc='vfc', multi
 	convertContext.addCustomResourceType("PhysicsMesh", convertPhysicsMesh, "PhysicsShape")
 	convertContext.addCustomResourceType("PhysicsSphere", convertPhysicsSphere, "PhysicsShape")
 	convertContext.addCustomResourceType("PhysicsShapeRef", convertPhysicsShapeRef, "PhysicsShape")
+	# Constraints
+	convertContext.addCustomResourceType("FixedPhysicsConstraint", convertFixedPhysicsConstraint,
+		"PhysicsConstraint")
+	convertContext.addCustomResourceType("PointPhysicsConstraint", convertPointPhysicsConstraint,
+		"PhysicsConstraint")
+	convertContext.addCustomResourceType("SwingTwistPhysicsConstraint",
+		convertSwingTwistPhysicsConstraint, "PhysicsConstraint")
+	convertContext.addCustomResourceType("RevolutePhysicsConstraint",
+		convertRevolutePhysicsConstraint, "PhysicsConstraint")
+	convertContext.addCustomResourceType("DistancePhysicsConstraint",
+		convertDistancePhysicsConstraint, "PhysicsConstraint")
+	convertContext.addCustomResourceType("SliderPhysicsConstraint", convertSliderPhysicsConstraint,
+		"PhysicsConstraint")
+	convertContext.addCustomResourceType("GenericPhysicsConstraint",
+		convertGenericPhysicsConstraint, "PhysicsConstraint")
+	convertContext.addCustomResourceType("GearPhysicsConstraint", convertGearPhysicsConstraint,
+		"PhysicsConstraint")
+	convertContext.addCustomResourceType("RackAndPinionPhysicsConstraint",
+		convertRackAndPinionPhysicsConstraint, "PhysicsConstraint")
+	# Other
 	convertContext.addCustomResourceType("RigidBody", convertRigidBody, "RigidBody")
 	convertContext.addCustomResourceType("RigidBodyTemplate",
 		convertRigidBodyTemplate, "RigidBodyTemplate")

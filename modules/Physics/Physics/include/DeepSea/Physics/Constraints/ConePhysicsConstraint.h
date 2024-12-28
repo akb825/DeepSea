@@ -46,18 +46,18 @@ DS_PHYSICS_EXPORT const dsPhysicsConstraintType* dsConePhysicsConstraint_type(vo
  * @param firstActor The first physics actor the constraint is attached to. This may be NULL to set
  *     later by cloning.
  * @param firstPosition The position of the constraint on the first actor.
- * @param firstRotation The rotation of the constraint on the first actor.
+ * @param firstOrientation The rotation of the constraint on the first actor.
  * @param secondActor The second physics actor the constraint is attached to. This may be NULL to
  *     set later by cloning.
  * @param secondPosition The position of the constraint on the second actor.
- * @param secondRotation The rotation of the constraint on the second actor.
+ * @param secondOrientation The rotation of the constraint on the second actor.
  * @param maxAngle The maximum angle of the constraint relative to the attachment rotation axes.
  * @return The cone constraint or NULL if it couldn't be created.
  */
 DS_PHYSICS_EXPORT dsConePhysicsConstraint* dsConePhysicsConstraint_create(dsPhysicsEngine* engine,
 	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
-	const dsQuaternion4f* firstRotation, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation, float maxAngle);
+	const dsQuaternion4f* firstOrientation, const dsPhysicsActor* secondActor,
+	const dsVector3f* secondPosition, const dsQuaternion4f* secondOrientation, float maxAngle);
 
 /**
  * @brief Sets the max angle for a cone physics constraint.
@@ -79,18 +79,18 @@ DS_PHYSICS_EXPORT bool dsConePhysicsConstraint_setMaxAngle(dsConePhysicsConstrai
  * @param allocator The allocator the constraint was created with.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
- * @param firstRotation The rotation of the constraint on the first actor.
+ * @param firstOrientation The rotation of the constraint on the first actor.
  * @param secondActor The second physics actor the constraint is attached to.
  * @param secondPosition The position of the constraint on the second actor.
- * @param secondRotation The rotation of the constraint on the second actor.
+ * @param secondOrientation The rotation of the constraint on the second actor.
  * @param maxAngle The maximum angle of the constraint relative to the attachment rotation axes.
  * @param impl The underlying implementation for the constraint.
  */
 DS_PHYSICS_EXPORT void dsConePhysicsConstraint_initialize(dsConePhysicsConstraint* constraint,
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstOrientation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation, float maxAngle, void* impl);
+	const dsQuaternion4f* secondOrientation, float maxAngle, void* impl);
 
 #ifdef __cplusplus
 }

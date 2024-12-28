@@ -3,9 +3,13 @@
 # namespace: DeepSeaPhysics
 
 class DOFMask(object):
-    TransX = 0
-    TransY = 1
-    TransZ = 2
-    RotX = 3
-    RotY = 4
-    RotZ = 5
+    None_ = 0
+    TranslateX = 1
+    TranslateY = 2
+    TranslateZ = 4
+    TranslateAll = 7
+    RotlateX = 8
+    RotlateY = 16
+    RotlateZ = 32
+    RotateAll = 56
+    All = 63

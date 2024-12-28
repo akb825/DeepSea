@@ -32,6 +32,9 @@ enum ConstraintLimitType : ubyte
 // Struct describing a limit for a single degree of freedom of a generic physics constraint.
 struct GenericConstraintLimit
 {
+	// The degree of freedom the motor is used with.
+	dof : DOF;
+
 	// The type of the limit.
 	limitType : ConstraintLimitType;
 
@@ -51,6 +54,9 @@ struct GenericConstraintLimit
 // Struct describing a motor for a single degree of freedom of a generic physics constraint.
 struct GenericConstraintMotor
 {
+	// The degree of freedom the motor is used with.
+	dof : DOF;
+
 	// The type of the motor to apply to the degree of freedom.
 	motorType : ConstraintMotorType;
 
@@ -72,8 +78,8 @@ table GenericConstraint
 	// The position of the constraint relative to the first actor.
 	firstPosition : Vector3f (required);
 
-	// The rotation of the constraint relative to the first actor.
-	firstRotation : Quaternion4f (required);
+	// The orientation of the constraint relative to the first actor.
+	firstOrientation : Quaternion4f (required);
 
 	// The name of the second actor used in the constraint.
 	secondActor : string;
@@ -81,11 +87,11 @@ table GenericConstraint
 	// The position of the constraint relative to the second actor.
 	secondPosition : Vector3f (required);
 
-	// The rotation of the constraint relative to the second actor.
-	secondRotation : Quaternion4f (required);
+	// The orientation of the constraint relative to the second actor.
+	secondOrientation : Quaternion4f (required);
 
 	// The limits for each degree of freedom for the constraint. This must have 6 elements.
-	limits : [GenericConstraintLimit] (required);
+	limits : [GenericConstraintLimit];
 
 	// The motors for each degree of freedom for the constraint. This may either be unset or have 6
 	// elements. Motors that are unset will be disabled with no stopping force.

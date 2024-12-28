@@ -28,10 +28,10 @@ table RevoluteConstraint
 	// The position of the constraint relative to the first actor.
 	firstPosition : Vector3f (required);
 
-	// The rotation of the constraint relative to the first actor. The axis of the quaternion
-	// represents the axis that will be rotated around, while the rotation will be used relative to
-	// any rotation limits.
-	firstRotation : Quaternion4f (required);
+	// The orientation of the constraint relative to the first actor. The axis of the quaternion
+	// represents the axis that will be rotated around, while the orientation will be used relative
+	// to any orientation limits.
+	firstOrientation : Quaternion4f (required);
 
 	// The name of the second actor used in the constraint.
 	secondActor : string;
@@ -39,10 +39,10 @@ table RevoluteConstraint
 	// The position of the constraint relative to the second actor.
 	secondPosition : Vector3f (required);
 
-	// The rotation of the constraint relative to the second actor. The axis of the quaternion
-	// represents the axis that will be rotated around, while the rotation will be used relative to
-	// any rotation limits.
-	secondRotation : Quaternion4f (required);
+	// The orientation of the constraint relative to the second actor. The axis of the quaternion
+	// represents the axis that will be rotated around, while the orientation will be used relative
+	// to any orientation limits.
+	secondOrientation : Quaternion4f (required);
 
 	// Whether the angle is enabled.
 	limitEnabled : bool;
@@ -59,7 +59,7 @@ table RevoluteConstraint
 	// The spring damping applied when limiting the angle.
 	limitDamping : float;
 
-	// The type of motor to use for the constraint. Velocity is not supported.
+	// The type of motor to use for the constraint.
 	motorType : ConstraintMotorType;
 
 	// The target for the motor. This will be an angle if motorType is Position or an angular

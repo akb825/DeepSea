@@ -59,8 +59,9 @@ inline const char *EnumNameConstraintLimitType(ConstraintLimitType e) {
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) GenericConstraintLimit FLATBUFFERS_FINAL_CLASS {
  private:
+  uint8_t dof_;
   uint8_t limitType_;
-  int8_t padding0__;  int16_t padding1__;
+  int16_t padding0__;
   float minValue_;
   float maxValue_;
   float stiffness_;
@@ -68,26 +69,27 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) GenericConstraintLimit FLATBUFFERS_FINAL_
 
  public:
   GenericConstraintLimit()
-      : limitType_(0),
+      : dof_(0),
+        limitType_(0),
         padding0__(0),
-        padding1__(0),
         minValue_(0),
         maxValue_(0),
         stiffness_(0),
         damping_(0) {
     (void)padding0__;
-    (void)padding1__;
   }
-  GenericConstraintLimit(DeepSeaPhysics::ConstraintLimitType _limitType, float _minValue, float _maxValue, float _stiffness, float _damping)
-      : limitType_(::flatbuffers::EndianScalar(static_cast<uint8_t>(_limitType))),
+  GenericConstraintLimit(DeepSeaPhysics::DOF _dof, DeepSeaPhysics::ConstraintLimitType _limitType, float _minValue, float _maxValue, float _stiffness, float _damping)
+      : dof_(::flatbuffers::EndianScalar(static_cast<uint8_t>(_dof))),
+        limitType_(::flatbuffers::EndianScalar(static_cast<uint8_t>(_limitType))),
         padding0__(0),
-        padding1__(0),
         minValue_(::flatbuffers::EndianScalar(_minValue)),
         maxValue_(::flatbuffers::EndianScalar(_maxValue)),
         stiffness_(::flatbuffers::EndianScalar(_stiffness)),
         damping_(::flatbuffers::EndianScalar(_damping)) {
     (void)padding0__;
-    (void)padding1__;
+  }
+  DeepSeaPhysics::DOF dof() const {
+    return static_cast<DeepSeaPhysics::DOF>(::flatbuffers::EndianScalar(dof_));
   }
   DeepSeaPhysics::ConstraintLimitType limitType() const {
     return static_cast<DeepSeaPhysics::ConstraintLimitType>(::flatbuffers::EndianScalar(limitType_));
@@ -109,29 +111,31 @@ FLATBUFFERS_STRUCT_END(GenericConstraintLimit, 20);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) GenericConstraintMotor FLATBUFFERS_FINAL_CLASS {
  private:
+  uint8_t dof_;
   uint8_t motorType_;
-  int8_t padding0__;  int16_t padding1__;
+  int16_t padding0__;
   float target_;
   float maxForce_;
 
  public:
   GenericConstraintMotor()
-      : motorType_(0),
+      : dof_(0),
+        motorType_(0),
         padding0__(0),
-        padding1__(0),
         target_(0),
         maxForce_(0) {
     (void)padding0__;
-    (void)padding1__;
   }
-  GenericConstraintMotor(DeepSeaPhysics::ConstraintMotorType _motorType, float _target, float _maxForce)
-      : motorType_(::flatbuffers::EndianScalar(static_cast<uint8_t>(_motorType))),
+  GenericConstraintMotor(DeepSeaPhysics::DOF _dof, DeepSeaPhysics::ConstraintMotorType _motorType, float _target, float _maxForce)
+      : dof_(::flatbuffers::EndianScalar(static_cast<uint8_t>(_dof))),
+        motorType_(::flatbuffers::EndianScalar(static_cast<uint8_t>(_motorType))),
         padding0__(0),
-        padding1__(0),
         target_(::flatbuffers::EndianScalar(_target)),
         maxForce_(::flatbuffers::EndianScalar(_maxForce)) {
     (void)padding0__;
-    (void)padding1__;
+  }
+  DeepSeaPhysics::DOF dof() const {
+    return static_cast<DeepSeaPhysics::DOF>(::flatbuffers::EndianScalar(dof_));
   }
   DeepSeaPhysics::ConstraintMotorType motorType() const {
     return static_cast<DeepSeaPhysics::ConstraintMotorType>(::flatbuffers::EndianScalar(motorType_));
@@ -150,10 +154,10 @@ struct GenericConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_FIRSTACTOR = 4,
     VT_FIRSTPOSITION = 6,
-    VT_FIRSTROTATION = 8,
+    VT_FIRSTORIENTATION = 8,
     VT_SECONDACTOR = 10,
     VT_SECONDPOSITION = 12,
-    VT_SECONDROTATION = 14,
+    VT_SECONDORIENTATION = 14,
     VT_LIMITS = 16,
     VT_MOTORS = 18,
     VT_COMBINESWINGTWISTMOTORS = 20
@@ -164,8 +168,8 @@ struct GenericConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   const DeepSeaPhysics::Vector3f *firstPosition() const {
     return GetStruct<const DeepSeaPhysics::Vector3f *>(VT_FIRSTPOSITION);
   }
-  const DeepSeaPhysics::Quaternion4f *firstRotation() const {
-    return GetStruct<const DeepSeaPhysics::Quaternion4f *>(VT_FIRSTROTATION);
+  const DeepSeaPhysics::Quaternion4f *firstOrientation() const {
+    return GetStruct<const DeepSeaPhysics::Quaternion4f *>(VT_FIRSTORIENTATION);
   }
   const ::flatbuffers::String *secondActor() const {
     return GetPointer<const ::flatbuffers::String *>(VT_SECONDACTOR);
@@ -173,8 +177,8 @@ struct GenericConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   const DeepSeaPhysics::Vector3f *secondPosition() const {
     return GetStruct<const DeepSeaPhysics::Vector3f *>(VT_SECONDPOSITION);
   }
-  const DeepSeaPhysics::Quaternion4f *secondRotation() const {
-    return GetStruct<const DeepSeaPhysics::Quaternion4f *>(VT_SECONDROTATION);
+  const DeepSeaPhysics::Quaternion4f *secondOrientation() const {
+    return GetStruct<const DeepSeaPhysics::Quaternion4f *>(VT_SECONDORIENTATION);
   }
   const ::flatbuffers::Vector<const DeepSeaPhysics::GenericConstraintLimit *> *limits() const {
     return GetPointer<const ::flatbuffers::Vector<const DeepSeaPhysics::GenericConstraintLimit *> *>(VT_LIMITS);
@@ -190,12 +194,12 @@ struct GenericConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
            VerifyOffset(verifier, VT_FIRSTACTOR) &&
            verifier.VerifyString(firstActor()) &&
            VerifyFieldRequired<DeepSeaPhysics::Vector3f>(verifier, VT_FIRSTPOSITION, 4) &&
-           VerifyFieldRequired<DeepSeaPhysics::Quaternion4f>(verifier, VT_FIRSTROTATION, 4) &&
+           VerifyFieldRequired<DeepSeaPhysics::Quaternion4f>(verifier, VT_FIRSTORIENTATION, 4) &&
            VerifyOffset(verifier, VT_SECONDACTOR) &&
            verifier.VerifyString(secondActor()) &&
            VerifyFieldRequired<DeepSeaPhysics::Vector3f>(verifier, VT_SECONDPOSITION, 4) &&
-           VerifyFieldRequired<DeepSeaPhysics::Quaternion4f>(verifier, VT_SECONDROTATION, 4) &&
-           VerifyOffsetRequired(verifier, VT_LIMITS) &&
+           VerifyFieldRequired<DeepSeaPhysics::Quaternion4f>(verifier, VT_SECONDORIENTATION, 4) &&
+           VerifyOffset(verifier, VT_LIMITS) &&
            verifier.VerifyVector(limits()) &&
            VerifyOffset(verifier, VT_MOTORS) &&
            verifier.VerifyVector(motors()) &&
@@ -214,8 +218,8 @@ struct GenericConstraintBuilder {
   void add_firstPosition(const DeepSeaPhysics::Vector3f *firstPosition) {
     fbb_.AddStruct(GenericConstraint::VT_FIRSTPOSITION, firstPosition);
   }
-  void add_firstRotation(const DeepSeaPhysics::Quaternion4f *firstRotation) {
-    fbb_.AddStruct(GenericConstraint::VT_FIRSTROTATION, firstRotation);
+  void add_firstOrientation(const DeepSeaPhysics::Quaternion4f *firstOrientation) {
+    fbb_.AddStruct(GenericConstraint::VT_FIRSTORIENTATION, firstOrientation);
   }
   void add_secondActor(::flatbuffers::Offset<::flatbuffers::String> secondActor) {
     fbb_.AddOffset(GenericConstraint::VT_SECONDACTOR, secondActor);
@@ -223,8 +227,8 @@ struct GenericConstraintBuilder {
   void add_secondPosition(const DeepSeaPhysics::Vector3f *secondPosition) {
     fbb_.AddStruct(GenericConstraint::VT_SECONDPOSITION, secondPosition);
   }
-  void add_secondRotation(const DeepSeaPhysics::Quaternion4f *secondRotation) {
-    fbb_.AddStruct(GenericConstraint::VT_SECONDROTATION, secondRotation);
+  void add_secondOrientation(const DeepSeaPhysics::Quaternion4f *secondOrientation) {
+    fbb_.AddStruct(GenericConstraint::VT_SECONDORIENTATION, secondOrientation);
   }
   void add_limits(::flatbuffers::Offset<::flatbuffers::Vector<const DeepSeaPhysics::GenericConstraintLimit *>> limits) {
     fbb_.AddOffset(GenericConstraint::VT_LIMITS, limits);
@@ -243,10 +247,9 @@ struct GenericConstraintBuilder {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<GenericConstraint>(end);
     fbb_.Required(o, GenericConstraint::VT_FIRSTPOSITION);
-    fbb_.Required(o, GenericConstraint::VT_FIRSTROTATION);
+    fbb_.Required(o, GenericConstraint::VT_FIRSTORIENTATION);
     fbb_.Required(o, GenericConstraint::VT_SECONDPOSITION);
-    fbb_.Required(o, GenericConstraint::VT_SECONDROTATION);
-    fbb_.Required(o, GenericConstraint::VT_LIMITS);
+    fbb_.Required(o, GenericConstraint::VT_SECONDORIENTATION);
     return o;
   }
 };
@@ -255,20 +258,20 @@ inline ::flatbuffers::Offset<GenericConstraint> CreateGenericConstraint(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::String> firstActor = 0,
     const DeepSeaPhysics::Vector3f *firstPosition = nullptr,
-    const DeepSeaPhysics::Quaternion4f *firstRotation = nullptr,
+    const DeepSeaPhysics::Quaternion4f *firstOrientation = nullptr,
     ::flatbuffers::Offset<::flatbuffers::String> secondActor = 0,
     const DeepSeaPhysics::Vector3f *secondPosition = nullptr,
-    const DeepSeaPhysics::Quaternion4f *secondRotation = nullptr,
+    const DeepSeaPhysics::Quaternion4f *secondOrientation = nullptr,
     ::flatbuffers::Offset<::flatbuffers::Vector<const DeepSeaPhysics::GenericConstraintLimit *>> limits = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<const DeepSeaPhysics::GenericConstraintMotor *>> motors = 0,
     bool combineSwingTwistMotors = false) {
   GenericConstraintBuilder builder_(_fbb);
   builder_.add_motors(motors);
   builder_.add_limits(limits);
-  builder_.add_secondRotation(secondRotation);
+  builder_.add_secondOrientation(secondOrientation);
   builder_.add_secondPosition(secondPosition);
   builder_.add_secondActor(secondActor);
-  builder_.add_firstRotation(firstRotation);
+  builder_.add_firstOrientation(firstOrientation);
   builder_.add_firstPosition(firstPosition);
   builder_.add_firstActor(firstActor);
   builder_.add_combineSwingTwistMotors(combineSwingTwistMotors);
@@ -279,10 +282,10 @@ inline ::flatbuffers::Offset<GenericConstraint> CreateGenericConstraintDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *firstActor = nullptr,
     const DeepSeaPhysics::Vector3f *firstPosition = nullptr,
-    const DeepSeaPhysics::Quaternion4f *firstRotation = nullptr,
+    const DeepSeaPhysics::Quaternion4f *firstOrientation = nullptr,
     const char *secondActor = nullptr,
     const DeepSeaPhysics::Vector3f *secondPosition = nullptr,
-    const DeepSeaPhysics::Quaternion4f *secondRotation = nullptr,
+    const DeepSeaPhysics::Quaternion4f *secondOrientation = nullptr,
     const std::vector<DeepSeaPhysics::GenericConstraintLimit> *limits = nullptr,
     const std::vector<DeepSeaPhysics::GenericConstraintMotor> *motors = nullptr,
     bool combineSwingTwistMotors = false) {
@@ -294,10 +297,10 @@ inline ::flatbuffers::Offset<GenericConstraint> CreateGenericConstraintDirect(
       _fbb,
       firstActor__,
       firstPosition,
-      firstRotation,
+      firstOrientation,
       secondActor__,
       secondPosition,
-      secondRotation,
+      secondOrientation,
       limits__,
       motors__,
       combineSwingTwistMotors);

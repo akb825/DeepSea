@@ -18,7 +18,7 @@ include "DeepSea/Physics/Flatbuffers/PhysicsCommon.fbs";
 
 namespace DeepSeaPhysics;
 
-// Struct describing a physics constraint that has free rotation around a point.
+// Struct describing a physics constraint that has limited rotation around a point.
 table SwingTwistConstraint
 {
 	// The name of the first actor used in the constraint.
@@ -27,8 +27,8 @@ table SwingTwistConstraint
 	// The position of the constraint relative to the first actor.
 	firstPosition : Vector3f (required);
 
-	// The rotation of the constraint relative to the first actor.
-	firstRotation : Quaternion4f (required);
+	// The orientation of the constraint relative to the first actor.
+	firstOrientation : Quaternion4f (required);
 
 	// The name of the second actor used in the constraint.
 	secondActor : string;
@@ -36,8 +36,8 @@ table SwingTwistConstraint
 	// The position of the constraint relative to the second actor.
 	secondPosition : Vector3f (required);
 
-	// The rotation of the constraint relative to the second actor.
-	secondRotation : Quaternion4f (required);
+	// The orientation of the constraint relative to the second actor.
+	secondOrientation : Quaternion4f (required);
 
 	// The maximum angle of the constraint along the X axis.
 	maxSwingXAngle : float;
@@ -51,8 +51,8 @@ table SwingTwistConstraint
 	// The type of motor to use for the constraint. Velocity is not supported.
 	motorType : ConstraintMotorType;
 
-	// The target rotation for the motor relative to the first actor.
-	motorTargetRotation : Quaternion4f;
+	// The target orientation for the motor relative to the first actor.
+	motorTargetOrientation : Quaternion4f;
 
 	// The maximum torque for the motor. If the motor is disabled this is the maximum amount of
 	// torque to apply to stop motion.

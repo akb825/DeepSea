@@ -41,23 +41,23 @@ DS_PHYSICS_EXPORT const dsPhysicsConstraintType* dsRevolutePhysicsConstraint_typ
  * @brief Creates a revolute physics constraint.
  * @remark errno will be set on failure.
  * @param engine The physics engine to create the constraint with.
- * @param allocator The allocator to create the constraint with. If NULL the engine's allocator will
- *     be used.
+ * @param allocator The allocator to create the constraint with. If NULL the engine's allocator
+ *     will be used.
  * @param firstActor The first physics actor the constraint is attached to. This may be NULL to set
  *     later by cloning.
  * @param firstPosition The position of the constraint on the first actor.
- * @param firstRotation The rotation of the constraint on the first actor. The axis of the
- *     quaternion represents the axis that will be rotated around, while the rotation will be used
- *     relative to any rotation limits.
+ * @param firstOrientation The orientation of the constraint on the first actor. The axis of the
+ *     quaternion represents the axis that will be rotated around, while the orientation will be
+ *     used relative to any orientation limits.
  * @param secondActor The second physics actor the constraint is attached to. This may be NULL to
  *     set later by cloning.
  * @param secondPosition The position of the constraint on the second actor.
- * @param secondRotation The rotation of the constraint on the second actor. The axis of the
- *     quaternion represents the axis that will be rotated around, while the rotation will be used
- *     relative to any rotation limits.
- * @param limitEnabled Whether the rotation limit is enabled.
- * @param minAngle The minimum angle for the rotation in the range [-pi, 0].
- * @param maxAngle The maximum angle for the rotation in the range [0, pi].
+ * @param secondOrientation The orientation of the constraint on the second actor. The axis of the
+ *     quaternion represents the axis that will be rotated around, while the orientation will be
+ *     used relative to any orientation limits.
+ * @param limitEnabled Whether the orientation limit is enabled.
+ * @param minAngle The minimum angle for the orientation in the range [-pi, 0].
+ * @param maxAngle The maximum angle for the orientation in the range [0, pi].
  * @param limitStiffness The spring stiffness applied when limiting the angle.
  * @param limitDamping The spring damping applied when limiting the angle in the range [0, 1].
  * @param motorType The type of motor to use.
@@ -68,9 +68,9 @@ DS_PHYSICS_EXPORT const dsPhysicsConstraintType* dsRevolutePhysicsConstraint_typ
  */
 DS_PHYSICS_EXPORT dsRevolutePhysicsConstraint* dsRevolutePhysicsConstraint_create(
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstOrientation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation, bool limitEnabled, float minAngle, float maxAngle,
+	const dsQuaternion4f* secondOrientation, bool limitEnabled, float minAngle, float maxAngle,
 	float limitStiffness, float limitDamping, dsPhysicsConstraintMotorType motorType,
 	float motorTarget, float maxMotorTorque);
 
@@ -78,8 +78,8 @@ DS_PHYSICS_EXPORT dsRevolutePhysicsConstraint* dsRevolutePhysicsConstraint_creat
  * @brief Enables the angle limit and sets the limit parameters for a revolute physics constraint.
  * @remark errno will be set on failure.
  * @param constraint The constraint to set the angle limits on.
- * @param minAngle The minimum angle for the rotation in the range [-pi, 0].
- * @param maxAngle The maximum angle for the rotation in the range [0, pi].
+ * @param minAngle The minimum angle for the orientation in the range [-pi, 0].
+ * @param maxAngle The maximum angle for the orientation in the range [0, pi].
  * @param limitStiffness The spring stiffness applied when limiting the angle.
  * @param limitDamping The spring damping applied when limiting the angle in the range [0, 1].
  * @return False if the limit couldn't be set.
@@ -102,7 +102,7 @@ DS_PHYSICS_EXPORT bool dsRevolutePhysicsConstraint_disableLimit(
  * @param constraint The constraint to set the motor parameters on.
  * @param motorType The type of motor to use.
  * @param target The target angle if motorType is dsPhysicsConstraintMotorType_Position or target
- *    rotational velocity if motorType is dsPhysicsConstraintMotorType_Velocity.
+ *    orientational velocity if motorType is dsPhysicsConstraintMotorType_Velocity.
  * @param maxTorque The maximum torque to apply for the motor. When the motor is disabled, the
  *     torque will be applied to stop motion.
  */
@@ -119,17 +119,17 @@ DS_PHYSICS_EXPORT bool dsRevolutePhysicsConstraint_setMotor(dsRevolutePhysicsCon
  * @param allocator The allocator the constraint was created with.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
- * @param firstRotation The rotation of the constraint on the first actor. The axis of the
- *     quaternion represents the axis that will be rotated around, while the rotation will be used
- *     relative to any rotation limits.
+ * @param firstOrientation The orientation of the constraint on the first actor. The axis of the
+ *     quaternion represents the axis that will be rotated around, while the orientation will be
+ *     used relative to any orientation limits.
  * @param secondActor The second physics actor the constraint is attached to.
  * @param secondPosition The position of the constraint on the second actor.
- * @param secondRotation The rotation of the constraint on the second actor. The axis of the
- *     quaternion represents the axis that will be rotated around, while the rotation will be used
- *     relative to any rotation limits.
- * @param limitEnabled Whether the rotation limit is enabled.
- * @param minAngle The minimum angle for the rotation in the range [-pi, 0].
- * @param maxAngle The maximum angle for the rotation in the range [0, pi].
+ * @param secondOrientation The orientation of the constraint on the second actor. The axis of the
+ *     quaternion represents the axis that will be rotated around, while the orientation will be
+ *     used relative to any orientation limits.
+ * @param limitEnabled Whether the orientation limit is enabled.
+ * @param minAngle The minimum angle for the orientation in the range [-pi, 0].
+ * @param maxAngle The maximum angle for the orientation in the range [0, pi].
  * @param limitStiffness The spring stiffness applied when limiting the angle.
  * @param limitDamping The spring damping applied when limiting the angle in the range [0, 1].
  * @param motorType The type of motor to use.
@@ -141,8 +141,8 @@ DS_PHYSICS_EXPORT bool dsRevolutePhysicsConstraint_setMotor(dsRevolutePhysicsCon
 DS_PHYSICS_EXPORT void dsRevolutePhysicsConstraint_initialize(
 	dsRevolutePhysicsConstraint* constraint, dsPhysicsEngine* engine, dsAllocator* allocator,
 	const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
-	const dsQuaternion4f* firstRotation, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation, bool limitEnabled,
+	const dsQuaternion4f* firstOrientation, const dsPhysicsActor* secondActor,
+	const dsVector3f* secondPosition, const dsQuaternion4f* secondOrientation, bool limitEnabled,
 	float minAngle, float maxAngle, float limitStiffness, float limitDamping,
 	dsPhysicsConstraintMotorType motorType, float motorTarget, float maxMotorTorque, void* impl);
 

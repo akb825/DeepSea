@@ -25,15 +25,15 @@ struct SwingTwistConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_FIRSTACTOR = 4,
     VT_FIRSTPOSITION = 6,
-    VT_FIRSTROTATION = 8,
+    VT_FIRSTORIENTATION = 8,
     VT_SECONDACTOR = 10,
     VT_SECONDPOSITION = 12,
-    VT_SECONDROTATION = 14,
+    VT_SECONDORIENTATION = 14,
     VT_MAXSWINGXANGLE = 16,
     VT_MAXSWINGYANGLE = 18,
     VT_MAXTWISTZANGLE = 20,
     VT_MOTORTYPE = 22,
-    VT_MOTORTARGETROTATION = 24,
+    VT_MOTORTARGETORIENTATION = 24,
     VT_MAXMOTORTORQUE = 26
   };
   const ::flatbuffers::String *firstActor() const {
@@ -42,8 +42,8 @@ struct SwingTwistConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   const DeepSeaPhysics::Vector3f *firstPosition() const {
     return GetStruct<const DeepSeaPhysics::Vector3f *>(VT_FIRSTPOSITION);
   }
-  const DeepSeaPhysics::Quaternion4f *firstRotation() const {
-    return GetStruct<const DeepSeaPhysics::Quaternion4f *>(VT_FIRSTROTATION);
+  const DeepSeaPhysics::Quaternion4f *firstOrientation() const {
+    return GetStruct<const DeepSeaPhysics::Quaternion4f *>(VT_FIRSTORIENTATION);
   }
   const ::flatbuffers::String *secondActor() const {
     return GetPointer<const ::flatbuffers::String *>(VT_SECONDACTOR);
@@ -51,8 +51,8 @@ struct SwingTwistConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   const DeepSeaPhysics::Vector3f *secondPosition() const {
     return GetStruct<const DeepSeaPhysics::Vector3f *>(VT_SECONDPOSITION);
   }
-  const DeepSeaPhysics::Quaternion4f *secondRotation() const {
-    return GetStruct<const DeepSeaPhysics::Quaternion4f *>(VT_SECONDROTATION);
+  const DeepSeaPhysics::Quaternion4f *secondOrientation() const {
+    return GetStruct<const DeepSeaPhysics::Quaternion4f *>(VT_SECONDORIENTATION);
   }
   float maxSwingXAngle() const {
     return GetField<float>(VT_MAXSWINGXANGLE, 0.0f);
@@ -66,8 +66,8 @@ struct SwingTwistConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   DeepSeaPhysics::ConstraintMotorType motorType() const {
     return static_cast<DeepSeaPhysics::ConstraintMotorType>(GetField<uint8_t>(VT_MOTORTYPE, 0));
   }
-  const DeepSeaPhysics::Quaternion4f *motorTargetRotation() const {
-    return GetStruct<const DeepSeaPhysics::Quaternion4f *>(VT_MOTORTARGETROTATION);
+  const DeepSeaPhysics::Quaternion4f *motorTargetOrientation() const {
+    return GetStruct<const DeepSeaPhysics::Quaternion4f *>(VT_MOTORTARGETORIENTATION);
   }
   float maxMotorTorque() const {
     return GetField<float>(VT_MAXMOTORTORQUE, 0.0f);
@@ -77,16 +77,16 @@ struct SwingTwistConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
            VerifyOffset(verifier, VT_FIRSTACTOR) &&
            verifier.VerifyString(firstActor()) &&
            VerifyFieldRequired<DeepSeaPhysics::Vector3f>(verifier, VT_FIRSTPOSITION, 4) &&
-           VerifyFieldRequired<DeepSeaPhysics::Quaternion4f>(verifier, VT_FIRSTROTATION, 4) &&
+           VerifyFieldRequired<DeepSeaPhysics::Quaternion4f>(verifier, VT_FIRSTORIENTATION, 4) &&
            VerifyOffset(verifier, VT_SECONDACTOR) &&
            verifier.VerifyString(secondActor()) &&
            VerifyFieldRequired<DeepSeaPhysics::Vector3f>(verifier, VT_SECONDPOSITION, 4) &&
-           VerifyFieldRequired<DeepSeaPhysics::Quaternion4f>(verifier, VT_SECONDROTATION, 4) &&
+           VerifyFieldRequired<DeepSeaPhysics::Quaternion4f>(verifier, VT_SECONDORIENTATION, 4) &&
            VerifyField<float>(verifier, VT_MAXSWINGXANGLE, 4) &&
            VerifyField<float>(verifier, VT_MAXSWINGYANGLE, 4) &&
            VerifyField<float>(verifier, VT_MAXTWISTZANGLE, 4) &&
            VerifyField<uint8_t>(verifier, VT_MOTORTYPE, 1) &&
-           VerifyField<DeepSeaPhysics::Quaternion4f>(verifier, VT_MOTORTARGETROTATION, 4) &&
+           VerifyField<DeepSeaPhysics::Quaternion4f>(verifier, VT_MOTORTARGETORIENTATION, 4) &&
            VerifyField<float>(verifier, VT_MAXMOTORTORQUE, 4) &&
            verifier.EndTable();
   }
@@ -102,8 +102,8 @@ struct SwingTwistConstraintBuilder {
   void add_firstPosition(const DeepSeaPhysics::Vector3f *firstPosition) {
     fbb_.AddStruct(SwingTwistConstraint::VT_FIRSTPOSITION, firstPosition);
   }
-  void add_firstRotation(const DeepSeaPhysics::Quaternion4f *firstRotation) {
-    fbb_.AddStruct(SwingTwistConstraint::VT_FIRSTROTATION, firstRotation);
+  void add_firstOrientation(const DeepSeaPhysics::Quaternion4f *firstOrientation) {
+    fbb_.AddStruct(SwingTwistConstraint::VT_FIRSTORIENTATION, firstOrientation);
   }
   void add_secondActor(::flatbuffers::Offset<::flatbuffers::String> secondActor) {
     fbb_.AddOffset(SwingTwistConstraint::VT_SECONDACTOR, secondActor);
@@ -111,8 +111,8 @@ struct SwingTwistConstraintBuilder {
   void add_secondPosition(const DeepSeaPhysics::Vector3f *secondPosition) {
     fbb_.AddStruct(SwingTwistConstraint::VT_SECONDPOSITION, secondPosition);
   }
-  void add_secondRotation(const DeepSeaPhysics::Quaternion4f *secondRotation) {
-    fbb_.AddStruct(SwingTwistConstraint::VT_SECONDROTATION, secondRotation);
+  void add_secondOrientation(const DeepSeaPhysics::Quaternion4f *secondOrientation) {
+    fbb_.AddStruct(SwingTwistConstraint::VT_SECONDORIENTATION, secondOrientation);
   }
   void add_maxSwingXAngle(float maxSwingXAngle) {
     fbb_.AddElement<float>(SwingTwistConstraint::VT_MAXSWINGXANGLE, maxSwingXAngle, 0.0f);
@@ -126,8 +126,8 @@ struct SwingTwistConstraintBuilder {
   void add_motorType(DeepSeaPhysics::ConstraintMotorType motorType) {
     fbb_.AddElement<uint8_t>(SwingTwistConstraint::VT_MOTORTYPE, static_cast<uint8_t>(motorType), 0);
   }
-  void add_motorTargetRotation(const DeepSeaPhysics::Quaternion4f *motorTargetRotation) {
-    fbb_.AddStruct(SwingTwistConstraint::VT_MOTORTARGETROTATION, motorTargetRotation);
+  void add_motorTargetOrientation(const DeepSeaPhysics::Quaternion4f *motorTargetOrientation) {
+    fbb_.AddStruct(SwingTwistConstraint::VT_MOTORTARGETORIENTATION, motorTargetOrientation);
   }
   void add_maxMotorTorque(float maxMotorTorque) {
     fbb_.AddElement<float>(SwingTwistConstraint::VT_MAXMOTORTORQUE, maxMotorTorque, 0.0f);
@@ -140,9 +140,9 @@ struct SwingTwistConstraintBuilder {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<SwingTwistConstraint>(end);
     fbb_.Required(o, SwingTwistConstraint::VT_FIRSTPOSITION);
-    fbb_.Required(o, SwingTwistConstraint::VT_FIRSTROTATION);
+    fbb_.Required(o, SwingTwistConstraint::VT_FIRSTORIENTATION);
     fbb_.Required(o, SwingTwistConstraint::VT_SECONDPOSITION);
-    fbb_.Required(o, SwingTwistConstraint::VT_SECONDROTATION);
+    fbb_.Required(o, SwingTwistConstraint::VT_SECONDORIENTATION);
     return o;
   }
 };
@@ -151,26 +151,26 @@ inline ::flatbuffers::Offset<SwingTwistConstraint> CreateSwingTwistConstraint(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::String> firstActor = 0,
     const DeepSeaPhysics::Vector3f *firstPosition = nullptr,
-    const DeepSeaPhysics::Quaternion4f *firstRotation = nullptr,
+    const DeepSeaPhysics::Quaternion4f *firstOrientation = nullptr,
     ::flatbuffers::Offset<::flatbuffers::String> secondActor = 0,
     const DeepSeaPhysics::Vector3f *secondPosition = nullptr,
-    const DeepSeaPhysics::Quaternion4f *secondRotation = nullptr,
+    const DeepSeaPhysics::Quaternion4f *secondOrientation = nullptr,
     float maxSwingXAngle = 0.0f,
     float maxSwingYAngle = 0.0f,
     float maxTwistZAngle = 0.0f,
     DeepSeaPhysics::ConstraintMotorType motorType = DeepSeaPhysics::ConstraintMotorType::Disabled,
-    const DeepSeaPhysics::Quaternion4f *motorTargetRotation = nullptr,
+    const DeepSeaPhysics::Quaternion4f *motorTargetOrientation = nullptr,
     float maxMotorTorque = 0.0f) {
   SwingTwistConstraintBuilder builder_(_fbb);
   builder_.add_maxMotorTorque(maxMotorTorque);
-  builder_.add_motorTargetRotation(motorTargetRotation);
+  builder_.add_motorTargetOrientation(motorTargetOrientation);
   builder_.add_maxTwistZAngle(maxTwistZAngle);
   builder_.add_maxSwingYAngle(maxSwingYAngle);
   builder_.add_maxSwingXAngle(maxSwingXAngle);
-  builder_.add_secondRotation(secondRotation);
+  builder_.add_secondOrientation(secondOrientation);
   builder_.add_secondPosition(secondPosition);
   builder_.add_secondActor(secondActor);
-  builder_.add_firstRotation(firstRotation);
+  builder_.add_firstOrientation(firstOrientation);
   builder_.add_firstPosition(firstPosition);
   builder_.add_firstActor(firstActor);
   builder_.add_motorType(motorType);
@@ -181,15 +181,15 @@ inline ::flatbuffers::Offset<SwingTwistConstraint> CreateSwingTwistConstraintDir
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *firstActor = nullptr,
     const DeepSeaPhysics::Vector3f *firstPosition = nullptr,
-    const DeepSeaPhysics::Quaternion4f *firstRotation = nullptr,
+    const DeepSeaPhysics::Quaternion4f *firstOrientation = nullptr,
     const char *secondActor = nullptr,
     const DeepSeaPhysics::Vector3f *secondPosition = nullptr,
-    const DeepSeaPhysics::Quaternion4f *secondRotation = nullptr,
+    const DeepSeaPhysics::Quaternion4f *secondOrientation = nullptr,
     float maxSwingXAngle = 0.0f,
     float maxSwingYAngle = 0.0f,
     float maxTwistZAngle = 0.0f,
     DeepSeaPhysics::ConstraintMotorType motorType = DeepSeaPhysics::ConstraintMotorType::Disabled,
-    const DeepSeaPhysics::Quaternion4f *motorTargetRotation = nullptr,
+    const DeepSeaPhysics::Quaternion4f *motorTargetOrientation = nullptr,
     float maxMotorTorque = 0.0f) {
   auto firstActor__ = firstActor ? _fbb.CreateString(firstActor) : 0;
   auto secondActor__ = secondActor ? _fbb.CreateString(secondActor) : 0;
@@ -197,15 +197,15 @@ inline ::flatbuffers::Offset<SwingTwistConstraint> CreateSwingTwistConstraintDir
       _fbb,
       firstActor__,
       firstPosition,
-      firstRotation,
+      firstOrientation,
       secondActor__,
       secondPosition,
-      secondRotation,
+      secondOrientation,
       maxSwingXAngle,
       maxSwingYAngle,
       maxTwistZAngle,
       motorType,
-      motorTargetRotation,
+      motorTargetOrientation,
       maxMotorTorque);
 }
 

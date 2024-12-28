@@ -123,7 +123,7 @@ def convertPhysicsMeshOffset(convertContext, data, builder):
 	Mesh.StartVerticesVector(builder, len(vertices))
 	for f in reversed(vertices):
 		builder.PrependFloat32(f)
-	verticesOffset = builder.EndVector(builder)
+	verticesOffset = builder.EndVector()
 
 	UINT16_MAX = 65535
 
@@ -131,14 +131,14 @@ def convertPhysicsMeshOffset(convertContext, data, builder):
 		Mesh.StartIndices16Vector(builder, len(indices))
 		for i in reversed(indices):
 			builder.PrependUint16(i)
-		indices16Offset = builder.EndVector(builder)
+		indices16Offset = builder.EndVector()
 		indices32Offset = 0
 	else:
 		indices16Offset = 0
 		Mesh.StartIndices32Vector(builder, len(indices))
 		for i in reversed(indices):
 			builder.PrependUint32(i)
-		indices32Offset = builder.EndVector(builder)
+		indices32Offset = builder.EndVector()
 
 	if triangleMaterials and materialIndices:
 		materialCount = len(triangleMaterials)/3
@@ -147,20 +147,20 @@ def convertPhysicsMeshOffset(convertContext, data, builder):
 			offset = CreateShapePartMaterial(builder, triangleMaterials[i],
 				triangleMaterials[i + 1], triangleMaterials[i + 2])
 			builder.PrependUOffsetTRelative(offset)
-		triangleMaterialsOffset = builder.EndVector(builder)
+		triangleMaterialsOffset = builder.EndVector()
 
 		if materialCount <= UINT16_MAX:
 			Mesh.StartMaterialIndices16Vector(builder, len(materialIndices))
 			for i in reversed(materialIndices):
 				builder.PrependUint16(i)
-			materialIndices16Offset = builder.EndVector(builder)
+			materialIndices16Offset = builder.EndVector()
 			materialIndices32Offset = 0
 		else:
 			materialIndices16Offset = 0
 			Mesh.StartMaterialIndices32Vector(builder, len(materialIndices))
 			for i in reversed(materialIndices):
 				builder.PrependUint32(i)
-			materialIndices32Offset = builder.EndVector(builder)
+			materialIndices32Offset = builder.EndVector()
 	else:
 		triangleMaterialsOffset = 0
 		materialIndices16Offset = 0

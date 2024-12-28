@@ -25,10 +25,10 @@ struct RevoluteConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_FIRSTACTOR = 4,
     VT_FIRSTPOSITION = 6,
-    VT_FIRSTROTATION = 8,
+    VT_FIRSTORIENTATION = 8,
     VT_SECONDACTOR = 10,
     VT_SECONDPOSITION = 12,
-    VT_SECONDROTATION = 14,
+    VT_SECONDORIENTATION = 14,
     VT_LIMITENABLED = 16,
     VT_MINANGLE = 18,
     VT_MAXANGLE = 20,
@@ -44,8 +44,8 @@ struct RevoluteConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table
   const DeepSeaPhysics::Vector3f *firstPosition() const {
     return GetStruct<const DeepSeaPhysics::Vector3f *>(VT_FIRSTPOSITION);
   }
-  const DeepSeaPhysics::Quaternion4f *firstRotation() const {
-    return GetStruct<const DeepSeaPhysics::Quaternion4f *>(VT_FIRSTROTATION);
+  const DeepSeaPhysics::Quaternion4f *firstOrientation() const {
+    return GetStruct<const DeepSeaPhysics::Quaternion4f *>(VT_FIRSTORIENTATION);
   }
   const ::flatbuffers::String *secondActor() const {
     return GetPointer<const ::flatbuffers::String *>(VT_SECONDACTOR);
@@ -53,8 +53,8 @@ struct RevoluteConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table
   const DeepSeaPhysics::Vector3f *secondPosition() const {
     return GetStruct<const DeepSeaPhysics::Vector3f *>(VT_SECONDPOSITION);
   }
-  const DeepSeaPhysics::Quaternion4f *secondRotation() const {
-    return GetStruct<const DeepSeaPhysics::Quaternion4f *>(VT_SECONDROTATION);
+  const DeepSeaPhysics::Quaternion4f *secondOrientation() const {
+    return GetStruct<const DeepSeaPhysics::Quaternion4f *>(VT_SECONDORIENTATION);
   }
   bool limitEnabled() const {
     return GetField<uint8_t>(VT_LIMITENABLED, 0) != 0;
@@ -85,11 +85,11 @@ struct RevoluteConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table
            VerifyOffset(verifier, VT_FIRSTACTOR) &&
            verifier.VerifyString(firstActor()) &&
            VerifyFieldRequired<DeepSeaPhysics::Vector3f>(verifier, VT_FIRSTPOSITION, 4) &&
-           VerifyFieldRequired<DeepSeaPhysics::Quaternion4f>(verifier, VT_FIRSTROTATION, 4) &&
+           VerifyFieldRequired<DeepSeaPhysics::Quaternion4f>(verifier, VT_FIRSTORIENTATION, 4) &&
            VerifyOffset(verifier, VT_SECONDACTOR) &&
            verifier.VerifyString(secondActor()) &&
            VerifyFieldRequired<DeepSeaPhysics::Vector3f>(verifier, VT_SECONDPOSITION, 4) &&
-           VerifyFieldRequired<DeepSeaPhysics::Quaternion4f>(verifier, VT_SECONDROTATION, 4) &&
+           VerifyFieldRequired<DeepSeaPhysics::Quaternion4f>(verifier, VT_SECONDORIENTATION, 4) &&
            VerifyField<uint8_t>(verifier, VT_LIMITENABLED, 1) &&
            VerifyField<float>(verifier, VT_MINANGLE, 4) &&
            VerifyField<float>(verifier, VT_MAXANGLE, 4) &&
@@ -112,8 +112,8 @@ struct RevoluteConstraintBuilder {
   void add_firstPosition(const DeepSeaPhysics::Vector3f *firstPosition) {
     fbb_.AddStruct(RevoluteConstraint::VT_FIRSTPOSITION, firstPosition);
   }
-  void add_firstRotation(const DeepSeaPhysics::Quaternion4f *firstRotation) {
-    fbb_.AddStruct(RevoluteConstraint::VT_FIRSTROTATION, firstRotation);
+  void add_firstOrientation(const DeepSeaPhysics::Quaternion4f *firstOrientation) {
+    fbb_.AddStruct(RevoluteConstraint::VT_FIRSTORIENTATION, firstOrientation);
   }
   void add_secondActor(::flatbuffers::Offset<::flatbuffers::String> secondActor) {
     fbb_.AddOffset(RevoluteConstraint::VT_SECONDACTOR, secondActor);
@@ -121,8 +121,8 @@ struct RevoluteConstraintBuilder {
   void add_secondPosition(const DeepSeaPhysics::Vector3f *secondPosition) {
     fbb_.AddStruct(RevoluteConstraint::VT_SECONDPOSITION, secondPosition);
   }
-  void add_secondRotation(const DeepSeaPhysics::Quaternion4f *secondRotation) {
-    fbb_.AddStruct(RevoluteConstraint::VT_SECONDROTATION, secondRotation);
+  void add_secondOrientation(const DeepSeaPhysics::Quaternion4f *secondOrientation) {
+    fbb_.AddStruct(RevoluteConstraint::VT_SECONDORIENTATION, secondOrientation);
   }
   void add_limitEnabled(bool limitEnabled) {
     fbb_.AddElement<uint8_t>(RevoluteConstraint::VT_LIMITENABLED, static_cast<uint8_t>(limitEnabled), 0);
@@ -156,9 +156,9 @@ struct RevoluteConstraintBuilder {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<RevoluteConstraint>(end);
     fbb_.Required(o, RevoluteConstraint::VT_FIRSTPOSITION);
-    fbb_.Required(o, RevoluteConstraint::VT_FIRSTROTATION);
+    fbb_.Required(o, RevoluteConstraint::VT_FIRSTORIENTATION);
     fbb_.Required(o, RevoluteConstraint::VT_SECONDPOSITION);
-    fbb_.Required(o, RevoluteConstraint::VT_SECONDROTATION);
+    fbb_.Required(o, RevoluteConstraint::VT_SECONDORIENTATION);
     return o;
   }
 };
@@ -167,10 +167,10 @@ inline ::flatbuffers::Offset<RevoluteConstraint> CreateRevoluteConstraint(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::String> firstActor = 0,
     const DeepSeaPhysics::Vector3f *firstPosition = nullptr,
-    const DeepSeaPhysics::Quaternion4f *firstRotation = nullptr,
+    const DeepSeaPhysics::Quaternion4f *firstOrientation = nullptr,
     ::flatbuffers::Offset<::flatbuffers::String> secondActor = 0,
     const DeepSeaPhysics::Vector3f *secondPosition = nullptr,
-    const DeepSeaPhysics::Quaternion4f *secondRotation = nullptr,
+    const DeepSeaPhysics::Quaternion4f *secondOrientation = nullptr,
     bool limitEnabled = false,
     float minAngle = 0.0f,
     float maxAngle = 0.0f,
@@ -186,10 +186,10 @@ inline ::flatbuffers::Offset<RevoluteConstraint> CreateRevoluteConstraint(
   builder_.add_limitStiffness(limitStiffness);
   builder_.add_maxAngle(maxAngle);
   builder_.add_minAngle(minAngle);
-  builder_.add_secondRotation(secondRotation);
+  builder_.add_secondOrientation(secondOrientation);
   builder_.add_secondPosition(secondPosition);
   builder_.add_secondActor(secondActor);
-  builder_.add_firstRotation(firstRotation);
+  builder_.add_firstOrientation(firstOrientation);
   builder_.add_firstPosition(firstPosition);
   builder_.add_firstActor(firstActor);
   builder_.add_motorType(motorType);
@@ -201,10 +201,10 @@ inline ::flatbuffers::Offset<RevoluteConstraint> CreateRevoluteConstraintDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *firstActor = nullptr,
     const DeepSeaPhysics::Vector3f *firstPosition = nullptr,
-    const DeepSeaPhysics::Quaternion4f *firstRotation = nullptr,
+    const DeepSeaPhysics::Quaternion4f *firstOrientation = nullptr,
     const char *secondActor = nullptr,
     const DeepSeaPhysics::Vector3f *secondPosition = nullptr,
-    const DeepSeaPhysics::Quaternion4f *secondRotation = nullptr,
+    const DeepSeaPhysics::Quaternion4f *secondOrientation = nullptr,
     bool limitEnabled = false,
     float minAngle = 0.0f,
     float maxAngle = 0.0f,
@@ -219,10 +219,10 @@ inline ::flatbuffers::Offset<RevoluteConstraint> CreateRevoluteConstraintDirect(
       _fbb,
       firstActor__,
       firstPosition,
-      firstRotation,
+      firstOrientation,
       secondActor__,
       secondPosition,
-      secondRotation,
+      secondOrientation,
       limitEnabled,
       minAngle,
       maxAngle,

@@ -25,10 +25,10 @@ struct FixedConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_FIRSTACTOR = 4,
     VT_FIRSTPOSITION = 6,
-    VT_FIRSTROTATION = 8,
+    VT_FIRSTORIENTATION = 8,
     VT_SECONDACTOR = 10,
     VT_SECONDPOSITION = 12,
-    VT_SECONDROTATION = 14
+    VT_SECONDORIENTATION = 14
   };
   const ::flatbuffers::String *firstActor() const {
     return GetPointer<const ::flatbuffers::String *>(VT_FIRSTACTOR);
@@ -36,8 +36,8 @@ struct FixedConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaPhysics::Vector3f *firstPosition() const {
     return GetStruct<const DeepSeaPhysics::Vector3f *>(VT_FIRSTPOSITION);
   }
-  const DeepSeaPhysics::Quaternion4f *firstRotation() const {
-    return GetStruct<const DeepSeaPhysics::Quaternion4f *>(VT_FIRSTROTATION);
+  const DeepSeaPhysics::Quaternion4f *firstOrientation() const {
+    return GetStruct<const DeepSeaPhysics::Quaternion4f *>(VT_FIRSTORIENTATION);
   }
   const ::flatbuffers::String *secondActor() const {
     return GetPointer<const ::flatbuffers::String *>(VT_SECONDACTOR);
@@ -45,19 +45,19 @@ struct FixedConstraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaPhysics::Vector3f *secondPosition() const {
     return GetStruct<const DeepSeaPhysics::Vector3f *>(VT_SECONDPOSITION);
   }
-  const DeepSeaPhysics::Quaternion4f *secondRotation() const {
-    return GetStruct<const DeepSeaPhysics::Quaternion4f *>(VT_SECONDROTATION);
+  const DeepSeaPhysics::Quaternion4f *secondOrientation() const {
+    return GetStruct<const DeepSeaPhysics::Quaternion4f *>(VT_SECONDORIENTATION);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_FIRSTACTOR) &&
            verifier.VerifyString(firstActor()) &&
            VerifyFieldRequired<DeepSeaPhysics::Vector3f>(verifier, VT_FIRSTPOSITION, 4) &&
-           VerifyFieldRequired<DeepSeaPhysics::Quaternion4f>(verifier, VT_FIRSTROTATION, 4) &&
+           VerifyFieldRequired<DeepSeaPhysics::Quaternion4f>(verifier, VT_FIRSTORIENTATION, 4) &&
            VerifyOffset(verifier, VT_SECONDACTOR) &&
            verifier.VerifyString(secondActor()) &&
            VerifyFieldRequired<DeepSeaPhysics::Vector3f>(verifier, VT_SECONDPOSITION, 4) &&
-           VerifyFieldRequired<DeepSeaPhysics::Quaternion4f>(verifier, VT_SECONDROTATION, 4) &&
+           VerifyFieldRequired<DeepSeaPhysics::Quaternion4f>(verifier, VT_SECONDORIENTATION, 4) &&
            verifier.EndTable();
   }
 };
@@ -72,8 +72,8 @@ struct FixedConstraintBuilder {
   void add_firstPosition(const DeepSeaPhysics::Vector3f *firstPosition) {
     fbb_.AddStruct(FixedConstraint::VT_FIRSTPOSITION, firstPosition);
   }
-  void add_firstRotation(const DeepSeaPhysics::Quaternion4f *firstRotation) {
-    fbb_.AddStruct(FixedConstraint::VT_FIRSTROTATION, firstRotation);
+  void add_firstOrientation(const DeepSeaPhysics::Quaternion4f *firstOrientation) {
+    fbb_.AddStruct(FixedConstraint::VT_FIRSTORIENTATION, firstOrientation);
   }
   void add_secondActor(::flatbuffers::Offset<::flatbuffers::String> secondActor) {
     fbb_.AddOffset(FixedConstraint::VT_SECONDACTOR, secondActor);
@@ -81,8 +81,8 @@ struct FixedConstraintBuilder {
   void add_secondPosition(const DeepSeaPhysics::Vector3f *secondPosition) {
     fbb_.AddStruct(FixedConstraint::VT_SECONDPOSITION, secondPosition);
   }
-  void add_secondRotation(const DeepSeaPhysics::Quaternion4f *secondRotation) {
-    fbb_.AddStruct(FixedConstraint::VT_SECONDROTATION, secondRotation);
+  void add_secondOrientation(const DeepSeaPhysics::Quaternion4f *secondOrientation) {
+    fbb_.AddStruct(FixedConstraint::VT_SECONDORIENTATION, secondOrientation);
   }
   explicit FixedConstraintBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -92,9 +92,9 @@ struct FixedConstraintBuilder {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<FixedConstraint>(end);
     fbb_.Required(o, FixedConstraint::VT_FIRSTPOSITION);
-    fbb_.Required(o, FixedConstraint::VT_FIRSTROTATION);
+    fbb_.Required(o, FixedConstraint::VT_FIRSTORIENTATION);
     fbb_.Required(o, FixedConstraint::VT_SECONDPOSITION);
-    fbb_.Required(o, FixedConstraint::VT_SECONDROTATION);
+    fbb_.Required(o, FixedConstraint::VT_SECONDORIENTATION);
     return o;
   }
 };
@@ -103,15 +103,15 @@ inline ::flatbuffers::Offset<FixedConstraint> CreateFixedConstraint(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::String> firstActor = 0,
     const DeepSeaPhysics::Vector3f *firstPosition = nullptr,
-    const DeepSeaPhysics::Quaternion4f *firstRotation = nullptr,
+    const DeepSeaPhysics::Quaternion4f *firstOrientation = nullptr,
     ::flatbuffers::Offset<::flatbuffers::String> secondActor = 0,
     const DeepSeaPhysics::Vector3f *secondPosition = nullptr,
-    const DeepSeaPhysics::Quaternion4f *secondRotation = nullptr) {
+    const DeepSeaPhysics::Quaternion4f *secondOrientation = nullptr) {
   FixedConstraintBuilder builder_(_fbb);
-  builder_.add_secondRotation(secondRotation);
+  builder_.add_secondOrientation(secondOrientation);
   builder_.add_secondPosition(secondPosition);
   builder_.add_secondActor(secondActor);
-  builder_.add_firstRotation(firstRotation);
+  builder_.add_firstOrientation(firstOrientation);
   builder_.add_firstPosition(firstPosition);
   builder_.add_firstActor(firstActor);
   return builder_.Finish();
@@ -121,20 +121,20 @@ inline ::flatbuffers::Offset<FixedConstraint> CreateFixedConstraintDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *firstActor = nullptr,
     const DeepSeaPhysics::Vector3f *firstPosition = nullptr,
-    const DeepSeaPhysics::Quaternion4f *firstRotation = nullptr,
+    const DeepSeaPhysics::Quaternion4f *firstOrientation = nullptr,
     const char *secondActor = nullptr,
     const DeepSeaPhysics::Vector3f *secondPosition = nullptr,
-    const DeepSeaPhysics::Quaternion4f *secondRotation = nullptr) {
+    const DeepSeaPhysics::Quaternion4f *secondOrientation = nullptr) {
   auto firstActor__ = firstActor ? _fbb.CreateString(firstActor) : 0;
   auto secondActor__ = secondActor ? _fbb.CreateString(secondActor) : 0;
   return DeepSeaPhysics::CreateFixedConstraint(
       _fbb,
       firstActor__,
       firstPosition,
-      firstRotation,
+      firstOrientation,
       secondActor__,
       secondPosition,
-      secondRotation);
+      secondOrientation);
 }
 
 }  // namespace DeepSeaPhysics

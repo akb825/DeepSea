@@ -31,9 +31,8 @@ def convertCustomMassProperties(convertContext, data, builder):
 		if not isinstance(rotationPointShiftData, list) or len(rotationPointShiftData) != 3:
 			raise Exception('ShiftedMass rotation point shift must be an array of three floats.')
 
-		rotationPointShift = (readFloat(rotationPointShiftData[0], "rotation point shift"),
-			readFloat(rotationPointShiftData[1], "rotation point shift"),
-			readFloat(rotationPointShiftData[2], "rotation point shift"))
+		rotationPointShift = (readFloat(value, "rotation point shift")
+			for value in rotationPointShiftData)
 		mass = readFloat(data.get('mass', -1), 'mass', 0)
 
 		ShiftedMass.Start(builder)
@@ -47,24 +46,19 @@ def convertCustomMassProperties(convertContext, data, builder):
 			if not isinstance(arr, list) or len(arr) != 3:
 				raise Exception('MassProperties centered inertia must be a 3x3 array of floats.')
 
-		centeredInertia = (readFloat(centeredInertiaData[0][0], 'centered inertia data'),
-			readFloat(centeredInertiaData[0][1], 'centered inertia data'),
-			readFloat(centeredInertiaData[0][2], 'centered inertia data'),
-			readFloat(centeredInertiaData[1][0], 'centered inertia data'),
-			readFloat(centeredInertiaData[1][1], 'centered inertia data'),
-			readFloat(centeredInertiaData[1][2], 'centered inertia data'),
-			readFloat(centeredInertiaData[2][0], 'centered inertia data'),
-			readFloat(centeredInertiaData[2][1], 'centered inertia data'),
-			readFloat(centeredInertiaData[2][2], 'centered inertia data'))
+		centeredInertiaList = []
+		for i in range(0, 3):
+			for j in range(0, 3):
+				centeredInertiaList.append(
+					readFloat(centeredInertiaData[i][j], 'centered inertia data'))
+		centeredInertia = tuple(centeredInertiaList)
 
 		centerOfMassData = data.get('centerOfMass')
 		if centerOfMassData:
 			if not isinstance(centerOfMassData, list) or len(centerOfMassData) != 3:
 				raise Exception('MassProperties center of mass must be an array of three floats.')
 
-			centerOfMass = (readFloat(centerOfMassData[0], 'center of mass'),
-				readFloat(centerOfMassData[1], 'center of mass'),
-				readFloat(centerOfMassData[2], 'center of mass'))
+			centerOfMass = (readFloat(value, 'center of mass') for value in centerOfMassData)
 		else:
 			centerOfMass = None
 
@@ -76,9 +70,8 @@ def convertCustomMassProperties(convertContext, data, builder):
 				raise Exception(
 					'MassProperties inertia translate must be an array of three floats.')
 
-			inertiaTranslate = (readFloat(inertiaTranslateData[0], 'inertia translate'),
-				readFloat(inertiaTranslateData[1], 'inertia translate'),
-				readFloat(inertiaTranslateData[2], 'inertia translate'))
+			inertiaTranslate = (readFloat(value, 'inertia translate')
+				for value in inertiaTranslateData)
 		else:
 			inertiaTranslate = None
 
@@ -88,9 +81,8 @@ def convertCustomMassProperties(convertContext, data, builder):
 				raise Exception(
 					'MassProperties inertia rotate must be an array of three floats.')
 
-			inertiaRotate = eulerToQuaternion(readFloat(inertiaRotateData[0], 'inertia rotate'),
-				readFloat(inertiaRotateData[1], 'inertia rotate'),
-				readFloat(inertiaRotateData[2], 'inertia rotate'))
+			inertiaRotate = eulerToQuaternion(*(readFloat(value, 'inertia rotate')
+				for value in inertiaRotateData))
 		else:
 			inertiaRotate = None
 

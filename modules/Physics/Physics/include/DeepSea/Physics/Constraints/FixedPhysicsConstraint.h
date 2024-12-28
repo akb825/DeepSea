@@ -46,17 +46,17 @@ DS_PHYSICS_EXPORT const dsPhysicsConstraintType* dsFixedPhysicsConstraint_type(v
  * @param firstActor The first physics actor the constraint is attached to. This may be NULL to set
  *     later by cloning.
  * @param firstPosition The position of the constraint on the first actor.
- * @param firstRotation The rotation of the constraint on the first actor.
+ * @param firstOrientation The orientation of the constraint on the first actor.
  * @param secondActor The second physics actor the constraint is attached to. This may be NULL to
  *     set later by cloning.
  * @param secondPosition The position of the constraint on the second actor.
- * @param secondRotation The rotation of the constraint on the second actor.
+ * @param secondOrientation The orientation of the constraint on the second actor.
  * @return The fixed constraint or NULL if it couldn't be created.
  */
 DS_PHYSICS_EXPORT dsFixedPhysicsConstraint* dsFixedPhysicsConstraint_create(dsPhysicsEngine* engine,
 	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
-	const dsQuaternion4f* firstRotation, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation);
+	const dsQuaternion4f* firstOrientation, const dsPhysicsActor* secondActor,
+	const dsVector3f* secondPosition, const dsQuaternion4f* secondOrientation);
 
 /**
  * @brief Initializes a fixed physics constraint.
@@ -68,17 +68,17 @@ DS_PHYSICS_EXPORT dsFixedPhysicsConstraint* dsFixedPhysicsConstraint_create(dsPh
  * @param allocator The allocator the constraint was created with.
  * @param firstActor The first physics actor the constraint is attached to.
  * @param firstPosition The position of the constraint on the first actor.
- * @param firstRotation The rotation of the constraint on the first actor.
+ * @param firstOrientation The orientation of the constraint on the first actor.
  * @param secondActor The second physics actor the constraint is attached to.
  * @param secondPosition The position of the constraint on the second actor.
- * @param secondRotation The rotation of the constraint on the second actor.
+ * @param secondOrientation The orientation of the constraint on the second actor.
  * @param impl The underlying implementation for the constraint.
  */
 DS_PHYSICS_EXPORT void dsFixedPhysicsConstraint_initialize(dsFixedPhysicsConstraint* constraint,
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstOrientation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation, void* impl);
+	const dsQuaternion4f* secondOrientation, void* impl);
 
 #ifdef __cplusplus
 }

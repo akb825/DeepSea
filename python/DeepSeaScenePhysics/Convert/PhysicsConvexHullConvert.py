@@ -61,7 +61,7 @@ def convertPhysicsConvexHullOffset(convertContext, data, builder):
 	ConvexHull.StartVerticesVector(builder, len(vertices))
 	for f in reversed(vertices):
 		builder.PrependFloat32(f)
-	verticesOffset = builder.EndVector(builder)
+	verticesOffset = builder.EndVector()
 
 	if cacheName:
 		cacheNameOffset = builder.CreateString(cacheName)

@@ -18,7 +18,9 @@ class GenericConstraintLimit(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # GenericConstraintLimit
-    def LimitType(self): return self._tab.Get(flatbuffers.number_types.Uint8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(0))
+    def Dof(self): return self._tab.Get(flatbuffers.number_types.Uint8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(0))
+    # GenericConstraintLimit
+    def LimitType(self): return self._tab.Get(flatbuffers.number_types.Uint8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(1))
     # GenericConstraintLimit
     def MinValue(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(4))
     # GenericConstraintLimit
@@ -28,12 +30,13 @@ class GenericConstraintLimit(object):
     # GenericConstraintLimit
     def Damping(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(16))
 
-def CreateGenericConstraintLimit(builder, limitType, minValue, maxValue, stiffness, damping):
+def CreateGenericConstraintLimit(builder, dof, limitType, minValue, maxValue, stiffness, damping):
     builder.Prep(4, 20)
     builder.PrependFloat32(damping)
     builder.PrependFloat32(stiffness)
     builder.PrependFloat32(maxValue)
     builder.PrependFloat32(minValue)
-    builder.Pad(3)
+    builder.Pad(2)
     builder.PrependUint8(limitType)
+    builder.PrependUint8(dof)
     return builder.Offset()

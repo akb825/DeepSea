@@ -33,7 +33,7 @@ def convertRigidBodyTemplate(convertContext, data):
 	- motionType: the type of motion for the rigid body. See the dsPhysicsMotionType enum for valid
 	  values, omitting the type prefix.
 	- dofMask: list of DOF mask values to apply. See the dsPhysicsDOFMask enum for valid values,
-	  omitting the type prefix.
+	  omitting the type prefix. Defaults to ["All"].
 	- layer: the physics layer the rigid body is a member of. See the dsPhysicsLayer enum for
 	  valid values, omitting the type prefix.
 	- collisionGroup: integer ID for the collision group. Defaults to 0 if not provided.
@@ -102,37 +102,36 @@ def convertRigidBodyTemplate(convertContext, data):
 				raise Exception('RigidBodyTemplate flags must be an array of strings.')
 			for flag in flagsData:
 				flagStr = str(flag)
-				if not hasattr(RigidBodyFlags, flagStr):
+				try:
+					flags = flags | getattr(RigidBodyFlags, flagStr)
+				except AttributeError:
 					raise Exception('Invalid rigid body flag "' + flagStr + '".')
-				flags = flags | getattr(RigidBodyFlags, flagStr)
 
 		motionTypeStr = str(data['motionType'])
-		if not hasattr(MotionType, motionTypeStr):
+		try:
+			motionType = getattr(MotionType, motionTypeStr)
+		except AttributeError:
 			raise Exception('Invalid motion type "' + motionTypeStr + '".')
-		motionType = getattr(MotionType, motionTypeStr)
 
-		dofMask = 0
-		dofMaskData = data['dofMask']
-		if not isinstance(dofMaskData, list):
-			raise Exception('RigidBodyTemplate DOF mask must be an array of strings.')
-		for dof in dofMaskData:
-			dofStr = str(dof)
-			if dofStr == 'TransAll':
-				dofMask = dofMask | DOFMask.TransX | DOFMask.TransY | DOFMask.TransY
-			elif dofMask == 'RotAll':
-				dofMask = dofMask | DOFMask.RotX | DOFMask.RotY | DOFMask.RotY
-			elif dofMask == 'All':
-				dofMask = (dofMask | DOFMask.TransX | DOFMask.TransY | DOFMask.TransY |
-					DOFMask.RotX | DOFMask.RotY | DOFMask.RotY)
-			else:
-				if not hasattr(DOFMask, dofStr):
+		dofMaskData = data.get('dofMask')
+		if dofMaskData is None:
+			dofMask = DOFMask.All
+		else:
+			dofMask = 0
+			if not isinstance(dofMaskData, list):
+				raise Exception('RigidBody DOF mask must be an array of strings.')
+			for dof in dofMaskData:
+				dofStr = str(dof)
+				try:
+					dofMask = dofMask | getattr(DOFMask, dofStr)
+				except AttributeError:
 					raise Exception('Invalid DOF mask "' + dofStr + '".')
-				dofMask = dofMask | getattr(DOFMask, dofStr)
 
 		layerStr = str(data['layer'])
-		if not hasattr(PhysicsLayer, layerStr):
+		try:
+			layer = getattr(PhysicsLayer, layerStr)
+		except AttributeError:
 			raise Exception('Invalid physics layer "' + layerStr + '".')
-		layer = getattr(PhysicsLayer, layerStr)
 
 		collisionGroup = readInt(data.get('collisionGroup', 0), 'collision group', 0)
 
@@ -146,10 +145,10 @@ def convertRigidBodyTemplate(convertContext, data):
 				'RigidBodyTemplate custom mass properties doesn\'t contain element ' + str(e) + '.')
 
 		friction = readFloat(data['friction'], 'friction', 0)
-		restitution = readFloat(data['restitution'], 'restitution', 0)
-		hardness = readFloat(data['hardness'], 'hardness', 0)
-		linearDamping = readFloat(data.get('linearDamping', -1), 'linear damping')
-		angularDamping = readFloat(data.get('angularDamping', -1), 'angular damping')
+		restitution = readFloat(data['restitution'], 'restitution', 0, 1)
+		hardness = readFloat(data['hardness'], 'hardness', 0, 1)
+		linearDamping = readFloat(data.get('linearDamping', -1), 'linear damping', 0, 1)
+		angularDamping = readFloat(data.get('angularDamping', -1), 'angular damping', 0, 1)
 		maxLinearVelocity = readFloat(data.get('maxLinearVelocity', -1), 'max linear velocity')
 		maxAngularVelocity = readFloat(data.get('maxAngularVelocity', -1), 'max angular velocity')
 
@@ -170,7 +169,7 @@ def convertRigidBodyTemplate(convertContext, data):
 	RigidBodyTemplate.StartShapesVector(builder, len(shapes))
 	for shape in reversed(shapes):
 		builder.PrependUOffsetTRelative(shape)
-	shapesOffset = builder.EndVector(builder)
+	shapesOffset = builder.EndVector()
 
 	RigidBodyTemplate.Start(builder)
 	RigidBodyTemplate.AddFlags(builder, flags)

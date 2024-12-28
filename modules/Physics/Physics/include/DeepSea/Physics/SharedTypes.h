@@ -60,22 +60,22 @@ typedef enum dsPhysicsActorType
  */
 typedef enum dsPhysicsDOFMask
 {
-	dsPhysicsDOFMask_None = 0,     ///< No degrees of freedom.
-	dsPhysicsDOFMask_TransX = 0x1, ///< Translation along the X axis.
-	dsPhysicsDOFMask_TransY = 0x2, ///< Translation along the Y axis.
-	dsPhysicsDOFMask_TransZ = 0x4, ///< Translation along the Z axis.
-	dsPhysicsDOFMask_RotX = 0x8,   ///< Rotation along the X axis.
-	dsPhysicsDOFMask_RotY = 0x10,  ///< Rotation along the Y axis.
-	dsPhysicsDOFMask_RotZ = 0x20,  ///< Rotationalong the Z axis.
+	dsPhysicsDOFMask_None = 0,         ///< No degrees of freedom.
+	dsPhysicsDOFMask_TranslateX = 0x1, ///< Translation along the X axis.
+	dsPhysicsDOFMask_TranslateY = 0x2, ///< Translation along the Y axis.
+	dsPhysicsDOFMask_TranslateZ = 0x4, ///< Translation along the Z axis.
+	dsPhysicsDOFMask_RotateX = 0x8,    ///< Rotation along the X axis.
+	dsPhysicsDOFMask_RotateY = 0x10,   ///< Rotation along the Y axis.
+	dsPhysicsDOFMask_RotateZ = 0x20,   ///< Rotationalong the Z axis.
 
 	/** Translation along all axes. */
-	dsPhysicsDOFMask_TransAll = dsPhysicsDOFMask_TransX | dsPhysicsDOFMask_TransY |
-		dsPhysicsDOFMask_TransZ,
+	dsPhysicsDOFMask_TranslateAll = dsPhysicsDOFMask_TranslateX | dsPhysicsDOFMask_TranslateY |
+		dsPhysicsDOFMask_TranslateZ,
 	/** Rotation along all axes. */
-	dsPhysicsDOFMask_RotAll = dsPhysicsDOFMask_RotX | dsPhysicsDOFMask_RotY |
-		dsPhysicsDOFMask_RotZ,
+	dsPhysicsDOFMask_RotateAll = dsPhysicsDOFMask_RotateX | dsPhysicsDOFMask_RotateY |
+		dsPhysicsDOFMask_RotateZ,
 	/** Translation and rotation along all axes. */
-	dsPhysicsDOFMask_All = dsPhysicsDOFMask_TransAll | dsPhysicsDOFMask_RotAll
+	dsPhysicsDOFMask_All = dsPhysicsDOFMask_TranslateAll | dsPhysicsDOFMask_RotateAll
 } dsPhysicsDOFMask;
 
 /**

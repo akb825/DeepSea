@@ -43,7 +43,7 @@ class FixedConstraint(object):
         return None
 
     # FixedConstraint
-    def FirstRotation(self):
+    def FirstOrientation(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             x = o + self._tab.Pos
@@ -72,7 +72,7 @@ class FixedConstraint(object):
         return None
 
     # FixedConstraint
-    def SecondRotation(self):
+    def SecondOrientation(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             x = o + self._tab.Pos
@@ -100,11 +100,11 @@ def FixedConstraintAddFirstPosition(builder, firstPosition):
 def AddFirstPosition(builder, firstPosition):
     FixedConstraintAddFirstPosition(builder, firstPosition)
 
-def FixedConstraintAddFirstRotation(builder, firstRotation):
-    builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(firstRotation), 0)
+def FixedConstraintAddFirstOrientation(builder, firstOrientation):
+    builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(firstOrientation), 0)
 
-def AddFirstRotation(builder, firstRotation):
-    FixedConstraintAddFirstRotation(builder, firstRotation)
+def AddFirstOrientation(builder, firstOrientation):
+    FixedConstraintAddFirstOrientation(builder, firstOrientation)
 
 def FixedConstraintAddSecondActor(builder, secondActor):
     builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(secondActor), 0)
@@ -118,11 +118,11 @@ def FixedConstraintAddSecondPosition(builder, secondPosition):
 def AddSecondPosition(builder, secondPosition):
     FixedConstraintAddSecondPosition(builder, secondPosition)
 
-def FixedConstraintAddSecondRotation(builder, secondRotation):
-    builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(secondRotation), 0)
+def FixedConstraintAddSecondOrientation(builder, secondOrientation):
+    builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(secondOrientation), 0)
 
-def AddSecondRotation(builder, secondRotation):
-    FixedConstraintAddSecondRotation(builder, secondRotation)
+def AddSecondOrientation(builder, secondOrientation):
+    FixedConstraintAddSecondOrientation(builder, secondOrientation)
 
 def FixedConstraintEnd(builder):
     return builder.EndObject()

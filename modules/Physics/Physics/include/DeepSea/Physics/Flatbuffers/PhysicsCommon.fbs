@@ -83,18 +83,43 @@ enum MotionType : ubyte
 // Enum for a mask of degrees of freedom for physics actors.
 enum DOFMask : ubyte
 {
+	// No degrees of freedom.
+	None = 0,
 	// Translation along the X axis.
-	TransX = 0,
+	TranslateX = 1,
 	// Translation along the Y axis.
-	TransY = 1,
+	TranslateY = 2,
 	// Translation along the Z axis.
-	TransZ = 2,
+	TranslateZ = 4,
+	// Translation along all axes.
+	TranslateAll = 7,
 	// Rotation along the X axis.
-	RotX = 3,
+	RotlateX = 8,
 	// Rotation along the Y axis.
-	RotY = 4,
+	RotlateY = 16,
 	// Rotation along the Z axis.
-	RotZ = 5
+	RotlateZ = 32,
+	// Rotation along all axes.
+	RotateAll = 56,
+	// Translation and rotation along all axes.
+	All = 63
+}
+
+// Enum for a degree of freedom for physics actors.
+enum DOF : ubyte
+{
+	// Translation along the X axis.
+	TranslateX,
+	// Translation along the Y axis.
+	TranslateY,
+	// Translation along the Z axis.
+	TranslateZ,
+	// Rotation along the X axis.
+	RotlateX,
+	// Rotation along the Y axis.
+	RotlateY,
+	// Rotation along the Z axis.
+	RotlateZ
 }
 
 // Enum describing a layer of physics objects.

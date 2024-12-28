@@ -99,45 +99,92 @@ inline const char *EnumNameMotionType(MotionType e) {
 }
 
 enum class DOFMask : uint8_t {
-  TransX = 0,
-  TransY = 1,
-  TransZ = 2,
-  RotX = 3,
-  RotY = 4,
-  RotZ = 5,
-  MIN = TransX,
-  MAX = RotZ
+  None = 0,
+  TranslateX = 1,
+  TranslateY = 2,
+  TranslateZ = 4,
+  TranslateAll = 7,
+  RotlateX = 8,
+  RotlateY = 16,
+  RotlateZ = 32,
+  RotateAll = 56,
+  All = 63,
+  MIN = None,
+  MAX = All
 };
 
-inline const DOFMask (&EnumValuesDOFMask())[6] {
+inline const DOFMask (&EnumValuesDOFMask())[10] {
   static const DOFMask values[] = {
-    DOFMask::TransX,
-    DOFMask::TransY,
-    DOFMask::TransZ,
-    DOFMask::RotX,
-    DOFMask::RotY,
-    DOFMask::RotZ
+    DOFMask::None,
+    DOFMask::TranslateX,
+    DOFMask::TranslateY,
+    DOFMask::TranslateZ,
+    DOFMask::TranslateAll,
+    DOFMask::RotlateX,
+    DOFMask::RotlateY,
+    DOFMask::RotlateZ,
+    DOFMask::RotateAll,
+    DOFMask::All
   };
   return values;
 }
 
-inline const char * const *EnumNamesDOFMask() {
+inline const char *EnumNameDOFMask(DOFMask e) {
+  switch (e) {
+    case DOFMask::None: return "None";
+    case DOFMask::TranslateX: return "TranslateX";
+    case DOFMask::TranslateY: return "TranslateY";
+    case DOFMask::TranslateZ: return "TranslateZ";
+    case DOFMask::TranslateAll: return "TranslateAll";
+    case DOFMask::RotlateX: return "RotlateX";
+    case DOFMask::RotlateY: return "RotlateY";
+    case DOFMask::RotlateZ: return "RotlateZ";
+    case DOFMask::RotateAll: return "RotateAll";
+    case DOFMask::All: return "All";
+    default: return "";
+  }
+}
+
+enum class DOF : uint8_t {
+  TranslateX = 0,
+  TranslateY = 1,
+  TranslateZ = 2,
+  RotlateX = 3,
+  RotlateY = 4,
+  RotlateZ = 5,
+  MIN = TranslateX,
+  MAX = RotlateZ
+};
+
+inline const DOF (&EnumValuesDOF())[6] {
+  static const DOF values[] = {
+    DOF::TranslateX,
+    DOF::TranslateY,
+    DOF::TranslateZ,
+    DOF::RotlateX,
+    DOF::RotlateY,
+    DOF::RotlateZ
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesDOF() {
   static const char * const names[7] = {
-    "TransX",
-    "TransY",
-    "TransZ",
-    "RotX",
-    "RotY",
-    "RotZ",
+    "TranslateX",
+    "TranslateY",
+    "TranslateZ",
+    "RotlateX",
+    "RotlateY",
+    "RotlateZ",
     nullptr
   };
   return names;
 }
 
-inline const char *EnumNameDOFMask(DOFMask e) {
-  if (::flatbuffers::IsOutRange(e, DOFMask::TransX, DOFMask::RotZ)) return "";
+inline const char *EnumNameDOF(DOF e) {
+  if (::flatbuffers::IsOutRange(e, DOF::TranslateX, DOF::RotlateZ)) return "";
   const size_t index = static_cast<size_t>(e);
-  return EnumNamesDOFMask()[index];
+  return EnumNamesDOF()[index];
 }
 
 enum class PhysicsLayer : uint8_t {

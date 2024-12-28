@@ -34,7 +34,7 @@ def convertRigidBody(convertContext, data):
 	- motionType: the type of motion for the rigid body. See the dsPhysicsMotionType enum for valid
 	  values, omitting the type prefix.
 	- dofMask: list of DOF mask values to apply. See the dsPhysicsDOFMask enum for valid values,
-	  omitting the type prefix.
+	  omitting the type prefix. Defaults to ["All"].
 	- layer: the physics layer the rigid body is a member of. See the dsPhysicsLayer enum for
 	  valid values, omitting the type prefix.
 	- collisionGroup: integer ID for the collision group. Defaults to 0 if not provided.
@@ -114,37 +114,36 @@ def convertRigidBody(convertContext, data):
 				raise Exception('RigidBody flags must be an array of strings.')
 			for flag in flagsData:
 				flagStr = str(flag)
-				if not hasattr(RigidBodyFlags, flagStr):
+				try:
+					flags = flags | getattr(RigidBodyFlags, flagStr)
+				except AttributeError:
 					raise Exception('Invalid rigid body flag "' + flagStr + '".')
-				flags = flags | getattr(RigidBodyFlags, flagStr)
 
 		motionTypeStr = str(data['motionType'])
-		if not hasattr(MotionType, motionTypeStr):
+		try:
+			motionType = getattr(MotionType, motionTypeStr)
+		except AttributeError:
 			raise Exception('Invalid motion type "' + motionTypeStr + '".')
-		motionType = getattr(MotionType, motionTypeStr)
 
-		dofMask = 0
-		dofMaskData = data['dofMask']
-		if not isinstance(dofMaskData, list):
-			raise Exception('RigidBody DOF mask must be an array of strings.')
-		for dof in dofMaskData:
-			dofStr = str(dof)
-			if dofStr == 'TransAll':
-				dofMask = dofMask | DOFMask.TransX | DOFMask.TransY | DOFMask.TransY
-			elif dofMask == 'RotAll':
-				dofMask = dofMask | DOFMask.RotX | DOFMask.RotY | DOFMask.RotY
-			elif dofMask == 'All':
-				dofMask = (dofMask | DOFMask.TransX | DOFMask.TransY | DOFMask.TransY |
-					DOFMask.RotX | DOFMask.RotY | DOFMask.RotY)
-			else:
-				if not hasattr(DOFMask, dofStr):
+		dofMaskData = data.get('dofMask')
+		if dofMaskData is None:
+			dofMask = DOFMask.All
+		else:
+			dofMask = 0
+			if not isinstance(dofMaskData, list):
+				raise Exception('RigidBody DOF mask must be an array of strings.')
+			for dof in dofMaskData:
+				dofStr = str(dof)
+				try:
+					dofMask = dofMask | getattr(DOFMask, dofStr)
+				except AttributeError:
 					raise Exception('Invalid DOF mask "' + dofStr + '".')
-				dofMask = dofMask | getattr(DOFMask, dofStr)
 
 		layerStr = str(data['layer'])
-		if not hasattr(PhysicsLayer, layerStr):
+		try:
+			layer = getattr(PhysicsLayer, layerStr)
+		except AttributeError:
 			raise Exception('Invalid physics layer "' + layerStr + '".')
-		layer = getattr(PhysicsLayer, layerStr)
 
 		collisionGroup = readInt(data.get('collisionGroup', 0), 'collision group', 0)
 
@@ -162,9 +161,7 @@ def convertRigidBody(convertContext, data):
 			if not isinstance(positionData, list) or len(positionData) != 3:
 				raise Exception(
 					'RigidBody position must ben an array of three floats.')
-			position = (readFloat(positionData[0], 'position'),
-				readFloat(positionData[1], 'position'),
-				readFloat(positionData[2], 'position'))
+			position = (readFloat(value, 'position') for value in positionData)
 		else:
 			position = None
 
@@ -173,9 +170,8 @@ def convertRigidBody(convertContext, data):
 			if not isinstance(orientationData, list) or len(orientationData) != 3:
 				raise Exception(
 					'RigidBody orientation must ben an array of three floats.')
-			orientation = eulerToQuaternion(readFloat(orientationData[0], 'orientation'),
-				readFloat(orientationData[1], 'orientation'),
-				readFloat(orientationData[2], 'orientation'))
+			orientation = eulerToQuaternion(*(readFloat(value, 'orientation')
+				for value in orientationData))
 		else:
 			orientation = None
 
@@ -184,9 +180,7 @@ def convertRigidBody(convertContext, data):
 			if not isinstance(scaleData, list) or len(scaleData) != 3:
 				raise Exception(
 					'RigidBody scale must ben an array of three floats.')
-			scale = (readFloat(scaleData[0], 'scale'),
-				readFloat(scaleData[1], 'scale'),
-				readFloat(scaleData[2], 'scale'))
+			scale = (readFloat(value, 'scale') for value in scaleData)
 		else:
 			scale = None
 
@@ -195,9 +189,7 @@ def convertRigidBody(convertContext, data):
 			if not isinstance(linearVelocityData, list) or len(linearVelocityData) != 3:
 				raise Exception(
 					'RigidBody linear velocity must ben an array of three floats.')
-			linearVelocity = (readFloat(linearVelocityData[0], 'linear velocity'),
-				readFloat(linearVelocityData[1], 'linear velocity'),
-				readFloat(linearVelocityData[2], 'linear velocity'))
+			linearVelocity = (readFloat(value, 'linear velocity') for value in linearVelocityData)
 		else:
 			linearVelocity = None
 
@@ -206,17 +198,16 @@ def convertRigidBody(convertContext, data):
 			if not isinstance(angularVelocityData, list) or len(angularVelocityData) != 3:
 				raise Exception(
 					'RigidBody angular velocity must ben an array of three floats.')
-			angularVelocity = (readFloat(angularVelocityData[0], 'angular velocity'),
-				readFloat(angularVelocityData[1], 'angular velocity'),
-				readFloat(angularVelocityData[2], 'angular velocity'))
+			angularVelocity = (readFloat(value, 'angular velocity')
+				for value in angularVelocityData)
 		else:
 			angularVelocity = None
 
 		friction = readFloat(data['friction'], 'friction', 0)
-		restitution = readFloat(data['restitution'], 'restitution', 0)
-		hardness = readFloat(data['hardness'], 'hardness', 0)
-		linearDamping = readFloat(data.get('linearDamping', -1), 'linear damping')
-		angularDamping = readFloat(data.get('angularDamping', -1), 'angular damping')
+		restitution = readFloat(data['restitution'], 'restitution', 0, 1)
+		hardness = readFloat(data['hardness'], 'hardness', 0, 1)
+		linearDamping = readFloat(data.get('linearDamping', -1), 'linear damping', 0, 1)
+		angularDamping = readFloat(data.get('angularDamping', -1), 'angular damping', 0, 1)
 		maxLinearVelocity = readFloat(data.get('maxLinearVelocity', -1), 'max linear velocity')
 		maxAngularVelocity = readFloat(data.get('maxAngularVelocity', -1), 'max angular velocity')
 
@@ -234,15 +225,12 @@ def convertRigidBody(convertContext, data):
 	except KeyError as e:
 		raise Exception('RigidBody data doesn\'t contain element ' + str(e) + '.')
 
-	if group:
-		groupOffset = builder.CreateString(group)
-	else:
-		groupOffset = 0
+	groupOffset = builder.CreateString(group) if group else 0
 
 	RigidBody.StartShapesVector(builder, len(shapes))
 	for shape in reversed(shapes):
 		builder.PrependUOffsetTRelative(shape)
-	shapesOffset = builder.EndVector(builder)
+	shapesOffset = builder.EndVector()
 
 	RigidBody.Start(builder)
 	RigidBody.AddGroup(builder, groupOffset)

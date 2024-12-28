@@ -35,8 +35,8 @@ static dsPhysicsConstraint* dsSliderPhysicsConstraint_clone(const dsPhysicsConst
 	const dsSliderPhysicsConstraint* sliderConstraint =
 		(const dsSliderPhysicsConstraint*)constraint;
 	return (dsPhysicsConstraint*)dsSliderPhysicsConstraint_create(constraint->engine, allocator,
-		firstActor, &sliderConstraint->firstPosition, &sliderConstraint->firstRotation,
-		secondActor, &sliderConstraint->secondPosition, &sliderConstraint->secondRotation,
+		firstActor, &sliderConstraint->firstPosition, &sliderConstraint->firstOrientation,
+		secondActor, &sliderConstraint->secondPosition, &sliderConstraint->secondOrientation,
 		sliderConstraint->limitEnabled, sliderConstraint->minDistance,
 		sliderConstraint->maxDistance, sliderConstraint->limitStiffness,
 		sliderConstraint->limitDamping, sliderConstraint->motorType,
@@ -51,14 +51,14 @@ const dsPhysicsConstraintType* dsSliderPhysicsConstraint_type(void)
 
 dsSliderPhysicsConstraint* dsSliderPhysicsConstraint_create(dsPhysicsEngine* engine,
 	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
-	const dsQuaternion4f* firstRotation, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, const dsQuaternion4f* secondRotation, bool limitEnabled,
+	const dsQuaternion4f* firstOrientation, const dsPhysicsActor* secondActor,
+	const dsVector3f* secondPosition, const dsQuaternion4f* secondOrientation, bool limitEnabled,
 	float minDistance, float maxDistance, float limitStiffness, float limitDamping,
 	dsPhysicsConstraintMotorType motorType, float motorTarget, float maxMotorForce)
 {
 	if (!engine || !engine->createSliderConstraintFunc ||
-		!engine->destroySliderConstraintFunc || !firstPosition || !firstRotation ||
-		!secondPosition || !secondRotation || minDistance > 0.0f || maxDistance< 0.0f ||
+		!engine->destroySliderConstraintFunc || !firstPosition || !firstOrientation ||
+		!secondPosition || !secondOrientation || minDistance > 0.0f || maxDistance< 0.0f ||
 		limitStiffness < 0.0f || limitDamping < 0.0f || limitDamping > 1.0f ||
 		motorType < dsPhysicsConstraintMotorType_Disabled ||
 		motorType > dsPhysicsConstraintMotorType_Velocity || maxMotorForce < 0.0f)
@@ -71,7 +71,7 @@ dsSliderPhysicsConstraint* dsSliderPhysicsConstraint_create(dsPhysicsEngine* eng
 		allocator = engine->allocator;
 
 	return engine->createSliderConstraintFunc(engine, allocator, firstActor, firstPosition,
-		firstRotation, secondActor, secondPosition, secondRotation, limitEnabled, minDistance,
+		firstOrientation, secondActor, secondPosition, secondOrientation, limitEnabled, minDistance,
 		maxDistance, limitStiffness, limitDamping, motorType, motorTarget, maxMotorForce);
 }
 
@@ -125,18 +125,18 @@ bool dsSliderPhysicsConstraint_setMotor(dsSliderPhysicsConstraint* constraint,
 
 void dsSliderPhysicsConstraint_initialize(dsSliderPhysicsConstraint* constraint,
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstRotation,
+	const dsVector3f* firstPosition, const dsQuaternion4f* firstOrientation,
 	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
-	const dsQuaternion4f* secondRotation, bool limitEnabled, float minDistance, float maxDistance,
+	const dsQuaternion4f* secondOrientation, bool limitEnabled, float minDistance, float maxDistance,
 	float limitStiffness, float limitDamping, dsPhysicsConstraintMotorType motorType,
 	float motorTarget, float maxMotorForce, void* impl)
 {
 	DS_ASSERT(constraint);
 	DS_ASSERT(engine);
 	DS_ASSERT(firstPosition);
-	DS_ASSERT(firstRotation);
+	DS_ASSERT(firstOrientation);
 	DS_ASSERT(secondPosition);
-	DS_ASSERT(secondRotation);
+	DS_ASSERT(secondOrientation);
 	DS_ASSERT(minDistance <= 0.0f);
 	DS_ASSERT(maxDistance >= 0.0f);
 	DS_ASSERT(limitStiffness >= 0.0f);
@@ -154,8 +154,8 @@ void dsSliderPhysicsConstraint_initialize(dsSliderPhysicsConstraint* constraint,
 
 	constraint->firstPosition = *firstPosition;
 	constraint->secondPosition = *secondPosition;
-	constraint->firstRotation = *firstRotation;
-	constraint->secondRotation = *secondRotation;
+	constraint->firstOrientation = *firstOrientation;
+	constraint->secondOrientation = *secondOrientation;
 	constraint->limitEnabled = limitEnabled;
 	constraint->minDistance = minDistance;
 	constraint->maxDistance = maxDistance;
