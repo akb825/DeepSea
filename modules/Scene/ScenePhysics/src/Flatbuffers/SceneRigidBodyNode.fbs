@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
+
 namespace DeepSeaScenePhysics;
 
 // Struct describing a node that synchronizes the transform with a rigid body.
@@ -21,6 +23,9 @@ table RigidBodyNode
 {
 	// The rigid body for the node.
 	rigidBody : string (required);
+
+	// The child nodes for the rigid body group.
+	children : [DeepSeaScene.ObjectData];
 
 	// The item lists to process the node with.
 	itemLists : [string];

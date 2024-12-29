@@ -23,6 +23,7 @@
 
 #include <DeepSea/Physics/Flatbuffers/PhysicsFlatbufferHelpers.h>
 
+#include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 
 #include <DeepSea/ScenePhysics/ScenePhysicsConstraint.h>
@@ -45,8 +46,8 @@
 #pragma warning(pop)
 #endif
 
-dsSceneNode* dsSceneRigidBodyGroupNode_load(const dsSceneLoadContext*,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*,
+dsSceneNode* dsSceneRigidBodyGroupNode_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void*, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
@@ -169,7 +170,38 @@ dsSceneNode* dsSceneRigidBodyGroupNode_load(const dsSceneLoadContext*,
 		}
 	}
 
-	return reinterpret_cast<dsSceneNode*>(dsSceneRigidBodyGroupNode_create(allocator,
+	auto node = reinterpret_cast<dsSceneNode*>(dsSceneRigidBodyGroupNode_create(allocator,
 		DeepSeaPhysics::convert(fbRigidBodyGroupNode->motionType()), rigidBodyTemplates,
 		rigidBodyCount, constraints, constraintCount, itemLists, itemListCount));
+	if (!node)
+		return nullptr;
+
+	auto fbChildren = fbRigidBodyGroupNode->children();
+	if (fbChildren)
+	{
+		for (auto fbNode : *fbChildren)
+		{
+			if (!fbNode)
+				continue;
+
+			auto data = fbNode->data();
+			dsSceneNode* child = dsSceneNode_load(allocator, resourceAllocator, loadContext,
+				scratchData, fbNode->type()->c_str(), data->data(), data->size());
+			if (!child)
+			{
+				dsSceneNode_freeRef(node);
+				return nullptr;
+			}
+
+			bool success = dsSceneNode_addChild(node, child);
+			dsSceneNode_freeRef(child);
+			if (!success)
+			{
+				dsSceneNode_freeRef(node);
+				return nullptr;
+			}
+		}
+	}
+
+	return node;
 }

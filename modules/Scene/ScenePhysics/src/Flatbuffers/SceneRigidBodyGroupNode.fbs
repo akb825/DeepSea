@@ -15,6 +15,7 @@
  */
 
 include "DeepSea/Physics/Flatbuffers/PhysicsCommon.fbs";
+include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
 
 namespace DeepSeaScenePhysics;
 
@@ -29,6 +30,9 @@ table RigidBodyGroupNode
 
 	// The names of the constraints in the group.
 	constraints : [string];
+
+	// The child nodes for the rigid body group.
+	children : [DeepSeaScene.ObjectData];
 
 	// The item lists to process the node with.
 	itemLists : [string];

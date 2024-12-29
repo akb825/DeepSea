@@ -99,7 +99,7 @@ def convertRigidBodyTemplate(convertContext, data):
 		flagsData = data.get('flags')
 		if flagsData:
 			if not isinstance(flagsData, list):
-				raise Exception('RigidBodyTemplate flags must be an array of strings.')
+				raise Exception('RigidBodyTemplate "flags" must be an array of strings.')
 			for flag in flagsData:
 				flagStr = str(flag)
 				try:
@@ -119,7 +119,7 @@ def convertRigidBodyTemplate(convertContext, data):
 		else:
 			dofMask = 0
 			if not isinstance(dofMaskData, list):
-				raise Exception('RigidBody DOF mask must be an array of strings.')
+				raise Exception('RigidBody "DOFMask" must be an array of strings.')
 			for dof in dofMaskData:
 				dofStr = str(dof)
 				try:
@@ -139,10 +139,10 @@ def convertRigidBodyTemplate(convertContext, data):
 			massPropertiesType, massPropertiesOffset = convertCustomMassProperties(convertContext,
 				data.get('customMassProperties'), builder)
 		except (TypeError, ValueError):
-			raise Exception('RigidBodyTemplate custom mass properties must be an object.')
+			raise Exception('RigidBodyTemplate "customMassProperties" must be an object.')
 		except KeyError as e:
 			raise Exception(
-				'RigidBodyTemplate custom mass properties doesn\'t contain element ' + str(e) + '.')
+				'RigidBodyTemplate "customMassProperties" doesn\'t contain element ' + str(e) + '.')
 
 		friction = readFloat(data['friction'], 'friction', 0)
 		restitution = readFloat(data['restitution'], 'restitution', 0, 1)
@@ -158,9 +158,10 @@ def convertRigidBodyTemplate(convertContext, data):
 			for shapeData in shapesData:
 				shapes.append(convertShapeInstance(convertContext, shapeData, builder))
 		except (AttributeError, TypeError, ValueError):
-			raise Exception('RigidBodyTemplate shape instances must be an array of objects.')
+			raise Exception('RigidBodyTemplate "shape" must be an array of objects.')
 		except KeyError as e:
-			raise Exception('RigidBodyTemplate shape instance doesn\'t contain element ' + str(e) + '.')
+			raise Exception(
+				'RigidBodyTemplate "shapes" instance doesn\'t contain element ' + str(e) + '.')
 	except (TypeError, ValueError):
 		raise Exception('RigidBodyTemplate data must be an object.')
 	except KeyError as e:

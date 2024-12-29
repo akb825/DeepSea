@@ -23,7 +23,7 @@ def convertPhysicsBoxOffset(convertContext, data, builder):
 	try:
 		halfExtentsData = data['halfExtents']
 		if not isinstance(halfExtentsData, list) or len(halfExtentsData) != 3:
-			raise Exception('PhysicsBox halfExtents must be an array of three floats.')
+			raise Exception('PhysicsBox "halfExtents" must be an array of three floats.')
 		halfExtents = (readFloat(value, 'half extents', 0) for value in halfExtentsData)
 
 		convexRadius = readFloat(data.get('convexRadius', -1), 'convex radius')

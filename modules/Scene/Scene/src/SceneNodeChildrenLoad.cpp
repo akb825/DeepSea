@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Aaron Barany
+ * Copyright 2022-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ bool dsSceneNodeChildren_load(const dsSceneLoadContext* loadContext,
 	if (!DeepSeaScene::VerifyNodeChildrenBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid transform node children flatbuffer format.");
+		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid node children flatbuffer format.");
 		return false;
 	}
 

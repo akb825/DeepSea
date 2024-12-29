@@ -245,15 +245,56 @@ The following custom scene resource types are provided with the members that are
 The following scene node types are provided with the members that are expected:
 
 * `"RigidBodyGroupNode"`: node containing multiple rigid bodies and constraints.
-	* `motionType`: the motion type for rigid bodies within the group. See `dsPhysicsMotionType` for valid enum values, removing the prefix.
+	* `motionType`: the motion type for rigid bodies within the group. See `dsPhysicsMotionType` for valid enum values, omitting the type prefix.
 	* `rigidBodyTemplates`: array of string names for the rigid body templates that will be instantiated for each instance of the group node within the scene graph.
 	* `constraints`: array of string names for the constraints that will be instantiated for each instance of the group node within the scene graph.
+	* `children`: an array of child nodes. Each element is an object with the following elements:
+		* `nodeType`: the name of the node type.
+		* `data`: the data for the node.
 	* `itemLists`: array of item list names to add the node to.
 * `"RigidBodyNode"`: node using a rigid body within a parent `RigidBodyGroupNode`.
 	* `rigidBody`: the name of the rigid body within the parent group node.
 	* `itemLists`: array of item list names to add the node to.
+* `"RigidBodyTemplateNode"`: node using a rigid body template from scene resources to instantiate the template without being a part of a `dsRigidBodyGroupNode`.
+	* `rigidBody`: the name of the rigid body template  within the scene resources.
+	* `itemLists`: array of item list names to add the node to.
 * `"UniqueRigidBodyNode"`: node using a rigid body from scene resources intended to be used only once within a scene graph.
 	* `rigidBody`: the name of the rigid body within the scene resources.
+	* `itemLists`: array of item list names to add the node to.
+* `"PhysicsConstraintNode"`: node to instantiate a constraint, potentially across multiple sub-trees of the scene graph.
+	* `constraint`: the name of the base constraint.
+	* `firstActor`: the first actor for the constraint. This may be unset if using the existing first actor of the constraint, or an object with the following elements depending on how the actor is referenced:
+		* For referencing an instance as part of a rigid body group node:
+			* `rootNode`: the name of a distinct root node. This may be unset to use the rigid body group node.
+			* `rigidBodyGroupNode`: the name of the rigid body group node.
+			* `instance`: the name of the instance within the rigid body group node.
+		* For referencing an actor (such as a rigid body) resource:
+			* `actor`: the name of the actor.
+	* `firstConnectedConstraint`: the first connected constraint. This may be unset if using the existing first connected constraint or if the first connected constraint is unused. Otherwise it is an object with the following elements depending on how the constraint is referenced:
+		* For referencing an instance as part of a rigid body group node:
+			* `rootNode`: the name of a distinct root node. This may be unset to use the rigid body group node.
+			* `rigidBodyGroupNode`: the name of the rigid body group node.
+			* `instance`: the name of the instance within the rigid body group node.
+		* For referencing a constraint resource:
+			* `constraint`: the name of the constraint.
+		* For referencing another constraint node:
+			* `constraintNode`: the name of the constraint node.
+	* `secondActor`: the second actor for the constraint. This may be unset if using the existing second actor of the constraint, or an object with the following elements depending on how the actor is referenced:
+		* For referencing an instance as part of a rigid body group node:
+			* `rootNode`: the name of a distinct root node. This may be unset to use the rigid body group node.
+			* `rigidBodyGroupNode`: the name of the rigid body group node.
+			* `instance`: the name of the instance within the rigid body group node.
+		* For referencing an actor (such as a rigid body) resource:
+			* `actor`: the name of the actor.
+	* `secondConnectedConstraint`: the second connected constraint. This may be unset if using the existing second connected constraint or if the second connected constraint is unused. Otherwise it is an object with the following elements depending on how the constraint is referenced:
+		* For referencing an instance as part of a rigid body group node:
+			* `rootNode`: the name of a distinct root node. This may be unset to use the rigid body group node.
+			* `rigidBodyGroupNode`: the name of the rigid body group node.
+			* `instance`: the name of the instance within the rigid body group node.
+		* For referencing a constraint resource:
+			* `constraint`: the name of the constraint.
+		* For referencing another constraint node:
+			* `constraintNode`: the name of the constraint node.
 	* `itemLists`: array of item list names to add the node to.
 
 ## Scene Item Lists

@@ -111,7 +111,7 @@ def convertRigidBody(convertContext, data):
 		flagsData = data.get('flags')
 		if flagsData:
 			if not isinstance(flagsData, list):
-				raise Exception('RigidBody flags must be an array of strings.')
+				raise Exception('RigidBody "flags" must be an array of strings.')
 			for flag in flagsData:
 				flagStr = str(flag)
 				try:
@@ -131,7 +131,7 @@ def convertRigidBody(convertContext, data):
 		else:
 			dofMask = 0
 			if not isinstance(dofMaskData, list):
-				raise Exception('RigidBody DOF mask must be an array of strings.')
+				raise Exception('RigidBody "DOFMask" must be an array of strings.')
 			for dof in dofMaskData:
 				dofStr = str(dof)
 				try:
@@ -151,16 +151,16 @@ def convertRigidBody(convertContext, data):
 			massPropertiesType, massPropertiesOffset = convertCustomMassProperties(convertContext,
 				data.get('customMassProperties'), builder)
 		except (TypeError, ValueError):
-			raise Exception('RigidBody custom mass properties must be an object.')
+			raise Exception('RigidBody "customMassProperties" must be an object.')
 		except KeyError as e:
 			raise Exception(
-				'RigidBody custom mass properties doesn\'t contain element ' + str(e) + '.')
+				'RigidBody "customMassProperties" doesn\'t contain element ' + str(e) + '.')
 
 		positionData = data.get('position')
 		if positionData:
 			if not isinstance(positionData, list) or len(positionData) != 3:
 				raise Exception(
-					'RigidBody position must ben an array of three floats.')
+					'RigidBody "position" ust ben an array of three floats.')
 			position = (readFloat(value, 'position') for value in positionData)
 		else:
 			position = None
@@ -169,7 +169,7 @@ def convertRigidBody(convertContext, data):
 		if orientationData:
 			if not isinstance(orientationData, list) or len(orientationData) != 3:
 				raise Exception(
-					'RigidBody orientation must ben an array of three floats.')
+					'RigidBody "orientation" must ben an array of three floats.')
 			orientation = eulerToQuaternion(*(readFloat(value, 'orientation')
 				for value in orientationData))
 		else:
@@ -178,8 +178,7 @@ def convertRigidBody(convertContext, data):
 		scaleData = data.get('scale')
 		if scaleData:
 			if not isinstance(scaleData, list) or len(scaleData) != 3:
-				raise Exception(
-					'RigidBody scale must ben an array of three floats.')
+				raise Exception('RigidBody "scale" must ben an array of three floats.')
 			scale = (readFloat(value, 'scale') for value in scaleData)
 		else:
 			scale = None
@@ -188,7 +187,7 @@ def convertRigidBody(convertContext, data):
 		if linearVelocityData:
 			if not isinstance(linearVelocityData, list) or len(linearVelocityData) != 3:
 				raise Exception(
-					'RigidBody linear velocity must ben an array of three floats.')
+					'RigidBody "linearVelocity" must ben an array of three floats.')
 			linearVelocity = (readFloat(value, 'linear velocity') for value in linearVelocityData)
 		else:
 			linearVelocity = None
@@ -197,7 +196,7 @@ def convertRigidBody(convertContext, data):
 		if angularVelocityData:
 			if not isinstance(angularVelocityData, list) or len(angularVelocityData) != 3:
 				raise Exception(
-					'RigidBody angular velocity must ben an array of three floats.')
+					'RigidBody "angularVelocity" must ben an array of three floats.')
 			angularVelocity = (readFloat(value, 'angular velocity')
 				for value in angularVelocityData)
 		else:
@@ -217,9 +216,9 @@ def convertRigidBody(convertContext, data):
 			for shapeData in shapesData:
 				shapes.append(convertShapeInstance(convertContext, shapeData, builder))
 		except (AttributeError, TypeError, ValueError):
-			raise Exception('RigidBody shape instances must be an array of objects.')
+			raise Exception('RigidBody "shapes" must be an array of objects.')
 		except KeyError as e:
-			raise Exception('RigidBody shape instance doesn\'t contain element ' + str(e) + '.')
+			raise Exception('RigidBody "shapes" instance doesn\'t contain element ' + str(e) + '.')
 	except (TypeError, ValueError):
 		raise Exception('RigidBody data must be an object.')
 	except KeyError as e:

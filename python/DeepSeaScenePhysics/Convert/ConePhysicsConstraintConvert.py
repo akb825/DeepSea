@@ -46,13 +46,13 @@ def convertConePhysicsConstraint(convertContext, data):
 		firstPositionData = data['firstPosition']
 		if not isinstance(firstPositionData, list) or len(firstPositionData) != 3:
 			raise Exception(
-				'ConePhysicsConstraint firstPosition must be an array of three floats.')
+				'ConePhysicsConstraint "firstPosition" must be an array of three floats.')
 		firstPosition = (readFloat(value, 'first position') for value in firstPositionData)
 
 		firstOrientationData = data['firstOrientation']
 		if not isinstance(firstOrientationData, list) or len(firstOrientationData) != 3:
 			raise Exception(
-				'ConePhysicsConstraint firstOrientation must be an array of three floats.')
+				'ConePhysicsConstraint "firstOrientation" must be an array of three floats.')
 		firstOrientation = eulerToQuaternion(*(readFloat(value, 'first orientation')
 			for value in firstOrientationData))
 
@@ -61,13 +61,13 @@ def convertConePhysicsConstraint(convertContext, data):
 		secondPositionData = data['secondPosition']
 		if not isinstance(secondPositionData, list) or len(secondPositionData) != 3:
 			raise Exception(
-				'ConePhysicsConstraint secondPosition must be an array of three floats.')
+				'ConePhysicsConstraint "secondPosition" must be an array of three floats.')
 		secondPosition = (readFloat(value, 'second position') for value in secondPositionData)
 
 		secondOrientationData = data['secondOrientation']
 		if not isinstance(secondOrientationData, list) or len(secondOrientationData) != 3:
 			raise Exception(
-				'ConePhysicsConstraint secondOrientation must be an array of three floats.')
+				'ConePhysicsConstraint "secondOrientation" must be an array of three floats.')
 		secondOrientation = eulerToQuaternion(*(readFloat(value, 'second orientation')
 			for value in secondOrientationData))
 

@@ -103,7 +103,10 @@ dsSceneNode* dsSceneAnimationTransformNode_load(const dsSceneLoadContext* loadCo
 			bool success = dsSceneNode_addChild(node, child);
 			dsSceneNode_freeRef(child);
 			if (!success)
+			{
+				dsSceneNode_freeRef(node);
 				return nullptr;
+			}
 		}
 	}
 

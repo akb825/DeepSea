@@ -32,8 +32,33 @@ class RigidBodyNode(object):
         return None
 
     # RigidBodyNode
-    def ItemLists(self, j):
+    def Children(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        if o != 0:
+            x = self._tab.Vector(o)
+            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
+            x = self._tab.Indirect(x)
+            from DeepSeaScene.ObjectData import ObjectData
+            obj = ObjectData()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+    # RigidBodyNode
+    def ChildrenLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # RigidBodyNode
+    def ChildrenIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        return o == 0
+
+    # RigidBodyNode
+    def ItemLists(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             a = self._tab.Vector(o)
             return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
@@ -41,18 +66,18 @@ class RigidBodyNode(object):
 
     # RigidBodyNode
     def ItemListsLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # RigidBodyNode
     def ItemListsIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         return o == 0
 
 def RigidBodyNodeStart(builder):
-    builder.StartObject(2)
+    builder.StartObject(3)
 
 def Start(builder):
     RigidBodyNodeStart(builder)
@@ -63,8 +88,20 @@ def RigidBodyNodeAddRigidBody(builder, rigidBody):
 def AddRigidBody(builder, rigidBody):
     RigidBodyNodeAddRigidBody(builder, rigidBody)
 
+def RigidBodyNodeAddChildren(builder, children):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(children), 0)
+
+def AddChildren(builder, children):
+    RigidBodyNodeAddChildren(builder, children)
+
+def RigidBodyNodeStartChildrenVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
+def StartChildrenVector(builder, numElems):
+    return RigidBodyNodeStartChildrenVector(builder, numElems)
+
 def RigidBodyNodeAddItemLists(builder, itemLists):
-    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
 
 def AddItemLists(builder, itemLists):
     RigidBodyNodeAddItemLists(builder, itemLists)

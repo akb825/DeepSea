@@ -58,7 +58,7 @@ def convertPhysicsList(convertContext, data):
 
 		gravityData = data['gravity']
 		if not isinstance(gravityData, list) or len(gravityData) != 3:
-			raise Exception('PhysicsList data array of three floats.')
+			raise Exception('PhysicsList "gravity" must be an array of three floats.')
 		gravity = (readFloat(gravityData[0], 'gravity'), readFloat(gravityData[1], 'gravity'),
 			readFloat(gravityData[2], 'gravity'))
 

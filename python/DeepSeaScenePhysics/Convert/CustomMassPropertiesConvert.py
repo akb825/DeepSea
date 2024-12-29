@@ -29,7 +29,7 @@ def convertCustomMassProperties(convertContext, data, builder):
 	centeredInertiaData = data.get('centeredInertia')
 	if rotationPointShiftData:
 		if not isinstance(rotationPointShiftData, list) or len(rotationPointShiftData) != 3:
-			raise Exception('ShiftedMass rotation point shift must be an array of three floats.')
+			raise Exception('ShiftedMass "rotationPointShift" must be an array of three floats.')
 
 		rotationPointShift = (readFloat(value, "rotation point shift")
 			for value in rotationPointShiftData)
@@ -41,10 +41,10 @@ def convertCustomMassProperties(convertContext, data, builder):
 		return CustomMassProperties.ShiftedMass, ShiftedMass.End(builder)
 	elif centeredInertiaData:
 		if not isinstance(centeredInertiaData, list) or len(centeredInertiaData) != 3:
-			raise Exception('MassProperties centered inertia must be a 3x3 array of floats.')
+			raise Exception('MassProperties "centeredInertia" must be a 3x3 array of floats.')
 		for arr in centeredInertiaData:
 			if not isinstance(arr, list) or len(arr) != 3:
-				raise Exception('MassProperties centered inertia must be a 3x3 array of floats.')
+				raise Exception('MassProperties "centeredInertia" must be a 3x3 array of floats.')
 
 		centeredInertiaList = []
 		for i in range(0, 3):
@@ -56,7 +56,7 @@ def convertCustomMassProperties(convertContext, data, builder):
 		centerOfMassData = data.get('centerOfMass')
 		if centerOfMassData:
 			if not isinstance(centerOfMassData, list) or len(centerOfMassData) != 3:
-				raise Exception('MassProperties center of mass must be an array of three floats.')
+				raise Exception('MassProperties "centerOfMass" must be an array of three floats.')
 
 			centerOfMass = (readFloat(value, 'center of mass') for value in centerOfMassData)
 		else:
@@ -68,7 +68,7 @@ def convertCustomMassProperties(convertContext, data, builder):
 		if inertiaTranslateData:
 			if not isinstance(inertiaTranslateData, list) or len(inertiaTranslateData) != 3:
 				raise Exception(
-					'MassProperties inertia translate must be an array of three floats.')
+					'MassProperties "inertiaTranslate" must be an array of three floats.')
 
 			inertiaTranslate = (readFloat(value, 'inertia translate')
 				for value in inertiaTranslateData)
@@ -79,7 +79,7 @@ def convertCustomMassProperties(convertContext, data, builder):
 		if inertiaRotateData:
 			if not isinstance(inertiaRotateData, list) or len(inertiaRotateData) != 3:
 				raise Exception(
-					'MassProperties inertia rotate must be an array of three floats.')
+					'MassProperties "inertiaRotate" must be an array of three floats.')
 
 			inertiaRotate = eulerToQuaternion(*(readFloat(value, 'inertia rotate')
 				for value in inertiaRotateData))

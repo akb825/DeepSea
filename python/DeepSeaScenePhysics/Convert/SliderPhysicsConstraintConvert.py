@@ -57,13 +57,13 @@ def convertSliderPhysicsConstraint(convertContext, data):
 		firstPositionData = data['firstPosition']
 		if not isinstance(firstPositionData, list) or len(firstPositionData) != 3:
 			raise Exception(
-				'SliderPhysicsConstraint firstPosition must be an array of three floats.')
+				'SliderPhysicsConstraint "firstPosition" must be an array of three floats.')
 		firstPosition = (readFloat(value, 'first position') for value in firstPositionData)
 
 		firstOrientationData = data['firstOrientation']
 		if not isinstance(firstOrientationData, list) or len(firstOrientationData) != 3:
 			raise Exception(
-				'SliderPhysicsConstraint firstOrientation must be an array of three floats.')
+				'SliderPhysicsConstraint "firstOrientation" must be an array of three floats.')
 		firstOrientation = eulerToQuaternion(*(readFloat(value, 'first orientation')
 			for value in firstOrientationData))
 
@@ -72,13 +72,13 @@ def convertSliderPhysicsConstraint(convertContext, data):
 		secondPositionData = data['secondPosition']
 		if not isinstance(secondPositionData, list) or len(secondPositionData) != 3:
 			raise Exception(
-				'SliderPhysicsConstraint secondPosition must be an array of three floats.')
+				'SliderPhysicsConstraint "secondPosition" must be an array of three floats.')
 		secondPosition = (readFloat(value, 'second position') for value in secondPositionData)
 
 		secondOrientationData = data['secondOrientation']
 		if not isinstance(secondOrientationData, list) or len(secondOrientationData) != 3:
 			raise Exception(
-				'SliderPhysicsConstraint secondOrientation must be an array of three floats.')
+				'SliderPhysicsConstraint "secondOrientation" must be an array of three floats.')
 		secondOrientation = eulerToQuaternion(*(readFloat(value, 'second orientation')
 			for value in secondOrientationData))
 

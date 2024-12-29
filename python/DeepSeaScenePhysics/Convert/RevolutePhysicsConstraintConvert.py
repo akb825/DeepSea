@@ -62,13 +62,13 @@ def convertRevolutePhysicsConstraint(convertContext, data):
 		firstPositionData = data['firstPosition']
 		if not isinstance(firstPositionData, list) or len(firstPositionData) != 3:
 			raise Exception(
-				'RevolutePhysicsConstraint firstPosition must be an array of three floats.')
+				'RevolutePhysicsConstraint "firstPosition" must be an array of three floats.')
 		firstPosition = (readFloat(value, 'first position') for value in firstPositionData)
 
 		firstOrientationData = data['firstOrientation']
 		if not isinstance(firstOrientationData, list) or len(firstOrientationData) != 3:
 			raise Exception(
-				'RevolutePhysicsConstraint firstOrientation must be an array of three floats.')
+				'RevolutePhysicsConstraint "firstOrientation" must be an array of three floats.')
 		firstOrientation = eulerToQuaternion(*(readFloat(value, 'first orientation')
 			for value in firstOrientationData))
 
@@ -77,13 +77,13 @@ def convertRevolutePhysicsConstraint(convertContext, data):
 		secondPositionData = data['secondPosition']
 		if not isinstance(secondPositionData, list) or len(secondPositionData) != 3:
 			raise Exception(
-				'RevolutePhysicsConstraint secondPosition must be an array of three floats.')
+				'RevolutePhysicsConstraint "secondPosition" must be an array of three floats.')
 		secondPosition = (readFloat(value, 'second position') for value in secondPositionData)
 
 		secondOrientationData = data['secondOrientation']
 		if not isinstance(secondOrientationData, list) or len(secondOrientationData) != 3:
 			raise Exception(
-				'RevolutePhysicsConstraint secondOrientation must be an array of three floats.')
+				'RevolutePhysicsConstraint "secondOrientation" must be an array of three floats.')
 		secondOrientation = eulerToQuaternion(*(readFloat(value, 'second orientation')
 			for value in secondOrientationData))
 

@@ -74,13 +74,13 @@ def convertGenericPhysicsConstraint(convertContext, data):
 		firstPositionData = data['firstPosition']
 		if not isinstance(firstPositionData, list) or len(firstPositionData) != 3:
 			raise Exception(
-				'GenericPhysicsConstraint firstPosition must be an array of three floats.')
+				'GenericPhysicsConstraint "firstPosition" must be an array of three floats.')
 		firstPosition = (readFloat(value, 'first position') for value in firstPositionData)
 
 		firstOrientationData = data['firstOrientation']
 		if not isinstance(firstOrientationData, list) or len(firstOrientationData) != 3:
 			raise Exception(
-				'GenericPhysicsConstraint firstOrientation must be an array of three floats.')
+				'GenericPhysicsConstraint "firstOrientation" must be an array of three floats.')
 		firstOrientation = eulerToQuaternion(*(readFloat(value, 'first orientation')
 			for value in firstOrientationData))
 
@@ -89,13 +89,13 @@ def convertGenericPhysicsConstraint(convertContext, data):
 		secondPositionData = data['secondPosition']
 		if not isinstance(secondPositionData, list) or len(secondPositionData) != 3:
 			raise Exception(
-				'GenericPhysicsConstraint secondPosition must be an array of three floats.')
+				'GenericPhysicsConstraint "secondPosition" must be an array of three floats.')
 		secondPosition = (readFloat(value, 'second position') for value in secondPositionData)
 
 		secondOrientationData = data['secondOrientation']
 		if not isinstance(secondOrientationData, list) or len(secondOrientationData) != 3:
 			raise Exception(
-				'GenericPhysicsConstraint secondOrientation must be an array of three floats.')
+				'GenericPhysicsConstraint "secondOrientation" must be an array of three floats.')
 		secondOrientation = eulerToQuaternion(*(readFloat(value, 'second orientation')
 			for value in secondOrientationData))
 
@@ -128,9 +128,9 @@ def convertGenericPhysicsConstraint(convertContext, data):
 
 					limits.append(limit)
 			except (AttributeError, TypeError, ValueError):
-				raise Exception('GenericPhysicsConstraint limits data must be an array of objects.')
+				raise Exception('GenericPhysicsConstraint "limits" must be an array of objects.')
 			except KeyError as e:
-				raise Exception('GenericPhysicsConstraint limits data doesn\'t contain element ' +
+				raise Exception('GenericPhysicsConstraint "limits" doesn\'t contain element ' +
 					str(e) + '.')
 
 		motorsData = data.get('motors')
@@ -159,9 +159,9 @@ def convertGenericPhysicsConstraint(convertContext, data):
 
 					motors.append(motor)
 			except (AttributeError, TypeError, ValueError):
-				raise Exception('GenericPhysicsConstraint motors data must be an array of objects.')
+				raise Exception('GenericPhysicsConstraint "motors" must be an array of objects.')
 			except KeyError as e:
-				raise Exception('GenericPhysicsConstraint motors data doesn\'t contain element ' +
+				raise Exception('GenericPhysicsConstraint "motors" doesn\'t contain element ' +
 					str(e) + '.')
 		else:
 			motors = None

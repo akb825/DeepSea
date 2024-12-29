@@ -43,8 +43,8 @@ def convertGearPhysicsConstraint(convertContext, data):
 		firstAxisData = data['firstAxis']
 		if not isinstance(firstAxisData, list) or len(firstAxisData) != 3:
 			raise Exception(
-				'GearPhysicsConstraint firstAxis must be an array of three floats.')
-		firstAxis = (readFloat(value, 'first position') for value in firstAxisData)
+				'GearPhysicsConstraint "firstAxis" must be an array of three floats.')
+		firstAxis = (readFloat(value, 'first axis') for value in firstAxisData)
 
 		firstConstraint = str(data.get('firstConstraint', ''))
 		firstToothCount = readFloat(data['firstToothCount'], 'first tooth count')
@@ -54,8 +54,8 @@ def convertGearPhysicsConstraint(convertContext, data):
 		secondAxisData = data['secondAxis']
 		if not isinstance(secondAxisData, list) or len(secondAxisData) != 3:
 			raise Exception(
-				'GearPhysicsConstraint secondAxis must be an array of three floats.')
-		secondAxis = (readFloat(value, 'second position') for value in secondAxisData)
+				'GearPhysicsConstraint "secondAxis" must be an array of three floats.')
+		secondAxis = (readFloat(value, 'second axis') for value in secondAxisData)
 
 		secondConstraint = str(data.get('secondConstraint', ''))
 		secondToothCount = readFloat(data['secondToothCount'], 'second tooth count')

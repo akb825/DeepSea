@@ -52,6 +52,7 @@ from DeepSeaScenePhysics.Convert.GenericPhysicsConstraintConvert import \
 from DeepSeaScenePhysics.Convert.PhysicsBoxConvert import convertPhysicsBox
 from DeepSeaScenePhysics.Convert.PhysicsCapsuleConvert import convertPhysicsCapsule
 from DeepSeaScenePhysics.Convert.PhysicsConeConvert import convertPhysicsCone
+from DeepSeaScenePhysics.Convert.PhysicsConstraintNodeConvert import convertPhysicsConstraintNode
 from DeepSeaScenePhysics.Convert.PhysicsConvexHullConvert import convertPhysicsConvexHull
 from DeepSeaScenePhysics.Convert.PhysicsCylinderConvert import convertPhysicsCylinder
 from DeepSeaScenePhysics.Convert.PhysicsMeshConvert import convertPhysicsMesh
@@ -59,6 +60,8 @@ from DeepSeaScenePhysics.Convert.PhysicsSphereConvert import convertPhysicsSpher
 from DeepSeaScenePhysics.Convert.PhysicsShapeRefConvert import convertPhysicsShapeRef
 from DeepSeaScenePhysics.Convert.PointPhysicsConstraintConvert import convertPointPhysicsConstraint
 from DeepSeaScenePhysics.Convert.RigidBodyConvert import convertRigidBody
+from DeepSeaScenePhysics.Convert.RigidBodyGroupNodeConvert import convertRigidBodyGroupNode
+from DeepSeaScenePhysics.Convert.RigidBodyNodeConvert import convertRigidBodyNode
 from DeepSeaScenePhysics.Convert.RigidBodyTemplateConvert import convertRigidBodyTemplate
 from DeepSeaScenePhysics.Convert.RackAndPinionPhysicsConstraintConvert import \
 	convertRackAndPinionPhysicsConstraint
@@ -146,6 +149,11 @@ def createSceneResourcesConvertContext(cuttlefish='cuttlefish', vfc='vfc', multi
 	convertContext.addCustomResourceType("RigidBody", convertRigidBody, "RigidBody")
 	convertContext.addCustomResourceType("RigidBodyTemplate",
 		convertRigidBodyTemplate, "RigidBodyTemplate")
+	convertContext.addNodeType('PhysicsConstraintNode', convertPhysicsConstraintNode)
+	convertContext.addNodeType('RigidBodyGroupNode', convertRigidBodyGroupNode)
+	convertContext.addNodeType('RigidBodyNode', convertRigidBodyNode)
+	convertContext.addNodeType('RigidBodyTemplateNode', convertRigidBodyNode)
+	convertContext.addNodeType('UniqueRigidBodyNode', convertRigidBodyNode)
 
 	# Vector draw scene types.
 	convertContext.addCustomResourceType('Text', convertText)

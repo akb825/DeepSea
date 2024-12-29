@@ -37,7 +37,7 @@ def convertPointPhysicsConstraint(convertContext, data):
 		firstPositionData = data['firstPosition']
 		if not isinstance(firstPositionData, list) or len(firstPositionData) != 3:
 			raise Exception(
-				'PointPhysicsConstraint firstPosition must be an array of three floats.')
+				'PointPhysicsConstraint "firstPosition" must be an array of three floats.')
 		firstPosition = (readFloat(value, 'first position') for value in firstPositionData)
 
 		secondActor = str(data.get('secondActor', ''))
@@ -45,7 +45,7 @@ def convertPointPhysicsConstraint(convertContext, data):
 		secondPositionData = data['secondPosition']
 		if not isinstance(secondPositionData, list) or len(secondPositionData) != 3:
 			raise Exception(
-				'PointPhysicsConstraint secondPosition must be an array of three floats.')
+				'PointPhysicsConstraint "secondPosition" must be an array of three floats.')
 		secondPosition = (readFloat(value, 'second position') for value in secondPositionData)
 	except (TypeError, ValueError):
 		raise Exception('PointPhysicsConstraint data must be an object.')

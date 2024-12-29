@@ -19,7 +19,7 @@ namespace DeepSeaScenePhysics;
 // Struct for a reference to a rigid body or constraint instance within a rigid body group.
 table InstanceReference
 {
-	// The name of a distinctroot node. If empty, the rigid body group node will be assumed to be
+	// The name of a distinct root node. If empty, the rigid body group node will be assumed to be
 	// distinct within the scene.
 	rootNode : string;
 

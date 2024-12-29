@@ -42,7 +42,7 @@ def convertDistancePhysicsConstraint(convertContext, data):
 		firstPositionData = data['firstPosition']
 		if not isinstance(firstPositionData, list) or len(firstPositionData) != 3:
 			raise Exception(
-				'DistancePhysicsConstraint firstPosition must be an array of three floats.')
+				'DistancePhysicsConstraint "firstPosition" must be an array of three floats.')
 		firstPosition = (readFloat(value, 'first position') for value in firstPositionData)
 
 		secondActor = str(data.get('secondActor', ''))
@@ -50,7 +50,7 @@ def convertDistancePhysicsConstraint(convertContext, data):
 		secondPositionData = data['secondPosition']
 		if not isinstance(secondPositionData, list) or len(secondPositionData) != 3:
 			raise Exception(
-				'DistancePhysicsConstraint secondPosition must be an array of three floats.')
+				'DistancePhysicsConstraint "secondPosition" must be an array of three floats.')
 		secondPosition = (readFloat(value, 'second position') for value in secondPositionData)
 
 		minDistance = readFloat(data['minDistance'], 'min distance', 0)

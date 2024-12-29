@@ -47,7 +47,7 @@ def convertRackAndPinionPhysicsConstraint(convertContext, data):
 		rackAxisData = data['rackAxis']
 		if not isinstance(rackAxisData, list) or len(rackAxisData) != 3:
 			raise Exception(
-				'RackAndPinionPhysicsConstraint rackAxis must be an array of three floats.')
+				'RackAndPinionPhysicsConstraint "rackAxis" must be an array of three floats.')
 		rackAxis = (readFloat(value, 'rack position') for value in rackAxisData)
 
 		rackConstraint = str(data.get('rackConstraint', ''))
@@ -59,7 +59,7 @@ def convertRackAndPinionPhysicsConstraint(convertContext, data):
 		pinionAxisData = data['pinionAxis']
 		if not isinstance(pinionAxisData, list) or len(pinionAxisData) != 3:
 			raise Exception(
-				'RackAndPinionPhysicsConstraint pinionAxis must be an array of three floats.')
+				'RackAndPinionPhysicsConstraint "pinionAxis" must be an array of three floats.')
 		pinionAxis = (readFloat(value, 'pinion position') for value in pinionAxisData)
 
 		pinionConstraint = str(data.get('pinionConstraint', ''))

@@ -14,6 +14,7 @@ static_assert(FLATBUFFERS_VERSION_MAJOR == 24 &&
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Physics/Flatbuffers/PhysicsCommon_generated.h"
+#include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
 
 namespace DeepSeaScenePhysics {
 
@@ -26,7 +27,8 @@ struct RigidBodyGroupNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table
     VT_MOTIONTYPE = 4,
     VT_RIGIDBODYTEMPLATES = 6,
     VT_CONSTRAINTS = 8,
-    VT_ITEMLISTS = 10
+    VT_CHILDREN = 10,
+    VT_ITEMLISTS = 12
   };
   DeepSeaPhysics::MotionType motionType() const {
     return static_cast<DeepSeaPhysics::MotionType>(GetField<uint8_t>(VT_MOTIONTYPE, 0));
@@ -36,6 +38,9 @@ struct RigidBodyGroupNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table
   }
   const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *constraints() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_CONSTRAINTS);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>> *children() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>> *>(VT_CHILDREN);
   }
   const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_ITEMLISTS);
@@ -49,6 +54,9 @@ struct RigidBodyGroupNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table
            VerifyOffset(verifier, VT_CONSTRAINTS) &&
            verifier.VerifyVector(constraints()) &&
            verifier.VerifyVectorOfStrings(constraints()) &&
+           VerifyOffset(verifier, VT_CHILDREN) &&
+           verifier.VerifyVector(children()) &&
+           verifier.VerifyVectorOfTables(children()) &&
            VerifyOffset(verifier, VT_ITEMLISTS) &&
            verifier.VerifyVector(itemLists()) &&
            verifier.VerifyVectorOfStrings(itemLists()) &&
@@ -69,6 +77,9 @@ struct RigidBodyGroupNodeBuilder {
   void add_constraints(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> constraints) {
     fbb_.AddOffset(RigidBodyGroupNode::VT_CONSTRAINTS, constraints);
   }
+  void add_children(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>>> children) {
+    fbb_.AddOffset(RigidBodyGroupNode::VT_CHILDREN, children);
+  }
   void add_itemLists(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> itemLists) {
     fbb_.AddOffset(RigidBodyGroupNode::VT_ITEMLISTS, itemLists);
   }
@@ -88,9 +99,11 @@ inline ::flatbuffers::Offset<RigidBodyGroupNode> CreateRigidBodyGroupNode(
     DeepSeaPhysics::MotionType motionType = DeepSeaPhysics::MotionType::Static,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> rigidBodyTemplates = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> constraints = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>>> children = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> itemLists = 0) {
   RigidBodyGroupNodeBuilder builder_(_fbb);
   builder_.add_itemLists(itemLists);
+  builder_.add_children(children);
   builder_.add_constraints(constraints);
   builder_.add_rigidBodyTemplates(rigidBodyTemplates);
   builder_.add_motionType(motionType);
@@ -102,15 +115,18 @@ inline ::flatbuffers::Offset<RigidBodyGroupNode> CreateRigidBodyGroupNodeDirect(
     DeepSeaPhysics::MotionType motionType = DeepSeaPhysics::MotionType::Static,
     const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *rigidBodyTemplates = nullptr,
     const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *constraints = nullptr,
+    const std::vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>> *children = nullptr,
     const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists = nullptr) {
   auto rigidBodyTemplates__ = rigidBodyTemplates ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*rigidBodyTemplates) : 0;
   auto constraints__ = constraints ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*constraints) : 0;
+  auto children__ = children ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaScene::ObjectData>>(*children) : 0;
   auto itemLists__ = itemLists ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*itemLists) : 0;
   return DeepSeaScenePhysics::CreateRigidBodyGroupNode(
       _fbb,
       motionType,
       rigidBodyTemplates__,
       constraints__,
+      children__,
       itemLists__);
 }
 

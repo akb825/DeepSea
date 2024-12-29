@@ -56,13 +56,13 @@ def convertSwingTwistPhysicsConstraint(convertContext, data):
 		firstPositionData = data['firstPosition']
 		if not isinstance(firstPositionData, list) or len(firstPositionData) != 3:
 			raise Exception(
-				'SwingTwistPhysicsConstraint firstPosition must be an array of three floats.')
+				'SwingTwistPhysicsConstraint "firstPosition" must be an array of three floats.')
 		firstPosition = (readFloat(value, 'first position') for value in firstPositionData)
 
 		firstOrientationData = data['firstOrientation']
 		if not isinstance(firstOrientationData, list) or len(firstOrientationData) != 3:
 			raise Exception(
-				'SwingTwistPhysicsConstraint firstOrientation must be an array of three floats.')
+				'SwingTwistPhysicsConstraint "firstOrientation" must be an array of three floats.')
 		firstOrientation = eulerToQuaternion(*(readFloat(value, 'first orientation')
 			for value in firstOrientationData))
 
@@ -71,13 +71,13 @@ def convertSwingTwistPhysicsConstraint(convertContext, data):
 		secondPositionData = data['secondPosition']
 		if not isinstance(secondPositionData, list) or len(secondPositionData) != 3:
 			raise Exception(
-				'SwingTwistPhysicsConstraint secondPosition must be an array of three floats.')
+				'SwingTwistPhysicsConstraint "secondPosition" must be an array of three floats.')
 		secondPosition = (readFloat(value, 'second position') for value in secondPositionData)
 
 		secondOrientationData = data['secondOrientation']
 		if not isinstance(secondOrientationData, list) or len(secondOrientationData) != 3:
 			raise Exception(
-				'SwingTwistPhysicsConstraint secondOrientation must be an array of three floats.')
+				'SwingTwistPhysicsConstraint "secondOrientation" must be an array of three floats.')
 		secondOrientation = eulerToQuaternion(*(readFloat(value, 'second orientation')
 			for value in secondOrientationData))
 
@@ -94,13 +94,14 @@ def convertSwingTwistPhysicsConstraint(convertContext, data):
 		except AttributeError:
 			raise Exception('Invalid motor type "' + motorTypeStr + '".')
 		if motorType == ConstraintMotorType.Velocity:
-			raise Exception("SwingTwistPhysicsConstraint doesn't support motor type of Velocity.")
+			raise Exception(
+				'SwingTwistPhysicsConstraint doesn\'t support motor type of "Velocity".')
 
 		motorTargetOrientationData = data.get('motorTargetOrientation')
 		if motorTargetOrientationData:
 			if (not isinstance(motorTargetOrientationData, list) or
 					len(motorTargetOrientationData) != 3):
-				raise Exception('SwingTwistPhysicsConstraint motorTargetOrientationData must be '
+				raise Exception('SwingTwistPhysicsConstraint "motorTargetOrientationData" must be '
 					'an array of three floats.')
 			motorTargetOrientation = eulerToQuaternion(*(
 				readFloat(value, 'motor target orientation')

@@ -21,6 +21,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
+#include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 
 #include <DeepSea/ScenePhysics/SceneRigidBody.h>
@@ -43,8 +44,45 @@
 #pragma warning(pop)
 #endif
 
-dsSceneNode* dsSceneRigidBodyNode_load(const dsSceneLoadContext*,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*,
+static dsSceneNode* finishLoad(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	const DeepSeaScenePhysics::RigidBodyNode* fbRigidBodyNode, dsSceneNode* node)
+{
+	if (!node)
+		return nullptr;
+
+	auto fbChildren = fbRigidBodyNode->children();
+	if (fbChildren)
+	{
+		for (auto fbNode : *fbChildren)
+		{
+			if (!fbNode)
+				continue;
+
+			auto data = fbNode->data();
+			dsSceneNode* child = dsSceneNode_load(allocator, resourceAllocator, loadContext,
+				scratchData, fbNode->type()->c_str(), data->data(), data->size());
+			if (!child)
+			{
+				dsSceneNode_freeRef(node);
+				return nullptr;
+			}
+
+			bool success = dsSceneNode_addChild(node, child);
+			dsSceneNode_freeRef(child);
+			if (!success)
+			{
+				dsSceneNode_freeRef(node);
+				return nullptr;
+			}
+		}
+	}
+
+	return node;
+}
+
+dsSceneNode* dsSceneRigidBodyNode_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void*, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
@@ -77,12 +115,14 @@ dsSceneNode* dsSceneRigidBodyNode_load(const dsSceneLoadContext*,
 		}
 	}
 
-	return reinterpret_cast<dsSceneNode*>(dsSceneRigidBodyNode_create(allocator,
+	auto node = reinterpret_cast<dsSceneNode*>(dsSceneRigidBodyNode_create(allocator,
 		fbRigidBodyNode->rigidBody()->c_str(), nullptr, nullptr, false, itemLists, itemListCount));
+	return finishLoad(
+		loadContext, scratchData, allocator, resourceAllocator, fbRigidBodyNode, node);
 }
 
 dsSceneNode* dsSceneRigidBodyNode_loadUnique(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void*, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
@@ -130,12 +170,14 @@ dsSceneNode* dsSceneRigidBodyNode_loadUnique(const dsSceneLoadContext* loadConte
 		}
 	}
 
-	return reinterpret_cast<dsSceneNode*>(dsSceneRigidBodyNode_create(
+	auto node = reinterpret_cast<dsSceneNode*>(dsSceneRigidBodyNode_create(
 		allocator, nullptr, rigidBody, nullptr, false, itemLists, itemListCount));
+	return finishLoad(
+		loadContext, scratchData, allocator, resourceAllocator, fbRigidBodyNode, node);
 }
 
 dsSceneNode* dsSceneRigidBodyNode_loadTemplate(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void*, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
@@ -184,6 +226,8 @@ dsSceneNode* dsSceneRigidBodyNode_loadTemplate(const dsSceneLoadContext* loadCon
 		}
 	}
 
-	return reinterpret_cast<dsSceneNode*>(dsSceneRigidBodyNode_create(
+	auto node = reinterpret_cast<dsSceneNode*>(dsSceneRigidBodyNode_create(
 		allocator, nullptr, nullptr, rigidBodyTemplate, false, itemLists, itemListCount));
+	return finishLoad(
+		loadContext, scratchData, allocator, resourceAllocator, fbRigidBodyNode, node);
 }

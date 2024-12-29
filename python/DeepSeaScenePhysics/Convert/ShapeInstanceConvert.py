@@ -53,7 +53,7 @@ def convertShapeInstance(convertContext, data, builder):
 	if translateData:
 		if not isinstance(translateData, list) or len(translateData) != 3:
 			raise Exception(
-				'PhysicsShapeInstance translate must ben an array of three floats.')
+				'PhysicsShapeInstance "translate" must ben an array of three floats.')
 		translate = (readFloat(value, 'translate') for value in translateData)
 	else:
 		translate = None
@@ -62,7 +62,7 @@ def convertShapeInstance(convertContext, data, builder):
 	if rotateData:
 		if not isinstance(rotateData, list) or len(rotateData) != 3:
 			raise Exception(
-				'PhysicsShapeInstance rotate must ben an array of three floats.')
+				'PhysicsShapeInstance "rotate" must ben an array of three floats.')
 		rotate = (readFloat(value, 'rotate') for value in rotateData)
 	else:
 		rotate = None
@@ -71,7 +71,7 @@ def convertShapeInstance(convertContext, data, builder):
 	if scaleData:
 		if not isinstance(scaleData, list) or len(scaleData) != 3:
 			raise Exception(
-				'PhysicsShapeInstance scale must ben an array of three floats.')
+				'PhysicsShapeInstance "scale" must ben an array of three floats.')
 		scale = (readFloat(value, 'scale') for value in scaleData)
 	else:
 		scale = None
@@ -83,10 +83,10 @@ def convertShapeInstance(convertContext, data, builder):
 				readFloat(materialData['restitution'], 'restitution', 0, 1),
 				readFloat(materialData['hardness'], 'hardness', 0, 1))
 		except (TypeError, ValueError):
-			raise Exception('PhysicsShapeInstance material data must be an object.')
+			raise Exception('PhysicsShapeInstance "material" must be an object.')
 		except KeyError as e:
 			raise Exception(
-				'PhysicsShapeInstance material data doesn\'t contain element ' + str(e) + '.')
+				'PhysicsShapeInstance "material" doesn\'t contain element ' + str(e) + '.')
 	else:
 		material = None
 
