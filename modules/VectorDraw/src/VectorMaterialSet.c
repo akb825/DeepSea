@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -148,7 +148,7 @@ dsVectorMaterialSet* dsVectorMaterialSet_create(dsAllocator* allocator,
 
 	materials->allocator = dsAllocator_keepPointer(allocator);
 
-	uint32_t materialTableSize = dsHashTable_tableSize(maxMaterials);
+	size_t materialTableSize = dsHashTable_tableSize(maxMaterials);
 	materials->materialTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
 		dsHashTable_fullAllocSize(materialTableSize));
 	DS_ASSERT(materials->materialTable);

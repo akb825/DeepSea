@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+#include <DeepSea/Core/UniqueNameID.h>
+
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Types.h>
 
@@ -267,7 +269,10 @@ dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
 	{
 		DS_ASSERT(materialDesc->elementCount == elementCount);
 		for (uint32_t i = 0; i < elementCount; ++i)
-			materialDesc->elements[i].nameID = dsHashString(materialDesc->elements[i].name);
+		{
+			materialDesc->elements[i].nameID = dsUniqueNameID_create(
+				materialDesc->elements[i].name);
+		}
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->materialDescCount, 1);
 	}
 

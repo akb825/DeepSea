@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,10 @@
 
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <limits>
-#include <unordered_map>
-#include <string>
+#include <memory>
+#include <unordered_set>
 
 namespace
 {
@@ -50,6 +51,45 @@ enum class ExpandedProfileType
 	Lock = dsProfileType_Lock,
 	Value,
 	GPU
+};
+
+struct StringStorage
+{
+	const char* str;
+	std::unique_ptr<char[]> strStorage;
+	uint32_t hash;
+
+	StringStorage(const char* s, uint32_t h, bool copy = false)
+	{
+		if (copy)
+		{
+			size_t strLen = std::strlen(s) + 1;
+			strStorage.reset(new char[strLen]);
+			std::memcpy(strStorage.get(), s, strLen);
+			str = strStorage.get();
+		}
+		else
+			str = s;
+		hash = h;
+	}
+
+	bool operator==(const StringStorage& other) const
+	{
+		return hash == other.hash && std::strcmp(str, other.str) == 0;
+	}
+
+	bool operator!=(const StringStorage& other) const
+	{
+		return !(*this == other);
+	}
+};
+
+struct StringStorageHash
+{
+	std::size_t operator()(const StringStorage& str) const
+	{
+		return str.hash;
+	}
 };
 
 class UniqueStringContainer
@@ -70,22 +110,19 @@ public:
 		DS_VERIFY(dsSpinlock_lock(&m_spinlock));
 
 		// NOTE: insertion will allocate even if already present, so search first.
-		auto iter = m_uniqueStrings.find(hash);
+		auto iter = m_uniqueStrings.find(StringStorage(string, hash));
 		const char* finalString;
 		if (iter == m_uniqueStrings.end())
-			finalString = m_uniqueStrings.emplace(hash, string).first->second.c_str();
+			finalString = m_uniqueStrings.emplace(string, hash, true).first->str;
 		else
-		{
-			DS_ASSERT(iter->second == string);
-			finalString = iter->second.c_str();
-		}
+			finalString = iter->str;
 
 		DS_VERIFY(dsSpinlock_unlock(&m_spinlock));
 		return finalString;
 	}
 
 private:
-	std::unordered_map<uint32_t, std::string> m_uniqueStrings;
+	std::unordered_set<StringStorage, StringStorageHash> m_uniqueStrings;
 	dsSpinlock m_spinlock;
 };
 

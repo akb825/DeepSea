@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Aaron Barany
+ * Copyright 2018-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -222,13 +222,13 @@ static void submitGPUProfileResults(dsGPUProfileContext* context, QueryPools* po
 	// Set up the hash table to manage duplicates.
 	uint32_t dummySize = 0;
 	if (!DS_RESIZEABLE_ARRAY_ADD(context->allocator, context->nodes, dummySize, context->maxNodes,
-		pools->totalRanges))
+			pools->totalRanges))
 	{
 		DS_PROFILE_FUNC_RETURN_VOID();
 	}
 	memset(context->nodes, 0, pools->totalRanges*sizeof(QueryNode));
 
-	uint32_t hashTableSize = dsHashTable_tableSize(pools->totalRanges);
+	size_t hashTableSize = dsHashTable_tableSize(pools->totalRanges);
 	if (!context->hashTable || hashTableSize > context->hashTable->tableSize)
 	{
 		dsAllocator_free(context->allocator, context->hashTable);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Aaron Barany
+ * Copyright 2022-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,21 @@
  */
 
 #include "LightFlicker.h"
+
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/UniqueNameID.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Random.h>
+
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/SceneLighting/SceneLight.h>
 #include <DeepSea/SceneLighting/SceneLightNode.h>
+
 #include <string.h>
 
 #if DS_GCC || DS_CLANG
@@ -206,7 +211,7 @@ dsSceneItemList* dsLightFlicker_create(dsAllocator* allocator, const char* name,
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);
-	itemList->nameID = dsHashString(name);
+	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = false;
 	itemList->addNodeFunc = &dsLightFlicker_addNode;

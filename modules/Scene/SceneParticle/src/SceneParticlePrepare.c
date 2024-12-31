@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Aaron Barany
+ * Copyright 2022-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/UniqueNameID.h>
 
 #include <DeepSea/Particle/ParticleEmitter.h>
 #include <DeepSea/Particle/ParticleDraw.h>
@@ -178,7 +179,7 @@ dsSceneItemList* dsSceneParticlePrepare_create(dsAllocator* allocator, const cha
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);
-	itemList->nameID = dsHashString(name);
+	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = true;
 	itemList->addNodeFunc = &dsSceneParticlePrepare_addNode;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 Aaron Barany
+ * Copyright 2021-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/UniqueNameID.h>
 
 #include <DeepSea/Geometry/OrientedBox3.h>
 
@@ -407,13 +408,13 @@ dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator, const ch
 	char* nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	memcpy(nameCopy, name, nameLen);
 	shadows->name = nameCopy;
-	shadows->nameID = dsHashString(name);
+	shadows->nameID = dsUniqueNameID_create(name);
 
 	shadows->resourceManager = resourceManager;
 	shadows->lightSet = lightSet;
 	shadows->lightType = lightType;
-	shadows->lightID = lightName ? dsHashString(lightName) : 0;
-	shadows->transformGroupID = transformGroupName ? dsHashString(transformGroupName) : 0;
+	shadows->lightID = lightName ? dsUniqueNameID_create(lightName) : 0;
+	shadows->transformGroupID = transformGroupName ? dsUniqueNameID_create(transformGroupName) : 0;
 	shadows->cascaded = cascaded;
 
 	shadows->view = NULL;

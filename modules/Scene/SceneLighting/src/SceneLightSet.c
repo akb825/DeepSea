@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,13 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/UniqueNameID.h>
+
 #include <DeepSea/Geometry/BVH.h>
+
 #include <DeepSea/Math/Color.h>
 #include <DeepSea/Math/Vector3.h>
+
 #include <DeepSea/SceneLighting/SceneLight.h>
 
 #include <float.h>
@@ -179,7 +183,7 @@ dsSceneLightSet* dsSceneLightSet_create(dsAllocator* allocator, uint32_t maxLigh
 		return NULL;
 	}
 
-	uint32_t lightTableSize = dsHashTable_tableSize(maxLights);
+	size_t lightTableSize = dsHashTable_tableSize(maxLights);
 	size_t lightTableBufferSize = dsHashTable_fullAllocSize(lightTableSize);
 	size_t lightPoolSize = dsPoolAllocator_bufferSize(sizeof(LightNode), maxLights);
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneLightSet)) + lightPoolSize +
@@ -204,7 +208,7 @@ dsSceneLightSet* dsSceneLightSet_create(dsAllocator* allocator, uint32_t maxLigh
 	lightSet->lightTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
 		lightTableBufferSize);
 	DS_ASSERT(lightSet->lightTable);
-	DS_VERIFY(dsHashTable_initialize(lightSet->lightTable, lightTableSize, &dsHashIdentity,
+	DS_VERIFY(dsHashTable_initialize(lightSet->lightTable, lightTableSize, &dsHash32,
 		&dsHash32Equal));
 
 	lightSet->directionalLights = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneLight*, maxLights);
@@ -264,12 +268,12 @@ dsSceneLight* dsSceneLightSet_addLightName(dsSceneLightSet* lightSet, const char
 		return NULL;
 	}
 
-	return dsSceneLightSet_addLightID(lightSet, dsHashString(name));
+	return dsSceneLightSet_addLightID(lightSet, dsUniqueNameID_create(name));
 }
 
 dsSceneLight* dsSceneLightSet_addLightID(dsSceneLightSet* lightSet, uint32_t nameID)
 {
-	if (!lightSet)
+	if (!lightSet || !nameID)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -295,7 +299,7 @@ dsSceneLight* dsSceneLightSet_findLightName(const dsSceneLightSet* lightSet, con
 	if (!lightSet || !name)
 		return NULL;
 
-	return dsSceneLightSet_findLightID(lightSet, dsHashString(name));
+	return dsSceneLightSet_findLightID(lightSet, dsUniqueNameID_get(name));
 }
 
 dsSceneLight* dsSceneLightSet_findLightID(const dsSceneLightSet* lightSet, uint32_t nameID)
@@ -323,7 +327,7 @@ bool dsSceneLightSet_removeLightName(dsSceneLightSet* lightSet, const char* name
 	if (!lightSet || !name)
 		return false;
 
-	return dsSceneLightSet_removeLightID(lightSet, dsHashString(name));
+	return dsSceneLightSet_removeLightID(lightSet, dsUniqueNameID_get(name));
 }
 
 bool dsSceneLightSet_removeLightID(dsSceneLightSet* lightSet, uint32_t nameID)
@@ -352,7 +356,7 @@ bool dsSceneLightSet_setMainLightName(dsSceneLightSet* lightSet, const char* nam
 		return false;
 	}
 
-	lightSet->mainLightID = name ? dsHashString(name) : 0;
+	lightSet->mainLightID = name ? dsUniqueNameID_create(name) : 0;
 	return true;
 }
 

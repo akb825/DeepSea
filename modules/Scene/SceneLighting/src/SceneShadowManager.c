@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 Aaron Barany
+ * Copyright 2021-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/UniqueNameID.h>
 
 #include <DeepSea/SceneLighting/SceneLightShadows.h>
 
@@ -78,7 +79,7 @@ dsSceneShadowManager* dsSceneShadowManager_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	uint32_t tableSize = dsHashTable_tableSize(lightShadowsCount);
+	size_t tableSize = dsHashTable_tableSize(lightShadowsCount);
 	size_t namedPoolSize = dsPoolAllocator_bufferSize(sizeof(NamedShadowsNode), lightShadowsCount);
 	size_t lightPoolSize = dsPoolAllocator_bufferSize(sizeof(LightShadowsNode), lightShadowsCount);
 	size_t hashTableSize = dsHashTable_fullAllocSize(tableSize);
@@ -113,7 +114,7 @@ dsSceneShadowManager* dsSceneShadowManager_create(dsAllocator* allocator,
 
 	shadowManager->lightShadowsTable =
 		(dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, hashTableSize);
-	DS_VERIFY(dsHashTable_initialize(shadowManager->lightShadowsTable, tableSize, &dsHashIdentity,
+	DS_VERIFY(dsHashTable_initialize(shadowManager->lightShadowsTable, tableSize, &dsHash32,
 		&dsHash32Equal));
 
 	for (uint32_t i = 0; i < lightShadowsCount; ++i)
@@ -195,7 +196,7 @@ dsSceneLightShadows* dsSceneShadowManager_findShadowsForLightName(
 	if (!shadowManager || !lightName)
 		return NULL;
 
-	uint32_t key = dsHashString(lightName);
+	uint32_t key = dsUniqueNameID_get(lightName);
 	dsHashTableNode* node = dsHashTable_find(shadowManager->lightShadowsTable, &key);
 	if (!node)
 		return NULL;
@@ -220,7 +221,7 @@ bool dsSceneShadowManager_setShadowsLightName(dsSceneShadowManager* shadowManage
 	dsSceneLightShadows* lightShadows, const char* lightName)
 {
 	return dsSceneShadowManager_setShadowsLightID(shadowManager, lightShadows,
-		lightName ? dsHashString(lightName) : 0);
+		lightName ? dsUniqueNameID_create(lightName) : 0);
 }
 
 bool dsSceneShadowManager_setShadowsLightID(dsSceneShadowManager* shadowManager,

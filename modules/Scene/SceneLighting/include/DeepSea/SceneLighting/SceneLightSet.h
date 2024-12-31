@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ extern "C"
  *
  * Lookups into this will be frequent, so as a result the index is done by pre-hashing the name. You
  * may either access the lights by name or by the ID, which is the hash of the name. (by calling
- * dsHashString())
+ * dsUniqueNameID_create() or dsUniqueNameID_get())
  *
  * @see dsSceneLightSet
  */

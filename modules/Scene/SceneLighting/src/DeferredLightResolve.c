@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 Aaron Barany
+ * Copyright 2021-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/UniqueNameID.h>
 
 #include <DeepSea/Math/Core.h>
 
@@ -577,7 +578,7 @@ dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);
-	itemList->nameID = dsHashString(name);
+	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = true;
 	itemList->addNodeFunc = NULL;
@@ -627,8 +628,8 @@ dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 			ShadowLightDrawInfo* setInfo = resolve->shadowLightInfos + i;
 			setInfo->shader = curInfo->shader;
 			setInfo->material = curInfo->material;
-			setInfo->transformGroupID = dsHashString(curInfo->transformGroupName);
-			setInfo->textureID = dsHashString(curInfo->shadowTextureName);
+			setInfo->transformGroupID = dsUniqueNameID_create(curInfo->transformGroupName);
+			setInfo->textureID = dsUniqueNameID_create(curInfo->shadowTextureName);
 
 			resolve->lightShadows[i] = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc,
 				const dsSceneLightShadows*, maxShadowLights);
@@ -955,7 +956,7 @@ bool dsDeferredLightResolve_setShadowLightTransformGroupNameName(dsDeferredLight
 		return false;
 	}
 
-	resolve->shadowLightInfos[lightType].transformGroupID = dsHashString(groupName);
+	resolve->shadowLightInfos[lightType].transformGroupID = dsUniqueNameID_create(groupName);
 	return true;
 }
 
@@ -1014,7 +1015,7 @@ bool dsDeferredLightResolve_setShadowLightTextureName(dsDeferredLightResolve* re
 		return false;
 	}
 
-	resolve->shadowLightInfos[lightType].textureID = dsHashString(textureName);
+	resolve->shadowLightInfos[lightType].textureID = dsUniqueNameID_create(textureName);
 	return true;
 }
 

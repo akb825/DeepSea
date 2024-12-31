@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,17 +58,18 @@ TEST_F(SharedMaterialValuesTest, Textures)
 	ASSERT_TRUE(texture2);
 
 	EXPECT_TRUE(dsSharedMaterialValues_setTextureName(values, "test1", texture1));
-	EXPECT_TRUE(dsSharedMaterialValues_setTextureID(values, dsHashString("test2"), texture2));
+	EXPECT_TRUE(dsSharedMaterialValues_setTextureID(
+		values, dsUniqueNameID_create("test2"), texture2));
 
 	EXPECT_EQ(DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES - 2,
 		dsSharedMaterialValues_getRemainingValues(values));
 	EXPECT_EQ(DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES, dsSharedMaterialValues_getMaxValues(values));
 
-	EXPECT_EQ(texture1, dsSharedMaterialValues_getTextureID(values, dsHashString("test1")));
+	EXPECT_EQ(texture1, dsSharedMaterialValues_getTextureID(values, dsUniqueNameID_get("test1")));
 	EXPECT_EQ(texture2, dsSharedMaterialValues_getTextureName(values, "test2"));
 
 	EXPECT_FALSE(dsSharedMaterialValues_getTextureName(values, "asdf"));
-	EXPECT_FALSE(dsSharedMaterialValues_getTextureID(values, dsHashString("asdf")));
+	EXPECT_FALSE(dsSharedMaterialValues_getTextureID(values, dsUniqueNameID_create("asdf")));
 	EXPECT_FALSE(dsSharedMaterialValues_getVariableGroupName(values, "test1"));
 	EXPECT_FALSE(dsSharedMaterialValues_getBufferName(NULL, NULL, values, "test1"));
 
@@ -79,8 +80,8 @@ TEST_F(SharedMaterialValuesTest, Textures)
 
 	EXPECT_TRUE(dsSharedMaterialValues_removeValueName(values, "test1"));
 	EXPECT_FALSE(dsSharedMaterialValues_removeValueName(values, "test1"));
-	EXPECT_TRUE(dsSharedMaterialValues_removeValueID(values, dsHashString("test2")));
-	EXPECT_FALSE(dsSharedMaterialValues_removeValueID(values, dsHashString("test2")));
+	EXPECT_TRUE(dsSharedMaterialValues_removeValueID(values, dsUniqueNameID_get("test2")));
+	EXPECT_FALSE(dsSharedMaterialValues_removeValueID(values, dsUniqueNameID_get("test2")));
 
 	EXPECT_EQ(DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES,
 		dsSharedMaterialValues_getRemainingValues(values));
@@ -111,18 +112,18 @@ TEST_F(SharedMaterialValuesTest, TextureBuffers)
 	ASSERT_TRUE(buffer3);
 
 	dsGfxFormat format = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
-	EXPECT_FALSE(dsSharedMaterialValues_setTextureBufferName(values, "test1", buffer1, format, 24,
-		256));
-	EXPECT_FALSE(dsSharedMaterialValues_setTextureBufferName(values, "test1", buffer1,
-		dsGfxFormat_BC1_RGB, 0, 256));
-	EXPECT_FALSE(dsSharedMaterialValues_setTextureBufferName(values, "test1", buffer3,
-		format, 0, 256));
-	EXPECT_TRUE(dsSharedMaterialValues_setTextureBufferName(values, "test1", buffer1, format,
-		0, 256));
-	EXPECT_FALSE(dsSharedMaterialValues_setTextureBufferID(values, dsHashString("test2"), buffer2,
-		format, 24, 20));
-	EXPECT_TRUE(dsSharedMaterialValues_setTextureBufferID(values, dsHashString("test2"), buffer2,
-		format, 32, 20));
+	EXPECT_FALSE(dsSharedMaterialValues_setTextureBufferName(
+		values, "test1", buffer1, format, 24, 256));
+	EXPECT_FALSE(dsSharedMaterialValues_setTextureBufferName(
+		values, "test1", buffer1, dsGfxFormat_BC1_RGB, 0, 256));
+	EXPECT_FALSE(dsSharedMaterialValues_setTextureBufferName(
+		values, "test1", buffer3, format, 0, 256));
+	EXPECT_TRUE(dsSharedMaterialValues_setTextureBufferName(
+		values, "test1", buffer1, format, 0, 256));
+	EXPECT_FALSE(dsSharedMaterialValues_setTextureBufferID(
+		values, dsUniqueNameID_create("test2"), buffer2, format, 24, 20));
+	EXPECT_TRUE(dsSharedMaterialValues_setTextureBufferID(
+		values, dsUniqueNameID_create("test2"), buffer2, format, 32, 20));
 
 	EXPECT_EQ(DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES - 2,
 		dsSharedMaterialValues_getRemainingValues(values));
@@ -131,7 +132,7 @@ TEST_F(SharedMaterialValuesTest, TextureBuffers)
 	dsGfxFormat storedFormat;
 	size_t offset, count;
 	EXPECT_EQ(buffer1, dsSharedMaterialValues_getTextureBufferID(&storedFormat, &offset, &count,
-		values, dsHashString("test1")));
+		values, dsUniqueNameID_get("test1")));
 	EXPECT_EQ(format, storedFormat);
 	EXPECT_EQ(0U, offset);
 	EXPECT_EQ(256U, count);
@@ -144,32 +145,32 @@ TEST_F(SharedMaterialValuesTest, TextureBuffers)
 
 	EXPECT_FALSE(dsSharedMaterialValues_getTextureBufferName(&storedFormat, &offset, &count,
 		values, "asdf"));
-	EXPECT_FALSE(dsSharedMaterialValues_getTextureBufferID(&storedFormat, &offset, &count, values,
-		dsHashString("asdf")));
+	EXPECT_FALSE(dsSharedMaterialValues_getTextureBufferID(
+		&storedFormat, &offset, &count, values, dsUniqueNameID_create("asdf")));
 	EXPECT_FALSE(dsSharedMaterialValues_getTextureName(values, "test1"));
 	EXPECT_FALSE(dsSharedMaterialValues_getVariableGroupName(values, "test1"));
 
-	EXPECT_TRUE(dsSharedMaterialValues_setTextureBufferName(values, "test1", buffer2, format, 32,
-		96));
-	EXPECT_TRUE(dsSharedMaterialValues_setTextureBufferName(values, "test2", buffer1, format, 0,
-		128));
+	EXPECT_TRUE(dsSharedMaterialValues_setTextureBufferName(
+		values, "test1", buffer2, format, 32, 96));
+	EXPECT_TRUE(dsSharedMaterialValues_setTextureBufferName(
+		values, "test2", buffer1, format, 0, 128));
 
-	EXPECT_EQ(buffer2, dsSharedMaterialValues_getTextureBufferName(&storedFormat, &offset, &count,
-		values, "test1"));
+	EXPECT_EQ(buffer2, dsSharedMaterialValues_getTextureBufferName(
+		&storedFormat, &offset, &count, values, "test1"));
 	EXPECT_EQ(format, storedFormat);
 	EXPECT_EQ(32U, offset);
 	EXPECT_EQ(96U, count);
 
-	EXPECT_EQ(buffer1, dsSharedMaterialValues_getTextureBufferName(&storedFormat, &offset, &count,
-		values, "test2"));
+	EXPECT_EQ(buffer1, dsSharedMaterialValues_getTextureBufferName(
+		&storedFormat, &offset, &count, values, "test2"));
 	EXPECT_EQ(format, storedFormat);
 	EXPECT_EQ(0U, offset);
 	EXPECT_EQ(128U, count);
 
 	EXPECT_TRUE(dsSharedMaterialValues_removeValueName(values, "test1"));
 	EXPECT_FALSE(dsSharedMaterialValues_removeValueName(values, "test1"));
-	EXPECT_TRUE(dsSharedMaterialValues_removeValueID(values, dsHashString("test2")));
-	EXPECT_FALSE(dsSharedMaterialValues_removeValueID(values, dsHashString("test2")));
+	EXPECT_TRUE(dsSharedMaterialValues_removeValueID(values, dsUniqueNameID_get("test2")));
+	EXPECT_FALSE(dsSharedMaterialValues_removeValueID(values, dsUniqueNameID_get("test2")));
 
 	EXPECT_EQ(DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES,
 		dsSharedMaterialValues_getRemainingValues(values));
@@ -177,17 +178,17 @@ TEST_F(SharedMaterialValuesTest, TextureBuffers)
 	EXPECT_FALSE(dsSharedMaterialValues_getTextureBufferName(NULL, NULL, NULL, values, "test2"));
 
 	resourceManager->maxTextureBufferElements = 128;
-	EXPECT_FALSE(dsSharedMaterialValues_setTextureBufferName(values, "test1", buffer1, format, 0,
-		256));
+	EXPECT_FALSE(dsSharedMaterialValues_setTextureBufferName(
+		values, "test1", buffer1, format, 0, 256));
 
 	resourceManager->maxTextureBufferElements = 16*1024*1024;
 	resourceManager->hasTextureBufferSubrange = false;
-	EXPECT_FALSE(dsSharedMaterialValues_setTextureBufferName(values, "test1", buffer1, format, 4,
-		255));
-	EXPECT_FALSE(dsSharedMaterialValues_setTextureBufferName(values, "test1", buffer1, format, 0,
-		255));
-	EXPECT_TRUE(dsSharedMaterialValues_setTextureBufferName(values, "test", buffer1, format, 0,
-		256));
+	EXPECT_FALSE(dsSharedMaterialValues_setTextureBufferName(
+		values, "test1", buffer1, format, 4, 255));
+	EXPECT_FALSE(dsSharedMaterialValues_setTextureBufferName(
+		values, "test1", buffer1, format, 0, 255));
+	EXPECT_TRUE(dsSharedMaterialValues_setTextureBufferName(
+		values, "test", buffer1, format, 0, 256));
 
 	dsSharedMaterialValues_destroy(values);
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer1));
@@ -219,19 +220,19 @@ TEST_F(SharedMaterialValuesTest, VariableGroups)
 	ASSERT_TRUE(variableGroup2);
 
 	EXPECT_TRUE(dsSharedMaterialValues_setVariableGroupName(values, "test1", variableGroup1));
-	EXPECT_TRUE(dsSharedMaterialValues_setVariableGroupID(values, dsHashString("test2"),
-		variableGroup2));
+	EXPECT_TRUE(dsSharedMaterialValues_setVariableGroupID(
+		values, dsUniqueNameID_create("test2"), variableGroup2));
 
 	EXPECT_EQ(DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES - 2,
 		dsSharedMaterialValues_getRemainingValues(values));
 	EXPECT_EQ(DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES, dsSharedMaterialValues_getMaxValues(values));
 
 	EXPECT_EQ(variableGroup1, dsSharedMaterialValues_getVariableGroupID(values,
-		dsHashString("test1")));
+		dsUniqueNameID_get("test1")));
 	EXPECT_EQ(variableGroup2, dsSharedMaterialValues_getVariableGroupName(values, "test2"));
 
 	EXPECT_FALSE(dsSharedMaterialValues_getVariableGroupName(values, "asdf"));
-	EXPECT_FALSE(dsSharedMaterialValues_getVariableGroupID(values, dsHashString("asdf")));
+	EXPECT_FALSE(dsSharedMaterialValues_getVariableGroupID(values, dsUniqueNameID_create("asdf")));
 	EXPECT_FALSE(dsSharedMaterialValues_getTextureName(values, "test1"));
 	EXPECT_TRUE(dsSharedMaterialValues_getBufferName(NULL, NULL, values, "test1"));
 
@@ -242,8 +243,8 @@ TEST_F(SharedMaterialValuesTest, VariableGroups)
 
 	EXPECT_TRUE(dsSharedMaterialValues_removeValueName(values, "test1"));
 	EXPECT_FALSE(dsSharedMaterialValues_removeValueName(values, "test1"));
-	EXPECT_TRUE(dsSharedMaterialValues_removeValueID(values, dsHashString("test2")));
-	EXPECT_FALSE(dsSharedMaterialValues_removeValueID(values, dsHashString("test2")));
+	EXPECT_TRUE(dsSharedMaterialValues_removeValueID(values, dsUniqueNameID_get("test2")));
+	EXPECT_FALSE(dsSharedMaterialValues_removeValueID(values, dsUniqueNameID_get("test2")));
 
 	EXPECT_EQ(DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES,
 		dsSharedMaterialValues_getRemainingValues(values));
@@ -277,8 +278,8 @@ TEST_F(SharedMaterialValuesTest, Buffers)
 	EXPECT_FALSE(dsSharedMaterialValues_setBufferName(values, "test1", buffer1, 64, 128));
 	EXPECT_FALSE(dsSharedMaterialValues_setBufferName(values, "test1", buffer3, 0, 128));
 	EXPECT_TRUE(dsSharedMaterialValues_setBufferName(values, "test1", buffer1, 0, 128));
-	EXPECT_TRUE(dsSharedMaterialValues_setBufferID(values, dsHashString("test2"), buffer2, 64,
-		64));
+	EXPECT_TRUE(dsSharedMaterialValues_setBufferID(
+		values, dsUniqueNameID_create("test2"), buffer2, 64, 64));
 
 	EXPECT_EQ(DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES - 2,
 		dsSharedMaterialValues_getRemainingValues(values));
@@ -286,7 +287,7 @@ TEST_F(SharedMaterialValuesTest, Buffers)
 
 	size_t offset, size;
 	EXPECT_EQ(buffer1, dsSharedMaterialValues_getBufferID(&offset, &size, values,
-		dsHashString("test1")));
+		dsUniqueNameID_get("test1")));
 	EXPECT_EQ(0U, offset);
 	EXPECT_EQ(128U, size);
 
@@ -296,7 +297,7 @@ TEST_F(SharedMaterialValuesTest, Buffers)
 
 	EXPECT_FALSE(dsSharedMaterialValues_getBufferName(&offset, &size, values, "asdf"));
 	EXPECT_FALSE(dsSharedMaterialValues_getBufferID(&offset, &size, values,
-		dsHashString("asdf")));
+		dsUniqueNameID_create("asdf")));
 	EXPECT_FALSE(dsSharedMaterialValues_getTextureName(values, "test1"));
 	EXPECT_FALSE(dsSharedMaterialValues_getVariableGroupName(values, "test1"));
 
@@ -313,8 +314,8 @@ TEST_F(SharedMaterialValuesTest, Buffers)
 
 	EXPECT_TRUE(dsSharedMaterialValues_removeValueName(values, "test1"));
 	EXPECT_FALSE(dsSharedMaterialValues_removeValueName(values, "test1"));
-	EXPECT_TRUE(dsSharedMaterialValues_removeValueID(values, dsHashString("test2")));
-	EXPECT_FALSE(dsSharedMaterialValues_removeValueID(values, dsHashString("test2")));
+	EXPECT_TRUE(dsSharedMaterialValues_removeValueID(values, dsUniqueNameID_get("test2")));
+	EXPECT_FALSE(dsSharedMaterialValues_removeValueID(values, dsUniqueNameID_get("test2")));
 
 	EXPECT_EQ(DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES,
 		dsSharedMaterialValues_getRemainingValues(values));

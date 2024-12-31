@@ -471,13 +471,17 @@ DS_APPLICATION_EXPORT bool dsApplication_dispatchEvent(dsApplication* applicatio
  * @brief Initializes the members of an application.
  *
  * This will initiialize all members to 0 and set up any internal structures. This is called by the
- * application implementation.
+ * application implementation. This will also initialize dsUniqueNameID if it hasn't already been
+ * initialized.
  *
  * @remark errno will be set on failure.
  * @param application The application.
+ * @param allocator The allocator for the application. This will be assigned to the allocator member
+ *     of application.
  * @return False if an error occurred.
  */
-DS_APPLICATION_EXPORT bool dsApplication_initialize(dsApplication* application);
+DS_APPLICATION_EXPORT bool dsApplication_initialize(
+	dsApplication* application, dsAllocator* allocator);
 
 /**
  * @brief Destroys the private members of an application.

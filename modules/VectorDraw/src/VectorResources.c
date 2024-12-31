@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -150,9 +150,9 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 size_t dsVectorResources_fullAllocSize(uint32_t maxTextures, uint32_t maxFaceGroups,
 	uint32_t maxFonts)
 {
-	uint32_t textureTableSize = dsHashTable_tableSize(maxTextures);
-	uint32_t faceGroupTableSize = dsHashTable_tableSize(maxFaceGroups);
-	uint32_t fontTableSize = dsHashTable_tableSize(maxFonts);
+	size_t textureTableSize = dsHashTable_tableSize(maxTextures);
+	size_t faceGroupTableSize = dsHashTable_tableSize(maxFaceGroups);
+	size_t fontTableSize = dsHashTable_tableSize(maxFonts);
 
 	return DS_ALIGNED_SIZE(sizeof(dsVectorResources)) +
 		dsHashTable_fullAllocSize(textureTableSize) +
@@ -186,7 +186,7 @@ dsVectorResources* dsVectorReosurces_create(dsAllocator* allocator, uint32_t max
 
 	if (maxTextures > 0)
 	{
-		uint32_t textureTableSize = dsHashTable_tableSize(maxTextures);
+		size_t textureTableSize = dsHashTable_tableSize(maxTextures);
 		resources->textureTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
 			dsHashTable_fullAllocSize(textureTableSize));
 		DS_ASSERT(resources->textureTable);
@@ -207,7 +207,7 @@ dsVectorResources* dsVectorReosurces_create(dsAllocator* allocator, uint32_t max
 
 	if (maxFaceGroups > 0)
 	{
-		uint32_t faceGroupTableSize = dsHashTable_tableSize(maxFaceGroups);
+		size_t faceGroupTableSize = dsHashTable_tableSize(maxFaceGroups);
 		resources->faceGroupTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
 			dsHashTable_fullAllocSize(faceGroupTableSize));
 		DS_ASSERT(resources->faceGroupTable);
@@ -228,7 +228,7 @@ dsVectorResources* dsVectorReosurces_create(dsAllocator* allocator, uint32_t max
 
 	if (maxFonts > 0)
 	{
-		uint32_t fontTableSize = dsHashTable_tableSize(maxFonts);
+		size_t fontTableSize = dsHashTable_tableSize(maxFonts);
 		resources->fontTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
 			dsHashTable_fullAllocSize(fontTableSize));
 		DS_ASSERT(resources->fontTable);

@@ -25,6 +25,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/UniqueNameID.h>
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneUserDataNode.h>
@@ -164,7 +165,7 @@ dsSceneItemList* dsSceneUserDataList_create(dsAllocator* allocator, const char* 
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);
-	itemList->nameID = dsHashString(name);
+	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = true;
 	itemList->addNodeFunc = &dsSceneUserDataList_addNode;

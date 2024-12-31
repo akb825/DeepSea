@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,6 @@
 
 #include <SheenBidi.h>
 #include <ctype.h>
-#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -174,13 +173,8 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 		DS_LOG_ERROR_F(DS_TEXT_LOG_TAG, "Face '%s' has already been loaded.", name);
 		return NULL;
 	}
-	else if (group->faceHashTable->list.length == group->faceHashTable->tableSize)
-	{
-		errno = ESIZE;
-		DS_LOG_ERROR(DS_TEXT_LOG_TAG, "Maximum number of faces has been exceeded.");
-		return NULL;
-	}
 
+	DS_ASSERT(group->faceHashTable->list.length < group->maxFaces);
 	hb_font_t* hbFont = hb_ft_font_create(ftFace, (hb_destroy_func_t)&FT_Done_Face);
 	if (!hbFont)
 		return NULL;
@@ -876,7 +870,7 @@ dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, dsAllocator* scratchAllo
 		DS_ALIGNED_SIZE(sizeof(dsFaceGroup)) + DS_ALIGNED_SIZE(sizeof(dsFontFace)*maxFaces));
 	DS_ASSERT(faceGroup);
 
-	uint32_t hashTableSize = dsHashTable_tableSize(maxFaces);
+	size_t hashTableSize = dsHashTable_tableSize(maxFaces);
 	faceGroup->allocator = dsAllocator_keepPointer(allocator);
 	faceGroup->scratchAllocator = scratchAllocator;
 	faceGroup->faceHashTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,

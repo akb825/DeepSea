@@ -29,6 +29,7 @@
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/UniqueNameID.h>
 
 #include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Matrix44.h>
@@ -56,7 +57,7 @@ static uint32_t nextID;
 static dsAnimationTreeNodeTable* dsAnimationTreeNodeTable_create(dsAllocator* allocator,
 	uint32_t nodeCount)
 {
-	uint32_t tableSize = dsHashTable_tableSize(nodeCount);
+	size_t tableSize = dsHashTable_tableSize(nodeCount);
 	size_t tableFullSize = dsHashTable_fullAllocSize(tableSize);
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsAnimationTreeNodeTable)) + tableFullSize +
 		DS_ALIGNED_SIZE(sizeof(NamedHashNode)*nodeCount);
@@ -73,7 +74,7 @@ static dsAnimationTreeNodeTable* dsAnimationTreeNodeTable_create(dsAllocator* al
 	table->allocator = dsAllocator_keepPointer(allocator);
 	table->hashTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, tableFullSize);
 	DS_ASSERT(table->hashTable);
-	DS_VERIFY(dsHashTable_initialize(table->hashTable, tableSize, &dsHashIdentity, &dsHash32Equal));
+	DS_VERIFY(dsHashTable_initialize(table->hashTable, tableSize, &dsHash32, &dsHash32Equal));
 
 	table->nodes = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, NamedHashNode, nodeCount);
 	DS_ASSERT(table->nodes);
@@ -214,7 +215,7 @@ static uint32_t buildTreeRec(dsAllocator* allocator, uint32_t* nextIndex, uint32
 {
 	uint32_t index = (*nextIndex)++;
 	dsAnimationNode* node = nodes + index;
-	node->nameID = dsHashString(buildNode->name);
+	node->nameID = dsUniqueNameID_create(buildNode->name);
 	node->scale = buildNode->scale;
 	node->rotation = buildNode->rotation;
 	node->translation = buildNode->translation;
@@ -492,7 +493,7 @@ dsAnimationTree* dsAnimationTree_createJoints(dsAllocator* allocator,
 		dsAnimationNode* treeNode = treeNodes + i;
 		DS_ASSERT(treeNode);
 
-		treeNode->nameID = dsHashString(node->name);
+		treeNode->nameID = dsUniqueNameID_create(node->name);
 		treeNode->scale = node->scale;
 		treeNode->rotation = node->rotation;
 		treeNode->translation = node->translation;
@@ -736,7 +737,7 @@ const dsAnimationNode* dsAnimationTree_findNodeName(const dsAnimationTree* tree,
 		return NULL;
 	}
 
-	uint32_t nameID = dsHashString(name);
+	uint32_t nameID = dsUniqueNameID_get(name);
 	NamedHashNode* hashNode = (NamedHashNode*)dsHashTable_find(tree->nodeTable->hashTable, &nameID);
 	if (!hashNode)
 	{
@@ -773,7 +774,7 @@ uint32_t dsAnimationTree_findNodeIndexName(const dsAnimationTree* tree, const ch
 		return DS_NO_ANIMATION_NODE;
 	}
 
-	uint32_t nameID = dsHashString(name);
+	uint32_t nameID = dsUniqueNameID_get(name);
 	NamedHashNode* hashNode = (NamedHashNode*)dsHashTable_find(tree->nodeTable->hashTable, &nameID);
 	if (!hashNode)
 	{

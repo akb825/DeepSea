@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,13 @@
 #include <DeepSea/Core/Error.h>
 #include <string.h>
 
-uint32_t dsHashTable_tableSize(uint32_t maxElements)
+size_t dsHashTable_tableSize(size_t maxElements)
 {
-	const float loadFactor = 0.75f;
-	return (uint32_t)((float)maxElements/loadFactor);
+	const double loadFactor = 0.75;
+	size_t size = (size_t)((double)maxElements/loadFactor);
+	// Avoid even numbered table sizes.
+	size += (size & 1) == 0;
+	return size;
 }
 
 size_t dsHashTable_sizeof(size_t tableSize)
@@ -48,13 +51,43 @@ bool dsHashTable_initialize(dsHashTable* hashTable, size_t tableSize, dsHashFunc
 		return false;
 	}
 
-	if (!dsList_initialize(&hashTable->list))
-		return false;
-
+	DS_VERIFY(dsList_initialize(&hashTable->list));
 	hashTable->hashFunc = hashFunc;
 	hashTable->keysEqualFunc = keysEqualFunc;
 	hashTable->tableSize = tableSize;
 	memset(hashTable->table, 0, sizeof(dsHashTableNode*)*tableSize);
+	return true;
+}
+
+bool dsHashTable_rehash(dsHashTable* hashTable, size_t tableSize, dsHashTable* prevHashTable)
+{
+	if (!hashTable || !tableSize || !prevHashTable)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	DS_VERIFY(dsList_initialize(&hashTable->list));
+	hashTable->hashFunc = prevHashTable->hashFunc;
+	hashTable->keysEqualFunc = prevHashTable->keysEqualFunc;
+	hashTable->tableSize = tableSize;
+	memset(hashTable->table, 0, sizeof(dsHashTableNode*)*tableSize);
+
+	dsListNode* node = prevHashTable->list.head;
+	while (node)
+	{
+		dsListNode* nextNode = node->next;
+		dsHashTableNode* hashNode = (dsHashTableNode*)node;
+		size_t index = hashNode->hash % hashTable->tableSize;
+
+		// Move the node to the chain and the iterator list.
+		hashNode->chainNext = hashTable->table[index];
+		hashTable->table[index] = hashNode;
+		DS_VERIFY(dsList_append((dsList*)hashTable, (dsListNode*)node));
+		node = nextNode;
+	}
+
+	DS_VERIFY(dsList_initialize((dsList*)prevHashTable));
 	return true;
 }
 
@@ -72,7 +105,7 @@ bool dsHashTable_insert(dsHashTable* hashTable, const void* key, dsHashTableNode
 	uint32_t hash = hashTable->hashFunc(key);
 	size_t index = hash % hashTable->tableSize;
 
-	// Check if it's in the chain for the current chain.
+	// Check if it's in the chain for the current hash.
 	for (dsHashTableNode* chain = hashTable->table[index]; chain; chain = chain->chainNext)
 	{
 		if (chain->hash == hash && hashTable->keysEqualFunc(chain->key, key))

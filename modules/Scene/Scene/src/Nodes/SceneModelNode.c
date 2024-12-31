@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/UniqueNameID.h>
 
 #include <DeepSea/Geometry/OrientedBox3.h>
 
@@ -78,7 +79,7 @@ static size_t cloneRemapFullAllocSize(size_t structSize, const dsSceneModelNode*
 	return fullSize + DS_ALIGNED_SIZE(sizeof(dsSceneModelDrawRange)*drawRangeCount);
 }
 
-static void populateItemList(const char** itemLists, uint32_t* hashes, uint32_t* itemListCount,
+static void populateItemList(const char** itemLists, uint32_t* ids, uint32_t* itemListCount,
 	const dsSceneModelInitInfo* models, uint32_t modelCount, const char* const* extraItemLists,
 	uint32_t extraItemListCount)
 {
@@ -88,7 +89,7 @@ static void populateItemList(const char** itemLists, uint32_t* hashes, uint32_t*
 		itemLists[i] = extraItemLists[i];
 
 	for (uint32_t i = 0; i < modelCount; ++i)
-		hashes[i] = dsHashString(models[i].modelList);
+		ids[i] = dsUniqueNameID_create(models[i].modelList);
 
 	uint32_t start = extraItemListCount;
 	for (uint32_t i = 0; i < modelCount; ++i)
@@ -99,7 +100,7 @@ static void populateItemList(const char** itemLists, uint32_t* hashes, uint32_t*
 		bool unique = true;
 		for (uint32_t j = 0; j < *itemListCount; ++j)
 		{
-			if (hashes[i] == hashes[j])
+			if (ids[i] == ids[j])
 			{
 				unique = false;
 				break;
@@ -111,8 +112,8 @@ static void populateItemList(const char** itemLists, uint32_t* hashes, uint32_t*
 
 		uint32_t index = (*itemListCount)++;
 		itemLists[start + index] = models[i].modelList;
-		// Also make sure the assigned hashes match for faster uniqueness check.
-		hashes[index] = hashes[i];
+		// Also make sure the assigned ids match for faster uniqueness check.
+		ids[index] = ids[i];
 	}
 
 	*itemListCount += extraItemListCount;
@@ -296,7 +297,7 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 		drawRanges += model->drawRangeCount;
 		model->primitiveType = initInfo->primitiveType;
 		if (initInfo->modelList)
-			model->modelListID = dsHashString(initInfo->modelList);
+			model->modelListID = dsUniqueNameID_create(initInfo->modelList);
 		else
 			model->modelListID = 0;
 	}
@@ -562,7 +563,7 @@ bool dsSceneModelNode_remapMaterials(dsSceneModelNode* node, const dsSceneMateri
 
 		uint32_t modelListID = 0;
 		if (remap->modelList)
-			modelListID = dsHashString(remap->modelList);
+			modelListID = dsUniqueNameID_get(remap->modelList);
 
 		for (uint32_t j = 0; j < node->modelCount; ++j)
 		{

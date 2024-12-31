@@ -21,6 +21,7 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/UniqueNameID.h>
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
@@ -78,7 +79,7 @@ dsSceneAnimationTransformNode* dsSceneAnimationTransformNode_create(dsAllocator*
 	DS_ASSERT(nameCopy);
 	memcpy(nameCopy, animationNodeName, nameLen);
 	node->animationNodeName = nameCopy;
-	node->animationNodeID = dsHashString(animationNodeName);
+	node->animationNodeID = dsUniqueNameID_create(animationNodeName);
 
 	return node;
 }

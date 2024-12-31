@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Memory/SystemAllocator.h>
+#include <DeepSea/Core/UniqueNameID.h>
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/RenderMock/MockRenderer.h>
 #include <gtest/gtest.h>
@@ -27,6 +28,8 @@ public:
 	void SetUp() override
 	{
 		dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT);
+		ASSERT_TRUE(dsUniqueNameID_initialize(&allocator.allocator,
+			DS_DEFAULT_INITIAL_UNIQUE_NAME_ID_LIMIT));
 		renderer = dsMockRenderer_create(&allocator.allocator);
 		ASSERT_TRUE(renderer);
 		resourceManager = renderer->resourceManager;
@@ -39,6 +42,7 @@ public:
 		EXPECT_TRUE(dsRenderer_endFrame(renderer));
 
 		dsRenderer_destroy(renderer);
+		EXPECT_TRUE(dsUniqueNameID_shutdown());
 		EXPECT_EQ(0U, allocator.allocator.size);
 	}
 

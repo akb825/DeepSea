@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ extern "C"
  * @param maxElements The maximum number of elements.
  * @return The suggested table size.
  */
-DS_CORE_EXPORT uint32_t dsHashTable_tableSize(uint32_t maxElements);
+DS_CORE_EXPORT size_t dsHashTable_tableSize(size_t maxElements);
 
 /**
  * @brief Calculates the size of a hash table.
@@ -70,13 +70,26 @@ DS_CORE_EXPORT bool dsHashTable_initialize(dsHashTable* hashTable, size_t tableS
 	dsHashFunction hashFunc, dsKeysEqualFunction keysEqualFunc);
 
 /**
+ * @brief Initializes a hash table by re-hashing the contents of a previous hash table.
+ * @remark errno will be set on failure.
+ * @param hashTable The hash table to initialize.
+ * @param tableSize The number of hash buckets for the hash table. This must match the size used for
+ *     dsHashTable_sizeof() or DS_STATIC_HASH_TABLE() when allocating the hash table.
+ * @param prevHashTable The previous hash table to re-hash with. This will be left in an empty state
+ *     if this function is successful.
+ * @return False if the parameters are invalid.
+ */
+DS_CORE_EXPORT bool dsHashTable_rehash(dsHashTable* hashTable, size_t tableSize,
+	dsHashTable* prevHashTable);
+
+/**
  * @brief Inserts a node into the hash table.
  * @remark errno will be set on failure.
  * @param hashTable The hash table to insert into.
  * @param key The key for the node.
  * @param node The node to insert.
  * @param existingNode If not NULL, this will be set to the node already in the hash table for
- * the same key. The existing will be set to NULL if there was no existing node.
+ *     the same key. The existing will be set to NULL if there was no existing node.
  * @return False if the node wasn't inserted.
  */
 DS_CORE_EXPORT bool dsHashTable_insert(dsHashTable* hashTable, const void* key,

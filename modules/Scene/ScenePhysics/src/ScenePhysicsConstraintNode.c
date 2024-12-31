@@ -21,6 +21,7 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/UniqueNameID.h>
 
 #include <DeepSea/Physics/Constraints/PhysicsConstraint.h>
 
@@ -230,7 +231,7 @@ dsScenePhysicsConstraintNode* dsScenePhysicsConstraintNode_create(dsAllocator* a
 		DS_ASSERT(name);
 		memcpy(name, firstActor->instanceName, nameLen);
 		node->firstActor.instanceName = name;
-		node->firstActorInstanceID = dsHashString(name);
+		node->firstActorInstanceID = dsUniqueNameID_create(name);
 	}
 	else
 		node->firstActorInstanceID = 0;
@@ -242,7 +243,7 @@ dsScenePhysicsConstraintNode* dsScenePhysicsConstraintNode_create(dsAllocator* a
 		DS_ASSERT(name);
 		memcpy(name, firstConnectedConstraint->instanceName, nameLen);
 		node->firstConnectedConstraint.instanceName = name;
-		node->firstConnectedConstraintInstanceID = dsHashString(name);
+		node->firstConnectedConstraintInstanceID = dsUniqueNameID_create(name);
 	}
 	else
 		node->firstConnectedConstraintInstanceID = 0;
@@ -254,7 +255,7 @@ dsScenePhysicsConstraintNode* dsScenePhysicsConstraintNode_create(dsAllocator* a
 		DS_ASSERT(name);
 		memcpy(name, secondActor->instanceName, nameLen);
 		node->secondActor.instanceName = name;
-		node->secondActorInstanceID = dsHashString(name);
+		node->secondActorInstanceID = dsUniqueNameID_create(name);
 	}
 	else
 		node->secondActorInstanceID = 0;
@@ -266,7 +267,7 @@ dsScenePhysicsConstraintNode* dsScenePhysicsConstraintNode_create(dsAllocator* a
 		DS_ASSERT(name);
 		memcpy(name, secondConnectedConstraint->instanceName, nameLen);
 		node->secondConnectedConstraint.instanceName = name;
-		node->secondConnectedConstraintInstanceID = dsHashString(name);
+		node->secondConnectedConstraintInstanceID = dsUniqueNameID_create(name);
 	}
 	else
 		node->secondConnectedConstraintInstanceID = 0;

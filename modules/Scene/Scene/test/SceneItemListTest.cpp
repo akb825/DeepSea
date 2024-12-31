@@ -15,15 +15,19 @@
  */
 
 #include "FixtureBase.h"
+
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
+
 #include <DeepSea/Scene/ItemLists/SceneItemList.h>
 #include <DeepSea/Scene/Nodes/SceneTransformNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Scene.h>
+
 #include <gtest/gtest.h>
 
 namespace
@@ -134,7 +138,7 @@ MockSceneItemList* createMockSceneItems(dsAllocator* allocator)
 	baseItems->allocator = dsAllocator_keepPointer(allocator);
 	baseItems->type = 0;
 	baseItems->name = testItemListName;
-	baseItems->nameID = dsHashString(testItemListName);
+	baseItems->nameID = dsUniqueNameID_create(testItemListName);
 	baseItems->globalValueCount = 0;
 	baseItems->needsCommandBuffer = false;
 	baseItems->addNodeFunc = &addMockSceneItem;

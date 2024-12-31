@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Aaron Barany
+ * Copyright 2020-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Core/Sort.h>
+#include <DeepSea/Core/UniqueNameID.h>
 
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Core.h>
@@ -505,7 +506,7 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	itemList->type = dsSceneVectorItemList_type();
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, char, nameLen + 1);
 	memcpy((void*)itemList->name, name, nameLen + 1);
-	itemList->nameID = dsHashString(name);
+	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->addNodeFunc = &dsSceneVectorItemList_addNode;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = &dsSceneVectorItemList_removeNode;

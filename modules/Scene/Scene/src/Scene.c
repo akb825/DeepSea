@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -288,7 +288,7 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	scene->pipelineCount = pipelineCount;
 	scene->globalValueCount = globalValueCount;
 
-	uint32_t tableSize = dsHashTable_tableSize(nameCount);
+	size_t tableSize = dsHashTable_tableSize(nameCount);
 	size_t hashTableSize = dsHashTable_fullAllocSize(tableSize);
 	scene->itemLists = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, hashTableSize);
 	DS_ASSERT(scene->itemLists);

@@ -21,6 +21,7 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/UniqueNameID.h>
 
 #include <DeepSea/Physics/RigidBody.h>
 #include <DeepSea/Physics/RigidBodyTemplate.h>
@@ -123,7 +124,7 @@ dsSceneRigidBodyNode* dsSceneRigidBodyNode_create(dsAllocator* allocator, const 
 		DS_ASSERT(nameCopy);
 		memcpy(nameCopy, rigidBodyName, nameLen);
 		node->rigidBodyName = nameCopy;
-		node->rigidBodyID = dsHashString(rigidBodyName);
+		node->rigidBodyID = dsUniqueNameID_create(rigidBodyName);
 		node->rigidBody = NULL;
 		node->rigidBodyTemplate = NULL;
 		node->ownsPointer = false;

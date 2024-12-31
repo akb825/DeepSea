@@ -25,6 +25,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/UniqueNameID.h>
 
 #include <DeepSea/Physics/Constraints/PhysicsConstraint.h>
 #include <DeepSea/Physics/RigidBodyGroup.h>
@@ -137,7 +138,7 @@ dsSceneRigidBodyGroupNode* dsSceneRigidBodyGroupNode_create(dsAllocator* allocat
 
 		fullSize += DS_ALIGNED_SIZE(strlen(rigidBody->name) + 1);
 	}
-	unsigned int rigidBodyTableSize = dsHashTable_tableSize(rigidBodyCount);
+	size_t rigidBodyTableSize = dsHashTable_tableSize(rigidBodyCount);
 	size_t rigidBodyTableAllocSize = dsHashTable_fullAllocSize(rigidBodyTableSize);
 	fullSize += rigidBodyTableAllocSize;
 	fullSize += DS_ALIGNED_SIZE(sizeof(RigidBodyNode)*rigidBodyCount);
@@ -154,7 +155,7 @@ dsSceneRigidBodyGroupNode* dsSceneRigidBodyGroupNode_create(dsAllocator* allocat
 
 		fullSize += DS_ALIGNED_SIZE(strlen(constraint->name) + 1);
 	}
-	unsigned int constraintTableSize = dsHashTable_tableSize(constraintCount);
+	size_t constraintTableSize = dsHashTable_tableSize(constraintCount);
 	size_t constraintTableAllocSize = 0;
 	if (constraintCount > 0)
 	{
@@ -192,7 +193,7 @@ dsSceneRigidBodyGroupNode* dsSceneRigidBodyGroupNode_create(dsAllocator* allocat
 		rigidBodyTableAllocSize);
 	DS_ASSERT(node->rigidBodies);
 	DS_VERIFY(dsHashTable_initialize(
-		node->rigidBodies, rigidBodyTableSize, &dsHashIdentity, &dsHash32Equal));
+		node->rigidBodies, rigidBodyTableSize, &dsHash32, &dsHash32Equal));
 	RigidBodyNode* rigidBodyNodes =
 		DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, RigidBodyNode, rigidBodyCount);
 	DS_ASSERT(rigidBodyNodes);
@@ -200,7 +201,7 @@ dsSceneRigidBodyGroupNode* dsSceneRigidBodyGroupNode_create(dsAllocator* allocat
 	{
 		const dsNamedSceneRigidBodyTemplate* rigidBody = rigidBodies + i;
 		RigidBodyNode* rigidBodyNode = rigidBodyNodes + i;
-		rigidBodyNode->nameID = dsHashString(rigidBody->name);
+		rigidBodyNode->nameID = dsUniqueNameID_create(rigidBody->name);
 		rigidBodyNode->index = i;
 		rigidBodyNode->rigidBody = rigidBody->rigidBodyTemplate;
 		rigidBodyNode->owned = rigidBody->transferOwnership;
@@ -226,7 +227,7 @@ dsSceneRigidBodyGroupNode* dsSceneRigidBodyGroupNode_create(dsAllocator* allocat
 			constraintTableAllocSize);
 		DS_ASSERT(node->constraints);
 		DS_VERIFY(dsHashTable_initialize(
-			node->constraints, constraintTableSize, &dsHashIdentity, &dsHash32Equal));
+			node->constraints, constraintTableSize, &dsHash32, &dsHash32Equal));
 		ConstraintNode* constraintNodes =
 			DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, ConstraintNode, constraintCount);
 		DS_ASSERT(constraintNodes);
@@ -234,16 +235,16 @@ dsSceneRigidBodyGroupNode* dsSceneRigidBodyGroupNode_create(dsAllocator* allocat
 		{
 			const dsNamedScenePhysicsConstraint* constraint = constraints + i;
 			ConstraintNode* constraintNode = constraintNodes + i;
-			constraintNode->nameID = dsHashString(constraint->name);
+			constraintNode->nameID = dsUniqueNameID_create(constraint->name);
 			constraintNode->index = i;
 			constraintNode->firstRigidBodyID =
-				constraint->firstRigidBody ? dsHashString(constraint->firstRigidBody) : 0;
+				constraint->firstRigidBody ? dsUniqueNameID_create(constraint->firstRigidBody) : 0;
 			constraintNode->firstConnectedConstraintID = constraint->firstConnectedConstraint ?
-				dsHashString(constraint->firstConnectedConstraint) : 0;
-			constraintNode->secondRigidBodyID =
-				constraint->secondRigidBody ? dsHashString(constraint->secondRigidBody) : 0;
+				dsUniqueNameID_create(constraint->firstConnectedConstraint) : 0;
+			constraintNode->secondRigidBodyID = constraint->secondRigidBody ?
+				dsUniqueNameID_create(constraint->secondRigidBody) : 0;
 			constraintNode->secondConnectedConstraintID = constraint->secondConnectedConstraint ?
-				dsHashString(constraint->secondConnectedConstraint) : 0;
+				dsUniqueNameID_create(constraint->secondConnectedConstraint) : 0;
 			constraintNode->constraint = constraint->constraint;
 			constraintNode->owned = constraint->transferOwnership;
 
@@ -289,7 +290,7 @@ dsSceneRigidBodyGroupNode* dsSceneRigidBodyGroupNode_create(dsAllocator* allocat
 			for (unsigned int j = 0; j < 2; ++j)
 			{
 				const char* constraintName = connectedConstraintNames[j];
-				uint32_t constraintID = dsHashString(constraintName);
+				uint32_t constraintID = dsUniqueNameID_get(constraintName);
 				ConstraintNode* foundConstraint = (ConstraintNode*)dsHashTable_find(
 					node->constraints, &constraintID);
 				bool error = false;
@@ -333,7 +334,7 @@ dsRigidBody* dsSceneRigidBodyGroupNode_findRigidBodyForInstanceName(const dsScen
 	if (!treeNode || !name)
 		return NULL;
 
-	return dsSceneRigidBodyGroupNode_findRigidBodyForInstanceID(treeNode, dsHashString(name));
+	return dsSceneRigidBodyGroupNode_findRigidBodyForInstanceID(treeNode, dsUniqueNameID_get(name));
 }
 
 dsRigidBody* dsSceneRigidBodyGroupNode_findRigidBodyForInstanceID(const dsSceneTreeNode* treeNode,
@@ -372,7 +373,8 @@ dsPhysicsConstraint* dsSceneRigidBodyGroupNode_findConstraintForInstanceName(
 	if (!treeNode || !name)
 		return NULL;
 
-	return dsSceneRigidBodyGroupNode_findConstraintForInstanceID(treeNode, dsHashString(name));
+	return dsSceneRigidBodyGroupNode_findConstraintForInstanceID(
+		treeNode, dsUniqueNameID_get(name));
 }
 
 dsPhysicsConstraint* dsSceneRigidBodyGroupNode_findConstraintForInstanceID(

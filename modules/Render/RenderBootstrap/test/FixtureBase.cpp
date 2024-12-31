@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 #include "FixtureBase.h"
 #include <DeepSea/Core/Streams/Path.h>
+#include <DeepSea/Core/UniqueNameID.h>
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/RenderBootstrap/RenderBootstrap.h>
 
@@ -39,6 +40,8 @@ testing::internal::ParamGenerator<dsRendererType> FixtureBase::getRendererTypes(
 void FixtureBase::SetUp()
 {
 	dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT);
+	ASSERT_TRUE(dsUniqueNameID_initialize(&allocator.allocator,
+		DS_DEFAULT_INITIAL_UNIQUE_NAME_ID_LIMIT));
 	dsRendererOptions options;
 	dsRenderer_defaultOptions(&options, "deepsea_test_render_bootstrap", 0);
 	adjustRendererOptions(options);
@@ -74,6 +77,7 @@ void FixtureBase::TearDown()
 	EXPECT_TRUE(dsRenderer_endFrame(renderer));
 
 	dsRenderer_destroy(renderer);
+	EXPECT_TRUE(dsUniqueNameID_shutdown());
 	EXPECT_EQ(0U, allocator.allocator.size);
 }
 

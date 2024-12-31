@@ -1175,6 +1175,11 @@ struct dsApplication
 	const dsDisplayInfo* displays;
 
 	/**
+	 * @brief Whether this was responsible for initializing dsUniqueNameID.
+	 */
+	bool uniqueNameIDInitialized;
+
+	/**
 	 * @brief The number of displays.
 	 */
 	uint32_t displayCount;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,11 @@
 #include <DeepSea/Scene/Nodes/SceneNodeItemData.h>
 
 #include <DeepSea/Core/Containers/Hash.h>
+#include <DeepSea/Core/UniqueNameID.h>
 
 void* dsSceneNodeItemData_findName(const dsSceneNodeItemData* itemData, const char* name)
 {
-	return dsSceneNodeItemData_findID(itemData, dsHashString(name));
+	return dsSceneNodeItemData_findID(itemData, dsUniqueNameID_get(name));
 }
 
 void* dsSceneNodeItemData_findID(const dsSceneNodeItemData* itemData, uint32_t nameID)

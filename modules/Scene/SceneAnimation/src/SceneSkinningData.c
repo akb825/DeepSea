@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+#include <DeepSea/Core/UniqueNameID.h>
 
 #include <DeepSea/Math/Core.h>
 
@@ -693,8 +694,9 @@ dsSceneInstanceData* dsSceneSkinningData_create(dsAllocator* allocator,
 		skinningData->bufferUsage = shaderVariableGroupBuffers ? dsGfxBufferUsage_UniformBlock : 0;
 		skinningData->skinningMethod = SkinningMethod_Textures;
 	}
-	skinningData->skinningDataVar = dsHashString(dsSceneSkinningData_typeName);
-	skinningData->skinningTextureInfoVar = useBuffers ? 0 : dsHashString("SkinningTextureInfo");
+	skinningData->skinningDataVar = dsUniqueNameID_create(dsSceneSkinningData_typeName);
+	skinningData->skinningTextureInfoVar =
+		useBuffers ? 0 : dsUniqueNameID_create("SkinningTextureInfo");
 	dsTextureInfo textureInfo =
 	{
 		skinningData->format, dsTextureDim_2D, TEXTURE_SIZE, TEXTURE_SIZE, 0, 1, 0

@@ -15,13 +15,17 @@
  */
 
 #include <DeepSea/Application/Application.h>
+
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Sort.h>
+#include <DeepSea/Core/UniqueNameID.h>
+
 #include <DeepSea/Math/Core.h>
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -626,7 +630,7 @@ bool dsApplication_dispatchEvent(dsApplication* application, dsWindow* window,
 	return true;
 }
 
-bool dsApplication_initialize(dsApplication* application)
+bool dsApplication_initialize(dsApplication* application, dsAllocator* allocator)
 {
 	if (!application)
 	{
@@ -635,6 +639,13 @@ bool dsApplication_initialize(dsApplication* application)
 	}
 
 	memset(application, 0, sizeof(*application));
+	application->allocator = dsAllocator_keepPointer(allocator);
+	if (!dsUniqueNameID_isInitialized())
+	{
+		if (!dsUniqueNameID_initialize(allocator, DS_DEFAULT_INITIAL_UNIQUE_NAME_ID_LIMIT))
+			return false;
+		application->uniqueNameIDInitialized = true;
+	}
 	if (!dsLog_getFunction())
 		dsLog_setFunction(application, &applicationLogWrapper);
 	return true;
@@ -660,4 +671,6 @@ void dsApplication_shutdown(dsApplication* application)
 
 	if (dsLog_getFunction() == &applicationLogWrapper)
 		dsLog_clearFunction();
+	if (application->uniqueNameIDInitialized)
+		dsUniqueNameID_shutdown();
 }

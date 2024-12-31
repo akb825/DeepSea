@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,12 @@ struct TestNode
 static uint32_t chainHashFunction(const void*)
 {
 	return 0;
+}
+
+TEST(HashTableTest, TableSize)
+{
+	EXPECT_EQ(133U, dsHashTable_tableSize(100));
+	EXPECT_EQ(267U, dsHashTable_tableSize(200));
 }
 
 TEST(HashTableTest, Initialize)
@@ -224,4 +230,62 @@ TEST(HashTableTest, Chaining)
 	EXPECT_FALSE(dsHashTable_find(hashTable, "test3"));
 
 	EXPECT_EQ(0U, list->length);
+}
+
+TEST(HashTableTest, Rehash)
+{
+	TestNode node1 = {{}, 1};
+	TestNode node2 = {{}, 2};
+	TestNode node3 = {{}, 3};
+
+	const unsigned int smallSize = 51;
+	DS_STATIC_HASH_TABLE(smallSize) smallStorage;
+	dsHashTable* smallHashTable = &smallStorage.hashTable;
+	EXPECT_TRUE(dsHashTable_initialize(
+		smallHashTable, smallSize, &dsHashString, &dsHashStringEqual));
+
+	EXPECT_TRUE(dsHashTable_insert(smallHashTable, "test1", (dsHashTableNode*)&node1, nullptr));
+	EXPECT_TRUE(dsHashTable_insert(smallHashTable, "test2", (dsHashTableNode*)&node2, nullptr));
+	EXPECT_TRUE(dsHashTable_insert(smallHashTable, "test3", (dsHashTableNode*)&node3, nullptr));
+
+	const unsigned int largeSize = 101;
+	DS_STATIC_HASH_TABLE(largeSize) largeStorage;
+	dsHashTable* largeHashTable = &largeStorage.hashTable;
+	EXPECT_TRUE(dsHashTable_rehash(largeHashTable, largeSize, smallHashTable));
+
+	EXPECT_EQ(0U, smallHashTable->list.length);
+	EXPECT_EQ(3U, largeHashTable->list.length);
+
+	EXPECT_EQ((dsHashTableNode*)&node1, dsHashTable_find(largeHashTable, "test1"));
+	EXPECT_EQ((dsHashTableNode*)&node2, dsHashTable_find(largeHashTable, "test2"));
+	EXPECT_EQ((dsHashTableNode*)&node3, dsHashTable_find(largeHashTable, "test3"));
+}
+
+TEST(HashTableTest, RehashChaining)
+{
+	TestNode node1 = {{}, 1};
+	TestNode node2 = {{}, 2};
+	TestNode node3 = {{}, 3};
+
+	const unsigned int smallSize = 51;
+	DS_STATIC_HASH_TABLE(smallSize) smallStorage;
+	dsHashTable* smallHashTable = &smallStorage.hashTable;
+	EXPECT_TRUE(dsHashTable_initialize(
+		smallHashTable, smallSize, &chainHashFunction, &dsHashStringEqual));
+
+	EXPECT_TRUE(dsHashTable_insert(smallHashTable, "test1", (dsHashTableNode*)&node1, nullptr));
+	EXPECT_TRUE(dsHashTable_insert(smallHashTable, "test2", (dsHashTableNode*)&node2, nullptr));
+	EXPECT_TRUE(dsHashTable_insert(smallHashTable, "test3", (dsHashTableNode*)&node3, nullptr));
+
+	const unsigned int largeSize = 101;
+	DS_STATIC_HASH_TABLE(largeSize) largeStorage;
+	dsHashTable* largeHashTable = &largeStorage.hashTable;
+	EXPECT_TRUE(dsHashTable_rehash(largeHashTable, largeSize, smallHashTable));
+
+	EXPECT_EQ(0U, smallHashTable->list.length);
+	EXPECT_EQ(3U, largeHashTable->list.length);
+
+	EXPECT_EQ((dsHashTableNode*)&node1, dsHashTable_find(largeHashTable, "test1"));
+	EXPECT_EQ((dsHashTableNode*)&node2, dsHashTable_find(largeHashTable, "test2"));
+	EXPECT_EQ((dsHashTableNode*)&node3, dsHashTable_find(largeHashTable, "test3"));
 }

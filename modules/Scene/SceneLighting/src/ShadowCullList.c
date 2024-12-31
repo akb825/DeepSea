@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 Aaron Barany
+ * Copyright 2021-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/UniqueNameID.h>
 
 #include <DeepSea/Geometry/OrientedBox3.h>
 #include <DeepSea/Geometry/Frustum3.h>
@@ -353,7 +354,7 @@ dsSceneItemList* dsShadowCullList_create(dsAllocator* allocator, const char* nam
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);
-	itemList->nameID = dsHashString(name);
+	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = false;
 	itemList->addNodeFunc = &dsShadowCullList_addNode;

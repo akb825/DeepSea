@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 Aaron Barany
+ * Copyright 2021-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/UniqueNameID.h>
 
 #include <DeepSea/SceneLighting/SceneLightShadows.h>
 #include <DeepSea/SceneLighting/SceneShadowManager.h>
@@ -84,7 +85,7 @@ dsSceneItemList* dsSceneShadowManagerPrepare_create(dsAllocator* allocator, cons
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);
-	itemList->nameID = dsHashString(name);
+	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = dsSceneShadowManager_globalTransformGroupCount(shadowManager);
 	itemList->needsCommandBuffer = false;
 	itemList->addNodeFunc = NULL;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Core/Sort.h>
+#include <DeepSea/Core/UniqueNameID.h>
 
 #include <DeepSea/Geometry/OrientedBox3.h>
 #include <DeepSea/Geometry/Frustum3.h>
@@ -470,7 +471,7 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 	itemList->type = dsSceneModelList_type();
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, char, nameLen + 1);
 	memcpy((void*)itemList->name, name, nameLen + 1);
-	itemList->nameID = dsHashString(name);
+	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = true;
 	itemList->addNodeFunc = &dsSceneModelList_addNode;
@@ -490,7 +491,7 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 	else
 		modelList->hasRenderStates = false;
 	modelList->sortType = sortType;
-	modelList->cullListID = cullList ? dsHashString(cullList) : 0;
+	modelList->cullListID = cullList ? dsUniqueNameID_create(cullList) : 0;
 
 	if (instanceDataCount > 0)
 	{

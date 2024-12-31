@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 Aaron Barany
+ * Copyright 2021-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/UniqueNameID.h>
 
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/Render/Resources/Texture.h>
@@ -101,7 +102,7 @@ dsSceneItemList* dsViewMipmapList_create(dsAllocator* allocator, const char* nam
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);
-	itemList->nameID = dsHashString(name);
+	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = true;
 	itemList->addNodeFunc = NULL;
@@ -116,7 +117,7 @@ dsSceneItemList* dsViewMipmapList_create(dsAllocator* allocator, const char* nam
 	mipmapList->textureIDs = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t, textureCount);
 	DS_ASSERT(mipmapList->textureIDs);
 	for (uint32_t i = 0; i < textureCount; ++i)
-		mipmapList->textureIDs[i] = dsHashString(textureNames[i]);
+		mipmapList->textureIDs[i] = dsUniqueNameID_create(textureNames[i]);
 	mipmapList->textureCount = textureCount;
 
 	return itemList;

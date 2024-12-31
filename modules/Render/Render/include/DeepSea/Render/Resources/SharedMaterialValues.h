@@ -45,7 +45,7 @@ extern "C"
  *
  * Lookups into this will be frequent, so as a result the index is done by pre-hashing the name. You
  * may either access the elements by name or by the ID, which is the hash of the name. (by calling
- * dsHashString())
+ * dsUniqueNameID_create() or dsUniqueNameID_get())
  *
  * This will prevent setting a value when a value is set with the same name but a different type.
  * In this case, errno will be set to EPERM. errno will be set to ENOMEM if the maximum number of

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -406,7 +406,7 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator, dsAllocator*
 	DS_ASSERT(privateView->surfaces);
 	privateView->surfaceCount = surfaceCount;
 
-	uint32_t surfaceTableSize = dsHashTable_tableSize(surfaceCount);
+	size_t surfaceTableSize = dsHashTable_tableSize(surfaceCount);
 	privateView->surfaceTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
 		dsHashTable_fullAllocSize(surfaceTableSize));
 	DS_ASSERT(privateView->surfaceTable);

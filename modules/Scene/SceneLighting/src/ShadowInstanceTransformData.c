@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 Aaron Barany
+ * Copyright 2021-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+#include <DeepSea/Core/UniqueNameID.h>
 
 #include <DeepSea/Math/Matrix44.h>
 
@@ -245,6 +246,6 @@ dsSceneInstanceData* dsShadowInstanceTransformData_create(dsAllocator* allocator
 	userData->shadows = shadows;
 	userData->surface = surface;
 	return dsSceneInstanceVariables_create(allocator, resourceAllocator, resourceManager,
-		transformDesc, dsHashString(dsInstanceTransformData_typeName), populateFunc, userData,
-		&ShadowUserData_destroy);
+		transformDesc, dsUniqueNameID_create(dsInstanceTransformData_typeName), populateFunc,
+		userData, &ShadowUserData_destroy);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+#include <DeepSea/Core/UniqueNameID.h>
 
 #include <DeepSea/Math/Matrix44.h>
 
@@ -188,5 +189,6 @@ dsSceneInstanceData* dsInstanceTransformData_create(dsAllocator* allocator,
 #endif
 		populateFunc = &dsInstanceTransformData_populateData;
 	return dsSceneInstanceVariables_create(allocator, resourceAllocator, resourceManager,
-		transformDesc, dsHashString(dsInstanceTransformData_typeName), populateFunc, NULL, NULL);
+		transformDesc, dsUniqueNameID_create(dsInstanceTransformData_typeName), populateFunc, NULL,
+		NULL);
 }

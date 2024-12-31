@@ -40,9 +40,7 @@
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderSurface.h>
 
-#include <math.h>
 #include <SDL.h>
-#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -1131,9 +1129,8 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	memset(application->cursors, 0, sizeof(application->cursors));
 
 	dsApplication* baseApplication = (dsApplication*)application;
-	DS_VERIFY(dsApplication_initialize(baseApplication));
+	DS_VERIFY(dsApplication_initialize(baseApplication, allocator));
 	baseApplication->renderer = renderer;
-	baseApplication->allocator = allocator;
 
 	baseApplication->displayCount = SDL_GetNumVideoDisplays();
 	if (baseApplication->displayCount > 0)

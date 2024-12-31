@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/UniqueNameID.h>
 
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Vector3.h>
@@ -158,7 +159,7 @@ dsSceneItemList* dsLightData_create(dsAllocator* allocator, const char* name,
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);
-	itemList->nameID = dsHashString(name);
+	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 1;
 	itemList->needsCommandBuffer = true;
 	itemList->addNodeFunc = NULL;
@@ -180,7 +181,7 @@ dsSceneItemList* dsLightData_create(dsAllocator* allocator, const char* name,
 	}
 
 	const char* variableGroupName = "LightData";
-	lightData->variableGroupNameID = dsHashString(variableGroupName);
+	lightData->variableGroupNameID = dsUniqueNameID_create(variableGroupName);
 
 	return itemList;
 }

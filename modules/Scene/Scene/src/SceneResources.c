@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Aaron Barany
+ * Copyright 2019-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ struct dsSceneResources
 
 static dsHashTable* createHashTable(dsBufferAllocator* allocator, uint32_t maxItems)
 {
-	uint32_t tableSize = dsHashTable_tableSize(maxItems);
+	size_t tableSize = dsHashTable_tableSize(maxItems);
 	dsHashTable* hashTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)allocator,
 		dsHashTable_fullAllocSize(tableSize));
 	DS_ASSERT(hashTable);
