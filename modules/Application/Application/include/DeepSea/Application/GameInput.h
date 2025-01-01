@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,6 +126,56 @@ DS_APPLICATION_EXPORT bool dsGameInput_isControllerButtonPressed(const dsGameInp
  */
 DS_APPLICATION_EXPORT bool dsGameInput_getDPadDirection(dsVector2i* outDirection,
 	const dsGameInput* gameInput, uint32_t dpad);
+
+/**
+ * @brief Sets the baseline rumble on a game input.
+ *
+ * The baseline rumble will continue until explicitly set again. The strongest between the baseline
+ * and timed rumble will be used at any given moment.
+ *
+ * @remark errno will be set on failure.
+ * @param gameInput The game input device to set the rumble on.
+ * @param rumble The type of rumble to set.
+ * @param strength The strength of the rumble in the range [0, 1].
+ * @return False if the baseline rumble couldn't be set.
+ */
+DS_APPLICATION_EXPORT bool dsGameInput_setBaselineRumble(dsGameInput* gameInput,
+	dsGameInputRumble rumble, float strength);
+
+/**
+ * @brief Gets baseline rumble on a game input.
+ * @param gameInput The game input device to get the rumble on.
+ * @param rumble The type of rumble to get.
+ * @return The strength of the rumble in the range [0, 1].
+ */
+DS_APPLICATION_EXPORT float dsGameInput_getBaselineRumble(const dsGameInput* gameInput,
+	dsGameInputRumble rumble);
+
+/**
+ * @brief Sets the timed rumble on a game input.
+ *
+ * The timed rumble will continue until the duration expires or is later set to a different value.
+ * The strongest between the baseline and timed rumble will be used at any given moment.
+ *
+ * @remark errno will be set on failure.
+ * @param gameInput The game input device to set the rumble on.
+ * @param rumble The type of rumble to set.
+ * @param strength The strength of the rumble in the range [0, 1].
+ * @param duration The duration of the rumble in seconds.
+ * @return False if rumble couldn't be set.
+ */
+DS_APPLICATION_EXPORT bool dsGameInput_setTimedRumble(dsGameInput* gameInput,
+	dsGameInputRumble rumble, float strength, float duration);
+
+/**
+ * @brief Gets the timed rumble on a game input.
+ * @param[out] outDuration The remaining duration in seconds. This may be NULL if not needed.
+ * @param gameInput The game input device to get the rumble on.
+ * @param rumble The type of rumble to get.
+ * @return The strength of the rumble.
+ */
+DS_APPLICATION_EXPORT float dsGameInput_getTimedRumble(float* outDuration,
+	const dsGameInput* gameInput, dsGameInputRumble rumble);
 
 /**
  * @brief Sets rumble on a game input.

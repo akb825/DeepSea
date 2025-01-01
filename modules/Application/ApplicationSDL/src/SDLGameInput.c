@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 
-#include <math.h>
+#include <DeepSea/Math/Core.h>
 
 static void setInputMapping(dsGameInputMap* outMapping, SDL_GameControllerButtonBind binding)
 {
@@ -129,6 +129,14 @@ static dsGameInput* createGameInput(dsApplication* application, uint32_t index)
 	gameInput->controller = controller;
 	gameInput->joystick = joystick;
 	gameInput->dpadValues = NULL;
+	for (unsigned int i = 0; i < DS_GAME_INPUT_RUMBLE_COUNT; ++i)
+	{
+		dsSDLRumbleState* rumbleState = gameInput->rumbleState + i;
+		rumbleState->baselineStrength = 0.0f;
+		rumbleState->timedStrength = 0.0f;
+		rumbleState->timedDuration = 0.0f;
+	}
+
 	if (controller)
 	{
 		if (dpadCount > 0)
@@ -375,6 +383,44 @@ static bool isAxisPressed(Sint16 value)
 	return value > 16383 || value < -16383;
 }
 
+static void updateRumble(dsSDLGameInput* sdlGameInput)
+{
+	const dsSDLRumbleState* lowFrequencyState =
+		sdlGameInput->rumbleState + dsGameInputRumble_LowFrequency;
+	const dsSDLRumbleState* highFrequencyState =
+		sdlGameInput->rumbleState + dsGameInputRumble_HighFrequency;
+	float lowFrequencyStrength = dsMax(lowFrequencyState->baselineStrength,
+		lowFrequencyState->timedStrength);
+	float highFrequencyStrength = dsMax(highFrequencyState->baselineStrength,
+		highFrequencyState->timedStrength);
+#if SDL_VERSION_ATLEAST(2, 0, 9)
+	SDL_JoystickRumble(sdlGameInput->joystick, (uint16_t)roundf(lowFrequencyStrength*0xFFFF),
+		(uint16_t)roundf(highFrequencyStrength*0xFFFF), 1000);
+#else
+	float strength = (lowFrequencyStrength + highFrequencyStrength) * 0.5f;
+	if (strength == 0)
+		SDL_HapticRumbleStop(((dsSDLGameInput*)gameInput)->haptic);
+	else
+		SDL_HapticRumblePlay(((dsSDLGameInput*)gameInput)->haptic, strength, 1000);
+#endif
+}
+
+static void updateTriggerRumble(dsSDLGameInput* sdlGameInput)
+{
+#if SDL_VERSION_ATLEAST(2, 0, 14)
+	const dsSDLRumbleState* leftState =
+		sdlGameInput->rumbleState + dsGameInputRumble_LeftTrigger;
+	const dsSDLRumbleState* rightState =
+		sdlGameInput->rumbleState + dsGameInputRumble_RightTrigger;
+	float leftStrength = dsMax(leftState->baselineStrength, leftState->timedStrength);
+	float rightStrength = dsMax(rightState->baselineStrength, rightState->timedStrength);
+	SDL_JoystickRumbleTriggers(sdlGameInput->joystick, (uint16_t)roundf(leftStrength*0xFFFF),
+		(uint16_t)roundf(rightStrength*0xFFFF), 1000);
+#else
+	DS_UNUSED(sdlGameInput);
+#endif
+}
+
 float dsSDLGameInput_getAxisValue(Sint16 value)
 {
 	return value/32767.0f;
@@ -554,6 +600,24 @@ dsGameInput* dsSDLGameInput_find(dsApplication* application, SDL_JoystickID id)
 	return NULL;
 }
 
+void dsSDLGameInput_update(dsGameInput* gameInput, float time)
+{
+	dsSDLGameInput* sdlGameInput = (dsSDLGameInput*)gameInput;
+	for (unsigned int i = 0; i < DS_GAME_INPUT_RUMBLE_COUNT; ++i)
+	{
+		dsSDLRumbleState* rumbleState = sdlGameInput->rumbleState + i;
+		rumbleState->timedDuration -= time;
+		if (rumbleState->timedDuration <= 0.0f)
+		{
+			rumbleState->timedStrength = 0.0f;
+			rumbleState->timedDuration = 0.0f;
+		}
+	}
+
+	updateRumble(sdlGameInput);
+	updateTriggerRumble(sdlGameInput);
+}
+
 void dsSDLGameInput_dispatchControllerDPadEvents(dsGameInput* gameInput, dsApplication* application,
 	dsWindow* window, uint32_t dpad, Sint8 value, double time)
 {
@@ -716,64 +780,79 @@ bool dsSDLGameInput_getDPadDirection(dsVector2i* outDirection, const dsApplicati
 	return true;
 }
 
-bool dsSDLGameInput_setRumble(dsApplication* application, dsGameInput* gameInput,
-	float lowFrequencyStrength, float highFrequencyStrength, float duration)
+bool dsSDLGameInput_setBaselineRumble(dsApplication* application, dsGameInput* gameInput,
+	dsGameInputRumble rumble, float strength)
 {
 	DS_UNUSED(application);
-#if SDL_VERSION_ATLEAST(2, 0, 9)
-	if (!SDL_JoystickRumble(((dsSDLGameInput*)gameInput)->joystick,
-			(uint16_t)roundf(lowFrequencyStrength*0xFFFF),
-			(uint16_t)roundf(highFrequencyStrength*0xFFFF),
-			(uint32_t)roundf(duration*1000.0f)))
-	{
-		errno = EPERM;
-		return false;
-	}
-#else
-	float strength = (lowFrequencyStrength + highFrequencyStrength) * 0.5f;
-	bool success;
-	if (strength == 0)
-		success = SDL_HapticRumbleStop(((dsSDLGameInput*)gameInput)->haptic) == 0;
-	else
-	{
-		success = SDL_HapticRumblePlay(((dsSDLGameInput*)gameInput)->haptic, strength,
-			(unsigned int)roundf(duration*1000.0f)) == 0;
-	}
+	dsSDLGameInput* sdlGameInput = (dsSDLGameInput*)gameInput;
+	dsSDLRumbleState* rumbleState = sdlGameInput->rumbleState + rumble;
+	if (strength == rumbleState->baselineStrength)
+		return true;
 
-	if (!success)
+	rumbleState->baselineStrength = strength;
+
+	switch (rumble)
 	{
-		errno = EPERM;
-		return false;
+		case dsGameInputRumble_LowFrequency:
+		case dsGameInputRumble_HighFrequency:
+			updateRumble(sdlGameInput);
+			break;
+		case dsGameInputRumble_LeftTrigger:
+		case dsGameInputRumble_RightTrigger:
+			updateTriggerRumble(sdlGameInput);
+			break;
 	}
-#endif
 
 	return true;
 }
 
-bool dsSDLGameInput_setTriggerRumble(dsApplication* application, dsGameInput* gameInput,
-	float leftStrength, float rightStrength, float duration)
+float dsSDLGameInput_getBaselineRumble(dsApplication* application, const dsGameInput* gameInput,
+	dsGameInputRumble rumble)
 {
 	DS_UNUSED(application);
-#if SDL_VERSION_ATLEAST(2, 0, 14)
-	if (!SDL_JoystickRumbleTriggers(((dsSDLGameInput*)gameInput)->joystick,
-			(uint16_t)roundf(leftStrength*0xFFFF),
-			(uint16_t)roundf(rightStrength*0xFFFF),
-			(uint32_t)roundf(duration*1000.0f)))
+	const dsSDLGameInput* sdlGameInput = (const dsSDLGameInput*)gameInput;
+	return sdlGameInput->rumbleState[rumble].baselineStrength;
+}
+
+bool dsSDLGameInput_setTimedRumble(dsApplication* application, dsGameInput* gameInput,
+	dsGameInputRumble rumble, float strength, float duration)
+{
+	DS_UNUSED(application);
+	dsSDLGameInput* sdlGameInput = (dsSDLGameInput*)gameInput;
+	dsSDLRumbleState* rumbleState = sdlGameInput->rumbleState + rumble;
+	if (duration == 0.0f)
+		strength = 0.0f;
+
+	rumbleState->timedDuration = duration;
+	if (strength == rumbleState->baselineStrength)
+		return true;
+
+	rumbleState->timedStrength = strength;
+
+	switch (rumble)
 	{
-		errno = EPERM;
-		return false;
+		case dsGameInputRumble_LowFrequency:
+		case dsGameInputRumble_HighFrequency:
+			updateRumble(sdlGameInput);
+			break;
+		case dsGameInputRumble_LeftTrigger:
+		case dsGameInputRumble_RightTrigger:
+			updateTriggerRumble(sdlGameInput);
+			break;
 	}
 
 	return true;
-#else
-	DS_UNUSED(gameInput);
-	DS_UNUSED(leftStrength);
-	DS_UNUSED(rightStrength);
-	DS_UNUSED(duration);
+}
 
-	errno = EPERM;
-	return false;
-#endif
+float dsSDLGameInput_getTimedRumble(float* outDuration, dsApplication* application,
+	const dsGameInput* gameInput, dsGameInputRumble rumble)
+{
+	DS_UNUSED(application);
+	const dsSDLGameInput* sdlGameInput = (const dsSDLGameInput*)gameInput;
+	const dsSDLRumbleState* rumbleState = sdlGameInput->rumbleState + rumble;
+	if (outDuration)
+		*outDuration = rumbleState->timedDuration;
+	return rumbleState->timedStrength;
 }
 
 bool dsSDLGameInput_setLEDColor(dsApplication* application, dsGameInput* gameInput, dsColor color)

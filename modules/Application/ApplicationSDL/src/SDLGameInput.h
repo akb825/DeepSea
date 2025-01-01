@@ -19,8 +19,16 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Application/Types.h>
 
-#include <math.h>
 #include <SDL.h>
+
+#define DS_GAME_INPUT_RUMBLE_COUNT 4
+
+typedef struct dsSDLRumbleState
+{
+	float baselineStrength;
+	float timedStrength;
+	float timedDuration;
+} dsSDLRumbleState;
 
 typedef struct dsSDLGameInput
 {
@@ -31,6 +39,7 @@ typedef struct dsSDLGameInput
 	SDL_Haptic* haptic;
 #endif
 	dsVector2i* dpadValues;
+	dsSDLRumbleState rumbleState[DS_GAME_INPUT_RUMBLE_COUNT];
 } dsSDLGameInput;
 
 float dsSDLGameInput_getAxisValue(Sint16 value);
@@ -45,6 +54,7 @@ dsGameInput* dsSDLGameInput_add(dsApplication* application, uint32_t index);
 bool dsSDLGameInput_remove(dsApplication* application, SDL_JoystickID id);
 dsGameInput* dsSDLGameInput_find(dsApplication* application, SDL_JoystickID id);
 
+void dsSDLGameInput_update(dsGameInput* gameInput, float time);
 void dsSDLGameInput_dispatchControllerDPadEvents(dsGameInput* gameInput, dsApplication* application,
 	dsWindow* window, uint32_t dpad, Sint8 value, double time);
 
@@ -60,10 +70,14 @@ bool dsSDLGameInput_isControllerButtonPressed(const dsApplication* application,
 	const dsGameInput* gameInput, dsGameControllerMap mapping);
 bool dsSDLGameInput_getDPadDirection(dsVector2i* outDirection, const dsApplication* application,
 	const dsGameInput* gameInput, uint32_t dpad);
-bool dsSDLGameInput_setRumble(dsApplication* application, dsGameInput* gameInput,
-	float lowFrequencyStrength, float highFrequencyStrength, float duration);
-bool dsSDLGameInput_setTriggerRumble(dsApplication* application, dsGameInput* gameInput,
-	float leftStrength, float rightStrength, float duration);
+bool dsSDLGameInput_setBaselineRumble(dsApplication* application, dsGameInput* gameInput,
+	dsGameInputRumble rumble, float strength);
+float dsSDLGameInput_getBaselineRumble(dsApplication* application, const dsGameInput* gameInput,
+	dsGameInputRumble rumble);
+bool dsSDLGameInput_setTimedRumble(dsApplication* application, dsGameInput* gameInput,
+	dsGameInputRumble rumble, float strength, float duration);
+float dsSDLGameInput_getTimedRumble(float* outDuration, dsApplication* application,
+	const dsGameInput* gameInput, dsGameInputRumble rumble);
 bool dsSDLGameInput_setLEDColor(dsApplication* application, dsGameInput* gameInput, dsColor color);
 bool dsSDLGameInput_hasMotionSensor(const dsApplication* application, const dsGameInput* gameInput,
 	dsMotionSensorType type);

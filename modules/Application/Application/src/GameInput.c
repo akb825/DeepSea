@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -144,48 +144,136 @@ bool dsGameInput_getDPadDirection(dsVector2i* outDirection, const dsGameInput* g
 	return application->getGameInputDPadDirectionFunc(outDirection, application, gameInput, dpad);
 }
 
-bool dsGameInput_setRumble(dsGameInput* gameInput, float lowFrequencyStrength,
-	float highFrequencyStrength, float duration)
-{
-	if (!gameInput || !gameInput->application || !gameInput->application->setGameInputRumbleFunc ||
-		lowFrequencyStrength < 0 || lowFrequencyStrength > 1 ||
-		highFrequencyStrength < 0 || highFrequencyStrength > 1 || duration < 0)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	if (!gameInput->rumbleSupported)
-	{
-		errno = EPERM;
-		return false;
-	}
-
-	dsApplication* application = gameInput->application;
-	return application->setGameInputRumbleFunc(application, gameInput, lowFrequencyStrength,
-		highFrequencyStrength, duration);
-}
-
-bool dsGameInput_setTriggerRumble(dsGameInput* gameInput, float leftStrength,
-	float rightStrength, float duration)
+bool dsGameInput_setBaselineRumble(dsGameInput* gameInput, dsGameInputRumble rumble, float strength)
 {
 	if (!gameInput || !gameInput->application ||
-		!gameInput->application->setGameInputTriggerRumbleFunc || leftStrength < 0 ||
-		leftStrength > 1 || rightStrength < 0 || rightStrength > 1 || duration < 0)
+		!gameInput->application->setGameInputBaselineRumbleFunc || strength < 0 || strength > 1)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	if (!gameInput->triggerRumbleSupported)
+	switch (rumble)
 	{
-		errno = EPERM;
-		return false;
+		case dsGameInputRumble_LowFrequency:
+		case dsGameInputRumble_HighFrequency:
+			if (!gameInput->rumbleSupported)
+			{
+				errno = EPERM;
+				return false;
+			}
+			break;
+		case dsGameInputRumble_LeftTrigger:
+		case dsGameInputRumble_RightTrigger:
+			if (!gameInput->triggerRumbleSupported)
+			{
+				errno = EPERM;
+				return false;
+			}
+			break;
 	}
 
 	dsApplication* application = gameInput->application;
-	return application->setGameInputTriggerRumbleFunc(application, gameInput, leftStrength,
-		rightStrength, duration);
+	return application->setGameInputBaselineRumbleFunc(application, gameInput, rumble, strength);
+}
+
+float dsGameInput_getBaselineRumble(const dsGameInput* gameInput, dsGameInputRumble rumble)
+{
+	if (!gameInput || !gameInput->application ||
+		!gameInput->application->getGameInputBaselineRumbleFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	switch (rumble)
+	{
+		case dsGameInputRumble_LowFrequency:
+		case dsGameInputRumble_HighFrequency:
+			if (!gameInput->rumbleSupported)
+				return 0.0f;
+			break;
+		case dsGameInputRumble_LeftTrigger:
+		case dsGameInputRumble_RightTrigger:
+			if (!gameInput->triggerRumbleSupported)
+				return 0.0f;
+			break;
+	}
+
+	dsApplication* application = gameInput->application;
+	return application->getGameInputBaselineRumbleFunc(application, gameInput, rumble);
+}
+
+bool dsGameInput_setTimedRumble(dsGameInput* gameInput, dsGameInputRumble rumble, float strength,
+	float duration)
+{
+	if (!gameInput || !gameInput->application ||
+		!gameInput->application->setGameInputBaselineRumbleFunc || strength < 0 || strength > 1 ||
+		duration < 0)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	switch (rumble)
+	{
+		case dsGameInputRumble_LowFrequency:
+		case dsGameInputRumble_HighFrequency:
+			if (!gameInput->rumbleSupported)
+			{
+				errno = EPERM;
+				return false;
+			}
+			break;
+		case dsGameInputRumble_LeftTrigger:
+		case dsGameInputRumble_RightTrigger:
+			if (!gameInput->triggerRumbleSupported)
+			{
+				errno = EPERM;
+				return false;
+			}
+			break;
+	}
+
+	dsApplication* application = gameInput->application;
+	return application->setGameInputTimedRumbleFunc(
+		application, gameInput, rumble, strength, duration);
+}
+
+float dsGameInput_getTimedRumble(float* outDuration, const dsGameInput* gameInput,
+	dsGameInputRumble rumble)
+{
+	if (!gameInput || !gameInput->application ||
+		!gameInput->application->getGameInputTimedRumbleFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	switch (rumble)
+	{
+		case dsGameInputRumble_LowFrequency:
+		case dsGameInputRumble_HighFrequency:
+			if (!gameInput->rumbleSupported)
+			{
+				if (outDuration)
+					*outDuration = 0.0f;
+				return 0.0f;
+			}
+			break;
+		case dsGameInputRumble_LeftTrigger:
+		case dsGameInputRumble_RightTrigger:
+			if (!gameInput->triggerRumbleSupported)
+			{
+				if (outDuration)
+					*outDuration = 0.0f;
+				return 0.0f;
+			}
+			break;
+	}
+
+	dsApplication* application = gameInput->application;
+	return application->getGameInputTimedRumbleFunc(outDuration, application, gameInput, rumble);
 }
 
 bool dsGameInput_setLEDColor(dsGameInput* gameInput, dsColor color)

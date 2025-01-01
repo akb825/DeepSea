@@ -260,6 +260,17 @@ typedef enum dsGameInputBattery
 	dsGameInputBattery_Wired    ///< Controller is wired.
 } dsGameInputBattery;
 
+/**
+ * @brief Enum for the type of rumble on a game input.
+ */
+typedef enum dsGameInputRumble
+{
+	dsGameInputRumble_LowFrequency,  ///< Low-frequency rumble.
+	dsGameInputRumble_HighFrequency, ///< High-frequency rumble.
+	dsGameInputRumble_LeftTrigger,   ///< Rumble on the left trigger.
+	dsGameInputRumble_RightTrigger   ///< Rumble on the right trugger.
+} dsGameInputRumble;
+
 /// @cond
 typedef struct dsApplication dsApplication;
 typedef struct dsWindow dsWindow;
@@ -1009,16 +1020,48 @@ typedef bool (*dsIsGameInputControllerButtonPressedFunction)(const dsApplication
 	const dsGameInput* gameInput, dsGameControllerMap mapping);
 
 /**
- * @brief Function for setting rumble on a game input.
+ * @brief Function for setting baseline rumble on a game input.
  * @param application The application.
- * @param gameInput The game input device to start the rumble on.
- * @param leftStrength The strength of the rumble on the left side or low frequency.
- * @param rightStrength The strength of the rumble on the right side or high frequency.
- * @param duration The duration to rumble for.
- * @return False if rumble couldn't be started.
+ * @param gameInput The game input device to set the rumble on.
+ * @param rumble The type of rumble to set.
+ * @param strength The strength of the rumble in the range [0, 1].
+ * @return False if rumble couldn't be set.
  */
-typedef bool (*dsSetGameInputRumbleFunction)(dsApplication* application, dsGameInput* gameInput,
-	float leftStrength, float rightStrength, float duration);
+typedef bool (*dsSetGameInputBaselineRumbleFunction)(dsApplication* application,
+	dsGameInput* gameInput, dsGameInputRumble rumble, float strength);
+
+/**
+ * @brief Function for getting baseline rumble on a game input.
+ * @param application The application.
+ * @param gameInput The game input device to get the rumble on.
+ * @param rumble The type of rumble to get.
+ * @return The strength of the rumble.
+ */
+typedef float (*dsGetGameInputBaselineRumbleFunction)(dsApplication* application,
+	const dsGameInput* gameInput, dsGameInputRumble rumble);
+
+/**
+ * @brief Function for setting timed rumble on a game input.
+ * @param application The application.
+ * @param gameInput The game input device to set the rumble on.
+ * @param rumble The type of rumble to set.
+ * @param strength The strength of the rumble in the range [0, 1].
+ * @param duration The duration of the rumble in seconds.
+ * @return False if rumble couldn't be set.
+ */
+typedef bool (*dsSetGameInputTimedRumbleFunction)(dsApplication* application,
+	dsGameInput* gameInput, dsGameInputRumble rumble, float strength, float duration);
+
+/**
+ * @brief Function for getting timed rumble on a game input.
+ * @param[out] outDuration The remaining duration in seconds. This may be NULL if not needed.
+ * @param application The application.
+ * @param gameInput The game input device to get the rumble on.
+ * @param rumble The type of rumble to get.
+ * @return The strength of the rumble.
+ */
+typedef float (*dsGetGameInputTimedRumbleFunction)(float* outDuration, dsApplication* application,
+	const dsGameInput* gameInput, dsGameInputRumble rumble);
 
 /**
  * @brief Function for setting the LED color on a game input.
@@ -1541,14 +1584,24 @@ struct dsApplication
 	dsGetGameInputDPadDirectionFunction getGameInputDPadDirectionFunc;
 
 	/**
-	 * @brief Function for setting rumble on a game input.
+	 * @brief Function for setting baseline rumble on a game input.
 	 */
-	dsSetGameInputRumbleFunction setGameInputRumbleFunc;
+	dsSetGameInputBaselineRumbleFunction setGameInputBaselineRumbleFunc;
 
 	/**
-	 * @brief Function for setting trigger rumble on a game input.
+	 * @brief Function for getting baseline rumble on a game input.
 	 */
-	dsSetGameInputRumbleFunction setGameInputTriggerRumbleFunc;
+	dsGetGameInputBaselineRumbleFunction getGameInputBaselineRumbleFunc;
+
+	/**
+	 * @brief Function for setting timed rumble on a game input.
+	 */
+	dsSetGameInputTimedRumbleFunction setGameInputTimedRumbleFunc;
+
+	/**
+	 * @brief Function for getting baseline rumble on a game input.
+	 */
+	dsGetGameInputTimedRumbleFunction getGameInputTimedRumbleFunc;
 
 	/**
 	 * @brief Function to set the LED color on a game input.

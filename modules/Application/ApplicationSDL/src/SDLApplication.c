@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -787,6 +787,10 @@ int dsSDLApplication_run(dsApplication* application)
 		float lastFrameTime = (float)(curTime - lastUpdateTime);
 		lastUpdateTime = curTime;
 
+		// Update game inputs, primarily to maintain the rumble state.
+		for (uint32_t i = 0; i < application->gameInputCount; ++i)
+			dsSDLGameInput_update(application->gameInputs[i], lastFrameTime);
+
 		if (application->updateFunc)
 		{
 			DS_PROFILE_SCOPE_START("Update");
@@ -1282,8 +1286,10 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	baseApplication->isGameInputControllerButtonPressedFunc =
 		&dsSDLGameInput_isControllerButtonPressed;
 	baseApplication->getGameInputDPadDirectionFunc = &dsSDLGameInput_getDPadDirection;
-	baseApplication->setGameInputRumbleFunc = &dsSDLGameInput_setRumble;
-	baseApplication->setGameInputTriggerRumbleFunc = &dsSDLGameInput_setTriggerRumble;
+	baseApplication->setGameInputBaselineRumbleFunc = &dsSDLGameInput_setBaselineRumble;
+	baseApplication->getGameInputBaselineRumbleFunc = &dsSDLGameInput_getBaselineRumble;
+	baseApplication->setGameInputTimedRumbleFunc = &dsSDLGameInput_setTimedRumble;
+	baseApplication->getGameInputTimedRumbleFunc = &dsSDLGameInput_getTimedRumble;
 	baseApplication->setGameInputLEDColorFunc = &dsSDLGameInput_setLEDColor;
 	baseApplication->gameInputHasMotionSensorFunc = &dsSDLGameInput_hasMotionSensor;
 	baseApplication->getGameInputMotionSensorDataFunc = &dsSDLGameInput_getMotionSensorData;
