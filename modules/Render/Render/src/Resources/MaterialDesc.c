@@ -16,7 +16,6 @@
 
 #include <DeepSea/Render/Resources/MaterialDesc.h>
 
-#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>

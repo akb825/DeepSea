@@ -16,7 +16,6 @@
 
 #include <DeepSea/SceneLighting/ShadowInstanceTransformData.h>
 
-#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>

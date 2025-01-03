@@ -16,7 +16,6 @@
 
 #include <DeepSea/SceneLighting/SceneLightSetPrepare.h>
 
-#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>

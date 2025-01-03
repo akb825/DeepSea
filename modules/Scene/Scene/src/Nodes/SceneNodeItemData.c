@@ -16,7 +16,6 @@
 
 #include <DeepSea/Scene/Nodes/SceneNodeItemData.h>
 
-#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/UniqueNameID.h>
 
 void* dsSceneNodeItemData_findName(const dsSceneNodeItemData* itemData, const char* name)
