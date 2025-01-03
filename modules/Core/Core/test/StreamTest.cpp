@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ TEST(Stream, Null)
 	EXPECT_EQ_ERRNO(EINVAL, 0U, dsStream_write(NULL, &dummyData, sizeof(dummyData)));
 	EXPECT_FALSE_ERRNO(EINVAL, dsStream_seek(NULL, 0, dsStreamSeekWay_Beginning));
 	EXPECT_EQ_ERRNO(EINVAL, DS_STREAM_INVALID_POS, dsStream_tell(NULL));
+	EXPECT_EQ_ERRNO(EINVAL, DS_STREAM_INVALID_POS, dsStream_remainingBytes(NULL));
 	EXPECT_FALSE_ERRNO(EINVAL, dsStream_close(NULL));
 }
 
@@ -37,5 +38,6 @@ TEST(Stream, Empty)
 	EXPECT_EQ_ERRNO(EINVAL, 0U, dsStream_write(&stream, &dummyData, sizeof(dummyData)));
 	EXPECT_FALSE_ERRNO(EINVAL, dsStream_seek(&stream, 0, dsStreamSeekWay_Beginning));
 	EXPECT_EQ_ERRNO(EINVAL, DS_STREAM_INVALID_POS, dsStream_tell(&stream));
+	EXPECT_EQ_ERRNO(EINVAL, DS_STREAM_INVALID_POS, dsStream_remainingBytes(&stream));
 	EXPECT_TRUE(dsStream_close(&stream));
 }

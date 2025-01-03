@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,6 +100,26 @@ DS_CORE_EXPORT inline bool dsStream_seek(dsStream* stream, int64_t offset, dsStr
 DS_CORE_EXPORT inline uint64_t dsStream_tell(dsStream* stream);
 
 /**
+ * @brief Checks whether the remaining bytes can be queried from the stream.
+ *
+ * This will check whether the remaining bytes can be computed directly or through seeking.
+ *
+ * @param stream The stream the remaining bytes may be queried from.
+ * @return False if dsStream_remainingBytes() is guaranteed to fail. If true,
+ *     dsStream_remainingBytes() will likely succeed, but may still fail in some situations.
+ */
+DS_CORE_EXPORT inline bool dsStream_canGetRemainingBytes(dsStream* stream);
+
+/**
+ * @brief Gets the remaining bytes in the stream at the current location.
+ * @remark errno will be set on failure.
+ * @param stream The stream to get the remaining bytes from.
+ * @return The remeaning bytes in the stream, or DS_STREAM_INVALID_POS if the position cannot be
+ *     determined.
+ */
+DS_CORE_EXPORT inline uint64_t dsStream_remainingBytes(dsStream* stream);
+
+/**
  * @brief Skips bytes in a stream.
  *
  * This will attempt to do a seek, otherwise it will read the bytes to an empty buffer to skip them.
@@ -111,6 +131,23 @@ DS_CORE_EXPORT inline uint64_t dsStream_tell(dsStream* stream);
  * @return The number of bytes skipped. If implemented as a seek, this will be 0 if the seek fails.
  */
 DS_CORE_EXPORT uint64_t dsStream_skip(dsStream* stream, uint64_t size);
+
+/**
+ * @brief Checks whether a stream may be restarted to the beginning.
+ *
+ * This will check whether the stream can be restarted directly or through seeking.
+ *
+ * @param stream The stream that may be restarted.
+ * @return True if dsStream_restart() can be executed.
+ */
+DS_CORE_EXPORT inline bool dsStream_canRestart(dsStream* stream);
+
+/**
+ * @brief Restarts a stream back to the beginning.
+ * @remark errno will be set on failure.
+ * @param stream The stream to restart.
+ */
+DS_CORE_EXPORT inline bool dsStream_restart(dsStream* stream);
 
 /**
  * @brief Flushes the contents of a stream.
@@ -170,12 +207,60 @@ inline uint64_t dsStream_tell(dsStream* stream)
 	return stream->tellFunc(stream);
 }
 
+inline bool dsStream_canGetRemainingBytes(dsStream* stream)
+{
+	return stream && (stream->remainingBytesFunc || (stream->seekFunc && stream->tellFunc));
+}
+
+inline uint64_t dsStream_remainingBytes(dsStream* stream)
+{
+	if (!dsStream_canGetRemainingBytes(stream))
+	{
+		errno = EINVAL;
+		return DS_STREAM_INVALID_POS;
+	}
+
+	if (stream->remainingBytesFunc)
+		return stream->remainingBytesFunc(stream);
+
+	uint64_t position = dsStream_tell(stream);
+	if (position == DS_STREAM_INVALID_POS || !dsStream_seek(stream, 0, dsStreamSeekWay_End))
+		return DS_STREAM_INVALID_POS;
+
+	uint64_t end = dsStream_tell(stream);
+	if (end == DS_STREAM_INVALID_POS ||
+		(end != position && !dsStream_seek(stream, position, dsStreamSeekWay_Beginning)))
+	{
+		return DS_STREAM_INVALID_POS;
+	}
+
+	return end - position;
+}
+
 inline void dsStream_flush(dsStream* stream)
 {
 	if (!stream || !stream->flushFunc)
 		return;
 
 	stream->flushFunc(stream);
+}
+
+inline bool dsStream_canRestart(dsStream* stream)
+{
+	return stream && (stream->seekFunc || stream->restartFunc);
+}
+
+inline bool dsStream_restart(dsStream* stream)
+{
+	if (!stream || !(stream->seekFunc || stream->restartFunc))
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (stream->restartFunc)
+		return stream->restartFunc(stream);
+	return stream->seekFunc(stream, 0, dsStreamSeekWay_Beginning);
 }
 
 inline bool dsStream_close(dsStream* stream)

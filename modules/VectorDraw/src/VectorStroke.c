@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,24 @@
 
 #include "VectorHelpers.h"
 #include "VectorScratchDataImpl.h"
+
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Geometry/AlignedBox2.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix22.h>
 #include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Math/Vector4.h>
+
 #include <DeepSea/VectorDraw/VectorMaterialSet.h>
+
+#include <limits.h>
 
 static bool findLineDir(dsVector2f* outDirection, const dsVectorScratchData* scratchData,
 	uint32_t curIndex)

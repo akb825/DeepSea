@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,6 +89,15 @@ DS_CORE_EXPORT bool dsFileStream_seek(dsFileStream* stream, int64_t offset, dsSt
  *     determined.
  */
 DS_CORE_EXPORT uint64_t dsFileStream_tell(dsFileStream* stream);
+
+/**
+ * @brief Gets the remaining bytes in the stream at the current location.
+ * @remark errno will be set on failure.
+ * @param stream The stream to get the remaining bytes from.
+ * @return The remeaning bytes in the stream, or DS_STREAM_INVALID_POS if the position cannot be
+ *     determined.
+ */
+DS_CORE_EXPORT uint64_t dsFileStream_remainingBytes(dsFileStream* stream);
 
 /**
  * @brief Flushes the contents of a file stream.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,10 +80,8 @@ TEST_F(ShaderModuleTest, LoadData)
 {
 	dsFileStream fileStream;
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("test.mslb"), "rb"));
-	ASSERT_TRUE(dsStream_seek((dsStream*)&fileStream, 0, dsStreamSeekWay_End));
-	uint64_t size = dsStream_tell((dsStream*)&fileStream);
+	uint64_t size = dsStream_remainingBytes((dsStream*)&fileStream);
 	ASSERT_NE(DS_STREAM_INVALID_POS, size);
-	ASSERT_TRUE(dsStream_seek((dsStream*)&fileStream, 0, dsStreamSeekWay_Beginning));
 
 	void* data = dsAllocator_alloc((dsAllocator*)&allocator, (size_t)size);
 	ASSERT_TRUE(data);

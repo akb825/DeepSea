@@ -734,9 +734,7 @@ dsTextureData* dsTextureData_loadDDSFile(dsAllocator* allocator, const char* fil
 		filePath);
 	if (textureData)
 	{
-		uint64_t pos = dsStream_tell((dsStream*)&stream);
-		dsStream_seek((dsStream*)&stream, 0, dsStreamSeekWay_End);
-		if (pos != dsStream_tell((dsStream*)&stream))
+		if (dsFileStream_remainingBytes(&stream) != 0)
 		{
 			ddsError("Unexpected file size", filePath);
 			dsTextureData_destroy(textureData);
@@ -769,9 +767,7 @@ dsTextureData* dsTextureData_loadDDSResource(dsAllocator* allocator, dsFileResou
 		filePath);
 	if (textureData)
 	{
-		uint64_t pos = dsStream_tell((dsStream*)&stream);
-		dsStream_seek((dsStream*)&stream, 0, dsStreamSeekWay_End);
-		if (pos != dsStream_tell((dsStream*)&stream))
+		if (dsResourceStream_remainingBytes(&stream) != 0)
 		{
 			ddsError("Unexpected file size", filePath);
 			dsTextureData_destroy(textureData);

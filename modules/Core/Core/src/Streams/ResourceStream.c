@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,7 +80,7 @@ static bool assetSeek(dsGenericStream* stream, int64_t offset, dsStreamSeekWay w
 			return false;
 	}
 
-	if (AAsset_seek((AAsset*)stream->userData, (off_t)offset, whence) == (off_t)-1)
+	if (AAsset_seek((AAsset*)stream->userData, (off_t)offset, whence) == -1)
 	{
 		errno = EIO;
 		return false;
@@ -98,12 +98,43 @@ static uint64_t assetTell(dsGenericStream* stream)
 	}
 
 	off_t position = AAsset_seek((AAsset*)stream->userData, 0, SEEK_CUR);
-	if (position == (off_t)-1)
+	if (position == -1)
 	{
 		errno = EIO;
 		return DS_STREAM_INVALID_POS;
 	}
 	return position;
+}
+
+static uint64_t assetRemainingBytes(dsGenericStream* stream)
+{
+	if (!stream || !stream->userData)
+	{
+		errno = EINVAL;
+		return 0;
+	}
+
+	off_t position = AAsset_seek((AAsset*)stream->userData, 0, SEEK_CUR);
+	if (position == -1)
+	{
+		errno = EIO;
+		return DS_STREAM_INVALID_POS;
+	}
+
+	off_t end = AAsset_seek((AAsset*)stream->userData, 0, SEEK_END);
+	if (end == -1)
+	{
+		errno = EIO;
+		return DS_STREAM_INVALID_POS;
+	}
+
+	if (AAsset_seek((AAsset*)stream->userData, position, SEEK_SET) == -1)
+	{
+		errno = EIO;
+		return DS_STREAM_INVALID_POS;
+	}
+
+	return end - position;
 }
 
 static bool assetClose(dsGenericStream* stream)
@@ -349,12 +380,15 @@ bool dsResourceStream_open(dsResourceStream* stream, dsFileResourceType type, co
 				return false;
 			}
 
-			((dsStream*)stream)->readFunc = (dsStreamReadFunction)&assetRead;
-			((dsStream*)stream)->writeFunc = NULL;
-			((dsStream*)stream)->seekFunc = (dsStreamSeekFunction)&assetSeek;
-			((dsStream*)stream)->tellFunc = (dsStreamTellFunction)&assetTell;
-			((dsStream*)stream)->flushFunc = NULL;
-			((dsStream*)stream)->closeFunc = (dsStreamCloseFunction)&assetClose;
+			dsStream* baseStream = (dsStream*)stream;
+			baseStream->readFunc = (dsStreamReadFunction)&assetRead;
+			baseStream->writeFunc = NULL;
+			baseStream->seekFunc = (dsStreamSeekFunction)&assetSeek;
+			baseStream->tellFunc = (dsStreamTellFunction)&assetTell;
+			baseStream->remainingBytesFunc = (dsStreamTellFunction)&assetRemainingBytes;
+			baseStream->restartFunc = NULL;
+			baseStream->flushFunc = NULL;
+			baseStream->closeFunc = (dsStreamCloseFunction)&assetClose;
 			((dsGenericStream*)stream)->userData = asset;
 			stream->isFile = false;
 			return true;
@@ -380,6 +414,7 @@ bool dsResourceStream_open(dsResourceStream* stream, dsFileResourceType type, co
 size_t dsResourceStream_read(dsResourceStream* stream, void* data, size_t size);
 size_t dsResourceStream_write(dsResourceStream* stream, const void* data, size_t size);
 bool dsResourceStream_seek(dsResourceStream* stream, int64_t offset, dsStreamSeekWay way);
-uint64_t dsResourceStream_tell(dsFileStream* stream);
+uint64_t dsResourceStream_tell(dsResourceStream* stream);
+uint64_t dsResourceStream_remainingBytes(dsResourceStream* stream);
 void dsResourceStream_flush(dsFileStream* stream);
 bool dsResourceStream_close(dsResourceStream* stream);

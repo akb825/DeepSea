@@ -28,7 +28,6 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/Types.h>
-#include <math.h>
 
 dsTextureData* dsTextureData_loadDDS(bool* isDDS, dsAllocator* allocator, dsStream* stream,
 	const char* filePath);
@@ -253,16 +252,21 @@ dsTextureData* dsTextureData_loadStream(dsAllocator* allocator, dsStream* stream
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if (!stream->seekFunc)
+	if (!stream->tellFunc ||
+		(!stream->seekFunc && (!stream->restartFunc || dsStream_tell(stream) != 0)))
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Stream must be seekable to determine the texture file format.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Stream must be seekable or restartable and at the "
+			"beginning to determine the texture file format.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	uint64_t streamPos = dsStream_tell(stream);
-	DS_ASSERT(streamPos != DS_STREAM_INVALID_POS);
+	uint64_t streamPos = 0;
+	if (stream->seekFunc)
+	{
+		dsStream_tell(stream);
+		DS_ASSERT(streamPos != DS_STREAM_INVALID_POS);
+	}
 
 	bool isFormat = true;
 	dsTextureData* textureData = NULL;
@@ -273,7 +277,12 @@ dsTextureData* dsTextureData_loadStream(dsAllocator* allocator, dsStream* stream
 			break;
 
 		if (i < DS_ARRAY_SIZE(loadTextureFuncs) - 1)
-			dsStream_seek(stream, streamPos, dsStreamSeekWay_Beginning);
+		{
+			if (stream->restartFunc)
+				dsStream_seek(stream, streamPos, dsStreamSeekWay_Beginning);
+			else
+				dsStream_restart(stream);
+		}
 	}
 
 	// If check is false, we couldn't find the format.

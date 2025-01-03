@@ -17,13 +17,13 @@ The `ds<Struct>_sizeof()` function is the equivalent of calling `sizeof(<Struct>
 
 The `ds<Struct>_fullAllocSize()` function is used to determine the full size to allocate for a type, including any sub-allocations. This can be used to pre-allocate a buffer for the object, then use a `dsBufferAllocator` to allocate each sub-object by incrementing the buffer pointer. If the size is variable, `ds<Struct>_fullAllocSize()` will provide parameters to provide extra information to calculate the size.
 
-Implementations of `ds<Struct>_fullAllocSize()` should use the `DS_ALIGNED_SIZE()` macro in `DeepSea/Core/Memory/Memory.h` for each required allocation to ensure proper packing based on the alignment rules. In the most simple implmenetation, `ds<Struct>_fullAllocSize()` would return `DS_ALIGNED_SIZE(sizeof(ds<Struct>))`.
+Implementations of `ds<Struct>_fullAllocSize()` should use the `DS_ALIGNED_SIZE()` macro in `DeepSea/Core/Memory/Memory.h` for each required allocation to ensure proper packing based on the alignment rules. In the most simple implemenetation, `ds<Struct>_fullAllocSize()` would return `DS_ALIGNED_SIZE(sizeof(ds<Struct>))`.
 
-When allocating an array of objects based on `ds<Struct>_fullAllocSize()`, each element should be a pointer, even if the struct definition is publically provided. This is because any sub-allocations or extra padding might cause the array access to be incorrect.
+When allocating an array of objects based on `ds<Struct>_fullAllocSize()`, each element should be a pointer, even if the struct definition is publicly provided. This is because any sub-allocations or extra padding might cause the array access to be incorrect.
 
 # Object creation and destruction
 
-Structs that represent objects that are dynamically allocated have `ds<Struct>_create()` and `ds<Struct>_destroy()` functions. When possible, `ds<Struct>_fullAllocSize()` will be used to perform a single allocation for the outer object and all sub-objects. It is always safe to call `ds<Struct>_destroy()` on a `NULL` object, and in cases where destruction can fail (e.g. not valid to destory a resource), destroying a `NULL` object isn't an error.
+Structs that represent objects that are dynamically allocated have `ds<Struct>_create()` and `ds<Struct>_destroy()` functions. When possible, `ds<Struct>_fullAllocSize()` will be used to perform a single allocation for the outer object and all sub-objects. It is always safe to call `ds<Struct>_destroy()` on a `NULL` object, and in cases where destruction can fail (e.g. not valid to destroy a resource), destroying a `NULL` object isn't an error.
 
 Structs that don't need to be dynamically allocated have a `ds<Struct>_initialize()` function, and may or may not have a corresponding `ds<Struct>_shutdown()` function to destroy any internal objects.
 

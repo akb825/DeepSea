@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,9 +51,7 @@ static dsShaderModule* createShaderModule(dsResourceManager* resourceManager,
 static dsShaderModule* dsShaderModule_loadImpl(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsStream* stream, const char* name)
 {
-	DS_VERIFY(dsStream_seek(stream, 0, dsStreamSeekWay_End));
-	size_t size = (size_t)dsStream_tell(stream);
-	DS_VERIFY(dsStream_seek(stream, 0, dsStreamSeekWay_Beginning));
+	size_t size = (size_t)dsStream_remainingBytes(stream);
 
 	mslAllocator allocWrapper;
 	allocWrapper.userData = allocator;
@@ -164,10 +162,11 @@ dsShaderModule* dsShaderModule_loadStream(dsResourceManager* resourceManager,
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if (!stream->seekFunc || !stream->tellFunc)
+	if (!dsStream_canGetRemainingBytes(stream))
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Stream for reading shader modules must be seekable.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Stream for reading shader modules must support getting remaining bytes.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 #include "VkRenderSurfaceData.h"
 
-#include "Platform/VkPlatform.h"
 #include "Resources/VkResource.h"
 #include "Resources/VkResourceManager.h"
-#include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
 #include "VkShared.h"
 
@@ -30,9 +28,12 @@
 #include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Math/Core.h>
+
 #include <DeepSea/Render/Renderer.h>
 
+#include <limits.h>
 #include <string.h>
 
 typedef struct dsVkFormatMap

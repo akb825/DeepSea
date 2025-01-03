@@ -60,6 +60,21 @@ DeepSea has been built for and tested on the following platforms:
 * Linux (GCC and LLVM clang)
 * Windows (requires Visual Studio 2015 or later)
 * macOS
+* Android
+* iOS
+
+## Byte Ordering
+
+As of this writing, all major consumer platforms use little-endian CPUs. This has been the case since ~2006 for desktop and laptop platforms (when Apple switched from PowerPC to Intel), and for consoles ~2013 (for PS4 and XBox One) and ~2017 (for the Switch). Critically, *all of the older systems that used big-endian CPUs are well out of support*. While some easy to account for cases handle byte swapping, currently **most code assumes little-endian byte ordering** for both ease of implementation and performance.
+
+These are the known situations where big-endian CPUs will currently break:
+
+* Reading of textures. Even if the file headers are byte swapped, there is some question as to which formats need to be byte swapped, and how. For example, are 32 BPP formats byte swapped, even if they are conceptually 4 channels? How are compressed formats byte swapped? These situations may be platform and graphics API specific.
+* Flatbuffer data stored as byte arrays, such as vertex data for models.
+* Flatbuffer vectors of primitives where the pointer is used directly. This bypasses the built-in byte swapping when accessing individual elements of the vectors.
+* Flatbuffer structs for simple types such as `dsVector3f`, which are cast.
+
+Some of these situations (primarily textures) are impossible to properly implement without a supported platform to test on. If big-endian systems need to be supported in the future, texture and vertex data should ideally be byte swapped ahead of time to avoid the performance cost, with options added in the Python conversion code to do so. Vectors of primitives and simple structs would need to be copied element by element to a separate buffer to ensure that swapping occurs.
 
 # Building
 

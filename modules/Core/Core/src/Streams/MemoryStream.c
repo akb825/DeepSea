@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,15 @@ bool dsMemoryStream_open(dsMemoryStream* stream, void* buffer, size_t size)
 		return false;
 	}
 
-	((dsStream*)stream)->readFunc = (dsStreamReadFunction)&dsMemoryStream_read;
-	((dsStream*)stream)->writeFunc = (dsStreamWriteFunction)&dsMemoryStream_write;
-	((dsStream*)stream)->seekFunc = (dsStreamSeekFunction)&dsMemoryStream_seek;
-	((dsStream*)stream)->tellFunc = (dsStreamTellFunction)&dsMemoryStream_tell;
-	((dsStream*)stream)->flushFunc = NULL;
-	((dsStream*)stream)->closeFunc = (dsStreamCloseFunction)&dsMemoryStream_close;
+	dsStream* baseStream = (dsStream*)stream;
+	baseStream->readFunc = (dsStreamReadFunction)&dsMemoryStream_read;
+	baseStream->writeFunc = (dsStreamWriteFunction)&dsMemoryStream_write;
+	baseStream->seekFunc = (dsStreamSeekFunction)&dsMemoryStream_seek;
+	baseStream->tellFunc = (dsStreamTellFunction)&dsMemoryStream_tell;
+	baseStream->remainingBytesFunc = (dsStreamTellFunction)&dsMemoryStream_remainingBytes;
+	baseStream->restartFunc = NULL;
+	baseStream->flushFunc = NULL;
+	baseStream->closeFunc = (dsStreamCloseFunction)&dsMemoryStream_close;
 	stream->buffer = buffer;
 	stream->size = size;
 	stream->position = 0;
@@ -121,6 +124,17 @@ uint64_t dsMemoryStream_tell(dsMemoryStream* stream)
 	}
 
 	return stream->position;
+}
+
+uint64_t dsMemoryStream_remainingBytes(dsMemoryStream* stream)
+{
+	if (!stream || !stream->buffer)
+	{
+		errno = EINVAL;
+		return DS_STREAM_INVALID_POS;
+	}
+
+	return stream->size - stream->position;
 }
 
 bool dsMemoryStream_close(dsMemoryStream* stream)

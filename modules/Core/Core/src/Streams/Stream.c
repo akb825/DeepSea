@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,20 +46,13 @@ bool dsStream_readUntilEndReuse(void** buffer, size_t* size, size_t* capacity, d
 		return false;
 	}
 
-	if (stream->seekFunc && stream->tellFunc)
+	if (dsStream_canGetRemainingBytes(stream))
 	{
-		uint64_t position = dsStream_tell(stream);
-		if (position == DS_STREAM_INVALID_POS || !dsStream_seek(stream, 0, dsStreamSeekWay_End))
+		uint64_t remainingBytes = dsStream_remainingBytes(stream);
+		if (remainingBytes == DS_STREAM_INVALID_POS)
 			return false;
 
-		uint64_t end = dsStream_tell(stream);
-		if (end == DS_STREAM_INVALID_POS ||
-			!dsStream_seek(stream, position, dsStreamSeekWay_Beginning))
-		{
-			return false;
-		}
-
-		*size = (size_t)(end - position);
+		*size = (size_t)remainingBytes;
 		if (!*buffer || *size > *capacity)
 		{
 			void* newBuffer = (uint8_t*)dsAllocator_reallocWithFallback(allocator, *buffer,
@@ -122,6 +115,8 @@ size_t dsStream_write(dsStream* stream, const void* data, size_t size);
 
 bool dsStream_seek(dsStream* stream, int64_t offset, dsStreamSeekWay way);
 uint64_t dsStream_tell(dsStream* stream);
+bool dsStream_canGetRemainingBytes(dsStream* stream);
+uint64_t dsStream_remainingBytes(dsStream* stream);
 
 uint64_t dsStream_skip(dsStream* stream, uint64_t size)
 {
@@ -153,5 +148,6 @@ uint64_t dsStream_skip(dsStream* stream, uint64_t size)
 	return size;
 }
 
+bool dsStream_restart(dsStream* stream);
 void dsStream_flush(dsStream* stream);
 bool dsStream_close(dsStream* stream);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,11 +74,13 @@ TEST(FileStream, ReadWriteFileFunctions)
 
 	EXPECT_EQ(2*sizeof(dummyData), dsFileStream_tell(&stream));
 	EXPECT_TRUE(dsFileStream_seek(&stream, 0, dsStreamSeekWay_Beginning));
+	EXPECT_EQ(2*sizeof(dummyData), dsFileStream_remainingBytes(&stream));
 	EXPECT_EQ(0U, dsFileStream_tell(&stream));
 	EXPECT_TRUE(dsFileStream_seek(&stream, 3, dsStreamSeekWay_Current));
 	EXPECT_EQ(3U, dsFileStream_tell(&stream));
 	EXPECT_TRUE(dsFileStream_seek(&stream, 2, dsStreamSeekWay_Current));
 	EXPECT_EQ(5U, dsFileStream_tell(&stream));
+	EXPECT_EQ(2*sizeof(dummyData) - 5U, dsFileStream_remainingBytes(&stream));
 	EXPECT_TRUE(dsFileStream_seek(&stream, 0, dsStreamSeekWay_End));
 	EXPECT_EQ(2*sizeof(dummyData), dsFileStream_tell(&stream));
 	EXPECT_FALSE(dsFileStream_seek(&stream, -4, dsStreamSeekWay_Beginning));
@@ -120,11 +122,13 @@ TEST(FileStream, ReadWriteStreamFunctions)
 
 	EXPECT_EQ(2*sizeof(dummyData), dsStream_tell((dsStream*)&stream));
 	EXPECT_TRUE(dsStream_seek((dsStream*)&stream, 0, dsStreamSeekWay_Beginning));
+	EXPECT_EQ(2*sizeof(dummyData), dsStream_remainingBytes((dsStream*)&stream));
 	EXPECT_EQ(0U, dsStream_tell((dsStream*)&stream));
 	EXPECT_TRUE(dsStream_seek((dsStream*)&stream, 3, dsStreamSeekWay_Current));
 	EXPECT_EQ(3U, dsStream_tell((dsStream*)&stream));
 	EXPECT_TRUE(dsStream_seek((dsStream*)&stream, 2, dsStreamSeekWay_Current));
 	EXPECT_EQ(5U, dsStream_tell((dsStream*)&stream));
+	EXPECT_EQ(2*sizeof(dummyData) - 5, dsStream_remainingBytes((dsStream*)&stream));
 	EXPECT_TRUE(dsStream_seek((dsStream*)&stream, 0, dsStreamSeekWay_End));
 	EXPECT_EQ(2*sizeof(dummyData), dsStream_tell((dsStream*)&stream));
 	EXPECT_FALSE(dsStream_seek((dsStream*)&stream, -4, dsStreamSeekWay_Beginning));

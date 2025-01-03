@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <limits.h>
 
 #if DS_LINUX
 #include <linux/limits.h>
@@ -149,6 +148,13 @@ typedef bool (*dsStreamSeekFunction)(dsStream* stream, int64_t offset, dsStreamS
 typedef uint64_t (*dsStreamTellFunction)(dsStream* stream);
 
 /**
+ * @brief Function for restarting a stream to the start.
+ * @param stream The stream to restart.
+ * @return False if the stream cannot be restarted.
+ */
+typedef bool (*dsStreamRestartFunction)(dsStream* stream);
+
+/**
  * @brief Function for flushing the contents of a stream.
  * @param stream The stream to flush.
  */
@@ -201,6 +207,21 @@ struct dsStream
 	 * This may be NULL if the stream cannot be telled.
 	 */
 	dsStreamTellFunction tellFunc;
+
+	/**
+	 * @brief Function to get the remaining bytes in the stream.
+	 *
+	 * This may be NULL if the stream cannot get the remaining bytes. If NULL and seekFunc and
+	 * tellFunc are set, the remaining bytes will be computed through seeking.
+	 */
+	dsStreamTellFunction remainingBytesFunc;
+
+	/**
+	 * @brief The restart function.
+	 *
+	 * This may be NULL if the stream cannot be restarted or if seekFunc is set.
+	 */
+	dsStreamRestartFunction restartFunc;
 
 	/**
 	 * @brief The flush function.

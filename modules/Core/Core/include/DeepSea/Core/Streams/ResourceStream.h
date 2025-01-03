@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,7 +123,7 @@ DS_CORE_EXPORT bool dsResourceStream_open(dsResourceStream* stream, dsFileResour
  * @param size The number of bytes to read.
  * @return The number of bytes read from the stream.
  */
-inline DS_CORE_EXPORT size_t dsResourceStream_read(dsResourceStream* stream, void* data,
+DS_CORE_EXPORT inline size_t dsResourceStream_read(dsResourceStream* stream, void* data,
 	size_t size);
 
 /**
@@ -134,7 +134,7 @@ inline DS_CORE_EXPORT size_t dsResourceStream_read(dsResourceStream* stream, voi
  * @param size The number of bytes to write.
  * @return The number of bytes written to the stream.
  */
-inline DS_CORE_EXPORT size_t dsResourceStream_write(dsResourceStream* stream, const void* data,
+DS_CORE_EXPORT inline size_t dsResourceStream_write(dsResourceStream* stream, const void* data,
 	size_t size);
 
 /**
@@ -145,7 +145,7 @@ inline DS_CORE_EXPORT size_t dsResourceStream_write(dsResourceStream* stream, co
  * @param way The position in the stream to take the offset from.
  * @return False if the seek was invalid.
  */
-inline DS_CORE_EXPORT bool dsResourceStream_seek(dsResourceStream* stream, int64_t offset,
+DS_CORE_EXPORT inline bool dsResourceStream_seek(dsResourceStream* stream, int64_t offset,
 	dsStreamSeekWay way);
 
 /**
@@ -155,13 +155,22 @@ inline DS_CORE_EXPORT bool dsResourceStream_seek(dsResourceStream* stream, int64
  * @return The position in the stream, or DS_STREAM_INVALID_POS if the position cannot be
  *     determined.
  */
-inline DS_CORE_EXPORT uint64_t dsResourceStream_tell(dsFileStream* stream);
+DS_CORE_EXPORT inline uint64_t dsResourceStream_tell(dsResourceStream* stream);
+
+/**
+ * @brief Gets the remaining bytes in the stream at the current location.
+ * @remark errno will be set on failure.
+ * @param stream The stream to get the remaining bytes from.
+ * @return The remeaning bytes in the stream, or DS_STREAM_INVALID_POS if the position cannot be
+ *     determined.
+ */
+DS_CORE_EXPORT inline uint64_t dsResourceStream_remainingBytes(dsResourceStream* stream);
 
 /**
  * @brief Flushes the contents of a resource stream.
  * @param stream The stream to flush.
  */
-inline DS_CORE_EXPORT void dsResourceStream_flush(dsFileStream* stream);
+DS_CORE_EXPORT inline void dsResourceStream_flush(dsFileStream* stream);
 
 /**
  * @brief Closes a resource stream.
@@ -169,7 +178,7 @@ inline DS_CORE_EXPORT void dsResourceStream_flush(dsFileStream* stream);
  * @param stream The stream to close.
  * @return False if the stream cannot be closed.
  */
-inline DS_CORE_EXPORT bool dsResourceStream_close(dsResourceStream* stream);
+DS_CORE_EXPORT inline bool dsResourceStream_close(dsResourceStream* stream);
 
 inline size_t dsResourceStream_read(dsResourceStream* stream, void* data, size_t size)
 {
@@ -186,9 +195,14 @@ inline bool dsResourceStream_seek(dsResourceStream* stream, int64_t offset, dsSt
 	return dsStream_seek((dsStream*)stream, offset, way);
 }
 
-inline uint64_t dsResourceStream_tell(dsFileStream* stream)
+inline uint64_t dsResourceStream_tell(dsResourceStream* stream)
 {
 	return dsStream_tell((dsStream*)stream);
+}
+
+inline uint64_t dsResourceStream_remainingBytes(dsResourceStream* stream)
+{
+	return dsStream_remainingBytes((dsStream*)stream);
 }
 
 inline void dsResourceStream_flush(dsFileStream* stream)

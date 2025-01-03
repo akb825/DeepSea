@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -166,7 +166,7 @@ TEST(MemoryStream, ReadUntilEnd)
 	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->size);
 }
 
-TEST(MemoryStream, ReadUntilEndNoSeek)
+TEST(MemoryStream, ReadUntilEndNoRemainingBytes)
 {
 	dsSystemAllocator allocator;
 	EXPECT_TRUE(dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT));
@@ -177,6 +177,8 @@ TEST(MemoryStream, ReadUntilEndNoSeek)
 	EXPECT_TRUE(dsMemoryStream_open(&stream, buffer, sizeof(buffer)));
 	EXPECT_TRUE(dsMemoryStream_seek(&stream, sizeof(uint32_t), dsStreamSeekWay_Current));
 	((dsStream*)&stream)->seekFunc = NULL;
+	((dsStream*)&stream)->remainingBytesFunc = NULL;
+	EXPECT_FALSE(dsStream_canGetRemainingBytes((dsStream*)&stream));
 
 	size_t size;
 	int32_t* data = (int32_t*)dsStream_readUntilEnd(&size, (dsStream*)&stream,
@@ -231,7 +233,7 @@ TEST(MemoryStream, ReadUntilEndReuse)
 	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->size);
 }
 
-TEST(MemoryStream, ReadUntilEndNoSeekReuse)
+TEST(MemoryStream, ReadUntilEndReuseNoRemainingBytes)
 {
 	dsSystemAllocator allocator;
 	EXPECT_TRUE(dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT));
@@ -242,6 +244,8 @@ TEST(MemoryStream, ReadUntilEndNoSeekReuse)
 	EXPECT_TRUE(dsMemoryStream_open(&stream, buffer, sizeof(buffer)));
 	EXPECT_TRUE(dsMemoryStream_seek(&stream, sizeof(uint32_t), dsStreamSeekWay_Current));
 	((dsStream*)&stream)->seekFunc = NULL;
+	((dsStream*)&stream)->remainingBytesFunc = NULL;
+	EXPECT_FALSE(dsStream_canGetRemainingBytes((dsStream*)&stream));
 
 	void* readData = NULL;
 	size_t size = 0;

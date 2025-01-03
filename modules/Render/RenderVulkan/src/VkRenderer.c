@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@
 #include "Platform/VkPlatform.h"
 #include "Resources/VkComputePipeline.h"
 #include "Resources/VkDrawGeometry.h"
-#include "Resources/VkFramebuffer.h"
 #include "Resources/VkGfxBuffer.h"
 #include "Resources/VkGfxBufferData.h"
 #include "Resources/VkGfxFence.h"
@@ -44,7 +43,6 @@
 #include "VkRenderPass.h"
 #include "VkRenderPassData.h"
 #include "VkRenderSurface.h"
-#include "VkRenderSurfaceData.h"
 #include "VkResourceList.h"
 #include "VkShared.h"
 
@@ -61,9 +59,13 @@
 #include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Math/Core.h>
+
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
+
+#include <limits.h>
 #include <string.h>
 
 static size_t fullAllocSize(void)

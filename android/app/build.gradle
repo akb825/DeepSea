@@ -2,10 +2,10 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdk 34
-    ndkVersion "26.3.11579264"
+    ndkVersion "27.2.12479018"
     defaultConfig {
         applicationId "com.akb825.deepsea"
-        minSdkVersion 21
+        minSdkVersion 24
         targetSdkVersion 34
         versionCode 1
         versionName "1.0"
@@ -168,8 +168,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     namespace 'com.akb825.deepsea'
 }
