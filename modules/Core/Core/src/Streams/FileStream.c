@@ -18,8 +18,48 @@
 #define _FILE_OFFSET_BITS 64
 
 #include <DeepSea/Core/Streams/FileStream.h>
+#include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+
+#include <string.h>
+
+#if DS_WINDOWS
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <malloc.h>
+#else
+#include <dirent.h>
+#endif
+
+#if DS_WINDOWS
+typedef struct dsDirectoryIteratorInfo
+{
+	HANDLE handle;
+	bool alreadyRetrieved;
+	WIN32_FIND_DATAA findData;
+} dsDirectoryIteratorInfo;
+
+static void setErrno(void)
+{
+	switch (GetLastError())
+	{
+		case ERROR_FILE_NOT_FOUND:
+		case ERROR_PATH_NOT_FOUND:
+			errno = ENOENT;
+			break;
+		case ERROR_ACCESS_DENIED:
+			errno = EACCES;
+			break;
+		case ERROR_NOT_ENOUGH_MEMORY:
+			errno = ENOMEM;
+			break;
+		default:
+			errno = EIO;
+			break;
+	}
+}
+#endif
 
 static void initFileStream(dsFileStream* stream, FILE* file)
 {
@@ -33,6 +73,113 @@ static void initFileStream(dsFileStream* stream, FILE* file)
 	baseStream->flushFunc = (dsStreamFlushFunction)&dsFileStream_flush;
 	baseStream->closeFunc = (dsStreamCloseFunction)&dsFileStream_close;
 	stream->file = file;
+}
+
+dsDirectoryIterator dsFileStream_openDirectory(const char* path)
+{
+	if (!path || *path == 0)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+#if DS_WINDOWS
+	char searchPath[DS_PATH_MAX];
+	if (!dsPath_combine(searchPath, sizeof(searchPath), path, "*"))
+		return NULL;
+
+	dsDirectoryIteratorInfo* info = malloc(sizeof(dsDirectoryIteratorInfo));
+	if (!info)
+		return NULL;
+
+	info->handle = FindFirstFileEx(searchPath, FindExInfoBasic, &info->findData,
+		FindExSearchNameMatch, NULL, 0);
+	if (info->handle == INVALID_HANDLE_VALUE)
+	{
+		free(info);
+		setErrno();
+		return NULL;
+	}
+
+	info->alreadyRetrieved = true;
+	return info;
+#else
+	return opendir(path);
+#endif
+}
+
+dsDirectoryEntryResult dsFileStream_nextDirectoryEntry(
+	dsDirectoryEntry* outEntry, dsDirectoryIterator iterator)
+{
+	if (!outEntry || !iterator)
+	{
+		errno = EINVAL;
+		return dsDirectoryEntryResult_Error;
+	}
+
+	char* entryName;
+	do
+	{
+#if DS_WINDOWS
+		dsDirectoryIteratorInfo* info = (dsDirectoryIteratorInfo*)iterator;
+		if (info->alreadyRetrieved)
+			info->alreadyRetrieved = false;
+		else if (!FindNextFile(info->handle, &info->findData))
+		{
+			if (GetLastError() == ERROR_NO_MORE_FILES)
+				return dsDirectoryEntryResult_End;
+
+			setErrno();
+			return dsDirectoryEntryResult_Error;
+		}
+
+		entryName = info->findData.cFileName;
+		outEntry->isDirectory = (info->findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+#else
+		errno = 0;
+		struct dirent* dirEntry = readdir((DIR*)iterator);
+		if (!dirEntry)
+		{
+			if (errno == 0)
+				return dsDirectoryEntryResult_End;
+			return dsDirectoryEntryResult_Error;
+		}
+
+		entryName = dirEntry->d_name;
+		outEntry->isDirectory = dirEntry->d_type == DT_DIR;
+#endif
+	} while (strcmp(entryName, ".") == 0 || strcmp(entryName, "..") == 0);
+
+	size_t nameLen = strlen(entryName) + 1;
+	if (nameLen > DS_FILE_NAME_MAX)
+	{
+		errno = ESIZE;
+		return dsDirectoryEntryResult_Error;
+	}
+	else
+		memcpy(outEntry->name, entryName, nameLen);
+	return dsDirectoryEntryResult_Success;
+}
+
+bool dsFileStream_closeDirectory(dsDirectoryIterator iterator)
+{
+	if (!iterator)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+#if DS_WINDOWS
+	dsDirectoryIteratorInfo* info = (dsDirectoryIteratorInfo*)iterator;
+	bool success = FindClose(info->handle);
+	if (success)
+		free(info);
+	else
+		setErrno();
+	return success;
+#else
+	return closedir((DIR*)iterator) == 0;
+#endif
 }
 
 bool dsFileStream_openPath(dsFileStream* stream, const char* filePath,

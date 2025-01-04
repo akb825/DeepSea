@@ -21,6 +21,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #if DS_LINUX
 #include <linux/limits.h>
@@ -40,18 +41,29 @@ extern "C"
 
 #if DS_WINDOWS
 #define DS_PATH_MAX (_MAX_PATH + 1)
+#define DS_FILE_NAME_MAX DS_PATH_MAX
 #define DS_PATH_SEPARATOR '\\'
 #define DS_PATH_ALT_SEPARATOR '/'
 #else
 /**
  * @brief Define for the typical maximum length of a path.
  *
- * There are cases on some filesystems where the length can exceed this path, but this should be
+ * There are cases on some filesystems where the length can exceed this limit, but this should be
  * sufficient for typical cases.
  *
  * This includes space for the NULL terminator at the end of the string.
  */
 #define DS_PATH_MAX (PATH_MAX + 1)
+
+/**
+ * @brief Define for the typical maximum length of a file name.
+ *
+ * There are cases on some filesystems where the length can exceed this limit, but this should be
+ * sufficient for typical cases.
+ *
+ * This includes space for the NULL terminator at the end of the string.
+ */
+#define DS_FILE_NAME_MAX (NAME_MAX + 1)
 
 /**
  * @brief The main path separator for the current platform.
@@ -111,6 +123,16 @@ typedef enum dsFileStatus
 	dsFileStatus_ExistsFile,     ///< File exists as a file or file-like object.
 	dsFileStatus_ExistsDirectory ///< File exists as a directory.
 } dsFileStatus;
+
+/**
+ * @brief Enum for the result of retrieving a directory entry.
+ */
+typedef enum dsDirectoryEntryResult
+{
+	dsDirectoryEntryResult_Success, ///< The directory entry was successfully retrieved.
+	dsDirectoryEntryResult_End,     ///< The end of the directory was reached.
+	dsDirectoryEntryResult_Error    ///< An error occurred when getting the entry.
+} dsDirectoryEntryResult;
 
 /**
  * @brief Function for reading from a stream.
@@ -340,6 +362,29 @@ typedef struct dsResourceStream
 	 */
 	bool isFile;
 } dsResourceStream;
+
+/**
+ * @brief Opque type for an iterator over a directory.
+ *
+ * It is only valid to use a dsDirectoryIterator instance with the stream type that created it.
+ */
+typedef void* dsDirectoryIterator;
+
+/**
+ * @brief Structure that defines an entry within a directory.
+ */
+typedef struct dsDirectoryEntry
+{
+	/**
+	 * @brief Whether this entry is itself a directory.
+	 */
+	bool isDirectory;
+
+	/**
+	 * @brief The name of the entry.
+	 */
+	char name[DS_FILE_NAME_MAX];
+} dsDirectoryEntry;
 
 #ifdef __cplusplus
 }

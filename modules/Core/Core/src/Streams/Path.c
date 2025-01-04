@@ -45,7 +45,7 @@ bool dsPath_combine(char* result, size_t resultSize, const char* path1, const ch
 		}
 
 		if (result != path1)
-			strncpy(result, path1, len1 + 1);
+			memcpy(result, path1, len1 + 1);
 		return true;
 	}
 
@@ -57,7 +57,7 @@ bool dsPath_combine(char* result, size_t resultSize, const char* path1, const ch
 			return false;
 		}
 
-		strncpy(result, path2, len2 + 1);
+		memcpy(result, path2, len2 + 1);
 		return true;
 	}
 
@@ -81,10 +81,10 @@ bool dsPath_combine(char* result, size_t resultSize, const char* path1, const ch
 	}
 
 	if (result != path1)
-		strncpy(result, path1, len1);
+		memcpy(result, path1, len1);
 
 	result[len1] = DS_PATH_SEPARATOR;
-	strncpy(result + len1 + 1, path2, len2 + 1);
+	memcpy(result + len1 + 1, path2, len2 + 1);
 	return true;
 }
 
@@ -157,7 +157,7 @@ bool dsPath_getDirectoryName(char* result, size_t resultSize, const char* path)
 				}
 
 				if (result != path)
-					strncpy(result, path, end);
+					memcpy(result, path, end);
 				result[end] = 0;
 				return true;
 			}
@@ -244,7 +244,7 @@ bool dsPath_removeLastExtension(char* result, size_t resultSize, const char* pat
 	}
 
 	if (result != path)
-		strncpy(result, path, len);
+		memcpy(result, path, len);
 	result[len] = 0;
 	return true;
 }

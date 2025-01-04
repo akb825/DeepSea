@@ -15,12 +15,17 @@
  */
 
 #include "Helpers.h"
+
 #include <DeepSea/Core/Streams/FileStream.h>
+#include <DeepSea/Core/Streams/FileUtils.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Streams/Stream.h>
+
 #include <gtest/gtest.h>
 #include <stdlib.h>
+#include <string>
+#include <unordered_map>
 
 TEST(FileStream, Null)
 {
@@ -63,8 +68,7 @@ TEST(FileStream, ReadWriteFileFunctions)
 	int32_t dummyData;
 
 	char path[DS_PATH_MAX];
-	ASSERT_TRUE(dsPath_combine(path, sizeof(path),
-		dsResourceStream_getDirectory(dsFileResourceType_Dynamic), "asdf"));
+	ASSERT_TRUE(dsResourceStream_getPath( path, sizeof(path), dsFileResourceType_Dynamic, "asdf"));
 
 	ASSERT_TRUE(dsFileStream_openPath(&stream, path, "w"));
 	dummyData = 1;
@@ -111,8 +115,7 @@ TEST(FileStream, ReadWriteStreamFunctions)
 	int32_t dummyData;
 
 	char path[DS_PATH_MAX];
-	ASSERT_TRUE(dsPath_combine(path, sizeof(path),
-		dsResourceStream_getDirectory(dsFileResourceType_Dynamic), "asdf"));
+	ASSERT_TRUE(dsResourceStream_getPath( path, sizeof(path), dsFileResourceType_Dynamic, "asdf"));
 
 	ASSERT_TRUE(dsFileStream_openPath(&stream, path, "w"));
 	dummyData = 1;
@@ -161,6 +164,70 @@ TEST(FileStream, ReadWriteStreamFunctions)
 	EXPECT_FALSE_ERRNO(EINVAL, dsStream_close((dsStream*)&stream));
 
 	unlink(path);
+}
+
+class FileStreamDirectory : public testing::Test
+{
+public:
+	char rootDir[DS_PATH_MAX];
+	char firstPath[DS_PATH_MAX];
+	char secondPath[DS_PATH_MAX];
+	char thirdPath[DS_PATH_MAX];
+
+	void SetUp() override
+	{
+		ASSERT_TRUE(dsResourceStream_getPath(rootDir, sizeof(rootDir),
+			dsFileResourceType_Dynamic, "DirectoryIteratorTest"));
+		ASSERT_TRUE(dsPath_combine(firstPath, sizeof(firstPath), rootDir, "first"));
+		ASSERT_TRUE(dsPath_combine(secondPath, sizeof(secondPath), rootDir, "second"));
+		ASSERT_TRUE(dsPath_combine(thirdPath, sizeof(thirdPath), rootDir, "third"));
+		ASSERT_TRUE(dsCreateDirectory(rootDir));
+	}
+
+	void TearDown() override
+	{
+		EXPECT_EQ(0, unlink(firstPath));
+		EXPECT_EQ(0, unlink(secondPath));
+		EXPECT_EQ(0, rmdir(thirdPath));
+		EXPECT_EQ(0, rmdir(rootDir));
+	}
+};
+
+TEST_F(FileStreamDirectory, DirectoryIterator)
+{
+	EXPECT_FALSE_ERRNO(EINVAL, dsFileStream_openDirectory(NULL));
+	EXPECT_FALSE_ERRNO(EINVAL, dsFileStream_openDirectory(""));
+
+	dsFileStream stream;
+	EXPECT_FALSE(dsFileStream_openDirectory(firstPath));
+	EXPECT_TRUE(errno == ENOENT || errno == ENOTDIR);
+
+	ASSERT_TRUE(dsFileStream_openPath(&stream, firstPath, "w"));
+	EXPECT_TRUE(dsFileStream_close(&stream));
+
+	ASSERT_TRUE(dsFileStream_openPath(&stream, secondPath, "w"));
+	EXPECT_TRUE(dsFileStream_close(&stream));
+
+	ASSERT_TRUE(dsCreateDirectory(thirdPath));
+
+	dsDirectoryIterator iterator = dsFileStream_openDirectory(rootDir);
+	ASSERT_TRUE(iterator);
+
+	std::unordered_map<std::string, bool> entries;
+	dsDirectoryEntryResult result;
+	do
+	{
+		dsDirectoryEntry entry;
+		result = dsFileStream_nextDirectoryEntry(&entry, iterator);
+		if (result == dsDirectoryEntryResult_Success)
+			entries.emplace(entry.name, entry.isDirectory);
+	} while (result == dsDirectoryEntryResult_Success);
+	EXPECT_EQ(dsDirectoryEntryResult_End, result);
+	EXPECT_TRUE(dsFileStream_closeDirectory(iterator));
+
+	std::unordered_map<std::string, bool> expectedEntries = {{"first", false},
+		{"second", false}, {"third", true}};
+	EXPECT_EQ(expectedEntries, entries);
 }
 
 #endif // !DS_IOS

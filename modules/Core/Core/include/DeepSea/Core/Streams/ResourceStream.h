@@ -45,37 +45,37 @@ DS_CORE_EXPORT bool dsResourceStream_setContext(void* globalContext, void* appli
  * @brief Gets the directory for embedded resources.
  * @return The embedded directory.
  */
-DS_CORE_EXPORT const char* dsResourceStream_getEmbeddedDir(void);
+DS_CORE_EXPORT const char* dsResourceStream_getEmbeddedDirectory(void);
 
 /**
  * @brief Sets the directory for embedded resources.
  * @param dir The embedded directory.
  */
-DS_CORE_EXPORT void dsResourceStream_setEmbeddedDir(const char* dir);
+DS_CORE_EXPORT void dsResourceStream_setEmbeddedDirectory(const char* dir);
 
 /**
  * @brief Gets the directory for local resources.
  * @return The local directory.
  */
-DS_CORE_EXPORT const char* dsResourceStream_getLocalDir(void);
+DS_CORE_EXPORT const char* dsResourceStream_getLocalDirectory(void);
 
 /**
  * @brief Sets the directory for local resources.
  * @param dir The local directory.
  */
-DS_CORE_EXPORT void dsResourceStream_setLocalDir(const char* dir);
+DS_CORE_EXPORT void dsResourceStream_setLocalDirectory(const char* dir);
 
 /**
  * @brief Gets the directory for dynamic resources.
  * @return The dynamic directory.
  */
-DS_CORE_EXPORT const char* dsResourceStream_getDynamicDir(void);
+DS_CORE_EXPORT const char* dsResourceStream_getDynamicDirectory(void);
 
 /**
  * @brief Sets the directory for dynamic resources.
  * @param dir The dynamic directory.
  */
-DS_CORE_EXPORT void dsResourceStream_setDynamicDir(const char* dir);
+DS_CORE_EXPORT void dsResourceStream_setDynamicDirectory(const char* dir);
 
 /**
  * @brief Gets whether or not a resource type will be a file.
@@ -102,6 +102,39 @@ DS_CORE_EXPORT const char* dsResourceStream_getDirectory(dsFileResourceType type
  */
 DS_CORE_EXPORT bool dsResourceStream_getPath(char* outResult, size_t resultSize,
 	dsFileResourceType type, const char* path);
+
+/**
+ * @brief Starts iterating over a directory from a resource.
+ * @remark errno will be set on failure.
+ * @param type The resource type.
+ * @param path The path to the directory.
+ * @return The directory iterator or NULL if the directory cannot be iterated.
+ */
+DS_CORE_EXPORT dsDirectoryIterator dsResourceStream_openDirectory(
+	dsFileResourceType type, const char* path);
+
+/**
+ * @brief Gets the next entry in a directory.
+ *
+ * The . and .. entries will be implicitly skipped.
+ *
+ * @remark When listing a directory for an embedded path on Android, due to limitations of the
+ *     NDK only file entries will be listed.
+ * @remark errno will be set on failure.
+ * @param[out] outEntry The entry to populate.
+ * @param iterator The iterator to get the next entry with.
+ * @return The result of getting the next entry.
+ */
+DS_CORE_EXPORT dsDirectoryEntryResult dsResourceStream_nextDirectoryEntry(
+	dsDirectoryEntry* outEntry, dsDirectoryIterator iterator);
+
+/**
+ * @brief Closes a directory.
+ * @remark errno will be set on failure.
+ * @param iterator The directory iterator to close.
+ * @return False if the directory couldn't be closed.
+ */
+DS_CORE_EXPORT bool dsResourceStream_closeDirectory(dsDirectoryIterator iterator);
 
 /**
  * @brief Opens a stream for a resource.

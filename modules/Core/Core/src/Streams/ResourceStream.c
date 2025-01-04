@@ -27,6 +27,7 @@
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
 #include <jni.h>
+#include <malloc.h>
 #endif
 
 static char gEmbeddedDir[DS_PATH_MAX];
@@ -35,6 +36,12 @@ static char gDynamicDir[DS_PATH_MAX];
 
 #if DS_ANDROID
 static AAssetManager* gAssetManager;
+
+typedef struct dsDirectoryIteratorInfo
+{
+	AAssetDir* assetDir;
+	dsDirectoryIterator filesystemIter;
+} dsDirectoryIteratorInfo;
 
 static size_t assetRead(dsGenericStream* stream, void* data, size_t size)
 {
@@ -80,7 +87,7 @@ static bool assetSeek(dsGenericStream* stream, int64_t offset, dsStreamSeekWay w
 			return false;
 	}
 
-	if (AAsset_seek((AAsset*)stream->userData, (off_t)offset, whence) == -1)
+	if (AAsset_seek64((AAsset*)stream->userData, offset, whence) == -1)
 	{
 		errno = EIO;
 		return false;
@@ -97,7 +104,7 @@ static uint64_t assetTell(dsGenericStream* stream)
 		return 0;
 	}
 
-	off_t position = AAsset_seek((AAsset*)stream->userData, 0, SEEK_CUR);
+	off64_t position = AAsset_seek64((AAsset*)stream->userData, 0, SEEK_CUR);
 	if (position == -1)
 	{
 		errno = EIO;
@@ -114,27 +121,14 @@ static uint64_t assetRemainingBytes(dsGenericStream* stream)
 		return 0;
 	}
 
-	off_t position = AAsset_seek((AAsset*)stream->userData, 0, SEEK_CUR);
-	if (position == -1)
+	off64_t size = AAsset_getRemainingLength64((AAsset*)stream->userData);
+	if (size == -1)
 	{
 		errno = EIO;
 		return DS_STREAM_INVALID_POS;
 	}
 
-	off_t end = AAsset_seek((AAsset*)stream->userData, 0, SEEK_END);
-	if (end == -1)
-	{
-		errno = EIO;
-		return DS_STREAM_INVALID_POS;
-	}
-
-	if (AAsset_seek((AAsset*)stream->userData, position, SEEK_SET) == -1)
-	{
-		errno = EIO;
-		return DS_STREAM_INVALID_POS;
-	}
-
-	return end - position;
+	return size;
 }
 
 static bool assetClose(dsGenericStream* stream)
@@ -240,34 +234,34 @@ bool dsResourceStream_setContext(void* globalContext, void* applicationContext,
 	return true;
 }
 
-const char* dsResourceStream_getEmbeddedDir(void)
+const char* dsResourceStream_getEmbeddedDirectory(void)
 {
 	return gEmbeddedDir;
 }
 
-void dsResourceStream_setEmbeddedDir(const char* dir)
+void dsResourceStream_setEmbeddedDirectory(const char* dir)
 {
 	if (dir)
 		strncpy(gEmbeddedDir, dir, sizeof(gEmbeddedDir) - 1);
 }
 
-const char* dsResourceStream_getLocalDir(void)
+const char* dsResourceStream_getLocalDirectory(void)
 {
 	return gLocalDir;
 }
 
-void dsResourceStream_setLocalDir(const char* dir)
+void dsResourceStream_setLocalDirectory(const char* dir)
 {
 	if (dir)
 		strncpy(gLocalDir, dir, sizeof(gLocalDir) - 1);
 }
 
-const char* dsResourceStream_getDynamicDir(void)
+const char* dsResourceStream_getDynamicDirectory(void)
 {
 	return gDynamicDir;
 }
 
-void dsResourceStream_setDynamicDir(const char* dir)
+void dsResourceStream_setDynamicDirectory(const char* dir)
 {
 	if (dir)
 		strncpy(gDynamicDir, dir, sizeof(gDynamicDir) - 1);
@@ -332,13 +326,118 @@ bool dsResourceStream_getPath(char* outResult, size_t resultSize, dsFileResource
 				return false;
 			}
 
-			strncpy(outResult, path, resultSize);
+			memcpy(outResult, path, resultSize + 1);
 			return true;
 		}
 		default:
 			errno = EINVAL;
 			return false;
 	}
+}
+
+dsDirectoryIterator dsResourceStream_openDirectory(dsFileResourceType type, const char* path)
+{
+	if (!path || *path == 0)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	char finalPath[DS_PATH_MAX];
+	if (!dsResourceStream_getPath(finalPath, sizeof(finalPath), type, path))
+		return NULL;
+
+#if DS_ANDROID
+	dsDirectoryIteratorInfo* info = malloc(sizeof(dsDirectoryIteratorInfo));
+	if (!info)
+		return NULL;
+
+	if (dsResourceStream_isFile(type))
+	{
+		info->assetDir = NULL;
+		info->filesystemIter = dsFileStream_openDirectory(finalPath);
+		if (!info->filesystemIter)
+		{
+			free(info);
+			return NULL;
+		}
+	}
+	else
+	{
+		info->filesystemIter = NULL;
+		info->assetDir = AAssetManager_openDir(gAssetManager, finalPath);
+		if (!info->assetDir)
+		{
+			free(info);
+			// Most common error type, since specific error unknown.
+			errno = ENOTFOUND;
+			return NULL;
+		}
+	}
+
+	return info;
+#else
+	return dsFileStream_openDirectory(finalPath);
+#endif
+}
+
+dsDirectoryEntryResult dsResourceStream_nextDirectoryEntry(
+	dsDirectoryEntry* outEntry, dsDirectoryIterator iterator)
+{
+#if DS_ANDROID
+	if (!outEntry || !iterator)
+	{
+		errno = EINVAL;
+		return dsDirectoryEntryResult_Error;
+	}
+
+	dsDirectoryIteratorInfo* info = (dsDirectoryIteratorInfo*)iterator;
+	if (info->assetDir)
+	{
+		const char* entryName = AAssetDir_getNextFileName(info->assetDir);
+		if (!entryName)
+			return dsDirectoryEntryResult_End;
+
+		// NDK unable to provide directory entries at this time.
+		outEntry->isDirectory = false;
+		size_t nameLen = strlen(entryName) + 1;
+		if (nameLen > DS_FILE_NAME_MAX)
+		{
+			errno = ESIZE;
+			return dsDirectoryEntryResult_Error;
+		}
+		else
+			memcpy(outEntry->name, entryName, nameLen);
+		return dsDirectoryEntryResult_Success;
+	}
+#endif
+	return dsFileStream_nextDirectoryEntry(outEntry, iterator);
+}
+
+bool dsResourceStream_closeDirectory(dsDirectoryIterator iterator)
+{
+#if DS_ANDROID
+	if (!iterator)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsDirectoryIteratorInfo* info = (dsDirectoryIteratorInfo*)iterator;
+	bool success;
+	if (info->assetDir)
+	{
+		AAssetDir_close(info->assetDir);
+		success = true;
+	}
+	else
+		success = dsFileStream_closeDirectory(info->filesystemIter);
+	if (success)
+		free(info);
+	return success;
+#else
+	return dsFileStream_closeDirectory(iterator);
+#endif
 }
 
 bool dsResourceStream_open(dsResourceStream* stream, dsFileResourceType type, const char* path,

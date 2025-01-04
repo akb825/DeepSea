@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -271,8 +271,8 @@ bool dsSceneResources_addResource(dsSceneResources* resources, const char* name,
 		return false;
 	}
 
-	size_t nameLength = strlen(name);
-	if (nameLength >= DS_MAX_SCENE_NAME_LENGTH)
+	size_t nameLength = strlen(name) + 1;
+	if (nameLength > DS_MAX_SCENE_NAME_LENGTH)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Resource name '%s' exceeds maximum size of %u.",
@@ -297,7 +297,7 @@ bool dsSceneResources_addResource(dsSceneResources* resources, const char* name,
 
 	ResourceNode* node = DS_ALLOCATE_OBJECT(&resources->nodePool, ResourceNode);
 	DS_ASSERT(node);
-	strncpy(node->name, name, nameLength + 1);
+	memcpy(node->name, name, nameLength);
 	node->resource = resource;
 	node->type = type;
 	node->owned = own;

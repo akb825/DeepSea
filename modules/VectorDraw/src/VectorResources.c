@@ -416,8 +416,8 @@ bool dsVectorResources_addTexture(dsVectorResources* resources, const char* name
 		return false;
 	}
 
-	size_t nameLength = strlen(name);
-	if (nameLength >= DS_MAX_VECTOR_RESOURCE_NAME_LENGTH)
+	size_t nameLength = strlen(name) + 1;
+	if (nameLength > DS_MAX_VECTOR_RESOURCE_NAME_LENGTH)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Texture name '%s' exceeds maximum size of %u.",
@@ -442,7 +442,7 @@ bool dsVectorResources_addTexture(dsVectorResources* resources, const char* name
 
 	dsTextureNode* node = DS_ALLOCATE_OBJECT(&resources->texturePool, dsTextureNode);
 	DS_ASSERT(node);
-	strncpy(node->name, name, nameLength + 1);
+	memcpy(node->name, name, nameLength);
 	node->texture = texture;
 	node->owned = own;
 	DS_VERIFY(dsHashTable_insert(resources->textureTable, node->name, (dsHashTableNode*)node,
@@ -539,8 +539,8 @@ bool dsVectorResources_addFaceGroup(dsVectorResources* resources, const char* na
 		return false;
 	}
 
-	size_t nameLength = strlen(name);
-	if (nameLength >= DS_MAX_VECTOR_RESOURCE_NAME_LENGTH)
+	size_t nameLength = strlen(name) + 1;
+	if (nameLength > DS_MAX_VECTOR_RESOURCE_NAME_LENGTH)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Face group name '%s' exceeds maximum size of %u.",
@@ -565,7 +565,7 @@ bool dsVectorResources_addFaceGroup(dsVectorResources* resources, const char* na
 
 	dsFaceGroupNode* node = DS_ALLOCATE_OBJECT(&resources->faceGroupPool, dsFaceGroupNode);
 	DS_ASSERT(node);
-	strncpy(node->name, name, nameLength + 1);
+	memcpy(node->name, name, nameLength);
 	node->faceGroup = faceGroup;
 	node->owned = own;
 	DS_VERIFY(dsHashTable_insert(resources->faceGroupTable, node->name, (dsHashTableNode*)node,
@@ -624,8 +624,8 @@ bool dsVectorResources_addFont(dsVectorResources* resources, const char* name,
 		return false;
 	}
 
-	size_t nameLength = strlen(name);
-	if (nameLength >= DS_MAX_VECTOR_RESOURCE_NAME_LENGTH)
+	size_t nameLength = strlen(name) + 1;
+	if (nameLength > DS_MAX_VECTOR_RESOURCE_NAME_LENGTH)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Font name '%s' exceeds maximum size of %u.",
@@ -650,7 +650,7 @@ bool dsVectorResources_addFont(dsVectorResources* resources, const char* name,
 
 	dsFontNode* node = DS_ALLOCATE_OBJECT(&resources->fontPool, dsFontNode);
 	DS_ASSERT(node);
-	strncpy(node->name, name, nameLength + 1);
+	memcpy(node->name, name, nameLength);
 	node->font = font;
 	node->owned = own;
 	DS_VERIFY(dsHashTable_insert(resources->fontTable, node->name, (dsHashTableNode*)node,

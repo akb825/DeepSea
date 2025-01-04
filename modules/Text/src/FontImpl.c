@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -158,8 +158,8 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 		return NULL;
 	}
 
-	size_t nameLength = strlen(name);
-	if (nameLength >= DS_MAX_FACE_NAME_LENGTH)
+	size_t nameLength = strlen(name) + 1;
+	if (nameLength > DS_MAX_FACE_NAME_LENGTH)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR_F(DS_TEXT_LOG_TAG, "Face name '%s' exceeds maximum size of %u.", name,
@@ -180,7 +180,7 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 		return NULL;
 
 	dsFontFace* face = group->faces + group->faceCount++;
-	strncpy(face->name, name, nameLength + 1);
+	memcpy(face->name, name, nameLength);
 	face->bufferAllocator = NULL;
 	face->buffer = NULL;
 	face->font = hbFont;

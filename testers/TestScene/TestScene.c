@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -462,9 +462,9 @@ int dsMain(int argc, const char** argv)
 	}
 
 	char assetsPath[DS_PATH_MAX];
-	DS_VERIFY(dsPath_combine(assetsPath, sizeof(assetsPath), dsResourceStream_getEmbeddedDir(),
+	DS_VERIFY(dsResourceStream_getPath(assetsPath, sizeof(assetsPath), dsFileResourceType_Embedded,
 		"TestScene-assets"));
-	dsResourceStream_setEmbeddedDir(assetsPath);
+	dsResourceStream_setEmbeddedDirectory(assetsPath);
 
 	TestScene testScene;
 	memset(&testScene, 0, sizeof(testScene));

@@ -33,15 +33,7 @@ extern "C"
 
 #if DS_MSC
 // Assume always little endian.
-
-/**
- * @brief Macro set to 1 for big-endian CPUs, 0 for little-endian CPUs.
- */
 #define DS_BIG_ENDIAN 0
-
-/**
- * @brief Macro set to 1 for big-endian CPUs, 0 for little-endian CPUs.
- */
 #define DS_LITTLE_ENDIAN 1
 #else
 #if !defined(__BYTE_ORDER__)
@@ -58,18 +50,11 @@ extern "C"
 #define DS_BIG_ENDIAN 1
 
 /**
- * @brief Macro set to 1 for big-endian CPUs, 0 for little-endian CPUs.
+ * @brief Macro set to 1 for little-endian CPUs, 0 for big-endian CPUs.
  */
 #define DS_LITTLE_ENDIAN 0
 #elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-/**
- * @brief Macro set to 1 for big-endian CPUs, 0 for little-endian CPUs.
- */
 #define DS_BIG_ENDIAN 0
-
-/**
- * @brief Macro set to 1 for big-endian CPUs, 0 for little-endian CPUs.
- */
 #define DS_LITTLE_ENDIAN 1
 #else
 #error Unsupported byte ordering.

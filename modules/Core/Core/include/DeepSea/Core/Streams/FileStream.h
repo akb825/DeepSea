@@ -32,6 +32,35 @@ extern "C"
  */
 
 /**
+ * @brief Starts iterating over a directory on the filesystem.
+ * @remark errno will be set on failure.
+ * @param path The path to the directory.
+ * @return The directory iterator or NULL if the directory cannot be iterated.
+ */
+DS_CORE_EXPORT dsDirectoryIterator dsFileStream_openDirectory(const char* path);
+
+/**
+ * @brief Gets the next entry in a directory.
+ *
+ * The . and .. entries will be implicitly skipped.
+ *
+ * @remark errno will be set on failure.
+ * @param[out] outEntry The entry to populate.
+ * @param iterator The iterator to get the next entry with.
+ * @return The result of getting the next entry.
+ */
+DS_CORE_EXPORT dsDirectoryEntryResult dsFileStream_nextDirectoryEntry(
+	dsDirectoryEntry* outEntry, dsDirectoryIterator iterator);
+
+/**
+ * @brief Closes a directory.
+ * @remark errno will be set on failure.
+ * @param iterator The directory iterator to close.
+ * @return False if the directory couldn't be closed.
+ */
+DS_CORE_EXPORT bool dsFileStream_closeDirectory(dsDirectoryIterator iterator);
+
+/**
  * @brief Opens a file stream with a file path.
  * @remark errno will be set on failure.
  * @param stream The stream to open.

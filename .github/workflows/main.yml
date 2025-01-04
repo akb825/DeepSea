@@ -156,8 +156,8 @@ jobs:
           libs: win32
           lib_type: Shared
           cmake_args: "-DDEEPSEA_SHARED=ON"
-        - arch: x64
-          libs: win64
+        - arch: Win32
+          libs: win32
           lib_type: Single-Shared
           cmake_args: "-DDEEPSEA_SINGLE_SHARED=ON"
         - arch: x64
