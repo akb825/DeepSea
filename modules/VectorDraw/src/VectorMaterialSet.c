@@ -190,8 +190,8 @@ bool dsVectorMaterialSet_addMaterial(dsVectorMaterialSet* materials, const char*
 		return false;
 	}
 
-	size_t nameLength = strlen(name);
-	if (nameLength >= DS_MAX_VECTOR_RESOURCE_NAME_LENGTH)
+	size_t nameLength = strlen(name) + 1;
+	if (nameLength > DS_MAX_VECTOR_RESOURCE_NAME_LENGTH)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Material name '%s' exceeds maximum size of %u.",
@@ -216,7 +216,7 @@ bool dsVectorMaterialSet_addMaterial(dsVectorMaterialSet* materials, const char*
 
 	dsMaterialNode* node = DS_ALLOCATE_OBJECT(&materials->materialPool, dsMaterialNode);
 	DS_ASSERT(node);
-	strncpy(node->name, name, nameLength + 1);
+	memcpy(node->name, name, nameLength);
 	node->material = *material;
 	node->owned = ownGradient;
 	node->dirtyType = DirtyType_All;
