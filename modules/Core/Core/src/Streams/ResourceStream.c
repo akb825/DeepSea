@@ -335,7 +335,7 @@ bool dsResourceStream_getPath(char* outResult, size_t resultSize, dsFileResource
 	}
 }
 
-dsPathStatus dsResourceStream_getPathStatus(dsFileResourceType type, const char* path)
+dsPathStatus dsResourceStream_pathStatus(dsFileResourceType type, const char* path)
 {
 	if (!path || *path == 0)
 	{
@@ -368,7 +368,7 @@ dsPathStatus dsResourceStream_getPathStatus(dsFileResourceType type, const char*
 	}
 #endif
 
-	return dsFileStream_getPathStatus(finalPath);
+	return dsFileStream_pathStatus(finalPath);
 }
 
 bool dsResourceStream_createDirectory(dsFileResourceType type, const char* path)
@@ -483,14 +483,14 @@ dsDirectoryIterator dsResourceStream_openDirectory(dsFileResourceType type, cons
 #endif
 }
 
-dsDirectoryEntryResult dsResourceStream_nextDirectoryEntry(
-	dsDirectoryEntry* outEntry, dsDirectoryIterator iterator)
+dsPathStatus dsResourceStream_nextDirectoryEntry(
+	char* result, size_t resultSize, dsDirectoryIterator iterator)
 {
 #if DS_ANDROID
-	if (!outEntry || !iterator)
+	if (!result || resultSize == 0 || !iterator)
 	{
 		errno = EINVAL;
-		return dsDirectoryEntryResult_Error;
+		return dsPathStatus_Error;
 	}
 
 	dsDirectoryIteratorInfo* info = (dsDirectoryIteratorInfo*)iterator;
@@ -498,22 +498,21 @@ dsDirectoryEntryResult dsResourceStream_nextDirectoryEntry(
 	{
 		const char* entryName = AAssetDir_getNextFileName(info->assetDir);
 		if (!entryName)
-			return dsDirectoryEntryResult_End;
+			return dsPathStatus_Missing;
 
 		// NDK unable to provide directory entries at this time.
-		outEntry->isDirectory = false;
 		size_t nameLen = strlen(entryName) + 1;
-		if (nameLen > DS_FILE_NAME_MAX)
+		if (nameLen > resultSize)
 		{
 			errno = ESIZE;
-			return dsDirectoryEntryResult_Error;
+			return dsPathStatus_Error;
 		}
 		else
-			memcpy(outEntry->name, entryName, nameLen);
-		return dsDirectoryEntryResult_Success;
+			memcpy(result, entryName, nameLen);
+		return dsPathStatus_ExistsFile;
 	}
 #endif
-	return dsFileStream_nextDirectoryEntry(outEntry, iterator);
+	return dsFileStream_nextDirectoryEntry(result, resultSize, iterator);
 }
 
 bool dsResourceStream_closeDirectory(dsDirectoryIterator iterator)

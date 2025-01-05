@@ -61,7 +61,7 @@ TEST_F(ResourceStreamDirectory, DirectoryIterator)
 	EXPECT_FALSE_ERRNO(EINVAL, dsResourceStream_openDirectory(dsFileResourceType_Dynamic, ""));
 
 	EXPECT_EQ(dsPathStatus_Missing,
-		dsResourceStream_getPathStatus(dsFileResourceType_Dynamic, "first"));
+		dsResourceStream_pathStatus(dsFileResourceType_Dynamic, "first"));
 	EXPECT_FALSE(dsResourceStream_openDirectory(dsFileResourceType_Dynamic, "first"));
 	EXPECT_TRUE(errno == ENOENT || errno == ENOTDIR);
 
@@ -69,30 +69,30 @@ TEST_F(ResourceStreamDirectory, DirectoryIterator)
 	ASSERT_TRUE(dsResourceStream_open(&stream, dsFileResourceType_Dynamic, "first", "w"));
 	EXPECT_TRUE(dsResourceStream_close(&stream));
 	EXPECT_EQ(dsPathStatus_ExistsFile,
-		dsResourceStream_getPathStatus(dsFileResourceType_Dynamic, "first"));
+		dsResourceStream_pathStatus(dsFileResourceType_Dynamic, "first"));
 
 	ASSERT_TRUE(dsResourceStream_open(&stream, dsFileResourceType_Dynamic, "second", "w"));
 	EXPECT_TRUE(dsResourceStream_close(&stream));
 	EXPECT_EQ(dsPathStatus_ExistsFile,
-		dsResourceStream_getPathStatus(dsFileResourceType_Dynamic, "second"));
+		dsResourceStream_pathStatus(dsFileResourceType_Dynamic, "second"));
 
 	ASSERT_TRUE(dsResourceStream_createDirectory(dsFileResourceType_Dynamic, "third"));
 	EXPECT_EQ(dsPathStatus_ExistsDirectory,
-		dsResourceStream_getPathStatus(dsFileResourceType_Dynamic, "third"));
+		dsResourceStream_pathStatus(dsFileResourceType_Dynamic, "third"));
 
 	dsDirectoryIterator iterator = dsResourceStream_openDirectory(dsFileResourceType_Dynamic, ".");
 	ASSERT_TRUE(iterator);
 
 	std::unordered_map<std::string, bool> entries;
-	dsDirectoryEntryResult result;
+	dsPathStatus result;
 	do
 	{
-		dsDirectoryEntry entry;
-		result = dsResourceStream_nextDirectoryEntry(&entry, iterator);
-		if (result == dsDirectoryEntryResult_Success)
-			entries.emplace(entry.name, entry.isDirectory);
-	} while (result == dsDirectoryEntryResult_Success);
-	EXPECT_EQ(dsDirectoryEntryResult_End, result);
+		char entry[DS_FILE_NAME_MAX];
+		result = dsFileStream_nextDirectoryEntry(entry, sizeof(entry), iterator);
+		if (result > dsPathStatus_Missing)
+			entries.emplace(entry, result == dsPathStatus_ExistsDirectory);
+	} while (result > dsPathStatus_Missing);
+	EXPECT_EQ(dsPathStatus_Missing, result);
 	EXPECT_TRUE(dsResourceStream_closeDirectory(iterator));
 
 	std::unordered_map<std::string, bool> expectedEntries = {{"first", false},

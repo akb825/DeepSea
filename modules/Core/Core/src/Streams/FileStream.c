@@ -82,7 +82,7 @@ static void initFileStream(dsFileStream* stream, FILE* file)
 	stream->file = file;
 }
 
-dsPathStatus dsFileStream_getPathStatus(const char* path)
+dsPathStatus dsFileStream_pathStatus(const char* path)
 {
 	if (!path || *path == 0)
 	{
@@ -174,16 +174,17 @@ dsDirectoryIterator dsFileStream_openDirectory(const char* path)
 #endif
 }
 
-dsDirectoryEntryResult dsFileStream_nextDirectoryEntry(
-	dsDirectoryEntry* outEntry, dsDirectoryIterator iterator)
+dsPathStatus dsFileStream_nextDirectoryEntry(
+	char* result, size_t resultSize, dsDirectoryIterator iterator)
 {
-	if (!outEntry || !iterator)
+	if (!result || resultSize == 0 || !iterator)
 	{
 		errno = EINVAL;
-		return dsDirectoryEntryResult_Error;
+		return dsPathStatus_Error;
 	}
 
 	char* entryName;
+	dsPathStatus status;
 	do
 	{
 #if DS_WINDOWS
@@ -193,38 +194,40 @@ dsDirectoryEntryResult dsFileStream_nextDirectoryEntry(
 		else if (!FindNextFile(info->handle, &info->findData))
 		{
 			if (GetLastError() == ERROR_NO_MORE_FILES)
-				return dsDirectoryEntryResult_End;
+				return dsPathStatus_Missing;
 
 			setErrno();
-			return dsDirectoryEntryResult_Error;
+			return dsPathStatus_Error;
 		}
 
 		entryName = info->findData.cFileName;
-		outEntry->isDirectory = (info->findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+		status = (info->findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ?
+			dsPathStatus_ExistsDirectory : dsPathStatus_ExistsFile;
 #else
 		errno = 0;
 		struct dirent* dirEntry = readdir((DIR*)iterator);
 		if (!dirEntry)
 		{
 			if (errno == 0)
-				return dsDirectoryEntryResult_End;
-			return dsDirectoryEntryResult_Error;
+				return dsPathStatus_Missing;
+			return dsPathStatus_Error;
 		}
 
 		entryName = dirEntry->d_name;
-		outEntry->isDirectory = dirEntry->d_type == DT_DIR;
+		status = dirEntry->d_type == DT_DIR ?
+			dsPathStatus_ExistsDirectory : dsPathStatus_ExistsFile;
 #endif
 	} while (strcmp(entryName, ".") == 0 || strcmp(entryName, "..") == 0);
 
 	size_t nameLen = strlen(entryName) + 1;
-	if (nameLen > DS_FILE_NAME_MAX)
+	if (nameLen > resultSize)
 	{
 		errno = ESIZE;
-		return dsDirectoryEntryResult_Error;
+		return dsPathStatus_Error;
 	}
 	else
-		memcpy(outEntry->name, entryName, nameLen);
-	return dsDirectoryEntryResult_Success;
+		memcpy(result, entryName, nameLen);
+	return status;
 }
 
 bool dsFileStream_closeDirectory(dsDirectoryIterator iterator)

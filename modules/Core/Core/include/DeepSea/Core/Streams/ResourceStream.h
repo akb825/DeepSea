@@ -17,9 +17,10 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+
+#include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Export.h>
 #include <DeepSea/Core/Types.h>
-#include <DeepSea/Core/Streams/Stream.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -110,8 +111,7 @@ DS_CORE_EXPORT bool dsResourceStream_getPath(char* outResult, size_t resultSize,
  * @param path The path to a file or directory.
  * @return The status of the file.
  */
-DS_CORE_EXPORT dsPathStatus dsResourceStream_getPathStatus(
-	dsFileResourceType type, const char* path);
+DS_CORE_EXPORT dsPathStatus dsResourceStream_pathStatus(dsFileResourceType type, const char* path);
 
 /**
  * @brief Creates a directory on a resource path.
@@ -162,12 +162,14 @@ DS_CORE_EXPORT dsDirectoryIterator dsResourceStream_openDirectory(
  * @remark When listing a directory for an embedded path on Android, due to limitations of the
  *     NDK only file entries will be listed.
  * @remark errno will be set on failure.
- * @param[out] outEntry The entry to populate.
+ * @param[out] result The storage for the result.
+ * @param resultSize The maximum size of the result.
  * @param iterator The iterator to get the next entry with.
- * @return The result of getting the next entry.
+ * @return The result of getting the next entry. dsPathStatus_Missing will be returned once the last
+ *     entry has been reached.
  */
-DS_CORE_EXPORT dsDirectoryEntryResult dsResourceStream_nextDirectoryEntry(
-	dsDirectoryEntry* outEntry, dsDirectoryIterator iterator);
+DS_CORE_EXPORT dsPathStatus dsResourceStream_nextDirectoryEntry(
+	char* result, size_t resultSize, dsDirectoryIterator iterator);
 
 /**
  * @brief Closes a directory.

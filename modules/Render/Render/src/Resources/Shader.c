@@ -1010,7 +1010,7 @@ bool dsShader_prepareCacheDirectory(const char* cacheDir)
 	const char* lastCacheDirLocal;
 	DS_ATOMIC_EXCHANGE_PTR(&lastCacheDir, &cacheDir, &lastCacheDirLocal);
 	bool printError = lastCacheDirLocal != cacheDir;
-	switch (dsFileStream_getPathStatus(cacheDir))
+	switch (dsFileStream_pathStatus(cacheDir))
 	{
 		case dsPathStatus_Error:
 			if (printError)

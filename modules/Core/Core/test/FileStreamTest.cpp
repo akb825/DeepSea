@@ -196,35 +196,35 @@ TEST_F(FileStreamDirectory, DirectoryIterator)
 	EXPECT_FALSE_ERRNO(EINVAL, dsFileStream_openDirectory(NULL));
 	EXPECT_FALSE_ERRNO(EINVAL, dsFileStream_openDirectory(""));
 
-	EXPECT_EQ(dsPathStatus_Missing, dsFileStream_getPathStatus(firstPath));
+	EXPECT_EQ(dsPathStatus_Missing, dsFileStream_pathStatus(firstPath));
 	EXPECT_FALSE(dsFileStream_openDirectory(firstPath));
 	EXPECT_TRUE(errno == ENOENT || errno == ENOTDIR);
 
 	dsFileStream stream;
 	ASSERT_TRUE(dsFileStream_openPath(&stream, firstPath, "w"));
 	EXPECT_TRUE(dsFileStream_close(&stream));
-	EXPECT_EQ(dsPathStatus_ExistsFile, dsFileStream_getPathStatus(firstPath));
+	EXPECT_EQ(dsPathStatus_ExistsFile, dsFileStream_pathStatus(firstPath));
 
 	ASSERT_TRUE(dsFileStream_openPath(&stream, secondPath, "w"));
 	EXPECT_TRUE(dsFileStream_close(&stream));
-	EXPECT_EQ(dsPathStatus_ExistsFile, dsFileStream_getPathStatus(secondPath));
+	EXPECT_EQ(dsPathStatus_ExistsFile, dsFileStream_pathStatus(secondPath));
 
 	ASSERT_TRUE(dsFileStream_createDirectory(thirdPath));
-	EXPECT_EQ(dsPathStatus_ExistsDirectory, dsFileStream_getPathStatus(thirdPath));
+	EXPECT_EQ(dsPathStatus_ExistsDirectory, dsFileStream_pathStatus(thirdPath));
 
 	dsDirectoryIterator iterator = dsFileStream_openDirectory(rootDir);
 	ASSERT_TRUE(iterator);
 
 	std::unordered_map<std::string, bool> entries;
-	dsDirectoryEntryResult result;
+	dsPathStatus result;
 	do
 	{
-		dsDirectoryEntry entry;
-		result = dsFileStream_nextDirectoryEntry(&entry, iterator);
-		if (result == dsDirectoryEntryResult_Success)
-			entries.emplace(entry.name, entry.isDirectory);
-	} while (result == dsDirectoryEntryResult_Success);
-	EXPECT_EQ(dsDirectoryEntryResult_End, result);
+		char entry[DS_FILE_NAME_MAX];
+		result = dsFileStream_nextDirectoryEntry(entry, sizeof(entry), iterator);
+		if (result > dsPathStatus_Missing)
+			entries.emplace(entry, result == dsPathStatus_ExistsDirectory);
+	} while (result > dsPathStatus_Missing);
+	EXPECT_EQ(dsPathStatus_Missing, result);
 	EXPECT_TRUE(dsFileStream_closeDirectory(iterator));
 
 	std::unordered_map<std::string, bool> expectedEntries = {{"first", false},

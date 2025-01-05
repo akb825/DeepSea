@@ -84,6 +84,7 @@ extern "C"
 
 /// @cond Doxygen_Suppress
 typedef struct dsAllocator dsAllocator;
+typedef struct dsFileArchive dsFileArchive;
 typedef struct dsStream dsStream;
 /// @endcond
 
@@ -123,16 +124,6 @@ typedef enum dsPathStatus
 	dsPathStatus_ExistsFile,     ///< Path exists as a file or file-like object.
 	dsPathStatus_ExistsDirectory ///< Path exists as a directory.
 } dsPathStatus;
-
-/**
- * @brief Enum for the result of retrieving a directory entry.
- */
-typedef enum dsDirectoryEntryResult
-{
-	dsDirectoryEntryResult_Success, ///< The directory entry was successfully retrieved.
-	dsDirectoryEntryResult_End,     ///< The end of the directory was reached.
-	dsDirectoryEntryResult_Error    ///< An error occurred when getting the entry.
-} dsDirectoryEntryResult;
 
 /**
  * @brief Function for reading from a stream.
@@ -194,7 +185,7 @@ typedef bool (*dsStreamCloseFunction)(dsStream* stream);
  *
  * A stream can be used to read and write data from various sources such as a file or memory buffer.
  *
- * This can be "subclassed" by having it as the first member of other allocator structures. This can
+ * This can be "subclassed" by having it as the first member of other stream structures. This can
  * be done to add additional data to the stream and have it be freely casted between the
  * dsStream and the true stream type.
  *
@@ -371,20 +362,104 @@ typedef struct dsResourceStream
 typedef void* dsDirectoryIterator;
 
 /**
- * @brief Structure that defines an entry within a directory.
+ * @brief Function to get the path status for a file archive.
+ * @param archive The archive to get the path status from.
+ * @param path The path to get the status for.
+ * @return The path status.
  */
-typedef struct dsDirectoryEntry
+typedef dsPathStatus (*dsGetFileArchivePathStatusFunction)(
+	const dsFileArchive* archive, const char* path);
+
+/**
+ * @brief Function to open a directory for an archive.
+ * @param archive The archive to open the directory on.
+ * @param path The path to the directory.
+ * @return The directory iterator.
+ */
+typedef dsDirectoryIterator (*dsOpenFileArchiveDirectoryFunction)(
+	const dsFileArchive* archive, const char* path);
+
+/**
+ * @brief Function to get the next entry in an archive directory.
+ * @param[out] result The storage for the result.
+ * @param resultSize The maximum size of the result.
+ * @param archive The archive the directory is open on.
+ * @param iterator The iterator for the directory.
+ * @return The result of getting the next entry.
+ */
+typedef dsPathStatus (*dsNextFileArchiveDirectoryEntryFunction)(
+	char* result, size_t resultSize, const dsFileArchive* archive, dsDirectoryIterator iterator);
+
+/**
+ * @brief Function to close a directory for an archive.
+ * @param archive The archive the directory is open on.
+ * @param iterator The iterator for the directory to close.
+ * @return False if the directory couldn't be closed.
+ */
+typedef bool (*dsCloseFileArchiveDirectoryFunction)(
+	const dsFileArchive* archive, dsDirectoryIterator iterator);
+
+/**
+ * @brief Function to open a file on an archive.
+ * @param archive The archive to open the file from.
+ * @param path The path to the file.
+ * @return The opened stream or NULL if the file couldn't be opened.
+ */
+typedef dsStream* (*dsOpenFileArchiveFileFunction)(const dsFileArchive* archive, const char* path);
+
+/**
+ * @brief Function to close a file on an archive.
+ * @param archive The archive to close the file from.
+ * @param stream The stream previously opened.
+ * @return False if the file couldn't be closed.
+ */
+typedef bool (*dsCloseFileArchiveFileFunction)(const dsFileArchive* archive, dsStream* stream);
+
+/**
+ * @brief Struct describing an archive of files.
+ *
+ * Archives are read-only, and intended to group multiple files and directories into a single unit,
+ * often with compression. Implementations should ensure that multiple files can be opened
+ * simultaneously across multiple threads.
+ *
+ * This can be "subclassed" by having it as the first member of other archive structures. This can
+ * be done to add additional data to the archive and have it be freely casted between the
+ * dsFileArchive and the true stream type.
+ *
+ * @see FileArchive.h
+ */
+struct dsFileArchive
 {
 	/**
-	 * @brief Whether this entry is itself a directory.
+	 * @brief Function to get the status of a path within the archive.
 	 */
-	bool isDirectory;
+	dsGetFileArchivePathStatusFunction getPathStatusFunc;
 
 	/**
-	 * @brief The name of the entry.
+	 * @brief Function to open a directory within the archive.
 	 */
-	char name[DS_FILE_NAME_MAX];
-} dsDirectoryEntry;
+	dsOpenFileArchiveDirectoryFunction openDirectoryFunc;
+
+	/**
+	 * @brief Function to get the next directory entry within the archive.
+	 */
+	dsNextFileArchiveDirectoryEntryFunction nextDirectoryEntryFunc;
+
+	/**
+	 * @brief Function to close a directory within the archive.
+	 */
+	dsCloseFileArchiveDirectoryFunction closeDirectoryFunc;
+
+	/**
+	 * @brief Function to open a file within the archive.
+	 */
+	dsOpenFileArchiveFileFunction openFileFunc;
+
+	/**
+	 * @brief Function to close a file within the archive.
+	 */
+	dsCloseFileArchiveFileFunction closeFileFunc;
+};
 
 #ifdef __cplusplus
 }

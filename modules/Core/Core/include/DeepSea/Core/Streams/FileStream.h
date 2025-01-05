@@ -37,7 +37,7 @@ extern "C"
  * @param path The path to a file or directory.
  * @return The status of the file.
  */
-DS_CORE_EXPORT dsPathStatus dsFileStream_getPathStatus(const char* path);
+DS_CORE_EXPORT dsPathStatus dsFileStream_pathStatus(const char* path);
 
 /**
  * @brief Creates a directory on the filesystem.
@@ -81,12 +81,14 @@ DS_CORE_EXPORT dsDirectoryIterator dsFileStream_openDirectory(const char* path);
  * The . and .. entries will be implicitly skipped.
  *
  * @remark errno will be set on failure.
- * @param[out] outEntry The entry to populate.
+ * @param[out] result The storage for the result.
+ * @param resultSize The maximum size of the result.
  * @param iterator The iterator to get the next entry with.
- * @return The result of getting the next entry.
+ * @return The result of getting the next entry. dsPathStatus_Missing will be returned once the last
+ *     entry has been reached.
  */
-DS_CORE_EXPORT dsDirectoryEntryResult dsFileStream_nextDirectoryEntry(
-	dsDirectoryEntry* outEntry, dsDirectoryIterator iterator);
+DS_CORE_EXPORT dsPathStatus dsFileStream_nextDirectoryEntry(
+	char* result, size_t resultSize, dsDirectoryIterator iterator);
 
 /**
  * @brief Closes a directory.
