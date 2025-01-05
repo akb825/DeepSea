@@ -113,16 +113,16 @@ typedef enum dsFileResourceType
 } dsFileResourceType;
 
 /**
- * @brief Enum to determine if a file exists, and if so, if it's a file or directory.
+ * @brief Enum to determine if a path exists, and if so, if it's a file or directory.
  * @see FileUtils.h
  */
-typedef enum dsFileStatus
+typedef enum dsPathStatus
 {
-	dsFileStatus_Error,          ///< An error occurred in accessing the file.
-	dsFileStatus_DoesntExist,    ///< File doesn't exist.
-	dsFileStatus_ExistsFile,     ///< File exists as a file or file-like object.
-	dsFileStatus_ExistsDirectory ///< File exists as a directory.
-} dsFileStatus;
+	dsPathStatus_Error,          ///< An error occurred in accessing the path.
+	dsPathStatus_Missing,        ///< Path doesn't exist.
+	dsPathStatus_ExistsFile,     ///< Path exists as a file or file-like object.
+	dsPathStatus_ExistsDirectory ///< Path exists as a directory.
+} dsPathStatus;
 
 /**
  * @brief Enum for the result of retrieving a directory entry.

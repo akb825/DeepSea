@@ -17,13 +17,11 @@
 #include "Helpers.h"
 
 #include <DeepSea/Core/Streams/FileStream.h>
-#include <DeepSea/Core/Streams/FileUtils.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Streams/Stream.h>
 
 #include <gtest/gtest.h>
-#include <stdlib.h>
 #include <string>
 #include <unordered_map>
 
@@ -106,7 +104,7 @@ TEST(FileStream, ReadWriteFileFunctions)
 	EXPECT_TRUE(dsFileStream_close(&stream));
 	EXPECT_FALSE_ERRNO(EINVAL, dsFileStream_close(&stream));
 
-	unlink(path);
+	EXPECT_TRUE(dsFileStream_removeFile(path));
 }
 
 TEST(FileStream, ReadWriteStreamFunctions)
@@ -163,7 +161,7 @@ TEST(FileStream, ReadWriteStreamFunctions)
 	EXPECT_TRUE(dsStream_close((dsStream*)&stream));
 	EXPECT_FALSE_ERRNO(EINVAL, dsStream_close((dsStream*)&stream));
 
-	unlink(path);
+	EXPECT_TRUE(dsFileStream_removeFile(path));
 }
 
 class FileStreamDirectory : public testing::Test
@@ -181,15 +179,15 @@ public:
 		ASSERT_TRUE(dsPath_combine(firstPath, sizeof(firstPath), rootDir, "first"));
 		ASSERT_TRUE(dsPath_combine(secondPath, sizeof(secondPath), rootDir, "second"));
 		ASSERT_TRUE(dsPath_combine(thirdPath, sizeof(thirdPath), rootDir, "third"));
-		ASSERT_TRUE(dsCreateDirectory(rootDir));
+		ASSERT_TRUE(dsFileStream_createDirectory(rootDir));
 	}
 
 	void TearDown() override
 	{
-		EXPECT_EQ(0, unlink(firstPath));
-		EXPECT_EQ(0, unlink(secondPath));
-		EXPECT_EQ(0, rmdir(thirdPath));
-		EXPECT_EQ(0, rmdir(rootDir));
+		EXPECT_TRUE(dsFileStream_removeFile(firstPath));
+		EXPECT_TRUE(dsFileStream_removeFile(secondPath));
+		EXPECT_TRUE(dsFileStream_removeDirectory(thirdPath));
+		EXPECT_TRUE(dsFileStream_removeDirectory(rootDir));
 	}
 };
 
@@ -198,17 +196,21 @@ TEST_F(FileStreamDirectory, DirectoryIterator)
 	EXPECT_FALSE_ERRNO(EINVAL, dsFileStream_openDirectory(NULL));
 	EXPECT_FALSE_ERRNO(EINVAL, dsFileStream_openDirectory(""));
 
-	dsFileStream stream;
+	EXPECT_EQ(dsPathStatus_Missing, dsFileStream_getPathStatus(firstPath));
 	EXPECT_FALSE(dsFileStream_openDirectory(firstPath));
 	EXPECT_TRUE(errno == ENOENT || errno == ENOTDIR);
 
+	dsFileStream stream;
 	ASSERT_TRUE(dsFileStream_openPath(&stream, firstPath, "w"));
 	EXPECT_TRUE(dsFileStream_close(&stream));
+	EXPECT_EQ(dsPathStatus_ExistsFile, dsFileStream_getPathStatus(firstPath));
 
 	ASSERT_TRUE(dsFileStream_openPath(&stream, secondPath, "w"));
 	EXPECT_TRUE(dsFileStream_close(&stream));
+	EXPECT_EQ(dsPathStatus_ExistsFile, dsFileStream_getPathStatus(secondPath));
 
-	ASSERT_TRUE(dsCreateDirectory(thirdPath));
+	ASSERT_TRUE(dsFileStream_createDirectory(thirdPath));
+	EXPECT_EQ(dsPathStatus_ExistsDirectory, dsFileStream_getPathStatus(thirdPath));
 
 	dsDirectoryIterator iterator = dsFileStream_openDirectory(rootDir);
 	ASSERT_TRUE(iterator);

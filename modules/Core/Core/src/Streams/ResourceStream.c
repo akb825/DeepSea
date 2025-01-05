@@ -335,6 +335,108 @@ bool dsResourceStream_getPath(char* outResult, size_t resultSize, dsFileResource
 	}
 }
 
+dsPathStatus dsResourceStream_getPathStatus(dsFileResourceType type, const char* path)
+{
+	if (!path || *path == 0)
+	{
+		errno = EINVAL;
+		return dsPathStatus_Error;
+	}
+
+	char finalPath[DS_PATH_MAX];
+	if (!dsResourceStream_getPath(finalPath, sizeof(finalPath), type, path))
+		return dsPathStatus_Error;
+
+#if DS_ANDROID
+	if (type == dsFileResourceType_Embedded)
+	{
+		AAsset* asset = AAssetManager_open(gAssetManager, finalPath, AASSET_MODE_STREAMING);
+		if (asset)
+		{
+			AAsset_close(asset);
+			return dsPathStatus_ExistsFile;
+		}
+
+		AAssetDir* assetDir = AAssetManager_openDir(gAssetManager, finalPath);
+		if (assetDir)
+		{
+			AAssetDir_close(assetDir);
+			return dsPathStatus_ExistsDirectory;
+		}
+
+		return dsPathStatus_Missing;
+	}
+#endif
+
+	return dsFileStream_getPathStatus(finalPath);
+}
+
+bool dsResourceStream_createDirectory(dsFileResourceType type, const char* path)
+{
+	if (!path || *path == 0)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (type == dsFileResourceType_Embedded)
+	{
+		DS_LOG_ERROR(DS_CORE_LOG_TAG, "Embedded assets cannot be modified.");
+		errno = EINVAL;
+		return false;
+	}
+
+	char finalPath[DS_PATH_MAX];
+	if (!dsResourceStream_getPath(finalPath, sizeof(finalPath), type, path))
+		return false;
+
+	return dsFileStream_createDirectory(finalPath);
+}
+
+bool dsResourceStream_removeFile(dsFileResourceType type, const char* path)
+{
+	if (!path || *path == 0)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (type == dsFileResourceType_Embedded)
+	{
+		DS_LOG_ERROR(DS_CORE_LOG_TAG, "Embedded assets cannot be modified.");
+		errno = EINVAL;
+		return false;
+	}
+
+	char finalPath[DS_PATH_MAX];
+	if (!dsResourceStream_getPath(finalPath, sizeof(finalPath), type, path))
+		return false;
+
+	return dsFileStream_removeFile(finalPath);
+}
+
+bool dsResourceStream_removeDirectory(dsFileResourceType type, const char* path)
+{
+	if (!path || *path == 0)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (type == dsFileResourceType_Embedded)
+	{
+		DS_LOG_ERROR(DS_CORE_LOG_TAG, "Embedded assets cannot be modified.");
+		errno = EINVAL;
+		return false;
+	}
+
+	char finalPath[DS_PATH_MAX];
+	if (!dsResourceStream_getPath(finalPath, sizeof(finalPath), type, path))
+		return false;
+
+	return dsFileStream_removeDirectory(finalPath);
+}
+
 dsDirectoryIterator dsResourceStream_openDirectory(dsFileResourceType type, const char* path)
 {
 	if (!path || *path == 0)
@@ -352,7 +454,7 @@ dsDirectoryIterator dsResourceStream_openDirectory(dsFileResourceType type, cons
 	if (!info)
 		return NULL;
 
-	if (dsResourceStream_isFile(type))
+	if (type == dsFileResourceType_Embedded)
 	{
 		info->assetDir = NULL;
 		info->filesystemIter = dsFileStream_openDirectory(finalPath);

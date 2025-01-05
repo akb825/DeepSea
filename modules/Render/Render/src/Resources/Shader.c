@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,17 @@
 
 #include <DeepSea/Render/Resources/Shader.h>
 
-#include <DeepSea/Core/Streams/FileUtils.h>
+#include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/Path.h>
+
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Math/Core.h>
+
 #include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/MaterialDesc.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
@@ -1007,9 +1010,9 @@ bool dsShader_prepareCacheDirectory(const char* cacheDir)
 	const char* lastCacheDirLocal;
 	DS_ATOMIC_EXCHANGE_PTR(&lastCacheDir, &cacheDir, &lastCacheDirLocal);
 	bool printError = lastCacheDirLocal != cacheDir;
-	switch (dsGetFileStatus(cacheDir))
+	switch (dsFileStream_getPathStatus(cacheDir))
 	{
-		case dsFileStatus_Error:
+		case dsPathStatus_Error:
 			if (printError)
 			{
 				DS_LOG_WARNING_F(DS_RENDER_LOG_TAG,
@@ -1017,8 +1020,8 @@ bool dsShader_prepareCacheDirectory(const char* cacheDir)
 					dsErrorString(errno));
 			}
 			return false;
-		case dsFileStatus_DoesntExist:
-			if (!dsCreateDirectory(cacheDir) && errno != EEXIST)
+		case dsPathStatus_Missing:
+			if (!dsFileStream_createDirectory(cacheDir))
 			{
 				if (printError)
 				{
@@ -1028,14 +1031,14 @@ bool dsShader_prepareCacheDirectory(const char* cacheDir)
 				return false;
 			}
 			return true;
-		case dsFileStatus_ExistsFile:
+		case dsPathStatus_ExistsFile:
 			if (printError)
 			{
 				DS_LOG_WARNING_F(DS_RENDER_LOG_TAG,
 					"Shader cache directory '%s' isn't a directory.", cacheDir);
 			}
 			return false;
-		case dsFileStatus_ExistsDirectory:
+		case dsPathStatus_ExistsDirectory:
 			return true;
 		default:
 			DS_ASSERT(false);

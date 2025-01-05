@@ -16,7 +16,7 @@
 
 #include "Helpers.h"
 
-#include <DeepSea/Core/Streams/FileUtils.h>
+#include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
 
@@ -37,28 +37,22 @@ public:
 		strncpy(dynamicDir, dsResourceStream_getDynamicDirectory(), DS_PATH_MAX - 1);
 		dynamicDir[DS_PATH_MAX - 1] = 0;
 		ASSERT_TRUE(dsPath_combine(rootDir, sizeof(rootDir), dynamicDir, "DirectoryIteratorTest"));
+		ASSERT_TRUE(dsFileStream_createDirectory(rootDir));
 		dsResourceStream_setDynamicDirectory(rootDir);
-		ASSERT_TRUE(dsPath_combine(firstPath, sizeof(firstPath), rootDir, "first"));
-		ASSERT_TRUE(dsPath_combine(secondPath, sizeof(secondPath), rootDir, "second"));
-		ASSERT_TRUE(dsPath_combine(thirdPath, sizeof(thirdPath), rootDir, "third"));
-		ASSERT_TRUE(dsCreateDirectory(rootDir));
 	}
 
 	void TearDown() override
 	{
-		EXPECT_EQ(0, unlink(firstPath));
-		EXPECT_EQ(0, unlink(secondPath));
-		EXPECT_EQ(0, rmdir(thirdPath));
-		EXPECT_EQ(0, rmdir(rootDir));
+		EXPECT_TRUE(dsResourceStream_removeFile(dsFileResourceType_Dynamic, "first"));
+		EXPECT_TRUE(dsResourceStream_removeFile(dsFileResourceType_Dynamic, "second"));
+		EXPECT_TRUE(dsResourceStream_removeDirectory(dsFileResourceType_Dynamic, "third"));
+		EXPECT_TRUE(dsFileStream_removeDirectory(rootDir));
 		dsResourceStream_setDynamicDirectory(dynamicDir);
 	}
 
 private:
 	char dynamicDir[DS_PATH_MAX];
 	char rootDir[DS_PATH_MAX];
-	char firstPath[DS_PATH_MAX];
-	char secondPath[DS_PATH_MAX];
-	char thirdPath[DS_PATH_MAX];
 };
 
 TEST_F(ResourceStreamDirectory, DirectoryIterator)
@@ -66,20 +60,25 @@ TEST_F(ResourceStreamDirectory, DirectoryIterator)
 	EXPECT_FALSE_ERRNO(EINVAL, dsResourceStream_openDirectory(dsFileResourceType_Dynamic, NULL));
 	EXPECT_FALSE_ERRNO(EINVAL, dsResourceStream_openDirectory(dsFileResourceType_Dynamic, ""));
 
-	dsResourceStream stream;
+	EXPECT_EQ(dsPathStatus_Missing,
+		dsResourceStream_getPathStatus(dsFileResourceType_Dynamic, "first"));
 	EXPECT_FALSE(dsResourceStream_openDirectory(dsFileResourceType_Dynamic, "first"));
 	EXPECT_TRUE(errno == ENOENT || errno == ENOTDIR);
 
+	dsResourceStream stream;
 	ASSERT_TRUE(dsResourceStream_open(&stream, dsFileResourceType_Dynamic, "first", "w"));
 	EXPECT_TRUE(dsResourceStream_close(&stream));
+	EXPECT_EQ(dsPathStatus_ExistsFile,
+		dsResourceStream_getPathStatus(dsFileResourceType_Dynamic, "first"));
 
 	ASSERT_TRUE(dsResourceStream_open(&stream, dsFileResourceType_Dynamic, "second", "w"));
 	EXPECT_TRUE(dsResourceStream_close(&stream));
+	EXPECT_EQ(dsPathStatus_ExistsFile,
+		dsResourceStream_getPathStatus(dsFileResourceType_Dynamic, "second"));
 
-	char thirdPath[DS_PATH_MAX];
-	ASSERT_TRUE(dsResourceStream_getPath(
-		thirdPath, sizeof(thirdPath), dsFileResourceType_Dynamic, "third"));
-	ASSERT_TRUE(dsCreateDirectory(thirdPath));
+	ASSERT_TRUE(dsResourceStream_createDirectory(dsFileResourceType_Dynamic, "third"));
+	EXPECT_EQ(dsPathStatus_ExistsDirectory,
+		dsResourceStream_getPathStatus(dsFileResourceType_Dynamic, "third"));
 
 	dsDirectoryIterator iterator = dsResourceStream_openDirectory(dsFileResourceType_Dynamic, ".");
 	ASSERT_TRUE(iterator);

@@ -22,14 +22,21 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 
+#include <sys/stat.h>
 #include <string.h>
 
 #if DS_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+
+#include <direct.h>
+#include <io.h>
 #include <malloc.h>
+#include <stdio.h>
+#define S_ISDIR(x) (((x) & S_IFMT) == S_IFDIR)
 #else
 #include <dirent.h>
+#include <unistd.h>
 #endif
 
 #if DS_WINDOWS
@@ -73,6 +80,65 @@ static void initFileStream(dsFileStream* stream, FILE* file)
 	baseStream->flushFunc = (dsStreamFlushFunction)&dsFileStream_flush;
 	baseStream->closeFunc = (dsStreamCloseFunction)&dsFileStream_close;
 	stream->file = file;
+}
+
+dsPathStatus dsFileStream_getPathStatus(const char* path)
+{
+	if (!path || *path == 0)
+	{
+		errno = EINVAL;
+		return dsPathStatus_Error;
+	}
+
+#if DS_WINDOWS
+	// Use stat64 in case stat would fail on a large file.
+	struct _stat64 info;
+	int result = _stat64(path, &info);
+#else
+	struct stat info;
+	int result = stat(path, &info);
+#endif
+
+	if (result == 0)
+		return S_ISDIR(info.st_mode) ? dsPathStatus_ExistsDirectory : dsPathStatus_ExistsFile;
+	return errno == ENOENT ? dsPathStatus_Missing : dsPathStatus_Error;
+}
+
+bool dsFileStream_createDirectory(const char* path)
+{
+	if (!path || *path == 0)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+#if DS_WINDOWS
+	return mkdir(path) == 0;
+#else
+	return mkdir(path, 0755) == 0;
+#endif
+}
+
+bool dsFileStream_removeFile(const char* path)
+{
+	if (!path || *path == 0)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	return unlink(path) == 0;
+}
+
+bool dsFileStream_removeDirectory(const char* path)
+{
+	if (!path || *path == 0)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	return rmdir(path) == 0;
 }
 
 dsDirectoryIterator dsFileStream_openDirectory(const char* path)
@@ -182,16 +248,15 @@ bool dsFileStream_closeDirectory(dsDirectoryIterator iterator)
 #endif
 }
 
-bool dsFileStream_openPath(dsFileStream* stream, const char* filePath,
-	const char* mode)
+bool dsFileStream_openPath(dsFileStream* stream, const char* path, const char* mode)
 {
-	if (!stream || !filePath || !mode)
+	if (!stream || !path || *path == 0 || !mode)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	FILE* file = fopen(filePath, mode);
+	FILE* file = fopen(path, mode);
 	if (!file)
 		return false;
 

@@ -104,6 +104,47 @@ DS_CORE_EXPORT bool dsResourceStream_getPath(char* outResult, size_t resultSize,
 	dsFileResourceType type, const char* path);
 
 /**
+ * @brief Gets the status of a file or directory on a resource path.
+ * @remark errno will be set on failure.
+ * @param type The resource type.
+ * @param path The path to a file or directory.
+ * @return The status of the file.
+ */
+DS_CORE_EXPORT dsPathStatus dsResourceStream_getPathStatus(
+	dsFileResourceType type, const char* path);
+
+/**
+ * @brief Creates a directory on a resource path.
+ * @remark errno will be set on failure.
+ * @param type The resource type.
+ * @param path The path to the directory.
+ * @return False if the directory couldn't be created. If errno is EEXIST, the directory already
+ *     existed.
+ */
+DS_CORE_EXPORT bool dsResourceStream_createDirectory(dsFileResourceType type, const char* path);
+
+/**
+ * @brief Removes a file from a resource path.
+ * @remark errno will be set on failure.
+ * @param type The resource type.
+ * @param path The path to remove.
+ * @return False if the file couldn't be removed.
+ */
+DS_CORE_EXPORT bool dsResourceStream_removeFile(dsFileResourceType type, const char* path);
+
+/**
+ * @brief Removes a directory from a resource path.
+ *
+ * The directory must be empty before removal.
+ *
+ * @remark errno will be set on failure.
+ * @param type The resource type.
+ * @param path The path to remove.
+ * @return False if the path couldn't be removed.
+ */
+DS_CORE_EXPORT bool dsResourceStream_removeDirectory(dsFileResourceType type, const char* path);
+
+/**
  * @brief Starts iterating over a directory from a resource.
  * @remark errno will be set on failure.
  * @param type The resource type.

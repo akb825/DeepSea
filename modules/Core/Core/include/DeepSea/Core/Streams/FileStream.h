@@ -32,6 +32,42 @@ extern "C"
  */
 
 /**
+ * @brief Gets the status of a file or directory on the filesystem.
+ * @remark errno will be set on failure.
+ * @param path The path to a file or directory.
+ * @return The status of the file.
+ */
+DS_CORE_EXPORT dsPathStatus dsFileStream_getPathStatus(const char* path);
+
+/**
+ * @brief Creates a directory on the filesystem.
+ * @remark errno will be set on failure.
+ * @param path The path to the directory.
+ * @return False if the directory couldn't be created. If errno is EEXIST, the directory already
+ *     existed.
+ */
+DS_CORE_EXPORT bool dsFileStream_createDirectory(const char* path);
+
+/**
+ * @brief Removes a file from the filesystem.
+ * @remark errno will be set on failure.
+ * @param path The path to remove.
+ * @return False if the file couldn't be removed.
+ */
+DS_CORE_EXPORT bool dsFileStream_removeFile(const char* path);
+
+/**
+ * @brief Removes a directory from the filesystem.
+ *
+ * The directory must be empty before removal.
+ *
+ * @remark errno will be set on failure.
+ * @param path The path to remove.
+ * @return False if the path couldn't be removed.
+ */
+DS_CORE_EXPORT bool dsFileStream_removeDirectory(const char* path);
+
+/**
  * @brief Starts iterating over a directory on the filesystem.
  * @remark errno will be set on failure.
  * @param path The path to the directory.
@@ -64,12 +100,11 @@ DS_CORE_EXPORT bool dsFileStream_closeDirectory(dsDirectoryIterator iterator);
  * @brief Opens a file stream with a file path.
  * @remark errno will be set on failure.
  * @param stream The stream to open.
- * @param filePath The file path to open.
+ * @param path The file path to open.
  * @param mode The mode to open the file with. See fopen.
  * @return False if the file couldn't be opened.
  */
-DS_CORE_EXPORT bool dsFileStream_openPath(dsFileStream* stream, const char* filePath,
-	const char* mode);
+DS_CORE_EXPORT bool dsFileStream_openPath(dsFileStream* stream, const char* path, const char* mode);
 
 /**
  * @brief Opens a file stream with a FILE pointer.
