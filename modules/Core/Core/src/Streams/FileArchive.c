@@ -18,7 +18,7 @@
 
 #include <DeepSea/Core/Error.h>
 
-inline dsPathStatus dsFileArchive_pathStatus(const dsFileArchive* archive, const char* path)
+dsPathStatus dsFileArchive_pathStatus(const dsFileArchive* archive, const char* path)
 {
 	if (!archive || !archive->getPathStatusFunc || !path || *path == 0)
 	{

@@ -461,6 +461,15 @@ struct dsFileArchive
 	dsCloseFileArchiveFileFunction closeFileFunc;
 };
 
+/**
+ * @brief Struct describing a zip archive.
+ *
+ * This is an implementation of dsFileArchive for reading .zip files.
+ *
+ * @see ZipArchive.h
+ */
+typedef struct dsZipArchive dsZipArchive;
+
 #ifdef __cplusplus
 }
 #endif
