@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -135,6 +135,8 @@ static const char* debugExtensionName = "VK_EXT_debug_utils";
 static const char* oldDebugReportExtensionName = "VK_EXT_debug_report";
 static const char* physicalDeviceProperties2ExtensionName =
 	"VK_KHR_get_physical_device_properties2";
+static const char* externalMemoryCapabilitiesExtensionName =
+	"VK_KHR_external_memory_capabilities";
 
 // Device extensions.
 static const char* oldDebugMarkerExtensionName = "VK_EXT_debug_marker";
@@ -346,23 +348,26 @@ static bool queryInstanceExtensions(dsVkInstance* instance)
 	uint32_t extensionCount = 0;
 	instance->vkEnumerateInstanceExtensionProperties(NULL, &extensionCount, NULL);
 	bool hasSurface = false;
-	bool hasPhysicalDeviceProperties2 = false;
 	VkExtensionProperties* extensions =
 		(VkExtensionProperties*)malloc(extensionCount*sizeof(VkExtensionProperties));
 	if (!extensions)
 		return false;
 
+	bool hasPhysicalDeviceProperties2ExtensionName = false;
+	bool hasExternalMemoryCapabilitiesExtensionName = false;
 	instance->vkEnumerateInstanceExtensionProperties(NULL, &extensionCount, extensions);
 	for (uint32_t i = 0; i < extensionCount; ++i)
 	{
 		if (strcmp(extensions[i].extensionName, surfaceExtensionName) == 0)
 			hasSurface = true;
-		else if (strcmp(extensions[i].extensionName, physicalDeviceProperties2ExtensionName) == 0)
-			hasPhysicalDeviceProperties2 = true;
 		else if (strcmp(extensions[i].extensionName, debugExtensionName) == 0)
 			instanceExtensions.debug = true;
 		else if (strcmp(extensions[i].extensionName, oldDebugReportExtensionName) == 0)
 			instanceExtensions.oldDebugReport = true;
+		else if (strcmp(extensions[i].extensionName, physicalDeviceProperties2ExtensionName) == 0)
+			hasPhysicalDeviceProperties2ExtensionName = true;
+		else if (strcmp(extensions[i].extensionName, externalMemoryCapabilitiesExtensionName) == 0)
+			hasExternalMemoryCapabilitiesExtensionName = true;
 		else if (strcmp(extensions[i].extensionName, xlibDisplayExtensionName) == 0)
 			instanceExtensions.xlib = true;
 		else if (strcmp(extensions[i].extensionName, waylandDisplayExtensionName) == 0)
@@ -381,7 +386,7 @@ static bool queryInstanceExtensions(dsVkInstance* instance)
 		return false;
 	}
 
-	if (hasPhysicalDeviceProperties2)
+	if (hasPhysicalDeviceProperties2ExtensionName && hasExternalMemoryCapabilitiesExtensionName)
 		instanceExtensions.deviceInfo = true;
 
 	instanceExtensions.initialized = true;
@@ -421,7 +426,10 @@ static void addInstanceExtensions(const char** extensionNames, uint32_t* extensi
 	if (instanceExtensions.android)
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, androidDisplayExtensionName);
 	if (instanceExtensions.deviceInfo)
+	{
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, physicalDeviceProperties2ExtensionName);
+		DS_ADD_EXTENSION(extensionNames, *extensionCount, externalMemoryCapabilitiesExtensionName);
+	}
 
 	// NOTE: Push groups use the debug utils extension, so use it if profiling is enabled.
 	if (enableMarkers(enableValidation(options)))
@@ -483,7 +491,7 @@ static void addDeviceExtensions(dsVkDevice* device,
 		device->hasMaintenance1 = true;
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, maintenance1ExtensionName);
 	}
-	if (useMarkers && extensions->oldDebugMarker)
+	if (useMarkers && !instanceExtensions.debug && extensions->oldDebugMarker)
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, oldDebugMarkerExtensionName);
 	if (extensions->depthStencilResolve)
 	{
@@ -1185,7 +1193,7 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdDispatch);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdDispatchIndirect);
 
-	if (useMarkers && extensions.oldDebugMarker)
+	if (useMarkers && !instanceExtensions.debug && extensions.oldDebugMarker)
 	{
 		DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdDebugMarkerBeginEXT);
 		DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdDebugMarkerEndEXT);

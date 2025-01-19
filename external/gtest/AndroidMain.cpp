@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #include <DeepSea/Core/Streams/ResourceStream.h>
 #include <gtest/gtest.h>
 #include <jni.h>
+#include <stdlib.h>
 
 extern "C"
 {
@@ -27,7 +28,7 @@ JNIEXPORT jstring JNICALL Java_com_akb825_deepsea_unittests_UnitTestActivity_run
 	jobject thiz)
 {
 	dsResourceStream_setContext(env, thiz, nullptr, nullptr, nullptr);
-	testing::internal::SetCaptureDir(dsResourceStream_getDirectory(dsFileResourceType_Dynamic));
+	setenv("TEST_TMPDIR", dsResourceStream_getDynamicDirectory(), true);
 	testing::internal::CaptureStdout();
 
 	int argc = 1;

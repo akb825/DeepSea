@@ -1,3 +1,4 @@
 /build
+/src/*/assets
 /src/main/assets
 /src/main/jniLibs

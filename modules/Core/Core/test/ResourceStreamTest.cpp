@@ -21,13 +21,13 @@
 #include <DeepSea/Core/Streams/ResourceStream.h>
 
 #include <gtest/gtest.h>
-#include <stdlib.h>
 #include <string>
 #include <unordered_map>
 
 // TODO: iOS has restrictive filesystem permissions and we don't have the application code available
 // here to set the proper directory.
-#if !DS_IOS
+// Android is also very broken with its resource iteration.
+#if !DS_ANDROID && !DS_IOS
 
 class ResourceStreamDirectory : public testing::Test
 {
@@ -57,7 +57,7 @@ private:
 
 TEST_F(ResourceStreamDirectory, DirectoryIterator)
 {
-	EXPECT_FALSE_ERRNO(EINVAL, dsResourceStream_openDirectory(dsFileResourceType_Dynamic, NULL));
+	EXPECT_FALSE_ERRNO(EINVAL, dsResourceStream_openDirectory(dsFileResourceType_Dynamic, nullptr));
 	EXPECT_FALSE_ERRNO(EINVAL, dsResourceStream_openDirectory(dsFileResourceType_Dynamic, ""));
 
 	EXPECT_EQ(dsPathStatus_Missing,
@@ -88,7 +88,7 @@ TEST_F(ResourceStreamDirectory, DirectoryIterator)
 	do
 	{
 		char entry[DS_FILE_NAME_MAX];
-		result = dsFileStream_nextDirectoryEntry(entry, sizeof(entry), iterator);
+		result = dsResourceStream_nextDirectoryEntry(entry, sizeof(entry), iterator);
 		if (result > dsPathStatus_Missing)
 			entries.emplace(entry, result == dsPathStatus_ExistsDirectory);
 	} while (result > dsPathStatus_Missing);

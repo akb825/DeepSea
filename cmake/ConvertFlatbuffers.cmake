@@ -85,6 +85,7 @@ function(ds_convert_flatbuffers container)
 		if (ARGS_PYTHON)
 			set(pythonCommand COMMAND ${FLATC} ARGS --no-warnings -o ${ARGS_PYTHON} -p
 				${includeDirs} ${file})
+			message("${pythonCommand}")
 		endif()
 
 		add_custom_command(OUTPUT ${output}
@@ -97,6 +98,7 @@ function(ds_convert_flatbuffers container)
 			COMMENT "Generating flat buffer: ${file}")
 	endforeach()
 
+	message("${outputs}")
 	set(${container} ${${container}} ${outputs} PARENT_SCOPE)
 endfunction()
 

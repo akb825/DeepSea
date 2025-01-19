@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ static bool transitionToRenderable(dsCommandBuffer* commandBuffer, dsVkRenderSur
 {
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
 	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
-	if (!commandBuffer)
+	if (!vkCommandBuffer)
 		return false;
 
 	VkImageMemoryBarrier imageBarrier =
@@ -67,7 +67,7 @@ static bool transitionToPresentable(dsCommandBuffer* commandBuffer, dsVkRenderSu
 {
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
 	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
-	if (!commandBuffer)
+	if (!vkCommandBuffer)
 		return false;
 
 	VkImageMemoryBarrier imageBarrier =
