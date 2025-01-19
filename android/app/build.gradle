@@ -105,7 +105,7 @@ android {
             externalNativeBuild {
                 cmake {
                     targets "deepsea_test_vector_draw_app"
-                    arguments "-DDEEPSEA_ANDROID_ASSETS_DIR=src/TestVectorDrawApp/assets"
+                    arguments "-DDEEPSEA_ANDROID_ASSETS_DIR=src/TestVectorDraw/assets"
                 }
             }
             dimension "tester"
@@ -165,6 +165,19 @@ android {
             versionNameSuffix "-TestParticles"
             resValue "string", "app_name", "TestParticles"
             resValue "string", "main_lib_name", "deepsea_test_particles_app"
+        }
+        TestAnimation {
+            externalNativeBuild {
+                cmake {
+                    targets "deepsea_test_animation_app"
+                    arguments "-DDEEPSEA_ANDROID_ASSETS_DIR=src/TestAnimation/assets"
+                }
+            }
+            dimension "tester"
+            applicationIdSuffix ".testanimation"
+            versionNameSuffix "-TestAnimation"
+            resValue "string", "app_name", "TestAnimation"
+            resValue "string", "main_lib_name", "deepsea_test_animation_app"
         }
     }
     compileOptions {

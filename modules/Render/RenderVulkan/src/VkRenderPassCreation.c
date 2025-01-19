@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -773,6 +773,8 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 				}
 			}
 
+			VkImageAspectFlags aspectMask = dsVkImageAspectFlags(
+				renderPass->attachments[depthStencilAttachment->attachmentIndex].format);
 			VkAttachmentReference2KHR* depthAttachment =
 				DS_ALLOCATE_STACK_OBJECT(VkAttachmentReference2KHR);
 			depthAttachment->sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2_KHR;
@@ -780,6 +782,7 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 			depthAttachment->attachment = depthStencilAttachment->attachmentIndex;
 			depthAttachment->layout = isInput ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL :
 				VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			depthAttachment->aspectMask = aspectMask;
 			vkSubpass->pDepthStencilAttachment = depthAttachment;
 
 			if (resolve)
@@ -787,15 +790,13 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 				uint32_t resolveAttachment =
 					renderPassData->resolveIndices[depthStencilAttachment->attachmentIndex];
 				DS_ASSERT(resolveAttachment != DS_NO_ATTACHMENT);
-				dsGfxFormat format =
-					renderPass->attachments[depthStencilAttachment->attachmentIndex].format;
 				VkAttachmentReference2KHR* attachmentRef =
 					DS_ALLOCATE_STACK_OBJECT(VkAttachmentReference2KHR);
 				attachmentRef->sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2_KHR;
 				attachmentRef->pNext = NULL;
 				attachmentRef->attachment = resolveAttachment;
 				attachmentRef->layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-				attachmentRef->aspectMask = dsVkImageAspectFlags(format);
+				attachmentRef->aspectMask = aspectMask;
 
 				VkSubpassDescriptionDepthStencilResolveKHR* depthStencilResolve =
 					DS_ALLOCATE_STACK_OBJECT(VkSubpassDescriptionDepthStencilResolveKHR);

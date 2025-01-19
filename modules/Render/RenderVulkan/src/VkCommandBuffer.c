@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -169,12 +169,15 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 	if (renderer->hasGeometryShaders)
 		stages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
 
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(renderCommands, stages | VK_PIPELINE_STAGE_HOST_BIT,
-		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL,
-		vkCommandBuffer->bufferBarrierCount, vkCommandBuffer->bufferBarriers,
-		vkCommandBuffer->imageBarrierCount, vkCommandBuffer->imageBarriers);
-	vkCommandBuffer->bufferBarrierCount = 0;
-	vkCommandBuffer->imageBarrierCount = 0;
+	if (vkCommandBuffer->bufferBarrierCount > 0 || vkCommandBuffer->imageBarrierCount > 0)
+	{
+		DS_VK_CALL(device->vkCmdPipelineBarrier)(renderCommands,
+			stages | VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL,
+			vkCommandBuffer->bufferBarrierCount, vkCommandBuffer->bufferBarriers,
+			vkCommandBuffer->imageBarrierCount, vkCommandBuffer->imageBarriers);
+		vkCommandBuffer->bufferBarrierCount = 0;
+		vkCommandBuffer->imageBarrierCount = 0;
+	}
 
 	// Copy offscreen texture data to host images that can be read back from.
 	for (uint32_t i = 0; i < vkCommandBuffer->readbackOffscreenCount; ++i)
@@ -276,12 +279,15 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 		imageBarrier->subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
 	}
 
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(renderCommands, VK_PIPELINE_STAGE_TRANSFER_BIT,
-		VK_PIPELINE_STAGE_HOST_BIT | stages, 0, 0, NULL,
-		vkCommandBuffer->bufferBarrierCount, vkCommandBuffer->bufferBarriers,
-		vkCommandBuffer->imageBarrierCount, vkCommandBuffer->imageBarriers);
-	vkCommandBuffer->bufferBarrierCount = 0;
-	vkCommandBuffer->imageBarrierCount = 0;
+	if (vkCommandBuffer->bufferBarrierCount > 0 || vkCommandBuffer->imageBarrierCount > 0)
+	{
+		DS_VK_CALL(device->vkCmdPipelineBarrier)(renderCommands, VK_PIPELINE_STAGE_TRANSFER_BIT,
+			VK_PIPELINE_STAGE_HOST_BIT | stages, 0, 0, NULL,
+			vkCommandBuffer->bufferBarrierCount, vkCommandBuffer->bufferBarriers,
+			vkCommandBuffer->imageBarrierCount, vkCommandBuffer->imageBarriers);
+		vkCommandBuffer->bufferBarrierCount = 0;
+		vkCommandBuffer->imageBarrierCount = 0;
+	}
 
 	return true;
 }

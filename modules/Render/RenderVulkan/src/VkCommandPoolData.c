@@ -48,7 +48,7 @@ dsVkCommandPoolData* dsVkCommandPoolData_create(dsAllocator* allocator, dsRender
 	{
 		VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
 		NULL,
-		usage & dsCommandBufferUsage_MultiFrame  ? 0 : VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,
+		usage & dsCommandBufferUsage_MultiFrame ? 0 : VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,
 		device->queueFamilyIndex
 	};
 
