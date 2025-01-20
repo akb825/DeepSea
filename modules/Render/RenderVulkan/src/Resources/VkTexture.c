@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1277,7 +1277,7 @@ void dsVkTexture_process(dsResourceManager* resourceManager, dsTexture* texture)
 
 bool dsVkTexture_destroy(dsResourceManager* resourceManager, dsTexture* texture)
 {
-	dsVkRenderer_deleteTexture(resourceManager->renderer, texture);
+	dsVkRenderer_deleteTexture(resourceManager->renderer, texture, false);
 	return true;
 }
 

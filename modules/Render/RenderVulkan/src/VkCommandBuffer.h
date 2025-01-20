@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ bool dsVkCommandBuffer_addResource(dsCommandBuffer* commandBuffer, dsVkResource*
 bool dsVkCommandBuffer_addReadbackOffscreen(dsCommandBuffer* commandBuffer, dsOffscreen* offscreen);
 bool dsVkCommandBuffer_addRenderSurface(dsCommandBuffer* commandBuffer,
 	dsVkRenderSurfaceData* surface);
-void dsVkCommandBuffer_clearUsedResources(dsCommandBuffer* commandBuffer);
+void dsVkCommandBuffer_clearUsedResources(dsCommandBuffer* commandBuffer, bool gpuFinished);
 void dsVkCommandBuffer_submittedResources(dsCommandBuffer* commandBuffer, uint64_t submitCount);
 void dsVkCommandBuffer_submittedReadbackOffscreens(dsCommandBuffer* commandBuffer,
 	uint64_t submitCount);

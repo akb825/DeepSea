@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ bool dsVkGfxFence_reset(dsResourceManager* resourceManager, dsGfxFence* fence)
 
 bool dsVkGfxFence_destroy(dsResourceManager* resourceManager, dsGfxFence* fence)
 {
-	dsVkRenderer_deleteFence(resourceManager->renderer, fence);
+	dsVkRenderer_deleteFence(resourceManager->renderer, fence, false);
 	return true;
 }
 

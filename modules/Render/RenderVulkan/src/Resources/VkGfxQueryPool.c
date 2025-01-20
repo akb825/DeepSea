@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -240,7 +240,7 @@ bool dsVkGfxQueryPool_copyValues(dsResourceManager* resourceManager, dsCommandBu
 
 bool dsVkGfxQueryPool_destroy(dsResourceManager* resourceManager, dsGfxQueryPool* queries)
 {
-	dsVkRenderer_deleteQueriePool(resourceManager->renderer, queries);
+	dsVkRenderer_deleteQueriePool(resourceManager->renderer, queries, false);
 	return true;
 }
 

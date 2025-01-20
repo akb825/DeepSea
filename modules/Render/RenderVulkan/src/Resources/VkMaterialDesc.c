@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -216,7 +216,7 @@ bool dsVkMaterialDesc_destroy(dsResourceManager* resourceManager, dsMaterialDesc
 		dsSpinlock_shutdown(&vkMaterialDesc->bindings->lock);
 
 		for (dsListNode* node = bindings->descriptorFreeList.head; node; node = node->next)
-			dsVkRenderer_deleteMaterialDescriptor(renderer, (dsVkMaterialDescriptor*)node);
+			dsVkRenderer_deleteMaterialDescriptor(renderer, (dsVkMaterialDescriptor*)node, false);
 	}
 
 	if (materialDesc->allocator)

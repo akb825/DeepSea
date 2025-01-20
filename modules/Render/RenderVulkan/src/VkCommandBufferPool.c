@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ bool dsVkCommandBufferPool_reset(dsRenderer* renderer, dsCommandBufferPool* pool
 	// Clear out any resources on the previous buffers before they go back to the pools.
 	dsVkCommandPoolData* poolData = vkPool->commandPools[vkPool->curCommandPool];
 	for (uint32_t i = 0; i < poolData->count; ++i)
-		dsVkCommandBuffer_clearUsedResources(poolData->commandBuffers[i]);
+		dsVkCommandBuffer_clearUsedResources(poolData->commandBuffers[i], false);
 
 	poolData = vkPool->commandPools[nextCommandPool];
 	if (!dsVkCommandPoolData_prepare(poolData))
@@ -96,7 +96,7 @@ bool dsVkCommandBufferPool_destroy(dsRenderer* renderer, dsCommandBufferPool* po
 	DS_UNUSED(renderer);
 	dsVkCommandBufferPool* vkPool = (dsVkCommandBufferPool*)pool;
 	for (uint32_t i = 0; i < DS_DELAY_FRAMES; ++i)
-		dsVkRenderer_deleteCommandPool(renderer, vkPool->commandPools[i]);
+		dsVkRenderer_deleteCommandPool(renderer, vkPool->commandPools[i], false);
 
 	if (pool->allocator)
 		DS_VERIFY(dsAllocator_free(pool->allocator, pool));

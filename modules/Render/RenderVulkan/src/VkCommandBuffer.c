@@ -423,7 +423,7 @@ bool dsVkCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffe
 	DS_ASSERT(commandBuffer != renderer->mainCommandBuffer);
 	DS_UNUSED(renderer);
 	dsVkCommandBuffer_prepare(commandBuffer);
-	dsVkCommandBuffer_clearUsedResources(commandBuffer);
+	dsVkCommandBuffer_clearUsedResources(commandBuffer, false);
 	return true;
 }
 
@@ -434,7 +434,7 @@ bool dsVkCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* com
 	DS_ASSERT(commandBuffer != renderer->mainCommandBuffer);
 
 	dsVkCommandBuffer_prepare(commandBuffer);
-	dsVkCommandBuffer_clearUsedResources(commandBuffer);
+	dsVkCommandBuffer_clearUsedResources(commandBuffer, false);
 
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
@@ -570,7 +570,7 @@ bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuff
 	if (!(submitBuffer->usage &
 		(dsCommandBufferUsage_MultiSubmit | dsCommandBufferUsage_MultiFrame)))
 	{
-		dsVkCommandBuffer_clearUsedResources(submitBuffer);
+		dsVkCommandBuffer_clearUsedResources(submitBuffer, false);
 	}
 
 	if (vkSubmitBuffer->fenceSet)
@@ -833,7 +833,7 @@ void* dsVkCommandBuffer_getTempData(size_t* outOffset, VkBuffer* outBuffer,
 			dsVkTempBuffer_destroy(buffer);
 			return NULL;
 		}
-		dsVkRenderer_deleteTempBuffer(renderer, buffer);
+		dsVkRenderer_deleteTempBuffer(renderer, buffer, false);
 
 		*outBuffer = buffer->buffer;
 		return dsVkTempBuffer_allocate(outOffset, buffer, size, alignment);
@@ -1016,7 +1016,7 @@ bool dsVkCommandBuffer_addRenderSurface(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
-void dsVkCommandBuffer_clearUsedResources(dsCommandBuffer* commandBuffer)
+void dsVkCommandBuffer_clearUsedResources(dsCommandBuffer* commandBuffer, bool gpuFinished)
 {
 	DS_ASSERT(commandBuffer != commandBuffer->renderer->mainCommandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
@@ -1038,8 +1038,8 @@ void dsVkCommandBuffer_clearUsedResources(dsCommandBuffer* commandBuffer)
 	vkCommandBuffer->renderSurfaceCount = 0;
 	vkCommandBuffer->curTempBuffer = NULL;
 
-	dsVkSharedDescriptorSets_clearLastSet(&vkCommandBuffer->globalDescriptorSets);
-	dsVkSharedDescriptorSets_clearLastSet(&vkCommandBuffer->instanceDescriptorSets);
+	dsVkSharedDescriptorSets_clearLastSet(&vkCommandBuffer->globalDescriptorSets, gpuFinished);
+	dsVkSharedDescriptorSets_clearLastSet(&vkCommandBuffer->instanceDescriptorSets, gpuFinished);
 }
 
 void dsVkCommandBuffer_submittedResources(dsCommandBuffer* commandBuffer, uint64_t submitCount)
@@ -1059,8 +1059,8 @@ void dsVkCommandBuffer_submittedResources(dsCommandBuffer* commandBuffer, uint64
 	vkCommandBuffer->usedResourceCount = 0;
 	vkCommandBuffer->curTempBuffer = NULL;
 
-	dsVkSharedDescriptorSets_clearLastSet(&vkCommandBuffer->globalDescriptorSets);
-	dsVkSharedDescriptorSets_clearLastSet(&vkCommandBuffer->instanceDescriptorSets);
+	dsVkSharedDescriptorSets_clearLastSet(&vkCommandBuffer->globalDescriptorSets, false);
+	dsVkSharedDescriptorSets_clearLastSet(&vkCommandBuffer->instanceDescriptorSets, false);
 }
 
 void dsVkCommandBuffer_submittedReadbackOffscreens(dsCommandBuffer* commandBuffer,
@@ -1149,11 +1149,11 @@ void dsVkCommandBuffer_shutdown(dsVkCommandBuffer* commandBuffer)
 
 	dsVkCommandBufferData_shutdown(&commandBuffer->commandBufferData);
 	dsVkBarrierList_shutdown(&commandBuffer->barriers);
-	dsVkCommandBuffer_clearUsedResources(baseCommandBuffer);
+	dsVkCommandBuffer_clearUsedResources(baseCommandBuffer, true);
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->submitBuffers));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->usedResources));
 	for (uint32_t i = 0; i < commandBuffer->tempBufferCount; ++i)
-		dsVkRenderer_deleteTempBuffer(renderer, commandBuffer->tempBuffers[i]);
+		dsVkRenderer_deleteTempBuffer(renderer, commandBuffer->tempBuffers[i], true);
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->tempBuffers));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->readbackOffscreens));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->renderSurfaces));

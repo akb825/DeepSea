@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,7 +95,7 @@ bool dsVkCommandPoolData_prepare(dsVkCommandPoolData* pool)
 	// until when begin is called on the command buffers to avoid performance issues on some
 	// drivers.
 	for (uint32_t i = 0; i < pool->count; ++i)
-		dsVkCommandBuffer_clearUsedResources(pool->commandBuffers[i]);
+		dsVkCommandBuffer_clearUsedResources(pool->commandBuffers[i], false);
 	pool->count = 0;
 	return true;
 }

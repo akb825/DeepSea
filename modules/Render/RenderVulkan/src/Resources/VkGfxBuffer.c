@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -345,7 +345,7 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 
 		// Delete the previous buffer data and replace with the new one.
 		vkBuffer->bufferData = newBufferData;
-		dsVkRenderer_deleteGfxBuffer(renderer, bufferData);
+		dsVkRenderer_deleteGfxBuffer(renderer, bufferData, false);
 		bufferData = newBufferData;
 		DS_VERIFY(dsSpinlock_lock(&bufferData->resource.lock));
 		DS_ASSERT(bufferData->keepHost);
@@ -780,7 +780,7 @@ void dsVkGfxBuffer_process(dsResourceManager* resourceManager, dsGfxBuffer* buff
 bool dsVkGfxBuffer_destroy(dsResourceManager* resourceManager, dsGfxBuffer* buffer)
 {
 	dsVkGfxBuffer* vkBuffer = (dsVkGfxBuffer*)buffer;
-	dsVkRenderer_deleteGfxBuffer(resourceManager->renderer, vkBuffer->bufferData);
+	dsVkRenderer_deleteGfxBuffer(resourceManager->renderer, vkBuffer->bufferData, false);
 	dsSpinlock_shutdown(&vkBuffer->lock);
 	if (buffer->allocator)
 		DS_VERIFY(dsAllocator_free(buffer->allocator, buffer));

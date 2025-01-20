@@ -344,13 +344,7 @@ static void freeResources(dsVkRenderer* renderer, uint64_t finishedSubmitCount)
 		bool stillInUse = dsVkResource_isInUse(&buffer->resource, finishedSubmitCount) ||
 			(buffer->uploadedSubmit != DS_NOT_SUBMITTED &&
 				buffer->uploadedSubmit > finishedSubmitCount);
-		if (stillInUse)
-		{
-			dsVkRenderer_deleteGfxBuffer(baseRenderer, buffer);
-			continue;
-		}
-
-		dsVkGfxBufferData_destroy(buffer);
+		dsVkRenderer_deleteGfxBuffer(baseRenderer, buffer, !stillInUse);
 	}
 
 	for (uint32_t i = 0; i < prevDeleteList->textureCount; ++i)
@@ -364,27 +358,15 @@ static void freeResources(dsVkRenderer* renderer, uint64_t finishedSubmitCount)
 				vkTexture->uploadedSubmit > finishedSubmitCount) ||
 			(vkTexture->lastDrawSubmit != DS_NOT_SUBMITTED &&
 				vkTexture->lastDrawSubmit > finishedSubmitCount);
-		if (stillInUse)
-		{
-			dsVkRenderer_deleteTexture(baseRenderer, texture);
-			continue;
-		}
-
-		dsVkTexture_destroyImpl(texture);
+		dsVkRenderer_deleteTexture(baseRenderer, texture, !stillInUse);
 	}
 
 	for (uint32_t i = 0; i < prevDeleteList->tempBufferCount; ++i)
 	{
 		dsVkTempBuffer* buffer = prevDeleteList->tempBuffers[i];
 		DS_ASSERT(buffer);
-
-		if (dsVkResource_isInUse(&buffer->resource, finishedSubmitCount))
-		{
-			dsVkRenderer_deleteTempBuffer(baseRenderer, buffer);
-			continue;
-		}
-
-		dsVkTempBuffer_destroy(buffer);
+		dsVkRenderer_deleteTempBuffer(baseRenderer, buffer,
+			!dsVkResource_isInUse(&buffer->resource, finishedSubmitCount));
 	}
 
 	for (uint32_t i = 0; i < prevDeleteList->renderbufferCount; ++i)
@@ -392,28 +374,16 @@ static void freeResources(dsVkRenderer* renderer, uint64_t finishedSubmitCount)
 		dsRenderbuffer* renderbuffer = prevDeleteList->renderbuffers[i];
 		DS_ASSERT(renderbuffer);
 		dsVkRenderbuffer* vkRenderbuffer = (dsVkRenderbuffer*)renderbuffer;
-
-		if (dsVkResource_isInUse(&vkRenderbuffer->resource, finishedSubmitCount))
-		{
-			dsVkRenderer_deleteRenderbuffer(baseRenderer, renderbuffer);
-			continue;
-		}
-
-		dsVkRenderbuffer_destroyImpl(renderbuffer);
+		dsVkRenderer_deleteRenderbuffer(baseRenderer, renderbuffer,
+			!dsVkResource_isInUse(&vkRenderbuffer->resource, finishedSubmitCount));
 	}
 
 	for (uint32_t i = 0; i < prevDeleteList->framebufferCount; ++i)
 	{
 		dsVkRealFramebuffer* framebuffer = prevDeleteList->framebuffers[i];
 		DS_ASSERT(framebuffer);
-
-		if (dsVkResource_isInUse(&framebuffer->resource, finishedSubmitCount))
-		{
-			dsVkRenderer_deleteFramebuffer(baseRenderer, framebuffer);
-			continue;
-		}
-
-		dsVkRealFramebuffer_destroy(framebuffer);
+		dsVkRenderer_deleteFramebuffer(baseRenderer, framebuffer,
+			!dsVkResource_isInUse(&framebuffer->resource, finishedSubmitCount));
 	}
 
 	for (uint32_t i = 0; i < prevDeleteList->fenceCount; ++i)
@@ -421,14 +391,8 @@ static void freeResources(dsVkRenderer* renderer, uint64_t finishedSubmitCount)
 		dsGfxFence* fence = prevDeleteList->fences[i];
 		DS_ASSERT(fence);
 		dsVkGfxFence* vkFence = (dsVkGfxFence*)fence;
-
-		if (dsVkResource_isInUse(&vkFence->resource, finishedSubmitCount))
-		{
-			dsVkRenderer_deleteFence(baseRenderer, fence);
-			continue;
-		}
-
-		dsVkGfxFence_destroyImpl(fence);
+		dsVkRenderer_deleteFence(baseRenderer, fence,
+			!dsVkResource_isInUse(&vkFence->resource, finishedSubmitCount));
 	}
 
 	for (uint32_t i = 0; i < prevDeleteList->queryCount; ++i)
@@ -436,98 +400,56 @@ static void freeResources(dsVkRenderer* renderer, uint64_t finishedSubmitCount)
 		dsGfxQueryPool* queries = prevDeleteList->queries[i];
 		DS_ASSERT(queries);
 		dsVkGfxQueryPool* vkQueries = (dsVkGfxQueryPool*)queries;
-
-		if (dsVkResource_isInUse(&vkQueries->resource, finishedSubmitCount))
-		{
-			dsVkRenderer_deleteQueriePool(baseRenderer, queries);
-			continue;
-		}
-
-		dsVkGfxQueryPool_destroyImpl(queries);
+		dsVkRenderer_deleteQueriePool(baseRenderer, queries,
+			!dsVkResource_isInUse(&vkQueries->resource, finishedSubmitCount));
 	}
 
 	for (uint32_t i = 0; i < prevDeleteList->descriptorCount; ++i)
 	{
 		dsVkMaterialDescriptor* descriptor = prevDeleteList->descriptors[i];
 		DS_ASSERT(descriptor);
-
-		if (dsVkResource_isInUse(&descriptor->resource, finishedSubmitCount))
-		{
-			dsVkRenderer_deleteMaterialDescriptor(baseRenderer, descriptor);
-			continue;
-		}
-
-		dsVkMaterialDescriptor_destroy(descriptor);
+		dsVkRenderer_deleteMaterialDescriptor(baseRenderer, descriptor,
+			!dsVkResource_isInUse(&descriptor->resource, finishedSubmitCount));
 	}
 
 	for (uint32_t i = 0; i < prevDeleteList->samplerCount; ++i)
 	{
 		dsVkSamplerList* samplers = prevDeleteList->samplers[i];
 		DS_ASSERT(samplers);
-
-		if (dsVkResource_isInUse(&samplers->resource, finishedSubmitCount))
-		{
-			dsVkRenderer_deleteSamplerList(baseRenderer, samplers);
-			continue;
-		}
-
-		dsVkSamplerList_destroy(samplers);
+		dsVkRenderer_deleteSamplerList(baseRenderer, samplers,
+			!dsVkResource_isInUse(&samplers->resource, finishedSubmitCount));
 	}
 
 	for (uint32_t i = 0; i < prevDeleteList->computePipelineCount; ++i)
 	{
 		dsVkComputePipeline* pipeline = prevDeleteList->computePipelines[i];
 		DS_ASSERT(pipeline);
-
-		if (dsVkResource_isInUse(&pipeline->resource, finishedSubmitCount))
-		{
-			dsVkRenderer_deleteComputePipeline(baseRenderer, pipeline);
-			continue;
-		}
-
-		dsVkComputePipeline_destroy(pipeline);
+		dsVkRenderer_deleteComputePipeline(baseRenderer, pipeline,
+			!dsVkResource_isInUse(&pipeline->resource, finishedSubmitCount));
 	}
 
 	for (uint32_t i = 0; i < prevDeleteList->pipelineCount; ++i)
 	{
 		dsVkPipeline* pipeline = prevDeleteList->pipelines[i];
 		DS_ASSERT(pipeline);
-
-		if (dsVkResource_isInUse(&pipeline->resource, finishedSubmitCount))
-		{
-			dsVkRenderer_deletePipeline(baseRenderer, pipeline);
-			continue;
-		}
-
-		dsVkPipeline_destroy(pipeline);
+		dsVkRenderer_deletePipeline(baseRenderer, pipeline,
+			!dsVkResource_isInUse(&pipeline->resource, finishedSubmitCount));
 	}
 
 	for (uint32_t i = 0; i < prevDeleteList->commandPoolCount; ++i)
 	{
 		dsVkCommandPoolData* pool = prevDeleteList->commandPools[i];
 		DS_ASSERT(pool);
-
-		if (dsVkResource_isInUse(&pool->resource, finishedSubmitCount))
-		{
-			dsVkRenderer_deleteCommandPool(baseRenderer, pool);
-			continue;
-		}
-
-		dsVkCommandPoolData_destroy(pool);
+		dsVkRenderer_deleteCommandPool(baseRenderer, pool,
+			!dsVkResource_isInUse(&pool->resource, finishedSubmitCount));
 	}
 
 	for (uint32_t i = 0; i < prevDeleteList->renderPassCount; ++i)
 	{
 		dsVkRenderPassData* renderPass = prevDeleteList->renderPasses[i];
 		DS_ASSERT(renderPass);
-
-		if (dsVkResource_isInUse(&renderPass->resource, finishedSubmitCount))
-		{
-			dsVkRenderer_deleteRenderPass(baseRenderer, renderPass);
-			continue;
-		}
-
-		dsVkRenderPassData_destroy(renderPass);
+		dsVkRenderer_deleteRenderPass(baseRenderer, renderPass,
+			!dsVkResource_isInUse(&renderPass->resource, finishedSubmitCount));
 	}
 
 	dsVkResourceList_clear(prevDeleteList);
@@ -2476,171 +2398,256 @@ void dsVkRenderer_processRenderSurface(dsRenderer* renderer, dsVkRenderSurfaceDa
 	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->resourceLock));
 }
 
-void dsVkRenderer_deleteGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buffer)
+void dsVkRenderer_deleteGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buffer, bool gpuFinished)
 {
 	if (!buffer)
 		return;
 
-	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
-	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+	if (gpuFinished)
+		dsVkGfxBufferData_destroy(buffer);
+	else
+	{
+		dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+		DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
 
-	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
-	dsVkResourceList_addBuffer(resourceList, buffer);
-	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+		dsVkResourceList* resourceList =
+			vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+		dsVkResourceList_addBuffer(resourceList, buffer);
+		DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+	}
 }
 
-void dsVkRenderer_deleteTexture(dsRenderer* renderer, dsTexture* texture)
+void dsVkRenderer_deleteTexture(dsRenderer* renderer, dsTexture* texture, bool gpuFinished)
 {
 	if (!texture)
 		return;
 
-	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
-	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+	if (gpuFinished)
+		dsVkTexture_destroyImpl(texture);
+	else
+	{
+		dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+		DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
 
-	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
-	dsVkResourceList_addTexture(resourceList, texture);
-	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+		dsVkResourceList* resourceList =
+			vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+		dsVkResourceList_addTexture(resourceList, texture);
+		DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+	}
 }
 
-void dsVkRenderer_deleteTempBuffer(dsRenderer* renderer, dsVkTempBuffer* buffer)
+void dsVkRenderer_deleteTempBuffer(dsRenderer* renderer, dsVkTempBuffer* buffer, bool gpuFinished)
 {
 	if (!buffer)
 		return;
 
-	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
-	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+	if (gpuFinished)
+		dsVkTempBuffer_destroy(buffer);
+	else
+	{
+		dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+		DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
 
-	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
-	dsVkResourceList_addTempBuffer(resourceList, buffer);
-	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+		dsVkResourceList* resourceList =
+			vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+		dsVkResourceList_addTempBuffer(resourceList, buffer);
+		DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+	}
 }
 
-void dsVkRenderer_deleteRenderbuffer(dsRenderer* renderer, dsRenderbuffer* renderbuffer)
+void dsVkRenderer_deleteRenderbuffer(
+	dsRenderer* renderer, dsRenderbuffer* renderbuffer, bool gpuFinished)
 {
 	if (!renderbuffer)
 		return;
 
-	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
-	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+	if (gpuFinished)
+		dsVkRenderbuffer_destroyImpl(renderbuffer);
+	else
+	{
+		dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+		DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
 
-	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
-	dsVkResourceList_addRenderbuffer(resourceList, renderbuffer);
-	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+		dsVkResourceList* resourceList =
+			vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+		dsVkResourceList_addRenderbuffer(resourceList, renderbuffer);
+		DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+	}
 }
 
-void dsVkRenderer_deleteFramebuffer(dsRenderer* renderer, dsVkRealFramebuffer* framebuffer)
+void dsVkRenderer_deleteFramebuffer(
+	dsRenderer* renderer, dsVkRealFramebuffer* framebuffer, bool gpuFinished)
 {
 	if (!framebuffer)
 		return;
 
-	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
-	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+	if (gpuFinished)
+		dsVkRealFramebuffer_destroy(framebuffer);
+	else
+	{
+		dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+		DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
 
-	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
-	dsVkResourceList_addFramebuffer(resourceList, framebuffer);
-	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+		dsVkResourceList* resourceList =
+			vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+		dsVkResourceList_addFramebuffer(resourceList, framebuffer);
+		DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+	}
 }
 
-void dsVkRenderer_deleteFence(dsRenderer* renderer, dsGfxFence* fence)
+void dsVkRenderer_deleteFence(dsRenderer* renderer, dsGfxFence* fence, bool gpuFinished)
 {
 	if (!fence)
 		return;
 
-	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
-	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+	if (gpuFinished)
+		dsVkGfxFence_destroyImpl(fence);
+	else
+	{
+		dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+		DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
 
-	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
-	dsVkResourceList_addFence(resourceList, fence);
-	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+		dsVkResourceList* resourceList =
+			vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+		dsVkResourceList_addFence(resourceList, fence);
+		DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+	}
 }
 
-void dsVkRenderer_deleteQueriePool(dsRenderer* renderer, dsGfxQueryPool* queries)
+void dsVkRenderer_deleteQueriePool(dsRenderer* renderer, dsGfxQueryPool* queries, bool gpuFinished)
 {
 	if (!queries)
 		return;
 
-	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
-	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+	if (gpuFinished)
+		dsVkGfxQueryPool_destroyImpl(queries);
+	else
+	{
+		dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+		DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
 
-	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
-	dsVkResourceList_addQueries(resourceList, queries);
-	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+		dsVkResourceList* resourceList =
+			vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+		dsVkResourceList_addQueries(resourceList, queries);
+		DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+	}
 }
 
-void dsVkRenderer_deleteMaterialDescriptor(dsRenderer* renderer, dsVkMaterialDescriptor* descriptor)
+void dsVkRenderer_deleteMaterialDescriptor(
+	dsRenderer* renderer, dsVkMaterialDescriptor* descriptor, bool gpuFinished)
 {
 	if (!descriptor)
 		return;
 
-	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
-	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+	if (gpuFinished)
+		dsVkMaterialDescriptor_destroy(descriptor);
+	else
+	{
+		dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+		DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
 
-	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
-	dsVkResourceList_addMaterialDescriptor(resourceList, descriptor);
-	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+		dsVkResourceList* resourceList =
+			vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+		dsVkResourceList_addMaterialDescriptor(resourceList, descriptor);
+		DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+	}
 }
 
-void dsVkRenderer_deleteSamplerList(dsRenderer* renderer, dsVkSamplerList* samplers)
+void dsVkRenderer_deleteSamplerList(
+	dsRenderer* renderer, dsVkSamplerList* samplers, bool gpuFinished)
 {
 	if (!samplers)
 		return;
 
-	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
-	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+	if (gpuFinished)
+		dsVkSamplerList_destroy(samplers);
+	else
+	{
+		dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+		DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
 
-	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
-	dsVkResourceList_addSamplerList(resourceList, samplers);
-	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+		dsVkResourceList* resourceList =
+			vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+		dsVkResourceList_addSamplerList(resourceList, samplers);
+		DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+	}
 }
 
-void dsVkRenderer_deleteComputePipeline(dsRenderer* renderer, dsVkComputePipeline* pipeline)
+void dsVkRenderer_deleteComputePipeline(
+	dsRenderer* renderer, dsVkComputePipeline* pipeline, bool gpuFinished)
 {
 	if (!pipeline)
 		return;
 
-	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
-	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+	if (gpuFinished)
+		dsVkComputePipeline_destroy(pipeline);
+	else
+	{
+		dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+		DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
 
-	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
-	dsVkResourceList_addComputePipeline(resourceList, pipeline);
-	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+		dsVkResourceList* resourceList =
+			vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+		dsVkResourceList_addComputePipeline(resourceList, pipeline);
+		DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+	}
 }
 
-void dsVkRenderer_deletePipeline(dsRenderer* renderer, dsVkPipeline* pipeline)
+void dsVkRenderer_deletePipeline(dsRenderer* renderer, dsVkPipeline* pipeline, bool gpuFinished)
 {
 	if (!pipeline)
 		return;
 
-	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
-	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+	if (gpuFinished)
+		dsVkPipeline_destroy(pipeline);
+	else
+	{
+		dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+		DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
 
-	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
-	dsVkResourceList_addPipeline(resourceList, pipeline);
-	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+		dsVkResourceList* resourceList =
+			vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+		dsVkResourceList_addPipeline(resourceList, pipeline);
+		DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+	}
 }
 
-void dsVkRenderer_deleteCommandPool(dsRenderer* renderer, dsVkCommandPoolData* pool)
+void dsVkRenderer_deleteCommandPool(
+	dsRenderer* renderer, dsVkCommandPoolData* pool, bool gpuFinished)
 {
 	if (!pool)
 		return;
 
-	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
-	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+	if (gpuFinished)
+		dsVkCommandPoolData_destroy(pool);
+	else
+	{
+		dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+		DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
 
-	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
-	dsVkResourceList_addCommandPool(resourceList, pool);
-	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+		dsVkResourceList* resourceList =
+			vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+		dsVkResourceList_addCommandPool(resourceList, pool);
+		DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+	}
 }
 
-void dsVkRenderer_deleteRenderPass(dsRenderer* renderer, dsVkRenderPassData* renderPass)
+void dsVkRenderer_deleteRenderPass(
+	dsRenderer* renderer, dsVkRenderPassData* renderPass, bool gpuFinished)
 {
 	if (!renderPass)
 		return;
 
-	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
-	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+	if (gpuFinished)
+		dsVkRenderPassData_destroy(renderPass);
+	else
+	{
+		dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+		DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
 
-	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
-	dsVkResourceList_addRenderPass(resourceList, renderPass);
-	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+		dsVkResourceList* resourceList =
+			vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+		dsVkResourceList_addRenderPass(resourceList, renderPass);
+		DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+	}
 }

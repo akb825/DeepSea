@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -156,7 +156,7 @@ dsRenderbuffer* dsVkRenderbuffer_create(dsResourceManager* resourceManager, dsAl
 
 bool dsVkRenderbuffer_destroy(dsResourceManager* resourceManager, dsRenderbuffer* renderbuffer)
 {
-	dsVkRenderer_deleteRenderbuffer(resourceManager->renderer, renderbuffer);
+	dsVkRenderer_deleteRenderbuffer(resourceManager->renderer, renderbuffer, false);
 	return true;
 }
 

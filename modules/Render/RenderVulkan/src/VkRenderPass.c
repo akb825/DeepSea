@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -234,7 +234,7 @@ bool dsVkRenderPass_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 bool dsVkRenderPass_destroy(dsRenderer* renderer, dsRenderPass* renderPass)
 {
 	dsVkRenderPass* vkRenderPass = (dsVkRenderPass*)renderPass;
-	dsVkRenderer_deleteRenderPass(renderer, vkRenderPass->renderPassData);
+	dsVkRenderer_deleteRenderPass(renderer, vkRenderPass->renderPassData, false);
 	dsSpinlock_shutdown(&vkRenderPass->lock);
 	if (renderPass->allocator)
 		DS_VERIFY(dsAllocator_free(renderPass->allocator, renderPass));
@@ -264,7 +264,7 @@ dsVkRenderPassData* dsVkRenderPass_getData(const dsRenderPass* renderPass)
 			vkRenderPass->scratchAllocator, device, renderPass);
 		if (renderPassData)
 		{
-			dsVkRenderer_deleteRenderPass(renderer, vkRenderPass->renderPassData);
+			dsVkRenderer_deleteRenderPass(renderer, vkRenderPass->renderPassData, false);
 			vkRenderPass->renderPassData = renderPassData;
 		}
 

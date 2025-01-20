@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -139,7 +139,7 @@ bool dsVkFramebuffer_destroy(dsResourceManager* resourceManager, dsFramebuffer* 
 			dsVkRenderPassData_removeFramebuffer(renderPass, framebuffer);
 			dsLifetime_release(framebuffers[i]->renderPassData);
 		}
-		dsVkRenderer_deleteFramebuffer(renderer, framebuffers[i]);
+		dsVkRenderer_deleteFramebuffer(renderer, framebuffers[i], false);
 	}
 	DS_VERIFY(dsAllocator_free(vkFramebuffer->scratchAllocator, framebuffers));
 	DS_ASSERT(!vkFramebuffer->realFramebuffers);
@@ -187,7 +187,7 @@ dsVkRealFramebuffer* dsVkFramebuffer_getRealFramebuffer(dsFramebuffer* framebuff
 				if (realFramebuffer)
 				{
 					dsVkRenderer_deleteFramebuffer(framebuffer->resourceManager->renderer,
-						vkFramebuffer->realFramebuffers[i]);
+						vkFramebuffer->realFramebuffers[i], false);
 					vkFramebuffer->realFramebuffers[i] = realFramebuffer;
 				}
 				else
@@ -235,7 +235,7 @@ void dsVkFramebuffer_removeRenderPass(dsFramebuffer* framebuffer,
 		if (vkFramebuffer->realFramebuffers[i]->renderPassData == renderPass->lifetime)
 		{
 			dsVkRenderer_deleteFramebuffer(framebuffer->resourceManager->renderer,
-				vkFramebuffer->realFramebuffers[i]);
+				vkFramebuffer->realFramebuffers[i], true);
 			vkFramebuffer->realFramebuffers[i] =
 				vkFramebuffer->realFramebuffers[vkFramebuffer->framebufferCount - 1];
 			--vkFramebuffer->framebufferCount;

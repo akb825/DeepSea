@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1329,11 +1329,11 @@ bool dsVkShader_destroy(dsResourceManager* resourceManager, dsShader* shader)
 			instance->allocCallbacksPtr);
 	}
 
-	dsVkRenderer_deleteSamplerList(renderer, vkShader->samplers);
-	dsVkRenderer_deleteComputePipeline(renderer, vkShader->computePipeline);
+	dsVkRenderer_deleteSamplerList(renderer, vkShader->samplers, false);
+	dsVkRenderer_deleteComputePipeline(renderer, vkShader->computePipeline, false);
 
 	for (uint32_t i = 0; i < pipelineCount; ++i)
-		dsVkRenderer_deletePipeline(renderer, pipelines[i]);
+		dsVkRenderer_deletePipeline(renderer, pipelines[i], false);
 	DS_VERIFY(dsAllocator_free(vkShader->scratchAllocator, pipelines));
 
 	dsSpinlock_shutdown(&vkShader->materialLock);
@@ -1422,7 +1422,7 @@ void dsVkShader_removeRenderPass(dsShader* shader, dsVkRenderPassData* renderPas
 	{
 		if (vkShader->pipelines[i]->renderPass == renderPass->lifetime)
 		{
-			dsVkRenderer_deletePipeline(renderer, vkShader->pipelines[i]);
+			dsVkRenderer_deletePipeline(renderer, vkShader->pipelines[i], true);
 			vkShader->pipelines[i] = vkShader->pipelines[vkShader->pipelineCount - 1];
 			--vkShader->pipelineCount;
 		}
@@ -1446,7 +1446,7 @@ dsVkSamplerList* dsVkShader_getSamplerList(dsShader* shader, dsCommandBuffer* co
 		dsVkSamplerList* samplers = vkShader->samplers;
 		if (!samplers || samplers->defaultAnisotropy != renderer->defaultAnisotropy)
 		{
-			dsVkRenderer_deleteSamplerList(renderer, samplers);
+			dsVkRenderer_deleteSamplerList(renderer, samplers, false);
 			samplers = vkShader->samplers = dsVkSamplerList_create(vkShader->scratchAllocator,
 				shader);
 			if (!samplers)

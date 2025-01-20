@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,5 +23,5 @@ void dsVkSharedDescriptorSets_initialize(dsVkSharedDescriptorSets* descriptors,
 	dsRenderer* renderer, dsAllocator* allocator, dsMaterialBinding binding);
 VkDescriptorSet dsVkSharedDescriptorSets_createSet(dsVkSharedDescriptorSets* descriptors,
 	dsCommandBuffer* commandBuffer, dsShader* shader, const dsSharedMaterialValues* sharedValues);
-void dsVkSharedDescriptorSets_clearLastSet(dsVkSharedDescriptorSets* descriptors);
+void dsVkSharedDescriptorSets_clearLastSet(dsVkSharedDescriptorSets* descriptors, bool gpuFinished);
 void dsVkSharedDescriptorSets_shutdown(dsVkSharedDescriptorSets* descriptors);

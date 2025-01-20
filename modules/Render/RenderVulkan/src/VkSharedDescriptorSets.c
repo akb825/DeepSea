@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -374,7 +374,7 @@ VkDescriptorSet dsVkSharedDescriptorSets_createSet(dsVkSharedDescriptorSets* des
 		return descriptors->lastDescriptor->set;
 	}
 
-	dsVkSharedDescriptorSets_clearLastSet(descriptors);
+	dsVkSharedDescriptorSets_clearLastSet(descriptors, true);
 	dsVkMaterialDesc_initializeBindings(materialDesc, &descriptors->bindingMemory,
 		descriptors->binding);
 	descriptors->lastDescriptor = dsVkMaterialDesc_createDescriptor(materialDesc,
@@ -389,7 +389,7 @@ VkDescriptorSet dsVkSharedDescriptorSets_createSet(dsVkSharedDescriptorSets* des
 	return descriptors->lastDescriptor->set;
 }
 
-void dsVkSharedDescriptorSets_clearLastSet(dsVkSharedDescriptorSets* descriptors)
+void dsVkSharedDescriptorSets_clearLastSet(dsVkSharedDescriptorSets* descriptors, bool gpuFinished)
 {
 	if (!descriptors->lastDescriptor)
 		return;
@@ -402,7 +402,10 @@ void dsVkSharedDescriptorSets_clearLastSet(dsVkSharedDescriptorSets* descriptors
 		dsLifetime_release(descriptors->lastMaterialDesc);
 	}
 	else
-		dsVkRenderer_deleteMaterialDescriptor(descriptors->renderer, descriptors->lastDescriptor);
+	{
+		dsVkRenderer_deleteMaterialDescriptor(
+			descriptors->renderer, descriptors->lastDescriptor, gpuFinished);
+	}
 
 	dsLifetime_freeRef(descriptors->lastMaterialDesc);
 	descriptors->lastMaterialDesc = NULL;
@@ -411,7 +414,7 @@ void dsVkSharedDescriptorSets_clearLastSet(dsVkSharedDescriptorSets* descriptors
 
 void dsVkSharedDescriptorSets_shutdown(dsVkSharedDescriptorSets* descriptors)
 {
-	dsVkSharedDescriptorSets_clearLastSet(descriptors);
+	dsVkSharedDescriptorSets_clearLastSet(descriptors, true);
 	dsVkBindingMemory* bindings = &descriptors->bindingMemory;
 	DS_VERIFY(dsAllocator_free(descriptors->allocator, bindings->bindings));
 	DS_VERIFY(dsAllocator_free(descriptors->allocator, bindings->imageInfos));

@@ -21,7 +21,6 @@
 #include <DeepSea/Core/Atomic.h>
 #else
 #include <pthread.h>
-#include <string.h>
 #endif
 
 bool dsSpinlock_initialize(dsSpinlock* spinlock)
