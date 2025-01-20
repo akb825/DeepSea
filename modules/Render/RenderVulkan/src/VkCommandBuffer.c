@@ -1093,7 +1093,7 @@ void dsVkCommandBuffer_submittedRenderSurfaces(dsCommandBuffer* commandBuffer,
 		DS_ATOMIC_FETCH_ADD32(&surface->resource.commandBufferCount, -1);
 		DS_VERIFY(dsSpinlock_lock(&surface->resource.lock));
 		surface->resource.lastUsedSubmit = submitCount;
-		surface->imageData[surface->imageIndex].lastUsedSubmit = submitCount;
+		surface->imageData[surface->imageDataIndex].lastUsedSubmit = submitCount;
 		DS_VERIFY(dsSpinlock_unlock(&surface->resource.lock));
 	}
 	vkCommandBuffer->renderSurfaceCount = 0;
