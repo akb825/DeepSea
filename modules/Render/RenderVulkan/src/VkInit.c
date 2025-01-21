@@ -56,11 +56,55 @@
 	} \
 	while (false)
 
+#define DS_LOAD_VK_INSTANCE_EXT_FUNCTION(instance, function, version, postfix) \
+	do \
+	{ \
+		if ((instance)->instanceVersion < version) \
+		{ \
+			(instance)->function = (PFN_ ## function)(instance)->vkGetInstanceProcAddr( \
+				(instance)->instance, #function postfix); \
+		} \
+		else \
+		{ \
+			(instance)->function = (PFN_ ## function)(instance)->vkGetInstanceProcAddr( \
+				(instance)->instance, #function); \
+		} \
+		if (!(instance)->function) \
+		{ \
+			DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Couldn't load " #function); \
+			errno = EPERM; \
+			return false; \
+		} \
+	} \
+	while (false)
+
 #define DS_LOAD_VK_DEVICE_FUNCTION(device, function) \
 	do \
 	{ \
 		(device)->function = (PFN_ ## function)(device)->instance.vkGetDeviceProcAddr( \
 			(device)->device,  #function); \
+		if (!(device)->function) \
+		{ \
+			DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Couldn't load " #function); \
+			errno = EPERM; \
+			return false; \
+		} \
+	} \
+	while (false)
+
+#define DS_LOAD_VK_DEVICE_EXT_FUNCTION(device, function, version, postfix) \
+	do \
+	{ \
+		if ((device)->properties.apiVersion < version) \
+		{ \
+			(device)->function = (PFN_ ## function)(device)->instance.vkGetDeviceProcAddr( \
+				(device)->device,  #function postfix); \
+		} \
+		else \
+		{ \
+			(device)->function = (PFN_ ## function)(device)->instance.vkGetDeviceProcAddr( \
+				(device)->device,  #function); \
+		} \
 		if (!(device)->function) \
 		{ \
 			DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Couldn't load " #function); \
@@ -82,6 +126,12 @@
 
 #define DS_MAX_DEVICES 16
 #define DS_MAX_QUEUE_FAMILIES 8
+
+#define DS_DEVICE_INFO_CORE_VERSION VK_API_VERSION_1_1
+#define DS_MAINTENANCE1_CORE_VERSION VK_API_VERSION_1_1
+#define DS_CREATE_RENDERPASS2_CORE_VERSION VK_API_VERSION_1_1
+#define DS_DEPTH_STENCIL_RESOVE_CORE_VERSION VK_API_VERSION_1_2
+#define DS_DEDICATED_ALLOCATION_CORE_VERSION VK_API_VERSION_1_1
 
 _Static_assert(DS_DEVICE_UUID_SIZE == VK_UUID_SIZE, "Unexpected UUID size.");
 
@@ -414,7 +464,7 @@ static void addLayers(const char** layerNames, uint32_t* layerCount, bool useVal
 }
 
 static void addInstanceExtensions(const char** extensionNames, uint32_t* extensionCount,
-	const dsRendererOptions* options)
+	const dsRendererOptions* options, uint32_t instanceVersion)
 {
 	DS_ADD_EXTENSION(extensionNames, *extensionCount, surfaceExtensionName);
 	if (instanceExtensions.xlib)
@@ -425,7 +475,7 @@ static void addInstanceExtensions(const char** extensionNames, uint32_t* extensi
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, win32DisplayExtensionName);
 	if (instanceExtensions.android)
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, androidDisplayExtensionName);
-	if (instanceExtensions.deviceInfo)
+	if (instanceExtensions.deviceInfo && instanceVersion < DS_DEVICE_INFO_CORE_VERSION)
 	{
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, physicalDeviceProperties2ExtensionName);
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, externalMemoryCapabilitiesExtensionName);
@@ -484,22 +534,28 @@ static void addDeviceExtensions(dsVkDevice* device,
 	dsAllocator* allocator, DeviceExtensions* extensions, const char** extensionNames,
 	uint32_t* extensionCount, bool useMarkers)
 {
+	uint32_t apiVersion = device->properties.apiVersion;
 	findDeviceExtensions(extensions, device, allocator);
 	DS_ADD_EXTENSION(extensionNames, *extensionCount, swapChainExtensionName);
 	if (useMarkers && extensions->maintenance1)
 	{
 		device->hasMaintenance1 = true;
-		DS_ADD_EXTENSION(extensionNames, *extensionCount, maintenance1ExtensionName);
+		if (apiVersion < DS_MAINTENANCE1_CORE_VERSION)
+			DS_ADD_EXTENSION(extensionNames, *extensionCount, maintenance1ExtensionName);
 	}
 	if (useMarkers && !instanceExtensions.debug && extensions->oldDebugMarker)
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, oldDebugMarkerExtensionName);
 	if (extensions->depthStencilResolve)
 	{
 		device->hasDepthStencilResolve = true;
-		DS_ADD_EXTENSION(extensionNames, *extensionCount, maintenance2ExtensionName);
-		DS_ADD_EXTENSION(extensionNames, *extensionCount, multiviewExtensionName);
-		DS_ADD_EXTENSION(extensionNames, *extensionCount, createRenderPass2ExtensionName);
-		DS_ADD_EXTENSION(extensionNames, *extensionCount, depthStencilResolveExtensionName);
+		if (apiVersion < DS_CREATE_RENDERPASS2_CORE_VERSION)
+		{
+			DS_ADD_EXTENSION(extensionNames, *extensionCount, maintenance2ExtensionName);
+			DS_ADD_EXTENSION(extensionNames, *extensionCount, multiviewExtensionName);
+			DS_ADD_EXTENSION(extensionNames, *extensionCount, createRenderPass2ExtensionName);
+		}
+		if (apiVersion < DS_DEPTH_STENCIL_RESOVE_CORE_VERSION)
+			DS_ADD_EXTENSION(extensionNames, *extensionCount, depthStencilResolveExtensionName);
 	}
 	if (extensions->pvrtc)
 	{
@@ -509,8 +565,11 @@ static void addDeviceExtensions(dsVkDevice* device,
 	if (extensions->dedicatedAllocation)
 	{
 		device->hasDedicatedAllocation = true;
-		DS_ADD_EXTENSION(extensionNames, *extensionCount, getMemoryRequirements2ExtensionName);
-		DS_ADD_EXTENSION(extensionNames, *extensionCount, dedicatedAllocationExtensionName);
+		if (apiVersion < DS_DEDICATED_ALLOCATION_CORE_VERSION)
+		{
+			DS_ADD_EXTENSION(extensionNames, *extensionCount, getMemoryRequirements2ExtensionName);
+			DS_ADD_EXTENSION(extensionNames, *extensionCount, dedicatedAllocationExtensionName);
+		}
 	}
 }
 
@@ -579,7 +638,7 @@ static VkPhysicalDevice findPhysicalDevice(dsVkInstance* instance,
 			VkPhysicalDeviceProperties2KHR properties2;
 			properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
 			properties2.pNext = &deviceID;
-			DS_VK_CALL(instance->vkGetPhysicalDeviceProperties2KHR)(devices[i], &properties2);
+			DS_VK_CALL(instance->vkGetPhysicalDeviceProperties2)(devices[i], &properties2);
 
 			if (memcmp(deviceID.deviceUUID, extraDeviceInfo[defaultPhysicalDevice].uuid,
 					DS_DEVICE_UUID_SIZE) == 0)
@@ -721,7 +780,28 @@ bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options
 
 	const char* enabledExtensions[DS_MAX_ENABLED_EXTENSIONS];
 	uint32_t enabledExtensionCount = 0;
-	addInstanceExtensions(enabledExtensions, &enabledExtensionCount, options);
+
+	PFN_vkEnumerateInstanceVersion vkEnumerateInstanceVersion =
+		(PFN_vkEnumerateInstanceVersion)instance->vkGetInstanceProcAddr(
+			NULL, "vkEnumerateInstanceVersion");
+	uint32_t instanceVersion = VK_API_VERSION_1_0;
+	bool force10 = true;
+	if (vkEnumerateInstanceVersion)
+	{
+		if (vkEnumerateInstanceVersion(&instanceVersion) != VK_SUCCESS)
+		{
+			DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Couldn't get Vulkan instance version.");
+			errno = EPERM;
+			return false;
+		}
+
+		force10 = false;
+	}
+
+	addInstanceExtensions(enabledExtensions, &enabledExtensionCount, options, instanceVersion);
+
+	// Request the highest version we know of.
+	uint32_t version = force10 ? VK_API_VERSION_1_0 : DS_HIGHEST_KNOWN_VULKAN_VERSOIN;
 
 	VkApplicationInfo applicationInfo =
 	{
@@ -731,7 +811,7 @@ bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options
 		options ? options->applicationVersion : 0,
 		"DeepSea",
 		DS_VERSION,
-		VK_API_VERSION_1_0
+		version
 	};
 
 	VkInstanceCreateInfo createInfo =
@@ -767,6 +847,7 @@ bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options
 	else if (result != VK_SUCCESS)
 		return false;
 
+	instance->instanceVersion = instanceVersion;
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkDestroyInstance);
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceQueueFamilyProperties);
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkEnumeratePhysicalDevices);
@@ -774,7 +855,10 @@ bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceQueueFamilyProperties);
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceProperties);
 	if (instanceExtensions.deviceInfo)
-		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceProperties2KHR);
+	{
+		DS_LOAD_VK_INSTANCE_EXT_FUNCTION(instance, vkGetPhysicalDeviceProperties2,
+			DS_DEVICE_INFO_CORE_VERSION, "KHR");
+	}
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceFeatures);
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceFormatProperties);
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCreateDevice);
@@ -920,7 +1004,7 @@ bool dsGatherVkPhysicalDevices(dsVkInstance* instance)
 			VkPhysicalDeviceProperties2KHR properties2;
 			properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
 			properties2.pNext = &deviceID;
-			DS_VK_CALL(instance->vkGetPhysicalDeviceProperties2KHR)(devices[i], &properties2);
+			DS_VK_CALL(instance->vkGetPhysicalDeviceProperties2)(devices[i], &properties2);
 			memcpy(extraDeviceInfo[i].uuid, deviceID.deviceUUID, DS_DEVICE_UUID_SIZE);
 		}
 
@@ -1130,7 +1214,10 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateRenderPass);
 	if (device->hasDepthStencilResolve)
-		DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateRenderPass2KHR);
+	{
+		DS_LOAD_VK_DEVICE_EXT_FUNCTION(device, vkCreateRenderPass2,
+			DS_CREATE_RENDERPASS2_CORE_VERSION, "KHR");
+	}
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyRenderPass);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdBeginRenderPass);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdNextSubpass);
@@ -1201,8 +1288,10 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 
 	if (extensions.dedicatedAllocation)
 	{
-		DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetBufferMemoryRequirements2KHR);
-		DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetImageMemoryRequirements2KHR);
+		DS_LOAD_VK_DEVICE_EXT_FUNCTION(device, vkGetBufferMemoryRequirements2,
+			DS_DEDICATED_ALLOCATION_CORE_VERSION, "KHR");
+		DS_LOAD_VK_DEVICE_EXT_FUNCTION(device, vkGetImageMemoryRequirements2,
+			DS_DEDICATED_ALLOCATION_CORE_VERSION, "KHR");
 	}
 
 	DS_VK_CALL(device->vkGetDeviceQueue)(device->device, device->queueFamilyIndex, 0,

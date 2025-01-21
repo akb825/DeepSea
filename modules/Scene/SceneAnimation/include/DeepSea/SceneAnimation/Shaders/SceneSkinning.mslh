@@ -37,7 +37,7 @@
  */
 #define DS_BONE_INDICES_TYPE uvec4
 
-buffer SkinningData
+readonly buffer SkinningData
 {
 	mat4[] matrices;
 } dsSkinningData;

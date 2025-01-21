@@ -171,7 +171,7 @@ void dsVkGetBufferMemoryRequirements(const dsVkDevice* device, VkBuffer buffer,
 			&dedicatedRequirements
 		};
 
-		DS_VK_CALL(device->vkGetBufferMemoryRequirements2KHR)(device->device, &requirementsInfo,
+		DS_VK_CALL(device->vkGetBufferMemoryRequirements2)(device->device, &requirementsInfo,
 			&memoryRequirements);
 		if (dedicatedRequirements.prefersDedicatedAllocation)
 			*dedicatedBuffer = buffer;
@@ -212,7 +212,7 @@ void dsVkGetImageMemoryRequirements(const dsVkDevice* device, VkImage image,
 			&dedicatedRequirements
 		};
 
-		DS_VK_CALL(device->vkGetImageMemoryRequirements2KHR)(device->device, &requirementsInfo,
+		DS_VK_CALL(device->vkGetImageMemoryRequirements2)(device->device, &requirementsInfo,
 			&memoryRequirements);
 		if (dedicatedRequirements.prefersDedicatedAllocation)
 			*dedicatedImage = image;

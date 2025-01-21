@@ -19,6 +19,8 @@
 #include <DeepSea/Core/Config.h>
 #include "VkTypes.h"
 
+#define DS_HIGHEST_KNOWN_VULKAN_VERSOIN VK_API_VERSION_1_4
+
 bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options,
 	bool handleErrors);
 void dsDestroyVkInstance(dsVkInstance* instance);

@@ -2056,7 +2056,14 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->driverVersion = deviceProperties->driverVersion;
 	// NOTE: Vulkan version encoding happens to be the same as DeepSea. (unintentional, but
 	// convenient)
-	baseRenderer->shaderVersion = deviceProperties->apiVersion;
+	if (deviceProperties->apiVersion >= DS_ENCODE_VERSION(1, 3, 0))
+		baseRenderer->shaderVersion = DS_ENCODE_VERSION(1, 6, 0);
+	else if (deviceProperties->apiVersion >= DS_ENCODE_VERSION(1, 2, 0))
+		baseRenderer->shaderVersion = DS_ENCODE_VERSION(1, 5, 0);
+	else if (deviceProperties->apiVersion >= DS_ENCODE_VERSION(1, 1, 0))
+		baseRenderer->shaderVersion = DS_ENCODE_VERSION(1, 3, 0);
+	else
+		baseRenderer->shaderVersion = DS_ENCODE_VERSION(1, 0, 0);
 
 	if (baseRenderer->deviceName)
 		DS_LOG_DEBUG_F(DS_RENDER_VULKAN_LOG_TAG, "Using device: %s", baseRenderer->deviceName);

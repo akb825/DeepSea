@@ -53,7 +53,7 @@ typedef struct dsVkInstance
 	PFN_vkEnumerateDeviceExtensionProperties vkEnumerateDeviceExtensionProperties;
 	PFN_vkGetPhysicalDeviceQueueFamilyProperties vkGetPhysicalDeviceQueueFamilyProperties;
 	PFN_vkGetPhysicalDeviceProperties vkGetPhysicalDeviceProperties;
-	PFN_vkGetPhysicalDeviceProperties2KHR vkGetPhysicalDeviceProperties2KHR;
+	PFN_vkGetPhysicalDeviceProperties2KHR vkGetPhysicalDeviceProperties2;
 	PFN_vkGetPhysicalDeviceFeatures vkGetPhysicalDeviceFeatures;
 	PFN_vkGetPhysicalDeviceFormatProperties vkGetPhysicalDeviceFormatProperties;
 	PFN_vkCreateDevice vkCreateDevice;
@@ -83,6 +83,7 @@ typedef struct dsVkInstance
 	VkAllocationCallbacks allocCallbacks;
 	const VkAllocationCallbacks* allocCallbacksPtr;
 	VkInstance instance;
+	uint32_t instanceVersion;
 } dsVkInstance;
 
 typedef struct dsVkDevice
@@ -153,7 +154,7 @@ typedef struct dsVkDevice
 	PFN_vkDestroyFramebuffer vkDestroyFramebuffer;
 
 	PFN_vkCreateRenderPass vkCreateRenderPass;
-	PFN_vkCreateRenderPass2KHR vkCreateRenderPass2KHR;
+	PFN_vkCreateRenderPass2KHR vkCreateRenderPass2;
 	PFN_vkDestroyRenderPass vkDestroyRenderPass;
 	PFN_vkCmdBeginRenderPass vkCmdBeginRenderPass;
 	PFN_vkCmdNextSubpass vkCmdNextSubpass;
@@ -219,8 +220,8 @@ typedef struct dsVkDevice
 	PFN_vkCmdDebugMarkerBeginEXT vkCmdDebugMarkerBeginEXT;
 	PFN_vkCmdDebugMarkerEndEXT vkCmdDebugMarkerEndEXT;
 
-	PFN_vkGetBufferMemoryRequirements2KHR vkGetBufferMemoryRequirements2KHR;
-	PFN_vkGetImageMemoryRequirements2KHR vkGetImageMemoryRequirements2KHR;
+	PFN_vkGetBufferMemoryRequirements2KHR vkGetBufferMemoryRequirements2;
+	PFN_vkGetImageMemoryRequirements2KHR vkGetImageMemoryRequirements2;
 
 	VkPhysicalDevice physicalDevice;
 	VkDevice device;

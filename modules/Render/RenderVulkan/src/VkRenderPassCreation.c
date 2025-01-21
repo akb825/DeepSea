@@ -861,7 +861,7 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 		0, NULL
 	};
 
-	VkResult result = DS_VK_CALL(device->vkCreateRenderPass2KHR)(device->device, &createInfo,
+	VkResult result = DS_VK_CALL(device->vkCreateRenderPass2)(device->device, &createInfo,
 		instance->allocCallbacksPtr, &renderPassData->vkRenderPass);
 	return DS_HANDLE_VK_RESULT(result, "Couldn't create render pass");
 }
@@ -900,7 +900,7 @@ bool dsVkAttachmentHasResolve(const dsRenderSubpassInfo* subpasses, uint32_t sub
 bool dsCreateUnderlyingVkRenderPass(dsVkRenderPassData* renderPassData,
 	uint32_t resolveAttachmentCount)
 {
-	if (renderPassData->device->vkCreateRenderPass2KHR)
+	if (renderPassData->device->vkCreateRenderPass2)
 		return createRenderPass(renderPassData, resolveAttachmentCount);
 	return createLegacyRenderPass(renderPassData, resolveAttachmentCount);
 }
