@@ -76,21 +76,16 @@ DS_CORE_EXPORT bool dsFileArchive_closeDirectory(
 
 /**
  * @brief Opens a file within an archive.
+ *
+ * The stream will typically be dynamically allocated, and will be freed once dsStream_close() is
+ * called.
+ *
  * @remark errno will be set on failure.
  * @param archive The archive to open the file with.
  * @param path The path to the file to open.
  * @return The opened stream or NULL if the file couldn't be opened.
  */
 DS_CORE_EXPORT dsStream* dsFileArchive_openFile(const dsFileArchive* archive, const char* path);
-
-/**
- * @brief Closes a file within an archive.
- * @remark errno will be set on failure.
- * @param archive The archive the file was opened with.
- * @param stream The stream for the file that was oepend.
- * @return False if the file couldn't be closed.
- */
-DS_CORE_EXPORT bool dsFileArchive_closeFile(const dsFileArchive* archive, dsStream* stream);
 
 #ifdef __cplusplus
 }

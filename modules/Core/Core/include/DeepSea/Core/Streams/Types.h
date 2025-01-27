@@ -408,14 +408,6 @@ typedef bool (*dsCloseFileArchiveDirectoryFunction)(
 typedef dsStream* (*dsOpenFileArchiveFileFunction)(const dsFileArchive* archive, const char* path);
 
 /**
- * @brief Function to close a file on an archive.
- * @param archive The archive to close the file from.
- * @param stream The stream previously opened.
- * @return False if the file couldn't be closed.
- */
-typedef bool (*dsCloseFileArchiveFileFunction)(const dsFileArchive* archive, dsStream* stream);
-
-/**
  * @brief Struct describing an archive of files.
  *
  * Archives are read-only, and intended to group multiple files and directories into a single unit,
@@ -454,12 +446,9 @@ struct dsFileArchive
 	 * @brief Function to open a file within the archive.
 	 */
 	dsOpenFileArchiveFileFunction openFileFunc;
-
-	/**
-	 * @brief Function to close a file within the archive.
-	 */
-	dsCloseFileArchiveFileFunction closeFileFunc;
 };
+
+#if DS_ZIP_ARCHIVE_ENABLED
 
 /**
  * @brief Struct describing a zip archive.
@@ -469,6 +458,8 @@ struct dsFileArchive
  * @see ZipArchive.h
  */
 typedef struct dsZipArchive dsZipArchive;
+
+#endif
 
 #ifdef __cplusplus
 }

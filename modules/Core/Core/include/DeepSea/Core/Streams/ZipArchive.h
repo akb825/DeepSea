@@ -20,6 +20,8 @@
 #include <DeepSea/Core/Export.h>
 #include <DeepSea/Core/Streams/Types.h>
 
+#if DS_ZIP_ARCHIVE_ENABLED
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -34,6 +36,11 @@ extern "C"
  *
  * @see dsZipArchive
  */
+
+/**
+ * @brief Define for the minimum buffer size for .zip decompression.
+ */
+#define DS_MIN_ZIP_DECOMPRESS_BUFFER_SIZE 512
 
 /**
  * @brief Opens a zip archive from a file path.
@@ -107,21 +114,15 @@ DS_CORE_EXPORT bool dsZipArchive_closeDirectory(
 
 /**
  * @brief Opens a file within an archive.
+ *
+ * The stream will be dynamically allocated, and will be freed once dsStream_close() is called.
+ *
  * @remark errno will be set on failure.
  * @param archive The archive to open the file with.
  * @param path The path to the file to open.
  * @return The opened stream or NULL if the file couldn't be opened.
  */
 DS_CORE_EXPORT dsStream* dsZipArchive_openFile(const dsZipArchive* archive, const char* path);
-
-/**
- * @brief Closes a file within an archive.
- * @remark errno will be set on failure.
- * @param archive The archive the file was opened with.
- * @param stream The stream for the file that was oepend.
- * @return False if the file couldn't be closed.
- */
-DS_CORE_EXPORT bool dsZipArchive_closeFile(const dsZipArchive* archive, dsStream* stream);
 
 /**
  * @brief Closes a zip archive.
@@ -134,4 +135,6 @@ DS_CORE_EXPORT void dsZipArchive_close(dsZipArchive* archive);
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

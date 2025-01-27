@@ -1,4 +1,4 @@
-# Copyright 2017-2024 Aaron Barany
+# Copyright 2017-2025 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -164,10 +164,16 @@ endmacro()
 
 macro(ds_finish_modules)
 	if (DEEPSEA_SINGLE_SHARED)
+		get_property(findPackages GLOBAL PROPERTY DEEPSEA_FIND_PACKAGES)
 		get_property(sources GLOBAL PROPERTY DEEPSEA_SOURCES)
 		get_property(externalSources GLOBAL PROPERTY DEEPSEA_EXTERNAL_SOURCES)
 		get_property(modules GLOBAL PROPERTY DEEPSEA_MODULES)
 		get_property(externalLibraries GLOBAL PROPERTY DEEPSEA_EXTERNAL_LIBRARIES)
+
+		foreach (findPackage ${findPackages})
+			get_property(findPackageArgs GLOBAL PROPERTY ${findPackage})
+			find_package(${findPackageArgs})
+		endforeach()
 
 		if (externalSources)
 			if (MSVC)
@@ -190,6 +196,15 @@ macro(ds_finish_modules)
 		target_sources(deepsea PRIVATE ${sources} ${externalSources})
 		target_link_libraries(deepsea ${externalLibraries})
 		ds_set_folder(deepsea modules)
+	endif()
+endmacro()
+
+macro(ds_find_package target)
+	find_package(${target} ${ARGN})
+
+	if (DEEPSEA_SINGLE_SHARED)
+		set_property(GLOBAL PROPERTY DEEPSEA_FIND_${target} ${target} ${ARGN})
+		set_property(GLOBAL PROPERTY DEEPSEA_FIND_PACKAGES DEEPSEA_FIND_${target})
 	endif()
 endmacro()
 

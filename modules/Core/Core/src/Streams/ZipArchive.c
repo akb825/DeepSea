@@ -16,6 +16,8 @@
 
 #include <DeepSea/Core/Streams/ZipArchive.h>
 
+#if DS_ZIP_ARCHIVE_ENABLED
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Streams/Endian.h>
@@ -27,6 +29,7 @@
 #include <DeepSea/Core/Sort.h>
 
 #include <string.h>
+#include <zlib-ng.h>
 
 #define DS_READ_BUFFER_SIZE 4096
 // 1 MB
@@ -120,7 +123,7 @@ typedef struct FileEntry
 	uint64_t offset;
 	uint64_t compressed : 1;
 	uint64_t compressedSize : 63;
-	uint64_t unompressedSize;
+	uint64_t uncompressedSize;
 } FileEntry;
 
 typedef struct dsDirectoryIteratorInfo
@@ -130,6 +133,34 @@ typedef struct dsDirectoryIteratorInfo
 	const FileEntry* curEntry;
 	const FileEntry* endEntry;
 } dsDirectoryIteratorInfo;
+
+typedef struct dsCompressedZipStream
+{
+	dsStream stream;
+
+	dsStream* baseStream;
+	dsAllocator* allocator;
+	const FileEntry* entry;
+
+	void* compressedBuffer;
+	void* uncompressedBuffer;
+	size_t compressedBufferSize;
+	size_t uncompressedBufferSize;
+	// Positions relative to the start of the entry, not the start of the .zip file.
+	uint64_t compressedPosition;
+	uint64_t uncompressedPosition;
+	zng_stream decompress;
+} dsCompressedZipStream;
+
+typedef struct dsUncompressedZipStream
+{
+	dsStream stream;
+
+	dsStream* baseStream;
+	dsAllocator* allocator;
+	const FileEntry* entry;
+	uint64_t position;
+} dsUncompressedZipStream;
 
 struct dsZipArchive
 {
@@ -458,7 +489,7 @@ static bool readFileEntries(dsBufferAllocator* allocator, dsStream* stream, cons
 		fileName[header.fileNameLength] = 0;
 
 		entry->fileName = fileName;
-		entry->compressed = header.compressedSize != CompressionMethod_None;
+		entry->compressed = header.compressionMethod != CompressionMethod_None;
 
 		// Read extended zip64 info if needed.
 		size_t skipSize = header.fileCommentLength;
@@ -467,7 +498,7 @@ static bool readFileEntries(dsBufferAllocator* allocator, dsStream* stream, cons
 			// Don't need to get any further info for directory entries.
 			skipSize += header.extraFieldLength;
 			entry->compressedSize = 0;
-			entry->unompressedSize = 0;
+			entry->uncompressedSize = 0;
 			entry->offset = DS_STREAM_INVALID_POS;
 		}
 		else
@@ -485,7 +516,8 @@ static bool readFileEntries(dsBufferAllocator* allocator, dsStream* stream, cons
 					if (!readUInt16(&extraSignature, stream) || !readUInt16(&extraSize, stream) ||
 						readExtraBytes + extraSize > header.extraFieldLength)
 					{
-						DS_LOG_ERROR_F(DS_CORE_LOG_TAG, "File '%s' is not a valid .zip file.", path);
+						DS_LOG_ERROR_F(
+							DS_CORE_LOG_TAG, "File '%s' is not a valid .zip file.", path);
 						errno = EFORMAT;
 						return false;
 					}
@@ -536,7 +568,7 @@ static bool readFileEntries(dsBufferAllocator* allocator, dsStream* stream, cons
 #pragma GCC diagnostic ignored "-Wconversion"
 #endif
 						entry->compressedSize = compressedSize;
-						entry->unompressedSize = uncompressedSize;
+						entry->uncompressedSize = uncompressedSize;
 						entry->offset = localHeaderOffset;
 #if DS_GCC || DS_CLANG
 #pragma GCC diagnostic pop
@@ -562,7 +594,7 @@ static bool readFileEntries(dsBufferAllocator* allocator, dsStream* stream, cons
 			if (!hasZip64)
 			{
 				entry->compressedSize = header.compressedSize;
-				entry->unompressedSize = header.uncompressedSize;
+				entry->uncompressedSize = header.uncompressedSize;
 				entry->offset = header.localHeaderOffset;
 			}
 		}
@@ -663,8 +695,7 @@ static dsZipArchive* openZipImpl(dsAllocator* allocator, dsFileResourceType type
 	DS_ASSERT(archive->entries);
 
 	archive->entryCount = entryCount;
-	archive->decompressBufferSize = decompressBufferSize > 0 ?
-		decompressBufferSize : DS_DEFAULT_DECOMPRESS_BUFFER_SIZE;
+	archive->decompressBufferSize = decompressBufferSize;
 
 	if (!readFileEntries(&bufferAlloc, stream, path, firstDirRecordOffset, archive->entries,
 			archive->entryCount))
@@ -681,7 +712,6 @@ static dsZipArchive* openZipImpl(dsAllocator* allocator, dsFileResourceType type
 	baseArchive->closeDirectoryFunc =
 		(dsCloseFileArchiveDirectoryFunction)&dsZipArchive_closeDirectory;
 	baseArchive->openFileFunc = (dsOpenFileArchiveFileFunction)&dsZipArchive_openFile;
-	baseArchive->closeFileFunc = (dsCloseFileArchiveFileFunction)&dsZipArchive_closeFile;
 
 	// Sort entries for binary sort.
 	qsort(archive->entries, archive->entryCount, sizeof(FileEntry), &compareEntries);
@@ -697,13 +727,13 @@ static int comparePathPrefixWithEntry(const void* left, const void* right, void*
 	return strncmp(path, entry->fileName, length);
 }
 
-/*static int comparePathWithEntry(const void* left, const void* right, void* context)
+static int comparePathWithEntry(const void* left, const void* right, void* context)
 {
 	DS_UNUSED(context);
 	const char* path = (const char*)left;
 	const FileEntry* entry = (const FileEntry*)right;
 	return strcmp(path, entry->fileName);
-}*/
+}
 
 #if DS_NEEDS_PATH_SEPARATOR_FIXUP
 static const char* fixupPathSeparators(
@@ -751,6 +781,220 @@ static const char* removeLeadingDotDir(const char* path, size_t* pathLen)
 	return path;
 }
 
+static void* zlibAllocFunc(void* opaque, unsigned int items, unsigned int size)
+{
+	dsAllocator* allocator = (dsAllocator*)opaque;
+	return dsAllocator_alloc(allocator, items*size);
+}
+
+static void zlibFreeFunc(void* opaque, void* address)
+{
+	dsAllocator* allocator = (dsAllocator*)opaque;
+	DS_VERIFY(dsAllocator_free(allocator, address));
+}
+
+static size_t dsCompressedZipStream_read(dsStream* stream, void* data, size_t size)
+{
+	DS_ASSERT(stream);
+	dsCompressedZipStream* zipStream = (dsCompressedZipStream*)stream;
+	const FileEntry* entry = zipStream->entry;
+	zng_stream* decompress = &zipStream->decompress;
+	uint8_t* dataBytes = (uint8_t*)data;
+	bool compressEnd = false;
+	size_t readSize = 0;
+	while (readSize < size && zipStream->uncompressedPosition < entry->uncompressedSize)
+	{
+		if (decompress->avail_out == 0)
+		{
+			// No more data to decompress.
+			if (compressEnd)
+				break;
+
+			if (decompress->avail_in == 0)
+			{
+				uint64_t remainingSize = entry->compressedSize - zipStream->compressedPosition;
+				size_t compressedReadSize = zipStream->compressedBufferSize;
+				if (remainingSize < compressedReadSize)
+					compressedReadSize = (size_t)remainingSize;
+				// OK if no compressed data left, may still have some left in the zlib buffer.
+				if (compressedReadSize > 0)
+				{
+					compressedReadSize = dsStream_read(
+						zipStream->baseStream, zipStream->compressedBuffer, compressedReadSize);
+				}
+
+				zipStream->compressedPosition += compressedReadSize;
+				decompress->next_in = (uint8_t*)zipStream->compressedBuffer;
+				decompress->avail_in = (uint32_t)compressedReadSize;;
+			}
+
+			decompress->next_out = (uint8_t*)zipStream->uncompressedBuffer;
+			decompress->avail_out = (uint32_t)zipStream->uncompressedBufferSize;
+			int32_t result = zng_inflate(decompress, Z_SYNC_FLUSH);
+			switch (result)
+			{
+				case Z_OK:
+					break;
+				case Z_STREAM_END:
+					compressEnd = true;
+					break;
+				case Z_BUF_ERROR:
+					if (decompress->avail_out == 0)
+					{
+						// Continue to provide more data to make progress.
+						continue;
+					}
+					// May have been an incomplete stream.
+					errno = EFORMAT;
+					return readSize;
+				case Z_MEM_ERROR:
+					errno = ENOMEM;
+					return readSize;
+				default:
+					errno = EFORMAT;
+					return readSize;
+			}
+
+			// Adjust next_out and avail_out to be based on what we can read.
+			size_t availableBuffer = decompress->next_out - (uint8_t*)zipStream->uncompressedBuffer;
+			decompress->next_out = (uint8_t*)zipStream->uncompressedBuffer;
+			decompress->avail_out = (uint32_t)availableBuffer;
+			// Break out if no more data for some reason to avoid infinite loop.
+			if (decompress->avail_out == 0)
+				break;
+		}
+
+		size_t remainingSize = size - readSize;
+		size_t copySize = decompress->avail_out;
+		if (copySize > remainingSize)
+			copySize = remainingSize;
+		memcpy(dataBytes, decompress->next_out, copySize);
+
+		// Update buffers, sizes, and positions for the amount we copied.
+		decompress->next_out += copySize;
+		decompress->avail_out -= (uint32_t)copySize;
+		dataBytes += copySize;
+		readSize += copySize;
+		zipStream->uncompressedPosition += copySize;
+	}
+
+	return readSize;
+}
+
+static uint64_t dsCompressedZipStream_tell(dsStream* stream)
+{
+	DS_ASSERT(stream);
+	dsCompressedZipStream* zipStream = (dsCompressedZipStream*)stream;
+	return zipStream->uncompressedPosition;
+}
+
+static uint64_t dsCompressedZipStream_remainingBytes(dsStream* stream)
+{
+	DS_ASSERT(stream);
+	dsCompressedZipStream* zipStream = (dsCompressedZipStream*)stream;
+	return zipStream->entry->uncompressedSize - zipStream->uncompressedPosition;
+}
+
+static bool dsCompressedZipStream_restart(dsStream* stream)
+{
+	DS_ASSERT(stream);
+	dsCompressedZipStream* zipStream = (dsCompressedZipStream*)stream;
+	if (!dsStream_seek(zipStream->baseStream, zipStream->entry->offset, dsStreamSeekWay_Beginning))
+		return false;
+
+	zipStream->uncompressedPosition = 0;
+	zipStream->compressedPosition = 0;
+	zng_inflateReset(&zipStream->decompress);
+	zipStream->decompress.avail_in = 0;
+	zipStream->decompress.avail_out = 0;
+	return true;
+}
+
+static bool dsCompressedZipStream_close(dsStream* stream)
+{
+	DS_ASSERT(stream);
+	dsCompressedZipStream* zipStream = (dsCompressedZipStream*)stream;
+	zng_inflateEnd(&zipStream->decompress);
+	DS_VERIFY(dsStream_close(zipStream->baseStream));
+	return dsAllocator_free(zipStream->allocator, stream);
+}
+
+static size_t dsUncompressedZipStream_read(dsStream* stream, void* data, size_t size)
+{
+	DS_ASSERT(stream);
+	dsUncompressedZipStream* zipStream = (dsUncompressedZipStream*)stream;
+	const FileEntry* entry = zipStream->entry;
+	uint64_t remainingSize = entry->uncompressedSize - zipStream->position;
+	if (size > remainingSize)
+		size = (size_t)remainingSize;
+	size_t readSize = dsStream_read(zipStream->baseStream, data, size);
+	zipStream->position += readSize;
+	return readSize;
+}
+
+static bool dsUncompressedZipStream_seek(dsStream* stream, int64_t offset, dsStreamSeekWay way)
+{
+	DS_ASSERT(stream);
+	dsUncompressedZipStream* zipStream = (dsUncompressedZipStream*)stream;
+	const FileEntry* entry = zipStream->entry;
+	switch (way)
+	{
+		case dsStreamSeekWay_Beginning:
+			break;
+		case dsStreamSeekWay_Current:
+			offset += zipStream->position;
+			break;
+		case dsStreamSeekWay_End:
+			offset += entry->uncompressedSize;
+			break;
+	}
+
+	if (offset < 0 || (uint64_t)offset > entry->uncompressedSize)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!dsStream_seek(zipStream->baseStream, entry->offset + offset, dsStreamSeekWay_Beginning))
+		return false;
+
+	zipStream->position = offset;
+	return true;
+}
+
+static uint64_t dsUncompressedZipStream_tell(dsStream* stream)
+{
+	DS_ASSERT(stream);
+	dsUncompressedZipStream* zipStream = (dsUncompressedZipStream*)stream;
+	return zipStream->position;
+}
+
+static uint64_t dsUncompressedZipStream_remainingBytes(dsStream* stream)
+{
+	DS_ASSERT(stream);
+	dsUncompressedZipStream* zipStream = (dsUncompressedZipStream*)stream;
+	return zipStream->entry->uncompressedSize - zipStream->position;
+}
+
+static bool dsUncompressedZipStream_restart(dsStream* stream)
+{
+	DS_ASSERT(stream);
+	dsUncompressedZipStream* zipStream = (dsUncompressedZipStream*)stream;
+	if (!dsStream_seek(zipStream->baseStream, zipStream->entry->offset, dsStreamSeekWay_Beginning))
+		return false;
+
+	zipStream->position = 0;
+	return true;
+}
+
+static bool dsUncompressedZipStream_close(dsStream* stream)
+{
+	DS_ASSERT(stream);
+	dsUncompressedZipStream* zipStream = (dsUncompressedZipStream*)stream;
+	DS_VERIFY(dsStream_close(zipStream->baseStream));
+	return dsAllocator_free(zipStream->allocator, stream);
+}
+
 dsZipArchive* dsZipArchive_open(
 	dsAllocator* allocator, const char* path, size_t decompressBufferSize)
 {
@@ -758,6 +1002,15 @@ dsZipArchive* dsZipArchive_open(
 	{
 		errno = EINVAL;
 		return NULL;
+	}
+
+	if (decompressBufferSize == 0)
+		decompressBufferSize = DS_DEFAULT_DECOMPRESS_BUFFER_SIZE;
+	else if (decompressBufferSize < DS_MIN_ZIP_DECOMPRESS_BUFFER_SIZE)
+	{
+		DS_LOG_ERROR(DS_CORE_LOG_TAG, "Zip decompress buffer size is too small.");
+		errno = EINVAL;
+		return false;
 	}
 
 	if (!allocator->freeFunc)
@@ -784,6 +1037,15 @@ dsZipArchive* dsZipArchive_openResource(
 	{
 		errno = EINVAL;
 		return NULL;
+	}
+
+	if (decompressBufferSize == 0)
+		decompressBufferSize = DS_DEFAULT_DECOMPRESS_BUFFER_SIZE;
+	else if (decompressBufferSize < DS_MIN_ZIP_DECOMPRESS_BUFFER_SIZE)
+	{
+		DS_LOG_ERROR(DS_CORE_LOG_TAG, "Zip decompress buffer size is too small.");
+		errno = EINVAL;
+		return false;
 	}
 
 	if (!allocator->freeFunc)
@@ -886,8 +1148,8 @@ dsDirectoryIterator dsZipArchive_openDirectory(const dsZipArchive* archive, cons
 		curEntry = archive->entries;
 	else
 	{
-		curEntry = dsBinarySearchLowerBound(path, archive->entries, archive->entryCount,
-			sizeof(FileEntry), &comparePathPrefixWithEntry, (void*)pathLen);
+		curEntry = (const FileEntry*)dsBinarySearchLowerBound(path, archive->entries,
+			archive->entryCount, sizeof(FileEntry), &comparePathPrefixWithEntry, (void*)pathLen);
 		if (!curEntry)
 		{
 			errno = ENOENT;
@@ -1035,7 +1297,167 @@ dsStream* dsZipArchive_openFile(const dsZipArchive* archive, const char* path)
 		return NULL;
 	}
 
-	return NULL;
+	size_t pathLen = strlen(path);
+
+	// Always use / for path separator.
+#if DS_NEEDS_PATH_SEPARATOR_FIXUP
+	char finalPath[DS_PATH_MAX];
+	path = fixupPathSeparators(finalPath, sizeof(finalPath), path, pathLen);
+	if (!path)
+		return NULL;
+#endif
+
+	// Allow for leading ./. If empty after removing, the root directory was referenced.
+	path = removeLeadingDotDir(path, &pathLen);
+	if (pathLen == 0)
+	{
+		errno = ENOENT;
+		return NULL;
+	}
+
+	const FileEntry* entry = (const FileEntry*)dsBinarySearch(path, archive->entries,
+		archive->entryCount, sizeof(FileEntry), &comparePathWithEntry, (void*)pathLen);
+	if (!entry)
+	{
+		errno = ENOENT;
+		return NULL;
+	}
+
+	if (path[pathLen - 1] == '/')
+	{
+		errno = EISDIR;
+		return NULL;
+	}
+
+	size_t fullSize;
+	if (archive->resourceType < 0)
+		fullSize = DS_ALIGNED_SIZE(sizeof(dsFileStream));
+	else
+		fullSize = DS_ALIGNED_SIZE(sizeof(dsResourceStream));
+
+	size_t compressedBufferSize = 0;
+	size_t uncompressedBufferSize = 0;
+	if (entry->compressed)
+	{
+		compressedBufferSize = uncompressedBufferSize = archive->decompressBufferSize/2;
+		if (entry->compressedSize < compressedBufferSize)
+			compressedBufferSize = (size_t)entry->compressedSize;
+		if (entry->uncompressedSize < uncompressedBufferSize)
+			uncompressedBufferSize = (size_t)entry->uncompressedSize;
+		fullSize += DS_ALIGNED_SIZE(sizeof(dsCompressedZipStream)) +
+			DS_ALIGNED_SIZE(compressedBufferSize) + DS_ALIGNED_SIZE(uncompressedBufferSize);
+	}
+	else
+		fullSize += DS_ALIGNED_SIZE(sizeof(dsUncompressedZipStream));
+
+	void* buffer = dsAllocator_alloc(archive->allocator, fullSize);
+	if (!buffer)
+		return NULL;
+
+	dsBufferAllocator bufferAlloc;
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
+	dsStream* stream;
+	if (entry->compressed)
+		stream = (dsStream*)DS_ALLOCATE_OBJECT(&bufferAlloc, dsCompressedZipStream);
+	else
+		stream = (dsStream*)DS_ALLOCATE_OBJECT(&bufferAlloc, dsUncompressedZipStream);
+	DS_ASSERT(stream);
+
+	dsStream* baseStream;
+	if (archive->resourceType < 0)
+	{
+		dsFileStream* fileStream = DS_ALLOCATE_OBJECT(&bufferAlloc, dsFileStream);
+		DS_ASSERT(fileStream);
+		if (!dsFileStream_openPath(fileStream, archive->path, "rb"))
+		{
+			DS_VERIFY(dsAllocator_free(archive->allocator, stream));
+			return NULL;
+		}
+		baseStream = (dsStream*)fileStream;
+	}
+	else
+	{
+		dsResourceStream* resourceStream = DS_ALLOCATE_OBJECT(&bufferAlloc, dsResourceStream);
+		DS_ASSERT(resourceStream);
+		if (!dsResourceStream_open(resourceStream, archive->resourceType, archive->path, "rb"))
+		{
+			DS_VERIFY(dsAllocator_free(archive->allocator, stream));
+			return NULL;
+		}
+		baseStream = (dsStream*)resourceStream;
+	}
+
+	if (!dsStream_seek(baseStream, entry->offset, dsStreamSeekWay_Beginning))
+	{
+		DS_VERIFY(dsStream_close(baseStream));
+		DS_VERIFY(dsAllocator_free(archive->allocator, stream));
+		return NULL;
+	}
+
+	if (entry->compressed)
+	{
+		stream->readFunc = &dsCompressedZipStream_read;
+		stream->writeFunc = NULL;
+		stream->seekFunc = NULL;
+		stream->tellFunc = &dsCompressedZipStream_tell;
+		stream->remainingBytesFunc = &dsCompressedZipStream_remainingBytes;
+		stream->restartFunc = &dsCompressedZipStream_restart;
+		stream->flushFunc = NULL;
+		stream->closeFunc = &dsCompressedZipStream_close;
+
+		dsCompressedZipStream* compressedStream = (dsCompressedZipStream*)stream;
+		compressedStream->baseStream = baseStream;
+		compressedStream->allocator = archive->allocator;
+		compressedStream->entry = entry;
+		compressedStream->compressedBuffer =
+			DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint8_t, compressedBufferSize);
+		DS_ASSERT(compressedStream->compressedBuffer);
+		compressedStream->uncompressedBuffer =
+			DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint8_t, uncompressedBufferSize);
+		DS_ASSERT(compressedStream->uncompressedBuffer);
+		compressedStream->compressedBufferSize = compressedBufferSize;
+		compressedStream->uncompressedBufferSize = uncompressedBufferSize;
+		compressedStream->compressedPosition = 0;
+		compressedStream->uncompressedPosition = 0;
+
+		memset(&compressedStream->decompress, 0, sizeof(compressedStream->decompress));
+		compressedStream->decompress.zalloc = &zlibAllocFunc;
+		compressedStream->decompress.zfree = &zlibFreeFunc;
+		compressedStream->decompress.opaque = archive->allocator;
+		switch (zng_inflateInit2(&compressedStream->decompress, -MAX_WBITS))
+		{
+			case Z_OK:
+				break;
+			case Z_MEM_ERROR:
+				DS_VERIFY(dsStream_close(baseStream));
+				DS_VERIFY(dsAllocator_free(archive->allocator, buffer));
+				errno = ENOMEM;
+				return NULL;
+			default:
+				DS_VERIFY(dsStream_close(baseStream));
+				DS_VERIFY(dsAllocator_free(archive->allocator, buffer));
+				errno = EINVAL;
+				return NULL;
+		}
+
+		return stream;
+	}
+
+	stream->readFunc = &dsUncompressedZipStream_read;
+	stream->writeFunc = NULL;
+	stream->seekFunc = &dsUncompressedZipStream_seek;
+	stream->tellFunc = &dsUncompressedZipStream_tell;
+	stream->remainingBytesFunc = &dsUncompressedZipStream_remainingBytes;
+	stream->restartFunc = &dsUncompressedZipStream_restart;
+	stream->flushFunc = NULL;
+	stream->closeFunc = &dsUncompressedZipStream_close;
+
+	dsUncompressedZipStream* uncompressedStream = (dsUncompressedZipStream*)stream;
+	uncompressedStream->baseStream = baseStream;
+	uncompressedStream->allocator = archive->allocator;
+	uncompressedStream->entry = entry;
+	uncompressedStream->position = 0;
+	return stream;
 }
 
 bool dsZipArchive_closeFile(const dsZipArchive* archive, dsStream* stream)
@@ -1054,3 +1476,5 @@ void dsZipArchive_close(dsZipArchive* archive)
 	if (archive)
 		DS_VERIFY(dsAllocator_free(archive->allocator, archive));
 }
+
+#endif

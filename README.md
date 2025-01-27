@@ -15,6 +15,7 @@ The following software is required to build DeepSea:
 * [FreeType](https://www.freetype.org/) (required for text)
 * [HarfBuzz](https://github.com/harfbuzz/harfbuzz) (required for text)
 * [SheenBidi](https://github.com/mta452/SheenBidi) (required for text, provided as submodule)
+* [zlib-ng](https://github.com/zlib-ng/zlib-ng) (optional)
 * [doxygen](https://doxygen.nl/) (optional)
 * [gtest](https://github.com/google/googletest) (optional)
 * [Cuttlefish](https://github.com/akb825/Cuttlefish) (recommended to create textures, required for scene and vector image conversion scripts)
@@ -139,6 +140,7 @@ To build the examples, an Android Studio project is provided in the android subd
 * `-DDEEPSEA_BUILD_TESTS=ON|OFF`: Set to `ON` to build the unit tests. `gtest` must also be found in order to build the unit tests. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_DOCS=ON|OFF`: Set to `ON` to build the documentation. `doxygen` must also be found in order to build the documentation. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_EASY_PROFILER=ON|OFF`: Set to `ON` to build the easy_profiler implementation for for profiling. Defaults to `ON`.
+* `-DDEEPSEA_BUILD_ZIP=ON|OFF`: Set to `ON` to build with support for loading .zip files. Defaults to `ON`, but will be implicitly disabled if zlib-ng cannot be found.
 * `-DDEEPSEA_BUILD_RENDER=ON|OFF`: Set to `ON` to build the libraries related to rendering. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_RENDER_MOCK=ON|OFF`: Set to `ON` to build the mock render implementation, used for the renderer unit tests. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_RENDER_OPENGL=ON|OFF`: Set to `ON` to build the OpenGL render implementation. Defaults to `ON`.

@@ -66,22 +66,11 @@ bool dsFileArchive_closeDirectory(const dsFileArchive* archive, dsDirectoryItera
 
 dsStream* dsFileArchive_openFile(const dsFileArchive* archive, const char* path)
 {
-	if (!archive || !archive->openFileFunc || !archive->closeFileFunc || !path || *path == 0)
+	if (!archive || !archive->openFileFunc || !path || *path == 0)
 	{
 		errno = EINVAL;
 		return NULL;
 	}
 
 	return archive->openFileFunc(archive, path);
-}
-
-bool dsFileArchive_closeFile(const dsFileArchive* archive, dsStream* stream)
-{
-	if (!archive || !archive->closeFileFunc || !stream)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	return archive->closeFileFunc(archive, stream);
 }

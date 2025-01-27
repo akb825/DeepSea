@@ -16,10 +16,15 @@
 
 #include "Helpers.h"
 #include <DeepSea/Core/Streams/Path.h>
+#include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Streams/ZipArchive.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/SystemAllocator.h>
+
 #include <gtest/gtest.h>
+#include <cstring>
+
+#if DS_ZIP_ARCHIVE_ENABLED
 
 class ZipArchiveTest : public testing::Test
 {
@@ -156,6 +161,7 @@ TEST_F(ZipArchiveTest, PathStatusLargeFiles)
 	EXPECT_EQ(dsPathStatus_ExistsFile, dsZipArchive_pathStatus(archive, "second"));
 	EXPECT_EQ(dsPathStatus_ExistsFile, dsZipArchive_pathStatus(archive, "large"));
 	EXPECT_EQ(dsPathStatus_ExistsFile, dsZipArchive_pathStatus(archive, "largest32"));
+	EXPECT_EQ(dsPathStatus_ExistsFile, dsZipArchive_pathStatus(archive, "README.md"));
 
 	dsZipArchive_close(archive);
 }
@@ -350,3 +356,278 @@ TEST_F(ZipArchiveTest, IterateDirectorySharedPrefixes)
 
 	dsZipArchive_close(archive);
 }
+
+TEST_F(ZipArchiveTest, ReadUncompressed)
+{
+	char buffer[128];
+	char path[DS_PATH_MAX];
+	ASSERT_TRUE(dsPath_combine(path, sizeof(path), assetDir, "uncompressed.zip"));
+	dsZipArchive* archive =
+		dsZipArchive_openResource(allocator, dsFileResourceType_Embedded, path, 0);
+	ASSERT_TRUE(archive);
+
+	dsStream* stream = dsZipArchive_openFile(archive, "first");
+	ASSERT_TRUE(stream);
+
+	const char* expected = "first\n";
+	size_t expectedSize = std::strlen(expected);
+	EXPECT_EQ(expectedSize, dsStream_remainingBytes(stream));
+	EXPECT_EQ(0U, dsStream_tell(stream));
+	size_t readSize = dsStream_read(stream, buffer, sizeof(buffer));
+	ASSERT_EQ(expectedSize, readSize);
+	buffer[readSize] = 0;
+	EXPECT_STREQ(expected, buffer);
+	EXPECT_EQ(0U, dsStream_remainingBytes(stream));
+	EXPECT_EQ(expectedSize, dsStream_tell(stream));
+
+	EXPECT_TRUE(dsStream_close(stream));
+
+	stream = dsZipArchive_openFile(archive, "second");
+	ASSERT_TRUE(stream);
+
+	expected = "second\n";
+	expectedSize = std::strlen(expected);
+	EXPECT_EQ(expectedSize, dsStream_remainingBytes(stream));
+	readSize = dsStream_read(stream, buffer, 2);
+	ASSERT_EQ(2U, readSize);
+	buffer[readSize] = 0;
+	EXPECT_STREQ("se", buffer);
+	EXPECT_EQ(2U, dsStream_tell(stream));
+
+	EXPECT_EQ(expectedSize - 2, dsStream_remainingBytes(stream));
+	readSize = dsStream_read(stream, buffer, 2);
+	ASSERT_EQ(2U, readSize);
+	buffer[readSize] = 0;
+	EXPECT_STREQ("co", buffer);
+	EXPECT_EQ(4U, dsStream_tell(stream));
+
+	EXPECT_EQ(expectedSize - 4, dsStream_remainingBytes(stream));
+	readSize = dsStream_read(stream, buffer, sizeof(buffer));
+	ASSERT_EQ(expectedSize - 4, readSize);
+	buffer[readSize] = 0;
+	EXPECT_STREQ(expected + 4, buffer);
+	EXPECT_EQ(0U, dsStream_remainingBytes(stream));
+	EXPECT_EQ(expectedSize, dsStream_tell(stream));
+
+	EXPECT_TRUE(dsStream_restart(stream));
+	EXPECT_EQ(expectedSize, dsStream_remainingBytes(stream));
+	readSize = dsStream_read(stream, buffer, sizeof(buffer));
+	ASSERT_EQ(expectedSize, readSize);
+	buffer[readSize] = 0;
+	EXPECT_STREQ(expected, buffer);
+	EXPECT_EQ(0U, dsStream_remainingBytes(stream));
+	EXPECT_EQ(expectedSize, dsStream_tell(stream));
+
+	EXPECT_TRUE(dsStream_close(stream));
+
+	stream = dsZipArchive_openFile(archive, "directory/third");
+	ASSERT_TRUE(stream);
+
+	expected = "third\n";
+	readSize = dsStream_read(stream, buffer, sizeof(buffer));
+	ASSERT_EQ(std::strlen(expected), readSize);
+	buffer[readSize] = 0;
+	EXPECT_STREQ(expected, buffer);
+	EXPECT_EQ(0U, dsStream_remainingBytes(stream));
+
+	EXPECT_TRUE(dsStream_close(stream));
+
+	stream = dsZipArchive_openFile(archive, "directory/fourth");
+	ASSERT_TRUE(stream);
+
+	expected = "fourth\n";
+	readSize = dsStream_read(stream, buffer, sizeof(buffer));
+	ASSERT_EQ(std::strlen(expected), readSize);
+	buffer[readSize] = 0;
+	EXPECT_STREQ(expected, buffer);
+	EXPECT_EQ(0U, dsStream_remainingBytes(stream));
+
+	EXPECT_TRUE(dsStream_close(stream));
+
+	dsZipArchive_close(archive);
+}
+
+TEST_F(ZipArchiveTest, ReadWithComments)
+{
+	char buffer[128];
+	char path[DS_PATH_MAX];
+	ASSERT_TRUE(dsPath_combine(path, sizeof(path), assetDir, "comments.zip"));
+	dsZipArchive* archive =
+		dsZipArchive_openResource(allocator, dsFileResourceType_Embedded, path, 0);
+	ASSERT_TRUE(archive);
+
+	dsStream* stream = dsZipArchive_openFile(archive, "first");
+	ASSERT_TRUE(stream);
+
+	const char* expected = "first\n";
+	EXPECT_EQ(0U, dsStream_tell(stream));
+	size_t readSize = dsStream_read(stream, buffer, sizeof(buffer));
+	ASSERT_EQ(strlen(expected), readSize);
+	buffer[readSize] = 0;
+	EXPECT_STREQ(expected, buffer);
+
+	EXPECT_TRUE(dsStream_close(stream));
+
+	stream = dsZipArchive_openFile(archive, "second");
+	ASSERT_TRUE(stream);
+
+	expected = "second\n";
+	EXPECT_EQ(0U, dsStream_tell(stream));
+	readSize = dsStream_read(stream, buffer, sizeof(buffer));
+	ASSERT_EQ(strlen(expected), readSize);
+	buffer[readSize] = 0;
+	EXPECT_STREQ(expected, buffer);
+
+	EXPECT_TRUE(dsStream_close(stream));
+
+	dsZipArchive_close(archive);
+}
+
+TEST_F(ZipArchiveTest, UncompressedSeek)
+{
+	char buffer[128];
+	char path[DS_PATH_MAX];
+	ASSERT_TRUE(dsPath_combine(path, sizeof(path), assetDir, "uncompressed.zip"));
+	dsZipArchive* archive =
+		dsZipArchive_openResource(allocator, dsFileResourceType_Embedded, path, 0);
+	ASSERT_TRUE(archive);
+
+	const char* expected = "second\n";
+	size_t expectedSize = std::strlen(expected);
+
+	dsStream* stream = dsZipArchive_openFile(archive, "second");
+	ASSERT_TRUE(stream);
+
+	EXPECT_FALSE_ERRNO(EINVAL, dsStream_seek(stream, -10, dsStreamSeekWay_Current));
+	EXPECT_FALSE_ERRNO(EINVAL, dsStream_seek(stream, -10, dsStreamSeekWay_Beginning));
+	EXPECT_FALSE_ERRNO(EINVAL, dsStream_seek(stream, 10, dsStreamSeekWay_End));
+
+	EXPECT_TRUE(dsStream_seek(stream, -3, dsStreamSeekWay_End));
+	EXPECT_EQ(expectedSize - 3U, dsStream_tell(stream));
+	EXPECT_EQ(3U, dsStream_remainingBytes(stream));
+
+	size_t readSize = dsStream_read(stream, buffer, sizeof(buffer));
+	ASSERT_EQ(3U, readSize);
+	buffer[readSize] = 0;
+	EXPECT_STREQ("nd\n", buffer);
+	EXPECT_EQ(expectedSize, dsStream_tell(stream));
+	EXPECT_EQ(0U, dsStream_remainingBytes(stream));
+
+	EXPECT_TRUE(dsStream_seek(stream, 0, dsStreamSeekWay_Beginning));
+	EXPECT_EQ(0U, dsStream_tell(stream));
+	EXPECT_EQ(expectedSize, dsStream_remainingBytes(stream));
+
+	readSize = dsStream_read(stream, buffer, 2);
+	ASSERT_EQ(2U, readSize);
+	buffer[readSize] = 0;
+	EXPECT_STREQ("se", buffer);
+	EXPECT_EQ(2U, dsStream_tell(stream));
+	EXPECT_EQ(expectedSize - 2, dsStream_remainingBytes(stream));
+
+	EXPECT_TRUE(dsStream_seek(stream, 2, dsStreamSeekWay_Current));
+	EXPECT_EQ(4U, dsStream_tell(stream));
+	EXPECT_EQ(expectedSize - 4, dsStream_remainingBytes(stream));
+
+	readSize = dsStream_read(stream, buffer, sizeof(buffer));
+	ASSERT_EQ(expectedSize - 4, readSize);
+	buffer[readSize] = 0;
+	EXPECT_STREQ(expected + 4, buffer);
+	EXPECT_EQ(expectedSize, dsStream_tell(stream));
+	EXPECT_EQ(0U, dsStream_remainingBytes(stream));
+
+	EXPECT_TRUE(dsStream_close(stream));
+
+	dsZipArchive_close(archive);
+}
+
+TEST_F(ZipArchiveTest, ReadCompressed)
+{
+	char buffer[1024];
+	char path[DS_PATH_MAX];
+	ASSERT_TRUE(dsPath_combine(path, sizeof(path), assetDir, "large.zip"));
+	dsZipArchive* archive = dsZipArchive_openResource(allocator, dsFileResourceType_Embedded, path,
+		DS_MIN_ZIP_DECOMPRESS_BUFFER_SIZE);
+	ASSERT_TRUE(archive);
+
+	dsStream* stream = dsZipArchive_openFile(archive, "large");
+	ASSERT_TRUE(stream);
+
+	memset(buffer, 0xFF, sizeof(buffer));
+	EXPECT_EQ(sizeof(buffer), dsStream_read(stream, buffer, sizeof(buffer)));
+	for (size_t i = 0; i < sizeof(buffer); ++i)
+		EXPECT_EQ(0, buffer[i]);
+
+	EXPECT_TRUE(dsStream_close(stream));
+
+	stream = dsZipArchive_openFile(archive, "largest32");
+	ASSERT_TRUE(stream);
+
+	memset(buffer, 0xFF, sizeof(buffer));
+	EXPECT_EQ(127U, dsStream_read(stream, buffer, 127));
+	EXPECT_EQ(sizeof(buffer) - 127, dsStream_read(stream, buffer + 127, sizeof(buffer) - 127));
+	for (size_t i = 0; i < sizeof(buffer); ++i)
+		EXPECT_EQ(0, buffer[i]);
+
+	EXPECT_TRUE(dsStream_close(stream));
+
+	stream = dsZipArchive_openFile(archive, "README.md");
+	ASSERT_TRUE(stream);
+
+	size_t fileSize = 16901;
+	EXPECT_EQ(fileSize, dsStream_remainingBytes(stream));
+
+	const char* expected = "# Introduction";
+	size_t readSize = 62;
+	EXPECT_EQ(readSize, dsStream_read(stream, buffer, readSize));
+	EXPECT_EQ(readSize, dsStream_tell(stream));
+	EXPECT_EQ(fileSize - readSize, dsStream_remainingBytes(stream));
+	EXPECT_EQ(0, std::strncmp(buffer, expected, std::strlen(expected)));
+
+	expected = "actions/workflows/main.yml";
+	readSize += sizeof(buffer);
+	EXPECT_EQ(sizeof(buffer), dsStream_read(stream, buffer, sizeof(buffer)));
+	EXPECT_EQ(readSize, dsStream_tell(stream));
+	EXPECT_EQ(fileSize - readSize, dsStream_remainingBytes(stream));
+	EXPECT_EQ(0, std::strncmp(buffer, expected, std::strlen(expected)));
+
+	expected = ".com/harfbuzz/harfbuzz) (required for text)";
+	readSize += sizeof(buffer);
+	EXPECT_EQ(sizeof(buffer), dsStream_read(stream, buffer, sizeof(buffer)));
+	EXPECT_EQ(readSize, dsStream_tell(stream));
+	EXPECT_EQ(fileSize - readSize, dsStream_remainingBytes(stream));
+	EXPECT_EQ(0, std::strncmp(buffer, expected, std::strlen(expected)));
+
+	size_t thisRead;
+	do
+	{
+		thisRead = dsStream_read(stream, buffer, sizeof(buffer));
+		readSize += thisRead;
+		EXPECT_EQ(readSize, dsStream_tell(stream));
+		EXPECT_EQ(fileSize - readSize, dsStream_remainingBytes(stream));
+	} while (thisRead > 0);
+
+	EXPECT_EQ(fileSize, readSize);
+	EXPECT_EQ(fileSize, dsStream_tell(stream));
+	EXPECT_EQ(0U, dsStream_remainingBytes(stream));
+
+	EXPECT_EQ(0U, dsStream_read(stream, buffer, sizeof(buffer)));
+	EXPECT_EQ(fileSize, dsStream_tell(stream));
+	EXPECT_EQ(0U, dsStream_remainingBytes(stream));
+
+	EXPECT_TRUE(dsStream_restart(stream));
+	EXPECT_EQ(0U, dsStream_tell(stream));
+	EXPECT_EQ(fileSize, dsStream_remainingBytes(stream));
+
+	expected = "# Introduction";
+	readSize = 62;
+	EXPECT_EQ(readSize, dsStream_read(stream, buffer, readSize));
+	EXPECT_EQ(readSize, dsStream_tell(stream));
+	EXPECT_EQ(fileSize - readSize, dsStream_remainingBytes(stream));
+	EXPECT_EQ(0, std::strncmp(buffer, expected, std::strlen(expected)));
+
+	EXPECT_TRUE(dsStream_close(stream));
+
+	dsZipArchive_close(archive);
+}
+
+#endif
