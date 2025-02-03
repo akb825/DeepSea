@@ -43,6 +43,20 @@ typedef struct dsDirectoryIteratorInfo
 	dsDirectoryIterator filesystemIter;
 } dsDirectoryIteratorInfo;
 
+static const char* removeLeadingDotDir(const char* path)
+{
+	if (path[0] != '.')
+		return path;
+
+	unsigned int offset = 0;
+	if (path[1] == 0)
+		offset = 1;
+	else if (path[1] == DS_PATH_SEPARATOR)
+		offset = 2;
+
+	return path + offset;
+}
+
 static size_t assetRead(dsGenericStream* stream, void* data, size_t size)
 {
 	if (!stream || !stream->userData || !data)
@@ -350,14 +364,15 @@ dsPathStatus dsResourceStream_pathStatus(dsFileResourceType type, const char* pa
 #if DS_ANDROID
 	if (type == dsFileResourceType_Embedded)
 	{
-		AAsset* asset = AAssetManager_open(gAssetManager, finalPath, AASSET_MODE_STREAMING);
+		path = removeLeadingDotDir(finalPath);
+		AAsset* asset = AAssetManager_open(gAssetManager, path, AASSET_MODE_STREAMING);
 		if (asset)
 		{
 			AAsset_close(asset);
 			return dsPathStatus_ExistsFile;
 		}
 
-		AAssetDir* assetDir = AAssetManager_openDir(gAssetManager, finalPath);
+		AAssetDir* assetDir = AAssetManager_openDir(gAssetManager, path);
 		if (assetDir)
 		{
 			AAssetDir_close(assetDir);
@@ -456,23 +471,24 @@ dsDirectoryIterator dsResourceStream_openDirectory(dsFileResourceType type, cons
 
 	if (type == dsFileResourceType_Embedded)
 	{
-		info->assetDir = NULL;
-		info->filesystemIter = dsFileStream_openDirectory(finalPath);
-		if (!info->filesystemIter)
+		path = removeLeadingDotDir(finalPath);
+		info->filesystemIter = NULL;
+		info->assetDir = AAssetManager_openDir(gAssetManager, path);
+		if (!info->assetDir)
 		{
 			free(info);
+			// Most common error type, since specific error unknown.
+			errno = ENOENT;
 			return NULL;
 		}
 	}
 	else
 	{
-		info->filesystemIter = NULL;
-		info->assetDir = AAssetManager_openDir(gAssetManager, finalPath);
-		if (!info->assetDir)
+		info->assetDir = NULL;
+		info->filesystemIter = dsFileStream_openDirectory(finalPath);
+		if (!info->filesystemIter)
 		{
 			free(info);
-			// Most common error type, since specific error unknown.
-			errno = ENOTFOUND;
 			return NULL;
 		}
 	}
@@ -511,8 +527,10 @@ dsPathStatus dsResourceStream_nextDirectoryEntry(
 			memcpy(result, entryName, nameLen);
 		return dsPathStatus_ExistsFile;
 	}
-#endif
+	return dsFileStream_nextDirectoryEntry(result, resultSize, info->filesystemIter);
+#else
 	return dsFileStream_nextDirectoryEntry(result, resultSize, iterator);
+#endif
 }
 
 bool dsResourceStream_closeDirectory(dsDirectoryIterator iterator)
@@ -544,7 +562,7 @@ bool dsResourceStream_closeDirectory(dsDirectoryIterator iterator)
 bool dsResourceStream_open(dsResourceStream* stream, dsFileResourceType type, const char* path,
 	const char* mode)
 {
-	if (!stream || !path || !mode)
+	if (!stream || !path || *path == 0 || !mode)
 	{
 		errno = EINVAL;
 		return false;
@@ -573,10 +591,11 @@ bool dsResourceStream_open(dsResourceStream* stream, dsFileResourceType type, co
 				return false;
 			}
 
-			AAsset* asset = AAssetManager_open(gAssetManager, finalPath, AASSET_MODE_RANDOM);
+			path = removeLeadingDotDir(finalPath);
+			AAsset* asset = AAssetManager_open(gAssetManager, path, AASSET_MODE_RANDOM);
 			if (!asset)
 			{
-				errno = ENOTFOUND;
+				errno = ENOENT;
 				return false;
 			}
 

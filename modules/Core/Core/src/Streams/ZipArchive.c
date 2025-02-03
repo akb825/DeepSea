@@ -712,6 +712,7 @@ static dsZipArchive* openZipImpl(dsAllocator* allocator, dsFileResourceType type
 	baseArchive->closeDirectoryFunc =
 		(dsCloseFileArchiveDirectoryFunction)&dsZipArchive_closeDirectory;
 	baseArchive->openFileFunc = (dsOpenFileArchiveFileFunction)&dsZipArchive_openFile;
+	baseArchive->closeFunc = (dsCloseFileArchiveFunction)&dsZipArchive_close;
 
 	// Sort entries for binary sort.
 	qsort(archive->entries, archive->entryCount, sizeof(FileEntry), &compareEntries);
@@ -1015,7 +1016,7 @@ dsZipArchive* dsZipArchive_open(
 
 	if (!allocator->freeFunc)
 	{
-		DS_LOG_ERROR(DS_CORE_LOG_TAG, "Zip archive allocator musst support freeing memory.");
+		DS_LOG_ERROR(DS_CORE_LOG_TAG, "Zip archive allocator must support freeing memory.");
 		errno = EINVAL;
 		return NULL;
 	}
@@ -1050,7 +1051,7 @@ dsZipArchive* dsZipArchive_openResource(
 
 	if (!allocator->freeFunc)
 	{
-		DS_LOG_ERROR(DS_CORE_LOG_TAG, "Zip archive allocator musst support freeing memory.");
+		DS_LOG_ERROR(DS_CORE_LOG_TAG, "Zip archive allocator must support freeing memory.");
 		errno = EINVAL;
 		return NULL;
 	}

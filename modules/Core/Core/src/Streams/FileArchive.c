@@ -74,3 +74,9 @@ dsStream* dsFileArchive_openFile(const dsFileArchive* archive, const char* path)
 
 	return archive->openFileFunc(archive, path);
 }
+
+void dsFileArchive_close(dsFileArchive* archive)
+{
+	if (archive && archive->closeFunc)
+		archive->closeFunc(archive);
+}

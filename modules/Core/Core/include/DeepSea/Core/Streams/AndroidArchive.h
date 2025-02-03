@@ -20,7 +20,9 @@
 #include <DeepSea/Core/Export.h>
 #include <DeepSea/Core/Streams/Types.h>
 
-#if DS_ZIP_ARCHIVE_ENABLED
+#if DS_ANDROID
+
+#include <jni.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -29,68 +31,51 @@ extern "C"
 
 /**
  * @file
- * @brief Functions for creating and manipulating zip archives.
- *
- * All paths within a zip archive will be relative to the root of the archive. A leading ./ may be
- * used for any path, including using "." by itself to refer to the root directory of the archive.
- *
- * @see dsZipArchive
+ * @brief Functions for creating and manipulating Android archives, operating on an
+ * AssetManager.
+ * @see dsAndroidArchive
  */
 
 /**
- * @brief Define for the minimum buffer size for .zip decompression.
- */
-#define DS_MIN_ZIP_DECOMPRESS_BUFFER_SIZE 512
-
-/**
- * @brief Opens a zip archive from a file path.
+ * @brief Opens an Android archive from an AssetManager.
  * @remark errno will be set on failure.
  * @param allocator The allocator for memory associated with the archive. This must support freeing
  *     memory.
- * @param path The path to the zip archive.
- * @param decompressBufferSize The size of the buffer when reading compressed data. Set to 0 to use
- *     the default.
- * @return The zip archive or NULL if it couldn't be opened.
+ * @param env The Java environment for JNI calls.
+ * @param assetManage The Java asset manager.
+ * @return The android archive or NULL if it couldn't be opened.
  */
-DS_CORE_EXPORT dsZipArchive* dsZipArchive_open(
-	dsAllocator* allocator, const char* path, size_t decompressBufferSize);
-
-/**
- * @brief Opens a zip archive from a resource path.
- * @remark errno will be set on failure.
- * @param allocator The allocator for memory associated with the archive. This must support freeing
- *     memory.
- * @param type The resource type.
- * @param path The path to the zip archive.
- * @param decompressBufferSize The size of the buffer when reading compressed data. Set to 0 to use
- *     the default.
- * @return The zip archive or NULL if it couldn't be opened.
- */
-DS_CORE_EXPORT dsZipArchive* dsZipArchive_openResource(
-	dsAllocator* allocator, dsFileResourceType type, const char* path, size_t decompressBufferSize);
+DS_CORE_EXPORT dsAndroidArchive* dsAndroidArchive_open(
+	dsAllocator* allocator, JNIEnv* env, jobject assetManager);
 
 /**
  * @brief Gets the status on a path within the archive.
+ * @rmeark Due to limitations with Android's AssetManager implementation, a path that doesn't exist
+ *     may be incorrectly detected as an existing directory.
  * @remark errno will be set on failure.
  * @param archive The archive to get the path status from.
  * @param path The path within the archive.
  * @return The path status.
  */
-DS_CORE_EXPORT dsPathStatus dsZipArchive_pathStatus(
-	const dsZipArchive* archive, const char* path);
+DS_CORE_EXPORT dsPathStatus dsAndroidArchive_pathStatus(
+	const dsAndroidArchive* archive, const char* path);
 
 /**
  * @brief Opens a directory within an archive.
+ * @rmark Due to limitations with Android's AssetManager implementation, directories that don't
+ *     exist may appear to have no error.
  * @remark errno will be set on failure.
  * @param archive The archive to open the directory from.
  * @param path The path to the directory within the archive.
  * @return The directory iterator or NULL if the directory cannot be iterated.
  */
-DS_CORE_EXPORT dsDirectoryIterator dsZipArchive_openDirectory(
-	const dsZipArchive* archive, const char* path);
+DS_CORE_EXPORT dsDirectoryIterator dsAndroidArchive_openDirectory(
+	const dsAndroidArchive* archive, const char* path);
 
 /**
  * @brief Gets the next entry within a directory in an archive.
+ * @remark Due to limitations with Android's AssetManager implementation, only files will be
+ *     returned, and directories will be skipped.
  * @remark errno will be set on failure.
  * @param[out] result The storage for the result.
  * @param resultSize The maximum size of the result.
@@ -99,8 +84,8 @@ DS_CORE_EXPORT dsDirectoryIterator dsZipArchive_openDirectory(
  * @return The result of getting the next entry. dsPathStatus_Missing will be returned once the last
  *     entry has been reached.
  */
-DS_CORE_EXPORT dsPathStatus dsZipArchive_nextDirectoryEntry(
-	char* result, size_t resultSize, const dsZipArchive* archive, dsDirectoryIterator iterator);
+DS_CORE_EXPORT dsPathStatus dsAndroidArchive_nextDirectoryEntry(
+	char* result, size_t resultSize, const dsAndroidArchive* archive, dsDirectoryIterator iterator);
 
 /**
  * @brief Closes a directory within an archive.
@@ -109,8 +94,8 @@ DS_CORE_EXPORT dsPathStatus dsZipArchive_nextDirectoryEntry(
  * @param iterator The iterator for the directory to close.
  * @return False if the directory couldn't be closed.
  */
-DS_CORE_EXPORT bool dsZipArchive_closeDirectory(
-	const dsZipArchive* archive, dsDirectoryIterator iterator);
+DS_CORE_EXPORT bool dsAndroidArchive_closeDirectory(
+	const dsAndroidArchive* archive, dsDirectoryIterator iterator);
 
 /**
  * @brief Opens a file within an archive.
@@ -122,16 +107,17 @@ DS_CORE_EXPORT bool dsZipArchive_closeDirectory(
  * @param path The path to the file to open.
  * @return The opened stream or NULL if the file couldn't be opened.
  */
-DS_CORE_EXPORT dsStream* dsZipArchive_openFile(const dsZipArchive* archive, const char* path);
+DS_CORE_EXPORT dsStream* dsAndroidArchive_openFile(
+	const dsAndroidArchive* archive, const char* path);
 
 /**
- * @brief Closes a zip archive.
+ * @brief Closes a android archive.
  *
  * All files and directories must be closed before calling this function.
  *
  * @param archive The archive to close.
  */
-DS_CORE_EXPORT void dsZipArchive_close(dsZipArchive* archive);
+DS_CORE_EXPORT void dsAndroidArchive_close(dsAndroidArchive* archive);
 
 #ifdef __cplusplus
 }

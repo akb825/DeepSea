@@ -17,12 +17,13 @@
 #include <DeepSea/Core/Streams/ResourceStream.h>
 #include <gtest/gtest.h>
 #include <jni.h>
-#include <stdlib.h>
 
 extern "C"
 {
 
 extern int main(int argc, const char** argv);
+JNIEnv* dsUnitTestJNIEnv;
+jobject dsUnitTestActivity;
 
 JNIEXPORT jstring JNICALL Java_com_akb825_deepsea_unittests_UnitTestActivity_runTests(JNIEnv* env,
 	jobject thiz)
@@ -30,6 +31,9 @@ JNIEXPORT jstring JNICALL Java_com_akb825_deepsea_unittests_UnitTestActivity_run
 	dsResourceStream_setContext(env, thiz, nullptr, nullptr, nullptr);
 	setenv("TEST_TMPDIR", dsResourceStream_getDynamicDirectory(), true);
 	testing::internal::CaptureStdout();
+
+	dsUnitTestJNIEnv = env;
+	dsUnitTestActivity = thiz;
 
 	int argc = 1;
 	const char* argv = "test";

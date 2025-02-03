@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,11 +61,46 @@ TEST(PathTest, Combine)
 	EXPECT_STREQ("/test", result);
 #endif
 
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "/", "."));
+	EXPECT_STREQ("/", result);
+
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "/", "./"));
+	EXPECT_STREQ("/", result);
+
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "test", "."));
+	EXPECT_STREQ("test", result);
+
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "test", "./"));
+	EXPECT_STREQ("test", result);
+
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "test", ".path"));
+#if DS_WINDOWS
+	EXPECT_STREQ("test\\.path", result);
+#else
+	EXPECT_STREQ("test/.path", result);
+#endif
+
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "test", "./path"));
+#if DS_WINDOWS
+	EXPECT_STREQ("test\\path", result);
+#else
+	EXPECT_STREQ("test/path", result);
+#endif
+
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "", "."));
+	EXPECT_STREQ(".", result);
+
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "", "./"));
+	EXPECT_STREQ("./", result);
+
 	EXPECT_FALSE_ERRNO(ESIZE, dsPath_combine(result, 11, "path1", "path2"));
 	EXPECT_TRUE(dsPath_combine(result, 12, "path1", "path2"));
 
 	EXPECT_FALSE_ERRNO(ESIZE, dsPath_combine(result, 11, "path1//", "//path2"));
 	EXPECT_TRUE(dsPath_combine(result, 12, "path1//", "//path2"));
+
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "", "."));
+	EXPECT_STREQ(".", result);
 
 	result[0] = 0;
 	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, result, "test"));

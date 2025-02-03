@@ -26,8 +26,7 @@
 
 // TODO: iOS has restrictive filesystem permissions and we don't have the application code available
 // here to set the proper directory.
-// Android is also very broken with its resource iteration.
-#if !DS_ANDROID && !DS_IOS
+#if !DS_IOS
 
 class ResourceStreamDirectory : public testing::Test
 {

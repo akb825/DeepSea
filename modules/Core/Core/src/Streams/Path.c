@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,32 @@ bool dsPath_combine(char* result, size_t resultSize, const char* path1, const ch
 		return true;
 	}
 
+	if (!len1 && len2)
+	{
+		if (resultSize < len2 + 1)
+		{
+			errno = ESIZE;
+			return false;
+		}
+
+		memcpy(result, path2, len2 + 1);
+		return true;
+	}
+
+	// Strip leading . directory for the second path when the first path is non-empty.
+	if (len2 > 0 && path2[0] == '.' &&
+		(path2[1] == 0 || path2[1] == DS_PATH_SEPARATOR || path2[1] == DS_PATH_ALT_SEPARATOR))
+	{
+		++path2;
+		--len2;
+	}
+
+	for (; len2 > 0; ++path2, --len2)
+	{
+		if (path2[0] != DS_PATH_SEPARATOR && path2[0] != DS_PATH_ALT_SEPARATOR)
+			break;
+	}
+
 	if (len1 && !len2)
 	{
 		if (resultSize < len1 + 1)
@@ -49,28 +75,10 @@ bool dsPath_combine(char* result, size_t resultSize, const char* path1, const ch
 		return true;
 	}
 
-	if (!len1 && len2)
-	{
-		if (resultSize < len2 + 1)
-		{
-			errno = ESIZE;
-			return false;
-		}
-
-		memcpy(result, path2, len2 + 1);
-		return true;
-	}
-
 	// Remove the path separator if present for each path.
 	for (; len1 > 0; --len1)
 	{
 		if (path1[len1 - 1] != DS_PATH_SEPARATOR && path1[len1 - 1] != DS_PATH_ALT_SEPARATOR)
-			break;
-	}
-
-	for (; len2 > 0; ++path2, --len2)
-	{
-		if (path2[0] != DS_PATH_SEPARATOR && path2[0] != DS_PATH_ALT_SEPARATOR)
 			break;
 	}
 

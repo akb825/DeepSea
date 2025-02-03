@@ -408,6 +408,12 @@ typedef bool (*dsCloseFileArchiveDirectoryFunction)(
 typedef dsStream* (*dsOpenFileArchiveFileFunction)(const dsFileArchive* archive, const char* path);
 
 /**
+ * @brief Function to close an archive.
+ * @param archive The archive to close.
+ */
+typedef void (*dsCloseFileArchiveFunction)(dsFileArchive* archive);
+
+/**
  * @brief Struct describing an archive of files.
  *
  * Archives are read-only, and intended to group multiple files and directories into a single unit,
@@ -446,6 +452,11 @@ struct dsFileArchive
 	 * @brief Function to open a file within the archive.
 	 */
 	dsOpenFileArchiveFileFunction openFileFunc;
+
+	/**
+	 * @brief Function to close the archive.
+	 */
+	dsCloseFileArchiveFunction closeFunc;
 };
 
 #if DS_ZIP_ARCHIVE_ENABLED
@@ -458,6 +469,19 @@ struct dsFileArchive
  * @see ZipArchive.h
  */
 typedef struct dsZipArchive dsZipArchive;
+
+#endif
+
+#if DS_ANDROID
+
+/**
+ * @brief Struct describing an Android archive.
+ *
+ * This is an implementation of dsFileArchive for reading Android assets.
+ *
+ * @see ZipArchive.h
+ */
+typedef struct dsAndroidArchive dsAndroidArchive;
 
 #endif
 

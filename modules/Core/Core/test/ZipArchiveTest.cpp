@@ -15,11 +15,12 @@
  */
 
 #include "Helpers.h"
+#include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/SystemAllocator.h>
+#include <DeepSea/Core/Streams/FileArchive.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Streams/ZipArchive.h>
-#include <DeepSea/Core/Memory/Allocator.h>
-#include <DeepSea/Core/Memory/SystemAllocator.h>
 
 #include <gtest/gtest.h>
 #include <cstring>
@@ -628,6 +629,36 @@ TEST_F(ZipArchiveTest, ReadCompressed)
 	EXPECT_TRUE(dsStream_close(stream));
 
 	dsZipArchive_close(archive);
+}
+
+TEST_F(ZipArchiveTest, FileArchiveFunctions)
+{
+	char buffer[32] = {};
+	char name[DS_FILE_NAME_MAX] = {};
+	char path[DS_PATH_MAX];
+	ASSERT_TRUE(dsPath_combine(path, sizeof(path), assetDir, "simple.zip"));
+	auto archive = reinterpret_cast<dsFileArchive*>(
+		dsZipArchive_openResource(allocator, dsFileResourceType_Embedded, path, 0));
+	ASSERT_TRUE(archive);
+
+	EXPECT_EQ(dsPathStatus_ExistsFile, dsFileArchive_pathStatus(archive, "first"));
+
+	dsStream* stream = dsFileArchive_openFile(archive, "first");
+	ASSERT_TRUE(stream);
+
+	EXPECT_EQ(6U, dsStream_read(stream, buffer, sizeof(buffer)));
+	EXPECT_STREQ("first\n", buffer);
+
+	EXPECT_TRUE(dsStream_close(stream));
+
+	dsDirectoryIterator iter = dsFileArchive_openDirectory(archive, "directory");
+	ASSERT_TRUE(iter);
+	EXPECT_EQ(dsPathStatus_ExistsFile,
+		dsFileArchive_nextDirectoryEntry(name, sizeof(name), archive, iter));
+	EXPECT_STREQ("fourth", name);
+	EXPECT_TRUE(dsFileArchive_closeDirectory(archive, iter));
+
+	dsFileArchive_close(archive);
 }
 
 #endif

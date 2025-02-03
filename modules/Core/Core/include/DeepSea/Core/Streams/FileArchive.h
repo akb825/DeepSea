@@ -87,6 +87,15 @@ DS_CORE_EXPORT bool dsFileArchive_closeDirectory(
  */
 DS_CORE_EXPORT dsStream* dsFileArchive_openFile(const dsFileArchive* archive, const char* path);
 
+/**
+ * @brief Closes an archive, freeing all associated resources.
+ *
+ * All files and directories should be closed before closing the archive itself.
+ *
+ * @param archive The archive to close.
+ */
+DS_CORE_EXPORT void dsFileArchive_close(dsFileArchive* archive);
+
 #ifdef __cplusplus
 }
 #endif
