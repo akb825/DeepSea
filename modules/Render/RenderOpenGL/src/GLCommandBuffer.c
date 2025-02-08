@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -742,7 +742,7 @@ bool dsGLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffe
 
 bool dsGLCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsFramebuffer* framebuffer, const dsRenderPass* renderPass, uint32_t subpass,
-	const dsAlignedBox3f* viewport)
+	const dsAlignedBox3f* viewport, dsGfxOcclusionQueryState parentOcclusionQueryState)
 {
 	DS_ASSERT(commandBuffer != renderer->mainCommandBuffer);
 	DS_UNUSED(renderer);
@@ -750,6 +750,7 @@ bool dsGLCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* com
 	DS_UNUSED(renderPass);
 	DS_UNUSED(subpass);
 	DS_UNUSED(viewport);
+	DS_UNUSED(parentOcclusionQueryState);
 	dsGLCommandBuffer_reset(commandBuffer);
 	return true;
 }

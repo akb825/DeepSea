@@ -294,7 +294,8 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 
 static bool beginSubpass(dsVkDevice* device, VkCommandBuffer commandBuffer,
 	dsCommandBufferUsage usage, VkRenderPass renderPass, uint32_t subpass,
-	VkFramebuffer framebuffer, const VkViewport* viewport)
+	VkFramebuffer framebuffer, const VkViewport* viewport,
+	dsGfxOcclusionQueryState parentOcclusionQueryState)
 {
 	VkCommandBufferUsageFlags usageFlags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
 	if (!(usage & (dsCommandBufferUsage_MultiSubmit | dsCommandBufferUsage_MultiFrame)))
@@ -302,9 +303,6 @@ static bool beginSubpass(dsVkDevice* device, VkCommandBuffer commandBuffer,
 	if (usage & dsCommandBufferUsage_MultiSubmit)
 		usageFlags |= VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
 
-	VkQueryControlFlags queryControlFlags = 0;
-	if (device->features.inheritedQueries && device->features.occlusionQueryPrecise)
-		queryControlFlags = VK_QUERY_CONTROL_PRECISE_BIT;
 	VkCommandBufferInheritanceInfo inheritanceInfo =
 	{
 		VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO,
@@ -312,10 +310,28 @@ static bool beginSubpass(dsVkDevice* device, VkCommandBuffer commandBuffer,
 		renderPass,
 		subpass,
 		framebuffer,
-		device->features.inheritedQueries,
-		queryControlFlags,
+		false,
+		0,
 		0
 	};
+
+	switch (parentOcclusionQueryState)
+	{
+		case dsGfxOcclusionQueryState_Disabled:
+			break;
+		case dsGfxOcclusionQueryState_SamplesPassed:
+			// Validity should have already been checked earlier.
+			DS_ASSERT(device->features.inheritedQueries);
+			DS_ASSERT(device->features.occlusionQueryPrecise);
+			inheritanceInfo.occlusionQueryEnable = true;
+			inheritanceInfo.queryFlags = VK_QUERY_CONTROL_PRECISE_BIT;
+			break;
+		case dsGfxOcclusionQueryState_AnySamplesPassed:
+			// Validity should have already been checked earlier.
+			DS_ASSERT(device->features.inheritedQueries);
+			inheritanceInfo.occlusionQueryEnable = true;
+			break;
+	}
 
 	VkCommandBufferBeginInfo beginInfo =
 	{
@@ -429,7 +445,7 @@ bool dsVkCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffe
 
 bool dsVkCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsFramebuffer* framebuffer, const dsRenderPass* renderPass, uint32_t subpass,
-	const dsAlignedBox3f* viewport)
+	const dsAlignedBox3f* viewport, dsGfxOcclusionQueryState parentOcclusionQueryState)
 {
 	DS_ASSERT(commandBuffer != renderer->mainCommandBuffer);
 
@@ -464,7 +480,8 @@ bool dsVkCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* com
 	dsConvertVkViewport(&vkViewport, viewport, framebuffer->width, framebuffer->height);
 
 	if (!beginSubpass(&vkRenderer->device, subpassBuffer, commandBuffer->usage,
-			renderPassData->vkRenderPass, subpass, vkFramebuffer, &vkViewport))
+			renderPassData->vkRenderPass, subpass, vkFramebuffer, &vkViewport,
+			parentOcclusionQueryState))
 	{
 		--vkCommandBuffer->submitBufferCount;
 		vkCommandBuffer->activeCommandBuffer = 0;
@@ -520,7 +537,7 @@ bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuff
 	for (uint32_t i = 0; i < vkSubmitBuffer->readbackOffscreenCount; ++i)
 	{
 		if (!dsVkCommandBuffer_addReadbackOffscreen(commandBuffer,
-			vkSubmitBuffer->readbackOffscreens[i]))
+				vkSubmitBuffer->readbackOffscreens[i]))
 		{
 			return false;
 		}

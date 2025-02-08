@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,7 +128,7 @@ bool dsGLCommandBuffer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* comm
 bool dsGLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 bool dsGLCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsFramebuffer* framebuffer, const dsRenderPass* renderPass, uint32_t subpass,
-	const dsAlignedBox3f* viewport);
+	const dsAlignedBox3f* viewport, dsGfxOcclusionQueryState parentOcclusionQueryState);
 bool dsGLCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 bool dsGLCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);

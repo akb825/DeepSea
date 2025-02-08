@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1526,11 +1526,14 @@ typedef bool (*dsBeginCommandBufferFunction)(dsRenderer* renderer, dsCommandBuff
  * @param renderPass The render pass being drawn to.
  * @param subpass The subpass within the render pass being drawn to.
  * @param viewport The viewport to render to.
+ * @param parentOcclusionQueryState The expected state of the occlusion query for the primary
+ *     command buffer this will be submitted to.
  * @return False if the command buffer couldn't be begun.
  */
 typedef bool (*dsBeginSecondaryCommandBufferFunction)(dsRenderer* renderer,
 	dsCommandBuffer* commandBuffer, const dsFramebuffer* framebuffer,
-	const dsRenderPass* renderPass, uint32_t subpass, const dsAlignedBox3f* viewport);
+	const dsRenderPass* renderPass, uint32_t subpass, const dsAlignedBox3f* viewport,
+	dsGfxOcclusionQueryState parentOcclusionQueryState);
 
 /**
  * @brief Function for ending drawing to a command buffer.

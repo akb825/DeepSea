@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -992,10 +992,11 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	 * it after)
 	 *
 	 * Perhaps in the future some subset of queries will be supported, but until a compelling use
-	 * case (that can also potentially be optimized for) comes up it's better to just not
+	 * case (that can also potentially be optimized for) comes up it's better to just not.
 	 */
 	baseResourceManager->hasQueries = false;
 	baseResourceManager->hasPreciseOcclusionQueries = false;
+	baseResourceManager->hasSecondaryCommandBufferOcclusionQueries = false;
 	baseResourceManager->has64BitQueries = true;
 	baseResourceManager->hasQueryBuffers = true;
 	baseResourceManager->timestampPeriod = 0.0f;

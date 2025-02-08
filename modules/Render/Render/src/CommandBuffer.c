@@ -57,7 +57,7 @@ bool dsCommandBuffer_begin(dsCommandBuffer* commandBuffer)
 
 bool dsCommandBuffer_beginSecondary(dsCommandBuffer* commandBuffer,
 	const dsFramebuffer* framebuffer, const dsRenderPass* renderPass, uint32_t subpass,
-	const dsAlignedBox3f* viewport)
+	const dsAlignedBox3f* viewport, dsGfxOcclusionQueryState parentOcclusionQueryState)
 {
 	if (!commandBuffer || !commandBuffer->renderer ||
 		!commandBuffer->renderer->beginSecondaryCommandBufferFunc ||
@@ -105,6 +105,33 @@ bool dsCommandBuffer_beginSecondary(dsCommandBuffer* commandBuffer,
 		return false;
 	}
 
+	if (parentOcclusionQueryState != dsGfxOcclusionQueryState_Disabled)
+	{
+		dsResourceManager* resourceManager = renderer->resourceManager;
+		if (!resourceManager->hasQueries)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Occlusion queries aren't supported.");
+			return false;
+		}
+
+		if (parentOcclusionQueryState == dsGfxOcclusionQueryState_SamplesPassed &&
+			!resourceManager->hasPreciseOcclusionQueries)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Precise occlusion queries aren't supported.");
+			return false;
+		}
+
+		if (!resourceManager->hasSecondaryCommandBufferOcclusionQueries)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Secondary command buffer occlusion queries aren't supported.");
+			return false;
+		}
+	}
+
 #if DS_PROFILING_ENABLED
 
 	if (framebuffer)
@@ -125,7 +152,7 @@ bool dsCommandBuffer_beginSecondary(dsCommandBuffer* commandBuffer,
 	DS_PROFILE_FUNC_START();
 
 	bool success = renderer->beginSecondaryCommandBufferFunc(renderer, commandBuffer, framebuffer,
-		renderPass, subpass, viewport);
+		renderPass, subpass, viewport, parentOcclusionQueryState);
 	if (!success)
 		DS_PROFILE_FUNC_RETURN(false);
 

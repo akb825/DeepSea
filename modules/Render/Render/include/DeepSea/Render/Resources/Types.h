@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -419,9 +419,19 @@ typedef enum dsGfxQueryType
 {
 	dsGfxQueryType_SamplesPassed,    ///< The number of samples that pass the depth test. Not
 	                                 ///< allowed if hasPreciseOcclusionQueries is false.
-	dsGfxQueryType_AnySamplesPassed, ///< Non-zero if any samples passed.
+	dsGfxQueryType_AnySamplesPassed, ///< Non-zero if any samples passed the depth test.
 	dsGfxQueryType_Timestamp         ///< The current timestamp on the GPU in ns.
 } dsGfxQueryType;
+
+/**
+ * @brief Enum for the state of occlusion queries.
+ */
+typedef enum dsGfxOcclusionQueryState
+{
+	dsGfxOcclusionQueryState_Disabled,        ///< No occlusion query performed.
+	dsGfxOcclusionQueryState_SamplesPassed,   ///< The number of samples that passed the depth test.
+	dsGfxOcclusionQueryState_AnySamplesPassed ///< Non-zero if any samples passed the depth test.
+} dsGfxOcclusionQueryState;
 
 /// @cond
 typedef struct dsCommandBuffer dsCommandBuffer;
@@ -2149,6 +2159,14 @@ struct dsResourceManager
 	 * @brief True if precise occlusion queries are supported.
 	 */
 	bool hasPreciseOcclusionQueries;
+
+	/**
+	 * @brief True if occlusion queries may be performed on secondary command buffers.
+	 *
+	 * If false, any draw commands used for occlusion queries must be made to a primary command
+	 * buffer.
+	 */
+	bool hasSecondaryCommandBufferOcclusionQueries;
 
 	/**
 	 * @brief True if query values may be 64 bits.

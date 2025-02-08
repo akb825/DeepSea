@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1402,6 +1402,8 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	// Queries
 	baseResourceManager->hasQueries = ANYGL_SUPPORTED(glGenQueries);
 	baseResourceManager->hasPreciseOcclusionQueries = ANYGL_SUPPORTED(glGenQueries) && !ANYGL_GLES;
+	baseResourceManager->hasSecondaryCommandBufferOcclusionQueries =
+		baseResourceManager->hasPreciseOcclusionQueries;
 	baseResourceManager->has64BitQueries = ANYGL_SUPPORTED(glGetQueryObjectui64v);
 	baseResourceManager->hasQueryBuffers = AnyGL_atLeastVersion(4, 4, false) ||
 		AnyGL_ARB_query_buffer_object;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,11 +73,15 @@ TEST_F(CommandBufferTest, BeginEndSecondary)
 	dsAlignedBox3f viewport = {{{0.0f, 0.0f, 0.0f}}, {{10.0f, 15.0f, 1.0f}}};
 
 	EXPECT_FALSE(dsCommandBuffer_begin(*commandBuffer));
-	EXPECT_FALSE(dsCommandBuffer_beginSecondary(*commandBuffer, NULL, NULL, 0, &viewport));
-	EXPECT_FALSE(dsCommandBuffer_beginSecondary(*commandBuffer, NULL, renderPass, 1, &viewport));
-	EXPECT_FALSE(dsCommandBuffer_beginSecondary(*commandBuffer, NULL, renderPass, 1, NULL));
+	EXPECT_FALSE(dsCommandBuffer_beginSecondary(
+		*commandBuffer, NULL, NULL, 0, &viewport, dsGfxOcclusionQueryState_Disabled));
+	EXPECT_FALSE(dsCommandBuffer_beginSecondary(
+		*commandBuffer, NULL, renderPass, 1, &viewport, dsGfxOcclusionQueryState_Disabled));
+	EXPECT_FALSE(dsCommandBuffer_beginSecondary(
+		*commandBuffer, NULL, renderPass, 1, NULL, dsGfxOcclusionQueryState_Disabled));
 
-	EXPECT_TRUE(dsCommandBuffer_beginSecondary(*commandBuffer, NULL, renderPass, 0, &viewport));
+	EXPECT_TRUE(dsCommandBuffer_beginSecondary(
+		*commandBuffer, NULL, renderPass, 0, &viewport, dsGfxOcclusionQueryState_Disabled));
 	EXPECT_TRUE(dsCommandBuffer_end(*commandBuffer));
 
 	EXPECT_TRUE(dsCommandBufferPool_destroy(pool));

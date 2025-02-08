@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -177,7 +177,7 @@ static bool processCommandBufferRenderPass(dsCommandBuffer* commandBuffer,
 	viewport.max.y *= (float)framebuffer->framebuffer->height;
 
 	if (!dsCommandBuffer_beginSecondary(commandBuffer, framebuffer->framebuffer,
-			renderPass->renderPass, subpass, &viewport))
+			renderPass->renderPass, subpass, &viewport, dsGfxOcclusionQueryState_Disabled))
 	{
 		return false;
 	}
@@ -205,7 +205,7 @@ static void taskFunc(void* userData)
 		if (!commandBuffer)
 			return;
 
-		// Render passes are handled at the same time as pre renderpass call.
+		// If the render pass has a pre render pass call, it would have been handled then.
 		DS_ASSERT(!itemList->preRenderPassFunc);
 		processCommandBufferRenderPass(commandBuffer, view, itemList, renderPass,
 			commandBufferInfo->subpass,
@@ -403,7 +403,7 @@ static bool triggerDraw(dsSceneThreadManager* threadManager, const dsScene* scen
 					return false;
 				}
 
-				// Keep track of the companion for the
+				// Keep track of the companion for the render pass command buffer.
 				uint32_t companionIndex = startIndex + preRenderPassCount;
 				uint32_t curIndex = startIndex;
 				for (uint32_t j = 0; j < renderPass->subpassCount; ++j)

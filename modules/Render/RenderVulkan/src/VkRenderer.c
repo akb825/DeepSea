@@ -2041,7 +2041,6 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		dsVkResourceList_initialize(renderer->deleteResources + i, allocator);
 
 	dsVkDevice* device = &renderer->device;
-	dsVkInstance* instance = &device->instance;
 
 	baseRenderer->platform = options->platform;
 	baseRenderer->rendererID = DS_VK_RENDERER_ID;
@@ -2068,9 +2067,6 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	if (baseRenderer->deviceName)
 		DS_LOG_DEBUG_F(DS_RENDER_VULKAN_LOG_TAG, "Using device: %s", baseRenderer->deviceName);
 
-	VkPhysicalDeviceFeatures deviceFeatures;
-	DS_VK_CALL(instance->vkGetPhysicalDeviceFeatures)(device->physicalDevice, &deviceFeatures);
-
 	const VkPhysicalDeviceLimits* limits = &deviceProperties->limits;
 	baseRenderer->maxColorAttachments = dsMin(limits->maxColorAttachments, DS_MAX_ATTACHMENTS);
 	// framebufferColorSampleCounts is a bitmask. Compute the maximum bit that's set.
@@ -2095,18 +2091,18 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->singleBuffer = false;
 	baseRenderer->stereoscopic = options->stereoscopic;
 	baseRenderer->vsync = false;
-	baseRenderer->hasGeometryShaders = deviceFeatures.geometryShader != 0;
-	baseRenderer->hasTessellationShaders = deviceFeatures.tessellationShader != 0;
+	baseRenderer->hasGeometryShaders = device->features.geometryShader != 0;
+	baseRenderer->hasTessellationShaders = device->features.tessellationShader != 0;
 	baseRenderer->hasNativeMultidraw = true;
 	baseRenderer->hasInstancedDrawing = true;
-	baseRenderer->hasStartInstance = (bool)deviceFeatures.drawIndirectFirstInstance;
-	baseRenderer->hasIndependentBlend = (bool)deviceFeatures.independentBlend;
-	baseRenderer->hasDualSrcBlend = (bool)deviceFeatures.dualSrcBlend;
-	baseRenderer->hasLogicOps = (bool)deviceFeatures.logicOp;
-	baseRenderer->hasSampleShading = (bool)deviceFeatures.sampleRateShading;
-	baseRenderer->hasDepthBounds = (bool)deviceFeatures.depthBounds;
-	baseRenderer->hasDepthClamp = (bool)deviceFeatures.depthClamp;
-	baseRenderer->hasDepthBiasClamp = (bool)deviceFeatures.depthBiasClamp;
+	baseRenderer->hasStartInstance = (bool)device->features.drawIndirectFirstInstance;
+	baseRenderer->hasIndependentBlend = (bool)device->features.independentBlend;
+	baseRenderer->hasDualSrcBlend = (bool)device->features.dualSrcBlend;
+	baseRenderer->hasLogicOps = (bool)device->features.logicOp;
+	baseRenderer->hasSampleShading = (bool)device->features.sampleRateShading;
+	baseRenderer->hasDepthBounds = (bool)device->features.depthBounds;
+	baseRenderer->hasDepthClamp = (bool)device->features.depthClamp;
+	baseRenderer->hasDepthBiasClamp = (bool)device->features.depthBiasClamp;
 	baseRenderer->hasDepthStencilMultisampleResolve = device->hasDepthStencilResolve;
 	baseRenderer->hasFragmentInputs = false;
 	baseRenderer->projectedTexCoordTInverted = false;

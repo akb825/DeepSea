@@ -842,6 +842,7 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 	baseResourceManager->hasFences = true;
 	baseResourceManager->hasQueries = true;
 	baseResourceManager->hasPreciseOcclusionQueries = features->occlusionQueryPrecise;
+	baseResourceManager->hasSecondaryCommandBufferOcclusionQueries = features->inheritedQueries;
 	baseResourceManager->has64BitQueries = true;
 	baseResourceManager->hasQueryBuffers = true;
 	baseResourceManager->timestampPeriod = limits->timestampPeriod;

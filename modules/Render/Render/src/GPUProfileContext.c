@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,7 +137,7 @@ static QueryInfo* addQuery(dsGPUProfileContext* context, dsCommandBuffer* comman
 	if (poolIndex >= pools->poolCount)
 	{
 		if (!DS_RESIZEABLE_ARRAY_ADD(context->allocator, pools->pools, pools->poolCount,
-			pools->maxPools, 1))
+				pools->maxPools, 1))
 		{
 			context->error = true;
 			return NULL;
@@ -158,7 +158,7 @@ static QueryInfo* addQuery(dsGPUProfileContext* context, dsCommandBuffer* comman
 
 	uint32_t index = pools->queryCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(context->allocator, pools->queries, pools->queryCount,
-		pools->maxQueries, 1))
+			pools->maxQueries, 1))
 	{
 		context->error = true;
 		return NULL;
@@ -352,8 +352,7 @@ void dsGPUProfileContext_endFrame(dsGPUProfileContext* context)
 		QueryPools* pools = context->queryPools + context->queryPoolIndex;
 		if (!context->error)
 		{
-			addQuery(context, commandBuffer, NULL, NULL, pools->beginSwapIndex,
-				context->swapCount);
+			addQuery(context, commandBuffer, NULL, NULL, pools->beginSwapIndex, context->swapCount);
 			addQuery(context, commandBuffer, NULL, NULL, pools->beginFrameIndex,
 				context->swapCount);
 			submitResults = !context->error;

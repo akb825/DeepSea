@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ void dsMTLCommandBuffer_initialize(dsMTLCommandBuffer* commandBuffer, dsRenderer
 bool dsMTLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 bool dsMTLCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsFramebuffer* framebuffer, const dsRenderPass* renderPass, uint32_t subpass,
-	const dsAlignedBox3f* viewport);
+	const dsAlignedBox3f* viewport, dsGfxOcclusionQueryState parentOcclusionQueryState);
 bool dsMTLCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 bool dsMTLCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);

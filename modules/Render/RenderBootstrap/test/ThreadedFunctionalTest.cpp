@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -314,7 +314,7 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 			std::thread drawThread([&]()
 				{
 					ASSERT_TRUE(dsCommandBuffer_beginSecondary(*secondaryCommands, info.framebuffer,
-						info.renderPass, 0, NULL));
+						info.renderPass, 0, NULL, dsGfxOcclusionQueryState_Disabled));
 					ASSERT_TRUE(dsSharedMaterialValues_setBufferID(info.instanceValues[0],
 						info.transformId, info.transformBuffer, 0, sizeof(dsMatrix44f)));
 
@@ -405,7 +405,7 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 			std::thread drawThread([&]()
 				{
 					ASSERT_TRUE(dsCommandBuffer_beginSecondary(secondaryCommands0, info.framebuffer,
-						info.renderPass, 0, NULL));
+						info.renderPass, 0, NULL, dsGfxOcclusionQueryState_Disabled));
 					ASSERT_TRUE(dsSharedMaterialValues_setBufferID(info.instanceValues[0],
 						info.transformId, info.transformBuffer, transformSize,
 						sizeof(dsMatrix44f)));
@@ -430,7 +430,7 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 			drawThread = std::thread([&]()
 				{
 					ASSERT_TRUE(dsCommandBuffer_beginSecondary(secondaryCommands1, info.framebuffer,
-						info.renderPass, 0, NULL));
+						info.renderPass, 0, NULL, dsGfxOcclusionQueryState_Disabled));
 					ASSERT_TRUE(dsSharedMaterialValues_setBufferID(info.instanceValues[0],
 						info.transformId, info.transformBuffer, 0, sizeof(dsMatrix44f)));
 

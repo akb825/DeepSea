@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -175,6 +175,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->hasFences = true;
 	resourceManager->hasQueries = true;
 	resourceManager->hasPreciseOcclusionQueries = true;
+	resourceManager->hasSecondaryCommandBufferOcclusionQueries = true;
 	resourceManager->has64BitQueries = true;
 	resourceManager->hasQueryBuffers = true;
 	resourceManager->timestampPeriod = 1.0f;

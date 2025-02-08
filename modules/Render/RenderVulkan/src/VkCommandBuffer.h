@@ -26,7 +26,7 @@ dsCommandBuffer* dsVkCommandBuffer_get(dsCommandBuffer* commandBuffer);
 bool dsVkCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 bool dsVkCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsFramebuffer* framebuffer, const dsRenderPass* renderPass, uint32_t subpass,
-	const dsAlignedBox3f* viewport);
+	const dsAlignedBox3f* viewport, dsGfxOcclusionQueryState parentOcclusionQueryState);
 bool dsVkCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);
