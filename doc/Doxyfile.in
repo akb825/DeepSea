@@ -162,7 +162,7 @@ FULL_PATH_NAMES        = YES
 # will be relative from the directory where doxygen is started.
 # This tag requires that the tag FULL_PATH_NAMES is set to YES.
 
-STRIP_FROM_PATH        = @sourceDirs@
+STRIP_FROM_PATH        = @strippedPrefixes@
 
 # The STRIP_FROM_INC_PATH tag can be used to strip a user-defined part of the
 # path mentioned in the documentation of a class, which tells the reader which
@@ -967,6 +967,14 @@ FILTER_SOURCE_PATTERNS =
 # and want to reuse the introduction page also for the doxygen output.
 
 USE_MDFILE_AS_MAINPAGE = @DEEPSEA_SOURCE_DIR@/README.md
+
+# If the IMPLICIT_DIR_DOCS tag is set to YES, any README.md file found in
+# sub-directories of the project's root, is used as the documentation for that
+# sub-directory, except when the README.md starts with a \dir, \page or
+# \mainpage command. If set to NO, the README.md file needs to start with an
+# explicit \dir command in order to be used as directory documentation.
+
+IMPLICIT_DIR_DOCS      = NO
 
 #---------------------------------------------------------------------------
 # Configuration options related to source browsing
