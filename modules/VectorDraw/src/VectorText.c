@@ -324,17 +324,17 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 		if (i == 0)
 		{
 			if (!dsVectorScratchData_addTextPiece(scratchData, &bounds, &text->transform, &offset,
-				text->font, range->fillOpacity, range->outlineOpacity, layout,
-				scratchData->textStyles + i, fillMaterial, outlineMaterial, fillMaterialType,
-				outlineMaterialType, fillMaterialSource, outlineMaterialSource))
+					text->font, range->fillOpacity, range->outlineOpacity, layout,
+					scratchData->textStyles + i, fillMaterial, outlineMaterial, fillMaterialType,
+					outlineMaterialType, fillMaterialSource, outlineMaterialSource))
 			{
 				DS_PROFILE_FUNC_RETURN(false);
 			}
 		}
 		else if (!dsVectorScratchData_addTextRange(scratchData, &offset, range->fillOpacity,
-			range->outlineOpacity, layout, scratchData->textStyles + i, fillMaterial,
-			outlineMaterial, fillMaterialType, outlineMaterialType, fillMaterialSource,
-			outlineMaterialSource))
+				range->outlineOpacity, layout, scratchData->textStyles + i, fillMaterial,
+				outlineMaterial, fillMaterialType, outlineMaterialType, fillMaterialSource,
+				outlineMaterialSource))
 		{
 			DS_PROFILE_FUNC_RETURN(false);
 		}

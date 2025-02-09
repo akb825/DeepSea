@@ -333,9 +333,11 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 		for (uint32_t j = 0; j < range->glyphCount; ++j)
 		{
 			uint32_t index = range->firstGlyph + j;
+			dsGlyphLayout* glyph = glyphs + index;
+			const dsGlyph* textGlyph = text->glyphs + index;
 
 			// Advance the style.
-			uint32_t charIndex = text->glyphs[index].charIndex;
+			uint32_t charIndex = textGlyph->charIndex;
 			DS_ASSERT(charIndex < text->characterCount);
 
 			while (charIndex >= styleRangeLimit)
@@ -348,38 +350,38 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			DS_ASSERT(style < layout->styles + layout->styleCount);
 
 			// Skip whitespace.
-			uint32_t charcode = text->characters[text->glyphs[index].charIndex];
+			uint32_t charcode = text->characters[textGlyph->charIndex];
 			if (dsIsSpace(charcode))
 			{
-				glyphs[index].geometry.min.x = glyphs[index].geometry.min.y = 0;
-				glyphs[index].geometry.max = glyphs[index].geometry.min;
-				glyphs[index].texCoords = glyphs[index].geometry;
-				glyphs[index].mipLevel = 0;
-				glyphs[index].styleIndex = (uint32_t)(style - layout->styles);
+				glyph->geometry.min.x = glyph->geometry.min.y = 0;
+				glyph->geometry.max = glyph->geometry.min;
+				glyph->texCoords = glyph->geometry;
+				glyph->mipLevel = 0;
+				glyph->styleIndex = (uint32_t)(style - layout->styles);
 				continue;
 			}
 
 			float scale = style->scale/(float)font->glyphSize;
 			dsGlyphInfo* glyphInfo = dsFont_getGlyphInfo(font, commandBuffer, range->face,
-				text->glyphs[index].glyphId);
+				textGlyph->glyphId);
 
-			dsVector2_scale(glyphs[index].geometry.min, glyphInfo->glyphBounds.min, scale);
-			dsVector2_scale(glyphs[index].geometry.max, glyphInfo->glyphBounds.max, scale);
+			dsVector2_scale(glyph->geometry.min, glyphInfo->glyphBounds.min, scale);
+			dsVector2_scale(glyph->geometry.max, glyphInfo->glyphBounds.max, scale);
 
 			// Add the offset to the base glyph position.
-			glyphs[index].geometry.min.y += style->verticalOffset;
-			glyphs[index].geometry.max.y += style->verticalOffset;
+			glyph->geometry.min.y += style->verticalOffset;
+			glyph->geometry.max.y += style->verticalOffset;
 
 			dsTexturePosition texturePos;
 			dsFont_getGlyphTexturePos(&texturePos, dsFont_getGlyphIndex(font, glyphInfo),
 				font->glyphSize, font->texMultiplier);
-			glyphs[index].mipLevel = texturePos.mipLevel;
+			glyph->mipLevel = texturePos.mipLevel;
 			// Store the base information in texCoords for now so we can use it for later
 			// calculations.
-			glyphs[index].texCoords.min.x = (float)texturePos.x;
-			glyphs[index].texCoords.min.y = (float)texturePos.y;
-			dsAlignedBox2_extents(glyphs[index].texCoords.max, glyphInfo->glyphBounds);
-			glyphs[index].styleIndex = (uint32_t)(style - layout->styles);
+			glyph->texCoords.min.x = (float)texturePos.x;
+			glyph->texCoords.min.y = (float)texturePos.y;
+			dsAlignedBox2_extents(glyph->texCoords.max, glyphInfo->glyphBounds);
+			glyph->styleIndex = (uint32_t)(style - layout->styles);
 		}
 	}
 	DS_PROFILE_SCOPE_END();
@@ -411,46 +413,49 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 		if (charMapping->glyphCount == 0)
 			continue;
 
-		bool isWhitespace = dsIsSpace(text->characters[i]);
+		uint32_t charcode = text->characters[i];
+		bool isWhitespace = dsIsSpace(charcode);
 		float scale = layout->styles[glyphs[charMapping->firstGlyph].styleIndex].scale;
 		float glyphWidth = 0.0f;
 		for (uint32_t j = 0; j < charMapping->glyphCount; ++j)
 		{
 			uint32_t index = charMapping->firstGlyph + j;
+			const dsGlyphLayout* glyph = glyphs + index;
+			const dsGlyph* textGlyph = text->glyphs + index;
 
 			// Handle line change from previous pass.
-			if (glyphs[index].position.y != (float)line)
+			if (glyph->position.y != (float)line)
 			{
 				// For right to left text, the characters will be reversed within a line, but
 				// shouldn't pass a line boundary.
-				DS_ASSERT(glyphs[index].position.y > (float)line);
+				DS_ASSERT(glyph->position.y > (float)line);
 				position.x = 0.0f;
-				position.y += glyphs[index].position.y - (float)line;
+				position.y += glyph->position.y - (float)line;
 				wordCount = 0;
 				curWord = i;
 				curWordOffset = 0.0f;
 				lastIsWhitespace = false;
-				line = (uint32_t)glyphs[index].position.y;
+				line = (uint32_t)glyph->position.y;
 			}
 
-			position.x += text->glyphs[index].advance*scale;
+			position.x += textGlyph->advance*scale;
 
 			if (!isWhitespace)
 			{
-				const dsTextStyle* style = layout->styles + glyphs[index].styleIndex;
-				float glyphImageWidth = glyphs[index].texCoords.max.x + (float)windowSize*2.0f;
+				const dsTextStyle* style = layout->styles + glyph->styleIndex;
+				float glyphImageWidth = glyph->texCoords.max.x + (float)windowSize*2.0f;
 				glyphImageWidth = dsMax(glyphImageWidth, font->glyphSize);
 				float glyphScale = (float)font->glyphSize/glyphImageWidth;
 				float boundsPadding = glyphScale*basePadding*style->embolden*scale;
 				dsVector2f offset;
-				dsVector2_scale(offset, text->glyphs[index].offset, scale);
-				glyphWidth += offset.x + glyphs[index].geometry.max.x + boundsPadding;
+				dsVector2_scale(offset, textGlyph->offset, scale);
+				glyphWidth += offset.x + glyph->geometry.max.x + boundsPadding;
 				// Positive y points down, so need to subtract the slant from the width for a
 				// positive effect.
 				if (style->slant > 0)
-					glyphWidth -= (offset.y + glyphs[index].geometry.min.y)*style->slant;
+					glyphWidth -= (offset.y + glyph->geometry.min.y)*style->slant;
 				else
-					glyphWidth -= (offset.y + glyphs[index].geometry.max.y)*style->slant;
+					glyphWidth -= (offset.y + glyph->geometry.max.y)*style->slant;
 			}
 		}
 
@@ -467,10 +472,10 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 		// Split on newline or on word boundaries that go over the limit.
 		// Don't split on the first word in case the width is too small. (word count starts at 0
 		// for the first word)
-		if (text->characters[i] == '\n' ||
+		if (charcode == '\n' ||
 			(position.x + glyphWidth > maxWidth && !isWhitespace && wordCount > 0))
 		{
-			if (text->characters[i] == '\n')
+			if (charcode == '\n')
 			{
 				firstWhitespaceBeforeWord = curWord = i;
 				position.x = 0.0f;
@@ -487,8 +492,9 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 				const dsCharMapping* otherMapping = text->charMappings + j;
 				for (uint32_t k = 0; k < otherMapping->glyphCount; ++k)
 				{
-					glyphs[otherMapping->firstGlyph + k].position.x = FLT_MAX;
-					glyphs[otherMapping->firstGlyph + k].position.y = FLT_MAX;
+					dsGlyphLayout* otherGlyph = glyphs + otherMapping->firstGlyph + k;
+					otherGlyph->position.x = FLT_MAX;
+					otherGlyph->position.y = FLT_MAX;
 				}
 			}
 
@@ -498,8 +504,9 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 				const dsCharMapping* otherMapping = text->charMappings + j;
 				for (uint32_t k = 0; k < otherMapping->glyphCount; ++k)
 				{
-					glyphs[otherMapping->firstGlyph + k].position.x -= curWordOffset;
-					glyphs[otherMapping->firstGlyph + k].position.y += 1.0f;
+					dsGlyphLayout* otherGlyph = glyphs + otherMapping->firstGlyph + k;
+					otherGlyph->position.x -= curWordOffset;
+					otherGlyph->position.y += 1.0f;
 				}
 			}
 		}
@@ -580,13 +587,14 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 		}
 
 		float scale = layout->styles[glyph->styleIndex].scale;
+		const dsGlyph* textGlyph = text->glyphs + textIndex;
 		maxScale = dsMax(scale, maxScale);
 		glyph->position.x = offset;
-		DS_ASSERT(text->glyphs[textIndex].advance >= 0);
-		offset += text->glyphs[textIndex].advance*scale;
+		DS_ASSERT(textGlyph->advance >= 0);
+		offset += textGlyph->advance*scale;
 
-		glyph->position.x += text->glyphs[textIndex].offset.x*scale;
-		glyph->position.y += text->glyphs[textIndex].offset.y*scale;
+		glyph->position.x += textGlyph->offset.x*scale;
+		glyph->position.y += textGlyph->offset.y*scale;
 
 		// Add to the line bounds.
 		if (glyph->geometry.min.x != glyph->geometry.max.x &&
@@ -601,7 +609,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 		else
 		{
 			// This will catch leading whitespace for right to left text.
-			if (text->characters[text->glyphs[textIndex].charIndex] != '\n')
+			if (text->characters[textGlyph->charIndex] != '\n')
 			{
 				dsVector2f point = {{offset, glyph->position.y}};
 				dsAlignedBox2_addPoint(lineBounds, point);
@@ -627,15 +635,16 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 	uint32_t paddedGlyphSize = font->glyphSize + windowSize*2;
 	for (uint32_t i = 0; i < text->glyphCount; ++i)
 	{
-		dsTexturePosition texturePos = {dsCubeFace_None, (uint32_t)glyphs[i].texCoords.min.x,
-			(uint32_t)glyphs[i].texCoords.min.y, 0, glyphs[i].mipLevel};
-		const dsVector2f* glyphSize = &glyphs[i].texCoords.max;
+		dsGlyphLayout* glyph = glyphs + i;
+		dsTexturePosition texturePos = {dsCubeFace_None, (uint32_t)glyph->texCoords.min.x,
+			(uint32_t)glyph->texCoords.min.y, 0, glyph->mipLevel};
+		const dsVector2f* glyphSize = &glyph->texCoords.max;
 
 		// Don't add padding if the geometry is degenerate.
-		if (glyphs[i].geometry.min.x < glyphs[i].geometry.max.x &&
-			glyphs[i].geometry.min.y < glyphs[i].geometry.max.y)
+		if (glyph->geometry.min.x < glyph->geometry.max.x &&
+			glyph->geometry.min.y < glyph->geometry.max.y)
 		{
-			float scale = layout->styles[glyphs[i].styleIndex].scale;
+			float scale = layout->styles[glyph->styleIndex].scale;
 			float glyphWidth = glyphSize->x + (float)windowSize*2.0f;
 			float glyphHeight = glyphSize->y + (float)windowSize*2.0f;
 			glyphWidth = dsMax(glyphWidth, (float)paddedGlyphSize);
@@ -646,11 +655,11 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			dsVector2_mul(padding, padding, glyphScale);
 			dsVector2_scale(padding, padding, scale);
 
-			dsVector2_sub(glyphs[i].geometry.min, glyphs[i].geometry.min, padding);
-			dsVector2_add(glyphs[i].geometry.max, glyphs[i].geometry.max, padding);
+			dsVector2_sub(glyph->geometry.min, glyph->geometry.min, padding);
+			dsVector2_add(glyph->geometry.max, glyph->geometry.max, padding);
 		}
 
-		dsFont_getGlyphTextureBounds(&glyphs[i].texCoords, &texturePos, glyphSize, font->glyphSize,
+		dsFont_getGlyphTextureBounds(&glyph->texCoords, &texturePos, glyphSize, font->glyphSize,
 			font->texMultiplier);
 	}
 

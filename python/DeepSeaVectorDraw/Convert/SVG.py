@@ -1,4 +1,4 @@
-# Copyright 2020-2021 Aaron Barany
+# Copyright 2020-2025 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -58,10 +58,10 @@ from .. import VectorImage
 
 lineJoinMap = {'miter': LineJoin.Miter, 'bevel': LineJoin.Bevel, 'round': LineJoin.Round}
 lineCapMap = {'butt': LineCap.Butt, 'round': LineCap.Round, 'square': LineCap.Square}
-textAlignMap = {'start': TextAlign.Start, 'end': TextAlign.End, 'left': TextAlign.Left, \
+textAlignMap = {'start': TextAlign.Start, 'end': TextAlign.End, 'left': TextAlign.Left,
 	'right': TextAlign.Right, 'center': TextAlign.Center}
 textAnchorMap = {'start': TextAlign.Start, 'end': TextAlign.End, 'middle': TextAlign.Center}
-textAttributes = ['font-family', 'font-size', 'font-style', 'font-weight', 'text-align', \
+textAttributes = ['font-family', 'font-size', 'font-style', 'font-weight', 'text-align',
 	'text-anchor', 'line-height', 'textLength', 'inline-size']
 
 def sizeFromString(sizeStr, relativeSize):
@@ -164,32 +164,32 @@ class Transform:
 			self.matrix[2][1], self.matrix[2][2])
 
 	def __mul__(self, other):
-		return Transform( \
-			( \
-				( \
-					self.matrix[0][0]*other.matrix[0][0] + self.matrix[1][0]*other.matrix[0][1] + \
+		return Transform(
+			(
+				(
+					self.matrix[0][0]*other.matrix[0][0] + self.matrix[1][0]*other.matrix[0][1] +
 						self.matrix[2][0]*other.matrix[0][2],
-					self.matrix[0][1]*other.matrix[0][0] + self.matrix[1][1]*other.matrix[0][1] + \
+					self.matrix[0][1]*other.matrix[0][0] + self.matrix[1][1]*other.matrix[0][1] +
 						self.matrix[2][1]*other.matrix[0][2],
-					self.matrix[0][2]*other.matrix[0][0] + self.matrix[1][2]*other.matrix[0][1] + \
-						self.matrix[2][2]*other.matrix[0][2] \
+					self.matrix[0][2]*other.matrix[0][0] + self.matrix[1][2]*other.matrix[0][1] +
+						self.matrix[2][2]*other.matrix[0][2]
 				),
-				( \
-					self.matrix[0][0]*other.matrix[1][0] + self.matrix[1][0]*other.matrix[1][1] + \
+				(
+					self.matrix[0][0]*other.matrix[1][0] + self.matrix[1][0]*other.matrix[1][1] +
 						self.matrix[2][0]*other.matrix[1][2],
-					self.matrix[0][1]*other.matrix[1][0] + self.matrix[1][1]*other.matrix[1][1] + \
+					self.matrix[0][1]*other.matrix[1][0] + self.matrix[1][1]*other.matrix[1][1] +
 						self.matrix[2][1]*other.matrix[1][2],
-					self.matrix[0][2]*other.matrix[1][0] + self.matrix[1][2]*other.matrix[1][1] + \
-						self.matrix[2][2]*other.matrix[1][2] \
+					self.matrix[0][2]*other.matrix[1][0] + self.matrix[1][2]*other.matrix[1][1] +
+						self.matrix[2][2]*other.matrix[1][2]
 				),
-				( \
-					self.matrix[0][0]*other.matrix[2][0] + self.matrix[1][0]*other.matrix[2][1] + \
+				(
+					self.matrix[0][0]*other.matrix[2][0] + self.matrix[1][0]*other.matrix[2][1] +
 						self.matrix[2][0]*other.matrix[2][2],
-					self.matrix[0][1]*other.matrix[2][0] + self.matrix[1][1]*other.matrix[2][1] + \
+					self.matrix[0][1]*other.matrix[2][0] + self.matrix[1][1]*other.matrix[2][1] +
 						self.matrix[2][1]*other.matrix[2][2],
-					self.matrix[0][2]*other.matrix[2][0] + self.matrix[1][2]*other.matrix[2][1] + \
-						self.matrix[2][2]*other.matrix[2][2] \
-				) \
+					self.matrix[0][2]*other.matrix[2][0] + self.matrix[1][2]*other.matrix[2][1] +
+						self.matrix[2][2]*other.matrix[2][2]
+				)
 			))
 
 class Gradient:
@@ -437,7 +437,7 @@ class Style:
 		self.opacity = opacity
 
 	@staticmethod
-	def create(node, materials, relativeSize, parentStyle = None, group = False, \
+	def create(node, materials, relativeSize, parentStyle = None, group = False,
 		defaultFont = None, width = None, text = False):
 		"""Constructs the style with the encoded style."""
 		fill = None
@@ -549,7 +549,7 @@ class Style:
 			if not font:
 				font = Font(defaultFont)
 			if 'font' in elements:
-				raise Exception("Combined 'font' elelement not supported, use separate elements " \
+				raise Exception("Combined 'font' elelement not supported, use separate elements "
 					"such as 'font-family' instead.")
 			if 'font-family' in elements:
 				font.font = elements['font-family']
@@ -745,7 +745,7 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 	offsets = writeStartPath(builder, transform, False)
 
 	tokens = re.findall(
-		r"[mMzZlLhHvVcCsSqQtTaAbB]|[-+]?[0-9.]+(?:[eE][-+]?[0-9]+)?" \
+		r"[mMzZlLhHvVcCsSqQtTaAbB]|[-+]?[0-9.]+(?:[eE][-+]?[0-9]+)?"
 		"(?:cm|mm|Q|in|pc|pt|em|px|deg|grad|rad|turn|%)?", path)
 	pos = (0.0, 0.0)
 	lastControlPos = None
@@ -753,12 +753,12 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 	index = 0
 	command = ''
 	while index < len(tokens):
-		if tokens[index][0] == '.' or tokens[index][0] == '-' or tokens[index][0] == '+' or \
-			(ord(tokens[index][0]) >= ord('0') and ord(tokens[index][0]) <= ord('9')):
+		if (tokens[index][0] == '.' or tokens[index][0] == '-' or tokens[index][0] == '+' or
+				(ord(tokens[index][0]) >= ord('0') and ord(tokens[index][0]) <= ord('9'))):
 			x = sizeFromString(tokens[index], size[0])
 			index += 1
-			if command != 'b' and command != 'B' and command != 'h' and command != 'H' and \
-				command != 'v' and command != 'V':
+			if (command != 'b' and command != 'B' and command != 'h' and command != 'H' and
+					command != 'v' and command != 'V'):
 				y = sizeFromString(tokens[index], size[1])
 				index += 1
 			if command == 'm' or command == 'M':
@@ -777,8 +777,8 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 				VectorCommand.AddCommandType(builder, VectorCommandUnion.MoveCommand)
 				VectorCommand.AddCommand(builder, commandOffset)
 				offsets.append(VectorCommand.End(builder))
-			elif command == 'l' or command == 'L' or command == 'h' or command == 'H' or \
-				command == 'v' or command == 'V':
+			elif (command == 'l' or command == 'L' or command == 'h' or command == 'H' or
+					command == 'v' or command == 'V'):
 				if command == 'l':
 					pos = (pos[0] + x, pos[1] + y)
 				elif command == 'L':
@@ -917,7 +917,7 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 
 				pos = end
 			elif command == 'b' or command == 'B':
-				raise Exception('Bearing currently not implemented. ' \
+				raise Exception('Bearing currently not implemented. '
 					'It is generally not implemented by other SVG renderers either.')
 		elif tokens[index] == 'z' or tokens[index] == 'Z':
 			ClosePathCommand.Start(builder)
@@ -1001,7 +1001,7 @@ def writeTextRange(builder, textRange):
 	TextRangeCommand.AddStart(builder, textRange.start)
 	TextRangeCommand.AddCount(builder, textRange.count)
 	TextRangeCommand.AddPositionType(builder, textRange.positionType)
-	TextRangeCommand.AddPosition(builder, \
+	TextRangeCommand.AddPosition(builder,
 		CreateVector2f(builder, textRange.position[0], textRange.position[1]))
 	TextRangeCommand.AddFillMaterial(builder, fillMaterialOffset)
 	TextRangeCommand.AddOutlineMaterial(builder, outlineMaterialOffset)
@@ -1036,18 +1036,18 @@ def readText(node, defaultFont, size, diagonalSize, materials, style = None):
 	if not node or node.tagName != 'text':
 		return None, None, None
 
-	rootStyle = Style.create(node, materials, diagonalSize, style, defaultFont = defaultFont, \
+	rootStyle = Style.create(node, materials, diagonalSize, style, defaultFont = defaultFont,
 		width = size[0], text = True)
 	text = u""
 	initialPosition = (0.0, 0.0)
 	if node.hasAttribute('x') and node.hasAttribute('y'):
-		initialPosition = (sizeFromString(node.getAttribute('x'), size[0]), \
+		initialPosition = (sizeFromString(node.getAttribute('x'), size[0]),
 			sizeFromString(node.getAttribute('y'), size[1]))
 	ranges = [TextRange(0, 0, initialPosition, TextPosition.Absolute, rootStyle)]
 
 	for child in node.childNodes:
 		if child.nodeType == xml.dom.Node.ELEMENT_NODE:
-			rangeStyle = Style.create(child, materials, diagonalSize, rootStyle, \
+			rangeStyle = Style.create(child, materials, diagonalSize, rootStyle,
 				defaultFont = defaultFont, width = size[0], text = True)
 			curText = u""
 
@@ -1067,9 +1067,8 @@ def readText(node, defaultFont, size, diagonalSize, materials, style = None):
 			position = (0.0, 0.0)
 			positionType = TextPosition.Offset
 
-			if not rootStyle.font.maxLength and child.hasAttribute('x') and \
-				child.hasAttribute('y'):
-				position = (sizeFromString(child.getAttribute('x'), size[0]), \
+			if not rootStyle.font.maxLength and child.hasAttribute('x') and child.hasAttribute('y'):
+				position = (sizeFromString(child.getAttribute('x'), size[0]),
 					sizeFromString(child.getAttribute('y'), size[1]))
 				positionType = TextPosition.Absolute
 			elif child.hasAttribute('dx') or child.hasAttribute('dy'):
@@ -1079,7 +1078,7 @@ def readText(node, defaultFont, size, diagonalSize, materials, style = None):
 					position = (position[0], sizeFromString(child.getAttribute('dy'), size[1]))
 				positionType = TextPosition.Offset
 			if curText:
-				ranges.append(TextRange(len(text), len(curText), position, positionType, \
+				ranges.append(TextRange(len(text), len(curText), position, positionType,
 					rangeStyle))
 			text += curText
 		elif child.nodeType == xml.dom.Node.TEXT_NODE:
@@ -1094,7 +1093,7 @@ def readText(node, defaultFont, size, diagonalSize, materials, style = None):
 				if ranges[-1].style == rootStyle:
 					ranges[-1].count += len(curText)
 				else:
-					ranges.append(TextRange(len(text), len(curText), (0.0, 0.0), \
+					ranges.append(TextRange(len(text), len(curText), (0.0, 0.0),
 						TextPosition.Offset, rootStyle))
 				text += curText
 
@@ -1104,7 +1103,7 @@ def readShapes(node, defaultFont, materials, size, diagonalSize, transform, styl
 	commands = []
 	if node.tagName == 'g':
 		groupTransform = transform*Transform.fromNode(node)
-		groupStyle = Style.create(node, materials, diagonalSize, style, group = True, \
+		groupStyle = Style.create(node, materials, diagonalSize, style, group = True,
 			defaultFont = defaultFont, width = size[0])
 		for groupNode in node.childNodes:
 			if groupNode.nodeType == xml.dom.Node.ELEMENT_NODE:
@@ -1172,9 +1171,9 @@ def readShapes(node, defaultFont, materials, size, diagonalSize, transform, styl
 				sizeFromString(node.getAttribute('y'), size[1])),
 			rectSize = (sizeFromString(node.getAttribute('width'), size[0]),
 				sizeFromString(node.getAttribute('height'), size[1])),
-			radius = (sizeFromString(node.getAttribute('rx'), size[0]),
-				sizeFromString(node.getAttribute('ry'), size[1])) \
-				if node.hasAttribute('rx') else (0.0, 0.0):
+			radius = ((sizeFromString(node.getAttribute('rx'), size[0]),
+				sizeFromString(node.getAttribute('ry'), size[1]))
+				if node.hasAttribute('rx') else (0.0, 0.0)):
 			writeRectangle(builder, transform, style, upperLeft, rectSize, radius))
 	elif node.tagName == 'text':
 		font, text, ranges = readText(node, defaultFont, size, diagonalSize, materials, style)
@@ -1226,7 +1225,7 @@ def convertSVG(streamOrPath, name, defaultFont):
 				if node.tagName == 'defs':
 					readMaterials(node, materials, size, diagonalSize)
 				else:
-					commands.extend(readShapes(node, defaultFont, materials, size, diagonalSize, \
+					commands.extend(readShapes(node, defaultFont, materials, size, diagonalSize,
 						Transform()))
 		break
 	

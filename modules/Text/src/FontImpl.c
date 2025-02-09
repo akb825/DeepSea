@@ -637,33 +637,35 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 		SBUInteger length = 0, separatorLength = 0;
 		SBAlgorithmGetParagraphBoundary(algorithm, offset, sequence.stringLength - offset, &length,
 			&separatorLength);
-		group->paragraphs[i].paragraph = SBAlgorithmCreateParagraph(algorithm, offset, length,
+		dsParagraphInfo* paragraph = group->paragraphs + i;
+		paragraph->paragraph = SBAlgorithmCreateParagraph(algorithm, offset, length,
 			SBLevelDefaultLTR);
-		if (!group->paragraphs[i].paragraph)
+		if (!paragraph->paragraph)
 		{
 			++offset;
-			group->paragraphs[i].line = NULL;
+			paragraph->line = NULL;
 			continue;
 		}
 
 		SBUInteger lineLength = length - separatorLength;
 		if (lineLength > 0)
 		{
-			group->paragraphs[i].line = SBParagraphCreateLine(group->paragraphs[i].paragraph,
+			paragraph->line = SBParagraphCreateLine(paragraph->paragraph,
 				offset, length - separatorLength);
-			if (!group->paragraphs[i].line)
+			if (!paragraph->line)
 			{
-				SBParagraphRelease(group->paragraphs[i].paragraph);
+				SBParagraphRelease(paragraph->paragraph);
 				for (unsigned int j = 0; j < i; ++j)
 				{
-					SBLineRelease(group->paragraphs[j].line);
-					SBParagraphRelease(group->paragraphs[j].paragraph);
+					dsParagraphInfo* otherParagraph = group->paragraphs + j;
+					SBLineRelease(otherParagraph->line);
+					SBParagraphRelease(otherParagraph->paragraph);
 				}
 				SBAlgorithmRelease(algorithm);
 				*outCount = DS_UNICODE_INVALID;
 				DS_PROFILE_FUNC_RETURN(NULL);
 			}
-			*outCount += (uint32_t)SBLineGetRunCount(group->paragraphs[i].line);
+			*outCount += (uint32_t)SBLineGetRunCount(paragraph->line);
 		}
 
 		offset += length;
@@ -676,11 +678,12 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 	{
 		for (unsigned int i = 0; i < paragraphCount; ++i)
 		{
-			if (!group->paragraphs[i].paragraph)
+			dsParagraphInfo* paragraph = group->paragraphs + i;
+			if (!paragraph->paragraph)
 				continue;
 
-			SBLineRelease(group->paragraphs[i].line);
-			SBParagraphRelease(group->paragraphs[i].paragraph);
+			SBLineRelease(paragraph->line);
+			SBParagraphRelease(paragraph->paragraph);
 		}
 		SBAlgorithmRelease(algorithm);
 		*outCount = DS_UNICODE_INVALID;
@@ -691,7 +694,8 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 	uint32_t run = 0;
 	for (uint32_t i = 0; i < paragraphCount; ++i)
 	{
-		if (!group->paragraphs[i].line)
+		dsParagraphInfo* paragraph = group->paragraphs + i;
+		if (!paragraph->line)
 		{
 			// An empty paragraph indicates that there was an empty line. Add it to the last run if
 			// it exists.
@@ -705,19 +709,21 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 		for (SBUInteger j = 0; j < curCount; ++j, ++run)
 		{
 			// Convert from character run to codepoint run.
-			DS_ASSERT(runArray[j].offset < mappingSize);
-			DS_ASSERT(runArray[j].offset + runArray[j].length < mappingSize);
-			group->runs[run].start = codepointMapping[runArray[j].offset];
-			uint32_t end = codepointMapping[runArray[j].offset + runArray[j].length];
-			group->runs[run].count = end - group->runs[run].start;
+			const SBRun* curRun = runArray + j;
+			dsRunInfo* groupRun = group->runs + run;
+			DS_ASSERT(curRun->offset < mappingSize);
+			DS_ASSERT(curRun->offset + curRun->length < mappingSize);
+			groupRun->start = codepointMapping[curRun->offset];
+			uint32_t end = codepointMapping[curRun->offset + curRun->length];
+			groupRun->count = end - groupRun->start;
 
 			// Odd levels indicate right to left text.
-			group->runs[run].direction = runArray[j].level & 1 ? dsTextDirection_RightToLeft :
+			groupRun->direction = curRun->level & 1 ? dsTextDirection_RightToLeft :
 				dsTextDirection_LeftToRight;
 
 			// Once we reach the end of the paragraph, mark as having a newline if more paragraphs
 			// remain.
-			group->runs[run].newlineCount = j == curCount - 1 && i != paragraphCount - 1;
+			groupRun->newlineCount = j == curCount - 1 && i != paragraphCount - 1;
 		}
 	}
 	DS_ASSERT(run == *outCount);
@@ -725,11 +731,12 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 	// Free temporary objects.
 	for (unsigned int i = 0; i < paragraphCount; ++i)
 	{
-		if (!group->paragraphs[i].paragraph)
+		dsParagraphInfo* paragraph = group->paragraphs + i;
+		if (!paragraph->paragraph)
 			continue;
 
-		SBLineRelease(group->paragraphs[i].line);
-		SBParagraphRelease(group->paragraphs[i].paragraph);
+		SBLineRelease(paragraph->line);
+		SBParagraphRelease(paragraph->paragraph);
 	}
 	SBAlgorithmRelease(algorithm);
 
@@ -1219,17 +1226,20 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 	dsGlyph* glyphs = (dsGlyph*)(text->glyphs + glyphOffset);
 	for (unsigned int i = 0; i < glyphCount; ++i)
 	{
-		glyphs[i].glyphId = glyphInfos[i].codepoint;
-		glyphs[i].charIndex = glyphInfos[i].cluster;
-		glyphs[i].offset.x = (float)glyphPos[i].x_offset*scale;
-		glyphs[i].offset.y = -(float)glyphPos[i].y_offset*scale;
+		dsGlyph* glyph = glyphs + i;
+		const hb_glyph_info_t* glyphInfo = glyphInfos + i;
+		const hb_glyph_position_t* curGlyphPos = glyphPos + i;
+		glyph->glyphId = glyphInfo->codepoint;
+		glyph->charIndex = glyphInfo->cluster;
+		glyph->offset.x = (float)curGlyphPos->x_offset*scale;
+		glyph->offset.y = -(float)curGlyphPos->y_offset*scale;
 		// Special handling for newlines, since they are used in layout but will have an invalid
 		// glyph.
-		if (text->characters[glyphs[i].charIndex] == '\n')
-			glyphs[i].advance = 0;
+		if (text->characters[glyph->charIndex] == '\n')
+			glyph->advance = 0;
 		else
-			glyphs[i].advance = (float)glyphPos[i].x_advance*scale;
-		DS_ASSERT(glyphPos[i].y_advance == 0);
+			glyph->advance = (float)curGlyphPos->x_advance*scale;
+		DS_ASSERT(curGlyphPos->y_advance == 0);
 	}
 
 	hb_buffer_reset(shapeBuffer);
