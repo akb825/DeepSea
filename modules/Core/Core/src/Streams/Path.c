@@ -18,6 +18,11 @@
 #include <DeepSea/Core/Error.h>
 #include <string.h>
 
+inline static bool isEndOrSep(char c)
+{
+	return c == 0 || c == DS_PATH_SEPARATOR || c == DS_PATH_ALT_SEPARATOR;
+}
+
 bool dsPath_combine(char* result, size_t resultSize, const char* path1, const char* path2)
 {
 	if (!result || resultSize == 0 || result == path2)
@@ -29,14 +34,7 @@ bool dsPath_combine(char* result, size_t resultSize, const char* path1, const ch
 	size_t len1 = path1 ? strlen(path1) : 0;
 	size_t len2 = path2 ? strlen(path2) : 0;
 
-	// Handle when one or both paths are empty.
-	if (!len1 && !len2)
-	{
-		*result = 0;
-		return true;
-	}
-
-	if (!len1 && len2)
+	if (len2 > 0 && dsPath_isAbsolute(path2))
 	{
 		if (resultSize < len2 + 1)
 		{
@@ -48,21 +46,82 @@ bool dsPath_combine(char* result, size_t resultSize, const char* path1, const ch
 		return true;
 	}
 
-	// Strip leading . directory for the second path when the first path is non-empty.
-	if (len2 > 0 && path2[0] == '.' &&
-		(path2[1] == 0 || path2[1] == DS_PATH_SEPARATOR || path2[1] == DS_PATH_ALT_SEPARATOR))
+	// Handle when one or both paths are empty.
+	if (len1 == 0 && len2 == 0)
 	{
-		++path2;
-		--len2;
+		*result = 0;
+		return true;
 	}
 
-	for (; len2 > 0; ++path2, --len2)
+	// Handle leading ./ and ../ entries.
+	while (len1 > 0 && len2 > 0 && path2[0] == '.')
 	{
-		if (path2[0] != DS_PATH_SEPARATOR && path2[0] != DS_PATH_ALT_SEPARATOR)
+		if (isEndOrSep(path2[1]))
+		{
+			++path2;
+			--len2;
+			if (path2[0] != 0)
+			{
+				++path2;
+				--len2;
+			}
+		}
+		else if (path2[1] == '.' && isEndOrSep(path2[2]))
+		{
+			// Remove the previous directory.
+			for (; len1 > 0; --len1)
+			{
+				if (path1[len1 - 1] != DS_PATH_SEPARATOR && path1[len1 - 1] != DS_PATH_ALT_SEPARATOR)
+					break;
+			}
+
+			// If no more characters left, this is attempting to go above an absolute path.
+			if (len1 == 0)
+			{
+				errno = EINVAL;
+				return false;
+			}
+
+			// Check for Windows absolute path.
+#if DS_WINDOWS
+			if (len1 == 2 && path1[1] == ':')
+			{
+				errno = EINVAL;
+				return false;
+			}
+#endif
+
+			for (; len1 > 0; --len1)
+			{
+				if (path1[len1 - 1] == DS_PATH_SEPARATOR || path1[len1 - 1] == DS_PATH_ALT_SEPARATOR)
+					break;
+			}
+
+			path2 += 2;
+			len2 -= 2;
+			if (path2[0] != 0)
+			{
+				++path2;
+				--len2;
+			}
+		}
+		else
 			break;
 	}
 
-	if (len1 && !len2)
+	if (len1 == 0)
+	{
+		if (resultSize < len2 + 1)
+		{
+			errno = ESIZE;
+			return false;
+		}
+
+		memcpy(result, path2, len2 + 1);
+		return true;
+	}
+
+	if (len1 > 0 && len2 == 0)
 	{
 		if (resultSize < len1 + 1)
 		{
@@ -75,7 +134,7 @@ bool dsPath_combine(char* result, size_t resultSize, const char* path1, const ch
 		return true;
 	}
 
-	// Remove the path separator if present for each path.
+	// Remove the trailing path separators from the first path.
 	for (; len1 > 0; --len1)
 	{
 		if (path1[len1 - 1] != DS_PATH_SEPARATOR && path1[len1 - 1] != DS_PATH_ALT_SEPARATOR)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,8 @@ extern "C"
  *     contains pace for both path1 and path2, plus the path separator. (if not already at the end
  *     of path 2)
  * @param path1 The first path.
- * @param path2 The second path to add to the first one.
+ * @param path2 The second path to add to the first one. If path1 is set, any leading ./ or ../
+ *     entries will be resolved based on pat1. If path2 is absolute, it will be taken as-is.
  * @return False if the parameters are invalid or there isn't enough space in result.
  */
 DS_CORE_EXPORT bool dsPath_combine(char* result, size_t resultSize, const char* path1,

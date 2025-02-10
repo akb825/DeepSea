@@ -47,11 +47,12 @@ TEST(PathTest, Combine)
 	EXPECT_STREQ("path1/path2", result);
 #endif
 
-	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "otherPath1//", "//path2"));
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "otherPath1/", "/path2"));
+	EXPECT_STREQ("/path2", result);
+
 #if DS_WINDOWS
-	EXPECT_STREQ("otherPath1\\path2", result);
-#else
-	EXPECT_STREQ("otherPath1/path2", result);
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "otherPath1/", "C:\\path2"));
+	EXPECT_STREQ("C:\\path2", result);
 #endif
 
 	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "/", "test"));
@@ -60,6 +61,25 @@ TEST(PathTest, Combine)
 #else
 	EXPECT_STREQ("/test", result);
 #endif
+
+	EXPECT_FALSE_ERRNO(ESIZE, dsPath_combine(result, 11, "path1", "path2"));
+	EXPECT_TRUE(dsPath_combine(result, 12, "path1", "path2"));
+
+	EXPECT_FALSE_ERRNO(ESIZE, dsPath_combine(result, 6, "path1/", "/path2"));
+	EXPECT_TRUE(dsPath_combine(result, 7, "path1/", "/path2"));
+
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "", "."));
+	EXPECT_STREQ(".", result);
+
+	result[0] = 0;
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, result, "test"));
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, result, "path"));
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, result, "combine"));
+}
+
+TEST(PathTest, CombineResolveRelativePaths)
+{
+	char result[DS_PATH_MAX];
 
 	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "/", "."));
 	EXPECT_STREQ("/", result);
@@ -93,19 +113,53 @@ TEST(PathTest, Combine)
 	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "", "./"));
 	EXPECT_STREQ("./", result);
 
-	EXPECT_FALSE_ERRNO(ESIZE, dsPath_combine(result, 11, "path1", "path2"));
-	EXPECT_TRUE(dsPath_combine(result, 12, "path1", "path2"));
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "test", ".."));
+	EXPECT_STREQ("", result);
 
-	EXPECT_FALSE_ERRNO(ESIZE, dsPath_combine(result, 11, "path1//", "//path2"));
-	EXPECT_TRUE(dsPath_combine(result, 12, "path1//", "//path2"));
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "test/", "../"));
+	EXPECT_STREQ("", result);
 
-	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "", "."));
-	EXPECT_STREQ(".", result);
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "test/", "../foo"));
+	EXPECT_STREQ("foo", result);
 
-	result[0] = 0;
-	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, result, "test"));
-	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, result, "path"));
-	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, result, "combine"));
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "test", "../../foo"));
+	EXPECT_STREQ("../foo", result);
+
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "test/path", "../foo"));
+#if DS_WINDOWS
+	EXPECT_STREQ("test\\foo", result);
+#else
+	EXPECT_STREQ("test/foo", result);
+#endif
+
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "/test/root/path", ".././../foo"));
+#if DS_WINDOWS
+	EXPECT_STREQ("/test\\foo", result);
+#else
+	EXPECT_STREQ("/test/foo", result);
+#endif
+
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "/test/root/path", "../../../foo"));
+#if DS_WINDOWS
+	EXPECT_STREQ("\\foo", result);
+#else
+	EXPECT_STREQ("/foo", result);
+#endif
+
+	EXPECT_FALSE_ERRNO(EINVAL, dsPath_combine(nullptr, DS_PATH_MAX, "/", ".."));
+	EXPECT_FALSE_ERRNO(EINVAL, dsPath_combine(nullptr, DS_PATH_MAX, "//", ".."));
+	EXPECT_FALSE_ERRNO(EINVAL, dsPath_combine(nullptr, DS_PATH_MAX, "/", "../"));
+	EXPECT_FALSE_ERRNO(EINVAL, dsPath_combine(nullptr, DS_PATH_MAX, "/test/path", "../../../"));
+
+#if DS_WINDOWS
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "C:\\test\\root\\path", "..\\.\\..\\foo"));
+	EXPECT_STREQ("C:\\test\\foo", result);
+
+	EXPECT_FALSE_ERRNO(EINVAL, dsPath_combine(nullptr, DS_PATH_MAX, "C:\\", ".."));
+	EXPECT_FALSE_ERRNO(EINVAL, dsPath_combine(nullptr, DS_PATH_MAX, "C:\\\\", "..\\"));
+	EXPECT_FALSE_ERRNO(EINVAL, dsPath_combine(nullptr, DS_PATH_MAX, "C:", ".."));
+	EXPECT_FALSE_ERRNO(EINVAL, dsPath_combine(nullptr, DS_PATH_MAX, "C:\\test\\path", "..\\..\\.."));
+#endif
 }
 
 TEST(PathTest, IsAbsolute)
