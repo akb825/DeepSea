@@ -28,7 +28,7 @@ from .. import StandardParticleEmitterFactory
 from ..ParticleVolume import ParticleVolume
 from ..Vector2u import CreateVector2u
 
-def convertStandardParticleEmitterFactory(convertContext, data):
+def convertStandardParticleEmitterFactory(convertContext, data, outputDir):
 	"""
 	Converts a StandardParticleEmitterFactory. The data map is expected to contain the following
 	elements:

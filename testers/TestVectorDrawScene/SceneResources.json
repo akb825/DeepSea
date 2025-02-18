@@ -53,8 +53,7 @@
 		"type": "VectorResources",
 		"name": "resources",
 		"resources": "@assetsDir@/VectorResources.dsvr",
-		"output": "@assetsDir@/VectorResources.dsvr",
-		"outputRelativeDir": "@assetsDir@"
+		"output": "VectorResources.dsvr"
 	},
 	{
 		"type": "VectorShaders",

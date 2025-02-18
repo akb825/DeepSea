@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright 2020-2023 Aaron Barany
+# Copyright 2020-2025 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 from __future__ import print_function
 import argparse
 import json
+import os
 import sys
 from importlib import import_module
 
@@ -196,7 +197,7 @@ if __name__ == '__main__':
 			data = json.load(f)
 
 		with open(args.output, 'wb') as f:
-			f.write(convertSceneResources(convertContext, data))
+			f.write(convertSceneResources(convertContext, data, os.path.dirname(args.output)))
 	except Exception as e:
 		print(args.input + ': error: ' + str(e), file=sys.stderr)
 		exit(1)

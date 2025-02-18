@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Aaron Barany
+ * Copyright 2023-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,10 @@
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
+#include <DeepSea/Core/Streams/FileArchive.h>
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
+#include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -314,6 +316,47 @@ dsRigidBody* dsRigidBody_loadResource(dsPhysicsEngine* engine, dsAllocator* allo
 	size_t size;
 	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, engine->allocator);
 	dsResourceStream_close(&stream);
+	if (!buffer)
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		return NULL;
+	}
+
+	dsRigidBody* rigidBody = dsRigidBody_loadImpl(engine, allocator, userData, destroyUserDataFunc,
+		canCollisionGroupsCollideFunc, findRigidBodyGroupFunc, findRigidBodyGroupUserData,
+		findShapeFunc, findShapeUserData, buffer, size, filePath);
+	DS_VERIFY(dsAllocator_free(engine->allocator, buffer));
+	return rigidBody;
+}
+
+dsRigidBody* dsRigidBody_loadArchive(dsPhysicsEngine* engine, dsAllocator* allocator,
+	void* userData, dsDestroyUserDataFunction destroyUserDataFunc,
+	dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc,
+	dsFindRigidBodyGroupFunction findRigidBodyGroupFunc, void* findRigidBodyGroupUserData,
+	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData, const dsFileArchive* archive,
+	const char* filePath)
+{
+	if (!engine ||!archive || !filePath)
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		errno = EINVAL;
+		return NULL;
+	}
+
+	dsStream* stream = dsFileArchive_openFile(archive, filePath);
+	if (!stream)
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG, "Couldn't open rigid body file '%s'.", filePath);
+		return NULL;
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, stream, engine->allocator);
+	dsStream_close(stream);
 	if (!buffer)
 	{
 		if (destroyUserDataFunc)

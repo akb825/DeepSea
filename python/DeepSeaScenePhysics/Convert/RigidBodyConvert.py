@@ -25,7 +25,7 @@ from DeepSeaPhysics.Quaternion4f import CreateQuaternion4f
 from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import RigidBody
 
-def convertRigidBody(convertContext, data):
+def convertRigidBody(convertContext, data, outputDir):
 	"""
 	Converts a RigidBody. The data map is expected to contain the following elements:
 	- group: the name of the rigid body group, or unset if not part of a group.

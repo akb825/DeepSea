@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -221,8 +221,8 @@ void dsVectorScratchData_reset(dsVectorScratchData* data)
 void* dsVectorScratchData_readUntilEnd(size_t* outSize, dsVectorScratchData* data, dsStream* stream,
 	dsAllocator* allocator)
 {
-	if (!dsStream_readUntilEndReuse(&data->fileBuffer, outSize, &data->fileBufferCapacity, stream,
-		allocator))
+	if (!dsStream_readUntilEndReuse(
+			&data->fileBuffer, outSize, &data->fileBufferCapacity, stream, allocator))
 	{
 		return NULL;
 	}

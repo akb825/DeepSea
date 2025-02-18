@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,19 +26,29 @@ extern "C"
 
 dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize);
+	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc);
 dsSceneNode* dsSceneModelNode_loadRemap(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize);
+	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc);
 dsSceneNode* dsSceneModelNode_loadReconfig(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize);
+	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc);
 dsSceneNode* dsSceneNodeRef_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize);
+	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc);
 dsSceneNode* dsSceneTransformNode_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize);
+	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc);
 
 dsSceneItemList* dsSceneFullScreenResolve_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
@@ -65,7 +75,9 @@ dsSceneInstanceData* dsInstanceTransformData_load(const dsSceneLoadContext* load
 
 bool dsSceneNodeChildren_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize);
+	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc);
 
 #ifdef __cplusplus
 }

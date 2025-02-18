@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright 2018-2021 Aaron Barany
+# Copyright 2018-2025 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -155,7 +155,9 @@ class VectorResources:
 
 		def createResourceData(filePath, outputName, removeEmbedded = False):
 			if outputName:
-				pathOffset = builder.CreateString(outputName.replace('\\', '/'))
+				if os.sep != '/':
+					outputName = outputName.replace(os.sep, '.')
+				pathOffset = builder.CreateString(outputName)
 				FileReference.Start(builder)
 				FileReference.AddPath(builder, pathOffset)
 				return FileOrData.FileReference, FileReference.End(builder)
@@ -174,16 +176,15 @@ class VectorResources:
 		with tempfile.NamedTemporaryFile() as tempFile:
 			for texture in self.textures:
 				path = texture['path']
-				if 'name' in texture:
-					name = texture['name']
-				else:
+				name = texture.get('name')
+				if name is None:
 					name = os.path.splitext(os.path.basename(path))[0]
-				if 'container' in texture:
-					extension = '.' + texture['container']
+				container = texture.get('container')
+				if container:
+					extension = '.' + container
 				else:
 					extension = '.pvr'
-				embed = 'embed' in texture and texture['embed']
-				if embed:
+				if texture.get('embed'):
 					textureOutputPath = tempFile.name + extension
 					outputName = None
 				else:
@@ -197,13 +198,14 @@ class VectorResources:
 					commandLine.append('-q')
 				if multithread:
 					commandLine.append('-j')
-				if 'srgb' in texture and texture['srgb']:
+				if texture.get('srgb'):
 					commandLine.append('--srgb')
-				if 'size' in texture:
-					size = texture['size']
+				size = texture.get('size')
+				if size:
 					commandLine.extend(['-r', size[0], size[1]])
-				if 'quality' in texture:
-					commandLine.extend(['-Q', texture['quality'].lower()])
+				quality = texture.get('quality')
+				if quality:
+					commandLine.extend(['-Q', quality.lower()])
 
 				if not quiet:
 					print('Converting texture "' + path + '"...')
@@ -238,8 +240,7 @@ class VectorResources:
 			for face in faces:
 				name = face['name']
 				path = face['path']
-				embed = 'embed' in face and face['embed']
-				if embed:
+				if face.get('embed'):
 					outputName = None
 					fontOutputPath = os.path.join(self.basePath, path)
 				else:
@@ -296,8 +297,9 @@ class VectorResources:
 			Font.AddFaceGroup(builder, faceGroupOffset)
 			Font.AddFaces(builder, facesOffset)
 			Font.AddQuality(builder, qualityValues[font['quality'].lower()])
-			if 'cacheSize' in font:
-				cacheSize = cacheValues[font['cacheSize'].lower()]
+			cacheSize = font.get('cacheSize')
+			if cacheSize:
+				cacheSize = cacheValues[cacheSize.lower()]
 			else:
 				cacheSize = FontCacheSize.Large
 			Font.AddCacheSize(builder, cacheSize)

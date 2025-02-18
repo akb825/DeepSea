@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,6 +114,20 @@ DS_TEXT_EXPORT bool dsFaceGroup_loadFaceFile(dsFaceGroup* group, const char* fil
  */
 DS_TEXT_EXPORT bool dsFaceGroup_loadFaceResource(dsFaceGroup* group, dsAllocator* allocator,
 	dsFileResourceType type, const char* fileName, const char* name);
+
+/**
+ * @brief Loads a font face from a file within an archive.
+ * @remark errno will be set on failure.
+ * @param group The face group.
+ * @param allocator The allocator to use hold the font data in.
+ * @param archive The archive to load the font file from..
+ * @param fileName The name of the font file to load the face from.
+ * @param name The name of the font face. The length, including null terminator, must not exceed
+ *     DS_MAX_FACE_NAME_LENGTH.
+ * @return True if the face was loaded.
+ */
+DS_TEXT_EXPORT bool dsFaceGroup_loadFaceArchive(dsFaceGroup* group, dsAllocator* allocator,
+	const dsFileArchive* archive, const char* fileName, const char* name);
 
 /**
  * @brief Loads a font face from stream.

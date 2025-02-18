@@ -46,7 +46,7 @@ def convertPhysicsCapsuleOffset(convertContext, data, builder):
 	Shape.AddShape(builder, capsuleOffset)
 	return Shape.End(builder)
 
-def convertPhysicsCapsule(convertContext, data):
+def convertPhysicsCapsule(convertContext, data, outputDir):
 	"""
 	Converts a PhysicsCapsule. The data map is expected to contain the following elements:
 	- halfHeight: half the height of the capsule.

@@ -21,7 +21,7 @@ from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import Constraint
 from DeepSeaPhysics import RackAndPinionConstraint
 
-def convertRackAndPinionPhysicsConstraint(convertContext, data):
+def convertRackAndPinionPhysicsConstraint(convertContext, data, outputDir):
 	"""
 	Converts a RackAndPinionPhysicsConstraint. The data map is expected to contain the following
 	elements:

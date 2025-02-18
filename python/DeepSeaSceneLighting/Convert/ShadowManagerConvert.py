@@ -22,7 +22,7 @@ from ..LightType import LightType
 class Object:
 	pass
 
-def convertShadowManager(convertContext, data):
+def convertShadowManager(convertContext, data, outputDir):
 	"""
 	Converts a shadow manager for a scene. The data map is expected to contain the following
 	elements:

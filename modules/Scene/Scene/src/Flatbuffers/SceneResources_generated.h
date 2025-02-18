@@ -263,6 +263,9 @@ struct Buffer FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaScene::FileReference *data_as_FileReference() const {
     return data_type() == DeepSeaScene::FileOrData::FileReference ? static_cast<const DeepSeaScene::FileReference *>(data()) : nullptr;
   }
+  const DeepSeaScene::RelativePathReference *data_as_RelativePathReference() const {
+    return data_type() == DeepSeaScene::FileOrData::RelativePathReference ? static_cast<const DeepSeaScene::RelativePathReference *>(data()) : nullptr;
+  }
   const DeepSeaScene::RawData *data_as_RawData() const {
     return data_type() == DeepSeaScene::FileOrData::RawData ? static_cast<const DeepSeaScene::RawData *>(data()) : nullptr;
   }
@@ -282,6 +285,10 @@ struct Buffer FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
 
 template<> inline const DeepSeaScene::FileReference *Buffer::data_as<DeepSeaScene::FileReference>() const {
   return data_as_FileReference();
+}
+
+template<> inline const DeepSeaScene::RelativePathReference *Buffer::data_as<DeepSeaScene::RelativePathReference>() const {
+  return data_as_RelativePathReference();
 }
 
 template<> inline const DeepSeaScene::RawData *Buffer::data_as<DeepSeaScene::RawData>() const {
@@ -489,6 +496,9 @@ struct Texture FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaScene::FileReference *data_as_FileReference() const {
     return data_type() == DeepSeaScene::FileOrData::FileReference ? static_cast<const DeepSeaScene::FileReference *>(data()) : nullptr;
   }
+  const DeepSeaScene::RelativePathReference *data_as_RelativePathReference() const {
+    return data_type() == DeepSeaScene::FileOrData::RelativePathReference ? static_cast<const DeepSeaScene::RelativePathReference *>(data()) : nullptr;
+  }
   const DeepSeaScene::RawData *data_as_RawData() const {
     return data_type() == DeepSeaScene::FileOrData::RawData ? static_cast<const DeepSeaScene::RawData *>(data()) : nullptr;
   }
@@ -512,6 +522,10 @@ struct Texture FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
 
 template<> inline const DeepSeaScene::FileReference *Texture::data_as<DeepSeaScene::FileReference>() const {
   return data_as_FileReference();
+}
+
+template<> inline const DeepSeaScene::RelativePathReference *Texture::data_as<DeepSeaScene::RelativePathReference>() const {
+  return data_as_RelativePathReference();
 }
 
 template<> inline const DeepSeaScene::RawData *Texture::data_as<DeepSeaScene::RawData>() const {

@@ -37,7 +37,7 @@ def convertPhysicsSphereOffset(convertContext, data, builder):
 	Shape.AddShape(builder, sphereOffset)
 	return Shape.End(builder)
 
-def convertPhysicsSphere(convertContext, data):
+def convertPhysicsSphere(convertContext, data, outputDir):
 	"""
 	Converts a PhysicsSphere. The data map is expected to contain the following elements:
 	- radius: the radius of the sphere.

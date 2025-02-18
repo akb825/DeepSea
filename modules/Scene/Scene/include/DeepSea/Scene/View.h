@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,6 +105,32 @@ DS_SCENE_EXPORT dsView* dsView_loadResource(const dsScene* scene, dsAllocator* a
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
 	dsRenderSurfaceRotation rotation, void* userData,
 	dsDestroyUserDataFunction destroyUserDataFunc, dsFileResourceType type,
+	const char* filePath);
+
+/**
+ * @brief Loads a view from a file within an archive.
+ * @remark errno will be set on failure.
+ * @param scene The scene the view will display.
+ * @param allocator The allocator for the view. If NULL, the scene's allocator will be used.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the view allocator.
+ * @param scratchData The scene scratch data.
+ * @param surfaces The surfaces to use with the view.
+ * @param surfaceCount THe number of surfaces.
+ * @param width The width of the view.
+ * @param height The height of the view.
+ * @param rotation The rotation of the window surface.
+ * @param userData User data to hold with the view.
+ * @param destroyUserDataFunc Function to destroy the user data for the view.
+ * @param archive The archive to load the view from.
+ * @param filePath The file path for the view to load.
+ * @return The view or NULL if an error occurred.
+ */
+DS_SCENE_EXPORT dsView* dsView_loadArchive(const dsScene* scene, dsAllocator* allocator,
+	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
+	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
+	dsRenderSurfaceRotation rotation, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc, const dsFileArchive* archive,
 	const char* filePath);
 
 /**

@@ -16,7 +16,7 @@ import flatbuffers
 from .. import MaterialRemap
 from .. import ModelNodeRemap
 
-def convertModelNodeRemap(convertContext, data):
+def convertModelNodeRemap(convertContext, data, outputDir):
 	"""
 	Converts a ModelNodeRemap, which clones an existing model node with optional remapping of
 	materials. The data map is expected to contain the following elements:

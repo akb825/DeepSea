@@ -15,7 +15,7 @@
 import flatbuffers
 from .. import SceneNodeRef
 
-def convertReferenceNode(convertContext, data):
+def convertReferenceNode(convertContext, data, outputDir):
 	"""
 	Converts a ReferenceNode. The data map is expected to contain the following elements:
 	- ref: string name of the node that's referenced.

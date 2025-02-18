@@ -21,17 +21,22 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/PoolAllocator.h>
+#include <DeepSea/Core/Streams/FileArchive.h>
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Math/Core.h>
+
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/Resources/TextureData.h>
+
 #include <DeepSea/Text/FaceGroup.h>
 #include <DeepSea/Text/Font.h>
+
 #include <string.h>
 
 struct dsVectorResources
@@ -75,6 +80,13 @@ typedef struct dsResourceInfo
 	const char* basePath;
 	dsFileResourceType type;
 } dsResourceInfo;
+
+typedef struct dsArchiveInfo
+{
+	dsAllocator* allocator;
+	const char* basePath;
+	const dsFileArchive* archive;
+} dsArchiveInfo;
 
 static dsTexture* loadTextureFile(void* userData, dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsAllocator* tempAllocator, const char* path, dsTextureUsage usage,
@@ -138,6 +150,39 @@ static bool loadFontFaceResource(void* userData, dsFaceGroup* faceGroup, const c
 	}
 
 	return dsFaceGroup_loadFaceResource(faceGroup, resourceInfo->allocator, resourceInfo->type,
+		finalPath, name);
+}
+
+static dsTexture* loadTextureArchive(void* userData, dsResourceManager* resourceManager,
+	dsAllocator* allocator, dsAllocator* tempAllocator, const char* path, dsTextureUsage usage,
+	dsGfxMemory memoryHints)
+{
+	dsArchiveInfo* archiveInfo = (dsArchiveInfo*)userData;
+	char finalPath[DS_PATH_MAX];
+	if (!dsPath_combine(finalPath, sizeof(finalPath), archiveInfo->basePath, path))
+	{
+		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Path '%s%c%s' is too long.", archiveInfo->basePath,
+			DS_PATH_SEPARATOR, path);
+		return NULL;
+	}
+
+	return dsTextureData_loadArchiveToTexture(resourceManager, allocator, tempAllocator,
+		archiveInfo->archive, finalPath, NULL, usage, memoryHints);
+}
+
+static bool loadFontFaceArchive(void* userData, dsFaceGroup* faceGroup, const char* path,
+	const char* name)
+{
+	dsArchiveInfo* archiveInfo = (dsArchiveInfo*)userData;
+	char finalPath[DS_PATH_MAX];
+	if (!dsPath_combine(finalPath, sizeof(finalPath), archiveInfo->basePath, path))
+	{
+		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Path '%s%c%s' is too long.", archiveInfo->basePath,
+			DS_PATH_SEPARATOR, path);
+		return false;
+	}
+
+	return dsFaceGroup_loadFaceArchive(faceGroup, archiveInfo->allocator, archiveInfo->archive,
 		finalPath, name);
 }
 
@@ -270,9 +315,7 @@ dsVectorResources* dsVectorResources_loadFile(dsAllocator* allocator, dsAllocato
 		if (errno == EINVAL)
 			baseDirectory[0] = 0;
 		else
-		{
 			DS_PROFILE_FUNC_RETURN(NULL);
-		}
 	}
 
 	dsFileStream stream;
@@ -286,9 +329,7 @@ dsVectorResources* dsVectorResources_loadFile(dsAllocator* allocator, dsAllocato
 	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, scratchAllocator);
 	dsFileStream_close(&stream);
 	if (!buffer)
-	{
 		DS_PROFILE_FUNC_RETURN(NULL);
-	}
 
 	dsVectorResources* resources = dsVectorResources_loadImpl(allocator, scratchAllocator,
 		resourceManager, buffer, size, baseDirectory, &loadTextureFile, &loadFontFaceFile,
@@ -318,9 +359,7 @@ dsVectorResources* dsVectorResources_loadResource(dsAllocator* allocator,
 		if (errno == EINVAL)
 			baseDirectory[0] = 0;
 		else
-		{
 			DS_PROFILE_FUNC_RETURN(NULL);
-		}
 	}
 
 	dsResourceStream stream;
@@ -332,15 +371,58 @@ dsVectorResources* dsVectorResources_loadResource(dsAllocator* allocator,
 
 	size_t size;
 	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, scratchAllocator);
-	dsStream_close((dsStream*)&stream);
+	dsResourceStream_close(&stream);
 	if (!buffer)
-	{
 		DS_PROFILE_FUNC_RETURN(NULL);
-	}
 
 	dsResourceInfo resourceInfo = {scratchAllocator, baseDirectory, type};
 	dsVectorResources* resources = dsVectorResources_loadImpl(allocator, scratchAllocator,
 		resourceManager, buffer, size, &resourceInfo, &loadTextureResource, &loadFontFaceResource,
+		qualityRemap, filePath);
+	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
+	DS_PROFILE_FUNC_RETURN(resources);
+}
+
+dsVectorResources* dsVectorResources_loadArchive(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, dsResourceManager* resourceManager, const dsFileArchive* archive,
+	const char* filePath, const dsTextQuality* qualityRemap)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !resourceManager || !archive || !filePath)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (!scratchAllocator)
+		scratchAllocator = allocator;
+
+	char baseDirectory[DS_PATH_MAX];
+	if (!dsPath_getDirectoryName(baseDirectory, sizeof(baseDirectory), filePath))
+	{
+		if (errno == EINVAL)
+			baseDirectory[0] = 0;
+		else
+			DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsStream* stream = dsFileArchive_openFile(archive, filePath);
+	if (!stream)
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open vector resources file '%s'.", filePath);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, stream, scratchAllocator);
+	dsStream_close((dsStream*)&stream);
+	if (!buffer)
+		DS_PROFILE_FUNC_RETURN(NULL);
+
+	dsArchiveInfo resourceInfo = {scratchAllocator, baseDirectory, archive};
+	dsVectorResources* resources = dsVectorResources_loadImpl(allocator, scratchAllocator,
+		resourceManager, buffer, size, &resourceInfo, &loadTextureArchive, &loadFontFaceArchive,
 		qualityRemap, filePath);
 	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
 	DS_PROFILE_FUNC_RETURN(resources);
@@ -365,9 +447,7 @@ dsVectorResources* dsVectorResources_loadStream(dsAllocator* allocator,
 	size_t size;
 	void* buffer = dsStream_readUntilEnd(&size, stream, scratchAllocator);
 	if (!buffer)
-	{
 		DS_PROFILE_FUNC_RETURN(NULL);
-	}
 
 	dsVectorResources* resources = dsVectorResources_loadImpl(allocator, scratchAllocator,
 		resourceManager, buffer, size, loadUserData, loadTextureFunc, loadFontFaceFunc,
@@ -450,7 +530,7 @@ bool dsVectorResources_addTexture(dsVectorResources* resources, const char* name
 	return true;
 }
 
-bool dsVectorResource_removeTexture(dsVectorResources* resources, const char* name,
+bool dsVectorResources_removeTexture(dsVectorResources* resources, const char* name,
 	bool relinquish)
 {
 	if (!resources || !name)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Aaron Barany
+ * Copyright 2020-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,15 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Render/Resources/ShaderModule.h>
 #include <DeepSea/Render/Renderer.h>
+
 #include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/Scene/SceneResources.h>
+
 #include <DeepSea/VectorDraw/VectorShaderModule.h>
 #include <DeepSea/VectorDraw/VectorShaders.h>
 
@@ -58,7 +61,10 @@ static void setString(const char*& string, const flatbuffers::String* fbString)
 static dsVectorShaderModule* loadShaderModule(
 	dsResourceManager* resourceManager, dsAllocator* allocator,
 	const FlatbufferVector<DeepSeaScene::VersionedShaderModule>* shaderModules,
-	const dsMaterialElement* extraElements, uint32_t extraElementCount)
+	const dsMaterialElement* extraElements, uint32_t extraElementCount,
+	void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	if (!shaderModules)
 		return nullptr;
@@ -89,6 +95,18 @@ static dsVectorShaderModule* loadShaderModule(
 			DeepSeaScene::convert(fbFileRef->type()), fbFileRef->path()->c_str(), extraElements,
 			extraElementCount);
 	}
+	else if (auto fbRelativePathRef = fbShaderModule->data_as_RelativePathReference())
+	{
+		dsStream* stream = openRelativePathStreamFunc(
+			relativePathUserData, fbRelativePathRef->path()->c_str());
+		if (!stream)
+			return nullptr;
+
+		dsVectorShaderModule* shaderModule = dsVectorShaderModule_loadStream(resourceManager,
+			allocator, stream, extraElements, extraElementCount);
+		closeRelativePathStreamFunc(relativePathUserData, stream);
+		return shaderModule;
+	}
 	else if (auto fbRawData = fbShaderModule->data_as_RawData())
 	{
 		auto fbData = fbRawData->data();
@@ -105,7 +123,9 @@ static dsVectorShaderModule* loadShaderModule(
 
 void* dsSceneVectorShaders_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator*, dsAllocator* resourceAllocator,
-	void*, const uint8_t* data, size_t dataSize)
+	void*, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaSceneVectorDraw::VerifyVectorShadersBuffer(verifier))
@@ -160,7 +180,8 @@ void* dsSceneVectorShaders_load(const dsSceneLoadContext* loadContext,
 	}
 
 	dsVectorShaderModule* shaderModule = loadShaderModule(resourceManager, resourceAllocator,
-		fbVectorShaders->modules(), extraElements, extraElementCount);
+		fbVectorShaders->modules(), extraElements, extraElementCount, relativePathUserData,
+		openRelativePathStreamFunc, closeRelativePathStreamFunc);
 	if (!shaderModule)
 		return nullptr;
 

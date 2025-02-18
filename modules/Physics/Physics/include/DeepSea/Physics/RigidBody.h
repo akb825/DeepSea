@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Aaron Barany
+ * Copyright 2023-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ DS_PHYSICS_EXPORT dsRigidBody* dsRigidBody_create(dsPhysicsEngine* engine, dsAll
  * @param findShapeFunc Function to find a shape by name. This will be used if a shape reference is
  *     used. All lookups will fail if this function is NULL.
  * @param findShapeUserData User data to pass to findShapeFunc.
- * @param filePath The file path for the physics rigid body to load.
+ * @param filePath The file path for the rigid body to load.
  * @return The loaded rigid body or NULL if it couldn't be loaded.
  */
 DS_PHYSICS_EXPORT dsRigidBody* dsRigidBody_loadFile(dsPhysicsEngine* engine, dsAllocator* allocator,
@@ -105,7 +105,7 @@ DS_PHYSICS_EXPORT dsRigidBody* dsRigidBody_loadFile(dsPhysicsEngine* engine, dsA
  *     used. All lookups will fail if this function is NULL.
  * @param findShapeUserData User data to pass to findShapeFunc.
  * @param type The type of resource to load.
- * @param filePath The file path for the physics shape to load.
+ * @param filePath The file path for the rigid body to load.
  * @return The loaded rigid body or NULL if it couldn't be loaded.
  */
 DS_PHYSICS_EXPORT dsRigidBody* dsRigidBody_loadResource(dsPhysicsEngine* engine,
@@ -114,6 +114,33 @@ DS_PHYSICS_EXPORT dsRigidBody* dsRigidBody_loadResource(dsPhysicsEngine* engine,
 	dsFindRigidBodyGroupFunction findRigidBodyGroupFunc, void* findRigidBodyGroupUserData,
 	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData,
 	dsFileResourceType type, const char* filePath);
+
+/**
+ * @brief Loads a rigid body from a file within an archive.
+ * @remark errno will be set on failure.
+ * @param engine The physics engine to create the rigid body with.
+ * @param allocator The allocator to create the rigid body with. If NULL the engine's allocator will
+ *     be used.
+ * @param userData User data associated with the rigid body.
+ * @param destroyUserDataFunc Function to destroy the user data. This will be called even if the
+ *     creation of the rigid body fails.
+ * @param canCollisionGroupsCollideFunc Function to check whether two collision groups can collide.
+ * @param findRigidBodyGroupFunc Function to find a rigid body group by name. This will be used if a
+ *     rigid body group is provided in the file. All lookups will fail if this function is NULL.
+ * @param findRigidBodyGroupUserData User data to pass to findRigidBodyGroupFunc.
+ * @param findShapeFunc Function to find a shape by name. This will be used if a shape reference is
+ *     used. All lookups will fail if this function is NULL.
+ * @param findShapeUserData User data to pass to findShapeFunc.
+ * @param archive The archive to load the rigid body from.
+ * @param filePath The file path for the rigid body to load.
+ * @return The loaded rigid body or NULL if it couldn't be loaded.
+ */
+DS_PHYSICS_EXPORT dsRigidBody* dsRigidBody_loadArchive(dsPhysicsEngine* engine,
+	dsAllocator* allocator, void* userData, dsDestroyUserDataFunction destroyUserDataFunc,
+	dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc,
+	dsFindRigidBodyGroupFunction findRigidBodyGroupFunc, void* findRigidBodyGroupUserData,
+	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData,
+	const dsFileArchive* archive, const char* filePath);
 
 /**
  * @brief Loads a rigid body from a stream.

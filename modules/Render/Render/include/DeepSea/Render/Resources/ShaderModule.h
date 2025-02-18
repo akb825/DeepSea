@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,6 +67,23 @@ DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadFile(dsResourceManager* reso
  */
 DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadResource(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsFileResourceType type, const char* filePath, const char* name);
+
+/**
+ * @brief Loads a shader module from a file within an archive.
+ *
+ * The shader module is expected to be an mslb file created with ModuleShaderLanguage.
+ *
+ * @remark errno will be set on failure.
+ * @param resourceManager The resource manager to create the shader module from.
+ * @param allocator The allocator to create the shader module with. If NULL, it will use the same
+ *     allocator as the resource manager.
+ * @param archive The archive to load the shader module from.
+ * @param filePath The file path for the shader module to load.
+ * @param name The name of the module. The contents will be copied.
+ * @return The created shader module, or NULL if it couldn't be created.
+ */
+DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadArchive(dsResourceManager* resourceManager,
+	dsAllocator* allocator, const dsFileArchive* archive, const char* filePath, const char* name);
 
 /**
  * @brief Loads a shader module from a stream.

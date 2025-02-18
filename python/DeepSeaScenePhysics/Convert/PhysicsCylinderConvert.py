@@ -49,7 +49,7 @@ def convertPhysicsCylinderOffset(convertContext, data, builder):
 	Shape.AddShape(builder, cylinderOffset)
 	return Shape.End(builder)
 
-def convertPhysicsCylinder(convertContext, data):
+def convertPhysicsCylinder(convertContext, data, outputDir):
 	"""
 	Converts a PhysicsCylinder. The data map is expected to contain the following elements:
 	- halfHeight: half the height of the cylinder.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,26 @@ DS_VECTORDRAW_EXPORT dsVectorShaderModule* dsVectorShaderModule_loadFile(
  */
 DS_VECTORDRAW_EXPORT dsVectorShaderModule* dsVectorShaderModule_loadResource(
 	dsResourceManager* resourceManager, dsAllocator* allocator, dsFileResourceType type,
+	const char* filePath, const dsMaterialElement* customElements, uint32_t customElementCount);
+
+/**
+ * @brief Creates the vector shader module from a file within an archive.
+ *
+ * The shader module is expected to be an mslb file created with ModuleShaderLanguage.
+ *
+ * @remark errno will be set on failure.
+ * @param resourceManager The resource manager to create the shader module from.
+ * @param allocator The allocator to create the shader module with. If NULL, it will use the same
+ *     allocator as the resource manager.
+ * @param archive The archive to load the shader module from.
+ * @param filePath The file path for the shader module to load.
+ * @param customElements Custom elements to add to the material description when using a custom
+ *     shader module. This may be NULL for no custom elements.
+ * @param customElementCount The number of custom elements to add.
+ * @return The vector shaders, or NULL if it couldn't be loaded.
+ */
+DS_VECTORDRAW_EXPORT dsVectorShaderModule* dsVectorShaderModule_loadArchive(
+	dsResourceManager* resourceManager, dsAllocator* allocator, const dsFileArchive* archive,
 	const char* filePath, const dsMaterialElement* customElements, uint32_t customElementCount);
 
 /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Types.h>
 #include <DeepSea/Scene/ItemLists/Types.h>
 #include <DeepSea/Scene/Nodes/Types.h>
 
@@ -520,6 +521,24 @@ typedef struct dsSceneLoadContext dsSceneLoadContext;
 typedef struct dsSceneLoadScratchData dsSceneLoadScratchData;
 
 /**
+ * @brief Function to open a stream for a relative path to scene resources.
+ * @remark Only one stream will be opened at one time with this function, allowing for storing
+ *     stream memory in userData without having to dynamically allocate it.
+ * @param userData User data to for managing the streams.
+ * @param path The path to open.
+ * @return The stream or NULL if the path wasn't found.
+ */
+typedef dsStream* (*dsOpenSceneResourcesRelativePathStreamFunction)(
+	void* userData, const char* path);
+
+/**
+ * @brief Function to close a stream for a relative path to scene resources.
+ * @param userData User data for managing the streams.
+ * @param stream The stream to close.
+ */
+typedef void (*dsCloseSceneResourcesRelativePathStreamFunction)(void* userData, dsStream* stream);
+
+/**
  * @brief Function to load a scene node.
  * @remark errno should be set on failure.
  * @param loadContext The load context.
@@ -530,11 +549,16 @@ typedef struct dsSceneLoadScratchData dsSceneLoadScratchData;
  * @param userData User data registered with this function.
  * @param data The data for the node.
  * @param dataSize The size fo the data.
+ * @param relativePathUserData User data to manage opening of relative paths.
+ * @param openRelativePathStreamFunc Function to open streams for relative paths.
+ * @param closeRelativePathStreamFunc Function to close streams for relative paths.
  * @return The node or NULL if it couldn't be loaded.
  */
 typedef dsSceneNode* (*dsLoadSceneNodeFunction)(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize);
+	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc);
 
 /**
  * @brief Function to load a scene item list.
@@ -583,11 +607,16 @@ typedef dsSceneInstanceData* (*dsLoadSceneInstanceDataFunction)(
  * @param userData User data registered with this function.
  * @param data The data for the custom resource.
  * @param dataSize The size fo the data.
+ * @param relativePathUserData User data to manage opening of relative paths.
+ * @param openRelativePathStreamFunc Function to open streams for relative paths.
+ * @param closeRelativePathStreamFunc Function to close streams for relative paths.
  * @return The custom resource or NULL if it couldn't be loaded.
  */
 typedef void* (*dsLoadCustomSceneResourceFunction)(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize);
+	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc);
 
 /**
  * @brief Function to load a scene resource action.
@@ -600,11 +629,16 @@ typedef void* (*dsLoadCustomSceneResourceFunction)(const dsSceneLoadContext* loa
  * @param userData User data registered with this function.
  * @param data The data for the custom resource.
  * @param dataSize The size fo the data.
+ * @param relativePathUserData User data to manage opening of relative paths.
+ * @param openRelativePathStreamFunc Function to open streams for relative paths.
+ * @param closeRelativePathStreamFunc Function to close streams for relative paths.
  * @return The custom resource or NULL if it couldn't be loaded.
  */
 typedef bool (*dsLoadSceneResourceActionFunction)(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize);
+	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc);
 
 #ifdef __cplusplus
 }

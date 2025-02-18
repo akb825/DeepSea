@@ -1,3 +1,19 @@
+/*
+ * Copyright 2024-2025 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include <DeepSea/ScenePhysics/ScenePhysicsLoadContext.h>
 
 #include "ScenePhysicsConstraintLoad.h"
@@ -57,11 +73,16 @@ static void dsScenePhysicsLoadData_destroy(void* userData)
 
 static void* dsScenePhysicsShape_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize)
+	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	DS_UNUSED(loadContext);
 	DS_UNUSED(allocator);
 	DS_UNUSED(resourceAllocator);
+	DS_UNUSED(relativePathUserData);
+	DS_UNUSED(openRelativePathStreamFunc);
+	DS_UNUSED(closeRelativePathStreamFunc);
 
 	dsScenePhysicsLoadData* loadData = (dsScenePhysicsLoadData*)userData;
 	return dsPhysicsShape_loadData(loadData->engine, loadData->allocator, &findShape, scratchData,
@@ -77,11 +98,16 @@ static bool dsScenePhysicsShape_destroyResource(void* resource)
 
 static void* dsSceneRigidBody_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize)
+	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	DS_UNUSED(loadContext);
 	DS_UNUSED(allocator);
 	DS_UNUSED(resourceAllocator);
+	DS_UNUSED(relativePathUserData);
+	DS_UNUSED(openRelativePathStreamFunc);
+	DS_UNUSED(closeRelativePathStreamFunc);
 
 	dsScenePhysicsLoadData* loadData = (dsScenePhysicsLoadData*)userData;
 	// NOTE: No support for rigid body groups for individual rigid bodies.
@@ -92,11 +118,16 @@ static void* dsSceneRigidBody_load(const dsSceneLoadContext* loadContext,
 
 static void* dsSceneRigidBodyTemplate_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize)
+	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	DS_UNUSED(loadContext);
 	DS_UNUSED(allocator);
 	DS_UNUSED(resourceAllocator);
+	DS_UNUSED(relativePathUserData);
+	DS_UNUSED(openRelativePathStreamFunc);
+	DS_UNUSED(closeRelativePathStreamFunc);
 
 	dsScenePhysicsLoadData* loadData = (dsScenePhysicsLoadData*)userData;
 	// NOTE: No support for rigid body groups for individual rigid bodies.

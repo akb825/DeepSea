@@ -39,7 +39,7 @@ def createColor(colorMaterials, style, builder):
 
 	return CreateColor(builder, color[0], color[1], color[2], alpha)
 
-def convertText(convertContext, data):
+def convertText(convertContext, data, outputDir):
 	"""
 	Converts text for use in a scene. The data map is expected to contain the following elements:
 	- resources: the name of the vector resources to get the font from.

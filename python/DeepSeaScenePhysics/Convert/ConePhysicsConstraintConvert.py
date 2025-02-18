@@ -22,7 +22,7 @@ from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import ConeConstraint
 from DeepSeaPhysics import Constraint
 
-def convertConePhysicsConstraint(convertContext, data):
+def convertConePhysicsConstraint(convertContext, data, outputDir):
 	"""
 	Converts a ConePhysicsConstraint. The data map is expected to contain the following elements:
 	- firstActor: the name of the first actor used in the constraint. This may be unset if the

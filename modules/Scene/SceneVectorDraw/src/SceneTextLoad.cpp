@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Aaron Barany
+ * Copyright 2020-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,9 @@
 #endif
 
 void* dsSceneText_load(const dsSceneLoadContext*, dsSceneLoadScratchData* scratchData,
-	dsAllocator* allocator, dsAllocator*, void* userData, const uint8_t* data, size_t dataSize)
+	dsAllocator* allocator, dsAllocator*, void* userData, const uint8_t* data, size_t dataSize,
+	void*, dsOpenSceneResourcesRelativePathStreamFunction,
+	dsCloseSceneResourcesRelativePathStreamFunction)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaSceneVectorDraw::VerifySceneTextBuffer(verifier))

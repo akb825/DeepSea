@@ -21,7 +21,7 @@ from .. import InstanceReference
 from ..ActorReference import ActorReference
 from ..ConstraintReference import ConstraintReference
 
-def convertPhysicsConstraintNode(convertContext, data):
+def convertPhysicsConstraintNode(convertContext, data, outputDir):
 	"""
 	Converts a PhysicsConstraintNode. The data map is expected to contain the following elements:
 	- constraint: the name of the base constraint.

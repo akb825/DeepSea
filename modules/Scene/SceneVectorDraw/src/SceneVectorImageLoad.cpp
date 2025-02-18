@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Aaron Barany
+ * Copyright 2020-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,9 @@
 
 void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize)
+	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaSceneVectorDraw::VerifyVectorImageBuffer(verifier))
@@ -166,6 +168,17 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 		vectorImage = dsVectorImage_loadResource(allocator, resourceAllocator, &initResources,
 			DeepSeaScene::convert(fileRef->type()), fileRef->path()->c_str(),
 			vectorImageUserData->pixelSize, hasSize ? &size : nullptr);
+	}
+	else if (auto fbRelativePathRef = fbVectorImage->image_as_RelativePathReference())
+	{
+		dsStream* stream = openRelativePathStreamFunc(
+			relativePathUserData, fbRelativePathRef->path()->c_str());
+		if (!stream)
+			return nullptr;
+
+		vectorImage = dsVectorImage_loadStream(allocator, resourceAllocator, &initResources,
+			stream, vectorImageUserData->pixelSize, hasSize ? &size : nullptr);
+		closeRelativePathStreamFunc(relativePathUserData, stream);
 	}
 	else if (auto rawData = fbVectorImage->image_as_RawData())
 	{

@@ -5,4 +5,5 @@
 class FileOrData(object):
     NONE = 0
     FileReference = 1
-    RawData = 2
+    RelativePathReference = 2
+    RawData = 3

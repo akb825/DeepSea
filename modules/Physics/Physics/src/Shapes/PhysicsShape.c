@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Aaron Barany
+ * Copyright 2023-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,10 @@
 #include "Shapes/PhysicsShapeLoad.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Streams/FileArchive.h>
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
+#include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
@@ -98,6 +100,35 @@ dsPhysicsShape* dsPhysicsShape_loadResource(dsPhysicsEngine* engine, dsAllocator
 	size_t size;
 	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, engine->allocator);
 	dsResourceStream_close(&stream);
+	if (!buffer)
+		return NULL;
+
+	dsPhysicsShape* shape = dsPhysicsShape_loadImpl(engine, allocator, findShapeFunc,
+		findShapeUserData, buffer, size, filePath);
+	DS_VERIFY(dsAllocator_free(engine->allocator, buffer));
+	return shape;
+}
+
+dsPhysicsShape* dsPhysicsShape_loadArchive(dsPhysicsEngine* engine, dsAllocator* allocator,
+	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData, const dsFileArchive* archive,
+	const char* filePath)
+{
+	if (!engine || !archive || !filePath)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	dsStream* stream = dsFileArchive_openFile(archive, filePath);
+	if (!stream)
+	{
+		DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG, "Couldn't open physics shape file '%s'.", filePath);
+		return NULL;
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, stream, engine->allocator);
+	dsStream_close(stream);
 	if (!buffer)
 		return NULL;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,17 @@
 #include <DeepSea/Render/Resources/TextureData.h>
 
 #include <DeepSea/Core/Memory/Allocator.h>
-#include <DeepSea/Core/Streams/Stream.h>
+#include <DeepSea/Core/Streams/FileArchive.h>
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
+#include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Math/Core.h>
+
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/Types.h>
@@ -227,7 +230,7 @@ dsTextureData* dsTextureData_loadResource(dsAllocator* allocator, dsFileResource
 			break;
 
 		if (i < DS_ARRAY_SIZE(loadTextureFuncs) - 1)
-			dsStream_seek((dsStream*)&stream, 0, dsStreamSeekWay_Beginning);
+			dsResourceStream_seek(&stream, 0, dsStreamSeekWay_Beginning);
 	}
 
 	// If check is false, we couldn't find the format.
@@ -238,7 +241,49 @@ dsTextureData* dsTextureData_loadResource(dsAllocator* allocator, dsFileResource
 		errno = EFORMAT;
 	}
 
-	DS_VERIFY(dsStream_close((dsStream*)&stream));
+	DS_VERIFY(dsResourceStream_close(&stream));
+	DS_PROFILE_FUNC_RETURN(textureData);
+}
+
+dsTextureData* dsTextureData_loadArchive(dsAllocator* allocator, const dsFileArchive* archive,
+	const char* filePath)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !archive || !filePath)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsStream* stream = dsFileArchive_openFile(archive, filePath);;
+	if (!stream)
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open texture file '%s'.", filePath);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	bool isFormat = true;
+	dsTextureData* textureData = NULL;
+	for (size_t i = 0; i < DS_ARRAY_SIZE(loadTextureFuncs); ++i)
+	{
+		textureData = loadTextureFuncs[i](&isFormat, allocator, stream, filePath);
+		if (textureData || isFormat)
+			break;
+
+		if (i < DS_ARRAY_SIZE(loadTextureFuncs) - 1)
+			dsStream_seek(stream, 0, dsStreamSeekWay_Beginning);
+	}
+
+	// If check is false, we couldn't find the format.
+	if (!isFormat)
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Unknown texture file format when reading file '%s'.",
+			filePath);
+		errno = EFORMAT;
+	}
+
+	DS_VERIFY(dsStream_close(stream));
 	DS_PROFILE_FUNC_RETURN(textureData);
 }
 
@@ -314,6 +359,35 @@ dsTexture* dsTextureData_loadFileToTexture(dsResourceManager* resourceManager,
 	}
 
 	dsTextureData* textureData = dsTextureData_loadFile(tempAllocator, filePath);
+	if (!textureData)
+		return NULL;
+
+	dsTexture* texture = dsTextureData_createTexture(resourceManager, textureAllocator, textureData,
+		options, usage, memoryHints);
+	dsTextureData_destroy(textureData);
+	return texture;
+}
+
+dsTexture* dsTextureData_loadArchiveToTexture(dsResourceManager* resourceManager,
+	dsAllocator* textureAllocator, dsAllocator* tempAllocator, const dsFileArchive* archive,
+	const char* filePath, const dsTextureDataOptions* options, dsTextureUsage usage,
+	dsGfxMemory memoryHints)
+{
+	if (!resourceManager || archive || !filePath)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!tempAllocator)
+	{
+		if (textureAllocator)
+			tempAllocator = textureAllocator;
+		else
+			tempAllocator = resourceManager->allocator;
+	}
+
+	dsTextureData* textureData = dsTextureData_loadArchive(tempAllocator, archive, filePath);
 	if (!textureData)
 		return NULL;
 

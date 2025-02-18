@@ -1,4 +1,4 @@
-# Copyright 2020-2021 Aaron Barany
+# Copyright 2020-2025 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ from DeepSeaScene import VersionedShaderModule
 class Object:
 	pass
 
-def convertVectorShaders(convertContext, data):
+def convertVectorShaders(convertContext, data, outputDir):
 	"""
 	Converts vector shaders used in a scene. The data map is expected to contain the following
 	elements:
@@ -36,11 +36,13 @@ def convertVectorShaders(convertContext, data):
 	  - module: path to the shader module or base64 encoded data prefixed with "base64:". The
 	    module is expected to have been compiled with Modular Shader Language (MSL).
 	  - output: the path to the location to copy the shader module to. This can be omitted to
-	    embed the shader module directly.
+	    embed the shader module directly. If resourceType is "Relative", this will be treated as
+	    relative to the scene resource file.
 	  - outputRelativeDir: the directory relative to output path. This will be removed from the
 	    path before adding the reference.
 	  - resourceType: the resource type. See the dsFileResourceType for values, removing the type
-	    prefix. Defaults to "Embedded".
+	    prefix, in addition to "Relative" for a path relative to the scene resources file. Defaults
+	    to "Relative".
 	- extraElements: list of extra meterial elements to add for the material description. Each
 	  element of the array has the following members:
 	  - name: the name of the element.
@@ -94,7 +96,7 @@ def convertVectorShaders(convertContext, data):
 				dataType, dataOffset = convertFileOrData(builder, modulePath,
 					moduleContents, versionedModuleData.get('output'),
 					versionedModuleData.get('outputRelativeDir'),
-					versionedModuleData.get('resourceType'))
+					versionedModuleData.get('resourceType'), outputDir)
 				versionedModules.append((version, dataType, dataOffset))
 		except KeyError as e:
 			raise Exception('Versioned shader module data doesn\'t contain element ' +

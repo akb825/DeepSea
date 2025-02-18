@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,9 @@
 
 dsSceneNode* dsSceneRigidBodyGroupNode_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void*, const uint8_t* data, size_t dataSize)
+	void*, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaScenePhysics::VerifyRigidBodyGroupNodeBuffer(verifier))
@@ -186,7 +188,8 @@ dsSceneNode* dsSceneRigidBodyGroupNode_load(const dsSceneLoadContext* loadContex
 
 			auto data = fbNode->data();
 			dsSceneNode* child = dsSceneNode_load(allocator, resourceAllocator, loadContext,
-				scratchData, fbNode->type()->c_str(), data->data(), data->size());
+				scratchData, fbNode->type()->c_str(), data->data(), data->size(),
+				relativePathUserData, openRelativePathStreamFunc, closeRelativePathStreamFunc);
 			if (!child)
 			{
 				dsSceneNode_freeRef(node);

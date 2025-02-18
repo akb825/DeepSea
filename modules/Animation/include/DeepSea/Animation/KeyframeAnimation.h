@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Aaron Barany
+ * Copyright 2022-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,6 +69,19 @@ DS_ANIMATION_EXPORT dsKeyframeAnimation* dsKeyframeAnimation_loadFile(dsAllocato
  */
 DS_ANIMATION_EXPORT dsKeyframeAnimation* dsKeyframeAnimation_loadResource(dsAllocator* allocator,
 	dsAllocator* scratchAllocator, dsFileResourceType type, const char* filePath);
+
+/**
+ * @brief Loads an keyframe animation from a file within an archive.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the keyframe animation.
+ * @param scratchAllocator The allocator for temporary data. If NULL, it will use the keyframe
+ *     animation allocator.
+ * @param archive The archive to load the keyframe animation from.
+ * @param filePath The file path for the keyframe animation to load.
+ * @return The loaded keyframe animation or NULL if it couldn't be loaded.
+ */
+DS_ANIMATION_EXPORT dsKeyframeAnimation* dsKeyframeAnimation_loadArchive(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, const dsFileArchive* archive, const char* filePath);
 
 /**
  * @brief Loads an keyframe animation from a stream.

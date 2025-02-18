@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,6 +89,22 @@ DS_SCENE_EXPORT dsSceneResources* dsSceneResources_loadResource(dsAllocator* all
 	dsSceneLoadScratchData* scratchData, dsFileResourceType type, const char* filePath);
 
 /**
+ * @brief Loads scene resources from a file within an archive.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the scene resources.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the scene resources allocator.
+ * @param loadContext The scene load context.
+ * @param scratchData The scene scratch data.
+ * @param archive The archive to load the scene resources from.
+ * @param filePath The file path for the scene resources to load.
+ * @return The scene resources or NULL if an error occurred.
+ */
+DS_SCENE_EXPORT dsSceneResources* dsSceneResources_loadArchive(dsAllocator* allocator,
+	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, const dsFileArchive* archive, const char* filePath);
+
+/**
  * @brief Loads scene resources from a stream.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the scene resources.
@@ -97,11 +113,16 @@ DS_SCENE_EXPORT dsSceneResources* dsSceneResources_loadResource(dsAllocator* all
  * @param loadContext The scene load context.
  * @param scratchData The scene scratch data.
  * @param stream The stream for the scene resources to load.
+ * @param relativePathUserData User data to manage opening of relative paths.
+ * @param openRelativePathStreamFunc Function to open streams for relative paths.
+ * @param closeRelativePathStreamFunc Function to close streams for relative paths.
  * @return The scene resources or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsSceneResources* dsSceneResources_loadStream(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsStream* stream);
+	dsSceneLoadScratchData* scratchData, dsStream* stream, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc);
 
 /**
  * @brief Loads scene resources from a data buffer.
@@ -113,11 +134,16 @@ DS_SCENE_EXPORT dsSceneResources* dsSceneResources_loadStream(dsAllocator* alloc
  * @param scratchData The scene scratch data.
  * @param data The data for the scene resources. The data isn't used after this call.
  * @param size The size of the data buffer.
+ * @param relativePathUserData User data to manage opening of relative paths.
+ * @param openRelativePathStreamFunc Function to open streams for relative paths.
+ * @param closeRelativePathStreamFunc Function to close streams for relative paths.
  * @return The scene resources or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsSceneResources* dsSceneResources_loadData(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, const void* data, size_t size);
+	dsSceneLoadScratchData* scratchData, const void* data, size_t size, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc);
 
 /**
  * @brief Gets the number of remaining resources that can be set.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,6 +92,20 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadResource(dsAllocator* allocato
 	dsFileResourceType type, const char* filePath);
 
 /**
+ * @brief Loads a texture file from within an archive to a new texture data instance.
+ *
+ * This will try each of the supported texture file formats.
+ *
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the texture data with.
+ * @param archive The archive to load the file from.
+ * @param filePath The file to load.
+ * @return The created texture data, or NULL if it couldn't be created.
+ */
+DS_RENDER_EXPORT dsTextureData* dsTextureData_loadArchive(dsAllocator* allocator,
+	const dsFileArchive* archive, const char* filePath);
+
+/**
  * @brief Loads a texture file from a stream to a new texture data instance.
  *
  * This will try each of the supported texture file formats.
@@ -148,6 +162,31 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_loadFileToTexture(dsResourceManager* r
  */
 DS_RENDER_EXPORT dsTexture* dsTextureData_loadResourceToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsFileResourceType type,
+	const char* filePath, const dsTextureDataOptions* options, dsTextureUsage usage,
+	dsGfxMemory memoryHints);
+
+/**
+ * @brief Loads a texture file from within an archive to a new texture instance.
+ *
+ * This will try each of the supported texture file formats.
+ *
+ * @remark errno will be set on failure.
+ * @param resourceManager The resource manager to create the texture from.
+ * @param textureAllocator The allocator to create the texture with. If NULL, it will use the same
+ *     allocator as the resource manager.
+ * @param tempAllocator The allocator to use for temporary memory. If NULL, it will use the same
+ *     allocator as the texture.
+ * @param archive The archive to load the file from.
+ * @param filePath The file to load.
+ * @param options Options for converting the texture data to a texture. If NULL, the texture will be
+ *     created from the data without any modifications.
+ * @param usage How the texture will be used. This should be a combination of dsTextureUsage flags.
+ * @param memoryHints Hints for how the memory for the texture will be used. This should be a
+ *     combination of dsGfxMemory flags.
+ * @return The created texture data, or NULL if it couldn't be created.
+ */
+DS_RENDER_EXPORT dsTexture* dsTextureData_loadArchiveToTexture(dsResourceManager* resourceManager,
+	dsAllocator* textureAllocator, dsAllocator* tempAllocator, const dsFileArchive* archive,
 	const char* filePath, const dsTextureDataOptions* options, dsTextureUsage usage,
 	dsGfxMemory memoryHints);
 

@@ -23,7 +23,7 @@ from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import RevoluteConstraint
 from DeepSeaPhysics import Constraint
 
-def convertRevolutePhysicsConstraint(convertContext, data):
+def convertRevolutePhysicsConstraint(convertContext, data, outputDir):
 	"""
 	Converts a RevolutePhysicsConstraint. The data map is expected to contain the following
 	elements:

@@ -138,7 +138,10 @@ using FlatbufferVector = flatbuffers::Vector<flatbuffers::Offset<T>>;
 
 static bool loadBuffer(dsSceneResources* resources, dsResourceManager* resourceManager,
 	dsAllocator* allocator, const DeepSeaScene::Buffer* fbBuffer, const char* fileName,
-	dsAllocator* scratchAllocator, void*& tempData, size_t& tempDataSize)
+	dsAllocator* scratchAllocator, void*& tempData, size_t& tempDataSize,
+	void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	const char* bufferName = fbBuffer->name()->c_str();
 	uint32_t bufferSize = fbBuffer->size();
@@ -164,7 +167,30 @@ static bool loadBuffer(dsSceneResources* resources, dsResourceManager* resourceM
 			return false;
 		}
 
-		bufferData = &tempData;
+		bufferData = tempData;
+	}
+	else if (auto fbRelativePathRef = fbBuffer->data_as_RelativePathReference())
+	{
+		dsStream* stream = openRelativePathStreamFunc(
+			relativePathUserData, fbRelativePathRef->path()->c_str());
+		if (!stream)
+		{
+			PRINT_FLATBUFFER_RESOURCE_ERROR("Couldn't open file for buffer '%s'", bufferName,
+				fileName);
+			return false;
+		}
+
+		bool readData = dsStream_readUntilEndReuse(&tempData, &dataSize, &tempDataSize,
+			reinterpret_cast<dsStream*>(&stream), scratchAllocator);
+		closeRelativePathStreamFunc(relativePathUserData, stream);
+		if (!readData)
+		{
+			PRINT_FLATBUFFER_RESOURCE_ERROR("Couldn't read data for buffer '%s'", bufferName,
+				fileName);
+			return false;
+		}
+
+		bufferData = tempData;
 	}
 	else if (auto fbRawData = fbBuffer->data_as_RawData())
 	{
@@ -204,7 +230,9 @@ static bool loadBuffer(dsSceneResources* resources, dsResourceManager* resourceM
 
 static bool loadTexture(dsSceneResources* resources, dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsAllocator* resourceAllocator, const DeepSeaScene::Texture* fbTexture,
-	const char* fileName)
+	const char* fileName, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	const char* textureName = fbTexture->name()->c_str();
 	auto usage = static_cast<dsTextureUsage>(fbTexture->usage());
@@ -215,6 +243,19 @@ static bool loadTexture(dsSceneResources* resources, dsResourceManager* resource
 		texture = dsTextureData_loadResourceToTexture(resourceManager, resourceAllocator,
 			allocator, DeepSeaScene::convert(fbFileRef->type()),
 			fbFileRef->path()->c_str(), nullptr, usage, memoryHints);
+	}
+	else if (auto fbRelativePathRef = fbTexture->data_as_RelativePathReference())
+	{
+		dsStream* stream = openRelativePathStreamFunc(
+			relativePathUserData, fbRelativePathRef->path()->c_str());
+		if (stream)
+		{
+			texture = dsTextureData_loadStreamToTexture(resourceManager, resourceAllocator,
+				allocator, stream, nullptr, usage, memoryHints);
+			closeRelativePathStreamFunc(relativePathUserData, stream);
+		}
+		else
+			texture = nullptr;
 	}
 	else if (auto fbRawData = fbTexture->data_as_RawData())
 	{
@@ -751,7 +792,9 @@ static bool loadMaterial(dsSceneResources* resources, dsResourceManager* resourc
 
 static dsShaderModule* loadShaderModule(dsResourceManager* resourceManager, dsAllocator* allocator,
 	const FlatbufferVector<DeepSeaScene::VersionedShaderModule>* shaderModules,
-	const char* shaderModuleName, const char* fileName)
+	const char* shaderModuleName, const char* fileName, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	if (!shaderModules)
 		return nullptr;
@@ -782,6 +825,18 @@ static dsShaderModule* loadShaderModule(dsResourceManager* resourceManager, dsAl
 			DeepSeaScene::convert(fbFileRef->type()), fbFileRef->path()->c_str(),
 			shaderModuleName);
 	}
+	else if (auto fbRelativePathRef = fbShaderModule->data_as_RelativePathReference())
+	{
+		dsStream* stream = openRelativePathStreamFunc(
+			relativePathUserData, fbRelativePathRef->path()->c_str());
+		if (!stream)
+			return nullptr;
+
+		dsShaderModule* shaderModule = dsShaderModule_loadStream(resourceManager, allocator,
+			stream, shaderModuleName);
+		closeRelativePathStreamFunc(relativePathUserData, stream);
+		return shaderModule;
+	}
 	else if (auto fbRawData = fbShaderModule->data_as_RawData())
 	{
 		auto fbData = fbRawData->data();
@@ -799,11 +854,14 @@ static dsShaderModule* loadShaderModule(dsResourceManager* resourceManager, dsAl
 
 static bool loadShaderModule(dsSceneResources* resources, dsResourceManager* resourceManager,
 	dsAllocator* allocator, const DeepSeaScene::ShaderModule* fbShaderModule,
-	const char* fileName)
+	const char* fileName, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	const char* shaderModuleName = fbShaderModule->name()->c_str();
 	dsShaderModule* shaderModule = loadShaderModule(resourceManager, allocator,
-		fbShaderModule->modules(), shaderModuleName, fileName);
+		fbShaderModule->modules(), shaderModuleName, fileName, relativePathUserData,
+		openRelativePathStreamFunc, closeRelativePathStreamFunc);
 
 	if (!shaderModule)
 	{
@@ -985,13 +1043,16 @@ static bool loadDrawGeometry(dsSceneResources* resources, dsResourceManager* res
 static bool loadSceneNode(dsSceneResources* resources, dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, const DeepSeaScene::SceneNode* fbNamedNode,
-	const char* fileName)
+	const char* fileName, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	const char* nodeName = fbNamedNode->name()->c_str();
 	auto fbNode = fbNamedNode->node();
 	auto data = fbNode->data();
 	dsSceneNode* node = dsSceneNode_load(allocator, resourceAllocator, loadContext, scratchData,
-		fbNode->type()->c_str(), data->data(), data->size());
+		fbNode->type()->c_str(), data->data(), data->size(), relativePathUserData,
+		openRelativePathStreamFunc, closeRelativePathStreamFunc);
 	if (!node)
 	{
 		PRINT_FLATBUFFER_RESOURCE_ERROR("Couldn't load scene node '%s'", nodeName, fileName);
@@ -1010,14 +1071,18 @@ static bool loadSceneNode(dsSceneResources* resources, dsAllocator* allocator,
 static bool loadCustomResource(dsSceneResources* resources, dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData,
-	const DeepSeaScene::CustomResource* fbCustoResource, const char* fileName)
+	const DeepSeaScene::CustomResource* fbCustoResource, const char* fileName,
+	void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	const char* resourceName = fbCustoResource->name()->c_str();
 	auto fbResource = fbCustoResource->resource();
 	auto data = fbResource->data();
 	dsCustomSceneResource* customResource = dsCustomSceneResource_load(allocator,
 		resourceAllocator, loadContext, scratchData, fbResource->type()->c_str(), data->data(),
-		data->size());
+		data->size(), relativePathUserData, openRelativePathStreamFunc,
+		closeRelativePathStreamFunc);
 	if (!customResource)
 	{
 		PRINT_FLATBUFFER_RESOURCE_ERROR("Couldn't load custom scene resource '%s'",
@@ -1039,11 +1104,15 @@ static bool loadCustomResource(dsSceneResources* resources, dsAllocator* allocat
 static bool loadResourceAction(dsSceneResources* resources, dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData,
-	const DeepSeaScene::ObjectData* fbResourceAction, const char* fileName)
+	const DeepSeaScene::ObjectData* fbResourceAction, const char* fileName,
+	void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	auto data = fbResourceAction->data();
 	if (!dsSceneResourceAction_load(allocator, resourceAllocator, loadContext, scratchData,
-			fbResourceAction->type()->c_str(), data->data(), data->size()))
+			fbResourceAction->type()->c_str(), data->data(), data->size(), relativePathUserData,
+			openRelativePathStreamFunc, closeRelativePathStreamFunc))
 	{
 		PRINT_UNNAMED_FLATBUFFER_RESOURCE_ERROR("Couldn't load scene resource action",
 			fileName);
@@ -1056,7 +1125,9 @@ static bool loadResourceAction(dsSceneResources* resources, dsAllocator* allocat
 extern "C"
 dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
-	const void* data, size_t dataSize, const char* fileName)
+	const void* data, size_t dataSize, const char* fileName, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(data), dataSize);
 	if (!DeepSeaScene::VerifySceneResourcesBuffer(verifier))
@@ -1123,12 +1194,14 @@ dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator*
 		if (auto fbBuffer = fbResource->resource_as_Buffer())
 		{
 			success = loadBuffer(resources, resourceManager, resourceAllocator, fbBuffer, fileName,
-				scratchAllocator, tempData, tempDataSize);
+				scratchAllocator, tempData, tempDataSize, relativePathUserData,
+				openRelativePathStreamFunc, closeRelativePathStreamFunc);
 		}
 		else if (auto fbTexture = fbResource->resource_as_Texture())
 		{
 			success = loadTexture(resources, resourceManager, allocator, resourceAllocator,
-				fbTexture, fileName);
+				fbTexture, fileName, relativePathUserData, openRelativePathStreamFunc,
+				closeRelativePathStreamFunc);
 		}
 		else if (auto fbShaderVariableGroupDesc = fbResource->resource_as_ShaderVariableGroupDesc())
 		{
@@ -1153,7 +1226,8 @@ dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator*
 		else if (auto fbShaderModule = fbResource->resource_as_ShaderModule())
 		{
 			success = loadShaderModule(resources, resourceManager, resourceAllocator,
-				fbShaderModule, fileName);
+				fbShaderModule, fileName, relativePathUserData, openRelativePathStreamFunc,
+				closeRelativePathStreamFunc);
 		}
 		else if (auto fbShader = fbResource->resource_as_Shader())
 		{
@@ -1168,17 +1242,20 @@ dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator*
 		else if (auto fbSceneNode = fbResource->resource_as_SceneNode())
 		{
 			success = loadSceneNode(resources, allocator, resourceAllocator, loadContext,
-				scratchData, fbSceneNode, fileName);
+				scratchData, fbSceneNode, fileName, relativePathUserData,
+				openRelativePathStreamFunc, closeRelativePathStreamFunc);
 		}
 		else if (auto fbCustomResource = fbResource->resource_as_CustomResource())
 		{
 			success = loadCustomResource(resources, allocator, resourceAllocator, loadContext,
-				scratchData, fbCustomResource, fileName);
+				scratchData, fbCustomResource, fileName, relativePathUserData,
+				openRelativePathStreamFunc, closeRelativePathStreamFunc);
 		}
 		else if (auto fbResourceAction = fbResource->resource_as_ResourceAction())
 		{
 			success = loadResourceAction(resources, allocator, resourceAllocator, loadContext,
-				scratchData, fbResourceAction, fileName);
+				scratchData, fbResourceAction, fileName, relativePathUserData,
+				openRelativePathStreamFunc, closeRelativePathStreamFunc);
 		}
 
 		if (!success)

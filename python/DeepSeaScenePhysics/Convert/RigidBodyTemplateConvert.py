@@ -25,7 +25,7 @@ from DeepSeaPhysics.Quaternion4f import CreateQuaternion4f
 from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import RigidBodyTemplate
 
-def convertRigidBodyTemplate(convertContext, data):
+def convertRigidBodyTemplate(convertContext, data, outputDir):
 	"""
 	Converts a RigidBodyTemplate. The data map is expected to contain the following elements:
 	- flags: list of flags control the behavior of the rigid body. See the dsRigidBodyFlags enum

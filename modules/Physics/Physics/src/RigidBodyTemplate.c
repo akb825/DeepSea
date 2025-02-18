@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,10 @@
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
+#include <DeepSea/Core/Streams/FileArchive.h>
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
+#include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -229,9 +231,37 @@ dsRigidBodyTemplate* dsRigidBodyTemplate_loadResource(dsPhysicsEngine* engine,
 	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, engine->allocator);
 	dsResourceStream_close(&stream);
 	if (!buffer)
+		return NULL;
+
+	dsRigidBodyTemplate* rigidBodyTemplate = dsRigidBodyTemplate_loadImpl(engine, allocator,
+		canCollisionGroupsCollideFunc, findShapeFunc, findShapeUserData, buffer, size, filePath);
+	DS_VERIFY(dsAllocator_free(engine->allocator, buffer));
+	return rigidBodyTemplate;
+}
+
+dsRigidBodyTemplate* dsRigidBodyTemplate_loadArchive(dsPhysicsEngine* engine,
+	dsAllocator* allocator, dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc,
+	dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData, const dsFileArchive* archive,
+	const char* filePath)
+{
+	if (!engine || !archive || !filePath)
 	{
+		errno = EINVAL;
 		return NULL;
 	}
+
+	dsStream* stream = dsFileArchive_openFile(archive, filePath);
+	if (!stream)
+	{
+		DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG, "Couldn't open rigid body file '%s'.", filePath);
+		return NULL;
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, stream, engine->allocator);
+	dsStream_close(stream);
+	if (!buffer)
+		return NULL;
 
 	dsRigidBodyTemplate* rigidBodyTemplate = dsRigidBodyTemplate_loadImpl(engine, allocator,
 		canCollisionGroupsCollideFunc, findShapeFunc, findShapeUserData, buffer, size, filePath);

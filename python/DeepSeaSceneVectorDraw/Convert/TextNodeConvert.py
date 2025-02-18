@@ -21,7 +21,7 @@ from DeepSeaScene.Convert.SceneResourcesConvert import convertSceneResources
 
 FLT_MAX = 3.402823466e38
 
-def convertTextNode(convertContext, data):
+def convertTextNode(convertContext, data, outputDir):
 	"""
 	Converts a TextNode. The data map is expected to contain the following elements:
 	- embeddedResources: optional set of resources to embed with the node. This is a map containing
@@ -92,7 +92,7 @@ def convertTextNode(convertContext, data):
 
 	builder = flatbuffers.Builder(0)
 	if embeddedResources:
-		embeddedResourcesData = convertSceneResources(convertContext, embeddedResources)
+		embeddedResourcesData = convertSceneResources(convertContext, embeddedResources, outputDir)
 		embeddedResourcesOffset = builder.CreateByteVector(embeddedResourcesData)
 	else:
 		embeddedResourcesOffset = 0

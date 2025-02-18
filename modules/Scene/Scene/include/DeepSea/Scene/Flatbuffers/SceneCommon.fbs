@@ -344,6 +344,12 @@ table FileReference
 	path : string (required);
 }
 
+// Struct describing a relative path to a file.
+table RelativePathReference
+{
+	path : string (required);
+}
+
 // Structure describing raw data.
 table RawData
 {
@@ -355,6 +361,7 @@ table RawData
 union FileOrData
 {
 	FileReference,
+	RelativePathReference,
 	RawData
 }
 

@@ -39,6 +39,9 @@ struct OrientedBox3f;
 struct FileReference;
 struct FileReferenceBuilder;
 
+struct RelativePathReference;
+struct RelativePathReferenceBuilder;
+
 struct RawData;
 struct RawDataBuilder;
 
@@ -798,24 +801,27 @@ inline const char *EnumNameFormatDecoration(FormatDecoration e) {
 enum class FileOrData : uint8_t {
   NONE = 0,
   FileReference = 1,
-  RawData = 2,
+  RelativePathReference = 2,
+  RawData = 3,
   MIN = NONE,
   MAX = RawData
 };
 
-inline const FileOrData (&EnumValuesFileOrData())[3] {
+inline const FileOrData (&EnumValuesFileOrData())[4] {
   static const FileOrData values[] = {
     FileOrData::NONE,
     FileOrData::FileReference,
+    FileOrData::RelativePathReference,
     FileOrData::RawData
   };
   return values;
 }
 
 inline const char * const *EnumNamesFileOrData() {
-  static const char * const names[4] = {
+  static const char * const names[5] = {
     "NONE",
     "FileReference",
+    "RelativePathReference",
     "RawData",
     nullptr
   };
@@ -834,6 +840,10 @@ template<typename T> struct FileOrDataTraits {
 
 template<> struct FileOrDataTraits<DeepSeaScene::FileReference> {
   static const FileOrData enum_value = FileOrData::FileReference;
+};
+
+template<> struct FileOrDataTraits<DeepSeaScene::RelativePathReference> {
+  static const FileOrData enum_value = FileOrData::RelativePathReference;
 };
 
 template<> struct FileOrDataTraits<DeepSeaScene::RawData> {
@@ -1241,6 +1251,58 @@ inline ::flatbuffers::Offset<FileReference> CreateFileReferenceDirect(
       path__);
 }
 
+struct RelativePathReference FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef RelativePathReferenceBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_PATH = 4
+  };
+  const ::flatbuffers::String *path() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_PATH);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_PATH) &&
+           verifier.VerifyString(path()) &&
+           verifier.EndTable();
+  }
+};
+
+struct RelativePathReferenceBuilder {
+  typedef RelativePathReference Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_path(::flatbuffers::Offset<::flatbuffers::String> path) {
+    fbb_.AddOffset(RelativePathReference::VT_PATH, path);
+  }
+  explicit RelativePathReferenceBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<RelativePathReference> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<RelativePathReference>(end);
+    fbb_.Required(o, RelativePathReference::VT_PATH);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<RelativePathReference> CreateRelativePathReference(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> path = 0) {
+  RelativePathReferenceBuilder builder_(_fbb);
+  builder_.add_path(path);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<RelativePathReference> CreateRelativePathReferenceDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *path = nullptr) {
+  auto path__ = path ? _fbb.CreateString(path) : 0;
+  return DeepSeaScene::CreateRelativePathReference(
+      _fbb,
+      path__);
+}
+
 struct RawData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef RawDataBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -1313,6 +1375,9 @@ struct VersionedShaderModule FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Ta
   const DeepSeaScene::FileReference *data_as_FileReference() const {
     return data_type() == DeepSeaScene::FileOrData::FileReference ? static_cast<const DeepSeaScene::FileReference *>(data()) : nullptr;
   }
+  const DeepSeaScene::RelativePathReference *data_as_RelativePathReference() const {
+    return data_type() == DeepSeaScene::FileOrData::RelativePathReference ? static_cast<const DeepSeaScene::RelativePathReference *>(data()) : nullptr;
+  }
   const DeepSeaScene::RawData *data_as_RawData() const {
     return data_type() == DeepSeaScene::FileOrData::RawData ? static_cast<const DeepSeaScene::RawData *>(data()) : nullptr;
   }
@@ -1329,6 +1394,10 @@ struct VersionedShaderModule FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Ta
 
 template<> inline const DeepSeaScene::FileReference *VersionedShaderModule::data_as<DeepSeaScene::FileReference>() const {
   return data_as_FileReference();
+}
+
+template<> inline const DeepSeaScene::RelativePathReference *VersionedShaderModule::data_as<DeepSeaScene::RelativePathReference>() const {
+  return data_as_RelativePathReference();
 }
 
 template<> inline const DeepSeaScene::RawData *VersionedShaderModule::data_as<DeepSeaScene::RawData>() const {
@@ -1544,6 +1613,10 @@ inline bool VerifyFileOrData(::flatbuffers::Verifier &verifier, const void *obj,
     }
     case FileOrData::FileReference: {
       auto ptr = reinterpret_cast<const DeepSeaScene::FileReference *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case FileOrData::RelativePathReference: {
+      auto ptr = reinterpret_cast<const DeepSeaScene::RelativePathReference *>(obj);
       return verifier.VerifyTable(ptr);
     }
     case FileOrData::RawData: {

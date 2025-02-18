@@ -56,7 +56,7 @@ def addAnimationJointTreeType(convertContext, typeName, convertFunc):
 		raise Exception('Animation joint tree type "' + typeName + '" is already registered.')
 	convertContext.animationJointTreeTypeMap[typeName] = convertFunc
 
-def convertAnimationJointTree(convertContext, data):
+def convertAnimationJointTree(convertContext, data, outputDir):
 	"""
 	Converts an AnimationTree with joints. The data map is expected to contain the following
 	elements:

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 #include <DeepSea/Core/Containers/HashTable.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Streams/FileArchive.h>
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Streams/Stream.h>
@@ -411,6 +412,38 @@ dsScene* dsScene_loadResource(dsAllocator* allocator, dsAllocator* resourceAlloc
 	size_t size;
 	void* buffer = dsSceneLoadScratchData_readUntilEnd(&size, scratchData, (dsStream*)&stream);
 	dsResourceStream_close(&stream);
+	if (!buffer)
+		DS_PROFILE_FUNC_RETURN(NULL);
+
+	dsScene* scene = dsScene_loadImpl(allocator, resourceAllocator, loadContext, scratchData,
+		buffer, size, userData, destroyUserDataFunc, filePath);
+	DS_VERIFY(dsSceneLoadScratchData_freeReadBuffer(scratchData, buffer));
+	DS_PROFILE_FUNC_RETURN(scene);
+}
+
+dsScene* dsScene_loadArchive(dsAllocator* allocator, dsAllocator* resourceAllocator,
+	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
+	void* userData, dsDestroyUserDataFunction destroyUserDataFunc, const dsFileArchive* archive,
+	const char* filePath)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !loadContext || !scratchData || !archive || !filePath)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsStream* stream = dsFileArchive_openFile(archive, filePath);
+	if (!stream)
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open scene node file '%s'.", filePath);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	size_t size;
+	void* buffer = dsSceneLoadScratchData_readUntilEnd(&size, scratchData, stream);
+	dsStream_close(stream);
 	if (!buffer)
 		DS_PROFILE_FUNC_RETURN(NULL);
 

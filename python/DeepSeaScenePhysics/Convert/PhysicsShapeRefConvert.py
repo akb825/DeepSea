@@ -38,7 +38,7 @@ def convertPhysicsShapeRefOffset(convertContext, data, builder):
 	Shape.AddShape(builder, shapeRefOffset)
 	return Shape.End(builder)
 
-def convertPhysicsShapeRef(convertContext, data):
+def convertPhysicsShapeRef(convertContext, data, outputDir):
 	"""
 	Converts a PhysicsShapeRef. The data map is expected to contain the following elements:
 	- shape: the name of the referenced shape.

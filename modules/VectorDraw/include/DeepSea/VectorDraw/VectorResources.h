@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadFile(dsAllocator* 
 	const dsTextQuality* qualityRemap);
 
 /**
- * @brief Loads vector resources from a resource.
+ * @brief Loads vector resources from a resource file.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the vector resources and sub-resources with.
  * @param scratchAllocator The allocator to use for scratch data. If NULL, it will use the same as
@@ -88,6 +88,23 @@ DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadFile(dsAllocator* 
  */
 DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadResource(dsAllocator* allocator,
 	dsAllocator* scratchAllocator, dsResourceManager* resourceManager, dsFileResourceType type,
+	const char* filePath, const dsTextQuality* qualityRemap);
+
+/**
+ * @brief Loads vector resources from a file within an archive.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the vector resources and sub-resources with.
+ * @param scratchAllocator The allocator to use for scratch data. If NULL, it will use the same as
+ *     allocator.
+ * @param resourceManager The resource manager to create textures from.
+ * @param archive The archive to load the vector resources from.
+ * @param filePath The file path for the vector resources to load.
+ * @param qualityRemap Array to remap text qualities, or NULL to use values as-is. If not NULL,
+ *     it must be of size DS_TEXT_QUALITY_REMAP_SIZE.
+ * @return The created vector resources, or NULL if it couldn't be created.
+ */
+DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadArchive(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, dsResourceManager* resourceManager, const dsFileArchive* archive,
 	const char* filePath, const dsTextQuality* qualityRemap);
 
 /**
@@ -162,7 +179,7 @@ DS_VECTORDRAW_EXPORT bool dsVectorResources_addTexture(dsVectorResources* resour
  *     freeing the texture if it is owned.
  * @return False if the texture couldn't be removed.
  */
-DS_VECTORDRAW_EXPORT bool dsVectorResource_removeTexture(dsVectorResources* resources,
+DS_VECTORDRAW_EXPORT bool dsVectorResources_removeTexture(dsVectorResources* resources,
 	const char* name, bool relinquish);
 
 /**

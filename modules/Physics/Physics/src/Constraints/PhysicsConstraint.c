@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,10 @@
 #include "Constraints/PhysicsConstraintLoad.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Streams/FileArchive.h>
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
+#include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -107,6 +109,36 @@ dsPhysicsConstraint* dsPhysicsConstraint_loadResource(dsPhysicsEngine* engine,
 	size_t size;
 	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, engine->allocator);
 	dsResourceStream_close(&stream);
+	if (!buffer)
+		return NULL;
+
+	dsPhysicsConstraint* constraint = dsPhysicsConstraint_loadImpl(engine, allocator, findActorFunc,
+		findActorUserData, findConstraintFunc, findConstraintUserData, buffer, size, filePath);
+	DS_VERIFY(dsAllocator_free(engine->allocator, buffer));
+	return constraint;
+}
+
+dsPhysicsConstraint* dsPhysicsConstraint_loadArchive(dsPhysicsEngine* engine,
+	dsAllocator* allocator, dsFindPhysicsActorFunction findActorFunc, void* findActorUserData,
+	dsFindPhysicsConstraintFunction findConstraintFunc, void* findConstraintUserData,
+	const dsFileArchive* archive, const char* filePath)
+{
+	if (!engine || !findActorFunc || !archive || !filePath)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	dsStream* stream = dsFileArchive_openFile(archive, filePath);
+	if (!stream)
+	{
+		DS_LOG_ERROR_F(DS_PHYSICS_LOG_TAG, "Couldn't open physics constraint file '%s'.", filePath);
+		return NULL;
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, stream, engine->allocator);
+	dsStream_close(stream);
 	if (!buffer)
 		return NULL;
 

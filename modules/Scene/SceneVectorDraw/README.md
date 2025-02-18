@@ -22,19 +22,19 @@ The following custom scene resource types are provided with the members that are
 	* `text`: the text. This can either be a path to a .xml file or embedded XML string. The XML contents should be a single \<text\> SVG element with any number of \<tspan\> embedded elements. (see https://www.w3.org/TR/SVG2/text.html#TextElement for details) Only solid colors are allowed for stroke and fill. When a position is provided, only a relative offset for the vertical position is supported.
 * `"VectorResources"`: vector resources that will be used for vector images within a scene.
 	* `resources`: path to the vector resources.
-	* `output`: the path to the output the vector resources. This can be omitted if vector resources are embedded.
+	* `output`: the path to the output the vector resources. This can be omitted if vector resources are embedded. If `resourceType` is `"Relative"`, this will be treated as relative to the scene resource file.
 	* `outputRelativeDir`: the directory relative to output path. This will be removed from the path before adding the reference.
-	* `resourceType`: the resource type. See the `dsFileResourceType` for values, removing the type prefix. Defaults to `"Embedded"`.
+	* `resourceType`: the resource type. See the `dsFileResourceType` for values, removing the type prefix, in addition to `"Relative"` for a path relative to the scene resources file. Defaults to `"Relative"`.
 * `"VectorShaders"`: shaders to be used with vector images within a scene.
 	* `modules`: array of versioned shader modules. The appropriate model based on the graphics API version being used will be chosen at runtime. Each element of the array has the following members:
 		* `version`: the version of the shader as a standard config. (e.g. `"glsl-4.1"`, `"spirv-1.0"`)
 		* `module`: path to the shader module or base64 encoded data prefixed with `base64:`. The module is expected to have been compiled with Modular Shader Language (MSL).
-		* `output`: the path to the location to copy the shader module to. This can be omitted to embed the shader module directly.
+		* `output`: the path to the location to copy the shader module to. This can be omitted to embed the shader module directly. If `resourceType` is `"Relative"`, this will be treated as relative to the scene resource file.
 		* `outputRelativeDir`: the directory relative to output path. This will be removed from the path before adding the reference.
-		* `resourceType`: the resource type. See the `dsFileResourceType` for values, removing the type prefix. Defaults to `"Embedded"`.
-	* `extraElements`: list of extra meterial elements to add for the material description. Each element of the array has the following members:
+		* `resourceType`: the resource type. See the `dsFileResourceType` for values, removing the type prefix, in addition to `"Relative"` for a path relative to the scene resources file. Defaults to `"Relative"`.
+	* `extraElements`: list of extra material elements to add for the material description. Each element of the array has the following members:
 		* `name`: the name of the element.
-		* `type`: the type of the element. See dsMaterialType enum for values, removing the type prefix.
+		* `type`: the type of the element. See `dsMaterialType` enum for values, removing the type prefix.
 		* `count`: the number of array elements. If 0 or omitted, this is not an array.
 		* `binding`: the binding type for the element. See the `dsMaterialBinding` enum for values, removing the type prefix. This is only used for texture, image, buffer, and shader variable group types.
 		* `shaderVariableGroupDesc`: the name of the shader variable group description when the type is a shader variable group.
@@ -50,9 +50,9 @@ The following custom scene resource types are provided with the members that are
 	* `textGradientOutline`: name of the shader for text with an outline using a gradient. Defaults to `"dsVectorTextGradientOutline"`.
 * `"VectorImage"`: vector image to draw within a scene with `VectorImageNode`.
 	* `image`: path to the vector image or base64 encoded data prefixed with `base64:`.
-	* `output`: the path to the output the vector image. This can be omitted if the vector image is embedded.
+	* `output`: the path to the output the vector image. This can be omitted if the vector image is embedded. If `resourceType` is `"Relative"`, this will be treated as relative to the scene resource file.
 	* `outputRelativeDir`: the directory relative to output path. This will be removed from the path before adding the reference.
-	* `resourceType`: the resource type. See the `dsFileResourceType` for values, removing the type prefix. Defaults to `"Embedded"`.
+	* `resourceType`: the resource type. See the `dsFileResourceType` for values, removing the type prefix, in addition to `"Relative"` for a path relative to the scene resources file. Defaults to `"Relative"`.
 	* `targetSize`: the target size of the vector image for the tessellation quality as an array of two floats. Defaults to the original image size.
 	* `sharedMaterials`: the name of the vector material set for shared material data.
 	* `vectorShaders`: the name of the vector material set for shared material data.

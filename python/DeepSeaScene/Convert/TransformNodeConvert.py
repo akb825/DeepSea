@@ -18,7 +18,7 @@ from .TransformConvert import convertTransform
 from ..Matrix44f import CreateMatrix44f
 from .. import TransformNode
 
-def convertTransformNode(convertContext, data):
+def convertTransformNode(convertContext, data, outputDir):
 	"""
 	Converts a TransformNode. The data map is expected to contain the following elements:
 	- transformList: array of transforms to apply. The matrices for the transforms provided are
@@ -43,7 +43,8 @@ def convertTransformNode(convertContext, data):
 			for child in children:
 				try:
 					childType = str(child['nodeType'])
-					childOffsets.append(convertContext.convertNode(builder, childType, child))
+					childOffsets.append(
+						convertContext.convertNode(builder, childType, child, outputDir))
 				except KeyError as e:
 					raise Exception('Child node data doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):

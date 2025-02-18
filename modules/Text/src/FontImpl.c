@@ -21,6 +21,8 @@
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Streams/FileArchive.h>
+#include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Streams/Stream.h>
@@ -1026,7 +1028,28 @@ bool dsFaceGroup_loadFaceResource(dsFaceGroup* group, dsAllocator* allocator,
 	}
 
 	bool retVal = dsFaceGroup_loadFaceImpl(group, allocator, (dsStream*)&stream, name);
-	dsStream_close((dsStream*)&stream);
+	dsResourceStream_close(&stream);
+	return retVal;
+}
+
+bool dsFaceGroup_loadFaceArchive(dsFaceGroup* group, dsAllocator* allocator,
+	const dsFileArchive* archive, const char* fileName, const char* name)
+{
+	if (!group || !allocator || !archive || !fileName || !name)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsStream* stream = dsFileArchive_openFile(archive, fileName);
+	if (!stream)
+	{
+		DS_LOG_ERROR_F(DS_TEXT_LOG_TAG, "Couldn't open font face file '%s'.", fileName);
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	bool retVal = dsFaceGroup_loadFaceImpl(group, allocator, stream, name);
+	dsStream_close(stream);
 	return retVal;
 }
 

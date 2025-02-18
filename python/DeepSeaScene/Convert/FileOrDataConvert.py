@@ -1,4 +1,4 @@
-# Copyright 2020-2021 Aaron Barany
+# Copyright 2020-2025 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,13 +13,14 @@
 # limitations under the License.
 
 import base64
-import os.path
+import os
 import shutil
 
 from ..FileOrData import FileOrData
 from .. import FileReference
 from ..FileResourceType import FileResourceType
 from .. import RawData
+from .. import RelativePathReference
 
 def readDataOrPath(dataStr):
 	"""
@@ -34,12 +35,14 @@ def readDataOrPath(dataStr):
 			dataContents = stream.read()
 	return dataPath, dataContents
 
-def convertFileOrData(builder, inputPath, data, outputPath, outputRelativeDir, resourceType):
+def convertFileOrData(builder, inputPath, data, outputPath, outputRelativeDir, resourceType,
+		parentOutputDir):
 	"""
 	Converts to a file reference or raw data. Either inputPath or data may be None if not
 	applicable. resourceType should be the name of the resource type or None for the default.
 	If inputPath and outputPath are the same then the data will not be copied or written to
-	outputPath.
+	outputPath. outputPath will be treated relative to parentOutputDir if resourceType is
+	"Relative" or None.
 
 	A tuple with the type and structure offset will be returned.
 	"""
@@ -47,25 +50,42 @@ def convertFileOrData(builder, inputPath, data, outputPath, outputRelativeDir, r
 		return FileOrData.NONE, 0
 
 	if outputPath:
-		if resourceType:
+		if not resourceType or resourceType == 'Relative':
+			fbResourceType = None
+		else:
 			try:
 				fbResourceType = getattr(FileResourceType, resourceType)
 			except AttributeError:
 				raise Exception('Invalid resource type "' + str(resourceType) + '".')
-		else:
-			fbResourceType = FileResourceType.Embedded
 
-		if not inputPath or inputPath != outputPath:
+		if fbResourceType is None:
+			outputWritePath = os.path.join(parentOutputDir, outputPath)
+		else:
+			outputWritePath = outputPath
+
+		if not inputPath or os.path.abspath(inputPath) != os.path.abspath(outputWritePath):
 			if data:
-				with open(outputPath, 'wb') as stream:
+				with open(outputWritePath, 'wb') as stream:
 					stream.write(data)
 			else:
-				shutil.copy(inputPath, outputPath)
+				shutil.copy(inputPath, outputWritePath)
 
 		if outputRelativeDir:
 			outputPath = os.path.relpath(outputPath, outputRelativeDir)
 
+		if os.path.isabs(outputPath):
+			if fbResourceType != FileResourceType.External:
+				raise Exception('Resource path "' + outputPath + '" must not be absolute.')
+		elif os.sep != '/':
+			outputPath = outputPath.replace(os.sep, '/')
+
 		pathOffset = builder.CreateString(outputPath)
+
+		if fbResourceType is None:
+			RelativePathReference.Start(builder)
+			RelativePathReference.AddPath(builder, pathOffset)
+			return FileOrData.RelativePathReference, RelativePathReference.End(builder)
+
 		FileReference.Start(builder)
 		FileReference.AddType(builder, fbResourceType)
 		FileReference.AddPath(builder, pathOffset)

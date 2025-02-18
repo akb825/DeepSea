@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,9 +47,13 @@ dsCustomSceneResource* dsCustomSceneResource_create(dsAllocator* allocator,
 
 dsCustomSceneResource* dsCustomSceneResource_load(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, const char* type, const void* data, size_t size)
+	dsSceneLoadScratchData* scratchData, const char* type, const void* data, size_t size,
+	void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
-	if (!allocator || !loadContext || !scratchData || !type || (!data && size > 0))
+	if (!allocator || !loadContext || !scratchData || !type || (!data && size > 0) ||
+		!openRelativePathStreamFunc || !closeRelativePathStreamFunc)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -65,7 +69,8 @@ dsCustomSceneResource* dsCustomSceneResource_load(dsAllocator* allocator,
 	}
 
 	void* resource = foundType->loadFunc(loadContext, scratchData, allocator, resourceAllocator,
-		foundType->userData, (const uint8_t*)data, size);
+		foundType->userData, (const uint8_t*)data, size, relativePathUserData,
+		openRelativePathStreamFunc, closeRelativePathStreamFunc);
 	if (!resource)
 	{
 		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Failed to load custom scene resource '%s': %s.", type,

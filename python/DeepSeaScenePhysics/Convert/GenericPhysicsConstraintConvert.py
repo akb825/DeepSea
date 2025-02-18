@@ -30,7 +30,7 @@ from DeepSeaPhysics import GenericConstraint
 class Object:
 	pass
 
-def convertGenericPhysicsConstraint(convertContext, data):
+def convertGenericPhysicsConstraint(convertContext, data, outputDir):
 	"""
 	Converts a GenericPhysicsConstraint. The data map is expected to contain the following
 	elements:

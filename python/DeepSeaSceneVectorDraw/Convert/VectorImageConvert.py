@@ -1,4 +1,4 @@
-# Copyright 2020-2021 Aaron Barany
+# Copyright 2020-2025 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,16 +19,18 @@ from .. import VectorImage
 from DeepSeaScene.Convert.FileOrDataConvert import convertFileOrData, readDataOrPath
 from DeepSeaScene.Vector2f import CreateVector2f
 
-def convertVectorImage(convertContext, data):
+def convertVectorImage(convertContext, data, outputDir):
 	"""
 	Converts a VectorImage. The data map is expected to contain the following elements:
 	- image: path to the vector image or base64 encoded data prefixed with "base64:".
 	- output: the path to the output the vector image. This can be omitted if the vector image is
-	  embedded.
+	  embedded. If resourceType is "Relative", this will be treated as relative to the scene
+	  resource file.
 	- outputRelativeDir: the directory relative to output path. This will be removed from the path
 	  before adding the reference.
 	- resourceType: the resource type. See the dsFileResourceType for values, removing the type
-	  prefix. Defaults to "Embedded".
+	  prefix, in addition to "Relative" for a path relative to the scene resources file. Defaults
+	  to "Relative".
 	- targetSize: the target size of the vector image for the tessellation quality as an array of
 	  two floats. Defaults to the original image size.
 	- sharedMaterials: the name of the vector material set for shared material data.
@@ -47,7 +49,7 @@ def convertVectorImage(convertContext, data):
 		except TypeError:
 			raise Exception('VectorImage "data" uses incorrect base64 encoding.')
 		imageType, imageOffset = convertFileOrData(builder, imagePath, imageContents,
-			data.get('output'), data.get('outputRelativeDir'), data.get('resourceType'))
+			data.get('output'), data.get('outputRelativeDir'), data.get('resourceType'), outputDir)
 
 		size = data.get('targetSize')
 		if size:

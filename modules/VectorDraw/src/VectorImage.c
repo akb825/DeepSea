@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Streams/FileArchive.h>
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Streams/Stream.h>
@@ -1062,9 +1063,7 @@ dsVectorImage* dsVectorImage_loadFile(dsAllocator* allocator, dsAllocator* resou
 		(dsStream*)&stream, initResources->scratchData->allocator);
 	dsFileStream_close(&stream);
 	if (!buffer)
-	{
 		DS_PROFILE_FUNC_RETURN(NULL);
-	}
 
 	dsVectorImage* image = dsVectorImage_loadImpl(allocator, resourceAllocator, initResources,
 		buffer, size, pixelSize, targetSize, filePath);
@@ -1096,11 +1095,43 @@ dsVectorImage* dsVectorImage_loadResource(dsAllocator* allocator, dsAllocator* r
 	size_t size;
 	void* buffer = dsVectorScratchData_readUntilEnd(&size, initResources->scratchData,
 		(dsStream*)&stream, initResources->scratchData->allocator);
-	dsStream_close((dsStream*)&stream);
+	dsResourceStream_close(&stream);
 	if (!buffer)
+		DS_PROFILE_FUNC_RETURN(NULL);
+
+	dsVectorImage* image = dsVectorImage_loadImpl(allocator, resourceAllocator, initResources,
+		buffer, size, pixelSize, targetSize, filePath);
+	DS_PROFILE_FUNC_RETURN(image);
+}
+
+dsVectorImage* dsVectorImage_loadArchive(dsAllocator* allocator, dsAllocator* resourceAllocator,
+	const dsVectorImageInitResources* initResources, const dsFileArchive* archive,
+	const char* filePath, float pixelSize, const dsVector2f* targetSize)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !initResourcesValid(initResources) || !archive || !filePath)
 	{
+		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
+
+	if (!resourceAllocator)
+		resourceAllocator = allocator;
+
+	dsStream* stream = dsFileArchive_openFile(archive, filePath);
+	if (!stream)
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open vector image file '%s'.", filePath);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	size_t size;
+	void* buffer = dsVectorScratchData_readUntilEnd(&size, initResources->scratchData, stream,
+		initResources->scratchData->allocator);
+	dsStream_close(stream);
+	if (!buffer)
+		DS_PROFILE_FUNC_RETURN(NULL);
 
 	dsVectorImage* image = dsVectorImage_loadImpl(allocator, resourceAllocator, initResources,
 		buffer, size, pixelSize, targetSize, filePath);
@@ -1126,9 +1157,7 @@ dsVectorImage* dsVectorImage_loadStream(dsAllocator* allocator, dsAllocator* res
 	void* buffer = dsVectorScratchData_readUntilEnd(&size, initResources->scratchData, stream,
 		initResources->scratchData->allocator);
 	if (!buffer)
-	{
 		DS_PROFILE_FUNC_RETURN(NULL);
-	}
 
 	dsVectorImage* image = dsVectorImage_loadImpl(allocator, resourceAllocator, initResources,
 		buffer, size, pixelSize, targetSize, NULL);
@@ -1166,16 +1195,12 @@ bool dsVectorImage_updateText(dsVectorImage* vectorImage, dsCommandBuffer* comma
 	}
 
 	if (vectorImage->textLayoutCount == 0)
-	{
 		DS_PROFILE_FUNC_RETURN(true);
-	}
 
 	for (uint32_t i = 0; i < vectorImage->textLayoutCount; ++i)
 	{
 		if (!dsTextLayout_refresh(vectorImage->textLayouts[i], commandBuffer))
-		{
 			DS_PROFILE_FUNC_RETURN(false);
-		}
 	}
 
 	bool success = addTextRanges(vectorImage, commandBuffer);
@@ -1203,9 +1228,7 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 	}
 
 	if (vectorImage->pieceCount == 0)
-	{
 		DS_PROFILE_FUNC_RETURN(true);
-	}
 
 	dsVectorShaderModule* shaderModule = shaders->shaderModule;
 	if (!dsMaterial_setElementData(material, shaderModule->modelViewProjectionElement,

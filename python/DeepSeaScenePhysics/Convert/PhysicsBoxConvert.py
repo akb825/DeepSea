@@ -42,7 +42,7 @@ def convertPhysicsBoxOffset(convertContext, data, builder):
 	Shape.AddShape(builder, boxOffset)
 	return Shape.End(builder)
 
-def convertPhysicsBox(convertContext, data):
+def convertPhysicsBox(convertContext, data, outputDir):
 	"""
 	Converts a PhysicsBox. The data map is expected to contain the following elements:
 	- halfExtents: array of 3 floats for the half extents of the box. The full box geometry ranges

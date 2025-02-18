@@ -20,7 +20,7 @@ from .LightConvert import readLight, writeLight
 class Object:
 	pass
 
-def convertLightNode(convertContext, data):
+def convertLightNode(convertContext, data, outputDir):
 	"""
 	Converts a LightNode. The data map is expected to contain the following elements:
 	- light: The light used as a template for all the lights created in the scene. It is expected

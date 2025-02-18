@@ -53,7 +53,7 @@ def addAnimationTreeType(convertContext, typeName, convertFunc):
 		raise Exception('Animation tree type "' + typeName + '" is already registered.')
 	convertContext.animationTreeTypeMap[typeName] = convertFunc
 
-def convertAnimationTree(convertContext, data):
+def convertAnimationTree(convertContext, data, outputDir):
 	"""
 	Converts an AnimationTree without joints. The data map is expected to contain the following
 	elements:

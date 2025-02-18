@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Aaron Barany
+ * Copyright 2023-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,6 +83,23 @@ DS_PHYSICS_EXPORT dsPhysicsShape* dsPhysicsShape_loadFile(dsPhysicsEngine* engin
 DS_PHYSICS_EXPORT dsPhysicsShape* dsPhysicsShape_loadResource(dsPhysicsEngine* engine,
 	dsAllocator* allocator, dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData,
 	dsFileResourceType type, const char* filePath);
+
+/**
+ * @brief Loads a physics shape from a file from an archive.
+ * @remark errno will be set on failure.
+ * @param engine The physics engine to create the shape with.
+ * @param allocator The allocator to create the shape with. If NULL the engine's allocator will be
+ *     used.
+ * @param findShapeFunc Function to find a shape by name. This will be used if a shape reference is
+ *     used. All lookups will fail if this function is NULL.
+ * @param findShapeUserData User data to pass to findShapeFunc.
+ * @param archive The archive to load the physics shape from.
+ * @param filePath The file path for the physics shape to load.
+ * @return The loaded physics shape or NULL if it couldn't be loaded.
+ */
+DS_PHYSICS_EXPORT dsPhysicsShape* dsPhysicsShape_loadArchive(dsPhysicsEngine* engine,
+	dsAllocator* allocator, dsFindPhysicsShapeFunction findShapeFunc, void* findShapeUserData,
+	const dsFileArchive* archive, const char* filePath);
 
 /**
  * @brief Loads a physics shape from a stream.

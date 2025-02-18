@@ -49,7 +49,7 @@ def convertPhysicsConeOffset(convertContext, data, builder):
 	Shape.AddShape(builder, coneOffset)
 	return Shape.End(builder)
 
-def convertPhysicsCone(convertContext, data):
+def convertPhysicsCone(convertContext, data, outputDir):
 	"""
 	Converts a PhysicsCone. The data map is expected to contain the following elements:
 	- height: the height of the cone.

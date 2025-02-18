@@ -84,7 +84,7 @@ def addKeyframeAnimationType(convertContext, typeName, convertFunc):
 		raise Exception('Keyframe animation type "' + typeName + '" is already registered.')
 	convertContext.keyframeAnimationTypeMap[typeName] = convertFunc
 
-def convertKeyframeAnimation(convertContext, data):
+def convertKeyframeAnimation(convertContext, data, outputDir):
 	"""
 	Converts a keyframe animation for a scene. The data map is expected to contain the following
 	elements:

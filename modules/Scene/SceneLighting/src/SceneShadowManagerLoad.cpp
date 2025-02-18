@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 Aaron Barany
+ * Copyright 2021-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,8 @@
 
 void* dsSceneShadowManager_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*, void*,
-	const uint8_t* data, size_t dataSize)
+	const uint8_t* data, size_t dataSize, void*,
+	dsOpenSceneResourcesRelativePathStreamFunction, dsCloseSceneResourcesRelativePathStreamFunction)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaSceneLighting::VerifySceneShadowManagerBuffer(verifier))
@@ -87,13 +88,15 @@ void* dsSceneShadowManager_load(const dsSceneLoadContext* loadContext,
 		const char* lightSetName = fbLightShadows->lightSet()->c_str();
 		dsSceneResourceType type;
 		dsCustomSceneResource* resource;
-		if (!dsSceneLoadScratchData_findResource(&type, (void**)&resource, scratchData, lightSetName) ||
+		if (!dsSceneLoadScratchData_findResource(
+				&type, (void**)&resource, scratchData, lightSetName) ||
 			type != dsSceneResourceType_Custom || resource->type != dsSceneLightSet_type())
 		{
 			for (uint32_t j = 0; j < i; ++j)
 				dsSceneLightShadows_destroy(shadows[j]);
 			errno = ENOTFOUND;
-			DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find light set '%s'.", lightSetName);
+			DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find light set '%s'.",
+				lightSetName);
 			return nullptr;
 		}
 

@@ -16,7 +16,7 @@ import flatbuffers
 
 from .. import ParticleNode
 
-def convertParticleNode(convertContext, data):
+def convertParticleNode(convertContext, data, outputDir):
 	"""
 	Converts a ParticleNode. The data map is expected to contain the following elements:
 	- particleEmitterFactory: the name of the factory to create particle emitters with.

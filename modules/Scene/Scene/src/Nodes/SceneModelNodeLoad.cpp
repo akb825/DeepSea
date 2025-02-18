@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,9 @@
 extern "C"
 dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void*, const uint8_t* data, size_t dataSize)
+	void*, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaScene::VerifyModelNodeBuffer(verifier))
@@ -65,7 +67,8 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 	if (fbEmbeddedResources)
 	{
 		embeddedResources = dsSceneResources_loadData(allocator, resourceAllocator,
-			loadContext, scratchData, fbEmbeddedResources->data(), fbEmbeddedResources->size());
+			loadContext, scratchData, fbEmbeddedResources->data(), fbEmbeddedResources->size(),
+			relativePathUserData, openRelativePathStreamFunc, closeRelativePathStreamFunc);
 		if (!embeddedResources)
 			return nullptr;
 

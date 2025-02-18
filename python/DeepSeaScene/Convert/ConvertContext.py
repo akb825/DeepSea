@@ -1,4 +1,4 @@
-# Copyright 2020-2024 Aaron Barany
+# Copyright 2020-2025 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import os
 
 from .FullScreenResolveConvert import convertFullScreenResolve
 from .GLTFModel import registerGLTFModelType
@@ -46,14 +48,6 @@ class ConvertContext:
 		self.vfc = vfcTool
 		self.multithread = multithread
 
-		self.nodeTypeMap = {
-			'ModelNode': convertModelNode,
-			'ModelNodeReconfig': convertModelNodeReconfig,
-			'ModelNodeRemap': convertModelNodeRemap,
-			'TransformNode': convertTransformNode,
-			'ReferenceNode': convertReferenceNode
-		}
-
 		self.itemListTypeMap = {
 			'FullScreenResolve': convertFullScreenResolve,
 			'ModelList': convertModelList,
@@ -67,6 +61,14 @@ class ConvertContext:
 			'InstanceTransformData': convertInstanceTransformData
 		}
 
+		self.nodeTypeMap = {
+			'ModelNode': convertModelNode,
+			'ModelNodeReconfig': convertModelNodeReconfig,
+			'ModelNodeRemap': convertModelNodeRemap,
+			'TransformNode': convertTransformNode,
+			'ReferenceNode': convertReferenceNode
+		}
+
 		self.customResourceTypeMap = dict()
 
 		self.resourceActionTypeMap = {
@@ -77,35 +79,6 @@ class ConvertContext:
 		# for convenience similar to the node and item list types.
 		registerGLTFModelType(self)
 		registerOBJModelType(self)
-
-	def addNodeType(self, typeName, convertFunc):
-		"""
-		Adds a node type with the name and the convert function. The function should take the
-		ConvertContext and dict for the data as parameters and return the flatbuffer bytes.
-
-		An exception will be raised if the type is already registered.
-		"""
-		if typeName in self.nodeTypeMap:
-			raise Exception('Node type "' + typeName + '" is already registered.')
-		self.nodeTypeMap[typeName] = convertFunc
-
-	def convertNode(self, builder, typeName, data):
-		"""
-		Converts a node based on its type and dict for the data. This will return the offset to the
-		ObjectData added to the builder.
-		"""
-		if typeName not in self.nodeTypeMap:
-			raise Exception('Node type "' + typeName + '" hasn\'t been registered.')
-
-		convertedData = self.nodeTypeMap[typeName](self, data)
-
-		typeNameOffset = builder.CreateString(typeName)
-		dataOffset = builder.CreateByteVector(convertedData)
-
-		ObjectData.Start(builder)
-		ObjectData.AddType(builder, typeNameOffset)
-		ObjectData.AddData(builder, dataOffset)
-		return ObjectData.End(builder)
 
 	def addItemListType(self, typeName, convertFunc):
 		"""
@@ -167,10 +140,41 @@ class ConvertContext:
 		ObjectData.AddData(builder, dataOffset)
 		return ObjectData.End(builder)
 
+	def addNodeType(self, typeName, convertFunc):
+		"""
+		Adds a node type with the name and the convert function. The function should take the
+		ConvertContext, dict for the data as parameters, and the output directory for the resources,
+		and return the flatbuffer bytes.
+
+		An exception will be raised if the type is already registered.
+		"""
+		if typeName in self.nodeTypeMap:
+			raise Exception('Node type "' + typeName + '" is already registered.')
+		self.nodeTypeMap[typeName] = convertFunc
+
+	def convertNode(self, builder, typeName, data, outputDir):
+		"""
+		Converts a node based on its type and dict for the data. This will return the offset to the
+		ObjectData added to the builder.
+		"""
+		if typeName not in self.nodeTypeMap:
+			raise Exception('Node type "' + typeName + '" hasn\'t been registered.')
+
+		convertedData = self.nodeTypeMap[typeName](self, data, outputDir)
+
+		typeNameOffset = builder.CreateString(typeName)
+		dataOffset = builder.CreateByteVector(convertedData)
+
+		ObjectData.Start(builder)
+		ObjectData.AddType(builder, typeNameOffset)
+		ObjectData.AddData(builder, dataOffset)
+		return ObjectData.End(builder)
+
 	def addCustomResourceType(self, typeName, convertFunc, flatbufferTypeName = None):
 		"""
 		Adds a custom resource type with the name and the convert function. The function should
-		take the ConvertContext and dict for the data as parameters and return the flatbuffer bytes.
+		take the ConvertContext, dict for the data as parameters, and output directory for the
+		resources, and return the flatbuffer bytes.
 
 		flatbufferTypeName may be specified if the type name written to flatbuffers is different
 		from the Python type name for looking up the convert function.
@@ -183,7 +187,7 @@ class ConvertContext:
 			flatbufferTypeName = typeName
 		self.customResourceTypeMap[typeName] = convertFunc, flatbufferTypeName
 
-	def convertCustomResource(self, builder, typeName, data):
+	def convertCustomResource(self, builder, typeName, data, outputDir):
 		"""
 		Converts a custom resource based on its type and dict for the data. This will return the
 		offset to the ObjectData added to the builder.
@@ -192,7 +196,7 @@ class ConvertContext:
 			raise Exception('Custom resource type "' + typeName + '" hasn\'t been registered.')
 
 		convertFunc, flatbufferTypeName = self.customResourceTypeMap[typeName]
-		convertedData = convertFunc(self, data)
+		convertedData = convertFunc(self, data, outputDir)
 
 		typeNameOffset = builder.CreateString(flatbufferTypeName)
 		dataOffset = builder.CreateByteVector(convertedData)
@@ -205,7 +209,8 @@ class ConvertContext:
 	def addResourceActionType(self, typeName, convertFunc):
 		"""
 		Adds a resource action type with the name and the convert function. The function should
-		take the ConvertContext and dict for the data as parameters and return the flatbuffer bytes.
+		take the ConvertContext, dict for the data as parameters, and output directory for the
+		resources, and return the flatbuffer bytes.
 
 		An exception will be raised if the type is already registered.
 		"""
@@ -213,7 +218,7 @@ class ConvertContext:
 			raise Exception('Resource action type "' + typeName + '" is already registered.')
 		self.resourceActionTypeMap[typeName] = convertFunc
 
-	def convertResourceAction(self, builder, typeName, data):
+	def convertResourceAction(self, builder, typeName, data, outputDir):
 		"""
 		Converts a resource action based on its type and dict for the data. This will return the
 		offset to the ObjectData added to the builder.
@@ -221,7 +226,7 @@ class ConvertContext:
 		if typeName not in self.resourceActionTypeMap:
 			raise Exception('Resource action type "' + typeName + '" hasn\'t been registered.')
 
-		convertedData = self.resourceActionTypeMap[typeName](self, data)
+		convertedData = self.resourceActionTypeMap[typeName](self, data, outputDir)
 
 		typeNameOffset = builder.CreateString(typeName)
 		dataOffset = builder.CreateByteVector(convertedData)

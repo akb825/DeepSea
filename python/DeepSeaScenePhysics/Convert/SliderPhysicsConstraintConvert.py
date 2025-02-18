@@ -21,7 +21,7 @@ from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import SliderConstraint
 from DeepSeaPhysics import Constraint
 
-def convertSliderPhysicsConstraint(convertContext, data):
+def convertSliderPhysicsConstraint(convertContext, data, outputDir):
 	"""
 	Converts a SliderPhysicsConstraint. The data map is expected to contain the following
 	elements:

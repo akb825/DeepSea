@@ -19,7 +19,7 @@ from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import DistanceConstraint
 from DeepSeaPhysics import Constraint
 
-def convertDistancePhysicsConstraint(convertContext, data):
+def convertDistancePhysicsConstraint(convertContext, data, outputDir):
 	"""
 	Converts a DistancePhysicsConstraint. The data map is expected to contain the following
 	elements:

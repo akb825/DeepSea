@@ -23,7 +23,7 @@ from DeepSeaAnimation.Vector4f import CreateVector4f
 class Object:
 	pass
 
-def convertDirectAnimation(convertContext, data):
+def convertDirectAnimation(convertContext, data, outputDir):
 	"""
 	Converts a direct animation for a scene. The data map is expected to contain the following
 	elements:

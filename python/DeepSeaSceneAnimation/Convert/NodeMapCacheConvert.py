@@ -14,7 +14,7 @@
 
 import flatbuffers
 
-def convertNodeMapCache(convertContext, data):
+def convertNodeMapCache(convertContext, data, outputDir):
 	"""
 	Converts a NodeMapCache. The data is ignored.
 	"""

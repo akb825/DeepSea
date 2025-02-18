@@ -23,7 +23,7 @@ from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import SwingTwistConstraint
 from DeepSeaPhysics import Constraint
 
-def convertSwingTwistPhysicsConstraint(convertContext, data):
+def convertSwingTwistPhysicsConstraint(convertContext, data, outputDir):
 	"""
 	Converts a SwingTwistPhysicsConstraint. The data map is expected to contain the following
 	elements:

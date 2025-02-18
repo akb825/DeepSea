@@ -79,7 +79,7 @@ def convertPhysicsConvexHullOffset(convertContext, data, builder):
 	Shape.AddShape(builder, convexHullOffset)
 	return Shape.End(builder)
 
-def convertPhysicsConvexHull(convertContext, data):
+def convertPhysicsConvexHull(convertContext, data, outputDir):
 	"""
 	Converts a PhysicsConvexHull. The data map is expected to contain the following elements:
 	- The following elements are used when providing data from a model:

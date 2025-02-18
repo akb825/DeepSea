@@ -186,7 +186,7 @@ def convertPhysicsMeshOffset(convertContext, data, builder):
 	Shape.AddShape(builder, meshOffset)
 	return Shape.End(builder)
 
-def convertPhysicsMesh(convertContext, data):
+def convertPhysicsMesh(convertContext, data, outputDir):
 	"""
 	Converts a PhysicsMesh. The data map is expected to contain the following elements:
 	- The following elements are used when providing data from a model:

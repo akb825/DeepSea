@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,6 +88,25 @@ DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadFile(dsAllocator* allocato
 DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadResource(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsVectorImageInitResources* initResources,
 	dsFileResourceType type, const char* filePath, float pixelSize, const dsVector2f* targetSize);
+
+/**
+ * @brief Loads a vector image from within an archive.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the vector image.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the vector image allocator.
+ * @param initResources The resources used for initialization.
+ * @param archive The archive to load the vector image from..
+ * @param filePath The file path for the vector image to load.
+ * @param pixelSize The size of a pixel, determining tessellation quality.
+ * @param targetSize The target size of the image. If not NULL, it will be used in place of the real
+ *     image size for calculating the tessellation quality.
+ * @return The created vector image, or NULL if it couldn't be created.
+ */
+DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadArchive(dsAllocator* allocator,
+	dsAllocator* resourceAllocator, const dsVectorImageInitResources* initResources,
+	const dsFileArchive* archive, const char* filePath, float pixelSize,
+	const dsVector2f* targetSize);
 
 /**
  * @brief Loads a vector image from a stream.

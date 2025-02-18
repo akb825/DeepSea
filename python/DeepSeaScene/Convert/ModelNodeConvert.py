@@ -372,7 +372,7 @@ def convertModelNodeModels(modelInfoList):
 
 	return models
 
-def convertModelNode(convertContext, data):
+def convertModelNode(convertContext, data, outputDir):
 	"""
 	Converts a ModelNode. The data map is expected to contain the following elements:
 	- embeddedResources: optional set of resources to embed with the node. This is an array of maps
@@ -489,7 +489,7 @@ def convertModelNode(convertContext, data):
 
 	builder = flatbuffers.Builder(0)
 	if embeddedResources:
-		embeddedResourcesData = convertSceneResources(convertContext, embeddedResources)
+		embeddedResourcesData = convertSceneResources(convertContext, embeddedResources, outputDir)
 		embeddedResourcesOffset = builder.CreateByteVector(embeddedResourcesData)
 	else:
 		embeddedResourcesOffset = 0

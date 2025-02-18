@@ -16,7 +16,7 @@ import flatbuffers
 from .. import RigidBodyNode
 from DeepSeaPhysics.MotionType import MotionType
 
-def convertRigidBodyNode(convertContext, data):
+def convertRigidBodyNode(convertContext, data, outputDir):
 	"""
 	Converts a RigidBodyNode. The data map is expected to contain the following elements:
 	- rigidBody: the name of the rigid body.
@@ -35,7 +35,8 @@ def convertRigidBodyNode(convertContext, data):
 			for child in children:
 				try:
 					childType = str(child['nodeType'])
-					childOffsets.append(convertContext.convertNode(builder, childType, child))
+					childOffsets.append(
+						convertContext.convertNode(builder, childType, child, outputDir))
 				except KeyError as e:
 					raise Exception('Child node data doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):

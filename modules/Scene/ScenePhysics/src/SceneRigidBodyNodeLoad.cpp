@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,10 @@
 
 static dsSceneNode* finishLoad(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	const DeepSeaScenePhysics::RigidBodyNode* fbRigidBodyNode, dsSceneNode* node)
+	const DeepSeaScenePhysics::RigidBodyNode* fbRigidBodyNode, dsSceneNode* node,
+	void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	if (!node)
 		return nullptr;
@@ -61,7 +64,8 @@ static dsSceneNode* finishLoad(const dsSceneLoadContext* loadContext,
 
 			auto data = fbNode->data();
 			dsSceneNode* child = dsSceneNode_load(allocator, resourceAllocator, loadContext,
-				scratchData, fbNode->type()->c_str(), data->data(), data->size());
+				scratchData, fbNode->type()->c_str(), data->data(), data->size(),
+				relativePathUserData, openRelativePathStreamFunc, closeRelativePathStreamFunc);
 			if (!child)
 			{
 				dsSceneNode_freeRef(node);
@@ -83,7 +87,9 @@ static dsSceneNode* finishLoad(const dsSceneLoadContext* loadContext,
 
 dsSceneNode* dsSceneRigidBodyNode_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void*, const uint8_t* data, size_t dataSize)
+	void*, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaScenePhysics::VerifyRigidBodyNodeBuffer(verifier))
@@ -117,13 +123,15 @@ dsSceneNode* dsSceneRigidBodyNode_load(const dsSceneLoadContext* loadContext,
 
 	auto node = reinterpret_cast<dsSceneNode*>(dsSceneRigidBodyNode_create(allocator,
 		fbRigidBodyNode->rigidBody()->c_str(), nullptr, nullptr, false, itemLists, itemListCount));
-	return finishLoad(
-		loadContext, scratchData, allocator, resourceAllocator, fbRigidBodyNode, node);
+	return finishLoad(loadContext, scratchData, allocator, resourceAllocator, fbRigidBodyNode,
+		node, relativePathUserData, openRelativePathStreamFunc, closeRelativePathStreamFunc);
 }
 
 dsSceneNode* dsSceneRigidBodyNode_loadUnique(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void*, const uint8_t* data, size_t dataSize)
+	void*, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaScenePhysics::VerifyRigidBodyNodeBuffer(verifier))
@@ -172,13 +180,15 @@ dsSceneNode* dsSceneRigidBodyNode_loadUnique(const dsSceneLoadContext* loadConte
 
 	auto node = reinterpret_cast<dsSceneNode*>(dsSceneRigidBodyNode_create(
 		allocator, nullptr, rigidBody, nullptr, false, itemLists, itemListCount));
-	return finishLoad(
-		loadContext, scratchData, allocator, resourceAllocator, fbRigidBodyNode, node);
+	return finishLoad(loadContext, scratchData, allocator, resourceAllocator, fbRigidBodyNode,
+		node, relativePathUserData, openRelativePathStreamFunc, closeRelativePathStreamFunc);
 }
 
 dsSceneNode* dsSceneRigidBodyNode_loadTemplate(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void*, const uint8_t* data, size_t dataSize)
+	void*, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaScenePhysics::VerifyRigidBodyNodeBuffer(verifier))
@@ -228,6 +238,6 @@ dsSceneNode* dsSceneRigidBodyNode_loadTemplate(const dsSceneLoadContext* loadCon
 
 	auto node = reinterpret_cast<dsSceneNode*>(dsSceneRigidBodyNode_create(
 		allocator, nullptr, nullptr, rigidBodyTemplate, false, itemLists, itemListCount));
-	return finishLoad(
-		loadContext, scratchData, allocator, resourceAllocator, fbRigidBodyNode, node);
+	return finishLoad(loadContext, scratchData, allocator, resourceAllocator, fbRigidBodyNode,
+		node, relativePathUserData, openRelativePathStreamFunc, closeRelativePathStreamFunc);
 }

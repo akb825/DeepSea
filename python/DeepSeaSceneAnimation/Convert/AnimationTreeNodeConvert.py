@@ -16,7 +16,7 @@ import flatbuffers
 
 from .. import AnimationTreeNode
 
-def convertAnimationTreeNode(convertContext, data):
+def convertAnimationTreeNode(convertContext, data, outputDir):
 	"""
 	Converts a AnimationTreeNode. The data map is expected to contain the following elements:
 	- animationTree: the name of the animation tree to use for the node. If omitted, the data will
@@ -38,7 +38,8 @@ def convertAnimationTreeNode(convertContext, data):
 			for child in children:
 				try:
 					childType = str(child['nodeType'])
-					childOffsets.append(convertContext.convertNode(builder, childType, child))
+					childOffsets.append(
+						convertContext.convertNode(builder, childType, child, outputDir))
 				except KeyError as e:
 					raise Exception('Child node data doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):

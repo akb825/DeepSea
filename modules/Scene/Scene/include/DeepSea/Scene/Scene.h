@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,6 +92,26 @@ DS_SCENE_EXPORT dsScene* dsScene_loadResource(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, void* userData,
 	dsDestroyUserDataFunction destroyUserDataFunc, dsFileResourceType type,
+	const char* filePath);
+
+/**
+ * @brief Loads a scene from a file within an archive.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the scene.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the scene allocator.
+ * @param loadContext The scene load context.
+ * @param scratchData The scene scratch data.
+ * @param userData User data to hold with the scene.
+ * @param destroyUserDataFunc Function to destroy the user data for the scene.
+ * @param archive The archive to load the scene from.
+ * @param filePath The file path for the scene to load.
+ * @return The scene or NULL if an error occurred.
+ */
+DS_SCENE_EXPORT dsScene* dsScene_loadArchive(dsAllocator* allocator,
+	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc, const dsFileArchive* archive,
 	const char* filePath);
 
 /**

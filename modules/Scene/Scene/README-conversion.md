@@ -17,17 +17,17 @@ The remaining members of each element depends on the value of `type`. The builti
 	* `memoryHints`: array of memory hints. See the `dsGfxMemory` enum for values, removing the type prefix. At least one must be provided.
 	* `size`: the size of the buffer. This is only used if no data is provided.
 	* `data`: path to the buffer data or base64 encoded data prefixed with `base64:`. This may be omitted to leave the buffer data uninitialized.
-	* `output`: the path to the output the buffer. This can be omitted if no input path is provided or if the buffer is embedded.
+	* `output`: the path to the output the buffer. This can be omitted if no input path is provided or if the buffer is embedded. If `resourceType` is `"Relative"`, this will be treated as relative to the scene resource file.
 	* `outputRelativeDir`: the directory relative to output path. This will be removed from the path before adding the reference.
-	* `resourceType`: the resource type. See the `dsFileResourceType` for values, removing the type prefix. Defaults to `"Embedded"`.
+	* `resourceType`: the resource type. See the `dsFileResourceType` for values, removing the type prefix, in addition to `"Relative"` for a path relative to the scene resources file. Defaults to `"Relative"`.
 * `"Texture"`
 	* `usage`: array of usage flags. See the `dsGfxBufferUsage` enum for values, removing the type prefix. Defaults to `["Texture"]`. If set, at least one must be provided.
 	* `memoryHints`: array of memory hints. See the `dsGfxMemory` enum for values, removing the type prefix. Defaults to `["GPUOnly"]`. If set, at least one must be provided.
 	* `path`: path to the texture image. This may be omitted if no initial texture data is used.
 	* `pathArray`: array of paths to texture images. Use this in place of `path` for texture arrays or cubemaps.
-	* `output`: the path to the output the texture. This can be omitted if no input path is provided or if the texture is embedded. When converting textures, the extension should match the desired output container format.
+	* `output`: the path to the output the texture. This can be omitted if no input path is provided or if the texture is embedded. When converting textures, the extension should match the desired output container format. If `resourceType` is `"Relative"`, this will be treated as relative to the scene resource file.
 	* `outputRelativeDir`: the directory relative to output path. This will be removed from the path before adding the reference.
-	* `resourceType`: the resource type. See the `dsFileResourceType` for values, removing the type prefix. Defaults to `"Embedded"`.
+	* `resourceType`: the resource type. See the `dsFileResourceType` for values, removing the type prefix, in addition to `"Relative"` for a path relative to the scene resources file. Defaults to `"Relative"`.
 	* `textureInfo`: the info to describe the texture. This must be provided if no image path is provided or if the image from the input path is to be converted. This is expected to have the following elements:
 		* `format`: the texture format. See the `dsGfxFormat` enum for values, removing the type pre The decorator values may not be used.
 		* `decoration`: the decoration for the format. See the `dsGfxFormat` enum for values, removing the type prefix. Only the decorator values may be used. May also be `"Unset"` in cases where a decorator isn't valid.
@@ -65,7 +65,7 @@ The remaining members of each element depends on the value of `type`. The builti
 				* `size`: the integer bytes to bind within the buffer.
 			* Texture buffers and image buffers are objects with the following members:
 				* `name`: the name of the buffer.
-				* `format`: the texture format. See the dsGfxFormat enum for values, removing the type prefix. The decorator and compressed values may not be used.
+				* `format`: the texture format. See the `dsGfxFormat` enum for values, removing the type prefix. The decorator and compressed values may not be used.
 				* `decoration`: the decoration for the format. See the `dsGfxFormat` enum for values, removing the type prefix. Only the decorator values may be used. May also be `"Unset"` in cases where a decorator isn't valid.
 			* `offset`: integer byte offset into the buffer. Defaults to 0.
 				* `count`: integer number of texels in the buffer.
@@ -85,9 +85,9 @@ The remaining members of each element depends on the value of `type`. The builti
 	* `modules`: array of versioned shader modules. The appropriate model based on the graphics API version being used will be chosen at runtime. Each element of the array has the following members:
 	* `version`: the version of the shader as a standard config. (e.g. `"glsl-4.1"`, `"spirv-1.0"`)
 		* `module`: path to the shader module or base64 encoded data prefixed with `base64:`. The module is expected to have been compiled with Modular Shader Language (MSL).
-		* `output`: the path to the location to copy the shader module to. This can be omitted to embed the shader module directly.
+		* `output`: the path to the location to copy the shader module to. This can be omitted to embed the shader module directly. If `resourceType` is `"Relative"`, this will be treated as relative to the scene resource file.
 		* `outputRelativeDir`: the directory relative to output path. This will be removed from the path before adding the reference.
-		* `resourceType`: the resource type. See the dsFileResourceType for values, removing the type prefix. Defaults to "Embedded".
+		* `resourceType`: the resource type. See the `dsFileResourceType` for values, removing the type prefix, in addition to `"Relative"` for a path relative to the scene resources file. Defaults to `"Relative"`.
 * `"Shader"`
 	* `module`: the name of the shader module the shader resides in. The shader module may be in a different scene resources package.
 	* `pipeline`: the name of the shader pipeline within the shader module.

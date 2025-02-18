@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,6 +98,26 @@ DS_PHYSICS_EXPORT dsPhysicsConstraint* dsPhysicsConstraint_loadResource(dsPhysic
 	dsAllocator* allocator, dsFindPhysicsActorFunction findActorFunc, void* findActorUserData,
 	dsFindPhysicsConstraintFunction findConstraintFunc, void* findConstraintUserData,
 	dsFileResourceType type, const char* filePath);
+
+/**
+ * @brief Loads a physics constraint from a file within an archive.
+ * @remark errno will be set on failure.
+ * @param engine The physics engine to create the constraint with.
+ * @param allocator The allocator to create the constraint with. If NULL the engine's allocator will
+ *     be used.
+ * @param findActorFunc Function to find an actor by name. This is required.
+ * @param findActorUserData User data to pass to findActorFunc.
+ * @param findConstraintFunc Function to find a constraint by name. This will be used if a
+ *     constraint reference is used. All lookups will fail if this function is NULL.
+ * @param findConstraintUserData User data to pass to findConstraintFunc.
+ * @param archive The archive to load the physics constraint from.
+ * @param filePath The file path for the physics constraint to load.
+ * @return The loaded physics constraint or NULL if it couldn't be loaded.
+ */
+DS_PHYSICS_EXPORT dsPhysicsConstraint* dsPhysicsConstraint_loadArchive(dsPhysicsEngine* engine,
+	dsAllocator* allocator, dsFindPhysicsActorFunction findActorFunc, void* findActorUserData,
+	dsFindPhysicsConstraintFunction findConstraintFunc, void* findConstraintUserData,
+	const dsFileArchive* archive, const char* filePath);
 
 /**
  * @brief Loads a physics constraint from a stream.

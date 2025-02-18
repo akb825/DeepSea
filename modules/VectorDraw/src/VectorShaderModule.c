@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,11 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/MaterialDesc.h>
 #include <DeepSea/Render/Resources/ShaderModule.h>
+
 #include <string.h>
 
 // Transform group
@@ -190,6 +192,22 @@ dsVectorShaderModule* dsVectorShaderModule_loadResource(dsResourceManager* resou
 
 	dsShaderModule* module = dsShaderModule_loadResource(resourceManager, allocator, type, filePath,
 		"VectorImage");
+	if (!module)
+		return NULL;
+
+	return createVectorShaderModule(resourceManager, allocator, module, customElements,
+		customElementCount);
+}
+
+dsVectorShaderModule* dsVectorShaderModule_loadArchive(dsResourceManager* resourceManager,
+	dsAllocator* allocator, const dsFileArchive* archive, const char* filePath,
+	const dsMaterialElement* customElements, uint32_t customElementCount)
+{
+	if (!targetSupported(resourceManager))
+		return NULL;
+
+	dsShaderModule* module = dsShaderModule_loadArchive(resourceManager, allocator, archive,
+		filePath, "VectorImage");
 	if (!module)
 		return NULL;
 

@@ -36,6 +36,9 @@ struct VectorResources FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaScene::FileReference *resources_as_FileReference() const {
     return resources_type() == DeepSeaScene::FileOrData::FileReference ? static_cast<const DeepSeaScene::FileReference *>(resources()) : nullptr;
   }
+  const DeepSeaScene::RelativePathReference *resources_as_RelativePathReference() const {
+    return resources_type() == DeepSeaScene::FileOrData::RelativePathReference ? static_cast<const DeepSeaScene::RelativePathReference *>(resources()) : nullptr;
+  }
   const DeepSeaScene::RawData *resources_as_RawData() const {
     return resources_type() == DeepSeaScene::FileOrData::RawData ? static_cast<const DeepSeaScene::RawData *>(resources()) : nullptr;
   }
@@ -50,6 +53,10 @@ struct VectorResources FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
 
 template<> inline const DeepSeaScene::FileReference *VectorResources::resources_as<DeepSeaScene::FileReference>() const {
   return resources_as_FileReference();
+}
+
+template<> inline const DeepSeaScene::RelativePathReference *VectorResources::resources_as<DeepSeaScene::RelativePathReference>() const {
+  return resources_as_RelativePathReference();
 }
 
 template<> inline const DeepSeaScene::RawData *VectorResources::resources_as<DeepSeaScene::RawData>() const {

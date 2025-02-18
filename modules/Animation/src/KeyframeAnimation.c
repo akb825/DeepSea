@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Aaron Barany
+ * Copyright 2022-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,10 @@
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Streams/FileArchive.h>
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
+#include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -274,7 +276,39 @@ dsKeyframeAnimation* dsKeyframeAnimation_loadResource(dsAllocator* allocator,
 
 	size_t size;
 	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, scratchAllocator);
-	dsStream_close((dsStream*)&stream);
+	dsResourceStream_close(&stream);
+	if (!buffer)
+		return NULL;
+
+	dsKeyframeAnimation* tree = dsKeyframeAnimation_loadImpl(allocator, scratchAllocator,
+		buffer, size, filePath);
+	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
+	return tree;
+}
+
+dsKeyframeAnimation* dsKeyframeAnimation_loadArchive(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, const dsFileArchive* archive, const char* filePath)
+{
+	if (!allocator || !archive || !filePath)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!scratchAllocator)
+		scratchAllocator = allocator;
+
+	dsStream* stream = dsFileArchive_openFile(archive, filePath);
+	if (!stream)
+	{
+		DS_LOG_ERROR_F(DS_ANIMATION_LOG_TAG, "Couldn't open keyframe animation file '%s'.",
+			filePath);
+		return NULL;
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, stream, scratchAllocator);
+	dsStream_close(stream);
 	if (!buffer)
 		return NULL;
 

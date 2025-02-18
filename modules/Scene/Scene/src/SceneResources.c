@@ -21,7 +21,9 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/PoolAllocator.h>
+#include <DeepSea/Core/Streams/FileArchive.h>
 #include <DeepSea/Core/Streams/FileStream.h>
+#include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Assert.h>
@@ -46,6 +48,25 @@
 
 #include <string.h>
 
+typedef struct dsFileInfo
+{
+	const char* basePath;
+	dsFileStream stream;
+} dsFileInfo;
+
+typedef struct dsResourceInfo
+{
+	const char* basePath;
+	dsFileResourceType type;
+	dsResourceStream stream;
+} dsResourceInfo;
+
+typedef struct dsArchiveInfo
+{
+	const char* basePath;
+	const dsFileArchive* archive;
+} dsArchiveInfo;
+
 typedef struct ResourceNode
 {
 	dsHashTableNode node;
@@ -62,6 +83,85 @@ struct dsSceneResources
 	dsPoolAllocator nodePool;
 	uint32_t refCount;
 };
+
+static dsStream* openFileStream(void* userData, const char* path)
+{
+	dsFileInfo* fileInfo = (dsFileInfo*)userData;
+	char finalPath[DS_PATH_MAX];
+	if (!dsPath_combine(finalPath, sizeof(finalPath), fileInfo->basePath, path))
+	{
+		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Path '%s%c%s' is too long.", fileInfo->basePath,
+			DS_PATH_SEPARATOR, path);
+		return NULL;
+	}
+
+	if (!dsFileStream_openPath(&fileInfo->stream, finalPath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't open file '%s'.", finalPath);
+		return NULL;
+	}
+
+	return (dsStream*)&fileInfo->stream;
+}
+
+static void closeFileStream(void* userData, dsStream* stream)
+{
+	DS_UNUSED(userData);
+	dsFileStream_close((dsFileStream*)stream);
+}
+
+static dsStream* openResourceStream(void* userData, const char* path)
+{
+	dsResourceInfo* resourceInfo = (dsResourceInfo*)userData;
+	char finalPath[DS_PATH_MAX];
+	if (!dsPath_combine(finalPath, sizeof(finalPath), resourceInfo->basePath, path))
+	{
+		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Path '%s%c%s' is too long.", resourceInfo->basePath,
+			DS_PATH_SEPARATOR, path);
+		return NULL;
+	}
+
+	if (!dsResourceStream_open(&resourceInfo->stream, resourceInfo->type, finalPath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't open file '%s'.", finalPath);
+		return NULL;
+	}
+
+	return (dsStream*)&resourceInfo->stream;
+}
+
+static void closeResourceStream(void* userData, dsStream* stream)
+{
+	DS_UNUSED(userData);
+	dsResourceStream_close((dsResourceStream*)stream);
+}
+
+static dsStream* openArchiveStream(void* userData, const char* path)
+{
+	dsArchiveInfo* archiveInfo = (dsArchiveInfo*)userData;
+	char finalPath[DS_PATH_MAX];
+	if (!dsPath_combine(finalPath, sizeof(finalPath), archiveInfo->basePath, path))
+	{
+		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Path '%s%c%s' is too long.", archiveInfo->basePath,
+			DS_PATH_SEPARATOR, path);
+		return NULL;
+	}
+
+	dsStream* stream = dsFileArchive_openFile(archiveInfo->archive, finalPath);
+	if (!stream)
+	{
+		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't open file '%s'.", finalPath);
+		return NULL;
+	}
+
+	return stream;
+}
+
+static void closeArchiveStream(void* userData, dsStream* stream)
+{
+	DS_UNUSED(userData);
+	dsStream_close(stream);
+}
 
 static dsHashTable* createHashTable(dsBufferAllocator* allocator, uint32_t maxItems)
 {
@@ -106,7 +206,9 @@ static bool destroyResource(dsSceneResourceType type, void* resource)
 
 dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
-	const void* data, size_t dataSize, const char* fileName);
+	const void* data, size_t dataSize, const char* fileName, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc);
 
 size_t dsSceneResources_sizeof(void)
 {
@@ -176,8 +278,19 @@ dsSceneResources* dsSceneResources_loadFile(dsAllocator* allocator, dsAllocator*
 	if (!buffer)
 		DS_PROFILE_FUNC_RETURN(NULL);
 
+	char baseDirectory[DS_PATH_MAX];
+	if (!dsPath_getDirectoryName(baseDirectory, sizeof(baseDirectory), filePath))
+	{
+		if (errno == EINVAL)
+			baseDirectory[0] = 0;
+		else
+			DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsFileInfo fileInfo = {baseDirectory};
 	dsSceneResources* resources = dsSceneResources_loadImpl(allocator, resourceAllocator,
-		loadContext, scratchData, buffer, size, filePath);
+		loadContext, scratchData, buffer, size, filePath, &fileInfo, &openFileStream,
+		&closeFileStream);
 	DS_VERIFY(dsSceneLoadScratchData_freeReadBuffer(scratchData, buffer));
 	DS_PROFILE_FUNC_RETURN(resources);
 }
@@ -207,19 +320,75 @@ dsSceneResources* dsSceneResources_loadResource(dsAllocator* allocator,
 	if (!buffer)
 		DS_PROFILE_FUNC_RETURN(NULL);
 
+	char baseDirectory[DS_PATH_MAX];
+	if (!dsPath_getDirectoryName(baseDirectory, sizeof(baseDirectory), filePath))
+	{
+		if (errno == EINVAL)
+			baseDirectory[0] = 0;
+		else
+			DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsResourceInfo resourceInfo = {baseDirectory, type};
 	dsSceneResources* resources = dsSceneResources_loadImpl(allocator, resourceAllocator,
-		loadContext, scratchData, buffer, size, filePath);
+		loadContext, scratchData, buffer, size, filePath, &resourceInfo, &openResourceStream,
+		&closeResourceStream);
+	DS_VERIFY(dsSceneLoadScratchData_freeReadBuffer(scratchData, buffer));
+	DS_PROFILE_FUNC_RETURN(resources);
+}
+
+dsSceneResources* dsSceneResources_loadArchive(dsAllocator* allocator,
+	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, const dsFileArchive* archive, const char* filePath)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !loadContext || !scratchData || !archive || !filePath)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsStream* stream = dsFileArchive_openFile(archive, filePath);
+	if (!stream)
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open scene resources file '%s'.", filePath);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	size_t size;
+	void* buffer = dsSceneLoadScratchData_readUntilEnd(&size, scratchData, stream);
+	dsStream_close(stream);
+	if (!buffer)
+		DS_PROFILE_FUNC_RETURN(NULL);
+
+	char baseDirectory[DS_PATH_MAX];
+	if (!dsPath_getDirectoryName(baseDirectory, sizeof(baseDirectory), filePath))
+	{
+		if (errno == EINVAL)
+			baseDirectory[0] = 0;
+		else
+			DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsArchiveInfo archiveInfo = {baseDirectory, archive};
+	dsSceneResources* resources = dsSceneResources_loadImpl(allocator, resourceAllocator,
+		loadContext, scratchData, buffer, size, filePath, &archiveInfo, &openArchiveStream,
+		&closeArchiveStream);
 	DS_VERIFY(dsSceneLoadScratchData_freeReadBuffer(scratchData, buffer));
 	DS_PROFILE_FUNC_RETURN(resources);
 }
 
 dsSceneResources* dsSceneResources_loadStream(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsStream* stream)
+	dsSceneLoadScratchData* scratchData, dsStream* stream, 	void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!allocator || !loadContext || !scratchData || !stream)
+	if (!allocator || !loadContext || !scratchData || !stream || !openRelativePathStreamFunc ||
+		!closeRelativePathStreamFunc)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -231,25 +400,30 @@ dsSceneResources* dsSceneResources_loadStream(dsAllocator* allocator,
 		DS_PROFILE_FUNC_RETURN(NULL);
 
 	dsSceneResources* resources = dsSceneResources_loadImpl(allocator, resourceAllocator,
-		loadContext, scratchData, buffer, size, NULL);
+		loadContext, scratchData, buffer, size, NULL, relativePathUserData,
+		openRelativePathStreamFunc, closeRelativePathStreamFunc);
 	DS_VERIFY(dsSceneLoadScratchData_freeReadBuffer(scratchData, buffer));
 	DS_PROFILE_FUNC_RETURN(resources);
 }
 
 dsSceneResources* dsSceneResources_loadData(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, const void* data,
-	size_t size)
+	size_t size, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!allocator || !loadContext || !scratchData || !data || size == 0)
+	if (!allocator || !loadContext || !scratchData || !data || size == 0 ||
+		!openRelativePathStreamFunc || !closeRelativePathStreamFunc)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
 	dsSceneResources* resources = dsSceneResources_loadImpl(allocator, resourceAllocator,
-		loadContext, scratchData, data, size, NULL);
+		loadContext, scratchData, data, size, NULL, relativePathUserData,
+		openRelativePathStreamFunc, closeRelativePathStreamFunc);
 	DS_PROFILE_FUNC_RETURN(resources);
 }
 

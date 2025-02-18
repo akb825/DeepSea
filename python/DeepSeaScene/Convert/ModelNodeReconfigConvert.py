@@ -19,7 +19,7 @@ from .. import ModelReconfig
 from .. import ModelNodeReconfig
 from ..Vector2f import CreateVector2f
 
-def convertModelNodeReconfig(convertContext, data):
+def convertModelNodeReconfig(convertContext, data, outputDir):
 	"""
 	Converts a ModelNodeReconfig, which clones an existing model node while reconfiguring its
 	layout. The data map is expected to contain the following elements:

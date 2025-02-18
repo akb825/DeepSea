@@ -1,4 +1,4 @@
-# Copyright 2020-2021 Aaron Barany
+# Copyright 2020-2025 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,17 +19,19 @@ import flatbuffers
 from .. import VectorResources
 from DeepSeaScene.Convert.FileOrDataConvert import convertFileOrData, readDataOrPath
 
-def convertVectorResources(convertContext, data):
+def convertVectorResources(convertContext, data, outputDir):
 	"""
 	Converts vector resources used in a scene. The data map is expected to contain the following
 	elements:
 	- resources: path to the vector resources.
 	- output: the path to the output the vector resources. This can be omitted if vector resources
-	  are embedded.
+	  are embedded. If resourceType is "Relative", this will be treated as relative to the scene
+	  resource file.
 	- outputRelativeDir: the directory relative to output path. This will be removed from the path
 	  before adding the reference.
 	- resourceType: the resource type. See the dsFileResourceType for values, removing the type
-	  prefix. Defaults to "Embedded".
+	  prefix, in addition to "Relative" for a path relative to the scene resources file. Defaults
+	  to "Relative".
 	"""
 	builder = flatbuffers.Builder(0)
 
@@ -47,7 +49,7 @@ def convertVectorResources(convertContext, data):
 			raise Exception("Can't embed vector resources that has non-embedded resources.")
 
 		dataType, dataOffset = convertFileOrData(builder, path, None, outputPath,
-			data.get('outputRelativeDir'), data.get('resourceType'))
+			data.get('outputRelativeDir'), data.get('resourceType'), outputDir)
 	except KeyError as e:
 		raise Exception('VectorResources doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):

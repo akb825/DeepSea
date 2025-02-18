@@ -17,6 +17,7 @@
 #include <DeepSea/Render/Resources/ShaderModule.h>
 
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Streams/FileArchive.h>
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Streams/Stream.h>
@@ -99,7 +100,7 @@ dsShaderModule* dsShaderModule_loadFile(dsResourceManager* resourceManager, dsAl
 
 	dsShaderModule* shaderModule = dsShaderModule_loadImpl(resourceManager, allocator,
 		(dsStream*)&stream, name);
-	dsStream_close((dsStream*)&stream);
+	dsFileStream_close(&stream);
 	if (!shaderModule)
 	{
 		if (errno == EFORMAT)
@@ -140,7 +141,48 @@ dsShaderModule* dsShaderModule_loadResource(dsResourceManager* resourceManager,
 
 	dsShaderModule* shaderModule = dsShaderModule_loadImpl(resourceManager, allocator,
 		(dsStream*)&stream, name);
-	dsStream_close((dsStream*)&stream);
+	dsResourceStream_close(&stream);
+	if (!shaderModule)
+	{
+		if (errno == EFORMAT)
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Invalid shader module file '%s'.", filePath);
+	}
+	DS_PROFILE_FUNC_RETURN(shaderModule);
+}
+
+dsShaderModule* dsShaderModule_loadArchive(dsResourceManager* resourceManager,
+	dsAllocator* allocator, const dsFileArchive* archive, const char* filePath, const char* name)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!resourceManager || (!allocator && !resourceManager->allocator) ||
+		!resourceManager->createShaderModuleFunc || !resourceManager->destroyShaderModuleFunc ||
+		!archive || !filePath || !name)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (!allocator)
+		allocator = resourceManager->allocator;
+
+	if (!dsResourceManager_canUseResources(resourceManager))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsStream* stream = dsFileArchive_openFile(archive, filePath);
+	if (!stream)
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open shader module file '%s'.", filePath);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsShaderModule* shaderModule = dsShaderModule_loadImpl(
+		resourceManager, allocator, stream, name);
+	dsStream_close(stream);
 	if (!shaderModule)
 	{
 		if (errno == EFORMAT)
