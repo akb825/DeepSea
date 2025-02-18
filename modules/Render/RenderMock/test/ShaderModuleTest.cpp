@@ -63,7 +63,7 @@ TEST_F(ShaderModuleTest, LoadStream)
 
 	dsShaderModule* module = dsShaderModule_loadStream(resourceManager, NULL,
 		(dsStream*)&fileStream, "test");
-	EXPECT_TRUE(dsStream_close((dsStream*)&fileStream));
+	EXPECT_TRUE(dsFileStream_close(&fileStream));
 	ASSERT_TRUE(module);
 	EXPECT_EQ(1U, resourceManager->shaderModuleCount);
 
@@ -80,13 +80,13 @@ TEST_F(ShaderModuleTest, LoadData)
 {
 	dsFileStream fileStream;
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("test.mslb"), "rb"));
-	uint64_t size = dsStream_remainingBytes((dsStream*)&fileStream);
+	uint64_t size = dsFileStream_remainingBytes(&fileStream);
 	ASSERT_NE(DS_STREAM_INVALID_POS, size);
 
 	void* data = dsAllocator_alloc((dsAllocator*)&allocator, (size_t)size);
 	ASSERT_TRUE(data);
-	ASSERT_EQ(size, dsStream_read((dsStream*)&fileStream, data, (size_t)size));
-	ASSERT_TRUE(dsStream_close((dsStream*)&fileStream));
+	ASSERT_EQ(size, dsFileStream_read(&fileStream, data, (size_t)size));
+	ASSERT_TRUE(dsFileStream_close(&fileStream));
 
 	EXPECT_FALSE(dsShaderModule_loadData(NULL, NULL, data, (size_t)size, "test"));
 	EXPECT_FALSE(dsShaderModule_loadData(resourceManager, NULL, NULL, (size_t)size, "test"));

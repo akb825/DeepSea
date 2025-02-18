@@ -160,7 +160,7 @@ dsPhysicsConstraint* dsPhysicsConstraint_loadStream(dsPhysicsEngine* engine, dsA
 	}
 
 	size_t size;
-	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, engine->allocator);
+	void* buffer = dsStream_readUntilEnd(&size, stream, engine->allocator);
 	if (!buffer)
 		return NULL;
 

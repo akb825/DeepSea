@@ -386,7 +386,7 @@ dsRigidBody* dsRigidBody_loadStream(dsPhysicsEngine* engine, dsAllocator* alloca
 	}
 
 	size_t size;
-	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, engine->allocator);
+	void* buffer = dsStream_readUntilEnd(&size, stream, engine->allocator);
 	if (!buffer)
 	{
 		if (destroyUserDataFunc)

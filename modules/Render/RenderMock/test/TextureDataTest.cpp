@@ -152,7 +152,7 @@ TEST_F(TextureDataTest, LoadDDSStream_R8G8B8A8)
 	dsTextureData*textureData = dsTextureData_loadDDSStream((dsAllocator*)&allocator,
 		(dsStream*)&fileStream);
 	ASSERT_TRUE(textureData);
-	EXPECT_TRUE(dsStream_close((dsStream*)&fileStream));
+	EXPECT_TRUE(dsFileStream_close(&fileStream));
 
 	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
 		textureData->info.format);
@@ -439,7 +439,7 @@ TEST_F(TextureDataTest, LoadDDSStreamToTexture)
 		(dsStream*)&fileStream, NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
 		dsGfxMemory_Read);
 	ASSERT_TRUE(texture);
-	EXPECT_TRUE(dsStream_close((dsStream*)&fileStream));
+	EXPECT_TRUE(dsFileStream_close(&fileStream));
 
 	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
 	EXPECT_EQ(dsTextureDim_2D, texture->info.dimension);
@@ -521,7 +521,7 @@ TEST_F(TextureDataTest, LoadKTXStream_R8G8B8A8)
 	dsTextureData* textureData = dsTextureData_loadKTXStream((dsAllocator*)&allocator,
 		(dsStream*)&fileStream);
 	ASSERT_TRUE(textureData);
-	EXPECT_TRUE(dsStream_close((dsStream*)&fileStream));
+	EXPECT_TRUE(dsFileStream_close(&fileStream));
 
 	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
 		textureData->info.format);
@@ -807,7 +807,7 @@ TEST_F(TextureDataTest, LoadKTXStreamToTexture)
 		(dsStream*)&fileStream, NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
 		dsGfxMemory_Read);
 	ASSERT_TRUE(texture);
-	EXPECT_TRUE(dsStream_close((dsStream*)&fileStream));
+	EXPECT_TRUE(dsFileStream_close(&fileStream));
 
 	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
 	EXPECT_EQ(dsTextureDim_2D, texture->info.dimension);
@@ -889,7 +889,7 @@ TEST_F(TextureDataTest, LoadPVRStream_R8G8B8A8)
 	dsTextureData* textureData = dsTextureData_loadPVRStream((dsAllocator*)&allocator,
 		(dsStream*)&fileStream);
 	ASSERT_TRUE(textureData);
-	EXPECT_TRUE(dsStream_close((dsStream*)&fileStream));
+	EXPECT_TRUE(dsFileStream_close(&fileStream));
 
 	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
 		textureData->info.format);
@@ -1173,7 +1173,7 @@ TEST_F(TextureDataTest, LoadPVRStreamToTexture)
 		(dsStream*)&fileStream, NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
 		dsGfxMemory_Read);
 	ASSERT_TRUE(texture);
-	EXPECT_TRUE(dsStream_close((dsStream*)&fileStream));
+	EXPECT_TRUE(dsFileStream_close(&fileStream));
 
 	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
 	EXPECT_EQ(dsTextureDim_2D, texture->info.dimension);

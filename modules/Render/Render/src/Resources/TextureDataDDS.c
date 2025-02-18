@@ -741,7 +741,7 @@ dsTextureData* dsTextureData_loadDDSFile(dsAllocator* allocator, const char* fil
 			textureData = NULL;
 		}
 	}
-	DS_VERIFY(dsStream_close((dsStream*)&stream));
+	DS_VERIFY(dsFileStream_close(&stream));
 	DS_PROFILE_FUNC_RETURN(textureData);
 }
 
@@ -774,7 +774,7 @@ dsTextureData* dsTextureData_loadDDSResource(dsAllocator* allocator, dsFileResou
 			textureData = NULL;
 		}
 	}
-	DS_VERIFY(dsStream_close((dsStream*)&stream));
+	DS_VERIFY(dsResourceStream_close(&stream));
 	DS_PROFILE_FUNC_RETURN(textureData);
 }
 

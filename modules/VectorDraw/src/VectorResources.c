@@ -416,7 +416,7 @@ dsVectorResources* dsVectorResources_loadArchive(dsAllocator* allocator,
 
 	size_t size;
 	void* buffer = dsStream_readUntilEnd(&size, stream, scratchAllocator);
-	dsStream_close((dsStream*)&stream);
+	dsStream_close(stream);
 	if (!buffer)
 		DS_PROFILE_FUNC_RETURN(NULL);
 
