@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdk 34
-    ndkVersion "27.2.12479018"
+    ndkVersion "28.0.13004108"
     defaultConfig {
         applicationId "com.akb825.deepsea"
         minSdkVersion 24
@@ -28,6 +28,9 @@ android {
                 }
             }
         }
+    }
+    androidResources {
+        noCompress += "zip"
     }
     externalNativeBuild {
         cmake {
