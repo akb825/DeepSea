@@ -19,8 +19,10 @@
 #include <DeepSea/ApplicationSDL/SDLApplication.h>
 
 #include <DeepSea/Core/Memory/SystemAllocator.h>
+#include <DeepSea/Core/Streams/FileArchive.h>
 #include <DeepSea/Core/Streams/Path.h>
-#include <DeepSea/Core/Streams/ResourceStream.h>
+#include <DeepSea/Core/Streams/Stream.h>
+#include <DeepSea/Core/Streams/ZipArchive.h>
 #include <DeepSea/Core/Thread/ThreadPool.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -375,70 +377,61 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 static bool setupLightingScene(dsSceneResources** outShaders, dsSceneResources** outMaterials,
 	dsSceneResources** outModels, dsSceneResources** outSceneGraph, dsScene** outScene,
 	dsView** outView, TestLighting* testLighting, dsAllocator* allocator,
-	dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, const char* shadersFile,
-	const char* sceneFile, const char* viewFile)
+	dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
+	const dsFileArchive* archive, const char* shadersFile, const char* sceneFile,
+	const char* viewFile)
 {
 	// These don't change.
 	const char* materialsFile = "Materials.dssr";
 	const char* modelsFile = "Models.dssr";
 	const char* sceneGraphFile = "SceneGraph.dssr";
 
-	*outShaders = dsSceneResources_loadResource(allocator, NULL, loadContext, scratchData,
-		dsFileResourceType_Embedded, shadersFile);
+	*outShaders = dsSceneResources_loadArchive(
+		allocator, NULL, loadContext, scratchData, archive, shadersFile);
 	if (!*outShaders)
 	{
 		DS_LOG_ERROR_F("TestLighting", "Couldn't load shaders '%s': %s", shadersFile,
 			dsErrorString(errno));
-		dsSceneLoadContext_destroy(loadContext);
-		dsSceneLoadScratchData_destroy(scratchData);
 		return false;
 	}
 	DS_VERIFY(dsSceneLoadScratchData_pushSceneResources(scratchData, outShaders, 1));
 
-	*outMaterials = dsSceneResources_loadResource(allocator, NULL, loadContext, scratchData,
-		dsFileResourceType_Embedded, materialsFile);
+	*outMaterials = dsSceneResources_loadArchive(
+		allocator, NULL, loadContext, scratchData, archive, materialsFile);
 	if (!*outMaterials)
 	{
 		DS_LOG_ERROR_F("TestLighting", "Couldn't load materials '%s': %s", materialsFile,
 			dsErrorString(errno));
-		dsSceneLoadContext_destroy(loadContext);
-		dsSceneLoadScratchData_destroy(scratchData);
 		return false;
 	}
 	DS_VERIFY(dsSceneLoadScratchData_pushSceneResources(scratchData, outMaterials, 1));
 
-	*outModels = dsSceneResources_loadResource(allocator, NULL, loadContext, scratchData,
-		dsFileResourceType_Embedded, modelsFile);
+	*outModels = dsSceneResources_loadArchive(
+		allocator, NULL, loadContext, scratchData, archive, modelsFile);
 	if (!*outModels)
 	{
 		DS_LOG_ERROR_F("TestLighting", "Couldn't load models '%s': %s", modelsFile,
 			dsErrorString(errno));
-		dsSceneLoadContext_destroy(loadContext);
-		dsSceneLoadScratchData_destroy(scratchData);
 		return false;
 	}
 	DS_VERIFY(dsSceneLoadScratchData_pushSceneResources(scratchData, outModels, 1));
 
-	*outSceneGraph = dsSceneResources_loadResource(allocator, NULL, loadContext, scratchData,
-		dsFileResourceType_Embedded, sceneGraphFile);
+	*outSceneGraph = dsSceneResources_loadArchive(
+		allocator, NULL, loadContext, scratchData, archive, sceneGraphFile);
 	if (!*outSceneGraph)
 	{
 		DS_LOG_ERROR_F("TestLighting", "Couldn't load scene graph '%s': %s", sceneGraphFile,
 			dsErrorString(errno));
-		dsSceneLoadContext_destroy(loadContext);
-		dsSceneLoadScratchData_destroy(scratchData);
 		return false;
 	}
 	DS_VERIFY(dsSceneLoadScratchData_pushSceneResources(scratchData, outSceneGraph, 1));
 
-	*outScene = dsScene_loadResource(allocator, NULL, loadContext, scratchData, NULL, NULL,
-		dsFileResourceType_Embedded, sceneFile);
+	*outScene = dsScene_loadArchive(
+		allocator, NULL, loadContext, scratchData, NULL, NULL, archive, sceneFile);
 	if (!*outScene)
 	{
 		DS_LOG_ERROR_F("TestLighting", "Couldn't load scene '%s': %s", sceneFile,
 			dsErrorString(errno));
-		dsSceneLoadContext_destroy(loadContext);
-		dsSceneLoadScratchData_destroy(scratchData);
 		return false;
 	}
 
@@ -451,15 +444,12 @@ static bool setupLightingScene(dsSceneResources** outShaders, dsSceneResources**
 	viewSurface.surface = surface;
 	viewSurface.windowFramebuffer = true;
 
-	*outView = dsView_loadResource(*outScene, allocator, NULL, scratchData, &viewSurface, 1,
-		surface->width, surface->height, surface->rotation, NULL, NULL, dsFileResourceType_Embedded,
-		viewFile);
+	*outView = dsView_loadArchive(*outScene, allocator, NULL, scratchData, &viewSurface, 1,
+		surface->width, surface->height, surface->rotation, NULL, NULL, archive, viewFile);
 	if (!*outView)
 	{
 		DS_LOG_ERROR_F("TestLighting", "Couldn't load view '%s': %s", viewFile,
 			dsErrorString(errno));
-		dsSceneLoadContext_destroy(loadContext);
-		dsSceneLoadScratchData_destroy(scratchData);
 		return false;
 	}
 
@@ -468,7 +458,8 @@ static bool setupLightingScene(dsSceneResources** outShaders, dsSceneResources**
 }
 
 static bool setupForwardLighitng(TestLighting* testLighting, dsAllocator* allocator,
-	dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData)
+	dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
+	const dsFileArchive* archive)
 {
 	const char* shadersFile;
 	const char* sceneFile;
@@ -489,11 +480,12 @@ static bool setupForwardLighitng(TestLighting* testLighting, dsAllocator* alloca
 		&testLighting->forwardLightMaterials, &testLighting->forwardLightModels,
 		&testLighting->forwardLightSceneResources, &testLighting->forwardLightScene,
 		&testLighting->forwardLightView, testLighting, allocator, loadContext, scratchData,
-		shadersFile, sceneFile, viewFile);
+		archive, shadersFile, sceneFile, viewFile);
 }
 
 static bool setupDeferredLighitng(TestLighting* testLighting, dsAllocator* allocator,
-	dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData)
+	dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
+	const dsFileArchive* archive)
 {
 	const char* shadersFile;
 	const char* sceneFile;
@@ -514,11 +506,12 @@ static bool setupDeferredLighitng(TestLighting* testLighting, dsAllocator* alloc
 		&testLighting->deferredLightMaterials, &testLighting->deferredLightModels,
 		&testLighting->deferredLightSceneResources, &testLighting->deferredLightScene,
 		&testLighting->deferredLightView, testLighting, allocator, loadContext, scratchData,
-		shadersFile, sceneFile, viewFile);
+		archive, shadersFile, sceneFile, viewFile);
 }
 
 static bool setupSSAOLighitng(TestLighting* testLighting, dsAllocator* allocator,
-	dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData)
+	dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
+	const dsFileArchive* archive)
 {
 	const char* shadersFile;
 	const char* sceneFile;
@@ -538,7 +531,7 @@ static bool setupSSAOLighitng(TestLighting* testLighting, dsAllocator* allocator
 	return setupLightingScene(&testLighting->ssaoLightShaders, &testLighting->ssaoLightMaterials,
 		&testLighting->ssaoLightModels, &testLighting->ssaoLightSceneResources,
 		&testLighting->ssaoLightScene, &testLighting->ssaoLightView, testLighting, allocator,
-		loadContext, scratchData, shadersFile, sceneFile, viewFile);
+		loadContext, scratchData, archive, shadersFile, sceneFile, viewFile);
 }
 
 static bool setup(TestLighting* testLighting, dsApplication* application, dsAllocator* allocator)
@@ -653,12 +646,23 @@ static bool setup(TestLighting* testLighting, dsApplication* application, dsAllo
 	DS_VERIFY(dsSceneLoadScratchData_pushSceneResources(scratchData,
 		&testLighting->builtinResources, 1));
 
-	testLighting->baseResources = dsSceneResources_loadResource(allocator, NULL, loadContext,
-		scratchData, dsFileResourceType_Embedded, "BaseResources.dssr");
+	dsFileArchive* archive = (dsFileArchive*)dsZipArchive_openResource(
+		allocator, dsFileResourceType_Embedded, "TestLighting-assets.zip", 0);
+	if (!archive)
+	{
+		DS_LOG_ERROR_F("TestLighting", "Couldn't open assets zip: %s", dsErrorString(errno));
+		dsSceneLoadContext_destroy(loadContext);
+		dsSceneLoadScratchData_destroy(scratchData);
+		return false;
+	}
+
+	testLighting->baseResources = dsSceneResources_loadArchive(allocator, NULL, loadContext,
+		scratchData, archive, "BaseResources.dssr");
 	if (!testLighting->baseResources)
 	{
 		DS_LOG_ERROR_F("TestLighting", "Couldn't load base scene resources: %s",
 			dsErrorString(errno));
+		dsFileArchive_close(archive);
 		dsSceneLoadContext_destroy(loadContext);
 		dsSceneLoadScratchData_destroy(scratchData);
 		return false;
@@ -666,15 +670,16 @@ static bool setup(TestLighting* testLighting, dsApplication* application, dsAllo
 	DS_VERIFY(dsSceneLoadScratchData_pushSceneResources(scratchData,
 		&testLighting->baseResources, 1));
 
-	if (!setupForwardLighitng(testLighting, allocator, loadContext, scratchData) ||
-		!setupDeferredLighitng(testLighting, allocator, loadContext, scratchData) ||
-		!setupSSAOLighitng(testLighting, allocator, loadContext, scratchData))
-	{
-		return false;
-	}
+	bool success =
+		setupForwardLighitng(testLighting, allocator, loadContext, scratchData, archive) &&
+		setupDeferredLighitng(testLighting, allocator, loadContext, scratchData, archive) &&
+		setupSSAOLighitng(testLighting, allocator, loadContext, scratchData, archive);
 
+	dsFileArchive_close(archive);
 	dsSceneLoadContext_destroy(loadContext);
 	dsSceneLoadScratchData_destroy(scratchData);
+	if (!success)
+		return false;
 
 	testLighting->lightingType = LightingType_Forward;
 	testLighting->curScene = testLighting->forwardLightScene;
@@ -815,11 +820,6 @@ int dsMain(int argc, const char** argv)
 		dsRenderer_destroy(renderer);
 		return 2;
 	}
-
-	char assetsPath[DS_PATH_MAX];
-	DS_VERIFY(dsResourceStream_getPath(assetsPath, sizeof(assetsPath), dsFileResourceType_Embedded,
-		"TestLighting-assets"));
-	dsResourceStream_setEmbeddedDirectory(assetsPath);
 
 	TestLighting testLighting;
 	memset(&testLighting, 0, sizeof(testLighting));

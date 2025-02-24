@@ -59,7 +59,7 @@ typedef struct dsRelativePathInfo
 } dsRelativePathInfo;
 
 
-static dsTexture* loadStreamTexture(void* userData, dsResourceManager* resourceManager,
+static dsTexture* loadTexture(void* userData, dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsAllocator* tempAllocator, const char* path, dsTextureUsage usage,
 	dsGfxMemory memoryHints)
 {
@@ -83,8 +83,7 @@ static dsTexture* loadStreamTexture(void* userData, dsResourceManager* resourceM
 	return texture;
 }
 
-static bool loadStreamFontFace(void* userData, dsFaceGroup* faceGroup, const char* path,
-	const char* name)
+static bool loadFontFace(void* userData, dsFaceGroup* faceGroup, const char* path, const char* name)
 {
 	dsRelativePathInfo* pathInfo = (dsRelativePathInfo*)userData;
 	char finalPath[DS_PATH_MAX];
@@ -103,23 +102,6 @@ static bool loadStreamFontFace(void* userData, dsFaceGroup* faceGroup, const cha
 	bool retVal = dsFaceGroup_loadFaceStream(faceGroup, pathInfo->allocator, stream, name);
 	pathInfo->closeRelativePathStreamFunc(userData, stream);
 	return retVal;
-}
-
-static dsTexture* loadEmbeddedTexture(void*, dsResourceManager*, dsAllocator*, dsAllocator*,
-	const char*, dsTextureUsage, dsGfxMemory)
-{
-	errno = EFORMAT;
-	DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG,
-		"Cannot load textures from file from embedded vector draw resources.");
-	return nullptr;
-}
-
-static bool loadEmbeddedFontFace(void*, dsFaceGroup*, const char*, const char*)
-{
-	errno = EFORMAT;
-	DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG,
-		"Cannot load font faces from file from embedded vector draw resources.");
-	return false;
 }
 
 void* dsVectorSceneResources_load(const dsSceneLoadContext* loadContext,
@@ -178,15 +160,16 @@ void* dsVectorSceneResources_load(const dsSceneLoadContext* loadContext,
 		dsRelativePathInfo pathInfo = {scratchAllocator, baseDirectory, relativePathUserData,
 			openRelativePathStreamFunc, closeRelativePathStreamFunc};
 		resources = dsVectorResources_loadData(allocator, scratchAllocator, resourceManager, buffer,
-			size, &pathInfo, &loadStreamTexture, &loadStreamFontFace, textQualityRemap);
-		closeRelativePathStreamFunc(relativePathUserData, stream);
-		dsAllocator_free(scratchAllocator, buffer);
+			size, &pathInfo, &loadTexture, &loadFontFace, textQualityRemap);
+		DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
 	}
 	else if (auto fbRawData = fbVectorResources->resources_as_RawData())
 	{
+		dsRelativePathInfo pathInfo = {scratchAllocator, "", relativePathUserData,
+			openRelativePathStreamFunc, closeRelativePathStreamFunc};
 		auto fbData = fbRawData->data();
 		resources = dsVectorResources_loadData(allocator, scratchAllocator, resourceManager,
-			fbData->data(), fbData->size(), nullptr, &loadEmbeddedTexture, &loadEmbeddedFontFace,
+			fbData->data(), fbData->size(), &pathInfo, &loadTexture, &loadFontFace,
 			textQualityRemap);
 	}
 	else

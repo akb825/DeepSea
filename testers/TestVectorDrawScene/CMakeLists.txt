@@ -95,17 +95,19 @@ ds_create_view(view FILE ${srcDir}/View.json OUTPUT ${assetsDir}/View.dsv)
 ds_create_view_target(deepsea_test_vector_draw_scene_app_view view
 	DEPENDS deepsea_test_vector_draw_scene_app_prepare)
 
-# Copy
+# Create a zip for the assets.
 ds_build_assets_dir(finalAssetsDir deepsea_test_vector_draw_scene_app)
-set(finalAssetsDir ${finalAssetsDir}/TestVectorDrawScene-assets)
-add_custom_target(deepsea_test_vector_draw_scene_app_assets
+set(assetsZip ${finalAssetsDir}/TestVectorDrawScene-assets.zip)
+set(assetFiles ${shaders} ${vectorResources} ${resources} ${scene} ${view})
+set(assetDirs ${assetsDir}/VectorResources_resources)
+add_custom_command(OUTPUT ${assetsZip}
 	DEPENDS deepsea_test_vector_draw_scene_app_shaders
 		deepsea_test_vector_draw_scene_app_scene_resources deepsea_test_vector_draw_scene_app_scene
 		deepsea_test_vector_draw_scene_app_view
-	COMMAND ${CMAKE_COMMAND} -E remove_directory ${finalAssetsDir}
-	COMMAND ${CMAKE_COMMAND} -E make_directory ${finalAssetsDir}
-	COMMAND ${CMAKE_COMMAND} -E copy_directory ${assetsDir} ${finalAssetsDir}
-	COMMENT "Copying assets for TestVectorDrawScene")
+	COMMAND ${CMAKE_COMMAND} -E tar cf ${assetsZip} --format=zip ${assetFiles} ${assetDirs}
+	WORKING_DIRECTORY ${assetsDir}
+	COMMENT "Zipping assets for TestVectorDrawScene")
+add_custom_target(deepsea_test_vector_draw_scene_app_assets DEPENDS ${assetsZip})
 add_dependencies(deepsea_test_vector_draw_scene_app deepsea_test_vector_draw_scene_app_assets)
 
 ds_set_folder(deepsea_test_vector_draw_scene_app tests/gui)

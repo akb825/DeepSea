@@ -237,16 +237,17 @@ endif()
 
 ds_create_view_target(deepsea_test_lighting_app_view view DEPENDS deepsea_test_lighting_app_prepare)
 
-# Copy
+# Create a zip for the assets.
 ds_build_assets_dir(finalAssetsDir deepsea_test_lighting_app)
-set(finalAssetsDir ${finalAssetsDir}/TestLighting-assets)
-add_custom_target(deepsea_test_lighting_app_assets
+set(assetsZip ${finalAssetsDir}/TestLighting-assets.zip)
+set(assetFiles ${shaders} ${resources} ${scene} ${view})
+add_custom_command(OUTPUT ${assetsZip}
 	DEPENDS deepsea_test_lighting_app_shaders deepsea_test_lighting_app_scene_resources
-		deepsea_test_lighting_app_scene deepsea_test_lighting_app_view
-	COMMAND ${CMAKE_COMMAND} -E remove_directory ${finalAssetsDir}
-	COMMAND ${CMAKE_COMMAND} -E make_directory ${finalAssetsDir}
-	COMMAND ${CMAKE_COMMAND} -E copy_directory ${assetsDir} ${finalAssetsDir}
-	COMMENT "Copying assets for TestLighting")
+		deepsea_test_lighting_app_scene deepsea_test_lighting_app_view ${assetFiles}
+	COMMAND ${CMAKE_COMMAND} -E tar cf ${assetsZip} --format=zip ${assetFiles}
+	WORKING_DIRECTORY ${assetsDir}
+	COMMENT "Zipping assets for TestLighting")
+add_custom_target(deepsea_test_lighting_app_assets DEPENDS ${assetsZip})
 add_dependencies(deepsea_test_lighting_app deepsea_test_lighting_app_assets)
 
 ds_set_folder(deepsea_test_lighting_app tests/gui)

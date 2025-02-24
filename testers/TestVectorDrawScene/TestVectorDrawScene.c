@@ -19,8 +19,10 @@
 #include <DeepSea/ApplicationSDL/SDLApplication.h>
 
 #include <DeepSea/Core/Memory/SystemAllocator.h>
+#include <DeepSea/Core/Streams/FileArchive.h>
 #include <DeepSea/Core/Streams/Path.h>
-#include <DeepSea/Core/Streams/ResourceStream.h>
+#include <DeepSea/Core/Streams/Stream.h>
+#include <DeepSea/Core/Streams/ZipArchive.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -314,14 +316,24 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 		return false;
 	}
 
+	dsFileArchive* archive = (dsFileArchive*)dsZipArchive_openResource(
+		allocator, dsFileResourceType_Embedded, "TestVectorDrawScene-assets.zip", 0);
+	if (!archive)
+	{
+		DS_LOG_ERROR_F("TestVectorDrawScene", "Couldn't open assets zip: %s", dsErrorString(errno));
+		dsSceneLoadContext_destroy(loadContext);
+		dsTextSubstitutionTable_destroy(substitutionTable);
+	}
+
 	DS_VERIFY(dsCommandBuffer_begin(testVectorDrawScene->initCommandBuffer));
-	testVectorDrawScene->resources = dsSceneResources_loadResource(allocator, NULL, loadContext,
-		scratchData, dsFileResourceType_Embedded, "SceneResources.dssr");
+	testVectorDrawScene->resources = dsSceneResources_loadArchive(allocator, NULL, loadContext,
+		scratchData, archive, "SceneResources.dssr");
 	DS_VERIFY(dsCommandBuffer_end(testVectorDrawScene->initCommandBuffer));
 	if (!testVectorDrawScene->resources)
 	{
 		DS_LOG_ERROR_F("TestVectorDrawScene", "Couldn't load scene resources: %s",
 			dsErrorString(errno));
+		dsFileArchive_close(archive);
 		dsSceneLoadContext_destroy(loadContext);
 		dsTextSubstitutionTable_destroy(substitutionTable);
 		dsSceneLoadScratchData_destroy(scratchData);
@@ -339,17 +351,19 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 		!dsSceneNode_isOfType((dsSceneNode*)testVectorDrawScene->figureNode, textNodeType))
 	{
 		DS_LOG_ERROR("TestVectorDrawScene", "Couldn't find text node 'figureNode'.");
+		dsFileArchive_close(archive);
 		dsSceneLoadContext_destroy(loadContext);
 		dsTextSubstitutionTable_destroy(substitutionTable);
 		dsSceneLoadScratchData_destroy(scratchData);
 		return false;
 	}
 
-	testVectorDrawScene->scene = dsScene_loadResource(allocator, NULL, loadContext, scratchData,
-		NULL, NULL, dsFileResourceType_Embedded, "Scene.dss");
+	testVectorDrawScene->scene = dsScene_loadArchive(allocator, NULL, loadContext, scratchData,
+		NULL, NULL, archive, "Scene.dss");
 	if (!testVectorDrawScene->scene)
 	{
 		DS_LOG_ERROR_F("TestVectorDrawScene", "Couldn't load scene: %s", dsErrorString(errno));
+		dsFileArchive_close(archive);
 		dsSceneLoadContext_destroy(loadContext);
 		dsTextSubstitutionTable_destroy(substitutionTable);
 		dsSceneLoadScratchData_destroy(scratchData);
@@ -363,9 +377,10 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 	viewSurface.surface = surface;
 	viewSurface.windowFramebuffer = true;
 
-	testVectorDrawScene->view = dsView_loadResource(testVectorDrawScene->scene, allocator, NULL,
+	testVectorDrawScene->view = dsView_loadArchive(testVectorDrawScene->scene, allocator, NULL,
 		scratchData, &viewSurface, 1, surface->width, surface->height, surface->rotation, NULL,
-		NULL, dsFileResourceType_Embedded, "View.dsv");
+		NULL, archive, "View.dsv");
+	dsFileArchive_close(archive);
 	dsSceneLoadContext_destroy(loadContext);
 	dsTextSubstitutionTable_destroy(substitutionTable);
 	dsSceneLoadScratchData_destroy(scratchData);
@@ -477,11 +492,6 @@ int dsMain(int argc, const char** argv)
 		dsRenderer_destroy(renderer);
 		return 2;
 	}
-
-	char assetsPath[DS_PATH_MAX];
-	DS_VERIFY(dsResourceStream_getPath(assetsPath, sizeof(assetsPath), dsFileResourceType_Embedded,
-		"TestVectorDrawScene-assets"));
-	dsResourceStream_setEmbeddedDirectory(assetsPath);
 
 	TestVectorDrawScene testVectorDrawScene;
 	memset(&testVectorDrawScene, 0, sizeof(testVectorDrawScene));
