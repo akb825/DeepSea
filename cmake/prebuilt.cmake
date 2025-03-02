@@ -1,4 +1,4 @@
-# Copyright 2018-2024 Aaron Barany
+# Copyright 2018-2025 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -69,6 +69,7 @@ if (NOT DEEPSEA_NO_PREBUILT_LIBS)
 			file(GLOB prebuiltSharedLibs ${DEEPSEA_PREBUILT_LIBS_DIR}/lib/*.so
 				${DEEPSEA_PREBUILT_LIBS_DIR}/lib/*.dylib)
 			file(GLOB prebuiltDlls ${DEEPSEA_PREBUILT_LIBS_DIR}/bin/*.dll)
+			file(GLOB cmakeFolders ${DEEPSEA_PREBUILT_LIBS_DIR}/lib/cmake/*)
 
 			# Exclude gtest libraries as they are only for unit tests.
 			file(GLOB gtestLibs ${DEEPSEA_PREBUILT_LIBS_DIR}/lib/*gtest*
@@ -77,6 +78,7 @@ if (NOT DEEPSEA_NO_PREBUILT_LIBS)
 			list(REMOVE_ITEM prebuiltLibs ${gtestLibs})
 			list(REMOVE_ITEM prebuiltSharedLibs ${gtestLibs})
 			list(REMOVE_ITEM prebuiltDlls ${gtestLibs})
+			list(REMOVE_ITEM cmakeFolders ${DEEPSEA_PREBUILT_LIBS_DIR}/lib/cmake/GTest)
 
 			# Only the static or dynamic SDL library based on what's needed.
 			if (NOT ANDROID)
@@ -98,6 +100,8 @@ if (NOT DEEPSEA_NO_PREBUILT_LIBS)
 			install(PROGRAMS ${prebuiltSharedLibs} DESTINATION ${CMAKE_INSTALL_LIBDIR}
 				COMPONENT dev)
 			install(PROGRAMS ${prebuiltDlls} DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT dev)
+			install(DIRECTORY ${cmakeFolders} DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
+				COMPONENT dev)
 		endif()
 	endif()
 endif()

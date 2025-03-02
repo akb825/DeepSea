@@ -36,13 +36,16 @@ endif()
 ds_target_compile_definitions(deepsea_render PUBLIC
 	DS_GPU_PROFILING_ENABLED=${gpuProfilingEnabled})
 
-# Only need to list it as a dependency if not a shared library.
+
+# Only need to list MSL as a dependency if static linking.
 if (NOT DEEPSEA_SHARED)
-	set(externalDependencies MSLClient)
+	set(externalDepends "MSL COMPONENTS Client REQUIRED")
+else()
+	set(externalDepends)
 endif()
 
 ds_install_library(TARGET deepsea_render MODULE Render DEPENDS Core Math Geometry
-	EXTERNAL_DEPENDS ${externalDependencies}
+	EXTERNAL_DEPENDS ${externalDepends}
 	CONFIG_FILES cmake/CompileShaders.cmake cmake/ConvertTexture.cmake
 	CONFIG_LINES
 		"include(\${CMAKE_CURRENT_LIST_DIR}/CompileShaders.cmake)"
