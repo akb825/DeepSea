@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Aaron Barany
+ * Copyright 2022-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1251,7 +1251,7 @@ DS_ALWAYS_INLINE void dsSIMD4d_storeUnaligned(void* dp, dsSIMD4d a)
  * @param i The index of the element.
  * @return The element value.
  */
-#define dsSIMD4d_get(a, i) 0.0
+#define dsSIMD4d_get(a, i) ((void)a, 0.0)
 
 /**
  * @brief Negates a SIMD value.

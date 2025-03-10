@@ -156,18 +156,13 @@ bool dsRigidBody_extractTransformFromMatrix(dsVector3f* outPosition, dsQuaternio
 		return false;
 	}
 
-	outScale->x = dsVector3f_len((const dsVector3f*)transform->columns);
-	outScale->y = dsVector3f_len((const dsVector3f*)(transform->columns + 1));
-	outScale->z = dsVector3f_len((const dsVector3f*)(transform->columns + 2));
+	dsMatrix44f_decomposeTransform(outPosition, outOrientation, outScale, transform);
 
 	dsVector3f one = {{1.0f, 1.0f, 1.0f}};
 	bool unitScale = dsVector3f_epsilonEqual(outScale, &one, SCALE_EPSILON);
 	bool scalable = (flags & dsRigidBodyFlags_Scalable) != 0;
 	if (unitScale)
-	{
 		*outScale = one; // Avoid unit scales that are slightly off.
-		dsQuaternion4f_fromMatrix44(outOrientation, transform);
-	}
 	else
 	{
 		if (!scalable)
@@ -207,18 +202,7 @@ bool dsRigidBody_extractTransformFromMatrix(dsVector3f* outPosition, dsQuaternio
 				}
 			}
 		}
-
-		dsVector3f invScale;
-		dsVector3_div(invScale, one, *outScale);
-		dsMatrix33f rotationMatrix;
-		dsVector3_scale(rotationMatrix.columns[0], transform->columns[0], invScale.x);
-		dsVector3_scale(rotationMatrix.columns[1], transform->columns[1], invScale.y);
-		dsVector3_scale(rotationMatrix.columns[2], transform->columns[2], invScale.z);
-		dsQuaternion4f_fromMatrix33(outOrientation, &rotationMatrix);
 	}
-
-	*outPosition = *(const dsVector3f*)(transform->columns + 3);
-	*outHasScale = !unitScale;
 	return true;
 }
 
@@ -1048,20 +1032,8 @@ bool dsRigidBody_getTransformMatrix(dsMatrix44f* outTransform, const dsRigidBody
 	}
 
 	dsMatrix44f translate;
-	dsMatrix44f_makeTranslate(&translate, rigidBody->position.x, rigidBody->position.y,
-		rigidBody->position.z);
-
-	dsMatrix44f rotateScale;
-	if (rigidBody->flags & dsRigidBodyFlags_Scalable)
-	{
-		dsMatrix44f rotate, scale;
-		dsMatrix44f_makeScale(&scale, rigidBody->scale.x, rigidBody->scale.y, rigidBody->scale.z);
-		dsQuaternion4f_toMatrix44(&rotate, &rigidBody->orientation);
-		dsMatrix44f_affineMul(&rotateScale, &rotate, &scale);
-	}
-	else
-		dsQuaternion4f_toMatrix44(&rotateScale, &rigidBody->orientation);
-	dsMatrix44f_affineMul(outTransform, &translate, &rotateScale);
+	dsMatrix44f_composeTransform(
+		&translate, &rigidBody->position, &rigidBody->orientation, &rigidBody->scale);
 	return true;
 }
 

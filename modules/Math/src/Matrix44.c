@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,140 +115,6 @@ void dsMatrix44f_makeRotateAxisAngle(dsMatrix44f* result, const dsVector3f* axis
 	float invCosAngle = 1 - cosAngle;
 
 	dsMatrix44_makeRotateAxisAngleImpl(*result, *axis, cosAngle, sinAngle, invCosAngle);
-}
-
-void dsMatrix44f_affineLerpScalar(dsMatrix44f* result, const dsMatrix44f* a, const dsMatrix44f* b,
-	float t)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(a);
-	DS_ASSERT(b);
-	DS_ASSERT(result != a);
-	DS_ASSERT(result != b);
-
-	dsVector3f one = {{1.0f, 1.0f, 1.0f}};
-	dsVector4f lastColumn = {{0.0f, 0.0f, 0.0f, 1.0f}};
-
-	dsVector3f scaleA =
-	{{
-		dsVector3f_len((const dsVector3f*)a->columns),
-		dsVector3f_len((const dsVector3f*)(a->columns + 1)),
-		dsVector3f_len((const dsVector3f*)(a->columns + 2))
-	}};
-
-	dsVector3f invScaleA;
-	dsVector3_div(invScaleA, one, scaleA);
-
-	dsVector3f scaleB =
-	{{
-		dsVector3f_len((const dsVector3f*)b->columns),
-		dsVector3f_len((const dsVector3f*)(b->columns + 1)),
-		dsVector3f_len((const dsVector3f*)(b->columns + 2))
-	}};
-
-	dsVector3f invScaleB;
-	dsVector3_div(invScaleB, one, scaleB);
-
-	dsMatrix44f rotateMatA;
-	dsVector3_scale(rotateMatA.columns[0], a->columns[0], invScaleA.x);
-	dsVector3_scale(rotateMatA.columns[1], a->columns[1], invScaleA.y);
-	dsVector3_scale(rotateMatA.columns[2], a->columns[2], invScaleA.z);
-	rotateMatA.columns[3] = lastColumn;
-
-	dsQuaternion4f quatA;
-	dsQuaternion4f_fromMatrix44(&quatA, &rotateMatA);
-
-	dsMatrix44f rotateMatB;
-	dsVector3_scale(rotateMatB.columns[0], b->columns[0], invScaleB.x);
-	dsVector3_scale(rotateMatB.columns[1], b->columns[1], invScaleB.y);
-	dsVector3_scale(rotateMatB.columns[2], b->columns[2], invScaleB.z);
-	rotateMatB.columns[3] = lastColumn;
-
-	dsQuaternion4f quatB;
-	dsQuaternion4f_fromMatrix44(&quatB, &rotateMatB);
-
-	dsQuaternion4f quatInterp;
-	dsQuaternion4f_slerp(&quatInterp, &quatA, &quatB, t);
-
-	dsVector3f scaleInterp;
-	dsVector3f_lerp(&scaleInterp, &scaleA, &scaleB, t);
-
-	dsMatrix44f scaleMatInterp;
-	dsMatrix44f_makeScale(&scaleMatInterp, scaleInterp.x, scaleInterp.y, scaleInterp.z);
-
-	dsMatrix44f rotateMatInterp;
-	dsQuaternion4f_toMatrix44(&rotateMatInterp, &quatInterp);
-
-	dsMatrix44f_affineMul(result, &rotateMatInterp, &scaleMatInterp);
-	dsVector3f_lerp((dsVector3f*)(result->columns + 3), (const dsVector3f*)(a->columns + 3),
-		(const dsVector3f*)(b->columns + 3), t);
-}
-
-void dsMatrix44d_affineLerpScalar(dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b,
-	double t)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(a);
-	DS_ASSERT(b);
-	DS_ASSERT(result != a);
-	DS_ASSERT(result != b);
-
-	dsVector3d one = {{1.0, 1.0, 1.0}};
-	dsVector4d lastColumn = {{0.0, 0.0, 0.0, 1.0}};
-
-	dsVector3d scaleA =
-	{{
-		dsVector3d_len((const dsVector3d*)a->columns),
-		dsVector3d_len((const dsVector3d*)(a->columns + 1)),
-		dsVector3d_len((const dsVector3d*)(a->columns + 2))
-	}};
-
-	dsVector3d invScaleA;
-	dsVector3_div(invScaleA, one, scaleA);
-
-	dsVector3d scaleB =
-	{{
-		dsVector3d_len((const dsVector3d*)b->columns),
-		dsVector3d_len((const dsVector3d*)(b->columns + 1)),
-		dsVector3d_len((const dsVector3d*)(b->columns + 2))
-	}};
-
-	dsVector3d invScaleB;
-	dsVector3_div(invScaleB, one, scaleB);
-
-	dsMatrix44d rotateMatA;
-	dsVector3_scale(rotateMatA.columns[0], a->columns[0], invScaleA.x);
-	dsVector3_scale(rotateMatA.columns[1], a->columns[1], invScaleA.y);
-	dsVector3_scale(rotateMatA.columns[2], a->columns[2], invScaleA.z);
-	rotateMatA.columns[3] = lastColumn;
-
-	dsQuaternion4d quatA;
-	dsQuaternion4d_fromMatrix44(&quatA, &rotateMatA);
-
-	dsMatrix44d rotateMatB;
-	dsVector3_scale(rotateMatB.columns[0], b->columns[0], invScaleB.x);
-	dsVector3_scale(rotateMatB.columns[1], b->columns[1], invScaleB.y);
-	dsVector3_scale(rotateMatB.columns[2], b->columns[2], invScaleB.z);
-	rotateMatB.columns[3] = lastColumn;
-
-	dsQuaternion4d quatB;
-	dsQuaternion4d_fromMatrix44(&quatB, &rotateMatB);
-
-	dsQuaternion4d quatInterp;
-	dsQuaternion4d_slerp(&quatInterp, &quatA, &quatB, t);
-
-	dsVector3d scaleInterp;
-	dsVector3d_lerp(&scaleInterp, &scaleA, &scaleB, t);
-
-	dsMatrix44d scaleMatInterp;
-	dsMatrix44d_makeScale(&scaleMatInterp, scaleInterp.x, scaleInterp.y, scaleInterp.z);
-
-	dsMatrix44d rotateMatInterp;
-	dsQuaternion4d_toMatrix44(&rotateMatInterp, &quatInterp);
-
-	dsMatrix44d_affineMul(result, &rotateMatInterp, &scaleMatInterp);
-	dsVector3d_lerp((dsVector3d*)(result->columns + 3), (const dsVector3d*)(a->columns + 3),
-		(const dsVector3d*)(b->columns + 3), t);
 }
 
 void dsMatrix44d_makeRotateAxisAngle(dsMatrix44d* result, const dsVector3d* axis,
@@ -834,6 +700,142 @@ void dsMatrix44d_makePerspective(dsMatrix44d* result, double fovy, double aspect
 	result->values[3][3] = 0;
 }
 
+void dsMatrix44f_decomposeTransformScalar(dsVector3f* outPosition, dsQuaternion4f* outOrientation,
+	dsVector3f* outScale, const dsMatrix44f* matrix)
+{
+	DS_ASSERT(outPosition);
+	DS_ASSERT(outOrientation);
+	DS_ASSERT(outScale);
+	DS_ASSERT(matrix);
+
+	outPosition->x = matrix->columns[3].x;
+	outPosition->y = matrix->columns[3].y;
+	outPosition->z = matrix->columns[3].z;
+
+	dsVector3f one = {{1.0f, 1.0f, 1.0f}};
+
+	outScale->x = dsVector3f_len((const dsVector3f*)matrix->columns);
+	outScale->y = dsVector3f_len((const dsVector3f*)(matrix->columns + 1));
+	outScale->z = dsVector3f_len((const dsVector3f*)(matrix->columns + 2));
+
+	dsVector3f invScale;
+	dsVector3_div(invScale, one, *outScale);
+
+	dsMatrix33f rotateMat;
+	dsVector3_scale(rotateMat.columns[0], matrix->columns[0], invScale.x);
+	dsVector3_scale(rotateMat.columns[1], matrix->columns[1], invScale.y);
+	dsVector3_scale(rotateMat.columns[2], matrix->columns[2], invScale.z);
+
+	dsQuaternion4f_fromMatrix33(outOrientation, &rotateMat);
+}
+
+void dsMatrix44d_decomposeTransformScalar(dsVector3d* outPosition, dsQuaternion4d* outOrientation,
+	dsVector3d* outScale, const dsMatrix44d* matrix)
+{
+	DS_ASSERT(outPosition);
+	DS_ASSERT(outOrientation);
+	DS_ASSERT(outScale);
+	DS_ASSERT(matrix);
+
+	outPosition->x = matrix->columns[3].x;
+	outPosition->y = matrix->columns[3].y;
+	outPosition->z = matrix->columns[3].z;
+
+	dsVector3d one = {{1.0, 1.0, 1.0}};
+
+	outScale->x = dsVector3d_len((const dsVector3d*)matrix->columns);
+	outScale->y = dsVector3d_len((const dsVector3d*)(matrix->columns + 1));
+	outScale->z = dsVector3d_len((const dsVector3d*)(matrix->columns + 2));
+
+	dsVector3d invScale;
+	dsVector3_div(invScale, one, *outScale);
+
+	dsMatrix33d rotateMat;
+	dsVector3_scale(rotateMat.columns[0], matrix->columns[0], invScale.x);
+	dsVector3_scale(rotateMat.columns[1], matrix->columns[1], invScale.y);
+	dsVector3_scale(rotateMat.columns[2], matrix->columns[2], invScale.z);
+
+	dsQuaternion4d_fromMatrix33(outOrientation, &rotateMat);
+}
+
+void dsMatrix44f_composeTransformScalar(dsMatrix44f* result, const dsVector3f* position,
+	const dsQuaternion4f* orientation, const dsVector3f* scale)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(position);
+	DS_ASSERT(orientation);
+	DS_ASSERT(scale);
+
+	dsQuaternion4f_toMatrix44(result, orientation);
+	dsVector3f_scale((dsVector3f*)result->columns, (dsVector3f*)result->columns, scale->x);
+	dsVector3f_scale(
+		(dsVector3f*)(result->columns + 1), (dsVector3f*)(result->columns + 1), scale->y);
+	dsVector3f_scale(
+		(dsVector3f*)(result->columns + 2), (dsVector3f*)(result->columns + 2), scale->z);
+	result->columns[3].x = position->x;
+	result->columns[3].y = position->y;
+	result->columns[3].z = position->z;
+}
+
+void dsMatrix44d_composeTransformScalar(dsMatrix44d* result, const dsVector3d* position,
+	const dsQuaternion4d* orientation, const dsVector3d* scale)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(position);
+	DS_ASSERT(orientation);
+	DS_ASSERT(scale);
+
+	dsQuaternion4d_toMatrix44(result, orientation);
+	dsVector3d_scale((dsVector3d*)result->columns, (dsVector3d*)result->columns, scale->x);
+	dsVector3d_scale(
+		(dsVector3d*)(result->columns + 1), (dsVector3d*)(result->columns + 1), scale->y);
+	dsVector3d_scale(
+		(dsVector3d*)(result->columns + 2), (dsVector3d*)(result->columns + 2), scale->z);
+	result->columns[3].x = position->x;
+	result->columns[3].y = position->y;
+	result->columns[3].z = position->z;
+}
+
+void dsMatrix44f_rigidLerpScalar(
+	dsMatrix44f* result, const dsMatrix44f* a, const dsMatrix44f* b, float t)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+
+	dsVector3f positionA, scaleA, positionB, scaleB, positionInterp, scaleInterp;
+	dsQuaternion4f orientationA, orientationB, orientationInterp;
+
+	dsMatrix44f_decomposeTransformScalar(&positionA, &orientationA, &scaleA, a);
+	dsMatrix44f_decomposeTransformScalar(&positionB, &orientationB, &scaleB, b);
+
+	dsVector3_lerp(positionInterp, positionA, positionB, t);
+	dsVector3_lerp(scaleInterp, scaleA, scaleB, t);
+	dsQuaternion4f_slerp(&orientationInterp, &orientationA, &orientationB, t);
+
+	dsMatrix44f_composeTransformScalar(result, &positionInterp, &orientationInterp, &scaleInterp);
+}
+
+void dsMatrix44d_rigidLerpScalar(
+	dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b, double t)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+
+	dsVector3d positionA, scaleA, positionB, scaleB, positionInterp, scaleInterp;
+	dsQuaternion4d orientationA, orientationB, orientationInterp;
+
+	dsMatrix44d_decomposeTransformScalar(&positionA, &orientationA, &scaleA, a);
+	dsMatrix44d_decomposeTransformScalar(&positionB, &orientationB, &scaleB, b);
+
+	dsVector3_lerp(positionInterp, positionA, positionB, t);
+	dsVector3_lerp(scaleInterp, scaleA, scaleB, t);
+	dsQuaternion4d_slerp(&orientationInterp, &orientationA, &orientationB, t);
+
+	dsMatrix44d_composeTransformScalar(result, &positionInterp, &orientationInterp, &scaleInterp);
+}
+
 void dsMatrix44f_identity(dsMatrix44f* result);
 void dsMatrix44d_identity(dsMatrix44d* result);
 
@@ -878,10 +880,20 @@ void dsMatrix44d_makeTranslate(dsMatrix44d* result, double x, double y, double z
 void dsMatrix44f_makeScale(dsMatrix44f* result, float x, float y, float z);
 void dsMatrix44d_makeScale(dsMatrix44d* result, double x, double y, double z);
 
-void dsMatrix44f_affineLerpScalar(dsMatrix44f* result, const dsMatrix44f* a, const dsMatrix44f* b,
-	float t);
-void dsMatrix44d_affineLerpScalar(dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b,
-	double t);
+void dsMatrix44f_decomposeTransform(dsVector3f* outPosition, dsQuaternion4f* outOrientation,
+	dsVector3f* outScale, const dsMatrix44f* matrix);
+void dsMatrix44d_decomposeTransform(dsVector3d* outPosition, dsQuaternion4d* outOrientation,
+	dsVector3d* outScale, const dsMatrix44d* matrix);
+
+void dsMatrix44f_composeTransform(dsMatrix44f* result, const dsVector3f* position,
+	const dsQuaternion4f* orientation, const dsVector3f* scale);
+void dsMatrix44d_composeTransform(dsMatrix44d* result, const dsVector3d* position,
+	const dsQuaternion4d* orientation, const dsVector3d* scale);
+
+void dsMatrix44f_rigidLerp(
+	dsMatrix44f* result, const dsMatrix44f* a, const dsMatrix44f* b, float t);
+void dsMatrix44d_rigidLerp(
+	dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b, double t);
 
 bool dsMatrix44f_jacobiEigenvalues(dsMatrix44f* outEigenvectors, dsVector4f* outEigenvalues,
 	const dsMatrix44f* a);
