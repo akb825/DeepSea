@@ -60,6 +60,11 @@
 #define HAS_FONT_CHANGED 0
 #endif
 
+// Handle deprecated Harfbuzz function names.
+#if HB_VERSION_MAJOR < 10 || (HB_VERSION_MAJOR == 10 && HB_VERSION_MINOR < 4)
+#define hb_ft_font_get_ft_face hb_ft_font_get_face
+#endif
+
 struct dsFontFace
 {
 	dsHashTableNode node;
@@ -483,7 +488,7 @@ const char* dsFontFace_getName(const dsFontFace* face)
 
 uint32_t dsFontFace_getCodepointGlyph(const dsFontFace* face, uint32_t codepoint)
 {
-	FT_Face ftFace = hb_ft_font_get_face(face->font);
+	FT_Face ftFace = hb_ft_font_get_ft_face(face->font);
 	DS_ASSERT(ftFace);
 	return FT_Get_Char_Index(ftFace, codepoint);
 }
@@ -492,7 +497,7 @@ bool dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsFontFace* face,
 	dsCommandBuffer* commandBuffer, dsTexture* texture, uint32_t glyph, uint32_t glyphIndex,
 	uint32_t glyphSize, dsFont* font)
 {
-	FT_Face ftFace = hb_ft_font_get_face(face->font);
+	FT_Face ftFace = hb_ft_font_get_ft_face(face->font);
 	DS_ASSERT(ftFace);
 	FT_Set_Pixel_Sizes(ftFace, 0, font->glyphSize);
 	FT_Load_Glyph(ftFace, glyph, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
@@ -1149,7 +1154,7 @@ uint32_t dsFont_findFaceForCodepoint(const dsFont* font, uint32_t codepoint)
 {
 	for (uint32_t i = 0; i < font->faceCount; ++i)
 	{
-		if (FT_Get_Char_Index(hb_ft_font_get_face(font->faces[i]->font), codepoint))
+		if (FT_Get_Char_Index(hb_ft_font_get_ft_face(font->faces[i]->font), codepoint))
 			return i;
 	}
 
@@ -1176,13 +1181,13 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 
 	uint32_t face = dsFont_findFaceForCodepoint(font, firstCodepoint);
 	hb_font_t* hbFont = font->faces[face]->font;
-	FT_Set_Pixel_Sizes(hb_ft_font_get_face(hbFont), 0, font->glyphSize);
+	FT_Set_Pixel_Sizes(hb_ft_font_get_ft_face(hbFont), 0, font->glyphSize);
 #if HAS_FONT_CHANGED
 	hb_ft_font_changed(hbFont);
 #else
 	// This is the portion of hb_ft_font_changed() that we need to support older versions of
 	// HarfBuzz.
-	FT_Face ftFace = hb_ft_font_get_face(hbFont);
+	FT_Face ftFace = hb_ft_font_get_ft_face(hbFont);
 	hb_font_set_scale(hbFont,
 		(int)(((uint64_t)ftFace->size->metrics.x_scale*(uint64_t)ftFace->units_per_EM +
 			(1u<<15)) >> 16),
