@@ -659,7 +659,7 @@ static bool hasCubeArrays(id<MTLDevice> device)
 static bool isSpecialTextureFormatSupported(const dsMTLResourceManager* mtlResourceManager,
 	dsGfxFormat format, uint32_t specialIndex)
 {
-	if (mtlResourceManager->specialPixelFormats[specialIndex] != MTLVertexFormatInvalid)
+	if (mtlResourceManager->specialPixelFormats[specialIndex] != MTLPixelFormatInvalid)
 		return true;
 
 	// Some depth-stencil formats need to be split.
@@ -667,15 +667,15 @@ static bool isSpecialTextureFormatSupported(const dsMTLResourceManager* mtlResou
 	{
 		uint32_t depthIndex = dsGfxFormat_specialIndex(dsGfxFormat_D16);
 		uint32_t stencilIndex = dsGfxFormat_specialIndex(dsGfxFormat_S8);
-		return mtlResourceManager->specialPixelFormats[depthIndex] != MTLVertexFormatInvalid &&
-			mtlResourceManager->specialPixelFormats[stencilIndex] != MTLVertexFormatInvalid;
+		return mtlResourceManager->specialPixelFormats[depthIndex] != MTLPixelFormatInvalid &&
+			mtlResourceManager->specialPixelFormats[stencilIndex] != MTLPixelFormatInvalid;
 	}
 	else if (format == dsGfxFormat_D32S8_Float)
 	{
 		uint32_t depthIndex = dsGfxFormat_specialIndex(dsGfxFormat_D32_Float);
 		uint32_t stencilIndex = dsGfxFormat_specialIndex(dsGfxFormat_S8);
-		return mtlResourceManager->specialPixelFormats[depthIndex] != MTLVertexFormatInvalid &&
-			mtlResourceManager->specialPixelFormats[stencilIndex] != MTLVertexFormatInvalid;
+		return mtlResourceManager->specialPixelFormats[depthIndex] != MTLPixelFormatInvalid &&
+			mtlResourceManager->specialPixelFormats[stencilIndex] != MTLPixelFormatInvalid;
 	}
 
 	return false;
@@ -700,7 +700,7 @@ bool dsMTLResourceManager_textureFormatSupported(const dsResourceManager* resour
 	{
 		uint32_t decoratorIndex = dsGfxFormat_decoratorIndex(format);
 		return mtlResourceManager->standardPixelFormats[standardIndex][decoratorIndex] !=
-			MTLVertexFormatInvalid;
+			MTLPixelFormatInvalid;
 	}
 
 	uint32_t specialIndex = dsGfxFormat_specialIndex(format);
@@ -712,7 +712,7 @@ bool dsMTLResourceManager_textureFormatSupported(const dsResourceManager* resour
 	{
 		uint32_t decoratorIndex = dsGfxFormat_decoratorIndex(format);
 		return mtlResourceManager->compressedPixelFormats[compressedIndex][decoratorIndex] !=
-			MTLVertexFormatInvalid;
+			MTLPixelFormatInvalid;
 	}
 
 	return false;
@@ -727,7 +727,7 @@ bool dsMTLResourceManager_generateMipmapFormatSupported(const dsResourceManager*
 	{
 		uint32_t decoratorIndex = dsGfxFormat_decoratorIndex(format);
 		return mtlResourceManager->standardPixelFormats[standardIndex][decoratorIndex] !=
-			MTLVertexFormatInvalid;
+			MTLPixelFormatInvalid;
 	}
 
 	return false;
@@ -772,7 +772,7 @@ bool dsMTLResourceManager_imageFormatSupported(const dsResourceManager* resource
 
 			uint32_t decoratorIndex = dsGfxFormat_decoratorIndex(format);
 			return mtlResourceManager->standardPixelFormats[standardIndex][decoratorIndex] !=
-				MTLVertexFormatInvalid;
+				MTLPixelFormatInvalid;
 		}
 
 		if (format == dsGfxFormat_B10G11R11_UFloat)
@@ -812,7 +812,7 @@ bool dsMTLResourceManager_renderTargetFormatSupported(const dsResourceManager* r
 	{
 		uint32_t decoratorIndex = dsGfxFormat_decoratorIndex(format);
 		return mtlResourceManager->standardPixelFormats[standardIndex][decoratorIndex] !=
-			MTLVertexFormatInvalid;
+			MTLPixelFormatInvalid;
 	}
 
 	uint32_t specialIndex = dsGfxFormat_specialIndex(format);
