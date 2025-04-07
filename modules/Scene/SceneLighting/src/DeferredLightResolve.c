@@ -584,6 +584,7 @@ dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 	itemList->addNodeFunc = NULL;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = NULL;
+	itemList->reparentNodeFunc = NULL;
 	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = NULL;
 	itemList->preRenderPassFunc = NULL;

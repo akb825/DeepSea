@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -170,6 +170,7 @@ dsSceneItemList* dsSceneUserDataList_create(dsAllocator* allocator, const char* 
 	itemList->addNodeFunc = &dsSceneUserDataList_addNode;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = &dsSceneUserDataList_removeNode;
+	itemList->reparentNodeFunc = NULL;
 	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = NULL;
 	itemList->commitFunc = NULL;

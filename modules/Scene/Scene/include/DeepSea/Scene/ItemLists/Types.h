@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -196,6 +196,16 @@ typedef void (*dsUpdateSceneItemListNodeFunction)(dsSceneItemList* itemList, uin
 typedef void (*dsRemoveSceneItemListNodeFunction)(dsSceneItemList* itemList, uint64_t nodeID);
 
 /**
+ * @brief Function for reparenting a node in an item list.
+ * @param itemList The item list.
+ * @param nodeID The ID of the node to update.
+ * @param prevAncestor The previous shared ancestor for the node in the reparented subtree.
+ * @param newAcnestor The new shared ancestor for the node in the reparented subtree.
+ */
+typedef void (*dsReparentSceneItemListNodeFunction)(dsSceneItemList* itemList, uint64_t nodeID,
+	 dsSceneTreeNode* prevAncestor, dsSceneTreeNode* newAncestor);
+
+/**
  * @brief Function for updating a scene item list.
  * @param itemList The scene item list to update.
  * @param scene The scene the item list belongs to.
@@ -295,6 +305,13 @@ struct dsSceneItemList
 	 * This may be NULL if the scene list doesn't interact with nodes.
 	 */
 	dsRemoveSceneItemListNodeFunction removeNodeFunc;
+
+	/**
+	 * @brief Function for notifying that a node's ancestor changed in the item list.
+	 *
+	 * This may be NULL if the item list doesn't track ancestor nodes.
+	 */
+	dsReparentSceneItemListNodeFunction reparentNodeFunc;
 
 	/**
 	 * @brief Function for updating the scene item list before transforms are processed.

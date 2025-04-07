@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -476,6 +476,7 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 	itemList->addNodeFunc = &dsSceneModelList_addNode;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = &dsSceneModelList_removeNode;
+	itemList->reparentNodeFunc = NULL;
 	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = NULL;
 	itemList->preRenderPassFunc = needsPreRenderPass ? &dsSceneModelList_preRenderPass : NULL;

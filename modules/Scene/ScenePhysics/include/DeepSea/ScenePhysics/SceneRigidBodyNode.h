@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,13 +32,13 @@ extern "C"
  */
 
 /**
- * @brief The type name for an rigid body node.
+ * @brief The type name for a rigid body node.
  */
 DS_SCENEPHYSICS_EXPORT extern const char* const dsSceneRigidBodyNode_typeName;
 
 /**
- * @brief Gets the type of an rigid body node.
- * @return The type of an rigid body node.
+ * @brief Gets the type of a rigid body node.
+ * @return The type of a rigid body node.
  */
 DS_SCENEPHYSICS_EXPORT const dsSceneNodeType* dsSceneRigidBodyNode_type(void);
 

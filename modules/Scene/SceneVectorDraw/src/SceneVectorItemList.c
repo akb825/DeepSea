@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Aaron Barany
+ * Copyright 2020-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -509,6 +509,7 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	itemList->addNodeFunc = &dsSceneVectorItemList_addNode;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = &dsSceneVectorItemList_removeNode;
+	itemList->reparentNodeFunc = NULL;
 	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = NULL;
 	itemList->preRenderPassFunc = needsPreRenderPass ? dsSceneVectorItemList_preRenderPass : NULL;

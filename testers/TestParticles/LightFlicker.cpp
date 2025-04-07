@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Aaron Barany
+ * Copyright 2022-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -216,6 +216,7 @@ dsSceneItemList* dsLightFlicker_create(dsAllocator* allocator, const char* name,
 	itemList->addNodeFunc = &dsLightFlicker_addNode;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = &dsLightFlicker_removeNode;
+	itemList->reparentNodeFunc = NULL;
 	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = &dsLightFlicker_update;
 	itemList->preRenderPassFunc = NULL;

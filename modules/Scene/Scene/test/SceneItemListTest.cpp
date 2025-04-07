@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,8 +141,9 @@ MockSceneItemList* createMockSceneItems(dsAllocator* allocator)
 	baseItems->globalValueCount = 0;
 	baseItems->needsCommandBuffer = false;
 	baseItems->addNodeFunc = &addMockSceneItem;
-	baseItems->removeNodeFunc = &removeMockSceneItem;
 	baseItems->updateNodeFunc = &updateMockSceneItem;
+	baseItems->removeNodeFunc = &removeMockSceneItem;
+	baseItems->reparentNodeFunc = NULL;
 	baseItems->preTransformUpdateFunc = NULL;
 	baseItems->updateFunc = NULL;
 	baseItems->preRenderPassFunc = NULL;

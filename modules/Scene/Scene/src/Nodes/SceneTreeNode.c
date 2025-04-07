@@ -208,6 +208,21 @@ static void removeSubtreeRec(dsSceneNode* child, uint32_t treeNodeIndex, dsScene
 	}
 }
 
+static void notifyReparentSubtreeRec(
+	dsSceneTreeNode* node, dsSceneTreeNode* prevParent, dsSceneTreeNode* newParent)
+{
+	dsSceneNode* baseNode = node->node;
+	for (uint32_t i = 0; i < baseNode->itemListCount; ++i)
+	{
+		dsSceneItemEntry* entry = node->itemLists + i;
+		if (entry->list->reparentNodeFunc)
+			entry->list->reparentNodeFunc(entry->list, entry->entry, prevParent, newParent);
+	}
+
+	for (uint32_t i = 0; i < node->childCount; ++i)
+		notifyReparentSubtreeRec(node->children[i], prevParent, newParent);
+}
+
 static bool moveSubtree(dsSceneTreeNode* node, dsSceneNode* child, dsSceneTreeNode* newParent)
 {
 	for (uint32_t i = 0; i < node->childCount;)
@@ -231,6 +246,7 @@ static bool moveSubtree(dsSceneTreeNode* node, dsSceneNode* child, dsSceneTreeNo
 		node->children[i] = node->children[node->childCount - 1];
 		--node->childCount;
 		curChild->parent = newParent;
+		notifyReparentSubtreeRec(node->children[i], node, newParent);
 	}
 
 	return true;

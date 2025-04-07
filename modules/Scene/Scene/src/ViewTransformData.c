@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -187,6 +187,7 @@ dsSceneItemList* dsViewTransformData_create(dsAllocator* allocator, const char* 
 	itemList->addNodeFunc = NULL;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = NULL;
+	itemList->reparentNodeFunc = NULL;
 	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = NULL;
 	itemList->preRenderPassFunc = NULL;

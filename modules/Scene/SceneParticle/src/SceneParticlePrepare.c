@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Aaron Barany
+ * Copyright 2022-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -184,6 +184,7 @@ dsSceneItemList* dsSceneParticlePrepare_create(dsAllocator* allocator, const cha
 	itemList->addNodeFunc = &dsSceneParticlePrepare_addNode;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = &dsSceneParticlePrepare_removeNode;
+	itemList->reparentNodeFunc = NULL;
 	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = &dsSceneParticlePrepare_update;
 	itemList->preRenderPassFunc = NULL;

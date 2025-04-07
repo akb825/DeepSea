@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2024 Aaron Barany
+ * Copyright 2021-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -359,6 +359,7 @@ dsSceneItemList* dsShadowCullList_create(dsAllocator* allocator, const char* nam
 	itemList->addNodeFunc = &dsShadowCullList_addNode;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = &dsShadowCullList_removeNode;
+	itemList->reparentNodeFunc = NULL;
 	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = NULL;
 	itemList->preRenderPassFunc = NULL;

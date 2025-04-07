@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Aaron Barany
+ * Copyright 2020-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -220,6 +220,7 @@ dsSceneLightSetPrepare* dsSceneLightSetPrepare_create(dsAllocator* allocator, co
 	itemList->addNodeFunc = &dsSceneLightSetPrepare_addNode;
 	itemList->updateNodeFunc = &dsSceneLightSetPrepare_updateNode;
 	itemList->removeNodeFunc = &dsSceneLightSetPrepare_removeNode;
+	itemList->reparentNodeFunc = NULL;
 	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = &dsSceneLightSetPrepare_update;
 	itemList->preRenderPassFunc = NULL;
