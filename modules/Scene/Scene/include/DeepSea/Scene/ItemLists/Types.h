@@ -200,7 +200,7 @@ typedef void (*dsRemoveSceneItemListNodeFunction)(dsSceneItemList* itemList, uin
  * @param itemList The item list.
  * @param nodeID The ID of the node to update.
  * @param prevAncestor The previous shared ancestor for the node in the reparented subtree.
- * @param newAcnestor The new shared ancestor for the node in the reparented subtree.
+ * @param newAncestor The new shared ancestor for the node in the reparented subtree.
  */
 typedef void (*dsReparentSceneItemListNodeFunction)(dsSceneItemList* itemList, uint64_t nodeID,
 	 dsSceneTreeNode* prevAncestor, dsSceneTreeNode* newAncestor);

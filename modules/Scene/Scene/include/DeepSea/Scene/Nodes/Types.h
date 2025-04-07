@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -503,6 +503,29 @@ typedef struct dsSceneModelReconfig
 	 */
 	const char* modelList;
 } dsSceneModelReconfig;
+
+/**
+ * @brief Struct defining a node that can smoothly move from one subtree to another while
+ *     interpolating the transform between them.
+ *
+ * This assumes that only rigid transforms, containing a translation, rotation, and positive scale.
+ * This is best used when the relative transform is very close, such as resolving small differences
+ * when handing an object from one relative transform to another when roughly in the same spot.
+ *
+ * @see SceneHandoffNode
+ */
+typedef struct dsSceneHandoffNode
+{
+	/**
+	 * @brief The base node.
+	 */
+	dsSceneNode node;
+
+	/**
+	 * @brief The time in seconds to interpolate from the original to latest the transform.
+	 */
+	float transitionTime;
+} dsSceneHandoffNode;
 
 /**
  * @brief Struct defining a node that holds user data.
