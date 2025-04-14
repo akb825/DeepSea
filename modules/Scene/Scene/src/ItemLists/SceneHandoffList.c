@@ -16,6 +16,8 @@
 
 #include <DeepSea/Scene/ItemLists/SceneHandoffList.h>
 
+#include "SceneLoadContextInternal.h"
+
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
@@ -206,6 +208,20 @@ static void dsSceneHandoffList_destroy(dsSceneItemList* itemList)
 }
 
 const char* const dsSceneHandoffList_typeName = "HandoffList";
+
+dsSceneItemList* dsSceneHandoffList_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const char* name, const uint8_t* data, size_t dataSize)
+{
+	DS_UNUSED(loadContext);
+	DS_UNUSED(scratchData);
+	DS_UNUSED(resourceAllocator);
+	DS_UNUSED(userData);
+	DS_UNUSED(data);
+	DS_UNUSED(dataSize);
+	return dsSceneHandoffList_create(allocator, name);
+}
+
 
 dsSceneItemListType dsSceneHandoffList_type(void)
 {

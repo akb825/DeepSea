@@ -16,6 +16,8 @@ import os
 
 from .FullScreenResolveConvert import convertFullScreenResolve
 from .GLTFModel import registerGLTFModelType
+from .HandoffListConvert import convertHandoffList
+from .HandoffNodeConvert import convertHandoffNode
 from .InstanceTransformDataConvert import convertInstanceTransformData
 from .ModelListConvert import convertModelList
 from .ModelNodeReconfigConvert import convertModelNodeReconfig
@@ -50,6 +52,7 @@ class ConvertContext:
 
 		self.itemListTypeMap = {
 			'FullScreenResolve': convertFullScreenResolve,
+			'HandoffList': convertHandoffList,
 			'ModelList': convertModelList,
 			'UserDataList': convertUserDataList,
 			'ViewCullList': convertViewCullList,
@@ -62,6 +65,7 @@ class ConvertContext:
 		}
 
 		self.nodeTypeMap = {
+			'HandoffNode': convertHandoffNode,
 			'ModelNode': convertModelNode,
 			'ModelNodeReconfig': convertModelNodeReconfig,
 			'ModelNodeRemap': convertModelNodeRemap,

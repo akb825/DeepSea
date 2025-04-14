@@ -114,6 +114,16 @@ The remaining members of each element depends on the value of `type`. The builti
 
 The different types for scene nodes are documented below.
 
+## Handoff Node
+
+Handoff nodes have the type string "HandoffNode" and contains the following members:
+
+* `transitionTime`: the time in seconds to transition from one transform to another.
+* `children`: an array of child nodes. Each element is an object with the following elements:
+	* `nodeType`: the name of the node type.
+	* `data`: the data for the node.
+* `itemLists`: array of item list names to add the node to.
+
 ## Model Node
 
 Model nodes have the type string "ModelNode" and contains the following data members:
@@ -190,21 +200,6 @@ Model node clones with reconfiguration have the type name "ModelNodeReconfig" an
 		* `list`: The name of the item list to draw the model with.
 * `extraItemLists`: array of extra item list names to add the node to.
 
-## Transform Node
-
-Transform nodes have the type string "TransformNode" and contains the following members:
-
-* `transformList`: array of transforms to apply. The matrices for the transforms provided are multiplied in reverse order given (i.e. in logical transform order), starting from the identity matrix. Each member of the array has the following elements:
-	* `type`: the type of transform. May be `Rotate`, `Scale`, `Translate`, or `Matrix`.
-	* `value`: the value of transform based on the type:
-		* `Rotate`: array of 3 floats for the X, Y, and Z rotation in degrees.
-		* `Scale`: array of 3 floats for the scale value along the X, Y, and Z axes.
-		* `Translate`: array of 3 floats for the translation along X, Y, and Z.
-		* `Matrix`: a 4x4 array of floats for a matrix. Each inner array is a column of the matrix.
-* `children`: an array of child nodes. Each element is an object with the following elements:
-	* `type`: the name of the node type.
-	* Remaining members depend on the value of `nodeType`.
-
 ## Node Children
 
 Node children have the type node "NodeChildren" can be used to add children to an existing node. This can be used to break circular dependencies if a node needs to be referenced by other objects before the children are able to be added. It contains the following members:
@@ -219,6 +214,21 @@ Node children have the type node "NodeChildren" can be used to add children to a
 Reference nodes have the type name "ReferenceNode" and contains the following members:
 
 * `ref`: string name of the node that's referenced.
+
+## Transform Node
+
+Transform nodes have the type string "TransformNode" and contains the following members:
+
+* `transformList`: array of transforms to apply. The matrices for the transforms provided are multiplied in reverse order given (i.e. in logical transform order), starting from the identity matrix. Each member of the array has the following elements:
+	* `type`: the type of transform. May be `Rotate`, `Scale`, `Translate`, or `Matrix`.
+	* `value`: the value of transform based on the type:
+		* `Rotate`: array of 3 floats for the X, Y, and Z rotation in degrees.
+		* `Scale`: array of 3 floats for the scale value along the X, Y, and Z axes.
+		* `Translate`: array of 3 floats for the translation along X, Y, and Z.
+		* `Matrix`: a 4x4 array of floats for a matrix. Each inner array is a column of the matrix.
+* `children`: an array of child nodes. Each element is an object with the following elements:
+	* `type`: the name of the node type.
+	* Remaining members depend on the value of `nodeType`.
 
 # Scene
 
@@ -273,21 +283,32 @@ The scene describes the how to process and draw a scene, as well as the list of 
 
 Builtin item list specifications are documented below.
 
-### View Transform Data
+### Full Screen Resolve
 
-View transform data has the type name "ViewTransformData" and sets standard view and projection transform matrices. It contains the following members:
+Full screen resolve draws a full screen quad with a shader and material. This is an item list for fitting in the scene layout, but doesn't draw any instances within the scene graph. It contains the following members:
 
-* `variableGroupDesc`: string name for the shader variable group to use.
+* `shader`: the name of the shader to draw with.
+* `material`: the name of the material to draw with.
+* `dynamicRenderStates`: dynamic render states to apply when drawing. This may be ommitted if no dynamic render states are used. This is expected to contain any of the following members:
+	* `lineWidth`: float width for the line. Defaults to 1.
+	* `depthBiasConstantFactor`: float value for the depth bias constant factor. Defaults to 0.
+	* `depthBiasClamp`: float value for the depth bias clamp. Defaults to 0.
+	* `depthBiasSlopeFactor`: float value for the depth bias slope factor. Defaults to 0.
+	* `blendConstants`: array of 4 floats for the blend color. Defaults to `[0, 0, 0, 0]`.
+	* `depthBounds`: array of 2 floats for the min and max depth value. Defaults to `[0, 1]`.
+	* `stencilCompareMask`: int compare mask for both the front and back stencil. Defaults to `0xFFFFFFFF`.
+	* `frontStencilCompareMask`: int compare mask for just the front stencil.
+	* `backStencilCompareMask`: int compare mask for just the back stencil.
+	* `stencilWriteMask`: int write mask for both the front and back stencil. Defaults to 0.
+	* `frontStencilWriteMask`: int write mask for just the front stencil.
+	* `backStencilWriteMask`: int write mask for just the back stencil.
+	* `stencilReference`: int reference for both the front and back stencil. Defaults to 0.
+	* `frontStencilReference`: int reference for just the front stencil.
+	* `backStencilReference`: int reference for just the back stencil.
 
-> **Note:** View transform data contains global shader variables and must be in the `sharedItems` array of the scene.
+### Handoff list
 
-### View Cull List
-
-View cull list has the type name "ViewCullList" and performs cull checks for bounding boxes in nodes that derive from `dsSceneCullNode` against the view frustum. The data is ignored and may be omitted.
-
-### User Data List
-
-User data list has the type name "UserDataList" and creates instance data for `dsSceneUserDataNode` nodes. The data is ignored and may be omitted.
+Handoff lists have the type name "HandoffList" and are used to adjust the transform of `dsSceneHandoffNode` instances. The data is ignored and may be omitted.
 
 ### Model List
 
@@ -315,28 +336,21 @@ Model lists have the type name "ModelList" and define how to draw models that re
 	* `backStencilReference`: int reference for just the back stencil.
 * `cullList`: optional name for the item list to handle culling.
 
-### Full Screen Resolve
+### View Transform Data
 
-Full screen resolve draws a full screen quad with a shader and material. This is an item list for fitting in the scene layout, but doesn't draw any instances within the scene graph. It contains the following members:
+View transform data has the type name "ViewTransformData" and sets standard view and projection transform matrices. It contains the following members:
 
-* `shader`: the name of the shader to draw with.
-* `material`: the name of the material to draw with.
-* `dynamicRenderStates`: dynamic render states to apply when drawing. This may be ommitted if no dynamic render states are used. This is expected to contain any of the following members:
-	* `lineWidth`: float width for the line. Defaults to 1.
-	* `depthBiasConstantFactor`: float value for the depth bias constant factor. Defaults to 0.
-	* `depthBiasClamp`: float value for the depth bias clamp. Defaults to 0.
-	* `depthBiasSlopeFactor`: float value for the depth bias slope factor. Defaults to 0.
-	* `blendConstants`: array of 4 floats for the blend color. Defaults to `[0, 0, 0, 0]`.
-	* `depthBounds`: array of 2 floats for the min and max depth value. Defaults to `[0, 1]`.
-	* `stencilCompareMask`: int compare mask for both the front and back stencil. Defaults to `0xFFFFFFFF`.
-	* `frontStencilCompareMask`: int compare mask for just the front stencil.
-	* `backStencilCompareMask`: int compare mask for just the back stencil.
-	* `stencilWriteMask`: int write mask for both the front and back stencil. Defaults to 0.
-	* `frontStencilWriteMask`: int write mask for just the front stencil.
-	* `backStencilWriteMask`: int write mask for just the back stencil.
-	* `stencilReference`: int reference for both the front and back stencil. Defaults to 0.
-	* `frontStencilReference`: int reference for just the front stencil.
-	* `backStencilReference`: int reference for just the back stencil.
+* `variableGroupDesc`: string name for the shader variable group to use.
+
+> **Note:** View transform data contains global shader variables and must be in the `sharedItems` array of the scene.
+
+### View Cull List
+
+View cull list has the type name "ViewCullList" and performs cull checks for bounding boxes in nodes that derive from `dsSceneCullNode` against the view frustum. The data is ignored and may be omitted.
+
+### User Data List
+
+User data list has the type name "UserDataList" and creates instance data for `dsSceneUserDataNode` nodes. The data is ignored and may be omitted.
 
 ### View Mipmap List
 

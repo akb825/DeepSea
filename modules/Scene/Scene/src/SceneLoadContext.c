@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,12 @@
 
 #include <DeepSea/Scene/ItemLists/InstanceTransformData.h>
 #include <DeepSea/Scene/ItemLists/SceneFullScreenResolve.h>
+#include <DeepSea/Scene/ItemLists/SceneHandoffList.h>
 #include <DeepSea/Scene/ItemLists/SceneModelList.h>
 #include <DeepSea/Scene/ItemLists/SceneUserDataList.h>
 #include <DeepSea/Scene/ItemLists/ViewCullList.h>
 #include <DeepSea/Scene/ItemLists/ViewMipmapList.h>
+#include <DeepSea/Scene/Nodes/SceneHandoffNode.h>
 #include <DeepSea/Scene/Nodes/SceneModelNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneTransformNode.h>
@@ -74,19 +76,23 @@ dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator, dsRenderer
 		dsHashString, dsHashStringEqual);
 
 	// Built-in types.
-	dsSceneLoadContext_registerNodeType(context, dsSceneNodeRef_typeName, &dsSceneNodeRef_load,
-		NULL, NULL);
+	dsSceneLoadContext_registerNodeType(context, dsSceneHandoffNode_typeName,
+		&dsSceneHandoffNode_load, NULL, NULL);
 	dsSceneLoadContext_registerNodeType(context, dsSceneModelNode_typeName, &dsSceneModelNode_load,
 		NULL, NULL);
 	dsSceneLoadContext_registerNodeType(context, dsSceneModelNode_reconfigTypeName,
 		&dsSceneModelNode_loadReconfig, NULL, NULL);
 	dsSceneLoadContext_registerNodeType(context, dsSceneModelNode_remapTypeName,
 		&dsSceneModelNode_loadRemap, NULL, NULL);
+	dsSceneLoadContext_registerNodeType(context, dsSceneNodeRef_typeName, &dsSceneNodeRef_load,
+		NULL, NULL);
 	dsSceneLoadContext_registerNodeType(context, dsSceneTransformNode_typeName,
 		&dsSceneTransformNode_load, NULL, NULL);
 
 	dsSceneLoadContext_registerItemListType(context, dsSceneFullScreenResolve_typeName,
 		&dsSceneFullScreenResolve_load, NULL, NULL);
+	dsSceneLoadContext_registerItemListType(context, dsSceneHandoffList_typeName,
+		&dsSceneHandoffList_load, NULL, NULL);
 	dsSceneLoadContext_registerItemListType(context, dsSceneModelList_typeName,
 		&dsSceneModelList_load, NULL, NULL);
 	dsSceneLoadContext_registerItemListType(context, dsSceneUserDataList_typeName,

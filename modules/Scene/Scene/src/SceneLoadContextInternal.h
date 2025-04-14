@@ -24,6 +24,11 @@ extern "C"
 {
 #endif
 
+dsSceneNode* dsSceneHandoffNode_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc);
 dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
@@ -51,6 +56,9 @@ dsSceneNode* dsSceneTransformNode_load(const dsSceneLoadContext* loadContext,
 	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc);
 
 dsSceneItemList* dsSceneFullScreenResolve_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const char* name, const uint8_t* data, size_t dataSize);
+dsSceneItemList* dsSceneHandoffList_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const char* name, const uint8_t* data, size_t dataSize);
 dsSceneItemList* dsSceneModelList_load(const dsSceneLoadContext* loadContext,

@@ -16,6 +16,8 @@
 
 #include <DeepSea/Scene/ItemLists/ViewCullList.h>
 
+#include "SceneLoadContextInternal.h"
+
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
