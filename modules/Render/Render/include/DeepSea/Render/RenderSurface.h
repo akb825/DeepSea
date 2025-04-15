@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,23 +66,30 @@ DS_RENDER_EXPORT bool dsRenderSurface_makeRotationMatrix44(dsMatrix44f* result,
  * @param allocator The allocator to create the render surface with. If NULL, it will use the same
  *     allocator as the renderer.
  * @param name The name of the render surface, used for profiling info. The string will be copied.
+ * @param displayHandle The handle to the display the surface is associated with.
  * @param osHandle The handle to the OS surface, such as the window handle. In the case of a
  *     macOS/iOS, it will actually be a view or Metal layer.
  * @param type The render surface type.
  * @param usage Flags to determine how the render surface will be used.
+ * @param widthHint Hint for the width of the surface.
+ * @param heightHint Hint for the height of the surface.
  * @return The created renderbuffer, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer,
-	dsAllocator* allocator, const char* name, void* osHandle, dsRenderSurfaceType type,
-	dsRenderSurfaceUsage usage);
+	dsAllocator* allocator, const char* name, void* displayHandle, void* osHandle,
+	dsRenderSurfaceType type, dsRenderSurfaceUsage usage, unsigned int widthHint,
+	unsigned int heightHint);
 
 /**
  * @brief Updates a render surface.
  * @param renderSurface The render surface to update.
+ * @param widthHint Hint for the width of the surface.
+ * @param heightHint Hint for the height of the surface.
  * @return True if the render surface was resized. Any framebuffers that use the render surface
  *     should be re-created with the new parameters.
  */
-DS_RENDER_EXPORT bool dsRenderSurface_update(dsRenderSurface* renderSurface);
+DS_RENDER_EXPORT bool dsRenderSurface_update(dsRenderSurface* renderSurface, unsigned int widthHint,
+	unsigned int heightHint);
 
 /**
  * @brief Begins drawing to a render surface.

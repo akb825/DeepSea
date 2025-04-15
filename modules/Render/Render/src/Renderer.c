@@ -41,7 +41,6 @@
 #include <strings.h>
 #endif
 
-
 _Static_assert(DS_MAX_ATTACHMENTS == MSL_MAX_ATTACHMENTS, "Max attachments don't match.");
 
 static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uint32_t* outWidth,
@@ -361,6 +360,20 @@ dsGfxFormat dsRenderer_optionsDepthFormat(const dsRendererOptions* options)
 	}
 
 	return dsGfxFormat_Unknown;
+}
+
+dsGfxPlatform dsRenderer_resolvePlatform(dsGfxPlatform platform)
+{
+#if DS_LINUX
+	if (platform == dsGfxPlatform_Default)
+	{
+		const char* waylandDisplay = getenv("WAYLAND_DISPLAY");
+		if (waylandDisplay && *waylandDisplay)
+			return dsGfxPlatform_Wayland;
+		return dsGfxPlatform_X11;
+	}
+#endif
+	return platform;
 }
 
 void dsRenderer_setExtraDebugging(dsRenderer* renderer, bool enable)

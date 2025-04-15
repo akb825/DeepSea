@@ -381,7 +381,7 @@ int dsSDLApplication_run(dsApplication* application)
 			dsSDLWindow_getSize(&newWidth, &newHeight, application, window);
 
 			// NOTE: Sometimes the surface resize doesn't correspond with the window resize event.
-			dsRenderSurface_update(window->surface);
+			dsRenderSurface_update(window->surface, newWidth, newHeight);
 
 			// Sometimes the surface will be updated during rendering, so use the cached versions
 			// for compare rather than the surface values before update.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,7 @@
 
 #if DS_WINDOWS
 
-void* dsVkPlatformWin32_getDisplay(void);
-void dsVkPlatformWin32_releaseDisplay(void* display);
+void dsVkPlatformWin32_initialize(void);
 VkSurfaceKHR dsVkPlatformWin32_createSurface(dsVkInstance* instance, void* display, void* window);
 
 #endif // DS_VK_HAS_WAYLAND

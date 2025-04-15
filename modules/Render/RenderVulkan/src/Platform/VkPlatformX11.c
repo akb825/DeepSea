@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,8 @@
 static VkInstance loadedInstance;
 static PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
 
-void* dsVkPlatformX11_getDisplay(void)
+void dsVkPlatformX11_initialize(void)
 {
-	return XOpenDisplay(NULL);
-}
-
-void dsVkPlatformX11_releaseDisplay(void* display)
-{
-	XCloseDisplay((Display*)display);
 }
 
 VkSurfaceKHR dsVkPlatformX11_createSurface(dsVkInstance* instance, void* display, void* window)

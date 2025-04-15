@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,15 +28,13 @@ bool dsVkPlatform_initialize(dsVkPlatform* platform, dsVkDevice* device,
 	dsGfxPlatform gfxPlatform, void* display)
 {
 	platform->device = device;
-	platform->getDisplayFunc = NULL;
-	platform->releaseDisplayFunc = NULL;
+	platform->initializeFunc = NULL;
 	platform->createSurfaceFunc = NULL;
 	switch (gfxPlatform)
 	{
 		case dsGfxPlatform_X11:
 #if DS_VK_HAS_X11
-			platform->getDisplayFunc = &dsVkPlatformX11_getDisplay;
-			platform->releaseDisplayFunc = &dsVkPlatformX11_releaseDisplay;
+			platform->initializeFunc = &dsVkPlatformX11_initialize;
 			platform->createSurfaceFunc = &dsVkPlatformX11_createSurface;
 			break;
 #else
@@ -46,8 +44,7 @@ bool dsVkPlatform_initialize(dsVkPlatform* platform, dsVkDevice* device,
 #endif
 		case dsGfxPlatform_Wayland:
 #if DS_VK_HAS_WAYLAND
-			platform->getDisplayFunc = &dsVkPlatformWayland_getDisplay;
-			platform->releaseDisplayFunc = &dsVkPlatformWayland_releaseDisplay;
+			platform->initializeFunc = &dsVkPlatformWayland_initialize;
 			platform->createSurfaceFunc = &dsVkPlatformWayland_createSurface;
 			break;
 #else
@@ -57,20 +54,16 @@ bool dsVkPlatform_initialize(dsVkPlatform* platform, dsVkDevice* device,
 #endif
 		default:
 #if DS_ANDROID
-			platform->getDisplayFunc = &dsVkPlatformAndroid_getDisplay;
-			platform->releaseDisplayFunc = &dsVkPlatformAndroid_releaseDisplay;
+			platform->initializeFunc = &dsVkPlatformAndroid_initialize;
 			platform->createSurfaceFunc = &dsVkPlatformAndroid_createSurface;
 #elif DS_WINDOWS
-			platform->getDisplayFunc = &dsVkPlatformWin32_getDisplay;
-			platform->releaseDisplayFunc = &dsVkPlatformWin32_releaseDisplay;
+			platform->initializeFunc = &dsVkPlatformWin32_initialize;
 			platform->createSurfaceFunc = &dsVkPlatformWin32_createSurface;
 #elif DS_VK_HAS_X11
-			platform->getDisplayFunc = &dsVkPlatformX11_getDisplay;
-			platform->releaseDisplayFunc = &dsVkPlatformX11_releaseDisplay;
+			platform->initializeFunc = &dsVkPlatformX11_initialize;
 			platform->createSurfaceFunc = &dsVkPlatformX11_createSurface;
 #elif DS_VK_HAS_WAYLAND
-			platform->getDisplayFunc = &dsVkPlatformWayland_getDisplay;
-			platform->releaseDisplayFunc = &dsVkPlatformWayland_releaseDisplay;
+			platform->initializeFunc = &dsVkPlatformWayland_initialize;
 			platform->createSurfaceFunc = &dsVkPlatformWayland_createSurface;
 #else
 			errno = EPERM;
@@ -79,23 +72,13 @@ bool dsVkPlatform_initialize(dsVkPlatform* platform, dsVkDevice* device,
 #endif
 	}
 
-	if (display)
-	{
-		platform->display = display;
-		platform->createdDisplay = false;
-	}
-	else
-	{
-		platform->display = platform->getDisplayFunc();
-		platform->createdDisplay = true;
-	}
-
+	platform->initializeFunc();
 	return true;
 }
 
-VkSurfaceKHR dsVkPlatform_createSurface(dsVkPlatform* platform, void* window)
+VkSurfaceKHR dsVkPlatform_createSurface(dsVkPlatform* platform, void* display, void* window)
 {
-	return platform->createSurfaceFunc(&platform->device->instance, platform->display, window);
+	return platform->createSurfaceFunc(&platform->device->instance, display, window);
 }
 
 void dsVkPlatform_destroySurface(dsVkPlatform* platform, VkSurfaceKHR surface)
@@ -103,10 +86,4 @@ void dsVkPlatform_destroySurface(dsVkPlatform* platform, VkSurfaceKHR surface)
 	dsVkInstance* instance = &platform->device->instance;
 	DS_VK_CALL(instance->vkDestroySurfaceKHR)(instance->instance, surface,
 		instance->allocCallbacksPtr);
-}
-
-void dsVkPlatform_shutdown(dsVkPlatform* platform)
-{
-	if (platform->releaseDisplayFunc && platform->createdDisplay)
-		platform->releaseDisplayFunc(platform->display);
 }

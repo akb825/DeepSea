@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,5 @@
 
 bool dsVkPlatform_initialize(dsVkPlatform* platform, dsVkDevice* device,
 	dsGfxPlatform gfxPlatform, void* display);
-VkSurfaceKHR dsVkPlatform_createSurface(dsVkPlatform* platform, void* window);
+VkSurfaceKHR dsVkPlatform_createSurface(dsVkPlatform* platform, void* display, void* window);
 void dsVkPlatform_destroySurface(dsVkPlatform* platform, VkSurfaceKHR surface);
-void dsVkPlatform_shutdown(dsVkPlatform* platform);

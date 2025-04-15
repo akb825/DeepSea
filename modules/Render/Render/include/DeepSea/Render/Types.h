@@ -1420,11 +1420,14 @@ typedef void (*dsSetExtraRendererDebuggingFunction)(dsRenderer* renderer, bool e
  * @param osHandle The OS handle, such as window handle.
  * @param type The type of the render surface.
  * @param usage Flags to determine how the render surface will be used.
+ * @param widthHint Hint for the width of the surface.
+ * @param heightHint Hint for the height of the surface.
  * @return The created render surface, or NULL if it couldn't be created.
  */
 typedef dsRenderSurface* (*dsCreateRenderSurfaceFunction)(dsRenderer* renderer,
-	dsAllocator* allocator, const char* name, void* osHandle, dsRenderSurfaceType type,
-	dsRenderSurfaceUsage usage);
+	dsAllocator* allocator, const char* name, void* displayHandle, void* osHandle,
+	dsRenderSurfaceType type, dsRenderSurfaceUsage usage, unsigned int widthHint,
+	unsigned int heightHint);
 
 /**
  * @brief Function for destroying a render surface.
@@ -1432,16 +1435,19 @@ typedef dsRenderSurface* (*dsCreateRenderSurfaceFunction)(dsRenderer* renderer,
  * @param renderSurface The render surface to destroy
  * @return False if the render surface couldn't be destroyed.
  */
-typedef bool (*dsDestroyRenderSurfaceFunction)(dsRenderer* renderer,
-	dsRenderSurface* renderSurface);
+typedef bool (*dsDestroyRenderSurfaceFunction)(
+	dsRenderer* renderer, dsRenderSurface* renderSurface);
 
 /**
  * @brief Function for updating a render surface.
  * @param renderer The renderer the render surface is used with.
  * @param renderSurface The render surface to update.
+ * @param widthHint Hint for the width of the surface.
+ * @param heightHint Hint for the height of the surface.
  * @return True if the render surface size changed.
  */
-typedef bool (*dsUpdateRenderSurfaceFunction)(dsRenderer* renderer, dsRenderSurface* renderSurface);
+typedef bool (*dsUpdateRenderSurfaceFunction)(dsRenderer* renderer, dsRenderSurface* renderSurface,
+	unsigned int widthHint, unsigned int heightHint);
 
 /**
  * @brief Function to start drawing to a render surface.

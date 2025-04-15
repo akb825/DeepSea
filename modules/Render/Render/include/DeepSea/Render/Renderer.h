@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,15 @@ DS_RENDER_EXPORT dsGfxFormat dsRenderer_optionsColorFormat(const dsRendererOptio
  * @return The depth/stencil format.
  */
 DS_RENDER_EXPORT dsGfxFormat dsRenderer_optionsDepthFormat(const dsRendererOptions* options);
+
+/**
+ * @brief Resolves the platform.
+ *
+ * When the default platform is passed in, this will resolve to a concrete platform if one is
+ * available. For example, on Linux it will resolve to either Wayland or X11 based on the current
+ * environment.
+ */
+DS_RENDER_EXPORT dsGfxPlatform dsRenderer_resolvePlatform(dsGfxPlatform platform);
 
 /**
  * @brief Sets whether or not to enable extra debugging.

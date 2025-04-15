@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,16 +27,20 @@
 #include <string.h>
 
 dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
-	const char* name, void* osHandle, dsRenderSurfaceType type, dsRenderSurfaceUsage usage)
+	const char* name, void* displayHandle, void* osHandle, dsRenderSurfaceType type,
+	dsRenderSurfaceUsage usage, unsigned int widthHint, unsigned int heightHint)
 {
 	DS_ASSERT(renderer);
 	DS_ASSERT(allocator);
 	DS_ASSERT(name);
+	DS_UNUSED(displayHandle);
+	DS_UNUSED(widthHint);
+	DS_UNUSED(heightHint);
 
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
 	void* display = glRenderer->options.display;
-	void* glSurface = dsCreateGLSurface(allocator, display, glRenderer->renderConfig, type,
-		osHandle);
+	void* glSurface = dsCreateGLSurface(
+		allocator, display, glRenderer->renderConfig, type, osHandle);
 	if (!glSurface)
 	{
 		errno = EPERM;
@@ -76,10 +80,13 @@ dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	return baseSurface;
 }
 
-bool dsGLRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface)
+bool dsGLRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface,
+	unsigned int widthHint, unsigned int heightHint)
 {
 	DS_ASSERT(renderer);
 	DS_ASSERT(renderSurface);
+	DS_UNUSED(widthHint);
+	DS_UNUSED(heightHint);
 
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
 	void* display = glRenderer->options.display;

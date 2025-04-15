@@ -311,7 +311,8 @@ dsRenderSurfaceRotation dsVkRenderSurfaceData_getRotation(VkSurfaceTransformFlag
 }
 
 dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRenderer* renderer,
-	VkSurfaceKHR surface, dsVSync vsync, VkSwapchainKHR prevSwapchain, dsRenderSurfaceUsage usage)
+	VkSurfaceKHR surface, dsVSync vsync, VkSwapchainKHR prevSwapchain, dsRenderSurfaceUsage usage,
+	const VkSurfaceCapabilitiesKHR* surfaceInfo)
 {
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	dsVkDevice* device = &vkRenderer->device;
@@ -326,25 +327,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 		return NULL;
 	}
 
-	VkBool32 supported = false;
-	VkResult result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceSupportKHR)(
-		device->physicalDevice, device->queueFamilyIndex, surface, &supported);
-	if (!DS_HANDLE_VK_RESULT(result, "Couldn't get surface support"))
-		return NULL;
-	if (!supported)
-	{
-		errno = EPERM;
-		DS_LOG_INFO(DS_RENDER_VULKAN_LOG_TAG, "Window surface can't be rendered to.");
-		return NULL;
-	}
-
-	VkSurfaceCapabilitiesKHR surfaceInfo;
-	result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceCapabilitiesKHR)(
-		device->physicalDevice, surface, &surfaceInfo);
-	if (!DS_HANDLE_VK_RESULT(result, "Couldn't get surface capabilities"))
-		return NULL;
-
-	if (renderer->stereoscopic && surfaceInfo.maxImageArrayLayers < 2)
+	if (renderer->stereoscopic && surfaceInfo->maxImageArrayLayers < 2)
 	{
 		errno = EPERM;
 		DS_LOG_INFO(DS_RENDER_VULKAN_LOG_TAG,
@@ -365,17 +348,17 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 
 	VkCompositeAlphaFlagBitsKHR alphaFlags = 0;
 	if (vkRenderer->colorSurfaceAlpha &&
-		(surfaceInfo.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR))
+		(surfaceInfo->supportedCompositeAlpha & VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR))
 	{
 		alphaFlags = VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR;
 	}
-	else if (surfaceInfo.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
+	else if (surfaceInfo->supportedCompositeAlpha & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
 		alphaFlags = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 	else
 	{
 		for (uint32_t i = 0; i < 32; ++i)
 		{
-			if (surfaceInfo.supportedCompositeAlpha & (1 << i))
+			if (surfaceInfo->supportedCompositeAlpha & (1 << i))
 			{
 				alphaFlags = (VkCompositeAlphaFlagBitsKHR)(1 << i);
 				break;
@@ -391,19 +374,19 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 
 	VkPresentModeKHR presentMode = getPresentMode(device, surface, vsync != dsVSync_Disabled);
 	uint32_t imageCount = getImageCount(presentMode, vsync);
-	uint32_t maxImageCount = surfaceInfo.maxImageCount ? surfaceInfo.maxImageCount : UINT_MAX;
-	imageCount = dsClamp(imageCount, surfaceInfo.minImageCount, maxImageCount);
+	uint32_t maxImageCount = surfaceInfo->maxImageCount ? surfaceInfo->maxImageCount : UINT_MAX;
+	imageCount = dsClamp(imageCount, surfaceInfo->minImageCount, maxImageCount);
 
-	VkSurfaceTransformFlagBitsKHR transform = surfaceInfo.currentTransform;
+	VkSurfaceTransformFlagBitsKHR transform = surfaceInfo->currentTransform;
 	dsRenderSurfaceRotation rotation = dsRenderSurfaceRotation_0;
 	if (usage & dsRenderSurfaceUsage_ClientRotations)
-		rotation = dsVkRenderSurfaceData_getRotation(surfaceInfo.currentTransform);
+		rotation = dsVkRenderSurfaceData_getRotation(surfaceInfo->currentTransform);
 	// Rotation also set to 0 for unsupported transforms like mirror, so explicitly set to identity.
 	if (rotation == dsRenderSurfaceRotation_0)
 		transform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
 
-	uint32_t width = surfaceInfo.currentExtent.width;
-	uint32_t height = surfaceInfo.currentExtent.height;
+	uint32_t width = surfaceInfo->currentExtent.width;
+	uint32_t height = surfaceInfo->currentExtent.height;
 	uint32_t preRotateWidth, preRotateHeight;
 	switch (rotation)
 	{
@@ -440,7 +423,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	};
 
 	VkSwapchainKHR swapchain;
-	result = DS_VK_CALL(device->vkCreateSwapchainKHR)(device->device, &createInfo,
+	VkResult result = DS_VK_CALL(device->vkCreateSwapchainKHR)(device->device, &createInfo,
 		instance->allocCallbacksPtr, &swapchain);
 	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create swapchain"))
 		return NULL;

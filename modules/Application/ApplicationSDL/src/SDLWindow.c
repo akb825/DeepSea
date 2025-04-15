@@ -146,36 +146,43 @@ bool dsSDLWindow_createSurfaceInternal(dsWindow* window, const char* surfaceName
 	SDL_SysWMinfo info;
 	SDL_VERSION(&info.version);
 	DS_VERIFY(SDL_GetWindowWMInfo(sdlWindow->sdlWindow, &info));
+	void* displayHandle = NULL;
 	void* windowHandle = NULL;
 	switch (info.subsystem)
 	{
 #if defined(SDL_VIDEO_DRIVER_WINDOWS)
 		case SDL_SYSWM_WINDOWS:
+			displayHandle = NULL;
 			windowHandle = info.info.win.window;
 			break;
 #endif
 #if defined(SDL_VIDEO_DRIVER_X11)
 		case SDL_SYSWM_X11:
+			displayHandle = info.info.x11.display;
 			windowHandle = (void*)info.info.x11.window;
 			break;
 #endif
 #if defined(SDL_VIDEO_DRIVER_WAYLAND)
 		case SDL_SYSWM_WAYLAND:
+			displayHandle = info.info.wl.display;
 			windowHandle = (void*)info.info.wl.surface;
 			break;
 #endif
 #if defined(SDL_VIDEO_DRIVER_COCOA)
 		case SDL_SYSWM_COCOA:
+			displayHandle = NULL;
 			windowHandle = dsSDLWindow_getUsableWindowHandle(info.info.cocoa.window);
 			break;
 #endif
 #if defined(SDL_VIDEO_DRIVER_UIKIT)
 		case SDL_SYSWM_UIKIT:
+			displayHandle = NULL;
 			windowHandle = dsSDLWindow_getUsableWindowHandle(info.info.uikit.window);
 			break;
 #endif
 #if defined(SDL_VIDEO_DRIVER_ANDROID)
 		case SDL_SYSWM_ANDROID:
+			displayHandle = NULL;
 			windowHandle = info.info.android.window;
 			break;
 #endif
@@ -186,7 +193,8 @@ bool dsSDLWindow_createSurfaceInternal(dsWindow* window, const char* surfaceName
 	}
 
 	window->surface = dsRenderSurface_create(application->renderer, window->allocator,
-		surfaceName, windowHandle, dsRenderSurfaceType_Window, sdlWindow->renderSurfaceUsage);
+		surfaceName, displayHandle, windowHandle, dsRenderSurfaceType_Window,
+		sdlWindow->renderSurfaceUsage, sdlWindow->curWidth, sdlWindow->curHeight);
 
 	if (window->surface)
 	{

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -174,7 +174,8 @@ bool dsRenderSurface_makeRotationMatrix44(dsMatrix44f* result, dsRenderSurfaceRo
 }
 
 dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
-	const char* name, void* osHandle, dsRenderSurfaceType type, dsRenderSurfaceUsage usage)
+	const char* name, void* displayHandle, void* osHandle, dsRenderSurfaceType type,
+	dsRenderSurfaceUsage usage, unsigned int widthHint, unsigned int heightHint)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -196,11 +197,12 @@ dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer, dsAllocator* alloc
 	}
 
 	dsRenderSurface* renderSurface = renderer->createRenderSurfaceFunc(renderer, allocator, name,
-		osHandle, type, usage);
+		displayHandle, osHandle, type, usage, widthHint, heightHint);
 	DS_PROFILE_FUNC_RETURN(renderSurface);
 }
 
-bool dsRenderSurface_update(dsRenderSurface* renderSurface)
+bool dsRenderSurface_update(
+	dsRenderSurface* renderSurface, unsigned int widthHint, unsigned int heightHint)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -217,7 +219,7 @@ bool dsRenderSurface_update(dsRenderSurface* renderSurface)
 	}
 
 	bool resized = renderSurface->renderer->updateRenderSurfaceFunc(renderSurface->renderer,
-		renderSurface);
+		renderSurface, widthHint, heightHint);
 	DS_PROFILE_FUNC_RETURN(resized);
 }
 

@@ -1691,6 +1691,12 @@ ANYGL_EXPORT extern int AnyGL_EXT_EGL_image_array;
 #endif
 ANYGL_EXPORT extern int AnyGL_EXT_EGL_image_storage;
 
+#ifndef GL_EXT_EGL_image_storage_compression
+#define GL_EXT_EGL_image_storage_compression 1
+#define ANYGL_EXT_EGL_image_storage_compression 1
+#endif
+ANYGL_EXPORT extern int AnyGL_EXT_EGL_image_storage_compression;
+
 #ifndef GL_EXT_EGL_sync
 #define GL_EXT_EGL_sync 1
 #define ANYGL_EXT_EGL_sync 1
@@ -1967,11 +1973,23 @@ ANYGL_EXPORT extern int AnyGL_EXT_float_blend;
 #endif
 ANYGL_EXPORT extern int AnyGL_EXT_fog_coord;
 
+#ifndef GL_EXT_fragment_shading_rate
+#define GL_EXT_fragment_shading_rate 1
+#define ANYGL_EXT_fragment_shading_rate 1
+#endif
+ANYGL_EXPORT extern int AnyGL_EXT_fragment_shading_rate;
+
 #ifndef GL_EXT_framebuffer_blit
 #define GL_EXT_framebuffer_blit 1
 #define ANYGL_EXT_framebuffer_blit 1
 #endif
 ANYGL_EXPORT extern int AnyGL_EXT_framebuffer_blit;
+
+#ifndef GL_EXT_framebuffer_blit_layers
+#define GL_EXT_framebuffer_blit_layers 1
+#define ANYGL_EXT_framebuffer_blit_layers 1
+#endif
+ANYGL_EXPORT extern int AnyGL_EXT_framebuffer_blit_layers;
 
 #ifndef GL_EXT_framebuffer_multisample
 #define GL_EXT_framebuffer_multisample 1
@@ -2327,6 +2345,12 @@ ANYGL_EXPORT extern int AnyGL_EXT_semaphore_fd;
 #endif
 ANYGL_EXPORT extern int AnyGL_EXT_semaphore_win32;
 
+#ifndef GL_EXT_separate_depth_stencil
+#define GL_EXT_separate_depth_stencil 1
+#define ANYGL_EXT_separate_depth_stencil 1
+#endif
+ANYGL_EXPORT extern int AnyGL_EXT_separate_depth_stencil;
+
 #ifndef GL_EXT_separate_shader_objects
 #define GL_EXT_separate_shader_objects 1
 #define ANYGL_EXT_separate_shader_objects 1
@@ -2404,6 +2428,12 @@ ANYGL_EXPORT extern int AnyGL_EXT_shader_pixel_local_storage;
 #define ANYGL_EXT_shader_pixel_local_storage2 1
 #endif
 ANYGL_EXPORT extern int AnyGL_EXT_shader_pixel_local_storage2;
+
+#ifndef GL_EXT_shader_samples_identical
+#define GL_EXT_shader_samples_identical 1
+#define ANYGL_EXT_shader_samples_identical 1
+#endif
+ANYGL_EXPORT extern int AnyGL_EXT_shader_samples_identical;
 
 #ifndef GL_EXT_shader_texture_lod
 #define GL_EXT_shader_texture_lod 1
@@ -2710,6 +2740,12 @@ ANYGL_EXPORT extern int AnyGL_EXT_texture_snorm;
 #define ANYGL_EXT_texture_storage 1
 #endif
 ANYGL_EXPORT extern int AnyGL_EXT_texture_storage;
+
+#ifndef GL_EXT_texture_storage_compression
+#define GL_EXT_texture_storage_compression 1
+#define ANYGL_EXT_texture_storage_compression 1
+#endif
+ANYGL_EXPORT extern int AnyGL_EXT_texture_storage_compression;
 
 #ifndef GL_EXT_texture_swizzle
 #define GL_EXT_texture_swizzle 1
@@ -6168,6 +6204,12 @@ typedef void *GLeglClientBufferEXT;
 #define GL_422_REV_AVERAGE_EXT            0x80CF
 #endif /* GL_EXT_422_pixels */
 
+#ifdef ANYGL_EXT_EGL_image_storage_compression
+#define GL_SURFACE_COMPRESSION_EXT        0x96C0
+#define GL_SURFACE_COMPRESSION_FIXED_RATE_NONE_EXT 0x96C1
+#define GL_SURFACE_COMPRESSION_FIXED_RATE_DEFAULT_EXT 0x96C2
+#endif /* GL_EXT_EGL_image_storage_compression */
+
 #ifdef ANYGL_EXT_YUV_target
 #define GL_SAMPLER_EXTERNAL_2D_Y2Y_EXT    0x8BE7
 #endif /* GL_EXT_YUV_target */
@@ -6429,6 +6471,35 @@ typedef void *GLeglClientBufferEXT;
 #define GL_FOG_COORDINATE_ARRAY_EXT       0x8457
 #endif /* GL_EXT_fog_coord */
 
+#ifdef ANYGL_EXT_fragment_shading_rate
+#define GL_SHADING_RATE_1X1_PIXELS_EXT    0x96A6
+#define GL_SHADING_RATE_1X2_PIXELS_EXT    0x96A7
+#define GL_SHADING_RATE_2X1_PIXELS_EXT    0x96A8
+#define GL_SHADING_RATE_2X2_PIXELS_EXT    0x96A9
+#define GL_SHADING_RATE_1X4_PIXELS_EXT    0x96AA
+#define GL_SHADING_RATE_4X1_PIXELS_EXT    0x96AB
+#define GL_SHADING_RATE_4X2_PIXELS_EXT    0x96AC
+#define GL_SHADING_RATE_2X4_PIXELS_EXT    0x96AD
+#define GL_SHADING_RATE_4X4_PIXELS_EXT    0x96AE
+#define GL_SHADING_RATE_EXT               0x96D0
+#define GL_SHADING_RATE_ATTACHMENT_EXT    0x96D1
+#define GL_FRAGMENT_SHADING_RATE_COMBINER_OP_KEEP_EXT 0x96D2
+#define GL_FRAGMENT_SHADING_RATE_COMBINER_OP_REPLACE_EXT 0x96D3
+#define GL_FRAGMENT_SHADING_RATE_COMBINER_OP_MIN_EXT 0x96D4
+#define GL_FRAGMENT_SHADING_RATE_COMBINER_OP_MAX_EXT 0x96D5
+#define GL_FRAGMENT_SHADING_RATE_COMBINER_OP_MUL_EXT 0x96D6
+#define GL_MIN_FRAGMENT_SHADING_RATE_ATTACHMENT_TEXEL_WIDTH_EXT 0x96D7
+#define GL_MAX_FRAGMENT_SHADING_RATE_ATTACHMENT_TEXEL_WIDTH_EXT 0x96D8
+#define GL_MIN_FRAGMENT_SHADING_RATE_ATTACHMENT_TEXEL_HEIGHT_EXT 0x96D9
+#define GL_MAX_FRAGMENT_SHADING_RATE_ATTACHMENT_TEXEL_HEIGHT_EXT 0x96DA
+#define GL_MAX_FRAGMENT_SHADING_RATE_ATTACHMENT_TEXEL_ASPECT_RATIO_EXT 0x96DB
+#define GL_MAX_FRAGMENT_SHADING_RATE_ATTACHMENT_LAYERS_EXT 0x96DC
+#define GL_FRAGMENT_SHADING_RATE_WITH_SHADER_DEPTH_STENCIL_WRITES_SUPPORTED_EXT 0x96DD
+#define GL_FRAGMENT_SHADING_RATE_WITH_SAMPLE_MASK_SUPPORTED_EXT 0x96DE
+#define GL_FRAGMENT_SHADING_RATE_ATTACHMENT_WITH_DEFAULT_FRAMEBUFFER_SUPPORTED_EXT 0x96DF
+#define GL_FRAGMENT_SHADING_RATE_NON_TRIVIAL_COMBINERS_SUPPORTED_EXT 0x8F6F
+#endif /* GL_EXT_fragment_shading_rate */
+
 #ifdef ANYGL_EXT_framebuffer_blit
 #define GL_READ_FRAMEBUFFER_EXT           0x8CA8
 #define GL_DRAW_FRAMEBUFFER_EXT           0x8CA9
@@ -6538,7 +6609,6 @@ typedef void *GLeglClientBufferEXT;
 #endif /* GL_EXT_geometry_shader4 */
 
 #ifdef ANYGL_EXT_gpu_shader4
-#define GL_VERTEX_ATTRIB_ARRAY_INTEGER_EXT 0x88FD
 #define GL_SAMPLER_1D_ARRAY_EXT           0x8DC0
 #define GL_SAMPLER_2D_ARRAY_EXT           0x8DC1
 #define GL_SAMPLER_BUFFER_EXT             0x8DC2
@@ -6566,6 +6636,7 @@ typedef void *GLeglClientBufferEXT;
 #define GL_UNSIGNED_INT_SAMPLER_BUFFER_EXT 0x8DD8
 #define GL_MIN_PROGRAM_TEXEL_OFFSET_EXT   0x8904
 #define GL_MAX_PROGRAM_TEXEL_OFFSET_EXT   0x8905
+#define GL_VERTEX_ATTRIB_ARRAY_INTEGER_EXT 0x88FD
 #endif /* GL_EXT_gpu_shader4 */
 
 #ifdef ANYGL_EXT_histogram
@@ -7381,6 +7452,22 @@ typedef void *GLeglClientBufferEXT;
 #define GL_R32F_EXT                       0x822E
 #define GL_RG32F_EXT                      0x8230
 #endif /* GL_EXT_texture_storage */
+
+#ifdef ANYGL_EXT_texture_storage_compression
+#define GL_NUM_SURFACE_COMPRESSION_FIXED_RATES_EXT 0x8F6E
+#define GL_SURFACE_COMPRESSION_FIXED_RATE_1BPC_EXT 0x96C4
+#define GL_SURFACE_COMPRESSION_FIXED_RATE_2BPC_EXT 0x96C5
+#define GL_SURFACE_COMPRESSION_FIXED_RATE_3BPC_EXT 0x96C6
+#define GL_SURFACE_COMPRESSION_FIXED_RATE_4BPC_EXT 0x96C7
+#define GL_SURFACE_COMPRESSION_FIXED_RATE_5BPC_EXT 0x96C8
+#define GL_SURFACE_COMPRESSION_FIXED_RATE_6BPC_EXT 0x96C9
+#define GL_SURFACE_COMPRESSION_FIXED_RATE_7BPC_EXT 0x96CA
+#define GL_SURFACE_COMPRESSION_FIXED_RATE_8BPC_EXT 0x96CB
+#define GL_SURFACE_COMPRESSION_FIXED_RATE_9BPC_EXT 0x96CC
+#define GL_SURFACE_COMPRESSION_FIXED_RATE_10BPC_EXT 0x96CD
+#define GL_SURFACE_COMPRESSION_FIXED_RATE_11BPC_EXT 0x96CE
+#define GL_SURFACE_COMPRESSION_FIXED_RATE_12BPC_EXT 0x96CF
+#endif /* GL_EXT_texture_storage_compression */
 
 #ifdef ANYGL_EXT_texture_swizzle
 #define GL_TEXTURE_SWIZZLE_R_EXT          0x8E42
@@ -13668,6 +13755,12 @@ ANYGL_EXPORT extern PFNANYGLEGLIMAGETARGETTEXTURESTORAGEEXTPROC AnyGL_glEGLImage
 #define glEGLImageTargetTextureStorageEXT(texture, image, attrib_list) ANYGL_CALL(AnyGL_glEGLImageTargetTextureStorageEXT)(texture, image, attrib_list)
 #endif /* ANYGL_NO_DEFINES */
 
+/* GL_EXT_EGL_image_storage_compression */
+
+
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
+
 /* GL_EXT_EGL_sync */
 
 
@@ -14814,11 +14907,41 @@ ANYGL_EXPORT extern PFNANYGLNAMEDBUFFERSTORAGEEXTERNALEXTPROC AnyGL_glNamedBuffe
 #define glFogCoordPointerEXT(type, stride, pointer) ANYGL_CALL(AnyGL_glFogCoordPointer)(type, stride, pointer)
 #endif /* ANYGL_NO_DEFINES */
 
+/* GL_EXT_fragment_shading_rate */
+typedef void (APIENTRY* PFNANYGLGETFRAGMENTSHADINGRATESEXTPROC)(GLsizei samples, GLsizei maxCount, GLsizei *count, GLenum *shadingRates);
+typedef void (APIENTRY* PFNANYGLSHADINGRATEEXTPROC)(GLenum rate);
+typedef void (APIENTRY* PFNANYGLSHADINGRATECOMBINEROPSEXTPROC)(GLenum combinerOp0, GLenum combinerOp1);
+typedef void (APIENTRY* PFNANYGLFRAMEBUFFERSHADINGRATEEXTPROC)(GLenum target, GLenum attachment, GLuint texture, GLint baseLayer, GLsizei numLayers, GLsizei texelWidth, GLsizei texelHeight);
+
+ANYGL_EXPORT extern PFNANYGLGETFRAGMENTSHADINGRATESEXTPROC AnyGL_glGetFragmentShadingRatesEXT;
+ANYGL_EXPORT extern PFNANYGLSHADINGRATEEXTPROC AnyGL_glShadingRateEXT;
+ANYGL_EXPORT extern PFNANYGLSHADINGRATECOMBINEROPSEXTPROC AnyGL_glShadingRateCombinerOpsEXT;
+ANYGL_EXPORT extern PFNANYGLFRAMEBUFFERSHADINGRATEEXTPROC AnyGL_glFramebufferShadingRateEXT;
+
+#ifndef ANYGL_NO_DEFINES
+#define glGetFragmentShadingRatesEXT(samples, maxCount, count, shadingRates) ANYGL_CALL(AnyGL_glGetFragmentShadingRatesEXT)(samples, maxCount, count, shadingRates)
+#define glShadingRateEXT(rate) ANYGL_CALL(AnyGL_glShadingRateEXT)(rate)
+#define glShadingRateCombinerOpsEXT(combinerOp0, combinerOp1) ANYGL_CALL(AnyGL_glShadingRateCombinerOpsEXT)(combinerOp0, combinerOp1)
+#define glFramebufferShadingRateEXT(target, attachment, texture, baseLayer, numLayers, texelWidth, texelHeight) ANYGL_CALL(AnyGL_glFramebufferShadingRateEXT)(target, attachment, texture, baseLayer, numLayers, texelWidth, texelHeight)
+#endif /* ANYGL_NO_DEFINES */
+
 /* GL_EXT_framebuffer_blit */
 
 
 #ifndef ANYGL_NO_DEFINES
 #define glBlitFramebufferEXT(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter) ANYGL_CALL(AnyGL_glBlitFramebuffer)(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter)
+#endif /* ANYGL_NO_DEFINES */
+
+/* GL_EXT_framebuffer_blit_layers */
+typedef void (APIENTRY* PFNANYGLBLITFRAMEBUFFERLAYERSEXTPROC)(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
+typedef void (APIENTRY* PFNANYGLBLITFRAMEBUFFERLAYEREXTPROC)(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint srcLayer, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLint dstLayer, GLbitfield mask, GLenum filter);
+
+ANYGL_EXPORT extern PFNANYGLBLITFRAMEBUFFERLAYERSEXTPROC AnyGL_glBlitFramebufferLayersEXT;
+ANYGL_EXPORT extern PFNANYGLBLITFRAMEBUFFERLAYEREXTPROC AnyGL_glBlitFramebufferLayerEXT;
+
+#ifndef ANYGL_NO_DEFINES
+#define glBlitFramebufferLayersEXT(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter) ANYGL_CALL(AnyGL_glBlitFramebufferLayersEXT)(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter)
+#define glBlitFramebufferLayerEXT(srcX0, srcY0, srcX1, srcY1, srcLayer, dstX0, dstY0, dstX1, dstY1, dstLayer, mask, filter) ANYGL_CALL(AnyGL_glBlitFramebufferLayerEXT)(srcX0, srcY0, srcX1, srcY1, srcLayer, dstX0, dstY0, dstX1, dstY1, dstLayer, mask, filter)
 #endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_framebuffer_multisample */
@@ -14909,6 +15032,29 @@ ANYGL_EXPORT extern PFNANYGLPROGRAMLOCALPARAMETERS4FVEXTPROC AnyGL_glProgramLoca
 #define glUniform2uivEXT(location, count, value) ANYGL_CALL(AnyGL_glUniform2uiv)(location, count, value)
 #define glUniform3uivEXT(location, count, value) ANYGL_CALL(AnyGL_glUniform3uiv)(location, count, value)
 #define glUniform4uivEXT(location, count, value) ANYGL_CALL(AnyGL_glUniform4uiv)(location, count, value)
+#define glVertexAttribI1iEXT(index, x) ANYGL_CALL(AnyGL_glVertexAttribI1i)(index, x)
+#define glVertexAttribI2iEXT(index, x, y) ANYGL_CALL(AnyGL_glVertexAttribI2i)(index, x, y)
+#define glVertexAttribI3iEXT(index, x, y, z) ANYGL_CALL(AnyGL_glVertexAttribI3i)(index, x, y, z)
+#define glVertexAttribI4iEXT(index, x, y, z, w) ANYGL_CALL(AnyGL_glVertexAttribI4i)(index, x, y, z, w)
+#define glVertexAttribI1uiEXT(index, x) ANYGL_CALL(AnyGL_glVertexAttribI1ui)(index, x)
+#define glVertexAttribI2uiEXT(index, x, y) ANYGL_CALL(AnyGL_glVertexAttribI2ui)(index, x, y)
+#define glVertexAttribI3uiEXT(index, x, y, z) ANYGL_CALL(AnyGL_glVertexAttribI3ui)(index, x, y, z)
+#define glVertexAttribI4uiEXT(index, x, y, z, w) ANYGL_CALL(AnyGL_glVertexAttribI4ui)(index, x, y, z, w)
+#define glVertexAttribI1ivEXT(index, v) ANYGL_CALL(AnyGL_glVertexAttribI1iv)(index, v)
+#define glVertexAttribI2ivEXT(index, v) ANYGL_CALL(AnyGL_glVertexAttribI2iv)(index, v)
+#define glVertexAttribI3ivEXT(index, v) ANYGL_CALL(AnyGL_glVertexAttribI3iv)(index, v)
+#define glVertexAttribI4ivEXT(index, v) ANYGL_CALL(AnyGL_glVertexAttribI4iv)(index, v)
+#define glVertexAttribI1uivEXT(index, v) ANYGL_CALL(AnyGL_glVertexAttribI1uiv)(index, v)
+#define glVertexAttribI2uivEXT(index, v) ANYGL_CALL(AnyGL_glVertexAttribI2uiv)(index, v)
+#define glVertexAttribI3uivEXT(index, v) ANYGL_CALL(AnyGL_glVertexAttribI3uiv)(index, v)
+#define glVertexAttribI4uivEXT(index, v) ANYGL_CALL(AnyGL_glVertexAttribI4uiv)(index, v)
+#define glVertexAttribI4bvEXT(index, v) ANYGL_CALL(AnyGL_glVertexAttribI4bv)(index, v)
+#define glVertexAttribI4svEXT(index, v) ANYGL_CALL(AnyGL_glVertexAttribI4sv)(index, v)
+#define glVertexAttribI4ubvEXT(index, v) ANYGL_CALL(AnyGL_glVertexAttribI4ubv)(index, v)
+#define glVertexAttribI4usvEXT(index, v) ANYGL_CALL(AnyGL_glVertexAttribI4usv)(index, v)
+#define glVertexAttribIPointerEXT(index, size, type, stride, pointer) ANYGL_CALL(AnyGL_glVertexAttribIPointer)(index, size, type, stride, pointer)
+#define glGetVertexAttribIivEXT(index, pname, params) ANYGL_CALL(AnyGL_glGetVertexAttribIiv)(index, pname, params)
+#define glGetVertexAttribIuivEXT(index, pname, params) ANYGL_CALL(AnyGL_glGetVertexAttribIuiv)(index, pname, params)
 #endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_gpu_shader5 */
@@ -15423,13 +15569,19 @@ ANYGL_EXPORT extern PFNANYGLIMPORTSEMAPHOREWIN32NAMEEXTPROC AnyGL_glImportSemaph
 #define glImportSemaphoreWin32NameEXT(semaphore, handleType, name) ANYGL_CALL(AnyGL_glImportSemaphoreWin32NameEXT)(semaphore, handleType, name)
 #endif /* ANYGL_NO_DEFINES */
 
+/* GL_EXT_separate_depth_stencil */
+
+
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
+
 /* GL_EXT_separate_shader_objects */
 typedef void (APIENTRY* PFNANYGLUSESHADERPROGRAMEXTPROC)(GLenum type, GLuint program);
 typedef void (APIENTRY* PFNANYGLACTIVEPROGRAMEXTPROC)(GLuint program);
 typedef GLuint (APIENTRY* PFNANYGLCREATESHADERPROGRAMEXTPROC)(GLenum type, const GLchar *string);
 typedef void (APIENTRY* PFNANYGLACTIVESHADERPROGRAMEXTPROC)(GLuint pipeline, GLuint program);
 typedef void (APIENTRY* PFNANYGLBINDPROGRAMPIPELINEEXTPROC)(GLuint pipeline);
-typedef GLuint (APIENTRY* PFNANYGLCREATESHADERPROGRAMVEXTPROC)(GLenum type, GLsizei count, const GLchar **strings);
+typedef GLuint (APIENTRY* PFNANYGLCREATESHADERPROGRAMVEXTPROC)(GLenum type, GLsizei count, const GLchar *const*strings);
 typedef void (APIENTRY* PFNANYGLDELETEPROGRAMPIPELINESEXTPROC)(GLsizei n, const GLuint *pipelines);
 typedef void (APIENTRY* PFNANYGLGENPROGRAMPIPELINESEXTPROC)(GLsizei n, GLuint *pipelines);
 typedef void (APIENTRY* PFNANYGLGETPROGRAMPIPELINEINFOLOGEXTPROC)(GLuint pipeline, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
@@ -15552,6 +15704,12 @@ ANYGL_EXPORT extern PFNANYGLCLEARPIXELLOCALSTORAGEUIEXTPROC AnyGL_glClearPixelLo
 #define glFramebufferPixelLocalStorageSizeEXT(target, size) ANYGL_CALL(AnyGL_glFramebufferPixelLocalStorageSizeEXT)(target, size)
 #define glGetFramebufferPixelLocalStorageSizeEXT(target) ANYGL_CALL(AnyGL_glGetFramebufferPixelLocalStorageSizeEXT)(target)
 #define glClearPixelLocalStorageuiEXT(offset, n, values) ANYGL_CALL(AnyGL_glClearPixelLocalStorageuiEXT)(offset, n, values)
+#endif /* ANYGL_NO_DEFINES */
+
+/* GL_EXT_shader_samples_identical */
+
+
+#ifndef ANYGL_NO_DEFINES
 #endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_shader_texture_lod */
@@ -15901,6 +16059,18 @@ ANYGL_EXPORT extern PFNANYGLTEXTURENORMALEXTPROC AnyGL_glTextureNormalEXT;
 #define glTexStorage1DEXT(target, levels, internalformat, width) ANYGL_CALL(AnyGL_glTexStorage1D)(target, levels, internalformat, width)
 #define glTexStorage2DEXT(target, levels, internalformat, width, height) ANYGL_CALL(AnyGL_glTexStorage2D)(target, levels, internalformat, width, height)
 #define glTexStorage3DEXT(target, levels, internalformat, width, height, depth) ANYGL_CALL(AnyGL_glTexStorage3D)(target, levels, internalformat, width, height, depth)
+#endif /* ANYGL_NO_DEFINES */
+
+/* GL_EXT_texture_storage_compression */
+typedef void (APIENTRY* PFNANYGLTEXSTORAGEATTRIBS2DEXTPROC)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, const GLint* attrib_list);
+typedef void (APIENTRY* PFNANYGLTEXSTORAGEATTRIBS3DEXTPROC)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, const GLint* attrib_list);
+
+ANYGL_EXPORT extern PFNANYGLTEXSTORAGEATTRIBS2DEXTPROC AnyGL_glTexStorageAttribs2DEXT;
+ANYGL_EXPORT extern PFNANYGLTEXSTORAGEATTRIBS3DEXTPROC AnyGL_glTexStorageAttribs3DEXT;
+
+#ifndef ANYGL_NO_DEFINES
+#define glTexStorageAttribs2DEXT(target, levels, internalformat, width, height, attrib_list) ANYGL_CALL(AnyGL_glTexStorageAttribs2DEXT)(target, levels, internalformat, width, height, attrib_list)
+#define glTexStorageAttribs3DEXT(target, levels, internalformat, width, height, depth, attrib_list) ANYGL_CALL(AnyGL_glTexStorageAttribs3DEXT)(target, levels, internalformat, width, height, depth, attrib_list)
 #endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_swizzle */

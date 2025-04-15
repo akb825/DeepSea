@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,13 @@
 #include <DeepSea/RenderMock/Export.h>
 #include <string.h>
 
-DS_RENDERMOCK_EXPORT bool dsMockRenderSurface_changeSize;
-
 dsRenderSurface* dsMockRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
-	const char* name, void* osHandle, dsRenderSurfaceType type, dsRenderSurfaceUsage usage)
+	const char* name, void* displayHandle, void* osHandle, dsRenderSurfaceType type,
+	dsRenderSurfaceUsage usage, unsigned int widthHint, unsigned int heightHint)
 {
 	DS_ASSERT(renderer);
 	DS_ASSERT(allocator);
+	DS_UNUSED(displayHandle);
 	DS_UNUSED(osHandle);
 
 	size_t nameLen = strlen(name) + 1;
@@ -49,28 +49,24 @@ dsRenderSurface* dsMockRenderSurface_create(dsRenderer* renderer, dsAllocator* a
 	memcpy((void*)renderSurface->name, name, nameLen);
 	renderSurface->surfaceType = type;
 	renderSurface->usage = usage;
-	renderSurface->width = 1920;
-	renderSurface->height = 1080;
+	renderSurface->width = widthHint;
+	renderSurface->height = heightHint;
 	renderSurface->preRotateWidth = renderSurface->width;
 	renderSurface->preRotateHeight = renderSurface->height;
 	renderSurface->rotation = dsRenderSurfaceRotation_0;
 	return renderSurface;
 }
 
-bool dsMockRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface)
+bool dsMockRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface,
+	unsigned int widthHint, unsigned int heightHint)
 {
 	DS_ASSERT(renderer);
 	DS_UNUSED(renderer);
 	DS_ASSERT(renderSurface);
 
-	if (dsMockRenderSurface_changeSize)
-	{
-		renderSurface->width -= 10;
-		renderSurface->height -= 10;
-		return true;
-	}
-
-	return false;
+	renderSurface->width = widthHint;
+	renderSurface->height = heightHint;
+	return true;
 }
 
 bool dsMockRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,

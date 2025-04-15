@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,10 @@
 #include <DeepSea/Render/Types.h>
 
 dsRenderSurface* dsMockRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
-	const char* name, void* osHandle, dsRenderSurfaceType type, dsRenderSurfaceUsage usage);
-bool dsMockRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface);
+	const char* name, void* displayHandle, void* osHandle, dsRenderSurfaceType type,
+	dsRenderSurfaceUsage usage, unsigned int widthHint, unsigned int heightHint);
+bool dsMockRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface,
+	unsigned int widthHint, unsigned int heightHint);
 bool dsMockRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderSurface* renderSurface);
 bool dsMockRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -765,6 +765,15 @@ VkPrimitiveTopology dsVkPrimitiveType(dsPrimitiveType type)
 			DS_ASSERT(false);
 			return 0;
 	}
+}
+
+void dsAdjustVkSurfaceCapabilities(
+	VkSurfaceCapabilitiesKHR* surfaceInfo, unsigned int widthHint, unsigned int heightHint)
+{
+	if (surfaceInfo->currentExtent.width == 0xFFFFFFFF)
+		surfaceInfo->currentExtent.width = widthHint;
+	if (surfaceInfo->currentExtent.height == 0xFFFFFFFF)
+		surfaceInfo->currentExtent.height = heightHint;
 }
 
 void dsConvertVkViewport(VkViewport* outViewport, const dsAlignedBox3f* viewport, uint32_t width,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,8 @@
 static VkInstance loadedInstance;
 static PFN_vkCreateWaylandSurfaceKHR vkCreateWaylandSurfaceKHR;
 
-void* dsVkPlatformWayland_getDisplay(void)
+void dsVkPlatformWayland_initialize(void)
 {
-	return wl_display_connect(NULL);
-}
-
-void dsVkPlatformWayland_releaseDisplay(void* display)
-{
-	wl_display_disconnect((struct wl_display*)display);
 }
 
 VkSurfaceKHR dsVkPlatformWayland_createSurface(dsVkInstance* instance, void* display, void* window)

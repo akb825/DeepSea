@@ -432,8 +432,8 @@ TEST_F(RenderPassTest, BeginNextEnd)
 		subpasses, subpassCount, dependencies, dependencyCount);
 	ASSERT_TRUE(renderPass);
 
-	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
-		dsRenderSurfaceType_Direct, dsRenderSurfaceUsage_Standard);
+	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL, NULL,
+		dsRenderSurfaceType_Direct, dsRenderSurfaceUsage_Standard, 1920, 1080);
 	ASSERT_TRUE(renderSurface);
 
 	dsTextureInfo colorInfo = {renderer->surfaceColorFormat, dsTextureDim_2D, renderSurface->width,

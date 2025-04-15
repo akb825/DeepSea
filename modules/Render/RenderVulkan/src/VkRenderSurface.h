@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,10 @@
 #include "VkTypes.h"
 
 dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
-	const char* name, void* osHandle, dsRenderSurfaceType type, dsRenderSurfaceUsage usage);
-bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface);
+	const char* name, void* displayHandle, void* osHandle, dsRenderSurfaceType type,
+	dsRenderSurfaceUsage usage, unsigned int widthHint, unsigned int heightHint);
+bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface,
+	unsigned int widthHint, unsigned int heightHint);
 bool dsVkRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderSurface* renderSurface);
 bool dsVkRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,

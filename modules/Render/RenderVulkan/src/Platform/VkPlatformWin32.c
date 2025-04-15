@@ -1,5 +1,5 @@
  /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,18 +33,12 @@
 static VkInstance loadedInstance;
 static PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
 
-void* dsVkPlatformWin32_getDisplay(void)
+void dsVkPlatformWin32_initialize(void)
 {
 #if WINVER >= 0x0810
 	// Prevent Windows from scaling the windows.
 	SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
 #endif
-	return NULL;
-}
-
-void dsVkPlatformWin32_releaseDisplay(void* display)
-{
-	DS_UNUSED(display);
 }
 
 VkSurfaceKHR dsVkPlatformWin32_createSurface(dsVkInstance* instance, void* display, void* window)

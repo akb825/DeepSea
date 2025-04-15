@@ -646,7 +646,24 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
-	baseRenderer->platform = options->platform;
+#if DS_LINUX
+	/*
+	 * TODO: Support Wayland when using EGL.
+	 *
+	 * Currently blocked by no pbuffer support, which appears to be in a state of "we will never do
+	 * it," at least for Mesa. This means the dummy surface would have to be a window, but unknown
+	 * right now how this could be done without creating a physical, visible window.
+	 *
+	 * The display would also have to also be passed through, ensuring that a Wayland display is
+	 * used. This also requires the exact same surface instance as the window was created with, as
+	 * connecting to the default display multiple times does not yield the same instance. Currently
+	 * not sure how best to do that as the display is needed to initialize OpenGL and the display is
+	 * tied to a window for frameworks like SDL.
+	 */
+	baseRenderer->platform = dsGfxPlatform_X11;
+#else
+	baseRenderer->platform = dsRenderer_resolvePlatform(options->platform);
+#endif
 	if (ANYGL_GLES)
 		baseRenderer->rendererID = DS_GLES_RENDERER_ID;
 	else

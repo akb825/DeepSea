@@ -93,9 +93,12 @@ static bool transitionToPresentable(dsCommandBuffer* commandBuffer, dsVkRenderSu
 }
 
 dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
-	const char* name, void* osHandle, dsRenderSurfaceType type, dsRenderSurfaceUsage usage)
+	const char* name, void* displayHandle, void* osHandle, dsRenderSurfaceType type,
+	dsRenderSurfaceUsage usage, unsigned int widthHint, unsigned int heightHint)
 {
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	dsVkDevice* device = &vkRenderer->device;
+	dsVkInstance* instance = &device->instance;
 	VkSurfaceKHR surface;
 	switch (type)
 	{
@@ -106,11 +109,42 @@ dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 			surface = (VkSurfaceKHR)(uintptr_t)osHandle;
 			break;
 		default:
-			surface = dsVkPlatform_createSurface(&vkRenderer->platform, osHandle);
+			surface = dsVkPlatform_createSurface(&vkRenderer->platform, displayHandle, osHandle);
 			if (!surface)
 				return NULL;
 			break;
 	}
+
+	VkBool32 supported = false;
+	VkResult result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceSupportKHR)(
+		device->physicalDevice, device->queueFamilyIndex, surface, &supported);
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't get surface support"))
+	{
+		if (type != dsRenderSurfaceType_Direct)
+			dsVkPlatform_destroySurface(&vkRenderer->platform, surface);
+		return NULL;
+	}
+
+	if (!supported)
+	{
+		if (type != dsRenderSurfaceType_Direct)
+			dsVkPlatform_destroySurface(&vkRenderer->platform, surface);
+		errno = EPERM;
+		DS_LOG_INFO(DS_RENDER_VULKAN_LOG_TAG, "Window surface can't be rendered to.");
+		return NULL;
+	}
+
+	VkSurfaceCapabilitiesKHR surfaceInfo;
+	result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceCapabilitiesKHR)(
+		device->physicalDevice, surface, &surfaceInfo);
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't get surface capabilities"))
+	{
+		if (type != dsRenderSurfaceType_Direct)
+			dsVkPlatform_destroySurface(&vkRenderer->platform, surface);
+		return NULL;
+	}
+
+	dsAdjustVkSurfaceCapabilities(&surfaceInfo, widthHint, heightHint);
 
 	size_t nameLen = strlen(name) + 1;
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVkRenderSurface)) + DS_ALIGNED_SIZE(nameLen);
@@ -153,7 +187,7 @@ dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	}
 
 	renderSurface->surfaceData = dsVkRenderSurfaceData_create(renderSurface->scratchAllocator,
-		renderer, surface, renderer->vsync, 0, usage);
+		renderer, surface, renderer->vsync, 0, usage, &surfaceInfo);
 	if (!renderSurface->surfaceData)
 	{
 		dsVkRenderSurface_destroy(renderer, baseRenderSurface);
@@ -169,7 +203,8 @@ dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	return baseRenderSurface;
 }
 
-bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface)
+bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface,
+	unsigned int widthHint, unsigned int heightHint)
 {
 	dsVkRenderSurface* vkSurface = (dsVkRenderSurface*)renderSurface;
 	DS_VERIFY(dsSpinlock_lock(&vkSurface->lock));
@@ -177,48 +212,46 @@ bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	dsVkInstance* instance = &device->instance;
 
+	VkSurfaceCapabilitiesKHR surfaceInfo;
+	VkResult result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceCapabilitiesKHR)(
+		device->physicalDevice, vkSurface->surface, &surfaceInfo);
+	if (result == VK_SUCCESS)
+		dsAdjustVkSurfaceCapabilities(&surfaceInfo, widthHint, heightHint);
+	else
+	{
+		DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
+		return DS_HANDLE_VK_RESULT(result, "Couldn't get surface capabilities");
+	}
+
 	if (vkSurface->surfaceData && !vkSurface->surfaceError &&
 		vkSurface->surfaceData->vsync == renderer->vsync)
 	{
-		VkSurfaceCapabilitiesKHR surfaceInfo;
-		VkResult result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceCapabilitiesKHR)(
-			device->physicalDevice, vkSurface->surface, &surfaceInfo);
-		if (result == VK_SUCCESS)
-		{
-			uint32_t width = surfaceInfo.currentExtent.width;
-			uint32_t height = surfaceInfo.currentExtent.height;
-			dsRenderSurfaceRotation rotation = dsRenderSurfaceRotation_0;
-			if (renderSurface->usage & dsRenderSurfaceUsage_ClientRotations)
-				rotation = dsVkRenderSurfaceData_getRotation(surfaceInfo.currentTransform);
+		dsAdjustVkSurfaceCapabilities(&surfaceInfo, widthHint, heightHint);
+		uint32_t width = surfaceInfo.currentExtent.width;
+		uint32_t height = surfaceInfo.currentExtent.height;
+		dsRenderSurfaceRotation rotation = dsRenderSurfaceRotation_0;
+		if (renderSurface->usage & dsRenderSurfaceUsage_ClientRotations)
+			rotation = dsVkRenderSurfaceData_getRotation(surfaceInfo.currentTransform);
 
-			if (width == vkSurface->surfaceData->width &&
-				height == vkSurface->surfaceData->height &&
-				rotation == vkSurface->surfaceData->rotation)
-			{
-				DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
-				return true;
-			}
-			else if (width == 0 || height == 0)
-			{
-				// Ignore if the size is 0. (e.g. minimized)
-				DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
-				return true;
-			}
-		}
-		else if (result != VK_ERROR_OUT_OF_DATE_KHR)
+		if (width == vkSurface->surfaceData->width &&
+			height == vkSurface->surfaceData->height &&
+			rotation == vkSurface->surfaceData->rotation)
 		{
 			DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
-			return DS_HANDLE_VK_RESULT(result, "Couldn't get surface capabilities");
+			return true;
+		}
+		else if (width == 0 || height == 0)
+		{
+			// Ignore if the size is 0. (e.g. minimized)
+			DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
+			return true;
 		}
 	}
 	else
 	{
 		// If we didn't take the above code path, need to check for size of 0. (e.g. minimized)
-		VkSurfaceCapabilitiesKHR surfaceInfo;
-		VkResult result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceCapabilitiesKHR)(
-			device->physicalDevice, vkSurface->surface, &surfaceInfo);
-		if (result == VK_SUCCESS && (surfaceInfo.currentExtent.width == 0 ||
-			surfaceInfo.currentExtent.height == 0))
+		dsAdjustVkSurfaceCapabilities(&surfaceInfo, widthHint, heightHint);
+		if (surfaceInfo.currentExtent.width == 0 || surfaceInfo.currentExtent.height == 0)
 		{
 			DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
 			return true;
@@ -241,7 +274,8 @@ bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 	}
 
 	dsVkRenderSurfaceData* surfaceData = dsVkRenderSurfaceData_create(vkSurface->scratchAllocator,
-		renderer, vkSurface->surface, renderer->vsync, prevSwapchain, renderSurface->usage);
+		renderer, vkSurface->surface, renderer->vsync, prevSwapchain, renderSurface->usage,
+		&surfaceInfo);
 	if (prevSwapchain)
 	{
 		DS_VK_CALL(device->vkDestroySwapchainKHR)(device->device, prevSwapchain,

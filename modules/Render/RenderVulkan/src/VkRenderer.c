@@ -1874,7 +1874,6 @@ bool dsVkRenderer_destroy(dsRenderer* renderer)
 	}
 
 	dsVkResourceManager_destroy(renderer->resourceManager);
-	dsVkPlatform_shutdown(&vkRenderer->platform);
 	dsDestroyVkDevice(device);
 	dsDestroyVkInstance(&device->instance);
 	dsSpinlock_shutdown(&vkRenderer->resourceLock);
@@ -2026,8 +2025,9 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
-	if (!dsVkPlatform_initialize(&renderer->platform, &renderer->device, options->platform,
-		options->display))
+	dsGfxPlatform platform = dsRenderer_resolvePlatform(options->platform);
+	if (!dsVkPlatform_initialize(
+			&renderer->platform, &renderer->device, platform, options->display))
 	{
 		dsVkRenderer_destroy(baseRenderer);
 		return NULL;
@@ -2042,7 +2042,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 
 	dsVkDevice* device = &renderer->device;
 
-	baseRenderer->platform = options->platform;
+	baseRenderer->platform = platform;
 	baseRenderer->rendererID = DS_VK_RENDERER_ID;
 	baseRenderer->platformID = 0;
 	baseRenderer->name = "Vulkan";

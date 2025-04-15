@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -969,20 +969,16 @@ typedef struct dsVkCommandBufferWrapper
 	dsCommandBuffer* realCommandBuffer;
 } dsVkCommandBufferWrapper;
 
-typedef void* (*dsVkGetDisplayFunction)(void);
-typedef void (*dsVkReleaseDisplayFunction)(void* display);
+typedef void (*dsVkInitializePlatformFunction)(void);
 typedef VkSurfaceKHR (*dsVkCreateSurfaceFunction)(dsVkInstance* instance, void* display,
 	void* window);
 
 typedef struct dsVkPlatform
 {
-	dsVkGetDisplayFunction getDisplayFunc;
-	dsVkReleaseDisplayFunction releaseDisplayFunc;
+	dsVkInitializePlatformFunction initializeFunc;
 	dsVkCreateSurfaceFunction createSurfaceFunc;
 
 	dsVkDevice* device;
-	void* display;
-	bool createdDisplay;
 } dsVkPlatform;
 
 typedef struct dsVkSubmitInfo

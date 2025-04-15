@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,8 @@
 static VkInstance loadedInstance;
 static PFN_vkCreateAndroidSurfaceKHR vkCreateAndroidSurfaceKHR;
 
-void* dsVkPlatformAndroid_getDisplay(void)
+void dsVkPlatformAndroid_initialize(void)
 {
-	return NULL;
-}
-
-void dsVkPlatformAndroid_releaseDisplay(void* display)
-{
-	DS_UNUSED(display);
 }
 
 VkSurfaceKHR dsVkPlatformAndroid_createSurface(dsVkInstance* instance, void* display, void* window)

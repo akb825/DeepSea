@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -313,8 +313,12 @@ static bool createExtraSurfaces(dsRenderer* renderer, dsRenderSurface* renderSur
 }
 
 dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
-	const char* name, void* osHandle, dsRenderSurfaceType type, dsRenderSurfaceUsage usage)
+	const char* name, void* displayHandle, void* osHandle, dsRenderSurfaceType type,
+	dsRenderSurfaceUsage usage, unsigned int widthHint, unsigned int heightHint)
 {
+	DS_UNUSED(displayHandle);
+	DS_UNUSED(widthHint);
+	DS_UNUSED(heightHint);
 	@autoreleasepool
 	{
 		dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
@@ -441,8 +445,11 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 	}
 }
 
-bool dsMTLRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface)
+bool dsMTLRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface,
+	unsigned int widthHint, unsigned int heightHint)
 {
+	DS_UNUSED(widthHint);
+	DS_UNUSED(heightHint);
 	@autoreleasepool
 	{
 		DS_UNUSED(renderer);
@@ -483,7 +490,7 @@ bool dsMTLRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* command
 		CAMetalLayer* layer = (__bridge CAMetalLayer*)mtlRenderSurface->layer;
 		mtlRenderSurface->drawable = CFBridgingRetain([layer nextDrawable]);
 		DS_ASSERT(mtlRenderSurface->drawable);
-		dsMTLRenderSurface_update(renderer, (dsRenderSurface*)renderSurface);
+		dsMTLRenderSurface_update(renderer, (dsRenderSurface*)renderSurface, 0, 0);
 		DS_VERIFY(dsSpinlock_unlock(&mtlRenderSurface->lock));
 		return true;
 	}
