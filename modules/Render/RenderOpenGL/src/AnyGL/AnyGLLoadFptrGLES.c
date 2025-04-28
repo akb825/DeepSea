@@ -1,6 +1,6 @@
 #include "AnyGL.h"
 
-#if ANYGL_LOAD == ANYGL_LOAD_FPTR && ANYGL_GLES
+#if ANYGL_HAS_FPTR && ANYGL_GLES
 #define GL_GLEXT_PROTOTYPES
 #if ANYGL_APPLE
 #  if ANYGL_GLES_VERSION >= 32
@@ -49,13 +49,13 @@ int AnyGL_queryExtension(const char* name);
 void AnyGL_initDebug(void);
 void AnyGL_clearFunctionPointers(void);
 
-int AnyGL_initialize(void)
+int AnyGL_FPTR_initialize(void)
 {
 	return 1;
 }
-void AnyGL_shutdown(void) {}
+void AnyGL_FPTR_shutdown(void) {}
 
-int AnyGL_load(void)
+int AnyGL_FPTR_load(void)
 {
 	AnyGL_clearFunctionPointers();
 

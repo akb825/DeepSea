@@ -46,6 +46,13 @@ DS_RENDERBOOTSTRAP_EXPORT const char* dsRenderBootstrap_rendererName(dsRendererT
 DS_RENDERBOOTSTRAP_EXPORT dsRendererType dsRenderBootstrap_rendererTypeFromName(const char* name);
 
 /**
+ * @brief Gets the ID for a renderer.
+ * @param type The type of the renderer.
+ * @return The ID of the renderer or 0 if not recognized or supported.
+ */
+DS_RENDERBOOTSTRAP_EXPORT uint32_t dsRenderBootstrap_rendererID(dsRendererType type);
+
+/**
  * @brief Gets the default renderer.
  * @return The default renderer, or dsRenderType_Default if no renderer is supported.
  */

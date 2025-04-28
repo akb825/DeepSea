@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@
 #include "Resources/GLResourceManager.h"
 #include "GLCommandBuffer.h"
 #include "GLCommandBufferPool.h"
-#include "GLHelpers.h"
 #include "GLMainCommandBuffer.h"
 #include "GLRenderPass.h"
 #include "GLRenderSurface.h"
@@ -49,7 +48,25 @@
 
 static uint32_t initializeCount;
 
-static bool initializeGL()
+static int platformToAnyGL(dsGfxPlatform platform)
+{
+	switch (platform)
+	{
+		case dsGfxPlatform_Wayland:
+			return ANYGL_LOAD_EGL;
+		case dsGfxPlatform_X11:
+#if ANYGL_HAS_GLX
+			return ANYGL_LOAD_GLX;
+#else
+			return ANYGL_LOAD_EGL;
+#endif
+			break;
+		default:
+			return ANYGL_LOAD_DEFAULT;
+	}
+}
+
+static bool initializeGL(int anyglLoad)
 {
 	if (initializeCount > 0)
 	{
@@ -57,7 +74,7 @@ static bool initializeGL()
 		return true;
 	}
 
-	if (!AnyGL_initialize())
+	if (!AnyGL_initialize(anyglLoad))
 		return false;
 
 	initializeCount = 1;
@@ -240,12 +257,13 @@ bool dsGLRenderer_destroy(dsRenderer* renderer)
 	// Since the context is destroyed, don't worry about deleting any associated OpenGL objects.
 	// (especially since some, like FBOs and VAOs, aren't shared across contexts)
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
-	void* display = glRenderer->options.display;
-	dsDestroyGLContext(display, glRenderer->renderContext);
-	dsDestroyGLContext(display, glRenderer->sharedContext);
-	dsDestroyDummyGLSurface(display, glRenderer->dummySurface, glRenderer->dummyOsSurface);
-	dsDestroyGLConfig(display, glRenderer->sharedConfig);
-	dsDestroyGLConfig(display, glRenderer->renderConfig);
+	void* display = glRenderer->options.gfxDisplay;
+	dsGLPlatform_destroyContext(&glRenderer->platform, display, glRenderer->renderContext);
+	dsGLPlatform_destroyContext(&glRenderer->platform, display, glRenderer->sharedContext);
+	dsGLPlatform_destroyDummySurface(&glRenderer->platform, display, &glRenderer->options,
+		glRenderer->dummySurface, glRenderer->dummyOsSurface);
+	dsGLPlatform_destroyConfig(&glRenderer->platform, display, glRenderer->sharedConfig);
+	dsGLPlatform_destroyConfig(&glRenderer->platform, display, glRenderer->renderConfig);
 
 	DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->destroyVaos));
 	DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->destroyFbos));
@@ -278,7 +296,10 @@ bool dsGLRenderer_destroy(dsRenderer* renderer)
 	dsSpinlock_shutdown(&glRenderer->syncRefPoolLock);
 
 	if (glRenderer->releaseDisplay)
-		dsReleaseGLDisplay(glRenderer->options.display);
+	{
+		dsGLPlatform_releaseDisplay(&glRenderer->platform, glRenderer->options.osDisplay,
+			glRenderer->options.gfxDisplay);
+	}
 
 	DS_VERIFY(dsAllocator_free(renderer->allocator, renderer));
 
@@ -324,10 +345,11 @@ bool dsGLRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 	DS_ASSERT(glRenderer->renderContext);
 	DS_ASSERT(glRenderer->renderConfig);
 
-	void* display = glRenderer->options.display;
+	void* display = glRenderer->options.gfxDisplay;
 	dsRendererOptions newOptions = glRenderer->options;
 	newOptions.surfaceSamples = (uint8_t)samples;
-	void* newConfig = dsCreateGLConfig(renderer->allocator, display, &newOptions, true);
+	void* newConfig = dsGLPlatform_createConfig(
+		&glRenderer->platform, renderer->allocator, display, &newOptions, true);
 	if (!newConfig)
 	{
 		errno = EPERM;
@@ -335,19 +357,20 @@ bool dsGLRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 		return false;
 	}
 
-	void* newContext = dsCreateGLContext(renderer->allocator, display, newConfig,
-		glRenderer->sharedContext);
+	void* newContext = dsGLPlatform_createContext(
+		&glRenderer->platform, renderer->allocator, display, newConfig, glRenderer->sharedContext);
 	if (!newContext)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't create OpenGL context.");
-		dsDestroyGLConfig(display, newConfig);
+		dsGLPlatform_destroyConfig(&glRenderer->platform, display, newConfig);
 		return false;
 	}
 
-	DS_VERIFY(dsBindGLContext(display, glRenderer->sharedContext, glRenderer->dummySurface));
-	dsDestroyGLContext(display, glRenderer->renderContext);
-	dsDestroyGLConfig(display, glRenderer->renderConfig);
+	DS_VERIFY(dsGLPlatform_bindContext(
+		&glRenderer->platform, display, glRenderer->sharedContext, glRenderer->dummySurface));
+	dsGLPlatform_destroyContext(&glRenderer->platform, display, glRenderer->renderContext);
+	dsGLPlatform_destroyConfig(&glRenderer->platform, display, glRenderer->renderConfig);
 	glRenderer->renderConfig = newConfig;
 	glRenderer->renderContext = newContext;
 	glRenderer->renderContextBound = false;
@@ -355,7 +378,8 @@ bool dsGLRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 	glRenderer->options.surfaceSamples = (uint8_t)samples;
 	++glRenderer->contextCount;
 
-	renderer->surfaceConfig = dsGetPublicGLConfig(display, glRenderer->renderConfig);
+	renderer->surfaceConfig = dsGLPlatform_getPublicConfig(
+		&glRenderer->platform, display, glRenderer->renderConfig);
 
 	// These objects were associated with the now destroyed context.
 	clearDestroyedObjects(glRenderer);
@@ -418,7 +442,8 @@ bool dsGLRenderer_restoreGlobalState(dsRenderer* renderer)
 		surface = glRenderer->dummySurface;
 	}
 
-	if (!dsBindGLContext(glRenderer->options.display, context, surface))
+	if (!dsGLPlatform_bindContext(
+			&glRenderer->platform, glRenderer->options.gfxDisplay, context, surface))
 	{
 		errno = EPERM;
 		return false;
@@ -426,9 +451,12 @@ bool dsGLRenderer_restoreGlobalState(dsRenderer* renderer)
 	return true;
 }
 
+const bool dsGLRenderer_isGLES = ANYGL_GLES;
+
 bool dsGLRenderer_isSupported(void)
 {
-	bool supported = initializeGL();
+	bool supported = initializeGL(
+		platformToAnyGL(dsRenderer_resolvePlatform(dsGfxPlatform_Default)));
 	shutdownGL();
 	return supported;
 }
@@ -471,7 +499,9 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 
 	dsGfxFormat depthFormat = dsRenderer_optionsDepthFormat(options);
 
-	if (!initializeGL())
+	dsGfxPlatform resolvedPlatform = dsRenderer_resolvePlatform(options->platform);
+	int anyglLoad = platformToAnyGL(resolvedPlatform);
+	if (!initializeGL(anyglLoad))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Cannot initialize OpenGL.");
@@ -482,7 +512,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	void* buffer = dsAllocator_alloc(allocator, bufferSize);
 	if (!buffer)
 	{
-		AnyGL_shutdown();
+		shutdownGL();
 		return NULL;
 	}
 
@@ -492,6 +522,15 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	DS_ASSERT(renderer);
 	memset(renderer, 0, sizeof(*renderer));
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
+
+	if (!dsGLPlatform_initialize(&renderer->platform, anyglLoad))
+	{
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "No available OpenGL load library.");
+		shutdownGL();
+		DS_VERIFY(dsAllocator_free(allocator, renderer));
+		errno = EPERM;
+		return NULL;
+	}
 
 	DS_VERIFY(dsRenderer_initialize(baseRenderer));
 	baseRenderer->allocator = allocator;
@@ -507,17 +546,20 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		renderer->options.shaderCacheDir = stringCopy;
 	}
 
-	if (renderer->options.display)
+	if (renderer->options.gfxDisplay)
 		renderer->releaseDisplay = false;
 	else
 	{
-		renderer->options.display = dsGetGLDisplay();
+		renderer->options.gfxDisplay = dsGLPlatform_getDisplay(
+			&renderer->platform, renderer->options.osDisplay);
 		renderer->releaseDisplay = true;
 	}
 
-	void* display = renderer->options.display;
-	renderer->sharedConfig = dsCreateGLConfig(allocator, display, options, false);
-	renderer->renderConfig = dsCreateGLConfig(allocator, display, options, true);
+	void* display = renderer->options.gfxDisplay;
+	renderer->sharedConfig = dsGLPlatform_createConfig(
+		&renderer->platform, allocator, display, options, false);
+	renderer->renderConfig = dsGLPlatform_createConfig(
+		&renderer->platform, allocator, display, options, true);
 	if (!renderer->sharedConfig || !renderer->renderConfig)
 	{
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't create OpenGL configuration.");
@@ -527,8 +569,8 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
-	renderer->dummySurface = dsCreateDummyGLSurface(allocator, display, renderer->sharedConfig,
-		&renderer->dummyOsSurface);
+	renderer->dummySurface = dsGLPlatform_createDummySurface(&renderer->platform, allocator,
+		display, options, renderer->sharedConfig, &renderer->dummyOsSurface);
 	if (!renderer->dummySurface)
 	{
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't create dummy OpenGL surface.");
@@ -537,8 +579,8 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
-	renderer->sharedContext = dsCreateGLContext(allocator, display, renderer->sharedConfig,
-		NULL);
+	renderer->sharedContext = dsGLPlatform_createContext(
+		&renderer->platform, allocator, display, renderer->sharedConfig, NULL);
 	if (!renderer->sharedContext)
 	{
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't create OpenGL context.");
@@ -547,7 +589,8 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
-	if (!dsBindGLContext(display, renderer->sharedContext, renderer->dummySurface))
+	if (!dsGLPlatform_bindContext(
+			&renderer->platform, display, renderer->sharedContext, renderer->dummySurface))
 	{
 		dsGLRenderer_destroy(baseRenderer);
 		errno = EPERM;
@@ -622,8 +665,8 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	renderer->options.surfaceSamples = (uint8_t)dsMin(renderer->options.surfaceSamples, maxSamples);
 	renderer->options.defaultSamples = (uint8_t)dsMin(renderer->options.defaultSamples, maxSamples);
 
-	renderer->renderContext = dsCreateGLContext(allocator, display, renderer->renderConfig,
-		renderer->sharedContext);
+	renderer->renderContext = dsGLPlatform_createContext(
+		&renderer->platform, allocator, display, renderer->renderConfig, renderer->sharedContext);
 	if (!renderer->renderContext)
 	{
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't create GL context.");
@@ -646,30 +689,13 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
-#if DS_LINUX
-	/*
-	 * TODO: Support Wayland when using EGL.
-	 *
-	 * Currently blocked by no pbuffer support, which appears to be in a state of "we will never do
-	 * it," at least for Mesa. This means the dummy surface would have to be a window, but unknown
-	 * right now how this could be done without creating a physical, visible window.
-	 *
-	 * The display would also have to also be passed through, ensuring that a Wayland display is
-	 * used. This also requires the exact same surface instance as the window was created with, as
-	 * connecting to the default display multiple times does not yield the same instance. Currently
-	 * not sure how best to do that as the display is needed to initialize OpenGL and the display is
-	 * tied to a window for frameworks like SDL.
-	 */
-	baseRenderer->platform = dsGfxPlatform_X11;
-#else
-	baseRenderer->platform = dsRenderer_resolvePlatform(options->platform);
-#endif
+	baseRenderer->platform = resolvedPlatform;
 	if (ANYGL_GLES)
 		baseRenderer->rendererID = DS_GLES_RENDERER_ID;
 	else
 		baseRenderer->rendererID = DS_GL_RENDERER_ID;
 
-	switch (ANYGL_LOAD)
+	switch (anyglLoad)
 	{
 		case ANYGL_LOAD_EGL:
 			baseRenderer->platformID = DS_EGL_RENDERER_PLATFORM_ID;
@@ -695,8 +721,8 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 
 	baseRenderer->surfaceColorFormat = colorFormat;
 	baseRenderer->surfaceDepthStencilFormat = depthFormat;
-	baseRenderer->surfaceConfig = dsGetPublicGLConfig(renderer->options.display,
-		renderer->renderConfig);
+	baseRenderer->surfaceConfig = dsGLPlatform_getPublicConfig(
+		&renderer->platform, renderer->options.gfxDisplay, renderer->renderConfig);
 	baseRenderer->surfaceSamples = options->surfaceSamples;
 	baseRenderer->defaultSamples = options->defaultSamples;
 	baseRenderer->defaultAnisotropy = 1;
@@ -808,7 +834,8 @@ bool dsGLRenderer_bindSurface(dsRenderer* renderer, void* glSurface)
 	bool setVSync = glRenderer->curGLSurfaceVSync != vsyncEnabled;
 	if (glSurface != glRenderer->curGLSurface)
 	{
-		if (!dsBindGLContext(glRenderer->options.display, glRenderer->renderContext, glSurface))
+		if (!dsGLPlatform_bindContext(&glRenderer->platform, glRenderer->options.gfxDisplay,
+				glRenderer->renderContext, glSurface))
 		{
 			errno = EPERM;
 			DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Failed to bind render surface. It may have been"
@@ -828,7 +855,8 @@ bool dsGLRenderer_bindSurface(dsRenderer* renderer, void* glSurface)
 
 	if (setVSync)
 	{
-		dsSetGLVSync(glRenderer->options.display, glSurface, vsyncEnabled);
+		dsGLPlatform_setVSync(
+			&glRenderer->platform, glRenderer->options.gfxDisplay, glSurface, vsyncEnabled);
 		glRenderer->curGLSurfaceVSync = renderer->vsync;
 	}
 
@@ -842,8 +870,8 @@ void dsGLRenderer_destroySurface(dsRenderer* renderer, void* glSurface)
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
 	if (glRenderer->curGLSurface == glSurface)
 	{
-		DS_VERIFY(dsBindGLContext(glRenderer->options.display, glRenderer->sharedContext,
-			glRenderer->dummySurface));
+		DS_VERIFY(dsGLPlatform_bindContext(&glRenderer->platform, glRenderer->options.gfxDisplay,
+			glRenderer->sharedContext, glRenderer->dummySurface));
 		glRenderer->curGLSurface = NULL;
 		glRenderer->renderContextBound = false;
 	}

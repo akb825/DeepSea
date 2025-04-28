@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-#include "Platform/GLPlatform.h"
-#include "AnyGL/AnyGL.h"
+#include "Platform/GLPlatformEGL.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Profile.h>
 #include <string.h>
 
-#if ANYGL_LOAD == ANYGL_LOAD_EGL
+#if ANYGL_HAS_EGL
 #include <EGL/egl.h>
 
 #ifndef EGL_VERSION_1_5
@@ -57,14 +56,22 @@ static EGLint eglMajor;
 static EGLint eglMinor;
 static bool hasColorspace;
 
+#if !ANYGL_GLES
+static GLint glVersions[][2] =
+{
+	{4, 6}, {4, 5}, {4, 4}, {4, 3}, {4, 2}, {4, 1}, {4, 0},
+	{3, 3}, {3, 2}, {3, 1}, {3, 0}
+};
+#endif
+
 static bool atLeastVersion(EGLint major, EGLint minor)
 {
 	return eglMajor > major || (eglMajor == major && eglMinor >= minor);
 }
 
-void* dsGetGLDisplay(void)
+void* dsGetEGLDisplay(void* osDisplay)
 {
-	EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+	EGLDisplay display = eglGetDisplay((EGLNativeDisplayType)osDisplay);
 	if (!display)
 		return NULL;
 
@@ -74,13 +81,14 @@ void* dsGetGLDisplay(void)
 	return display;
 }
 
-void dsReleaseGLDisplay(void* display)
+void dsReleaseEGLDisplay(void* osDisplay, void* gfxDisplay)
 {
-	eglTerminate((EGLDisplay)display);
+	DS_UNUSED(osDisplay);
+	eglTerminate((EGLDisplay)gfxDisplay);
 }
 
-void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOptions* options,
-	bool render)
+void* dsCreateEGLConfig(dsAllocator* allocator, void* display, const dsRendererOptions* options,
+	GLContextType contextType)
 {
 	if (!allocator || !display)
 	{
@@ -99,7 +107,7 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 	addOption(attr, &optionCount, EGL_RENDERABLE_TYPE, 0);
 	GLint surfaces = EGL_WINDOW_BIT;
 	// Use pbuffer as a dummy surface.
-	if (!render)
+	if (contextType == GLContextType_SharedDummySurface)
 		surfaces |= EGL_PBUFFER_BIT;
 	addOption(attr, &optionCount, EGL_SURFACE_TYPE, surfaces);
 	addOption(attr, &optionCount, EGL_RED_SIZE, options->redBits);
@@ -108,7 +116,7 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 	addOption(attr, &optionCount, EGL_ALPHA_SIZE, options->alphaBits);
 	addOption(attr, &optionCount, EGL_DEPTH_SIZE, options->depthBits);
 	addOption(attr, &optionCount, EGL_STENCIL_SIZE, options->stencilBits);
-	if (render && options->surfaceSamples > 1)
+	if (contextType == GLContextType_Render && options->surfaceSamples > 1)
 	{
 		addOption(attr, &optionCount, EGL_SAMPLE_BUFFERS, 1);
 		addOption(attr, &optionCount, EGL_SAMPLES, options->surfaceSamples);
@@ -171,12 +179,6 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 		return NULL;
 	}
 
-	static GLint glVersions[][2] =
-	{
-		{4, 6}, {4, 5}, {4, 4}, {4, 3}, {4, 2}, {4, 1}, {4, 0},
-		{3, 3}, {3, 2}, {3, 1}, {3, 0}
-	};
-
 	GLint contextAttr[] =
 	{
 		EGL_CONTEXT_MAJOR_VERSION, 0,
@@ -205,14 +207,14 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 	return config;
 }
 
-void* dsGetPublicGLConfig(void* display, void* config)
+void* dsGetPublicEGLConfig(void* display, void* config)
 {
 	DS_UNUSED(display);
 	DS_UNUSED(config);
 	return NULL;
 }
 
-void dsDestroyGLConfig(void* display, void* config)
+void dsDestroyEGLConfig(void* display, void* config)
 {
 	DS_UNUSED(display);
 	Config* configPtr = (Config*)config;
@@ -223,7 +225,7 @@ void dsDestroyGLConfig(void* display, void* config)
 		dsAllocator_free(configPtr->allocator, configPtr);
 }
 
-void* dsCreateGLContext(dsAllocator* allocator, void* display, void* config, void* shareContext)
+void* dsCreateEGLContext(dsAllocator* allocator, void* display, void* config, void* shareContext)
 {
 	DS_UNUSED(allocator);
 	Config* configPtr = (Config*)config;
@@ -251,7 +253,7 @@ void* dsCreateGLContext(dsAllocator* allocator, void* display, void* config, voi
 	return eglCreateContext((EGLDisplay)display, configPtr->config, (EGLContext)shareContext, attr);
 }
 
-void dsDestroyGLContext(void* display, void* context)
+void dsDestroyEGLContext(void* display, void* context)
 {
 	if (!context)
 		return;
@@ -259,7 +261,7 @@ void dsDestroyGLContext(void* display, void* context)
 	eglDestroyContext((EGLDisplay)display, (EGLContext)context);
 }
 
-void* dsCreateDummyGLSurface(dsAllocator* allocator, void* display, void* config, void** osSurface)
+void* dsCreateDummyEGLSurface(dsAllocator* allocator, void* display, void* config, void** osSurface)
 {
 	DS_UNUSED(allocator);
 	DS_UNUSED(osSurface);
@@ -271,7 +273,7 @@ void* dsCreateDummyGLSurface(dsAllocator* allocator, void* display, void* config
 	return eglCreatePbufferSurface((EGLDisplay)display, configPtr->config, attr);
 }
 
-void dsDestroyDummyGLSurface(void* display, void* surface, void* osSurface)
+void dsDestroyDummyEGLSurface(void* display, void* surface, void* osSurface)
 {
 	DS_UNUSED(osSurface);
 	if (!surface)
@@ -280,7 +282,7 @@ void dsDestroyDummyGLSurface(void* display, void* surface, void* osSurface)
 	eglDestroySurface((EGLDisplay)display, (EGLSurface)surface);
 }
 
-void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
+void* dsCreateEGLSurface(dsAllocator* allocator, void* display, void* config,
 	dsRenderSurfaceType surfaceType, void* handle)
 {
 	DS_UNUSED(allocator);
@@ -323,7 +325,7 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 	}
 }
 
-bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
+bool dsGetEGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
 	dsRenderSurfaceType surfaceType, void* surface)
 {
 	DS_UNUSED(surfaceType);
@@ -341,7 +343,7 @@ bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
 	return true;
 }
 
-void dsSwapGLBuffers(void* display, dsRenderSurface** renderSurfaces, uint32_t count, bool vsync)
+void dsSwapEGLBuffers(void* display, dsRenderSurface** renderSurfaces, uint32_t count, bool vsync)
 {
 	DS_UNUSED(vsync);
 	for (size_t i = 0; i < count; ++i)
@@ -351,7 +353,7 @@ void dsSwapGLBuffers(void* display, dsRenderSurface** renderSurfaces, uint32_t c
 	}
 }
 
-void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* surface)
+void dsDestroyEGLSurface(void* display, dsRenderSurfaceType surfaceType, void* surface)
 {
 	if (!surface)
 		return;
@@ -367,7 +369,7 @@ void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* su
 	}
 }
 
-bool dsBindGLContext(void* display, void* context, void* surface)
+bool dsBindEGLContext(void* display, void* context, void* surface)
 {
 	DS_PROFILE_FUNC_START();
 	if (!eglMakeCurrent((EGLDisplay)display, (EGLSurface)surface, (EGLSurface)surface,
@@ -380,16 +382,16 @@ bool dsBindGLContext(void* display, void* context, void* surface)
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
-void* dsGetCurrentGLContext(void* display)
+void* dsGetCurrentEGLContext(void* display)
 {
 	DS_UNUSED(display);
 	return eglGetCurrentContext();
 }
 
-void dsSetGLVSync(void* display, void* surface, bool vsync)
+void dsSetEGLVSync(void* display, void* surface, bool vsync)
 {
 	DS_UNUSED(surface);
 	eglSwapInterval((EGLDisplay)display, vsync);
 }
 
-#endif // ANYGL_LOAD
+#endif // ANYGL_HAS_EGL

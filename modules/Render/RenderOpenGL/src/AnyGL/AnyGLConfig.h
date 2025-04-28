@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017-2025 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #pragma once
 #ifndef __AnyGLConfig_h_
 #define __AnyGLConfig_h_ 1
@@ -59,16 +75,49 @@
 #define ANYGL_LOAD_WGL  2
 #define ANYGL_LOAD_GLX  3
 
-/* #define this to override the default library. */
-#ifndef ANYGL_LOAD
-#if ANYGL_APPLE
-#	define ANYGL_LOAD ANYGL_LOAD_FPTR
-#elif ANYGL_GLES || ANYGL_FORCE_EGL
-#	define ANYGL_LOAD ANYGL_LOAD_EGL
-#elif ANYGL_WINDOWS
-#	define ANYGL_LOAD ANYGL_LOAD_WGL
+/* Which load methods are available. These can be manually defined if needed. */
+#ifndef ANYGL_HAS_FPTR
+#if ANGL_APPLE
+#	define ANYGL_HAS_FPTR 1
 #else
-#	define ANYGL_LOAD ANYGL_LOAD_GLX
+#	define ANYGL_HAS_FPTR 0
+#endif
+#endif
+
+#ifndef ANYGL_HAS_EGL
+#if ANYGL_GLES || ANYGL_FORCE_EGL
+#	define ANYGL_HAS_EGL 1
+#else
+#	define ANYGL_HAS_EGL 0
+#endif
+#endif
+
+#ifndef ANYGL_HAS_WGL
+#if ANYGL_WINDOWS
+#	define ANYGL_HAS_WGL 1
+#else
+#	define ANYGL_HAS_WGL 0
+#endif
+#endif
+
+#ifndef ANYGL_HAS_GLX
+#if !ANYGL_APPLE && !ANYGL_GLES && !ANYGL_WINDOWS
+#	define ANYGL_HAS_GLX 1
+#else
+#	define ANYGL_HAS_GLX 0
+#endif
+#endif
+
+/* #define this to override the default library. */
+#ifndef ANYGL_LOAD_DEFAULT
+#if ANYGL_APPLE
+#	define ANYGL_LOAD_DEFAULT ANYGL_LOAD_FPTR
+#elif ANYGL_GLES || ANYGL_FORCE_EGL
+#	define ANYGL_LOAD_DEFAULT ANYGL_LOAD_EGL
+#elif ANYGL_WINDOWS
+#	define ANYGL_LOAD_DEFAULT ANYGL_LOAD_WGL
+#else
+#	define ANYGL_LOAD_DEFAULT ANYGL_LOAD_GLX
 #endif
 #endif
 

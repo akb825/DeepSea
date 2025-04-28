@@ -1,7 +1,7 @@
 #include "AnyGL.h"
 #include "gl.h"
 
-#if ANYGL_LOAD == ANYGL_LOAD_EGL && ANYGL_GLES == 0
+#if ANYGL_HAS_EGL && ANYGL_GLES == 0
 #include <EGL/egl.h>
 #include <dlfcn.h>
 #include <stddef.h>
@@ -14,7 +14,7 @@ void AnyGL_initDebug(void);
 void AnyGL_clearFunctionPointers(void);
 static void* gllib;
 
-int AnyGL_initialize(void)
+int AnyGL_EGL_initialize(void)
 {
 	if (gllib)
 		return 1;
@@ -22,7 +22,7 @@ int AnyGL_initialize(void)
 	return gllib != NULL;
 }
 
-void AnyGL_shutdown(void)
+void AnyGL_EGL_shutdown(void)
 {
 	if (gllib)
 	{
@@ -31,7 +31,7 @@ void AnyGL_shutdown(void)
 	}
 }
 
-int AnyGL_load(void)
+int AnyGL_EGL_load(void)
 {
 	if (!gllib || !eglGetCurrentContext())
 		return 0;

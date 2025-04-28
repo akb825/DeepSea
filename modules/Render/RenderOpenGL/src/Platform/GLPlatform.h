@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,25 +19,34 @@
 #include <DeepSea/Core/Config.h>
 #include "GLTypes.h"
 
-void* dsGetGLDisplay(void);
-void dsReleaseGLDisplay(void* display);
-void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOptions* options,
-	bool render);
-void* dsGetPublicGLConfig(void* display, void* config);
-void dsDestroyGLConfig(void* display, void* config);
-void* dsCreateGLContext(dsAllocator* allocator, void* display, void* config, void* shareContext);
-void dsDestroyGLContext(void* display, void* context);
-void* dsCreateDummyGLSurface(dsAllocator* allocator, void* display, void* config, void** osSurface);
-void dsDestroyDummyGLSurface(void* display, void* surface, void* osSurface);
+bool dsGLPlatform_initialize(dsGLPlatform* platform, int anyglLoad);
 
-void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
-	dsRenderSurfaceType surfaceType, void* handle);
-bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
-	dsRenderSurfaceType surfaceType, void* surface);
-void dsSwapGLBuffers(void* display, dsRenderSurface** renderSurfaces, uint32_t count, bool vsync);
-void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* surface);
+void* dsGLPlatform_getDisplay(const dsGLPlatform* platform, void* osDisplay);
+void dsGLPlatform_releaseDisplay(const dsGLPlatform* platform, void* osDisplay, void* gfxDisplay);
+void* dsGLPlatform_createConfig(const dsGLPlatform* platform, dsAllocator* allocator, void* display,
+	const dsRendererOptions* options, bool render);
+void* dsGLPlatform_getPublicConfig(const dsGLPlatform* platform, void* display, void* config);
+void dsGLPlatform_destroyConfig(const dsGLPlatform* platform, void* display, void* config);
+void* dsGLPlatform_createContext(const dsGLPlatform* platform, dsAllocator* allocator,
+	void* display, void* config, void* shareContext);
+void dsGLPlatform_destroyContext(const dsGLPlatform* platform, void* display, void* context);
+void* dsGLPlatform_createDummySurface(const dsGLPlatform* platform, dsAllocator* allocator,
+	void* display, const dsRendererOptions* options, void* config, void** osSurface);
+void dsGLPlatform_destroyDummySurface(
+	const dsGLPlatform* platform, void* display, const dsRendererOptions* options, void* surface,
+	void* osSurface);
 
-bool dsBindGLContext(void* display, void* context, void* surface);
-void* dsGetCurrentGLContext(void* display);
+void* dsGLPlatform_createSurface(const dsGLPlatform* platform, dsAllocator* allocator,
+	void* display, void* config, dsRenderSurfaceType surfaceType, void* handle);
+bool dsGLPlatform_getSurfaceSize(uint32_t* outWidth, uint32_t* outHeight,
+	const dsGLPlatform* platform, void* display, dsRenderSurfaceType surfaceType, void* surface);
+void dsGLPlatform_swapBuffers(const dsGLPlatform* platform, void* display,
+	dsRenderSurface** renderSurfaces, uint32_t count, bool vsync);
+void dsGLPlatform_destroySurface(
+	const dsGLPlatform* platform, void* display, dsRenderSurfaceType surfaceType, void* surface);
 
-void dsSetGLVSync(void* display, void* surface, bool vsync);
+bool dsGLPlatform_bindContext(
+	const dsGLPlatform* platform, void* display, void* context, void* surface);
+void* dsGLPlatform_getCurrentContext(const dsGLPlatform* platform, void* display);
+
+void dsGLPlatform_setVSync(const dsGLPlatform* platform, void* display, void* surface, bool vsync);

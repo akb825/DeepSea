@@ -41,6 +41,7 @@
 #include <DeepSea/Render/RenderSurface.h>
 
 #include <SDL.h>
+#include <SDL_syswm.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -110,6 +111,41 @@ static uint32_t showMessageBoxImpl(SDL_Window* parentWindow, dsMessageBoxType ty
 
 	return buttonId;
 }
+
+#if defined(SDL_VIDEO_DRIVER_WAYLAND)
+
+static void* createBackgroundGLWindow(void* userData, dsRenderSurfaceType surfaceType)
+{
+	DS_UNUSED(userData);
+	DS_UNUSED(surfaceType);
+	DS_ASSERT(surfaceType == dsRenderSurfaceType_Window);
+	return SDL_CreateWindow("background", 0, 0, 1, 1, SDL_WINDOW_HIDDEN);
+}
+
+static void destroyBackgroundGLWindow(void* userData, dsRenderSurfaceType surfaceType, void* surface)
+{
+	DS_UNUSED(userData);
+	DS_UNUSED(surfaceType);
+	DS_ASSERT(surfaceType == dsRenderSurfaceType_Window);
+	DS_ASSERT(surface);
+	SDL_DestroyWindow((SDL_Window*)surface);
+}
+
+static void* getWaylandGLWindowHandle(
+	void* userData, dsRenderSurfaceType surfaceType, void* surface)
+{
+	DS_UNUSED(userData);
+	DS_UNUSED(surfaceType);
+	DS_ASSERT(surfaceType == dsRenderSurfaceType_Window);
+	DS_ASSERT(surface);
+
+	SDL_SysWMinfo info;
+	SDL_VERSION(&info.version);
+	DS_VERIFY(SDL_GetWindowWMInfo((SDL_Window*)surface, &info));
+	return info.info.wl.egl_window;
+}
+
+#endif // SDL_VIDEO_DRIVER_WAYLAND
 
 static dsWindow* findWindow(dsApplication* application, uint32_t windowId)
 {
@@ -339,6 +375,61 @@ uint32_t dsSDLApplication_showMessageBoxBase(dsApplication* application,
 	SDL_Window* sdlWindow = parentWindow ? ((dsSDLWindow*)parentWindow)->sdlWindow : NULL;
 	return showMessageBoxImpl(sdlWindow, type, title, message, buttons, buttonCount, enterButton,
 		escapeButton);
+}
+
+bool dsSDLApplication_prepareRendererOptions(dsRendererOptions* options, uint32_t rendererID)
+{
+#if defined(SDL_VIDEO_DRIVER_WAYLAND)
+	options->platform = dsRenderer_resolvePlatform(options->platform);
+	// Only need special render surface handling for OpenGL on Wayland.
+	if ((rendererID != DS_GL_RENDERER_ID && rendererID != DS_GLES_RENDERER_ID) ||
+		options->platform != dsGfxPlatform_Wayland)
+	{
+		return true;
+	}
+
+	// TODO: With SDL3, set SDL_PROP_WINDOW_CREATE_WAYLAND_CREATE_EGL_WINDOW_BOOLEAN property to
+	// true. For now, there is no way to create the EGL window without the surface, so force to
+	// x11.
+	options->platform = dsGfxPlatform_X11;
+	return true;
+
+	if (SDL_VideoInit("wayland") != 0)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't initialize SDL video: %s",
+			SDL_GetError());
+		SDL_Quit();
+		return false;
+	}
+
+	// Need to create an initial window to set the display.
+	SDL_Window* tempWindow = SDL_CreateWindow("background", 0, 0, 1, 1, SDL_WINDOW_HIDDEN);
+	if (!tempWindow)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't create SDL window: %s",
+			SDL_GetError());
+		SDL_Quit();
+		return false;
+	}
+
+	SDL_SysWMinfo info;
+	SDL_VERSION(&info.version);
+	DS_VERIFY(SDL_GetWindowWMInfo(tempWindow, &info));
+	options->osDisplay = info.info.wl.display;
+	SDL_DestroyWindow(tempWindow);
+
+	options->backgroundSurfaceType = dsRenderSurfaceType_Window;
+	options->createBackgroundSurfaceFunc = &createBackgroundGLWindow;
+	options->destroyBackgroundSurfaceFunc = &destroyBackgroundGLWindow;
+	options->getBackgroundSurfaceHandleFunc = &getWaylandGLWindowHandle;
+	return true;
+#else
+	DS_UNUSED(options);
+	DS_UNUSED(rendererID);
+	return true;
+#endif
 }
 
 int dsSDLApplication_run(dsApplication* application)
@@ -1101,7 +1192,10 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 #elif DS_MAC
 	driver = "cocoa";
 #endif
-	if (SDL_VideoInit(driver) != 0)
+	// May have already been initialized when setting up renderer options.
+	const char* curDriver = SDL_GetCurrentVideoDriver();
+	bool shouldInitVideo = !curDriver || strcmp(curDriver, driver) != 0;
+	if (shouldInitVideo && SDL_VideoInit(driver) != 0)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't initialize SDL video: %s",

@@ -38,9 +38,9 @@ dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	DS_UNUSED(heightHint);
 
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
-	void* display = glRenderer->options.display;
-	void* glSurface = dsCreateGLSurface(
-		allocator, display, glRenderer->renderConfig, type, osHandle);
+	void* display = glRenderer->options.gfxDisplay;
+	void* glSurface = dsGLPlatform_createSurface(
+		&glRenderer->platform, allocator, display, glRenderer->renderConfig, type, osHandle);
 	if (!glSurface)
 	{
 		errno = EPERM;
@@ -52,7 +52,7 @@ dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
-		dsDestroyGLSurface(display, type, glSurface);
+		dsGLPlatform_destroySurface(&glRenderer->platform, display, type, glSurface);
 		return NULL;
 	}
 
@@ -71,8 +71,8 @@ dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	baseSurface->surfaceType = type;
 	baseSurface->usage = usage;
 	baseSurface->rotation = dsRenderSurfaceRotation_0;
-	DS_VERIFY(dsGetGLSurfaceSize(&baseSurface->width, &baseSurface->height, display, type,
-		glSurface));
+	DS_VERIFY(dsGLPlatform_getSurfaceSize(&baseSurface->width, &baseSurface->height,
+		&glRenderer->platform, display, type, glSurface));
 	baseSurface->preRotateWidth = baseSurface->width;
 	baseSurface->preRotateHeight = baseSurface->height;
 
@@ -89,11 +89,11 @@ bool dsGLRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 	DS_UNUSED(heightHint);
 
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
-	void* display = glRenderer->options.display;
+	void* display = glRenderer->options.gfxDisplay;
 
 	uint32_t width, height;
-	DS_VERIFY(dsGetGLSurfaceSize(&width, &height, display, renderSurface->surfaceType,
-		((dsGLRenderSurface*)renderSurface)->glSurface));
+	DS_VERIFY(dsGLPlatform_getSurfaceSize(&width, &height, &glRenderer->platform, display,
+		renderSurface->surfaceType, ((dsGLRenderSurface*)renderSurface)->glSurface));
 	if (width == renderSurface->width && height == renderSurface->height)
 		return false;
 
@@ -141,8 +141,9 @@ bool dsGLRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** rende
 	glFlush();
 	if (!renderer->singleBuffer)
 	{
-		dsSwapGLBuffers(((dsGLRenderer*)renderer)->options.display, renderSurfaces, count,
-			renderer->vsync != dsVSync_Disabled);
+		dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+		dsGLPlatform_swapBuffers(&glRenderer->platform, glRenderer->options.gfxDisplay,
+			renderSurfaces, count, renderer->vsync != dsVSync_Disabled);
 	}
 	return true;
 }
@@ -152,11 +153,13 @@ bool dsGLRenderSurface_destroy(dsRenderer* renderer, dsRenderSurface* renderSurf
 	DS_ASSERT(renderer);
 	DS_ASSERT(renderSurface);
 
-	void* display = ((dsGLRenderer*)renderer)->options.display;
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	void* display = glRenderer->options.gfxDisplay;
 	void* glSurface = ((dsGLRenderSurface*)renderSurface)->glSurface;
 	DS_ASSERT(glSurface);
 	dsGLRenderer_destroySurface(renderer, glSurface);
-	dsDestroyGLSurface(display, renderSurface->surfaceType, glSurface);
+	dsGLPlatform_destroySurface(
+		&glRenderer->platform, display, renderSurface->surfaceType, glSurface);
 	if (renderSurface->allocator)
 		return dsAllocator_free(renderSurface->allocator, renderSurface);
 	return true;

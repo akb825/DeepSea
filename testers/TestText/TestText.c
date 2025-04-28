@@ -1342,6 +1342,13 @@ int dsMain(int argc, const char** argv)
 	rendererOptions.depthBits = 0;
 	rendererOptions.stencilBits = 0;
 	rendererOptions.surfaceSamples = 4;
+	if (!dsSDLApplication_prepareRendererOptions(
+			&rendererOptions, dsRenderBootstrap_rendererID(rendererType)))
+	{
+		DS_LOG_ERROR_F("TestText", "Couldn't setup renderer options.");
+		return 0;
+	}
+
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
 		(dsAllocator*)&renderAllocator, &rendererOptions);
 	if (!renderer)

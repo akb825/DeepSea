@@ -191,24 +191,24 @@ void dsVkGetImageMemoryRequirements(const dsVkDevice* device, VkImage image,
 {
 	if (device->hasDedicatedAllocation)
 	{
-		VkImageMemoryRequirementsInfo2KHR requirementsInfo =
+		VkImageMemoryRequirementsInfo2 requirementsInfo =
 		{
-			VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2_KHR,
+			VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2,
 			NULL,
 			image
 		};
 
-		VkMemoryDedicatedRequirementsKHR dedicatedRequirements =
+		VkMemoryDedicatedRequirements dedicatedRequirements =
 		{
-			VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS_KHR,
+			VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS,
 			NULL,
 			false,
 			false
 		};
 
-		VkMemoryRequirements2KHR memoryRequirements =
+		VkMemoryRequirements2 memoryRequirements =
 		{
-			VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2_KHR,
+			VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2,
 			&dedicatedRequirements
 		};
 
@@ -322,9 +322,9 @@ VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
 		memoryIndex
 	};
 
-	VkMemoryDedicatedAllocateInfoKHR dedicatedInfo =
+	VkMemoryDedicatedAllocateInfo dedicatedInfo =
 	{
-		VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO_KHR,
+		VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
 		NULL,
 		dedicatedImage,
 		dedicatedBuffer

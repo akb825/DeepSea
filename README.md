@@ -159,7 +159,6 @@ To build the examples, an Android Studio project is provided in the android subd
 
 * `-DDEEPSEA_GLES=ON|OFF`: Set to `ON` to use OpenGL ES instead of desktop OpenGL. Defaults to `OFF`.
 * `-DDEEPSEA_TARGET_GLES_VERSION=##`: Set to the target OpenGL ES version times 10. This is currently only used for Apple platforms, and will be the maximum version number supported. Defaults to `30`.
-* `-DDEEPSEA_PREFER_EGL=ON|OFF`: Set to `ON` to use EGL instead of the platform-specifc loader when available. If EGL can't be found, it will fall back to the platform-specific loader. Defaults to `OFF`.
 
 ## Miscellaneous Options:
 

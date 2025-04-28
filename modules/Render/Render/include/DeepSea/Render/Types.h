@@ -414,6 +414,33 @@ typedef struct dsRenderDeviceInfo
 } dsRenderDeviceInfo;
 
 /**
+ * @brief Function to create a background surface.
+ * @param userData User data to aid with managing background surfaces.
+ * @param surfaceType The render surface type.
+ */
+typedef void* (*dsCreateBackgroundRenderSurfaceFunction)(
+	void* userData, dsRenderSurfaceType surfaceType);
+
+/**
+ * @brief Function to destroy a background surface.
+ * @param userData User data to aid with managing background surfaces.
+ * @param surfaceType The render surface type.
+ * @param surface The surface to destroy.
+ */
+typedef void (*dsDestroyBackgroundRenderSurfaceFunction)(
+	void* userData, dsRenderSurfaceType surfaceType, void* surface);
+
+/**
+ * @brief Function to get the handle for a background surface.
+ * @param userData User data to aid with managing background surfaces.
+ * @param surfaceType The render surface type.
+ * @param surface The surface to get the handle from.
+ * @return The window handle to be used directly from the renderer.
+ */
+typedef void* (*dsGetBackgroundRenderSurfaceHandleFunction)(
+	void* userData, dsRenderSurfaceType surfaceType, void* surface);
+
+/**
  * @brief Struct containing the otpions for initializing a renderer.
  */
 typedef struct dsRendererOptions
@@ -424,9 +451,44 @@ typedef struct dsRendererOptions
 	dsGfxPlatform platform;
 
 	/**
-	 * @brief The platform display.
+	 * @brief The surface type when background surface creation/destruction functions are provided.
 	 */
-	void* display;
+	dsRenderSurfaceType backgroundSurfaceType;
+
+	/**
+	 * @brief The OS display.
+	 */
+	void* osDisplay;
+
+	/**
+	 * @brief The already initialized graphics display for the renderer type.
+	 */
+	void* gfxDisplay;
+
+	/**
+	 * @brief User data for managing background windows.
+	 */
+	void* backgroundSurfaceUserData;
+
+	/**
+	 * @brief Function for creating a background window.
+	 *
+	 * Background windows are used when a graphics device must be bound with a window for
+	 * non-rendering operations.
+	 */
+	dsCreateBackgroundRenderSurfaceFunction createBackgroundSurfaceFunc;
+
+	/**
+	 * @brief Function for destroying a background window.
+	 */
+	dsDestroyBackgroundRenderSurfaceFunction destroyBackgroundSurfaceFunc;
+
+	/**
+	 * @brief Function for getting the handle for a background surface.
+	 *
+	 * If NULL, the surface returned from createBackgroundSurfaceFunc will be used directly.
+	 */
+	dsGetBackgroundRenderSurfaceHandleFunction getBackgroundSurfaceHandleFunc;
 
 	/**
 	 * @brief The name of the application.

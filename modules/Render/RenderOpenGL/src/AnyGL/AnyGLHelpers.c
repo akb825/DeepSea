@@ -1,9 +1,106 @@
+/*
+ * Copyright 2017-2025 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "AnyGL.h"
 #include "gl.h"
+#include <stddef.h>
 #include <string.h>
 #include <stdio.h>
 
+#if ANYGL_HAS_FPTR
+int AnyGL_FPTR_initialize(void);
+int AnyGL_FPTR_load(void);
+void AnyGL_FPTR_shutdown(void);
+#endif
+
+#if ANYGL_HAS_EGL
+int AnyGL_EGL_initialize(void);
+int AnyGL_EGL_load(void);
+void AnyGL_EGL_shutdown(void);
+#endif
+
+#if ANYGL_HAS_WGL
+int AnyGL_WGL_initialize(void);
+int AnyGL_WGL_load(void);
+void AnyGL_WGL_shutdown(void);
+#endif
+
+#if ANYGL_HAS_GLX
+int AnyGL_GLX_initialize(void);
+int AnyGL_GLX_load(void);
+void AnyGL_GLX_shutdown(void);
+#endif
+
 static int majorVersion;
 static int minorVersion;
+static int (*loadFunc)(void);
+static void (*shutdownFunc)(void);
+
+int AnyGL_initialize(int loadLib)
+{
+	switch (loadLib)
+	{
+#if ANYGL_HAS_FPTR
+		case ANYGL_LOAD_FPTR:
+			if (AnyGL_FPTR_initialize())
+			{
+				loadFunc = &AnyGL_FPTR_load;
+				shutdownFunc = &AnyGL_FPTR_shutdown;
+				return 1;
+			}
+			return 0;
+#endif
+#if ANYGL_HAS_EGL
+		case ANYGL_LOAD_EGL:
+			if (AnyGL_EGL_initialize())
+			{
+				loadFunc = &AnyGL_EGL_load;
+				shutdownFunc = &AnyGL_EGL_shutdown;
+				return 1;
+			}
+			return 0;
+#endif
+#if ANYGL_HAS_WGL
+		case ANYGL_LOAD_WGL:
+			if (AnyGL_WGL_initialize())
+			{
+				loadFunc = &AnyGL_WGL_load;
+				shutdownFunc = &AnyGL_WGL_shutdown;
+				return 1;
+			}
+			return 0;
+#endif
+#if ANYGL_HAS_GLX
+		case ANYGL_LOAD_GLX:
+			if (AnyGL_GLX_initialize())
+			{
+				loadFunc = &AnyGL_GLX_load;
+				shutdownFunc = &AnyGL_GLX_shutdown;
+				return 1;
+			}
+			return 0;
+#endif
+	}
+	return 0;
+}
+
+int AnyGL_load(void)
+{
+	return loadFunc && loadFunc();
+}
 
 void AnyGL_getGLVersion(int* major, int* minor, int* es)
 {
@@ -24,6 +121,14 @@ int AnyGL_atLeastVersion(int major, int minor, int es)
 		return 1;
 
 	return 0;
+}
+
+void AnyGL_shutdown(void)
+{
+	if (shutdownFunc)
+		shutdownFunc();
+	loadFunc = NULL;
+	shutdownFunc = NULL;
 }
 
 int AnyGL_updateGLVersion(void)

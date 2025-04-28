@@ -470,6 +470,13 @@ int dsMain(int argc, const char** argv)
 	rendererOptions.stencilBits = 0;
 	rendererOptions.surfaceSamples = 4;
 	rendererOptions.maxResourceThreads = 1;
+	if (!dsSDLApplication_prepareRendererOptions(
+			&rendererOptions, dsRenderBootstrap_rendererID(rendererType)))
+	{
+		DS_LOG_ERROR_F("TestVectorDrawScene", "Couldn't setup renderer options.");
+		return 0;
+	}
+
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
 		(dsAllocator*)&renderAllocator, &rendererOptions);
 	if (!renderer)

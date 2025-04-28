@@ -5,7 +5,7 @@
 #include "AnyGLConfig.h"
 #include "gl.h"
 
-#if ANYGL_LOAD == ANYGL_LOAD_GLX
+#if ANYGL_HAS_GLX
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 

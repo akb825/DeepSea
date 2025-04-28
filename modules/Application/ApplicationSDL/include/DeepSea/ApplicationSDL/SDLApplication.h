@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,16 @@ extern "C"
 DS_APPLICATIONSDL_EXPORT uint32_t dsSDLApplication_showMessageBox(dsMessageBoxType type,
 	const char* title, const char* message, const char* const* buttons, uint32_t buttonCount,
 	uint32_t enterButton, uint32_t escapeButton);
+
+/**
+ * @brief Prepares renderer options for initialization.
+ * @remark errno will be set on failure.
+ * @param[inout] options The renderer options.
+ * @param rendererID The ID of the renderer.
+ * @return False if the renderer cannot be used.
+ */
+DS_APPLICATIONSDL_EXPORT bool dsSDLApplication_prepareRendererOptions(
+	dsRendererOptions* options, uint32_t rendererID);
 
 /**
  * @brief Creates an SDL application.

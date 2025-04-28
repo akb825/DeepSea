@@ -439,6 +439,13 @@ int dsMain(int argc, const char** argv)
 	rendererOptions.surfaceSamples = 4;
 	rendererOptions.maxResourceThreads = dsThreadPool_defaultThreadCount();
 	rendererOptions.deviceName = deviceName;
+	if (!dsSDLApplication_prepareRendererOptions(
+			&rendererOptions, dsRenderBootstrap_rendererID(rendererType)))
+	{
+		DS_LOG_ERROR_F("TestScene", "Couldn't setup renderer options.");
+		return 0;
+	}
+
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
 		(dsAllocator*)&renderAllocator, &rendererOptions);
 	if (!renderer)

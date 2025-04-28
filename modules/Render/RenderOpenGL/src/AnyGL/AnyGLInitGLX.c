@@ -1,6 +1,6 @@
 #include "AnyGLConfig.h"
 
-#if ANYGL_LOAD == ANYGL_LOAD_GLX
+#if ANYGL_HAS_GLX
 #include <GL/glx.h>
 #define ANYGL_NO_DEFINES
 #include "glx.h"
@@ -105,7 +105,7 @@ ANYGL_EXPORT PFNANYGLXWAITFORMSCOMLPROC AnyGL_glXWaitForMscOML;
 ANYGL_EXPORT PFNANYGLXWAITFORSBCOMLPROC AnyGL_glXWaitForSbcOML;
 ANYGL_EXPORT PFNANYGLXGETTRANSPARENTINDEXSUNPROC AnyGL_glXGetTransparentIndexSUN;
 
-int AnyGL_initialize(void)
+int AnyGL_GLX_initialize(void)
 {
 	static int initialized;
 	if (initialized)
@@ -337,6 +337,6 @@ int AnyGL_initialize(void)
 	return 1;
 }
 
-void AnyGL_shutdown(void) {}
+void AnyGL_GLX_shutdown(void) {}
 
 #endif /* ANYGL_LOAD */

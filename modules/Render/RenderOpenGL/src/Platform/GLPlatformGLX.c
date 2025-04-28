@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-#include "Platform/GLPlatform.h"
-#include "AnyGL/AnyGL.h"
+#include "Platform/GLPlatformGLX.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Profile.h>
 #include <string.h>
 
-#if ANYGL_LOAD == ANYGL_LOAD_GLX
+#if ANYGL_HAS_GLX
 #include "AnyGL/glx.h"
 
 #define MAX_OPTION_SIZE 32
@@ -66,6 +65,12 @@ static bool hasExtension(const char* extensions, const char* extension)
 	return false;
 }
 
+static GLint glVersions[][2] =
+{
+	{4, 6}, {4, 5}, {4, 4}, {4, 3}, {4, 2}, {4, 1}, {4, 0},
+	{3, 3}, {3, 2}, {3, 1}, {3, 0}
+};
+
 typedef int (*X11ErrorHandler)(Display*, XErrorEvent*);
 static bool gX11Error;
 static int emptyErrorHandler(Display* display, XErrorEvent* event)
@@ -76,18 +81,20 @@ static int emptyErrorHandler(Display* display, XErrorEvent* event)
 	return 0;
 }
 
-void* dsGetGLDisplay(void)
+void* dsGetGLXDisplay(void* osDisplay)
 {
-	return XOpenDisplay(NULL);
+	return XOpenDisplay(osDisplay);
 }
 
-void dsReleaseGLDisplay(void* display)
+void dsReleaseGLXDisplay(void* osDisplay, void* gfxDisplay)
 {
-	XCloseDisplay(display);
+	DS_UNUSED(osDisplay);
+	XCloseDisplay(gfxDisplay);
 }
 
-void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOptions* options,
-	bool render)
+void* dsCreateGLXConfig(
+	dsAllocator* allocator, void* display, const dsRendererOptions* options,
+	GLContextType contextType)
 {
 	if (!allocator || !display)
 	{
@@ -131,7 +138,7 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 
 	int major, minor;
 	glXQueryVersion(display, &major, &minor);
-	if (render && ((major > 1 || (major == 1 && minor >= 4)) ||
+	if (contextType == GLContextType_Render && ((major > 1 || (major == 1 && minor >= 4)) ||
 		hasExtension(extensions, "GLX_ARB_multisample")))
 	{
 		if (options->surfaceSamples > 1)
@@ -189,12 +196,6 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 
 	if (ANYGL_SUPPORTED(glXCreateContextAttribsARB))
 	{
-		static GLint versions[][2] =
-		{
-			{4, 6}, {4, 5}, {4, 4}, {4, 3}, {4, 2}, {4, 1}, {4, 0},
-			{3, 3}, {3, 2}, {3, 1}, {3, 0}
-		};
-
 		GLint contextAttr[] =
 		{
 			GLX_CONTEXT_MAJOR_VERSION_ARB, 0,
@@ -207,19 +208,19 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 		// GL versions. Sync first to ensure any existing X11 calls have gone through.
 		XSync(display, false);
 		X11ErrorHandler prevHandler = XSetErrorHandler(&emptyErrorHandler);
-		unsigned int versionCount = DS_ARRAY_SIZE(versions);
+		unsigned int versionCount = DS_ARRAY_SIZE(glVersions);
 		for (unsigned int i = 0; i < versionCount; ++i)
 		{
-			contextAttr[1] = versions[i][0];
-			contextAttr[3] = versions[i][1];
+			contextAttr[1] = glVersions[i][0];
+			contextAttr[3] = glVersions[i][1];
 			gX11Error = false;
 			GLXContext context = glXCreateContextAttribsARB(display, fbConfig, NULL, true,
 				contextAttr);
 			XSync(display, false);
 			if (!gX11Error && context)
 			{
-				config->major = versions[i][0];
-				config->minor = versions[i][1];
+				config->major = glVersions[i][0];
+				config->minor = glVersions[i][1];
 				glXDestroyContext(display, context);
 				break;
 			}
@@ -235,7 +236,7 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 	return config;
 }
 
-void* dsGetPublicGLConfig(void* display, void* config)
+void* dsGetPublicGLXConfig(void* display, void* config)
 {
 	DS_UNUSED(display);
 	Config* configPtr = (Config*)config;
@@ -245,7 +246,7 @@ void* dsGetPublicGLConfig(void* display, void* config)
 	return (void*)configPtr->visualInfo->visualid;
 }
 
-void dsDestroyGLConfig(void* display, void* config)
+void dsDestroyGLXConfig(void* display, void* config)
 {
 	DS_UNUSED(display);
 	Config* configPtr = (Config*)config;
@@ -257,7 +258,7 @@ void dsDestroyGLConfig(void* display, void* config)
 		dsAllocator_free(configPtr->allocator, configPtr);
 }
 
-void* dsCreateGLContext(dsAllocator* allocator, void* display, void* config, void* shareContext)
+void* dsCreateGLXContext(dsAllocator* allocator, void* display, void* config, void* shareContext)
 {
 	DS_UNUSED(allocator);
 	Config* configPtr = (Config*)config;
@@ -282,7 +283,7 @@ void* dsCreateGLContext(dsAllocator* allocator, void* display, void* config, voi
 		return glXCreateContext(display, configPtr->visualInfo, shareContext, true);
 }
 
-void dsDestroyGLContext(void* display, void* context)
+void dsDestroyGLXContext(void* display, void* context)
 {
 	if (!context)
 		return;
@@ -290,7 +291,7 @@ void dsDestroyGLContext(void* display, void* context)
 	glXDestroyContext(display, context);
 }
 
-void* dsCreateDummyGLSurface(dsAllocator* allocator, void* display, void* config, void** osSurface)
+void* dsCreateDummyGLXSurface(dsAllocator* allocator, void* display, void* config, void** osSurface)
 {
 	DS_UNUSED(allocator);
 	Config* configPtr = (Config*)config;
@@ -324,7 +325,7 @@ void* dsCreateDummyGLSurface(dsAllocator* allocator, void* display, void* config
 	}
 }
 
-void dsDestroyDummyGLSurface(void* display, void* surface, void* osSurface)
+void dsDestroyDummyGLXSurface(void* display, void* surface, void* osSurface)
 {
 	if (!surface)
 		return;
@@ -339,7 +340,7 @@ void dsDestroyDummyGLSurface(void* display, void* surface, void* osSurface)
 		XDestroyWindow(display, (Window)surface);
 }
 
-void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
+void* dsCreateGLXSurface(dsAllocator* allocator, void* display, void* config,
 	dsRenderSurfaceType surfaceType, void* handle)
 {
 	DS_UNUSED(allocator);
@@ -376,7 +377,7 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 	return (void*)drawable;
 }
 
-bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
+bool dsGetGLXSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
 	dsRenderSurfaceType surfaceType, void* surface)
 {
 	DS_UNUSED(surfaceType);
@@ -388,7 +389,7 @@ bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
 	return true;
 }
 
-void dsSwapGLBuffers(void* display, dsRenderSurface** renderSurfaces, uint32_t count, bool vsync)
+void dsSwapGLXBuffers(void* display, dsRenderSurface** renderSurfaces, uint32_t count, bool vsync)
 {
 	// Set the swap group when multiple vsynced surfaces are swapped to avoid waiting for multiple
 	// vsyncs.
@@ -421,7 +422,7 @@ void dsSwapGLBuffers(void* display, dsRenderSurface** renderSurfaces, uint32_t c
 	}
 }
 
-void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* surface)
+void dsDestroyGLXSurface(void* display, dsRenderSurfaceType surfaceType, void* surface)
 {
 	if (!surface)
 		return;
@@ -441,7 +442,7 @@ void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* su
 	}
 }
 
-bool dsBindGLContext(void* display, void* context, void* surface)
+bool dsBindGLXContext(void* display, void* context, void* surface)
 {
 	DS_PROFILE_FUNC_START();
 	GLXDrawable drawable = (GLXDrawable)surface;
@@ -454,16 +455,16 @@ bool dsBindGLContext(void* display, void* context, void* surface)
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
-void* dsGetCurrentGLContext(void* display)
+void* dsGetCurrentGLXContext(void* display)
 {
 	DS_UNUSED(display);
 	return glXGetCurrentContext();
 }
 
-void dsSetGLVSync(void* display, void* surface, bool vsync)
+void dsSetGLXVSync(void* display, void* surface, bool vsync)
 {
 	if (ANYGL_SUPPORTED(glXSwapIntervalEXT))
 		glXSwapIntervalEXT(display, (GLXDrawable)surface, vsync);
 }
 
-#endif // ANYGL_LOAD
+#endif // ANYGL_HAS_GLX

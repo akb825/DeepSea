@@ -1156,8 +1156,9 @@ dsResourceContext* dsGLResourceManager_acquireResourceContext(dsResourceManager*
 
 	// This should only be null in case of a bug or somebody manually messing with the members.
 	DS_ASSERT(context);
-	const dsRendererOptions* options = &((dsGLRenderer*)resourceManager->renderer)->options;
-	DS_VERIFY(dsBindGLContext(options->display, context->context, context->dummySurface));
+	dsGLRenderer* glRenderer = (dsGLRenderer*)resourceManager->renderer;
+	DS_VERIFY(dsGLPlatform_bindContext(&glRenderer->platform, glRenderer->options.gfxDisplay,
+		context->context, context->dummySurface));
 	return context;
 }
 
@@ -1176,14 +1177,14 @@ bool dsGLResourceManager_releaseResourceContext(dsResourceManager* resourceManag
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(context);
 
-	const dsRendererOptions* options = &((dsGLRenderer*)resourceManager->renderer)->options;
-	DS_VERIFY(dsBindGLContext(options->display, NULL, NULL));
+	dsGLRenderer* glRenderer = (dsGLRenderer*)resourceManager->renderer;
+	DS_VERIFY(dsGLPlatform_bindContext(
+		&glRenderer->platform, glRenderer->options.gfxDisplay, NULL, NULL));
 
 	dsGLResourceManager* glResourceManager = (dsGLResourceManager*)resourceManager;
 	DS_VERIFY(dsMutex_lock(glResourceManager->mutex));
 	context->claimed = false;
 	DS_VERIFY(dsMutex_unlock(glResourceManager->mutex));
-
 	return true;
 }
 
@@ -1228,8 +1229,8 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	for (uint8_t i = 0; i < options->maxResourceThreads; ++i)
 	{
 		dsResourceContext* resourceContext = resourceManager->resourceContexts + i;
-		resourceContext->context = dsCreateGLContext(allocator, options->display,
-			renderer->sharedConfig, renderer->sharedContext);
+		resourceContext->context = dsGLPlatform_createContext(&renderer->platform, allocator,
+			options->gfxDisplay, renderer->sharedConfig, renderer->sharedContext);
 		if (!resourceContext->context)
 		{
 			errno = EPERM;
@@ -1238,8 +1239,9 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 			return NULL;
 		}
 
-		resourceContext->dummySurface = dsCreateDummyGLSurface(allocator, options->display,
-			renderer->sharedConfig, &resourceManager->resourceContexts[i].dummyOsSurface);
+		resourceContext->dummySurface = dsGLPlatform_createDummySurface(&renderer->platform,
+			allocator, options->gfxDisplay, &renderer->options, renderer->sharedConfig,
+			&resourceManager->resourceContexts[i].dummyOsSurface);
 		if (!resourceContext->dummySurface)
 		{
 			errno = EPERM;
@@ -1583,13 +1585,14 @@ void dsGLResourceManager_destroy(dsGLResourceManager* resourceManager)
 		return;
 
 	dsResourceManager* baseResourceManager = (dsResourceManager*)resourceManager;
-	const dsRendererOptions* options = &((dsGLRenderer*)baseResourceManager->renderer)->options;
+	dsGLRenderer* glRenderer = (dsGLRenderer*)baseResourceManager->renderer;
 	for (uint8_t i = 0; i < ((dsResourceManager*)resourceManager)->maxResourceContexts; ++i)
 	{
 		dsResourceContext* resourceContext = resourceManager->resourceContexts + i;
-		dsDestroyGLContext(options->display, resourceContext->context);
-		dsDestroyDummyGLSurface(options->display, resourceContext->dummySurface,
-			resourceContext->dummyOsSurface);
+		dsGLPlatform_destroyContext(
+			&glRenderer->platform, glRenderer->options.gfxDisplay, resourceContext->context);
+		dsGLPlatform_destroyDummySurface(&glRenderer->platform, glRenderer->options.gfxDisplay,
+			&glRenderer->options, resourceContext->dummySurface, resourceContext->dummyOsSurface);
 	}
 
 	dsMutex_destroy(resourceManager->mutex);

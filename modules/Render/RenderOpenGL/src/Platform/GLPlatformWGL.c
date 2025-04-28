@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-#include "Platform/GLPlatform.h"
-#include "AnyGL/AnyGL.h"
+#include "Platform/GLPlatformWGL.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Profile.h>
 #include <string.h>
 
-#if ANYGL_LOAD == ANYGL_LOAD_WGL
+#if ANYGL_HAS_WGL
 #include "AnyGL/wgl.h"
 
 #if WINVER >= 0x0810
@@ -47,6 +46,12 @@ typedef struct Config
 
 // Declared by AnyGL for its internal management.
 static const char* windowClass = "AnyGLDummyWindow";
+
+static GLint glVersions[][2] =
+{
+	{4, 6}, {4, 5}, {4, 4}, {4, 3}, {4, 2}, {4, 1}, {4, 0},
+	{3, 3}, {3, 2}, {3, 1}, {3, 0}
+};
 
 static void addOption(GLint* attr, unsigned int* size, GLint option, GLint value)
 {
@@ -74,22 +79,22 @@ static bool hasExtension(const char* extensions, const char* extension)
 	return false;
 }
 
-void* dsGetGLDisplay(void)
+void* dsGetWGLDisplay(void* osDisplay)
 {
 #if WINVER >= 0x0810
 	// Prevent Windows from scaling the windows.
 	SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
 #endif
-	return GetDC(NULL);
+	return GetDC(osDisplay);
 }
 
-void dsReleaseGLDisplay(void* display)
+void dsReleaseWGLDisplay(void* osDisplay, void* gfxDisplay)
 {
-	ReleaseDC(NULL, display);
+	ReleaseDC(osDisplay, gfxDisplay);
 }
 
-void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOptions* options,
-	bool render)
+void* dsCreateWGLConfig(dsAllocator* allocator, void* display, const dsRendererOptions* options,
+	GLContextType contextType)
 {
 	if (!allocator || !display)
 	{
@@ -143,7 +148,7 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 		addOption(attr, &optionCount, WGL_STEREO_ARB, options->stereoscopic);
 		if (hasExtension(extensions, "WGL_ARB_multisample"))
 		{
-			if (render && options->surfaceSamples > 1)
+			if (contextType == GLContextType_Render && options->surfaceSamples > 1)
 			{
 				addOption(attr, &optionCount, WGL_SAMPLE_BUFFERS_ARB, 1);
 				addOption(attr, &optionCount, WGL_SAMPLES_ARB, options->surfaceSamples);
@@ -216,12 +221,6 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 
 	if (ANYGL_SUPPORTED(wglCreateContextAttribsARB))
 	{
-		static GLint versions[][2] =
-		{
-			{4, 6}, {4, 5}, {4, 4}, {4, 3}, {4, 2}, {4, 1}, {4, 0},
-			{3, 3}, {3, 2}, {3, 1}, {3, 0}
-		};
-
 		GLint contextAttr[] =
 		{
 			WGL_CONTEXT_MAJOR_VERSION_ARB, 0,
@@ -230,16 +229,16 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 			0
 		};
 
-		unsigned int versionCount = DS_ARRAY_SIZE(versions);
+		unsigned int versionCount = DS_ARRAY_SIZE(glVersions);
 		for (unsigned int i = 0; i < versionCount; ++i)
 		{
-			contextAttr[1] = versions[i][0];
-			contextAttr[3] = versions[i][1];
+			contextAttr[1] = glVersions[i][0];
+			contextAttr[3] = glVersions[i][1];
 			HGLRC context = wglCreateContextAttribsARB(config->dc, NULL, contextAttr);
 			if (context)
 			{
-				config->major = versions[i][0];
-				config->minor = versions[i][1];
+				config->major = glVersions[i][0];
+				config->minor = glVersions[i][1];
 				wglDeleteContext(context);
 				break;
 			}
@@ -249,14 +248,14 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 	return config;
 }
 
-void* dsGetPublicGLConfig(void* display, void* config)
+void* dsGetPublicWGLConfig(void* display, void* config)
 {
 	DS_UNUSED(display);
 	DS_UNUSED(config);
 	return NULL;
 }
 
-void dsDestroyGLConfig(void* display, void* config)
+void dsDestroyWGLConfig(void* display, void* config)
 {
 	DS_UNUSED(display);
 	Config* configPtr = (Config*)config;
@@ -270,7 +269,7 @@ void dsDestroyGLConfig(void* display, void* config)
 		dsAllocator_free(configPtr->allocator, configPtr);
 }
 
-void* dsCreateGLContext(dsAllocator* allocator, void* display, void* config, void* shareContext)
+void* dsCreateWGLContext(dsAllocator* allocator, void* display, void* config, void* shareContext)
 {
 	DS_UNUSED(allocator);
 	Config* configPtr = (Config*)config;
@@ -303,7 +302,7 @@ void* dsCreateGLContext(dsAllocator* allocator, void* display, void* config, voi
 	}
 }
 
-void dsDestroyGLContext(void* display, void* context)
+void dsDestroyWGLContext(void* display, void* context)
 {
 	DS_UNUSED(display);
 	if (!context)
@@ -312,7 +311,7 @@ void dsDestroyGLContext(void* display, void* context)
 	wglDeleteContext(context);
 }
 
-void* dsCreateDummyGLSurface(dsAllocator* allocator, void* display, void* config, void** osSurface)
+void* dsCreateDummyWGLSurface(dsAllocator* allocator, void* display, void* config, void** osSurface)
 {
 	DS_UNUSED(allocator);
 	Config* configPtr = (Config*)config;
@@ -336,7 +335,7 @@ void* dsCreateDummyGLSurface(dsAllocator* allocator, void* display, void* config
 	return dc;
 }
 
-void dsDestroyDummyGLSurface(void* display, void* surface, void* osSurface)
+void dsDestroyDummyWGLSurface(void* display, void* surface, void* osSurface)
 {
 	if (!surface)
 		return;
@@ -345,7 +344,7 @@ void dsDestroyDummyGLSurface(void* display, void* surface, void* osSurface)
 	DestroyWindow(osSurface);
 }
 
-void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
+void* dsCreateWGLSurface(dsAllocator* allocator, void* display, void* config,
 	dsRenderSurfaceType surfaceType, void* handle)
 {
 	DS_UNUSED(allocator);
@@ -386,7 +385,7 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 	return dc;
 }
 
-bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
+bool dsGetWGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
 	dsRenderSurfaceType surfaceType, void* surface)
 {
 	DS_UNUSED(surfaceType);
@@ -415,7 +414,7 @@ bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
 	return true;
 }
 
-void dsSwapGLBuffers(void* display, dsRenderSurface** renderSurfaces, uint32_t count, bool vsync)
+void dsSwapWGLBuffers(void* display, dsRenderSurface** renderSurfaces, uint32_t count, bool vsync)
 {
 	DS_UNUSED(display);
 
@@ -447,7 +446,7 @@ void dsSwapGLBuffers(void* display, dsRenderSurface** renderSurfaces, uint32_t c
 	}
 }
 
-void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* surface)
+void dsDestroyWGLSurface(void* display, dsRenderSurfaceType surfaceType, void* surface)
 {
 	if (!surface)
 		return;
@@ -470,7 +469,7 @@ void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* su
 	}
 }
 
-bool dsBindGLContext(void* display, void* context, void* surface)
+bool dsBindWGLContext(void* display, void* context, void* surface)
 {
 	DS_PROFILE_FUNC_START();
 	if (!wglMakeCurrent(surface, context))
@@ -482,13 +481,13 @@ bool dsBindGLContext(void* display, void* context, void* surface)
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
-void* dsGetCurrentGLContext(void* display)
+void* dsGetCurrentWGLContext(void* display)
 {
 	DS_UNUSED(display);
 	return wglGetCurrentContext();
 }
 
-void dsSetGLVSync(void* display, void* surface, bool vsync)
+void dsSetWGLVSync(void* display, void* surface, bool vsync)
 {
 	DS_UNUSED(display);
 	DS_UNUSED(surface);
@@ -497,4 +496,4 @@ void dsSetGLVSync(void* display, void* surface, bool vsync)
 		wglSwapIntervalEXT(vsync);
 }
 
-#endif // ANYGL_LOAD
+#endif // ANYGL_HAS_WGL

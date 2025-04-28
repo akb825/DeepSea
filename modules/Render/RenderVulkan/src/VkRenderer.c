@@ -2027,7 +2027,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 
 	dsGfxPlatform platform = dsRenderer_resolvePlatform(options->platform);
 	if (!dsVkPlatform_initialize(
-			&renderer->platform, &renderer->device, platform, options->display))
+			&renderer->platform, &renderer->device, platform, options->osDisplay))
 	{
 		dsVkRenderer_destroy(baseRenderer);
 		return NULL;

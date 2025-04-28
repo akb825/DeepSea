@@ -19,7 +19,6 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Application/Types.h>
 
-#include <math.h>
 #include <SDL.h>
 
 #define DS_APPLICATION_SDL_LOG_TAG "sdl"

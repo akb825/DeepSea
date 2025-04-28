@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -228,7 +228,13 @@ void dsRenderer_defaultOptions(dsRendererOptions* options, const char* applicati
 		return;
 
 	options->platform = dsGfxPlatform_Default;
-	options->display = NULL;
+	options->osDisplay = NULL;
+	options->gfxDisplay = NULL;
+	options->backgroundSurfaceType = dsRenderSurfaceType_Window;
+	options->backgroundSurfaceUserData = NULL;
+	options->createBackgroundSurfaceFunc = NULL;
+	options->destroyBackgroundSurfaceFunc = NULL;
+	options->getBackgroundSurfaceHandleFunc = NULL;
 	options->applicationName = applicationName;
 	options->applicationVersion = applicationVersion;
 	options->redBits = 8;

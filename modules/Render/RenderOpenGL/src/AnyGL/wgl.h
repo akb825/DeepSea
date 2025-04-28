@@ -5,7 +5,7 @@
 #include "AnyGLConfig.h"
 #include "gl.h"
 
-#if ANYGL_LOAD == ANYGL_LOAD_WGL
+#if ANYGL_HAS_WGL
 #define WIN32_LEAN_AND_MEAN
 #ifndef _WINDOWS_
 #undef APIENTRY

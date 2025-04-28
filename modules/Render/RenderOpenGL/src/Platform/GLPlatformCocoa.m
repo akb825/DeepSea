@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-#include "Platform/GLPlatform.h"
-#include "AnyGL/AnyGL.h"
+#include "Platform/GLPlatformCocoa.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -48,18 +47,20 @@ static void addOption2(NSOpenGLPixelFormatAttribute* attr, unsigned int* size,
 	attr[(*size)++] = value;
 }
 
-void* dsGetGLDisplay(void)
+void* dsGetCocoaGLDisplay(void* osDisplay)
 {
+	DS_UNUSED(osDisplay);
 	return NULL;
 }
 
-void dsReleaseGLDisplay(void* display)
+void dsReleaseCocoaGLDisplay(void* osDisplay, void* gfxDisplay)
 {
-	DS_UNUSED(display);
+	DS_UNUSED(osDisplay);
+	DS_UNUSED(gfxDisplay);
 }
 
-void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOptions* options,
-	bool render)
+void* dsCreateCocoaGLConfig(dsAllocator* allocator, void* display, const dsRendererOptions* options,
+	GLContextType contextType)
 {
 	DS_UNUSED(allocator);
 	DS_UNUSED(display);
@@ -91,7 +92,7 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 		if (options->doubleBuffer)
 			addOption(attr, &optionCount, NSOpenGLPFADoubleBuffer);
 
-		if (render && options->surfaceSamples > 1)
+		if (contextType == GLContextType_Render && options->surfaceSamples > 1)
 		{
 			addOption2(attr, &optionCount, NSOpenGLPFASampleBuffers, 1);
 			addOption2(attr, &optionCount, NSOpenGLPFASamples, options->surfaceSamples);
@@ -118,14 +119,14 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 	return NULL;
 }
 
-void* dsGetPublicGLConfig(void* display, void* config)
+void* dsGetPublicCocoaGLConfig(void* display, void* config)
 {
 	DS_UNUSED(display);
 	DS_UNUSED(config);
 	return NULL;
 }
 
-void dsDestroyGLConfig(void* display, void* config)
+void dsDestroyCocoaGLConfig(void* display, void* config)
 {
 	DS_UNUSED(display);
 	if (!config)
@@ -134,7 +135,8 @@ void dsDestroyGLConfig(void* display, void* config)
 	CFRelease(config);
 }
 
-void* dsCreateGLContext(dsAllocator* allocator, void* display, void* config, void* shareContext)
+void* dsCreateCocoaGLContext(
+	dsAllocator* allocator, void* display, void* config, void* shareContext)
 {
 	DS_UNUSED(display);
 	DS_UNUSED(allocator);
@@ -149,7 +151,7 @@ void* dsCreateGLContext(dsAllocator* allocator, void* display, void* config, voi
 	}
 }
 
-void dsDestroyGLContext(void* display, void* context)
+void dsDestroyCocoaGLContext(void* display, void* context)
 {
 	DS_UNUSED(display);
 	if (!context)
@@ -158,7 +160,8 @@ void dsDestroyGLContext(void* display, void* context)
 	CFRelease(context);
 }
 
-void* dsCreateDummyGLSurface(dsAllocator* allocator, void* display, void* config, void** osSurface)
+void* dsCreateDummyCocoaGLSurface(
+	dsAllocator* allocator, void* display, void* config, void** osSurface)
 {
 	DS_UNUSED(allocator);
 	DS_UNUSED(display);
@@ -168,14 +171,14 @@ void* dsCreateDummyGLSurface(dsAllocator* allocator, void* display, void* config
 	return &dummyValue;
 }
 
-void dsDestroyDummyGLSurface(void* display, void* surface, void* osSurface)
+void dsDestroyDummyCocoaGLSurface(void* display, void* surface, void* osSurface)
 {
 	DS_UNUSED(display);
 	DS_UNUSED(surface);
 	DS_UNUSED(osSurface);
 }
 
-void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
+void* dsCreateCocoaGLSurface(dsAllocator* allocator, void* display, void* config,
 	dsRenderSurfaceType surfaceType, void* handle)
 {
 	DS_UNUSED(display);
@@ -191,7 +194,7 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 	}
 }
 
-bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
+bool dsGetCocoaGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
 	dsRenderSurfaceType surfaceType, void* surface)
 {
 	DS_UNUSED(display);
@@ -212,7 +215,8 @@ bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
 	return true;
 }
 
-void dsSwapGLBuffers(void* display, dsRenderSurface** renderSurfaces, uint32_t count, bool vsync)
+void dsSwapCocoaGLBuffers(
+	void* display, dsRenderSurface** renderSurfaces, uint32_t count, bool vsync)
 {
 	DS_UNUSED(display);
 	DS_UNUSED(vsync);
@@ -228,7 +232,7 @@ void dsSwapGLBuffers(void* display, dsRenderSurface** renderSurfaces, uint32_t c
 	}
 }
 
-void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* surface)
+void dsDestroyCocoaGLSurface(void* display, dsRenderSurfaceType surfaceType, void* surface)
 {
 	DS_UNUSED(display);
 	DS_UNUSED(surfaceType);
@@ -238,7 +242,7 @@ void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* su
 	CFRelease(surface);
 }
 
-bool dsBindGLContext(void* display, void* context, void* surface)
+bool dsBindCocoaGLContext(void* display, void* context, void* surface)
 {
 	DS_PROFILE_FUNC_START();
 	DS_UNUSED(display);
@@ -271,13 +275,13 @@ bool dsBindGLContext(void* display, void* context, void* surface)
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
-void* dsGetCurrentGLContext(void* display)
+void* dsGetCurrentCocoaGLContext(void* display)
 {
 	DS_UNUSED(display);
 	return (__bridge void*)[NSOpenGLContext currentContext];
 }
 
-void dsSetGLVSync(void* display, void* surface, bool vsync)
+void dsSetCocoaGLVSync(void* display, void* surface, bool vsync)
 {
 	DS_UNUSED(display);
 	DS_UNUSED(surface);

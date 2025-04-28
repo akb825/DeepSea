@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,13 @@
 #include <DeepSea/Render/Types.h>
 #include <DeepSea/RenderOpenGL/GLRenderer.h>
 
+typedef enum GLContextType
+{
+	GLContextType_Render,
+	GLContextType_SharedDummySurface,
+	GLContextType_SharedBackgroundSurface
+} GLContextType;
+
 typedef enum GLSurfaceType
 {
 	GLSurfaceType_None,
@@ -47,6 +54,50 @@ struct dsResourceContext
 	void* dummyOsSurface;
 	bool claimed;
 };
+
+typedef void* (*dsGetGLDisplayFunction)(void* osDisplay);
+typedef void (*dsReleaseGLDisplayFunction)(void* osDisplay, void* gfxDisplay);
+typedef void* (*dsCreateGLConfigFunction)(dsAllocator* allocator, void* display,
+	const dsRendererOptions* options, GLContextType contextType);
+typedef void* (*dsGetPublicGLConfigFunction)(void* display, void* config);
+typedef void (*dsDestroyGLConfigFunction)(void* display, void* config);
+typedef void* (*dsCreateGLContextFunction)(
+	dsAllocator* allocator, void* display, void* config, void* shareContext);
+typedef void (*dsDestroyGLContextFunction)(void* display, void* context);
+typedef void* (*dsCreateDummyGLSurfaceFunction)(
+	dsAllocator* allocator, void* display, void* config, void** osSurface);
+typedef void (*dsDestroyDummyGLSurfaceFunction)(void* display, void* surface, void* osSurface);
+typedef void* (*dsCreateGLSurfaceFunction)(dsAllocator* allocator, void* display, void* config,
+	dsRenderSurfaceType surfaceType, void* handle);
+typedef bool (*dsGetGLSurfaceSizeFunction)(uint32_t* outWidth, uint32_t* outHeight, void* display,
+	dsRenderSurfaceType surfaceType, void* surface);
+typedef void (*dsSwapGLBuffersFunction)(void* display, dsRenderSurface** renderSurfaces,
+	uint32_t count, bool vsync);
+typedef void (*dsDestroyGLSurfaceFunction)(
+	void* display, dsRenderSurfaceType surfaceType, void* surface);
+typedef bool (*dsBindGLContextFunction)(void* display, void* context, void* surface);
+typedef void* (*dsGetCurrentGLContextFunction)(void* display);
+typedef void (*dsSetGLVSyncFunction)(void* display, void* surface, bool vsync);
+
+typedef struct dsGLPlatform
+{
+	dsGetGLDisplayFunction getDisplayFunc;
+	dsReleaseGLDisplayFunction releaseDisplayFunc;
+	dsCreateGLConfigFunction createConfigFunc;
+	dsGetPublicGLConfigFunction getPublicConfigFunc;
+	dsDestroyGLConfigFunction destroyConfigFunc;
+	dsCreateGLContextFunction createContextFunc;
+	dsDestroyGLContextFunction destroyContextFunc;
+	dsCreateDummyGLSurfaceFunction createDummySurfaceFunc;
+	dsDestroyDummyGLSurfaceFunction destroyDummySurfaceFunc;
+	dsCreateGLSurfaceFunction createSurfaceFunc;
+	dsGetGLSurfaceSizeFunction getSurfaceSizeFunc;
+	dsSwapGLBuffersFunction swapBuffersFunc;
+	dsDestroyGLSurfaceFunction destroySurfaceFunc;
+	dsBindGLContextFunction bindContextFunc;
+	dsGetCurrentGLContextFunction getCurrentContextFunc;
+	dsSetGLVSyncFunction setVSyncFunc;
+} dsGLPlatform;
 
 typedef struct dsGLResource
 {
@@ -228,7 +279,9 @@ typedef struct dsGLRenderer
 {
 	dsRenderer renderer;
 	dsRendererOptions options;
+	dsGLPlatform platform;
 	bool releaseDisplay;
+	bool providedBackgroundSurface;
 
 	bool renderContextBound;
 	bool renderContextReset;

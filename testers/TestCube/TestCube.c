@@ -562,6 +562,13 @@ int dsMain(int argc, const char** argv)
 	dsRenderer_defaultOptions(&rendererOptions, "TestCube", 0);
 	rendererOptions.surfaceSamples = 4;
 	rendererOptions.deviceName = deviceName;
+	if (!dsSDLApplication_prepareRendererOptions(
+			&rendererOptions, dsRenderBootstrap_rendererID(rendererType)))
+	{
+		DS_LOG_ERROR_F("TestCube", "Couldn't setup renderer options.");
+		return 0;
+	}
+
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
 		(dsAllocator*)&renderAllocator, &rendererOptions);
 	if (!renderer)

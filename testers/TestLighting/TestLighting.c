@@ -798,6 +798,13 @@ int dsMain(int argc, const char** argv)
 	rendererOptions.preferHalfDepthRange = true;
 	rendererOptions.deviceName = deviceName;
 	rendererOptions.maxResourceThreads = dsThreadPool_defaultThreadCount();
+	if (!dsSDLApplication_prepareRendererOptions(
+			&rendererOptions, dsRenderBootstrap_rendererID(rendererType)))
+	{
+		DS_LOG_ERROR_F("TestLighting", "Couldn't setup renderer options.");
+		return 0;
+	}
+
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
 		(dsAllocator*)&renderAllocator, &rendererOptions);
 	if (!renderer)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,11 @@ extern "C"
  * @file
  * @brief Functions for creating an OpenGL renderer.
  */
+
+/**
+ * @brief Whether OpenGL ES will be used.
+ */
+DS_RENDEROPENGL_EXPORT extern const bool dsGLRenderer_isGLES;
 
 /**
  * @brief Gets whether or not the OpenGL renderer is supported.

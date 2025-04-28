@@ -61,6 +61,7 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const cha
 	int x, y;
 	getSdlPosition(&x, &y, position, (flags & dsWindowFlags_Center) != 0);
 
+	uint32_t platformID = application->renderer->platformID;
 	if (flags & dsWindowFlags_Hidden)
 		sdlFlags |= SDL_WINDOW_HIDDEN;
 	if (flags & dsWindowFlags_Resizeable)
@@ -71,11 +72,8 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const cha
 		sdlFlags |= SDL_WINDOW_MAXIMIZED;
 	if (flags & dsWindowFlags_GrabInput)
 		sdlFlags |= SDL_WINDOW_INPUT_GRABBED;
-	if (application->renderer->platformID == DS_GLX_RENDERER_PLATFORM_ID ||
-		application->renderer->platformID == DS_WGL_RENDERER_PLATFORM_ID)
-	{
+	if (platformID == DS_GLX_RENDERER_PLATFORM_ID || platformID == DS_WGL_RENDERER_PLATFORM_ID)
 		sdlFlags |= SDL_WINDOW_OPENGL;
-	}
 
 	if (!dsRenderSurface_destroy(window->surface))
 		return false;
@@ -165,7 +163,13 @@ bool dsSDLWindow_createSurfaceInternal(dsWindow* window, const char* surfaceName
 #if defined(SDL_VIDEO_DRIVER_WAYLAND)
 		case SDL_SYSWM_WAYLAND:
 			displayHandle = info.info.wl.display;
-			windowHandle = (void*)info.info.wl.surface;
+			if (application->renderer->rendererID == DS_GL_RENDERER_ID ||
+				application->renderer->rendererID == DS_GLES_RENDERER_ID)
+			{
+				windowHandle = (void*)info.info.wl.egl_window;
+			}
+			else
+				windowHandle = (void*)info.info.wl.surface;
 			break;
 #endif
 #if defined(SDL_VIDEO_DRIVER_COCOA)

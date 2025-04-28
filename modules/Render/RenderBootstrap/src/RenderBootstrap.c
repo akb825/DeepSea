@@ -83,6 +83,32 @@ dsRendererType dsRenderBootstrap_rendererTypeFromName(const char* name)
 	return dsRendererType_Default;
 }
 
+uint32_t dsRenderBootstrap_rendererID(dsRendererType type)
+{
+	if (type == dsRendererType_Default)
+		type = dsRenderBootstrap_defaultRenderer();
+
+	switch (type)
+	{
+#if DS_HAS_RENDER_METAL
+		case dsRendererType_Metal:
+			return DS_MTL_RENDERER_ID;
+#endif
+#if DS_HAS_RENDER_VULKAN
+		case dsRendererType_Vulkan:
+			return DS_VK_RENDERER_ID;
+#endif
+#if DS_HAS_RENDER_OPENGL
+		case dsRendererType_OpenGL:
+			if (dsGLRenderer_isGLES)
+				return DS_GLES_RENDERER_ID;
+			return DS_GL_RENDERER_ID;
+#endif
+		default:
+			return 0;
+	}
+}
+
 dsRendererType dsRenderBootstrap_defaultRenderer(void)
 {
 	if (defaultRenderer != dsRendererType_Default)

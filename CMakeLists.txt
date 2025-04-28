@@ -58,7 +58,6 @@ set(DEEPSEA_BUILD_APPLICATION_SDL ON CACHE BOOL "Build SDL application implement
 set(DEEPSEA_GLES OFF CACHE BOOL "Use OpenGL ES rather than desktop OpenGL.")
 set(DEEPSEA_TARGET_GLES_VERSION "30" CACHE STRING
 	"The version of OpenGL ES to use times 10. This is currently only used for Apple platforms.")
-set(DEEPSEA_PREFER_EGL OFF CACHE BOOL "Prefer EGL to the platform-specific loader.")
 
 # Misc options.
 set(DEEPSEA_OUTPUT_DIR ${CMAKE_BINARY_DIR}/output CACHE PATH "Folder for placing the build output.")

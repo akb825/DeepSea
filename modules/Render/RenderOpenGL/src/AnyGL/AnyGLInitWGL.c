@@ -1,6 +1,6 @@
 #include "AnyGLConfig.h"
 
-#if ANYGL_LOAD == ANYGL_LOAD_WGL
+#if ANYGL_HAS_WGL
 #define WIN32_LEAN_AND_MEAN
 #undef APIENTRY
 #include <Windows.h>
@@ -134,7 +134,7 @@ ANYGL_EXPORT PFNANYWGLSWAPLAYERBUFFERSMSCOMLPROC AnyGL_wglSwapLayerBuffersMscOML
 ANYGL_EXPORT PFNANYWGLWAITFORMSCOMLPROC AnyGL_wglWaitForMscOML;
 ANYGL_EXPORT PFNANYWGLWAITFORSBCOMLPROC AnyGL_wglWaitForSbcOML;
 
-int AnyGL_initialize(void)
+int AnyGL_WGL_initialize(void)
 {
 	HWND window = NULL;
 	HDC dc = NULL;
@@ -455,7 +455,7 @@ int AnyGL_initialize(void)
 	return 1;
 }
 
-void AnyGL_shutdown(void)
+void AnyGL_WGL_shutdown(void)
 {
 	if (AnyGL_gllib)
 	{
