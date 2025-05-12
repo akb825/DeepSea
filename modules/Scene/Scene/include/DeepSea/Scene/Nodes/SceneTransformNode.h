@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ extern "C"
 /**
  * @file
  * @brief Functions for creating and manipulating transform nodes.
- * @see dsTransformNode
+ * @see dsSceneTransformNode
  */
 
 /**

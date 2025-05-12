@@ -39,6 +39,7 @@
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneNodeItemData.h>
+#include <DeepSea/Scene/Nodes/SceneShiftNode.h>
 #include <DeepSea/Scene/Nodes/SceneUserDataNode.h>
 #include <DeepSea/Scene/Scene.h>
 
@@ -49,6 +50,7 @@
 #include <limits.h>
 #include <string.h>
 
+#define SHIFT_NODE_ENTRY_ID ((uint64_t)-2)
 #define MIN_RIGID_BODY_ENTRY_ID (ULLONG_MAX/3)
 #define MIN_CONSTRAINT_ENTRY_ID ((ULLONG_MAX/3)*2)
 #define SCALE_EPSILON 1e-5f
@@ -71,6 +73,7 @@ typedef struct RigidBodyEntry
 	dsQuaternion4f prevOrientation;
 	dsVector3f prevPosition;
 	dsVector3f prevScale;
+	dsVector3d prevOrigin;
 
 	dsQuaternion4f targetOrientation;
 	dsVector3f targetPosition;
@@ -97,6 +100,9 @@ typedef struct dsScenePhysicsList
 	uint32_t preStepListenerID;
 	float thisStepTime;
 	float updateTime;
+	dsVector3d prevOrigin;
+
+	const dsSceneShiftNode* shiftNode;
 
 	RigidBodyGroupEntry* groupEntries;
 	uint32_t groupEntryCount;
@@ -196,7 +202,19 @@ static uint64_t dsScenePhysicsList_addNode(dsSceneItemList* itemList, dsSceneNod
 	DS_UNUSED(treeNode);
 	dsScenePhysicsList* physicsList = (dsScenePhysicsList*)itemList;
 
-	if (dsSceneNode_isOfType(node, dsSceneRigidBodyGroupNode_type()))
+	if (dsSceneNode_isOfType(node, dsSceneShiftNode_type()))
+	{
+		if (physicsList->shiftNode)
+		{
+			DS_LOG_ERROR(DS_SCENE_PHYSICS_LOG_TAG,
+				"Only one shift node instance is allowed for a physics list.");
+			return DS_NO_SCENE_NODE;
+		}
+
+		physicsList->shiftNode = (dsSceneShiftNode*)node;
+		return SHIFT_NODE_ENTRY_ID;
+	}
+	else if (dsSceneNode_isOfType(node, dsSceneRigidBodyGroupNode_type()))
 	{
 		const dsSceneRigidBodyGroupNode* groupNode = (const dsSceneRigidBodyGroupNode*)node;
 		uint32_t index = physicsList->rigidBodyEntryCount;
@@ -332,6 +350,10 @@ static uint64_t dsScenePhysicsList_addNode(dsSceneItemList* itemList, dsSceneNod
 		entry->prevPosition = rigidBody->position;
 		entry->prevScale = rigidBody->scale;
 		entry->prevMotionType = rigidBody->motionType;
+		if (physicsList->shiftNode)
+			entry->prevOrigin = physicsList->shiftNode->origin;
+		else
+			memset(&entry->prevOrigin, 0, sizeof(dsVector3d));
 
 		// Extract transform based on components to ensure consistent results when not in motion.
 		DS_VERIFY(dsRigidBody_getTransformMatrix(&entry->transform, entry->rigidBody));
@@ -485,7 +507,9 @@ static uint64_t dsScenePhysicsList_addNode(dsSceneItemList* itemList, dsSceneNod
 static void dsScenePhysicsList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
 {
 	dsScenePhysicsList* physicsList = (dsScenePhysicsList*)itemList;
-	if (nodeID < MIN_RIGID_BODY_ENTRY_ID)
+	if (nodeID == SHIFT_NODE_ENTRY_ID)
+		physicsList->shiftNode = NULL;
+	else if (nodeID < MIN_RIGID_BODY_ENTRY_ID)
 	{
 		for (uint32_t i = 0; i < physicsList->groupEntryCount; ++i)
 		{
@@ -565,11 +589,43 @@ static void dsScenePhysicsList_removeNode(dsSceneItemList* itemList, uint64_t no
 	}
 }
 
-static void dsScenePhysicsList_preTransformUpdate(dsSceneItemList* itemList, const dsScene* scene,
-	float time)
+static void dsScenePhysicsList_preTransformUpdate(
+	dsSceneItemList* itemList, const dsScene* scene, float time)
 {
 	DS_UNUSED(scene);
 	dsScenePhysicsList* physicsList = (dsScenePhysicsList*)itemList;
+
+	dsVector3d origin;
+	if (physicsList->shiftNode)
+		origin = physicsList->shiftNode->origin;
+	else
+		memset(&origin, 0, sizeof(dsVector3d));
+
+	// Adjust the shift if the origin changed.
+	if (memcmp(&origin, &physicsList->prevOrigin, sizeof(dsVector3d)) != 0)
+	{
+		physicsList->prevOrigin = origin;
+		for (unsigned int i = 0; i < physicsList->rigidBodyEntryCount; ++i)
+		{
+			RigidBodyEntry* entry = physicsList->rigidBodyEntries + i;
+			dsRigidBody* rigidBody = entry->rigidBody;
+
+			dsVector3d offset;
+			dsVector3_sub(offset, entry->prevOrigin, origin);
+			dsVector3f offset3f;
+			dsConvertDoubleToFloat(offset3f, offset);
+			entry->prevOrigin = origin;
+
+			dsVector3f newPosition;
+			dsVector3_add(newPosition, rigidBody->position, offset3f);
+			dsRigidBody_setTransform(rigidBody, &newPosition, NULL, NULL, false);
+
+			// Add to the previous value to ensure that any differences are properly calculated.
+			dsVector3_add(entry->prevPosition, entry->prevPosition, offset3f);
+			dsVector3_add(
+				entry->prevTransform.columns[3], entry->prevTransform.columns[3], offset3f);
+		}
+	}
 
 	// Update the kinematic and static rigid bodies based on the scene.
 	for (unsigned int i = 0; i < physicsList->rigidBodyEntryCount; ++i)
@@ -649,7 +705,7 @@ static void dsScenePhysicsList_preTransformUpdate(dsSceneItemList* itemList, con
 	{
 		RigidBodyEntry* entry = physicsList->rigidBodyEntries + i;
 		dsRigidBody* rigidBody = entry->rigidBody;
-		if (rigidBody->motionType != dsPhysicsMotionType_Static &&
+		if (rigidBody->motionType == dsPhysicsMotionType_Dynamic &&
 			(memcmp(&rigidBody->orientation, &entry->prevOrientation,
 				sizeof(dsQuaternion4f)) != 0 ||
 			memcmp(&rigidBody->position, &entry->prevPosition, sizeof(dsVector3f)) != 0 ||

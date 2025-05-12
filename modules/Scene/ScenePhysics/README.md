@@ -301,7 +301,7 @@ The following scene node types are provided with the members that are expected:
 
 The following scene item lists are provided with the expected members:
 
-* `"PhysicsList"`: item list to manage the physics scene and objects within it.
+* `"PhysicsList"`: item list to manage the physics scene and objects within it. This may also utilize a `dsSceneShiftNode` to shift the physics actors when the origin changes.
 	* `maxStaticBodies`: the maximum number of bodies that are only used for collision and not affected by physics.
 	* `maxDynamicBodies`: the maximum number of bodies that are affected by physics.
 	* `maxConstrainedBodyGroups`: the maximum number of groups of bodies that are connected through constraints.

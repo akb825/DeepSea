@@ -31,6 +31,9 @@ extern "C"
  *
  * This is responsible for creating the per-instance data for dsRigidBodyNode and updating and
  * managing a dsPhysicsScene. There should only be a single physics scene list within a scene.
+ *
+ * A dsSceneShiftNode may be added to the physics list, in which case the positions will be shifted
+ * based on the origin. Only one shift node may be used.
  */
 
 /**

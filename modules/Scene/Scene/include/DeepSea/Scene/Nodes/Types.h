@@ -67,6 +67,13 @@ typedef void (*dsDestroySceneNodeFunction)(dsSceneNode* node);
 typedef void (*dsSetupSceneTreeNodeFunction)(dsSceneNode* node, dsSceneTreeNode* treeNode);
 
 /**
+ * @brief Function for shifting the origin of a scene node.
+ * @param node The base node.
+ * @param shift The amount to shift the node.
+ */
+typedef void (*dsShiftSceneNodeFunction)(dsSceneNode* node, const dsVector3f* shift);
+
+/**
  * @brief Function to create user data for an instance.
  * @param treeNode The scene tree node for the instance.
  * @param userData The base user data.
@@ -186,10 +193,42 @@ struct dsSceneNode
 	dsSetupSceneTreeNodeFunction setupTreeNodeFunc;
 
 	/**
+	  * @brief Function to shift a scene node.
+	  *
+	  * This should be assigned for node types that need to manage their transforms
+	  */
+	dsShiftSceneNodeFunction shiftNodeFunc;
+
+	/**
 	 * @brief Destroy function.
 	 */
 	dsDestroySceneNodeFunction destroyFunc;
 };
+
+/**
+ * @brief Scene node implementation that shifts the contents of the scene.
+ *
+ * This will typically be used at the root of a scene graph, providing a common origin for the
+ * sub-graph. When the origin is shifted, it will call shiftNodeFunc() on the immediate children,
+ * which is responsible for applying the shift.
+ *
+ * @see SceneShiftNode.h
+ */
+typedef struct dsSceneShiftNode
+{
+	 /**
+	  * @brief The base node.
+	  */
+	 dsSceneNode node;
+
+	 /**
+	  * @brief The origin of this node.
+	  *
+	  * Children will have this origin subtracted from their transforms so they are in a local space
+	  * relative to the shift node.
+	  */
+	 dsVector3d origin;
+} dsSceneShiftNode;
 
 /**
  * @brief Scene node implementation that contains a transform for any subnodes.

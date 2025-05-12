@@ -16,19 +16,23 @@
 
 #include <DeepSea/Scene/Nodes/SceneTransformNode.h>
 
-#include "SceneTypes.h"
-
-#include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 
 #include <DeepSea/Math/Matrix44.h>
+#include <DeepSea/Math/Vector3.h>
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
 static void dsSceneTransformNode_setupTreeNode(dsSceneNode* node, dsSceneTreeNode* treeNode)
 {
 	treeNode->baseTransform = &((dsSceneTransformNode*)node)->transform;
+}
+
+static void dsSceneTransformNode_shift(dsSceneNode* node, const dsVector3f* shift)
+{
+	dsSceneTransformNode* transformNode = (dsSceneTransformNode*)node;
+	dsVector3_add(transformNode->transform.columns[3], transformNode->transform.columns[3], *shift);
 }
 
 static void dsSceneTransformNode_destroy(dsSceneNode* node)
@@ -67,6 +71,7 @@ dsSceneTransformNode* dsSceneTransformNode_create(dsAllocator* allocator,
 	}
 
 	baseNode->setupTreeNodeFunc = &dsSceneTransformNode_setupTreeNode;
+	baseNode->shiftNodeFunc = &dsSceneTransformNode_shift;
 	if (transform)
 		transformNode->transform = *transform;
 	else
