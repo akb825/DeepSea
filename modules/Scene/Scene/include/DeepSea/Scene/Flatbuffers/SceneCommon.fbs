@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -265,6 +265,14 @@ struct Vector3f
 	x : float;
 	y : float;
 	z : float;
+}
+
+// Struct describing a 3-dimensional vector of doubles.
+struct Vector3d
+{
+	x : double;
+	y : double;
+	z : double;
 }
 
 // Struct describing a 4-dimensional vector.

@@ -35,6 +35,7 @@
 #include <DeepSea/Scene/Nodes/SceneHandoffNode.h>
 #include <DeepSea/Scene/Nodes/SceneModelNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+#include <DeepSea/Scene/Nodes/SceneShiftNode.h>
 #include <DeepSea/Scene/Nodes/SceneTransformNode.h>
 #include <DeepSea/Scene/ViewTransformData.h>
 
@@ -86,6 +87,8 @@ dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator, dsRenderer
 		&dsSceneModelNode_loadRemap, NULL, NULL);
 	dsSceneLoadContext_registerNodeType(context, dsSceneNodeRef_typeName, &dsSceneNodeRef_load,
 		NULL, NULL);
+	dsSceneLoadContext_registerNodeType(context, dsSceneShiftNode_typeName,
+		&dsSceneShiftNode_load, NULL, NULL);
 	dsSceneLoadContext_registerNodeType(context, dsSceneTransformNode_typeName,
 		&dsSceneTransformNode_load, NULL, NULL);
 

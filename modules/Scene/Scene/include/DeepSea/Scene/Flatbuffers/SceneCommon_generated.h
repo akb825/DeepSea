@@ -22,6 +22,8 @@ struct Vector2f;
 
 struct Vector3f;
 
+struct Vector3d;
+
 struct Vector4f;
 
 struct Color3f;
@@ -904,6 +906,35 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3f FLATBUFFERS_FINAL_CLASS {
   }
 };
 FLATBUFFERS_STRUCT_END(Vector3f, 12);
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vector3d FLATBUFFERS_FINAL_CLASS {
+ private:
+  double x_;
+  double y_;
+  double z_;
+
+ public:
+  Vector3d()
+      : x_(0),
+        y_(0),
+        z_(0) {
+  }
+  Vector3d(double _x, double _y, double _z)
+      : x_(::flatbuffers::EndianScalar(_x)),
+        y_(::flatbuffers::EndianScalar(_y)),
+        z_(::flatbuffers::EndianScalar(_z)) {
+  }
+  double x() const {
+    return ::flatbuffers::EndianScalar(x_);
+  }
+  double y() const {
+    return ::flatbuffers::EndianScalar(y_);
+  }
+  double z() const {
+    return ::flatbuffers::EndianScalar(z_);
+  }
+};
+FLATBUFFERS_STRUCT_END(Vector3d, 24);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector4f FLATBUFFERS_FINAL_CLASS {
  private:

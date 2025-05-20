@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,6 +132,16 @@ inline const dsVector2f& convert(const Vector2f& vector)
 inline const dsVector3f& convert(const Vector3f& vector)
 {
 	return reinterpret_cast<const dsVector3f&>(vector);
+}
+
+/**
+ * @brief Converts from a flatbuffer Vector3d to a dsVector3d.
+ * @param vector The vector to convert.
+ * @return The converted vector.
+ */
+inline const dsVector3d& convert(const Vector3d& vector)
+{
+	return reinterpret_cast<const dsVector3d&>(vector);
 }
 
 /**

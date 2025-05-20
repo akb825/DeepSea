@@ -26,6 +26,7 @@ from .ModelNodeConvert import convertModelNode
 from .NodeChildrenConvert import convertNodeChildren
 from .OBJModel import registerOBJModelType
 from .SceneNodeRefConvert import convertReferenceNode
+from .ShiftNodeConvert import convertShiftNode
 from .TransformNodeConvert import convertTransformNode
 from .UserDataListConvert import convertUserDataList
 from .ViewCullListConvert import convertViewCullList
@@ -69,8 +70,9 @@ class ConvertContext:
 			'ModelNode': convertModelNode,
 			'ModelNodeReconfig': convertModelNodeReconfig,
 			'ModelNodeRemap': convertModelNodeRemap,
-			'TransformNode': convertTransformNode,
-			'ReferenceNode': convertReferenceNode
+			'ReferenceNode': convertReferenceNode,
+			'ShiftNode': convertShiftNode,
+			'TransformNode': convertTransformNode
 		}
 
 		self.customResourceTypeMap = dict()

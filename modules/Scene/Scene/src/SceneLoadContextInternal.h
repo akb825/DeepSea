@@ -49,6 +49,11 @@ dsSceneNode* dsSceneNodeRef_load(const dsSceneLoadContext* loadContext,
 	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
 	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
 	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc);
+dsSceneNode* dsSceneShiftNode_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc);
 dsSceneNode* dsSceneTransformNode_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,

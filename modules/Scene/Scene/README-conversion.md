@@ -215,6 +215,16 @@ Reference nodes have the type name "ReferenceNode" and contains the following me
 
 * `ref`: string name of the node that's referenced.
 
+## Shift Node
+
+Shift nodes have the type string "ShiftNode" and contains the following members:
+
+* `origin`: the origin for the shift. If unset, the origin will be at zero.
+* `children`: an array of child nodes. Each element is an object with the following elements:
+	* `nodeType`: the name of the node type.
+	* `data`: the data for the node.
+* `itemLists`: array of item list names to add the node to.
+
 ## Transform Node
 
 Transform nodes have the type string "TransformNode" and contains the following members:
