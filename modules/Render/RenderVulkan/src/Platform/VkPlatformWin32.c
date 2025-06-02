@@ -25,20 +25,11 @@
 #include <Windows.h>
 #include <vulkan/vulkan_win32.h>
 
-#if WINVER >= 0x0810
-#include <ShellScalingApi.h>
-#pragma comment(lib, "Shcore.lib")
-#endif
-
 static VkInstance loadedInstance;
 static PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
 
 void dsVkPlatformWin32_initialize(void)
 {
-#if WINVER >= 0x0810
-	// Prevent Windows from scaling the windows.
-	SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
-#endif
 }
 
 VkSurfaceKHR dsVkPlatformWin32_createSurface(dsVkInstance* instance, void* display, void* window)

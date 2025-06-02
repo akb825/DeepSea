@@ -24,11 +24,6 @@
 #if ANYGL_HAS_WGL
 #include "AnyGL/wgl.h"
 
-#if WINVER >= 0x0810
-#include <ShellScalingApi.h>
-#pragma comment(lib, "Shcore.lib")
-#endif
-
 #define MAX_OPTION_SIZE 32
 
 typedef struct Config
@@ -81,10 +76,6 @@ static bool hasExtension(const char* extensions, const char* extension)
 
 void* dsGetWGLDisplay(void* osDisplay)
 {
-#if WINVER >= 0x0810
-	// Prevent Windows from scaling the windows.
-	SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
-#endif
 	return GetDC(osDisplay);
 }
 

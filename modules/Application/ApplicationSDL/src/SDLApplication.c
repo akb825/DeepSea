@@ -1188,6 +1188,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 		driver = "x11";
 	}
 #elif DS_WINDOWS
+	SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
 	driver = "windows";
 #elif DS_MAC
 	driver = "cocoa";
