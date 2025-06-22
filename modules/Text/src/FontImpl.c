@@ -42,7 +42,7 @@
 #include <DeepSea/Text/FaceGroup.h>
 #include <DeepSea/Text/Unicode.h>
 
-#include <SheenBidi.h>
+#include <SheenBidi/SheenBidi.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
