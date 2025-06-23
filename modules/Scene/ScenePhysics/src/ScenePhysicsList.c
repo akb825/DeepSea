@@ -131,10 +131,12 @@ static bool findPhysicsSceneFunc(dsSceneItemList* itemList, void* userData)
 	return false; // Stop iteration.
 }
 
-static void dsScenePhysicsList_preStepUpdate(dsPhysicsScene* scene, float time,
-	const dsPhysicsSceneLock* lock, void* userData)
+static void dsScenePhysicsList_preStepUpdate(dsPhysicsScene* scene, float time, unsigned int step,
+	unsigned int stepCount, const dsPhysicsSceneLock* lock, void* userData)
 {
 	DS_UNUSED(scene);
+	DS_UNUSED(step);
+	DS_UNUSED(stepCount);
 	DS_UNUSED(lock);
 
 	dsScenePhysicsList* physicsList = (dsScenePhysicsList*)userData;

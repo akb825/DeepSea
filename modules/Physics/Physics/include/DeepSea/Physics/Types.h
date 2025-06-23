@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Aaron Barany
+ * Copyright 2023-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -309,11 +309,13 @@ typedef float (*dsCombineRestitutionFunction)(float restitutionA, float hardness
  * @brief Function to respond to a physics scene being stepped.
  * @param scene The physics scene being stepped.
  * @param time The time delta for the step.
+ * @param step The step being run, starting at 0.
+ * @param stepCount The total number of steps.
  * @param lock The physics lock from updating. This supports reading data.
  * @param userData The user data supplied for the event.
  */
 typedef void (*dsOnPhysicsSceneStepFunction)(dsPhysicsScene* scene, float time,
-	const dsPhysicsSceneLock* lock, void* userData);
+	unsigned int step, unsigned int stepCount, const dsPhysicsSceneLock* lock, void* userData);
 
 /**
  * @brief Function to respond to physics actor contact manifold events.

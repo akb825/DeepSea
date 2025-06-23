@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Aaron Barany
+ * Copyright 2023-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -184,7 +184,7 @@ DS_PHYSICS_EXPORT bool dsPhysicsScene_setContactManifoldRemovedFunction(dsPhysic
  * Multiple callbacks may be executed in parallel, allowing for effecient bulk updates. Components
  * of the physic scene may not be added or removed in the callback, and care should be made to not
  * modify the same objects from multiple callbacks to avoid potential thread contention.
-
+ *
  * @remark errno will be set on failure.
  * @param scene The physics scene to add the listener to.
  * @param function The function to call before a physics scene step.
@@ -214,7 +214,7 @@ DS_PHYSICS_EXPORT bool dsPhysicsScene_removePreStepListener(
  * Multiple callbacks may be executed in parallel, allowing for effecient bulk updates. Components
  * of the physic scene may not be added or removed in the callback, and care should be made to not
  * modify the same objects from multiple callbacks to avoid potential thread contention.
-
+ *
  * @remark errno will be set on failure.
  * @param scene The physics scene to add the listener to.
  * @param function The function to call after a physics scene step.
