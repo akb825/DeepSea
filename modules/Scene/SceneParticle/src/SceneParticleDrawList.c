@@ -31,6 +31,7 @@
 #include <DeepSea/Render/Renderer.h>
 
 #include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
+#include <DeepSea/Scene/ItemLists/SceneItemListEntries.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneNodeItemData.h>
 
@@ -60,6 +61,11 @@ typedef struct dsSceneParticleDrawList
 	Entry* entries;
 	uint32_t entryCount;
 	uint32_t maxEntries;
+	uint64_t nextNodeID;
+
+	uint64_t* removeEntries;
+	uint32_t removeEntryCount;
+	uint32_t maxRemoveEntries;
 
 	const dsParticleEmitter** emitters;
 	uint32_t emitterCount;
@@ -68,8 +74,6 @@ typedef struct dsSceneParticleDrawList
 	const dsSceneTreeNode** instances;
 	uint32_t instanceCount;
 	uint32_t maxInstances;
-
-	uint64_t nextNodeID;
 } dsSceneParticleDrawList;
 
 static void destroyInstanceData(dsSceneInstanceData* const* instanceData,
@@ -176,16 +180,17 @@ static uint64_t dsSceneParticleDrawList_addNode(dsSceneItemList* itemList, dsSce
 static void dsSceneParticleDrawList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
 {
 	dsSceneParticleDrawList* drawList = (dsSceneParticleDrawList*)itemList;
-	for (uint32_t i = 0; i < drawList->entryCount; ++i)
-	{
-		Entry* entry = drawList->entries + i;
-		if (entry->nodeID != nodeID)
-			continue;
 
-		// Order shouldn't matter, so use constant-time removal.
-		drawList->entries[i] = drawList->entries[drawList->entryCount - 1];
-		--drawList->entryCount;
-		break;
+	uint32_t index = drawList->removeEntryCount;
+	if (DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, drawList->removeEntries,
+			drawList->removeEntryCount, drawList->maxRemoveEntries, 1))
+	{
+		drawList->removeEntries[index] = nodeID;
+	}
+	else
+	{
+		dsSceneItemListEntries_removeSingle(drawList->entries, &drawList->entryCount, sizeof(Entry),
+			offsetof(Entry, nodeID), nodeID);
 	}
 }
 
@@ -202,10 +207,17 @@ static void dsSceneParticleDrawList_commit(dsSceneItemList* itemList, const dsVi
 {
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
+	dsSceneParticleDrawList* drawList = (dsSceneParticleDrawList*)itemList;
+
+	// Lazily remove entries.
+	dsSceneItemListEntries_removeMulti(drawList->entries, &drawList->entryCount,
+		sizeof(Entry), offsetof(Entry, nodeID), drawList->removeEntries,
+		drawList->removeEntryCount);
+	drawList->removeEntryCount = 0;
+
 	if (!itemList->preRenderPassFunc)
 		setupInstances(itemList, view, NULL);
 
-	dsSceneParticleDrawList* drawList = (dsSceneParticleDrawList*)itemList;
 	if (drawList->instanceCount == 0)
 		dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
 
@@ -230,6 +242,7 @@ static void dsSceneParticleDrawList_destroy(dsSceneItemList* itemList)
 {
 	dsSceneParticleDrawList* drawList = (dsSceneParticleDrawList*)itemList;
 	DS_VERIFY(dsAllocator_free(itemList->allocator, drawList->entries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, drawList->removeEntries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, (void*)drawList->emitters));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, (void*)drawList->instances));
 	destroyInstanceData(drawList->instanceData, drawList->instanceDataCount);

@@ -37,6 +37,7 @@
 #include <DeepSea/Render/Renderer.h>
 
 #include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
+#include <DeepSea/Scene/ItemLists/SceneItemListEntries.h>
 #include <DeepSea/Scene/Nodes/SceneModelNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneNodeItemData.h>
@@ -83,6 +84,10 @@ struct dsSceneModelList
 	uint32_t entryCount;
 	uint32_t maxEntries;
 	uint64_t nextNodeID;
+
+	uint64_t* removeEntries;
+	uint32_t removeEntryCount;
+	uint32_t maxRemoveEntries;
 
 	const dsSceneTreeNode** instances;
 	uint32_t instanceCount;
@@ -364,15 +369,17 @@ static uint64_t dsSceneModelList_addNode(dsSceneItemList* itemList, dsSceneNode*
 static void dsSceneModelList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
 {
 	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
-	for (uint32_t i = 0; i < modelList->entryCount; ++i)
-	{
-		if (modelList->entries[i].nodeID != nodeID)
-			continue;
 
-		// Order shouldn't matter, so use constant-time removal.
-		modelList->entries[i] = modelList->entries[modelList->entryCount - 1];
-		--modelList->entryCount;
-		break;
+	uint32_t index = modelList->removeEntryCount;
+	if (DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, modelList->removeEntries,
+			modelList->removeEntryCount, modelList->maxRemoveEntries, 1))
+	{
+		modelList->removeEntries[index] = nodeID;
+	}
+	else
+	{
+		dsSceneItemListEntries_removeSingle(modelList->entries, &modelList->entryCount,
+			sizeof(Entry), offsetof(Entry, nodeID), nodeID);
 	}
 }
 
@@ -382,6 +389,12 @@ static void dsSceneModelList_preRenderPass(dsSceneItemList* itemList, const dsVi
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
 	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
+
+	// Lazily remove entries.
+	dsSceneItemListEntries_removeMulti(modelList->entries, &modelList->entryCount, sizeof(Entry),
+		offsetof(Entry, nodeID), modelList->removeEntries, modelList->removeEntryCount);
+	modelList->removeEntryCount = 0;
+
 	addInstances(itemList, view);
 	setupInstances(modelList, view, commandBuffer);
 
@@ -396,6 +409,11 @@ static void dsSceneModelList_commit(dsSceneItemList* itemList, const dsView* vie
 	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
 	if (!itemList->preRenderPassFunc)
 	{
+		// Lazily remove entries.
+		dsSceneItemListEntries_removeMulti(modelList->entries, &modelList->entryCount, sizeof(Entry),
+			offsetof(Entry, nodeID), modelList->removeEntries, modelList->removeEntryCount);
+		modelList->removeEntryCount = 0;
+
 		addInstances(itemList, view);
 		setupInstances(modelList, view, NULL);
 	}
@@ -404,6 +422,18 @@ static void dsSceneModelList_commit(dsSceneItemList* itemList, const dsView* vie
 	cleanup(modelList);
 
 	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
+}
+
+static void dsSceneModelList_destroy(dsSceneModelList* modelList)
+{
+	dsSceneItemList* itemList = (dsSceneItemList*)modelList;
+	destroyInstanceData(modelList->instanceData, modelList->instanceDataCount);
+	dsSharedMaterialValues_destroy(modelList->instanceValues);
+	DS_VERIFY(dsAllocator_free(itemList->allocator, modelList->entries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, modelList->removeEntries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, (void*)modelList->instances));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, modelList->drawItems));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, modelList));
 }
 
 const char* const dsSceneModelList_typeName = "ModelList";
@@ -558,19 +588,4 @@ void dsSceneModelList_setRenderStates(dsSceneModelList* modelList,
 	}
 	else
 		modelList->hasRenderStates = false;
-}
-
-void dsSceneModelList_destroy(dsSceneModelList* modelList)
-{
-	if (!modelList)
-		return;
-
-	dsSceneItemList* itemList = (dsSceneItemList*)modelList;
-
-	destroyInstanceData(modelList->instanceData, modelList->instanceDataCount);
-	dsSharedMaterialValues_destroy(modelList->instanceValues);
-	DS_VERIFY(dsAllocator_free(itemList->allocator, modelList->entries));
-	DS_VERIFY(dsAllocator_free(itemList->allocator, (void*)modelList->instances));
-	DS_VERIFY(dsAllocator_free(itemList->allocator, modelList->drawItems));
-	DS_VERIFY(dsAllocator_free(itemList->allocator, modelList));
 }

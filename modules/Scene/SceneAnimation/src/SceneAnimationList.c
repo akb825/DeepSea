@@ -31,6 +31,7 @@
 
 #include <DeepSea/Math/Matrix44.h>
 
+#include <DeepSea/Scene/ItemLists/SceneItemListEntries.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
 #include <DeepSea/SceneAnimation/SceneAnimationNode.h>
@@ -72,15 +73,27 @@ typedef struct dsSceneAnimationList
 	uint32_t maxAnimationEntries;
 	uint64_t nextAnimationNodeID;
 
+	uint64_t* removeAnimationEntries;
+	uint32_t removeAnimationEntryCount;
+	uint32_t maxRemoveAnimationEntries;
+
 	TreeEntry* treeEntries;
 	uint32_t treeEntryCount;
 	uint32_t maxTreeEntries;
 	uint64_t nextTreeNodeID;
 
+	uint64_t* removeTreeEntries;
+	uint32_t removeTreeEntryCount;
+	uint32_t maxRemoveTreeEntries;
+
 	TransformEntry* transformEntries;
 	uint32_t transformEntryCount;
 	uint32_t maxTransformEntries;
 	uint64_t nextTransformNodeID;
+
+	uint64_t* removeTransformEntries;
+	uint32_t removeTransformEntryCount;
+	uint32_t maxRemoveTransformEntries;
 } dsSceneAnimationList;
 
 static uint64_t dsSceneAnimationList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
@@ -198,51 +211,64 @@ static void dsSceneAnimationList_removeNode(dsSceneItemList* itemList, uint64_t 
 	dsSceneAnimationList* animationList = (dsSceneAnimationList*)itemList;
 	if (nodeID < MIN_TREE_ENTRY_ID)
 	{
-		for (uint32_t i = 0; i < animationList->animationEntryCount; ++i)
+		AnimationEntry* entry = (AnimationEntry*)dsSceneItemListEntries_findEntry(
+			animationList->animationEntries, animationList->animationEntryCount,
+			sizeof(AnimationEntry), offsetof(AnimationEntry, nodeID), nodeID);
+		if (!entry)
+			return;
+
+		dsAnimation_destroy(entry->animation);
+
+		uint32_t index = animationList->removeAnimationEntryCount;
+		if (DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, animationList->removeAnimationEntries,
+				animationList->removeAnimationEntryCount, animationList->maxRemoveAnimationEntries,
+				1))
 		{
-			AnimationEntry* entry = animationList->animationEntries + i;
-			if (entry->nodeID != nodeID)
-				continue;
-
-			dsAnimation_destroy(entry->animation);
-
-			// Order shouldn't matter, so use constant-time removal.
-			animationList->animationEntries[i] =
-				animationList->animationEntries[animationList->animationEntryCount - 1];
-			--animationList->animationEntryCount;
-			break;
+			animationList->removeAnimationEntries[index] = nodeID;
+		}
+		else
+		{
+			dsSceneItemListEntries_removeSingleIndex(animationList->animationEntries,
+				&animationList->animationEntryCount, sizeof(AnimationEntry),
+				entry - animationList->animationEntries);
 		}
 	}
 	else if (nodeID < MIN_TRANSFORM_ENTRY_ID)
 	{
-		for (uint32_t i = 0; i < animationList->treeEntryCount; ++i)
+		TreeEntry* entry = (TreeEntry*)dsSceneItemListEntries_findEntry(animationList->treeEntries,
+			animationList->treeEntryCount, sizeof(TreeEntry), offsetof(TreeEntry, nodeID), nodeID);
+		if (!entry)
+			return;
+
+		dsSceneAnimationTreeInstance_destroy(entry->instance);
+
+		uint32_t index = animationList->removeTreeEntryCount;
+		if (DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, animationList->removeTreeEntries,
+				animationList->removeTreeEntryCount, animationList->maxRemoveTreeEntries, 1))
 		{
-			TreeEntry* entry = animationList->treeEntries + i;
-			if (entry->nodeID != nodeID)
-				continue;
-
-			dsSceneAnimationTreeInstance_destroy(entry->instance);
-
-			// Order shouldn't matter, so use constant-time removal.
-			animationList->treeEntries[i] =
-				animationList->treeEntries[animationList->treeEntryCount - 1];
-			--animationList->treeEntryCount;
-			break;
+			animationList->removeTreeEntries[index] = nodeID;
+		}
+		else
+		{
+			dsSceneItemListEntries_removeSingleIndex(animationList->treeEntries,
+				&animationList->treeEntryCount, sizeof(TreeEntry),
+				entry - animationList->treeEntries);
 		}
 	}
 	else
 	{
-		for (uint32_t i = 0; i < animationList->transformEntryCount; ++i)
+		uint32_t index = animationList->removeTransformEntryCount;
+		if (DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, animationList->removeTransformEntries,
+				animationList->removeTransformEntryCount, animationList->maxRemoveTransformEntries,
+				1))
 		{
-			TransformEntry* entry = animationList->transformEntries + i;
-			if (entry->nodeID != nodeID)
-				continue;
-
-			// Order shouldn't matter, so use constant-time removal.
-			animationList->transformEntries[i] =
-				animationList->transformEntries[animationList->transformEntryCount - 1];
-			--animationList->transformEntryCount;
-			break;
+			animationList->removeTransformEntries[index] = nodeID;
+		}
+		else
+		{
+			dsSceneItemListEntries_removeSingle(animationList->transformEntries,
+				&animationList->transformEntryCount, sizeof(TransformEntry),
+				offsetof(TransformEntry, nodeID), nodeID);
 		}
 	}
 }
@@ -252,6 +278,24 @@ static void dsSceneAnimationList_preTransformUpdate(dsSceneItemList* itemList, c
 {
 	DS_UNUSED(scene);
 	dsSceneAnimationList* animationList = (dsSceneAnimationList*)itemList;
+
+	// Lazily remove entries.
+	dsSceneItemListEntries_removeMulti(animationList->animationEntries,
+		&animationList->animationEntryCount, sizeof(AnimationEntry),
+		offsetof(AnimationEntry, nodeID), animationList->removeAnimationEntries,
+		animationList->removeAnimationEntryCount);
+	animationList->removeAnimationEntryCount = 0;
+
+	dsSceneItemListEntries_removeMulti(animationList->treeEntries, &animationList->treeEntryCount,
+		sizeof(TreeEntry), offsetof(TreeEntry, nodeID), animationList->removeTreeEntries,
+		animationList->removeTreeEntryCount);
+	animationList->removeTreeEntryCount = 0;
+
+	dsSceneItemListEntries_removeMulti(animationList->transformEntries,
+		&animationList->transformEntryCount, sizeof(TransformEntry),
+		offsetof(TransformEntry, nodeID), animationList->removeTransformEntries,
+		animationList->removeTransformEntryCount);
+	animationList->removeTransformEntryCount = 0;
 
 	if (time != 0)
 	{
@@ -285,13 +329,27 @@ static void dsSceneAnimationList_preTransformUpdate(dsSceneItemList* itemList, c
 static void dsSceneAnimationList_destroy(dsSceneItemList* itemList)
 {
 	dsSceneAnimationList* animationList = (dsSceneAnimationList*)itemList;
+
+	// Handle removed entries before destroying their resources.
+	dsSceneItemListEntries_removeMulti(animationList->animationEntries,
+		&animationList->animationEntryCount, sizeof(AnimationEntry),
+		offsetof(AnimationEntry, nodeID), animationList->removeAnimationEntries,
+		animationList->removeAnimationEntryCount);
+	dsSceneItemListEntries_removeMulti(animationList->treeEntries, &animationList->treeEntryCount,
+		sizeof(TreeEntry), offsetof(TreeEntry, nodeID), animationList->removeTreeEntries,
+		animationList->removeTreeEntryCount);
+
 	for (uint32_t i = 0; i < animationList->animationEntryCount; ++i)
 		dsAnimation_destroy(animationList->animationEntries[i].animation);
 	for (uint32_t i = 0; i < animationList->treeEntryCount; ++i)
 		dsSceneAnimationTreeInstance_destroy(animationList->treeEntries[i].instance);
+
 	DS_VERIFY(dsAllocator_free(itemList->allocator, animationList->animationEntries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, animationList->removeAnimationEntries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, animationList->treeEntries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, animationList->removeTreeEntries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, animationList->transformEntries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, animationList->removeTransformEntries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
 

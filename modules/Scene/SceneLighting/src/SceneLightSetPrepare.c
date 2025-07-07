@@ -26,6 +26,7 @@
 
 #include <DeepSea/Math/Matrix44.h>
 
+#include <DeepSea/Scene/ItemLists/SceneItemListEntries.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
 #include <DeepSea/SceneLighting/SceneLightNode.h>
@@ -52,6 +53,10 @@ struct dsSceneLightSetPrepare
 	uint32_t entryCount;
 	uint32_t maxEntries;
 	uint64_t nextNodeID;
+
+	uint64_t* removeEntries;
+	uint32_t removeEntryCount;
+	uint32_t maxRemoveEntries;
 };
 
 static void transformLight(dsSceneLight* light, const dsVector3f* position,
@@ -134,12 +139,11 @@ static uint64_t dsSceneLightSetPrepare_addNode(dsSceneItemList* itemList, dsScen
 static void dsSceneLightSetPrepare_updateNode(dsSceneItemList* itemList, uint64_t nodeID)
 {
 	dsSceneLightSetPrepare* prepare = (dsSceneLightSetPrepare*)itemList;
-	for (uint32_t i = 0; i < prepare->entryCount; ++i)
-	{
-		const Entry* entry = prepare->entries + i;
-		if (entry->nodeID != nodeID)
-			continue;
 
+	Entry* entry = (Entry*)dsSceneItemListEntries_findEntry(prepare->entries, prepare->entryCount,
+		sizeof(Entry), offsetof(Entry, nodeID), nodeID);
+	if (entry)
+	{
 		transformLight(entry->light, &entry->position, &entry->direction,
 			&entry->treeNode->transform);
 	}
@@ -148,17 +152,24 @@ static void dsSceneLightSetPrepare_updateNode(dsSceneItemList* itemList, uint64_
 static void dsSceneLightSetPrepare_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
 {
 	dsSceneLightSetPrepare* prepare = (dsSceneLightSetPrepare*)itemList;
-	for (uint32_t i = 0; i < prepare->entryCount; ++i)
+
+	Entry* entry = (Entry*)dsSceneItemListEntries_findEntry(prepare->entries, prepare->entryCount,
+		sizeof(Entry), offsetof(Entry, nodeID), nodeID);
+	if (!entry)
+		return;
+
+	DS_VERIFY(dsSceneLightSet_removeLight(prepare->lightSet, entry->light));
+
+	uint32_t index = prepare->removeEntryCount;
+	if (DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, prepare->removeEntries,
+			prepare->removeEntryCount, prepare->maxRemoveEntries, 1))
 	{
-		if (prepare->entries[i].nodeID != nodeID)
-			continue;
-
-		DS_VERIFY(dsSceneLightSet_removeLight(prepare->lightSet, prepare->entries[i].light));
-
-		// Order shouldn't matter, so use constant-time removal.
-		prepare->entries[i] = prepare->entries[prepare->entryCount - 1];
-		--prepare->entryCount;
-		break;
+		prepare->removeEntries[index] = nodeID;
+	}
+	else
+	{
+		dsSceneItemListEntries_removeSingleIndex(prepare->entries, &prepare->entryCount,
+			sizeof(Entry), entry - prepare->entries);
 	}
 }
 
@@ -168,6 +179,13 @@ static void dsSceneLightSetPrepare_update(dsSceneItemList* itemList, const dsSce
 	DS_UNUSED(scene);
 	DS_UNUSED(time);
 	dsSceneLightSetPrepare* prepare = (dsSceneLightSetPrepare*)itemList;
+
+	// Lazily remove entries.
+	dsSceneItemListEntries_removeMulti(prepare->entries, &prepare->entryCount,
+		sizeof(Entry), offsetof(Entry, nodeID), prepare->removeEntries,
+		prepare->removeEntryCount);
+	prepare->removeEntryCount = 0;
+
 	dsSceneLightSet_prepare(prepare->lightSet, prepare->intensityThreshold);
 }
 
@@ -279,5 +297,6 @@ void dsSceneLightSetPrepare_destroy(dsSceneLightSetPrepare* prepare)
 
 	dsSceneItemList* itemList = (dsSceneItemList*)prepare;
 	DS_VERIFY(dsAllocator_free(itemList->allocator, prepare->entries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, prepare->removeEntries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }

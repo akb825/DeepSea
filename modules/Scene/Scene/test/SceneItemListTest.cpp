@@ -23,6 +23,7 @@
 #include <DeepSea/Math/Matrix44.h>
 
 #include <DeepSea/Scene/ItemLists/SceneItemList.h>
+#include <DeepSea/Scene/ItemLists/SceneItemListEntries.h>
 #include <DeepSea/Scene/Nodes/SceneTransformNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Scene.h>
@@ -44,7 +45,7 @@ dsSceneNode* createMockNode(dsAllocator* allocator)
 {
 	dsSceneNode* node = DS_ALLOCATE_OBJECT(allocator, dsSceneNode);
 	if (!node)
-		return NULL;
+		return nullptr;
 
 	EXPECT_TRUE(dsSceneNode_initialize(node, allocator, &mockSceneNodeType, &testItemListName, 1,
 		&destroyMockNode));
@@ -66,6 +67,10 @@ struct MockSceneItemList
 	uint32_t itemCount;
 	uint32_t maxItems;
 	uint64_t nextNodeID;
+
+	uint64_t* removeItems;
+	uint32_t removeItemCount;
+	uint32_t maxRemoveItems;
 };
 
 uint64_t addMockSceneItem(dsSceneItemList* itemList, dsSceneNode* node, dsSceneTreeNode* treeNode,
@@ -92,28 +97,39 @@ uint64_t addMockSceneItem(dsSceneItemList* itemList, dsSceneNode* node, dsSceneT
 void removeMockSceneItem(dsSceneItemList* itemList, uint64_t nodeID)
 {
 	MockSceneItemList* mockList = (MockSceneItemList*)itemList;
-	for (uint32_t i = 0; i < mockList->itemCount; ++i)
+
+	uint32_t index = mockList->removeItemCount;
+	if (DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, mockList->removeItems,
+			mockList->removeItemCount, mockList->maxRemoveItems, 1))
 	{
-		if (mockList->items[i].nodeID == nodeID)
-		{
-			mockList->items[i] = mockList->items[mockList->itemCount - 1];
-			--mockList->itemCount;
-			break;
-		}
+		mockList->removeItems[index] = nodeID;
+	}
+	else
+	{
+		dsSceneItemListEntries_removeSingle(mockList->items, &mockList->itemCount,
+			sizeof(ItemInfo), offsetof(ItemInfo, nodeID), nodeID);
 	}
 }
 
 void updateMockSceneItem(dsSceneItemList* itemList, uint64_t nodeID)
 {
 	MockSceneItemList* mockList = (MockSceneItemList*)itemList;
-	for (uint32_t i = 0; i < mockList->itemCount; ++i)
-	{
-		if (mockList->items[i].nodeID == nodeID)
-		{
-			++mockList->items[i].updateCount;
-			break;
-		}
-	}
+
+	auto item = (ItemInfo*)dsSceneItemListEntries_findEntry(mockList->items,
+		mockList->itemCount, sizeof(ItemInfo), offsetof(ItemInfo, nodeID), nodeID);
+	if (item)
+		++item->updateCount;
+}
+
+void updateMockSceneItems(dsSceneItemList* itemList, const dsScene*, float)
+{
+	MockSceneItemList* mockList = (MockSceneItemList*)itemList;
+
+	// Lazily remove items.
+	dsSceneItemListEntries_removeMulti(mockList->items, &mockList->itemCount,
+		sizeof(ItemInfo), offsetof(ItemInfo, nodeID), mockList->removeItems,
+		mockList->removeItemCount);
+	mockList->removeItemCount = 0;
 }
 
 void commitMockSceneItems(dsSceneItemList*, const dsView*, dsCommandBuffer*)
@@ -124,6 +140,7 @@ void destroyMockSceneItems(dsSceneItemList* itemList)
 {
 	MockSceneItemList* mockList = (MockSceneItemList*)itemList;
 	EXPECT_TRUE(dsAllocator_free(itemList->allocator, mockList->items));
+	EXPECT_TRUE(dsAllocator_free(itemList->allocator, mockList->removeItems));
 	EXPECT_TRUE(dsAllocator_free(itemList->allocator, itemList));
 }
 
@@ -131,7 +148,7 @@ MockSceneItemList* createMockSceneItems(dsAllocator* allocator)
 {
 	MockSceneItemList* mockItems = DS_ALLOCATE_OBJECT(allocator, MockSceneItemList);
 	if (!mockItems)
-		return NULL;
+		return nullptr;
 
 	dsSceneItemList* baseItems = (dsSceneItemList*)mockItems;
 	baseItems->allocator = dsAllocator_keepPointer(allocator);
@@ -143,17 +160,22 @@ MockSceneItemList* createMockSceneItems(dsAllocator* allocator)
 	baseItems->addNodeFunc = &addMockSceneItem;
 	baseItems->updateNodeFunc = &updateMockSceneItem;
 	baseItems->removeNodeFunc = &removeMockSceneItem;
-	baseItems->reparentNodeFunc = NULL;
-	baseItems->preTransformUpdateFunc = NULL;
-	baseItems->updateFunc = NULL;
-	baseItems->preRenderPassFunc = NULL;
+	baseItems->reparentNodeFunc = nullptr;
+	baseItems->preTransformUpdateFunc = nullptr;
+	baseItems->updateFunc = &updateMockSceneItems;
+	baseItems->preRenderPassFunc = nullptr;
 	baseItems->commitFunc = &commitMockSceneItems;
 	baseItems->destroyFunc = &destroyMockSceneItems;
 
-	mockItems->items = NULL;
+	mockItems->items = nullptr;
 	mockItems->itemCount = 0;
 	mockItems->maxItems = 0;
 	mockItems->nextNodeID = 0;
+
+	mockItems->removeItems = nullptr;
+	mockItems->removeItemCount = 0;
+	mockItems->maxRemoveItems = 0;
+
 	return mockItems;
 }
 
@@ -181,9 +203,9 @@ public:
 		FixtureBase::SetUp();
 		mockSceneItems = createMockSceneItems((dsAllocator*)&allocator);
 		ASSERT_TRUE(mockSceneItems);
-		dsScenePipelineItem pipelineItem = {NULL, (dsSceneItemList*)mockSceneItems};
-		scene = dsScene_create((dsAllocator*)&allocator, renderer, NULL, 0, &pipelineItem, 1,
-			NULL, NULL);
+		dsScenePipelineItem pipelineItem = {nullptr, (dsSceneItemList*)mockSceneItems};
+		scene = dsScene_create((dsAllocator*)&allocator, renderer, nullptr, 0, &pipelineItem, 1,
+			nullptr, nullptr);
 		ASSERT_TRUE(scene);
 	}
 
@@ -233,6 +255,7 @@ TEST_F(SceneItemListTest, NodeHierarchy)
 	EXPECT_TRUE(matricesEqual(&expectedTransform, mockSceneItems->items[2].transform));
 
 	EXPECT_TRUE(dsSceneNode_removeChildNode((dsSceneNode*)transform1, (dsSceneNode*)transform2));
+	EXPECT_TRUE(dsScene_update(scene, 0));
 	ASSERT_EQ(1U, mockSceneItems->itemCount);
 	EXPECT_EQ(mockNode1, mockSceneItems->items[0].node);
 	EXPECT_TRUE(matricesEqual(&matrix1, mockSceneItems->items[0].transform));

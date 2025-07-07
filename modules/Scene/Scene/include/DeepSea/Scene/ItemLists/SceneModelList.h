@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,12 +91,6 @@ DS_SCENE_EXPORT const dsDynamicRenderStates* dsSceneModelList_getRenderStates(
  */
 DS_SCENE_EXPORT void dsSceneModelList_setRenderStates(dsSceneModelList* modelList,
 	const dsDynamicRenderStates* renderStates);
-
-/**
- * @brief Destroys a model list.
- * @param modelList The model list.
- */
-DS_SCENE_EXPORT void dsSceneModelList_destroy(dsSceneModelList* modelList);
 
 #ifdef __cplusplus
 }

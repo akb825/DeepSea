@@ -29,6 +29,7 @@
 
 #include <DeepSea/Math/Matrix44.h>
 
+#include <DeepSea/Scene/ItemLists/SceneItemListEntries.h>
 #include <DeepSea/Scene/Nodes/SceneCullNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/View.h>
@@ -63,10 +64,18 @@ typedef struct dsViewCullList
 	uint32_t maxStaticEntries;
 	uint64_t nextStaticNodeID;
 
+	uint64_t* removeStaticEntries;
+	uint32_t removeStaticEntryCount;
+	uint32_t maxRemoveStaticEntries;
+
 	DynamicEntry* dynamicEntries;
 	uint32_t dynamicEntryCount;
 	uint32_t maxDynamicEntries;
 	uint64_t nextDynamicNodeID;
+
+	uint64_t* removeDynamicEntries;
+	uint32_t removeDynamicEntryCount;
+	uint32_t maxRemoveDynamicEntries;
 } dsViewCullList;
 
 static uint64_t dsViewCullList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
@@ -118,30 +127,47 @@ static void dsViewCullList_removeNode(dsSceneItemList* itemList, uint64_t nodeID
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
 	if (nodeID < MIN_DYNAMIC_ENTRY_ID)
 	{
-		for (uint32_t i = 0; i < cullList->staticEntryCount; ++i)
+		uint32_t index = cullList->removeStaticEntryCount;
+		if (DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, cullList->removeStaticEntries,
+				cullList->removeStaticEntryCount, cullList->maxRemoveStaticEntries, 1))
 		{
-			if (cullList->staticEntries[i].nodeID != nodeID)
-				continue;
-
-			// Order shouldn't matter, so use constant-time removal.
-			cullList->staticEntries[i] = cullList->staticEntries[cullList->staticEntryCount - 1];
-			--cullList->staticEntryCount;
-			break;
+			cullList->removeStaticEntries[index] = nodeID;
+		}
+		else
+		{
+			dsSceneItemListEntries_removeSingle(cullList->staticEntries,
+				&cullList->staticEntryCount, sizeof(StaticEntry), offsetof(StaticEntry, nodeID),
+				nodeID);
 		}
 	}
 	else
 	{
-		for (uint32_t i = 0; i < cullList->dynamicEntryCount; ++i)
+		uint32_t index = cullList->removeDynamicEntryCount;
+		if (DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, cullList->removeDynamicEntries,
+				cullList->removeDynamicEntryCount, cullList->maxRemoveDynamicEntries, 1))
 		{
-			if (cullList->dynamicEntries[i].nodeID != nodeID)
-				continue;
-
-			// Order shouldn't matter, so use constant-time removal.
-			cullList->dynamicEntries[i] = cullList->dynamicEntries[cullList->dynamicEntryCount - 1];
-			--cullList->dynamicEntryCount;
-			break;
+			cullList->removeDynamicEntries[index] = nodeID;
+		}
+		else
+		{
+			dsSceneItemListEntries_removeSingle(cullList->dynamicEntries,
+				&cullList->dynamicEntryCount, sizeof(DynamicEntry), offsetof(DynamicEntry, nodeID),
+				nodeID);
 		}
 	}
+}
+
+static void lazyRemoveEntries(dsViewCullList* cullList)
+{
+	dsSceneItemListEntries_removeMulti(cullList->staticEntries, &cullList->staticEntryCount,
+		sizeof(StaticEntry), offsetof(StaticEntry, nodeID), cullList->removeStaticEntries,
+		cullList->removeStaticEntryCount);
+	cullList->removeStaticEntryCount = 0;
+
+	dsSceneItemListEntries_removeMulti(cullList->dynamicEntries, &cullList->dynamicEntryCount,
+		sizeof(DynamicEntry), offsetof(DynamicEntry, nodeID), cullList->removeDynamicEntries,
+		cullList->removeDynamicEntryCount);
+	cullList->removeDynamicEntryCount = 0;
 }
 
 #if DS_HAS_SIMD
@@ -151,6 +177,8 @@ static void dsViewCullList_commitSIMD(dsSceneItemList* itemList, const dsView* v
 {
 	DS_UNUSED(commandBuffer);
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
+	lazyRemoveEntries(cullList);
+
 	for (uint32_t i = 0; i < cullList->staticEntryCount; ++i)
 	{
 		const StaticEntry* entry = cullList->staticEntries + i;
@@ -181,6 +209,8 @@ static void dsViewCullList_commitFMA(dsSceneItemList* itemList, const dsView* vi
 {
 	DS_UNUSED(commandBuffer);
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
+	lazyRemoveEntries(cullList);
+
 	for (uint32_t i = 0; i < cullList->staticEntryCount; ++i)
 	{
 		const StaticEntry* entry = cullList->staticEntries + i;
@@ -211,6 +241,8 @@ static void dsViewCullList_commit(dsSceneItemList* itemList, const dsView* view,
 {
 	DS_UNUSED(commandBuffer);
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
+	lazyRemoveEntries(cullList);
+
 	for (uint32_t i = 0; i < cullList->staticEntryCount; ++i)
 	{
 		const StaticEntry* entry = cullList->staticEntries + i;
@@ -238,7 +270,9 @@ static void dsViewCullList_destroy(dsSceneItemList* itemList)
 {
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
 	DS_VERIFY(dsAllocator_free(itemList->allocator, cullList->staticEntries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, cullList->removeStaticEntries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, cullList->dynamicEntries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, cullList->removeDynamicEntries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
 

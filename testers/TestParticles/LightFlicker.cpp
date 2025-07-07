@@ -25,7 +25,9 @@
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Random.h>
 
+#include <DeepSea/Scene/ItemLists/SceneItemListEntries.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+
 #include <DeepSea/SceneLighting/SceneLight.h>
 #include <DeepSea/SceneLighting/SceneLightNode.h>
 
@@ -69,6 +71,10 @@ typedef struct dsLightFlicker
 	uint32_t entryCount;
 	uint32_t maxEntries;
 	uint64_t nextNodeID;
+
+	uint64_t* removeEntries;
+	uint32_t removeEntryCount;
+	uint32_t maxRemoveEntries;
 } dsLightFlicker;
 
 static int type;
@@ -107,15 +113,17 @@ static uint64_t dsLightFlicker_addNode(dsSceneItemList* itemList, dsSceneNode* n
 static void dsLightFlicker_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
 {
 	dsLightFlicker* flicker = (dsLightFlicker*)itemList;
-	for (uint32_t i = 0; i < flicker->entryCount; ++i)
-	{
-		if (flicker->entries[i].nodeID != nodeID)
-			continue;
 
-		// Order shouldn't matter, so use constant-time removal.
-		flicker->entries[i] = flicker->entries[flicker->entryCount - 1];
-		--flicker->entryCount;
-		break;
+	uint32_t index = flicker->removeEntryCount;
+	if (DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, flicker->removeEntries,
+			flicker->removeEntryCount, flicker->maxRemoveEntries, 1))
+	{
+		flicker->removeEntries[index] = nodeID;
+	}
+	else
+	{
+		dsSceneItemListEntries_removeSingle(flicker->entries, &flicker->entryCount, sizeof(Entry),
+			offsetof(Entry, nodeID), nodeID);
 	}
 }
 
@@ -123,6 +131,12 @@ static void dsLightFlicker_update(dsSceneItemList* itemList, const dsScene* scen
 {
 	DS_UNUSED(scene);
 	dsLightFlicker* flicker = (dsLightFlicker*)itemList;
+
+	// Lazily remove entries.
+	dsSceneItemListEntries_removeMulti(flicker->entries, &flicker->entryCount, sizeof(Entry),
+		offsetof(Entry, nodeID), flicker->removeEntries, flicker->removeEntryCount);
+	flicker->removeEntryCount = 0;
+
 	for (uint32_t i = 0; i < flicker->entryCount; ++i)
 	{
 		Entry* entry = flicker->entries + i;
@@ -159,11 +173,9 @@ static void dsLightFlicker_update(dsSceneItemList* itemList, const dsScene* scen
 
 static void dsLightFlicker_destroy(dsSceneItemList* itemList)
 {
-	if (!itemList->allocator)
-		return;
-
 	dsLightFlicker* flicker = (dsLightFlicker*)itemList;
 	DS_VERIFY(dsAllocator_free(itemList->allocator, flicker->entries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, flicker->removeEntries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
 

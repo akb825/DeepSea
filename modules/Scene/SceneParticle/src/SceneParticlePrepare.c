@@ -28,7 +28,9 @@
 #include <DeepSea/Particle/ParticleEmitter.h>
 #include <DeepSea/Particle/ParticleDraw.h>
 
+#include <DeepSea/Scene/ItemLists/SceneItemListEntries.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+
 #include <DeepSea/SceneParticle/SceneParticleNode.h>
 
 #include <string.h>
@@ -49,6 +51,10 @@ typedef struct dsSceneParticlePrepare
 	uint32_t entryCount;
 	uint32_t maxEntries;
 	uint64_t nextNodeID;
+
+	uint64_t* removeEntries;
+	uint32_t removeEntryCount;
+	uint32_t maxRemoveEntries;
 } dsSceneParticlePrepare;
 
 static uint64_t dsSceneParticlePrepare_addNode(dsSceneItemList* itemList, dsSceneNode* node,
@@ -86,17 +92,24 @@ static uint64_t dsSceneParticlePrepare_addNode(dsSceneItemList* itemList, dsScen
 static void dsSceneParticlePrepare_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
 {
 	dsSceneParticlePrepare* prepareList = (dsSceneParticlePrepare*)itemList;
-	for (uint32_t i = 0; i < prepareList->entryCount; ++i)
+
+	Entry* entry = (Entry*)dsSceneItemListEntries_findEntry(prepareList->entries,
+		prepareList->entryCount, sizeof(Entry), offsetof(Entry, nodeID), nodeID);
+	if (!entry)
+		return;
+
+	dsParticleEmitter_destroy(entry->emitter);
+
+	uint32_t index = prepareList->removeEntryCount;
+	if (DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, prepareList->removeEntries,
+			prepareList->removeEntryCount, prepareList->maxRemoveEntries, 1))
 	{
-		if (prepareList->entries[i].nodeID != nodeID)
-			continue;
-
-		dsParticleEmitter_destroy(prepareList->entries[i].emitter);
-
-		// Order shouldn't matter, so use constant-time removal.
-		prepareList->entries[i] = prepareList->entries[prepareList->entryCount - 1];
-		--prepareList->entryCount;
-		break;
+		prepareList->removeEntries[index] = nodeID;
+	}
+	else
+	{
+		dsSceneItemListEntries_removeSingleIndex(prepareList->entries, &prepareList->entryCount,
+			sizeof(Entry), entry - prepareList->entries);
 	}
 }
 
@@ -105,6 +118,13 @@ static void dsSceneParticlePrepare_update(dsSceneItemList* itemList, const dsSce
 {
 	DS_UNUSED(scene);
 	dsSceneParticlePrepare* prepareList = (dsSceneParticlePrepare*)itemList;
+
+	// Lazily remove entries.
+	dsSceneItemListEntries_removeMulti(prepareList->entries, &prepareList->entryCount,
+		sizeof(Entry), offsetof(Entry, nodeID), prepareList->removeEntries,
+		prepareList->removeEntryCount);
+	prepareList->removeEntryCount = 0;
+
 	for (uint32_t i = 0; i < prepareList->entryCount; ++i)
 	{
 		Entry* entry = prepareList->entries + i;
@@ -116,9 +136,17 @@ static void dsSceneParticlePrepare_update(dsSceneItemList* itemList, const dsSce
 static void dsSceneParticlePrepare_destroy(dsSceneItemList* itemList)
 {
 	dsSceneParticlePrepare* prepareList = (dsSceneParticlePrepare*)itemList;
+
+	// Handle removed entries before destroying their resources.
+	dsSceneItemListEntries_removeMulti(prepareList->entries, &prepareList->entryCount,
+		sizeof(Entry), offsetof(Entry, nodeID), prepareList->removeEntries,
+		prepareList->removeEntryCount);
+
 	for (uint32_t i = 0; i < prepareList->entryCount; ++i)
 		dsParticleEmitter_destroy(prepareList->entries[i].emitter);
+
 	DS_VERIFY(dsAllocator_free(itemList->allocator, prepareList->entries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, prepareList->removeEntries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
 

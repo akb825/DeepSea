@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,12 +74,6 @@ DS_SCENEVECTORDRAW_EXPORT const dsDynamicRenderStates* dsSceneVectorItemList_get
  */
 DS_SCENEVECTORDRAW_EXPORT void dsdsSceneVectorItemList_setRenderStates(
 	dsSceneVectorItemList* vectorList, const dsDynamicRenderStates* renderStates);
-
-/**
- * @brief Destroys the vector item list.
- * @param vectorList The vector item list.
- */
-DS_SCENEVECTORDRAW_EXPORT void dsSceneVectorItemList_destroy(dsSceneVectorItemList* vectorList);
 
 #ifdef __cplusplus
 }

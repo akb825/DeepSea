@@ -37,6 +37,7 @@
 #include <DeepSea/Physics/RigidBody.h>
 #include <DeepSea/Physics/RigidBodyTemplate.h>
 
+#include <DeepSea/Scene/ItemLists/SceneItemListEntries.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneNodeItemData.h>
 #include <DeepSea/Scene/Nodes/SceneShiftNode.h>
@@ -109,15 +110,27 @@ typedef struct dsScenePhysicsList
 	uint32_t maxGroupEntries;
 	uint64_t nextGroupNodeID;
 
+	uint64_t* removeGroupEntries;
+	uint32_t removeGroupEntryCount;
+	uint32_t maxRemoveGroupEntries;
+
 	RigidBodyEntry* rigidBodyEntries;
 	uint32_t rigidBodyEntryCount;
 	uint32_t maxRigidBodyEntries;
 	uint64_t nextRigidBodyNodeID;
 
+	uint64_t* removeRigidBodyEntries;
+	uint32_t removeRigidBodyEntryCount;
+	uint32_t maxRemoveRigidBodyEntries;
+
 	ConstraintEntry* constraintEntries;
 	uint32_t constraintEntryCount;
 	uint32_t maxConstraintEntries;
 	uint64_t nextConstraintNodeID;
+
+	uint64_t* removeConstraintEntries;
+	uint32_t removeConstraintEntryCount;
+	uint32_t maxRemoveConstraintEntries;
 } dsScenePhysicsList;
 
 static bool findPhysicsSceneFunc(dsSceneItemList* itemList, void* userData)
@@ -513,80 +526,99 @@ static void dsScenePhysicsList_removeNode(dsSceneItemList* itemList, uint64_t no
 		physicsList->shiftNode = NULL;
 	else if (nodeID < MIN_RIGID_BODY_ENTRY_ID)
 	{
-		for (uint32_t i = 0; i < physicsList->groupEntryCount; ++i)
+		RigidBodyGroupEntry* entry = (RigidBodyGroupEntry*)dsSceneItemListEntries_findEntry(
+			physicsList->groupEntries, physicsList->groupEntryCount, sizeof(RigidBodyGroupEntry),
+			offsetof(RigidBodyEntry, nodeID), nodeID);
+		if (!entry)
+			return;
+
+		dsPhysicsSceneLock lock;
+		DS_VERIFY(dsPhysicsScene_lockWrite(&lock, physicsList->physicsScene));
+		DS_VERIFY(dsPhysicsScene_removeConstraints(physicsList->physicsScene,
+			entry->data->constraints, entry->data->constraintCount, &lock));
+		DS_VERIFY(dsPhysicsScene_removeRigidBodyGroup(physicsList->physicsScene,
+			entry->data->group, &lock));
+		DS_VERIFY(dsPhysicsScene_unlockWrite(&lock, physicsList->physicsScene));
+
+		dsSceneRigidBodyGroupNodeData_destroy(entry->data);
+
+		uint32_t index = physicsList->removeGroupEntryCount;
+		if (DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, physicsList->removeGroupEntries,
+				physicsList->removeGroupEntryCount, physicsList->maxRemoveGroupEntries, 1))
 		{
-			RigidBodyGroupEntry* entry = physicsList->groupEntries + i;
-			if (entry->nodeID != nodeID)
-				continue;
-
-			dsPhysicsSceneLock lock;
-			DS_VERIFY(dsPhysicsScene_lockWrite(&lock, physicsList->physicsScene));
-			DS_VERIFY(dsPhysicsScene_removeConstraints(physicsList->physicsScene,
-				entry->data->constraints, entry->data->constraintCount, &lock));
-			DS_VERIFY(dsPhysicsScene_removeRigidBodyGroup(physicsList->physicsScene,
-				entry->data->group, &lock));
-			DS_VERIFY(dsPhysicsScene_unlockWrite(&lock, physicsList->physicsScene));
-
-			dsSceneRigidBodyGroupNodeData_destroy(entry->data);
-
-			// Order shouldn't matter, so use constant-time removal.
-			physicsList->groupEntries[i] =
-				physicsList->groupEntries[physicsList->groupEntryCount - 1];
-			--physicsList->groupEntryCount;
-			break;
+			physicsList->removeGroupEntries[index] = nodeID;
+		}
+		else
+		{
+			dsSceneItemListEntries_removeSingleIndex(physicsList->groupEntries,
+				&physicsList->groupEntryCount, sizeof(RigidBodyGroupEntry),
+				entry - physicsList->groupEntries);
 		}
 	}
 	else if (nodeID < MIN_CONSTRAINT_ENTRY_ID)
 	{
-		for (uint32_t i = 0; i < physicsList->rigidBodyEntryCount; ++i)
+		RigidBodyEntry* entry = (RigidBodyEntry*)dsSceneItemListEntries_findEntry(
+			physicsList->rigidBodyEntries, physicsList->rigidBodyEntryCount, sizeof(RigidBodyEntry),
+			offsetof(RigidBodyEntry, nodeID), nodeID);
+		if (!entry)
+			return;
+
+		dsSceneRigidBodyNode* node = (dsSceneRigidBodyNode*)entry->treeNode->node;
+		if (!node->rigidBodyName)
 		{
-			RigidBodyEntry* entry = physicsList->rigidBodyEntries + i;
-			if (entry->nodeID != nodeID)
-				continue;
+			// Should be removed from the physics scene if not part of a rigid body group node.
+			dsPhysicsSceneLock lock;
+			DS_VERIFY(dsPhysicsScene_lockWrite(&lock, physicsList->physicsScene));
+			DS_VERIFY(dsPhysicsScene_removeRigidBodies(physicsList->physicsScene,
+				&entry->rigidBody, 1, &lock));
+			DS_VERIFY(dsPhysicsScene_unlockWrite(&lock, physicsList->physicsScene));
 
-			dsSceneRigidBodyNode* node = (dsSceneRigidBodyNode*)entry->treeNode->node;
-			if (!node->rigidBodyName)
-			{
-				// Should be removed from the physics scene if not part of a rigid body group node.
-				dsPhysicsSceneLock lock;
-				DS_VERIFY(dsPhysicsScene_lockWrite(&lock, physicsList->physicsScene));
-				DS_VERIFY(dsPhysicsScene_removeRigidBodies(physicsList->physicsScene,
-					&entry->rigidBody, 1, &lock));
-				DS_VERIFY(dsPhysicsScene_unlockWrite(&lock, physicsList->physicsScene));
+			// If created from a template, also responsible for deleting the rigid body.
+			if (node->rigidBodyTemplate)
+				dsRigidBody_destroy(entry->rigidBody);
+		}
 
-				// If created from a template, also responsible for deleting the rigid body.
-				if (node->rigidBodyTemplate)
-					dsRigidBody_destroy(entry->rigidBody);
-			}
-
-			// Order shouldn't matter, so use constant-time removal.
-			physicsList->rigidBodyEntries[i] =
-				physicsList->rigidBodyEntries[physicsList->rigidBodyEntryCount - 1];
-			--physicsList->rigidBodyEntryCount;
-			break;
+		uint32_t index = physicsList->removeRigidBodyEntryCount;
+		if (DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, physicsList->removeRigidBodyEntries,
+				physicsList->removeRigidBodyEntryCount, physicsList->maxRemoveRigidBodyEntries, 1))
+		{
+			physicsList->removeRigidBodyEntries[index] = nodeID;
+		}
+		else
+		{
+			dsSceneItemListEntries_removeSingleIndex(physicsList->rigidBodyEntries,
+				&physicsList->rigidBodyEntryCount, sizeof(RigidBodyEntry),
+				entry - physicsList->rigidBodyEntries);
 		}
 	}
 	else
 	{
-		for (uint32_t i = 0; i < physicsList->constraintEntryCount; ++i)
+		ConstraintEntry* entry = (ConstraintEntry*)dsSceneItemListEntries_findEntry(
+			physicsList->constraintEntries, physicsList->constraintEntryCount,
+			sizeof(ConstraintEntry), offsetof(ConstraintEntry, nodeID), nodeID);
+		if (!entry)
+			return;
+
+		dsPhysicsSceneLock lock;
+		DS_VERIFY(dsPhysicsScene_lockWrite(&lock, physicsList->physicsScene));
+		DS_VERIFY(dsPhysicsScene_removeConstraints(physicsList->physicsScene,
+			&entry->constraint, 1, &lock));
+		DS_VERIFY(dsPhysicsScene_unlockWrite(&lock, physicsList->physicsScene));
+
+		DS_VERIFY(dsPhysicsConstraint_destroy(entry->constraint));
+
+		uint32_t index = physicsList->removeConstraintEntryCount;
+		if (DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, physicsList->removeConstraintEntries,
+				physicsList->removeConstraintEntryCount, physicsList->maxRemoveConstraintEntries,
+				1))
 		{
-			ConstraintEntry* entry = physicsList->constraintEntries + i;
-			if (entry->nodeID != nodeID)
-				continue;
-
-			dsPhysicsSceneLock lock;
-			DS_VERIFY(dsPhysicsScene_lockWrite(&lock, physicsList->physicsScene));
-			DS_VERIFY(dsPhysicsScene_removeConstraints(physicsList->physicsScene,
-				&entry->constraint, 1, &lock));
-			DS_VERIFY(dsPhysicsScene_unlockWrite(&lock, physicsList->physicsScene));
-
-			DS_VERIFY(dsPhysicsConstraint_destroy(entry->constraint));
-
-			// Order shouldn't matter, so use constant-time removal.
-			physicsList->constraintEntries[i] =
-				physicsList->constraintEntries[physicsList->constraintEntryCount - 1];
-			--physicsList->constraintEntryCount;
-			break;
+			physicsList->removeConstraintEntries[index] = nodeID;
+		}
+		else
+		{
+			dsSceneItemListEntries_removeSingleIndex(physicsList->constraintEntries,
+				&physicsList->constraintEntryCount, sizeof(ConstraintEntry),
+				entry - physicsList->constraintEntries);
 		}
 	}
 }
@@ -596,6 +628,23 @@ static void dsScenePhysicsList_preTransformUpdate(
 {
 	DS_UNUSED(scene);
 	dsScenePhysicsList* physicsList = (dsScenePhysicsList*)itemList;
+
+	// Lazily remove entries.
+	dsSceneItemListEntries_removeMulti(physicsList->groupEntries, &physicsList->groupEntryCount,
+		sizeof(RigidBodyGroupEntry), offsetof(RigidBodyGroupEntry, nodeID),
+		physicsList->removeGroupEntries, physicsList->removeGroupEntryCount);
+	physicsList->removeGroupEntryCount = 0;
+
+	dsSceneItemListEntries_removeMulti(physicsList->rigidBodyEntries,
+		&physicsList->rigidBodyEntryCount, sizeof(RigidBodyEntry), offsetof(RigidBodyEntry, nodeID),
+		physicsList->removeRigidBodyEntries, physicsList->removeRigidBodyEntryCount);
+	physicsList->removeRigidBodyEntryCount = 0;
+
+	dsSceneItemListEntries_removeMulti(physicsList->constraintEntries,
+		&physicsList->constraintEntryCount, sizeof(ConstraintEntry),
+		offsetof(ConstraintEntry, nodeID), physicsList->removeConstraintEntries,
+		physicsList->removeConstraintEntryCount);
+	physicsList->removeConstraintEntryCount = 0;
 
 	dsVector3d origin;
 	if (physicsList->shiftNode)
@@ -726,6 +775,18 @@ static void dsScenePhysicsList_destroy(dsSceneItemList* itemList)
 {
 	dsScenePhysicsList* physicsList = (dsScenePhysicsList*)itemList;
 
+	// Handle removed entries before destroying their resources.
+	dsSceneItemListEntries_removeMulti(physicsList->groupEntries, &physicsList->groupEntryCount,
+		sizeof(RigidBodyGroupEntry), offsetof(RigidBodyGroupEntry, nodeID),
+		physicsList->removeGroupEntries, physicsList->removeGroupEntryCount);
+	dsSceneItemListEntries_removeMulti(physicsList->rigidBodyEntries,
+		&physicsList->rigidBodyEntryCount, sizeof(RigidBodyEntry), offsetof(RigidBodyEntry, nodeID),
+		physicsList->removeRigidBodyEntries, physicsList->removeRigidBodyEntryCount);
+	dsSceneItemListEntries_removeMulti(physicsList->constraintEntries,
+		&physicsList->constraintEntryCount, sizeof(ConstraintEntry),
+		offsetof(ConstraintEntry, nodeID), physicsList->removeConstraintEntries,
+		physicsList->removeConstraintEntryCount);
+
 	if (physicsList->ownsPhysicsScene)
 	{
 		// Don't bother removing the rigid bodies and constraints when destroying the physics scene.
@@ -775,8 +836,11 @@ static void dsScenePhysicsList_destroy(dsSceneItemList* itemList)
 			physicsList->physicsScene, physicsList->preStepListenerID));
 	}
 	DS_VERIFY(dsAllocator_free(itemList->allocator, physicsList->groupEntries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, physicsList->removeGroupEntries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, physicsList->rigidBodyEntries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, physicsList->removeRigidBodyEntries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, physicsList->constraintEntries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, physicsList->removeConstraintEntries));
 
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }

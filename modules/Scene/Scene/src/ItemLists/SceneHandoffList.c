@@ -29,6 +29,7 @@
 #include <DeepSea/Math/Quaternion.h>
 #include <DeepSea/Math/Vector3.h>
 
+#include <DeepSea/Scene/ItemLists/SceneItemListEntries.h>
 #include <DeepSea/Scene/Nodes/SceneHandoffNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
@@ -55,6 +56,10 @@ typedef struct dsSceneHandoffList
 	uint32_t entryCount;
 	uint32_t maxEntries;
 	uint64_t nextNodeID;
+
+	uint64_t* removeEntries;
+	uint32_t removeEntryCount;
+	uint32_t maxRemoveEntries;
 } dsSceneHandoffList;
 
 static uint64_t dsSceneHandoffList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
@@ -101,15 +106,17 @@ static uint64_t dsSceneHandoffList_addNode(dsSceneItemList* itemList, dsSceneNod
 static void dsSceneHandoffList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
 {
 	dsSceneHandoffList* handoffList = (dsSceneHandoffList*)itemList;
-	for (uint32_t i = 0; i < handoffList->entryCount; ++i)
-	{
-		if (handoffList->entries[i].nodeID != nodeID)
-			continue;
 
-		// Order shouldn't matter, so use constant-time removal.
-		handoffList->entries[i] = handoffList->entries[handoffList->entryCount - 1];
-		--handoffList->entryCount;
-		break;
+	uint32_t index = handoffList->removeEntryCount;
+	if (DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, handoffList->removeEntries,
+			handoffList->removeEntryCount, handoffList->maxRemoveEntries, 1))
+	{
+		handoffList->removeEntries[index] = nodeID;
+	}
+	else
+	{
+		dsSceneItemListEntries_removeSingle(handoffList->entries, &handoffList->entryCount,
+			sizeof(Entry), offsetof(Entry, nodeID), nodeID);
 	}
 }
 
@@ -117,54 +124,59 @@ static void dsSceneHandoffList_reparentNode(dsSceneItemList* itemList, uint64_t 
 	dsSceneTreeNode* prevAncestor, dsSceneTreeNode* newAncestor)
 {
 	dsSceneHandoffList* handoffList = (dsSceneHandoffList*)itemList;
-	for (uint32_t i = 0; i < handoffList->entryCount; ++i)
+
+	Entry* entry = (Entry*)dsSceneItemListEntries_findEntry(handoffList->entries,
+		handoffList->entryCount, sizeof(Entry), offsetof(Entry, nodeID), nodeID);
+	if (!entry)
+		return;
+
+	// Check if there's a common ancestor between the new and old parent.
+	const dsSceneTreeNode* commonAncestor = NULL;
+	while (prevAncestor)
 	{
-		Entry* entry = handoffList->entries + i;
-		if (entry->nodeID != nodeID)
-			continue;
+		const dsSceneTreeNode* nextNewAncestor = newAncestor;
+		while (nextNewAncestor && nextNewAncestor != prevAncestor)
+			nextNewAncestor = nextNewAncestor->parent;
 
-		// Check if there's a common ancestor between the new and old parent.
-		const dsSceneTreeNode* commonAncestor = NULL;
-		while (prevAncestor)
+		if (nextNewAncestor == prevAncestor)
 		{
-			const dsSceneTreeNode* nextNewAncestor = newAncestor;
-			while (nextNewAncestor && nextNewAncestor != prevAncestor)
-				nextNewAncestor = nextNewAncestor->parent;
-
-			if (nextNewAncestor == prevAncestor)
-			{
-				commonAncestor = prevAncestor;
-				break;
-			}
-
-			prevAncestor = prevAncestor->parent;
+			commonAncestor = prevAncestor;
+			break;
 		}
 
-		// Must be a common ancestor, even if it's the global root node.
-		if (!commonAncestor)
-			break;
-
-		// Get the decomposed original transform relative to the common ancestor.
-		dsMatrix44f commonAncestorInv, relativeTransform;
-		dsMatrix44f_affineInvert(&commonAncestorInv, &commonAncestor->transform);
-		dsMatrix44f_affineMul(
-			&relativeTransform, &commonAncestorInv, entry->parentTransform);
-		dsMatrix44f_decomposeTransform(&entry->prevPosition, &entry->prevOrientation,
-			&entry->prevScale, &relativeTransform);
-
-		// Update the entry now that we got the previous transform information out.
-		entry->commonAncestorTransform = &commonAncestor->transform;
-		DS_ASSERT(entry->node->parent);
-		entry->parentTransform = &entry->node->parent->transform;
-		entry->t = 0.0f;
-		break;
+		prevAncestor = prevAncestor->parent;
 	}
+
+	// Must be a common ancestor, even if it's the global root node.
+	if (!commonAncestor)
+		return;
+
+	// Get the decomposed original transform relative to the common ancestor.
+	dsMatrix44f commonAncestorInv, relativeTransform;
+	dsMatrix44f_affineInvert(&commonAncestorInv, &commonAncestor->transform);
+	dsMatrix44f_affineMul(
+		&relativeTransform, &commonAncestorInv, entry->parentTransform);
+	dsMatrix44f_decomposeTransform(&entry->prevPosition, &entry->prevOrientation,
+		&entry->prevScale, &relativeTransform);
+
+	// Update the entry now that we got the previous transform information out.
+	entry->commonAncestorTransform = &commonAncestor->transform;
+	DS_ASSERT(entry->node->parent);
+	entry->parentTransform = &entry->node->parent->transform;
+	entry->t = 0.0f;
 }
 
 static void dsSceneHandoffList_preTransformUpdate(
 	dsSceneItemList* itemList, const dsScene* scene, float time)
 {
 	dsSceneHandoffList* handoffList = (dsSceneHandoffList*)itemList;
+
+	// Lazily remove entries.
+	dsSceneItemListEntries_removeMulti(handoffList->entries, &handoffList->entryCount,
+		sizeof(Entry), offsetof(Entry, nodeID), handoffList->removeEntries,
+		handoffList->removeEntryCount);
+	handoffList->removeEntryCount = 0;
+
 	for (uint32_t i = 0; i < handoffList->entryCount; ++i)
 	{
 		Entry* entry = handoffList->entries + i;
@@ -204,6 +216,7 @@ static void dsSceneHandoffList_destroy(dsSceneItemList* itemList)
 {
 	dsSceneHandoffList* handoffList = (dsSceneHandoffList*)itemList;
 	DS_VERIFY(dsAllocator_free(itemList->allocator, handoffList->entries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, handoffList->removeEntries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
 
@@ -221,7 +234,6 @@ dsSceneItemList* dsSceneHandoffList_load(const dsSceneLoadContext* loadContext,
 	DS_UNUSED(dataSize);
 	return dsSceneHandoffList_create(allocator, name);
 }
-
 
 dsSceneItemListType dsSceneHandoffList_type(void)
 {

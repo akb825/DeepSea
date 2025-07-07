@@ -34,6 +34,7 @@
 #include <DeepSea/Render/Renderer.h>
 
 #include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
+#include <DeepSea/Scene/ItemLists/SceneItemListEntries.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneNodeItemData.h>
 
@@ -112,6 +113,10 @@ struct dsSceneVectorItemList
 	uint32_t entryCount;
 	uint32_t maxEntries;
 	uint64_t nextNodeID;
+
+	uint64_t* removeEntries;
+	uint32_t removeEntryCount;
+	uint32_t maxRemoveEntries;
 
 	const dsSceneTreeNode** instances;
 	DrawItem* drawItems;
@@ -399,15 +404,17 @@ static uint64_t dsSceneVectorItemList_addNode(dsSceneItemList* itemList, dsScene
 static void dsSceneVectorItemList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
 {
 	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
-	for (uint32_t i = 0; i < vectorList->entryCount; ++i)
-	{
-		if (vectorList->entries[i].nodeID != nodeID)
-			continue;
 
-		// Order shouldn't matter, so use constant-time removal.
-		vectorList->entries[i] = vectorList->entries[vectorList->entryCount - 1];
-		--vectorList->entryCount;
-		break;
+	uint32_t index = vectorList->removeEntryCount;
+	if (DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, vectorList->removeEntries,
+			vectorList->removeEntryCount, vectorList->maxRemoveEntries, 1))
+	{
+		vectorList->removeEntries[index] = nodeID;
+	}
+	else
+	{
+		dsSceneItemListEntries_removeSingle(vectorList->entries, &vectorList->entryCount,
+			sizeof(Entry), offsetof(Entry, nodeID), nodeID);
 	}
 }
 
@@ -417,6 +424,13 @@ static void dsSceneVectorItemList_preRenderPass(dsSceneItemList* itemList, const
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
 	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
+
+	// Lazily remove entries.
+	dsSceneItemListEntries_removeMulti(vectorList->entries, &vectorList->entryCount,
+		sizeof(Entry), offsetof(Entry, nodeID), vectorList->removeEntries,
+		vectorList->removeEntryCount);
+	vectorList->removeEntryCount = 0;
+
 	addInstances(itemList);
 	setupInstances(vectorList, view, commandBuffer);
 
@@ -431,6 +445,12 @@ static void dsSceneVectorItemList_commit(dsSceneItemList* itemList, const dsView
 	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
 	if (!itemList->preRenderPassFunc)
 	{
+		// Lazily remove entries.
+		dsSceneItemListEntries_removeMulti(vectorList->entries, &vectorList->entryCount,
+			sizeof(Entry), offsetof(Entry, nodeID), vectorList->removeEntries,
+			vectorList->removeEntryCount);
+		vectorList->removeEntryCount = 0;
+
 		addInstances(itemList);
 		setupInstances(vectorList, view, NULL);
 	}
@@ -439,6 +459,18 @@ static void dsSceneVectorItemList_commit(dsSceneItemList* itemList, const dsView
 	cleanup(vectorList);
 
 	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
+}
+
+static void dsSceneVectorItemList_destroy(dsSceneVectorItemList* vectorList)
+{
+	dsSceneItemList* itemList = (dsSceneItemList*)vectorList;
+	destroyInstanceData(vectorList->instanceData, vectorList->instanceDataCount);
+	dsSharedMaterialValues_destroy(vectorList->instanceValues);
+	DS_VERIFY(dsAllocator_free(itemList->allocator, vectorList->entries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, vectorList->removeEntries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, (void*)vectorList->instances));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, vectorList->drawItems));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, vectorList));
 }
 
 const char* const dsSceneVectorItemList_typeName = "VectorItemList";
@@ -570,18 +602,4 @@ void dsSceneVectorItemList_setRenderStates(dsSceneVectorItemList* vectorList,
 	}
 	else
 		vectorList->hasRenderStates = false;
-}
-
-void dsSceneVectorItemList_destroy(dsSceneVectorItemList* vectorList)
-{
-	if (!vectorList)
-		return;
-
-	dsSceneItemList* itemList = (dsSceneItemList*)vectorList;
-	destroyInstanceData(vectorList->instanceData, vectorList->instanceDataCount);
-	dsSharedMaterialValues_destroy(vectorList->instanceValues);
-	DS_VERIFY(dsAllocator_free(itemList->allocator, vectorList->entries));
-	DS_VERIFY(dsAllocator_free(itemList->allocator, (void*)vectorList->instances));
-	DS_VERIFY(dsAllocator_free(itemList->allocator, vectorList->drawItems));
-	DS_VERIFY(dsAllocator_free(itemList->allocator, vectorList));
 }

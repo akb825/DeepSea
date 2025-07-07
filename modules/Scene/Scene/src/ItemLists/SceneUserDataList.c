@@ -26,6 +26,7 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/UniqueNameID.h>
 
+#include <DeepSea/Scene/ItemLists/SceneItemListEntries.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneUserDataNode.h>
 #include <DeepSea/Scene/Types.h>
@@ -47,6 +48,10 @@ typedef struct dsSceneUserDataList
 	uint32_t entryCount;
 	uint32_t maxEntries;
 	uint64_t nextNodeID;
+
+	uint64_t* removeEntries;
+	uint32_t removeEntryCount;
+	uint32_t maxRemoveEntries;
 } dsSceneUserDataList;
 
 static uint64_t dsSceneUserDataList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
@@ -79,25 +84,51 @@ static uint64_t dsSceneUserDataList_addNode(dsSceneItemList* itemList, dsSceneNo
 static void dsSceneUserDataList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
 {
 	dsSceneUserDataList* userDataList = (dsSceneUserDataList*)itemList;
-	for (uint32_t i = 0; i < userDataList->entryCount; ++i)
-	{
-		Entry* entry = userDataList->entries + i;
-		if (entry->nodeID != nodeID)
-			continue;
 
-		const dsSceneUserDataNode* userDataNode = entry->userDataNode;
-		if (userDataNode->destroyInstanceDataFunc)
-			userDataNode->destroyInstanceDataFunc(entry->instanceData);
-		// Order shouldn't matter, so use constant-time removal.
-		userDataList->entries[i] = userDataList->entries[userDataList->entryCount - 1];
-		--userDataList->entryCount;
-		break;
+	Entry* entry = (Entry*)dsSceneItemListEntries_findEntry(userDataList->entries,
+		userDataList->entryCount, sizeof(Entry), offsetof(Entry, nodeID), nodeID);
+	if (!entry)
+		return;
+
+	const dsSceneUserDataNode* userDataNode = entry->userDataNode;
+	if (userDataNode->destroyInstanceDataFunc)
+		userDataNode->destroyInstanceDataFunc(entry->instanceData);
+
+	uint32_t index = userDataList->removeEntryCount;
+	if (DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, userDataList->removeEntries,
+			userDataList->removeEntryCount, userDataList->maxRemoveEntries, 1))
+	{
+		userDataList->removeEntries[index] = nodeID;
 	}
+	else
+	{
+		dsSceneItemListEntries_removeSingleIndex(userDataList->entries, &userDataList->entryCount,
+			sizeof(Entry), entry - userDataList->entries);
+	}
+}
+
+static void dsSceneUserDataList_update(dsSceneItemList* itemList, const dsScene* scene, float time)
+{
+	DS_UNUSED(scene);
+	DS_UNUSED(time);
+	dsSceneUserDataList* userDataList = (dsSceneUserDataList*)itemList;
+
+	// Lazily remove entries.
+	dsSceneItemListEntries_removeMulti(userDataList->entries, &userDataList->entryCount,
+		sizeof(Entry), offsetof(Entry, nodeID), userDataList->removeEntries,
+		userDataList->removeEntryCount);
+	userDataList->removeEntryCount = 0;
 }
 
 static void dsSceneUserDataList_destroy(dsSceneItemList* itemList)
 {
 	dsSceneUserDataList* userDataList = (dsSceneUserDataList*)itemList;
+
+	// Handle removed entries before clearing out their user data.
+	dsSceneItemListEntries_removeMulti(userDataList->entries, &userDataList->entryCount,
+		sizeof(Entry), offsetof(Entry, nodeID), userDataList->removeEntries,
+		userDataList->removeEntryCount);
+
 	for (uint32_t i = 0; i < userDataList->entryCount; ++i)
 	{
 		Entry* entry = userDataList->entries + i;
@@ -107,6 +138,7 @@ static void dsSceneUserDataList_destroy(dsSceneItemList* itemList)
 	}
 
 	DS_VERIFY(dsAllocator_free(itemList->allocator, userDataList->entries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, userDataList->removeEntries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
 
@@ -172,7 +204,7 @@ dsSceneItemList* dsSceneUserDataList_create(dsAllocator* allocator, const char* 
 	itemList->removeNodeFunc = &dsSceneUserDataList_removeNode;
 	itemList->reparentNodeFunc = NULL;
 	itemList->preTransformUpdateFunc = NULL;
-	itemList->updateFunc = NULL;
+	itemList->updateFunc = &dsSceneUserDataList_update;
 	itemList->commitFunc = NULL;
 	itemList->preRenderPassFunc = NULL;
 	itemList->destroyFunc = &dsSceneUserDataList_destroy;

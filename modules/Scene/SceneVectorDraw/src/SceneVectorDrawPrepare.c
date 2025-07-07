@@ -25,6 +25,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/UniqueNameID.h>
 
+#include <DeepSea/Scene/ItemLists/SceneItemListEntries.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
 #include <DeepSea/SceneVectorDraw/SceneTextNode.h>
@@ -54,6 +55,10 @@ typedef struct dsSceneVectorDrawPrepare
 	uint32_t entryCount;
 	uint32_t maxEntries;
 	uint64_t nextNodeID;
+
+	uint64_t* removeEntries;
+	uint32_t removeEntryCount;
+	uint32_t maxRemoveEntries;
 } dsSceneVectorDrawPrepare;
 
 static uint64_t dsSceneVectorDrawPrepare_addNode(dsSceneItemList* itemList, dsSceneNode* node,
@@ -96,15 +101,17 @@ static uint64_t dsSceneVectorDrawPrepare_addNode(dsSceneItemList* itemList, dsSc
 static void dsSceneVectorDrawPrepare_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
 {
 	dsSceneVectorDrawPrepare* prepareList = (dsSceneVectorDrawPrepare*)itemList;
-	for (uint32_t i = 0; i < prepareList->entryCount; ++i)
-	{
-		if (prepareList->entries[i].nodeID != nodeID)
-			continue;
 
-		// Order shouldn't matter, so use constant-time removal.
-		prepareList->entries[i] = prepareList->entries[prepareList->entryCount - 1];
-		--prepareList->entryCount;
-		break;
+	uint32_t index = prepareList->removeEntryCount;
+	if (DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, prepareList->removeEntries,
+			prepareList->removeEntryCount, prepareList->maxRemoveEntries, 1))
+	{
+		prepareList->removeEntries[index] = nodeID;
+	}
+	else
+	{
+		dsSceneItemListEntries_removeSingle(prepareList->entries, &prepareList->entryCount,
+			sizeof(Entry), offsetof(Entry, nodeID), nodeID);
 	}
 }
 
@@ -113,6 +120,13 @@ static void dsSceneVectorDrawPrepare_commit(dsSceneItemList* itemList, const dsV
 {
 	DS_UNUSED(view);
 	dsSceneVectorDrawPrepare* prepareList = (dsSceneVectorDrawPrepare*)itemList;
+
+	// Lazily remove entries.
+	dsSceneItemListEntries_removeMulti(prepareList->entries, &prepareList->entryCount,
+		sizeof(Entry), offsetof(Entry, nodeID), prepareList->removeEntries,
+		prepareList->removeEntryCount);
+	prepareList->removeEntryCount = 0;
+
 	for (uint32_t i = 0; i < prepareList->entryCount; ++i)
 	{
 		Entry* entry = prepareList->entries + i;
@@ -150,6 +164,7 @@ static void dsSceneVectorDrawPrepare_destroy(dsSceneItemList* itemList)
 {
 	dsSceneVectorDrawPrepare* prepareList = (dsSceneVectorDrawPrepare*)itemList;
 	DS_VERIFY(dsAllocator_free(itemList->allocator, prepareList->entries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, prepareList->removeEntries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
 
