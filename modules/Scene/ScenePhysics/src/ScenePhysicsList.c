@@ -41,6 +41,7 @@
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneNodeItemData.h>
 #include <DeepSea/Scene/Nodes/SceneShiftNode.h>
+#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 #include <DeepSea/Scene/Nodes/SceneUserDataNode.h>
 #include <DeepSea/Scene/Scene.h>
 
@@ -229,7 +230,7 @@ static uint64_t dsScenePhysicsList_addNode(dsSceneItemList* itemList, dsSceneNod
 		physicsList->shiftNode = (dsSceneShiftNode*)node;
 		return SHIFT_NODE_ENTRY_ID;
 	}
-	else if (dsSceneNode_isOfType(node, dsSceneRigidBodyGroupNode_type()))
+	if (dsSceneNode_isOfType(node, dsSceneRigidBodyGroupNode_type()))
 	{
 		const dsSceneRigidBodyGroupNode* groupNode = (const dsSceneRigidBodyGroupNode*)node;
 		uint32_t index = physicsList->rigidBodyEntryCount;
@@ -271,7 +272,7 @@ static uint64_t dsScenePhysicsList_addNode(dsSceneItemList* itemList, dsSceneNod
 		entry->nodeID = physicsList->nextGroupNodeID++;
 		return entry->nodeID;
 	}
-	else if (dsSceneNode_isOfType(node, dsSceneRigidBodyNode_type()))
+	if (dsSceneNode_isOfType(node, dsSceneRigidBodyNode_type()))
 	{
 		const dsSceneRigidBodyNode* rigidBodyNode = (const dsSceneRigidBodyNode*)node;
 		uint32_t index = physicsList->rigidBodyEntryCount;
@@ -377,7 +378,7 @@ static uint64_t dsScenePhysicsList_addNode(dsSceneItemList* itemList, dsSceneNod
 		entry->nodeID = physicsList->nextRigidBodyNodeID++;
 		return entry->nodeID;
 	}
-	else if (dsSceneNode_isOfType(node, dsScenePhysicsConstraintNode_type()))
+	if (dsSceneNode_isOfType(node, dsScenePhysicsConstraintNode_type()))
 	{
 		const dsScenePhysicsConstraintNode* constraintNode =
 			(const dsScenePhysicsConstraintNode*)node;
@@ -519,8 +520,10 @@ static uint64_t dsScenePhysicsList_addNode(dsSceneItemList* itemList, dsSceneNod
 	return DS_NO_SCENE_NODE;
 }
 
-static void dsScenePhysicsList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
+static void dsScenePhysicsList_removeNode(
+	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_UNUSED(treeNode);
 	dsScenePhysicsList* physicsList = (dsScenePhysicsList*)itemList;
 	if (nodeID == SHIFT_NODE_ENTRY_ID)
 		physicsList->shiftNode = NULL;

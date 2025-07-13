@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 #include <DeepSea/SceneAnimation/SceneAnimationNode.h>
 
+#include "SceneAnimationInstance.h"
+
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -28,6 +30,25 @@
 static void dsSceneAnimationNode_destroy(dsSceneNode* node)
 {
 	DS_VERIFY(dsAllocator_free(node->allocator, node));
+}
+
+static dsSceneAnimationInstance* getSceneAnimationInstance(const dsSceneTreeNode* treeNode)
+{
+	while (treeNode && !dsSceneNode_isOfType(treeNode->node, dsSceneAnimationNode_type()))
+		treeNode = treeNode->parent;
+	if (!treeNode)
+		return NULL;
+
+	const dsSceneNodeItemData* itemData = &treeNode->itemData;
+	DS_ASSERT(itemData->count == treeNode->node->itemListCount);
+	for (uint32_t i = 0; i < itemData->count; ++i)
+	{
+		const dsSceneItemList* itemList = treeNode->itemLists[i].list;
+		if (itemList && itemList->type == dsSceneAnimationList_type())
+			return (dsSceneAnimationInstance*)itemData->itemData[i].data;
+	}
+
+	return NULL;
 }
 
 const char* const dsSceneAnimationNode_typeName = "AnimationNode";
@@ -77,19 +98,36 @@ dsSceneAnimationNode* dsSceneAnimationNode_create(dsAllocator* allocator,
 
 dsAnimation* dsSceneAnimationNode_getAnimationForInstance(const dsSceneTreeNode* treeNode)
 {
-	while (treeNode && !dsSceneNode_isOfType(treeNode->node, dsSceneAnimationNode_type()))
-		treeNode = treeNode->parent;
-	if (!treeNode)
-		return NULL;
+	dsSceneAnimationInstance* animationInstance = getSceneAnimationInstance(treeNode);
+	return animationInstance ? animationInstance->animation : NULL;
+}
 
-	const dsSceneNodeItemData* itemData = &treeNode->itemData;
-	DS_ASSERT(itemData->count == treeNode->node->itemListCount);
-	for (uint32_t i = 0; i < itemData->count; ++i)
-	{
-		const dsSceneItemList* itemList = treeNode->itemLists[i].list;
-		if (itemList && itemList->type == dsSceneAnimationList_type())
-			return (dsAnimation*)itemData->itemData[i].data;
-	}
+float dsSceneAnimationNode_getSkeletonRagdollWeight(const dsSceneTreeNode* treeNode)
+{
+	dsSceneAnimationInstance* animationInstance = getSceneAnimationInstance(treeNode);
+	return animationInstance ? animationInstance->skeletonRagdoll.weight : 0.0f;
+}
 
-	return NULL;
+bool dsSceneAnimationNode_setSkeletonRagdollWeight(const dsSceneTreeNode* treeNode, float weight)
+{
+	dsSceneAnimationInstance* animationInstance = getSceneAnimationInstance(treeNode);
+	if (!animationInstance)
+		return false;
+
+	return dsSceneAnimationInstance_setSkeletonRagdollWeight(animationInstance, weight);
+}
+
+float dsSceneAnimationNode_getAdditionRagdollWeight(const dsSceneTreeNode* treeNode)
+{
+	dsSceneAnimationInstance* animationInstance = getSceneAnimationInstance(treeNode);
+	return animationInstance ? animationInstance->additionRagdoll.weight : 0.0f;
+}
+
+bool dsSceneAnimationNode_setAdditionRagdollWeight(const dsSceneTreeNode* treeNode, float weight)
+{
+	dsSceneAnimationInstance* animationInstance = getSceneAnimationInstance(treeNode);
+	if (!animationInstance)
+		return false;
+
+	return dsSceneAnimationInstance_setAdditionRagdollWeight(animationInstance, weight);
 }

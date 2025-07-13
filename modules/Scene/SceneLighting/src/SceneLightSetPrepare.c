@@ -136,8 +136,10 @@ static uint64_t dsSceneLightSetPrepare_addNode(dsSceneItemList* itemList, dsScen
 	return entry->nodeID;
 }
 
-static void dsSceneLightSetPrepare_updateNode(dsSceneItemList* itemList, uint64_t nodeID)
+static void dsSceneLightSetPrepare_updateNode(
+	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_UNUSED(treeNode);
 	dsSceneLightSetPrepare* prepare = (dsSceneLightSetPrepare*)itemList;
 
 	Entry* entry = (Entry*)dsSceneItemListEntries_findEntry(prepare->entries, prepare->entryCount,
@@ -149,8 +151,10 @@ static void dsSceneLightSetPrepare_updateNode(dsSceneItemList* itemList, uint64_
 	}
 }
 
-static void dsSceneLightSetPrepare_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
+static void dsSceneLightSetPrepare_removeNode(
+	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_UNUSED(treeNode);
 	dsSceneLightSetPrepare* prepare = (dsSceneLightSetPrepare*)itemList;
 
 	Entry* entry = (Entry*)dsSceneItemListEntries_findEntry(prepare->entries, prepare->entryCount,

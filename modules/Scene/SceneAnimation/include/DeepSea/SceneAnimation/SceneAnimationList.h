@@ -31,6 +31,8 @@ extern "C"
  *
  * This is responsible for creating the per-instance data for dsAnimationNode and updating and
  * applying animations.
+ *
+ * @see dsSceneAnimationList
  */
 
 /**
@@ -51,8 +53,22 @@ DS_SCENEANIMATION_EXPORT dsSceneItemListType dsSceneAnimationList_type(void);
  * @param name The name of the scene animation list. This will be copied.
  * @return The scene animation list or NULL if an error occurred.
  */
-DS_SCENEANIMATION_EXPORT dsSceneItemList* dsSceneAnimationList_create(dsAllocator* allocator,
-	const char* name);
+DS_SCENEANIMATION_EXPORT dsSceneAnimationList* dsSceneAnimationList_create(
+	dsAllocator* allocator, const char* name);
+
+/**
+ * @brief Updates the ragdolls within a scene animation list.
+ *
+ * This should typically be hooked up to run after the system that updates the ragdoll nodes,
+ * typically a physics system. This is usually done after the animation list itself has been updated
+ * so non-ragdoll animations can contribute to the ragdoll updates.
+ *
+ * @remark errno will be set on failure.
+ * @param animationList The scene animation list.
+ * @return False if the animation list ragdolls couldn't be updated.
+ */
+DS_SCENEANIMATION_EXPORT bool dsSceneAnimationList_updateRagdolls(
+	dsSceneAnimationList* animationList);
 
 #ifdef __cplusplus
 }

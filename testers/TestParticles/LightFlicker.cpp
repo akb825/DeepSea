@@ -110,8 +110,10 @@ static uint64_t dsLightFlicker_addNode(dsSceneItemList* itemList, dsSceneNode* n
 	return entry->nodeID;
 }
 
-static void dsLightFlicker_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
+static void dsLightFlicker_removeNode(
+	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_UNUSED(treeNode);
 	dsLightFlicker* flicker = (dsLightFlicker*)itemList;
 
 	uint32_t index = flicker->removeEntryCount;

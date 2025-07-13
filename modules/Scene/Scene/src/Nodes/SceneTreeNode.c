@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 
 #include "Nodes/SceneTreeNodeInternal.h"
 #include "SceneTypes.h"
@@ -189,7 +191,7 @@ static void removeSubtreeRec(dsSceneNode* child, uint32_t treeNodeIndex, dsScene
 			continue;
 
 		dsSceneItemList* list = childTreeNode->itemLists[i].list;
-		list->removeNodeFunc(list, entry);
+		list->removeNodeFunc(list, childTreeNode, entry);
 	}
 
 	dsSceneNode_freeRef(childTreeNode->node);
@@ -261,7 +263,7 @@ static void updateSubtreeRec(dsSceneTreeNode* node)
 		uint64_t entry = node->itemLists[i].entry;
 		dsSceneItemList* list = node->itemLists[i].list;
 		if (entry != DS_NO_SCENE_NODE && list->updateNodeFunc)
-			list->updateNodeFunc(list, entry);
+			list->updateNodeFunc(list, node, entry);
 	}
 
 	for (uint32_t i = 0; i < node->childCount; ++i)
@@ -374,16 +376,64 @@ void dsSceneTreeNode_markDirty(dsSceneTreeNode* node)
 	}
 }
 
-void dsSceneTreeNode_getCurrentTransform(dsMatrix44f* outTransform, dsSceneTreeNode* node)
+void dsSceneTreeNode_getCurrentTransform(dsMatrix44f* outTransform, const dsSceneTreeNode* node)
 {
 	DS_ASSERT(outTransform);
 	DS_ASSERT(node);
 
-	dsMatrix44_identity(*outTransform);
-	while (node && !node->noParentTransform)
+	if (node->baseTransform)
+		*outTransform = *node->baseTransform;
+	else
+		dsMatrix44_identity(*outTransform);
+	while (node->parent && !node->noParentTransform)
 	{
+		node = node->parent;
 		if (node->baseTransform)
 			dsMatrix44f_affineMul(outTransform, node->baseTransform, outTransform);
-		node = node->parent;
 	}
+}
+
+void dsSceneTreeNode_getCurrentRelativeTransform(dsMatrix44f* outTransform,
+	const dsSceneTreeNode* node, const dsSceneTreeNode* ancestorNode)
+{
+	DS_ASSERT(outTransform);
+	DS_ASSERT(node);
+	DS_ASSERT(ancestorNode);
+	DS_ASSERT(node != ancestorNode);
+
+	if (node->baseTransform)
+		*outTransform = *node->baseTransform;
+	else
+		dsMatrix44_identity(*outTransform);
+	while (node->parent && node->parent != ancestorNode && !node->noParentTransform)
+	{
+		node = node->parent;
+		if (node->baseTransform)
+			dsMatrix44f_affineMul(outTransform, node->baseTransform, outTransform);
+	}
+
+	DS_ASSERT(node->noParentTransform || node->parent == ancestorNode);
+	// If the chain was cut off by a node with an explicit transform, must manually compute the
+	// relative transform.
+	if (node->noParentTransform)
+	{
+		dsMatrix44f ancestorTransform, ancestorTransformInv;
+		dsSceneTreeNode_getCurrentTransform(&ancestorTransform, ancestorNode);
+		dsMatrix44f_affineInvert(&ancestorTransformInv, &ancestorTransform);
+		dsMatrix44f_affineMul(outTransform, &ancestorTransformInv, outTransform);
+	}
+}
+
+uint64_t dsSceneTreeNode_getNodeID(const dsSceneTreeNode* node, const dsSceneItemList* itemList)
+{
+	DS_ASSERT(node);
+	DS_ASSERT(itemList);
+	for (uint32_t i = 0; i < node->node->itemListCount; ++i)
+	{
+		const dsSceneItemEntry* entry = node->itemLists + i;
+		if (entry->list == itemList)
+			return entry->entry;
+	}
+
+	return DS_NO_SCENE_NODE;
 }

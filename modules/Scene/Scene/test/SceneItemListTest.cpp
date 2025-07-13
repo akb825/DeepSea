@@ -94,8 +94,9 @@ uint64_t addMockSceneItem(dsSceneItemList* itemList, dsSceneNode* node, dsSceneT
 	return mockList->nextNodeID++;
 }
 
-void removeMockSceneItem(dsSceneItemList* itemList, uint64_t nodeID)
+void removeMockSceneItem(dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_UNUSED(treeNode);
 	MockSceneItemList* mockList = (MockSceneItemList*)itemList;
 
 	uint32_t index = mockList->removeItemCount;
@@ -111,8 +112,9 @@ void removeMockSceneItem(dsSceneItemList* itemList, uint64_t nodeID)
 	}
 }
 
-void updateMockSceneItem(dsSceneItemList* itemList, uint64_t nodeID)
+void updateMockSceneItem(dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_UNUSED(treeNode);
 	MockSceneItemList* mockList = (MockSceneItemList*)itemList;
 
 	auto item = (ItemInfo*)dsSceneItemListEntries_findEntry(mockList->items,

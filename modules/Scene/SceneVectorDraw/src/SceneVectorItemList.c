@@ -401,8 +401,10 @@ static uint64_t dsSceneVectorItemList_addNode(dsSceneItemList* itemList, dsScene
 	return entry->nodeID;
 }
 
-static void dsSceneVectorItemList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
+static void dsSceneVectorItemList_removeNode(
+	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_UNUSED(treeNode);
 	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
 
 	uint32_t index = vectorList->removeEntryCount;

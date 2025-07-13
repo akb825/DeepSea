@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,23 @@ extern "C"
  * @brief Log tag used by the scene animation library.
  */
 #define DS_SCENE_ANIMATION_LOG_TAG "scene-animation"
+
+/**
+ * @brief Enum for the type of ragdoll used with a scene animation.
+ */
+typedef enum dsSceneAnimationRagdollType
+{
+	/**
+	 * Replacement for the main skeleton that is normally driven by direct animations, where the
+	 * ragdoll is selectively enabled to drive the skeleton through physics.
+	 */
+	dsSceneAnimationRagdollType_Skeleton,
+
+	/**
+	 * Ragdoll for an addition that will always be driven by physics on top of the main skeleton.
+	 */
+	dsSceneAnimationRagdollType_Addition
+} dsSceneAnimationRagdollType;
 
 /**
  * @brief Struct describing a node that manages an animation.
@@ -112,6 +129,51 @@ typedef struct dsSceneAnimationTransformNode
 	 */
 	uint32_t animationNodeID;
 } dsSceneAnimationTransformNode;
+
+/**
+ * @brief Struct describing a node that takes reads the transform from a node and applies it to
+ * the ragdoll animation.
+ *
+ * It's expected this will be under a dsSceneAnimationNode to manage the animation.
+ *
+ * @see SceneAnimationRagdollNode.h
+ */
+typedef struct dsSceneAnimationRagdollNode
+{
+	/**
+	 * @brief The base node.
+	 */
+	dsSceneNode node;
+
+	/**
+	 * @brief The type of ragdoll this drives.
+	 */
+	dsSceneAnimationRagdollType ragdollType;
+
+	/**
+	 * @brief Bitmask of the animation components to apply.
+	 */
+	uint32_t animationComponents;
+
+	/**
+	 * @brief The number of nodes to go up for the relative transform.
+	 */
+	unsigned int relativeAncestor;
+
+	/**
+	 * @brief The name of the animation node to take the transform from.
+	 */
+	const char* animationNodeName;
+} dsSceneAnimationRagdollNode;
+
+/**
+ * @brief Scene item list implementation for managing animations.
+ *
+ * This will hold information for the various scene animation node types.
+ *
+ * @see SceneAnimationList.h
+ */
+typedef struct dsSceneAnimationList dsSceneAnimationList;
 
 #ifdef __cplusplus
 }

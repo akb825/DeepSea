@@ -83,14 +83,14 @@ void dsSceneItemListEntries_removeMulti(void* entries, uint32_t* entryCount,
 		return;
 
 	qsort(nodeIDs, nodeIDCount, sizeof(uint64_t), &idCompare);
-	uint32_t curIDIndex = 0;
 
 	// Search for the first candidate to remove.
 	uint8_t* curEntry = (uint8_t*)dsBinarySearchLowerBound(
-		nodeIDs + curIDIndex, entries, *entryCount, entrySize, &idEntryCompare, &idField);
+		nodeIDs, entries, *entryCount, entrySize, &idEntryCompare, &idField);
 	if (!curEntry)
 		return;
 
+	uint32_t curIDIndex = 0;
 	uint8_t* target = curEntry;
 	uint8_t* entryEnd = (uint8_t*)entries + (*entryCount)*entrySize;
 	for (; curEntry < entryEnd; curEntry += entrySize)

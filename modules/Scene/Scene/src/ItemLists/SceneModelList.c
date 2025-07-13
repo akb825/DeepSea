@@ -366,8 +366,10 @@ static uint64_t dsSceneModelList_addNode(dsSceneItemList* itemList, dsSceneNode*
 	return entry->nodeID;
 }
 
-static void dsSceneModelList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
+static void dsSceneModelList_removeNode(
+	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_UNUSED(treeNode);
 	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
 
 	uint32_t index = modelList->removeEntryCount;

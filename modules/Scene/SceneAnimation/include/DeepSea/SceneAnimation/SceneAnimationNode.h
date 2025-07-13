@@ -68,6 +68,40 @@ DS_SCENEANIMATION_EXPORT dsSceneAnimationNode* dsSceneAnimationNode_create(dsAll
 DS_SCENEANIMATION_EXPORT dsAnimation* dsSceneAnimationNode_getAnimationForInstance(
 	const dsSceneTreeNode* treeNode);
 
+/**
+ * @brief Gets the weight for the skeleton ragdoll of an animation.
+ * @param treeNode The tree ndoe the animation is associated with.
+ * @return The weight of the skeleton ragdoll.
+ */
+DS_SCENEANIMATION_EXPORT float dsSceneAnimationNode_getSkeletonRagdollWeight(
+	const dsSceneTreeNode* treeNode);
+
+/**
+ * @brief Sets the weight for the skeleton ragdoll of an animation.
+ * @param treeNode The tree ndoe the animation is associated with.
+ * @param weight The new weight for the skeleton ragdoll.
+ * @return Whether the weight could be set.
+ */
+DS_SCENEANIMATION_EXPORT bool dsSceneAnimationNode_setSkeletonRagdollWeight(
+	const dsSceneTreeNode* treeNode, float weight);
+
+/**
+ * @brief Gets the weight for the addition ragdoll of an animation.
+ * @param treeNode The tree ndoe the animation is associated with.
+ * @return The weight of the addition ragdoll.
+ */
+DS_SCENEANIMATION_EXPORT float dsSceneAnimationNode_getAdditionRagdollWeight(
+	const dsSceneTreeNode* treeNode);
+
+/**
+ * @brief Sets the weight for the addition ragdoll of an animation.
+ * @param treeNode The tree ndoe the animation is associated with.
+ * @param weight The new weight for the addition ragdoll.
+ * @return Whether the weight could be set.
+ */
+DS_SCENEANIMATION_EXPORT bool dsSceneAnimationNode_setAdditionRagdollWeight(
+	const dsSceneTreeNode* treeNode, float weight);
+
 #ifdef __cplusplus
 }
 #endif

@@ -16,10 +16,12 @@
 
 #include <DeepSea/SceneAnimation/SceneAnimationList.h>
 
+#include "SceneAnimationInstance.h"
 #include "SceneAnimationTreeInstance.h"
 
 #include <DeepSea/Animation/Animation.h>
 #include <DeepSea/Animation/AnimationTree.h>
+#include <DeepSea/Animation/DirectAnimation.h>
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -33,20 +35,22 @@
 
 #include <DeepSea/Scene/ItemLists/SceneItemListEntries.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 
 #include <DeepSea/SceneAnimation/SceneAnimationNode.h>
+#include <DeepSea/SceneAnimation/SceneAnimationRagdollNode.h>
 #include <DeepSea/SceneAnimation/SceneAnimationTransformNode.h>
 #include <DeepSea/SceneAnimation/SceneAnimationTreeNode.h>
 
 #include <limits.h>
 #include <string.h>
 
-#define MIN_TREE_ENTRY_ID (ULLONG_MAX/3)
+#define MIN_TREE_ENTRY_ID (ULLONG_MAX/4)
 #define MIN_TRANSFORM_ENTRY_ID (MIN_TREE_ENTRY_ID*2)
 
 typedef struct AnimationEntry
 {
-	dsAnimation* animation;
+	dsSceneAnimationInstance* instance;
 	uint64_t nodeID;
 } AnimationEntry;
 
@@ -102,7 +106,8 @@ static uint64_t dsSceneAnimationList_addNode(dsSceneItemList* itemList, dsSceneN
 	DS_UNUSED(itemData);
 	DS_UNUSED(treeNode);
 	dsSceneAnimationList* animationList = (dsSceneAnimationList*)itemList;
-	if (dsSceneNode_isOfType(node, dsSceneAnimationNode_type()))
+	const dsSceneNodeType* animationNodeType = dsSceneAnimationNode_type();
+	if (dsSceneNode_isOfType(node, animationNodeType))
 	{
 		const dsSceneAnimationNode* animationNode = (const dsSceneAnimationNode*)node;
 		uint32_t index = animationList->animationEntryCount;
@@ -113,19 +118,19 @@ static uint64_t dsSceneAnimationList_addNode(dsSceneItemList* itemList, dsSceneN
 		}
 
 		AnimationEntry* entry = animationList->animationEntries + index;
-		entry->animation = dsAnimation_create(node->allocator, animationNode->nodeMapCache);
-		if (!DS_CHECK_MESSAGE(DS_SCENE_ANIMATION_LOG_TAG, entry->animation != NULL,
-				"dsSceneAnimation_create(node->allocator, animationNode->nodeMapCache)"))
+		entry->instance =
+			dsSceneAnimationInstance_create(node->allocator, animationNode->nodeMapCache);
+		if (!entry->instance)
 		{
 			--animationList->animationEntryCount;
 			return DS_NO_SCENE_NODE;
 		}
-		*thisItemData = entry->animation;
+		*thisItemData = entry->instance;
 
 		entry->nodeID = animationList->nextAnimationNodeID++;
 		return entry->nodeID;
 	}
-	else if (dsSceneNode_isOfType(node, dsSceneAnimationTreeNode_type()))
+	if (dsSceneNode_isOfType(node, dsSceneAnimationTreeNode_type()))
 	{
 		const dsSceneAnimationTreeNode* animationTreeNode = (const dsSceneAnimationTreeNode*)node;
 		const dsAnimation* animation = dsSceneAnimationNode_getAnimationForInstance(treeNode);
@@ -163,7 +168,7 @@ static uint64_t dsSceneAnimationList_addNode(dsSceneItemList* itemList, dsSceneN
 		entry->nodeID = animationList->nextTreeNodeID++;
 		return entry->nodeID;
 	}
-	else if (dsSceneNode_isOfType(node, dsSceneAnimationTransformNode_type()))
+	if (dsSceneNode_isOfType(node, dsSceneAnimationTransformNode_type()))
 	{
 		const dsSceneAnimationTransformNode* animationTransformNode =
 			(const dsSceneAnimationTransformNode*)node;
@@ -202,12 +207,47 @@ static uint64_t dsSceneAnimationList_addNode(dsSceneItemList* itemList, dsSceneN
 		entry->nodeID = animationList->nextTransformNodeID++;
 		return entry->nodeID;
 	}
-	else
-		return DS_NO_SCENE_NODE;
+	if (dsSceneNode_isOfType(node, dsSceneAnimationRagdollNode_type()))
+	{
+		const dsSceneAnimationRagdollNode* ragdollNode = (const dsSceneAnimationRagdollNode*)node;
+		const dsSceneTreeNode* animationNode = treeNode->parent;
+		while (animationNode && !dsSceneNode_isOfType(animationNode->node, animationNodeType))
+			animationNode = animationNode->parent;
+
+		uint64_t nodeID = animationNode ? dsSceneTreeNode_getNodeID(animationNode, itemList) :
+			DS_NO_SCENE_NODE;
+		if (nodeID == DS_NO_SCENE_NODE)
+		{
+			DS_LOG_ERROR_F(DS_SCENE_ANIMATION_LOG_TAG,
+				"Couldn't find animation node for animation ragdoll node '%s'.",
+				ragdollNode->animationNodeName);
+			return DS_NO_SCENE_NODE;
+		}
+
+		AnimationEntry* entry = (AnimationEntry*)dsSceneItemListEntries_findEntry(
+			animationList->animationEntries, animationList->animationEntryCount,
+			sizeof(AnimationEntry), offsetof(AnimationEntry, nodeID), nodeID);
+		DS_ASSERT(entry);
+		switch (ragdollNode->ragdollType)
+		{
+			case dsSceneAnimationRagdollType_Skeleton:
+				dsSceneAnimationInstance_addSkeletonRagdollNode(
+					entry->instance, ragdollNode, treeNode);
+				break;
+			case dsSceneAnimationRagdollType_Addition:
+				dsSceneAnimationInstance_addAdditionRagdollNode(
+					entry->instance, ragdollNode, treeNode);
+				break;
+		}
+		return nodeID;
+	}
+	return DS_NO_SCENE_NODE;
 }
 
-static void dsSceneAnimationList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
+static void dsSceneAnimationList_removeNode(
+	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_UNUSED(treeNode);
 	dsSceneAnimationList* animationList = (dsSceneAnimationList*)itemList;
 	if (nodeID < MIN_TREE_ENTRY_ID)
 	{
@@ -217,20 +257,38 @@ static void dsSceneAnimationList_removeNode(dsSceneItemList* itemList, uint64_t 
 		if (!entry)
 			return;
 
-		dsAnimation_destroy(entry->animation);
-
-		uint32_t index = animationList->removeAnimationEntryCount;
-		if (DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, animationList->removeAnimationEntries,
-				animationList->removeAnimationEntryCount, animationList->maxRemoveAnimationEntries,
-				1))
+		if (dsSceneNode_isOfType(treeNode->node, dsSceneAnimationNode_type()))
 		{
-			animationList->removeAnimationEntries[index] = nodeID;
+			dsSceneAnimationInstance_destroy(entry->instance);
+
+			uint32_t index = animationList->removeAnimationEntryCount;
+			if (DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, animationList->removeAnimationEntries,
+					animationList->removeAnimationEntryCount,
+					animationList->maxRemoveAnimationEntries, 1))
+			{
+				animationList->removeAnimationEntries[index] = nodeID;
+			}
+			else
+			{
+				dsSceneItemListEntries_removeSingleIndex(animationList->animationEntries,
+					&animationList->animationEntryCount, sizeof(AnimationEntry),
+					entry - animationList->animationEntries);
+			}
 		}
 		else
 		{
-			dsSceneItemListEntries_removeSingleIndex(animationList->animationEntries,
-				&animationList->animationEntryCount, sizeof(AnimationEntry),
-				entry - animationList->animationEntries);
+			DS_ASSERT(dsSceneNode_isOfType(treeNode->node, dsSceneAnimationRagdollNode_type()));
+			const dsSceneAnimationRagdollNode* ragdollNode =
+				(const dsSceneAnimationRagdollNode*)treeNode->node;
+			switch (ragdollNode->ragdollType)
+			{
+				case dsSceneAnimationRagdollType_Skeleton:
+					dsSceneAnimationInstance_removeSkeletonRagdollNode(entry->instance, treeNode);
+					break;
+				case dsSceneAnimationRagdollType_Addition:
+					dsSceneAnimationInstance_removeAdditionRagdollNode(entry->instance, treeNode);
+					break;
+			}
 		}
 	}
 	else if (nodeID < MIN_TRANSFORM_ENTRY_ID)
@@ -302,7 +360,8 @@ static void dsSceneAnimationList_preTransformUpdate(dsSceneItemList* itemList, c
 		for (uint32_t i = 0; i < animationList->animationEntryCount; ++i)
 		{
 			AnimationEntry* entry = animationList->animationEntries + i;
-			DS_CHECK(DS_SCENE_ANIMATION_LOG_TAG, dsAnimation_update(entry->animation, time));
+			DS_CHECK(DS_SCENE_ANIMATION_LOG_TAG,
+				dsAnimation_update(entry->instance->animation, time));
 		}
 	}
 
@@ -340,7 +399,7 @@ static void dsSceneAnimationList_destroy(dsSceneItemList* itemList)
 		animationList->removeTreeEntryCount);
 
 	for (uint32_t i = 0; i < animationList->animationEntryCount; ++i)
-		dsAnimation_destroy(animationList->animationEntries[i].animation);
+		dsSceneAnimationInstance_destroy(animationList->animationEntries[i].instance);
 	for (uint32_t i = 0; i < animationList->treeEntryCount; ++i)
 		dsSceneAnimationTreeInstance_destroy(animationList->treeEntries[i].instance);
 
@@ -363,7 +422,7 @@ dsSceneItemList* dsSceneAnimationList_load(const dsSceneLoadContext* loadContext
 	DS_UNUSED(userData);
 	DS_UNUSED(data);
 	DS_UNUSED(dataSize);
-	return dsSceneAnimationList_create(allocator, name);
+	return (dsSceneItemList*)dsSceneAnimationList_create(allocator, name);
 }
 
 const char* const dsSceneAnimationList_typeName = "AnimationList";
@@ -374,7 +433,7 @@ dsSceneItemListType dsSceneAnimationList_type(void)
 	return &type;
 }
 
-dsSceneItemList* dsSceneAnimationList_create(dsAllocator* allocator, const char* name)
+dsSceneAnimationList* dsSceneAnimationList_create(dsAllocator* allocator, const char* name)
 {
 	if (!allocator || !name)
 	{
@@ -437,5 +496,28 @@ dsSceneItemList* dsSceneAnimationList_create(dsAllocator* allocator, const char*
 	animationList->maxTransformEntries = 0;
 	animationList->nextTransformNodeID = MIN_TRANSFORM_ENTRY_ID;
 
-	return itemList;
+	return animationList;
+}
+
+bool dsSceneAnimationList_updateRagdolls(dsSceneAnimationList* animationList)
+{
+	if (!animationList)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	// Lazily remove entries.
+	dsSceneItemListEntries_removeMulti(animationList->animationEntries,
+		&animationList->animationEntryCount, sizeof(AnimationEntry),
+		offsetof(AnimationEntry, nodeID), animationList->removeAnimationEntries,
+		animationList->removeAnimationEntryCount);
+	animationList->removeAnimationEntryCount = 0;
+
+	for (uint32_t i = 0; i < animationList->animationEntryCount; ++i)
+	{
+		AnimationEntry* entry = animationList->animationEntries + i;
+		dsSceneAnimationInstance_updateRagdolls(entry->instance);
+	}
+	return true;
 }

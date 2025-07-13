@@ -27,6 +27,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
+#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 
 #include <string.h>

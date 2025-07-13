@@ -89,8 +89,10 @@ static uint64_t dsSceneParticlePrepare_addNode(dsSceneItemList* itemList, dsScen
 	return entry->nodeID;
 }
 
-static void dsSceneParticlePrepare_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
+static void dsSceneParticlePrepare_removeNode(
+	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_UNUSED(treeNode);
 	dsSceneParticlePrepare* prepareList = (dsSceneParticlePrepare*)itemList;
 
 	Entry* entry = (Entry*)dsSceneItemListEntries_findEntry(prepareList->entries,

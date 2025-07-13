@@ -122,8 +122,10 @@ static uint64_t dsViewCullList_addNode(dsSceneItemList* itemList, dsSceneNode* n
 	return entry->nodeID;
 }
 
-static void dsViewCullList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
+static void dsViewCullList_removeNode(
+	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_UNUSED(treeNode);
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
 	if (nodeID < MIN_DYNAMIC_ENTRY_ID)
 	{

@@ -98,8 +98,10 @@ static uint64_t dsSceneVectorDrawPrepare_addNode(dsSceneItemList* itemList, dsSc
 	return entry->nodeID;
 }
 
-static void dsSceneVectorDrawPrepare_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
+static void dsSceneVectorDrawPrepare_removeNode(dsSceneItemList* itemList,
+	dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_UNUSED(treeNode);
 	dsSceneVectorDrawPrepare* prepareList = (dsSceneVectorDrawPrepare*)itemList;
 
 	uint32_t index = prepareList->removeEntryCount;

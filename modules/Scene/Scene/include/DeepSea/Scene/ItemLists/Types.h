@@ -184,16 +184,20 @@ typedef uint64_t (*dsAddSceneItemListNodeFunction)(dsSceneItemList* itemList,
 /**
  * @brief Function for updating a node in an item list.
  * @param itemList The item list.
+ * @param treeNode The node in the scene tree being updated.
  * @param nodeID The ID of the node to update.
  */
-typedef void (*dsUpdateSceneItemListNodeFunction)(dsSceneItemList* itemList, uint64_t nodeID);
+typedef void (*dsUpdateSceneItemListNodeFunction)(dsSceneItemList* itemList,
+	dsSceneTreeNode* treeNode, uint64_t nodeID);
 
 /**
  * @brief Function for updating a node in an item list.
  * @param itemList The item list.
- * @param nodeID The ID of the node to update.
+ * @param treeNode The node in the scene tree to remove.
+ * @param nodeID The ID of the node to remove.
  */
-typedef void (*dsRemoveSceneItemListNodeFunction)(dsSceneItemList* itemList, uint64_t nodeID);
+typedef void (*dsRemoveSceneItemListNodeFunction)(dsSceneItemList* itemList,
+	dsSceneTreeNode* treeNode, uint64_t nodeID);
 
 /**
  * @brief Function for reparenting a node in an item list.

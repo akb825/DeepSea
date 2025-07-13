@@ -103,8 +103,10 @@ static uint64_t dsSceneHandoffList_addNode(dsSceneItemList* itemList, dsSceneNod
 	return entry->nodeID;
 }
 
-static void dsSceneHandoffList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
+static void dsSceneHandoffList_removeNode(
+	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_UNUSED(treeNode);
 	dsSceneHandoffList* handoffList = (dsSceneHandoffList*)itemList;
 
 	uint32_t index = handoffList->removeEntryCount;

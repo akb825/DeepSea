@@ -81,8 +81,10 @@ static uint64_t dsSceneUserDataList_addNode(dsSceneItemList* itemList, dsSceneNo
 	return entry->nodeID;
 }
 
-static void dsSceneUserDataList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
+static void dsSceneUserDataList_removeNode(
+	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_UNUSED(treeNode);
 	dsSceneUserDataList* userDataList = (dsSceneUserDataList*)itemList;
 
 	Entry* entry = (Entry*)dsSceneItemListEntries_findEntry(userDataList->entries,

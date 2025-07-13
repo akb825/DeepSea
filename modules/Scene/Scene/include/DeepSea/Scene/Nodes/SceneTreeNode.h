@@ -54,7 +54,23 @@ DS_SCENE_EXPORT void dsSceneTreeNode_markDirty(dsSceneTreeNode* node);
  * @param node The scene tree node to get the transform for.
  */
 DS_SCENE_EXPORT void dsSceneTreeNode_getCurrentTransform(dsMatrix44f* outTransform,
-	dsSceneTreeNode* node);
+	const dsSceneTreeNode* node);
+
+/**
+ * @brief Gets the current transform for a scene tree node relative to a parent node.
+ *
+ * This may be used in situations where the transform may not be fully updated, for example inside
+ * of the preTransformUpdateFunc of a dsSceneItemList. This will cut off the transform at an
+ * ancestor node to give the relative transform. This is intended to only be used in very
+ * specialized circumstances, and as such no error checking is done apart from asserts for
+ * performance.
+ *
+ * @param[out] outTransform The current transform value.
+ * @param node The scene tree node to get the transform for.
+ * @param ancestorNode The ancestor node to get the transform relative to.
+ */
+DS_SCENE_EXPORT void dsSceneTreeNode_getCurrentRelativeTransform(dsMatrix44f* outTransform,
+	const dsSceneTreeNode* node, const dsSceneTreeNode* ancestorNode);
 
 /**
  * @brief Gets the node ID for a node within an item list.

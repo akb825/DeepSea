@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 #include <DeepSea/Math/Vector3.h>
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 
 static void dsSceneTransformNode_setupTreeNode(dsSceneNode* node, dsSceneTreeNode* treeNode)
 {
@@ -33,6 +34,8 @@ static void dsSceneTransformNode_shift(dsSceneNode* node, const dsVector3f* shif
 {
 	dsSceneTransformNode* transformNode = (dsSceneTransformNode*)node;
 	dsVector3_add(transformNode->transform.columns[3], transformNode->transform.columns[3], *shift);
+	for (uint32_t i = 0; i < node->treeNodeCount; ++i)
+		dsSceneTreeNode_markDirty(node->treeNodes[i]);
 }
 
 static void dsSceneTransformNode_destroy(dsSceneNode* node)

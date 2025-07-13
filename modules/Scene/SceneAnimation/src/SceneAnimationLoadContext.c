@@ -49,7 +49,7 @@ static dsSceneItemList* dsSceneAnimationList_load(const dsSceneLoadContext* load
 	DS_UNUSED(data);
 	DS_UNUSED(dataSize);
 
-	return dsSceneAnimationList_create(allocator, name);
+	return (dsSceneItemList*)dsSceneAnimationList_create(allocator, name);
 }
 
 static dsSceneInstanceData* dsSceneSkinningData_load(const dsSceneLoadContext* loadContext,

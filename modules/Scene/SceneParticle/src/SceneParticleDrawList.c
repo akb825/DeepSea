@@ -177,8 +177,10 @@ static uint64_t dsSceneParticleDrawList_addNode(dsSceneItemList* itemList, dsSce
 	return entry->nodeID;
 }
 
-static void dsSceneParticleDrawList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
+static void dsSceneParticleDrawList_removeNode(
+	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_UNUSED(treeNode);
 	dsSceneParticleDrawList* drawList = (dsSceneParticleDrawList*)itemList;
 
 	uint32_t index = drawList->removeEntryCount;
