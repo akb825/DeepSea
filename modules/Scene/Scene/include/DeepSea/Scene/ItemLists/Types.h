@@ -48,13 +48,6 @@ typedef struct dsSceneInstanceData dsSceneInstanceData;
 /// @endcond
 
 /**
- * @brief Value that denotes the type of a scene item list.
- *
- * To define a type, create a static int variable and return the address.
- */
-typedef const int* dsSceneItemListType;
-
-/**
  * @brief Function to populate scene instance data.
  * @remark errno should be set on failure.
  * @param instanceData The instance data.
@@ -243,52 +236,13 @@ typedef void (*dsCommitSceneItemListFunction)(dsSceneItemList* itemList, const d
 typedef void (*dsDestroySceneItemListFunction)(dsSceneItemList* itemList);
 
 /**
- * @brief Struct for processing items within a scene.
+ * @brief Value that denotes the type of a scene item list.
  *
- * Different implementations can effectively subclass this type by having it as the first member of
- * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsSceneItemList and the true internal type.
- *
- * @see SceneItemList.h
+ * To define a type, create a static variable and return the address. This contains the function
+ * pointers as well to reduce the size of each item list.
  */
-struct dsSceneItemList
+typedef struct dsSceneItemListType
 {
-	/**
-	 * @brief The allocator this was created with.
-	 */
-	dsAllocator* allocator;
-
-	/**
-	 * @brief The type of the item list.
-	 */
-	dsSceneItemListType type;
-
-	/**
-	 * @brief The name of the scene item list.
-	 */
-	const char* name;
-
-	/**
-	 * @brief The name ID for the item list.
-	 */
-	uint32_t nameID;
-
-	/**
-	 * @brief The number of global values that will be stored on dsSharedMaterialValues.
-	 *
-	 * A dsSceneItemList instance that has a globalValueCount > 1 must:
-	 * 1. Be in the sharedItems list for a dsScene.
-	 * 2. Be the only itemList in the dsSceneItemLists entry. (i.e. count == 1)
-	 *
-	 * This avoids unsafe concurrent access to the dsSharedMaterialValues for global data.
-	 */
-	uint32_t globalValueCount;
-
-	/**
-	 * @brief Whether or not the command buffer is required.
-	 */
-	bool needsCommandBuffer;
-
 	/**
 	 * @brief Function for adding a node to the item list.
 	 *
@@ -355,6 +309,62 @@ struct dsSceneItemList
 	 * @brief Function for destroying the scene item list.
 	 */
 	dsDestroySceneItemListFunction destroyFunc;
+} dsSceneItemListType;
+
+/**
+ * @brief Struct for processing items within a scene.
+ *
+ * Different implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsSceneItemList and the true internal type.
+ *
+ * @see SceneItemList.h
+ */
+struct dsSceneItemList
+{
+	/**
+	 * @brief The allocator this was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The type of the item list.
+	 */
+	const dsSceneItemListType* type;
+
+	/**
+	 * @brief The name of the scene item list.
+	 */
+	const char* name;
+
+	/**
+	 * @brief The name ID for the item list.
+	 */
+	uint32_t nameID;
+
+	/**
+	 * @brief The number of global values that will be stored on dsSharedMaterialValues.
+	 *
+	 * A dsSceneItemList instance that has a globalValueCount > 1 must:
+	 * 1. Be in the sharedItems list for a dsScene.
+	 * 2. Be the only itemList in the dsSceneItemLists entry. (i.e. count == 1)
+	 *
+	 * This avoids unsafe concurrent access to the dsSharedMaterialValues for global data.
+	 */
+	uint32_t globalValueCount;
+
+	/**
+	 * @brief Whether or not the command buffer is required for the commit function.
+	 */
+	bool needsCommandBuffer;
+
+	/**
+	 * @brief Whether to skip preRenderPassFunc even if it is set in the type.
+	 *
+	 * This is useful for situations where the type provides preRenderPassFunc, but it is not always
+	 * needed.
+	 */
+	bool skipPreRenderPass;
 };
 
 /**

@@ -293,10 +293,38 @@ dsSceneItemList* dsViewCullList_load(const dsSceneLoadContext* loadContext,
 	return dsViewCullList_create(allocator, name);
 }
 
-dsSceneItemListType dsViewCullList_type(void)
+const dsSceneItemListType* dsViewCullList_type(void)
 {
-	static int type;
-	return &type;
+	static dsSceneItemListType type =
+	{
+		.addNodeFunc = &dsViewCullList_addNode,
+		.removeNodeFunc = &dsViewCullList_removeNode,
+		.commitFunc = &dsViewCullList_commit,
+		.destroyFunc = &dsViewCullList_destroy
+	};
+#if DS_HAS_SIMD
+	static dsSceneItemListType simdType =
+	{
+		.addNodeFunc = &dsViewCullList_addNode,
+		.removeNodeFunc = &dsViewCullList_removeNode,
+		.commitFunc = &dsViewCullList_commitSIMD,
+		.destroyFunc = &dsViewCullList_destroy
+	};
+	static dsSceneItemListType fmaType =
+	{
+		.addNodeFunc = &dsViewCullList_addNode,
+		.removeNodeFunc = &dsViewCullList_removeNode,
+		.commitFunc = &dsViewCullList_commitFMA,
+		.destroyFunc = &dsViewCullList_destroy
+	};
+
+	if (DS_SIMD_ALWAYS_FMA || dsHostSIMDFeatures & dsSIMDFeatures_FMA)
+		return &fmaType;
+	else if (DS_SIMD_ALWAYS_FLOAT4 || dsHostSIMDFeatures & dsSIMDFeatures_Float4)
+		return &simdType;
+	else
+#endif
+		return &type;
 }
 
 dsSceneItemList* dsViewCullList_create(dsAllocator* allocator, const char* name)
@@ -332,23 +360,7 @@ dsSceneItemList* dsViewCullList_create(dsAllocator* allocator, const char* name)
 	memcpy((void*)itemList->name, name, nameLen);
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
-	itemList->needsCommandBuffer = false;
-	itemList->addNodeFunc = &dsViewCullList_addNode;
-	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = &dsViewCullList_removeNode;
-	itemList->reparentNodeFunc = NULL;
-	itemList->preTransformUpdateFunc = NULL;
-	itemList->updateFunc = NULL;
-	itemList->preRenderPassFunc = NULL;
-#if DS_HAS_SIMD
-	if (DS_SIMD_ALWAYS_FMA || dsHostSIMDFeatures & dsSIMDFeatures_FMA)
-		itemList->commitFunc = &dsViewCullList_commitFMA;
-	else if (DS_SIMD_ALWAYS_FLOAT4 || dsHostSIMDFeatures & dsSIMDFeatures_Float4)
-		itemList->commitFunc = &dsViewCullList_commitSIMD;
-	else
-#endif
-		itemList->commitFunc = &dsViewCullList_commit;
-	itemList->destroyFunc = &dsViewCullList_destroy;
+	itemList->skipPreRenderPass = false;
 
 	cullList->staticEntries = NULL;
 	cullList->staticEntryCount = 0;

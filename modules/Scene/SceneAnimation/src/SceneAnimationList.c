@@ -427,9 +427,15 @@ dsSceneItemList* dsSceneAnimationList_load(const dsSceneLoadContext* loadContext
 
 const char* const dsSceneAnimationList_typeName = "AnimationList";
 
-dsSceneItemListType dsSceneAnimationList_type(void)
+const dsSceneItemListType* dsSceneAnimationList_type(void)
 {
-	static int type;
+	static dsSceneItemListType type =
+	{
+		.addNodeFunc = &dsSceneAnimationList_addNode,
+		.removeNodeFunc = &dsSceneAnimationList_removeNode,
+		.preTransformUpdateFunc = &dsSceneAnimationList_preTransformUpdate,
+		.destroyFunc = &dsSceneAnimationList_destroy
+	};
 	return &type;
 }
 
@@ -470,16 +476,8 @@ dsSceneAnimationList* dsSceneAnimationList_create(dsAllocator* allocator, const 
 	memcpy((void*)itemList->name, name, nameLen);
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
-	itemList->needsCommandBuffer = true;
-	itemList->addNodeFunc = &dsSceneAnimationList_addNode;
-	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = &dsSceneAnimationList_removeNode;
-	itemList->reparentNodeFunc = NULL;
-	itemList->preTransformUpdateFunc = &dsSceneAnimationList_preTransformUpdate;
-	itemList->updateFunc = NULL;
-	itemList->commitFunc = NULL;
-	itemList->preRenderPassFunc = NULL;
-	itemList->destroyFunc = &dsSceneAnimationList_destroy;
+	itemList->needsCommandBuffer = false;
+	itemList->skipPreRenderPass = false;
 
 	animationList->animationEntries = NULL;
 	animationList->animationEntryCount = 0;

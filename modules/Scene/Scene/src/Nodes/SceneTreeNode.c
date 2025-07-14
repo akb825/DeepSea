@@ -122,7 +122,7 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child,
 
 		dsSceneItemListNode* node = (dsSceneItemListNode*)dsHashTable_find(scene->itemLists,
 			child->itemLists[i]);
-		if (!node || !node->list->addNodeFunc || !node->list->removeNodeFunc)
+		if (!node || !node->list->type->addNodeFunc || !node->list->type->removeNodeFunc)
 		{
 			itemEntry->list = NULL;
 			itemEntry->entry = DS_NO_SCENE_NODE;
@@ -131,7 +131,7 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child,
 
 		itemData->nameID = node->list->nameID;
 		itemEntry->list = node->list;
-		itemEntry->entry = node->list->addNodeFunc(node->list, child, childTreeNode,
+		itemEntry->entry = node->list->type->addNodeFunc(node->list, child, childTreeNode,
 			&childTreeNode->itemData, &itemData->data);
 	}
 
@@ -191,7 +191,7 @@ static void removeSubtreeRec(dsSceneNode* child, uint32_t treeNodeIndex, dsScene
 			continue;
 
 		dsSceneItemList* list = childTreeNode->itemLists[i].list;
-		list->removeNodeFunc(list, childTreeNode, entry);
+		list->type->removeNodeFunc(list, childTreeNode, entry);
 	}
 
 	dsSceneNode_freeRef(childTreeNode->node);
@@ -217,8 +217,9 @@ static void notifyReparentSubtreeRec(
 	for (uint32_t i = 0; i < baseNode->itemListCount; ++i)
 	{
 		dsSceneItemEntry* entry = node->itemLists + i;
-		if (entry->list->reparentNodeFunc)
-			entry->list->reparentNodeFunc(entry->list, entry->entry, prevParent, newParent);
+		dsReparentSceneItemListNodeFunction reparentNodeFunc = entry->list->type->reparentNodeFunc;
+		if (reparentNodeFunc)
+			reparentNodeFunc(entry->list, entry->entry, prevParent, newParent);
 	}
 
 	for (uint32_t i = 0; i < node->childCount; ++i)
@@ -262,8 +263,8 @@ static void updateSubtreeRec(dsSceneTreeNode* node)
 	{
 		uint64_t entry = node->itemLists[i].entry;
 		dsSceneItemList* list = node->itemLists[i].list;
-		if (entry != DS_NO_SCENE_NODE && list->updateNodeFunc)
-			list->updateNodeFunc(list, node, entry);
+		if (entry != DS_NO_SCENE_NODE && list->type->updateNodeFunc)
+			list->type->updateNodeFunc(list, node, entry);
 	}
 
 	for (uint32_t i = 0; i < node->childCount; ++i)

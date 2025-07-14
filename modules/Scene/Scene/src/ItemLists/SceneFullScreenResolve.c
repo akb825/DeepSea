@@ -75,9 +75,13 @@ static void dsSceneFullScreenResolve_commit(dsSceneItemList* itemList, const dsV
 
 const char* const dsSceneFullScreenResolve_typeName = "FullScreenResolve";
 
-dsSceneItemListType dsSceneFullScreenResolve_type(void)
+const dsSceneItemListType* dsSceneFullScreenResolve_type(void)
 {
-	static int type;
+	static dsSceneItemListType type =
+	{
+		.commitFunc = &dsSceneFullScreenResolve_commit,
+		.destroyFunc = (dsDestroySceneItemListFunction)&dsSceneFullScreenResolve_destroy
+	};
 	return &type;
 }
 
@@ -191,15 +195,7 @@ dsSceneFullScreenResolve* dsSceneFullScreenResolve_create(dsAllocator* allocator
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = true;
-	itemList->addNodeFunc = NULL;
-	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = NULL;
-	itemList->reparentNodeFunc = NULL;
-	itemList->preTransformUpdateFunc = NULL;
-	itemList->updateFunc = NULL;
-	itemList->preRenderPassFunc = NULL;
-	itemList->commitFunc = &dsSceneFullScreenResolve_commit;
-	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsSceneFullScreenResolve_destroy;
+	itemList->skipPreRenderPass = false;
 
 	resolve->shader = shader;
 	resolve->material = material;

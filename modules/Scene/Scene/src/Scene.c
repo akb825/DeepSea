@@ -87,7 +87,7 @@ static size_t fullAllocSize(uint32_t* outNameCount, uint32_t* outGlobalValueCoun
 		for (uint32_t j = 0; j < itemLists->count; ++j)
 		{
 			const dsSceneItemList* itemList = itemLists->itemLists[j];
-			if (!itemList)
+			if (!itemList || !itemList->type)
 				return 0;
 
 			*outGlobalValueCount += itemList->globalValueCount;
@@ -119,7 +119,7 @@ static size_t fullAllocSize(uint32_t* outNameCount, uint32_t* outGlobalValueCoun
 					const dsSceneItemList* itemList = items->itemLists[k];
 					if (!itemList)
 						return 0;
-					else if (!itemList->commitFunc)
+					else if (!itemList->type || !itemList->type->commitFunc)
 					{
 						DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
 							"Scene item list '%s' inside render subpass '%s' must have a commit "
@@ -140,14 +140,16 @@ static size_t fullAllocSize(uint32_t* outNameCount, uint32_t* outGlobalValueCoun
 		else
 		{
 			dsSceneItemList* itemList = item->computeItems;
-			if (itemList->globalValueCount > 0)
+			if (!itemList->type)
+				return 0;
+			else if (itemList->globalValueCount > 0)
 			{
 				DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
 					"Scene item list '%s' with global values must be in the sharedItem array.",
 					itemList->name);
 				return 0;
 			}
-			else if (itemList->preRenderPassFunc)
+			else if (itemList->type->preRenderPassFunc)
 			{
 				DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
 					"Compute scene item list '%s' may not have a preRenderPass function.",
@@ -616,10 +618,12 @@ bool dsScene_update(dsScene* scene, float time)
 	for (dsListNode* node = scene->itemLists->list.head; node; node = node->next)
 	{
 		dsSceneItemList* itemList = ((dsSceneItemListNode*)node)->list;
-		if (itemList->preTransformUpdateFunc)
+		dsUpdateSceneItemListFunction preTransformUpdateFunc =
+			itemList->type->preTransformUpdateFunc;
+		if (preTransformUpdateFunc)
 		{
 			DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-			itemList->preTransformUpdateFunc(itemList, scene, time);
+			preTransformUpdateFunc(itemList, scene, time);
 			DS_PROFILE_SCOPE_END();
 		}
 	}
@@ -631,10 +635,11 @@ bool dsScene_update(dsScene* scene, float time)
 	for (dsListNode* node = scene->itemLists->list.head; node; node = node->next)
 	{
 		dsSceneItemList* itemList = ((dsSceneItemListNode*)node)->list;
-		if (itemList->updateFunc)
+		dsUpdateSceneItemListFunction updateFunc = itemList->type->updateFunc;
+		if (updateFunc)
 		{
 			DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-			itemList->updateFunc(itemList, scene, time);
+			updateFunc(itemList, scene, time);
 			DS_PROFILE_SCOPE_END();
 		}
 	}

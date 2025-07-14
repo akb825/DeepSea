@@ -124,9 +124,13 @@ static void dsViewTransformData_destroy(dsSceneItemList* itemList)
 
 const char* const dsViewTransformData_typeName = "ViewTransformData";
 
-dsSceneItemListType dsViewTransformData_type(void)
+const dsSceneItemListType* dsViewTransformData_type(void)
 {
-	static int type;
+	static dsSceneItemListType type =
+	{
+		.commitFunc = &dsViewTransformData_commit,
+		.destroyFunc = &dsViewTransformData_destroy
+	};
 	return &type;
 }
 
@@ -184,15 +188,7 @@ dsSceneItemList* dsViewTransformData_create(dsAllocator* allocator, const char* 
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 1;
 	itemList->needsCommandBuffer = true;
-	itemList->addNodeFunc = NULL;
-	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = NULL;
-	itemList->reparentNodeFunc = NULL;
-	itemList->preTransformUpdateFunc = NULL;
-	itemList->updateFunc = NULL;
-	itemList->preRenderPassFunc = NULL;
-	itemList->commitFunc = &dsViewTransformData_commit;
-	itemList->destroyFunc = &dsViewTransformData_destroy;
+	itemList->skipPreRenderPass = false;
 
 	viewData->variableGroup = dsShaderVariableGroup_create(resourceManager,
 		(dsAllocator*)&bufferAlloc, allocator, transformDesc);

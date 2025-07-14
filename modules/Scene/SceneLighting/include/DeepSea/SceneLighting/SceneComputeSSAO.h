@@ -46,7 +46,7 @@ DS_SCENELIGHTING_EXPORT extern const char* const dsSceneComputeSSAO_typeName;
  * @brief Gets the type of a scene compute SSAO.
  * @return The type of a scene compute SSAO.
  */
-DS_SCENELIGHTING_EXPORT dsSceneItemListType dsSceneComputeSSAO_type(void);
+DS_SCENELIGHTING_EXPORT const dsSceneItemListType* dsSceneComputeSSAO_type(void);
 
 /**
  * @brief Creates a scene compute screen-space ambient occlusion.

@@ -77,8 +77,6 @@ typedef struct dsLightFlicker
 	uint32_t maxRemoveEntries;
 } dsLightFlicker;
 
-static int type;
-
 static uint64_t dsLightFlicker_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData,
 	void** thisItemData)
@@ -181,6 +179,18 @@ static void dsLightFlicker_destroy(dsSceneItemList* itemList)
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
 
+static dsSceneItemListType createType()
+{
+	dsSceneItemListType type = {};
+	type.addNodeFunc = &dsLightFlicker_addNode;
+	type.removeNodeFunc = &dsLightFlicker_removeNode;
+	type.updateFunc = &dsLightFlicker_update;
+	type.destroyFunc = &dsLightFlicker_destroy;
+	return type;
+}
+
+static dsSceneItemListType type = createType();
+
 dsSceneItemList* dsLightFlicker_load(const dsSceneLoadContext*, dsSceneLoadScratchData*,
 	dsAllocator* allocator, dsAllocator*, void*, const char* name, const uint8_t* data,
 	size_t dataSize)
@@ -227,15 +237,7 @@ dsSceneItemList* dsLightFlicker_create(dsAllocator* allocator, const char* name,
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = false;
-	itemList->addNodeFunc = &dsLightFlicker_addNode;
-	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = &dsLightFlicker_removeNode;
-	itemList->reparentNodeFunc = NULL;
-	itemList->preTransformUpdateFunc = NULL;
-	itemList->updateFunc = &dsLightFlicker_update;
-	itemList->preRenderPassFunc = NULL;
-	itemList->commitFunc = NULL;
-	itemList->destroyFunc = &dsLightFlicker_destroy;
+	itemList->skipPreRenderPass = false;
 
 	dsRandom_initialize(&flicker->random);
 	flicker->timeRange = *timeRange;

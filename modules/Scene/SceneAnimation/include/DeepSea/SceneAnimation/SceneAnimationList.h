@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ DS_SCENEANIMATION_EXPORT extern const char* const dsSceneAnimationList_typeName;
  * @brief Gets the type of a scene animation list.
  * @return The type of a scene animation list.
  */
-DS_SCENEANIMATION_EXPORT dsSceneItemListType dsSceneAnimationList_type(void);
+DS_SCENEANIMATION_EXPORT const dsSceneItemListType* dsSceneAnimationList_type(void);
 
 /**
  * @brief Creates a scene animation list.

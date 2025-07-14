@@ -199,6 +199,7 @@ static void dsSceneParticleDrawList_removeNode(
 static void dsSceneParticleDrawList_preRenderPass(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(!itemList->skipPreRenderPass);
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 	setupInstances(itemList, view, commandBuffer);
 	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
@@ -217,7 +218,7 @@ static void dsSceneParticleDrawList_commit(dsSceneItemList* itemList, const dsVi
 		drawList->removeEntryCount);
 	drawList->removeEntryCount = 0;
 
-	if (!itemList->preRenderPassFunc)
+	if (itemList->skipPreRenderPass)
 		setupInstances(itemList, view, NULL);
 
 	if (drawList->instanceCount == 0)
@@ -254,9 +255,16 @@ static void dsSceneParticleDrawList_destroy(dsSceneItemList* itemList)
 
 const char* const dsSceneParticleDrawList_typeName = "ParticleDrawList";
 
-dsSceneItemListType dsSceneParticleDrawList_type(void)
+const dsSceneItemListType* dsSceneParticleDrawList_type(void)
 {
-	static int type;
+	static dsSceneItemListType type =
+	{
+		.addNodeFunc = &dsSceneParticleDrawList_addNode,
+		.removeNodeFunc = dsSceneParticleDrawList_removeNode,
+		.preRenderPassFunc = dsSceneParticleDrawList_preRenderPass,
+		.commitFunc = &dsSceneParticleDrawList_commit,
+		.destroyFunc = &dsSceneParticleDrawList_destroy
+	};
 	return &type;
 }
 
@@ -282,7 +290,7 @@ dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const ch
 	}
 
 	uint32_t instanceValueCount = 0;
-	bool needsPreRenderPass = false;
+	bool skipPreRenderPass = true;
 	for (uint32_t i = 0; i < instanceDataCount; ++i)
 	{
 		if (!instanceData[i])
@@ -294,7 +302,7 @@ dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const ch
 
 		instanceValueCount += instanceData[i]->valueCount;
 		if (instanceData[i]->needsCommandBuffer)
-			needsPreRenderPass = true;
+			skipPreRenderPass = false;
 	}
 
 	size_t nameLen = strlen(name) + 1;
@@ -323,15 +331,7 @@ dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const ch
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = true;
-	itemList->addNodeFunc = &dsSceneParticleDrawList_addNode;
-	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = dsSceneParticleDrawList_removeNode;
-	itemList->reparentNodeFunc = NULL;
-	itemList->preTransformUpdateFunc = NULL;
-	itemList->updateFunc = NULL;
-	itemList->preRenderPassFunc = needsPreRenderPass ? dsSceneParticleDrawList_preRenderPass : NULL;
-	itemList->commitFunc = &dsSceneParticleDrawList_commit;
-	itemList->destroyFunc = &dsSceneParticleDrawList_destroy;
+	itemList->skipPreRenderPass = skipPreRenderPass;
 
 	drawList->cullListID = cullList ? dsUniqueNameID_create(cullList) : 0;
 

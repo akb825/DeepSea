@@ -509,9 +509,13 @@ void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsView* view
 
 const char* const dsDeferredLightResolve_typeName = "DeferredLightResolve";
 
-dsSceneItemListType dsDeferredLightResolve_type(void)
+const dsSceneItemListType* dsDeferredLightResolve_type(void)
 {
-	static int type;
+	static dsSceneItemListType type =
+	{
+		.commitFunc = &dsDeferredLightResolve_commit,
+		.destroyFunc = (dsDestroySceneItemListFunction)&dsDeferredLightResolve_destroy
+	};
 	return &type;
 }
 
@@ -581,15 +585,7 @@ dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = true;
-	itemList->addNodeFunc = NULL;
-	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = NULL;
-	itemList->reparentNodeFunc = NULL;
-	itemList->preTransformUpdateFunc = NULL;
-	itemList->updateFunc = NULL;
-	itemList->preRenderPassFunc = NULL;
-	itemList->commitFunc = &dsDeferredLightResolve_commit;
-	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsDeferredLightResolve_destroy;
+	itemList->skipPreRenderPass = false;
 
 	resolve->resourceAllocator = resourceAllocator;
 	resolve->lightSet = lightSet;

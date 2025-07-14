@@ -72,9 +72,13 @@ void dsSceneSSAO_commit(dsSceneItemList* itemList, const dsView* view,
 
 const char* const dsSceneSSAO_typeName = "SSAO";
 
-dsSceneItemListType dsSceneSSAO_type(void)
+const dsSceneItemListType* dsSceneSSAO_type(void)
 {
-	static int type;
+	static dsSceneItemListType type =
+	{
+		.commitFunc = &dsSceneSSAO_commit,
+		.destroyFunc = (dsDestroySceneItemListFunction)&dsSceneSSAO_destroy
+	};
 	return &type;
 }
 
@@ -120,15 +124,7 @@ dsSceneSSAO* dsSceneSSAO_create(dsAllocator* allocator, dsResourceManager* resou
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = true;
-	itemList->addNodeFunc = NULL;
-	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = NULL;
-	itemList->reparentNodeFunc = NULL;
-	itemList->preTransformUpdateFunc = NULL;
-	itemList->updateFunc = NULL;
-	itemList->preRenderPassFunc = NULL;
-	itemList->commitFunc = &dsSceneSSAO_commit;
-	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsSceneSSAO_destroy;
+	itemList->skipPreRenderPass = false;
 
 	ssao->resourceManager = resourceManager;
 	ssao->resourceAllocator = resourceAllocator;

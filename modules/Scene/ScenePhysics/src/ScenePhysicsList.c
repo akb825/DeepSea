@@ -850,9 +850,15 @@ static void dsScenePhysicsList_destroy(dsSceneItemList* itemList)
 
 const char* const dsScenePhysicsList_typeName = "PhysicsList";
 
-dsSceneItemListType dsScenePhysicsList_type(void)
+const dsSceneItemListType* dsScenePhysicsList_type(void)
 {
-	static int type;
+	static dsSceneItemListType type =
+	{
+		.addNodeFunc = &dsScenePhysicsList_addNode,
+		.removeNodeFunc = &dsScenePhysicsList_removeNode,
+		.preTransformUpdateFunc = &dsScenePhysicsList_preTransformUpdate,
+		.destroyFunc = &dsScenePhysicsList_destroy
+	};
 	return &type;
 }
 
@@ -900,16 +906,8 @@ dsSceneItemList* dsScenePhysicsList_create(dsAllocator* allocator, const char* n
 	memcpy((void*)itemList->name, name, nameLen);
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
-	itemList->needsCommandBuffer = true;
-	itemList->addNodeFunc = &dsScenePhysicsList_addNode;
-	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = &dsScenePhysicsList_removeNode;
-	itemList->reparentNodeFunc = NULL;
-	itemList->preTransformUpdateFunc = &dsScenePhysicsList_preTransformUpdate;
-	itemList->updateFunc = NULL;
-	itemList->commitFunc = NULL;
-	itemList->preRenderPassFunc = NULL;
-	itemList->destroyFunc = &dsScenePhysicsList_destroy;
+	itemList->needsCommandBuffer = false;
+	itemList->skipPreRenderPass = false;
 
 	physicsList->physicsScene = physicsScene;
 	physicsList->ownsPhysicsScene = takeOwnership;

@@ -423,6 +423,7 @@ static void dsSceneVectorItemList_removeNode(
 static void dsSceneVectorItemList_preRenderPass(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(!itemList->skipPreRenderPass);
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
 	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
@@ -445,7 +446,7 @@ static void dsSceneVectorItemList_commit(dsSceneItemList* itemList, const dsView
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
 	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
-	if (!itemList->preRenderPassFunc)
+	if (itemList->skipPreRenderPass)
 	{
 		// Lazily remove entries.
 		dsSceneItemListEntries_removeMulti(vectorList->entries, &vectorList->entryCount,
@@ -477,9 +478,16 @@ static void dsSceneVectorItemList_destroy(dsSceneVectorItemList* vectorList)
 
 const char* const dsSceneVectorItemList_typeName = "VectorItemList";
 
-dsSceneItemListType dsSceneVectorItemList_type(void)
+const dsSceneItemListType* dsSceneVectorItemList_type(void)
 {
-	static int type;
+	static dsSceneItemListType type =
+	{
+		.addNodeFunc = &dsSceneVectorItemList_addNode,
+		.removeNodeFunc = &dsSceneVectorItemList_removeNode,
+		.preRenderPassFunc = dsSceneVectorItemList_preRenderPass,
+		.commitFunc = &dsSceneVectorItemList_commit,
+		.destroyFunc = (dsDestroySceneItemListFunction)&dsSceneVectorItemList_destroy
+	};
 	return &type;
 }
 
@@ -503,7 +511,7 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	}
 
 	uint32_t valueCount = 1;
-	bool needsPreRenderPass = false;
+	bool skipPreRenderPass = true;
 	for (uint32_t i = 0; i < instanceDataCount; ++i)
 	{
 		if (!instanceData[i])
@@ -514,7 +522,8 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 		}
 		valueCount += instanceData[i]->valueCount;
 		if (instanceData[i]->needsCommandBuffer)
-			needsPreRenderPass = true;
+			skipPreRenderPass = false;
+
 	}
 
 	size_t nameLen = strlen(name);
@@ -540,15 +549,9 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, char, nameLen + 1);
 	memcpy((void*)itemList->name, name, nameLen + 1);
 	itemList->nameID = dsUniqueNameID_create(name);
-	itemList->addNodeFunc = &dsSceneVectorItemList_addNode;
-	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = &dsSceneVectorItemList_removeNode;
-	itemList->reparentNodeFunc = NULL;
-	itemList->preTransformUpdateFunc = NULL;
-	itemList->updateFunc = NULL;
-	itemList->preRenderPassFunc = needsPreRenderPass ? dsSceneVectorItemList_preRenderPass : NULL;
-	itemList->commitFunc = &dsSceneVectorItemList_commit;
-	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsSceneVectorItemList_destroy;
+	itemList->globalValueCount = 0;
+	itemList->needsCommandBuffer = true;
+	itemList->skipPreRenderPass = skipPreRenderPass;
 
 	if (renderStates)
 	{

@@ -237,10 +237,17 @@ dsSceneItemList* dsSceneHandoffList_load(const dsSceneLoadContext* loadContext,
 	return dsSceneHandoffList_create(allocator, name);
 }
 
-dsSceneItemListType dsSceneHandoffList_type(void)
+const dsSceneItemListType* dsSceneHandoffList_type(void)
 {
-	static int list;
-	return &list;
+	static dsSceneItemListType type =
+	{
+		.addNodeFunc = &dsSceneHandoffList_addNode,
+		.removeNodeFunc = &dsSceneHandoffList_removeNode,
+		.reparentNodeFunc = &dsSceneHandoffList_reparentNode,
+		.preTransformUpdateFunc = &dsSceneHandoffList_preTransformUpdate,
+		.destroyFunc = &dsSceneHandoffList_destroy
+	};
+	return &type;
 }
 
 dsSceneItemList* dsSceneHandoffList_create(dsAllocator* allocator, const char* name)
@@ -277,15 +284,7 @@ dsSceneItemList* dsSceneHandoffList_create(dsAllocator* allocator, const char* n
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = false;
-	itemList->addNodeFunc = &dsSceneHandoffList_addNode;
-	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = &dsSceneHandoffList_removeNode;
-	itemList->reparentNodeFunc = &dsSceneHandoffList_reparentNode;
-	itemList->preTransformUpdateFunc = &dsSceneHandoffList_preTransformUpdate;
-	itemList->updateFunc = NULL;
-	itemList->preRenderPassFunc = NULL;
-	itemList->commitFunc = NULL;
-	itemList->destroyFunc = &dsSceneHandoffList_destroy;
+	itemList->skipPreRenderPass = false;
 
 	handoffList->entries = NULL;
 	handoffList->entryCount = 0;

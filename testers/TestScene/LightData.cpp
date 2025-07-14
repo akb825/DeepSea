@@ -59,8 +59,6 @@ typedef struct dsLightData
 	uint32_t variableGroupNameID;
 } dsLightData;
 
-static int type;
-
 static void dsLightData_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
@@ -88,6 +86,16 @@ static void dsLightData_destroy(dsSceneItemList* itemList)
 	if (itemList->allocator)
 		DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
+
+static dsSceneItemListType createType()
+{
+	dsSceneItemListType type = {};
+	type.commitFunc = &dsLightData_commit;
+	type.destroyFunc = &dsLightData_destroy;
+	return type;
+}
+
+static dsSceneItemListType type = createType();
 
 dsSceneItemList* dsLightData_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*, void*,
@@ -161,15 +169,7 @@ dsSceneItemList* dsLightData_create(dsAllocator* allocator, const char* name,
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 1;
 	itemList->needsCommandBuffer = true;
-	itemList->addNodeFunc = NULL;
-	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = NULL;
-	itemList->reparentNodeFunc = NULL;
-	itemList->preTransformUpdateFunc = NULL;
-	itemList->updateFunc = NULL;
-	itemList->preRenderPassFunc = NULL;
-	itemList->commitFunc = &dsLightData_commit;
-	itemList->destroyFunc = &dsLightData_destroy;
+	itemList->skipPreRenderPass = false;
 
 	lightData->variableGroup = dsShaderVariableGroup_create(resourceManager,
 		(dsAllocator*)&bufferAlloc, allocator, lightDesc);

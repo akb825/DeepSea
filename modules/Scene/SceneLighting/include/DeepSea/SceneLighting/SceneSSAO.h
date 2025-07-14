@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 Aaron Barany
+ * Copyright 2021-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ DS_SCENELIGHTING_EXPORT extern const char* const dsSceneSSAO_typeName;
  * @brief Gets the type of a scene SSAO.
  * @return The type of a scene SSAO.
  */
-DS_SCENELIGHTING_EXPORT dsSceneItemListType dsSceneSSAO_type(void);
+DS_SCENELIGHTING_EXPORT const dsSceneItemListType* dsSceneSSAO_type(void);
 
 /**
  * @brief Creates a scene screen-space ambient occlusion.

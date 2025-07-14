@@ -146,9 +146,15 @@ static void dsSceneUserDataList_destroy(dsSceneItemList* itemList)
 
 const char* const dsSceneUserDataList_typeName = "UserDataList";
 
-dsSceneItemListType dsSceneUserDataList_type(void)
+const dsSceneItemListType* dsSceneUserDataList_type(void)
 {
-	static int type;
+	static dsSceneItemListType type =
+	{
+		.addNodeFunc = &dsSceneUserDataList_addNode,
+		.removeNodeFunc = &dsSceneUserDataList_removeNode,
+		.updateFunc = &dsSceneUserDataList_update,
+		.destroyFunc = &dsSceneUserDataList_destroy
+	};
 	return &type;
 }
 
@@ -200,16 +206,8 @@ dsSceneItemList* dsSceneUserDataList_create(dsAllocator* allocator, const char* 
 	memcpy((void*)itemList->name, name, nameLen);
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
-	itemList->needsCommandBuffer = true;
-	itemList->addNodeFunc = &dsSceneUserDataList_addNode;
-	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = &dsSceneUserDataList_removeNode;
-	itemList->reparentNodeFunc = NULL;
-	itemList->preTransformUpdateFunc = NULL;
-	itemList->updateFunc = &dsSceneUserDataList_update;
-	itemList->commitFunc = NULL;
-	itemList->preRenderPassFunc = NULL;
-	itemList->destroyFunc = &dsSceneUserDataList_destroy;
+	itemList->needsCommandBuffer = false;
+	itemList->skipPreRenderPass = false;
 
 	userDataList->entries = NULL;
 	userDataList->entryCount = 0;

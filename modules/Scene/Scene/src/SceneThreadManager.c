@@ -183,7 +183,7 @@ static bool processCommandBufferRenderPass(dsCommandBuffer* commandBuffer,
 	}
 
 	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-	itemList->commitFunc(itemList, view, commandBuffer);
+	itemList->type->commitFunc(itemList, view, commandBuffer);
 	DS_PROFILE_SCOPE_END();
 
 	DS_VERIFY(dsCommandBuffer_end(commandBuffer));
@@ -197,7 +197,8 @@ static void taskFunc(void* userData)
 	CommandBufferInfo* commandBufferInfo = taskData->commandBufferInfo;
 	const dsView* view = threadManager->curView;
 	dsSceneItemList* itemList = commandBufferInfo->itemList;
-	DS_ASSERT(itemList->commitFunc);
+	const dsSceneItemListType* itemListType = itemList->type;
+	DS_ASSERT(itemListType->commitFunc);
 	dsSceneRenderPass* renderPass = commandBufferInfo->renderPass;
 	if (renderPass)
 	{
@@ -206,7 +207,7 @@ static void taskFunc(void* userData)
 			return;
 
 		// If the render pass has a pre render pass call, it would have been handled then.
-		DS_ASSERT(!itemList->preRenderPassFunc);
+		DS_ASSERT(!itemListType->preRenderPassFunc || itemList->skipPreRenderPass);
 		processCommandBufferRenderPass(commandBuffer, view, itemList, renderPass,
 			commandBufferInfo->subpass,
 			threadManager->curFramebuffers + commandBufferInfo->framebuffer,
@@ -215,14 +216,15 @@ static void taskFunc(void* userData)
 	}
 	else
 	{
-		if (itemList->preRenderPassFunc)
+		if (itemListType->preRenderPassFunc)
 		{
+			DS_ASSERT(!itemList->skipPreRenderPass);
 			dsCommandBuffer* commandBuffer = getComputeCommandBuffer(threadManager);
 			if (!commandBuffer || !dsCommandBuffer_begin(commandBuffer))
 				return;
 
 			DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-			itemList->preRenderPassFunc(itemList, view, commandBuffer);
+			itemListType->preRenderPassFunc(itemList, view, commandBuffer);
 			DS_PROFILE_SCOPE_END();
 			DS_VERIFY(dsCommandBuffer_end(commandBuffer));
 			commandBufferInfo->commandBuffer = commandBuffer;
@@ -256,7 +258,7 @@ static void taskFunc(void* userData)
 			}
 
 			DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-			itemList->commitFunc(itemList, view, commandBuffer);
+			itemListType->commitFunc(itemList, view, commandBuffer);
 			DS_PROFILE_SCOPE_END();
 
 			if (commandBuffer)
@@ -292,8 +294,12 @@ static bool triggerThreads(dsSceneThreadManager* threadManager)
 		CommandBufferInfo* commandBufferInfo =
 			threadManager->commandBufferInfos + i + firstCommandBuffer;
 		// Render passes with a pre render-pass function are processed with the pre render pass.
-		if (commandBufferInfo->renderPass && commandBufferInfo->itemList->preRenderPassFunc)
+		const dsSceneItemList* itemList = commandBufferInfo->itemList;
+		if (commandBufferInfo->renderPass && !itemList->skipPreRenderPass &&
+			itemList->type->preRenderPassFunc)
+		{
 			continue;
+		}
 
 		DS_ASSERT(taskDataCount < threadManager->maxTaskData);
 		TaskData* taskData = threadManager->taskData + (taskDataCount++);
@@ -334,7 +340,7 @@ static bool triggerSharedItems(dsSceneThreadManager* threadManager, const dsScen
 	const dsSceneItemLists* sharedItems = scene->sharedItems + index;
 	uint32_t processCount = 0;
 	for (uint32_t i = 0; i < sharedItems->count; ++i)
-		processCount += sharedItems->itemLists[i]->commitFunc != NULL;
+		processCount += sharedItems->itemLists[i]->type->commitFunc != NULL;
 	if (processCount == 0)
 		return true;
 
@@ -349,7 +355,7 @@ static bool triggerSharedItems(dsSceneThreadManager* threadManager, const dsScen
 	for (uint32_t i = 0; i < sharedItems->count; ++i)
 	{
 		dsSceneItemList* itemList = sharedItems->itemLists[i];
-		if (!itemList->commitFunc)
+		if (!itemList->type->commitFunc)
 			continue;
 
 		CommandBufferInfo* commandBufferInfo = threadManager->commandBufferInfos +
@@ -389,7 +395,8 @@ static bool triggerDraw(dsSceneThreadManager* threadManager, const dsScene* scen
 				for (uint32_t k = 0; k < drawLists->count; ++k)
 				{
 					dsSceneItemList* itemList = drawLists->itemLists[k];
-					preRenderPassCount += itemList->preRenderPassFunc != NULL;
+					preRenderPassCount +=
+						!itemList->skipPreRenderPass && itemList->type->preRenderPassFunc != NULL;
 				}
 			}
 
@@ -412,7 +419,7 @@ static bool triggerDraw(dsSceneThreadManager* threadManager, const dsScene* scen
 					for (uint32_t k = 0; k < drawLists->count; ++k, ++companionIndex)
 					{
 						dsSceneItemList* itemList = drawLists->itemLists[k];
-						if (!itemList->preRenderPassFunc)
+						if (itemList->skipPreRenderPass || !itemList->type->preRenderPassFunc)
 							continue;
 
 						CommandBufferInfo* commandBufferInfo =
@@ -458,7 +465,7 @@ static bool triggerDraw(dsSceneThreadManager* threadManager, const dsScene* scen
 		else
 		{
 			dsSceneItemList* itemList = scene->pipeline[i].computeItems;
-			if (!itemList->commitFunc)
+			if (!itemList->type->commitFunc)
 				continue;
 
 			uint32_t index = threadManager->commandBufferInfoCount;

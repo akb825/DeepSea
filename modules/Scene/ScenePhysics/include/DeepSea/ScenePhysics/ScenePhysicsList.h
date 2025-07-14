@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ DS_SCENEPHYSICS_EXPORT extern const char* const dsScenePhysicsList_typeName;
  * @brief Gets the type of a scene physics list.
  * @return The type of a scene physics list.
  */
-DS_SCENEPHYSICS_EXPORT dsSceneItemListType dsScenePhysicsList_type(void);
+DS_SCENEPHYSICS_EXPORT const dsSceneItemListType* dsScenePhysicsList_type(void);
 
 /**
  * @brief Creates a scene physics list.

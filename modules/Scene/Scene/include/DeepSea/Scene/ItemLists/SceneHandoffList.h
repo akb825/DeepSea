@@ -42,7 +42,7 @@ DS_SCENE_EXPORT extern const char* const dsSceneHandoffList_typeName;
  * @brief Gets the type of a scene handoff list.
  * @return The type of a scene handoff list.
  */
-DS_SCENE_EXPORT dsSceneItemListType dsSceneHandoffList_type(void);
+DS_SCENE_EXPORT const dsSceneItemListType* dsSceneHandoffList_type(void);
 
 /**
  * @brief Creates a scene handoff cull list.

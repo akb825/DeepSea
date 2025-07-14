@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ DS_SCENE_EXPORT extern const char* const dsViewTransformData_typeName;
  * @brief Gets the type of a view transform data.
  * @return The type of a view transform data.
  */
-DS_SCENE_EXPORT dsSceneItemListType dsViewTransformData_type(void);
+DS_SCENE_EXPORT const dsSceneItemListType* dsViewTransformData_type(void);
 
 /**
  * @brief Creates the shader variable group description used to describe the variables for the

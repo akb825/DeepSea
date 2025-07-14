@@ -146,6 +146,20 @@ void destroyMockSceneItems(dsSceneItemList* itemList)
 	EXPECT_TRUE(dsAllocator_free(itemList->allocator, itemList));
 }
 
+dsSceneItemListType createType()
+{
+	dsSceneItemListType type = {};
+	type.addNodeFunc = &addMockSceneItem;
+	type.updateNodeFunc = &updateMockSceneItem;
+	type.removeNodeFunc = &removeMockSceneItem;
+	type.updateFunc = &updateMockSceneItems;
+	type.commitFunc = &commitMockSceneItems;
+	type.destroyFunc = &destroyMockSceneItems;
+	return type;
+}
+
+dsSceneItemListType type = createType();
+
 MockSceneItemList* createMockSceneItems(dsAllocator* allocator)
 {
 	MockSceneItemList* mockItems = DS_ALLOCATE_OBJECT(allocator, MockSceneItemList);
@@ -154,20 +168,12 @@ MockSceneItemList* createMockSceneItems(dsAllocator* allocator)
 
 	dsSceneItemList* baseItems = (dsSceneItemList*)mockItems;
 	baseItems->allocator = dsAllocator_keepPointer(allocator);
-	baseItems->type = 0;
+	baseItems->type = &type;
 	baseItems->name = testItemListName;
 	baseItems->nameID = dsUniqueNameID_create(testItemListName);
 	baseItems->globalValueCount = 0;
 	baseItems->needsCommandBuffer = false;
-	baseItems->addNodeFunc = &addMockSceneItem;
-	baseItems->updateNodeFunc = &updateMockSceneItem;
-	baseItems->removeNodeFunc = &removeMockSceneItem;
-	baseItems->reparentNodeFunc = nullptr;
-	baseItems->preTransformUpdateFunc = nullptr;
-	baseItems->updateFunc = &updateMockSceneItems;
-	baseItems->preRenderPassFunc = nullptr;
-	baseItems->commitFunc = &commitMockSceneItems;
-	baseItems->destroyFunc = &destroyMockSceneItems;
+	baseItems->skipPreRenderPass = false;
 
 	mockItems->items = nullptr;
 	mockItems->itemCount = 0;

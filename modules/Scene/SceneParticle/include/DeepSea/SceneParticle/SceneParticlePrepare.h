@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ DS_SCENEPARTICLE_EXPORT extern const char* const dsSceneParticlePrepare_typeName
  * @brief Gets the type of a scene particle prepare list.
  * @return The type of a scene particle prepare list.
  */
-DS_SCENEPARTICLE_EXPORT dsSceneItemListType dsSceneParticlePrepare_type(void);
+DS_SCENEPARTICLE_EXPORT const dsSceneItemListType* dsSceneParticlePrepare_type(void);
 
 /**
  * @brief Creates a scene particle prepare list.

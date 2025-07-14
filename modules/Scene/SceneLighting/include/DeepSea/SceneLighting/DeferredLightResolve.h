@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ DS_SCENELIGHTING_EXPORT extern const char* const dsDeferredLightResolve_typeName
  * @brief Gets the type of a deferred light resolve.
  * @return The type of a deferred light resolve.
  */
-DS_SCENELIGHTING_EXPORT dsSceneItemListType dsDeferredLightResolve_type(void);
+DS_SCENELIGHTING_EXPORT const dsSceneItemListType* dsDeferredLightResolve_type(void);
 
 /**
  * @brief Creates a deferred light resolve.

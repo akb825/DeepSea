@@ -1074,10 +1074,11 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 		for (uint32_t j = 0; j < sharedItems->count; ++j)
 		{
 			dsSceneItemList* itemList = sharedItems->itemLists[j];
-			if (itemList->commitFunc)
+			dsCommitSceneItemListFunction commitFunc = itemList->type->commitFunc;
+			if (commitFunc)
 			{
 				DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-				itemList->commitFunc(itemList, view, commandBuffer);
+				commitFunc(itemList, view, commandBuffer);
 				DS_PROFILE_SCOPE_END();
 			}
 		}
@@ -1110,10 +1111,12 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 				for (uint32_t k = 0; k < drawLists->count; ++k)
 				{
 					dsSceneItemList* itemList = drawLists->itemLists[k];
-					if (itemList->preRenderPassFunc)
+					dsPreRenderPassSceneItemListFunction preRenderPassFunc =
+						itemList->type->preRenderPassFunc;
+					if (preRenderPassFunc && !itemList->skipPreRenderPass)
 					{
 						DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-						itemList->preRenderPassFunc(itemList, view, commandBuffer);
+						preRenderPassFunc(itemList, view, commandBuffer);
 						DS_PROFILE_SCOPE_END();
 					}
 				}
@@ -1145,9 +1148,10 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 				for (uint32_t k = 0; k < drawLists->count; ++k)
 				{
 					dsSceneItemList* itemList = drawLists->itemLists[k];
-					DS_ASSERT(itemList->commitFunc);
+					dsCommitSceneItemListFunction commitFunc = itemList->type->commitFunc;
+					DS_ASSERT(commitFunc);
 					DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-					itemList->commitFunc(itemList, view, commandBuffer);
+					commitFunc(itemList, view, commandBuffer);
 					DS_PROFILE_SCOPE_END();
 				}
 
@@ -1161,8 +1165,9 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 		{
 			dsSceneItemList* computeItems = scene->pipeline[i].computeItems;
 			DS_ASSERT(computeItems);
-			if (computeItems->commitFunc)
-				computeItems->commitFunc(computeItems, view, commandBuffer);
+			dsCommitSceneItemListFunction commitFunc = computeItems->type->commitFunc;
+			if (commitFunc)
+				commitFunc(computeItems, view, commandBuffer);
 		}
 	}
 	DS_PROFILE_SCOPE_END();

@@ -18,8 +18,8 @@
 
 void dsSceneItemList_destroy(dsSceneItemList* list)
 {
-	if (!list || !list->destroyFunc)
+	if (!list || !list->type || !list->type->destroyFunc)
 		return;
 
-	list->destroyFunc(list);
+	list->type->destroyFunc(list);
 }

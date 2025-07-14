@@ -59,9 +59,13 @@ static void dsViewMipmapList_destroy(dsSceneItemList* itemList)
 
 const char* const dsViewMipmapList_typeName = "ViewMipmapList";
 
-dsSceneItemListType dsViewMipmapList_type(void)
+const dsSceneItemListType* dsViewMipmapList_type(void)
 {
-	static int type;
+	static dsSceneItemListType type =
+	{
+		.commitFunc = &dsViewMipmapList_commit,
+		.destroyFunc = &dsViewMipmapList_destroy
+	};
 	return &type;
 }
 
@@ -105,15 +109,7 @@ dsSceneItemList* dsViewMipmapList_create(dsAllocator* allocator, const char* nam
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = true;
-	itemList->addNodeFunc = NULL;
-	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = NULL;
-	itemList->reparentNodeFunc = NULL;
-	itemList->preTransformUpdateFunc = NULL;
-	itemList->updateFunc = NULL;
-	itemList->preRenderPassFunc = NULL;
-	itemList->commitFunc = &dsViewMipmapList_commit;
-	itemList->destroyFunc = &dsViewMipmapList_destroy;
+	itemList->skipPreRenderPass = false;
 
 	mipmapList->textureIDs = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t, textureCount);
 	DS_ASSERT(mipmapList->textureIDs);

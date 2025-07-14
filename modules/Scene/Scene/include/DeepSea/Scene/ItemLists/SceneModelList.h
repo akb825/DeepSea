@@ -40,7 +40,7 @@ DS_SCENE_EXPORT extern const char* const dsSceneModelList_typeName;
  * @brief Gets the type of a model list.
  * @return The type of a model list.
  */
-DS_SCENE_EXPORT dsSceneItemListType dsSceneModelList_type(void);
+DS_SCENE_EXPORT const dsSceneItemListType* dsSceneModelList_type(void);
 
 /**
  * @brief Creates a scene model list.

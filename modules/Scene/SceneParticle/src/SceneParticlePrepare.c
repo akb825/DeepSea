@@ -167,9 +167,15 @@ dsSceneItemList* dsSceneParticlePrepare_load(const dsSceneLoadContext* loadConte
 
 const char* const dsSceneParticlePrepare_typeName = "ParticlePrepare";
 
-dsSceneItemListType dsSceneParticlePrepare_type(void)
+const dsSceneItemListType* dsSceneParticlePrepare_type(void)
 {
-	static int type;
+	static dsSceneItemListType type =
+	{
+		.addNodeFunc = &dsSceneParticlePrepare_addNode,
+		.removeNodeFunc = &dsSceneParticlePrepare_removeNode,
+		.updateFunc = &dsSceneParticlePrepare_update,
+		.destroyFunc = &dsSceneParticlePrepare_destroy
+	};
 	return &type;
 }
 
@@ -211,15 +217,7 @@ dsSceneItemList* dsSceneParticlePrepare_create(dsAllocator* allocator, const cha
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = true;
-	itemList->addNodeFunc = &dsSceneParticlePrepare_addNode;
-	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = &dsSceneParticlePrepare_removeNode;
-	itemList->reparentNodeFunc = NULL;
-	itemList->preTransformUpdateFunc = NULL;
-	itemList->updateFunc = &dsSceneParticlePrepare_update;
-	itemList->preRenderPassFunc = NULL;
-	itemList->commitFunc = NULL;
-	itemList->destroyFunc = &dsSceneParticlePrepare_destroy;
+	itemList->skipPreRenderPass = false;
 
 	prepareList->entries = NULL;
 	prepareList->entryCount = 0;

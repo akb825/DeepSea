@@ -388,6 +388,7 @@ static void dsSceneModelList_removeNode(
 static void dsSceneModelList_preRenderPass(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(!itemList->skipPreRenderPass);
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
 	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
@@ -409,7 +410,7 @@ static void dsSceneModelList_commit(dsSceneItemList* itemList, const dsView* vie
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
 	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
-	if (!itemList->preRenderPassFunc)
+	if (itemList->skipPreRenderPass)
 	{
 		// Lazily remove entries.
 		dsSceneItemListEntries_removeMulti(modelList->entries, &modelList->entryCount, sizeof(Entry),
@@ -440,9 +441,16 @@ static void dsSceneModelList_destroy(dsSceneModelList* modelList)
 
 const char* const dsSceneModelList_typeName = "ModelList";
 
-dsSceneItemListType dsSceneModelList_type(void)
+const dsSceneItemListType* dsSceneModelList_type(void)
 {
-	static int type;
+	static dsSceneItemListType type =
+	{
+		.addNodeFunc = &dsSceneModelList_addNode,
+		.removeNodeFunc = &dsSceneModelList_removeNode,
+		.preRenderPassFunc = &dsSceneModelList_preRenderPass,
+		.commitFunc = &dsSceneModelList_commit,
+		.destroyFunc = (dsDestroySceneItemListFunction)&dsSceneModelList_destroy
+	};
 	return &type;
 }
 
@@ -467,7 +475,7 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 	}
 
 	uint32_t valueCount = 0;
-	bool needsPreRenderPass = false;
+	bool skipPreRenderPass = true;
 	for (uint32_t i = 0; i < instanceDataCount; ++i)
 	{
 		if (!instanceData[i])
@@ -478,7 +486,7 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 		}
 		valueCount += instanceData[i]->valueCount;
 		if (instanceData[i]->needsCommandBuffer)
-			needsPreRenderPass = true;
+			skipPreRenderPass = false;
 	}
 
 	size_t nameLen = strlen(name);
@@ -505,15 +513,7 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = true;
-	itemList->addNodeFunc = &dsSceneModelList_addNode;
-	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = &dsSceneModelList_removeNode;
-	itemList->reparentNodeFunc = NULL;
-	itemList->preTransformUpdateFunc = NULL;
-	itemList->updateFunc = NULL;
-	itemList->preRenderPassFunc = needsPreRenderPass ? &dsSceneModelList_preRenderPass : NULL;
-	itemList->commitFunc = &dsSceneModelList_commit;
-	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsSceneModelList_destroy;
+	itemList->skipPreRenderPass = skipPreRenderPass;
 
 	if (renderStates)
 	{

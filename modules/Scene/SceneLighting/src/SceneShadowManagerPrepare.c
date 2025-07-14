@@ -49,9 +49,13 @@ static void dsSceneShadowManagerPrepare_destroy(dsSceneItemList* itemList)
 
 const char* const dsSceneShadowManagerPrepare_typeName = "ShadowManagerPrepare";
 
-dsSceneItemListType dsSceneShadowManagerPrepare_type(void)
+const dsSceneItemListType* dsSceneShadowManagerPrepare_type(void)
 {
-	static int type;
+	static dsSceneItemListType type =
+	{
+		.commitFunc = &dsSceneShadowManagerPrepare_commit,
+		.destroyFunc = &dsSceneShadowManagerPrepare_destroy
+	};
 	return &type;
 }
 
@@ -87,15 +91,7 @@ dsSceneItemList* dsSceneShadowManagerPrepare_create(dsAllocator* allocator, cons
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = dsSceneShadowManager_globalTransformGroupCount(shadowManager);
 	itemList->needsCommandBuffer = false;
-	itemList->addNodeFunc = NULL;
-	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = NULL;
-	itemList->reparentNodeFunc = NULL;
-	itemList->preTransformUpdateFunc = NULL;
-	itemList->updateFunc = NULL;
-	itemList->preRenderPassFunc = NULL;
-	itemList->commitFunc = &dsSceneShadowManagerPrepare_commit;
-	itemList->destroyFunc = &dsSceneShadowManagerPrepare_destroy;
+	itemList->skipPreRenderPass = false;
 
 	prepare->shadowManager = shadowManager;
 

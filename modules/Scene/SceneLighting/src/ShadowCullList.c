@@ -349,10 +349,38 @@ static void dsShadowCullList_destroy(dsSceneItemList* itemList)
 
 const char* const dsShadowCullList_typeName = "ShadowCullList";
 
-dsSceneItemListType dsShadowCullList_type(void)
+const dsSceneItemListType* dsShadowCullList_type(void)
 {
-	static int list;
-	return &list;
+	static dsSceneItemListType type =
+	{
+		.addNodeFunc = &dsShadowCullList_addNode,
+		.removeNodeFunc = &dsShadowCullList_removeNode,
+		.commitFunc = &dsShadowCullList_commit,
+		.destroyFunc = &dsShadowCullList_destroy
+	};
+#if DS_HAS_SIMD
+	static dsSceneItemListType simdType =
+	{
+		.addNodeFunc = &dsShadowCullList_addNode,
+		.removeNodeFunc = &dsShadowCullList_removeNode,
+		.commitFunc = &dsShadowCullList_commitSIMD,
+		.destroyFunc = &dsShadowCullList_destroy
+	};
+	static dsSceneItemListType fmaType =
+	{
+		.addNodeFunc = &dsShadowCullList_addNode,
+		.removeNodeFunc = &dsShadowCullList_removeNode,
+		.commitFunc = &dsShadowCullList_commitFMA,
+		.destroyFunc = &dsShadowCullList_destroy
+	};
+
+	if (DS_SIMD_ALWAYS_FMA || dsHostSIMDFeatures & dsSIMDFeatures_FMA)
+		return &fmaType;
+	else if (DS_SIMD_ALWAYS_FLOAT4 || dsHostSIMDFeatures & dsSIMDFeatures_Float4)
+		return &simdType;
+	else
+#endif
+		return &type;
 }
 
 dsSceneItemList* dsShadowCullList_create(dsAllocator* allocator, const char* name,
@@ -392,22 +420,7 @@ dsSceneItemList* dsShadowCullList_create(dsAllocator* allocator, const char* nam
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = false;
-	itemList->addNodeFunc = &dsShadowCullList_addNode;
-	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = &dsShadowCullList_removeNode;
-	itemList->reparentNodeFunc = NULL;
-	itemList->preTransformUpdateFunc = NULL;
-	itemList->updateFunc = NULL;
-	itemList->preRenderPassFunc = NULL;
-#if DS_HAS_SIMD
-	if (DS_SIMD_ALWAYS_FMA || dsHostSIMDFeatures & dsSIMDFeatures_FMA)
-		itemList->commitFunc = &dsShadowCullList_commitFMA;
-	else if (DS_SIMD_ALWAYS_FLOAT4 || dsHostSIMDFeatures & dsSIMDFeatures_Float4)
-		itemList->commitFunc = &dsShadowCullList_commitSIMD;
-	else
-#endif
-		itemList->commitFunc = &dsShadowCullList_commit;
-	itemList->destroyFunc = &dsShadowCullList_destroy;
+	itemList->skipPreRenderPass = false;
 
 	cullList->shadows = shadows;
 	cullList->surface = surface;

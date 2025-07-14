@@ -40,7 +40,7 @@ DS_SCENEVECTORDRAW_EXPORT extern const char* const dsSceneVectorItemList_typeNam
  * @brief Gets the type of a scene vector item list.
  * @return The type of a scene vector item list.
  */
-DS_SCENEVECTORDRAW_EXPORT dsSceneItemListType dsSceneVectorItemList_type(void);
+DS_SCENEVECTORDRAW_EXPORT const dsSceneItemListType* dsSceneVectorItemList_type(void);
 
 /**
  * @brief Creates a scene vector item list.

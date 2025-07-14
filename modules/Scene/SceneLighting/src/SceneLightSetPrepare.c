@@ -195,9 +195,16 @@ static void dsSceneLightSetPrepare_update(dsSceneItemList* itemList, const dsSce
 
 const char* const dsSceneLightSetPrepare_typeName = "LightSetPrepare";
 
-dsSceneItemListType dsSceneLightSetPrepare_type(void)
+const dsSceneItemListType* dsSceneLightSetPrepare_type(void)
 {
-	static int type;
+	static dsSceneItemListType type =
+	{
+		.addNodeFunc = &dsSceneLightSetPrepare_addNode,
+		.updateNodeFunc = &dsSceneLightSetPrepare_updateNode,
+		.removeNodeFunc = &dsSceneLightSetPrepare_removeNode,
+		.updateFunc = &dsSceneLightSetPrepare_update,
+		.destroyFunc = (dsDestroySceneItemListFunction)&dsSceneLightSetPrepare_destroy
+	};
 	return &type;
 }
 
@@ -239,15 +246,7 @@ dsSceneLightSetPrepare* dsSceneLightSetPrepare_create(dsAllocator* allocator, co
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = false;
-	itemList->addNodeFunc = &dsSceneLightSetPrepare_addNode;
-	itemList->updateNodeFunc = &dsSceneLightSetPrepare_updateNode;
-	itemList->removeNodeFunc = &dsSceneLightSetPrepare_removeNode;
-	itemList->reparentNodeFunc = NULL;
-	itemList->preTransformUpdateFunc = NULL;
-	itemList->updateFunc = &dsSceneLightSetPrepare_update;
-	itemList->preRenderPassFunc = NULL;
-	itemList->commitFunc = NULL;
-	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsSceneLightSetPrepare_destroy;
+	itemList->skipPreRenderPass = false;
 
 	prepare->lightSet = lightSet;
 	prepare->intensityThreshold = intensityThreshold;

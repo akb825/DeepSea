@@ -185,9 +185,15 @@ dsSceneItemList* dsSceneVectorDrawPrepare_load(const dsSceneLoadContext* loadCon
 
 const char* const dsSceneVectorDrawPrepare_typeName = "VectorDrawPrepare";
 
-dsSceneItemListType dsSceneVectorDrawPrepare_type(void)
+const dsSceneItemListType* dsSceneVectorDrawPrepare_type(void)
 {
-	static int type;
+	static dsSceneItemListType type =
+	{
+		.addNodeFunc = &dsSceneVectorDrawPrepare_addNode,
+		.removeNodeFunc = &dsSceneVectorDrawPrepare_removeNode,
+		.commitFunc = &dsSceneVectorDrawPrepare_commit,
+		.destroyFunc = &dsSceneVectorDrawPrepare_destroy
+	};
 	return &type;
 }
 
@@ -229,15 +235,7 @@ dsSceneItemList* dsSceneVectorDrawPrepare_create(dsAllocator* allocator, const c
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = true;
-	itemList->addNodeFunc = &dsSceneVectorDrawPrepare_addNode;
-	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = &dsSceneVectorDrawPrepare_removeNode;
-	itemList->reparentNodeFunc = NULL;
-	itemList->preTransformUpdateFunc = NULL;
-	itemList->updateFunc = NULL;
-	itemList->preRenderPassFunc = NULL;
-	itemList->commitFunc = &dsSceneVectorDrawPrepare_commit;
-	itemList->destroyFunc = &dsSceneVectorDrawPrepare_destroy;
+	itemList->skipPreRenderPass = false;
 
 	prepareList->entries = NULL;
 	prepareList->entryCount = 0;

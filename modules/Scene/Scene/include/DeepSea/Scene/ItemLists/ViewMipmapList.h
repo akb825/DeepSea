@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ DS_SCENE_EXPORT extern const char* const dsViewMipmapList_typeName;
  * @brief Gets the type of a view mipmap list.
  * @return The type of a view mipmap list.
  */
-DS_SCENE_EXPORT dsSceneItemListType dsViewMipmapList_type(void);
+DS_SCENE_EXPORT const dsSceneItemListType* dsViewMipmapList_type(void);
 
 /**
  * @brief Creates a view mipmap list.

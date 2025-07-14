@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 Aaron Barany
+ * Copyright 2021-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ DS_SCENELIGHTING_EXPORT extern const char* const dsSceneShadowManagerPrepare_typ
  * @brief Gets the type of a shadow manager prepare.
  * @return The type of a shadow manager prepare.
  */
-DS_SCENELIGHTING_EXPORT dsSceneItemListType dsSceneShadowManagerPrepare_type(void);
+DS_SCENELIGHTING_EXPORT const dsSceneItemListType* dsSceneShadowManagerPrepare_type(void);
 
 /**
  * @brief Creates a scene shadow manager prepare.
