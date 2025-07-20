@@ -45,7 +45,13 @@ static void dsSceneTransformNode_destroy(dsSceneNode* node)
 
 const char* const dsSceneTransformNode_typeName = "TransformNode";
 
-static dsSceneNodeType nodeType;
+static dsSceneNodeType nodeType =
+{
+	.setupTreeNodeFunc = &dsSceneTransformNode_setupTreeNode,
+	.shiftNodeFunc = &dsSceneTransformNode_shift,
+	.destroyFunc = &dsSceneTransformNode_destroy
+};
+
 const dsSceneNodeType* dsSceneTransformNode_type(void)
 {
 	return &nodeType;
@@ -65,16 +71,13 @@ dsSceneTransformNode* dsSceneTransformNode_create(dsAllocator* allocator,
 		return NULL;
 
 	dsSceneNode* baseNode = (dsSceneNode*)transformNode;
-	if (!dsSceneNode_initialize(baseNode, allocator, dsSceneTransformNode_type(), NULL, 0,
-			&dsSceneTransformNode_destroy))
+	if (!dsSceneNode_initialize(baseNode, allocator, dsSceneTransformNode_type(), NULL, 0))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, transformNode));
 		return NULL;
 	}
 
-	baseNode->setupTreeNodeFunc = &dsSceneTransformNode_setupTreeNode;
-	baseNode->shiftNodeFunc = &dsSceneTransformNode_shift;
 	if (transform)
 		transformNode->transform = *transform;
 	else

@@ -33,7 +33,6 @@
 namespace
 {
 
-dsSceneNodeType mockSceneNodeType;
 const char* testItemListName = "TestItems";
 
 void destroyMockNode(dsSceneNode* node)
@@ -41,14 +40,22 @@ void destroyMockNode(dsSceneNode* node)
 	dsAllocator_free(node->allocator, node);
 }
 
+dsSceneNodeType createMockSceneNodeType()
+{
+	dsSceneNodeType type = {};
+	type.destroyFunc = &destroyMockNode;
+	return type;
+}
+
+dsSceneNodeType mockSceneNodeType = createMockSceneNodeType();
+
 dsSceneNode* createMockNode(dsAllocator* allocator)
 {
 	dsSceneNode* node = DS_ALLOCATE_OBJECT(allocator, dsSceneNode);
 	if (!node)
 		return nullptr;
 
-	EXPECT_TRUE(dsSceneNode_initialize(node, allocator, &mockSceneNodeType, &testItemListName, 1,
-		&destroyMockNode));
+	EXPECT_TRUE(dsSceneNode_initialize(node, allocator, &mockSceneNodeType, &testItemListName, 1));
 	return node;
 }
 

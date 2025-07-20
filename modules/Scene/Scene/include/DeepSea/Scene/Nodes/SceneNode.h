@@ -69,7 +69,7 @@ DS_SCENE_EXPORT const char* const* dsSceneNode_copyItemLists(dsAllocator* alloca
  * xxx_setupParentType(dsSceneNodeType* type) function like so:
  *
  * ```c
- * static dsSceneNodeType mySceneNodeType;
+ * static dsSceneNodeType mySceneNodeType = {...};
  * const dsSceneNodeType* dsMySceneNode_setupParentType(dsSceneNodeType* type)
  * {
  *     // First guarantee that the type for dsMySceneNode is fully set up.
@@ -137,12 +137,10 @@ DS_SCENE_EXPORT dsSceneNode* dsSceneNode_load(dsAllocator* allocator,
  * @param itemLists The list of item list names to use. These should be allocated with the node by
  *     using a dsBufferAllocator and dsSceneNode_copyItemLists() so they may all be freed at once.
  * @param itemListCount The number of item lists.
- * @param destroyFunc The function to destroy the node.
  * @return False if the parameters are invalid.
  */
 DS_SCENE_EXPORT bool dsSceneNode_initialize(dsSceneNode* node, dsAllocator* allocator,
-	const dsSceneNodeType* type, const char* const* itemLists, uint32_t itemListCount,
-	dsDestroySceneNodeFunction destroyFunc);
+	const dsSceneNodeType* type, const char* const* itemLists, uint32_t itemListCount);
 
 /**
  * @brief Returns whether or nto a scene node is of a specific type.

@@ -30,7 +30,11 @@ static void dsSceneUserDataNode_destroy(dsSceneNode* node)
 
 const char* const dsSceneUserDataNode_typeName = "UserDataNode";
 
-static dsSceneNodeType nodeType;
+static dsSceneNodeType nodeType =
+{
+	.destroyFunc = &dsSceneUserDataNode_destroy
+};
+
 const dsSceneNodeType* dsSceneUserDataNode_type(void)
 {
 	return &nodeType;
@@ -67,8 +71,8 @@ dsSceneUserDataNode* dsSceneUserDataNode_create(dsAllocator* allocator, void* us
 		itemLists, itemListCount);
 	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
-	if (!dsSceneNode_initialize(node, allocator, dsSceneUserDataNode_type(), itemListsCopy,
-			itemListCount, &dsSceneUserDataNode_destroy))
+	if (!dsSceneNode_initialize(
+		node, allocator, dsSceneUserDataNode_type(), itemListsCopy, itemListCount))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, node));

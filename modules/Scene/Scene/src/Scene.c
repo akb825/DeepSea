@@ -178,11 +178,6 @@ static bool insertSceneList(dsHashTable* hashTable, dsSceneItemListNode* node,
 	return true;
 }
 
-static void dummyDestroyFunc(dsSceneNode* node)
-{
-	DS_UNUSED(node);
-}
-
 dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, const void* data,
 	size_t dataSize, void* userData, dsDestroyUserDataFunction destroyUserDataFunc,
@@ -240,8 +235,7 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	scene->userData = userData;
 	scene->destroyUserDataFunc = destroyUserDataFunc;
 
-	DS_VERIFY(dsSceneNode_initialize(&scene->rootNode, allocator, &dsRootSceneNodeType, NULL, 0,
-		&dummyDestroyFunc));
+	DS_VERIFY(dsSceneNode_initialize(&scene->rootNode, allocator, &dsRootSceneNodeType, NULL, 0));
 
 	dsSceneTreeNode* rootTreeNode = &scene->rootTreeNode.node;
 	rootTreeNode->allocator = allocator;

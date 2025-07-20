@@ -44,7 +44,11 @@ static void dsSceneRigidBodyNode_destroy(dsSceneNode* node)
 
 const char* const dsSceneRigidBodyNode_typeName = "RigidBodyNode";
 
-static dsSceneNodeType nodeType;
+static dsSceneNodeType nodeType =
+{
+	.destroyFunc = &dsSceneRigidBodyNode_destroy
+};
+
 const dsSceneNodeType* dsSceneRigidBodyNode_type(void)
 {
 	return &nodeType;
@@ -106,7 +110,7 @@ dsSceneRigidBodyNode* dsSceneRigidBodyNode_create(dsAllocator* allocator, const 
 	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneRigidBodyNode_type(),
-			itemListsCopy, itemListCount, &dsSceneRigidBodyNode_destroy))
+			itemListsCopy, itemListCount))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, node));

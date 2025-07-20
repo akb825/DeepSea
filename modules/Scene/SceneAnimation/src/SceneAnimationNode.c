@@ -53,7 +53,11 @@ static dsSceneAnimationInstance* getSceneAnimationInstance(const dsSceneTreeNode
 
 const char* const dsSceneAnimationNode_typeName = "AnimationNode";
 
-static dsSceneNodeType nodeType;
+static dsSceneNodeType nodeType =
+{
+	.destroyFunc = dsSceneAnimationNode_destroy
+};
+
 const dsSceneNodeType* dsSceneAnimationNode_type(void)
 {
 	return &nodeType;
@@ -85,7 +89,7 @@ dsSceneAnimationNode* dsSceneAnimationNode_create(dsAllocator* allocator,
 	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneAnimationNode_type(),
-			itemListsCopy, itemListCount, &dsSceneAnimationNode_destroy))
+			itemListsCopy, itemListCount))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, node));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Aaron Barany
+ * Copyright 2020-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,11 @@
 
 #include <string.h>
 
-static dsSceneNodeType nodeType;
+static dsSceneNodeType nodeType =
+{
+	.destroyFunc = dsSceneVectorNode_destroy
+};
+
 const dsSceneNodeType* dsSceneVectorNode_type(void)
 {
 	return &nodeType;
@@ -80,7 +84,7 @@ dsSceneVectorNode* dsSceneVectorNode_create(dsAllocator* allocator, size_t struc
 	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneVectorNode_type(),
-			itemListsCopy, itemListCount, &dsSceneVectorNode_destroy))
+			itemListsCopy, itemListCount))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, node));

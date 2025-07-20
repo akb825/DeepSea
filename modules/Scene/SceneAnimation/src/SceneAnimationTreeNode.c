@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,11 @@ static void dsSceneAnimationTreeNode_destroy(dsSceneNode* node)
 
 const char* const dsSceneAnimationTreeNode_typeName = "AnimationTreeNode";
 
-static dsSceneNodeType nodeType;
+static dsSceneNodeType nodeType =
+{
+	.destroyFunc = &dsSceneAnimationTreeNode_destroy
+};
+
 const dsSceneNodeType* dsSceneAnimationTreeNode_type(void)
 {
 	return &nodeType;
@@ -72,7 +76,7 @@ dsSceneAnimationTreeNode* dsSceneAnimationTreeNode_create(dsAllocator* allocator
 	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneAnimationTreeNode_type(),
-			itemListsCopy, itemListCount, &dsSceneAnimationTreeNode_destroy))
+			itemListsCopy, itemListCount))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, node));

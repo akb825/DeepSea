@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -233,7 +233,11 @@ void dsSceneTextNode_defaultTessGlyphDataFunc(void* userData,
 
 const char* const dsSceneTextNode_typeName = "TextNode";
 
-static dsSceneNodeType nodeType;
+static dsSceneNodeType nodeType =
+{
+	.destroyFunc = &dsSceneTextNode_destroy
+};
+
 const dsSceneNodeType* dsSceneTextNode_type(void)
 {
 	return &nodeType;
@@ -317,7 +321,6 @@ dsSceneTextNode* dsSceneTextNode_createBase(dsAllocator* allocator, size_t struc
 
 	dsSceneNode* baseNode = (dsSceneNode*)node;
 	baseNode->type = dsSceneTextNode_setupParentType(NULL);
-	baseNode->destroyFunc = &dsSceneTextNode_destroy;
 
 	node->layout = layout;
 	node->renderBuffer = renderBuffer;

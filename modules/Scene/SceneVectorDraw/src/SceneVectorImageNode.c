@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,11 @@
 
 const char* const dsSceneVectorImageNode_typeName = "VectorImageNode";
 
-static dsSceneNodeType nodeType;
+static dsSceneNodeType nodeType =
+{
+	.destroyFunc = &dsSceneVectorNode_destroy
+};
+
 const dsSceneNodeType* dsSceneVectorImageNode_type(void)
 {
 	return &nodeType;

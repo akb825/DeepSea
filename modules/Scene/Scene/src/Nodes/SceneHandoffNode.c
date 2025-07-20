@@ -30,7 +30,11 @@ static void dsSceneHandoffNode_destroy(dsSceneNode* node)
 
 const char* const dsSceneHandoffNode_typeName = "HandoffNode";
 
-static dsSceneNodeType nodeType;
+static dsSceneNodeType nodeType =
+{
+	.destroyFunc = &dsSceneHandoffNode_destroy
+};
+
 const dsSceneNodeType* dsSceneHandoffNode_type(void)
 {
 	return &nodeType;
@@ -62,7 +66,7 @@ dsSceneHandoffNode* dsSceneHandoffNode_create(dsAllocator* allocator, float tran
 	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneHandoffNode_type(),
-			itemListsCopy, itemListCount, &dsSceneHandoffNode_destroy))
+			itemListsCopy, itemListCount))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, node));

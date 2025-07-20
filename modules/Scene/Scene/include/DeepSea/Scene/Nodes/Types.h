@@ -40,20 +40,6 @@ typedef struct dsSceneTreeNode dsSceneTreeNode;
 /// @endcond
 
 /**
- * @brief ID for a type of a scene node.
- *
- * The type should be declared as a static variable. See dsSceneNode_setupParentType() for
- * information for how to set up the parent type.
- */
-struct dsSceneNodeType
-{
-	/**
-	 * @brief The parent type of the node, or NULL if there is no base type.
-	 */
-	const dsSceneNodeType* parent;
-};
-
-/**
  * @brief Function for destroying a scene node.
  * @param node The node to destroy.
  */
@@ -81,6 +67,40 @@ typedef void (*dsShiftSceneNodeFunction)(dsSceneNode* node, const dsVector3f* sh
  */
 typedef void* (*dsCreateSceneInstanceUserDataFunction)(
 	const dsSceneTreeNode* treeNode, void* userData);
+
+/**
+ * @brief ID for a type of a scene node.
+ *
+ * The type should be declared as a static variable. See dsSceneNode_setupParentType() for
+ * information for how to set up the parent type.
+ */
+struct dsSceneNodeType
+{
+	/**
+	 * @brief The parent type of the node, or NULL if there is no base type.
+	 */
+	const dsSceneNodeType* parent;
+
+	/**
+	 * @brief Function to setup a scene tree node.
+	 *
+	 * This should be assigned for node types that need special-purpose setup, such as to set the
+	 * base transform.
+	 */
+	dsSetupSceneTreeNodeFunction setupTreeNodeFunc;
+
+	/**
+	  * @brief Function to shift a scene node.
+	  *
+	  * This should be assigned for node types that need to manage their transforms
+	  */
+	dsShiftSceneNodeFunction shiftNodeFunc;
+
+	/**
+	 * @brief Function to destroy a scene node.
+	 */
+	dsDestroySceneNodeFunction destroyFunc;
+};
 
 /**
  * @brief Struct for a node within a scene graph.
@@ -183,26 +203,6 @@ struct dsSceneNode
 	 * @brief Function called on destruction to destroy the user data.
 	 */
 	dsDestroyUserDataFunction destroyUserDataFunc;
-
-	/**
-	 * @brief Function to setup a scene tree node.
-	 *
-	 * This should be assigned for node types that need special-purpose setup, such as to set the
-	 * base transform.
-	 */
-	dsSetupSceneTreeNodeFunction setupTreeNodeFunc;
-
-	/**
-	  * @brief Function to shift a scene node.
-	  *
-	  * This should be assigned for node types that need to manage their transforms
-	  */
-	dsShiftSceneNodeFunction shiftNodeFunc;
-
-	/**
-	 * @brief Destroy function.
-	 */
-	dsDestroySceneNodeFunction destroyFunc;
 };
 
 /**

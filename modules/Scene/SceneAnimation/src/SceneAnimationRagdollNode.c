@@ -32,7 +32,11 @@ static void dsSceneAnimationRagdollNode_destroy(dsSceneNode* node)
 
 const char* const dsSceneAnimationRagdollNode_typeName = "AnimationRagdollNode";
 
-static dsSceneNodeType nodeType;
+static dsSceneNodeType nodeType =
+{
+	.destroyFunc = &dsSceneAnimationRagdollNode_destroy
+};
+
 const dsSceneNodeType* dsSceneAnimationRagdollNode_type(void)
 {
 	return &nodeType;
@@ -69,8 +73,7 @@ dsSceneAnimationRagdollNode* dsSceneAnimationRagdollNode_create(dsAllocator* all
 	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator,
-			dsSceneAnimationRagdollNode_type(), itemListsCopy, itemListCount,
-			&dsSceneAnimationRagdollNode_destroy))
+			dsSceneAnimationRagdollNode_type(), itemListsCopy, itemListCount))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, node));

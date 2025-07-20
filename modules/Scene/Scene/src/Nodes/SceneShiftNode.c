@@ -34,7 +34,11 @@ static void dsSceneShiftNode_destroy(dsSceneNode* node)
 
 const char* const dsSceneShiftNode_typeName = "ShiftNode";
 
-static dsSceneNodeType nodeType;
+static dsSceneNodeType nodeType =
+{
+	.destroyFunc = dsSceneShiftNode_destroy
+};
+
 const dsSceneNodeType* dsSceneShiftNode_type(void)
 {
 	return &nodeType;
@@ -66,7 +70,7 @@ dsSceneShiftNode* dsSceneShiftNode_create(dsAllocator* allocator,
 	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneShiftNode_type(),
-			itemListsCopy, itemListCount, &dsSceneShiftNode_destroy))
+			itemListsCopy, itemListCount))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, node));
@@ -101,8 +105,9 @@ bool dsSceneShiftNode_setOrigin(dsSceneShiftNode* node, const dsVector3d* origin
 	for (uint32_t i = 0; i < baseNode->childCount; ++i)
 	{
 		dsSceneNode* child = baseNode->children[i];
-		if (child->shiftNodeFunc)
-			child->shiftNodeFunc(child, &offset3f);
+		dsShiftSceneNodeFunction shiftNodeFunc = child->type->shiftNodeFunc;
+		if (shiftNodeFunc)
+			shiftNodeFunc(child, &offset3f);
 	}
 
 	return true;

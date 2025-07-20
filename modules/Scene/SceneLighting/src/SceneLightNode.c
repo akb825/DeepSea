@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Aaron Barany
+ * Copyright 2022-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,11 @@ static void dsSceneLightNode_destroy(dsSceneNode* node)
 
 const char* const dsSceneLightNode_typeName = "LightNode";
 
-static dsSceneNodeType nodeType;
+static dsSceneNodeType nodeType =
+{
+	.destroyFunc = &dsSceneLightNode_destroy
+};
+
 const dsSceneNodeType* dsSceneLightNode_type(void)
 {
 	return &nodeType;
@@ -84,7 +88,7 @@ dsSceneLightNode* dsSceneLightNode_create(dsAllocator* allocator, const dsSceneL
 	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
 	if (!dsSceneNode_initialize((dsSceneNode*)lightNode, allocator, dsSceneLightNode_type(),
-			itemListsCopy, itemListCount, &dsSceneLightNode_destroy))
+			itemListsCopy, itemListCount))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, buffer));

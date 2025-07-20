@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,12 +32,6 @@
 
 #include <string.h>
 
-// NOTE: This would ideally be in Scene.c, but this seems to expose an issue on Mac when static
-// linking. My guess is it only looks at functions to decide which object files to bring in, so if
-// only this global variable is referenced for Scene.o, SceneNode.o doesn't bring in this variable.
-// Since Scene.o will reference functions in SceneNode.o, this *should* always work.
-dsSceneNodeType dsRootSceneNodeType;
-
 static dsSceneTreeNode* findUniqueTreeNodeRec(dsSceneTreeNode* treeNode,
 	const dsSceneNode* descendentNode)
 {
@@ -56,6 +50,20 @@ static dsSceneTreeNode* findUniqueTreeNodeRec(dsSceneTreeNode* treeNode,
 
 	return NULL;
 }
+
+static void dummyDestroyFunc(dsSceneNode* node)
+{
+	DS_UNUSED(node);
+}
+
+// NOTE: This would ideally be in Scene.c, but this seems to expose an issue on Mac when static
+// linking. My guess is it only looks at functions to decide which object files to bring in, so if
+// only this global variable is referenced for Scene.o, SceneNode.o doesn't bring in this variable.
+// Since Scene.o will reference functions in SceneNode.o, this *should* always work.
+dsSceneNodeType dsRootSceneNodeType =
+{
+	.destroyFunc = &dummyDestroyFunc
+};
 
 const char* const dsSceneNodeRef_typeName = "ReferenceNode";
 
@@ -142,10 +150,9 @@ dsSceneNode* dsSceneNode_load(dsAllocator* allocator, dsAllocator* resourceAlloc
 }
 
 bool dsSceneNode_initialize(dsSceneNode* node, dsAllocator* allocator,
-	const dsSceneNodeType* type, const char* const* itemLists, uint32_t itemListCount,
-	dsDestroySceneNodeFunction destroyFunc)
+	const dsSceneNodeType* type, const char* const* itemLists, uint32_t itemListCount)
 {
-	if (!node || !allocator || !type || !destroyFunc)
+	if (!node || !allocator || !type || !type->destroyFunc)
 	{
 		errno = EINVAL;
 		return false;
@@ -171,9 +178,6 @@ bool dsSceneNode_initialize(dsSceneNode* node, dsAllocator* allocator,
 	node->refCount = 1;
 	node->userData = NULL;
 	node->destroyUserDataFunc = NULL;
-	node->setupTreeNodeFunc = NULL;
-	node->shiftNodeFunc = NULL;
-	node->destroyFunc = destroyFunc;
 	return true;
 }
 
@@ -424,6 +428,5 @@ void dsSceneNode_freeRef(dsSceneNode* node)
 	if (node->type != &dsRootSceneNodeType)
 		DS_VERIFY(dsAllocator_free(node->allocator, node->treeNodes));
 
-	if (node->destroyFunc)
-		node->destroyFunc(node);
+	node->type->destroyFunc(node);
 }

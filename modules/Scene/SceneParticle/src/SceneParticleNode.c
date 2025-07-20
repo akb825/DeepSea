@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Aaron Barany
+ * Copyright 2022-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,11 @@ static void dsSceneParticleNode_destroy(dsSceneNode* node)
 
 const char* const dsSceneParticleNode_typeName = "ParticleNode";
 
-static dsSceneNodeType nodeType;
+static dsSceneNodeType nodeType =
+{
+	.destroyFunc = dsSceneParticleNode_destroy
+};
+
 const dsSceneNodeType* dsSceneParticleNode_type(void)
 {
 	return &nodeType;
@@ -113,7 +117,7 @@ dsSceneParticleNode* dsSceneParticleNode_create(dsAllocator* allocator,
 
 	dsSceneNode* node = (dsSceneNode*)particleNode;
 	if (!dsSceneNode_initialize(node, allocator, dsSceneParticleNode_setupParentType(NULL),
-			itemListsCopy, itemListCount, &dsSceneParticleNode_destroy))
+			itemListsCopy, itemListCount))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, particleNode));

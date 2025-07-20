@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Aaron Barany
+ * Copyright 2023-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,11 @@ static void dsSceneAnimationTransformNode_destroy(dsSceneNode* node)
 
 const char* const dsSceneAnimationTransformNode_typeName = "AnimationTransformNode";
 
-static dsSceneNodeType nodeType;
+static dsSceneNodeType nodeType =
+{
+	.destroyFunc= &dsSceneAnimationTransformNode_destroy
+};
+
 const dsSceneNodeType* dsSceneAnimationTransformNode_type(void)
 {
 	return &nodeType;
@@ -66,8 +70,7 @@ dsSceneAnimationTransformNode* dsSceneAnimationTransformNode_create(dsAllocator*
 	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator,
-			dsSceneAnimationTransformNode_type(), itemListsCopy, itemListCount,
-			&dsSceneAnimationTransformNode_destroy))
+			dsSceneAnimationTransformNode_type(), itemListsCopy, itemListCount))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, node));

@@ -96,8 +96,9 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child,
 	childTreeNode->dirty = false;
 	childTreeNode->noParentTransform = false;
 	childTreeNode->baseTransform = NULL;
-	if (child->setupTreeNodeFunc)
-		child->setupTreeNodeFunc(child, childTreeNode);
+	dsSetupSceneTreeNodeFunction setupTreeNodeFunc = child->type->setupTreeNodeFunc;
+	if (setupTreeNodeFunc)
+		setupTreeNodeFunc(child, childTreeNode);
 	updateTransform(childTreeNode);
 
 	childTreeNode->itemLists = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneItemEntry,

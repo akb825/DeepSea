@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,7 +122,11 @@ const char* const dsSceneModelNode_typeName = "ModelNode";
 const char* const dsSceneModelNode_remapTypeName = "ModelNodeRemap";
 const char* const dsSceneModelNode_reconfigTypeName = "ModelNodeReconfig";
 
-static dsSceneNodeType nodeType;
+static dsSceneNodeType nodeType =
+{
+	.destroyFunc = &dsSceneModelNode_destroy
+};
+
 const dsSceneNodeType* dsSceneModelNode_type(void)
 {
 	return &nodeType;
@@ -259,8 +263,7 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 		DS_VERIFY(dsAllocator_free(allocator, (void*)itemLists));
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator,
-			dsSceneModelNode_setupParentType(NULL), itemListsCopy, itemListCount,
-			&dsSceneModelNode_destroy))
+			dsSceneModelNode_setupParentType(NULL), itemListsCopy, itemListCount))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, node));
@@ -384,8 +387,7 @@ dsSceneModelNode* dsSceneModelNode_cloneRemapBase(dsAllocator* allocator, size_t
 	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator,
-			dsSceneModelNode_setupParentType(NULL), itemListsCopy, itemListCount,
-			&dsSceneModelNode_destroy))
+			dsSceneModelNode_setupParentType(NULL), itemListsCopy, itemListCount))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, node));

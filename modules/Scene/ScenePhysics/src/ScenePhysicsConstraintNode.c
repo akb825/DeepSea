@@ -136,7 +136,11 @@ static void dsScenePhysicsConstraintNode_destroy(dsSceneNode* node)
 
 const char* const dsScenePhysicsConstraintNode_typeName = "PhysicsConstraintNode";
 
-static dsSceneNodeType nodeType;
+static dsSceneNodeType nodeType =
+{
+	.destroyFunc = &dsScenePhysicsConstraintNode_destroy
+};
+
 const dsSceneNodeType* dsScenePhysicsConstraintNode_type(void)
 {
 	return &nodeType;
@@ -189,7 +193,7 @@ dsScenePhysicsConstraintNode* dsScenePhysicsConstraintNode_create(dsAllocator* a
 	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsScenePhysicsConstraintNode_type(),
-			itemListsCopy, itemListCount, &dsScenePhysicsConstraintNode_destroy))
+			itemListsCopy, itemListCount))
 	{
 		if (takeOwnership)
 			dsPhysicsConstraint_destroy(constraint);
