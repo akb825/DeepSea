@@ -90,6 +90,32 @@ typedef bool (*dsFinishSceneInstanceDataFunction)(dsSceneInstanceData* instanceD
 typedef bool (*dsDestroySceneInstanceDataFunction)(dsSceneInstanceData* instanceData);
 
 /**
+ * @brief Struct defining a type for dsSceneInstanceData and functions for the implementation.
+ */
+typedef struct dsSceneInstanceDataType
+{
+	/**
+	 * @brief Function to populate instance data..
+	 */
+	dsPopulateSceneInstanceDataFunction populateDataFunc;
+
+	/**
+	 * @brief Function to bind the instances for usage.
+	 */
+	dsBindSceneInstanceDataFunction bindInstanceFunc;
+
+	/**
+	 * @brief Function to finish using the current set of instance data.
+	 */
+	dsFinishSceneInstanceDataFunction finishFunc;
+
+	/**
+	 * @brief Function to destroy the instance data.
+	 */
+	dsDestroySceneInstanceDataFunction destroyFunc;
+} dsSceneInstanceDataType;
+
+/**
  * @brief Struct for managing data that's each instance being drawn.
  *
  * Different implementations can effectively subclass this type by having it as the first member of
@@ -106,6 +132,11 @@ struct dsSceneInstanceData
 	dsAllocator* allocator;
 
 	/**
+	 * @brief The type of the instance data.
+	 */
+	const dsSceneInstanceDataType* type;
+
+	/**
 	 * @brief The number of values that will be stored on dsSharedMaterialValues.
 	 */
 	uint32_t valueCount;
@@ -117,26 +148,6 @@ struct dsSceneInstanceData
 	 * instance data starts.
 	 */
 	bool needsCommandBuffer;
-
-	/**
-	 * @brief Data populate function.
-	 */
-	dsPopulateSceneInstanceDataFunction populateDataFunc;
-
-	/**
-	 * @brief Bind instance function.
-	 */
-	dsBindSceneInstanceDataFunction bindInstanceFunc;
-
-	/**
-	 * @brief Finish function.
-	 */
-	dsFinishSceneInstanceDataFunction finishFunc;
-
-	/**
-	 * @brief Destroy function.
-	 */
-	dsDestroySceneInstanceDataFunction destroyFunc;
 };
 
 /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,12 @@ extern "C"
  * @brief Functions for creating and manipulating scene instance variables.
  * @see dsSceneInstanceData
  */
+
+/**
+ * @brief Gets the type of scene instance variables.
+ * @return The type of scene instance variables.
+ */
+DS_SCENE_EXPORT const dsSceneInstanceDataType* dsSceneInstanceVariables_type(void);
 
 /**
  * @brief Creates a scene instance variables object.

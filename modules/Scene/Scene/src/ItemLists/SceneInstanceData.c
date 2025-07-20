@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,45 +21,45 @@ bool dsSceneInstanceData_populateData(dsSceneInstanceData* instanceData,
 	const dsView* view, dsCommandBuffer* commandBuffer, const dsSceneTreeNode* const* instances,
 	uint32_t instanceCount)
 {
-	if (!instanceData || !instanceData->populateDataFunc || !view ||
+	if (!instanceData || !instanceData->type || !instanceData->type->populateDataFunc || !view ||
 		(instanceData->needsCommandBuffer && !commandBuffer) || (!instances && instanceCount > 0))
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	return instanceData->populateDataFunc(instanceData, view, commandBuffer, instances,
+	return instanceData->type->populateDataFunc(instanceData, view, commandBuffer, instances,
 		instanceCount);
 }
 
 bool dsSceneInstanceData_bindInstance(dsSceneInstanceData* instanceData, uint32_t index,
 	dsSharedMaterialValues* values)
 {
-	if (!instanceData || !instanceData->bindInstanceFunc ||
+	if (!instanceData || !instanceData->type || !instanceData->type->bindInstanceFunc ||
 		(!values && instanceData->valueCount > 0))
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	return instanceData->bindInstanceFunc(instanceData, index, values);
+	return instanceData->type->bindInstanceFunc(instanceData, index, values);
 }
 
 bool dsSceneInstanceData_finish(dsSceneInstanceData* instanceData)
 {
-	if (!instanceData || !instanceData->finishFunc)
+	if (!instanceData || !instanceData->type || !instanceData->type->finishFunc)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	return instanceData->finishFunc(instanceData);
+	return instanceData->type->finishFunc(instanceData);
 }
 
 bool dsSceneInstanceData_destroy(dsSceneInstanceData* instanceData)
 {
-	if (!instanceData || !instanceData->destroyFunc)
+	if (!instanceData || !instanceData->type || !instanceData->type->destroyFunc)
 		return true;
 
-	return instanceData->destroyFunc(instanceData);
+	return instanceData->type->destroyFunc(instanceData);
 }

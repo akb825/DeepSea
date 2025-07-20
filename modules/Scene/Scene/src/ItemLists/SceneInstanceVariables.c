@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -301,6 +301,19 @@ static bool dsSceneInstanceVariables_destroy(dsSceneInstanceData* instanceData)
 	return true;
 }
 
+static dsSceneInstanceDataType instanceDataType =
+{
+	&dsSceneInstanceVariables_populateData,
+	&dsSceneInstanceVariables_bindInstance,
+	&dsSceneInstanceVariables_finish,
+	&dsSceneInstanceVariables_destroy
+};
+
+const dsSceneInstanceDataType* dsSceneInstanceVariables_type(void)
+{
+	return &instanceDataType;
+}
+
 dsSceneInstanceData* dsSceneInstanceVariables_create(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
 	const dsShaderVariableGroupDesc* dataDesc, uint32_t nameID,
@@ -350,12 +363,9 @@ dsSceneInstanceData* dsSceneInstanceVariables_create(dsAllocator* allocator,
 	DS_ASSERT(variables);
 	dsSceneInstanceData* instanceData = (dsSceneInstanceData*)variables;
 	instanceData->allocator = allocator;
+	instanceData->type = dsSceneInstanceVariables_type();
 	instanceData->valueCount = 1;
 	instanceData->needsCommandBuffer = false;
-	instanceData->populateDataFunc = &dsSceneInstanceVariables_populateData;
-	instanceData->bindInstanceFunc = &dsSceneInstanceVariables_bindInstance;
-	instanceData->finishFunc = &dsSceneInstanceVariables_finish;
-	instanceData->destroyFunc = &dsSceneInstanceVariables_destroy;
 
 	variables->resourceAllocator = resourceAllocator;
 	variables->resourceManager = resourceManager;

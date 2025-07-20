@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,12 @@ extern "C"
  * @brief The scene skinning data type name.
  */
 DS_SCENEANIMATION_EXPORT extern const char* const dsSceneSkinningData_typeName;
+
+/**
+ * @brief Gets the type of scene skinning data.
+ * @return The type of scene skinning data.
+ */
+DS_SCENEANIMATION_EXPORT const dsSceneInstanceDataType* dsSceneSkinningData_type(void);
 
 /**
  * @brief Checks whether buffers will be used for skinning.

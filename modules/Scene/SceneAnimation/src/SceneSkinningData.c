@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Aaron Barany
+ * Copyright 2023-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -610,6 +610,19 @@ static bool dsSceneSkinningData_destroy(dsSceneInstanceData* instanceData)
 
 const char* const dsSceneSkinningData_typeName = "SkinningData";
 
+static dsSceneInstanceDataType instanceDataType =
+{
+	&dsSceneSkinningData_populateData,
+	&dsSceneSkinningData_bindInstance,
+	&dsSceneSkinningData_finish,
+	&dsSceneSkinningData_destroy
+};
+
+const dsSceneInstanceDataType* dsSceneSkinningData_type(void)
+{
+	return &instanceDataType;
+}
+
 bool dsSceneSkinningData_useBuffers(dsResourceManager* resourceManager)
 {
 	return resourceManager && (resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBuffer);
@@ -663,15 +676,12 @@ dsSceneInstanceData* dsSceneSkinningData_create(dsAllocator* allocator,
 
 	dsSceneInstanceData* instanceData = (dsSceneInstanceData*)skinningData;
 	instanceData->allocator = dsAllocator_keepPointer(allocator);
+	instanceData->type = dsSceneSkinningData_type();
 	if (useBuffers || !shaderVariableGroupBuffers)
 		instanceData->valueCount = 1;
 	else
 		instanceData->valueCount = 2;
 	instanceData->needsCommandBuffer = !useBuffers;
-	instanceData->populateDataFunc = &dsSceneSkinningData_populateData;
-	instanceData->bindInstanceFunc = &dsSceneSkinningData_bindInstance;
-	instanceData->finishFunc = &dsSceneSkinningData_finish;
-	instanceData->destroyFunc = &dsSceneSkinningData_destroy;
 
 	skinningData->resourceAllocator = resourceAllocator ? resourceAllocator : allocator;
 	skinningData->resourceManager = resourceManager;
