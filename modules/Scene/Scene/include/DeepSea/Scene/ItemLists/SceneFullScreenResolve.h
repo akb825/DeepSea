@@ -93,12 +93,6 @@ DS_SCENE_EXPORT const dsDynamicRenderStates* dsSceneFullScreenResolve_getRenderS
 DS_SCENE_EXPORT void dsSceneFullScreenResolve_setRenderStates(dsSceneFullScreenResolve* resolve,
 	const dsDynamicRenderStates* renderStates);
 
-/**
- * @brief Destroys a full screen resolve.
- * @param resolve The full screen resolve.
- */
-DS_SCENE_EXPORT void dsSceneFullScreenResolve_destroy(dsSceneFullScreenResolve* resolve);
-
 #ifdef __cplusplus
 }
 #endif

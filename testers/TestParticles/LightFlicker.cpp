@@ -16,6 +16,7 @@
 
 #include "LightFlicker.h"
 
+#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
@@ -24,6 +25,7 @@
 
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Random.h>
+#include <DeepSea/Math/Vector2.h>
 
 #include <DeepSea/Scene/ItemLists/SceneItemListEntries.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
@@ -81,6 +83,7 @@ static uint64_t dsLightFlicker_addNode(dsSceneItemList* itemList, dsSceneNode* n
 	dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData,
 	void** thisItemData)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(itemData);
 	DS_UNUSED(thisItemData);
 	if (!dsSceneNode_isOfType(node, dsSceneLightNode_type()))
@@ -111,6 +114,7 @@ static uint64_t dsLightFlicker_addNode(dsSceneItemList* itemList, dsSceneNode* n
 static void dsLightFlicker_removeNode(
 	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(treeNode);
 	dsLightFlicker* flicker = (dsLightFlicker*)itemList;
 
@@ -129,6 +133,7 @@ static void dsLightFlicker_removeNode(
 
 static void dsLightFlicker_update(dsSceneItemList* itemList, const dsScene* scene, float time)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(scene);
 	dsLightFlicker* flicker = (dsLightFlicker*)itemList;
 
@@ -171,8 +176,29 @@ static void dsLightFlicker_update(dsSceneItemList* itemList, const dsScene* scen
 	}
 }
 
+static uint32_t dsLightFlicker_hash(const dsSceneItemList* itemList, uint32_t commonHash)
+{
+	DS_ASSERT(itemList);
+	const dsLightFlicker* flicker = (dsLightFlicker*)itemList;
+	const float hashVals[4] = {flicker->timeRange.x, flicker->timeRange.y,
+		flicker->intensityRange.x, flicker->intensityRange.y};
+	return dsHashCombineBytes(commonHash, hashVals, sizeof(hashVals));
+}
+
+static bool dsLightFlicker_equal(const dsSceneItemList* left, const dsSceneItemList* right)
+{
+	DS_ASSERT(left);
+	DS_ASSERT(right);
+
+	const dsLightFlicker* leftFlicker = (const dsLightFlicker*)left;
+	const dsLightFlicker* rightFlicker = (const dsLightFlicker*)right;
+	return dsVector2_equal(leftFlicker->timeRange, rightFlicker->timeRange) &&
+		dsVector2_equal(leftFlicker->intensityRange, rightFlicker->intensityRange);
+}
+
 static void dsLightFlicker_destroy(dsSceneItemList* itemList)
 {
+	DS_ASSERT(itemList);
 	dsLightFlicker* flicker = (dsLightFlicker*)itemList;
 	DS_VERIFY(dsAllocator_free(itemList->allocator, flicker->entries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, flicker->removeEntries));
@@ -185,11 +211,13 @@ static dsSceneItemListType createType()
 	type.addNodeFunc = &dsLightFlicker_addNode;
 	type.removeNodeFunc = &dsLightFlicker_removeNode;
 	type.updateFunc = &dsLightFlicker_update;
+	type.hashFunc = &dsLightFlicker_hash;
+	type.equalFunc = &dsLightFlicker_equal;
 	type.destroyFunc = &dsLightFlicker_destroy;
 	return type;
 }
 
-static dsSceneItemListType type = createType();
+static dsSceneItemListType itemListType = createType();
 
 dsSceneItemList* dsLightFlicker_load(const dsSceneLoadContext*, dsSceneLoadScratchData*,
 	dsAllocator* allocator, dsAllocator*, void*, const char* name, const uint8_t* data,
@@ -230,7 +258,7 @@ dsSceneItemList* dsLightFlicker_create(dsAllocator* allocator, const char* name,
 	dsSceneItemList* itemList = (dsSceneItemList*)flicker;
 
 	itemList->allocator = dsAllocator_keepPointer(allocator);
-	itemList->type = &type;
+	itemList->type = &itemListType;
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);

@@ -16,6 +16,7 @@
 
 #include <DeepSea/Scene/ItemLists/SceneModelList.h>
 
+#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
@@ -336,6 +337,7 @@ static void destroyInstanceData(dsSceneInstanceData* const* instanceData,
 static uint64_t dsSceneModelList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(thisItemData);
 	if (!dsSceneNode_isOfType(node, dsSceneModelNode_type()))
 		return DS_NO_SCENE_NODE;
@@ -369,6 +371,7 @@ static uint64_t dsSceneModelList_addNode(dsSceneItemList* itemList, dsSceneNode*
 static void dsSceneModelList_removeNode(
 	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(treeNode);
 	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
 
@@ -388,6 +391,7 @@ static void dsSceneModelList_removeNode(
 static void dsSceneModelList_preRenderPass(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(itemList);
 	DS_ASSERT(!itemList->skipPreRenderPass);
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
@@ -407,6 +411,7 @@ static void dsSceneModelList_preRenderPass(dsSceneItemList* itemList, const dsVi
 static void dsSceneModelList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(itemList);
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
 	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
@@ -427,9 +432,55 @@ static void dsSceneModelList_commit(dsSceneItemList* itemList, const dsView* vie
 	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
 }
 
-static void dsSceneModelList_destroy(dsSceneModelList* modelList)
+static uint32_t dsSceneModelList_hash(const dsSceneItemList* itemList, uint32_t commonHash)
 {
-	dsSceneItemList* itemList = (dsSceneItemList*)modelList;
+	DS_ASSERT(itemList);
+	const dsSceneModelList* modelList = (const dsSceneModelList*)itemList;
+	uint32_t hash = commonHash;
+	if (modelList->hasRenderStates)
+		hash = dsHashCombineBytes(hash, &modelList->renderStates, sizeof(dsDynamicRenderStates));
+	uint32_t hashValues[2] = {modelList->sortType, modelList->cullListID};
+	hash = dsHashCombineBytes(hash, hashValues, sizeof(hashValues));
+	for (uint32_t i = 0; i < modelList->instanceDataCount; ++i)
+		hash = dsSceneInstanceData_hash(modelList->instanceData[i], hash);
+	return hash;
+}
+
+static bool dsSceneModelList_equal(const dsSceneItemList* left, const dsSceneItemList* right)
+{
+	DS_ASSERT(left);
+	DS_ASSERT(left->type == dsSceneModelList_type());
+	DS_ASSERT(right);
+	DS_ASSERT(right->type == dsSceneModelList_type());
+
+	const dsSceneModelList* leftModelList = (const dsSceneModelList*)left;
+	const dsSceneModelList* rightModelList = (const dsSceneModelList*)right;
+
+	if (leftModelList->hasRenderStates != rightModelList->hasRenderStates ||
+		(leftModelList->hasRenderStates && memcmp(&leftModelList->renderStates,
+			&rightModelList->renderStates, sizeof(dsDynamicRenderStates)) != 0) ||
+		leftModelList->sortType != rightModelList->sortType ||
+		leftModelList->cullListID != rightModelList->cullListID ||
+		leftModelList->instanceDataCount != rightModelList->instanceDataCount)
+	{
+		return false;
+	}
+
+	for (uint32_t i = 0; i < leftModelList->instanceDataCount; ++i)
+	{
+		if (!dsSceneInstanceData_equal(leftModelList->instanceData[i],
+				rightModelList->instanceData[i]))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+static void dsSceneModelList_destroy(dsSceneItemList* itemList)
+{
+	DS_ASSERT(itemList);
+	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
 	destroyInstanceData(modelList->instanceData, modelList->instanceDataCount);
 	dsSharedMaterialValues_destroy(modelList->instanceValues);
 	DS_VERIFY(dsAllocator_free(itemList->allocator, modelList->entries));
@@ -441,17 +492,20 @@ static void dsSceneModelList_destroy(dsSceneModelList* modelList)
 
 const char* const dsSceneModelList_typeName = "ModelList";
 
+static dsSceneItemListType itemListType =
+{
+	.addNodeFunc = &dsSceneModelList_addNode,
+	.removeNodeFunc = &dsSceneModelList_removeNode,
+	.preRenderPassFunc = &dsSceneModelList_preRenderPass,
+	.commitFunc = &dsSceneModelList_commit,
+	.hashFunc = &dsSceneModelList_hash,
+	.equalFunc = &dsSceneModelList_equal,
+	.destroyFunc = &dsSceneModelList_destroy
+};
+
 const dsSceneItemListType* dsSceneModelList_type(void)
 {
-	static dsSceneItemListType type =
-	{
-		.addNodeFunc = &dsSceneModelList_addNode,
-		.removeNodeFunc = &dsSceneModelList_removeNode,
-		.preRenderPassFunc = &dsSceneModelList_preRenderPass,
-		.commitFunc = &dsSceneModelList_commit,
-		.destroyFunc = (dsDestroySceneItemListFunction)&dsSceneModelList_destroy
-	};
-	return &type;
+	return &itemListType;
 }
 
 dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* name,

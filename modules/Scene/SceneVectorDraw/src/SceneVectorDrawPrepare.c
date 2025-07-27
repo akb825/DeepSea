@@ -64,6 +64,7 @@ typedef struct dsSceneVectorDrawPrepare
 static uint64_t dsSceneVectorDrawPrepare_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(itemData);
 	DS_UNUSED(treeNode);
 	DS_UNUSED(thisItemData);
@@ -101,6 +102,7 @@ static uint64_t dsSceneVectorDrawPrepare_addNode(dsSceneItemList* itemList, dsSc
 static void dsSceneVectorDrawPrepare_removeNode(dsSceneItemList* itemList,
 	dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(treeNode);
 	dsSceneVectorDrawPrepare* prepareList = (dsSceneVectorDrawPrepare*)itemList;
 
@@ -120,6 +122,7 @@ static void dsSceneVectorDrawPrepare_removeNode(dsSceneItemList* itemList,
 static void dsSceneVectorDrawPrepare_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(view);
 	dsSceneVectorDrawPrepare* prepareList = (dsSceneVectorDrawPrepare*)itemList;
 
@@ -164,6 +167,7 @@ static void dsSceneVectorDrawPrepare_commit(dsSceneItemList* itemList, const dsV
 
 static void dsSceneVectorDrawPrepare_destroy(dsSceneItemList* itemList)
 {
+	DS_ASSERT(itemList);
 	dsSceneVectorDrawPrepare* prepareList = (dsSceneVectorDrawPrepare*)itemList;
 	DS_VERIFY(dsAllocator_free(itemList->allocator, prepareList->entries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, prepareList->removeEntries));
@@ -185,16 +189,17 @@ dsSceneItemList* dsSceneVectorDrawPrepare_load(const dsSceneLoadContext* loadCon
 
 const char* const dsSceneVectorDrawPrepare_typeName = "VectorDrawPrepare";
 
+static dsSceneItemListType itemListType =
+{
+	.addNodeFunc = &dsSceneVectorDrawPrepare_addNode,
+	.removeNodeFunc = &dsSceneVectorDrawPrepare_removeNode,
+	.commitFunc = &dsSceneVectorDrawPrepare_commit,
+	.destroyFunc = &dsSceneVectorDrawPrepare_destroy
+};
+
 const dsSceneItemListType* dsSceneVectorDrawPrepare_type(void)
 {
-	static dsSceneItemListType type =
-	{
-		.addNodeFunc = &dsSceneVectorDrawPrepare_addNode,
-		.removeNodeFunc = &dsSceneVectorDrawPrepare_removeNode,
-		.commitFunc = &dsSceneVectorDrawPrepare_commit,
-		.destroyFunc = &dsSceneVectorDrawPrepare_destroy
-	};
-	return &type;
+	return &itemListType;
 }
 
 dsSceneItemList* dsSceneVectorDrawPrepare_create(dsAllocator* allocator, const char* name)

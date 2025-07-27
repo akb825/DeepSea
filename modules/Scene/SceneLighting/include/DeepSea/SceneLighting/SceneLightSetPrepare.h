@@ -87,12 +87,6 @@ DS_SCENELIGHTING_EXPORT float dsSceneLightSetPrepare_getIntensityThreshold(
 DS_SCENELIGHTING_EXPORT bool dsSceneLightSetPrepare_setIntensityThreshold(
 	dsSceneLightSetPrepare* prepare, float intensityThreshold);
 
-/**
- * @brief Destroys a scene light prepare.
- * @param prepare The scene light prepare to destroy.
- */
-DS_SCENELIGHTING_EXPORT void dsSceneLightSetPrepare_destroy(dsSceneLightSetPrepare* prepare);
-
 #ifdef __cplusplus
 }
 #endif

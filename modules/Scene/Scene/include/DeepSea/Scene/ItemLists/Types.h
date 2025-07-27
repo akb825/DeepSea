@@ -82,6 +82,28 @@ typedef bool (*dsBindSceneInstanceDataFunction)(dsSceneInstanceData* instanceDat
 typedef bool (*dsFinishSceneInstanceDataFunction)(dsSceneInstanceData* instanceData);
 
 /**
+ * @brief Function to get the hash for scene instance data.
+ * @param instanceData The instance data to get the hash for.
+ * @param commonHash The initial hash for the common members.
+ * @return The hash for the instance data.
+ */
+typedef uint32_t (*dsHashSceneInstanceDataFunction)(
+	const dsSceneInstanceData* instanceData, uint32_t commonHash);
+
+/**
+ * @brief Function to check if two scene instance datas are equal.
+ *
+ * This should only check the members unique to the instance data type as the common members will
+ * already be checked.
+ *
+ * @param left The left hand side.
+ * @param right The right hand side.
+ * @return Whether left and right are equal.
+ */
+typedef bool (*dsSceneInstanceDataEqualFunction)(
+	const dsSceneInstanceData* left, const dsSceneInstanceData* right);
+
+/**
  * @brief Function for destroying scene instance data.
  * @remark errno should be set on failure.
  * @param instanceData The instance data.
@@ -108,6 +130,20 @@ typedef struct dsSceneInstanceDataType
 	 * @brief Function to finish using the current set of instance data.
 	 */
 	dsFinishSceneInstanceDataFunction finishFunc;
+
+	/**
+	 * @brief Function to get the hash for scene instance data.
+	 *
+	 * This may be NULL if the hash only depends on the common members.
+	 */
+	dsHashSceneInstanceDataFunction hashFunc;
+
+	/**
+	 * @brief Function to check whether two scene instance datas are equal.
+	 *
+	 * This may be NULL if equality only depends on common members.
+	 */
+	dsSceneInstanceDataEqualFunction equalFunc;
 
 	/**
 	 * @brief Function to destroy the instance data.
@@ -168,6 +204,54 @@ struct dsSceneInstanceData
 typedef void (*dsPopulateSceneInstanceVariablesFunction)(void* userData, const dsView* view,
 	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
 	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride);
+
+/**
+ * @brief Function to get the hash for instance variable data.
+ * @param userData The user data for managing the instance data.
+ * @param seed The seed for the hash.
+ * @return The hash value.
+ */
+typedef uint32_t (*dsHashSceneInstanceVariablesFunction)(const void* userData, uint32_t seed);
+
+/**
+ * @brief Function to check if two instance variable datas are equal.
+ * @param left The left hand side.
+ * @param right The right hand side.
+ * @return Whether left and right are equal.
+ */
+typedef bool (*dsSceneInstanceVariablesEqualFunction)(const void* left, const void* right);
+
+/**
+ * @brief Struct defining the type and functions used for scene instance variables used within scene
+ *     instance data.
+ * @see SceneInstanceVariables.h
+ */
+typedef struct dsSceneInstanceVariablesType
+{
+	/**
+	 * @brief Function for populating the underlying instance data.
+	 */
+	dsPopulateSceneInstanceVariablesFunction populateFunc;
+
+	/**
+	 * @brief Function to get the hash for scene instance variables.
+	 *
+	 * This may be NULL if no user data is provided with the instance variables.
+	 */
+	dsHashSceneInstanceVariablesFunction hashFunc;
+
+	/**
+	 * @brief Function to check whether two scene instance datas are equal.
+	 *
+	 * This may be NULL if no user data is provided with the instance variables.
+	 */
+	dsSceneInstanceVariablesEqualFunction equalFunc;
+
+	/**
+	 * @brief Function to destroy the user data associated with the instance variables.
+	 */
+	dsDestroyUserDataFunction destroyUserDataFunc;
+} dsSceneInstanceVariablesType;
 
 /**
  * @brief Function for adding a node to the item list.
@@ -239,6 +323,28 @@ typedef void (*dsPreRenderPassSceneItemListFunction)(dsSceneItemList* itemList, 
  */
 typedef void (*dsCommitSceneItemListFunction)(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer);
+
+/**
+ * @brief Function to get the hash for a scene item list.
+ * @param itemList The item list to get the hash for.
+ * @param commonHash The initial hash for the common members.
+ * @return The hash for the item list.
+ */
+typedef uint32_t (*dsHashSceneItemListFunction)(
+	const dsSceneItemList* itemList, uint32_t commonHash);
+
+/**
+ * @brief Function to check if two scene item lists are equal.
+ *
+ * This should only check the members unique to the item list type as the common members will
+ * already be checked.
+ *
+ * @param left The left hand side.
+ * @param right The right hand side.
+ * @return Whether left and right are equal.
+ */
+typedef bool (*dsSceneItemListsEqualFunction)(
+	const dsSceneItemList* left, const dsSceneItemList* right);
 
 /**
  * @brief Function for destroying a scene item list.
@@ -315,6 +421,20 @@ typedef struct dsSceneItemListType
 	 * This may be NULL if the item list only needs itself or nodes to be updated.
 	 */
 	dsCommitSceneItemListFunction commitFunc;
+
+	/**
+	 * @brief Function to get the hash for a scene item list.
+	 *
+	 * This may be NULL if the hash only depends on the common members.
+	 */
+	dsHashSceneItemListFunction hashFunc;
+
+	/**
+	 * @brief Function to check whether two scene item lists are equal.
+	 *
+	 * This may be NULL if equality only depends on common members.
+	 */
+	dsSceneItemListsEqualFunction equalFunc;
 
 	/**
 	 * @brief Function for destroying the scene item list.

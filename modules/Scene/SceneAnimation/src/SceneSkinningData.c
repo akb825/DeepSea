@@ -612,10 +612,10 @@ const char* const dsSceneSkinningData_typeName = "SkinningData";
 
 static dsSceneInstanceDataType instanceDataType =
 {
-	&dsSceneSkinningData_populateData,
-	&dsSceneSkinningData_bindInstance,
-	&dsSceneSkinningData_finish,
-	&dsSceneSkinningData_destroy
+	.populateDataFunc = &dsSceneSkinningData_populateData,
+	.bindInstanceFunc = &dsSceneSkinningData_bindInstance,
+	.finishFunc = &dsSceneSkinningData_finish,
+	.destroyFunc = &dsSceneSkinningData_destroy
 };
 
 const dsSceneInstanceDataType* dsSceneSkinningData_type(void)

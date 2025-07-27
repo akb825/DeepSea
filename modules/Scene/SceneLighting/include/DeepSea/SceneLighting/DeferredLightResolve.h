@@ -311,12 +311,6 @@ DS_SCENELIGHTING_EXPORT float dsDeferredLightResolve_getIntensityThreshold(
 DS_SCENELIGHTING_EXPORT bool dsDeferredLightResolve_setIntensityThreshold(
 	dsDeferredLightResolve* resolve, float intensityThreshold);
 
-/**
- * @brief Destroys a deferred light resolve.
- * @param resolve The deferred light resolve to destroy.
- */
-DS_SCENELIGHTING_EXPORT void dsDeferredLightResolve_destroy(dsDeferredLightResolve* resolve);
-
 #ifdef __cplusplus
 }
 #endif

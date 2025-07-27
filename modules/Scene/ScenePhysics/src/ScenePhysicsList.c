@@ -214,6 +214,7 @@ static void dsScenePhysicsList_preStepUpdate(dsPhysicsScene* scene, float time, 
 static uint64_t dsScenePhysicsList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(itemData);
 	DS_UNUSED(treeNode);
 	dsScenePhysicsList* physicsList = (dsScenePhysicsList*)itemList;
@@ -523,6 +524,7 @@ static uint64_t dsScenePhysicsList_addNode(dsSceneItemList* itemList, dsSceneNod
 static void dsScenePhysicsList_removeNode(
 	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(treeNode);
 	dsScenePhysicsList* physicsList = (dsScenePhysicsList*)itemList;
 	if (nodeID == SHIFT_NODE_ENTRY_ID)
@@ -629,6 +631,7 @@ static void dsScenePhysicsList_removeNode(
 static void dsScenePhysicsList_preTransformUpdate(
 	dsSceneItemList* itemList, const dsScene* scene, float time)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(scene);
 	dsScenePhysicsList* physicsList = (dsScenePhysicsList*)itemList;
 
@@ -774,8 +777,35 @@ static void dsScenePhysicsList_preTransformUpdate(
 	}
 }
 
+static uint32_t dsScenePhysicsList_hash(const dsSceneItemList* itemList, uint32_t combinedHash)
+{
+	DS_ASSERT(itemList);
+	const dsScenePhysicsList* physicsList = (const dsScenePhysicsList*)itemList;
+	uint32_t hash = dsHashCombine32(combinedHash, &physicsList->targetStepTime);
+	// Assume physics scenes will be equivalent if not explicitly owned.
+	if (!physicsList->ownsPhysicsScene)
+		hash = dsHashCombinePointer(hash, physicsList->physicsScene);
+	return hash;
+}
+
+static bool dsScenePhysicsList_equal(const dsSceneItemList* left, const dsSceneItemList* right)
+{
+	DS_ASSERT(left);
+	DS_ASSERT(left->type == dsScenePhysicsList_type());
+	DS_ASSERT(right);
+	DS_ASSERT(right->type == dsScenePhysicsList_type());
+
+	const dsScenePhysicsList* leftPhysicsList = (const dsScenePhysicsList*)left;
+	const dsScenePhysicsList* rightPhysicsList = (const dsScenePhysicsList*)right;
+	return leftPhysicsList->ownsPhysicsScene == rightPhysicsList->ownsPhysicsScene &&
+		(!leftPhysicsList->ownsPhysicsScene ||
+			leftPhysicsList->physicsScene == rightPhysicsList->physicsScene) &&
+		leftPhysicsList->targetStepTime == rightPhysicsList->targetStepTime;
+}
+
 static void dsScenePhysicsList_destroy(dsSceneItemList* itemList)
 {
+	DS_ASSERT(itemList);
 	dsScenePhysicsList* physicsList = (dsScenePhysicsList*)itemList;
 
 	// Handle removed entries before destroying their resources.
@@ -850,16 +880,19 @@ static void dsScenePhysicsList_destroy(dsSceneItemList* itemList)
 
 const char* const dsScenePhysicsList_typeName = "PhysicsList";
 
+static dsSceneItemListType itemListType =
+{
+	.addNodeFunc = &dsScenePhysicsList_addNode,
+	.removeNodeFunc = &dsScenePhysicsList_removeNode,
+	.preTransformUpdateFunc = &dsScenePhysicsList_preTransformUpdate,
+	.hashFunc = &dsScenePhysicsList_hash,
+	.equalFunc = &dsScenePhysicsList_equal,
+	.destroyFunc = &dsScenePhysicsList_destroy
+};
+
 const dsSceneItemListType* dsScenePhysicsList_type(void)
 {
-	static dsSceneItemListType type =
-	{
-		.addNodeFunc = &dsScenePhysicsList_addNode,
-		.removeNodeFunc = &dsScenePhysicsList_removeNode,
-		.preTransformUpdateFunc = &dsScenePhysicsList_preTransformUpdate,
-		.destroyFunc = &dsScenePhysicsList_destroy
-	};
-	return &type;
+	return &itemListType;
 }
 
 dsSceneItemList* dsScenePhysicsList_create(dsAllocator* allocator, const char* name,

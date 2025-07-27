@@ -16,6 +16,7 @@
 
 #include <DeepSea/SceneLighting/ShadowCullList.h>
 
+#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
@@ -84,6 +85,7 @@ typedef struct dsShadowCullList
 static uint64_t dsShadowCullList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(itemData);
 	if (!dsSceneNode_isOfType(node, dsSceneCullNode_type()))
 		return DS_NO_SCENE_NODE;
@@ -128,6 +130,7 @@ static uint64_t dsShadowCullList_addNode(dsSceneItemList* itemList, dsSceneNode*
 static void dsShadowCullList_removeNode(
 	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(treeNode);
 	dsShadowCullList* cullList = (dsShadowCullList*)itemList;
 	if (nodeID < MIN_DYNAMIC_ENTRY_ID)
@@ -180,6 +183,7 @@ DS_SIMD_START(DS_SIMD_FLOAT4)
 static void dsShadowCullList_commitSIMD(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(commandBuffer);
 	dsShadowCullList* cullList = (dsShadowCullList*)itemList;
 	lazyRemoveEntries(cullList);
@@ -234,6 +238,7 @@ DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 static void dsShadowCullList_commitFMA(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(commandBuffer);
 	dsShadowCullList* cullList = (dsShadowCullList*)itemList;
 	lazyRemoveEntries(cullList);
@@ -288,6 +293,7 @@ DS_SIMD_END()
 static void dsShadowCullList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(commandBuffer);
 	dsShadowCullList* cullList = (dsShadowCullList*)itemList;
 	lazyRemoveEntries(cullList);
@@ -337,8 +343,30 @@ static void dsShadowCullList_commit(dsSceneItemList* itemList, const dsView* vie
 	}
 }
 
+static uint32_t dsShadowCullList_hash(const dsSceneItemList* itemList, uint32_t commonHash)
+{
+	DS_ASSERT(itemList);
+	const dsShadowCullList* cullList = (const dsShadowCullList*)itemList;
+	uint32_t hash = dsHashCombinePointer(commonHash, cullList->shadows);
+	return dsHashCombine32(hash, &cullList->surface);
+}
+
+static bool dsShadowCullList_equal(const dsSceneItemList* left, const dsSceneItemList* right)
+{
+	DS_ASSERT(left);
+	DS_ASSERT(left->type == dsShadowCullList_type());
+	DS_ASSERT(right);
+	DS_ASSERT(right->type == dsShadowCullList_type());
+
+	const dsShadowCullList* leftCullList = (const dsShadowCullList*)left;
+	const dsShadowCullList* rightCullList = (const dsShadowCullList*)right;
+	return leftCullList->shadows == rightCullList->shadows &&
+		leftCullList->surface == rightCullList->surface;
+}
+
 static void dsShadowCullList_destroy(dsSceneItemList* itemList)
 {
+	DS_ASSERT(itemList);
 	dsShadowCullList* cullList = (dsShadowCullList*)itemList;
 	DS_VERIFY(dsAllocator_free(itemList->allocator, cullList->staticEntries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, cullList->removeStaticEntries));
@@ -349,38 +377,48 @@ static void dsShadowCullList_destroy(dsSceneItemList* itemList)
 
 const char* const dsShadowCullList_typeName = "ShadowCullList";
 
+#if DS_HAS_SIMD
+static dsSceneItemListType itemListTypeSIMD =
+{
+	.addNodeFunc = &dsShadowCullList_addNode,
+	.removeNodeFunc = &dsShadowCullList_removeNode,
+	.commitFunc = &dsShadowCullList_commitSIMD,
+	.hashFunc = &dsShadowCullList_hash,
+	.equalFunc = &dsShadowCullList_equal,
+	.destroyFunc = &dsShadowCullList_destroy
+};
+
+static dsSceneItemListType itemListTypeFMA =
+{
+	.addNodeFunc = &dsShadowCullList_addNode,
+	.removeNodeFunc = &dsShadowCullList_removeNode,
+	.commitFunc = &dsShadowCullList_commitFMA,
+	.hashFunc = &dsShadowCullList_hash,
+	.equalFunc = &dsShadowCullList_equal,
+	.destroyFunc = &dsShadowCullList_destroy
+};
+#endif
+
+static dsSceneItemListType itemListType =
+{
+	.addNodeFunc = &dsShadowCullList_addNode,
+	.removeNodeFunc = &dsShadowCullList_removeNode,
+	.commitFunc = &dsShadowCullList_commit,
+	.hashFunc = &dsShadowCullList_hash,
+	.equalFunc = &dsShadowCullList_equal,
+	.destroyFunc = &dsShadowCullList_destroy
+};
+
 const dsSceneItemListType* dsShadowCullList_type(void)
 {
-	static dsSceneItemListType type =
-	{
-		.addNodeFunc = &dsShadowCullList_addNode,
-		.removeNodeFunc = &dsShadowCullList_removeNode,
-		.commitFunc = &dsShadowCullList_commit,
-		.destroyFunc = &dsShadowCullList_destroy
-	};
 #if DS_HAS_SIMD
-	static dsSceneItemListType simdType =
-	{
-		.addNodeFunc = &dsShadowCullList_addNode,
-		.removeNodeFunc = &dsShadowCullList_removeNode,
-		.commitFunc = &dsShadowCullList_commitSIMD,
-		.destroyFunc = &dsShadowCullList_destroy
-	};
-	static dsSceneItemListType fmaType =
-	{
-		.addNodeFunc = &dsShadowCullList_addNode,
-		.removeNodeFunc = &dsShadowCullList_removeNode,
-		.commitFunc = &dsShadowCullList_commitFMA,
-		.destroyFunc = &dsShadowCullList_destroy
-	};
-
 	if (DS_SIMD_ALWAYS_FMA || dsHostSIMDFeatures & dsSIMDFeatures_FMA)
-		return &fmaType;
+		return &itemListTypeFMA;
 	else if (DS_SIMD_ALWAYS_FLOAT4 || dsHostSIMDFeatures & dsSIMDFeatures_Float4)
-		return &simdType;
+		return &itemListTypeSIMD;
 	else
 #endif
-		return &type;
+		return &itemListType;
 }
 
 dsSceneItemList* dsShadowCullList_create(dsAllocator* allocator, const char* name,

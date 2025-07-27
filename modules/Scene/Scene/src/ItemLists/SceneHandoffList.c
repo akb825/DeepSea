@@ -65,6 +65,7 @@ typedef struct dsSceneHandoffList
 static uint64_t dsSceneHandoffList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(itemData);
 	if (!dsSceneNode_isOfType(node, dsSceneHandoffNode_type()) || !treeNode->parent)
 		return DS_NO_SCENE_NODE;
@@ -106,6 +107,7 @@ static uint64_t dsSceneHandoffList_addNode(dsSceneItemList* itemList, dsSceneNod
 static void dsSceneHandoffList_removeNode(
 	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(treeNode);
 	dsSceneHandoffList* handoffList = (dsSceneHandoffList*)itemList;
 
@@ -125,6 +127,7 @@ static void dsSceneHandoffList_removeNode(
 static void dsSceneHandoffList_reparentNode(dsSceneItemList* itemList, uint64_t nodeID,
 	dsSceneTreeNode* prevAncestor, dsSceneTreeNode* newAncestor)
 {
+	DS_ASSERT(itemList);
 	dsSceneHandoffList* handoffList = (dsSceneHandoffList*)itemList;
 
 	Entry* entry = (Entry*)dsSceneItemListEntries_findEntry(handoffList->entries,
@@ -171,6 +174,7 @@ static void dsSceneHandoffList_reparentNode(dsSceneItemList* itemList, uint64_t 
 static void dsSceneHandoffList_preTransformUpdate(
 	dsSceneItemList* itemList, const dsScene* scene, float time)
 {
+	DS_ASSERT(itemList);
 	dsSceneHandoffList* handoffList = (dsSceneHandoffList*)itemList;
 
 	// Lazily remove entries.
@@ -216,6 +220,7 @@ static void dsSceneHandoffList_preTransformUpdate(
 
 static void dsSceneHandoffList_destroy(dsSceneItemList* itemList)
 {
+	DS_ASSERT(itemList);
 	dsSceneHandoffList* handoffList = (dsSceneHandoffList*)itemList;
 	DS_VERIFY(dsAllocator_free(itemList->allocator, handoffList->entries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, handoffList->removeEntries));
@@ -237,17 +242,18 @@ dsSceneItemList* dsSceneHandoffList_load(const dsSceneLoadContext* loadContext,
 	return dsSceneHandoffList_create(allocator, name);
 }
 
+static dsSceneItemListType itemListType =
+{
+	.addNodeFunc = &dsSceneHandoffList_addNode,
+	.removeNodeFunc = &dsSceneHandoffList_removeNode,
+	.reparentNodeFunc = &dsSceneHandoffList_reparentNode,
+	.preTransformUpdateFunc = &dsSceneHandoffList_preTransformUpdate,
+	.destroyFunc = &dsSceneHandoffList_destroy
+};
+
 const dsSceneItemListType* dsSceneHandoffList_type(void)
 {
-	static dsSceneItemListType type =
-	{
-		.addNodeFunc = &dsSceneHandoffList_addNode,
-		.removeNodeFunc = &dsSceneHandoffList_removeNode,
-		.reparentNodeFunc = &dsSceneHandoffList_reparentNode,
-		.preTransformUpdateFunc = &dsSceneHandoffList_preTransformUpdate,
-		.destroyFunc = &dsSceneHandoffList_destroy
-	};
-	return &type;
+	return &itemListType;
 }
 
 dsSceneItemList* dsSceneHandoffList_create(dsAllocator* allocator, const char* name)

@@ -60,6 +60,7 @@ typedef struct dsSceneParticlePrepare
 static uint64_t dsSceneParticlePrepare_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(itemData);
 	if (!dsSceneNode_isOfType(node, dsSceneParticleNode_type()))
 		return DS_NO_SCENE_NODE;
@@ -92,6 +93,7 @@ static uint64_t dsSceneParticlePrepare_addNode(dsSceneItemList* itemList, dsScen
 static void dsSceneParticlePrepare_removeNode(
 	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(treeNode);
 	dsSceneParticlePrepare* prepareList = (dsSceneParticlePrepare*)itemList;
 
@@ -115,9 +117,10 @@ static void dsSceneParticlePrepare_removeNode(
 	}
 }
 
-static void dsSceneParticlePrepare_update(dsSceneItemList* itemList, const dsScene* scene,
-	float time)
+static void dsSceneParticlePrepare_update(
+	dsSceneItemList* itemList, const dsScene* scene, float time)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(scene);
 	dsSceneParticlePrepare* prepareList = (dsSceneParticlePrepare*)itemList;
 
@@ -137,6 +140,7 @@ static void dsSceneParticlePrepare_update(dsSceneItemList* itemList, const dsSce
 
 static void dsSceneParticlePrepare_destroy(dsSceneItemList* itemList)
 {
+	DS_ASSERT(itemList);
 	dsSceneParticlePrepare* prepareList = (dsSceneParticlePrepare*)itemList;
 
 	// Handle removed entries before destroying their resources.
@@ -167,16 +171,17 @@ dsSceneItemList* dsSceneParticlePrepare_load(const dsSceneLoadContext* loadConte
 
 const char* const dsSceneParticlePrepare_typeName = "ParticlePrepare";
 
+static dsSceneItemListType itemListType =
+{
+	.addNodeFunc = &dsSceneParticlePrepare_addNode,
+	.removeNodeFunc = &dsSceneParticlePrepare_removeNode,
+	.updateFunc = &dsSceneParticlePrepare_update,
+	.destroyFunc = &dsSceneParticlePrepare_destroy
+};
+
 const dsSceneItemListType* dsSceneParticlePrepare_type(void)
 {
-	static dsSceneItemListType type =
-	{
-		.addNodeFunc = &dsSceneParticlePrepare_addNode,
-		.removeNodeFunc = &dsSceneParticlePrepare_removeNode,
-		.updateFunc = &dsSceneParticlePrepare_update,
-		.destroyFunc = &dsSceneParticlePrepare_destroy
-	};
-	return &type;
+	return &itemListType;
 }
 
 dsSceneItemList* dsSceneParticlePrepare_create(dsAllocator* allocator, const char* name)

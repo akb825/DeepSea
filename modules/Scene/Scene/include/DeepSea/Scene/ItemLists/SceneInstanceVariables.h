@@ -48,17 +48,13 @@ DS_SCENE_EXPORT const dsSceneInstanceDataType* dsSceneInstanceVariables_type(voi
  *     least as long as the instance data object.
  * @param nameID The name ID to use when setting the buffer data on the dsSharedMaterialValues
  *     instance.
- * @param populateDataFunc Function to populate the instance data.
+ * @param instanceVariablesType The type for the instance variables.
  * @param userData The user data that will be provided to populateDataFunc. This may be NULL.
- * @param destroyUserDataFunc Function to destroy the user data. This may be NULL. This will be
- *     called if creation fails.
- * @return The instance data or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsSceneInstanceData* dsSceneInstanceVariables_create(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
 	const dsShaderVariableGroupDesc* dataDesc, uint32_t nameID,
-	dsPopulateSceneInstanceVariablesFunction populateDataFunc, void* userData,
-	dsDestroyUserDataFunction destroyUserDataFunc);
+	const dsSceneInstanceVariablesType* instanceVariablesType, void* userData);
 
 #ifdef __cplusplus
 }

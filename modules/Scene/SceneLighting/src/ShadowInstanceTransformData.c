@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2024 Aaron Barany
+ * Copyright 2021-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 #include <DeepSea/SceneLighting/ShadowInstanceTransformData.h>
 
+#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -205,6 +206,51 @@ static void dsShadowInstanceTransformData_populateData(void* userData, const dsV
 	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
+static uint32_t dsShadowInstanceTransformData_hash(const void* userData, uint32_t seed)
+{
+	DS_ASSERT(userData);
+	const ShadowUserData* shadowUserData = (const ShadowUserData*)userData;
+	uint32_t hash = dsHashCombinePointer(seed, shadowUserData->shadows);
+	return dsHashCombine32(hash, &shadowUserData->surface);
+}
+
+static bool dsShadowInstanceTransformData_equal(const void* left, const void* right)
+{
+	DS_ASSERT(left);
+	DS_ASSERT(right);
+
+	const ShadowUserData* leftShadows = (const ShadowUserData*)left;
+	const ShadowUserData* rightShadows = (const ShadowUserData*)right;
+	return leftShadows->shadows == rightShadows->shadows &&
+		leftShadows->surface == rightShadows->surface;
+}
+
+#if DS_HAS_SIMD
+static dsSceneInstanceVariablesType instanceVariablesTypeSIMD =
+{
+	&dsShadowInstanceTransformData_populateDataSIMD,
+	&dsShadowInstanceTransformData_hash,
+	&dsShadowInstanceTransformData_equal,
+	&ShadowUserData_destroy
+};
+
+static dsSceneInstanceVariablesType instanceVariablesTypeFMA =
+{
+	&dsShadowInstanceTransformData_populateDataFMA,
+	&dsShadowInstanceTransformData_hash,
+	&dsShadowInstanceTransformData_equal,
+	&ShadowUserData_destroy
+};
+#endif
+
+static dsSceneInstanceVariablesType instanceVariablesType =
+{
+	&dsShadowInstanceTransformData_populateData,
+	&dsShadowInstanceTransformData_hash,
+	&dsShadowInstanceTransformData_equal,
+	&ShadowUserData_destroy
+};
+
 const char* const dsShadowInstanceTransformData_typeName = "ShadowInstanceTransformData";
 
 dsSceneInstanceData* dsShadowInstanceTransformData_create(dsAllocator* allocator,
@@ -227,15 +273,15 @@ dsSceneInstanceData* dsShadowInstanceTransformData_create(dsAllocator* allocator
 		return NULL;
 	}
 
-	dsPopulateSceneInstanceVariablesFunction populateFunc;
+	const dsSceneInstanceVariablesType* type;
 #if DS_HAS_SIMD
 	if (DS_SIMD_ALWAYS_FMA || (dsHostSIMDFeatures & dsSIMDFeatures_FMA))
-		populateFunc = &dsShadowInstanceTransformData_populateDataFMA;
+		type = &instanceVariablesTypeFMA;
 	else if (DS_SIMD_ALWAYS_FLOAT4 || (dsHostSIMDFeatures & dsSIMDFeatures_Float4))
-		populateFunc = &dsShadowInstanceTransformData_populateDataSIMD;
+		type = &instanceVariablesTypeSIMD;
 	else
 #endif
-		populateFunc = &dsShadowInstanceTransformData_populateData;
+		type = &instanceVariablesType;
 
 	ShadowUserData* userData = DS_ALLOCATE_OBJECT(allocator, ShadowUserData);
 	if (!userData)
@@ -245,6 +291,5 @@ dsSceneInstanceData* dsShadowInstanceTransformData_create(dsAllocator* allocator
 	userData->shadows = shadows;
 	userData->surface = surface;
 	return dsSceneInstanceVariables_create(allocator, resourceAllocator, resourceManager,
-		transformDesc, dsUniqueNameID_create(dsInstanceTransformData_typeName), populateFunc,
-		userData, &ShadowUserData_destroy);
+		transformDesc, dsUniqueNameID_create(dsInstanceTransformData_typeName), type, userData);
 }

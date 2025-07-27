@@ -15,6 +15,8 @@
  */
 
 #include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
+
+#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Error.h>
 
 bool dsSceneInstanceData_populateData(dsSceneInstanceData* instanceData,
@@ -54,6 +56,38 @@ bool dsSceneInstanceData_finish(dsSceneInstanceData* instanceData)
 	}
 
 	return instanceData->type->finishFunc(instanceData);
+}
+
+uint32_t dsSceneInstanceData_hash(const dsSceneInstanceData* instanceData, uint32_t seed)
+{
+	if (!instanceData || !instanceData->type)
+		return 0;
+
+	uint32_t hash = dsHashPointer(instanceData->type);
+	uint32_t hashValues[2] = {instanceData->valueCount, instanceData->needsCommandBuffer};
+	hash = dsHashCombineBytes(hash, hashValues, sizeof(hashValues));
+
+	dsHashSceneInstanceDataFunction hashFunc = instanceData->type->hashFunc;
+	if (hashFunc)
+		hash = hashFunc(instanceData, hash);
+	return hash;
+}
+
+bool dsSceneInstanceData_equal(const dsSceneInstanceData* left, const dsSceneInstanceData* right)
+{
+	if (left == right)
+		return true;
+	else if (!left || !right || !left->type || left->type != right->type ||
+		left->valueCount != right->valueCount ||
+		left->needsCommandBuffer != right->needsCommandBuffer)
+	{
+		return false;
+	}
+
+	dsSceneInstanceDataEqualFunction equalFunc = left->type->equalFunc;
+	if (equalFunc)
+		return equalFunc(left, right);
+	return true;
 }
 
 bool dsSceneInstanceData_destroy(dsSceneInstanceData* instanceData)

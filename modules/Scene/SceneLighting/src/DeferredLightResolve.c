@@ -16,6 +16,7 @@
 
 #include <DeepSea/SceneLighting/DeferredLightResolve.h>
 
+#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
@@ -312,9 +313,10 @@ static bool visitLights(void* userData, const dsSceneLightSet* lightSet, const d
 	return true;
 }
 
-void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsView* view,
-	dsCommandBuffer* commandBuffer)
+static void dsDeferredLightResolve_commit(
+	dsSceneItemList* itemList, const dsView* view, dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(itemList);
 	dsDeferredLightResolve* resolve = (dsDeferredLightResolve*)itemList;
 	dsRenderer* renderer = commandBuffer->renderer;
 	BufferInfo* buffers = getDrawBuffers(resolve, renderer);
@@ -507,16 +509,79 @@ void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsView* view
 	}
 }
 
+static uint32_t dsDeferredLightResolve_hash(const dsSceneItemList* itemList, uint32_t commonHash)
+{
+	DS_ASSERT(itemList);
+	const dsDeferredLightResolve* resolve = (const dsDeferredLightResolve*)itemList;
+	const void* hashPtrs[4 + dsSceneLightType_Count*4];
+	uint32_t hashValues[1 + dsSceneLightType_Count*2];
+	hashPtrs[0] = resolve->lightSet;
+	hashPtrs[1] = resolve->shadowManager;
+	hashPtrs[2] = resolve->ambientInfo.shader;
+	hashPtrs[3] = resolve->ambientInfo.material;
+	hashValues[0] = *(uint32_t*)&resolve->intensityThreshold;
+	for (int i = 0; i < dsSceneLightType_Count; ++i)
+	{
+		unsigned int baseIndex = 4 + i*4;
+		hashPtrs[baseIndex] = resolve->lightInfos[i].shader;
+		hashPtrs[baseIndex + 1] = resolve->lightInfos[i].material;
+		hashPtrs[baseIndex + 2] = resolve->shadowLightInfos[i].shader;
+		hashPtrs[baseIndex + 3] = resolve->shadowLightInfos[i].material;
+		hashValues[i*2 + 1] = resolve->shadowLightInfos[i].transformGroupID;
+		hashValues[i*2 + 2] = resolve->shadowLightInfos[i].textureID;
+	}
+
+	uint32_t hash = dsHashCombineBytes(commonHash, hashPtrs, sizeof(hashPtrs));
+	return dsHashCombineBytes(hash, hashValues, sizeof(hashValues));
+}
+
+static bool dsDeferredLightResolve_equal(const dsSceneItemList* left, const dsSceneItemList* right)
+{
+	DS_ASSERT(left);
+	DS_ASSERT(left->type == dsDeferredLightResolve_type());
+	DS_ASSERT(right);
+	DS_ASSERT(right->type == dsDeferredLightResolve_type());
+
+	const dsDeferredLightResolve* leftResolve = (const dsDeferredLightResolve*)left;
+	const dsDeferredLightResolve* rightResolve = (const dsDeferredLightResolve*)right;
+
+	return leftResolve->lightSet == rightResolve->lightSet &&
+		memcmp(&leftResolve->ambientInfo, &rightResolve->ambientInfo,
+			sizeof(leftResolve->ambientInfo)) == 0 &&
+		memcmp(leftResolve->lightInfos, rightResolve->lightInfos,
+			sizeof(leftResolve->lightInfos)) == 0 &&
+		memcmp(leftResolve->shadowLightInfos, rightResolve->shadowLightInfos,
+			sizeof(leftResolve->shadowLightInfos)) == 0 &&
+		leftResolve->intensityThreshold == rightResolve->intensityThreshold;
+
+}
+
+static void dsDeferredLightResolve_destroy(dsSceneItemList* itemList)
+{
+	DS_ASSERT(itemList);
+	dsDeferredLightResolve* resolve = (dsDeferredLightResolve*)itemList;
+	dsSharedMaterialValues_destroy(resolve->shadowValues);
+
+	for (uint32_t i = 0; i < resolve->bufferCount; ++i)
+		freeBuffers(resolve->buffers + i);
+	DS_VERIFY(dsAllocator_free(itemList->allocator, resolve->buffers));
+
+	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
+}
+
 const char* const dsDeferredLightResolve_typeName = "DeferredLightResolve";
+
+static dsSceneItemListType itemListType =
+{
+	.commitFunc = &dsDeferredLightResolve_commit,
+	.hashFunc = &dsDeferredLightResolve_hash,
+	.equalFunc = &dsDeferredLightResolve_equal,
+	.destroyFunc = &dsDeferredLightResolve_destroy
+};
 
 const dsSceneItemListType* dsDeferredLightResolve_type(void)
 {
-	static dsSceneItemListType type =
-	{
-		.commitFunc = &dsDeferredLightResolve_commit,
-		.destroyFunc = (dsDestroySceneItemListFunction)&dsDeferredLightResolve_destroy
-	};
-	return &type;
+	return &itemListType;
 }
 
 dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
@@ -1038,19 +1103,4 @@ bool dsDeferredLightResolve_setIntensityThreshold(dsDeferredLightResolve* resolv
 
 	resolve->intensityThreshold = intensityThreshold;
 	return true;
-}
-
-void dsDeferredLightResolve_destroy(dsDeferredLightResolve* resolve)
-{
-	if (!resolve)
-		return;
-
-	dsSceneItemList* itemList = (dsSceneItemList*)resolve;
-	dsSharedMaterialValues_destroy(resolve->shadowValues);
-
-	for (uint32_t i = 0; i < resolve->bufferCount; ++i)
-		freeBuffers(resolve->buffers + i);
-	DS_VERIFY(dsAllocator_free(itemList->allocator, resolve->buffers));
-
-	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }

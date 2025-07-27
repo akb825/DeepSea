@@ -101,12 +101,6 @@ DS_SCENELIGHTING_EXPORT dsMaterial* dsSceneSSAO_getMaterial(const dsSceneSSAO* s
  */
 DS_SCENELIGHTING_EXPORT bool dsSceneSSAO_setMaterial(dsSceneSSAO* ssao, dsMaterial* material);
 
-/**
- * @brief Destroys a scene SSAO.
- * @param ssao The scene SSAO to destroy.
- */
-DS_SCENELIGHTING_EXPORT void dsSceneSSAO_destroy(dsSceneSSAO* ssao);
-
 #ifdef __cplusplus
 }
 #endif

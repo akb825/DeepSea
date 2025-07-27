@@ -16,6 +16,7 @@
 
 #include <DeepSea/Scene/ItemLists/SceneInstanceVariables.h>
 
+#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
@@ -60,9 +61,8 @@ typedef struct dsSceneInstanceVariables
 	uint32_t instanceSize;
 	uint32_t stride;
 
-	dsPopulateSceneInstanceVariablesFunction populateDataFunc;
+	const dsSceneInstanceVariablesType* instanceVariablesType;
 	void* userData;
-	dsDestroyUserDataFunction destroyUserDataFunc;
 
 	BufferInfo* buffers;
 	uint32_t bufferCount;
@@ -188,8 +188,8 @@ static bool dsSceneInstanceVariables_populateData(dsSceneInstanceData* instanceD
 		return false;
 
 	variables->curInstanceCount = instanceCount;
-	variables->populateDataFunc(variables->userData, view, instances, instanceCount,
-		variables->dataDesc, variables->curBufferData, variables->stride);
+	variables->instanceVariablesType->populateFunc(variables->userData, view, instances,
+		instanceCount, variables->dataDesc, variables->curBufferData, variables->stride);
 	BufferInfo* curBuffer = variables->curBuffer;
 	if (curBuffer)
 		DS_VERIFY(dsGfxBuffer_unmap(curBuffer->buffer));
@@ -275,6 +275,36 @@ static bool dsSceneInstanceVariables_finish(dsSceneInstanceData* instanceData)
 	return true;
 }
 
+static uint32_t dsSceneInstanceVariables_hash(
+	const dsSceneInstanceData* instanceData, uint32_t commonHash)
+{
+	const dsSceneInstanceVariables* variables = (const dsSceneInstanceVariables*)instanceData;
+	DS_ASSERT(variables);
+
+	uint32_t hash = dsHashCombinePointer(commonHash, variables->instanceVariablesType);
+	dsHashSceneInstanceVariablesFunction hashFunc = variables->instanceVariablesType->hashFunc;
+	if (hashFunc)
+		hash = hashFunc(variables->userData, hash);
+	return hash;
+}
+
+static bool dsSceneInstanceVariables_equal(
+	const dsSceneInstanceData* left, const dsSceneInstanceData* right)
+{
+	DS_ASSERT(left);
+	DS_ASSERT(left->type == dsSceneInstanceVariables_type());
+	DS_ASSERT(right);
+	DS_ASSERT(right->type == dsSceneInstanceVariables_type());
+
+	const dsSceneInstanceVariables* leftVariables = (const dsSceneInstanceVariables*)left;
+	const dsSceneInstanceVariables* rightVariables = (const dsSceneInstanceVariables*)right;
+
+	dsSceneInstanceVariablesEqualFunction equalFunc =
+		leftVariables->instanceVariablesType->equalFunc;
+	return leftVariables->instanceVariablesType == rightVariables->instanceVariablesType &&
+		(!equalFunc || equalFunc(leftVariables->userData, rightVariables->userData));
+}
+
 static bool dsSceneInstanceVariables_destroy(dsSceneInstanceData* instanceData)
 {
 	dsSceneInstanceVariables* variables = (dsSceneInstanceVariables*)instanceData;
@@ -292,8 +322,10 @@ static bool dsSceneInstanceVariables_destroy(dsSceneInstanceData* instanceData)
 	if (!dsShaderVariableGroup_destroy(variables->fallback))
 		return false;
 
-	if (variables->destroyUserDataFunc)
-		variables->destroyUserDataFunc(variables->userData);
+	dsDestroyUserDataFunction destroyUserDataFunc =
+		variables->instanceVariablesType->destroyUserDataFunc;
+	if (destroyUserDataFunc)
+		destroyUserDataFunc(variables->userData);
 
 	DS_VERIFY(dsAllocator_free(instanceData->allocator, variables->buffers));
 	DS_VERIFY(dsAllocator_free(instanceData->allocator, variables->tempData));
@@ -306,6 +338,8 @@ static dsSceneInstanceDataType instanceDataType =
 	&dsSceneInstanceVariables_populateData,
 	&dsSceneInstanceVariables_bindInstance,
 	&dsSceneInstanceVariables_finish,
+	&dsSceneInstanceVariables_hash,
+	&dsSceneInstanceVariables_equal,
 	&dsSceneInstanceVariables_destroy
 };
 
@@ -317,19 +351,20 @@ const dsSceneInstanceDataType* dsSceneInstanceVariables_type(void)
 dsSceneInstanceData* dsSceneInstanceVariables_create(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
 	const dsShaderVariableGroupDesc* dataDesc, uint32_t nameID,
-	dsPopulateSceneInstanceVariablesFunction populateDataFunc, void* userData,
-	dsDestroyUserDataFunction destroyUserDataFunc)
+	const dsSceneInstanceVariablesType* instanceVariablesType, void* userData)
 {
-	if (!allocator || !resourceManager || !dataDesc || !populateDataFunc)
+	if (!allocator || !resourceManager || !dataDesc || !instanceVariablesType ||
+		!instanceVariablesType->populateFunc)
 	{
-		if (destroyUserDataFunc)
-			destroyUserDataFunc(userData);
+		if (instanceVariablesType && instanceVariablesType->destroyUserDataFunc)
+			instanceVariablesType->destroyUserDataFunc(userData);
 		errno = EINVAL;
 		return NULL;
 	}
 
 	if (!allocator->freeFunc)
 	{
+		dsDestroyUserDataFunction destroyUserDataFunc = instanceVariablesType->destroyUserDataFunc;
 		if (destroyUserDataFunc)
 			destroyUserDataFunc(userData);
 		errno = EINVAL;
@@ -351,6 +386,7 @@ dsSceneInstanceData* dsSceneInstanceVariables_create(dsAllocator* allocator,
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
+		dsDestroyUserDataFunction destroyUserDataFunc = instanceVariablesType->destroyUserDataFunc;
 		if (destroyUserDataFunc)
 			destroyUserDataFunc(userData);
 		return NULL;
@@ -387,9 +423,8 @@ dsSceneInstanceData* dsSceneInstanceVariables_create(dsAllocator* allocator,
 	DS_ASSERT(stride <= UINT_MAX);
 	variables->stride = (uint32_t)stride;
 
-	variables->populateDataFunc = populateDataFunc;
+	variables->instanceVariablesType = instanceVariablesType;
 	variables->userData = userData;
-	variables->destroyUserDataFunc = destroyUserDataFunc;
 
 	variables->buffers = NULL;
 	variables->bufferCount = 0;

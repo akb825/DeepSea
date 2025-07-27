@@ -40,12 +40,6 @@ typedef struct dsSceneTreeNode dsSceneTreeNode;
 /// @endcond
 
 /**
- * @brief Function for destroying a scene node.
- * @param node The node to destroy.
- */
-typedef void (*dsDestroySceneNodeFunction)(dsSceneNode* node);
-
-/**
  * @brief Function for setting up a scene tree node.
  * @param node The base node.
  * @param treeNode The tree node to set up.
@@ -60,13 +54,10 @@ typedef void (*dsSetupSceneTreeNodeFunction)(dsSceneNode* node, dsSceneTreeNode*
 typedef void (*dsShiftSceneNodeFunction)(dsSceneNode* node, const dsVector3f* shift);
 
 /**
- * @brief Function to create user data for an instance.
- * @param treeNode The scene tree node for the instance.
- * @param userData The base user data.
- * @return The instance user data.
+ * @brief Function for destroying a scene node.
+ * @param node The node to destroy.
  */
-typedef void* (*dsCreateSceneInstanceUserDataFunction)(
-	const dsSceneTreeNode* treeNode, void* userData);
+typedef void (*dsDestroySceneNodeFunction)(dsSceneNode* node);
 
 /**
  * @brief ID for a type of a scene node.
@@ -565,6 +556,15 @@ typedef struct dsSceneHandoffNode
 	 */
 	float transitionTime;
 } dsSceneHandoffNode;
+
+/**
+ * @brief Function to create user data for an instance.
+ * @param treeNode The scene tree node for the instance.
+ * @param userData The base user data.
+ * @return The instance user data.
+ */
+typedef void* (*dsCreateSceneInstanceUserDataFunction)(
+	const dsSceneTreeNode* treeNode, void* userData);
 
 /**
  * @brief Struct defining a node that holds user data.

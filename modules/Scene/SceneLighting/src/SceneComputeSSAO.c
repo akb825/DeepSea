@@ -18,6 +18,7 @@
 
 #include "SceneSSAOShared.h"
 
+#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -50,9 +51,10 @@ struct dsSceneComputeSSAO
 	dsTexture* randomRotations;
 };
 
-void dsSceneComputeSSAO_commit(dsSceneItemList* itemList, const dsView* view,
-	dsCommandBuffer* commandBuffer)
+static void dsSceneComputeSSAO_commit(
+	dsSceneItemList* itemList, const dsView* view, dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(itemList);
 	dsSceneComputeSSAO* ssao = (dsSceneComputeSSAO*)itemList;
 	if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG,
 			dsShader_bindCompute(ssao->shader, commandBuffer, ssao->material, view->globalValues)))
@@ -70,16 +72,50 @@ void dsSceneComputeSSAO_commit(dsSceneItemList* itemList, const dsView* view,
 	DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_unbindCompute(ssao->shader, commandBuffer));
 }
 
+static uint32_t dsSceneComputeSSAO_hash(const dsSceneItemList* itemList, uint32_t commonHash)
+{
+	DS_ASSERT(itemList);
+	const dsSceneComputeSSAO* ssao = (const dsSceneComputeSSAO*)itemList;
+	const void* hashPtrs[2] = {ssao->shader, ssao->material};
+	return dsHashCombineBytes(commonHash, hashPtrs, sizeof(hashPtrs));
+}
+
+static bool dsSceneComputeSSAO_equal(const dsSceneItemList* left, const dsSceneItemList* right)
+{
+	DS_ASSERT(left);
+	DS_ASSERT(left->type == dsSceneComputeSSAO_type());
+	DS_ASSERT(right);
+	DS_ASSERT(right->type == dsSceneComputeSSAO_type());
+
+	const dsSceneComputeSSAO* leftSSAO = (const dsSceneComputeSSAO*)left;
+	const dsSceneComputeSSAO* rightSSAO = (const dsSceneComputeSSAO*)right;
+	return leftSSAO->shader == rightSSAO->shader && leftSSAO->material == rightSSAO->material;
+}
+
+static void dsSceneComputeSSAO_destroy(dsSceneItemList* itemList)
+{
+	DS_ASSERT(itemList);
+	dsSceneComputeSSAO* ssao = (dsSceneComputeSSAO*)itemList;
+
+	dsGfxBuffer_destroy(ssao->randomOffsets);
+	dsTexture_destroy(ssao->randomRotations);
+
+	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
+}
+
 const char* const dsSceneComputeSSAO_typeName = "ComputeSSAO";
+
+static dsSceneItemListType itemListType =
+{
+	.commitFunc = &dsSceneComputeSSAO_commit,
+	.hashFunc = &dsSceneComputeSSAO_hash,
+	.equalFunc = &dsSceneComputeSSAO_equal,
+	.destroyFunc = &dsSceneComputeSSAO_destroy
+};
 
 const dsSceneItemListType* dsSceneComputeSSAO_type(void)
 {
-	static dsSceneItemListType type =
-	{
-		.commitFunc = &dsSceneComputeSSAO_commit,
-		.destroyFunc = (dsDestroySceneItemListFunction)&dsSceneComputeSSAO_destroy
-	};
-	return &type;
+	return &itemListType;
 }
 
 dsSceneComputeSSAO* dsSceneComputeSSAO_create(dsAllocator* allocator, dsResourceManager* resourceManager,
@@ -144,14 +180,14 @@ dsSceneComputeSSAO* dsSceneComputeSSAO_create(dsAllocator* allocator, dsResource
 	ssao->randomOffsets = dsSceneSSAO_createRandomOffsets(resourceManager, resourceAllocator);
 	if (!ssao->randomOffsets)
 	{
-		dsSceneComputeSSAO_destroy(ssao);
+		dsSceneComputeSSAO_destroy(itemList);
 		return NULL;
 	}
 
 	ssao->randomRotations = dsSceneSSAO_createRandomRotations(resourceManager, resourceAllocator);
 	if (!ssao->randomRotations)
 	{
-		dsSceneComputeSSAO_destroy(ssao);
+		dsSceneComputeSSAO_destroy(itemList);
 		return NULL;
 	}
 
@@ -198,17 +234,4 @@ bool dsSceneComputeSSAO_setMaterial(dsSceneComputeSSAO* ssao, dsMaterial* materi
 	ssao->material = material;
 	dsSceneSSAO_setMaterialValues(ssao->material, ssao->randomOffsets, ssao->randomRotations);
 	return true;
-}
-
-void dsSceneComputeSSAO_destroy(dsSceneComputeSSAO* ssao)
-{
-	if (!ssao)
-		return;
-
-	dsSceneItemList* itemList = (dsSceneItemList*)ssao;
-
-	dsGfxBuffer_destroy(ssao->randomOffsets);
-	dsTexture_destroy(ssao->randomRotations);
-
-	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }

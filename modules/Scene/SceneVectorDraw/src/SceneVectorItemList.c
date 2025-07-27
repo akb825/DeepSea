@@ -16,6 +16,7 @@
 
 #include <DeepSea/SceneVectorDraw/SceneVectorItemList.h>
 
+#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
@@ -380,6 +381,7 @@ static void destroyInstanceData(dsSceneInstanceData* const* instanceData,
 static uint64_t dsSceneVectorItemList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(thisItemData);
 	if (!dsSceneNode_isOfType(node, dsSceneVectorNode_type()))
 		return DS_NO_SCENE_NODE;
@@ -404,6 +406,7 @@ static uint64_t dsSceneVectorItemList_addNode(dsSceneItemList* itemList, dsScene
 static void dsSceneVectorItemList_removeNode(
 	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(treeNode);
 	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
 
@@ -423,6 +426,7 @@ static void dsSceneVectorItemList_removeNode(
 static void dsSceneVectorItemList_preRenderPass(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(itemList);
 	DS_ASSERT(!itemList->skipPreRenderPass);
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
@@ -443,6 +447,7 @@ static void dsSceneVectorItemList_preRenderPass(dsSceneItemList* itemList, const
 static void dsSceneVectorItemList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(itemList);
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
 	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
@@ -464,9 +469,51 @@ static void dsSceneVectorItemList_commit(dsSceneItemList* itemList, const dsView
 	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
 }
 
-static void dsSceneVectorItemList_destroy(dsSceneVectorItemList* vectorList)
+static uint32_t dsSceneVectorItemList_hash(const dsSceneItemList* itemList, uint32_t commonHash)
 {
-	dsSceneItemList* itemList = (dsSceneItemList*)vectorList;
+	DS_ASSERT(itemList);
+	const dsSceneVectorItemList* vectorList = (const dsSceneVectorItemList*)itemList;
+	uint32_t hash = commonHash;
+	if (vectorList->hasRenderStates)
+		hash = dsHashCombineBytes(hash, &vectorList->renderStates, sizeof(dsDynamicRenderStates));
+	for (uint32_t i = 0; i < vectorList->instanceDataCount; ++i)
+		hash = dsSceneInstanceData_hash(vectorList->instanceData[i], hash);
+	return hash;
+}
+
+static bool dsSceneVectorItemList_equal(const dsSceneItemList* left, const dsSceneItemList* right)
+{
+	DS_ASSERT(left);
+	DS_ASSERT(left->type == dsSceneVectorItemList_type());
+	DS_ASSERT(right);
+	DS_ASSERT(right->type == dsSceneVectorItemList_type());
+
+	const dsSceneVectorItemList* leftVectorItemList = (const dsSceneVectorItemList*)left;
+	const dsSceneVectorItemList* rightVectorItemList = (const dsSceneVectorItemList*)right;
+
+	if (leftVectorItemList->hasRenderStates != rightVectorItemList->hasRenderStates ||
+		(leftVectorItemList->hasRenderStates && memcmp(&leftVectorItemList->renderStates,
+			&rightVectorItemList->renderStates, sizeof(dsDynamicRenderStates)) != 0) ||
+		leftVectorItemList->instanceDataCount != rightVectorItemList->instanceDataCount)
+	{
+		return false;
+	}
+
+	for (uint32_t i = 0; i < leftVectorItemList->instanceDataCount; ++i)
+	{
+		if (!dsSceneInstanceData_equal(leftVectorItemList->instanceData[i],
+				rightVectorItemList->instanceData[i]))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+static void dsSceneVectorItemList_destroy(dsSceneItemList* itemList)
+{
+	DS_ASSERT(itemList);
+	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
 	destroyInstanceData(vectorList->instanceData, vectorList->instanceDataCount);
 	dsSharedMaterialValues_destroy(vectorList->instanceValues);
 	DS_VERIFY(dsAllocator_free(itemList->allocator, vectorList->entries));
@@ -478,17 +525,20 @@ static void dsSceneVectorItemList_destroy(dsSceneVectorItemList* vectorList)
 
 const char* const dsSceneVectorItemList_typeName = "VectorItemList";
 
+static dsSceneItemListType itemListType =
+{
+	.addNodeFunc = &dsSceneVectorItemList_addNode,
+	.removeNodeFunc = &dsSceneVectorItemList_removeNode,
+	.preRenderPassFunc = dsSceneVectorItemList_preRenderPass,
+	.commitFunc = &dsSceneVectorItemList_commit,
+	.hashFunc = &dsSceneVectorItemList_hash,
+	.equalFunc = &dsSceneVectorItemList_equal,
+	.destroyFunc = &dsSceneVectorItemList_destroy
+};
+
 const dsSceneItemListType* dsSceneVectorItemList_type(void)
 {
-	static dsSceneItemListType type =
-	{
-		.addNodeFunc = &dsSceneVectorItemList_addNode,
-		.removeNodeFunc = &dsSceneVectorItemList_removeNode,
-		.preRenderPassFunc = dsSceneVectorItemList_preRenderPass,
-		.commitFunc = &dsSceneVectorItemList_commit,
-		.destroyFunc = (dsDestroySceneItemListFunction)&dsSceneVectorItemList_destroy
-	};
-	return &type;
+	return &itemListType;
 }
 
 dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, const char* name,

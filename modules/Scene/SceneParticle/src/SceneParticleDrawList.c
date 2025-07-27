@@ -16,6 +16,7 @@
 
 #include <DeepSea/SceneParticle/SceneParticleDrawList.h>
 
+#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
@@ -76,8 +77,8 @@ typedef struct dsSceneParticleDrawList
 	uint32_t maxInstances;
 } dsSceneParticleDrawList;
 
-static void destroyInstanceData(dsSceneInstanceData* const* instanceData,
-	uint32_t instanceDataCount)
+static void destroyInstanceData(
+	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount)
 {
 	for (uint32_t i = 0; i < instanceDataCount; ++i)
 		dsSceneInstanceData_destroy(instanceData[i]);
@@ -131,6 +132,7 @@ static void setupInstances(dsSceneItemList* itemList, const dsView* view,
 static uint64_t dsSceneParticleDrawList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(treeNode);
 	DS_UNUSED(thisItemData);
 	if (!dsSceneNode_isOfType(node, dsSceneParticleNode_type()))
@@ -199,6 +201,7 @@ static void dsSceneParticleDrawList_removeNode(
 static void dsSceneParticleDrawList_preRenderPass(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(itemList);
 	DS_ASSERT(!itemList->skipPreRenderPass);
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 	setupInstances(itemList, view, commandBuffer);
@@ -208,6 +211,7 @@ static void dsSceneParticleDrawList_preRenderPass(dsSceneItemList* itemList, con
 static void dsSceneParticleDrawList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(itemList);
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
 	dsSceneParticleDrawList* drawList = (dsSceneParticleDrawList*)itemList;
@@ -241,8 +245,47 @@ static void dsSceneParticleDrawList_commit(dsSceneItemList* itemList, const dsVi
 	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
 }
 
+static uint32_t dsSceneParticleDrawList_hash(const dsSceneItemList* itemList, uint32_t commonHash)
+{
+	DS_ASSERT(itemList);
+	const dsSceneParticleDrawList* particleList = (const dsSceneParticleDrawList*)itemList;
+	uint32_t hash = dsHashCombine32(commonHash, &particleList->cullListID);
+	for (uint32_t i = 0; i < particleList->instanceDataCount; ++i)
+		hash = dsSceneInstanceData_hash(particleList->instanceData[i], hash);
+	return hash;
+}
+
+static bool dsSceneParticleDrawList_equal(const dsSceneItemList* left, const dsSceneItemList* right)
+{
+	DS_ASSERT(left);
+	DS_ASSERT(left->type == dsSceneParticleDrawList_type());
+	DS_ASSERT(right);
+	DS_ASSERT(right->type == dsSceneParticleDrawList_type());
+
+	const dsSceneParticleDrawList* leftParticleList = (const dsSceneParticleDrawList*)left;
+	const dsSceneParticleDrawList* rightParticleList = (const dsSceneParticleDrawList*)right;
+
+	if (leftParticleList->cullListID != rightParticleList->cullListID ||
+		leftParticleList->instanceDataCount != rightParticleList->instanceDataCount)
+	{
+		return false;
+	}
+
+	for (uint32_t i = 0; i < leftParticleList->instanceCount; ++i)
+	{
+		if (!dsSceneInstanceData_equal(leftParticleList->instanceData[i],
+				rightParticleList->instanceData[i]))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 static void dsSceneParticleDrawList_destroy(dsSceneItemList* itemList)
 {
+	DS_ASSERT(itemList);
 	dsSceneParticleDrawList* drawList = (dsSceneParticleDrawList*)itemList;
 	DS_VERIFY(dsAllocator_free(itemList->allocator, drawList->entries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, drawList->removeEntries));
@@ -255,17 +298,20 @@ static void dsSceneParticleDrawList_destroy(dsSceneItemList* itemList)
 
 const char* const dsSceneParticleDrawList_typeName = "ParticleDrawList";
 
+static dsSceneItemListType itemListType =
+{
+	.addNodeFunc = &dsSceneParticleDrawList_addNode,
+	.removeNodeFunc = dsSceneParticleDrawList_removeNode,
+	.preRenderPassFunc = dsSceneParticleDrawList_preRenderPass,
+	.commitFunc = &dsSceneParticleDrawList_commit,
+	.hashFunc = &dsSceneParticleDrawList_hash,
+	.equalFunc = &dsSceneParticleDrawList_equal,
+	.destroyFunc = &dsSceneParticleDrawList_destroy
+};
+
 const dsSceneItemListType* dsSceneParticleDrawList_type(void)
 {
-	static dsSceneItemListType type =
-	{
-		.addNodeFunc = &dsSceneParticleDrawList_addNode,
-		.removeNodeFunc = dsSceneParticleDrawList_removeNode,
-		.preRenderPassFunc = dsSceneParticleDrawList_preRenderPass,
-		.commitFunc = &dsSceneParticleDrawList_commit,
-		.destroyFunc = &dsSceneParticleDrawList_destroy
-	};
-	return &type;
+	return &itemListType;
 }
 
 dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const char* name,

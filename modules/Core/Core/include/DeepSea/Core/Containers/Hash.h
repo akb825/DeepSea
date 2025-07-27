@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Aaron Barany
+ * Copyright 2016-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,13 @@ extern "C"
  * These can be passed directly into dsHashTable_initialize(). The exception is dsHashCombine(),
  * which is used to combine two hash values.
  */
+
+/**
+ * @brief Default seed value when computing a hash.
+ *
+ * This may be used with a hash combine function to get the same result as the non-combine version.
+ */
+#define DS_DEFAULT_HASH_SEED 0xc70f6907U
 
 /**
  * @brief Generic hash generation for a list of bytes.

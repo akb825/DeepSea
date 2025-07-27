@@ -137,6 +137,23 @@ static void dsInstanceTransformData_populateData(void* userData, const dsView* v
 	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
+#if DS_HAS_SIMD
+static dsSceneInstanceVariablesType instanceVariablesTypeSIMD =
+{
+	&dsInstanceTransformData_populateDataSIMD
+};
+
+static dsSceneInstanceVariablesType instanceVariablesTypeFMA =
+{
+	&dsInstanceTransformData_populateDataFMA
+};
+#endif
+
+static dsSceneInstanceVariablesType instanceVariablesType =
+{
+	&dsInstanceTransformData_populateData
+};
+
 const char* const dsInstanceTransformData_typeName = "InstanceTransformData";
 
 dsShaderVariableGroupDesc* dsInstanceTransformData_createShaderVariableGroupDesc(
@@ -179,16 +196,15 @@ dsSceneInstanceData* dsInstanceTransformData_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	dsPopulateSceneInstanceVariablesFunction populateFunc;
+	const dsSceneInstanceVariablesType* type;
 #if DS_HAS_SIMD
 	if (DS_SIMD_ALWAYS_FMA || (dsHostSIMDFeatures & dsSIMDFeatures_FMA))
-		populateFunc = &dsInstanceTransformData_populateDataFMA;
+		type = &instanceVariablesTypeFMA;
 	else if (DS_SIMD_ALWAYS_FLOAT4 || (dsHostSIMDFeatures & dsSIMDFeatures_Float4))
-		populateFunc = &dsInstanceTransformData_populateDataSIMD;
+		type = &instanceVariablesTypeSIMD;
 	else
 #endif
-		populateFunc = &dsInstanceTransformData_populateData;
+		type = &instanceVariablesType;
 	return dsSceneInstanceVariables_create(allocator, resourceAllocator, resourceManager,
-		transformDesc, dsUniqueNameID_create(dsInstanceTransformData_typeName), populateFunc, NULL,
-		NULL);
+		transformDesc, dsUniqueNameID_create(dsInstanceTransformData_typeName), type, NULL);
 }

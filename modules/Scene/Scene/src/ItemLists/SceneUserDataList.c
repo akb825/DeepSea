@@ -57,6 +57,7 @@ typedef struct dsSceneUserDataList
 static uint64_t dsSceneUserDataList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(itemData);
 	DS_UNUSED(treeNode);
 	dsSceneUserDataList* userDataList = (dsSceneUserDataList*)itemList;
@@ -84,6 +85,7 @@ static uint64_t dsSceneUserDataList_addNode(dsSceneItemList* itemList, dsSceneNo
 static void dsSceneUserDataList_removeNode(
 	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(treeNode);
 	dsSceneUserDataList* userDataList = (dsSceneUserDataList*)itemList;
 
@@ -111,6 +113,7 @@ static void dsSceneUserDataList_removeNode(
 
 static void dsSceneUserDataList_update(dsSceneItemList* itemList, const dsScene* scene, float time)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(scene);
 	DS_UNUSED(time);
 	dsSceneUserDataList* userDataList = (dsSceneUserDataList*)itemList;
@@ -124,6 +127,7 @@ static void dsSceneUserDataList_update(dsSceneItemList* itemList, const dsScene*
 
 static void dsSceneUserDataList_destroy(dsSceneItemList* itemList)
 {
+	DS_ASSERT(itemList);
 	dsSceneUserDataList* userDataList = (dsSceneUserDataList*)itemList;
 
 	// Handle removed entries before clearing out their user data.
@@ -146,16 +150,17 @@ static void dsSceneUserDataList_destroy(dsSceneItemList* itemList)
 
 const char* const dsSceneUserDataList_typeName = "UserDataList";
 
+static dsSceneItemListType itemListType =
+{
+	.addNodeFunc = &dsSceneUserDataList_addNode,
+	.removeNodeFunc = &dsSceneUserDataList_removeNode,
+	.updateFunc = &dsSceneUserDataList_update,
+	.destroyFunc = &dsSceneUserDataList_destroy
+};
+
 const dsSceneItemListType* dsSceneUserDataList_type(void)
 {
-	static dsSceneItemListType type =
-	{
-		.addNodeFunc = &dsSceneUserDataList_addNode,
-		.removeNodeFunc = &dsSceneUserDataList_removeNode,
-		.updateFunc = &dsSceneUserDataList_update,
-		.destroyFunc = &dsSceneUserDataList_destroy
-	};
-	return &type;
+	return &itemListType;
 }
 
 dsSceneItemList* dsSceneUserDataList_load(const dsSceneLoadContext* loadContext,

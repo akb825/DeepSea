@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Aaron Barany
+ * Copyright 2016-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Assert.h>
 #include <string.h>
-
-#define DEFAULT_SEED 0xc70f6907U
 
 inline static uint32_t rotl32(uint32_t x, int8_t r)
 {
@@ -154,7 +152,7 @@ static uint32_t hashBytes64(uint32_t seed, const void* buffer, size_t size)
 
 uint32_t dsHashBytes(const void* buffer, size_t size)
 {
-	return dsHashCombineBytes(DEFAULT_SEED, buffer, size);
+	return dsHashCombineBytes(DS_DEFAULT_HASH_SEED, buffer, size);
 }
 
 uint32_t dsHashCombineBytesAligned(uint32_t seed, const void* buffer, size_t size)
@@ -503,7 +501,7 @@ uint32_t dsHashIdentity(const void* value)
 uint32_t dsHashString(const void* string)
 {
 	if (!string)
-		return DEFAULT_SEED;
+		return DS_DEFAULT_HASH_SEED;
 
 	return dsHashBytes(string, strlen((const char*)string));
 }
@@ -529,7 +527,7 @@ bool dsHashStringEqual(const void* first, const void* second)
 uint32_t dsHash8(const void* ptr)
 {
 	uint8_t value = ptr ? *(const uint8_t*)ptr : 0;
-	return hashBytesSmall(DEFAULT_SEED, &value, sizeof(uint8_t));
+	return hashBytesSmall(DS_DEFAULT_HASH_SEED, &value, sizeof(uint8_t));
 }
 
 uint32_t dsHashCombine8(uint32_t seed, const void* ptr)
@@ -551,7 +549,7 @@ bool dsHash8Equal(const void* first, const void* second)
 uint32_t dsHash16(const void* ptr)
 {
 	uint16_t value = ptr ? *(const uint16_t*)ptr : 0;
-	return hashBytesSmall(DEFAULT_SEED, &value, sizeof(uint16_t));
+	return hashBytesSmall(DS_DEFAULT_HASH_SEED, &value, sizeof(uint16_t));
 }
 
 uint32_t dsHashCombine16(uint32_t seed, const void* ptr)
@@ -573,7 +571,7 @@ bool dsHash16Equal(const void* first, const void* second)
 uint32_t dsHash32(const void* ptr)
 {
 	uint32_t value = ptr ? *(const uint32_t*)ptr : 0;
-	return hashBytes32(DEFAULT_SEED, &value, sizeof(uint32_t));
+	return hashBytes32(DS_DEFAULT_HASH_SEED, &value, sizeof(uint32_t));
 }
 
 uint32_t dsHashCombine32(uint32_t seed, const void* ptr)
@@ -595,7 +593,7 @@ bool dsHash32Equal(const void* first, const void* second)
 uint32_t dsHash64(const void* ptr)
 {
 	uint64_t value = ptr ? *(const uint64_t*)ptr : 0;
-	return hashBytes64(DEFAULT_SEED, &value, sizeof(uint64_t));
+	return hashBytes64(DS_DEFAULT_HASH_SEED, &value, sizeof(uint64_t));
 }
 
 uint32_t dsHashCombine64(uint32_t seed, const void* ptr)
@@ -678,7 +676,7 @@ uint32_t dsHashFloat(const void* ptr)
 	float value = ptr ? *(const float*)ptr : 0;
 	// Handle -0
 	value = value != 0.0f ? value : 0.0f;
-	return hashBytes32(DEFAULT_SEED, &value, sizeof(uint32_t));
+	return hashBytes32(DS_DEFAULT_HASH_SEED, &value, sizeof(uint32_t));
 }
 
 uint32_t dsHashCombineFloat(uint32_t seed, const void* ptr)
@@ -704,7 +702,7 @@ uint32_t dsHashDouble(const void* ptr)
 	double value = ptr ? *(const double*)ptr : 0;
 	// Handle -0
 	value = value != 0.0 ? value : 0.0;
-	return hashBytes64(DEFAULT_SEED, &value, sizeof(double));
+	return hashBytes64(DS_DEFAULT_HASH_SEED, &value, sizeof(double));
 }
 
 uint32_t dsHashCombineDouble(uint32_t seed, const void* ptr)

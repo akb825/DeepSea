@@ -57,6 +57,7 @@ static dsDrawGeometry* geometry;
 static void dsSceneFullScreenResolve_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(itemList);
 	dsSceneFullScreenResolve* resolve = (dsSceneFullScreenResolve*)itemList;
 	dsDynamicRenderStates* renderStates =
 		resolve->hasRenderStates ? &resolve->renderStates : NULL;
@@ -73,16 +74,61 @@ static void dsSceneFullScreenResolve_commit(dsSceneItemList* itemList, const dsV
 	DS_CHECK(DS_SCENE_LOG_TAG, dsShader_unbind(resolve->shader, commandBuffer));
 }
 
+static uint32_t dsSceneFullScreenResolve_hash(const dsSceneItemList* itemList, uint32_t commonHash)
+{
+	DS_ASSERT(itemList);
+	const dsSceneFullScreenResolve* resolve = (const dsSceneFullScreenResolve*)itemList;
+	const void* ptrs[2] = {resolve->shader, resolve->material};
+	uint32_t hash = dsHashCombineBytes(commonHash, ptrs, sizeof(ptrs));
+	if (resolve->hasRenderStates)
+	{
+		hash = dsHashCombineBytes(commonHash, &resolve->renderStates,
+			sizeof(dsDynamicRenderStates));
+	}
+	return hash;
+}
+
+static bool dsSceneFullScreenResolve_equal(
+	const dsSceneItemList* left, const dsSceneItemList* right)
+{
+	DS_ASSERT(left);
+	DS_ASSERT(left->type == dsSceneFullScreenResolve_type());
+	DS_ASSERT(right);
+	DS_ASSERT(left->type == dsSceneFullScreenResolve_type());
+
+	const dsSceneFullScreenResolve* leftResolve = (const dsSceneFullScreenResolve*)left;
+	const dsSceneFullScreenResolve* rightResolve = (const dsSceneFullScreenResolve*)right;
+	return leftResolve->shader == rightResolve->shader &&
+		leftResolve->material == rightResolve->material &&
+		leftResolve->hasRenderStates == rightResolve->hasRenderStates &&
+		(!leftResolve->hasRenderStates || memcmp(&leftResolve->renderStates,
+			&rightResolve->renderStates, sizeof(dsDynamicRenderStates)) == 0);
+}
+
+static void dsSceneFullScreenResolve_destroy(dsSceneItemList* itemList)
+{
+	DS_ASSERT(itemList);
+	dsSceneFullScreenResolve* resolve = (dsSceneFullScreenResolve*)itemList;
+	if (resolve->geometry)
+		dsSceneFullScreenResolve_destroyGeometry();
+
+	if (itemList->allocator)
+		dsAllocator_free(itemList->allocator, itemList);
+}
+
 const char* const dsSceneFullScreenResolve_typeName = "FullScreenResolve";
+
+static dsSceneItemListType itemListType =
+{
+	.commitFunc = &dsSceneFullScreenResolve_commit,
+	.hashFunc = &dsSceneFullScreenResolve_hash,
+	.equalFunc = &dsSceneFullScreenResolve_equal,
+	.destroyFunc = &dsSceneFullScreenResolve_destroy
+};
 
 const dsSceneItemListType* dsSceneFullScreenResolve_type(void)
 {
-	static dsSceneItemListType type =
-	{
-		.commitFunc = &dsSceneFullScreenResolve_commit,
-		.destroyFunc = (dsDestroySceneItemListFunction)&dsSceneFullScreenResolve_destroy
-	};
-	return &type;
+	return &itemListType;
 }
 
 dsDrawGeometry* dsSceneFullScreenResolve_createGeometry(dsResourceManager* resourceManager)
@@ -210,22 +256,9 @@ dsSceneFullScreenResolve* dsSceneFullScreenResolve_create(dsAllocator* allocator
 	resolve->geometry = dsSceneFullScreenResolve_createGeometry(resourceManager);
 	if (!resolve->geometry)
 	{
-		dsSceneFullScreenResolve_destroy(resolve);
+		dsSceneFullScreenResolve_destroy(itemList);
 		return NULL;
 	}
 
 	return resolve;
-}
-
-void dsSceneFullScreenResolve_destroy(dsSceneFullScreenResolve* resolve)
-{
-	if (!resolve)
-		return;
-
-	if (resolve->geometry)
-		dsSceneFullScreenResolve_destroyGeometry();
-
-	dsSceneItemList* itemList = (dsSceneItemList*)resolve;
-	if (itemList->allocator)
-		dsAllocator_free(itemList->allocator, itemList);
 }

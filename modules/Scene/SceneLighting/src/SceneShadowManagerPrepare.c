@@ -16,6 +16,7 @@
 
 #include <DeepSea/SceneLighting/SceneShadowManagerPrepare.h>
 
+#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -36,27 +37,53 @@ typedef struct dsSceneShadowManagerPrepare
 static void dsSceneShadowManagerPrepare_commit(dsSceneItemList* itemList,
 	const dsView* view, dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(commandBuffer);
 	dsSceneShadowManagerPrepare* prepare = (dsSceneShadowManagerPrepare*)itemList;
 	dsSceneShadowManager_prepare(prepare->shadowManager, view, itemList);
 }
 
+static uint32_t dsSceneShadowManagerPrepare_hash(
+	const dsSceneItemList* itemList, uint32_t commonHash)
+{
+	DS_ASSERT(itemList);
+	const dsSceneShadowManagerPrepare* prepare = (const dsSceneShadowManagerPrepare*)itemList;
+	return dsHashCombinePointer(commonHash, prepare->shadowManager);
+}
+
+static bool dsSceneShadowManagerPrepare_equal(
+	const dsSceneItemList* left, const dsSceneItemList* right)
+{
+	DS_ASSERT(left);
+	DS_ASSERT(left->type == dsSceneShadowManagerPrepare_type());
+	DS_ASSERT(right);
+	DS_ASSERT(right->type == dsSceneShadowManagerPrepare_type());
+
+	const dsSceneShadowManagerPrepare* leftPrepare = (const dsSceneShadowManagerPrepare*)left;
+	const dsSceneShadowManagerPrepare* rightPrepare = (const dsSceneShadowManagerPrepare*)right;
+	return leftPrepare->shadowManager == rightPrepare->shadowManager;
+}
+
 static void dsSceneShadowManagerPrepare_destroy(dsSceneItemList* itemList)
 {
+	DS_ASSERT(itemList);
 	if (itemList->allocator)
 		DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
 
 const char* const dsSceneShadowManagerPrepare_typeName = "ShadowManagerPrepare";
 
+static dsSceneItemListType itemListType =
+{
+	.commitFunc = &dsSceneShadowManagerPrepare_commit,
+	.hashFunc = &dsSceneShadowManagerPrepare_hash,
+	.equalFunc = &dsSceneShadowManagerPrepare_equal,
+	.destroyFunc = &dsSceneShadowManagerPrepare_destroy
+};
+
 const dsSceneItemListType* dsSceneShadowManagerPrepare_type(void)
 {
-	static dsSceneItemListType type =
-	{
-		.commitFunc = &dsSceneShadowManagerPrepare_commit,
-		.destroyFunc = &dsSceneShadowManagerPrepare_destroy
-	};
-	return &type;
+	return &itemListType;
 }
 
 dsSceneItemList* dsSceneShadowManagerPrepare_create(dsAllocator* allocator, const char* name,

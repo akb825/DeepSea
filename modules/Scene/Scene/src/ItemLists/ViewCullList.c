@@ -81,6 +81,7 @@ typedef struct dsViewCullList
 static uint64_t dsViewCullList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(itemData);
 	if (!dsSceneNode_isOfType(node, dsSceneCullNode_type()))
 		return DS_NO_SCENE_NODE;
@@ -125,6 +126,7 @@ static uint64_t dsViewCullList_addNode(dsSceneItemList* itemList, dsSceneNode* n
 static void dsViewCullList_removeNode(
 	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(treeNode);
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
 	if (nodeID < MIN_DYNAMIC_ENTRY_ID)
@@ -177,6 +179,7 @@ DS_SIMD_START(DS_SIMD_FLOAT4)
 static void dsViewCullList_commitSIMD(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(commandBuffer);
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
 	lazyRemoveEntries(cullList);
@@ -209,6 +212,7 @@ DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 static void dsViewCullList_commitFMA(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(commandBuffer);
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
 	lazyRemoveEntries(cullList);
@@ -241,6 +245,7 @@ DS_SIMD_END()
 static void dsViewCullList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(commandBuffer);
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
 	lazyRemoveEntries(cullList);
@@ -270,6 +275,7 @@ static void dsViewCullList_commit(dsSceneItemList* itemList, const dsView* view,
 
 static void dsViewCullList_destroy(dsSceneItemList* itemList)
 {
+	DS_ASSERT(itemList);
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
 	DS_VERIFY(dsAllocator_free(itemList->allocator, cullList->staticEntries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, cullList->removeStaticEntries));
@@ -293,38 +299,42 @@ dsSceneItemList* dsViewCullList_load(const dsSceneLoadContext* loadContext,
 	return dsViewCullList_create(allocator, name);
 }
 
+#if DS_HAS_SIMD
+static dsSceneItemListType itemListTypeSIMD =
+{
+	.addNodeFunc = &dsViewCullList_addNode,
+	.removeNodeFunc = &dsViewCullList_removeNode,
+	.commitFunc = &dsViewCullList_commitSIMD,
+	.destroyFunc = &dsViewCullList_destroy
+};
+
+static dsSceneItemListType itemListTypeFMA =
+{
+	.addNodeFunc = &dsViewCullList_addNode,
+	.removeNodeFunc = &dsViewCullList_removeNode,
+	.commitFunc = &dsViewCullList_commitFMA,
+	.destroyFunc = &dsViewCullList_destroy
+};
+#endif
+
+static dsSceneItemListType itemListType =
+{
+	.addNodeFunc = &dsViewCullList_addNode,
+	.removeNodeFunc = &dsViewCullList_removeNode,
+	.commitFunc = &dsViewCullList_commit,
+	.destroyFunc = &dsViewCullList_destroy
+};
+
 const dsSceneItemListType* dsViewCullList_type(void)
 {
-	static dsSceneItemListType type =
-	{
-		.addNodeFunc = &dsViewCullList_addNode,
-		.removeNodeFunc = &dsViewCullList_removeNode,
-		.commitFunc = &dsViewCullList_commit,
-		.destroyFunc = &dsViewCullList_destroy
-	};
 #if DS_HAS_SIMD
-	static dsSceneItemListType simdType =
-	{
-		.addNodeFunc = &dsViewCullList_addNode,
-		.removeNodeFunc = &dsViewCullList_removeNode,
-		.commitFunc = &dsViewCullList_commitSIMD,
-		.destroyFunc = &dsViewCullList_destroy
-	};
-	static dsSceneItemListType fmaType =
-	{
-		.addNodeFunc = &dsViewCullList_addNode,
-		.removeNodeFunc = &dsViewCullList_removeNode,
-		.commitFunc = &dsViewCullList_commitFMA,
-		.destroyFunc = &dsViewCullList_destroy
-	};
-
 	if (DS_SIMD_ALWAYS_FMA || dsHostSIMDFeatures & dsSIMDFeatures_FMA)
-		return &fmaType;
+		return &itemListTypeFMA;
 	else if (DS_SIMD_ALWAYS_FLOAT4 || dsHostSIMDFeatures & dsSIMDFeatures_Float4)
-		return &simdType;
+		return &itemListTypeSIMD;
 	else
 #endif
-		return &type;
+		return &itemListType;
 }
 
 dsSceneItemList* dsViewCullList_create(dsAllocator* allocator, const char* name)

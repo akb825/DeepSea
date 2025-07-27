@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,22 @@ DS_SCENE_EXPORT dsSceneItemList* dsSceneItemList_load(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, const char* type, const char* name, const void* data,
 	size_t size);
+
+/**
+ * @brief Gets the hash for a scene item list.
+ * @param itemList The list to get the hash for.
+ * @return The hash for the list.
+ */
+DS_SCENE_EXPORT uint32_t dsSceneItemList_hash(const dsSceneItemList* itemList);
+
+/**
+ * @brief Checks whether two item scene lists are equal.
+ * @param left The left hand side.
+ * @param right The right hand side.
+ * @return Whether left and right are equal.
+ */
+DS_SCENE_EXPORT bool dsSceneItemList_equal(
+	const dsSceneItemList* left, const dsSceneItemList* right);
 
 /**
  * @brief Destroys a scene item list.

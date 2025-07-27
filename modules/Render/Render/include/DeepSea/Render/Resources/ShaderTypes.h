@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -446,6 +446,10 @@ typedef struct dsSharedMaterialValues dsSharedMaterialValues;
 
 /**
  * @brief Structure holding render states that can be changed dynamically when binding a shader.
+ *
+ * This should be guaranteed to be a solid block of memory so compares can be done with a single
+ * memcmp().
+ *
  * @see Shader.h
  */
 typedef struct dsDynamicRenderStates

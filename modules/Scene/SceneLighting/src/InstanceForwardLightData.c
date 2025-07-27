@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Aaron Barany
+ * Copyright 2020-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 #include <DeepSea/SceneLighting/InstanceForwardLightData.h>
 
+#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -168,6 +169,23 @@ static void dsInstanceForwardLightData_populateData(void* userData, const dsView
 	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
+uint32_t dsInstanceForwardLightData_hash(const void* userData, uint32_t seed)
+{
+	return dsHashCombinePointer(seed, userData);
+}
+
+bool dsInstanceForwardLightData_equal(const void* left, const void* right)
+{
+	return left == right;
+}
+
+static dsSceneInstanceVariablesType instanceVariablesType =
+{
+	&dsInstanceForwardLightData_populateData,
+	&dsInstanceForwardLightData_hash,
+	&dsInstanceForwardLightData_equal
+};
+
 dsSceneInstanceData* dsInstanceForwardLightData_create(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
 	const dsShaderVariableGroupDesc* lightDesc, const dsSceneLightSet* lightSet)
@@ -189,5 +207,5 @@ dsSceneInstanceData* dsInstanceForwardLightData_create(dsAllocator* allocator,
 
 	return dsSceneInstanceVariables_create(allocator, resourceAllocator, resourceManager, lightDesc,
 		dsUniqueNameID_create(dsInstanceForwardLightData_typeName),
-		&dsInstanceForwardLightData_populateData, (void*)lightSet, NULL);
+		&instanceVariablesType, (void*)lightSet);
 }

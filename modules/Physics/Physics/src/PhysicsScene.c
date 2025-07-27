@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Aaron Barany
+ * Copyright 2023-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #include <DeepSea/Physics/PhysicsScene.h>
 
 #include <DeepSea/Core/Thread/ReadWriteLock.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -57,8 +58,8 @@ dsPhysicsScene* dsPhysicsScene_create(dsPhysicsEngine* engine, dsAllocator* allo
 	return engine->createSceneFunc(engine, allocator, settings, threadPool);
 }
 
-bool dsPhysicsScene_setCombineFrictionFunction(dsPhysicsScene* scene,
-	dsCombineFrictionFunction combineFunc)
+bool dsPhysicsScene_setCombineFrictionFunction(
+	dsPhysicsScene* scene, dsCombineFrictionFunction combineFunc)
 {
 	if (!scene || !scene->engine || !scene->engine->setSceneCombineFrictionFunc || !combineFunc)
 	{
@@ -70,8 +71,8 @@ bool dsPhysicsScene_setCombineFrictionFunction(dsPhysicsScene* scene,
 	return engine->setSceneCombineFrictionFunc(engine, scene, combineFunc);
 }
 
-bool dsPhysicsScene_setCombineRestitutionFunction(dsPhysicsScene* scene,
-	dsCombineRestitutionFunction combineFunc)
+bool dsPhysicsScene_setCombineRestitutionFunction(
+	dsPhysicsScene* scene, dsCombineRestitutionFunction combineFunc)
 {
 	if (!scene || !scene->engine || !scene->engine->setSceneCombineRestitutionFunc || !combineFunc)
 	{

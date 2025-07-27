@@ -92,6 +92,25 @@ DS_SCENE_EXPORT bool dsSceneInstanceData_bindInstance(dsSceneInstanceData* insta
 DS_SCENE_EXPORT bool dsSceneInstanceData_finish(dsSceneInstanceData* instanceData);
 
 /**
+ * @brief Gets the hash for a scene instance data.
+ * @param instanceData The instance data to get the hash for.
+ * @param seed The seed for the hash, useful when this is used as part of a parent object such as
+ *     dsSceneItemList. Set to DS_DEFAULT_HASH_SEED if computing the has in isolation.
+ * @return The hash for the instance data.
+ */
+DS_SCENE_EXPORT uint32_t dsSceneInstanceData_hash(
+	const dsSceneInstanceData* instanceData, uint32_t seed);
+
+/**
+ * @brief Checks whether two item scene instance datas are equal.
+ * @param left The left hand side.
+ * @param right The right hand side.
+ * @return Whether left and right are equal.
+ */
+DS_SCENE_EXPORT bool dsSceneInstanceData_equal(
+	const dsSceneInstanceData* left, const dsSceneInstanceData* right);
+
+/**
  * @brief Destroys a scene instance data object.
  * @remark errno will be set on failure.
  * @param instanceData The instance data to destroy.

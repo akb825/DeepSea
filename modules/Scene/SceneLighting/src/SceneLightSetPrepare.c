@@ -16,6 +16,7 @@
 
 #include <DeepSea/SceneLighting/SceneLightSetPrepare.h>
 
+#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
@@ -79,6 +80,7 @@ static void transformLight(dsSceneLight* light, const dsVector3f* position,
 static uint64_t dsSceneLightSetPrepare_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(itemData);
 	if (!dsSceneNode_isOfType(node, dsSceneLightNode_type()))
 		return DS_NO_SCENE_NODE;
@@ -139,6 +141,7 @@ static uint64_t dsSceneLightSetPrepare_addNode(dsSceneItemList* itemList, dsScen
 static void dsSceneLightSetPrepare_updateNode(
 	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(treeNode);
 	dsSceneLightSetPrepare* prepare = (dsSceneLightSetPrepare*)itemList;
 
@@ -154,6 +157,7 @@ static void dsSceneLightSetPrepare_updateNode(
 static void dsSceneLightSetPrepare_removeNode(
 	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(treeNode);
 	dsSceneLightSetPrepare* prepare = (dsSceneLightSetPrepare*)itemList;
 
@@ -177,9 +181,10 @@ static void dsSceneLightSetPrepare_removeNode(
 	}
 }
 
-static void dsSceneLightSetPrepare_update(dsSceneItemList* itemList, const dsScene* scene,
-	float time)
+static void dsSceneLightSetPrepare_update(
+	dsSceneItemList* itemList, const dsScene* scene, float time)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(scene);
 	DS_UNUSED(time);
 	dsSceneLightSetPrepare* prepare = (dsSceneLightSetPrepare*)itemList;
@@ -193,19 +198,52 @@ static void dsSceneLightSetPrepare_update(dsSceneItemList* itemList, const dsSce
 	dsSceneLightSet_prepare(prepare->lightSet, prepare->intensityThreshold);
 }
 
+static uint32_t dsSceneLightSetPrepare_hash(const dsSceneItemList* itemList, uint32_t commonHash)
+{
+	DS_ASSERT(itemList);
+	const dsSceneLightSetPrepare* prepare = (const dsSceneLightSetPrepare*)itemList;
+	uint32_t hash = dsHashCombinePointer(commonHash, prepare->lightSet);
+	return dsHashCombine32(hash, &prepare->intensityThreshold);
+}
+
+static bool dsSceneLightSetPrepare_equal(const dsSceneItemList* left, const dsSceneItemList* right)
+{
+	DS_ASSERT(left);
+	DS_ASSERT(left->type == dsSceneLightSetPrepare_type());
+	DS_ASSERT(right);
+	DS_ASSERT(right->type == dsSceneLightSetPrepare_type());
+
+	const dsSceneLightSetPrepare* leftPrepare = (const dsSceneLightSetPrepare*)left;
+	const dsSceneLightSetPrepare* rightPrepare = (const dsSceneLightSetPrepare*)right;
+	return leftPrepare->lightSet == rightPrepare->lightSet &&
+		leftPrepare->intensityThreshold == rightPrepare->intensityThreshold;
+}
+
+static void dsSceneLightSetPrepare_destroy(dsSceneItemList* itemList)
+{
+	DS_ASSERT(itemList);
+	dsSceneLightSetPrepare* prepare = (dsSceneLightSetPrepare*)itemList;
+	DS_VERIFY(dsAllocator_free(itemList->allocator, prepare->entries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, prepare->removeEntries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
+}
+
 const char* const dsSceneLightSetPrepare_typeName = "LightSetPrepare";
+
+static dsSceneItemListType itemListType =
+{
+	.addNodeFunc = &dsSceneLightSetPrepare_addNode,
+	.updateNodeFunc = &dsSceneLightSetPrepare_updateNode,
+	.removeNodeFunc = &dsSceneLightSetPrepare_removeNode,
+	.updateFunc = &dsSceneLightSetPrepare_update,
+	.hashFunc = &dsSceneLightSetPrepare_hash,
+	.equalFunc = &dsSceneLightSetPrepare_equal,
+	.destroyFunc = &dsSceneLightSetPrepare_destroy
+};
 
 const dsSceneItemListType* dsSceneLightSetPrepare_type(void)
 {
-	static dsSceneItemListType type =
-	{
-		.addNodeFunc = &dsSceneLightSetPrepare_addNode,
-		.updateNodeFunc = &dsSceneLightSetPrepare_updateNode,
-		.removeNodeFunc = &dsSceneLightSetPrepare_removeNode,
-		.updateFunc = &dsSceneLightSetPrepare_update,
-		.destroyFunc = (dsDestroySceneItemListFunction)&dsSceneLightSetPrepare_destroy
-	};
-	return &type;
+	return &itemListType;
 }
 
 dsSceneLightSetPrepare* dsSceneLightSetPrepare_create(dsAllocator* allocator, const char* name,
@@ -291,15 +329,4 @@ bool dsSceneLightSetPrepare_setIntensityThreshold(dsSceneLightSetPrepare* prepar
 
 	prepare->intensityThreshold = intensityThreshold;
 	return true;
-}
-
-void dsSceneLightSetPrepare_destroy(dsSceneLightSetPrepare* prepare)
-{
-	if (!prepare)
-		return;
-
-	dsSceneItemList* itemList = (dsSceneItemList*)prepare;
-	DS_VERIFY(dsAllocator_free(itemList->allocator, prepare->entries));
-	DS_VERIFY(dsAllocator_free(itemList->allocator, prepare->removeEntries));
-	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }

@@ -51,8 +51,8 @@ DS_SCENEPARTICLE_EXPORT const dsSceneItemListType* dsSceneParticlePrepare_type(v
  * @param name The name of the particle prepare list. This will be copied.
  * @return The particle prepare list or NULL if an error occurred.
  */
-DS_SCENEPARTICLE_EXPORT dsSceneItemList* dsSceneParticlePrepare_create(dsAllocator* allocator,
-	const char* name);
+DS_SCENEPARTICLE_EXPORT dsSceneItemList* dsSceneParticlePrepare_create(
+	dsAllocator* allocator, const char* name);
 
 #ifdef __cplusplus
 }

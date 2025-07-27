@@ -16,6 +16,7 @@
 
 #include "LightData.h"
 
+#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -56,12 +57,15 @@ typedef struct dsLightData
 	dsSceneItemList itemList;
 	dsShaderVariableGroup* variableGroup;
 	dsVector3f direction;
+	dsVector3f color;
+	dsVector3f ambientColor;
 	uint32_t variableGroupNameID;
 } dsLightData;
 
 static void dsLightData_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(itemList);
 	dsLightData* lightData = (dsLightData*)itemList;
 	dsVector4f direction =
 		{{lightData->direction.x, lightData->direction.y, lightData->direction.z, 0.0f}};
@@ -78,8 +82,29 @@ static void dsLightData_commit(dsSceneItemList* itemList, const dsView* view,
 	DS_VERIFY(dsView_unlockGlobalValues(view, itemList));
 }
 
+static uint32_t dsLightData_hash(const dsSceneItemList* itemList, uint32_t commonHash)
+{
+	DS_ASSERT(itemList);
+	const dsLightData* lightData = (dsLightData*)itemList;
+	dsVector3f hashVals[3] = {lightData->direction, lightData->color, lightData->ambientColor};
+	return dsHashCombineBytes(commonHash, hashVals, sizeof(hashVals));
+}
+
+static bool dsLightData_equal(const dsSceneItemList* left, const dsSceneItemList* right)
+{
+	DS_ASSERT(left);
+	DS_ASSERT(right);
+
+	const dsLightData* leftLightData = (const dsLightData*)left;
+	const dsLightData* rightLightData = (const dsLightData*)right;
+	return dsVector3_equal(leftLightData->direction, rightLightData->direction) &&
+		dsVector3_equal(leftLightData->color, rightLightData->color) &&
+		dsVector3_equal(leftLightData->ambientColor, rightLightData->ambientColor);
+}
+
 static void dsLightData_destroy(dsSceneItemList* itemList)
 {
+	DS_ASSERT(itemList);
 	dsLightData* lightData = (dsLightData*)itemList;
 	DS_VERIFY(dsShaderVariableGroup_destroy(lightData->variableGroup));
 
@@ -91,11 +116,13 @@ static dsSceneItemListType createType()
 {
 	dsSceneItemListType type = {};
 	type.commitFunc = &dsLightData_commit;
+	type.hashFunc = &dsLightData_hash;
+	type.equalFunc = &dsLightData_equal;
 	type.destroyFunc = &dsLightData_destroy;
 	return type;
 }
 
-static dsSceneItemListType type = createType();
+static dsSceneItemListType itemListType = createType();
 
 dsSceneItemList* dsLightData_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*, void*,
@@ -162,7 +189,7 @@ dsSceneItemList* dsLightData_create(dsAllocator* allocator, const char* name,
 	dsSceneItemList* itemList = (dsSceneItemList*)lightData;
 
 	itemList->allocator = dsAllocator_keepPointer(allocator);
-	itemList->type = &type;
+	itemList->type = &itemListType;
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);
@@ -199,6 +226,7 @@ void dsLightData_setColor(dsSceneItemList* itemList, const dsVector3f* color)
 	DS_VERIFY(itemList);
 	DS_VERIFY(color);
 	dsLightData* lightData = (dsLightData*)itemList;
+	lightData->color = *color;
 	DS_VERIFY(dsShaderVariableGroup_setElementData(lightData->variableGroup, 1, color,
 		dsMaterialType_Vec3, 0, 1));
 }
@@ -208,6 +236,7 @@ void dsLightData_setAmbientColor(dsSceneItemList* itemList, const dsVector3f* co
 	DS_VERIFY(itemList);
 	DS_VERIFY(color);
 	dsLightData* lightData = (dsLightData*)itemList;
+	lightData->ambientColor = *color;
 	DS_VERIFY(dsShaderVariableGroup_setElementData(lightData->variableGroup, 2, color,
 		dsMaterialType_Vec3, 0, 1));
 }

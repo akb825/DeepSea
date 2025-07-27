@@ -16,6 +16,7 @@
 
 #include <DeepSea/Scene/ViewTransformData.h>
 
+#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -56,6 +57,7 @@ typedef struct dsViewTransformData
 static void dsViewTransformData_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(itemList);
 	dsViewTransformData* viewData = (dsViewTransformData*)itemList;
 	dsRenderer* renderer = commandBuffer->renderer;
 	unsigned int i = 0;
@@ -113,8 +115,30 @@ static void dsViewTransformData_commit(dsSceneItemList* itemList, const dsView* 
 	}
 }
 
+static uint32_t dsViewTransformData_hash(const dsSceneItemList* itemList, uint32_t commonHash)
+{
+	DS_ASSERT(itemList);
+	const dsViewTransformData* viewData = (const dsViewTransformData*)itemList;
+	uint32_t hash = dsHashCombinePointer(commonHash, viewData->variableGroup);
+	return dsHashCombine32(hash, &viewData->nameID);
+}
+
+static bool dsViewTransformData_equal(const dsSceneItemList* left, const dsSceneItemList* right)
+{
+	DS_ASSERT(left);
+	DS_ASSERT(left->type == dsViewTransformData_type());
+	DS_ASSERT(right);
+	DS_ASSERT(right->type == dsViewTransformData_type());
+
+	const dsViewTransformData* leftViewData = (const dsViewTransformData*)left;
+	const dsViewTransformData* rightViewData = (const dsViewTransformData*)right;
+	return leftViewData->variableGroup == rightViewData->variableGroup &&
+		leftViewData->nameID == rightViewData->nameID;
+}
+
 static void dsViewTransformData_destroy(dsSceneItemList* itemList)
 {
+	DS_ASSERT(itemList);
 	dsViewTransformData* viewData = (dsViewTransformData*)itemList;
 	DS_CHECK(DS_SCENE_LOG_TAG, dsShaderVariableGroup_destroy(viewData->variableGroup));
 
@@ -124,14 +148,17 @@ static void dsViewTransformData_destroy(dsSceneItemList* itemList)
 
 const char* const dsViewTransformData_typeName = "ViewTransformData";
 
+static dsSceneItemListType itemListType =
+{
+	.commitFunc = &dsViewTransformData_commit,
+	.hashFunc = &dsViewTransformData_hash,
+	.equalFunc = &dsViewTransformData_equal,
+	.destroyFunc = &dsViewTransformData_destroy
+};
+
 const dsSceneItemListType* dsViewTransformData_type(void)
 {
-	static dsSceneItemListType type =
-	{
-		.commitFunc = &dsViewTransformData_commit,
-		.destroyFunc = &dsViewTransformData_destroy
-	};
-	return &type;
+	return &itemListType;
 }
 
 dsShaderVariableGroupDesc* dsViewTransformData_createShaderVariableGroupDesc(

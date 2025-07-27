@@ -103,6 +103,7 @@ typedef struct dsSceneAnimationList
 static uint64_t dsSceneAnimationList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(itemData);
 	DS_UNUSED(treeNode);
 	dsSceneAnimationList* animationList = (dsSceneAnimationList*)itemList;
@@ -247,6 +248,7 @@ static uint64_t dsSceneAnimationList_addNode(dsSceneItemList* itemList, dsSceneN
 static void dsSceneAnimationList_removeNode(
 	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(treeNode);
 	dsSceneAnimationList* animationList = (dsSceneAnimationList*)itemList;
 	if (nodeID < MIN_TREE_ENTRY_ID)
@@ -331,9 +333,10 @@ static void dsSceneAnimationList_removeNode(
 	}
 }
 
-static void dsSceneAnimationList_preTransformUpdate(dsSceneItemList* itemList, const dsScene* scene,
-	float time)
+static void dsSceneAnimationList_preTransformUpdate(
+	dsSceneItemList* itemList, const dsScene* scene, float time)
 {
+	DS_ASSERT(itemList);
 	DS_UNUSED(scene);
 	dsSceneAnimationList* animationList = (dsSceneAnimationList*)itemList;
 
@@ -387,6 +390,7 @@ static void dsSceneAnimationList_preTransformUpdate(dsSceneItemList* itemList, c
 
 static void dsSceneAnimationList_destroy(dsSceneItemList* itemList)
 {
+	DS_ASSERT(itemList);
 	dsSceneAnimationList* animationList = (dsSceneAnimationList*)itemList;
 
 	// Handle removed entries before destroying their resources.
@@ -427,16 +431,17 @@ dsSceneItemList* dsSceneAnimationList_load(const dsSceneLoadContext* loadContext
 
 const char* const dsSceneAnimationList_typeName = "AnimationList";
 
+static dsSceneItemListType itemListType =
+{
+	.addNodeFunc = &dsSceneAnimationList_addNode,
+	.removeNodeFunc = &dsSceneAnimationList_removeNode,
+	.preTransformUpdateFunc = &dsSceneAnimationList_preTransformUpdate,
+	.destroyFunc = &dsSceneAnimationList_destroy
+};
+
 const dsSceneItemListType* dsSceneAnimationList_type(void)
 {
-	static dsSceneItemListType type =
-	{
-		.addNodeFunc = &dsSceneAnimationList_addNode,
-		.removeNodeFunc = &dsSceneAnimationList_removeNode,
-		.preTransformUpdateFunc = &dsSceneAnimationList_preTransformUpdate,
-		.destroyFunc = &dsSceneAnimationList_destroy
-	};
-	return &type;
+	return &itemListType;
 }
 
 dsSceneAnimationList* dsSceneAnimationList_create(dsAllocator* allocator, const char* name)

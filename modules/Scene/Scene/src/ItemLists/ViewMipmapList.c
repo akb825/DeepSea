@@ -40,6 +40,7 @@ typedef struct dsViewMipmapList
 static void dsViewMipmapList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(itemList);
 	dsViewMipmapList* mipmapList = (dsViewMipmapList*)itemList;
 	for (uint32_t i = 0; i < mipmapList->textureCount; ++i)
 	{
@@ -59,14 +60,15 @@ static void dsViewMipmapList_destroy(dsSceneItemList* itemList)
 
 const char* const dsViewMipmapList_typeName = "ViewMipmapList";
 
+static dsSceneItemListType itemListType =
+{
+	.commitFunc = &dsViewMipmapList_commit,
+	.destroyFunc = &dsViewMipmapList_destroy
+};
+
 const dsSceneItemListType* dsViewMipmapList_type(void)
 {
-	static dsSceneItemListType type =
-	{
-		.commitFunc = &dsViewMipmapList_commit,
-		.destroyFunc = &dsViewMipmapList_destroy
-	};
-	return &type;
+	return &itemListType;
 }
 
 dsSceneItemList* dsViewMipmapList_create(dsAllocator* allocator, const char* name,

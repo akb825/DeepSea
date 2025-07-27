@@ -39,6 +39,10 @@
 #include <MSL/Client/ModuleC.h>
 #include <string.h>
 
+// Ensure no padding for dsDynamicRenderStates.
+_Static_assert(sizeof(dsDynamicRenderStates) == sizeof(uint32_t)*16,
+	"Unexpected sizeof(dsDynamicRenderStates).");
+
 extern const char* dsResourceManager_noContextError;
 
 static const dsShaderVariableElement* findShaderVariableElement(const dsMaterialDesc* materialDesc,
