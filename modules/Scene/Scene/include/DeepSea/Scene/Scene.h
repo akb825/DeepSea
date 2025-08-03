@@ -50,12 +50,16 @@ extern "C"
  * @param pipelineCount The number of pipeline items.
  * @param userData User data to hold with the scene.
  * @param destroyUserDataFunc Function to destroy the user data for the scene.
+ * @param prevScene The previous scene that this scene is intended to replace. If provided, the
+ *     scene nodes will be copied over and any equivalent scene item lists will also keep the
+ *     original instance, saving the time to re-populate the node data and preserving any internal
+ *     state. This will be destroyed, even if creation fails.
  * @return The scene or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	const dsSceneItemLists* sharedItems, uint32_t sharedItemCount,
 	const dsScenePipelineItem* pipeline, uint32_t pipelineCount, void* userData,
-	dsDestroyUserDataFunction destroyUserDataFunc);
+	dsDestroyUserDataFunction destroyUserDataFunc, dsScene* prevScene);
 
 /**
  * @brief Loads a scene from a file.
@@ -67,12 +71,17 @@ DS_SCENE_EXPORT dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* rend
  * @param scratchData The scene scratch data.
  * @param userData User data to hold with the scene.
  * @param destroyUserDataFunc Function to destroy the user data for the scene.
+ * @param prevScene The previous scene that this scene is intended to replace. If provided, the
+ *     scene nodes will be copied over and any equivalent scene item lists will also keep the
+ *     original instance, saving the time to re-populate the node data and preserving any internal
+ *     state. This will be destroyed, even if creation fails.
  * @param filePath The file path for the scene to load.
  * @return The scene or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsScene* dsScene_loadFile(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
-	void* userData, dsDestroyUserDataFunction destroyUserDataFunc, const char* filePath);
+	void* userData, dsDestroyUserDataFunction destroyUserDataFunc, dsScene* prevScene,
+	const char* filePath);
 
 /**
  * @brief Loads a scene from a resource file.
@@ -84,6 +93,10 @@ DS_SCENE_EXPORT dsScene* dsScene_loadFile(dsAllocator* allocator, dsAllocator* r
  * @param scratchData The scene scratch data.
  * @param userData User data to hold with the scene.
  * @param destroyUserDataFunc Function to destroy the user data for the scene.
+ * @param prevScene The previous scene that this scene is intended to replace. If provided, the
+ *     scene nodes will be copied over and any equivalent scene item lists will also keep the
+ *     original instance, saving the time to re-populate the node data and preserving any internal
+ *     state. This will be destroyed, even if creation fails.
  * @param type The resource type.
  * @param filePath The file path for the scene to load.
  * @return The scene or NULL if an error occurred.
@@ -91,7 +104,7 @@ DS_SCENE_EXPORT dsScene* dsScene_loadFile(dsAllocator* allocator, dsAllocator* r
 DS_SCENE_EXPORT dsScene* dsScene_loadResource(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, void* userData,
-	dsDestroyUserDataFunction destroyUserDataFunc, dsFileResourceType type,
+	dsDestroyUserDataFunction destroyUserDataFunc, dsScene* prevScene, dsFileResourceType type,
 	const char* filePath);
 
 /**
@@ -104,6 +117,10 @@ DS_SCENE_EXPORT dsScene* dsScene_loadResource(dsAllocator* allocator,
  * @param scratchData The scene scratch data.
  * @param userData User data to hold with the scene.
  * @param destroyUserDataFunc Function to destroy the user data for the scene.
+ * @param prevScene The previous scene that this scene is intended to replace. If provided, the
+ *     scene nodes will be copied over and any equivalent scene item lists will also keep the
+ *     original instance, saving the time to re-populate the node data and preserving any internal
+ *     state. This will be destroyed, even if creation fails.
  * @param archive The archive to load the scene from.
  * @param filePath The file path for the scene to load.
  * @return The scene or NULL if an error occurred.
@@ -111,7 +128,7 @@ DS_SCENE_EXPORT dsScene* dsScene_loadResource(dsAllocator* allocator,
 DS_SCENE_EXPORT dsScene* dsScene_loadArchive(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, void* userData,
-	dsDestroyUserDataFunction destroyUserDataFunc, const dsFileArchive* archive,
+	dsDestroyUserDataFunction destroyUserDataFunc, dsScene* prevScene, const dsFileArchive* archive,
 	const char* filePath);
 
 /**
@@ -124,12 +141,16 @@ DS_SCENE_EXPORT dsScene* dsScene_loadArchive(dsAllocator* allocator,
  * @param scratchData The scene scratch data.
  * @param userData User data to hold with the scene.
  * @param destroyUserDataFunc Function to destroy the user data for the scene.
+ * @param prevScene The previous scene that this scene is intended to replace. If provided, the
+ *     scene nodes will be copied over and any equivalent scene item lists will also keep the
+ *     original instance, saving the time to re-populate the node data and preserving any internal
+ *     state. This will be destroyed, even if creation fails.
  * @param stream The stream for the scene to load.
  * @return The scene or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsScene* dsScene_loadStream(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, void* userData,
-	dsDestroyUserDataFunction destroyUserDataFunc, dsStream* stream);
+	dsDestroyUserDataFunction destroyUserDataFunc, dsScene* prevScene, dsStream* stream);
 
 /**
  * @brief Loads scene from a data buffer.
@@ -141,13 +162,18 @@ DS_SCENE_EXPORT dsScene* dsScene_loadStream(dsAllocator* allocator, dsAllocator*
  * @param scratchData The scene scratch data.
  * @param userData User data to hold with the scene.
  * @param destroyUserDataFunc Function to destroy the user data for the scene.
+ * @param prevScene The previous scene that this scene is intended to replace. If provided, the
+ *     scene nodes will be copied over and any equivalent scene item lists will also keep the
+ *     original instance, saving the time to re-populate the node data and preserving any internal
+ *     state. This will be destroyed, even if creation fails.
  * @param data The data for the scene. The data isn't used after this call.
  * @param size The size of the data buffer.
  * @return The scene or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsScene* dsScene_loadData(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, void* userData,
-	dsDestroyUserDataFunction destroyUserDataFunc, const void* data, size_t size);
+	dsDestroyUserDataFunction destroyUserDataFunc, dsScene* prevScene, const void* data,
+	size_t size);
 
 /**
  * @brief Gets the allocator used for a scene.

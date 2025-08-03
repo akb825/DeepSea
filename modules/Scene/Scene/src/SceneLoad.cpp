@@ -402,7 +402,7 @@ extern "C"
 dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, const void* data,
 	size_t dataSize, void* userData, dsDestroyUserDataFunction destroyUserDataFunc,
-	const char* fileName)
+	dsScene* prevScene, const char* fileName)
 {
 	flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(data), dataSize);
 	if (!DeepSeaScene::VerifySceneBuffer(verifier))
@@ -533,7 +533,7 @@ dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator
 	}
 
 	scene = dsScene_create(allocator, renderer, sharedItems, sharedItemCount, pipeline,
-		pipelineCount, userData, destroyUserDataFunc);
+		pipelineCount, userData, destroyUserDataFunc, prevScene);
 
 	// Scene creation takes posession of objects, even in failure.
 	sharedItemCount = 0;

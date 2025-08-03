@@ -256,6 +256,46 @@ static bool moveSubtree(dsSceneTreeNode* node, dsSceneNode* child, dsSceneTreeNo
 	return true;
 }
 
+static void moveToScene(
+	dsSceneTreeNode* node, const dsScene* newScene, const dsHashTable* commonItemLists)
+{
+	for (uint32_t i = 0; i < node->node->itemListCount; ++i)
+	{
+		dsSceneItemEntry* entry = node->itemLists + i;
+		if (entry->entry != DS_NO_SCENE_NODE)
+		{
+			DS_ASSERT(entry->list);
+			if (dsHashTable_find(commonItemLists, entry->list))
+				continue;
+
+			dsRemoveSceneItemListNodeFunction removeNodeFunc = entry->list->type->removeNodeFunc;
+			if (removeNodeFunc)
+				removeNodeFunc(entry->list, node, node->itemLists[i].entry);
+		}
+
+		dsSceneItemListNode* foundList = (dsSceneItemListNode*)dsHashTable_find(
+			newScene->itemLists, node->node->itemLists[i]);
+		if (foundList && foundList->list->type->addNodeFunc &&
+			foundList->list->type->removeNodeFunc)
+		{
+			dsSceneItemList* list = foundList->list;
+			dsSceneItemData* itemData = node->itemData.itemData + i;
+			itemData->nameID = list->nameID;
+			entry->list = list;
+			entry->entry = list->type->addNodeFunc(
+				list, node->node, node, &node->itemData, &itemData->data);
+		}
+		else
+		{
+			entry->list = NULL;
+			entry->entry = DS_NO_SCENE_NODE;
+		}
+	}
+
+	for (uint32_t i = 0; i < node->childCount; ++i)
+		moveToScene(node->children[i], newScene, commonItemLists);
+}
+
 static void updateSubtreeRec(dsSceneTreeNode* node)
 {
 	updateTransform(node);
@@ -346,6 +386,43 @@ bool dsSceneTreeNode_reparentSubtree(dsSceneNode* node, dsSceneNode* child, dsSc
 		}
 	}
 
+	return true;
+}
+
+bool dsSceneTreeNode_transferSceneNodes(dsSceneNode* prevRoot, dsSceneNode* newRoot,
+	const dsScene* newScene, const dsHashTable* commonItemLists)
+{
+	DS_ASSERT(newRoot->childCount == 0);
+	if (!DS_RESIZEABLE_ARRAY_ADD(newRoot->allocator, newRoot->children, newRoot->childCount,
+			newRoot->maxChildren, prevRoot->childCount))
+	{
+		return false;
+	}
+
+	DS_ASSERT(prevRoot->treeNodeCount == 1);
+	DS_ASSERT(newRoot->treeNodeCount == 1);
+	dsSceneTreeNode* prevTreeRoot = prevRoot->treeNodes[0];
+	DS_ASSERT(newRoot->treeNodes[0]->childCount == 0);
+	dsSceneTreeNode* newTreeRoot = newRoot->treeNodes[0];
+	if (!DS_RESIZEABLE_ARRAY_ADD(newRoot->allocator, newTreeRoot->children,
+			newTreeRoot->childCount, newTreeRoot->maxChildren, prevTreeRoot->childCount))
+	{
+		return false;
+	}
+
+	for (uint32_t i = 0; i < newRoot->childCount; ++i)
+		newRoot->children[i] = prevRoot->children[i];
+
+	for (uint32_t i = 0; i < newTreeRoot->childCount; ++i)
+	{
+		dsSceneTreeNode* child = prevTreeRoot->children[i];
+		newTreeRoot->children[i] = child;
+		child->parent = newTreeRoot;
+		moveToScene(child, newScene, commonItemLists);
+	}
+
+	prevRoot->childCount = 0;
+	prevTreeRoot->childCount = 0;
 	return true;
 }
 

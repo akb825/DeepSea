@@ -437,7 +437,7 @@ static bool setup(TestParticles* testParticles, dsApplication* application, dsAl
 		scratchData, &testParticles->sceneGraph, 1));
 
 	testParticles->scene = dsScene_loadResource(allocator, NULL, loadContext, scratchData, NULL,
-		NULL, dsFileResourceType_Embedded, "Scene.dss");
+		NULL, NULL, dsFileResourceType_Embedded, "Scene.dss");
 	if (!testParticles->scene)
 	{
 		DS_LOG_ERROR_F("TestParticles", "Couldn't load scene: %s", dsErrorString(errno));

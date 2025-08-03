@@ -470,7 +470,7 @@ static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAl
 		scratchData, &testAnimation->sceneGraph, 1));
 
 	testAnimation->scene = dsScene_loadResource(allocator, NULL, loadContext, scratchData, NULL,
-		NULL, dsFileResourceType_Embedded, "Scene.dss");
+		NULL, NULL, dsFileResourceType_Embedded, "Scene.dss");
 	if (!testAnimation->scene)
 	{
 		DS_LOG_ERROR_F("TestAnimation", "Couldn't load scene: %s", dsErrorString(errno));

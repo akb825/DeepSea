@@ -39,6 +39,8 @@ typedef struct dsSceneItemListNode
 {
 	dsHashTableNode node;
 	dsSceneItemList* list;
+	// Allows updating the original list value when transferring from one scene to another.
+	dsSceneItemList** listPtr;
 } dsSceneItemListNode;
 
 struct dsScene

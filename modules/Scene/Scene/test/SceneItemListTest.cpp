@@ -86,7 +86,7 @@ uint64_t addMockSceneItem(dsSceneItemList* itemList, dsSceneNode* node, dsSceneT
 	if (!dsSceneNode_isOfType(node, &mockSceneNodeType))
 		return DS_NO_SCENE_NODE;
 
-	MockSceneItemList* mockList = (MockSceneItemList*)itemList;
+	auto mockList = reinterpret_cast<MockSceneItemList*>(itemList);
 	uint32_t index = mockList->itemCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, mockList->items, mockList->itemCount,
 			mockList->maxItems, 1))
@@ -101,10 +101,9 @@ uint64_t addMockSceneItem(dsSceneItemList* itemList, dsSceneNode* node, dsSceneT
 	return mockList->nextNodeID++;
 }
 
-void removeMockSceneItem(dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
+void removeMockSceneItem(dsSceneItemList* itemList, dsSceneTreeNode*, uint64_t nodeID)
 {
-	DS_UNUSED(treeNode);
-	MockSceneItemList* mockList = (MockSceneItemList*)itemList;
+	auto mockList = reinterpret_cast<MockSceneItemList*>(itemList);
 
 	uint32_t index = mockList->removeItemCount;
 	if (DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, mockList->removeItems,
@@ -119,10 +118,9 @@ void removeMockSceneItem(dsSceneItemList* itemList, dsSceneTreeNode* treeNode, u
 	}
 }
 
-void updateMockSceneItem(dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID)
+void updateMockSceneItem(dsSceneItemList* itemList, dsSceneTreeNode*, uint64_t nodeID)
 {
-	DS_UNUSED(treeNode);
-	MockSceneItemList* mockList = (MockSceneItemList*)itemList;
+	auto mockList = reinterpret_cast<MockSceneItemList*>(itemList);
 
 	auto item = (ItemInfo*)dsSceneItemListEntries_findEntry(mockList->items,
 		mockList->itemCount, sizeof(ItemInfo), offsetof(ItemInfo, nodeID), nodeID);
@@ -132,7 +130,7 @@ void updateMockSceneItem(dsSceneItemList* itemList, dsSceneTreeNode* treeNode, u
 
 void updateMockSceneItems(dsSceneItemList* itemList, const dsScene*, float)
 {
-	MockSceneItemList* mockList = (MockSceneItemList*)itemList;
+	auto mockList = reinterpret_cast<MockSceneItemList*>(itemList);
 
 	// Lazily remove items.
 	dsSceneItemListEntries_removeMulti(mockList->items, &mockList->itemCount,
@@ -147,7 +145,7 @@ void commitMockSceneItems(dsSceneItemList*, const dsView*, dsCommandBuffer*)
 
 void destroyMockSceneItems(dsSceneItemList* itemList)
 {
-	MockSceneItemList* mockList = (MockSceneItemList*)itemList;
+	auto mockList = reinterpret_cast<MockSceneItemList*>(itemList);
 	EXPECT_TRUE(dsAllocator_free(itemList->allocator, mockList->items));
 	EXPECT_TRUE(dsAllocator_free(itemList->allocator, mockList->removeItems));
 	EXPECT_TRUE(dsAllocator_free(itemList->allocator, itemList));
@@ -220,7 +218,7 @@ public:
 		ASSERT_TRUE(mockSceneItems);
 		dsScenePipelineItem pipelineItem = {nullptr, (dsSceneItemList*)mockSceneItems};
 		scene = dsScene_create((dsAllocator*)&allocator, renderer, nullptr, 0, &pipelineItem, 1,
-			nullptr, nullptr);
+			nullptr, nullptr, nullptr);
 		ASSERT_TRUE(scene);
 	}
 

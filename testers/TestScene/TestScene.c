@@ -309,7 +309,7 @@ static bool setup(TestScene* testScene, dsApplication* application, dsAllocator*
 	}
 
 	testScene->scene = dsScene_loadResource(allocator, NULL, loadContext, scratchData, NULL, NULL,
-		dsFileResourceType_Embedded, "scene.dss");
+		NULL, dsFileResourceType_Embedded, "scene.dss");
 	if (!testScene->scene)
 	{
 		DS_LOG_ERROR_F("TestScene", "Couldn't load scene: %s", dsErrorString(errno));

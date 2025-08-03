@@ -427,7 +427,7 @@ static bool setupLightingScene(dsSceneResources** outShaders, dsSceneResources**
 	DS_VERIFY(dsSceneLoadScratchData_pushSceneResources(scratchData, outSceneGraph, 1));
 
 	*outScene = dsScene_loadArchive(
-		allocator, NULL, loadContext, scratchData, NULL, NULL, archive, sceneFile);
+		allocator, NULL, loadContext, scratchData, NULL, NULL, NULL, archive, sceneFile);
 	if (!*outScene)
 	{
 		DS_LOG_ERROR_F("TestLighting", "Couldn't load scene '%s': %s", sceneFile,

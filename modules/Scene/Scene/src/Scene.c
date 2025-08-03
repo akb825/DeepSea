@@ -164,10 +164,66 @@ static size_t fullAllocSize(uint32_t* outNameCount, uint32_t* outGlobalValueCoun
 		DS_ALIGNED_SIZE(sizeof(dsSceneItemListNode)**outNameCount);
 }
 
-static bool insertSceneList(dsHashTable* hashTable, dsSceneItemListNode* node,
-	dsSceneItemList* list)
+static bool hashPrevItemLists(void** outData, dsHashTable** outHashTable,
+	dsScene* prevScene, dsAllocator* allocator)
 {
+	if (!prevScene)
+		return true;
+
+	size_t itemListCount = prevScene->itemLists->list.length;
+	size_t tableSize = dsHashTable_tableSize(itemListCount);
+	size_t hashTableSize = dsHashTable_fullAllocSize(tableSize);
+	size_t fullSize = DS_ALIGNED_SIZE(itemListCount*sizeof(dsSceneItemListNode)) + hashTableSize;
+	*outData = dsAllocator_alloc(allocator, fullSize);
+	if (!*outData)
+		return false;
+
+	dsBufferAllocator bufferAlloc;
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, *outData, fullSize));
+
+	dsSceneItemListNode* nodes =
+		DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneItemListNode, itemListCount);
+	DS_ASSERT(nodes);
+
+	dsHashTable* hashTable = (dsHashTable*)dsAllocator_alloc(
+		(dsAllocator*)&bufferAlloc, hashTableSize);
+	DS_ASSERT(hashTable);
+	*outHashTable = hashTable;
+	DS_VERIFY(dsHashTable_initialize(hashTable, tableSize, (dsHashFunction)&dsSceneItemList_hash,
+		(dsKeysEqualFunction)&dsSceneItemList_equal));
+
+	dsSceneItemListNode* curNode = nodes;
+	for (dsListNode* node = prevScene->itemLists->list.head; node; node = node->next, ++curNode)
+	{
+		dsSceneItemListNode* itemListNode = (dsSceneItemListNode*)node;
+		curNode->list = itemListNode->list;
+		curNode->listPtr = itemListNode->listPtr;
+		DS_VERIFY(dsHashTable_insert(hashTable, curNode->list, (dsHashTableNode*)curNode, NULL));
+	}
+	return true;
+}
+
+
+static bool insertSceneList(dsHashTable* hashTable, dsSceneItemListNode* node,
+	dsSceneItemList** listPtr, const dsHashTable* prevItemLists)
+{
+	dsSceneItemList* list = *listPtr;
+	if (prevItemLists)
+	{
+		dsSceneItemListNode* prevNode = (dsSceneItemListNode*)dsHashTable_find(prevItemLists, list);
+		if (prevNode)
+		{
+			// Swap with previous list if equivalent found. Clear out the original list pointer to
+			// use later to indicate that the list was replaced.
+			DS_ASSERT(prevNode->listPtr);
+			*prevNode->listPtr = list;
+			prevNode->listPtr = NULL;
+			list = *listPtr = prevNode->list;
+		}
+	}
+
 	node->list = list;
+	node->listPtr = listPtr;
 	if (!dsHashTable_insert(hashTable, list->name, (dsHashTableNode*)node, NULL))
 	{
 		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Scene item list '%s' isn't unique within the scene.",
@@ -178,15 +234,36 @@ static bool insertSceneList(dsHashTable* hashTable, dsSceneItemListNode* node,
 	return true;
 }
 
+static void hashPrevItemListPointers(void* data, dsHashTable* hashTable)
+{
+	DS_ASSERT(data);
+	DS_ASSERT(hashTable);
+
+	size_t itemListCount = hashTable->list.length;
+	dsSceneItemListNode* prevNode = (dsSceneItemListNode*)data;
+	dsHashTableNode* newNode = (dsHashTableNode*)data;
+	DS_VERIFY(dsHashTable_initialize(
+		hashTable, hashTable->tableSize, &dsHashPointer, &dsHashPointerEqual));
+	for (size_t i = 0; i < itemListCount; ++i, ++prevNode)
+	{
+		// Used if the original list pionter was cleared.
+		if (!prevNode->listPtr)
+		{
+			DS_VERIFY(dsHashTable_insert(hashTable, prevNode->list, newNode, NULL));
+			++newNode;
+		}
+	}
+}
+
 dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, const void* data,
 	size_t dataSize, void* userData, dsDestroyUserDataFunction destroyUserDataFunc,
-	const char* fileName);
+	dsScene* prevScene, const char* fileName);
 
 dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	const dsSceneItemLists* sharedItems, uint32_t sharedItemCount,
-	const dsScenePipelineItem* pipeline, uint32_t pipelineCount,
-	void* userData, dsDestroyUserDataFunction destroyUserDataFunc)
+	const dsScenePipelineItem* pipeline, uint32_t pipelineCount, void* userData,
+	dsDestroyUserDataFunction destroyUserDataFunc, dsScene* prevScene)
 {
 	if (!allocator || !renderer || (!sharedItems && sharedItemCount > 0) || !pipeline ||
 		pipelineCount == 0)
@@ -194,6 +271,7 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 		errno = EINVAL;
 		destroyObjects(sharedItems, sharedItemCount, pipeline, pipelineCount, userData,
 			destroyUserDataFunc);
+		dsScene_destroy(prevScene);
 		return NULL;
 	}
 
@@ -203,6 +281,7 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Scene allocator must support freeing memory.");
 		destroyObjects(sharedItems, sharedItemCount, pipeline, pipelineCount, userData,
 			destroyUserDataFunc);
+		dsScene_destroy(prevScene);
 		return NULL;
 	}
 
@@ -214,7 +293,17 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 		errno = EINVAL;
 		destroyObjects(sharedItems, sharedItemCount, pipeline, pipelineCount, userData,
 			destroyUserDataFunc);
+		dsScene_destroy(prevScene);
 		return NULL;
+	}
+
+	void* prevItemListData = NULL;
+	dsHashTable* prevItemLists = NULL;
+	if (!hashPrevItemLists(&prevItemListData, &prevItemLists, prevScene, allocator))
+	{
+		destroyObjects(sharedItems, sharedItemCount, pipeline, pipelineCount, userData,
+			destroyUserDataFunc);
+		dsScene_destroy(prevScene);
 	}
 
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
@@ -222,6 +311,8 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	{
 		destroyObjects(sharedItems, sharedItemCount, pipeline, pipelineCount, userData,
 			destroyUserDataFunc);
+		dsScene_destroy(prevScene);
+		DS_VERIFY(dsAllocator_free(allocator, prevItemListData));
 		return NULL;
 	}
 
@@ -252,7 +343,7 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	scene->rootNode.treeNodes = &scene->rootTreeNodePtr;
 	scene->rootNode.treeNodeCount = 1;
 	scene->rootNode.maxTreeNodes = 1;
-;
+
 	if (sharedItemCount > 0)
 	{
 		scene->sharedItems =
@@ -302,14 +393,17 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	uint32_t curItems = 0;
 	for (uint32_t i = 0; i < sharedItemCount; ++i)
 	{
-		const dsSceneItemLists* itemLists = sharedItems + i;
+		const dsSceneItemLists* itemLists = scene->sharedItems + i;
 		for (uint32_t j = 0; j < itemLists->count; ++j)
 		{
 			dsSceneItemListNode* node = itemNodes + curItems++;
-			if (!insertSceneList(scene->itemLists, node, sharedItems[i].itemLists[j]))
+			if (!insertSceneList(
+					scene->itemLists, node, sharedItems[i].itemLists + j, prevItemLists))
 			{
 				errno = EINVAL;
 				dsScene_destroy(scene);
+				dsScene_destroy(prevScene);
+				DS_VERIFY(dsAllocator_free(allocator, prevItemListData));
 				return NULL;
 			}
 		}
@@ -317,7 +411,7 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 
 	for (uint32_t i = 0; i < pipelineCount; ++i)
 	{
-		const dsScenePipelineItem* item = pipeline  + i;
+		dsScenePipelineItem* item = scene->pipeline  + i;
 		if (item->renderPass)
 		{
 			for (uint32_t j = 0; j < item->renderPass->renderPass->subpassCount; ++j)
@@ -326,10 +420,13 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 				for (uint32_t k = 0; k < items->count; ++k)
 				{
 					dsSceneItemListNode* node = itemNodes + curItems++;
-					if (!insertSceneList(scene->itemLists, node, items->itemLists[k]))
+					if (!insertSceneList(
+							scene->itemLists, node, items->itemLists + k, prevItemLists))
 					{
 						errno = EINVAL;
 						dsScene_destroy(scene);
+						dsScene_destroy(prevScene);
+						DS_VERIFY(dsAllocator_free(allocator, prevItemListData));
 						return NULL;
 					}
 				}
@@ -338,22 +435,41 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 		else
 		{
 			dsSceneItemListNode* node = itemNodes + curItems++;
-			if (!insertSceneList(scene->itemLists, node, item->computeItems))
+			if (!insertSceneList(scene->itemLists, node, &item->computeItems, prevItemLists))
 			{
 				errno = EINVAL;
 				dsScene_destroy(scene);
+				dsScene_destroy(prevScene);
+				DS_VERIFY(dsAllocator_free(allocator, prevItemListData));
 				return NULL;
 			}
 		}
 	}
 	DS_ASSERT(curItems == nameCount);
 
+	if (prevScene)
+	{
+		// Transfer over the nodes. Avoid removing or re-adding entries for item lists that were
+		// kept.
+		hashPrevItemListPointers(prevItemListData, prevItemLists);
+		bool success = dsSceneTreeNode_transferSceneNodes(
+			&prevScene->rootNode, &scene->rootNode, scene, prevItemLists);
+
+		dsScene_destroy(prevScene);
+		DS_VERIFY(dsAllocator_free(allocator, prevItemListData));
+		if (!success)
+		{
+			dsScene_destroy(scene);
+			return false;
+		}
+	}
 	return scene;
 }
 
 dsScene* dsScene_loadFile(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
-	void* userData, dsDestroyUserDataFunction destroyUserDataFunc, const char* filePath)
+	void* userData, dsDestroyUserDataFunction destroyUserDataFunc, dsScene* prevScene,
+	const char* filePath)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -380,15 +496,15 @@ dsScene* dsScene_loadFile(dsAllocator* allocator, dsAllocator* resourceAllocator
 		DS_PROFILE_FUNC_RETURN(NULL);
 
 	dsScene* scene = dsScene_loadImpl(allocator, resourceAllocator, loadContext, scratchData,
-		buffer, size, userData, destroyUserDataFunc, filePath);
+		buffer, size, userData, destroyUserDataFunc, prevScene, filePath);
 	DS_VERIFY(dsSceneLoadScratchData_freeReadBuffer(scratchData, buffer));
 	DS_PROFILE_FUNC_RETURN(scene);
 }
 
 dsScene* dsScene_loadResource(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
-	void* userData, dsDestroyUserDataFunction destroyUserDataFunc, dsFileResourceType type,
-	const char* filePath)
+	void* userData, dsDestroyUserDataFunction destroyUserDataFunc, dsScene* prevScene,
+	dsFileResourceType type, const char* filePath)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -412,15 +528,15 @@ dsScene* dsScene_loadResource(dsAllocator* allocator, dsAllocator* resourceAlloc
 		DS_PROFILE_FUNC_RETURN(NULL);
 
 	dsScene* scene = dsScene_loadImpl(allocator, resourceAllocator, loadContext, scratchData,
-		buffer, size, userData, destroyUserDataFunc, filePath);
+		buffer, size, userData, destroyUserDataFunc, prevScene, filePath);
 	DS_VERIFY(dsSceneLoadScratchData_freeReadBuffer(scratchData, buffer));
 	DS_PROFILE_FUNC_RETURN(scene);
 }
 
 dsScene* dsScene_loadArchive(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
-	void* userData, dsDestroyUserDataFunction destroyUserDataFunc, const dsFileArchive* archive,
-	const char* filePath)
+	void* userData, dsDestroyUserDataFunction destroyUserDataFunc, dsScene* prevScene,
+	const dsFileArchive* archive, const char* filePath)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -444,14 +560,14 @@ dsScene* dsScene_loadArchive(dsAllocator* allocator, dsAllocator* resourceAlloca
 		DS_PROFILE_FUNC_RETURN(NULL);
 
 	dsScene* scene = dsScene_loadImpl(allocator, resourceAllocator, loadContext, scratchData,
-		buffer, size, userData, destroyUserDataFunc, filePath);
+		buffer, size, userData, destroyUserDataFunc, prevScene, filePath);
 	DS_VERIFY(dsSceneLoadScratchData_freeReadBuffer(scratchData, buffer));
 	DS_PROFILE_FUNC_RETURN(scene);
 }
 
 dsScene* dsScene_loadStream(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, void* userData,
-	dsDestroyUserDataFunction destroyUserDataFunc, dsStream* stream)
+	dsDestroyUserDataFunction destroyUserDataFunc, dsScene* prevScene, dsStream* stream)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -467,14 +583,15 @@ dsScene* dsScene_loadStream(dsAllocator* allocator, dsAllocator* resourceAllocat
 		DS_PROFILE_FUNC_RETURN(NULL);
 
 	dsScene* scene = dsScene_loadImpl(allocator, resourceAllocator, loadContext, scratchData,
-		buffer, size, userData, destroyUserDataFunc, NULL);
+		buffer, size, userData, destroyUserDataFunc, prevScene, NULL);
 	DS_VERIFY(dsSceneLoadScratchData_freeReadBuffer(scratchData, buffer));
 	DS_PROFILE_FUNC_RETURN(scene);
 }
 
 dsScene* dsScene_loadData(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, void* userData,
-	dsDestroyUserDataFunction destroyUserDataFunc, const void* data, size_t size)
+	dsDestroyUserDataFunction destroyUserDataFunc, dsScene* prevScene, const void* data,
+	size_t size)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -485,7 +602,7 @@ dsScene* dsScene_loadData(dsAllocator* allocator, dsAllocator* resourceAllocator
 	}
 
 	dsScene* scene = dsScene_loadImpl(allocator, resourceAllocator, loadContext, scratchData, data,
-		size, userData, destroyUserDataFunc, NULL);
+		size, userData, destroyUserDataFunc, prevScene, NULL);
 	DS_PROFILE_FUNC_RETURN(scene);
 }
 

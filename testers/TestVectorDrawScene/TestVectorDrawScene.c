@@ -359,7 +359,7 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 	}
 
 	testVectorDrawScene->scene = dsScene_loadArchive(allocator, NULL, loadContext, scratchData,
-		NULL, NULL, archive, "Scene.dss");
+		NULL, NULL, NULL, archive, "Scene.dss");
 	if (!testVectorDrawScene->scene)
 	{
 		DS_LOG_ERROR_F("TestVectorDrawScene", "Couldn't load scene: %s", dsErrorString(errno));
