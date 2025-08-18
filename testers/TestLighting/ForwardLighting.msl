@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
+#include <DeepSea/Render/Shaders/Shadows/ShadowPCF4x4.mslh>
+#include <DeepSea/Render/Shaders/Shadows/CascadedShadowMap.mslh>
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
+
 #include <DeepSea/SceneLighting/Shaders/ForwardLights.mslh>
 #include <DeepSea/Scene/Shaders/InstanceTransform.mslh>
 #include <DeepSea/Scene/Shaders/ViewTransform.mslh>
-
-#include <DeepSea/Render/Shaders/Shadows/ShadowPCF4x4.mslh>
-#include <DeepSea/Render/Shaders/Shadows/CascadedShadowMap.mslh>
 
 uniform sampler2D diffuseTexture;
 sampler_state diffuseTexture
@@ -52,8 +52,8 @@ sampler_state specularTexture
 	mip_filter = anisotropic;
 }
 
-uniform sampler2DArrayShadow shadowMap;
-sampler_state shadowMap
+uniform sampler2DArrayShadow mainShadows;
+sampler_state mainShadows
 {
 	address_mode_u = clamp_to_edge;
 	address_mode_v = clamp_to_edge;
@@ -112,7 +112,7 @@ void fragmentShader()
 	// Normalize just the original normal as a trdeoff between performance and quality.
 	normal = mat3(vfTangentTexY.xyz, vfBitangent, normalize(vfNormalTexX.xyz))*normal;
 
-	float shadowValue = dsCascadedShadowMap(shadowMap, vfViewPosition,
+	float shadowValue = dsCascadedShadowMap(mainShadows, vfViewPosition,
 		INSTANCE(dsViewTransform).clipSpaceTexCoordTransform);
 
 	vec3 viewDirection = -normalize(vfViewPosition);

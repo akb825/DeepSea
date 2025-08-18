@@ -36,8 +36,8 @@ extern "C"
 /**
  * @brief Creates a view.
  * @remark errno will be set on failure.
+ * @param allocator The allocator for the view. This must support freeing memory.
  * @param scene The scene the view will display.
- * @param allocator The allocator for the view. If NULL, the scene's allocator will be used.
  * @param resourceAllocator The allocator for graphics resources in the view. If NULL, the view's
  *     allocator will be used.
  * @param surfaces The surfaces to use with the view.
@@ -51,7 +51,7 @@ extern "C"
  * @param destroyUserDataFunc Function to destroy the user data for the view.
  * @return The view or NULL if an error occurred.
  */
-DS_SCENE_EXPORT dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
+DS_SCENE_EXPORT dsView* dsView_create(dsAllocator* allocator, const dsScene* scene,
 	dsAllocator* resourceAllocator, const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount,
 	const dsViewFramebufferInfo* framebuffers, uint32_t framebufferCount, uint32_t width,
 	uint32_t height, dsRenderSurfaceRotation rotation, void* userData,
@@ -60,8 +60,8 @@ DS_SCENE_EXPORT dsView* dsView_create(const dsScene* scene, dsAllocator* allocat
 /**
  * @brief Loads a view from a file.
  * @remark errno will be set on failure.
+ * @param allocator The allocator for the view. This must support freeing memory.
  * @param scene The scene the view will display.
- * @param allocator The allocator for the view. If NULL, the scene's allocator will be used.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
  *     the view allocator.
  * @param scratchData The scene scratch data.
@@ -75,7 +75,7 @@ DS_SCENE_EXPORT dsView* dsView_create(const dsScene* scene, dsAllocator* allocat
  * @param filePath The file path for the view to load.
  * @return The view or NULL if an error occurred.
  */
-DS_SCENE_EXPORT dsView* dsView_loadFile(const dsScene* scene, dsAllocator* allocator,
+DS_SCENE_EXPORT dsView* dsView_loadFile(dsAllocator* allocator, const dsScene* scene,
 	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
 	dsRenderSurfaceRotation rotation, void* userData,
@@ -84,8 +84,8 @@ DS_SCENE_EXPORT dsView* dsView_loadFile(const dsScene* scene, dsAllocator* alloc
 /**
  * @brief Loads a view from a resource file.
  * @remark errno will be set on failure.
+ * @param allocator The allocator for the view. This must support freeing memory.
  * @param scene The scene the view will display.
- * @param allocator The allocator for the view. If NULL, the scene's allocator will be used.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
  *     the view allocator.
  * @param scratchData The scene scratch data.
@@ -100,7 +100,7 @@ DS_SCENE_EXPORT dsView* dsView_loadFile(const dsScene* scene, dsAllocator* alloc
  * @param filePath The file path for the view to load.
  * @return The view or NULL if an error occurred.
  */
-DS_SCENE_EXPORT dsView* dsView_loadResource(const dsScene* scene, dsAllocator* allocator,
+DS_SCENE_EXPORT dsView* dsView_loadResource(dsAllocator* allocator, const dsScene* scene,
 	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
 	dsRenderSurfaceRotation rotation, void* userData,
@@ -110,8 +110,8 @@ DS_SCENE_EXPORT dsView* dsView_loadResource(const dsScene* scene, dsAllocator* a
 /**
  * @brief Loads a view from a file within an archive.
  * @remark errno will be set on failure.
+ * @param allocator The allocator for the view. This must support freeing memory.
  * @param scene The scene the view will display.
- * @param allocator The allocator for the view. If NULL, the scene's allocator will be used.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
  *     the view allocator.
  * @param scratchData The scene scratch data.
@@ -126,7 +126,7 @@ DS_SCENE_EXPORT dsView* dsView_loadResource(const dsScene* scene, dsAllocator* a
  * @param filePath The file path for the view to load.
  * @return The view or NULL if an error occurred.
  */
-DS_SCENE_EXPORT dsView* dsView_loadArchive(const dsScene* scene, dsAllocator* allocator,
+DS_SCENE_EXPORT dsView* dsView_loadArchive(dsAllocator* allocator, const dsScene* scene,
 	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
 	dsRenderSurfaceRotation rotation, void* userData,
@@ -136,8 +136,8 @@ DS_SCENE_EXPORT dsView* dsView_loadArchive(const dsScene* scene, dsAllocator* al
 /**
  * @brief Loads view from a stream.
  * @remark errno will be set on failure.
+ * @param allocator The allocator for the view. This must support freeing memory.
  * @param scene The scene the view will display.
- * @param allocator The allocator for the view. If NULL, the scene's allocator will be used.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
  *     the view allocator.
  * @param scratchData The scene scratch data.
@@ -151,7 +151,7 @@ DS_SCENE_EXPORT dsView* dsView_loadArchive(const dsScene* scene, dsAllocator* al
  * @param stream The stream for the view to load.
  * @return The view or NULL if an error occurred.
  */
-DS_SCENE_EXPORT dsView* dsView_loadStream(const dsScene* scene, dsAllocator* allocator,
+DS_SCENE_EXPORT dsView* dsView_loadStream(dsAllocator* allocator, const dsScene* scene,
 	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
 	dsRenderSurfaceRotation rotation, void* userData,
@@ -160,8 +160,8 @@ DS_SCENE_EXPORT dsView* dsView_loadStream(const dsScene* scene, dsAllocator* all
 /**
  * @brief Loads view from a data buffer.
  * @remark errno will be set on failure.
+ * @param allocator The allocator for the view. This must support freeing memory.
  * @param scene The scene the view will display.
- * @param allocator The allocator for the view. If NULL, the scene's allocator will be used.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
  *     the view allocator.
  * @param scratchData The scene scratch data.
@@ -176,11 +176,25 @@ DS_SCENE_EXPORT dsView* dsView_loadStream(const dsScene* scene, dsAllocator* all
  * @param size The size of the data buffer.
  * @return The view or NULL if an error occurred.
  */
-DS_SCENE_EXPORT dsView* dsView_loadData(const dsScene* scene, dsAllocator* allocator,
+DS_SCENE_EXPORT dsView* dsView_loadData(dsAllocator* allocator, const dsScene* scene,
 	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
 	dsRenderSurfaceRotation rotation, void* userData,
 	dsDestroyUserDataFunction destroyUserDataFunc, const void* data, size_t size);
+
+/**
+ * @brief Changes the scene for a view.
+ *
+ * This is safe to call after the scene the view previously used was destroyed, such as when calling
+ * dsScene_create() or dsScene_load*() and passing in the previous scene to replace it.
+ *
+ * @remark errno will be set on failure.
+ * @param view The view to set the scene on.
+ * @param scene The scene to set. This must be compatible with the surfaces and framebuffers the
+ *     view was originally created with.
+ * @return False if the scene couldn't be set.
+ */
+DS_SCENE_EXPORT bool dsView_setScene(dsView* view, const dsScene* scene);
 
 /**
  * @brief Sets the dimensions of the view.
@@ -207,8 +221,8 @@ DS_SCENE_EXPORT bool dsView_setDimensions(dsView* view, uint32_t width, uint32_t
  * @return The surface or NULL if the surface wasn't found. The surface may also be NULL if
  *     dsView_update() was never called.
  */
-DS_SCENE_EXPORT void* dsView_getSurface(dsGfxSurfaceType* outType, const dsView* view,
-	const char* name);
+DS_SCENE_EXPORT void* dsView_getSurface(
+	dsGfxSurfaceType* outType, const dsView* view, const char* name);
 
 /**
  * @brief Sets a surface used within the view.
@@ -225,8 +239,8 @@ DS_SCENE_EXPORT void* dsView_getSurface(dsGfxSurfaceType* outType, const dsView*
  *     was set.
  * @return False if the parameters are invalid.
  */
-DS_SCENE_EXPORT bool dsView_setSurface(dsView* view, const char* name, void* surface,
-	dsGfxSurfaceType surfaceType);
+DS_SCENE_EXPORT bool dsView_setSurface(
+	dsView* view, const char* name, void* surface, dsGfxSurfaceType surfaceType);
 
 /**
  * @brief Sets the camera matrix.
@@ -290,8 +304,8 @@ DS_SCENE_EXPORT bool dsView_setFrustumProjection(dsView* view, float left, float
  * @param far The far plane. This may be INFINITY.
  * @return False if the parameters are invalid.
  */
-DS_SCENE_EXPORT bool dsView_setPerspectiveProjection(dsView* view, float fovy, float near,
-	float far);
+DS_SCENE_EXPORT bool dsView_setPerspectiveProjection(
+	dsView* view, float fovy, float near, float far);
 
 /**
  * @brief Sets the projection parameters.
@@ -316,8 +330,8 @@ DS_SCENE_EXPORT bool dsView_setProjectionParams(dsView* view, const dsProjection
  * @param itemList The item list to lock the global values for.
  * @return The global values or NULL the view or itemList isn't valid to lock the global values.
  */
-DS_SCENE_EXPORT dsSharedMaterialValues* dsView_lockGlobalValues(const dsView* view,
-	const dsSceneItemList* itemList);
+DS_SCENE_EXPORT dsSharedMaterialValues* dsView_lockGlobalValues(
+	const dsView* view, const dsSceneItemList* itemList);
 
 /**
  * @brief Unlocks the global values after modification.
@@ -364,8 +378,8 @@ DS_SCENE_EXPORT bool dsView_update(dsView* view);
  *     without the help of extra threads.
  * @return False if an error occurred.
  */
-DS_SCENE_EXPORT bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer,
-	dsSceneThreadManager* threadManager);
+DS_SCENE_EXPORT bool dsView_draw(
+	dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadManager* threadManager);
 
 /**
  * @brief Destroys a view.

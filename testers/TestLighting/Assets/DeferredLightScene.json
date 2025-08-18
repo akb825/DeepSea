@@ -33,6 +33,13 @@
 			},
 			{
 				"type": "ShadowCullList",
+				"name": "mainShadowCullList1",
+				"shadowManager": "shadowManager",
+				"shadows": "mainShadows",
+				"surface": 1
+			},
+			{
+				"type": "ShadowCullList",
 				"name": "spotShadowCullList",
 				"shadowManager": "shadowManager",
 				"shadows": "spotShadows",
@@ -85,7 +92,7 @@
 	"pipeline":
 	[
 		{
-			"framebuffer": "mainShadowCast",
+			"framebuffer": "mainShadowCast0",
 			"attachments":
 			[
 				{
@@ -105,7 +112,7 @@
 			"subpasses":
 			[
 				{
-					"name": "MainShadowCast",
+					"name": "MainShadowCast0",
 					"colorAttachments": [{"index": 1, "resolve": false}],
 					"depthStencilAttachment": {"index": 0, "resolve": false},
 					"drawLists":
@@ -125,6 +132,52 @@
 							],
 							"sortType": "FrontToBack",
 							"cullList": "mainShadowCullList0"
+						}
+					]
+				}
+			]
+		},
+		{
+			"framebuffer": "mainShadowCast1",
+			"attachments":
+			[
+				{
+					"usage": ["Clear", "KeepAfter"],
+					"format": "D32_Float",
+					"decoration": "Unset",
+					"clearValue": {"depth": 0.0},
+					"samples": 1
+				},
+				{
+					"usage": ["Standard"],
+					"format": "R8G8B8A8",
+					"decoration": "UNorm",
+					"samples": 1
+				}
+			],
+			"subpasses":
+			[
+				{
+					"name": "MainShadowCast1",
+					"colorAttachments": [{"index": 1, "resolve": false}],
+					"depthStencilAttachment": {"index": 0, "resolve": false},
+					"drawLists":
+					[
+						{
+							"type": "ModelList",
+							"name": "mainShadowCastList1",
+							"instanceData":
+							[
+								{
+									"type": "ShadowInstanceTransformData",
+									"shadowManager": "shadowManager",
+									"shadows": "mainShadows",
+									"surface": 1,
+									"variableGroupDesc": "instanceTransformDesc"
+								}
+							],
+							"sortType": "FrontToBack",
+							"cullList": "mainShadowCullList1"
 						}
 					]
 				}
@@ -453,7 +506,7 @@
 			]
 		},
 		{
-			"framebuffer": "window",
+			"framebuffer": "deferredWindow",
 			"attachments":
 			[
 				{
@@ -503,7 +556,7 @@
 					[
 						{
 							"type": "ModelList",
-							"name": "opaqueList",
+							"name": "deferredOpaqueList",
 							"instanceData":
 							[
 								{
@@ -516,7 +569,7 @@
 						},
 						{
 							"type": "ModelList",
-							"name": "groundList",
+							"name": "deferredGroundList",
 							"instanceData":
 							[
 								{
@@ -543,8 +596,8 @@
 							"shadowManager": "shadowManager",
 							"ambient":
 							{
-								"shader": "ambientLightShader",
-								"material": "ambientLightMaterial"
+								"shader": "flatAmbientShader",
+								"material": "flatAmbientMaterial"
 							},
 							"shadowDirectional":
 							{
@@ -563,7 +616,7 @@
 							"shadowSpot":
 							{
 								"shader": "spotLightShader",
-								"material": "directionalLightMaterial",
+								"material": "spotLightMaterial",
 								"transformGroup": "ShadowTransform",
 								"shadowTexture": "shadowMap"
 							}
@@ -578,7 +631,7 @@
 					[
 						{
 							"type": "ModelList",
-							"name": "transparentList",
+							"name": "deferredTransparentList",
 							"instanceData":
 							[
 								{
@@ -612,6 +665,5 @@
 				}
 			]
 		}
-	],
-	"nodes": ["rootNode"]
+	]
 }

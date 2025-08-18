@@ -28,36 +28,22 @@
 				"type": "ShadowCullList",
 				"name": "mainShadowCullList0",
 				"shadowManager": "shadowManager",
-				"shadows": "main",
+				"shadows": "mainShadows",
 				"surface": 0
 			},
 			{
 				"type": "ShadowCullList",
 				"name": "mainShadowCullList1",
 				"shadowManager": "shadowManager",
-				"shadows": "main",
+				"shadows": "mainShadows",
 				"surface": 1
-			},
-			{
-				"type": "ShadowCullList",
-				"name": "mainShadowCullList2",
-				"shadowManager": "shadowManager",
-				"shadows": "main",
-				"surface": 2
-			},
-			{
-				"type": "ShadowCullList",
-				"name": "mainShadowCullList3",
-				"shadowManager": "shadowManager",
-				"shadows": "main",
-				"surface": 3
 			}
 		]
 	],
 	"pipeline":
 	[
 		{
-			"framebuffer": "shadowCast0",
+			"framebuffer": "mainShadowCast0",
 			"attachments":
 			[
 				{
@@ -90,7 +76,7 @@
 								{
 									"type": "ShadowInstanceTransformData",
 									"shadowManager": "shadowManager",
-									"shadows": "main",
+									"shadows": "mainShadows",
 									"surface": 0,
 									"variableGroupDesc": "instanceTransformDesc"
 								}
@@ -103,7 +89,7 @@
 			]
 		},
 		{
-			"framebuffer": "shadowCast1",
+			"framebuffer": "mainShadowCast1",
 			"attachments":
 			[
 				{
@@ -136,7 +122,7 @@
 								{
 									"type": "ShadowInstanceTransformData",
 									"shadowManager": "shadowManager",
-									"shadows": "main",
+									"shadows": "mainShadows",
 									"surface": 1,
 									"variableGroupDesc": "instanceTransformDesc"
 								}
@@ -149,99 +135,7 @@
 			]
 		},
 		{
-			"framebuffer": "shadowCast2",
-			"attachments":
-			[
-				{
-					"usage": ["Clear", "KeepAfter"],
-					"format": "D32_Float",
-					"decoration": "Unset",
-					"clearValue": {"depth": 0.0},
-					"samples": 1
-				},
-				{
-					"usage": ["Standard"],
-					"format": "R8G8B8A8",
-					"decoration": "UNorm",
-					"samples": 1
-				}
-			],
-			"subpasses":
-			[
-				{
-					"name": "MainShadowCast2",
-					"colorAttachments": [{"index": 1, "resolve": false}],
-					"depthStencilAttachment": {"index": 0, "resolve": false},
-					"drawLists":
-					[
-						{
-							"type": "ModelList",
-							"name": "mainShadowCastList2",
-							"instanceData":
-							[
-								{
-									"type": "ShadowInstanceTransformData",
-									"shadowManager": "shadowManager",
-									"shadows": "main",
-									"surface": 2,
-									"variableGroupDesc": "instanceTransformDesc"
-								}
-							],
-							"sortType": "FrontToBack",
-							"cullList": "mainShadowCullList2"
-						}
-					]
-				}
-			]
-		},
-		{
-			"framebuffer": "shadowCast3",
-			"attachments":
-			[
-				{
-					"usage": ["Clear", "KeepAfter"],
-					"format": "D32_Float",
-					"decoration": "Unset",
-					"clearValue": {"depth": 0.0},
-					"samples": 1
-				},
-				{
-					"usage": ["Standard"],
-					"format": "R8G8B8A8",
-					"decoration": "UNorm",
-					"samples": 1
-				}
-			],
-			"subpasses":
-			[
-				{
-					"name": "MainShadowCast3",
-					"colorAttachments": [{"index": 1, "resolve": false}],
-					"depthStencilAttachment": {"index": 0, "resolve": false},
-					"drawLists":
-					[
-						{
-							"type": "ModelList",
-							"name": "mainShadowCastList3",
-							"instanceData":
-							[
-								{
-									"type": "ShadowInstanceTransformData",
-									"shadowManager": "shadowManager",
-									"shadows": "main",
-									"surface": 3,
-									"variableGroupDesc": "instanceTransformDesc"
-								}
-							],
-							"sortType": "FrontToBack",
-							"cullList": "mainShadowCullList3"
-						}
-					]
-				}
-			]
-		},
-		{
-			"framebuffer": "window",
+			"framebuffer": "forwardWindow",
 			"attachments":
 			[
 				{
@@ -279,7 +173,7 @@
 					[
 						{
 							"type": "ModelList",
-							"name": "opaqueList",
+							"name": "forwardOpaqueList",
 							"instanceData":
 							[
 								{
@@ -297,7 +191,7 @@
 						},
 						{
 							"type": "ModelList",
-							"name": "groundList",
+							"name": "forwardGroundList",
 							"instanceData":
 							[
 								{
@@ -315,7 +209,7 @@
 						},
 						{
 							"type": "ModelList",
-							"name": "transparentList",
+							"name": "forwardTransparentList",
 							"instanceData":
 							[
 								{
@@ -334,13 +228,12 @@
 						{
 							"type": "FullScreenResolve",
 							"name": "sRGBResolve",
-							"shader": "sRGBShader",
+							"shader": "forwardSRGBShader",
 							"material": "sRGBMaterial"
 						}
 					]
 				}
 			]
 		}
-	],
-	"nodes": ["rootNode"]
+	]
 }

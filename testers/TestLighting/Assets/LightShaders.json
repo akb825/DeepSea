@@ -1,0 +1,333 @@
+[
+	{
+		"type": "MaterialDesc",
+		"name": "flatAmbientMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "materialColor",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			}
+		]
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "ssaoAmbientMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "materialColor",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "ssao",
+				"type": "Texture",
+				"binding": "Global"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			}
+		]
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "directionalLightMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "materialColor",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "normalSpecular",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "surfaceDepth",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			},
+			{
+				"name": "ShadowTransform",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "cascadedDirectionalShadowTransformDesc"
+			},
+			{
+				"name": "shadowMap",
+				"type": "Texture",
+				"binding": "Instance"
+			}
+		]
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "spotLightMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "materialColor",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "normalSpecular",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "surfaceDepth",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			},
+			{
+				"name": "ShadowTransform",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "directionalShadowTransformDesc"
+			},
+			{
+				"name": "shadowMap",
+				"type": "Texture",
+				"binding": "Instance"
+			}
+		]
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "pointLightMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "materialColor",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "normalSpecular",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "surfaceDepth",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			},
+			{
+				"name": "ShadowTransform",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "pointShadowTransformDesc"
+			},
+			{
+				"name": "shadowMap",
+				"type": "Texture",
+				"binding": "Instance"
+			}
+		]
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "sRGBMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "mainColor",
+				"type": "SubpassInput",
+				"binding": "Global"
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "flatAmbientMaterial",
+		"description": "flatAmbientMaterialDesc"
+	},
+	{
+		"type": "Material",
+		"name": "ssaoAmbientMaterial",
+		"description": "ssaoAmbientMaterialDesc"
+	},
+	{
+		"type": "Material",
+		"name": "directionalLightMaterial",
+		"description": "directionalLightMaterialDesc"
+	},
+	{
+		"type": "Material",
+		"name": "spotLightMaterial",
+		"description": "spotLightMaterialDesc"
+	},
+	{
+		"type": "Material",
+		"name": "pointLightMaterial",
+		"description": "pointLightMaterialDesc"
+	},
+	{
+		"type": "Material",
+		"name": "ssaoPrepassMaterial",
+		"description": "ssaoPrepassMaterialDesc"
+	},
+	{
+		"type": "Material",
+		"name": "computeSSAOMaterial",
+		"description": "computeSSAOMaterialDesc"
+	},
+	{
+		"type": "Material",
+		"name": "sRGBMaterial",
+		"description": "sRGBMaterialDesc"
+	},
+	{
+		"type": "ShaderModule",
+		"name": "glassShaderModule",
+		"modules": @glassShaderModule@
+	},
+	{
+		"type": "Shader",
+		"name": "forwardGlassShader",
+		"module": "glassShaderModule",
+		"pipeline": "Glass",
+		"materialDesc": "glassMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "deferredGlassShader",
+		"module": "glassShaderModule",
+		"pipeline": "Glass",
+		"materialDesc": "glassMaterialDesc"
+	},
+	{
+		"type": "ShaderModule",
+		"name": "sRGBShaderModule",
+		"modules": @sRGBShaderModule@
+	},
+	{
+		"type": "Shader",
+		"name": "sRGBShader",
+		"module": "sRGBShaderModule",
+		"pipeline": "sRGB",
+		"materialDesc": "sRGBMaterialDesc"
+	},
+	{
+		"type": "ShaderModule",
+		"name": "forwardLightShaderModule",
+		"modules": @forwardLightShaderModule@
+	},
+	{
+		"type": "Shader",
+		"name": "forwardModelShader",
+		"module": "forwardLightShaderModule",
+		"pipeline": "ForwardLight",
+		"materialDesc": "forwardModelMaterialDesc"
+	},
+	{
+		"type": "ShaderModule",
+		"name": "deferredLightShaderModule",
+		"modules": @deferredLightShaderModule@
+	},
+	{
+		"type": "Shader",
+		"name": "deferredModelShader",
+		"module": "deferredLightShaderModule",
+		"pipeline": "GBuffers",
+		"materialDesc": "deferredModelMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "directionalLightShader",
+		"module": "deferredLightShaderModule",
+		"pipeline": "DirectionalLight",
+		"materialDesc": "directionalLightMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "pointLightShader",
+		"module": "deferredLightShaderModule",
+		"pipeline": "PointLight",
+		"materialDesc": "pointLightMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "spotLightShader",
+		"module": "deferredLightShaderModule",
+		"pipeline": "SpotLight",
+		"materialDesc": "spotLightMaterialDesc"
+	},
+	{
+		"type": "ShaderModule",
+		"name": "flatAmbientShaderModule",
+		"modules": @flatAmbientShaderModule@
+	},
+	{
+		"type": "Shader",
+		"name": "flatAmbientShader",
+		"module": "flatAmbientShaderModule",
+		"pipeline": "AmbientLight",
+		"materialDesc": "flatAmbientMaterialDesc"
+	},
+	{
+		"type": "ShaderModule",
+		"name": "ssaoShaderModule",
+		"modules": @ssaoShaderModule@
+	},
+	{
+		"type": "Shader",
+		"name": "ssaoPrepassShader",
+		"module": "ssaoShaderModule",
+		"pipeline": "SSAOPrepass",
+		"materialDesc": "ssaoPrepassMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "computeSSAOShader",
+		"module": "ssaoShaderModule",
+		"pipeline": "SSAO",
+		"materialDesc": "computeSSAOMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "ssaoModelShader",
+		"module": "ssaoShaderModule",
+		"pipeline": "GBuffers",
+		"materialDesc": "deferredModelMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "ssaoAmbientShader",
+		"module": "ssaoShaderModule",
+		"pipeline": "AmbientLight",
+		"materialDesc": "ssaoAmbientMaterialDesc"
+	}
+]

@@ -453,7 +453,7 @@ static bool setup(TestParticles* testParticles, dsApplication* application, dsAl
 	viewSurface.surface = surface;
 	viewSurface.windowFramebuffer = true;
 
-	testParticles->view = dsView_loadResource(testParticles->scene, allocator, NULL, scratchData,
+	testParticles->view = dsView_loadResource(allocator, testParticles->scene, NULL, scratchData,
 		&viewSurface, 1, surface->width, surface->height, surface->rotation, NULL, NULL,
 		dsFileResourceType_Embedded, "View.dsv");
 	if (!testParticles->view)

@@ -11,14 +11,24 @@
 				"modelLists":
 				[
 					{
-						"shader": "prepassShader",
-						"material": "prepassMaterial",
-						"list": "prepassList"
+						"shader": "ssaoPrepassShader",
+						"material": "ssaoPrepassMaterial",
+						"list": "ssaoPrepassList"
 					},
 					{
-						"shader": "defaultModelShader",
-						"material": "grassMaterial",
-						"list": "groundList"
+						"shader": "forwardModelShader",
+						"material": "forwardGrassMaterial",
+						"list": "forwardGroundList"
+					},
+					{
+						"shader": "deferredModelShader",
+						"material": "deferredGrassMaterial",
+						"list": "deferredGroundList"
+					},
+					{
+						"shader": "ssaoModelShader",
+						"material": "deferredGrassMaterial",
+						"list": "ssaoGroundList"
 					}
 				]
 			}
@@ -37,14 +47,24 @@
 				"modelLists":
 				[
 					{
-						"shader": "prepassShader",
-						"material": "prepassMaterial",
-						"list": "prepassList"
+						"shader": "ssaoPrepassShader",
+						"material": "ssaoPrepassMaterial",
+						"list": "ssaoPrepassList"
 					},
 					{
-						"shader": "defaultModelShader",
-						"material": "brickMaterial",
-						"list": "opaqueList"
+						"shader": "forwardModelShader",
+						"material": "forwardBrickMaterial",
+						"list": "forwardOpaqueList"
+					},
+					{
+						"shader": "deferredModelShader",
+						"material": "deferredBrickMaterial",
+						"list": "deferredOpaqueList"
+					},
+					{
+						"shader": "ssaoModelShader",
+						"material": "deferredBrickMaterial",
+						"list": "ssaoOpaqueList"
 					},
 					{
 						"shader": "shadowCastShader",
@@ -109,8 +129,6 @@
 			"cullList",
 			"mainShadowCullList0",
 			"mainShadowCullList1",
-			"mainShadowCullList2",
-			"mainShadowCullList3",
 			"spotShadowCullList",
 			"pointShadowCullList0",
 			"pointShadowCullList1",
@@ -132,14 +150,24 @@
 				"modelLists":
 				[
 					{
-						"shader": "prepassShader",
-						"material": "prepassMaterial",
-						"list": "prepassList"
+						"shader": "ssaoPrepassShader",
+						"material": "ssaoPrepassMaterial",
+						"list": "ssaoPrepassList"
 					},
 					{
-						"shader": "defaultModelShader",
-						"material": "concreteMaterial",
-						"list": "opaqueList"
+						"shader": "forwardModelShader",
+						"material": "forwardConcreteMaterial",
+						"list": "forwardOpaqueList"
+					},
+					{
+						"shader": "deferredModelShader",
+						"material": "deferredConcreteMaterial",
+						"list": "deferredOpaqueList"
+					},
+					{
+						"shader": "ssaoModelShader",
+						"material": "deferredConcreteMaterial",
+						"list": "ssaoOpaqueList"
 					},
 					{
 						"shader": "shadowCastShader",
@@ -204,8 +232,6 @@
 			"cullList",
 			"mainShadowCullList0",
 			"mainShadowCullList1",
-			"mainShadowCullList2",
-			"mainShadowCullList3",
 			"spotShadowCullList",
 			"pointShadowCullList0",
 			"pointShadowCullList1",
@@ -227,9 +253,14 @@
 				"modelLists":
 				[
 					{
-						"shader": "glassShader",
-						"material": "glassMaterial",
-						"list": "transparentList"
+						"shader": "forwardGlassShader",
+						"material": "forwardGlassMaterial",
+						"list": "forwardTransparentList"
+					},
+					{
+						"shader": "deferredGlassShader",
+						"material": "deferredGlassMaterial",
+						"list": "deferredTransparentList"
 					}
 				]
 			}
@@ -248,14 +279,24 @@
 				"modelLists":
 				[
 					{
-						"shader": "prepassShader",
-						"material": "prepassMaterial",
-						"list": "prepassList"
+						"shader": "ssaoPrepassShader",
+						"material": "ssaoPrepassMaterial",
+						"list": "ssaoPrepassList"
 					},
 					{
-						"shader": "defaultModelShader",
-						"material": "marbleMaterial",
-						"list": "opaqueList"
+						"shader": "forwardModelShader",
+						"material": "forwardMarbleMaterial",
+						"list": "forwardOpaqueList"
+					},
+					{
+						"shader": "deferredModelShader",
+						"material": "deferredMarbleMaterial",
+						"list": "deferredOpaqueList"
+					},
+					{
+						"shader": "ssaoModelShader",
+						"material": "deferredMarbleMaterial",
+						"list": "ssaoOpaqueList"
 					},
 					{
 						"shader": "shadowCastShader",
@@ -320,8 +361,6 @@
 			"cullList",
 			"mainShadowCullList0",
 			"mainShadowCullList1",
-			"mainShadowCullList2",
-			"mainShadowCullList3",
 			"spotShadowCullList",
 			"pointShadowCullList0",
 			"pointShadowCullList1",

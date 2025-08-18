@@ -68,6 +68,15 @@
 			"windowFramebuffer": true
 		},
 		{
+			"name": "mainDepth",
+			"type": "Renderbuffer",
+			"format": "D32_Float",
+			"decoration": "Unset",
+			"samples": 1,
+			"resolve": false,
+			"windowFramebuffer": true
+		},
+		{
 			"name": "mainShadows",
 			"type": "Offscreen",
 			"usage": ["Texture"],
@@ -75,6 +84,7 @@
 			"decoration": "Unset",
 			"width": 1024,
 			"height": 1024,
+			"depth": 2,
 			"samples": 1,
 			"resolve": false,
 			"windowFramebuffer": false
@@ -145,7 +155,16 @@
 			]
 		},
 		{
-			"name": "window",
+			"name": "forwardWindow",
+			"surfaces":
+			[
+				{"name": "mainColor"},
+				{"name": "mainDepth"},
+				{"name": "windowColor"}
+			]
+		},
+		{
+			"name": "deferredWindow",
 			"surfaces":
 			[
 				{"name": "surfaceDepth"},
@@ -157,12 +176,22 @@
 			]
 		},
 		{
-			"name": "mainShadowCast",
+			"name": "mainShadowCast0",
 			"width": 1024,
 			"height": 1024,
 			"surfaces":
 			[
-				{"name": "mainShadows"},
+				{"name": "mainShadows", "layer": 0},
+				{"name": "shadowColorBuffer"}
+			]
+		},
+		{
+			"name": "mainShadowCast1",
+			"width": 1024,
+			"height": 1024,
+			"surfaces":
+			[
+				{"name": "mainShadows", "layer": 1},
 				{"name": "shadowColorBuffer"}
 			]
 		},

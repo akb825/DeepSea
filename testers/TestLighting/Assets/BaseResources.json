@@ -366,11 +366,6 @@
 		}
 	},
 	{
-		"type": "ShaderModule",
-		"name": "shadowCastShaderModule",
-		"modules": @shadowCastShaderModule@
-	},
-	{
 		"type": "ShaderVariableGroupDesc",
 		"name": "directionalShadowTransformDesc",
 		"elements":
@@ -474,6 +469,158 @@
 		]
 	},
 	{
+		"type": "MaterialDesc",
+		"name": "forwardModelMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"binding": "Material"
+			},
+			{
+				"name": "normalTexture",
+				"type": "Texture",
+				"binding": "Material"
+			},
+			{
+				"name": "specularTexture",
+				"type": "Texture",
+				"binding": "Material"
+			},
+			{
+				"name": "mainShadows",
+				"type": "Texture",
+				"binding": "Global"
+			},
+			{
+				"name": "shininess",
+				"type": "Float",
+				"binding": "Material"
+			},
+			{
+				"name": "InstanceTransformData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceTransformDesc"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			},
+			{
+				"name": "InstanceForwardLightData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceForwardLightDesc"
+			},
+			{
+				"name": "ShadowTransform",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "cascadedDirectionalShadowTransformDesc"
+			}
+		]
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "deferredModelMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"binding": "Material"
+			},
+			{
+				"name": "normalTexture",
+				"type": "Texture",
+				"binding": "Material"
+			},
+			{
+				"name": "specularTexture",
+				"type": "Texture",
+				"binding": "Material"
+			},
+			{
+				"name": "shininess",
+				"type": "Float",
+				"binding": "Material"
+			},
+			{
+				"name": "InstanceTransformData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceTransformDesc"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			}
+		]
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "ssaoPrepassMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "InstanceTransformData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceTransformDesc"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			}
+		]
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "computeSSAOMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "prepassNormal",
+				"type": "Texture",
+				"binding": "Global"
+			},
+			{
+				"name": "surfaceDepth",
+				"type": "Texture",
+				"binding": "Global"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			},
+			{
+				"name": "RandomOffsets",
+				"type": "UniformBlock",
+				"binding": "Material"
+			},
+			{
+				"name": "randomRotations",
+				"type": "Texture",
+				"binding": "Material"
+			}
+		]
+	},
+	{
+		"type": "ShaderModule",
+		"name": "shadowCastShaderModule",
+		"modules": @shadowCastShaderModule@
+	},
+	{
 		"type": "Shader",
 		"name": "shadowCastShader",
 		"module": "shadowCastShaderModule",
@@ -483,6 +630,273 @@
 	{
 		"type": "Material",
 		"name": "shadowCastMaterial",
+		"description": "shadowCastMaterialDesc"
+	},
+	{
+		"type": "Material",
+		"name": "forwardGrassMaterial",
+		"description": "forwardModelMaterialDesc",
+		"data":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"data": "grassColor"
+			},
+			{
+				"name": "normalTexture",
+				"type": "Texture",
+				"data": "grassNormal"
+			},
+			{
+				"name": "specularTexture",
+				"type": "Texture",
+				"data": "grassSpecular"
+			},
+			{
+				"name": "shininess",
+				"type": "Float",
+				"data": 20
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "deferredGrassMaterial",
+		"description": "deferredModelMaterialDesc",
+		"data":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"data": "grassColor"
+			},
+			{
+				"name": "normalTexture",
+				"type": "Texture",
+				"data": "grassNormal"
+			},
+			{
+				"name": "specularTexture",
+				"type": "Texture",
+				"data": "grassSpecular"
+			},
+			{
+				"name": "shininess",
+				"type": "Float",
+				"data": 20
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "forwardBrickMaterial",
+		"description": "forwardModelMaterialDesc",
+		"data":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"data": "brickColor"
+			},
+			{
+				"name": "normalTexture",
+				"type": "Texture",
+				"data": "brickNormal"
+			},
+			{
+				"name": "specularTexture",
+				"type": "Texture",
+				"data": "brickSpecular"
+			},
+			{
+				"name": "shininess",
+				"type": "Float",
+				"data": 50
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "deferredBrickMaterial",
+		"description": "deferredModelMaterialDesc",
+		"data":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"data": "brickColor"
+			},
+			{
+				"name": "normalTexture",
+				"type": "Texture",
+				"data": "brickNormal"
+			},
+			{
+				"name": "specularTexture",
+				"type": "Texture",
+				"data": "brickSpecular"
+			},
+			{
+				"name": "shininess",
+				"type": "Float",
+				"data": 50
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "forwardConcreteMaterial",
+		"description": "forwardModelMaterialDesc",
+		"data":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"data": "concreteColor"
+			},
+			{
+				"name": "normalTexture",
+				"type": "Texture",
+				"data": "concreteNormal"
+			},
+			{
+				"name": "specularTexture",
+				"type": "Texture",
+				"data": "concreteSpecular"
+			},
+			{
+				"name": "shininess",
+				"type": "Float",
+				"data": 50
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "deferredConcreteMaterial",
+		"description": "deferredModelMaterialDesc",
+		"data":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"data": "concreteColor"
+			},
+			{
+				"name": "normalTexture",
+				"type": "Texture",
+				"data": "concreteNormal"
+			},
+			{
+				"name": "specularTexture",
+				"type": "Texture",
+				"data": "concreteSpecular"
+			},
+			{
+				"name": "shininess",
+				"type": "Float",
+				"data": 50
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "forwardMarbleMaterial",
+		"description": "forwardModelMaterialDesc",
+		"data":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"data": "marbleColor"
+			},
+			{
+				"name": "normalTexture",
+				"type": "Texture",
+				"data": "marbleNormal"
+			},
+			{
+				"name": "specularTexture",
+				"type": "Texture",
+				"data": "marbleSpecular"
+			},
+			{
+				"name": "shininess",
+				"type": "Float",
+				"data": 50
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "deferredMarbleMaterial",
+		"description": "deferredModelMaterialDesc",
+		"data":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"data": "marbleColor"
+			},
+			{
+				"name": "normalTexture",
+				"type": "Texture",
+				"data": "marbleNormal"
+			},
+			{
+				"name": "specularTexture",
+				"type": "Texture",
+				"data": "marbleSpecular"
+			},
+			{
+				"name": "shininess",
+				"type": "Float",
+				"data": 50
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "forwardGlassMaterial",
+		"description": "glassMaterialDesc",
+		"data":
+		[
+			{
+				"name": "color",
+				"type": "Vec4",
+				"data": [1.0, 1.0, 1.0, 0.1],
+				"srgb": true
+			},
+			{
+				"name": "shininess",
+				"type": "Float",
+				"data": 80
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "deferredGlassMaterial",
+		"description": "glassMaterialDesc",
+		"data":
+		[
+			{
+				"name": "color",
+				"type": "Vec4",
+				"data": [1.0, 1.0, 1.0, 0.1],
+				"srgb": true
+			},
+			{
+				"name": "shininess",
+				"type": "Float",
+				"data": 80
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "deferredPrepassMaterial",
 		"description": "shadowCastMaterialDesc"
 	},
 	{
@@ -520,5 +934,37 @@
 		"ambientIntensity": 0.2,
 		"mainLight": "sun",
 		"srgb": true
+	},
+	{
+		"type": "ShadowManager",
+		"name": "shadowManager",
+		"lightSet": "lightSet",
+		"shadows":
+		[
+			{
+				"name": "mainShadows",
+				"lightType": "Directional",
+				"light": "sun",
+				"transformGroupDesc": "cascadedDirectionalShadowTransformDesc",
+				"transformGroupName": "ShadowTransform",
+				"maxCascades": 2,
+				"maxFirstSplitDistance": 10,
+				"minDepthRanges": 50
+			},
+			{
+				"name": "spotShadows",
+				"lightType": "Spot",
+				"light": "mainSpot",
+				"transformGroupDesc": "directionalShadowTransformDesc",
+				"minDepthRanges": 50
+			},
+			{
+				"name": "pointShadows",
+				"lightType": "Point",
+				"light": "center",
+				"transformGroupDesc": "pointShadowTransformDesc",
+				"minDepthRanges": 50
+			}
+		]
 	}
 ]

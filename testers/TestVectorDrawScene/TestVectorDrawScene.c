@@ -377,7 +377,7 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 	viewSurface.surface = surface;
 	viewSurface.windowFramebuffer = true;
 
-	testVectorDrawScene->view = dsView_loadArchive(testVectorDrawScene->scene, allocator, NULL,
+	testVectorDrawScene->view = dsView_loadArchive(allocator, testVectorDrawScene->scene, NULL,
 		scratchData, &viewSurface, 1, surface->width, surface->height, surface->rotation, NULL,
 		NULL, archive, "View.dsv");
 	dsFileArchive_close(archive);

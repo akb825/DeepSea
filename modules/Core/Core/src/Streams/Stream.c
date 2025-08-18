@@ -22,7 +22,6 @@
 
 size_t dsStream_read(dsStream* stream, void* data, size_t size);
 
-
 void* dsStream_readUntilEnd(size_t* outSize, dsStream* stream, dsAllocator* allocator)
 {
 	void* buffer = NULL;

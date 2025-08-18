@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Aaron Barany
+ * Copyright 2020-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,7 +98,7 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::Surface>* fbSurfa
 }
 
 extern "C"
-dsView* dsView_loadImpl(const dsScene* scene, dsAllocator* allocator,
+dsView* dsView_loadImpl(dsAllocator* allocator, const dsScene* scene,
 	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData, const void* data,
 	size_t dataSize,  const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width,
 	uint32_t height, dsRenderSurfaceRotation rotation, void* userData,
@@ -260,7 +260,7 @@ dsView* dsView_loadImpl(const dsScene* scene, dsAllocator* allocator,
 		}
 	}
 
-	view = dsView_create(scene, allocator, resourceAllocator, allSurfaces, allSurfaceCount,
+	view = dsView_create(allocator, scene, resourceAllocator, allSurfaces, allSurfaceCount,
 		framebuffers, framebufferCount, width, height, rotation, userData, destroyUserDataFunc);
 
 finished:

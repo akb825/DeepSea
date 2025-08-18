@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 Aaron Barany
+ * Copyright 2021-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,12 @@
  */
 
 #include <DeepSea/Render/Shaders/Shadows/ShadowPCF4x4.mslh>
-#include <DeepSea/Render/Shaders/Shadows/ShadowMap.mslh>
+#include <DeepSea/Render/Shaders/Shadows/CascadedShadowMap.mslh>
 
 #include <DeepSea/Scene/Shaders/ViewTransform.mslh>
 #include <DeepSea/SceneLighting/Shaders/DeferredDirectionalLight.mslh>
 
-uniform sampler2DShadow shadowMap;
+uniform sampler2DArrayShadow shadowMap;
 sampler_state shadowMap
 {
 	address_mode_u = clamp_to_edge;
@@ -29,12 +29,6 @@ sampler_state shadowMap
 	mag_filter = linear;
 	compare_op = greater_or_equal;
 }
-
-uniform ShadowTransform
-{
-	mat4 matrix;
-	vec2 fadeDistances;
-} dsShadowTransform;
 
 [[fragment]] uniform subpassInput(0) materialColor;
 [[fragment]] uniform subpassInput(1) normalSpecular;
@@ -65,10 +59,7 @@ void fragmentShader()
 	vec3 viewPosition = dsGetViewPositionFromClip(vec3(vfClipCoords.xy, depthVal));
 	vec3 viewDirection = -normalize(viewPosition);
 
-	vec4 shadowPosition =
-		DS_ADJUST_TEXTURE_CLIP(INSTANCE(dsShadowTransform).matrix*vec4(viewPosition, 1.0));
-	float shadowValue = dsShadowMap(shadowMap, viewPosition, shadowPosition.xyz/shadowPosition.w,
-		INSTANCE(dsShadowTransform).fadeDistances,
+	float shadowValue = dsCascadedShadowMap(shadowMap, viewPosition,
 		INSTANCE(dsViewTransform).clipSpaceTexCoordTransform);
 
 	vec3 diffuseLight, specularLight;
