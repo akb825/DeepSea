@@ -598,6 +598,8 @@ typedef struct dsVkShader
 	float depthBiasClamp;
 	float depthBiasSlopeFactor;
 
+	uint32_t vertexAttributes;
+
 	dsVkComputePipeline* computePipeline;
 
 	dsVkPushConstantMapping* pushConstants;

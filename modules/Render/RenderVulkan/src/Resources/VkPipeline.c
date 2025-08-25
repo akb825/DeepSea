@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 #include "Resources/VkDrawGeometry.h"
 #include "Resources/VkResource.h"
 #include "Resources/VkResourceManager.h"
-#include "VkRenderPass.h"
 #include "VkShared.h"
 
 #include <DeepSea/Core/Containers/Hash.h>
@@ -116,21 +115,29 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 		if (format->enabledMask == 0)
 			continue;
 
-		DS_ASSERT(format->size > 0);
-		vertexBindings[bindingCount].binding = bindingCount;
-		vertexBindings[bindingCount].stride = format->size;
-		vertexBindings[bindingCount].inputRate = format->instanced ? VK_VERTEX_INPUT_RATE_INSTANCE :
-			VK_VERTEX_INPUT_RATE_VERTEX;
+		bool createdBinding = false;
 		for (uint32_t mask = format->enabledMask; mask; mask = dsRemoveLastBit(mask))
 		{
 			uint32_t attribute = dsBitmaskIndex(mask);
+			if (!(vkShader->vertexAttributes & (1 << attribute)))
+				continue;
+
+			if (!createdBinding)
+			{
+				DS_ASSERT(format->size > 0);
+				vertexBindings[bindingCount].binding = bindingCount;
+				vertexBindings[bindingCount].stride = format->size;
+				vertexBindings[bindingCount].inputRate = format->instanced ? VK_VERTEX_INPUT_RATE_INSTANCE :
+					VK_VERTEX_INPUT_RATE_VERTEX;
+				createdBinding = true;
+			}
 
 			const dsVkFormatInfo* formatInfo = dsVkResourceManager_getFormat(resourceManager,
 				format->elements[attribute].format);
 			if (!formatInfo)
 			{
 				errno = EINVAL;
-				DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Unknown format.");
+				DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Unknown vertex attribute format.");
 				dsVkPipeline_destroy(pipeline);
 				return NULL;
 			}
@@ -143,7 +150,8 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 			DS_ASSERT(attributeCount <= DS_MAX_ALLOWED_VERTEX_ATTRIBS);
 		}
 
-		++bindingCount;
+		if (createdBinding)
+			++bindingCount;
 	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInfo =

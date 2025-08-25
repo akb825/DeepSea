@@ -1069,6 +1069,22 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	}
 
 	setupCommonStates(baseShader);
+
+	shader->vertexAttributes = 0;
+	for (uint32_t i = 0; i < pipeline.attributeCount; ++i)
+	{
+		mslAttribute attribute;
+		DS_VERIFY(mslModule_attribute(&attribute, module->module, shaderIndex, i));
+		if (attribute.location >= DS_MAX_ALLOWED_VERTEX_ATTRIBS)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Vertex attribute is out of range for shader.");
+			dsVkShader_destroy(resourceManager, baseShader);
+			return NULL;
+		}
+		shader->vertexAttributes |= 1 << attribute.location;
+	}
+
 	setupSpirv(baseShader, (dsAllocator*)&bufferAlloc);
 	if (!setupShaders(baseShader))
 	{
