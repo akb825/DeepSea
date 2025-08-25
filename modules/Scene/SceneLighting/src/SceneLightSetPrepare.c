@@ -288,10 +288,15 @@ dsSceneLightSetPrepare* dsSceneLightSetPrepare_create(dsAllocator* allocator, co
 
 	prepare->lightSet = lightSet;
 	prepare->intensityThreshold = intensityThreshold;
+
 	prepare->entries = NULL;
 	prepare->entryCount = 0;
 	prepare->maxEntries = 0;
 	prepare->nextNodeID = 0;
+
+	prepare->removeEntries = NULL;
+	prepare->removeEntryCount = 0;
+	prepare->maxRemoveEntries = 0;
 
 	return prepare;
 }

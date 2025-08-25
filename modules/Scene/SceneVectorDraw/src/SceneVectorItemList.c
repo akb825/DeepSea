@@ -631,10 +631,16 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	vectorList->entryCount = 0;
 	vectorList->maxEntries = 0;
 	vectorList->nextNodeID = 0;
+
+	vectorList->removeEntries = NULL;
+	vectorList->removeEntryCount = 0;
+	vectorList->maxRemoveEntries = 0;
+
 	vectorList->instances = NULL;
 	vectorList->drawItems = NULL;
 	vectorList->maxInstances = 0;
 	vectorList->maxDrawItems = 0;
+
 	return vectorList;
 }
 

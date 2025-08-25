@@ -606,12 +606,19 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 	modelList->entryCount = 0;
 	modelList->maxEntries = 0;
 	modelList->nextNodeID = 0;
+
+	modelList->removeEntries = NULL;
+	modelList->removeEntryCount = 0;
+	modelList->maxRemoveEntries = 0;
+
 	modelList->instances = NULL;
 	modelList->instanceCount = 0;
 	modelList->maxInstances = 0;
+
 	modelList->drawItems = NULL;
 	modelList->drawItemCount = 0;
 	modelList->maxDrawItems = 0;
+
 	return modelList;
 }
 

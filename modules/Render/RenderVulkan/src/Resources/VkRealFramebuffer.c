@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@
 #include "Resources/VkRealFramebuffer.h"
 #include "Resources/VkResource.h"
 #include "Resources/VkResourceManager.h"
-#include "VkRenderPassData.h"
-#include "VkRenderSurface.h"
 #include "VkShared.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -261,8 +259,8 @@ dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsAllocator* allocator,
 
 	if (imageCount > 0)
 	{
-		realFramebuffer->imageViews = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkImageView,
-			imageCount);
+		realFramebuffer->imageViews = DS_ALLOCATE_OBJECT_ARRAY(
+			&bufferAlloc, VkImageView, imageCount);
 		DS_ASSERT(realFramebuffer->imageViews);
 		memset(realFramebuffer->imageViews, 0, sizeof(VkImageView)*imageCount);
 
@@ -280,6 +278,7 @@ dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsAllocator* allocator,
 	}
 	else
 	{
+		DS_ASSERT(framebuffer->surfaceCount == 0);
 		realFramebuffer->imageViews = NULL;
 		realFramebuffer->imageViewTemp = NULL;
 	}
@@ -288,8 +287,8 @@ dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsAllocator* allocator,
 
 	for (uint32_t i = 0; i < framebufferCount; ++i)
 	{
-		updateRenderSurfaceImages(realFramebuffer, framebuffer->surfaces, framebuffer->surfaceCount,
-			i);
+		updateRenderSurfaceImages(
+			realFramebuffer, framebuffer->surfaces, framebuffer->surfaceCount, i);
 
 		VkFramebufferCreateInfo createInfo =
 		{

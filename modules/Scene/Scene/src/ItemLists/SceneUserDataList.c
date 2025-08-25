@@ -219,5 +219,9 @@ dsSceneItemList* dsSceneUserDataList_create(dsAllocator* allocator, const char* 
 	userDataList->maxEntries = 0;
 	userDataList->nextNodeID = 0;
 
+	userDataList->removeEntries = NULL;
+	userDataList->removeEntryCount = 0;
+	userDataList->maxRemoveEntries = 0;
+
 	return itemList;
 }

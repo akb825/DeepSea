@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,17 @@
 #include <DeepSea/Render/RenderPass.h>
 
 #include "GPUProfileContext.h"
+#include "RenderPassInternal.h"
+
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Render/Resources/Framebuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
+
 #include <stdio.h>
 
 typedef enum SurfaceType
@@ -298,27 +302,6 @@ static bool hasMultipleSurfaceTypes(SurfaceType surfaceType)
 	return count > 1;
 }
 
-static uint32_t getSurfaceSamples(dsRenderer* renderer, const dsFramebufferSurface* surface)
-{
-	switch (surface->surfaceType)
-	{
-		case dsGfxSurfaceType_ColorRenderSurface:
-		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
-		case dsGfxSurfaceType_ColorRenderSurfaceRight:
-		case dsGfxSurfaceType_DepthRenderSurface:
-		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
-		case dsGfxSurfaceType_DepthRenderSurfaceRight:
-			return renderer->surfaceSamples;
-		case dsGfxSurfaceType_Offscreen:
-			return ((dsOffscreen*)surface->surface)->info.samples;
-		case dsGfxSurfaceType_Renderbuffer:
-			return ((dsRenderbuffer*)surface->surface)->samples;
-		default:
-			DS_ASSERT(false);
-			return 0;
-	}
-}
-
 static bool canResolveSurface(const dsFramebufferSurface* surface)
 {
 	switch (surface->surfaceType)
@@ -335,37 +318,6 @@ static bool canResolveSurface(const dsFramebufferSurface* surface)
 			return ((const dsOffscreen*)surface->surface)->resolve;
 		case dsGfxSurfaceType_Renderbuffer:
 			return false;
-		default:
-			DS_ASSERT(false);
-			return true;
-	}
-}
-
-static bool canKeepSurface(const dsFramebufferSurface* surface)
-{
-	switch (surface->surfaceType)
-	{
-		case dsGfxSurfaceType_ColorRenderSurface:
-		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
-		case dsGfxSurfaceType_ColorRenderSurfaceRight:
-			return true;
-		case dsGfxSurfaceType_DepthRenderSurface:
-		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
-		case dsGfxSurfaceType_DepthRenderSurfaceRight:
-		{
-			const dsRenderSurface* renderSurface = (const dsRenderSurface*)surface->surface;
-			return (renderSurface->usage &
-				(dsRenderSurfaceUsage_ContinueDepthStencil |
-					dsRenderSurfaceUsage_BlitDepthStencilFrom)) != 0;
-		}
-		case dsGfxSurfaceType_Offscreen:
-			return true;
-		case dsGfxSurfaceType_Renderbuffer:
-		{
-			const dsRenderbuffer* renderbuffer = (const dsRenderbuffer*)surface->surface;
-			return (renderbuffer->usage &
-				(dsRenderbufferUsage_Continue | dsRenderbufferUsage_BlitFrom)) != 0;
-		}
 		default:
 			DS_ASSERT(false);
 			return true;
@@ -895,63 +847,22 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 		return false;
 	}
 
-	dsRenderer* renderer = renderPass->renderer;
+	if (!dsRenderPass_canUseFramebuffer(renderPass, commandBuffer, framebuffer))
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_END();
+		endRenderPassScope(commandBuffer);
+		return false;
+	}
+
 	bool needsClear = false;
 	for (uint32_t i = 0; i < framebuffer->surfaceCount; ++i)
 	{
-		if (dsFramebuffer_getSurfaceFormat(renderer, framebuffer->surfaces + i) !=
-			renderPass->attachments[i].format)
-		{
-			errno = EINVAL;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-				"Framebuffer surface format doesn't match attachment format.");
-			DS_PROFILE_FUNC_END();
-			endRenderPassScope(commandBuffer);
-			return false;
-		}
-
-		uint32_t samples = renderPass->attachments[i].samples;
-		if (samples == DS_SURFACE_ANTIALIAS_SAMPLES)
-			samples = renderer->surfaceSamples;
-		else if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
-			samples = renderer->defaultSamples;
-		if (getSurfaceSamples(renderer, framebuffer->surfaces + i) != samples)
-		{
-			errno = EINVAL;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-				"Framebuffer surface samples don't match attachment samples.");
-			DS_PROFILE_FUNC_END();
-			endRenderPassScope(commandBuffer);
-			return false;
-		}
-
 		if (renderPass->attachments[i].usage & dsAttachmentUsage_Clear)
 			needsClear = true;
-
-		if ((renderPass->attachments[i].usage & dsAttachmentUsage_KeepAfter) &&
-			!canKeepSurface(framebuffer->surfaces + i))
-		{
-			errno = EINVAL;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Can't use dsAttachmentUsage_KeepAfter with a "
-				"surface without the continue or blit from usage flag.");
-			DS_PROFILE_FUNC_END();
-			endRenderPassScope(commandBuffer);
-			return false;
-		}
-
-		if ((commandBuffer->usage & dsCommandBufferUsage_MultiFrame) &&
-			framebuffer->surfaces[i].surfaceType >= dsGfxSurfaceType_ColorRenderSurface &&
-			framebuffer->surfaces[i].surfaceType <= dsGfxSurfaceType_DepthRenderSurfaceRight)
-		{
-			errno = EINVAL;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Can't draw a render pass to a framebuffer containing "
-				"a render surface when using a multiframe command buffer.");
-			DS_PROFILE_FUNC_END();
-			endRenderPassScope(commandBuffer);
-			return false;
-		}
 	}
 
+	dsRenderer* renderer = renderPass->renderer;
 	for (uint32_t i = 0; i < renderPass->subpassCount; ++i)
 	{
 		const dsRenderSubpassInfo* subpass = renderPass->subpasses + i;

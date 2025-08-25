@@ -17,7 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include "VkTypes.h"
+#include <DeepSea/Render/Types.h>
 
 dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
 	const char* name, void* displayHandle, void* osHandle, dsRenderSurfaceType type,

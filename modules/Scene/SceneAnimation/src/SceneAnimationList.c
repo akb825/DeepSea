@@ -489,15 +489,27 @@ dsSceneAnimationList* dsSceneAnimationList_create(dsAllocator* allocator, const 
 	animationList->maxAnimationEntries = 0;
 	animationList->nextAnimationNodeID = 0;
 
+	animationList->removeAnimationEntries = NULL;
+	animationList->removeAnimationEntryCount = 0;
+	animationList->maxRemoveAnimationEntries = 0;
+
 	animationList->treeEntries = NULL;
 	animationList->treeEntryCount = 0;
 	animationList->maxTreeEntries = 0;
 	animationList->nextTreeNodeID = MIN_TREE_ENTRY_ID;
 
+	animationList->removeTreeEntries = NULL;
+	animationList->removeTreeEntryCount = 0;
+	animationList->maxRemoveTreeEntries = 0;
+
 	animationList->transformEntries = NULL;
 	animationList->transformEntryCount = 0;
 	animationList->maxTransformEntries = 0;
 	animationList->nextTransformNodeID = MIN_TRANSFORM_ENTRY_ID;
+
+	animationList->removeTransformEntries = NULL;
+	animationList->removeTransformEntryCount = 0;
+	animationList->maxRemoveTransformEntries = 0;
 
 	return animationList;
 }

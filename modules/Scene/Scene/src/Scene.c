@@ -387,8 +387,8 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	scene->dirtyNodeCount = 0;
 	scene->maxDirtyNodes = 0;
 
-	dsSceneItemListNode* itemNodes = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneItemListNode,
-		nameCount);
+	dsSceneItemListNode* itemNodes = DS_ALLOCATE_OBJECT_ARRAY(
+		&bufferAlloc, dsSceneItemListNode, nameCount);
 	DS_ASSERT(itemNodes);
 	uint32_t curItems = 0;
 	for (uint32_t i = 0; i < sharedItemCount; ++i)
@@ -398,7 +398,7 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 		{
 			dsSceneItemListNode* node = itemNodes + curItems++;
 			if (!insertSceneList(
-					scene->itemLists, node, sharedItems[i].itemLists + j, prevItemLists))
+					scene->itemLists, node, itemLists->itemLists + j, prevItemLists))
 			{
 				errno = EINVAL;
 				dsScene_destroy(scene);

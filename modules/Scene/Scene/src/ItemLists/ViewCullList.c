@@ -370,6 +370,7 @@ dsSceneItemList* dsViewCullList_create(dsAllocator* allocator, const char* name)
 	memcpy((void*)itemList->name, name, nameLen);
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
+	itemList->needsCommandBuffer = false;
 	itemList->skipPreRenderPass = false;
 
 	cullList->staticEntries = NULL;
@@ -377,10 +378,18 @@ dsSceneItemList* dsViewCullList_create(dsAllocator* allocator, const char* name)
 	cullList->maxStaticEntries = 0;
 	cullList->nextStaticNodeID = 0;
 
+	cullList->removeStaticEntries = NULL;
+	cullList->removeStaticEntryCount = 0;
+	cullList->maxRemoveStaticEntries = 0;
+
 	cullList->dynamicEntries = NULL;
 	cullList->dynamicEntryCount = 0;
 	cullList->maxDynamicEntries = 0;
 	cullList->nextDynamicNodeID = MIN_DYNAMIC_ENTRY_ID;
+
+	cullList->removeDynamicEntries = NULL;
+	cullList->removeDynamicEntryCount = 0;
+	cullList->maxRemoveDynamicEntries = 0;
 
 	return itemList;
 }

@@ -270,10 +270,15 @@ dsSceneItemList* dsLightFlicker_create(dsAllocator* allocator, const char* name,
 	dsRandom_initialize(&flicker->random);
 	flicker->timeRange = *timeRange;
 	flicker->intensityRange = *intensityRange;
+
 	flicker->entries = NULL;
 	flicker->entryCount = 0;
 	flicker->maxEntries = 0;
 	flicker->nextNodeID = 0;
+
+	flicker->removeEntries = NULL;
+	flicker->removeEntryCount = 0;
+	flicker->maxRemoveEntries = 0;
 
 	return itemList;
 }

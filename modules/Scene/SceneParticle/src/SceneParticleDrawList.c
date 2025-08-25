@@ -396,13 +396,19 @@ dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const ch
 	drawList->entries = NULL;
 	drawList->entryCount = 0;
 	drawList->maxEntries = 0;
+	drawList->nextNodeID = 0;
+
+	drawList->removeEntries = NULL;
+	drawList->removeEntryCount = 0;
+	drawList->maxRemoveEntries = 0;
+
 	drawList->emitters = NULL;
 	drawList->emitterCount = 0;
 	drawList->maxEmitters = 0;
+
 	drawList->instances = NULL;
 	drawList->instanceCount = 0;
 	drawList->maxInstances = 0;
-	drawList->nextNodeID = 0;
 
 	drawList->drawer = dsParticleDraw_create(allocator, resourceManager, resourceAllocator,
 		instanceValueCount);

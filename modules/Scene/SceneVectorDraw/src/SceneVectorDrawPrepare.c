@@ -247,5 +247,9 @@ dsSceneItemList* dsSceneVectorDrawPrepare_create(dsAllocator* allocator, const c
 	prepareList->maxEntries = 0;
 	prepareList->nextNodeID = 0;
 
+	prepareList->removeEntries = NULL;
+	prepareList->removeEntryCount = 0;
+	prepareList->maxRemoveEntries = 0;
+
 	return itemList;
 }

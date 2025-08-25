@@ -963,15 +963,27 @@ dsSceneItemList* dsScenePhysicsList_create(dsAllocator* allocator, const char* n
 	physicsList->maxGroupEntries = 0;
 	physicsList->nextGroupNodeID = 0;
 
+	physicsList->removeGroupEntries = NULL;
+	physicsList->removeGroupEntryCount = 0;
+	physicsList->maxRemoveGroupEntries = 0;
+
 	physicsList->rigidBodyEntries = NULL;
 	physicsList->rigidBodyEntryCount = 0;
 	physicsList->maxRigidBodyEntries = 0;
 	physicsList->nextRigidBodyNodeID = MIN_RIGID_BODY_ENTRY_ID;
 
+	physicsList->removeRigidBodyEntries = NULL;
+	physicsList->removeRigidBodyEntryCount = 0;
+	physicsList->maxRemoveRigidBodyEntries = 0;
+
 	physicsList->constraintEntries = NULL;
 	physicsList->constraintEntryCount = 0;
 	physicsList->maxConstraintEntries = 0;
 	physicsList->nextConstraintNodeID = MIN_CONSTRAINT_ENTRY_ID;
+
+	physicsList->removeConstraintEntries = NULL;
+	physicsList->removeConstraintEntryCount = 0;
+	physicsList->maxRemoveConstraintEntries = 0;
 
 	return itemList;
 }

@@ -297,5 +297,9 @@ dsSceneItemList* dsSceneHandoffList_create(dsAllocator* allocator, const char* n
 	handoffList->maxEntries = 0;
 	handoffList->nextNodeID = 0;
 
+	handoffList->removeEntries = NULL;
+	handoffList->removeEntryCount = 0;
+	handoffList->maxRemoveEntries = 0;
+
 	return itemList;
 }
