@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,5 +20,5 @@
 
 bool dsVkAttachmentHasResolve(const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
 	uint32_t attachment, uint32_t samples, uint32_t surfaceSamples, uint32_t defaultSamples);
-bool dsCreateUnderlyingVkRenderPass(dsVkRenderPassData* renderPassData,
-	uint32_t resolveAttachmentCount);
+bool dsCreateUnderlyingVkRenderPass(
+	dsVkRenderPassData* renderPassData, uint32_t resolveAttachmentCount);

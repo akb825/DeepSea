@@ -2106,6 +2106,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->hasDepthStencilMultisampleResolve = device->hasDepthStencilResolve;
 	baseRenderer->hasFragmentInputs = false;
 	baseRenderer->projectedTexCoordTInverted = false;
+	baseRenderer->strictRenderPassSecondaryCommands = true;
 
 	baseRenderer->resourceManager = dsVkResourceManager_create(allocator, renderer,
 		options->shaderCacheDir);

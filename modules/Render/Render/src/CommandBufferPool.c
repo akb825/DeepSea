@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,15 +70,16 @@ dsCommandBuffer** dsCommandBufferPool_createCommandBuffers(dsCommandBufferPool* 
 	dsCommandBuffer** commandBuffers = pool->commandBuffers + offset;
 	for (uint32_t i = 0; i < count; ++i)
 	{
-		DS_ASSERT(commandBuffers[i] && commandBuffers[i]->usage == pool->usage);
-		commandBuffers[i]->frameActive = true;
-		commandBuffers[i]->secondaryRenderPassCommands = true;
-		commandBuffers[i]->boundSurface = NULL;
-		commandBuffers[i]->boundFramebuffer = NULL;
-		commandBuffers[i]->boundRenderPass = NULL;
-		commandBuffers[i]->activeRenderSubpass = 0;
-		commandBuffers[i]->boundShader = NULL;
-		commandBuffers[i]->boundComputeShader = NULL;
+		dsCommandBuffer* commandBuffer = commandBuffers[i];
+		DS_ASSERT(commandBuffer && commandBuffer->usage == pool->usage);
+		commandBuffer->frameActive = true;
+		commandBuffer->secondaryRenderPassCommands = true;
+		commandBuffer->boundSurface = NULL;
+		commandBuffer->boundFramebuffer = NULL;
+		commandBuffer->boundRenderPass = NULL;
+		commandBuffer->activeRenderSubpass = 0;
+		commandBuffer->boundShader = NULL;
+		commandBuffer->boundComputeShader = NULL;
 	}
 	DS_PROFILE_FUNC_RETURN(commandBuffers);
 }

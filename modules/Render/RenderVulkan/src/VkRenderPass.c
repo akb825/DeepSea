@@ -16,8 +16,6 @@
 
 #include "VkRenderPass.h"
 
-#include "Resources/VkResourceManager.h"
-#include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
 #include "VkRenderPassData.h"
 #include "VkShared.h"
@@ -191,8 +189,8 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 
 	baseRenderPass->subpassCount = subpassCount;
 
-	renderPass->renderPassData = dsVkRenderPassData_create(renderPass->scratchAllocator,
-		device, baseRenderPass);
+	renderPass->renderPassData = dsVkRenderPassData_create(
+		renderPass->scratchAllocator, device, baseRenderPass);
 	if (!renderPass->renderPassData)
 	{
 		dsVkRenderPass_destroy(renderer, baseRenderPass);

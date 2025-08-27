@@ -766,6 +766,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->hasDepthStencilMultisampleResolve = true;
 	baseRenderer->hasFragmentInputs = false;
 	baseRenderer->projectedTexCoordTInverted = false;
+	baseRenderer->strictRenderPassSecondaryCommands = false;
 
 	if (AnyGL_EXT_texture_filter_anisotropic)
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &baseRenderer->maxAnisotropy);

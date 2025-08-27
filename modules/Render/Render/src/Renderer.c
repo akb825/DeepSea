@@ -221,8 +221,8 @@ static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uin
 	return true;
 }
 
-void dsRenderer_defaultOptions(dsRendererOptions* options, const char* applicationName,
-	uint32_t applicationVersion)
+void dsRenderer_defaultOptions(
+	dsRendererOptions* options, const char* applicationName, uint32_t applicationVersion)
 {
 	if (!options)
 		return;
@@ -924,18 +924,18 @@ bool dsRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (!commandBuffer->boundShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "A shader must be bound for drawing.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	if (commandBuffer->secondaryRenderPassCommands)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Render commands cannot be submitted directly when inside "
 			"of a render subpass begun with the secondary flag set to true.");
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	if (!commandBuffer->boundShader)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "A shader must be bound for drawing.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -987,18 +987,18 @@ bool dsRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (!commandBuffer->boundShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "A shader must be bound for drawing.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	if (commandBuffer->secondaryRenderPassCommands)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Render commands cannot be submitted directly when inside "
 			"of a render subpass begun with the secondary flag set to true.");
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	if (!commandBuffer->boundShader)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "A shader must be bound for drawing.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -1048,18 +1048,18 @@ bool dsRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffe
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (!commandBuffer->boundShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "A shader must be bound for drawing.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	if (commandBuffer->secondaryRenderPassCommands)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Render commands cannot be submitted directly when inside "
 			"of a render subpass begun with the secondary flag set to true.");
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	if (!commandBuffer->boundShader)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "A shader must be bound for drawing.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -1120,18 +1120,18 @@ bool dsRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* comma
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (!commandBuffer->boundShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "A shader must be bound for drawing.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	if (commandBuffer->secondaryRenderPassCommands)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Render commands cannot be submitted directly when inside "
 			"of a render subpass begun with the secondary flag set to true.");
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	if (!commandBuffer->boundShader)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "A shader must be bound for drawing.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -1459,12 +1459,21 @@ bool dsRenderer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBuff
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsRenderer_pushDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const char* name)
+bool dsRenderer_pushDebugGroup(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const char* name)
 {
 	if (!commandBuffer || !renderer || !name)
 	{
 		errno = EINVAL;
+		return false;
+	}
+
+	if (commandBuffer->boundRenderPass && commandBuffer->secondaryRenderPassCommands &&
+		renderer->strictRenderPassSecondaryCommands)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Renderer implementation doesn't allow any non-submit "
+			"commands within a render pass with secondary command buffers.");
 		return false;
 	}
 
@@ -1480,6 +1489,15 @@ bool dsRenderer_popDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandBuff
 	if (!commandBuffer || !renderer)
 	{
 		errno = EINVAL;
+		return false;
+	}
+
+	if (commandBuffer->boundRenderPass && commandBuffer->secondaryRenderPassCommands &&
+		renderer->strictRenderPassSecondaryCommands)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Renderer implementation doesn't allow any non-submit "
+			"commands within a render pass with secondary command buffers.");
 		return false;
 	}
 

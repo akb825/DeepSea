@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,8 +91,8 @@ dsGfxQueryPool* dsGfxQueryPool_create(dsResourceManager* resourceManager, dsAllo
 	DS_PROFILE_FUNC_RETURN(queries);
 }
 
-bool dsGfxQueryPool_reset(dsGfxQueryPool* queries, dsCommandBuffer* commandBuffer,
-	uint32_t first, uint32_t count)
+bool dsGfxQueryPool_reset(
+	dsGfxQueryPool* queries, dsCommandBuffer* commandBuffer, uint32_t first, uint32_t count)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -124,8 +124,8 @@ bool dsGfxQueryPool_reset(dsGfxQueryPool* queries, dsCommandBuffer* commandBuffe
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsGfxQueryPool_beginQuery(dsGfxQueryPool* queries, dsCommandBuffer* commandBuffer,
-	uint32_t query)
+bool dsGfxQueryPool_beginQuery(
+	dsGfxQueryPool* queries, dsCommandBuffer* commandBuffer, uint32_t query)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -158,12 +158,21 @@ bool dsGfxQueryPool_beginQuery(dsGfxQueryPool* queries, dsCommandBuffer* command
 	}
 
 	dsResourceManager* resourceManager = queries->resourceManager;
+	if (commandBuffer->boundRenderPass && commandBuffer->secondaryRenderPassCommands &&
+		resourceManager->renderer->strictRenderPassSecondaryCommands)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Renderer implementation doesn't allow any non-submit "
+			"commands within a render pass with secondary command buffers.");
+		return false;
+	}
+
 	bool success = resourceManager->beginQueryFunc(resourceManager, commandBuffer, queries, query);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsGfxQueryPool_endQuery(dsGfxQueryPool* queries, dsCommandBuffer* commandBuffer,
-	uint32_t query)
+bool dsGfxQueryPool_endQuery(
+	dsGfxQueryPool* queries, dsCommandBuffer* commandBuffer, uint32_t query)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -196,13 +205,22 @@ bool dsGfxQueryPool_endQuery(dsGfxQueryPool* queries, dsCommandBuffer* commandBu
 	}
 
 	dsResourceManager* resourceManager = queries->resourceManager;
+	if (commandBuffer->boundRenderPass && commandBuffer->secondaryRenderPassCommands &&
+		resourceManager->renderer->strictRenderPassSecondaryCommands)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Renderer implementation doesn't allow any non-submit "
+			"commands within a render pass with secondary command buffers.");
+		return false;
+	}
+
 	bool success = resourceManager->endQueryFunc(resourceManager, commandBuffer, queries,
 		query);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsGfxQueryPool_queryTimestamp(dsGfxQueryPool* queries, dsCommandBuffer* commandBuffer,
-	uint32_t query)
+bool dsGfxQueryPool_queryTimestamp(
+	dsGfxQueryPool* queries, dsCommandBuffer* commandBuffer, uint32_t query)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -237,8 +255,17 @@ bool dsGfxQueryPool_queryTimestamp(dsGfxQueryPool* queries, dsCommandBuffer* com
 	}
 
 	dsResourceManager* resourceManager = queries->resourceManager;
-	bool success = resourceManager->queryTimestampFunc(resourceManager, commandBuffer, queries,
-		query);
+	if (commandBuffer->boundRenderPass && commandBuffer->secondaryRenderPassCommands &&
+		resourceManager->renderer->strictRenderPassSecondaryCommands)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Renderer implementation doesn't allow any non-submit "
+			"commands within a render pass with secondary command buffers.");
+		return false;
+	}
+
+	bool success = resourceManager->queryTimestampFunc(
+		resourceManager, commandBuffer, queries, query);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 

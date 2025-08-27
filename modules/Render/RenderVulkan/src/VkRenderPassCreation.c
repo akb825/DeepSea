@@ -151,19 +151,20 @@ static void findLegacyPreserveAttachments(uint32_t* outAttachments, uint32_t* ou
 	// Find the usage flags for the current subpass, before the current subpass (by dependencies),
 	// and after the current subpass (by dependencies).
 	addLegacySubpassAttachmentUsageBits(usages, subpasses + curSubpass, AttachmentUsage_Current);
-	findLegacyAttachmentsBeforeUses(usages, subpasses, subpassCount, dependencies, dependencyCount,
-		curSubpass, 0);
-	findLegacyAttachmentsAfterUses(usages, subpasses, subpassCount, dependencies, dependencyCount,
-		curSubpass, 0);
+	findLegacyAttachmentsBeforeUses(
+		usages, subpasses, subpassCount, dependencies, dependencyCount, curSubpass, 0);
+	findLegacyAttachmentsAfterUses(
+		usages, subpasses, subpassCount, dependencies, dependencyCount, curSubpass, 0);
 
 	*outCount = 0;
 	for (uint32_t i = 0; i < attachmentCount; ++i)
 	{
 		// Add implicit uses based on attachment operations.
 		AttachmentUsage usage = usages[i];
-		if (attachments[i].loadOp != VK_ATTACHMENT_LOAD_OP_DONT_CARE)
+		const VkAttachmentDescription* attachment = attachments + i;
+		if (attachment->loadOp != VK_ATTACHMENT_LOAD_OP_DONT_CARE)
 			usage |= AttachmentUsage_WriteBefore;
-		if (attachments[i].storeOp != VK_ATTACHMENT_STORE_OP_DONT_CARE)
+		if (attachment->storeOp != VK_ATTACHMENT_STORE_OP_DONT_CARE)
 			usage |= AttachmentUsage_ReadAfter;
 
 		// Add attachments that are used before and after, but not during, the current subpass.
@@ -284,24 +285,25 @@ static bool createLegacyRenderPass(dsVkRenderPassData* renderPassData,
 			for (uint32_t j = 0; j < vkSubpass->inputAttachmentCount; ++j)
 			{
 				uint32_t attachment = curSubpass->inputAttachments[j];
+				VkAttachmentReference* inputAttachment = inputAttachments + j;
 				if (attachment == DS_NO_ATTACHMENT)
-					inputAttachments[j].attachment = VK_ATTACHMENT_UNUSED;
+					inputAttachment->attachment = VK_ATTACHMENT_UNUSED;
 				else
 				{
 					// Use resolved result if available.
 					uint32_t resolveAttachment = renderPassData->resolveIndices[attachment];
 					if (resolveAttachment == DS_NO_ATTACHMENT)
-						inputAttachments[j].attachment = attachment;
+						inputAttachment->attachment = attachment;
 					else
-						inputAttachments[j].attachment = resolveAttachment;
+						inputAttachment->attachment = resolveAttachment;
 				}
 
 				if (attachment == DS_NO_ATTACHMENT)
-					inputAttachments[j].layout = VK_IMAGE_LAYOUT_GENERAL;
+					inputAttachment->layout = VK_IMAGE_LAYOUT_GENERAL;
 				else if (dsGfxFormat_isDepthStencil(renderPass->attachments[attachment].format))
-					inputAttachments[j].layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+					inputAttachment->layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 				else
-					inputAttachments[j].layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+					inputAttachment->layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			}
 			vkSubpass->pInputAttachments = inputAttachments;
 		}
@@ -315,9 +317,10 @@ static bool createLegacyRenderPass(dsVkRenderPassData* renderPassData,
 			for (uint32_t j = 0; j < vkSubpass->colorAttachmentCount; ++j)
 			{
 				const dsAttachmentRef* curAttachment = curSubpass->colorAttachments + j;
+				VkAttachmentReference* colorAttachment = colorAttachments + j;
 				uint32_t attachmentIndex = curAttachment->attachmentIndex;
-				colorAttachments[j].attachment = attachmentIndex;
-				colorAttachments[j].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				colorAttachment->attachment = attachmentIndex;
+				colorAttachment->layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 				if (attachmentIndex != DS_NO_ATTACHMENT && curAttachment->resolve &&
 					needsResolve(renderPass->attachments[curAttachment->attachmentIndex].samples,
@@ -336,20 +339,20 @@ static bool createLegacyRenderPass(dsVkRenderPassData* renderPassData,
 				for (uint32_t j = 0; j < vkSubpass->colorAttachmentCount; ++j)
 				{
 					const dsAttachmentRef* curAttachment = curSubpass->colorAttachments + j;
+					VkAttachmentReference* resolveAttachment = resolveAttachments + j;
 					uint32_t attachmentIndex = curAttachment->attachmentIndex;
 					if (attachmentIndex != DS_NO_ATTACHMENT && curAttachment->resolve &&
 						needsResolve(
 							renderPass->attachments[curAttachment->attachmentIndex].samples,
 							renderer->surfaceSamples, renderer->defaultSamples))
 					{
-						uint32_t resolveAttachment =
-							renderPassData->resolveIndices[attachmentIndex];
-						DS_ASSERT(resolveAttachment != DS_NO_ATTACHMENT);
-						resolveAttachments[j].attachment = resolveAttachment;
+						uint32_t resolveIndex = renderPassData->resolveIndices[attachmentIndex];
+						DS_ASSERT(resolveIndex != DS_NO_ATTACHMENT);
+						resolveAttachment->attachment = resolveIndex;
 					}
 					else
-						resolveAttachments[j].attachment = VK_ATTACHMENT_UNUSED;
-					resolveAttachments[j].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+						resolveAttachment->attachment = VK_ATTACHMENT_UNUSED;
+					resolveAttachment->layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 				}
 
 				vkSubpass->pResolveAttachments = resolveAttachments;
@@ -541,10 +544,11 @@ static void findPreserveAttachments(uint32_t* outAttachments, uint32_t* outCount
 	for (uint32_t i = 0; i < attachmentCount; ++i)
 	{
 		// Add implicit uses based on attachment operations.
+		const VkAttachmentDescription2KHR* attachment = attachments + i;
 		AttachmentUsage usage = usages[i];
-		if (attachments[i].loadOp != VK_ATTACHMENT_LOAD_OP_DONT_CARE)
+		if (attachment->loadOp != VK_ATTACHMENT_LOAD_OP_DONT_CARE)
 			usage |= AttachmentUsage_WriteBefore;
-		if (attachments[i].storeOp != VK_ATTACHMENT_STORE_OP_DONT_CARE)
+		if (attachment->storeOp != VK_ATTACHMENT_STORE_OP_DONT_CARE)
 			usage |= AttachmentUsage_ReadAfter;
 
 		// Add attachments that are used before and after, but not during, the current subpass.
@@ -668,29 +672,30 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 				VkAttachmentReference2KHR, curSubpass->inputAttachmentCount);
 			for (uint32_t j = 0; j < vkSubpass->inputAttachmentCount; ++j)
 			{
+				VkAttachmentReference2KHR* inputAttachment = inputAttachments + j;
 				uint32_t attachment = curSubpass->inputAttachments[j];
-				inputAttachments[j].sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2_KHR;
-				inputAttachments[j].pNext = NULL;
+				inputAttachment->sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2_KHR;
+				inputAttachment->pNext = NULL;
 				if (attachment == DS_NO_ATTACHMENT)
-					inputAttachments[j].attachment = VK_ATTACHMENT_UNUSED;
+					inputAttachment->attachment = VK_ATTACHMENT_UNUSED;
 				else
 				{
 					// Use resolved result if available.
 					uint32_t resolveAttachment = renderPassData->resolveIndices[attachment];
 					if (resolveAttachment == DS_NO_ATTACHMENT)
-						inputAttachments[j].attachment = attachment;
+						inputAttachment->attachment = attachment;
 					else
-						inputAttachments[j].attachment = resolveAttachment;
+						inputAttachment->attachment = resolveAttachment;
 				}
 
 				dsGfxFormat format = renderPass->attachments[attachment].format;
 				if (attachment == DS_NO_ATTACHMENT)
-					inputAttachments[j].layout = VK_IMAGE_LAYOUT_GENERAL;
+					inputAttachment->layout = VK_IMAGE_LAYOUT_GENERAL;
 				else if (dsGfxFormat_isDepthStencil(format))
-					inputAttachments[j].layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+					inputAttachment->layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 				else
-					inputAttachments[j].layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-				inputAttachments[j].aspectMask = dsVkImageAspectFlags(format);
+					inputAttachment->layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+				inputAttachment->aspectMask = dsVkImageAspectFlags(format);
 			}
 			vkSubpass->pInputAttachments = inputAttachments;
 		}
@@ -703,13 +708,14 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 			bool hasResolve = false;
 			for (uint32_t j = 0; j < vkSubpass->colorAttachmentCount; ++j)
 			{
+				VkAttachmentReference2KHR* colorAttachment = colorAttachments + j;
 				const dsAttachmentRef* curAttachment = curSubpass->colorAttachments + j;
 				uint32_t attachmentIndex = curAttachment->attachmentIndex;
-				colorAttachments[j].sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2_KHR;
-				colorAttachments[j].pNext = NULL;
-				colorAttachments[j].attachment = attachmentIndex;
-				colorAttachments[j].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-				colorAttachments[j].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				colorAttachment->sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2_KHR;
+				colorAttachment->pNext = NULL;
+				colorAttachment->attachment = attachmentIndex;
+				colorAttachment->layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				colorAttachment->aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
 				if (attachmentIndex != DS_NO_ATTACHMENT && curAttachment->resolve &&
 					needsResolve(renderPass->attachments[curAttachment->attachmentIndex].samples,
@@ -728,23 +734,23 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 				for (uint32_t j = 0; j < vkSubpass->colorAttachmentCount; ++j)
 				{
 					const dsAttachmentRef* curAttachment = curSubpass->colorAttachments + j;
+					VkAttachmentReference2KHR* resolveAttachment = resolveAttachments + j;
 					uint32_t attachmentIndex = curAttachment->attachmentIndex;
-					resolveAttachments[j].sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2_KHR;
-					resolveAttachments[j].pNext = NULL;
+					resolveAttachment->sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2_KHR;
+					resolveAttachment->pNext = NULL;
 					if (attachmentIndex != DS_NO_ATTACHMENT && curAttachment->resolve &&
 						needsResolve(
 							renderPass->attachments[curAttachment->attachmentIndex].samples,
 							renderer->surfaceSamples, renderer->defaultSamples))
 					{
-						uint32_t resolveAttachment =
-							renderPassData->resolveIndices[attachmentIndex];
-						DS_ASSERT(resolveAttachment != DS_NO_ATTACHMENT);
-						resolveAttachments[j].attachment = resolveAttachment;
+						uint32_t resolveIndex = renderPassData->resolveIndices[attachmentIndex];
+						DS_ASSERT(resolveIndex != DS_NO_ATTACHMENT);
+						resolveAttachment->attachment = resolveIndex;
 					}
 					else
-						resolveAttachments[j].attachment = VK_ATTACHMENT_UNUSED;
-					resolveAttachments[j].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-					resolveAttachments[j].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+						resolveAttachment->attachment = VK_ATTACHMENT_UNUSED;
+					resolveAttachment->layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+					resolveAttachment->aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 				}
 
 				vkSubpass->pResolveAttachments = resolveAttachments;
@@ -897,8 +903,8 @@ bool dsVkAttachmentHasResolve(const dsRenderSubpassInfo* subpasses, uint32_t sub
 	return false;
 }
 
-bool dsCreateUnderlyingVkRenderPass(dsVkRenderPassData* renderPassData,
-	uint32_t resolveAttachmentCount)
+bool dsCreateUnderlyingVkRenderPass(
+	dsVkRenderPassData* renderPassData, uint32_t resolveAttachmentCount)
 {
 	if (renderPassData->device->vkCreateRenderPass2)
 		return createRenderPass(renderPassData, resolveAttachmentCount);

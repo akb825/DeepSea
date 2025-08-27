@@ -998,6 +998,7 @@ typedef struct dsCommandBufferProfileInfo
 	uint32_t beginSubpassSwapCount;
 	uint32_t beginComputeIndex;
 	uint32_t beginComputeSwapCount;
+	bool subpassDebugGroups;
 } dsCommandBufferProfileInfo;
 /// @endcond
 
@@ -2199,6 +2200,14 @@ struct dsRenderer
 	 * @brief Whether or not projected texture coordinates have an inverted T coordinate.
 	 */
 	bool projectedTexCoordTInverted;
+
+	/**
+	 * @brief Whether or not render passes require strictly all commands in separate command buffers
+	 *     when using secondary command buffers.
+	 *
+	 * Example commands include debug groups and GPU timers.
+	 */
+	bool strictRenderPassSecondaryCommands;
 
 	// ----------------------------- Internals and function table ----------------------------------
 

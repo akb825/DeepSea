@@ -15,6 +15,7 @@
  */
 
 #include "GPUProfileContext.h"
+
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/HashTable.h>
 #include <DeepSea/Core/Containers/ResizeableArray.h>
@@ -22,9 +23,14 @@
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Math/Core.h>
+
+#include <DeepSea/Render/CommandBufferPool.h>
+#include <DeepSea/Render/CommandBuffer.h>
 #include <DeepSea/Render/Resources/GfxQueryPool.h>
 #include <DeepSea/Render/Renderer.h>
+
 #include <string.h>
 
 #define INVALID_INDEX ((uint32_t)-1)
@@ -70,6 +76,7 @@ struct dsGPUProfileContext
 {
 	dsAllocator* allocator;
 	dsResourceManager* resourceManager;
+	dsCommandBufferPool* secondaryCommandBuffers;
 
 	bool useQueries;
 
@@ -97,6 +104,34 @@ struct dsGPUProfileContext
 static dsCommandBuffer* getMainCommandBuffer(dsGPUProfileContext* context)
 {
 	return context->resourceManager->renderer->mainCommandBuffer;
+}
+
+static dsCommandBuffer* startCommandBuffer(
+	dsGPUProfileContext* context, dsCommandBuffer* commandBuffer)
+{
+	if (!context->secondaryCommandBuffers || !commandBuffer->secondaryRenderPassCommands)
+		return commandBuffer;
+
+	dsCommandBuffer** secondaryCommandBuffer = dsCommandBufferPool_createCommandBuffers(
+		context->secondaryCommandBuffers, 1);
+	if (!secondaryCommandBuffer)
+		return NULL;
+
+	DS_VERIFY(dsCommandBuffer_beginSecondary(*secondaryCommandBuffer,
+		commandBuffer->boundFramebuffer, commandBuffer->boundRenderPass,
+		commandBuffer->activeRenderSubpass, &commandBuffer->viewport,
+		dsGfxOcclusionQueryState_Disabled));
+	return *secondaryCommandBuffer;
+}
+
+static void endCommandBuffer(dsCommandBuffer* primaryCommandBuffer,
+	dsCommandBuffer* secondaryCommandBuffer)
+{
+	if (primaryCommandBuffer == secondaryCommandBuffer)
+		return;
+
+	DS_VERIFY(dsCommandBuffer_end(secondaryCommandBuffer));
+	DS_VERIFY(dsCommandBuffer_submit(primaryCommandBuffer, secondaryCommandBuffer));
 }
 
 static bool commandBufferValid(const dsCommandBuffer* commandBuffer)
@@ -170,6 +205,7 @@ static QueryInfo* addQuery(dsGPUProfileContext* context, dsCommandBuffer* comman
 		category = beginQuery->category;
 		name = beginQuery->name;
 	}
+	DS_ASSERT(category);
 
 	QueryInfo* query = pools->queries + index;
 
@@ -289,8 +325,8 @@ static void submitGPUProfileResults(dsGPUProfileContext* context, QueryPools* po
 	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
-dsGPUProfileContext* dsGPUProfileContext_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator)
+dsGPUProfileContext* dsGPUProfileContext_create(
+	dsResourceManager* resourceManager, dsAllocator* allocator)
 {
 	if (!DS_PROFILING_ENABLED || !resourceManager)
 		return NULL;
@@ -307,6 +343,17 @@ dsGPUProfileContext* dsGPUProfileContext_create(dsResourceManager* resourceManag
 	context->allocator = allocator;
 	context->useQueries = DS_GPU_PROFILING_ENABLED && resourceManager->timestampPeriod > 0.0f;
 
+	if (context->useQueries && resourceManager->renderer->strictRenderPassSecondaryCommands)
+	{
+		context->secondaryCommandBuffers = dsCommandBufferPool_create(
+			resourceManager->renderer, allocator, dsCommandBufferUsage_Secondary);
+		if (!context->secondaryCommandBuffers)
+		{
+			dsAllocator_free(allocator, context);
+			return NULL;
+		}
+	}
+
 	if (context->useQueries)
 		dsSpinlock_initialize(&context->spinlock);
 
@@ -317,6 +364,9 @@ void dsGPUProfileContext_beginFrame(dsGPUProfileContext* context)
 {
 	if (!context)
 		return;
+
+	if (context->secondaryCommandBuffers)
+		dsCommandBufferPool_reset(context->secondaryCommandBuffers);
 
 	dsCommandBuffer* commandBuffer = getMainCommandBuffer(context);
 	dsRenderer* renderer = commandBuffer->renderer;
@@ -331,8 +381,8 @@ void dsGPUProfileContext_beginFrame(dsGPUProfileContext* context)
 			pools->beginFrameIndex = pools->queryCount;
 			addQuery(context, commandBuffer, "Frame", "Total", INVALID_INDEX, context->swapCount);
 			pools->beginSwapIndex = pools->queryCount;
-			addQuery(context, commandBuffer, "Frame", "Pre-swap", INVALID_INDEX,
-				context->swapCount);
+			addQuery(
+				context, commandBuffer, "Frame", "Pre-swap", INVALID_INDEX, context->swapCount);
 		}
 		dsSpinlock_unlock(&context->spinlock);
 	}
@@ -353,8 +403,8 @@ void dsGPUProfileContext_endFrame(dsGPUProfileContext* context)
 		if (!context->error)
 		{
 			addQuery(context, commandBuffer, NULL, NULL, pools->beginSwapIndex, context->swapCount);
-			addQuery(context, commandBuffer, NULL, NULL, pools->beginFrameIndex,
-				context->swapCount);
+			addQuery(
+				context, commandBuffer, NULL, NULL, pools->beginFrameIndex, context->swapCount);
 			submitResults = !context->error;
 		}
 		uint32_t prevIndex;
@@ -417,8 +467,8 @@ void dsGPUProfileContext_endSwapBuffers(dsGPUProfileContext* context)
 	dsSpinlock_unlock(&context->spinlock);
 }
 
-void dsGPUProfileContext_beginSurface(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer,
-	const char* surfaceName)
+void dsGPUProfileContext_beginSurface(
+	dsGPUProfileContext* context, dsCommandBuffer* commandBuffer, const char* surfaceName)
 {
 	if (!context)
 		return;
@@ -434,8 +484,8 @@ void dsGPUProfileContext_beginSurface(dsGPUProfileContext* context, dsCommandBuf
 			QueryPools* pools = context->queryPools + context->queryPoolIndex;
 			commandBuffer->_profileInfo.beginSurfaceIndex = pools->queryCount;
 			commandBuffer->_profileInfo.beginSurfaceSwapCount = context->swapCount;
-			addQuery(context, commandBuffer, surfaceName, "Total", INVALID_INDEX,
-				context->swapCount);
+			addQuery(
+				context, commandBuffer, surfaceName, "Total", INVALID_INDEX, context->swapCount);
 		}
 		dsSpinlock_unlock(&context->spinlock);
 	}
@@ -463,13 +513,22 @@ void dsGPUProfileContext_endSurface(dsGPUProfileContext* context, dsCommandBuffe
 }
 
 void dsGPUProfileContext_beginSubpass(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer,
-	const char* framebufferName, const char* subpassName)
+	const char* framebufferName, const char* subpassName, bool secondary)
 {
 	if (!context)
 		return;
 
+	DS_ASSERT(!commandBuffer->secondaryRenderPassCommands);
 	dsRenderer* renderer = commandBuffer->renderer;
-	dsRenderer_pushDebugGroup(renderer, commandBuffer, subpassName);
+
+	// Use only framebuffer for debug groups if debug groups would be disallowed for secondary
+	// command buffers.
+	commandBuffer->_profileInfo.subpassDebugGroups =
+		!renderer->strictRenderPassSecondaryCommands || !secondary;
+	if (commandBuffer->_profileInfo.subpassDebugGroups)
+		dsRenderer_pushDebugGroup(renderer, commandBuffer, subpassName);
+	else
+		dsRenderer_pushDebugGroup(renderer, commandBuffer, framebufferName);
 
 	if (context->useQueries && commandBufferValid(commandBuffer))
 	{
@@ -487,21 +546,32 @@ void dsGPUProfileContext_beginSubpass(dsGPUProfileContext* context, dsCommandBuf
 }
 
 void dsGPUProfileContext_nextSubpass(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer,
-	const char* subpassName)
+	const char* subpassName, bool secondary)
 {
 	if (!context)
 		return;
 
+	DS_ASSERT(commandBuffer->secondaryRenderPassCommands == secondary);
 	dsRenderer* renderer = commandBuffer->renderer;
-	dsRenderer_popDebugGroup(renderer, commandBuffer);
-	dsRenderer_pushDebugGroup(renderer, commandBuffer, subpassName);
+
+	// Avoid debug groups if originally couldn't or currently can't use them.
+	if (commandBuffer->_profileInfo.subpassDebugGroups &&
+		renderer->strictRenderPassSecondaryCommands && secondary)
+	{
+		dsRenderer_popDebugGroup(renderer, commandBuffer);
+		dsRenderer_pushDebugGroup(renderer, commandBuffer, subpassName);
+	}
 
 	if (context->useQueries && commandBufferValid(commandBuffer))
 	{
+		dsCommandBuffer* submitBuffer = startCommandBuffer(context, commandBuffer);
+		if (!submitBuffer)
+			return;
+
 		dsSpinlock_lock(&context->spinlock);
 		if (!context->error)
 		{
-			QueryInfo* query = addQuery(context, commandBuffer, NULL, NULL,
+			QueryInfo* query = addQuery(context, submitBuffer, NULL, NULL,
 				commandBuffer->_profileInfo.beginSubpassIndex,
 				commandBuffer->_profileInfo.beginSubpassSwapCount);
 
@@ -515,11 +585,12 @@ void dsGPUProfileContext_nextSubpass(dsGPUProfileContext* context, dsCommandBuff
 				// so need to make a copy.
 				char category[MAX_STRING_LENGTH];
 				memcpy(category, query->category, sizeof(category));
-				addQuery(context, commandBuffer, category, subpassName, INVALID_INDEX,
+				addQuery(context, submitBuffer, category, subpassName, INVALID_INDEX,
 					context->swapCount);
 			}
 		}
 		dsSpinlock_unlock(&context->spinlock);
+		endCommandBuffer(commandBuffer, submitBuffer);
 	}
 }
 
@@ -528,6 +599,7 @@ void dsGPUProfileContext_endSubpass(dsGPUProfileContext* context, dsCommandBuffe
 	if (!context)
 		return;
 
+	DS_ASSERT(!commandBuffer->secondaryRenderPassCommands);
 	if (context->useQueries && commandBufferValid(commandBuffer))
 	{
 		dsSpinlock_lock(&context->spinlock);
@@ -561,8 +633,8 @@ void dsGPUProfileContext_beginCompute(dsGPUProfileContext* context, dsCommandBuf
 			QueryPools* pools = context->queryPools + context->queryPoolIndex;
 			commandBuffer->_profileInfo.beginComputeIndex = pools->queryCount;
 			commandBuffer->_profileInfo.beginComputeSwapCount = context->swapCount;
-			addQuery(context, commandBuffer, moduleName, shaderName, INVALID_INDEX,
-				context->swapCount);
+			addQuery(
+				context, commandBuffer, moduleName, shaderName, INVALID_INDEX, context->swapCount);
 		}
 		dsSpinlock_unlock(&context->spinlock);
 	}
@@ -594,6 +666,7 @@ void dsGPUProfileContext_destroy(dsGPUProfileContext* context)
 	if (!context)
 		return;
 
+	dsCommandBufferPool_destroy(context->secondaryCommandBuffers);
 	if (context->useQueries)
 	{
 		for (uint32_t i = 0; i < DS_ARRAY_SIZE(context->queryPools); ++i)

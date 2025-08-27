@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Render/Types.h>
 
-dsGPUProfileContext* dsGPUProfileContext_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator);
+dsGPUProfileContext* dsGPUProfileContext_create(
+	dsResourceManager* resourceManager, dsAllocator* allocator);
 
 void dsGPUProfileContext_beginFrame(dsGPUProfileContext* context);
 void dsGPUProfileContext_endFrame(dsGPUProfileContext* context);
@@ -28,14 +28,15 @@ void dsGPUProfileContext_endFrame(dsGPUProfileContext* context);
 void dsGPUProfileContext_beginSwapBuffers(dsGPUProfileContext* context);
 void dsGPUProfileContext_endSwapBuffers(dsGPUProfileContext* context);
 
-void dsGPUProfileContext_beginSurface(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer,
-	const char* surfaceName);
+void dsGPUProfileContext_beginSurface(
+	dsGPUProfileContext* context, dsCommandBuffer* commandBuffer, const char* surfaceName);
 void dsGPUProfileContext_endSurface(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer);
 
 void dsGPUProfileContext_beginSubpass(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer,
-	const char* framebufferName, const char* subpassName);
-void dsGPUProfileContext_nextSubpass(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer,
-	const char* subpassName);
+	const char* framebufferName, const char* subpassName, bool secondary);
+void dsGPUProfileContext_nextSubpass(
+	dsGPUProfileContext* context, dsCommandBuffer* commandBuffer, const char* subpassName,
+	bool secondary);
 void dsGPUProfileContext_endSubpass(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer);
 
 void dsGPUProfileContext_beginCompute(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer,

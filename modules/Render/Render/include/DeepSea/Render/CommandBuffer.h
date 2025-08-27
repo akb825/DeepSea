@@ -87,8 +87,8 @@ DS_RENDER_EXPORT bool dsCommandBuffer_end(dsCommandBuffer* commandBuffer);
  * @param submitBuffer The command buffer to submit. This may not be the main command buffer.
  * @return False if the command buffer couldn't be submitted.
  */
-DS_RENDER_EXPORT bool dsCommandBuffer_submit(dsCommandBuffer* commandBuffer,
-	dsCommandBuffer* submitBuffer);
+DS_RENDER_EXPORT bool dsCommandBuffer_submit(
+	dsCommandBuffer* commandBuffer, dsCommandBuffer* submitBuffer);
 
 #ifdef __cplusplus
 }

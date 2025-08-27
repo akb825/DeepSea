@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -154,8 +154,8 @@ DS_RENDER_EXPORT bool dsRenderPass_begin(const dsRenderPass* renderPass,
  *     render commands will be directly sent on the same command buffer as the render pass.
  * @return False if the render pass couldn't be advanced.
  */
-DS_RENDER_EXPORT bool dsRenderPass_nextSubpass(const dsRenderPass* renderPass,
-	dsCommandBuffer* commandBuffer, bool secondary);
+DS_RENDER_EXPORT bool dsRenderPass_nextSubpass(
+	const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer, bool secondary);
 
 /**
  * @brief Ends drawing to a render pass.
@@ -166,8 +166,8 @@ DS_RENDER_EXPORT bool dsRenderPass_nextSubpass(const dsRenderPass* renderPass,
  * @param commandBuffer The command buffer to push the commands on.
  * @return False if the render pass couldn't be ended.
  */
-DS_RENDER_EXPORT bool dsRenderPass_end(const dsRenderPass* renderPass,
-	dsCommandBuffer* commandBuffer);
+DS_RENDER_EXPORT bool dsRenderPass_end(
+	const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Destroys .

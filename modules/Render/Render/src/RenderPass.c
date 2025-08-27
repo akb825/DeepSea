@@ -101,8 +101,8 @@ static AttachmentUsage getAttachmentUsage(const dsRenderSubpassInfo* subpass, ui
 	return attachmentUsage;
 }
 
-static bool sharesAttachments(const dsRenderSubpassInfo* firstSubpass,
-	const dsRenderSubpassInfo* secondSubpass)
+static bool sharesAttachments(
+	const dsRenderSubpassInfo* firstSubpass, const dsRenderSubpassInfo* secondSubpass)
 {
 	for (uint32_t i = 0; i < firstSubpass->inputAttachmentCount; ++i)
 	{
@@ -190,8 +190,8 @@ static bool startRenderPassScope(const dsRenderPass* renderPass, dsCommandBuffer
 	return true;
 }
 
-static bool nextSubpassScope(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer,
-	bool secondary)
+static bool nextSubpassScope(
+	const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer, bool secondary)
 {
 	// Error checking for this will be later.
 	if (!renderPass || !commandBuffer)
@@ -238,8 +238,8 @@ static bool nextSubpassScope(const dsRenderPass* renderPass, dsCommandBuffer* co
 	return true;
 }
 
-static void restorePreviousSubpassScope(const dsRenderPass* renderPass,
-	dsCommandBuffer* commandBuffer)
+static void restorePreviousSubpassScope(
+	const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer)
 {
 	if (!renderPass || !commandBuffer || commandBuffer->boundRenderPass != renderPass)
 		return;
@@ -270,6 +270,7 @@ static void endRenderPassScope(dsCommandBuffer* commandBuffer)
 	commandBuffer->boundFramebuffer = NULL;
 	commandBuffer->boundRenderPass = NULL;
 	commandBuffer->activeRenderSubpass = 0;
+	commandBuffer->secondaryRenderPassCommands = false;
 }
 
 static SurfaceType getSurfaceType(dsGfxSurfaceType surfaceType)
@@ -378,8 +379,8 @@ bool dsRenderPass_addLastSubpassDependencyFlags(dsSubpassDependency* dependency)
 	return true;
 }
 
-uint32_t dsRenderPass_countDefaultDependencies(const dsRenderSubpassInfo* subpasses,
-	uint32_t subpassCount)
+uint32_t dsRenderPass_countDefaultDependencies(
+	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount)
 {
 	if (!subpasses || subpassCount == 0)
 		return 0;
@@ -956,8 +957,12 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 		return false;
 	}
 
+	// HACK: Render pass not actually active yet, so ensure the checks against strict secondary
+	// command buffer usage don't get triggered.
+	commandBuffer->secondaryRenderPassCommands = false;
 	dsGPUProfileContext_beginSubpass(renderer->_profileContext, commandBuffer,
-		framebuffer->name, renderPass->subpasses[0].name);
+		framebuffer->name, renderPass->subpasses[0].name, secondary);
+	commandBuffer->secondaryRenderPassCommands = secondary;
 	bool success = renderer->beginRenderPassFunc(renderer, commandBuffer, renderPass, framebuffer,
 		viewport, clearValues, clearValueCount, secondary);
 	DS_PROFILE_FUNC_END();
@@ -969,8 +974,8 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 	return success;
 }
 
-bool dsRenderPass_nextSubpass(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer,
-	bool secondary)
+bool dsRenderPass_nextSubpass(
+	const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer, bool secondary)
 {
 	// End the previous scope
 	if (!nextSubpassScope(renderPass, commandBuffer, secondary))
@@ -993,7 +998,7 @@ bool dsRenderPass_nextSubpass(const dsRenderPass* renderPass, dsCommandBuffer* c
 	if (success)
 	{
 		dsGPUProfileContext_nextSubpass(renderer->_profileContext, commandBuffer,
-			renderPass->subpasses[commandBuffer->activeRenderSubpass].name);
+			renderPass->subpasses[commandBuffer->activeRenderSubpass].name, secondary);
 	}
 	DS_PROFILE_FUNC_END();
 	if (!success)
@@ -1036,7 +1041,12 @@ bool dsRenderPass_end(const dsRenderPass* renderPass, dsCommandBuffer* commandBu
 	dsRenderer* renderer = renderPass->renderer;
 	bool success = renderer->endRenderPassFunc(renderer, commandBuffer, renderPass);
 	if (success)
+	{
+		// HACK: Render pass ended, so avoid checks against strict secondary command buffer
+		// management. Will get cleared anyway, so don't bother restoring the flag.
+		commandBuffer->secondaryRenderPassCommands = false;
 		dsGPUProfileContext_endSubpass(renderer->_profileContext, commandBuffer);
+	}
 	DS_PROFILE_FUNC_END();
 	if (success)
 		endRenderPassScope(commandBuffer);

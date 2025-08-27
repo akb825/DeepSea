@@ -259,8 +259,8 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 
 	if (attachmentCount > 0)
 	{
-		renderPassData->resolveIndices = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t,
-			attachmentCount);
+		renderPassData->resolveIndices = DS_ALLOCATE_OBJECT_ARRAY(
+			&bufferAlloc, uint32_t, attachmentCount);
 		DS_ASSERT(renderPassData->resolveIndices);
 
 		uint32_t resolveIndex = 0;
