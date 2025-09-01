@@ -30,6 +30,7 @@ from .. import DrawGeometry
 from ..FormatDecoration import FormatDecoration
 from .. import IndexBuffer
 from .. import Material
+from .. import MaterialCopy
 from ..MaterialBinding import MaterialBinding
 from .. import MaterialDesc
 from .. import MaterialElement
@@ -537,7 +538,8 @@ def convertSceneResourcesShaderVariableGroupDesc(builder, convertContext, data, 
 	ShaderVariableGroupDesc.AddElements(builder, elementsOffset)
 	return ShaderVariableGroupDesc.End(builder), SceneResourceUnion.ShaderVariableGroupDesc
 
-def convertSceneResourcesShaderDataArray(builder, convertContext, data, startVectorFunc):
+def convertSceneResourcesShaderDataArray(
+		builder, convertContext, data, startVectorFunc, dataElement = 'data'):
 	def readInt(value, name, minVal):
 		try:
 			intVal = int(value)
@@ -808,6 +810,8 @@ def convertSceneResourcesShaderDataArray(builder, convertContext, data, startVec
 				BufferMaterialData.AddSize(tempBuilder, size)
 				tempBuilder.Finish(BufferMaterialData.End(tempBuilder))
 				dataBytes = tempBuilder.Output()
+			else:
+				raise Exception('SceneResources shader element has unknown material type.')
 
 		return dataBytes, len(dataArray)
 
@@ -856,19 +860,20 @@ def convertSceneResourcesShaderDataArray(builder, convertContext, data, startVec
 		return VariableData.End(builder)
 
 	try:
-		description = str(data['description'])
-
-		memberData = data.get('data', [])
+		memberData = data.get(dataElement, [])
 		try:
 			elementDataOffsets = []
 			for dataValue in memberData:
 				elementDataOffsets.append(convertDataElement(builder, dataValue))
 		except (TypeError, ValueError):
 			raise Exception(
-				'SceneResources shader data "data" must be an array of objects.')
+				'SceneResources shader data "' + dataElement + '" must be an array of objects.')
 	except KeyError as e:
 		raise Exception(
 			'SceneResources shader data doesn\'t contain element ' + str(e) + '.')
+
+	if not elementDataOffsets:
+		return 0
 
 	startVectorFunc(builder, len(elementDataOffsets))
 	for offset in reversed(elementDataOffsets):
@@ -973,7 +978,7 @@ def convertSceneResourcesMaterial(builder, convertContext, data, name):
 		description = str(data['description'])
 	except KeyError as e:
 		raise Exception(
-			'SceneResources shader data doesn\'t contain element ' + str(e) + '.')
+			'SceneResources material data doesn\'t contain element ' + str(e) + '.')
 
 	nameOffset = builder.CreateString(name)
 	descriptionOffset = builder.CreateString(description)
@@ -983,6 +988,44 @@ def convertSceneResourcesMaterial(builder, convertContext, data, name):
 	Material.AddDescription(builder, descriptionOffset)
 	Material.AddData(builder, dataOffset)
 	return Material.End(builder), SceneResourceUnion.Material
+
+def convertSceneResourcesMaterialCopy(builder, convertContext, data, name):
+	addDataOffset = convertSceneResourcesShaderDataArray(builder, convertContext, data,
+		MaterialCopy.StartAddDataVector, 'addData')
+
+	try:
+		baseMaterial = str(data['baseMaterial'])
+		description = str(data['description'])
+		removeData = data.get('removeData', [])
+		if not isinstance(removeData, list):
+			raise Exception('SceneResources material copy remove data must be an array of strings.')
+	except KeyError as e:
+		raise Exception(
+			'SceneResources material copy data doesn\'t contain element ' + str(e) + '.')
+
+	nameOffset = builder.CreateString(name)
+	baseMaterialOffset = builder.CreateString(baseMaterial)
+	descriptionOffset = builder.CreateString(description)
+
+	removeDataOffsets = []
+	for dataName in removeData:
+		removeDataOffsets.append(builder.CreateString(str(dataName)))
+
+	if removeDataOffsets:
+		MaterialCopy.StartRemoveDataVector(builder, len(removeDataOffsets))
+		for offset in reversed(removeDataOffsets):
+			builder.PrependUOffsetTRelative(offset)
+		removeDataOffset = builder.EndVector()
+	else:
+		removeDataOffset = 0
+
+	MaterialCopy.Start(builder)
+	MaterialCopy.AddName(builder, nameOffset)
+	MaterialCopy.AddBaseMaterial(builder, baseMaterialOffset)
+	MaterialCopy.AddDescription(builder, descriptionOffset)
+	MaterialCopy.AddAddData(builder, addDataOffset)
+	MaterialCopy.AddRemoveData(builder, removeDataOffset)
+	return MaterialCopy.End(builder), SceneResourceUnion.MaterialCopy
 
 def convertSceneResourcesShaderModule(builder, convertContext, data, name, parentOutputDir):
 	try:
@@ -1321,8 +1364,8 @@ def convertSceneResources(convertContext, data, outputDir):
 	      prefix.
 	    - count: the number of array elements. If 0 or omitted, this is not an array.
 	- "ShaderVariableGroup"
-	  - description: the name of the description defined in shaderVariableGroupDescs. The
-	    description may be in a different scene resources package.
+	  - description: the name of the ShaderVariableGroupDesc. The description may be in a different
+	    scene resources package.
 	  - data: array of data elements to set. Each element of the array has the following members:
 	    - name: the name of the data element.
 	    - type: the type of the element. See the dsMaterialType enum for values, removing the type
@@ -1363,6 +1406,14 @@ def convertSceneResources(convertContext, data, outputDir):
 	- "Material": See "ShaderVariableGroup" for a description of the object members, except the
 	  "description" element is for a material description rather than a shader variable group
 	  description.
+	- "MaterialCopy"
+	  - description: the name of the MaterialDesc. The description may be in a different scene
+	    resources package.
+	  - baseMaterial: the name of the material to copy the values from.
+	  - addData: data to add to the material. See the "data" element for ShaderVariableGroup for a
+	    description of the members.
+	  - removeData: array of names to remove from the data of base material when performing the
+	    copy.
 	- "ShaderModule"
 	  - modules: array of versioned shader modules. The appropriate model based on the graphics API
 	    version being used will be chosen at runtime. Each element of the array has the following
@@ -1440,6 +1491,9 @@ def convertSceneResources(convertContext, data, outputDir):
 							builder, convertContext, element, name)
 					elif resourceType == 'Material':
 						resourceOffset, unionType = convertSceneResourcesMaterial(
+							builder, convertContext, element, name)
+					elif resourceType == 'MaterialCopy':
+						resourceOffset, unionType = convertSceneResourcesMaterialCopy(
 							builder, convertContext, element, name)
 					elif resourceType == 'ShaderModule':
 						resourceOffset, unionType = convertSceneResourcesShaderModule(

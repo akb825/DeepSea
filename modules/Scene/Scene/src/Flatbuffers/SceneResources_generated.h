@@ -47,6 +47,9 @@ struct MaterialDescBuilder;
 struct Material;
 struct MaterialBuilder;
 
+struct MaterialCopy;
+struct MaterialCopyBuilder;
+
 struct ShaderModule;
 struct ShaderModuleBuilder;
 
@@ -87,17 +90,18 @@ enum class SceneResourceUnion : uint8_t {
   ShaderVariableGroup = 4,
   MaterialDesc = 5,
   Material = 6,
-  ShaderModule = 7,
-  Shader = 8,
-  DrawGeometry = 9,
-  SceneNode = 10,
-  CustomResource = 11,
-  ResourceAction = 12,
+  MaterialCopy = 7,
+  ShaderModule = 8,
+  Shader = 9,
+  DrawGeometry = 10,
+  SceneNode = 11,
+  CustomResource = 12,
+  ResourceAction = 13,
   MIN = NONE,
   MAX = ResourceAction
 };
 
-inline const SceneResourceUnion (&EnumValuesSceneResourceUnion())[13] {
+inline const SceneResourceUnion (&EnumValuesSceneResourceUnion())[14] {
   static const SceneResourceUnion values[] = {
     SceneResourceUnion::NONE,
     SceneResourceUnion::Buffer,
@@ -106,6 +110,7 @@ inline const SceneResourceUnion (&EnumValuesSceneResourceUnion())[13] {
     SceneResourceUnion::ShaderVariableGroup,
     SceneResourceUnion::MaterialDesc,
     SceneResourceUnion::Material,
+    SceneResourceUnion::MaterialCopy,
     SceneResourceUnion::ShaderModule,
     SceneResourceUnion::Shader,
     SceneResourceUnion::DrawGeometry,
@@ -117,7 +122,7 @@ inline const SceneResourceUnion (&EnumValuesSceneResourceUnion())[13] {
 }
 
 inline const char * const *EnumNamesSceneResourceUnion() {
-  static const char * const names[14] = {
+  static const char * const names[15] = {
     "NONE",
     "Buffer",
     "Texture",
@@ -125,6 +130,7 @@ inline const char * const *EnumNamesSceneResourceUnion() {
     "ShaderVariableGroup",
     "MaterialDesc",
     "Material",
+    "MaterialCopy",
     "ShaderModule",
     "Shader",
     "DrawGeometry",
@@ -168,6 +174,10 @@ template<> struct SceneResourceUnionTraits<DeepSeaScene::MaterialDesc> {
 
 template<> struct SceneResourceUnionTraits<DeepSeaScene::Material> {
   static const SceneResourceUnion enum_value = SceneResourceUnion::Material;
+};
+
+template<> struct SceneResourceUnionTraits<DeepSeaScene::MaterialCopy> {
+  static const SceneResourceUnion enum_value = SceneResourceUnion::MaterialCopy;
 };
 
 template<> struct SceneResourceUnionTraits<DeepSeaScene::ShaderModule> {
@@ -1184,6 +1194,118 @@ inline ::flatbuffers::Offset<Material> CreateMaterialDirect(
       data__);
 }
 
+struct MaterialCopy FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef MaterialCopyBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_NAME = 4,
+    VT_BASEMATERIAL = 6,
+    VT_DESCRIPTION = 8,
+    VT_ADDDATA = 10,
+    VT_REMOVEDATA = 12
+  };
+  const ::flatbuffers::String *name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
+  }
+  const ::flatbuffers::String *baseMaterial() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_BASEMATERIAL);
+  }
+  const ::flatbuffers::String *description() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_DESCRIPTION);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::VariableData>> *addData() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::VariableData>> *>(VT_ADDDATA);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *removeData() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_REMOVEDATA);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
+           VerifyOffsetRequired(verifier, VT_BASEMATERIAL) &&
+           verifier.VerifyString(baseMaterial()) &&
+           VerifyOffsetRequired(verifier, VT_DESCRIPTION) &&
+           verifier.VerifyString(description()) &&
+           VerifyOffset(verifier, VT_ADDDATA) &&
+           verifier.VerifyVector(addData()) &&
+           verifier.VerifyVectorOfTables(addData()) &&
+           VerifyOffset(verifier, VT_REMOVEDATA) &&
+           verifier.VerifyVector(removeData()) &&
+           verifier.VerifyVectorOfStrings(removeData()) &&
+           verifier.EndTable();
+  }
+};
+
+struct MaterialCopyBuilder {
+  typedef MaterialCopy Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
+    fbb_.AddOffset(MaterialCopy::VT_NAME, name);
+  }
+  void add_baseMaterial(::flatbuffers::Offset<::flatbuffers::String> baseMaterial) {
+    fbb_.AddOffset(MaterialCopy::VT_BASEMATERIAL, baseMaterial);
+  }
+  void add_description(::flatbuffers::Offset<::flatbuffers::String> description) {
+    fbb_.AddOffset(MaterialCopy::VT_DESCRIPTION, description);
+  }
+  void add_addData(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::VariableData>>> addData) {
+    fbb_.AddOffset(MaterialCopy::VT_ADDDATA, addData);
+  }
+  void add_removeData(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> removeData) {
+    fbb_.AddOffset(MaterialCopy::VT_REMOVEDATA, removeData);
+  }
+  explicit MaterialCopyBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<MaterialCopy> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<MaterialCopy>(end);
+    fbb_.Required(o, MaterialCopy::VT_NAME);
+    fbb_.Required(o, MaterialCopy::VT_BASEMATERIAL);
+    fbb_.Required(o, MaterialCopy::VT_DESCRIPTION);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<MaterialCopy> CreateMaterialCopy(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> baseMaterial = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> description = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::VariableData>>> addData = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> removeData = 0) {
+  MaterialCopyBuilder builder_(_fbb);
+  builder_.add_removeData(removeData);
+  builder_.add_addData(addData);
+  builder_.add_description(description);
+  builder_.add_baseMaterial(baseMaterial);
+  builder_.add_name(name);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<MaterialCopy> CreateMaterialCopyDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *name = nullptr,
+    const char *baseMaterial = nullptr,
+    const char *description = nullptr,
+    const std::vector<::flatbuffers::Offset<DeepSeaScene::VariableData>> *addData = nullptr,
+    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *removeData = nullptr) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto baseMaterial__ = baseMaterial ? _fbb.CreateString(baseMaterial) : 0;
+  auto description__ = description ? _fbb.CreateString(description) : 0;
+  auto addData__ = addData ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaScene::VariableData>>(*addData) : 0;
+  auto removeData__ = removeData ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*removeData) : 0;
+  return DeepSeaScene::CreateMaterialCopy(
+      _fbb,
+      name__,
+      baseMaterial__,
+      description__,
+      addData__,
+      removeData__);
+}
+
 struct ShaderModule FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ShaderModuleBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -1834,6 +1956,9 @@ struct SceneResource FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaScene::Material *resource_as_Material() const {
     return resource_type() == DeepSeaScene::SceneResourceUnion::Material ? static_cast<const DeepSeaScene::Material *>(resource()) : nullptr;
   }
+  const DeepSeaScene::MaterialCopy *resource_as_MaterialCopy() const {
+    return resource_type() == DeepSeaScene::SceneResourceUnion::MaterialCopy ? static_cast<const DeepSeaScene::MaterialCopy *>(resource()) : nullptr;
+  }
   const DeepSeaScene::ShaderModule *resource_as_ShaderModule() const {
     return resource_type() == DeepSeaScene::SceneResourceUnion::ShaderModule ? static_cast<const DeepSeaScene::ShaderModule *>(resource()) : nullptr;
   }
@@ -1883,6 +2008,10 @@ template<> inline const DeepSeaScene::MaterialDesc *SceneResource::resource_as<D
 
 template<> inline const DeepSeaScene::Material *SceneResource::resource_as<DeepSeaScene::Material>() const {
   return resource_as_Material();
+}
+
+template<> inline const DeepSeaScene::MaterialCopy *SceneResource::resource_as<DeepSeaScene::MaterialCopy>() const {
+  return resource_as_MaterialCopy();
 }
 
 template<> inline const DeepSeaScene::ShaderModule *SceneResource::resource_as<DeepSeaScene::ShaderModule>() const {
@@ -2019,6 +2148,10 @@ inline bool VerifySceneResourceUnion(::flatbuffers::Verifier &verifier, const vo
     }
     case SceneResourceUnion::Material: {
       auto ptr = reinterpret_cast<const DeepSeaScene::Material *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case SceneResourceUnion::MaterialCopy: {
+      auto ptr = reinterpret_cast<const DeepSeaScene::MaterialCopy *>(obj);
       return verifier.VerifyTable(ptr);
     }
     case SceneResourceUnion::ShaderModule: {

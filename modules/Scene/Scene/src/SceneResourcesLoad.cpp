@@ -25,6 +25,8 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
+#include <DeepSea/Math/Core.h>
+
 #include <DeepSea/Render/Resources/DrawGeometry.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/Material.h>
@@ -121,16 +123,19 @@
 		} \
 	} while (false)
 
-#define PRINT_FLATBUFFER_MATERIAL_ERROR(message, elementName, fileName) \
+#define PRINT_FLATBUFFER_MATERIAL_ERROR(message, elementName, resourceName, fileName) \
 	do \
 	{ \
 		if (fileName) \
 		{ \
 			DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, message " for scene resources '%s'.", \
-				elementName, fileName); \
+				elementName, resourceName, fileName); \
 		} \
 		else \
-			DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, message " for scene resources.", elementName); \
+		{ \
+			DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, \
+				message " for scene resources.", elementName, resourceName); \
+		} \
 	} while (false)
 
 template <typename T>
@@ -421,7 +426,8 @@ static bool loadShaderVariableGroup(dsSceneResources* resources,
 		if (element == DS_MATERIAL_UNKNOWN)
 		{
 			PRINT_FLATBUFFER_MATERIAL_ERROR(
-				"Couldn't find shader variable group element '%s'", dataName, fileName);
+				"Couldn't find shader element '%s' in shader variable group '%s'", dataName,
+				groupName, fileName);
 			return false;
 		}
 
@@ -432,8 +438,8 @@ static bool loadShaderVariableGroup(dsSceneResources* resources,
 		if (data->size() != expectedSize)
 		{
 			PRINT_FLATBUFFER_MATERIAL_ERROR(
-				"Incorrect data size for shader variable group element '%s'", dataName,
-				fileName);
+				"Incorrect data size for element '%s' in shader variable group '%s'", dataName,
+				groupName, fileName);
 			return false;
 		}
 
@@ -441,7 +447,8 @@ static bool loadShaderVariableGroup(dsSceneResources* resources,
 				type, fbData->first(), count))
 		{
 			PRINT_FLATBUFFER_MATERIAL_ERROR(
-				"Couldn't set shader variable group element '%s'", dataName, fileName);
+				"Couldn't set element '%s' in shader variable group '%s'", dataName, groupName,
+				fileName);
 			return false;
 		}
 	}
@@ -523,14 +530,15 @@ static bool loadMaterialDesc(dsSceneResources* resources, dsResourceManager* res
 
 static bool loadMaterialTexture(dsSceneLoadScratchData* scratchData, dsMaterial* material,
 	uint32_t element, const uint8_t* data, uint32_t dataSize, const char* dataName,
-	const char* fileName)
+	const char* materialName, const char* fileName)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaScene::VerifyNamedMaterialDataBuffer(verifier))
 	{
 		errno = EFORMAT;
 		PRINT_FLATBUFFER_MATERIAL_ERROR(
-			"Invalid NamedMaterialData flatbuffer data for element '%s'", dataName, fileName);
+			"Invalid NamedMaterialData flatbuffer data for element '%s' in material '%s'", dataName,
+			materialName, fileName);
 		return false;
 	}
 
@@ -551,7 +559,8 @@ static bool loadMaterialTexture(dsSceneLoadScratchData* scratchData, dsMaterial*
 
 	if (!dsMaterial_setTexture(material, element, texture))
 	{
-		PRINT_FLATBUFFER_MATERIAL_ERROR("Couldn't set texture '%s'", dataName, fileName);
+		PRINT_FLATBUFFER_MATERIAL_ERROR("Couldn't set texture '%s' on material '%s'", dataName,
+			materialName, fileName);
 		return false;
 	}
 
@@ -560,15 +569,15 @@ static bool loadMaterialTexture(dsSceneLoadScratchData* scratchData, dsMaterial*
 
 static bool loadMaterialTextureBuffer(dsSceneLoadScratchData* scratchData,
 	const dsRenderer* renderer, dsMaterial* material, uint32_t element, const uint8_t* data,
-	uint32_t dataSize, const char* dataName, const char* fileName)
+	uint32_t dataSize, const char* dataName, const char* materialName, const char* fileName)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaScene::VerifyTextureBufferMaterialDataBuffer(verifier))
 	{
 		errno = EFORMAT;
 		PRINT_FLATBUFFER_MATERIAL_ERROR(
-			"Invalid TextureBufferMaterialData flatbuffer data for element '%s'", dataName,
-			fileName);
+			"Invalid TextureBufferMaterialData flatbuffer data for element '%s' in material '%s'",
+			dataName, materialName, fileName);
 		return false;
 	}
 
@@ -591,7 +600,8 @@ static bool loadMaterialTextureBuffer(dsSceneLoadScratchData* scratchData,
 			DeepSeaScene::convert(renderer, materialData->format(), materialData->decoration()),
 			materialData->offset(), materialData->count()))
 	{
-		PRINT_FLATBUFFER_MATERIAL_ERROR("Couldn't set texture buffer '%s'", dataName, fileName);
+		PRINT_FLATBUFFER_MATERIAL_ERROR("Couldn't set texture buffer '%s' on material '%s'",
+			dataName, materialName, fileName);
 		return false;
 	}
 
@@ -600,14 +610,15 @@ static bool loadMaterialTextureBuffer(dsSceneLoadScratchData* scratchData,
 
 static bool loadMaterialVariableGroup(dsSceneLoadScratchData* scratchData, dsMaterial* material,
 	uint32_t element, const uint8_t* data, uint32_t dataSize, const char* dataName,
-	const char* fileName)
+	const char* materialName, const char* fileName)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaScene::VerifyNamedMaterialDataBuffer(verifier))
 	{
 		errno = EFORMAT;
 		PRINT_FLATBUFFER_MATERIAL_ERROR(
-			"Invalid NamedMaterialData flatbuffer data for element '%s'", dataName, fileName);
+			"Invalid NamedMaterialData flatbuffer data for element '%s' in material '%s'", dataName,
+			materialName, fileName);
 		return false;
 	}
 
@@ -628,8 +639,8 @@ static bool loadMaterialVariableGroup(dsSceneLoadScratchData* scratchData, dsMat
 
 	if (!dsMaterial_setVariableGroup(material, element, variableGroup))
 	{
-		PRINT_FLATBUFFER_MATERIAL_ERROR("Couldn't set shader variable group '%s'", dataName,
-			fileName);
+		PRINT_FLATBUFFER_MATERIAL_ERROR("Couldn't set shader variable group '%s' on material '%s'",
+			dataName, materialName, fileName);
 		return false;
 	}
 
@@ -638,14 +649,15 @@ static bool loadMaterialVariableGroup(dsSceneLoadScratchData* scratchData, dsMat
 
 static bool loadMaterialBuffer(dsSceneLoadScratchData* scratchData, dsMaterial* material,
 	uint32_t element, const uint8_t* data, uint32_t dataSize, const char* dataName,
-	const char* fileName)
+	const char* materialName, const char* fileName)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaScene::VerifyBufferMaterialDataBuffer(verifier))
 	{
 		errno = EFORMAT;
 		PRINT_FLATBUFFER_MATERIAL_ERROR(
-			"Invalid BufferMaterialData flatbuffer data for element '%s'", dataName, fileName);
+			"Invalid BufferMaterialData flatbuffer data for element '%s' in material '%s'",
+			dataName, materialName, fileName);
 		return false;
 	}
 
@@ -667,7 +679,8 @@ static bool loadMaterialBuffer(dsSceneLoadScratchData* scratchData, dsMaterial* 
 	if (!dsMaterial_setBuffer(material, element, buffer, materialData->offset(),
 			materialData->size()))
 	{
-		PRINT_FLATBUFFER_MATERIAL_ERROR("Couldn't set buffer '%s'", dataName, fileName);
+		PRINT_FLATBUFFER_MATERIAL_ERROR("Couldn't set buffer '%s' on material '%s'", dataName,
+			materialName, fileName);
 		return false;
 	}
 
@@ -676,22 +689,85 @@ static bool loadMaterialBuffer(dsSceneLoadScratchData* scratchData, dsMaterial* 
 
 static bool loadMaterialData(dsMaterial* material, uint32_t element, dsMaterialType type,
 	uint32_t first, uint32_t count, const uint8_t* data, uint32_t dataSize, const char* dataName,
-	const char* fileName)
+	const char* materialName, const char* fileName)
 {
 	uint32_t expectedSize = dsMaterialType_cpuSize(type)*count;
 	if (dataSize != expectedSize)
 	{
 		PRINT_FLATBUFFER_MATERIAL_ERROR(
-			"Incorrect data size for material element '%s'", dataName,
-			fileName);
+			"Incorrect data size for material element '%s' in material '%s'", dataName,
+			materialName, fileName);
 		return false;
 	}
 
 	if (!dsMaterial_setElementData(material, element, data, type, first, count))
 	{
-		PRINT_FLATBUFFER_MATERIAL_ERROR(
-			"Couldn't set material element '%s'", dataName, fileName);
+		PRINT_FLATBUFFER_MATERIAL_ERROR("Couldn't set element '%s' on material '%s'",
+			dataName, materialName, fileName);
 		return false;
+	}
+
+	return true;
+}
+
+static bool loadMaterialData(dsSceneLoadScratchData* scratchData,
+	dsResourceManager* resourceManager, dsMaterial* material, const dsMaterialDesc* materialDesc,
+	const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::VariableData>>* fbVariableData,
+	const char* materialName, const char* fileName)
+{
+	if (!fbVariableData)
+		return true;
+
+	for (auto fbData : *fbVariableData)
+	{
+		if (!fbData)
+			continue;
+
+		const char* dataName = fbData->name()->c_str();
+		uint32_t element = dsMaterialDesc_findElement(materialDesc, dataName);
+		if (element == DS_MATERIAL_UNKNOWN)
+		{
+			PRINT_FLATBUFFER_MATERIAL_ERROR("Couldn't find element '%s' in material '%s'", dataName,
+				materialName, fileName);
+			return false;
+		}
+
+		auto data = fbData->data();
+		dsMaterialType type = DeepSeaScene::convert(fbData->type());
+		bool success;
+		switch (type)
+		{
+			case dsMaterialType_Texture:
+			case dsMaterialType_Image:
+			case dsMaterialType_SubpassInput:
+				success = loadMaterialTexture(scratchData, material, element, data->data(),
+					data->size(), dataName, materialName, fileName);
+				break;
+			case dsMaterialType_TextureBuffer:
+			case dsMaterialType_ImageBuffer:
+				success = loadMaterialTextureBuffer(scratchData, resourceManager->renderer,
+					material, element, data->data(), data->size(), dataName, materialName,
+					fileName);
+				break;
+			case dsMaterialType_VariableGroup:
+				success = loadMaterialVariableGroup(scratchData, material, element,
+					data->data(), data->size(), dataName, materialName, fileName);
+				break;
+			case dsMaterialType_UniformBlock:
+			case dsMaterialType_UniformBuffer:
+				success = loadMaterialBuffer(scratchData, material, element, data->data(),
+					data->size(), dataName, materialName, fileName);
+				break;
+			default:
+			{
+				success = loadMaterialData(material, element, type, fbData->first(),
+					fbData->count(), data->data(), data->size(), dataName, materialName, fileName);
+				break;
+			}
+		}
+
+		if (!success)
+			return false;
 	}
 
 	return true;
@@ -732,62 +808,192 @@ static bool loadMaterial(dsSceneResources* resources, dsResourceManager* resourc
 		return false;
 	}
 
-	auto* variableData = fbMaterial->data();
-	if (!variableData)
-		return true;
+	return loadMaterialData(scratchData, resourceManager, material, materialDesc,
+		fbMaterial->data(), materialName, fileName);
+}
 
-	for (auto fbData : *variableData)
+static bool loadMaterialCopy(dsSceneResources* resources, dsResourceManager* resourceManager,
+	dsAllocator* allocator, dsSceneLoadScratchData* scratchData,
+	const DeepSeaScene::MaterialCopy* fbMaterialCopy, const char* fileName)
+{
+	const char* materialDescName = fbMaterialCopy->description()->c_str();
+	dsMaterialDesc* materialDesc;
+	dsSceneResourceType resourceType;
+	if (!dsSceneLoadScratchData_findResource(&resourceType,
+			reinterpret_cast<void**>(&materialDesc), scratchData, materialDescName) ||
+		resourceType != dsSceneResourceType_MaterialDesc)
 	{
-		if (!fbData)
+		// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
+		errno = ENOTFOUND;
+		PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("material desc", materialDescName, fileName);
+		return false;
+	}
+
+	const char* baseMaterialName = fbMaterialCopy->baseMaterial()->c_str();
+	dsMaterial* baseMaterial;
+	if (!dsSceneLoadScratchData_findResource(&resourceType,
+			reinterpret_cast<void**>(&baseMaterial), scratchData, baseMaterialName) ||
+		resourceType != dsSceneResourceType_Material)
+	{
+		// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
+		errno = ENOTFOUND;
+		PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("material", baseMaterialName, fileName);
+		return false;
+	}
+
+	const char* materialName = fbMaterialCopy->name()->c_str();
+	uint32_t removedDataCount = 0;
+	auto* fbRemovedData = fbMaterialCopy->removeData();
+	if (fbRemovedData)
+	{
+		removedDataCount = fbRemovedData->size();
+		for (uint32_t i = 0; i < removedDataCount; ++i)
+		{
+			if (!(*fbRemovedData)[i])
+			{
+				errno = EFORMAT;
+				PRINT_FLATBUFFER_RESOURCE_ERROR(
+					"Removed data element unset on material copy '%s'", materialName, fileName);
+				return false;
+			}
+		}
+	}
+
+	dsMaterial* material = dsMaterial_create(resourceManager, allocator, materialDesc);
+	if (!material)
+	{
+		PRINT_FLATBUFFER_RESOURCE_ERROR(
+			"Couldn't create material '%s'", materialName, fileName);
+		return false;
+	}
+
+	// NOTE: This takes ownership on success, so errors after this point won't destroy the
+	// material.
+	if (!dsSceneResources_addResource(
+			resources, materialName, dsSceneResourceType_Material, material, true))
+	{
+		dsMaterial_destroy(material);
+		return false;
+	}
+
+	// Copy over old material values.
+	const dsMaterialDesc* baseMaterialDesc = dsMaterial_getDescription(baseMaterial);
+	DS_ASSERT(baseMaterialDesc);
+	for (uint32_t i = 0; i < baseMaterialDesc->elementCount; ++i)
+	{
+		const dsMaterialElement* baseElement = baseMaterialDesc->elements + i;
+		if (baseElement->binding != dsMaterialBinding_Material)
 			continue;
 
-		const char* dataName = fbData->name()->c_str();
-		uint32_t element = dsMaterialDesc_findElement(materialDesc, dataName);
-		if (element == DS_MATERIAL_UNKNOWN)
+		bool removed = false;
+		for (uint32_t j = 0; j < removedDataCount; ++j)
 		{
-			PRINT_FLATBUFFER_MATERIAL_ERROR(
-				"Couldn't find material element '%s'", dataName, fileName);
-			return false;
-		}
-
-		auto data = fbData->data();
-		dsMaterialType type = DeepSeaScene::convert(fbData->type());
-		bool success;
-		switch (type)
-		{
-			case dsMaterialType_Texture:
-			case dsMaterialType_Image:
-			case dsMaterialType_SubpassInput:
-				success = loadMaterialTexture(scratchData, material, element, data->data(),
-					data->size(), dataName, fileName);
-				break;
-			case dsMaterialType_TextureBuffer:
-			case dsMaterialType_ImageBuffer:
-				success = loadMaterialTextureBuffer(scratchData, resourceManager->renderer,
-					material, element, data->data(), data->size(), dataName, fileName);
-				break;
-			case dsMaterialType_VariableGroup:
-				success = loadMaterialVariableGroup(scratchData, material, element,
-					data->data(), data->size(), dataName, fileName);
-				break;
-			case dsMaterialType_UniformBlock:
-			case dsMaterialType_UniformBuffer:
-				success = loadMaterialBuffer(scratchData, material, element, data->data(),
-					data->size(), dataName, fileName);
-				break;
-			default:
+			if (strcmp(baseElement->name, (*fbRemovedData)[i]->c_str()) == 0)
 			{
-				success = loadMaterialData(material, element, type, fbData->first(),
-					fbData->count(), data->data(), data->size(), dataName, fileName);
+				removed = true;
+				break;
+			}
+		}
+		if (removed)
+			continue;
+
+		uint32_t element = DS_MATERIAL_UNKNOWN;
+		for (uint32_t j = 0; j < materialDesc->elementCount; ++j)
+		{
+			if (materialDesc->elements[j].nameID == baseElement->nameID)
+			{
+				element = j;
 				break;
 			}
 		}
 
-		if (!success)
+		if (element == DS_MATERIAL_UNKNOWN)
+		{
+			errno = ENOTFOUND;
+			PRINT_FLATBUFFER_MATERIAL_ERROR("Couldn't find element '%s' in material '%s'",
+				baseElement->name, materialName, fileName);
 			return false;
+		}
+
+		switch (baseElement->type)
+		{
+			case dsMaterialType_Texture:
+			case dsMaterialType_Image:
+			case dsMaterialType_SubpassInput:
+			{
+				dsTexture* texture = dsMaterial_getTexture(baseMaterial, i);
+				DS_ASSERT(texture);
+				if (!dsMaterial_setTexture(material, element, texture))
+				{
+					PRINT_FLATBUFFER_MATERIAL_ERROR("Couldn't set texture '%s' on material '%s'",
+						baseElement->name, materialName, fileName);
+					return false;
+				}
+				break;
+			}
+			case dsMaterialType_TextureBuffer:
+			case dsMaterialType_ImageBuffer:
+			{
+				dsGfxFormat format;
+				size_t offset, count;
+				dsGfxBuffer* buffer = dsMaterial_getTextureBuffer(
+					&format, &offset, &count, baseMaterial, i);
+				DS_ASSERT(buffer);
+				if (!dsMaterial_setTextureBuffer(material, element, buffer, format, offset, count))
+				{
+					PRINT_FLATBUFFER_MATERIAL_ERROR(
+						"Couldn't set texture buffer '%s' on material '%s'", baseElement->name,
+						materialName, fileName);
+					return false;
+				}
+				break;
+			}
+			case dsMaterialType_VariableGroup:
+			{
+				dsShaderVariableGroup* variableGroup = dsMaterial_getVariableGroup(baseMaterial, i);
+				DS_ASSERT(variableGroup);
+				if (!dsMaterial_setVariableGroup(material, element, variableGroup))
+				{
+					PRINT_FLATBUFFER_MATERIAL_ERROR(
+						"Couldn't set shader variable group '%s' on material '%s'",
+						baseElement->name, materialName, fileName);
+					return false;
+				}
+				break;
+			}
+			case dsMaterialType_UniformBlock:
+			case dsMaterialType_UniformBuffer:
+			{
+				size_t offset, count;
+				dsGfxBuffer* buffer = dsMaterial_getBuffer(&offset, &count, baseMaterial, element);
+				DS_ASSERT(buffer);
+				if (!dsMaterial_setBuffer(material, element, buffer, offset, count))
+				{
+					PRINT_FLATBUFFER_MATERIAL_ERROR("Couldn't set buffer '%s' on material '%s'",
+						baseElement->name, materialName, fileName);
+					return false;
+				}
+			}
+			default:
+			{
+				const void* data = dsMaterial_getRawElementData(baseMaterial, i);
+				DS_ASSERT(data);
+				if (!dsMaterial_setElementData(
+						material, element, data, baseElement->type, 0,
+						dsMax(baseElement->count, 1U)))
+				{
+					PRINT_FLATBUFFER_MATERIAL_ERROR("Couldn't set element '%s' on material '%s'",
+						baseElement->name, materialName, fileName);
+					return false;
+				}
+				break;
+			}
+		}
 	}
 
-	return true;
+	// Add new data.
+	return loadMaterialData(scratchData, resourceManager, material, materialDesc,
+		fbMaterialCopy->addData(), materialName, fileName);
 }
 
 static dsShaderModule* loadShaderModule(dsResourceManager* resourceManager, dsAllocator* allocator,
@@ -1220,8 +1426,13 @@ dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator*
 		}
 		else if (auto fbMaterial = fbResource->resource_as_Material())
 		{
-			success = loadMaterial(resources, resourceManager, allocator, scratchData, fbMaterial,
-				fileName);
+			success = loadMaterial(
+				resources, resourceManager, allocator, scratchData, fbMaterial, fileName);
+		}
+		else if (auto fbMaterialCopy = fbResource->resource_as_MaterialCopy())
+		{
+			success = loadMaterialCopy(
+				resources, resourceManager, allocator, scratchData, fbMaterialCopy, fileName);
 		}
 		else if (auto fbShaderModule = fbResource->resource_as_ShaderModule())
 		{

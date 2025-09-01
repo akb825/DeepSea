@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -180,6 +180,26 @@ table Material
 	data : [VariableData];
 }
 
+// Structure describing a material created by copying another material, allowing for a similar
+// material that may also change the MaterialDesc that's used.
+table MaterialCopy
+{
+	// The name of the material.
+	name : string (required);
+
+	// The base material to copy from.
+	baseMaterial : string (required);
+
+	// The name of the MaterialDesc to use.
+	description : string (required);
+
+	// The data to add to the base material.
+	addData : [VariableData];
+
+	// The data to remove from the base material.
+	removeData : [string];
+}
+
 // Structure describing a shader module
 table ShaderModule
 {
@@ -303,6 +323,7 @@ union SceneResourceUnion
 	ShaderVariableGroup,
 	MaterialDesc,
 	Material,
+	MaterialCopy,
 	ShaderModule,
 	Shader,
 	DrawGeometry,

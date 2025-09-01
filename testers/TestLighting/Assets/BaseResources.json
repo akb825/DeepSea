@@ -661,32 +661,10 @@
 		]
 	},
 	{
-		"type": "Material",
+		"type": "MaterialCopy",
 		"name": "deferredGrassMaterial",
-		"description": "deferredModelMaterialDesc",
-		"data":
-		[
-			{
-				"name": "diffuseTexture",
-				"type": "Texture",
-				"data": "grassColor"
-			},
-			{
-				"name": "normalTexture",
-				"type": "Texture",
-				"data": "grassNormal"
-			},
-			{
-				"name": "specularTexture",
-				"type": "Texture",
-				"data": "grassSpecular"
-			},
-			{
-				"name": "shininess",
-				"type": "Float",
-				"data": 20
-			}
-		]
+		"baseMaterial": "forwardGrassMaterial",
+		"description": "deferredModelMaterialDesc"
 	},
 	{
 		"type": "Material",
@@ -717,32 +695,10 @@
 		]
 	},
 	{
-		"type": "Material",
+		"type": "MaterialCopy",
 		"name": "deferredBrickMaterial",
-		"description": "deferredModelMaterialDesc",
-		"data":
-		[
-			{
-				"name": "diffuseTexture",
-				"type": "Texture",
-				"data": "brickColor"
-			},
-			{
-				"name": "normalTexture",
-				"type": "Texture",
-				"data": "brickNormal"
-			},
-			{
-				"name": "specularTexture",
-				"type": "Texture",
-				"data": "brickSpecular"
-			},
-			{
-				"name": "shininess",
-				"type": "Float",
-				"data": 50
-			}
-		]
+		"baseMaterial": "forwardBrickMaterial",
+		"description": "deferredModelMaterialDesc"
 	},
 	{
 		"type": "Material",
@@ -773,32 +729,10 @@
 		]
 	},
 	{
-		"type": "Material",
+		"type": "MaterialCopy",
 		"name": "deferredConcreteMaterial",
-		"description": "deferredModelMaterialDesc",
-		"data":
-		[
-			{
-				"name": "diffuseTexture",
-				"type": "Texture",
-				"data": "concreteColor"
-			},
-			{
-				"name": "normalTexture",
-				"type": "Texture",
-				"data": "concreteNormal"
-			},
-			{
-				"name": "specularTexture",
-				"type": "Texture",
-				"data": "concreteSpecular"
-			},
-			{
-				"name": "shininess",
-				"type": "Float",
-				"data": 50
-			}
-		]
+		"baseMaterial": "forwardConcreteMaterial",
+		"description": "deferredModelMaterialDesc"
 	},
 	{
 		"type": "Material",
@@ -829,32 +763,10 @@
 		]
 	},
 	{
-		"type": "Material",
+		"type": "MaterialCopy",
 		"name": "deferredMarbleMaterial",
-		"description": "deferredModelMaterialDesc",
-		"data":
-		[
-			{
-				"name": "diffuseTexture",
-				"type": "Texture",
-				"data": "marbleColor"
-			},
-			{
-				"name": "normalTexture",
-				"type": "Texture",
-				"data": "marbleNormal"
-			},
-			{
-				"name": "specularTexture",
-				"type": "Texture",
-				"data": "marbleSpecular"
-			},
-			{
-				"name": "shininess",
-				"type": "Float",
-				"data": 50
-			}
-		]
+		"baseMaterial": "forwardMarbleMaterial",
+		"description": "deferredModelMaterialDesc"
 	},
 	{
 		"type": "Material",

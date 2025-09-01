@@ -50,8 +50,7 @@ The remaining members of each element depends on the value of `type`. The builti
 		* `type`: the type of the element. See `dsMaterialType `enum for values, removing the type prefix.
 		* `count`: the number of array elements. If 0 or omitted, this is not an array.
 * `"ShaderVariableGroup"`
-	* `description`: the name of the description defined in `shaderVariableGroupDescs`. The
-	    description may be in a different scene resources package.
+	* `description`: the name of the `ShaderVariableGroupDesc`. The description may be in a different scene resources package.
 	* `data`: array of data elements to set. Each element of the array has the following members:
 		* `name`: the name of the data element.
 		* `type`: the type of the element. See the `dsMaterialType` enum for values, removing the type prefix.
@@ -78,9 +77,12 @@ The remaining members of each element depends on the value of `type`. The builti
 		* `count`: the number of array elements. If 0 or omitted, this is not an array.
 		* `binding`: the binding type for the element. See the `dsMaterialBinding` enum for values, removing the type prefix. This is only used for texture, image, buffer, and shader variable group types.
 		* `shaderVariableGroupDesc`: the name of the shader variable group description when the type is a shader variable group. The description may be in a different scene resources package.
-* `"Material"`: See `"ShaderVariableGroup"` for a description of the object members, except the
-	  "description" element is for a material description rather than a shader variable group
-	  description.
+* `"Material"`: See `"ShaderVariableGroup"` for a description of the object members, except the "description" element is for a `ShaderMaterialDesc`.
+* `"MaterialCopy"`
+	* `description`: the name of the `MaterialDesc`. The description may be in a different scene resources package.
+	* `baseMaterial`: the name of the material to copy the values from.
+	* `addData`: data to add to the material. See the "data" element for `ShaderVariableGroup` for a description of the members.
+	* `removeData`: array of names to remove from the data of base material when performing the copy.
 * `"ShaderModule"`
 	* `modules`: array of versioned shader modules. The appropriate model based on the graphics API version being used will be chosen at runtime. Each element of the array has the following members:
 	* `version`: the version of the shader as a standard config. (e.g. `"glsl-4.1"`, `"spirv-1.0"`)
@@ -100,7 +102,7 @@ The remaining members of each element depends on the value of `type`. The builti
 		* `format`: the vertex format. This is a dict with the following members:
 			* `attributes`: array of attributes for the format. Each element has the following members:
 				* `attrib`: the attribute. This can either be an enum value from `dsVertexAttrib`, removing the type prefix, or the integer for the attribute.
-				* `format`: the attribute format. See the dsGfxFormat enum for values, removing the type prefix. Only the "standard" formats may be used.
+				* `format`: the attribute format. See the `dsGfxFormat` enum for values, removing the type prefix. Only the "standard" formats may be used.
 				* `decoration`: the decoration for the format. See the `dsGfxFormat` enum for values, removing the type prefix. Only the decorator values may be used.
 			* `instanced`: true if the vertex data is instanced. Defaults to false.
 	* `indexBuffer`: the index buffer. If not set, the draw geometry isn't indexed. This is a dict with the following members:

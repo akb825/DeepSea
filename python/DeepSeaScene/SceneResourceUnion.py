@@ -10,9 +10,10 @@ class SceneResourceUnion(object):
     ShaderVariableGroup = 4
     MaterialDesc = 5
     Material = 6
-    ShaderModule = 7
-    Shader = 8
-    DrawGeometry = 9
-    SceneNode = 10
-    CustomResource = 11
-    ResourceAction = 12
+    MaterialCopy = 7
+    ShaderModule = 8
+    Shader = 9
+    DrawGeometry = 10
+    SceneNode = 11
+    CustomResource = 12
+    ResourceAction = 13
