@@ -129,6 +129,8 @@ static void setDirectionalShadowBias(dsDynamicRenderStates* outRenderStates,
 	DS_UNUSED(renderer);
 	if (curRenderStates)
 		*outRenderStates = *curRenderStates;
+	else
+		memset(outRenderStates, 0, sizeof(dsDynamicRenderStates));
 
 	outRenderStates->depthBiasConstantFactor = -1.0f;
 	outRenderStates->depthBiasSlopeFactor = -2.0f;
@@ -141,6 +143,8 @@ static void setPointShadowBias(dsDynamicRenderStates* outRenderStates, const dsR
 	DS_UNUSED(renderer);
 	if (curRenderStates)
 		*outRenderStates = *curRenderStates;
+	else
+		memset(outRenderStates, 0, sizeof(dsDynamicRenderStates));
 
 	if (renderer->rendererID == DS_VK_RENDERER_ID)
 	{
@@ -162,6 +166,8 @@ static void setSpotShadowBias(dsDynamicRenderStates* outRenderStates, const dsRe
 	DS_UNUSED(renderer);
 	if (curRenderStates)
 		*outRenderStates = *curRenderStates;
+	else
+		memset(outRenderStates, 0, sizeof(dsDynamicRenderStates));
 
 	if (renderer->rendererID == DS_VK_RENDERER_ID)
 	{

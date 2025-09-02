@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@
 #include "Resources/GLRenderbuffer.h"
 #include "Resources/GLResource.h"
 #include "Resources/GLTexture.h"
-#include "GLHelpers.h"
 #include "GLRendererInternal.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
@@ -140,7 +139,7 @@ dsFramebuffer* dsGLFramebuffer_create(dsResourceManager* resourceManager, dsAllo
 	dsGLResource_initialize(&framebuffer->resource);
 	framebuffer->framebufferId = 0;
 	framebuffer->fboContext = 0;
-	memset(framebuffer->curColorAttachments, 0, sizeof(framebuffer->curColorAttachmentCount));
+	memset(framebuffer->curColorAttachments, 0, sizeof(framebuffer->curColorAttachments));
 	framebuffer->curColorAttachmentCount = 0;
 	framebuffer->curDepthAttachment = DS_NO_ATTACHMENT;
 	framebuffer->curDefaultSamples = 0;

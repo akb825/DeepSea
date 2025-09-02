@@ -63,7 +63,7 @@ uint32_t dsSceneInstanceData_hash(const dsSceneInstanceData* instanceData, uint3
 	if (!instanceData || !instanceData->type)
 		return 0;
 
-	uint32_t hash = dsHashPointer(instanceData->type);
+	uint32_t hash = dsHashCombinePointer(seed, instanceData->type);
 	uint32_t hashValues[2] = {instanceData->valueCount, instanceData->needsCommandBuffer};
 	hash = dsHashCombineBytes(hash, hashValues, sizeof(hashValues));
 
