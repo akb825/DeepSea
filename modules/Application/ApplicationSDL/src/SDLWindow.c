@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const cha
 		sdlFlags |= SDL_WINDOW_MAXIMIZED;
 	if (flags & dsWindowFlags_GrabInput)
 		sdlFlags |= SDL_WINDOW_INPUT_GRABBED;
-	if (platformID == DS_GLX_RENDERER_PLATFORM_ID || platformID == DS_WGL_RENDERER_PLATFORM_ID)
+	if (platformID == DS_GLX_RENDERER_PLATFORM_ID)
 		sdlFlags |= SDL_WINDOW_OPENGL;
 
 	if (!dsRenderSurface_destroy(window->surface))
