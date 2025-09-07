@@ -68,14 +68,47 @@ class ModelList(object):
         return None
 
     # ModelList
-    def CullList(self):
+    def CullLists(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
-            return self._tab.String(o + self._tab.Pos)
-        return None
+            a = self._tab.Vector(o)
+            return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
+        return ""
+
+    # ModelList
+    def CullListsLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # ModelList
+    def CullListsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        return o == 0
+
+    # ModelList
+    def Views(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
+        return ""
+
+    # ModelList
+    def ViewsLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # ModelList
+    def ViewsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
+        return o == 0
 
 def ModelListStart(builder):
-    builder.StartObject(4)
+    builder.StartObject(5)
 
 def Start(builder):
     ModelListStart(builder)
@@ -104,11 +137,29 @@ def ModelListAddDynamicRenderStates(builder, dynamicRenderStates):
 def AddDynamicRenderStates(builder, dynamicRenderStates):
     ModelListAddDynamicRenderStates(builder, dynamicRenderStates)
 
-def ModelListAddCullList(builder, cullList):
-    builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(cullList), 0)
+def ModelListAddCullLists(builder, cullLists):
+    builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(cullLists), 0)
 
-def AddCullList(builder, cullList):
-    ModelListAddCullList(builder, cullList)
+def AddCullLists(builder, cullLists):
+    ModelListAddCullLists(builder, cullLists)
+
+def ModelListStartCullListsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
+def StartCullListsVector(builder, numElems):
+    return ModelListStartCullListsVector(builder, numElems)
+
+def ModelListAddViews(builder, views):
+    builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(views), 0)
+
+def AddViews(builder, views):
+    ModelListAddViews(builder, views)
+
+def ModelListStartViewsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
+def StartViewsVector(builder, numElems):
+    return ModelListStartViewsVector(builder, numElems)
 
 def ModelListEnd(builder):
     return builder.EndObject()

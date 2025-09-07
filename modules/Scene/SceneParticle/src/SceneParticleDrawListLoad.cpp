@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Aaron Barany
+ * Copyright 2022-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,12 +60,16 @@ dsSceneItemList* dsSceneParticleDrawList_load(const dsSceneLoadContext* loadCont
 
 	auto fbDrawList = DeepSeaSceneParticle::GetParticleDrawList(data);
 	auto fbInstanceData = fbDrawList->instanceData();
-	auto fbCullList = fbDrawList->cullList();
-
-	const char* cullList = fbCullList ? fbCullList->c_str() : nullptr;
+	auto fbCullLists = fbDrawList->cullLists();
+	auto fbViews = fbDrawList->views();
 
 	dsSceneInstanceData** instanceData = nullptr;
 	uint32_t instanceDataCount = 0;
+	uint32_t cullListCount = 0;
+	const char** cullLists = nullptr;
+	uint32_t viewCount = 0;
+	const char** views = nullptr;
+
 	if (fbInstanceData && fbInstanceData->size() > 0)
 	{
 		instanceDataCount = fbInstanceData->size();
@@ -100,8 +104,44 @@ dsSceneItemList* dsSceneParticleDrawList_load(const dsSceneLoadContext* loadCont
 		}
 	}
 
+	if (fbCullLists && fbCullLists->size() > 0)
+	{
+		cullListCount = fbCullLists->size();
+		cullLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, cullListCount);
+		for (uint32_t i = 0; i < cullListCount; ++i)
+		{
+			auto fbCullList = (*fbCullLists)[i];
+			if (!fbCullList)
+			{
+				errno = EFORMAT;
+				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Particle draw list cull list name is null.");
+				goto error;
+			}
+
+			cullLists[i] = fbCullList->c_str();
+		}
+	}
+
+	if (fbViews && fbViews->size() > 0)
+	{
+		viewCount = fbViews->size();
+		views = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, viewCount);
+		for (uint32_t i = 0; i < viewCount; ++i)
+		{
+			auto fbView = (*fbViews)[i];
+			if (!fbView)
+			{
+				errno = EFORMAT;
+				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Particle draw list view name is null.");
+				goto error;
+			}
+
+			views[i] = fbView->c_str();
+		}
+	}
+
 	return dsSceneParticleDrawList_create(allocator, name, resourceManager, resourceAllocator,
-		instanceData, instanceDataCount, cullList);
+		instanceData, instanceDataCount, cullLists, cullListCount, views, viewCount);
 
 error:
 	// instanceDataCount should be the number that we need to clean up.

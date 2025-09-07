@@ -346,7 +346,8 @@ Model lists have the type name "ModelList" and define how to draw models that re
 	* `stencilReference`: int reference for both the front and back stencil. Defaults to 0.
 	* `frontStencilReference`: int reference for just the front stencil.
 	* `backStencilReference`: int reference for just the back stencil.
-* `cullList`: optional name for the item list to handle culling.
+* `cullList`: array of strings for the name of item lists to handle culling. If omitted or empty, no culling is performed.
+* `views`: array of strings for the name of views to draw to. If omitted or empty, all views will be drawn to.
 
 ### View Transform Data
 

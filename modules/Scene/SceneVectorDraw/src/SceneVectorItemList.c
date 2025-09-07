@@ -108,7 +108,9 @@ struct dsSceneVectorItemList
 
 	dsSharedMaterialValues* instanceValues;
 	dsSceneInstanceData** instanceData;
+	uint32_t* viewIDs;
 	uint32_t instanceDataCount;
+	uint32_t viewCount;
 
 	Entry* entries;
 	uint32_t entryCount;
@@ -124,6 +126,16 @@ struct dsSceneVectorItemList
 	uint32_t maxInstances;
 	uint32_t maxDrawItems;
 };
+
+static bool isInView(const dsSceneVectorItemList* vectorList, const dsView* view)
+{
+	for (uint32_t i = 0; i < vectorList->viewCount; ++i)
+	{
+		if (vectorList->viewIDs[i] == view->nameID)
+			return true;
+	}
+	return vectorList->viewCount == 0;
+}
 
 static void getGlyphRange(uint32_t* outFirstGlyph, uint32_t* outGlyphCount,
 	const dsTextLayout* layout, uint32_t firstChar, uint32_t charCount)
@@ -371,8 +383,8 @@ static void cleanup(dsSceneVectorItemList* vectorList)
 		dsSceneInstanceData_finish(vectorList->instanceData[i]);
 }
 
-static void destroyInstanceData(dsSceneInstanceData* const* instanceData,
-	uint32_t instanceDataCount)
+static void destroyInstanceData(
+	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount)
 {
 	for (uint32_t i = 0; i < instanceDataCount; ++i)
 		dsSceneInstanceData_destroy(instanceData[i]);
@@ -423,14 +435,16 @@ static void dsSceneVectorItemList_removeNode(
 	}
 }
 
-static void dsSceneVectorItemList_preRenderPass(dsSceneItemList* itemList, const dsView* view,
-	dsCommandBuffer* commandBuffer)
+static void dsSceneVectorItemList_preRenderPass(
+	dsSceneItemList* itemList, const dsView* view, dsCommandBuffer* commandBuffer)
 {
 	DS_ASSERT(itemList);
 	DS_ASSERT(!itemList->skipPreRenderPass);
-	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
-
 	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
+	if (!isInView(vectorList, view))
+		return;
+
+	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
 	// Lazily remove entries.
 	dsSceneItemListEntries_removeMulti(vectorList->entries, &vectorList->entryCount,
@@ -444,13 +458,16 @@ static void dsSceneVectorItemList_preRenderPass(dsSceneItemList* itemList, const
 	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
 }
 
-static void dsSceneVectorItemList_commit(dsSceneItemList* itemList, const dsView* view,
-	dsCommandBuffer* commandBuffer)
+static void dsSceneVectorItemList_commit(
+	dsSceneItemList* itemList, const dsView* view, dsCommandBuffer* commandBuffer)
 {
 	DS_ASSERT(itemList);
+	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
+	if (!isInView(vectorList, view))
+		return;
+
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
-	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
 	if (itemList->skipPreRenderPass)
 	{
 		// Lazily remove entries.
@@ -478,6 +495,7 @@ static uint32_t dsSceneVectorItemList_hash(const dsSceneItemList* itemList, uint
 		hash = dsHashCombineBytes(hash, &vectorList->renderStates, sizeof(dsDynamicRenderStates));
 	for (uint32_t i = 0; i < vectorList->instanceDataCount; ++i)
 		hash = dsSceneInstanceData_hash(vectorList->instanceData[i], hash);
+	hash = dsHashCombineBytes(hash, vectorList->viewIDs, sizeof(uint32_t)*vectorList->viewCount);
 	return hash;
 }
 
@@ -488,24 +506,31 @@ static bool dsSceneVectorItemList_equal(const dsSceneItemList* left, const dsSce
 	DS_ASSERT(right);
 	DS_ASSERT(right->type == dsSceneVectorItemList_type());
 
-	const dsSceneVectorItemList* leftVectorItemList = (const dsSceneVectorItemList*)left;
-	const dsSceneVectorItemList* rightVectorItemList = (const dsSceneVectorItemList*)right;
+	const dsSceneVectorItemList* leftVectorList = (const dsSceneVectorItemList*)left;
+	const dsSceneVectorItemList* rightVectorList = (const dsSceneVectorItemList*)right;
 
-	if (leftVectorItemList->hasRenderStates != rightVectorItemList->hasRenderStates ||
-		(leftVectorItemList->hasRenderStates && memcmp(&leftVectorItemList->renderStates,
-			&rightVectorItemList->renderStates, sizeof(dsDynamicRenderStates)) != 0) ||
-		leftVectorItemList->instanceDataCount != rightVectorItemList->instanceDataCount)
+	if (leftVectorList->hasRenderStates != rightVectorList->hasRenderStates ||
+		(leftVectorList->hasRenderStates && memcmp(&leftVectorList->renderStates,
+			&rightVectorList->renderStates, sizeof(dsDynamicRenderStates)) != 0) ||
+		leftVectorList->instanceDataCount != rightVectorList->instanceDataCount ||
+		leftVectorList->viewCount != rightVectorList->viewCount)
 	{
 		return false;
 	}
 
-	for (uint32_t i = 0; i < leftVectorItemList->instanceDataCount; ++i)
+	for (uint32_t i = 0; i < leftVectorList->instanceDataCount; ++i)
 	{
-		if (!dsSceneInstanceData_equal(leftVectorItemList->instanceData[i],
-				rightVectorItemList->instanceData[i]))
+		if (!dsSceneInstanceData_equal(leftVectorList->instanceData[i],
+				rightVectorList->instanceData[i]))
 		{
 			return false;
 		}
+	}
+
+	for (uint32_t i = 0; i < leftVectorList->viewCount; ++i)
+	{
+		if (leftVectorList->viewIDs[i] != rightVectorList->viewIDs[i])
+			return false;
 	}
 	return true;
 }
@@ -543,9 +568,11 @@ const dsSceneItemListType* dsSceneVectorItemList_type(void)
 
 dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, const char* name,
 	dsResourceManager* resourceManager, dsSceneInstanceData* const* instanceData,
-	uint32_t instanceDataCount, const dsDynamicRenderStates* renderStates)
+	uint32_t instanceDataCount, const dsDynamicRenderStates* renderStates, const char* const* views,
+	uint32_t viewCount)
 {
-	if (!allocator || !name || !resourceManager || (!instanceData && instanceDataCount > 0))
+	if (!allocator || !name || !resourceManager || (!instanceData && instanceDataCount > 0) ||
+		(!views && viewCount > 0))
 	{
 		errno = EINVAL;
 		return NULL;
@@ -576,11 +603,22 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 
 	}
 
+	for (uint32_t i = 0; i < viewCount; ++i)
+	{
+		if (!views[i])
+		{
+			errno = EINVAL;
+			destroyInstanceData(instanceData, instanceDataCount);
+			return NULL;
+		}
+	}
+
 	size_t nameLen = strlen(name);
 	size_t globalDataSize = dsSharedMaterialValues_fullAllocSize(valueCount);
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneVectorItemList)) +
 		DS_ALIGNED_SIZE(nameLen + 1) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneInstanceData*)*instanceDataCount) + globalDataSize;
+		DS_ALIGNED_SIZE(sizeof(dsSceneInstanceData*)*instanceDataCount) +
+		DS_ALIGNED_SIZE(sizeof(uint32_t)*viewCount) + globalDataSize;
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
@@ -626,6 +664,17 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	else
 		vectorList->instanceData = NULL;
 	vectorList->instanceDataCount = instanceDataCount;
+
+	if (viewCount > 0)
+	{
+		vectorList->viewIDs = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t, viewCount);
+		DS_ASSERT(vectorList->viewIDs);
+		for (uint32_t i = 0; i < viewCount; ++i)
+			vectorList->viewIDs[i] = dsUniqueNameID_create(views[i]);
+	}
+	else
+		vectorList->viewIDs = NULL;
+	vectorList->viewCount = viewCount;
 
 	vectorList->entries = NULL;
 	vectorList->entryCount = 0;

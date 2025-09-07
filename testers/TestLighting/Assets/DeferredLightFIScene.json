@@ -131,7 +131,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "mainShadowCullList0"
+							"cullLists": ["mainShadowCullList0"]
 						}
 					]
 				}
@@ -177,7 +177,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "mainShadowCullList1"
+							"cullLists": ["mainShadowCullList1"]
 						}
 					]
 				}
@@ -223,7 +223,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "spotShadowCullList"
+							"cullLists": ["spotShadowCullList"]
 						}
 					]
 				}
@@ -269,7 +269,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "pointShadowCullList0"
+							"cullLists": ["pointShadowCullList0"]
 						}
 					]
 				}
@@ -315,7 +315,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "pointShadowCullList1"
+							"cullLists": ["pointShadowCullList1"]
 						}
 					]
 				}
@@ -361,7 +361,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "pointShadowCullList2"
+							"cullLists": ["pointShadowCullList2"]
 						}
 					]
 				}
@@ -407,7 +407,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "pointShadowCullList3"
+							"cullLists": ["pointShadowCullList3"]
 						}
 					]
 				}
@@ -453,7 +453,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "pointShadowCullList4"
+							"cullLists": ["pointShadowCullList4"]
 						}
 					]
 				}
@@ -499,7 +499,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "pointShadowCullList5"
+							"cullLists": ["pointShadowCullList5"]
 						}
 					]
 				}
@@ -575,7 +575,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "cullList"
+							"cullLists": ["cullList"]
 						},
 						{
 							"type": "ModelList",
@@ -588,7 +588,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "cullList"
+							"cullLists": ["cullList"]
 						},
 						{
 							"type": "DeferredLightResolve",
@@ -638,7 +638,7 @@
 								}
 							],
 							"sortType": "BackToFront",
-							"cullList": "cullList"
+							"cullLists": ["cullList"]
 						},
 						{
 							"type": "FullScreenResolve",

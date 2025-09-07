@@ -16,8 +16,6 @@
 
 #include <DeepSea/Scene/View.h>
 
-#include "SceneTypes.h"
-
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -98,7 +96,7 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::Surface>* fbSurfa
 }
 
 extern "C"
-dsView* dsView_loadImpl(dsAllocator* allocator, const dsScene* scene,
+dsView* dsView_loadImpl(dsAllocator* allocator, const char* name, const dsScene* scene,
 	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData, const void* data,
 	size_t dataSize,  const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width,
 	uint32_t height, dsRenderSurfaceRotation rotation, void* userData,
@@ -178,9 +176,8 @@ dsView* dsView_loadImpl(dsAllocator* allocator, const dsScene* scene,
 		}
 		surface->usage = fbSurface->usage();
 		surface->memoryHints = static_cast<dsGfxMemory>(fbSurface->memoryHints());
-		surface->createInfo.format =
-			DeepSeaScene::convert(dsScene_getRenderer(scene), fbSurface->format(),
-			fbSurface->decoration());
+		surface->createInfo.format = DeepSeaScene::convert(
+			dsScene_getRenderer(scene), fbSurface->format(), fbSurface->decoration());
 		surface->createInfo.dimension = DeepSeaScene::convert(fbSurface->dimension());
 		surface->createInfo.width = fbSurface->width();
 		surface->widthRatio = fbSurface->widthRatio();
@@ -260,7 +257,7 @@ dsView* dsView_loadImpl(dsAllocator* allocator, const dsScene* scene,
 		}
 	}
 
-	view = dsView_create(allocator, scene, resourceAllocator, allSurfaces, allSurfaceCount,
+	view = dsView_create(allocator, name, scene, resourceAllocator, allSurfaces, allSurfaceCount,
 		framebuffers, framebufferCount, width, height, rotation, userData, destroyUserDataFunc);
 
 finished:

@@ -57,12 +57,15 @@ dsSceneItemList* dsSceneVectorItemList_load(const dsSceneLoadContext* loadContex
 	auto fbVectorList = DeepSeaSceneVectorDraw::GetVectorItemList(data);
 	auto fbInstanceData = fbVectorList->instanceData();
 	auto fbDynamicRenderStates = fbVectorList->dynamicRenderStates();
+	auto fbViews = fbVectorList->views();
 
+	dsResourceManager* resourceManager =
+		dsSceneLoadContext_getRenderer(loadContext)->resourceManager;
 	uint32_t instanceDataCount = 0;
 	dsSceneInstanceData** instanceData = nullptr;
 	dsDynamicRenderStates dynamicRenderStates;
-	dsResourceManager* resourceManager =
-		dsSceneLoadContext_getRenderer(loadContext)->resourceManager;
+	uint32_t viewCount = 0;
+	const char** views = nullptr;
 
 	if (fbInstanceData && fbInstanceData->size() > 0)
 	{
@@ -145,9 +148,27 @@ dsSceneItemList* dsSceneVectorItemList_load(const dsSceneLoadContext* loadContex
 		dynamicRenderStates.backStencilReference = fbDynamicRenderStates->backStencilReference();
 	}
 
+	if (fbViews && fbViews->size() > 0)
+	{
+		viewCount = fbViews->size();
+		views = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, viewCount);
+		for (uint32_t i = 0; i < viewCount; ++i)
+		{
+			auto fbView = (*fbViews)[i];
+			if (!fbView)
+			{
+				errno = EFORMAT;
+				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Vector item list view name is null.");
+				goto error;
+			}
+
+			views[i] = fbView->c_str();
+		}
+	}
+
 	return reinterpret_cast<dsSceneItemList*>(dsSceneVectorItemList_create(allocator, name,
 		resourceManager, instanceData, instanceDataCount,
-		fbDynamicRenderStates ? &dynamicRenderStates : nullptr));
+		fbDynamicRenderStates ? &dynamicRenderStates : nullptr, views, viewCount));
 
 error:
 	// instanceDataCount should be the number that we need to clean up.

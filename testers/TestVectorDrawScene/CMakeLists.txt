@@ -103,7 +103,7 @@ set(assetDirs ${assetsDir}/VectorResources_resources)
 add_custom_command(OUTPUT ${assetsZip}
 	DEPENDS deepsea_test_vector_draw_scene_app_shaders
 		deepsea_test_vector_draw_scene_app_scene_resources deepsea_test_vector_draw_scene_app_scene
-		deepsea_test_vector_draw_scene_app_view
+		deepsea_test_vector_draw_scene_app_view ${assetFiles}
 	COMMAND ${CMAKE_COMMAND} -E tar cf ${assetsZip} --format=zip ${assetFiles} ${assetDirs}
 	WORKING_DIRECTORY ${assetsDir}
 	COMMENT "Zipping assets for TestVectorDrawScene")

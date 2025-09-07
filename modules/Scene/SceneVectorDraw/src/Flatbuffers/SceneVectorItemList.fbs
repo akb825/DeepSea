@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,9 @@ table VectorItemList
 
 	// Dynamic render states to apply when rendering.
 	dynamicRenderStates : DeepSeaScene.DynamicRenderStates;
+
+	// The name of the views to draw to, or empty to draw to all views.
+	views : [string];
 }
 
 root_type VectorItemList;

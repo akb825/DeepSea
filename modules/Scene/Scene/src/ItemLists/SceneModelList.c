@@ -75,11 +75,14 @@ struct dsSceneModelList
 	dsDynamicRenderStates renderStates;
 	bool hasRenderStates;
 	dsModelSortType sortType;
-	uint32_t cullListID;
 
 	dsSharedMaterialValues* instanceValues;
 	dsSceneInstanceData** instanceData;
+	uint32_t* cullListIDs;
+	uint32_t* viewIDs;
 	uint32_t instanceDataCount;
+	uint32_t cullListCount;
+	uint32_t viewCount;
 
 	Entry* entries;
 	uint32_t entryCount;
@@ -99,6 +102,16 @@ struct dsSceneModelList
 	uint32_t maxDrawItems;
 };
 
+static bool isInView(const dsSceneModelList* modelList, const dsView* view)
+{
+	for (uint32_t i = 0; i < modelList->viewCount; ++i)
+	{
+		if (modelList->viewIDs[i] == view->nameID)
+			return true;
+	}
+	return modelList->viewCount == 0;
+}
+
 static void addInstances(dsSceneItemList* itemList, const dsView* view)
 {
 	DS_PROFILE_FUNC_START();
@@ -111,12 +124,18 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view)
 	{
 		const Entry* entry = modelList->entries + i;
 		const dsSceneModelNode* modelNode = entry->node;
-		// Non-zero cull result means out of view.
-		if (modelList->cullListID &&
-			dsSceneNodeItemData_findID(entry->itemData, modelList->cullListID))
+		bool culled = false;
+		for (uint32_t j = 0; j < modelList->cullListCount; ++j)
 		{
-			continue;
+			// Non-zero cull result means out of view.
+			if (dsSceneNodeItemData_findID(entry->itemData, modelList->cullListIDs[j]))
+			{
+				culled = true;
+				break;
+			}
 		}
+		if (culled)
+			continue;
 
 		// Use the dist2 macro to take the first 3 vectors of the dsVector4f columns.
 		float distance = sqrtf(dsVector3_dist2(entry->transform->columns[3],
@@ -177,8 +196,8 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view)
 	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
-static void setupInstances(dsSceneModelList* modelList, const dsView* view,
-	dsCommandBuffer* commandBuffer)
+static void setupInstances(
+	dsSceneModelList* modelList, const dsView* view, dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -245,8 +264,8 @@ static void sortGeometry(dsSceneModelList* modelList)
 	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
-static void drawGeometry(dsSceneModelList* modelList, const dsView* view,
-	dsCommandBuffer* commandBuffer)
+static void drawGeometry(
+	dsSceneModelList* modelList, const dsView* view, dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -327,8 +346,8 @@ static void cleanup(dsSceneModelList* modelList)
 		dsSceneInstanceData_finish(modelList->instanceData[i]);
 }
 
-static void destroyInstanceData(dsSceneInstanceData* const* instanceData,
-	uint32_t instanceDataCount)
+static void destroyInstanceData(
+	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount)
 {
 	for (uint32_t i = 0; i < instanceDataCount; ++i)
 		dsSceneInstanceData_destroy(instanceData[i]);
@@ -393,9 +412,11 @@ static void dsSceneModelList_preRenderPass(dsSceneItemList* itemList, const dsVi
 {
 	DS_ASSERT(itemList);
 	DS_ASSERT(!itemList->skipPreRenderPass);
-	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
-
 	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
+	if (!isInView(modelList, view))
+		return;
+
+	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
 	// Lazily remove entries.
 	dsSceneItemListEntries_removeMulti(modelList->entries, &modelList->entryCount, sizeof(Entry),
@@ -408,13 +429,16 @@ static void dsSceneModelList_preRenderPass(dsSceneItemList* itemList, const dsVi
 	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
 }
 
-static void dsSceneModelList_commit(dsSceneItemList* itemList, const dsView* view,
-	dsCommandBuffer* commandBuffer)
+static void dsSceneModelList_commit(
+	dsSceneItemList* itemList, const dsView* view, dsCommandBuffer* commandBuffer)
 {
 	DS_ASSERT(itemList);
+	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
+	if (!isInView(modelList, view))
+		return;
+
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
-	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
 	if (itemList->skipPreRenderPass)
 	{
 		// Lazily remove entries.
@@ -439,10 +463,12 @@ static uint32_t dsSceneModelList_hash(const dsSceneItemList* itemList, uint32_t 
 	uint32_t hash = commonHash;
 	if (modelList->hasRenderStates)
 		hash = dsHashCombineBytes(hash, &modelList->renderStates, sizeof(dsDynamicRenderStates));
-	uint32_t hashValues[2] = {modelList->sortType, modelList->cullListID};
-	hash = dsHashCombineBytes(hash, hashValues, sizeof(hashValues));
+	hash = dsHashCombine32(hash, &modelList->sortType);
 	for (uint32_t i = 0; i < modelList->instanceDataCount; ++i)
 		hash = dsSceneInstanceData_hash(modelList->instanceData[i], hash);
+	hash = dsHashCombineBytes(
+		hash, modelList->cullListIDs, sizeof(uint32_t)*modelList->cullListCount);
+	hash = dsHashCombineBytes(hash, modelList->viewIDs, sizeof(uint32_t)*modelList->viewCount);
 	return hash;
 }
 
@@ -460,19 +486,32 @@ static bool dsSceneModelList_equal(const dsSceneItemList* left, const dsSceneIte
 		(leftModelList->hasRenderStates && memcmp(&leftModelList->renderStates,
 			&rightModelList->renderStates, sizeof(dsDynamicRenderStates)) != 0) ||
 		leftModelList->sortType != rightModelList->sortType ||
-		leftModelList->cullListID != rightModelList->cullListID ||
-		leftModelList->instanceDataCount != rightModelList->instanceDataCount)
+		leftModelList->instanceDataCount != rightModelList->instanceDataCount ||
+		leftModelList->cullListCount != rightModelList->cullListCount ||
+		leftModelList->viewCount != rightModelList->viewCount)
 	{
 		return false;
 	}
 
 	for (uint32_t i = 0; i < leftModelList->instanceDataCount; ++i)
 	{
-		if (!dsSceneInstanceData_equal(leftModelList->instanceData[i],
-				rightModelList->instanceData[i]))
+		if (!dsSceneInstanceData_equal(
+				leftModelList->instanceData[i], rightModelList->instanceData[i]))
 		{
 			return false;
 		}
+	}
+
+	for (uint32_t i = 0; i < leftModelList->cullListCount; ++i)
+	{
+		if (leftModelList->cullListIDs[i] != rightModelList->cullListIDs[i])
+			return false;
+	}
+
+	for (uint32_t i = 0; i < leftModelList->viewCount; ++i)
+	{
+		if (leftModelList->viewIDs[i] != rightModelList->viewIDs[i])
+			return false;
 	}
 	return true;
 }
@@ -510,9 +549,11 @@ const dsSceneItemListType* dsSceneModelList_type(void)
 
 dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* name,
 	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount, dsModelSortType sortType,
-	const dsDynamicRenderStates* renderStates, const char* cullList)
+	const dsDynamicRenderStates* renderStates, const char* const* cullLists, uint32_t cullListCount,
+	const char* const* views, uint32_t viewCount)
 {
-	if (!allocator || !name || (!instanceData && instanceDataCount > 0))
+	if (!allocator || !name || (!instanceData && instanceDataCount > 0) ||
+		(!cullLists && cullListCount > 0) || (!views && viewCount > 0))
 	{
 		errno = EINVAL;
 		if (instanceData)
@@ -543,10 +584,32 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 			skipPreRenderPass = false;
 	}
 
+	for (uint32_t i = 0; i < cullListCount; ++i)
+	{
+		if (!cullLists[i])
+		{
+			errno = EINVAL;
+			destroyInstanceData(instanceData, instanceDataCount);
+			return NULL;
+		}
+	}
+
+	for (uint32_t i = 0; i < viewCount; ++i)
+	{
+		if (!views[i])
+		{
+			errno = EINVAL;
+			destroyInstanceData(instanceData, instanceDataCount);
+			return NULL;
+		}
+	}
+
 	size_t nameLen = strlen(name);
 	size_t globalDataSize = valueCount > 0 ? dsSharedMaterialValues_fullAllocSize(valueCount) : 0;
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneModelList)) + DS_ALIGNED_SIZE(nameLen + 1) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneInstanceData*)*instanceDataCount) + globalDataSize;
+		DS_ALIGNED_SIZE(sizeof(dsSceneInstanceData*)*instanceDataCount) + globalDataSize +
+		DS_ALIGNED_SIZE(sizeof(uint32_t)*cullListCount) +
+		DS_ALIGNED_SIZE(sizeof(uint32_t)*viewCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
@@ -562,7 +625,7 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 	dsSceneItemList* itemList = (dsSceneItemList*)modelList;
 	itemList->allocator = allocator;
 	itemList->type = dsSceneModelList_type();
-	itemList->name = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, char, nameLen + 1);
+	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen + 1);
 	memcpy((void*)itemList->name, name, nameLen + 1);
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
@@ -577,7 +640,6 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 	else
 		modelList->hasRenderStates = false;
 	modelList->sortType = sortType;
-	modelList->cullListID = cullList ? dsUniqueNameID_create(cullList) : 0;
 
 	if (instanceDataCount > 0)
 	{
@@ -601,6 +663,28 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 		modelList->instanceData = NULL;
 	}
 	modelList->instanceDataCount = instanceDataCount;
+
+	if (cullListCount > 0)
+	{
+		modelList->cullListIDs = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t, cullListCount);
+		DS_ASSERT(modelList->cullListIDs);
+		for (uint32_t i = 0; i < cullListCount; ++i)
+			modelList->cullListIDs[i] = dsUniqueNameID_create(cullLists[i]);
+	}
+	else
+		modelList->cullListIDs = NULL;
+	modelList->cullListCount = cullListCount;
+
+	if (viewCount > 0)
+	{
+		modelList->viewIDs = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t, viewCount);
+		DS_ASSERT(modelList->viewIDs);
+		for (uint32_t i = 0; i < viewCount; ++i)
+			modelList->viewIDs[i] = dsUniqueNameID_create(views[i]);
+	}
+	else
+		modelList->viewIDs = NULL;
+	modelList->viewCount = viewCount;
 
 	modelList->entries = NULL;
 	modelList->entryCount = 0;
@@ -638,8 +722,8 @@ const dsDynamicRenderStates* dsSceneModelList_getRenderStates(const dsSceneModel
 	return modelList && modelList->hasRenderStates ? &modelList->renderStates : NULL;
 }
 
-void dsSceneModelList_setRenderStates(dsSceneModelList* modelList,
-	const dsDynamicRenderStates* renderStates)
+void dsSceneModelList_setRenderStates(
+	dsSceneModelList* modelList, const dsDynamicRenderStates* renderStates)
 {
 	if (!modelList)
 		return;

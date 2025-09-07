@@ -158,7 +158,7 @@ uint32_t dsHashBytes(const void* buffer, size_t size)
 uint32_t dsHashCombineBytesAligned(uint32_t seed, const void* buffer, size_t size)
 {
 	// https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp
-	DS_ASSERT(buffer);
+	DS_ASSERT(buffer || size == 0);
 	const uint8_t* data = (const uint8_t*)buffer;
 	const size_t nblocks = size/4;
 
@@ -208,7 +208,7 @@ uint32_t dsHashCombineBytesAligned(uint32_t seed, const void* buffer, size_t siz
 uint32_t dsHashCombineBytesUnaligned(uint32_t seed, const void* buffer, size_t size)
 {
 	// https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp
-	DS_ASSERT(buffer);
+	DS_ASSERT(buffer || size == 0);
 	const uint8_t* data = (const uint8_t*)buffer;
 	const size_t nblocks = size/4;
 
@@ -268,13 +268,13 @@ uint32_t dsHashCombineBytes(uint32_t seed, const void* buffer, size_t size)
 }
 
 #if DS_64BIT
-void dsHashCombineBytes128(void* outResult, const void* seed, const void* buffer,
-	size_t size)
+void dsHashCombineBytes128(
+	void* outResult, const void* seed, const void* buffer, size_t size)
 {
 	// https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp
 	DS_ASSERT(outResult);
 	DS_ASSERT(seed);
-	DS_ASSERT(buffer);
+	DS_ASSERT(buffer || size == 0);
 	const uint8_t* data = (const uint8_t*)buffer;
 	const size_t nblocks = size/16;
 
@@ -362,13 +362,13 @@ void dsHashCombineBytes128(void* outResult, const void* seed, const void* buffer
 	memcpy(outResult, h, sizeof(uint64_t)*2);
 }
 #else
-void dsHashCombineBytes128(void* outResult, const void* seed, const void* buffer,
-	size_t size)
+void dsHashCombineBytes128(
+	void* outResult, const void* seed, const void* buffer, size_t size)
 {
 	// https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp
 	DS_ASSERT(outResult);
 	DS_ASSERT(seed);
-	DS_ASSERT(buffer);
+	DS_ASSERT(buffer || size == 0);
 	const uint8_t* data = (const uint8_t*)buffer;
 	const size_t nblocks = size/16;
 

@@ -24,13 +24,17 @@ struct VectorItemList FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef VectorItemListBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_INSTANCEDATA = 4,
-    VT_DYNAMICRENDERSTATES = 6
+    VT_DYNAMICRENDERSTATES = 6,
+    VT_VIEWS = 8
   };
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>> *instanceData() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>> *>(VT_INSTANCEDATA);
   }
   const DeepSeaScene::DynamicRenderStates *dynamicRenderStates() const {
     return GetPointer<const DeepSeaScene::DynamicRenderStates *>(VT_DYNAMICRENDERSTATES);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *views() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_VIEWS);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -39,6 +43,9 @@ struct VectorItemList FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            verifier.VerifyVectorOfTables(instanceData()) &&
            VerifyOffset(verifier, VT_DYNAMICRENDERSTATES) &&
            verifier.VerifyTable(dynamicRenderStates()) &&
+           VerifyOffset(verifier, VT_VIEWS) &&
+           verifier.VerifyVector(views()) &&
+           verifier.VerifyVectorOfStrings(views()) &&
            verifier.EndTable();
   }
 };
@@ -52,6 +59,9 @@ struct VectorItemListBuilder {
   }
   void add_dynamicRenderStates(::flatbuffers::Offset<DeepSeaScene::DynamicRenderStates> dynamicRenderStates) {
     fbb_.AddOffset(VectorItemList::VT_DYNAMICRENDERSTATES, dynamicRenderStates);
+  }
+  void add_views(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> views) {
+    fbb_.AddOffset(VectorItemList::VT_VIEWS, views);
   }
   explicit VectorItemListBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -67,8 +77,10 @@ struct VectorItemListBuilder {
 inline ::flatbuffers::Offset<VectorItemList> CreateVectorItemList(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>>> instanceData = 0,
-    ::flatbuffers::Offset<DeepSeaScene::DynamicRenderStates> dynamicRenderStates = 0) {
+    ::flatbuffers::Offset<DeepSeaScene::DynamicRenderStates> dynamicRenderStates = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> views = 0) {
   VectorItemListBuilder builder_(_fbb);
+  builder_.add_views(views);
   builder_.add_dynamicRenderStates(dynamicRenderStates);
   builder_.add_instanceData(instanceData);
   return builder_.Finish();
@@ -77,12 +89,15 @@ inline ::flatbuffers::Offset<VectorItemList> CreateVectorItemList(
 inline ::flatbuffers::Offset<VectorItemList> CreateVectorItemListDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const std::vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>> *instanceData = nullptr,
-    ::flatbuffers::Offset<DeepSeaScene::DynamicRenderStates> dynamicRenderStates = 0) {
+    ::flatbuffers::Offset<DeepSeaScene::DynamicRenderStates> dynamicRenderStates = 0,
+    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *views = nullptr) {
   auto instanceData__ = instanceData ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaScene::ObjectData>>(*instanceData) : 0;
+  auto views__ = views ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*views) : 0;
   return DeepSeaSceneVectorDraw::CreateVectorItemList(
       _fbb,
       instanceData__,
-      dynamicRenderStates);
+      dynamicRenderStates,
+      views__);
 }
 
 inline const DeepSeaSceneVectorDraw::VectorItemList *GetVectorItemList(const void *buf) {

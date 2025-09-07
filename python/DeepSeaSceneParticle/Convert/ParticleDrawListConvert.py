@@ -1,4 +1,4 @@
-# Copyright 2022 Aaron Barany
+# Copyright 2022-2025 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,8 +23,10 @@ def convertParticleDrawList(convertContext, data):
 	  element of the array has the following members:
 	  - type: the name of the instance data type.
 	  - Remaining members depend on the value of "type".
-	- cullList: optional string name of the item list to handle culling. If unset no culling is
-	  used.
+	- cullList: array of strings for the name of item lists to handle culling. If omitted or empty,
+	  no culling is performed.
+	- views: array of strings for the name of views to draw to. If omitted or empty, all views will
+	  be drawn to.
 	"""
 	try:
 		instanceDataInfo = data.get('instanceData', [])
@@ -40,7 +42,13 @@ def convertParticleDrawList(convertContext, data):
 		except (TypeError, ValueError):
 			raise Exception('ParticleDrawList "instanceData" must be an array of objects.')
 
-		cullList = str(data.get('cullList', ''))
+		cullLists = data.get('cullLists', [])
+		if not isinstance(cullLists, list):
+			raise Exception('ParticleDrawList "cullList" must be an array of strings.')
+
+		views = data.get('views', [])
+		if not isinstance(views, list):
+			raise Exception('ParticleDrawList "views" must be an array of strings.')
 	except KeyError as e:
 		raise Exception('ParticleDrawList doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):
@@ -61,13 +69,31 @@ def convertParticleDrawList(convertContext, data):
 	else:
 		instanceDataOffset = 0
 
-	if cullList:
-		cullListOffset = builder.CreateString(cullList)
+	if cullLists:
+		cullListOffsets = []
+		for cullList in cullLists:
+			cullListOffsets.append(builder.CreateString(str(cullList)))
+		ParticleDrawList.StartCullListsVector(builder, len(cullListOffsets))
+		for offset in reversed(cullListOffsets):
+			builder.PrependUOffsetTRelative(offset)
+		cullListsOffset = builder.EndVector()
 	else:
-		cullListOffset = 0
+		cullListsOffset = 0
+
+	if views:
+		viewOffsets = []
+		for view in views:
+			viewOffsets.append(builder.CreateString(str(view)))
+		ParticleDrawList.StartViewsVector(builder, len(viewOffsets))
+		for offset in reversed(viewOffsets):
+			builder.PrependUOffsetTRelative(offset)
+		viewsOffset = builder.EndVector()
+	else:
+		viewsOffset = 0
 
 	ParticleDrawList.Start(builder)
 	ParticleDrawList.AddInstanceData(builder, instanceDataOffset)
-	ParticleDrawList.AddCullList(builder, cullListOffset)
+	ParticleDrawList.AddCullLists(builder, cullListsOffset)
+	ParticleDrawList.AddViews(builder, viewsOffset)
 	builder.Finish(ParticleDrawList.End(builder))
 	return builder.Output()

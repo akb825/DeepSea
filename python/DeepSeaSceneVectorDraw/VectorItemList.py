@@ -60,8 +60,28 @@ class VectorItemList(object):
             return obj
         return None
 
+    # VectorItemList
+    def Views(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
+        return ""
+
+    # VectorItemList
+    def ViewsLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # VectorItemList
+    def ViewsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        return o == 0
+
 def VectorItemListStart(builder):
-    builder.StartObject(2)
+    builder.StartObject(3)
 
 def Start(builder):
     VectorItemListStart(builder)
@@ -83,6 +103,18 @@ def VectorItemListAddDynamicRenderStates(builder, dynamicRenderStates):
 
 def AddDynamicRenderStates(builder, dynamicRenderStates):
     VectorItemListAddDynamicRenderStates(builder, dynamicRenderStates)
+
+def VectorItemListAddViews(builder, views):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(views), 0)
+
+def AddViews(builder, views):
+    VectorItemListAddViews(builder, views)
+
+def VectorItemListStartViewsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
+def StartViewsVector(builder, numElems):
+    return VectorItemListStartViewsVector(builder, numElems)
 
 def VectorItemListEnd(builder):
     return builder.EndObject()

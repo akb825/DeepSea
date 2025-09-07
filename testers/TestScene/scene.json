@@ -65,7 +65,7 @@
 								}
 							],
 							"sortType": "Material",
-							"cullList": "cullList"
+							"cullLists": ["cullList"]
 						}
 					]
 				}

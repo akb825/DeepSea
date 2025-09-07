@@ -329,7 +329,7 @@ static bool setup(TestScene* testScene, dsApplication* application, dsAllocator*
 	viewSurfaces[1].surface = surface;
 	viewSurfaces[1].windowFramebuffer = true;
 
-	testScene->view = dsView_loadResource(allocator, testScene->scene, NULL, scratchData,
+	testScene->view = dsView_loadResource(allocator, "window", testScene->scene, NULL, scratchData,
 		viewSurfaces, DS_ARRAY_SIZE(viewSurfaces), surface->width, surface->height,
 		surface->rotation, NULL, NULL, dsFileResourceType_Embedded, "view.dsv");
 	dsSceneLoadContext_destroy(loadContext);

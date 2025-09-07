@@ -81,7 +81,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "shadowCullList"
+							"cullLists": ["shadowCullList"]
 						},
 						{
 							"type": "ModelList",
@@ -101,7 +101,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "skinnedShadowCullList"
+							"cullLists": ["skinnedShadowCullList"]
 						}
 					]
 				}
@@ -150,7 +150,7 @@
 								}
 							],
 							"sortType": "Material",
-							"cullList": "cullList"
+							"cullLists": ["cullList"]
 						},
 						{
 							"type": "ModelList",
@@ -172,7 +172,7 @@
 								}
 							],
 							"sortType": "Material",
-							"cullList": "cullList"
+							"cullLists": ["cullList"]
 						}
 					]
 				}

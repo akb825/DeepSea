@@ -373,14 +373,14 @@ typedef struct dsViewFramebufferInfo
 struct dsView
 {
 	/**
-	 * @brief The scene to draw with the view.
-	 */
-	const dsScene* scene;
-
-	/**
 	 * @brief The allocator for the view.
 	 */
 	dsAllocator* allocator;
+
+	/**
+	 * @brief The scene to draw with the view.
+	 */
+	const dsScene* scene;
 
 	/**
 	 * @brief The allocator for graphics resources in the view.
@@ -396,6 +396,16 @@ struct dsView
 	 * @brief Function to destroy user data.
 	 */
 	dsDestroyUserDataFunction destroyUserDataFunc;
+
+	/**
+	 * @brief The name of the view.
+	 */
+	const char* name;
+
+	/**
+	 * @brief The ID for the name.
+	 */
+	uint32_t nameID;
 
 	/**
 	 * @brief The width of the view.

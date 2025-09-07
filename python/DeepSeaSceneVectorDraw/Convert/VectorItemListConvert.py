@@ -1,4 +1,4 @@
-# Copyright 2020-2023 Aaron Barany
+# Copyright 2020-2025 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -62,7 +62,9 @@ def convertVectorItemList(convertContext, data):
 		else:
 			dynamicRenderStatesOffset = 0
 
-		cullName = data.get('cullName')
+		views = data.get('views', [])
+		if not isinstance(views, list):
+			raise Exception('VectorItemList "views" must be an array of strings.')
 	except KeyError as e:
 		raise Exception('VectorItemList doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):
@@ -81,8 +83,20 @@ def convertVectorItemList(convertContext, data):
 	else:
 		instanceDataOffset = 0
 
+	if views:
+		viewOffsets = []
+		for view in views:
+			viewOffsets.append(builder.CreateString(str(view)))
+		VectorItemList.StartViewsVector(builder, len(viewOffsets))
+		for offset in reversed(viewOffsets):
+			builder.PrependUOffsetTRelative(offset)
+		viewsOffset = builder.EndVector()
+	else:
+		viewsOffset = 0
+
 	VectorItemList.Start(builder)
 	VectorItemList.AddInstanceData(builder, instanceDataOffset)
 	VectorItemList.AddDynamicRenderStates(builder, dynamicRenderStatesOffset)
+	VectorItemList.AddViews(builder, viewsOffset)
 	builder.Finish(VectorItemList.End(builder))
 	return builder.Output()

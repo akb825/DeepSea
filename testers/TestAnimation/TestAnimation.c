@@ -490,8 +490,8 @@ static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAl
 	viewSurfaces[1].surface = surface;
 	viewSurfaces[1].windowFramebuffer = true;
 
-	testAnimation->view = dsView_loadResource(allocator, testAnimation->scene, NULL, scratchData,
-		viewSurfaces, DS_ARRAY_SIZE(viewSurfaces), surface->width, surface->height,
+	testAnimation->view = dsView_loadResource(allocator, "window", testAnimation->scene, NULL,
+		scratchData, viewSurfaces, DS_ARRAY_SIZE(viewSurfaces), surface->width, surface->height,
 		surface->rotation, NULL, NULL, dsFileResourceType_Embedded, "View.dsv");
 	if (!testAnimation->view)
 	{

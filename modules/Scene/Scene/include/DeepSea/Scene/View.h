@@ -37,6 +37,7 @@ extern "C"
  * @brief Creates a view.
  * @remark errno will be set on failure.
  * @param allocator The allocator for the view. This must support freeing memory.
+ * @param name The name of the view. This will be copied.
  * @param scene The scene the view will display.
  * @param resourceAllocator The allocator for graphics resources in the view. If NULL, the view's
  *     allocator will be used.
@@ -51,16 +52,17 @@ extern "C"
  * @param destroyUserDataFunc Function to destroy the user data for the view.
  * @return The view or NULL if an error occurred.
  */
-DS_SCENE_EXPORT dsView* dsView_create(dsAllocator* allocator, const dsScene* scene,
-	dsAllocator* resourceAllocator, const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount,
-	const dsViewFramebufferInfo* framebuffers, uint32_t framebufferCount, uint32_t width,
-	uint32_t height, dsRenderSurfaceRotation rotation, void* userData,
+DS_SCENE_EXPORT dsView* dsView_create(dsAllocator* allocator, const char* name,
+	const dsScene* scene, dsAllocator* resourceAllocator, const dsViewSurfaceInfo* surfaces,
+	uint32_t surfaceCount, const dsViewFramebufferInfo* framebuffers, uint32_t framebufferCount,
+	uint32_t width, uint32_t height, dsRenderSurfaceRotation rotation, void* userData,
 	dsDestroyUserDataFunction destroyUserDataFunc);
 
 /**
  * @brief Loads a view from a file.
  * @remark errno will be set on failure.
  * @param allocator The allocator for the view. This must support freeing memory.
+ * @param name The name of the view. This will be copied.
  * @param scene The scene the view will display.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
  *     the view allocator.
@@ -75,8 +77,8 @@ DS_SCENE_EXPORT dsView* dsView_create(dsAllocator* allocator, const dsScene* sce
  * @param filePath The file path for the view to load.
  * @return The view or NULL if an error occurred.
  */
-DS_SCENE_EXPORT dsView* dsView_loadFile(dsAllocator* allocator, const dsScene* scene,
-	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
+DS_SCENE_EXPORT dsView* dsView_loadFile(dsAllocator* allocator, const char* name,
+	const dsScene* scene, dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
 	dsRenderSurfaceRotation rotation, void* userData,
 	dsDestroyUserDataFunction destroyUserDataFunc, const char* filePath);
@@ -85,6 +87,7 @@ DS_SCENE_EXPORT dsView* dsView_loadFile(dsAllocator* allocator, const dsScene* s
  * @brief Loads a view from a resource file.
  * @remark errno will be set on failure.
  * @param allocator The allocator for the view. This must support freeing memory.
+ * @param name The name of the view. This will be copied.
  * @param scene The scene the view will display.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
  *     the view allocator.
@@ -100,8 +103,8 @@ DS_SCENE_EXPORT dsView* dsView_loadFile(dsAllocator* allocator, const dsScene* s
  * @param filePath The file path for the view to load.
  * @return The view or NULL if an error occurred.
  */
-DS_SCENE_EXPORT dsView* dsView_loadResource(dsAllocator* allocator, const dsScene* scene,
-	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
+DS_SCENE_EXPORT dsView* dsView_loadResource(dsAllocator* allocator, const char* name,
+	const dsScene* scene, dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
 	dsRenderSurfaceRotation rotation, void* userData,
 	dsDestroyUserDataFunction destroyUserDataFunc, dsFileResourceType type,
@@ -111,6 +114,7 @@ DS_SCENE_EXPORT dsView* dsView_loadResource(dsAllocator* allocator, const dsScen
  * @brief Loads a view from a file within an archive.
  * @remark errno will be set on failure.
  * @param allocator The allocator for the view. This must support freeing memory.
+ * @param name The name of the view. This will be copied.
  * @param scene The scene the view will display.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
  *     the view allocator.
@@ -126,8 +130,8 @@ DS_SCENE_EXPORT dsView* dsView_loadResource(dsAllocator* allocator, const dsScen
  * @param filePath The file path for the view to load.
  * @return The view or NULL if an error occurred.
  */
-DS_SCENE_EXPORT dsView* dsView_loadArchive(dsAllocator* allocator, const dsScene* scene,
-	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
+DS_SCENE_EXPORT dsView* dsView_loadArchive(dsAllocator* allocator, const char* name,
+	const dsScene* scene, dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
 	dsRenderSurfaceRotation rotation, void* userData,
 	dsDestroyUserDataFunction destroyUserDataFunc, const dsFileArchive* archive,
@@ -137,6 +141,7 @@ DS_SCENE_EXPORT dsView* dsView_loadArchive(dsAllocator* allocator, const dsScene
  * @brief Loads view from a stream.
  * @remark errno will be set on failure.
  * @param allocator The allocator for the view. This must support freeing memory.
+ * @param name The name of the view. This will be copied.
  * @param scene The scene the view will display.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
  *     the view allocator.
@@ -151,8 +156,8 @@ DS_SCENE_EXPORT dsView* dsView_loadArchive(dsAllocator* allocator, const dsScene
  * @param stream The stream for the view to load.
  * @return The view or NULL if an error occurred.
  */
-DS_SCENE_EXPORT dsView* dsView_loadStream(dsAllocator* allocator, const dsScene* scene,
-	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
+DS_SCENE_EXPORT dsView* dsView_loadStream(dsAllocator* allocator, const char* name,
+	const dsScene* scene, dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
 	dsRenderSurfaceRotation rotation, void* userData,
 	dsDestroyUserDataFunction destroyUserDataFunc, dsStream* stream);
@@ -161,6 +166,7 @@ DS_SCENE_EXPORT dsView* dsView_loadStream(dsAllocator* allocator, const dsScene*
  * @brief Loads view from a data buffer.
  * @remark errno will be set on failure.
  * @param allocator The allocator for the view. This must support freeing memory.
+ * @param name The name of the view. This will be copied.
  * @param scene The scene the view will display.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
  *     the view allocator.
@@ -176,8 +182,8 @@ DS_SCENE_EXPORT dsView* dsView_loadStream(dsAllocator* allocator, const dsScene*
  * @param size The size of the data buffer.
  * @return The view or NULL if an error occurred.
  */
-DS_SCENE_EXPORT dsView* dsView_loadData(dsAllocator* allocator, const dsScene* scene,
-	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
+DS_SCENE_EXPORT dsView* dsView_loadData(dsAllocator* allocator, const char* name,
+	const dsScene* scene, dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
 	dsRenderSurfaceRotation rotation, void* userData,
 	dsDestroyUserDataFunction destroyUserDataFunc, const void* data, size_t size);

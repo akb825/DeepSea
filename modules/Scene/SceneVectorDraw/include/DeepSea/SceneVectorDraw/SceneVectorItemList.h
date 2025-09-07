@@ -52,12 +52,15 @@ DS_SCENEVECTORDRAW_EXPORT const dsSceneItemListType* dsSceneVectorItemList_type(
  *     take ownership of each instance data. The instances will be destroyed if an error occurrs.
  * @param instanceDataCount The number of instance datas.
  * @param renderStates The render states to use, or NULL if no special render states are needed.
+ * @param views The name of the views that the model list will be drawn for.
+ * @param viewCount The number of views the model list will be drawn for. If zero, all views will be
+ *     drawn to.
  * @return The vector item list or NULL if an error occurred.
  */
 DS_SCENEVECTORDRAW_EXPORT dsSceneVectorItemList* dsSceneVectorItemList_create(
 	dsAllocator* allocator, const char* name, dsResourceManager* resourceManager,
 	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount,
-	const dsDynamicRenderStates* renderStates);
+	const dsDynamicRenderStates* renderStates, const char* const* views, uint32_t viewCount);
 
 /**
  * @brief Gets the render states for a vector item list.

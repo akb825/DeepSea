@@ -1,4 +1,4 @@
-# Copyright 2020-2023 Aaron Barany
+# Copyright 2020-2025 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -47,7 +47,10 @@ def convertModelList(convertContext, data):
 	  - stencilReference: int reference for both the front and back stencil. Defaults to 0.
 	  - frontStencilReference: int reference for just the front stencil.
 	  - backStencilReference: int reference for just the back stencil.
-	- cullList: optional name for the item list to handle culling.
+	- cullList: array of strings for the name of item lists to handle culling. If omitted or empty,
+	  no culling is performed.
+	- views: array of strings for the name of views to draw to. If omitted or empty, all views will
+	  be drawn to.
 	"""
 	builder = flatbuffers.Builder(0)
 	try:
@@ -76,7 +79,13 @@ def convertModelList(convertContext, data):
 		else:
 			dynamicRenderStatesOffset = 0
 
-		cullList = data.get('cullList')
+		cullLists = data.get('cullLists', [])
+		if not isinstance(cullLists, list):
+			raise Exception('ModelList "cullList" must be an array of strings.')
+
+		views = data.get('views', [])
+		if not isinstance(views, list):
+			raise Exception('ModelList "views" must be an array of strings.')
 	except KeyError as e:
 		raise Exception('ModelList doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):
@@ -95,15 +104,33 @@ def convertModelList(convertContext, data):
 	else:
 		instanceDataOffset = 0
 
-	if cullList:
-		cullListOffset = builder.CreateString(str(cullList))
+	if cullLists:
+		cullListOffsets = []
+		for cullList in cullLists:
+			cullListOffsets.append(builder.CreateString(str(cullList)))
+		ModelList.StartCullListsVector(builder, len(cullListOffsets))
+		for offset in reversed(cullListOffsets):
+			builder.PrependUOffsetTRelative(offset)
+		cullListsOffset = builder.EndVector()
 	else:
-		cullListOffset = 0
+		cullListsOffset = 0
+
+	if views:
+		viewOffsets = []
+		for view in views:
+			viewOffsets.append(builder.CreateString(str(view)))
+		ModelList.StartViewsVector(builder, len(viewOffsets))
+		for offset in reversed(viewOffsets):
+			builder.PrependUOffsetTRelative(offset)
+		viewsOffset = builder.EndVector()
+	else:
+		viewsOffset = 0
 
 	ModelList.Start(builder)
 	ModelList.AddInstanceData(builder, instanceDataOffset)
 	ModelList.AddSortType(builder, sortType)
 	ModelList.AddDynamicRenderStates(builder, dynamicRenderStatesOffset)
-	ModelList.AddCullList(builder, cullListOffset)
+	ModelList.AddCullLists(builder, cullListsOffset)
+	ModelList.AddViews(builder, viewsOffset)
 	builder.Finish(ModelList.End(builder))
 	return builder.Output()

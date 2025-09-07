@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,11 @@ table ParticleDrawList
 	// List of instance data for the particles.
 	instanceData : [DeepSeaScene.ObjectData];
 
-	// The name of the item list to handle culling, or null if no culling is used.
-	cullList : string;
+	// The name of the item lists to handle culling, or empty if no culling is used.
+	cullLists : [string];
+
+	// The name of the views to draw to, or empty to draw to all views.
+	views : [string];
 }
 
 root_type ParticleDrawList;

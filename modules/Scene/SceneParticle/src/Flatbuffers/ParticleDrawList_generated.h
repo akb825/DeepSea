@@ -24,21 +24,29 @@ struct ParticleDrawList FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ParticleDrawListBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_INSTANCEDATA = 4,
-    VT_CULLLIST = 6
+    VT_CULLLISTS = 6,
+    VT_VIEWS = 8
   };
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>> *instanceData() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>> *>(VT_INSTANCEDATA);
   }
-  const ::flatbuffers::String *cullList() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_CULLLIST);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *cullLists() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_CULLLISTS);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *views() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_VIEWS);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_INSTANCEDATA) &&
            verifier.VerifyVector(instanceData()) &&
            verifier.VerifyVectorOfTables(instanceData()) &&
-           VerifyOffset(verifier, VT_CULLLIST) &&
-           verifier.VerifyString(cullList()) &&
+           VerifyOffset(verifier, VT_CULLLISTS) &&
+           verifier.VerifyVector(cullLists()) &&
+           verifier.VerifyVectorOfStrings(cullLists()) &&
+           VerifyOffset(verifier, VT_VIEWS) &&
+           verifier.VerifyVector(views()) &&
+           verifier.VerifyVectorOfStrings(views()) &&
            verifier.EndTable();
   }
 };
@@ -50,8 +58,11 @@ struct ParticleDrawListBuilder {
   void add_instanceData(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>>> instanceData) {
     fbb_.AddOffset(ParticleDrawList::VT_INSTANCEDATA, instanceData);
   }
-  void add_cullList(::flatbuffers::Offset<::flatbuffers::String> cullList) {
-    fbb_.AddOffset(ParticleDrawList::VT_CULLLIST, cullList);
+  void add_cullLists(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> cullLists) {
+    fbb_.AddOffset(ParticleDrawList::VT_CULLLISTS, cullLists);
+  }
+  void add_views(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> views) {
+    fbb_.AddOffset(ParticleDrawList::VT_VIEWS, views);
   }
   explicit ParticleDrawListBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -67,9 +78,11 @@ struct ParticleDrawListBuilder {
 inline ::flatbuffers::Offset<ParticleDrawList> CreateParticleDrawList(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>>> instanceData = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> cullList = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> cullLists = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> views = 0) {
   ParticleDrawListBuilder builder_(_fbb);
-  builder_.add_cullList(cullList);
+  builder_.add_views(views);
+  builder_.add_cullLists(cullLists);
   builder_.add_instanceData(instanceData);
   return builder_.Finish();
 }
@@ -77,13 +90,16 @@ inline ::flatbuffers::Offset<ParticleDrawList> CreateParticleDrawList(
 inline ::flatbuffers::Offset<ParticleDrawList> CreateParticleDrawListDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const std::vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>> *instanceData = nullptr,
-    const char *cullList = nullptr) {
+    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *cullLists = nullptr,
+    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *views = nullptr) {
   auto instanceData__ = instanceData ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaScene::ObjectData>>(*instanceData) : 0;
-  auto cullList__ = cullList ? _fbb.CreateString(cullList) : 0;
+  auto cullLists__ = cullLists ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*cullLists) : 0;
+  auto views__ = views ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*views) : 0;
   return DeepSeaSceneParticle::CreateParticleDrawList(
       _fbb,
       instanceData__,
-      cullList__);
+      cullLists__,
+      views__);
 }
 
 inline const DeepSeaSceneParticle::ParticleDrawList *GetParticleDrawList(const void *buf) {

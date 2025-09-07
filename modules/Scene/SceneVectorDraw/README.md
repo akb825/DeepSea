@@ -110,3 +110,4 @@ The following scene item lists are provided with the expected members:
 		* `stencilReference`: int reference for both the front and back stencil. Defaults to 0.
 		* `frontStencilReference`: int reference for just the front stencil.
 		* `backStencilReference`: int reference for just the back stencil.
+	* `views`: array of strings for the name of views to draw to. If omitted or empty, all views will be drawn to.

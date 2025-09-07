@@ -603,9 +603,9 @@ static bool setup(TestLighting* testLighting, dsApplication* application, dsAllo
 	viewSurface.surface = surface;
 	viewSurface.windowFramebuffer = true;
 
-	testLighting->view = dsView_loadArchive(allocator, testLighting->scene, NULL, scratchData,
-		&viewSurface, 1, surface->width, surface->height, surface->rotation, NULL, NULL, archive,
-		viewFileName);
+	testLighting->view = dsView_loadArchive(allocator, "window", testLighting->scene, NULL,
+		scratchData, &viewSurface, 1, surface->width, surface->height, surface->rotation, NULL,
+		NULL, archive, viewFileName);
 	if (!testLighting->view)
 	{
 		DS_LOG_ERROR_F("TestLighting", "Couldn't load view: %s", dsErrorString(errno));

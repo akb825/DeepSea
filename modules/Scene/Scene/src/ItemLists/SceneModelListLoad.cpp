@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,17 +57,21 @@ dsSceneItemList* dsSceneModelList_load(const dsSceneLoadContext* loadContext,
 	auto fbModelList = DeepSeaScene::GetModelList(data);
 	auto fbInstanceData = fbModelList->instanceData();
 	auto fbDynamicRenderStates = fbModelList->dynamicRenderStates();
-	auto fbCullList = fbModelList->cullList();
+	auto fbCullLists = fbModelList->cullLists();
+	auto fbViews = fbModelList->views();
 
 	uint32_t instanceDataCount = 0;
 	dsSceneInstanceData** instanceData = nullptr;
 	dsDynamicRenderStates dynamicRenderStates;
+	uint32_t cullListCount = 0;
+	const char** cullLists = nullptr;
+	uint32_t viewCount = 0;
+	const char** views = nullptr;
 
 	if (fbInstanceData && fbInstanceData->size() > 0)
 	{
 		instanceDataCount = fbInstanceData->size();
 		instanceData = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsSceneInstanceData*, instanceDataCount);
-		DS_ASSERT(instanceData);
 
 		for (uint32_t i = 0; i < instanceDataCount; ++i)
 		{
@@ -99,10 +103,46 @@ dsSceneItemList* dsSceneModelList_load(const dsSceneLoadContext* loadContext,
 	if (fbDynamicRenderStates)
 		dynamicRenderStates = DeepSeaScene::convert(*fbDynamicRenderStates);
 
+	if (fbCullLists && fbCullLists->size() > 0)
+	{
+		cullListCount = fbCullLists->size();
+		cullLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, cullListCount);
+		for (uint32_t i = 0; i < cullListCount; ++i)
+		{
+			auto fbCullList = (*fbCullLists)[i];
+			if (!fbCullList)
+			{
+				errno = EFORMAT;
+				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Model list cull list name is null.");
+				goto error;
+			}
+
+			cullLists[i] = fbCullList->c_str();
+		}
+	}
+
+	if (fbViews && fbViews->size() > 0)
+	{
+		viewCount = fbViews->size();
+		views = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, viewCount);
+		for (uint32_t i = 0; i < viewCount; ++i)
+		{
+			auto fbView = (*fbViews)[i];
+			if (!fbView)
+			{
+				errno = EFORMAT;
+				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Model list view name is null.");
+				goto error;
+			}
+
+			views[i] = fbView->c_str();
+		}
+	}
+
 	return reinterpret_cast<dsSceneItemList*>(dsSceneModelList_create(allocator, name, instanceData,
 		instanceDataCount, static_cast<dsModelSortType>(fbModelList->sortType()),
-		fbDynamicRenderStates ? &dynamicRenderStates : nullptr,
-		fbCullList ? fbCullList->c_str() : nullptr));
+		fbDynamicRenderStates ? &dynamicRenderStates : nullptr, cullLists, cullListCount, views,
+		viewCount));
 
 error:
 	// instanceDataCount should be the number that we need to clean up.

@@ -82,7 +82,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "mainShadowCullList0"
+							"cullLists": ["mainShadowCullList0"]
 						}
 					]
 				}
@@ -128,7 +128,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "mainShadowCullList1"
+							"cullLists": ["mainShadowCullList1"]
 						}
 					]
 				}
@@ -187,7 +187,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "cullList"
+							"cullLists": ["cullList"]
 						},
 						{
 							"type": "ModelList",
@@ -205,7 +205,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "cullList"
+							"cullLists": ["cullList"]
 						},
 						{
 							"type": "ModelList",
@@ -223,7 +223,7 @@
 								}
 							],
 							"sortType": "BackToFront",
-							"cullList": "cullList"
+							"cullLists": ["cullList"]
 						},
 						{
 							"type": "FullScreenResolve",

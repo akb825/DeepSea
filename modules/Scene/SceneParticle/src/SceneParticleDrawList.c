@@ -56,8 +56,11 @@ typedef struct dsSceneParticleDrawList
 
 	dsSceneInstanceData** instanceData;
 	dsParticleDraw* drawer;
+	uint32_t* cullListIDs;
+	uint32_t* viewIDs;
 	uint32_t instanceDataCount;
-	uint32_t cullListID;
+	uint32_t cullListCount;
+	uint32_t viewCount;
 
 	Entry* entries;
 	uint32_t entryCount;
@@ -77,6 +80,16 @@ typedef struct dsSceneParticleDrawList
 	uint32_t maxInstances;
 } dsSceneParticleDrawList;
 
+static bool isInView(const dsSceneParticleDrawList* drawList, const dsView* view)
+{
+	for (uint32_t i = 0; i < drawList->viewCount; ++i)
+	{
+		if (drawList->viewIDs[i] == view->nameID)
+			return true;
+	}
+	return drawList->viewCount == 0;
+}
+
 static void destroyInstanceData(
 	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount)
 {
@@ -84,8 +97,8 @@ static void destroyInstanceData(
 		dsSceneInstanceData_destroy(instanceData[i]);
 }
 
-static void setupInstances(dsSceneItemList* itemList, const dsView* view,
-	dsCommandBuffer* commandBuffer)
+static void setupInstances(
+	dsSceneItemList* itemList, const dsView* view, dsCommandBuffer* commandBuffer)
 {
 	dsSceneParticleDrawList* drawList = (dsSceneParticleDrawList*)itemList;
 	drawList->emitterCount = 0;
@@ -94,12 +107,18 @@ static void setupInstances(dsSceneItemList* itemList, const dsView* view,
 	{
 		// Particle draw uses the view frustum for culling.
 		Entry* entry = drawList->entries + i;
-		// Non-zero cull result means out of view.
-		if (drawList->cullListID &&
-			dsSceneNodeItemData_findID(entry->itemData, drawList->cullListID))
+		bool culled = false;
+		for (uint32_t j = 0; j < drawList->cullListCount; ++j)
 		{
-			continue;
+			// Non-zero cull result means out of view.
+			if (dsSceneNodeItemData_findID(entry->itemData, drawList->cullListIDs[j]))
+			{
+				culled = true;
+				break;
+			}
 		}
+		if (culled)
+			continue;
 
 		uint32_t index = drawList->instanceCount;
 		if (!DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG, DS_RESIZEABLE_ARRAY_ADD(itemList->allocator,
@@ -198,8 +217,8 @@ static void dsSceneParticleDrawList_removeNode(
 	}
 }
 
-static void dsSceneParticleDrawList_preRenderPass(dsSceneItemList* itemList, const dsView* view,
-	dsCommandBuffer* commandBuffer)
+static void dsSceneParticleDrawList_preRenderPass(
+	dsSceneItemList* itemList, const dsView* view, dsCommandBuffer* commandBuffer)
 {
 	DS_ASSERT(itemList);
 	DS_ASSERT(!itemList->skipPreRenderPass);
@@ -208,13 +227,15 @@ static void dsSceneParticleDrawList_preRenderPass(dsSceneItemList* itemList, con
 	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
 }
 
-static void dsSceneParticleDrawList_commit(dsSceneItemList* itemList, const dsView* view,
-	dsCommandBuffer* commandBuffer)
+static void dsSceneParticleDrawList_commit(
+	dsSceneItemList* itemList, const dsView* view, dsCommandBuffer* commandBuffer)
 {
 	DS_ASSERT(itemList);
-	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
-
 	dsSceneParticleDrawList* drawList = (dsSceneParticleDrawList*)itemList;
+	if (!isInView(drawList, view))
+		return;
+
+	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
 	// Lazily remove entries.
 	dsSceneItemListEntries_removeMulti(drawList->entries, &drawList->entryCount,
@@ -249,9 +270,13 @@ static uint32_t dsSceneParticleDrawList_hash(const dsSceneItemList* itemList, ui
 {
 	DS_ASSERT(itemList);
 	const dsSceneParticleDrawList* particleList = (const dsSceneParticleDrawList*)itemList;
-	uint32_t hash = dsHashCombine32(commonHash, &particleList->cullListID);
+	uint32_t hash = commonHash;
 	for (uint32_t i = 0; i < particleList->instanceDataCount; ++i)
 		hash = dsSceneInstanceData_hash(particleList->instanceData[i], hash);
+	hash = dsHashCombineBytes(
+		hash, particleList->cullListIDs, sizeof(uint32_t)*particleList->cullListCount);
+	hash = dsHashCombineBytes(
+		hash, particleList->viewIDs, sizeof(uint32_t)*particleList->viewCount);
 	return hash;
 }
 
@@ -265,8 +290,9 @@ static bool dsSceneParticleDrawList_equal(const dsSceneItemList* left, const dsS
 	const dsSceneParticleDrawList* leftParticleList = (const dsSceneParticleDrawList*)left;
 	const dsSceneParticleDrawList* rightParticleList = (const dsSceneParticleDrawList*)right;
 
-	if (leftParticleList->cullListID != rightParticleList->cullListID ||
-		leftParticleList->instanceDataCount != rightParticleList->instanceDataCount)
+	if (leftParticleList->instanceDataCount != rightParticleList->instanceDataCount ||
+		leftParticleList->cullListCount != rightParticleList->cullListCount ||
+		leftParticleList->viewCount != rightParticleList->viewCount)
 	{
 		return false;
 	}
@@ -280,6 +306,17 @@ static bool dsSceneParticleDrawList_equal(const dsSceneItemList* left, const dsS
 		}
 	}
 
+	for (uint32_t i = 0; i < leftParticleList->cullListCount; ++i)
+	{
+		if (leftParticleList->cullListIDs[i] != rightParticleList->cullListIDs[i])
+			return false;
+	}
+
+	for (uint32_t i = 0; i < leftParticleList->viewCount; ++i)
+	{
+		if (leftParticleList->viewIDs[i] != rightParticleList->viewIDs[i])
+			return false;
+	}
 	return true;
 }
 
@@ -316,9 +353,12 @@ const dsSceneItemListType* dsSceneParticleDrawList_type(void)
 
 dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const char* name,
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
-	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount, const char* cullList)
+	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount,
+	const char* const* cullLists, uint32_t cullListCount, const char* const* views,
+	uint32_t viewCount)
 {
-	if (!allocator || !name || !resourceAllocator || (!instanceData && instanceDataCount > 0))
+	if (!allocator || !name || !resourceAllocator || (!instanceData && instanceDataCount > 0) ||
+		(!cullLists && cullListCount > 0) || (!views && viewCount > 0))
 	{
 		errno = EINVAL;
 		if (instanceData)
@@ -330,7 +370,7 @@ dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const ch
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_SCENE_PARTICLE_LOG_TAG,
-			"Particle drfaw list allocator must support freeing memory.");
+			"Particle draw list allocator must support freeing memory.");
 		destroyInstanceData(instanceData, instanceDataCount);
 		return NULL;
 	}
@@ -351,10 +391,32 @@ dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const ch
 			skipPreRenderPass = false;
 	}
 
+	for (uint32_t i = 0; i < cullListCount; ++i)
+	{
+		if (!cullLists[i])
+		{
+			errno = EINVAL;
+			destroyInstanceData(instanceData, instanceDataCount);
+			return NULL;
+		}
+	}
+
+	for (uint32_t i = 0; i < viewCount; ++i)
+	{
+		if (!views[i])
+		{
+			errno = EINVAL;
+			destroyInstanceData(instanceData, instanceDataCount);
+			return NULL;
+		}
+	}
+
 	size_t nameLen = strlen(name) + 1;
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneParticleDrawList)) +
 		DS_ALIGNED_SIZE(nameLen) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneInstanceData*)*instanceDataCount);
+		DS_ALIGNED_SIZE(sizeof(dsSceneInstanceData*)*instanceDataCount) +
+		DS_ALIGNED_SIZE(sizeof(uint32_t)*cullListCount) +
+		DS_ALIGNED_SIZE(sizeof(uint32_t)*viewCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
@@ -379,8 +441,6 @@ dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const ch
 	itemList->needsCommandBuffer = true;
 	itemList->skipPreRenderPass = skipPreRenderPass;
 
-	drawList->cullListID = cullList ? dsUniqueNameID_create(cullList) : 0;
-
 	if (instanceDataCount > 0)
 	{
 		drawList->instanceData = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneInstanceData*,
@@ -392,6 +452,28 @@ dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const ch
 	else
 		drawList->instanceData = NULL;
 	drawList->instanceDataCount = instanceDataCount;
+
+	if (cullListCount > 0)
+	{
+		drawList->cullListIDs = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t, cullListCount);
+		DS_ASSERT(drawList->cullListIDs);
+		for (uint32_t i = 0; i < cullListCount; ++i)
+			drawList->cullListIDs[i] = dsUniqueNameID_create(cullLists[i]);
+	}
+	else
+		drawList->cullListIDs = NULL;
+	drawList->cullListCount = cullListCount;
+
+	if (viewCount > 0)
+	{
+		drawList->viewIDs = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t, viewCount);
+		DS_ASSERT(drawList->viewIDs);
+		for (uint32_t i = 0; i < viewCount; ++i)
+			drawList->viewIDs[i] = dsUniqueNameID_create(views[i]);
+	}
+	else
+		drawList->viewIDs = NULL;
+	drawList->viewCount = viewCount;
 
 	drawList->entries = NULL;
 	drawList->entryCount = 0;
@@ -410,8 +492,8 @@ dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const ch
 	drawList->instanceCount = 0;
 	drawList->maxInstances = 0;
 
-	drawList->drawer = dsParticleDraw_create(allocator, resourceManager, resourceAllocator,
-		instanceValueCount);
+	drawList->drawer = dsParticleDraw_create(
+		allocator, resourceManager, resourceAllocator, instanceValueCount);
 	if (!drawList->drawer)
 	{
 		dsSceneParticleDrawList_destroy(itemList);

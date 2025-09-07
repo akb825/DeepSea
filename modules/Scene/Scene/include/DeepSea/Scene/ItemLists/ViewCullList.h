@@ -27,7 +27,7 @@ extern "C"
 
 /**
  * @file
- * @brief Functions for creating and manipulating cull lists.
+ * @brief Functions for creating and manipulating view cull lists.
  *
  * This will perform culling on nodes that subclass from dsSceneCullNode.
  *
