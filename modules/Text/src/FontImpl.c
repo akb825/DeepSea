@@ -54,7 +54,7 @@
 #include <hb.h>
 #include <hb-ft.h>
 
-#ifdef HB_VERSION_AT_LEAST
+#ifdef HB_VERSION_ATLEAST
 #define HAS_FONT_CHANGED HB_VERSION_ATLEAST(1, 6, 0)
 #else
 #define HAS_FONT_CHANGED 0
@@ -1257,7 +1257,7 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 		dsGlyph* glyph = glyphs + i;
 		const hb_glyph_info_t* glyphInfo = glyphInfos + i;
 		const hb_glyph_position_t* curGlyphPos = glyphPos + i;
-		glyph->glyphId = glyphInfo->codepoint;
+		glyph->glyphID = glyphInfo->codepoint;
 		glyph->charIndex = glyphInfo->cluster;
 		glyph->offset.x = (float)curGlyphPos->x_offset*scale;
 		glyph->offset.y = -(float)curGlyphPos->y_offset*scale;

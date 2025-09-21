@@ -134,7 +134,7 @@ static void finishLine(dsTextLayout* layout, dsAlignedBox2f* lineBounds, float l
 }
 
 static void updateGlyph(dsFont* font, dsCommandBuffer* commandBuffer, uint32_t face,
-	uint32_t glyphId, dsGlyphLayout* glyph)
+	uint32_t glyphID, dsGlyphLayout* glyph)
 {
 	// Skip empty glyphs.
 	if (glyph->geometry.min.x == glyph->geometry.max.x &&
@@ -143,7 +143,7 @@ static void updateGlyph(dsFont* font, dsCommandBuffer* commandBuffer, uint32_t f
 		return;
 	}
 
-	dsGlyphInfo* glyphInfo = dsFont_getGlyphInfo(font, commandBuffer, face, glyphId);
+	dsGlyphInfo* glyphInfo = dsFont_getGlyphInfo(font, commandBuffer, face, glyphID);
 	dsTexturePosition texturePos;
 	dsFont_getGlyphTexturePos(&texturePos, dsFont_getGlyphIndex(font, glyphInfo),
 		font->glyphSize, font->texMultiplier);
@@ -166,8 +166,8 @@ size_t dsTextLayout_fullAllocSize(const dsText* text, uint32_t styleCount)
 		DS_ALIGNED_SIZE(styleCount*sizeof(dsTextStyle));
 }
 
-bool dsTextLayout_applySlantToBounds(dsAlignedBox2f* outBounds, const dsAlignedBox2f* glyphBounds,
-	float slant)
+bool dsTextLayout_applySlantToBounds(
+	dsAlignedBox2f* outBounds, const dsAlignedBox2f* glyphBounds, float slant)
 {
 	if (!outBounds || !glyphBounds)
 	{
@@ -270,8 +270,7 @@ dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const dsText* text,
 	return layout;
 }
 
-dsTextAlign dsTextLayout_resolveAlign(const dsTextLayout* layout,
-	dsTextAlign alignment)
+dsTextAlign dsTextLayout_resolveAlign(const dsTextLayout* layout, dsTextAlign alignment)
 {
 	bool valid = layout && layout->text && layout->text->ranges && layout->text->rangeCount > 0;
 	switch (alignment)
@@ -361,9 +360,9 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 				continue;
 			}
 
-			float scale = style->scale/(float)font->glyphSize;
+			float scale = style->size/(float)font->glyphSize;
 			dsGlyphInfo* glyphInfo = dsFont_getGlyphInfo(font, commandBuffer, range->face,
-				textGlyph->glyphId);
+				textGlyph->glyphID);
 
 			dsVector2_scale(glyph->geometry.min, glyphInfo->glyphBounds.min, scale);
 			dsVector2_scale(glyph->geometry.max, glyphInfo->glyphBounds.max, scale);
@@ -415,7 +414,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 
 		uint32_t charcode = text->characters[i];
 		bool isWhitespace = dsIsSpace(charcode);
-		float scale = layout->styles[glyphs[charMapping->firstGlyph].styleIndex].scale;
+		float size = layout->styles[glyphs[charMapping->firstGlyph].styleIndex].size;
 		float glyphWidth = 0.0f;
 		for (uint32_t j = 0; j < charMapping->glyphCount; ++j)
 		{
@@ -438,7 +437,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 				line = (uint32_t)glyph->position.y;
 			}
 
-			position.x += textGlyph->advance*scale;
+			position.x += textGlyph->advance*size;
 
 			if (!isWhitespace)
 			{
@@ -446,9 +445,9 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 				float glyphImageWidth = glyph->texCoords.max.x + (float)windowSize*2.0f;
 				glyphImageWidth = dsMax(glyphImageWidth, font->glyphSize);
 				float glyphScale = (float)font->glyphSize/glyphImageWidth;
-				float boundsPadding = glyphScale*basePadding*style->embolden*scale;
+				float boundsPadding = glyphScale*basePadding*style->embolden*size;
 				dsVector2f offset;
-				dsVector2_scale(offset, textGlyph->offset, scale);
+				dsVector2_scale(offset, textGlyph->offset, size);
 				glyphWidth += offset.x + glyph->geometry.max.x + boundsPadding;
 				// Positive y points down, so need to subtract the slant from the width for a
 				// positive effect.
@@ -554,8 +553,8 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 	dsAlignedBox2f_makeInvalid(&lineBounds);
 	dsAlignedBox2f_makeInvalid(&layout->bounds);
 	float lastY = 0.0f;
-	float lastScale = 0.0f;
-	float maxScale = 0.0f;
+	float lastSize = 0.0f;
+	float maxSize = 0.0f;
 	float lineY = 0.0f;
 	uint32_t sectionStart = 0;
 	float offset = 0;
@@ -570,31 +569,31 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 
 		if (glyph->position.y != lastY)
 		{
-			if (maxScale != 0.0f)
-				lastScale = maxScale;
+			if (maxSize != 0.0f)
+				lastSize = maxSize;
 			if (sectionStart != 0)
-				lineY += lastScale*lineScale;
+				lineY += lastSize*lineScale;
 			float curYIndex = glyph->position.y;
 			float lastYIndex = lastY;
 			lastY = glyph->position.y;
 			finishLine(layout, &lineBounds, lineY, alignment, glyphs, glyphsLineOrdered,
 				sectionStart, i, &lineCount);
 
-			lineY += lastScale*lineScale*(curYIndex - lastYIndex - 1.0f);
+			lineY += lastSize*lineScale*(curYIndex - lastYIndex - 1.0f);
 			sectionStart = i;
 			offset = 0;
-			maxScale = 0.0f;
+			maxSize = 0.0f;
 		}
 
-		float scale = layout->styles[glyph->styleIndex].scale;
+		float size = layout->styles[glyph->styleIndex].size;
 		const dsGlyph* textGlyph = text->glyphs + textIndex;
-		maxScale = dsMax(scale, maxScale);
+		maxSize = dsMax(size, maxSize);
 		glyph->position.x = offset;
 		DS_ASSERT(textGlyph->advance >= 0);
-		offset += textGlyph->advance*scale;
+		offset += textGlyph->advance*size;
 
-		glyph->position.x += textGlyph->offset.x*scale;
-		glyph->position.y += textGlyph->offset.y*scale;
+		glyph->position.x += textGlyph->offset.x*size;
+		glyph->position.y += textGlyph->offset.y*size;
 
 		// Add to the line bounds.
 		if (glyph->geometry.min.x != glyph->geometry.max.x &&
@@ -618,10 +617,10 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 	}
 
 	// Last line.
-	if (maxScale != 0.0f)
-		lastScale = maxScale;
+	if (maxSize != 0.0f)
+		lastSize = maxSize;
 	if (sectionStart != 0)
-		lineY += lastScale*lineScale;
+		lineY += lastSize*lineScale;
 	finishLine(layout, &lineBounds, lineY, alignment, glyphs, glyphsLineOrdered, sectionStart,
 		text->glyphCount, &lineCount);
 	if (layout->lines)
@@ -644,7 +643,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 		if (glyph->geometry.min.x < glyph->geometry.max.x &&
 			glyph->geometry.min.y < glyph->geometry.max.y)
 		{
-			float scale = layout->styles[glyph->styleIndex].scale;
+			float size = layout->styles[glyph->styleIndex].size;
 			float glyphWidth = glyphSize->x + (float)windowSize*2.0f;
 			float glyphHeight = glyphSize->y + (float)windowSize*2.0f;
 			glyphWidth = dsMax(glyphWidth, (float)paddedGlyphSize);
@@ -653,7 +652,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 				(float)paddedGlyphSize/glyphHeight}};
 			dsVector2f padding = {{basePadding, basePadding}};
 			dsVector2_mul(padding, padding, glyphScale);
-			dsVector2_scale(padding, padding, scale);
+			dsVector2_scale(padding, padding, size);
 
 			dsVector2_sub(glyph->geometry.min, glyph->geometry.min, padding);
 			dsVector2_add(glyph->geometry.max, glyph->geometry.max, padding);
@@ -690,7 +689,7 @@ bool dsTextLayout_refresh(dsTextLayout* layout, dsCommandBuffer* commandBuffer)
 		for (uint32_t j = 0; j < range->glyphCount; ++j)
 		{
 			uint32_t glyphIndex = range->firstGlyph + j;
-			updateGlyph(font, commandBuffer, range->face, text->glyphs[glyphIndex].glyphId,
+			updateGlyph(font, commandBuffer, range->face, text->glyphs[glyphIndex].glyphID,
 				glyphs + glyphIndex);
 		}
 	}
@@ -738,7 +737,7 @@ bool dsTextLayout_refreshRange(dsTextLayout* layout, dsCommandBuffer* commandBuf
 		for (uint32_t j = 0; j < charMapping->glyphCount; ++j)
 		{
 			uint32_t glyphIndex = charMapping->firstGlyph + j;
-			updateGlyph(font, commandBuffer, range->face, text->glyphs[glyphIndex].glyphId,
+			updateGlyph(font, commandBuffer, range->face, text->glyphs[glyphIndex].glyphID,
 				glyphs + glyphIndex);
 		}
 	}

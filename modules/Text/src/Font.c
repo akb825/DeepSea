@@ -576,8 +576,8 @@ dsTexture* dsFont_getTexture(const dsFont* font)
 	return font->texture;
 }
 
-bool dsFont_applyHintingAndAntiAliasing(const dsFont* font, dsTextStyle* style, float pixelScale,
-	float fuziness)
+bool dsFont_applyHintingAndAntiAliasing(
+	const dsFont* font, dsTextStyle* style, float pixelScale, float fuziness)
 {
 	if (!font || !style)
 	{
@@ -604,7 +604,7 @@ bool dsFont_applyHintingAndAntiAliasing(const dsFont* font, dsTextStyle* style, 
 	}
 	antiAliasFactor = 1.5f*fuziness;
 
-	float pixels = pixelScale*style->scale;
+	float pixels = pixelScale*style->size;
 	float size = dsClamp(pixels, hintingStart, hintingEnd);
 	float t = (size - hintingStart)/(hintingEnd - hintingStart);
 	float embolding = dsLerp(smallEmbolding, largeEmbolding, t);

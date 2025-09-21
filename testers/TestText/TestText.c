@@ -1172,7 +1172,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 				text->maxWidth *= dpiScale;
 			for (uint32_t j = 0; j < DS_ARRAY_SIZE(textStrings[i].styles); ++j)
 			{
-				text->styles[j].scale *= dpiScale;
+				text->styles[j].size *= dpiScale;
 				text->styles[j].verticalOffset *= dpiScale;
 			}
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -188,7 +188,7 @@ static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount, bo
 			uint32_t newlineCount = j == curInfo - 1 ? runs[i].newlineCount : 0;
 			scriptInfo = getScriptInfo(text, infoIndex);
 			if (!dsFont_shapeRange(text->font, text, infoIndex, scriptInfo->firstCodepoint,
-				scriptInfo->start, scriptInfo->count, newlineCount, runs[i].direction))
+					scriptInfo->start, scriptInfo->count, newlineCount, runs[i].direction))
 			{
 				DS_PROFILE_FUNC_RETURN(false);
 			}

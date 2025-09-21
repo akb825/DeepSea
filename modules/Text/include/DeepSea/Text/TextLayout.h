@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,8 +99,8 @@ DS_TEXT_EXPORT dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const d
  * @param alignment The initial alignment.
  * @return The resolved alignment.
  */
-DS_TEXT_EXPORT dsTextAlign dsTextLayout_resolveAlign(const dsTextLayout* layout,
-	dsTextAlign alignment);
+DS_TEXT_EXPORT dsTextAlign dsTextLayout_resolveAlign(
+	const dsTextLayout* layout, dsTextAlign alignment);
 
 /**
  * @brief Performs layout on the text, preparing it to be rendered.

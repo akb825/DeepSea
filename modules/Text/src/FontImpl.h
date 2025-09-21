@@ -32,6 +32,7 @@
 #define DS_LARGE_CACHE_TEX_MULTIPLIER 32
 #define DS_LARGE_CACHE_TEX_MIP_LEVELS 6
 #define DS_TABLE_SIZE 1823
+// Max X and Y offset at the minimum quality to check for signed distances.
 #define DS_BASE_WINDOW_SIZE 4
 
 typedef enum dsTextDirection

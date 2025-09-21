@@ -99,7 +99,7 @@ void* dsSceneText_load(const dsSceneLoadContext*, dsSceneLoadScratchData* scratc
 		dsTextStyle& style = styles[i];
 		style.start = fbStyle->start();
 		style.count = fbStyle->count();
-		style.scale = fbStyle->size();
+		style.size = fbStyle->size();
 		style.embolden = fbStyle->embolden();
 		style.slant = fbStyle->slant();
 		style.outlineThickness = 0.5f + style.embolden*0.5f;

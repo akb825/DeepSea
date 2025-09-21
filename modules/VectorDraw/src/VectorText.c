@@ -84,7 +84,7 @@ static void getRangeOffset(dsVector2f* outOffset, const dsTextLayout* layout,
 				if (glyphRightToLeft(layout, charMapping->firstGlyph))
 				{
 					outOffset->x -= layout->text->glyphs[i].advance*
-						layout->styles[glyph->styleIndex].scale;
+						layout->styles[glyph->styleIndex].size;
 				}
 				break;
 			}

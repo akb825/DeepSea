@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -150,7 +150,7 @@ typedef struct dsGlyph
 	/**
 	 * @brief The ID of the glpyh.
 	 */
-	uint32_t glyphId;
+	uint32_t glyphID;
 
 	/**
 	 * @brief The index of the character in the string.
@@ -283,9 +283,9 @@ typedef struct dsTextStyle
 	uint32_t count;
 
 	/**
-	 * @brief The scale of the text.
+	 * @brief The size of the text.
 	 */
-	float scale;
+	float size;
 
 	/**
 	 * @brief The amount to embolden the text.

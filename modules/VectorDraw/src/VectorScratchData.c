@@ -311,7 +311,7 @@ dsTextLayout* dsVectorScratchData_shapeText(dsVectorScratchData* data,
 		dsTextStyle* style = data->textStyles + i;
 		style->start = range->start;
 		style->count = range->count;
-		style->scale = range->size;
+		style->size = range->size;
 		style->embolden = range->embolden;
 		style->slant = range->slant;
 		style->outlinePosition = 0.5f + range->embolden*0.5f;
