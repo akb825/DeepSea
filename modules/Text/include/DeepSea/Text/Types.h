@@ -127,6 +127,44 @@ typedef struct dsFontFace dsFontFace;
 typedef struct dsFont dsFont;
 
 /**
+ * @brief Struct describing a glyph for a custom icon.
+ * @see TextIcons.h
+ */
+typedef struct dsIconGlyph
+{
+	/**
+	 * @brief The character code for the glyph.
+	 */
+	uint32_t charCode;
+
+	/**
+	 * @brief Bounds of the glyph.
+	 */
+	dsAlignedBox2f bounds;
+
+	/**
+	 * @brief User data associated with the glyph.
+	 */
+	void* userData;
+} dsIconGlyph;
+
+/**
+ * @brief Struct containing information for mapping specific characters to custom icons.
+ * @see dsTextIcons
+ */
+typedef struct dsTextIcons dsTextIcons;
+
+/**
+ * @brief Function to prepare or draw text icons.
+ * @param textIcons The text icons the glyphs belong to.
+ * @param userData The user data associated with the text icons.
+ * @param glyphs The glyphs to draw. The bounds will be adjusted to the position and size to draw.
+ * @param glyphCount The number of glyphs to draw.
+ */
+typedef bool (*dsPrepareDrawTextIconsFunction)(const dsTextIcons* textIcons, void* userData,
+	const dsIconGlyph* glyphs, uint32_t glyphCount);
+
+/**
  * @brief Mapping from a character to the glyphs it corresponds to.
  */
 typedef struct dsCharMapping

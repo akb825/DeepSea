@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,13 @@ extern "C"
  *     other font operations.
  * @see dsFont
  */
+
+/**
+ * @brief Gets the expected font size for a given quality.
+ * @param quality The text quality.
+ * @return The expected font size.
+ */
+DS_TEXT_EXPORT uint8_t dsFont_sizeForQuality(dsTextQuality quality);
 
 /**
  * @brief Creates a font.
@@ -140,8 +147,8 @@ DS_TEXT_EXPORT bool dsFont_preloadGlyphs(dsFont* font, dsCommandBuffer* commandB
  * @param string The string containing code points to pre-load glyphs for in UTF-8.
  * @return False if an error occurred.
  */
-DS_TEXT_EXPORT bool dsFont_preloadGlyphsUTF8(dsFont* font, dsCommandBuffer* commandBuffer,
-	const char* string);
+DS_TEXT_EXPORT bool dsFont_preloadGlyphsUTF8(
+	dsFont* font, dsCommandBuffer* commandBuffer, const char* string);
 
 /**
  * @brief Preloads glyphs from a string.
@@ -153,8 +160,8 @@ DS_TEXT_EXPORT bool dsFont_preloadGlyphsUTF8(dsFont* font, dsCommandBuffer* comm
  * @param string The string containing code points to pre-load glyphs for in UTF-16.
  * @return False if an error occurred.
  */
-DS_TEXT_EXPORT bool dsFont_preloadGlyphsUTF16(dsFont* font, dsCommandBuffer* commandBuffer,
-	const uint16_t* string);
+DS_TEXT_EXPORT bool dsFont_preloadGlyphsUTF16(
+	dsFont* font, dsCommandBuffer* commandBuffer, const uint16_t* string);
 
 /**
  * @brief Preloads glyphs from a string.
@@ -166,8 +173,8 @@ DS_TEXT_EXPORT bool dsFont_preloadGlyphsUTF16(dsFont* font, dsCommandBuffer* com
  * @param string The string containing code points to pre-load glyphs for in UTF-32.
  * @return False if an error occurred.
  */
-DS_TEXT_EXPORT bool dsFont_preloadGlyphsUTF32(dsFont* font, dsCommandBuffer* commandBuffer,
-	const uint32_t* string);
+DS_TEXT_EXPORT bool dsFont_preloadGlyphsUTF32(
+	dsFont* font, dsCommandBuffer* commandBuffer, const uint32_t* string);
 
 /**
  * @brief Preloads glyphs for ASCII characters.

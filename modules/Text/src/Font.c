@@ -235,8 +235,8 @@ static bool preloadGlyphs(dsFont* font, dsCommandBuffer* commandBuffer, const vo
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
-dsGlyphInfo* dsFont_getGlyphInfo(dsFont* font, dsCommandBuffer* commandBuffer, uint32_t face,
-	uint32_t glyph)
+dsGlyphInfo* dsFont_getGlyphInfo(
+	dsFont* font, dsCommandBuffer* commandBuffer, uint32_t face, uint32_t glyph)
 {
 	dsGlyphKey key = {face, glyph};
 	dsGlyphInfo* glyphInfo = (dsGlyphInfo*)dsHashTable_find(&font->glyphTable.hashTable, &key);
@@ -270,7 +270,7 @@ dsGlyphInfo* dsFont_getGlyphInfo(dsFont* font, dsCommandBuffer* commandBuffer, u
 	}
 
 	dsFontFace_cacheGlyph(&glyphInfo->glyphBounds, font->faces[face], commandBuffer, font->texture,
-		glyph, dsFont_getGlyphIndex(font, glyphInfo), font->glyphSize, font);
+		glyph, dsFont_getGlyphIndex(font, glyphInfo), font);
 	return glyphInfo;
 }
 
@@ -406,6 +406,22 @@ void dsFont_getGlyphTextureBounds(dsAlignedBox2f* outBounds, const dsTexturePosi
 	dsVector2_add(outBounds->max, outBounds->min, offset);
 }
 
+uint8_t dsFont_sizeForQuality(dsTextQuality quality)
+{
+	switch (quality)
+	{
+		case dsTextQuality_Low:
+			return DS_LOW_SIZE;
+		case dsTextQuality_High:
+			return DS_HIGH_SIZE;
+		case dsTextQuality_VeryHigh:
+			return DS_VERY_HIGH_SIZE;
+		case dsTextQuality_Medium:
+		default:
+			return DS_MEDIUM_SIZE;
+	}
+}
+
 dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 	dsAllocator* allocator, const char* const* faceNames, uint32_t faceCount, dsTextQuality quality,
 	dsTextCache cacheSize)
@@ -441,24 +457,6 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 	if (!allocator)
 		allocator = dsFaceGroup_getAllocator(group);
 
-	uint16_t glyphSize;
-	switch (quality)
-	{
-		case dsTextQuality_Low:
-			glyphSize = DS_LOW_SIZE;
-			break;
-		case dsTextQuality_High:
-			glyphSize = DS_HIGH_SIZE;
-			break;
-		case dsTextQuality_VeryHigh:
-			glyphSize = DS_VERY_HIGH_SIZE;
-			break;
-		case dsTextQuality_Medium:
-		default:
-			glyphSize = DS_MEDIUM_SIZE;
-			break;
-	}
-
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsFont)) +
 		DS_ALIGNED_SIZE(sizeof(dsFontFace*)*faceCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
@@ -484,7 +482,7 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 	}
 
 	font->faceCount = faceCount;
-	font->glyphSize = glyphSize;
+	font->glyphSize = dsFont_sizeForQuality(quality);
 	font->quality = quality;
 	uint32_t mipLevels;
 	if (cacheSize == dsTextCache_Small)
@@ -620,8 +618,8 @@ bool dsFont_applyHintingAndAntiAliasing(
 	return true;
 }
 
-bool dsFont_preloadGlyphs(dsFont* font, dsCommandBuffer* commandBuffer, const void* string,
-	dsUnicodeType type)
+bool dsFont_preloadGlyphs(
+	dsFont* font, dsCommandBuffer* commandBuffer, const void* string, dsUnicodeType type)
 {
 	if (!font || !commandBuffer || !string)
 	{

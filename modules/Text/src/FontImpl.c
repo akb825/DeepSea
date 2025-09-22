@@ -495,7 +495,7 @@ uint32_t dsFontFace_getCodepointGlyph(const dsFontFace* face, uint32_t codepoint
 
 bool dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsFontFace* face,
 	dsCommandBuffer* commandBuffer, dsTexture* texture, uint32_t glyph, uint32_t glyphIndex,
-	uint32_t glyphSize, dsFont* font)
+	dsFont* font)
 {
 	FT_Face ftFace = hb_ft_font_get_ft_face(face->font);
 	DS_ASSERT(ftFace);
@@ -517,7 +517,7 @@ bool dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsFontFace* face,
 		return false;
 
 	*outBounds = geometry->bounds;
-	return dsFont_writeGlyphToTexture(commandBuffer, texture, glyphIndex, glyphSize,
+	return dsFont_writeGlyphToTexture(commandBuffer, texture, glyphIndex, font->glyphSize,
 		font->texMultiplier, geometry);
 }
 

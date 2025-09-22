@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Aaron Barany
+ * Copyright 2016-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ DS_CORE_EXPORT bool dsHashTable_rehash(dsHashTable* hashTable, size_t tableSize,
  * @brief Inserts a node into the hash table.
  * @remark errno will be set on failure.
  * @param hashTable The hash table to insert into.
- * @param key The key for the node.
+ * @param key The key for the node. The pointer will be kept for comparison.
  * @param node The node to insert.
  * @param existingNode If not NULL, this will be set to the node already in the hash table for
  *     the same key. The existing will be set to NULL if there was no existing node.
