@@ -442,10 +442,22 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			if (!isWhitespace)
 			{
 				const dsTextStyle* style = layout->styles + glyph->styleIndex;
-				float emboldenPadding = basePadding*style->embolden*size;
+
+				// Take into account the thickness added by embolden and outline. Use embolden and
+				// outline thickness as-is rather than halving to account for both sides.
+				float emboldenOutlineAmount = style->embolden;
+				if (style->outlineThickness > 0)
+				{
+					// Position of 0.5 is on the boundary of the text.
+					float outlineAmount = style->outlinePosition - 0.5f + style->outlineThickness;
+					// Embolden and outline are independent, so take the max of the two.
+					emboldenOutlineAmount += dsMax(outlineAmount, emboldenOutlineAmount);
+				}
+				float emboldenOutlinePadding = basePadding*emboldenOutlineAmount*size;
+
 				dsVector2f offset;
 				dsVector2_scale(offset, textGlyph->offset, size);
-				glyphWidth += offset.x + glyph->geometry.max.x + emboldenPadding;
+				glyphWidth += offset.x + glyph->geometry.max.x + emboldenOutlinePadding;
 				// Positive y points down, so need to subtract the slant from the width for a
 				// positive effect.
 				if (style->slant > 0)
