@@ -135,7 +135,7 @@ typedef struct dsIconGlyph
 	/**
 	 * @brief The character code for the glyph.
 	 */
-	uint32_t charCode;
+	uint32_t codepoint;
 
 	/**
 	 * @brief Bounds of the glyph.

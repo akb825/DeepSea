@@ -39,15 +39,20 @@ DS_TEXT_EXPORT size_t dsTextIcons_sizeof(void);
 
 /**
  * @brief Calculates the full allocation size of text icons.
+ * @param codepointRangeCount The number of codepoint ranges.
  * @param maxIcons The maximum icons to store.
  * @return The full allocation size for the text icons.
  */
-DS_TEXT_EXPORT size_t dsTextIcons_fullAllocSize(uint32_t maxIcons);
+DS_TEXT_EXPORT size_t dsTextIcons_fullAllocSize(uint32_t codepointRangeCount, uint32_t maxIcons);
 
 /**
  * @brief Creates a container for text icons.
  * @remark errno will be set on failure.
  * @param allocator The allocator for the text icons.
+ * @param codepointRanges The ranges of codepoints this will cover. These codepoints will be
+ *     reserved for icons, but not every codepont must be added as an icon. At least one range must
+ *     be provided.
+ * @param codepointRangeCount The number of codepoint ranges.
  * @param maxIcons The maximum number of icons that will be stored.
  * @param userData Common user data for text icons. This will be destroyed with destroyUserDataFunc
  *     if creation fails.
@@ -56,7 +61,8 @@ DS_TEXT_EXPORT size_t dsTextIcons_fullAllocSize(uint32_t maxIcons);
  * @param drawFunc The function to draw icon glyphs. This function is required.
  * @param destroyGlyphUserDataFunc Function to destroy glyph user data.
  */
-DS_TEXT_EXPORT dsTextIcons* dsTextIcons_create(dsAllocator* allocator, uint32_t maxIcons,
+DS_TEXT_EXPORT dsTextIcons* dsTextIcons_create(dsAllocator* allocator,
+	const dsIndexRange* codepointRanges, uint32_t codepointRangeCount, uint32_t maxIcons,
 	void* userData, dsDestroyUserDataFunction destroyUserDataFunc,
 	dsPrepareDrawTextIconsFunction prepareFunc, dsPrepareDrawTextIconsFunction drawFunc,
 	dsDestroyUserDataFunction destroyGlyphUserDataFunc);
@@ -70,26 +76,34 @@ DS_TEXT_EXPORT dsTextIcons* dsTextIcons_create(dsAllocator* allocator, uint32_t 
 DS_TEXT_EXPORT dsAllocator* dsTextIcons_getAllocator(const dsTextIcons* icons);
 
 /**
+ * @brief Checks whether a codepoint is vallid to be used with the icons.
+ * @param icons The text icons.
+ * @param codepoint The codepoint to check.
+ * @return Whether the codepoint is valid for use with the icons.
+ */
+DS_TEXT_EXPORT bool dsTextIcons_isCodepointValid(const dsTextIcons* icons, uint32_t codepoint);
+
+/**
  * @brief Adds an icon to text icons.
  * @remark errno will be set on failure.
  * @param icons The text icons to add the icon to.
- * @param charCode The character code used to assign the icon to.
+ * @param codepoint The character code used to assign the icon to.
  * @param bounds The normalized bounds for the icon, typically in the range [0, 1].
  * @param userData The user data associated with the icon. This will be destroyed when icons is
  *     destroyed according to destroyGlyphUserDataFunc, or immediately if adding the icon fails.
  * @return False if the icon couldn't be added.
  */
 DS_TEXT_EXPORT bool dsTextIcons_addIcon(
-	dsTextIcons* icons, uint32_t charCode, const dsAlignedBox2f* bounds, void* userData);
+	dsTextIcons* icons, uint32_t codepoint, const dsAlignedBox2f* bounds, void* userData);
 
 /**
  * @brief Finds the icon for a character.
  * @remark errno will be set on failure.
  * @param icons The text icons to find the icon in.
- * @param charCode The character code to search for.
+ * @param codepoint The character code to search for.
  * @return The found icon glyph or NULL if the icon couldn't be found.
  */
-const dsIconGlyph* dsTextIcons_findIcon(const dsTextIcons* icons, uint32_t charCode);
+const dsIconGlyph* dsTextIcons_findIcon(const dsTextIcons* icons, uint32_t codepoint);
 
 /**
  * @brief Destroys text icons.

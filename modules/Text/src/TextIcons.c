@@ -27,23 +27,40 @@
 
 #include <DeepSea/Geometry/AlignedBox2.h>
 
+#include <string.h>
+
+static inline bool isCodepointValidImpl(const dsTextIcons* icons, uint32_t codepoint)
+{
+	for (uint32_t i = 0; i < icons->codepointRangeCount; ++i)
+	{
+		const dsIndexRange* range = icons->codepointRanges + i;
+		if (codepoint >= range->start && codepoint < range->start + range->count)
+			return true;
+	}
+
+	return false;
+}
+
 size_t dsTextIcons_sizeof(void)
 {
 	return sizeof(dsTextIcons);
 }
 
-size_t dsTextIcons_fullAllocSize(uint32_t maxIcons)
+size_t dsTextIcons_fullAllocSize(uint32_t codepointRangeCount, uint32_t maxIcons)
 {
 	size_t tableSize = dsHashTable_tableSize(maxIcons);
-	return DS_ALIGNED_SIZE(sizeof(dsTextIcons)) + DS_ALIGNED_SIZE(sizeof(dsIconGlyph)*maxIcons) +
+	return DS_ALIGNED_SIZE(sizeof(dsTextIcons)) +
+		DS_ALIGNED_SIZE(sizeof(dsIndexRange)*codepointRangeCount) +
+		DS_ALIGNED_SIZE(sizeof(dsIconGlyph)*maxIcons) +
 		DS_ALIGNED_SIZE(sizeof(dsIconGlyphNode)*maxIcons) + dsHashTable_fullAllocSize(tableSize);
 }
 
-dsTextIcons* dsTextIcons_create(dsAllocator* allocator, uint32_t maxIcons, void* userData,
+dsTextIcons* dsTextIcons_create(dsAllocator* allocator, const dsIndexRange* codepointRanges,
+	uint32_t codepointRangeCount, uint32_t maxIcons, void* userData,
 	dsDestroyUserDataFunction destroyUserDataFunc, dsPrepareDrawTextIconsFunction prepareFunc,
 	dsPrepareDrawTextIconsFunction drawFunc, dsDestroyUserDataFunction destroyGlyphUserDataFunc)
 {
-	if (!allocator || maxIcons == 0 || !drawFunc)
+	if (!allocator || !codepointRanges || codepointRangeCount == 0 || maxIcons == 0 || !drawFunc)
 	{
 		if (destroyUserDataFunc)
 			destroyUserDataFunc(userData);
@@ -51,7 +68,7 @@ dsTextIcons* dsTextIcons_create(dsAllocator* allocator, uint32_t maxIcons, void*
 		return NULL;
 	}
 
-	size_t fullSize = dsTextIcons_fullAllocSize(maxIcons);
+	size_t fullSize = dsTextIcons_fullAllocSize(codepointRangeCount, maxIcons);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
@@ -73,11 +90,16 @@ dsTextIcons* dsTextIcons_create(dsAllocator* allocator, uint32_t maxIcons, void*
 	icons->drawFunc = drawFunc;
 	icons->destroyGlyphUserDataFunc = destroyGlyphUserDataFunc;
 
+	icons->codepointRanges =
+		DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsIndexRange, codepointRangeCount);
+	DS_ASSERT(icons->codepointRanges);
+	memcpy(icons->codepointRanges, codepointRanges, sizeof(dsIndexRange)*codepointRangeCount);
 	icons->iconGlyphs = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsIconGlyph, maxIcons);
 	DS_ASSERT(icons->iconGlyphs);
 	icons->iconNodes = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsIconGlyphNode, maxIcons);
 	DS_ASSERT(icons->iconNodes);
 
+	icons->codepointRangeCount = codepointRangeCount;
 	icons->iconCount = 0;
 	icons->maxIcons = maxIcons;
 
@@ -101,14 +123,27 @@ dsAllocator* dsTextIcons_getAllocator(const dsTextIcons* icons)
 	return icons->allocator;
 }
 
+bool dsTextIcons_isCodepointValid(const dsTextIcons* icons, uint32_t codepoint)
+{
+	return icons && isCodepointValidImpl(icons, codepoint);
+}
+
 bool dsTextIcons_addIcon(
-	dsTextIcons* icons, uint32_t charCode, const dsAlignedBox2f* bounds, void* userData)
+	dsTextIcons* icons, uint32_t codepoint, const dsAlignedBox2f* bounds, void* userData)
 {
 	if (!icons || !bounds || !dsAlignedBox2_isValid(*bounds))
 	{
 		if (icons && icons->destroyUserDataFunc)
 			icons->destroyGlyphUserDataFunc(userData);
 		errno = EINVAL;
+		return false;
+	}
+
+	if (!isCodepointValidImpl(icons, codepoint))
+	{
+		if (icons && icons->destroyUserDataFunc)
+			icons->destroyGlyphUserDataFunc(userData);
+		errno = ERANGE;
 		return false;
 	}
 
@@ -122,9 +157,9 @@ bool dsTextIcons_addIcon(
 	}
 
 	dsIconGlyphNode* node = icons->iconNodes + index;
-	node->charCode = charCode;
+	node->codepoint = codepoint;
 	node->index = index;
-	if (!dsHashTable_insert(icons->iconTable, &node->charCode, (dsHashTableNode*)node, NULL))
+	if (!dsHashTable_insert(icons->iconTable, &node->codepoint, (dsHashTableNode*)node, NULL))
 	{
 		if (icons && icons->destroyUserDataFunc)
 			icons->destroyGlyphUserDataFunc(userData);
@@ -133,7 +168,7 @@ bool dsTextIcons_addIcon(
 	}
 
 	dsIconGlyph* iconGlyph = icons->iconGlyphs + index;
-	iconGlyph->charCode = charCode;
+	iconGlyph->codepoint = codepoint;
 	iconGlyph->bounds = *bounds;
 	iconGlyph->userData = userData;
 
@@ -141,7 +176,7 @@ bool dsTextIcons_addIcon(
 	return true;
 }
 
-const dsIconGlyph* dsTextIcons_findIcon(const dsTextIcons* icons, uint32_t charCode)
+const dsIconGlyph* dsTextIcons_findIcon(const dsTextIcons* icons, uint32_t codepoint)
 {
 	if (!icons)
 	{
@@ -149,7 +184,7 @@ const dsIconGlyph* dsTextIcons_findIcon(const dsTextIcons* icons, uint32_t charC
 		return NULL;
 	}
 
-	dsIconGlyphNode* foundIcon = (dsIconGlyphNode*)dsHashTable_find(icons->iconTable, &charCode);
+	dsIconGlyphNode* foundIcon = (dsIconGlyphNode*)dsHashTable_find(icons->iconTable, &codepoint);
 	if (!foundIcon)
 	{
 		errno = ENOTFOUND;

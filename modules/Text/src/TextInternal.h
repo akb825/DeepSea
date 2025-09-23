@@ -128,7 +128,7 @@ struct dsFont
 typedef struct dsIconGlyphNode
 {
 	dsHashTableNode node;
-	uint32_t charCode;
+	uint32_t codepoint;
 	uint32_t index;
 } dsIconGlyphNode;
 
@@ -141,8 +141,10 @@ struct dsTextIcons
 	dsPrepareDrawTextIconsFunction drawFunc;
 	dsDestroyUserDataFunction destroyGlyphUserDataFunc;
 
+	dsIndexRange* codepointRanges;
 	dsIconGlyph* iconGlyphs;
 	dsIconGlyphNode* iconNodes;
+	uint32_t codepointRangeCount;
 	uint32_t iconCount;
 	uint32_t maxIcons;
 
