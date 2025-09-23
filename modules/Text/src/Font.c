@@ -393,13 +393,13 @@ void dsFont_getGlyphTextureBounds(dsAlignedBox2f* outBounds, const dsTexturePosi
 {
 	uint32_t windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_LOW_SIZE;
 	float levelSize = 1.0f/(float)(texMultiplier*glyphSize >> texturePos->mipLevel);
-	outBounds->min.x = (float)texturePos->x*levelSize;
-	outBounds->min.y = (float)texturePos->y*levelSize;
+	outBounds->min.x = ((float)texturePos->x + 0.5f)*levelSize;
+	outBounds->min.y = ((float)texturePos->y + 0.5f)*levelSize;
 
 	dsVector2f offset = {{glyphBoundsSize->x + (float)windowSize*2.0f,
 		glyphBoundsSize->y + (float)windowSize*2.0f}};
-	offset.x = dsMin(offset.x, (float)(glyphSize - 1)) - 1.0f;
-	offset.y = dsMin(offset.y, (float)(glyphSize - 1)) - 1.0f;
+	offset.x = dsMin(offset.x, (float)(glyphSize - 1));
+	offset.y = dsMin(offset.y, (float)(glyphSize - 1));
 
 	dsVector2f levelSize2 = {{levelSize, levelSize}};
 	dsVector2_mul(offset, offset, levelSize2);

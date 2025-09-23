@@ -442,13 +442,10 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			if (!isWhitespace)
 			{
 				const dsTextStyle* style = layout->styles + glyph->styleIndex;
-				float glyphImageWidth = glyph->texCoords.max.x + (float)windowSize*2.0f;
-				glyphImageWidth = dsMax(glyphImageWidth, font->glyphSize);
-				float glyphScale = (float)font->glyphSize/glyphImageWidth;
-				float boundsPadding = glyphScale*basePadding*style->embolden*size;
+				float emboldenPadding = basePadding*style->embolden*size;
 				dsVector2f offset;
 				dsVector2_scale(offset, textGlyph->offset, size);
-				glyphWidth += offset.x + glyph->geometry.max.x + boundsPadding;
+				glyphWidth += offset.x + glyph->geometry.max.x + emboldenPadding;
 				// Positive y points down, so need to subtract the slant from the width for a
 				// positive effect.
 				if (style->slant > 0)
@@ -631,7 +628,6 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 	}
 
 	// Fifth pass: add padding to the bounds and compute the final texture coordinates.
-	uint32_t paddedGlyphSize = font->glyphSize + windowSize*2;
 	for (uint32_t i = 0; i < text->glyphCount; ++i)
 	{
 		dsGlyphLayout* glyph = glyphs + i;
@@ -643,23 +639,16 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 		if (glyph->geometry.min.x < glyph->geometry.max.x &&
 			glyph->geometry.min.y < glyph->geometry.max.y)
 		{
+			// Due to how the glyphs are scaled, padding is always consistent.
 			float size = layout->styles[glyph->styleIndex].size;
-			float glyphWidth = glyphSize->x + (float)windowSize*2.0f;
-			float glyphHeight = glyphSize->y + (float)windowSize*2.0f;
-			glyphWidth = dsMax(glyphWidth, (float)paddedGlyphSize);
-			glyphHeight = dsMax(glyphHeight, (float)paddedGlyphSize);
-			dsVector2f glyphScale = {{(float)paddedGlyphSize/glyphWidth,
-				(float)paddedGlyphSize/glyphHeight}};
-			dsVector2f padding = {{basePadding, basePadding}};
-			dsVector2_mul(padding, padding, glyphScale);
-			dsVector2_scale(padding, padding, size);
-
-			dsVector2_sub(glyph->geometry.min, glyph->geometry.min, padding);
-			dsVector2_add(glyph->geometry.max, glyph->geometry.max, padding);
+			float padding = basePadding*size;
+			dsVector2f padding2 = {{padding, padding}};
+			dsVector2_sub(glyph->geometry.min, glyph->geometry.min, padding2);
+			dsVector2_add(glyph->geometry.max, glyph->geometry.max, padding2);
 		}
 
-		dsFont_getGlyphTextureBounds(&glyph->texCoords, &texturePos, glyphSize, font->glyphSize,
-			font->texMultiplier);
+		dsFont_getGlyphTextureBounds(
+			&glyph->texCoords, &texturePos, glyphSize, font->glyphSize, font->texMultiplier);
 	}
 
 	DS_PROFILE_FUNC_RETURN(true);

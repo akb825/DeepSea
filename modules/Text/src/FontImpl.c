@@ -450,8 +450,8 @@ static int glyphConicTo(const FT_Vector* control, const FT_Vector* to, void* use
 	return 0;
 }
 
-static int glyphCubicTo(const FT_Vector* control1, const FT_Vector* control2, const FT_Vector* to,
-	void* user)
+static int glyphCubicTo(
+	const FT_Vector* control1, const FT_Vector* control2, const FT_Vector* to, void* user)
 {
 	dsGlyphGeometry* geometry = (dsGlyphGeometry*)user;
 	DS_ASSERT(geometry->pointCount > 0);
