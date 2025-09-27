@@ -140,7 +140,7 @@ dsFramebuffer* dsGLFramebuffer_create(dsResourceManager* resourceManager, dsAllo
 	framebuffer->framebufferId = 0;
 	framebuffer->fboContext = 0;
 	memset(framebuffer->curColorAttachments, 0, sizeof(framebuffer->curColorAttachments));
-	framebuffer->curColorAttachmentCount = 0;
+	framebuffer->curColorAttachmentCount = DS_NO_ATTACHMENT;
 	framebuffer->curDepthAttachment = DS_NO_ATTACHMENT;
 	framebuffer->curDefaultSamples = 0;
 	framebuffer->framebufferError = false;
@@ -228,7 +228,7 @@ GLSurfaceType dsGLFramebuffer_bind(const dsFramebuffer* framebuffer,
 			glGenFramebuffers(1, &glFramebuffer->framebufferId);
 			memset(glFramebuffer->curColorAttachments, 0,
 				sizeof(glFramebuffer->curColorAttachmentCount));
-			glFramebuffer->curColorAttachmentCount = 0;
+			glFramebuffer->curColorAttachmentCount = DS_NO_ATTACHMENT;
 			glFramebuffer->curDepthAttachment = DS_NO_ATTACHMENT;
 			glFramebuffer->curDefaultSamples = 0;
 			glFramebuffer->framebufferError = false;
@@ -247,7 +247,6 @@ GLSurfaceType dsGLFramebuffer_bind(const dsFramebuffer* framebuffer,
 		}
 	}
 
-	DS_ASSERT(colorAttachmentCount > 0);
 	GLSurfaceType surfaceType;
 	if (colorAttachmentCount == 1 && colorAttachments[0].attachmentIndex != DS_NO_ATTACHMENT)
 	{
@@ -293,13 +292,17 @@ GLSurfaceType dsGLFramebuffer_bind(const dsFramebuffer* framebuffer,
 
 			// Remove the binding for any remaining previous attachments to avoid holding onto
 			// resources.
-			for (uint32_t i = colorAttachmentCount; i < glFramebuffer->curColorAttachmentCount; ++i)
+			if (glFramebuffer->curColorAttachmentCount != DS_NO_ATTACHMENT)
 			{
-				if (glFramebuffer->curColorAttachments[i])
+				for (uint32_t i = colorAttachmentCount; i < glFramebuffer->curColorAttachmentCount;
+					++i)
 				{
-					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D,
-						0, 0);
-					glFramebuffer->curColorAttachments[i] = 0;
+					if (glFramebuffer->curColorAttachments[i])
+					{
+						glFramebufferTexture2D(
+							GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, 0, 0);
+						glFramebuffer->curColorAttachments[i] = 0;
+					}
 				}
 			}
 			glFramebuffer->curColorAttachmentCount = colorAttachmentCount;

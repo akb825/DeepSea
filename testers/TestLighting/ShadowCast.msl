@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 #include <DeepSea/Scene/Shaders/InstanceTransform.mslh>
 
 [[vertex]] layout(location = DS_POSITION) in vec3 position;
-[[fragment]] out vec4 outputColor;
 
 [[vertex]]
 void vertexShader()
@@ -30,7 +29,6 @@ void vertexShader()
 [[fragment]]
 void fragmentShader()
 {
-	outputColor = vec4(0, 0, 0, 1);
 }
 
 pipeline ShadowCast

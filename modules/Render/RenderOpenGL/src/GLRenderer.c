@@ -1159,9 +1159,7 @@ void dsGLRenderer_bindFramebuffer(dsRenderer* renderer, GLSurfaceType surfaceTyp
 
 		if (draw)
 		{
-			if (ANYGL_SUPPORTED(glDrawBuffer))
-				glDrawBuffer(bufferType);
-			else if (ANYGL_SUPPORTED(glDrawBuffers))
+			if (ANYGL_SUPPORTED(glDrawBuffers))
 				glDrawBuffers(1, &bufferType);
 		}
 		else if (ANYGL_SUPPORTED(glReadBuffer))

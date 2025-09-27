@@ -96,17 +96,6 @@
 			"windowFramebuffer": false
 		},
 		{
-			"name": "shadowColorBuffer",
-			"type": "Renderbuffer",
-			"format": "R8G8B8A8",
-			"decoration": "UNorm",
-			"width": 1024,
-			"height": 1024,
-			"samples": 1,
-			"resolve": false,
-			"windowFramebuffer": false
-		},
-		{
 			"name": "pointShadows",
 			"type": "Offscreen",
 			"usage": ["Texture"],
@@ -115,17 +104,6 @@
 			"width": 512,
 			"height": 512,
 			"depth": 6,
-			"samples": 1,
-			"resolve": false,
-			"windowFramebuffer": false
-		},
-		{
-			"name": "pointShadowColorBuffer",
-			"type": "Renderbuffer",
-			"format": "R8G8B8A8",
-			"decoration": "UNorm",
-			"width": 512,
-			"height": 512,
 			"samples": 1,
 			"resolve": false,
 			"windowFramebuffer": false
@@ -174,8 +152,7 @@
 			"height": 1024,
 			"surfaces":
 			[
-				{"name": "mainShadows", "layer": 0},
-				{"name": "shadowColorBuffer"}
+				{"name": "mainShadows", "layer": 0}
 			]
 		},
 		{
@@ -184,8 +161,7 @@
 			"height": 1024,
 			"surfaces":
 			[
-				{"name": "mainShadows", "layer": 1},
-				{"name": "shadowColorBuffer"}
+				{"name": "mainShadows", "layer": 1}
 			]
 		},
 		{
@@ -194,8 +170,7 @@
 			"height": 1024,
 			"surfaces":
 			[
-				{"name": "spotShadows"},
-				{"name": "shadowColorBuffer"}
+				{"name": "spotShadows"}
 			]
 		},
 		{
@@ -204,8 +179,7 @@
 			"height": 512,
 			"surfaces":
 			[
-				{"name": "pointShadows", "layer": 0},
-				{"name": "pointShadowColorBuffer"}
+				{"name": "pointShadows", "layer": 0}
 			]
 		},
 		{
@@ -214,8 +188,7 @@
 			"height": 512,
 			"surfaces":
 			[
-				{"name": "pointShadows", "layer": 1},
-				{"name": "pointShadowColorBuffer"}
+				{"name": "pointShadows", "layer": 1}
 			]
 		},
 		{
@@ -224,8 +197,7 @@
 			"height": 512,
 			"surfaces":
 			[
-				{"name": "pointShadows", "layer": 2},
-				{"name": "pointShadowColorBuffer"}
+				{"name": "pointShadows", "layer": 2}
 			]
 		},
 		{
@@ -234,8 +206,7 @@
 			"height": 512,
 			"surfaces":
 			[
-				{"name": "pointShadows", "layer": 3},
-				{"name": "pointShadowColorBuffer"}
+				{"name": "pointShadows", "layer": 3}
 			]
 		},
 		{
@@ -244,8 +215,7 @@
 			"height": 512,
 			"surfaces":
 			[
-				{"name": "pointShadows", "layer": 4},
-				{"name": "pointShadowColorBuffer"}
+				{"name": "pointShadows", "layer": 4}
 			]
 		},
 		{
@@ -254,8 +224,7 @@
 			"height": 512,
 			"surfaces":
 			[
-				{"name": "pointShadows", "layer": 5},
-				{"name": "pointShadowColorBuffer"}
+				{"name": "pointShadows", "layer": 5}
 			]
 		}
 	]

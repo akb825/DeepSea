@@ -1385,8 +1385,7 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	}
 	else
 		baseResourceManager->maxFramebufferLayers = 1;
-	baseResourceManager->requiresColorBuffer = ANYGL_SUPPORTED(glDrawBuffer) ||
-		ANYGL_SUPPORTED(glDrawBuffers);
+	baseResourceManager->requiresColorBuffer = !ANYGL_SUPPORTED(glDrawBuffers);
 	baseResourceManager->requiresAnySurface = !AnyGL_atLeastVersion(4, 3, false) &&
 		(!ANYGL_SUPPORTED(glFramebufferParameteri) || !AnyGL_ARB_framebuffer_no_attachments);
 	baseResourceManager->canMixWithRenderSurface = false;

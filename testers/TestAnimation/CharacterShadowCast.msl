@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@
 [[vertex]] layout(location = DS_BLEND_INDICES) in DS_BONE_INDICES_TYPE boneIndices;
 [[vertex]] layout(location = DS_BLEND_WEIGHTS) in vec4 boneWeights;
 
-[[fragment]] out vec4 outputColor;
-
 [[vertex]]
 void vertexShader()
 {
@@ -35,7 +33,6 @@ void vertexShader()
 [[fragment]]
 void fragmentShader()
 {
-	outputColor = vec4(0, 0, 0, 1);
 }
 
 pipeline CharacterShadowCast
