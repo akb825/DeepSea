@@ -485,7 +485,13 @@ static dsVectorImage* readVectorImage(dsAllocator* allocator, dsAllocator* resou
 	{
 		dsVector2f scale;
 		dsVector2_div(scale, *size, *targetSize);
-		pixelSize *= dsMin(scale.x, scale.y);
+		// Find the smallest change in size to reach the target.
+		float scaleXMag = scale.x > 1.0f ? scale.x : 1.0f/scale.x;
+		float scaleYMag = scale.y > 1.0f ? scale.y : 1.0f/scale.y;
+		if (scaleXMag < scaleYMag)
+			pixelSize *= scale.x;
+		else
+			pixelSize *= scale.y;
 	}
 
 	return dsVectorImage_create(allocator, resourceAllocator, initResources,
