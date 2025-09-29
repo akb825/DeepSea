@@ -143,7 +143,7 @@ static void updateGlyph(dsFont* font, dsCommandBuffer* commandBuffer, uint32_t f
 		return;
 	}
 
-	dsGlyphInfo* glyphInfo = dsFont_getGlyphInfo(font, commandBuffer, face, glyphID);
+	const dsGlyphInfo* glyphInfo = dsFont_getGlyphInfo(font, commandBuffer, face, glyphID);
 	dsTexturePosition texturePos;
 	dsFont_getGlyphTexturePos(&texturePos, dsFont_getGlyphIndex(font, glyphInfo),
 		font->glyphSize, font->texMultiplier);
@@ -361,8 +361,8 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			}
 
 			float scale = style->size/(float)font->glyphSize;
-			dsGlyphInfo* glyphInfo = dsFont_getGlyphInfo(font, commandBuffer, range->face,
-				textGlyph->glyphID);
+			const dsGlyphInfo* glyphInfo = dsFont_getGlyphInfo(
+				font, commandBuffer, range->face, textGlyph->glyphID);
 
 			dsVector2_scale(glyph->geometry.min, glyphInfo->glyphBounds.min, scale);
 			dsVector2_scale(glyph->geometry.max, glyphInfo->glyphBounds.max, scale);
@@ -449,11 +449,12 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 				if (style->outlineThickness > 0)
 				{
 					// Position of 0.5 is on the boundary of the text.
-					float outlineAmount = style->outlinePosition - 0.5f + style->outlineThickness;
+					float outlineAmount = style->outlinePosition + style->outlineThickness;
 					// Embolden and outline are independent, so take the max of the two.
-					emboldenOutlineAmount += dsMax(outlineAmount, emboldenOutlineAmount);
+					emboldenOutlineAmount = dsMax(outlineAmount, emboldenOutlineAmount);
 				}
-				float emboldenOutlinePadding = basePadding*emboldenOutlineAmount*size;
+				float emboldenOutlinePadding =
+					basePadding*emboldenOutlineAmount*size*DS_THICKNESS_SCALE;
 
 				dsVector2f offset;
 				dsVector2_scale(offset, textGlyph->offset, size);
@@ -640,6 +641,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 	}
 
 	// Fifth pass: add padding to the bounds and compute the final texture coordinates.
+	float texelSize = 1.0f/(float)(font->glyphSize);
 	for (uint32_t i = 0; i < text->glyphCount; ++i)
 	{
 		dsGlyphLayout* glyph = glyphs + i;
@@ -651,12 +653,15 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 		if (glyph->geometry.min.x < glyph->geometry.max.x &&
 			glyph->geometry.min.y < glyph->geometry.max.y)
 		{
-			// Due to how the glyphs are scaled, padding is always consistent.
+			// Due to how the glyphs are scaled, padding is always consistent. Need to subtract half
+			// a texel on each size.
 			float size = layout->styles[glyph->styleIndex].size;
-			float padding = basePadding*size;
-			dsVector2f padding2 = {{padding, padding}};
-			dsVector2_sub(glyph->geometry.min, glyph->geometry.min, padding2);
-			dsVector2_add(glyph->geometry.max, glyph->geometry.max, padding2);
+			float minPadding = basePadding*size;
+			float maxPadding = (basePadding - texelSize)*size;
+			glyph->geometry.min.x -= minPadding;
+			glyph->geometry.min.y -= minPadding;
+			glyph->geometry.max.x += maxPadding;
+			glyph->geometry.max.y += maxPadding;
 		}
 
 		dsFont_getGlyphTextureBounds(

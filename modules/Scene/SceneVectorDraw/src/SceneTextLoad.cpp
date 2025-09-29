@@ -102,10 +102,10 @@ void* dsSceneText_load(const dsSceneLoadContext*, dsSceneLoadScratchData* scratc
 		style.size = fbStyle->size();
 		style.embolden = fbStyle->embolden();
 		style.slant = fbStyle->slant();
-		style.outlineThickness = 0.5f + style.embolden*0.5f;
+		style.outlinePosition = style.embolden;
 		style.outlineThickness = fbStyle->outlineWidth();
-		DS_VERIFY(dsFont_applyHintingAndAntiAliasing(font, &style, sceneTextUserData->pixelScale,
-			fbStyle->fuziness()));
+		DS_VERIFY(dsFont_applyHintingAndAntiAliasing(
+			font, &style, sceneTextUserData->pixelScale, fbStyle->fuziness()));
 
 		auto fbColor = fbStyle->color();
 		if (fbColor)

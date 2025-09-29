@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ vec4 dsVectorElementText_getSolidColorOutline()
 
 	lowp float embolden = vfTexCoordEmbolden.w;
 	lowp float outline = vfOutlineAntiAlias.x;
-	lowp float outlinePosition = embolden*0.5 + 0.5;
+	lowp float outlinePosition = embolden;
 	lowp float antiAlias = vfOutlineAntiAlias.y;
 	return dsComputeTextColor(distance, embolden, outlinePosition, outline, antiAlias,
 		fillColor, outlineColor);

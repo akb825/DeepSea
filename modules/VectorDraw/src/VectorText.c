@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,8 +94,8 @@ static void getRangeOffset(dsVector2f* outOffset, const dsTextLayout* layout,
 		dsVector2_add(*outOffset, *outOffset, range->position);
 }
 
-static uint32_t countGlyphs(const dsDrawIndexedRange* range, const TextDrawInfo* drawInfos,
-	uint32_t infoCount)
+static uint32_t countGlyphs(
+	const dsDrawIndexedRange* range, const TextDrawInfo* drawInfos, uint32_t infoCount)
 {
 	DS_UNUSED(infoCount);
 	uint32_t count = 0;
@@ -103,14 +103,15 @@ static uint32_t countGlyphs(const dsDrawIndexedRange* range, const TextDrawInfo*
 	{
 		DS_ASSERT(range->firstIndex + i < infoCount);
 		const TextDrawInfo* drawInfo = drawInfos + range->firstIndex + i;
+		const dsTextLayout* layout = drawInfo->layout;
 		for (uint32_t j = 0; j < drawInfo->characterCount; ++j)
 		{
-			const dsCharMapping* charMapping = drawInfo->layout->text->charMappings +
+			const dsCharMapping* charMapping = layout->text->charMappings +
 				drawInfo->firstCharacter + j;
 			for (uint32_t k = 0; k < charMapping->glyphCount; ++k)
 			{
-				const dsGlyphLayout* glyph = drawInfo->layout->glyphs + charMapping->firstGlyph + k;
-				if (glyph->geometry.min.x < glyph->geometry.max.y && glyph->geometry.min.y <
+				const dsGlyphLayout* glyph = layout->glyphs + charMapping->firstGlyph + k;
+				if (glyph->geometry.min.x < glyph->geometry.max.x && glyph->geometry.min.y <
 					glyph->geometry.max.y)
 				{
 					++count;
@@ -231,8 +232,8 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 					continue;
 
 				dsAlignedBox2f glyphBounds;
-				DS_VERIFY(dsTextLayout_applySlantToBounds(&glyphBounds, &glyph->geometry,
-					range->slant));
+				DS_VERIFY(dsTextLayout_applySlantToBounds(
+					&glyphBounds, &glyph->geometry, range->slant));
 				dsVector2f position;
 				dsVector2_add(position, glyph->position, offset);
 				dsVector2_add(glyphBounds.min, position, glyph->geometry.min);
@@ -257,12 +258,12 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 		dsVectorMaterialType fillMaterialType = dsVectorMaterialType_Color;
 		if (range->fillMaterial)
 		{
-			fillMaterial = dsVectorMaterialSet_findMaterialIndex(sharedMaterials,
-				range->fillMaterial);
+			fillMaterial = dsVectorMaterialSet_findMaterialIndex(
+				sharedMaterials, range->fillMaterial);
 			if (fillMaterial == DS_VECTOR_MATERIAL_NOT_FOUND)
 			{
-				fillMaterial = dsVectorMaterialSet_findMaterialIndex(localMaterials,
-					range->fillMaterial);
+				fillMaterial = dsVectorMaterialSet_findMaterialIndex(
+					localMaterials, range->fillMaterial);
 				if (fillMaterial == DS_VECTOR_MATERIAL_NOT_FOUND)
 				{
 					errno = ENOTFOUND;
@@ -270,14 +271,14 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 						range->fillMaterial);
 					DS_PROFILE_FUNC_RETURN(false);
 				}
-				fillMaterialType = dsVectorMaterialSet_getMaterialType(localMaterials,
-					range->fillMaterial);
+				fillMaterialType = dsVectorMaterialSet_getMaterialType(
+					localMaterials, range->fillMaterial);
 				fillMaterialSource = MaterialSource_Local;
 			}
 			else
 			{
-				fillMaterialType = dsVectorMaterialSet_getMaterialType(sharedMaterials,
-					range->fillMaterial);
+				fillMaterialType = dsVectorMaterialSet_getMaterialType(
+					sharedMaterials, range->fillMaterial);
 				fillMaterialSource = MaterialSource_Shared;
 			}
 		}
@@ -286,12 +287,12 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 		dsVectorMaterialType outlineMaterialType = dsVectorMaterialType_Color;
 		if (range->outlineMaterial)
 		{
-			outlineMaterial = dsVectorMaterialSet_findMaterialIndex(sharedMaterials,
-				range->outlineMaterial);
+			outlineMaterial = dsVectorMaterialSet_findMaterialIndex(
+				sharedMaterials, range->outlineMaterial);
 			if (outlineMaterial == DS_VECTOR_MATERIAL_NOT_FOUND)
 			{
-				outlineMaterial = dsVectorMaterialSet_findMaterialIndex(localMaterials,
-					range->outlineMaterial);
+				outlineMaterial = dsVectorMaterialSet_findMaterialIndex(
+					localMaterials, range->outlineMaterial);
 				if (outlineMaterial == DS_VECTOR_MATERIAL_NOT_FOUND)
 				{
 					errno = ENOTFOUND;
@@ -299,14 +300,14 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 						range->outlineMaterial);
 					DS_PROFILE_FUNC_RETURN(false);
 				}
-				outlineMaterialType = dsVectorMaterialSet_getMaterialType(localMaterials,
-					range->outlineMaterial);
+				outlineMaterialType = dsVectorMaterialSet_getMaterialType(
+					localMaterials, range->outlineMaterial);
 				outlineMaterialSource = MaterialSource_Local;
 			}
 			else
 			{
-				outlineMaterialType = dsVectorMaterialSet_getMaterialType(sharedMaterials,
-					range->outlineMaterial);
+				outlineMaterialType = dsVectorMaterialSet_getMaterialType(
+					sharedMaterials, range->outlineMaterial);
 				outlineMaterialSource = MaterialSource_Shared;
 			}
 		}

@@ -341,7 +341,7 @@ typedef struct dsTextStyle
 	float slant;
 
 	/**
-	 * @brief The position of the outline in the range [0, 1], where 0.5 is on the text boundary and
+	 * @brief The position of the outline in the range [-1, 1], where 0 is on the text boundary and
 	 * 1 is further from the center.
 	 */
 	float outlinePosition;

@@ -195,8 +195,8 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 	return face;
 }
 
-static bool dsFaceGroup_loadFaceImpl(dsFaceGroup* group, dsAllocator* allocator, dsStream* stream,
-	const char* name)
+static bool dsFaceGroup_loadFaceImpl(
+	dsFaceGroup* group, dsAllocator* allocator, dsStream* stream, const char* name)
 {
 	size_t size;
 	void* buffer = dsStream_readUntilEnd(&size, stream, allocator);
@@ -544,8 +544,8 @@ dsFontFace* dsFaceGroup_findFace(const dsFaceGroup* group, const char* name)
 	return (dsFontFace*)dsHashTable_find(group->faceHashTable, name);
 }
 
-dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, const void* string,
-	dsUnicodeType type)
+dsRunInfo* dsFaceGroup_findBidiRuns(
+	uint32_t* outCount, dsFaceGroup* group, const void* string, dsUnicodeType type)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -619,8 +619,8 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 	while (offset < sequence.stringLength)
 	{
 		SBUInteger length = 0;
-		SBAlgorithmGetParagraphBoundary(algorithm, offset, sequence.stringLength - offset, &length,
-			NULL);
+		SBAlgorithmGetParagraphBoundary(
+			algorithm, offset, sequence.stringLength - offset, &length, NULL);
 		++paragraphCount;
 		offset += length;
 	}
@@ -642,11 +642,11 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 	for (unsigned int i = 0; i < paragraphCount; ++i)
 	{
 		SBUInteger length = 0, separatorLength = 0;
-		SBAlgorithmGetParagraphBoundary(algorithm, offset, sequence.stringLength - offset, &length,
-			&separatorLength);
+		SBAlgorithmGetParagraphBoundary(
+			algorithm, offset, sequence.stringLength - offset, &length, &separatorLength);
 		dsParagraphInfo* paragraph = group->paragraphs + i;
-		paragraph->paragraph = SBAlgorithmCreateParagraph(algorithm, offset, length,
-			SBLevelDefaultLTR);
+		paragraph->paragraph = SBAlgorithmCreateParagraph(
+			algorithm, offset, length, SBLevelDefaultLTR);
 		if (!paragraph->paragraph)
 		{
 			++offset;
@@ -680,8 +680,8 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 
 	// Create the runs.
 	tempArrayCount = 0;
-	if (!DS_RESIZEABLE_ARRAY_ADD(group->scratchAllocator, group->runs, tempArrayCount,
-			group->maxRuns, *outCount))
+	if (!DS_RESIZEABLE_ARRAY_ADD(
+			group->scratchAllocator, group->runs, tempArrayCount, group->maxRuns, *outCount))
 	{
 		for (unsigned int i = 0; i < paragraphCount; ++i)
 		{
@@ -855,8 +855,8 @@ size_t dsFaceGroup_fullAllocSize(uint32_t maxFaces)
 		dsMutex_fullAllocSize() + dsHashTable_fullAllocSize(dsHashTable_tableSize(maxFaces));
 }
 
-dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, dsAllocator* scratchAllocator,
-	uint32_t maxFaces)
+dsFaceGroup* dsFaceGroup_create(
+	dsAllocator* allocator, dsAllocator* scratchAllocator, uint32_t maxFaces)
 {
 	if (!allocator || maxFaces == 0)
 	{

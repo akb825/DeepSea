@@ -676,7 +676,7 @@ static bool processCommand(dsVectorScratchData* scratchData, dsCommandBuffer* co
 			}
 
 			if (!dsVectorText_addText(scratchData, commandBuffer, sharedMaterials, localMaterials,
-				text, commands + *curCommand, pixelSize))
+					text, commands + *curCommand, pixelSize))
 			{
 				return false;
 			}
@@ -699,7 +699,7 @@ static bool processCommands(dsVectorScratchData* scratchData, dsCommandBuffer* c
 	for (uint32_t i = 0; i < commandCount;)
 	{
 		if (!processCommand(scratchData, commandBuffer, commands, commandCount, &i, sharedMaterials,
-			localMaterials, pixelSize))
+				localMaterials, pixelSize))
 		{
 			return false;
 		}
@@ -1000,18 +1000,19 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 			// draw info for how to draw the text itself.
 			for (uint32_t i = 0; i < image->pieceCount; ++i)
 			{
-				if (image->imagePieces[i].type != dsVectorShaderType_TextColor &&
-					image->imagePieces[i].type != dsVectorShaderType_TextColorOutline &&
-					image->imagePieces[i].type != dsVectorShaderType_TextGradient &&
-					image->imagePieces[i].type != dsVectorShaderType_TextGradientOutline)
+				VectorImagePiece* imagePiece = image->imagePieces + i;
+				if (imagePiece->type != dsVectorShaderType_TextColor &&
+					imagePiece->type != dsVectorShaderType_TextColorOutline &&
+					imagePiece->type != dsVectorShaderType_TextGradient &&
+					imagePiece->type != dsVectorShaderType_TextGradientOutline)
 				{
 					continue;
 				}
 
-				image->imagePieces[i].textRender = dsVectorText_createRenderBuffer(allocator,
-					resourceManager, &textVertexFormat, &image->imagePieces[i].range,
-					image->textDrawInfos, image->textDrawInfoCount);
-				if (!image->imagePieces[i].textRender)
+				imagePiece->textRender = dsVectorText_createRenderBuffer(allocator, resourceManager,
+					&textVertexFormat, &imagePiece->range, image->textDrawInfos,
+					image->textDrawInfoCount);
+				if (!imagePiece->textRender)
 				{
 					dsVectorScratchData_reset(scratchData);
 					DS_VERIFY(dsVectorImage_destroy(image));

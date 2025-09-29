@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 Aaron Barany
+ * Copyright 2018-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -286,8 +286,8 @@ static dsVectorImage* readVectorImage(dsAllocator* allocator, dsAllocator* resou
 		return nullptr;
 	}
 
-	dsVectorCommand* commands = dsVectorScratchData_createTempCommands(initResources->scratchData,
-		commandCount);
+	dsVectorCommand* commands = dsVectorScratchData_createTempCommands(
+		initResources->scratchData, commandCount);
 	if (!commands)
 		return nullptr;
 
@@ -301,173 +301,174 @@ static dsVectorImage* readVectorImage(dsAllocator* allocator, dsAllocator* resou
 			return nullptr;
 		}
 
+		dsVectorCommand* command = commands + i;
 		switch (commandRef->command_type())
 		{
 			case DeepSeaVectorDraw::VectorCommandUnion::StartPathCommand:
 			{
 				auto startCommand = commandRef->command_as_StartPathCommand();
-				commands[i].commandType = dsVectorCommandType_StartPath;
-				commands[i].startPath.transform =
+				command->commandType = dsVectorCommandType_StartPath;
+				command->startPath.transform =
 					*reinterpret_cast<const dsMatrix33f*>(startCommand->transform());
-				commands[i].startPath.simple = startCommand->simple();
+				command->startPath.simple = startCommand->simple();
 				break;
 			}
 			case DeepSeaVectorDraw::VectorCommandUnion::MoveCommand:
 			{
 				auto moveCommand = commandRef->command_as_MoveCommand();
-				commands[i].commandType = dsVectorCommandType_Move;
-				commands[i].move.position =
+				command->commandType = dsVectorCommandType_Move;
+				command->move.position =
 					*reinterpret_cast<const dsVector2f*>(moveCommand->position());
 				break;
 			}
 			case DeepSeaVectorDraw::VectorCommandUnion::LineCommand:
 			{
 				auto lineCommand = commandRef->command_as_LineCommand();
-				commands[i].commandType = dsVectorCommandType_Line;
-				commands[i].line.end = *reinterpret_cast<const dsVector2f*>(lineCommand->end());
+				command->commandType = dsVectorCommandType_Line;
+				command->line.end = *reinterpret_cast<const dsVector2f*>(lineCommand->end());
 				break;
 			}
 			case DeepSeaVectorDraw::VectorCommandUnion::BezierCommand:
 			{
 				auto bezierCommand = commandRef->command_as_BezierCommand();
-				commands[i].commandType = dsVectorCommandType_Bezier;
-				commands[i].bezier.control1 =
+				command->commandType = dsVectorCommandType_Bezier;
+				command->bezier.control1 =
 					*reinterpret_cast<const dsVector2f*>(bezierCommand->control1());
-				commands[i].bezier.control2 =
+				command->bezier.control2 =
 					*reinterpret_cast<const dsVector2f*>(bezierCommand->control2());
-				commands[i].bezier.end = *reinterpret_cast<const dsVector2f*>(bezierCommand->end());
+				command->bezier.end = *reinterpret_cast<const dsVector2f*>(bezierCommand->end());
 				break;
 			}
 			case DeepSeaVectorDraw::VectorCommandUnion::QuadraticCommand:
 			{
 				auto quadraticCommand = commandRef->command_as_QuadraticCommand();
-				commands[i].commandType = dsVectorCommandType_Quadratic;
-				commands[i].quadratic.control =
+				command->commandType = dsVectorCommandType_Quadratic;
+				command->quadratic.control =
 					*reinterpret_cast<const dsVector2f*>(quadraticCommand->control());
-				commands[i].quadratic.end =
+				command->quadratic.end =
 					*reinterpret_cast<const dsVector2f*>(quadraticCommand->end());
 				break;
 			}
 			case DeepSeaVectorDraw::VectorCommandUnion::ArcCommand:
 			{
 				auto arcCommand = commandRef->command_as_ArcCommand();
-				commands[i].commandType = dsVectorCommandType_Arc;
-				commands[i].arc.radius = *reinterpret_cast<const dsVector2f*>(arcCommand->radius());
-				commands[i].arc.rotation = arcCommand->rotation();
-				commands[i].arc.largeArc = arcCommand->largeArc();
-				commands[i].arc.clockwise = arcCommand->clockwise();
-				commands[i].arc.end = *reinterpret_cast<const dsVector2f*>(arcCommand->end());
+				command->commandType = dsVectorCommandType_Arc;
+				command->arc.radius = *reinterpret_cast<const dsVector2f*>(arcCommand->radius());
+				command->arc.rotation = arcCommand->rotation();
+				command->arc.largeArc = arcCommand->largeArc();
+				command->arc.clockwise = arcCommand->clockwise();
+				command->arc.end = *reinterpret_cast<const dsVector2f*>(arcCommand->end());
 				break;
 			}
 			case DeepSeaVectorDraw::VectorCommandUnion::ClosePathCommand:
-				commands[i].commandType = dsVectorCommandType_ClosePath;
+				command->commandType = dsVectorCommandType_ClosePath;
 				break;
 			case DeepSeaVectorDraw::VectorCommandUnion::EllipseCommand:
 			{
 				auto ellipseCommand = commandRef->command_as_EllipseCommand();
-				commands[i].commandType = dsVectorCommandType_Ellipse;
-				commands[i].ellipse.center =
+				command->commandType = dsVectorCommandType_Ellipse;
+				command->ellipse.center =
 					*reinterpret_cast<const dsVector2f*>(ellipseCommand->center());
-				commands[i].ellipse.radius =
+				command->ellipse.radius =
 					*reinterpret_cast<const dsVector2f*>(ellipseCommand->radius());
 				break;
 			}
 			case DeepSeaVectorDraw::VectorCommandUnion::RectangleCommand:
 			{
 				auto rectangleCommand = commandRef->command_as_RectangleCommand();
-				commands[i].commandType = dsVectorCommandType_Rectangle;
-				commands[i].rectangle.bounds.min =
+				command->commandType = dsVectorCommandType_Rectangle;
+				command->rectangle.bounds.min =
 					*reinterpret_cast<const dsVector2f*>(rectangleCommand->upperLeft());
-				commands[i].rectangle.bounds.max =
+				command->rectangle.bounds.max =
 					*reinterpret_cast<const dsVector2f*>(rectangleCommand->lowerRight());
-				commands[i].rectangle.cornerRadius =
+				command->rectangle.cornerRadius =
 					*reinterpret_cast<const dsVector2f*>(rectangleCommand->cornerRadius());
 				break;
 			}
 			case DeepSeaVectorDraw::VectorCommandUnion::StrokePathCommand:
 			{
 				auto strokePathCommand = commandRef->command_as_StrokePathCommand();
-				commands[i].commandType = dsVectorCommandType_StrokePath;
-				commands[i].strokePath.material = strokePathCommand->material()->c_str();
-				commands[i].strokePath.opacity = strokePathCommand->opacity();
-				commands[i].strokePath.joinType =
+				command->commandType = dsVectorCommandType_StrokePath;
+				command->strokePath.material = strokePathCommand->material()->c_str();
+				command->strokePath.opacity = strokePathCommand->opacity();
+				command->strokePath.joinType =
 					static_cast<dsLineJoin>(strokePathCommand->joinType());
-				commands[i].strokePath.capType =
+				command->strokePath.capType =
 					static_cast<dsLineCap>(strokePathCommand->capType());
-				commands[i].strokePath.width = strokePathCommand->width();
-				commands[i].strokePath.miterLimit = strokePathCommand->miterLimit();
+				command->strokePath.width = strokePathCommand->width();
+				command->strokePath.miterLimit = strokePathCommand->miterLimit();
 				// dsVector4f is aligned, so need to memcpy rather than cast to copy.
-				std::memcpy(&commands[i].strokePath.dashArray, strokePathCommand->dashArray(),
+				std::memcpy(&command->strokePath.dashArray, strokePathCommand->dashArray(),
 					sizeof(dsVector4f));
 				break;
 			}
 			case DeepSeaVectorDraw::VectorCommandUnion::FillPathCommand:
 			{
 				auto fillPathCommand = commandRef->command_as_FillPathCommand();
-				commands[i].commandType = dsVectorCommandType_FillPath;
-				commands[i].fillPath.material = fillPathCommand->material()->c_str();
-				commands[i].fillPath.opacity = fillPathCommand->opacity();
-				commands[i].fillPath.fillRule =
+				command->commandType = dsVectorCommandType_FillPath;
+				command->fillPath.material = fillPathCommand->material()->c_str();
+				command->fillPath.opacity = fillPathCommand->opacity();
+				command->fillPath.fillRule =
 					static_cast<dsPolygonFillRule>(fillPathCommand->fillRule());
 				break;
 			}
 			case DeepSeaVectorDraw::VectorCommandUnion::TextCommand:
 			{
 				auto textCommand = commandRef->command_as_TextCommand();
-				commands[i].commandType = dsVectorCommandType_Text;
-				commands[i].text.string = textCommand->text()->c_str();
-				commands[i].text.stringType = dsUnicodeType_UTF8;
-				commands[i].text.font = findFont(initResources->resources,
+				command->commandType = dsVectorCommandType_Text;
+				command->text.string = textCommand->text()->c_str();
+				command->text.stringType = dsUnicodeType_UTF8;
+				command->text.font = findFont(initResources->resources,
 					initResources->resourceCount, textCommand->font()->c_str(), name);
-				if (!commands[i].text.font)
+				if (!command->text.font)
 					return nullptr;
-				commands[i].text.alignment =
+				command->text.alignment =
 					static_cast<dsTextAlign>(textCommand->alignment());
-				commands[i].text.maxLength = textCommand->maxLength();
-				commands[i].text.lineHeight = textCommand->lineHeight();
-				commands[i].text.transform =
+				command->text.maxLength = textCommand->maxLength();
+				command->text.lineHeight = textCommand->lineHeight();
+				command->text.transform =
 					*reinterpret_cast<const dsMatrix33f*>(textCommand->transform());
-				commands[i].text.rangeCount = textCommand->rangeCount();
+				command->text.rangeCount = textCommand->rangeCount();
 				break;
 			}
 			case DeepSeaVectorDraw::VectorCommandUnion::TextRangeCommand:
 			{
 				auto textRangeCommand = commandRef->command_as_TextRangeCommand();
-				commands[i].commandType = dsVectorCommandType_TextRange;
-				commands[i].textRange.start = textRangeCommand->start();
-				commands[i].textRange.count = textRangeCommand->count();
-				commands[i].textRange.positionType =
+				command->commandType = dsVectorCommandType_TextRange;
+				command->textRange.start = textRangeCommand->start();
+				command->textRange.count = textRangeCommand->count();
+				command->textRange.positionType =
 					static_cast<dsVectorTextPosition>(textRangeCommand->positionType());
-				commands[i].textRange.position =
+				command->textRange.position =
 					*reinterpret_cast<const dsVector2f*>(textRangeCommand->position());
 				auto fillMaterial = textRangeCommand->fillMaterial();
-				commands[i].textRange.fillMaterial = fillMaterial ? fillMaterial->c_str() : nullptr;
+				command->textRange.fillMaterial = fillMaterial ? fillMaterial->c_str() : nullptr;
 				auto outlineMaterial = textRangeCommand->outlineMaterial();
-				commands[i].textRange.outlineMaterial = outlineMaterial ? outlineMaterial->c_str() :
-					nullptr;
-				commands[i].textRange.fillOpacity = textRangeCommand->fillOpacity();
-				commands[i].textRange.outlineOpacity = textRangeCommand->outlineOpacity();
-				commands[i].textRange.size = textRangeCommand->size();
-				commands[i].textRange.embolden = textRangeCommand->embolden();
-				commands[i].textRange.slant = textRangeCommand->slant();
-				commands[i].textRange.outlineWidth = textRangeCommand->outlineWidth();
-				commands[i].textRange.fuziness = textRangeCommand->fuziness();
+				command->textRange.outlineMaterial =
+					outlineMaterial ? outlineMaterial->c_str() : nullptr;
+				command->textRange.fillOpacity = textRangeCommand->fillOpacity();
+				command->textRange.outlineOpacity = textRangeCommand->outlineOpacity();
+				command->textRange.size = textRangeCommand->size();
+				command->textRange.embolden = textRangeCommand->embolden();
+				command->textRange.slant = textRangeCommand->slant();
+				command->textRange.outlineWidth = textRangeCommand->outlineWidth();
+				command->textRange.fuziness = textRangeCommand->fuziness();
 				break;
 			}
 			case DeepSeaVectorDraw::VectorCommandUnion::ImageCommand:
 			{
 				auto imageCommand = commandRef->command_as_ImageCommand();
-				commands[i].commandType = dsVectorCommandType_Image;
-				commands[i].image.image = findTexture(initResources->resources,
+				command->commandType = dsVectorCommandType_Image;
+				command->image.image = findTexture(initResources->resources,
 					initResources->resourceCount, imageCommand->image()->c_str(), name);
-				if (!commands[i].image.image)
+				if (!command->image.image)
 					return nullptr;
-				commands[i].image.imageBounds.min =
+				command->image.imageBounds.min =
 					*reinterpret_cast<const dsVector2f*>(imageCommand->upperLeft());
-				commands[i].image.imageBounds.max =
+				command->image.imageBounds.max =
 					*reinterpret_cast<const dsVector2f*>(imageCommand->lowerRight());
-				commands[i].image.opacity = imageCommand->opacity();
-				commands[i].image.transform =
+				command->image.opacity = imageCommand->opacity();
+				command->image.transform =
 					*reinterpret_cast<const dsMatrix33f*>(imageCommand->transform());
 				break;
 			}

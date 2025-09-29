@@ -65,8 +65,8 @@ static float distanceToLine(const dsVector2f* point, const dsVector2f* start, co
 		lineLength;
 }
 
-static PolygonResult intersectScanline(const dsVector2f* point, const dsVector2f* from,
-	const dsVector2f* to)
+static PolygonResult intersectScanline(
+	const dsVector2f* point, const dsVector2f* from, const dsVector2f* to)
 {
 	// https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
 	// Optimized for a ray in the direction (1, 0).
@@ -235,7 +235,7 @@ static bool preloadGlyphs(dsFont* font, dsCommandBuffer* commandBuffer, const vo
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
-dsGlyphInfo* dsFont_getGlyphInfo(
+const dsGlyphInfo* dsFont_getGlyphInfo(
 	dsFont* font, dsCommandBuffer* commandBuffer, uint32_t face, uint32_t glyph)
 {
 	dsGlyphKey key = {face, glyph};
@@ -274,7 +274,7 @@ dsGlyphInfo* dsFont_getGlyphInfo(
 	return glyphInfo;
 }
 
-uint32_t dsFont_getGlyphIndex(dsFont* font, dsGlyphInfo* glyph)
+uint32_t dsFont_getGlyphIndex(dsFont* font, const dsGlyphInfo* glyph)
 {
 	return (uint32_t)(size_t)(glyph - font->glyphPool);
 }
@@ -293,7 +293,7 @@ bool dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* textu
 	dsAlignedBox2_extents(size, paddedBounds);
 
 	// Scale down if needed, but not up.
-	float maxSize = (float)(glyphSize - 1);
+	float maxSize = (float)glyphSize;
 	float scaleX = 1.0f;
 	if (size.x > maxSize)
 		scaleX = size.x/maxSize;
@@ -392,17 +392,19 @@ void dsFont_getGlyphTextureBounds(dsAlignedBox2f* outBounds, const dsTexturePosi
 	const dsVector2f* glyphBoundsSize, uint32_t glyphSize, uint32_t texMultiplier)
 {
 	uint32_t windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_LOW_SIZE;
-	float levelSize = 1.0f/(float)(texMultiplier*glyphSize >> texturePos->mipLevel);
-	outBounds->min.x = ((float)texturePos->x + 0.5f)*levelSize;
-	outBounds->min.y = ((float)texturePos->y + 0.5f)*levelSize;
+	uint32_t levelSize = (texMultiplier*glyphSize) >> texturePos->mipLevel;
+	float invLevelSize = 1.0f/(float)levelSize;
+	outBounds->min.x = ((float)texturePos->x + 0.5f)*invLevelSize;
+	outBounds->min.y = ((float)texturePos->y + 0.5f)*invLevelSize;
 
-	dsVector2f offset = {{glyphBoundsSize->x + (float)windowSize*2.0f,
-		glyphBoundsSize->y + (float)windowSize*2.0f}};
-	offset.x = dsMin(offset.x, (float)(glyphSize - 1));
-	offset.y = dsMin(offset.y, (float)(glyphSize - 1));
+	float textureWindowOffset = (float)windowSize*2.0f;
+	dsVector2f offset = {{glyphBoundsSize->x + textureWindowOffset,
+		glyphBoundsSize->y + textureWindowOffset}};
+	float maxOffset = (float)(glyphSize);
+	offset.x = dsMin(offset.x, maxOffset) - 1.0f;
+	offset.y = dsMin(offset.y, maxOffset) - 1.0f;
 
-	dsVector2f levelSize2 = {{levelSize, levelSize}};
-	dsVector2_mul(offset, offset, levelSize2);
+	dsVector2_scale(offset, offset, invLevelSize);
 	dsVector2_add(outBounds->max, outBounds->min, offset);
 }
 
@@ -585,36 +587,38 @@ bool dsFont_applyHintingAndAntiAliasing(
 
 	float hintingStart, hintingEnd;
 	float smallEmbolding, largeEmbolding;
-	float antiAliasFactor;
 	if (font->quality == dsTextQuality_Low)
 	{
 		hintingStart = 9.0f;
 		hintingEnd = 32.0f;
-		smallEmbolding = 0.1f;
-		largeEmbolding = 0.05f;
+		smallEmbolding = 0.2f;
+		largeEmbolding = 0.1f;
 	}
 	else
 	{
 		hintingStart = 9.0f;
 		hintingEnd = 32.0f;
-		smallEmbolding = 0.1f;
+		smallEmbolding = 0.2f;
 		largeEmbolding = 0.0f;
 	}
-	antiAliasFactor = 1.5f*fuziness;
+	float antiAliasFactor = 3.0f*fuziness;
 
 	float pixels = pixelScale*style->size;
 	float size = dsClamp(pixels, hintingStart, hintingEnd);
 	float t = (size - hintingStart)/(hintingEnd - hintingStart);
 	float embolding = dsLerp(smallEmbolding, largeEmbolding, t);
 	style->embolden += embolding;
+	style->embolden = dsMin(style->embolden, 1.0f);
 	if (style->outlineThickness > 0.0f)
 	{
-		style->outlinePosition += embolding*0.5f;
+		style->outlinePosition += embolding;
 		style->outlineThickness += embolding*0.5f;
+
+		style->outlinePosition = dsMin(style->outlinePosition, 1.0f);
+		style->outlineThickness = dsMin(style->outlineThickness, 1.0f);
 	}
 
-	t = 1.0f/pixels;
-	style->antiAlias = t*antiAliasFactor;
+	style->antiAlias = antiAliasFactor/pixels;
 	return true;
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,12 @@
  */
 
 #pragma once
+
+/**
+ * @brief Scale to apply to parameters such as embolding and outline thickness to ensure a
+ * reasonable amount in the range [0, 1] based on the window size for the distance field.
+ */
+#define DS_TEXT_THICKNESS_SCALE 0.5
 
 /**
  * @brief Computes the signed distance from a texture.
@@ -37,13 +43,13 @@ lowp float dsComputeTextDistance(lowp sampler2D fontTex, vec3 texCoords)
  * @param textColor The color of the text.
  * @return The text color. This uses pre-multiplied alpha.
  */
-lowp vec4 dsComputeTextColor(lowp float distance, lowp float embolden, lowp float antiAlias,
-	lowp vec4 textColor)
+lowp vec4 dsComputeTextColor(
+	lowp float distance, lowp float embolden, lowp float antiAlias, lowp vec4 textColor)
 {
 	textColor.rgb *= textColor.a;
-	lowp float insideThreshold = -embolden*0.5 + 0.5;
-	lowp float inside = smoothstep(insideThreshold - antiAlias, insideThreshold + antiAlias,
-		distance);
+	lowp float insideThreshold = -0.5*DS_TEXT_THICKNESS_SCALE*embolden + 0.5;
+	lowp float inside = smoothstep(
+		insideThreshold - antiAlias, insideThreshold + antiAlias, distance);
 	return textColor*inside;
 }
 
@@ -53,9 +59,9 @@ lowp vec4 dsComputeTextColor(lowp float distance, lowp float embolden, lowp floa
  *     dsComputeTextDistance().
  * @param embolden The amount to embolden the text.
  * @param antiAlias The amount to anti-alias the text.
- * @param outlinePosition The position of the outline in the range [0, 1], where 1 is further from
- *     the center.
- * @param outlineThickness The thickness of the outline in the range [0, 1]..
+ * @param outlinePosition The position of the outline in the range [-1, 1], where 0 is on the text
+ *     boundary and 1 is further from the center.
+ * @param outlineThickness The thickness of the outline in the range [0, 1].
  * @param textColor The color of the text.
  * @param outlineColor The color of the text outline.
  * @return The text color. This uses pre-multiplied alpha.
@@ -64,21 +70,22 @@ lowp vec4 dsComputeTextColor(lowp float distance, lowp float embolden, lowp floa
 	lowp float outlineThickness, lowp float antiAlias, lowp vec4 textColor, lowp vec4 outlineColor)
 {
 	textColor.rgb *= textColor.a;
-	lowp float insideThreshold = -embolden*0.5 + 0.5;
-	lowp float inside = smoothstep(insideThreshold - antiAlias, insideThreshold + antiAlias,
-		distance);
+	lowp float insideThreshold = -0.5*DS_TEXT_THICKNESS_SCALE*embolden + 0.5;
+	lowp float inside = smoothstep(
+		insideThreshold - antiAlias, insideThreshold + antiAlias, distance);
 	lowp vec4 color = textColor;
 
 	if (outlineThickness > 0.0 && outlineColor.a > 0)
 	{
 		outlineColor.rgb *= outlineColor.a;
-		lowp float outlineMinThreshold = 1.0 - outlinePosition - outlineThickness*0.5;
-		lowp float outlineMaxThreshold = 1.0 - outlinePosition + outlineThickness*0.5;
+		lowp vec2 outlineThreshold =
+			vec2(outlinePosition) + vec2(outlineThickness, -outlineThickness);
+		outlineThreshold = -0.5*DS_TEXT_THICKNESS_SCALE*outlineThreshold + vec2(0.5);
 
-		lowp float insideMinOutline = smoothstep(outlineMinThreshold - antiAlias,
-			outlineMinThreshold + antiAlias, distance);
-		lowp float insideMaxOutline = 1.0 - smoothstep(outlineMaxThreshold - antiAlias,
-			outlineMaxThreshold + antiAlias, distance);
+		lowp float insideMinOutline = smoothstep(outlineThreshold.x - antiAlias,
+			outlineThreshold.x + antiAlias, distance);
+		lowp float insideMaxOutline = 1.0 - smoothstep(outlineThreshold.y - antiAlias,
+			outlineThreshold.y + antiAlias, distance);
 		lowp float insideOutline = insideMinOutline*insideMaxOutline;
 		color = mix(color, outlineColor, 1.0 - inside);
 		color = mix(color, outlineColor, insideOutline);

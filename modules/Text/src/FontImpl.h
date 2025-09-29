@@ -45,9 +45,9 @@ bool dsFaceGroup_isScriptCommon(uint32_t script);
 bool dsFaceGroup_areScriptsEqual(uint32_t script1, uint32_t script2);
 dsTextDirection dsFaceGroup_textDirection(uint32_t script);
 
-dsGlyphInfo* dsFont_getGlyphInfo(dsFont* font, dsCommandBuffer* commandBuffer, uint32_t face,
-	uint32_t glyph);
-uint32_t dsFont_getGlyphIndex(dsFont* font, dsGlyphInfo* glyph);
+const dsGlyphInfo* dsFont_getGlyphInfo(
+	dsFont* font, dsCommandBuffer* commandBuffer, uint32_t face, uint32_t glyph);
+uint32_t dsFont_getGlyphIndex(dsFont* font, const dsGlyphInfo* glyph);
 uint32_t dsFont_findFaceForCodepoint(const dsFont* font, uint32_t codepoint);
 bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 	uint32_t firstCodepoint, uint32_t start, uint32_t count, uint32_t newlineCount,

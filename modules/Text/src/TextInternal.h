@@ -32,8 +32,10 @@
 #define DS_LARGE_CACHE_TEX_MULTIPLIER 32
 #define DS_LARGE_CACHE_TEX_MIP_LEVELS 6
 #define DS_TABLE_SIZE 1823
-// Max X and Y offset at the minimum quality to check for signed distances.
-#define DS_BASE_WINDOW_SIZE 4
+// Max X and Y offset at the minimum quality to check for signed distances. Apply a thickness scale
+// to have the range [0, 1] be a reasonable amount for things like embolding and outlines.
+#define DS_BASE_WINDOW_SIZE 2
+#define DS_THICKNESS_SCALE 0.5f
 
 typedef enum dsTextDirection
 {

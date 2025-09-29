@@ -235,7 +235,7 @@ dsVectorCommand* dsVectorScratchData_createTempCommands(dsVectorScratchData* dat
 {
 	uint32_t tempCount = 0;
 	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->tempCommands,
-		tempCount, data->maxTempCommands, commandCount))
+			tempCount, data->maxTempCommands, commandCount))
 	{
 		return NULL;
 	}
@@ -314,7 +314,7 @@ dsTextLayout* dsVectorScratchData_shapeText(dsVectorScratchData* data,
 		style->size = range->size;
 		style->embolden = range->embolden;
 		style->slant = range->slant;
-		style->outlinePosition = 0.5f + range->embolden*0.5f;
+		style->outlinePosition = range->embolden;
 		style->outlineThickness = range->outlineWidth;
 		style->color = white;
 		style->outlineColor = white;
