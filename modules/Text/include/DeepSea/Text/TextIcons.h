@@ -88,13 +88,14 @@ DS_TEXT_EXPORT bool dsTextIcons_isCodepointValid(const dsTextIcons* icons, uint3
  * @remark errno will be set on failure.
  * @param icons The text icons to add the icon to.
  * @param codepoint The character code used to assign the icon to.
+ * @param advance The amount to advance to the next glyph, typically normalized in the range (0, 1].
  * @param bounds The normalized bounds for the icon, typically in the range [0, 1].
  * @param userData The user data associated with the icon. This will be destroyed when icons is
  *     destroyed according to destroyGlyphUserDataFunc, or immediately if adding the icon fails.
  * @return False if the icon couldn't be added.
  */
-DS_TEXT_EXPORT bool dsTextIcons_addIcon(
-	dsTextIcons* icons, uint32_t codepoint, const dsAlignedBox2f* bounds, void* userData);
+DS_TEXT_EXPORT bool dsTextIcons_addIcon(dsTextIcons* icons, uint32_t codepoint, float advance,
+	const dsAlignedBox2f* bounds, void* userData);
 
 /**
  * @brief Finds the icon for a character.

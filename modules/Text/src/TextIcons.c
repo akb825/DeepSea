@@ -128,10 +128,10 @@ bool dsTextIcons_isCodepointValid(const dsTextIcons* icons, uint32_t codepoint)
 	return icons && isCodepointValidImpl(icons, codepoint);
 }
 
-bool dsTextIcons_addIcon(
-	dsTextIcons* icons, uint32_t codepoint, const dsAlignedBox2f* bounds, void* userData)
+bool dsTextIcons_addIcon(dsTextIcons* icons, uint32_t codepoint, float advance,
+	const dsAlignedBox2f* bounds, void* userData)
 {
-	if (!icons || !bounds || !dsAlignedBox2_isValid(*bounds))
+	if (!icons || advance <= 0.0f || !bounds || !dsAlignedBox2_isValid(*bounds))
 	{
 		if (icons && icons->destroyUserDataFunc)
 			icons->destroyGlyphUserDataFunc(userData);
@@ -169,6 +169,7 @@ bool dsTextIcons_addIcon(
 
 	dsIconGlyph* iconGlyph = icons->iconGlyphs + index;
 	iconGlyph->codepoint = codepoint;
+	iconGlyph->advance = advance;
 	iconGlyph->bounds = *bounds;
 	iconGlyph->userData = userData;
 

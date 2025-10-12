@@ -138,6 +138,11 @@ typedef struct dsIconGlyph
 	uint32_t codepoint;
 
 	/**
+	 * @brief The amount to advance to the next glyph.
+	 */
+	float advance;
+
+	/**
 	 * @brief Bounds of the glyph.
 	 */
 	dsAlignedBox2f bounds;
