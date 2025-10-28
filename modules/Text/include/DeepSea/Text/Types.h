@@ -405,11 +405,15 @@ typedef struct dsGlyphLayout
 
 	/**
 	 * @brief The texture coordinates for the glyph.
+	 *
+	 * This will be an invalid bounds if an icon glyph.
 	 */
 	dsAlignedBox2f texCoords;
 
 	/**
 	 * @brief The mip level in the texture that contains the glyph.
+	 *
+	 * This will be the codepoint for an icon glyph.
 	 */
 	uint32_t mipLevel;
 

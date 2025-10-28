@@ -31,19 +31,21 @@ void dsFaceGroup_unlock(const dsFaceGroup* group);
 dsAllocator* dsFaceGroup_getScratchAllocator(const dsFaceGroup* group);
 dsFontFace* dsFaceGroup_findFace(const dsFaceGroup* group, const char* name);
 // Runs are in characters rather than codepoints.
-dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, const void* string,
-	dsUnicodeType type);
+dsRunInfo* dsFaceGroup_findBidiRuns(
+	uint32_t* outCount, dsFaceGroup* group, const void* string, dsUnicodeType type);
 dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length);
 bool dsFaceGroup_scratchRanges(dsFaceGroup* group, uint32_t rangeCount);
 bool dsFaceGroup_scratchGlyphs(dsFaceGroup* group, uint32_t length);
 
-// Locking not needed for this function.
-uint32_t dsFaceGroup_codepointScript(const dsFaceGroup* group, uint32_t codepoint);
-
 bool dsFaceGroup_isScriptUnique(uint32_t script);
 bool dsFaceGroup_isScriptCommon(uint32_t script);
 bool dsFaceGroup_areScriptsEqual(uint32_t script1, uint32_t script2);
+bool dsFaceGroup_isScriptBoundary(
+	uint32_t script, bool scriptUnique, bool hasLastScript, uint32_t lastScript);
 dsTextDirection dsFaceGroup_textDirection(uint32_t script);
+
+// Locking not needed for this function.
+uint32_t dsFont_codepointScript(const dsFont* font, uint32_t codepoint);
 
 const dsGlyphInfo* dsFont_getGlyphInfo(
 	dsFont* font, dsCommandBuffer* commandBuffer, uint32_t face, uint32_t glyph);

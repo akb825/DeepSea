@@ -38,38 +38,41 @@ typedef struct dsScriptInfo
 } dsScriptInfo;
 
 // Will also convert runs to codepoint indices from characters.
-static uint32_t countTextRanges(const dsFaceGroup* group, const uint32_t* codepoints,
-	uint32_t length, dsRunInfo* runInfos, uint32_t runCount)
+static uint32_t countTextRanges(const dsFont* font, const uint32_t* codepoints,
+	uint32_t length, const dsRunInfo* runInfos, uint32_t runCount)
 {
 	DS_UNUSED(length);
 	uint32_t rangeCount = runCount;
 	for (uint32_t i = 0; i < runCount; ++i)
 	{
+		const dsRunInfo* runInfo = runInfos + i;
 		uint32_t lastScript = 0;
 		bool hasLastScript = false;
-		for (uint32_t j = 0; j < runInfos[i].count; ++j)
+		for (uint32_t j = 0; j < runInfo->count; ++j)
 		{
-			uint32_t index = runInfos[i].start + j;
+			uint32_t index = runInfo->start + j;
 			DS_ASSERT(index < length);
-			uint32_t script = dsFaceGroup_codepointScript(group, codepoints[index]);
-			if (!dsFaceGroup_isScriptUnique(script) ||
-				(hasLastScript && dsFaceGroup_areScriptsEqual(lastScript, script)))
+			uint32_t script = dsFont_codepointScript(font, codepoints[index]);
+			bool unique = dsFaceGroup_isScriptUnique(script);
+			if (dsFaceGroup_isScriptBoundary(script, unique, hasLastScript, lastScript))
 			{
-				continue;
-			}
-
-			if (hasLastScript)
 				++rangeCount;
-			lastScript = script;
-			hasLastScript = true;
+				lastScript = script;
+				hasLastScript = !unique;
+			}
+			else if (!hasLastScript && unique)
+			{
+				lastScript = script;
+				hasLastScript = true;
+			}
 		}
 	}
 
 	return rangeCount;
 }
 
-static void createCharMappings(dsCharMapping* charMappings, uint32_t length, const dsGlyph* glyphs,
-	uint32_t glyphCount)
+static void createCharMappings(
+	dsCharMapping* charMappings, uint32_t length, const dsGlyph* glyphs, uint32_t glyphCount)
 {
 	memset(charMappings, 0, length*sizeof(dsCharMapping));
 	for (uint32_t i = 0; i < glyphCount; ++i)
@@ -104,35 +107,30 @@ static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount, bo
 	if (text->characterCount == 0)
 		DS_PROFILE_FUNC_RETURN(true);
 
-	const dsFaceGroup* group = dsFont_getFaceGroup(text->font);
-
 	// Store the script info in the text ranges memory. This will be converted in place to the final
 	// text ranges later.
 	dsScriptInfo* scriptInfo = NULL;
 	uint32_t curInfo = 0;
 	for (uint32_t i = 0; i < runCount; ++i)
 	{
+		const dsRunInfo* run = runs + i;
 		uint32_t startInfo = curInfo;
 		scriptInfo = getScriptInfo(text, curInfo++);
 		// Initialize for the entire run in case there's no script boundaries. First codepoint may
 		// be set again later.
-		scriptInfo->firstCodepoint = text->characters[runs[i].start];
-		scriptInfo->start = runs[i].start;
-		scriptInfo->count = runs[i].count;
+		scriptInfo->firstCodepoint = text->characters[run->start];
+		scriptInfo->start = run->start;
+		scriptInfo->count = run->count;
 
 		uint32_t lastScript = 0;
 		bool hasLastScript = false;
-		for (uint32_t j = 0; j < runs[i].count; ++j)
+		for (uint32_t j = 0; j < run->count; ++j)
 		{
-			uint32_t index = runs[i].start + j;
-			uint32_t script = dsFaceGroup_codepointScript(group, text->characters[index]);
-			if (!dsFaceGroup_isScriptUnique(script) ||
-				(hasLastScript && dsFaceGroup_areScriptsEqual(lastScript, script)))
-			{
-				continue;
-			}
-
-			if (hasLastScript)
+			uint32_t index = run->start + j;
+			uint32_t codepoint = text->characters[index];
+			uint32_t script = dsFont_codepointScript(text->font, codepoint);
+			bool unique = dsFaceGroup_isScriptUnique(script);
+			if (dsFaceGroup_isScriptBoundary(script, unique, hasLastScript, lastScript))
 			{
 				// End the current range and move onto the next one.
 				scriptInfo->count = index - scriptInfo->start;
@@ -141,15 +139,18 @@ static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount, bo
 				// text (end for left to right, or start for right to left) in case we don't
 				// encounter another script boundary.
 				scriptInfo = getScriptInfo(text, curInfo++);
-				scriptInfo->firstCodepoint = text->characters[index];
+				scriptInfo->firstCodepoint = codepoint;
 				scriptInfo->start = index;
-				scriptInfo->count = runs[i].start + runs[i].count - index;
+				scriptInfo->count = run->start + run->count - index;
+
+				lastScript = script;
+				hasLastScript = !unique;
 			}
-			else
+			else if (!hasLastScript && unique)
 			{
-				// The first info for a run will wait until the first unique script to grab the
-				// first codepoint.
-				scriptInfo->firstCodepoint = text->characters[index];
+				// Replace the first codepoint with the codepoint for the unique script.
+				scriptInfo->firstCodepoint = codepoint;
+				lastScript = script;
 				hasLastScript = true;
 
 				// When we know the script will be uniform, just need to find the first unique
@@ -163,12 +164,10 @@ static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount, bo
 						break;
 				}
 			}
-
-			lastScript = script;
 		}
 
 		// Reverse the ranges for right to left text.
-		if (runs[i].direction == dsTextDirection_RightToLeft)
+		if (run->direction == dsTextDirection_RightToLeft)
 		{
 			uint32_t count = curInfo - startInfo;
 			for (uint32_t j = 0; j < count/2; ++j)
@@ -185,10 +184,10 @@ static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount, bo
 		for (uint32_t j = startInfo; j < curInfo; ++j)
 		{
 			uint32_t infoIndex = j;
-			uint32_t newlineCount = j == curInfo - 1 ? runs[i].newlineCount : 0;
+			uint32_t newlineCount = j == curInfo - 1 ? run->newlineCount : 0;
 			scriptInfo = getScriptInfo(text, infoIndex);
 			if (!dsFont_shapeRange(text->font, text, infoIndex, scriptInfo->firstCodepoint,
-					scriptInfo->start, scriptInfo->count, newlineCount, runs[i].direction))
+					scriptInfo->start, scriptInfo->count, newlineCount, run->direction))
 			{
 				DS_PROFILE_FUNC_RETURN(false);
 			}
@@ -273,7 +272,7 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 		runs[0].direction = dsTextDirection_LeftToRight;
 		for (uint32_t i = 0; i < length; ++i)
 		{
-			uint32_t script = dsFaceGroup_codepointScript(font->group, characters[i]);
+			uint32_t script = dsFont_codepointScript(font, characters[i]);
 			if (dsFaceGroup_isScriptUnique(script))
 			{
 				dsTextDirection direction = dsFaceGroup_textDirection(script);
@@ -287,8 +286,8 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 	}
 	else
 	{
-		rangeCount = countTextRanges(font->group, scratchText->characters,
-			scratchText->characterCount, runs, runCount);
+		rangeCount = countTextRanges(
+			font, scratchText->characters, scratchText->characterCount, runs, runCount);
 	}
 	if (!dsFaceGroup_scratchRanges(font->group, rangeCount))
 	{
@@ -345,7 +344,7 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 			memcpy((void*)(text->glyphs + curGlyphStart), scratchText->glyphs + range->firstGlyph,
 				range->glyphCount*sizeof(dsGlyph));
 			range->firstGlyph = curGlyphStart;
-			curGlyphStart += text->ranges[i].glyphCount;
+			curGlyphStart += range->glyphCount;
 		}
 		DS_ASSERT(curGlyphStart == text->glyphCount);
 

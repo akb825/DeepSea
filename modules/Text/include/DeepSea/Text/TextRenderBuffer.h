@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,19 @@ extern "C"
  * @file
  * @brief Functions for creating and working with text render buffers.
  */
+
+/**
+ * @brief Counts the number of renderable glyphs.
+ *
+ * This will skip any whitespace or icons.
+ *
+ * @param layout The text layout that will be rendered.
+ * @param firstChar The index of the first character.
+ * @param charCount The number of characters.
+ * @return The number of glyphs.
+ */
+DS_TEXT_EXPORT uint32_t dsTextRenderBuffer_countRenderGlyphs(
+	const dsTextLayout* layout, uint32_t firstChar, uint32_t charCount);
 
 /**
  * @brief Creates a text render buffer.

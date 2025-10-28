@@ -1039,7 +1039,7 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 #endif
 	};
 	testText->font = dsFont_create(testText->faceGroup, resourceManager, allocator, faceNames,
-		DS_ARRAY_SIZE(faceNames), quality, dsTextCache_Large);
+		DS_ARRAY_SIZE(faceNames), NULL, quality, dsTextCache_Large);
 	if (!testText->font)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create font: %s", dsErrorString(errno));

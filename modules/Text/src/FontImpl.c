@@ -40,6 +40,7 @@
 #include <DeepSea/Math/Vector2.h>
 
 #include <DeepSea/Text/FaceGroup.h>
+#include <DeepSea/Text/TextIcons.h>
 #include <DeepSea/Text/Unicode.h>
 
 #include <SheenBidi/SheenBidi.h>
@@ -119,7 +120,7 @@ struct dsFaceGroup
 #define CHORDAL_TOLERANCE 0.1f
 #define EQUAL_EPSILON 1e-7f
 #define FIXED_SCALE (1 << 6)
-static const float invFixedScale = 1.0f/(float)FIXED_SCALE;
+#define INV_FIXED_SCALE (1.0f/(float)FIXED_SCALE)
 
 static void* ftAlloc(FT_Memory memory, long size)
 {
@@ -407,7 +408,7 @@ static int glyphMoveTo(const FT_Vector* to, void* user)
 	loop->pointCount = 0;
 	dsAlignedBox2f_makeInvalid(&loop->bounds);
 
-	dsVector2f position = {{(float)to->x*invFixedScale, (float)-to->y*invFixedScale}};
+	dsVector2f position = {{(float)to->x*INV_FIXED_SCALE, (float)-to->y*INV_FIXED_SCALE}};
 	if (!addGlyphPoint(geometry, &position))
 	{
 		DS_ASSERT(errno == ENOMEM);
@@ -420,7 +421,7 @@ static int glyphMoveTo(const FT_Vector* to, void* user)
 static int glyphLineTo(const FT_Vector* to, void* user)
 {
 	dsGlyphGeometry* geometry = (dsGlyphGeometry*)user;
-	dsVector2f position = {{(float)to->x*invFixedScale, (float)-to->y*invFixedScale}};
+	dsVector2f position = {{(float)to->x*INV_FIXED_SCALE, (float)-to->y*INV_FIXED_SCALE}};
 	if (!addGlyphLine(geometry, &position))
 	{
 		DS_ASSERT(errno == ENOMEM);
@@ -436,8 +437,8 @@ static int glyphConicTo(const FT_Vector* control, const FT_Vector* to, void* use
 	DS_ASSERT(geometry->pointCount > 0);
 
 	const dsVector2f* p0 = &geometry->points[geometry->pointCount - 1].position;
-	dsVector2f p1 = {{(float)control->x*invFixedScale, -(float)control->y*invFixedScale}};
-	dsVector2f p2 = {{(float)to->x*invFixedScale, -(float)to->y*invFixedScale}};
+	dsVector2f p1 = {{(float)control->x*INV_FIXED_SCALE, -(float)control->y*INV_FIXED_SCALE}};
+	dsVector2f p2 = {{(float)to->x*INV_FIXED_SCALE, -(float)to->y*INV_FIXED_SCALE}};
 	dsCubicCurvef curve;
 	DS_VERIFY(dsCubicCurvef_initializeQuadratic(&curve, 2, p0, &p1, &p2));
 
@@ -457,9 +458,9 @@ static int glyphCubicTo(
 	DS_ASSERT(geometry->pointCount > 0);
 
 	const dsVector2f* p0 = &geometry->points[geometry->pointCount - 1].position;
-	dsVector2f p1 = {{(float)control1->x*invFixedScale, -(float)control1->y*invFixedScale}};
-	dsVector2f p2 = {{(float)control2->x*invFixedScale, (float)-control2->y*invFixedScale}};
-	dsVector2f p3 = {{(float)to->x*invFixedScale, -(float)to->y*invFixedScale}};
+	dsVector2f p1 = {{(float)control1->x*INV_FIXED_SCALE, -(float)control1->y*INV_FIXED_SCALE}};
+	dsVector2f p2 = {{(float)control2->x*INV_FIXED_SCALE, (float)-control2->y*INV_FIXED_SCALE}};
+	dsVector2f p3 = {{(float)to->x*INV_FIXED_SCALE, -(float)to->y*INV_FIXED_SCALE}};
 	dsCubicCurvef curve;
 	DS_VERIFY(dsCubicCurvef_initializeBezier(&curve, 2, p0, &p1, &p2, &p3));
 
@@ -470,6 +471,159 @@ static int glyphCubicTo(
 	}
 
 	return 0;
+}
+
+static bool shapeFaceRange(const dsFont* font, uint32_t face, dsText* text, dsTextRange* range,
+	uint32_t firstCodepoint, uint32_t start, uint32_t count, uint32_t newlineCount,
+	dsTextDirection direction)
+{
+	hb_font_t* hbFont = font->faces[face]->font;
+	FT_Set_Pixel_Sizes(hb_ft_font_get_ft_face(hbFont), 0, font->glyphSize);
+#if HAS_FONT_CHANGED
+	hb_ft_font_changed(hbFont);
+#else
+	// This is the portion of hb_ft_font_changed() that we need to support older versions of
+	// HarfBuzz.
+	FT_Face ftFace = hb_ft_font_get_ft_face(hbFont);
+	hb_font_set_scale(hbFont,
+		(int)(((uint64_t)ftFace->size->metrics.x_scale*(uint64_t)ftFace->units_per_EM +
+			(1u<<15)) >> 16),
+		(int)(((uint64_t)ftFace->size->metrics.y_scale*(uint64_t)ftFace->units_per_EM +
+			(1u<<15)) >> 16));
+#endif
+
+	hb_buffer_t* shapeBuffer = font->group->shapeBuffer;
+	hb_buffer_add_utf32(shapeBuffer, text->characters, text->characterCount, start, count);
+	if (direction == dsTextDirection_RightToLeft)
+		hb_buffer_set_direction(shapeBuffer, HB_DIRECTION_RTL);
+	else
+		hb_buffer_set_direction(shapeBuffer, HB_DIRECTION_LTR);
+	hb_buffer_set_script(shapeBuffer, (hb_script_t)dsFont_codepointScript(font, firstCodepoint));
+	hb_buffer_set_language(shapeBuffer, hb_language_get_default());
+	hb_shape(hbFont, shapeBuffer, NULL, 0);
+	if (!hb_buffer_allocation_successful(shapeBuffer))
+	{
+		hb_buffer_reset(shapeBuffer);
+		errno = ENOMEM;
+		return false;
+	}
+
+	unsigned int glyphCount = 0;
+	hb_glyph_info_t* glyphInfos = hb_buffer_get_glyph_infos(shapeBuffer, &glyphCount);
+	unsigned int glyphPosCount;
+	hb_glyph_position_t* glyphPos = hb_buffer_get_glyph_positions(shapeBuffer, &glyphPosCount);
+	DS_ASSERT(glyphCount == glyphPosCount);
+	if (glyphCount == 0)
+	{
+		range->face = 0;
+		range->firstChar = start;
+		range->charCount = count;
+		range->firstGlyph = text->glyphCount;
+		range->glyphCount = 0;
+		range->newlineCount = newlineCount;
+		range->backward = false;
+		hb_buffer_reset(shapeBuffer);
+		return true;
+	}
+
+	// Make sure the glyph buffer is large enough.
+	uint32_t glyphOffset = text->glyphCount;
+	if (!dsFaceGroup_scratchGlyphs(font->group, glyphOffset + glyphCount))
+	{
+		hb_buffer_reset(shapeBuffer);
+		return false;
+	}
+
+	hb_segment_properties_t properties;
+	hb_buffer_get_segment_properties(shapeBuffer, &properties);
+
+	range->face = face;
+	range->firstChar = start;
+	range->charCount = count;
+	range->firstGlyph = glyphOffset;
+	range->glyphCount = glyphCount;
+	DS_ASSERT(!HB_DIRECTION_IS_VERTICAL(properties.direction));
+	range->newlineCount = newlineCount;
+	range->backward = HB_DIRECTION_IS_BACKWARD(properties.direction);
+
+	float scale = 1.0f/(float)(FIXED_SCALE*font->glyphSize);
+	dsGlyph* glyphs = (dsGlyph*)(text->glyphs + glyphOffset);
+	for (unsigned int i = 0; i < glyphCount; ++i)
+	{
+		dsGlyph* glyph = glyphs + i;
+		const hb_glyph_info_t* glyphInfo = glyphInfos + i;
+		const hb_glyph_position_t* curGlyphPos = glyphPos + i;
+		glyph->glyphID = glyphInfo->codepoint;
+		glyph->charIndex = glyphInfo->cluster;
+		glyph->offset.x = (float)curGlyphPos->x_offset*scale;
+		glyph->offset.y = -(float)curGlyphPos->y_offset*scale;
+		// Special handling for newlines, since they are used in layout but will have an invalid
+		// glyph.
+		if (text->characters[glyph->charIndex] == '\n')
+			glyph->advance = 0;
+		else
+			glyph->advance = (float)curGlyphPos->x_advance*scale;
+		DS_ASSERT(curGlyphPos->y_advance == 0);
+	}
+
+	hb_buffer_reset(shapeBuffer);
+	return true;
+}
+
+static bool shapeIconRange(const dsFont* font, dsText* text, dsTextRange* range,
+	uint32_t firstCodepoint, uint32_t start, uint32_t count, uint32_t newlineCount,
+	dsTextDirection direction)
+{
+	DS_ASSERT(font->icons);
+	uint32_t glyphOffset = text->glyphCount;
+	if (!dsFaceGroup_scratchGlyphs(font->group, glyphOffset + count))
+		return false;
+
+	range->face = DS_ICON_FACE;
+	range->firstChar = start;
+	range->charCount = count;
+	range->firstGlyph = glyphOffset;
+	range->glyphCount = count;
+	range->newlineCount = newlineCount;
+	range->backward = direction == dsTextDirection_RightToLeft;
+
+	dsGlyph* glyphs = (dsGlyph*)(text->glyphs + glyphOffset);
+	if (range->backward)
+	{
+		// Reverse the order for shaping.
+		uint32_t relativeIndex = count + start - 1;
+		for (unsigned int i = 0; i < count; ++i)
+		{
+			dsGlyph* glyph = glyphs + i;
+			uint32_t codepoint = text->characters[relativeIndex - i];
+			const dsIconGlyph* icon = dsTextIcons_findIcon(font->icons, codepoint);
+			if (!icon)
+				return false;
+
+			glyph->glyphID = codepoint;
+			glyph->charIndex = start + i;
+			glyph->offset.x = glyph->offset.y = 0.0f;
+			glyph->advance = icon->advance;
+		}
+	}
+	else
+	{
+		for (unsigned int i = 0; i < count; ++i)
+		{
+			dsGlyph* glyph = glyphs + i;
+			uint32_t codepoint = text->characters[start + i];
+			const dsIconGlyph* icon = dsTextIcons_findIcon(font->icons, codepoint);
+			if (!icon)
+				return false;
+
+			glyph->glyphID = codepoint;
+			glyph->charIndex = start + i;
+			glyph->offset.x = glyph->offset.y = 0.0f;
+			glyph->advance = icon->advance;
+		}
+	}
+
+	return true;
 }
 
 bool dsIsSpace(uint32_t charcode)
@@ -517,8 +671,8 @@ bool dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsFontFace* face,
 		return false;
 
 	*outBounds = geometry->bounds;
-	return dsFont_writeGlyphToTexture(commandBuffer, texture, glyphIndex, font->glyphSize,
-		font->texMultiplier, geometry);
+	return dsFont_writeGlyphToTexture(
+		commandBuffer, texture, glyphIndex, font->glyphSize, font->texMultiplier, geometry);
 }
 
 void dsFaceGroup_lock(const dsFaceGroup* group)
@@ -810,14 +964,6 @@ bool dsFaceGroup_scratchGlyphs(dsFaceGroup* group, uint32_t length)
 	return true;
 }
 
-uint32_t dsFaceGroup_codepointScript(const dsFaceGroup* group, uint32_t codepoint)
-{
-	// Override whitepsace.
-	if (dsIsSpace(codepoint))
-		return HB_SCRIPT_INHERITED;
-	return hb_unicode_script(group->unicode, codepoint);
-}
-
 bool dsFaceGroup_isScriptUnique(uint32_t script)
 {
 	return script != HB_SCRIPT_INHERITED && script != HB_SCRIPT_UNKNOWN;
@@ -837,6 +983,15 @@ bool dsFaceGroup_areScriptsEqual(uint32_t script1, uint32_t script2)
 	if (script2 == HB_SCRIPT_COMMON)
 		script2 = HB_SCRIPT_LATIN;
 	return script1 == script2;
+}
+
+bool dsFaceGroup_isScriptBoundary(
+	uint32_t script, bool scriptUnique, bool hasLastScript, uint32_t lastScript)
+{
+	bool equal = !hasLastScript || dsFaceGroup_areScriptsEqual(script, lastScript);
+	// When an invalid script (i.e. icon), treat non-unique scripts as a boundary.
+	return (scriptUnique && !equal) ||
+		(hasLastScript && !scriptUnique && lastScript == HB_SCRIPT_INVALID);
 }
 
 dsTextDirection dsFaceGroup_textDirection(uint32_t script)
@@ -927,6 +1082,7 @@ dsFaceGroup* dsFaceGroup_create(
 	FT_Add_Default_Modules(faceGroup->library);
 
 	memset(&faceGroup->scratchText, 0, sizeof(dsText));
+	faceGroup->scratchText.allocator = scratchAllocator;
 
 	faceGroup->scratchCodepoints = NULL;
 	faceGroup->scratchRanges = NULL;
@@ -1150,8 +1306,23 @@ void dsFaceGroup_destroy(dsFaceGroup* group)
 	DS_VERIFY(dsAllocator_free(group->allocator, group));
 }
 
+uint32_t dsFont_codepointScript(const dsFont* font, uint32_t codepoint)
+{
+	// Override whitepsace.
+	if (dsIsSpace(codepoint))
+		return HB_SCRIPT_INHERITED;
+
+	if (dsTextIcons_isCodepointValid(font->icons, codepoint))
+		return HB_SCRIPT_INVALID;
+
+	return hb_unicode_script(font->group->unicode, codepoint);
+}
+
 uint32_t dsFont_findFaceForCodepoint(const dsFont* font, uint32_t codepoint)
 {
+	if (dsTextIcons_isCodepointValid(font->icons, codepoint))
+		return DS_ICON_FACE;
+
 	for (uint32_t i = 0; i < font->faceCount; ++i)
 	{
 		if (FT_Get_Char_Index(hb_ft_font_get_ft_face(font->faces[i]->font), codepoint))
@@ -1180,96 +1351,11 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 	}
 
 	uint32_t face = dsFont_findFaceForCodepoint(font, firstCodepoint);
-	hb_font_t* hbFont = font->faces[face]->font;
-	FT_Set_Pixel_Sizes(hb_ft_font_get_ft_face(hbFont), 0, font->glyphSize);
-#if HAS_FONT_CHANGED
-	hb_ft_font_changed(hbFont);
-#else
-	// This is the portion of hb_ft_font_changed() that we need to support older versions of
-	// HarfBuzz.
-	FT_Face ftFace = hb_ft_font_get_ft_face(hbFont);
-	hb_font_set_scale(hbFont,
-		(int)(((uint64_t)ftFace->size->metrics.x_scale*(uint64_t)ftFace->units_per_EM +
-			(1u<<15)) >> 16),
-		(int)(((uint64_t)ftFace->size->metrics.y_scale*(uint64_t)ftFace->units_per_EM +
-			(1u<<15)) >> 16));
-#endif
-
-	hb_buffer_t* shapeBuffer = font->group->shapeBuffer;
-	hb_buffer_add_utf32(shapeBuffer, text->characters, text->characterCount, start, count);
-	if (direction == dsTextDirection_RightToLeft)
-		hb_buffer_set_direction(shapeBuffer, HB_DIRECTION_RTL);
-	else
-		hb_buffer_set_direction(shapeBuffer, HB_DIRECTION_LTR);
-	hb_buffer_set_script(shapeBuffer, (hb_script_t)dsFaceGroup_codepointScript(font->group,
-		firstCodepoint));
-	hb_buffer_set_language(shapeBuffer, hb_language_get_default());
-	hb_shape(hbFont, shapeBuffer, NULL, 0);
-	if (!hb_buffer_allocation_successful(shapeBuffer))
+	if (face == DS_ICON_FACE)
 	{
-		hb_buffer_reset(shapeBuffer);
-		errno = ENOMEM;
-		return false;
+		return shapeIconRange(
+			font, text, range, firstCodepoint, start, count, newlineCount, direction);
 	}
-
-	unsigned int glyphCount = 0;
-	hb_glyph_info_t* glyphInfos = hb_buffer_get_glyph_infos(shapeBuffer, &glyphCount);
-	unsigned int glyphPosCount;
-	hb_glyph_position_t* glyphPos = hb_buffer_get_glyph_positions(shapeBuffer, &glyphPosCount);
-	DS_ASSERT(glyphCount == glyphPosCount);
-	if (glyphCount == 0)
-	{
-		range->face = 0;
-		range->firstChar = start;
-		range->charCount = count;
-		range->firstGlyph = text->glyphCount;
-		range->glyphCount = 0;
-		range->newlineCount = newlineCount;
-		range->backward = false;
-		hb_buffer_reset(shapeBuffer);
-		return true;
-	}
-
-	// Make sure the glyph buffer is large enough.
-	uint32_t glyphOffset = text->glyphCount;
-	if (!dsFaceGroup_scratchGlyphs(font->group, text->glyphCount + glyphCount))
-	{
-		hb_buffer_reset(shapeBuffer);
-		return false;
-	}
-
-	hb_segment_properties_t properties;
-	hb_buffer_get_segment_properties(shapeBuffer, &properties);
-
-	range->face = face;
-	range->firstChar = start;
-	range->charCount = count;
-	range->firstGlyph = glyphOffset;
-	range->glyphCount = glyphCount;
-	DS_ASSERT(!HB_DIRECTION_IS_VERTICAL(properties.direction));
-	range->newlineCount = newlineCount;
-	range->backward = HB_DIRECTION_IS_BACKWARD(properties.direction);
-
-	float scale = 1.0f/(float)(FIXED_SCALE*font->glyphSize);
-	dsGlyph* glyphs = (dsGlyph*)(text->glyphs + glyphOffset);
-	for (unsigned int i = 0; i < glyphCount; ++i)
-	{
-		dsGlyph* glyph = glyphs + i;
-		const hb_glyph_info_t* glyphInfo = glyphInfos + i;
-		const hb_glyph_position_t* curGlyphPos = glyphPos + i;
-		glyph->glyphID = glyphInfo->codepoint;
-		glyph->charIndex = glyphInfo->cluster;
-		glyph->offset.x = (float)curGlyphPos->x_offset*scale;
-		glyph->offset.y = -(float)curGlyphPos->y_offset*scale;
-		// Special handling for newlines, since they are used in layout but will have an invalid
-		// glyph.
-		if (text->characters[glyph->charIndex] == '\n')
-			glyph->advance = 0;
-		else
-			glyph->advance = (float)curGlyphPos->x_advance*scale;
-		DS_ASSERT(curGlyphPos->y_advance == 0);
-	}
-
-	hb_buffer_reset(shapeBuffer);
-	return true;
+	return shapeFaceRange(
+		font, face, text, range, firstCodepoint, start, count, newlineCount, direction);
 }

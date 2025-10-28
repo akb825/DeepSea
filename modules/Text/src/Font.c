@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,18 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Geometry/AlignedBox2.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Vector2.h>
+
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
+
 #include <DeepSea/Text/FaceGroup.h>
 #include <DeepSea/Text/Unicode.h>
+
 #include <float.h>
 #include <string.h>
 
@@ -238,6 +243,7 @@ static bool preloadGlyphs(dsFont* font, dsCommandBuffer* commandBuffer, const vo
 const dsGlyphInfo* dsFont_getGlyphInfo(
 	dsFont* font, dsCommandBuffer* commandBuffer, uint32_t face, uint32_t glyph)
 {
+	DS_ASSERT(face != DS_ICON_FACE);
 	dsGlyphKey key = {face, glyph};
 	dsGlyphInfo* glyphInfo = (dsGlyphInfo*)dsHashTable_find(&font->glyphTable.hashTable, &key);
 	if (glyphInfo)
@@ -330,8 +336,8 @@ bool dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* textu
 		textureData, glyphSize*glyphSize);
 }
 
-void dsFont_getGlyphTexturePos(dsTexturePosition* outPos, uint32_t glyphIndex, uint32_t glyphSize,
-	uint32_t texMultiplier)
+void dsFont_getGlyphTexturePos(
+	dsTexturePosition* outPos, uint32_t glyphIndex, uint32_t glyphSize, uint32_t texMultiplier)
 {
 	outPos->face = dsCubeFace_None;
 	outPos->depth = 0;
@@ -425,8 +431,8 @@ uint8_t dsFont_sizeForQuality(dsTextQuality quality)
 }
 
 dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
-	dsAllocator* allocator, const char* const* faceNames, uint32_t faceCount, dsTextQuality quality,
-	dsTextCache cacheSize)
+	dsAllocator* allocator, const char* const* faceNames, uint32_t faceCount,
+	const dsTextIcons* icons, dsTextQuality quality, dsTextCache cacheSize)
 {
 	if (!group || !resourceManager || (!allocator && !dsFaceGroup_getAllocator(group)) ||
 		!faceNames || faceCount == 0)
@@ -484,6 +490,7 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 	}
 
 	font->faceCount = faceCount;
+	font->icons = icons;
 	font->glyphSize = dsFont_sizeForQuality(quality);
 	font->quality = quality;
 	uint32_t mipLevels;
@@ -558,6 +565,14 @@ const char* dsFont_getFaceName(const dsFont* font, uint32_t face)
 		return NULL;
 
 	return dsFontFace_getName(font->faces[face]);
+}
+
+const dsTextIcons* dsFont_getIcons(const dsFont* font)
+{
+	if (!font)
+		return NULL;
+
+	return font->icons;
 }
 
 dsTextQuality dsFont_getTextQuality(const dsFont* font)

@@ -140,30 +140,8 @@ static bool isInView(const dsSceneVectorItemList* vectorList, const dsView* view
 static void getGlyphRange(uint32_t* outFirstGlyph, uint32_t* outGlyphCount,
 	const dsTextLayout* layout, uint32_t firstChar, uint32_t charCount)
 {
-	*outFirstGlyph = 0;
-	uint32_t maxChar = firstChar + charCount;
-	uint32_t glyphIndex = 0;
-	for (uint32_t i = 0; i < maxChar; ++i)
-	{
-		if (i == firstChar)
-			*outFirstGlyph = glyphIndex;
-
-		const dsCharMapping* charMapping = layout->text->charMappings + i;
-		for (uint32_t j = 0; j < charMapping->glyphCount; ++j)
-		{
-			const dsGlyphLayout* glyph = layout->glyphs + charMapping->firstGlyph + j;
-
-			// Skip empty glyphs.
-			if (glyph->geometry.min.x == glyph->geometry.max.x ||
-				glyph->geometry.min.y == glyph->geometry.max.y)
-			{
-				continue;
-			}
-
-			++glyphIndex;
-		}
-	}
-	*outGlyphCount = glyphIndex - *outFirstGlyph;
+	*outFirstGlyph = dsTextRenderBuffer_countRenderGlyphs(layout, 0, firstChar);
+	*outGlyphCount = dsTextRenderBuffer_countRenderGlyphs(layout, firstChar, charCount);
 }
 
 static bool addInstances(dsSceneItemList* itemList)
@@ -323,7 +301,6 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 					dsShader_updateInstanceValues(lastTextShader, commandBuffer,
 						vectorList->instanceValues));
 
-				// Try to add to the current buffer. If this fails, flush it and try again.
 				uint32_t firstChar = drawItem->text.firstChar;
 				uint32_t charCount = drawItem->text.charCount;
 				if (firstChar < text->characterCount && charCount > 0)

@@ -104,20 +104,8 @@ static uint32_t countGlyphs(
 		DS_ASSERT(range->firstIndex + i < infoCount);
 		const TextDrawInfo* drawInfo = drawInfos + range->firstIndex + i;
 		const dsTextLayout* layout = drawInfo->layout;
-		for (uint32_t j = 0; j < drawInfo->characterCount; ++j)
-		{
-			const dsCharMapping* charMapping = layout->text->charMappings +
-				drawInfo->firstCharacter + j;
-			for (uint32_t k = 0; k < charMapping->glyphCount; ++k)
-			{
-				const dsGlyphLayout* glyph = layout->glyphs + charMapping->firstGlyph + k;
-				if (glyph->geometry.min.x < glyph->geometry.max.x && glyph->geometry.min.y <
-					glyph->geometry.max.y)
-				{
-					++count;
-				}
-			}
-		}
+		count += dsTextRenderBuffer_countRenderGlyphs(
+			layout, drawInfo->firstCharacter, drawInfo->characterCount);
 	}
 
 	return count;

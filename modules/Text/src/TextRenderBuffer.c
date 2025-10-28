@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,38 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+
+#include <DeepSea/Geometry/AlignedBox2.h>
+
 #include <DeepSea/Render/Resources/DrawGeometry.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/Shader.h>
 #include <DeepSea/Render/Renderer.h>
+
+uint32_t dsTextRenderBuffer_countRenderGlyphs(
+	const dsTextLayout* layout, uint32_t firstChar, uint32_t charCount)
+{
+	if (!layout || !DS_IS_BUFFER_RANGE_VALID(firstChar, charCount, layout->text->characterCount))
+		return 0;
+
+	uint32_t glyphCount = 0;
+	for (uint32_t i = 0; i < charCount; ++i)
+	{
+		const dsCharMapping* charMapping = layout->text->charMappings + firstChar + i;
+		for (uint32_t j = 0; j < charMapping->glyphCount; ++j)
+		{
+			const dsGlyphLayout* glyph = layout->glyphs + charMapping->firstGlyph + j;
+			if (glyph->geometry.min.x < glyph->geometry.max.x &&
+				glyph->geometry.min.y < glyph->geometry.max.y &&
+				dsAlignedBox2_isValid(glyph->texCoords))
+			{
+				++glyphCount;
+			}
+		}
+	}
+
+	return glyphCount;
+}
 
 dsTextRenderBuffer* dsTextRenderBuffer_create(dsAllocator* allocator,
 	dsResourceManager* resourceManager, uint32_t maxGlyphs, const dsVertexFormat* vertexFormat,
@@ -126,21 +154,7 @@ bool dsTextRenderBuffer_addTextRange(dsTextRenderBuffer* renderBuffer,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	uint32_t glyphCount = 0;
-	for (uint32_t i = 0; i < charCount; ++i)
-	{
-		const dsCharMapping* charMapping = layout->text->charMappings + firstChar + i;
-		for (uint32_t j = 0; j < charMapping->glyphCount; ++j)
-		{
-			const dsGlyphLayout* glyph = layout->glyphs + charMapping->firstGlyph + j;
-			if (glyph->geometry.min.x < glyph->geometry.max.x &&
-				glyph->geometry.min.y < glyph->geometry.max.y)
-			{
-				++glyphCount;
-			}
-		}
-	}
-
+	uint32_t glyphCount = dsTextRenderBuffer_countRenderGlyphs(layout, firstChar, charCount);
 	if (!DS_IS_BUFFER_RANGE_VALID(renderBuffer->queuedGlyphs, glyphCount, renderBuffer->maxGlyphs))
 	{
 		errno = EINDEX;
@@ -158,9 +172,10 @@ bool dsTextRenderBuffer_addTextRange(dsTextRenderBuffer* renderBuffer,
 		{
 			const dsGlyphLayout* glyph = layout->glyphs + charMapping->firstGlyph + j;
 
-			// Skip empty glyphs.
+			// Skip empty glyphs and icons.
 			if (glyph->geometry.min.x == glyph->geometry.max.x ||
-				glyph->geometry.min.y == glyph->geometry.max.y)
+				glyph->geometry.min.y == glyph->geometry.max.y ||
+				!dsAlignedBox2_isValid(glyph->texCoords))
 			{
 				continue;
 			}

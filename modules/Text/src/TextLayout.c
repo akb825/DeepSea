@@ -33,6 +33,7 @@
 
 #include <DeepSea/Text/Font.h>
 #include <DeepSea/Text/Text.h>
+#include <DeepSea/Text/TextIcons.h>
 
 #include <ctype.h>
 #include <limits.h>
@@ -136,9 +137,9 @@ static void finishLine(dsTextLayout* layout, dsAlignedBox2f* lineBounds, float l
 static void updateGlyph(dsFont* font, dsCommandBuffer* commandBuffer, uint32_t face,
 	uint32_t glyphID, dsGlyphLayout* glyph)
 {
-	// Skip empty glyphs.
-	if (glyph->geometry.min.x == glyph->geometry.max.x &&
-		glyph->geometry.min.y == glyph->geometry.max.y)
+	// Skip empty and icon glyphs.
+	if (face == DS_ICON_FACE || (glyph->geometry.min.x == glyph->geometry.max.x &&
+		glyph->geometry.min.y == glyph->geometry.max.y))
 	{
 		return;
 	}
@@ -361,25 +362,41 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			}
 
 			float scale = style->size/(float)font->glyphSize;
-			const dsGlyphInfo* glyphInfo = dsFont_getGlyphInfo(
-				font, commandBuffer, range->face, textGlyph->glyphID);
+			const dsAlignedBox2f* glyphBounds;
+			if (range->face == DS_ICON_FACE)
+			{
+				const dsIconGlyph* iconGlyph = dsTextIcons_findIcon(font->icons, textGlyph->glyphID);
+				DS_ASSERT(iconGlyph);
+				glyphBounds = &iconGlyph->bounds;
+				glyph->mipLevel = textGlyph->glyphID;
+				// Use negative texture coordinates initially to identify as an icon.
+				glyph->texCoords.min.x = glyph->texCoords.min.y = -1.0f;
+			}
+			else
+			{
+				const dsGlyphInfo* glyphInfo = dsFont_getGlyphInfo(
+					font, commandBuffer, range->face, textGlyph->glyphID);
+				DS_ASSERT(glyphInfo);
+				glyphBounds = &glyphInfo->glyphBounds;
 
-			dsVector2_scale(glyph->geometry.min, glyphInfo->glyphBounds.min, scale);
-			dsVector2_scale(glyph->geometry.max, glyphInfo->glyphBounds.max, scale);
+				dsTexturePosition texturePos;
+				dsFont_getGlyphTexturePos(&texturePos, dsFont_getGlyphIndex(font, glyphInfo),
+					font->glyphSize, font->texMultiplier);
+				glyph->mipLevel = texturePos.mipLevel;
+				// Store the base information in texCoords for now so we can use it for later
+				// calculations.
+				glyph->texCoords.min.x = (float)texturePos.x;
+				glyph->texCoords.min.y = (float)texturePos.y;
+			}
+
+			dsVector2_scale(glyph->geometry.min, glyphBounds->min, scale);
+			dsVector2_scale(glyph->geometry.max, glyphBounds->max, scale);
 
 			// Add the offset to the base glyph position.
 			glyph->geometry.min.y += style->verticalOffset;
 			glyph->geometry.max.y += style->verticalOffset;
 
-			dsTexturePosition texturePos;
-			dsFont_getGlyphTexturePos(&texturePos, dsFont_getGlyphIndex(font, glyphInfo),
-				font->glyphSize, font->texMultiplier);
-			glyph->mipLevel = texturePos.mipLevel;
-			// Store the base information in texCoords for now so we can use it for later
-			// calculations.
-			glyph->texCoords.min.x = (float)texturePos.x;
-			glyph->texCoords.min.y = (float)texturePos.y;
-			dsAlignedBox2_extents(glyph->texCoords.max, glyphInfo->glyphBounds);
+			dsAlignedBox2_extents(glyph->texCoords.max, *glyphBounds);
 			glyph->styleIndex = (uint32_t)(style - layout->styles);
 		}
 	}
@@ -645,12 +662,11 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 	for (uint32_t i = 0; i < text->glyphCount; ++i)
 	{
 		dsGlyphLayout* glyph = glyphs + i;
-		dsTexturePosition texturePos = {dsCubeFace_None, (uint32_t)glyph->texCoords.min.x,
-			(uint32_t)glyph->texCoords.min.y, 0, glyph->mipLevel};
 		const dsVector2f* glyphSize = &glyph->texCoords.max;
 
-		// Don't add padding if the geometry is degenerate.
-		if (glyph->geometry.min.x < glyph->geometry.max.x &&
+		// Don't add padding if the geometry is degenerate or an icon glyph.
+		bool icon = glyph->texCoords.min.x < 0.0f;
+		if (!icon && glyph->geometry.min.x < glyph->geometry.max.x &&
 			glyph->geometry.min.y < glyph->geometry.max.y)
 		{
 			// Due to how the glyphs are scaled, padding is always consistent. Need to subtract half
@@ -664,8 +680,15 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			glyph->geometry.max.y += maxPadding;
 		}
 
-		dsFont_getGlyphTextureBounds(
-			&glyph->texCoords, &texturePos, glyphSize, font->glyphSize, font->texMultiplier);
+		if (icon)
+			dsAlignedBox2f_makeInvalid(&glyph->texCoords);
+		else
+		{
+			dsTexturePosition texturePos = {dsCubeFace_None, (uint32_t)glyph->texCoords.min.x,
+				(uint32_t)glyph->texCoords.min.y, 0, glyph->mipLevel};
+			dsFont_getGlyphTextureBounds(
+				&glyph->texCoords, &texturePos, glyphSize, font->glyphSize, font->texMultiplier);
+		}
 	}
 
 	DS_PROFILE_FUNC_RETURN(true);

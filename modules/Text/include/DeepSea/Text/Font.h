@@ -46,18 +46,19 @@ DS_TEXT_EXPORT uint8_t dsFont_sizeForQuality(dsTextQuality quality);
  * @param group The face group to get the faces from.
  * @param resourceManager The resource manager to create the graphics resources.
  * @param allocator The allocator to create the font with. If NULL, it will use the same allocator
- *     as the font group.
+ *     as the face group.
  * @param faceNames The names of the faces to use from the face group. When a glyph is requested, it
  *     will use the first face that contains that glyph. This way multiple faces may be used
  *     for different language sets.
  * @param faceCount The number of faces in faceNames.
+ * @param icons Icons to display as part of the font, or NULL if no icons are used.
  * @param quality The quality of the rendered text.
  * @param cacheSize The size of the text cache.
  * @return The created font, or NULL if the font couldn't be created.
  */
 DS_TEXT_EXPORT dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
-	dsAllocator* allocator, const char* const* faceNames, uint32_t faceCount, dsTextQuality quality,
-	dsTextCache cacheSize);
+	dsAllocator* allocator, const char* const* faceNames, uint32_t faceCount,
+	const dsTextIcons* icons, dsTextQuality quality, dsTextCache cacheSize);
 
 /**
  * @brief Gets the allocator for a font.
@@ -87,6 +88,13 @@ DS_TEXT_EXPORT uint32_t dsFont_getFaceCount(const dsFont* font);
  * @return The name of the face.
  */
 DS_TEXT_EXPORT const char* dsFont_getFaceName(const dsFont* font, uint32_t face);
+
+/**
+ * @brief Gets the icons for a font.
+ * @param font The font.
+ * @return The icons for the font or NULL if no icons were set.
+ */
+DS_TEXT_EXPORT const dsTextIcons* dsFont_getIcons(const dsFont* font);
 
 /**
  * @brief Gets the text rendering quality of a font.

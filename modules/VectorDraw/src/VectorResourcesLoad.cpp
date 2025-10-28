@@ -258,7 +258,7 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 			quality = qualityRemap[quality];
 
 		dsFont* font = dsFont_create(faceGroup, resourceManager, allocator, faceList, faceCount,
-			quality, static_cast<dsTextCache>(fontRef->cacheSize()));
+			nullptr, quality, static_cast<dsTextCache>(fontRef->cacheSize()));
 		if (!font)
 		{
 			DS_VERIFY(dsVectorResources_destroy(resources));

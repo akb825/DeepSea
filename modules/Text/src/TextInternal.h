@@ -36,6 +36,7 @@
 // to have the range [0, 1] be a reasonable amount for things like embolding and outlines.
 #define DS_BASE_WINDOW_SIZE 2
 #define DS_THICKNESS_SCALE 0.5f
+#define DS_ICON_FACE (uint32_t)-1
 
 typedef enum dsTextDirection
 {
@@ -111,6 +112,7 @@ struct dsFont
 	dsAllocator* allocator;
 	dsFaceGroup* group;
 	dsFontFace** faces;
+	const dsTextIcons* icons;
 	dsTextQuality quality;
 	uint32_t faceCount;
 	uint16_t glyphSize;
