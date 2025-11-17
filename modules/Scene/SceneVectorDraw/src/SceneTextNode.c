@@ -19,13 +19,20 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Math/Vector2.h>
+
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/Shader.h>
 #include <DeepSea/Render/Resources/VertexFormat.h>
+
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+
 #include <DeepSea/SceneVectorDraw/SceneVectorNode.h>
+
+#include <DeepSea/Text/Font.h>
+#include <DeepSea/Text/TextIcons.h>
 #include <DeepSea/Text/TextLayout.h>
 #include <DeepSea/Text/TextRenderBuffer.h>
 
@@ -62,6 +69,26 @@ static void glyphPosition(dsVector2f* outPos, const dsVector2f* basePos,
 {
 	dsVector2_add(*outPos, *basePos, *geometryPos);
 	outPos->x -= geometryPos->y*slant;
+}
+
+static void countPreLayoutGlyphs(
+	uint32_t* outStandardGlyphCount, uint32_t* outIconGlyphCount, const dsText* text)
+{
+	*outStandardGlyphCount = text->glyphCount;
+	*outIconGlyphCount = 0;
+
+	const dsTextIcons* icons = dsFont_getIcons(text->font);
+	if (!icons)
+		return;
+
+	for (uint32_t i = 0; i < text->characterCount; ++i)
+	{
+		if (dsTextIcons_isCodepointValid(icons, text->characters[i]))
+		{
+			++*outIconGlyphCount;
+			--*outStandardGlyphCount;
+		}
+	}
 }
 
 bool dsSceneTextNode_defaultTextVertexFormat(dsVertexFormat* outFormat)
@@ -296,8 +323,10 @@ dsSceneTextNode* dsSceneTextNode_createBase(dsAllocator* allocator, size_t struc
 	if (!layout)
 		return NULL;
 
+	uint32_t standardGlyphCount = 0, iconGlyphCount = 0;
+	countPreLayoutGlyphs(&standardGlyphCount, &iconGlyphCount, text);
 	dsTextRenderBuffer* renderBuffer = dsTextRenderBuffer_create(allocator, shader->resourceManager,
-		text->glyphCount, textRenderBufferInfo->vertexFormat,
+		standardGlyphCount, iconGlyphCount, textRenderBufferInfo->vertexFormat,
 		dsShader_hasStage(shader, dsShaderStage_TessellationEvaluation),
 		textRenderBufferInfo->glyphDataFunc, textRenderBufferInfo->userData);
 	if (!renderBuffer)

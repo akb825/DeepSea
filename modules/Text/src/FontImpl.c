@@ -670,6 +670,13 @@ bool dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsFontFace* face,
 	if (!endGlyphLoop(geometry) || !sortGlyphEdges(geometry))
 		return false;
 
+	if (!dsAlignedBox2_isValid(geometry->bounds))
+	{
+		outBounds->min.x = outBounds->min.y = 0.0f;
+		outBounds->max = outBounds->min;
+		return true;
+	}
+
 	*outBounds = geometry->bounds;
 	return dsFont_writeGlyphToTexture(
 		commandBuffer, texture, glyphIndex, font->glyphSize, font->texMultiplier, geometry);

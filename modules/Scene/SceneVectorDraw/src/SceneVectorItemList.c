@@ -137,11 +137,18 @@ static bool isInView(const dsSceneVectorItemList* vectorList, const dsView* view
 	return vectorList->viewCount == 0;
 }
 
-static void getGlyphRange(uint32_t* outFirstGlyph, uint32_t* outGlyphCount,
-	const dsTextLayout* layout, uint32_t firstChar, uint32_t charCount)
+static void getGlyphRange(uint32_t* outFirstStandardGlyph, uint32_t* outStandardGlyphCount,
+	uint32_t* outFirstIconGlyph, uint32_t* outIconGlyphCount, const dsTextLayout* layout,
+	uint32_t firstChar, uint32_t charCount)
 {
-	*outFirstGlyph = dsTextRenderBuffer_countRenderGlyphs(layout, 0, firstChar);
-	*outGlyphCount = dsTextRenderBuffer_countRenderGlyphs(layout, firstChar, charCount);
+	*outFirstStandardGlyph = *outFirstIconGlyph = 0;
+	dsTextRenderBuffer_countStandardIconGlyphs(
+		outFirstStandardGlyph, outFirstIconGlyph, layout, 0, firstChar);
+
+	*outStandardGlyphCount = *outFirstStandardGlyph;
+	*outIconGlyphCount = *outFirstIconGlyph;
+	dsTextRenderBuffer_countStandardIconGlyphs(
+		outStandardGlyphCount, outIconGlyphCount, layout, firstChar, charCount);
 }
 
 static bool addInstances(dsSceneItemList* itemList)
@@ -307,11 +314,25 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 				{
 					uint32_t maxCharCount = text->characterCount - firstChar;
 					charCount = dsMin(charCount, maxCharCount);
-					uint32_t firstGlyph, glyphCount;
-					getGlyphRange(&firstGlyph, &glyphCount, layout, firstChar, charCount);
+					uint32_t firstStandardGlyph, standardGlyphCount, firstIconGlyph, iconGlyphCount;
+					getGlyphRange(&firstStandardGlyph, &standardGlyphCount, &firstIconGlyph,
+						&iconGlyphCount, layout, firstChar, charCount);
 					DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
-						dsTextRenderBuffer_drawRange(renderBuffer, commandBuffer, firstGlyph,
-							glyphCount));
+						dsTextRenderBuffer_drawStandardGlyphRange(
+							renderBuffer, commandBuffer, firstStandardGlyph, standardGlyphCount));
+
+					// Draw icons, requiring a change in shader.
+					if (iconGlyphCount > 0)
+					{
+						DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
+							dsShader_unbind(lastTextShader, commandBuffer));
+						lastTextShader = NULL;
+						lastTextMaterial = NULL;
+
+						DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
+							dsTextRenderBuffer_drawIconGlyphRange(
+								renderBuffer, commandBuffer, firstIconGlyph, iconGlyphCount));
+					}
 				}
 				break;
 			}

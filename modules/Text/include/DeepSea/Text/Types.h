@@ -562,14 +562,29 @@ typedef struct dsTextRenderBuffer
 	void* userData;
 
 	/**
-	 * @brief The maximum number of glyphs that can be drawn at once.
+	 * @brief The maximum number of standard glyphs that can be drawn at once.
 	 */
-	uint32_t maxGlyphs;
+	uint32_t maxStandardGlyphs;
 
 	/**
-	 * @brief The number of glyphs that have been queued so far.
+	 * @brief The maximum number of icon glyphs that can be drawn at once.
 	 */
-	uint32_t queuedGlyphs;
+	uint32_t maxIconGlyphs;
+
+	/**
+	 * @brief The number of standard glyphs that have been queued so far.
+	 */
+	uint32_t queuedStandardGlyphs;
+
+	/**
+	 * @brief The number of icon glyphs that have been queued so far.
+	 */
+	uint32_t queuedIconGlyphs;
+
+	/**
+	 * @brief The offset into tempData for the temporary icon data.
+	 */
+	uint32_t tempIconOffset;
 
 	/**
 	 * @brief Temporary data.

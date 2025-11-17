@@ -1331,14 +1331,8 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 			success = false;
 			break;
 		}
-		if (piece->type == dsVectorShaderType_TextColor ||
-			piece->type == dsVectorShaderType_TextColorOutline ||
-			piece->type == dsVectorShaderType_TextGradient ||
-			piece->type == dsVectorShaderType_TextGradientOutline)
-		{
-			DS_ASSERT(piece->textRender);
-			success = dsTextRenderBuffer_draw(piece->textRender, commandBuffer);
-		}
+		if (piece->textRender)
+			success = dsTextRenderBuffer_drawStandardGlyphs(piece->textRender, commandBuffer);
 		else
 		{
 			success = dsRenderer_drawIndexed(commandBuffer->renderer, commandBuffer,
@@ -1351,17 +1345,25 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 			success = false;
 			break;
 		}
+
+		// Draw icons if present.
+		if (piece->textRender &&
+			!dsTextRenderBuffer_drawIconGlyphs(piece->textRender, commandBuffer))
+		{
+			success = false;
+			break;
+		}
 	}
 
 	// Clean up textures that might be deleted before the next draw.
-	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->materialInfoTextureElement,
-		NULL));
-	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->materialColorTextureElement,
-		NULL));
-	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->textOutlineMaterialInfoTextureElement,
-		NULL));
-	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->textOutlineMaterialColorTextureElement,
-		NULL));
+	DS_VERIFY(dsMaterial_setTexture(
+		material, shaderModule->materialInfoTextureElement, NULL));
+	DS_VERIFY(dsMaterial_setTexture(
+		material, shaderModule->materialColorTextureElement, NULL));
+	DS_VERIFY(dsMaterial_setTexture(
+		material, shaderModule->textOutlineMaterialInfoTextureElement, NULL));
+	DS_VERIFY(dsMaterial_setTexture(
+		material, shaderModule->textOutlineMaterialColorTextureElement, NULL));
 	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->shapeInfoTextureElement, NULL));
 	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->otherTextureElement, NULL));
 

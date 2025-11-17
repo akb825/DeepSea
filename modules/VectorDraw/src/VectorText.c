@@ -94,21 +94,21 @@ static void getRangeOffset(dsVector2f* outOffset, const dsTextLayout* layout,
 		dsVector2_add(*outOffset, *outOffset, range->position);
 }
 
-static uint32_t countGlyphs(
+static void countGlyphs(uint32_t* outStandardCount, uint32_t* outIconCount,
 	const dsDrawIndexedRange* range, const TextDrawInfo* drawInfos, uint32_t infoCount)
 {
 	DS_UNUSED(infoCount);
-	uint32_t count = 0;
+	DS_UNUSED(outStandardCount);
+	DS_UNUSED(outIconCount);
+	*outStandardCount = *outIconCount = 0;
 	for (uint32_t i = 0; i < range->indexCount; ++i)
 	{
 		DS_ASSERT(range->firstIndex + i < infoCount);
 		const TextDrawInfo* drawInfo = drawInfos + range->firstIndex + i;
 		const dsTextLayout* layout = drawInfo->layout;
-		count += dsTextRenderBuffer_countRenderGlyphs(
-			layout, drawInfo->firstCharacter, drawInfo->characterCount);
+		dsTextRenderBuffer_countStandardIconGlyphs(outStandardCount, outIconCount, layout,
+			drawInfo->firstCharacter, drawInfo->characterCount);
 	}
-
-	return count;
 }
 
 static void textVertexData(void* userData, const dsTextLayout* layout, void* userLayerData,
@@ -414,11 +414,12 @@ dsTextRenderBuffer* dsVectorText_createRenderBuffer(dsAllocator* allocator,
 	dsResourceManager* resourceManager, const dsVertexFormat* vertexFormat,
 	const dsDrawIndexedRange* range, const TextDrawInfo* drawInfos, uint32_t infoCount)
 {
-	uint32_t glyphCount = countGlyphs(range, drawInfos, infoCount);
-	DS_ASSERT(glyphCount > 0);
+	uint32_t standardGlyphCount, iconGlyphCount;
+	countGlyphs(&standardGlyphCount, &iconGlyphCount, range, drawInfos, infoCount);
+	DS_ASSERT(standardGlyphCount > 0 || iconGlyphCount > 0);
 	DS_ASSERT(vertexFormat->size == sizeof(TextVertex) ||
 		vertexFormat->size == sizeof(TessTextVertex));
 	bool tessText = vertexFormat->size == sizeof(TessTextVertex);
-	return dsTextRenderBuffer_create(allocator, resourceManager, glyphCount, vertexFormat,
-		tessText, tessText ? &tessTextVertexData : &textVertexData, NULL);
+	return dsTextRenderBuffer_create(allocator, resourceManager, standardGlyphCount, iconGlyphCount,
+		vertexFormat, tessText, tessText ? &tessTextVertexData : &textVertexData, NULL);
 }

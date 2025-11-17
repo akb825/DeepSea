@@ -761,16 +761,18 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	if (testText->text)
 	{
 		DS_VERIFY(dsShader_bind(testText->shader, commandBuffer, testText->material, NULL, NULL));
-		DS_VERIFY(dsTextRenderBuffer_draw(testText->textRender, commandBuffer));
+		DS_VERIFY(dsTextRenderBuffer_drawStandardGlyphs(testText->textRender, commandBuffer));
 		DS_VERIFY(dsShader_unbind(testText->shader, commandBuffer));
+		DS_VERIFY(dsTextRenderBuffer_drawIconGlyphs(testText->textRender, commandBuffer));
 	}
 
 	if (testText->tessText)
 	{
 		DS_VERIFY(dsShader_bind(testText->tessShader, commandBuffer, testText->tessMaterial, NULL,
 			NULL));
-		DS_VERIFY(dsTextRenderBuffer_draw(testText->tessTextRender, commandBuffer));
+		DS_VERIFY(dsTextRenderBuffer_drawStandardGlyphs(testText->tessTextRender, commandBuffer));
 		DS_VERIFY(dsShader_unbind(testText->tessShader, commandBuffer));
+		DS_VERIFY(dsTextRenderBuffer_drawIconGlyphs(testText->textRender, commandBuffer));
 	}
 
 	if (textStrings[testText->curString].maxWidth != DS_TEXT_NO_WRAP)
@@ -944,7 +946,7 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_TexCoord0, true));
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_TexCoord1, true));
 	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexFormat));
-	testText->textRender = dsTextRenderBuffer_create(allocator, resourceManager, 1024,
+	testText->textRender = dsTextRenderBuffer_create(allocator, resourceManager, 1024, 128,
 		&vertexFormat, false, &addTextVertex, NULL);
 	if (!testText->textRender)
 	{
@@ -974,7 +976,7 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 		DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_TexCoord0, true));
 		DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_TexCoord1, true));
 		DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexFormat));
-		testText->tessTextRender = dsTextRenderBuffer_create(allocator, resourceManager, 1024,
+		testText->tessTextRender = dsTextRenderBuffer_create(allocator, resourceManager, 1024, 128,
 			&vertexFormat, true, &addTessTextVertex, NULL);
 		if (!testText->tessTextRender)
 		{

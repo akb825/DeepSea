@@ -138,8 +138,8 @@ static void updateGlyph(dsFont* font, dsCommandBuffer* commandBuffer, uint32_t f
 	uint32_t glyphID, dsGlyphLayout* glyph)
 {
 	// Skip empty and icon glyphs.
-	if (face == DS_ICON_FACE || (glyph->geometry.min.x == glyph->geometry.max.x &&
-		glyph->geometry.min.y == glyph->geometry.max.y))
+	if (face == DS_ICON_FACE || (glyph->geometry.min.x >= glyph->geometry.max.x &&
+		glyph->geometry.min.y >= glyph->geometry.max.y))
 	{
 		return;
 	}

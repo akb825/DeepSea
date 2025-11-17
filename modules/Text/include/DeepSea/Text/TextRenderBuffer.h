@@ -31,7 +31,7 @@ extern "C"
  */
 
 /**
- * @brief Counts the number of renderable glyphs.
+ * @brief Counts the number of standard (non-icon) glyphs.
  *
  * This will skip any whitespace or icons.
  *
@@ -40,15 +40,40 @@ extern "C"
  * @param charCount The number of characters.
  * @return The number of glyphs.
  */
-DS_TEXT_EXPORT uint32_t dsTextRenderBuffer_countRenderGlyphs(
+DS_TEXT_EXPORT uint32_t dsTextRenderBuffer_countStandardGlyphs(
 	const dsTextLayout* layout, uint32_t firstChar, uint32_t charCount);
+
+/**
+ * @brief Counts the number of icon glyphs.
+ * @param layout The text layout that will be rendered.
+ * @param firstChar The index of the first character.
+ * @param charCount The number of characters.
+ * @return The number of glyphs.
+ */
+DS_TEXT_EXPORT uint32_t dsTextRenderBuffer_countIconGlyphs(
+	const dsTextLayout* layout, uint32_t firstChar, uint32_t charCount);
+
+/**
+ * @brief Counts the number of standard and icon glyphs separately.
+ * @remark errno will be set on failure.
+ * @param[inout] outStandardCount The number of standard glyphs. This will add to the existing
+ *     value.
+ * @param[inout] outIconCount The number of icon glyphs. This will add to the existing value.
+ * @param layout The text layout that will be rendered.
+ * @param firstChar The index of the first character.
+ * @param charCount The number of characters.
+ * @return False if the parameters are invalid.
+ */
+DS_TEXT_EXPORT bool dsTextRenderBuffer_countStandardIconGlyphs(uint32_t* outStandardCount,
+	uint32_t* outIconCount, const dsTextLayout* layout, uint32_t firstChar, uint32_t charCount);
 
 /**
  * @brief Creates a text render buffer.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the render buffr with.
  * @param resourceManager The resource manager to create the graphics resources with.
- * @param maxGlyphs The maximum number of glyphs to draw at once.
+ * @param maxStandardGlyphs The maximum number of standard glyphs to draw at once.
+ * @param maxIconGlyphs The maximum number of icon glyphs to draw at once.
  * @param vertexFormat The vertex format to use.
  * @param tessellationShader True if the tessellation shader will create the quad instead of storing
  *     quads in the vertex buffer.
@@ -57,8 +82,9 @@ DS_TEXT_EXPORT uint32_t dsTextRenderBuffer_countRenderGlyphs(
  * @return The render buffer, or NULL if it couldn't be created.
  */
 DS_TEXT_EXPORT dsTextRenderBuffer* dsTextRenderBuffer_create(dsAllocator* allocator,
-	dsResourceManager* resourceManager, uint32_t maxGlyphs, const dsVertexFormat* vertexFormat,
-	bool tessellationShader, dsGlyphDataFunction glyphDataFunc, void* userData);
+	dsResourceManager* resourceManager, uint32_t maxStandardGlyphs, uint32_t maxIconGlyphs,
+	const dsVertexFormat* vertexFormat, bool tessellationShader, dsGlyphDataFunction glyphDataFunc,
+	void* userData);
 
 /**
  * @brief Adds text to the render buffer.
@@ -85,11 +111,19 @@ DS_TEXT_EXPORT bool dsTextRenderBuffer_addTextRange(dsTextRenderBuffer* renderBu
 	const dsTextLayout* layout, void* layoutUserData, uint32_t firstChar, uint32_t charCount);
 
 /**
- * @brief Gets the number of remaining glyphs that can be rendered.
+ * @brief Gets the number of remaining standard glyphs that can be rendered.
  * @param renderBuffer The render buffer.
- * @return The number of remaining glyphs.
+ * @return The number of remaining standard glyphs.
  */
-DS_TEXT_EXPORT uint32_t dsTextRenderBuffer_getRemainingGlyphs(
+DS_TEXT_EXPORT uint32_t dsTextRenderBuffer_getRemainingStandardGlyphs(
+	const dsTextRenderBuffer* renderBuffer);
+
+/**
+ * @brief Gets the number of remaining icon glyphs that can be rendered.
+ * @param renderBuffer The render buffer.
+ * @return The number of icon standard glyphs.
+ */
+DS_TEXT_EXPORT uint32_t dsTextRenderBuffer_getRemainingIconGlyphs(
 	const dsTextRenderBuffer* renderBuffer);
 
 /**
@@ -112,17 +146,17 @@ DS_TEXT_EXPORT bool dsTextRenderBuffer_commit(dsTextRenderBuffer* renderBuffer,
 DS_TEXT_EXPORT bool dsTextRenderBuffer_clear(dsTextRenderBuffer* renderBuffer);
 
 /**
- * @brief Draws the text that has been placed onto the buffer.
+ * @brief Draws the standard glyphs that have been placed onto the buffer.
  * @remark errno will be set on failure.
  * @param renderBuffer The text render buffer.
  * @param commandBuffer The command buffer to queue commands onto.
  * @return False if an error occurred.
  */
-DS_TEXT_EXPORT bool dsTextRenderBuffer_draw(dsTextRenderBuffer* renderBuffer,
-	dsCommandBuffer* commandBuffer);
+DS_TEXT_EXPORT bool dsTextRenderBuffer_drawStandardGlyphs(
+	dsTextRenderBuffer* renderBuffer, dsCommandBuffer* commandBuffer);
 
 /**
- * @brief Draws a range of text that has been placed onto the buffer.
+ * @brief Draws a range of standard glyphs that have been placed onto the buffer.
  *
  * Note that glyphs that have a bounds of size 0 will be skipped.
  *
@@ -133,7 +167,32 @@ DS_TEXT_EXPORT bool dsTextRenderBuffer_draw(dsTextRenderBuffer* renderBuffer,
  * @param glyphCount The number of glyphs to draw.
  * @return False if an error occurred.
  */
-DS_TEXT_EXPORT bool dsTextRenderBuffer_drawRange(dsTextRenderBuffer* renderBuffer,
+DS_TEXT_EXPORT bool dsTextRenderBuffer_drawStandardGlyphRange(dsTextRenderBuffer* renderBuffer,
+	dsCommandBuffer* commandBuffer, uint32_t firstGlyph, uint32_t glyphCount);
+
+/**
+ * @brief Draws the icon glyphs that have been placed onto the buffer.
+ * @remark errno will be set on failure.
+ * @param renderBuffer The text render buffer.
+ * @param commandBuffer The command buffer to queue commands onto.
+ * @return False if an error occurred.
+ */
+DS_TEXT_EXPORT bool dsTextRenderBuffer_drawIconGlyphs(
+	dsTextRenderBuffer* renderBuffer, dsCommandBuffer* commandBuffer);
+
+/**
+ * @brief Draws a range of icon glyphs that have been placed onto the buffer.
+ *
+ * Note that glyphs that have a bounds of size 0 will be skipped.
+ *
+ * @remark errno will be set on failure.
+ * @param renderBuffer The text render buffer.
+ * @param commandBuffer The command buffer to queue commands onto.
+ * @param firstGlyph The first glyph to draw.
+ * @param glyphCount The number of glyphs to draw.
+ * @return False if an error occurred.
+ */
+DS_TEXT_EXPORT bool dsTextRenderBuffer_drawIconGlyphRange(dsTextRenderBuffer* renderBuffer,
 	dsCommandBuffer* commandBuffer, uint32_t firstGlyph, uint32_t glyphCount);
 
 /**

@@ -30,7 +30,7 @@ The following custom scene resource types are provided with the members that are
 				* `innerSpotAngle`: the angle in degrees of the spot light where it starts to fade out.
 				* `outerSpotAngle`: the angle in degrees of the spot light where it finishes fade out.
 	* `maxLights`: the maximum number of lights that can be stored. If unset, the number of elements in lights will be used.
-	* `ambientColor`: the color of the ambient light as an array of three floats, typically in the range `[0,1]`. Defaults to all 0.
+	* `ambientColor`: the color of the ambient light as an array of three floats, typically in the range `[0, 1]`. Defaults to all 0.
 	* `ambientIntensity`: the intensity of the ambient light, which multiplies the color. Defaults to 0.
 	* `mainLight`: the name of the main light. If omitted no light will be considered the main light.
 	* `srgb`: true to treat all color values as sRGB values to be converted to linear space. Defaults to `false`.
@@ -58,7 +58,7 @@ The following scene node types are provided with the members that are expected:
 * `"LightNode"`: node to create lights for each instance in the scene graph.
 	* `light`: The light used as a template for all the lights created in the scene. It is expected to contain the following members
 		* `color`: the color of the light as an array of three float values, typically in the range `[0, 1]`.
-		* `intensity`: the intensity of the light, which multiplies the color.Light`: The light used as a template for all the lights created in the scene. It is expected to contain the following members:
+		* `intensity`: the intensity of the light, which multiplies the `color.Light`: The light used as a template for all the lights created in the scene. It is expected to contain the following members:
 		* `type`: the type of the light. The following types are supported with the members they expect:
 			* `"Directional"`
 				* `direction`: direction of the light as an array of three float values.
@@ -141,7 +141,6 @@ The following instance data types are provided with the members that are expecte
 	* `shadows`: name of the shadows within the shadow manager to get the transform from.
 	* `surface`: index of the surface within the shadows to get the transform from.
 	* `variableGroupDesc`:  name for the shader variable group to use.
-
 
 # Advanced lighting techniques
 
