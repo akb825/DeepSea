@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,9 @@ static size_t dsMTLRenderer_fullAllocSize(size_t deviceNameLen)
 
 static uint32_t getShaderVersion(void)
 {
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 180000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 150000
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 260000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 260000
+	return DS_ENCODE_VERSION(4, 0, 0);
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 180000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 150000
 	return DS_ENCODE_VERSION(3, 2, 0);
 #elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 170000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 140000
 	return DS_ENCODE_VERSION(3, 1, 0);
