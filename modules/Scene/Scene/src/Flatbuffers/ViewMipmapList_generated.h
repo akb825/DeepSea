@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -28,7 +28,8 @@ struct ViewMipmapList FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *textures() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_TEXTURES);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_TEXTURES) &&
            verifier.VerifyVector(textures()) &&
@@ -81,14 +82,16 @@ inline const DeepSeaScene::ViewMipmapList *GetSizePrefixedViewMipmapList(const v
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaScene::ViewMipmapList>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyViewMipmapListBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaScene::ViewMipmapList>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaScene::ViewMipmapList>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedViewMipmapListBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaScene::ViewMipmapList>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaScene::ViewMipmapList>(nullptr);
 }
 
 inline void FinishViewMipmapListBuffer(

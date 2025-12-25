@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace DeepSeaSceneLighting {
@@ -38,7 +38,8 @@ struct ShadowInstanceTransformData FLATBUFFERS_FINAL_CLASS : private ::flatbuffe
   const ::flatbuffers::String *variableGroupDesc() const {
     return GetPointer<const ::flatbuffers::String *>(VT_VARIABLEGROUPDESC);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_SHADOWMANAGER) &&
            verifier.VerifyString(shadowManager()) &&
@@ -120,14 +121,16 @@ inline const DeepSeaSceneLighting::ShadowInstanceTransformData *GetSizePrefixedS
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneLighting::ShadowInstanceTransformData>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyShadowInstanceTransformDataBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaSceneLighting::ShadowInstanceTransformData>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaSceneLighting::ShadowInstanceTransformData>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedShadowInstanceTransformDataBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaSceneLighting::ShadowInstanceTransformData>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaSceneLighting::ShadowInstanceTransformData>(nullptr);
 }
 
 inline void FinishShadowInstanceTransformDataBuffer(

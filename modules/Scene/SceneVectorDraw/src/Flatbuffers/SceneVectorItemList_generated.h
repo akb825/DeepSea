@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -36,7 +36,8 @@ struct VectorItemList FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *views() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_VIEWS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_INSTANCEDATA) &&
            verifier.VerifyVector(instanceData()) &&
@@ -108,14 +109,16 @@ inline const DeepSeaSceneVectorDraw::VectorItemList *GetSizePrefixedVectorItemLi
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneVectorDraw::VectorItemList>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyVectorItemListBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaSceneVectorDraw::VectorItemList>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaSceneVectorDraw::VectorItemList>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedVectorItemListBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaSceneVectorDraw::VectorItemList>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaSceneVectorDraw::VectorItemList>(nullptr);
 }
 
 inline void FinishVectorItemListBuffer(

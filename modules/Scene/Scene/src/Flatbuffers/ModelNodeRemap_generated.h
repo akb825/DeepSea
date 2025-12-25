@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -43,7 +43,8 @@ struct MaterialRemap FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *material() const {
     return GetPointer<const ::flatbuffers::String *>(VT_MATERIAL);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -129,7 +130,8 @@ struct ModelNodeRemap FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::MaterialRemap>> *materialRemaps() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::MaterialRemap>> *>(VT_MATERIALREMAPS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -192,14 +194,16 @@ inline const DeepSeaScene::ModelNodeRemap *GetSizePrefixedModelNodeRemap(const v
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaScene::ModelNodeRemap>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyModelNodeRemapBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaScene::ModelNodeRemap>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaScene::ModelNodeRemap>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedModelNodeRemapBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaScene::ModelNodeRemap>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaScene::ModelNodeRemap>(nullptr);
 }
 
 inline void FinishModelNodeRemapBuffer(

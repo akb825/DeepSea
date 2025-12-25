@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -40,7 +40,8 @@ struct LightData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaScene::Vector3f *ambient() const {
     return GetStruct<const DeepSeaScene::Vector3f *>(VT_AMBIENT);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_VARIABLEGROUPDESC) &&
            verifier.VerifyString(variableGroupDesc()) &&
@@ -119,14 +120,16 @@ inline const TestScene::LightData *GetSizePrefixedLightData(const void *buf) {
   return ::flatbuffers::GetSizePrefixedRoot<TestScene::LightData>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyLightDataBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<TestScene::LightData>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<TestScene::LightData>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedLightDataBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<TestScene::LightData>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<TestScene::LightData>(nullptr);
 }
 
 inline void FinishLightDataBuffer(

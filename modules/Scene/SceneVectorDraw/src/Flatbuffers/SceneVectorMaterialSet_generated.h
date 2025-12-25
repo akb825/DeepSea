@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -151,8 +151,10 @@ template<> struct MaterialValueTraits<DeepSeaSceneVectorDraw::RadialGradient> {
   static const MaterialValue enum_value = MaterialValue::RadialGradient;
 };
 
-bool VerifyMaterialValue(::flatbuffers::Verifier &verifier, const void *obj, MaterialValue type);
-bool VerifyMaterialValueVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<MaterialValue> *types);
+template <bool B = false>
+bool VerifyMaterialValue(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, MaterialValue type);
+template <bool B = false>
+bool VerifyMaterialValueVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<MaterialValue> *types);
 
 struct ColorTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ColorTableBuilder Builder;
@@ -174,7 +176,8 @@ struct ColorTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   uint8_t alpha() const {
     return GetField<uint8_t>(VT_ALPHA, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_RED, 1) &&
            VerifyField<uint8_t>(verifier, VT_GREEN, 1) &&
@@ -237,7 +240,8 @@ struct GradientStop FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaSceneVectorDraw::Color *color() const {
     return GetStruct<const DeepSeaSceneVectorDraw::Color *>(VT_COLOR);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<float>(verifier, VT_POSITION, 4) &&
            VerifyFieldRequired<DeepSeaSceneVectorDraw::Color>(verifier, VT_COLOR, 1) &&
@@ -305,7 +309,8 @@ struct LinearGradient FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaSceneVectorDraw::GradientStop>> *stops() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaSceneVectorDraw::GradientStop>> *>(VT_STOPS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<DeepSeaScene::Vector2f>(verifier, VT_START, 4) &&
            VerifyField<DeepSeaScene::Vector2f>(verifier, VT_END, 4) &&
@@ -426,7 +431,8 @@ struct RadialGradient FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaSceneVectorDraw::GradientStop>> *stops() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaSceneVectorDraw::GradientStop>> *>(VT_STOPS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<DeepSeaScene::Vector2f>(verifier, VT_CENTER, 4) &&
            VerifyField<float>(verifier, VT_RADIUS, 4) &&
@@ -553,7 +559,8 @@ struct Material FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaSceneVectorDraw::RadialGradient *value_as_RadialGradient() const {
     return value_type() == DeepSeaSceneVectorDraw::MaterialValue::RadialGradient ? static_cast<const DeepSeaSceneVectorDraw::RadialGradient *>(value()) : nullptr;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -639,7 +646,8 @@ struct VectorMaterialSet FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   bool srgb() const {
     return GetField<uint8_t>(VT_SRGB, 0) != 0;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_MATERIALS) &&
            verifier.VerifyVector(materials()) &&
@@ -692,7 +700,8 @@ inline ::flatbuffers::Offset<VectorMaterialSet> CreateVectorMaterialSetDirect(
       srgb);
 }
 
-inline bool VerifyMaterialValue(::flatbuffers::Verifier &verifier, const void *obj, MaterialValue type) {
+template <bool B>
+inline bool VerifyMaterialValue(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, MaterialValue type) {
   switch (type) {
     case MaterialValue::NONE: {
       return true;
@@ -713,7 +722,8 @@ inline bool VerifyMaterialValue(::flatbuffers::Verifier &verifier, const void *o
   }
 }
 
-inline bool VerifyMaterialValueVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<MaterialValue> *types) {
+template <bool B>
+inline bool VerifyMaterialValueVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<MaterialValue> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -733,14 +743,16 @@ inline const DeepSeaSceneVectorDraw::VectorMaterialSet *GetSizePrefixedVectorMat
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneVectorDraw::VectorMaterialSet>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyVectorMaterialSetBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaSceneVectorDraw::VectorMaterialSet>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaSceneVectorDraw::VectorMaterialSet>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedVectorMaterialSetBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaSceneVectorDraw::VectorMaterialSet>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaSceneVectorDraw::VectorMaterialSet>(nullptr);
 }
 
 inline void FinishVectorMaterialSetBuffer(

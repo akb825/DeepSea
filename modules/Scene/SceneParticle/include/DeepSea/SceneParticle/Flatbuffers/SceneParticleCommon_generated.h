@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -83,8 +83,10 @@ template<> struct ParticleVolumeTraits<DeepSeaSceneParticle::ParticleCylinder> {
   static const ParticleVolume enum_value = ParticleVolume::ParticleCylinder;
 };
 
-bool VerifyParticleVolume(::flatbuffers::Verifier &verifier, const void *obj, ParticleVolume type);
-bool VerifyParticleVolumeVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ParticleVolume> *types);
+template <bool B = false>
+bool VerifyParticleVolume(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, ParticleVolume type);
+template <bool B = false>
+bool VerifyParticleVolumeVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ParticleVolume> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector2u FLATBUFFERS_FINAL_CLASS {
  private:
@@ -129,7 +131,8 @@ struct ParticleEmitterParams FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Ta
   uint32_t instanceValueCount() const {
     return GetField<uint32_t>(VT_INSTANCEVALUECOUNT, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint32_t>(verifier, VT_MAXPARTICLES, 4) &&
            VerifyOffsetRequired(verifier, VT_SHADER) &&
@@ -212,7 +215,8 @@ struct ParticleBox FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaScene::Vector3f *max() const {
     return GetStruct<const DeepSeaScene::Vector3f *>(VT_MAX);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_MIN, 4) &&
            VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_MAX, 4) &&
@@ -265,7 +269,8 @@ struct ParticleSphere FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   float radius() const {
     return GetField<float>(VT_RADIUS, 0.0f);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_CENTER, 4) &&
            VerifyField<float>(verifier, VT_RADIUS, 4) &&
@@ -321,7 +326,8 @@ struct ParticleCylinder FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   float height() const {
     return GetField<float>(VT_HEIGHT, 0.0f);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_CENTER, 4) &&
            VerifyField<float>(verifier, VT_RADIUS, 4) &&
@@ -367,7 +373,8 @@ inline ::flatbuffers::Offset<ParticleCylinder> CreateParticleCylinder(
   return builder_.Finish();
 }
 
-inline bool VerifyParticleVolume(::flatbuffers::Verifier &verifier, const void *obj, ParticleVolume type) {
+template <bool B>
+inline bool VerifyParticleVolume(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, ParticleVolume type) {
   switch (type) {
     case ParticleVolume::NONE: {
       return true;
@@ -388,7 +395,8 @@ inline bool VerifyParticleVolume(::flatbuffers::Verifier &verifier, const void *
   }
 }
 
-inline bool VerifyParticleVolumeVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ParticleVolume> *types) {
+template <bool B>
+inline bool VerifyParticleVolumeVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ParticleVolume> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {

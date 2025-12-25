@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Physics/Flatbuffers/PhysicsCommon_generated.h"
@@ -36,7 +36,8 @@ struct Capsule FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   DeepSeaPhysics::Axis axis() const {
     return static_cast<DeepSeaPhysics::Axis>(GetField<uint8_t>(VT_AXIS, 0));
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<float>(verifier, VT_HALFHEIGHT, 4) &&
            VerifyField<float>(verifier, VT_RADIUS, 4) &&

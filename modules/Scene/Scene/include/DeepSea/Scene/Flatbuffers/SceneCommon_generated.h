@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace DeepSeaScene {
@@ -852,8 +852,10 @@ template<> struct FileOrDataTraits<DeepSeaScene::RawData> {
   static const FileOrData enum_value = FileOrData::RawData;
 };
 
-bool VerifyFileOrData(::flatbuffers::Verifier &verifier, const void *obj, FileOrData type);
-bool VerifyFileOrDataVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<FileOrData> *types);
+template <bool B = false>
+bool VerifyFileOrData(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, FileOrData type);
+template <bool B = false>
+bool VerifyFileOrDataVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<FileOrData> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector2f FLATBUFFERS_FINAL_CLASS {
  private:
@@ -1163,7 +1165,8 @@ struct ObjectData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<uint8_t> *data() const {
     return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_DATA);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_TYPE) &&
            verifier.VerifyString(type()) &&
@@ -1230,7 +1233,8 @@ struct FileReference FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *path() const {
     return GetPointer<const ::flatbuffers::String *>(VT_PATH);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_PATH) &&
@@ -1290,7 +1294,8 @@ struct RelativePathReference FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Ta
   const ::flatbuffers::String *path() const {
     return GetPointer<const ::flatbuffers::String *>(VT_PATH);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_PATH) &&
            verifier.VerifyString(path()) &&
@@ -1342,7 +1347,8 @@ struct RawData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<uint8_t> *data() const {
     return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_DATA);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_DATA) &&
            verifier.VerifyVector(data()) &&
@@ -1412,7 +1418,8 @@ struct VersionedShaderModule FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Ta
   const DeepSeaScene::RawData *data_as_RawData() const {
     return data_type() == DeepSeaScene::FileOrData::RawData ? static_cast<const DeepSeaScene::RawData *>(data()) : nullptr;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_VERSION) &&
            verifier.VerifyString(version()) &&
@@ -1538,7 +1545,8 @@ struct DynamicRenderStates FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tabl
   uint32_t backStencilReference() const {
     return GetField<uint32_t>(VT_BACKSTENCILREFERENCE, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<float>(verifier, VT_LINEWIDTH, 4) &&
            VerifyField<float>(verifier, VT_DEPTHBIASCONSTANTFACTOR, 4) &&
@@ -1637,7 +1645,8 @@ inline ::flatbuffers::Offset<DynamicRenderStates> CreateDynamicRenderStates(
   return builder_.Finish();
 }
 
-inline bool VerifyFileOrData(::flatbuffers::Verifier &verifier, const void *obj, FileOrData type) {
+template <bool B>
+inline bool VerifyFileOrData(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, FileOrData type) {
   switch (type) {
     case FileOrData::NONE: {
       return true;
@@ -1658,7 +1667,8 @@ inline bool VerifyFileOrData(::flatbuffers::Verifier &verifier, const void *obj,
   }
 }
 
-inline bool VerifyFileOrDataVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<FileOrData> *types) {
+template <bool B>
+inline bool VerifyFileOrDataVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<FileOrData> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {

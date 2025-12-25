@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace DeepSeaScene {
@@ -34,7 +34,8 @@ struct BufferMaterialData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table
   uint32_t size() const {
     return GetField<uint32_t>(VT_SIZE, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -102,14 +103,16 @@ inline const DeepSeaScene::BufferMaterialData *GetSizePrefixedBufferMaterialData
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaScene::BufferMaterialData>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyBufferMaterialDataBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaScene::BufferMaterialData>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaScene::BufferMaterialData>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedBufferMaterialDataBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaScene::BufferMaterialData>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaScene::BufferMaterialData>(nullptr);
 }
 
 inline void FinishBufferMaterialDataBuffer(

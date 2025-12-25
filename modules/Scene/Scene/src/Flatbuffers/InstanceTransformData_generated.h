@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace DeepSeaScene {
@@ -26,7 +26,8 @@ struct InstanceTransformData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Ta
   const ::flatbuffers::String *variableGroupDesc() const {
     return GetPointer<const ::flatbuffers::String *>(VT_VARIABLEGROUPDESC);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_VARIABLEGROUPDESC) &&
            verifier.VerifyString(variableGroupDesc()) &&
@@ -78,14 +79,16 @@ inline const DeepSeaScene::InstanceTransformData *GetSizePrefixedInstanceTransfo
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaScene::InstanceTransformData>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyInstanceTransformDataBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaScene::InstanceTransformData>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaScene::InstanceTransformData>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedInstanceTransformDataBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaScene::InstanceTransformData>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaScene::InstanceTransformData>(nullptr);
 }
 
 inline void FinishInstanceTransformDataBuffer(

@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -42,7 +42,8 @@ struct VectorResources FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaScene::RawData *resources_as_RawData() const {
     return resources_type() == DeepSeaScene::FileOrData::RawData ? static_cast<const DeepSeaScene::RawData *>(resources()) : nullptr;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_RESOURCES_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_RESOURCES) &&
@@ -103,14 +104,16 @@ inline const DeepSeaSceneVectorDraw::VectorResources *GetSizePrefixedVectorResou
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneVectorDraw::VectorResources>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyVectorResourcesBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaSceneVectorDraw::VectorResources>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaSceneVectorDraw::VectorResources>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedVectorResourcesBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaSceneVectorDraw::VectorResources>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaSceneVectorDraw::VectorResources>(nullptr);
 }
 
 inline void FinishVectorResourcesBuffer(

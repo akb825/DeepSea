@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace DeepSeaSceneLighting {
@@ -34,7 +34,8 @@ struct ShadowCullList FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   uint8_t surface() const {
     return GetField<uint8_t>(VT_SURFACE, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_SHADOWMANAGER) &&
            verifier.VerifyString(shadowManager()) &&
@@ -105,14 +106,16 @@ inline const DeepSeaSceneLighting::ShadowCullList *GetSizePrefixedShadowCullList
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneLighting::ShadowCullList>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyShadowCullListBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaSceneLighting::ShadowCullList>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaSceneLighting::ShadowCullList>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedShadowCullListBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaSceneLighting::ShadowCullList>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaSceneLighting::ShadowCullList>(nullptr);
 }
 
 inline void FinishShadowCullListBuffer(

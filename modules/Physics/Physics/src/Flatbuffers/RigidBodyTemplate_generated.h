@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Physics/Flatbuffers/PhysicsCommon_generated.h"
@@ -92,7 +92,8 @@ struct RigidBodyTemplate FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaPhysics::ShapeInstance>> *shapes() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaPhysics::ShapeInstance>> *>(VT_SHAPES);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint32_t>(verifier, VT_FLAGS, 4) &&
            VerifyField<uint8_t>(verifier, VT_MOTIONTYPE, 1) &&
@@ -265,14 +266,16 @@ inline const DeepSeaPhysics::RigidBodyTemplate *GetSizePrefixedRigidBodyTemplate
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaPhysics::RigidBodyTemplate>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyRigidBodyTemplateBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaPhysics::RigidBodyTemplate>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaPhysics::RigidBodyTemplate>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedRigidBodyTemplateBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaPhysics::RigidBodyTemplate>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaPhysics::RigidBodyTemplate>(nullptr);
 }
 
 inline void FinishRigidBodyTemplateBuffer(

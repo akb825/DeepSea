@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -127,7 +127,8 @@ struct Surface FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool windowFramebuffer() const {
     return GetField<uint8_t>(VT_WINDOWFRAMEBUFFER, 0) != 0;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -311,7 +312,8 @@ struct FramebufferSurface FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table
   uint32_t mipLevel() const {
     return GetField<uint32_t>(VT_MIPLEVEL, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -407,7 +409,8 @@ struct Framebuffer FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaScene::AlignedBox3f *viewport() const {
     return GetStruct<const DeepSeaScene::AlignedBox3f *>(VT_VIEWPORT);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -506,7 +509,8 @@ struct View FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::Framebuffer>> *framebuffers() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::Framebuffer>> *>(VT_FRAMEBUFFERS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_SURFACES) &&
            verifier.VerifyVector(surfaces()) &&
@@ -570,14 +574,16 @@ inline const DeepSeaScene::View *GetSizePrefixedView(const void *buf) {
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaScene::View>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyViewBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaScene::View>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaScene::View>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedViewBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaScene::View>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaScene::View>(nullptr);
 }
 
 inline void FinishViewBuffer(

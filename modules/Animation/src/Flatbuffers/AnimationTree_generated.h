@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "AnimationCommon_generated.h"
@@ -50,7 +50,8 @@ struct AnimationTreeNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationTreeNode>> *children() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationTreeNode>> *>(VT_CHILDREN);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -157,7 +158,8 @@ struct AnimationJointTreeNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::T
   const ::flatbuffers::Vector<uint32_t> *children() const {
     return GetPointer<const ::flatbuffers::Vector<uint32_t> *>(VT_CHILDREN);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -256,7 +258,8 @@ struct AnimationTree FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationJointTreeNode>> *jointNodes() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationJointTreeNode>> *>(VT_JOINTNODES);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_ROOTNODES) &&
            verifier.VerifyVector(rootNodes()) &&
@@ -319,14 +322,16 @@ inline const DeepSeaAnimation::AnimationTree *GetSizePrefixedAnimationTree(const
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaAnimation::AnimationTree>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyAnimationTreeBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaAnimation::AnimationTree>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaAnimation::AnimationTree>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedAnimationTreeBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaAnimation::AnimationTree>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaAnimation::AnimationTree>(nullptr);
 }
 
 inline void FinishAnimationTreeBuffer(

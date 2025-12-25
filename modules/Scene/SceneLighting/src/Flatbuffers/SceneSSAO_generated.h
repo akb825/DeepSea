@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace DeepSeaSceneLighting {
@@ -30,7 +30,8 @@ struct SceneSSAO FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *material() const {
     return GetPointer<const ::flatbuffers::String *>(VT_MATERIAL);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_SHADER) &&
            verifier.VerifyString(shader()) &&
@@ -93,14 +94,16 @@ inline const DeepSeaSceneLighting::SceneSSAO *GetSizePrefixedSceneSSAO(const voi
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneLighting::SceneSSAO>(buf);
 }
 
+template <bool B = false>
 inline bool VerifySceneSSAOBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaSceneLighting::SceneSSAO>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaSceneLighting::SceneSSAO>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedSceneSSAOBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaSceneLighting::SceneSSAO>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaSceneLighting::SceneSSAO>(nullptr);
 }
 
 inline void FinishSceneSSAOBuffer(

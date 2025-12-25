@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Physics/Flatbuffers/PhysicsCommon_generated.h"
@@ -32,7 +32,8 @@ struct Box FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   float convexRadius() const {
     return GetField<float>(VT_CONVEXRADIUS, -1.0f);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaPhysics::Vector3f>(verifier, VT_HALFEXTENTS, 4) &&
            VerifyField<float>(verifier, VT_CONVEXRADIUS, 4) &&

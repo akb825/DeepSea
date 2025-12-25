@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace DeepSeaScenePhysics {
@@ -42,7 +42,8 @@ struct Constraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *secondConnectedConstraintInstance() const {
     return GetPointer<const ::flatbuffers::String *>(VT_SECONDCONNECTEDCONSTRAINTINSTANCE);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_CONSTRAINT) &&
            verifier.VerifyVector(constraint()) &&
@@ -134,14 +135,16 @@ inline const DeepSeaScenePhysics::Constraint *GetSizePrefixedConstraint(const vo
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaScenePhysics::Constraint>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaScenePhysics::Constraint>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaScenePhysics::Constraint>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaScenePhysics::Constraint>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaScenePhysics::Constraint>(nullptr);
 }
 
 inline void FinishConstraintBuffer(

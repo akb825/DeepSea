@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace DeepSeaVectorDraw {
@@ -78,8 +78,10 @@ template<> struct FileOrDataTraits<DeepSeaVectorDraw::RawData> {
   static const FileOrData enum_value = FileOrData::RawData;
 };
 
-bool VerifyFileOrData(::flatbuffers::Verifier &verifier, const void *obj, FileOrData type);
-bool VerifyFileOrDataVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<FileOrData> *types);
+template <bool B = false>
+bool VerifyFileOrData(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, FileOrData type);
+template <bool B = false>
+bool VerifyFileOrDataVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<FileOrData> *types);
 
 enum class FontQuality : uint8_t {
   Low = 0,
@@ -155,7 +157,8 @@ struct FileReference FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *path() const {
     return GetPointer<const ::flatbuffers::String *>(VT_PATH);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_PATH) &&
            verifier.VerifyString(path()) &&
@@ -207,7 +210,8 @@ struct RawData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<uint8_t> *data() const {
     return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_DATA);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_DATA) &&
            verifier.VerifyVector(data()) &&
@@ -274,7 +278,8 @@ struct Resource FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaVectorDraw::RawData *data_as_RawData() const {
     return data_type() == DeepSeaVectorDraw::FileOrData::RawData ? static_cast<const DeepSeaVectorDraw::RawData *>(data()) : nullptr;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -356,7 +361,8 @@ struct FaceGroup FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::Resource>> *faces() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::Resource>> *>(VT_FACES);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -436,7 +442,8 @@ struct Font FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   DeepSeaVectorDraw::FontCacheSize cacheSize() const {
     return static_cast<DeepSeaVectorDraw::FontCacheSize>(GetField<uint8_t>(VT_CACHESIZE, 0));
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -535,7 +542,8 @@ struct VectorResources FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::Font>> *fonts() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::Font>> *>(VT_FONTS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_TEXTURES) &&
            verifier.VerifyVector(textures()) &&
@@ -601,7 +609,8 @@ inline ::flatbuffers::Offset<VectorResources> CreateVectorResourcesDirect(
       fonts__);
 }
 
-inline bool VerifyFileOrData(::flatbuffers::Verifier &verifier, const void *obj, FileOrData type) {
+template <bool B>
+inline bool VerifyFileOrData(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, FileOrData type) {
   switch (type) {
     case FileOrData::NONE: {
       return true;
@@ -618,7 +627,8 @@ inline bool VerifyFileOrData(::flatbuffers::Verifier &verifier, const void *obj,
   }
 }
 
-inline bool VerifyFileOrDataVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<FileOrData> *types) {
+template <bool B>
+inline bool VerifyFileOrDataVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<FileOrData> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -638,14 +648,16 @@ inline const DeepSeaVectorDraw::VectorResources *GetSizePrefixedVectorResources(
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaVectorDraw::VectorResources>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyVectorResourcesBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaVectorDraw::VectorResources>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaVectorDraw::VectorResources>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedVectorResourcesBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaVectorDraw::VectorResources>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaVectorDraw::VectorResources>(nullptr);
 }
 
 inline void FinishVectorResourcesBuffer(

@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace DeepSeaSceneParticle {
@@ -30,7 +30,8 @@ struct ParticleNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_ITEMLISTS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_PARTICLEEMITTERFACTORY) &&
            verifier.VerifyString(particleEmitterFactory()) &&
@@ -93,14 +94,16 @@ inline const DeepSeaSceneParticle::ParticleNode *GetSizePrefixedParticleNode(con
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneParticle::ParticleNode>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyParticleNodeBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaSceneParticle::ParticleNode>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaSceneParticle::ParticleNode>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedParticleNodeBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaSceneParticle::ParticleNode>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaSceneParticle::ParticleNode>(nullptr);
 }
 
 inline void FinishParticleNodeBuffer(

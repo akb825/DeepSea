@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace DeepSeaPhysics {
@@ -352,8 +352,10 @@ template<> struct CustomMassPropertiesTraits<DeepSeaPhysics::MassProperties> {
   static const CustomMassProperties enum_value = CustomMassProperties::MassProperties;
 };
 
-bool VerifyCustomMassProperties(::flatbuffers::Verifier &verifier, const void *obj, CustomMassProperties type);
-bool VerifyCustomMassPropertiesVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<CustomMassProperties> *types);
+template <bool B = false>
+bool VerifyCustomMassProperties(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, CustomMassProperties type);
+template <bool B = false>
+bool VerifyCustomMassPropertiesVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<CustomMassProperties> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3f FLATBUFFERS_FINAL_CLASS {
  private:
@@ -489,7 +491,8 @@ struct ShiftedMass FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaPhysics::Vector3f *rotationPointShift() const {
     return GetStruct<const DeepSeaPhysics::Vector3f *>(VT_ROTATIONPOINTSHIFT);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<float>(verifier, VT_MASS, 4) &&
            VerifyField<DeepSeaPhysics::Vector3f>(verifier, VT_ROTATIONPOINTSHIFT, 4) &&
@@ -552,7 +555,8 @@ struct MassProperties FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaPhysics::Quaternion4f *inertiaRotate() const {
     return GetStruct<const DeepSeaPhysics::Quaternion4f *>(VT_INERTIAROTATE);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaPhysics::Matrix33f>(verifier, VT_CENTEREDINERTIA, 4) &&
            VerifyField<DeepSeaPhysics::Vector3f>(verifier, VT_CENTEROFMASS, 4) &&
@@ -610,7 +614,8 @@ inline ::flatbuffers::Offset<MassProperties> CreateMassProperties(
   return builder_.Finish();
 }
 
-inline bool VerifyCustomMassProperties(::flatbuffers::Verifier &verifier, const void *obj, CustomMassProperties type) {
+template <bool B>
+inline bool VerifyCustomMassProperties(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, CustomMassProperties type) {
   switch (type) {
     case CustomMassProperties::NONE: {
       return true;
@@ -627,7 +632,8 @@ inline bool VerifyCustomMassProperties(::flatbuffers::Verifier &verifier, const 
   }
 }
 
-inline bool VerifyCustomMassPropertiesVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<CustomMassProperties> *types) {
+template <bool B>
+inline bool VerifyCustomMassPropertiesVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<CustomMassProperties> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {

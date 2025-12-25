@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace DeepSeaScenePhysics {
@@ -75,8 +75,10 @@ template<> struct ActorReferenceTraits<DeepSeaScenePhysics::ActorResourceReferen
   static const ActorReference enum_value = ActorReference::ActorResourceReference;
 };
 
-bool VerifyActorReference(::flatbuffers::Verifier &verifier, const void *obj, ActorReference type);
-bool VerifyActorReferenceVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ActorReference> *types);
+template <bool B = false>
+bool VerifyActorReference(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, ActorReference type);
+template <bool B = false>
+bool VerifyActorReferenceVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ActorReference> *types);
 
 enum class ConstraintReference : uint8_t {
   NONE = 0,
@@ -130,8 +132,10 @@ template<> struct ConstraintReferenceTraits<DeepSeaScenePhysics::ConstraintResou
   static const ConstraintReference enum_value = ConstraintReference::ConstraintResourceReference;
 };
 
-bool VerifyConstraintReference(::flatbuffers::Verifier &verifier, const void *obj, ConstraintReference type);
-bool VerifyConstraintReferenceVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ConstraintReference> *types);
+template <bool B = false>
+bool VerifyConstraintReference(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, ConstraintReference type);
+template <bool B = false>
+bool VerifyConstraintReferenceVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ConstraintReference> *types);
 
 struct InstanceReference FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef InstanceReferenceBuilder Builder;
@@ -149,7 +153,8 @@ struct InstanceReference FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   const ::flatbuffers::String *instance() const {
     return GetPointer<const ::flatbuffers::String *>(VT_INSTANCE);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_ROOTNODE) &&
            verifier.VerifyString(rootNode()) &&
@@ -222,7 +227,8 @@ struct ActorResourceReference FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::T
   const ::flatbuffers::String *actor() const {
     return GetPointer<const ::flatbuffers::String *>(VT_ACTOR);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_ACTOR) &&
            verifier.VerifyString(actor()) &&
@@ -274,7 +280,8 @@ struct ConstraintNodeReference FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::
   const ::flatbuffers::String *constraintNode() const {
     return GetPointer<const ::flatbuffers::String *>(VT_CONSTRAINTNODE);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_CONSTRAINTNODE) &&
            verifier.VerifyString(constraintNode()) &&
@@ -326,7 +333,8 @@ struct ConstraintResourceReference FLATBUFFERS_FINAL_CLASS : private ::flatbuffe
   const ::flatbuffers::String *constraint() const {
     return GetPointer<const ::flatbuffers::String *>(VT_CONSTRAINT);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_CONSTRAINT) &&
            verifier.VerifyString(constraint()) &&
@@ -448,7 +456,8 @@ struct ConstraintNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_ITEMLISTS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_CONSTRAINT) &&
            verifier.VerifyString(constraint()) &&
@@ -611,7 +620,8 @@ inline ::flatbuffers::Offset<ConstraintNode> CreateConstraintNodeDirect(
       itemLists__);
 }
 
-inline bool VerifyActorReference(::flatbuffers::Verifier &verifier, const void *obj, ActorReference type) {
+template <bool B>
+inline bool VerifyActorReference(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, ActorReference type) {
   switch (type) {
     case ActorReference::NONE: {
       return true;
@@ -628,7 +638,8 @@ inline bool VerifyActorReference(::flatbuffers::Verifier &verifier, const void *
   }
 }
 
-inline bool VerifyActorReferenceVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ActorReference> *types) {
+template <bool B>
+inline bool VerifyActorReferenceVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ActorReference> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -640,7 +651,8 @@ inline bool VerifyActorReferenceVector(::flatbuffers::Verifier &verifier, const 
   return true;
 }
 
-inline bool VerifyConstraintReference(::flatbuffers::Verifier &verifier, const void *obj, ConstraintReference type) {
+template <bool B>
+inline bool VerifyConstraintReference(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, ConstraintReference type) {
   switch (type) {
     case ConstraintReference::NONE: {
       return true;
@@ -661,7 +673,8 @@ inline bool VerifyConstraintReference(::flatbuffers::Verifier &verifier, const v
   }
 }
 
-inline bool VerifyConstraintReferenceVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ConstraintReference> *types) {
+template <bool B>
+inline bool VerifyConstraintReferenceVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ConstraintReference> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -681,14 +694,16 @@ inline const DeepSeaScenePhysics::ConstraintNode *GetSizePrefixedConstraintNode(
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaScenePhysics::ConstraintNode>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyConstraintNodeBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaScenePhysics::ConstraintNode>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaScenePhysics::ConstraintNode>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedConstraintNodeBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaScenePhysics::ConstraintNode>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaScenePhysics::ConstraintNode>(nullptr);
 }
 
 inline void FinishConstraintNodeBuffer(

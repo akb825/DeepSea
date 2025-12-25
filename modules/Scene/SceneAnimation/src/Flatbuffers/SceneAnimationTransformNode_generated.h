@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -36,7 +36,8 @@ struct AnimationTransformNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::T
   const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_ITEMLISTS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_ANIMATIONNODE) &&
            verifier.VerifyString(animationNode()) &&
@@ -110,14 +111,16 @@ inline const DeepSeaSceneAnimation::AnimationTransformNode *GetSizePrefixedAnima
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneAnimation::AnimationTransformNode>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyAnimationTransformNodeBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaSceneAnimation::AnimationTransformNode>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaSceneAnimation::AnimationTransformNode>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedAnimationTransformNodeBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaSceneAnimation::AnimationTransformNode>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaSceneAnimation::AnimationTransformNode>(nullptr);
 }
 
 inline void FinishAnimationTransformNodeBuffer(

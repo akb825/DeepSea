@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace TestParticles {
@@ -38,7 +38,8 @@ struct LightFlicker FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   float maxIntensity() const {
     return GetField<float>(VT_MAXINTENSITY, 0.0f);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<float>(verifier, VT_MINTIME, 4) &&
            VerifyField<float>(verifier, VT_MAXTIME, 4) &&
@@ -97,14 +98,16 @@ inline const TestParticles::LightFlicker *GetSizePrefixedLightFlicker(const void
   return ::flatbuffers::GetSizePrefixedRoot<TestParticles::LightFlicker>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyLightFlickerBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<TestParticles::LightFlicker>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<TestParticles::LightFlicker>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedLightFlickerBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<TestParticles::LightFlicker>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<TestParticles::LightFlicker>(nullptr);
 }
 
 inline void FinishLightFlickerBuffer(

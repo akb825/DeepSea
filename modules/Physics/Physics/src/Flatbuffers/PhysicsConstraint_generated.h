@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "ConePhysicsConstraint_generated.h"
@@ -130,8 +130,10 @@ template<> struct ConstraintUnionTraits<DeepSeaPhysics::RackAndPinionConstraint>
   static const ConstraintUnion enum_value = ConstraintUnion::RackAndPinionConstraint;
 };
 
-bool VerifyConstraintUnion(::flatbuffers::Verifier &verifier, const void *obj, ConstraintUnion type);
-bool VerifyConstraintUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ConstraintUnion> *types);
+template <bool B = false>
+bool VerifyConstraintUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, ConstraintUnion type);
+template <bool B = false>
+bool VerifyConstraintUnionVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ConstraintUnion> *types);
 
 struct Constraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ConstraintBuilder Builder;
@@ -176,7 +178,8 @@ struct Constraint FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaPhysics::RackAndPinionConstraint *constraint_as_RackAndPinionConstraint() const {
     return constraint_type() == DeepSeaPhysics::ConstraintUnion::RackAndPinionConstraint ? static_cast<const DeepSeaPhysics::RackAndPinionConstraint *>(constraint()) : nullptr;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_CONSTRAINT_TYPE, 1) &&
            VerifyOffset(verifier, VT_CONSTRAINT) &&
@@ -256,7 +259,8 @@ inline ::flatbuffers::Offset<Constraint> CreateConstraint(
   return builder_.Finish();
 }
 
-inline bool VerifyConstraintUnion(::flatbuffers::Verifier &verifier, const void *obj, ConstraintUnion type) {
+template <bool B>
+inline bool VerifyConstraintUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, ConstraintUnion type) {
   switch (type) {
     case ConstraintUnion::NONE: {
       return true;
@@ -305,7 +309,8 @@ inline bool VerifyConstraintUnion(::flatbuffers::Verifier &verifier, const void 
   }
 }
 
-inline bool VerifyConstraintUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ConstraintUnion> *types) {
+template <bool B>
+inline bool VerifyConstraintUnionVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ConstraintUnion> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -325,14 +330,16 @@ inline const DeepSeaPhysics::Constraint *GetSizePrefixedConstraint(const void *b
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaPhysics::Constraint>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaPhysics::Constraint>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaPhysics::Constraint>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedConstraintBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaPhysics::Constraint>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaPhysics::Constraint>(nullptr);
 }
 
 inline void FinishConstraintBuffer(

@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -131,8 +131,10 @@ template<> struct ModelDrawRangeUnionTraits<DeepSeaScene::DrawIndexedRange> {
   static const ModelDrawRangeUnion enum_value = ModelDrawRangeUnion::DrawIndexedRange;
 };
 
-bool VerifyModelDrawRangeUnion(::flatbuffers::Verifier &verifier, const void *obj, ModelDrawRangeUnion type);
-bool VerifyModelDrawRangeUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ModelDrawRangeUnion> *types);
+template <bool B = false>
+bool VerifyModelDrawRangeUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, ModelDrawRangeUnion type);
+template <bool B = false>
+bool VerifyModelDrawRangeUnionVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ModelDrawRangeUnion> *types);
 
 struct DrawRange FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef DrawRangeBuilder Builder;
@@ -154,7 +156,8 @@ struct DrawRange FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   uint32_t firstInstance() const {
     return GetField<uint32_t>(VT_FIRSTINSTANCE, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint32_t>(verifier, VT_VERTEXCOUNT, 4) &&
            VerifyField<uint32_t>(verifier, VT_INSTANCECOUNT, 4) &&
@@ -229,7 +232,8 @@ struct DrawIndexedRange FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   uint32_t firstInstance() const {
     return GetField<uint32_t>(VT_FIRSTINSTANCE, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint32_t>(verifier, VT_INDEXCOUNT, 4) &&
            VerifyField<uint32_t>(verifier, VT_INSTANCECOUNT, 4) &&
@@ -305,7 +309,8 @@ struct ModelDrawRange FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaScene::DrawIndexedRange *drawRange_as_DrawIndexedRange() const {
     return drawRange_type() == DeepSeaScene::ModelDrawRangeUnion::DrawIndexedRange ? static_cast<const DeepSeaScene::DrawIndexedRange *>(drawRange()) : nullptr;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_DRAWRANGE_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_DRAWRANGE) &&
@@ -390,7 +395,8 @@ struct ModelInfo FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *modelList() const {
     return GetPointer<const ::flatbuffers::String *>(VT_MODELLIST);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -523,7 +529,8 @@ struct ModelNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaScene::OrientedBox3f *bounds() const {
     return GetStruct<const DeepSeaScene::OrientedBox3f *>(VT_BOUNDS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_EMBEDDEDRESOURCES) &&
            verifier.VerifyVector(embeddedResources()) &&
@@ -597,7 +604,8 @@ inline ::flatbuffers::Offset<ModelNode> CreateModelNodeDirect(
       bounds);
 }
 
-inline bool VerifyModelDrawRangeUnion(::flatbuffers::Verifier &verifier, const void *obj, ModelDrawRangeUnion type) {
+template <bool B>
+inline bool VerifyModelDrawRangeUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, ModelDrawRangeUnion type) {
   switch (type) {
     case ModelDrawRangeUnion::NONE: {
       return true;
@@ -614,7 +622,8 @@ inline bool VerifyModelDrawRangeUnion(::flatbuffers::Verifier &verifier, const v
   }
 }
 
-inline bool VerifyModelDrawRangeUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ModelDrawRangeUnion> *types) {
+template <bool B>
+inline bool VerifyModelDrawRangeUnionVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ModelDrawRangeUnion> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -634,14 +643,16 @@ inline const DeepSeaScene::ModelNode *GetSizePrefixedModelNode(const void *buf) 
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaScene::ModelNode>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyModelNodeBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaScene::ModelNode>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaScene::ModelNode>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedModelNodeBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaScene::ModelNode>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaScene::ModelNode>(nullptr);
 }
 
 inline void FinishModelNodeBuffer(

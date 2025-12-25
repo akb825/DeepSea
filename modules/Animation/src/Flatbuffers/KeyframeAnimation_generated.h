@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "AnimationCommon_generated.h"
@@ -79,7 +79,8 @@ struct KeyframeAnimationChannel FLATBUFFERS_FINAL_CLASS : private ::flatbuffers:
   const ::flatbuffers::Vector<const DeepSeaAnimation::Vector4f *> *values() const {
     return GetPointer<const ::flatbuffers::Vector<const DeepSeaAnimation::Vector4f *> *>(VT_VALUES);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NODE) &&
            verifier.VerifyString(node()) &&
@@ -162,7 +163,8 @@ struct AnimationKeyframes FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::KeyframeAnimationChannel>> *channels() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::KeyframeAnimationChannel>> *>(VT_CHANNELS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_KEYFRAMETIMES) &&
            verifier.VerifyVector(keyframeTimes()) &&
@@ -226,7 +228,8 @@ struct KeyframeAnimation FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationKeyframes>> *keyframes() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationKeyframes>> *>(VT_KEYFRAMES);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_KEYFRAMES) &&
            verifier.VerifyVector(keyframes()) &&
@@ -279,14 +282,16 @@ inline const DeepSeaAnimation::KeyframeAnimation *GetSizePrefixedKeyframeAnimati
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaAnimation::KeyframeAnimation>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyKeyframeAnimationBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaAnimation::KeyframeAnimation>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaAnimation::KeyframeAnimation>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedKeyframeAnimationBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaAnimation::KeyframeAnimation>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaAnimation::KeyframeAnimation>(nullptr);
 }
 
 inline void FinishKeyframeAnimationBuffer(

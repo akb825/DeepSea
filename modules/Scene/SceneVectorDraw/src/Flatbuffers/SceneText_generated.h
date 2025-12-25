@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "SceneVectorCommon_generated.h"
@@ -67,7 +67,8 @@ struct SceneTextStyle FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaSceneVectorDraw::Color *outlineColor() const {
     return GetStruct<const DeepSeaSceneVectorDraw::Color *>(VT_OUTLINECOLOR);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint32_t>(verifier, VT_START, 4) &&
            VerifyField<uint32_t>(verifier, VT_COUNT, 4) &&
@@ -170,7 +171,8 @@ struct SceneText FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaSceneVectorDraw::SceneTextStyle>> *styles() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaSceneVectorDraw::SceneTextStyle>> *>(VT_STYLES);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_FONT) &&
            verifier.VerifyTable(font()) &&
@@ -244,14 +246,16 @@ inline const DeepSeaSceneVectorDraw::SceneText *GetSizePrefixedSceneText(const v
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneVectorDraw::SceneText>(buf);
 }
 
+template <bool B = false>
 inline bool VerifySceneTextBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaSceneVectorDraw::SceneText>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaSceneVectorDraw::SceneText>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedSceneTextBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaSceneVectorDraw::SceneText>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaSceneVectorDraw::SceneText>(nullptr);
 }
 
 inline void FinishSceneTextBuffer(

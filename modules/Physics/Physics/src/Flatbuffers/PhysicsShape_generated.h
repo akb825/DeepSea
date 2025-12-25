@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Physics/Flatbuffers/PhysicsCommon_generated.h"
@@ -120,8 +120,10 @@ template<> struct ShapeUnionTraits<DeepSeaPhysics::ShapeRef> {
   static const ShapeUnion enum_value = ShapeUnion::ShapeRef;
 };
 
-bool VerifyShapeUnion(::flatbuffers::Verifier &verifier, const void *obj, ShapeUnion type);
-bool VerifyShapeUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ShapeUnion> *types);
+template <bool B = false>
+bool VerifyShapeUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, ShapeUnion type);
+template <bool B = false>
+bool VerifyShapeUnionVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ShapeUnion> *types);
 
 struct ShapeRef FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ShapeRefBuilder Builder;
@@ -131,7 +133,8 @@ struct ShapeRef FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *name() const {
     return GetPointer<const ::flatbuffers::String *>(VT_NAME);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -232,7 +235,8 @@ struct ShapeInstance FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaPhysics::ShapePartMaterial *material() const {
     return GetStruct<const DeepSeaPhysics::ShapePartMaterial *>(VT_MATERIAL);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_SHAPE_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_SHAPE) &&
@@ -372,7 +376,8 @@ struct Shape FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaPhysics::ShapeRef *shape_as_ShapeRef() const {
     return shape_type() == DeepSeaPhysics::ShapeUnion::ShapeRef ? static_cast<const DeepSeaPhysics::ShapeRef *>(shape()) : nullptr;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_SHAPE_TYPE, 1) &&
            VerifyOffset(verifier, VT_SHAPE) &&
@@ -444,7 +449,8 @@ inline ::flatbuffers::Offset<Shape> CreateShape(
   return builder_.Finish();
 }
 
-inline bool VerifyShapeUnion(::flatbuffers::Verifier &verifier, const void *obj, ShapeUnion type) {
+template <bool B>
+inline bool VerifyShapeUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, ShapeUnion type) {
   switch (type) {
     case ShapeUnion::NONE: {
       return true;
@@ -485,7 +491,8 @@ inline bool VerifyShapeUnion(::flatbuffers::Verifier &verifier, const void *obj,
   }
 }
 
-inline bool VerifyShapeUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ShapeUnion> *types) {
+template <bool B>
+inline bool VerifyShapeUnionVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ShapeUnion> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -505,14 +512,16 @@ inline const DeepSeaPhysics::Shape *GetSizePrefixedShape(const void *buf) {
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaPhysics::Shape>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyShapeBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaPhysics::Shape>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaPhysics::Shape>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedShapeBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaPhysics::Shape>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaPhysics::Shape>(nullptr);
 }
 
 inline void FinishShapeBuffer(

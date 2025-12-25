@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -113,8 +113,10 @@ template<> struct ClearValueTraits<DeepSeaScene::ClearDepthStencil> {
   static const ClearValue enum_value = ClearValue::ClearDepthStencil;
 };
 
-bool VerifyClearValue(::flatbuffers::Verifier &verifier, const void *obj, ClearValue type);
-bool VerifyClearValueVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ClearValue> *types);
+template <bool B = false>
+bool VerifyClearValue(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, ClearValue type);
+template <bool B = false>
+bool VerifyClearValueVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ClearValue> *types);
 
 enum class ScenePipelineItemUnion : uint8_t {
   NONE = 0,
@@ -161,8 +163,10 @@ template<> struct ScenePipelineItemUnionTraits<DeepSeaScene::SceneItemList> {
   static const ScenePipelineItemUnion enum_value = ScenePipelineItemUnion::SceneItemList;
 };
 
-bool VerifyScenePipelineItemUnion(::flatbuffers::Verifier &verifier, const void *obj, ScenePipelineItemUnion type);
-bool VerifyScenePipelineItemUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ScenePipelineItemUnion> *types);
+template <bool B = false>
+bool VerifyScenePipelineItemUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, ScenePipelineItemUnion type);
+template <bool B = false>
+bool VerifyScenePipelineItemUnionVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ScenePipelineItemUnion> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) AttachmentRef FLATBUFFERS_FINAL_CLASS {
  private:
@@ -274,7 +278,8 @@ struct SceneItemList FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<uint8_t> *data() const {
     return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_DATA);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_TYPE) &&
            verifier.VerifyString(type()) &&
@@ -348,7 +353,8 @@ struct SceneItemLists FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::SceneItemList>> *itemLists() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::SceneItemList>> *>(VT_ITEMLISTS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_ITEMLISTS) &&
            verifier.VerifyVector(itemLists()) &&
@@ -413,7 +419,8 @@ struct ClearColorFloat FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   float alpha() const {
     return GetField<float>(VT_ALPHA, 0.0f);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<float>(verifier, VT_RED, 4) &&
            VerifyField<float>(verifier, VT_GREEN, 4) &&
@@ -484,7 +491,8 @@ struct ClearColorInt FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t alpha() const {
     return GetField<int32_t>(VT_ALPHA, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_RED, 4) &&
            VerifyField<int32_t>(verifier, VT_GREEN, 4) &&
@@ -555,7 +563,8 @@ struct ClearColorUInt FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   uint32_t alpha() const {
     return GetField<uint32_t>(VT_ALPHA, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint32_t>(verifier, VT_RED, 4) &&
            VerifyField<uint32_t>(verifier, VT_GREEN, 4) &&
@@ -618,7 +627,8 @@ struct ClearDepthStencil FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   uint32_t stencil() const {
     return GetField<uint32_t>(VT_STENCIL, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<float>(verifier, VT_DEPTH, 4) &&
            VerifyField<uint32_t>(verifier, VT_STENCIL, 4) &&
@@ -698,7 +708,8 @@ struct Attachment FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaScene::ClearDepthStencil *clearValue_as_ClearDepthStencil() const {
     return clearValue_type() == DeepSeaScene::ClearValue::ClearDepthStencil ? static_cast<const DeepSeaScene::ClearDepthStencil *>(clearValue()) : nullptr;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint32_t>(verifier, VT_USAGE, 4) &&
            VerifyField<uint8_t>(verifier, VT_FORMAT, 1) &&
@@ -802,7 +813,8 @@ struct RenderSubpass FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::SceneItemList>> *drawLists() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::SceneItemList>> *>(VT_DRAWLISTS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -906,7 +918,8 @@ struct RenderPass FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<const DeepSeaScene::SubpassDependency *> *dependencies() const {
     return GetPointer<const ::flatbuffers::Vector<const DeepSeaScene::SubpassDependency *> *>(VT_DEPENDENCIES);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_FRAMEBUFFER) &&
            verifier.VerifyString(framebuffer()) &&
@@ -1002,7 +1015,8 @@ struct ScenePipelineItem FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   const DeepSeaScene::SceneItemList *item_as_SceneItemList() const {
     return item_type() == DeepSeaScene::ScenePipelineItemUnion::SceneItemList ? static_cast<const DeepSeaScene::SceneItemList *>(item()) : nullptr;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_ITEM_TYPE, 1) &&
            VerifyOffset(verifier, VT_ITEM) &&
@@ -1066,7 +1080,8 @@ struct Scene FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *nodes() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_NODES);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_SHAREDITEMS) &&
            verifier.VerifyVector(sharedItems()) &&
@@ -1133,7 +1148,8 @@ inline ::flatbuffers::Offset<Scene> CreateSceneDirect(
       nodes__);
 }
 
-inline bool VerifyClearValue(::flatbuffers::Verifier &verifier, const void *obj, ClearValue type) {
+template <bool B>
+inline bool VerifyClearValue(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, ClearValue type) {
   switch (type) {
     case ClearValue::NONE: {
       return true;
@@ -1158,7 +1174,8 @@ inline bool VerifyClearValue(::flatbuffers::Verifier &verifier, const void *obj,
   }
 }
 
-inline bool VerifyClearValueVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ClearValue> *types) {
+template <bool B>
+inline bool VerifyClearValueVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ClearValue> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -1170,7 +1187,8 @@ inline bool VerifyClearValueVector(::flatbuffers::Verifier &verifier, const ::fl
   return true;
 }
 
-inline bool VerifyScenePipelineItemUnion(::flatbuffers::Verifier &verifier, const void *obj, ScenePipelineItemUnion type) {
+template <bool B>
+inline bool VerifyScenePipelineItemUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, ScenePipelineItemUnion type) {
   switch (type) {
     case ScenePipelineItemUnion::NONE: {
       return true;
@@ -1187,7 +1205,8 @@ inline bool VerifyScenePipelineItemUnion(::flatbuffers::Verifier &verifier, cons
   }
 }
 
-inline bool VerifyScenePipelineItemUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ScenePipelineItemUnion> *types) {
+template <bool B>
+inline bool VerifyScenePipelineItemUnionVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ScenePipelineItemUnion> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -1207,14 +1226,16 @@ inline const DeepSeaScene::Scene *GetSizePrefixedScene(const void *buf) {
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaScene::Scene>(buf);
 }
 
+template <bool B = false>
 inline bool VerifySceneBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaScene::Scene>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaScene::Scene>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedSceneBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaScene::Scene>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaScene::Scene>(nullptr);
 }
 
 inline void FinishSceneBuffer(

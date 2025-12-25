@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace DeepSeaVectorDraw {
@@ -441,8 +441,10 @@ template<> struct VectorCommandUnionTraits<DeepSeaVectorDraw::ImageCommand> {
   static const VectorCommandUnion enum_value = VectorCommandUnion::ImageCommand;
 };
 
-bool VerifyVectorCommandUnion(::flatbuffers::Verifier &verifier, const void *obj, VectorCommandUnion type);
-bool VerifyVectorCommandUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<VectorCommandUnion> *types);
+template <bool B = false>
+bool VerifyVectorCommandUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, VectorCommandUnion type);
+template <bool B = false>
+bool VerifyVectorCommandUnionVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<VectorCommandUnion> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Color FLATBUFFERS_FINAL_CLASS {
  private:
@@ -630,7 +632,8 @@ struct ColorMaterial FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaVectorDraw::Color *color() const {
     return GetStruct<const DeepSeaVectorDraw::Color *>(VT_COLOR);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -715,7 +718,8 @@ struct LinearGradient FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaVectorDraw::Matrix33f *transform() const {
     return GetStruct<const DeepSeaVectorDraw::Matrix33f *>(VT_TRANSFORM);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -853,7 +857,8 @@ struct RadialGradient FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaVectorDraw::Matrix33f *transform() const {
     return GetStruct<const DeepSeaVectorDraw::Matrix33f *>(VT_TRANSFORM);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -979,7 +984,8 @@ struct StartPathCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool simple() const {
     return GetField<uint8_t>(VT_SIMPLE, 0) != 0;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Matrix33f>(verifier, VT_TRANSFORM, 4) &&
            VerifyField<uint8_t>(verifier, VT_SIMPLE, 1) &&
@@ -1027,7 +1033,8 @@ struct MoveCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaVectorDraw::Vector2f *position() const {
     return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_POSITION);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_POSITION, 4) &&
            verifier.EndTable();
@@ -1069,7 +1076,8 @@ struct LineCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaVectorDraw::Vector2f *end() const {
     return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_END);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_END, 4) &&
            verifier.EndTable();
@@ -1119,7 +1127,8 @@ struct BezierCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaVectorDraw::Vector2f *end() const {
     return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_END);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_CONTROL1, 4) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_CONTROL2, 4) &&
@@ -1179,7 +1188,8 @@ struct QuadraticCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaVectorDraw::Vector2f *end() const {
     return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_END);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_CONTROL, 4) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_END, 4) &&
@@ -1244,7 +1254,8 @@ struct ArcCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaVectorDraw::Vector2f *end() const {
     return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_END);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_RADIUS, 4) &&
            VerifyField<float>(verifier, VT_ROTATION, 4) &&
@@ -1305,7 +1316,8 @@ inline ::flatbuffers::Offset<ArcCommand> CreateArcCommand(
 
 struct ClosePathCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ClosePathCommandBuilder Builder;
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
@@ -1344,7 +1356,8 @@ struct EllipseCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaVectorDraw::Vector2f *radius() const {
     return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_RADIUS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_CENTER, 4) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_RADIUS, 4) &&
@@ -1401,7 +1414,8 @@ struct RectangleCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaVectorDraw::Vector2f *cornerRadius() const {
     return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_CORNERRADIUS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_UPPERLEFT, 4) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_LOWERRIGHT, 4) &&
@@ -1481,7 +1495,8 @@ struct StrokePathCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   const DeepSeaVectorDraw::DashArray *dashArray() const {
     return GetStruct<const DeepSeaVectorDraw::DashArray *>(VT_DASHARRAY);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_MATERIAL) &&
            verifier.VerifyString(material()) &&
@@ -1590,7 +1605,8 @@ struct FillPathCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   DeepSeaVectorDraw::FillRule fillRule() const {
     return static_cast<DeepSeaVectorDraw::FillRule>(GetField<uint8_t>(VT_FILLRULE, 0));
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_MATERIAL) &&
            verifier.VerifyString(material()) &&
@@ -1682,7 +1698,8 @@ struct TextCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   uint32_t rangeCount() const {
     return GetField<uint32_t>(VT_RANGECOUNT, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_TEXT) &&
            verifier.VerifyString(text()) &&
@@ -1834,7 +1851,8 @@ struct TextRangeCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   float fuziness() const {
     return GetField<float>(VT_FUZINESS, 0.0f);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint32_t>(verifier, VT_START, 4) &&
            VerifyField<uint32_t>(verifier, VT_COUNT, 4) &&
@@ -2000,7 +2018,8 @@ struct ImageCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaVectorDraw::Matrix33f *transform() const {
     return GetStruct<const DeepSeaVectorDraw::Matrix33f *>(VT_TRANSFORM);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_IMAGE) &&
            verifier.VerifyString(image()) &&
@@ -2134,7 +2153,8 @@ struct VectorCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaVectorDraw::ImageCommand *command_as_ImageCommand() const {
     return command_type() == DeepSeaVectorDraw::VectorCommandUnion::ImageCommand ? static_cast<const DeepSeaVectorDraw::ImageCommand *>(command()) : nullptr;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_COMMAND_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_COMMAND) &&
@@ -2255,7 +2275,8 @@ struct VectorImage FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaVectorDraw::Vector2f *size() const {
     return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_SIZE);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_COLORMATERIALS) &&
            verifier.VerifyVector(colorMaterials()) &&
@@ -2342,7 +2363,8 @@ inline ::flatbuffers::Offset<VectorImage> CreateVectorImageDirect(
       size);
 }
 
-inline bool VerifyVectorCommandUnion(::flatbuffers::Verifier &verifier, const void *obj, VectorCommandUnion type) {
+template <bool B>
+inline bool VerifyVectorCommandUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, VectorCommandUnion type) {
   switch (type) {
     case VectorCommandUnion::NONE: {
       return true;
@@ -2407,7 +2429,8 @@ inline bool VerifyVectorCommandUnion(::flatbuffers::Verifier &verifier, const vo
   }
 }
 
-inline bool VerifyVectorCommandUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<VectorCommandUnion> *types) {
+template <bool B>
+inline bool VerifyVectorCommandUnionVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<VectorCommandUnion> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -2427,14 +2450,16 @@ inline const DeepSeaVectorDraw::VectorImage *GetSizePrefixedVectorImage(const vo
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaVectorDraw::VectorImage>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyVectorImageBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaVectorDraw::VectorImage>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaVectorDraw::VectorImage>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedVectorImageBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaVectorDraw::VectorImage>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaVectorDraw::VectorImage>(nullptr);
 }
 
 inline void FinishVectorImageBuffer(

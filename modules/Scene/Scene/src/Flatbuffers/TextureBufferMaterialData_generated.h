@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -44,7 +44,8 @@ struct TextureBufferMaterialData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers
   uint32_t count() const {
     return GetField<uint32_t>(VT_COUNT, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -128,14 +129,16 @@ inline const DeepSeaScene::TextureBufferMaterialData *GetSizePrefixedTextureBuff
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaScene::TextureBufferMaterialData>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyTextureBufferMaterialDataBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaScene::TextureBufferMaterialData>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaScene::TextureBufferMaterialData>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedTextureBufferMaterialDataBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaScene::TextureBufferMaterialData>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaScene::TextureBufferMaterialData>(nullptr);
 }
 
 inline void FinishTextureBufferMaterialDataBuffer(

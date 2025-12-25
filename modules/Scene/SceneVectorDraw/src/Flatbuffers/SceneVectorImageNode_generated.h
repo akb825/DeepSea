@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -53,7 +53,8 @@ struct VectorImageNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_ITEMLISTS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_EMBEDDEDRESOURCES) &&
            verifier.VerifyVector(embeddedResources()) &&
@@ -164,14 +165,16 @@ inline const DeepSeaSceneVectorDraw::VectorImageNode *GetSizePrefixedVectorImage
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneVectorDraw::VectorImageNode>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyVectorImageNodeBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaSceneVectorDraw::VectorImageNode>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaSceneVectorDraw::VectorImageNode>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedVectorImageNodeBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaSceneVectorDraw::VectorImageNode>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaSceneVectorDraw::VectorImageNode>(nullptr);
 }
 
 inline void FinishVectorImageNodeBuffer(

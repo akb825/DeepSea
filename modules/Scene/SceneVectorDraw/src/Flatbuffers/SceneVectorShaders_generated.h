@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -47,7 +47,8 @@ struct MaterialElement FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *shaderVariableGroupDesc() const {
     return GetPointer<const ::flatbuffers::String *>(VT_SHADERVARIABLEGROUPDESC);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -177,7 +178,8 @@ struct VectorShaders FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *textGradientOutline() const {
     return GetPointer<const ::flatbuffers::String *>(VT_TEXTGRADIENTOUTLINE);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_MODULES) &&
            verifier.VerifyVector(modules()) &&
@@ -343,14 +345,16 @@ inline const DeepSeaSceneVectorDraw::VectorShaders *GetSizePrefixedVectorShaders
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneVectorDraw::VectorShaders>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyVectorShadersBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaSceneVectorDraw::VectorShaders>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaSceneVectorDraw::VectorShaders>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedVectorShadersBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaSceneVectorDraw::VectorShaders>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaSceneVectorDraw::VectorShaders>(nullptr);
 }
 
 inline void FinishVectorShadersBuffer(

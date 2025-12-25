@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -68,7 +68,8 @@ struct PhysicsList FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   float targetStepTime() const {
     return GetField<float>(VT_TARGETSTEPTIME, 0.01666667f);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint32_t>(verifier, VT_MAXSTATICBODIES, 4) &&
            VerifyField<uint32_t>(verifier, VT_MAXDYNAMICBODIES, 4) &&
@@ -170,14 +171,16 @@ inline const DeepSeaScenePhysics::PhysicsList *GetSizePrefixedPhysicsList(const 
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaScenePhysics::PhysicsList>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyPhysicsListBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaScenePhysics::PhysicsList>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaScenePhysics::PhysicsList>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedPhysicsListBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaScenePhysics::PhysicsList>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaScenePhysics::PhysicsList>(nullptr);
 }
 
 inline void FinishPhysicsListBuffer(

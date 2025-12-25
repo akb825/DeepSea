@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "AnimationCommon_generated.h"
@@ -39,7 +39,8 @@ struct DirectAnimationChannel FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::T
   const DeepSeaAnimation::Vector4f *value() const {
     return GetStruct<const DeepSeaAnimation::Vector4f *>(VT_VALUE);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NODE) &&
            verifier.VerifyString(node()) &&
@@ -108,7 +109,8 @@ struct DirectAnimation FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::DirectAnimationChannel>> *channels() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::DirectAnimationChannel>> *>(VT_CHANNELS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_CHANNELS) &&
            verifier.VerifyVector(channels()) &&
@@ -161,14 +163,16 @@ inline const DeepSeaAnimation::DirectAnimation *GetSizePrefixedDirectAnimation(c
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaAnimation::DirectAnimation>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyDirectAnimationBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaAnimation::DirectAnimation>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaAnimation::DirectAnimation>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedDirectAnimationBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaAnimation::DirectAnimation>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaAnimation::DirectAnimation>(nullptr);
 }
 
 inline void FinishDirectAnimationBuffer(

@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "SceneLight_generated.h"
@@ -54,7 +54,8 @@ struct LightNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_ITEMLISTS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_TEMPLATELIGHT_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_TEMPLATELIGHT) &&
@@ -155,14 +156,16 @@ inline const DeepSeaSceneLighting::LightNode *GetSizePrefixedLightNode(const voi
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneLighting::LightNode>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyLightNodeBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaSceneLighting::LightNode>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaSceneLighting::LightNode>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedLightNodeBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaSceneLighting::LightNode>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaSceneLighting::LightNode>(nullptr);
 }
 
 inline void FinishLightNodeBuffer(

@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -50,7 +50,8 @@ struct Light FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaSceneLighting::SpotLight *light_as_SpotLight() const {
     return light_type() == DeepSeaSceneLighting::LightUnion::SpotLight ? static_cast<const DeepSeaSceneLighting::SpotLight *>(light()) : nullptr;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -148,7 +149,8 @@ struct SceneLightSet FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *mainLight() const {
     return GetPointer<const ::flatbuffers::String *>(VT_MAINLIGHT);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_LIGHTS) &&
            verifier.VerifyVector(lights()) &&
@@ -234,14 +236,16 @@ inline const DeepSeaSceneLighting::SceneLightSet *GetSizePrefixedSceneLightSet(c
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneLighting::SceneLightSet>(buf);
 }
 
+template <bool B = false>
 inline bool VerifySceneLightSetBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaSceneLighting::SceneLightSet>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaSceneLighting::SceneLightSet>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedSceneLightSetBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaSceneLighting::SceneLightSet>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaSceneLighting::SceneLightSet>(nullptr);
 }
 
 inline void FinishSceneLightSetBuffer(

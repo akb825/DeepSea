@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -204,8 +204,10 @@ template<> struct SceneResourceUnionTraits<DeepSeaScene::ObjectData> {
   static const SceneResourceUnion enum_value = SceneResourceUnion::ResourceAction;
 };
 
-bool VerifySceneResourceUnion(::flatbuffers::Verifier &verifier, const void *obj, SceneResourceUnion type);
-bool VerifySceneResourceUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<SceneResourceUnion> *types);
+template <bool B = false>
+bool VerifySceneResourceUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, SceneResourceUnion type);
+template <bool B = false>
+bool VerifySceneResourceUnionVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<SceneResourceUnion> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) VertexAttribute FLATBUFFERS_FINAL_CLASS {
  private:
@@ -279,7 +281,8 @@ struct Buffer FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaScene::RawData *data_as_RawData() const {
     return data_type() == DeepSeaScene::FileOrData::RawData ? static_cast<const DeepSeaScene::RawData *>(data()) : nullptr;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -408,7 +411,8 @@ struct TextureInfo FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   uint8_t mipLevels() const {
     return GetField<uint8_t>(VT_MIPLEVELS, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_FORMAT, 1) &&
            VerifyField<uint8_t>(verifier, VT_DECORATION, 1) &&
@@ -515,7 +519,8 @@ struct Texture FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaScene::TextureInfo *textureInfo() const {
     return GetPointer<const DeepSeaScene::TextureInfo *>(VT_TEXTUREINFO);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -629,7 +634,8 @@ struct VariableElement FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   uint32_t count() const {
     return GetField<uint32_t>(VT_COUNT, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -701,7 +707,8 @@ struct ShaderVariableGroupDesc FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::VariableElement>> *elements() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::VariableElement>> *>(VT_ELEMENTS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -781,7 +788,8 @@ struct VariableData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<uint8_t> *data() const {
     return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_DATA);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -876,7 +884,8 @@ struct ShaderVariableGroup FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tabl
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::VariableData>> *data() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::VariableData>> *>(VT_DATA);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -966,7 +975,8 @@ struct MaterialElement FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *shaderVariableGroupDesc() const {
     return GetPointer<const ::flatbuffers::String *>(VT_SHADERVARIABLEGROUPDESC);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -1056,7 +1066,8 @@ struct MaterialDesc FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::MaterialElement>> *elements() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::MaterialElement>> *>(VT_ELEMENTS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -1128,7 +1139,8 @@ struct Material FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::VariableData>> *data() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::VariableData>> *>(VT_DATA);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -1218,7 +1230,8 @@ struct MaterialCopy FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *removeData() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_REMOVEDATA);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -1318,7 +1331,8 @@ struct ShaderModule FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::VersionedShaderModule>> *modules() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::VersionedShaderModule>> *>(VT_MODULES);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -1394,7 +1408,8 @@ struct Shader FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *materialDesc() const {
     return GetPointer<const ::flatbuffers::String *>(VT_MATERIALDESC);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -1482,7 +1497,8 @@ struct VertexFormat FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool instanced() const {
     return GetField<uint8_t>(VT_INSTANCED, 0) != 0;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_ATTRIBUTES) &&
            verifier.VerifyVector(attributes()) &&
@@ -1554,7 +1570,8 @@ struct VertexBuffer FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaScene::VertexFormat *format() const {
     return GetPointer<const DeepSeaScene::VertexFormat *>(VT_FORMAT);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -1644,7 +1661,8 @@ struct IndexBuffer FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   uint8_t indexSize() const {
     return GetField<uint8_t>(VT_INDEXSIZE, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -1728,7 +1746,8 @@ struct DrawGeometry FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaScene::IndexBuffer *indexBuffer() const {
     return GetPointer<const DeepSeaScene::IndexBuffer *>(VT_INDEXBUFFER);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -1805,7 +1824,8 @@ struct SceneNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaScene::ObjectData *node() const {
     return GetPointer<const DeepSeaScene::ObjectData *>(VT_NODE);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -1871,7 +1891,8 @@ struct CustomResource FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaScene::ObjectData *resource() const {
     return GetPointer<const DeepSeaScene::ObjectData *>(VT_RESOURCE);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -1977,7 +1998,8 @@ struct SceneResource FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaScene::ObjectData *resource_as_ResourceAction() const {
     return resource_type() == DeepSeaScene::SceneResourceUnion::ResourceAction ? static_cast<const DeepSeaScene::ObjectData *>(resource()) : nullptr;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_RESOURCE_TYPE, 1) &&
            VerifyOffset(verifier, VT_RESOURCE) &&
@@ -2077,7 +2099,8 @@ struct SceneResources FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::SceneResource>> *resources() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::SceneResource>> *>(VT_RESOURCES);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_RESOURCES) &&
            verifier.VerifyVector(resources()) &&
@@ -2121,7 +2144,8 @@ inline ::flatbuffers::Offset<SceneResources> CreateSceneResourcesDirect(
       resources__);
 }
 
-inline bool VerifySceneResourceUnion(::flatbuffers::Verifier &verifier, const void *obj, SceneResourceUnion type) {
+template <bool B>
+inline bool VerifySceneResourceUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, SceneResourceUnion type) {
   switch (type) {
     case SceneResourceUnion::NONE: {
       return true;
@@ -2182,7 +2206,8 @@ inline bool VerifySceneResourceUnion(::flatbuffers::Verifier &verifier, const vo
   }
 }
 
-inline bool VerifySceneResourceUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<SceneResourceUnion> *types) {
+template <bool B>
+inline bool VerifySceneResourceUnionVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<SceneResourceUnion> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -2202,14 +2227,16 @@ inline const DeepSeaScene::SceneResources *GetSizePrefixedSceneResources(const v
   return ::flatbuffers::GetSizePrefixedRoot<DeepSeaScene::SceneResources>(buf);
 }
 
+template <bool B = false>
 inline bool VerifySceneResourcesBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaScene::SceneResources>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<DeepSeaScene::SceneResources>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedSceneResourcesBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaScene::SceneResources>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<DeepSeaScene::SceneResources>(nullptr);
 }
 
 inline void FinishSceneResourcesBuffer(

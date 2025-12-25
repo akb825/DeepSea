@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -78,8 +78,10 @@ template<> struct LightUnionTraits<DeepSeaSceneLighting::SpotLight> {
   static const LightUnion enum_value = LightUnion::SpotLight;
 };
 
-bool VerifyLightUnion(::flatbuffers::Verifier &verifier, const void *obj, LightUnion type);
-bool VerifyLightUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<LightUnion> *types);
+template <bool B = false>
+bool VerifyLightUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, LightUnion type);
+template <bool B = false>
+bool VerifyLightUnionVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<LightUnion> *types);
 
 struct DirectionalLight FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef DirectionalLightBuilder Builder;
@@ -97,7 +99,8 @@ struct DirectionalLight FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   float intensity() const {
     return GetField<float>(VT_INTENSITY, 0.0f);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_DIRECTION, 4) &&
            VerifyFieldRequired<DeepSeaScene::Color3f>(verifier, VT_COLOR, 4) &&
@@ -168,7 +171,8 @@ struct PointLight FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   float quadraticFalloff() const {
     return GetField<float>(VT_QUADRATICFALLOFF, 0.0f);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_POSITION, 4) &&
            VerifyFieldRequired<DeepSeaScene::Color3f>(verifier, VT_COLOR, 4) &&
@@ -263,7 +267,8 @@ struct SpotLight FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   float outerSpotAngle() const {
     return GetField<float>(VT_OUTERSPOTANGLE, 0.0f);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_POSITION, 4) &&
            VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_DIRECTION, 4) &&
@@ -341,7 +346,8 @@ inline ::flatbuffers::Offset<SpotLight> CreateSpotLight(
   return builder_.Finish();
 }
 
-inline bool VerifyLightUnion(::flatbuffers::Verifier &verifier, const void *obj, LightUnion type) {
+template <bool B>
+inline bool VerifyLightUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, LightUnion type) {
   switch (type) {
     case LightUnion::NONE: {
       return true;
@@ -362,7 +368,8 @@ inline bool VerifyLightUnion(::flatbuffers::Verifier &verifier, const void *obj,
   }
 }
 
-inline bool VerifyLightUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<LightUnion> *types) {
+template <bool B>
+inline bool VerifyLightUnionVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<LightUnion> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
