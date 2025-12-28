@@ -386,7 +386,7 @@ bool dsTextRenderBuffer_commit(dsTextRenderBuffer* renderBuffer, dsCommandBuffer
 			if (thisIcons != curIcons)
 			{
 				if (curIcons->prepareFunc && !curIcons->prepareFunc(
-						curIcons, curIcons->userData, iconGlyphs + start, count))
+						curIcons, curIcons->userData, commandBuffer, iconGlyphs + start, count))
 				{
 					DS_PROFILE_FUNC_RETURN(false);
 				}
@@ -398,7 +398,7 @@ bool dsTextRenderBuffer_commit(dsTextRenderBuffer* renderBuffer, dsCommandBuffer
 		}
 
 		if (curIcons->prepareFunc && !curIcons->prepareFunc(
-				curIcons, curIcons->userData, iconGlyphs + start, count))
+				curIcons, curIcons->userData, commandBuffer, iconGlyphs + start, count))
 		{
 			DS_PROFILE_FUNC_RETURN(false);
 		}
@@ -515,7 +515,8 @@ bool dsTextRenderBuffer_drawIconGlyphRange(dsTextRenderBuffer* renderBuffer,
 		const dsTextIcons* thisIcons = icons[firstGlyph + i];
 		if (thisIcons != curIcons)
 		{
-			if (!curIcons->drawFunc(curIcons, curIcons->userData, iconGlyphs + start, count))
+			if (!curIcons->drawFunc(
+					curIcons, curIcons->userData, commandBuffer, iconGlyphs + start, count))
 			{
 				DS_PROFILE_FUNC_RETURN(false);
 			}
@@ -526,7 +527,8 @@ bool dsTextRenderBuffer_drawIconGlyphRange(dsTextRenderBuffer* renderBuffer,
 		}
 	}
 
-	bool result = curIcons->drawFunc(curIcons, curIcons->userData, iconGlyphs + start, count);
+	bool result = curIcons->drawFunc(
+		curIcons, curIcons->userData, commandBuffer, iconGlyphs + start, count);
 	DS_PROFILE_FUNC_RETURN(result);
 }
 

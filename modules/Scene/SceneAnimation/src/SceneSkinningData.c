@@ -32,13 +32,12 @@
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
+#include <DeepSea/Render/Resources/StreamingGfxBufferList.h>
 #include <DeepSea/Render/Resources/Texture.h>
 
 #include <DeepSea/SceneAnimation/SceneAnimationTreeNode.h>
 
 #include <string.h>
-
-#define FRAME_DELAY 3
 
 // 256 KB blocks with 4096 nodes.
 #define TEXTURE_SIZE 128
@@ -116,45 +115,16 @@ static dsGfxBuffer* getBuffer(dsSceneInstanceData* instanceData, size_t requeste
 	dsResourceManager* resourceManager = skinningData->resourceManager;
 	uint64_t frameNumber = resourceManager->renderer->frameNumber;
 
-	// Look for any buffer large enough that's FRAME_DELAY number of frames earlier than the current
-	// one.
-	dsGfxBuffer* foundBuffer = NULL;
-	for (uint32_t i = 0; i < skinningData->bufferCount;)
-	{
-		BufferInfo* bufferInfo = skinningData->buffers + i;
-
-		// Skip over all buffers that are still in use, even if too small.
-		if (bufferInfo->lastUsedFrame + FRAME_DELAY > frameNumber)
-		{
-			++i;
-			continue;
-		}
-
-		if (bufferInfo->buffer->size >= requestedSize)
-		{
-			// Found. Only take the first one, and continue so that smaller buffers can be removed.
-			if (!foundBuffer)
-			{
-				bufferInfo->lastUsedFrame = frameNumber;
-				foundBuffer = bufferInfo->buffer;
-			}
-			++i;
-			continue;
-		}
-
-		// This buffer is too small. Delete it now since a new one will need to be allocated.
-		if (!dsGfxBuffer_destroy(bufferInfo->buffer))
-			return NULL;
-
-		// Constant-time removal since order doesn't matter.
-		*bufferInfo = skinningData->buffers[--skinningData->bufferCount];
-	}
-
-	if (foundBuffer)
-		return foundBuffer;
+	// Look for an existing buffer we can re-use.
+	uint32_t index = dsStreamingGfxBufferList_findNext(skinningData->buffers,
+		&skinningData->bufferCount, sizeof(BufferInfo), offsetof(BufferInfo, buffer),
+		offsetof(BufferInfo, lastUsedFrame), NULL, requestedSize,
+		DS_DEFAULT_STREAMING_GFX_BUFFER_FRAME_DELAY, frameNumber);
+	if (index != DS_NO_STREAMING_GFX_BUFFER)
+		return skinningData->buffers[index].buffer;
 
 	// Create a new buffer if no suitable one has beenf ound.
-	uint32_t index = skinningData->bufferCount;
+	index = skinningData->bufferCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(instanceData->allocator, skinningData->buffers,
 			skinningData->bufferCount, skinningData->maxBuffers, 1))
 	{

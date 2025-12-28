@@ -37,6 +37,7 @@
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
+#include <DeepSea/Render/Resources/StreamingGfxBufferList.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/Shadows/CascadeSplits.h>
 #include <DeepSea/Render/Shadows/ShadowCullVolume.h>
@@ -52,7 +53,6 @@
 #include <string.h>
 
 #define MAX_CASCADE_COUNT 4
-#define FRAME_DELAY 3
 #define INVALID_INDEX ((uint32_t)-1)
 
 struct ShadowBufferInfo
@@ -157,11 +157,12 @@ static void* getBufferData(dsSceneLightShadows* shadows)
 	uint64_t frameNumber = shadows->resourceManager->renderer->frameNumber;
 	shadows->curBuffer = INVALID_INDEX;
 
-	// Look for any buffer large enough that's FRAME_DELAY number of frames earlier than the
-	// current one.
+	// Search for an existing buffer we can re-use. Use simplified logic here based on the fact that
+	// the buffers will all be the same size.
 	for (uint32_t i = 0; i < shadows->bufferCount; ++i)
 	{
-		if (shadows->buffers[i].lastUsedFrame + FRAME_DELAY <= frameNumber)
+		if (shadows->buffers[i].lastUsedFrame + DS_DEFAULT_STREAMING_GFX_BUFFER_FRAME_DELAY <=
+			frameNumber)
 		{
 			shadows->curBuffer = i;
 			break;

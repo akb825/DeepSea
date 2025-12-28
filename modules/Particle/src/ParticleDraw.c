@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Aaron Barany
+ * Copyright 2022-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,20 +37,19 @@
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Resources/Shader.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
+#include <DeepSea/Render/Resources/StreamingGfxBufferList.h>
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <DeepSea/Render/Renderer.h>
 
 #include <limits.h>
 #include <stdlib.h>
 
-#define FRAME_DELAY 3
 #define MAX_INDEX (USHRT_MAX - 1)
 #define VERTEX_COUNT 4
 #define INDEX_COUNT 6
 
 typedef struct BufferInfo
 {
-	size_t maxParticles;
 	dsGfxBuffer* buffer;
 	dsDrawGeometry* geometry;
 	uint64_t lastUsedFrame;
@@ -90,63 +89,46 @@ struct dsParticleDraw
 	uint32_t maxBuffers;
 };
 
-static BufferInfo* getDrawBuffer(dsParticleDraw* draw, uint32_t particleCount,
-	uint32_t maxParticles)
+static size_t bufferSizeForParticles(uint32_t particleCount)
+{
+	uint32_t vertexCount = particleCount*VERTEX_COUNT;
+	uint32_t indexCount = particleCount*INDEX_COUNT;
+	size_t vertexSize = vertexCount*sizeof(ParticleVertex);
+	size_t indexSize = indexCount*sizeof(uint16_t);
+	return vertexSize + indexSize;
+}
+
+static void BufferInfo_destroy(void* userData)
+{
+	BufferInfo* bufferInfo = (BufferInfo*)userData;
+	dsGfxBuffer_destroy(bufferInfo->buffer);
+	dsDrawGeometry_destroy(bufferInfo->geometry);
+}
+
+static BufferInfo* getDrawBuffer(
+	dsParticleDraw* draw, uint32_t particleCount, uint32_t maxParticles)
 {
 	uint64_t frameNumber = draw->resourceManager->renderer->frameNumber;
 	// Look for any buffer with space for at least particleCount particles, but allocate based on
 	// maxParticles to ensure greater stability of allocations.
-	BufferInfo* bufferInfo = NULL;
-	for (uint32_t i = 0; i < draw->bufferCount;)
-	{
-		BufferInfo* curBufferInfo = draw->buffers + i;
-
-		// Skip over all buffers that are still in use, even if a different size.
-		if (curBufferInfo->lastUsedFrame + FRAME_DELAY > frameNumber)
-		{
-			++i;
-			continue;
-		}
-
-		if (curBufferInfo->maxParticles >= particleCount)
-		{
-			// Found. Only take the first one, and continue so that invalid buffers can be removed.
-			if (!bufferInfo)
-			{
-				curBufferInfo->lastUsedFrame = frameNumber;
-				bufferInfo = curBufferInfo;
-			}
-			++i;
-			continue;
-		}
-
-		// This buffer is too small. Delete it now since a new one will need to be allocated.
-		if (!dsGfxBuffer_destroy(curBufferInfo->buffer))
-			return false;
-
-		// Constant-time removal since order doesn't matter.
-		*curBufferInfo = draw->buffers[--draw->bufferCount];
-	}
-
-	if (bufferInfo)
-		return bufferInfo;
+	uint32_t index = dsStreamingGfxBufferList_findNext(draw->buffers, &draw->bufferCount,
+		sizeof(BufferInfo), offsetof(BufferInfo, buffer), offsetof(BufferInfo, lastUsedFrame),
+		&BufferInfo_destroy, bufferSizeForParticles(particleCount),
+		DS_DEFAULT_STREAMING_GFX_BUFFER_FRAME_DELAY, frameNumber);
+	if (index != DS_NO_STREAMING_GFX_BUFFER)
+		return draw->buffers + index;
 
 	// Not found: create a new buffer.
-	uint32_t vertexCount = maxParticles*VERTEX_COUNT;
-	uint32_t indexCount = maxParticles*INDEX_COUNT;
-	size_t vertexSize = vertexCount*sizeof(ParticleVertex);
-	size_t indexSize = indexCount*sizeof(uint16_t);
-	size_t bufferSize = vertexSize + indexSize;
+	size_t bufferSize = bufferSizeForParticles(maxParticles);
 
-	uint32_t index = draw->bufferCount;
+	index = draw->bufferCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(draw->allocator, draw->buffers, draw->bufferCount,
 			draw->maxBuffers, 1))
 	{
 		return NULL;
 	}
 
-	bufferInfo = draw->buffers + index;
-	bufferInfo->maxParticles = maxParticles;
+	BufferInfo* bufferInfo = draw->buffers + index;
 	bufferInfo->lastUsedFrame = frameNumber;
 
 	bufferInfo->buffer = dsGfxBuffer_create(draw->resourceManager, draw->resourceAllocator,
@@ -162,7 +144,7 @@ static BufferInfo* getDrawBuffer(dsParticleDraw* draw, uint32_t particleCount,
 	{
 		bufferInfo->buffer,
 		0,
-		vertexCount
+		maxParticles*VERTEX_COUNT
 	};
 
 	DS_VERIFY(dsVertexFormat_initialize(&vertexBuffer.format));
@@ -204,8 +186,8 @@ static BufferInfo* getDrawBuffer(dsParticleDraw* draw, uint32_t particleCount,
 	dsIndexBuffer indexBuffer =
 	{
 		bufferInfo->buffer,
-		vertexSize,
-		indexCount,
+		vertexBuffer.count*sizeof(ParticleVertex),
+		maxParticles*INDEX_COUNT,
 		(uint32_t)sizeof(uint16_t)
 	};
 

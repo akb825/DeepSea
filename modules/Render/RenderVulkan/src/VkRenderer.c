@@ -869,11 +869,11 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 	if (preResourceBarriers->bufferBarrierCount > 0 || preResourceBarriers->imageBarrierCount > 0)
 	{
 		DS_VK_CALL(device->vkCmdPipelineBarrier)(commandBuffer,
-            VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_PIPELINE_STAGE_ALL_COMMANDS_BIT |
-                VK_PIPELINE_STAGE_HOST_BIT,
-            VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL,
-            preResourceBarriers->bufferBarrierCount, preResourceBarriers->bufferBarriers,
-            preResourceBarriers->imageBarrierCount, preResourceBarriers->imageBarriers);
+			VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_PIPELINE_STAGE_ALL_COMMANDS_BIT |
+				VK_PIPELINE_STAGE_HOST_BIT,
+			VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL,
+			preResourceBarriers->bufferBarrierCount, preResourceBarriers->bufferBarriers,
+			preResourceBarriers->imageBarrierCount, preResourceBarriers->imageBarriers);
 	}
 
 	for (uint32_t i = 0; i < renderer->bufferCopyInfoCount; ++i)

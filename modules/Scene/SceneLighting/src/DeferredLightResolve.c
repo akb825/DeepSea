@@ -31,6 +31,7 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Shader.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
+#include <DeepSea/Render/Resources/StreamingGfxBufferList.h>
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <DeepSea/Render/Renderer.h>
 
@@ -43,8 +44,6 @@
 
 #include <limits.h>
 #include <string.h>
-
-#define FRAME_DELAY 3
 
 #define MAX_DIRECTIONAL_LIGHTS ((USHRT_MAX - 1)/DS_DIRECTIONAL_LIGHT_VERTEX_COUNT)
 #define MAX_POINT_LIGHTS ((USHRT_MAX - 1)/DS_POINT_LIGHT_VERTEX_COUNT)
@@ -117,10 +116,13 @@ static void freeBuffers(BufferInfo* buffers)
 
 static BufferInfo* getDrawBuffers(dsDeferredLightResolve* resolve, dsRenderer* renderer)
 {
+	// Search for an existing buffer we can re-use. Use simplified logic here based on the fact that
+	// the buffers will all be the same size.
 	for (uint32_t i = 0; i < resolve->bufferCount; ++i)
 	{
 		BufferInfo* buffer = resolve->buffers + i;
-		if (buffer->lastUsedFrame + FRAME_DELAY <= renderer->frameNumber)
+		if (buffer->lastUsedFrame + DS_DEFAULT_STREAMING_GFX_BUFFER_FRAME_DELAY <=
+			renderer->frameNumber)
 		{
 			buffer->lastUsedFrame = renderer->frameNumber;
 			return buffer;

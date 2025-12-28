@@ -163,11 +163,12 @@ typedef struct dsTextIcons dsTextIcons;
  * @brief Function to prepare or draw text icons.
  * @param textIcons The text icons the glyphs belong to.
  * @param userData The user data associated with the text icons.
+ * @param commandBuffer The command buffer for commands required for preparing or drawing.
  * @param glyphs The glyphs to draw. The bounds will be adjusted to the position and size to draw.
  * @param glyphCount The number of glyphs to draw.
  */
 typedef bool (*dsPrepareDrawTextIconsFunction)(const dsTextIcons* textIcons, void* userData,
-	const dsIconGlyph* glyphs, uint32_t glyphCount);
+	dsCommandBuffer* commandBuffer, const dsIconGlyph* glyphs, uint32_t glyphCount);
 
 /**
  * @brief Mapping from a character to the glyphs it corresponds to.

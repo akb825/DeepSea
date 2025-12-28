@@ -30,13 +30,12 @@
 #include <DeepSea/Render/Resources/MaterialType.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
+#include <DeepSea/Render/Resources/StreamingGfxBufferList.h>
 
 #include <DeepSea/Scene/Types.h>
 
 #include <limits.h>
 #include <string.h>
-
-#define FRAME_DELAY 3
 
 typedef struct BufferInfo
 {
@@ -109,43 +108,15 @@ static bool reserveSpace(dsSceneInstanceVariables* variables, uint32_t maxInstan
 	dsResourceManager* resourceManager = variables->resourceManager;
 	uint64_t frameNumber = resourceManager->renderer->frameNumber;
 
-	// Look for any buffer large enough that's FRAME_DELAY number of frames earlier than the
-	// current one.
-	for (uint32_t i = 0; i < variables->bufferCount;)
-	{
-		BufferInfo* bufferInfo = variables->buffers + i;
-
-		// Skip over all buffers that are still in use, even if too small.
-		if (bufferInfo->lastUsedFrame + FRAME_DELAY > frameNumber)
-		{
-			++i;
-			continue;
-		}
-
-		if (bufferInfo->buffer->size >= requiredSize)
-		{
-			// Found. Only take the first one, and continue so that smaller buffers can be removed.
-			if (!variables->curBuffer)
-			{
-				bufferInfo->lastUsedFrame = frameNumber;
-				variables->curBuffer = bufferInfo;
-			}
-			++i;
-			continue;
-		}
-
-		// This buffer is too small. Delete it now since a new one will need to be allocated.
-		if (!dsGfxBuffer_destroy(bufferInfo->buffer))
-			return false;
-
-		// Constant-time removal since order doesn't matter.
-		*bufferInfo = variables->buffers[--variables->bufferCount];
-	}
-
-	if (!variables->curBuffer)
+	// Look for an existing buffer we can re-use.
+	uint32_t index = dsStreamingGfxBufferList_findNext(variables->buffers,
+		&variables->bufferCount, sizeof(BufferInfo), offsetof(BufferInfo, buffer),
+		offsetof(BufferInfo, lastUsedFrame), NULL, requiredSize,
+		DS_DEFAULT_STREAMING_GFX_BUFFER_FRAME_DELAY, frameNumber);
+	if (index == DS_NO_STREAMING_GFX_BUFFER)
 	{
 		// Not found: need to add a new buffer.
-		uint32_t index = variables->bufferCount;
+		index = variables->bufferCount;
 		if (!DS_RESIZEABLE_ARRAY_ADD(allocator, variables->buffers, variables->bufferCount,
 				variables->maxBuffers, 1))
 		{
@@ -165,6 +136,8 @@ static bool reserveSpace(dsSceneInstanceVariables* variables, uint32_t maxInstan
 		bufferInfo->lastUsedFrame = frameNumber;
 		variables->curBuffer = bufferInfo;
 	}
+	else
+		variables->curBuffer = variables->buffers + index;
 
 	DS_ASSERT(variables->curBuffer);
 	variables->curBufferData = dsGfxBuffer_map(variables->curBuffer->buffer,

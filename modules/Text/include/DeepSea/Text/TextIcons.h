@@ -60,6 +60,7 @@ DS_TEXT_EXPORT size_t dsTextIcons_fullAllocSize(uint32_t codepointRangeCount, ui
  * @param prepareFunc The function to prepare glyphs for drawing.
  * @param drawFunc The function to draw icon glyphs. This function is required.
  * @param destroyGlyphUserDataFunc Function to destroy glyph user data.
+ * @return The text icons or NULL if an error occurred.
  */
 DS_TEXT_EXPORT dsTextIcons* dsTextIcons_create(dsAllocator* allocator,
 	const dsIndexRange* codepointRanges, uint32_t codepointRangeCount, uint32_t maxIcons,
