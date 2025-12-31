@@ -160,15 +160,33 @@ typedef struct dsIconGlyph
 typedef struct dsTextIcons dsTextIcons;
 
 /**
- * @brief Function to prepare or draw text icons.
+ * @brief Function to prepare text icons.
  * @param textIcons The text icons the glyphs belong to.
  * @param userData The user data associated with the text icons.
- * @param commandBuffer The command buffer for commands required for preparing or drawing.
- * @param glyphs The glyphs to draw. The bounds will be adjusted to the position and size to draw.
+ * @param commandBuffer The command buffer for commands required for preparing.
+ * @param glyphs The glyphs to prepare. The bounds will be adjusted to the position and size to
+ *     draw.
  * @param glyphCount The number of glyphs to draw.
+ * @return False if an error occurred.
  */
-typedef bool (*dsPrepareDrawTextIconsFunction)(const dsTextIcons* textIcons, void* userData,
+typedef bool (*dsPrepareTextIconsFunction)(const dsTextIcons* textIcons, void* userData,
 	dsCommandBuffer* commandBuffer, const dsIconGlyph* glyphs, uint32_t glyphCount);
+
+/**
+ * @brief Function to draw text icons.
+ * @param textIcons The text icons the glyphs belong to.
+ * @param userData The user data associated with the text icons.
+ * @param commandBuffer The command buffer for commands required for drawing.
+ * @param glyphs The glyphs to draw. The bounds will be adjusted to the position and size to
+ *     draw.
+ * @param glyphCount The number of glyphs to draw.
+ * @param globalValues The global shader values to use when drawing.
+ * @param renderStates The dynamic render states to use when drawing.
+ * @return False if an error occurred.
+ */
+typedef bool (*dsDrawTextIconsFunction)(const dsTextIcons* textIcons, void* userData,
+	dsCommandBuffer* commandBuffer, const dsIconGlyph* glyphs, uint32_t glyphCount,
+	const dsSharedMaterialValues* globalValues, const dsDynamicRenderStates* renderStates);
 
 /**
  * @brief Mapping from a character to the glyphs it corresponds to.

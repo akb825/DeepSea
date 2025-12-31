@@ -175,10 +175,13 @@ DS_TEXT_EXPORT bool dsTextRenderBuffer_drawStandardGlyphRange(dsTextRenderBuffer
  * @remark errno will be set on failure.
  * @param renderBuffer The text render buffer.
  * @param commandBuffer The command buffer to queue commands onto.
+ * @param globalValues The global values to use with icon shaders.
+ * @param renderStates The dynamic render states to use with icon shaders.
  * @return False if an error occurred.
  */
-DS_TEXT_EXPORT bool dsTextRenderBuffer_drawIconGlyphs(
-	dsTextRenderBuffer* renderBuffer, dsCommandBuffer* commandBuffer);
+DS_TEXT_EXPORT bool dsTextRenderBuffer_drawIconGlyphs(dsTextRenderBuffer* renderBuffer,
+	dsCommandBuffer* commandBuffer, const dsSharedMaterialValues* globalValues,
+	const dsDynamicRenderStates* renderStates);
 
 /**
  * @brief Draws a range of icon glyphs that have been placed onto the buffer.
@@ -190,10 +193,13 @@ DS_TEXT_EXPORT bool dsTextRenderBuffer_drawIconGlyphs(
  * @param commandBuffer The command buffer to queue commands onto.
  * @param firstGlyph The first glyph to draw.
  * @param glyphCount The number of glyphs to draw.
+ * @param globalValues The global values to use with icon shaders.
+ * @param renderStates The dynamic render states to use with icon shaders.
  * @return False if an error occurred.
  */
 DS_TEXT_EXPORT bool dsTextRenderBuffer_drawIconGlyphRange(dsTextRenderBuffer* renderBuffer,
-	dsCommandBuffer* commandBuffer, uint32_t firstGlyph, uint32_t glyphCount);
+	dsCommandBuffer* commandBuffer, uint32_t firstGlyph, uint32_t glyphCount,
+	const dsSharedMaterialValues* globalValues, const dsDynamicRenderStates* renderStates);
 
 /**
  * @brief Destroy a text render buffer.

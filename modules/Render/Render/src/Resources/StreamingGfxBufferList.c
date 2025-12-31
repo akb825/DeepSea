@@ -57,6 +57,14 @@ uint32_t dsStreamingGfxBufferList_findNext(void* bufferList, uint32_t* bufferCou
 			continue;
 		}
 
+		// Wait one additional frame before deleting buffers to handle situations where multiple
+		// buffers are needed in a frame.
+		if (*lastUsedFrame + frameDelay + 1 > frameNumber)
+		{
+			++i;
+			continue;
+		}
+
 		// This buffer is too small. Delete it now since a new one will need to be allocated.
 		if (destroyItemFunc)
 			destroyItemFunc(curItemBytes);

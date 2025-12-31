@@ -35,7 +35,6 @@
 #include <DeepSea/Text/Text.h>
 #include <DeepSea/Text/TextIcons.h>
 
-#include <ctype.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
@@ -361,16 +360,22 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 				continue;
 			}
 
-			float scale = style->size/(float)font->glyphSize;
 			const dsAlignedBox2f* glyphBounds;
 			if (range->face == DS_ICON_FACE)
 			{
-				const dsIconGlyph* iconGlyph = dsTextIcons_findIcon(font->icons, textGlyph->glyphID);
+				const dsIconGlyph* iconGlyph = dsTextIcons_findIcon(
+					font->icons, textGlyph->glyphID);
 				DS_ASSERT(iconGlyph);
 				glyphBounds = &iconGlyph->bounds;
 				glyph->mipLevel = textGlyph->glyphID;
 				// Use negative texture coordinates initially to identify as an icon.
 				glyph->texCoords.min.x = glyph->texCoords.min.y = -1.0f;
+
+				// Need to negate the y bounds for final coordinates.
+				glyph->geometry.min.x = glyphBounds->min.x*style->size;
+				glyph->geometry.min.y = -glyphBounds->max.y*style->size;
+				glyph->geometry.max.x = glyphBounds->max.x*style->size;
+				glyph->geometry.max.y = -glyphBounds->min.y*style->size;
 			}
 			else
 			{
@@ -387,10 +392,11 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 				// calculations.
 				glyph->texCoords.min.x = (float)texturePos.x;
 				glyph->texCoords.min.y = (float)texturePos.y;
-			}
 
-			dsVector2_scale(glyph->geometry.min, glyphBounds->min, scale);
-			dsVector2_scale(glyph->geometry.max, glyphBounds->max, scale);
+				float scale = style->size/(float)font->glyphSize;
+				dsVector2_scale(glyph->geometry.min, glyphBounds->min, scale);
+				dsVector2_scale(glyph->geometry.max, glyphBounds->max, scale);
+			}
 
 			// Add the offset to the base glyph position.
 			glyph->geometry.min.y += style->verticalOffset;

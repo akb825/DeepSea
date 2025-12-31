@@ -41,6 +41,9 @@
 #include <DeepSea/Render/Resources/ShaderModule.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
+#include <DeepSea/Render/Resources/SharedMaterialValues.h>
+#include <DeepSea/Render/Resources/Texture.h>
+#include <DeepSea/Render/Resources/TextureData.h>
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <DeepSea/Render/CommandBuffer.h>
 #include <DeepSea/Render/CommandBufferPool.h>
@@ -52,8 +55,10 @@
 #include <DeepSea/Text/FaceGroup.h>
 #include <DeepSea/Text/Font.h>
 #include <DeepSea/Text/Text.h>
+#include <DeepSea/Text/TextIcons.h>
 #include <DeepSea/Text/TextLayout.h>
 #include <DeepSea/Text/TextRenderBuffer.h>
+#include <DeepSea/Text/TextureTextIcons.h>
 
 #include <limits.h>
 #include <stdio.h>
@@ -75,15 +80,27 @@ typedef struct TestText
 	dsWindow* window;
 	dsFramebuffer* framebuffer;
 	dsRenderPass* renderPass;
-	dsShaderModule* shaderModule;
+
 	dsShaderVariableGroupDesc* sharedInfoDesc;
+	dsShaderVariableGroupDesc* iconDataDesc;
 	dsShaderVariableGroup* sharedInfoGroup;
+	dsShaderVariableGroup* sharedTessInfoGroup;
+	dsSharedMaterialValues* sharedValues;
+	dsSharedMaterialValues* sharedTessValues;
+
 	dsMaterialDesc* materialDesc;
+	dsMaterialDesc* iconMaterialDesc;
 	dsMaterial* material;
 	dsMaterial* tessMaterial;
+	dsMaterial* iconMaterial;
+
+	dsShaderModule* shaderModule;
 	dsShader* shader;
 	dsShader* tessShader;
 	dsShader* limitShader;
+	dsShader* iconShader;
+
+	dsTextIcons* textIcons;
 	dsFaceGroup* faceGroup;
 	dsFont* font;
 	dsTextLayout* text;
@@ -99,7 +116,14 @@ typedef struct TestText
 	uint32_t curString;
 	uint32_t fingerCount;
 	uint32_t maxFingers;
+	bool sharedValuesDirty;
 } TestText;
+
+typedef struct IconInfo
+{
+	uint32_t codepoint;
+	const char* name;
+} IconInfo;
 
 static const char* assetsDir = "TestText-assets";
 static char shaderDir[100];
@@ -338,6 +362,17 @@ static TextInfo textStrings[] =
 		dsTextAlign_Start, 200, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f}, NO_STYLE, NO_STYLE}},
+	{"Time to \xF0\x9F\x96\x8A with icons! \xF0\x9F\x98\x8A\n"
+		"Line wrapping with icon\xF0\x9F\x98\x9Bnospace,\n"
+		"Line wrapping only icons: \xF0\x9F\x91\x8D\xF0\x9F\x91\x8D\xF0\x9F\x91\x8D\xF0\x9F\x91"
+			"\x8D\xF0\x9F\x91\x8D\n"
+		"Now within Arabic:\n"
+		"\xD9\x82\xD8\xB1\xD8\xA3\x20\xF0\x9F\x98\x8A\xF0\x9F\x91\x8D\xF0\x9F\x98\x9B\x20\xD8\xB7"
+		"\xD9\x88\xD8\xA7\xD9\x84\x20\xD8\xA7\xD9\x84\xD9\x8A\xD9\x88\xD9\x85\x2E",
+		NULL, false,
+		dsTextAlign_Start, 350, 1.0f,
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}, 0.0f}, NO_STYLE, NO_STYLE}},
 #ifdef CHINESE_FONT_PATH
 	{"Chinese text: \xE5\x9C\xB0\xE7\x82\xB9\xE6\x96\xB9\xE8\xA8\x80 "
 		"\xE5\x9C\xB0\xE9\xBB\x9E\xE6\x96\xB9\xE8\xA8\x80 "
@@ -517,17 +552,17 @@ static void setPositions(TestText* testText)
 	{
 		dsVector2f position = margin;
 		dsVector2_sub(position, position, testText->text->bounds.min);
-		dsMaterial_setElementData(testText->material, testText->positionElement, &position,
-			dsMaterialType_Vec2, 0, 1);
+		DS_VERIFY(dsShaderVariableGroup_setElementData(testText->sharedInfoGroup,
+			testText->positionElement, &position, dsMaterialType_Vec2, 0, 1));
 	}
 
 	if (testText->tessText)
 	{
 		dsVector2f position = margin;
 		position.y += (float)height*0.5f;
-		dsVector2_sub(position, position, testText->text->bounds.min);
-		dsMaterial_setElementData(testText->tessMaterial, testText->positionElement, &position,
-			dsMaterialType_Vec2, 0, 1);
+		dsVector2_sub(position, position, testText->tessText->bounds.min);
+		DS_VERIFY(dsShaderVariableGroup_setElementData(testText->sharedTessInfoGroup,
+			testText->positionElement, &position, dsMaterialType_Vec2, 0, 1));
 	}
 
 	float wrapWidth = textStrings[testText->curString].maxWidth;
@@ -538,6 +573,8 @@ static void setPositions(TestText* testText)
 		DS_VERIFY(dsMaterial_setElementData(testText->material, testText->limitBoundsElement,
 			&bounds, dsMaterialType_Vec4, 0, 1));
 	}
+
+	testText->sharedValuesDirty = true;
 }
 
 static bool createFramebuffer(TestText* testText, dsCommandBuffer* commandBuffer)
@@ -564,7 +601,11 @@ static bool createFramebuffer(TestText* testText, dsCommandBuffer* commandBuffer
 	unsigned int screenSize[] = {width, height};
 	DS_VERIFY(dsShaderVariableGroup_setElementData(testText->sharedInfoGroup,
 		testText->screenSizeElement, &screenSize, dsMaterialType_IVec2, 0, 1));
-	DS_VERIFY(dsShaderVariableGroup_commit(testText->sharedInfoGroup, commandBuffer));
+	if (testText->sharedTessInfoGroup)
+	{
+		DS_VERIFY(dsShaderVariableGroup_setElementData(testText->sharedTessInfoGroup,
+			testText->screenSizeElement, &screenSize, dsMaterialType_IVec2, 0, 1));
+	}
 
 	setPositions(testText);
 	return true;
@@ -750,6 +791,18 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 		testText->setupCommands = NULL;
 	}
 
+	if (testText->sharedValuesDirty)
+	{
+		DS_VERIFY(dsShaderVariableGroup_commit(
+			testText->sharedInfoGroup, testText->renderer->mainCommandBuffer));
+		if (testText->sharedTessInfoGroup)
+		{
+			DS_VERIFY(dsShaderVariableGroup_commit(
+				testText->sharedTessInfoGroup, testText->renderer->mainCommandBuffer));
+		}
+		testText->sharedValuesDirty = false;
+	}
+
 	dsSurfaceClearValue clearValue;
 	clearValue.colorValue.floatValue.r = 0.0f;
 	clearValue.colorValue.floatValue.g = 0.1f;
@@ -760,25 +813,28 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 
 	if (testText->text)
 	{
-		DS_VERIFY(dsShader_bind(testText->shader, commandBuffer, testText->material, NULL, NULL));
+		DS_VERIFY(dsShader_bind(
+			testText->shader, commandBuffer, testText->material, testText->sharedValues, NULL));
 		DS_VERIFY(dsTextRenderBuffer_drawStandardGlyphs(testText->textRender, commandBuffer));
 		DS_VERIFY(dsShader_unbind(testText->shader, commandBuffer));
-		DS_VERIFY(dsTextRenderBuffer_drawIconGlyphs(testText->textRender, commandBuffer));
+		DS_VERIFY(dsTextRenderBuffer_drawIconGlyphs(
+			testText->textRender, commandBuffer, testText->sharedValues, NULL));
 	}
 
 	if (testText->tessText)
 	{
-		DS_VERIFY(dsShader_bind(testText->tessShader, commandBuffer, testText->tessMaterial, NULL,
-			NULL));
+		DS_VERIFY(dsShader_bind(testText->tessShader, commandBuffer, testText->tessMaterial,
+			testText->sharedTessValues, NULL));
 		DS_VERIFY(dsTextRenderBuffer_drawStandardGlyphs(testText->tessTextRender, commandBuffer));
 		DS_VERIFY(dsShader_unbind(testText->tessShader, commandBuffer));
-		DS_VERIFY(dsTextRenderBuffer_drawIconGlyphs(testText->textRender, commandBuffer));
+		DS_VERIFY(dsTextRenderBuffer_drawIconGlyphs(
+			testText->textRender, commandBuffer, testText->sharedTessValues, NULL));
 	}
 
 	if (textStrings[testText->curString].maxWidth != DS_TEXT_NO_WRAP)
 	{
-		DS_VERIFY(dsShader_bind(testText->limitShader, commandBuffer, testText->material, NULL,
-			NULL));
+		DS_VERIFY(dsShader_bind(testText->limitShader, commandBuffer, testText->material,
+			testText->sharedValues, NULL));
 		dsDrawRange drawRange = {6, 1, 0, 0};
 		DS_VERIFY(dsRenderer_draw(renderer, commandBuffer, testText->limitGeometry, &drawRange,
 			dsPrimitiveType_TriangleList));
@@ -814,7 +870,9 @@ static bool setupShaders(TestText* testText)
 
 	dsShaderVariableElement sharedInfoElems[] =
 	{
-		{"screenSize", dsMaterialType_IVec2, 0}
+		{"screenSize", dsMaterialType_IVec2, 0},
+		{"position", dsMaterialType_Vec2, 0},
+		{"yMult", dsMaterialType_Float, 0}
 	};
 	testText->sharedInfoDesc = dsShaderVariableGroupDesc_create(resourceManager, allocator,
 		sharedInfoElems, DS_ARRAY_SIZE(sharedInfoElems));
@@ -829,6 +887,22 @@ static bool setupShaders(TestText* testText)
 		"screenSize");
 	DS_ASSERT(testText->screenSizeElement != DS_MATERIAL_UNKNOWN);
 
+	testText->iconDataDesc = dsTextureTextIcons_createShaderVariableGroupDesc(
+		resourceManager, allocator);
+	if (!testText->iconDataDesc)
+	{
+		DS_LOG_ERROR_F("TestText", "Couldn't create shader variable group description: %s",
+			dsErrorString(errno));
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	testText->positionElement = dsShaderVariableGroupDesc_findElement(
+		testText->sharedInfoDesc, "position");
+	DS_ASSERT(testText->positionElement != DS_MATERIAL_UNKNOWN);
+	uint32_t yMultElement = dsShaderVariableGroupDesc_findElement(
+		testText->sharedInfoDesc, "yMult");
+	DS_ASSERT(yMultElement != DS_MATERIAL_UNKNOWN);
+
 	testText->sharedInfoGroup = dsShaderVariableGroup_create(resourceManager, allocator, allocator,
 		testText->sharedInfoDesc);
 	if (!testText->sharedInfoGroup)
@@ -838,12 +912,24 @@ static bool setupShaders(TestText* testText)
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	float yMult = renderer->projectionOptions & dsProjectionMatrixOptions_InvertY ? 1.0f : -1.0f;
+	DS_VERIFY(dsShaderVariableGroup_setElementData(
+		testText->sharedInfoGroup, yMultElement, &yMult, dsMaterialType_Float, 0, 1));
+
+	testText->sharedValues = dsSharedMaterialValues_create(allocator, 1);
+	if (!testText->sharedValues)
+	{
+		DS_LOG_ERROR_F("TestText", "Couldn't create shared material values: %s",
+			dsErrorString(errno));
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+	DS_VERIFY(dsSharedMaterialValues_setVariableGroupName(
+		testText->sharedValues, "SharedInfo", testText->sharedInfoGroup));
+
 	dsMaterialElement materialElems[] =
 	{
 		{"SharedInfo", dsMaterialType_VariableGroup, 0, testText->sharedInfoDesc,
-			dsMaterialBinding_Material, 0},
-		{"position", dsMaterialType_Vec2, 0, NULL, dsMaterialBinding_Material, 0},
-		{"yMult", dsMaterialType_Float, 0, NULL, dsMaterialBinding_Material, 0},
+			dsMaterialBinding_Global, 0},
 		{"fontTex", dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Material, 0},
 		{"bounds", dsMaterialType_Vec4, 0, NULL, dsMaterialBinding_Material, 0}
 	};
@@ -856,12 +942,6 @@ static bool setupShaders(TestText* testText)
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	uint32_t sharedInfoElement = dsMaterialDesc_findElement(testText->materialDesc, "SharedInfo");
-	DS_ASSERT(sharedInfoElement != DS_MATERIAL_UNKNOWN);
-	testText->positionElement = dsMaterialDesc_findElement(testText->materialDesc, "position");
-	DS_ASSERT(testText->positionElement != DS_MATERIAL_UNKNOWN);
-	uint32_t yMultElement = dsMaterialDesc_findElement(testText->materialDesc, "yMult");
-	DS_ASSERT(yMultElement != DS_MATERIAL_UNKNOWN);
 	testText->limitBoundsElement = dsMaterialDesc_findElement(testText->materialDesc, "bounds");
 	DS_ASSERT(testText->limitBoundsElement != DS_MATERIAL_UNKNOWN);
 
@@ -871,11 +951,6 @@ static bool setupShaders(TestText* testText)
 		DS_LOG_ERROR_F("TestText", "Couldn't create material: %s", dsErrorString(errno));
 		DS_PROFILE_FUNC_RETURN(false);
 	}
-	DS_VERIFY(dsMaterial_setVariableGroup(testText->material, sharedInfoElement,
-		testText->sharedInfoGroup));
-	float yMult = renderer->projectionOptions & dsProjectionMatrixOptions_InvertY ? 1.0f : -1.0f;
-	DS_VERIFY(dsMaterial_setElementData(testText->material, yMultElement, &yMult,
-		dsMaterialType_Float, 0, 1));
 
 	testText->shader = dsShader_createName(resourceManager, allocator, testText->shaderModule,
 		"Font", testText->materialDesc);
@@ -887,6 +962,28 @@ static bool setupShaders(TestText* testText)
 
 	if (renderer->hasTessellationShaders)
 	{
+		testText->sharedTessInfoGroup = dsShaderVariableGroup_create(resourceManager, allocator,
+			allocator, testText->sharedInfoDesc);
+		if (!testText->sharedTessInfoGroup)
+		{
+			DS_LOG_ERROR_F("TestText", "Couldn't create shader variable group: %s",
+				dsErrorString(errno));
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		DS_VERIFY(dsShaderVariableGroup_setElementData(
+			testText->sharedTessInfoGroup, yMultElement, &yMult, dsMaterialType_Float, 0, 1));
+
+		testText->sharedTessValues = dsSharedMaterialValues_create(allocator, 1);
+		if (!testText->sharedTessValues)
+		{
+			DS_LOG_ERROR_F("TestText", "Couldn't create shared material values: %s",
+				dsErrorString(errno));
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+		DS_VERIFY(dsSharedMaterialValues_setVariableGroupName(
+			testText->sharedTessValues, "SharedInfo", testText->sharedTessInfoGroup));
+
 		testText->tessMaterial = dsMaterial_create(resourceManager, allocator,
 			testText->materialDesc);
 		if (!testText->tessMaterial)
@@ -894,10 +991,6 @@ static bool setupShaders(TestText* testText)
 			DS_LOG_ERROR_F("TestText", "Couldn't create material: %s", dsErrorString(errno));
 			DS_PROFILE_FUNC_RETURN(false);
 		}
-		DS_VERIFY(dsMaterial_setVariableGroup(testText->tessMaterial, sharedInfoElement,
-			testText->sharedInfoGroup));
-		DS_VERIFY(dsMaterial_setElementData(testText->tessMaterial, yMultElement, &yMult,
-			dsMaterialType_Float, 0, 1));
 
 		testText->tessShader = dsShader_createName(resourceManager, allocator,
 			testText->shaderModule, "FontTess", testText->materialDesc);
@@ -911,6 +1004,40 @@ static bool setupShaders(TestText* testText)
 	testText->limitShader = dsShader_createName(resourceManager, allocator,
 		testText->shaderModule, "Box", testText->materialDesc);
 	if (!testText->limitShader)
+	{
+		DS_LOG_ERROR_F("TestText", "Couldn't create shader: %s", dsErrorString(errno));
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsMaterialElement iconMaterialElems[] =
+	{
+		{"SharedInfo", dsMaterialType_VariableGroup, 0, testText->sharedInfoDesc,
+			dsMaterialBinding_Global, 0},
+		{dsTextureTextIcons_textureName, dsMaterialType_Texture, 0, NULL,
+			dsMaterialBinding_Instance, 0},
+		{dsTextureTextIcons_iconDataName, dsMaterialType_VariableGroup, 0, testText->iconDataDesc,
+			dsMaterialBinding_Instance, 0}
+	};
+	testText->iconMaterialDesc = dsMaterialDesc_create(resourceManager, allocator,
+		iconMaterialElems, DS_ARRAY_SIZE(iconMaterialElems));
+	if (!testText->materialDesc)
+	{
+		DS_LOG_ERROR_F("TestText", "Couldn't create material description: %s",
+			dsErrorString(errno));
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	testText->iconMaterial = dsMaterial_create(
+		resourceManager, allocator, testText->iconMaterialDesc);
+	if (!testText->iconMaterial)
+	{
+		DS_LOG_ERROR_F("TestText", "Couldn't create material: %s", dsErrorString(errno));
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	testText->iconShader = dsShader_createName(resourceManager, allocator, testText->shaderModule,
+		"Icon", testText->iconMaterialDesc);
+	if (!testText->iconShader)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create shader: %s", dsErrorString(errno));
 		DS_PROFILE_FUNC_RETURN(false);
@@ -985,6 +1112,52 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 		}
 	}
 
+	IconInfo icons[] =
+	{
+		{0x1F60A, "smile.pvr"},
+		{0x1F61B, "tongue.pvr"},
+		{0x1F44D, "thumbs-up.pvr"},
+		{0x1F58A, "pen.pvr"}
+	};
+	uint32_t emojiStart = 0x1F320, emojiEnd = 0x1FAFF;
+	dsIndexRange codepointRange = {emojiStart, emojiEnd - emojiStart};
+	testText->textIcons = dsTextureTextIcons_create(allocator, resourceManager, NULL,
+		testText->iconShader, testText->iconMaterial, testText->iconDataDesc, &codepointRange, 1,
+		DS_ARRAY_SIZE(icons));
+	if (!testText->textIcons)
+	{
+		DS_LOG_ERROR_F("TestText", "Couldn't create text icons: %s", dsErrorString(errno));
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	float iconSize = 0.8f;
+	dsAlignedBox2f iconBounds = {{{0.0f, 0.0f}}, {{iconSize, iconSize}}};
+	for (unsigned int i = 0; i < DS_ARRAY_SIZE(icons); ++i)
+	{
+		const IconInfo* icon = icons + i;
+		if (!dsPath_combine(path, sizeof(path), assetsDir, "Icons") ||
+			!dsPath_combine(path, sizeof(path), path, icon->name))
+		{
+			DS_LOG_ERROR_F("TestText", "Couldn't create texture path: %s", dsErrorString(errno));
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+		dsTexture* texture = dsTextureData_loadResourceToTexture(resourceManager, allocator, NULL,
+			dsFileResourceType_Embedded, path, NULL, dsTextureUsage_Texture,
+			dsGfxMemory_Static | dsGfxMemory_GPUOnly);
+		if (!texture)
+		{
+			DS_LOG_ERROR_F("TestText", "Couldn't load icon texture: %s", dsErrorString(errno));
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		if (!dsTextureTextIcons_addIcon(
+				testText->textIcons, icon->codepoint, iconSize, &iconBounds, texture, true))
+		{
+			DS_LOG_ERROR_F("TestText", "Couldn't add icon: %s", dsErrorString(errno));
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+	}
+
 	testText->faceGroup = dsFaceGroup_create(allocator, NULL, DS_DEFAULT_MAX_FACES);
 	if (!testText->faceGroup)
 	{
@@ -998,6 +1171,7 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 			!dsPath_combine(path, sizeof(path), path, "NotoSans-Regular.ttc"))
 		{
 			DS_LOG_ERROR_F("TestText", "Couldn't create font path: %s", dsErrorString(errno));
+			DS_PROFILE_FUNC_RETURN(false);
 		}
 		fontPath = path;
 	}
@@ -1010,8 +1184,8 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 
 	if (!dsPath_combine(path, sizeof(path), assetsDir, "Fonts") ||
 		!dsPath_combine(path, sizeof(path), path, "NotoSansArabic-Regular.ttf") ||
-		!dsFaceGroup_loadFaceResource(testText->faceGroup, allocator, dsFileResourceType_Embedded,
-			path, "Arabic"))
+		!dsFaceGroup_loadFaceResource(
+			testText->faceGroup, allocator, dsFileResourceType_Embedded, path, "Arabic"))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't load font face: %s", dsErrorString(errno));
 		DS_PROFILE_FUNC_RETURN(false);
@@ -1019,8 +1193,8 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 
 	if (!dsPath_combine(path, sizeof(path), assetsDir, "Fonts") ||
 		!dsPath_combine(path, sizeof(path), path, "NotoSansThai-Regular.ttf") ||
-		!dsFaceGroup_loadFaceResource(testText->faceGroup, allocator, dsFileResourceType_Embedded,
-			path, "Thai"))
+		!dsFaceGroup_loadFaceResource(
+			testText->faceGroup, allocator, dsFileResourceType_Embedded, path, "Thai"))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't load font face: %s", dsErrorString(errno));
 		DS_PROFILE_FUNC_RETURN(false);
@@ -1041,7 +1215,7 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 #endif
 	};
 	testText->font = dsFont_create(testText->faceGroup, resourceManager, allocator, faceNames,
-		DS_ARRAY_SIZE(faceNames), NULL, quality, dsTextCache_Large);
+		DS_ARRAY_SIZE(faceNames), testText->textIcons, quality, dsTextCache_Large);
 	if (!testText->font)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create font: %s", dsErrorString(errno));
@@ -1242,15 +1416,23 @@ static void shutdown(TestText* testText)
 	dsTextLayout_destroyLayoutAndText(testText->text);
 	DS_VERIFY(dsFont_destroy(testText->font));
 	dsFaceGroup_destroy(testText->faceGroup);
+	dsTextIcons_destroy(testText->textIcons);
+	DS_VERIFY(dsShader_destroy(testText->iconShader));
 	DS_VERIFY(dsShader_destroy(testText->tessShader));
 	DS_VERIFY(dsShader_destroy(testText->shader));
 	DS_VERIFY(dsShader_destroy(testText->limitShader));
+	dsMaterial_destroy(testText->iconMaterial);
 	dsMaterial_destroy(testText->tessMaterial);
 	dsMaterial_destroy(testText->material);
 	DS_VERIFY(dsDrawGeometry_destroy(testText->limitGeometry));
 	DS_VERIFY(dsGfxBuffer_destroy(testText->limitBuffer));
+	DS_VERIFY(dsMaterialDesc_destroy(testText->iconMaterialDesc));
 	DS_VERIFY(dsMaterialDesc_destroy(testText->materialDesc));
+	dsSharedMaterialValues_destroy(testText->sharedValues);
+	dsSharedMaterialValues_destroy(testText->sharedTessValues);
 	DS_VERIFY(dsShaderVariableGroup_destroy(testText->sharedInfoGroup));
+	DS_VERIFY(dsShaderVariableGroup_destroy(testText->sharedTessInfoGroup));
+	DS_VERIFY(dsShaderVariableGroupDesc_destroy(testText->iconDataDesc));
 	DS_VERIFY(dsShaderVariableGroupDesc_destroy(testText->sharedInfoDesc));
 	DS_VERIFY(dsShaderModule_destroy(testText->shaderModule));
 	DS_VERIFY(dsRenderPass_destroy(testText->renderPass));

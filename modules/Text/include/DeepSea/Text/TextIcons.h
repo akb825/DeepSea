@@ -65,7 +65,7 @@ DS_TEXT_EXPORT size_t dsTextIcons_fullAllocSize(uint32_t codepointRangeCount, ui
 DS_TEXT_EXPORT dsTextIcons* dsTextIcons_create(dsAllocator* allocator,
 	const dsIndexRange* codepointRanges, uint32_t codepointRangeCount, uint32_t maxIcons,
 	void* userData, dsDestroyUserDataFunction destroyUserDataFunc,
-	dsPrepareDrawTextIconsFunction prepareFunc, dsPrepareDrawTextIconsFunction drawFunc,
+	dsPrepareTextIconsFunction prepareFunc, dsDrawTextIconsFunction drawFunc,
 	dsDestroyUserDataFunction destroyGlyphUserDataFunc);
 
 /**

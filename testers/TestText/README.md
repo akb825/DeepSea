@@ -117,3 +117,7 @@ The following test cases are present. When tessellation shaders are available, t
 ### Uniform text mode with Arabic text
 
 ![Uniform text mode with Arabic text](doc-images/UniformTextArabic.png)
+
+### Icons
+
+![Icons](doc-images/Icons.png)

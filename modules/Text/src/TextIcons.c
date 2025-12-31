@@ -57,8 +57,8 @@ size_t dsTextIcons_fullAllocSize(uint32_t codepointRangeCount, uint32_t maxIcons
 
 dsTextIcons* dsTextIcons_create(dsAllocator* allocator, const dsIndexRange* codepointRanges,
 	uint32_t codepointRangeCount, uint32_t maxIcons, void* userData,
-	dsDestroyUserDataFunction destroyUserDataFunc, dsPrepareDrawTextIconsFunction prepareFunc,
-	dsPrepareDrawTextIconsFunction drawFunc, dsDestroyUserDataFunction destroyGlyphUserDataFunc)
+	dsDestroyUserDataFunction destroyUserDataFunc, dsPrepareTextIconsFunction prepareFunc,
+	dsDrawTextIconsFunction drawFunc, dsDestroyUserDataFunction destroyGlyphUserDataFunc)
 {
 	if (!allocator || !codepointRanges || codepointRangeCount == 0 || maxIcons == 0 || !drawFunc)
 	{

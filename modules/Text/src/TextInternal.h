@@ -141,8 +141,8 @@ struct dsTextIcons
 	dsAllocator* allocator;
 	void* userData;
 	dsDestroyUserDataFunction destroyUserDataFunc;
-	dsPrepareDrawTextIconsFunction prepareFunc;
-	dsPrepareDrawTextIconsFunction drawFunc;
+	dsPrepareTextIconsFunction prepareFunc;
+	dsDrawTextIconsFunction drawFunc;
 	dsDestroyUserDataFunction destroyGlyphUserDataFunc;
 
 	dsIndexRange* codepointRanges;

@@ -26,6 +26,8 @@
 
 #include <DeepSea/Geometry/AlignedBox2.h>
 
+#include <DeepSea/Math/Vector2.h>
+
 #include <DeepSea/Render/Resources/DrawGeometry.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/Shader.h>
@@ -296,13 +298,14 @@ bool dsTextRenderBuffer_addTextRange(dsTextRenderBuffer* renderBuffer,
 				uint32_t codepoint = glyph->mipLevel;
 				const dsIconGlyph* baseIcon = dsTextIcons_findIcon(icons, codepoint);
 				DS_ASSERT(baseIcon);
-				dsIconGlyph* tempIcon = iconGlyphData + renderBuffer->queuedStandardGlyphs;
+				dsIconGlyph* tempIcon = iconGlyphData + renderBuffer->queuedIconGlyphs;
 				tempIcon->codepoint = codepoint;
 				tempIcon->advance = baseIcon->advance;
-				tempIcon->bounds = glyph->geometry;
+				dsVector2_add(tempIcon->bounds.min, glyph->geometry.min, glyph->position);
+				dsVector2_add(tempIcon->bounds.max, glyph->geometry.max, glyph->position);
 				tempIcon->userData = baseIcon->userData;
-				textIconPtrs[renderBuffer->queuedStandardGlyphs] = icons;
-				++renderBuffer->queuedStandardGlyphs;
+				textIconPtrs[renderBuffer->queuedIconGlyphs] = icons;
+				++renderBuffer->queuedIconGlyphs;
 			}
 		}
 	}
@@ -379,7 +382,7 @@ bool dsTextRenderBuffer_commit(dsTextRenderBuffer* renderBuffer, dsCommandBuffer
 		const dsTextIcons** icons = (const dsTextIcons**)(iconGlyphs + renderBuffer->maxIconGlyphs);
 		const dsTextIcons* curIcons = icons[0];
 		uint32_t start = 0;
-		uint32_t count = 0;
+		uint32_t count = 1;
 		for (uint32_t i = 1; i < renderBuffer->queuedIconGlyphs; ++i, ++count)
 		{
 			const dsTextIcons* thisIcons = icons[i];
@@ -392,7 +395,7 @@ bool dsTextRenderBuffer_commit(dsTextRenderBuffer* renderBuffer, dsCommandBuffer
 				}
 
 				start = i;
-				count = 0;
+				count = 1;
 				curIcons = thisIcons;
 			}
 		}
@@ -471,8 +474,9 @@ bool dsTextRenderBuffer_drawStandardGlyphRange(dsTextRenderBuffer* renderBuffer,
 	DS_PROFILE_FUNC_RETURN(result);
 }
 
-bool dsTextRenderBuffer_drawIconGlyphs(
-	dsTextRenderBuffer* renderBuffer, dsCommandBuffer* commandBuffer)
+bool dsTextRenderBuffer_drawIconGlyphs(dsTextRenderBuffer* renderBuffer,
+	dsCommandBuffer* commandBuffer, const dsSharedMaterialValues* globalValues,
+	const dsDynamicRenderStates* renderStates)
 {
 	if (!renderBuffer || !commandBuffer)
 	{
@@ -480,12 +484,13 @@ bool dsTextRenderBuffer_drawIconGlyphs(
 		return false;
 	}
 
-	return dsTextRenderBuffer_drawIconGlyphRange(
-		renderBuffer, commandBuffer, 0, renderBuffer->queuedIconGlyphs);
+	return dsTextRenderBuffer_drawIconGlyphRange(renderBuffer, commandBuffer, 0,
+		renderBuffer->queuedIconGlyphs, globalValues, renderStates);
 }
 
 bool dsTextRenderBuffer_drawIconGlyphRange(dsTextRenderBuffer* renderBuffer,
-	dsCommandBuffer* commandBuffer, uint32_t firstGlyph, uint32_t glyphCount)
+	dsCommandBuffer* commandBuffer, uint32_t firstGlyph, uint32_t glyphCount,
+	const dsSharedMaterialValues* globalValues, const dsDynamicRenderStates* renderStates)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -509,26 +514,26 @@ bool dsTextRenderBuffer_drawIconGlyphRange(dsTextRenderBuffer* renderBuffer,
 	const dsTextIcons** icons = (const dsTextIcons**)(iconGlyphs + renderBuffer->maxIconGlyphs);
 	const dsTextIcons* curIcons = icons[0];
 	uint32_t start = firstGlyph;
-	uint32_t count = 0;
+	uint32_t count = 1;
 	for (uint32_t i = 1; i < glyphCount; ++i, ++count)
 	{
 		const dsTextIcons* thisIcons = icons[firstGlyph + i];
 		if (thisIcons != curIcons)
 		{
-			if (!curIcons->drawFunc(
-					curIcons, curIcons->userData, commandBuffer, iconGlyphs + start, count))
+			if (!curIcons->drawFunc(curIcons, curIcons->userData, commandBuffer, iconGlyphs + start,
+					count, globalValues, renderStates))
 			{
 				DS_PROFILE_FUNC_RETURN(false);
 			}
 
 			start = firstGlyph + i;
-			count = 0;
+			count = 1;
 			curIcons = thisIcons;
 		}
 	}
 
-	bool result = curIcons->drawFunc(
-		curIcons, curIcons->userData, commandBuffer, iconGlyphs + start, count);
+	bool result = curIcons->drawFunc(curIcons, curIcons->userData, commandBuffer,
+		iconGlyphs + start, count, globalValues, renderStates);
 	DS_PROFILE_FUNC_RETURN(result);
 }
 

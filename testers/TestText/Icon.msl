@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,7 @@
  */
 
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
-#include <DeepSea/Text/Text.mslh>
-
-uniform sampler2D fontTex;
-sampler_state fontTex
-{
-	address_mode_u = clamp_to_edge;
-	address_mode_v = clamp_to_edge;
-	min_filter = linear;
-	mag_filter = linear;
-	mip_filter = nearest;
-}
+#include <DeepSea/Text/TextureTextIcon.mslh>
 
 uniform SharedInfo
 {
@@ -35,17 +25,11 @@ uniform SharedInfo
 } sharedInfo;
 
 [[vertex]] layout(location = DS_POSITION) in vec2 vertexPos;
-[[vertex]] layout(location = DS_COLOR0) in vec4 textColor;
-[[vertex]] layout(location = DS_COLOR1) in vec4 outlineColor;
-[[vertex]] layout(location = DS_TEXCOORD0) in vec3 texCoords;
-[[vertex]] layout(location = DS_TEXCOORD1) in vec4 style;
+[[vertex]] layout(location = DS_TEXCOORD0) in vec2 texCoords;
 
 varying(vertex, fragment)
 {
-	vec4 vfTextColor;
-	vec4 vfOutlineColor;
-	vec3 vfTexCoords;
-	vec4 vfStyle;
+	vec2 vfTexCoords;
 }
 
 [[fragment]] out vec4 color;
@@ -53,12 +37,10 @@ varying(vertex, fragment)
 [[vertex]]
 void vertexShader()
 {
-	vfTextColor = textColor;
-	vfOutlineColor = outlineColor;
 	vfTexCoords = texCoords;
-	vfStyle = style;
 
-	vec2 normalizedPos = (INSTANCE(sharedInfo).position + vertexPos)/
+	vec2 position = dsComputeTextureTextIconPosition(vertexPos);
+	vec2 normalizedPos = (INSTANCE(sharedInfo).position + position)/
 		vec2(INSTANCE(sharedInfo).screenSize);
 	gl_Position = DS_ADJUST_CLIP(vec4(normalizedPos*vec2(2.0) - vec2(1.0), 0.0, 1.0));
 	gl_Position.y *= INSTANCE(sharedInfo).yMult;
@@ -67,12 +49,10 @@ void vertexShader()
 [[fragment]]
 void fragmentShader()
 {
-	float distance = dsComputeTextDistance(fontTex, vfTexCoords);
-	color = dsComputeTextColor(distance, vfStyle.x, vfStyle.y, vfStyle.z,
-		vfStyle.w, vfTextColor, vfOutlineColor);
+	color = texture(TextIconTex, vfTexCoords);
 }
 
-pipeline Font
+pipeline Icon
 {
 	vertex = vertexShader;
 	fragment = fragmentShader;

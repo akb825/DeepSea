@@ -330,8 +330,8 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 						lastTextMaterial = NULL;
 
 						DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
-							dsTextRenderBuffer_drawIconGlyphRange(
-								renderBuffer, commandBuffer, firstIconGlyph, iconGlyphCount));
+							dsTextRenderBuffer_drawIconGlyphRange(renderBuffer, commandBuffer,
+								firstIconGlyph, iconGlyphCount, view->globalValues, NULL));
 					}
 				}
 				break;

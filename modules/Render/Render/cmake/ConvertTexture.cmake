@@ -111,7 +111,7 @@ function(ds_convert_texture container)
 	set(oneValueArgs OUTPUT FORMAT TYPE DIMENSION ALPHA QUALITY OUTPUT_FORMAT IMAGE NEGX POSX
 		NEGY POSY NEGZ POSZ IMAGE_LIST ROTATE NORMALMAP SWIZZLE WORKING_DIRECTORY)
 	set(multiValueArgs ARRAY_IMAGE ARRAY_NEGX ARRAY_POSX ARRAY_NEGY ARRAY_POSY ARRAY_NEGZ
-		ARRAY_POSZ MIPMAP)
+		ARRAY_POSZ MIPMAP RESIZE)
 	cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 	if (NOT ARGS_OUTPUT)
 		message(FATAL_ERROR "Required option OUTPUT not specified.")

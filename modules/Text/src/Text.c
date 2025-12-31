@@ -58,7 +58,7 @@ static uint32_t countTextRanges(const dsFont* font, const uint32_t* codepoints,
 			{
 				++rangeCount;
 				lastScript = script;
-				hasLastScript = !unique;
+				hasLastScript = unique;
 			}
 			else if (!hasLastScript && unique)
 			{
@@ -144,7 +144,7 @@ static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount, bo
 				scriptInfo->count = run->start + run->count - index;
 
 				lastScript = script;
-				hasLastScript = !unique;
+				hasLastScript = unique;
 			}
 			else if (!hasLastScript && unique)
 			{
