@@ -72,9 +72,8 @@ struct TextNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_FIRSTCHAR = 16,
     VT_CHARCOUNT = 18,
     VT_SHADER = 20,
-    VT_MATERIAL = 22,
-    VT_FONTTEXTURE = 24,
-    VT_ITEMLISTS = 26
+    VT_FONTTEXTURE = 22,
+    VT_ITEMLISTS = 24
   };
   const ::flatbuffers::Vector<uint8_t> *embeddedResources() const {
     return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_EMBEDDEDRESOURCES);
@@ -103,9 +102,6 @@ struct TextNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *shader() const {
     return GetPointer<const ::flatbuffers::String *>(VT_SHADER);
   }
-  const ::flatbuffers::String *material() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_MATERIAL);
-  }
   const ::flatbuffers::String *fontTexture() const {
     return GetPointer<const ::flatbuffers::String *>(VT_FONTTEXTURE);
   }
@@ -127,8 +123,6 @@ struct TextNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyField<uint32_t>(verifier, VT_CHARCOUNT, 4) &&
            VerifyOffsetRequired(verifier, VT_SHADER) &&
            verifier.VerifyString(shader()) &&
-           VerifyOffsetRequired(verifier, VT_MATERIAL) &&
-           verifier.VerifyString(material()) &&
            VerifyOffsetRequired(verifier, VT_FONTTEXTURE) &&
            verifier.VerifyString(fontTexture()) &&
            VerifyOffset(verifier, VT_ITEMLISTS) &&
@@ -169,9 +163,6 @@ struct TextNodeBuilder {
   void add_shader(::flatbuffers::Offset<::flatbuffers::String> shader) {
     fbb_.AddOffset(TextNode::VT_SHADER, shader);
   }
-  void add_material(::flatbuffers::Offset<::flatbuffers::String> material) {
-    fbb_.AddOffset(TextNode::VT_MATERIAL, material);
-  }
   void add_fontTexture(::flatbuffers::Offset<::flatbuffers::String> fontTexture) {
     fbb_.AddOffset(TextNode::VT_FONTTEXTURE, fontTexture);
   }
@@ -187,7 +178,6 @@ struct TextNodeBuilder {
     auto o = ::flatbuffers::Offset<TextNode>(end);
     fbb_.Required(o, TextNode::VT_TEXT);
     fbb_.Required(o, TextNode::VT_SHADER);
-    fbb_.Required(o, TextNode::VT_MATERIAL);
     fbb_.Required(o, TextNode::VT_FONTTEXTURE);
     return o;
   }
@@ -204,13 +194,11 @@ inline ::flatbuffers::Offset<TextNode> CreateTextNode(
     uint32_t firstChar = 0,
     uint32_t charCount = 0,
     ::flatbuffers::Offset<::flatbuffers::String> shader = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> material = 0,
     ::flatbuffers::Offset<::flatbuffers::String> fontTexture = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> itemLists = 0) {
   TextNodeBuilder builder_(_fbb);
   builder_.add_itemLists(itemLists);
   builder_.add_fontTexture(fontTexture);
-  builder_.add_material(material);
   builder_.add_shader(shader);
   builder_.add_charCount(charCount);
   builder_.add_firstChar(firstChar);
@@ -234,13 +222,11 @@ inline ::flatbuffers::Offset<TextNode> CreateTextNodeDirect(
     uint32_t firstChar = 0,
     uint32_t charCount = 0,
     const char *shader = nullptr,
-    const char *material = nullptr,
     const char *fontTexture = nullptr,
     const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists = nullptr) {
   auto embeddedResources__ = embeddedResources ? _fbb.CreateVector<uint8_t>(*embeddedResources) : 0;
   auto text__ = text ? _fbb.CreateString(text) : 0;
   auto shader__ = shader ? _fbb.CreateString(shader) : 0;
-  auto material__ = material ? _fbb.CreateString(material) : 0;
   auto fontTexture__ = fontTexture ? _fbb.CreateString(fontTexture) : 0;
   auto itemLists__ = itemLists ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*itemLists) : 0;
   return DeepSeaSceneVectorDraw::CreateTextNode(
@@ -254,7 +240,6 @@ inline ::flatbuffers::Offset<TextNode> CreateTextNodeDirect(
       firstChar,
       charCount,
       shader__,
-      material__,
       fontTexture__,
       itemLists__);
 }

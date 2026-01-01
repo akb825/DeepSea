@@ -73,7 +73,6 @@ The following scene node types are provided with the members that are expected:
 	* `firstChar`: the first character to display. Defaults to 0.
 	* `charCount`: the number of characters to display. Defaults to all characters.
 	* `shader`: the name of the shader to draw with.
-	* `material`: the name of the material to draw with.
 	* `fontTexture`: the name of the texture for the font.
 	* `itemLists`: array of item list names to add the node to.
 * `"VectorImageNode"`: scene node to draw a `VectorImage` object.
@@ -82,7 +81,6 @@ The following scene node types are provided with the members that are expected:
 	* `size`: the size to draw the vector image as an array of two floats. Defaults to the original image size.
 	* `z`: the Z value used for sorting text and vector elements as a signed int.
 	* `vectorShaders`: the name of the vector shaders to draw with.
-	* `material`: the name of the material to draw with.
 	* `itemLists`: array of item list names to add the node to.
 
 ## Scene Item Lists
@@ -94,6 +92,7 @@ The following scene item lists are provided with the expected members:
 	* `instanceData`: optional list of instance data to include with the item list. Each element of the array has the following members:
 		* `type`: the name of the instance data type.
 		* Remaining members depend on the value of `type`.
+	* `maxMaterialDescs`: maximum number of unique material descriptions for vector and text nodes.
 	* `dynamicRenderStates`: dynamic render states to apply when rendering. This may be omitted if no dynamic render states are used. This is expected to contain any of the following members:
 		* `lineWidth`: float width for the line. Defaults to 1.
 		* `depthBiasConstantFactor`: float value for the depth bias constant factor. Defaults to 0.

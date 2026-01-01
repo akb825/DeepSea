@@ -87,12 +87,10 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 	dsSceneNode* node = nullptr;
 	auto fbText = fbTextNode->text();
 	auto fbShader = fbTextNode->shader();
-	auto fbMaterial = fbTextNode->material();
 	auto fbItemLists = fbTextNode->itemLists();
 
 	dsSceneText* text;
 	dsShader* shader;
-	dsMaterial* material;
 	const dsMaterialDesc* materialDesc;
 	const char* fontTextureName;
 	uint32_t fontTextureElement;
@@ -125,16 +123,6 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 		goto finished;
 	}
 
-	if (!dsSceneLoadScratchData_findResource(&resourceType,
-			reinterpret_cast<void**>(&material), scratchData, fbMaterial->c_str()) ||
-		resourceType != dsSceneResourceType_Material)
-	{
-		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Couldn't find material '%s'.",
-			fbMaterial->c_str());
-		goto finished;
-	}
-
 	if (fbItemLists && fbItemLists->size() > 0)
 	{
 		itemListCount = fbItemLists->size();
@@ -154,7 +142,7 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 		}
 	}
 
-	materialDesc = dsMaterial_getDescription(material);
+	materialDesc = shader->materialDesc;
 	DS_ASSERT(materialDesc);
 
 	fontTextureName = fbTextNode->fontTexture()->c_str();
@@ -176,8 +164,8 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 		text->userData, text->styles, text->styleCount,
 		static_cast<dsTextAlign>(fbTextNode->alignment()), fbTextNode->maxWidth(),
 		fbTextNode->lineScale(), fbTextNode->z(), fbTextNode->firstChar(), fbTextNode->charCount(),
-		shader, material, fontTextureElement, &textUserData->textRenderInfo, itemLists,
-		itemListCount, &embeddedResources, embeddedResources ? 1 : 0));
+		shader, fontTextureElement, &textUserData->textRenderInfo, itemLists, itemListCount,
+		&embeddedResources, embeddedResources ? 1 : 0));
 
 finished:
 	if (embeddedResources)

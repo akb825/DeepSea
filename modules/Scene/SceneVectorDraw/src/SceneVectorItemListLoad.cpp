@@ -167,7 +167,7 @@ dsSceneItemList* dsSceneVectorItemList_load(const dsSceneLoadContext* loadContex
 	}
 
 	return reinterpret_cast<dsSceneItemList*>(dsSceneVectorItemList_create(allocator, name,
-		resourceManager, instanceData, instanceDataCount,
+		resourceManager, instanceData, instanceDataCount, fbVectorList->maxMaterialDescs(),
 		fbDynamicRenderStates ? &dynamicRenderStates : nullptr, views, viewCount));
 
 error:

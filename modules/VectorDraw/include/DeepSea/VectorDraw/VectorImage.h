@@ -167,7 +167,7 @@ DS_VECTORDRAW_EXPORT bool dsVectorImage_updateText(dsVectorImage* vectorImage,
  * @param commandBuffer The command buffer to put the draw commands on.
  * @param shaders The shaders to draw with.
  * @param material The material created from the shader module.
- * @param modelViewProjection The model/view/projection materis for this image.
+ * @param modelViewProjection The model/view/projection materix for this image.
  * @param globalValues The global material values. This is only required if custom shaders are
  *     used that require them.
  * @param renderStates The dynamic render states. This is only required if custom shaders are used

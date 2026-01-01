@@ -50,8 +50,15 @@ class VectorItemList(object):
         return o == 0
 
     # VectorItemList
-    def DynamicRenderStates(self):
+    def MaxMaterialDescs(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
+        return 0
+
+    # VectorItemList
+    def DynamicRenderStates(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
             from DeepSeaScene.DynamicRenderStates import DynamicRenderStates
@@ -62,7 +69,7 @@ class VectorItemList(object):
 
     # VectorItemList
     def Views(self, j):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             a = self._tab.Vector(o)
             return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
@@ -70,18 +77,18 @@ class VectorItemList(object):
 
     # VectorItemList
     def ViewsLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # VectorItemList
     def ViewsIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         return o == 0
 
 def VectorItemListStart(builder):
-    builder.StartObject(3)
+    builder.StartObject(4)
 
 def Start(builder):
     VectorItemListStart(builder)
@@ -98,14 +105,20 @@ def VectorItemListStartInstanceDataVector(builder, numElems):
 def StartInstanceDataVector(builder, numElems):
     return VectorItemListStartInstanceDataVector(builder, numElems)
 
+def VectorItemListAddMaxMaterialDescs(builder, maxMaterialDescs):
+    builder.PrependInt32Slot(1, maxMaterialDescs, 0)
+
+def AddMaxMaterialDescs(builder, maxMaterialDescs):
+    VectorItemListAddMaxMaterialDescs(builder, maxMaterialDescs)
+
 def VectorItemListAddDynamicRenderStates(builder, dynamicRenderStates):
-    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(dynamicRenderStates), 0)
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(dynamicRenderStates), 0)
 
 def AddDynamicRenderStates(builder, dynamicRenderStates):
     VectorItemListAddDynamicRenderStates(builder, dynamicRenderStates)
 
 def VectorItemListAddViews(builder, views):
-    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(views), 0)
+    builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(views), 0)
 
 def AddViews(builder, views):
     VectorItemListAddViews(builder, views)

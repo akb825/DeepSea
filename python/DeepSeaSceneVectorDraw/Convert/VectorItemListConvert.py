@@ -23,6 +23,7 @@ def convertVectorItemList(convertContext, data):
 	  the array has the following members:
 	  - type: the name of the instance data type.
 	  - Remaining members depend on the value of "type".
+	- maxMaterialDescs: maximum number of unique material descriptions for vector and text nodes.
 	- dynamicRenderStates: dynamic render states to apply when rendering. This may be omitted if
 	  no dynamic render states are used. This is expected to contain any of the following members:
 	  - lineWidth: float width for the line. Defaults to 1.
@@ -55,6 +56,14 @@ def convertVectorItemList(convertContext, data):
 						'VectorItemList "instanceData" doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):
 			raise Exception('VectorItemList "instanceData" must be an array of objects.')
+
+		maxMaterialDescsData = data['maxMaterialDescs']
+		try:
+			maxMaterialDescs = int(maxMaterialDescsData)
+			if maxMaterialDescs <= 0:
+				raise Exception()
+		except:
+			raise Exception('Invalid max material descs "' + str(maxMaterialDescsData) + '".')
 
 		dynamicRenderStateInfo = data.get('dynamicRenderStates')
 		if dynamicRenderStateInfo:
@@ -96,6 +105,7 @@ def convertVectorItemList(convertContext, data):
 
 	VectorItemList.Start(builder)
 	VectorItemList.AddInstanceData(builder, instanceDataOffset)
+	VectorItemList.AddMaxMaterialDescs(builder, maxMaterialDescs)
 	VectorItemList.AddDynamicRenderStates(builder, dynamicRenderStatesOffset)
 	VectorItemList.AddViews(builder, viewsOffset)
 	builder.Finish(VectorItemList.End(builder))

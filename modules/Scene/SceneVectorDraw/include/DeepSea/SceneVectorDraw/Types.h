@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Aaron Barany
+ * Copyright 2020-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,11 +121,6 @@ typedef struct dsSceneVectorImageNode
 	 * @brief The vector shaders to draw with.
 	 */
 	const dsVectorShaders* shaders;
-
-	/**
-	 * @brief The material to draw with.
-	 */
-	dsMaterial* material;
 } dsSceneVectorImageNode;
 
 /**
@@ -160,11 +155,6 @@ typedef struct dsSceneTextNode
 	 * @brief The shader to draw with.
 	 */
 	dsShader* shader;
-
-	/**
-	 * @brief The material to draw with.
-	 */
-	dsMaterial* material;
 
 	/**
 	 * @brief The styles to apply to the text.

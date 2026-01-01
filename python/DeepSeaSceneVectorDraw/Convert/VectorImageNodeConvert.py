@@ -1,4 +1,4 @@
-# Copyright 2020 Aaron Barany
+# Copyright 2020-2025 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ def convertVectorImageNode(convertContext, data, outputDir):
 	  image size.
 	- z: the Z value used for sorting text and vector elements as a signed int.
 	- vectorShaders: the name of the vector shaders to draw with.
-	- material: the name of the material to draw with.
 	- itemLists: array of item list names to add the node to.
 	"""
 	def readInt(value, name):
@@ -56,7 +55,6 @@ def convertVectorImageNode(convertContext, data, outputDir):
 		vectorImage = str(data['vectorImage'])
 		z = readInt(data['z'], 'z')
 		vectorShaders = str(data['vectorShaders'])
-		material = str(data['material'])
 		itemLists = data.get('itemLists')
 	except (TypeError, ValueError):
 		raise Exception('VectorImageNode data must be an object.')
@@ -72,7 +70,6 @@ def convertVectorImageNode(convertContext, data, outputDir):
 
 	vectorImageOffset = builder.CreateString(vectorImage)
 	vectorShadersOffset = builder.CreateString(vectorShaders)
-	materialOffset = builder.CreateString(material)
 
 	if itemLists:
 		itemListOffsets = []
@@ -101,7 +98,6 @@ def convertVectorImageNode(convertContext, data, outputDir):
 
 	VectorImageNode.AddZ(builder, z)
 	VectorImageNode.AddVectorShaders(builder, vectorShadersOffset)
-	VectorImageNode.AddMaterial(builder, materialOffset)
 	VectorImageNode.AddItemLists(builder, itemListsOffset)
 	builder.Finish(VectorImageNode.End(builder))
 	return builder.Output()

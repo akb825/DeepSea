@@ -51,6 +51,7 @@ DS_SCENEVECTORDRAW_EXPORT const dsSceneItemListType* dsSceneVectorItemList_type(
  * @param instanceData The list of instance datas to use. The array will be copied, and this will
  *     take ownership of each instance data. The instances will be destroyed if an error occurrs.
  * @param instanceDataCount The number of instance datas.
+ * @param maxMaterialDescs Maximum number of unique material descriptions for vector and text nodes.
  * @param renderStates The render states to use, or NULL if no special render states are needed.
  * @param views The name of the views that the model list will be drawn for.
  * @param viewCount The number of views the model list will be drawn for. If zero, all views will be
@@ -59,7 +60,7 @@ DS_SCENEVECTORDRAW_EXPORT const dsSceneItemListType* dsSceneVectorItemList_type(
  */
 DS_SCENEVECTORDRAW_EXPORT dsSceneVectorItemList* dsSceneVectorItemList_create(
 	dsAllocator* allocator, const char* name, dsResourceManager* resourceManager,
-	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount,
+	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount, uint32_t maxMaterialDescs,
 	const dsDynamicRenderStates* renderStates, const char* const* views, uint32_t viewCount);
 
 /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,6 @@ DS_SCENEVECTORDRAW_EXPORT const dsSceneNodeType* dsSceneVectorImageNode_setupPar
  * @param size The size of the image, or NULL to use the default size.
  * @param z The Z value used for sorting vector nodes.
  * @param shaders The vector shaders to draw with.
- * @param material The material to draw with.
  * @param itemLists List of item list names to add the node to. The array will be copied.
  * @param itemListCount The number of item lists.
  * @param resources The resources to keep a reference to.
@@ -67,8 +66,8 @@ DS_SCENEVECTORDRAW_EXPORT const dsSceneNodeType* dsSceneVectorImageNode_setupPar
  */
 DS_SCENEVECTORDRAW_EXPORT dsSceneVectorImageNode* dsSceneVectorImageNode_create(
 	dsAllocator* allocator, dsVectorImage* vectorImage, const dsVector2f* size, int32_t z,
-	const dsVectorShaders* shaders, dsMaterial* material, const char* const* itemLists,
-	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount);
+	const dsVectorShaders* shaders, const char* const* itemLists, uint32_t itemListCount,
+	dsSceneResources** resources, uint32_t resourceCount);
 
 /**
  * @brief Creates a vector image node as a base class of another node type.
@@ -79,7 +78,6 @@ DS_SCENEVECTORDRAW_EXPORT dsSceneVectorImageNode* dsSceneVectorImageNode_create(
  * @param z The Z value used for sorting vector nodes.
  * @param vectorImage The vector image to draw.
  * @param shaders The vector shaders to draw with.
- * @param material The material to draw with.
  * @param itemLists List of item list names to add the node to. The array will be copied.
  * @param itemListCount The number of item lists.
  * @param resources The resources to keep a reference to.
@@ -88,8 +86,8 @@ DS_SCENEVECTORDRAW_EXPORT dsSceneVectorImageNode* dsSceneVectorImageNode_create(
  */
 DS_SCENEVECTORDRAW_EXPORT dsSceneVectorImageNode* dsSceneVectorImageNode_createBase(
 	dsAllocator* allocator, size_t structSize, dsVectorImage* vectorImage, const dsVector2f* size,
-	int32_t z, const dsVectorShaders* shaders, dsMaterial* material, const char* const* itemLists,
-	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount);
+	int32_t z, const dsVectorShaders* shaders, const char* const* itemLists, uint32_t itemListCount,
+	dsSceneResources** resources, uint32_t resourceCount);
 
 #ifdef __cplusplus
 }

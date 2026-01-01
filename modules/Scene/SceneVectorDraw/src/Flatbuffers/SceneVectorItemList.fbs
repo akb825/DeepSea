@@ -24,6 +24,9 @@ table VectorItemList
 	// List of instance data for the vector items.
 	instanceData : [DeepSeaScene.ObjectData];
 
+	// Maximum number of unique material descriptions for vector and text nodes.
+	maxMaterialDescs : int;
+
 	// Dynamic render states to apply when rendering.
 	dynamicRenderStates : DeepSeaScene.DynamicRenderStates;
 

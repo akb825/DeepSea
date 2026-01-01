@@ -84,15 +84,8 @@ class VectorImageNode(object):
         return None
 
     # VectorImageNode
-    def Material(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
-        if o != 0:
-            return self._tab.String(o + self._tab.Pos)
-        return None
-
-    # VectorImageNode
     def ItemLists(self, j):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             a = self._tab.Vector(o)
             return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
@@ -100,18 +93,18 @@ class VectorImageNode(object):
 
     # VectorImageNode
     def ItemListsLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # VectorImageNode
     def ItemListsIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         return o == 0
 
 def VectorImageNodeStart(builder):
-    builder.StartObject(7)
+    builder.StartObject(6)
 
 def Start(builder):
     VectorImageNodeStart(builder)
@@ -152,14 +145,8 @@ def VectorImageNodeAddVectorShaders(builder, vectorShaders):
 def AddVectorShaders(builder, vectorShaders):
     VectorImageNodeAddVectorShaders(builder, vectorShaders)
 
-def VectorImageNodeAddMaterial(builder, material):
-    builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
-
-def AddMaterial(builder, material):
-    VectorImageNodeAddMaterial(builder, material)
-
 def VectorImageNodeAddItemLists(builder, itemLists):
-    builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
+    builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
 
 def AddItemLists(builder, itemLists):
     VectorImageNodeAddItemLists(builder, itemLists)

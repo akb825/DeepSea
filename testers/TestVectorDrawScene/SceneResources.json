@@ -85,16 +85,6 @@
 		"text": "<text font-size=\"16\" fill=\"black\"><tspan font-style=\"italic\">Figure ${tigerNum}:</tspan> an SVG tiger.</text>"
 	},
 	{
-		"type": "Material",
-		"name": "vectorMat",
-		"description": "vectorMaterialDesc"
-	},
-	{
-		"type": "Material",
-		"name": "textMat",
-		"description": "textMaterialDesc"
-	},
-	{
 		"type": "ShaderModule",
 		"name": "textModule",
 		"modules": @textModule@
@@ -123,7 +113,6 @@
 				"nodeType": "VectorImageNode",
 				"vectorImage": "tiger",
 				"vectorShaders": "vectorShaders",
-				"material": "vectorMat",
 				"size": [150, 150],
 				"z": 0,
 				"itemLists": ["vectorDrawPrepare", "vectorItemList"]
@@ -139,7 +128,6 @@
 		"maxWidth": 100,
 		"lineScale": 1.2,
 		"shader": "textShader",
-		"material": "textMat",
 		"fontTexture": "fontTex",
 		"z": 1,
 		"itemLists": ["vectorDrawPrepare", "vectorItemList"]

@@ -40,7 +40,8 @@
 									"type": "InstanceTransformData",
 									"variableGroupDesc": "instanceTransformDesc"
 								}
-							]
+							],
+							"maxMaterialDescs": 2
 						}
 					]
 				}

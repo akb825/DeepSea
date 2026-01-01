@@ -17,9 +17,11 @@
 #include <DeepSea/SceneVectorDraw/SceneVectorItemList.h>
 
 #include <DeepSea/Core/Containers/Hash.h>
+#include <DeepSea/Core/Containers/HashTable.h>
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Memory/PoolAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -30,6 +32,7 @@
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Core.h>
 
+#include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/Shader.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/Render/Renderer.h>
@@ -58,11 +61,19 @@ typedef enum DrawType
 	DrawType_Image
 } DrawType;
 
+typedef struct MaterialNode
+{
+	dsHashTableNode node;
+	dsMaterial* material;
+	uint32_t refCount;
+} MaterialNode;
+
 typedef struct Entry
 {
 	const dsSceneVectorNode* node;
 	const dsSceneTreeNode* treeNode;
 	const dsSceneNodeItemData* itemData;
+	MaterialNode* material;
 	uint64_t nodeID;
 } Entry;
 
@@ -103,6 +114,7 @@ struct dsSceneVectorItemList
 {
 	dsSceneItemList itemList;
 
+	dsResourceManager* resourceManager;
 	dsDynamicRenderStates renderStates;
 	bool hasRenderStates;
 
@@ -125,6 +137,9 @@ struct dsSceneVectorItemList
 	DrawItem* drawItems;
 	uint32_t maxInstances;
 	uint32_t maxDrawItems;
+
+	dsPoolAllocator materialPool;
+	dsHashTable* materialTable;
 };
 
 static bool isInView(const dsSceneVectorItemList* vectorList, const dsView* view)
@@ -149,6 +164,45 @@ static void getGlyphRange(uint32_t* outFirstStandardGlyph, uint32_t* outStandard
 	*outIconGlyphCount = *outFirstIconGlyph;
 	dsTextRenderBuffer_countStandardIconGlyphs(
 		outStandardGlyphCount, outIconGlyphCount, layout, firstChar, charCount);
+}
+
+static MaterialNode* findMaterial(
+	dsSceneVectorItemList* vectorList, const dsMaterialDesc* materialDesc)
+{
+	dsSceneItemList* itemList = (dsSceneItemList*)vectorList;
+	MaterialNode* node = (MaterialNode*)dsHashTable_find(vectorList->materialTable, materialDesc);
+	if (node)
+	{
+		++node->refCount;
+		return node;
+	}
+
+	node = DS_ALLOCATE_OBJECT(&vectorList->materialPool, MaterialNode);
+	if (!node)
+		return NULL;
+
+	node->material = dsMaterial_create(
+		vectorList->resourceManager, itemList->allocator, materialDesc);
+	if (!node->material)
+	{
+		DS_VERIFY(dsAllocator_free((dsAllocator*)vectorList->resourceManager, node));
+		return NULL;
+	}
+	node->refCount = 1;
+	DS_VERIFY(dsHashTable_insert(
+		vectorList->materialTable, materialDesc, (dsHashTableNode*)node, NULL));
+	return node;
+}
+
+static void freeMaterial(dsSceneVectorItemList* vectorList, MaterialNode* material)
+{
+	if (--material->refCount > 0)
+		return;
+
+	DS_VERIFY(dsHashTable_remove(
+		vectorList->materialTable, dsMaterial_getDescription(material->material)));
+	dsMaterial_destroy(material->material);
+	DS_VERIFY(dsAllocator_free((dsAllocator*)&vectorList->materialPool, material));
 }
 
 static bool addInstances(dsSceneItemList* itemList)
@@ -185,7 +239,6 @@ static bool addInstances(dsSceneItemList* itemList)
 		{
 			const dsSceneTextNode* node = (const dsSceneTextNode*)entry->node;
 			drawItem->type = DrawType_Text;
-			drawItem->material = node->material;
 			drawItem->text.shader = node->shader;
 			drawItem->text.layout = node->layout;
 			drawItem->text.renderBuffer = node->renderBuffer;
@@ -195,17 +248,17 @@ static bool addInstances(dsSceneItemList* itemList)
 			drawItem->text.fontTextureID = node->fontTextureID;
 			drawItem->text.firstChar = node->firstChar;
 			drawItem->text.charCount = node->charCount;
+			drawItem->material = entry->material->material;
 		}
 		else
 		{
 			DS_ASSERT(dsSceneNode_isOfType((const dsSceneNode*)entry->node, vectorImageType));
 			const dsSceneVectorImageNode* node = (const dsSceneVectorImageNode*)entry->node;
 			drawItem->type = DrawType_Image;
-			drawItem->material = node->material;
 			drawItem->image.image = node->vectorImage;
 			drawItem->image.shaders = node->shaders;
 			drawItem->image.size = node->size;
-			drawItem->material = node->material;
+			drawItem->material = entry->material->material;
 		}
 
 		vectorList->instances[i] = entry->treeNode;
@@ -393,22 +446,39 @@ static uint64_t dsSceneVectorItemList_addNode(dsSceneItemList* itemList, dsScene
 {
 	DS_ASSERT(itemList);
 	DS_UNUSED(thisItemData);
-	if (!dsSceneNode_isOfType(node, dsSceneVectorNode_type()))
+	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
+
+	const dsMaterialDesc* materialDesc;
+	if (dsSceneNode_isOfType(node, dsSceneVectorImageNode_type()))
+	{
+		dsSceneVectorImageNode* vectorImageNode = (dsSceneVectorImageNode*)node;
+		materialDesc = vectorImageNode->shaders->shaderModule->materialDesc;
+	}
+	else if (dsSceneNode_isOfType(node, dsSceneTextNode_type()))
+	{
+		dsSceneTextNode* textNode = (dsSceneTextNode*)node;
+		materialDesc = textNode->shader->materialDesc;
+	}
+	else
 		return DS_NO_SCENE_NODE;
 
-	dsSceneVectorItemList* modelList = (dsSceneVectorItemList*)itemList;
-	uint32_t index = modelList->entryCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, modelList->entries, modelList->entryCount,
-			modelList->maxEntries, 1))
+	MaterialNode* material = findMaterial(vectorList, materialDesc);
+	if (!material)
+		return DS_NO_SCENE_NODE;
+
+	uint32_t index = vectorList->entryCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, vectorList->entries, vectorList->entryCount,
+			vectorList->maxEntries, 1))
 	{
 		return DS_NO_SCENE_NODE;
 	}
 
-	Entry* entry = modelList->entries + index;
+	Entry* entry = vectorList->entries + index;
 	entry->node = (const dsSceneVectorNode*)node;
 	entry->treeNode = treeNode;
 	entry->itemData = itemData;
-	entry->nodeID = modelList->nextNodeID++;
+	entry->nodeID = vectorList->nextNodeID++;
+	entry->material = material;
 
 	return entry->nodeID;
 }
@@ -419,6 +489,13 @@ static void dsSceneVectorItemList_removeNode(
 	DS_ASSERT(itemList);
 	DS_UNUSED(treeNode);
 	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
+
+	const Entry* entry = (const Entry*)dsSceneItemListEntries_findEntry(vectorList->entries,
+		vectorList->entryCount, sizeof(Entry), offsetof(Entry, nodeID), nodeID);
+	if (!entry)
+		return;
+
+	freeMaterial(vectorList, entry->material);
 
 	uint32_t index = vectorList->removeEntryCount;
 	if (DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, vectorList->removeEntries,
@@ -543,6 +620,11 @@ static void dsSceneVectorItemList_destroy(dsSceneItemList* itemList)
 	DS_VERIFY(dsAllocator_free(itemList->allocator, vectorList->removeEntries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, (void*)vectorList->instances));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, vectorList->drawItems));
+	for (dsListNode* node = vectorList->materialTable->list.head; node; node = node->next)
+	{
+		MaterialNode* material = (MaterialNode*)node;
+		dsMaterial_destroy(material->material);
+	}
 	DS_VERIFY(dsAllocator_free(itemList->allocator, vectorList));
 }
 
@@ -566,11 +648,11 @@ const dsSceneItemListType* dsSceneVectorItemList_type(void)
 
 dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, const char* name,
 	dsResourceManager* resourceManager, dsSceneInstanceData* const* instanceData,
-	uint32_t instanceDataCount, const dsDynamicRenderStates* renderStates, const char* const* views,
-	uint32_t viewCount)
+	uint32_t instanceDataCount, uint32_t maxMaterialDescs,
+	const dsDynamicRenderStates* renderStates, const char* const* views, uint32_t viewCount)
 {
 	if (!allocator || !name || !resourceManager || (!instanceData && instanceDataCount > 0) ||
-		(!views && viewCount > 0))
+		maxMaterialDescs == 0 || (!views && viewCount > 0))
 	{
 		errno = EINVAL;
 		return NULL;
@@ -613,10 +695,14 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 
 	size_t nameLen = strlen(name);
 	size_t globalDataSize = dsSharedMaterialValues_fullAllocSize(valueCount);
+	size_t materialPoolSize = DS_ALIGNED_SIZE(sizeof(MaterialNode))*maxMaterialDescs;
+	size_t materialTableSize = dsHashTable_tableSize(maxMaterialDescs);
+	size_t materialTableAllocSize = dsHashTable_fullAllocSize(materialTableSize);
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneVectorItemList)) +
 		DS_ALIGNED_SIZE(nameLen + 1) +
 		DS_ALIGNED_SIZE(sizeof(dsSceneInstanceData*)*instanceDataCount) +
-		DS_ALIGNED_SIZE(sizeof(uint32_t)*viewCount) + globalDataSize;
+		DS_ALIGNED_SIZE(sizeof(uint32_t)*viewCount) + globalDataSize + materialPoolSize +
+		materialTableAllocSize;
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
@@ -639,6 +725,7 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	itemList->needsCommandBuffer = true;
 	itemList->skipPreRenderPass = skipPreRenderPass;
 
+	vectorList->resourceManager = resourceManager;
 	if (renderStates)
 	{
 		vectorList->renderStates = *renderStates;
@@ -687,6 +774,17 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	vectorList->drawItems = NULL;
 	vectorList->maxInstances = 0;
 	vectorList->maxDrawItems = 0;
+
+	void* materialPoolBuffer = dsAllocator_alloc((dsAllocator*)&bufferAlloc, materialPoolSize);
+	DS_ASSERT(materialPoolBuffer);
+	DS_VERIFY(dsPoolAllocator_initialize(&vectorList->materialPool, sizeof(MaterialNode),
+		maxMaterialDescs, materialPoolBuffer, materialPoolSize));
+
+	vectorList->materialTable = (dsHashTable*)dsAllocator_alloc(
+		(dsAllocator*)&bufferAlloc, materialTableAllocSize);
+	DS_ASSERT(vectorList->materialTable);
+	DS_VERIFY(dsHashTable_initialize(
+		vectorList->materialTable, materialTableSize, &dsHashPointer, &dsHashPointerEqual));
 
 	return vectorList;
 }

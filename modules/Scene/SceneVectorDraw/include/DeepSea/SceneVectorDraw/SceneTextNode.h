@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -138,7 +138,6 @@ DS_SCENEVECTORDRAW_EXPORT const dsSceneNodeType* dsSceneTextNode_setupParentType
  * @param firstChar The first character to draw.
  * @param charCount The number of characters to draw.
  * @param shader The shader to draw with.
- * @param material The material to draw with.
  * @param fontTextureElement The element index for the font texture in the material.
  * @param textRenderBufferInfo The info for creating a dsSceneTextRenderBuffer.
  * @param itemLists List of item list names to add the node to. The array will be copied.
@@ -150,10 +149,9 @@ DS_SCENEVECTORDRAW_EXPORT const dsSceneNodeType* dsSceneTextNode_setupParentType
 DS_SCENEVECTORDRAW_EXPORT dsSceneTextNode* dsSceneTextNode_create(
 	dsAllocator* allocator, const dsText* text, void* textUserData, const dsTextStyle* styles,
 	uint32_t styleCount, dsTextAlign alignment, float maxWidth, float lineScale, int32_t z,
-	uint32_t firstChar, uint32_t charCount, dsShader* shader, dsMaterial* material,
-	uint32_t fontTextureElement, const dsSceneTextRenderBufferInfo* textRenderBufferInfo,
-	const char* const* itemLists, uint32_t itemListCount,
-	dsSceneResources** resources, uint32_t resourceCount);
+	uint32_t firstChar, uint32_t charCount, dsShader* shader, uint32_t fontTextureElement,
+	const dsSceneTextRenderBufferInfo* textRenderBufferInfo, const char* const* itemLists,
+	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount);
 
 /**
  * @brief Creates a text node as a base class of another node type.
@@ -172,7 +170,6 @@ DS_SCENEVECTORDRAW_EXPORT dsSceneTextNode* dsSceneTextNode_create(
  * @param firstChar The first character to draw.
  * @param charCount The number of characters to draw.
  * @param shader The shader to draw with.
- * @param material The material to draw with.
  * @param fontTextureElement The element index for the font texture in the material.
  * @param textRenderBufferInfo The info for creating a dsSceneTextRenderBuffer.
  * @param itemLists List of item list names to add the node to. The array will be copied.
@@ -185,9 +182,9 @@ DS_SCENEVECTORDRAW_EXPORT dsSceneTextNode* dsSceneTextNode_createBase(
 	dsAllocator* allocator, size_t structSize, const dsText* text, void* textUserData,
 	const dsTextStyle* styles, uint32_t styleCount, dsTextAlign alignment, float maxWidth,
 	float lineScale, int32_t z, uint32_t firstChar, uint32_t charCount, dsShader* shader,
-	dsMaterial* material, uint32_t fontTextureElement,
-	const dsSceneTextRenderBufferInfo* textRenderBufferInfo, const char* const* itemLists,
-	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount);
+	uint32_t fontTextureElement, const dsSceneTextRenderBufferInfo* textRenderBufferInfo,
+	const char* const* itemLists, uint32_t itemListCount, dsSceneResources** resources,
+	uint32_t resourceCount);
 
 /**
  * @brief Triggers an update for layout when it's next updated.

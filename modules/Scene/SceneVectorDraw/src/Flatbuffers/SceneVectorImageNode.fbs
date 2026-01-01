@@ -37,9 +37,6 @@ table VectorImageNode
 	// The name of the vector shaders to draw with.
 	vectorShaders : string (required);
 
-	// The name to the material to draw with.
-	material : string (required);
-
 	// Item lists to add the node to.
 	itemLists : [string];
 }

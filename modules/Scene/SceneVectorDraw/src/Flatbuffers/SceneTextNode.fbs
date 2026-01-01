@@ -60,9 +60,6 @@ table TextNode
 	// The name of the shader to draw with.
 	shader : string (required);
 
-	// The name to the material to draw with.
-	material : string (required);
-
 	// The name of the texture for the font.
 	fontTexture : string (required);
 

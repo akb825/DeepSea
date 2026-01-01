@@ -83,12 +83,10 @@ dsSceneNode* dsSceneVectorImageNode_load(const dsSceneLoadContext* loadContext,
 	dsSceneNode* node = nullptr;
 	auto fbVectorImage = fbVectorImageNode->vectorImage();
 	auto fbVectorShaders = fbVectorImageNode->vectorShaders();
-	auto fbMaterial = fbVectorImageNode->material();
 	auto fbItemLists = fbVectorImageNode->itemLists();
 
 	dsVectorImage* vectorImage;
 	dsVectorShaders* vectorShaders;
-	dsMaterial* material;
 	const char** itemLists = nullptr;
 	uint32_t itemListCount = 0;
 
@@ -130,16 +128,6 @@ dsSceneNode* dsSceneVectorImageNode_load(const dsSceneLoadContext* loadContext,
 
 	vectorShaders = reinterpret_cast<dsVectorShaders*>(customResource->resource);
 
-	if (!dsSceneLoadScratchData_findResource(&resourceType,
-			reinterpret_cast<void**>(&material), scratchData, fbMaterial->c_str()) ||
-		resourceType != dsSceneResourceType_Material)
-	{
-		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Couldn't find material '%s'.",
-			fbMaterial->c_str());
-		goto finished;
-	}
-
 	if (fbItemLists && fbItemLists->size() > 0)
 	{
 		itemListCount = fbItemLists->size();
@@ -162,8 +150,8 @@ dsSceneNode* dsSceneVectorImageNode_load(const dsSceneLoadContext* loadContext,
 	// NOTE: May need to add more resources to the reference count later. Don't add all resources
 	// since it would make circular references.
 	node = reinterpret_cast<dsSceneNode*>(dsSceneVectorImageNode_create(allocator, vectorImage,
-		hasSize ? &size : nullptr, fbVectorImageNode->z(), vectorShaders, material, itemLists,
-		itemListCount, &embeddedResources, embeddedResources ? 1 : 0));
+		hasSize ? &size : nullptr, fbVectorImageNode->z(), vectorShaders, itemLists, itemListCount,
+		&embeddedResources, embeddedResources ? 1 : 0));
 
 finished:
 	if (embeddedResources)

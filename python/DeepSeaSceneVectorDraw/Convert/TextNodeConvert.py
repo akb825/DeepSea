@@ -1,4 +1,4 @@
-# Copyright 2020-2021 Aaron Barany
+# Copyright 2020-2025 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ def convertTextNode(convertContext, data, outputDir):
 	- firstChar: the first character to display. Defaults to 0.
 	- charCount: the number of characters to display. Defaults to all characters.
 	- shader: the name of the shader to draw with.
-	- material: the name of the material to draw with.
 	- fontTexture: the name of the texture for the font.
 	- itemLists: array of item list names to add the node to.
 	"""
@@ -82,7 +81,6 @@ def convertTextNode(convertContext, data, outputDir):
 		firstChar = readUInt(data.get('firstChar', 0), 'firstChar')
 		charCount = readUInt(data.get('charCount', 0xFFFFFFFF), 'charCount')
 		shader = str(data['shader'])
-		material = str(data['material'])
 		fontTextureName = str(data['fontTexture'])
 		itemLists = data.get('itemLists')
 	except (TypeError, ValueError):
@@ -99,7 +97,6 @@ def convertTextNode(convertContext, data, outputDir):
 
 	textOffset = builder.CreateString(text)
 	shaderOffset = builder.CreateString(shader)
-	materialOffset = builder.CreateString(material)
 	fontTextureNameOffset = builder.CreateString(fontTextureName)
 
 	if itemLists:
@@ -127,7 +124,6 @@ def convertTextNode(convertContext, data, outputDir):
 	TextNode.AddFirstChar(builder, firstChar)
 	TextNode.AddCharCount(builder, charCount)
 	TextNode.AddShader(builder, shaderOffset)
-	TextNode.AddMaterial(builder, materialOffset)
 	TextNode.AddFontTexture(builder, fontTextureNameOffset)
 	TextNode.AddItemLists(builder, itemListsOffset)
 	builder.Finish(TextNode.End(builder))
