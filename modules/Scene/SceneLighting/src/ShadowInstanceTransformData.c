@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2025 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -291,5 +291,5 @@ dsSceneInstanceData* dsShadowInstanceTransformData_create(dsAllocator* allocator
 	userData->shadows = shadows;
 	userData->surface = surface;
 	return dsSceneInstanceVariables_create(allocator, resourceAllocator, resourceManager,
-		transformDesc, dsUniqueNameID_create(dsInstanceTransformData_typeName), type, userData);
+		transformDesc, dsUniqueNameID_create(dsInstanceTransformData_uniformName), type, userData);
 }

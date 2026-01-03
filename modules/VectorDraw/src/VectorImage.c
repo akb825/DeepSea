@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1292,6 +1292,7 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 		else
 		{
 			DS_ASSERT(piece->textOutlineMaterialSource == MaterialSource_Shared);
+			DS_ASSERT(sharedMaterialInfoTexture);
 			textOutlineMaterialInfoTexture = sharedMaterialInfoTexture;
 			textOutlineMaterialColorTexture = sharedMaterialColorTexture;
 		}
@@ -1300,16 +1301,23 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 		textureSizes.z = (float)textOutlineMaterialInfoTexture->info.height;
 
 		// Need to have a non-NULL texture to bind. If the piece doesn't have a specific texture
-		// (i.e. not an image or texture element), just re-use the material color.
-		dsTexture* otherTexture = piece->texture;
-		if (!otherTexture)
-			otherTexture = materialColorTexture;
+		// (i.e. not an image or text element), just re-use the material color.
+		dsTexture* imageTexture = materialColorTexture;
+		dsTexture* fontTexture = materialColorTexture;
+		if (piece->texture)
+		{
+			if (piece->type == dsVectorShaderType_Image)
+				imageTexture = piece->texture;
+			else
+				fontTexture = piece->texture;
+		}
 
 		if (!dsMaterial_setElementData(material, shaderModule->textureSizesElement, &textureSizes,
 				dsMaterialType_Vec3, 0, 1) ||
 			!dsMaterial_setTexture(material, shaderModule->shapeInfoTextureElement,
 				piece->geometryInfo) ||
-			!dsMaterial_setTexture(material, shaderModule->otherTextureElement, otherTexture) ||
+			!dsMaterial_setTexture(material, shaderModule->imageTextureElement, imageTexture) ||
+			!dsMaterial_setTexture(material, shaderModule->fontTextureElement, fontTexture) ||
 			!dsMaterial_setTexture(material, shaderModule->materialInfoTextureElement,
 				materialInfoTexture) ||
 			!dsMaterial_setTexture(material, shaderModule->materialColorTextureElement,
@@ -1366,7 +1374,8 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 	DS_VERIFY(dsMaterial_setTexture(
 		material, shaderModule->textOutlineMaterialColorTextureElement, NULL));
 	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->shapeInfoTextureElement, NULL));
-	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->otherTextureElement, NULL));
+	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->imageTextureElement, NULL));
+	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->fontTextureElement, NULL));
 
 	DS_PROFILE_FUNC_RETURN(success);
 }

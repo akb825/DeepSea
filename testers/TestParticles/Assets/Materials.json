@@ -25,13 +25,13 @@
 				"binding": "Material"
 			},
 			{
-				"name": "InstanceTransformData",
+				"name": "dsInstanceTransformData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceTransformDesc"
 			},
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
@@ -82,13 +82,13 @@
 				"binding": "Material"
 			},
 			{
-				"name": "InstanceTransformData",
+				"name": "dsInstanceTransformData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceTransformDesc"
 			},
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
@@ -125,13 +125,13 @@
 				"binding": "Material"
 			},
 			{
-				"name": "InstanceTransformData",
+				"name": "dsInstanceTransformData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceTransformDesc"
 			},
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
@@ -199,7 +199,7 @@
 				"binding": "Global"
 			},
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
@@ -232,7 +232,7 @@
 				"binding": "Global"
 			},
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
@@ -265,7 +265,7 @@
 				"binding": "Global"
 			},
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
@@ -338,13 +338,13 @@
 				"binding": "Material"
 			},
 			{
-				"name": "ParticleTransformData",
+				"name": "dsParticleTransformData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "particleTransformDesc"
 			},
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"

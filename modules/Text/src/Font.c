@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -413,6 +413,8 @@ void dsFont_getGlyphTextureBounds(dsAlignedBox2f* outBounds, const dsTexturePosi
 	dsVector2_scale(offset, offset, invLevelSize);
 	dsVector2_add(outBounds->max, outBounds->min, offset);
 }
+
+const char* const dsFont_textureName = "dsFontTex";
 
 uint8_t dsFont_sizeForQuality(dsTextQuality quality)
 {

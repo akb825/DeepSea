@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,23 +37,26 @@
  */
 #define DS_BONE_INDICES_TYPE uvec4
 
-readonly buffer SkinningData
+readonly buffer dsSkinningData
 {
 	mat4[] matrices;
-} dsSkinningData;
+} dsSkinning;
+
 #else
+
 #if HAS_INTEGERS
 #define DS_BONE_INDICES_TYPE uvec4
 #else
 #define DS_BONE_INDICES_TYPE vec4
 #endif
 
-uniform SkinningTextureInfo
+uniform dsSkinningTextureData
 {
 	vec2 instanceOffsetStep;
 } dsSkinningTextureInfo;
 
-uniform sampler2D SkinningData;
+uniform sampler2D dsSkinningData;
+
 #endif
 
 /**
@@ -66,8 +69,8 @@ uniform sampler2D SkinningData;
 mat4 dsComputeSkinTransform(DS_BONE_INDICES_TYPE bones, vec4 weights)
 {
 #if HAS_BUFFERS
-	return dsComputeSkinTransformBuffer(bones, weights, dsSkinningData.matrices);
+	return dsComputeSkinTransformBuffer(bones, weights, dsSkinning.matrices);
 #else
-	return dsComputeSkinTransformTexture(bones, weights, SkinningData);
+	return dsComputeSkinTransformTexture(bones, weights, dsSkinningData);
 #endif
 }

@@ -31,19 +31,19 @@
 		"elements":
 		[
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
 			},
 			{
-				"name": "InstanceTransformData",
+				"name": "dsInstanceTransformData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceTransformDesc"
 			},
 			{
-				"name": "fontTex",
+				"name": "dsFontTex",
 				"type": "Texture",
 				"binding": "Instance"
 			}
@@ -63,7 +63,7 @@
 		"extraElements":
 		[
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
@@ -128,7 +128,6 @@
 		"maxWidth": 100,
 		"lineScale": 1.2,
 		"shader": "textShader",
-		"fontTexture": "fontTex",
 		"z": 1,
 		"itemLists": ["vectorDrawPrepare", "vectorItemList"]
 	},

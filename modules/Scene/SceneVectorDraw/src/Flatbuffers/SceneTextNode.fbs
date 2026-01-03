@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,9 +59,6 @@ table TextNode
 
 	// The name of the shader to draw with.
 	shader : string (required);
-
-	// The name of the texture for the font.
-	fontTexture : string (required);
 
 	// Item lists to add the node to.
 	itemLists : [string];

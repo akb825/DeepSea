@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Aaron Barany
+ * Copyright 2025-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@
 /**
  * @brief texture for the icon.
  */
-uniform sampler2D TextIconTex;
-sampler_state TextIconTex
+uniform sampler2D dsTextIconTex;
+sampler_state dsTextIconTex
 {
 	address_mode_u = clamp_to_edge;
 	address_mode_v = clamp_to_edge;
@@ -32,13 +32,13 @@ sampler_state TextIconTex
 /**
  * @brief Data for managing texture text icons.
  */
-uniform TextureTextIconData
+uniform dsTextureTextIconData
 {
 	/**
 	 * @brief The minimum and maximum position data.
 	 */
 	vec4 positionBounds;
-} dsTextureTextIconData;
+} dsTextureTextIcon;
 
 /**
  * @brief Computes the position for a texture text icon.
@@ -47,6 +47,6 @@ uniform TextureTextIconData
  */
 [[vertex]] vec2 dsComputeTextureTextIconPosition(vec2 position)
 {
-	return mix(INSTANCE(dsTextureTextIconData).positionBounds.xy,
-		INSTANCE(dsTextureTextIconData).positionBounds.zw, position);
+	return mix(INSTANCE(dsTextureTextIcon).positionBounds.xy,
+		INSTANCE(dsTextureTextIcon).positionBounds.zw, position);
 }

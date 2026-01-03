@@ -52,13 +52,13 @@
 		"elements":
 		[
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
 			},
 			{
-				"name": "InstanceTransformData",
+				"name": "dsInstanceTransformData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceTransformDesc"
@@ -82,13 +82,13 @@
 		"elements":
 		[
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
 			},
 			{
-				"name": "InstanceTransformData",
+				"name": "dsInstanceTransformData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceTransformDesc"

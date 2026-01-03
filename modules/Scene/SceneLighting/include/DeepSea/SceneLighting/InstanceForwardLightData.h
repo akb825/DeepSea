@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,11 @@ extern "C"
  * @brief The instance forward light data type name.
  */
 DS_SCENELIGHTING_EXPORT extern const char* const dsInstanceForwardLightData_typeName;
+
+/**
+ * @brief The instance forward light data shader uniform name.
+ */
+DS_SCENELIGHTING_EXPORT extern const char* const dsInstanceForwardLightData_uniformName;
 
 /**
  * @brief Creates the shader variable group description used to describe the variables for the

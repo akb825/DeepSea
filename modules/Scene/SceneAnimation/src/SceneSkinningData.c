@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -579,6 +579,8 @@ static bool dsSceneSkinningData_destroy(dsSceneInstanceData* instanceData)
 }
 
 const char* const dsSceneSkinningData_typeName = "SkinningData";
+const char* const dsSceneSkinningData_uniformName = "dsSkinningData";
+const char* const dsSceneSkinningData_textureDataUniformName = "dsSkinningTextureData";
 
 static dsSceneInstanceDataType instanceDataType =
 {
@@ -673,9 +675,9 @@ dsSceneInstanceData* dsSceneSkinningData_create(dsAllocator* allocator,
 		skinningData->bufferUsage = shaderVariableGroupBuffers ? dsGfxBufferUsage_UniformBlock : 0;
 		skinningData->skinningMethod = SkinningMethod_Textures;
 	}
-	skinningData->skinningDataVar = dsUniqueNameID_create(dsSceneSkinningData_typeName);
+	skinningData->skinningDataVar = dsUniqueNameID_create(dsSceneSkinningData_uniformName);
 	skinningData->skinningTextureInfoVar =
-		useBuffers ? 0 : dsUniqueNameID_create("SkinningTextureInfo");
+		useBuffers ? 0 : dsUniqueNameID_create(dsSceneSkinningData_textureDataUniformName);
 	dsTextureInfo textureInfo =
 	{
 		skinningData->format, dsTextureDim_2D, TEXTURE_SIZE, TEXTURE_SIZE, 0, 1, 0

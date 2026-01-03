@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
  *
  * In order to avoid performance issues, the uniform for the shadow transform is declared here.
  * The following #defines can control the names that are used:
- * - DS_CASCADED_SHADOW_UNIFORM_NAME: The name of the uniform struct, defaults to ShadowTransform.
+ * - DS_CASCADED_SHADOW_UNIFORM_NAME: The name of the uniform struct, defaults to dsShadowTransform.
  * - DS_CASCADED_SHADOW_FUNCTION_NAME: The name of the function, defaults to dsCascadedShadowMap.
  *
  * This file can be included multiple times by re-defining the above name macros if multiple shadow
@@ -42,14 +42,14 @@
 #endif
 
 #ifndef DS_CASCADED_SHADOW_UNIFORM_NAME
-#define DS_CASCADED_SHADOW_UNIFORM_NAME ShadowTransform
+#define DS_CASCADED_SHADOW_UNIFORM_NAME dsShadowTransformData
 #endif
 
 #ifndef DS_CASCADED_SHADOW_FUNCTION_NAME
 #define DS_CASCADED_SHADOW_FUNCTION_NAME dsCascadedShadowMap
 #endif
 
-#define DS_SHADOW_UNIFORM DS_CONCAT(ds, DS_CASCADED_SHADOW_UNIFORM_NAME)
+#define DS_SHADOW_UNIFORM DS_CONCAT(DS_CASCADED_SHADOW_UNIFORM_NAME, Uniform)
 
 uniform DS_CASCADED_SHADOW_UNIFORM_NAME
 {

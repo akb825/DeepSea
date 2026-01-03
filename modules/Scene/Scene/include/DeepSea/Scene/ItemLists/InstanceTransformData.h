@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,11 @@ extern "C"
  * @brief The instance transform data type name.
  */
 DS_SCENE_EXPORT extern const char* const dsInstanceTransformData_typeName;
+
+/**
+ * @brief The instance transform data shader uniform name.
+ */
+DS_SCENE_EXPORT extern const char* const dsInstanceTransformData_uniformName;
 
 /**
  * @brief Creates the shader variable group description used to describe the variables for instance

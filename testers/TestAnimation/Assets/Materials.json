@@ -25,25 +25,25 @@
 				"binding": "Material"
 			},
 			{
-				"name": "InstanceTransformData",
+				"name": "dsInstanceTransformData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceTransformDesc"
 			},
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
 			},
 			{
-				"name": "InstanceForwardLightData",
+				"name": "dsForwardLightData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceForwardLightDesc"
 			},
 			{
-				"name": "ShadowTransform",
+				"name": "dsShadowTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "shadowTransformDesc"
@@ -99,25 +99,25 @@
 				"binding": "Material"
 			},
 			{
-				"name": "InstanceTransformData",
+				"name": "dsInstanceTransformData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceTransformDesc"
 			},
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
 			},
 			{
-				"name": "InstanceForwardLightData",
+				"name": "dsForwardLightData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceForwardLightDesc"
 			},
 			{
-				"name": "ShadowTransform",
+				"name": "dsShadowTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "shadowTransformDesc"
@@ -159,25 +159,25 @@
 				"binding": "Material"
 			},
 			{
-				"name": "InstanceTransformData",
+				"name": "dsInstanceTransformData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceTransformDesc"
 			},
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
 			},
 			{
-				"name": "InstanceForwardLightData",
+				"name": "dsForwardLightData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceForwardLightDesc"
 			},
 			{
-				"name": "ShadowTransform",
+				"name": "dsShadowTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "shadowTransformDesc"
@@ -214,7 +214,7 @@
 		"elements":
 		[
 			{
-				"name": "InstanceTransformData",
+				"name": "dsInstanceTransformData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceTransformDesc"

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -165,11 +165,6 @@ typedef struct dsSceneTextNode
 	 * @brief The number of styles.
 	 */
 	uint32_t styleCount;
-
-	/**
-	 * @brief The name ID for the font texture in the material.
-	 */
-	uint32_t fontTextureID;
 
 	/**
 	 * @brief The alignment of the text.

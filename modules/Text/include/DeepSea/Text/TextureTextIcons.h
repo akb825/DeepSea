@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Aaron Barany
+ * Copyright 2025-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ DS_TEXT_EXPORT dsShaderVariableGroupDesc* dsTextureTextIcons_createShaderVariabl
 
 /**
  * @brief Checks whether or not a shader variable group is compatible with dsTextureTextIconData.
- * @param iconData The shader variable group for the icon data.
+ * @param iconDataDesc The shader variable group for the icon data.
  * @return Whether or not iconData is compatible.
  */
 DS_TEXT_EXPORT bool dsTextureTextIcons_isShaderVariableGroupCompatible(
@@ -69,7 +69,7 @@ DS_TEXT_EXPORT bool dsTextureTextIcons_isShaderVariableGroupCompatible(
  * @brief Creates a container for text icons using textures.
  * @remark errno will be set on failure.
  * @param allocator The allocator for the text icons. This must support freeing memory.
- * @param resourceManage The resource manager to create graphics resources with.
+ * @param resourceManager The resource manager to create graphics resources with.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL, allocator
  *     will be used.
  * @param shader The shader to draw the icons with. The input vertex data should have 2D positions

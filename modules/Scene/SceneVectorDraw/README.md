@@ -73,7 +73,6 @@ The following scene node types are provided with the members that are expected:
 	* `firstChar`: the first character to display. Defaults to 0.
 	* `charCount`: the number of characters to display. Defaults to all characters.
 	* `shader`: the name of the shader to draw with.
-	* `fontTexture`: the name of the texture for the font.
 	* `itemLists`: array of item list names to add the node to.
 * `"VectorImageNode"`: scene node to draw a `VectorImage` object.
 	* `embeddedResources`: optional set of resources to embed with the node. This is an array of maps as expected by `SceneResourcesConvert.convertSceneResources()`.

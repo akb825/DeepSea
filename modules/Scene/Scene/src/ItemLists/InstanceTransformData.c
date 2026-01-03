@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -155,6 +155,7 @@ static dsSceneInstanceVariablesType instanceVariablesType =
 };
 
 const char* const dsInstanceTransformData_typeName = "InstanceTransformData";
+const char* const dsInstanceTransformData_uniformName = "dsInstanceTransformData";
 
 dsShaderVariableGroupDesc* dsInstanceTransformData_createShaderVariableGroupDesc(
 	dsResourceManager* resourceManager, dsAllocator* allocator)
@@ -206,5 +207,5 @@ dsSceneInstanceData* dsInstanceTransformData_create(dsAllocator* allocator,
 #endif
 		type = &instanceVariablesType;
 	return dsSceneInstanceVariables_create(allocator, resourceAllocator, resourceManager,
-		transformDesc, dsUniqueNameID_create(dsInstanceTransformData_typeName), type, NULL);
+		transformDesc, dsUniqueNameID_create(dsInstanceTransformData_uniformName), type, NULL);
 }

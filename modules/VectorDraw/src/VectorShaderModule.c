@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@
 #include <DeepSea/Render/Resources/MaterialDesc.h>
 #include <DeepSea/Render/Resources/ShaderModule.h>
 
+#include <DeepSea/Text/Font.h>
+
 #include <string.h>
 
 // Transform group
@@ -36,7 +38,7 @@ static const char* materialInfoName = "dsVectorMaterialInfoTex";
 static const char* materialColorName = "dsVectorMaterialColorTex";
 static const char* textOutlineMaterialInfoName = "dsVectorTextOutlineMaterialInfoTex";
 static const char* textOutlineMaterialColorName = "dsVectorTextOutlineMaterialColorTex";
-static const char* otherTextureName = "dsVectorOtherTex";
+static const char* imageTextureName = "dsVectorImageTex";
 static const char* modelViewProjectionName = "dsVectorModelViewProjection";
 static const char* sizeName = "dsVectorImageSize";
 static const char* textureSizesName = "dsVectorTextureSizes";
@@ -85,7 +87,8 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 			0},
 		{textOutlineMaterialColorName, dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Material,
 			0},
-		{otherTextureName, dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Material, 0},
+		{imageTextureName, dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Material, 0},
+		{dsFont_textureName, dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Material, 0},
 		{modelViewProjectionName, dsMaterialType_Mat4, 0, NULL, dsMaterialBinding_Material, 0},
 		{sizeName, dsMaterialType_Vec2, 0, NULL, dsMaterialBinding_Material, 0},
 		{textureSizesName, dsMaterialType_Vec3, 0, NULL, dsMaterialBinding_Material, 0}
@@ -153,8 +156,10 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 	vectorModule->textOutlineMaterialColorTextureElement = dsMaterialDesc_findElement(materialDesc,
 		textOutlineMaterialColorName);
 	DS_ASSERT(vectorModule->textOutlineMaterialColorTextureElement != DS_MATERIAL_UNKNOWN);
-	vectorModule->otherTextureElement = dsMaterialDesc_findElement(materialDesc, otherTextureName);
-	DS_ASSERT(vectorModule->otherTextureElement != DS_MATERIAL_UNKNOWN);
+	vectorModule->imageTextureElement = dsMaterialDesc_findElement(materialDesc, imageTextureName);
+	DS_ASSERT(vectorModule->imageTextureElement != DS_MATERIAL_UNKNOWN);
+	vectorModule->fontTextureElement = dsMaterialDesc_findElement(materialDesc, dsFont_textureName);
+	DS_ASSERT(vectorModule->fontTextureElement != DS_MATERIAL_UNKNOWN);
 	vectorModule->modelViewProjectionElement = dsMaterialDesc_findElement(materialDesc,
 		modelViewProjectionName);
 	DS_ASSERT(vectorModule->modelViewProjectionElement != DS_MATERIAL_UNKNOWN);

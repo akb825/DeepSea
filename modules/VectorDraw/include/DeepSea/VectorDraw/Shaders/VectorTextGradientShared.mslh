@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -251,7 +251,7 @@ vec4 dsVectorElementText_getSolidColor()
 	fillColor.a *= vfMaterialIndicesOpacities.z;
 
 	vec3 texCoords =  vfTexCoordEmbolden.xyz;
-	lowp float distance = dsComputeTextDistance(dsVectorOtherTex, texCoords);
+	lowp float distance = dsComputeTextDistance(texCoords);
 
 	lowp float embolden = vfTexCoordEmbolden.w;
 	lowp float antiAlias = vfOutlineAntiAlias.y;
@@ -272,7 +272,7 @@ vec4 dsVectorElementText_getMaterialColor()
 		dsVectorMaterialColorTex, uniforms.dsVectorTextureSizes.y);
 	fillColor.a *= vfMaterialIndicesOpacities.z;
 
-	lowp float distance = dsComputeTextDistance(dsVectorOtherTex, vfTexCoordEmbolden.xyz);
+	lowp float distance = dsComputeTextDistance(vfTexCoordEmbolden.xyz);
 
 	lowp float embolden = vfTexCoordEmbolden.w;
 	lowp float antiAlias = vfOutlineAntiAlias.y;
@@ -299,7 +299,7 @@ vec4 dsVectorElementText_getMaterialColorOutline()
 		uniforms.dsVectorTextureSizes.z);
 	outlineColor.a *= vfMaterialIndicesOpacities.w;
 
-	lowp float distance = dsComputeTextDistance(dsVectorOtherTex, vfTexCoordEmbolden.xyz);
+	lowp float distance = dsComputeTextDistance(vfTexCoordEmbolden.xyz);
 
 	lowp float embolden = vfTexCoordEmbolden.w;
 	lowp float outline = vfOutlineAntiAlias.x;

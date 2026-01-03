@@ -426,7 +426,7 @@
 		"elements":
 		[
 			{
-				"name": "InstanceTransformData",
+				"name": "dsInstanceTransformData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceTransformDesc"
@@ -449,19 +449,19 @@
 				"binding": "Material"
 			},
 			{
-				"name": "InstanceTransformData",
+				"name": "dsInstanceTransformData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceTransformDesc"
 			},
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
 			},
 			{
-				"name": "InstanceForwardLightData",
+				"name": "dsForwardLightData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceForwardLightDesc"
@@ -499,25 +499,25 @@
 				"binding": "Material"
 			},
 			{
-				"name": "InstanceTransformData",
+				"name": "dsInstanceTransformData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceTransformDesc"
 			},
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
 			},
 			{
-				"name": "InstanceForwardLightData",
+				"name": "dsForwardLightData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceForwardLightDesc"
 			},
 			{
-				"name": "ShadowTransform",
+				"name": "dsShadowTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "cascadedDirectionalShadowTransformDesc"
@@ -550,13 +550,13 @@
 				"binding": "Material"
 			},
 			{
-				"name": "InstanceTransformData",
+				"name": "dsInstanceTransformData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceTransformDesc"
 			},
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
@@ -569,13 +569,13 @@
 		"elements":
 		[
 			{
-				"name": "InstanceTransformData",
+				"name": "dsInstanceTransformData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceTransformDesc"
 			},
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
@@ -598,7 +598,7 @@
 				"binding": "Global"
 			},
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
@@ -858,7 +858,7 @@
 				"lightType": "Directional",
 				"light": "sun",
 				"transformGroupDesc": "cascadedDirectionalShadowTransformDesc",
-				"transformGroupName": "ShadowTransform",
+				"transformGroupName": "dsShadowTransformData",
 				"maxCascades": 2,
 				"maxFirstSplitDistance": 10,
 				"minDepthRanges": 50

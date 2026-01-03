@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -147,6 +147,7 @@ static void dsViewTransformData_destroy(dsSceneItemList* itemList)
 }
 
 const char* const dsViewTransformData_typeName = "ViewTransformData";
+const char* const dsViewTransformData_uniformName = "dsViewTransformData";
 
 static dsSceneItemListType itemListType =
 {
@@ -226,7 +227,7 @@ dsSceneItemList* dsViewTransformData_create(dsAllocator* allocator, const char* 
 		return NULL;
 	}
 
-	viewData->nameID = dsUniqueNameID_create(dsViewTransformData_typeName);
+	viewData->nameID = dsUniqueNameID_create(dsViewTransformData_uniformName);
 
 	return itemList;
 }

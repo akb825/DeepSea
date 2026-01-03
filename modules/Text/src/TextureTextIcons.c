@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Aaron Barany
+ * Copyright 2025-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -240,8 +240,8 @@ static bool dsTextureTextIcons_draw(const dsTextIcons* textIcons, void* userData
 	return success;
 }
 
-const char* const dsTextureTextIcons_textureName = "TextIconTex";
-const char* const dsTextureTextIcons_iconDataName = "TextureTextIconData";
+const char* const dsTextureTextIcons_textureName = "dsTextIconTex";
+const char* const dsTextureTextIcons_iconDataName = "dsTextureTextIconData";
 
 dsShaderVariableGroupDesc* dsTextureTextIcons_createShaderVariableGroupDesc(
 	dsResourceManager* resourceManager, dsAllocator* allocator)

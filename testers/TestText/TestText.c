@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -930,7 +930,7 @@ static bool setupShaders(TestText* testText)
 	{
 		{"SharedInfo", dsMaterialType_VariableGroup, 0, testText->sharedInfoDesc,
 			dsMaterialBinding_Global, 0},
-		{"fontTex", dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Material, 0},
+		{dsFont_textureName, dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Material, 0},
 		{"bounds", dsMaterialType_Vec4, 0, NULL, dsMaterialBinding_Material, 0}
 	};
 	testText->materialDesc = dsMaterialDesc_create(resourceManager, allocator, materialElems,
@@ -1233,7 +1233,7 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 	DS_LOG_INFO_F("TestText", "Loading ASCII characters took %f s.",
 		dsTimer_time(timer) - startTime);
 
-	uint32_t textureElement = dsMaterialDesc_findElement(testText->materialDesc, "fontTex");
+	uint32_t textureElement = dsMaterialDesc_findElement(testText->materialDesc, dsFont_textureName);
 	DS_ASSERT(textureElement != DS_MATERIAL_UNKNOWN);
 	dsMaterial_setTexture(testText->material, textureElement, dsFont_getTexture(testText->font));
 	if (testText->tessMaterial)

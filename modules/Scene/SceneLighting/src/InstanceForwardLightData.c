@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,7 @@ static bool isLightDescValid(const dsShaderVariableGroupDesc* lightDesc)
 }
 
 const char* const dsInstanceForwardLightData_typeName = "InstanceForwardLightData";
+const char* const dsInstanceForwardLightData_uniformName = "dsForwardLightData";
 
 dsShaderVariableGroupDesc* dsInstanceForwardLightData_createShaderVariableGroupDesc(
 	dsResourceManager* resourceManager, dsAllocator* allocator, uint32_t lightCount)
@@ -206,6 +207,6 @@ dsSceneInstanceData* dsInstanceForwardLightData_create(dsAllocator* allocator,
 	}
 
 	return dsSceneInstanceVariables_create(allocator, resourceAllocator, resourceManager, lightDesc,
-		dsUniqueNameID_create(dsInstanceForwardLightData_typeName),
-		&instanceVariablesType, (void*)lightSet);
+		dsUniqueNameID_create(dsInstanceForwardLightData_uniformName), &instanceVariablesType,
+		(void*)lightSet);
 }

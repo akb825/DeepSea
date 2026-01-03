@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -278,21 +278,19 @@ const dsSceneNodeType* dsSceneTextNode_setupParentType(dsSceneNodeType* type)
 dsSceneTextNode* dsSceneTextNode_create(dsAllocator* allocator, const dsText* text,
 	void* textUserData, const dsTextStyle* styles, uint32_t styleCount, dsTextAlign alignment,
 	float maxWidth, float lineScale, int32_t z, uint32_t firstChar, uint32_t charCount,
-	dsShader* shader, uint32_t fontTextureElement,
-	const dsSceneTextRenderBufferInfo* textRenderBufferInfo, const char* const* itemLists,
-	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount)
+	dsShader* shader, const dsSceneTextRenderBufferInfo* textRenderBufferInfo,
+	const char* const* itemLists, uint32_t itemListCount, dsSceneResources** resources,
+	uint32_t resourceCount)
 {
 	return dsSceneTextNode_createBase(allocator, sizeof(dsSceneTextNode), text,
 		textUserData, styles, styleCount, alignment, maxWidth, lineScale, z, firstChar, charCount,
-		shader, fontTextureElement, textRenderBufferInfo, itemLists, itemListCount, resources,
-		resourceCount);
+		shader, textRenderBufferInfo, itemLists, itemListCount, resources, resourceCount);
 }
 
 dsSceneTextNode* dsSceneTextNode_createBase(dsAllocator* allocator, size_t structSize,
 	const dsText* text, void* textUserData, const dsTextStyle* styles, uint32_t styleCount,
 	dsTextAlign alignment, float maxWidth, float lineScale, int32_t z, uint32_t firstChar,
-	uint32_t charCount, dsShader* shader, uint32_t fontTextureElement,
-	const dsSceneTextRenderBufferInfo* textRenderBufferInfo,
+	uint32_t charCount, dsShader* shader, const dsSceneTextRenderBufferInfo* textRenderBufferInfo,
 	const char* const* itemLists, uint32_t itemListCount, dsSceneResources** resources,
 	uint32_t resourceCount)
 {
@@ -302,19 +300,6 @@ dsSceneTextNode* dsSceneTextNode_createBase(dsAllocator* allocator, size_t struc
 		(!resources && resourceCount == 0))
 	{
 		errno = EINVAL;
-		return NULL;
-	}
-
-	const dsMaterialDesc* materialDesc = shader->materialDesc;
-	DS_ASSERT(materialDesc);
-	const dsMaterialElement* fontTextureMatElement = materialDesc->elements + fontTextureElement;
-	if (fontTextureElement >= materialDesc->elementCount ||
-		fontTextureMatElement->type != dsMaterialType_Texture ||
-		fontTextureMatElement->binding != dsMaterialBinding_Instance)
-	{
-		errno = ENOTFOUND;
-		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG,
-			"Font texture element must be a texture with instance binding.");
 		return NULL;
 	}
 
@@ -357,7 +342,6 @@ dsSceneTextNode* dsSceneTextNode_createBase(dsAllocator* allocator, size_t struc
 	node->styles = (dsTextStyle*)((uint8_t*)node + styleOffset);
 	memcpy(node->styles, styles, sizeof(dsTextStyle)*styleCount);
 	node->styleCount = styleCount;
-	node->fontTextureID = fontTextureMatElement->nameID;
 	node->alignment = alignment;
 	node->maxWidth = maxWidth;
 	node->lineScale = lineScale;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,10 +49,10 @@
  */
 
 /**
- * @brief Texture holding general information about the vector material.
+ * @brief Texture holding the image.
  */
-lowp uniform sampler2D dsVectorOtherTex;
-sampler_state dsVectorOtherTex
+lowp uniform sampler2D dsVectorImageTex;
+sampler_state dsVectorImageTex
 {
 	address_mode_u = clamp_to_edge;
 	address_mode_v = clamp_to_edge;
@@ -140,7 +140,7 @@ vec4 dsVectorElementImage_getMaterialColor()
 {
 	dsVectorShared_clip(vfPosition);
 
-	lowp vec4 color = texture(dsVectorOtherTex, vfTexCoordsOpacity.xy);
+	lowp vec4 color = texture(dsVectorImageTex, vfTexCoordsOpacity.xy);
 	return color*vec4(1.0, 1.0, 1.0, vfTexCoordsOpacity.z);
 }
 

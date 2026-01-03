@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Aaron Barany
+ * Copyright 2025-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,8 +46,8 @@ extern "C"
  * Any buffer that is too small and exceeded frameDelay since it was last used will be removed,
  * while the chosen buffer will have its last used frame updated.
  *
- * @param bufferList[inout] The list of buffers as a packed array.
- * @param bufferCount[inout[ The number of buffers. This will be updated if small buffers are
+ * @param[inout] bufferList The list of buffers as a packed array.
+ * @param[inout] bufferCount The number of buffers. This will be updated if small buffers are
  *     removed.
  * @param bufferItemSize The size of each item in bufferList.
  * @param bufferOffset The offset from offsetof() to the graphics buffer member.

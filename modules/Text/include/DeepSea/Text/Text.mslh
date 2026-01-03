@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,15 +23,28 @@
 #define DS_TEXT_THICKNESS_SCALE 0.5
 
 /**
+ * @brief Texture containing the font data.
+ */
+uniform sampler2D dsFontTex;
+sampler_state dsFontTex
+{
+	address_mode_u = clamp_to_edge;
+	address_mode_v = clamp_to_edge;
+	min_filter = linear;
+	mag_filter = linear;
+	mip_filter = nearest;
+}
+
+/**
  * @brief Computes the signed distance from a texture.
  * @param fontTex The sampler for the font texture.
  * @param texCoords The texture coordinates for the current position. The z value is the mip level.
  * @param mipLevel The mip level that the glyph is stored in.
  * @return The signed distance represented in the range [0, 1].
  */
-lowp float dsComputeTextDistance(lowp sampler2D fontTex, vec3 texCoords)
+lowp float dsComputeTextDistance(vec3 texCoords)
 {
-	return textureLod(fontTex, texCoords.xy, texCoords.z).r;
+	return textureLod(dsFontTex, texCoords.xy, texCoords.z).r;
 }
 
 /**

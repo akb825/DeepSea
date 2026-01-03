@@ -291,7 +291,7 @@
 				"lightType": "Directional",
 				"light": "sun",
 				"transformGroupDesc": "shadowTransformDesc",
-				"transformGroupName": "ShadowTransform"
+				"transformGroupName": "dsShadowTransformData"
 			}
 		]
 	},

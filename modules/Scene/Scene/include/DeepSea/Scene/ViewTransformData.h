@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,11 @@ extern "C"
  * @brief The view transform data type name.
  */
 DS_SCENE_EXPORT extern const char* const dsViewTransformData_typeName;
+
+/**
+ * @brief The view transform data shader uniform name.
+ */
+DS_SCENE_EXPORT extern const char* const dsViewTransformData_uniformName;
 
 /**
  * @brief Gets the type of a view transform data.

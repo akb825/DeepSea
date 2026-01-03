@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@
 #define DS_FORWARD_LIGHT_COUNT 4
 #endif
 
-uniform InstanceForwardLightData
+uniform dsForwardLightData
 {
 	/**
 	 * @brief Light view space position on xyz and type on w.

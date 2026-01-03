@@ -611,21 +611,21 @@
 							{
 								"shader": "directionalLightShader",
 								"material": "directionalLightMaterial",
-								"transformGroup": "ShadowTransform",
+								"transformGroup": "dsShadowTransformData",
 								"shadowTexture": "shadowMap"
 							},
 							"shadowPoint":
 							{
 								"shader": "pointLightShader",
 								"material": "pointLightMaterial",
-								"transformGroup": "ShadowTransform",
+								"transformGroup": "dsShadowTransformData",
 								"shadowTexture": "shadowMap"
 							},
 							"shadowSpot":
 							{
 								"shader": "spotLightShader",
 								"material": "spotLightMaterial",
-								"transformGroup": "ShadowTransform",
+								"transformGroup": "dsShadowTransformData",
 								"shadowTexture": "shadowMap"
 							}
 						}

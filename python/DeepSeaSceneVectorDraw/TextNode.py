@@ -108,15 +108,8 @@ class TextNode(object):
         return None
 
     # TextNode
-    def FontTexture(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
-        if o != 0:
-            return self._tab.String(o + self._tab.Pos)
-        return None
-
-    # TextNode
     def ItemLists(self, j):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         if o != 0:
             a = self._tab.Vector(o)
             return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
@@ -124,18 +117,18 @@ class TextNode(object):
 
     # TextNode
     def ItemListsLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # TextNode
     def ItemListsIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         return o == 0
 
 def TextNodeStart(builder):
-    builder.StartObject(11)
+    builder.StartObject(10)
 
 def Start(builder):
     TextNodeStart(builder)
@@ -200,14 +193,8 @@ def TextNodeAddShader(builder, shader):
 def AddShader(builder, shader):
     TextNodeAddShader(builder, shader)
 
-def TextNodeAddFontTexture(builder, fontTexture):
-    builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(fontTexture), 0)
-
-def AddFontTexture(builder, fontTexture):
-    TextNodeAddFontTexture(builder, fontTexture)
-
 def TextNodeAddItemLists(builder, itemLists):
-    builder.PrependUOffsetTRelativeSlot(10, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
+    builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
 
 def AddItemLists(builder, itemLists):
     TextNodeAddItemLists(builder, itemLists)

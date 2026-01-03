@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,7 +85,6 @@ typedef struct TextInfo
 	void* textUserData;
 	const dsTextStyle* styles;
 	uint32_t styleCount;
-	uint32_t fontTextureID;
 	uint32_t firstChar;
 	uint32_t charCount;
 } TextInfo;
@@ -117,6 +116,7 @@ struct dsSceneVectorItemList
 	dsResourceManager* resourceManager;
 	dsDynamicRenderStates renderStates;
 	bool hasRenderStates;
+	uint32_t fontTextureID;
 
 	dsSharedMaterialValues* instanceValues;
 	dsSceneInstanceData** instanceData;
@@ -245,7 +245,6 @@ static bool addInstances(dsSceneItemList* itemList)
 			drawItem->text.textUserData = node->textUserData;
 			drawItem->text.styles = node->styles;
 			drawItem->text.styleCount = node->styleCount;
-			drawItem->text.fontTextureID = node->fontTextureID;
 			drawItem->text.firstChar = node->firstChar;
 			drawItem->text.charCount = node->charCount;
 			drawItem->material = entry->material->material;
@@ -340,7 +339,7 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 				dsFont* font = text->font;
 				DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 					dsSharedMaterialValues_setTextureID(vectorList->instanceValues,
-						drawItem->text.fontTextureID, dsFont_getTexture(font)));
+						vectorList->fontTextureID, dsFont_getTexture(font)));
 				if (lastTextShader != drawItem->text.shader ||
 					lastTextMaterial != drawItem->material)
 				{
@@ -733,6 +732,8 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	}
 	else
 		vectorList->hasRenderStates = false;
+
+	vectorList->fontTextureID = dsUniqueNameID_create(dsFont_textureName);
 
 	vectorList->instanceValues = dsSharedMaterialValues_create((dsAllocator*)&bufferAlloc,
 		valueCount);

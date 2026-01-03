@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,6 @@
 #include <DeepSea/Scene/Shaders/InstanceTransform.mslh>
 #include <DeepSea/Scene/Shaders/ViewTransform.mslh>
 #include <DeepSea/Text/Text.mslh>
-
-uniform sampler2D fontTex;
-sampler_state fontTex
-{
-	address_mode_u = clamp_to_edge;
-	address_mode_v = clamp_to_edge;
-	min_filter = linear;
-	mag_filter = linear;
-	mip_filter = nearest;
-}
 
 [[vertex]] layout(location = DS_POSITION) in vec2 vertexPos;
 [[vertex]] layout(location = DS_COLOR0) in vec4 textColor;
@@ -63,7 +53,7 @@ void vertexShader()
 [[fragment]]
 void fragmentShader()
 {
-	float distance = dsComputeTextDistance(fontTex, vfTexCoords);
+	float distance = dsComputeTextDistance(vfTexCoords);
 	color = dsComputeTextColor(distance, vfStyle.x, vfStyle.y, vfStyle.z, vfStyle.w, vfTextColor,
 		vfOutlineColor);
 }

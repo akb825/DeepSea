@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,19 +52,6 @@ sampler_state dsVectorTextOutlineMaterialColorTex
 	min_filter = linear;
 	mag_filter = linear;
 	mip_filter = none;
-}
-
-/**
- * @brief Texture holding the glyphs for the font.
- */
-uniform sampler2D dsVectorOtherTex;
-sampler_state dsVectorOtherTex
-{
-	address_mode_u = clamp_to_edge;
-	address_mode_v = clamp_to_edge;
-	min_filter = linear;
-	mag_filter = linear;
-	mip_filter = nearest;
 }
 
 /**

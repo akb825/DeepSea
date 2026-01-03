@@ -10,7 +10,7 @@
 				"binding": "Global"
 			},
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
@@ -33,7 +33,7 @@
 				"binding": "Global"
 			},
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
@@ -61,13 +61,13 @@
 				"binding": "Global"
 			},
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
 			},
 			{
-				"name": "ShadowTransform",
+				"name": "dsShadowTransformData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "cascadedDirectionalShadowTransformDesc"
@@ -100,13 +100,13 @@
 				"binding": "Global"
 			},
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
 			},
 			{
-				"name": "ShadowTransform",
+				"name": "dsShadowTransformData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "directionalShadowTransformDesc"
@@ -139,13 +139,13 @@
 				"binding": "Global"
 			},
 			{
-				"name": "ViewTransformData",
+				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
 			},
 			{
-				"name": "ShadowTransform",
+				"name": "dsShadowTransformData",
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "pointShadowTransformDesc"

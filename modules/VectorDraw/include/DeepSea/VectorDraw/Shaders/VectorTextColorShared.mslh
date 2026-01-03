@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ vec4 dsVectorElementText_getSolidColor()
 	fillColor.a *= vfMaterialIndicesOpacities.z;
 
 	vec3 texCoords = vfTexCoordEmbolden.xyz;
-	lowp float distance = dsComputeTextDistance(dsVectorOtherTex, texCoords);
+	lowp float distance = dsComputeTextDistance(texCoords);
 
 	lowp float embolden = vfTexCoordEmbolden.w;
 	lowp float antiAlias = vfOutlineAntiAlias.y;
@@ -65,7 +65,7 @@ vec4 dsVectorElementText_getSolidColorOutline()
 	outlineColor.a *= vfMaterialIndicesOpacities.w;
 
 	vec3 texCoords = vfTexCoordEmbolden.xyz;
-	lowp float distance = dsComputeTextDistance(dsVectorOtherTex, texCoords);
+	lowp float distance = dsComputeTextDistance(texCoords);
 
 	lowp float embolden = vfTexCoordEmbolden.w;
 	lowp float outline = vfOutlineAntiAlias.x;

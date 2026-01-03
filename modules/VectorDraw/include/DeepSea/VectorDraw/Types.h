@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -866,9 +866,14 @@ typedef struct dsVectorShadersModule
 	uint32_t textOutlineMaterialColorTextureElement;
 
 	/**
-	 * @brief The element index for the font or image texture.
+	 * @brief The element index for the image texture.
 	 */
-	uint32_t otherTextureElement;
+	uint32_t imageTextureElement;
+
+	/**
+	 * @brief The element index for the font texture.
+	 */
+	uint32_t fontTextureElement;
 
 	/**
 	 * @brief The element index for the model-view-projection matrix.

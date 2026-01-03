@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,11 @@ extern "C"
  *     other font operations.
  * @see dsFont
  */
+
+/**
+ * @brief The name of the texture used for fonts in the standard shader.
+ */
+DS_TEXT_EXPORT extern const char* const dsFont_textureName;
 
 /**
  * @brief Gets the expected font size for a given quality.
