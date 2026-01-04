@@ -107,8 +107,36 @@ DS_TEXT_EXPORT dsTextIcons* dsTextureTextIcons_create(dsAllocator* allocator,
  *     destroyed when the text icons is destroyed or if adding the icon fails.
  * @return False if the icon couldn't be added.
  */
-DS_TEXT_EXPORT bool dsTextureTextIcons_addIcon(dsTextIcons* icons, uint32_t codepoint, float advance,
-	const dsAlignedBox2f* bounds, dsTexture* texture, bool takeOwnership);
+DS_TEXT_EXPORT bool dsTextureTextIcons_addIcon(dsTextIcons* icons, uint32_t codepoint,
+	float advance, const dsAlignedBox2f* bounds, dsTexture* texture, bool takeOwnership);
+
+/**
+ * @brief Replaces an icon on texture text icons.
+ *
+ * The advance and bounds may not be changed to keep layouts compatible.
+ *
+ * @remark errno will be set on failure.
+ * @param icons The text icons to add the icon to.
+ * @param codepoint The character code used to assign the icon to.
+ * @param texture The texture for the icon.
+ * @param takeOwnership Whether to take ownership of the texture. If true, the texture will be
+ *     destroyed when the text icons is destroyed or if adding the icon fails.
+ * @return False if the icon couldn't be added.
+ */
+DS_TEXT_EXPORT bool dsTextureTextIcons_replaceIcon(dsTextIcons* icons, uint32_t codepoint,
+	dsTexture* texture, bool takeOwnership);
+
+/**
+ * @brief Gets the texture for an icon glyph used within texture text icons.
+ *
+ * This will properly remove the extra bit added to the user data to track whether this has
+ * ownership.
+ *
+ * @remark errno will be set on failure.
+ * @param icon The icon returned from dsTextIcons_findIcon().
+ * @return The texture for the icon.
+ */
+DS_TEXT_EXPORT dsTexture* dsTextureTextIcons_getIconTexture(const dsIconGlyph* icon);
 
 #ifdef __cplusplus
 }

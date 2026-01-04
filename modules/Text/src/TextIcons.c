@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Aaron Barany
+ * Copyright 2025-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -174,6 +174,32 @@ bool dsTextIcons_addIcon(dsTextIcons* icons, uint32_t codepoint, float advance,
 	iconGlyph->userData = userData;
 
 	++icons->iconCount;
+	return true;
+}
+
+bool dsTextIcons_replaceIcon(dsTextIcons* icons, uint32_t codepoint, void* userData)
+{
+	if (!icons)
+	{
+		if (icons && icons->destroyUserDataFunc)
+			icons->destroyGlyphUserDataFunc(userData);
+		errno = EINVAL;
+		return false;
+	}
+
+	dsIconGlyphNode* node = (dsIconGlyphNode*)dsHashTable_find(icons->iconTable, &codepoint);
+	if (!node)
+	{
+		if (icons->destroyGlyphUserDataFunc)
+			icons->destroyUserDataFunc(userData);
+		errno = ENOTFOUND;
+		return false;
+	}
+
+	dsIconGlyph* icon = icons->iconGlyphs + node->index;
+	if (icons->destroyGlyphUserDataFunc)
+		icons->destroyUserDataFunc(icon->userData);
+	icon->userData = userData;
 	return true;
 }
 

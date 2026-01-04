@@ -42,6 +42,10 @@
 
 #include <string.h>
 
+#define ENCODE_USER_DATA(userData, takeOwnership) (void*)((size_t)(userData) | !(takeOwnership))
+#define HAS_OWNERSHIP(userData) (((size_t)(userData) & 0x1) == 0)
+#define EXTRACT_TEXTURE(userData) (dsTexture*)((size_t)(userData) & ~(size_t)0x1)
+
 typedef struct BufferInfo
 {
 	dsGfxBuffer* buffer;
@@ -161,9 +165,7 @@ static bool TextureIcons_drawIconDataBuffer(TextureIcons* textureIcons,
 	for (uint32_t i = 0; i < glyphCount; ++i)
 	{
 		const dsIconGlyph* glyph = glyphs + i;
-		size_t glyphUserDataInt = (size_t)glyph->userData;
-		// Strip off last bit indicating whether to take ownership.
-		dsTexture* texture = (dsTexture*)(glyphUserDataInt & ~(size_t)0x1);
+		dsTexture* texture = EXTRACT_TEXTURE(glyph->userData);
 		DS_VERIFY(dsSharedMaterialValues_setTextureID(textureIcons->instanceValues,
 			textureIcons->textureNameID, texture));
 		DS_VERIFY(dsSharedMaterialValues_setBufferID(textureIcons->instanceValues,
@@ -214,9 +216,8 @@ static bool TextureIcons_drawIconDataGroup(TextureIcons* textureIcons,
 
 static void dsTextureTextIcons_destroyTexture(void* userData)
 {
-	size_t userDataInt = (size_t)userData;
-	if ((userDataInt & 0x1) == 0)
-		dsTexture_destroy((dsTexture*)userData);
+	if (HAS_OWNERSHIP(userData))
+		dsTexture_destroy(EXTRACT_TEXTURE(userData));
 }
 
 static bool dsTextureTextIcons_draw(const dsTextIcons* textIcons, void* userData,
@@ -420,6 +421,35 @@ bool dsTextureTextIcons_addIcon(dsTextIcons* icons, uint32_t codepoint, float ad
 
 	// Expect that the least significant bit of the texture pointer is always zero.
 	DS_ASSERT(((size_t)texture & 0x1) == 0);
-	size_t userDataInt = (size_t)texture | !takeOwnership;
-	return dsTextIcons_addIcon(icons, codepoint, advance, bounds, (void*)userDataInt);
+	return dsTextIcons_addIcon(icons, codepoint, advance, bounds,
+		ENCODE_USER_DATA(texture, takeOwnership));
+}
+
+bool dsTextureTextIcons_replaceIcon(
+	dsTextIcons* icons, uint32_t codepoint, dsTexture* texture, bool takeOwnership)
+{
+	if (!icons || !texture)
+	{
+		if (takeOwnership)
+			dsTexture_destroy(texture);
+		errno = EINVAL;
+		return false;
+	}
+
+	// Expect that the least significant bit of the texture pointer is always zero.
+	DS_ASSERT(((size_t)texture & 0x1) == 0);
+	return dsTextIcons_replaceIcon(icons, codepoint, ENCODE_USER_DATA(texture, takeOwnership));
+}
+
+dsTexture* dsTextureTextIcons_getIconTexture(const dsIconGlyph* icon)
+{
+	if (!icon)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	size_t userDataInt = (size_t)icon->userData;
+	// Strip off last bit indicating whether to take ownership.
+	return (dsTexture*)(userDataInt & ~(size_t)0x1);
 }

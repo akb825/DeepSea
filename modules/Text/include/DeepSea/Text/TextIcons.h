@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Aaron Barany
+ * Copyright 2025-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,6 +97,21 @@ DS_TEXT_EXPORT bool dsTextIcons_isCodepointValid(const dsTextIcons* icons, uint3
  */
 DS_TEXT_EXPORT bool dsTextIcons_addIcon(dsTextIcons* icons, uint32_t codepoint, float advance,
 	const dsAlignedBox2f* bounds, void* userData);
+
+/**
+ * @brief Replaces an icon on text icons.
+ *
+ * The previous icon will be destroyed as with the destroyGlyphUserDataFunc() while the new icon
+ * takes its place. The advance and bounds may not be changed to keep layouts compatible.
+ *
+ * @remark errno will be set on failure.
+ * @param icons The text icons to add the icon to.
+ * @param codepoint The character code used to assign the icon to.
+ * @param userData The user data associated with the icon. This will be destroyed when icons is
+ *     destroyed according to destroyGlyphUserDataFunc, or immediately if adding the icon fails.
+ * @return False if the icon couldn't be added.
+ */
+DS_TEXT_EXPORT bool dsTextIcons_replaceIcon(dsTextIcons* icons, uint32_t codepoint, void* userData);
 
 /**
  * @brief Finds the icon for a character.
