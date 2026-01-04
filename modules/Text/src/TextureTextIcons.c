@@ -28,6 +28,7 @@
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Material.h>
+#include <DeepSea/Render/Resources/MaterialDesc.h>
 #include <DeepSea/Render/Resources/Shader.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
@@ -58,13 +59,14 @@ typedef struct TextureIcons
 	dsMaterial* material;
 	uint32_t textureNameID;
 	uint32_t iconDataNameID;
+	uint32_t iconDataStride;
+	uint32_t modelViewProjectionElement;
 	dsSharedMaterialValues* instanceValues;
 	dsShaderVariableGroup* iconDataGroup;
 
 	BufferInfo* iconDataBuffers;
 	uint32_t iconDataBufferCount;
 	uint32_t maxIconBuffers;
-	uint32_t iconDataStride;
 
 	dsGfxBuffer* vertexBuffer;
 	dsDrawGeometry* drawGeometry;
@@ -219,24 +221,32 @@ static void dsTextureTextIcons_destroyTexture(void* userData)
 
 static bool dsTextureTextIcons_draw(const dsTextIcons* textIcons, void* userData,
 	dsCommandBuffer* commandBuffer, const dsIconGlyph* glyphs, uint32_t glyphCount,
-	const dsSharedMaterialValues* globalValues, const dsDynamicRenderStates* renderStates)
+	const dsMatrix44f* modelViewProjection, const dsSharedMaterialValues* globalValues,
+	const dsDynamicRenderStates* renderStates)
 {
 	TextureIcons* textureIcons = (TextureIcons*)userData;
+	DS_VERIFY(dsSpinlock_lock(&textureIcons->drawLock));
+	if (textureIcons->modelViewProjectionElement != DS_MATERIAL_UNKNOWN)
+	{
+		DS_VERIFY(dsMaterial_setElementData(textureIcons->material,
+			textureIcons->modelViewProjectionElement, modelViewProjection, dsMaterialType_Mat4, 0,
+			1));
+	}
 	if (!dsShader_bind(textureIcons->shader, commandBuffer, textureIcons->material, globalValues,
 			renderStates))
 	{
+		DS_VERIFY(dsSpinlock_unlock(&textureIcons->drawLock));
 		return false;
 	}
 
-	DS_VERIFY(dsSpinlock_lock(&textureIcons->drawLock));
 	bool success;
 	if (textureIcons->iconDataGroup)
 		success = TextureIcons_drawIconDataGroup(textureIcons, commandBuffer, glyphs, glyphCount);
 	else
 		success = TextureIcons_drawIconDataBuffer(textureIcons, commandBuffer, glyphs, glyphCount);
-	DS_VERIFY(dsSpinlock_unlock(&textureIcons->drawLock));
 
 	DS_VERIFY(dsShader_unbind(textureIcons->shader, commandBuffer));
+	DS_VERIFY(dsSpinlock_unlock(&textureIcons->drawLock));
 	return success;
 }
 
@@ -266,8 +276,8 @@ bool dsTextureTextIcons_isShaderVariableGroupCompatible(
 
 dsTextIcons* dsTextureTextIcons_create(dsAllocator* allocator, dsResourceManager* resourceManager,
 	dsAllocator* resourceAllocator, dsShader* shader, dsMaterial* material,
-	const dsShaderVariableGroupDesc* iconDataDesc, const dsIndexRange* codepointRanges,
-	uint32_t codepointRangeCount, uint32_t maxIcons)
+	const dsShaderVariableGroupDesc* iconDataDesc, const char* modelViewProjectionName,
+	const dsIndexRange* codepointRanges, uint32_t codepointRangeCount, uint32_t maxIcons)
 {
 	if (!allocator || !resourceManager || !shader || !material)
 	{
@@ -277,18 +287,44 @@ dsTextIcons* dsTextureTextIcons_create(dsAllocator* allocator, dsResourceManager
 
 	if (!allocator->freeFunc)
 	{
-		errno = EINVAL;
 		DS_LOG_ERROR(DS_TEXT_LOG_TAG, "Texture text icons allocator must support freeing memory.");
+		errno = EINVAL;
 		return NULL;
 	}
 
 	if (!dsTextureTextIcons_isShaderVariableGroupCompatible(iconDataDesc))
 	{
-		errno = EINVAL;
 		DS_LOG_ERROR(DS_TEXT_LOG_TAG,
 			"Icon data's shader variable group description must have been created with "
 			"dsTextureTextIcons_createShaderVariableGroupDesc().");
+		errno = EINVAL;
 		return NULL;
+	}
+
+	uint32_t modelViewProjectionElement = DS_MATERIAL_UNKNOWN;
+	if (modelViewProjectionName)
+	{
+		const dsMaterialDesc* materialDesc = dsMaterial_getDescription(material);
+		DS_ASSERT(materialDesc);
+		modelViewProjectionElement = dsMaterialDesc_findElement(
+			materialDesc, modelViewProjectionName);
+		if (modelViewProjectionElement == DS_MATERIAL_UNKNOWN)
+		{
+			DS_LOG_ERROR_F(DS_TEXT_LOG_TAG,
+				"Couldn't find texture text icon model view projection material element '%s'.",
+				modelViewProjectionName);
+			errno = ENOTFOUND;
+			return NULL;
+		}
+
+		const dsMaterialElement* element = materialDesc->elements + modelViewProjectionElement;
+		if (element->type != dsMaterialType_Mat4 || element->count > 1)
+		{
+			DS_LOG_ERROR_F(DS_TEXT_LOG_TAG, "Texture text icon model view projection material "
+				"element '%s' must be a single mat4 value.", modelViewProjectionName);
+			errno = EINVAL;
+			return NULL;
+		}
 	}
 
 	if (!resourceAllocator)
@@ -308,6 +344,7 @@ dsTextIcons* dsTextureTextIcons_create(dsAllocator* allocator, dsResourceManager
 	textureIcons->material = material;
 	textureIcons->textureNameID = dsUniqueNameID_create(dsTextureTextIcons_textureName);
 	textureIcons->iconDataNameID = dsUniqueNameID_create(dsTextureTextIcons_iconDataName);
+	textureIcons->modelViewProjectionElement = modelViewProjectionElement;
 
 	textureIcons->instanceValues = dsSharedMaterialValues_create(allocator, 2);
 	if (!textureIcons->instanceValues)

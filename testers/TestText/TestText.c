@@ -48,6 +48,7 @@
 #include <DeepSea/Render/CommandBuffer.h>
 #include <DeepSea/Render/CommandBufferPool.h>
 #include <DeepSea/Render/Renderer.h>
+#include <DeepSea/Render/RenderSurface.h>
 #include <DeepSea/Render/RenderPass.h>
 
 #include <DeepSea/RenderBootstrap/RenderBootstrap.h>
@@ -110,6 +111,7 @@ typedef struct TestText
 	dsGfxBuffer* limitBuffer;
 	dsDrawGeometry* limitGeometry;
 
+	dsMatrix44f projection;
 	uint32_t screenSizeElement;
 	uint32_t positionElement;
 	uint32_t limitBoundsElement;
@@ -418,58 +420,61 @@ static void addTextVertex(void* userData, const dsTextLayout* layout, void* layo
 	dsVector2f position = layout->glyphs[glyphIndex].position;
 
 	dsVector2f geometryPos;
-	StandardVertex* vertices = (StandardVertex*)vertexData;
+	StandardVertex* vertex = (StandardVertex*)vertexData;
 	geometryPos.x = glyph->geometry.min.x;
 	geometryPos.y = glyph->geometry.min.y;
-	glyphPosition(&vertices[0].position, &position, &geometryPos, style->slant);
-	vertices[0].textColor = style->color;
-	vertices[0].outlineColor = style->outlineColor;
-	vertices[0].texCoords.x = glyph->texCoords.min.x;
-	vertices[0].texCoords.y = glyph->texCoords.min.y;
-	vertices[0].texCoords.z = (float)glyph->mipLevel;
-	vertices[0].embolden = style->embolden;
-	vertices[0].outlinePosition = style->outlinePosition;
-	vertices[0].outlineThickness = style->outlineThickness;
-	vertices[0].antiAlias = style->antiAlias;
+	glyphPosition(&vertex->position, &position, &geometryPos, style->slant);
+	vertex->textColor = style->color;
+	vertex->outlineColor = style->outlineColor;
+	vertex->texCoords.x = glyph->texCoords.min.x;
+	vertex->texCoords.y = glyph->texCoords.min.y;
+	vertex->texCoords.z = (float)glyph->mipLevel;
+	vertex->embolden = style->embolden;
+	vertex->outlinePosition = style->outlinePosition;
+	vertex->outlineThickness = style->outlineThickness;
+	vertex->antiAlias = style->antiAlias;
 
+	++vertex;
 	geometryPos.x = glyph->geometry.min.x;
 	geometryPos.y = glyph->geometry.max.y;
-	glyphPosition(&vertices[1].position, &position, &geometryPos, style->slant);
-	vertices[1].textColor = style->color;
-	vertices[1].outlineColor = style->outlineColor;
-	vertices[1].texCoords.x = glyph->texCoords.min.x;
-	vertices[1].texCoords.y = glyph->texCoords.max.y;
-	vertices[1].texCoords.z = (float)glyph->mipLevel;
-	vertices[1].embolden = style->embolden;
-	vertices[1].outlinePosition = style->outlinePosition;
-	vertices[1].outlineThickness = style->outlineThickness;
-	vertices[1].antiAlias = style->antiAlias;
+	glyphPosition(&vertex->position, &position, &geometryPos, style->slant);
+	vertex->textColor = style->color;
+	vertex->outlineColor = style->outlineColor;
+	vertex->texCoords.x = glyph->texCoords.min.x;
+	vertex->texCoords.y = glyph->texCoords.max.y;
+	vertex->texCoords.z = (float)glyph->mipLevel;
+	vertex->embolden = style->embolden;
+	vertex->outlinePosition = style->outlinePosition;
+	vertex->outlineThickness = style->outlineThickness;
+	vertex->antiAlias = style->antiAlias;
 
+	++vertex;
 	geometryPos.x = glyph->geometry.max.x;
 	geometryPos.y = glyph->geometry.max.y;
-	glyphPosition(&vertices[2].position, &position, &geometryPos, style->slant);
-	vertices[2].textColor = style->color;
-	vertices[2].outlineColor = style->outlineColor;
-	vertices[2].texCoords.x = glyph->texCoords.max.x;
-	vertices[2].texCoords.y = glyph->texCoords.max.y;
-	vertices[2].texCoords.z = (float)glyph->mipLevel;
-	vertices[2].embolden = style->embolden;
-	vertices[2].outlinePosition = style->outlinePosition;
-	vertices[2].outlineThickness = style->outlineThickness;
-	vertices[2].antiAlias = style->antiAlias;
+	glyphPosition(&vertex->position, &position, &geometryPos, style->slant);
+	vertex->textColor = style->color;
+	vertex->outlineColor = style->outlineColor;
+	vertex->texCoords.x = glyph->texCoords.max.x;
+	vertex->texCoords.y = glyph->texCoords.max.y;
+	vertex->texCoords.z = (float)glyph->mipLevel;
+	vertex->embolden = style->embolden;
+	vertex->outlinePosition = style->outlinePosition;
+	vertex->outlineThickness = style->outlineThickness;
+	vertex->antiAlias = style->antiAlias;
 
+	++vertex;
 	geometryPos.x = glyph->geometry.max.x;
 	geometryPos.y = glyph->geometry.min.y;
-	glyphPosition(&vertices[3].position, &position, &geometryPos, style->slant);
-	vertices[3].textColor = style->color;
-	vertices[3].outlineColor = style->outlineColor;
-	vertices[3].texCoords.x = glyph->texCoords.max.x;
-	vertices[3].texCoords.y = glyph->texCoords.min.y;
-	vertices[3].texCoords.z = (float)glyph->mipLevel;
-	vertices[3].embolden = style->embolden;
-	vertices[3].outlinePosition = style->outlinePosition;
-	vertices[3].outlineThickness = style->outlineThickness;
-	vertices[3].antiAlias = style->antiAlias;
+	glyphPosition(&vertex->position, &position, &geometryPos, style->slant);
+	vertex->textColor = style->color;
+	vertex->outlineColor = style->outlineColor;
+	vertex->texCoords.x = glyph->texCoords.max.x;
+	vertex->texCoords.y = glyph->texCoords.min.y;
+	vertex->texCoords.z = (float)glyph->mipLevel;
+	vertex->embolden = style->embolden;
+	vertex->outlinePosition = style->outlinePosition;
+	vertex->outlineThickness = style->outlineThickness;
+	vertex->antiAlias = style->antiAlias;
 }
 
 static void addTessTextVertex(void* userData, const dsTextLayout* layout, void* layoutUserData,
@@ -479,18 +484,12 @@ static void addTessTextVertex(void* userData, const dsTextLayout* layout, void* 
 	DS_UNUSED(layoutUserData);
 	DS_UNUSED(format);
 	DS_UNUSED(vertexCount);
-	DS_ASSERT(format->elements[dsVertexAttrib_Position0].offset ==
-		offsetof(TessVertex, position));
-	DS_ASSERT(format->elements[dsVertexAttrib_Position1].offset ==
-		offsetof(TessVertex, geometry));
-	DS_ASSERT(format->elements[dsVertexAttrib_Color0].offset ==
-		offsetof(TessVertex, textColor));
-	DS_ASSERT(format->elements[dsVertexAttrib_Color1].offset ==
-		offsetof(TessVertex, outlineColor));
-	DS_ASSERT(format->elements[dsVertexAttrib_TexCoord0].offset ==
-		offsetof(TessVertex, texCoords));
-	DS_ASSERT(format->elements[dsVertexAttrib_TexCoord1].offset ==
-		offsetof(TessVertex, slant));
+	DS_ASSERT(format->elements[dsVertexAttrib_Position0].offset == offsetof(TessVertex, position));
+	DS_ASSERT(format->elements[dsVertexAttrib_Position1].offset == offsetof(TessVertex, geometry));
+	DS_ASSERT(format->elements[dsVertexAttrib_Color0].offset == offsetof(TessVertex, textColor));
+	DS_ASSERT(format->elements[dsVertexAttrib_Color1].offset == offsetof(TessVertex, outlineColor));
+	DS_ASSERT(format->elements[dsVertexAttrib_TexCoord0].offset == offsetof(TessVertex, texCoords));
+	DS_ASSERT(format->elements[dsVertexAttrib_TexCoord1].offset == offsetof(TessVertex, slant));
 	DS_ASSERT(format->size == sizeof(TessVertex));
 	DS_ASSERT(vertexCount == 1);
 
@@ -606,6 +605,13 @@ static bool createFramebuffer(TestText* testText, dsCommandBuffer* commandBuffer
 		DS_VERIFY(dsShaderVariableGroup_setElementData(testText->sharedTessInfoGroup,
 			testText->screenSizeElement, &screenSize, dsMaterialType_IVec2, 0, 1));
 	}
+
+	dsMatrix44f projection, surfaceRotation;
+	DS_VERIFY(dsRenderer_makeOrtho(&projection, testText->renderer, 0.0f, (float)width,
+		0.0f, (float)height, 0.0f, 1.0f));
+	DS_VERIFY(dsRenderSurface_makeRotationMatrix44(&surfaceRotation,
+		testText->window->surface->rotation));
+	dsMatrix44f_mul(&testText->projection, &surfaceRotation, &projection);
 
 	setPositions(testText);
 	return true;
@@ -817,8 +823,8 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 			testText->shader, commandBuffer, testText->material, testText->sharedValues, NULL));
 		DS_VERIFY(dsTextRenderBuffer_drawStandardGlyphs(testText->textRender, commandBuffer));
 		DS_VERIFY(dsShader_unbind(testText->shader, commandBuffer));
-		DS_VERIFY(dsTextRenderBuffer_drawIconGlyphs(
-			testText->textRender, commandBuffer, testText->sharedValues, NULL));
+		DS_VERIFY(dsTextRenderBuffer_drawIconGlyphs(testText->textRender, commandBuffer,
+			&testText->projection, testText->sharedValues, NULL));
 	}
 
 	if (testText->tessText)
@@ -827,8 +833,8 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 			testText->sharedTessValues, NULL));
 		DS_VERIFY(dsTextRenderBuffer_drawStandardGlyphs(testText->tessTextRender, commandBuffer));
 		DS_VERIFY(dsShader_unbind(testText->tessShader, commandBuffer));
-		DS_VERIFY(dsTextRenderBuffer_drawIconGlyphs(
-			testText->textRender, commandBuffer, testText->sharedTessValues, NULL));
+		DS_VERIFY(dsTextRenderBuffer_drawIconGlyphs(testText->textRender, commandBuffer,
+			&testText->projection, testText->sharedTessValues, NULL));
 	}
 
 	if (textStrings[testText->curString].maxWidth != DS_TEXT_NO_WRAP)
@@ -1013,6 +1019,7 @@ static bool setupShaders(TestText* testText)
 	{
 		{"SharedInfo", dsMaterialType_VariableGroup, 0, testText->sharedInfoDesc,
 			dsMaterialBinding_Global, 0},
+		{"modelViewProjection", dsMaterialType_Mat4, 0, NULL, dsMaterialBinding_Material, 0},
 		{dsTextureTextIcons_textureName, dsMaterialType_Texture, 0, NULL,
 			dsMaterialBinding_Instance, 0},
 		{dsTextureTextIcons_iconDataName, dsMaterialType_VariableGroup, 0, testText->iconDataDesc,
@@ -1122,8 +1129,8 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 	uint32_t emojiStart = 0x1F320, emojiEnd = 0x1FAFF;
 	dsIndexRange codepointRange = {emojiStart, emojiEnd - emojiStart};
 	testText->textIcons = dsTextureTextIcons_create(allocator, resourceManager, NULL,
-		testText->iconShader, testText->iconMaterial, testText->iconDataDesc, &codepointRange, 1,
-		DS_ARRAY_SIZE(icons));
+		testText->iconShader, testText->iconMaterial, testText->iconDataDesc, "modelViewProjection",
+		&codepointRange, 1, DS_ARRAY_SIZE(icons));
 	if (!testText->textIcons)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create text icons: %s", dsErrorString(errno));

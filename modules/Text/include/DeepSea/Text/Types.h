@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -180,13 +180,15 @@ typedef bool (*dsPrepareTextIconsFunction)(const dsTextIcons* textIcons, void* u
  * @param glyphs The glyphs to draw. The bounds will be adjusted to the position and size to
  *     draw.
  * @param glyphCount The number of glyphs to draw.
+ * @param modelViewProjection The model view projection matrix to draw with.
  * @param globalValues The global shader values to use when drawing.
  * @param renderStates The dynamic render states to use when drawing.
  * @return False if an error occurred.
  */
 typedef bool (*dsDrawTextIconsFunction)(const dsTextIcons* textIcons, void* userData,
 	dsCommandBuffer* commandBuffer, const dsIconGlyph* glyphs, uint32_t glyphCount,
-	const dsSharedMaterialValues* globalValues, const dsDynamicRenderStates* renderStates);
+	const dsMatrix44f* modelViewProjection, const dsSharedMaterialValues* globalValues,
+	const dsDynamicRenderStates* renderStates);
 
 /**
  * @brief Mapping from a character to the glyphs it corresponds to.

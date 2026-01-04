@@ -27,6 +27,8 @@ uniform SharedInfo
 [[vertex]] layout(location = DS_POSITION) in vec2 vertexPos;
 [[vertex]] layout(location = DS_TEXCOORD0) in vec2 texCoords;
 
+uniform mat4 modelViewProjection;
+
 varying(vertex, fragment)
 {
 	vec2 vfTexCoords;
@@ -39,11 +41,9 @@ void vertexShader()
 {
 	vfTexCoords = texCoords;
 
-	vec2 position = dsComputeTextureTextIconPosition(vertexPos);
-	vec2 normalizedPos = (INSTANCE(sharedInfo).position + position)/
-		vec2(INSTANCE(sharedInfo).screenSize);
-	gl_Position = DS_ADJUST_CLIP(vec4(normalizedPos*vec2(2.0) - vec2(1.0), 0.0, 1.0));
-	gl_Position.y *= INSTANCE(sharedInfo).yMult;
+	vec2 position = dsComputeTextureTextIconPosition(vertexPos) + INSTANCE(sharedInfo).position;
+	gl_Position = uniforms.modelViewProjection*vec4(position.x,
+		INSTANCE(sharedInfo).screenSize.y - position.y, 0.0, 1.0);
 }
 
 [[fragment]]

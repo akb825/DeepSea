@@ -337,6 +337,12 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 				dsTextRenderBuffer* renderBuffer = drawItem->text.renderBuffer;
 				const dsText* text = layout->text;
 				dsFont* font = text->font;
+
+				const dsMatrix44f* nodeTransform =
+					&vectorList->instances[drawItem->instance]->transform;
+				dsMatrix44f modelViewProjection;
+				dsMatrix44f_mul(&modelViewProjection, &view->viewProjectionMatrix, nodeTransform);
+
 				DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 					dsSharedMaterialValues_setTextureID(vectorList->instanceValues,
 						vectorList->fontTextureID, dsFont_getTexture(font)));
@@ -383,7 +389,8 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 
 						DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 							dsTextRenderBuffer_drawIconGlyphRange(renderBuffer, commandBuffer,
-								firstIconGlyph, iconGlyphCount, view->globalValues, NULL));
+								firstIconGlyph, iconGlyphCount, &modelViewProjection,
+								view->globalValues, NULL));
 					}
 				}
 				break;

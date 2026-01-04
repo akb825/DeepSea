@@ -1357,7 +1357,7 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 		// Draw icons if present.
 		if (piece->textRender &&
 			!dsTextRenderBuffer_drawIconGlyphs(
-				piece->textRender, commandBuffer, globalValues, renderStates))
+				piece->textRender, commandBuffer, modelViewProjection, globalValues, renderStates))
 		{
 			success = false;
 			break;

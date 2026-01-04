@@ -55,7 +55,7 @@ DS_TEXT_EXPORT extern const char* const dsTextureTextIcons_iconDataName;
  * @return The shader variable group description or NULL if an error occurred.
  */
 DS_TEXT_EXPORT dsShaderVariableGroupDesc* dsTextureTextIcons_createShaderVariableGroupDesc(
-    dsResourceManager* resourceManager, dsAllocator* allocator);
+	dsResourceManager* resourceManager, dsAllocator* allocator);
 
 /**
  * @brief Checks whether or not a shader variable group is compatible with dsTextureTextIconData.
@@ -63,7 +63,7 @@ DS_TEXT_EXPORT dsShaderVariableGroupDesc* dsTextureTextIcons_createShaderVariabl
  * @return Whether or not iconData is compatible.
  */
 DS_TEXT_EXPORT bool dsTextureTextIcons_isShaderVariableGroupCompatible(
-    const dsShaderVariableGroupDesc* iconDataDesc);
+	const dsShaderVariableGroupDesc* iconDataDesc);
 
 /**
  * @brief Creates a container for text icons using textures.
@@ -80,6 +80,8 @@ DS_TEXT_EXPORT bool dsTextureTextIcons_isShaderVariableGroupCompatible(
  * @param iconDataDesc The shader variable group description created from
  *     dsTextureTextIcons_createShaderVariableGroupDesc(). This must remain alive at least as
  *     long as the texture text icons.
+ * @param modelViewProjectionName The name of the material element to store the model view projection
+ *     matrix. if NULL, the model view projection matrix will be ignored.
  * @param codepointRanges The ranges of codepoints this will cover. These codepoints will be
  *     reserved for icons, but not every codepont must be added as an icon. At least one range must
  *     be provided.
@@ -88,9 +90,10 @@ DS_TEXT_EXPORT bool dsTextureTextIcons_isShaderVariableGroupCompatible(
  * @return The text icons or NULL if an error occurred.
  */
 DS_TEXT_EXPORT dsTextIcons* dsTextureTextIcons_create(dsAllocator* allocator,
-    dsResourceManager* resourceManager, dsAllocator* resourceAllocator, dsShader* shader,
-    dsMaterial* material, const dsShaderVariableGroupDesc* iconDataDesc,
-    const dsIndexRange* codepointRanges, uint32_t codepointRangeCount, uint32_t maxIcons);
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, dsShader* shader,
+	dsMaterial* material, const dsShaderVariableGroupDesc* iconDataDesc,
+	const char* modelViewProjectionName, const dsIndexRange* codepointRanges,
+	uint32_t codepointRangeCount, uint32_t maxIcons);
 
 /**
  * @brief Adds an icon to texture text icons.

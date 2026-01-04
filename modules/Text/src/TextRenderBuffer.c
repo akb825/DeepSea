@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2025 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -426,7 +426,7 @@ bool dsTextRenderBuffer_clear(dsTextRenderBuffer* renderBuffer)
 bool dsTextRenderBuffer_drawStandardGlyphs(
 	dsTextRenderBuffer* renderBuffer, dsCommandBuffer* commandBuffer)
 {
-	if (!renderBuffer || !commandBuffer)
+	if (!renderBuffer)
 	{
 		errno = EINVAL;
 		return false;
@@ -475,26 +475,27 @@ bool dsTextRenderBuffer_drawStandardGlyphRange(dsTextRenderBuffer* renderBuffer,
 }
 
 bool dsTextRenderBuffer_drawIconGlyphs(dsTextRenderBuffer* renderBuffer,
-	dsCommandBuffer* commandBuffer, const dsSharedMaterialValues* globalValues,
-	const dsDynamicRenderStates* renderStates)
+	dsCommandBuffer* commandBuffer, const dsMatrix44f* modelViewProjection,
+	const dsSharedMaterialValues* globalValues, const dsDynamicRenderStates* renderStates)
 {
-	if (!renderBuffer || !commandBuffer)
+	if (!renderBuffer)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
 	return dsTextRenderBuffer_drawIconGlyphRange(renderBuffer, commandBuffer, 0,
-		renderBuffer->queuedIconGlyphs, globalValues, renderStates);
+		renderBuffer->queuedIconGlyphs, modelViewProjection, globalValues, renderStates);
 }
 
 bool dsTextRenderBuffer_drawIconGlyphRange(dsTextRenderBuffer* renderBuffer,
 	dsCommandBuffer* commandBuffer, uint32_t firstGlyph, uint32_t glyphCount,
-	const dsSharedMaterialValues* globalValues, const dsDynamicRenderStates* renderStates)
+	const dsMatrix44f* modelViewProjection, const dsSharedMaterialValues* globalValues,
+	const dsDynamicRenderStates* renderStates)
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!renderBuffer || !commandBuffer)
+	if (!renderBuffer || !commandBuffer || !modelViewProjection)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -521,7 +522,7 @@ bool dsTextRenderBuffer_drawIconGlyphRange(dsTextRenderBuffer* renderBuffer,
 		if (thisIcons != curIcons)
 		{
 			if (!curIcons->drawFunc(curIcons, curIcons->userData, commandBuffer, iconGlyphs + start,
-					count, globalValues, renderStates))
+					count, modelViewProjection, globalValues, renderStates))
 			{
 				DS_PROFILE_FUNC_RETURN(false);
 			}
@@ -533,7 +534,7 @@ bool dsTextRenderBuffer_drawIconGlyphRange(dsTextRenderBuffer* renderBuffer,
 	}
 
 	bool result = curIcons->drawFunc(curIcons, curIcons->userData, commandBuffer,
-		iconGlyphs + start, count, globalValues, renderStates);
+		iconGlyphs + start, count, modelViewProjection, globalValues, renderStates);
 	DS_PROFILE_FUNC_RETURN(result);
 }
 

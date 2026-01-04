@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2025 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -175,13 +175,14 @@ DS_TEXT_EXPORT bool dsTextRenderBuffer_drawStandardGlyphRange(dsTextRenderBuffer
  * @remark errno will be set on failure.
  * @param renderBuffer The text render buffer.
  * @param commandBuffer The command buffer to queue commands onto.
+ * @param modelViewProjection The model view projection matrix to draw with.
  * @param globalValues The global values to use with icon shaders.
  * @param renderStates The dynamic render states to use with icon shaders.
  * @return False if an error occurred.
  */
 DS_TEXT_EXPORT bool dsTextRenderBuffer_drawIconGlyphs(dsTextRenderBuffer* renderBuffer,
-	dsCommandBuffer* commandBuffer, const dsSharedMaterialValues* globalValues,
-	const dsDynamicRenderStates* renderStates);
+	dsCommandBuffer* commandBuffer, const dsMatrix44f* modelViewProjection,
+	const dsSharedMaterialValues* globalValues, const dsDynamicRenderStates* renderStates);
 
 /**
  * @brief Draws a range of icon glyphs that have been placed onto the buffer.
@@ -193,13 +194,15 @@ DS_TEXT_EXPORT bool dsTextRenderBuffer_drawIconGlyphs(dsTextRenderBuffer* render
  * @param commandBuffer The command buffer to queue commands onto.
  * @param firstGlyph The first glyph to draw.
  * @param glyphCount The number of glyphs to draw.
+ * @param modelViewProjection The model view projection matrix to draw with.
  * @param globalValues The global values to use with icon shaders.
  * @param renderStates The dynamic render states to use with icon shaders.
  * @return False if an error occurred.
  */
 DS_TEXT_EXPORT bool dsTextRenderBuffer_drawIconGlyphRange(dsTextRenderBuffer* renderBuffer,
 	dsCommandBuffer* commandBuffer, uint32_t firstGlyph, uint32_t glyphCount,
-	const dsSharedMaterialValues* globalValues, const dsDynamicRenderStates* renderStates);
+	const dsMatrix44f* modelViewProjection, const dsSharedMaterialValues* globalValues,
+	const dsDynamicRenderStates* renderStates);
 
 /**
  * @brief Destroy a text render buffer.
