@@ -26,6 +26,7 @@
 
 #include <DeepSea/Geometry/AlignedBox2.h>
 
+#include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Vector2.h>
 
 #include <DeepSea/Render/Resources/DrawGeometry.h>
@@ -34,6 +35,33 @@
 #include <DeepSea/Render/Renderer.h>
 
 #include <DeepSea/Text/TextIcons.h>
+
+bool dsTextRenderBuffer_localTransform(dsMatrix44f* result, const dsVector2f* upperLeft)
+{
+	if (!result || !upperLeft)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	result->columns[0].x = 1.0f;
+	result->columns[0].y = 0.0f;
+	result->columns[0].z = 0.0f;
+	result->columns[0].w = 0.0f;
+	result->columns[1].x = 0.0f;
+	result->columns[1].y = -1.0f;
+	result->columns[1].z = 0.0f;
+	result->columns[1].w = 0.0f;
+	result->columns[2].x = 0.0f;
+	result->columns[2].y = 0.0f;
+	result->columns[2].z = 1.0f;
+	result->columns[2].w = 0.0f;
+	result->columns[3].x = upperLeft->x;
+	result->columns[3].y = upperLeft->y;
+	result->columns[3].z = 0.0f;
+	result->columns[3].w = 1.0f;
+	return true;
+}
 
 uint32_t dsTextRenderBuffer_countStandardGlyphs(
 	const dsTextLayout* layout, uint32_t firstChar, uint32_t charCount)

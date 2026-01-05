@@ -24,6 +24,8 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/UniqueNameID.h>
 
+#include <DeepSea/Math/Matrix44.h>
+
 #include <DeepSea/Render/Resources/DrawGeometry.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
@@ -64,7 +66,6 @@ typedef struct TextureIcons
 	uint32_t textureNameID;
 	uint32_t iconDataNameID;
 	uint32_t iconDataStride;
-	uint32_t modelViewProjectionElement;
 	dsSharedMaterialValues* instanceValues;
 	dsShaderVariableGroup* iconDataGroup;
 
@@ -89,8 +90,28 @@ static uint8_t vertexData[] =
 
 static dsShaderVariableElement iconDataElements[] =
 {
-	{"positionData", dsMaterialType_Vec4, 0}
+	{"modelViewProjection", dsMaterialType_Mat4, 0}
 };
+
+inline static void createBoundsMatrix(dsMatrix44f* result, const dsAlignedBox2f* bounds)
+{
+	result->columns[0].x = bounds->max.x - bounds->min.x;
+	result->columns[0].y = 0.0f;
+	result->columns[0].z = 0.0f;
+	result->columns[0].w = 0.0f;
+	result->columns[1].x = 0.0f;
+	result->columns[1].y = bounds->max.y - bounds->min.y;
+	result->columns[1].z = 0.0f;
+	result->columns[1].w = 0.0f;
+	result->columns[2].x = 0.0f;
+	result->columns[2].y = 0.0f;
+	result->columns[2].z = 1.0f;
+	result->columns[2].w = 0.0f;
+	result->columns[3].x = bounds->min.x;
+	result->columns[3].y = bounds->min.y;
+	result->columns[3].z = 0.0f;
+	result->columns[3].w = 1.0f;
+}
 
 static void TextureIcons_destroy(void* userData)
 {
@@ -106,44 +127,50 @@ static void TextureIcons_destroy(void* userData)
 	DS_VERIFY(dsAllocator_free(textureIcons->allocator, textureIcons));
 }
 
-static bool TextureIcons_drawIconDataBuffer(TextureIcons* textureIcons,
-	dsCommandBuffer* commandBuffer, const dsIconGlyph* glyphs, uint32_t glyphCount)
+static dsGfxBuffer* TextureIcons_getIconDataBuffer(TextureIcons* textureIcons, uint32_t glyphCount)
 {
 	dsRenderer* renderer = textureIcons->resourceManager->renderer;
-	dsDrawRange drawRange = {6, 1, 0, 0};
 	uint64_t frameNumber = renderer->frameNumber;
-	size_t bufferSize = glyphCount*textureIcons->iconDataStride;;
+	size_t bufferSize = glyphCount*textureIcons->iconDataStride;
 
 	// Look for an existing buffer we can re-use.
 	uint32_t index = dsStreamingGfxBufferList_findNext(textureIcons->iconDataBuffers,
 		&textureIcons->iconDataBufferCount, sizeof(BufferInfo), offsetof(BufferInfo, buffer),
 		offsetof(BufferInfo, lastUsedFrame), NULL, bufferSize,
 		DS_DEFAULT_STREAMING_GFX_BUFFER_FRAME_DELAY, frameNumber);
-	dsGfxBuffer* iconDataBuffer;
-	if (index == DS_NO_STREAMING_GFX_BUFFER)
+	if (index != DS_NO_STREAMING_GFX_BUFFER)
+		return textureIcons->iconDataBuffers[index].buffer;
+
+	index = textureIcons->iconDataBufferCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(textureIcons->allocator, textureIcons->iconDataBuffers,
+			textureIcons->iconDataBufferCount, textureIcons->maxIconBuffers, 1))
 	{
-		index = textureIcons->iconDataBufferCount;
-		if (!DS_RESIZEABLE_ARRAY_ADD(textureIcons->allocator, textureIcons->iconDataBuffers,
-				textureIcons->iconDataBufferCount, textureIcons->maxIconBuffers, 1))
-		{
-			return false;
-		}
-
-		BufferInfo* bufferInfo = textureIcons->iconDataBuffers + index;
-		bufferInfo->buffer = dsGfxBuffer_create(textureIcons->resourceManager,
-			textureIcons->resourceAllocator, dsGfxBufferUsage_UniformBlock,
-			dsGfxMemory_Stream | dsGfxMemory_Synchronize, NULL, bufferSize);
-		if (!bufferInfo->buffer)
-		{
-			--textureIcons->iconDataBufferCount;
-			return false;
-		}
-
-		bufferInfo->lastUsedFrame = frameNumber;
-		iconDataBuffer = bufferInfo->buffer;
+		return NULL;
 	}
-	else
-		iconDataBuffer = textureIcons->iconDataBuffers[index].buffer;
+
+	BufferInfo* bufferInfo = textureIcons->iconDataBuffers + index;
+	bufferInfo->buffer = dsGfxBuffer_create(textureIcons->resourceManager,
+		textureIcons->resourceAllocator, dsGfxBufferUsage_UniformBlock,
+		dsGfxMemory_Stream | dsGfxMemory_Synchronize, NULL, bufferSize);
+	if (!bufferInfo->buffer)
+	{
+		--textureIcons->iconDataBufferCount;
+		return false;
+	}
+
+	bufferInfo->lastUsedFrame = frameNumber;
+	return bufferInfo->buffer;
+}
+
+static bool TextureIcons_drawIconDataBuffer(TextureIcons* textureIcons,
+	dsCommandBuffer* commandBuffer, const dsIconGlyph* glyphs, uint32_t glyphCount,
+	const dsMatrix44f* modelViewProjection)
+{
+	DS_VERIFY(dsSpinlock_lock(&textureIcons->drawLock));
+	dsGfxBuffer* iconDataBuffer = TextureIcons_getIconDataBuffer(textureIcons, glyphCount);
+	DS_VERIFY(dsSpinlock_unlock(&textureIcons->drawLock));
+	if (!iconDataBuffer)
+		return false;
 
 	uint8_t* iconData = (uint8_t*)dsGfxBuffer_map(
 		iconDataBuffer, dsGfxBufferMap_Write, 0, DS_MAP_FULL_BUFFER);
@@ -153,15 +180,16 @@ static bool TextureIcons_drawIconDataBuffer(TextureIcons* textureIcons,
 	for (uint32_t i = 0; i < glyphCount; ++i)
 	{
 		const dsIconGlyph* glyph = glyphs + i;
-		dsVector4f* iconBounds = (dsVector4f*)(iconData + i*textureIcons->iconDataStride);
-		iconBounds->x = glyph->bounds.min.x;
-		iconBounds->y = glyph->bounds.min.y;
-		iconBounds->z = glyph->bounds.max.x;
-		iconBounds->w = glyph->bounds.max.y;
+		dsMatrix44f* iconModelViewProjection =
+			(dsMatrix44f*)(iconData + i*textureIcons->iconDataStride);
+		dsMatrix44f boundsMatrix;
+		createBoundsMatrix(&boundsMatrix, &glyph->bounds);
+		dsMatrix44f_mul(iconModelViewProjection, modelViewProjection, &boundsMatrix);
 	}
 
 	DS_VERIFY(dsGfxBuffer_unmap(iconDataBuffer));
 
+	dsDrawRange drawRange = {6, 1, 0, 0};
 	for (uint32_t i = 0; i < glyphCount; ++i)
 	{
 		const dsIconGlyph* glyph = glyphs + i;
@@ -170,12 +198,12 @@ static bool TextureIcons_drawIconDataBuffer(TextureIcons* textureIcons,
 			textureIcons->textureNameID, texture));
 		DS_VERIFY(dsSharedMaterialValues_setBufferID(textureIcons->instanceValues,
 			textureIcons->iconDataNameID, iconDataBuffer, i*textureIcons->iconDataStride,
-			sizeof(dsVector4f)));
+			sizeof(dsMatrix44f)));
 
 		if (!dsShader_updateInstanceValues(textureIcons->shader, commandBuffer,
 				textureIcons->instanceValues) ||
-			!dsRenderer_draw(renderer, commandBuffer, textureIcons->drawGeometry, &drawRange,
-				dsPrimitiveType_TriangleList))
+			!dsRenderer_draw(textureIcons->resourceManager->renderer, commandBuffer,
+				textureIcons->drawGeometry, &drawRange, dsPrimitiveType_TriangleList))
 		{
 			return false;
 		}
@@ -184,10 +212,12 @@ static bool TextureIcons_drawIconDataBuffer(TextureIcons* textureIcons,
 }
 
 static bool TextureIcons_drawIconDataGroup(TextureIcons* textureIcons,
-	dsCommandBuffer* commandBuffer, const dsIconGlyph* glyphs, uint32_t glyphCount)
+	dsCommandBuffer* commandBuffer, const dsIconGlyph* glyphs, uint32_t glyphCount,
+	const dsMatrix44f* modelViewProjection)
 {
 	dsRenderer* renderer = textureIcons->resourceManager->renderer;
 	dsDrawRange drawRange = {6, 1, 0, 0};
+	DS_VERIFY(dsSpinlock_lock(&textureIcons->drawLock));
 	for (uint32_t i = 0; i < glyphCount; ++i)
 	{
 		const dsIconGlyph* glyph = glyphs + i;
@@ -197,10 +227,11 @@ static bool TextureIcons_drawIconDataGroup(TextureIcons* textureIcons,
 		DS_VERIFY(dsSharedMaterialValues_setTextureID(textureIcons->instanceValues,
 			textureIcons->textureNameID, texture));
 
-		dsVector4f iconBounds =
-			{{glyph->bounds.min.x, glyph->bounds.min.y, glyph->bounds.max.x, glyph->bounds.max.y}};
+		dsMatrix44f boundsMatrix, iconModelViewProjection;
+		createBoundsMatrix(&boundsMatrix, &glyph->bounds);
+		dsMatrix44f_mul(&iconModelViewProjection, modelViewProjection, &boundsMatrix);
 		DS_VERIFY(dsShaderVariableGroup_setElementData(
-			textureIcons->iconDataGroup, 0, &iconBounds, dsMaterialType_Vec4, 0, 1));
+			textureIcons->iconDataGroup, 0, &iconModelViewProjection, dsMaterialType_Mat4, 0, 1));
 		DS_VERIFY(dsShaderVariableGroup_commitWithoutBuffer(textureIcons->iconDataGroup));
 
 		if (!dsShader_updateInstanceValues(textureIcons->shader, commandBuffer,
@@ -208,9 +239,11 @@ static bool TextureIcons_drawIconDataGroup(TextureIcons* textureIcons,
 			!dsRenderer_draw(renderer, commandBuffer, textureIcons->drawGeometry, &drawRange,
 				dsPrimitiveType_TriangleList))
 		{
+			DS_VERIFY(dsSpinlock_unlock(&textureIcons->drawLock));
 			return false;
 		}
 	}
+	DS_VERIFY(dsSpinlock_unlock(&textureIcons->drawLock));
 	return true;
 }
 
@@ -226,28 +259,25 @@ static bool dsTextureTextIcons_draw(const dsTextIcons* textIcons, void* userData
 	const dsDynamicRenderStates* renderStates)
 {
 	TextureIcons* textureIcons = (TextureIcons*)userData;
-	DS_VERIFY(dsSpinlock_lock(&textureIcons->drawLock));
-	if (textureIcons->modelViewProjectionElement != DS_MATERIAL_UNKNOWN)
-	{
-		DS_VERIFY(dsMaterial_setElementData(textureIcons->material,
-			textureIcons->modelViewProjectionElement, modelViewProjection, dsMaterialType_Mat4, 0,
-			1));
-	}
 	if (!dsShader_bind(textureIcons->shader, commandBuffer, textureIcons->material, globalValues,
 			renderStates))
 	{
-		DS_VERIFY(dsSpinlock_unlock(&textureIcons->drawLock));
 		return false;
 	}
 
 	bool success;
 	if (textureIcons->iconDataGroup)
-		success = TextureIcons_drawIconDataGroup(textureIcons, commandBuffer, glyphs, glyphCount);
+	{
+		success = TextureIcons_drawIconDataGroup(
+			textureIcons, commandBuffer, glyphs, glyphCount, modelViewProjection);
+	}
 	else
-		success = TextureIcons_drawIconDataBuffer(textureIcons, commandBuffer, glyphs, glyphCount);
+	{
+		success = TextureIcons_drawIconDataBuffer(
+			textureIcons, commandBuffer, glyphs, glyphCount, modelViewProjection);
+	}
 
 	DS_VERIFY(dsShader_unbind(textureIcons->shader, commandBuffer));
-	DS_VERIFY(dsSpinlock_unlock(&textureIcons->drawLock));
 	return success;
 }
 
@@ -277,8 +307,8 @@ bool dsTextureTextIcons_isShaderVariableGroupCompatible(
 
 dsTextIcons* dsTextureTextIcons_create(dsAllocator* allocator, dsResourceManager* resourceManager,
 	dsAllocator* resourceAllocator, dsShader* shader, dsMaterial* material,
-	const dsShaderVariableGroupDesc* iconDataDesc, const char* modelViewProjectionName,
-	const dsIndexRange* codepointRanges, uint32_t codepointRangeCount, uint32_t maxIcons)
+	const dsShaderVariableGroupDesc* iconDataDesc, const dsIndexRange* codepointRanges,
+	uint32_t codepointRangeCount, uint32_t maxIcons)
 {
 	if (!allocator || !resourceManager || !shader || !material)
 	{
@@ -302,32 +332,6 @@ dsTextIcons* dsTextureTextIcons_create(dsAllocator* allocator, dsResourceManager
 		return NULL;
 	}
 
-	uint32_t modelViewProjectionElement = DS_MATERIAL_UNKNOWN;
-	if (modelViewProjectionName)
-	{
-		const dsMaterialDesc* materialDesc = dsMaterial_getDescription(material);
-		DS_ASSERT(materialDesc);
-		modelViewProjectionElement = dsMaterialDesc_findElement(
-			materialDesc, modelViewProjectionName);
-		if (modelViewProjectionElement == DS_MATERIAL_UNKNOWN)
-		{
-			DS_LOG_ERROR_F(DS_TEXT_LOG_TAG,
-				"Couldn't find texture text icon model view projection material element '%s'.",
-				modelViewProjectionName);
-			errno = ENOTFOUND;
-			return NULL;
-		}
-
-		const dsMaterialElement* element = materialDesc->elements + modelViewProjectionElement;
-		if (element->type != dsMaterialType_Mat4 || element->count > 1)
-		{
-			DS_LOG_ERROR_F(DS_TEXT_LOG_TAG, "Texture text icon model view projection material "
-				"element '%s' must be a single mat4 value.", modelViewProjectionName);
-			errno = EINVAL;
-			return NULL;
-		}
-	}
-
 	if (!resourceAllocator)
 		resourceAllocator = allocator;
 
@@ -345,7 +349,6 @@ dsTextIcons* dsTextureTextIcons_create(dsAllocator* allocator, dsResourceManager
 	textureIcons->material = material;
 	textureIcons->textureNameID = dsUniqueNameID_create(dsTextureTextIcons_textureName);
 	textureIcons->iconDataNameID = dsUniqueNameID_create(dsTextureTextIcons_iconDataName);
-	textureIcons->modelViewProjectionElement = modelViewProjectionElement;
 
 	textureIcons->instanceValues = dsSharedMaterialValues_create(allocator, 2);
 	if (!textureIcons->instanceValues)
@@ -356,7 +359,7 @@ dsTextIcons* dsTextureTextIcons_create(dsAllocator* allocator, dsResourceManager
 
 	if (dsShaderVariableGroup_useGfxBuffer(resourceManager))
 	{
-		size_t stride = sizeof(dsVector4f);
+		size_t stride = sizeof(dsMatrix44f);
 		if (resourceManager->minUniformBlockAlignment > 0)
 			stride = DS_CUSTOM_ALIGNED_SIZE(stride, resourceManager->minUniformBlockAlignment);
 		textureIcons->iconDataStride = (uint32_t)stride;

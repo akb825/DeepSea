@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -248,12 +248,13 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 			dsMaterialType type = description->elements[i].type;
 			uint8_t stride = dsMaterialType_cpuSize(type);
 
-			group->rawDataPositions[i].pos.offset = (uint32_t)dsMaterialType_addElementCPUSize(
+			PositionInfo* dataPosition = group->rawDataPositions + i;
+			dataPosition->pos.offset = (uint32_t)dsMaterialType_addElementCPUSize(
 				&curSize, type, description->elements[i].count);
-			group->rawDataPositions[i].pos.stride = stride;
-			group->rawDataPositions[i].pos.matrixColStride = dsMaterialType_cpuSize(
+			dataPosition->pos.stride = stride;
+			dataPosition->pos.matrixColStride = dsMaterialType_cpuSize(
 				dsMaterialType_matrixColumnType(type));
-			group->rawDataPositions[i].commitCount = 0;
+			dataPosition->commitCount = 0;
 		}
 	}
 

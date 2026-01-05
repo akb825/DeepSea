@@ -29,8 +29,9 @@
 #include <DeepSea/Core/Sort.h>
 #include <DeepSea/Core/UniqueNameID.h>
 
-#include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Matrix44.h>
+#include <DeepSea/Math/Vector4.h>
 
 #include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/Shader.h>
@@ -342,6 +343,8 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 					&vectorList->instances[drawItem->instance]->transform;
 				dsMatrix44f modelViewProjection;
 				dsMatrix44f_mul(&modelViewProjection, &view->viewProjectionMatrix, nodeTransform);
+				// Invert Y for drawing.
+				dsVector4f_neg(modelViewProjection.columns + 1, modelViewProjection.columns + 1);
 
 				DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 					dsSharedMaterialValues_setTextureID(vectorList->instanceValues,

@@ -31,6 +31,16 @@ extern "C"
  */
 
 /**
+ * @brief Computes the local transform for text.
+ * @remark errno will be set on failure.
+ * @param[out] result The transform matrix.
+ * @param upperLeft The upper-left hand corner for the area to view text.
+ * @return False if the parameters are invalid.
+ */
+DS_TEXT_EXPORT bool dsTextRenderBuffer_localTransform(
+	dsMatrix44f* result, const dsVector2f* upperLeft);
+
+/**
  * @brief Counts the number of standard (non-icon) glyphs.
  *
  * This will skip any whitespace or icons.

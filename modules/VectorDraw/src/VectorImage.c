@@ -1355,12 +1355,17 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 		}
 
 		// Draw icons if present.
-		if (piece->textRender &&
-			!dsTextRenderBuffer_drawIconGlyphs(
-				piece->textRender, commandBuffer, modelViewProjection, globalValues, renderStates))
+		if (piece->textRender)
 		{
-			success = false;
-			break;
+			dsMatrix44f textTransform, iconModelViewProjection;
+			DS_VERIFY(dsTextRenderBuffer_localTransform(&textTransform, &vectorImage->size));
+			dsMatrix44f_mul(&iconModelViewProjection, modelViewProjection, &textTransform);
+			if (!dsTextRenderBuffer_drawIconGlyphs(piece->textRender, commandBuffer,
+					&iconModelViewProjection, globalValues, renderStates))
+			{
+				success = false;
+				break;
+			}
 		}
 	}
 

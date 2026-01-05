@@ -17,17 +17,8 @@
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
 #include <DeepSea/Text/TextureTextIcon.mslh>
 
-uniform SharedInfo
-{
-	ivec2 screenSize;
-	vec2 position;
-	float yMult;
-} sharedInfo;
-
 [[vertex]] layout(location = DS_POSITION) in vec2 vertexPos;
 [[vertex]] layout(location = DS_TEXCOORD0) in vec2 texCoords;
-
-uniform mat4 modelViewProjection;
 
 varying(vertex, fragment)
 {
@@ -41,9 +32,8 @@ void vertexShader()
 {
 	vfTexCoords = texCoords;
 
-	vec2 position = dsComputeTextureTextIconPosition(vertexPos) + INSTANCE(sharedInfo).position;
-	gl_Position = uniforms.modelViewProjection*vec4(position.x,
-		INSTANCE(sharedInfo).screenSize.y - position.y, 0.0, 1.0);
+	gl_Position = dsComputeTextureTextIconPosition(vertexPos);
+	gl_Position = DS_ADJUST_CLIP(gl_Position);
 }
 
 [[fragment]]

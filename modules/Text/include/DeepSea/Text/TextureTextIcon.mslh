@@ -35,9 +35,9 @@ sampler_state dsTextIconTex
 uniform dsTextureTextIconData
 {
 	/**
-	 * @brief The minimum and maximum position data.
+	 * @brief The model view projection matrix.
 	 */
-	vec4 positionBounds;
+	mat4 modelViewProjection;
 } dsTextureTextIcon;
 
 /**
@@ -45,8 +45,7 @@ uniform dsTextureTextIconData
  * @param position The input position from the vertex buffer.
  * @return The final position.
  */
-[[vertex]] vec2 dsComputeTextureTextIconPosition(vec2 position)
+[[vertex]] vec4 dsComputeTextureTextIconPosition(vec2 position)
 {
-	return mix(INSTANCE(dsTextureTextIcon).positionBounds.xy,
-		INSTANCE(dsTextureTextIcon).positionBounds.zw, position);
+	return INSTANCE(dsTextureTextIcon).modelViewProjection*vec4(position, 0.0, 1.0);
 }

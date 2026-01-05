@@ -80,8 +80,6 @@ DS_TEXT_EXPORT bool dsTextureTextIcons_isShaderVariableGroupCompatible(
  * @param iconDataDesc The shader variable group description created from
  *     dsTextureTextIcons_createShaderVariableGroupDesc(). This must remain alive at least as
  *     long as the texture text icons.
- * @param modelViewProjectionName The name of the material element to store the model view projection
- *     matrix. if NULL, the model view projection matrix will be ignored.
  * @param codepointRanges The ranges of codepoints this will cover. These codepoints will be
  *     reserved for icons, but not every codepont must be added as an icon. At least one range must
  *     be provided.
@@ -92,8 +90,7 @@ DS_TEXT_EXPORT bool dsTextureTextIcons_isShaderVariableGroupCompatible(
 DS_TEXT_EXPORT dsTextIcons* dsTextureTextIcons_create(dsAllocator* allocator,
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, dsShader* shader,
 	dsMaterial* material, const dsShaderVariableGroupDesc* iconDataDesc,
-	const char* modelViewProjectionName, const dsIndexRange* codepointRanges,
-	uint32_t codepointRangeCount, uint32_t maxIcons);
+	const dsIndexRange* codepointRanges, uint32_t codepointRangeCount, uint32_t maxIcons);
 
 /**
  * @brief Adds an icon to texture text icons.
