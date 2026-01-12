@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -231,13 +231,17 @@ bool dsThreadObjectStorage_set(dsThreadObjectStorage* storage, void* object)
 
 	wrapper = DS_ALLOCATE_OBJECT(storage->allocator, StorageWrapper);
 	if (!wrapper)
+	{
+		storage->cleanupFunc(object);
 		return false;
+	}
 
 	wrapper->parent = storage;
 	wrapper->object = object;
 
 	if (!FlsSetValue(storage->storage, wrapper))
 	{
+		storage->cleanupFunc(object);
 		dsAllocator_free(storage->allocator, wrapper);
 		errno = EINVAL;
 		return false;
@@ -257,7 +261,10 @@ bool dsThreadObjectStorage_set(dsThreadObjectStorage* storage, void* object)
 
 	node = DS_ALLOCATE_OBJECT(storage->allocator, StorageNode);
 	if (!node)
+	{
+		storage->cleanupFunc(object);
 		return false;
+	}
 
 	node->parent = storage;
 	node->object = object;
@@ -268,6 +275,7 @@ bool dsThreadObjectStorage_set(dsThreadObjectStorage* storage, void* object)
 	int errorCode = pthread_setspecific(storage->storage, node);
 	if (errorCode != 0)
 	{
+		storage->cleanupFunc(object);
 		dsAllocator_free(storage->allocator, node);
 		errno = errorCode;
 		return false;

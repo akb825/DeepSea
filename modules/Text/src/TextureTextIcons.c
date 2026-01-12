@@ -193,9 +193,8 @@ static bool TextureIcons_drawIconDataBuffer(TextureIcons* textureIcons,
 	for (uint32_t i = 0; i < glyphCount; ++i)
 	{
 		const dsIconGlyph* glyph = glyphs + i;
-		dsTexture* texture = EXTRACT_TEXTURE(glyph->userData);
 		DS_VERIFY(dsSharedMaterialValues_setTextureID(textureIcons->instanceValues,
-			textureIcons->textureNameID, texture));
+			textureIcons->textureNameID, EXTRACT_TEXTURE(glyph->userData)));
 		DS_VERIFY(dsSharedMaterialValues_setBufferID(textureIcons->instanceValues,
 			textureIcons->iconDataNameID, iconDataBuffer, i*textureIcons->iconDataStride,
 			sizeof(dsMatrix44f)));
@@ -221,11 +220,8 @@ static bool TextureIcons_drawIconDataGroup(TextureIcons* textureIcons,
 	for (uint32_t i = 0; i < glyphCount; ++i)
 	{
 		const dsIconGlyph* glyph = glyphs + i;
-		size_t glyphUserDataInt = (size_t)glyph->userData;
-		// Strip off last bit indicating whether to take ownership.
-		dsTexture* texture = (dsTexture*)(glyphUserDataInt & ~(size_t)0x1);
 		DS_VERIFY(dsSharedMaterialValues_setTextureID(textureIcons->instanceValues,
-			textureIcons->textureNameID, texture));
+			textureIcons->textureNameID, EXTRACT_TEXTURE(glyph->userData)));
 
 		dsMatrix44f boundsMatrix, iconModelViewProjection;
 		createBoundsMatrix(&boundsMatrix, &glyph->bounds);
@@ -258,6 +254,7 @@ static bool dsTextureTextIcons_draw(const dsTextIcons* textIcons, void* userData
 	const dsMatrix44f* modelViewProjection, const dsSharedMaterialValues* globalValues,
 	const dsDynamicRenderStates* renderStates)
 {
+	DS_UNUSED(textIcons);
 	TextureIcons* textureIcons = (TextureIcons*)userData;
 	if (!dsShader_bind(textureIcons->shader, commandBuffer, textureIcons->material, globalValues,
 			renderStates))
@@ -452,7 +449,5 @@ dsTexture* dsTextureTextIcons_getIconTexture(const dsIconGlyph* icon)
 		return NULL;
 	}
 
-	size_t userDataInt = (size_t)icon->userData;
-	// Strip off last bit indicating whether to take ownership.
-	return (dsTexture*)(userDataInt & ~(size_t)0x1);
+	return EXTRACT_TEXTURE(icon->userData);
 }

@@ -29,7 +29,7 @@ extern "C"
  * @file
  * @brief Functions for creating and manipulating texture text icons.
  *
- * This provides the functions to dsTextIcons to be able to use icons to display the textures.
+ * This provides the functions to dsTextIcons to be able to use textures to display the icons.
  *
  * @see dsTextIcons
  */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,8 @@ DS_CORE_EXPORT void* dsThreadObjectStorage_take(const dsThreadObjectStorage* sto
 /**
  * @brief Sets the thread-specific object for the current thread.
  * @remark errno will be set on failure.
- * @remark If an object was previously set for this thread it will be cleaned up.
+ * @remark If an object was previously set for this thread it will be cleaned up. If the object
+ *     cannot be set, it will also be destroyed.
  * @param storage The thread object storage.
  * @param object
  */

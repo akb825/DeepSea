@@ -1187,25 +1187,22 @@ dsVectorImage* dsVectorImage_loadData(dsAllocator* allocator, dsAllocator* resou
 
 bool dsVectorImage_updateText(dsVectorImage* vectorImage, dsCommandBuffer* commandBuffer)
 {
-	DS_PROFILE_FUNC_START();
-
 	if (!vectorImage || !commandBuffer)
 	{
 		errno = EINVAL;
-		DS_PROFILE_FUNC_RETURN(false);
+		return false;
 	}
 
 	if (vectorImage->textLayoutCount == 0)
-		DS_PROFILE_FUNC_RETURN(true);
+		return true;
 
 	for (uint32_t i = 0; i < vectorImage->textLayoutCount; ++i)
 	{
 		if (!dsTextLayout_refresh(vectorImage->textLayouts[i], commandBuffer))
-			DS_PROFILE_FUNC_RETURN(false);
+			return false;
 	}
 
-	bool success = addTextRanges(vectorImage, commandBuffer);
-	DS_PROFILE_FUNC_RETURN(success);
+	return addTextRanges(vectorImage, commandBuffer);
 }
 
 bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* commandBuffer,
