@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2025 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -179,6 +179,27 @@ typedef void (*dsStreamFlushFunction)(dsStream* stream);
  * @return False if the stream cannot be closed.
  */
 typedef bool (*dsStreamCloseFunction)(dsStream* stream);
+
+/**
+ * @brief Function to open a stream for a relative path.
+ * @remark Only one stream will be opened at one time with this function, allowing for storing
+ *     stream memory in userData without having to dynamically allocate it.
+ * @param userData User data to for managing the streams.
+ * @param path The path to open.
+ * @param mode The mode to open the path as.
+ * @return The stream or NULL if the path wasn't found.
+ * @see RelativePathStream.h
+ */
+typedef dsStream* (*dsOpenRelativePathStreamFunction)(
+	void* userData, const char* path, const char* mode);
+
+/**
+ * @brief Function to close a stream for a relative path.
+ * @param userData User data for managing the streams.
+ * @param stream The stream to close.
+ * @see RelativePathStream.h
+ */
+typedef void (*dsCloseRelativePathStreamFunction)(void* userData, dsStream* stream);
 
 /**
  * @brief Structure that defines a stream.
@@ -484,6 +505,62 @@ typedef struct dsZipArchive dsZipArchive;
 typedef struct dsAndroidArchive dsAndroidArchive;
 
 #endif
+
+/**
+ * @brief Struct describing info for opening relative file paths.
+ * @see RelativePathStream.h
+ */
+typedef struct dsFileRelativePath
+{
+	/**
+	 * @brief The base path to open new paths relative to.
+	 */
+	const char* basePath;
+
+	/**
+	 * @brief Storage for the stream to open.
+	 */
+	dsFileStream stream;
+} dsFileRelativePath;
+
+/**
+ * @brief Struct describing info for opening relative resource paths.
+ * @see RelativePathStream.h
+ */
+typedef struct dsResourceRelativePath
+{
+	/**
+	 * @brief The base path to open new paths relative to.
+	 */
+	const char* basePath;
+
+	/**
+	 * @brief The resource type to open the stream with.
+	 */
+	dsFileResourceType type;
+
+	/**
+	 * @brief Storage for the stream to open.
+	 */
+	dsResourceStream stream;
+} dsResourceRelativePath;
+
+/**
+ * @brief Struct describing info for opening relative archive paths.
+ * @see RelativePathStream.h
+ */
+typedef struct dsArchiveRelativePath
+{
+	/**
+	 * @brief The base path to open new paths relative to.
+	 */
+	const char* basePath;
+
+	/**
+	 * @brief The archive to open streams with.
+	 */
+	const dsFileArchive* archive;
+} dsArchiveRelativePath;
 
 #ifdef __cplusplus
 }

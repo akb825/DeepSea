@@ -475,15 +475,6 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	testVectorDraw->vectorResources = dsVectorResources_loadResource(allocator, NULL,
-		resourceManager, dsFileResourceType_Embedded, path, NULL);
-	if (!testVectorDraw->vectorResources)
-	{
-		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't load vector resources: %s",
-			dsErrorString(errno));
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
 	dsVectorScratchData* scratchData = dsVectorScratchData_create(allocator);
 	if (!scratchData)
 	{
@@ -492,10 +483,22 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	dsTimer timer = dsTimer_create();
-	dsVector2f targetImageSize2f = {{targetImageSize, targetImageSize}};
 	dsVectorImageInitResources initResources = {resourceManager, setupCommands, scratchData, NULL,
 		testVectorDraw->shaderModule, NULL, &testVectorDraw->vectorResources, 1, srgb};
+
+	testVectorDraw->vectorResources = dsVectorResources_loadResource(allocator, NULL, NULL,
+		resourceManager, dsFileResourceType_Embedded, path, NULL, &initResources, 1.0f, NULL, NULL,
+		NULL);
+	if (!testVectorDraw->vectorResources)
+	{
+		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't load vector resources: %s",
+			dsErrorString(errno));
+		dsVectorScratchData_destroy(scratchData);
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsTimer timer = dsTimer_create();
+	dsVector2f targetImageSize2f = {{targetImageSize, targetImageSize}};
 	for (uint32_t i = 0; i < testVectorDraw->vectorImageCount; ++i)
 	{
 		if (!dsPath_combine(path, sizeof(path), assetsDir, vectorImageFiles[i]))

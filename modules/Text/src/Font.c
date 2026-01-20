@@ -263,7 +263,7 @@ const dsGlyphInfo* dsFont_getGlyphInfo(
 	}
 	else
 	{
-		// Re-purpose the last recently used glyph slot at the front of the list.
+		// Re-purpose the least recently used glyph slot at the front of the list.
 		// This could cause incorrect glyphs to be used if > 1365 glyphs are drawn at once, but this
 		// should be incredibly unlikely.
 		glyphInfo = (dsGlyphInfo*)font->glyphTable.hashTable.list.head;

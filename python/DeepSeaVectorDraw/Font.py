@@ -25,22 +25,15 @@ class Font(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # Font
-    def Name(self):
+    def FaceGroup(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
     # Font
-    def FaceGroup(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
-        if o != 0:
-            return self._tab.String(o + self._tab.Pos)
-        return None
-
-    # Font
     def Faces(self, j):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             a = self._tab.Vector(o)
             return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
@@ -48,15 +41,22 @@ class Font(object):
 
     # Font
     def FacesLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # Font
     def FacesIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
+
+    # Font
+    def Icons(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
 
     # Font
     def Quality(self):
@@ -78,20 +78,14 @@ def FontStart(builder):
 def Start(builder):
     FontStart(builder)
 
-def FontAddName(builder, name):
-    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-
-def AddName(builder, name):
-    FontAddName(builder, name)
-
 def FontAddFaceGroup(builder, faceGroup):
-    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(faceGroup), 0)
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(faceGroup), 0)
 
 def AddFaceGroup(builder, faceGroup):
     FontAddFaceGroup(builder, faceGroup)
 
 def FontAddFaces(builder, faces):
-    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(faces), 0)
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(faces), 0)
 
 def AddFaces(builder, faces):
     FontAddFaces(builder, faces)
@@ -101,6 +95,12 @@ def FontStartFacesVector(builder, numElems):
 
 def StartFacesVector(builder, numElems):
     return FontStartFacesVector(builder, numElems)
+
+def FontAddIcons(builder, icons):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(icons), 0)
+
+def AddIcons(builder, icons):
+    FontAddIcons(builder, icons)
 
 def FontAddQuality(builder, quality):
     builder.PrependUint8Slot(3, quality, 0)

@@ -41,8 +41,43 @@ class VectorResources(object):
             return obj
         return None
 
+    # VectorResources
+    def SharedMaterials(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+    # VectorResources
+    def VectorShaders(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+    # VectorResources
+    def TextureIconShader(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+    # VectorResources
+    def TextureIconMaterial(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+    # VectorResources
+    def Srgb(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
+        if o != 0:
+            return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
+        return False
+
 def VectorResourcesStart(builder):
-    builder.StartObject(2)
+    builder.StartObject(7)
 
 def Start(builder):
     VectorResourcesStart(builder)
@@ -58,6 +93,36 @@ def VectorResourcesAddResources(builder, resources):
 
 def AddResources(builder, resources):
     VectorResourcesAddResources(builder, resources)
+
+def VectorResourcesAddSharedMaterials(builder, sharedMaterials):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(sharedMaterials), 0)
+
+def AddSharedMaterials(builder, sharedMaterials):
+    VectorResourcesAddSharedMaterials(builder, sharedMaterials)
+
+def VectorResourcesAddVectorShaders(builder, vectorShaders):
+    builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(vectorShaders), 0)
+
+def AddVectorShaders(builder, vectorShaders):
+    VectorResourcesAddVectorShaders(builder, vectorShaders)
+
+def VectorResourcesAddTextureIconShader(builder, textureIconShader):
+    builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(textureIconShader), 0)
+
+def AddTextureIconShader(builder, textureIconShader):
+    VectorResourcesAddTextureIconShader(builder, textureIconShader)
+
+def VectorResourcesAddTextureIconMaterial(builder, textureIconMaterial):
+    builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(textureIconMaterial), 0)
+
+def AddTextureIconMaterial(builder, textureIconMaterial):
+    VectorResourcesAddTextureIconMaterial(builder, textureIconMaterial)
+
+def VectorResourcesAddSrgb(builder, srgb):
+    builder.PrependBoolSlot(6, srgb, 0)
+
+def AddSrgb(builder, srgb):
+    VectorResourcesAddSrgb(builder, srgb)
 
 def VectorResourcesEnd(builder):
     return builder.EndObject()

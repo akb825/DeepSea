@@ -13,6 +13,8 @@ static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
               FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
+#include "VectorDrawShared_generated.h"
+
 namespace DeepSeaVectorDraw {
 
 struct FileReference;
@@ -21,14 +23,32 @@ struct FileReferenceBuilder;
 struct RawData;
 struct RawDataBuilder;
 
-struct Resource;
-struct ResourceBuilder;
+struct TextureResource;
+struct TextureResourceBuilder;
+
+struct VectorImageResource;
+struct VectorImageResourceBuilder;
+
+struct TextIcon;
+struct TextIconBuilder;
+
+struct TextIconGroup;
+struct TextIconGroupBuilder;
+
+struct TextIcons;
+struct TextIconsBuilder;
+
+struct FontFace;
+struct FontFaceBuilder;
 
 struct FaceGroup;
 struct FaceGroupBuilder;
 
 struct Font;
 struct FontBuilder;
+
+struct VectorResource;
+struct VectorResourceBuilder;
 
 struct VectorResources;
 struct VectorResourcesBuilder;
@@ -82,6 +102,36 @@ template <bool B = false>
 bool VerifyFileOrData(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, FileOrData type);
 template <bool B = false>
 bool VerifyFileOrDataVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<FileOrData> *types);
+
+enum class IconType : uint8_t {
+  Texture = 0,
+  VectorImage = 1,
+  MIN = Texture,
+  MAX = VectorImage
+};
+
+inline const IconType (&EnumValuesIconType())[2] {
+  static const IconType values[] = {
+    IconType::Texture,
+    IconType::VectorImage
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesIconType() {
+  static const char * const names[3] = {
+    "Texture",
+    "VectorImage",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameIconType(IconType e) {
+  if (::flatbuffers::IsOutRange(e, IconType::Texture, IconType::VectorImage)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesIconType()[index];
+}
 
 enum class FontQuality : uint8_t {
   Low = 0,
@@ -148,6 +198,77 @@ inline const char *EnumNameFontCacheSize(FontCacheSize e) {
   const size_t index = static_cast<size_t>(e);
   return EnumNamesFontCacheSize()[index];
 }
+
+enum class VectorResourceUnion : uint8_t {
+  NONE = 0,
+  TextureResource = 1,
+  VectorImageResource = 2,
+  TextIcons = 3,
+  FaceGroup = 4,
+  Font = 5,
+  MIN = NONE,
+  MAX = Font
+};
+
+inline const VectorResourceUnion (&EnumValuesVectorResourceUnion())[6] {
+  static const VectorResourceUnion values[] = {
+    VectorResourceUnion::NONE,
+    VectorResourceUnion::TextureResource,
+    VectorResourceUnion::VectorImageResource,
+    VectorResourceUnion::TextIcons,
+    VectorResourceUnion::FaceGroup,
+    VectorResourceUnion::Font
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesVectorResourceUnion() {
+  static const char * const names[7] = {
+    "NONE",
+    "TextureResource",
+    "VectorImageResource",
+    "TextIcons",
+    "FaceGroup",
+    "Font",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameVectorResourceUnion(VectorResourceUnion e) {
+  if (::flatbuffers::IsOutRange(e, VectorResourceUnion::NONE, VectorResourceUnion::Font)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesVectorResourceUnion()[index];
+}
+
+template<typename T> struct VectorResourceUnionTraits {
+  static const VectorResourceUnion enum_value = VectorResourceUnion::NONE;
+};
+
+template<> struct VectorResourceUnionTraits<DeepSeaVectorDraw::TextureResource> {
+  static const VectorResourceUnion enum_value = VectorResourceUnion::TextureResource;
+};
+
+template<> struct VectorResourceUnionTraits<DeepSeaVectorDraw::VectorImageResource> {
+  static const VectorResourceUnion enum_value = VectorResourceUnion::VectorImageResource;
+};
+
+template<> struct VectorResourceUnionTraits<DeepSeaVectorDraw::TextIcons> {
+  static const VectorResourceUnion enum_value = VectorResourceUnion::TextIcons;
+};
+
+template<> struct VectorResourceUnionTraits<DeepSeaVectorDraw::FaceGroup> {
+  static const VectorResourceUnion enum_value = VectorResourceUnion::FaceGroup;
+};
+
+template<> struct VectorResourceUnionTraits<DeepSeaVectorDraw::Font> {
+  static const VectorResourceUnion enum_value = VectorResourceUnion::Font;
+};
+
+template <bool B = false>
+bool VerifyVectorResourceUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, VectorResourceUnion type);
+template <bool B = false>
+bool VerifyVectorResourceUnionVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<VectorResourceUnion> *types);
 
 struct FileReference FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef FileReferenceBuilder Builder;
@@ -255,8 +376,394 @@ inline ::flatbuffers::Offset<RawData> CreateRawDataDirect(
       data__);
 }
 
-struct Resource FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef ResourceBuilder Builder;
+struct TextureResource FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef TextureResourceBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_DATA_TYPE = 4,
+    VT_DATA = 6
+  };
+  DeepSeaVectorDraw::FileOrData data_type() const {
+    return static_cast<DeepSeaVectorDraw::FileOrData>(GetField<uint8_t>(VT_DATA_TYPE, 0));
+  }
+  const void *data() const {
+    return GetPointer<const void *>(VT_DATA);
+  }
+  template<typename T> const T *data_as() const;
+  const DeepSeaVectorDraw::FileReference *data_as_FileReference() const {
+    return data_type() == DeepSeaVectorDraw::FileOrData::FileReference ? static_cast<const DeepSeaVectorDraw::FileReference *>(data()) : nullptr;
+  }
+  const DeepSeaVectorDraw::RawData *data_as_RawData() const {
+    return data_type() == DeepSeaVectorDraw::FileOrData::RawData ? static_cast<const DeepSeaVectorDraw::RawData *>(data()) : nullptr;
+  }
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<uint8_t>(verifier, VT_DATA_TYPE, 1) &&
+           VerifyOffsetRequired(verifier, VT_DATA) &&
+           VerifyFileOrData(verifier, data(), data_type()) &&
+           verifier.EndTable();
+  }
+};
+
+template<> inline const DeepSeaVectorDraw::FileReference *TextureResource::data_as<DeepSeaVectorDraw::FileReference>() const {
+  return data_as_FileReference();
+}
+
+template<> inline const DeepSeaVectorDraw::RawData *TextureResource::data_as<DeepSeaVectorDraw::RawData>() const {
+  return data_as_RawData();
+}
+
+struct TextureResourceBuilder {
+  typedef TextureResource Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_data_type(DeepSeaVectorDraw::FileOrData data_type) {
+    fbb_.AddElement<uint8_t>(TextureResource::VT_DATA_TYPE, static_cast<uint8_t>(data_type), 0);
+  }
+  void add_data(::flatbuffers::Offset<void> data) {
+    fbb_.AddOffset(TextureResource::VT_DATA, data);
+  }
+  explicit TextureResourceBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<TextureResource> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<TextureResource>(end);
+    fbb_.Required(o, TextureResource::VT_DATA);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<TextureResource> CreateTextureResource(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    DeepSeaVectorDraw::FileOrData data_type = DeepSeaVectorDraw::FileOrData::NONE,
+    ::flatbuffers::Offset<void> data = 0) {
+  TextureResourceBuilder builder_(_fbb);
+  builder_.add_data(data);
+  builder_.add_data_type(data_type);
+  return builder_.Finish();
+}
+
+struct VectorImageResource FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef VectorImageResourceBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_DATA_TYPE = 4,
+    VT_DATA = 6,
+    VT_TARGETSIZE = 8
+  };
+  DeepSeaVectorDraw::FileOrData data_type() const {
+    return static_cast<DeepSeaVectorDraw::FileOrData>(GetField<uint8_t>(VT_DATA_TYPE, 0));
+  }
+  const void *data() const {
+    return GetPointer<const void *>(VT_DATA);
+  }
+  template<typename T> const T *data_as() const;
+  const DeepSeaVectorDraw::FileReference *data_as_FileReference() const {
+    return data_type() == DeepSeaVectorDraw::FileOrData::FileReference ? static_cast<const DeepSeaVectorDraw::FileReference *>(data()) : nullptr;
+  }
+  const DeepSeaVectorDraw::RawData *data_as_RawData() const {
+    return data_type() == DeepSeaVectorDraw::FileOrData::RawData ? static_cast<const DeepSeaVectorDraw::RawData *>(data()) : nullptr;
+  }
+  const DeepSeaVectorDraw::Vector2f *targetSize() const {
+    return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_TARGETSIZE);
+  }
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<uint8_t>(verifier, VT_DATA_TYPE, 1) &&
+           VerifyOffsetRequired(verifier, VT_DATA) &&
+           VerifyFileOrData(verifier, data(), data_type()) &&
+           VerifyField<DeepSeaVectorDraw::Vector2f>(verifier, VT_TARGETSIZE, 4) &&
+           verifier.EndTable();
+  }
+};
+
+template<> inline const DeepSeaVectorDraw::FileReference *VectorImageResource::data_as<DeepSeaVectorDraw::FileReference>() const {
+  return data_as_FileReference();
+}
+
+template<> inline const DeepSeaVectorDraw::RawData *VectorImageResource::data_as<DeepSeaVectorDraw::RawData>() const {
+  return data_as_RawData();
+}
+
+struct VectorImageResourceBuilder {
+  typedef VectorImageResource Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_data_type(DeepSeaVectorDraw::FileOrData data_type) {
+    fbb_.AddElement<uint8_t>(VectorImageResource::VT_DATA_TYPE, static_cast<uint8_t>(data_type), 0);
+  }
+  void add_data(::flatbuffers::Offset<void> data) {
+    fbb_.AddOffset(VectorImageResource::VT_DATA, data);
+  }
+  void add_targetSize(const DeepSeaVectorDraw::Vector2f *targetSize) {
+    fbb_.AddStruct(VectorImageResource::VT_TARGETSIZE, targetSize);
+  }
+  explicit VectorImageResourceBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<VectorImageResource> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<VectorImageResource>(end);
+    fbb_.Required(o, VectorImageResource::VT_DATA);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<VectorImageResource> CreateVectorImageResource(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    DeepSeaVectorDraw::FileOrData data_type = DeepSeaVectorDraw::FileOrData::NONE,
+    ::flatbuffers::Offset<void> data = 0,
+    const DeepSeaVectorDraw::Vector2f *targetSize = nullptr) {
+  VectorImageResourceBuilder builder_(_fbb);
+  builder_.add_targetSize(targetSize);
+  builder_.add_data(data);
+  builder_.add_data_type(data_type);
+  return builder_.Finish();
+}
+
+struct TextIcon FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef TextIconBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_CODEPOINT = 4,
+    VT_ICON = 6,
+    VT_ADVANCE = 8,
+    VT_BOUNDSMIN = 10,
+    VT_BOUNDSMAX = 12
+  };
+  uint32_t codepoint() const {
+    return GetField<uint32_t>(VT_CODEPOINT, 0);
+  }
+  const ::flatbuffers::String *icon() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_ICON);
+  }
+  float advance() const {
+    return GetField<float>(VT_ADVANCE, 0.0f);
+  }
+  const DeepSeaVectorDraw::Vector2f *boundsMin() const {
+    return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_BOUNDSMIN);
+  }
+  const DeepSeaVectorDraw::Vector2f *boundsMax() const {
+    return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_BOUNDSMAX);
+  }
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<uint32_t>(verifier, VT_CODEPOINT, 4) &&
+           VerifyOffsetRequired(verifier, VT_ICON) &&
+           verifier.VerifyString(icon()) &&
+           VerifyField<float>(verifier, VT_ADVANCE, 4) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_BOUNDSMIN, 4) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_BOUNDSMAX, 4) &&
+           verifier.EndTable();
+  }
+};
+
+struct TextIconBuilder {
+  typedef TextIcon Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_codepoint(uint32_t codepoint) {
+    fbb_.AddElement<uint32_t>(TextIcon::VT_CODEPOINT, codepoint, 0);
+  }
+  void add_icon(::flatbuffers::Offset<::flatbuffers::String> icon) {
+    fbb_.AddOffset(TextIcon::VT_ICON, icon);
+  }
+  void add_advance(float advance) {
+    fbb_.AddElement<float>(TextIcon::VT_ADVANCE, advance, 0.0f);
+  }
+  void add_boundsMin(const DeepSeaVectorDraw::Vector2f *boundsMin) {
+    fbb_.AddStruct(TextIcon::VT_BOUNDSMIN, boundsMin);
+  }
+  void add_boundsMax(const DeepSeaVectorDraw::Vector2f *boundsMax) {
+    fbb_.AddStruct(TextIcon::VT_BOUNDSMAX, boundsMax);
+  }
+  explicit TextIconBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<TextIcon> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<TextIcon>(end);
+    fbb_.Required(o, TextIcon::VT_ICON);
+    fbb_.Required(o, TextIcon::VT_BOUNDSMIN);
+    fbb_.Required(o, TextIcon::VT_BOUNDSMAX);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<TextIcon> CreateTextIcon(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    uint32_t codepoint = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> icon = 0,
+    float advance = 0.0f,
+    const DeepSeaVectorDraw::Vector2f *boundsMin = nullptr,
+    const DeepSeaVectorDraw::Vector2f *boundsMax = nullptr) {
+  TextIconBuilder builder_(_fbb);
+  builder_.add_boundsMax(boundsMax);
+  builder_.add_boundsMin(boundsMin);
+  builder_.add_advance(advance);
+  builder_.add_icon(icon);
+  builder_.add_codepoint(codepoint);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<TextIcon> CreateTextIconDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    uint32_t codepoint = 0,
+    const char *icon = nullptr,
+    float advance = 0.0f,
+    const DeepSeaVectorDraw::Vector2f *boundsMin = nullptr,
+    const DeepSeaVectorDraw::Vector2f *boundsMax = nullptr) {
+  auto icon__ = icon ? _fbb.CreateString(icon) : 0;
+  return DeepSeaVectorDraw::CreateTextIcon(
+      _fbb,
+      codepoint,
+      icon__,
+      advance,
+      boundsMin,
+      boundsMax);
+}
+
+struct TextIconGroup FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef TextIconGroupBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_ICONS = 4
+  };
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::TextIcon>> *icons() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::TextIcon>> *>(VT_ICONS);
+  }
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_ICONS) &&
+           verifier.VerifyVector(icons()) &&
+           verifier.VerifyVectorOfTables(icons()) &&
+           verifier.EndTable();
+  }
+};
+
+struct TextIconGroupBuilder {
+  typedef TextIconGroup Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_icons(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::TextIcon>>> icons) {
+    fbb_.AddOffset(TextIconGroup::VT_ICONS, icons);
+  }
+  explicit TextIconGroupBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<TextIconGroup> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<TextIconGroup>(end);
+    fbb_.Required(o, TextIconGroup::VT_ICONS);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<TextIconGroup> CreateTextIconGroup(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::TextIcon>>> icons = 0) {
+  TextIconGroupBuilder builder_(_fbb);
+  builder_.add_icons(icons);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<TextIconGroup> CreateTextIconGroupDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<::flatbuffers::Offset<DeepSeaVectorDraw::TextIcon>> *icons = nullptr) {
+  auto icons__ = icons ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaVectorDraw::TextIcon>>(*icons) : 0;
+  return DeepSeaVectorDraw::CreateTextIconGroup(
+      _fbb,
+      icons__);
+}
+
+struct TextIcons FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef TextIconsBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_NAME = 4,
+    VT_TYPE = 6,
+    VT_ICONS = 8
+  };
+  const ::flatbuffers::String *name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
+  }
+  DeepSeaVectorDraw::IconType type() const {
+    return static_cast<DeepSeaVectorDraw::IconType>(GetField<uint8_t>(VT_TYPE, 0));
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::TextIconGroup>> *icons() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::TextIconGroup>> *>(VT_ICONS);
+  }
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
+           VerifyField<uint8_t>(verifier, VT_TYPE, 1) &&
+           VerifyOffsetRequired(verifier, VT_ICONS) &&
+           verifier.VerifyVector(icons()) &&
+           verifier.VerifyVectorOfTables(icons()) &&
+           verifier.EndTable();
+  }
+};
+
+struct TextIconsBuilder {
+  typedef TextIcons Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
+    fbb_.AddOffset(TextIcons::VT_NAME, name);
+  }
+  void add_type(DeepSeaVectorDraw::IconType type) {
+    fbb_.AddElement<uint8_t>(TextIcons::VT_TYPE, static_cast<uint8_t>(type), 0);
+  }
+  void add_icons(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::TextIconGroup>>> icons) {
+    fbb_.AddOffset(TextIcons::VT_ICONS, icons);
+  }
+  explicit TextIconsBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<TextIcons> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<TextIcons>(end);
+    fbb_.Required(o, TextIcons::VT_NAME);
+    fbb_.Required(o, TextIcons::VT_ICONS);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<TextIcons> CreateTextIcons(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
+    DeepSeaVectorDraw::IconType type = DeepSeaVectorDraw::IconType::Texture,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::TextIconGroup>>> icons = 0) {
+  TextIconsBuilder builder_(_fbb);
+  builder_.add_icons(icons);
+  builder_.add_name(name);
+  builder_.add_type(type);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<TextIcons> CreateTextIconsDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *name = nullptr,
+    DeepSeaVectorDraw::IconType type = DeepSeaVectorDraw::IconType::Texture,
+    const std::vector<::flatbuffers::Offset<DeepSeaVectorDraw::TextIconGroup>> *icons = nullptr) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto icons__ = icons ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaVectorDraw::TextIconGroup>>(*icons) : 0;
+  return DeepSeaVectorDraw::CreateTextIcons(
+      _fbb,
+      name__,
+      type,
+      icons__);
+}
+
+struct FontFace FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef FontFaceBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_DATA_TYPE = 6,
@@ -290,59 +797,59 @@ struct Resource FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
 };
 
-template<> inline const DeepSeaVectorDraw::FileReference *Resource::data_as<DeepSeaVectorDraw::FileReference>() const {
+template<> inline const DeepSeaVectorDraw::FileReference *FontFace::data_as<DeepSeaVectorDraw::FileReference>() const {
   return data_as_FileReference();
 }
 
-template<> inline const DeepSeaVectorDraw::RawData *Resource::data_as<DeepSeaVectorDraw::RawData>() const {
+template<> inline const DeepSeaVectorDraw::RawData *FontFace::data_as<DeepSeaVectorDraw::RawData>() const {
   return data_as_RawData();
 }
 
-struct ResourceBuilder {
-  typedef Resource Table;
+struct FontFaceBuilder {
+  typedef FontFace Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
   void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
-    fbb_.AddOffset(Resource::VT_NAME, name);
+    fbb_.AddOffset(FontFace::VT_NAME, name);
   }
   void add_data_type(DeepSeaVectorDraw::FileOrData data_type) {
-    fbb_.AddElement<uint8_t>(Resource::VT_DATA_TYPE, static_cast<uint8_t>(data_type), 0);
+    fbb_.AddElement<uint8_t>(FontFace::VT_DATA_TYPE, static_cast<uint8_t>(data_type), 0);
   }
   void add_data(::flatbuffers::Offset<void> data) {
-    fbb_.AddOffset(Resource::VT_DATA, data);
+    fbb_.AddOffset(FontFace::VT_DATA, data);
   }
-  explicit ResourceBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+  explicit FontFaceBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ::flatbuffers::Offset<Resource> Finish() {
+  ::flatbuffers::Offset<FontFace> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = ::flatbuffers::Offset<Resource>(end);
-    fbb_.Required(o, Resource::VT_NAME);
-    fbb_.Required(o, Resource::VT_DATA);
+    auto o = ::flatbuffers::Offset<FontFace>(end);
+    fbb_.Required(o, FontFace::VT_NAME);
+    fbb_.Required(o, FontFace::VT_DATA);
     return o;
   }
 };
 
-inline ::flatbuffers::Offset<Resource> CreateResource(
+inline ::flatbuffers::Offset<FontFace> CreateFontFace(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::String> name = 0,
     DeepSeaVectorDraw::FileOrData data_type = DeepSeaVectorDraw::FileOrData::NONE,
     ::flatbuffers::Offset<void> data = 0) {
-  ResourceBuilder builder_(_fbb);
+  FontFaceBuilder builder_(_fbb);
   builder_.add_data(data);
   builder_.add_name(name);
   builder_.add_data_type(data_type);
   return builder_.Finish();
 }
 
-inline ::flatbuffers::Offset<Resource> CreateResourceDirect(
+inline ::flatbuffers::Offset<FontFace> CreateFontFaceDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     DeepSeaVectorDraw::FileOrData data_type = DeepSeaVectorDraw::FileOrData::NONE,
     ::flatbuffers::Offset<void> data = 0) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
-  return DeepSeaVectorDraw::CreateResource(
+  return DeepSeaVectorDraw::CreateFontFace(
       _fbb,
       name__,
       data_type,
@@ -352,20 +859,14 @@ inline ::flatbuffers::Offset<Resource> CreateResourceDirect(
 struct FaceGroup FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef FaceGroupBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_NAME = 4,
-    VT_FACES = 6
+    VT_FACES = 4
   };
-  const ::flatbuffers::String *name() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
-  }
-  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::Resource>> *faces() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::Resource>> *>(VT_FACES);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::FontFace>> *faces() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::FontFace>> *>(VT_FACES);
   }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_NAME) &&
-           verifier.VerifyString(name()) &&
            VerifyOffsetRequired(verifier, VT_FACES) &&
            verifier.VerifyVector(faces()) &&
            verifier.VerifyVectorOfTables(faces()) &&
@@ -377,10 +878,7 @@ struct FaceGroupBuilder {
   typedef FaceGroup Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
-    fbb_.AddOffset(FaceGroup::VT_NAME, name);
-  }
-  void add_faces(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::Resource>>> faces) {
+  void add_faces(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::FontFace>>> faces) {
     fbb_.AddOffset(FaceGroup::VT_FACES, faces);
   }
   explicit FaceGroupBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
@@ -390,7 +888,6 @@ struct FaceGroupBuilder {
   ::flatbuffers::Offset<FaceGroup> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<FaceGroup>(end);
-    fbb_.Required(o, FaceGroup::VT_NAME);
     fbb_.Required(o, FaceGroup::VT_FACES);
     return o;
   }
@@ -398,43 +895,38 @@ struct FaceGroupBuilder {
 
 inline ::flatbuffers::Offset<FaceGroup> CreateFaceGroup(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::Resource>>> faces = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::FontFace>>> faces = 0) {
   FaceGroupBuilder builder_(_fbb);
   builder_.add_faces(faces);
-  builder_.add_name(name);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<FaceGroup> CreateFaceGroupDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *name = nullptr,
-    const std::vector<::flatbuffers::Offset<DeepSeaVectorDraw::Resource>> *faces = nullptr) {
-  auto name__ = name ? _fbb.CreateString(name) : 0;
-  auto faces__ = faces ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaVectorDraw::Resource>>(*faces) : 0;
+    const std::vector<::flatbuffers::Offset<DeepSeaVectorDraw::FontFace>> *faces = nullptr) {
+  auto faces__ = faces ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaVectorDraw::FontFace>>(*faces) : 0;
   return DeepSeaVectorDraw::CreateFaceGroup(
       _fbb,
-      name__,
       faces__);
 }
 
 struct Font FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef FontBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_NAME = 4,
-    VT_FACEGROUP = 6,
-    VT_FACES = 8,
+    VT_FACEGROUP = 4,
+    VT_FACES = 6,
+    VT_ICONS = 8,
     VT_QUALITY = 10,
     VT_CACHESIZE = 12
   };
-  const ::flatbuffers::String *name() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
-  }
   const ::flatbuffers::String *faceGroup() const {
     return GetPointer<const ::flatbuffers::String *>(VT_FACEGROUP);
   }
   const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *faces() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_FACES);
+  }
+  const ::flatbuffers::String *icons() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_ICONS);
   }
   DeepSeaVectorDraw::FontQuality quality() const {
     return static_cast<DeepSeaVectorDraw::FontQuality>(GetField<uint8_t>(VT_QUALITY, 0));
@@ -445,13 +937,13 @@ struct Font FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_NAME) &&
-           verifier.VerifyString(name()) &&
            VerifyOffsetRequired(verifier, VT_FACEGROUP) &&
            verifier.VerifyString(faceGroup()) &&
            VerifyOffsetRequired(verifier, VT_FACES) &&
            verifier.VerifyVector(faces()) &&
            verifier.VerifyVectorOfStrings(faces()) &&
+           VerifyOffset(verifier, VT_ICONS) &&
+           verifier.VerifyString(icons()) &&
            VerifyField<uint8_t>(verifier, VT_QUALITY, 1) &&
            VerifyField<uint8_t>(verifier, VT_CACHESIZE, 1) &&
            verifier.EndTable();
@@ -462,14 +954,14 @@ struct FontBuilder {
   typedef Font Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
-    fbb_.AddOffset(Font::VT_NAME, name);
-  }
   void add_faceGroup(::flatbuffers::Offset<::flatbuffers::String> faceGroup) {
     fbb_.AddOffset(Font::VT_FACEGROUP, faceGroup);
   }
   void add_faces(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> faces) {
     fbb_.AddOffset(Font::VT_FACES, faces);
+  }
+  void add_icons(::flatbuffers::Offset<::flatbuffers::String> icons) {
+    fbb_.AddOffset(Font::VT_ICONS, icons);
   }
   void add_quality(DeepSeaVectorDraw::FontQuality quality) {
     fbb_.AddElement<uint8_t>(Font::VT_QUALITY, static_cast<uint8_t>(quality), 0);
@@ -484,7 +976,6 @@ struct FontBuilder {
   ::flatbuffers::Offset<Font> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<Font>(end);
-    fbb_.Required(o, Font::VT_NAME);
     fbb_.Required(o, Font::VT_FACEGROUP);
     fbb_.Required(o, Font::VT_FACES);
     return o;
@@ -493,15 +984,15 @@ struct FontBuilder {
 
 inline ::flatbuffers::Offset<Font> CreateFont(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
     ::flatbuffers::Offset<::flatbuffers::String> faceGroup = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> faces = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> icons = 0,
     DeepSeaVectorDraw::FontQuality quality = DeepSeaVectorDraw::FontQuality::Low,
     DeepSeaVectorDraw::FontCacheSize cacheSize = DeepSeaVectorDraw::FontCacheSize::Small) {
   FontBuilder builder_(_fbb);
+  builder_.add_icons(icons);
   builder_.add_faces(faces);
   builder_.add_faceGroup(faceGroup);
-  builder_.add_name(name);
   builder_.add_cacheSize(cacheSize);
   builder_.add_quality(quality);
   return builder_.Finish();
@@ -509,51 +1000,152 @@ inline ::flatbuffers::Offset<Font> CreateFont(
 
 inline ::flatbuffers::Offset<Font> CreateFontDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *name = nullptr,
     const char *faceGroup = nullptr,
     const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *faces = nullptr,
+    const char *icons = nullptr,
     DeepSeaVectorDraw::FontQuality quality = DeepSeaVectorDraw::FontQuality::Low,
     DeepSeaVectorDraw::FontCacheSize cacheSize = DeepSeaVectorDraw::FontCacheSize::Small) {
-  auto name__ = name ? _fbb.CreateString(name) : 0;
   auto faceGroup__ = faceGroup ? _fbb.CreateString(faceGroup) : 0;
   auto faces__ = faces ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*faces) : 0;
+  auto icons__ = icons ? _fbb.CreateString(icons) : 0;
   return DeepSeaVectorDraw::CreateFont(
       _fbb,
-      name__,
       faceGroup__,
       faces__,
+      icons__,
       quality,
       cacheSize);
+}
+
+struct VectorResource FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef VectorResourceBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_NAME = 4,
+    VT_RESOURCE_TYPE = 6,
+    VT_RESOURCE = 8
+  };
+  const ::flatbuffers::String *name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
+  }
+  DeepSeaVectorDraw::VectorResourceUnion resource_type() const {
+    return static_cast<DeepSeaVectorDraw::VectorResourceUnion>(GetField<uint8_t>(VT_RESOURCE_TYPE, 0));
+  }
+  const void *resource() const {
+    return GetPointer<const void *>(VT_RESOURCE);
+  }
+  template<typename T> const T *resource_as() const;
+  const DeepSeaVectorDraw::TextureResource *resource_as_TextureResource() const {
+    return resource_type() == DeepSeaVectorDraw::VectorResourceUnion::TextureResource ? static_cast<const DeepSeaVectorDraw::TextureResource *>(resource()) : nullptr;
+  }
+  const DeepSeaVectorDraw::VectorImageResource *resource_as_VectorImageResource() const {
+    return resource_type() == DeepSeaVectorDraw::VectorResourceUnion::VectorImageResource ? static_cast<const DeepSeaVectorDraw::VectorImageResource *>(resource()) : nullptr;
+  }
+  const DeepSeaVectorDraw::TextIcons *resource_as_TextIcons() const {
+    return resource_type() == DeepSeaVectorDraw::VectorResourceUnion::TextIcons ? static_cast<const DeepSeaVectorDraw::TextIcons *>(resource()) : nullptr;
+  }
+  const DeepSeaVectorDraw::FaceGroup *resource_as_FaceGroup() const {
+    return resource_type() == DeepSeaVectorDraw::VectorResourceUnion::FaceGroup ? static_cast<const DeepSeaVectorDraw::FaceGroup *>(resource()) : nullptr;
+  }
+  const DeepSeaVectorDraw::Font *resource_as_Font() const {
+    return resource_type() == DeepSeaVectorDraw::VectorResourceUnion::Font ? static_cast<const DeepSeaVectorDraw::Font *>(resource()) : nullptr;
+  }
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
+           VerifyField<uint8_t>(verifier, VT_RESOURCE_TYPE, 1) &&
+           VerifyOffsetRequired(verifier, VT_RESOURCE) &&
+           VerifyVectorResourceUnion(verifier, resource(), resource_type()) &&
+           verifier.EndTable();
+  }
+};
+
+template<> inline const DeepSeaVectorDraw::TextureResource *VectorResource::resource_as<DeepSeaVectorDraw::TextureResource>() const {
+  return resource_as_TextureResource();
+}
+
+template<> inline const DeepSeaVectorDraw::VectorImageResource *VectorResource::resource_as<DeepSeaVectorDraw::VectorImageResource>() const {
+  return resource_as_VectorImageResource();
+}
+
+template<> inline const DeepSeaVectorDraw::TextIcons *VectorResource::resource_as<DeepSeaVectorDraw::TextIcons>() const {
+  return resource_as_TextIcons();
+}
+
+template<> inline const DeepSeaVectorDraw::FaceGroup *VectorResource::resource_as<DeepSeaVectorDraw::FaceGroup>() const {
+  return resource_as_FaceGroup();
+}
+
+template<> inline const DeepSeaVectorDraw::Font *VectorResource::resource_as<DeepSeaVectorDraw::Font>() const {
+  return resource_as_Font();
+}
+
+struct VectorResourceBuilder {
+  typedef VectorResource Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
+    fbb_.AddOffset(VectorResource::VT_NAME, name);
+  }
+  void add_resource_type(DeepSeaVectorDraw::VectorResourceUnion resource_type) {
+    fbb_.AddElement<uint8_t>(VectorResource::VT_RESOURCE_TYPE, static_cast<uint8_t>(resource_type), 0);
+  }
+  void add_resource(::flatbuffers::Offset<void> resource) {
+    fbb_.AddOffset(VectorResource::VT_RESOURCE, resource);
+  }
+  explicit VectorResourceBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<VectorResource> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<VectorResource>(end);
+    fbb_.Required(o, VectorResource::VT_NAME);
+    fbb_.Required(o, VectorResource::VT_RESOURCE);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<VectorResource> CreateVectorResource(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
+    DeepSeaVectorDraw::VectorResourceUnion resource_type = DeepSeaVectorDraw::VectorResourceUnion::NONE,
+    ::flatbuffers::Offset<void> resource = 0) {
+  VectorResourceBuilder builder_(_fbb);
+  builder_.add_resource(resource);
+  builder_.add_name(name);
+  builder_.add_resource_type(resource_type);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<VectorResource> CreateVectorResourceDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *name = nullptr,
+    DeepSeaVectorDraw::VectorResourceUnion resource_type = DeepSeaVectorDraw::VectorResourceUnion::NONE,
+    ::flatbuffers::Offset<void> resource = 0) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  return DeepSeaVectorDraw::CreateVectorResource(
+      _fbb,
+      name__,
+      resource_type,
+      resource);
 }
 
 struct VectorResources FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef VectorResourcesBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_TEXTURES = 4,
-    VT_FACEGROUPS = 6,
-    VT_FONTS = 8
+    VT_RESOURCES = 4
   };
-  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::Resource>> *textures() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::Resource>> *>(VT_TEXTURES);
-  }
-  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::FaceGroup>> *faceGroups() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::FaceGroup>> *>(VT_FACEGROUPS);
-  }
-  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::Font>> *fonts() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::Font>> *>(VT_FONTS);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::VectorResource>> *resources() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::VectorResource>> *>(VT_RESOURCES);
   }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_TEXTURES) &&
-           verifier.VerifyVector(textures()) &&
-           verifier.VerifyVectorOfTables(textures()) &&
-           VerifyOffset(verifier, VT_FACEGROUPS) &&
-           verifier.VerifyVector(faceGroups()) &&
-           verifier.VerifyVectorOfTables(faceGroups()) &&
-           VerifyOffset(verifier, VT_FONTS) &&
-           verifier.VerifyVector(fonts()) &&
-           verifier.VerifyVectorOfTables(fonts()) &&
+           VerifyOffsetRequired(verifier, VT_RESOURCES) &&
+           verifier.VerifyVector(resources()) &&
+           verifier.VerifyVectorOfTables(resources()) &&
            verifier.EndTable();
   }
 };
@@ -562,14 +1154,8 @@ struct VectorResourcesBuilder {
   typedef VectorResources Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_textures(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::Resource>>> textures) {
-    fbb_.AddOffset(VectorResources::VT_TEXTURES, textures);
-  }
-  void add_faceGroups(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::FaceGroup>>> faceGroups) {
-    fbb_.AddOffset(VectorResources::VT_FACEGROUPS, faceGroups);
-  }
-  void add_fonts(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::Font>>> fonts) {
-    fbb_.AddOffset(VectorResources::VT_FONTS, fonts);
+  void add_resources(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::VectorResource>>> resources) {
+    fbb_.AddOffset(VectorResources::VT_RESOURCES, resources);
   }
   explicit VectorResourcesBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -578,35 +1164,26 @@ struct VectorResourcesBuilder {
   ::flatbuffers::Offset<VectorResources> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<VectorResources>(end);
+    fbb_.Required(o, VectorResources::VT_RESOURCES);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<VectorResources> CreateVectorResources(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::Resource>>> textures = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::FaceGroup>>> faceGroups = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::Font>>> fonts = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::VectorResource>>> resources = 0) {
   VectorResourcesBuilder builder_(_fbb);
-  builder_.add_fonts(fonts);
-  builder_.add_faceGroups(faceGroups);
-  builder_.add_textures(textures);
+  builder_.add_resources(resources);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<VectorResources> CreateVectorResourcesDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<::flatbuffers::Offset<DeepSeaVectorDraw::Resource>> *textures = nullptr,
-    const std::vector<::flatbuffers::Offset<DeepSeaVectorDraw::FaceGroup>> *faceGroups = nullptr,
-    const std::vector<::flatbuffers::Offset<DeepSeaVectorDraw::Font>> *fonts = nullptr) {
-  auto textures__ = textures ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaVectorDraw::Resource>>(*textures) : 0;
-  auto faceGroups__ = faceGroups ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaVectorDraw::FaceGroup>>(*faceGroups) : 0;
-  auto fonts__ = fonts ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaVectorDraw::Font>>(*fonts) : 0;
+    const std::vector<::flatbuffers::Offset<DeepSeaVectorDraw::VectorResource>> *resources = nullptr) {
+  auto resources__ = resources ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaVectorDraw::VectorResource>>(*resources) : 0;
   return DeepSeaVectorDraw::CreateVectorResources(
       _fbb,
-      textures__,
-      faceGroups__,
-      fonts__);
+      resources__);
 }
 
 template <bool B>
@@ -634,6 +1211,49 @@ inline bool VerifyFileOrDataVector(::flatbuffers::VerifierTemplate<B> &verifier,
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
     if (!VerifyFileOrData(
         verifier,  values->Get(i), types->GetEnum<FileOrData>(i))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+template <bool B>
+inline bool VerifyVectorResourceUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, VectorResourceUnion type) {
+  switch (type) {
+    case VectorResourceUnion::NONE: {
+      return true;
+    }
+    case VectorResourceUnion::TextureResource: {
+      auto ptr = reinterpret_cast<const DeepSeaVectorDraw::TextureResource *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case VectorResourceUnion::VectorImageResource: {
+      auto ptr = reinterpret_cast<const DeepSeaVectorDraw::VectorImageResource *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case VectorResourceUnion::TextIcons: {
+      auto ptr = reinterpret_cast<const DeepSeaVectorDraw::TextIcons *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case VectorResourceUnion::FaceGroup: {
+      auto ptr = reinterpret_cast<const DeepSeaVectorDraw::FaceGroup *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case VectorResourceUnion::Font: {
+      auto ptr = reinterpret_cast<const DeepSeaVectorDraw::Font *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    default: return true;
+  }
+}
+
+template <bool B>
+inline bool VerifyVectorResourceUnionVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<VectorResourceUnion> *types) {
+  if (!values || !types) return !values && !types;
+  if (values->size() != types->size()) return false;
+  for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
+    if (!VerifyVectorResourceUnion(
+        verifier,  values->Get(i), types->GetEnum<VectorResourceUnion>(i))) {
       return false;
     }
   }

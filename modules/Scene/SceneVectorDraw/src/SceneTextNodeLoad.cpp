@@ -55,8 +55,8 @@
 dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
-	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
-	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
+	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaSceneVectorDraw::VerifyTextNodeBuffer(verifier))

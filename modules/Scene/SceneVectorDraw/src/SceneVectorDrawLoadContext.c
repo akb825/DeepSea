@@ -56,6 +56,7 @@ static void VectorResourcesUserData_destroy(void* userData)
 		return;
 
 	VectorResourcesUserData* vectorResourcesUserData = (VectorResourcesUserData*)userData;
+	dsVectorScratchData_destroy(vectorResourcesUserData->scratchData);
 	if (vectorResourcesUserData->allocator)
 		DS_VERIFY(dsAllocator_free(vectorResourcesUserData->allocator, userData));
 }
@@ -77,7 +78,6 @@ static void SceneVectorImageUserData_destroy(void* userData)
 		return;
 
 	SceneVectorImageUserData* vectorImageUserData = (SceneVectorImageUserData*)userData;
-	dsVectorScratchData_destroy(vectorImageUserData->scratchData);
 	if (vectorImageUserData->allocator)
 		DS_VERIFY(dsAllocator_free(vectorImageUserData->allocator, userData));
 }
@@ -111,18 +111,32 @@ bool dsSceneVectorDrawLoadConext_registerTypes(dsSceneLoadContext* loadContext,
 		return false;
 	}
 
+	// Scratch data shared across loaders, but owned by vector resources loader.
+	dsVectorScratchData* scratchData = dsVectorScratchData_create(allocator);
+	if (!scratchData)
+		return false;
+
 	{
 		VectorResourcesUserData* userData = NULL;
+			userData = DS_ALLOCATE_OBJECT(allocator, VectorResourcesUserData);
+		if (!userData)
+		{
+			dsVectorScratchData_destroy(scratchData);
+			return false;
+		}
+
+		userData->allocator = dsAllocator_keepPointer(allocator);
 		if (qualityRemap)
 		{
-			userData = DS_ALLOCATE_OBJECT(allocator, VectorResourcesUserData);
-			if (!userData)
-				return false;
-
-			userData->allocator = dsAllocator_keepPointer(allocator);
 			memcpy(userData, qualityRemap,
 				sizeof(dsTextQuality)*DS_TEXT_QUALITY_REMAP_SIZE);
+			userData->hasQualityRemap = true;
 		}
+		else
+			userData->hasQualityRemap = false;
+		userData->commandBuffer = commandBuffer;
+		userData->scratchData = scratchData;
+		userData->pixelSize = pixelSize;
 
 		// One additional resource for registering the material description.
 		if (!dsSceneLoadContext_registerCustomResourceType(loadContext,
@@ -182,15 +196,10 @@ bool dsSceneVectorDrawLoadConext_registerTypes(dsSceneLoadContext* loadContext,
 
 	if (commandBuffer)
 	{
-		dsVectorScratchData* scratchData = dsVectorScratchData_create(allocator);
-
 		SceneVectorImageUserData* userData =
 			DS_ALLOCATE_OBJECT(allocator, SceneVectorImageUserData);
 		if (!userData)
-		{
-			dsVectorScratchData_destroy(scratchData);
 			return false;
-		}
 
 		userData->allocator = dsAllocator_keepPointer(allocator);
 		userData->commandBuffer = commandBuffer;

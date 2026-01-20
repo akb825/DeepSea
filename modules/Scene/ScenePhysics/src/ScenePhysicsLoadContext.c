@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-2025 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,8 +74,8 @@ static void dsScenePhysicsLoadData_destroy(void* userData)
 static void* dsScenePhysicsShape_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
-	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
-	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
+	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	DS_UNUSED(loadContext);
 	DS_UNUSED(allocator);
@@ -99,8 +99,8 @@ static bool dsScenePhysicsShape_destroyResource(void* resource)
 static void* dsSceneRigidBody_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
-	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
-	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
+	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	DS_UNUSED(loadContext);
 	DS_UNUSED(allocator);
@@ -119,8 +119,8 @@ static void* dsSceneRigidBody_load(const dsSceneLoadContext* loadContext,
 static void* dsSceneRigidBodyTemplate_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
-	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
-	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
+	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	DS_UNUSED(loadContext);
 	DS_UNUSED(allocator);

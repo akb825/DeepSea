@@ -86,7 +86,6 @@ typedef struct TestText
 	dsMaterialDesc* materialDesc;
 	dsMaterialDesc* iconMaterialDesc;
 	dsMaterial* material;
-	dsMaterial* iconMaterial;
 
 	dsShaderModule* shaderModule;
 	dsShader* shader;
@@ -939,14 +938,6 @@ static bool setupShaders(TestText* testText)
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	testText->iconMaterial = dsMaterial_create(
-		resourceManager, allocator, testText->iconMaterialDesc);
-	if (!testText->iconMaterial)
-	{
-		DS_LOG_ERROR_F("TestText", "Couldn't create material: %s", dsErrorString(errno));
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
 	testText->iconShader = dsShader_createName(resourceManager, allocator, testText->shaderModule,
 		"Icon", testText->iconMaterialDesc);
 	if (!testText->iconShader)
@@ -1034,8 +1025,7 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 	uint32_t emojiStart = 0x1F320, emojiEnd = 0x1FAFF;
 	dsIndexRange codepointRange = {emojiStart, emojiEnd - emojiStart};
 	testText->textIcons = dsTextureTextIcons_create(allocator, resourceManager, NULL,
-		testText->iconShader, testText->iconMaterial, testText->iconDataDesc, &codepointRange, 1,
-		DS_ARRAY_SIZE(icons));
+		testText->iconShader, NULL, &codepointRange, 1, DS_ARRAY_SIZE(icons));
 	if (!testText->textIcons)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create text icons: %s", dsErrorString(errno));
@@ -1329,7 +1319,6 @@ static void shutdown(TestText* testText)
 	DS_VERIFY(dsShader_destroy(testText->tessShader));
 	DS_VERIFY(dsShader_destroy(testText->shader));
 	DS_VERIFY(dsShader_destroy(testText->limitShader));
-	dsMaterial_destroy(testText->iconMaterial);
 	dsMaterial_destroy(testText->material);
 	DS_VERIFY(dsDrawGeometry_destroy(testText->limitGeometry));
 	DS_VERIFY(dsGfxBuffer_destroy(testText->limitBuffer));

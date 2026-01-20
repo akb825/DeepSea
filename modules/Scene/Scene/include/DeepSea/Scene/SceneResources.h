@@ -121,8 +121,8 @@ DS_SCENE_EXPORT dsSceneResources* dsSceneResources_loadArchive(dsAllocator* allo
 DS_SCENE_EXPORT dsSceneResources* dsSceneResources_loadStream(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsStream* stream, void* relativePathUserData,
-	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
-	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc);
+	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc);
 
 /**
  * @brief Loads scene resources from a data buffer.
@@ -142,8 +142,8 @@ DS_SCENE_EXPORT dsSceneResources* dsSceneResources_loadStream(dsAllocator* alloc
 DS_SCENE_EXPORT dsSceneResources* dsSceneResources_loadData(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, const void* data, size_t size, void* relativePathUserData,
-	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
-	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc);
+	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc);
 
 /**
  * @brief Gets the number of remaining resources that can be set.
@@ -160,9 +160,10 @@ DS_SCENE_EXPORT uint32_t dsSceneResources_getRemainingResources(const dsSceneRes
  *     DS_MAX_SCENE_NAME_LENGTH.
  * @param type The type of the resource to add.
  * @param resource The resource to add.
- * @param own True to take ownership of the resource when the addition succeeds. If the resource
- *     type is dsSceneResourceType_SceneNode, the value of @c own will be ignored and the node will
- *     always have its reference count incremented.
+ * @param own True to take ownership of the resource. If the resource type is
+ *     dsSceneResourceType_SceneNode, the value of @c own will be ignored and the node will always
+ *     have its reference count incremented. If ownership is taken, the resource will be destroyed
+ *     if addition fails.
  * @return False if the resource couldn't be added.
  */
 DS_SCENE_EXPORT bool dsSceneResources_addResource(dsSceneResources* resources,

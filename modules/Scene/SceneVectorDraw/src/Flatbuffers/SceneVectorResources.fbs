@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,26 @@ table VectorResources
 	// The file path or embedded data for vector resources. When using embedded data, all textures
 	// and fonts must also be embedded.
 	resources : DeepSeaScene.FileOrData (required);
+
+	// The name of the vector material set for shared material data. This may be unset if vector
+	// images aren't within the resources shared materials aren't used.
+	sharedMaterials : string;
+
+	// The name of the vector shaders to draw vector images with. This may be unset if there are
+	// neither vector images nor vector icons within the resources.
+	vectorShaders : string;
+
+	// The name of the shader to draw texture icons with. This may be unset if texture icons won't
+	// be used.
+	textureIconShader : string;
+
+	// The name of the material to draw texture icons with. This may be unset if texture icons won't
+	// be used or an empty material is sufficient.
+	textureIconMaterial : string;
+
+	// Whether the embedded materials for any vector images should be treated as sRGB and converted
+	// to linear when drawing.
+	srgb : bool;
 }
 
 root_type VectorResources;

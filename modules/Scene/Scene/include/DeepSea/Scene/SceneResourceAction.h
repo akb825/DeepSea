@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,8 +51,8 @@ DS_SCENE_EXPORT bool dsSceneResourceAction_load(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, const char* type, const void* data, size_t size,
 	void* relativePathUserData,
-	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
-	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc);
+	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc);
 
 #ifdef __cplusplus
 }

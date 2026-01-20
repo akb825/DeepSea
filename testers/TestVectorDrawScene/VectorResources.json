@@ -1,7 +1,8 @@
 {
-	"faceGroups":
+	"resources":
 	[
 		{
+			"type": "FaceGroup",
 			"name": "default",
 			"faces":
 			[
@@ -10,11 +11,9 @@
 					"path": "../Shared/Fonts/NotoSans-Regular.ttc"
 				}
 			]
-		}
-	],
-	"fonts":
-	[
+		},
 		{
+			"type": "Font",
 			"name": "sans-serif",
 			"faceGroup": "default",
 			"faces": ["sans"],

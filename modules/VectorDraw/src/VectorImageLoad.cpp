@@ -217,12 +217,18 @@ static dsFont* findFont(dsVectorResources* const* resources, uint32_t resourceCo
 	{
 		for (uint32_t i = 0; i < resourceCount; ++i)
 		{
-			if (!resources[i])
+			dsVectorResources* curResources = resources[i];
+			if (!curResources)
 				continue;
 
-			dsFont* font = dsVectorResources_findFont(resources[i], fontName);
-			if (font)
+			dsVectorResourceType resourceType;
+			dsFont* font;
+			if (dsVectorResources_findResource(
+					&resourceType, (void**)&font, curResources, fontName) &&
+				resourceType == dsVectorResourceType_Font)
+			{
 				return font;
+			}
 		}
 	}
 
@@ -248,12 +254,18 @@ static dsTexture* findTexture(dsVectorResources* const* resources, uint32_t reso
 	{
 		for (uint32_t i = 0; i < resourceCount; ++i)
 		{
-			if (!resources[i])
+			dsVectorResources* curResources = resources[i];
+			if (!curResources)
 				continue;
 
-			dsTexture* texture = dsVectorResources_findTexture(resources[i], textureName);
-			if (texture)
+			dsVectorResourceType resourceType;
+			dsTexture* texture;
+			if (dsVectorResources_findResource(
+					&resourceType, (void**)&texture, curResources, textureName) &&
+				resourceType == dsVectorResourceType_Texture)
+			{
 				return texture;
+			}
 		}
 	}
 

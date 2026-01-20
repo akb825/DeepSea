@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,35 +50,34 @@ dsShaderVariableGroupDesc* dsGLShaderVariableGroupDesc_create(dsResourceManager*
 	baseGroupDesc->resourceManager = resourceManager;
 	baseGroupDesc->allocator = dsAllocator_keepPointer(allocator);
 	baseGroupDesc->elementCount = elementCount;
-	baseGroupDesc->elements = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsShaderVariableElement,
-		elementCount);
+	baseGroupDesc->elements = DS_ALLOCATE_OBJECT_ARRAY(
+		&bufferAlloc, dsShaderVariableElement, elementCount);
 	DS_ASSERT(baseGroupDesc->elements);
 	memcpy(baseGroupDesc->elements, elements,
 		elementCount*sizeof(dsShaderVariableElement));
 
-	baseGroupDesc->positions = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsShaderVariablePos,
-		elementCount);
+	baseGroupDesc->positions = DS_ALLOCATE_OBJECT_ARRAY(
+		&bufferAlloc, dsShaderVariablePos, elementCount);
 	DS_ASSERT(baseGroupDesc->positions);
 	size_t curSize = 0;
 	for (uint32_t i = 0; i < elementCount; ++i)
 	{
-		size_t nameLen = strlen(elements[i].name) + 1;
+		const dsShaderVariableElement* element = elements + i;
+		size_t nameLen = strlen(element->name) + 1;
 		char* nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 		DS_ASSERT(nameCopy);
-		memcpy(nameCopy, elements[i].name, nameLen);
+		memcpy(nameCopy, element->name, nameLen);
 		baseGroupDesc->elements[i].name = nameCopy;
 
-		baseGroupDesc->positions[i].offset = (uint32_t)dsMaterialType_addElementBlockSize(
-			&curSize, elements[i].type, elements[i].count);
-		if (elements[i].count > 0)
-		{
-			baseGroupDesc->positions[i].stride = dsMaterialType_blockSize(elements[i].type,
-				true);
-		}
+		dsShaderVariablePos* position = baseGroupDesc->positions + i;
+		position->offset = (uint32_t)dsMaterialType_addElementBlockSize(
+			&curSize, element->type, element->count);
+		if (element->count > 0)
+			position->stride = dsMaterialType_blockSize(element->type, true);
 		else
-			baseGroupDesc->positions[i].stride = 0;
-		baseGroupDesc->positions[i].matrixColStride = dsMaterialType_blockAlignment(
-			dsMaterialType_matrixColumnType(elements[i].type), true);
+			position->stride = 0;
+		position->matrixColStride = dsMaterialType_blockAlignment(
+			dsMaterialType_matrixColumnType(element->type), true);
 	}
 
 	dsGLResource_initialize(&groupDesc->resource);

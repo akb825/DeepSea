@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,9 @@
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 
+#include <DeepSea/SceneVectorDraw/SceneVectorMaterialSet.h>
+#include <DeepSea/SceneVectorDraw/SceneVectorResources.h>
+
 #include <DeepSea/Text/FaceGroup.h>
 
 #include <DeepSea/VectorDraw/VectorResources.h>
@@ -49,21 +52,17 @@
 #pragma warning(pop)
 #endif
 
-typedef struct dsRelativePathInfo
+typedef struct RelativePathWrapper
 {
-	dsAllocator* allocator;
 	const char* basePath;
 	void* relativePathUserData;
-	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc;
-	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc;
-} dsRelativePathInfo;
+	dsOpenRelativePathStreamFunction openRelativePathStreamFunc;
+	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc;
+} RelativePathWrapper;
 
-
-static dsTexture* loadTexture(void* userData, dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsAllocator* tempAllocator, const char* path, dsTextureUsage usage,
-	dsGfxMemory memoryHints)
+dsStream* openRelativePathStream(void* userData, const char* path, const char* mode)
 {
-	dsRelativePathInfo* pathInfo = (dsRelativePathInfo*)userData;
+	RelativePathWrapper* pathInfo = (RelativePathWrapper*)userData;
 	char finalPath[DS_PATH_MAX];
 	if (!dsPath_combine(finalPath, sizeof(finalPath), pathInfo->basePath, path))
 	{
@@ -72,43 +71,20 @@ static dsTexture* loadTexture(void* userData, dsResourceManager* resourceManager
 		return NULL;
 	}
 
-	dsStream* stream = pathInfo->openRelativePathStreamFunc(
-		pathInfo->relativePathUserData, finalPath);
-	if (!stream)
-		return NULL;
-
-	dsTexture* texture = dsTextureData_loadStreamToTexture(resourceManager, allocator,
-		tempAllocator, stream, NULL, usage, memoryHints);
-	pathInfo->closeRelativePathStreamFunc(userData, stream);
-	return texture;
+	return pathInfo->openRelativePathStreamFunc(pathInfo->relativePathUserData, finalPath, mode);
 }
 
-static bool loadFontFace(void* userData, dsFaceGroup* faceGroup, const char* path, const char* name)
+void closeRelativePathStream(void* userData, dsStream* stream)
 {
-	dsRelativePathInfo* pathInfo = (dsRelativePathInfo*)userData;
-	char finalPath[DS_PATH_MAX];
-	if (!dsPath_combine(finalPath, sizeof(finalPath), pathInfo->basePath, path))
-	{
-		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Path '%s%c%s' is too long.", pathInfo->basePath,
-			DS_PATH_SEPARATOR, path);
-		return false;
-	}
-
-	dsStream* stream = pathInfo->openRelativePathStreamFunc(
-		pathInfo->relativePathUserData, finalPath);
-	if (!stream)
-		return false;
-
-	bool retVal = dsFaceGroup_loadFaceStream(faceGroup, pathInfo->allocator, stream, name);
-	pathInfo->closeRelativePathStreamFunc(userData, stream);
-	return retVal;
+	RelativePathWrapper* pathInfo = (RelativePathWrapper*)userData;
+	pathInfo->closeRelativePathStreamFunc(pathInfo->relativePathUserData, stream);
 }
 
 void* dsVectorSceneResources_load(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*, void* userData,
-	const uint8_t* data, size_t dataSize, void* relativePathUserData,
-	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
-	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaSceneVectorDraw::VerifyVectorResourcesBuffer(verifier))
@@ -120,17 +96,107 @@ void* dsVectorSceneResources_load(const dsSceneLoadContext* loadContext,
 
 	auto vectorResourcesUserData = reinterpret_cast<VectorResourcesUserData*>(userData);
 	const dsTextQuality* textQualityRemap =
-		vectorResourcesUserData ? vectorResourcesUserData->qualityRemap : nullptr;
+		vectorResourcesUserData->hasQualityRemap ? vectorResourcesUserData->qualityRemap : nullptr;
 
 	auto fbVectorResources = DeepSeaSceneVectorDraw::GetVectorResources(data);
 	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
 	dsResourceManager* resourceManager =
 		dsSceneLoadContext_getRenderer(loadContext)->resourceManager;
+
+	dsSceneResourceType resourceType;
+	auto fbSharedMaterials = fbVectorResources->sharedMaterials();
+	dsVectorMaterialSet* sharedMaterials = nullptr;
+	if (fbSharedMaterials)
+	{
+		dsCustomSceneResource* resource;
+		if (!dsSceneLoadScratchData_findResource(&resourceType, reinterpret_cast<void**>(&resource),
+				scratchData, fbSharedMaterials->c_str()) ||
+			resourceType != dsSceneResourceType_Custom ||
+			resource->type != dsSceneVectorMaterialSet_type())
+		{
+			errno = ENOTFOUND;
+			DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG,
+				"Couldn't find vector scene material set '%s'.", fbSharedMaterials->c_str());
+			return nullptr;
+		}
+
+		sharedMaterials = reinterpret_cast<dsVectorMaterialSet*>(resource->resource);
+	}
+
+	dsVectorShaders* vectorShaders = nullptr;
+	auto fbVectorShaders = fbVectorResources->vectorShaders();
+	if (fbVectorShaders)
+	{
+		dsCustomSceneResource* customResource;
+		if (!dsSceneLoadScratchData_findResource(&resourceType,
+				reinterpret_cast<void**>(&customResource), scratchData,
+				fbVectorShaders->c_str()) ||
+			resourceType != dsSceneResourceType_Custom ||
+			customResource->type != dsSceneVectorResources_type())
+		{
+			errno = ENOTFOUND;
+			DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Couldn't find vector shaders '%s'.",
+				fbVectorShaders->c_str());
+			return nullptr;
+		}
+		vectorShaders = reinterpret_cast<dsVectorShaders*>(customResource->resource);
+	}
+
+	dsShader* textureIconShader = nullptr;
+	auto fbTextureIconShader = fbVectorResources->textureIconShader();
+	if (fbTextureIconShader)
+	{
+		if (!dsSceneLoadScratchData_findResource(&resourceType,
+				reinterpret_cast<void**>(&textureIconShader), scratchData,
+				fbTextureIconShader->c_str()) ||
+			resourceType != dsSceneResourceType_Shader)
+		{
+			errno = ENOTFOUND;
+			DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Couldn't find shader '%s'.",
+				fbTextureIconShader->c_str());
+			return nullptr;
+		}
+	}
+
+	dsMaterial* textureIconMaterial = nullptr;
+	auto fbTextureIconMaterial = fbVectorResources->textureIconMaterial();
+	if (fbTextureIconMaterial)
+	{
+		if (!dsSceneLoadScratchData_findResource(&resourceType,
+				reinterpret_cast<void**>(&textureIconShader), scratchData,
+				fbTextureIconMaterial->c_str()) ||
+			resourceType != dsSceneResourceType_Material)
+		{
+			errno = ENOTFOUND;
+			DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Couldn't find material '%s'.",
+				fbTextureIconMaterial->c_str());
+			return nullptr;
+		}
+	}
+
+	dsVectorImageInitResources initResources;
+	bool hasInitResources = vectorResourcesUserData->commandBuffer && vectorShaders;
+	if (hasInitResources)
+	{
+		initResources.resourceManager = resourceManager;
+		initResources.commandBuffer = vectorResourcesUserData->commandBuffer;
+		initResources.scratchData = vectorResourcesUserData->scratchData;
+		initResources.sharedMaterials = sharedMaterials;
+		initResources.shaderModule = vectorShaders->shaderModule;
+		initResources.textShaderName = vectorShaders->shaders[dsVectorShaderType_TextColor]->name;
+		initResources.resources = nullptr;
+		initResources.resourceCount = 0;
+		initResources.srgb = fbVectorResources->srgb();
+	}
+
 	dsVectorResources* resources;
 	if (auto fbFileRef = fbVectorResources->resources_as_FileReference())
 	{
-		resources = dsVectorResources_loadResource(allocator, scratchAllocator, resourceManager,
-			DeepSeaScene::convert(fbFileRef->type()), fbFileRef->path()->c_str(), textQualityRemap);
+		resources = dsVectorResources_loadResource(allocator, scratchAllocator, resourceAllocator,
+			resourceManager, DeepSeaScene::convert(fbFileRef->type()), fbFileRef->path()->c_str(),
+			textQualityRemap, hasInitResources ? &initResources : nullptr,
+			vectorResourcesUserData->pixelSize, vectorShaders, textureIconShader,
+			textureIconMaterial);
 	}
 	else if (auto fbRelativePathRef = fbVectorResources->resources_as_RelativePathReference())
 	{
@@ -145,7 +211,7 @@ void* dsVectorSceneResources_load(const dsSceneLoadContext* loadContext,
 		}
 
 		dsStream* stream = openRelativePathStreamFunc(
-			relativePathUserData, fbRelativePathRef->path()->c_str());
+			relativePathUserData, fbRelativePathRef->path()->c_str(), "rb");
 		if (!stream)
 			return nullptr;
 
@@ -157,20 +223,23 @@ void* dsVectorSceneResources_load(const dsSceneLoadContext* loadContext,
 		if (!buffer)
 			return nullptr;
 
-		dsRelativePathInfo pathInfo = {scratchAllocator, baseDirectory, relativePathUserData,
+		RelativePathWrapper pathInfo = {baseDirectory, relativePathUserData,
 			openRelativePathStreamFunc, closeRelativePathStreamFunc};
-		resources = dsVectorResources_loadData(allocator, scratchAllocator, resourceManager, buffer,
-			size, &pathInfo, &loadTexture, &loadFontFace, textQualityRemap);
+		resources = dsVectorResources_loadData(allocator, scratchAllocator, resourceAllocator,
+			resourceManager, buffer, size, &pathInfo, &openRelativePathStream,
+			&closeRelativePathStream, textQualityRemap, hasInitResources ? &initResources : nullptr,
+			vectorResourcesUserData->pixelSize, vectorShaders, textureIconShader,
+			textureIconMaterial);
 		DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
 	}
 	else if (auto fbRawData = fbVectorResources->resources_as_RawData())
 	{
-		dsRelativePathInfo pathInfo = {scratchAllocator, "", relativePathUserData,
-			openRelativePathStreamFunc, closeRelativePathStreamFunc};
 		auto fbData = fbRawData->data();
-		resources = dsVectorResources_loadData(allocator, scratchAllocator, resourceManager,
-			fbData->data(), fbData->size(), &pathInfo, &loadTexture, &loadFontFace,
-			textQualityRemap);
+		resources = dsVectorResources_loadData(allocator, scratchAllocator, resourceAllocator,
+			resourceManager, fbData->data(), fbData->size(), relativePathUserData,
+			openRelativePathStreamFunc, closeRelativePathStreamFunc, textQualityRemap,
+			hasInitResources ? &initResources : nullptr, vectorResourcesUserData->pixelSize,
+			vectorShaders, textureIconShader, textureIconMaterial);
 	}
 	else
 	{

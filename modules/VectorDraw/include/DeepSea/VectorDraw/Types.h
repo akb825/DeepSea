@@ -155,6 +155,23 @@ typedef enum dsVectorShaderType
 } dsVectorShaderType;
 
 /**
+ * @brief Enum for the type of a resource stored within dsVectorResources.
+ */
+typedef enum dsVectorResourceType
+{
+	dsVectorResourceType_Texture,     ///< Texture with pre-multiplied alpha.
+	dsVectorResourceType_VectorImage, ///< Vector image.
+	dsVectorResourceType_FaceGroup,   ///< Face group used within a font.
+	dsVectorResourceType_TextIcons,   ///< Icons used within a font.
+	dsVectorResourceType_Font         ///< Font for text.
+} dsVectorResourceType;
+
+/// @cond
+typedef struct dsVectorImage dsVectorImage;
+typedef struct dsVectorImageInitResources dsVectorImageInitResources;
+/// @endcond
+
+/**
  * @brief Function for loading a texture for a dsVectorResources instance.
  * @param userData The user data for the load.
  * @param resourceManager The resource manager to create the texture with.
@@ -163,11 +180,29 @@ typedef enum dsVectorShaderType
  * @param path The path to load.
  * @param usage The usage flags to pass to the texture creation.
  * @param memoryHints The memory hint flags to pass to the texture creation.
- * @return texture The loaded texture.
+ * @return The loaded texture.
  */
 typedef dsTexture* (*dsLoadVectorResourcesTextureFunction)(void* userData,
 	dsResourceManager* resourceManager, dsAllocator* allocator, dsAllocator* tempAllocator,
 	const char* path, dsTextureUsage usage, dsGfxMemory memoryHints);
+
+/**
+ * @brief Function for loading a vector image for a dsVectorResources instance.
+ * @param userData The user data for the load.
+ * @param allocator The allocator to create the vector image.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the vector image allocator.
+ * @param initResources The resources used for initialization.
+ * @param path The path to load.
+ * @param pixelSize The size of a pixel, determining tessellation quality.
+ * @param targetSize The target size of the image. If not NULL, it will be used in place of the real
+ *     image size for calculating the tessellation quality.
+ * @return The loaded vector image.
+ */
+typedef dsVectorImage* (*dsLoadVectorResourcesVectorImageFunction)(void* userData,
+	dsAllocator* allocator, dsAllocator* resourceAllocator,
+	const dsVectorImageInitResources* initResources, const char* path, float pixelSize,
+	const dsVector2f* targetSize);
 
 /**
  * @brief Function for loading a font face for a dsVectorResources instance.
@@ -947,7 +982,7 @@ typedef struct dsVectorImage dsVectorImage;
  *
  * All members must be non-null unless otherwise specified.
  *
- * @see VectorResources.h
+ * @see VectorImage.h
  */
 typedef struct dsVectorImageInitResources
 {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,8 +63,8 @@ static dsVectorShaderModule* loadShaderModule(
 	const FlatbufferVector<DeepSeaScene::VersionedShaderModule>* shaderModules,
 	const dsMaterialElement* extraElements, uint32_t extraElementCount,
 	void* relativePathUserData,
-	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
-	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
+	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	if (!shaderModules)
 		return nullptr;
@@ -98,7 +98,7 @@ static dsVectorShaderModule* loadShaderModule(
 	else if (auto fbRelativePathRef = fbShaderModule->data_as_RelativePathReference())
 	{
 		dsStream* stream = openRelativePathStreamFunc(
-			relativePathUserData, fbRelativePathRef->path()->c_str());
+			relativePathUserData, fbRelativePathRef->path()->c_str(), "rb");
 		if (!stream)
 			return nullptr;
 
@@ -124,8 +124,8 @@ static dsVectorShaderModule* loadShaderModule(
 void* dsSceneVectorShaders_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator*, dsAllocator* resourceAllocator,
 	void*, const uint8_t* data, size_t dataSize, void* relativePathUserData,
-	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
-	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
+	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaSceneVectorDraw::VerifyVectorShadersBuffer(verifier))

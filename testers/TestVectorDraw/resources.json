@@ -1,16 +1,15 @@
 {
-	"textures":
+	"resources":
 	[
 		{
+			"type": "Texture",
 			"path": "../Shared/SimpleTexture.png",
 			"format": "R8G8B8A8",
-			"type": "unorm",
+			"channelType": "unorm",
 			"embed": true
-		}
-	],
-	"faceGroups":
-	[
+		},
 		{
+			"type": "FaceGroup",
 			"name": "default",
 			"faces":
 			[
@@ -32,17 +31,16 @@
 					"path": "../Shared/Fonts/NotoSerif-Regular.ttf"
 				}
 			]
-		}
-	],
-	"fonts":
-	[
+		},
 		{
+			"type": "Font",
 			"name": "sans-serif",
 			"faceGroup": "default",
 			"faces": ["sans", "arabic", "thai"],
 			"quality": "high"
 		},
 		{
+			"type": "Font",
 			"name": "serif",
 			"faceGroup": "default",
 			"faces": ["serif"],

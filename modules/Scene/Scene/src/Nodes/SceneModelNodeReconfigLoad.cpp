@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ extern "C"
 dsSceneNode* dsSceneModelNode_loadReconfig(const dsSceneLoadContext*,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*,
 	void*, const uint8_t* data, size_t dataSize, void*,
-	dsOpenSceneResourcesRelativePathStreamFunction, dsCloseSceneResourcesRelativePathStreamFunction)
+	dsOpenRelativePathStreamFunction, dsCloseRelativePathStreamFunction)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaScene::VerifyModelNodeReconfigBuffer(verifier))

@@ -24,7 +24,12 @@ struct VectorResources FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef VectorResourcesBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_RESOURCES_TYPE = 4,
-    VT_RESOURCES = 6
+    VT_RESOURCES = 6,
+    VT_SHAREDMATERIALS = 8,
+    VT_VECTORSHADERS = 10,
+    VT_TEXTUREICONSHADER = 12,
+    VT_TEXTUREICONMATERIAL = 14,
+    VT_SRGB = 16
   };
   DeepSeaScene::FileOrData resources_type() const {
     return static_cast<DeepSeaScene::FileOrData>(GetField<uint8_t>(VT_RESOURCES_TYPE, 0));
@@ -42,12 +47,36 @@ struct VectorResources FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaScene::RawData *resources_as_RawData() const {
     return resources_type() == DeepSeaScene::FileOrData::RawData ? static_cast<const DeepSeaScene::RawData *>(resources()) : nullptr;
   }
+  const ::flatbuffers::String *sharedMaterials() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SHAREDMATERIALS);
+  }
+  const ::flatbuffers::String *vectorShaders() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_VECTORSHADERS);
+  }
+  const ::flatbuffers::String *textureIconShader() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_TEXTUREICONSHADER);
+  }
+  const ::flatbuffers::String *textureIconMaterial() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_TEXTUREICONMATERIAL);
+  }
+  bool srgb() const {
+    return GetField<uint8_t>(VT_SRGB, 0) != 0;
+  }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_RESOURCES_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_RESOURCES) &&
            VerifyFileOrData(verifier, resources(), resources_type()) &&
+           VerifyOffset(verifier, VT_SHAREDMATERIALS) &&
+           verifier.VerifyString(sharedMaterials()) &&
+           VerifyOffset(verifier, VT_VECTORSHADERS) &&
+           verifier.VerifyString(vectorShaders()) &&
+           VerifyOffset(verifier, VT_TEXTUREICONSHADER) &&
+           verifier.VerifyString(textureIconShader()) &&
+           VerifyOffset(verifier, VT_TEXTUREICONMATERIAL) &&
+           verifier.VerifyString(textureIconMaterial()) &&
+           VerifyField<uint8_t>(verifier, VT_SRGB, 1) &&
            verifier.EndTable();
   }
 };
@@ -74,6 +103,21 @@ struct VectorResourcesBuilder {
   void add_resources(::flatbuffers::Offset<void> resources) {
     fbb_.AddOffset(VectorResources::VT_RESOURCES, resources);
   }
+  void add_sharedMaterials(::flatbuffers::Offset<::flatbuffers::String> sharedMaterials) {
+    fbb_.AddOffset(VectorResources::VT_SHAREDMATERIALS, sharedMaterials);
+  }
+  void add_vectorShaders(::flatbuffers::Offset<::flatbuffers::String> vectorShaders) {
+    fbb_.AddOffset(VectorResources::VT_VECTORSHADERS, vectorShaders);
+  }
+  void add_textureIconShader(::flatbuffers::Offset<::flatbuffers::String> textureIconShader) {
+    fbb_.AddOffset(VectorResources::VT_TEXTUREICONSHADER, textureIconShader);
+  }
+  void add_textureIconMaterial(::flatbuffers::Offset<::flatbuffers::String> textureIconMaterial) {
+    fbb_.AddOffset(VectorResources::VT_TEXTUREICONMATERIAL, textureIconMaterial);
+  }
+  void add_srgb(bool srgb) {
+    fbb_.AddElement<uint8_t>(VectorResources::VT_SRGB, static_cast<uint8_t>(srgb), 0);
+  }
   explicit VectorResourcesBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -89,11 +133,45 @@ struct VectorResourcesBuilder {
 inline ::flatbuffers::Offset<VectorResources> CreateVectorResources(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     DeepSeaScene::FileOrData resources_type = DeepSeaScene::FileOrData::NONE,
-    ::flatbuffers::Offset<void> resources = 0) {
+    ::flatbuffers::Offset<void> resources = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> sharedMaterials = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> vectorShaders = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> textureIconShader = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> textureIconMaterial = 0,
+    bool srgb = false) {
   VectorResourcesBuilder builder_(_fbb);
+  builder_.add_textureIconMaterial(textureIconMaterial);
+  builder_.add_textureIconShader(textureIconShader);
+  builder_.add_vectorShaders(vectorShaders);
+  builder_.add_sharedMaterials(sharedMaterials);
   builder_.add_resources(resources);
+  builder_.add_srgb(srgb);
   builder_.add_resources_type(resources_type);
   return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<VectorResources> CreateVectorResourcesDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    DeepSeaScene::FileOrData resources_type = DeepSeaScene::FileOrData::NONE,
+    ::flatbuffers::Offset<void> resources = 0,
+    const char *sharedMaterials = nullptr,
+    const char *vectorShaders = nullptr,
+    const char *textureIconShader = nullptr,
+    const char *textureIconMaterial = nullptr,
+    bool srgb = false) {
+  auto sharedMaterials__ = sharedMaterials ? _fbb.CreateString(sharedMaterials) : 0;
+  auto vectorShaders__ = vectorShaders ? _fbb.CreateString(vectorShaders) : 0;
+  auto textureIconShader__ = textureIconShader ? _fbb.CreateString(textureIconShader) : 0;
+  auto textureIconMaterial__ = textureIconMaterial ? _fbb.CreateString(textureIconMaterial) : 0;
+  return DeepSeaSceneVectorDraw::CreateVectorResources(
+      _fbb,
+      resources_type,
+      resources,
+      sharedMaterials__,
+      vectorShaders__,
+      textureIconShader__,
+      textureIconMaterial__,
+      srgb);
 }
 
 inline const DeepSeaSceneVectorDraw::VectorResources *GetVectorResources(const void *buf) {

@@ -119,8 +119,8 @@ const dsSceneNodeType* dsSceneNode_setupParentType(dsSceneNodeType* type,
 dsSceneNode* dsSceneNode_load(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, const char* type,
 	const void* data, size_t size, void* relativePathUserData,
-	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
-	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc)
+	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	if (!allocator || !loadContext || !scratchData || !type || (!data && size > 0) ||
 		!openRelativePathStreamFunc || !closeRelativePathStreamFunc)

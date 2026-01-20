@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+include "VectorDrawShared.fbs";
 
 namespace DeepSeaVectorDraw;
 
@@ -37,14 +39,69 @@ union FileOrData
 	RawData
 }
 
-// Structure defining a reference to a resource.
-table Resource
+// Structure defining a texture resource.
+table TextureResource
 {
-	// The name to reference the resource.
+	// The data for the texture.
+	data : FileOrData (required);
+}
+
+// Structure defining a vector image resource.
+table VectorImageResource
+{
+	// The data for the vector image.
+	data : FileOrData (required);
+
+	// The target size of the image for the tessellation quality.
+	targetSize : Vector2f;
+}
+
+// Enum for the type of icons to use, either textures or vector images.
+enum IconType : ubyte
+{
+	Texture,
+	VectorImage
+}
+
+// Structure defining an individual icon.
+table TextIcon
+{
+	// The codepoint to assign to the icon.
+	codepoint : uint;
+
+	// The name of the texture or vector image to use for the icon.
+	icon : string (required);
+
+	// The advance for the icon.
+	advance : float;
+
+	// The minimum for the bounding box of the icon.
+	boundsMin : Vector2f (required);
+
+	// The maximum for the bounding box of the icon.
+	boundsMax : Vector2f (required);
+}
+
+// Structure for a group of text icons. All codepoints between the minimum and maximum codepoint
+// values will be considered icons.
+table TextIconGroup
+{
+	// The icons for the group.
+	icons : [TextIcon] (required);
+}
+
+// Structure defining text icons using textures.
+table TextIcons
+{
+	// The name to reference the text icons.
 	name : string (required);
 
-	// The data for the resource.
-	data : FileOrData (required);
+	// The type of icons.
+	type : IconType;
+
+	// The icon groups for icons. Multiple groups should be used if there are large gaps between
+	// the codepoints to avoid standard text codepoints from being caught up by accident.
+	icons : [TextIconGroup] (required);
 }
 
 // Enum for the font render quality.
@@ -63,27 +120,34 @@ enum FontCacheSize : ubyte
 	Large
 }
 
+// Structure defining a font face.
+table FontFace
+{
+	// The name to reference the font face.
+	name : string (required);
+
+	// The data for the font face.
+	data : FileOrData (required);
+}
+
 // Structure defining a face group.
 table FaceGroup
 {
-	// The name of the face group.
-	name : string (required);
-
 	// List of font faces within the group.
-	faces : [Resource] (required);
+	faces : [FontFace] (required);
 }
 
 // Structure defining a reference to a font.
 table Font
 {
-	// The name to reference the font.
-	name : string (required);
-
 	// The face group the font belongs to.
 	faceGroup : string (required);
 
-	// The list of font face to reference within the face group.
+	// The list of font faces to reference within the face group.
 	faces : [string] (required);
+
+	// The name of the text icons. May be unset if no icons are used.
+	icons : string;
 
 	// The render quality of the font group.
 	quality : FontQuality;
@@ -92,17 +156,30 @@ table Font
 	cacheSize : FontCacheSize;
 }
 
+// Union defining the resource types that can be stored as vector resources.
+union VectorResourceUnion
+{
+	TextureResource,
+	VectorImageResource,
+	TextIcons,
+	FaceGroup,
+	Font
+}
+
+// Struct defining a vector resource.
+table VectorResource
+{
+	// The name to reference the resource.
+	name : string (required);
+
+	// The vector resource.
+	resource : VectorResourceUnion (required);
+}
+
 // Structure defining vector resources.
 table VectorResources
 {
-	// List of textures.
-	textures : [Resource];
-
-	// List of face groups.
-	faceGroups : [FaceGroup];
-
-	// List of fonts.
-	fonts : [Font];
+	resources : [VectorResource] (required);
 }
 
 root_type VectorResources;

@@ -61,8 +61,9 @@ typedef struct TextureIcons
 	dsAllocator* resourceAllocator;
 	dsSpinlock drawLock;
 
-	dsShader* shader;
-	dsMaterial* material;
+	const dsShader* shader;
+	const dsMaterial* material;
+	bool ownsMaterial;
 	uint32_t textureNameID;
 	uint32_t iconDataNameID;
 	uint32_t iconDataStride;
@@ -123,6 +124,8 @@ static void TextureIcons_destroy(void* userData)
 		dsGfxBuffer_destroy(textureIcons->iconDataBuffers[i].buffer);
 	dsGfxBuffer_destroy(textureIcons->vertexBuffer);
 	dsDrawGeometry_destroy(textureIcons->drawGeometry);
+	if (textureIcons->ownsMaterial)
+		dsMaterial_destroy((dsMaterial*)textureIcons->material);
 	DS_VERIFY(dsAllocator_free(textureIcons->allocator, textureIcons->iconDataBuffers));
 	DS_VERIFY(dsAllocator_free(textureIcons->allocator, textureIcons));
 }
@@ -303,11 +306,10 @@ bool dsTextureTextIcons_isShaderVariableGroupCompatible(
 }
 
 dsTextIcons* dsTextureTextIcons_create(dsAllocator* allocator, dsResourceManager* resourceManager,
-	dsAllocator* resourceAllocator, dsShader* shader, dsMaterial* material,
-	const dsShaderVariableGroupDesc* iconDataDesc, const dsIndexRange* codepointRanges,
-	uint32_t codepointRangeCount, uint32_t maxIcons)
+	dsAllocator* resourceAllocator, const dsShader* shader, const dsMaterial* material,
+	const dsIndexRange* codepointRanges, uint32_t codepointRangeCount, uint32_t maxIcons)
 {
-	if (!allocator || !resourceManager || !shader || !material)
+	if (!allocator || !resourceManager || !shader)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -320,11 +322,16 @@ dsTextIcons* dsTextureTextIcons_create(dsAllocator* allocator, dsResourceManager
 		return NULL;
 	}
 
-	if (!dsTextureTextIcons_isShaderVariableGroupCompatible(iconDataDesc))
+	const dsMaterialDesc* materialDesc = shader->materialDesc;
+	uint32_t iconDataElement = dsMaterialDesc_findElement(
+		materialDesc, dsTextureTextIcons_iconDataName);
+	if (iconDataElement == DS_MATERIAL_UNKNOWN ||
+		!dsTextureTextIcons_isShaderVariableGroupCompatible(
+			materialDesc->elements[iconDataElement].shaderVariableGroupDesc))
 	{
-		DS_LOG_ERROR(DS_TEXT_LOG_TAG,
-			"Icon data's shader variable group description must have been created with "
-			"dsTextureTextIcons_createShaderVariableGroupDesc().");
+		DS_LOG_ERROR_F(DS_TEXT_LOG_TAG,
+			"Icon shader must have shader variable element for '%s' created with "
+			"dsTextureTextIcons_createShaderVariableGroupDesc().", dsTextureTextIcons_iconDataName);
 		errno = EINVAL;
 		return NULL;
 	}
@@ -343,7 +350,18 @@ dsTextIcons* dsTextureTextIcons_create(dsAllocator* allocator, dsResourceManager
 	DS_VERIFY(dsSpinlock_initialize(&textureIcons->drawLock));
 
 	textureIcons->shader = shader;
-	textureIcons->material = material;
+	if (material)
+		textureIcons->material = material;
+	else
+	{
+		textureIcons->material = dsMaterial_create(resourceManager, allocator, materialDesc);
+		if (!textureIcons->ownsMaterial)
+		{
+			TextureIcons_destroy(textureIcons);
+			return NULL;
+		}
+		textureIcons->ownsMaterial = true;
+	}
 	textureIcons->textureNameID = dsUniqueNameID_create(dsTextureTextIcons_textureName);
 	textureIcons->iconDataNameID = dsUniqueNameID_create(dsTextureTextIcons_iconDataName);
 
@@ -364,7 +382,8 @@ dsTextIcons* dsTextureTextIcons_create(dsAllocator* allocator, dsResourceManager
 	else
 	{
 		textureIcons->iconDataGroup = dsShaderVariableGroup_create(
-			resourceManager, allocator, resourceAllocator, iconDataDesc);
+			resourceManager, allocator, resourceAllocator,
+			materialDesc->elements[iconDataElement].shaderVariableGroupDesc);
 		if (!textureIcons->iconDataGroup)
 		{
 			TextureIcons_destroy(textureIcons);

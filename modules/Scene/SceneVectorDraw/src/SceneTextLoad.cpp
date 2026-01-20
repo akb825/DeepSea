@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,8 +51,7 @@
 
 void* dsSceneText_load(const dsSceneLoadContext*, dsSceneLoadScratchData* scratchData,
 	dsAllocator* allocator, dsAllocator*, void* userData, const uint8_t* data, size_t dataSize,
-	void*, dsOpenSceneResourcesRelativePathStreamFunction,
-	dsCloseSceneResourcesRelativePathStreamFunction)
+	void*, dsOpenRelativePathStreamFunction, dsCloseRelativePathStreamFunction)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaSceneVectorDraw::VerifySceneTextBuffer(verifier))
@@ -79,9 +78,11 @@ void* dsSceneText_load(const dsSceneLoadContext*, dsSceneLoadScratchData* scratc
 		return nullptr;
 	}
 
-	dsFont* font = dsVectorResources_findFont(
-		reinterpret_cast<dsVectorResources*>(fontResource->resource), fbFont->name()->c_str());
-	if (!font)
+	dsVectorResourceType vectorResourceType;
+	dsFont* font;
+	if (!dsVectorResources_findResource(&vectorResourceType, reinterpret_cast<void**>(&font),
+			reinterpret_cast<dsVectorResources*>(fontResource->resource),
+			fbFont->name()->c_str()) || vectorResourceType != dsVectorResourceType_Font)
 	{
 		errno = ENOTFOUND;
 		DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG,

@@ -25,121 +25,47 @@ class VectorResources(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # VectorResources
-    def Textures(self, j):
+    def Resources(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from DeepSeaVectorDraw.Resource import Resource
-            obj = Resource()
+            from DeepSeaVectorDraw.VectorResource import VectorResource
+            obj = VectorResource()
             obj.Init(self._tab.Bytes, x)
             return obj
         return None
 
     # VectorResources
-    def TexturesLength(self):
+    def ResourcesLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # VectorResources
-    def TexturesIsNone(self):
+    def ResourcesIsNone(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
-        return o == 0
-
-    # VectorResources
-    def FaceGroups(self, j):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
-        if o != 0:
-            x = self._tab.Vector(o)
-            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
-            x = self._tab.Indirect(x)
-            from DeepSeaVectorDraw.FaceGroup import FaceGroup
-            obj = FaceGroup()
-            obj.Init(self._tab.Bytes, x)
-            return obj
-        return None
-
-    # VectorResources
-    def FaceGroupsLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
-        if o != 0:
-            return self._tab.VectorLen(o)
-        return 0
-
-    # VectorResources
-    def FaceGroupsIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
-        return o == 0
-
-    # VectorResources
-    def Fonts(self, j):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
-        if o != 0:
-            x = self._tab.Vector(o)
-            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
-            x = self._tab.Indirect(x)
-            from DeepSeaVectorDraw.Font import Font
-            obj = Font()
-            obj.Init(self._tab.Bytes, x)
-            return obj
-        return None
-
-    # VectorResources
-    def FontsLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
-        if o != 0:
-            return self._tab.VectorLen(o)
-        return 0
-
-    # VectorResources
-    def FontsIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         return o == 0
 
 def VectorResourcesStart(builder):
-    builder.StartObject(3)
+    builder.StartObject(1)
 
 def Start(builder):
     VectorResourcesStart(builder)
 
-def VectorResourcesAddTextures(builder, textures):
-    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(textures), 0)
+def VectorResourcesAddResources(builder, resources):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(resources), 0)
 
-def AddTextures(builder, textures):
-    VectorResourcesAddTextures(builder, textures)
+def AddResources(builder, resources):
+    VectorResourcesAddResources(builder, resources)
 
-def VectorResourcesStartTexturesVector(builder, numElems):
+def VectorResourcesStartResourcesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartTexturesVector(builder, numElems):
-    return VectorResourcesStartTexturesVector(builder, numElems)
-
-def VectorResourcesAddFaceGroups(builder, faceGroups):
-    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(faceGroups), 0)
-
-def AddFaceGroups(builder, faceGroups):
-    VectorResourcesAddFaceGroups(builder, faceGroups)
-
-def VectorResourcesStartFaceGroupsVector(builder, numElems):
-    return builder.StartVector(4, numElems, 4)
-
-def StartFaceGroupsVector(builder, numElems):
-    return VectorResourcesStartFaceGroupsVector(builder, numElems)
-
-def VectorResourcesAddFonts(builder, fonts):
-    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(fonts), 0)
-
-def AddFonts(builder, fonts):
-    VectorResourcesAddFonts(builder, fonts)
-
-def VectorResourcesStartFontsVector(builder, numElems):
-    return builder.StartVector(4, numElems, 4)
-
-def StartFontsVector(builder, numElems):
-    return VectorResourcesStartFontsVector(builder, numElems)
+def StartResourcesVector(builder, numElems):
+    return VectorResourcesStartResourcesVector(builder, numElems)
 
 def VectorResourcesEnd(builder):
     return builder.EndObject()

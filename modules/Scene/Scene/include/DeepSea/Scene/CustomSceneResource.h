@@ -65,8 +65,8 @@ DS_SCENE_EXPORT dsCustomSceneResource* dsCustomSceneResource_load(dsAllocator* a
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, const char* type, const void* data, size_t size,
 	void* relativePathUserData,
-	dsOpenSceneResourcesRelativePathStreamFunction openRelativePathStreamFunc,
-	dsCloseSceneResourcesRelativePathStreamFunction closeRelativePathStreamFunc);
+	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc);
 
 /**
  * @brief Destroys a custom resource.

@@ -76,10 +76,7 @@ DS_TEXT_EXPORT bool dsTextureTextIcons_isShaderVariableGroupCompatible(
  *     and 2D texture coordinates. This must remain alive at least as long as the texture text
  *     icons.
  * @param material The material to draw the icons with. This must remain alive at least as long as
- *     the texture text icons.
- * @param iconDataDesc The shader variable group description created from
- *     dsTextureTextIcons_createShaderVariableGroupDesc(). This must remain alive at least as
- *     long as the texture text icons.
+ *     the texture text icons. If NULL, an empty material will be created.
  * @param codepointRanges The ranges of codepoints this will cover. These codepoints will be
  *     reserved for icons, but not every codepont must be added as an icon. At least one range must
  *     be provided.
@@ -88,9 +85,9 @@ DS_TEXT_EXPORT bool dsTextureTextIcons_isShaderVariableGroupCompatible(
  * @return The text icons or NULL if an error occurred.
  */
 DS_TEXT_EXPORT dsTextIcons* dsTextureTextIcons_create(dsAllocator* allocator,
-	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, dsShader* shader,
-	dsMaterial* material, const dsShaderVariableGroupDesc* iconDataDesc,
-	const dsIndexRange* codepointRanges, uint32_t codepointRangeCount, uint32_t maxIcons);
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, const dsShader* shader,
+	const dsMaterial* material, const dsIndexRange* codepointRanges, uint32_t codepointRangeCount,
+	uint32_t maxIcons);
 
 /**
  * @brief Adds an icon to texture text icons.
