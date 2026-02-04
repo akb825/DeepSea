@@ -684,13 +684,9 @@ inline ::flatbuffers::Offset<TextIconGroup> CreateTextIconGroupDirect(
 struct TextIcons FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef TextIconsBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_NAME = 4,
-    VT_TYPE = 6,
-    VT_ICONS = 8
+    VT_TYPE = 4,
+    VT_ICONS = 6
   };
-  const ::flatbuffers::String *name() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
-  }
   DeepSeaVectorDraw::IconType type() const {
     return static_cast<DeepSeaVectorDraw::IconType>(GetField<uint8_t>(VT_TYPE, 0));
   }
@@ -700,8 +696,6 @@ struct TextIcons FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_NAME) &&
-           verifier.VerifyString(name()) &&
            VerifyField<uint8_t>(verifier, VT_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_ICONS) &&
            verifier.VerifyVector(icons()) &&
@@ -714,9 +708,6 @@ struct TextIconsBuilder {
   typedef TextIcons Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
-    fbb_.AddOffset(TextIcons::VT_NAME, name);
-  }
   void add_type(DeepSeaVectorDraw::IconType type) {
     fbb_.AddElement<uint8_t>(TextIcons::VT_TYPE, static_cast<uint8_t>(type), 0);
   }
@@ -730,7 +721,6 @@ struct TextIconsBuilder {
   ::flatbuffers::Offset<TextIcons> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<TextIcons>(end);
-    fbb_.Required(o, TextIcons::VT_NAME);
     fbb_.Required(o, TextIcons::VT_ICONS);
     return o;
   }
@@ -738,26 +728,21 @@ struct TextIconsBuilder {
 
 inline ::flatbuffers::Offset<TextIcons> CreateTextIcons(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
     DeepSeaVectorDraw::IconType type = DeepSeaVectorDraw::IconType::Texture,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::TextIconGroup>>> icons = 0) {
   TextIconsBuilder builder_(_fbb);
   builder_.add_icons(icons);
-  builder_.add_name(name);
   builder_.add_type(type);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<TextIcons> CreateTextIconsDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *name = nullptr,
     DeepSeaVectorDraw::IconType type = DeepSeaVectorDraw::IconType::Texture,
     const std::vector<::flatbuffers::Offset<DeepSeaVectorDraw::TextIconGroup>> *icons = nullptr) {
-  auto name__ = name ? _fbb.CreateString(name) : 0;
   auto icons__ = icons ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaVectorDraw::TextIconGroup>>(*icons) : 0;
   return DeepSeaVectorDraw::CreateTextIcons(
       _fbb,
-      name__,
       type,
       icons__);
 }

@@ -426,7 +426,7 @@ static dsFont* loadFont(const DeepSeaVectorDraw::Font& fbFont, const dsVectorRes
 		const char* iconsName = fbIcons->c_str();
 		if (!dsVectorResources_findResource(
 				&resourceType, (void**)&textIcons, resources, iconsName) ||
-			resourceType != dsVectorResourceType_FaceGroup)
+			resourceType != dsVectorResourceType_TextIcons)
 		{
 			errno = ENOTFOUND;
 			if (name)
@@ -532,7 +532,7 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 			}
 			case DeepSeaVectorDraw::VectorResourceUnion::VectorImageResource:
 			{
-				resourceType = dsVectorResourceType_Texture;
+				resourceType = dsVectorResourceType_VectorImage;
 				resource = loadVectorImage(*fbResource->resource_as_VectorImageResource(),
 					relativePathUserData, openRelativePathStreamFunc, closeRelativePathStreamFunc,
 					allocator, resourceAllocator, &initResourcesWithThis, pixelSize, name);

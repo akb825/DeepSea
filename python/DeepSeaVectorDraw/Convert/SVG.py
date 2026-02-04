@@ -1,4 +1,4 @@
-# Copyright 2020-2025 Aaron Barany
+# Copyright 2020-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -63,6 +63,8 @@ textAlignMap = {'start': TextAlign.Start, 'end': TextAlign.End, 'left': TextAlig
 textAnchorMap = {'start': TextAlign.Start, 'end': TextAlign.End, 'middle': TextAlign.Center}
 textAttributes = ['font-family', 'font-size', 'font-style', 'font-weight', 'text-align',
 	'text-anchor', 'line-height', 'textLength', 'inline-size']
+
+singleFloatRegEx = r'[-+]?(?:[0-9]+\.?[0-9]*|[0-9]*\.?[0-9]+)(?:[eE][-+]?[0-9]+)?'
 
 def sizeFromString(sizeStr, relativeSize):
 	"""
@@ -141,14 +143,14 @@ class Transform:
 			# Support a single matrix or translate element.
 			transformStr = node.getAttribute(transformName)
 			if transformStr[:7] == 'matrix(':
-				values = re.findall(r"[-+0-9.eE]+", transformStr[7:-1])
+				values = re.findall(singleFloatRegEx, transformStr[7:-1])
 				if len(values) != 6:
 					raise Exception()
 				return Transform(((float(values[0].strip()), float(values[1].strip()), 0.0),
 					(float(values[2].strip()), float(values[3].strip()), 0.0),
 					(float(values[4].strip()), float(values[5].strip()), 1.0)))
 			elif transformStr[:10] == 'translate(':
-				values = re.findall(r"[-+0-9.eE]+", transformStr[10:-1])
+				values = re.findall(singleFloatRegEx, transformStr[10:-1])
 				if len(values) != 2:
 					raise Exception()
 				return Transform(((1.0, 0.0, 0.0), (0.0, 1.0, 0.0),
@@ -445,14 +447,11 @@ class Style:
 		font = None
 		opacity = 1.0
 
-		hasAny = False
 		if parentStyle:
 			if parentStyle.fill:
-				hasAny = True
 				fill = Fill(parentStyle.fill.material)
 				fill.opacity = parentStyle.fill.opacity
 			if parentStyle.stroke:
-				hasAny = True
 				stroke = Stroke(parentStyle.stroke.material)
 				stroke.opacity = parentStyle.stroke.opacity
 				stroke.join = parentStyle.stroke.join
@@ -461,7 +460,6 @@ class Style:
 				stroke.miterLimit = parentStyle.stroke.miterLimit
 				stroke.dashArray = parentStyle.stroke.dashArray
 			if parentStyle.font:
-				hasAny = True
 				font = Font(parentStyle.font.font)
 				font.size = parentStyle.font.size
 				font.embolden = parentStyle.font.embolden
@@ -473,7 +471,6 @@ class Style:
 
 		elements = extractAttributes(node)
 		if 'fill' in elements:
-			hasAny = True
 			value = elements['fill']
 			if value == 'none':
 				fill = None
@@ -496,7 +493,6 @@ class Style:
 			fill.opacity = float(elements['fill-opacity'])
 
 		if 'stroke' in elements:
-			hasAny = True
 			value = elements['stroke']
 			if value == 'none':
 				stroke = None
@@ -536,7 +532,6 @@ class Style:
 					break
 
 		if hasFontElement:
-			hasAny = True
 			if text and 'color' in elements:
 				value = elements['color']
 				if value[:4] == 'url(':
@@ -594,9 +589,7 @@ class Style:
 		if not group and not fill and not stroke:
 			raise Exception("Shape doesn't have a stroke or a fill.")
 
-		if hasAny or opacity != 1.0:
-			return Style(fill, stroke, font, opacity)
-		return None
+		return Style(fill, stroke, font, opacity)
 
 	def write(self, builder):
 		offsets = []
@@ -726,7 +719,7 @@ def writeLines(builder, transform, style, points, closePath = False):
 	return offsets
 
 def parsePointList(pointStr, size):
-	tokens = re.findall(r"[-+0-9.e]+(?:[eE][-+]?[0-9]+)?(?:cm|mm|Q|in|pc|pt|em|px|%)?", pointStr)
+	tokens = re.findall(singleFloatRegEx + r'(?:cm|mm|Q|in|pc|pt|em|px|%)?', pointStr)
 	points = []
 	for i in range(int(len(tokens)/2)):
 		points.append((sizeFromString(tokens[i*2], size[0]),
@@ -744,9 +737,8 @@ def writePolyline(builder, transform, style, pointStr, size):
 def writePath(builder, transform, style, path, size, diagonalSize):
 	offsets = writeStartPath(builder, transform, False)
 
-	tokens = re.findall(
-		r"[mMzZlLhHvVcCsSqQtTaAbB]|[-+]?[0-9.]+(?:[eE][-+]?[0-9]+)?"
-		"(?:cm|mm|Q|in|pc|pt|em|px|deg|grad|rad|turn|%)?", path)
+	tokens = re.findall(r'[mMzZlLhHvVcCsSqQtTaAbB]|' + singleFloatRegEx +
+		r'(?:cm|mm|Q|in|pc|pt|em|px|deg|grad|rad|turn|%)?', path)
 	pos = (0.0, 0.0)
 	lastControlPos = None
 	lastQuadraticPos = None

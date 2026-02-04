@@ -93,9 +93,6 @@ table TextIconGroup
 // Structure defining text icons using textures.
 table TextIcons
 {
-	// The name to reference the text icons.
-	name : string (required);
-
 	// The type of icons.
 	type : IconType;
 

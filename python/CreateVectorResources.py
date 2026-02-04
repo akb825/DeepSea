@@ -89,8 +89,8 @@ class VectorResources:
 		      - path: path to the input SVG.
 		      - defaultFont: the default font to use when none is specified for a text element.
 		        Defaults to serif.
-		      - targetSize: array with the target width and height. Defaults to the dimensions of
-		        the image.
+		      - targetSize: array with the target width and height for tessellation quality.
+		        Defaults to the dimensions of the image.
 		      - embed: hether to embed embed directly in the resources file. Defaults to false.
 		    - "TextureTextIcons", "VectorTextIcons": icons used to replace specific codepoints with
 		       either a texture or vector image rather than the glyph from a font face.
@@ -243,7 +243,7 @@ class VectorResources:
 				FileReference.AddPath(builder, pathOffset)
 				return FileOrData.FileReference, FileReference.End(builder)
 			else:
-				if isinstance(filePathOrBytes, bytes):
+				if isinstance(filePathOrBytes, (bytes, bytearray)):
 					dataOffset = builder.CreateByteVector(filePathOrBytes)
 				else:
 					with open(filePathOrBytes, 'r+b') as dataFile:
@@ -282,8 +282,11 @@ class VectorResources:
 						commandLine.append('--srgb')
 					size = texture.get('size')
 					if size:
-						commandLine.extend(['-r', size[0], size[1]])
-					quality = texture.get('quality')
+						try:
+							commandLine.extend(['-r', str(int(size[0])), str(int(size[1]))])
+						except (AttributeError, TypeError, ValueError):
+							raise Exception('Vector texture "size" must be an array of two ints.')
+					quality = str(texture.get('quality', ''))
 					if quality:
 						commandLine.extend(['-Q', quality.lower()])
 				except KeyError as e:
@@ -333,7 +336,7 @@ class VectorResources:
 			except KeyError as e:
 				raise Exception("Vector resource doesn't contain element " + str(e) + '.')
 
-			vectorImageBytes = convertSVG(path, name, defaultFont)
+			vectorImageBytes = convertSVG(os.path.join(self.basePath, path), name, defaultFont)
 			if vectorImage.get('embed'):
 				outputName = None
 			else:
@@ -370,9 +373,23 @@ class VectorResources:
 						iconOffsets = []
 						for icon in iconGroup:
 							codepoint = icon['codepoint']
-							iconName = icon['icon']
+							iconName = str(icon['icon'])
 							advance = icon['advance']
 							bounds = icon['bounds']
+
+							try:
+								codepoint = int(codepoint)
+								if codepoint <= 0:
+									raise ValueError()
+							except ValueError:
+								raise Exception('Text icon "advance" must be a positive int.')
+
+							try:
+								advance = float(advance)
+								if advance < 0:
+									raise ValueError(advance)
+							except ValueError:
+								raise Exception('Text icon "advance" must be a non-negative float.')
 
 							try:
 								boundsMin = (float(bounds[0][0]), float(bounds[0][1]))
@@ -410,12 +427,17 @@ class VectorResources:
 				builder.PrependUOffsetTRelative(offset)
 			iconGroupsOffset = builder.EndVector()
 
-			nameOffset = builder.CreateString(name)
 			TextIcons.Start(builder)
-			TextIcons.AddName(builder, nameOffset)
 			TextIcons.AddType(builder, iconType)
 			TextIcons.AddIcons(builder, iconGroupsOffset)
-			return TextIcons.End(builder)
+			textIconsOffset = TextIcons.End(builder)
+
+			nameOffset = builder.CreateString(name)
+			VectorResource.Start(builder)
+			VectorResource.AddName(builder, nameOffset)
+			VectorResource.AddResourceType(builder, VectorResourceUnion.TextIcons)
+			VectorResource.AddResource(builder, textIconsOffset)
+			return VectorResource.End(builder)
 
 		def convertFaceGroup(faceGroup):
 			try:
@@ -484,6 +506,8 @@ class VectorResources:
 				except (AttributeError, TypeError, ValueError):
 					raise Exception('Font "faces" must be an array of strings.')
 
+				icons = str(font.get('icons', ''))
+
 				qualityStr = str(font['quality'])
 				cacheSizeStr = str(font.get('cacheSize', 'large'))
 
@@ -504,10 +528,16 @@ class VectorResources:
 				builder.PrependUOffsetTRelative(offset)
 			facesOffset = builder.EndVector()
 
+			if icons:
+				iconsOffset = builder.CreateString(icons)
+			else:
+				iconsOffset = 0
+
 			faceGroupOffset = builder.CreateString(faceGroup)
 			Font.Start(builder)
 			Font.AddFaceGroup(builder, faceGroupOffset)
 			Font.AddFaces(builder, facesOffset)
+			Font.AddIcons(builder, iconsOffset)
 			Font.AddQuality(builder, quality)
 			Font.AddCacheSize(builder, cacheSize)
 			fontOffset = Font.End(builder)
