@@ -355,7 +355,7 @@ dsTextIcons* dsTextureTextIcons_create(dsAllocator* allocator, dsResourceManager
 	else
 	{
 		textureIcons->material = dsMaterial_create(resourceManager, allocator, materialDesc);
-		if (!textureIcons->ownsMaterial)
+		if (!textureIcons->material)
 		{
 			TextureIcons_destroy(textureIcons);
 			return NULL;

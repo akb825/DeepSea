@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -571,8 +571,7 @@ static bool shapeFaceRange(const dsFont* font, uint32_t face, dsText* text, dsTe
 }
 
 static bool shapeIconRange(const dsFont* font, dsText* text, dsTextRange* range,
-	uint32_t firstCodepoint, uint32_t start, uint32_t count, uint32_t newlineCount,
-	dsTextDirection direction)
+	uint32_t start, uint32_t count, uint32_t newlineCount, dsTextDirection direction)
 {
 	DS_ASSERT(font->icons);
 	uint32_t glyphOffset = text->glyphCount;
@@ -900,11 +899,10 @@ dsRunInfo* dsFaceGroup_findBidiRuns(
 	for (unsigned int i = 0; i < paragraphCount; ++i)
 	{
 		dsParagraphInfo* paragraph = group->paragraphs + i;
-		if (!paragraph->paragraph)
-			continue;
-
-		SBLineRelease(paragraph->line);
-		SBParagraphRelease(paragraph->paragraph);
+		if (paragraph->line)
+			SBLineRelease(paragraph->line);
+		if (paragraph->paragraph)
+			SBParagraphRelease(paragraph->paragraph);
 	}
 	SBAlgorithmRelease(algorithm);
 
@@ -1359,10 +1357,7 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 
 	uint32_t face = dsFont_findFaceForCodepoint(font, firstCodepoint);
 	if (face == DS_ICON_FACE)
-	{
-		return shapeIconRange(
-			font, text, range, firstCodepoint, start, count, newlineCount, direction);
-	}
+		return shapeIconRange(font, text, range, start, count, newlineCount, direction);
 	return shapeFaceRange(
 		font, face, text, range, firstCodepoint, start, count, newlineCount, direction);
 }

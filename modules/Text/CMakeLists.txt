@@ -22,7 +22,7 @@ if (NOT DEEPSEA_SINGLE_SHARED)
 endif()
 
 ds_target_include_directories(deepsea_text PRIVATE
-	${FREETYPE_INCLUDE_DIRS} ${HARFBUZZ_INCLUDE_DIRS} SheenBidi/Headers)
+	${FREETYPE_INCLUDE_DIRS} ${HARFBUZZ_INCLUDE_DIRS} SheenBidi/Headers SheenBidi/Source)
 ds_target_link_libraries(deepsea_text PRIVATE ${HARFBUZZ_LIBRARIES} ${FREETYPE_LIBRARIES}
 	${extraLibraries})
 
