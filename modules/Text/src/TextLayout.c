@@ -460,8 +460,6 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 				line = (uint32_t)glyph->position.y;
 			}
 
-			position.x += textGlyph->advance*size;
-
 			if (!isWhitespace)
 			{
 				const dsTextStyle* style = layout->styles + glyph->styleIndex;
@@ -546,6 +544,13 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 
 		for (uint32_t j = 0; j < charMapping->glyphCount; ++j)
 			glyphs[charMapping->firstGlyph + j].position = position;
+
+		// Advance for the next glyph.
+		for (uint32_t j = 0; j < charMapping->glyphCount; ++j)
+		{
+			const dsGlyph* textGlyph = text->glyphs + charMapping->firstGlyph + j;
+			position.x += textGlyph->advance*size;
+		}
 	}
 
 	// Allocate lines if there's an allocator.
