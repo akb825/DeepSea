@@ -1,0 +1,56 @@
+/*
+ * Copyright 2025-2026 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include <DeepSea/Render/Shaders/VertexAttributes.mslh>
+#include <DeepSea/Text/TextureTextIcon.mslh>
+
+[[vertex]] layout(location = DS_POSITION) in vec2 vertexPos;
+[[vertex]] layout(location = DS_TEXCOORD0) in vec2 texCoords;
+
+varying(vertex, fragment)
+{
+	vec2 vfTexCoords;
+}
+
+[[fragment]] out vec4 color;
+
+[[vertex]]
+void vertexShader()
+{
+	vfTexCoords = texCoords;
+
+	gl_Position = dsComputeTextureTextIconPosition(vertexPos);
+	gl_Position = DS_ADJUST_CLIP(gl_Position);
+}
+
+[[fragment]]
+void fragmentShader()
+{
+	color = texture(dsTextIconTex, vfTexCoords);
+}
+
+pipeline TextureIcon
+{
+	vertex = vertexShader;
+	fragment = fragmentShader;
+
+	blend_enable = true;
+	// Pre-multiply alpha.
+	src_blend_factor = one;
+	dst_blend_factor = one_minus_src_alpha;
+	blend_op = add;
+	cull_mode = back;
+}

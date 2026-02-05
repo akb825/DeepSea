@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,11 @@
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Material.h>
+#include <DeepSea/Render/Resources/MaterialDesc.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Resources/Shader.h>
 #include <DeepSea/Render/Resources/ShaderModule.h>
+#include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <DeepSea/Render/CommandBuffer.h>
 #include <DeepSea/Render/CommandBufferPool.h>
@@ -46,6 +48,8 @@
 #include <DeepSea/Render/RenderSurface.h>
 
 #include <DeepSea/RenderBootstrap/RenderBootstrap.h>
+
+#include <DeepSea/Text/TextureTextIcons.h>
 
 #include <DeepSea/VectorDraw/VectorImage.h>
 #include <DeepSea/VectorDraw/VectorResources.h>
@@ -73,6 +77,9 @@ typedef struct TestVectorDraw
 	dsVectorShaders* shaders;
 	dsVectorShaders* wireframeShaders;
 	dsMaterial* material;
+	dsShaderVariableGroupDesc* textureIconDataDesc;
+	dsMaterialDesc* textureIconMaterialDesc;
+	dsShader* textureIconShader;
 	dsVectorResources* vectorResources;
 	dsVectorImage** vectorImages;
 
@@ -125,7 +132,8 @@ const char* vectorImageFiles[] =
 	"text-autoformat.dsvi",
 	"tspan.dsvi",
 	"text-materials.dsvi",
-	"text-materials-compare.dsvi"
+	"text-materials-compare.dsvi",
+	"text-icons.dsvi"
 };
 
 static void printHelp(const char* programPath)
@@ -310,19 +318,19 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	else
 		size.x = size.y*windowAspect;
 
-	dsMatrix44f projection, surfaceRotation, matrix;
+	dsMatrix44f projection, surfaceRotation, modelViewProjection;
 	DS_VERIFY(dsRenderer_makeOrtho(&projection, renderer, 0.0f, size.x, 0.0f, size.y, 0.0f, 1.0f));
-	DS_VERIFY(dsRenderSurface_makeRotationMatrix44(&surfaceRotation,
-		testVectorDraw->window->surface->rotation));
-	dsMatrix44f_mul(&matrix, &surfaceRotation, &projection);
+	DS_VERIFY(dsRenderSurface_makeRotationMatrix44(
+		&surfaceRotation, testVectorDraw->window->surface->rotation));
+	dsMatrix44f_mul(&modelViewProjection, &surfaceRotation, &projection);
 
 	dsVectorShaders* shaders;
 	if (testVectorDraw->wireframe)
 		shaders = testVectorDraw->wireframeShaders;
 	else
 		shaders = testVectorDraw->shaders;
-	DS_VERIFY(dsVectorImage_draw(image, commandBuffer, shaders, testVectorDraw->material, &matrix,
-		NULL, NULL));
+	DS_VERIFY(dsVectorImage_draw(
+		image, commandBuffer, shaders, testVectorDraw->material, &modelViewProjection, NULL, NULL));
 
 	DS_VERIFY(dsRenderPass_end(testVectorDraw->renderPass, commandBuffer));
 }
@@ -447,6 +455,40 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	testVectorDraw->textureIconDataDesc = dsTextureTextIcons_createShaderVariableGroupDesc(
+		resourceManager, allocator);
+	if (!testVectorDraw->textureIconDataDesc)
+	{
+		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create shader variable group description: %s",
+			dsErrorString(errno));
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsMaterialElement textureIconMaterialElems[] =
+	{
+		{dsTextureTextIcons_textureName, dsMaterialType_Texture, 0, NULL,
+			dsMaterialBinding_Instance, 0},
+		{dsTextureTextIcons_iconDataName, dsMaterialType_VariableGroup, 0,
+			testVectorDraw->textureIconDataDesc, dsMaterialBinding_Instance, 0}
+	};
+	testVectorDraw->textureIconMaterialDesc = dsMaterialDesc_create(resourceManager, allocator,
+		textureIconMaterialElems, DS_ARRAY_SIZE(textureIconMaterialElems));
+	if (!testVectorDraw->textureIconMaterialDesc)
+	{
+		DS_LOG_ERROR_F(
+			"TestVectorDraw", "Couldn't create material description: %s", dsErrorString(errno));
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	testVectorDraw->textureIconShader = dsShader_createName(resourceManager, allocator,
+		testVectorDraw->shaderModule->shaderModule, "TextureIcon",
+		testVectorDraw->textureIconMaterialDesc);
+	if (!testVectorDraw->textureIconShader)
+	{
+		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create shader: %s", dsErrorString(errno));
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	testVectorDraw->material = dsMaterial_create(resourceManager, allocator,
 		testVectorDraw->shaderModule->materialDesc);
 	if (!testVectorDraw->material)
@@ -484,11 +526,11 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	}
 
 	dsVectorImageInitResources initResources = {resourceManager, setupCommands, scratchData, NULL,
-		testVectorDraw->shaderModule, NULL, &testVectorDraw->vectorResources, 1, srgb};
+		testVectorDraw->shaderModule, NULL, NULL, 0, srgb};
 
 	testVectorDraw->vectorResources = dsVectorResources_loadResource(allocator, NULL, NULL,
-		resourceManager, dsFileResourceType_Embedded, path, NULL, &initResources, 1.0f, NULL, NULL,
-		NULL);
+		resourceManager, dsFileResourceType_Embedded, path, NULL, &initResources, 1.0f,
+		testVectorDraw->shaders, testVectorDraw->textureIconShader, NULL);
 	if (!testVectorDraw->vectorResources)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't load vector resources: %s",
@@ -496,6 +538,9 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 		dsVectorScratchData_destroy(scratchData);
 		DS_PROFILE_FUNC_RETURN(false);
 	}
+
+	initResources.resources = &testVectorDraw->vectorResources;
+	initResources.resourceCount = 1;
 
 	dsTimer timer = dsTimer_create();
 	dsVector2f targetImageSize2f = {{targetImageSize, targetImageSize}};
@@ -546,6 +591,9 @@ static void shutdown(TestVectorDraw* testVectorDraw)
 	}
 	DS_VERIFY(dsVectorResources_destroy(testVectorDraw->vectorResources));
 	dsMaterial_destroy(testVectorDraw->material);
+	DS_VERIFY(dsShader_destroy(testVectorDraw->textureIconShader));
+	DS_VERIFY(dsMaterialDesc_destroy(testVectorDraw->textureIconMaterialDesc));
+	DS_VERIFY(dsShaderVariableGroupDesc_destroy(testVectorDraw->textureIconDataDesc));
 	DS_VERIFY(dsVectorShaders_destroy(testVectorDraw->wireframeShaders));
 	DS_VERIFY(dsVectorShaders_destroy(testVectorDraw->shaders));
 	DS_VERIFY(dsVectorShaderModule_destroy(testVectorDraw->shaderModule));

@@ -15,6 +15,7 @@ endif()
 set(shaderConfigs)
 set(srgbShaderConfigs)
 set(source TestVectorDraw.c
+	TextureIcon.msl
 	VectorElementFill.msl VectorElementLine.msl VectorElementImage.msl VectorElementTextColor.msl
 		 VectorElementTextGradient.msl
 	VectorElementFillSRGB.msl VectorElementLineSRGB.msl VectorElementTextColorSRGB.msl
@@ -69,6 +70,7 @@ ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/VectorElementFill.ms
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementImage.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementTextColor.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementTextGradient.msl
+	${CMAKE_CURRENT_SOURCE_DIR}/TextureIcon.msl
 	OUTPUT TestVectorDraw.mslb
 	CONFIG ${shaderConfigs} ${shaderOptions})
 ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/VectorElementFillSRGB.msl
@@ -76,6 +78,7 @@ ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/VectorElementFillSRG
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementImage.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementTextColorSRGB.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementTextGradientSRGB.msl
+	${CMAKE_CURRENT_SOURCE_DIR}/TextureIcon.msl
 	OUTPUT TestVectorDrawSRGB.mslb
 	CONFIG ${srgbShaderConfigs} ${shaderOptions})
 ds_compile_shaders_target(deepsea_test_vector_draw_app_shaders shaders

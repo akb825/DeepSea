@@ -99,7 +99,8 @@ class VectorResources:
 		        icons together for faster lookup, where all values between the minimum and maximum
 		        codepoints are considered one block of icon glyphs. Each element of the inner array
 		        is expected to have the following members:
-		        - codepoint: the integer codepoint for the Unicode value to assign the icon to.
+		        - codepoint: the integer codepoint for the Unicode value to assign the icon to. This
+		          may also be provided as a hexidecimal string.
 		        - icon: the name of the texture or vector image (depending on the parent object's
 		          type) to use for the icon.
 		        - advance: the amount to advance text after the icon, normalized to be typically
@@ -378,7 +379,10 @@ class VectorResources:
 							bounds = icon['bounds']
 
 							try:
-								codepoint = int(codepoint)
+								if isinstance(codepoint, str):
+									codepoint = int(codepoint, 0)
+								else:
+									codepoint = int(codepoint)
 								if codepoint <= 0:
 									raise ValueError()
 							except ValueError:

@@ -799,12 +799,20 @@ static bool addTextRanges(dsVectorImage* vectorImage, dsCommandBuffer* commandBu
 
 		DS_ASSERT(piece->textRender);
 		DS_VERIFY(dsTextRenderBuffer_clear(piece->textRender));
+		uint32_t firstIconGlyph = 0;
 		for (uint32_t j = 0; j < piece->range.indexCount; ++j)
 		{
 			DS_ASSERT(piece->range.firstIndex + j < vectorImage->textDrawInfoCount);
 			TextDrawInfo* drawInfo = vectorImage->textDrawInfos + piece->range.firstIndex + j;
 			DS_VERIFY(dsTextRenderBuffer_addTextRange(piece->textRender, drawInfo->layout, drawInfo,
 				drawInfo->firstCharacter, drawInfo->characterCount));
+
+			// Update info for drawing icons with proper transformations.
+			uint32_t iconGlyphCount = dsTextRenderBuffer_countIconGlyphs(
+				drawInfo->layout, drawInfo->firstCharacter, drawInfo->characterCount);
+			drawInfo->firstIconGlyph = firstIconGlyph;
+			drawInfo->iconGlyphCount = iconGlyphCount;
+			firstIconGlyph += iconGlyphCount;
 		}
 
 		if (!dsTextRenderBuffer_commit(piece->textRender, commandBuffer))
@@ -1289,11 +1297,12 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 		else
 		{
 			DS_ASSERT(piece->textOutlineMaterialSource == MaterialSource_Shared);
-			DS_ASSERT(sharedMaterialInfoTexture);
 			textOutlineMaterialInfoTexture = sharedMaterialInfoTexture;
 			textOutlineMaterialColorTexture = sharedMaterialColorTexture;
 		}
 
+		DS_ASSERT(materialInfoTexture);
+		DS_ASSERT(textOutlineMaterialInfoTexture);
 		textureSizes.y = (float)materialInfoTexture->info.height;
 		textureSizes.z = (float)textOutlineMaterialInfoTexture->info.height;
 
@@ -1354,14 +1363,34 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 		// Draw icons if present.
 		if (piece->textRender)
 		{
-			dsMatrix44f textTransform, iconModelViewProjection;
-			DS_VERIFY(dsTextRenderBuffer_localTransform(&textTransform, &vectorImage->size));
-			dsMatrix44f_mul(&iconModelViewProjection, modelViewProjection, &textTransform);
-			if (!dsTextRenderBuffer_drawIconGlyphs(piece->textRender, commandBuffer,
-					&iconModelViewProjection, globalValues, renderStates))
+			for (uint32_t j = 0; j < piece->range.indexCount; ++j)
 			{
-				success = false;
-				break;
+				DS_ASSERT(piece->range.firstIndex + j < vectorImage->textDrawInfoCount);
+				TextDrawInfo* drawInfo = vectorImage->textDrawInfos + piece->range.firstIndex + j;
+				if (drawInfo->iconGlyphCount == 0)
+					continue;
+
+				dsMatrix44f pieceTransform =
+				{{
+					{drawInfo->transformCols[0].x, drawInfo->transformCols[0].y, 0.0f, 0.0f},
+					{drawInfo->transformCols[1].x, drawInfo->transformCols[1].y, 0.0f, 0.0f},
+					{0.0f, 0.0f, 1.0f, 0.0f},
+					{drawInfo->transformCols[2].x + drawInfo->offset.x,
+						drawInfo->transformCols[2].y + drawInfo->offset.y, 0.0f, 1.0f}
+				}};
+				dsVector2f upperLeft = {{0.0f, vectorImage->size.y}};
+
+				dsMatrix44f textTransform, pieceTextTransform, iconModelViewProjection;
+				DS_VERIFY(dsTextRenderBuffer_localTransform(&textTransform, &upperLeft));
+				dsMatrix44f_mul(&pieceTextTransform, &textTransform, &pieceTransform);
+				dsMatrix44f_mul(&iconModelViewProjection, modelViewProjection, &pieceTextTransform);
+				if (!dsTextRenderBuffer_drawIconGlyphRange(piece->textRender, commandBuffer,
+						drawInfo->firstIconGlyph, drawInfo->iconGlyphCount,
+						&iconModelViewProjection, globalValues, renderStates))
+				{
+					success = false;
+					break;
+				}
 			}
 		}
 	}

@@ -6,7 +6,7 @@ When running the tester, the left and right arrow keys can be used to cycle thro
 
 ## Test cases
 
-Most test cases can be verified by viewing the SVG files in an SVG viewing or editing application, such as Inkscape or a web browser. Some of the text 
+Most test cases can be verified by viewing the SVG files in an SVG viewing or editing application, such as Inkscape or a web browser. Some of the text test cases don't display properly in most SVG viewers, so screenshots are provided below for the expected results.
 
 ### Multi-line, pre-formatted text
 
@@ -25,3 +25,7 @@ Most test cases can be verified by viewing the SVG files in an SVG viewing or ed
 This test is primarily used to compare performance of text with and without gradients. The performance difference is especially prominent with integrated GPUs.
 
 ![Text without gradients](doc-images/NonGradientText.png)
+
+### Text with icons
+
+![Text with icons](doc-images/TextIcons.png)

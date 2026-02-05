@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,6 +116,11 @@ typedef struct TextDrawInfo
 	uint32_t outlineMaterial;
 	uint32_t infoIndex;
 	dsVector2f offset;
+	dsVector2f transformCols[3];
+
+	// Updated when adding to text render.
+	uint32_t firstIconGlyph;
+	uint32_t iconGlyphCount;
 } TextDrawInfo;
 
 struct dsVectorScratchData

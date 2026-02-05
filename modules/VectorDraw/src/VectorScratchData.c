@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,7 @@ static bool hasTexture(dsVectorShaderType type)
 static bool addPiece(dsVectorScratchData* data, dsVectorShaderType type, dsTexture* texture,
 	uint32_t infoIndex, MaterialSource materialSource, MaterialSource textOutlineMaterialSource)
 {
-	bool force = infoIndex % INFOS_PER_TEXTURE == 0;
+	bool force = (infoIndex % INFOS_PER_TEXTURE) == 0;
 	const TempPiece* prevPiece = data->pieces + data->pieceCount - 1;
 	if (!force && data->pieceCount > 0 && prevPiece->type == type &&
 		(!hasTexture(type) || prevPiece->texture == texture) &&
@@ -99,8 +99,8 @@ static bool addPiece(dsVectorScratchData* data, dsVectorShaderType type, dsTextu
 	}
 
 	uint32_t index = data->pieceCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->pieces, data->pieceCount, data->maxPieces,
-		1))
+	if (!DS_RESIZEABLE_ARRAY_ADD(
+			data->allocator, data->pieces, data->pieceCount, data->maxPieces, 1))
 	{
 		return false;
 	}
@@ -136,7 +136,7 @@ static bool addPiece(dsVectorScratchData* data, dsVectorShaderType type, dsTextu
 			DS_ASSERT(false);
 			break;
 	}
-	data->pieces[index].texture = texture;
+	piece->texture = texture;
 
 	return true;
 }
@@ -272,8 +272,9 @@ bool dsVectorScratchData_addLoop(dsVectorScratchData* data, uint32_t firstPoint,
 	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->loops, data->loopCount, data->maxLoops, 1))
 		return false;
 
-	data->loops[index].points = data->points + firstPoint;
-	data->loops[index].pointCount = count;
+	dsComplexPolygonLoop* loop = data->loops + index;
+	loop->points = data->points + firstPoint;
+	loop->pointCount = count;
 	return true;
 }
 
@@ -514,7 +515,7 @@ ShapeInfo* dsVectorScratchData_addImagePiece(dsVectorScratchData* data,
 	uint32_t infoIndex = data->vectorInfoCount;
 	VectorInfo* info = addVectorInfo(data);
 	if (!info || !addPiece(data, dsVectorShaderType_Image, texture, infoIndex, MaterialSource_Local,
-		MaterialSource_Local))
+			MaterialSource_Local))
 	{
 		return NULL;
 	}
@@ -557,7 +558,7 @@ bool dsVectorScratchData_addTextPiece(dsVectorScratchData* data, const dsAligned
 	uint32_t infoIndex = data->vectorInfoCount;
 	VectorInfo* info = addVectorInfo(data);
 	if (!info || !addPiece(data, type, dsFont_getTexture(font), infoIndex, fillMaterialSource,
-		outlineMaterialSource))
+			outlineMaterialSource))
 	{
 		return false;
 	}
@@ -577,24 +578,31 @@ bool dsVectorScratchData_addTextPiece(dsVectorScratchData* data, const dsAligned
 	drawInfo->outlineMaterial = outlineMaterial;
 	drawInfo->infoIndex = infoIndex % INFOS_PER_TEXTURE;
 	drawInfo->offset = *offset;
+	drawInfo->firstIconGlyph = 0;
+	drawInfo->iconGlyphCount = 0;
 
 	TempPiece* piece = data->pieces + data->pieceCount - 1;
 	DS_ASSERT(piece->range.firstIndex + piece->range.indexCount == drawInfoIndex);
 	++piece->range.indexCount;
 
 	info->textInfo.bounds = *bounds;
-	info->textInfo.transformCols[0].x = transform->columns[0].x;
-	info->textInfo.transformCols[0].y = transform->columns[0].y;
-	info->textInfo.transformCols[1].x = transform->columns[1].x;
-	info->textInfo.transformCols[1].y = transform->columns[1].y;
-	info->textInfo.transformCols[2].x = transform->columns[2].x;
-	info->textInfo.transformCols[2].y = transform->columns[2].y;
 	info->textInfo.fillOpacity = fillOpacity;
 	info->textInfo.outlineOpacity = outlineOpacity;
 	info->textInfo.style.x = style->embolden;
 	info->textInfo.style.y = style->slant;
 	info->textInfo.style.z = style->outlineThickness;
 	info->textInfo.style.w = style->antiAlias;
+
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		const dsVector3f* column = transform->columns + i;
+		dsVector2f* drawInfoColumn = drawInfo->transformCols + i;
+		dsVector2f* infoColumn = info->textInfo.transformCols + i;
+		drawInfoColumn->x = column->x;
+		drawInfoColumn->y = column->y;
+		infoColumn->x = column->x;
+		infoColumn->y = column->y;
+	}
 	return true;
 }
 
@@ -633,7 +641,7 @@ bool dsVectorScratchData_addTextRange(dsVectorScratchData* data, const dsVector2
 
 	uint32_t drawInfoIndex = data->textDrawInfoCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->textDrawInfos, data->textDrawInfoCount,
-		data->maxTextDrawInfos, 1))
+			data->maxTextDrawInfos, 1))
 	{
 		return false;
 	}
@@ -646,6 +654,10 @@ bool dsVectorScratchData_addTextRange(dsVectorScratchData* data, const dsVector2
 	drawInfo->outlineMaterial = outlineMaterial;
 	drawInfo->infoIndex = prevInfoIndex % INFOS_PER_TEXTURE;
 	drawInfo->offset = *offset;
+	memcpy(
+		drawInfo->transformCols, prevInfo->textInfo.transformCols, sizeof(drawInfo->transformCols));
+	drawInfo->firstIconGlyph = 0;
+	drawInfo->iconGlyphCount = 0;
 
 	// Check if the previous info was compatible.
 	if (prevInfo->textInfo.fillOpacity == fillOpacity &&
@@ -668,7 +680,7 @@ bool dsVectorScratchData_addTextRange(dsVectorScratchData* data, const dsVector2
 	uint32_t infoIndex = data->vectorInfoCount;
 	VectorInfo* info = addVectorInfo(data);
 	if (!info || !addPiece(data, type, prevPiece->texture, infoIndex, fillMaterialSource,
-		outlineMaterialSource))
+			outlineMaterialSource))
 	{
 		return false;
 	}

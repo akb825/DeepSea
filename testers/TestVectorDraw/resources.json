@@ -9,6 +9,136 @@
 			"embed": true
 		},
 		{
+			"type": "Texture",
+			"name": "PenTexture",
+			"path": "../Shared/Icons/Textures/pen.png",
+			"format": "R8G8B8A8",
+			"channelType": "unorm",
+			"size": [64, 64],
+			"embed": true
+		},
+		{
+			"type": "Texture",
+			"name": "SmileTexture",
+			"path": "../Shared/Icons/Textures/smile.png",
+			"format": "R8G8B8A8",
+			"channelType": "unorm",
+			"size": [64, 64],
+			"embed": true
+		},
+		{
+			"type": "Texture",
+			"name": "ThumbsUpTexture",
+			"path": "../Shared/Icons/Textures/thumbs-up.png",
+			"format": "R8G8B8A8",
+			"channelType": "unorm",
+			"size": [64, 64],
+			"embed": true
+		},
+		{
+			"type": "Texture",
+			"name": "TongueTexture",
+			"path": "../Shared/Icons/Textures/tongue.png",
+			"format": "R8G8B8A8",
+			"channelType": "unorm",
+			"size": [64, 64],
+			"embed": true
+		},
+		{
+			"type": "VectorImage",
+			"name": "PenVector",
+			"path": "../Shared/Icons/SVGs/pen.svg",
+			"targetSize": [32, 32],
+			"embed": true
+		},
+		{
+			"type": "VectorImage",
+			"name": "SmileVector",
+			"path": "../Shared/Icons/SVGs/smile.svg",
+			"targetSize": [32, 32],
+			"embed": true
+		},
+		{
+			"type": "VectorImage",
+			"name": "ThumbsUpVector",
+			"path": "../Shared/Icons/SVGs/thumbs-up.svg",
+			"targetSize": [32, 32],
+			"embed": true
+		},
+		{
+			"type": "VectorImage",
+			"name": "TongueVector",
+			"path": "../Shared/Icons/SVGs/tongue.svg",
+			"targetSize": [32, 32],
+			"embed": true
+		},
+		{
+			"type": "TextureTextIcons",
+			"name": "TextureIcons",
+			"icons":
+			[
+				[
+					{
+						"codepoint": 128394,
+						"icon": "PenTexture",
+						"advance": 0.8,
+						"bounds": [[0.0, 0.0], [0.8, 0.8]]
+					},
+					{
+						"codepoint": 128522,
+						"icon": "SmileTexture",
+						"advance": 0.8,
+						"bounds": [[0.0, 0.0], [0.8, 0.8]]
+					},
+					{
+						"codepoint": 128077,
+						"icon": "ThumbsUpTexture",
+						"advance": 0.8,
+						"bounds": [[0.0, 0.0], [0.8, 0.8]]
+					},
+					{
+						"codepoint": 128539,
+						"icon": "TongueTexture",
+						"advance": 0.8,
+						"bounds": [[0.0, 0.0], [0.8, 0.8]]
+					}
+				]
+			]
+		},
+		{
+			"type": "VectorTextIcons",
+			"name": "VectorIcons",
+			"icons":
+			[
+				[
+					{
+						"codepoint": "0x1F58A",
+						"icon": "PenVector",
+						"advance": 0.8,
+						"bounds": [[-0.2, -0.2], [1.0, 1.0]]
+					},
+					{
+						"codepoint": "0x1F60A",
+						"icon": "SmileVector",
+						"advance": 0.8,
+						"bounds": [[-0.2, -0.2], [1.0, 1.0]]
+					},
+					{
+						"codepoint": "0x1F44D",
+						"icon": "ThumbsUpVector",
+						"advance": 0.8,
+						"bounds": [[-0.2, -0.2], [1.0, 1.0]]
+					},
+					{
+						"codepoint": "0x1F61B",
+						"icon": "TongueVector",
+						"advance": 0.8,
+						"bounds": [[-0.2, -0.2], [1.0, 1.0]]
+					}
+				]
+			]
+		},
+		{
 			"type": "FaceGroup",
 			"name": "default",
 			"faces":
@@ -37,6 +167,24 @@
 			"name": "sans-serif",
 			"faceGroup": "default",
 			"faces": ["sans", "arabic", "thai"],
+			"quality": "high"
+		},
+		{
+			"type": "Font",
+			"name": "sans-serif-texture",
+			"faceGroup": "default",
+			"faces": ["sans"],
+			"icons": "TextureIcons",
+			"cacheSize": "small",
+			"quality": "high"
+		},
+		{
+			"type": "Font",
+			"name": "sans-serif-vector",
+			"faceGroup": "default",
+			"faces": ["sans"],
+			"icons": "VectorIcons",
+			"cacheSize": "small",
 			"quality": "high"
 		},
 		{

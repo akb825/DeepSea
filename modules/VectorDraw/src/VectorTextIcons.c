@@ -97,9 +97,9 @@ static bool dsVectorTextIcons_draw(const dsTextIcons* textIcons, void* userData,
 		dsMatrix44f boundsMatrix =
 		{{
 			{(glyph->bounds.max.x - glyph->bounds.min.x)/imageSize.x, 0.0f, 0.0f, 0.0f},
-			{0.0f, (glyph->bounds.max.y - glyph->bounds.min.y)/imageSize.y, 0.0f, 0.0f},
+			{0.0f, (glyph->bounds.min.y - glyph->bounds.max.y)/imageSize.y, 0.0f, 0.0f},
 			{0.0f, 0.0f, 1.0f, 0.0f},
-			{glyph->bounds.min.x, glyph->bounds.min.y, 0.0f, 1.0f}
+			{glyph->bounds.min.x, glyph->bounds.max.y, 0.0f, 1.0f}
 		}};
 		dsMatrix44f iconModelViewProjection;
 		dsMatrix44f_mul(&iconModelViewProjection, modelViewProjection, &boundsMatrix);

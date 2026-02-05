@@ -64,13 +64,15 @@ ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/Font.msl
 ds_compile_shaders_target(deepsea_test_text_app_shaders shaders
 	DEPENDS deepsea_test_text_app_prepare)
 
-ds_convert_texture(icons IMAGE ${CMAKE_CURRENT_SOURCE_DIR}/Icons/smile.png FORMAT ${iconFormat}
+set(iconDir ${CMAKE_CURRENT_SOURCE_DIR}/../Shared/Icons/Textures)
+
+ds_convert_texture(icons IMAGE ${iconDir}/smile.png FORMAT ${iconFormat}
 	RESIZE ${iconSize} ${iconSize} PRE_MULTIPLY OUTPUT ${iconsDir}/smile.pvr)
-ds_convert_texture(icons IMAGE ${CMAKE_CURRENT_SOURCE_DIR}/Icons/tongue.png FORMAT ${iconFormat}
+ds_convert_texture(icons IMAGE ${iconDir}/tongue.png FORMAT ${iconFormat}
 	RESIZE ${iconSize} ${iconSize} PRE_MULTIPLY OUTPUT ${iconsDir}/tongue.pvr)
-ds_convert_texture(icons IMAGE ${CMAKE_CURRENT_SOURCE_DIR}/Icons/thumbs-up.png FORMAT ${iconFormat}
+ds_convert_texture(icons IMAGE ${iconDir}/thumbs-up.png FORMAT ${iconFormat}
 	RESIZE ${iconSize} ${iconSize} PRE_MULTIPLY OUTPUT ${iconsDir}/thumbs-up.pvr)
-ds_convert_texture(icons IMAGE ${CMAKE_CURRENT_SOURCE_DIR}/Icons/pen.png FORMAT ${iconFormat}
+ds_convert_texture(icons IMAGE ${iconDir}/pen.png FORMAT ${iconFormat}
 	RESIZE ${iconSize} ${iconSize} PRE_MULTIPLY OUTPUT ${iconsDir}/pen.pvr)
 ds_convert_textures_target(deepsea_test_text_app_icons icons
 	DEPENDS deepsea_test_text_app_prepare)
