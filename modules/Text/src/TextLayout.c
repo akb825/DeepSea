@@ -462,30 +462,33 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 
 			if (!isWhitespace)
 			{
-				const dsTextStyle* style = layout->styles + glyph->styleIndex;
-
-				// Take into account the thickness added by embolden and outline. Use embolden and
-				// outline thickness as-is rather than halving to account for both sides.
-				float emboldenOutlineAmount = style->embolden;
-				if (style->outlineThickness > 0)
-				{
-					// Position of 0.5 is on the boundary of the text.
-					float outlineAmount = style->outlinePosition + style->outlineThickness;
-					// Embolden and outline are independent, so take the max of the two.
-					emboldenOutlineAmount = dsMax(outlineAmount, emboldenOutlineAmount);
-				}
-				float emboldenOutlinePadding =
-					basePadding*emboldenOutlineAmount*size*DS_THICKNESS_SCALE;
-
 				dsVector2f offset;
 				dsVector2_scale(offset, textGlyph->offset, size);
-				glyphWidth += offset.x + glyph->geometry.max.x + emboldenOutlinePadding;
-				// Positive y points down, so need to subtract the slant from the width for a
-				// positive effect.
-				if (style->slant > 0)
-					glyphWidth -= (offset.y + glyph->geometry.min.y)*style->slant;
-				else
-					glyphWidth -= (offset.y + glyph->geometry.max.y)*style->slant;
+				glyphWidth += offset.x + glyph->geometry.max.x;
+
+				// Padding for the style. This doesn't apply to icons as only the size is used.
+				if (glyph->texCoords.min.x >= 0.0f)
+				{
+					const dsTextStyle* style = layout->styles + glyph->styleIndex;
+
+					// Take into account the thickness added by embolden and outline. Use embolden
+					// and outline thickness as-is rather than halving to account for both sides.
+					float emboldenOutlineAmount = style->embolden;
+					if (style->outlineThickness > 0)
+					{
+						// Position of 0.5 is on the boundary of the text.
+						float outlineAmount = style->outlinePosition + style->outlineThickness;
+						// Embolden and outline are independent, so take the max of the two.
+						emboldenOutlineAmount = dsMax(outlineAmount, emboldenOutlineAmount);
+					}
+					glyphWidth += basePadding*emboldenOutlineAmount*size*DS_THICKNESS_SCALE;
+
+					// Positive y points down, so need to subtract the slant from the width for a
+					// positive effect. This could reduce from the padding if slanting pushes the
+					// most extreme portion of the glyph backwards.
+					float slantY = style->slant > 0 ? glyph->geometry.min.y : glyph->geometry.max.y;
+					glyphWidth -= (offset.y + slantY)*style->slant;
+				}
 			}
 		}
 
