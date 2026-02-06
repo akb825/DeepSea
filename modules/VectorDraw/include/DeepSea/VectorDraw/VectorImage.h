@@ -156,8 +156,8 @@ DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadData(dsAllocator* allocato
  * @param commandBuffer The command buffer to put the update commands on.
  * @return False if an error occurred.
  */
-DS_VECTORDRAW_EXPORT bool dsVectorImage_updateText(dsVectorImage* vectorImage,
-	dsCommandBuffer* commandBuffer);
+DS_VECTORDRAW_EXPORT bool dsVectorImage_updateText(
+	dsVectorImage* vectorImage, dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Draws a vector image.

@@ -109,7 +109,7 @@ static bool initResourcesValid(const dsVectorImageInitResources* initResources)
 		return false;
 	}
 
-	return dsVectorImage_testing || (initResources->commandBuffer &&initResources->shaderModule);
+	return dsVectorImage_testing || (initResources->commandBuffer && initResources->shaderModule);
 }
 
 static float adjustPixelSize(const dsMatrix33f* transform, float pixelSize)

@@ -155,15 +155,15 @@ dsVectorScratchData* dsVectorScratchData_create(dsAllocator* allocator)
 
 	memset(data, 0, sizeof(*data));
 	data->allocator = allocator;
-	data->polygon = dsSimpleHoledPolygon_create(allocator, data, DS_POLYGON_EQUAL_EPSILON_FLOAT,
-		DS_POLYGON_INTERSECT_EPSILON_FLOAT);
+	data->polygon = dsSimpleHoledPolygon_create(
+		allocator, data, DS_POLYGON_EQUAL_EPSILON_FLOAT, DS_POLYGON_INTERSECT_EPSILON_FLOAT);
 	if (!data->polygon)
 	{
 		DS_VERIFY(dsAllocator_free(allocator, data));
 		return NULL;
 	}
-	data->simplifier = dsComplexPolygon_create(allocator, dsGeometryElement_Float, data,
-		DS_POLYGON_EQUAL_EPSILON_FLOAT);
+	data->simplifier = dsComplexPolygon_create(
+		allocator, dsGeometryElement_Float, data, DS_POLYGON_EQUAL_EPSILON_FLOAT);
 	if (!data->simplifier)
 	{
 		dsSimpleHoledPolygon_destroy(data->polygon);
@@ -218,8 +218,8 @@ void dsVectorScratchData_reset(dsVectorScratchData* data)
 	data->textDrawInfoCount = 0;
 }
 
-void* dsVectorScratchData_readUntilEnd(size_t* outSize, dsVectorScratchData* data, dsStream* stream,
-	dsAllocator* allocator)
+void* dsVectorScratchData_readUntilEnd(
+	size_t* outSize, dsVectorScratchData* data, dsStream* stream, dsAllocator* allocator)
 {
 	if (!dsStream_readUntilEndReuse(
 			&data->fileBuffer, outSize, &data->fileBufferCapacity, stream, allocator))
@@ -230,8 +230,8 @@ void* dsVectorScratchData_readUntilEnd(size_t* outSize, dsVectorScratchData* dat
 	return data->fileBuffer;
 }
 
-dsVectorCommand* dsVectorScratchData_createTempCommands(dsVectorScratchData* data,
-	uint32_t commandCount)
+dsVectorCommand* dsVectorScratchData_createTempCommands(
+	dsVectorScratchData* data, uint32_t commandCount)
 {
 	uint32_t tempCount = 0;
 	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->tempCommands,
@@ -243,8 +243,8 @@ dsVectorCommand* dsVectorScratchData_createTempCommands(dsVectorScratchData* dat
 	return data->tempCommands;
 }
 
-bool dsVectorScratchData_addPoint(dsVectorScratchData* data, const dsVector2f* point,
-	uint32_t type)
+bool dsVectorScratchData_addPoint(
+	dsVectorScratchData* data, const dsVector2f* point, uint32_t type)
 {
 	const float epsilon = 1e-5f;
 	if (data->pointCount > 0 &&
@@ -278,8 +278,8 @@ bool dsVectorScratchData_addLoop(dsVectorScratchData* data, uint32_t firstPoint,
 	return true;
 }
 
-bool dsVectorScratchData_loopPoint(void* outPoint, const dsComplexPolygon* polygon,
-	const void* loop, uint32_t index)
+bool dsVectorScratchData_loopPoint(
+	void* outPoint, const dsComplexPolygon* polygon, const void* loop, uint32_t index)
 {
 	DS_UNUSED(polygon);
 	*(dsVector2f*)outPoint = ((const PointInfo*)loop)[index].point;
@@ -292,8 +292,8 @@ dsTextLayout* dsVectorScratchData_shapeText(dsVectorScratchData* data,
 	uint32_t rangeCount, float pixelSize)
 {
 	uint32_t tempCount = 0;
-	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->textStyles, tempCount, data->maxTextStyles,
-			rangeCount))
+	if (!DS_RESIZEABLE_ARRAY_ADD(
+			data->allocator, data->textStyles, tempCount, data->maxTextStyles, rangeCount))
 	{
 		return NULL;
 	}
@@ -341,8 +341,8 @@ dsTextLayout* dsVectorScratchData_shapeText(dsVectorScratchData* data,
 	}
 
 	uint32_t layoutIdx = data->textLayoutCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->textLayouts, data->textLayoutCount,
-		data->maxLayouts, 1))
+	if (!DS_RESIZEABLE_ARRAY_ADD(
+			data->allocator, data->textLayouts, data->textLayoutCount, data->maxLayouts, 1))
 	{
 		dsTextLayout_destroyLayoutAndText(layout);
 		return NULL;
@@ -565,7 +565,7 @@ bool dsVectorScratchData_addTextPiece(dsVectorScratchData* data, const dsAligned
 
 	uint32_t drawInfoIndex = data->textDrawInfoCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->textDrawInfos, data->textDrawInfoCount,
-		data->maxTextDrawInfos, 1))
+			data->maxTextDrawInfos, 1))
 	{
 		return false;
 	}
@@ -711,16 +711,15 @@ bool dsVectorScratchData_hasGeometry(const dsVectorScratchData* data)
 		data->indexCount*sizeof(uint16_t) > 0;
 }
 
-dsGfxBuffer* dsVectorScratchData_createGfxBuffer(dsVectorScratchData* data,
-	dsResourceManager* resourceManager, dsAllocator* allocator)
+dsGfxBuffer* dsVectorScratchData_createGfxBuffer(
+	dsVectorScratchData* data, dsResourceManager* resourceManager, dsAllocator* allocator)
 {
 	size_t shapeVertexSize = data->shapeVertexCount*sizeof(ShapeVertex);
 	size_t imageVertexSize = data->imageVertexCount*sizeof(ImageVertex);
 	size_t indexSize = data->indexCount*sizeof(uint16_t);
 
 	// End of the buffer must be a multiple of 4 for some platforms.
-	size_t alignedIndexSize = indexSize;
-	alignedIndexSize = DS_CUSTOM_ALIGNED_SIZE(indexSize, 4);
+	size_t alignedIndexSize = DS_CUSTOM_ALIGNED_SIZE(indexSize, 4);
 
 	size_t totalSize = shapeVertexSize + imageVertexSize + alignedIndexSize;
 	if (totalSize == 0)

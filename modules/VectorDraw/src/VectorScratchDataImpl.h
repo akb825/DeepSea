@@ -189,19 +189,22 @@ struct dsVectorScratchData
 
 void dsVectorScratchData_reset(dsVectorScratchData* data);
 
-void* dsVectorScratchData_readUntilEnd(size_t* outSize, dsVectorScratchData* data, dsStream* stream,
-	dsAllocator* allocator);
+void* dsVectorScratchData_readUntilEnd(
+	size_t* outSize, dsVectorScratchData* data, dsStream* stream, dsAllocator* allocator);
 
-dsVectorCommand* dsVectorScratchData_createTempCommands(dsVectorScratchData* data,
-	uint32_t commandCount);
+dsVectorCommand* dsVectorScratchData_createTempCommands(
+	dsVectorScratchData* data, uint32_t commandCount);
 
-bool dsVectorScratchData_addPoint(dsVectorScratchData* data, const dsVector2f* point,
-	uint32_t type);
+bool dsVectorScratchData_addPoint(
+	dsVectorScratchData* data, const dsVector2f* point, uint32_t type);
 
 bool dsVectorScratchData_addLoop(dsVectorScratchData* data, uint32_t firstPoint, uint32_t count);
-bool dsVectorScratchData_loopPoint(void* outPoint, const dsComplexPolygon* polygon,
-	const void* loop, uint32_t index);
+bool dsVectorScratchData_loopPoint(
+	void* outPoint, const dsComplexPolygon* polygon, const void* loop, uint32_t index);
 
+dsText* dsVectorScratchData_createText(dsTextStyle** outStyles, dsVectorScratchData* data,
+	const void* string, dsUnicodeType stringType, dsFont* font, const dsVectorCommand* ranges,
+	uint32_t rangeCount, float pixelSize);
 dsTextLayout* dsVectorScratchData_shapeText(dsVectorScratchData* data,
 	dsCommandBuffer* commandBuffer, const void* string, dsUnicodeType stringType, dsFont* font,
 	dsTextAlign alignment, float maxLength, float lineHeight,
@@ -230,8 +233,8 @@ bool dsVectorScratchData_addTextRange(dsVectorScratchData* data, const dsVector2
 	MaterialSource outlineMaterialSource);
 
 bool dsVectorScratchData_hasGeometry(const dsVectorScratchData* data);
-dsGfxBuffer* dsVectorScratchData_createGfxBuffer(dsVectorScratchData* data,
-	dsResourceManager* resourceManager, dsAllocator* allocator);
+dsGfxBuffer* dsVectorScratchData_createGfxBuffer(
+	dsVectorScratchData* data, dsResourceManager* resourceManager, dsAllocator* allocator);
 uint32_t dsVectorScratchData_shapeVerticesOffset(const dsVectorScratchData* data);
 uint32_t dsVectorScratchData_imageVerticesOffset(const dsVectorScratchData* data);
 uint32_t dsVectorScratchData_indicesOffset(const dsVectorScratchData* data);

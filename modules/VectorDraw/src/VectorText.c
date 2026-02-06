@@ -308,22 +308,21 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 			return false;
 		}
 
-		DS_ASSERT(range->start == scratchData->textStyles[i].start &&
-			range->count == scratchData->textStyles[i].count);
+		dsTextStyle* textStyle = scratchData->textStyles + i;
+		DS_ASSERT(range->start == textStyle->start && range->count == textStyle->count);
 		if (i == 0)
 		{
 			if (!dsVectorScratchData_addTextPiece(scratchData, &bounds, &text->transform, &offset,
 					text->font, range->fillOpacity, range->outlineOpacity, layout,
-					scratchData->textStyles + i, fillMaterial, outlineMaterial, fillMaterialType,
-					outlineMaterialType, fillMaterialSource, outlineMaterialSource))
+					textStyle, fillMaterial, outlineMaterial, fillMaterialType, outlineMaterialType,
+					fillMaterialSource, outlineMaterialSource))
 			{
 				DS_PROFILE_FUNC_RETURN(false);
 			}
 		}
 		else if (!dsVectorScratchData_addTextRange(scratchData, &offset, range->fillOpacity,
-				range->outlineOpacity, layout, scratchData->textStyles + i, fillMaterial,
-				outlineMaterial, fillMaterialType, outlineMaterialType, fillMaterialSource,
-				outlineMaterialSource))
+				range->outlineOpacity, layout, textStyle, fillMaterial, outlineMaterial,
+				fillMaterialType, outlineMaterialType, fillMaterialSource, outlineMaterialSource))
 		{
 			DS_PROFILE_FUNC_RETURN(false);
 		}
