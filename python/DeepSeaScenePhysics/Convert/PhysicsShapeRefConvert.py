@@ -1,4 +1,4 @@
-# Copyright 2024 Aaron Barany
+# Copyright 2024-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import ShapeRef
 from DeepSeaPhysics import Shape
 
-def convertPhysicsShapeRefOffset(convertContext, data, builder):
+def convertPhysicsShapeRefOffset(convertContext, data, inputDir, builder):
 	try:
 		shapeName = str(data['shape'])
 	except (TypeError, ValueError):
@@ -38,11 +38,11 @@ def convertPhysicsShapeRefOffset(convertContext, data, builder):
 	Shape.AddShape(builder, shapeRefOffset)
 	return Shape.End(builder)
 
-def convertPhysicsShapeRef(convertContext, data, outputDir):
+def convertPhysicsShapeRef(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a PhysicsShapeRef. The data map is expected to contain the following elements:
 	- shape: the name of the referenced shape.
 	"""
 	builder = flatbuffers.Builder(0)
-	builder.Finish(convertPhysicsShapeRefOffset(convertContext, data, builder))
+	builder.Finish(convertPhysicsShapeRefOffset(convertContext, data, inputDir, builder))
 	return builder.Output()

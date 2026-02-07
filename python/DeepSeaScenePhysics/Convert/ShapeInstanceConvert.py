@@ -1,4 +1,4 @@
-# Copyright 2024 Aaron Barany
+# Copyright 2024-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,13 +39,13 @@ shapeTypeToConvertFunc = {
 	ShapeUnion.Sphere: convertPhysicsSphereOffset
 }
 
-def convertShapeInstance(convertContext, data, builder):
+def convertShapeInstance(convertContext, data, inputDir, builder):
 	shapeType = str(data['type'])
 	try:
 		shapeConvertFunc = shapeTypeToConvertFunc[getattr(ShapeUnion, shapeType)]
 	except AttributeError:
 		raise Exception('Invalid shape type "' + shapeType + '".')
-	shapeOffset = shapeConvertFunc(convertContext, data, builder)
+	shapeOffset = shapeConvertFunc(convertContext, data, inputDir, builder)
 
 	density = readFloat(data['density'], 'density', 0)
 

@@ -76,7 +76,8 @@ ds_scene_resource_shader_module_config(testSceneModule TestScene.mslb ${assetsDi
 ds_configure_file(resources.json ${configDir}/resources.json CONFIG_VAR testSceneModule @ONLY)
 
 ds_create_scene_resources(resources FILE ${configDir}/resources.json
-	OUTPUT ${assetsDir}/resources.dssr DEPENDS ${sharedDir}/SimpleTexture.png)
+	OUTPUT ${assetsDir}/resources.dssr DEPENDS ${sharedDir}/SimpleTexture.png
+	INPUT_DIRECTORY ${srcDir})
 ds_create_scene_resources_target(deepsea_test_scene_app_scene_resources resources
 	DEPENDS deepsea_test_scene_app_shaders)
 

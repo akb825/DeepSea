@@ -1,4 +1,4 @@
-# Copyright 2020-2025 Aaron Barany
+# Copyright 2020-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -97,7 +97,7 @@ class ConvertContext:
 			raise Exception('Item list type "' + typeName + '" is already registered.')
 		self.itemListTypeMap[typeName] = convertFunc
 
-	def convertItemList(self, builder, typeName, name, data):
+	def convertItemList(self, builder, typeName, name, data, inputDir):
 		"""
 		Converts an item list based on its type and dict for the data. This will return the offset
 		to the ObjectData added to the builder.
@@ -105,7 +105,7 @@ class ConvertContext:
 		if typeName not in self.itemListTypeMap:
 			raise Exception('Item list type "' + typeName + '" hasn\'t been registered.')
 
-		convertedData = self.itemListTypeMap[typeName](self, data)
+		convertedData = self.itemListTypeMap[typeName](self, data, inputDir)
 
 		typeNameOffset = builder.CreateString(typeName)
 		nameOffset = builder.CreateString(name)
@@ -128,7 +128,7 @@ class ConvertContext:
 			raise Exception('Instance data type "' + typeName + '" is already registered.')
 		self.instanceDataTypeMap[typeName] = convertFunc
 
-	def convertInstanceData(self, builder, typeName, data):
+	def convertInstanceData(self, builder, typeName, data, inputDir):
 		"""
 		Converts an instance based on its type and dict for the data. This will return the offset to
 		the ObjectData added to the builder.
@@ -136,7 +136,7 @@ class ConvertContext:
 		if typeName not in self.instanceDataTypeMap:
 			raise Exception('Instance data type "' + typeName + '" hasn\'t been registered.')
 
-		convertedData = self.instanceDataTypeMap[typeName](self, data)
+		convertedData = self.instanceDataTypeMap[typeName](self, data, inputDir)
 
 		typeNameOffset = builder.CreateString(typeName)
 		dataOffset = builder.CreateByteVector(convertedData)
@@ -158,7 +158,7 @@ class ConvertContext:
 			raise Exception('Node type "' + typeName + '" is already registered.')
 		self.nodeTypeMap[typeName] = convertFunc
 
-	def convertNode(self, builder, typeName, data, outputDir):
+	def convertNode(self, builder, typeName, data, inputDir, outputDir):
 		"""
 		Converts a node based on its type and dict for the data. This will return the offset to the
 		ObjectData added to the builder.
@@ -166,7 +166,7 @@ class ConvertContext:
 		if typeName not in self.nodeTypeMap:
 			raise Exception('Node type "' + typeName + '" hasn\'t been registered.')
 
-		convertedData = self.nodeTypeMap[typeName](self, data, outputDir)
+		convertedData = self.nodeTypeMap[typeName](self, data, inputDir, outputDir)
 
 		typeNameOffset = builder.CreateString(typeName)
 		dataOffset = builder.CreateByteVector(convertedData)
@@ -193,7 +193,7 @@ class ConvertContext:
 			flatbufferTypeName = typeName
 		self.customResourceTypeMap[typeName] = convertFunc, flatbufferTypeName
 
-	def convertCustomResource(self, builder, typeName, data, outputDir):
+	def convertCustomResource(self, builder, typeName, data, inputDir, outputDir):
 		"""
 		Converts a custom resource based on its type and dict for the data. This will return the
 		offset to the ObjectData added to the builder.
@@ -202,7 +202,7 @@ class ConvertContext:
 			raise Exception('Custom resource type "' + typeName + '" hasn\'t been registered.')
 
 		convertFunc, flatbufferTypeName = self.customResourceTypeMap[typeName]
-		convertedData = convertFunc(self, data, outputDir)
+		convertedData = convertFunc(self, data, inputDir, outputDir)
 
 		typeNameOffset = builder.CreateString(flatbufferTypeName)
 		dataOffset = builder.CreateByteVector(convertedData)
@@ -224,7 +224,7 @@ class ConvertContext:
 			raise Exception('Resource action type "' + typeName + '" is already registered.')
 		self.resourceActionTypeMap[typeName] = convertFunc
 
-	def convertResourceAction(self, builder, typeName, data, outputDir):
+	def convertResourceAction(self, builder, typeName, data, inputDir, outputDir):
 		"""
 		Converts a resource action based on its type and dict for the data. This will return the
 		offset to the ObjectData added to the builder.
@@ -232,7 +232,7 @@ class ConvertContext:
 		if typeName not in self.resourceActionTypeMap:
 			raise Exception('Resource action type "' + typeName + '" hasn\'t been registered.')
 
-		convertedData = self.resourceActionTypeMap[typeName](self, data, outputDir)
+		convertedData = self.resourceActionTypeMap[typeName](self, data, inputDir, outputDir)
 
 		typeNameOffset = builder.CreateString(typeName)
 		dataOffset = builder.CreateByteVector(convertedData)

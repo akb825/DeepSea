@@ -1,4 +1,4 @@
-# Copyright 2020-2021 Aaron Barany
+# Copyright 2020-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ def createColor(colorMaterials, style, builder):
 
 	return CreateColor(builder, color[0], color[1], color[2], alpha)
 
-def convertText(convertContext, data, outputDir):
+def convertText(convertContext, data, inputDir, outputDir):
 	"""
 	Converts text for use in a scene. The data map is expected to contain the following elements:
 	- resources: the name of the vector resources to get the font from.

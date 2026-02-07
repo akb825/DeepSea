@@ -58,7 +58,7 @@ class VectorResources:
 
 		self.cuttlefish = cuttlefishTool
 
-	def load(self, contents, basePath = None):
+	def load(self, contents, basePath = ''):
 		"""
 		Loads the information for the VectorResources from a map.
 
@@ -82,7 +82,7 @@ class VectorResources:
 		      - quality: quality of encoding, one of lowest, low, normal, high, or highest. Defaults
 		        to normal.
 		      - container: the texture container format, one of pvr, dds, or ktx. Defaults to pvr.
-		      - embed: hether to embed embed directly in the resources file. Defaults to false.
+		      - embed: whether to embed embed directly in the resources file. Defaults to false.
 		    - "VectorImage": vector image that can be looked up by name.
 		      - name: name used to reference the vector image. Defaults to the path filename without
 		        extension.
@@ -91,7 +91,7 @@ class VectorResources:
 		        Defaults to serif.
 		      - targetSize: array with the target width and height for tessellation quality.
 		        Defaults to the dimensions of the image.
-		      - embed: hether to embed embed directly in the resources file. Defaults to false.
+		      - embed: whether to embed embed directly in the resources file. Defaults to false.
 		    - "TextureTextIcons", "VectorTextIcons": icons used to replace specific codepoints with
 		       either a texture or vector image rather than the glyph from a font face.
 		      - name: name used to reference the text icons.
@@ -109,18 +109,18 @@ class VectorResources:
 		          values typically in the range [0, 1].
 		    - "FaceGroup": font faces that can be used by a font.
 		      - name: name used to reference the face group.
-		      - faces: array of objects for the faces. Each element is expected to ahve the
+		      - faces: array of objects for the faces. Each element is expected to have the
 		        following members:
 		        - name: the name of the face to reference by a font. Defaults to the filename of the
 		          font file without the extension.
 		        - path: the path to the font file.
-		        - embed: hether to embed embed directly in the resources file. Defaults to false.
+		        - embed: whether to embed embed directly in the resources file. Defaults to false.
 		    - "Font": font for displaying of text.
 		      - name: the name used to reference the font.
 		      - faceGroup: the face group that provides the faces used by the font.
 		      - faces: array of strings for the names of the faces to use within the face group.
 		      - icons: the name of text icons to use. Defaults to unset, meaning no icons are used.
-		      - quality: the quality of the font as one of low, medium, igh, or veryhigh.
+		      - quality: the quality of the font as one of low, medium, high, or veryhigh.
 		      - cacheSize: the size of the cache as one of small or large. Defaults to large.
 		"""
 		self.basePath = basePath
@@ -204,18 +204,20 @@ class VectorResources:
 		except (AttributeError, TypeError, ValueError):
 			raise Exception('VectorResources "resources" must be an array of objects.')
 
-	def loadJson(self, json, basePath = None):
+	def loadJson(self, json, basePath = ''):
 		"""Loads from a string containing json data. See load() for expected json format."""
 		self.load(json.loads(json), basePath)
 
-	def loadStream(self, stream, basePath = None):
+	def loadStream(self, stream, basePath = ''):
 		"""Loads from a stream containing json data. See load() for expected json format."""
 		self.load(json.load(stream), basePath)
 
-	def loadFile(self, jsonFile):
+	def loadFile(self, jsonFile, basePath = None):
 		"""Loads from a json file. See load() for expected json format."""
+		if not basePath:
+			basePath = os.path.dirname(jsonFile)
 		with open(jsonFile) as f:
-			self.load(json.load(f), os.path.dirname(jsonFile))
+			self.load(json.load(f), basePath)
 
 	def save(self, outputPath, quiet = False, multithread = True):
 		"""
@@ -224,10 +226,19 @@ class VectorResources:
 		This will create a directory named "<filename w/o extension>_resources" in order to hold
 		the textures and font files. When moving the resources around, the file and directory
 		should stay together.
+
+		outputPath may be set to None, in which case the data will be returned instead, and all
+		resources will be forced as embedded.
 		"""
-		(root, filename) = os.path.split(outputPath)
-		resourceDirName = os.path.splitext(filename)[0] + '_resources'
-		resourceDir = os.path.join(root, resourceDirName)
+		if outputPath:
+			(root, filename) = os.path.split(outputPath)
+			resourceDirName = os.path.splitext(filename)[0] + '_resources'
+			resourceDir = os.path.join(root, resourceDirName)
+		else:
+			root = None
+			filename = None
+			resourceDirName = None
+			resourceDir = None
 
 		builder = flatbuffers.Builder(0)
 
@@ -264,7 +275,7 @@ class VectorResources:
 						name = nameFromPath(path)
 					container = texture.get('container', 'pvr')
 					extension = '.' + container
-					if texture.get('embed'):
+					if texture.get('embed') or not resourceDir:
 						textureOutputPath = tempFile.name + extension
 						outputName = None
 					else:
@@ -338,7 +349,7 @@ class VectorResources:
 				raise Exception("Vector resource doesn't contain element " + str(e) + '.')
 
 			vectorImageBytes = convertSVG(os.path.join(self.basePath, path), name, defaultFont)
-			if vectorImage.get('embed'):
+			if vectorImage.get('embed') or not resourceDir:
 				outputName = None
 			else:
 				outputName = os.path.join(resourceDirName, name + '.dsvi')
@@ -452,7 +463,7 @@ class VectorResources:
 					for face in faces:
 						faceName = face['name']
 						path = face['path']
-						if face.get('embed'):
+						if face.get('embed') or not resourceDir:
 							outputName = None
 							fontOutputPath = os.path.join(self.basePath, path)
 						else:
@@ -578,14 +589,20 @@ class VectorResources:
 		VectorResourcesFB.AddResources(builder, resourcesOffset)
 		builder.Finish(VectorResourcesFB.End(builder))
 
-		with open(outputPath, 'wb') as f:
-			f.write(builder.Output())
+		outputData = builder.Output()
+		if outputPath:
+			with open(outputPath, 'wb') as f:
+				f.write(outputData)
+		else:
+			return outputData
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description =
 		'Create vector resources to be used by Deep Sea.')
 	parser.add_argument('-i', '--input', required = True,
 		help = 'input json description of the resources')
+	parser.add_argument('-d', '--input-directory', help = 'explicit directory to use for relatve '
+		"paths; defaults to the input file's directory")
 	parser.add_argument('-o', '--output', required = True,
 		help = 'output file name, typically with the extension ".dsvr"')
 	parser.add_argument('-c', '--cuttlefish', default = 'cuttlefish',
@@ -597,7 +614,7 @@ if __name__ == '__main__':
 
 	try:
 		resources = VectorResources(args.cuttlefish)
-		resources.loadFile(args.input)
+		resources.loadFile(args.input, args.input_directory)
 		resources.save(args.output)
 	except Exception as e:
 		print(args.input + ': error: ' + str(e), file=sys.stderr)

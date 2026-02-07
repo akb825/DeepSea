@@ -1,4 +1,4 @@
-# Copyright 2023 Aaron Barany
+# Copyright 2023-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 import flatbuffers
 
-def convertNodeMapCache(convertContext, data, outputDir):
+def convertNodeMapCache(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a NodeMapCache. The data is ignored.
 	"""

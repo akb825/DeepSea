@@ -1,4 +1,4 @@
-# Copyright 2024 Aaron Barany
+# Copyright 2024-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ from DeepSeaPhysics import Shape
 from DeepSeaScene.Convert.ModelConvert import VertexAttrib, convertModelGeometry, loadModel, \
 	modelVertexAttribEnum, readVertexAttrib
 
-def convertPhysicsMeshOffset(convertContext, data, builder):
+def convertPhysicsMeshOffset(convertContext, data, inputDir, builder):
 	try:
 		vertexData = data.get('vertices')
 		vertices = []
@@ -69,11 +69,12 @@ def convertPhysicsMeshOffset(convertContext, data, builder):
 					raise Exception('PhysicsMesh geometry has no known model type.')
 			component = str(data.get('component'))
 
-			geometryDataList = loadModel(convertContext, modelType, path)
+			finalPath = os.path.join(inputDir, path)
+			geometryDataList = loadModel(convertContext, modelType, finalPath)
 			modelBytes = bytearray()
 			modelGeometry = convertModelGeometry(convertContext, geometryDataList, [component],
 				[[VertexAttrib(modelVertexAttribEnum['Position'], 'X32Y32Z32', 'Float')]], 4,
-				None, modelBytes, modelType = modelType, path = path)[component]
+				None, modelBytes, modelType = modelType, path = finalPath)[component]
 			if not modelGeometry.primitiveType.startsWith('TriangleList'):
 				raise Exception('PhysicsMesh model "' + path + '" component "' + component +
 					'" must be a triangle list.')
@@ -186,7 +187,7 @@ def convertPhysicsMeshOffset(convertContext, data, builder):
 	Shape.AddShape(builder, meshOffset)
 	return Shape.End(builder)
 
-def convertPhysicsMesh(convertContext, data, outputDir):
+def convertPhysicsMesh(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a PhysicsMesh. The data map is expected to contain the following elements:
 	- The following elements are used when providing data from a model:
@@ -215,5 +216,5 @@ def convertPhysicsMesh(convertContext, data, outputDir):
 	  not be cached.
 	"""
 	builder = flatbuffers.Builder(0)
-	builder.Finish(convertPhysicsMeshOffset(convertContext, data, builder))
+	builder.Finish(convertPhysicsMeshOffset(convertContext, data, inputDir, builder))
 	return builder.Output()

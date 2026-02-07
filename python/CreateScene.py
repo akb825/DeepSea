@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright 2020-2023 Aaron Barany
+# Copyright 2020-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 from __future__ import print_function
 import argparse
 import json
+import os
 import sys
 from importlib import import_module
 
@@ -90,6 +91,8 @@ if __name__ == '__main__':
 		'Create a scene to be used by Deep Sea.')
 	parser.add_argument('-i', '--input', required = True,
 		help = 'input json description of the scene')
+	parser.add_argument('-d', '--input-directory', help = 'explicit directory to use for relatve '
+		"paths; defaults to the input file's directory")
 	parser.add_argument('-o', '--output', required = True,
 		help = 'output file name, typically with the extension ".dss"')
 	parser.add_argument('-e', '--extensions', nargs = '*', default = [],
@@ -100,12 +103,17 @@ if __name__ == '__main__':
 	args = parser.parse_args()
 	convertContext = createSceneConvertContext(args.extensions)
 
+	if args.input_directory:
+		inputDir = args.input_directory
+	else:
+		inputDir = os.path.dirname(args.input)
+
 	try:
 		with open(args.input) as f:
 			data = json.load(f)
 
 		with open(args.output, 'wb') as f:
-			f.write(convertScene(convertContext, data))
+			f.write(convertScene(convertContext, data, inputDir))
 	except Exception as e:
 		print(args.input + ': error: ' + str(e), file=sys.stderr)
 		exit(1)

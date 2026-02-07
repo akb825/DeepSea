@@ -1,4 +1,4 @@
-# Copyright 2022-2025 Aaron Barany
+# Copyright 2022-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ import flatbuffers
 
 from .. import ParticleDrawList
 
-def convertParticleDrawList(convertContext, data):
+def convertParticleDrawList(convertContext, data, inputDir):
 	"""
 	Converts a ParticleDrawList. The data map is expected to contain the following elements:
 	- instanceData: optional list of instance data to include with the particle draw list. Each
@@ -59,7 +59,7 @@ def convertParticleDrawList(convertContext, data):
 	instanceDataOffsets = []
 	for instanceType, instance in instanceData:
 		instanceDataOffsets.append(convertContext.convertInstanceData(builder, instanceType,
-			instance))
+			instance, inputDir))
 
 	if instanceDataOffsets:
 		ParticleDrawList.StartInstanceDataVector(builder, len(instanceDataOffsets))

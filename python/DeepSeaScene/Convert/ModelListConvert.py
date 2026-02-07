@@ -1,4 +1,4 @@
-# Copyright 2020-2025 Aaron Barany
+# Copyright 2020-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from .. import ModelList
 from ..SortType import SortType
 from ..Vector2f import CreateVector2f
 
-def convertModelList(convertContext, data):
+def convertModelList(convertContext, data, inputDir):
 	"""
 	Converts a ModelList. The data map is expected to contain the following elements:
 	- instanceData: optional list of instance data to include with the model list. Each element of
@@ -94,7 +94,7 @@ def convertModelList(convertContext, data):
 	instanceDataOffsets = []
 	for instanceType, instance in instanceData:
 		instanceDataOffsets.append(convertContext.convertInstanceData(builder, instanceType,
-			instance))
+			instance, inputDir))
 
 	if instanceDataOffsets:
 		ModelList.StartInstanceDataVector(builder, len(instanceDataOffsets))

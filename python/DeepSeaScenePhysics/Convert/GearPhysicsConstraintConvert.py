@@ -1,4 +1,4 @@
-# Copyright 2024 Aaron Barany
+# Copyright 2024-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import Constraint
 from DeepSeaPhysics import GearConstraint
 
-def convertGearPhysicsConstraint(convertContext, data, outputDir):
+def convertGearPhysicsConstraint(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a GearPhysicsConstraint. The data map is expected to contain the following elements:
 	- firstActor: the name of the first actor used in the constraint. This may be unset if the

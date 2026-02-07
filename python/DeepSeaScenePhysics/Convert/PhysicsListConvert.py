@@ -1,4 +1,4 @@
-# Copyright 2024 Aaron Barany
+# Copyright 2024-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ from .Helpers import readFloat, readInt
 from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaScenePhysics import PhysicsList
 
-def convertPhysicsList(convertContext, data):
+def convertPhysicsList(convertContext, data, inputDir):
 	"""
 	Converts a PhysicsList. The data map is expected to contain the following elements:
 	- maxStaticBodies: the maximum number of bodies that are only used for collision and not

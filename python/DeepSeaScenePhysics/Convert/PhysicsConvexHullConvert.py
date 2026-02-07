@@ -1,4 +1,4 @@
-# Copyright 2024 Aaron Barany
+# Copyright 2024-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ from DeepSeaPhysics import Shape
 from DeepSeaScene.Convert.ModelConvert import VertexAttrib, loadAndConvertModelGeometry, \
 	modelVertexAttribEnum
 
-def convertPhysicsConvexHullOffset(convertContext, data, builder):
+def convertPhysicsConvexHullOffset(convertContext, data, inputDir, builder):
 	try:
 		vertexData = data.get('vertices')
 		vertices = []
@@ -45,7 +45,8 @@ def convertPhysicsConvexHullOffset(convertContext, data, builder):
 					raise Exception('PhysicsConvexHull geometry has no known model type.')
 			component = str(data.get('component'))
 			vertexBytes = bytearray()
-			loadAndConvertModelGeometry(convertContext, modelType, path, [component],
+			loadAndConvertModelGeometry(convertContext, modelType, os.path.join(inputDir, path),
+				[component],
 				[[VertexAttrib(modelVertexAttribEnum['Position'], 'X32Y32Z32', 'Float')]], None,
 				None, vertexBytes, pointsOnly = True)
 			for i in range(len(vertexBytes)/12):
@@ -79,7 +80,7 @@ def convertPhysicsConvexHullOffset(convertContext, data, builder):
 	Shape.AddShape(builder, convexHullOffset)
 	return Shape.End(builder)
 
-def convertPhysicsConvexHull(convertContext, data, outputDir):
+def convertPhysicsConvexHull(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a PhysicsConvexHull. The data map is expected to contain the following elements:
 	- The following elements are used when providing data from a model:
@@ -96,5 +97,5 @@ def convertPhysicsConvexHull(convertContext, data, outputDir):
 	  not be cached.
 	"""
 	builder = flatbuffers.Builder(0)
-	builder.Finish(convertPhysicsConvexHullOffset(builder, data, builder))
+	builder.Finish(convertPhysicsConvexHullOffset(builder, data, inputDir, builder))
 	return builder.Output()

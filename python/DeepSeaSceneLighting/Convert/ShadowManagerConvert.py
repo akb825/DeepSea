@@ -1,4 +1,4 @@
-# Copyright 2021-2023 Aaron Barany
+# Copyright 2021-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ from ..LightType import LightType
 class Object:
 	pass
 
-def convertShadowManager(convertContext, data, outputDir):
+def convertShadowManager(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a shadow manager for a scene. The data map is expected to contain the following
 	elements:

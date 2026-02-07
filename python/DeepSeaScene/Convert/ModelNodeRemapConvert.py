@@ -1,4 +1,4 @@
-# Copyright 2020-2021 Aaron Barany
+# Copyright 2020-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ import flatbuffers
 from .. import MaterialRemap
 from .. import ModelNodeRemap
 
-def convertModelNodeRemap(convertContext, data, outputDir):
+def convertModelNodeRemap(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a ModelNodeRemap, which clones an existing model node with optional remapping of
 	materials. The data map is expected to contain the following elements:

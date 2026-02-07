@@ -1,4 +1,4 @@
-# Copyright 2020-2021 Aaron Barany
+# Copyright 2020-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ from .. import ModelReconfig
 from .. import ModelNodeReconfig
 from ..Vector2f import CreateVector2f
 
-def convertModelNodeReconfig(convertContext, data, outputDir):
+def convertModelNodeReconfig(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a ModelNodeReconfig, which clones an existing model node while reconfiguring its
 	layout. The data map is expected to contain the following elements:

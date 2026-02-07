@@ -1,4 +1,4 @@
-# Copyright 2020-2025 Aaron Barany
+# Copyright 2020-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,16 +13,20 @@
 # limitations under the License.
 
 import flatbuffers
+import os
 
 from .. import VectorImage
 
-from DeepSeaScene.Convert.FileOrDataConvert import convertFileOrData, readDataOrPath
+from DeepSeaScene.Convert.FileOrDataConvert import convertFileOrData
 from DeepSeaScene.Vector2f import CreateVector2f
+from DeepSeaVectorDraw.Convert.SVG import convertSVG
 
-def convertVectorImage(convertContext, data, outputDir):
+def convertVectorImage(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a VectorImage. The data map is expected to contain the following elements:
-	- image: path to the vector image or base64 encoded data prefixed with "base64:".
+	- image: path to the input SVG.
+	- defaultFont: the default font to use when none is specified for a text element. Defaults to
+	  serif.
 	- output: the path to the output the vector image. This can be omitted if the vector image is
 	  embedded. If resourceType is "Relative", this will be treated as relative to the scene
 	  resource file.
@@ -43,13 +47,11 @@ def convertVectorImage(convertContext, data, outputDir):
 	builder = flatbuffers.Builder(0)
 
 	try:
-		imageStr = str(data['image'])
-		try:
-			imagePath, imageContents = readDataOrPath(imageStr)
-		except TypeError:
-			raise Exception('VectorImage "data" uses incorrect base64 encoding.')
-		imageType, imageOffset = convertFileOrData(builder, imagePath, imageContents,
-			data.get('output'), data.get('outputRelativeDir'), data.get('resourceType'), outputDir)
+		imagePath = str(data['image'])
+		imageData = convertSVG(
+			os.path.join(inputDir, imagePath), data['name'], str(data.get('defaultFont', 'serif')))
+		imageType, imageOffset = convertFileOrData(builder, None, imageData, data.get('output'),
+			data.get('outputRelativeDir'), data.get('resourceType'), outputDir)
 
 		size = data.get('targetSize')
 		if size:

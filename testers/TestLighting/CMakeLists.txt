@@ -167,7 +167,7 @@ endif()
 
 # Convert the scene resources.
 ds_create_scene_resources(resources FILE ${configDir}/BaseResources.json
-	OUTPUT ${assetsDir}/BaseResources.dssr DEPENDS ${assetFiles})
+	OUTPUT ${assetsDir}/BaseResources.dssr DEPENDS ${assetFiles} INPUT_DIRECTORY ${srcDir}/Assets)
 ds_create_scene_resources(resources FILE ${configDir}/LightShaders.json
 	OUTPUT ${assetsDir}/LightShaders.dssr)
 ds_create_scene_resources(resources FILE ${srcDir}/Assets/Models.json

@@ -1,4 +1,4 @@
-# Copyright 2020-2025 Aaron Barany
+# Copyright 2020-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ from ..FileResourceType import FileResourceType
 from .. import RawData
 from .. import RelativePathReference
 
-def readDataOrPath(dataStr):
+def readDataOrPath(dataStr, inputDir):
 	"""
 	Reads in either base64 data or a path.
 	"""
@@ -31,7 +31,7 @@ def readDataOrPath(dataStr):
 		dataContents = base64.b64decode(dataStr[7:])
 	else:
 		dataPath = dataStr
-		with open(dataStr, 'rb') as stream:
+		with open(os.path.join(inputDir, dataStr), 'rb') as stream:
 			dataContents = stream.read()
 	return dataPath, dataContents
 

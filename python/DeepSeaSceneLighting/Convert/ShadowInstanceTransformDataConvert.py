@@ -1,4 +1,4 @@
-# Copyright 2021 Aaron Barany
+# Copyright 2021-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 import flatbuffers
 from .. import ShadowInstanceTransformData
 
-def convertShadowInstanceTransformData(convertContext, data):
+def convertShadowInstanceTransformData(convertContext, data, inputDir):
 	"""
 	Converts a ShadowInstanceTransformData. The data map is expected to contain the following
 	elements:

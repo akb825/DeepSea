@@ -1,4 +1,4 @@
-# Copyright 2023 Aaron Barany
+# Copyright 2023-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ import flatbuffers
 
 from .. import AnimationTransformNode
 
-def convertAnimationTransformNode(convertContext, data, outputDir):
+def convertAnimationTransformNode(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a AnimationTransformNode. The data map is expected to contain the following elements:
 	- animationNode: the name of the node within the animation to retrieve the transform from.
@@ -36,7 +36,7 @@ def convertAnimationTransformNode(convertContext, data, outputDir):
 				try:
 					childType = str(child['nodeType'])
 					childOffsets.append(
-						convertContext.convertNode(builder, childType, child, outputDir))
+						convertContext.convertNode(builder, childType, child, inputDir, outputDir))
 				except KeyError as e:
 					raise Exception('Child node data doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):

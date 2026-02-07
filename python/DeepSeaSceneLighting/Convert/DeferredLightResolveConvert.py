@@ -1,4 +1,4 @@
-# Copyright 2021 Aaron Barany
+# Copyright 2021-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from .. import DeferredShadowLightInfo
 class Object:
 	pass
 
-def convertDeferredLightResolve(convertContext, data):
+def convertDeferredLightResolve(convertContext, data, inputDir):
 	"""
 	Converts a DeferredLightResolve. The data map is expected to contain the following elements:
 	- lightSet: name of the light set to draw the lights from.

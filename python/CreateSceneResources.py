@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright 2020-2025 Aaron Barany
+# Copyright 2020-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -175,6 +175,8 @@ if __name__ == '__main__':
 		'Create scene resources to be used by Deep Sea.')
 	parser.add_argument('-i', '--input', required = True,
 		help = 'input json description of the resources')
+	parser.add_argument('-d', '--input-directory', help = 'explicit directory to use for relatve '
+		"paths; defaults to the input file's directory")
 	parser.add_argument('-o', '--output', required = True,
 		help = 'output file name, typically with the extension ".dssr"')
 	parser.add_argument('-c', '--cuttlefish', default = 'cuttlefish',
@@ -192,12 +194,18 @@ if __name__ == '__main__':
 	convertContext = createSceneResourcesConvertContext(args.cuttlefish, args.vfc, args.multithread,
 		args.extensions)
 
+	if args.input_directory:
+		inputDir = args.input_directory
+	else:
+		inputDir = os.path.dirname(args.input)
+
 	try:
 		with open(args.input) as f:
 			data = json.load(f)
 
 		with open(args.output, 'wb') as f:
-			f.write(convertSceneResources(convertContext, data, os.path.dirname(args.output)))
+			f.write(convertSceneResources(
+				convertContext, data, inputDir, os.path.dirname(args.output)))
 	except Exception as e:
 		print(args.input + ': error: ' + str(e), file=sys.stderr)
 		exit(1)

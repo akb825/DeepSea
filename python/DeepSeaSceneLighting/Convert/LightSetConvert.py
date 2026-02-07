@@ -1,4 +1,4 @@
-# Copyright 2020-2023 Aaron Barany
+# Copyright 2020-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ from DeepSeaScene.Color3f import CreateColor3f
 class Object:
 	pass
 
-def convertLightSet(convertContext, data, outputDir):
+def convertLightSet(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a light set for a scene. The data map is expected to contain the following elements:
 	- lights: array of lights to initially populate the light set with. Each member of the array

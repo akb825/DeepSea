@@ -1,4 +1,4 @@
-# Copyright 2020-2022 Aaron Barany
+# Copyright 2020-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 import flatbuffers
 from .. import SceneLightSetPrepare
 
-def convertLightSetPrepare(convertContext, data):
+def convertLightSetPrepare(convertContext, data, inputDir):
 	"""
 	Converts a LightSetPrepare. The data map is expected to contain the following elements:
 	- lightSet: name of the light set to prepare.

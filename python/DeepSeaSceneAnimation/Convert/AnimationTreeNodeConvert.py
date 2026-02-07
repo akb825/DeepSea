@@ -1,4 +1,4 @@
-# Copyright 2023 Aaron Barany
+# Copyright 2023-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ import flatbuffers
 
 from .. import AnimationTreeNode
 
-def convertAnimationTreeNode(convertContext, data, outputDir):
+def convertAnimationTreeNode(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a AnimationTreeNode. The data map is expected to contain the following elements:
 	- animationTree: the name of the animation tree to use for the node. If omitted, the data will
@@ -39,7 +39,7 @@ def convertAnimationTreeNode(convertContext, data, outputDir):
 				try:
 					childType = str(child['nodeType'])
 					childOffsets.append(
-						convertContext.convertNode(builder, childType, child, outputDir))
+						convertContext.convertNode(builder, childType, child, inputDir, outputDir))
 				except KeyError as e:
 					raise Exception('Child node data doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):

@@ -1,4 +1,4 @@
-# Copyright 2022 Aaron Barany
+# Copyright 2022-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ import flatbuffers
 
 from .. import ParticleNode
 
-def convertParticleNode(convertContext, data, outputDir):
+def convertParticleNode(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a ParticleNode. The data map is expected to contain the following elements:
 	- particleEmitterFactory: the name of the factory to create particle emitters with.

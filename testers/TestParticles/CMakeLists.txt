@@ -105,7 +105,7 @@ ds_configure_file(Assets/Materials.json ${configDir}/Materials.json CONFIG_VAR
 
 # Convert the scene resources.
 ds_create_scene_resources(resources FILE ${configDir}/BaseResources.json
-	OUTPUT ${assetsDir}/BaseResources.dssr)
+	OUTPUT ${assetsDir}/BaseResources.dssr INPUT_DIRECTORY ${srcDir}/Assets)
 ds_create_scene_resources(resources FILE ${configDir}/Materials.json
 	OUTPUT ${assetsDir}/Materials.dssr DEPENDS ${assetFiles})
 ds_create_scene_resources(resources FILE ${srcDir}/Assets/SceneGraph.json

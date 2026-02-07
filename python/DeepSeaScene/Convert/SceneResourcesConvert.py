@@ -1,4 +1,4 @@
-# Copyright 2020-2025 Aaron Barany
+# Copyright 2020-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -94,7 +94,7 @@ textureUsageEnum = {
 	'OffscreenContinue': 0x20
 }
 
-def convertSceneResourcesBuffer(builder, convertContext, data, name, parentOutputDir):
+def convertSceneResourcesBuffer(builder, convertContext, data, name, inputDir, outputDir):
 	try:
 		try:
 			usage = 0
@@ -125,7 +125,7 @@ def convertSceneResourcesBuffer(builder, convertContext, data, name, parentOutpu
 		if 'data' in data:
 			dataStr = str(data['data'])
 			try:
-				dataPath, dataContents = readDataOrPath(dataStr)
+				dataPath, dataContents = readDataOrPath(dataStr, inputDir)
 			except TypeError:
 				raise Exception(
 					'SceneResources buffer "data" uses incorrect base64 encoding.')
@@ -146,7 +146,7 @@ def convertSceneResourcesBuffer(builder, convertContext, data, name, parentOutpu
 	nameOffset = builder.CreateString(name)
 	dataType, dataOffset = convertFileOrData(builder, dataPath, dataContents,
 		data.get('output'), data.get('outputRelativeDir'), data.get('resourceType'),
-		parentOutputDir)
+		outputDir)
 
 	Buffer.Start(builder)
 	Buffer.AddName(builder, nameOffset)
@@ -157,7 +157,7 @@ def convertSceneResourcesBuffer(builder, convertContext, data, name, parentOutpu
 	Buffer.AddData(builder, dataOffset)
 	return Buffer.End(builder), SceneResourceUnion.Buffer
 
-def convertSceneResourcesTexture(builder, convertContext, data, name, parentOutputDir):
+def convertSceneResourcesTexture(builder, convertContext, data, name, inputDir, outputDir):
 	def readInt(value, name, minVal):
 		try:
 			intVal = int(value)
@@ -398,14 +398,14 @@ def convertSceneResourcesTexture(builder, convertContext, data, name, parentOutp
 		# Handle all cases with a text file with the file names.
 		with NamedTemporaryFile(mode = 'wt', delete = False) as tempFile:
 			if path:
-				tempFile.write(path + '\n')
+				tempFile.write(os.path.join(inputDir, path) + '\n')
 				if textureInfo.dimension == TextureDim.DimCube:
 					textureType = 'cube'
 				else:
 					textureType = 'image'
 			else:
 				for p in paths:
-					tempFile.write(p + '\n')
+					tempFile.write(os.path.join(inputDir, p) + '\n')
 				if textureInfo.dimension == TextureDim.DimCube:
 					textureType = 'cube-array'
 				else:
@@ -431,7 +431,7 @@ def convertSceneResourcesTexture(builder, convertContext, data, name, parentOutp
 			cleanup(tempFiles)
 			raise
 	elif path:
-		texturePath = path
+		texturePath = os.path.join(inputDir, path)
 	elif paths:
 		raise Exception('SceneResources texture "pathArray" may only be used when converting'
 			'textures.')
@@ -444,7 +444,7 @@ def convertSceneResourcesTexture(builder, convertContext, data, name, parentOutp
 
 	try:
 		dataType, dataOffset = convertFileOrData(builder, texturePath, None, data.get('output'),
-			data.get('outputRelativeDir'), data.get('resourceType'), parentOutputDir)
+			data.get('outputRelativeDir'), data.get('resourceType'), outputDir)
 		cleanup(tempFiles)
 	except:
 		cleanup(tempFiles)
@@ -1027,7 +1027,7 @@ def convertSceneResourcesMaterialCopy(builder, convertContext, data, name):
 	MaterialCopy.AddRemoveData(builder, removeDataOffset)
 	return MaterialCopy.End(builder), SceneResourceUnion.MaterialCopy
 
-def convertSceneResourcesShaderModule(builder, convertContext, data, name, parentOutputDir):
+def convertSceneResourcesShaderModule(builder, convertContext, data, name, inputDir, outputDir):
 	try:
 		modules = data['modules']
 		versionedModules = []
@@ -1036,7 +1036,7 @@ def convertSceneResourcesShaderModule(builder, convertContext, data, name, paren
 				version = str(versionedModuleData['version'])
 				moduleStr = str(versionedModuleData['module'])
 				try:
-					modulePath, moduleContents = readDataOrPath(moduleStr)
+					modulePath, moduleContents = readDataOrPath(moduleStr, inputDir)
 				except TypeError:
 					raise Exception('SceneResources shader module "module" uses incorrect '
 						'base64 encoding.')
@@ -1044,7 +1044,7 @@ def convertSceneResourcesShaderModule(builder, convertContext, data, name, paren
 				dataType, dataOffset = convertFileOrData(builder, modulePath,
 					moduleContents, versionedModuleData.get('output'),
 					versionedModuleData.get('outputRelativeDir'),
-					versionedModuleData.get('resourceType'), parentOutputDir)
+					versionedModuleData.get('resourceType'), outputDir)
 				versionedModules.append((version, dataType, dataOffset))
 		except KeyError as e:
 			raise Exception('Versioned shader module data doesn\'t contain element "' +
@@ -1253,14 +1253,14 @@ def convertSceneResourcesDrawGeometry(builder, convertContext, data, name):
 	DrawGeometry.AddIndexBuffer(builder, indexBufferOffset)
 	return DrawGeometry.End(builder), SceneResourceUnion.DrawGeometry
 
-def convertSceneResourcesNode(builder, convertContext, data, name, parentOutputDir):
+def convertSceneResourcesNode(builder, convertContext, data, name, inputDir, outputDir):
 	try:
 		nodeType = str(data['nodeType'])
 	except KeyError as e:
 		raise Exception('SceneResources node data doesn\'t contain element ' + str(e) + '.')
 
 	nameOffset = builder.CreateString(name)
-	nodeDataOffset = convertContext.convertNode(builder, nodeType, data, parentOutputDir)
+	nodeDataOffset = convertContext.convertNode(builder, nodeType, data, inputDir, outputDir)
 
 	SceneNode.Start(builder)
 	SceneNode.AddName(builder, nameOffset)
@@ -1268,10 +1268,10 @@ def convertSceneResourcesNode(builder, convertContext, data, name, parentOutputD
 	return SceneNode.End(builder), SceneResourceUnion.SceneNode
 
 def convertSceneResourcesCustomResource(
-		builder, convertContext, data, resourceType, name, parentOutputDir):
+		builder, convertContext, data, resourceType, name, inputDir, outputDir):
 	nameOffset = builder.CreateString(name)
 	resourceDataOffset = convertContext.convertCustomResource(
-		builder, resourceType, data, parentOutputDir)
+		builder, resourceType, data, inputDir, outputDir)
 
 	CustomResource.Start(builder)
 	CustomResource.AddName(builder, nameOffset)
@@ -1279,11 +1279,11 @@ def convertSceneResourcesCustomResource(
 	return CustomResource.End(builder), SceneResourceUnion.CustomResource
 
 def convertSceneResourcesResourceAction(
-		builder, convertContext, data, resourceType, parentOutputDir):
-	return (convertContext.convertResourceAction(builder, resourceType, data, parentOutputDir),
+		builder, convertContext, data, resourceType, inputDir, outputDir):
+	return (convertContext.convertResourceAction(builder, resourceType, data, inputDir, outputDir),
 		SceneResourceUnion.ResourceAction)
 
-def convertSceneResources(convertContext, data, outputDir):
+def convertSceneResources(convertContext, data, inputDir, outputDir):
 	"""
 	Converts SceneResources. data should be an array of objects for each resource. Each object
 	should have the following members:
@@ -1471,15 +1471,15 @@ def convertSceneResources(convertContext, data, outputDir):
 				resourceType = str(element['type'])
 				if resourceType in convertContext.resourceActionTypeMap:
 					resourceOffset, unionType = convertSceneResourcesResourceAction(
-						builder, convertContext, element, resourceType, outputDir)
+						builder, convertContext, element, resourceType, inputDir, outputDir)
 				else:
 					name = str(element['name'])
 					if resourceType == 'Buffer':
 						resourceOffset, unionType = convertSceneResourcesBuffer(
-							builder, convertContext, element, name, outputDir)
+							builder, convertContext, element, name, inputDir, outputDir)
 					elif resourceType == 'Texture':
 						resourceOffset, unionType = convertSceneResourcesTexture(
-							builder, convertContext, element, name, outputDir)
+							builder, convertContext, element, name, inputDir, outputDir)
 					elif resourceType == 'ShaderVariableGroupDesc':
 						resourceOffset, unionType = convertSceneResourcesShaderVariableGroupDesc(
 							builder, convertContext, element, name)
@@ -1497,7 +1497,7 @@ def convertSceneResources(convertContext, data, outputDir):
 							builder, convertContext, element, name)
 					elif resourceType == 'ShaderModule':
 						resourceOffset, unionType = convertSceneResourcesShaderModule(
-							builder, convertContext, element, name, outputDir)
+							builder, convertContext, element, name, inputDir, outputDir)
 					elif resourceType == 'Shader':
 						resourceOffset, unionType = convertSceneResourcesShader(
 							builder, convertContext, element, name)
@@ -1506,10 +1506,10 @@ def convertSceneResources(convertContext, data, outputDir):
 							builder, convertContext, element, name)
 					elif resourceType == 'SceneNode':
 						resourceOffset, unionType = convertSceneResourcesNode(
-							builder, convertContext, element, name, outputDir)
+							builder, convertContext, element, name, inputDir, outputDir)
 					else:
-						resourceOffset, unionType = convertSceneResourcesCustomResource(
-							builder, convertContext, element, resourceType, name, outputDir)
+						resourceOffset, unionType = convertSceneResourcesCustomResource(builder,
+							convertContext, element, resourceType, name, inputDir, outputDir)
 
 				SceneResource.Start(builder)
 				SceneResource.AddResourceType(builder, unionType)

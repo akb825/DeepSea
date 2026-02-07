@@ -1,4 +1,4 @@
-# Copyright 2020-2021 Aaron Barany
+# Copyright 2020-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ textureUsageEnum = {
 	'OffscreenContinue': 0x20
 }
 
-def convertView(convertContext, data):
+def convertView(convertContext, data, inputDir):
 	"""
 	Converts a View. The data is expected to contain the following elements:
 	- surfaces: array of surfaces to use within the view. Each element of the array contains the

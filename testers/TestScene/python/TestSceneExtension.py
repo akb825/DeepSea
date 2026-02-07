@@ -1,4 +1,4 @@
-# Copyright 2020-2022 Aaron Barany
+# Copyright 2020-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ import flatbuffers
 from DeepSeaScene.Vector3f import CreateVector3f
 from TestScene import LightData
 
-def convertLightData(convertContext, data):
+def convertLightData(convertContext, data, inputDir):
 	try:
 		variableGroupDescName = str(data['variableGroupDesc'])
 

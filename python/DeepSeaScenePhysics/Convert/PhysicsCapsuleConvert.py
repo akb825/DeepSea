@@ -1,4 +1,4 @@
-# Copyright 2024 Aaron Barany
+# Copyright 2024-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import Capsule
 from DeepSeaPhysics import Shape
 
-def convertPhysicsCapsuleOffset(convertContext, data, builder):
+def convertPhysicsCapsuleOffset(convertContext, data, inputDir, builder):
 	try:
 		halfHeight = readFloat(data['halfHeight'], 0, 'half height')
 		radius = readFloat(data['radius'], 0, 'radius')
@@ -46,7 +46,7 @@ def convertPhysicsCapsuleOffset(convertContext, data, builder):
 	Shape.AddShape(builder, capsuleOffset)
 	return Shape.End(builder)
 
-def convertPhysicsCapsule(convertContext, data, outputDir):
+def convertPhysicsCapsule(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a PhysicsCapsule. The data map is expected to contain the following elements:
 	- halfHeight: half the height of the capsule.
@@ -54,5 +54,5 @@ def convertPhysicsCapsule(convertContext, data, outputDir):
 	- axis: the axis of the capsule. Valid values are X, Y, and Z.
 	"""
 	builder = flatbuffers.Builder(0)
-	builder.Finish(convertPhysicsCapsuleOffset(convertContext, data, builder))
+	builder.Finish(convertPhysicsCapsuleOffset(convertContext, data, inputDir, builder))
 	return builder.Output()

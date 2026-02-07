@@ -1,4 +1,4 @@
-# Copyright 2024 Aaron Barany
+# Copyright 2024-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import Cone
 from DeepSeaPhysics import Shape
 
-def convertPhysicsConeOffset(convertContext, data, builder):
+def convertPhysicsConeOffset(convertContext, data, inputDir, builder):
 	try:
 		height = readFloat(data['height'], 0, 'height')
 		radius = readFloat(data['radius'], 0, 'radius')
@@ -49,7 +49,7 @@ def convertPhysicsConeOffset(convertContext, data, builder):
 	Shape.AddShape(builder, coneOffset)
 	return Shape.End(builder)
 
-def convertPhysicsCone(convertContext, data, outputDir):
+def convertPhysicsCone(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a PhysicsCone. The data map is expected to contain the following elements:
 	- height: the height of the cone.
@@ -59,5 +59,5 @@ def convertPhysicsCone(convertContext, data, outputDir):
 	  system's default will be used.
 	"""
 	builder = flatbuffers.Builder(0)
-	builder.Finish(convertPhysicsConeOffset(convertContext, data, builder))
+	builder.Finish(convertPhysicsConeOffset(convertContext, data, inputDir, builder))
 	return builder.Output()

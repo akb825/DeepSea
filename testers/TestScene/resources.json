@@ -171,7 +171,7 @@
 		"modelGeometry":
 		[
 			{
-				"path": "@srcDir@/cube.obj",
+				"path": "cube.obj",
 				"vertexFormat":
 				[
 					[
@@ -259,7 +259,7 @@
 				"modelGeometry":
 				[
 					{
-						"path": "@srcDir@/ground.gltf",
+						"path": "ground.gltf",
 						"vertexFormat":
 						[
 							[

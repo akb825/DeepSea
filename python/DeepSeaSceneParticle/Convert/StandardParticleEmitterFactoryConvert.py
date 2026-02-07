@@ -1,4 +1,4 @@
-# Copyright 2022 Aaron Barany
+# Copyright 2022-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ from .. import StandardParticleEmitterFactory
 from ..ParticleVolume import ParticleVolume
 from ..Vector2u import CreateVector2u
 
-def convertStandardParticleEmitterFactory(convertContext, data, outputDir):
+def convertStandardParticleEmitterFactory(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a StandardParticleEmitterFactory. The data map is expected to contain the following
 	elements:

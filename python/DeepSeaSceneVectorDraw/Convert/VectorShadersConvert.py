@@ -1,4 +1,4 @@
-# Copyright 2020-2025 Aaron Barany
+# Copyright 2020-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ from DeepSeaScene import VersionedShaderModule
 class Object:
 	pass
 
-def convertVectorShaders(convertContext, data, outputDir):
+def convertVectorShaders(convertContext, data, inputDir, outputDir):
 	"""
 	Converts vector shaders used in a scene. The data map is expected to contain the following
 	elements:
@@ -88,7 +88,7 @@ def convertVectorShaders(convertContext, data, outputDir):
 				version = str(versionedModuleData['version'])
 				moduleStr = str(versionedModuleData['module'])
 				try:
-					modulePath, moduleContents = readDataOrPath(moduleStr)
+					modulePath, moduleContents = readDataOrPath(moduleStr, inputDir)
 				except TypeError:
 					raise Exception(
 						'VectorShaders shader module "module" uses incorrect base64 encoding.')

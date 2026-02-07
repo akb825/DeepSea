@@ -52,7 +52,27 @@
 	{
 		"type": "VectorResources",
 		"name": "resources",
-		"resources": "@assetsDir@/VectorResources.dsvr",
+		"resources":
+		[
+			{
+				"type": "FaceGroup",
+				"name": "default",
+				"faces":
+				[
+					{
+						"name": "sans",
+						"path": "../Shared/Fonts/NotoSans-Regular.ttc"
+					}
+				]
+			},
+			{
+				"type": "Font",
+				"name": "sans-serif",
+				"faceGroup": "default",
+				"faces": ["sans"],
+				"quality": "high"
+			}
+		],
 		"output": "VectorResources.dsvr"
 	},
 	{
@@ -73,7 +93,7 @@
 	{
 		"type": "VectorImage",
 		"name": "tiger",
-		"image": "@assetsDir@/Ghostscript_Tiger.dsvi",
+		"image": "Ghostscript_Tiger.svg",
 		"vectorShaders": "vectorShaders",
 		"targetSize": [150, 150]
 	},

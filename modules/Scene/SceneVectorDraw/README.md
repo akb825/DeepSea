@@ -19,10 +19,47 @@ The following custom scene resource types are provided with the members that are
 * `"Text"`: text to draw within a scene with a `TextNode`.
 	* `resources`: the name of the vector resources to get the font from.
 	* `font`: the name of the font to use if not provided by the text XML element. Defaults to `"serif"`.
-	* `text`: the text. This can either be a path to a .xml file or embedded XML string. The XML contents should be a single \<text\> SVG element with any number of \<tspan\> embedded elements. (see https://www.w3.org/TR/SVG2/text.html#TextElement for details) Only solid colors are allowed for stroke and fill. When a position is provided, only a relative offset for the vertical position is supported.
+	* `text`: the text. This can either be a path to a .xml file or embedded XML string. The XML contents should be a single `<text>` SVG element with any number of `<tspan>` embedded elements. (see https://www.w3.org/TR/SVG2/text.html#TextElement for details) Only solid colors are allowed for stroke and fill. When a position is provided, only a relative offset for the vertical position is supported.
 * `"VectorResources"`: vector resources that will be used for vector images within a scene.
-	* `resources`: path to the vector resources.
-	* `output`: the path to the output the vector resources. This can be omitted if vector resources are embedded. If `resourceType` is `"Relative"`, this will be treated as relative to the scene resource file.
+	* `resources`: array of objects for the vector resources. Each element is expected to have the following members:
+		* `type`: the type of the resource. The following sections document what types are supported and the members it contains:
+			* `"Texture"`: texture referenced within a vector image or text icon.
+				* `name`: name used to reference the texture. Defaults to path filename without extension
+				* `path`: path to the input image.
+				* `format`: texture format. See cuttlefish help for supported formats.
+				* `channelType`: texture channel type. See cuttlefish help for supported types.
+				* `srgb`: whether to perform sRGB to linear conversion when interpreting the texture. Defaults to `false`.
+				* `size`: array with the target width and height. Defaults to the dimensions of the image.
+				* `quality`: quality of encoding, one of `Lowest`, `Low`, `Normal`, `High`, or `Highest`. Defaults to `Normal`.
+				* `container`: the texture container format, one of `pvr`, `dds`, or `ktx`. Defaults to `pvr`.
+				* `embed`: whether to embed embed directly in the resources file. Defaults to `false`.
+			* `"VectorImage"`: vector image that can be looked up by name.
+				* `name`: name used to reference the vector image. Defaults to the path filename without extension.
+				* `path`: path to the input SVG.
+				* `defaultFont`: the default font to use when none is specified for a text element. Defaults to `"serif"`.
+				* `targetSize`: array with the target width and height for tessellation quality. Defaults to the dimensions of the image.
+				* `embed`: whether to embed embed directly in the resources file. Defaults to `false`.
+				* `"TextureTextIcons"`, `"VectorTextIcons"`: icons used to replace specific codepoints with either a texture or vector image rather than the glyph from a font face.
+				* `name`: name used to reference the text icons.
+				* `icons`: array of array of objects for the individual icons. The outer array groups icons together for faster lookup, where all values between the minimum and maximum codepoints are considered one block of icon glyphs. Each element of the inner array is expected to have the following members:
+					* `codepoint`: the integer codepoint for the Unicode value to assign the icon to. This may also be provided as a hexidecimal string.
+					* `icon`: the name of the texture or vector image (depending on the parent object's type) to use for the icon.
+					* `advance`: the amount to advance text after the icon, normalized to be typically in the range `[0, 1]`.
+					* `bounds`: 2D array for the minimum and maximum bounds for the icon in normalized values typically in the range `[0, 1]`.
+			* `"FaceGroup"`: font faces that can be used by a font.
+				* `name`: name used to reference the face group.
+				* `faces`: array of objects for the faces. Each element is expected to have the following members:
+					* `name`: the name of the face to reference by a font. Defaults to the filename of the font file without the extension.
+					* `path`: the path to the font file.
+					* `embed`: whether to embed embed directly in the resources file. Defaults to `false`.
+			* `"Font"`: font for displaying of text.
+				* `name`: the name used to reference the font.
+				* `faceGroup`: the face group that provides the faces used by the font.
+				* `faces`: array of strings for the names of the faces to use within the face group.
+				* `icons`: the name of text icons to use. Defaults to unset, meaning no icons are used.
+				* `quality`: the quality of the font as one of `Low`, `Medium`, `High`, or `VeryHigh`.
+				* `cacheSize`: the size of the cache as one of `Small` or `Large`. Defaults to `Large`.
+	* `output`: the path to the output the vector resources. When omitted, the vector resources will be embedded and all `embed` members will be forced to `true`. If `resourceType` is `"Relative"`, this will be treated as relative to the scene resource file.
 	* `outputRelativeDir`: the directory relative to output path. This will be removed from the path before adding the reference.
 	* `resourceType`: the resource type. See the `dsFileResourceType` for values, removing the type prefix, in addition to `"Relative"` for a path relative to the scene resources file. Defaults to `"Relative"`.
 * `"VectorShaders"`: shaders to be used with vector images within a scene.
@@ -49,7 +86,8 @@ The following custom scene resource types are provided with the members that are
 	* `textGradient`: name of the shader for text using a gradient. Defaults to `"dsVectorTextGradient"`.
 	* `textGradientOutline`: name of the shader for text with an outline using a gradient. Defaults to `"dsVectorTextGradientOutline"`.
 * `"VectorImage"`: vector image to draw within a scene with `VectorImageNode`.
-	* `image`: path to the vector image or base64 encoded data prefixed with `base64:`.
+	* `image`: path to the input SVG.
+	* `defaultFont`: the default font to use when none is specified for a text element. Defaults to `"serif"`.
 	* `output`: the path to the output the vector image. This can be omitted if the vector image is embedded. If `resourceType` is `"Relative"`, this will be treated as relative to the scene resource file.
 	* `outputRelativeDir`: the directory relative to output path. This will be removed from the path before adding the reference.
 	* `resourceType`: the resource type. See the `dsFileResourceType` for values, removing the type prefix, in addition to `"Relative"` for a path relative to the scene resources file. Defaults to `"Relative"`.

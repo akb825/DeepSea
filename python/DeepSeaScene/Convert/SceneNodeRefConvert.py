@@ -1,4 +1,4 @@
-# Copyright 2020-2021 Aaron Barany
+# Copyright 2020-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 import flatbuffers
 from .. import SceneNodeRef
 
-def convertReferenceNode(convertContext, data, outputDir):
+def convertReferenceNode(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a ReferenceNode. The data map is expected to contain the following elements:
 	- ref: string name of the node that's referenced.

@@ -1,4 +1,4 @@
-# Copyright 2024 Aaron Barany
+# Copyright 2024-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ from DeepSeaPhysics.Quaternion4f import CreateQuaternion4f
 from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import RigidBodyTemplate
 
-def convertRigidBodyTemplate(convertContext, data, outputDir):
+def convertRigidBodyTemplate(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a RigidBodyTemplate. The data map is expected to contain the following elements:
 	- flags: list of flags control the behavior of the rigid body. See the dsRigidBodyFlags enum
@@ -156,7 +156,7 @@ def convertRigidBodyTemplate(convertContext, data, outputDir):
 		shapes = []
 		try:
 			for shapeData in shapesData:
-				shapes.append(convertShapeInstance(convertContext, shapeData, builder))
+				shapes.append(convertShapeInstance(convertContext, shapeData, inputDir, builder))
 		except (AttributeError, TypeError, ValueError):
 			raise Exception('RigidBodyTemplate "shape" must be an array of objects.')
 		except KeyError as e:

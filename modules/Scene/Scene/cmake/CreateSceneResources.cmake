@@ -1,4 +1,4 @@
-# Copyright 2020-2023 Aaron Barany
+# Copyright 2020-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ endfunction()
 #                           [DEPENDS pattern1 [pattern2 ...]]
 #                           [DEPENDS_RECURSE pattern1 [pattern2 ...]]
 #                           [WORKING_DIRECTORY dir]
+#                           [INPUT_DIRECTORY dir]
 #                           [MODULE_DIRECTORIES dir1 [dir2 ... ]]
 #                           [EXTENSIONS extension1 [extension2  ...]])
 #
@@ -68,6 +69,7 @@ endfunction()
 # DEPENDS - list of patterns to be used as dependencies. A GLOB will be performed for each pattern.
 # DEPENDS_RECURSE - same as DEPENDS, except each pattern performs a GLOB_RECURSE.
 # WORKING_DIRECTORY - the working directory for creating the scene resources.
+# INPUT_DIRECTORY - the input directory relative paths within the input file.
 # MODULE_DIRECTORIES - additional directories to use for the Python module path.
 # EXTENSIONS - list of Python modules to use as extensions.
 function(ds_create_scene_resources container)
@@ -81,7 +83,7 @@ function(ds_create_scene_resources container)
 		message(FATAL_ERROR "Program 'vfc' not found on the path.")
 	endif()
 
-	set(oneValueArgs FILE OUTPUT WORKING_DIRECTORY)
+	set(oneValueArgs FILE OUTPUT WORKING_DIRECTORY INPUT_DIRECTORY)
 	set(multiValueArgs DEFINE DEPENDS DEPENDS_RECURSE MODULE_DIRECTORIES EXTENSIONS)
 	cmake_parse_arguments(ARGS "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 	if (NOT ARGS_FILE)
@@ -125,6 +127,9 @@ function(ds_create_scene_resources container)
 	set(buildCommand ${CMAKE_COMMAND} -E env ${moduleDirs} ${Python_EXECUTABLE}
 		${createSceneResources} -i ${ARGS_FILE} -o ${ARGS_OUTPUT} -c ${CUTTLEFISH} -v ${VFC}
 		${extensions})
+	if (ARGS_INPUT_DIRECTORY)
+		list(APPEND buildCommand -d ${ARGS_INPUT_DIRECTORY})
+	endif()
 
 	# NOTE: Output file doesn't support generator expressions, so need to manually expand it.
 	if (ARGS_OUTPUT MATCHES ".*\\$<CONFIG>.*")

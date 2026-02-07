@@ -1,4 +1,4 @@
-# Copyright 2023 Aaron Barany
+# Copyright 2023-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ def addAnimationJointTreeType(convertContext, typeName, convertFunc):
 		raise Exception('Animation joint tree type "' + typeName + '" is already registered.')
 	convertContext.animationJointTreeTypeMap[typeName] = convertFunc
 
-def convertAnimationJointTree(convertContext, data, outputDir):
+def convertAnimationJointTree(convertContext, data, inputDir, outputDir):
 	"""
 	Converts an AnimationTree with joints. The data map is expected to contain the following
 	elements:
@@ -113,7 +113,7 @@ def convertAnimationJointTree(convertContext, data, outputDir):
 				if not isinstance(node, str):
 					raise Exception('AnimationTree "nodes" must be a list of strings.')
 
-			nodes = convertFunc(convertContext, path, nodeData)
+			nodes = convertFunc(convertContext, os.path.join(inputDir, path), nodeData)
 		else:
 			nodes = []
 			try:

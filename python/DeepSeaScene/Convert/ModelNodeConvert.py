@@ -1,4 +1,4 @@
-# Copyright 2020-2024 Aaron Barany
+# Copyright 2020-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ def validateModelDistanceRange(distanceRange):
 	except:
 		raise Exception('Invalid model draw distance range "' + str(distanceRange) + '".')
 
-def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
+def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources, inputDir):
 	embeddedBufferName = '_DSEmbeddedModelBuffer'
 	embeddedGeometryName = '_DSEmbeddedModelGeometry'
 	combinedBuffer = bytearray()
@@ -136,9 +136,9 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 				raise Exception(
 					'ModelNode "modelGeometry" doesn\'t contain element ' + str(e) + '.')
 
-			convertedGeometry = loadAndConvertModelGeometry(convertContext, modelType, path,
-				includedComponents, vertexFormat, indexSize, transforms, combinedBuffer,
-				modelBounds)
+			convertedGeometry = loadAndConvertModelGeometry(convertContext, modelType,
+				os.path.join(inputDir, path), includedComponents, vertexFormat, indexSize,
+				transforms, combinedBuffer, modelBounds)
 
 			# Geometries to be added to the embedded resources.
 			for geometry in convertedGeometry.values():
@@ -372,7 +372,7 @@ def convertModelNodeModels(modelInfoList):
 
 	return models
 
-def convertModelNode(convertContext, data, outputDir):
+def convertModelNode(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a ModelNode. The data map is expected to contain the following elements:
 	- embeddedResources: optional set of resources to embed with the node. This is an array of maps
@@ -459,7 +459,7 @@ def convertModelNode(convertContext, data, outputDir):
 		modelGeometry = data.get('modelGeometry')
 		if modelGeometry:
 			models, modelBounds = convertModelNodeGeometry(convertContext, modelGeometry,
-				embeddedResources)
+				embeddedResources, inputDir)
 		else:
 			models = []
 			modelBounds = None
@@ -489,7 +489,8 @@ def convertModelNode(convertContext, data, outputDir):
 
 	builder = flatbuffers.Builder(0)
 	if embeddedResources:
-		embeddedResourcesData = convertSceneResources(convertContext, embeddedResources, outputDir)
+		embeddedResourcesData = convertSceneResources(
+			convertContext, embeddedResources, inputDir, outputDir)
 		embeddedResourcesOffset = builder.CreateByteVector(embeddedResourcesData)
 	else:
 		embeddedResourcesOffset = 0

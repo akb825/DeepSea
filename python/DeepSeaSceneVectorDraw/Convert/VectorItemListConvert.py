@@ -1,4 +1,4 @@
-# Copyright 2020-2025 Aaron Barany
+# Copyright 2020-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ import flatbuffers
 from .. import VectorItemList
 from DeepSeaScene.Convert.DynamicRenderStatesConvert import convertDynamicRenderStates
 
-def convertVectorItemList(convertContext, data):
+def convertVectorItemList(convertContext, data, inputDir):
 	"""
 	Converts a VectorItemList. The data map is expected to contain the following elements:
 	- instanceData: optional list of instance data to include with the item list. Each element of
@@ -82,7 +82,7 @@ def convertVectorItemList(convertContext, data):
 	instanceDataOffsets = []
 	for instanceType, instance in instanceData:
 		instanceDataOffsets.append(convertContext.convertInstanceData(builder, instanceType,
-			instance))
+			instance, inputDir))
 
 	if instanceDataOffsets:
 		VectorItemList.StartInstanceDataVector(builder, len(instanceDataOffsets))

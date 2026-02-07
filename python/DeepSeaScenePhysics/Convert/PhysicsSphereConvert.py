@@ -1,4 +1,4 @@
-# Copyright 2024 Aaron Barany
+# Copyright 2024-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import Sphere
 from DeepSeaPhysics import Shape
 
-def convertPhysicsSphereOffset(convertContext, data, builder):
+def convertPhysicsSphereOffset(convertContext, data, inputDir, builder):
 	try:
 		radius = readFloat(data['radius'], 0, 'radius')
 	except (TypeError, ValueError):
@@ -37,11 +37,11 @@ def convertPhysicsSphereOffset(convertContext, data, builder):
 	Shape.AddShape(builder, sphereOffset)
 	return Shape.End(builder)
 
-def convertPhysicsSphere(convertContext, data, outputDir):
+def convertPhysicsSphere(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a PhysicsSphere. The data map is expected to contain the following elements:
 	- radius: the radius of the sphere.
 	"""
 	builder = flatbuffers.Builder(0)
-	builder.Finish(convertPhysicsSphereOffset(convertContext, data, builder))
+	builder.Finish(convertPhysicsSphereOffset(convertContext, data, inputDir, builder))
 	return builder.Output()

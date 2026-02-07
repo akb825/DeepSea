@@ -1,4 +1,4 @@
-# Copyright 2023 Aaron Barany
+# Copyright 2023-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ from DeepSeaAnimation.Vector4f import CreateVector4f
 class Object:
 	pass
 
-def convertDirectAnimation(convertContext, data, outputDir):
+def convertDirectAnimation(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a direct animation for a scene. The data map is expected to contain the following
 	elements:

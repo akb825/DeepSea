@@ -6,7 +6,7 @@
 		"modelGeometry":
 		[
 			{
-				"path": "@srcDir@/Assets/Ground.gltf",
+				"path": "Ground.gltf",
 				"vertexFormat":
 				[
 					[
@@ -61,7 +61,7 @@
 		"modelGeometry":
 		[
 			{
-				"path": "@srcDir@/Assets/Torch.gltf",
+				"path": "Torch.gltf",
 				"vertexFormat":
 				[
 					[
@@ -113,7 +113,7 @@
 		"modelGeometry":
 		[
 			{
-				"path": "@srcDir@/Assets/Character.gltf",
+				"path": "Character.gltf",
 				"vertexFormat":
 				[
 					[
@@ -163,25 +163,25 @@
 	{
 		"type": "AnimationJointTree",
 		"name": "characterAnimationTree",
-		"file": "@srcDir@/Assets/Character.gltf",
+		"file": "Character.gltf",
 		"nodes": ["Body"]
 	},
 	{
 		"type": "KeyframeAnimation",
 		"name": "idleAnimation",
-		"file": "@srcDir@/Assets/Character.gltf",
+		"file": "Character.gltf",
 		"keyframes": ["Idle"]
 	},
 	{
 		"type": "KeyframeAnimation",
 		"name": "walkAnimation",
-		"file": "@srcDir@/Assets/Character.gltf",
+		"file": "Character.gltf",
 		"keyframes": ["Walk"]
 	},
 	{
 		"type": "KeyframeAnimation",
 		"name": "runAnimation",
-		"file": "@srcDir@/Assets/Character.gltf",
+		"file": "Character.gltf",
 		"keyframes": ["Run"]
 	},
 	{
@@ -204,7 +204,7 @@
 	{
 		"type": "Texture",
 		"name": "grassColor",
-		"path": "@srcDir@/Assets/GrassColor.png",
+		"path": "GrassColor.png",
 		"textureInfo":
 		{
 			"format": "@rgbFormat@",
@@ -215,7 +215,7 @@
 	{
 		"type": "Texture",
 		"name": "grassNormal",
-		"path": "@srcDir@/Assets/GrassBump.png",
+		"path": "GrassBump.png",
 		"textureInfo":
 		{
 			"format": "@normalFormat@",
@@ -228,7 +228,7 @@
 	{
 		"type": "Texture",
 		"name": "grassSpecular",
-		"path": "@srcDir@/Assets/GrassSpecular.png",
+		"path": "GrassSpecular.png",
 		"textureInfo":
 		{
 			"format": "@rgbFormat@",
@@ -239,7 +239,7 @@
 	{
 		"type": "Texture",
 		"name": "woodGrain",
-		"path": "@srcDir@/Assets/WoodGrain.png",
+		"path": "WoodGrain.png",
 		"textureInfo":
 		{
 			"format": "@rgbFormat@",

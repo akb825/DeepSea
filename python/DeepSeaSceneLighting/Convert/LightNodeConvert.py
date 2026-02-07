@@ -1,4 +1,4 @@
-# Copyright 2022 Aaron Barany
+# Copyright 2022-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from .LightConvert import readLight, writeLight
 class Object:
 	pass
 
-def convertLightNode(convertContext, data, outputDir):
+def convertLightNode(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a LightNode. The data map is expected to contain the following elements:
 	- light: The light used as a template for all the lights created in the scene. It is expected

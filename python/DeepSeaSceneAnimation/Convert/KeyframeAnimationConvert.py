@@ -1,4 +1,4 @@
-# Copyright 2023 Aaron Barany
+# Copyright 2023-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ def addKeyframeAnimationType(convertContext, typeName, convertFunc):
 		raise Exception('Keyframe animation type "' + typeName + '" is already registered.')
 	convertContext.keyframeAnimationTypeMap[typeName] = convertFunc
 
-def convertKeyframeAnimation(convertContext, data, outputDir):
+def convertKeyframeAnimation(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a keyframe animation for a scene. The data map is expected to contain the following
 	elements:
@@ -117,13 +117,15 @@ def convertKeyframeAnimation(convertContext, data, outputDir):
 
 	def readTranslationScaleValues(value, name):
 		if not isinstance(value, list) or len(value) != 3:
-			raise Exception('KeyframeAnimation "' + name + '" must be an array of three floats.')
+			raise Exception(
+				'KeyframeAnimation "values" ' + name + ' element must be an array of three floats.')
 
 		return (readFloat(value[0], name), readFloat(value[1], name), readFloat(value[2], name))
 
 	def readRotationValues(value):
 		if not isinstance(value, list) or len(value) != 4:
-			raise Exception('KeyframeAnimation "rotation" must be an array of four floats.')
+			raise Exception(
+				'KeyframeAnimation "values" rotation element must be an array of four floats.')
 
 		name = 'rotation'
 		return (readFloat(value[0], name), readFloat(value[1], name), readFloat(value[2], name),
@@ -157,7 +159,7 @@ def convertKeyframeAnimation(convertContext, data, outputDir):
 				if not isinstance(keyframe, str):
 					raise Exception('KeyframeAnimation "keyframes" must be a list of strings.')
 
-			keyframes = convertFunc(convertContext, path, keyframesData)
+			keyframes = convertFunc(convertContext, os.path.join(inputDir, path), keyframesData)
 		else:
 			keyframes = []
 			try:
@@ -192,7 +194,7 @@ def convertKeyframeAnimation(convertContext, data, outputDir):
 									interpolationStr + '".')
 
 							valuesData = channelData['values']
-							if not isinstance(valuesData):
+							if not isinstance(valuesData, list):
 								raise Exception(
 									'KeyframeAnimation "values" must be an array of float arrays.')
 
@@ -200,7 +202,7 @@ def convertKeyframeAnimation(convertContext, data, outputDir):
 								if len(valuesData) != len(keyframeTimes)*3:
 									raise Exception('KeyframeAnimation "values" must contain three '
 										'elements for each keyframe time.')
-							elif len(valuesData) != len(keyframeTimes)*3:
+							elif len(valuesData) != len(keyframeTimes):
 								raise Exception('KeyframeAnimation "values" must contain one '
 									'element for each keyframe time.')
 

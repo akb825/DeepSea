@@ -1,4 +1,4 @@
-# Copyright 2024 Aaron Barany
+# Copyright 2024-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import Box
 from DeepSeaPhysics import Shape
 
-def convertPhysicsBoxOffset(convertContext, data, builder):
+def convertPhysicsBoxOffset(convertContext, data, inputDir, builder):
 	try:
 		halfExtentsData = data['halfExtents']
 		if not isinstance(halfExtentsData, list) or len(halfExtentsData) != 3:
@@ -42,7 +42,7 @@ def convertPhysicsBoxOffset(convertContext, data, builder):
 	Shape.AddShape(builder, boxOffset)
 	return Shape.End(builder)
 
-def convertPhysicsBox(convertContext, data, outputDir):
+def convertPhysicsBox(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a PhysicsBox. The data map is expected to contain the following elements:
 	- halfExtents: array of 3 floats for the half extents of the box. The full box geometry ranges
@@ -51,5 +51,5 @@ def convertPhysicsBox(convertContext, data, outputDir):
 	  system's default will be used.
 	"""
 	builder = flatbuffers.Builder(0)
-	builder.Finish(convertPhysicsBoxOffset(convertContext, data, builder))
+	builder.Finish(convertPhysicsBoxOffset(convertContext, data, inputDir, builder))
 	return builder.Output()

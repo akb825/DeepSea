@@ -6,7 +6,7 @@
 		"modelGeometry":
 		[
 			{
-				"path": "@srcDir@/Assets/Ground.gltf",
+				"path": "Ground.gltf",
 				"vertexFormat":
 				[
 					[
@@ -61,7 +61,7 @@
 		"modelGeometry":
 		[
 			{
-				"path": "@srcDir@/Assets/Torch.gltf",
+				"path": "Torch.gltf",
 				"vertexFormat":
 				[
 					[
@@ -107,7 +107,7 @@
 	{
 		"type": "Texture",
 		"name": "grassColor",
-		"path": "@srcDir@/Assets/GrassColor.png",
+		"path": "GrassColor.png",
 		"textureInfo":
 		{
 			"format": "@rgbFormat@",
@@ -118,7 +118,7 @@
 	{
 		"type": "Texture",
 		"name": "grassNormal",
-		"path": "@srcDir@/Assets/GrassBump.png",
+		"path": "GrassBump.png",
 		"textureInfo":
 		{
 			"format": "@normalFormat@",
@@ -131,7 +131,7 @@
 	{
 		"type": "Texture",
 		"name": "grassSpecular",
-		"path": "@srcDir@/Assets/GrassSpecular.png",
+		"path": "GrassSpecular.png",
 		"textureInfo":
 		{
 			"format": "@rgbFormat@",
@@ -142,7 +142,7 @@
 	{
 		"type": "Texture",
 		"name": "woodGrain",
-		"path": "@srcDir@/Assets/WoodGrain.png",
+		"path": "WoodGrain.png",
 		"textureInfo":
 		{
 			"format": "@rgbFormat@",
@@ -155,9 +155,9 @@
 		"name": "flame",
 		"pathArray":
 		[
-			"@srcDir@/Assets/Flame0.png",
-			"@srcDir@/Assets/Flame1.png",
-			"@srcDir@/Assets/Flame2.png"
+			"Flame0.png",
+			"Flame1.png",
+			"Flame2.png"
 		],
 		"textureInfo":
 		{
@@ -172,9 +172,9 @@
 		"name": "smoke",
 		"pathArray":
 		[
-			"@srcDir@/Assets/Smoke0.png",
-			"@srcDir@/Assets/Smoke1.png",
-			"@srcDir@/Assets/Smoke2.png"
+			"Smoke0.png",
+			"Smoke1.png",
+			"Smoke2.png"
 		],
 		"textureInfo":
 		{

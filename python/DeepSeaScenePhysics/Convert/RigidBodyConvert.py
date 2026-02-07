@@ -1,4 +1,4 @@
-# Copyright 2024 Aaron Barany
+# Copyright 2024-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ from DeepSeaPhysics.Quaternion4f import CreateQuaternion4f
 from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import RigidBody
 
-def convertRigidBody(convertContext, data, outputDir):
+def convertRigidBody(convertContext, data, inputDir, outputDir):
 	"""
 	Converts a RigidBody. The data map is expected to contain the following elements:
 	- group: the name of the rigid body group, or unset if not part of a group.
@@ -214,7 +214,7 @@ def convertRigidBody(convertContext, data, outputDir):
 		shapes = []
 		try:
 			for shapeData in shapesData:
-				shapes.append(convertShapeInstance(convertContext, shapeData, builder))
+				shapes.append(convertShapeInstance(convertContext, shapeData, inputDir, builder))
 		except (AttributeError, TypeError, ValueError):
 			raise Exception('RigidBody "shapes" must be an array of objects.')
 		except KeyError as e:

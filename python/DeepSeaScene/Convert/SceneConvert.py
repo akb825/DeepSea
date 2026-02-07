@@ -1,4 +1,4 @@
-# Copyright 2020-2021 Aaron Barany
+# Copyright 2020-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ pipelineAccessEnum = {
 	'MemoryWrite': 0x80000
 }
 
-def convertScene(convertContext, data):
+def convertScene(convertContext, data, inputDir):
 	"""
 	Converts a Scene. The data is expected to contain the following elements:
 	- sharedItems: an optional array of shared item lists. Each element of the array is itself an
@@ -517,7 +517,7 @@ def convertScene(convertContext, data):
 		itemListOffsets = []
 		for item in itemLists:
 			itemListOffsets.append(convertContext.convertItemList(builder, item.type, item.name,
-				item.data))
+				item.data, inputDir))
 
 		SceneItemLists.StartItemListsVector(builder, len(itemListOffsets))
 		for offset in reversed(itemListOffsets):
@@ -540,7 +540,8 @@ def convertScene(convertContext, data):
 	for item in pipeline:
 		if hasattr(item, 'type'):
 			itemType = ScenePipelineItemUnion.SceneItemList
-			itemOffset = convertContext.convertItemList(builder, item.type, item.name, item.data)
+			itemOffset = convertContext.convertItemList(
+				builder, item.type, item.name, item.data, inputDir)
 		else:
 			itemType = ScenePipelineItemUnion.RenderPass
 			framebufferOffset = builder.CreateString(item.framebuffer)
@@ -623,7 +624,7 @@ def convertScene(convertContext, data):
 				drawListOffsets = []
 				for drawList in subpass.drawLists:
 					drawListOffsets.append(convertContext.convertItemList(builder, drawList.type,
-						drawList.name, drawList.data))
+						drawList.name, drawList.data, inputDir))
 
 				RenderSubpass.StartDrawListsVector(builder, len(drawListOffsets))
 				for offset in reversed(drawListOffsets):
