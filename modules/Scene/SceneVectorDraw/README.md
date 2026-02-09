@@ -62,6 +62,11 @@ The following custom scene resource types are provided with the members that are
 	* `output`: the path to the output the vector resources. When omitted, the vector resources will be embedded and all `embed` members will be forced to `true`. If `resourceType` is `"Relative"`, this will be treated as relative to the scene resource file.
 	* `outputRelativeDir`: the directory relative to output path. This will be removed from the path before adding the reference.
 	* `resourceType`: the resource type. See the `dsFileResourceType` for values, removing the type prefix, in addition to `"Relative"` for a path relative to the scene resources file. Defaults to `"Relative"`.
+	* `sharedMaterials`: the name of the vector material set for shared material data. This may be unset if vector images aren't within the resources or shared materials aren't used.
+	* `vectorShaders`: the name of the vector shaders to draw vector images with. This may be unset if neither vector images nor vector icons are within the resources.
+	* `textureIconShader`: the name of the shader to draw texture icons with. This may be unset if texture icons aren't within the resources.
+	* `textureIconMaterial`: the name of the material to draw texture icons with. This may be unset if texture icons aren't within the resources or an empty material is sufficient.
+	* `srgb`: whether the embedded materials for any vector images should be treated as sRGB and converted to linear when drawing. Defaults to `false`.
 * `"VectorShaders"`: shaders to be used with vector images within a scene.
 	* `modules`: array of versioned shader modules. The appropriate model based on the graphics API version being used will be chosen at runtime. Each element of the array has the following members:
 		* `version`: the version of the shader as a standard config. (e.g. `"glsl-4.1"`, `"spirv-1.0"`)

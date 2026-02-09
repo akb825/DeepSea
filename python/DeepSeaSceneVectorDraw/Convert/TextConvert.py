@@ -53,18 +53,19 @@ def convertText(convertContext, data, inputDir, outputDir):
 	"""
 	builder = flatbuffers.Builder(0)
 
+	if sys.version_info >= (3, 0):
+		unicode = str
+
 	try:
 		vectorResources = str(data['vectorResources'])
 		defaultFont = str(data.get('font', 'serif'))
-		textData = str(data['text']).strip()
+		textData = unicode(data['text']).strip()
 	except KeyError as e:
 		raise Exception('SceneText doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):
 		raise Exception('SceneText must be an object.')
 
 	if textData.startswith('<'):
-		if sys.version_info < (3, 0):
-			textData = unicode(textData)
 		textXml = minidom.parse(io.StringIO(textData))
 	else:
 		textXml = minidom.parse(textData)

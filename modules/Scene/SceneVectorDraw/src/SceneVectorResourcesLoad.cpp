@@ -31,6 +31,7 @@
 
 #include <DeepSea/SceneVectorDraw/SceneVectorMaterialSet.h>
 #include <DeepSea/SceneVectorDraw/SceneVectorResources.h>
+#include <DeepSea/SceneVectorDraw/SceneVectorShaders.h>
 
 #include <DeepSea/Text/FaceGroup.h>
 
@@ -132,7 +133,7 @@ void* dsVectorSceneResources_load(const dsSceneLoadContext* loadContext,
 				reinterpret_cast<void**>(&customResource), scratchData,
 				fbVectorShaders->c_str()) ||
 			resourceType != dsSceneResourceType_Custom ||
-			customResource->type != dsSceneVectorResources_type())
+			customResource->type != dsSceneVectorShaders_type())
 		{
 			errno = ENOTFOUND;
 			DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Couldn't find vector shaders '%s'.",

@@ -26,19 +26,19 @@ table VectorResources
 	resources : DeepSeaScene.FileOrData (required);
 
 	// The name of the vector material set for shared material data. This may be unset if vector
-	// images aren't within the resources shared materials aren't used.
+	// images aren't within the resources or shared materials aren't used.
 	sharedMaterials : string;
 
 	// The name of the vector shaders to draw vector images with. This may be unset if there are
-	// neither vector images nor vector icons within the resources.
+	// neither vector images nor vector icons are within the resources.
 	vectorShaders : string;
 
-	// The name of the shader to draw texture icons with. This may be unset if texture icons won't
-	// be used.
+	// The name of the shader to draw texture icons with. This may be unset if texture icons aren't
+	// within the resources.
 	textureIconShader : string;
 
-	// The name of the material to draw texture icons with. This may be unset if texture icons won't
-	// be used or an empty material is sufficient.
+	// The name of the material to draw texture icons with. This may be unset if texture icons aren't
+	// within the resources or an empty material is sufficient.
 	textureIconMaterial : string;
 
 	// Whether the embedded materials for any vector images should be treated as sRGB and converted

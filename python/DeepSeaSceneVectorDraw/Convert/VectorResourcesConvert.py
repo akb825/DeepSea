@@ -88,6 +88,16 @@ def convertVectorResources(convertContext, data, inputDir, outputDir):
 	- resourceType: the resource type. See the dsFileResourceType for values, removing the type
 	  prefix, in addition to "Relative" for a path relative to the scene resources file. Defaults
 	  to "Relative".
+	- sharedMaterials: the name of the vector material set for shared material data. This may be
+	  unset if vector images aren't within the resources or shared materials aren't used.
+	- vectorShaders: the name of the vector shaders to draw vector images with. This may be unset if
+	  neither vector images nor vector icons are within the resources.
+	- textureIconShader: the name of the shader to draw texture icons with. This may be unset if
+	  texture icons aren't within the resources.
+	- textureIconMaterial: the name of the material to draw texture icons with. This may be unset if
+	  texture icons aren't within the resources or an empty material is sufficient.
+	- srgb: whether the embedded materials for any vector images should be treated as sRGB and
+	  converted to linear when drawing. Defaults to false.
 	"""
 	builder = flatbuffers.Builder(0)
 	vectorResources = VectorResourcesConvert(convertContext.cuttlefish)
@@ -106,13 +116,41 @@ def convertVectorResources(convertContext, data, inputDir, outputDir):
 
 		dataType, dataOffset = convertFileOrData(builder, inputPath, resourceData, outputPath,
 			data.get('outputRelativeDir'), resourceType, outputDir)
+
+		sharedMaterials = str(data.get('sharedMaterials', ''))
+		vectorShaders = str(data.get('vectorShaders', ''))
+		textureIconShader = str(data.get('textureIconShader', ''))
+		textureIconMaterial = str(data.get('textureIconMaterial', ''))
+		srgb = bool(data.get('srgb'))
 	except KeyError as e:
 		raise Exception('VectorResources doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):
 		raise Exception('VectorResources must be an object.')
 
+	if sharedMaterials:
+		sharedMaterialsOffset = builder.CreateString(sharedMaterials)
+	else:
+		sharedMaterialsOffset = 0
+	if vectorShaders:
+		vectorShadersOffset = builder.CreateString(vectorShaders)
+	else:
+		vectorShadersOffset = 0
+	if textureIconShader:
+		textureIconShaderOffset = builder.CreateString(textureIconShader)
+	else:
+		textureIconShaderOffset = 0
+	if textureIconMaterial:
+		textureIconMaterialOffset = builder.CreateString(textureIconMaterial)
+	else:
+		textureIconMaterialOffset = 0
+
 	VectorResources.Start(builder)
 	VectorResources.AddResourcesType(builder, dataType)
 	VectorResources.AddResources(builder, dataOffset)
+	VectorResources.AddSharedMaterials(builder, sharedMaterialsOffset)
+	VectorResources.AddVectorShaders(builder, vectorShadersOffset)
+	VectorResources.AddTextureIconShader(builder, textureIconShaderOffset)
+	VectorResources.AddTextureIconMaterial(builder, textureIconMaterialOffset)
+	VectorResources.AddSrgb(builder, srgb)
 	builder.Finish(VectorResources.End(builder))
 	return builder.Output()

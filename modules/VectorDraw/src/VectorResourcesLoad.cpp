@@ -532,6 +532,14 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 			}
 			case DeepSeaVectorDraw::VectorResourceUnion::VectorImageResource:
 			{
+				if (!initResources)
+				{
+					errno = EINVAL;
+					DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG,
+						"Must provide init resources to vector resources load.");
+					return nullptr;
+				}
+
 				resourceType = dsVectorResourceType_VectorImage;
 				resource = loadVectorImage(*fbResource->resource_as_VectorImageResource(),
 					relativePathUserData, openRelativePathStreamFunc, closeRelativePathStreamFunc,

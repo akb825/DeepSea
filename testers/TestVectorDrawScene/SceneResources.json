@@ -50,6 +50,21 @@
 		]
 	},
 	{
+		"type": "VectorShaders",
+		"name": "vectorShaders",
+		"modules": @vectorModule@,
+		"materialDesc": "vectorMaterialDesc",
+		"extraElements":
+		[
+			{
+				"name": "dsViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			}
+		]
+	},
+	{
 		"type": "VectorResources",
 		"name": "resources",
 		"resources":
@@ -66,29 +81,49 @@
 				]
 			},
 			{
+				"type": "VectorImage",
+				"path": "../Shared/Icons/SVGs/one.svg",
+				"targetSize": [32, 32]
+			},
+			{
+				"type": "VectorImage",
+				"path": "../Shared/Icons/SVGs/cat.svg",
+				"targetSize": [32, 32]
+			},
+			{
+				"type": "VectorTextIcons",
+				"name": "icons",
+				"icons":
+				[
+					[
+						{
+							"codepoint": 49,
+							"icon": "one",
+							"advance": 0.8,
+							"bounds": [[-0.2, -0.2], [1.0, 1.0]]
+						}
+					],
+					[
+						{
+							"codepoint": "0x1F431",
+							"icon": "cat",
+							"advance": 0.8,
+							"bounds": [[-0.2, -0.2], [1.0, 1.0]]
+						}
+					]
+				]
+			},
+			{
 				"type": "Font",
 				"name": "sans-serif",
 				"faceGroup": "default",
 				"faces": ["sans"],
+				"icons": "icons",
 				"quality": "high"
 			}
 		],
-		"output": "VectorResources.dsvr"
-	},
-	{
-		"type": "VectorShaders",
-		"name": "vectorShaders",
-		"modules": @vectorModule@,
-		"materialDesc": "vectorMaterialDesc",
-		"extraElements":
-		[
-			{
-				"name": "dsViewTransformData",
-				"type": "VariableGroup",
-				"binding": "Global",
-				"shaderVariableGroupDesc": "viewTransformDesc"
-			}
-		]
+		"output": "VectorResources.dsvr",
+		"vectorShaders": "vectorShaders"
 	},
 	{
 		"type": "VectorImage",
@@ -102,7 +137,7 @@
 		"name": "figure",
 		"vectorResources": "resources",
 		"font": "sans-serif",
-		"text": "<text font-size=\"16\" fill=\"black\"><tspan font-style=\"italic\">Figure ${tigerNum}:</tspan> an SVG tiger.</text>"
+		"text": "<text font-size=\"16\" fill=\"black\"><tspan font-style=\"italic\">Figure ${tigerNum}:</tspan> an SVG tiger. 🐱</text>"
 	},
 	{
 		"type": "ShaderModule",

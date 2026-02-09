@@ -15,6 +15,7 @@
 
 from __future__ import print_function
 import argparse
+import io
 import json
 import os
 import sys
@@ -200,7 +201,7 @@ if __name__ == '__main__':
 		inputDir = os.path.dirname(args.input)
 
 	try:
-		with open(args.input) as f:
+		with io.open(args.input, encoding='utf-8') as f:
 			data = json.load(f)
 
 		with open(args.output, 'wb') as f:

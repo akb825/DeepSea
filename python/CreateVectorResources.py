@@ -15,6 +15,7 @@
 
 from __future__ import print_function
 import argparse
+import io
 import json
 import os
 import shutil
@@ -199,7 +200,7 @@ class VectorResources:
 					icons = resource.get('icons')
 					if icons is not None and icons not in textIcons:
 						raise Exception('Text icons "' + str(icons) + '" not present.')
-		except KeyError:
+		except KeyError as e:
 			raise Exception("Vector resource doesn't contain element " + str(e) + '.')
 		except (AttributeError, TypeError, ValueError):
 			raise Exception('VectorResources "resources" must be an array of objects.')
@@ -216,7 +217,7 @@ class VectorResources:
 		"""Loads from a json file. See load() for expected json format."""
 		if not basePath:
 			basePath = os.path.dirname(jsonFile)
-		with open(jsonFile) as f:
+		with io.open(jsonFile, encoding='utf-8') as f:
 			self.load(json.load(f), basePath)
 
 	def save(self, outputPath, quiet = False, multithread = True):
