@@ -18,7 +18,7 @@ import shutil
 
 from .. import VectorResources
 from CreateVectorResources import VectorResources as VectorResourcesConvert
-from DeepSeaScene.Convert.FileOrDataConvert import convertFileOrData
+from DeepSeaScene.Convert.FileOrDataConvert import convertFileOrData, finalOutputPath
 
 def convertVectorResources(convertContext, data, inputDir, outputDir):
 	"""
@@ -95,12 +95,17 @@ def convertVectorResources(convertContext, data, inputDir, outputDir):
 	try:
 		vectorResources.load(data, inputDir)
 		outputPath = data.get('output')
+		resourceType = data.get('resourceType')
+		if outputPath:
+			writePath = finalOutputPath(outputPath, resourceType, outputDir)
+		else:
+			writePath =  None
 
-		resourceData = vectorResources.save(outputPath, True, convertContext.multithread)
-		inputPath = outputPath if resourceData is None else None
+		resourceData = vectorResources.save(writePath, True, convertContext.multithread)
+		inputPath = writePath if resourceData is None else None
 
 		dataType, dataOffset = convertFileOrData(builder, inputPath, resourceData, outputPath,
-			data.get('outputRelativeDir'), data.get('resourceType'), outputDir)
+			data.get('outputRelativeDir'), resourceType, outputDir)
 	except KeyError as e:
 		raise Exception('VectorResources doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):

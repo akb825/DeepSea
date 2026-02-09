@@ -35,6 +35,16 @@ def readDataOrPath(dataStr, inputDir):
 			dataContents = stream.read()
 	return dataPath, dataContents
 
+def finalOutputPath(outputPath, resourceType, parentOutputDir):
+	"""
+	Gets the final output path for a given path used by convertFileOrData(). This can be used when
+	writing data through a separate data to ensure a copy does not occur when performing the
+	final conversion.
+	"""
+	if not resourceType or resourceType == 'Relative':
+		return os.path.join(parentOutputDir, outputPath)
+	return outputPath
+
 def convertFileOrData(builder, inputPath, data, outputPath, outputRelativeDir, resourceType,
 		parentOutputDir):
 	"""

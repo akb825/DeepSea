@@ -71,8 +71,7 @@ ds_configure_file(SceneResources.json ${configDir}/SceneResources.json CONFIG_VA
 	textModule vectorModule @ONLY)
 
 ds_create_scene_resources(resources FILE ${configDir}/SceneResources.json
-	OUTPUT ${assetsDir}/SceneResources.dssr INPUT_DIRECTORY ${srcDir}
-	WORKING_DIRECTORY ${assetsDir})
+	OUTPUT ${assetsDir}/SceneResources.dssr INPUT_DIRECTORY ${srcDir})
 ds_create_scene_resources_target(deepsea_test_vector_draw_scene_app_scene_resources resources
 	DEPENDS deepsea_test_vector_draw_scene_app_shaders)
 
