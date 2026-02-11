@@ -298,12 +298,14 @@ class VectorResources:
 						try:
 							commandLine.extend(['-r', str(int(size[0])), str(int(size[1]))])
 						except (AttributeError, TypeError, ValueError):
-							raise Exception('Vector texture "size" must be an array of two ints.')
+							raise Exception(
+								'Vector resource texture "size" must be an array of two ints.')
 					quality = str(texture.get('quality', ''))
 					if quality:
 						commandLine.extend(['-Q', quality.lower()])
 				except KeyError as e:
-					raise Exception("Vector resource doesn't contain element " + str(e) + '.')
+					raise Exception(
+						"Vector resource texture doesn't contain element " + str(e) + '.')
 
 				if not quiet:
 					print('Converting texture "' + path + '"...')
@@ -345,9 +347,9 @@ class VectorResources:
 						targetSize = None
 				except (AttributeError, TypeError, ValueError):
 					raise Exception(
-						'Vector image resource "targetSize" must be an array of two floats.')
+						'Vector resource image "targetSize" must be an array of two floats.')
 			except KeyError as e:
-				raise Exception("Vector resource doesn't contain element " + str(e) + '.')
+				raise Exception("Vector resource image doesn't contain element " + str(e) + '.')
 
 			vectorImageBytes = convertSVG(os.path.join(self.basePath, path), name, defaultFont)
 			if vectorImage.get('embed') or not resourceDir:
@@ -431,12 +433,14 @@ class VectorResources:
 						TextIconGroup.AddIcons(builder, iconsOffset)
 						iconGroupOffsets.append(TextIconGroup.End(builder))
 				except KeyError as e:
-					raise Exception("Vector text icon doesn't contain element " + str(e) + '.')
+					raise Exception(
+						"Vector resource text icons doesn't contain element " + str(e) + '.')
 				except (AttributeError, TypeError, ValueError):
 					raise Exception(
-						'Vector text icons "icons" must be an array of array of objects.')
+						'Vector resource text icons "icons" must be an array of array of objects.')
 			except KeyError as e:
-				raise Exception("Vector resource doesn't contain element " + str(e) + '.')
+				raise Exception(
+					"Vector resource text icons doesn't contain element " + str(e) + '.')
 
 			TextIcons.StartIconsVector(builder, len(iconGroupOffsets))
 			for offset in reversed(iconGroupOffsets):
@@ -487,7 +491,8 @@ class VectorResources:
 				except (AttributeError, TypeError, ValueError):
 					raise Exception('Face group "faces" must be an array of objects.')
 			except KeyError as e:
-				raise Exception("Vector resource doesn't contain element " + str(e) + '.')
+				raise Exception(
+					"Vector resource face group doesn't contain element " + str(e) + '.')
 
 			FaceGroup.StartFacesVector(builder, len(faceOffsets))
 			for offset in reversed(faceOffsets):
@@ -537,7 +542,7 @@ class VectorResources:
 				except KeyError:
 					raise Exception('Unknown cache size quality "' + cacheSizeStr + '".')
 			except KeyError as e:
-				raise Exception("Vector resource doesn't contain element " + str(e) + '.')
+				raise Exception("Vector resource font doesn't contain element " + str(e) + '.')
 
 			Font.StartFacesVector(builder, len(faceOffsets))
 			for offset in reversed(faceOffsets):
