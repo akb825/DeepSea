@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,12 +72,12 @@
 /**
  * @brief The indices within the material and shape.
  */
-#if SPIRV_VERSION
-// Must be an integer type for Vulkan.
-[[vertex]] layout(location = DS_TEXCOORD0) in ivec2 viMaterialIndex;
-#else
-// Some drivers have issues with integer vertex inputs.
+#if (defined(GLSL_VERSION) && GLSL_VERSION < 130) || \
+	(defined(GLSLES_VERSION) && GLSLES_VERSION < 300)
+// Older versions of OpenGL don't support integer vertex types.
 [[vertex]] layout(location = DS_TEXCOORD0) in vec2 viMaterialIndex;
+#else
+[[vertex]] layout(location = DS_TEXCOORD0) in ivec2 viMaterialIndex;
 #endif
 
 varying(vertex, fragment)

@@ -90,13 +90,7 @@ vec2 dsVectorTextShared_finalPosition(vec2 position, vec2 offset, lowp float sla
  * - z: fill material index
  * - w: outline material index
  */
-#if SPIRV_VERSION
-// Must be an integer type for Vulkan.
 [[vertex]] layout(location = DS_TEXCOORD1) in ivec4 viIndices;
-#else
-// Some drivers have issues with integer vertex inputs.
-[[vertex]] layout(location = DS_TEXCOORD1) in vec4 viIndices;
-#endif
 
 /**
  * @brief Tessellation parameters.
@@ -249,12 +243,12 @@ vec4 dsVectorElementText_processTessellatedVertex()
  * - z: fill material index
  * - w: outline material index
  */
-#if SPIRV_VERSION
-// Must be an integer type for Vulkan.
-[[vertex]] layout(location = DS_TEXCOORD1) in ivec4 viIndices;
-#else
-// Some drivers have issues with integer vertex inputs.
+#if (defined(GLSL_VERSION) && GLSL_VERSION < 130) || \
+	(defined(GLSLES_VERSION) && GLSLES_VERSION < 300)
+// Older versions of OpenGL don't support integer vertex types.
 [[vertex]] layout(location = DS_TEXCOORD1) in vec4 viIndices;
+#else
+[[vertex]] layout(location = DS_TEXCOORD1) in ivec4 viIndices;
 #endif
 
 varying(vertex, fragment)

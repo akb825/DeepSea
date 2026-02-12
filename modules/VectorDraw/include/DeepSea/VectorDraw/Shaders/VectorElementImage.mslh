@@ -69,12 +69,12 @@ sampler_state dsVectorImageTex
 /**
  * @brief The texture coordinates for the image and element index.
  */
-#if SPIRV_VERSION
-// Must be an integer type for Vulkan.
-[[vertex]] layout(location = DS_TEXCOORD0) in ivec4 viTexCoordsElementIndex;
-#else
-// Some drivers have issues with integer vertex inputs.
+#if (defined(GLSL_VERSION) && GLSL_VERSION < 130) || \
+	(defined(GLSLES_VERSION) && GLSLES_VERSION < 300)
+// Older versions of OpenGL don't support integer vertex types.
 [[vertex]] layout(location = DS_TEXCOORD0) in vec4 viTexCoordsElementIndex;
+#else
+[[vertex]] layout(location = DS_TEXCOORD0) in ivec4 viTexCoordsElementIndex;
 #endif
 
 varying(vertex, fragment)

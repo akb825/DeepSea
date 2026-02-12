@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,8 +72,8 @@ static void bindElements(dsGLDrawGeometry* geometry, int32_t baseVertex, bool tr
 			else
 			{
 				glVertexAttribPointer(index, elements, type, normalized,
-					vertexBuffer->format.size, (void*)(size_t)(vertexBuffer->offset + element->offset +
-					offset));
+					vertexBuffer->format.size,
+					(void*)(size_t)(vertexBuffer->offset + element->offset + offset));
 			}
 			if (ANYGL_SUPPORTED(glVertexAttribDivisor))
 				glVertexAttribDivisor(index, vertexBuffer->format.instanced ? 1 : 0);

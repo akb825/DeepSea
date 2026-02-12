@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,13 +44,14 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 			continue;
 
 		uint32_t nameID = element->nameID;
+		const dsGLUniformInfo* uniform = glShader->uniforms + i;
 		switch (element->type)
 		{
 			case dsMaterialType_Texture:
 			case dsMaterialType_Image:
 			case dsMaterialType_SubpassInput:
 			{
-				if (glShader->uniforms[i].location < 0)
+				if (uniform->location < 0)
 					continue;
 
 				dsTexture* texture = dsSharedMaterialValues_getTextureID(sharedValues, nameID);
@@ -69,13 +70,13 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 			case dsMaterialType_TextureBuffer:
 			case dsMaterialType_ImageBuffer:
 			{
-				if (glShader->uniforms[i].location < 0)
+				if (uniform->location < 0)
 					continue;
 
 				dsGfxFormat format;
 				size_t offset, count;
-				dsGfxBuffer* buffer = dsSharedMaterialValues_getTextureBufferID(&format,
-					&offset, &count, sharedValues, i);
+				dsGfxBuffer* buffer = dsSharedMaterialValues_getTextureBufferID(
+					&format, &offset, &count, sharedValues, i);
 				if (buffer)
 				{
 					dsGLCommandBuffer_setTextureBuffer(commandBuffer, shader, i, buffer,
@@ -94,12 +95,12 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 			case dsMaterialType_UniformBlock:
 			case dsMaterialType_UniformBuffer:
 			{
-				if (glShader->uniforms[i].location < 0)
+				if (uniform->location < 0)
 					continue;
 
 				size_t offset, size;
-				dsGfxBuffer* buffer = dsSharedMaterialValues_getBufferID(&offset, &size,
-					sharedValues, nameID);
+				dsGfxBuffer* buffer = dsSharedMaterialValues_getBufferID(
+					&offset, &size, sharedValues, nameID);
 				if (!buffer)
 				{
 					errno = EPERM;
@@ -115,12 +116,12 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 			{
 				if (useGfxBuffers)
 				{
-					if (glShader->uniforms[i].location < 0)
+					if (uniform->location < 0)
 						continue;
 
 					size_t offset, size;
-					dsGfxBuffer* buffer = dsSharedMaterialValues_getBufferID(&offset, &size,
-						sharedValues, nameID);
+					dsGfxBuffer* buffer = dsSharedMaterialValues_getBufferID(
+						&offset, &size, sharedValues, nameID);
 					if (!buffer)
 					{
 						errno = EPERM;
@@ -129,8 +130,8 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 							element->name, shader->name);
 						return false;
 					}
-					dsGLCommandBuffer_setShaderBuffer(commandBuffer, shader, i, buffer, offset,
-						size);
+					dsGLCommandBuffer_setShaderBuffer(
+						commandBuffer, shader, i, buffer, offset, size);
 				}
 				else
 				{
@@ -145,30 +146,31 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 						return false;
 					}
 
-					const dsShaderVariableGroupDesc* groupDesc =
-						materialDesc->elements[i].shaderVariableGroupDesc;
+					const dsShaderVariableGroupDesc* groupDesc = element->shaderVariableGroupDesc;
 					DS_ASSERT(groupDesc);
 
 					uint64_t commitCount = DS_VARIABLE_GROUP_UNSET_COMMIT;
-					if (glCommandBuffer->commitCounts[i].variableGroup == variableGroup)
-						commitCount = glCommandBuffer->commitCounts[i].commitCount;
+					dsCommitCountInfo* commitCountInfo = glCommandBuffer->commitCounts + i;
+					if (commitCountInfo->variableGroup == variableGroup)
+						commitCount = commitCountInfo->commitCount;
 
 					for (uint32_t j = 0; j < groupDesc->elementCount; ++j)
 					{
-						if (glShader->uniforms[i].groupLocations[j] < 0 ||
+						GLint groupLocation = uniform->groupLocations[j];
+						if (groupLocation < 0 ||
 							!dsShaderVariableGroup_isElementDirty(variableGroup, j, commitCount))
 						{
 							continue;
 						}
 
-						dsGLCommandBuffer_setUniform(commandBuffer,
-							glShader->uniforms[i].groupLocations[j], groupDesc->elements[j].type,
-							groupDesc->elements[j].count,
+						const dsShaderVariableElement* groupElement = groupDesc->elements + j;
+						dsGLCommandBuffer_setUniform(commandBuffer, groupLocation,
+							groupElement->type, groupElement->count,
 							dsShaderVariableGroup_getRawElementData(variableGroup, j));
 					}
 
-					glCommandBuffer->commitCounts[i].variableGroup = variableGroup;
-					glCommandBuffer->commitCounts[i].commitCount =
+					commitCountInfo->variableGroup = variableGroup;
+					commitCountInfo->commitCount =
 						dsShaderVariableGroup_getCommitCount(variableGroup);
 				}
 				break;
@@ -194,13 +196,14 @@ static bool bindMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
 		if (element->binding != dsMaterialBinding_Material)
 			continue;
 
+		const dsGLUniformInfo* uniform = glShader->uniforms + i;
 		switch (element->type)
 		{
 			case dsMaterialType_Texture:
 			case dsMaterialType_Image:
 			case dsMaterialType_SubpassInput:
 			{
-				if (glShader->uniforms[i].location < 0)
+				if (uniform->location < 0)
 					continue;
 
 				dsTexture* texture = dsMaterial_getTexture(material, i);
@@ -219,13 +222,13 @@ static bool bindMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
 			case dsMaterialType_TextureBuffer:
 			case dsMaterialType_ImageBuffer:
 			{
-				if (glShader->uniforms[i].location < 0)
+				if (uniform->location < 0)
 					continue;
 
 				dsGfxFormat format;
 				size_t offset, count;
-				dsGfxBuffer* buffer = dsMaterial_getTextureBuffer(&format, &offset, &count,
-					material, i);
+				dsGfxBuffer* buffer = dsMaterial_getTextureBuffer(
+					&format, &offset, &count, material, i);
 				if (buffer)
 				{
 					dsGLCommandBuffer_setTextureBuffer(commandBuffer, shader, i, buffer,
@@ -244,7 +247,7 @@ static bool bindMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
 			case dsMaterialType_UniformBlock:
 			case dsMaterialType_UniformBuffer:
 			{
-				if (glShader->uniforms[i].location < 0)
+				if (uniform->location < 0)
 					continue;
 
 				size_t offset, size;
@@ -273,39 +276,38 @@ static bool bindMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
 
 				if (useGfxBuffers)
 				{
-					if (glShader->uniforms[i].location < 0)
+					if (uniform->location < 0)
 						continue;
 
 					dsGfxBuffer* buffer = dsShaderVariableGroup_getGfxBuffer(variableGroup);
 					DS_ASSERT(buffer);
-					dsGLCommandBuffer_setShaderBuffer(commandBuffer, shader, i, buffer, 0,
-						buffer->size);
+					dsGLCommandBuffer_setShaderBuffer(
+						commandBuffer, shader, i, buffer, 0, buffer->size);
 				}
 				else
 				{
-					const dsShaderVariableGroupDesc* groupDesc =
-						materialDesc->elements[i].shaderVariableGroupDesc;
+					const dsShaderVariableGroupDesc* groupDesc = element->shaderVariableGroupDesc;
 					DS_ASSERT(groupDesc);
 					for (uint32_t j = 0; j < groupDesc->elementCount; ++j)
 					{
-						if (glShader->uniforms[i].groupLocations[j] < 0)
+						GLint groupLocation = uniform->groupLocations[j];
+						if (groupLocation < 0)
 							continue;
 
-						dsGLCommandBuffer_setUniform(commandBuffer,
-							glShader->uniforms[i].groupLocations[j], groupDesc->elements[j].type,
-							groupDesc->elements[j].count,
+						const dsShaderVariableElement* groupElement = groupDesc->elements + j;
+						dsGLCommandBuffer_setUniform(commandBuffer, groupLocation,
+							groupElement->type, groupElement->count,
 							dsShaderVariableGroup_getRawElementData(variableGroup, j));
 					}
 				}
 				break;
 			}
 			default:
-				if (glShader->uniforms[i].location < 0)
+				if (uniform->location < 0)
 					continue;
 
-				dsGLCommandBuffer_setUniform(commandBuffer, glShader->uniforms[i].location,
-					materialDesc->elements[i].type, materialDesc->elements[i].count,
-					dsMaterial_getRawElementData(material, i));
+				dsGLCommandBuffer_setUniform(commandBuffer, uniform->location, element->type,
+					element->count, dsMaterial_getRawElementData(material, i));
 				break;
 		}
 	}
@@ -326,8 +328,9 @@ static bool bindMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
 
 		for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 		{
-			glCommandBuffer->commitCounts[i].variableGroup = NULL;
-			glCommandBuffer->commitCounts[i].commitCount = DS_VARIABLE_GROUP_UNSET_COMMIT;
+			dsCommitCountInfo* commitCountInfo = glCommandBuffer->commitCounts + i;
+			commitCountInfo->variableGroup = NULL;
+			commitCountInfo->commitCount = DS_VARIABLE_GROUP_UNSET_COMMIT;
 		}
 	}
 
