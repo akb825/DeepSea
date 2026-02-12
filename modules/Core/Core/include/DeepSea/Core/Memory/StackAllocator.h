@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ extern "C"
  * @param count The number of objects to allocate.
  * @return The allocated array.
  */
-#define DS_ALLOCATE_STACK_OBJECT_ARRAY(type, count) ((type*)alloca(sizeof(type)*count))
+#define DS_ALLOCATE_STACK_OBJECT_ARRAY(type, count) ((type*)alloca(sizeof(type)*(count)))
 
 #ifdef __cplusplus
 }

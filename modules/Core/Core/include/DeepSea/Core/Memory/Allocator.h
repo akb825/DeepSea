@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ extern "C"
  * @return The allocated array, or NULL if the allocation failed.
  */
 #define DS_ALLOCATE_OBJECT_ARRAY(allocator, type, count) ((type*)dsAllocator_alloc( \
-		(dsAllocator*)(allocator), sizeof(type)*count))
+		(dsAllocator*)(allocator), sizeof(type)*(count)))
 
 /**
  * @brief Allocates memory from the allocator.
