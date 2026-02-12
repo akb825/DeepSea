@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,9 @@ dsGPUProfileContext* dsGPUProfileContext_create(
 
 void dsGPUProfileContext_beginFrame(dsGPUProfileContext* context);
 void dsGPUProfileContext_endFrame(dsGPUProfileContext* context);
+
+void dsGPUProfileContext_beginDeferredResources(dsGPUProfileContext* context);
+void dsGPUProfileContext_endDeferredResources(dsGPUProfileContext* context);
 
 void dsGPUProfileContext_beginSwapBuffers(dsGPUProfileContext* context);
 void dsGPUProfileContext_endSwapBuffers(dsGPUProfileContext* context);

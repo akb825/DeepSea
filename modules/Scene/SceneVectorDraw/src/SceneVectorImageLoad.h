@@ -27,7 +27,6 @@ extern "C"
 typedef struct SceneVectorImageUserData
 {
 	dsAllocator* allocator;
-	dsCommandBuffer* commandBuffer;
 	dsVectorScratchData* scratchData;
 	float pixelSize;
 } SceneVectorImageUserData;

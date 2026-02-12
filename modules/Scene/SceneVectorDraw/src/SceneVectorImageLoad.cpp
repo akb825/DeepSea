@@ -152,7 +152,7 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 	dsVectorImageInitResources initResources =
 	{
 		resourceManager,
-		vectorImageUserData->commandBuffer,
+		nullptr,
 		vectorImageUserData->scratchData,
 		sharedMaterials,
 		shaders->shaderModule,

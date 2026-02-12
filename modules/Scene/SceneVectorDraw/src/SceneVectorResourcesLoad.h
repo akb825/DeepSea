@@ -28,7 +28,6 @@ typedef struct VectorResourcesUserData
 {
 	dsAllocator* allocator;
 	dsTextQuality qualityRemap[DS_TEXT_QUALITY_REMAP_SIZE];
-	dsCommandBuffer* commandBuffer;
 	dsVectorScratchData* scratchData;
 	float pixelSize;
 	bool hasQualityRemap;

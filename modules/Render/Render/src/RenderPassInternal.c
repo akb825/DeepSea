@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Aaron Barany
+ * Copyright 2025-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,9 +110,10 @@ bool dsRenderPass_canUseFramebuffer(const dsRenderPass* renderPass,
 			return false;
 		}
 
+		dsGfxSurfaceType surfaceType = framebuffer->surfaces[i].surfaceType;
 		if ((commandBuffer->usage & dsCommandBufferUsage_MultiFrame) &&
-			framebuffer->surfaces[i].surfaceType >= dsGfxSurfaceType_ColorRenderSurface &&
-			framebuffer->surfaces[i].surfaceType <= dsGfxSurfaceType_DepthRenderSurfaceRight)
+			surfaceType >= dsGfxSurfaceType_ColorRenderSurface &&
+			surfaceType <= dsGfxSurfaceType_DepthRenderSurfaceRight)
 		{
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Can't draw a render pass to a framebuffer containing "
 				"a render surface when using a multiframe command buffer.");

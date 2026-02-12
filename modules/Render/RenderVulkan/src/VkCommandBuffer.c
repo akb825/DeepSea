@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -400,7 +400,7 @@ bool dsVkCommandBuffer_initialize(dsVkCommandBuffer* commandBuffer, dsRenderer* 
 		{
 			VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
 			NULL,
-			usage & dsCommandBufferUsage_MultiFrame  ? 0 : VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,
+			usage & dsCommandBufferUsage_MultiFrame ? 0 : VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,
 			device->queueFamilyIndex
 		};
 

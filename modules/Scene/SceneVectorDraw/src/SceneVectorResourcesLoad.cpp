@@ -176,11 +176,11 @@ void* dsVectorSceneResources_load(const dsSceneLoadContext* loadContext,
 	}
 
 	dsVectorImageInitResources initResources;
-	bool hasInitResources = vectorResourcesUserData->commandBuffer && vectorShaders;
+	bool hasInitResources = vectorShaders != NULL;
 	if (hasInitResources)
 	{
 		initResources.resourceManager = resourceManager;
-		initResources.commandBuffer = vectorResourcesUserData->commandBuffer;
+		initResources.commandBuffer = nullptr;
 		initResources.scratchData = vectorResourcesUserData->scratchData;
 		initResources.sharedMaterials = sharedMaterials;
 		initResources.shaderModule = vectorShaders->shaderModule;

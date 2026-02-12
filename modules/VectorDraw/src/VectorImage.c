@@ -48,6 +48,7 @@
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Material.h>
+#include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Resources/Shader.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/Resources/VertexFormat.h>
@@ -109,7 +110,7 @@ static bool initResourcesValid(const dsVectorImageInitResources* initResources)
 		return false;
 	}
 
-	return dsVectorImage_testing || (initResources->commandBuffer && initResources->shaderModule);
+	return dsVectorImage_testing || initResources->shaderModule;
 }
 
 static float adjustPixelSize(const dsMatrix33f* transform, float pixelSize)
@@ -595,10 +596,10 @@ static bool addImage(dsVectorScratchData* scratchData, const dsMatrix33f* transf
 	return true;
 }
 
-static bool processCommand(dsVectorScratchData* scratchData, dsCommandBuffer* commandBuffer,
-	const dsVectorCommand* commands, uint32_t commandCount, uint32_t* curCommand,
-	const dsVectorMaterialSet* sharedMaterials, dsVectorMaterialSet* localMaterials,
-	float pixelSize)
+static bool processCommand(dsVectorScratchData* scratchData, dsResourceManager* resourceManager,
+	dsCommandBuffer** commandBufferPtr, const dsVectorCommand* commands, uint32_t commandCount,
+	uint32_t* curCommand, const dsVectorMaterialSet* sharedMaterials,
+	dsVectorMaterialSet* localMaterials, float pixelSize)
 {
 	DS_UNUSED(commandCount);
 	DS_ASSERT(*curCommand < commandCount);
@@ -675,8 +676,19 @@ static bool processCommand(dsVectorScratchData* scratchData, dsCommandBuffer* co
 				return false;
 			}
 
-			if (!dsVectorText_addText(scratchData, commandBuffer, sharedMaterials, localMaterials,
-					text, commands + *curCommand, pixelSize))
+			if (!*commandBufferPtr)
+			{
+				*commandBufferPtr = dsResourceManager_getResourceCommandBuffer(resourceManager);
+				if (!*commandBufferPtr)
+				{
+					DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "Vector image with text created without "
+						"a command buffer or resource context acquired.");
+					return false;
+				}
+			}
+
+			if (!dsVectorText_addText(scratchData, *commandBufferPtr, sharedMaterials,
+					localMaterials, text, commands + *curCommand, pixelSize))
 			{
 				return false;
 			}
@@ -690,16 +702,16 @@ static bool processCommand(dsVectorScratchData* scratchData, dsCommandBuffer* co
 	}
 }
 
-static bool processCommands(dsVectorScratchData* scratchData, dsCommandBuffer* commandBuffer,
-	const dsVectorCommand* commands, uint32_t commandCount,
+static bool processCommands(dsVectorScratchData* scratchData, dsResourceManager* resourceManager,
+	dsCommandBuffer** commandBufferPtr, const dsVectorCommand* commands, uint32_t commandCount,
 	const dsVectorMaterialSet* sharedMaterials, dsVectorMaterialSet* localMaterials,
 	float pixelSize)
 {
 	dsVectorScratchData_reset(scratchData);
 	for (uint32_t i = 0; i < commandCount;)
 	{
-		if (!processCommand(scratchData, commandBuffer, commands, commandCount, &i, sharedMaterials,
-				localMaterials, pixelSize))
+		if (!processCommand(scratchData, resourceManager, commandBufferPtr, commands, commandCount,
+				&i, sharedMaterials, localMaterials, pixelSize))
 		{
 			return false;
 		}
@@ -875,8 +887,10 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 		resourceAllocator = allocator;
 
 	dsVectorScratchData* scratchData = initResources->scratchData;
-	if (!processCommands(scratchData, initResources->commandBuffer, commands, commandCount,
-			initResources->sharedMaterials, localMaterials, pixelSize))
+	dsResourceManager* resourceManager = initResources->resourceManager;
+	dsCommandBuffer* commandBuffer = initResources->commandBuffer;
+	if (!processCommands(scratchData, resourceManager, &commandBuffer, commands,
+			commandCount, initResources->sharedMaterials, localMaterials, pixelSize))
 	{
 		dsVectorScratchData_reset(scratchData);
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -904,7 +918,6 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 	memset(image, 0, sizeof(dsVectorImage));
 	image->allocator = dsAllocator_keepPointer(allocator);
 
-	dsResourceManager* resourceManager = initResources->resourceManager;
 	// If no info textures, the image is empty.
 	if (infoTextureCount > 0)
 	{
@@ -1028,7 +1041,8 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 				}
 			}
 
-			if (!addTextRanges(image, initResources->commandBuffer))
+			DS_ASSERT(commandBuffer);
+			if (!addTextRanges(image, commandBuffer))
 			{
 				dsVectorScratchData_reset(scratchData);
 				DS_VERIFY(dsVectorImage_destroy(image));

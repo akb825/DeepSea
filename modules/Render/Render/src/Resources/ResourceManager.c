@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 #include <DeepSea/Render/Resources/ResourceManager.h>
 
+#include "ResourceCommandBuffers.h"
+
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Thread/ThreadPool.h>
 #include <DeepSea/Core/Thread/ThreadStorage.h>
@@ -29,6 +32,12 @@
 
 #include <stdlib.h>
 #include <string.h>
+
+typedef struct ResourceContextCommandBuffer
+{
+	dsResourceContext* context;
+	dsCommandBuffer* commandBuffer;
+} ResourceContextCommandBuffer;
 
 static void startThreadFunc(void* userData)
 {
@@ -117,46 +126,120 @@ bool dsResourceManager_acquireResourceContext(dsResourceManager* resourceManager
 	while (!DS_ATOMIC_COMPARE_EXCHANGE32(&resourceManager->resourceContextCount,
 		&resourceContextCount, &newResourceContextCount, true));
 
-	dsResourceContext* context = resourceManager->acquireResourceContextFunc(resourceManager);
-	if (!context)
+	ResourceContextCommandBuffer* contextCommandBuffer =
+		DS_ALLOCATE_OBJECT(resourceManager->allocator, ResourceContextCommandBuffer);
+	if (!contextCommandBuffer)
 	{
-		// Allocation failed, decrement the context count incremented earlier.
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->resourceContextCount, -1);
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!dsThreadStorage_set(resourceManager->_resourceContext, context))
+	dsResourceContext* context = resourceManager->acquireResourceContextFunc(resourceManager);
+	if (!context)
 	{
-		// Setting the context failed, decrement the context count incremented earlier.
+		DS_ATOMIC_FETCH_ADD32(&resourceManager->resourceContextCount, -1);
+		DS_VERIFY(dsAllocator_free(resourceManager->allocator, contextCommandBuffer));
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	contextCommandBuffer->context = context;
+	contextCommandBuffer->commandBuffer = NULL;
+	if (!dsThreadStorage_set(resourceManager->_resourceContext, contextCommandBuffer))
+	{
 		resourceManager->releaseResourceContextFunc(resourceManager, context);
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->resourceContextCount, -1);
+		dsAllocator_free(resourceManager->allocator, contextCommandBuffer);
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
+dsCommandBuffer* dsResourceManager_getResourceCommandBuffer(dsResourceManager* resourceManager)
+{
+	if (!resourceManager || !resourceManager->renderer)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()))
+	{
+		if (!resourceManager->_mainThreadResourceCommandBuffer)
+		{
+			resourceManager->_mainThreadResourceCommandBuffer = dsResourceCommandBuffers_acquire(
+				resourceManager->renderer->_resourceCommandBuffers);
+		}
+		return resourceManager->_mainThreadResourceCommandBuffer;
+	}
+
+	ResourceContextCommandBuffer* contextCommandBuffer =
+		(ResourceContextCommandBuffer*)dsThreadStorage_get(resourceManager->_resourceContext);
+	if (!contextCommandBuffer)
+	{
+		errno = EPERM;
+		return NULL;
+	}
+
+	if (!contextCommandBuffer->commandBuffer)
+	{
+		contextCommandBuffer->commandBuffer = dsResourceCommandBuffers_acquire(
+			resourceManager->renderer->_resourceCommandBuffers);
+	}
+	return contextCommandBuffer->commandBuffer;
+}
+
 bool dsResourceManager_flushResourceContext(dsResourceManager* resourceManager)
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!resourceManager || !resourceManager->flushResourceContextFunc)
+	if (!resourceManager || !resourceManager->renderer)
 		DS_PROFILE_FUNC_RETURN(true);
 
-	// Not needed for main thread.
+	// Flush the main thread resource command buffer if currently set.
 	if (dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()))
+	{
+		if (resourceManager->_mainThreadResourceCommandBuffer)
+		{
+			if (!dsResourceCommandBuffers_flush(resourceManager->renderer->_resourceCommandBuffers,
+					resourceManager->_mainThreadResourceCommandBuffer))
+			{
+				DS_PROFILE_FUNC_RETURN(false);
+			}
+			resourceManager->_mainThreadResourceCommandBuffer = NULL;
+		}
 		DS_PROFILE_FUNC_RETURN(true);
+	}
 
-	dsResourceContext* context = (dsResourceContext*)dsThreadStorage_get(
-		resourceManager->_resourceContext);
-	if (!context)
+	ResourceContextCommandBuffer* contextCommandBuffer =
+		(ResourceContextCommandBuffer*)dsThreadStorage_get(resourceManager->_resourceContext);
+	if (!contextCommandBuffer)
 	{
 		errno = EPERM;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	bool result = resourceManager->flushResourceContextFunc(resourceManager, context);
-	DS_PROFILE_FUNC_RETURN(result);
+	// Flush the resource command buffer if present.
+	if (contextCommandBuffer->commandBuffer)
+	{
+		if (!dsResourceCommandBuffers_flush(resourceManager->renderer->_resourceCommandBuffers,
+				contextCommandBuffer->commandBuffer))
+		{
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+		contextCommandBuffer->commandBuffer = NULL;
+	}
+
+	// Flush the resource context if needed by the underlying implementation.
+	if (resourceManager->flushResourceContextFunc)
+	{
+		if (!resourceManager->flushResourceContextFunc(
+				resourceManager, contextCommandBuffer->context))
+		{
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+	}
+	DS_PROFILE_FUNC_RETURN(true);
 }
 
 bool dsResourceManager_releaseResourceContext(dsResourceManager* resourceManager)
@@ -170,14 +253,30 @@ bool dsResourceManager_releaseResourceContext(dsResourceManager* resourceManager
 	}
 
 	// Destroying a context when not set is a NOP.
-	dsResourceContext* context = (dsResourceContext*)dsThreadStorage_get(
-		resourceManager->_resourceContext);
-	if (!context)
+	ResourceContextCommandBuffer* contextCommandBuffer =
+		(ResourceContextCommandBuffer*)dsThreadStorage_get(resourceManager->_resourceContext);
+	if (!contextCommandBuffer)
 		DS_PROFILE_FUNC_RETURN(true);
 
-	if (!resourceManager->releaseResourceContextFunc(resourceManager, context))
-		DS_PROFILE_FUNC_RETURN(false);
+	// Implicitly flush the command buffer if present.
+	if (contextCommandBuffer->commandBuffer)
+	{
+		if (!dsResourceCommandBuffers_flush(resourceManager->renderer->_resourceCommandBuffers,
+				contextCommandBuffer->commandBuffer))
+		{
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+		// Clear out the pointer in case the release below fails.
+		contextCommandBuffer->commandBuffer = NULL;
+	}
 
+	if (!resourceManager->releaseResourceContextFunc(
+			resourceManager, contextCommandBuffer->context))
+	{
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	DS_VERIFY(dsAllocator_free(resourceManager->allocator, contextCommandBuffer));
 	DS_ATOMIC_FETCH_ADD32(&resourceManager->resourceContextCount, -1);
 	DS_VERIFY(dsThreadStorage_set(resourceManager->_resourceContext, NULL));
 	DS_PROFILE_FUNC_RETURN(true);

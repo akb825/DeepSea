@@ -41,8 +41,6 @@
 #include <DeepSea/Render/Resources/ShaderModule.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 #include <DeepSea/Render/Resources/VertexFormat.h>
-#include <DeepSea/Render/CommandBuffer.h>
-#include <DeepSea/Render/CommandBufferPool.h>
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderPass.h>
 #include <DeepSea/Render/RenderSurface.h>
@@ -69,7 +67,6 @@ typedef struct TestVectorDraw
 {
 	dsAllocator* allocator;
 	dsRenderer* renderer;
-	dsCommandBufferPool* setupCommands;
 	dsWindow* window;
 	dsFramebuffer* framebuffer;
 	dsRenderPass* renderPass;
@@ -283,14 +280,6 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	dsRenderer* renderer = testVectorDraw->renderer;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 
-	if (testVectorDraw->setupCommands)
-	{
-		dsCommandBuffer* setupCommands = testVectorDraw->setupCommands->commandBuffers[0];
-		DS_VERIFY(dsCommandBuffer_submit(commandBuffer, setupCommands));
-		DS_VERIFY(dsCommandBufferPool_destroy(testVectorDraw->setupCommands));
-		testVectorDraw->setupCommands = NULL;
-	}
-
 	if (testVectorDraw->updateImage)
 	{
 		DS_VERIFY(dsVectorImage_updateText(
@@ -344,24 +333,6 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	dsResourceManager* resourceManager = renderer->resourceManager;
 	testVectorDraw->allocator = allocator;
 	testVectorDraw->renderer = renderer;
-
-	testVectorDraw->setupCommands = dsCommandBufferPool_create(renderer, allocator,
-		dsCommandBufferUsage_Standard);
-	if (!testVectorDraw->setupCommands ||
-		!dsCommandBufferPool_createCommandBuffers(testVectorDraw->setupCommands, 1))
-	{
-		DS_LOG_ERROR_F("TestText", "Couldn't create setup command buffer: %s",
-			dsErrorString(errno));
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	dsCommandBuffer* setupCommands = testVectorDraw->setupCommands->commandBuffers[0];
-	if (!dsCommandBuffer_begin(setupCommands))
-	{
-		DS_LOG_ERROR_F("TestText", "Couldn't begin setup command buffer: %s",
-			dsErrorString(errno));
-		DS_PROFILE_FUNC_RETURN(false);
-	}
 
 	dsEventResponder responder = {&processEvent, testVectorDraw, 0, 0};
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
@@ -525,7 +496,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	dsVectorImageInitResources initResources = {resourceManager, setupCommands, scratchData, NULL,
+	dsVectorImageInitResources initResources = {resourceManager, NULL, scratchData, NULL,
 		testVectorDraw->shaderModule, NULL, NULL, 0, srgb};
 
 	testVectorDraw->vectorResources = dsVectorResources_loadResource(allocator, NULL, NULL,
@@ -571,13 +542,6 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	}
 
 	dsVectorScratchData_destroy(scratchData);
-
-	if (!dsCommandBuffer_end(setupCommands))
-	{
-		DS_LOG_ERROR_F("TestText", "Couldn't end setup command buffer: %s",
-			dsErrorString(errno));
-		DS_PROFILE_FUNC_RETURN(false);
-	}
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
@@ -600,7 +564,6 @@ static void shutdown(TestVectorDraw* testVectorDraw)
 	DS_VERIFY(dsRenderPass_destroy(testVectorDraw->renderPass));
 	DS_VERIFY(dsFramebuffer_destroy(testVectorDraw->framebuffer));
 	DS_VERIFY(dsWindow_destroy(testVectorDraw->window));
-	DS_VERIFY(dsCommandBufferPool_destroy(testVectorDraw->setupCommands));
 }
 
 int dsMain(int argc, const char** argv)

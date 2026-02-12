@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ extern "C"
  */
 
 /**
- * @brief Begins drawing to a command buffer.
+ * @brief Begins processing commands on a command buffer.
  * @remark errno will be set on failure.
  * @param commandBuffer The command buffer to begin. This should not be the main command buffer.
  * @return False if the command buffer couldn't be begun.
@@ -74,7 +74,7 @@ DS_RENDER_EXPORT bool dsCommandBuffer_beginSecondary(dsCommandBuffer* commandBuf
 	const dsAlignedBox3f* viewport, dsGfxOcclusionQueryState parentOcclusionQueryState);
 
 /**
- * @brief Ends drawing to a command buffer.
+ * @brief Ends submitting commands to a command buffer.
  * @remark errno will be set on failure.
  * @param commandBuffer The command buffer to end. This should not be the main command buffer.
  * @return False if the command buffer couldn't be ended.

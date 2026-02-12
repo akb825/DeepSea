@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,6 +126,14 @@ static bool startRenderPassScope(const dsRenderPass* renderPass, dsCommandBuffer
 	// Error checking for this will be later.
 	if (!renderPass || !commandBuffer || !framebuffer)
 		return true;
+
+	if (commandBuffer->usage & dsCommandBufferUsage_Resource)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"A render pass cannot be used with a resource command buffer.");
+		return false;
+	}
 
 	if (!commandBuffer->frameActive)
 	{

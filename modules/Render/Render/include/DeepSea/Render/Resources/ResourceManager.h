@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,10 +72,36 @@ DS_RENDER_EXPORT dsThreadPool* dsResourceManager_createThreadPool(dsAllocator* a
  * valid until dsResourceManager_releaseResourceContext() is called.
  *
  * @remark errno will be set on failure.
- * @param resourceManager The resource manager
- * @return False if the resource context couldn't be created.
+ * @param resourceManager The resource manager.
+ * @return False if there are no remaining resource contexts or a resource context is already
+ *     available for this thread.
  */
 DS_RENDER_EXPORT bool dsResourceManager_acquireResourceContext(dsResourceManager* resourceManager);
+
+/**
+ * @brief Gets a command buffer for use with resource-related operations, typically copies.
+ *
+ * This may be queried after dsResourceManager_acquireResourceContext() has returned true or on the
+ * main thread. It should not be submitted directly, and instead should be submitted either through
+ * dsResourceManager_flushResourceContext() or dsResourceManager_releaseResourceContext(), in which
+ * case the commands will be submitted at the start of the next frame.
+ *
+ * This will lazily acquire a command buffer when called, so it should only be called when a command
+ * buffer is truly required to avoid the overhead of creating unneeded command buffers. Long-lived
+ * pointers should not be kept, as dsResourceManager_flushResourceContext() may change the command
+ * buffer.
+ *
+ * The main thread will also return a command buffer separate from the main command buffer of the
+ * renderer, which allows for resource operations to be performed outside of a frame. This will be
+ * implicitly flushed at the start of the next frame.
+ *
+ * @remark errno will be set on failure.
+ * @param resourceManager The resource manager.
+ * @return The command buffer for any resource-related operations, or NULL if there is no active
+ *     resource context.
+ */
+DS_RENDER_EXPORT dsCommandBuffer* dsResourceManager_getResourceCommandBuffer(
+	dsResourceManager* resourceManager);
 
 /**
  * @brief Flushes the resource context for the current thread.
@@ -83,7 +109,10 @@ DS_RENDER_EXPORT bool dsResourceManager_acquireResourceContext(dsResourceManager
  * Use this to guarantee that any resource changes are available for rendering.
  *
  * @remark errno will be set on failure.
- * @param resourceManager The resource manager
+ * @remark This will invalidate any command buffer pointer acquired from
+ *     dsResourceManager_getResourceCommandBuffer(). See the documentation for that function for the
+ *     expected usage.
+ * @param resourceManager The resource manager.
  * @return False if the resource context couldn't be flushed.
  */
 DS_RENDER_EXPORT bool dsResourceManager_flushResourceContext(dsResourceManager* resourceManager);
@@ -95,7 +124,7 @@ DS_RENDER_EXPORT bool dsResourceManager_flushResourceContext(dsResourceManager* 
  * from another thread.
  *
  * @remark errno will be set on failure.
- * @param resourceManager The resource manager
+ * @param resourceManager The resource manager.
  * @return False if the resource context couldn't be destroyed.
  */
 DS_RENDER_EXPORT bool dsResourceManager_releaseResourceContext(dsResourceManager* resourceManager);

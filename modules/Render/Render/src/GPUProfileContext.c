@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,6 @@ typedef struct QueryInfo
 	uint32_t beginIndex;
 	QueryNode* node;
 } QueryInfo;
-
 
 typedef struct QueryPools
 {
@@ -426,6 +425,53 @@ void dsGPUProfileContext_endFrame(dsGPUProfileContext* context)
 
 		if (submitResults)
 			submitGPUProfileResults(context, context->queryPools + prevIndex);
+	}
+
+	dsRenderer* renderer = commandBuffer->renderer;
+	dsRenderer_popDebugGroup(renderer, commandBuffer);
+}
+
+void dsGPUProfileContext_beginDeferredResources(dsGPUProfileContext* context)
+{
+	if (!context)
+		return;
+
+	dsCommandBuffer* commandBuffer = getMainCommandBuffer(context);
+	dsRenderer* renderer = commandBuffer->renderer;
+	dsRenderer_pushDebugGroup(renderer, commandBuffer, "Deferred Resources");
+
+	if (context->useQueries)
+	{
+		dsSpinlock_lock(&context->spinlock);
+		if (!context->error)
+		{
+			QueryPools* pools = context->queryPools + context->queryPoolIndex;
+			commandBuffer->_profileInfo.beginDeferredResourcesIndex = pools->queryCount;
+			commandBuffer->_profileInfo.beginDeferredResourcesSwapCount = context->swapCount;
+			addQuery(context, commandBuffer, "Deferred Resources", "Total", INVALID_INDEX,
+				context->swapCount);
+		}
+		dsSpinlock_unlock(&context->spinlock);
+	}
+}
+
+void dsGPUProfileContext_endDeferredResources(dsGPUProfileContext* context)
+{
+	if (!context)
+		return;
+
+	dsCommandBuffer* commandBuffer = getMainCommandBuffer(context);
+
+	if (context->useQueries)
+	{
+		dsSpinlock_lock(&context->spinlock);
+		if (!context->error)
+		{
+			addQuery(context, commandBuffer, NULL, NULL,
+				commandBuffer->_profileInfo.beginDeferredResourcesIndex,
+				commandBuffer->_profileInfo.beginDeferredResourcesSwapCount);
+		}
+		dsSpinlock_unlock(&context->spinlock);
 	}
 
 	dsRenderer* renderer = commandBuffer->renderer;

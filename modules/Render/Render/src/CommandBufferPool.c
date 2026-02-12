@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 
-dsCommandBufferPool* dsCommandBufferPool_create(dsRenderer* renderer, dsAllocator* allocator,
-	dsCommandBufferUsage usage)
+dsCommandBufferPool* dsCommandBufferPool_create(
+	dsRenderer* renderer, dsAllocator* allocator, dsCommandBufferUsage usage)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -31,6 +31,16 @@ dsCommandBufferPool* dsCommandBufferPool_create(dsRenderer* renderer, dsAllocato
 		!renderer->createCommandBufferPoolFunc || !renderer->destroyCommandBufferPoolFunc)
 	{
 		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsCommandBufferUsage secondaryAndResource =
+		dsCommandBufferUsage_Secondary | dsCommandBufferUsage_Resource;
+	if ((usage & secondaryAndResource) == secondaryAndResource)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"A command buffer cannot have both secondary and resource usage flags set.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 

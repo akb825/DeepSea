@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,6 @@
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderSurface.h>
-#include <DeepSea/Render/CommandBuffer.h>
-#include <DeepSea/Render/CommandBufferPool.h>
 #include <DeepSea/RenderBootstrap/RenderBootstrap.h>
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
@@ -66,8 +64,6 @@ typedef struct TestVectorDrawScene
 	dsWindow* window;
 	dsSceneResources* resources;
 	dsSceneTextNode* figureNode;
-	dsCommandBufferPool* initCommandBufferPool;
-	dsCommandBuffer* initCommandBuffer;
 	dsScene* scene;
 	dsView* view;
 
@@ -154,15 +150,6 @@ static void update(dsApplication* application, float lastFrameTime, void* userDa
 
 	TestVectorDrawScene* testVectorDrawScene = (TestVectorDrawScene*)userData;
 
-	if (testVectorDrawScene->initCommandBuffer)
-	{
-		DS_VERIFY(dsCommandBuffer_submit(testVectorDrawScene->renderer->mainCommandBuffer,
-			testVectorDrawScene->initCommandBuffer));
-		DS_VERIFY(dsCommandBufferPool_destroy(testVectorDrawScene->initCommandBufferPool));
-		testVectorDrawScene->initCommandBufferPool = NULL;
-		testVectorDrawScene->initCommandBuffer = NULL;
-	}
-
 	const double newCharTime = 0.1;
 	const double clearTime = 1.0;
 	if (testVectorDrawScene->skipCount > 0)
@@ -238,26 +225,6 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 	DS_VERIFY(dsWindow_setDrawFunction(
 		testVectorDrawScene->window, &draw, testVectorDrawScene, NULL));
 
-	testVectorDrawScene->initCommandBufferPool = dsCommandBufferPool_create(renderer, allocator,
-		dsCommandBufferUsage_Standard);
-	if (!testVectorDrawScene->initCommandBufferPool)
-	{
-		DS_LOG_ERROR_F("TestVectorDrawScene", "Couldn't create command buffer pool: %s",
-			dsErrorString(errno));
-		return false;
-	}
-
-	dsCommandBuffer** commandBuffers =
-		dsCommandBufferPool_createCommandBuffers(testVectorDrawScene->initCommandBufferPool, 1);
-	if (!commandBuffers)
-	{
-		DS_LOG_ERROR_F("TestVectorDrawScene", "Couldn't create command buffer: %s",
-			dsErrorString(errno));
-		return false;
-	}
-
-	testVectorDrawScene->initCommandBuffer = commandBuffers[0];
-
 	dsSceneLoadContext* loadContext = dsSceneLoadContext_create(allocator, renderer);
 	if (!loadContext)
 	{
@@ -294,9 +261,8 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 	};
 
 	float pixelSize = 200.0f/(float)testVectorDrawScene->window->surface->height;
-	if (!dsSceneVectorDrawLoadConext_registerTypes(loadContext, allocator,
-			testVectorDrawScene->initCommandBuffer, NULL, substitutionTable, &textRenderInfo,
-			pixelSize))
+	if (!dsSceneVectorDrawLoadConext_registerTypes(loadContext, allocator, NULL,
+			substitutionTable, &textRenderInfo, pixelSize))
 	{
 		DS_LOG_ERROR_F("TestVectorDrawScene", "Couldn't register vector scene types: %s",
 			dsErrorString(errno));
@@ -325,10 +291,8 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 		dsTextSubstitutionTable_destroy(substitutionTable);
 	}
 
-	DS_VERIFY(dsCommandBuffer_begin(testVectorDrawScene->initCommandBuffer));
 	testVectorDrawScene->resources = dsSceneResources_loadArchive(allocator, NULL, loadContext,
 		scratchData, archive, "SceneResources.dssr");
-	DS_VERIFY(dsCommandBuffer_end(testVectorDrawScene->initCommandBuffer));
 	if (!testVectorDrawScene->resources)
 	{
 		DS_LOG_ERROR_F("TestVectorDrawScene", "Couldn't load scene resources: %s",
@@ -399,7 +363,6 @@ static void shutdown(TestVectorDrawScene* testVectorDrawScene)
 	DS_VERIFY(dsView_destroy(testVectorDrawScene->view));
 	dsScene_destroy(testVectorDrawScene->scene);
 	dsSceneResources_freeRef(testVectorDrawScene->resources);
-	DS_VERIFY(dsCommandBufferPool_destroy(testVectorDrawScene->initCommandBufferPool));
 	DS_VERIFY(dsWindow_destroy(testVectorDrawScene->window));
 }
 

@@ -99,12 +99,11 @@ static bool destroySceneText(void* text)
 }
 
 bool dsSceneVectorDrawLoadConext_registerTypes(dsSceneLoadContext* loadContext,
-	dsAllocator* allocator, dsCommandBuffer* commandBuffer, const dsTextQuality* qualityRemap,
+	dsAllocator* allocator, const dsTextQuality* qualityRemap,
 	const dsTextSubstitutionTable* substitutionTable,
 	const dsSceneTextRenderBufferInfo* textRenderInfo, float pixelSize)
 {
-	if (!loadContext ||
-		(!allocator && (commandBuffer || qualityRemap || substitutionTable || textRenderInfo)) ||
+	if (!loadContext || (!allocator && (qualityRemap || substitutionTable || textRenderInfo)) ||
 		pixelSize <= 0.0f)
 	{
 		errno = EINVAL;
@@ -134,7 +133,6 @@ bool dsSceneVectorDrawLoadConext_registerTypes(dsSceneLoadContext* loadContext,
 		}
 		else
 			userData->hasQualityRemap = false;
-		userData->commandBuffer = commandBuffer;
 		userData->scratchData = scratchData;
 		userData->pixelSize = pixelSize;
 
@@ -194,7 +192,6 @@ bool dsSceneVectorDrawLoadConext_registerTypes(dsSceneLoadContext* loadContext,
 		}
 	}
 
-	if (commandBuffer)
 	{
 		SceneVectorImageUserData* userData =
 			DS_ALLOCATE_OBJECT(allocator, SceneVectorImageUserData);
@@ -202,7 +199,6 @@ bool dsSceneVectorDrawLoadConext_registerTypes(dsSceneLoadContext* loadContext,
 			return false;
 
 		userData->allocator = dsAllocator_keepPointer(allocator);
-		userData->commandBuffer = commandBuffer;
 		userData->scratchData = scratchData;
 		userData->pixelSize = pixelSize;
 

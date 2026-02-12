@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2026 Aaron Barany
+ * Copyright 2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,12 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Render/Types.h>
 
-dsCommandBufferPool* dsVkCommandBufferPool_create(
-	dsRenderer* renderer, dsAllocator* allocator, dsCommandBufferUsage usage);
-bool dsVkCommandBufferPool_createCommandBuffers(
-	dsRenderer* renderer, dsCommandBufferPool* pool, uint32_t count);
-bool dsVkCommandBufferPool_reset(dsRenderer* renderer, dsCommandBufferPool* pool);
-bool dsVkCommandBufferPool_destroy(dsRenderer* renderer, dsCommandBufferPool* pool);
+dsResourceCommandBuffers* dsResourceCommandBuffers_create(
+	dsRenderer* renderer, dsAllocator* allocator);
+
+dsCommandBuffer* dsResourceCommandBuffers_acquire(dsResourceCommandBuffers* commandBuffers);
+bool dsResourceCommandBuffers_flush(
+	dsResourceCommandBuffers* commandBuffers, dsCommandBuffer* commandBuffer);
+void dsResourceCommandBuffers_submit(dsResourceCommandBuffers* commandBuffers);
+
+void dsResourceCommandBuffers_destroy(dsResourceCommandBuffers* commandBuffers);

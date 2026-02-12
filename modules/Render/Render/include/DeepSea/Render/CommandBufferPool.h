@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,8 +49,8 @@ extern "C"
  *     dsCommandBufferUsage flags, or 0 if none of the options are required.
  * @return The created command buffer pool, or NULL if it couldn't be created.
  */
-DS_RENDER_EXPORT dsCommandBufferPool* dsCommandBufferPool_create(dsRenderer* renderer,
-	dsAllocator* allocator, dsCommandBufferUsage usage);
+DS_RENDER_EXPORT dsCommandBufferPool* dsCommandBufferPool_create(
+	dsRenderer* renderer, dsAllocator* allocator, dsCommandBufferUsage usage);
 
 /**
  * @brief Creates multiple command buffers in the pool.

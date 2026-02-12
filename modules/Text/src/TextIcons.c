@@ -78,7 +78,7 @@ dsTextIcons* dsTextIcons_create(dsAllocator* allocator, const dsIndexRange* code
 	}
 
 	dsBufferAllocator bufferAlloc;
-	DS_ASSERT(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
 	dsTextIcons* icons = DS_ALLOCATE_OBJECT(&bufferAlloc, dsTextIcons);
 	DS_ASSERT(icons);

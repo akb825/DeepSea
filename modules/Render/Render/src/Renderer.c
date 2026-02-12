@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 #include <DeepSea/Render/Renderer.h>
 
 #include "GPUProfileContext.h"
+#include "ResourceCommandBuffers.h"
+
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
@@ -607,6 +609,15 @@ bool dsRenderer_beginFrame(dsRenderer* renderer)
 
 	dsGPUProfileContext_beginFrame(renderer->_profileContext);
 
+	// Implicitly flush the main thread's resource command buffer.
+	if (renderer->resourceManager->_mainThreadResourceCommandBuffer)
+	{
+		DS_VERIFY(dsResourceCommandBuffers_flush(renderer->_resourceCommandBuffers,
+			renderer->resourceManager->_mainThreadResourceCommandBuffer));
+		renderer->resourceManager->_mainThreadResourceCommandBuffer = NULL;
+	}
+	dsResourceCommandBuffers_submit(renderer->_resourceCommandBuffers);
+
 	return true;
 }
 
@@ -1143,8 +1154,8 @@ bool dsRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* comma
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsRenderer_dispatchCompute(dsRenderer* renderer, dsCommandBuffer* commandBuffer, uint32_t x,
-	uint32_t y, uint32_t z)
+bool dsRenderer_dispatchCompute(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, uint32_t x, uint32_t y, uint32_t z)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -1260,7 +1271,7 @@ bool dsRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 	dsTextureDim srcDim;
 	uint32_t srcWidth, srcHeight, srcLayers, srcMipLevels;
 	if (!getBlitSurfaceInfo(&srcFormat, &srcDim, &srcWidth, &srcHeight, &srcLayers, &srcMipLevels,
-		renderer, srcSurfaceType, srcSurface, true))
+			renderer, srcSurfaceType, srcSurface, true))
 	{
 		DS_PROFILE_FUNC_RETURN(false);
 	}
@@ -1269,7 +1280,7 @@ bool dsRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 	dsTextureDim dstDim;
 	uint32_t dstWidth, dstHeight, dstLayers, dstMipLevels;
 	if (!getBlitSurfaceInfo(&dstFormat, &dstDim, &dstWidth, &dstHeight, &dstLayers, &dstMipLevels,
-		renderer, dstSurfaceType, dstSurface, false))
+			renderer, dstSurfaceType, dstSurface, false))
 	{
 		DS_PROFILE_FUNC_RETURN(false);
 	}
@@ -1620,8 +1631,17 @@ bool dsRenderer_initializeResources(dsRenderer* renderer)
 		return false;
 	}
 
-	renderer->_profileContext = dsGPUProfileContext_create(renderer->resourceManager,
-		renderer->allocator);
+	if (!renderer->allocator->freeFunc)
+	{
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Renderer allocator must support freeing resources.");
+		errno = EINVAL;
+		return false;
+	}
+
+	renderer->_profileContext = dsGPUProfileContext_create(
+		renderer->resourceManager, renderer->allocator);
+	renderer->_resourceCommandBuffers = dsResourceCommandBuffers_create(
+		renderer, renderer->allocator);
 	return true;
 }
 
@@ -1634,6 +1654,7 @@ bool dsRenderer_shutdownResources(dsRenderer* renderer)
 	}
 
 	dsGPUProfileContext_destroy(renderer->_profileContext);
+	dsResourceCommandBuffers_destroy(renderer->_resourceCommandBuffers);
 	return true;
 }
 

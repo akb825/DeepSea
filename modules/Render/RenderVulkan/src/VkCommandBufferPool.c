@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 #include "VkCommandBuffer.h"
 #include "VkCommandPoolData.h"
 #include "VkRendererInternal.h"
-#include "VkShared.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -55,8 +54,8 @@ dsCommandBufferPool* dsVkCommandBufferPool_create(dsRenderer* renderer, dsAlloca
 	return basePool;
 }
 
- bool dsVkCommandBufferPool_createCommandBuffers(dsRenderer* renderer, dsCommandBufferPool* pool,
-	uint32_t count)
+ bool dsVkCommandBufferPool_createCommandBuffers(
+	dsRenderer* renderer, dsCommandBufferPool* pool, uint32_t count)
 {
 	DS_UNUSED(renderer);
 	dsVkCommandBufferPool* vkPool = (dsVkCommandBufferPool*)pool;

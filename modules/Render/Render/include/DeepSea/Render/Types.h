@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2025 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -259,8 +259,9 @@ typedef enum dsCommandBufferUsage
 {
 	dsCommandBufferUsage_Standard = 0,      ///< Standard usage.
 	dsCommandBufferUsage_Secondary = 0x1,   ///< Only used for draw calls within render subpasses.
-	dsCommandBufferUsage_MultiSubmit = 0x2, ///< Will be submitted multiple times in a frame.
-	dsCommandBufferUsage_MultiFrame = 0x4   ///< Will be submitted across frames.
+	dsCommandBufferUsage_Resource = 0x2,    ///< Only used for resource operations.
+	dsCommandBufferUsage_MultiSubmit = 0x4, ///< Will be submitted multiple times in a frame.
+	dsCommandBufferUsage_MultiFrame = 0x8   ///< Will be submitted multiple times across frames.
 } dsCommandBufferUsage;
 
 /**
@@ -992,6 +993,8 @@ typedef struct dsCommandBufferPool
 /// @cond Doxygen_Suppress
 typedef struct dsCommandBufferProfileInfo
 {
+	uint32_t beginDeferredResourcesIndex;
+	uint32_t beginDeferredResourcesSwapCount;
 	uint32_t beginSurfaceIndex;
 	uint32_t beginSurfaceSwapCount;
 	uint32_t beginSubpassIndex;
@@ -1421,6 +1424,7 @@ typedef struct dsProjectionParams
 
 /// @cond Doxygen_Suppress
 typedef struct dsGPUProfileContext dsGPUProfileContext;
+typedef struct dsResourceCommandBuffers dsResourceCommandBuffers;
 /// @endcond
 
 /**
@@ -2215,6 +2219,11 @@ struct dsRenderer
 	 * @brief Context used internally for GPU profiling.
 	 */
 	dsGPUProfileContext* _profileContext;
+
+	/**
+	 * @brief Command buffers used for resource management..
+	 */
+	dsResourceCommandBuffers* _resourceCommandBuffers;
 
 	/**
 	 * @brief Render destroy function.

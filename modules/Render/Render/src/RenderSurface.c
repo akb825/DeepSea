@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -235,6 +235,14 @@ bool dsRenderSurface_beginDraw(const dsRenderSurface* renderSurface, dsCommandBu
 		errno = EINVAL;
 		DS_PROFILE_FUNC_END();
 		endSurfaceScope(renderSurface);
+		return false;
+	}
+
+	if (commandBuffer->usage & dsCommandBufferUsage_Resource)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Cannot begin drawing to a render surface with a resource command buffer.");
 		return false;
 	}
 

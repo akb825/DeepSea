@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2025 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2273,9 +2273,14 @@ struct dsResourceManager
 	// ----------------------------- Internals and function table ----------------------------------
 
 	/**
-	 * Current thread's resource context.
+	 * @brief Current thread's resource context.
 	 */
 	dsThreadStorage _resourceContext;
+
+	/**
+	 * @brief Resource command buffer for the main thread.
+	 */
+	dsCommandBuffer* _mainThreadResourceCommandBuffer;
 
 	// Virtual function table
 

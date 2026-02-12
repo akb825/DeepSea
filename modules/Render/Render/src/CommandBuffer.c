@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -255,6 +255,13 @@ bool dsCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuffer* sub
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot submit a command buffer to itself.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (commandBuffer->usage & dsCommandBufferUsage_Resource)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot submit to a resource command buffer.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

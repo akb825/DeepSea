@@ -1002,6 +1002,10 @@ typedef struct dsVectorImageInitResources
 	 * This may be re-used across multiple images, so long as it isn't used concurrently across
 	 * multiple threads. When loading images across multiple threads, it is best to have a separate
 	 * dsVectorScratchData instance for each thread.
+	 *
+	 * If this is NULL, the command buffer returned from
+	 * dsResourceManager_getResourceCommandBuffer() will be lazily queried if needed. If this call
+	 * fails when it is required, creation of a vector image will fail.
 	 */
 	dsVectorScratchData* scratchData;
 

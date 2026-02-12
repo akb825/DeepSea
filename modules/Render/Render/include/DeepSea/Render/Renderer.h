@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -417,8 +417,8 @@ DS_RENDER_EXPORT bool dsRenderer_drawIndexedIndirect(dsRenderer* renderer,
  * @param z The number of working groups in the Z direction.
  * @return False if the compute job couldn't be dispatched.
  */
-DS_RENDER_EXPORT bool dsRenderer_dispatchCompute(dsRenderer* renderer,
-	dsCommandBuffer* commandBuffer, uint32_t x, uint32_t y, uint32_t z);
+DS_RENDER_EXPORT bool dsRenderer_dispatchCompute(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, uint32_t x, uint32_t y, uint32_t z);
 
 /**
  * @brief Dispatches an indirect compute job.

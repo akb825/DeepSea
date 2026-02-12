@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,14 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Vector2.h>
+
+#include <DeepSea/Render/Resources/ResourceManager.h>
+
 #include <DeepSea/Text/Font.h>
+
 #include <DeepSea/VectorDraw/Gradient.h>
 #include <DeepSea/VectorDraw/VectorMaterial.h>
 #include <DeepSea/VectorDraw/VectorMaterialSet.h>
@@ -198,7 +203,7 @@ static bool readMaterials(dsVectorMaterialSet** outMaterials, dsAllocator* alloc
 			static_cast<dsVectorMaterialSpace>(radialGradientRef->coordinateSpace()),
 			reinterpret_cast<const dsMatrix33f*>(radialGradientRef->transform())));
 		if (!dsVectorMaterialSet_addMaterial(materials, radialGradientRef->name()->c_str(),
-			&material, true))
+				&material, true))
 		{
 			dsGradient_destroy(gradient);
 			dsVectorMaterialSet_destroy(materials);
@@ -526,15 +531,28 @@ dsVectorImage* dsVectorImage_loadImpl(dsAllocator* allocator, dsAllocator* resou
 	auto fbVectorImage = DeepSeaVectorDraw::GetVectorImage(data);
 	dsVectorMaterialSet* localMaterials = NULL;
 	if (!readMaterials(&localMaterials, allocator, initResources->resourceManager,
-		resourceAllocator, fbVectorImage, initResources->srgb, name))
+			resourceAllocator, fbVectorImage, initResources->srgb, name))
 	{
 		return nullptr;
 	}
 
 	if (localMaterials)
 	{
-		DS_ASSERT(initResources->commandBuffer);
-		if (!dsVectorMaterialSet_update(localMaterials, initResources->commandBuffer))
+		dsCommandBuffer* commandBuffer = initResources->commandBuffer;
+		if (!commandBuffer)
+		{
+			commandBuffer =
+				dsResourceManager_getResourceCommandBuffer(initResources->resourceManager);
+			if (!commandBuffer)
+			{
+				DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG,
+					"Vector image loaded without a command buffer or resource context acquired.");
+				dsVectorMaterialSet_destroy(localMaterials);
+				return nullptr;
+			}
+		}
+
+		if (!dsVectorMaterialSet_update(localMaterials, commandBuffer))
 		{
 			dsVectorMaterialSet_destroy(localMaterials);
 			return nullptr;
