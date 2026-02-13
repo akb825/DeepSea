@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -176,8 +176,16 @@ static bool processCommandBufferRenderPass(dsCommandBuffer* commandBuffer,
 	viewport.min.y *= (float)framebuffer->framebuffer->height;
 	viewport.max.y *= (float)framebuffer->framebuffer->height;
 
+	dsAlignedBox2f scissor = framebufferInfo->scissor;
+	dsView_adjustScissor(&scissor, view, framebuffer->rotated);
+	scissor.min.x *= (float)framebuffer->framebuffer->width;
+	scissor.max.x *= (float)framebuffer->framebuffer->width;
+	scissor.min.y *= (float)framebuffer->framebuffer->height;
+	scissor.max.y *= (float)framebuffer->framebuffer->height;
+
 	if (!dsCommandBuffer_beginSecondary(commandBuffer, framebuffer->framebuffer,
-			renderPass->renderPass, subpass, &viewport, dsGfxOcclusionQueryState_Disabled))
+			renderPass->renderPass, subpass, &viewport, &scissor,
+			dsGfxOcclusionQueryState_Disabled))
 	{
 		return false;
 	}
@@ -519,16 +527,27 @@ static bool submitCommandBuffers(dsSceneThreadManager* threadManager,
 					commandBufferInfo->framebuffer;
 				DS_ASSERT(framebuffer->framebuffer);
 
+				float width = (float)framebuffer->framebuffer->width;
+				float height = (float)framebuffer->framebuffer->height;
+
 				dsAlignedBox3f viewport = framebufferInfo->viewport;
 				dsView_adjustViewport(&viewport, threadManager->curView, framebuffer->rotated);
-				viewport.min.x *= (float)framebuffer->framebuffer->width;
-				viewport.max.x *= (float)framebuffer->framebuffer->width;
-				viewport.min.y *= (float)framebuffer->framebuffer->height;
-				viewport.max.y *= (float)framebuffer->framebuffer->height;
+				viewport.min.x *= width;
+				viewport.max.x *= width;
+				viewport.min.y *= height;
+				viewport.max.y *= height;
+
+				dsAlignedBox2f scissor = framebufferInfo->scissor;
+				dsView_adjustScissor(&scissor, threadManager->curView, framebuffer->rotated);
+				scissor.min.x *= width;
+				scissor.max.x *= width;
+				scissor.min.y *= height;
+				scissor.max.y *= height;
+
 				uint32_t clearValueCount =
 					renderPass->clearValues ? renderPass->renderPass->attachmentCount : 0;
 				if (!dsRenderPass_begin(renderPass->renderPass, commandBuffer,
-						framebuffer->framebuffer, &viewport, renderPass->clearValues,
+						framebuffer->framebuffer, &viewport, &scissor, renderPass->clearValues,
 						clearValueCount, true))
 				{
 					return false;

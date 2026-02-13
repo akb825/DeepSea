@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -302,7 +302,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	clearValues[1].depthStencil.depth = 1.0f;
 	clearValues[1].depthStencil.stencil = 0;
 	DS_VERIFY(dsRenderPass_begin(testCube->renderPass, commandBuffer, testCube->framebuffer, NULL,
-		clearValues, 2, false));
+		NULL, clearValues, 2, false));
 	DS_VERIFY(dsShader_bind(testCube->shader, commandBuffer, testCube->material, NULL, NULL));
 
 	dsDrawIndexedRange drawRange = {testCube->geometry->indexBuffer.count, 1, 0, 0, 0};

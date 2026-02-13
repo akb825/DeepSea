@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,23 +84,23 @@ private:
 
 		dsMaterialElement materialElements[] =
 		{
-			{"projection", dsMaterialType_Mat4, 0, NULL, dsMaterialBinding_Material, 0}
+			{"projection", dsMaterialType_Mat4, 0, nullptr, dsMaterialBinding_Material, 0}
 		};
 
-		materialDesc = dsMaterialDesc_create(resourceManager, allocator, materialElements,
-			DS_ARRAY_SIZE(materialElements));
+		materialDesc = dsMaterialDesc_create(
+			resourceManager, allocator, materialElements, DS_ARRAY_SIZE(materialElements));
 		ASSERT_TRUE(materialDesc);
 
 		material = dsMaterial_create(resourceManager, allocator, materialDesc);
 		ASSERT_TRUE(material);
 
 		dsMatrix44f projection;
-		ASSERT_TRUE(dsRenderer_makeOrtho(&projection, renderer, -0.25f, 1.25f, -0.25f, 1.25f, 0.0f,
-			1.0f));
+		ASSERT_TRUE(dsRenderer_makeOrtho(
+			&projection, renderer, -0.25f, 1.25f, -0.25f, 1.25f, 0.0f, 1.0f));
 		uint32_t projectionIdx = dsMaterialDesc_findElement(materialDesc, "projection");
 		ASSERT_NE(DS_MATERIAL_UNKNOWN, projectionIdx);
-		ASSERT_TRUE(dsMaterial_setElementData(material, projectionIdx, &projection,
-			dsMaterialType_Mat4, 0, 1));
+		ASSERT_TRUE(dsMaterial_setElementData(
+			material, projectionIdx, &projection, dsMaterialType_Mat4, 0, 1));
 
 		shaderModule = dsShaderModule_loadResource(resourceManager, allocator,
 			dsFileResourceType_Embedded, fixture.getShaderPath("WriteOffscreen.mslb"),
@@ -108,16 +108,16 @@ private:
 		ASSERT_TRUE(shaderModule);
 
 		const char* shaderName = depthStencil ? "WriteOffscreenDepthStencil" : "WriteOffscreen";
-		shader = dsShader_createName(resourceManager, allocator, shaderModule, shaderName,
-			materialDesc);
+		shader = dsShader_createName(
+			resourceManager, allocator, shaderModule, shaderName, materialDesc);
 		ASSERT_TRUE(shader);
 
 		dsGfxFormat surfaceFormat = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
 		dsTextureInfo offscreenInfo = {surfaceFormat, dsTextureDim_2D, width, height, 0, mipLevels,
 			1};
 		auto usageFlags = dsTextureUsage_Texture | dsTextureUsage_CopyFrom | dsTextureUsage_CopyTo;
-		offscreen = dsTexture_createOffscreen(resourceManager, allocator, usageFlags,
-			dsGfxMemory_Read, &offscreenInfo, true);
+		offscreen = dsTexture_createOffscreen(
+			resourceManager, allocator, usageFlags, dsGfxMemory_Read, &offscreenInfo, true);
 		ASSERT_TRUE(offscreen);
 
 		dsGfxFormat depthFormat = dsGfxFormat_D24S8;
@@ -136,8 +136,8 @@ private:
 			{dsGfxSurfaceType_Renderbuffer, dsCubeFace_None, 0, 0, depthBuffer}
 		};
 		uint32_t surfaceCount = depthBuffer ? 2 : 1;
-		framebuffer = dsFramebuffer_create(resourceManager, allocator, "WriteOffscreen", surfaces,
-			surfaceCount, width, height, 1);
+		framebuffer = dsFramebuffer_create(
+			resourceManager, allocator, "WriteOffscreen", surfaces, surfaceCount, width, height, 1);
 		ASSERT_TRUE(framebuffer);
 
 		dsAttachmentInfo attachments[] =
@@ -146,10 +146,10 @@ private:
 			{dsAttachmentUsage_Clear, depthFormat, 1},
 		};
 		dsAttachmentRef attachmentRef = {0, true};
-		dsRenderSubpassInfo subpass = {"WriteOffscreen", NULL, &attachmentRef,
+		dsRenderSubpassInfo subpass = {"WriteOffscreen", nullptr, &attachmentRef,
 			{depthBuffer ? 1 : DS_NO_ATTACHMENT, false}, 0, 1};
 		renderPass = dsRenderPass_create(renderer, allocator, attachments, surfaceCount, &subpass,
-			1, NULL, DS_DEFAULT_SUBPASS_DEPENDENCIES);
+			1, nullptr, DS_DEFAULT_SUBPASS_DEPENDENCIES);
 		ASSERT_TRUE(renderPass);
 	}
 };
@@ -242,13 +242,13 @@ TEST_P(RendererFunctionalTest, ReadFromOffscreen)
 	clearValue.colorValue.floatValue.b = 1.0f;
 	clearValue.colorValue.floatValue.a = 1.0f;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
-	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		&clearValue, 1, false));
-	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
+	ASSERT_TRUE(dsRenderPass_begin(
+		info.renderPass, commandBuffer, info.framebuffer, nullptr, nullptr, &clearValue, 1, false));
+	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, nullptr, nullptr));
 
 	dsDrawRange drawRange = {6, 1, 0, 0};
-	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, drawGeometry, &drawRange,
-		dsPrimitiveType_TriangleList));
+	ASSERT_TRUE(dsRenderer_draw(
+		renderer, commandBuffer, drawGeometry, &drawRange, dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsShader_unbind(info.shader, commandBuffer));
 	EXPECT_TRUE(dsRenderPass_end(info.renderPass, commandBuffer));
@@ -278,12 +278,12 @@ TEST_P(RendererFunctionalTest, ReadFromOffscreen)
 	EXPECT_EQ(0, colors[3].b);
 	EXPECT_EQ(255, colors[3].a);
 
-	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		&clearValue, 1, false));
-	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
+	ASSERT_TRUE(dsRenderPass_begin(
+		info.renderPass, commandBuffer, info.framebuffer, nullptr, nullptr, &clearValue, 1, false));
+	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, nullptr, nullptr));
 
-	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, otherDrawGeometry, &drawRange,
-		dsPrimitiveType_TriangleList));
+	ASSERT_TRUE(dsRenderer_draw(
+		renderer, commandBuffer, otherDrawGeometry, &drawRange, dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsShader_unbind(info.shader, commandBuffer));
 	EXPECT_TRUE(dsRenderPass_end(info.renderPass, commandBuffer));
@@ -408,9 +408,9 @@ TEST_P(RendererFunctionalTest, DrawIndirect)
 	clearValue.colorValue.floatValue.b = 1.0f;
 	clearValue.colorValue.floatValue.a = 1.0f;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
-	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		&clearValue, 1, false));
-	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
+	ASSERT_TRUE(dsRenderPass_begin(
+		info.renderPass, commandBuffer, info.framebuffer, nullptr, nullptr, &clearValue, 1, false));
+	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, nullptr, nullptr));
 
 	ASSERT_TRUE(dsRenderer_drawIndirect(renderer, commandBuffer, drawGeometry, indirectBuffer, 0, 1,
 		sizeof(drawRange), dsPrimitiveType_TriangleList));
@@ -513,9 +513,9 @@ TEST_P(RendererFunctionalTest, WriteToBuffer)
 	clearValue.colorValue.floatValue.b = 1.0f;
 	clearValue.colorValue.floatValue.a = 1.0f;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
-	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		&clearValue, 1, false));
-	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
+	ASSERT_TRUE(dsRenderPass_begin(
+		info.renderPass, commandBuffer, info.framebuffer, nullptr, nullptr, &clearValue, 1, false));
+	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, nullptr, nullptr));
 
 	dsDrawRange drawRange = {6, 1, 0, 0};
 	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, drawGeometry, &drawRange,
@@ -531,9 +531,9 @@ TEST_P(RendererFunctionalTest, WriteToBuffer)
 	memcpy(data, otherVertices, sizeof(otherVertices));
 	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
 
-	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		&clearValue, 1, false));
-	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
+	ASSERT_TRUE(dsRenderPass_begin(
+		info.renderPass, commandBuffer, info.framebuffer, nullptr, nullptr, &clearValue, 1, false));
+	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, nullptr, nullptr));
 
 	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, drawGeometry, &drawRange,
 		dsPrimitiveType_TriangleList));
@@ -591,11 +591,11 @@ TEST_P(RendererFunctionalTest, OrphanBuffer)
 		{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}}
 	};
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
-		dsGfxBufferUsage_Vertex, dsGfxMemory_Static | dsGfxMemory_Draw, NULL, sizeof(vertices));
+		dsGfxBufferUsage_Vertex, dsGfxMemory_Static | dsGfxMemory_Draw, nullptr, sizeof(vertices));
 	ASSERT_TRUE(buffer);
 
-	void* data = dsGfxBuffer_map(buffer, dsGfxBufferMap_Write | dsGfxBufferMap_Orphan, 0,
-		buffer->size);
+	void* data = dsGfxBuffer_map(
+		buffer, dsGfxBufferMap_Write | dsGfxBufferMap_Orphan, 0, buffer->size);
 	ASSERT_TRUE(data);
 	memcpy(data, vertices, sizeof(vertices));
 	ASSERT_TRUE(dsGfxBuffer_unmap(buffer));
@@ -640,13 +640,13 @@ TEST_P(RendererFunctionalTest, OrphanBuffer)
 	clearValue.colorValue.floatValue.b = 1.0f;
 	clearValue.colorValue.floatValue.a = 1.0f;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
-	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		&clearValue, 1, false));
-	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
+	ASSERT_TRUE(dsRenderPass_begin(
+		info.renderPass, commandBuffer, info.framebuffer, nullptr, nullptr, &clearValue, 1, false));
+	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, nullptr, nullptr));
 
 	dsDrawRange drawRange = {6, 1, 0, 0};
-	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, drawGeometry, &drawRange,
-		dsPrimitiveType_TriangleList));
+	ASSERT_TRUE(dsRenderer_draw(
+		renderer, commandBuffer, drawGeometry, &drawRange, dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsShader_unbind(info.shader, commandBuffer));
 	EXPECT_TRUE(dsRenderPass_end(info.renderPass, commandBuffer));
@@ -656,12 +656,12 @@ TEST_P(RendererFunctionalTest, OrphanBuffer)
 	memcpy(data, otherVertices, sizeof(otherVertices));
 	ASSERT_TRUE(dsGfxBuffer_unmap(buffer));
 
-	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		&clearValue, 1, false));
-	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
+	ASSERT_TRUE(dsRenderPass_begin(
+		info.renderPass, commandBuffer, info.framebuffer, nullptr, nullptr, &clearValue, 1, false));
+	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, nullptr, nullptr));
 
-	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, drawGeometry, &drawRange,
-		dsPrimitiveType_TriangleList));
+	ASSERT_TRUE(dsRenderer_draw(
+		renderer, commandBuffer, drawGeometry, &drawRange, dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsShader_unbind(info.shader, commandBuffer));
 	EXPECT_TRUE(dsRenderPass_end(info.renderPass, commandBuffer));
@@ -714,8 +714,8 @@ TEST_P(RendererFunctionalTest, PersistentMapping)
 		vertices, sizeof(vertices));
 	ASSERT_TRUE(buffer);
 
-	void* data = dsGfxBuffer_map(buffer,
-		(dsGfxBufferMap)(dsGfxBufferMap_Write | dsGfxBufferMap_Persistent), 0, buffer->size);
+	void* data = dsGfxBuffer_map(
+		buffer, dsGfxBufferMap_Write | dsGfxBufferMap_Persistent, 0, buffer->size);
 	ASSERT_TRUE(data);
 
 	Vertex otherVertices[] =
@@ -748,8 +748,8 @@ TEST_P(RendererFunctionalTest, PersistentMapping)
 	dsVertexBuffer vertexBuffer = {buffer, 0, 6, format};
 	dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] = {&vertexBuffer, nullptr,
 		nullptr, nullptr};
-	drawGeometry = dsDrawGeometry_create(resourceManager, (dsAllocator*)&allocator,
-		vertexBuffers, nullptr);
+	drawGeometry = dsDrawGeometry_create(
+		resourceManager, (dsAllocator*)&allocator, vertexBuffers, nullptr);
 	ASSERT_TRUE(drawGeometry);
 
 	dsGfxFence* fence = dsGfxFence_create(resourceManager, (dsAllocator*)&allocator);
@@ -761,9 +761,9 @@ TEST_P(RendererFunctionalTest, PersistentMapping)
 	clearValue.colorValue.floatValue.b = 1.0f;
 	clearValue.colorValue.floatValue.a = 1.0f;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
-	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		&clearValue, 1, false));
-	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
+	ASSERT_TRUE(dsRenderPass_begin(
+		info.renderPass, commandBuffer, info.framebuffer, nullptr, nullptr, &clearValue, 1, false));
+	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, nullptr, nullptr));
 
 	dsDrawRange drawRange = {6, 1, 0, 0};
 	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, drawGeometry, &drawRange,
@@ -777,12 +777,12 @@ TEST_P(RendererFunctionalTest, PersistentMapping)
 	memcpy(data, otherVertices, sizeof(otherVertices));
 	dsGfxBuffer_flush(buffer, 0, buffer->size);
 
-	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		&clearValue, 1, false));
-	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
+	ASSERT_TRUE(dsRenderPass_begin(
+		info.renderPass, commandBuffer, info.framebuffer, nullptr, nullptr, &clearValue, 1, false));
+	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, nullptr, nullptr));
 
-	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, drawGeometry, &drawRange,
-		dsPrimitiveType_TriangleList));
+	ASSERT_TRUE(dsRenderer_draw(
+		renderer, commandBuffer, drawGeometry, &drawRange, dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsShader_unbind(info.shader, commandBuffer));
 	EXPECT_TRUE(dsRenderPass_end(info.renderPass, commandBuffer));
@@ -865,9 +865,9 @@ TEST_P(RendererFunctionalTest, GenerateMipmaps)
 	clearValue.colorValue.floatValue.b = 1.0f;
 	clearValue.colorValue.floatValue.a = 1.0f;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
-	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		&clearValue, 1, false));
-	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
+	ASSERT_TRUE(dsRenderPass_begin(
+		info.renderPass, commandBuffer, info.framebuffer, nullptr, nullptr, &clearValue, 1, false));
+	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, nullptr, nullptr));
 
 	dsDrawRange drawRange = {6, 1, 0, 0};
 	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, drawGeometry, &drawRange,
@@ -906,22 +906,22 @@ TEST_P(RendererFunctionalTest, BufferReadback)
 
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
 		dsGfxBufferUsage_UniformBuffer,
-		dsGfxMemory_Stream | dsGfxMemory_Read | dsGfxMemory_Synchronize, NULL,
+		dsGfxMemory_Stream | dsGfxMemory_Read | dsGfxMemory_Synchronize, nullptr,
 		sizeof(uint32_t)*invocationCount);
 	ASSERT_TRUE(buffer);
 
 	dsMaterialElement materialElements[] =
 	{
-		{"TestBuffer", dsMaterialType_UniformBuffer, 0, NULL, dsMaterialBinding_Material, 0},
-		{"offset", dsMaterialType_UInt, 0, NULL, dsMaterialBinding_Material, 0}
+		{"TestBuffer", dsMaterialType_UniformBuffer, 0, nullptr, dsMaterialBinding_Material, 0},
+		{"offset", dsMaterialType_UInt, 0, nullptr, dsMaterialBinding_Material, 0}
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, (dsAllocator*)&allocator,
 		materialElements, DS_ARRAY_SIZE(materialElements));
 	ASSERT_TRUE(materialDesc);
 
-	dsMaterial* material = dsMaterial_create(resourceManager, (dsAllocator*)&allocator,
-		materialDesc);
+	dsMaterial* material = dsMaterial_create(
+		resourceManager, (dsAllocator*)&allocator, materialDesc);
 	ASSERT_TRUE(material);
 
 	uint32_t bufferIdx = dsMaterialDesc_findElement(materialDesc, "TestBuffer");
@@ -943,7 +943,7 @@ TEST_P(RendererFunctionalTest, BufferReadback)
 	ASSERT_TRUE(shader);
 
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
-	ASSERT_TRUE(dsShader_bindCompute(shader, commandBuffer, material, NULL));
+	ASSERT_TRUE(dsShader_bindCompute(shader, commandBuffer, material, nullptr));
 	ASSERT_TRUE(dsRenderer_dispatchCompute(renderer, commandBuffer, invocationCount, 1, 1));
 	EXPECT_TRUE(dsShader_unbindCompute(shader, commandBuffer));
 
@@ -974,7 +974,7 @@ TEST_P(RendererFunctionalTest, ComputeShaderIndirect)
 
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
 		dsGfxBufferUsage_UniformBuffer,
-		dsGfxMemory_Stream | dsGfxMemory_Read | dsGfxMemory_Synchronize, NULL,
+		dsGfxMemory_Stream | dsGfxMemory_Read | dsGfxMemory_Synchronize, nullptr,
 		sizeof(uint32_t)*invocationCount);
 	ASSERT_TRUE(buffer);
 
@@ -986,8 +986,8 @@ TEST_P(RendererFunctionalTest, ComputeShaderIndirect)
 
 	dsMaterialElement materialElements[] =
 	{
-		{"TestBuffer", dsMaterialType_UniformBuffer, 0, NULL, dsMaterialBinding_Material, 0},
-		{"offset", dsMaterialType_UInt, 0, NULL, dsMaterialBinding_Material, 0}
+		{"TestBuffer", dsMaterialType_UniformBuffer, 0, nullptr, dsMaterialBinding_Material, 0},
+		{"offset", dsMaterialType_UInt, 0, nullptr, dsMaterialBinding_Material, 0}
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, (dsAllocator*)&allocator,
@@ -1017,7 +1017,7 @@ TEST_P(RendererFunctionalTest, ComputeShaderIndirect)
 	ASSERT_TRUE(shader);
 
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
-	ASSERT_TRUE(dsShader_bindCompute(shader, commandBuffer, material, NULL));
+	ASSERT_TRUE(dsShader_bindCompute(shader, commandBuffer, material, nullptr));
 	ASSERT_TRUE(dsRenderer_dispatchComputeIndirect(renderer, commandBuffer, indirectBuffer, 0));
 	EXPECT_TRUE(dsShader_unbindCompute(shader, commandBuffer));
 
@@ -1066,7 +1066,7 @@ TEST_P(RendererFunctionalTest, TextureBuffer)
 
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
 		dsGfxBufferUsage_UniformBuffer,
-		dsGfxMemory_Stream | dsGfxMemory_Read | dsGfxMemory_Synchronize, NULL,
+		dsGfxMemory_Stream | dsGfxMemory_Read | dsGfxMemory_Synchronize, nullptr,
 		sizeof(uint32_t)*invocationCount);
 	ASSERT_TRUE(buffer);
 
@@ -1077,16 +1077,16 @@ TEST_P(RendererFunctionalTest, TextureBuffer)
 
 	dsMaterialElement materialElements[] =
 	{
-		{"testTexBuffer", dsMaterialType_TextureBuffer, 0, NULL, dsMaterialBinding_Material, 0},
-		{"TestBuffer", dsMaterialType_UniformBuffer, 0, NULL, dsMaterialBinding_Material, 0}
+		{"testTexBuffer", dsMaterialType_TextureBuffer, 0, nullptr, dsMaterialBinding_Material, 0},
+		{"TestBuffer", dsMaterialType_UniformBuffer, 0, nullptr, dsMaterialBinding_Material, 0}
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, (dsAllocator*)&allocator,
 		materialElements, DS_ARRAY_SIZE(materialElements));
 	ASSERT_TRUE(materialDesc);
 
-	dsMaterial* material = dsMaterial_create(resourceManager, (dsAllocator*)&allocator,
-		materialDesc);
+	dsMaterial* material = dsMaterial_create(
+		resourceManager, (dsAllocator*)&allocator, materialDesc);
 	ASSERT_TRUE(material);
 
 	uint32_t textureIdx = dsMaterialDesc_findElement(materialDesc, "testTexBuffer");
@@ -1108,7 +1108,7 @@ TEST_P(RendererFunctionalTest, TextureBuffer)
 	ASSERT_TRUE(shader);
 
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
-	ASSERT_TRUE(dsShader_bindCompute(shader, commandBuffer, material, NULL));
+	ASSERT_TRUE(dsShader_bindCompute(shader, commandBuffer, material, nullptr));
 	ASSERT_TRUE(dsRenderer_dispatchCompute(renderer, commandBuffer, invocationCount, 1, 1));
 	EXPECT_TRUE(dsShader_unbindCompute(shader, commandBuffer));
 
@@ -1128,7 +1128,7 @@ TEST_P(RendererFunctionalTest, TextureBuffer)
 		newData[i] = values[i] = i*3 + 1;
 	EXPECT_TRUE(dsGfxBuffer_unmap(textureBuffer));
 
-	ASSERT_TRUE(dsShader_bindCompute(shader, commandBuffer, material, NULL));
+	ASSERT_TRUE(dsShader_bindCompute(shader, commandBuffer, material, nullptr));
 	ASSERT_TRUE(dsRenderer_dispatchCompute(renderer, commandBuffer, invocationCount, 1, 1));
 	EXPECT_TRUE(dsShader_unbindCompute(shader, commandBuffer));
 
@@ -1198,9 +1198,9 @@ TEST_P(RendererFunctionalTest, ClearAttachments)
 	clearValue.colorValue.floatValue.b = 1.0f;
 	clearValue.colorValue.floatValue.a = 1.0f;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
-	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		&clearValue, 1, false));
-	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
+	ASSERT_TRUE(dsRenderPass_begin(
+		info.renderPass, commandBuffer, info.framebuffer, nullptr, nullptr, &clearValue, 1, false));
+	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, nullptr, nullptr));
 
 	dsDrawRange drawRange = {6, 1, 0, 0};
 	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, drawGeometry, &drawRange,
@@ -1215,8 +1215,8 @@ TEST_P(RendererFunctionalTest, ClearAttachments)
 	clearAttachment.clearValue.colorValue.floatValue.b = 0.498039f;
 	clearAttachment.clearValue.colorValue.floatValue.a = 0.501961f;
 	dsAttachmentClearRegion regions[] = {{0, 0, 1, 1, 0, 1}, {1, 1, 1, 1, 0, 1}};
-	dsRenderer_clearAttachments(renderer, commandBuffer, &clearAttachment, 1, regions,
-			DS_ARRAY_SIZE(regions));
+	dsRenderer_clearAttachments(
+		renderer, commandBuffer, &clearAttachment, 1, regions, DS_ARRAY_SIZE(regions));
 
 	EXPECT_TRUE(dsRenderPass_end(info.renderPass, commandBuffer));
 
@@ -1287,8 +1287,8 @@ TEST_P(RendererFunctionalTest, ClearAttachmentsDepth)
 		dsVertexBuffer vertexBuffer = {buffer, 0, 6, format};
 		dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] = {&vertexBuffer, nullptr,
 			nullptr, nullptr};
-		drawGeometry = dsDrawGeometry_create(resourceManager, (dsAllocator*)&allocator,
-			vertexBuffers, nullptr);
+		drawGeometry = dsDrawGeometry_create(
+			resourceManager, (dsAllocator*)&allocator, vertexBuffers, nullptr);
 		ASSERT_TRUE(drawGeometry);
 	}
 
@@ -1300,8 +1300,8 @@ TEST_P(RendererFunctionalTest, ClearAttachmentsDepth)
 	clearValues[1].depthStencil.depth = 1.0f;
 	clearValues[1].depthStencil.stencil = 0;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
-	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		clearValues, 2, false));
+	ASSERT_TRUE(dsRenderPass_begin(
+		info.renderPass, commandBuffer, info.framebuffer, nullptr, nullptr, clearValues, 2, false));
 
 	dsClearAttachment clearAttachment;
 	clearAttachment.colorAttachment = DS_NO_ATTACHMENT;
@@ -1309,20 +1309,20 @@ TEST_P(RendererFunctionalTest, ClearAttachmentsDepth)
 	clearAttachment.clearValue.depthStencil.depth = 0.0f;
 	clearAttachment.clearValue.depthStencil.stencil = 1;
 	dsAttachmentClearRegion regions[] = {{0, 0, 1, 1, 0, 1}, {1, 1, 1, 1, 0, 1}};
-	dsRenderer_clearAttachments(renderer, commandBuffer, &clearAttachment, 1, regions,
-		DS_ARRAY_SIZE(regions));
+	dsRenderer_clearAttachments(
+		renderer, commandBuffer, &clearAttachment, 1, regions, DS_ARRAY_SIZE(regions));
 
 	clearAttachment.clearValue.depthStencil.depth = 1.0f;
 	regions[0].x = 1;
 	regions[1].x = 0;
-	dsRenderer_clearAttachments(renderer, commandBuffer, &clearAttachment, 1, regions,
-		DS_ARRAY_SIZE(regions));
+	dsRenderer_clearAttachments(
+		renderer, commandBuffer, &clearAttachment, 1, regions, DS_ARRAY_SIZE(regions));
 
-	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
+	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, nullptr, nullptr));
 
 	dsDrawRange drawRange = {6, 1, 0, 0};
-	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, drawGeometry, &drawRange,
-		dsPrimitiveType_TriangleList));
+	ASSERT_TRUE(dsRenderer_draw(
+		renderer, commandBuffer, drawGeometry, &drawRange, dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsShader_unbind(info.shader, commandBuffer));
 	EXPECT_TRUE(dsRenderPass_end(info.renderPass, commandBuffer));
@@ -1407,8 +1407,8 @@ TEST_P(RendererFunctionalTest, ClearAttachmentsStencil)
 	clearValues[1].depthStencil.depth = 1.0f;
 	clearValues[1].depthStencil.stencil = 0;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
-	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		clearValues, 2, false));
+	ASSERT_TRUE(dsRenderPass_begin(
+		info.renderPass, commandBuffer, info.framebuffer, nullptr, nullptr, clearValues, 2, false));
 
 	dsClearAttachment clearAttachment;
 	clearAttachment.colorAttachment = DS_NO_ATTACHMENT;
@@ -1416,20 +1416,20 @@ TEST_P(RendererFunctionalTest, ClearAttachmentsStencil)
 	clearAttachment.clearValue.depthStencil.depth = 0.0f;
 	clearAttachment.clearValue.depthStencil.stencil = 1;
 	dsAttachmentClearRegion regions[] = {{0, 0, 1, 1, 0, 1}, {1, 1, 1, 1, 0, 1}};
-	dsRenderer_clearAttachments(renderer, commandBuffer, &clearAttachment, 1, regions,
-		DS_ARRAY_SIZE(regions));
+	dsRenderer_clearAttachments(
+		renderer, commandBuffer, &clearAttachment, 1, regions, DS_ARRAY_SIZE(regions));
 
 	clearAttachment.clearValue.depthStencil.stencil = 0;
 	regions[0].x = 1;
 	regions[1].x = 0;
-	dsRenderer_clearAttachments(renderer, commandBuffer, &clearAttachment, 1, regions,
-		DS_ARRAY_SIZE(regions));
+	dsRenderer_clearAttachments(
+		renderer, commandBuffer, &clearAttachment, 1, regions, DS_ARRAY_SIZE(regions));
 
-	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
+	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, nullptr, nullptr));
 
 	dsDrawRange drawRange = {6, 1, 0, 0};
-	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, drawGeometry, &drawRange,
-		dsPrimitiveType_TriangleList));
+	ASSERT_TRUE(dsRenderer_draw(
+		renderer, commandBuffer, drawGeometry, &drawRange, dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsShader_unbind(info.shader, commandBuffer));
 	EXPECT_TRUE(dsRenderPass_end(info.renderPass, commandBuffer));
@@ -1501,8 +1501,8 @@ TEST_P(RendererFunctionalTest, ClearAttachmentsColorAndDepth)
 		dsVertexBuffer vertexBuffer = {buffer, 0, 6, format};
 		dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] = {&vertexBuffer, nullptr,
 			nullptr, nullptr};
-		drawGeometry = dsDrawGeometry_create(resourceManager, (dsAllocator*)&allocator,
-			vertexBuffers, nullptr);
+		drawGeometry = dsDrawGeometry_create(
+			resourceManager, (dsAllocator*)&allocator, vertexBuffers, nullptr);
 		ASSERT_TRUE(drawGeometry);
 	}
 
@@ -1514,8 +1514,8 @@ TEST_P(RendererFunctionalTest, ClearAttachmentsColorAndDepth)
 	clearValues[1].depthStencil.depth = 1.0f;
 	clearValues[1].depthStencil.stencil = 0;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
-	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		clearValues, 2, false));
+	ASSERT_TRUE(dsRenderPass_begin(
+		info.renderPass, commandBuffer, info.framebuffer, nullptr, nullptr, clearValues, 2, false));
 
 	dsClearAttachment clearAttachments[2];
 	clearAttachments[0].colorAttachment = 0;
@@ -1531,11 +1531,11 @@ TEST_P(RendererFunctionalTest, ClearAttachmentsColorAndDepth)
 	dsRenderer_clearAttachments(renderer, commandBuffer, clearAttachments,
 		DS_ARRAY_SIZE(clearAttachments), regions, DS_ARRAY_SIZE(regions));
 
-	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
+	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, nullptr, nullptr));
 
 	dsDrawRange drawRange = {6, 1, 0, 0};
-	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, drawGeometry, &drawRange,
-		dsPrimitiveType_TriangleList));
+	ASSERT_TRUE(dsRenderer_draw(
+		renderer, commandBuffer, drawGeometry, &drawRange, dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsShader_unbind(info.shader, commandBuffer));
 	EXPECT_TRUE(dsRenderPass_end(info.renderPass, commandBuffer));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -129,6 +129,7 @@ DS_RENDER_EXPORT dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAlloc
  * @param framebuffer The framebuffer to draw the render pass to.
  * @param viewport The viewport to draw to. The x/y values are in pixel space, while the z value is
  *     in the range [0, 1]. If NULL, the full range is used.
+ * @param scissor The scissor box to cut to in pixel space. If NULL, the viewport will be used.
  * @param clearValues The values to clear the framebuffer with. Only values corresponding to
  *     attachments with the clear bit set are considered. This may be NULL if no attachments will be
  *     cleared.
@@ -140,8 +141,8 @@ DS_RENDER_EXPORT dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAlloc
  */
 DS_RENDER_EXPORT bool dsRenderPass_begin(const dsRenderPass* renderPass,
 	dsCommandBuffer* commandBuffer, const dsFramebuffer* framebuffer,
-	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount, bool secondary);
+	const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
+	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount, bool secondary);
 
 /**
  * @brief Advances to the next subpass in a render pass.

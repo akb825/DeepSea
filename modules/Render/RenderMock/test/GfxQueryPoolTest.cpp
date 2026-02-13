@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,50 +26,52 @@ class GfxQueryPoolTest : public RenderPassFixtureBase
 
 TEST_F(GfxQueryPoolTest, Create)
 {
-	EXPECT_FALSE(dsGfxQueryPool_create(NULL, NULL, dsGfxQueryType_SamplesPassed, 10));
-	EXPECT_FALSE(dsGfxQueryPool_create(resourceManager, NULL, dsGfxQueryType_SamplesPassed, 0));
+	EXPECT_FALSE(dsGfxQueryPool_create(nullptr, nullptr, dsGfxQueryType_SamplesPassed, 10));
+	EXPECT_FALSE(dsGfxQueryPool_create(resourceManager, nullptr, dsGfxQueryType_SamplesPassed, 0));
 
-	dsGfxQueryPool* queries = dsGfxQueryPool_create(resourceManager, NULL,
+	dsGfxQueryPool* queries = dsGfxQueryPool_create(resourceManager, nullptr,
 		dsGfxQueryType_SamplesPassed, 10);
 	EXPECT_TRUE(queries);
 	EXPECT_TRUE(dsGfxQueryPool_destroy(queries));
 
-	queries = dsGfxQueryPool_create(resourceManager, NULL, dsGfxQueryType_AnySamplesPassed, 10);
+	queries = dsGfxQueryPool_create(resourceManager, nullptr, dsGfxQueryType_AnySamplesPassed, 10);
 	EXPECT_TRUE(queries);
 	EXPECT_TRUE(dsGfxQueryPool_destroy(queries));
 
-	queries = dsGfxQueryPool_create(resourceManager, NULL, dsGfxQueryType_Timestamp, 10);
+	queries = dsGfxQueryPool_create(resourceManager, nullptr, dsGfxQueryType_Timestamp, 10);
 	EXPECT_TRUE(queries);
 	EXPECT_TRUE(dsGfxQueryPool_destroy(queries));
 
 	resourceManager->hasPreciseOcclusionQueries = false;
-	queries = dsGfxQueryPool_create(resourceManager, NULL, dsGfxQueryType_SamplesPassed, 10);
+	queries = dsGfxQueryPool_create(resourceManager, nullptr, dsGfxQueryType_SamplesPassed, 10);
 	EXPECT_FALSE(queries);
 
 	resourceManager->hasPreciseOcclusionQueries = true;
 	resourceManager->timestampPeriod = 0.0f;
-	EXPECT_FALSE(dsGfxQueryPool_create(resourceManager, NULL, dsGfxQueryType_Timestamp, 10));
+	EXPECT_FALSE(dsGfxQueryPool_create(resourceManager, nullptr, dsGfxQueryType_Timestamp, 10));
 
 	resourceManager->timestampPeriod = 1.0f;
 	resourceManager->hasQueries = false;
-	EXPECT_FALSE(dsGfxQueryPool_create(resourceManager, NULL, dsGfxQueryType_SamplesPassed, 10));
-	EXPECT_FALSE(dsGfxQueryPool_create(resourceManager, NULL, dsGfxQueryType_AnySamplesPassed, 10));
-	EXPECT_FALSE(dsGfxQueryPool_create(resourceManager, NULL, dsGfxQueryType_Timestamp, 10));
+	EXPECT_FALSE(dsGfxQueryPool_create(resourceManager, nullptr, dsGfxQueryType_SamplesPassed, 10));
+	EXPECT_FALSE(dsGfxQueryPool_create(
+		resourceManager, nullptr, dsGfxQueryType_AnySamplesPassed, 10));
+	EXPECT_FALSE(dsGfxQueryPool_create(resourceManager, nullptr, dsGfxQueryType_Timestamp, 10));
 }
 
 TEST_F(GfxQueryPoolTest, Reset)
 {
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
-	dsGfxQueryPool* queries = dsGfxQueryPool_create(resourceManager, NULL,
+	dsGfxQueryPool* queries = dsGfxQueryPool_create(resourceManager, nullptr,
 		dsGfxQueryType_SamplesPassed, 10);
 	ASSERT_TRUE(queries);
 
-	EXPECT_FALSE(dsGfxQueryPool_reset(NULL, commandBuffer, 0, 10));
-	EXPECT_FALSE(dsGfxQueryPool_reset(queries, NULL, 0, 10));
+	EXPECT_FALSE(dsGfxQueryPool_reset(nullptr, commandBuffer, 0, 10));
+	EXPECT_FALSE(dsGfxQueryPool_reset(queries, nullptr, 0, 10));
 	EXPECT_FALSE(dsGfxQueryPool_reset(queries, commandBuffer, 3, 10));
 	EXPECT_TRUE(dsGfxQueryPool_reset(queries, commandBuffer, 0, 10));
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_TRUE(dsRenderPass_begin(
+		renderPass, commandBuffer, framebuffer, nullptr, nullptr, nullptr, 0, false));
 	EXPECT_FALSE(dsGfxQueryPool_reset(queries, commandBuffer, 0, 10));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
@@ -79,23 +81,23 @@ TEST_F(GfxQueryPoolTest, Reset)
 TEST_F(GfxQueryPoolTest, BeginEndQuery)
 {
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
-	dsGfxQueryPool* queries = dsGfxQueryPool_create(resourceManager, NULL,
+	dsGfxQueryPool* queries = dsGfxQueryPool_create(resourceManager, nullptr,
 		dsGfxQueryType_SamplesPassed, 1);
 	ASSERT_TRUE(queries);
 
-	EXPECT_FALSE(dsGfxQueryPool_beginQuery(NULL, commandBuffer, 0));
-	EXPECT_FALSE(dsGfxQueryPool_beginQuery(queries, NULL, 0));
+	EXPECT_FALSE(dsGfxQueryPool_beginQuery(nullptr, commandBuffer, 0));
+	EXPECT_FALSE(dsGfxQueryPool_beginQuery(queries, nullptr, 0));
 	EXPECT_FALSE(dsGfxQueryPool_beginQuery(queries, commandBuffer, 1));
 	EXPECT_TRUE(dsGfxQueryPool_beginQuery(queries, commandBuffer, 0));
 
-	EXPECT_FALSE(dsGfxQueryPool_endQuery(NULL, commandBuffer, 0));
-	EXPECT_FALSE(dsGfxQueryPool_endQuery(queries, NULL, 0));
+	EXPECT_FALSE(dsGfxQueryPool_endQuery(nullptr, commandBuffer, 0));
+	EXPECT_FALSE(dsGfxQueryPool_endQuery(queries, nullptr, 0));
 	EXPECT_FALSE(dsGfxQueryPool_endQuery(queries, commandBuffer, 1));
 	EXPECT_TRUE(dsGfxQueryPool_endQuery(queries, commandBuffer, 0));
 
 	EXPECT_TRUE(dsGfxQueryPool_destroy(queries));
 
-	queries = dsGfxQueryPool_create(resourceManager, NULL, dsGfxQueryType_Timestamp, 1);
+	queries = dsGfxQueryPool_create(resourceManager, nullptr, dsGfxQueryType_Timestamp, 1);
 	ASSERT_TRUE(queries);
 	EXPECT_FALSE(dsGfxQueryPool_beginQuery(queries, commandBuffer, 0));
 	EXPECT_FALSE(dsGfxQueryPool_endQuery(queries, commandBuffer, 0));
@@ -105,18 +107,18 @@ TEST_F(GfxQueryPoolTest, BeginEndQuery)
 TEST_F(GfxQueryPoolTest, QueryTimestamp)
 {
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
-	dsGfxQueryPool* queries = dsGfxQueryPool_create(resourceManager, NULL, dsGfxQueryType_Timestamp,
-		1);
+	dsGfxQueryPool* queries = dsGfxQueryPool_create(
+		resourceManager, nullptr, dsGfxQueryType_Timestamp, 1);
 	ASSERT_TRUE(queries);
 
-	EXPECT_FALSE(dsGfxQueryPool_queryTimestamp(NULL, commandBuffer, 0));
-	EXPECT_FALSE(dsGfxQueryPool_queryTimestamp(queries, NULL, 0));
+	EXPECT_FALSE(dsGfxQueryPool_queryTimestamp(nullptr, commandBuffer, 0));
+	EXPECT_FALSE(dsGfxQueryPool_queryTimestamp(queries, nullptr, 0));
 	EXPECT_FALSE(dsGfxQueryPool_queryTimestamp(queries, commandBuffer, 1));
 	EXPECT_TRUE(dsGfxQueryPool_queryTimestamp(queries, commandBuffer, 0));
 
 	EXPECT_TRUE(dsGfxQueryPool_destroy(queries));
 
-	queries = dsGfxQueryPool_create(resourceManager, NULL, dsGfxQueryType_SamplesPassed, 1);
+	queries = dsGfxQueryPool_create(resourceManager, nullptr, dsGfxQueryType_SamplesPassed, 1);
 	ASSERT_TRUE(queries);
 	EXPECT_FALSE(dsGfxQueryPool_queryTimestamp(queries, commandBuffer, 0));
 	EXPECT_TRUE(dsGfxQueryPool_destroy(queries));
@@ -124,42 +126,42 @@ TEST_F(GfxQueryPoolTest, QueryTimestamp)
 
 TEST_F(GfxQueryPoolTest, GetValues)
 {
-	dsGfxQueryPool* queries = dsGfxQueryPool_create(resourceManager, NULL,
+	dsGfxQueryPool* queries = dsGfxQueryPool_create(resourceManager, nullptr,
 		dsGfxQueryType_SamplesPassed, 10);
 	ASSERT_TRUE(queries);
 
 	DS_ALIGN(16) uint64_t data[6];
 	const size_t stride = 2*sizeof(uint64_t);
 
-	EXPECT_FALSE(dsGfxQueryPool_getValues(NULL, 2, 3, data, sizeof(data), stride, sizeof(uint32_t),
-		false));
-	EXPECT_FALSE(dsGfxQueryPool_getValues(queries, 2, 3, NULL, sizeof(data), stride,
-		sizeof(uint32_t), false));
-	EXPECT_FALSE(dsGfxQueryPool_getValues(queries, 2, 3, data, sizeof(data), 1, sizeof(uint32_t),
-		false));
-	EXPECT_FALSE(dsGfxQueryPool_getValues(queries, 2, 3, data, sizeof(data), stride - 1,
-		sizeof(uint32_t), false));
-	EXPECT_FALSE(dsGfxQueryPool_getValues(queries, 2, 3, data, sizeof(data), stride,
-		sizeof(uint16_t), false));
-	EXPECT_TRUE(dsGfxQueryPool_getValues(queries, 2, 3, data, sizeof(data), stride,
-		sizeof(uint32_t), false));
-	EXPECT_FALSE(dsGfxQueryPool_getValues(queries, 2, 3, data, sizeof(data), sizeof(uint32_t),
-		sizeof(uint32_t), true));
-	EXPECT_TRUE(dsGfxQueryPool_getValues(queries, 2, 3, data, sizeof(data), stride,
-		sizeof(uint32_t), true));
+	EXPECT_FALSE(dsGfxQueryPool_getValues(
+		nullptr, 2, 3, data, sizeof(data), stride, sizeof(uint32_t), false));
+	EXPECT_FALSE(dsGfxQueryPool_getValues(
+		queries, 2, 3, nullptr, sizeof(data), stride, sizeof(uint32_t), false));
+	EXPECT_FALSE(dsGfxQueryPool_getValues(
+		queries, 2, 3, data, sizeof(data), 1, sizeof(uint32_t), false));
+	EXPECT_FALSE(dsGfxQueryPool_getValues(
+		queries, 2, 3, data, sizeof(data), stride - 1, sizeof(uint32_t), false));
+	EXPECT_FALSE(dsGfxQueryPool_getValues(
+		queries, 2, 3, data, sizeof(data), stride, sizeof(uint16_t), false));
+	EXPECT_TRUE(dsGfxQueryPool_getValues(
+		queries, 2, 3, data, sizeof(data), stride, sizeof(uint32_t), false));
+	EXPECT_FALSE(dsGfxQueryPool_getValues(
+		queries, 2, 3, data, sizeof(data), sizeof(uint32_t), sizeof(uint32_t), true));
+	EXPECT_TRUE(dsGfxQueryPool_getValues(
+		queries, 2, 3, data, sizeof(data), stride, sizeof(uint32_t), true));
 
-	EXPECT_TRUE(dsGfxQueryPool_getValues(queries, 2, 3, data, sizeof(data), stride,
-		sizeof(uint64_t), false));
-	EXPECT_FALSE(dsGfxQueryPool_getValues(queries, 2, 3, data, sizeof(data), sizeof(uint64_t),
-		sizeof(uint64_t), true));
-	EXPECT_TRUE(dsGfxQueryPool_getValues(queries, 2, 3, data, sizeof(data), stride,
-		sizeof(uint64_t), true));
+	EXPECT_TRUE(dsGfxQueryPool_getValues(
+		queries, 2, 3, data, sizeof(data), stride, sizeof(uint64_t), false));
+	EXPECT_FALSE(dsGfxQueryPool_getValues(
+		queries, 2, 3, data, sizeof(data), sizeof(uint64_t), sizeof(uint64_t), true));
+	EXPECT_TRUE(dsGfxQueryPool_getValues(
+		queries, 2, 3, data, sizeof(data), stride, sizeof(uint64_t), true));
 
 	resourceManager->has64BitQueries = false;
-	EXPECT_FALSE(dsGfxQueryPool_getValues(queries, 2, 3, data, sizeof(data), stride,
-		sizeof(uint64_t), false));
-	EXPECT_FALSE(dsGfxQueryPool_getValues(queries, 2, 3, data, sizeof(data), stride,
-		sizeof(uint64_t), true));
+	EXPECT_FALSE(dsGfxQueryPool_getValues(
+		queries, 2, 3, data, sizeof(data), stride, sizeof(uint64_t), false));
+	EXPECT_FALSE(dsGfxQueryPool_getValues(
+		queries, 2, 3, data, sizeof(data), stride, sizeof(uint64_t), true));
 
 	EXPECT_TRUE(dsGfxQueryPool_destroy(queries));
 }
@@ -167,63 +169,64 @@ TEST_F(GfxQueryPoolTest, GetValues)
 TEST_F(GfxQueryPoolTest, CopyValues)
 {
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
-	dsGfxQueryPool* queries = dsGfxQueryPool_create(resourceManager, NULL,
+	dsGfxQueryPool* queries = dsGfxQueryPool_create(resourceManager, nullptr,
 		dsGfxQueryType_SamplesPassed, 10);
 	ASSERT_TRUE(queries);
 
-	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, NULL,
-		dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo, dsGfxMemory_GPUOnly, NULL,
+	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, nullptr,
+		dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo, dsGfxMemory_GPUOnly, nullptr,
 		10*sizeof(uint64_t));
 	ASSERT_TRUE(buffer);
 
 	const size_t stride = 2*sizeof(uint64_t);
-	EXPECT_FALSE(dsGfxQueryPool_copyValues(NULL, commandBuffer, 2, 3, buffer, 4, stride,
-		sizeof(uint32_t), false));
-	EXPECT_FALSE(dsGfxQueryPool_copyValues(queries, NULL, 2, 3, buffer, 4, stride,
-		sizeof(uint32_t), false));
-	EXPECT_FALSE(dsGfxQueryPool_copyValues(queries, commandBuffer, 10, 3, buffer, 4, stride,
-		sizeof(uint32_t), false));
-	EXPECT_FALSE(dsGfxQueryPool_copyValues(queries, commandBuffer, 2, 3, buffer, 100, stride,
-		sizeof(uint32_t), false));
-	EXPECT_FALSE(dsGfxQueryPool_copyValues(queries, commandBuffer, 2, 3, buffer, 3, stride,
-		sizeof(uint32_t), false));
-	EXPECT_FALSE(dsGfxQueryPool_copyValues(queries, commandBuffer, 2, 3, buffer, 4, stride - 1,
-		sizeof(uint32_t), false));
-	EXPECT_FALSE(dsGfxQueryPool_copyValues(queries, commandBuffer, 2, 3, buffer, 4, stride,
-		sizeof(uint16_t), false));
-	EXPECT_TRUE(dsGfxQueryPool_copyValues(queries, commandBuffer, 2, 3, buffer, 4, stride,
-		sizeof(uint32_t), false));
-	EXPECT_FALSE(dsGfxQueryPool_copyValues(queries, commandBuffer, 2, 3, buffer, 4,
-		sizeof(uint32_t), sizeof(uint32_t), true));
-	EXPECT_TRUE(dsGfxQueryPool_copyValues(queries, commandBuffer, 2, 3, buffer, 4, stride,
-		sizeof(uint32_t), true));
+	EXPECT_FALSE(dsGfxQueryPool_copyValues(
+		nullptr, commandBuffer, 2, 3, buffer, 4, stride, sizeof(uint32_t), false));
+	EXPECT_FALSE(dsGfxQueryPool_copyValues(
+		queries, nullptr, 2, 3, buffer, 4, stride, sizeof(uint32_t), false));
+	EXPECT_FALSE(dsGfxQueryPool_copyValues(
+		queries, commandBuffer, 10, 3, buffer, 4, stride, sizeof(uint32_t), false));
+	EXPECT_FALSE(dsGfxQueryPool_copyValues(
+		queries, commandBuffer, 2, 3, buffer, 100, stride, sizeof(uint32_t), false));
+	EXPECT_FALSE(dsGfxQueryPool_copyValues(
+		queries, commandBuffer, 2, 3, buffer, 3, stride, sizeof(uint32_t), false));
+	EXPECT_FALSE(dsGfxQueryPool_copyValues(
+		queries, commandBuffer, 2, 3, buffer, 4, stride - 1, sizeof(uint32_t), false));
+	EXPECT_FALSE(dsGfxQueryPool_copyValues(
+		queries, commandBuffer, 2, 3, buffer, 4, stride, sizeof(uint16_t), false));
+	EXPECT_TRUE(dsGfxQueryPool_copyValues(
+		queries, commandBuffer, 2, 3, buffer, 4, stride, sizeof(uint32_t), false));
+	EXPECT_FALSE(dsGfxQueryPool_copyValues(
+		queries, commandBuffer, 2, 3, buffer, 4, sizeof(uint32_t), sizeof(uint32_t), true));
+	EXPECT_TRUE(dsGfxQueryPool_copyValues(
+		queries, commandBuffer, 2, 3, buffer, 4, stride, sizeof(uint32_t), true));
 
-	EXPECT_TRUE(dsGfxQueryPool_copyValues(queries, commandBuffer, 2, 3, buffer, 8, stride,
-		sizeof(uint64_t), false));
-	EXPECT_FALSE(dsGfxQueryPool_copyValues(queries, commandBuffer, 2, 3, buffer, 8,
-		sizeof(uint64_t), sizeof(uint64_t), true));
-	EXPECT_TRUE(dsGfxQueryPool_copyValues(queries, commandBuffer, 2, 3, buffer, 8, stride,
-		sizeof(uint64_t), true));
+	EXPECT_TRUE(dsGfxQueryPool_copyValues(
+		queries, commandBuffer, 2, 3, buffer, 8, stride, sizeof(uint64_t), false));
+	EXPECT_FALSE(dsGfxQueryPool_copyValues(
+		queries, commandBuffer, 2, 3, buffer, 8, sizeof(uint64_t), sizeof(uint64_t), true));
+	EXPECT_TRUE(dsGfxQueryPool_copyValues(
+		queries, commandBuffer, 2, 3, buffer, 8, stride, sizeof(uint64_t), true));
 
 	resourceManager->has64BitQueries = false;
-	EXPECT_FALSE(dsGfxQueryPool_copyValues(queries, commandBuffer, 2, 3, buffer, 8, stride,
-		sizeof(uint64_t), false));
-	EXPECT_FALSE(dsGfxQueryPool_copyValues(queries, commandBuffer, 2, 3, buffer, 8, stride,
-		sizeof(uint64_t), true));
+	EXPECT_FALSE(dsGfxQueryPool_copyValues(
+		queries, commandBuffer, 2, 3, buffer, 8, stride, sizeof(uint64_t), false));
+	EXPECT_FALSE(dsGfxQueryPool_copyValues(
+		queries, commandBuffer, 2, 3, buffer, 8, stride, sizeof(uint64_t), true));
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
-	EXPECT_FALSE(dsGfxQueryPool_copyValues(queries, commandBuffer, 2, 3, buffer, 4, stride,
-		sizeof(uint32_t), false));
+	EXPECT_TRUE(dsRenderPass_begin(
+		renderPass, commandBuffer, framebuffer, nullptr, nullptr, nullptr, 0, false));
+	EXPECT_FALSE(dsGfxQueryPool_copyValues(
+		queries, commandBuffer, 2, 3, buffer, 4, stride, sizeof(uint32_t), false));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
 
-	buffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_UniformBlock,
-		dsGfxMemory_GPUOnly, NULL, 10*sizeof(uint64_t));
+	buffer = dsGfxBuffer_create(resourceManager, nullptr, dsGfxBufferUsage_UniformBlock,
+		dsGfxMemory_GPUOnly, nullptr, 10*sizeof(uint64_t));
 	ASSERT_TRUE(buffer);
 
-	EXPECT_FALSE(dsGfxQueryPool_copyValues(queries, commandBuffer, 2, 3, buffer, 4, stride,
-		sizeof(uint32_t), false));
+	EXPECT_FALSE(dsGfxQueryPool_copyValues(
+		queries, commandBuffer, 2, 3, buffer, 4, stride, sizeof(uint32_t), false));
 
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
 	EXPECT_TRUE(dsGfxQueryPool_destroy(queries));

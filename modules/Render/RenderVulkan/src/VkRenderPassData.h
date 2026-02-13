@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 	const dsRenderPass* renderPass);
 bool dsVkRenderPassData_begin(const dsVkRenderPassData* renderPass,
 	dsCommandBuffer* commandBuffer, const dsFramebuffer* framebuffer,
-	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount, bool secondary);
+	const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
+	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount, bool secondary);
 bool dsVkRenderPassData_nextSubpass(const dsVkRenderPassData* renderPass,
 	dsCommandBuffer* commandBuffer, uint32_t index, bool secondary);
 bool dsVkRenderPassData_end(const dsVkRenderPassData* renderPass, dsCommandBuffer* commandBuffer);

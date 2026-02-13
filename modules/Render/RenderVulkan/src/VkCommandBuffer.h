@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,8 @@ dsCommandBuffer* dsVkCommandBuffer_get(dsCommandBuffer* commandBuffer);
 bool dsVkCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 bool dsVkCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsFramebuffer* framebuffer, const dsRenderPass* renderPass, uint32_t subpass,
-	const dsAlignedBox3f* viewport, dsGfxOcclusionQueryState parentOcclusionQueryState);
+	const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
+	dsGfxOcclusionQueryState parentOcclusionQueryState);
 bool dsVkCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);
@@ -39,8 +40,8 @@ void dsVkCommandBuffer_submitFence(dsCommandBuffer* commandBuffer, bool readback
 bool dsVkCommandBuffer_endSubmitCommands(dsCommandBuffer* commandBuffer);
 
 bool dsVkCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer, VkRenderPass renderPass,
-	VkFramebuffer framebuffer, const VkViewport* viewport, const VkClearValue* clearValues,
-	uint32_t clearValueCount, bool secondary);
+	VkFramebuffer framebuffer, const VkViewport* viewport, const VkRect2D* scissor,
+	const VkClearValue* clearValues, uint32_t clearValueCount, bool secondary);
 bool dsVkCommandBuffer_nextSubpass(dsCommandBuffer* commandBuffer, bool secondary);
 bool dsVkCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer);
 

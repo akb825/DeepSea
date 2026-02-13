@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ typedef enum CommandType
 	CommandType_BeginRenderPass,
 	CommandType_EndRenderPass,
 	CommandType_SetViewport,
+	CommandType_SetScissor,
 	CommandType_ClearAttachments,
 	CommandType_Draw,
 	CommandType_DrawIndexed,
@@ -199,6 +200,7 @@ typedef struct BeginRenderPassCommand
 	Command command;
 	CFTypeRef renderPass;
 	dsAlignedBox3f viewport;
+	dsAlignedBox2f scissor;
 } BeginRenderPassCommand;
 
 typedef struct SetViewportCommand
@@ -207,6 +209,13 @@ typedef struct SetViewportCommand
 	dsAlignedBox3f viewport;
 	bool defaultViewport;
 } SetViewportCommand;
+
+typedef struct SetScissorCommand
+{
+	Command command;
+	dsAlignedBox2f scissor;
+	bool defaultScissor;
+} SetScissorCommand;
 
 typedef struct ClearAttachmentsCommand
 {
@@ -441,6 +450,8 @@ void dsMTLSoftwareCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 				break;
 			case CommandType_SetViewport:
 				break;
+			case CommandType_SetScissor:
+				break;
 			case CommandType_ClearAttachments:
 				break;
 			case CommandType_Draw:
@@ -648,7 +659,7 @@ bool dsMTLSoftwareCommandBuffer_submit(dsCommandBuffer* commandBuffer,
 				BeginRenderPassCommand* thisCommand = (BeginRenderPassCommand*)command;
 				result = dsMTLCommandBuffer_beginRenderPass(commandBuffer,
 					(__bridge MTLRenderPassDescriptor*)thisCommand->renderPass,
-					&thisCommand->viewport);
+					&thisCommand->viewport, &thisCommand->scissor);
 				break;
 			}
 			case CommandType_EndRenderPass:
@@ -661,6 +672,13 @@ bool dsMTLSoftwareCommandBuffer_submit(dsCommandBuffer* commandBuffer,
 				SetViewportCommand* thisCommand = (SetViewportCommand*)command;
 				dsMTLCommandBuffer_setViewport(commandBuffer->renderer, commandBuffer,
 					thisCommand->defaultViewport ? NULL : &thisCommand->viewport);
+				break;
+			}
+			case CommandType_SetScissor:
+			{
+				SetScissorCommand* thisCommand = (SetScissorCommand*)command;
+				dsMTLCommandBuffer_setScissor(commandBuffer->renderer, commandBuffer,
+					thisCommand->defaultScissor ? NULL : &thisCommand->scissor);
 				break;
 			}
 			case CommandType_ClearAttachments:
@@ -988,7 +1006,8 @@ bool dsMTLSoftwareCommandBuffer_bindComputeTextureUniform(dsCommandBuffer* comma
 }
 
 bool dsMTLSoftwareCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
-	MTLRenderPassDescriptor* renderPass, const dsAlignedBox3f* viewport)
+	MTLRenderPassDescriptor* renderPass, const dsAlignedBox3f* viewport,
+	const dsAlignedBox2f* scissor)
 {
 	BeginRenderPassCommand* command =
 		(BeginRenderPassCommand*)allocateCommand(commandBuffer,
@@ -998,6 +1017,7 @@ bool dsMTLSoftwareCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 
 	command->renderPass = CFBridgingRetain(renderPass);
 	command->viewport = *viewport;
+	command->scissor = *scissor;
 	return true;
 }
 
@@ -1006,8 +1026,8 @@ bool dsMTLSoftwareCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
 	return allocateCommand(commandBuffer, CommandType_EndRenderPass, sizeof(Command)) != NULL;
 }
 
-bool dsMTLSoftwareCommandBuffer_setViewport(dsCommandBuffer* commandBuffer,
-	const dsAlignedBox3f* viewport)
+bool dsMTLSoftwareCommandBuffer_setViewport(
+	dsCommandBuffer* commandBuffer, const dsAlignedBox3f* viewport)
 {
 	SetViewportCommand* command = (SetViewportCommand*)allocateCommand(commandBuffer,
 		CommandType_SetViewport, sizeof(SetViewportCommand));
@@ -1021,6 +1041,24 @@ bool dsMTLSoftwareCommandBuffer_setViewport(dsCommandBuffer* commandBuffer,
 	}
 	else
 		command->defaultViewport = true;
+	return true;
+}
+
+bool dsMTLSoftwareCommandBuffer_setScissor(
+	dsCommandBuffer* commandBuffer, const dsAlignedBox2f* scissor)
+{
+	SetScissorCommand* command = (SetScissorCommand*)allocateCommand(commandBuffer,
+		CommandType_SetScissor, sizeof(SetScissorCommand));
+	if (!command)
+		return false;
+
+	if (scissor)
+	{
+		command->scissor = *scissor;
+		command->defaultScissor = false;
+	}
+	else
+		command->defaultScissor = true;
 	return true;
 }
 
@@ -1207,6 +1245,7 @@ static dsMTLCommandBufferFunctionTable softwareCommandBufferFunctions =
 	&dsMTLSoftwareCommandBuffer_beginRenderPass,
 	&dsMTLSoftwareCommandBuffer_endRenderPass,
 	&dsMTLSoftwareCommandBuffer_setViewport,
+	&dsMTLSoftwareCommandBuffer_setScissor,
 	&dsMTLSoftwareCommandBuffer_clearAttachments,
 	&dsMTLSoftwareCommandBuffer_draw,
 	&dsMTLSoftwareCommandBuffer_drawIndexed,

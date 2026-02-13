@@ -363,6 +363,14 @@ typedef struct dsViewFramebufferInfo
 	 * the range [0, 1]. The viewport will automatically be adjusted based on the view rotation.
 	 */
 	dsAlignedBox3f viewport;
+
+	/**
+	 * The scissor to clip to.
+	 *
+	 * The x and y values will be treated as a fraction of the overall framebuffer dimensions in the
+	 * the range [0, 1]. The scissor will automatically be adjusted based on the view rotation.
+	 */
+	dsAlignedBox2f scissor;
 } dsViewFramebufferInfo;
 
 /**

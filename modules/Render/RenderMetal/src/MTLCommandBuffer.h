@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,8 @@ void dsMTLCommandBuffer_initialize(dsMTLCommandBuffer* commandBuffer, dsRenderer
 bool dsMTLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 bool dsMTLCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsFramebuffer* framebuffer, const dsRenderPass* renderPass, uint32_t subpass,
-	const dsAlignedBox3f* viewport, dsGfxOcclusionQueryState parentOcclusionQueryState);
+	const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
+	dsGfxOcclusionQueryState parentOcclusionQueryState);
 bool dsMTLCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 bool dsMTLCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);
@@ -72,11 +73,14 @@ bool dsMTLCommandBuffer_bindComputeTextureUniform(dsCommandBuffer* commandBuffer
 	id<MTLTexture> texture, id<MTLSamplerState> sampler, uint32_t index);
 
 bool dsMTLCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
-	MTLRenderPassDescriptor* renderPass, const dsAlignedBox3f* viewport);
+	MTLRenderPassDescriptor* renderPass, const dsAlignedBox3f* viewport,
+	const dsAlignedBox2f* scissor);
 bool dsMTLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer);
 
-bool dsMTLCommandBuffer_setViewport(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsAlignedBox3f* viewport);
+bool dsMTLCommandBuffer_setViewport(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsAlignedBox3f* viewport);
+bool dsMTLCommandBuffer_setScissor(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsAlignedBox2f* scissor);
 bool dsMTLCommandBuffer_clearAttachments(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsClearAttachment* attachments, uint32_t attachmentCount,
 	const dsAttachmentClearRegion* regions, uint32_t regionCount);

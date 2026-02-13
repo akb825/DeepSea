@@ -417,9 +417,14 @@ The view describes the layout of surfaces and framebuffers to draw to. The JSON 
 	* `heightRatio`: the ratio of the height relative to the view height. `height` should be omitted when this is used. Defaults to 1.0 if neither `height` nor `heightRatio` is set.
 	* `layers`: the number of layers in the framebuffer. Defaults to 1.
 	* `viewport`: the viewport to use. This is a dict with the following elements.
-		* `minX`: the minimum X value for the upper-left position as a fraction of the width. Defaults  to 0.
+		* `minX`: the minimum X value for the upper-left position as a fraction of the width. Defaults to 0.
 		* `minY`: the minimum Y value for the upper-left position as a fraction of the height. Defaults to 0.
 		* `maxX`: the maximum X value for the lower-right position as a fraction of the width. Defaults to 1.
-		* `maxY`: the maximum Y value for the lower-right position as a fraction of the hieght. Defaults to 1.
+		* `maxY`: the maximum Y value for the lower-right position as a fraction of the hiight. Defaults to 1.
 		* `minDepth`: the minimum depth value. Defaults to 0.
 		* `maxDepth`: the maximum depth value. Defaults to 1.
+	* `scissor`: the scissor to use. This is a dict with the following elements.
+		* `minX`: the minimum X value for the upper-left position as a fraction of the width. Defaults to `viewport` `minX`.
+		* `minY`: the minimum Y value for the upper-left position as a fraction of the height. Defaults to `viewport` `minY`.
+		* `maxX`: the maximum X value for the lower-right position as a fraction of the width. Defaults to `viewport` `maxX`.
+		* `maxY`: the maximum Y value for the lower-right position as a fraction of the height. Defaults to `viewport` `maxY`.

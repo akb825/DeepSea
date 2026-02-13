@@ -60,7 +60,8 @@ bool dsCommandBuffer_begin(dsCommandBuffer* commandBuffer)
 
 bool dsCommandBuffer_beginSecondary(dsCommandBuffer* commandBuffer,
 	const dsFramebuffer* framebuffer, const dsRenderPass* renderPass, uint32_t subpass,
-	const dsAlignedBox3f* viewport, dsGfxOcclusionQueryState parentOcclusionQueryState)
+	const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
+	dsGfxOcclusionQueryState parentOcclusionQueryState)
 {
 	if (!commandBuffer || !commandBuffer->renderer ||
 		!commandBuffer->renderer->beginSecondaryCommandBufferFunc ||
@@ -114,6 +115,15 @@ bool dsCommandBuffer_beginSecondary(dsCommandBuffer* commandBuffer,
 		return false;
 	}
 
+	if (scissor && (scissor->min.x < 0 || scissor->min.y < 0 ||
+		(framebuffer && (scissor->max.x > (float)framebuffer->width ||
+			scissor->max.y > (float)framebuffer->height))))
+	{
+		errno = ERANGE;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Scissor is out of range.");
+		return false;
+	}
+
 	if (parentOcclusionQueryState != dsGfxOcclusionQueryState_Disabled)
 	{
 		dsResourceManager* resourceManager = renderer->resourceManager;
@@ -161,7 +171,7 @@ bool dsCommandBuffer_beginSecondary(dsCommandBuffer* commandBuffer,
 	DS_PROFILE_FUNC_START();
 
 	bool success = renderer->beginSecondaryCommandBufferFunc(renderer, commandBuffer, framebuffer,
-		renderPass, subpass, viewport, parentOcclusionQueryState);
+		renderPass, subpass, viewport, scissor, parentOcclusionQueryState);
 	if (!success)
 		DS_PROFILE_FUNC_RETURN(false);
 
@@ -180,6 +190,15 @@ bool dsCommandBuffer_beginSecondary(dsCommandBuffer* commandBuffer,
 		commandBuffer->viewport.max.x = (float)framebuffer->width;
 		commandBuffer->viewport.max.y = (float)framebuffer->height;
 		commandBuffer->viewport.max.z = 1.0f;
+	}
+	if (scissor)
+		commandBuffer->scissor = *scissor;
+	else
+	{
+		commandBuffer->scissor.min.x = commandBuffer->viewport.min.x;
+		commandBuffer->scissor.min.y = commandBuffer->viewport.min.y;
+		commandBuffer->scissor.max.x = commandBuffer->viewport.max.x;
+		commandBuffer->scissor.max.y = commandBuffer->viewport.max.y;
 	}
 	DS_PROFILE_FUNC_RETURN(success);
 }

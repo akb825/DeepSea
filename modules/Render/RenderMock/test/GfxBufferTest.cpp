@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,13 +39,13 @@ class GfxBufferTest : public RenderPassFixtureBase
 
 TEST_F(GfxBufferTest, Create)
 {
-	EXPECT_FALSE(dsGfxBuffer_create(resourceManager, NULL, (dsGfxBufferUsage)0,
-		dsGfxMemory_Static, NULL, 100));
-	EXPECT_FALSE(dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
-		(dsGfxMemory)0, NULL, 100));
+	EXPECT_FALSE(dsGfxBuffer_create(resourceManager, nullptr, (dsGfxBufferUsage)0,
+		dsGfxMemory_Static, nullptr, 100));
+	EXPECT_FALSE(dsGfxBuffer_create(resourceManager, nullptr, dsGfxBufferUsage_Vertex,
+		(dsGfxMemory)0, nullptr, 100));
 
-	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
-		dsGfxMemory_Static | dsGfxMemory_Draw, NULL, 100);
+	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, nullptr, dsGfxBufferUsage_Vertex,
+		dsGfxMemory_Static | dsGfxMemory_Draw, nullptr, 100);
 	EXPECT_TRUE(buffer);
 	EXPECT_EQ(1U, resourceManager->bufferCount);
 	EXPECT_EQ(100U, resourceManager->bufferMemorySize);
@@ -58,7 +58,7 @@ TEST_F(GfxBufferTest, Map)
 {
 	TestData testData = {1.2f, 3};
 
-	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
+	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, nullptr, dsGfxBufferUsage_Vertex,
 		dsGfxMemory_Static | dsGfxMemory_Draw, &testData, sizeof(testData));
 	ASSERT_TRUE(buffer);
 	EXPECT_FALSE(dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0, DS_MAP_FULL_BUFFER));
@@ -66,14 +66,14 @@ TEST_F(GfxBufferTest, Map)
 	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
 
-	buffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
+	buffer = dsGfxBuffer_create(resourceManager, nullptr, dsGfxBufferUsage_Vertex,
 		dsGfxMemory_Static | dsGfxMemory_Read | dsGfxMemory_GPUOnly, &testData, sizeof(testData));
 	ASSERT_TRUE(buffer);
 	EXPECT_FALSE(dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0, DS_MAP_FULL_BUFFER));
 	EXPECT_FALSE(dsGfxBuffer_map(buffer, dsGfxBufferMap_Write, 0, DS_MAP_FULL_BUFFER));
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
 
-	buffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
+	buffer = dsGfxBuffer_create(resourceManager, nullptr, dsGfxBufferUsage_Vertex,
 		dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_Read | dsGfxMemory_Persistent,
 		&testData, sizeof(testData));
 	ASSERT_TRUE(buffer);
@@ -96,7 +96,7 @@ TEST_F(GfxBufferTest, FlushInvalidate)
 {
 	TestData testData = {1.2f, 3};
 
-	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
+	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, nullptr, dsGfxBufferUsage_Vertex,
 		dsGfxMemory_Static | dsGfxMemory_Draw, &testData, sizeof(testData));
 	ASSERT_TRUE(buffer);
 
@@ -105,7 +105,7 @@ TEST_F(GfxBufferTest, FlushInvalidate)
 
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
 
-	buffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
+	buffer = dsGfxBuffer_create(resourceManager, nullptr, dsGfxBufferUsage_Vertex,
 		dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_Coherent, &testData,
 		sizeof(testData));
 	ASSERT_TRUE(buffer);
@@ -122,20 +122,21 @@ TEST_F(GfxBufferTest, CopyData)
 	TestData copyData = {3.4f, 5};
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 
-	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
+	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, nullptr, dsGfxBufferUsage_Vertex,
 		dsGfxMemory_Static | dsGfxMemory_Read, &testData, sizeof(testData));
 	ASSERT_TRUE(buffer);
 	EXPECT_FALSE(dsGfxBuffer_copyData(buffer, commandBuffer, 0, &copyData, sizeof(copyData)));
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
 
-	buffer = dsGfxBuffer_create(resourceManager, NULL,
+	buffer = dsGfxBuffer_create(resourceManager, nullptr,
 		dsGfxBufferUsage_Vertex | dsGfxBufferUsage_CopyTo, dsGfxMemory_Static | dsGfxMemory_Read,
 		&testData, sizeof(testData));
 	ASSERT_TRUE(buffer);
 	EXPECT_FALSE(dsGfxBuffer_copyData(buffer, commandBuffer, 4, &copyData, sizeof(copyData)));
 	EXPECT_TRUE(dsGfxBuffer_copyData(buffer, commandBuffer, 0, &copyData, sizeof(copyData)));
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_TRUE(dsRenderPass_begin(
+		renderPass, commandBuffer, framebuffer, nullptr, nullptr, nullptr, 0, false));
 	EXPECT_FALSE(dsGfxBuffer_copyData(buffer, commandBuffer, 0, &copyData, sizeof(copyData)));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
@@ -152,39 +153,40 @@ TEST_F(GfxBufferTest, Copy)
 	TestData testData = {1.2f, 3};
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 
-	dsGfxBuffer* fromBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
+	dsGfxBuffer* fromBuffer = dsGfxBuffer_create(resourceManager, nullptr, dsGfxBufferUsage_Vertex,
 		dsGfxMemory_GPUOnly, &testData, sizeof(testData));
 	ASSERT_TRUE(fromBuffer);
-	dsGfxBuffer* toBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_CopyTo,
-		dsGfxMemory_Static | dsGfxMemory_Read, NULL, sizeof(testData));
+	dsGfxBuffer* toBuffer = dsGfxBuffer_create(resourceManager, nullptr, dsGfxBufferUsage_CopyTo,
+		dsGfxMemory_Static | dsGfxMemory_Read, nullptr, sizeof(testData));
 	ASSERT_TRUE(toBuffer);
 	EXPECT_FALSE(dsGfxBuffer_copy(commandBuffer, fromBuffer, 0, toBuffer, 0, sizeof(testData)));
 
 	EXPECT_TRUE(dsGfxBuffer_destroy(fromBuffer));
 	EXPECT_TRUE(dsGfxBuffer_destroy(toBuffer));
 
-	fromBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_CopyFrom,
+	fromBuffer = dsGfxBuffer_create(resourceManager, nullptr, dsGfxBufferUsage_CopyFrom,
 		dsGfxMemory_GPUOnly, &testData, sizeof(testData));
 	ASSERT_TRUE(fromBuffer);
-	toBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
-		dsGfxMemory_Static | dsGfxMemory_Read, NULL, sizeof(testData));
+	toBuffer = dsGfxBuffer_create(resourceManager, nullptr, dsGfxBufferUsage_Vertex,
+		dsGfxMemory_Static | dsGfxMemory_Read, nullptr, sizeof(testData));
 	ASSERT_TRUE(toBuffer);
 	EXPECT_FALSE(dsGfxBuffer_copy(commandBuffer, fromBuffer, 0, toBuffer, 0, sizeof(testData)));
 
 	EXPECT_TRUE(dsGfxBuffer_destroy(fromBuffer));
 	EXPECT_TRUE(dsGfxBuffer_destroy(toBuffer));
 
-	fromBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_CopyFrom,
+	fromBuffer = dsGfxBuffer_create(resourceManager, nullptr, dsGfxBufferUsage_CopyFrom,
 		dsGfxMemory_GPUOnly, &testData, sizeof(testData));
 	ASSERT_TRUE(fromBuffer);
-	toBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_CopyTo,
-		dsGfxMemory_Static | dsGfxMemory_Read, NULL, sizeof(testData));
+	toBuffer = dsGfxBuffer_create(resourceManager, nullptr, dsGfxBufferUsage_CopyTo,
+		dsGfxMemory_Static | dsGfxMemory_Read, nullptr, sizeof(testData));
 	ASSERT_TRUE(toBuffer);
 	EXPECT_FALSE(dsGfxBuffer_copy(commandBuffer, fromBuffer, 4, toBuffer, 0, sizeof(testData)));
 	EXPECT_FALSE(dsGfxBuffer_copy(commandBuffer, fromBuffer, 0, toBuffer, 4, sizeof(testData)));
 	EXPECT_TRUE(dsGfxBuffer_copy(commandBuffer, fromBuffer, 0, toBuffer, 0, sizeof(testData)));
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_TRUE(dsRenderPass_begin(
+		renderPass, commandBuffer, framebuffer, nullptr, nullptr, nullptr, 0, false));
 	EXPECT_FALSE(dsGfxBuffer_copy(commandBuffer, fromBuffer, 0, toBuffer, 0, sizeof(testData)));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
@@ -224,14 +226,14 @@ TEST_F(GfxBufferTest, CopyToTexture)
 
 	dsGfxFormat format = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
 	dsTextureInfo fromInfo = {format, dsTextureDim_2D, 32, 16, 4, 3, 1};
-	dsGfxBuffer* fromBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
+	dsGfxBuffer* fromBuffer = dsGfxBuffer_create(resourceManager, nullptr, dsGfxBufferUsage_Vertex,
 		dsGfxMemory_GPUOnly, textureData, sizeof(textureData));
 	ASSERT_TRUE(fromBuffer);
 
 	dsTextureInfo toInfo = {format, dsTextureDim_2D, 16, 32, 5, 2, 1};
-	dsTexture* toTexture = dsTexture_create(resourceManager, NULL,
+	dsTexture* toTexture = dsTexture_create(resourceManager, nullptr,
 		dsTextureUsage_Texture | dsTextureUsage_CopyTo | dsTextureUsage_CopyFrom, dsGfxMemory_Read,
-		&toInfo, NULL, 0);
+		&toInfo, nullptr, 0);
 	ASSERT_TRUE(toTexture);
 
 	// array index 2, mip level 1 (16 x 8), position (1, 2)
@@ -247,28 +249,29 @@ TEST_F(GfxBufferTest, CopyToTexture)
 	EXPECT_TRUE(dsGfxBuffer_destroy(fromBuffer));
 	EXPECT_TRUE(dsTexture_destroy(toTexture));
 
-	fromBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_CopyFrom,
+	fromBuffer = dsGfxBuffer_create(resourceManager, nullptr, dsGfxBufferUsage_CopyFrom,
 		dsGfxMemory_GPUOnly, textureData, sizeof(textureData));
 	ASSERT_TRUE(fromBuffer);
 
-	toTexture = dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture, dsGfxMemory_Read,
-		&toInfo, NULL, 0);
+	toTexture = dsTexture_create(resourceManager, nullptr, dsTextureUsage_Texture, dsGfxMemory_Read,
+		&toInfo, nullptr, 0);
 	ASSERT_TRUE(toTexture);
 
 	EXPECT_FALSE(dsGfxBuffer_copyToTexture(commandBuffer, fromBuffer, toTexture, &copyRegion, 1));
 	EXPECT_TRUE(dsGfxBuffer_destroy(fromBuffer));
 	EXPECT_TRUE(dsTexture_destroy(toTexture));
 
-	fromBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_CopyFrom,
+	fromBuffer = dsGfxBuffer_create(resourceManager, nullptr, dsGfxBufferUsage_CopyFrom,
 		dsGfxMemory_GPUOnly, textureData, sizeof(textureData));
 	ASSERT_TRUE(fromBuffer);
 
-	toTexture = dsTexture_create(resourceManager, NULL,
+	toTexture = dsTexture_create(resourceManager, nullptr,
 		dsTextureUsage_Texture | dsTextureUsage_CopyTo | dsTextureUsage_CopyFrom, dsGfxMemory_Read,
-		&toInfo, NULL, 0);
+		&toInfo, nullptr, 0);
 	ASSERT_TRUE(toTexture);
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_TRUE(dsRenderPass_begin(
+		renderPass, commandBuffer, framebuffer, nullptr, nullptr, nullptr, 0, false));
 	EXPECT_FALSE(dsGfxBuffer_copyToTexture(commandBuffer, fromBuffer, toTexture, &copyRegion, 1));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 

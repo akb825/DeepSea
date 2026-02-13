@@ -88,8 +88,19 @@ class Framebuffer(object):
             return obj
         return None
 
+    # Framebuffer
+    def Scissor(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
+        if o != 0:
+            x = o + self._tab.Pos
+            from DeepSeaScene.AlignedBox2f import AlignedBox2f
+            obj = AlignedBox2f()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
 def FramebufferStart(builder):
-    builder.StartObject(6)
+    builder.StartObject(7)
 
 def Start(builder):
     FramebufferStart(builder)
@@ -135,6 +146,12 @@ def FramebufferAddViewport(builder, viewport):
 
 def AddViewport(builder, viewport):
     FramebufferAddViewport(builder, viewport)
+
+def FramebufferAddScissor(builder, scissor):
+    builder.PrependStructSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(scissor), 0)
+
+def AddScissor(builder, scissor):
+    FramebufferAddScissor(builder, scissor)
 
 def FramebufferEnd(builder):
     return builder.EndObject()

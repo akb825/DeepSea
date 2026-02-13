@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,11 @@
 #include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
+
 #include <DeepSea/Math/Core.h>
+
 #include <DeepSea/Render/Resources/GfxFormat.h>
+
 #include <string.h>
 
 static bool beginFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* framebuffer)
@@ -317,8 +320,8 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 
 bool dsVkRenderPassData_begin(const dsVkRenderPassData* renderPass,
 	dsCommandBuffer* commandBuffer, const dsFramebuffer* framebuffer,
-	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount, bool secondary)
+	const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
+	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount, bool secondary)
 {
 	if (!dsVkCommandBuffer_addResource(commandBuffer, (dsVkResource*)&renderPass->resource))
 		return false;
@@ -340,10 +343,12 @@ bool dsVkRenderPassData_begin(const dsVkRenderPassData* renderPass,
 
 	VkViewport vkViewport;
 	dsConvertVkViewport(&vkViewport, viewport, framebuffer->width, framebuffer->height);
+	VkRect2D vkScissor;
+	dsConvertVkScissor(&vkScissor, scissor, &vkViewport);
 
 	// Same memory layout for dsSurfaceClearValue and VkClearValue
 	return dsVkCommandBuffer_beginRenderPass(commandBuffer, renderPass->vkRenderPass,
-		dsVkRealFramebuffer_getFramebuffer(realFramebuffer), &vkViewport,
+		dsVkRealFramebuffer_getFramebuffer(realFramebuffer), &vkViewport, &vkScissor,
 		(const VkClearValue*)clearValues, clearValueCount, secondary);
 }
 

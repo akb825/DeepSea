@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -171,14 +171,26 @@ bool dsMockRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* c
 	return true;
 }
 
-bool dsMockRenderer_setViewport(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsAlignedBox3f* viewport)
+bool dsMockRenderer_setViewport(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsAlignedBox3f* viewport)
 {
 	DS_UNUSED(renderer);
 	DS_ASSERT(renderer);
 	DS_UNUSED(commandBuffer);
 	DS_ASSERT(commandBuffer);
 	DS_UNUSED(viewport);
+
+	return true;
+}
+
+bool dsMockRenderer_setScissor(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsAlignedBox2f* scissor)
+{
+	DS_UNUSED(renderer);
+	DS_ASSERT(renderer);
+	DS_UNUSED(commandBuffer);
+	DS_ASSERT(commandBuffer);
+	DS_UNUSED(scissor);
 
 	return true;
 }
@@ -478,11 +490,12 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->setVSyncFunc = &dsMockRenderer_setVSync;
 	renderer->setDefaultAnisotropyFunc = &dsMockRenderer_setDefaultAnisotropy;
 	renderer->setViewportFunc = &dsMockRenderer_setViewport;
+	renderer->setScissorFunc = &dsMockRenderer_setScissor;
+	renderer->clearAttachmentsFunc = &dsMockRenderer_clearAttachments;
 	renderer->drawFunc = &dsMockRenderer_draw;
 	renderer->drawIndexedFunc = &dsMockRenderer_drawIndexed;
 	renderer->drawIndirectFunc = &dsMockRenderer_drawIndirect;
 	renderer->drawIndexedIndirectFunc = &dsMockRenderer_drawIndexedIndirect;
-	renderer->clearAttachmentsFunc = &dsMockRenderer_clearAttachments;
 	renderer->dispatchComputeFunc = &dsMockRenderer_dispatchCompute;
 	renderer->dispatchComputeIndirectFunc = &dsMockRenderer_dispatchComputeIndirect;
 	renderer->blitSurfaceFunc = &dsMockRenderer_blitSurface;

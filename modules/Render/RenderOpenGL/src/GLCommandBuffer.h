@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,15 +85,17 @@ bool dsGLCommandBuffer_endRenderSurface(dsCommandBuffer* commandBuffer, void* gl
 
 bool dsGLCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
-	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount);
+	const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
+	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount);
 bool dsGLCommandBuffer_nextRenderSubpass(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, uint32_t index);
 bool dsGLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass);
 
-bool dsGLCommandBuffer_setViewport(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsAlignedBox3f* viewport);
+bool dsGLCommandBuffer_setViewport(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsAlignedBox3f* viewport);
+bool dsGLCommandBuffer_setScissor(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsAlignedBox2f* scissor);
 bool dsGLCommandBuffer_clearAttachments(dsRenderer* renderer,
 	dsCommandBuffer* commandBuffer, const dsClearAttachment* attachments, uint32_t attachmentCount,
 	const dsAttachmentClearRegion* regions, uint32_t regionCount);
@@ -128,7 +130,8 @@ bool dsGLCommandBuffer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* comm
 bool dsGLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 bool dsGLCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsFramebuffer* framebuffer, const dsRenderPass* renderPass, uint32_t subpass,
-	const dsAlignedBox3f* viewport, dsGfxOcclusionQueryState parentOcclusionQueryState);
+	const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
+	dsGfxOcclusionQueryState parentOcclusionQueryState);
 bool dsGLCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 bool dsGLCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);

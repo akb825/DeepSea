@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1012,7 +1012,8 @@ bool dsMTLHardwareCommandBuffer_bindComputeTextureUniform(dsCommandBuffer* comma
 }
 
 bool dsMTLHardwareCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
-	MTLRenderPassDescriptor* renderPass, const dsAlignedBox3f* viewport)
+	MTLRenderPassDescriptor* renderPass, const dsAlignedBox3f* viewport,
+	const dsAlignedBox2f* scissor)
 {
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
 	id<MTLCommandBuffer> submitBuffer = getCommandBuffer(commandBuffer);
@@ -1030,6 +1031,11 @@ bool dsMTLHardwareCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 		viewport->max.y - viewport->min.y, viewport->min.z, viewport->max.z};
 	mtlCommandBuffer->curViewport = mtlViewport;
 	[encoder setViewport: mtlViewport];
+
+	MTLScissorRect mtlScissor = {(uint32_t)floorf(scissor->min.x),
+		(uint32_t)floorf(scissor->min.y), (uint32_t)ceilf(scissor->max.x - scissor->min.x),
+		(uint32_t)ceilf(scissor->max.y - scissor->min.y)};
+	[encoder setScissorRect: mtlScissor];
 	return true;
 }
 
@@ -1062,8 +1068,8 @@ bool dsMTLHardwareCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
 	return true;
 }
 
-bool dsMTLHardwareCommandBuffer_setViewport(dsCommandBuffer* commandBuffer,
-	const dsAlignedBox3f* viewport)
+bool dsMTLHardwareCommandBuffer_setViewport(
+	dsCommandBuffer* commandBuffer, const dsAlignedBox3f* viewport)
 {
 	// Hooked up directly to renderer function pointer, so need autorelease pool here.
 	@autoreleasepool
@@ -1079,6 +1085,26 @@ bool dsMTLHardwareCommandBuffer_setViewport(dsCommandBuffer* commandBuffer,
 			viewport->max.z};
 		mtlCommandBuffer->curViewport = mtlViewport;
 		[encoder setViewport: mtlViewport];
+		return true;
+	}
+}
+
+bool dsMTLHardwareCommandBuffer_setScissor(
+	dsCommandBuffer* commandBuffer, const dsAlignedBox2f* scissor)
+{
+	// Hooked up directly to renderer function pointer, so need autorelease pool here.
+	@autoreleasepool
+	{
+		dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
+		if (!mtlCommandBuffer->renderCommandEncoder)
+			return false;
+
+		id<MTLRenderCommandEncoder> encoder =
+			(__bridge id<MTLRenderCommandEncoder>)mtlCommandBuffer->renderCommandEncoder;
+		MTLScissorRect mtlScissor = {(uint32_t)floorf(scissor->min.x),
+			(uint32_t)floorf(scissor->min.y), (uint32_t)ceilf(scissor->max.x - scissor->min.x),
+			(uint32_t)ceilf(scissor->max.y - scissor->min.y)};
+		[encoder setScissorRect: mtlScissor];
 		return true;
 	}
 }
@@ -1530,6 +1556,7 @@ static dsMTLCommandBufferFunctionTable hardwareCommandBufferFunctions =
 	&dsMTLHardwareCommandBuffer_beginRenderPass,
 	&dsMTLHardwareCommandBuffer_endRenderPass,
 	&dsMTLHardwareCommandBuffer_setViewport,
+	&dsMTLHardwareCommandBuffer_setScissor,
 	&dsMTLHardwareCommandBuffer_clearAttachments,
 	&dsMTLHardwareCommandBuffer_draw,
 	&dsMTLHardwareCommandBuffer_drawIndexed,

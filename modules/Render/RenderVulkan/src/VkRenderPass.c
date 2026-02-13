@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -202,12 +202,12 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 
 bool dsVkRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
-	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount, bool secondary)
+	const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
+	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount, bool secondary)
 {
 	DS_UNUSED(renderer);
 	dsVkRenderPassData* renderPassData = dsVkRenderPass_getData(renderPass);
-	return dsVkRenderPassData_begin(renderPassData, commandBuffer, framebuffer, viewport,
+	return dsVkRenderPassData_begin(renderPassData, commandBuffer, framebuffer, viewport, scissor,
 		clearValues, clearValueCount, secondary);
 }
 

@@ -319,8 +319,23 @@ DS_RENDER_EXPORT bool dsRenderer_setDefaultAnisotropy(dsRenderer* renderer, floa
  *     in the range [0, 1]. If NULL, the full range is used.
  * @return False if the viewport couldn't be set.
  */
-DS_RENDER_EXPORT bool dsRenderer_setViewport(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsAlignedBox3f* viewport);
+DS_RENDER_EXPORT bool dsRenderer_setViewport(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsAlignedBox3f* viewport);
+
+/**
+ * @brief Sets the scissor.
+ *
+ * Use this function if you need to change the scissor in the middle of a render pass.
+ *
+ * @remark This must be called inside of a render pass.
+ * @remark errno will be set on failure.
+ * @param renderer The renderer.
+ * @param commandBuffer The command buffer to place the command on.
+ * @param scissor The scissor to draw to in pixel space]. If NULL, the viewport is used.
+ * @return False if the viewport couldn't be set.
+ */
+DS_RENDER_EXPORT bool dsRenderer_setScissor(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsAlignedBox2f* scissor);
 
 /**
  * @brief Clears attachments within a render pass.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 	const dsSubpassDependency* dependencies, uint32_t dependencyCount);
 bool dsMTLRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
-	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount, bool secondary);
+	const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
+	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount, bool secondary);
 bool dsMTLRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, uint32_t index, bool secondary);
 bool dsMTLRenderPass_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer,

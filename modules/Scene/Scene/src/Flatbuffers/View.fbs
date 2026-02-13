@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,6 +114,9 @@ table Framebuffer
 
 	// The viewport as a fraction of the framebuffer size.
 	viewport : AlignedBox3f;
+
+	// The scissor as a fraction of the framebuffer size.
+	scissor : AlignedBox2f;
 }
 
 // Struct describing a view.

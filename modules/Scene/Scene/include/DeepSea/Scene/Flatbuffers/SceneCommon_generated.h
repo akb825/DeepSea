@@ -30,6 +30,8 @@ struct Color3f;
 
 struct Color4f;
 
+struct AlignedBox2f;
+
 struct AlignedBox3f;
 
 struct Matrix33f;
@@ -1036,6 +1038,29 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Color4f FLATBUFFERS_FINAL_CLASS {
   }
 };
 FLATBUFFERS_STRUCT_END(Color4f, 16);
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) AlignedBox2f FLATBUFFERS_FINAL_CLASS {
+ private:
+  DeepSeaScene::Vector2f min_;
+  DeepSeaScene::Vector2f max_;
+
+ public:
+  AlignedBox2f()
+      : min_(),
+        max_() {
+  }
+  AlignedBox2f(const DeepSeaScene::Vector2f &_min, const DeepSeaScene::Vector2f &_max)
+      : min_(_min),
+        max_(_max) {
+  }
+  const DeepSeaScene::Vector2f &min() const {
+    return min_;
+  }
+  const DeepSeaScene::Vector2f &max() const {
+    return max_;
+  }
+};
+FLATBUFFERS_STRUCT_END(AlignedBox2f, 16);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) AlignedBox3f FLATBUFFERS_FINAL_CLASS {
  private:

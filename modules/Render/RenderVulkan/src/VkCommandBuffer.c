@@ -294,7 +294,7 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 
 static bool beginSubpass(dsVkDevice* device, VkCommandBuffer commandBuffer,
 	dsCommandBufferUsage usage, VkRenderPass renderPass, uint32_t subpass,
-	VkFramebuffer framebuffer, const VkViewport* viewport,
+	VkFramebuffer framebuffer, const VkViewport* viewport, const VkRect2D* scissor,
 	dsGfxOcclusionQueryState parentOcclusionQueryState)
 {
 	VkCommandBufferUsageFlags usageFlags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
@@ -345,13 +345,8 @@ static bool beginSubpass(dsVkDevice* device, VkCommandBuffer commandBuffer,
 	if (!DS_HANDLE_VK_RESULT(result, "Couldn't begin command buffer"))
 		return false;
 
-	VkRect2D renderArea =
-	{
-		{(int32_t)floorf(viewport->x), (int32_t)viewport->y},
-		{(uint32_t)ceilf(viewport->width), (uint32_t)ceilf(viewport->height)}
-	};
 	DS_VK_CALL(device->vkCmdSetViewport)(commandBuffer, 0, 1, viewport);
-	DS_VK_CALL(device->vkCmdSetScissor)(commandBuffer, 0, 1, &renderArea);
+	DS_VK_CALL(device->vkCmdSetScissor)(commandBuffer, 0, 1, scissor);
 
 	return true;
 }
@@ -445,7 +440,8 @@ bool dsVkCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffe
 
 bool dsVkCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsFramebuffer* framebuffer, const dsRenderPass* renderPass, uint32_t subpass,
-	const dsAlignedBox3f* viewport, dsGfxOcclusionQueryState parentOcclusionQueryState)
+	const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
+	dsGfxOcclusionQueryState parentOcclusionQueryState)
 {
 	DS_ASSERT(commandBuffer != renderer->mainCommandBuffer);
 
@@ -476,11 +472,20 @@ bool dsVkCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* com
 	if (!subpassBuffer)
 		return false;
 
+	uint32_t width = 0, height = 0;
+	if (framebuffer)
+	{
+		width = framebuffer->width;
+		height = framebuffer->height;
+	}
+
 	VkViewport vkViewport;
-	dsConvertVkViewport(&vkViewport, viewport, framebuffer->width, framebuffer->height);
+	dsConvertVkViewport(&vkViewport, viewport, width, height);
+	VkRect2D vkScissor;
+	dsConvertVkScissor(&vkScissor, scissor, &vkViewport);
 
 	if (!beginSubpass(&vkRenderer->device, subpassBuffer, commandBuffer->usage,
-			renderPassData->vkRenderPass, subpass, vkFramebuffer, &vkViewport,
+			renderPassData->vkRenderPass, subpass, vkFramebuffer, &vkViewport, &vkScissor,
 			parentOcclusionQueryState))
 	{
 		--vkCommandBuffer->submitBufferCount;
@@ -717,7 +722,7 @@ bool dsVkCommandBuffer_endSubmitCommands(dsCommandBuffer* commandBuffer)
 }
 
 bool dsVkCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer, VkRenderPass renderPass,
-	VkFramebuffer framebuffer, const VkViewport* viewport,
+	VkFramebuffer framebuffer, const VkViewport* viewport, const VkRect2D* scissor,
 	const VkClearValue* clearValues, uint32_t clearValueCount, bool secondary)
 {
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
@@ -728,19 +733,13 @@ bool dsVkCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer, VkRenderP
 	if (!activeCommandBuffer)
 		return false;
 
-	VkRect2D renderArea =
-	{
-		{(int32_t)floorf(viewport->x), (int32_t)viewport->y},
-		{(uint32_t)ceilf(viewport->width), (uint32_t)ceilf(viewport->height)}
-	};
-
 	VkRenderPassBeginInfo beginInfo =
 	{
 		VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
 		NULL,
 		renderPass,
 		framebuffer,
-		renderArea,
+		*scissor,
 		clearValueCount, clearValues
 	};
 
@@ -750,7 +749,7 @@ bool dsVkCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer, VkRenderP
 	if (!secondary)
 	{
 		DS_VK_CALL(device->vkCmdSetViewport)(activeCommandBuffer, 0, 1, viewport);
-		DS_VK_CALL(device->vkCmdSetScissor)(activeCommandBuffer, 0, 1, &renderArea);
+		DS_VK_CALL(device->vkCmdSetScissor)(activeCommandBuffer, 0, 1, scissor);
 	}
 
 	vkCommandBuffer->activeRenderPass = renderPass;

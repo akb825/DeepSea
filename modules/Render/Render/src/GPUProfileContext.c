@@ -118,7 +118,7 @@ static dsCommandBuffer* startCommandBuffer(
 
 	DS_VERIFY(dsCommandBuffer_beginSecondary(*secondaryCommandBuffer,
 		commandBuffer->boundFramebuffer, commandBuffer->boundRenderPass,
-		commandBuffer->activeRenderSubpass, &commandBuffer->viewport,
+		commandBuffer->activeRenderSubpass, &commandBuffer->viewport, &commandBuffer->scissor,
 		dsGfxOcclusionQueryState_Disabled));
 	return *secondaryCommandBuffer;
 }

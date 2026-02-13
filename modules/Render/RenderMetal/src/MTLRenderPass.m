@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -488,8 +488,8 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 
 bool dsMTLRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
-	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount, bool secondary)
+	const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
+	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount, bool secondary)
 {
 	@autoreleasepool
 	{
@@ -511,14 +511,24 @@ bool dsMTLRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 			mtlCommandBuffer->viewport.max.z = 1.0f;
 		}
 
-		MTLRenderPassDescriptor* descriptor = createRenderPassDescriptor(renderPass, 0, framebuffer,
-			commandBuffer);
+		if (scissor)
+			mtlCommandBuffer->scissor = *scissor;
+		else
+		{
+			mtlCommandBuffer->scissor.min.x = mtlCommandBuffer->viewport.min.x;
+			mtlCommandBuffer->scissor.min.y = mtlCommandBuffer->viewport.min.y;
+			mtlCommandBuffer->scissor.max.x = mtlCommandBuffer->viewport.max.x;
+			mtlCommandBuffer->scissor.max.y = mtlCommandBuffer->viewport.max.y;
+		}
+
+		MTLRenderPassDescriptor* descriptor = createRenderPassDescriptor(
+			renderPass, 0, framebuffer, commandBuffer);
 		if (!descriptor)
 			return false;
 
 		addReadbackOffscreens(renderPass, 0, framebuffer, commandBuffer);
-		return dsMTLCommandBuffer_beginRenderPass(commandBuffer, descriptor,
-			&mtlCommandBuffer->viewport);
+		return dsMTLCommandBuffer_beginRenderPass(
+			commandBuffer, descriptor, &mtlCommandBuffer->viewport, &mtlCommandBuffer->scissor);
 	}
 }
 
@@ -542,8 +552,8 @@ bool dsMTLRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* commandB
 			return false;
 
 		addReadbackOffscreens(renderPass, index, framebuffer, commandBuffer);
-		return dsMTLCommandBuffer_beginRenderPass(commandBuffer, descriptor,
-			&mtlCommandBuffer->viewport);
+		return dsMTLCommandBuffer_beginRenderPass(
+			commandBuffer, descriptor, &mtlCommandBuffer->viewport, &mtlCommandBuffer->scissor);
 	}
 }
 

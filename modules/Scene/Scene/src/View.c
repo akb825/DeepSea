@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1229,22 +1229,31 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 				}
 			}
 
-			dsAlignedBox3f viewport = framebufferInfo->viewport;
-			dsView_adjustViewport(&viewport, view, framebuffer->rotated);
 			float width = (float)framebuffer->framebuffer->width;
 			if (width < 0)
 				width *= (float)view->width;
 			float height = (float)framebuffer->framebuffer->height;
 			if (height < 0)
 				height *= (float)view->height;
+
+			dsAlignedBox3f viewport = framebufferInfo->viewport;
+			dsView_adjustViewport(&viewport, view, framebuffer->rotated);
 			viewport.min.x *= width;
 			viewport.max.x *= width;
 			viewport.min.y *= height;
 			viewport.max.y *= height;
+
+			dsAlignedBox2f scissor = framebufferInfo->scissor;
+			dsView_adjustScissor(&scissor, view, framebuffer->rotated);
+			scissor.min.x *= width;
+			scissor.max.x *= width;
+			scissor.min.y *= height;
+			scissor.max.y *= height;
+
 			uint32_t clearValueCount =
 				sceneRenderPass->clearValues ? sceneRenderPass->renderPass->attachmentCount : 0;
 			if (!dsRenderPass_begin(renderPass, commandBuffer, framebuffer->framebuffer, &viewport,
-					sceneRenderPass->clearValues, clearValueCount, false))
+					&scissor, sceneRenderPass->clearValues, clearValueCount, false))
 			{
 				DS_PROFILE_SCOPE_END();
 				DS_PROFILE_SCOPE_END();
@@ -1368,6 +1377,50 @@ void dsView_adjustViewport(dsAlignedBox3f* viewport, const dsView* view, bool ro
 			tempY = viewport->max.y;
 			viewport->max.x = tempY;
 			viewport->max.y = 1.0f - tempX;
+			break;
+		}
+	}
+}
+
+void dsView_adjustScissor(dsAlignedBox2f* scissor, const dsView* view, bool rotated)
+{
+	if (!rotated)
+		return;
+
+	switch (view->rotation)
+	{
+		case dsRenderSurfaceRotation_0:
+			break;
+		case dsRenderSurfaceRotation_90:
+		{
+			float tempX = scissor->min.x;
+			float tempY = scissor->min.y;
+			scissor->min.x = 1.0f - scissor->max.y;
+			scissor->min.y = tempX;
+			tempX = scissor->max.x;
+			scissor->max.x = 1.0f - tempY;
+			scissor->max.y = tempX;
+			break;
+		}
+		case dsRenderSurfaceRotation_180:
+		{
+			float tempX = scissor->min.x;
+			float tempY = scissor->min.y;
+			scissor->min.x = 1.0f - scissor->max.x;
+			scissor->min.y = 1.0f - scissor->max.y;
+			scissor->max.x = 1.0f - tempX;
+			scissor->max.y = 1.0f - tempY;
+			break;
+		}
+		case dsRenderSurfaceRotation_270:
+		{
+			float tempX = scissor->min.x;
+			float tempY = scissor->min.y;
+			scissor->min.x = tempY;
+			scissor->min.y = 1.0f - scissor->max.x;
+			tempY = scissor->max.y;
+			scissor->max.x = tempY;
+			scissor->max.y = 1.0f - tempX;
 			break;
 		}
 	}

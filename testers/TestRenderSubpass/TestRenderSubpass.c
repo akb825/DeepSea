@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -410,7 +410,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	}
 	uint32_t clearValueCount = DS_ARRAY_SIZE(clearValues);
 	DS_VERIFY(dsRenderPass_begin(testRenderSubpass->renderPass, commandBuffer,
-		testRenderSubpass->framebuffer, NULL, clearValues, clearValueCount, false));
+		testRenderSubpass->framebuffer, NULL, NULL, clearValues, clearValueCount, false));
 
 	// Draw red channel
 	dsDrawIndexedRange drawRange = {testRenderSubpass->cubeGeometry->indexBuffer.count, 1, 0, 0, 0};

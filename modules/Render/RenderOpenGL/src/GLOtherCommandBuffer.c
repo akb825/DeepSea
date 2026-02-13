@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,18 @@
 #include "GLCommandBuffer.h"
 #include "GLHelpers.h"
 #include "GLRenderPass.h"
+
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Math/Core.h>
+
 #include <DeepSea/Render/Resources/MaterialType.h>
+
 #include <string.h>
 
 typedef enum CommandType
@@ -65,6 +69,7 @@ typedef enum CommandType
 	CommandType_NextRenderSubpass,
 	CommandType_EndRenderPass,
 	CommandType_SetViewport,
+	CommandType_SetScissor,
 	CommandType_ClearAttachments,
 	CommandType_Draw,
 	CommandType_DrawIndexed,
@@ -254,6 +259,8 @@ typedef struct BeginRenderPassCommand
 	const dsRenderPass* renderPass;
 	const dsFramebuffer* framebuffer;
 	dsAlignedBox3f viewport;
+	dsAlignedBox2f scissor;
+	bool scissorSet;
 	bool viewportSet;
 	uint32_t clearValueCount;
 	dsSurfaceClearValue clearValues[];
@@ -278,6 +285,13 @@ typedef struct SetViewportCommand
 	dsAlignedBox3f viewport;
 	bool defaultViewport;
 } SetViewportCommand;
+
+typedef struct SetScissorCommand
+{
+	Command command;
+	dsAlignedBox2f scissor;
+	bool defaultScissor;
+} SetScissorCommand;
 
 typedef struct ClearAttachmentsCommand
 {
@@ -594,6 +608,8 @@ void dsGLOtherCommandBuffer_reset(dsCommandBuffer* commandBuffer)
 				break;
 			}
 			case CommandType_SetViewport:
+				break;
+			case CommandType_SetScissor:
 				break;
 			case CommandType_ClearAttachments:
 				break;
@@ -1039,8 +1055,8 @@ bool dsGLOtherCommandBuffer_endRenderSurface(dsCommandBuffer* commandBuffer, voi
 
 bool dsGLOtherCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
-	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount)
+	const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
+	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount)
 {
 	size_t commandSize = sizeof(BeginRenderPassCommand) +
 		sizeof(dsSurfaceClearValue)*clearValueCount;
@@ -1060,6 +1076,13 @@ bool dsGLOtherCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 	}
 	else
 		command->viewportSet = false;
+	if (scissor)
+	{
+		command->scissor = *scissor;
+		command->scissorSet = true;
+	}
+	else
+		command->scissorSet = false;
 	command->clearValueCount = clearValueCount;
 	memcpy(command->clearValues, clearValues, sizeof(dsSurfaceClearValue)*clearValueCount);
 	return true;
@@ -1107,6 +1130,24 @@ bool dsGLOtherCommandBuffer_setViewport(dsCommandBuffer* commandBuffer,
 	}
 	else
 		command->defaultViewport = true;
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_setScissor(dsCommandBuffer* commandBuffer,
+	const dsAlignedBox2f* scissor)
+{
+	SetScissorCommand* command = (SetScissorCommand*)allocateCommand(commandBuffer,
+		CommandType_SetViewport, sizeof(SetScissorCommand));
+	if (!command)
+		return false;
+
+	if (scissor)
+	{
+		command->scissor = *scissor;
+		command->defaultScissor = false;
+	}
+	else
+		command->defaultScissor = true;
 	return true;
 }
 
@@ -1471,8 +1512,11 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 				dsAlignedBox3f* viewport = NULL;
 				if (thisCommand->viewportSet)
 					viewport = &thisCommand->viewport;
+				dsAlignedBox2f* scissor = NULL;
+				if (thisCommand->scissorSet)
+					scissor = &thisCommand->scissor;
 				dsGLCommandBuffer_beginRenderPass(commandBuffer, thisCommand->renderPass,
-					thisCommand->framebuffer, viewport, thisCommand->clearValues,
+					thisCommand->framebuffer, viewport, scissor, thisCommand->clearValues,
 					thisCommand->clearValueCount);
 				break;
 			}
@@ -1627,6 +1671,7 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLOtherCommandBuffer_nextRenderSubpass,
 	&dsGLOtherCommandBuffer_endRenderPass,
 	&dsGLOtherCommandBuffer_setViewport,
+	&dsGLOtherCommandBuffer_setScissor,
 	&dsGLOtherCommandBuffer_clearAttachments,
 	&dsGLOtherCommandBuffer_draw,
 	&dsGLOtherCommandBuffer_drawIndexed,

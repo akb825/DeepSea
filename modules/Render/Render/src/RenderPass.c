@@ -121,7 +121,8 @@ static bool sharesAttachments(
 }
 
 static bool startRenderPassScope(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer,
-	const dsFramebuffer* framebuffer, const dsAlignedBox3f* viewport, bool secondary)
+	const dsFramebuffer* framebuffer, const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
+	bool secondary)
 {
 	// Error checking for this will be later.
 	if (!renderPass || !commandBuffer || !framebuffer)
@@ -167,6 +168,14 @@ static bool startRenderPassScope(const dsRenderPass* renderPass, dsCommandBuffer
 		return false;
 	}
 
+	if (scissor && (scissor->min.x < 0 || scissor->min.y < 0 ||
+		scissor->max.x > (float)framebuffer->width || scissor->max.y > (float)framebuffer->height))
+	{
+		errno = ERANGE;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Scissor is out of range.");
+		return false;
+	}
+
 #if DS_PROFILING_ENABLED
 
 	char buffer[SCOPE_SIZE];
@@ -194,6 +203,15 @@ static bool startRenderPassScope(const dsRenderPass* renderPass, dsCommandBuffer
 		commandBuffer->viewport.max.x = (float)framebuffer->width;
 		commandBuffer->viewport.max.y = (float)framebuffer->height;
 		commandBuffer->viewport.max.z = 1.0f;
+	}
+	if (scissor)
+		commandBuffer->scissor = *scissor;
+	else
+	{
+		commandBuffer->scissor.min.x = commandBuffer->viewport.min.x;
+		commandBuffer->scissor.min.y = commandBuffer->viewport.min.y;
+		commandBuffer->scissor.max.x = commandBuffer->viewport.max.x;
+		commandBuffer->scissor.max.y = commandBuffer->viewport.max.y;
 	}
 	return true;
 }
@@ -828,10 +846,10 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 }
 
 bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer,
-	const dsFramebuffer* framebuffer, const dsAlignedBox3f* viewport,
+	const dsFramebuffer* framebuffer, const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
 	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount, bool secondary)
 {
-	if (!startRenderPassScope(renderPass, commandBuffer, framebuffer, viewport, secondary))
+	if (!startRenderPassScope(renderPass, commandBuffer, framebuffer, viewport, scissor, secondary))
 		return false;
 
 	DS_PROFILE_FUNC_START();
@@ -972,7 +990,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 		framebuffer->name, renderPass->subpasses[0].name, secondary);
 	commandBuffer->secondaryRenderPassCommands = secondary;
 	bool success = renderer->beginRenderPassFunc(renderer, commandBuffer, renderPass, framebuffer,
-		viewport, clearValues, clearValueCount, secondary);
+		viewport, scissor, clearValues, clearValueCount, secondary);
 	DS_PROFILE_FUNC_END();
 	if (!success)
 	{

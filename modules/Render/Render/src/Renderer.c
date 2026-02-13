@@ -25,9 +25,12 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Geometry/Frustum3.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
+
 #include <DeepSea/Render/Resources/DrawGeometry.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
@@ -798,8 +801,8 @@ bool dsRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
 	return success;
 }
 
-bool dsRenderer_setViewport(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsAlignedBox3f* viewport)
+bool dsRenderer_setViewport(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsAlignedBox3f* viewport)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -818,6 +821,29 @@ bool dsRenderer_setViewport(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 	}
 
 	bool success = renderer->setViewportFunc(renderer, commandBuffer, viewport);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
+bool dsRenderer_setScissor(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsAlignedBox2f* scissor)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!renderer || !renderer->setScissorFunc || !commandBuffer)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!commandBuffer->boundRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Setting the scissor must be performed inside of a render pass.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	bool success = renderer->setScissorFunc(renderer, commandBuffer, scissor);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 

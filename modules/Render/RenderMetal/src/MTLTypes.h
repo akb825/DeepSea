@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -270,11 +270,14 @@ typedef bool (*BindComputeTextureUniformFunction)(dsCommandBuffer* commandBuffer
 	id<MTLTexture> texture, id<MTLSamplerState> sampler, uint32_t index);
 
 typedef bool (*BeginRenderPassFunction)(dsCommandBuffer* commandBuffer,
-	MTLRenderPassDescriptor* renderPass, const dsAlignedBox3f* viewport);
+	MTLRenderPassDescriptor* renderPass, const dsAlignedBox3f* viewport,
+	const dsAlignedBox2f* scissor);
 typedef bool (*EndRenderPassFunction)(dsCommandBuffer* commandBuffer);
 
-typedef bool (*SetViewportFunction)(dsCommandBuffer* commandBuffer,
-	const dsAlignedBox3f* viewport);
+typedef bool (*SetViewportFunction)(
+	dsCommandBuffer* commandBuffer, const dsAlignedBox3f* viewport);
+typedef bool (*SetScissorFunction)(
+	dsCommandBuffer* commandBuffer, const dsAlignedBox2f* scissor);
 typedef bool (*ClearAttachmentsFunction)(dsCommandBuffer* commandBuffer,
 	const dsClearAttachment* attachments, uint32_t attachmentCount,
 	const dsAttachmentClearRegion* regions, uint32_t regionCount);
@@ -330,6 +333,7 @@ typedef struct dsMTLCommandBufferFunctionTable
 	EndRenderPassFunction endRenderPassFunc;
 
 	SetViewportFunction setViewportFunc;
+	SetScissorFunction setScissorFunc;
 	ClearAttachmentsFunction clearAttachmentsFunc;
 	DrawFunction drawFunc;
 	DrawIndexedFunction drawIndexedFunc;
@@ -372,6 +376,7 @@ typedef struct dsMTLCommandBuffer
 	uint32_t maxClearValues;
 
 	dsAlignedBox3f viewport;
+	dsAlignedBox2f scissor;
 	const dsDrawGeometry* boundGeometry;
 	uint32_t firstVertexBuffer;
 	int32_t vertexOffset;

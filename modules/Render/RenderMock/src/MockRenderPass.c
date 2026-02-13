@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -135,8 +135,8 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 
 bool dsMockRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
-	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount, bool secondary)
+	const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
+	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount, bool secondary)
 {
 	DS_ASSERT(renderer);
 	DS_UNUSED(renderer);
@@ -147,6 +147,7 @@ bool dsMockRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 	DS_ASSERT(framebuffer);
 	DS_UNUSED(framebuffer);
 	DS_UNUSED(viewport);
+	DS_UNUSED(scissor);
 	DS_UNUSED(clearValues);
 	DS_UNUSED(clearValueCount);
 	DS_UNUSED(secondary);

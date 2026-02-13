@@ -62,16 +62,20 @@ DS_RENDER_EXPORT bool dsCommandBuffer_begin(dsCommandBuffer* commandBuffer);
  *     in the range [0, 1]. If NULL, the full range is used. This must match the viewport used to
  *     begin the render pass on the command buffer it will be submitted to. If this is NULL, then
  *     framebuffer must be non-NULL.
- * @param parentOcclusionQueryState The expected state of the occlusion query for the primary command
- *     buffer this will be submitted to. It will inherit the occlusion query state of the primary
- *     command buffer up to the precision level by this state. However, having a state with
+ * @param scissor The scissor box to cut to in pixel space. If NULL, the viewport will be used. This
+ *     must match the scissor used to begin the render pass on the command buffer it will be
+ *     submitted to.
+ * @param parentOcclusionQueryState The expected state of the occlusion query for the primary
+ *     command buffer this will be submitted to. It will inherit the occlusion query state of the
+ *     primary command buffer up to the precision level by this state. However, having a state with
  *     occlusion queries enabled when they will not be used may have a performance penalty on some
  *     platforms.
  * @return False if the command buffer couldn't be begun.
  */
 DS_RENDER_EXPORT bool dsCommandBuffer_beginSecondary(dsCommandBuffer* commandBuffer,
 	const dsFramebuffer* framebuffer, const dsRenderPass* renderPass, uint32_t subpass,
-	const dsAlignedBox3f* viewport, dsGfxOcclusionQueryState parentOcclusionQueryState);
+	const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
+	dsGfxOcclusionQueryState parentOcclusionQueryState);
 
 /**
  * @brief Ends submitting commands to a command buffer.

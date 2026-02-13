@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@
 
 namespace
 {
+
 struct Vertex
 {
 	dsVector2f position;
@@ -68,11 +69,11 @@ struct RenderInfo
 
 		dsMaterialElement materialElements[] =
 		{
-			{"Transform", dsMaterialType_UniformBlock, 0, NULL, dsMaterialBinding_Instance, 0}
+			{"Transform", dsMaterialType_UniformBlock, 0, nullptr, dsMaterialBinding_Instance, 0}
 		};
 
-		materialDesc = dsMaterialDesc_create(resourceManager, allocator, materialElements,
-			DS_ARRAY_SIZE(materialElements));
+		materialDesc = dsMaterialDesc_create(
+			resourceManager, allocator, materialElements, DS_ARRAY_SIZE(materialElements));
 		ASSERT_TRUE(materialDesc);
 
 		uint32_t transformIdx = dsMaterialDesc_findElement(materialDesc, "Transform");
@@ -94,14 +95,14 @@ struct RenderInfo
 		dsGfxFormat surfaceFormat = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
 		dsTextureInfo offscreenInfo = {surfaceFormat, dsTextureDim_2D, width, height, 0, 1, 1};
 		auto usageFlags = dsTextureUsage_Texture | dsTextureUsage_CopyFrom;
-		offscreen = dsTexture_createOffscreen(resourceManager, allocator, usageFlags,
-			dsGfxMemory_Read, &offscreenInfo, true);
+		offscreen = dsTexture_createOffscreen(
+			resourceManager, allocator, usageFlags, dsGfxMemory_Read, &offscreenInfo, true);
 		ASSERT_TRUE(offscreen);
 
 		dsFramebufferSurface surface = {dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 0,
 			offscreen};
-		framebuffer = dsFramebuffer_create(resourceManager, allocator, "WriteOffscreen", &surface,
-			1, width, height, 1);
+		framebuffer = dsFramebuffer_create(
+			resourceManager, allocator, "WriteOffscreen", &surface, 1, width, height, 1);
 		ASSERT_TRUE(framebuffer);
 
 		dsAttachmentInfo attachment =
@@ -110,9 +111,9 @@ struct RenderInfo
 			surfaceFormat, 1
 		};
 		dsAttachmentRef attachmentRef = {0, true};
-		dsRenderSubpassInfo subpass = {"WriteOffscreen", NULL, &attachmentRef,
+		dsRenderSubpassInfo subpass = {"WriteOffscreen", nullptr, &attachmentRef,
 			{DS_NO_ATTACHMENT, false}, 0, 1};
-		renderPass = dsRenderPass_create(renderer, allocator, &attachment, 1, &subpass, 1, NULL,
+		renderPass = dsRenderPass_create(renderer, allocator, &attachment, 1, &subpass, 1, nullptr,
 			DS_DEFAULT_SUBPASS_DEPENDENCIES);
 		ASSERT_TRUE(renderPass);
 
@@ -191,8 +192,8 @@ struct RenderInfo
 		std::vector<uint8_t> transformData(transformSize*2);
 
 		dsMatrix44f projection;
-		ASSERT_TRUE(dsRenderer_makeOrtho(&projection, renderer, -0.1f, 1.1f, -0.1f, 1.1f, 0.0f,
-			1.0f));
+		ASSERT_TRUE(dsRenderer_makeOrtho(
+			&projection, renderer, -0.1f, 1.1f, -0.1f, 1.1f, 0.0f, 1.0f));
 
 		dsMatrix44f* transforms[2] = {reinterpret_cast<dsMatrix44f*>(transformData.data()),
 			reinterpret_cast<dsMatrix44f*>(transformData.data() + transformSize)};
@@ -203,12 +204,12 @@ struct RenderInfo
 			transformData.data(), transformData.size());
 		ASSERT_TRUE(transformBuffer);
 
-		primaryCommands = dsCommandBufferPool_create(renderer, allocator,
-			dsCommandBufferUsage_Standard);
+		primaryCommands = dsCommandBufferPool_create(
+			renderer, allocator, dsCommandBufferUsage_Standard);
 		ASSERT_TRUE(primaryCommands);
 
-		secondaryCommands = dsCommandBufferPool_create(renderer, allocator,
-			dsCommandBufferUsage_Secondary);
+		secondaryCommands = dsCommandBufferPool_create(
+			renderer, allocator, dsCommandBufferUsage_Secondary);
 		ASSERT_TRUE(secondaryCommands);
 
 		if (resourceManager->maxResourceContexts > 0)
@@ -314,12 +315,12 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 			std::thread drawThread([&]()
 				{
 					ASSERT_TRUE(dsCommandBuffer_beginSecondary(*secondaryCommands, info.framebuffer,
-						info.renderPass, 0, NULL, dsGfxOcclusionQueryState_Disabled));
+						info.renderPass, 0, nullptr, nullptr, dsGfxOcclusionQueryState_Disabled));
 					ASSERT_TRUE(dsSharedMaterialValues_setBufferID(info.instanceValues[0],
 						info.transformId, info.transformBuffer, 0, sizeof(dsMatrix44f)));
 
-					ASSERT_TRUE(dsShader_bind(info.shader, *secondaryCommands, info.material, NULL,
-						NULL));
+					ASSERT_TRUE(dsShader_bind(
+						info.shader, *secondaryCommands, info.material, nullptr, nullptr));
 					ASSERT_TRUE(dsShader_updateInstanceValues(info.shader, *secondaryCommands,
 						info.instanceValues[0]));
 					ASSERT_TRUE(dsRenderer_draw(renderer, *secondaryCommands, info.drawGeometry[0],
@@ -328,8 +329,8 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 					ASSERT_TRUE(dsSharedMaterialValues_setBufferID(info.instanceValues[0],
 						info.transformId, info.transformBuffer, transformSize,
 						sizeof(dsMatrix44f)));
-					ASSERT_TRUE(dsShader_updateInstanceValues(info.shader, *secondaryCommands,
-						info.instanceValues[0]));
+					ASSERT_TRUE(dsShader_updateInstanceValues(
+						info.shader, *secondaryCommands, info.instanceValues[0]));
 					ASSERT_TRUE(dsRenderer_draw(renderer, *secondaryCommands, info.drawGeometry[1],
 						&drawRange, dsPrimitiveType_TriangleList));
 
@@ -338,7 +339,7 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 				});
 
 			ASSERT_TRUE(dsRenderPass_begin(info.renderPass, *primaryCommands, info.framebuffer,
-				NULL, &clearValue, 1, true));
+				nullptr, nullptr, &clearValue, 1, true));
 
 			drawThread.join();
 			ASSERT_TRUE(dsCommandBuffer_submit(*primaryCommands, *secondaryCommands));
@@ -405,13 +406,13 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 			std::thread drawThread([&]()
 				{
 					ASSERT_TRUE(dsCommandBuffer_beginSecondary(secondaryCommands0, info.framebuffer,
-						info.renderPass, 0, NULL, dsGfxOcclusionQueryState_Disabled));
+						info.renderPass, 0, nullptr, nullptr, dsGfxOcclusionQueryState_Disabled));
 					ASSERT_TRUE(dsSharedMaterialValues_setBufferID(info.instanceValues[0],
 						info.transformId, info.transformBuffer, transformSize,
 						sizeof(dsMatrix44f)));
 
-					ASSERT_TRUE(dsShader_bind(info.shader, secondaryCommands0, info.material, NULL
-						, NULL));
+					ASSERT_TRUE(dsShader_bind(info.shader, secondaryCommands0, info.material,
+						nullptr, nullptr));
 					ASSERT_TRUE(dsShader_updateInstanceValues(info.shader, secondaryCommands0,
 						info.instanceValues[0]));
 					ASSERT_TRUE(dsRenderer_draw(renderer, secondaryCommands0, info.drawGeometry[0],
@@ -421,8 +422,8 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 					EXPECT_TRUE(dsCommandBuffer_end(secondaryCommands0));
 				});
 
-			ASSERT_TRUE(dsRenderPass_begin(info.renderPass, *primaryCommands, info.framebuffer, NULL,
-				&clearValue, 1, true));
+			ASSERT_TRUE(dsRenderPass_begin(info.renderPass, *primaryCommands, info.framebuffer,
+				nullptr, nullptr, &clearValue, 1, true));
 
 			drawThread.join();
 			ASSERT_TRUE(dsCommandBuffer_submit(*primaryCommands, secondaryCommands0));
@@ -430,12 +431,12 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 			drawThread = std::thread([&]()
 				{
 					ASSERT_TRUE(dsCommandBuffer_beginSecondary(secondaryCommands1, info.framebuffer,
-						info.renderPass, 0, NULL, dsGfxOcclusionQueryState_Disabled));
+						info.renderPass, 0, nullptr, nullptr, dsGfxOcclusionQueryState_Disabled));
 					ASSERT_TRUE(dsSharedMaterialValues_setBufferID(info.instanceValues[0],
 						info.transformId, info.transformBuffer, 0, sizeof(dsMatrix44f)));
 
-					ASSERT_TRUE(dsShader_bind(info.shader, secondaryCommands1, info.material, NULL,
-						NULL));
+					ASSERT_TRUE(dsShader_bind(
+						info.shader, secondaryCommands1, info.material, nullptr, nullptr));
 					ASSERT_TRUE(dsShader_updateInstanceValues(info.shader, secondaryCommands1,
 						info.instanceValues[0]));
 					ASSERT_TRUE(dsRenderer_draw(renderer, secondaryCommands1, info.drawGeometry[1],

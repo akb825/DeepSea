@@ -105,10 +105,19 @@ def convertView(convertContext, data, inputDir):
 	      Defaults to 0.
 	    - maxX: the maximum X value for the lower-right position as a fraction of the width.
 	      Defaults to 1.
-	    - maxY: the maximum Y value for the lower-right position as a fraction of the hieght.
+	    - maxY: the maximum Y value for the lower-right position as a fraction of the height.
 	      Defaults to 1.
 	    - minDepth: the minimum depth value. Defaults to 0.
 	    - maxDepth: the maximum depth value. Defaults to 1.
+	  - scissor: the scissor to use. This is a dict with the following elements.
+	    - minX: the minimum X value for the upper-left position as a fraction of the width. Defaults 
+	      to viewport minX.
+	    - minY: the minimum Y value for the upper-left position as a fraction of the height.
+	      Defaults to viewport minY.
+	    - maxX: the maximum X value for the lower-right position as a fraction of the width.
+	      Defaults to viewport maxX.
+	    - maxY: the maximum Y value for the lower-right position as a fraction of the height.
+	      Defaults to viewport maxY.
 	"""
 	unsetValue = 0xFFFFFFFF
 	surfaceSamples = 0xFFFFFFFF
@@ -317,6 +326,26 @@ def convertView(convertContext, data, inputDir):
 		else:
 			framebuffer.viewport = None
 
+		scissorInfo = info.get('scissor')
+		if scissorInfo:
+			viewport = framebuffer.viewport if framebuffer.viewport else \
+				(0.0, 0.0, 0.0, 1.0, 1.0, 1.0)
+			try:
+				framebuffer.scissor = (
+					readFloat(scissorInfo.get('minX', viewport[0]),
+						'framebuffer scissor min X', 0.0, 1.0),
+					readFloat(scissorInfo.get('minY', viewport[1]),
+						'framebuffer scissor min Y', 0.0, 1.0),
+					readFloat(scissorInfo.get('maxX', viewport[3]),
+						'framebuffer scissor max X', 0.0, 1.0),
+					readFloat(scissorInfo.get('maxY', viewport[4]),
+						'framebuffer scissor max Y', 0.0, 1.0),
+				)
+			except AttributeError:
+				raise Exception('View Framebuffer scissor must be an object.')
+		else:
+			framebuffer.scissor = None
+
 		return framebuffer
 
 	try:
@@ -412,6 +441,12 @@ def convertView(convertContext, data, inputDir):
 		else:
 			viewportOffset = 0
 		Framebuffer.AddViewport(builder, viewportOffset)
+
+		if framebuffer.scissor:
+			scissorOffset = CreateAlignedBox2f(builder, *framebuffer.scissor)
+		else:
+			scissorOffset = 0
+		Framebuffer.AddScissor(builder, scissorOffset)
 
 		framebufferOffsets.append(Framebuffer.End(builder))
 

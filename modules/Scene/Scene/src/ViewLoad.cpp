@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -254,6 +254,17 @@ dsView* dsView_loadImpl(dsAllocator* allocator, const char* name, const dsScene*
 			framebuffer->viewport.max.x = 1.0f;
 			framebuffer->viewport.max.y = 1.0f;
 			framebuffer->viewport.max.z = 1.0f;
+		}
+
+		auto fbScissor =  fbFramebuffer->scissor();
+		if (fbScissor)
+			framebuffer->scissor = DeepSeaScene::convert(*fbScissor);
+		else
+		{
+			framebuffer->scissor.min.x = framebuffer->viewport.min.x;
+			framebuffer->scissor.min.y = framebuffer->viewport.min.y;
+			framebuffer->scissor.max.x = framebuffer->viewport.max.x;
+			framebuffer->scissor.max.y = framebuffer->viewport.max.y;
 		}
 	}
 

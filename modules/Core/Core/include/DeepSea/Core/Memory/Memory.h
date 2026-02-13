@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,7 +69,8 @@ extern "C"
  * @param alignment The alignment. This must be a power of two.
  * @return The aligned size.
  */
-#define DS_CUSTOM_ALIGNED_SIZE(x, alignment) (((x) + (alignment) - 1) & ~(((size_t)alignment) - 1))
+#define DS_CUSTOM_ALIGNED_SIZE(x, alignment) \
+	(((x) + (alignment) - 1) & ~(((size_t)(alignment)) - 1))
 
 /**
  * @brief Gets the aligned size of an object.

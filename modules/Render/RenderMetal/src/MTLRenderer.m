@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1030,6 +1030,7 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		baseRenderer->setVSyncFunc = &dsMTLRenderer_setVSync;
 		baseRenderer->setDefaultAnisotropyFunc = &dsMTLRenderer_setDefaultAnisotropy;
 		baseRenderer->setViewportFunc = &dsMTLCommandBuffer_setViewport;
+		baseRenderer->setScissorFunc = &dsMTLCommandBuffer_setScissor;
 		baseRenderer->clearAttachmentsFunc = &dsMTLCommandBuffer_clearAttachments;
 		baseRenderer->drawFunc = &dsMTLRenderer_draw;
 		baseRenderer->drawIndexedFunc = &dsMTLRenderer_drawIndexed;

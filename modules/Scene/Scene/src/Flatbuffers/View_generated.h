@@ -389,7 +389,8 @@ struct Framebuffer FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_WIDTH = 8,
     VT_HEIGHT = 10,
     VT_LAYERS = 12,
-    VT_VIEWPORT = 14
+    VT_VIEWPORT = 14,
+    VT_SCISSOR = 16
   };
   const ::flatbuffers::String *name() const {
     return GetPointer<const ::flatbuffers::String *>(VT_NAME);
@@ -409,6 +410,9 @@ struct Framebuffer FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaScene::AlignedBox3f *viewport() const {
     return GetStruct<const DeepSeaScene::AlignedBox3f *>(VT_VIEWPORT);
   }
+  const DeepSeaScene::AlignedBox2f *scissor() const {
+    return GetStruct<const DeepSeaScene::AlignedBox2f *>(VT_SCISSOR);
+  }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -421,6 +425,7 @@ struct Framebuffer FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyField<float>(verifier, VT_HEIGHT, 4) &&
            VerifyField<uint32_t>(verifier, VT_LAYERS, 4) &&
            VerifyField<DeepSeaScene::AlignedBox3f>(verifier, VT_VIEWPORT, 4) &&
+           VerifyField<DeepSeaScene::AlignedBox2f>(verifier, VT_SCISSOR, 4) &&
            verifier.EndTable();
   }
 };
@@ -447,6 +452,9 @@ struct FramebufferBuilder {
   void add_viewport(const DeepSeaScene::AlignedBox3f *viewport) {
     fbb_.AddStruct(Framebuffer::VT_VIEWPORT, viewport);
   }
+  void add_scissor(const DeepSeaScene::AlignedBox2f *scissor) {
+    fbb_.AddStruct(Framebuffer::VT_SCISSOR, scissor);
+  }
   explicit FramebufferBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -466,8 +474,10 @@ inline ::flatbuffers::Offset<Framebuffer> CreateFramebuffer(
     float width = 0.0f,
     float height = 0.0f,
     uint32_t layers = 0,
-    const DeepSeaScene::AlignedBox3f *viewport = nullptr) {
+    const DeepSeaScene::AlignedBox3f *viewport = nullptr,
+    const DeepSeaScene::AlignedBox2f *scissor = nullptr) {
   FramebufferBuilder builder_(_fbb);
+  builder_.add_scissor(scissor);
   builder_.add_viewport(viewport);
   builder_.add_layers(layers);
   builder_.add_height(height);
@@ -484,7 +494,8 @@ inline ::flatbuffers::Offset<Framebuffer> CreateFramebufferDirect(
     float width = 0.0f,
     float height = 0.0f,
     uint32_t layers = 0,
-    const DeepSeaScene::AlignedBox3f *viewport = nullptr) {
+    const DeepSeaScene::AlignedBox3f *viewport = nullptr,
+    const DeepSeaScene::AlignedBox2f *scissor = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto surfaces__ = surfaces ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaScene::FramebufferSurface>>(*surfaces) : 0;
   return DeepSeaScene::CreateFramebuffer(
@@ -494,7 +505,8 @@ inline ::flatbuffers::Offset<Framebuffer> CreateFramebufferDirect(
       width,
       height,
       layers,
-      viewport);
+      viewport,
+      scissor);
 }
 
 struct View FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {

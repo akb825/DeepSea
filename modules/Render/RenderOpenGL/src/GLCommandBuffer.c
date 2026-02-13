@@ -601,14 +601,14 @@ bool dsGLCommandBuffer_endRenderSurface(dsCommandBuffer* commandBuffer, void* gl
 
 bool dsGLCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
-	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount)
+	const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
+	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount)
 {
 	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
 
 	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
-	if (!functions->beginRenderPassFunc(commandBuffer, renderPass, framebuffer, viewport,
-		clearValues, clearValueCount))
+	if (!functions->beginRenderPassFunc(commandBuffer, renderPass, framebuffer, viewport, scissor,
+			clearValues, clearValueCount))
 	{
 		return false;
 	}
@@ -628,12 +628,20 @@ bool dsGLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer, const dsRen
 	return functions->endRenderPassFunc(commandBuffer, renderPass);
 }
 
-bool dsGLCommandBuffer_setViewport(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsAlignedBox3f* viewport)
+bool dsGLCommandBuffer_setViewport(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsAlignedBox3f* viewport)
 {
 	DS_UNUSED(renderer);
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->setViewportFunc(commandBuffer, viewport);
+}
+
+bool dsGLCommandBuffer_setScissor(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsAlignedBox2f* scissor)
+{
+	DS_UNUSED(renderer);
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->setScissorFunc(commandBuffer, scissor);
 }
 
 bool dsGLCommandBuffer_clearAttachments(dsRenderer* renderer,
@@ -745,7 +753,8 @@ bool dsGLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffe
 
 bool dsGLCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsFramebuffer* framebuffer, const dsRenderPass* renderPass, uint32_t subpass,
-	const dsAlignedBox3f* viewport, dsGfxOcclusionQueryState parentOcclusionQueryState)
+	const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
+	dsGfxOcclusionQueryState parentOcclusionQueryState)
 {
 	DS_ASSERT(commandBuffer != renderer->mainCommandBuffer);
 	DS_UNUSED(renderer);
@@ -753,6 +762,7 @@ bool dsGLCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* com
 	DS_UNUSED(renderPass);
 	DS_UNUSED(subpass);
 	DS_UNUSED(viewport);
+	DS_UNUSED(scissor);
 	DS_UNUSED(parentOcclusionQueryState);
 	dsGLCommandBuffer_reset(commandBuffer);
 	return true;

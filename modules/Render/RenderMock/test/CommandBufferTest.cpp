@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,12 @@ class CommandBufferTest : public FixtureBase
 
 TEST_F(CommandBufferTest, BeginEnd)
 {
-	dsCommandBufferPool* pool = dsCommandBufferPool_create(renderer, NULL,
+	dsCommandBufferPool* pool = dsCommandBufferPool_create(renderer, nullptr,
 		dsCommandBufferUsage_Standard);
 	ASSERT_TRUE(pool);
 
-	EXPECT_FALSE(dsCommandBuffer_begin(NULL));
-	EXPECT_FALSE(dsCommandBuffer_end(NULL));
+	EXPECT_FALSE(dsCommandBuffer_begin(nullptr));
+	EXPECT_FALSE(dsCommandBuffer_end(nullptr));
 	EXPECT_FALSE(dsCommandBuffer_begin(renderer->mainCommandBuffer));
 	EXPECT_FALSE(dsCommandBuffer_end(renderer->mainCommandBuffer));
 
@@ -54,16 +54,16 @@ TEST_F(CommandBufferTest, BeginEndSecondary)
 	dsAttachmentRef colorAttachments[] = {{0, true}};
 	dsRenderSubpassInfo subpasses[] =
 	{
-		{"test", NULL, colorAttachments, {DS_NO_ATTACHMENT, false}, 0,
+		{"test", nullptr, colorAttachments, {DS_NO_ATTACHMENT, false}, 0,
 			DS_ARRAY_SIZE(colorAttachments)},
 	};
 	uint32_t subpassCount = DS_ARRAY_SIZE(subpasses);
 
-	dsRenderPass* renderPass = dsRenderPass_create(renderer, NULL, attachments, attachmentCount,
-		subpasses, subpassCount, NULL, DS_DEFAULT_SUBPASS_DEPENDENCIES);
+	dsRenderPass* renderPass = dsRenderPass_create(renderer, nullptr, attachments, attachmentCount,
+		subpasses, subpassCount, nullptr, DS_DEFAULT_SUBPASS_DEPENDENCIES);
 	ASSERT_TRUE(renderPass);
 
-	dsCommandBufferPool* pool = dsCommandBufferPool_create(renderer, NULL,
+	dsCommandBufferPool* pool = dsCommandBufferPool_create(renderer, nullptr,
 		dsCommandBufferUsage_Secondary);
 	ASSERT_TRUE(pool);
 
@@ -74,14 +74,14 @@ TEST_F(CommandBufferTest, BeginEndSecondary)
 
 	EXPECT_FALSE(dsCommandBuffer_begin(*commandBuffer));
 	EXPECT_FALSE(dsCommandBuffer_beginSecondary(
-		*commandBuffer, NULL, NULL, 0, &viewport, dsGfxOcclusionQueryState_Disabled));
+		*commandBuffer, nullptr, nullptr, 0, &viewport, nullptr, dsGfxOcclusionQueryState_Disabled));
+	EXPECT_FALSE(dsCommandBuffer_beginSecondary(*commandBuffer, nullptr, renderPass, 1, &viewport,
+		nullptr, dsGfxOcclusionQueryState_Disabled));
 	EXPECT_FALSE(dsCommandBuffer_beginSecondary(
-		*commandBuffer, NULL, renderPass, 1, &viewport, dsGfxOcclusionQueryState_Disabled));
-	EXPECT_FALSE(dsCommandBuffer_beginSecondary(
-		*commandBuffer, NULL, renderPass, 1, NULL, dsGfxOcclusionQueryState_Disabled));
+		*commandBuffer, nullptr, renderPass, 1, nullptr, nullptr, dsGfxOcclusionQueryState_Disabled));
 
-	EXPECT_TRUE(dsCommandBuffer_beginSecondary(
-		*commandBuffer, NULL, renderPass, 0, &viewport, dsGfxOcclusionQueryState_Disabled));
+	EXPECT_TRUE(dsCommandBuffer_beginSecondary(*commandBuffer, nullptr, renderPass, 0, &viewport,
+		nullptr, dsGfxOcclusionQueryState_Disabled));
 	EXPECT_TRUE(dsCommandBuffer_end(*commandBuffer));
 
 	EXPECT_TRUE(dsCommandBufferPool_destroy(pool));
@@ -90,23 +90,23 @@ TEST_F(CommandBufferTest, BeginEndSecondary)
 
 TEST_F(CommandBufferTest, Submit)
 {
-	dsCommandBufferPool* pool = dsCommandBufferPool_create(renderer, NULL,
+	dsCommandBufferPool* pool = dsCommandBufferPool_create(renderer, nullptr,
 		dsCommandBufferUsage_Standard);
 	ASSERT_TRUE(pool);
 
 	dsCommandBuffer** commandBuffer = dsCommandBufferPool_createCommandBuffers(pool, 1);
 	ASSERT_TRUE(commandBuffer);
 
-	dsCommandBufferPool* otherPool = dsCommandBufferPool_create(renderer, NULL,
+	dsCommandBufferPool* otherPool = dsCommandBufferPool_create(renderer, nullptr,
 		dsCommandBufferUsage_MultiSubmit);
 	ASSERT_TRUE(otherPool);
 
 	dsCommandBuffer** otherCommandBuffer = dsCommandBufferPool_createCommandBuffers(otherPool, 1);
 	ASSERT_TRUE(otherCommandBuffer);
 
-	EXPECT_FALSE(dsCommandBuffer_submit(NULL, NULL));
-	EXPECT_FALSE(dsCommandBuffer_submit(*commandBuffer, NULL));
-	EXPECT_FALSE(dsCommandBuffer_submit(NULL, *commandBuffer));
+	EXPECT_FALSE(dsCommandBuffer_submit(nullptr, nullptr));
+	EXPECT_FALSE(dsCommandBuffer_submit(*commandBuffer, nullptr));
+	EXPECT_FALSE(dsCommandBuffer_submit(nullptr, *commandBuffer));
 	EXPECT_FALSE(dsCommandBuffer_submit(*commandBuffer, renderer->mainCommandBuffer));
 	EXPECT_TRUE(dsCommandBuffer_submit(renderer->mainCommandBuffer, *commandBuffer));
 

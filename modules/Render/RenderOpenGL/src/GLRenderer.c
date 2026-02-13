@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -808,6 +808,8 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->setDefaultSamplesFunc = &dsGLRenderer_setDefaultSamples;
 	baseRenderer->setVSyncFunc = &dsGLRenderer_setVSync;
 	baseRenderer->setDefaultAnisotropyFunc = &dsGLRenderer_setDefaultAnisotropy;
+	baseRenderer->setViewportFunc = &dsGLCommandBuffer_setViewport;
+	baseRenderer->setScissorFunc = &dsGLCommandBuffer_setScissor;
 	baseRenderer->clearAttachmentsFunc = &dsGLCommandBuffer_clearAttachments;
 	baseRenderer->drawFunc = &dsGLCommandBuffer_draw;
 	baseRenderer->drawIndexedFunc = &dsGLCommandBuffer_drawIndexed;

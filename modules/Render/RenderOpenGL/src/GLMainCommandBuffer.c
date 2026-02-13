@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,10 +33,12 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Math/Core.h>
+
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
-#include <limits.h>
+
 #include <string.h>
 
 typedef struct TempRenderbuffer
@@ -61,6 +63,11 @@ struct dsGLMainCommandBuffer
 	GLint viewportY;
 	GLsizei viewportWidth;
 	GLsizei viewportHeight;
+
+	GLint scissorX;
+	GLint scissorY;
+	GLsizei scissorWidth;
+	GLsizei scissorHeight;
 
 	const dsFramebuffer* curFramebuffer;
 	dsSurfaceClearValue* clearValues;
@@ -1483,15 +1490,44 @@ bool dsGLMainCommandBuffer_setViewport(dsCommandBuffer* commandBuffer,
 
 	glViewport(glCommandBuffer->viewportX, glCommandBuffer->viewportY,
 		glCommandBuffer->viewportWidth, glCommandBuffer->viewportHeight);
-	glScissor(glCommandBuffer->viewportX, glCommandBuffer->viewportY,
-		glCommandBuffer->viewportWidth, glCommandBuffer->viewportHeight);
+	return true;
+}
+
+bool dsGLMainCommandBuffer_setScissor(dsCommandBuffer* commandBuffer,
+	const dsAlignedBox2f* scissor)
+{
+	dsGLRenderer* glRenderer = (dsGLRenderer*)commandBuffer->renderer;
+	dsGLMainCommandBuffer* glCommandBuffer = (dsGLMainCommandBuffer*)commandBuffer;
+	const dsFramebuffer* framebuffer = glCommandBuffer->curFramebuffer;
+
+	if (scissor)
+	{
+		bool needInvert = glRenderer->curSurfaceType == GLSurfaceType_Framebuffer;
+		glCommandBuffer->scissorX = (GLint)scissor->min.x;
+		if (needInvert)
+			glCommandBuffer->scissorY = (GLint)scissor->min.y;
+		else
+			glCommandBuffer->scissorY = framebuffer->height - (GLint)scissor->max.y;
+		glCommandBuffer->scissorWidth = (GLsizei)(scissor->max.x - scissor->min.x);
+		glCommandBuffer->scissorHeight = (GLsizei)(scissor->max.y - scissor->min.y);
+	}
+	else
+	{
+		glCommandBuffer->scissorX = glCommandBuffer->viewportX;
+		glCommandBuffer->scissorY = glCommandBuffer->viewportY;
+		glCommandBuffer->scissorWidth = glCommandBuffer->viewportWidth;
+		glCommandBuffer->scissorHeight = glCommandBuffer->viewportHeight;
+	}
+
+	glScissor(glCommandBuffer->scissorX, glCommandBuffer->scissorY,
+		glCommandBuffer->scissorWidth, glCommandBuffer->scissorHeight);
 	return true;
 }
 
 bool dsGLMainCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
-	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount)
+	const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
+	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount)
 {
 	DS_ASSERT(clearValueCount == 0 || clearValueCount == renderPass->attachmentCount);
 	DS_ASSERT(renderPass->attachmentCount == framebuffer->surfaceCount);
@@ -1520,6 +1556,7 @@ bool dsGLMainCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 
 	glCommandBuffer->curFramebuffer = framebuffer;
 	dsGLMainCommandBuffer_setViewport(commandBuffer, viewport);
+	dsGLMainCommandBuffer_setScissor(commandBuffer, scissor);
 	addSubpassBarrier(renderPass->subpassDependencies, renderPass->subpassDependencyCount,
 		DS_EXTERNAL_SUBPASS, 0);
 	if (!beginRenderSubpass(glCommandBuffer, renderPass, 0))
@@ -1586,7 +1623,6 @@ bool dsGLMainCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 	}
 
 	bool needInvert = glRenderer->curSurfaceType == GLSurfaceType_Framebuffer;
-	bool setScissor = false;
 	bool success = true;
 	for (uint32_t i = 0; i < regionCount; ++i)
 	{
@@ -1600,23 +1636,15 @@ bool dsGLMainCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 			break;
 		}
 
-		GLint viewportX = region->x;
-		GLint viewportY;
+		GLint scissorX = region->x;
+		GLint scissorY;
 		if (needInvert)
-			viewportY = region->y;
+			scissorY = region->y;
 		else
-			viewportY = glCommandBuffer->curFramebuffer->height - region->y - 1;
-		GLint viewportWidth = region->width;
-		GLint viewportHeight = region->height;
-		// Assume that more than one region menas that the viewport will have changed.
-		if (i > 0 || viewportX != glCommandBuffer->viewportX ||
-			viewportY != glCommandBuffer->viewportY ||
-			viewportWidth != glCommandBuffer->viewportWidth ||
-			viewportHeight != glCommandBuffer->viewportHeight)
-		{
-			glScissor(viewportX, viewportY, viewportWidth, viewportHeight);
-			setScissor = true;
-		}
+			scissorY = glCommandBuffer->curFramebuffer->height - region->y - 1;
+		GLint scissorWidth = region->width;
+		GLint scissorHeight = region->height;
+		glScissor(scissorX, scissorY, scissorWidth, scissorHeight);
 
 		if (ANYGL_SUPPORTED(glClearBufferfv))
 		{
@@ -1687,11 +1715,8 @@ bool dsGLMainCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 		}
 	}
 
-	if (setScissor)
-	{
-		glScissor(glCommandBuffer->viewportX, glCommandBuffer->viewportY,
-			glCommandBuffer->viewportWidth, glCommandBuffer->viewportHeight);
-	}
+	glScissor(glCommandBuffer->scissorX, glCommandBuffer->scissorY,
+		glCommandBuffer->scissorWidth, glCommandBuffer->scissorHeight);
 
 	if (setColorMasks)
 	{
@@ -2056,6 +2081,7 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLMainCommandBuffer_nextRenderSubpass,
 	&dsGLMainCommandBuffer_endRenderPass,
 	&dsGLMainCommandBuffer_setViewport,
+	&dsGLMainCommandBuffer_setScissor,
 	&dsGLMainCommandBuffer_clearAttachments,
 	&dsGLMainCommandBuffer_draw,
 	&dsGLMainCommandBuffer_drawIndexed,

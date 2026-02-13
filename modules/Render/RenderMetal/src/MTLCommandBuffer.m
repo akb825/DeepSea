@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,13 +52,15 @@ bool dsMTLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuff
 
 bool dsMTLCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsFramebuffer* framebuffer, const dsRenderPass* renderPass, uint32_t subpass,
-	const dsAlignedBox3f* viewport, dsGfxOcclusionQueryState parentOcclusionQueryState)
+	const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
+	dsGfxOcclusionQueryState parentOcclusionQueryState)
 {
 	DS_UNUSED(renderer);
 	DS_UNUSED(framebuffer);
 	DS_UNUSED(renderPass);
 	DS_UNUSED(subpass);
 	DS_UNUSED(viewport);
+	DS_UNUSED(scissor);
 	DS_UNUSED(parentOcclusionQueryState);
 
 	@autoreleasepool
@@ -299,11 +301,12 @@ bool dsMTLCommandBuffer_bindComputeTextureUniform(dsCommandBuffer* commandBuffer
 }
 
 bool dsMTLCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
-	MTLRenderPassDescriptor* renderPass, const dsAlignedBox3f* viewport)
+	MTLRenderPassDescriptor* renderPass, const dsAlignedBox3f* viewport,
+	const dsAlignedBox2f* scissor)
 {
 	const dsMTLCommandBufferFunctionTable* functions =
 		((dsMTLCommandBuffer*)commandBuffer)->functions;
-	return functions->beginRenderPassFunc(commandBuffer, renderPass, viewport);
+	return functions->beginRenderPassFunc(commandBuffer, renderPass, viewport, scissor);
 }
 
 bool dsMTLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
@@ -317,13 +320,22 @@ bool dsMTLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
 	return functions->endRenderPassFunc(commandBuffer);
 }
 
-bool dsMTLCommandBuffer_setViewport(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsAlignedBox3f* viewport)
+bool dsMTLCommandBuffer_setViewport(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsAlignedBox3f* viewport)
 {
 	DS_UNUSED(renderer);
 	const dsMTLCommandBufferFunctionTable* functions =
 		((dsMTLCommandBuffer*)commandBuffer)->functions;
 	return functions->setViewportFunc(commandBuffer, viewport);
+}
+
+bool dsMTLCommandBuffer_setScissor(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsAlignedBox2f* scissor)
+{
+	DS_UNUSED(renderer);
+	const dsMTLCommandBufferFunctionTable* functions =
+		((dsMTLCommandBuffer*)commandBuffer)->functions;
+	return functions->setScissorFunc(commandBuffer, scissor);
 }
 
 bool dsMTLCommandBuffer_clearAttachments(dsRenderer* renderer,
@@ -333,8 +345,8 @@ bool dsMTLCommandBuffer_clearAttachments(dsRenderer* renderer,
 	DS_UNUSED(renderer);
 	const dsMTLCommandBufferFunctionTable* functions =
 		((dsMTLCommandBuffer*)commandBuffer)->functions;
-	return functions->clearAttachmentsFunc(commandBuffer, attachments, attachmentCount, regions,
-		regionCount);
+	return functions->clearAttachmentsFunc(
+		commandBuffer, attachments, attachmentCount, regions, regionCount);
 }
 
 bool dsMTLCommandBuffer_draw(dsCommandBuffer* commandBuffer, id<MTLRenderPipelineState> pipeline,

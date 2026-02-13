@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@ public:
 			{"floatArrayMem", dsMaterialType_Float, 5}
 		};
 
-		return dsShaderVariableGroupDesc_create(resourceManager, NULL, elements,
+		return dsShaderVariableGroupDesc_create(resourceManager, nullptr, elements,
 			(uint32_t)(DS_ARRAY_SIZE(elements)));
 	}
 
@@ -120,7 +120,7 @@ TEST_F(ShaderVariableGroupTest, GfxBuffer)
 	dsShaderVariableGroupDesc* desc = createDesc();
 	ASSERT_TRUE(desc);
 	dsShaderVariableGroup_testing = true;
-	dsShaderVariableGroup* group = dsShaderVariableGroup_create(resourceManager, NULL, NULL, desc);
+	dsShaderVariableGroup* group = dsShaderVariableGroup_create(resourceManager, nullptr, nullptr, desc);
 	dsShaderVariableGroup_testing = false;
 	ASSERT_TRUE(group);
 	EXPECT_EQ(desc, dsShaderVariableGroup_getDescription(group));
@@ -285,7 +285,8 @@ TEST_F(ShaderVariableGroupTest, GfxBuffer)
 	EXPECT_EQ(3.1f, gfxBufferValues->floatArrayMem[3][0]);
 	EXPECT_EQ(3.2f, gfxBufferValues->floatArrayMem[4][0]);
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_TRUE(dsRenderPass_begin(
+		renderPass, commandBuffer, framebuffer, nullptr, nullptr, nullptr, 0, false));
 	EXPECT_FALSE(dsShaderVariableGroup_commit(group, commandBuffer));
 	EXPECT_FALSE(dsShaderVariableGroup_commitWithoutBuffer(group));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
@@ -303,7 +304,8 @@ TEST_F(ShaderVariableGroupTest, NoGfxBuffer)
 
 	dsShaderVariableGroupDesc* desc = createDesc();
 	ASSERT_TRUE(desc);
-	dsShaderVariableGroup* group = dsShaderVariableGroup_create(resourceManager, NULL, NULL, desc);
+	dsShaderVariableGroup* group = dsShaderVariableGroup_create(
+		resourceManager, nullptr, nullptr, desc);
 	ASSERT_TRUE(group);
 	EXPECT_EQ(desc, dsShaderVariableGroup_getDescription(group));
 
@@ -451,7 +453,8 @@ TEST_F(ShaderVariableGroupTest, NoGfxBuffer)
 	ASSERT_TRUE(elementPtr);
 	EXPECT_EQ(0, memcmp(&testValues.floatArrayMem, elementPtr, sizeof(testValues.floatArrayMem)));
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_TRUE(dsRenderPass_begin(
+		renderPass, commandBuffer, framebuffer, nullptr, nullptr, nullptr, 0, false));
 	EXPECT_FALSE(dsShaderVariableGroup_commit(group, commandBuffer));
 	EXPECT_TRUE(dsShaderVariableGroup_commitWithoutBuffer(group));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));

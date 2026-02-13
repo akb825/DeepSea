@@ -1348,8 +1348,8 @@ bool dsVkRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
 	return true;
 }
 
-bool dsVKRenderer_setViewport(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsAlignedBox3f* viewport)
+bool dsVkRenderer_setViewport(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsAlignedBox3f* viewport)
 {
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
@@ -1360,15 +1360,28 @@ bool dsVKRenderer_setViewport(dsRenderer* renderer, dsCommandBuffer* commandBuff
 	DS_ASSERT(framebuffer);
 	VkViewport vkViewport;
 	dsConvertVkViewport(&vkViewport, viewport, framebuffer->width, framebuffer->height);
-
-	VkRect2D renderArea =
-	{
-		{(int32_t)floorf(vkViewport.x), (int32_t)vkViewport.y},
-		{(uint32_t)ceilf(vkViewport.width), (uint32_t)ceilf(vkViewport.height)}
-	};
-
 	DS_VK_CALL(device->vkCmdSetViewport)(submitBuffer, 0, 1, &vkViewport);
-	DS_VK_CALL(device->vkCmdSetScissor)(submitBuffer, 0, 1, &renderArea);
+	return true;
+}
+
+bool dsVkRenderer_setScissor(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsAlignedBox2f* scissor)
+{
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!submitBuffer)
+		return false;
+
+	VkViewport vkViewport;
+	if (!scissor)
+	{
+		// Only needed when using the defualt scissor.
+		dsConvertVkViewport(&vkViewport, &commandBuffer->viewport,
+			commandBuffer->boundFramebuffer->width, commandBuffer->boundFramebuffer->height);
+	}
+	VkRect2D vkScissor;
+	dsConvertVkScissor(&vkScissor, scissor, &vkViewport);
+	DS_VK_CALL(device->vkCmdSetScissor)(submitBuffer, 0, 1, &vkScissor);
 	return true;
 }
 
@@ -1449,8 +1462,8 @@ bool dsVkRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 {
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
-	if (!submitBuffer || !beginDraw(commandBuffer, submitBuffer, geometry, drawRange,
-			primitiveType))
+	if (!submitBuffer || !beginDraw(
+			commandBuffer, submitBuffer, geometry, drawRange, primitiveType))
 	{
 		return false;
 	}
@@ -1466,8 +1479,8 @@ bool dsVkRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuff
 {
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
-	if (!submitBuffer || !beginIndexedDraw(commandBuffer, submitBuffer, geometry, drawRange,
-			primitiveType))
+	if (!submitBuffer || !beginIndexedDraw(
+			commandBuffer, submitBuffer, geometry, drawRange, primitiveType))
 	{
 		return false;
 	}
@@ -1496,15 +1509,15 @@ bool dsVkRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuf
 	VkBuffer vkIndirectBuffer = dsVkGfxBufferData_getBuffer(indirectBufferData);
 	if (device->features.multiDrawIndirect)
 	{
-		DS_VK_CALL(device->vkCmdDrawIndirect)(submitBuffer, vkIndirectBuffer, offset, count,
-			stride);
+		DS_VK_CALL(device->vkCmdDrawIndirect)(
+			submitBuffer, vkIndirectBuffer, offset, count, stride);
 	}
 	else
 	{
 		for (uint32_t i = 0; i < count; ++i)
 		{
-			DS_VK_CALL(device->vkCmdDrawIndirect)(submitBuffer, vkIndirectBuffer, offset + i*stride,
-				1, stride);
+			DS_VK_CALL(device->vkCmdDrawIndirect)(
+				submitBuffer, vkIndirectBuffer, offset + i*stride, 1, stride);
 		}
 	}
 	return true;
@@ -2202,6 +2215,8 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->setDefaultSamplesFunc = &dsVkRenderer_setDefaultSamples;
 	baseRenderer->setVSyncFunc = &dsVkRenderer_setVSync;
 	baseRenderer->setDefaultAnisotropyFunc = &dsVkRenderer_setDefaultAnisotropy;
+	baseRenderer->setViewportFunc = &dsVkRenderer_setViewport;
+	baseRenderer->setScissorFunc = &dsVkRenderer_setScissor;
 	baseRenderer->clearAttachmentsFunc = &dsVkRenderer_clearAttachments;
 	baseRenderer->drawFunc = &dsVkRenderer_draw;
 	baseRenderer->drawIndexedFunc = &dsVkRenderer_drawIndexed;

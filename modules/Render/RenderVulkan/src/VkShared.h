@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,5 +89,7 @@ VkPrimitiveTopology dsVkPrimitiveType(dsPrimitiveType type);
 
 void dsAdjustVkSurfaceCapabilities(
 	VkSurfaceCapabilitiesKHR* surfaceInfo, unsigned int widthHint, unsigned int heightHint);
-void dsConvertVkViewport(VkViewport* outViewport, const dsAlignedBox3f* viewport, uint32_t width,
-	uint32_t height);
+void dsConvertVkViewport(
+	VkViewport* outViewport, const dsAlignedBox3f* viewport, uint32_t width, uint32_t height);
+void dsConvertVkScissor(
+	VkRect2D* outScissor, const dsAlignedBox2f* scissor, const VkViewport* viewport);

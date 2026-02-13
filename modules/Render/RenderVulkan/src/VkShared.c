@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,14 @@
  */
 
 #include "VkShared.h"
+
 #include <DeepSea/Core/Thread/ThreadStorage.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
+#include <math.h>
 
 typedef struct LastCallsite
 {
@@ -776,8 +779,8 @@ void dsAdjustVkSurfaceCapabilities(
 		surfaceInfo->currentExtent.height = heightHint;
 }
 
-void dsConvertVkViewport(VkViewport* outViewport, const dsAlignedBox3f* viewport, uint32_t width,
-	uint32_t height)
+void dsConvertVkViewport(
+	VkViewport* outViewport, const dsAlignedBox3f* viewport, uint32_t width, uint32_t height)
 {
 	if (viewport)
 	{
@@ -796,5 +799,24 @@ void dsConvertVkViewport(VkViewport* outViewport, const dsAlignedBox3f* viewport
 		outViewport->height = (float)height;
 		outViewport->minDepth = 0.0f;
 		outViewport->maxDepth = 1.0f;
+	}
+}
+
+void dsConvertVkScissor(
+	VkRect2D* outScissor, const dsAlignedBox2f* scissor, const VkViewport* viewport)
+{
+	if (scissor)
+	{
+		outScissor->offset.x = (int32_t)floorf(scissor->min.x);
+		outScissor->offset.y = (int32_t)floorf(scissor->min.y);
+		outScissor->extent.width = (int32_t)ceilf(scissor->max.x - scissor->min.x);
+		outScissor->extent.height = (int32_t)ceilf(scissor->max.y - scissor->min.y);
+	}
+	else
+	{
+		outScissor->offset.x = (int32_t)floorf(viewport->x);
+		outScissor->offset.y = (int32_t)floorf(viewport->y);
+		outScissor->extent.width = (int32_t)ceilf(viewport->width);
+		outScissor->extent.height = (int32_t)ceilf(viewport->height);
 	}
 }

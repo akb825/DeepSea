@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -299,6 +299,16 @@ struct Color4f
 	green : float;
 	blue : float;
 	alpha : float;
+}
+
+// Struct describing a 2-dimensional aligned box.
+struct AlignedBox2f
+{
+	// The minimum values for the box.
+	min : Vector2f;
+
+	// The maximum values for the box.
+	max : Vector2f;
 }
 
 // Struct describing a 3-dimensional aligned box.

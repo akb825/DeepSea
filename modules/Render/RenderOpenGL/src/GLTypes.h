@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -380,8 +380,8 @@ typedef bool (*GLEndRenderSurfaceFunction)(dsCommandBuffer* commandBuffer, void*
 
 typedef bool (*GLBeginRenderPassFunction)(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
-	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount);
+	const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
+	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount);
 typedef bool (*GLNextRenderSubpassFunction)(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, uint32_t subpassIndex);
 typedef bool (*GLEndRenderPassFunction)(dsCommandBuffer* commandBuffer,
@@ -389,6 +389,8 @@ typedef bool (*GLEndRenderPassFunction)(dsCommandBuffer* commandBuffer,
 
 typedef bool (*GLSetViewportFunction)(dsCommandBuffer* commandBuffer,
 	const dsAlignedBox3f* viewport);
+typedef bool (*GLSetScissorFunction)(dsCommandBuffer* commandBuffer,
+	const dsAlignedBox2f* scissor);
 typedef bool (*GLClearAttachmentsFunction)(dsCommandBuffer* commandBuffer,
 	const dsClearAttachment* attachments, uint32_t attachmentCount,
 	const dsAttachmentClearRegion* regions, uint32_t regionCount);
@@ -461,6 +463,7 @@ typedef struct CommandBufferFunctionTable
 	GLEndRenderPassFunction endRenderPassFunc;
 
 	GLSetViewportFunction setViewportFunc;
+	GLSetScissorFunction setScissorFunc;
 	GLClearAttachmentsFunction clearAttachmentsFunc;
 	GLDrawFunction drawFunc;
 	GLDrawIndexedFunction drawIndexedFunc;

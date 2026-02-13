@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -176,6 +176,16 @@ inline dsColor4f convert(const Color4f& color)
 	// Avoid unaligned access.
 	dsColor4f value = {{color.red(), color.green(), color.blue(), color.alpha()}};
 	return value;
+}
+
+/**
+ * @brief Converts from a flatbuffer AlignedBox2f to a dsAlignedBox2f.
+ * @param box The box to convert.
+ * @return The converted box.
+ */
+inline const dsAlignedBox2f& convert(const AlignedBox2f& box)
+{
+	return reinterpret_cast<const dsAlignedBox2f&>(box);
 }
 
 /**

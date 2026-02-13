@@ -1075,6 +1075,11 @@ typedef struct dsCommandBuffer
 	dsAlignedBox3f viewport;
 
 	/**
+	 * @brief The currently set scissor box for the render pass.
+	 */
+	dsAlignedBox2f scissor;
+
+	/**
 	 * @brief The currently bound shader.
 	 */
 	const dsShader* boundShader;
@@ -1599,6 +1604,7 @@ typedef bool (*dsBeginCommandBufferFunction)(dsRenderer* renderer, dsCommandBuff
  * @param renderPass The render pass being drawn to.
  * @param subpass The subpass within the render pass being drawn to.
  * @param viewport The viewport to render to.
+ * @param scissor The scissor box to cut to.
  * @param parentOcclusionQueryState The expected state of the occlusion query for the primary
  *     command buffer this will be submitted to.
  * @return False if the command buffer couldn't be begun.
@@ -1606,7 +1612,7 @@ typedef bool (*dsBeginCommandBufferFunction)(dsRenderer* renderer, dsCommandBuff
 typedef bool (*dsBeginSecondaryCommandBufferFunction)(dsRenderer* renderer,
 	dsCommandBuffer* commandBuffer, const dsFramebuffer* framebuffer,
 	const dsRenderPass* renderPass, uint32_t subpass, const dsAlignedBox3f* viewport,
-	dsGfxOcclusionQueryState parentOcclusionQueryState);
+	const dsAlignedBox2f* scissor, dsGfxOcclusionQueryState parentOcclusionQueryState);
 
 /**
  * @brief Function for ending drawing to a command buffer.
@@ -1663,6 +1669,7 @@ typedef bool (*dsDestroyRenderPassFunction)(dsRenderer* renderer, dsRenderPass* 
  * @param framebuffer The framebuffer to draw the render pass to.
  * @param viewport The viewport to draw to. The x/y values are in pixel space, while the z value is
  *     in the range [0, 1]. If NULL, the full range is used.
+ * @param scissor The scissor box to cut to in pixel space. If NULL, the viewport will be used.
  * @param clearValues The values to clear the framebuffer with. Only values corresponding to
  *     attachments with the clear bit set are considered. This may be NULL if no attachments will be
  *     cleared.
@@ -1674,8 +1681,8 @@ typedef bool (*dsDestroyRenderPassFunction)(dsRenderer* renderer, dsRenderPass* 
  */
 typedef bool (*dsBeginRenderPassFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
-	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount, bool secondary);
+	const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,
+	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount, bool secondary);
 
 /**
  * @brief Function for advancing to the next subpass within a render pass.
@@ -1751,8 +1758,18 @@ typedef bool (*dsSetRenderDefaultAnisotropyFunction)(dsRenderer* renderer, float
  * @param viewport The viewport to draw to.
  * @return False if the viewport couldn't be set.
  */
-typedef bool (*dsRenderSetViewportFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsAlignedBox3f* viewport);
+typedef bool (*dsRenderSetViewportFunction)(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsAlignedBox3f* viewport);
+
+/**
+ * @brief Function for setting the scissor.
+ * @param renderer The renderer.
+ * @param commandBuffer The command buffer to place the command on.
+ * @param scissor The scissor to draw to.
+ * @return False if the scissor couldn't be set.
+ */
+typedef bool (*dsRenderSetScissorFunction)(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsAlignedBox2f* scissor);
 
 /**
  * @brief Function for clearing attachments.
@@ -2364,6 +2381,11 @@ struct dsRenderer
 	 * @brief Viewport set function.
 	 */
 	dsRenderSetViewportFunction setViewportFunc;
+
+	/**
+	 * @brief Scissor set function.
+	 */
+	dsRenderSetScissorFunction setScissorFunc;
 
 	/**
 	 * @brief Attachment clear function.
