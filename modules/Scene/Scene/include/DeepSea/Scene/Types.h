@@ -67,6 +67,17 @@ typedef enum dsSceneResourceType
 } dsSceneResourceType;
 
 /**
+ * @brief Enum for the dimension the screen size is along for a view.
+ *
+ * The other dimension will be determined by the aspect ratio.
+ */
+typedef enum dsViewScreenSizeDim
+{
+	dsViewScreenSizeDim_Width, ///< Size is for the width.
+	dsViewScreenSizeDim_Height ///< Size is for the height.
+} dsViewScreenSizeDim;
+
+/**
  * @brief Struct that describes a scene.
  * @see Scene.h
  */
@@ -449,6 +460,16 @@ struct dsView
 	dsRenderSurfaceRotation rotation;
 
 	/**
+	 * @brief The size of the screen for the screen projection matrix.
+	 */
+	float screenSize;
+
+	/**
+	 * @brief The dimension the screen size is relative to.
+	 */
+	dsViewScreenSizeDim screenDimension;
+
+	/**
 	 * @brief Parameters for the projection matrix.
 	 */
 	dsProjectionParams projectionParams;
@@ -479,6 +500,15 @@ struct dsView
 	 * @brief The view frustum in world space.
 	 */
 	dsFrustum3f viewFrustum;
+
+	/**
+	 * @brief The projection matrix for screen-space.
+	 *
+	 * This will be an orthographic projection in the range [0, screenSize] along screenDimension,
+	 * and size based on the aspect ratio for the other dimension. It will always be in the range
+	 * [0, 1] for depth.
+	 */
+	dsMatrix44f screenProjectinMatrix;
 
 	/**
 	 * @brief The bias to apply when choosing which LOD to use.

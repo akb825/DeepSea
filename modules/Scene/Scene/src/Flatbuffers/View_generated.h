@@ -59,6 +59,36 @@ inline const char *EnumNameSurfaceType(SurfaceType e) {
   return EnumNamesSurfaceType()[index];
 }
 
+enum class ScreenSizeDim : uint8_t {
+  Width = 0,
+  Height = 1,
+  MIN = Width,
+  MAX = Height
+};
+
+inline const ScreenSizeDim (&EnumValuesScreenSizeDim())[2] {
+  static const ScreenSizeDim values[] = {
+    ScreenSizeDim::Width,
+    ScreenSizeDim::Height
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesScreenSizeDim() {
+  static const char * const names[3] = {
+    "Width",
+    "Height",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameScreenSizeDim(ScreenSizeDim e) {
+  if (::flatbuffers::IsOutRange(e, ScreenSizeDim::Width, ScreenSizeDim::Height)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesScreenSizeDim()[index];
+}
+
 struct Surface FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef SurfaceBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -513,13 +543,21 @@ struct View FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ViewBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_SURFACES = 4,
-    VT_FRAMEBUFFERS = 6
+    VT_FRAMEBUFFERS = 6,
+    VT_SCREENSIZE = 8,
+    VT_SCREENDIMENSION = 10
   };
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::Surface>> *surfaces() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::Surface>> *>(VT_SURFACES);
   }
   const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::Framebuffer>> *framebuffers() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::Framebuffer>> *>(VT_FRAMEBUFFERS);
+  }
+  float screenSize() const {
+    return GetField<float>(VT_SCREENSIZE, 0.0f);
+  }
+  DeepSeaScene::ScreenSizeDim screenDimension() const {
+    return static_cast<DeepSeaScene::ScreenSizeDim>(GetField<uint8_t>(VT_SCREENDIMENSION, 0));
   }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
@@ -530,6 +568,8 @@ struct View FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyOffsetRequired(verifier, VT_FRAMEBUFFERS) &&
            verifier.VerifyVector(framebuffers()) &&
            verifier.VerifyVectorOfTables(framebuffers()) &&
+           VerifyField<float>(verifier, VT_SCREENSIZE, 4) &&
+           VerifyField<uint8_t>(verifier, VT_SCREENDIMENSION, 1) &&
            verifier.EndTable();
   }
 };
@@ -543,6 +583,12 @@ struct ViewBuilder {
   }
   void add_framebuffers(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::Framebuffer>>> framebuffers) {
     fbb_.AddOffset(View::VT_FRAMEBUFFERS, framebuffers);
+  }
+  void add_screenSize(float screenSize) {
+    fbb_.AddElement<float>(View::VT_SCREENSIZE, screenSize, 0.0f);
+  }
+  void add_screenDimension(DeepSeaScene::ScreenSizeDim screenDimension) {
+    fbb_.AddElement<uint8_t>(View::VT_SCREENDIMENSION, static_cast<uint8_t>(screenDimension), 0);
   }
   explicit ViewBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -559,23 +605,31 @@ struct ViewBuilder {
 inline ::flatbuffers::Offset<View> CreateView(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::Surface>>> surfaces = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::Framebuffer>>> framebuffers = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::Framebuffer>>> framebuffers = 0,
+    float screenSize = 0.0f,
+    DeepSeaScene::ScreenSizeDim screenDimension = DeepSeaScene::ScreenSizeDim::Width) {
   ViewBuilder builder_(_fbb);
+  builder_.add_screenSize(screenSize);
   builder_.add_framebuffers(framebuffers);
   builder_.add_surfaces(surfaces);
+  builder_.add_screenDimension(screenDimension);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<View> CreateViewDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const std::vector<::flatbuffers::Offset<DeepSeaScene::Surface>> *surfaces = nullptr,
-    const std::vector<::flatbuffers::Offset<DeepSeaScene::Framebuffer>> *framebuffers = nullptr) {
+    const std::vector<::flatbuffers::Offset<DeepSeaScene::Framebuffer>> *framebuffers = nullptr,
+    float screenSize = 0.0f,
+    DeepSeaScene::ScreenSizeDim screenDimension = DeepSeaScene::ScreenSizeDim::Width) {
   auto surfaces__ = surfaces ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaScene::Surface>>(*surfaces) : 0;
   auto framebuffers__ = framebuffers ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaScene::Framebuffer>>(*framebuffers) : 0;
   return DeepSeaScene::CreateView(
       _fbb,
       surfaces__,
-      framebuffers__);
+      framebuffers__,
+      screenSize,
+      screenDimension);
 }
 
 inline const DeepSeaScene::View *GetView(const void *buf) {

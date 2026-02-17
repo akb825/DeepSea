@@ -269,7 +269,8 @@ dsView* dsView_loadImpl(dsAllocator* allocator, const char* name, const dsScene*
 	}
 
 	view = dsView_create(allocator, name, scene, resourceAllocator, allSurfaces, allSurfaceCount,
-		framebuffers, framebufferCount, width, height, rotation, userData, destroyUserDataFunc);
+		framebuffers, framebufferCount, width, height, rotation, fbView->screenSize(),
+		(dsViewScreenSizeDim)fbView->screenDimension(), userData, destroyUserDataFunc);
 
 finished:
 	DS_VERIFY(dsAllocator_free(scratchAllocator, tempBuffer));

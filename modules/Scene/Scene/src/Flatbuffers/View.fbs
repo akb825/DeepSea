@@ -25,6 +25,13 @@ enum SurfaceType : ubyte
 	Offscreen
 }
 
+// Enum for the dimension of the screens ize.
+enum ScreenSizeDim : ubyte
+{
+	Width,
+	Height
+}
+
 // Struct describing a surface to create for a view.
 table Surface
 {
@@ -127,6 +134,12 @@ table View
 
 	// The framebuffers to create for the view.
 	framebuffers : [Framebuffer] (required);
+
+	// The size of the screen.
+	screenSize : float;
+
+	// The dimension the screen size is used for.
+	screenDimension : ScreenSizeDim;
 }
 
 root_type View;

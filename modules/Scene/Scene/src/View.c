@@ -330,8 +330,26 @@ static void updatedCameraProjection(dsView* view)
 	DS_VERIFY(dsProjectionParams_createMatrix(
 		&view->projectionMatrix, &view->projectionParams, renderer));
 	dsMatrix44f_mul(&view->viewProjectionMatrix, &view->projectionMatrix, &view->viewMatrix);
-	DS_VERIFY(dsRenderer_frustumFromMatrix(&view->viewFrustum, renderer,
-		&view->viewProjectionMatrix));
+	DS_VERIFY(dsRenderer_frustumFromMatrix(
+		&view->viewFrustum, renderer, &view->viewProjectionMatrix));
+}
+
+static void updateScreenProjection(dsView* view)
+{
+	dsRenderer* renderer = view->scene->renderer;
+	float width, height;
+	if (view->screenDimension == dsViewScreenSizeDim_Width)
+	{
+		width = view->screenSize;
+		height = width*(float)view->height/(float)view->width;
+	}
+	else
+	{
+		height = view->screenSize;
+		width = height*(float)view->width/(float)view->height;
+	}
+	DS_VERIFY(dsRenderer_makeOrtho(
+		&view->screenProjectinMatrix, renderer, 0.0f, width, 0.0f, height, 0.0f, 1.0f));
 }
 
 static bool bindOffscreenVariables(dsView* view)
@@ -362,7 +380,8 @@ dsView* dsView_loadImpl(dsAllocator* allocator, const char* name, const dsScene*
 dsView* dsView_create(dsAllocator* allocator, const char* name, const dsScene* scene,
 	dsAllocator* resourceAllocator, const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount,
 	const dsViewFramebufferInfo* framebuffers, uint32_t framebufferCount, uint32_t width,
-	uint32_t height, dsRenderSurfaceRotation rotation, void* userData,
+	uint32_t height, dsRenderSurfaceRotation rotation, float screenSize,
+	dsViewScreenSizeDim screenDimension, void* userData,
 	dsDestroyUserDataFunction destroyUserDataFunc)
 {
 	if (!allocator || !name || !scene || !surfaces || surfaceCount == 0 || !framebuffers ||
@@ -374,7 +393,7 @@ dsView* dsView_create(dsAllocator* allocator, const char* name, const dsScene* s
 		return NULL;
 	}
 
-	if (width == 0 || height == 0)
+	if (width == 0 || height == 0 || screenSize == 0)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "View size must not be 0.");
@@ -447,10 +466,13 @@ dsView* dsView_create(dsAllocator* allocator, const char* name, const dsScene* s
 	view->width = width;
 	view->height = height;
 	view->rotation = rotation;
+	view->screenSize = screenSize;
+	view->screenDimension = screenDimension;
 	updatePreRotatedDimensions(view);
 	dsMatrix44_identity(view->cameraMatrix);
 	dsMatrix44_identity(view->viewMatrix);
 	dsView_setOrthoProjection(view, -1, 1, -1, 1, -1, 1);
+	updateScreenProjection(view);
 	view->lodBias = 1.0f;
 
 	uint32_t variableCount = scene->globalValueCount + offscreenSurfaceCount;
@@ -821,6 +843,7 @@ bool dsView_setDimensions(
 	view->height = height;
 	view->rotation = rotation;
 	updatePreRotatedDimensions(view);
+	updateScreenProjection(view);
 	privateView->sizeUpdated = true;
 
 	if (view->projectionParams.type == dsProjectionType_Perspective)
@@ -931,7 +954,7 @@ bool dsView_setFrustumProjection(
 
 bool dsView_setPerspectiveProjection(dsView* view, float fovy, float near, float far)
 {
-	if (!view)
+	if (!view || fovy == 0.0f)
 	{
 		errno = EINVAL;
 		return false;
@@ -942,6 +965,20 @@ bool dsView_setPerspectiveProjection(dsView* view, float fovy, float near, float
 		return false;
 
 	updatedCameraProjection(view);
+	return true;
+}
+
+bool dsView_setScreenSize(dsView* view, float size, dsViewScreenSizeDim dimension)
+{
+	if (!view || size <= 0.0f)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	view->screenSize = size;
+	view->screenDimension = dimension;
+	updateScreenProjection(view);
 	return true;
 }
 

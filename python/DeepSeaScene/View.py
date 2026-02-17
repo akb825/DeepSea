@@ -74,8 +74,22 @@ class View(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
+    # View
+    def ScreenSize(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return 0.0
+
+    # View
+    def ScreenDimension(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
+        return 0
+
 def ViewStart(builder):
-    builder.StartObject(2)
+    builder.StartObject(4)
 
 def Start(builder):
     ViewStart(builder)
@@ -103,6 +117,18 @@ def ViewStartFramebuffersVector(builder, numElems):
 
 def StartFramebuffersVector(builder, numElems):
     return ViewStartFramebuffersVector(builder, numElems)
+
+def ViewAddScreenSize(builder, screenSize):
+    builder.PrependFloat32Slot(2, screenSize, 0.0)
+
+def AddScreenSize(builder, screenSize):
+    ViewAddScreenSize(builder, screenSize)
+
+def ViewAddScreenDimension(builder, screenDimension):
+    builder.PrependUint8Slot(3, screenDimension, 0)
+
+def AddScreenDimension(builder, screenDimension):
+    ViewAddScreenDimension(builder, screenDimension)
 
 def ViewEnd(builder):
     return builder.EndObject()

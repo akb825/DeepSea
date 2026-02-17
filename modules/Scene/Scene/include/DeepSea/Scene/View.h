@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,8 @@ extern "C"
  * @param width The width of the view.
  * @param height The height of the view.
  * @param rotation The rotation of the window surface.
+ * @param screenSize The size of the screen for the screen projection matrix.
+ * @param screenDimension The dimension the screen size is relative to.
  * @param userData User data to hold with the view.
  * @param destroyUserDataFunc Function to destroy the user data for the view.
  * @return The view or NULL if an error occurred.
@@ -55,7 +57,8 @@ extern "C"
 DS_SCENE_EXPORT dsView* dsView_create(dsAllocator* allocator, const char* name,
 	const dsScene* scene, dsAllocator* resourceAllocator, const dsViewSurfaceInfo* surfaces,
 	uint32_t surfaceCount, const dsViewFramebufferInfo* framebuffers, uint32_t framebufferCount,
-	uint32_t width, uint32_t height, dsRenderSurfaceRotation rotation, void* userData,
+	uint32_t width, uint32_t height, dsRenderSurfaceRotation rotation, float screenSize,
+	dsViewScreenSizeDim screenDimension, void* userData,
 	dsDestroyUserDataFunction destroyUserDataFunc);
 
 /**
@@ -216,8 +219,8 @@ DS_SCENE_EXPORT bool dsView_setScene(dsView* view, const dsScene* scene);
  * @param rotation The rotation of the window surface.
  * @return False if the parameters are invalid.
  */
-DS_SCENE_EXPORT bool dsView_setDimensions(dsView* view, uint32_t width, uint32_t height,
-	dsRenderSurfaceRotation rotation);
+DS_SCENE_EXPORT bool dsView_setDimensions(
+	dsView* view, uint32_t width, uint32_t height, dsRenderSurfaceRotation rotation);
 
 /**
  * @brief Gets a surface used within the view.
@@ -312,6 +315,20 @@ DS_SCENE_EXPORT bool dsView_setFrustumProjection(dsView* view, float left, float
  */
 DS_SCENE_EXPORT bool dsView_setPerspectiveProjection(
 	dsView* view, float fovy, float near, float far);
+
+/**
+ * @brief Sets the size for screen space.
+ *
+ * The screen space will be in the range [0, size] for the set dimension, with the other dimension
+ * determined by the aspect ratio. The depth will always be in the range [0, 1].
+ *
+ * @remark errno will be set on failure.
+ * @param view The view to set the screen size on.
+ * @param size The size of the screen.
+ * @param dimension The dimension the size is used for.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENE_EXPORT bool dsView_setScreenSize(dsView* view, float size, dsViewScreenSizeDim dimension);
 
 /**
  * @brief Sets the projection parameters.

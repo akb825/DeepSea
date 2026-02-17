@@ -20,6 +20,7 @@ from ..FormatDecoration import FormatDecoration
 from .. import Framebuffer
 from .. import FramebufferSurface
 from .. import Surface
+from ..ScreenSizeDim import ScreenSizeDim
 from ..SurfaceType import SurfaceType
 from ..TextureDim import TextureDim
 from ..TextureFormat import TextureFormat
@@ -118,6 +119,9 @@ def convertView(convertContext, data, inputDir):
 	      Defaults to viewport maxX.
 	    - maxY: the maximum Y value for the lower-right position as a fraction of the height.
 	      Defaults to viewport maxY.
+	- screenSize: the size of the main dimension for screen space. Defaults to 100.
+	- screenDimension: the dimension `screensSize` is used for as "Width" or "Height". The other
+	  dimension will be determined by the aspect ratio. Defaults to "Height".
 	"""
 	unsetValue = 0xFFFFFFFF
 	surfaceSamples = 0xFFFFFFFF
@@ -368,6 +372,14 @@ def convertView(convertContext, data, inputDir):
 			raise Exception('View "framebuffers" doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):
 			raise Exception('View "framebuffers" must be an array of array of objects.')
+
+		screenSize = readFloat(data.get('screenSize', 100), 'screenSize', 1.175494e-38)
+
+		screenDimensionStr = str(data.get('surfaceDimension', 'Height'))
+		try:
+			screenDimension = getattr(ScreenSizeDim, screenDimensionStr)
+		except AttributeError:
+			raise Exception('Invalid screen size dimension "' + typeStr + '".')
 	except KeyError as e:
 		raise Exception('View doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):
@@ -458,5 +470,7 @@ def convertView(convertContext, data, inputDir):
 	View.Start(builder)
 	View.AddSurfaces(builder, surfacesOffset)
 	View.AddFramebuffers(builder, framebuffersOffset)
+	View.AddScreenSize(builder, screenSize)
+	View.AddScreenDimension(builder, screenDimension)
 	builder.Finish(View.End(builder))
 	return builder.Output()

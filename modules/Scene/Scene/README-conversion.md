@@ -428,3 +428,5 @@ The view describes the layout of surfaces and framebuffers to draw to. The JSON 
 		* `minY`: the minimum Y value for the upper-left position as a fraction of the height. Defaults to `viewport` `minY`.
 		* `maxX`: the maximum X value for the lower-right position as a fraction of the width. Defaults to `viewport` `maxX`.
 		* `maxY`: the maximum Y value for the lower-right position as a fraction of the height. Defaults to `viewport` `maxY`.
+* `screenSize`: the size of the main dimension for screen space. Defaults to 100.
+* `screenDimension`: the dimension `screensSize` is used for as `"Width"` or `"Height"`. The other dimension will be determined by the aspect ratio. Defaults to `"Height"`.
