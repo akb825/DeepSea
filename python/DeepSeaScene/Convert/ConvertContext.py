@@ -18,6 +18,7 @@ from .FullScreenResolveConvert import convertFullScreenResolve
 from .GLTFModel import registerGLTFModelType
 from .HandoffListConvert import convertHandoffList
 from .HandoffNodeConvert import convertHandoffNode
+from .InstanceScreenTransformDataConvert import convertInstanceScreenTransformData
 from .InstanceTransformDataConvert import convertInstanceTransformData
 from .ModelListConvert import convertModelList
 from .ModelNodeReconfigConvert import convertModelNodeReconfig
@@ -62,6 +63,7 @@ class ConvertContext:
 		}
 
 		self.instanceDataTypeMap = {
+			'InstanceScreenTransformData': convertInstanceScreenTransformData,
 			'InstanceTransformData': convertInstanceTransformData
 		}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ void vertexShader()
 
 	vec4 position = vec4(viPosition + orientation*vec3(viOffset.x, 0.0, viOffset.y), 1.0);
 	gl_Position = DS_ADJUST_CLIP(INSTANCE(dsParticleTransform).worldViewProj*position);
-	gl_Position.xy = dsRotateScreenPosition(gl_Position.xy);
+	gl_Position.xy = dsRotateFramebufferPosition(gl_Position.xy);
 
 	vfColor.rgb = dsLinearFromSRGB(viColor.rgb)*viIntensityTextureT.x;
 	// Fade out at the end of the particle.

@@ -15,7 +15,7 @@
  */
 
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
-#include <DeepSea/Scene/Shaders/InstanceTransform.mslh>
+#include <DeepSea/Scene/Shaders/InstanceScreenTransform.mslh>
 #include <DeepSea/Scene/Shaders/ViewTransform.mslh>
 #include <DeepSea/Text/Text.mslh>
 
@@ -45,8 +45,8 @@ void vertexShader()
 
 	// Text coordinate space has +Y pointing down.
 	gl_Position =
-		INSTANCE(dsInstanceTransform).worldViewProj*vec4(vertexPos.x, -vertexPos.y, 0.0, 1.0);
-	gl_Position.xy = dsRotateScreenPosition(gl_Position.xy);
+		INSTANCE(dsInstanceScreenTransform).worldProj*vec4(vertexPos.x, -vertexPos.y, 0.0, 1.0);
+	gl_Position.xy = dsRotateFramebufferPosition(gl_Position.xy);
 	gl_Position = DS_ADJUST_CLIP(gl_Position);
 }
 
@@ -54,8 +54,8 @@ void vertexShader()
 void fragmentShader()
 {
 	float distance = dsComputeTextDistance(vfTexCoords);
-	color = dsComputeTextColor(distance, vfStyle.x, vfStyle.y, vfStyle.z, vfStyle.w, vfTextColor,
-		vfOutlineColor);
+	color = dsComputeTextColor(
+		distance, vfStyle.x, vfStyle.y, vfStyle.z, vfStyle.w, vfTextColor, vfOutlineColor);
 }
 
 pipeline Text

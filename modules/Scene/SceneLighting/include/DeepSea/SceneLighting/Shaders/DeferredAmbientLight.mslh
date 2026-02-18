@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ vec4 dsDeferredAmbientLight_processVertex()
 {
 	vfLightColor = viLightColor;
 
-	vec2 rotatedPosition = dsRotateScreenPosition(viPosition);
+	vec2 rotatedPosition = dsRotateFramebufferPosition(viPosition);
 	vfClipCoords = DS_ADJUST_DIRECT_CLIP(vec4(rotatedPosition, 0.0, 1.0));
 	vfTexCoords = dsCommonClipToTexCoords(viPosition);
 	return vec4(viPosition, 0.0, 1.0);

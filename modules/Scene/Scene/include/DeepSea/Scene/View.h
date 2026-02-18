@@ -331,6 +331,15 @@ DS_SCENE_EXPORT bool dsView_setPerspectiveProjection(
 DS_SCENE_EXPORT bool dsView_setScreenSize(dsView* view, float size, dsViewScreenSizeDim dimension);
 
 /**
+ * @brief Gets the size for screen space.
+ * @remark errno will be set on failure.
+ * @param[out] outSize The screen size.
+ * @param view The view to set the screen size from.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENE_EXPORT bool dsView_getScreenSize(dsVector2f* outSize, const dsView* view);
+
+/**
  * @brief Sets the projection parameters.
  *
  * This will update projectionMatrix, viewProjectionMatrix, and viewFrustum.

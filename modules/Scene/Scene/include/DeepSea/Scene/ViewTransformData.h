@@ -31,8 +31,8 @@ extern "C"
  *
  * This populates the uniforms found in DeepSea/Scene/Shaders/ViewTransform.mslh
  *
- * @remark This item list type contains global values and must be a alone as an entry in the
- *     sharedItemlist of a dsScene.
+ * @remark This item list type contains global values and must be in the sharedItemlist of a
+ *     dsScene.
  */
 
 /**

@@ -381,6 +381,12 @@ Instance transform data has the type name "InstanceTransformData" and sets stand
 
 * `variableGroupDesc`: string name for the shader variable group to use.
 
+### Instance Screen Transform Data
+
+Instance screen transform data has the type name "InstanceScreenTransformData" and sets standard transform matrices for each screen-space item that's drawn. It contains the following members:
+
+* `variableGroupDesc`: string name for the shader variable group to use.
+
 # View
 
 The view describes the layout of surfaces and framebuffers to draw to. The JSON object (or Python dict supplied directly) has the following elements:

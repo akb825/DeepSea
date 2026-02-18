@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,7 +143,7 @@ vec4 dsDeferredSpotLight_processVertex()
 void dsDeferredSpotLight_defaultVertex()
 {
 	gl_Position = dsDeferredSpotLight_processVertex();
-	gl_Position.xy = dsRotateScreenPosition(gl_Position.xy);
+	gl_Position.xy = dsRotateFramebufferPosition(gl_Position.xy);
 #ifndef DS_USE_DEPTH_CLAMP
 	// Clamp the Z coordinate to ensure it doesn't get clipped by the far plane.
 	float z = gl_Position.z/gl_Position.w;

@@ -92,7 +92,7 @@ void vertexShader()
 {
 	vec4 position4 = vec4(position, 1.0);
 	gl_Position = DS_ADJUST_CLIP(INSTANCE(dsInstanceTransform).worldViewProj*position4);
-	gl_Position.xy = dsRotateScreenPosition(gl_Position.xy);
+	gl_Position.xy = dsRotateFramebufferPosition(gl_Position.xy);
 
 	vec4 viewPosition = INSTANCE(dsInstanceTransform).worldView*position4;
 	vfViewPosition = viewPosition.xyz;

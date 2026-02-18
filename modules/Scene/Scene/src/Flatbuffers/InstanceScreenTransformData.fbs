@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2026 Aaron Barany
+ * Copyright 2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
-#include <DeepSea/VectorDraw/Shaders/VectorElementImage.mslh>
+namespace DeepSeaScene;
 
-[[vertex]]
-void vectorImageVertex()
+// Struct describing instance screen transform data.
+table InstanceScreenTransformData
 {
-	gl_Position = dsVectorElementImage_getVectorInfo();
-	gl_Position.xy = dsRotateFramebufferPosition(gl_Position.xy);
-	gl_Position = DS_ADJUST_CLIP(gl_Position);
+	// The name of the shader variable group description for the transform data.
+	variableGroupDesc : string (required);
 }
 
-pipeline dsVectorImage
-{
-	vertex = vectorImageVertex;
-	fragment = dsVectorElementImage_defaultFragment;
-	DS_DEFAULT_VECTOR_ELEMENT_IMAGE_RENDER_STATES;
-}
+root_type InstanceScreenTransformData;

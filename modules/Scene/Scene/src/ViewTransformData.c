@@ -42,9 +42,12 @@ static dsShaderVariableElement elements[] =
 	{"projection", dsMaterialType_Mat4, 0},
 	{"viewProjection", dsMaterialType_Mat4, 0},
 	{"projectionInv", dsMaterialType_Mat4, 0},
-	{"screenRotation", dsMaterialType_Vec4, 0},
+	{"screenProjection", dsMaterialType_Mat4, 0},
+	{"screenProjectionInv", dsMaterialType_Mat4, 0},
+	{"framebufferRotation", dsMaterialType_Vec4, 0},
 	{"clipSpaceTexCoordTransform", dsMaterialType_Vec3, 2},
-	{"screenSize", dsMaterialType_IVec2, 0}
+	{"framebufferSize", dsMaterialType_IVec2, 0},
+	{"screenSize", dsMaterialType_Vec2, 0}
 };
 
 typedef struct dsViewTransformData
@@ -54,31 +57,38 @@ typedef struct dsViewTransformData
 	uint32_t nameID;
 } dsViewTransformData;
 
-static void dsViewTransformData_commit(dsSceneItemList* itemList, const dsView* view,
-	dsCommandBuffer* commandBuffer)
+static void dsViewTransformData_commit(
+	dsSceneItemList* itemList, const dsView* view, dsCommandBuffer* commandBuffer)
 {
 	DS_ASSERT(itemList);
 	dsViewTransformData* viewData = (dsViewTransformData*)itemList;
 	dsRenderer* renderer = commandBuffer->renderer;
 	unsigned int i = 0;
-	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, i++, &view->viewMatrix,
-		dsMaterialType_Mat4, 0, 1));
-	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, i++,
-		&view->cameraMatrix, dsMaterialType_Mat4, 0, 1));
-	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, i++,
-		&view->projectionMatrix, dsMaterialType_Mat4, 0, 1));
-	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, i++,
-		&view->viewProjectionMatrix, dsMaterialType_Mat4, 0, 1));
+	DS_VERIFY(dsShaderVariableGroup_setElementData(
+		viewData->variableGroup, i++, &view->viewMatrix, dsMaterialType_Mat4, 0, 1));
+	DS_VERIFY(dsShaderVariableGroup_setElementData(
+		viewData->variableGroup, i++, &view->cameraMatrix, dsMaterialType_Mat4, 0, 1));
+	DS_VERIFY(dsShaderVariableGroup_setElementData(
+		viewData->variableGroup, i++, &view->projectionMatrix, dsMaterialType_Mat4, 0, 1));
+	DS_VERIFY(dsShaderVariableGroup_setElementData(
+		viewData->variableGroup, i++, &view->viewProjectionMatrix, dsMaterialType_Mat4, 0, 1));
 
 	dsMatrix44f projectionInv;
 	dsMatrix44f_invert(&projectionInv, &view->projectionMatrix);
-	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, i++, &projectionInv,
-		dsMaterialType_Mat4, 0, 1));
+	DS_VERIFY(dsShaderVariableGroup_setElementData(
+		viewData->variableGroup, i++, &projectionInv, dsMaterialType_Mat4, 0, 1));
 
-	dsMatrix22f screenRotation;
-	DS_VERIFY(dsRenderSurface_makeRotationMatrix22(&screenRotation, view->rotation));
-	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, i++, &screenRotation,
-		dsMaterialType_Vec4, 0, 1));
+	DS_VERIFY(dsShaderVariableGroup_setElementData(
+		viewData->variableGroup, i++, &view->screenProjectionMatrix, dsMaterialType_Mat4, 0, 1));
+
+	dsMatrix44f_invert(&projectionInv, &view->screenProjectionMatrix);
+	DS_VERIFY(dsShaderVariableGroup_setElementData(
+		viewData->variableGroup, i++, &projectionInv, dsMaterialType_Mat4, 0, 1));
+
+	dsMatrix22f framebufferRotation;
+	DS_VERIFY(dsRenderSurface_makeRotationMatrix22(&framebufferRotation, view->rotation));
+	DS_VERIFY(dsShaderVariableGroup_setElementData(
+		viewData->variableGroup, i++, &framebufferRotation, dsMaterialType_Vec4, 0, 1));
 
 	int halfDepth = renderer->projectionOptions & dsProjectionMatrixOptions_HalfZRange;
 	dsVector3f texCoordTransform[2] =
@@ -86,31 +96,36 @@ static void dsViewTransformData_commit(dsSceneItemList* itemList, const dsView* 
 		{{0.5f, renderer->projectedTexCoordTInverted ? -0.5f : 0.5f, halfDepth ? 1.0f : 0.5f}},
 		{{0.5f, 0.5f, halfDepth ? 0.0f : 0.5f}}
 	};
-	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, i++, texCoordTransform,
-		dsMaterialType_Vec3, 0, 2));
+	DS_VERIFY(dsShaderVariableGroup_setElementData(
+		viewData->variableGroup, i++, texCoordTransform, dsMaterialType_Vec3, 0, 2));
 
-	dsVector2i screenSize;
+	dsVector2i framebufferSize;
 	if (view->rotation == dsRenderSurfaceRotation_0 ||
 		view->rotation == dsRenderSurfaceRotation_180)
 	{
-		screenSize.x = view->width;
-		screenSize.y = view->height;
+		framebufferSize.x = view->width;
+		framebufferSize.y = view->height;
 	}
 	else
 	{
-		screenSize.x = view->height;
-		screenSize.y = view->width;
+		framebufferSize.x = view->height;
+		framebufferSize.y = view->width;
 	}
-	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, i++, &screenSize,
-		dsMaterialType_IVec2, 0, 1));
+	DS_VERIFY(dsShaderVariableGroup_setElementData(
+		viewData->variableGroup, i++, &framebufferSize, dsMaterialType_IVec2, 0, 1));
+
+	dsVector2f screenSize;
+	DS_VERIFY(dsView_getScreenSize(&screenSize, view));
+	DS_VERIFY(dsShaderVariableGroup_setElementData(
+		viewData->variableGroup, i++, &screenSize, dsMaterialType_Vec2, 0, 1));
 
 	if (DS_CHECK(DS_SCENE_LOG_TAG,
 			dsShaderVariableGroup_commit(viewData->variableGroup, commandBuffer)))
 	{
 		dsSharedMaterialValues* globalValues = dsView_lockGlobalValues(view, itemList);
 		DS_ASSERT(globalValues);
-		DS_VERIFY(dsSharedMaterialValues_setVariableGroupID(globalValues, viewData->nameID,
-			viewData->variableGroup));
+		DS_VERIFY(dsSharedMaterialValues_setVariableGroupID(
+			globalValues, viewData->nameID, viewData->variableGroup));
 		DS_VERIFY(dsView_unlockGlobalValues(view, itemList));
 	}
 }

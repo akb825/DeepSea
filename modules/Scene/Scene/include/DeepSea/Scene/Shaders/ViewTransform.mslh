@@ -49,11 +49,21 @@ uniform dsViewTransformData
 	mat4 projectionInv;
 
 	/**
-	 * @brief The rotation of the screen to apply for client rotations.
+	 * @brief The screen projection matrix for screen-space elements.
+	 */
+	mat4 screenProjection;
+
+	/**
+	 * @brief The inverse of the screen projection matrix for screen-space elements.
+	 */
+	mat4 screenProjectionInv;
+
+	/**
+	 * @brief The rotation of the framebuffer to apply for client rotations.
 	 *
 	 * This is a mat22 packed into a vec4 to avoid extra padding.
 	 */
-	vec4 screenRotation;
+	vec4 framebufferRotation;
 
 	/**
 	 * @brief Transform from clip space to texture coordinates.
@@ -65,55 +75,61 @@ uniform dsViewTransformData
 	vec3 clipSpaceTexCoordTransform[2];
 
 	/**
-	 * @brief The size of the screen in pixels.
+	 * @brief The size of the framebuffer in pixels.
 	 */
-	ivec2 screenSize;
+	ivec2 framebufferSize;
+
+	/**
+	 * @brief The size of screen coordinates.
+	 */
+	vec2 screenSize;
 } dsViewTransform;
 
 /**
- * @brief Rotates the screen position.
+ * @brief Rotates the framebuffer position.
  *
  * This handles the rotation for render surfaces with client rotations enabled.
  *
- * @param pos The xy position of the screen in normalized [-1, 1] coordinates.
+ * @param pos The xy position of the framebuffer in normalized [-1, 1] coordinates.
  * @return The rotated position.
  */
-vec2 dsRotateScreenPosition(vec2 pos)
+vec2 dsRotateFramebufferPosition(vec2 pos)
 {
-	return mat2(INSTANCE(dsViewTransform).screenRotation.xy,
-		INSTANCE(dsViewTransform).screenRotation.zw)*pos;
+	return mat2(INSTANCE(dsViewTransform).framebufferRotation.xy,
+		INSTANCE(dsViewTransform).framebufferRotation.zw)*pos;
 }
 
 /**
- * @brief Gets the screen clip position for the current pixel.
- * @return The screen clip position.
+ * @brief Gets the framebuffer clip position for the current pixel.
+ * @return The framebuffer clip position.
  */
 [[fragment]]
-vec2 dsGetScreenClipPosition()
+vec2 dsGetFramebufferClipPosition()
 {
-	vec2 screenPos = gl_FragCoord.xy/vec2(INSTANCE(dsViewTransform).screenSize);
-	screenPos = screenPos*vec2(2.0) - vec2(1.0);
-	return dsRotateScreenPosition(vec2(screenPos.x, -screenPos.y));
+	vec2 framebufferPos = gl_FragCoord.xy/vec2(INSTANCE(dsViewTransform).framebufferSize);
+	framebufferPos = framebufferPos*vec2(2.0) - vec2(1.0);
+	return dsRotateFramebufferPosition(vec2(framebufferPos.x, -framebufferPos.y));
 }
 
 /**
- * @brief Gets the screen texture coordinates for the current pixel.
- * @return The screen texture coordinates.
+ * @brief Gets the framebuffer texture coordinates for the current pixel.
+ * @return The framebuffer texture coordinates.
  */
 [[fragment]]
-vec2 dsGetScreenTextureCoordinates()
+vec2 dsGetFramebufferTextureCoordinates()
 {
-	vec2 screenPos = gl_FragCoord.xy/vec2(INSTANCE(dsViewTransform).screenSize);
+	vec2 framebufferPos = gl_FragCoord.xy/vec2(INSTANCE(dsViewTransform).framebufferSize);
 #if GLSL_VERSION || GLSLES_VERSION
-	return vec2(screenPos.x, 1.0 - screenPos.y);
+	return vec2(framebufferPos.x, 1.0 - framebufferPos.y);
 #else
-	return screenPos;
+	return framebufferPos;
 #endif
 }
 
 /**
  * @brief Gets the view position from the clip position.
  * @param clipPos The clip position in the range [-1, 1] for XY and [0, 1] for Z.
+ * @return The view position.
  */
 vec3 dsGetViewPositionFromClip(vec3 clipPos)
 {
@@ -129,11 +145,12 @@ vec3 dsGetViewPositionFromClip(vec3 clipPos)
 }
 
 /**
- * @brief Gets the view position from the screen position.
+ * @brief Gets the view position from the framebuffer position.
  * @param depth The depth value.
+ * @return The view position.
  */
 [[fragment]]
-vec3 dsGetViewPositionFromScreen(float depth)
+vec3 dsGetViewPositionFromFramebuffer(float depth)
 {
 #if GLSL_VERSION || GLSLES_VERSION
 	// Only OpenGL needs this conversion. This computation avoids having to add a conditional.
@@ -141,7 +158,44 @@ vec3 dsGetViewPositionFromScreen(float depth)
 #endif
 	// Need to follow the same logic as would be done for the final clip position to handle cases
 	// where it's inverted.
-	vec4 clipPos = DS_ADJUST_DIRECT_CLIP(vec4(dsGetScreenClipPosition(), depth, 1.0));
+	vec4 clipPos = DS_ADJUST_DIRECT_CLIP(vec4(dsGetFramebufferClipPosition(), depth, 1.0));
 	vec4 unprojectedPos = INSTANCE(dsViewTransform).projectionInv*clipPos;
+	return unprojectedPos.xyz/unprojectedPos.w;
+}
+
+/**
+ * @brief Gets the screen-space position from the clip position.
+ * @param clipPos The clip position in the range [-1, 1].
+ * @return The screen-space position.
+ */
+vec3 dsGetScreenPositionFromClip(vec3 clipPos)
+{
+#if GLSL_VERSION || GLSLES_VERSION
+	// Only OpenGL needs this conversion. This computation avoids having to add a conditional.
+	clipPos.z = clipPos.z*(abs(DS_MIN_CLIP_Z) + 1.0) + DS_MIN_CLIP_Z;
+#endif
+	// Need to follow the same logic as would be done for the final clip position to handle cases
+	// where it's inverted.
+	vec4 adjustedClipPos = DS_ADJUST_CLIP(vec4(clipPos, 1.0));
+	vec4 unprojectedPos = INSTANCE(dsViewTransform).screenProjectionInv*adjustedClipPos;
+	return unprojectedPos.xyz/unprojectedPos.w;
+}
+
+/**
+ * @brief Gets the screen-space position from the framebuffer position.
+ * @param depth The depth value.
+ * @return The screen-space position.
+ */
+[[fragment]]
+vec3 dsGetScreenPositionFromFramebuffer(float depth)
+{
+#if GLSL_VERSION || GLSLES_VERSION
+	// Only OpenGL needs this conversion. This computation avoids having to add a conditional.
+	depth = depth*(abs(DS_MIN_CLIP_Z) + 1.0) + DS_MIN_CLIP_Z;
+#endif
+	// Need to follow the same logic as would be done for the final clip position to handle cases
+	// where it's inverted.
+	vec4 clipPos = DS_ADJUST_DIRECT_CLIP(vec4(dsGetFramebufferClipPosition(), depth, 1.0));
+	vec4 unprojectedPos = INSTANCE(dsViewTransform).screenProjectionInv*clipPos;
 	return unprojectedPos.xyz/unprojectedPos.w;
 }

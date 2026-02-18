@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ lowp float dsComputeSSAO(vec3 viewPosition, lowp vec3 viewNormal, float depth,
 		testPos /= testPos.w;
 		// Need to clamp the Z value otherwise it will occlude along the far plane.
 		testPos.z = clamp(testPos.z, 0.0, 1.0);
-		testPos.xy = dsRotateScreenPosition(testPos.xy);
+		testPos.xy = dsRotateFramebufferPosition(testPos.xy);
 		testPos.xyz = testPos.xyz*INSTANCE(dsViewTransform).clipSpaceTexCoordTransform[0] +
 			INSTANCE(dsViewTransform).clipSpaceTexCoordTransform[1];
 		float curDepth = textureLod(depthTexture, testPos.xy, 0).r;

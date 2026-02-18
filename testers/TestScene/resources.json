@@ -20,9 +20,12 @@
 			{"name": "projection", "type": "Mat4"},
 			{"name": "viewProjection", "type": "Mat4"},
 			{"name": "projectionInv", "type": "Mat4"},
-			{"name": "screenRotation", "type": "Vec4"},
+			{"name": "screenProjection", "type": "Mat4"},
+			{"name": "screenProjectionInv", "type": "Mat4"},
+			{"name": "framebufferRotation", "type": "Vec4"},
 			{"name": "clipSpaceTexCoordTransform", "type": "Vec3", "count": 2},
-			{"name": "screenSize", "type": "IVec2"}
+			{"name": "framebufferSize", "type": "IVec2"},
+			{"name": "screenSize", "type": "Vec2"}
 		]
 	},
 	{

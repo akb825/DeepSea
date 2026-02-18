@@ -25,6 +25,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
+#include <DeepSea/Scene/ItemLists/InstanceScreenTransformData.h>
 #include <DeepSea/Scene/ItemLists/InstanceTransformData.h>
 #include <DeepSea/Scene/ItemLists/SceneFullScreenResolve.h>
 #include <DeepSea/Scene/ItemLists/SceneHandoffList.h>
@@ -107,6 +108,8 @@ dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator, dsRenderer
 	dsSceneLoadContext_registerItemListType(context, dsViewTransformData_typeName,
 		&dsViewTransformData_load, NULL, NULL);
 
+	dsSceneLoadContext_registerInstanceDataType(context, dsInstanceScreenTransformData_typeName,
+		&dsInstanceScreenTransformData_load, NULL, NULL);
 	dsSceneLoadContext_registerInstanceDataType(context, dsInstanceTransformData_typeName,
 		&dsInstanceTransformData_load, NULL, NULL);
 

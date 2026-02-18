@@ -37,8 +37,8 @@
 							"instanceData":
 							[
 								{
-									"type": "InstanceTransformData",
-									"variableGroupDesc": "instanceTransformDesc"
+									"type": "InstanceScreenTransformData",
+									"variableGroupDesc": "instanceScreenTransformDesc"
 								}
 							],
 							"maxMaterialDescs": 2
@@ -48,5 +48,5 @@
 			]
 		}
 	],
-	"nodes": ["tigerTransform", "figureTransform"]
+	"nodes": ["rootNode"]
 }

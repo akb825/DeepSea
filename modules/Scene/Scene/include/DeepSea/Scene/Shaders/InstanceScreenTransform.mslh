@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2026 Aaron Barany
+ * Copyright 2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
-#include <DeepSea/VectorDraw/Shaders/VectorElementImage.mslh>
+#pragma once
 
-[[vertex]]
-void vectorImageVertex()
-{
-	gl_Position = dsVectorElementImage_getVectorInfo();
-	gl_Position.xy = dsRotateFramebufferPosition(gl_Position.xy);
-	gl_Position = DS_ADJUST_CLIP(gl_Position);
-}
+/**
+ * @file
+ * @brief Uniforms for screen-space instance transform matrices.
+ */
 
-pipeline dsVectorImage
+uniform dsInstanceScreenTransformData
 {
-	vertex = vectorImageVertex;
-	fragment = dsVectorElementImage_defaultFragment;
-	DS_DEFAULT_VECTOR_ELEMENT_IMAGE_RENDER_STATES;
-}
+	/**
+	 * @brief The world matrix.
+	 */
+	mat4 world;
+
+	/**
+	 * @brief The world projection matrix, transforming from local to clip space.
+	 */
+	mat4 worldProj;
+} dsInstanceScreenTransform;

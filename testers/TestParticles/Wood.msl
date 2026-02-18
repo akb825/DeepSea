@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ void vertexShader()
 {
 	vec4 position4 = vec4(position, 1.0);
 	gl_Position = DS_ADJUST_CLIP(INSTANCE(dsInstanceTransform).worldViewProj*position4);
-	gl_Position.xy = dsRotateScreenPosition(gl_Position.xy);
+	gl_Position.xy = dsRotateFramebufferPosition(gl_Position.xy);
 
 	vec3 fixedNormal = normal*2.0 - vec3(1.0);
 	vfNormal = INSTANCE(dsInstanceTransform).worldViewInvTrans*fixedNormal;

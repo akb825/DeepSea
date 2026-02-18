@@ -36,6 +36,7 @@
 #include <DeepSea/RenderBootstrap/RenderBootstrap.h>
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+#include <DeepSea/Scene/Nodes/SceneTransformNode.h>
 #include <DeepSea/Scene/Scene.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
@@ -63,6 +64,7 @@ typedef struct TestVectorDrawScene
 	dsRenderer* renderer;
 	dsWindow* window;
 	dsSceneResources* resources;
+	dsSceneTransformNode* rootNode;
 	dsSceneTextNode* figureNode;
 	dsScene* scene;
 	dsView* view;
@@ -96,15 +98,18 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 	return false;
 }
 
-static void updateProjectionMatrix(dsView* view)
+static void updateRootTransform(const dsView* view, dsSceneTransformNode* transformNode)
 {
-	float aspect = (float)view->width/(float)view->height;
-	DS_VERIFY(dsView_setOrthoProjection(
-		view, -aspect*100.0f, aspect*100.0f, -100.0f, 100.0f, -1.0f, 1.0f));
+	dsVector2f screenSize;
+	DS_VERIFY(dsView_getScreenSize(&screenSize, view));
+
+	dsMatrix44f transform;
+	dsMatrix44f_makeTranslate(&transform, screenSize.x*0.5f, 0.0f, 0.0f);
+	DS_VERIFY(dsSceneTransformNode_setTransform(transformNode, &transform));
 }
 
-static bool processEvent(dsApplication* application, dsWindow* window, const dsEvent* event,
-	void* userData)
+static bool processEvent(
+	dsApplication* application, dsWindow* window, const dsEvent* event, void* userData)
 {
 	TestVectorDrawScene* testVectorDrawScene = (TestVectorDrawScene*)userData;
 	DS_ASSERT(!window || window == testVectorDrawScene->window);
@@ -123,7 +128,7 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 				testVectorDrawScene->window->surface->width,
 				testVectorDrawScene->window->surface->height,
 				testVectorDrawScene->window->surface->rotation));
-			updateProjectionMatrix(testVectorDrawScene->view);
+			updateRootTransform(testVectorDrawScene->view, testVectorDrawScene->rootNode);
 			// Need to update the view again if the surfaces have been set.
 			if (event->type == dsAppEventType_SurfaceInvalidated)
 				dsView_update(testVectorDrawScene->view);
@@ -260,7 +265,7 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 		NULL
 	};
 
-	float pixelSize = 200.0f/(float)testVectorDrawScene->window->surface->height;
+	float pixelSize = 100.0f/(float)testVectorDrawScene->window->surface->height;
 	if (!dsSceneVectorDrawLoadConext_registerTypes(loadContext, allocator, NULL,
 			substitutionTable, &textRenderInfo, pixelSize))
 	{
@@ -308,6 +313,20 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 		&testVectorDrawScene->resources, 1));
 
 	dsSceneResourceType resourceType;
+	const dsSceneNodeType* transformNodeType = dsSceneTransformNode_type();
+	if (!dsSceneResources_findResource(&resourceType, (void**)&testVectorDrawScene->rootNode,
+			testVectorDrawScene->resources, "rootNode") ||
+		resourceType != dsSceneResourceType_SceneNode ||
+		!dsSceneNode_isOfType((dsSceneNode*)testVectorDrawScene->rootNode, transformNodeType))
+	{
+		DS_LOG_ERROR("TestVectorDrawScene", "Couldn't find transform node 'rootNode'.");
+		dsFileArchive_close(archive);
+		dsSceneLoadContext_destroy(loadContext);
+		dsTextSubstitutionTable_destroy(substitutionTable);
+		dsSceneLoadScratchData_destroy(scratchData);
+		return false;
+	}
+
 	const dsSceneNodeType* textNodeType = dsSceneTextNode_type();
 	if (!dsSceneResources_findResource(&resourceType, (void**)&testVectorDrawScene->figureNode,
 			testVectorDrawScene->resources, "figureNode") ||
@@ -354,7 +373,7 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 		return false;
 	}
 
-	updateProjectionMatrix(testVectorDrawScene->view);
+	updateRootTransform(testVectorDrawScene->view, testVectorDrawScene->rootNode);
 	return true;
 }
 

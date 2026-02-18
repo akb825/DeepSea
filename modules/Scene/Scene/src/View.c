@@ -349,7 +349,7 @@ static void updateScreenProjection(dsView* view)
 		width = height*(float)view->width/(float)view->height;
 	}
 	DS_VERIFY(dsRenderer_makeOrtho(
-		&view->screenProjectinMatrix, renderer, 0.0f, width, 0.0f, height, 0.0f, 1.0f));
+		&view->screenProjectionMatrix, renderer, 0.0f, width, 0.0f, height, 0.0f, 1.0f));
 }
 
 static bool bindOffscreenVariables(dsView* view)
@@ -393,10 +393,19 @@ dsView* dsView_create(dsAllocator* allocator, const char* name, const dsScene* s
 		return NULL;
 	}
 
-	if (width == 0 || height == 0 || screenSize == 0)
+	if (width == 0 || height == 0)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "View size must not be 0.");
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		return NULL;
+	}
+
+	if (screenSize == 0)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "View screen size must not be 0.");
 		if (destroyUserDataFunc)
 			destroyUserDataFunc(userData);
 		return NULL;
@@ -979,6 +988,27 @@ bool dsView_setScreenSize(dsView* view, float size, dsViewScreenSizeDim dimensio
 	view->screenSize = size;
 	view->screenDimension = dimension;
 	updateScreenProjection(view);
+	return true;
+}
+
+bool dsView_getScreenSize(dsVector2f* outSize, const dsView* view)
+{
+	if (!outSize || !view)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (view->screenDimension == dsViewScreenSizeDim_Width)
+	{
+		outSize->x = view->screenSize;
+		outSize->y = view->screenSize*(float)view->height/(float)view->width;
+	}
+	else
+	{
+		outSize->x = view->screenSize*(float)view->width/(float)view->height;
+		outSize->y = view->screenSize;
+	}
 	return true;
 }
 

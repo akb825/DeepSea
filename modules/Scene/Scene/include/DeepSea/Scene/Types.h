@@ -508,7 +508,7 @@ struct dsView
 	 * and size based on the aspect ratio for the other dimension. It will always be in the range
 	 * [0, 1] for depth.
 	 */
-	dsMatrix44f screenProjectinMatrix;
+	dsMatrix44f screenProjectionMatrix;
 
 	/**
 	 * @brief The bias to apply when choosing which LOD to use.

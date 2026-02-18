@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2026 Aaron Barany
+ * Copyright 2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Scene/ItemLists/InstanceTransformData.h>
+#include <DeepSea/Scene/ItemLists/InstanceScreenTransformData.h>
 
 #include "SceneLoadContextInternal.h"
 #include <DeepSea/Core/Assert.h>
@@ -31,7 +31,7 @@
 #pragma warning(disable: 4244)
 #endif
 
-#include "Flatbuffers/InstanceTransformData_generated.h"
+#include "Flatbuffers/InstanceScreenTransformData_generated.h"
 
 #if DS_GCC || DS_CLANG
 #pragma GCC diagnostic pop
@@ -40,19 +40,19 @@
 #endif
 
 extern "C"
-dsSceneInstanceData* dsInstanceTransformData_load(const dsSceneLoadContext* loadContext,
+dsSceneInstanceData* dsInstanceScreenTransformData_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void*, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
-	if (!DeepSeaScene::VerifyInstanceTransformDataBuffer(verifier))
+	if (!DeepSeaScene::VerifyInstanceScreenTransformDataBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid instance transform data flatbuffer format.");
+		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid instance screen transform data flatbuffer format.");
 		return nullptr;
 	}
 
-	auto fbTransformData = DeepSeaScene::GetInstanceTransformData(data);
+	auto fbTransformData = DeepSeaScene::GetInstanceScreenTransformData(data);
 	const char* groupDescName = fbTransformData->variableGroupDesc()->c_str();
 
 	dsShaderVariableGroupDesc* groupDesc;
@@ -70,6 +70,6 @@ dsSceneInstanceData* dsInstanceTransformData_load(const dsSceneLoadContext* load
 	}
 
 	dsRenderer* renderer = dsSceneLoadContext_getRenderer(loadContext);
-	return dsInstanceTransformData_create(
-		allocator, resourceAllocator, renderer->resourceManager, groupDesc);
+	return dsInstanceScreenTransformData_create(allocator, resourceAllocator,
+		renderer->resourceManager, groupDesc);
 }

@@ -341,10 +341,10 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 
 				const dsMatrix44f* nodeTransform =
 					&vectorList->instances[drawItem->instance]->transform;
-				dsMatrix44f modelViewProjection;
-				dsMatrix44f_mul(&modelViewProjection, &view->viewProjectionMatrix, nodeTransform);
+				dsMatrix44f modelProjection;
+				dsMatrix44f_mul(&modelProjection, &view->screenProjectionMatrix, nodeTransform);
 				// Invert Y for drawing.
-				dsVector4f_neg(modelViewProjection.columns + 1, modelViewProjection.columns + 1);
+				dsVector4f_neg(modelProjection.columns + 1, modelProjection.columns + 1);
 
 				DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 					dsSharedMaterialValues_setTextureID(vectorList->instanceValues,
@@ -392,7 +392,7 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 
 						DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 							dsTextRenderBuffer_drawIconGlyphRange(renderBuffer, commandBuffer,
-								firstIconGlyph, iconGlyphCount, &modelViewProjection,
+								firstIconGlyph, iconGlyphCount, &modelProjection,
 								view->globalValues, NULL));
 					}
 				}
@@ -419,12 +419,12 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 				dsMatrix44f transform;
 				dsMatrix44f_affineMul(&transform, nodeTransform, &scale);
 
-				dsMatrix44f modelViewProjection;
-				dsMatrix44f_mul(&modelViewProjection, &view->viewProjectionMatrix, &transform);
+				dsMatrix44f modelProjection;
+				dsMatrix44f_mul(&modelProjection, &view->screenProjectionMatrix, &transform);
 
 				DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 					dsVectorImage_draw(drawItem->image.image, commandBuffer,
-						drawItem->image.shaders, drawItem->material, &modelViewProjection,
+						drawItem->image.shaders, drawItem->material, &modelProjection,
 						view->globalValues, renderStates));
 				break;
 			}
