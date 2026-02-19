@@ -56,7 +56,7 @@ size_t dsTextIcons_fullAllocSize(uint32_t codepointRangeCount, uint32_t maxIcons
 }
 
 dsTextIcons* dsTextIcons_create(dsAllocator* allocator, const dsIndexRange* codepointRanges,
-	uint32_t codepointRangeCount, uint32_t maxIcons, void* userData,
+	uint32_t codepointRangeCount, uint32_t maxIcons, uint32_t instanceVariableCount, void* userData,
 	dsDestroyUserDataFunction destroyUserDataFunc, dsPrepareTextIconsFunction prepareFunc,
 	dsDrawTextIconsFunction drawFunc, dsDestroyUserDataFunction destroyGlyphUserDataFunc)
 {
@@ -102,6 +102,7 @@ dsTextIcons* dsTextIcons_create(dsAllocator* allocator, const dsIndexRange* code
 	icons->codepointRangeCount = codepointRangeCount;
 	icons->iconCount = 0;
 	icons->maxIcons = maxIcons;
+	icons->instanceVariableCount = instanceVariableCount;
 
 	size_t tableSize = dsHashTable_tableSize(maxIcons);
 	size_t hashTableSize = dsHashTable_fullAllocSize(tableSize);
@@ -110,6 +111,17 @@ dsTextIcons* dsTextIcons_create(dsAllocator* allocator, const dsIndexRange* code
 	DS_VERIFY(dsHashTable_initialize(icons->iconTable, tableSize, &dsHash32, &dsHash32Equal));
 
 	return icons;
+}
+
+const void* dsTextIcons_getType(const dsTextIcons* icons)
+{
+	if (!icons)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	return icons->drawFunc;
 }
 
 dsAllocator* dsTextIcons_getAllocator(const dsTextIcons* icons)
@@ -219,6 +231,11 @@ const dsIconGlyph* dsTextIcons_findIcon(const dsTextIcons* icons, uint32_t codep
 	}
 
 	return icons->iconGlyphs + foundIcon->index;
+}
+
+uint32_t dsTextIcons_getInstanceVariableCount(const dsTextIcons* icons)
+{
+	return icons ? icons->instanceVariableCount : 0;
 }
 
 void dsTextIcons_destroy(dsTextIcons* icons)

@@ -504,7 +504,8 @@ bool dsTextRenderBuffer_drawStandardGlyphRange(dsTextRenderBuffer* renderBuffer,
 
 bool dsTextRenderBuffer_drawIconGlyphs(dsTextRenderBuffer* renderBuffer,
 	dsCommandBuffer* commandBuffer, const dsMatrix44f* modelViewProjection,
-	const dsSharedMaterialValues* globalValues, const dsDynamicRenderStates* renderStates)
+	const dsSharedMaterialValues* globalValues, dsSharedMaterialValues* instanceValues,
+	const dsDynamicRenderStates* renderStates)
 {
 	if (!renderBuffer)
 	{
@@ -513,13 +514,14 @@ bool dsTextRenderBuffer_drawIconGlyphs(dsTextRenderBuffer* renderBuffer,
 	}
 
 	return dsTextRenderBuffer_drawIconGlyphRange(renderBuffer, commandBuffer, 0,
-		renderBuffer->queuedIconGlyphs, modelViewProjection, globalValues, renderStates);
+		renderBuffer->queuedIconGlyphs, modelViewProjection, globalValues, instanceValues,
+		renderStates);
 }
 
 bool dsTextRenderBuffer_drawIconGlyphRange(dsTextRenderBuffer* renderBuffer,
 	dsCommandBuffer* commandBuffer, uint32_t firstGlyph, uint32_t glyphCount,
 	const dsMatrix44f* modelViewProjection, const dsSharedMaterialValues* globalValues,
-	const dsDynamicRenderStates* renderStates)
+	dsSharedMaterialValues* instanceValues, const dsDynamicRenderStates* renderStates)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -550,7 +552,7 @@ bool dsTextRenderBuffer_drawIconGlyphRange(dsTextRenderBuffer* renderBuffer,
 		if (thisIcons != curIcons)
 		{
 			if (!curIcons->drawFunc(curIcons, curIcons->userData, commandBuffer, iconGlyphs + start,
-					count, modelViewProjection, globalValues, renderStates))
+					count, modelViewProjection, globalValues, instanceValues, renderStates))
 			{
 				DS_PROFILE_FUNC_RETURN(false);
 			}
@@ -562,7 +564,7 @@ bool dsTextRenderBuffer_drawIconGlyphRange(dsTextRenderBuffer* renderBuffer,
 	}
 
 	bool result = curIcons->drawFunc(curIcons, curIcons->userData, commandBuffer,
-		iconGlyphs + start, count, modelViewProjection, globalValues, renderStates);
+		iconGlyphs + start, count, modelViewProjection, globalValues, instanceValues, renderStates);
 	DS_PROFILE_FUNC_RETURN(result);
 }
 

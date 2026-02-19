@@ -48,6 +48,7 @@
 #include <DeepSea/SceneVectorDraw/SceneVectorNode.h>
 
 #include <DeepSea/Text/Font.h>
+#include <DeepSea/Text/TextIcons.h>
 #include <DeepSea/Text/TextLayout.h>
 #include <DeepSea/Text/TextRenderBuffer.h>
 
@@ -55,6 +56,13 @@
 
 #include <stdlib.h>
 #include <string.h>
+
+// Extra instance variables to take into account requirements for icons, with some buffer above the
+// known maximum in case multiple types are used.
+#define EXTRA_INSTANCE_VARIABLE_COUNT 10
+
+_Static_assert(EXTRA_INSTANCE_VARIABLE_COUNT > DS_TEXTURE_TEXT_ICONS_INSTANCE_VARIABLE_COUNT,
+	"Too few extra instance variables provided.");
 
 typedef enum DrawType
 {
@@ -267,8 +275,8 @@ static bool addInstances(dsSceneItemList* itemList)
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
-static void setupInstances(dsSceneVectorItemList* vectorList, const dsView* view,
-	dsCommandBuffer* commandBuffer)
+static void setupInstances(
+	dsSceneVectorItemList* vectorList, const dsView* view, dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -311,8 +319,8 @@ static void sortItems(dsSceneVectorItemList* vectorList)
 	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
-static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
-	dsCommandBuffer* commandBuffer)
+static void drawItems(
+	dsSceneVectorItemList* vectorList, const dsView* view, dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -393,7 +401,7 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 						DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 							dsTextRenderBuffer_drawIconGlyphRange(renderBuffer, commandBuffer,
 								firstIconGlyph, iconGlyphCount, &modelProjection,
-								view->globalValues, NULL));
+								view->globalValues, vectorList->instanceValues, NULL));
 					}
 				}
 				break;
@@ -425,7 +433,7 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 				DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 					dsVectorImage_draw(drawItem->image.image, commandBuffer,
 						drawItem->image.shaders, drawItem->material, &modelProjection,
-						view->globalValues, renderStates));
+						view->globalValues, vectorList->instanceValues, renderStates));
 				break;
 			}
 		}
@@ -457,19 +465,33 @@ static uint64_t dsSceneVectorItemList_addNode(dsSceneItemList* itemList, dsScene
 	DS_UNUSED(thisItemData);
 	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
 
+	uint32_t extraInstanceVariableCount;
 	const dsMaterialDesc* materialDesc;
 	if (dsSceneNode_isOfType(node, dsSceneVectorImageNode_type()))
 	{
 		dsSceneVectorImageNode* vectorImageNode = (dsSceneVectorImageNode*)node;
 		materialDesc = vectorImageNode->shaders->shaderModule->materialDesc;
+		extraInstanceVariableCount = dsVectorImage_getInstanceVariableCount(
+			vectorImageNode->vectorImage);
 	}
 	else if (dsSceneNode_isOfType(node, dsSceneTextNode_type()))
 	{
 		dsSceneTextNode* textNode = (dsSceneTextNode*)node;
 		materialDesc = textNode->shader->materialDesc;
+		const dsTextIcons* icons = dsFont_getIcons(textNode->layout->text->font);
+		extraInstanceVariableCount = dsTextIcons_getInstanceVariableCount(icons);
 	}
 	else
 		return DS_NO_SCENE_NODE;
+
+	// Not a strict guarantee if different text icon types are used across different nodes, but a
+	// good sanity check.
+	if (extraInstanceVariableCount > EXTRA_INSTANCE_VARIABLE_COUNT)
+	{
+		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG,
+			"Icons used in vector node have too many instance variables.");
+		return DS_NO_SCENE_NODE;
+	}
 
 	MaterialNode* material = findMaterial(vectorList, materialDesc);
 	if (!material)
@@ -676,7 +698,7 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 		return NULL;
 	}
 
-	uint32_t valueCount = 1;
+	uint32_t valueCount = 1 + EXTRA_INSTANCE_VARIABLE_COUNT;
 	bool skipPreRenderPass = true;
 	for (uint32_t i = 0; i < instanceDataCount; ++i)
 	{
@@ -703,14 +725,14 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	}
 
 	size_t nameLen = strlen(name);
-	size_t globalDataSize = dsSharedMaterialValues_fullAllocSize(valueCount);
+	size_t instanceDataSize = dsSharedMaterialValues_fullAllocSize(valueCount);
 	size_t materialPoolSize = DS_ALIGNED_SIZE(sizeof(MaterialNode))*maxMaterialDescs;
 	size_t materialTableSize = dsHashTable_tableSize(maxMaterialDescs);
 	size_t materialTableAllocSize = dsHashTable_fullAllocSize(materialTableSize);
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneVectorItemList)) +
 		DS_ALIGNED_SIZE(nameLen + 1) +
 		DS_ALIGNED_SIZE(sizeof(dsSceneInstanceData*)*instanceDataCount) +
-		DS_ALIGNED_SIZE(sizeof(uint32_t)*viewCount) + globalDataSize + materialPoolSize +
+		DS_ALIGNED_SIZE(sizeof(uint32_t)*viewCount) + instanceDataSize + materialPoolSize +
 		materialTableAllocSize;
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
@@ -745,8 +767,8 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 
 	vectorList->fontTextureID = dsUniqueNameID_create(dsFont_textureName);
 
-	vectorList->instanceValues = dsSharedMaterialValues_create((dsAllocator*)&bufferAlloc,
-		valueCount);
+	vectorList->instanceValues = dsSharedMaterialValues_create(
+		(dsAllocator*)&bufferAlloc, valueCount);
 	DS_ASSERT(vectorList->instanceValues);
 
 	if (instanceDataCount > 0)

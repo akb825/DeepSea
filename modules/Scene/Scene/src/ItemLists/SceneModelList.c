@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -605,9 +605,9 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 	}
 
 	size_t nameLen = strlen(name);
-	size_t globalDataSize = valueCount > 0 ? dsSharedMaterialValues_fullAllocSize(valueCount) : 0;
+	size_t instanceDataSize = valueCount > 0 ? dsSharedMaterialValues_fullAllocSize(valueCount) : 0;
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneModelList)) + DS_ALIGNED_SIZE(nameLen + 1) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneInstanceData*)*instanceDataCount) + globalDataSize +
+		DS_ALIGNED_SIZE(sizeof(dsSceneInstanceData*)*instanceDataCount) + instanceDataSize +
 		DS_ALIGNED_SIZE(sizeof(uint32_t)*cullListCount) +
 		DS_ALIGNED_SIZE(sizeof(uint32_t)*viewCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
@@ -645,14 +645,14 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 	{
 		if (valueCount > 0)
 		{
-			modelList->instanceValues = dsSharedMaterialValues_create((dsAllocator*)&bufferAlloc,
-				valueCount);
+			modelList->instanceValues = dsSharedMaterialValues_create(
+				(dsAllocator*)&bufferAlloc, valueCount);
 			DS_ASSERT(modelList->instanceValues);
 		}
 		else
 			modelList->instanceValues = NULL;
-		modelList->instanceData = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneInstanceData*,
-			instanceDataCount);
+		modelList->instanceData = DS_ALLOCATE_OBJECT_ARRAY(
+			&bufferAlloc, dsSceneInstanceData*, instanceDataCount);
 		DS_ASSERT(modelList->instanceData);
 		memcpy(modelList->instanceData, instanceData,
 			sizeof(dsSceneInstanceData*)*instanceDataCount);

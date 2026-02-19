@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Aaron Barany
+ * Copyright 2025-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -151,6 +151,7 @@ struct dsTextIcons
 	uint32_t codepointRangeCount;
 	uint32_t iconCount;
 	uint32_t maxIcons;
+	uint32_t instanceVariableCount;
 
 	dsHashTable* iconTable;
 };

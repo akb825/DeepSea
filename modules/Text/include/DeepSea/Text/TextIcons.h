@@ -54,6 +54,7 @@ DS_TEXT_EXPORT size_t dsTextIcons_fullAllocSize(uint32_t codepointRangeCount, ui
  *     be provided.
  * @param codepointRangeCount The number of codepoint ranges.
  * @param maxIcons The maximum number of icons that will be stored.
+ * @param instanceVariableCount The number of instance shader variables that are used internally.
  * @param userData Common user data for text icons. This will be destroyed with destroyUserDataFunc
  *     if creation fails.
  * @param destroyUserDataFunc Function to destroy the common user data.
@@ -64,9 +65,17 @@ DS_TEXT_EXPORT size_t dsTextIcons_fullAllocSize(uint32_t codepointRangeCount, ui
  */
 DS_TEXT_EXPORT dsTextIcons* dsTextIcons_create(dsAllocator* allocator,
 	const dsIndexRange* codepointRanges, uint32_t codepointRangeCount, uint32_t maxIcons,
-	void* userData, dsDestroyUserDataFunction destroyUserDataFunc,
+	uint32_t instanceVariableCount, void* userData, dsDestroyUserDataFunction destroyUserDataFunc,
 	dsPrepareTextIconsFunction prepareFunc, dsDrawTextIconsFunction drawFunc,
 	dsDestroyUserDataFunction destroyGlyphUserDataFunc);
+
+/**
+ * @brief Gets a type identifier for text icons.
+ * @remark errno will be set on failure.
+ * @param icons The text icons.
+ * @return Unique identifier for the type.
+ */
+DS_TEXT_EXPORT const void* dsTextIcons_getType(const dsTextIcons* icons);
 
 /**
  * @brief Gets the allocator for text icons.
@@ -120,7 +129,19 @@ DS_TEXT_EXPORT bool dsTextIcons_replaceIcon(dsTextIcons* icons, uint32_t codepoi
  * @param codepoint The character code to search for.
  * @return The found icon glyph or NULL if the icon couldn't be found.
  */
-const dsIconGlyph* dsTextIcons_findIcon(const dsTextIcons* icons, uint32_t codepoint);
+DS_TEXT_EXPORT const dsIconGlyph* dsTextIcons_findIcon(
+	const dsTextIcons* icons, uint32_t codepoint);
+
+/**
+ * @brief Gets the number of instance shader variables used internally for drawing text icons.
+ *
+ * Callers that provide their own instance variables for drawing must reserve the space for this
+ * many instance variables in addition to their own.
+ *
+ * @param icons The text icons.
+ * @return The number of instance shader variables used internally.
+ */
+DS_TEXT_EXPORT uint32_t dsTextIcons_getInstanceVariableCount(const dsTextIcons* icons);
 
 /**
  * @brief Destroys text icons.

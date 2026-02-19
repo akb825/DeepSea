@@ -54,6 +54,8 @@
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <DeepSea/Render/Renderer.h>
 
+#include <DeepSea/Text/Font.h>
+#include <DeepSea/Text/TextIcons.h>
 #include <DeepSea/Text/TextLayout.h>
 #include <DeepSea/Text/TextRenderBuffer.h>
 
@@ -1229,7 +1231,8 @@ bool dsVectorImage_updateText(dsVectorImage* vectorImage, dsCommandBuffer* comma
 
 bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* commandBuffer,
 	const dsVectorShaders* shaders, dsMaterial* material, const dsMatrix44f* modelViewProjection,
-	const dsSharedMaterialValues* globalValues, const dsDynamicRenderStates* renderStates)
+	const dsSharedMaterialValues* globalValues, dsSharedMaterialValues* instanceValues,
+	const dsDynamicRenderStates* renderStates)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -1334,14 +1337,14 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 
 		if (!dsMaterial_setElementData(material, shaderModule->textureSizesElement, &textureSizes,
 				dsMaterialType_Vec3, 0, 1) ||
-			!dsMaterial_setTexture(material, shaderModule->shapeInfoTextureElement,
-				piece->geometryInfo) ||
+			!dsMaterial_setTexture(
+				material, shaderModule->shapeInfoTextureElement, piece->geometryInfo) ||
 			!dsMaterial_setTexture(material, shaderModule->imageTextureElement, imageTexture) ||
 			!dsMaterial_setTexture(material, shaderModule->fontTextureElement, fontTexture) ||
-			!dsMaterial_setTexture(material, shaderModule->materialInfoTextureElement,
-				materialInfoTexture) ||
-			!dsMaterial_setTexture(material, shaderModule->materialColorTextureElement,
-				materialColorTexture) ||
+			!dsMaterial_setTexture(
+				material, shaderModule->materialInfoTextureElement, materialInfoTexture) ||
+			!dsMaterial_setTexture(
+				material, shaderModule->materialColorTextureElement, materialColorTexture) ||
 			!dsMaterial_setTexture(material,
 				shaderModule->textOutlineMaterialInfoTextureElement,
 				textOutlineMaterialInfoTexture) ||
@@ -1355,6 +1358,11 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 
 		dsShader* shader = shaders->shaders[piece->type];
 		if (!dsShader_bind(shader, commandBuffer, material, globalValues, renderStates))
+		{
+			success = false;
+			break;
+		}
+		if (instanceValues && !dsShader_updateInstanceValues(shader, commandBuffer, instanceValues))
 		{
 			success = false;
 			break;
@@ -1400,7 +1408,7 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 				dsMatrix44f_mul(&iconModelViewProjection, modelViewProjection, &pieceTextTransform);
 				if (!dsTextRenderBuffer_drawIconGlyphRange(piece->textRender, commandBuffer,
 						drawInfo->firstIconGlyph, drawInfo->iconGlyphCount,
-						&iconModelViewProjection, globalValues, renderStates))
+						&iconModelViewProjection, globalValues, instanceValues, renderStates))
 				{
 					success = false;
 					break;
@@ -1487,6 +1495,51 @@ bool dsVectorImage_destroy(dsVectorImage* vectorImage)
 	if (vectorImage->allocator)
 		DS_VERIFY(dsAllocator_free(vectorImage->allocator, vectorImage));
 	return true;
+}
+
+uint32_t dsVectorImage_getInstanceVariableCount(const dsVectorImage* vectorImage)
+{
+	if (!vectorImage || vectorImage->textLayoutCount == 0)
+		return 0;
+
+	uint32_t count = 0;
+	const void* lastType = NULL;
+	for (uint32_t i = 0; i < vectorImage->textLayoutCount; ++i)
+	{
+		const dsTextIcons* icons = dsFont_getIcons(vectorImage->textLayouts[i]->text->font);
+		if (!icons)
+			continue;
+
+		const void* thisType = dsTextIcons_getType(icons);
+		DS_ASSERT(thisType);
+		// Check if this type has already been used. If not, add to the count. Keep track of the
+		// last checked type for the most common situation of one icon type in use.
+		if (!lastType)
+		{
+			count += dsTextIcons_getInstanceVariableCount(icons);
+			lastType = thisType;
+		}
+		else if (lastType != thisType)
+		{
+			bool usedThisType = false;
+			for (uint32_t j = 0; j < i; ++j)
+			{
+				const dsTextIcons* otherIcons = dsFont_getIcons(
+					vectorImage->textLayouts[j]->text->font);
+				if (otherIcons && dsTextIcons_getType(otherIcons) == thisType)
+				{
+					usedThisType = true;
+					break;
+				}
+			}
+
+			if (!usedThisType)
+				count += dsTextIcons_getInstanceVariableCount(icons);
+			lastType = thisType;
+		}
+	}
+
+	return count;
 }
 
 dsGfxBuffer* dsVectorImage_getBuffer(dsVectorImage* image)

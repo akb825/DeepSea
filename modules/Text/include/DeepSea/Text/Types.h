@@ -56,6 +56,11 @@ extern "C"
 #define DS_LARGE_CACHE_GLYPH_SLOTS 1365
 
 /**
+ * @brief The number of instance shader variables required to draw text icons.
+ */
+#define DS_TEXTURE_TEXT_ICONS_INSTANCE_VARIABLE_COUNT 2
+
+/**
  * @brief Enum for the size of the text cache.
  */
 typedef enum dsTextCache
@@ -182,13 +187,16 @@ typedef bool (*dsPrepareTextIconsFunction)(const dsTextIcons* textIcons, void* u
  * @param glyphCount The number of glyphs to draw.
  * @param modelViewProjection The model view projection matrix to draw with.
  * @param globalValues The global shader values to use when drawing.
+ * @param instanceValues The instance values to use with icon shaders. The implementation may
+ *     modify this when required, and should use an internal instance if instance variables are
+ *     required and NULL is provided.
  * @param renderStates The dynamic render states to use when drawing.
  * @return False if an error occurred.
  */
 typedef bool (*dsDrawTextIconsFunction)(const dsTextIcons* textIcons, void* userData,
 	dsCommandBuffer* commandBuffer, const dsIconGlyph* glyphs, uint32_t glyphCount,
 	const dsMatrix44f* modelViewProjection, const dsSharedMaterialValues* globalValues,
-	const dsDynamicRenderStates* renderStates);
+	dsSharedMaterialValues* instanceValues, const dsDynamicRenderStates* renderStates);
 
 /**
  * @brief Mapping from a character to the glyphs it corresponds to.

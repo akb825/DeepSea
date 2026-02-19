@@ -167,7 +167,7 @@ static dsGfxBuffer* TextureIcons_getIconDataBuffer(TextureIcons* textureIcons, u
 
 static bool TextureIcons_drawIconDataBuffer(TextureIcons* textureIcons,
 	dsCommandBuffer* commandBuffer, const dsIconGlyph* glyphs, uint32_t glyphCount,
-	const dsMatrix44f* modelViewProjection)
+	const dsMatrix44f* modelViewProjection, dsSharedMaterialValues* instanceValues)
 {
 	DS_VERIFY(dsSpinlock_lock(&textureIcons->drawLock));
 	dsGfxBuffer* iconDataBuffer = TextureIcons_getIconDataBuffer(textureIcons, glyphCount);
@@ -192,18 +192,25 @@ static bool TextureIcons_drawIconDataBuffer(TextureIcons* textureIcons,
 
 	DS_VERIFY(dsGfxBuffer_unmap(iconDataBuffer));
 
+	bool needsLock = instanceValues == textureIcons->instanceValues;
+
 	dsDrawRange drawRange = {6, 1, 0, 0};
 	for (uint32_t i = 0; i < glyphCount; ++i)
 	{
 		const dsIconGlyph* glyph = glyphs + i;
-		DS_VERIFY(dsSharedMaterialValues_setTextureID(textureIcons->instanceValues,
-			textureIcons->textureNameID, EXTRACT_TEXTURE(glyph->userData)));
-		DS_VERIFY(dsSharedMaterialValues_setBufferID(textureIcons->instanceValues,
-			textureIcons->iconDataNameID, iconDataBuffer, i*textureIcons->iconDataStride,
-			sizeof(dsMatrix44f)));
+		// Minimal lock only when using the internal fallback instance values.
+		if (needsLock)
+			DS_VERIFY(dsSpinlock_lock(&textureIcons->drawLock));
+		bool setInstanceValues = dsSharedMaterialValues_setTextureID(
+				instanceValues, textureIcons->textureNameID, EXTRACT_TEXTURE(glyph->userData)) &&
+			dsSharedMaterialValues_setBufferID(instanceValues, textureIcons->iconDataNameID,
+				iconDataBuffer, i*textureIcons->iconDataStride, sizeof(dsMatrix44f)) &&
+			dsShader_updateInstanceValues(
+				textureIcons->shader, commandBuffer, textureIcons->instanceValues);
+		if (needsLock)
+			DS_VERIFY(dsSpinlock_unlock(&textureIcons->drawLock));
 
-		if (!dsShader_updateInstanceValues(textureIcons->shader, commandBuffer,
-				textureIcons->instanceValues) ||
+		if (!setInstanceValues ||
 			!dsRenderer_draw(textureIcons->resourceManager->renderer, commandBuffer,
 				textureIcons->drawGeometry, &drawRange, dsPrimitiveType_TriangleList))
 		{
@@ -215,7 +222,7 @@ static bool TextureIcons_drawIconDataBuffer(TextureIcons* textureIcons,
 
 static bool TextureIcons_drawIconDataGroup(TextureIcons* textureIcons,
 	dsCommandBuffer* commandBuffer, const dsIconGlyph* glyphs, uint32_t glyphCount,
-	const dsMatrix44f* modelViewProjection)
+	const dsMatrix44f* modelViewProjection, dsSharedMaterialValues* instanceValues)
 {
 	dsRenderer* renderer = textureIcons->resourceManager->renderer;
 	dsDrawRange drawRange = {6, 1, 0, 0};
@@ -223,8 +230,6 @@ static bool TextureIcons_drawIconDataGroup(TextureIcons* textureIcons,
 	for (uint32_t i = 0; i < glyphCount; ++i)
 	{
 		const dsIconGlyph* glyph = glyphs + i;
-		DS_VERIFY(dsSharedMaterialValues_setTextureID(textureIcons->instanceValues,
-			textureIcons->textureNameID, EXTRACT_TEXTURE(glyph->userData)));
 
 		dsMatrix44f boundsMatrix, iconModelViewProjection;
 		createBoundsMatrix(&boundsMatrix, &glyph->bounds);
@@ -233,8 +238,12 @@ static bool TextureIcons_drawIconDataGroup(TextureIcons* textureIcons,
 			textureIcons->iconDataGroup, 0, &iconModelViewProjection, dsMaterialType_Mat4, 0, 1));
 		DS_VERIFY(dsShaderVariableGroup_commitWithoutBuffer(textureIcons->iconDataGroup));
 
-		if (!dsShader_updateInstanceValues(textureIcons->shader, commandBuffer,
-				textureIcons->instanceValues) ||
+		if (!dsSharedMaterialValues_setTextureID(
+				instanceValues, textureIcons->textureNameID, EXTRACT_TEXTURE(glyph->userData)) ||
+			!dsSharedMaterialValues_setVariableGroupID(
+				instanceValues, textureIcons->iconDataNameID, textureIcons->iconDataGroup) ||
+			!dsShader_updateInstanceValues(
+				textureIcons->shader, commandBuffer, instanceValues) ||
 			!dsRenderer_draw(renderer, commandBuffer, textureIcons->drawGeometry, &drawRange,
 				dsPrimitiveType_TriangleList))
 		{
@@ -255,7 +264,7 @@ static void dsTextureTextIcons_destroyTexture(void* userData)
 static bool dsTextureTextIcons_draw(const dsTextIcons* textIcons, void* userData,
 	dsCommandBuffer* commandBuffer, const dsIconGlyph* glyphs, uint32_t glyphCount,
 	const dsMatrix44f* modelViewProjection, const dsSharedMaterialValues* globalValues,
-	const dsDynamicRenderStates* renderStates)
+	dsSharedMaterialValues* instanceValues, const dsDynamicRenderStates* renderStates)
 {
 	DS_UNUSED(textIcons);
 	TextureIcons* textureIcons = (TextureIcons*)userData;
@@ -265,16 +274,18 @@ static bool dsTextureTextIcons_draw(const dsTextIcons* textIcons, void* userData
 		return false;
 	}
 
+	if (!instanceValues)
+		instanceValues = textureIcons->instanceValues;
 	bool success;
 	if (textureIcons->iconDataGroup)
 	{
 		success = TextureIcons_drawIconDataGroup(
-			textureIcons, commandBuffer, glyphs, glyphCount, modelViewProjection);
+			textureIcons, commandBuffer, glyphs, glyphCount, modelViewProjection, instanceValues);
 	}
 	else
 	{
 		success = TextureIcons_drawIconDataBuffer(
-			textureIcons, commandBuffer, glyphs, glyphCount, modelViewProjection);
+			textureIcons, commandBuffer, glyphs, glyphCount, modelViewProjection, instanceValues);
 	}
 
 	DS_VERIFY(dsShader_unbind(textureIcons->shader, commandBuffer));
@@ -365,7 +376,8 @@ dsTextIcons* dsTextureTextIcons_create(dsAllocator* allocator, dsResourceManager
 	textureIcons->textureNameID = dsUniqueNameID_create(dsTextureTextIcons_textureName);
 	textureIcons->iconDataNameID = dsUniqueNameID_create(dsTextureTextIcons_iconDataName);
 
-	textureIcons->instanceValues = dsSharedMaterialValues_create(allocator, 2);
+	textureIcons->instanceValues = dsSharedMaterialValues_create(
+		allocator, DS_TEXTURE_TEXT_ICONS_INSTANCE_VARIABLE_COUNT);
 	if (!textureIcons->instanceValues)
 	{
 		TextureIcons_destroy(textureIcons);
@@ -423,8 +435,8 @@ dsTextIcons* dsTextureTextIcons_create(dsAllocator* allocator, dsResourceManager
 	}
 
 	return dsTextIcons_create(allocator, codepointRanges, codepointRangeCount, maxIcons,
-		textureIcons, &TextureIcons_destroy, NULL, &dsTextureTextIcons_draw,
-		&dsTextureTextIcons_destroyTexture);
+		DS_TEXTURE_TEXT_ICONS_INSTANCE_VARIABLE_COUNT, textureIcons, &TextureIcons_destroy, NULL,
+		&dsTextureTextIcons_draw, &dsTextureTextIcons_destroyTexture);
 }
 
 bool dsTextureTextIcons_addIcon(dsTextIcons* icons, uint32_t codepoint, float advance,

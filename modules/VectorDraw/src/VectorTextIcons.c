@@ -74,7 +74,7 @@ static bool dsVectorTextIcons_prepare(const dsTextIcons* textIcons, void* userDa
 static bool dsVectorTextIcons_draw(const dsTextIcons* textIcons, void* userData,
 	dsCommandBuffer* commandBuffer, const dsIconGlyph* glyphs, uint32_t glyphCount,
 	const dsMatrix44f* modelViewProjection, const dsSharedMaterialValues* globalValues,
-	const dsDynamicRenderStates* renderStates)
+	dsSharedMaterialValues* instanceValues, const dsDynamicRenderStates* renderStates)
 {
 	DS_UNUSED(textIcons);
 	VectorIcons* vectorIcons = (VectorIcons*)userData;
@@ -105,7 +105,7 @@ static bool dsVectorTextIcons_draw(const dsTextIcons* textIcons, void* userData,
 		dsMatrix44f_mul(&iconModelViewProjection, modelViewProjection, &boundsMatrix);
 
 		if (!dsVectorImage_draw(image, commandBuffer, vectorIcons->shaders, material,
-				&iconModelViewProjection, globalValues, renderStates))
+				&iconModelViewProjection, globalValues, instanceValues, renderStates))
 		{
 			return false;
 		}
@@ -139,7 +139,7 @@ dsTextIcons* dsVectorTextIcons_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	return dsTextIcons_create(allocator, codepointRanges, codepointRangeCount, maxIcons,
+	return dsTextIcons_create(allocator, codepointRanges, codepointRangeCount, maxIcons, 0,
 		vectorIcons, &VectorIcons_destroy, &dsVectorTextIcons_prepare, &dsVectorTextIcons_draw,
 		&dsTextureTextIcons_destroyImage);
 }

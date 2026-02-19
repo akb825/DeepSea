@@ -318,8 +318,8 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 		shaders = testVectorDraw->wireframeShaders;
 	else
 		shaders = testVectorDraw->shaders;
-	DS_VERIFY(dsVectorImage_draw(
-		image, commandBuffer, shaders, testVectorDraw->material, &modelViewProjection, NULL, NULL));
+	DS_VERIFY(dsVectorImage_draw(image, commandBuffer, shaders, testVectorDraw->material,
+		&modelViewProjection, NULL, NULL, NULL));
 
 	DS_VERIFY(dsRenderPass_end(testVectorDraw->renderPass, commandBuffer));
 }

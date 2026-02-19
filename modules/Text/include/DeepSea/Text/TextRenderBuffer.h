@@ -187,12 +187,16 @@ DS_TEXT_EXPORT bool dsTextRenderBuffer_drawStandardGlyphRange(dsTextRenderBuffer
  * @param commandBuffer The command buffer to queue commands onto.
  * @param modelViewProjection The model view projection matrix to draw with.
  * @param globalValues The global values to use with icon shaders.
+ * @param instanceValues The instance values to use with icon shaders. This might be modified if
+ *     the implementation has required instance variables. If NULL and the implementation requires
+ *     instance variables, an internal value will be used.
  * @param renderStates The dynamic render states to use with icon shaders.
  * @return False if an error occurred.
  */
 DS_TEXT_EXPORT bool dsTextRenderBuffer_drawIconGlyphs(dsTextRenderBuffer* renderBuffer,
 	dsCommandBuffer* commandBuffer, const dsMatrix44f* modelViewProjection,
-	const dsSharedMaterialValues* globalValues, const dsDynamicRenderStates* renderStates);
+	const dsSharedMaterialValues* globalValues, dsSharedMaterialValues* instanceValues,
+	const dsDynamicRenderStates* renderStates);
 
 /**
  * @brief Draws a range of icon glyphs that have been placed onto the buffer.
@@ -206,13 +210,16 @@ DS_TEXT_EXPORT bool dsTextRenderBuffer_drawIconGlyphs(dsTextRenderBuffer* render
  * @param glyphCount The number of glyphs to draw.
  * @param modelViewProjection The model view projection matrix to draw with.
  * @param globalValues The global values to use with icon shaders.
+ * @param instanceValues The instance values to use with icon shaders. This might be modified if
+ *     the implementation has required instance variables. If NULL and the implementation requires
+ *     instance variables, an internal value will be used.
  * @param renderStates The dynamic render states to use with icon shaders.
  * @return False if an error occurred.
  */
 DS_TEXT_EXPORT bool dsTextRenderBuffer_drawIconGlyphRange(dsTextRenderBuffer* renderBuffer,
 	dsCommandBuffer* commandBuffer, uint32_t firstGlyph, uint32_t glyphCount,
 	const dsMatrix44f* modelViewProjection, const dsSharedMaterialValues* globalValues,
-	const dsDynamicRenderStates* renderStates);
+	dsSharedMaterialValues* instanceValues, const dsDynamicRenderStates* renderStates);
 
 /**
  * @brief Destroy a text render buffer.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -170,6 +170,9 @@ DS_VECTORDRAW_EXPORT bool dsVectorImage_updateText(
  * @param modelViewProjection The model/view/projection materix for this image.
  * @param globalValues The global material values. This is only required if custom shaders are
  *     used that require them.
+ * @param instanceValues The instance material values. This is only required if custom shaders are
+ *     used that require them. This may be modified in situations where text icons have internal
+ *     required instance variables.
  * @param renderStates The dynamic render states. This is only required if custom shaders are used
  *     that require them.
  * @return False if an error occurred.
@@ -177,7 +180,7 @@ DS_VECTORDRAW_EXPORT bool dsVectorImage_updateText(
 DS_VECTORDRAW_EXPORT bool dsVectorImage_draw(const dsVectorImage* vectorImage,
 	dsCommandBuffer* commandBuffer, const dsVectorShaders* shaders, dsMaterial* material,
 	const dsMatrix44f* modelViewProjection, const dsSharedMaterialValues* globalValues,
-	const dsDynamicRenderStates* renderStates);
+	dsSharedMaterialValues* instanceValues,  const dsDynamicRenderStates* renderStates);
 
 /**
  * @brief Gets the size of a vector image.
@@ -186,8 +189,8 @@ DS_VECTORDRAW_EXPORT bool dsVectorImage_draw(const dsVectorImage* vectorImage,
  * @param vectorImage The vector image to get the size of.
  * @return False if the parameters are invalid.
  */
-DS_VECTORDRAW_EXPORT bool dsVectorImage_getSize(dsVector2f* outSize,
-	const dsVectorImage* vectorImage);
+DS_VECTORDRAW_EXPORT bool dsVectorImage_getSize(
+	dsVector2f* outSize, const dsVectorImage* vectorImage);
 
 /**
  * @brief Gets the shared materials used by the vector image.
@@ -204,6 +207,18 @@ DS_VECTORDRAW_EXPORT const dsVectorMaterialSet* dsVectorImage_getSharedMaterials
  */
 DS_VECTORDRAW_EXPORT dsVectorMaterialSet* dsVectorImage_getLocalMaterials(
 	dsVectorImage* vectorImage);
+
+/**
+ * @brief Gets the number of instance shader variables used internally for drawing text icons.
+ *
+ * Callers that provide their own instance variables when drawing must reserve the space for this
+ * many instance variables in addition to their own.
+ *
+ * @param vectorImage The vector image.
+ * @return The number of instance variables used internally.
+ */
+DS_VECTORDRAW_EXPORT uint32_t dsVectorImage_getInstanceVariableCount(
+	const dsVectorImage* vectorImage);
 
 /**
  * @brief Destroys a vector image.

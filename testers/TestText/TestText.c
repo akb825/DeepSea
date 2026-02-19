@@ -76,7 +76,6 @@ typedef struct TestText
 {
 	dsAllocator* allocator;
 	dsRenderer* renderer;
-	dsCommandBufferPool* setupCommands;
 	dsWindow* window;
 	dsFramebuffer* framebuffer;
 	dsRenderPass* renderPass;
@@ -565,7 +564,7 @@ static void setPositions(TestText* testText)
 	}
 }
 
-static bool createFramebuffer(TestText* testText, dsCommandBuffer* commandBuffer)
+static bool createFramebuffer(TestText* testText)
 {
 	uint32_t width = testText->window->surface->width;
 	uint32_t height = testText->window->surface->height;
@@ -589,8 +588,8 @@ static bool createFramebuffer(TestText* testText, dsCommandBuffer* commandBuffer
 	dsMatrix44f projection, surfaceRotation;
 	DS_VERIFY(dsRenderer_makeOrtho(&projection, testText->renderer, 0.0f, (float)width,
 		0.0f, (float)height, 0.0f, 1.0f));
-	DS_VERIFY(dsRenderSurface_makeRotationMatrix44(&surfaceRotation,
-		testText->window->surface->rotation));
+	DS_VERIFY(dsRenderSurface_makeRotationMatrix44(
+		&surfaceRotation, testText->window->surface->rotation));
 	dsMatrix44f_mul(&testText->projection, &surfaceRotation, &projection);
 
 	setPositions(testText);
@@ -712,7 +711,7 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 			return false;
 		case dsAppEventType_WindowResized:
 		case dsAppEventType_SurfaceInvalidated:
-			if (!createFramebuffer(testText, testText->renderer->mainCommandBuffer))
+			if (!createFramebuffer(testText))
 				abort();
 			return true;
 		case dsAppEventType_KeyDown:
@@ -769,14 +768,6 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	dsRenderer* renderer = testText->renderer;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 
-	if (testText->setupCommands)
-	{
-		dsCommandBuffer* setupCommands = testText->setupCommands->commandBuffers[0];
-		DS_VERIFY(dsCommandBuffer_submit(commandBuffer, setupCommands));
-		DS_VERIFY(dsCommandBufferPool_destroy(testText->setupCommands));
-		testText->setupCommands = NULL;
-	}
-
 	dsSurfaceClearValue clearValue;
 	clearValue.colorValue.floatValue.r = 0.0f;
 	clearValue.colorValue.floatValue.g = 0.1f;
@@ -798,7 +789,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 		DS_VERIFY(dsTextRenderBuffer_drawStandardGlyphs(testText->textRender, commandBuffer));
 		DS_VERIFY(dsShader_unbind(testText->shader, commandBuffer));
 		DS_VERIFY(dsTextRenderBuffer_drawIconGlyphs(testText->textRender, commandBuffer,
-			&modelViewProjection, NULL, NULL));
+			&modelViewProjection, NULL, NULL, NULL));
 	}
 
 	if (testText->tessText)
@@ -814,7 +805,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 		DS_VERIFY(dsTextRenderBuffer_drawStandardGlyphs(testText->tessTextRender, commandBuffer));
 		DS_VERIFY(dsShader_unbind(testText->tessShader, commandBuffer));
 		DS_VERIFY(dsTextRenderBuffer_drawIconGlyphs(testText->textRender, commandBuffer,
-			&modelViewProjection, NULL, NULL));
+			&modelViewProjection, NULL, NULL, NULL));
 	}
 
 	if (textStrings[testText->curString].maxWidth != DS_TEXT_NO_WRAP)
@@ -949,7 +940,8 @@ static bool setupShaders(TestText* testText)
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
-static bool setupText(TestText* testText, dsTextQuality quality, const char* fontPath)
+static bool setupText(
+	TestText* testText, dsTextQuality quality, const char* fontPath, dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -1126,7 +1118,7 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 
 	dsTimer timer = dsTimer_create();
 	double startTime = dsTimer_time(timer);
-	if (!dsFont_preloadASCII(testText->font, testText->setupCommands->commandBuffers[0]))
+	if (!dsFont_preloadASCII(testText->font, commandBuffer))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create preload ASCII characters: %s",
 			dsErrorString(errno));
@@ -1187,20 +1179,11 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	testText->allocator = allocator;
 	testText->renderer = renderer;
 
-	testText->setupCommands = dsCommandBufferPool_create(renderer, allocator,
-		dsCommandBufferUsage_Standard);
-	if (!testText->setupCommands ||
-		!dsCommandBufferPool_createCommandBuffers(testText->setupCommands, 1))
+	dsCommandBuffer* resourceCommandBuffer =
+		dsResourceManager_getResourceCommandBuffer(renderer->resourceManager);
+	if (!resourceCommandBuffer)
 	{
-		DS_LOG_ERROR_F("TestText", "Couldn't create setup command buffer: %s",
-			dsErrorString(errno));
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	dsCommandBuffer* setupCommands = testText->setupCommands->commandBuffers[0];
-	if (!dsCommandBuffer_begin(setupCommands))
-	{
-		DS_LOG_ERROR_F("TestText", "Couldn't begin setup command buffer: %s",
+		DS_LOG_ERROR_F("TestText", "Couldn't get resource command buffer: %s",
 			dsErrorString(errno));
 		DS_PROFILE_FUNC_RETURN(false);
 	}
@@ -1276,13 +1259,13 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	if (!setupShaders(testText))
 		DS_PROFILE_FUNC_RETURN(false);
 
-	if (!setupText(testText, quality, fontPath))
+	if (!setupText(testText, quality, fontPath, resourceCommandBuffer))
 		DS_PROFILE_FUNC_RETURN(false);
 
 	if (!setupLimit(testText))
 		DS_PROFILE_FUNC_RETURN(false);
 
-	if (!createFramebuffer(testText, setupCommands))
+	if (!createFramebuffer(testText))
 		DS_PROFILE_FUNC_RETURN(false);
 
 	for (uint32_t i = 0; i < DS_ARRAY_SIZE(textStrings); ++i)
@@ -1295,14 +1278,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	}
 
 	testText->curString = 0;
-	createText(testText, setupCommands);
-
-	if (!dsCommandBuffer_end(setupCommands))
-	{
-		DS_LOG_ERROR_F("TestText", "Couldn't end setup command buffer: %s",
-			dsErrorString(errno));
-		DS_PROFILE_FUNC_RETURN(false);
-	}
+	createText(testText, resourceCommandBuffer);
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
@@ -1329,7 +1305,6 @@ static void shutdown(TestText* testText)
 	DS_VERIFY(dsRenderPass_destroy(testText->renderPass));
 	DS_VERIFY(dsFramebuffer_destroy(testText->framebuffer));
 	DS_VERIFY(dsWindow_destroy(testText->window));
-	DS_VERIFY(dsCommandBufferPool_destroy(testText->setupCommands));
 }
 
 int dsMain(int argc, const char** argv)
