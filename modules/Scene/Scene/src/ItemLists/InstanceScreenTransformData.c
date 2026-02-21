@@ -30,8 +30,6 @@
 #include <DeepSea/Scene/ItemLists/SceneInstanceVariables.h>
 #include <DeepSea/Scene/Types.h>
 
-#include <string.h>
-
 static dsShaderVariableElement elements[] =
 {
 	{"world", dsMaterialType_Mat4, 0},

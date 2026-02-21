@@ -16,6 +16,8 @@
 
 #include <DeepSea/SceneVectorDraw/SceneVectorDrawLoadContext.h>
 
+#include "InstanceDiscardBoundsDataLoad.h"
+#include "SceneDiscardBoundsNodeLoad.h"
 #include "SceneTextLoad.h"
 #include "SceneTextNodeLoad.h"
 #include "SceneVectorDrawPrepareLoad.h"
@@ -31,6 +33,8 @@
 
 #include <DeepSea/Scene/SceneLoadContext.h>
 
+#include <DeepSea/SceneVectorDraw/InstanceDiscardBoundsData.h>
+#include <DeepSea/SceneVectorDraw/SceneDiscardBoundsNode.h>
 #include <DeepSea/SceneVectorDraw/SceneText.h>
 #include <DeepSea/SceneVectorDraw/SceneTextNode.h>
 #include <DeepSea/SceneVectorDraw/SceneVectorDrawPrepare.h>
@@ -223,14 +227,26 @@ bool dsSceneVectorDrawLoadConext_registerTypes(dsSceneLoadContext* loadContext,
 		return false;
 	}
 
-	if (textRenderInfo && !dsSceneVectorDrawLoadContext_registerCustomTextNodeType(loadContext,
-			allocator, dsSceneTextNode_typeName, textRenderInfo))
+	if (!dsSceneLoadContext_registerNodeType(loadContext, dsSceneDiscardBoundsNode_typeName,
+			&dsSceneDiscardBoundsNode_load, NULL, NULL))
 	{
 		return false;
 	}
 
-	if (!dsSceneLoadContext_registerNodeType(loadContext, dsSceneVectorImageNode_typeName,
-			&dsSceneVectorImageNode_load, NULL, NULL))
+	if (textRenderInfo && !dsSceneVectorDrawLoadContext_registerCustomTextNodeType(
+			loadContext, allocator, dsSceneTextNode_typeName, textRenderInfo))
+	{
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerNodeType(
+			loadContext, dsSceneVectorImageNode_typeName, &dsSceneVectorImageNode_load, NULL, NULL))
+	{
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerInstanceDataType(loadContext,
+			dsInstanceDiscardBoundsData_typeName, &dsInstanceDiscardBoundsData_load, NULL, NULL))
 	{
 		return false;
 	}
@@ -255,11 +271,6 @@ bool dsSceneVectorDrawLoadContext_registerCustomTextNodeType(
 	userData->allocator = dsAllocator_keepPointer(allocator);
 	userData->textRenderInfo = *textRenderInfo;
 
-	if (!dsSceneLoadContext_registerNodeType(loadContext, name, &dsSceneTextNode_load, userData,
-			&SceneTextNodeUserData_destroy))
-	{
-		return false;
-	}
-
-	return true;
+	return dsSceneLoadContext_registerNodeType(loadContext, name, &dsSceneTextNode_load, userData,
+		&SceneTextNodeUserData_destroy);
 }

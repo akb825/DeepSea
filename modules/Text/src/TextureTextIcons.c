@@ -192,32 +192,33 @@ static bool TextureIcons_drawIconDataBuffer(TextureIcons* textureIcons,
 
 	DS_VERIFY(dsGfxBuffer_unmap(iconDataBuffer));
 
-	bool needsLock = instanceValues == textureIcons->instanceValues;
-
 	dsDrawRange drawRange = {6, 1, 0, 0};
+
+	// Lock during draws only when using the internal fallback instance values.
+	bool needsLock = instanceValues == textureIcons->instanceValues;
+	if (needsLock)
+		DS_VERIFY(dsSpinlock_lock(&textureIcons->drawLock));
+
+	bool success = true;
 	for (uint32_t i = 0; i < glyphCount; ++i)
 	{
 		const dsIconGlyph* glyph = glyphs + i;
-		// Minimal lock only when using the internal fallback instance values.
-		if (needsLock)
-			DS_VERIFY(dsSpinlock_lock(&textureIcons->drawLock));
-		bool setInstanceValues = dsSharedMaterialValues_setTextureID(
-				instanceValues, textureIcons->textureNameID, EXTRACT_TEXTURE(glyph->userData)) &&
-			dsSharedMaterialValues_setBufferID(instanceValues, textureIcons->iconDataNameID,
-				iconDataBuffer, i*textureIcons->iconDataStride, sizeof(dsMatrix44f)) &&
-			dsShader_updateInstanceValues(
-				textureIcons->shader, commandBuffer, textureIcons->instanceValues);
-		if (needsLock)
-			DS_VERIFY(dsSpinlock_unlock(&textureIcons->drawLock));
-
-		if (!setInstanceValues ||
+		if (!dsSharedMaterialValues_setTextureID(
+				instanceValues, textureIcons->textureNameID, EXTRACT_TEXTURE(glyph->userData)) ||
+			!dsSharedMaterialValues_setBufferID(instanceValues, textureIcons->iconDataNameID,
+				iconDataBuffer, i*textureIcons->iconDataStride, sizeof(dsMatrix44f)) ||
+			!dsShader_updateInstanceValues(
+				textureIcons->shader, commandBuffer, textureIcons->instanceValues) ||
 			!dsRenderer_draw(textureIcons->resourceManager->renderer, commandBuffer,
 				textureIcons->drawGeometry, &drawRange, dsPrimitiveType_TriangleList))
 		{
-			return false;
+			success = false;
+			break;
 		}
 	}
-	return true;
+	if (needsLock)
+		DS_VERIFY(dsSpinlock_unlock(&textureIcons->drawLock));
+	return success;
 }
 
 static bool TextureIcons_drawIconDataGroup(TextureIcons* textureIcons,

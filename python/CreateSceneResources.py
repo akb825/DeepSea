@@ -74,6 +74,7 @@ from DeepSeaScenePhysics.Convert.SliderPhysicsConstraintConvert import \
 from DeepSeaScenePhysics.Convert.SwingTwistPhysicsConstraintConvert import \
 	convertSwingTwistPhysicsConstraint
 
+from DeepSeaSceneVectorDraw.Convert.DiscardBoundsNodeConvert import convertDiscardBoundsNode
 from DeepSeaSceneVectorDraw.Convert.TextConvert import convertText
 from DeepSeaSceneVectorDraw.Convert.TextNodeConvert import convertTextNode
 from DeepSeaSceneVectorDraw.Convert.VectorImageConvert import convertVectorImage
@@ -162,6 +163,7 @@ def createSceneResourcesConvertContext(cuttlefish='cuttlefish', vfc='vfc', multi
 	convertContext.addCustomResourceType('VectorImage', convertVectorImage)
 	convertContext.addCustomResourceType('VectorResources', convertVectorResources)
 	convertContext.addCustomResourceType('VectorShaders', convertVectorShaders)
+	convertContext.addNodeType('DiscardBoundsNode', convertDiscardBoundsNode)
 	convertContext.addNodeType('TextNode', convertTextNode)
 	convertContext.addNodeType('VectorImageNode', convertVectorImageNode)
 

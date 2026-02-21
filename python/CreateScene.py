@@ -45,6 +45,8 @@ from DeepSeaScenePhysics.Convert.PhysicsListConvert import convertPhysicsList
 
 from DeepSeaSceneVectorDraw.Convert.VectorDrawPrepareConvert import convertVectorDrawPrepare
 from DeepSeaSceneVectorDraw.Convert.VectorItemListConvert import convertVectorItemList
+from DeepSeaSceneVectorDraw.Convert.InstanceDiscardBoundsDataConvert \
+	import convertInstanceDiscardBoundsData
 
 def createSceneConvertContext(customExtensions=None):
 	"""
@@ -66,8 +68,8 @@ def createSceneConvertContext(customExtensions=None):
 	convertContext.addItemListType('ShadowManagerPrepare', convertShadowManagerPrepare)
 	convertContext.addItemListType('SSAO', convertSSAO)
 	convertContext.addInstanceDataType('InstanceForwardLightData', convertInstanceForwardLightData)
-	convertContext.addInstanceDataType('ShadowInstanceTransformData',
-		convertShadowInstanceTransformData)
+	convertContext.addInstanceDataType(
+		'ShadowInstanceTransformData', convertShadowInstanceTransformData)
 
 	# Particle scene types.
 	convertContext.addItemListType('ParticleDrawList', convertParticleDrawList)
@@ -80,6 +82,8 @@ def createSceneConvertContext(customExtensions=None):
 	# Vector draw scene types.
 	convertContext.addItemListType('VectorDrawPrepare', convertVectorDrawPrepare)
 	convertContext.addItemListType('VectorItemList', convertVectorItemList)
+	convertContext.addInstanceDataType(
+		'InstanceDiscardBoundsData', convertInstanceDiscardBoundsData)
 
 	if customExtensions:
 		for extension in customExtensions:

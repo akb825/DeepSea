@@ -143,7 +143,7 @@ DS_SCENEVECTORDRAW_EXPORT const dsSceneNodeType* dsSceneTextNode_setupParentType
  * @param itemListCount The number of item lists.
  * @param resources The resources to keep a reference to.
  * @param resourceCount The number of resources.
- * @return The vector text node or NULL if an error occurred.
+ * @return The text node or NULL if an error occurred.
  */
 DS_SCENEVECTORDRAW_EXPORT dsSceneTextNode* dsSceneTextNode_create(
 	dsAllocator* allocator, const dsText* text, void* textUserData, const dsTextStyle* styles,
@@ -174,7 +174,7 @@ DS_SCENEVECTORDRAW_EXPORT dsSceneTextNode* dsSceneTextNode_create(
  * @param itemListCount The number of item lists.
  * @param resources The resources to keep a reference to.
  * @param resourceCount The number of resources.
- * @return The vector text node or NULL if an error occurred.
+ * @return The text node or NULL if an error occurred.
  */
 DS_SCENEVECTORDRAW_EXPORT dsSceneTextNode* dsSceneTextNode_createBase(
 	dsAllocator* allocator, size_t structSize, const dsText* text, void* textUserData,

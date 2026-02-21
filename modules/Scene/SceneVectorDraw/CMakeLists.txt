@@ -1,4 +1,4 @@
-file(GLOB_RECURSE sources src/*.c src/*.cpp src/*.h include/*.h)
+file(GLOB_RECURSE sources src/*.c src/*.cpp src/*.h include/*.h include/*.mslh)
 file(GLOB_RECURSE flatbuffers src/*.fbs)
 ds_add_library(deepsea_scene_vector_draw MODULE SceneVectorDraw FILES ${sources} ${flatbuffers})
 ds_target_include_directories(deepsea_scene_vector_draw PRIVATE src ${FLATBUFFERS_INCLUDE_DIRS})

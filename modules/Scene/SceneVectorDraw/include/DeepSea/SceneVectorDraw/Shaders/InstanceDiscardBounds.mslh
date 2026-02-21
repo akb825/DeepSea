@@ -1,0 +1,68 @@
+/*
+ * Copyright 2026 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+/**
+ * @file
+ * @brief Uniforms and functions for discarding pixels outside of bounds relative to an instance
+ * transform.
+ */
+
+uniform dsInstanceDiscardBoundsData
+{
+	/**
+	 * @brief The inverse of the world projection matrix to go from clip space to the space relative
+	 * to the bounds.
+	 */
+	mat4 discardWorldProjInv;
+
+	/**
+	 * @brief The 2D bounding box with the minimum and maximum encoded in a single vec4.
+	 */
+	vec4 discardBounds;
+} dsInstanceDiscardBounds;
+
+/**
+ * @brief Converts a clip position to discard space.
+ * @param clipPos The clip position as used with gl_Position.
+ * @return The position in the space for the discard bounds.
+ */
+vec2 dsInstanceDiscardBounds_toDiscardSpace(vec3 clipPos)
+{
+#if GLSL_VERSION || GLSLES_VERSION
+	// Only OpenGL needs this conversion. This computation avoids having to add a conditional.
+	clipPos.z = clipPos.z*(abs(DS_MIN_CLIP_Z) + 1.0) + DS_MIN_CLIP_Z;
+#endif
+	// Need to follow the same logic as would be done for the final clip position to handle cases
+	// where it's inverted.
+	vec4 adjustedClipPos = DS_ADJUST_CLIP(vec4(clipPos, 1.0));
+	vec4 unprojectedPos = INSTANCE(dsInstanceDiscardBounds).discardWorldProjInv*adjustedClipPos;
+	return unprojectedPos.xy/unprojectedPos.w;
+}
+
+/**
+ * @brief Clips the fragment based on the position in discard space.
+ * @param discardPos The position relative to the discard bounds.
+ */
+[[fragment]]
+void dsInstanceDiscardBounds_clip(vec2 discardPos)
+{
+	vec2 discardMin = INSTANCE(dsInstanceDiscardBounds).discardBounds.xy;
+	vec2 discardMax = INSTANCE(dsInstanceDiscardBounds).discardBounds.zw;
+	if (any(lassThan(discardPos, discardMin)) || any(lessThan(discardMax, discardPos)))
+		discard;
+}

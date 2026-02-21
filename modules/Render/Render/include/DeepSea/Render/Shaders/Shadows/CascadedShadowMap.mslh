@@ -58,7 +58,6 @@ uniform DS_CASCADED_SHADOW_UNIFORM_NAME
 	vec2 fadeDistances;
 } DS_SHADOW_UNIFORM;
 
-
 /**
  * @brief Performs a shadow map lookup.
  * @param shadowMap The shadow map to look up in.

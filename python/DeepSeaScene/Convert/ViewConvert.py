@@ -14,6 +14,7 @@
 
 import flatbuffers
 from .SceneResourcesConvert import memoryHintsEnum
+from ..AlignedBox2f import CreateAlignedBox2f
 from ..AlignedBox3f import CreateAlignedBox3f
 from ..CubeFace import CubeFace
 from ..FormatDecoration import FormatDecoration
@@ -379,7 +380,7 @@ def convertView(convertContext, data, inputDir):
 		try:
 			screenDimension = getattr(ScreenSizeDim, screenDimensionStr)
 		except AttributeError:
-			raise Exception('Invalid screen size dimension "' + typeStr + '".')
+			raise Exception('Invalid screen size dimension "' + screenDimensionStr + '".')
 	except KeyError as e:
 		raise Exception('View doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):

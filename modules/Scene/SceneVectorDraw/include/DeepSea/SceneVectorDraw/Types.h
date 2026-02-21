@@ -200,6 +200,26 @@ typedef struct dsSceneTextNode
 } dsSceneTextNode;
 
 /**
+ * @brief Struct for a node that discards pixels outside of a bounding box in child nodes.
+ * @see SceneDiscardBoundsNode.h
+ */
+typedef struct dsSceneDiscardBoundsNode
+{
+	/**
+	 * @brief The node as a base class.
+	 */
+	dsSceneNode node;
+
+	/**
+	 * @brief The bounds outside of which shader fragments are discarded.
+	 *
+	 * The bounds will follow the transform for the current node, and the transform of child nodes
+	 * will be respected relative to this.
+	 */
+	dsAlignedBox2f discardBounds;
+} dsSceneDiscardBoundsNode;
+
+/**
  * @brief Text with info required to create a dsTextRenderBuffer with a dsSceneVectorItemList.
  * @see SceneVectorItemList.h
  */

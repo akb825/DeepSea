@@ -106,6 +106,11 @@ The following custom scene resource types are provided with the members that are
 
 The following scene node types are provided with the members that are expected:
 
+* `"DiscardBoundsNode"`: scene node with bounds outside of which shader fragments are discarded.
+	* `discardBounds`: the discard bounds as a 2x2 array of floats for the minimum and maximum points. If omitted, an empty bounds will be used to initially disable bounds discarding.
+	* `children`: an array of child nodes. Each element is an object with the following elements:
+		* `nodeType`: the name of the node type.
+		* `data`: the data for the node.
 * `"TextNode"`: scene node to draw a `Text` object.
 	* `embeddedResources`: optional set of resources to embed with the node. This is a map containing the elements as expected by `SceneResourcesConvert.convertSceneResources()`.
 	* `text`: the name of the text element to draw. 
@@ -152,3 +157,10 @@ The following scene item lists are provided with the expected members:
 		* `frontStencilReference`: int reference for just the front stencil.
 		* `backStencilReference`: int reference for just the back stencil.
 	* `views`: array of strings for the name of views to draw to. If omitted or empty, all views will be drawn to.
+
+## Instance Data
+
+The following instance data types are provided with the expected members:
+
+* `"InstanceDiscardBounds"`: sets the discard bounds and transform from clip to discard space.
+	* `variableGroupDesc`: string name for the shader variable group to use.
