@@ -15,26 +15,47 @@
  */
 
 #include <DeepSea/Scene/Shaders/ViewTransform.mslh>
+#include <DeepSea/SceneVectorDraw/Shaders/InstanceDiscardBounds.mslh>
 #include <DeepSea/VectorDraw/Shaders/VectorElementTextColor.mslh>
+
+varying(vertex, fragment)
+{
+	vec2 vfDiscardPos;
+}
 
 [[vertex]]
 void vectorTextColorVertex()
 {
 	gl_Position = dsVectorElementText_processVertex();
+	vfDiscardPos = dsInstanceDiscardBounds_toDiscardSpace(gl_Position.xyz);
 	gl_Position.xy = dsRotateFramebufferPosition(gl_Position.xy);
 	gl_Position = DS_ADJUST_CLIP(gl_Position);
+}
+
+[[fragment]]
+void vectorTextFragmentColor()
+{
+	dsInstanceDiscardBounds_clip(vfDiscardPos);
+	dsVectorElementText_defaultFragmentColor();
+}
+
+[[fragment]]
+void vectorTextFragmentColorOutline()
+{
+	dsInstanceDiscardBounds_clip(vfDiscardPos);
+	dsVectorElementText_defaultFragmentColorOutline();
 }
 
 pipeline dsVectorTextColor
 {
 	vertex = vectorTextColorVertex;
-	fragment = dsVectorElementText_defaultFragmentColor;
+	fragment = vectorTextFragmentColor;
 	DS_DEFAULT_VECTOR_ELEMENT_TEXT_RENDER_STATES;
 }
 
 pipeline dsVectorTextColorOutline
 {
 	vertex = vectorTextColorVertex;
-	fragment = dsVectorElementText_defaultFragmentColorOutline;
+	fragment = vectorTextFragmentColorOutline;
 	DS_DEFAULT_VECTOR_ELEMENT_TEXT_RENDER_STATES;
 }

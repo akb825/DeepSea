@@ -39,6 +39,10 @@
 								{
 									"type": "InstanceScreenTransformData",
 									"variableGroupDesc": "instanceScreenTransformDesc"
+								},
+								{
+									"type": "InstanceDiscardBoundsData",
+									"variableGroupDesc": "instanceDiscardBoundsDesc"
 								}
 							],
 							"maxMaterialDescs": 2

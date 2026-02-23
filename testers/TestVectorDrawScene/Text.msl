@@ -17,6 +17,7 @@
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
 #include <DeepSea/Scene/Shaders/InstanceScreenTransform.mslh>
 #include <DeepSea/Scene/Shaders/ViewTransform.mslh>
+#include <DeepSea/SceneVectorDraw/Shaders/InstanceDiscardBounds.mslh>
 #include <DeepSea/Text/Text.mslh>
 
 [[vertex]] layout(location = DS_POSITION) in vec2 vertexPos;
@@ -31,6 +32,7 @@ varying(vertex, fragment)
 	vec4 vfOutlineColor;
 	vec3 vfTexCoords;
 	vec4 vfStyle;
+	vec2 vfDiscardPos;
 }
 
 [[fragment]] out vec4 color;
@@ -46,6 +48,7 @@ void vertexShader()
 	// Text coordinate space has +Y pointing down.
 	gl_Position =
 		INSTANCE(dsInstanceScreenTransform).worldProj*vec4(vertexPos.x, -vertexPos.y, 0.0, 1.0);
+	vfDiscardPos = dsInstanceDiscardBounds_toDiscardSpace(gl_Position.xyz);
 	gl_Position.xy = dsRotateFramebufferPosition(gl_Position.xy);
 	gl_Position = DS_ADJUST_CLIP(gl_Position);
 }
@@ -53,6 +56,7 @@ void vertexShader()
 [[fragment]]
 void fragmentShader()
 {
+	dsInstanceDiscardBounds_clip(vfDiscardPos);
 	float distance = dsComputeTextDistance(vfTexCoords);
 	color = dsComputeTextColor(
 		distance, vfStyle.x, vfStyle.y, vfStyle.z, vfStyle.w, vfTextColor, vfOutlineColor);

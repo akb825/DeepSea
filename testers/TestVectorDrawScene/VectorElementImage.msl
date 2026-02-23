@@ -15,19 +15,33 @@
  */
 
 #include <DeepSea/Scene/Shaders/ViewTransform.mslh>
+#include <DeepSea/SceneVectorDraw/Shaders/InstanceDiscardBounds.mslh>
 #include <DeepSea/VectorDraw/Shaders/VectorElementImage.mslh>
+
+varying(vertex, fragment)
+{
+	vec2 vfDiscardPos;
+}
 
 [[vertex]]
 void vectorImageVertex()
 {
 	gl_Position = dsVectorElementImage_getVectorInfo();
+	vfDiscardPos = dsInstanceDiscardBounds_toDiscardSpace(gl_Position.xyz);
 	gl_Position.xy = dsRotateFramebufferPosition(gl_Position.xy);
 	gl_Position = DS_ADJUST_CLIP(gl_Position);
+}
+
+[[fragment]]
+void vectorImageFragment()
+{
+	dsInstanceDiscardBounds_clip(vfDiscardPos);
+	dsVectorElementImage_defaultFragment();
 }
 
 pipeline dsVectorImage
 {
 	vertex = vectorImageVertex;
-	fragment = dsVectorElementImage_defaultFragment;
+	fragment = vectorImageFragment;
 	DS_DEFAULT_VECTOR_ELEMENT_IMAGE_RENDER_STATES;
 }

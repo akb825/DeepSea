@@ -170,10 +170,6 @@ vec3 dsGetViewPositionFromFramebuffer(float depth)
  */
 vec3 dsGetScreenPositionFromClip(vec3 clipPos)
 {
-#if GLSL_VERSION || GLSLES_VERSION
-	// Only OpenGL needs this conversion. This computation avoids having to add a conditional.
-	clipPos.z = clipPos.z*(abs(DS_MIN_CLIP_Z) + 1.0) + DS_MIN_CLIP_Z;
-#endif
 	// Need to follow the same logic as would be done for the final clip position to handle cases
 	// where it's inverted.
 	vec4 adjustedClipPos = DS_ADJUST_CLIP(vec4(clipPos, 1.0));

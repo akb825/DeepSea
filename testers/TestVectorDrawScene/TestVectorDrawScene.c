@@ -57,6 +57,13 @@
 #include <DeepSea/EasyProfiler/EasyProfiler.h>
 #endif
 
+typedef enum DisplayType
+{
+	DisplayType_CharByChar,
+	DisplayType_TextBox,
+	DisplayType_Count
+} DisplayType;
+
 typedef struct TestVectorDrawScene
 {
 	dsAllocator* allocator;
@@ -64,17 +71,26 @@ typedef struct TestVectorDrawScene
 	dsWindow* window;
 	dsSceneResources* resources;
 	dsSceneTransformNode* rootNode;
+	dsSceneNode* figureTransformNode;
+	dsSceneNode* textBoxNode;
+	dsSceneTransformNode* figureOffsetNode;
 	dsSceneTextNode* figureNode;
 	dsScene* scene;
 	dsView* view;
 
 	double changeTime;
 	unsigned int skipCount;
+	bool reverse;
+	DisplayType displayType;
+
+	uint32_t fingerCount;
+	uint32_t maxFingers;
 } TestVectorDrawScene;
 
 static void printHelp(const char* programPath)
 {
 	printf("usage: %s [OPTIONS]\n", dsPath_getFileName(programPath));
+	printf("Press '1' to toggle between text display modes.\n\n");
 	printf("options:\n");
 	printf("  -h, --help                   print this help message and exit\n");
 	printf("  -r, --renderer <renderer>    explicitly use a renderer; options are:\n");
@@ -107,6 +123,38 @@ static void updateRootTransform(const dsView* view, dsSceneTransformNode* transf
 	DS_VERIFY(dsSceneTransformNode_setTransform(transformNode, &transform));
 }
 
+static void updateFigureOffset(TestVectorDrawScene* testVectorDrawScene, float offset)
+{
+	dsMatrix44f offsetMatrix;
+	dsMatrix44f_makeTranslate(&offsetMatrix, 0.0f, offset, 0.0f);
+	DS_VERIFY(dsSceneTransformNode_setTransform(
+		testVectorDrawScene->figureOffsetNode, &offsetMatrix));
+}
+
+static void toggleDisplayType(TestVectorDrawScene* testVectorDrawScene)
+{
+	testVectorDrawScene->displayType = (testVectorDrawScene->displayType + 1) % DisplayType_Count;
+	dsSceneNode_clear(testVectorDrawScene->figureTransformNode);
+	testVectorDrawScene->changeTime = 0.0;
+	switch (testVectorDrawScene->displayType)
+	{
+		case DisplayType_CharByChar:
+			DS_VERIFY(dsSceneNode_addChild(testVectorDrawScene->figureTransformNode,
+				(dsSceneNode*)testVectorDrawScene->figureNode));
+			break;
+		case DisplayType_TextBox:
+			DS_VERIFY(dsSceneNode_addChild(
+				testVectorDrawScene->figureTransformNode, testVectorDrawScene->textBoxNode));
+			testVectorDrawScene->figureNode->charCount =
+				testVectorDrawScene->figureNode->layout->text->characterCount;
+			testVectorDrawScene->reverse = false;
+			updateFigureOffset(testVectorDrawScene, 0.0f);
+			break;
+		case DisplayType_Count:
+			break;
+	}
+}
+
 static bool processEvent(
 	dsApplication* application, dsWindow* window, const dsEvent* event, void* userData)
 {
@@ -137,12 +185,40 @@ static bool processEvent(
 			testVectorDrawScene->skipCount = 2;
 			return false;
 		case dsAppEventType_KeyDown:
-			if (event->key.repeat)
-				return false;
+			switch (event->key.key)
+			{
+				case dsKeyCode_1:
+					toggleDisplayType(testVectorDrawScene);
+					return false;
+				case dsKeyCode_ACBack:
+					dsApplication_quit(application, 0);
+					return false;
+				default:
+					return true;
+			}
+		case dsAppEventType_TouchFingerDown:
+			++testVectorDrawScene->fingerCount;
+			testVectorDrawScene->maxFingers = dsMax(
+				testVectorDrawScene->fingerCount, testVectorDrawScene->maxFingers);
+			return true;
+		case dsAppEventType_TouchFingerUp:
+			if (testVectorDrawScene->fingerCount == 0)
+				return true;
 
-			if (event->key.key == dsKeyCode_ACBack)
-				dsApplication_quit(application, 0);
-			return false;
+			--testVectorDrawScene->fingerCount;
+			if (testVectorDrawScene->fingerCount == 0)
+			{
+				switch (testVectorDrawScene->maxFingers)
+				{
+					case 1:
+						toggleDisplayType(testVectorDrawScene);
+						break;
+					default:
+						break;
+				}
+				testVectorDrawScene->maxFingers = 0;
+			}
+			return true;
 		default:
 			return true;
 	}
@@ -154,28 +230,59 @@ static void update(dsApplication* application, float lastFrameTime, void* userDa
 
 	TestVectorDrawScene* testVectorDrawScene = (TestVectorDrawScene*)userData;
 
-	const double newCharTime = 0.1;
-	const double clearTime = 1.0;
 	if (testVectorDrawScene->skipCount > 0)
 		--testVectorDrawScene->skipCount;
 	else
 		testVectorDrawScene->changeTime += lastFrameTime;
-	if (testVectorDrawScene->figureNode->charCount >=
-		testVectorDrawScene->figureNode->layout->text->characterCount)
+	switch (testVectorDrawScene->displayType)
 	{
-		if (testVectorDrawScene->changeTime >= clearTime)
+		case DisplayType_CharByChar:
 		{
-			testVectorDrawScene->figureNode->charCount = 0;
-			testVectorDrawScene->changeTime -= clearTime;
+			const double newCharTime = 0.1;
+			const double clearTime = 1.0;
+			if (testVectorDrawScene->figureNode->charCount >=
+				testVectorDrawScene->figureNode->layout->text->characterCount)
+			{
+				if (testVectorDrawScene->changeTime >= clearTime)
+				{
+					testVectorDrawScene->figureNode->charCount = 0;
+					testVectorDrawScene->changeTime -= clearTime;
+				}
+			}
+			else
+			{
+				if (testVectorDrawScene->changeTime >= newCharTime)
+				{
+					++testVectorDrawScene->figureNode->charCount;
+					testVectorDrawScene->changeTime -= newCharTime;
+				}
+			}
+			break;
 		}
-	}
-	else
-	{
-		if (testVectorDrawScene->changeTime >= newCharTime)
+		case DisplayType_TextBox:
 		{
-			++testVectorDrawScene->figureNode->charCount;
-			testVectorDrawScene->changeTime -= newCharTime;
+			const double transitionTime = 1.5;
+			const double pauseTime = 2.0;
+			const float maxOffset = 6.0f;
+			double totalTime = transitionTime + pauseTime;
+			while (testVectorDrawScene->changeTime > totalTime)
+			{
+				testVectorDrawScene->reverse = !testVectorDrawScene->reverse;
+				testVectorDrawScene->changeTime -= totalTime;
+			}
+
+			float t = (float)((testVectorDrawScene->changeTime - pauseTime)/transitionTime);
+			t = dsClamp(t, 0.0f, 1.0f);
+			float offset;
+			if (testVectorDrawScene->reverse)
+				offset = dsLerp(maxOffset, 0.0f, t);
+			else
+				offset = dsLerp(0.0f, maxOffset, t);
+			updateFigureOffset(testVectorDrawScene, offset);
+			break;
 		}
+		case DisplayType_Count:
+			break;
 	}
 
 	DS_VERIFY(dsScene_update(testVectorDrawScene->scene, lastFrameTime));
@@ -265,8 +372,8 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 	};
 
 	float pixelSize = 100.0f/(float)testVectorDrawScene->window->surface->height;
-	if (!dsSceneVectorDrawLoadConext_registerTypes(loadContext, allocator, NULL,
-			substitutionTable, &textRenderInfo, pixelSize))
+	if (!dsSceneVectorDrawLoadConext_registerTypes(
+			loadContext, allocator, NULL, substitutionTable, &textRenderInfo, pixelSize))
 	{
 		DS_LOG_ERROR_F("TestVectorDrawScene", "Couldn't register vector scene types: %s",
 			dsErrorString(errno));
@@ -275,8 +382,8 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 		return false;
 	}
 
-	dsSceneLoadScratchData* scratchData = dsSceneLoadScratchData_create(allocator,
-		renderer->mainCommandBuffer);
+	dsSceneLoadScratchData* scratchData = dsSceneLoadScratchData_create(
+		allocator, renderer->mainCommandBuffer);
 	if (!scratchData)
 	{
 		DS_LOG_ERROR_F("TestVectorDrawScene", "Couldn't create load scratch data: %s",
@@ -308,17 +415,57 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 		return false;
 	}
 
-	DS_VERIFY(dsSceneLoadScratchData_pushSceneResources(scratchData,
-		&testVectorDrawScene->resources, 1));
+	DS_VERIFY(dsSceneLoadScratchData_pushSceneResources(
+		scratchData, &testVectorDrawScene->resources, 1));
 
 	dsSceneResourceType resourceType;
 	const dsSceneNodeType* transformNodeType = dsSceneTransformNode_type();
+	if (!dsSceneResources_findResource(&resourceType,
+			(void**)&testVectorDrawScene->figureTransformNode, testVectorDrawScene->resources,
+			"figureTransformNode") ||
+		resourceType != dsSceneResourceType_SceneNode)
+	{
+		DS_LOG_ERROR("TestVectorDrawScene", "Couldn't find node 'figureTransformNode'.");
+		dsFileArchive_close(archive);
+		dsSceneLoadContext_destroy(loadContext);
+		dsTextSubstitutionTable_destroy(substitutionTable);
+		dsSceneLoadScratchData_destroy(scratchData);
+		return false;
+	}
+
 	if (!dsSceneResources_findResource(&resourceType, (void**)&testVectorDrawScene->rootNode,
 			testVectorDrawScene->resources, "rootNode") ||
 		resourceType != dsSceneResourceType_SceneNode ||
 		!dsSceneNode_isOfType((dsSceneNode*)testVectorDrawScene->rootNode, transformNodeType))
 	{
 		DS_LOG_ERROR("TestVectorDrawScene", "Couldn't find transform node 'rootNode'.");
+		dsFileArchive_close(archive);
+		dsSceneLoadContext_destroy(loadContext);
+		dsTextSubstitutionTable_destroy(substitutionTable);
+		dsSceneLoadScratchData_destroy(scratchData);
+		return false;
+	}
+
+	if (!dsSceneResources_findResource(&resourceType, (void**)&testVectorDrawScene->textBoxNode,
+			testVectorDrawScene->resources, "textBoxNode") ||
+		resourceType != dsSceneResourceType_SceneNode)
+	{
+		DS_LOG_ERROR("TestVectorDrawScene", "Couldn't find node 'textBoxNode'.");
+		dsFileArchive_close(archive);
+		dsSceneLoadContext_destroy(loadContext);
+		dsTextSubstitutionTable_destroy(substitutionTable);
+		dsSceneLoadScratchData_destroy(scratchData);
+		return false;
+	}
+
+	if (!dsSceneResources_findResource(&resourceType,
+			(void**)&testVectorDrawScene->figureOffsetNode,
+			testVectorDrawScene->resources, "figureOffsetNode") ||
+		resourceType != dsSceneResourceType_SceneNode ||
+		!dsSceneNode_isOfType(
+			(dsSceneNode*)testVectorDrawScene->figureOffsetNode, transformNodeType))
+	{
+		DS_LOG_ERROR("TestVectorDrawScene", "Couldn't find transform node 'figureOffsetNode'.");
 		dsFileArchive_close(archive);
 		dsSceneLoadContext_destroy(loadContext);
 		dsTextSubstitutionTable_destroy(substitutionTable);
@@ -340,8 +487,8 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 		return false;
 	}
 
-	testVectorDrawScene->scene = dsScene_loadArchive(allocator, NULL, loadContext, scratchData,
-		NULL, NULL, NULL, archive, "Scene.dss");
+	testVectorDrawScene->scene = dsScene_loadArchive(
+		allocator, NULL, loadContext, scratchData, NULL, NULL, NULL, archive, "Scene.dss");
 	if (!testVectorDrawScene->scene)
 	{
 		DS_LOG_ERROR_F("TestVectorDrawScene", "Couldn't load scene: %s", dsErrorString(errno));
@@ -458,8 +605,8 @@ int dsMain(int argc, const char** argv)
 		return 0;
 	}
 
-	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
-		(dsAllocator*)&renderAllocator, &rendererOptions);
+	dsRenderer* renderer = dsRenderBootstrap_createRenderer(
+		rendererType, (dsAllocator*)&renderAllocator, &rendererOptions);
 	if (!renderer)
 	{
 		DS_LOG_ERROR_F("TestVectorDrawScene", "Couldn't create renderer: %s", dsErrorString(errno));

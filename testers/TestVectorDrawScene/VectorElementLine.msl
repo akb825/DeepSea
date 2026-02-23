@@ -15,19 +15,33 @@
  */
 
 #include <DeepSea/Scene/Shaders/ViewTransform.mslh>
+#include <DeepSea/SceneVectorDraw/Shaders/InstanceDiscardBounds.mslh>
 #include <DeepSea/VectorDraw/Shaders/VectorElementLine.mslh>
+
+varying(vertex, fragment)
+{
+	vec2 vfDiscardPos;
+}
 
 [[vertex]]
 void vectorLineVertex()
 {
 	gl_Position = dsVectorElementLine_processVertex();
+	vfDiscardPos = dsInstanceDiscardBounds_toDiscardSpace(gl_Position.xyz);
 	gl_Position.xy = dsRotateFramebufferPosition(gl_Position.xy);
 	gl_Position = DS_ADJUST_CLIP(gl_Position);
+}
+
+[[fragment]]
+void vectorLineFragment()
+{
+	dsInstanceDiscardBounds_clip(vfDiscardPos);
+	dsVectorElementLine_defaultFragment();
 }
 
 pipeline dsVectorLine
 {
 	vertex = vectorLineVertex;
-	fragment = dsVectorElementLine_defaultFragment;
+	fragment = vectorLineFragment;
 	DS_DEFAULT_VECTOR_ELEMENT_LINE_RENDER_STATES;
 }

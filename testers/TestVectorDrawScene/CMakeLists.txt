@@ -50,7 +50,7 @@ set(srcDir ${CMAKE_CURRENT_SOURCE_DIR})
 ds_compile_shaders(shaders FILE ${srcDir}/Text.msl
 	OUTPUT Text.mslb CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
 	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/Render/include ${DEEPSEA_MODULE_DIR}/Scene/Scene/include
-		${DEEPSEA_MODULE_DIR}/Text/include)
+		${DEEPSEA_MODULE_DIR}/Scene/SceneVectorDraw/include ${DEEPSEA_MODULE_DIR}/Text/include)
 ds_compile_shaders(shaders FILE ${srcDir}/VectorElementFill.msl
 	${srcDir}/VectorElementImage.msl
 	${srcDir}/VectorElementLine.msl
@@ -58,7 +58,8 @@ ds_compile_shaders(shaders FILE ${srcDir}/VectorElementFill.msl
 	${srcDir}/VectorElementTextGradient.msl
 	OUTPUT Vector.mslb CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
 	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/Render/include ${DEEPSEA_MODULE_DIR}/Scene/Scene/include
-		${DEEPSEA_MODULE_DIR}/Text/include ${DEEPSEA_MODULE_DIR}/VectorDraw/include)
+		${DEEPSEA_MODULE_DIR}/Scene/SceneVectorDraw/include  ${DEEPSEA_MODULE_DIR}/Text/include
+		${DEEPSEA_MODULE_DIR}/VectorDraw/include)
 ds_compile_shaders_target(deepsea_test_vector_draw_scene_app_shaders shaders
 	DEPENDS deepsea_test_vector_draw_scene_app_prepare)
 

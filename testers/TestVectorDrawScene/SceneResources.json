@@ -27,6 +27,15 @@
 		]
 	},
 	{
+		"type": "ShaderVariableGroupDesc",
+		"name": "instanceDiscardBoundsDesc",
+		"elements":
+		[
+			{"name": "discardWorldProjInv", "type": "Mat4"},
+			{"name": "discardBounds", "type": "Vec4"}
+		]
+	},
+	{
 		"type": "MaterialDesc",
 		"name": "textMaterialDesc",
 		"elements":
@@ -44,6 +53,12 @@
 				"shaderVariableGroupDesc": "instanceScreenTransformDesc"
 			},
 			{
+				"name": "dsInstanceDiscardBoundsData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceDiscardBoundsDesc"
+			},
+			{
 				"name": "dsFontTex",
 				"type": "Texture",
 				"binding": "Instance"
@@ -57,6 +72,12 @@
 		"materialDesc": "vectorMaterialDesc",
 		"extraElements":
 		[
+			{
+				"name": "dsInstanceDiscardBoundsData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceDiscardBoundsDesc"
+			},
 			{
 				"name": "dsViewTransformData",
 				"type": "VariableGroup",
@@ -134,6 +155,20 @@
 		"targetSize": [75, 75]
 	},
 	{
+		"type": "VectorImage",
+		"name": "borderStraight",
+		"image": "BorderStraight.svg",
+		"vectorShaders": "vectorShaders",
+		"targetSize": [8, 8]
+	},
+	{
+		"type": "VectorImage",
+		"name": "borderCorner",
+		"image": "BorderCorner.svg",
+		"vectorShaders": "vectorShaders",
+		"targetSize": [8, 8]
+	},
+	{
 		"type": "Text",
 		"name": "figure",
 		"vectorResources": "resources",
@@ -166,14 +201,176 @@
 	},
 	{
 		"type": "SceneNode",
+		"nodeType": "VectorImageNode",
+		"name": "borderStraightNode",
+		"vectorImage": "borderStraight",
+		"vectorShaders": "vectorShaders",
+		"size": [4, 4],
+		"z": 0,
+		"itemLists": ["vectorDrawPrepare", "vectorItemList"]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "VectorImageNode",
+		"name": "borderCornerNode",
+		"vectorImage": "borderCorner",
+		"vectorShaders": "vectorShaders",
+		"size": [4, 4],
+		"z": 0,
+		"itemLists": ["vectorDrawPrepare", "vectorItemList"]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "TransformNode",
+		"name": "figureOffsetNode",
+		"children":
+		[
+			{"nodeType": "ReferenceNode", "ref": "figureNode"}
+		]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "TransformNode",
+		"name": "textBoxNode",
+		"comment": "50 x 12 text box with a border, origin in the middle of the upper text line.",
+		"children":
+		[
+			{
+				"nodeType": "TransformNode",
+				"comment": "Upper-left corner.",
+				"transformList":
+				[
+					{"type": "Translate", "value": [-29, 4, 0]}
+				],
+				"children":
+				[
+					{"nodeType": "ReferenceNode", "ref": "borderCornerNode"}
+				]
+			},
+			{
+				"nodeType": "TransformNode",
+				"comment": "Upper edge.",
+				"transformList":
+				[
+					{"type": "Scale", "value": [12.5, 1, 1]},
+					{"type": "Translate", "value": [-25, 4, 0]}
+				],
+				"children":
+				[
+					{"nodeType": "ReferenceNode", "ref": "borderStraightNode"}
+				]
+			},
+			{
+				"nodeType": "TransformNode",
+				"comment": "Upper-right corner.",
+				"transformList":
+				[
+					{"type": "Rotate", "value": [0, 0, -90]},
+					{"type": "Translate", "value": [25, 8, 0]}
+				],
+				"children":
+				[
+					{"nodeType": "ReferenceNode", "ref": "borderCornerNode"}
+				]
+			},
+			{
+				"nodeType": "TransformNode",
+				"comment": "Right edge.",
+				"transformList":
+				[
+					{"type": "Scale", "value": [2, 1, 1]},
+					{"type": "Rotate", "value": [0, 0, -90]},
+					{"type": "Translate", "value": [25, 4, 0]}
+				],
+				"children":
+				[
+					{"nodeType": "ReferenceNode", "ref": "borderStraightNode"}
+				]
+			},
+			{
+				"nodeType": "TransformNode",
+				"comment": "Lower-right corner.",
+				"transformList":
+				[
+					{"type": "Rotate", "value": [0, 0, 180]},
+					{"type": "Translate", "value": [29, -4, 0]}
+				],
+				"children":
+				[
+					{"nodeType": "ReferenceNode", "ref": "borderCornerNode"}
+				]
+			},
+			{
+				"nodeType": "TransformNode",
+				"comment": "Bottom edge.",
+				"transformList":
+				[
+					{"type": "Scale", "value": [12.5, 1, 1]},
+					{"type": "Rotate", "value": [0, 0, 180]},
+					{"type": "Translate", "value": [25, -4, 0]}
+				],
+				"children":
+				[
+					{"nodeType": "ReferenceNode", "ref": "borderStraightNode"}
+				]
+			},
+			{
+				"nodeType": "TransformNode",
+				"comment": "Lower-left corner.",
+				"transformList":
+				[
+					{"type": "Rotate", "value": [0, 0, 90]},
+					{"type": "Translate", "value": [-25, -8, 0]}
+				],
+				"children":
+				[
+					{"nodeType": "ReferenceNode", "ref": "borderCornerNode"}
+				]
+			},
+			{
+				"nodeType": "TransformNode",
+				"comment": "Left edge.",
+				"transformList":
+				[
+					{"type": "Scale", "value": [2, 1, 1]},
+					{"type": "Rotate", "value": [0, 0, 90]},
+					{"type": "Translate", "value": [-25, -4, 0]}
+				],
+				"children":
+				[
+					{"nodeType": "ReferenceNode", "ref": "borderStraightNode"}
+				]
+			},
+			{
+				"nodeType": "DiscardBoundsNode",
+				"discardBounds": [[-25, -6.5], [25, 6.5]],
+				"children":
+				[
+					{"nodeType": "ReferenceNode", "ref": "figureOffsetNode"}
+				]
+			}
+		]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "TransformNode",
+		"name": "figureTransformNode",
+		"transformList":
+		[
+			{"type": "Translate", "value": [0, 12, 0]}
+		],
+		"children":
+		[
+			{"nodeType": "ReferenceNode", "ref": "figureNode"}
+		]
+	},
+	{
+		"type": "SceneNode",
 		"nodeType": "TransformNode",
 		"name": "rootNode",
 		"transformList":
 		[
-			{
-				"type": "Translate",
-				"value": [50, 0, 0]
-			}
+			{"type": "Translate", "value": [50, 0, 0]}
 		],
 		"children":
 		[
@@ -181,10 +378,7 @@
 				"nodeType": "TransformNode",
 				"transformList":
 				[
-					{
-						"type": "Translate",
-						"value": [-37.5, 20, 0]
-					}
+					{"type": "Translate", "value": [-37.5, 20, 0]}
 				],
 				"children":
 				[
@@ -198,20 +392,7 @@
 					}
 				]
 			},
-			{
-				"nodeType": "TransformNode",
-				"transformList":
-				[
-					{
-						"type": "Translate",
-						"value": [0, 12, 0]
-					}
-				],
-				"children":
-				[
-					{"nodeType": "ReferenceNode", "ref": "figureNode"}
-				]
-			}
+			{"nodeType": "ReferenceNode", "ref": "figureTransformNode"}
 		]
 	}
 ]

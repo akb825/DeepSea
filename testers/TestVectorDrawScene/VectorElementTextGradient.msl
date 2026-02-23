@@ -15,26 +15,47 @@
  */
 
 #include <DeepSea/Scene/Shaders/ViewTransform.mslh>
+#include <DeepSea/SceneVectorDraw/Shaders/InstanceDiscardBounds.mslh>
 #include <DeepSea/VectorDraw/Shaders/VectorElementTextGradient.mslh>
+
+varying(vertex, fragment)
+{
+	vec2 vfDiscardPos;
+}
 
 [[vertex]]
 void vectorTextGradientVertex()
 {
 	gl_Position = dsVectorElementText_processVertex();
+	vfDiscardPos = dsInstanceDiscardBounds_toDiscardSpace(gl_Position.xyz);
 	gl_Position.xy = dsRotateFramebufferPosition(gl_Position.xy);
 	gl_Position = DS_ADJUST_CLIP(gl_Position);
+}
+
+[[fragment]]
+void vectorTextFragmentGradient()
+{
+	dsInstanceDiscardBounds_clip(vfDiscardPos);
+	dsVectorElementText_defaultFragmentGradient();
+}
+
+[[fragment]]
+void vectorTextFragmentGradientOutline()
+{
+	dsInstanceDiscardBounds_clip(vfDiscardPos);
+	dsVectorElementText_defaultFragmentGradientOutline();
 }
 
 pipeline dsVectorTextGradient
 {
 	vertex = vectorTextGradientVertex;
-	fragment = dsVectorElementText_defaultFragmentGradient;
+	fragment = vectorTextFragmentGradient;
 	DS_DEFAULT_VECTOR_ELEMENT_TEXT_RENDER_STATES;
 }
 
 pipeline dsVectorTextGradientOutline
 {
 	vertex = vectorTextGradientVertex;
-	fragment = dsVectorElementText_defaultFragmentGradientOutline;
+	fragment = vectorTextFragmentGradientOutline;
 	DS_DEFAULT_VECTOR_ELEMENT_TEXT_RENDER_STATES;
 }

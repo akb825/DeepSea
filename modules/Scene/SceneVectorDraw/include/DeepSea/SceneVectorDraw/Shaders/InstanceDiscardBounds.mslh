@@ -38,19 +38,15 @@ uniform dsInstanceDiscardBoundsData
 
 /**
  * @brief Converts a clip position to discard space.
- * @param clipPos The clip position as used with gl_Position.
+ * @param rawClipPos The clip position immediately after multiplying by the projection matrix
+ *     without any adjustments the final framebuffer. (e.g. framebuffer rotation or flipping for
+ *     offscreen render targets)
  * @return The position in the space for the discard bounds.
  */
-vec2 dsInstanceDiscardBounds_toDiscardSpace(vec3 clipPos)
+vec2 dsInstanceDiscardBounds_toDiscardSpace(vec3 rawClipPos)
 {
-#if GLSL_VERSION || GLSLES_VERSION
-	// Only OpenGL needs this conversion. This computation avoids having to add a conditional.
-	clipPos.z = clipPos.z*(abs(DS_MIN_CLIP_Z) + 1.0) + DS_MIN_CLIP_Z;
-#endif
-	// Need to follow the same logic as would be done for the final clip position to handle cases
-	// where it's inverted.
-	vec4 adjustedClipPos = DS_ADJUST_CLIP(vec4(clipPos, 1.0));
-	vec4 unprojectedPos = INSTANCE(dsInstanceDiscardBounds).discardWorldProjInv*adjustedClipPos;
+	vec4 unprojectedPos =
+		INSTANCE(dsInstanceDiscardBounds).discardWorldProjInv*vec4(rawClipPos, 1.0);
 	return unprojectedPos.xy/unprojectedPos.w;
 }
 
@@ -63,6 +59,6 @@ void dsInstanceDiscardBounds_clip(vec2 discardPos)
 {
 	vec2 discardMin = INSTANCE(dsInstanceDiscardBounds).discardBounds.xy;
 	vec2 discardMax = INSTANCE(dsInstanceDiscardBounds).discardBounds.zw;
-	if (any(lassThan(discardPos, discardMin)) || any(lessThan(discardMax, discardPos)))
+	if (any(lessThan(discardPos, discardMin)) || any(lessThan(discardMax, discardPos)))
 		discard;
 }
