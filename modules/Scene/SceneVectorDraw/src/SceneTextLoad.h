@@ -24,14 +24,6 @@ extern "C"
 {
 #endif
 
-typedef struct SceneTextUserData
-{
-	dsAllocator* allocator;
-	const dsTextSubstitutionTable* substitutionTable;
-	dsTextSubstitutionData* substitutionData;
-	float pixelScale;
-} SceneTextUserData;
-
 void* dsSceneText_load(const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
 	dsAllocator* allocator, dsAllocator* resourceAllocator, void* userData, const uint8_t* data,
 	size_t dataSize, void* relativePathUserData,

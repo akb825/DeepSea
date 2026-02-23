@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,14 +54,21 @@ DS_SCENE_EXPORT size_t dsSceneLoadContext_fullAllocSize(void);
  * @param renderer The renderer to use for all graphics types created.
  * @return The load context or NULL if an error occurred.
  */
-DS_SCENE_EXPORT dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator,
-	dsRenderer* renderer);
+DS_SCENE_EXPORT dsSceneLoadContext* dsSceneLoadContext_create(
+	dsAllocator* allocator, dsRenderer* renderer);
+
+/**
+ * @brief Gets the allocator for a load context.
+ * @param context The load context.
+ * @return The allocator if the load context's allocator supports additional allocations.
+ */
+DS_SCENE_EXPORT dsAllocator* dsSceneLoadContext_getAllocator(const dsSceneLoadContext* context);
 
 /**
  * @brief Gets the renderer for a load context.
  * @remark errno will be set on failure.
  * @param context The load context.
- * @return The renderer, or NULL if context is NULL.
+ * @return The renderer or NULL if context is NULL.
  */
 DS_SCENE_EXPORT dsRenderer* dsSceneLoadContext_getRenderer(const dsSceneLoadContext* context);
 

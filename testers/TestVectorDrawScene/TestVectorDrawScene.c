@@ -51,7 +51,6 @@
 #include <DeepSea/Text/TextSubstitutionTable.h>
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #if DS_HAS_EASY_PROFILER

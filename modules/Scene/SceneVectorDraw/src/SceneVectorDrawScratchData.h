@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2026 Aaron Barany
+ * Copyright 2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,11 @@ extern "C"
 {
 #endif
 
-void* dsVectorSceneResources_load(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
-	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
-	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc);
+dsVectorScratchData* dsSceneVectorDrawScratchData_getVectorScratchData(
+	dsSceneVectorDrawLoadContext* loadContext);
+dsTextSubstitutionData* dsSceneVectorDrawScratchData_getTextSubstitutionData(
+	dsSceneVectorDrawLoadContext* loadContext);
+void dsSceneVectorDrawScratchData_destroy(void* userData);
 
 #ifdef __cplusplus
 }

@@ -16,6 +16,8 @@
 
 #include "SceneTextLoad.h"
 
+#include "SceneVectorDrawScratchData.h"
+
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -61,7 +63,8 @@ void* dsSceneText_load(const dsSceneLoadContext*, dsSceneLoadScratchData* scratc
 		return nullptr;
 	}
 
-	auto sceneTextUserData = reinterpret_cast<SceneTextUserData*>(userData);
+	auto vectorLoadContext = reinterpret_cast<dsSceneVectorDrawLoadContext*>(userData);
+	float pixelScale = 1.9f/vectorLoadContext->pixelSize;
 	auto fbSceneText = DeepSeaSceneVectorDraw::GetSceneText(data);
 
 	auto fbFont = fbSceneText->font();
@@ -106,7 +109,7 @@ void* dsSceneText_load(const dsSceneLoadContext*, dsSceneLoadScratchData* scratc
 		style.outlinePosition = style.embolden;
 		style.outlineThickness = fbStyle->outlineWidth();
 		DS_VERIFY(dsFont_applyHintingAndAntiAliasing(
-			font, &style, sceneTextUserData->pixelScale, fbStyle->fuziness()));
+			font, &style, pixelScale, fbStyle->fuziness()));
 
 		auto fbColor = fbStyle->color();
 		if (fbColor)
@@ -139,10 +142,14 @@ void* dsSceneText_load(const dsSceneLoadContext*, dsSceneLoadScratchData* scratc
 	}
 
 	const char* string = fbSceneText->text()->c_str();
-	if (sceneTextUserData)
+	if (vectorLoadContext->substitutionTable)
 	{
-		string = dsTextSubstitutionTable_substitute(sceneTextUserData->substitutionTable,
-			sceneTextUserData->substitutionData, string, styles, styleCount);
+		dsTextSubstitutionData* substitutionData =
+			dsSceneVectorDrawScratchData_getTextSubstitutionData(vectorLoadContext);
+		if (!substitutionData)
+			return nullptr;
+		string = dsTextSubstitutionTable_substitute(vectorLoadContext->substitutionTable,
+			substitutionData, string, styles, styleCount);
 		if (!string)
 			return nullptr;
 	}

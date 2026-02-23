@@ -24,12 +24,6 @@ extern "C"
 {
 #endif
 
-typedef struct SceneTextNodeUserData
-{
-	dsAllocator* allocator;
-	dsSceneTextRenderBufferInfo textRenderInfo;
-} SceneTextNodeUserData;
-
 dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void*, const uint8_t* data, size_t dataSize, void* relativePathUserData,

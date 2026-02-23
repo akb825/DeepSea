@@ -16,6 +16,8 @@
 
 #include "SceneTextNodeLoad.h"
 
+#include "SceneVectorDrawTypes.h"
+
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -68,7 +70,7 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 
 	auto fbTextNode = DeepSeaSceneVectorDraw::GetTextNode(data);
 	auto fbEmbeddedResources = fbTextNode->embeddedResources();
-	auto textUserData = static_cast<SceneTextNodeUserData*>(userData);
+	auto textUserData = static_cast<dsSceneTextNodeUserData*>(userData);
 	dsSceneResources* embeddedResources = NULL;
 	if (fbEmbeddedResources)
 	{

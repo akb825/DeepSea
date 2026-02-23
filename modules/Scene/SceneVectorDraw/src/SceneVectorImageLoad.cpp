@@ -16,6 +16,8 @@
 
 #include "SceneVectorImageLoad.h"
 
+#include "SceneVectorDrawScratchData.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -64,7 +66,12 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 
 	dsResourceManager* resourceManager =
 		dsSceneLoadContext_getRenderer(loadContext)->resourceManager;
-	auto vectorImageUserData = reinterpret_cast<SceneVectorImageUserData*>(userData);
+	auto vectorLoadContext = reinterpret_cast<dsSceneVectorDrawLoadContext*>(userData);
+	dsVectorScratchData* vectorScratchData = dsSceneVectorDrawScratchData_getVectorScratchData(
+		vectorLoadContext);
+	if (!scratchData)
+		return nullptr;
+
 	auto fbVectorImage = DeepSeaSceneVectorDraw::GetVectorImage(data);
 
 	auto fbSize = fbVectorImage->targetSize();
@@ -153,7 +160,7 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 	{
 		resourceManager,
 		nullptr,
-		vectorImageUserData->scratchData,
+		vectorScratchData,
 		sharedMaterials,
 		shaders->shaderModule,
 		shaders->shaders[dsVectorShaderType_TextColor]->name,
@@ -167,7 +174,7 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 	{
 		vectorImage = dsVectorImage_loadResource(allocator, resourceAllocator, &initResources,
 			DeepSeaScene::convert(fileRef->type()), fileRef->path()->c_str(),
-			vectorImageUserData->pixelSize, hasSize ? &size : nullptr);
+			vectorLoadContext->pixelSize, hasSize ? &size : nullptr);
 	}
 	else if (auto fbRelativePathRef = fbVectorImage->image_as_RelativePathReference())
 	{
@@ -177,14 +184,14 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 			return nullptr;
 
 		vectorImage = dsVectorImage_loadStream(allocator, resourceAllocator, &initResources,
-			stream, vectorImageUserData->pixelSize, hasSize ? &size : nullptr);
+			stream, vectorLoadContext->pixelSize, hasSize ? &size : nullptr);
 		closeRelativePathStreamFunc(relativePathUserData, stream);
 	}
 	else if (auto rawData = fbVectorImage->image_as_RawData())
 	{
 		auto data = rawData->data();
 		vectorImage = dsVectorImage_loadData(allocator, resourceAllocator, &initResources,
-			data->data(), data->size(), vectorImageUserData->pixelSize, hasSize ? &size : nullptr);
+			data->data(), data->size(), vectorLoadContext->pixelSize, hasSize ? &size : nullptr);
 	}
 	else
 	{

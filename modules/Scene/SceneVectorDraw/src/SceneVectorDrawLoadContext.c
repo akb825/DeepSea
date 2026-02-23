@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@
 #include "SceneDiscardBoundsNodeLoad.h"
 #include "SceneTextLoad.h"
 #include "SceneTextNodeLoad.h"
+#include "SceneVectorDrawScratchData.h"
+#include "SceneVectorDrawTypes.h"
 #include "SceneVectorDrawPrepareLoad.h"
 #include "SceneVectorImageLoad.h"
 #include "SceneVectorImageNodeLoad.h"
@@ -29,6 +31,7 @@
 #include "SceneVectorShadersLoad.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Thread/ThreadObjectStorage.h>
 #include <DeepSea/Core/Assert.h>
 
 #include <DeepSea/Scene/SceneLoadContext.h>
@@ -45,53 +48,25 @@
 #include <DeepSea/SceneVectorDraw/SceneVectorResources.h>
 #include <DeepSea/SceneVectorDraw/SceneVectorShaders.h>
 
-#include <DeepSea/Text/TextSubstitutionData.h>
-
 #include <DeepSea/VectorDraw/VectorImage.h>
 #include <DeepSea/VectorDraw/VectorMaterialSet.h>
 #include <DeepSea/VectorDraw/VectorResources.h>
-#include <DeepSea/VectorDraw/VectorScratchData.h>
 
 #include <string.h>
 
-static void VectorResourcesUserData_destroy(void* userData)
+static void dsSceneVectorDrawLoadContext_destroy(void* userData)
 {
-	if (!userData)
-		return;
-
-	VectorResourcesUserData* vectorResourcesUserData = (VectorResourcesUserData*)userData;
-	dsVectorScratchData_destroy(vectorResourcesUserData->scratchData);
-	if (vectorResourcesUserData->allocator)
-		DS_VERIFY(dsAllocator_free(vectorResourcesUserData->allocator, userData));
+	dsSceneVectorDrawLoadContext* loadContext = (dsSceneVectorDrawLoadContext*)userData;
+	dsThreadObjectStorage_destroy(loadContext->scratchData);
+	DS_VERIFY(dsAllocator_free(loadContext->allocator, loadContext));
 }
 
-static void SceneTextUserData_destroy(void* userData)
+static void dsSceneTextNodeUserData_destroy(void* userData)
 {
 	if (!userData)
 		return;
 
-	SceneTextUserData* sceneTextUserData = (SceneTextUserData*)userData;
-	dsTextSubstitutionData_destroy(sceneTextUserData->substitutionData);
-	if (sceneTextUserData->allocator)
-		DS_VERIFY(dsAllocator_free(sceneTextUserData->allocator, userData));
-}
-
-static void SceneVectorImageUserData_destroy(void* userData)
-{
-	if (!userData)
-		return;
-
-	SceneVectorImageUserData* vectorImageUserData = (SceneVectorImageUserData*)userData;
-	if (vectorImageUserData->allocator)
-		DS_VERIFY(dsAllocator_free(vectorImageUserData->allocator, userData));
-}
-
-static void SceneTextNodeUserData_destroy(void* userData)
-{
-	if (!userData)
-		return;
-
-	SceneTextNodeUserData* vectorItemListUserData = (SceneTextNodeUserData*)userData;
+	dsSceneTextNodeUserData* vectorItemListUserData = (dsSceneTextNodeUserData*)userData;
 	if (vectorItemListUserData->allocator)
 		DS_VERIFY(dsAllocator_free(vectorItemListUserData->allocator, vectorItemListUserData));
 }
@@ -102,53 +77,64 @@ static bool destroySceneText(void* text)
 	return true;
 }
 
-bool dsSceneVectorDrawLoadConext_registerTypes(dsSceneLoadContext* loadContext,
-	dsAllocator* allocator, const dsTextQuality* qualityRemap,
+dsSceneVectorDrawLoadContext* dsSceneVectorDrawLoadConext_registerTypes(
+	dsSceneLoadContext* loadContext, dsAllocator* allocator, const dsTextQuality* qualityRemap,
 	const dsTextSubstitutionTable* substitutionTable,
 	const dsSceneTextRenderBufferInfo* textRenderInfo, float pixelSize)
 {
-	if (!loadContext || (!allocator && (qualityRemap || substitutionTable || textRenderInfo)) ||
-		pixelSize <= 0.0f)
+	if (!loadContext || pixelSize <= 0.0f)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	// Scratch data shared across loaders, but owned by vector resources loader.
-	dsVectorScratchData* scratchData = dsVectorScratchData_create(allocator);
-	if (!scratchData)
-		return false;
-
+	if (!allocator)
+		allocator = dsSceneLoadContext_getAllocator(loadContext);
+	if (!allocator || !allocator->freeFunc)
 	{
-		VectorResourcesUserData* userData = NULL;
-			userData = DS_ALLOCATE_OBJECT(allocator, VectorResourcesUserData);
-		if (!userData)
-		{
-			dsVectorScratchData_destroy(scratchData);
-			return false;
-		}
+		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG,
+			"Scene vector draw load context allocator must support freeing memory.");
+		errno = EINVAL;
+		return NULL;
+	}
 
-		userData->allocator = dsAllocator_keepPointer(allocator);
-		if (qualityRemap)
-		{
-			memcpy(userData, qualityRemap,
-				sizeof(dsTextQuality)*DS_TEXT_QUALITY_REMAP_SIZE);
-			userData->hasQualityRemap = true;
-		}
-		else
-			userData->hasQualityRemap = false;
-		userData->scratchData = scratchData;
-		userData->pixelSize = pixelSize;
+	dsSceneVectorDrawLoadContext* vectorLoadContext = DS_ALLOCATE_OBJECT(
+		allocator, dsSceneVectorDrawLoadContext);
+	if (!vectorLoadContext)
+		return NULL;
 
-		// One additional resource for registering the material description.
-		if (!dsSceneLoadContext_registerCustomResourceType(loadContext,
-				dsSceneVectorResources_typeName, dsSceneVectorResources_type(),
-				&dsVectorSceneResources_load,
-				(dsDestroyCustomSceneResourceFunction)&dsVectorResources_destroy, userData,
-				&VectorResourcesUserData_destroy, 1))
-		{
-			return false;
-		}
+	vectorLoadContext->allocator = allocator;
+	vectorLoadContext->scratchData = dsThreadObjectStorage_create(
+		allocator, &dsSceneVectorDrawScratchData_destroy);
+	if (!vectorLoadContext->scratchData)
+	{
+		dsSceneVectorDrawLoadContext_destroy(vectorLoadContext);
+		return NULL;
+	}
+
+	if (qualityRemap)
+	{
+		memcpy(vectorLoadContext->textQualityRemap, qualityRemap,
+			sizeof(dsTextQuality)*DS_TEXT_QUALITY_REMAP_SIZE);
+	}
+	else
+	{
+		for (int i = 0; i < DS_TEXT_QUALITY_REMAP_SIZE; ++i)
+			vectorLoadContext->textQualityRemap[i] = (dsTextQuality)i;
+	}
+
+	vectorLoadContext->substitutionTable = substitutionTable;
+	vectorLoadContext->pixelSize = pixelSize;
+
+	// One additional resource for registering the material description.
+	// This is responsible for destroying the vector load context.
+	if (!dsSceneLoadContext_registerCustomResourceType(loadContext,
+			dsSceneVectorResources_typeName, dsSceneVectorResources_type(),
+			&dsVectorSceneResources_load,
+			(dsDestroyCustomSceneResourceFunction)&dsVectorResources_destroy, vectorLoadContext,
+			&dsSceneVectorDrawLoadContext_destroy, 1))
+	{
+		return NULL;
 	}
 
 	if (!dsSceneLoadContext_registerCustomResourceType(loadContext,
@@ -156,102 +142,68 @@ bool dsSceneVectorDrawLoadConext_registerTypes(dsSceneLoadContext* loadContext,
 			&dsVectorSceneMaterialSet_load,
 			(dsDestroyCustomSceneResourceFunction)&dsVectorMaterialSet_destroy, NULL, NULL, 0))
 	{
-		return false;
+		return NULL;
 	}
 
 	if (!dsSceneLoadContext_registerCustomResourceType(loadContext,
 			dsSceneVectorShaders_typeName, dsSceneVectorShaders_type(), &dsSceneVectorShaders_load,
 			dsSceneVectorShaders_destroy, NULL, NULL, 0))
 	{
-		return false;
+		return NULL;
 	}
 
+	if (!dsSceneLoadContext_registerCustomResourceType(loadContext,
+			dsSceneText_typeName, dsSceneText_type(), &dsSceneText_load, destroySceneText,
+			vectorLoadContext, NULL, 0))
 	{
-		SceneTextUserData* userData = NULL;
-		if (substitutionTable)
-		{
-			userData = DS_ALLOCATE_OBJECT(allocator, SceneTextUserData);
-			if (!userData)
-				return false;
-
-			dsTextSubstitutionData* substitutionData = dsTextSubstitutionData_create(allocator);
-			if (!substitutionData)
-			{
-				if (allocator->freeFunc)
-					DS_VERIFY(dsAllocator_free(allocator, userData));
-				return false;
-			}
-
-			userData->allocator = dsAllocator_keepPointer(allocator);
-			userData->substitutionTable = substitutionTable;
-			userData->substitutionData = substitutionData;
-			userData->pixelScale = 1.0f/pixelSize;
-		}
-
-		if (!dsSceneLoadContext_registerCustomResourceType(loadContext,
-				dsSceneText_typeName, dsSceneText_type(), &dsSceneText_load, destroySceneText,
-				userData, &SceneTextUserData_destroy, 0))
-		{
-			return false;
-		}
+		return NULL;
 	}
 
+	if (!dsSceneLoadContext_registerCustomResourceType(loadContext,
+			dsSceneVectorImage_typeName, dsSceneVectorImage_type(), &dsSceneVectorImage_load,
+			(dsDestroyCustomSceneResourceFunction)&dsVectorImage_destroy, vectorLoadContext, NULL,
+			0))
 	{
-		SceneVectorImageUserData* userData =
-			DS_ALLOCATE_OBJECT(allocator, SceneVectorImageUserData);
-		if (!userData)
-			return false;
-
-		userData->allocator = dsAllocator_keepPointer(allocator);
-		userData->scratchData = scratchData;
-		userData->pixelSize = pixelSize;
-
-		if (!dsSceneLoadContext_registerCustomResourceType(loadContext,
-				dsSceneVectorImage_typeName, dsSceneVectorImage_type(), &dsSceneVectorImage_load,
-				(dsDestroyCustomSceneResourceFunction)&dsVectorImage_destroy,
-				userData, &SceneVectorImageUserData_destroy, 0))
-		{
-			return false;
-		}
+		return NULL;
 	}
 
 	if (!dsSceneLoadContext_registerItemListType(loadContext, dsSceneVectorItemList_typeName,
 			&dsSceneVectorItemList_load, NULL, NULL))
 	{
-		return false;
+		return NULL;
 	}
 
 	if (!dsSceneLoadContext_registerItemListType(loadContext, dsSceneVectorDrawPrepare_typeName,
 			&dsSceneVectorDrawPrepare_load, NULL, NULL))
 	{
-		return false;
+		return NULL;
 	}
 
 	if (!dsSceneLoadContext_registerNodeType(loadContext, dsSceneDiscardBoundsNode_typeName,
 			&dsSceneDiscardBoundsNode_load, NULL, NULL))
 	{
-		return false;
+		return NULL;
 	}
 
 	if (textRenderInfo && !dsSceneVectorDrawLoadContext_registerCustomTextNodeType(
 			loadContext, allocator, dsSceneTextNode_typeName, textRenderInfo))
 	{
-		return false;
+		return NULL;
 	}
 
 	if (!dsSceneLoadContext_registerNodeType(
 			loadContext, dsSceneVectorImageNode_typeName, &dsSceneVectorImageNode_load, NULL, NULL))
 	{
-		return false;
+		return NULL;
 	}
 
 	if (!dsSceneLoadContext_registerInstanceDataType(loadContext,
 			dsInstanceDiscardBoundsData_typeName, &dsInstanceDiscardBoundsData_load, NULL, NULL))
 	{
-		return false;
+		return NULL;
 	}
 
-	return true;
+	return vectorLoadContext;
 }
 
 bool dsSceneVectorDrawLoadContext_registerCustomTextNodeType(
@@ -264,7 +216,7 @@ bool dsSceneVectorDrawLoadContext_registerCustomTextNodeType(
 		return false;
 	}
 
-	SceneTextNodeUserData* userData = DS_ALLOCATE_OBJECT(allocator, SceneTextNodeUserData);
+	dsSceneTextNodeUserData* userData = DS_ALLOCATE_OBJECT(allocator, dsSceneTextNodeUserData);
 	if (!userData)
 		return false;
 
@@ -272,5 +224,5 @@ bool dsSceneVectorDrawLoadContext_registerCustomTextNodeType(
 	userData->textRenderInfo = *textRenderInfo;
 
 	return dsSceneLoadContext_registerNodeType(loadContext, name, &dsSceneTextNode_load, userData,
-		&SceneTextNodeUserData_destroy);
+		&dsSceneTextNodeUserData_destroy);
 }

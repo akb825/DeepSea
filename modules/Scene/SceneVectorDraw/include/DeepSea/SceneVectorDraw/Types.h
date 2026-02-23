@@ -250,6 +250,38 @@ typedef struct dsSceneTextRenderBufferInfo
  */
 typedef struct dsSceneVectorItemList dsSceneVectorItemList;
 
+/**
+ * @brief Struct providing the parameters for loading vector draw items.
+ * @see SceneVectorDrawLoadContext.h
+ */
+typedef struct dsSceneVectorDrawLoadContext
+{
+	/**
+	 * @brief The allocator the load context was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief Scratch data for each thread that is loaded with.
+	 */
+	dsThreadObjectStorage* scratchData;
+
+	/**
+	 * @brief Mapping from original dsTextQuality enum to the actual quality to use.
+	 */
+	dsTextQuality textQualityRemap[DS_TEXT_QUALITY_REMAP_SIZE];
+
+	/**
+	 * @brief Text substitution table to apply when loading text.
+	 */
+	const dsTextSubstitutionTable* substitutionTable;
+
+	/**
+	 * @brief The size of a pixel.
+	 */
+	float pixelSize;
+} dsSceneVectorDrawLoadContext;
+
 #ifdef __cplusplus
 }
 #endif

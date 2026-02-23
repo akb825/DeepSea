@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,6 +118,11 @@ dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator, dsRenderer
 		&dsSceneNodeChildren_load, NULL, NULL, 0);
 
 	return context;
+}
+
+dsAllocator* dsSceneLoadContext_getAllocator(const dsSceneLoadContext* context)
+{
+	return context ? context->allocator : NULL;
 }
 
 dsRenderer* dsSceneLoadContext_getRenderer(const dsSceneLoadContext* context)

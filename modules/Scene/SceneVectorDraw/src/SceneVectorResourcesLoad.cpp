@@ -16,6 +16,8 @@
 
 #include "SceneVectorResourcesLoad.h"
 
+#include "SceneVectorDrawScratchData.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Streams/Stream.h>
@@ -95,9 +97,11 @@ void* dsVectorSceneResources_load(const dsSceneLoadContext* loadContext,
 		return nullptr;
 	}
 
-	auto vectorResourcesUserData = reinterpret_cast<VectorResourcesUserData*>(userData);
-	const dsTextQuality* textQualityRemap =
-		vectorResourcesUserData->hasQualityRemap ? vectorResourcesUserData->qualityRemap : nullptr;
+	auto vectorLoadContext = reinterpret_cast<dsSceneVectorDrawLoadContext*>(userData);
+	dsVectorScratchData* vectorScratchData = dsSceneVectorDrawScratchData_getVectorScratchData(
+		vectorLoadContext);
+	if (!scratchData)
+		return nullptr;
 
 	auto fbVectorResources = DeepSeaSceneVectorDraw::GetVectorResources(data);
 	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
@@ -181,7 +185,7 @@ void* dsVectorSceneResources_load(const dsSceneLoadContext* loadContext,
 	{
 		initResources.resourceManager = resourceManager;
 		initResources.commandBuffer = nullptr;
-		initResources.scratchData = vectorResourcesUserData->scratchData;
+		initResources.scratchData = vectorScratchData;
 		initResources.sharedMaterials = sharedMaterials;
 		initResources.shaderModule = vectorShaders->shaderModule;
 		initResources.textShaderName = vectorShaders->shaders[dsVectorShaderType_TextColor]->name;
@@ -195,8 +199,8 @@ void* dsVectorSceneResources_load(const dsSceneLoadContext* loadContext,
 	{
 		resources = dsVectorResources_loadResource(allocator, scratchAllocator, resourceAllocator,
 			resourceManager, DeepSeaScene::convert(fbFileRef->type()), fbFileRef->path()->c_str(),
-			textQualityRemap, hasInitResources ? &initResources : nullptr,
-			vectorResourcesUserData->pixelSize, vectorShaders, textureIconShader,
+			vectorLoadContext->textQualityRemap, hasInitResources ? &initResources : nullptr,
+			vectorLoadContext->pixelSize, vectorShaders, textureIconShader,
 			textureIconMaterial);
 	}
 	else if (auto fbRelativePathRef = fbVectorResources->resources_as_RelativePathReference())
@@ -228,9 +232,9 @@ void* dsVectorSceneResources_load(const dsSceneLoadContext* loadContext,
 			openRelativePathStreamFunc, closeRelativePathStreamFunc};
 		resources = dsVectorResources_loadData(allocator, scratchAllocator, resourceAllocator,
 			resourceManager, buffer, size, &pathInfo, &openRelativePathStream,
-			&closeRelativePathStream, textQualityRemap, hasInitResources ? &initResources : nullptr,
-			vectorResourcesUserData->pixelSize, vectorShaders, textureIconShader,
-			textureIconMaterial);
+			&closeRelativePathStream, vectorLoadContext->textQualityRemap,
+			hasInitResources ? &initResources : nullptr, vectorLoadContext->pixelSize,
+			vectorShaders, textureIconShader, textureIconMaterial);
 		DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
 	}
 	else if (auto fbRawData = fbVectorResources->resources_as_RawData())
@@ -238,9 +242,9 @@ void* dsVectorSceneResources_load(const dsSceneLoadContext* loadContext,
 		auto fbData = fbRawData->data();
 		resources = dsVectorResources_loadData(allocator, scratchAllocator, resourceAllocator,
 			resourceManager, fbData->data(), fbData->size(), relativePathUserData,
-			openRelativePathStreamFunc, closeRelativePathStreamFunc, textQualityRemap,
-			hasInitResources ? &initResources : nullptr, vectorResourcesUserData->pixelSize,
-			vectorShaders, textureIconShader, textureIconMaterial);
+			openRelativePathStreamFunc, closeRelativePathStreamFunc,
+			vectorLoadContext->textQualityRemap, hasInitResources ? &initResources : nullptr,
+			vectorLoadContext->pixelSize, vectorShaders, textureIconShader, textureIconMaterial);
 	}
 	else
 	{

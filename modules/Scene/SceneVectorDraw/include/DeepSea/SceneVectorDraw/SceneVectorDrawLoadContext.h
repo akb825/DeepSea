@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,13 +28,15 @@ extern "C"
 /**
  * @file
  * @brief Function for registering the VectorDrawScene types with a dsSceneLoadContext.
+ * @see dsSceneVectorDrawLoadContext
  */
 
 /**
  * @brief Registers the vector draw scene types for loading.
  * @remark errno will be set on failure.
  * @param loadContext The load context to register the types with.
- * @param allocator The allocator to use for copying extra data passed into this function.
+ * @param allocator The allocator to use for the vector draw load context parameters. If NULL, the
+ *     base load context allocator will be used. The allocator must support freeing memeory.
  * @param qualityRemap Array to remap text qualities, or NULL to use values as-is. If not NULL,
  *     it must be of size DS_TEXT_QUALITY_REMAP_SIZE.
  * @param substitutionTable The text substitution table used when creating dsSceneText instances.
@@ -45,7 +47,7 @@ extern "C"
  *     ant-aliasing.
  * @return False if not all of the types could be registered.
  */
-DS_SCENEVECTORDRAW_EXPORT bool dsSceneVectorDrawLoadConext_registerTypes(
+DS_SCENEVECTORDRAW_EXPORT dsSceneVectorDrawLoadContext* dsSceneVectorDrawLoadConext_registerTypes(
 	dsSceneLoadContext* loadContext, dsAllocator* allocator, const dsTextQuality* qualityRemap,
 	const dsTextSubstitutionTable* substitutionTable,
 	const dsSceneTextRenderBufferInfo* textRenderInfo, float pixelSize);

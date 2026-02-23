@@ -24,13 +24,6 @@ extern "C"
 {
 #endif
 
-typedef struct SceneVectorImageUserData
-{
-	dsAllocator* allocator;
-	dsVectorScratchData* scratchData;
-	float pixelSize;
-} SceneVectorImageUserData;
-
 void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
