@@ -228,9 +228,9 @@
 				"nodeType": "TransformNode",
 				"transformList":
 				[
-					{"type": "Translate", "value": [4.0, -1.0, 3.0]},
+					{"type": "Scale", "value": [1.5, 0.75, 0.5]},
 					{"type": "Rotate", "value": [20.0, -40.0, 60.0]},
-					{"type": "Scale", "value": [1.5, 0.75, 0.5]}
+					{"type": "Translate", "value": [4.0, -1.0, 3.0]}
 				],
 				"children":
 				[
@@ -252,8 +252,8 @@
 		"nodeType": "TransformNode",
 		"transformList":
 		[
-			{"type": "Scale", "value": [10.0, 1.0, 10.0]},
-			{"type": "Translate", "value": [0.0, -5.0, 0.0]}
+			{"type": "Translate", "value": [0.0, -5.0, 0.0]},
+			{"type": "Scale", "value": [10.0, 1.0, 10.0]}
 		],
 		"children":
 		[
@@ -321,8 +321,8 @@
 			"nodeType": "TransformNode",
 				"transformList":
 				[
-					{"type": "Rotate", "value": [-20.0, 70.0, 35.0]},
-					{"type": "Translate", "value": [5.0, 4.0, -2.0]}
+					{"type": "Translate", "value": [5.0, 4.0, -2.0]},
+					{"type": "Rotate", "value": [-20.0, 70.0, 35.0]}
 				],
 				"children": [{"nodeType": "ReferenceNode", "ref": "innerOuterCubeNode"}]
 			}

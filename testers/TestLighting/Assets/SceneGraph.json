@@ -43,8 +43,8 @@
 				"nodeType": "TransformNode",
 				"transformList":
 				[
-					{"type": "Rotate", "value": [0.0, 0.0, 90.0]},
-					{"type": "Translate", "value": [0.0, 2.25, 0.0]}
+					{"type": "Translate", "value": [0.0, 2.25, 0.0]},
+					{"type": "Rotate", "value": [0.0, 0.0, 90.0]}
 				],
 				"children": [{"nodeType": "ReferenceNode", "ref": "archwayModel"}]
 			},
@@ -52,8 +52,8 @@
 				"nodeType": "TransformNode",
 				"transformList":
 				[
-					{"type": "Rotate", "value": [0.0, 0.0, -90.0]},
-					{"type": "Translate", "value": [0.0, 2.25, 0.0]}
+					{"type": "Translate", "value": [0.0, 2.25, 0.0]},
+					{"type": "Rotate", "value": [0.0, 0.0, -90.0]}
 				],
 				"children": [{"nodeType": "ReferenceNode", "ref": "archwayModel"}]
 			},

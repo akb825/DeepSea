@@ -240,8 +240,8 @@
 		"name": "rotatingTorch2",
 		"transformList":
 		[
-			{"type": "Rotate", "value": [0.0, 0.0, 180.0]},
-			{"type": "Translate", "value": [4.0, 0.0, 0.0]}
+			{"type": "Translate", "value": [4.0, 0.0, 0.0]},
+			{"type": "Rotate", "value": [0.0, 0.0, 180.0]}
 		],
 		"children":
 		[

@@ -1,4 +1,4 @@
-# Copyright 2022 Aaron Barany
+# Copyright 2022-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -142,7 +142,8 @@ def convertTransform(data, objectName, elementName):
 			else:
 				raise Exception('Invalid transform type "' + transformType + '".')
 
-			matrix = multiplyMatrix(matrix, transform)
+			# Prepend the current matrix, which conceptually appends the current transform.
+			matrix = multiplyMatrix(transform, matrix)
 		
 		matrixValues = []
 		for col in matrix:
