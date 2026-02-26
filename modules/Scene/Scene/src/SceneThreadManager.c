@@ -18,7 +18,6 @@
 
 #include "SceneThreadManagerInternal.h"
 #include "SceneTypes.h"
-#include "ViewInternal.h"
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -41,6 +40,7 @@
 #include <DeepSea/Render/CommandBuffer.h>
 #include <DeepSea/Render/CommandBufferPool.h>
 #include <DeepSea/Render/RenderPass.h>
+#include <DeepSea/Render/RenderSurface.h>
 
 #include <string.h>
 
@@ -164,34 +164,46 @@ static dsCommandBuffer* getSubpassCommandBuffer(dsSceneThreadManager* threadMana
 	return *commandBuffer;
 }
 
-static bool processCommandBufferRenderPass(dsCommandBuffer* commandBuffer,
-	const dsView* view, dsSceneItemList* itemList, const dsSceneRenderPass* renderPass,
-	uint32_t subpass, const dsRotatedFramebuffer* framebuffer,
-	const dsViewFramebufferInfo* framebufferInfo)
+static void setupRenderPassParams(dsViewRenderPassParams* outParams,
+	const dsView* view, const dsRotatedFramebuffer* framebuffer,
+	const dsViewFramebufferInfo* framebufferInfo, const dsRenderPass* renderPass, uint32_t subpass)
 {
-	dsAlignedBox3f viewport = framebufferInfo->viewport;
-	dsView_adjustViewport(&viewport, view, framebuffer->rotated);
-	viewport.min.x *= (float)framebuffer->framebuffer->width;
-	viewport.max.x *= (float)framebuffer->framebuffer->width;
-	viewport.min.y *= (float)framebuffer->framebuffer->height;
-	viewport.max.y *= (float)framebuffer->framebuffer->height;
+	outParams->framebufferWidth = framebuffer->framebuffer->width;
+	outParams->framebufferHeight = framebuffer->framebuffer->height;
+	outParams->rotation = framebuffer->rotated ? view->rotation : dsRenderSurfaceRotation_0;
+	outParams->renderPass = renderPass;
+	outParams->subpass = subpass;
 
-	dsAlignedBox2f scissor = framebufferInfo->scissor;
-	dsView_adjustScissor(&scissor, view, framebuffer->rotated);
-	scissor.min.x *= (float)framebuffer->framebuffer->width;
-	scissor.max.x *= (float)framebuffer->framebuffer->width;
-	scissor.min.y *= (float)framebuffer->framebuffer->height;
-	scissor.max.y *= (float)framebuffer->framebuffer->height;
+	float width = (float)outParams->framebufferWidth;
+	float height = (float)outParams->framebufferHeight;
+	DS_VERIFY(dsRenderSurface_rotateViewport(
+		&outParams->viewport, &framebufferInfo->viewport, 1, 1, outParams->rotation));
+	outParams->viewport.min.x *= width;
+	outParams->viewport.max.x *= width;
+	outParams->viewport.min.y *= height;
+	outParams->viewport.max.y *= height;
 
-	if (!dsCommandBuffer_beginSecondary(commandBuffer, framebuffer->framebuffer,
-			renderPass->renderPass, subpass, &viewport, &scissor,
+	DS_VERIFY(dsRenderSurface_rotateScissor(
+		&outParams->scissor, &framebufferInfo->scissor, 1, 1, outParams->rotation));
+	outParams->scissor.min.x *= width;
+	outParams->scissor.max.x *= width;
+	outParams->scissor.min.y *= height;
+	outParams->scissor.max.y *= height;
+}
+
+static bool processCommandBufferRenderPass(dsCommandBuffer* commandBuffer,
+	const dsView* view, dsSceneItemList* itemList, const dsViewRenderPassParams* renderPassParams,
+	const dsFramebuffer* framebuffer)
+{
+	if (!dsCommandBuffer_beginSecondary(commandBuffer, framebuffer, renderPassParams->renderPass,
+			renderPassParams->subpass, &renderPassParams->viewport, &renderPassParams->scissor,
 			dsGfxOcclusionQueryState_Disabled))
 	{
 		return false;
 	}
 
 	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-	itemList->type->commitFunc(itemList, view, commandBuffer);
+	itemList->type->commitFunc(itemList, view, commandBuffer, renderPassParams);
 	DS_PROFILE_SCOPE_END();
 
 	DS_VERIFY(dsCommandBuffer_end(commandBuffer));
@@ -214,12 +226,19 @@ static void taskFunc(void* userData)
 		if (!commandBuffer)
 			return;
 
+		const dsRotatedFramebuffer* framebuffer =
+			threadManager->curFramebuffers + commandBufferInfo->framebuffer;
+		const dsViewFramebufferInfo *framebufferInfo =
+			threadManager->curFramebufferInfos + commandBufferInfo->framebuffer;
+
+		dsViewRenderPassParams renderPassParams;
+		setupRenderPassParams(&renderPassParams, view, framebuffer, framebufferInfo,
+			renderPass->renderPass, commandBufferInfo->subpass);
+
 		// If the render pass has a pre render pass call, it would have been handled then.
 		DS_ASSERT(!itemListType->preRenderPassFunc || itemList->skipPreRenderPass);
-		processCommandBufferRenderPass(commandBuffer, view, itemList, renderPass,
-			commandBufferInfo->subpass,
-			threadManager->curFramebuffers + commandBufferInfo->framebuffer,
-			threadManager->curFramebufferInfos + commandBufferInfo->framebuffer);
+		processCommandBufferRenderPass(
+			commandBuffer, view, itemList, &renderPassParams, framebuffer->framebuffer);
 		commandBufferInfo->commandBuffer = commandBuffer;
 	}
 	else
@@ -231,28 +250,35 @@ static void taskFunc(void* userData)
 			if (!commandBuffer || !dsCommandBuffer_begin(commandBuffer))
 				return;
 
-			DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-			itemListType->preRenderPassFunc(itemList, view, commandBuffer);
-			DS_PROFILE_SCOPE_END();
-			DS_VERIFY(dsCommandBuffer_end(commandBuffer));
-			commandBufferInfo->commandBuffer = commandBuffer;
+			const dsRotatedFramebuffer* framebuffer =
+				threadManager->curFramebuffers + commandBufferInfo->framebuffer;
+			const dsViewFramebufferInfo *framebufferInfo =
+				threadManager->curFramebufferInfos + commandBufferInfo->framebuffer;
 
-			// Immediately process the corresponding render pass command buffer to avoid
-			// thread synchronization issues.
 			DS_ASSERT(commandBufferInfo->subpass < threadManager->commandBufferInfoCount);
 			CommandBufferInfo* otherCommandBufferInfo =
 				threadManager->commandBufferInfos + commandBufferInfo->subpass;
 			DS_ASSERT(otherCommandBufferInfo->itemList == itemList);
 			DS_ASSERT(otherCommandBufferInfo->renderPass);
 
+			dsViewRenderPassParams renderPassParams;
+			setupRenderPassParams(&renderPassParams, view, framebuffer, framebufferInfo,
+				otherCommandBufferInfo->renderPass->renderPass, otherCommandBufferInfo->subpass);
+
+			DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
+			itemListType->preRenderPassFunc(itemList, view, commandBuffer, &renderPassParams);
+			DS_PROFILE_SCOPE_END();
+			DS_VERIFY(dsCommandBuffer_end(commandBuffer));
+			commandBufferInfo->commandBuffer = commandBuffer;
+
+			// Immediately process the corresponding render pass command buffer to avoid
+			// thread synchronization issues.
 			commandBuffer = getSubpassCommandBuffer(threadManager);
 			if (!commandBuffer)
 				return;
 
-			processCommandBufferRenderPass(commandBuffer, view, itemList,
-				otherCommandBufferInfo->renderPass, otherCommandBufferInfo->subpass,
-				threadManager->curFramebuffers + otherCommandBufferInfo->framebuffer,
-				threadManager->curFramebufferInfos + otherCommandBufferInfo->framebuffer);
+			processCommandBufferRenderPass(
+				commandBuffer, view, itemList, &renderPassParams, framebuffer->framebuffer);
 			otherCommandBufferInfo->commandBuffer = commandBuffer;
 		}
 		else
@@ -266,7 +292,7 @@ static void taskFunc(void* userData)
 			}
 
 			DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-			itemListType->commitFunc(itemList, view, commandBuffer);
+			itemListType->commitFunc(itemList, view, commandBuffer, NULL);
 			DS_PROFILE_SCOPE_END();
 
 			if (commandBuffer)
@@ -496,8 +522,8 @@ static bool triggerDraw(dsSceneThreadManager* threadManager, const dsScene* scen
 	return triggerThreads(threadManager);
 }
 
-static bool submitCommandBuffers(dsSceneThreadManager* threadManager,
-	dsCommandBuffer* commandBuffer)
+static bool submitCommandBuffers(
+	dsSceneThreadManager* threadManager, dsCommandBuffer* commandBuffer)
 {
 	dsSceneRenderPass* prevRenderPass = NULL;
 	uint32_t prevSubpass = 0;
@@ -527,28 +553,15 @@ static bool submitCommandBuffers(dsSceneThreadManager* threadManager,
 					commandBufferInfo->framebuffer;
 				DS_ASSERT(framebuffer->framebuffer);
 
-				float width = (float)framebuffer->framebuffer->width;
-				float height = (float)framebuffer->framebuffer->height;
-
-				dsAlignedBox3f viewport = framebufferInfo->viewport;
-				dsView_adjustViewport(&viewport, threadManager->curView, framebuffer->rotated);
-				viewport.min.x *= width;
-				viewport.max.x *= width;
-				viewport.min.y *= height;
-				viewport.max.y *= height;
-
-				dsAlignedBox2f scissor = framebufferInfo->scissor;
-				dsView_adjustScissor(&scissor, threadManager->curView, framebuffer->rotated);
-				scissor.min.x *= width;
-				scissor.max.x *= width;
-				scissor.min.y *= height;
-				scissor.max.y *= height;
+				dsViewRenderPassParams renderPassParams;
+				setupRenderPassParams(&renderPassParams, threadManager->curView, framebuffer,
+					framebufferInfo, renderPass->renderPass, 0);
 
 				uint32_t clearValueCount =
 					renderPass->clearValues ? renderPass->renderPass->attachmentCount : 0;
 				if (!dsRenderPass_begin(renderPass->renderPass, commandBuffer,
-						framebuffer->framebuffer, &viewport, &scissor, renderPass->clearValues,
-						clearValueCount, true))
+						framebuffer->framebuffer, &renderPassParams.viewport,
+						&renderPassParams.scissor, renderPass->clearValues, clearValueCount, true))
 				{
 					return false;
 				}
@@ -564,8 +577,8 @@ static bool submitCommandBuffers(dsSceneThreadManager* threadManager,
 			DS_ASSERT(prevRenderPass);
 			DS_ASSERT(commandBufferInfo->subpass == prevSubpass + 1);
 			DS_ASSERT(commandBufferInfo->framebuffer == prevFramebuffer);
-			if (!dsRenderPass_nextSubpass(prevRenderPass->renderPass, commandBuffer,
-					commandBufferInfo->subpass))
+			if (!dsRenderPass_nextSubpass(
+					prevRenderPass->renderPass, commandBuffer, commandBufferInfo->subpass))
 			{
 				return false;
 			}

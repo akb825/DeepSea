@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,8 +46,8 @@ extern "C"
  * @param rotation The rotation to make the matrix for.
  * @return False if the parameters are invalid.
  */
-DS_RENDER_EXPORT bool dsRenderSurface_makeRotationMatrix22(dsMatrix22f* result,
-	dsRenderSurfaceRotation rotation);
+DS_RENDER_EXPORT bool dsRenderSurface_makeRotationMatrix22(
+	dsMatrix22f* result, dsRenderSurfaceRotation rotation);
 
 /**
  * @brief Creates a rotation matrix for the render surface rotation as a 4x4 matrix.
@@ -56,7 +56,33 @@ DS_RENDER_EXPORT bool dsRenderSurface_makeRotationMatrix22(dsMatrix22f* result,
  * @param rotation The rotation to make the matrix for.
  * @return False if the parameters are invalid.
  */
-DS_RENDER_EXPORT bool dsRenderSurface_makeRotationMatrix44(dsMatrix44f* result,
+DS_RENDER_EXPORT bool dsRenderSurface_makeRotationMatrix44(
+	dsMatrix44f* result, dsRenderSurfaceRotation rotation);
+
+/**
+ * @brief Rotates a viewport for the render surface rotation.
+ * @remark errno will be set on failure.
+ * @param[out] result The rotated viewport.
+ * @param viewport The viewport to rotate. This may be the same as result.
+ * @param width The width of the physical surface.
+ * @param height The height of the physical surface.
+ * @return False if the parameters are invalid.
+ */
+DS_RENDER_EXPORT bool dsRenderSurface_rotateViewport(dsAlignedBox3f* result,
+	const dsAlignedBox3f* viewport, uint32_t width, uint32_t height,
+	dsRenderSurfaceRotation rotation);
+
+/**
+ * @brief Rotates a scissor box for the render surface rotation.
+ * @remark errno will be set on failure.
+ * @param[out] result The rotated scissor.
+ * @param width The width of the physical surface.
+ * @param height The height of the physical surface.
+ * @param scissor The scissor to rotate. This may be the same as result.
+ * @return False if the parameters are invalid.
+ */
+DS_RENDER_EXPORT bool dsRenderSurface_rotateScissor(dsAlignedBox2f* result,
+	const dsAlignedBox2f* scissor, uint32_t width, uint32_t height,
 	dsRenderSurfaceRotation rotation);
 
 /**

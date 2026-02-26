@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -305,7 +305,7 @@ typedef struct dsRigidBodyInit
  * unnecessary copies. The exception to this is the position and rotation, since these will almost
  * always be used.
  *
- * THe underlying implementations are responsible for setting and maintaining all members as they
+ * The underlying implementations are responsible for setting and maintaining all members as they
  * are updated. The base interface defined in RigidBody.h makes no assumptions apart from general
  * error checking performed beforehand that changes are valid.
  *

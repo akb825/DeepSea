@@ -55,14 +55,15 @@ typedef struct dsViewTransformData
 	dsSceneItemList itemList;
 	dsShaderVariableGroup* variableGroup;
 	uint32_t nameID;
+	dsVector3f texCoordTransform[2];
 } dsViewTransformData;
 
-static void dsViewTransformData_commit(
-	dsSceneItemList* itemList, const dsView* view, dsCommandBuffer* commandBuffer)
+static void dsViewTransformData_commit(dsSceneItemList* itemList, const dsView* view,
+	dsCommandBuffer* commandBuffer, const dsViewRenderPassParams* renderPassParams)
 {
 	DS_ASSERT(itemList);
+	DS_UNUSED(renderPassParams);
 	dsViewTransformData* viewData = (dsViewTransformData*)itemList;
-	dsRenderer* renderer = commandBuffer->renderer;
 	unsigned int i = 0;
 	DS_VERIFY(dsShaderVariableGroup_setElementData(
 		viewData->variableGroup, i++, &view->viewMatrix, dsMaterialType_Mat4, 0, 1));
@@ -90,14 +91,8 @@ static void dsViewTransformData_commit(
 	DS_VERIFY(dsShaderVariableGroup_setElementData(
 		viewData->variableGroup, i++, &framebufferRotation, dsMaterialType_Vec4, 0, 1));
 
-	int halfDepth = renderer->projectionOptions & dsProjectionMatrixOptions_HalfZRange;
-	dsVector3f texCoordTransform[2] =
-	{
-		{{0.5f, renderer->projectedTexCoordTInverted ? -0.5f : 0.5f, halfDepth ? 1.0f : 0.5f}},
-		{{0.5f, 0.5f, halfDepth ? 0.0f : 0.5f}}
-	};
 	DS_VERIFY(dsShaderVariableGroup_setElementData(
-		viewData->variableGroup, i++, texCoordTransform, dsMaterialType_Vec3, 0, 2));
+		viewData->variableGroup, i++, viewData->texCoordTransform, dsMaterialType_Vec3, 0, 2));
 
 	dsVector2i framebufferSize;
 	if (view->rotation == dsRenderSurfaceRotation_0 ||
@@ -186,8 +181,8 @@ dsShaderVariableGroupDesc* dsViewTransformData_createShaderVariableGroupDesc(
 		return NULL;
 	}
 
-	return dsShaderVariableGroupDesc_create(resourceManager, allocator, elements,
-		DS_ARRAY_SIZE(elements));
+	return dsShaderVariableGroupDesc_create(
+		resourceManager, allocator, elements, DS_ARRAY_SIZE(elements));
 }
 
 dsSceneItemList* dsViewTransformData_create(dsAllocator* allocator, const char* name,
@@ -243,6 +238,15 @@ dsSceneItemList* dsViewTransformData_create(dsAllocator* allocator, const char* 
 	}
 
 	viewData->nameID = dsUniqueNameID_create(dsViewTransformData_uniformName);
+
+	dsRenderer* renderer = resourceManager->renderer;
+	int halfDepth = renderer->projectionOptions & dsProjectionMatrixOptions_HalfZRange;
+	viewData->texCoordTransform[0].x = 0.5f;
+	viewData->texCoordTransform[0].y = renderer->projectedTexCoordTInverted ? -0.5f : 0.5f;
+	viewData->texCoordTransform[0].z = halfDepth ? 1.0f : 0.5f;
+	viewData->texCoordTransform[1].x = 0.5f;
+	viewData->texCoordTransform[1].y = 0.5f;
+	viewData->texCoordTransform[1].z = halfDepth ? 0.0f : 0.5f;
 
 	return itemList;
 }

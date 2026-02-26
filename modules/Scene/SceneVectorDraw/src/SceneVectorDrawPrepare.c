@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,10 +120,11 @@ static void dsSceneVectorDrawPrepare_removeNode(dsSceneItemList* itemList,
 }
 
 static void dsSceneVectorDrawPrepare_commit(dsSceneItemList* itemList, const dsView* view,
-	dsCommandBuffer* commandBuffer)
+	dsCommandBuffer* commandBuffer, const dsViewRenderPassParams* renderPassParams)
 {
 	DS_ASSERT(itemList);
 	DS_UNUSED(view);
+	DS_UNUSED(renderPassParams);
 	dsSceneVectorDrawPrepare* prepareList = (dsSceneVectorDrawPrepare*)itemList;
 
 	// Lazily remove entries.

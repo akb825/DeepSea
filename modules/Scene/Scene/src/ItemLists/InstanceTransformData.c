@@ -49,12 +49,14 @@ typedef struct InstanceTransform
 #if DS_HAS_SIMD
 DS_SIMD_START(DS_SIMD_FLOAT4)
 static void dsInstanceTransformData_populateDataSIMD(void* userData, const dsView* view,
-	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
-	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
+	const dsViewRenderPassParams* renderPassParams, const dsSceneTreeNode* const* instances,
+	uint32_t instanceCount, const dsShaderVariableGroupDesc* dataDesc, uint8_t* data,
+	uint32_t stride)
 {
 	DS_PROFILE_FUNC_START();
 
 	DS_UNUSED(userData);
+	DS_UNUSED(renderPassParams);
 	DS_UNUSED(dataDesc);
 	DS_ASSERT(stride >= sizeof(InstanceTransform));
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
@@ -76,12 +78,14 @@ DS_SIMD_END()
 
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 static void dsInstanceTransformData_populateDataFMA(void* userData, const dsView* view,
-	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
-	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
+	const dsViewRenderPassParams* renderPassParams, const dsSceneTreeNode* const* instances,
+	uint32_t instanceCount, const dsShaderVariableGroupDesc* dataDesc, uint8_t* data,
+	uint32_t stride)
 {
 	DS_PROFILE_FUNC_START();
 
 	DS_UNUSED(userData);
+	DS_UNUSED(renderPassParams);
 	DS_UNUSED(dataDesc);
 	DS_ASSERT(stride >= sizeof(InstanceTransform));
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
@@ -103,12 +107,14 @@ DS_SIMD_END()
 #endif
 
 static void dsInstanceTransformData_populateData(void* userData, const dsView* view,
-	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
-	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
+	const dsViewRenderPassParams* renderPassParams, const dsSceneTreeNode* const* instances,
+	uint32_t instanceCount, const dsShaderVariableGroupDesc* dataDesc, uint8_t* data,
+	uint32_t stride)
 {
 	DS_PROFILE_FUNC_START();
 
 	DS_UNUSED(userData);
+	DS_UNUSED(renderPassParams);
 	DS_UNUSED(dataDesc);
 	DS_ASSERT(stride >= sizeof(InstanceTransform));
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)

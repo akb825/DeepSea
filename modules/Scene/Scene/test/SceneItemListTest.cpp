@@ -139,7 +139,8 @@ void updateMockSceneItems(dsSceneItemList* itemList, const dsScene*, float)
 	mockList->removeItemCount = 0;
 }
 
-void commitMockSceneItems(dsSceneItemList*, const dsView*, dsCommandBuffer*)
+void commitMockSceneItems(
+	dsSceneItemList*, const dsView*, dsCommandBuffer*, const dsViewRenderPassParams*)
 {
 }
 

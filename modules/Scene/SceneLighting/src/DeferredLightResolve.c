@@ -315,10 +315,11 @@ static bool visitLights(void* userData, const dsSceneLightSet* lightSet, const d
 	return true;
 }
 
-static void dsDeferredLightResolve_commit(
-	dsSceneItemList* itemList, const dsView* view, dsCommandBuffer* commandBuffer)
+static void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsView* view,
+	dsCommandBuffer* commandBuffer, const dsViewRenderPassParams* renderPassParams)
 {
 	DS_ASSERT(itemList);
+	DS_UNUSED(renderPassParams);
 	dsDeferredLightResolve* resolve = (dsDeferredLightResolve*)itemList;
 	dsRenderer* renderer = commandBuffer->renderer;
 	BufferInfo* buffers = getDrawBuffers(resolve, renderer);

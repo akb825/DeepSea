@@ -196,15 +196,16 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view)
 	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
-static void setupInstances(
-	dsSceneModelList* modelList, const dsView* view, dsCommandBuffer* commandBuffer)
+static void setupInstances(dsSceneModelList* modelList, const dsView* view,
+	dsCommandBuffer* commandBuffer, const dsViewRenderPassParams* renderPassParams)
 {
+	DS_ASSERT(renderPassParams);
 	DS_PROFILE_FUNC_START();
 
 	for (uint32_t i = 0; i < modelList->instanceDataCount; ++i)
 	{
 		DS_CHECK(DS_SCENE_LOG_TAG, dsSceneInstanceData_populateData(modelList->instanceData[i],
-			view, commandBuffer, modelList->instances, modelList->instanceCount));
+			view, commandBuffer, renderPassParams, modelList->instances, modelList->instanceCount));
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();
@@ -408,7 +409,7 @@ static void dsSceneModelList_removeNode(
 }
 
 static void dsSceneModelList_preRenderPass(dsSceneItemList* itemList, const dsView* view,
-	dsCommandBuffer* commandBuffer)
+	dsCommandBuffer* commandBuffer, const dsViewRenderPassParams* renderPassParams)
 {
 	DS_ASSERT(itemList);
 	DS_ASSERT(!itemList->skipPreRenderPass);
@@ -424,13 +425,13 @@ static void dsSceneModelList_preRenderPass(dsSceneItemList* itemList, const dsVi
 	modelList->removeEntryCount = 0;
 
 	addInstances(itemList, view);
-	setupInstances(modelList, view, commandBuffer);
+	setupInstances(modelList, view, commandBuffer, renderPassParams);
 
 	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
 }
 
-static void dsSceneModelList_commit(
-	dsSceneItemList* itemList, const dsView* view, dsCommandBuffer* commandBuffer)
+static void dsSceneModelList_commit(dsSceneItemList* itemList, const dsView* view,
+	dsCommandBuffer* commandBuffer, const dsViewRenderPassParams* renderPassParams)
 {
 	DS_ASSERT(itemList);
 	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
@@ -442,12 +443,13 @@ static void dsSceneModelList_commit(
 	if (itemList->skipPreRenderPass)
 	{
 		// Lazily remove entries.
-		dsSceneItemListEntries_removeMulti(modelList->entries, &modelList->entryCount, sizeof(Entry),
-			offsetof(Entry, nodeID), modelList->removeEntries, modelList->removeEntryCount);
+		dsSceneItemListEntries_removeMulti(modelList->entries, &modelList->entryCount,
+			sizeof(Entry), offsetof(Entry, nodeID), modelList->removeEntries,
+			modelList->removeEntryCount);
 		modelList->removeEntryCount = 0;
 
 		addInstances(itemList, view);
-		setupInstances(modelList, view, NULL);
+		setupInstances(modelList, view, NULL, renderPassParams);
 	}
 	sortGeometry(modelList);
 	drawGeometry(modelList, view, commandBuffer);

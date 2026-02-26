@@ -275,16 +275,16 @@ static bool addInstances(dsSceneItemList* itemList)
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
-static void setupInstances(
-	dsSceneVectorItemList* vectorList, const dsView* view, dsCommandBuffer* commandBuffer)
+static void setupInstances(dsSceneVectorItemList* vectorList, const dsView* view,
+	dsCommandBuffer* commandBuffer, const dsViewRenderPassParams* renderPassParams)
 {
 	DS_PROFILE_FUNC_START();
 
 	for (uint32_t i = 0; i < vectorList->instanceDataCount; ++i)
 	{
 		DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG, dsSceneInstanceData_populateData(
-			vectorList->instanceData[i], view, commandBuffer, vectorList->instances,
-			vectorList->entryCount));
+			vectorList->instanceData[i], view, commandBuffer, renderPassParams,
+			vectorList->instances, vectorList->entryCount));
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();
@@ -541,8 +541,8 @@ static void dsSceneVectorItemList_removeNode(
 	}
 }
 
-static void dsSceneVectorItemList_preRenderPass(
-	dsSceneItemList* itemList, const dsView* view, dsCommandBuffer* commandBuffer)
+static void dsSceneVectorItemList_preRenderPass(dsSceneItemList* itemList, const dsView* view,
+	dsCommandBuffer* commandBuffer, const dsViewRenderPassParams* renderPassParams)
 {
 	DS_ASSERT(itemList);
 	DS_ASSERT(!itemList->skipPreRenderPass);
@@ -559,13 +559,13 @@ static void dsSceneVectorItemList_preRenderPass(
 	vectorList->removeEntryCount = 0;
 
 	addInstances(itemList);
-	setupInstances(vectorList, view, commandBuffer);
+	setupInstances(vectorList, view, commandBuffer, renderPassParams);
 
 	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
 }
 
-static void dsSceneVectorItemList_commit(
-	dsSceneItemList* itemList, const dsView* view, dsCommandBuffer* commandBuffer)
+static void dsSceneVectorItemList_commit(dsSceneItemList* itemList, const dsView* view,
+	dsCommandBuffer* commandBuffer, const dsViewRenderPassParams* renderPassParams)
 {
 	DS_ASSERT(itemList);
 	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
@@ -583,7 +583,7 @@ static void dsSceneVectorItemList_commit(
 		vectorList->removeEntryCount = 0;
 
 		addInstances(itemList);
-		setupInstances(vectorList, view, NULL);
+		setupInstances(vectorList, view, NULL, renderPassParams);
 	}
 	sortItems(vectorList);
 	drawItems(vectorList, view, commandBuffer);

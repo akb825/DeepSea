@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Aaron Barany
+ * Copyright 2025-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -144,7 +144,8 @@ void updateMockSceneItems(dsSceneItemList* itemList, const dsScene*, float)
 	mockList->removeItemCount = 0;
 }
 
-void commitMockSceneItems(dsSceneItemList*, const dsView*, dsCommandBuffer*)
+void commitMockSceneItems(
+	dsSceneItemList*, const dsView*, dsCommandBuffer*, const dsViewRenderPassParams*)
 {
 }
 

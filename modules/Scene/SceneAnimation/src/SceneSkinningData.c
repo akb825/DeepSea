@@ -429,9 +429,11 @@ static bool populateTextureData(dsSceneInstanceData* instanceData,
 }
 
 static bool dsSceneSkinningData_populateData(dsSceneInstanceData* instanceData, const dsView* view,
-	dsCommandBuffer* commandBuffer, const dsSceneTreeNode* const* instances, uint32_t instanceCount)
+	dsCommandBuffer* commandBuffer,  const dsViewRenderPassParams* renderPassParams,
+	const dsSceneTreeNode* const* instances, uint32_t instanceCount)
 {
 	DS_UNUSED(view);
+	DS_UNUSED(renderPassParams);
 	dsSceneSkinningData* skinningData = (dsSceneSkinningData*)instanceData;
 	DS_PROFILE_FUNC_START();
 

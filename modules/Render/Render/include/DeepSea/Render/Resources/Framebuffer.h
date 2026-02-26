@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,16 @@ extern "C"
  */
 
 /**
+ * @brief Gets the format for a surface.
+ * @remark errno will be set on failure.
+ * @param renderer The renderer.
+ * @param surface The framebuffer surface.
+ * @return The surface format, or dsGfxFormat_Unknown if the parameters are invalid.
+ */
+DS_RENDER_EXPORT dsGfxFormat dsFramebuffer_getSurfaceFormat(
+	const dsRenderer* renderer, const dsFramebufferSurface* surface);
+
+/**
  * @brief Creates a framebuffer.
  * @remark errno will be set on failure.
  * @param resourceManager The resource manager to create the framebuffer from.
@@ -56,16 +66,6 @@ extern "C"
 DS_RENDER_EXPORT dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator, const char* name, const dsFramebufferSurface* surfaces,
 	uint32_t surfaceCount, uint32_t width, uint32_t height, uint32_t layers);
-
-/**
- * @brief Gets the format for a surface.
- * @remark errno will be set on failure.
- * @param renderer The renderer.
- * @param surface The framebuffer surface.
- * @return The surface format, or dsGfxFormat_Unknown if the parameters are invalid.
- */
-DS_RENDER_EXPORT dsGfxFormat dsFramebuffer_getSurfaceFormat(const dsRenderer* renderer,
-	const dsFramebufferSurface* surface);
 
 /**
  * @brief Destroys a framebuffer.

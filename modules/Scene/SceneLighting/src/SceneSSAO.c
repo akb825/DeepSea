@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2025 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,9 +54,10 @@ struct dsSceneSSAO
 	dsTexture* randomRotations;
 };
 
-static void dsSceneSSAO_commit(
-	dsSceneItemList* itemList, const dsView* view, dsCommandBuffer* commandBuffer)
+static void dsSceneSSAO_commit(dsSceneItemList* itemList, const dsView* view,
+	dsCommandBuffer* commandBuffer, const dsViewRenderPassParams* renderPassParams)
 {
+	DS_UNUSED(renderPassParams);
 	dsSceneSSAO* ssao = (dsSceneSSAO*)itemList;
 	if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG,
 			dsShader_bind(ssao->shader, commandBuffer, ssao->material, view->globalValues, NULL)))

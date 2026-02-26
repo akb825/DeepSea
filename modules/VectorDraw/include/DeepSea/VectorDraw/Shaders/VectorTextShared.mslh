@@ -56,7 +56,7 @@ sampler_state dsVectorTextOutlineMaterialColorTex
 
 /**
  * @brief Gets the final position for a text vertex.
- * @param position THe position of the glyph.
+ * @param position The position of the glyph.
  * @param offset The offset for the glyph bounds.
  * @param slant The amount to slant the glyph.
  */

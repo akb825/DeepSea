@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,8 +97,8 @@ static void destroyInstanceData(
 		dsSceneInstanceData_destroy(instanceData[i]);
 }
 
-static void setupInstances(
-	dsSceneItemList* itemList, const dsView* view, dsCommandBuffer* commandBuffer)
+static void setupInstances(dsSceneItemList* itemList, const dsView* view,
+	dsCommandBuffer* commandBuffer, const dsViewRenderPassParams* renderPassParams)
 {
 	dsSceneParticleDrawList* drawList = (dsSceneParticleDrawList*)itemList;
 	drawList->emitterCount = 0;
@@ -142,8 +142,8 @@ static void setupInstances(
 		for (uint32_t i = 0; i < drawList->instanceDataCount; ++i)
 		{
 			DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG, dsSceneInstanceData_populateData(
-				drawList->instanceData[i], view, commandBuffer, drawList->instances,
-				drawList->instanceCount));
+				drawList->instanceData[i], view, commandBuffer, renderPassParams,
+				drawList->instances, drawList->instanceCount));
 		}
 	}
 }
@@ -217,18 +217,18 @@ static void dsSceneParticleDrawList_removeNode(
 	}
 }
 
-static void dsSceneParticleDrawList_preRenderPass(
-	dsSceneItemList* itemList, const dsView* view, dsCommandBuffer* commandBuffer)
+static void dsSceneParticleDrawList_preRenderPass(dsSceneItemList* itemList, const dsView* view,
+	dsCommandBuffer* commandBuffer, const dsViewRenderPassParams* renderPassParams)
 {
 	DS_ASSERT(itemList);
 	DS_ASSERT(!itemList->skipPreRenderPass);
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
-	setupInstances(itemList, view, commandBuffer);
+	setupInstances(itemList, view, commandBuffer, renderPassParams);
 	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
 }
 
-static void dsSceneParticleDrawList_commit(
-	dsSceneItemList* itemList, const dsView* view, dsCommandBuffer* commandBuffer)
+static void dsSceneParticleDrawList_commit(dsSceneItemList* itemList, const dsView* view,
+	dsCommandBuffer* commandBuffer, const dsViewRenderPassParams* renderPassParams)
 {
 	DS_ASSERT(itemList);
 	dsSceneParticleDrawList* drawList = (dsSceneParticleDrawList*)itemList;
@@ -244,7 +244,7 @@ static void dsSceneParticleDrawList_commit(
 	drawList->removeEntryCount = 0;
 
 	if (itemList->skipPreRenderPass)
-		setupInstances(itemList, view, NULL);
+		setupInstances(itemList, view, NULL, renderPassParams);
 
 	if (drawList->instanceCount == 0)
 		dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);

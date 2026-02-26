@@ -1138,7 +1138,7 @@ uint8_t* dsVkCommandBuffer_allocatePushConstantData(dsCommandBuffer* commandBuff
 
 	uint32_t count = 0;
 	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->pushConstantBytes,
-		count, vkCommandBuffer->maxPushConstantBytes, size))
+			count, vkCommandBuffer->maxPushConstantBytes, size))
 	{
 		return NULL;
 	}

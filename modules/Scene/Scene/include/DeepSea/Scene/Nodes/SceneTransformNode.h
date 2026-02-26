@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ DS_SCENE_EXPORT dsSceneTransformNode* dsSceneTransformNode_create(dsAllocator* a
  *
  * @remark errno will be set on failure.
  * @param node The node to set the transform on.
- * @param transform THe new transform.
+ * @param transform The new transform.
  * @return False if the parameters are invalid.
  */
 DS_SCENE_EXPORT bool dsSceneTransformNode_setTransform(dsSceneTransformNode* node,

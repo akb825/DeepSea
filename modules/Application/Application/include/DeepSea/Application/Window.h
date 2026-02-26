@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -136,7 +136,7 @@ DS_APPLICATION_EXPORT bool dsWindow_resize(dsWindow* window, uint32_t width, uin
  * @brief Gets the current size of a window in display coordinates.
  * @remark errno will be set on failure.
  * @param[out] outWidth The width of the window display coordinates. This may be NULL.
- * @param[out] outHeight THe height of the window display coordinates. This may be NULL.
+ * @param[out] outHeight The height of the window display coordinates. This may be NULL.
  * @param window The window to get the size for.
  * @return False if the size couldn't be queried.
  */
@@ -148,7 +148,7 @@ DS_APPLICATION_EXPORT bool dsWindow_getSize(uint32_t* outWidth, uint32_t* outHei
  * @remark This may be different from dsWindow_getSize() depending on the platform.
  * @remark errno will be set on failure.
  * @param[out] outWidth The width of the window display coordinates. This may be NULL.
- * @param[out] outHeight THe height of the window display coordinates. This may be NULL.
+ * @param[out] outHeight The height of the window display coordinates. This may be NULL.
  * @param window The window to get the size for.
  * @return False if the size couldn't be queried.
  */

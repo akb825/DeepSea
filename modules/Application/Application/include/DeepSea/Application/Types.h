@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -832,7 +832,7 @@ typedef bool (*dsResizeWindowFunction)(dsApplication* application, dsWindow* win
 /**
  * @brief Function for getting the size of a window.
  * @param[out] outWidth The width of the window. This may be NULL.
- * @param[out] outHeight THe height of the window. This may be NULL.
+ * @param[out] outHeight The height of the window. This may be NULL.
  * @param application The application.
  * @param window The window to get the size for.
  * @return False if the size couldn't be queried.
@@ -843,7 +843,7 @@ typedef bool (*dsGetWindowSizeFunction)(uint32_t* outWidth, uint32_t* outHeight,
 /**
  * @brief Function for getting the pixel size of a window.
  * @param[out] outWidth The width of the window. This may be NULL.
- * @param[out] outHeight THe height of the window. This may be NULL.
+ * @param[out] outHeight The height of the window. This may be NULL.
  * @param application The application.
  * @param window The window to get the size for.
  * @return False if the size couldn't be queried.

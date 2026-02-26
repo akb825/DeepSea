@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,18 +48,62 @@ typedef struct dsSceneInstanceData dsSceneInstanceData;
 /// @endcond
 
 /**
+ * @brief Struct defining the parameters used when drawing a render pass within a view.
+ */
+typedef struct dsViewRenderPassParams
+{
+	/**
+	 * @brief The width of the framebuffer.
+	 */
+	uint32_t framebufferWidth;
+
+	/**
+	 * @brief The height of the framebuffer.
+	 */
+	uint32_t framebufferHeight;
+
+	/**
+	 * @brief The rotation to apply when drawing.
+	 */
+	dsRenderSurfaceRotation rotation;
+
+	/**
+	 * @brief The subpass within the render pass.
+	 */
+	uint32_t subpass;
+
+	/**
+	 * @brief The render pass being drawn to.
+	 */
+	const dsRenderPass* renderPass;
+
+	/**
+	 * @brief The bound viewport.
+	 */
+	dsAlignedBox3f viewport;
+
+	/**
+	 * @brief The bound scissor.
+	 */
+	dsAlignedBox2f scissor;
+} dsViewRenderPassParams;
+
+/**
  * @brief Function to populate scene instance data.
  * @remark errno should be set on failure.
  * @param instanceData The instance data.
  * @param view The view being drawn.
  * @param commandBuffer The command buffer to process GPU operations. This may be NULL if
  *     needsCommandBuffer is false.
+ * @param renderPassParams The parameters when drawing to a render pass. This will be NULL if not
+ *     part of a render pass, typically for compute shaders.
  * @param instances The list of instances.
  * @param instanceCount The number of instances.
  * @return False if an error occurred.
  */
 typedef bool (*dsPopulateSceneInstanceDataFunction)(dsSceneInstanceData* instanceData,
-	const dsView* view, dsCommandBuffer* commandBuffer, const dsSceneTreeNode* const* instances,
+	const dsView* view, dsCommandBuffer* commandBuffer,
+	const dsViewRenderPassParams* renderPassParams, const dsSceneTreeNode* const* instances,
 	uint32_t instanceCount);
 
 /**
@@ -70,8 +114,8 @@ typedef bool (*dsPopulateSceneInstanceDataFunction)(dsSceneInstanceData* instanc
  * @param values The material values to bind to.
  * @return False if an error occurred.
  */
-typedef bool (*dsBindSceneInstanceDataFunction)(dsSceneInstanceData* instanceData, uint32_t index,
-	dsSharedMaterialValues* values);
+typedef bool (*dsBindSceneInstanceDataFunction)(
+	dsSceneInstanceData* instanceData, uint32_t index, dsSharedMaterialValues* values);
 
 /**
  * @brief Function for finishing the current set of instance data.
@@ -193,7 +237,8 @@ struct dsSceneInstanceData
  *
  * @param userData The user data for managing the instance data.
  * @param view The view being drawn.
- * @param instances The instances to populate the data for.
+ * @param renderPassParams The parameters when drawing to a render pass. This will be NULL if not
+ *     part of a render pass, typically for compute shaders.
  * @param instanceCount The number of instances.
  * @param dataDesc The shader variable group description for the data.
  * @param data The data to populate.
@@ -202,8 +247,9 @@ struct dsSceneInstanceData
  * @see SceneInstanceVariables.h
  */
 typedef void (*dsPopulateSceneInstanceVariablesFunction)(void* userData, const dsView* view,
-	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
-	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride);
+	const dsViewRenderPassParams* renderPassParams, const dsSceneTreeNode* const* instances,
+	uint32_t instanceCount, const dsShaderVariableGroupDesc* dataDesc, uint8_t* data,
+	uint32_t stride);
 
 /**
  * @brief Function to get the hash for instance variable data.
@@ -275,8 +321,8 @@ typedef uint64_t (*dsAddSceneItemListNodeFunction)(dsSceneItemList* itemList,
  * @param treeNode The node in the scene tree being updated.
  * @param nodeID The ID of the node to update.
  */
-typedef void (*dsUpdateSceneItemListNodeFunction)(dsSceneItemList* itemList,
-	dsSceneTreeNode* treeNode, uint64_t nodeID);
+typedef void (*dsUpdateSceneItemListNodeFunction)(
+	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID);
 
 /**
  * @brief Function for updating a node in an item list.
@@ -284,8 +330,8 @@ typedef void (*dsUpdateSceneItemListNodeFunction)(dsSceneItemList* itemList,
  * @param treeNode The node in the scene tree to remove.
  * @param nodeID The ID of the node to remove.
  */
-typedef void (*dsRemoveSceneItemListNodeFunction)(dsSceneItemList* itemList,
-	dsSceneTreeNode* treeNode, uint64_t nodeID);
+typedef void (*dsRemoveSceneItemListNodeFunction)(
+	dsSceneItemList* itemList, dsSceneTreeNode* treeNode, uint64_t nodeID);
 
 /**
  * @brief Function for reparenting a node in an item list.
@@ -303,26 +349,30 @@ typedef void (*dsReparentSceneItemListNodeFunction)(dsSceneItemList* itemList, u
  * @param scene The scene the item list belongs to.
  * @param time The time since the last update.
  */
-typedef void (*dsUpdateSceneItemListFunction)(dsSceneItemList* itemList, const dsScene* scene,
-	float time);
+typedef void (*dsUpdateSceneItemListFunction)(
+	dsSceneItemList* itemList, const dsScene* scene, float time);
 
 /**
  * @brief Function for execution operations for a scene item list before a render pass.
  * @param itemList The scene item list to prepare.
  * @param view The view used with the scene item list.
  * @param commandBuffer The command buffer to execute with.
+ * @param renderPassParams The parameters for drawing to the render pass.
  */
 typedef void (*dsPreRenderPassSceneItemListFunction)(dsSceneItemList* itemList, const dsView* view,
-	dsCommandBuffer* commandBuffer);
+	dsCommandBuffer* commandBuffer, const dsViewRenderPassParams* renderPassParams);
 
 /**
  * @brief Function for executing a scene item list.
  * @param itemList The scene item list to execute.
  * @param view The view used with the scene item list.
  * @param commandBuffer The command buffer to execute with.
+ * @param renderPassParams The parameters when drawing to a render pass. This will be NULL if not
+ *     part of a render pass, typically for compute shaders.
  */
-typedef void (*dsCommitSceneItemListFunction)(dsSceneItemList* itemList, const dsView* view,
-	dsCommandBuffer* commandBuffer);
+typedef void (*dsCommitSceneItemListFunction)(
+	dsSceneItemList* itemList, const dsView* view, dsCommandBuffer* commandBuffer,
+	const dsViewRenderPassParams* renderPassParams);
 
 /**
  * @brief Function to get the hash for a scene item list.

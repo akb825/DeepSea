@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,12 +61,15 @@ DS_SCENE_EXPORT dsSceneInstanceData* dsSceneInstanceData_load(dsAllocator* alloc
  * @param view The view being drawn.
  * @param commandBuffer The command buffer to process GPU operations. This may be NULL if
  *     needsCommandBuffer is false.
+ * @param renderPassParams The parameters when drawing to a render pass. This will be NULL if not
+ *     part of a render pass, typically for compute shaders.
  * @param instances The instances that will be drawn.
  * @param instanceCount The number of instances.
  * @return False if the data couldn't be set.
  */
 DS_SCENE_EXPORT bool dsSceneInstanceData_populateData(dsSceneInstanceData* instanceData,
-	const dsView* view, dsCommandBuffer* commandBuffer, const dsSceneTreeNode* const* instances,
+	const dsView* view, dsCommandBuffer* commandBuffer,
+	const dsViewRenderPassParams* renderPassParams, const dsSceneTreeNode* const* instances,
 	uint32_t instanceCount);
 
 /**

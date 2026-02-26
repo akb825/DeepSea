@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Render/RenderSurface.h>
 #include <gtest/gtest.h>
+#include <cstring>
 
 class RenderSurfaceTest : public FixtureBase
 {
@@ -98,6 +99,149 @@ TEST_F(RenderSurfaceTest, Roation44)
 	{
 		for (unsigned int j = 0; j < 4; ++j)
 			EXPECT_NEAR(expected.values[i][j], rotation.values[i][j], 1e-6);
+	}
+}
+
+TEST_F(RenderSurfaceTest, RotateViewport)
+{
+	dsAlignedBox3f viewport =
+	{
+		{{3.0f, 4.0f, 0.0f}},
+		{{10.0f, 11.0f, 0.0f}}
+	};
+	uint32_t width = 20;
+	uint32_t height = 25;
+	auto widthf = static_cast<float>(width);
+	auto heightf = static_cast<float>(height);
+
+	dsAlignedBox3f rotatedViewport;
+	EXPECT_FALSE(dsRenderSurface_rotateViewport(
+		nullptr, &viewport, width, height, dsRenderSurfaceRotation_0));
+	EXPECT_FALSE(dsRenderSurface_rotateViewport(
+		&rotatedViewport, nullptr, width, height, dsRenderSurfaceRotation_0));
+	EXPECT_FALSE(dsRenderSurface_rotateViewport(
+		&rotatedViewport, &viewport, 0, height, dsRenderSurfaceRotation_0));
+	EXPECT_FALSE(dsRenderSurface_rotateViewport(
+		&rotatedViewport, &viewport, width, 0, dsRenderSurfaceRotation_0));
+
+	dsVector2f offsets[] =
+	{
+		{{0.0f, 0.0f}}, // 0
+		{{widthf, 0.0f}}, // 90
+		{{widthf, heightf}}, // 180
+		{{0.0f, heightf}}, // 270
+	};
+	dsVector4f origPos = {{0.0f, 0.0f, 0.0f, 1.0f}};
+	for (int i = 0; i <= dsRenderSurfaceRotation_270; ++i)
+	{
+		auto rotation = static_cast<dsRenderSurfaceRotation>(i);
+		dsMatrix44f rotationMat;
+		EXPECT_TRUE(dsRenderSurface_makeRotationMatrix44(&rotationMat, rotation));
+		rotationMat.columns[3].x = offsets[i].x;
+		rotationMat.columns[3].y = offsets[i].y;
+		for (int j = 0; j < 2; ++j)
+		{
+			if (i == 0)
+			{
+				std::memset(&rotatedViewport, 0, sizeof(rotatedViewport));
+				EXPECT_TRUE(dsRenderSurface_rotateViewport(
+					&rotatedViewport, &viewport, width, height, rotation));
+			}
+			else
+			{
+				rotatedViewport = viewport;
+				EXPECT_TRUE(dsRenderSurface_rotateViewport(
+					&rotatedViewport, &rotatedViewport, width, height, rotation));
+			}
+
+			dsVector4f rotatedPos1;
+			origPos.x = viewport.min.x;
+			origPos.y = viewport.min.y;
+			dsMatrix44_transform(rotatedPos1, rotationMat, origPos);
+
+			dsVector4f rotatedPos2;
+			origPos.x = viewport.max.x;
+			origPos.y = viewport.max.y;
+			dsMatrix44_transform(rotatedPos2, rotationMat, origPos);
+
+			EXPECT_NEAR(dsMin(rotatedPos1.x, rotatedPos2.x), rotatedViewport.min.x, 1e-6);
+			EXPECT_NEAR(dsMin(rotatedPos1.y, rotatedPos2.y), rotatedViewport.min.y, 1e-6);
+			EXPECT_NEAR(dsMax(rotatedPos1.x, rotatedPos2.x), rotatedViewport.max.x, 1e-6);
+			EXPECT_NEAR(dsMax(rotatedPos1.y, rotatedPos2.y), rotatedViewport.max.y, 1e-6);
+
+			EXPECT_EQ(viewport.min.z, rotatedViewport.min.z);
+			EXPECT_EQ(viewport.max.z, rotatedViewport.max.z);
+		}
+	}
+}
+
+TEST_F(RenderSurfaceTest, RotateScissor)
+{
+	dsAlignedBox2f scissor =
+	{
+		{{3.0f, 4.0f}},
+		{{10.0f, 11.0f}}
+	};
+	uint32_t width = 20;
+	uint32_t height = 25;
+	auto widthf = static_cast<float>(width);
+	auto heightf = static_cast<float>(height);
+
+	dsAlignedBox2f rotatedScissor;
+	EXPECT_FALSE(dsRenderSurface_rotateScissor(
+		nullptr, &scissor, width, height, dsRenderSurfaceRotation_0));
+	EXPECT_FALSE(dsRenderSurface_rotateScissor(
+		&rotatedScissor, nullptr, width, height, dsRenderSurfaceRotation_0));
+	EXPECT_FALSE(dsRenderSurface_rotateScissor(
+		&rotatedScissor, &scissor, 0, height, dsRenderSurfaceRotation_0));
+	EXPECT_FALSE(dsRenderSurface_rotateScissor(
+		&rotatedScissor, &scissor, width, 0, dsRenderSurfaceRotation_0));
+
+	dsVector2f offsets[] =
+	{
+		{{0.0f, 0.0f}}, // 0
+		{{widthf, 0.0f}}, // 90
+		{{widthf, heightf}}, // 180
+		{{0.0f, heightf}}, // 270
+	};
+	dsVector4f origPos = {{0.0f, 0.0f, 0.0f, 1.0f}};
+	for (int i = 0; i <= dsRenderSurfaceRotation_270; ++i)
+	{
+		auto rotation = static_cast<dsRenderSurfaceRotation>(i);
+		dsMatrix44f rotationMat;
+		EXPECT_TRUE(dsRenderSurface_makeRotationMatrix44(&rotationMat, rotation));
+		rotationMat.columns[3].x = offsets[i].x;
+		rotationMat.columns[3].y = offsets[i].y;
+		for (int j = 0; j < 2; ++j)
+		{
+			if (i == 0)
+			{
+				std::memset(&rotatedScissor, 0, sizeof(rotatedScissor));
+				EXPECT_TRUE(dsRenderSurface_rotateScissor(
+					&rotatedScissor, &scissor, width, height, rotation));
+			}
+			else
+			{
+				rotatedScissor = scissor;
+				EXPECT_TRUE(dsRenderSurface_rotateScissor(
+					&rotatedScissor, &rotatedScissor, width, height, rotation));
+			}
+
+			dsVector4f rotatedPos1;
+			origPos.x = scissor.min.x;
+			origPos.y = scissor.min.y;
+			dsMatrix44_transform(rotatedPos1, rotationMat, origPos);
+
+			dsVector4f rotatedPos2;
+			origPos.x = scissor.max.x;
+			origPos.y = scissor.max.y;
+			dsMatrix44_transform(rotatedPos2, rotationMat, origPos);
+
+			EXPECT_NEAR(dsMin(rotatedPos1.x, rotatedPos2.x), rotatedScissor.min.x, 1e-6);
+			EXPECT_NEAR(dsMin(rotatedPos1.y, rotatedPos2.y), rotatedScissor.min.y, 1e-6);
+			EXPECT_NEAR(dsMax(rotatedPos1.x, rotatedPos2.x), rotatedScissor.max.x, 1e-6);
+			EXPECT_NEAR(dsMax(rotatedPos1.y, rotatedPos2.y), rotatedScissor.max.y, 1e-6);
+		}
 	}
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -146,7 +146,8 @@ static bool reserveSpace(dsSceneInstanceVariables* variables, uint32_t maxInstan
 }
 
 static bool dsSceneInstanceVariables_populateData(dsSceneInstanceData* instanceData,
-	const dsView* view, dsCommandBuffer* commandBuffer, const dsSceneTreeNode* const* instances,
+	const dsView* view, dsCommandBuffer* commandBuffer,
+	const dsViewRenderPassParams* renderPassParams, const dsSceneTreeNode* const* instances,
 	uint32_t instanceCount)
 {
 	DS_UNUSED(commandBuffer);
@@ -161,8 +162,8 @@ static bool dsSceneInstanceVariables_populateData(dsSceneInstanceData* instanceD
 		return false;
 
 	variables->curInstanceCount = instanceCount;
-	variables->instanceVariablesType->populateFunc(variables->userData, view, instances,
-		instanceCount, variables->dataDesc, variables->curBufferData, variables->stride);
+	variables->instanceVariablesType->populateFunc(variables->userData, view, renderPassParams,
+		instances, instanceCount, variables->dataDesc, variables->curBufferData, variables->stride);
 	BufferInfo* curBuffer = variables->curBuffer;
 	if (curBuffer)
 		DS_VERIFY(dsGfxBuffer_unmap(curBuffer->buffer));

@@ -42,7 +42,7 @@ extern "C"
  * @param resourceAllocator The allocator for graphics resources in the view. If NULL, the view's
  *     allocator will be used.
  * @param surfaces The surfaces to use with the view.
- * @param surfaceCount THe number of surfaces.
+ * @param surfaceCount The number of surfaces.
  * @param framebuffers The framebuffers to use with the view.
  * @param framebufferCount The number of framebuffers.
  * @param width The width of the view.
@@ -71,7 +71,7 @@ DS_SCENE_EXPORT dsView* dsView_create(dsAllocator* allocator, const char* name,
  *     the view allocator.
  * @param scratchData The scene scratch data.
  * @param surfaces The surfaces to use with the view.
- * @param surfaceCount THe number of surfaces.
+ * @param surfaceCount The number of surfaces.
  * @param width The width of the view.
  * @param height The height of the view.
  * @param rotation The rotation of the window surface.
@@ -96,7 +96,7 @@ DS_SCENE_EXPORT dsView* dsView_loadFile(dsAllocator* allocator, const char* name
  *     the view allocator.
  * @param scratchData The scene scratch data.
  * @param surfaces The surfaces to use with the view.
- * @param surfaceCount THe number of surfaces.
+ * @param surfaceCount The number of surfaces.
  * @param width The width of the view.
  * @param height The height of the view.
  * @param rotation The rotation of the window surface.
@@ -123,7 +123,7 @@ DS_SCENE_EXPORT dsView* dsView_loadResource(dsAllocator* allocator, const char* 
  *     the view allocator.
  * @param scratchData The scene scratch data.
  * @param surfaces The surfaces to use with the view.
- * @param surfaceCount THe number of surfaces.
+ * @param surfaceCount The number of surfaces.
  * @param width The width of the view.
  * @param height The height of the view.
  * @param rotation The rotation of the window surface.
@@ -150,7 +150,7 @@ DS_SCENE_EXPORT dsView* dsView_loadArchive(dsAllocator* allocator, const char* n
  *     the view allocator.
  * @param scratchData The scene scratch data.
  * @param surfaces The surfaces to use with the view.
- * @param surfaceCount THe number of surfaces.
+ * @param surfaceCount The number of surfaces.
  * @param width The width of the view.
  * @param height The height of the view.
  * @param rotation The rotation of the window surface.
@@ -175,7 +175,7 @@ DS_SCENE_EXPORT dsView* dsView_loadStream(dsAllocator* allocator, const char* na
  *     the view allocator.
  * @param scratchData The scene scratch data.
  * @param surfaces The surfaces to use with the view.
- * @param surfaceCount THe number of surfaces.
+ * @param surfaceCount The number of surfaces.
  * @param width The width of the view.
  * @param height The height of the view.
  * @param rotation The rotation of the window surface.

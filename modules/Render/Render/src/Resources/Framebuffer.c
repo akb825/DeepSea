@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,35 @@
 #include <DeepSea/Render/Types.h>
 
 extern const char* dsResourceManager_noContextError;
+
+dsGfxFormat dsFramebuffer_getSurfaceFormat(
+	const dsRenderer* renderer, const dsFramebufferSurface* surface)
+{
+	if (!renderer || !surface)
+	{
+		errno = EINVAL;
+		return dsGfxFormat_Unknown;
+	}
+
+	switch (surface->surfaceType)
+	{
+		case dsGfxSurfaceType_ColorRenderSurface:
+		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+		case dsGfxSurfaceType_ColorRenderSurfaceRight:
+			return renderer->surfaceColorFormat;
+		case dsGfxSurfaceType_DepthRenderSurface:
+		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
+		case dsGfxSurfaceType_DepthRenderSurfaceRight:
+			return renderer->surfaceDepthStencilFormat;
+		case dsGfxSurfaceType_Offscreen:
+			return ((const dsOffscreen*)surface->surface)->info.format;
+		case dsGfxSurfaceType_Renderbuffer:
+			return ((const dsRenderbuffer*)surface->surface)->format;
+		default:
+			DS_ASSERT(false);
+			return dsGfxFormat_Unknown;
+	}
+}
 
 dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	const char* name, const dsFramebufferSurface* surfaces, uint32_t surfaceCount, uint32_t width,
@@ -253,35 +282,6 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 	if (framebuffer)
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->framebufferCount, 1);
 	DS_PROFILE_FUNC_RETURN(framebuffer);
-}
-
-dsGfxFormat dsFramebuffer_getSurfaceFormat(const dsRenderer* renderer,
-	const dsFramebufferSurface* surface)
-{
-	if (!renderer || !surface)
-	{
-		errno = EINVAL;
-		return dsGfxFormat_Unknown;
-	}
-
-	switch (surface->surfaceType)
-	{
-		case dsGfxSurfaceType_ColorRenderSurface:
-		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
-		case dsGfxSurfaceType_ColorRenderSurfaceRight:
-			return renderer->surfaceColorFormat;
-		case dsGfxSurfaceType_DepthRenderSurface:
-		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
-		case dsGfxSurfaceType_DepthRenderSurfaceRight:
-			return renderer->surfaceDepthStencilFormat;
-		case dsGfxSurfaceType_Offscreen:
-			return ((const dsOffscreen*)surface->surface)->info.format;
-		case dsGfxSurfaceType_Renderbuffer:
-			return ((const dsRenderbuffer*)surface->surface)->format;
-		default:
-			DS_ASSERT(false);
-			return dsGfxFormat_Unknown;
-	}
 }
 
 bool dsFramebuffer_destroy(dsFramebuffer* framebuffer)

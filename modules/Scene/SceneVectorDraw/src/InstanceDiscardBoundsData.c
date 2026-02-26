@@ -49,12 +49,14 @@ typedef struct InstanceDiscardBounds
 // NOTE: Expect that providing guaranteed SIMD and FMA versions isn't worth it given the comparative
 // cost of getting the bounds and transform for the instance in the scene graph sub-tree.
 static void dsInstanceDiscardBoundsData_populateData(void* userData, const dsView* view,
-	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
-	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
+	const dsViewRenderPassParams* renderPassParams, const dsSceneTreeNode* const* instances,
+	uint32_t instanceCount, const dsShaderVariableGroupDesc* dataDesc, uint8_t* data,
+	uint32_t stride)
 {
 	DS_PROFILE_FUNC_START();
 
 	DS_UNUSED(userData);
+	DS_UNUSED(renderPassParams);
 	DS_UNUSED(dataDesc);
 	DS_ASSERT(stride >= sizeof(InstanceDiscardBounds));
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)

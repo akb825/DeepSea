@@ -51,10 +51,11 @@ struct dsSceneComputeSSAO
 	dsTexture* randomRotations;
 };
 
-static void dsSceneComputeSSAO_commit(
-	dsSceneItemList* itemList, const dsView* view, dsCommandBuffer* commandBuffer)
+static void dsSceneComputeSSAO_commit(dsSceneItemList* itemList, const dsView* view,
+	dsCommandBuffer* commandBuffer, const dsViewRenderPassParams* renderPassParams)
 {
 	DS_ASSERT(itemList);
+	DS_UNUSED(renderPassParams);
 	dsSceneComputeSSAO* ssao = (dsSceneComputeSSAO*)itemList;
 	if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG,
 			dsShader_bindCompute(ssao->shader, commandBuffer, ssao->material, view->globalValues)))

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2025 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -181,10 +181,11 @@ static void lazyRemoveEntries(dsShadowCullList* cullList)
 #if DS_HAS_SIMD
 DS_SIMD_START(DS_SIMD_FLOAT4)
 static void dsShadowCullList_commitSIMD(dsSceneItemList* itemList, const dsView* view,
-	dsCommandBuffer* commandBuffer)
+	dsCommandBuffer* commandBuffer, const dsViewRenderPassParams* renderPassParams)
 {
 	DS_ASSERT(itemList);
 	DS_UNUSED(commandBuffer);
+	DS_UNUSED(renderPassParams);
 	dsShadowCullList* cullList = (dsShadowCullList*)itemList;
 	lazyRemoveEntries(cullList);
 
@@ -236,10 +237,11 @@ DS_SIMD_END()
 
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 static void dsShadowCullList_commitFMA(dsSceneItemList* itemList, const dsView* view,
-	dsCommandBuffer* commandBuffer)
+	dsCommandBuffer* commandBuffer, const dsViewRenderPassParams* renderPassParams)
 {
 	DS_ASSERT(itemList);
 	DS_UNUSED(commandBuffer);
+	DS_UNUSED(renderPassParams);
 	dsShadowCullList* cullList = (dsShadowCullList*)itemList;
 	lazyRemoveEntries(cullList);
 
@@ -291,10 +293,11 @@ DS_SIMD_END()
 #endif
 
 static void dsShadowCullList_commit(dsSceneItemList* itemList, const dsView* view,
-	dsCommandBuffer* commandBuffer)
+	dsCommandBuffer* commandBuffer, const dsViewRenderPassParams* renderPassParams)
 {
 	DS_ASSERT(itemList);
 	DS_UNUSED(commandBuffer);
+	DS_UNUSED(renderPassParams);
 	dsShadowCullList* cullList = (dsShadowCullList*)itemList;
 	lazyRemoveEntries(cullList);
 

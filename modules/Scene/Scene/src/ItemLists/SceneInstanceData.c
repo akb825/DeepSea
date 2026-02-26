@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,8 @@
 #include <DeepSea/Core/Error.h>
 
 bool dsSceneInstanceData_populateData(dsSceneInstanceData* instanceData,
-	const dsView* view, dsCommandBuffer* commandBuffer, const dsSceneTreeNode* const* instances,
+	const dsView* view, dsCommandBuffer* commandBuffer,
+	const dsViewRenderPassParams* renderPassParams, const dsSceneTreeNode* const* instances,
 	uint32_t instanceCount)
 {
 	if (!instanceData || !instanceData->type || !instanceData->type->populateDataFunc || !view ||
@@ -30,8 +31,8 @@ bool dsSceneInstanceData_populateData(dsSceneInstanceData* instanceData,
 		return false;
 	}
 
-	return instanceData->type->populateDataFunc(instanceData, view, commandBuffer, instances,
-		instanceCount);
+	return instanceData->type->populateDataFunc(
+		instanceData, view, commandBuffer, renderPassParams, instances, instanceCount);
 }
 
 bool dsSceneInstanceData_bindInstance(dsSceneInstanceData* instanceData, uint32_t index,

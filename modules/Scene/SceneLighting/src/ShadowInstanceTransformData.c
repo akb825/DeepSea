@@ -75,12 +75,14 @@ static void dummyTransformData(uint32_t instanceCount, uint8_t* data, uint32_t s
 #if DS_HAS_SIMD
 DS_SIMD_START(DS_SIMD_FLOAT4)
 static void dsShadowInstanceTransformData_populateDataSIMD(void* userData, const dsView* view,
-	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
-	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
+	const dsViewRenderPassParams* renderPassParams, const dsSceneTreeNode* const* instances,
+	uint32_t instanceCount, const dsShaderVariableGroupDesc* dataDesc, uint8_t* data,
+	uint32_t stride)
 {
 	DS_PROFILE_FUNC_START();
 
 	DS_UNUSED(dataDesc);
+	DS_UNUSED(renderPassParams);
 	DS_ASSERT(stride >= sizeof(InstanceTransform));
 
 	ShadowUserData* shadowData = (ShadowUserData*)userData;
@@ -117,12 +119,14 @@ DS_SIMD_END()
 
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 static void dsShadowInstanceTransformData_populateDataFMA(void* userData, const dsView* view,
-	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
-	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
+	const dsViewRenderPassParams* renderPassParams, const dsSceneTreeNode* const* instances,
+	uint32_t instanceCount, const dsShaderVariableGroupDesc* dataDesc, uint8_t* data,
+	uint32_t stride)
 {
 	DS_PROFILE_FUNC_START();
 
 	DS_UNUSED(dataDesc);
+	DS_UNUSED(renderPassParams);
 	DS_ASSERT(stride >= sizeof(InstanceTransform));
 
 	ShadowUserData* shadowData = (ShadowUserData*)userData;
@@ -159,12 +163,14 @@ DS_SIMD_END()
 #endif
 
 static void dsShadowInstanceTransformData_populateData(void* userData, const dsView* view,
-	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
-	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
+	const dsViewRenderPassParams* renderPassParams, const dsSceneTreeNode* const* instances,
+	uint32_t instanceCount, const dsShaderVariableGroupDesc* dataDesc, uint8_t* data,
+	uint32_t stride)
 {
 	DS_PROFILE_FUNC_START();
 
 	DS_UNUSED(dataDesc);
+	DS_UNUSED(renderPassParams);
 	DS_ASSERT(stride >= sizeof(InstanceTransform));
 
 	ShadowUserData* shadowData = (ShadowUserData*)userData;

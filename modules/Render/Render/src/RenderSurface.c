@@ -173,6 +173,118 @@ bool dsRenderSurface_makeRotationMatrix44(dsMatrix44f* result, dsRenderSurfaceRo
 	}
 }
 
+bool dsRenderSurface_rotateViewport(dsAlignedBox3f* result, const dsAlignedBox3f* viewport,
+	uint32_t width, uint32_t height, dsRenderSurfaceRotation rotation)
+{
+	if (!result || !viewport || width == 0 || height == 0)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	switch (rotation)
+	{
+		case dsRenderSurfaceRotation_0:
+			if (result != viewport)
+				*result = *viewport;
+			return true;
+		case dsRenderSurfaceRotation_90:
+		{
+			float tempX = viewport->min.x;
+			float tempY = viewport->min.y;
+			result->min.x = (float)width - viewport->max.y;
+			result->min.y = tempX;
+			result->min.z = viewport->min.z;
+			tempX = result->max.x;
+			result->max.x = (float)width - tempY;
+			result->max.y = tempX;
+			result->max.z = viewport->max.z;
+			return true;
+		}
+		case dsRenderSurfaceRotation_180:
+		{
+			float tempX = viewport->min.x;
+			float tempY = viewport->min.y;
+			result->min.x = (float)width - viewport->max.x;
+			result->min.y = (float)height - viewport->max.y;
+			result->min.z = viewport->min.z;
+			result->max.x = (float)width - tempX;
+			result->max.y = (float)height - tempY;
+			result->max.z = viewport->max.z;
+			return true;
+		}
+		case dsRenderSurfaceRotation_270:
+		{
+			float tempX = viewport->min.x;
+			float tempY = viewport->min.y;
+			result->min.x = tempY;
+			result->min.y = (float)height - viewport->max.x;
+			result->min.z = viewport->min.z;
+			tempY = viewport->max.y;
+			result->max.x = tempY;
+			result->max.y = (float)height - tempX;
+			result->max.z = viewport->max.z;
+			return true;
+		}
+		default:
+			errno = EINVAL;
+			return false;
+	}
+}
+
+bool dsRenderSurface_rotateScissor(dsAlignedBox2f* result, const dsAlignedBox2f* scissor,
+	uint32_t width, uint32_t height, dsRenderSurfaceRotation rotation)
+{
+	if (!result || !scissor || width == 0 || height == 0)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	switch (rotation)
+	{
+		case dsRenderSurfaceRotation_0:
+			if (result != scissor)
+				*result = *scissor;
+			return true;
+		case dsRenderSurfaceRotation_90:
+		{
+			float tempX = scissor->min.x;
+			float tempY = scissor->min.y;
+			result->min.x = (float)width - scissor->max.y;
+			result->min.y = tempX;
+			tempX = result->max.x;
+			result->max.x = (float)width - tempY;
+			result->max.y = tempX;
+			return true;
+		}
+		case dsRenderSurfaceRotation_180:
+		{
+			float tempX = scissor->min.x;
+			float tempY = scissor->min.y;
+			result->min.x = (float)width - scissor->max.x;
+			result->min.y = (float)height - scissor->max.y;
+			result->max.x = (float)width - tempX;
+			result->max.y = (float)height - tempY;
+			return true;
+		}
+		case dsRenderSurfaceRotation_270:
+		{
+			float tempX = scissor->min.x;
+			float tempY = scissor->min.y;
+			result->min.x = tempY;
+			result->min.y = (float)height - scissor->max.x;
+			tempY = scissor->max.y;
+			result->max.x = tempY;
+			result->max.y = (float)height - tempX;
+			return true;
+		}
+		default:
+			errno = EINVAL;
+			return false;
+	}
+}
+
 dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
 	const char* name, void* displayHandle, void* osHandle, dsRenderSurfaceType type,
 	dsRenderSurfaceUsage usage, unsigned int widthHint, unsigned int heightHint)

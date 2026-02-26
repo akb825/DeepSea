@@ -92,11 +92,13 @@ dsShaderVariableGroupDesc* dsInstanceForwardLightData_createShaderVariableGroupD
 }
 
 static void dsInstanceForwardLightData_populateData(void* userData, const dsView* view,
-	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
-	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
+	const dsViewRenderPassParams* renderPassParams, const dsSceneTreeNode* const* instances,
+	uint32_t instanceCount, const dsShaderVariableGroupDesc* dataDesc, uint8_t* data,
+	uint32_t stride)
 {
 	DS_PROFILE_FUNC_START();
 
+	DS_UNUSED(renderPassParams);
 	DS_ASSERT(dataDesc->elementCount == DS_ARRAY_SIZE(baseElements));
 	const dsSceneLightSet* lightSet = (const dsSceneLightSet*)userData;
 	uint32_t lightCount = dataDesc->elements[0].count;

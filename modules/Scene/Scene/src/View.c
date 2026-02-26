@@ -15,7 +15,6 @@
  */
 
 #include <DeepSea/Scene/View.h>
-#include "ViewInternal.h"
 
 #include "SceneThreadManagerInternal.h"
 #include "SceneTypes.h"
@@ -48,6 +47,7 @@
 #include <DeepSea/Render/ProjectionParams.h>
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderPass.h>
+#include <DeepSea/Render/RenderSurface.h>
 
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 
@@ -1252,7 +1252,7 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 			if (commitFunc)
 			{
 				DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-				commitFunc(itemList, view, commandBuffer);
+				commitFunc(itemList, view, commandBuffer, NULL);
 				DS_PROFILE_SCOPE_END();
 			}
 		}
@@ -1278,10 +1278,35 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 			if (!framebuffer->framebuffer)
 				continue;
 
+			dsViewRenderPassParams renderPassParams;
+			renderPassParams.framebufferWidth = framebuffer->framebuffer->width;
+			renderPassParams.framebufferHeight = framebuffer->framebuffer->height;
+			renderPassParams.rotation =
+				framebuffer->rotated ? view->rotation : dsRenderSurfaceRotation_0;
+			renderPassParams.renderPass = renderPass;
+
+			float width = (float)renderPassParams.framebufferWidth;
+			float height = (float)renderPassParams.framebufferHeight;
+
+			DS_VERIFY(dsRenderSurface_rotateViewport(&renderPassParams.viewport,
+				&framebufferInfo->viewport, 1, 1, renderPassParams.rotation));
+			renderPassParams.viewport.min.x *= width;
+			renderPassParams.viewport.max.x *= width;
+			renderPassParams.viewport.min.y *= height;
+			renderPassParams.viewport.max.y *= height;
+
+			DS_VERIFY(dsRenderSurface_rotateScissor(&renderPassParams.scissor,
+				&framebufferInfo->scissor, 1, 1, renderPassParams.rotation));
+			renderPassParams.scissor.min.x *= width;
+			renderPassParams.scissor.max.x *= width;
+			renderPassParams.scissor.min.y *= height;
+			renderPassParams.scissor.max.y *= height;
+
 			// Execute any actions needed outside of the render pass.
 			for (uint32_t j = 0; j < renderPass->subpassCount; ++j)
 			{
 				dsSceneItemLists* drawLists = sceneRenderPass->drawLists + j;
+				renderPassParams.subpass = j;
 				for (uint32_t k = 0; k < drawLists->count; ++k)
 				{
 					dsSceneItemList* itemList = drawLists->itemLists[k];
@@ -1290,37 +1315,17 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 					if (preRenderPassFunc && !itemList->skipPreRenderPass)
 					{
 						DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-						preRenderPassFunc(itemList, view, commandBuffer);
+						preRenderPassFunc(itemList, view, commandBuffer, &renderPassParams);
 						DS_PROFILE_SCOPE_END();
 					}
 				}
 			}
 
-			float width = (float)framebuffer->framebuffer->width;
-			if (width < 0)
-				width *= (float)view->width;
-			float height = (float)framebuffer->framebuffer->height;
-			if (height < 0)
-				height *= (float)view->height;
-
-			dsAlignedBox3f viewport = framebufferInfo->viewport;
-			dsView_adjustViewport(&viewport, view, framebuffer->rotated);
-			viewport.min.x *= width;
-			viewport.max.x *= width;
-			viewport.min.y *= height;
-			viewport.max.y *= height;
-
-			dsAlignedBox2f scissor = framebufferInfo->scissor;
-			dsView_adjustScissor(&scissor, view, framebuffer->rotated);
-			scissor.min.x *= width;
-			scissor.max.x *= width;
-			scissor.min.y *= height;
-			scissor.max.y *= height;
-
 			uint32_t clearValueCount =
 				sceneRenderPass->clearValues ? sceneRenderPass->renderPass->attachmentCount : 0;
-			if (!dsRenderPass_begin(renderPass, commandBuffer, framebuffer->framebuffer, &viewport,
-					&scissor, sceneRenderPass->clearValues, clearValueCount, false))
+			if (!dsRenderPass_begin(renderPass, commandBuffer, framebuffer->framebuffer,
+					&renderPassParams.viewport, &renderPassParams.scissor,
+					sceneRenderPass->clearValues, clearValueCount, false))
 			{
 				DS_PROFILE_SCOPE_END();
 				DS_PROFILE_SCOPE_END();
@@ -1330,13 +1335,14 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 			for (uint32_t j = 0; j < renderPass->subpassCount; ++j)
 			{
 				dsSceneItemLists* drawLists = sceneRenderPass->drawLists + j;
+				renderPassParams.subpass = j;
 				for (uint32_t k = 0; k < drawLists->count; ++k)
 				{
 					dsSceneItemList* itemList = drawLists->itemLists[k];
 					dsCommitSceneItemListFunction commitFunc = itemList->type->commitFunc;
 					DS_ASSERT(commitFunc);
 					DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-					commitFunc(itemList, view, commandBuffer);
+					commitFunc(itemList, view, commandBuffer, &renderPassParams);
 					DS_PROFILE_SCOPE_END();
 				}
 
@@ -1352,7 +1358,7 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 			DS_ASSERT(computeItems);
 			dsCommitSceneItemListFunction commitFunc = computeItems->type->commitFunc;
 			if (commitFunc)
-				commitFunc(computeItems, view, commandBuffer);
+				commitFunc(computeItems, view, commandBuffer, NULL);
 		}
 	}
 	DS_PROFILE_SCOPE_END();
@@ -1403,92 +1409,4 @@ bool dsView_destroy(dsView* view)
 		view->destroyUserDataFunc(view->userData);
 	DS_VERIFY(dsAllocator_free(view->allocator, view));
 	return true;
-}
-
-void dsView_adjustViewport(dsAlignedBox3f* viewport, const dsView* view, bool rotated)
-{
-	if (!rotated)
-		return;
-
-	switch (view->rotation)
-	{
-		case dsRenderSurfaceRotation_0:
-			break;
-		case dsRenderSurfaceRotation_90:
-		{
-			float tempX = viewport->min.x;
-			float tempY = viewport->min.y;
-			viewport->min.x = 1.0f - viewport->max.y;
-			viewport->min.y = tempX;
-			tempX = viewport->max.x;
-			viewport->max.x = 1.0f - tempY;
-			viewport->max.y = tempX;
-			break;
-		}
-		case dsRenderSurfaceRotation_180:
-		{
-			float tempX = viewport->min.x;
-			float tempY = viewport->min.y;
-			viewport->min.x = 1.0f - viewport->max.x;
-			viewport->min.y = 1.0f - viewport->max.y;
-			viewport->max.x = 1.0f - tempX;
-			viewport->max.y = 1.0f - tempY;
-			break;
-		}
-		case dsRenderSurfaceRotation_270:
-		{
-			float tempX = viewport->min.x;
-			float tempY = viewport->min.y;
-			viewport->min.x = tempY;
-			viewport->min.y = 1.0f - viewport->max.x;
-			tempY = viewport->max.y;
-			viewport->max.x = tempY;
-			viewport->max.y = 1.0f - tempX;
-			break;
-		}
-	}
-}
-
-void dsView_adjustScissor(dsAlignedBox2f* scissor, const dsView* view, bool rotated)
-{
-	if (!rotated)
-		return;
-
-	switch (view->rotation)
-	{
-		case dsRenderSurfaceRotation_0:
-			break;
-		case dsRenderSurfaceRotation_90:
-		{
-			float tempX = scissor->min.x;
-			float tempY = scissor->min.y;
-			scissor->min.x = 1.0f - scissor->max.y;
-			scissor->min.y = tempX;
-			tempX = scissor->max.x;
-			scissor->max.x = 1.0f - tempY;
-			scissor->max.y = tempX;
-			break;
-		}
-		case dsRenderSurfaceRotation_180:
-		{
-			float tempX = scissor->min.x;
-			float tempY = scissor->min.y;
-			scissor->min.x = 1.0f - scissor->max.x;
-			scissor->min.y = 1.0f - scissor->max.y;
-			scissor->max.x = 1.0f - tempX;
-			scissor->max.y = 1.0f - tempY;
-			break;
-		}
-		case dsRenderSurfaceRotation_270:
-		{
-			float tempX = scissor->min.x;
-			float tempY = scissor->min.y;
-			scissor->min.x = tempY;
-			scissor->min.y = 1.0f - scissor->max.x;
-			tempY = scissor->max.y;
-			scissor->max.x = tempY;
-			scissor->max.y = 1.0f - tempX;
-			break;
-		}
-	}
 }

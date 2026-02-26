@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2025 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,9 +38,10 @@ typedef struct dsViewMipmapList
 } dsViewMipmapList;
 
 static void dsViewMipmapList_commit(dsSceneItemList* itemList, const dsView* view,
-	dsCommandBuffer* commandBuffer)
+	dsCommandBuffer* commandBuffer, const dsViewRenderPassParams* renderPassParams)
 {
 	DS_ASSERT(itemList);
+	DS_UNUSED(renderPassParams);
 	dsViewMipmapList* mipmapList = (dsViewMipmapList*)itemList;
 	for (uint32_t i = 0; i < mipmapList->textureCount; ++i)
 	{
