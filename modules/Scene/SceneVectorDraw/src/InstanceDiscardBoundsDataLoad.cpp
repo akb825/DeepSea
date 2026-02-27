@@ -73,5 +73,5 @@ dsSceneInstanceData* dsInstanceDiscardBoundsData_load(const dsSceneLoadContext* 
 
 	dsRenderer* renderer = dsSceneLoadContext_getRenderer(loadContext);
 	return dsInstanceDiscardBoundsData_create(
-		allocator, resourceAllocator, renderer->resourceManager, groupDesc);
+		allocator, renderer->resourceManager, resourceAllocator, groupDesc);
 }

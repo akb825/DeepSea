@@ -41,9 +41,9 @@ DS_SCENE_EXPORT const dsSceneInstanceDataType* dsSceneInstanceVariables_type(voi
  * @brief Creates a scene instance variables object.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the data with. This must support freeing memory.
+ * @param resourceManager The resource manager to create graphics resources with.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL this will
  *     default to allocator.
- * @param resourceManager The resource manager to create graphics resources with.
  * @param dataDesc The description for the data held for each instance. This must remain alive at
  *     least as long as the instance data object.
  * @param nameID The name ID to use when setting the buffer data on the dsSharedMaterialValues
@@ -52,7 +52,7 @@ DS_SCENE_EXPORT const dsSceneInstanceDataType* dsSceneInstanceVariables_type(voi
  * @param userData The user data that will be provided to populateDataFunc. This may be NULL.
  */
 DS_SCENE_EXPORT dsSceneInstanceData* dsSceneInstanceVariables_create(dsAllocator* allocator,
-	dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
 	const dsShaderVariableGroupDesc* dataDesc, uint32_t nameID,
 	const dsSceneInstanceVariablesType* instanceVariablesType, void* userData);
 

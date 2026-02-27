@@ -29,7 +29,6 @@
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
-#include <DeepSea/Render/RenderSurface.h>
 
 #include <DeepSea/Scene/View.h>
 
@@ -44,9 +43,6 @@ static dsShaderVariableElement elements[] =
 	{"projectionInv", dsMaterialType_Mat4, 0},
 	{"screenProjection", dsMaterialType_Mat4, 0},
 	{"screenProjectionInv", dsMaterialType_Mat4, 0},
-	{"framebufferRotation", dsMaterialType_Vec4, 0},
-	{"clipSpaceTexCoordTransform", dsMaterialType_Vec3, 2},
-	{"framebufferSize", dsMaterialType_IVec2, 0},
 	{"screenSize", dsMaterialType_Vec2, 0}
 };
 
@@ -55,7 +51,6 @@ typedef struct dsViewTransformData
 	dsSceneItemList itemList;
 	dsShaderVariableGroup* variableGroup;
 	uint32_t nameID;
-	dsVector3f texCoordTransform[2];
 } dsViewTransformData;
 
 static void dsViewTransformData_commit(dsSceneItemList* itemList, const dsView* view,
@@ -82,32 +77,10 @@ static void dsViewTransformData_commit(dsSceneItemList* itemList, const dsView* 
 	DS_VERIFY(dsShaderVariableGroup_setElementData(
 		viewData->variableGroup, i++, &view->screenProjectionMatrix, dsMaterialType_Mat4, 0, 1));
 
-	dsMatrix44f_invert(&projectionInv, &view->screenProjectionMatrix);
+	// Should be guaranteed to be an orthographic projection.
+	dsMatrix44f_affineInvert(&projectionInv, &view->screenProjectionMatrix);
 	DS_VERIFY(dsShaderVariableGroup_setElementData(
 		viewData->variableGroup, i++, &projectionInv, dsMaterialType_Mat4, 0, 1));
-
-	dsMatrix22f framebufferRotation;
-	DS_VERIFY(dsRenderSurface_makeRotationMatrix22(&framebufferRotation, view->rotation));
-	DS_VERIFY(dsShaderVariableGroup_setElementData(
-		viewData->variableGroup, i++, &framebufferRotation, dsMaterialType_Vec4, 0, 1));
-
-	DS_VERIFY(dsShaderVariableGroup_setElementData(
-		viewData->variableGroup, i++, viewData->texCoordTransform, dsMaterialType_Vec3, 0, 2));
-
-	dsVector2i framebufferSize;
-	if (view->rotation == dsRenderSurfaceRotation_0 ||
-		view->rotation == dsRenderSurfaceRotation_180)
-	{
-		framebufferSize.x = view->width;
-		framebufferSize.y = view->height;
-	}
-	else
-	{
-		framebufferSize.x = view->height;
-		framebufferSize.y = view->width;
-	}
-	DS_VERIFY(dsShaderVariableGroup_setElementData(
-		viewData->variableGroup, i++, &framebufferSize, dsMaterialType_IVec2, 0, 1));
 
 	dsVector2f screenSize;
 	DS_VERIFY(dsView_getScreenSize(&screenSize, view));
@@ -238,16 +211,6 @@ dsSceneItemList* dsViewTransformData_create(dsAllocator* allocator, const char* 
 	}
 
 	viewData->nameID = dsUniqueNameID_create(dsViewTransformData_uniformName);
-
-	dsRenderer* renderer = resourceManager->renderer;
-	int halfDepth = renderer->projectionOptions & dsProjectionMatrixOptions_HalfZRange;
-	viewData->texCoordTransform[0].x = 0.5f;
-	viewData->texCoordTransform[0].y = renderer->projectedTexCoordTInverted ? -0.5f : 0.5f;
-	viewData->texCoordTransform[0].z = halfDepth ? 1.0f : 0.5f;
-	viewData->texCoordTransform[1].x = 0.5f;
-	viewData->texCoordTransform[1].y = 0.5f;
-	viewData->texCoordTransform[1].z = halfDepth ? 0.0f : 0.5f;
-
 	return itemList;
 }
 

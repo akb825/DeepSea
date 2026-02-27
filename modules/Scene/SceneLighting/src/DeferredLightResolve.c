@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2025 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,9 @@
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <DeepSea/Render/Renderer.h>
 
+#include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
 #include <DeepSea/Scene/ItemLists/SceneItemList.h>
+#include <DeepSea/Scene/ItemLists/ViewFramebufferData.h>
 
 #include <DeepSea/SceneLighting/SceneLightSet.h>
 #include <DeepSea/SceneLighting/SceneLight.h>
@@ -99,7 +101,8 @@ struct dsDeferredLightResolve
 	size_t ambientIndexOffset;
 	size_t lightIndexOffsets[dsSceneLightType_Count];
 	const dsSceneLightShadows** lightShadows[dsSceneLightType_Count];
-	dsSharedMaterialValues* shadowValues;
+	dsSceneInstanceData* viewFramebufferData;
+	dsSharedMaterialValues* instanceValues;
 
 	BufferInfo* buffers;
 	uint32_t bufferCount;
@@ -171,8 +174,8 @@ static BufferInfo* getDrawBuffers(dsDeferredLightResolve* resolve, dsRenderer* r
 		indexBuffer.offset = resolve->ambientIndexOffset;
 		indexBuffer.count = DS_DIRECTIONAL_LIGHT_INDEX_COUNT;
 		indexBuffer.indexSize = (uint32_t)sizeof(uint16_t);
-		buffers->ambientGeometry = dsDrawGeometry_create(resourceManager, resolve->resourceAllocator,
-			vertexBuffers, &indexBuffer);
+		buffers->ambientGeometry = dsDrawGeometry_create(
+			resourceManager, resolve->resourceAllocator, vertexBuffers, &indexBuffer);
 
 		if (!buffers->ambientGeometry)
 		{
@@ -331,6 +334,20 @@ static void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsVie
 	if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dstData != NULL))
 		return;
 
+	// Set up view framebuffer data. It doesn't use actual instances, so pass none.
+	if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsSceneInstanceData_populateData(
+			resolve->viewFramebufferData, view, NULL, renderPassParams, NULL, 0)))
+	{
+		return;
+	}
+
+	// Bind the single instance. After this point, it should be fine to immediately finish it.
+	bool boundViewFramebufferData = dsSceneInstanceData_bindInstance(
+		resolve->viewFramebufferData, 0, resolve->instanceValues);
+	dsSceneInstanceData_finish(resolve->viewFramebufferData);
+	if (!boundViewFramebufferData)
+		return;
+
 	// Populate ambient data.
 	if (resolve->ambientInfo.shader)
 	{
@@ -381,8 +398,8 @@ static void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsVie
 			(uint16_t*)(dstData + resolve->lightIndexOffsets[lightType]);
 	}
 
-	dsSceneLightSet_forEachLightInFrustum(resolve->lightSet, &view->viewFrustum, &visitLights,
-		&traverseData);
+	dsSceneLightSet_forEachLightInFrustum(
+		resolve->lightSet, &view->viewFrustum, &visitLights, &traverseData);
 	DS_VERIFY(dsGfxBuffer_unmap(buffers->buffer));
 
 	// Draw each set of lights.
@@ -395,6 +412,13 @@ static void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsVie
 		if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_bind(shader, commandBuffer,
 				resolve->ambientInfo.material, view->globalValues, NULL)))
 		{
+			return;
+		}
+
+		if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_updateInstanceValues(
+				shader, commandBuffer, resolve->instanceValues)))
+		{
+			DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_unbind(shader, commandBuffer));
 			return;
 		}
 
@@ -434,6 +458,13 @@ static void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsVie
 			return;
 		}
 
+		if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_updateInstanceValues(
+				shader, commandBuffer, resolve->instanceValues)))
+		{
+			DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_unbind(shader, commandBuffer));
+			return;
+		}
+
 		uint32_t maxLightVerts = maxLightCounts[i]*lightVertexCounts[i];
 		uint32_t maxLightIndices = maxLightCounts[i]*lightIndexCounts[i];
 		uint32_t indexCount = lightCount*lightIndexCounts[i];
@@ -465,7 +496,6 @@ static void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsVie
 			return;
 		}
 
-		DS_VERIFY(dsSharedMaterialValues_clear(resolve->shadowValues));
 		uint32_t transformGroupID = resolve->shadowLightInfos[i].transformGroupID;
 		uint32_t textureID = resolve->shadowLightInfos[i].textureID;
 		uint32_t maxLightVerts = maxLightCounts[i]*lightVertexCounts[i];
@@ -478,11 +508,11 @@ static void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsVie
 			if (dsSceneLightShadows_getSurfaceCount(lightShadows) == 0)
 				continue;
 
-			DS_VERIFY(dsSceneLightShadows_bindTransformGroup(lightShadows, resolve->shadowValues,
-				transformGroupID));
+			DS_VERIFY(dsSceneLightShadows_bindTransformGroup(
+				lightShadows, resolve->instanceValues, transformGroupID));
 
-			dsTexture* shadowTexture = dsSharedMaterialValues_getTextureID(view->globalValues,
-				dsSceneLightShadows_getNameID(lightShadows));
+			dsTexture* shadowTexture = dsSharedMaterialValues_getTextureID(
+				view->globalValues, dsSceneLightShadows_getNameID(lightShadows));
 			if (!shadowTexture)
 			{
 				DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find shadow texture '%s'.",
@@ -490,10 +520,10 @@ static void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsVie
 				continue;
 			}
 
-			DS_VERIFY(dsSharedMaterialValues_setTextureID(resolve->shadowValues, textureID,
-				shadowTexture));
-			if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_updateInstanceValues(shader,
-					commandBuffer, resolve->shadowValues)))
+			DS_VERIFY(dsSharedMaterialValues_setTextureID(
+				resolve->instanceValues, textureID, shadowTexture));
+			if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_updateInstanceValues(
+					shader, commandBuffer, resolve->instanceValues)))
 			{
 				continue;
 			}
@@ -535,7 +565,8 @@ static uint32_t dsDeferredLightResolve_hash(const dsSceneItemList* itemList, uin
 	}
 
 	uint32_t hash = dsHashCombineBytes(commonHash, hashPtrs, sizeof(hashPtrs));
-	return dsHashCombineBytes(hash, hashValues, sizeof(hashValues));
+	hash = dsHashCombineBytes(hash, hashValues, sizeof(hashValues));
+	return dsSceneInstanceData_hash(resolve->viewFramebufferData, hash);
 }
 
 static bool dsDeferredLightResolve_equal(const dsSceneItemList* left, const dsSceneItemList* right)
@@ -555,7 +586,9 @@ static bool dsDeferredLightResolve_equal(const dsSceneItemList* left, const dsSc
 			sizeof(leftResolve->lightInfos)) == 0 &&
 		memcmp(leftResolve->shadowLightInfos, rightResolve->shadowLightInfos,
 			sizeof(leftResolve->shadowLightInfos)) == 0 &&
-		leftResolve->intensityThreshold == rightResolve->intensityThreshold;
+		leftResolve->intensityThreshold == rightResolve->intensityThreshold &&
+		dsSceneInstanceData_equal(
+			leftResolve->viewFramebufferData, rightResolve->viewFramebufferData);
 
 }
 
@@ -563,7 +596,8 @@ static void dsDeferredLightResolve_destroy(dsSceneItemList* itemList)
 {
 	DS_ASSERT(itemList);
 	dsDeferredLightResolve* resolve = (dsDeferredLightResolve*)itemList;
-	dsSharedMaterialValues_destroy(resolve->shadowValues);
+	dsSharedMaterialValues_destroy(resolve->instanceValues);
+	dsSceneInstanceData_destroy(resolve->viewFramebufferData);
 
 	for (uint32_t i = 0; i < resolve->bufferCount; ++i)
 		freeBuffers(resolve->buffers + i);
@@ -588,12 +622,13 @@ const dsSceneItemListType* dsDeferredLightResolve_type(void)
 }
 
 dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
-	dsAllocator* resourceAllocator, const char* name, const dsSceneLightSet* lightSet,
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, const char* name,
+	const dsShaderVariableGroupDesc* viewFramebufferDesc, const dsSceneLightSet* lightSet,
 	const dsSceneShadowManager* shadowManager, const dsDeferredLightDrawInfo* ambientInfo,
 	const dsDeferredLightDrawInfo* lightInfos,
 	const dsDeferredShadowLightDrawInfo* shadowLightInfos, float intensityThreshold)
 {
-	if (!allocator || !name || !lightSet || intensityThreshold <= 0)
+	if (!allocator || !name || !viewFramebufferDesc || !lightSet || intensityThreshold <= 0)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -632,8 +667,10 @@ dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 			hasShadows = true;
 		}
 	}
+	uint32_t instanceValueCount = 1;
 	if (hasShadows)
-		fullSize += dsSharedMaterialValues_fullAllocSize(2);
+		instanceValueCount += 2;
+	fullSize += dsSharedMaterialValues_fullAllocSize(instanceValueCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -762,17 +799,21 @@ dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 		curOffset += lightIndexSizes[i]*maxLights;
 	}
 
-	if (hasShadows)
-	{
-		resolve->shadowValues = dsSharedMaterialValues_create((dsAllocator*)&bufferAlloc, 2);
-		DS_ASSERT(resolve->shadowValues);
-	}
-	else
-		resolve->shadowValues = NULL;
+	resolve->instanceValues = dsSharedMaterialValues_create(
+		(dsAllocator*)&bufferAlloc, instanceValueCount);
+	DS_ASSERT(resolve->instanceValues);
 
 	resolve->buffers = NULL;
 	resolve->bufferCount = 0;
 	resolve->maxBuffers = 0;
+
+	resolve->viewFramebufferData = dsViewFramebufferData_create(
+		allocator, resourceManager, resourceAllocator, viewFramebufferDesc);
+	if (!resolve->viewFramebufferData)
+	{
+		dsDeferredLightResolve_destroy(itemList);
+		return NULL;
+	}
 
 	return resolve;
 }

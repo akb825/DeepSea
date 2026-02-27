@@ -29,12 +29,6 @@
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceTransformDesc"
-			},
-			{
-				"name": "dsViewTransformData",
-				"type": "VariableGroup",
-				"binding": "Global",
-				"shaderVariableGroupDesc": "viewTransformDesc"
 			}
 		]
 	},
@@ -86,12 +80,6 @@
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceTransformDesc"
-			},
-			{
-				"name": "dsViewTransformData",
-				"type": "VariableGroup",
-				"binding": "Global",
-				"shaderVariableGroupDesc": "viewTransformDesc"
 			}
 		]
 	},
@@ -129,12 +117,6 @@
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceTransformDesc"
-			},
-			{
-				"name": "dsViewTransformData",
-				"type": "VariableGroup",
-				"binding": "Global",
-				"shaderVariableGroupDesc": "viewTransformDesc"
 			}
 		]
 	},
@@ -199,6 +181,12 @@
 				"binding": "Global"
 			},
 			{
+				"name": "dsViewFramebufferData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "viewFramebufferDesc"
+			},
+			{
 				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
@@ -232,6 +220,12 @@
 				"binding": "Global"
 			},
 			{
+				"name": "dsViewFramebufferData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "viewFramebufferDesc"
+			},
+			{
 				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
@@ -263,6 +257,12 @@
 				"name": "surfaceDepth",
 				"type": "SubpassInput",
 				"binding": "Global"
+			},
+			{
+				"name": "dsViewFramebufferData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "viewFramebufferDesc"
 			},
 			{
 				"name": "dsViewTransformData",
@@ -342,12 +342,6 @@
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "particleTransformDesc"
-			},
-			{
-				"name": "dsViewTransformData",
-				"type": "VariableGroup",
-				"binding": "Global",
-				"shaderVariableGroupDesc": "viewTransformDesc"
 			}
 		]
 	},

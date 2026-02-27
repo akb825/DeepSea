@@ -426,10 +426,10 @@
 		"elements":
 		[
 			{
-				"name": "dsInstanceTransformData",
+				"name": "dsShadowInstanceTransformData",
 				"type": "VariableGroup",
 				"binding": "Instance",
-				"shaderVariableGroupDesc": "instanceTransformDesc"
+				"shaderVariableGroupDesc": "shadowInstanceTransformDesc"
 			}
 		]
 	},
@@ -453,12 +453,6 @@
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceTransformDesc"
-			},
-			{
-				"name": "dsViewTransformData",
-				"type": "VariableGroup",
-				"binding": "Global",
-				"shaderVariableGroupDesc": "viewTransformDesc"
 			},
 			{
 				"name": "dsForwardLightData",
@@ -505,12 +499,6 @@
 				"shaderVariableGroupDesc": "instanceTransformDesc"
 			},
 			{
-				"name": "dsViewTransformData",
-				"type": "VariableGroup",
-				"binding": "Global",
-				"shaderVariableGroupDesc": "viewTransformDesc"
-			},
-			{
 				"name": "dsForwardLightData",
 				"type": "VariableGroup",
 				"binding": "Instance",
@@ -554,12 +542,6 @@
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceTransformDesc"
-			},
-			{
-				"name": "dsViewTransformData",
-				"type": "VariableGroup",
-				"binding": "Global",
-				"shaderVariableGroupDesc": "viewTransformDesc"
 			}
 		]
 	},
@@ -573,12 +555,6 @@
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceTransformDesc"
-			},
-			{
-				"name": "dsViewTransformData",
-				"type": "VariableGroup",
-				"binding": "Global",
-				"shaderVariableGroupDesc": "viewTransformDesc"
 			}
 		]
 	},
@@ -602,6 +578,12 @@
 				"type": "VariableGroup",
 				"binding": "Global",
 				"shaderVariableGroupDesc": "viewTransformDesc"
+			},
+			{
+				"name": "dsViewFramebufferData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "viewFramebufferDesc"
 			},
 			{
 				"name": "RandomOffsets",

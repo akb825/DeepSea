@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
+#include <DeepSea/Scene/Shaders/ViewFramebuffer.mslh>
 
 /**
  * @file
@@ -79,13 +79,12 @@ lowp float dsComputeSSAO(vec3 viewPosition, lowp vec3 viewNormal, float depth,
 	{
 		vec3 direction = orientation*INSTANCE(dsRandomOffsets).offsets[i];
 		vec4 testPos = vec4(direction*radius + viewPosition, 1.0);
-		testPos = DS_ADJUST_CLIP(projection*testPos);
+		testPos = projection*testPos;
 		testPos /= testPos.w;
+		testPos.xyz = testPos.xyz*DS_CLIP_TO_PROJ_TEX_COORDS_MUL +
+			DS_CLIP_TO_PROJ_TEX_COORDS_ADD;
 		// Need to clamp the Z value otherwise it will occlude along the far plane.
 		testPos.z = clamp(testPos.z, 0.0, 1.0);
-		testPos.xy = dsRotateFramebufferPosition(testPos.xy);
-		testPos.xyz = testPos.xyz*INSTANCE(dsViewTransform).clipSpaceTexCoordTransform[0] +
-			INSTANCE(dsViewTransform).clipSpaceTexCoordTransform[1];
 		float curDepth = textureLod(depthTexture, testPos.xy, 0).r;
 
 #ifdef DS_REVERSE_Z

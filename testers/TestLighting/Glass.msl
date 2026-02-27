@@ -18,7 +18,6 @@
 #include <DeepSea/SceneLighting/Shaders/ForwardLights.mslh>
 #include <DeepSea/SceneLighting/Shaders/Lighting.mslh>
 #include <DeepSea/Scene/Shaders/InstanceTransform.mslh>
-#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
 
 uniform vec4 color;
 uniform float shininess;
@@ -39,7 +38,7 @@ void vertexShader()
 {
 	vec4 position4 = vec4(position, 1.0);
 	gl_Position = DS_ADJUST_CLIP(INSTANCE(dsInstanceTransform).worldViewProj*position4);
-	gl_Position.xy = dsRotateFramebufferPosition(gl_Position.xy);
+	gl_Position.xy = dsInstanceTransform_rotateFramebufferPosition(gl_Position.xy);
 
 	vfViewPosition = (INSTANCE(dsInstanceTransform).worldView*position4).xyz;
 

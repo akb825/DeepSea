@@ -946,7 +946,6 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 #else
 		baseRenderer->hasFragmentInputs = false;
 #endif
-		baseRenderer->projectedTexCoordTInverted = true;
 		baseRenderer->strictRenderPassSecondaryCommands = false;
 
 		baseRenderer->resourceManager = dsMTLResourceManager_create(allocator, baseRenderer);

@@ -88,6 +88,9 @@ dsSceneInstanceData* dsInstanceScreenTransformData_load(const dsSceneLoadContext
 dsSceneInstanceData* dsInstanceTransformData_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const uint8_t* data, size_t dataSize);
+dsSceneInstanceData* dsViewFramebufferData_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const uint8_t* data, size_t dataSize);
 
 bool dsSceneNodeChildren_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,

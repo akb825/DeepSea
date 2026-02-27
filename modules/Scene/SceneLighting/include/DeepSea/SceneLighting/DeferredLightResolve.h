@@ -70,9 +70,12 @@ DS_SCENELIGHTING_EXPORT const dsSceneItemListType* dsDeferredLightResolve_type(v
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the defferred light resolve with. This must support
  *     freeing memory.
+ * @param resourceManager The resource manager to create graphics resources with.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL this will use
  *     the deferred light resolve allocator.
  * @param name The name of the deferred light resolve. This will be copied.
+ * @param viewFramebufferDesc Shader variable group description created with
+ *     dsViewFramebufferData_createShaderVariableGroupDesc().
  * @param lightSet The light set to draw the lgihts from.
  * @param shadowManager The shadow manager to get shadows from when drawing shadowed lights.
  * @param ambientInfo The draw info for ambient lights. If this or any members are NULL, the ambient
@@ -90,7 +93,8 @@ DS_SCENELIGHTING_EXPORT const dsSceneItemListType* dsDeferredLightResolve_type(v
  * @return The deferred light resolve or NULL if an error occurred.
  */
 DS_SCENELIGHTING_EXPORT dsDeferredLightResolve* dsDeferredLightResolve_create(
-	dsAllocator* allocator, dsAllocator* resourceAllocator, const char* name,
+	dsAllocator* allocator, dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
+	const char* name, const dsShaderVariableGroupDesc* viewFramebufferDesc,
 	const dsSceneLightSet* lightSet, const dsSceneShadowManager* shadowManager,
 	const dsDeferredLightDrawInfo* ambientInfo, const dsDeferredLightDrawInfo* lightInfos,
 	const dsDeferredShadowLightDrawInfo* shadowLightInfos, float intensityThreshold);

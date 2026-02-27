@@ -120,7 +120,7 @@ bool dsInstanceDiscardBoundsData_isShaderVariableGroupCompatible(
 }
 
 dsSceneInstanceData* dsInstanceDiscardBoundsData_create(dsAllocator* allocator,
-	dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
 	const dsShaderVariableGroupDesc* transformDesc)
 {
 	if (!allocator || !transformDesc)
@@ -138,7 +138,7 @@ dsSceneInstanceData* dsInstanceDiscardBoundsData_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	return dsSceneInstanceVariables_create(allocator, resourceAllocator, resourceManager,
+	return dsSceneInstanceVariables_create(allocator, resourceManager, resourceAllocator,
 		transformDesc, dsUniqueNameID_create(dsInstanceDiscardBoundsData_uniformName),
 		&instanceVariablesType, NULL);
 }

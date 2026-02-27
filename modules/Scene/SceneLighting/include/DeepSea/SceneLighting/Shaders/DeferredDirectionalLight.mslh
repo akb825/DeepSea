@@ -18,6 +18,8 @@
 
 #include <DeepSea/Render/Shaders/CoordinateHelpers.mslh>
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
+#include <DeepSea/Scene/Shaders/ViewFramebuffer.mslh>
+#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
 #include <DeepSea/SceneLighting/Shaders/Lighting.mslh>
 
 /**
@@ -85,9 +87,9 @@ vec4 dsDeferredDirectionalLight_processVertex()
 	vfLightDirection = mat3(INSTANCE(dsViewTransform).view)*viLightDirection;
 	vfLightColor = viLightColor;
 
-	vec2 rotatedPosition = dsRotateFramebufferPosition(viPosition);
-	vfClipCoords = DS_ADJUST_DIRECT_CLIP(vec4(rotatedPosition, 0.0, 1.0));
-	vfTexCoords = dsCommonClipToTexCoords(viPosition);
+	vfClipCoords = dsToggleCommonClip(vec4(viPosition, 0.0, 1.0));
+	// Expect texture lookups would be after rotation is applied.
+	vfTexCoords = dsCommonClipToTexCoords(dsViewFramebuffer_rotateFramebufferPosition(viPosition));
 	return vec4(viPosition, 0.0, 1.0);
 }
 
@@ -98,6 +100,7 @@ vec4 dsDeferredDirectionalLight_processVertex()
 void dsDeferredDirectionalLight_defaultVertex()
 {
 	gl_Position = dsDeferredDirectionalLight_processVertex();
+	gl_Position.xy = dsViewFramebuffer_rotateFramebufferPosition(gl_Position.xy);
 	gl_Position = DS_ADJUST_DIRECT_CLIP(gl_Position);
 }
 

@@ -74,9 +74,9 @@ dsInstanceForwardLightData_createShaderVariableGroupDesc(dsResourceManager* reso
  * @brief Creates instance forward light data to use with a dsSceneItemList.
  * @param allocator The allocator to create the forward light data with. This must support freeing
  *     memory.
+ * @param resourceManager The resource manager.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL this will
  *     default to allocator.
- * @param resourceManager The resource manager.
  * @param lightDesc The shader variable group description created from
  *     dsInstanceForwardLightData_createShaderVariableGroupDesc(). This must remain alive at least
  *     as long as the instance data object.
@@ -85,7 +85,7 @@ dsInstanceForwardLightData_createShaderVariableGroupDesc(dsResourceManager* reso
  * @return The instance data or NULL if an error occurred.
  */
 DS_SCENELIGHTING_EXPORT dsSceneInstanceData* dsInstanceForwardLightData_create(
-	dsAllocator* allocator, dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
+	dsAllocator* allocator, dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
 	const dsShaderVariableGroupDesc* lightDesc, const dsSceneLightSet* lightSet);
 
 #ifdef __cplusplus

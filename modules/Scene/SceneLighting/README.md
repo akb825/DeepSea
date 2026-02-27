@@ -88,6 +88,7 @@ The following item list types are provided with the members that are expected:
 * `"ShadowManagerPrepare"`: prepares a shadow manager to be used in a scene before drawing. This must be after a `LightSetPrepare` and be in the `sharedItems` array of the scene.
 	* `shadowManager`: name of the shadow manager to prepare.
 * `"DeferredLightResolve"`: resolves the results of deferred lighting to the screen.
+	* `viewFramebufferDesc`: name of the shader variable group description for `dsViewFramebufferData`.
 	* `lightSet`: name of the light set to draw the lights from.
 	* `shadowManager`: name of the shadow manager when drawing shadowed lights.
 	* `ambient`: object containing info for the ambient light. If omitted, the ambient light won't be drawn. It is expected to contain the following elements:

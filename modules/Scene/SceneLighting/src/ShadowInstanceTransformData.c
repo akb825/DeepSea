@@ -26,7 +26,8 @@
 
 #include <DeepSea/Math/Matrix44.h>
 
-#include <DeepSea/Scene/ItemLists/InstanceTransformData.h>
+#include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
+
 #include <DeepSea/Scene/ItemLists/SceneInstanceVariables.h>
 
 #include <DeepSea/SceneLighting/SceneLightShadows.h>
@@ -37,6 +38,14 @@ typedef struct ShadowUserData
 	const dsSceneLightShadows* shadows;
 	uint32_t surface;
 } ShadowUserData;
+
+static dsShaderVariableElement elements[] =
+{
+	{"world", dsMaterialType_Mat4, 0},
+	{"worldView", dsMaterialType_Mat4, 0},
+	{"worldViewInvTrans", dsMaterialType_Mat3, 0},
+	{"worldViewProj", dsMaterialType_Mat4, 0}
+};
 
 typedef struct InstanceTransform
 {
@@ -258,9 +267,31 @@ static dsSceneInstanceVariablesType instanceVariablesType =
 };
 
 const char* const dsShadowInstanceTransformData_typeName = "ShadowInstanceTransformData";
+const char* const dsShadowInstanceTransformData_uniformName = "dsShadowInstanceTransformData";
+
+dsShaderVariableGroupDesc* dsShadowInstanceTransformData_createShaderVariableGroupDesc(
+	dsResourceManager* resourceManager, dsAllocator* allocator)
+{
+	if (!resourceManager)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	return dsShaderVariableGroupDesc_create(
+		resourceManager, allocator, elements, DS_ARRAY_SIZE(elements));
+}
+
+bool dsShadowInstanceTransformData_isShaderVariableGroupCompatible(
+	const dsShaderVariableGroupDesc* transformDesc)
+{
+	return transformDesc &&
+		dsShaderVariableGroup_areElementsEqual(elements, DS_ARRAY_SIZE(elements),
+			transformDesc->elements, transformDesc->elementCount);
+}
 
 dsSceneInstanceData* dsShadowInstanceTransformData_create(dsAllocator* allocator,
-	dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
 	const dsSceneLightShadows* shadows, uint32_t surface,
 	const dsShaderVariableGroupDesc* transformDesc)
 {
@@ -270,12 +301,12 @@ dsSceneInstanceData* dsShadowInstanceTransformData_create(dsAllocator* allocator
 		return NULL;
 	}
 
-	if (!dsInstanceTransformData_isShaderVariableGroupCompatible(transformDesc))
+	if (!dsShadowInstanceTransformData_isShaderVariableGroupCompatible(transformDesc))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG,
 			"Shadow instance transform data's shader variable group description must have been "
-			"created with dsInstanceTransformData_createShaderVariableGroupDesc().");
+			"created with dsShadowInstanceTransformData_createShaderVariableGroupDesc().");
 		return NULL;
 	}
 
@@ -296,6 +327,7 @@ dsSceneInstanceData* dsShadowInstanceTransformData_create(dsAllocator* allocator
 	userData->allocator = dsAllocator_keepPointer(allocator);
 	userData->shadows = shadows;
 	userData->surface = surface;
-	return dsSceneInstanceVariables_create(allocator, resourceAllocator, resourceManager,
-		transformDesc, dsUniqueNameID_create(dsInstanceTransformData_uniformName), type, userData);
+	return dsSceneInstanceVariables_create(allocator, resourceManager, resourceAllocator,
+		transformDesc, dsUniqueNameID_create(dsShadowInstanceTransformData_uniformName), type,
+		userData);
 }

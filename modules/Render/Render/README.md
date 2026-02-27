@@ -27,7 +27,6 @@ DeepSea uses [Modular Shader Language](https://github.com/akb825/ModularShaderLa
 * gl_FragCoord is always in the upper-left.
 * Use the `DS_ADJUST_CLIP(x)` macro with the clip position (such as that assigned to gl_Position) to ensure the clip position x is transformed to the correct space.
 	* If using a direct clip position without a projection matrix, use `DS_ADJUST_DIRECT_CLIP(x)` instead.
-	* If used as a guaranteed texture target, such as a texture projection, use `DS_ADJUST_TEXTURE_CLIP(x)` instead.
 * When support for older hardware with OpenGL 2.x, use the `DS_RG_SWZL` macro for RG-format textures. (e.g. `color.DS_RG_SWZL`) This ensures compatibility with targets that use luminance-alpha textures instead.
 * Subpass inputs may always be used. Defines are provided to fall back to a standard texture lookup on targets that don't support them directly.
 * When declaring subpass inputs, instead of using `layout(input_attachment_index = i) uniform subpassInput input`, declare as `inputAttachment(i) input`.
@@ -75,6 +74,8 @@ Most render states are set by declaring the render state in the shader pipeline.
 The following built-in defines are available when writing shaders:
 
 * `DS_MIN_CLIP_Z`: The minimum Z value in clip space. In most cases this is 0.0, but for OpenGL it may be -1.0 or 0.0 depending on whether the `preferHalfDepthRange` renderer option is enabled and the device supports adjusting the clip range.
+* `DS_CLIP_Z_TO_DEPTH_MUL` and `DS_CLIP_Z_TO_DEPTH_ADD`: The multiplication and addition factors to convert from clip z to depth values, applied as `z*DS_CLIP_Z_TO_DEPTH_MUL + DS_CLIP_Z_TO_DEPTH_ADD`.
+* `DS_DEPTH_TO_CLIP_Z_MUL` and `DS_DEPTH_TO_CLIP_Z_ADD`: The multiplication and addition factors to convert from depth values to clip z, applied as `z*DS_DEPTH_TO_CLIP_Z_MUL + DS_DEPTH_TO_CLIP_Z_ADD`.
 * `DS_ADJUST_CLIP(v)`: Call when assigning `gl_Position` at the end of the vertex shader to adjust for the current system's clip space. It's assumed that the position was computed with the projection matrix.
 * `DS_ADJUST_DIRECT_CLIP(v)`: Same as `DS_ADJUST_CLIP`, except for creating the position directly in clip space rather than using the projection matrix.
 * `DS_RG_SWZL`: Swizzle for RG channel textures. This takes into account older versions of OpenGL that use lumanance alpha for two-channel textures, which requires `ra` rather than `rg`.

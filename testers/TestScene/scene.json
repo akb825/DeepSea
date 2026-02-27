@@ -3,13 +3,6 @@
 	[
 		[
 			{
-				"type": "ViewTransformData",
-				"name": "viewTransform",
-				"variableGroupDesc": "viewTransformDesc"
-			}
-		],
-		[
-			{
 				"type": "LightData",
 				"name": "lightData",
 				"variableGroupDesc": "lightDesc",

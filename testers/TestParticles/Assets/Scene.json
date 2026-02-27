@@ -102,6 +102,7 @@
 						{
 							"type": "DeferredLightResolve",
 							"name": "deferredLights",
+							"viewFramebufferDesc": "viewFramebufferDesc",
 							"lightSet": "lightSet",
 							"ambient":
 							{

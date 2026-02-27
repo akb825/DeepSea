@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@
 
 #include "AnyGL/AnyGL.h"
 #include "AnyGL/gl.h"
-#include "GLCommandBuffer.h"
-#include "GLHelpers.h"
 #include "Resources/GLMaterialDesc.h"
 #include "Resources/GLResource.h"
 #include "Resources/GLShaderModule.h"
-#include "Platform/GLPlatform.h"
+#include "GLCommandBuffer.h"
+#include "GLHelpers.h"
 #include "GLTypes.h"
+
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -34,6 +34,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Render/Resources/Shader.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 
@@ -651,7 +652,8 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 		}
 	}
 
-	shader->internalUniform = glGetUniformLocation(shader->programId, "uniforms._dsInternal");
+	shader->internalUniforms[0] = glGetUniformLocation(shader->programId, "uniforms._dsInternal0");
+	shader->internalUniforms[1] = glGetUniformLocation(shader->programId, "uniforms._dsInternal1");
 	glUseProgram(prevProgram);
 	return true;
 }
@@ -936,7 +938,8 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 bool dsGLShader_isUniformInternal(dsResourceManager* resourceManager, const char* name)
 {
 	DS_UNUSED(resourceManager);
-	return strcmp(name, "_dsInternal") == 0;
+	const char* internalPrefix = "_dsInternal";
+	return strncmp(name, internalPrefix, strlen(internalPrefix)) == 0;
 }
 
 bool dsGLShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,

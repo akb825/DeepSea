@@ -765,7 +765,6 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->hasDepthBiasClamp = ANYGL_SUPPORTED(glPolygonOffsetClamp);
 	baseRenderer->hasDepthStencilMultisampleResolve = true;
 	baseRenderer->hasFragmentInputs = false;
-	baseRenderer->projectedTexCoordTInverted = false;
 	baseRenderer->strictRenderPassSecondaryCommands = false;
 
 	if (AnyGL_EXT_texture_filter_anisotropic)

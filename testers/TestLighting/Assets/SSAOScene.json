@@ -120,7 +120,7 @@
 									"shadowManager": "shadowManager",
 									"shadows": "mainShadows",
 									"surface": 0,
-									"variableGroupDesc": "instanceTransformDesc"
+									"variableGroupDesc": "shadowInstanceTransformDesc"
 								}
 							],
 							"sortType": "FrontToBack",
@@ -159,7 +159,7 @@
 									"shadowManager": "shadowManager",
 									"shadows": "mainShadows",
 									"surface": 1,
-									"variableGroupDesc": "instanceTransformDesc"
+									"variableGroupDesc": "shadowInstanceTransformDesc"
 								}
 							],
 							"sortType": "FrontToBack",
@@ -198,7 +198,7 @@
 									"shadowManager": "shadowManager",
 									"shadows": "spotShadows",
 									"surface": 0,
-									"variableGroupDesc": "instanceTransformDesc"
+									"variableGroupDesc": "shadowInstanceTransformDesc"
 								}
 							],
 							"sortType": "FrontToBack",
@@ -237,7 +237,7 @@
 									"shadowManager": "shadowManager",
 									"shadows": "pointShadows",
 									"surface": 0,
-									"variableGroupDesc": "instanceTransformDesc"
+									"variableGroupDesc": "shadowInstanceTransformDesc"
 								}
 							],
 							"sortType": "FrontToBack",
@@ -276,7 +276,7 @@
 									"shadowManager": "shadowManager",
 									"shadows": "pointShadows",
 									"surface": 1,
-									"variableGroupDesc": "instanceTransformDesc"
+									"variableGroupDesc": "shadowInstanceTransformDesc"
 								}
 							],
 							"sortType": "FrontToBack",
@@ -315,7 +315,7 @@
 									"shadowManager": "shadowManager",
 									"shadows": "pointShadows",
 									"surface": 2,
-									"variableGroupDesc": "instanceTransformDesc"
+									"variableGroupDesc": "shadowInstanceTransformDesc"
 								}
 							],
 							"sortType": "FrontToBack",
@@ -354,7 +354,7 @@
 									"shadowManager": "shadowManager",
 									"shadows": "pointShadows",
 									"surface": 3,
-									"variableGroupDesc": "instanceTransformDesc"
+									"variableGroupDesc": "shadowInstanceTransformDesc"
 								}
 							],
 							"sortType": "FrontToBack",
@@ -393,7 +393,7 @@
 									"shadowManager": "shadowManager",
 									"shadows": "pointShadows",
 									"surface": 4,
-									"variableGroupDesc": "instanceTransformDesc"
+									"variableGroupDesc": "shadowInstanceTransformDesc"
 								}
 							],
 							"sortType": "FrontToBack",
@@ -432,7 +432,7 @@
 									"shadowManager": "shadowManager",
 									"shadows": "pointShadows",
 									"surface": 5,
-									"variableGroupDesc": "instanceTransformDesc"
+									"variableGroupDesc": "shadowInstanceTransformDesc"
 								}
 							],
 							"sortType": "FrontToBack",
@@ -600,6 +600,7 @@
 						{
 							"type": "DeferredLightResolve",
 							"name": "deferredLights",
+							"viewFramebufferDesc": "viewFramebufferDesc",
 							"lightSet": "lightSet",
 							"shadowManager": "shadowManager",
 							"ambient":

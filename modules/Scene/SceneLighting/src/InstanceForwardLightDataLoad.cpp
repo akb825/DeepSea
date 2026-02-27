@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ dsSceneInstanceData* dsInstanceForwardLightData_load(const dsSceneLoadContext* l
 	}
 
 	dsRenderer* renderer = dsSceneLoadContext_getRenderer(loadContext);
-	return dsInstanceForwardLightData_create(allocator, resourceAllocator,
-		renderer->resourceManager, groupDesc,
+	return dsInstanceForwardLightData_create(allocator, renderer->resourceManager,
+		resourceAllocator, groupDesc,
 		reinterpret_cast<dsSceneLightSet*>(lightSetResource->resource));
 }

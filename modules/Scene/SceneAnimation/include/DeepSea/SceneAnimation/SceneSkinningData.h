@@ -82,14 +82,14 @@ DS_SCENEANIMATION_EXPORT bool dsSceneSkinningData_isTextureInfoShaderVariableGro
 
 /**
  * @brief Creates a scene skinning data to use with a dsSceneItemList.
+ * @param resourceManager The resource manager.
  * @param allocator The allocator to create the skinning data with. This must support freeing
  *     memory.
  * @param resourceAllocator The allocator for graphics resources. Defaults to allocator if NULL.
- * @param resourceManager The resource manager.
  * @return The scene skinning data or NULL if an error occurred.
  */
 DS_SCENEANIMATION_EXPORT dsSceneInstanceData* dsSceneSkinningData_create(dsAllocator* allocator,
-	dsAllocator* resourceAllocator, dsResourceManager* resourceManager);
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator);
 
 #ifdef __cplusplus
 }

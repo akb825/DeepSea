@@ -323,7 +323,7 @@ const dsSceneInstanceDataType* dsSceneInstanceVariables_type(void)
 }
 
 dsSceneInstanceData* dsSceneInstanceVariables_create(dsAllocator* allocator,
-	dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
 	const dsShaderVariableGroupDesc* dataDesc, uint32_t nameID,
 	const dsSceneInstanceVariablesType* instanceVariablesType, void* userData)
 {

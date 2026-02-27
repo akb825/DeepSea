@@ -83,7 +83,7 @@ static bool destroyResource(dsVectorResourceType type, void* resource)
 }
 
 dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocator* scratchAllocator,
-	dsAllocator* resourceAllocator, dsResourceManager* resourceManager, const void* data,
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, const void* data,
 	size_t size, void* relativePathUserData,
 	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
 	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc,
@@ -135,7 +135,7 @@ dsVectorResources* dsVectorReosurces_create(dsAllocator* allocator, uint32_t max
 }
 
 dsVectorResources* dsVectorResources_loadFile(dsAllocator* allocator, dsAllocator* scratchAllocator,
-	dsAllocator* resourceAllocator, dsResourceManager* resourceManager, const char* filePath,
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, const char* filePath,
 	const dsTextQuality* qualityRemap, const dsVectorImageInitResources* initResources,
 	float pixelSize, const dsVectorShaders* vectorIconShaders, const dsShader* textureIconShader,
 	const dsMaterial* textureIconMaterial)
@@ -175,7 +175,7 @@ dsVectorResources* dsVectorResources_loadFile(dsAllocator* allocator, dsAllocato
 
 	dsFileRelativePath fileInfo = {baseDirectory};
 	dsVectorResources* resources = dsVectorResources_loadImpl(allocator, scratchAllocator,
-		resourceAllocator, resourceManager, buffer, size, &fileInfo, &dsFileRelativePath_open,
+		resourceManager, resourceAllocator, buffer, size, &fileInfo, &dsFileRelativePath_open,
 		&dsFileRelativePath_close, qualityRemap, initResources, pixelSize,
 		vectorIconShaders, textureIconShader, textureIconMaterial, filePath);
 	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
@@ -183,8 +183,8 @@ dsVectorResources* dsVectorResources_loadFile(dsAllocator* allocator, dsAllocato
 }
 
 dsVectorResources* dsVectorResources_loadResource(dsAllocator* allocator,
-	dsAllocator* scratchAllocator, dsAllocator* resourceAllocator,
-	dsResourceManager* resourceManager, dsFileResourceType type, const char* filePath,
+	dsAllocator* scratchAllocator, dsResourceManager* resourceManager,
+	dsAllocator* resourceAllocator, dsFileResourceType type, const char* filePath,
 	const dsTextQuality* qualityRemap, const dsVectorImageInitResources* initResources,
 	float pixelSize, const dsVectorShaders* vectorIconShaders, const dsShader* textureIconShader,
 	const dsMaterial* textureIconMaterial)
@@ -224,7 +224,7 @@ dsVectorResources* dsVectorResources_loadResource(dsAllocator* allocator,
 
 	dsResourceRelativePath resourceInfo = {baseDirectory, type};
 	dsVectorResources* resources = dsVectorResources_loadImpl(allocator, scratchAllocator,
-		resourceAllocator, resourceManager, buffer, size, &resourceInfo,
+		resourceManager, resourceAllocator, buffer, size, &resourceInfo,
 		&dsResourceRelativePath_open, &dsResourceRelativePath_close, qualityRemap, initResources,
 		pixelSize, vectorIconShaders, textureIconShader, textureIconMaterial, filePath);
 	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
@@ -232,8 +232,8 @@ dsVectorResources* dsVectorResources_loadResource(dsAllocator* allocator,
 }
 
 dsVectorResources* dsVectorResources_loadArchive(dsAllocator* allocator,
-	dsAllocator* scratchAllocator, dsAllocator* resourceAllocator,
-	dsResourceManager* resourceManager, const dsFileArchive* archive,
+	dsAllocator* scratchAllocator, dsResourceManager* resourceManager,
+	dsAllocator* resourceAllocator, const dsFileArchive* archive,
 	const char* filePath, const dsTextQuality* qualityRemap,
 	const dsVectorImageInitResources* initResources, float pixelSize,
 	const dsVectorShaders* vectorIconShaders, const dsShader* textureIconShader,
@@ -274,7 +274,7 @@ dsVectorResources* dsVectorResources_loadArchive(dsAllocator* allocator,
 
 	dsArchiveRelativePath archiveInfo = {baseDirectory, archive};
 	dsVectorResources* resources = dsVectorResources_loadImpl(allocator, scratchAllocator,
-		resourceAllocator, resourceManager, buffer, size, &archiveInfo, &dsArchiveRelativePath_open,
+		resourceManager, resourceAllocator, buffer, size, &archiveInfo, &dsArchiveRelativePath_open,
 		&dsArchiveRelativePath_close, qualityRemap, initResources, pixelSize, vectorIconShaders,
 		textureIconShader, textureIconMaterial, filePath);
 	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
@@ -282,8 +282,8 @@ dsVectorResources* dsVectorResources_loadArchive(dsAllocator* allocator,
 }
 
 dsVectorResources* dsVectorResources_loadStream(dsAllocator* allocator,
-	dsAllocator* scratchAllocator, dsAllocator* resourceAllocator,
-	dsResourceManager* resourceManager, dsStream* stream, void* relativePathUserData,
+	dsAllocator* scratchAllocator, dsResourceManager* resourceManager,
+	dsAllocator* resourceAllocator, dsStream* stream, void* relativePathUserData,
 	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
 	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc,
 	const dsTextQuality* qualityRemap, const dsVectorImageInitResources* initResources,
@@ -308,7 +308,7 @@ dsVectorResources* dsVectorResources_loadStream(dsAllocator* allocator,
 		DS_PROFILE_FUNC_RETURN(NULL);
 
 	dsVectorResources* resources = dsVectorResources_loadImpl(allocator, scratchAllocator,
-		resourceAllocator, resourceManager, buffer, size, relativePathUserData,
+		resourceManager, resourceAllocator, buffer, size, relativePathUserData,
 		openRelativePathStreamFunc, closeRelativePathStreamFunc, qualityRemap, initResources,
 		pixelSize, vectorIconShaders, textureIconShader, textureIconMaterial, NULL);
 	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
@@ -316,7 +316,7 @@ dsVectorResources* dsVectorResources_loadStream(dsAllocator* allocator,
 }
 
 dsVectorResources* dsVectorResources_loadData(dsAllocator* allocator, dsAllocator* scratchAllocator,
-	dsAllocator* resourceAllocator, dsResourceManager* resourceManager, const void* data,
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, const void* data,
 	size_t size, void* relativePathUserData,
 	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
 	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc,
@@ -337,7 +337,7 @@ dsVectorResources* dsVectorResources_loadData(dsAllocator* allocator, dsAllocato
 		scratchAllocator = allocator;
 
 	dsVectorResources* resources = dsVectorResources_loadImpl(allocator, scratchAllocator,
-		resourceAllocator, resourceManager, data, size, relativePathUserData,
+		resourceManager, resourceAllocator, data, size, relativePathUserData,
 		openRelativePathStreamFunc, closeRelativePathStreamFunc, qualityRemap, initResources,
 		pixelSize, vectorIconShaders, textureIconShader, textureIconMaterial, NULL);
 	DS_PROFILE_FUNC_RETURN(resources);

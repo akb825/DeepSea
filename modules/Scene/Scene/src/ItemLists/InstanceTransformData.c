@@ -26,6 +26,7 @@
 #include <DeepSea/Math/Matrix44.h>
 
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
+#include <DeepSea/Render/RenderSurface.h>
 
 #include <DeepSea/Scene/ItemLists/SceneInstanceVariables.h>
 #include <DeepSea/Scene/Types.h>
@@ -35,7 +36,9 @@ static dsShaderVariableElement elements[] =
 	{"world", dsMaterialType_Mat4, 0},
 	{"worldView", dsMaterialType_Mat4, 0},
 	{"worldViewInvTrans", dsMaterialType_Mat3, 0},
-	{"worldViewProj", dsMaterialType_Mat4, 0}
+	{"worldViewProj", dsMaterialType_Mat4, 0},
+	{"framebufferSize", dsMaterialType_IVec4},
+	{"framebufferRotation", dsMaterialType_Vec4}
 };
 
 typedef struct InstanceTransform
@@ -44,7 +47,31 @@ typedef struct InstanceTransform
 	dsMatrix44f worldView;
 	dsVector4f worldViewInvTrans[3];
 	dsMatrix44f worldViewProj;
+	dsVector4i framebufferSize;
+	dsVector4f framebufferRotation;
 } InstanceTransform;
+
+static void getFramebufferInfo(dsVector4i* outFramebufferSize, dsVector4f* outFramebufferRotation,
+	const dsViewRenderPassParams* renderPassParams)
+{
+	DS_ASSERT(renderPassParams);
+	if (renderPassParams->rotation == dsRenderSurfaceRotation_0 ||
+		renderPassParams->rotation == dsRenderSurfaceRotation_180)
+	{
+		outFramebufferSize->x = renderPassParams->framebufferWidth;
+		outFramebufferSize->y = renderPassParams->framebufferHeight;
+	}
+	else
+	{
+		outFramebufferSize->x = renderPassParams->framebufferHeight;
+		outFramebufferSize->y = renderPassParams->framebufferWidth;
+	}
+	outFramebufferSize->z = renderPassParams->framebufferWidth;
+	outFramebufferSize->w = renderPassParams->framebufferHeight;
+
+	DS_VERIFY(dsRenderSurface_makeRotationMatrix22(
+		(dsMatrix22f*)outFramebufferRotation, renderPassParams->rotation));
+}
 
 #if DS_HAS_SIMD
 DS_SIMD_START(DS_SIMD_FLOAT4)
@@ -59,6 +86,10 @@ static void dsInstanceTransformData_populateDataSIMD(void* userData, const dsVie
 	DS_UNUSED(renderPassParams);
 	DS_UNUSED(dataDesc);
 	DS_ASSERT(stride >= sizeof(InstanceTransform));
+
+	dsVector4i framebufferSize;
+	dsVector4f framebufferRotation;
+	getFramebufferInfo(&framebufferSize, &framebufferRotation, renderPassParams);
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
 		const dsMatrix44f* world = &instances[i]->transform;
@@ -70,6 +101,8 @@ static void dsInstanceTransformData_populateDataSIMD(void* userData, const dsVie
 		transform->worldView = worldView;
 		dsMatrix44f_inverseTransposeSIMD(transform->worldViewInvTrans, &worldView);
 		dsMatrix44f_mulSIMD(&transform->worldViewProj, &view->projectionMatrix, &worldView);
+		transform->framebufferSize = framebufferSize;
+		transform->framebufferRotation = framebufferRotation;
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();
@@ -88,6 +121,10 @@ static void dsInstanceTransformData_populateDataFMA(void* userData, const dsView
 	DS_UNUSED(renderPassParams);
 	DS_UNUSED(dataDesc);
 	DS_ASSERT(stride >= sizeof(InstanceTransform));
+
+	dsVector4i framebufferSize;
+	dsVector4f framebufferRotation;
+	getFramebufferInfo(&framebufferSize, &framebufferRotation, renderPassParams);
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
 		const dsMatrix44f* world = &instances[i]->transform;
@@ -99,6 +136,8 @@ static void dsInstanceTransformData_populateDataFMA(void* userData, const dsView
 		transform->worldView = worldView;
 		dsMatrix44f_inverseTransposeFMA(transform->worldViewInvTrans, &worldView);
 		dsMatrix44f_mulFMA(&transform->worldViewProj, &view->projectionMatrix, &worldView);
+		transform->framebufferSize = framebufferSize;
+		transform->framebufferRotation = framebufferRotation;
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();
@@ -117,6 +156,10 @@ static void dsInstanceTransformData_populateData(void* userData, const dsView* v
 	DS_UNUSED(renderPassParams);
 	DS_UNUSED(dataDesc);
 	DS_ASSERT(stride >= sizeof(InstanceTransform));
+
+	dsVector4i framebufferSize;
+	dsVector4f framebufferRotation;
+	getFramebufferInfo(&framebufferSize, &framebufferRotation, renderPassParams);
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
 		const dsMatrix44f* world = &instances[i]->transform;
@@ -136,6 +179,8 @@ static void dsInstanceTransformData_populateData(void* userData, const dsView* v
 		}
 
 		dsMatrix44f_mul(&transform->worldViewProj, &view->projectionMatrix, &worldView);
+		transform->framebufferSize = framebufferSize;
+		transform->framebufferRotation = framebufferRotation;
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();
@@ -170,8 +215,8 @@ dsShaderVariableGroupDesc* dsInstanceTransformData_createShaderVariableGroupDesc
 		return NULL;
 	}
 
-	return dsShaderVariableGroupDesc_create(resourceManager, allocator, elements,
-		DS_ARRAY_SIZE(elements));
+	return dsShaderVariableGroupDesc_create(
+		resourceManager, allocator, elements, DS_ARRAY_SIZE(elements));
 }
 
 bool dsInstanceTransformData_isShaderVariableGroupCompatible(
@@ -183,7 +228,7 @@ bool dsInstanceTransformData_isShaderVariableGroupCompatible(
 }
 
 dsSceneInstanceData* dsInstanceTransformData_create(dsAllocator* allocator,
-	dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
 	const dsShaderVariableGroupDesc* transformDesc)
 {
 	if (!allocator || !transformDesc)
@@ -210,6 +255,6 @@ dsSceneInstanceData* dsInstanceTransformData_create(dsAllocator* allocator,
 	else
 #endif
 		type = &instanceVariablesType;
-	return dsSceneInstanceVariables_create(allocator, resourceAllocator, resourceManager,
+	return dsSceneInstanceVariables_create(allocator, resourceManager, resourceAllocator,
 		transformDesc, dsUniqueNameID_create(dsInstanceTransformData_uniformName), type, NULL);
 }

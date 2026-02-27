@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
+#include <DeepSea/Scene/Shaders/ViewFramebuffer.mslh>
 #include <DeepSea/SceneVectorDraw/Shaders/InstanceDiscardBounds.mslh>
 #include <DeepSea/VectorDraw/Shaders/VectorElementLine.mslh>
 
@@ -28,7 +28,7 @@ void vectorLineVertex()
 {
 	gl_Position = dsVectorElementLine_processVertex();
 	vfDiscardPos = dsInstanceDiscardBounds_toDiscardSpace(gl_Position.xyz);
-	gl_Position.xy = dsRotateFramebufferPosition(gl_Position.xy);
+	gl_Position.xy = dsViewFramebuffer_rotateFramebufferPosition(gl_Position.xy);
 	gl_Position = DS_ADJUST_CLIP(gl_Position);
 }
 

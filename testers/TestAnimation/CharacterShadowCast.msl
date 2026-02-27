@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
 #include <DeepSea/SceneAnimation/Shaders/SceneSkinning.mslh>
-#include <DeepSea/Scene/Shaders/InstanceTransform.mslh>
+#include <DeepSea/SceneLighting/Shaders/ShadowInstanceTransform.mslh>
 
 [[vertex]] layout(location = DS_POSITION) in vec3 position;
 [[vertex]] layout(location = DS_BLEND_INDICES) in DS_BONE_INDICES_TYPE boneIndices;
@@ -27,7 +27,7 @@ void vertexShader()
 {
 	mat4 skinTransform = dsComputeSkinTransform(boneIndices, boneWeights);
 	vec4 position4 = skinTransform*vec4(position, 1.0);
-	gl_Position = DS_ADJUST_CLIP(INSTANCE(dsInstanceTransform).worldViewProj*position4);
+	gl_Position = DS_ADJUST_CLIP(INSTANCE(dsShadowInstanceTransform).worldViewProj*position4);
 }
 
 [[fragment]]

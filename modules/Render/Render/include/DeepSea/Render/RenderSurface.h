@@ -66,6 +66,7 @@ DS_RENDER_EXPORT bool dsRenderSurface_makeRotationMatrix44(
  * @param viewport The viewport to rotate. This may be the same as result.
  * @param width The width of the physical surface.
  * @param height The height of the physical surface.
+ * @param rotation The rotation to apply.
  * @return False if the parameters are invalid.
  */
 DS_RENDER_EXPORT bool dsRenderSurface_rotateViewport(dsAlignedBox3f* result,
@@ -76,9 +77,10 @@ DS_RENDER_EXPORT bool dsRenderSurface_rotateViewport(dsAlignedBox3f* result,
  * @brief Rotates a scissor box for the render surface rotation.
  * @remark errno will be set on failure.
  * @param[out] result The rotated scissor.
+ * @param scissor The scissor to rotate. This may be the same as result.
  * @param width The width of the physical surface.
  * @param height The height of the physical surface.
- * @param scissor The scissor to rotate. This may be the same as result.
+ * @param rotation The rotation to apply.
  * @return False if the parameters are invalid.
  */
 DS_RENDER_EXPORT bool dsRenderSurface_rotateScissor(dsAlignedBox2f* result,

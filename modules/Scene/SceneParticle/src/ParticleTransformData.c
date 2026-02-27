@@ -25,6 +25,7 @@
 #include <DeepSea/Math/Matrix44.h>
 
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
+#include <DeepSea/Render/RenderSurface.h>
 
 #include <DeepSea/Scene/ItemLists/SceneInstanceVariables.h>
 #include <DeepSea/Scene/Types.h>
@@ -39,7 +40,9 @@ static dsShaderVariableElement elements[] =
 	{"worldView", dsMaterialType_Mat4, 0},
 	{"localWorldOrientation", dsMaterialType_Mat3, 0},
 	{"localViewOrientation", dsMaterialType_Mat3, 0},
-	{"worldViewProj", dsMaterialType_Mat4, 0}
+	{"worldViewProj", dsMaterialType_Mat4, 0},
+	{"framebufferSize", dsMaterialType_IVec4},
+	{"framebufferRotation", dsMaterialType_Vec4}
 };
 
 typedef struct ParticleTransform
@@ -49,12 +52,36 @@ typedef struct ParticleTransform
 	dsVector4f localWorldOrientation[3];
 	dsVector4f localViewOrientation[3];
 	dsMatrix44f worldViewProj;
+	dsVector4i framebufferSize;
+	dsVector4f framebufferRotation;
 } ParticleTransform;
 
 static inline void toMatrix33Vectors(dsVector4f outVectors[3], const dsMatrix33f* inMatrix)
 {
 	for (unsigned int i = 0; i < 3; ++i)
 		*(dsVector3f*)(outVectors + i) = inMatrix->columns[i];
+}
+
+static void getFramebufferInfo(dsVector4i* outFramebufferSize, dsVector4f* outFramebufferRotation,
+	const dsViewRenderPassParams* renderPassParams)
+{
+	DS_ASSERT(renderPassParams);
+	if (renderPassParams->rotation == dsRenderSurfaceRotation_0 ||
+		renderPassParams->rotation == dsRenderSurfaceRotation_180)
+	{
+		outFramebufferSize->x = renderPassParams->framebufferWidth;
+		outFramebufferSize->y = renderPassParams->framebufferHeight;
+	}
+	else
+	{
+		outFramebufferSize->x = renderPassParams->framebufferHeight;
+		outFramebufferSize->y = renderPassParams->framebufferWidth;
+	}
+	outFramebufferSize->z = renderPassParams->framebufferWidth;
+	outFramebufferSize->w = renderPassParams->framebufferHeight;
+
+	DS_VERIFY(dsRenderSurface_makeRotationMatrix22(
+		(dsMatrix22f*)outFramebufferRotation, renderPassParams->rotation));
 }
 
 #if DS_HAS_SIMD
@@ -70,6 +97,10 @@ static void dsParticleTransformData_populateDataSIMD(void* userData, const dsVie
 	DS_UNUSED(renderPassParams);
 	DS_UNUSED(dataDesc);
 	DS_ASSERT(stride >= sizeof(ParticleTransform));
+
+	dsVector4i framebufferSize;
+	dsVector4f framebufferRotation;
+	getFramebufferInfo(&framebufferSize, &framebufferRotation, renderPassParams);
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
 		const dsParticleEmitter* emitter =
@@ -88,6 +119,8 @@ static void dsParticleTransformData_populateDataSIMD(void* userData, const dsVie
 		dsMatrix44f_affineInvert33SIMD(transform->localWorldOrientation, &world);
 		dsMatrix44f_affineInvert33SIMD(transform->localViewOrientation, &worldView);
 		dsMatrix44f_mulSIMD(&transform->worldViewProj, &view->projectionMatrix, &worldView);
+		transform->framebufferSize = framebufferSize;
+		transform->framebufferRotation = framebufferRotation;
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();
@@ -106,6 +139,10 @@ static void dsParticleTransformData_populateDataFMA(void* userData, const dsView
 	DS_UNUSED(renderPassParams);
 	DS_UNUSED(dataDesc);
 	DS_ASSERT(stride >= sizeof(ParticleTransform));
+
+	dsVector4i framebufferSize;
+	dsVector4f framebufferRotation;
+	getFramebufferInfo(&framebufferSize, &framebufferRotation, renderPassParams);
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
 		const dsParticleEmitter* emitter =
@@ -124,6 +161,8 @@ static void dsParticleTransformData_populateDataFMA(void* userData, const dsView
 		dsMatrix44f_affineInvert33FMA(transform->localWorldOrientation, &world);
 		dsMatrix44f_affineInvert33FMA(transform->localViewOrientation, &worldView);
 		dsMatrix44f_mulFMA(&transform->worldViewProj, &view->projectionMatrix, &worldView);
+		transform->framebufferSize = framebufferSize;
+		transform->framebufferRotation = framebufferRotation;
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();
@@ -142,6 +181,10 @@ static void dsParticleTransformData_populateData(void* userData, const dsView* v
 	DS_UNUSED(renderPassParams);
 	DS_UNUSED(dataDesc);
 	DS_ASSERT(stride >= sizeof(ParticleTransform));
+
+	dsVector4i framebufferSize;
+	dsVector4f framebufferRotation;
+	getFramebufferInfo(&framebufferSize, &framebufferRotation, renderPassParams);
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
 		const dsParticleEmitter* emitter =
@@ -165,8 +208,10 @@ static void dsParticleTransformData_populateData(void* userData, const dsView* v
 		dsMatrix44f_affineInvert33(&tempMatrix33Inv, &worldView);
 		toMatrix33Vectors(transform->localViewOrientation, &tempMatrix33Inv);
 
-		dsMatrix44f_mul(&transform->worldViewProj, &view->projectionMatrix,
-			&transform->worldView);
+		dsMatrix44f_mul(
+			&transform->worldViewProj, &view->projectionMatrix, &transform->worldView);
+		transform->framebufferSize = framebufferSize;
+		transform->framebufferRotation = framebufferRotation;
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();
@@ -201,8 +246,8 @@ dsShaderVariableGroupDesc* dsParticleTransformData_createShaderVariableGroupDesc
 		return NULL;
 	}
 
-	return dsShaderVariableGroupDesc_create(resourceManager, allocator, elements,
-		DS_ARRAY_SIZE(elements));
+	return dsShaderVariableGroupDesc_create(
+		resourceManager, allocator, elements, DS_ARRAY_SIZE(elements));
 }
 
 bool dsParticleTransformData_isShaderVariableGroupCompatible(
@@ -214,7 +259,7 @@ bool dsParticleTransformData_isShaderVariableGroupCompatible(
 }
 
 dsSceneInstanceData* dsParticleTransformData_create(dsAllocator* allocator,
-	dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
 	const dsShaderVariableGroupDesc* transformDesc)
 {
 	if (!allocator || !transformDesc)
@@ -241,6 +286,6 @@ dsSceneInstanceData* dsParticleTransformData_create(dsAllocator* allocator,
 	else
 #endif
 		type = &instanceVariablesType;
-	return dsSceneInstanceVariables_create(allocator, resourceAllocator, resourceManager,
+	return dsSceneInstanceVariables_create(allocator, resourceManager,resourceAllocator,
 		transformDesc, dsUniqueNameID_create(dsParticleTransformData_uniformName), type, NULL);
 }

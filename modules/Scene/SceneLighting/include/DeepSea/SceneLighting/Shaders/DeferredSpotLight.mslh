@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
+#include <DeepSea/Scene/Shaders/ViewFramebuffer.mslh>
 #include <DeepSea/Scene/Shaders/ViewTransform.mslh>
 #include <DeepSea/SceneLighting/Shaders/Lighting.mslh>
 
@@ -131,9 +132,8 @@ vec4 dsDeferredSpotLight_processVertex()
 	vfLightColor = viLightColor;
 	vfLightFalloffAndSpotAngles = viLightFalloffAndSpotAngles;
 
-	vec4 clipCoords = INSTANCE(dsViewTransform).viewProjection*vec4(viPosition, 1.0);
-	vfClipCoords = DS_ADJUST_CLIP(clipCoords);
-	return clipCoords;
+	vfClipCoords = INSTANCE(dsViewTransform).viewProjection*vec4(viPosition, 1.0);
+	return vfClipCoords;
 }
 
 /**
@@ -143,7 +143,7 @@ vec4 dsDeferredSpotLight_processVertex()
 void dsDeferredSpotLight_defaultVertex()
 {
 	gl_Position = dsDeferredSpotLight_processVertex();
-	gl_Position.xy = dsRotateFramebufferPosition(gl_Position.xy);
+	gl_Position.xy = dsViewFramebuffer_rotateFramebufferPosition(gl_Position.xy);
 #ifndef DS_USE_DEPTH_CLAMP
 	// Clamp the Z coordinate to ensure it doesn't get clipped by the far plane.
 	float z = gl_Position.z/gl_Position.w;

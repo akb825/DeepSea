@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,45 @@
  * @brief Functions to help with different coordinate transformations.
  */
 
+#if SPIRV_VERSION
 /**
- * @brief Transforms from clip coordinates in the common [-1, -1] as lower left to texture
+ * @brief Multiplier factor from clip coordinates to projected texture coordinates.
+ */
+#define DS_CLIP_TO_PROJ_TEX_COORDS_MUL vec3(0.5, 0.5, DS_CLIP_Z_TO_DEPTH_MUL)
+
+/**
+ * @brief Addition factor from clip coordinates to projected texture coordinates.
+ */
+#define DS_CLIP_TO_PROJ_TEX_COORDS_ADD vec3(0.5, 0.5, DS_CLIP_Z_TO_DEPTH_ADD)
+#else
+#define DS_CLIP_TO_PROJ_TEX_COORDS_MUL vec3(0.5, -0.5, DS_CLIP_Z_TO_DEPTH_MUL)
+#define DS_CLIP_TO_PROJ_TEX_COORDS_ADD vec3(0.5, 0.5, DS_CLIP_Z_TO_DEPTH_ADD)
+#endif
+
+/**
+ * @brief Array with the multiplier and addition afctors from clip coordinates to projected
+ * texture coordinates.
+ */
+#define DS_CLIP_TO_PROJ_TEX_COORDS \
+	vec3[2](DS_CLIP_TO_PROJ_TEX_COORDS_MUL, DS_CLIP_TO_PROJ_TEX_COORDS_ADD)
+
+/**
+ * @brief Toggles between common clip coordinates, where [-1, -1] is the lower-left, and direct
+ *     clip space where the origin depends on the current graphics environment.
+ * @param clipCoords The clip coordinates.
+ * @return The adjusted clip coordinates, toggling between common and device-specific coordinates.
+ */
+vec4 dsToggleCommonClip(vec4 clipCoords)
+{
+#if SPIRV_VERSION
+	return vec4(clipCoords.x, -clipCoords.y, clipCoords.zw);
+#else
+	return clipCoords;
+#endif
+}
+
+/**
+ * @brief Transforms from common clip coordinates, where [-1, -1] is the lower-left, to texture
  * coordinates.
  *
  * This is typically used for cases where the clip coordinates are passed directly as vertex
@@ -34,7 +71,7 @@
  */
 vec2 dsCommonClipToTexCoords(vec2 clipCoords)
 {
-	return vec2(clipCoords.x, -clipCoords.y)*vec2(0.5) + vec2(0.5);
+	return clipCoords*vec2(0.5, -0.5) + vec2(0.5);
 }
 
 /**
@@ -45,11 +82,44 @@ vec2 dsCommonClipToTexCoords(vec2 clipCoords)
 vec2 dsClipToTexCoords(vec2 clipCoords)
 {
 #if SPIRV_VERSION
-	// Avoid having to call DS_ADJUST_DIRECT_CLIP and have duplicate operations.
+	// Avoid having to call dsToggleCommonClip() and have duplicate operations.
 	return clipCoords*vec2(0.5) + vec2(0.5);
 #else
-	return vec2(clipCoords.x, -clipCoords.y)*vec2(0.5) + vec2(0.5);
+	return clipCoords*vec2(0.5, -0.5) + vec2(0.5);
 #endif
+}
+
+/**
+ * @brief Converts a depth value to a clip Z coordinate.
+ * @param depth The depth value in the range [0, 1].
+ * @return The z coordinate for a clip position.
+ */
+float dsDepthToClipZ(float depth)
+{
+#if GLSL_VERSION || GLSLES_VERSION
+	// Only OpenGL may potentially have a different clip space.
+	return depth*DS_DEPTH_TO_CLIP_Z_MUL + DS_DEPTH_TO_CLIP_Z_ADD;
+#else
+	return depth;
+#endif
+}
+
+/**
+ * @brief Transforms the current pixel's framebuffer coordinates to clip coordinates.
+ * @param framebufferSize The size of the framebuffer.
+ * @return The clip position for the current framebuffer position as would have been set on
+ *     gl_Position after multiplying by a projection matrix.
+ */
+[[fragment]]
+vec2 dsFramebufferToClip(vec2 framebufferSize)
+{
+	// gl_FragCoord origin follows native texture coordinate origin.
+	vec2 framebufferPos = gl_FragCoord.xy/framebufferSize;
+	framebufferPos = framebufferPos*vec2(2.0) - vec2(1.0);
+#if METAL_VERSION
+	framebufferPos.y = -framebufferPos.y;
+#endif
+	return framebufferPos;
 }
 
 /**

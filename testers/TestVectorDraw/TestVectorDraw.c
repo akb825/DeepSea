@@ -499,8 +499,8 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	dsVectorImageInitResources initResources = {resourceManager, NULL, scratchData, NULL,
 		testVectorDraw->shaderModule, NULL, NULL, 0, srgb};
 
-	testVectorDraw->vectorResources = dsVectorResources_loadResource(allocator, NULL, NULL,
-		resourceManager, dsFileResourceType_Embedded, path, NULL, &initResources, 1.0f,
+	testVectorDraw->vectorResources = dsVectorResources_loadResource(allocator, NULL,
+		resourceManager, NULL, dsFileResourceType_Embedded, path, NULL, &initResources, 1.0f,
 		testVectorDraw->shaders, testVectorDraw->textureIconShader, NULL);
 	if (!testVectorDraw->vectorResources)
 	{

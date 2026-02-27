@@ -9,13 +9,6 @@
 		],
 		[
 			{
-				"type": "ViewTransformData",
-				"name": "viewTransform",
-				"variableGroupDesc": "viewTransformDesc"
-			}
-		],
-		[
-			{
 				"type": "LightSetPrepare",
 				"name": "lightSetPrepare",
 				"lightSet": "lightSet"
@@ -70,7 +63,7 @@
 									"shadowManager": "shadowManager",
 									"shadows": "main",
 									"surface": 0,
-									"variableGroupDesc": "instanceTransformDesc"
+									"variableGroupDesc": "shadowInstanceTransformDesc"
 								}
 							],
 							"sortType": "FrontToBack",
@@ -86,7 +79,7 @@
 									"shadowManager": "shadowManager",
 									"shadows": "main",
 									"surface": 0,
-									"variableGroupDesc": "instanceTransformDesc"
+									"variableGroupDesc": "shadowInstanceTransformDesc"
 								},
 								{
 									"type": "SkinningData",

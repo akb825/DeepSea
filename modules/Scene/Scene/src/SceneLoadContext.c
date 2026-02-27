@@ -32,6 +32,7 @@
 #include <DeepSea/Scene/ItemLists/SceneModelList.h>
 #include <DeepSea/Scene/ItemLists/SceneUserDataList.h>
 #include <DeepSea/Scene/ItemLists/ViewCullList.h>
+#include <DeepSea/Scene/ItemLists/ViewFramebufferData.h>
 #include <DeepSea/Scene/ItemLists/ViewMipmapList.h>
 #include <DeepSea/Scene/Nodes/SceneHandoffNode.h>
 #include <DeepSea/Scene/Nodes/SceneModelNode.h>
@@ -112,6 +113,8 @@ dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator, dsRenderer
 		&dsInstanceScreenTransformData_load, NULL, NULL);
 	dsSceneLoadContext_registerInstanceDataType(context, dsInstanceTransformData_typeName,
 		&dsInstanceTransformData_load, NULL, NULL);
+	dsSceneLoadContext_registerInstanceDataType(context, dsViewFramebufferData_typeName,
+		&dsViewFramebufferData_load, NULL, NULL);
 
 	// Actions aren't exposed in code so inlined names.
 	dsSceneLoadContext_registerResourceActionType(context, "NodeChildren",

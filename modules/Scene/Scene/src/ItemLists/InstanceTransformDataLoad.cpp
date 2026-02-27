@@ -71,5 +71,5 @@ dsSceneInstanceData* dsInstanceTransformData_load(const dsSceneLoadContext* load
 
 	dsRenderer* renderer = dsSceneLoadContext_getRenderer(loadContext);
 	return dsInstanceTransformData_create(
-		allocator, resourceAllocator, renderer->resourceManager, groupDesc);
+		allocator, renderer->resourceManager, resourceAllocator, groupDesc);
 }

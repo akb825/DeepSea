@@ -31,6 +31,7 @@ from .ShiftNodeConvert import convertShiftNode
 from .TransformNodeConvert import convertTransformNode
 from .UserDataListConvert import convertUserDataList
 from .ViewCullListConvert import convertViewCullList
+from .ViewFramebufferDataConvert import convertViewFramebufferData
 from .ViewMipmapListConvert import convertViewMipmapList
 from .ViewTransformDataConvert import convertViewTransformData
 from .. import ObjectData
@@ -64,7 +65,8 @@ class ConvertContext:
 
 		self.instanceDataTypeMap = {
 			'InstanceScreenTransformData': convertInstanceScreenTransformData,
-			'InstanceTransformData': convertInstanceTransformData
+			'InstanceTransformData': convertInstanceTransformData,
+			'ViewFramebufferData': convertViewFramebufferData
 		}
 
 		self.nodeTypeMap = {

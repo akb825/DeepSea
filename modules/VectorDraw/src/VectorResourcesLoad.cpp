@@ -456,7 +456,7 @@ static dsFont* loadFont(const DeepSeaVectorDraw::Font& fbFont, const dsVectorRes
 
 extern "C"
 dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocator* scratchAllocator,
-	dsAllocator* resourceAllocator, dsResourceManager* resourceManager, const void* data,
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, const void* data,
 	size_t size, void* relativePathUserData,
 	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
 	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc,

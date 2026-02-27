@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <DeepSea/Render/Shaders/CoordinateHelpers.mslh>
+
 /**
  * @file
  * @brief Uniforms for particle transform matrices.
@@ -47,6 +49,21 @@ uniform dsParticleTransformData
 	 * @brief The world view projection matrix, transforming from local to clip space.
 	 */
 	mat4 worldViewProj;
+
+	/**
+	 * @brief The size of the framebuffer in pixels.
+	 *
+	 * The first two values are the width and height for the logical size, before client rotation,
+	 * while the next two values are the width and height for the real size, after client rotation.
+	 */
+	ivec4 framebufferSize;
+
+	/**
+	 * @brief The rotation of the framebuffer to apply for client rotations.
+	 *
+	 * This is a mat22 packed into a vec4 to avoid extra padding.
+	 */
+	vec4 framebufferRotation;
 } dsParticleTransform;
 
 /**
@@ -54,10 +71,50 @@ uniform dsParticleTransformData
  * @param offset The 2D offset passed from the vertex.
  * @param xRotation The X rotation value.
  */
-vec3 dsCameraOrientedParticleOffset(vec2 offset, float xRotation)
+vec3 dsParticleTransform_cameraOrientedOffset(vec2 offset, float xRotation)
 {
 	float sinRot = sin(xRotation);
 	float cosRot = cos(xRotation);
 	mat2 rotation2D = mat2(cosRot, sinRot, -sinRot, cosRot);
 	return INSTANCE(dsParticleTransform).localViewOrientation*vec3(rotation2D*offset, 0.0);
+}
+
+/**
+ * @brief Rotates the framebuffer position.
+ *
+ * This handles the rotation for render surfaces with client rotations enabled.
+ *
+ * @param pos The xy position of the framebuffer in normalized [-1, 1] coordinates.
+ * @return The rotated position.
+ */
+vec2 dsParticleTransform_rotateFramebufferPosition(vec2 pos)
+{
+	return mat2(INSTANCE(dsParticleTransform).framebufferRotation.xy,
+		INSTANCE(dsParticleTransform).framebufferRotation.zw)*pos;
+}
+
+/**
+ * @brief Undoes rotation to the framebuffer position.
+ *
+ * This handles the rotation for render surfaces with client rotations enabled, going from rotated
+ * coordinates back to their logical value.
+ *
+ * @param pos The xy position of the framebuffer in normalized [-1, 1] coordinates.
+ * @return The rotated position.
+ */
+vec2 dsParticleTransform_unrotateFramebufferPosition(vec2 pos)
+{
+	return pos*mat2(INSTANCE(dsParticleTransform).framebufferRotation.xy,
+		INSTANCE(dsParticleTransform).framebufferRotation.zw);
+}
+
+/**
+ * @brief Gets the framebuffer clip position for the current pixel.
+ * @return The framebuffer clip position.
+ */
+[[fragment]]
+vec2 dsParticleTransform_framebufferToClip()
+{
+	vec2 clip = dsFramebufferToClip(vec2(INSTANCE(dsParticleTransform).framebufferSize.zw));
+	return dsParticleTransform_unrotateFramebufferPosition(clip);
 }

@@ -36,6 +36,7 @@
 #include <DeepSea/RenderBootstrap/RenderBootstrap.h>
 
 #include <DeepSea/Scene/ItemLists/InstanceTransformData.h>
+#include <DeepSea/Scene/ItemLists/ViewFramebufferData.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneTransformNode.h>
 #include <DeepSea/Scene/Scene.h>
@@ -333,7 +334,7 @@ static bool setup(TestParticles* testParticles, dsApplication* application, dsAl
 		return false;
 	}
 
-	testParticles->builtinResources = dsSceneResources_create(allocator, 4);
+	testParticles->builtinResources = dsSceneResources_create(allocator, 5);
 	if (!testParticles->builtinResources)
 	{
 		DS_LOG_ERROR_F("TestParticles", "Couldn't create scene resources: %s",
@@ -367,6 +368,18 @@ static bool setup(TestParticles* testParticles, dsApplication* application, dsAl
 	}
 	DS_VERIFY(dsSceneResources_addResource(testParticles->builtinResources,
 		"particleTransformDesc", dsSceneResourceType_ShaderVariableGroupDesc, groupDesc, true));
+
+	groupDesc = dsViewFramebufferData_createShaderVariableGroupDesc(resourceManager, allocator);
+	if (!groupDesc)
+	{
+		DS_LOG_ERROR_F("TestParticles", "Couldn't create view framebuffer shader variable desc: %s",
+			dsErrorString(errno));
+		dsSceneLoadContext_destroy(loadContext);
+		dsSceneLoadScratchData_destroy(scratchData);
+		return false;
+	}
+	DS_VERIFY(dsSceneResources_addResource(testParticles->builtinResources,
+		"viewFramebufferDesc", dsSceneResourceType_ShaderVariableGroupDesc, groupDesc, true));
 
 	groupDesc = dsViewTransformData_createShaderVariableGroupDesc(resourceManager, allocator);
 	if (!groupDesc)

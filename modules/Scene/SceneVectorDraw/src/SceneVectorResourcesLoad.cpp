@@ -197,8 +197,8 @@ void* dsVectorSceneResources_load(const dsSceneLoadContext* loadContext,
 	dsVectorResources* resources;
 	if (auto fbFileRef = fbVectorResources->resources_as_FileReference())
 	{
-		resources = dsVectorResources_loadResource(allocator, scratchAllocator, resourceAllocator,
-			resourceManager, DeepSeaScene::convert(fbFileRef->type()), fbFileRef->path()->c_str(),
+		resources = dsVectorResources_loadResource(allocator, scratchAllocator, resourceManager,
+			resourceAllocator, DeepSeaScene::convert(fbFileRef->type()), fbFileRef->path()->c_str(),
 			vectorLoadContext->textQualityRemap, hasInitResources ? &initResources : nullptr,
 			vectorLoadContext->pixelSize, vectorShaders, textureIconShader,
 			textureIconMaterial);
@@ -230,8 +230,8 @@ void* dsVectorSceneResources_load(const dsSceneLoadContext* loadContext,
 
 		RelativePathWrapper pathInfo = {baseDirectory, relativePathUserData,
 			openRelativePathStreamFunc, closeRelativePathStreamFunc};
-		resources = dsVectorResources_loadData(allocator, scratchAllocator, resourceAllocator,
-			resourceManager, buffer, size, &pathInfo, &openRelativePathStream,
+		resources = dsVectorResources_loadData(allocator, scratchAllocator, resourceManager,
+			resourceAllocator, buffer, size, &pathInfo, &openRelativePathStream,
 			&closeRelativePathStream, vectorLoadContext->textQualityRemap,
 			hasInitResources ? &initResources : nullptr, vectorLoadContext->pixelSize,
 			vectorShaders, textureIconShader, textureIconMaterial);
@@ -240,8 +240,8 @@ void* dsVectorSceneResources_load(const dsSceneLoadContext* loadContext,
 	else if (auto fbRawData = fbVectorResources->resources_as_RawData())
 	{
 		auto fbData = fbRawData->data();
-		resources = dsVectorResources_loadData(allocator, scratchAllocator, resourceAllocator,
-			resourceManager, fbData->data(), fbData->size(), relativePathUserData,
+		resources = dsVectorResources_loadData(allocator, scratchAllocator, resourceManager,
+			resourceAllocator, fbData->data(), fbData->size(), relativePathUserData,
 			openRelativePathStreamFunc, closeRelativePathStreamFunc,
 			vectorLoadContext->textQualityRemap, hasInitResources ? &initResources : nullptr,
 			vectorLoadContext->pixelSize, vectorShaders, textureIconShader, textureIconMaterial);

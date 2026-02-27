@@ -1,0 +1,85 @@
+/*
+ * Copyright 2026 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include <DeepSea/Render/Shaders/CoordinateHelpers.mslh>
+
+/**
+ * @file
+ * @brief Uniforms and functions for working with the framebuffer in a view.
+ *
+ * This uses the framebuffer only uniforms from dsInstanceTransformData for situations where only
+ * the framebuffer information is required.
+ */
+
+uniform dsViewFramebufferData
+{
+	/**
+	 * @brief The size of the framebuffer in pixels.
+	 *
+	 * The first two values are the width and height for the logical size, before client rotation,
+	 * while the next two values are the width and height for the real size, after client rotation.
+	 */
+	ivec4 framebufferSize;
+
+	/**
+	 * @brief The rotation of the framebuffer to apply for client rotations.
+	 *
+	 * This is a mat22 packed into a vec4 to avoid extra padding.
+	 */
+	vec4 framebufferRotation;
+} dsViewFramebuffer;
+
+/**
+ * @brief Rotates the framebuffer position.
+ *
+ * This handles the rotation for render surfaces with client rotations enabled.
+ *
+ * @param pos The xy position of the framebuffer in normalized [-1, 1] coordinates.
+ * @return The rotated position.
+ */
+vec2 dsViewFramebuffer_rotateFramebufferPosition(vec2 pos)
+{
+	return mat2(INSTANCE(dsViewFramebuffer).framebufferRotation.xy,
+		INSTANCE(dsViewFramebuffer).framebufferRotation.zw)*pos;
+}
+
+/**
+ * @brief Undoes rotation to the framebuffer position.
+ *
+ * This handles the rotation for render surfaces with client rotations enabled, going from rotated
+ * coordinates back to their logical value.
+ *
+ * @param pos The xy position of the framebuffer in normalized [-1, 1] coordinates.
+ * @return The rotated position.
+ */
+vec2 dsViewFramebuffer_unrotateFramebufferPosition(vec2 pos)
+{
+	return pos*mat2(INSTANCE(dsViewFramebuffer).framebufferRotation.xy,
+		INSTANCE(dsViewFramebuffer).framebufferRotation.zw);
+}
+
+/**
+ * @brief Gets the framebuffer clip position for the current pixel.
+ * @return The framebuffer clip position.
+ */
+[[fragment]]
+vec2 dsViewFramebuffer_framebufferToClip()
+{
+	vec2 clip = dsFramebufferToClip(vec2(INSTANCE(dsViewFramebuffer).framebufferSize.zw));
+	return dsViewFramebuffer_unrotateFramebufferPosition(clip);
+}

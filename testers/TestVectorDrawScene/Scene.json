@@ -1,13 +1,6 @@
 {
 	"sharedItems":
 	[
-		[
-			{
-				"type": "ViewTransformData",
-				"name": "viewTransform",
-				"variableGroupDesc": "viewTransformDesc"
-			}
-		],
 		[{"type": "VectorDrawPrepare", "name": "vectorDrawPrepare"}]
 	],
 	"pipeline":
@@ -43,6 +36,10 @@
 								{
 									"type": "InstanceDiscardBoundsData",
 									"variableGroupDesc": "instanceDiscardBoundsDesc"
+								},
+								{
+									"type": "ViewFramebufferData",
+									"variableGroupDesc": "viewFramebufferDesc"
 								}
 							],
 							"maxMaterialDescs": 2

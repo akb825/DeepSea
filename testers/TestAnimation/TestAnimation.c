@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-2025 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,6 @@
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/Scene/SceneResources.h>
 #include <DeepSea/Scene/View.h>
-#include <DeepSea/Scene/ViewTransformData.h>
 
 #include <DeepSea/SceneAnimation/SceneAnimationLoadContext.h>
 #include <DeepSea/SceneAnimation/SceneAnimationNode.h>
@@ -55,9 +54,9 @@
 #include <DeepSea/SceneLighting/InstanceForwardLightData.h>
 #include <DeepSea/SceneLighting/SceneLightingLoadContext.h>
 #include <DeepSea/SceneLighting/SceneLightNode.h>
+#include <DeepSea/SceneLighting/ShadowInstanceTransformData.h>
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #if DS_HAS_EASY_PROFILER
@@ -333,8 +332,8 @@ static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAl
 	DS_VERIFY(dsSceneLightingLoadConext_registerTypes(loadContext));
 	DS_VERIFY(dsSceneAnimationLoadConext_registerTypes(loadContext));
 
-	dsSceneLoadScratchData* scratchData = dsSceneLoadScratchData_create(allocator,
-		renderer->mainCommandBuffer);
+	dsSceneLoadScratchData* scratchData = dsSceneLoadScratchData_create(
+		allocator, renderer->mainCommandBuffer);
 	if (!scratchData)
 	{
 		DS_LOG_ERROR_F("TestAnimation", "Couldn't create load scratch data: %s",
@@ -366,17 +365,20 @@ static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAl
 	DS_VERIFY(dsSceneResources_addResource(testAnimation->builtinResources,
 		"instanceTransformDesc", dsSceneResourceType_ShaderVariableGroupDesc, groupDesc, true));
 
-	groupDesc = dsViewTransformData_createShaderVariableGroupDesc(resourceManager, allocator);
+	groupDesc = dsShadowInstanceTransformData_createShaderVariableGroupDesc(
+		resourceManager, allocator);
 	if (!groupDesc)
 	{
-		DS_LOG_ERROR_F("TestAnimation", "Couldn't create view transform shader variable desc: %s",
+		DS_LOG_ERROR_F("TestAnimation",
+			"Couldn't create shadow instance transform shader variable desc: %s",
 			dsErrorString(errno));
 		dsSceneLoadContext_destroy(loadContext);
 		dsSceneLoadScratchData_destroy(scratchData);
 		return false;
 	}
 	DS_VERIFY(dsSceneResources_addResource(testAnimation->builtinResources,
-		"viewTransformDesc", dsSceneResourceType_ShaderVariableGroupDesc, groupDesc, true));
+		"shadowInstanceTransformDesc", dsSceneResourceType_ShaderVariableGroupDesc, groupDesc,
+		true));
 
 	groupDesc = dsInstanceForwardLightData_createShaderVariableGroupDesc(resourceManager, allocator,
 		DS_DEFAULT_FORWARD_LIGHT_COUNT);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -380,7 +380,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	VkSurfaceTransformFlagBitsKHR transform = surfaceInfo->currentTransform;
 	dsRenderSurfaceRotation rotation = dsRenderSurfaceRotation_0;
 	if (usage & dsRenderSurfaceUsage_ClientRotations)
-		rotation = dsVkRenderSurfaceData_getRotation(surfaceInfo->currentTransform);
+		rotation = dsVkRenderSurfaceData_getRotation(transform);
 	// Rotation also set to 0 for unsupported transforms like mirror, so explicitly set to identity.
 	if (rotation == dsRenderSurfaceRotation_0)
 		transform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;

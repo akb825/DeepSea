@@ -1171,19 +1171,49 @@ bool dsGLMainCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsSh
 	DS_ASSERT(glCommandBuffer->curFramebuffer);
 
 	// Set the internal information on the shader.
-	if (glShader->internalUniform >= 0)
+	dsRenderer* renderer = commandBuffer->renderer;
+	if (glShader->internalUniforms[0] >= 0)
 	{
 		DS_ASSERT(glCommandBuffer->curFramebuffer);
-		dsRenderer* renderer = commandBuffer->renderer;
 		dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
-		bool needInvert = glRenderer->curSurfaceType == GLSurfaceType_Framebuffer;
-		float invertY = needInvert ? -1.0f : 1.0f;
+
 		float height = (float)glCommandBuffer->curFramebuffer->height;
+		float fragYMul, fragYAdd;
+		if (glRenderer->curSurfaceType == GLSurfaceType_Framebuffer)
+		{
+			fragYMul = -1.0f;
+			fragYAdd = height;
+		}
+		else
+		{
+			fragYMul = 1.0f;
+			fragYAdd = 0.0f;
+		}
+
 		float invWidth = 1.0f/(float)glCommandBuffer->curFramebuffer->width;
 		float invHeight = -1.0f/height;
-		float minDepth =
-			renderer->projectionOptions & dsProjectionMatrixOptions_HalfZRange ? 0.0f : -1.0f;
-		glUniform4f(glShader->internalUniform, minDepth, height*invertY, invWidth, invHeight);
+		glUniform4f(glShader->internalUniforms[0], fragYMul, fragYAdd, invWidth, invHeight);
+	}
+
+	if (glShader->internalUniforms[1] >= 0)
+	{
+		float clipZToDepthMul, clipZToDepthAdd, depthToClipZMul, depthToClipZAdd;
+		if (renderer->projectionOptions & dsProjectionMatrixOptions_HalfZRange)
+		{
+			clipZToDepthMul = 1.0f;
+			clipZToDepthAdd = 0.0f;
+			depthToClipZMul = 1.0f;
+			depthToClipZAdd = 0.0f;
+		}
+		else
+		{
+			clipZToDepthMul = 0.5f;
+			clipZToDepthAdd = 0.5f;
+			depthToClipZMul = 2.0f;
+			depthToClipZAdd = -1.0f;
+		}
+		glUniform4f(glShader->internalUniforms[1], clipZToDepthMul, clipZToDepthAdd,
+			depthToClipZMul, depthToClipZAdd);
 	}
 	return true;
 }
@@ -1422,14 +1452,32 @@ bool dsGLMainCommandBuffer_bindComputeShader(dsCommandBuffer* commandBuffer, con
 	glUseProgram(glShader->programId);
 
 	// Set the internal information on the shader.
-	if (glShader->internalUniform >= 0)
+	if (glShader->internalUniforms[0] >= 0)
 	{
-		// No real framebuffer, need to set the parameters for any clip operations, namely the min
-		// depth on x and the sign for y as if drawing to an offscreen.
+		// No real framebuffer.
+		glUniform4f(glShader->internalUniforms[0], 1.0f, 0.0f, 1.0f, -1.0f);
+	}
+
+	if (glShader->internalUniforms[1] >= 0)
+	{
 		dsRenderer* renderer = commandBuffer->renderer;
-		float minDepth =
-			renderer->projectionOptions & dsProjectionMatrixOptions_HalfZRange ? 0.0f : -1.0f;
-		glUniform4f(glShader->internalUniform, minDepth, -1.0f, 1.0f, -1.0f);
+		float clipZToDepthMul, clipZToDepthAdd, depthToClipZMul, depthToClipZAdd;
+		if (renderer->projectionOptions & dsProjectionMatrixOptions_HalfZRange)
+		{
+			clipZToDepthMul = 1.0f;
+			clipZToDepthAdd = 0.0f;
+			depthToClipZMul = 1.0f;
+			depthToClipZAdd = 0.0f;
+		}
+		else
+		{
+			clipZToDepthMul = 0.5f;
+			clipZToDepthAdd = 0.5f;
+			depthToClipZMul = 2.0f;
+			depthToClipZAdd = -1.0f;
+		}
+		glUniform4f(glShader->internalUniforms[1], clipZToDepthMul, clipZToDepthAdd,
+			depthToClipZMul, depthToClipZAdd);
 	}
 	return true;
 }

@@ -625,7 +625,7 @@ bool dsSceneSkinningData_isTextureInfoShaderVariableGroupCompatible(
 }
 
 dsSceneInstanceData* dsSceneSkinningData_create(dsAllocator* allocator,
-	dsAllocator* resourceAllocator, dsResourceManager* resourceManager)
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator)
 {
 	if (!allocator || !resourceManager)
 	{

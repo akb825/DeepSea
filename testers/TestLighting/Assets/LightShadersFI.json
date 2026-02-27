@@ -5,10 +5,10 @@
 		"elements":
 		[
 			{
-				"name": "dsViewTransformData",
+				"name": "dsViewFramebufferData",
 				"type": "VariableGroup",
-				"binding": "Global",
-				"shaderVariableGroupDesc": "viewTransformDesc"
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "viewFramebufferDesc"
 			}
 		]
 	},
@@ -23,6 +23,12 @@
 				"binding": "Global"
 			},
 			{
+				"name": "dsViewFramebufferData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "viewFramebufferDesc"
+			},
+			{
 				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
@@ -35,6 +41,12 @@
 		"name": "directionalLightMaterialDesc",
 		"elements":
 		[
+			{
+				"name": "dsViewFramebufferData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "viewFramebufferDesc"
+			},
 			{
 				"name": "dsViewTransformData",
 				"type": "VariableGroup",
@@ -60,6 +72,12 @@
 		"elements":
 		[
 			{
+				"name": "dsViewFramebufferData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "viewFramebufferDesc"
+			},
+			{
 				"name": "dsViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
@@ -83,6 +101,12 @@
 		"name": "pointLightMaterialDesc",
 		"elements":
 		[
+			{
+				"name": "dsViewFramebufferData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "viewFramebufferDesc"
+			},
 			{
 				"name": "dsViewTransformData",
 				"type": "VariableGroup",

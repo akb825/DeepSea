@@ -19,7 +19,7 @@
 #include <DeepSea/Render/Shaders/CoordinateHelpers.mslh>
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
 
-#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
+#include <DeepSea/Scene/Shaders/ViewFramebuffer.mslh>
 
 /**
  * @file
@@ -72,9 +72,9 @@ vec4 dsDeferredAmbientLight_processVertex()
 {
 	vfLightColor = viLightColor;
 
-	vec2 rotatedPosition = dsRotateFramebufferPosition(viPosition);
-	vfClipCoords = DS_ADJUST_DIRECT_CLIP(vec4(rotatedPosition, 0.0, 1.0));
-	vfTexCoords = dsCommonClipToTexCoords(viPosition);
+	vfClipCoords = dsToggleCommonClip(vec4(viPosition, 0.0, 1.0));
+	// Expect texture lookups would be after rotation is applied.
+	vfTexCoords = dsCommonClipToTexCoords(dsViewFramebuffer_rotateFramebufferPosition(viPosition));
 	return vec4(viPosition, 0.0, 1.0);
 }
 
@@ -85,6 +85,7 @@ vec4 dsDeferredAmbientLight_processVertex()
 void dsDeferredAmbientLight_defaultVertex()
 {
 	gl_Position = dsDeferredAmbientLight_processVertex();
+	gl_Position.xy = dsViewFramebuffer_rotateFramebufferPosition(gl_Position.xy);
 	gl_Position = DS_ADJUST_DIRECT_CLIP(gl_Position);
 }
 

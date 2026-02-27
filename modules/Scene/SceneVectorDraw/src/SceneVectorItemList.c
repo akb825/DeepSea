@@ -656,6 +656,7 @@ static void dsSceneVectorItemList_destroy(dsSceneItemList* itemList)
 		MaterialNode* material = (MaterialNode*)node;
 		dsMaterial_destroy(material->material);
 	}
+	dsPoolAllocator_shutdown(&vectorList->materialPool);
 	DS_VERIFY(dsAllocator_free(itemList->allocator, vectorList));
 }
 

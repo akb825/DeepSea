@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,9 @@
 #include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/Shader.h>
 
+#include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
+
 #include <DeepSea/SceneLighting/DeferredLightResolve.h>
 #include <DeepSea/SceneLighting/SceneLightSet.h>
 #include <DeepSea/SceneLighting/SceneShadowManager.h>
@@ -74,7 +76,7 @@ static dsMaterial* findMaterial(dsSceneLoadScratchData* scratchData, const char*
 }
 
 extern "C"
-dsSceneItemList* dsDeferredLightResolve_load(const dsSceneLoadContext*,
+dsSceneItemList* dsDeferredLightResolve_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void*, const char* name, const uint8_t* data, size_t dataSize)
 {
@@ -89,9 +91,20 @@ dsSceneItemList* dsDeferredLightResolve_load(const dsSceneLoadContext*,
 
 	auto fbResolve = DeepSeaSceneLighting::GetDeferredLightResolve(data);
 
-	const char* lightSetName = fbResolve->lightSet()->c_str();
+	const char* viewFramebufferDescName = fbResolve->viewFramebufferDesc()->c_str();
 	dsSceneResourceType type;
+	dsShaderVariableGroupDesc* viewFramebufferDesc;
+	if (!dsSceneLoadScratchData_findResource(&type, (void**)&viewFramebufferDesc, scratchData,
+			viewFramebufferDescName) || type != dsSceneResourceType_ShaderVariableGroupDesc)
+	{
+		errno = ENOTFOUND;
+		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find view framebuffer desc '%s'.",
+			viewFramebufferDescName);
+		return nullptr;
+	}
+
 	dsCustomSceneResource* resource;
+	const char* lightSetName = fbResolve->lightSet()->c_str();
 	if (!dsSceneLoadScratchData_findResource(&type, (void**)&resource, scratchData,
 			lightSetName) || type != dsSceneResourceType_Custom ||
 		resource->type != dsSceneLightSet_type())
@@ -221,7 +234,8 @@ dsSceneItemList* dsDeferredLightResolve_load(const dsSceneLoadContext*,
 	if (intensityThreshold <= 0)
 		intensityThreshold = DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD;
 
+	dsRenderer* renderer = dsSceneLoadContext_getRenderer(loadContext);
 	return reinterpret_cast<dsSceneItemList*>(dsDeferredLightResolve_create(allocator,
-		resourceAllocator, name, lightSet, shadowManager, &ambientInfo, lightInfos,
-		shadowLightInfos, intensityThreshold));
+		renderer->resourceManager, resourceAllocator, name, viewFramebufferDesc, lightSet,
+		shadowManager, &ambientInfo, lightInfos, shadowLightInfos, intensityThreshold));
 }

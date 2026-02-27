@@ -39,6 +39,7 @@
 
 #include <DeepSea/Scene/ItemLists/InstanceTransformData.h>
 #include <DeepSea/Scene/ItemLists/SceneModelList.h>
+#include <DeepSea/Scene/ItemLists/ViewFramebufferData.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Scene.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
@@ -50,6 +51,7 @@
 
 #include <DeepSea/SceneLighting/InstanceForwardLightData.h>
 #include <DeepSea/SceneLighting/SceneLightingLoadContext.h>
+#include <DeepSea/SceneLighting/ShadowInstanceTransformData.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -448,7 +450,7 @@ static bool setup(TestLighting* testLighting, dsApplication* application, dsAllo
 	}
 
 	testLighting->scratchData = scratchData;
-	testLighting->builtinResources = dsSceneResources_create(allocator, 3);
+	testLighting->builtinResources = dsSceneResources_create(allocator, 5);
 	if (!testLighting->builtinResources)
 	{
 		DS_LOG_ERROR_F("TestLighting", "Couldn't create scene resources: %s", dsErrorString(errno));
@@ -466,6 +468,19 @@ static bool setup(TestLighting* testLighting, dsApplication* application, dsAllo
 	DS_VERIFY(dsSceneResources_addResource(testLighting->builtinResources,
 		"instanceTransformDesc", dsSceneResourceType_ShaderVariableGroupDesc, groupDesc, true));
 
+	groupDesc = dsShadowInstanceTransformData_createShaderVariableGroupDesc(
+		resourceManager, allocator);
+	if (!groupDesc)
+	{
+		DS_LOG_ERROR_F("TestLighting",
+			"Couldn't create shadow instance transform shader variable desc: %s",
+			dsErrorString(errno));
+		return false;
+	}
+	DS_VERIFY(dsSceneResources_addResource(testLighting->builtinResources,
+		"shadowInstanceTransformDesc", dsSceneResourceType_ShaderVariableGroupDesc, groupDesc,
+		true));
+
 	groupDesc = dsViewTransformData_createShaderVariableGroupDesc(resourceManager, allocator);
 	if (!groupDesc)
 	{
@@ -475,6 +490,16 @@ static bool setup(TestLighting* testLighting, dsApplication* application, dsAllo
 	}
 	DS_VERIFY(dsSceneResources_addResource(testLighting->builtinResources,
 		"viewTransformDesc", dsSceneResourceType_ShaderVariableGroupDesc, groupDesc, true));
+
+	groupDesc = dsViewFramebufferData_createShaderVariableGroupDesc(resourceManager, allocator);
+	if (!groupDesc)
+	{
+		DS_LOG_ERROR_F("TestLighting", "Couldn't create view framebuffer shader variable desc: %s",
+			dsErrorString(errno));
+		return false;
+	}
+	DS_VERIFY(dsSceneResources_addResource(testLighting->builtinResources,
+		"viewFramebufferDesc", dsSceneResourceType_ShaderVariableGroupDesc, groupDesc, true));
 
 	groupDesc = dsInstanceForwardLightData_createShaderVariableGroupDesc(resourceManager, allocator,
 		DS_DEFAULT_FORWARD_LIGHT_COUNT);

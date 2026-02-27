@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,6 +72,6 @@ dsSceneInstanceData* dsParticleTransformData_load(const dsSceneLoadContext* load
 	}
 
 	dsRenderer* renderer = dsSceneLoadContext_getRenderer(loadContext);
-	return dsParticleTransformData_create(allocator, resourceAllocator, renderer->resourceManager,
-		groupDesc);
+	return dsParticleTransformData_create(
+		allocator, renderer->resourceManager, resourceAllocator, groupDesc);
 }

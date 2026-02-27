@@ -193,17 +193,21 @@ inline ::flatbuffers::Offset<DeferredShadowLightInfo> CreateDeferredShadowLightI
 struct DeferredLightResolve FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef DeferredLightResolveBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_LIGHTSET = 4,
-    VT_SHADOWMANAGER = 6,
-    VT_AMBIENT = 8,
-    VT_DIRECTIONAL = 10,
-    VT_POINT = 12,
-    VT_SPOT = 14,
-    VT_SHADOWDIRECTIONAL = 16,
-    VT_SHADOWPOINT = 18,
-    VT_SHADOWSPOT = 20,
-    VT_INTENSITYTHRESHOLD = 22
+    VT_VIEWFRAMEBUFFERDESC = 4,
+    VT_LIGHTSET = 6,
+    VT_SHADOWMANAGER = 8,
+    VT_AMBIENT = 10,
+    VT_DIRECTIONAL = 12,
+    VT_POINT = 14,
+    VT_SPOT = 16,
+    VT_SHADOWDIRECTIONAL = 18,
+    VT_SHADOWPOINT = 20,
+    VT_SHADOWSPOT = 22,
+    VT_INTENSITYTHRESHOLD = 24
   };
+  const ::flatbuffers::String *viewFramebufferDesc() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_VIEWFRAMEBUFFERDESC);
+  }
   const ::flatbuffers::String *lightSet() const {
     return GetPointer<const ::flatbuffers::String *>(VT_LIGHTSET);
   }
@@ -237,6 +241,8 @@ struct DeferredLightResolve FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_VIEWFRAMEBUFFERDESC) &&
+           verifier.VerifyString(viewFramebufferDesc()) &&
            VerifyOffsetRequired(verifier, VT_LIGHTSET) &&
            verifier.VerifyString(lightSet()) &&
            VerifyOffset(verifier, VT_SHADOWMANAGER) &&
@@ -264,6 +270,9 @@ struct DeferredLightResolveBuilder {
   typedef DeferredLightResolve Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
+  void add_viewFramebufferDesc(::flatbuffers::Offset<::flatbuffers::String> viewFramebufferDesc) {
+    fbb_.AddOffset(DeferredLightResolve::VT_VIEWFRAMEBUFFERDESC, viewFramebufferDesc);
+  }
   void add_lightSet(::flatbuffers::Offset<::flatbuffers::String> lightSet) {
     fbb_.AddOffset(DeferredLightResolve::VT_LIGHTSET, lightSet);
   }
@@ -301,6 +310,7 @@ struct DeferredLightResolveBuilder {
   ::flatbuffers::Offset<DeferredLightResolve> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<DeferredLightResolve>(end);
+    fbb_.Required(o, DeferredLightResolve::VT_VIEWFRAMEBUFFERDESC);
     fbb_.Required(o, DeferredLightResolve::VT_LIGHTSET);
     return o;
   }
@@ -308,6 +318,7 @@ struct DeferredLightResolveBuilder {
 
 inline ::flatbuffers::Offset<DeferredLightResolve> CreateDeferredLightResolve(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> viewFramebufferDesc = 0,
     ::flatbuffers::Offset<::flatbuffers::String> lightSet = 0,
     ::flatbuffers::Offset<::flatbuffers::String> shadowManager = 0,
     ::flatbuffers::Offset<DeepSeaSceneLighting::DeferredLightInfo> ambient = 0,
@@ -329,11 +340,13 @@ inline ::flatbuffers::Offset<DeferredLightResolve> CreateDeferredLightResolve(
   builder_.add_ambient(ambient);
   builder_.add_shadowManager(shadowManager);
   builder_.add_lightSet(lightSet);
+  builder_.add_viewFramebufferDesc(viewFramebufferDesc);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<DeferredLightResolve> CreateDeferredLightResolveDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *viewFramebufferDesc = nullptr,
     const char *lightSet = nullptr,
     const char *shadowManager = nullptr,
     ::flatbuffers::Offset<DeepSeaSceneLighting::DeferredLightInfo> ambient = 0,
@@ -344,10 +357,12 @@ inline ::flatbuffers::Offset<DeferredLightResolve> CreateDeferredLightResolveDir
     ::flatbuffers::Offset<DeepSeaSceneLighting::DeferredShadowLightInfo> shadowPoint = 0,
     ::flatbuffers::Offset<DeepSeaSceneLighting::DeferredShadowLightInfo> shadowSpot = 0,
     float intensityThreshold = 0.0f) {
+  auto viewFramebufferDesc__ = viewFramebufferDesc ? _fbb.CreateString(viewFramebufferDesc) : 0;
   auto lightSet__ = lightSet ? _fbb.CreateString(lightSet) : 0;
   auto shadowManager__ = shadowManager ? _fbb.CreateString(shadowManager) : 0;
   return DeepSeaSceneLighting::CreateDeferredLightResolve(
       _fbb,
+      viewFramebufferDesc__,
       lightSet__,
       shadowManager__,
       ambient,

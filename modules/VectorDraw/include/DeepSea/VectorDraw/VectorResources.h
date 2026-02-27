@@ -58,9 +58,9 @@ DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorReosurces_create(
  * @param allocator The allocator to create the vector resources and sub-resources with.
  * @param scratchAllocator The allocator to use for scratch data. If NULL, it will use the same as
  *     allocator.
+ * @param resourceManager The resource manager to create textures from.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
  *     the same as allocator.
- * @param resourceManager The resource manager to create textures from.
  * @param filePath The file path for the vector resources to load.
  * @param qualityRemap Array to remap text qualities, or NULL to use values as-is. If not NULL,
  *     it must be of size DS_TEXT_QUALITY_REMAP_SIZE.
@@ -76,8 +76,8 @@ DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorReosurces_create(
  * @return The created vector resources, or NULL if it couldn't be created.
  */
 DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadFile(dsAllocator* allocator,
-	dsAllocator* scratchAllocator, dsAllocator* resourceAllocator,
-	dsResourceManager* resourceManager, const char* filePath, const dsTextQuality* qualityRemap,
+	dsAllocator* scratchAllocator, dsResourceManager* resourceManager,
+	dsAllocator* resourceAllocator, const char* filePath, const dsTextQuality* qualityRemap,
 	const dsVectorImageInitResources* initResources, float pixelSize,
 	const dsVectorShaders* vectorIconShaders, const dsShader* textureIconShader,
 	const dsMaterial* textureIconMaterial);
@@ -88,9 +88,9 @@ DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadFile(dsAllocator* 
  * @param allocator The allocator to create the vector resources and sub-resources with.
  * @param scratchAllocator The allocator to use for scratch data. If NULL, it will use the same as
  *     allocator.
+ * @param resourceManager The resource manager to create textures from.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
  *     the same as allocator.
- * @param resourceManager The resource manager to create textures from.
  * @param type The resource type.
  * @param filePath The file path for the vector resources to load.
  * @param qualityRemap Array to remap text qualities, or NULL to use values as-is. If not NULL,
@@ -107,8 +107,8 @@ DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadFile(dsAllocator* 
  * @return The created vector resources, or NULL if it couldn't be created.
  */
 DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadResource(dsAllocator* allocator,
-	dsAllocator* scratchAllocator, dsAllocator* resourceAllocator,
-	dsResourceManager* resourceManager, dsFileResourceType type, const char* filePath,
+	dsAllocator* scratchAllocator, dsResourceManager* resourceManager,
+	dsAllocator* resourceAllocator, dsFileResourceType type, const char* filePath,
 	const dsTextQuality* qualityRemap, const dsVectorImageInitResources* initResources,
 	float pixelSize, const dsVectorShaders* vectorIconShaders, const dsShader* textureIconShader,
 	const dsMaterial* textureIconMaterial);
@@ -119,9 +119,9 @@ DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadResource(dsAllocat
  * @param allocator The allocator to create the vector resources and sub-resources with.
  * @param scratchAllocator The allocator to use for scratch data. If NULL, it will use the same as
  *     allocator.
+ * @param resourceManager The resource manager to create textures from.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
  *     the same as allocator.
- * @param resourceManager The resource manager to create textures from.
  * @param archive The archive to load the vector resources from.
  * @param filePath The file path for the vector resources to load.
  * @param qualityRemap Array to remap text qualities, or NULL to use values as-is. If not NULL,
@@ -138,8 +138,8 @@ DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadResource(dsAllocat
  * @return The created vector resources, or NULL if it couldn't be created.
  */
 DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadArchive(dsAllocator* allocator,
-	dsAllocator* scratchAllocator, dsAllocator* resourceAllocator,
-	dsResourceManager* resourceManager, const dsFileArchive* archive, const char* filePath,
+	dsAllocator* scratchAllocator, dsResourceManager* resourceManager,
+	dsAllocator* resourceAllocator, const dsFileArchive* archive, const char* filePath,
 	const dsTextQuality* qualityRemap, const dsVectorImageInitResources* initResources,
 	float pixelSize, const dsVectorShaders* vectorIconShaders, const dsShader* textureIconShader,
 	const dsMaterial* textureIconMaterial);
@@ -150,9 +150,9 @@ DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadArchive(dsAllocato
  * @param allocator The allocator to create the vector resources and sub-resources with.
  * @param scratchAllocator The allocator to use for scratch data. If NULL, it will use the same as
  *     allocator.
+ * @param resourceManager The resource manager to create textures from.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
  *     the same as allocator.
- * @param resourceManager The resource manager to create textures from.
  * @param stream The stream to load the vector resources from. This stream will be read from the
  *     current position until the end.
  * @param relativePathUserData User data to manage opening of relative paths.
@@ -172,8 +172,8 @@ DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadArchive(dsAllocato
  * @return The created vector resources, or NULL if it couldn't be created.
  */
 DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadStream(dsAllocator* allocator,
-	dsAllocator* scratchAllocator, dsAllocator* resourceAllocator,
-	dsResourceManager* resourceManager, dsStream* stream, void* relativePathUserData,
+	dsAllocator* scratchAllocator, dsResourceManager* resourceManager,
+	dsAllocator* resourceAllocator, dsStream* stream, void* relativePathUserData,
 	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
 	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc,
 	const dsTextQuality* qualityRemap,
@@ -187,9 +187,9 @@ DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadStream(dsAllocator
  * @param allocator The allocator to create the vector resources and sub-resources with.
  * @param scratchAllocator The allocator to use for scratch data. If NULL, it will use the same as
  *     allocator.
+ * @param resourceManager The resource manager to create textures from.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
  *     the same as allocator.
- * @param resourceManager The resource manager to create textures from.
  * @param data The data for the vector resources. The data isn't used after this call.
  * @param size The size of the data buffer.
  * @param relativePathUserData User data to manage opening of relative paths.
@@ -209,8 +209,8 @@ DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadStream(dsAllocator
  * @return The created vector resources, or NULL if it couldn't be created.
  */
 DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadData(dsAllocator* allocator,
-	dsAllocator* scratchAllocator, dsAllocator* resourceAllocator,
-	dsResourceManager* resourceManager, const void* data, size_t size, void* relativePathUserData,
+	dsAllocator* scratchAllocator, dsResourceManager* resourceManager,
+	dsAllocator* resourceAllocator, const void* data, size_t size, void* relativePathUserData,
 	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
 	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc,
 	const dsTextQuality* qualityRemap, const dsVectorImageInitResources* initResources,

@@ -61,8 +61,8 @@ static dsSceneInstanceData* dsSceneSkinningData_load(const dsSceneLoadContext* l
 	DS_UNUSED(data);
 	DS_UNUSED(dataSize);
 
-	return dsSceneSkinningData_create(allocator, resourceAllocator,
-		dsSceneLoadContext_getRenderer(loadContext)->resourceManager);
+	return dsSceneSkinningData_create(
+		allocator, dsSceneLoadContext_getRenderer(loadContext)->resourceManager, resourceAllocator);
 }
 
 static void* dsSceneAnimationTree_load(const dsSceneLoadContext* loadContext,

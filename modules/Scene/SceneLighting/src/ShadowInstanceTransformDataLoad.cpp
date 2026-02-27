@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@
 extern "C"
 dsSceneInstanceData* dsShadowInstanceTransformData_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize)
+	void*, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaSceneLighting::VerifyShadowInstanceTransformDataBuffer(verifier))
@@ -96,6 +96,6 @@ dsSceneInstanceData* dsShadowInstanceTransformData_load(const dsSceneLoadContext
 	}
 
 	dsRenderer* renderer = dsSceneLoadContext_getRenderer(loadContext);
-	return dsShadowInstanceTransformData_create(allocator, resourceAllocator,
-		renderer->resourceManager, shadows, fbInstanceData->surface(), groupDesc);
+	return dsShadowInstanceTransformData_create(allocator, renderer->resourceManager,
+		resourceAllocator, shadows, fbInstanceData->surface(), groupDesc);
 }

@@ -32,12 +32,15 @@
 #include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/MaterialDesc.h>
 #include <DeepSea/Render/Resources/Shader.h>
+#include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <DeepSea/Render/Renderer.h>
 
 #include <DeepSea/Scene/ItemLists/SceneFullScreenResolve.h>
+#include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
 #include <DeepSea/Scene/ItemLists/SceneItemList.h>
+#include <DeepSea/Scene/ItemLists/ViewFramebufferData.h>
 
 #include <string.h>
 
@@ -49,6 +52,8 @@ struct dsSceneSSAO
 	dsShader* shader;
 	dsMaterial* material;
 
+	dsSceneInstanceData* viewFramebufferData;
+	dsSharedMaterialValues* instanceValues;
 	dsDrawGeometry* geometry;
 	dsGfxBuffer* randomOffsets;
 	dsTexture* randomRotations;
@@ -59,9 +64,31 @@ static void dsSceneSSAO_commit(dsSceneItemList* itemList, const dsView* view,
 {
 	DS_UNUSED(renderPassParams);
 	dsSceneSSAO* ssao = (dsSceneSSAO*)itemList;
+
+	// Set up view framebuffer data. It doesn't use actual instances, so pass none.
+	if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsSceneInstanceData_populateData(
+			ssao->viewFramebufferData, view, NULL, renderPassParams, NULL, 0)))
+	{
+		return;
+	}
+
+	// Bind the single instance. After this point, it should be fine to immediately finish it.
+	bool boundViewFramebufferData = dsSceneInstanceData_bindInstance(
+		ssao->viewFramebufferData, 0, ssao->instanceValues);
+	dsSceneInstanceData_finish(ssao->viewFramebufferData);
+	if (!boundViewFramebufferData)
+		return;
+
 	if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG,
 			dsShader_bind(ssao->shader, commandBuffer, ssao->material, view->globalValues, NULL)))
 	{
+		return;
+	}
+
+	if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_updateInstanceValues(
+			ssao->shader, commandBuffer, ssao->instanceValues)))
+	{
+		DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_unbind(ssao->shader, commandBuffer));
 		return;
 	}
 
@@ -77,7 +104,8 @@ static uint32_t dsSceneSSAO_hash(const dsSceneItemList* itemList, uint32_t commo
 	DS_ASSERT(itemList);
 	const dsSceneSSAO* ssao = (const dsSceneSSAO*)itemList;
 	const void* hashPtrs[2] = {ssao->shader, ssao->material};
-	return dsHashCombineBytes(commonHash, hashPtrs, sizeof(hashPtrs));
+	uint32_t hash = dsHashCombineBytes(commonHash, hashPtrs, sizeof(hashPtrs));
+	return dsSceneInstanceData_hash(ssao->viewFramebufferData, hash);
 }
 
 static bool dsSceneSSAO_equal(const dsSceneItemList* left, const dsSceneItemList* right)
@@ -89,7 +117,8 @@ static bool dsSceneSSAO_equal(const dsSceneItemList* left, const dsSceneItemList
 
 	const dsSceneSSAO* leftSSAO = (const dsSceneSSAO*)left;
 	const dsSceneSSAO* rightSSAO = (const dsSceneSSAO*)right;
-	return leftSSAO->shader == rightSSAO->shader && leftSSAO->material == rightSSAO->material;
+	return leftSSAO->shader == rightSSAO->shader && leftSSAO->material == rightSSAO->material &&
+		dsSceneInstanceData_equal(leftSSAO->viewFramebufferData, rightSSAO->viewFramebufferData);
 }
 
 static void dsSceneSSAO_destroy(dsSceneItemList* itemList)
@@ -97,6 +126,8 @@ static void dsSceneSSAO_destroy(dsSceneItemList* itemList)
 	DS_ASSERT(itemList);
 	dsSceneSSAO* ssao = (dsSceneSSAO*)itemList;
 
+	dsSceneInstanceData_destroy(ssao->viewFramebufferData);
+	dsSharedMaterialValues_destroy(ssao->instanceValues);
 	if (ssao->geometry)
 		dsSceneFullScreenResolve_destroyGeometry();
 	dsGfxBuffer_destroy(ssao->randomOffsets);
@@ -141,8 +172,25 @@ dsSceneSSAO* dsSceneSSAO_create(dsAllocator* allocator, dsResourceManager* resou
 	if (!resourceAllocator)
 		resourceAllocator = allocator;
 
+	const dsMaterialDesc* materialDesc = dsMaterial_getDescription(material);
+	uint32_t viewFramebufferElement = dsMaterialDesc_findElement(
+		materialDesc, dsViewFramebufferData_uniformName);
+	if (viewFramebufferElement == DS_MATERIAL_UNKNOWN ||
+		!materialDesc->elements[viewFramebufferElement].shaderVariableGroupDesc)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG,
+			"Scene SSAO material must have shader variable element for '%s'.",
+			dsViewFramebufferData_uniformName);
+		return NULL;
+	}
+
+	const dsShaderVariableGroupDesc* viewFramebufferDesc =
+		materialDesc->elements[viewFramebufferElement].shaderVariableGroupDesc;
+
 	size_t nameLen = strlen(name) + 1;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneSSAO)) + DS_ALIGNED_SIZE(nameLen);
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneSSAO)) + DS_ALIGNED_SIZE(nameLen) +
+		dsSharedMaterialValues_fullAllocSize(1);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -168,9 +216,20 @@ dsSceneSSAO* dsSceneSSAO_create(dsAllocator* allocator, dsResourceManager* resou
 	ssao->resourceAllocator = resourceAllocator;
 	ssao->shader = shader;
 	ssao->material = material;
+	ssao->viewFramebufferData = NULL;
+	ssao->instanceValues = dsSharedMaterialValues_create((dsAllocator*)&bufferAlloc, 1);
+	DS_ASSERT(ssao->instanceValues);
 	ssao->geometry = NULL;
 	ssao->randomOffsets = NULL;
 	ssao->randomRotations = NULL;
+
+	ssao->viewFramebufferData = dsViewFramebufferData_create(
+		allocator, resourceManager, resourceAllocator, viewFramebufferDesc);
+	if (!ssao->viewFramebufferData)
+	{
+		dsSceneSSAO_destroy(itemList);
+		return NULL;
+	}
 
 	ssao->geometry = dsSceneFullScreenResolve_createGeometry(resourceManager);
 	if (!ssao->geometry)

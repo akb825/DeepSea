@@ -2218,11 +2218,6 @@ struct dsRenderer
 	bool hasFragmentInputs;
 
 	/**
-	 * @brief Whether or not projected texture coordinates have an inverted T coordinate.
-	 */
-	bool projectedTexCoordTInverted;
-
-	/**
 	 * @brief Whether or not render passes require strictly all commands in separate command buffers
 	 *     when using secondary command buffers.
 	 *

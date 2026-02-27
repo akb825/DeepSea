@@ -22,12 +22,6 @@
 				"shaderVariableGroupDesc": "skinningTextureInfoDesc"
 			},
 			{
-				"name": "dsViewTransformData",
-				"type": "VariableGroup",
-				"binding": "Global",
-				"shaderVariableGroupDesc": "viewTransformDesc"
-			},
-			{
 				"name": "dsForwardLightData",
 				"type": "VariableGroup",
 				"binding": "Instance",
@@ -52,10 +46,10 @@
 		"elements":
 		[
 			{
-				"name": "dsInstanceTransformData",
+				"name": "dsShadowInstanceTransformData",
 				"type": "VariableGroup",
 				"binding": "Instance",
-				"shaderVariableGroupDesc": "instanceTransformDesc"
+				"shaderVariableGroupDesc": "shadowInstanceTransformDesc"
 			},
 			{
 				"name": "dsSkinningData",

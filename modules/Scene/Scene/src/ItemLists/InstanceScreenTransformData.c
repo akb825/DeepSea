@@ -156,7 +156,7 @@ bool dsInstanceScreenTransformData_isShaderVariableGroupCompatible(
 }
 
 dsSceneInstanceData* dsInstanceScreenTransformData_create(dsAllocator* allocator,
-	dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
 	const dsShaderVariableGroupDesc* transformDesc)
 {
 	if (!allocator || !transformDesc)
@@ -183,7 +183,7 @@ dsSceneInstanceData* dsInstanceScreenTransformData_create(dsAllocator* allocator
 	else
 #endif
 		type = &instanceVariablesType;
-	return dsSceneInstanceVariables_create(allocator, resourceAllocator, resourceManager,
+	return dsSceneInstanceVariables_create(allocator, resourceManager, resourceAllocator,
 		transformDesc, dsUniqueNameID_create(dsInstanceScreenTransformData_uniformName), type,
 		NULL);
 }

@@ -12,31 +12,15 @@
 	},
 	{
 		"type": "ShaderVariableGroupDesc",
-		"name": "viewTransformDesc",
-		"elements":
-		[
-			{"name": "view", "type": "Mat4"},
-			{"name": "camera", "type": "Mat4"},
-			{"name": "projection", "type": "Mat4"},
-			{"name": "viewProjection", "type": "Mat4"},
-			{"name": "projectionInv", "type": "Mat4"},
-			{"name": "screenProjection", "type": "Mat4"},
-			{"name": "screenProjectionInv", "type": "Mat4"},
-			{"name": "framebufferRotation", "type": "Vec4"},
-			{"name": "clipSpaceTexCoordTransform", "type": "Vec3", "count": 2},
-			{"name": "framebufferSize", "type": "IVec2"},
-			{"name": "screenSize", "type": "Vec2"}
-		]
-	},
-	{
-		"type": "ShaderVariableGroupDesc",
 		"name": "instanceTransformDesc",
 		"elements":
 		[
 			{"name": "world", "type": "Mat4"},
 			{"name": "worldView", "type": "Mat4"},
 			{"name": "worldViewInvTrans", "type": "Mat3"},
-			{"name": "worldViewProj", "type": "Mat4"}
+			{"name": "worldViewProj", "type": "Mat4"},
+			{"name": "framebufferSize", "type": "IVec4"},
+			{"name": "framebufferRotation", "type": "Vec4"}
 		]
 	},
 	{
@@ -54,12 +38,6 @@
 		"name": "cubeDesc",
 		"elements":
 		[
-			{
-				"name": "dsViewTransformData",
-				"type": "VariableGroup",
-				"binding": "Global",
-				"shaderVariableGroupDesc": "viewTransformDesc"
-			},
 			{
 				"name": "dsInstanceTransformData",
 				"type": "VariableGroup",
@@ -84,12 +62,6 @@
 		"name": "groundDesc",
 		"elements":
 		[
-			{
-				"name": "dsViewTransformData",
-				"type": "VariableGroup",
-				"binding": "Global",
-				"shaderVariableGroupDesc": "viewTransformDesc"
-			},
 			{
 				"name": "dsInstanceTransformData",
 				"type": "VariableGroup",

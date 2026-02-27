@@ -387,6 +387,12 @@ Instance screen transform data has the type name "InstanceScreenTransformData" a
 
 * `variableGroupDesc`: string name for the shader variable group to use.
 
+### View Framebuffer Data
+
+View framebuffer data has the type name "ViewFramebufferData" and sets data for the currently bound framebuffer. It contains the following members:
+
+* `variableGroupDesc`: string name for the shader variable group to use.
+
 # View
 
 The view describes the layout of surfaces and framebuffers to draw to. The JSON object (or Python dict supplied directly) has the following elements:

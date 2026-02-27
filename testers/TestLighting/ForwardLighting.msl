@@ -20,7 +20,6 @@
 
 #include <DeepSea/SceneLighting/Shaders/ForwardLights.mslh>
 #include <DeepSea/Scene/Shaders/InstanceTransform.mslh>
-#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
 
 uniform sampler2D diffuseTexture;
 sampler_state diffuseTexture
@@ -84,7 +83,7 @@ void vertexShader()
 {
 	vec4 position4 = vec4(position, 1.0);
 	gl_Position = DS_ADJUST_CLIP(INSTANCE(dsInstanceTransform).worldViewProj*position4);
-	gl_Position.xy = dsRotateFramebufferPosition(gl_Position.xy);
+	gl_Position.xy = dsInstanceTransform_rotateFramebufferPosition(gl_Position.xy);
 
 	vec4 viewPosition = INSTANCE(dsInstanceTransform).worldView*position4;
 	vfViewPosition = viewPosition.xyz;
@@ -112,8 +111,8 @@ void fragmentShader()
 	// Normalize just the original normal as a trdeoff between performance and quality.
 	normal = mat3(vfTangentTexY.xyz, vfBitangent, normalize(vfNormalTexX.xyz))*normal;
 
-	float shadowValue = dsCascadedShadowMap(mainShadows, vfViewPosition,
-		INSTANCE(dsViewTransform).clipSpaceTexCoordTransform);
+	float shadowValue = dsCascadedShadowMap(
+		mainShadows, vfViewPosition, DS_CLIP_TO_PROJ_TEX_COORDS);
 
 	vec3 viewDirection = -normalize(vfViewPosition);
 	vec3 diffuseLight, specularLight;

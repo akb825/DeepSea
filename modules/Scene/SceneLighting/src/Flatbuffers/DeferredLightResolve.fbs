@@ -45,6 +45,9 @@ table DeferredShadowLightInfo
 // Struct describing a deferred light resolve.
 table DeferredLightResolve
 {
+	// Name of the shader variable group description for dsViewFramebufferData.
+	viewFramebufferDesc : string (required);
+
 	// Name of the light set to get the lights from.
 	lightSet : string (required);
 

@@ -190,7 +190,7 @@ static dsSceneInstanceVariablesType instanceVariablesType =
 };
 
 dsSceneInstanceData* dsInstanceForwardLightData_create(dsAllocator* allocator,
-	dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
 	const dsShaderVariableGroupDesc* lightDesc, const dsSceneLightSet* lightSet)
 {
 	if (!allocator || !lightDesc || !lightSet)
@@ -208,7 +208,7 @@ dsSceneInstanceData* dsInstanceForwardLightData_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	return dsSceneInstanceVariables_create(allocator, resourceAllocator, resourceManager, lightDesc,
+	return dsSceneInstanceVariables_create(allocator, resourceManager, resourceAllocator, lightDesc,
 		dsUniqueNameID_create(dsInstanceForwardLightData_uniformName), &instanceVariablesType,
 		(void*)lightSet);
 }

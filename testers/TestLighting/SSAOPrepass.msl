@@ -16,7 +16,6 @@
 
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
 #include <DeepSea/Scene/Shaders/InstanceTransform.mslh>
-#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
 
 [[vertex]] layout(location = DS_POSITION) in vec3 position;
 [[vertex]] layout(location = DS_NORMAL) in vec3 normal;
@@ -33,7 +32,7 @@ void vertexShader()
 {
 	vec4 position4 = vec4(position, 1.0);
 	gl_Position = DS_ADJUST_CLIP(INSTANCE(dsInstanceTransform).worldViewProj*position4);
-	gl_Position.xy = dsRotateFramebufferPosition(gl_Position.xy);
+	gl_Position.xy = dsInstanceTransform_rotateFramebufferPosition(gl_Position.xy);
 
 	vec3 fixedNormal = normal*2.0 - vec3(1.0);
 	vfNormal = (INSTANCE(dsInstanceTransform).worldViewInvTrans*fixedNormal).xy;

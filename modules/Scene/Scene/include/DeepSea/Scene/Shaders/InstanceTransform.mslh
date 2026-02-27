@@ -16,9 +16,14 @@
 
 #pragma once
 
+#include <DeepSea/Render/Shaders/CoordinateHelpers.mslh>
+
 /**
  * @file
- * @brief Uniforms for instance transform matrices.
+ * @brief Uniforms and functions for instance transform matrices.
+ *
+ * This includes the values from dsViewFramebuffer to avoid managing the variables separately when
+ * they are almost always required with the instance transforms.
  */
 
 uniform dsInstanceTransformData
@@ -42,4 +47,59 @@ uniform dsInstanceTransformData
 	 * @brief The world view projection matrix, transforming from local to clip space.
 	 */
 	mat4 worldViewProj;
+
+	/**
+	 * @brief The size of the framebuffer in pixels.
+	 *
+	 * The first two values are the width and height for the logical size, before client rotation,
+	 * while the next two values are the width and height for the real size, after client rotation.
+	 */
+	ivec4 framebufferSize;
+
+	/**
+	 * @brief The rotation of the framebuffer to apply for client rotations.
+	 *
+	 * This is a mat22 packed into a vec4 to avoid extra padding.
+	 */
+	vec4 framebufferRotation;
 } dsInstanceTransform;
+
+/**
+ * @brief Rotates the framebuffer position.
+ *
+ * This handles the rotation for render surfaces with client rotations enabled.
+ *
+ * @param pos The xy position of the framebuffer in normalized [-1, 1] coordinates.
+ * @return The rotated position.
+ */
+vec2 dsInstanceTransform_rotateFramebufferPosition(vec2 pos)
+{
+	return mat2(INSTANCE(dsInstanceTransform).framebufferRotation.xy,
+		INSTANCE(dsInstanceTransform).framebufferRotation.zw)*pos;
+}
+
+/**
+ * @brief Undoes rotation to the framebuffer position.
+ *
+ * This handles the rotation for render surfaces with client rotations enabled, going from rotated
+ * coordinates back to their logical value.
+ *
+ * @param pos The xy position of the framebuffer in normalized [-1, 1] coordinates.
+ * @return The rotated position.
+ */
+vec2 dsInstanceTransform_unrotateFramebufferPosition(vec2 pos)
+{
+	return pos*mat2(INSTANCE(dsInstanceTransform).framebufferRotation.xy,
+		INSTANCE(dsInstanceTransform).framebufferRotation.zw);
+}
+
+/**
+ * @brief Gets the framebuffer clip position for the current pixel.
+ * @return The framebuffer clip position.
+ */
+[[fragment]]
+vec2 dsInstanceTransform_framebufferToClip()
+{
+	vec2 clip = dsFramebufferToClip(vec2(INSTANCE(dsInstanceTransform).framebufferSize.zw));
+	return dsInstanceTransform_unrotateFramebufferPosition(clip);
+}

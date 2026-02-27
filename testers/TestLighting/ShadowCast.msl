@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2025 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
-#include <DeepSea/Scene/Shaders/InstanceTransform.mslh>
+#include <DeepSea/SceneLighting/Shaders/ShadowInstanceTransform.mslh>
 
 [[vertex]] layout(location = DS_POSITION) in vec3 position;
 
@@ -23,7 +23,7 @@
 void vertexShader()
 {
 	vec4 position4 = vec4(position, 1.0);
-	gl_Position = DS_ADJUST_CLIP(INSTANCE(dsInstanceTransform).worldViewProj*position4);
+	gl_Position = DS_ADJUST_CLIP(INSTANCE(dsShadowInstanceTransform).worldViewProj*position4);
 }
 
 [[fragment]]
