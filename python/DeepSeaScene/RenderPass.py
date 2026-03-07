@@ -129,6 +129,12 @@ def RenderPassStartAttachmentsVector(builder, numElems):
 def StartAttachmentsVector(builder, numElems):
     return RenderPassStartAttachmentsVector(builder, numElems)
 
+def RenderPassCreateAttachmentsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateAttachmentsVector(builder, data):
+    RenderPassCreateAttachmentsVector(builder, data)
+
 def RenderPassAddSubpasses(builder, subpasses):
     builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(subpasses), 0)
 
@@ -141,6 +147,12 @@ def RenderPassStartSubpassesVector(builder, numElems):
 def StartSubpassesVector(builder, numElems):
     return RenderPassStartSubpassesVector(builder, numElems)
 
+def RenderPassCreateSubpassesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateSubpassesVector(builder, data):
+    RenderPassCreateSubpassesVector(builder, data)
+
 def RenderPassAddDependencies(builder, dependencies):
     builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(dependencies), 0)
 
@@ -152,6 +164,16 @@ def RenderPassStartDependenciesVector(builder, numElems):
 
 def StartDependenciesVector(builder, numElems):
     return RenderPassStartDependenciesVector(builder, numElems)
+
+def RenderPassCreateDependenciesVector(builder, data):
+    data = list(data)
+    builder.StartVector(28, len(data), 4)
+    for item in reversed(data):
+        item.Pack(builder)
+    return builder.EndVector()
+
+def CreateDependenciesVector(builder, data):
+    RenderPassCreateDependenciesVector(builder, data)
 
 def RenderPassEnd(builder):
     return builder.EndObject()

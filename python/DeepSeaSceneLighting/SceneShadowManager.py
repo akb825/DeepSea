@@ -67,6 +67,12 @@ def SceneShadowManagerStartShadowsVector(builder, numElems):
 def StartShadowsVector(builder, numElems):
     return SceneShadowManagerStartShadowsVector(builder, numElems)
 
+def SceneShadowManagerCreateShadowsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateShadowsVector(builder, data):
+    SceneShadowManagerCreateShadowsVector(builder, data)
+
 def SceneShadowManagerEnd(builder):
     return builder.EndObject()
 

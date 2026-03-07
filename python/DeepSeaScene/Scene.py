@@ -112,6 +112,12 @@ def SceneStartSharedItemsVector(builder, numElems):
 def StartSharedItemsVector(builder, numElems):
     return SceneStartSharedItemsVector(builder, numElems)
 
+def SceneCreateSharedItemsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateSharedItemsVector(builder, data):
+    SceneCreateSharedItemsVector(builder, data)
+
 def SceneAddPipeline(builder, pipeline):
     builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(pipeline), 0)
 
@@ -124,6 +130,12 @@ def SceneStartPipelineVector(builder, numElems):
 def StartPipelineVector(builder, numElems):
     return SceneStartPipelineVector(builder, numElems)
 
+def SceneCreatePipelineVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreatePipelineVector(builder, data):
+    SceneCreatePipelineVector(builder, data)
+
 def SceneAddNodes(builder, nodes):
     builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(nodes), 0)
 
@@ -135,6 +147,12 @@ def SceneStartNodesVector(builder, numElems):
 
 def StartNodesVector(builder, numElems):
     return SceneStartNodesVector(builder, numElems)
+
+def SceneCreateNodesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateNodesVector(builder, data):
+    SceneCreateNodesVector(builder, data)
 
 def SceneEnd(builder):
     return builder.EndObject()

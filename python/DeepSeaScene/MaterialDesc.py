@@ -80,6 +80,12 @@ def MaterialDescStartElementsVector(builder, numElems):
 def StartElementsVector(builder, numElems):
     return MaterialDescStartElementsVector(builder, numElems)
 
+def MaterialDescCreateElementsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateElementsVector(builder, data):
+    MaterialDescCreateElementsVector(builder, data)
+
 def MaterialDescEnd(builder):
     return builder.EndObject()
 

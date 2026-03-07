@@ -83,6 +83,16 @@ def ConvexHullStartVerticesVector(builder, numElems):
 def StartVerticesVector(builder, numElems):
     return ConvexHullStartVerticesVector(builder, numElems)
 
+def ConvexHullCreateVerticesVector(builder, data):
+    data = list(data)
+    builder.StartVector(4, len(data), 4)
+    for item in reversed(data):
+        builder.PrependFloat32(item)
+    return builder.EndVector()
+
+def CreateVerticesVector(builder, data):
+    ConvexHullCreateVerticesVector(builder, data)
+
 def ConvexHullAddConvexRadius(builder, convexRadius):
     builder.PrependFloat32Slot(1, convexRadius, -1.0)
 

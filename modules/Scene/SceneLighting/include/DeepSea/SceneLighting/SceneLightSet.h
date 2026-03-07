@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,8 @@ DS_SCENELIGHTING_EXPORT dsSceneLightSet* dsSceneLightSet_create(dsAllocator* all
  * @brief Creates a custom resource to wrap a dsSceneLightSet.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the custom resource.
- * @param lightSet The light set to wrap.
+ * @param lightSet The light set to wrap. This will take ownership of the light set and destroy it
+ *     if creation fails.
  * @return The custom resource or NULL if an error occurred.
  */
 DS_SCENELIGHTING_EXPORT dsCustomSceneResource* dsSceneLightSet_createResource(
@@ -94,8 +95,8 @@ DS_SCENELIGHTING_EXPORT uint32_t dsSceneLightSet_getRemainingLights(
  * @return The added light or NULL if an error occurred. It is expected that the caller immediately
  *     populate the light values after this call.
  */
-DS_SCENELIGHTING_EXPORT dsSceneLight* dsSceneLightSet_addLightName(dsSceneLightSet* lightSet,
-	const char* name);
+DS_SCENELIGHTING_EXPORT dsSceneLight* dsSceneLightSet_addLightName(
+	dsSceneLightSet* lightSet, const char* name);
 
 /**
  * @brief Adds a light by name ID.
@@ -105,8 +106,8 @@ DS_SCENELIGHTING_EXPORT dsSceneLight* dsSceneLightSet_addLightName(dsSceneLightS
  * @return The added light or NULL if an error occurred. It is expected that the caller immediately
  *     populate the light values after this call.
  */
-DS_SCENELIGHTING_EXPORT dsSceneLight* dsSceneLightSet_addLightID(dsSceneLightSet* lightSet,
-	uint32_t nameID);
+DS_SCENELIGHTING_EXPORT dsSceneLight* dsSceneLightSet_addLightID(
+	dsSceneLightSet* lightSet, uint32_t nameID);
 
 /**
  * @brief Finds a previously added light by name.
@@ -114,8 +115,8 @@ DS_SCENELIGHTING_EXPORT dsSceneLight* dsSceneLightSet_addLightID(dsSceneLightSet
  * @param name The name of the light.
  * @return The found light or NULL if not found.
  */
-DS_SCENELIGHTING_EXPORT dsSceneLight* dsSceneLightSet_findLightName(const dsSceneLightSet* lightSet,
-	const char* name);
+DS_SCENELIGHTING_EXPORT dsSceneLight* dsSceneLightSet_findLightName(
+	const dsSceneLightSet* lightSet, const char* name);
 
 /**
  * @brief Finds a previously added light by name ID.
@@ -123,8 +124,8 @@ DS_SCENELIGHTING_EXPORT dsSceneLight* dsSceneLightSet_findLightName(const dsScen
  * @param nameID The hash of the name of the light.
  * @return The found light or NULL if not found.
  */
-DS_SCENELIGHTING_EXPORT dsSceneLight* dsSceneLightSet_findLightID(const dsSceneLightSet* lightSet,
-	uint32_t nameID);
+DS_SCENELIGHTING_EXPORT dsSceneLight* dsSceneLightSet_findLightID(
+	const dsSceneLightSet* lightSet, uint32_t nameID);
 
 /**
  * @brief Removes a previously added light by pointer.
@@ -132,8 +133,8 @@ DS_SCENELIGHTING_EXPORT dsSceneLight* dsSceneLightSet_findLightID(const dsSceneL
  * @param light The light to remove.
  * @return False if the light isn't present in the light set.
  */
-DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_removeLight(dsSceneLightSet* lightSet,
-	const dsSceneLight* light);
+DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_removeLight(
+	dsSceneLightSet* lightSet, const dsSceneLight* light);
 
 /**
  * @brief Removes a previously added light by name.
@@ -141,8 +142,8 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_removeLight(dsSceneLightSet* lightS
  * @param name The name of the light.
  * @return False if the light isn't present in the light set.
  */
-DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_removeLightName(dsSceneLightSet* lightSet,
-	const char* name);
+DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_removeLightName(
+	dsSceneLightSet* lightSet, const char* name);
 
 /**
  * @brief Removes a previously added light by name.
@@ -150,8 +151,8 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_removeLightName(dsSceneLightSet* li
  * @param nameID The hash of the name of the light.
  * @return False if the light isn't present in the light set.
  */
-DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_removeLightID(dsSceneLightSet* lightSet,
-	uint32_t nameID);
+DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_removeLightID(
+	dsSceneLightSet* lightSet, uint32_t nameID);
 
 /**
  * @brief Gets the ID for the main light.
@@ -167,8 +168,8 @@ DS_SCENELIGHTING_EXPORT uint32_t dsSceneLightSet_getMainLightID(const dsSceneLig
  * @param name The name of the main light, or NULL to set no main light.
  * @return False if the parameters are invalid.
  */
-DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_setMainLightName(dsSceneLightSet* lightSet,
-	const char* name);
+DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_setMainLightName(
+	dsSceneLightSet* lightSet, const char* name);
 
 /**
  * @brief Sets the ID for the main light.
@@ -177,8 +178,8 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_setMainLightName(dsSceneLightSet* l
  * @param name*D The ID of the main light, or 0 to set no main light.
  * @return False if the parameters are invalid.
  */
-DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_setMainLightID(dsSceneLightSet* lightSet,
-	uint32_t nameID);
+DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_setMainLightID(
+	dsSceneLightSet* lightSet, uint32_t nameID);
 
 /**
  * @brief Clears all the lights a light set.
@@ -204,8 +205,8 @@ DS_SCENELIGHTING_EXPORT const dsColor3f* dsSceneLightSet_getAmbientColor(
  * @param color The ambient color.
  * @return False if the parameters are invalid.
  */
-DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_setAmbientColor(dsSceneLightSet* lightSet,
-	const dsColor3f* color);
+DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_setAmbientColor(
+	dsSceneLightSet* lightSet, const dsColor3f* color);
 
 /**
  * @brief Gets the ambient color for the light set.
@@ -221,8 +222,8 @@ DS_SCENELIGHTING_EXPORT float dsSceneLightSet_getAmbientIntensity(const dsSceneL
  * @param ambientColor The ambient intensity.
  * @return False if the parameters are invalid.
  */
-DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_setAmbientIntensity(dsSceneLightSet* lightSet,
-	float intensity);
+DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_setAmbientIntensity(
+	dsSceneLightSet* lightSet, float intensity);
 
 /**
  * @brief Gets the ambient factor for the light set.
@@ -231,8 +232,8 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_setAmbientIntensity(dsSceneLightSet
  * @param lightSet The light set.
  * @return False if the parameters are invalid.
  */
-DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_getAmbient(dsColor3f* outAmbient,
-	const dsSceneLightSet* lightSet);
+DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_getAmbient(
+	dsColor3f* outAmbient, const dsSceneLightSet* lightSet);
 
 /**
  * @brief Sets the ambient color and intensity for the light set.
@@ -242,8 +243,8 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_getAmbient(dsColor3f* outAmbient,
  * @param intensity The ambient intensity.
  * @return False if the parameters are invalid.
  */
-DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_setAmbient(dsSceneLightSet* lightSet,
-	const dsColor3f* color, float intensity);
+DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_setAmbient(
+	dsSceneLightSet* lightSet, const dsColor3f* color, float intensity);
 
 /**
  * @brief Prepares the light set for operations searching for lights.
@@ -253,8 +254,8 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_setAmbient(dsSceneLightSet* lightSe
  *     must be > 0. Use DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD for the default value.
  * @return False if an error occurred.
  */
-DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_prepare(dsSceneLightSet* lightSet,
-	float intensityThreshold);
+DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_prepare(
+	dsSceneLightSet* lightSet, float intensityThreshold);
 
 /**
  * @brief Gets the intensity threshold used in the last call to dsSceneLightSet_prepare().

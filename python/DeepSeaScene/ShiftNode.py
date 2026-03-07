@@ -104,6 +104,12 @@ def ShiftNodeStartChildrenVector(builder, numElems):
 def StartChildrenVector(builder, numElems):
     return ShiftNodeStartChildrenVector(builder, numElems)
 
+def ShiftNodeCreateChildrenVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateChildrenVector(builder, data):
+    ShiftNodeCreateChildrenVector(builder, data)
+
 def ShiftNodeAddItemLists(builder, itemLists):
     builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
 
@@ -115,6 +121,12 @@ def ShiftNodeStartItemListsVector(builder, numElems):
 
 def StartItemListsVector(builder, numElems):
     return ShiftNodeStartItemListsVector(builder, numElems)
+
+def ShiftNodeCreateItemListsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateItemListsVector(builder, data):
+    ShiftNodeCreateItemListsVector(builder, data)
 
 def ShiftNodeEnd(builder):
     return builder.EndObject()

@@ -125,6 +125,12 @@ def ModelListStartInstanceDataVector(builder, numElems):
 def StartInstanceDataVector(builder, numElems):
     return ModelListStartInstanceDataVector(builder, numElems)
 
+def ModelListCreateInstanceDataVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateInstanceDataVector(builder, data):
+    ModelListCreateInstanceDataVector(builder, data)
+
 def ModelListAddSortType(builder, sortType):
     builder.PrependUint8Slot(1, sortType, 0)
 
@@ -149,6 +155,12 @@ def ModelListStartCullListsVector(builder, numElems):
 def StartCullListsVector(builder, numElems):
     return ModelListStartCullListsVector(builder, numElems)
 
+def ModelListCreateCullListsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateCullListsVector(builder, data):
+    ModelListCreateCullListsVector(builder, data)
+
 def ModelListAddViews(builder, views):
     builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(views), 0)
 
@@ -160,6 +172,12 @@ def ModelListStartViewsVector(builder, numElems):
 
 def StartViewsVector(builder, numElems):
     return ModelListStartViewsVector(builder, numElems)
+
+def ModelListCreateViewsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateViewsVector(builder, data):
+    ModelListCreateViewsVector(builder, data)
 
 def ModelListEnd(builder):
     return builder.EndObject()

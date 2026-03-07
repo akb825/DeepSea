@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,13 +38,17 @@ dsCustomSceneResource* dsSceneAnimationTree_create(dsAllocator* allocator, dsAni
 {
 	if (!allocator || !tree)
 	{
+		dsAnimationTree_destroy(tree);
 		errno = EINVAL;
 		return NULL;
 	}
 
 	dsCustomSceneResource* customResource = DS_ALLOCATE_OBJECT(allocator, dsCustomSceneResource);
 	if (!customResource)
+	{
+		dsAnimationTree_destroy(tree);
 		return NULL;
+	}
 
 	customResource->allocator = dsAllocator_keepPointer(allocator);
 	customResource->type = &resourceType;

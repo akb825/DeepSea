@@ -97,6 +97,16 @@ def ConstraintStartConstraintVector(builder, numElems):
 def StartConstraintVector(builder, numElems):
     return ConstraintStartConstraintVector(builder, numElems)
 
+def ConstraintCreateConstraintVector(builder, data):
+    data = list(data)
+    builder.StartVector(1, len(data), 1)
+    for item in reversed(data):
+        builder.PrependUint8(item)
+    return builder.EndVector()
+
+def CreateConstraintVector(builder, data):
+    ConstraintCreateConstraintVector(builder, data)
+
 def ConstraintAddFirstRigidBodyInstance(builder, firstRigidBodyInstance):
     builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(firstRigidBodyInstance), 0)
 

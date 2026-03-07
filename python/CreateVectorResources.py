@@ -351,7 +351,10 @@ class VectorResources:
 			except KeyError as e:
 				raise Exception("Vector resource image doesn't contain element " + str(e) + '.')
 
-			vectorImageBytes = convertSVG(os.path.join(self.basePath, path), name, defaultFont)
+			try:
+				vectorImageBytes = convertSVG(os.path.join(self.basePath, path), name, defaultFont)
+			except Exception as e:
+				raise Exception('Error converting SVG "' + imagePath + '": ' + str(e))
 			if vectorImage.get('embed') or not resourceDir:
 				outputName = None
 			else:

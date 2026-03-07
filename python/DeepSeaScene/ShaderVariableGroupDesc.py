@@ -80,6 +80,12 @@ def ShaderVariableGroupDescStartElementsVector(builder, numElems):
 def StartElementsVector(builder, numElems):
     return ShaderVariableGroupDescStartElementsVector(builder, numElems)
 
+def ShaderVariableGroupDescCreateElementsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateElementsVector(builder, data):
+    ShaderVariableGroupDescCreateElementsVector(builder, data)
+
 def ShaderVariableGroupDescEnd(builder):
     return builder.EndObject()
 

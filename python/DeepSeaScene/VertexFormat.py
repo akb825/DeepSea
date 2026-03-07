@@ -73,6 +73,16 @@ def VertexFormatStartAttributesVector(builder, numElems):
 def StartAttributesVector(builder, numElems):
     return VertexFormatStartAttributesVector(builder, numElems)
 
+def VertexFormatCreateAttributesVector(builder, data):
+    data = list(data)
+    builder.StartVector(8, len(data), 4)
+    for item in reversed(data):
+        item.Pack(builder)
+    return builder.EndVector()
+
+def CreateAttributesVector(builder, data):
+    VertexFormatCreateAttributesVector(builder, data)
+
 def VertexFormatAddInstanced(builder, instanced):
     builder.PrependBoolSlot(1, instanced, 0)
 

@@ -100,6 +100,12 @@ def AnimationNodeStartChildrenVector(builder, numElems):
 def StartChildrenVector(builder, numElems):
     return AnimationNodeStartChildrenVector(builder, numElems)
 
+def AnimationNodeCreateChildrenVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateChildrenVector(builder, data):
+    AnimationNodeCreateChildrenVector(builder, data)
+
 def AnimationNodeAddItemLists(builder, itemLists):
     builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
 
@@ -111,6 +117,12 @@ def AnimationNodeStartItemListsVector(builder, numElems):
 
 def StartItemListsVector(builder, numElems):
     return AnimationNodeStartItemListsVector(builder, numElems)
+
+def AnimationNodeCreateItemListsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateItemListsVector(builder, data):
+    AnimationNodeCreateItemListsVector(builder, data)
 
 def AnimationNodeEnd(builder):
     return builder.EndObject()

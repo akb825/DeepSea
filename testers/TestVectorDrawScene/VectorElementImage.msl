@@ -15,19 +15,25 @@
  */
 
 #include <DeepSea/Scene/Shaders/ViewFramebuffer.mslh>
+#if DISCARD_BOUNDS
 #include <DeepSea/SceneVectorDraw/Shaders/InstanceDiscardBounds.mslh>
+#endif
 #include <DeepSea/VectorDraw/Shaders/VectorElementImage.mslh>
 
+#if DISCARD_BOUNDS
 varying(vertex, fragment)
 {
 	vec2 vfDiscardPos;
 }
+#endif
 
 [[vertex]]
 void vectorImageVertex()
 {
 	gl_Position = dsVectorElementImage_getVectorInfo();
+#if DISCARD_BOUNDS
 	vfDiscardPos = dsInstanceDiscardBounds_toDiscardSpace(gl_Position.xyz);
+#endif
 	gl_Position.xy = dsViewFramebuffer_rotateFramebufferPosition(gl_Position.xy);
 	gl_Position = DS_ADJUST_CLIP(gl_Position);
 }
@@ -35,7 +41,9 @@ void vectorImageVertex()
 [[fragment]]
 void vectorImageFragment()
 {
+#if DISCARD_BOUNDS
 	dsInstanceDiscardBounds_clip(vfDiscardPos);
+#endif
 	dsVectorElementImage_defaultFragment();
 }
 

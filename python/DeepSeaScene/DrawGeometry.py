@@ -91,6 +91,12 @@ def DrawGeometryStartVertexBuffersVector(builder, numElems):
 def StartVertexBuffersVector(builder, numElems):
     return DrawGeometryStartVertexBuffersVector(builder, numElems)
 
+def DrawGeometryCreateVertexBuffersVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateVertexBuffersVector(builder, data):
+    DrawGeometryCreateVertexBuffersVector(builder, data)
+
 def DrawGeometryAddIndexBuffer(builder, indexBuffer):
     builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(indexBuffer), 0)
 

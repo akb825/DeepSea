@@ -69,6 +69,16 @@ def RawDataStartDataVector(builder, numElems):
 def StartDataVector(builder, numElems):
     return RawDataStartDataVector(builder, numElems)
 
+def RawDataCreateDataVector(builder, data):
+    data = list(data)
+    builder.StartVector(1, len(data), 1)
+    for item in reversed(data):
+        builder.PrependUint8(item)
+    return builder.EndVector()
+
+def CreateDataVector(builder, data):
+    RawDataCreateDataVector(builder, data)
+
 def RawDataEnd(builder):
     return builder.EndObject()
 

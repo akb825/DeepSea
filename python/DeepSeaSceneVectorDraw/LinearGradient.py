@@ -144,6 +144,12 @@ def LinearGradientStartStopsVector(builder, numElems):
 def StartStopsVector(builder, numElems):
     return LinearGradientStartStopsVector(builder, numElems)
 
+def LinearGradientCreateStopsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateStopsVector(builder, data):
+    LinearGradientCreateStopsVector(builder, data)
+
 def LinearGradientEnd(builder):
     return builder.EndObject()
 

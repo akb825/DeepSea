@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,13 +33,17 @@ dsCustomSceneResource* dsSceneVectorResources_create(dsAllocator* allocator,
 {
 	if (!allocator || !resources)
 	{
+		dsVectorResources_destroy(resources);
 		errno = EINVAL;
 		return NULL;
 	}
 
 	dsCustomSceneResource* customResource = DS_ALLOCATE_OBJECT(allocator, dsCustomSceneResource);
 	if (!customResource)
+	{
+		dsVectorResources_destroy(resources);
 		return NULL;
+	}
 
 	customResource->allocator = dsAllocator_keepPointer(allocator);
 	customResource->type = &resourceType;

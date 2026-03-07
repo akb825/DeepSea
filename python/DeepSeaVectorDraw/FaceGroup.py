@@ -67,6 +67,12 @@ def FaceGroupStartFacesVector(builder, numElems):
 def StartFacesVector(builder, numElems):
     return FaceGroupStartFacesVector(builder, numElems)
 
+def FaceGroupCreateFacesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateFacesVector(builder, data):
+    FaceGroupCreateFacesVector(builder, data)
+
 def FaceGroupEnd(builder):
     return builder.EndObject()
 

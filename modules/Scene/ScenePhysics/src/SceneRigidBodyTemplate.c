@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,21 +28,27 @@ const dsCustomSceneResourceType* dsSceneRigidBodyTemplate_type(void)
 	return &resourceType;
 }
 
-dsCustomSceneResource* dsSceneRigidBodyTemplate_create(dsAllocator* allocator, dsRigidBodyTemplate* rigidBodyTemplate)
+dsCustomSceneResource* dsSceneRigidBodyTemplate_create(
+	dsAllocator* allocator, dsRigidBodyTemplate* rigidBodyTemplate)
 {
 	if (!allocator || !rigidBodyTemplate)
 	{
+		dsRigidBodyTemplate_destroy(rigidBodyTemplate);
 		errno = EINVAL;
 		return NULL;
 	}
 
 	dsCustomSceneResource* customResource = DS_ALLOCATE_OBJECT(allocator, dsCustomSceneResource);
 	if (!customResource)
+	{
+		dsRigidBodyTemplate_destroy(rigidBodyTemplate);
 		return NULL;
+	}
 
 	customResource->allocator = dsAllocator_keepPointer(allocator);
 	customResource->type = &resourceType;
 	customResource->resource = rigidBodyTemplate;
-	customResource->destroyFunc = (dsDestroyCustomSceneResourceFunction)&dsRigidBodyTemplate_destroy;
+	customResource->destroyFunc =
+		(dsDestroyCustomSceneResourceFunction)&dsRigidBodyTemplate_destroy;
 	return customResource;
 }

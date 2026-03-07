@@ -117,6 +117,12 @@ def LightNodeStartItemListsVector(builder, numElems):
 def StartItemListsVector(builder, numElems):
     return LightNodeStartItemListsVector(builder, numElems)
 
+def LightNodeCreateItemListsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateItemListsVector(builder, data):
+    LightNodeCreateItemListsVector(builder, data)
+
 def LightNodeEnd(builder):
     return builder.EndObject()
 

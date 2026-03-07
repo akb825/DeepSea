@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -230,18 +230,22 @@ dsSceneLightSet* dsSceneLightSet_create(dsAllocator* allocator, uint32_t maxLigh
 	return lightSet;
 }
 
-dsCustomSceneResource* dsSceneLightSet_createResource(dsAllocator* allocator,
-	dsSceneLightSet* lightSet)
+dsCustomSceneResource* dsSceneLightSet_createResource(
+	dsAllocator* allocator, dsSceneLightSet* lightSet)
 {
 	if (!allocator || !lightSet)
 	{
+		dsSceneLightSet_destroy(lightSet);
 		errno = EINVAL;
 		return NULL;
 	}
 
 	dsCustomSceneResource* customResource = DS_ALLOCATE_OBJECT(allocator, dsCustomSceneResource);
 	if (!customResource)
+	{
+		dsSceneLightSet_destroy(lightSet);
 		return NULL;
+	}
 
 	customResource->allocator = dsAllocator_keepPointer(allocator);
 	customResource->type = &resourceType;

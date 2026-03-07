@@ -78,8 +78,8 @@ static void* dsSceneAnimationTree_load(const dsSceneLoadContext* loadContext,
 	DS_UNUSED(openRelativePathStreamFunc);
 	DS_UNUSED(closeRelativePathStreamFunc);
 
-	return dsAnimationTree_loadData(allocator, dsSceneLoadScratchData_getAllocator(scratchData),
-		data, dataSize);
+	return dsAnimationTree_loadData(
+		allocator, dsSceneLoadScratchData_getAllocator(scratchData), data, dataSize);
 }
 
 static bool dsSceneAnimationTree_destroyResource(void* resource)
@@ -126,8 +126,8 @@ static void* dsSceneDirectAnimation_load(const dsSceneLoadContext* loadContext,
 	DS_UNUSED(openRelativePathStreamFunc);
 	DS_UNUSED(closeRelativePathStreamFunc);
 
-	return dsDirectAnimation_loadData(allocator, dsSceneLoadScratchData_getAllocator(scratchData),
-		data, dataSize);
+	return dsDirectAnimation_loadData(
+		allocator, dsSceneLoadScratchData_getAllocator(scratchData), data, dataSize);
 }
 
 static bool dsSceneDirectAnimation_destroyResource(void* resource)
@@ -149,8 +149,8 @@ static void* dsSceneKeyframeAnimation_load(const dsSceneLoadContext* loadContext
 	DS_UNUSED(openRelativePathStreamFunc);
 	DS_UNUSED(closeRelativePathStreamFunc);
 
-	return dsKeyframeAnimation_loadData(allocator, dsSceneLoadScratchData_getAllocator(scratchData),
-		data, dataSize);
+	return dsKeyframeAnimation_loadData(
+		allocator, dsSceneLoadScratchData_getAllocator(scratchData), data, dataSize);
 }
 
 static bool dsSceneKeyframeAnimation_destroyResource(void* resource)

@@ -145,6 +145,16 @@ def TextNodeStartEmbeddedResourcesVector(builder, numElems):
 def StartEmbeddedResourcesVector(builder, numElems):
     return TextNodeStartEmbeddedResourcesVector(builder, numElems)
 
+def TextNodeCreateEmbeddedResourcesVector(builder, data):
+    data = list(data)
+    builder.StartVector(1, len(data), 1)
+    for item in reversed(data):
+        builder.PrependUint8(item)
+    return builder.EndVector()
+
+def CreateEmbeddedResourcesVector(builder, data):
+    TextNodeCreateEmbeddedResourcesVector(builder, data)
+
 def TextNodeAddText(builder, text):
     builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(text), 0)
 
@@ -204,6 +214,12 @@ def TextNodeStartItemListsVector(builder, numElems):
 
 def StartItemListsVector(builder, numElems):
     return TextNodeStartItemListsVector(builder, numElems)
+
+def TextNodeCreateItemListsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateItemListsVector(builder, data):
+    TextNodeCreateItemListsVector(builder, data)
 
 def TextNodeEnd(builder):
     return builder.EndObject()

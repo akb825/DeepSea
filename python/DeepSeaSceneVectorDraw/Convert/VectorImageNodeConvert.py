@@ -28,7 +28,6 @@ def convertVectorImageNode(convertContext, data, inputDir, outputDir):
 	- size: the size to draw the vector image as an array of two floats. Defaults to the original
 	  image size.
 	- z: the Z value used for sorting text and vector elements as a signed int.
-	- vectorShaders: the name of the vector shaders to draw with.
 	- itemLists: array of item list names to add the node to.
 	"""
 	def readInt(value, name):
@@ -54,7 +53,6 @@ def convertVectorImageNode(convertContext, data, inputDir, outputDir):
 
 		vectorImage = str(data['vectorImage'])
 		z = readInt(data['z'], 'z')
-		vectorShaders = str(data['vectorShaders'])
 		itemLists = data.get('itemLists')
 	except (TypeError, ValueError):
 		raise Exception('VectorImageNode data must be an object.')
@@ -70,7 +68,6 @@ def convertVectorImageNode(convertContext, data, inputDir, outputDir):
 		embeddedResourcesOffset = 0
 
 	vectorImageOffset = builder.CreateString(vectorImage)
-	vectorShadersOffset = builder.CreateString(vectorShaders)
 
 	if itemLists:
 		itemListOffsets = []
@@ -98,7 +95,6 @@ def convertVectorImageNode(convertContext, data, inputDir, outputDir):
 	VectorImageNode.AddSize(builder, sizeOffset)
 
 	VectorImageNode.AddZ(builder, z)
-	VectorImageNode.AddVectorShaders(builder, vectorShadersOffset)
 	VectorImageNode.AddItemLists(builder, itemListsOffset)
 	builder.Finish(VectorImageNode.End(builder))
 	return builder.Output()

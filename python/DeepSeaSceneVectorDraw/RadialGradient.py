@@ -170,6 +170,12 @@ def RadialGradientStartStopsVector(builder, numElems):
 def StartStopsVector(builder, numElems):
     return RadialGradientStartStopsVector(builder, numElems)
 
+def RadialGradientCreateStopsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateStopsVector(builder, data):
+    RadialGradientCreateStopsVector(builder, data)
+
 def RadialGradientEnd(builder):
     return builder.EndObject()
 

@@ -80,6 +80,12 @@ def ModelNodeRemapStartMaterialRemapsVector(builder, numElems):
 def StartMaterialRemapsVector(builder, numElems):
     return ModelNodeRemapStartMaterialRemapsVector(builder, numElems)
 
+def ModelNodeRemapCreateMaterialRemapsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateMaterialRemapsVector(builder, data):
+    ModelNodeRemapCreateMaterialRemapsVector(builder, data)
+
 def ModelNodeRemapEnd(builder):
     return builder.EndObject()
 

@@ -100,6 +100,12 @@ def RigidBodyNodeStartChildrenVector(builder, numElems):
 def StartChildrenVector(builder, numElems):
     return RigidBodyNodeStartChildrenVector(builder, numElems)
 
+def RigidBodyNodeCreateChildrenVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateChildrenVector(builder, data):
+    RigidBodyNodeCreateChildrenVector(builder, data)
+
 def RigidBodyNodeAddItemLists(builder, itemLists):
     builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
 
@@ -111,6 +117,12 @@ def RigidBodyNodeStartItemListsVector(builder, numElems):
 
 def StartItemListsVector(builder, numElems):
     return RigidBodyNodeStartItemListsVector(builder, numElems)
+
+def RigidBodyNodeCreateItemListsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateItemListsVector(builder, data):
+    RigidBodyNodeCreateItemListsVector(builder, data)
 
 def RigidBodyNodeEnd(builder):
     return builder.EndObject()

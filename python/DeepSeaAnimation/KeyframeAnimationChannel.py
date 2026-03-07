@@ -105,6 +105,16 @@ def KeyframeAnimationChannelStartValuesVector(builder, numElems):
 def StartValuesVector(builder, numElems):
     return KeyframeAnimationChannelStartValuesVector(builder, numElems)
 
+def KeyframeAnimationChannelCreateValuesVector(builder, data):
+    data = list(data)
+    builder.StartVector(16, len(data), 4)
+    for item in reversed(data):
+        item.Pack(builder)
+    return builder.EndVector()
+
+def CreateValuesVector(builder, data):
+    KeyframeAnimationChannelCreateValuesVector(builder, data)
+
 def KeyframeAnimationChannelEnd(builder):
     return builder.EndObject()
 

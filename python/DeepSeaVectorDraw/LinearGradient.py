@@ -126,6 +126,16 @@ def LinearGradientStartGradientVector(builder, numElems):
 def StartGradientVector(builder, numElems):
     return LinearGradientStartGradientVector(builder, numElems)
 
+def LinearGradientCreateGradientVector(builder, data):
+    data = list(data)
+    builder.StartVector(8, len(data), 4)
+    for item in reversed(data):
+        item.Pack(builder)
+    return builder.EndVector()
+
+def CreateGradientVector(builder, data):
+    LinearGradientCreateGradientVector(builder, data)
+
 def LinearGradientAddStart(builder, start):
     builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(start), 0)
 

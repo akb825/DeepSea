@@ -96,6 +96,12 @@ def FontStartFacesVector(builder, numElems):
 def StartFacesVector(builder, numElems):
     return FontStartFacesVector(builder, numElems)
 
+def FontCreateFacesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateFacesVector(builder, data):
+    FontCreateFacesVector(builder, data)
+
 def FontAddIcons(builder, icons):
     builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(icons), 0)
 

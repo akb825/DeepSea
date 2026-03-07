@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,11 +46,12 @@ DS_SCENEPHYSICS_EXPORT const dsCustomSceneResourceType* dsSceneRigidBody_type(vo
  * @brief Creates a custom resource to wrap a dsRigidBody.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the custom resource.
- * @param rigidBody The rigid body to wrap.
+ * @param rigidBody The rigid body to wrap. This will take ownership of the rigid body and destroy
+ *     it if creation fails.
  * @return The custom resource or NULL if an error occurred.
  */
-DS_SCENEPHYSICS_EXPORT dsCustomSceneResource* dsSceneRigidBody_create(dsAllocator* allocator,
-	dsRigidBody* rigidBody);
+DS_SCENEPHYSICS_EXPORT dsCustomSceneResource* dsSceneRigidBody_create(
+	dsAllocator* allocator, dsRigidBody* rigidBody);
 
 #ifdef __cplusplus
 }

@@ -92,6 +92,12 @@ def AnimationTreeStartRootNodesVector(builder, numElems):
 def StartRootNodesVector(builder, numElems):
     return AnimationTreeStartRootNodesVector(builder, numElems)
 
+def AnimationTreeCreateRootNodesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateRootNodesVector(builder, data):
+    AnimationTreeCreateRootNodesVector(builder, data)
+
 def AnimationTreeAddJointNodes(builder, jointNodes):
     builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(jointNodes), 0)
 
@@ -103,6 +109,12 @@ def AnimationTreeStartJointNodesVector(builder, numElems):
 
 def StartJointNodesVector(builder, numElems):
     return AnimationTreeStartJointNodesVector(builder, numElems)
+
+def AnimationTreeCreateJointNodesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateJointNodesVector(builder, data):
+    AnimationTreeCreateJointNodesVector(builder, data)
 
 def AnimationTreeEnd(builder):
     return builder.EndObject()

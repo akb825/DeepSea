@@ -150,6 +150,16 @@ def AnimationJointTreeNodeStartChildrenVector(builder, numElems):
 def StartChildrenVector(builder, numElems):
     return AnimationJointTreeNodeStartChildrenVector(builder, numElems)
 
+def AnimationJointTreeNodeCreateChildrenVector(builder, data):
+    data = list(data)
+    builder.StartVector(4, len(data), 4)
+    for item in reversed(data):
+        builder.PrependUint32(item)
+    return builder.EndVector()
+
+def CreateChildrenVector(builder, data):
+    AnimationJointTreeNodeCreateChildrenVector(builder, data)
+
 def AnimationJointTreeNodeEnd(builder):
     return builder.EndObject()
 

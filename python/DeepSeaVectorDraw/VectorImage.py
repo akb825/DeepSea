@@ -153,6 +153,12 @@ def VectorImageStartColorMaterialsVector(builder, numElems):
 def StartColorMaterialsVector(builder, numElems):
     return VectorImageStartColorMaterialsVector(builder, numElems)
 
+def VectorImageCreateColorMaterialsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateColorMaterialsVector(builder, data):
+    VectorImageCreateColorMaterialsVector(builder, data)
+
 def VectorImageAddLinearGradients(builder, linearGradients):
     builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(linearGradients), 0)
 
@@ -164,6 +170,12 @@ def VectorImageStartLinearGradientsVector(builder, numElems):
 
 def StartLinearGradientsVector(builder, numElems):
     return VectorImageStartLinearGradientsVector(builder, numElems)
+
+def VectorImageCreateLinearGradientsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateLinearGradientsVector(builder, data):
+    VectorImageCreateLinearGradientsVector(builder, data)
 
 def VectorImageAddRadialGradients(builder, radialGradients):
     builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(radialGradients), 0)
@@ -177,6 +189,12 @@ def VectorImageStartRadialGradientsVector(builder, numElems):
 def StartRadialGradientsVector(builder, numElems):
     return VectorImageStartRadialGradientsVector(builder, numElems)
 
+def VectorImageCreateRadialGradientsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateRadialGradientsVector(builder, data):
+    VectorImageCreateRadialGradientsVector(builder, data)
+
 def VectorImageAddCommands(builder, commands):
     builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(commands), 0)
 
@@ -188,6 +206,12 @@ def VectorImageStartCommandsVector(builder, numElems):
 
 def StartCommandsVector(builder, numElems):
     return VectorImageStartCommandsVector(builder, numElems)
+
+def VectorImageCreateCommandsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateCommandsVector(builder, data):
+    VectorImageCreateCommandsVector(builder, data)
 
 def VectorImageAddSize(builder, size):
     builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(size), 0)

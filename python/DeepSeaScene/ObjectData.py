@@ -82,6 +82,16 @@ def ObjectDataStartDataVector(builder, numElems):
 def StartDataVector(builder, numElems):
     return ObjectDataStartDataVector(builder, numElems)
 
+def ObjectDataCreateDataVector(builder, data):
+    data = list(data)
+    builder.StartVector(1, len(data), 1)
+    for item in reversed(data):
+        builder.PrependUint8(item)
+    return builder.EndVector()
+
+def CreateDataVector(builder, data):
+    ObjectDataCreateDataVector(builder, data)
+
 def ObjectDataEnd(builder):
     return builder.EndObject()
 

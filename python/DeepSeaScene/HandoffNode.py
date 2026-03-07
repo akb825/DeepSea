@@ -100,6 +100,12 @@ def HandoffNodeStartChildrenVector(builder, numElems):
 def StartChildrenVector(builder, numElems):
     return HandoffNodeStartChildrenVector(builder, numElems)
 
+def HandoffNodeCreateChildrenVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateChildrenVector(builder, data):
+    HandoffNodeCreateChildrenVector(builder, data)
+
 def HandoffNodeAddItemLists(builder, itemLists):
     builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
 
@@ -111,6 +117,12 @@ def HandoffNodeStartItemListsVector(builder, numElems):
 
 def StartItemListsVector(builder, numElems):
     return HandoffNodeStartItemListsVector(builder, numElems)
+
+def HandoffNodeCreateItemListsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateItemListsVector(builder, data):
+    HandoffNodeCreateItemListsVector(builder, data)
 
 def HandoffNodeEnd(builder):
     return builder.EndObject()

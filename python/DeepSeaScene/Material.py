@@ -93,6 +93,12 @@ def MaterialStartDataVector(builder, numElems):
 def StartDataVector(builder, numElems):
     return MaterialStartDataVector(builder, numElems)
 
+def MaterialCreateDataVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateDataVector(builder, data):
+    MaterialCreateDataVector(builder, data)
+
 def MaterialEnd(builder):
     return builder.EndObject()
 

@@ -80,6 +80,12 @@ def TextIconsStartIconsVector(builder, numElems):
 def StartIconsVector(builder, numElems):
     return TextIconsStartIconsVector(builder, numElems)
 
+def TextIconsCreateIconsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateIconsVector(builder, data):
+    TextIconsCreateIconsVector(builder, data)
+
 def TextIconsEnd(builder):
     return builder.EndObject()
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,8 +43,8 @@ dsSceneText* dsSceneText_create(dsAllocator* allocator, dsText* text, void* user
 {
 	if (!allocator || !text || (!styles && styleCount > 0))
 	{
-		errno = EINVAL;
 		dsText_destroy(text);
+		errno = EINVAL;
 		return NULL;
 	}
 
@@ -80,25 +80,6 @@ dsSceneText* dsSceneText_create(dsAllocator* allocator, dsText* text, void* user
 	return sceneText;
 }
 
-dsCustomSceneResource* dsSceneText_createResource(dsAllocator* allocator, dsSceneText* text)
-{
-	if (!allocator || !text)
-	{
-		errno = EINVAL;
-		return NULL;
-	}
-
-	dsCustomSceneResource* customResource = DS_ALLOCATE_OBJECT(allocator, dsCustomSceneResource);
-	if (!customResource)
-		return NULL;
-
-	customResource->allocator = dsAllocator_keepPointer(allocator);
-	customResource->type = &resourceType;
-	customResource->resource = text;
-	customResource->destroyFunc = &destroySceneText;
-	return customResource;
-}
-
 void dsSceneText_destroy(dsSceneText* text)
 {
 	if (!text)
@@ -107,4 +88,27 @@ void dsSceneText_destroy(dsSceneText* text)
 	dsText_destroy(text->text);
 	if (text->allocator)
 		DS_VERIFY(dsAllocator_free(text->allocator, text));
+}
+
+dsCustomSceneResource* dsSceneText_createResource(dsAllocator* allocator, dsSceneText* text)
+{
+	if (!allocator || !text)
+	{
+		dsSceneText_destroy(text);
+		errno = EINVAL;
+		return NULL;
+	}
+
+	dsCustomSceneResource* customResource = DS_ALLOCATE_OBJECT(allocator, dsCustomSceneResource);
+	if (!customResource)
+	{
+		dsSceneText_destroy(text);
+		return NULL;
+	}
+
+	customResource->allocator = dsAllocator_keepPointer(allocator);
+	customResource->type = &resourceType;
+	customResource->resource = text;
+	customResource->destroyFunc = &destroySceneText;
+	return customResource;
 }

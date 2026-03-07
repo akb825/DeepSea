@@ -67,6 +67,12 @@ def DirectAnimationStartChannelsVector(builder, numElems):
 def StartChannelsVector(builder, numElems):
     return DirectAnimationStartChannelsVector(builder, numElems)
 
+def DirectAnimationCreateChannelsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateChannelsVector(builder, data):
+    DirectAnimationCreateChannelsVector(builder, data)
+
 def DirectAnimationEnd(builder):
     return builder.EndObject()
 

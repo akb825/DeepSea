@@ -150,6 +150,12 @@ def ModelInfoStartDrawRangesVector(builder, numElems):
 def StartDrawRangesVector(builder, numElems):
     return ModelInfoStartDrawRangesVector(builder, numElems)
 
+def ModelInfoCreateDrawRangesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateDrawRangesVector(builder, data):
+    ModelInfoCreateDrawRangesVector(builder, data)
+
 def ModelInfoAddPrimitiveType(builder, primitiveType):
     builder.PrependUint8Slot(6, primitiveType, 0)
 

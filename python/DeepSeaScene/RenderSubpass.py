@@ -142,6 +142,16 @@ def RenderSubpassStartInputAttachmentsVector(builder, numElems):
 def StartInputAttachmentsVector(builder, numElems):
     return RenderSubpassStartInputAttachmentsVector(builder, numElems)
 
+def RenderSubpassCreateInputAttachmentsVector(builder, data):
+    data = list(data)
+    builder.StartVector(4, len(data), 4)
+    for item in reversed(data):
+        builder.PrependUint32(item)
+    return builder.EndVector()
+
+def CreateInputAttachmentsVector(builder, data):
+    RenderSubpassCreateInputAttachmentsVector(builder, data)
+
 def RenderSubpassAddColorAttachments(builder, colorAttachments):
     builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(colorAttachments), 0)
 
@@ -153,6 +163,16 @@ def RenderSubpassStartColorAttachmentsVector(builder, numElems):
 
 def StartColorAttachmentsVector(builder, numElems):
     return RenderSubpassStartColorAttachmentsVector(builder, numElems)
+
+def RenderSubpassCreateColorAttachmentsVector(builder, data):
+    data = list(data)
+    builder.StartVector(8, len(data), 4)
+    for item in reversed(data):
+        item.Pack(builder)
+    return builder.EndVector()
+
+def CreateColorAttachmentsVector(builder, data):
+    RenderSubpassCreateColorAttachmentsVector(builder, data)
 
 def RenderSubpassAddDepthStencilAttachment(builder, depthStencilAttachment):
     builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(depthStencilAttachment), 0)
@@ -171,6 +191,12 @@ def RenderSubpassStartDrawListsVector(builder, numElems):
 
 def StartDrawListsVector(builder, numElems):
     return RenderSubpassStartDrawListsVector(builder, numElems)
+
+def RenderSubpassCreateDrawListsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateDrawListsVector(builder, data):
+    RenderSubpassCreateDrawListsVector(builder, data)
 
 def RenderSubpassEnd(builder):
     return builder.EndObject()

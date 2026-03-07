@@ -80,6 +80,12 @@ def ShaderModuleStartModulesVector(builder, numElems):
 def StartModulesVector(builder, numElems):
     return ShaderModuleStartModulesVector(builder, numElems)
 
+def ShaderModuleCreateModulesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateModulesVector(builder, data):
+    ShaderModuleCreateModulesVector(builder, data)
+
 def ShaderModuleEnd(builder):
     return builder.EndObject()
 

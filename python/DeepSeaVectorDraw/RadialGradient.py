@@ -140,6 +140,16 @@ def RadialGradientStartGradientVector(builder, numElems):
 def StartGradientVector(builder, numElems):
     return RadialGradientStartGradientVector(builder, numElems)
 
+def RadialGradientCreateGradientVector(builder, data):
+    data = list(data)
+    builder.StartVector(8, len(data), 4)
+    for item in reversed(data):
+        item.Pack(builder)
+    return builder.EndVector()
+
+def CreateGradientVector(builder, data):
+    RadialGradientCreateGradientVector(builder, data)
+
 def RadialGradientAddCenter(builder, center):
     builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(center), 0)
 

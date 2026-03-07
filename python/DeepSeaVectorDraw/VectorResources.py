@@ -67,6 +67,12 @@ def VectorResourcesStartResourcesVector(builder, numElems):
 def StartResourcesVector(builder, numElems):
     return VectorResourcesStartResourcesVector(builder, numElems)
 
+def VectorResourcesCreateResourcesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateResourcesVector(builder, data):
+    VectorResourcesCreateResourcesVector(builder, data)
+
 def VectorResourcesEnd(builder):
     return builder.EndObject()
 

@@ -100,6 +100,12 @@ def AnimationTransformNodeStartChildrenVector(builder, numElems):
 def StartChildrenVector(builder, numElems):
     return AnimationTransformNodeStartChildrenVector(builder, numElems)
 
+def AnimationTransformNodeCreateChildrenVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateChildrenVector(builder, data):
+    AnimationTransformNodeCreateChildrenVector(builder, data)
+
 def AnimationTransformNodeAddItemLists(builder, itemLists):
     builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
 
@@ -111,6 +117,12 @@ def AnimationTransformNodeStartItemListsVector(builder, numElems):
 
 def StartItemListsVector(builder, numElems):
     return AnimationTransformNodeStartItemListsVector(builder, numElems)
+
+def AnimationTransformNodeCreateItemListsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateItemListsVector(builder, data):
+    AnimationTransformNodeCreateItemListsVector(builder, data)
 
 def AnimationTransformNodeEnd(builder):
     return builder.EndObject()

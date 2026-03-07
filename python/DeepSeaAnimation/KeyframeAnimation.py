@@ -67,6 +67,12 @@ def KeyframeAnimationStartKeyframesVector(builder, numElems):
 def StartKeyframesVector(builder, numElems):
     return KeyframeAnimationStartKeyframesVector(builder, numElems)
 
+def KeyframeAnimationCreateKeyframesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateKeyframesVector(builder, data):
+    KeyframeAnimationCreateKeyframesVector(builder, data)
+
 def KeyframeAnimationEnd(builder):
     return builder.EndObject()
 

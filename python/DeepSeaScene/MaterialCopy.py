@@ -126,6 +126,12 @@ def MaterialCopyStartAddDataVector(builder, numElems):
 def StartAddDataVector(builder, numElems):
     return MaterialCopyStartAddDataVector(builder, numElems)
 
+def MaterialCopyCreateAddDataVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateAddDataVector(builder, data):
+    MaterialCopyCreateAddDataVector(builder, data)
+
 def MaterialCopyAddRemoveData(builder, removeData):
     builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(removeData), 0)
 
@@ -137,6 +143,12 @@ def MaterialCopyStartRemoveDataVector(builder, numElems):
 
 def StartRemoveDataVector(builder, numElems):
     return MaterialCopyStartRemoveDataVector(builder, numElems)
+
+def MaterialCopyCreateRemoveDataVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateRemoveDataVector(builder, data):
+    MaterialCopyCreateRemoveDataVector(builder, data)
 
 def MaterialCopyEnd(builder):
     return builder.EndObject()

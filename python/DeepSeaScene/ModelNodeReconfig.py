@@ -100,6 +100,12 @@ def ModelNodeReconfigStartModelsVector(builder, numElems):
 def StartModelsVector(builder, numElems):
     return ModelNodeReconfigStartModelsVector(builder, numElems)
 
+def ModelNodeReconfigCreateModelsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateModelsVector(builder, data):
+    ModelNodeReconfigCreateModelsVector(builder, data)
+
 def ModelNodeReconfigAddExtraItemLists(builder, extraItemLists):
     builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(extraItemLists), 0)
 
@@ -111,6 +117,12 @@ def ModelNodeReconfigStartExtraItemListsVector(builder, numElems):
 
 def StartExtraItemListsVector(builder, numElems):
     return ModelNodeReconfigStartExtraItemListsVector(builder, numElems)
+
+def ModelNodeReconfigCreateExtraItemListsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateExtraItemListsVector(builder, data):
+    ModelNodeReconfigCreateExtraItemListsVector(builder, data)
 
 def ModelNodeReconfigEnd(builder):
     return builder.EndObject()

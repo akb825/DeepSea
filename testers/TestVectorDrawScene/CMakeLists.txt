@@ -51,15 +51,22 @@ ds_compile_shaders(shaders FILE ${srcDir}/Text.msl
 	OUTPUT Text.mslb CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
 	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/Render/include ${DEEPSEA_MODULE_DIR}/Scene/Scene/include
 		${DEEPSEA_MODULE_DIR}/Scene/SceneVectorDraw/include ${DEEPSEA_MODULE_DIR}/Text/include)
-ds_compile_shaders(shaders FILE ${srcDir}/VectorElementFill.msl
+
+set(vectorShaderFiles ${srcDir}/VectorElementFill.msl
 	${srcDir}/VectorElementImage.msl
 	${srcDir}/VectorElementLine.msl
 	${srcDir}/VectorElementTextColor.msl
-	${srcDir}/VectorElementTextGradient.msl
-	OUTPUT Vector.mslb CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
-	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/Render/include ${DEEPSEA_MODULE_DIR}/Scene/Scene/include
-		${DEEPSEA_MODULE_DIR}/Scene/SceneVectorDraw/include  ${DEEPSEA_MODULE_DIR}/Text/include
+	${srcDir}/VectorElementTextGradient.msl)
+set(vectorShaderIncludeDirs ${DEEPSEA_MODULE_DIR}/Render/Render/include
+		${DEEPSEA_MODULE_DIR}/Scene/Scene/include
+		${DEEPSEA_MODULE_DIR}/Scene/SceneVectorDraw/include ${DEEPSEA_MODULE_DIR}/Text/include
 		${DEEPSEA_MODULE_DIR}/VectorDraw/include)
+ds_compile_shaders(shaders FILE ${vectorShaderFiles} OUTPUT Vector.mslb
+	CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
+	INCLUDE ${vectorShaderIncludeDirs})
+ds_compile_shaders(shaders FILE ${vectorShaderFiles} OUTPUT VectorDiscardBounds.mslb
+	CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
+	INCLUDE ${vectorShaderIncludeDirs} DEFINE DISCARD_BOUNDS=1)
 ds_compile_shaders_target(deepsea_test_vector_draw_scene_app_shaders shaders
 	DEPENDS deepsea_test_vector_draw_scene_app_prepare)
 
@@ -68,8 +75,10 @@ ds_scene_resource_shader_module_config(textModule Text.mslb ${assetsDir} ${shade
 	${shaderConfigs})
 ds_scene_resource_shader_module_config(vectorModule Vector.mslb ${assetsDir} ${shaderDir}
 	${shaderConfigs})
+ds_scene_resource_shader_module_config(vectorDiscardBoundsModule VectorDiscardBounds.mslb
+	${assetsDir} ${shaderDir} ${shaderConfigs})
 ds_configure_file(SceneResources.json ${configDir}/SceneResources.json CONFIG_VAR assetsDir
-	textModule vectorModule @ONLY)
+	textModule vectorModule vectorDiscardBoundsModule @ONLY)
 
 ds_create_scene_resources(resources FILE ${configDir}/SceneResources.json
 	OUTPUT ${assetsDir}/SceneResources.dssr INPUT_DIRECTORY ${srcDir})

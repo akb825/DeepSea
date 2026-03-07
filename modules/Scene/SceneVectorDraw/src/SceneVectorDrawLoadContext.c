@@ -126,13 +126,12 @@ dsSceneVectorDrawLoadContext* dsSceneVectorDrawLoadConext_registerTypes(
 	vectorLoadContext->substitutionTable = substitutionTable;
 	vectorLoadContext->pixelSize = pixelSize;
 
-	// One additional resource for registering the material description.
 	// This is responsible for destroying the vector load context.
 	if (!dsSceneLoadContext_registerCustomResourceType(loadContext,
 			dsSceneVectorResources_typeName, dsSceneVectorResources_type(),
 			&dsVectorSceneResources_load,
 			(dsDestroyCustomSceneResourceFunction)&dsVectorResources_destroy, vectorLoadContext,
-			&dsSceneVectorDrawLoadContext_destroy, 1))
+			&dsSceneVectorDrawLoadContext_destroy, 0))
 	{
 		return NULL;
 	}
@@ -145,9 +144,10 @@ dsSceneVectorDrawLoadContext* dsSceneVectorDrawLoadConext_registerTypes(
 		return NULL;
 	}
 
+	// One additional resource for registering the material description.
 	if (!dsSceneLoadContext_registerCustomResourceType(loadContext,
 			dsSceneVectorShaders_typeName, dsSceneVectorShaders_type(), &dsSceneVectorShaders_load,
-			dsSceneVectorShaders_destroy, NULL, NULL, 0))
+			dsSceneVectorShaders_destroy, NULL, NULL, 1))
 	{
 		return NULL;
 	}
@@ -161,8 +161,8 @@ dsSceneVectorDrawLoadContext* dsSceneVectorDrawLoadConext_registerTypes(
 
 	if (!dsSceneLoadContext_registerCustomResourceType(loadContext,
 			dsSceneVectorImage_typeName, dsSceneVectorImage_type(), &dsSceneVectorImage_load,
-			(dsDestroyCustomSceneResourceFunction)&dsVectorImage_destroy, vectorLoadContext, NULL,
-			0))
+			(dsDestroyCustomSceneResourceFunction)&dsSceneVectorImage_destroy, vectorLoadContext,
+			NULL, 0))
 	{
 		return NULL;
 	}

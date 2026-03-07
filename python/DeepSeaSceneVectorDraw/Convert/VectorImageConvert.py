@@ -48,8 +48,11 @@ def convertVectorImage(convertContext, data, inputDir, outputDir):
 
 	try:
 		imagePath = str(data['image'])
-		imageData = convertSVG(
-			os.path.join(inputDir, imagePath), data['name'], str(data.get('defaultFont', 'serif')))
+		try:
+			imageData = convertSVG(os.path.join(inputDir, imagePath), data['name'],
+				str(data.get('defaultFont', 'serif')))
+		except Exception as e:
+			raise Exception('Error converting SVG "' + imagePath + '": ' + str(e))
 		imageType, imageOffset = convertFileOrData(builder, None, imageData, data.get('output'),
 			data.get('outputRelativeDir'), data.get('resourceType'), outputDir)
 

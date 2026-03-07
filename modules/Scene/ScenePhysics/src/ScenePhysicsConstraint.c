@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -134,18 +134,22 @@ bool dsScenePhysicsConstraint_destroy(dsScenePhysicsConstraint* constraint)
 	return true;
 }
 
-dsCustomSceneResource* dsScenePhysicsConstraint_createResource(dsAllocator* allocator,
-	dsPhysicsConstraint* constraint)
+dsCustomSceneResource* dsScenePhysicsConstraint_createResource(
+	dsAllocator* allocator, dsScenePhysicsConstraint* constraint)
 {
 	if (!allocator || !constraint)
 	{
+		dsScenePhysicsConstraint_destroy(constraint);
 		errno = EINVAL;
 		return NULL;
 	}
 
 	dsCustomSceneResource* customResource = DS_ALLOCATE_OBJECT(allocator, dsCustomSceneResource);
 	if (!customResource)
+	{
+		dsScenePhysicsConstraint_destroy(constraint);
 		return NULL;
+	}
 
 	customResource->allocator = dsAllocator_keepPointer(allocator);
 	customResource->type = &resourceType;

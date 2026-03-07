@@ -131,6 +131,12 @@ def AnimationTreeNodeStartChildrenVector(builder, numElems):
 def StartChildrenVector(builder, numElems):
     return AnimationTreeNodeStartChildrenVector(builder, numElems)
 
+def AnimationTreeNodeCreateChildrenVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateChildrenVector(builder, data):
+    AnimationTreeNodeCreateChildrenVector(builder, data)
+
 def AnimationTreeNodeEnd(builder):
     return builder.EndObject()
 

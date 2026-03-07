@@ -42,7 +42,7 @@
 									"variableGroupDesc": "viewFramebufferDesc"
 								}
 							],
-							"maxMaterialDescs": 2
+							"maxMaterialDescs": 4
 						}
 					]
 				}

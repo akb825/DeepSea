@@ -94,6 +94,16 @@ def AnimationKeyframesStartKeyframeTimesVector(builder, numElems):
 def StartKeyframeTimesVector(builder, numElems):
     return AnimationKeyframesStartKeyframeTimesVector(builder, numElems)
 
+def AnimationKeyframesCreateKeyframeTimesVector(builder, data):
+    data = list(data)
+    builder.StartVector(4, len(data), 4)
+    for item in reversed(data):
+        builder.PrependFloat32(item)
+    return builder.EndVector()
+
+def CreateKeyframeTimesVector(builder, data):
+    AnimationKeyframesCreateKeyframeTimesVector(builder, data)
+
 def AnimationKeyframesAddChannels(builder, channels):
     builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(channels), 0)
 
@@ -105,6 +115,12 @@ def AnimationKeyframesStartChannelsVector(builder, numElems):
 
 def StartChannelsVector(builder, numElems):
     return AnimationKeyframesStartChannelsVector(builder, numElems)
+
+def AnimationKeyframesCreateChannelsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateChannelsVector(builder, data):
+    AnimationKeyframesCreateChannelsVector(builder, data)
 
 def AnimationKeyframesEnd(builder):
     return builder.EndObject()

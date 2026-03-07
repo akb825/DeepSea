@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,22 +34,26 @@ const dsCustomSceneResourceType* dsSceneAnimationNodeMapCache_type(void)
 	return &resourceType;
 }
 
-dsCustomSceneResource* dsSceneAnimationNodeMapCache_create(dsAllocator* allocator,
-	dsAnimationNodeMapCache* animation)
+dsCustomSceneResource* dsSceneAnimationNodeMapCache_create(
+	dsAllocator* allocator, dsAnimationNodeMapCache* cache)
 {
-	if (!allocator || !animation)
+	if (!allocator || !cache)
 	{
+		dsAnimationNodeMapCache_destroy(cache);
 		errno = EINVAL;
 		return NULL;
 	}
 
 	dsCustomSceneResource* customResource = DS_ALLOCATE_OBJECT(allocator, dsCustomSceneResource);
 	if (!customResource)
+	{
+		dsAnimationNodeMapCache_destroy(cache);
 		return NULL;
+	}
 
 	customResource->allocator = dsAllocator_keepPointer(allocator);
 	customResource->type = &resourceType;
-	customResource->resource = animation;
+	customResource->resource = cache;
 	customResource->destroyFunc = &destroyResource;
 	return customResource;
 }

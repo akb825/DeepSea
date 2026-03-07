@@ -68,6 +68,28 @@ typedef struct dsSceneText
 } dsSceneText;
 
 /**
+ * @brief Struct describing a vector image used within a scene.
+ * @see SceneVectorImage.h
+ */
+typedef struct dsSceneVectorImage
+{
+	/**
+	 * @brief The allocator this was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The vector image to draw.
+	 */
+	dsVectorImage* image;
+
+	/**
+	 * @brief The shaders to draw the vector image with.
+	 */
+	const dsVectorShaders* shaders;
+} dsSceneVectorImage;
+
+/**
  * @brief Struct describing a node with vector drawing.
  * @see SceneVectorNode.h
  */

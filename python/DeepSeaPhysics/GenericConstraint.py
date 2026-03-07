@@ -191,6 +191,16 @@ def GenericConstraintStartLimitsVector(builder, numElems):
 def StartLimitsVector(builder, numElems):
     return GenericConstraintStartLimitsVector(builder, numElems)
 
+def GenericConstraintCreateLimitsVector(builder, data):
+    data = list(data)
+    builder.StartVector(20, len(data), 4)
+    for item in reversed(data):
+        item.Pack(builder)
+    return builder.EndVector()
+
+def CreateLimitsVector(builder, data):
+    GenericConstraintCreateLimitsVector(builder, data)
+
 def GenericConstraintAddMotors(builder, motors):
     builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(motors), 0)
 
@@ -202,6 +212,16 @@ def GenericConstraintStartMotorsVector(builder, numElems):
 
 def StartMotorsVector(builder, numElems):
     return GenericConstraintStartMotorsVector(builder, numElems)
+
+def GenericConstraintCreateMotorsVector(builder, data):
+    data = list(data)
+    builder.StartVector(12, len(data), 4)
+    for item in reversed(data):
+        item.Pack(builder)
+    return builder.EndVector()
+
+def CreateMotorsVector(builder, data):
+    GenericConstraintCreateMotorsVector(builder, data)
 
 def GenericConstraintAddCombineSwingTwistMotors(builder, combineSwingTwistMotors):
     builder.PrependBoolSlot(8, combineSwingTwistMotors, 0)

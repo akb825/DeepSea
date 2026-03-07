@@ -215,6 +215,16 @@ def MeshStartVerticesVector(builder, numElems):
 def StartVerticesVector(builder, numElems):
     return MeshStartVerticesVector(builder, numElems)
 
+def MeshCreateVerticesVector(builder, data):
+    data = list(data)
+    builder.StartVector(4, len(data), 4)
+    for item in reversed(data):
+        builder.PrependFloat32(item)
+    return builder.EndVector()
+
+def CreateVerticesVector(builder, data):
+    MeshCreateVerticesVector(builder, data)
+
 def MeshAddIndices16(builder, indices16):
     builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(indices16), 0)
 
@@ -227,6 +237,16 @@ def MeshStartIndices16Vector(builder, numElems):
 def StartIndices16Vector(builder, numElems):
     return MeshStartIndices16Vector(builder, numElems)
 
+def MeshCreateIndices16Vector(builder, data):
+    data = list(data)
+    builder.StartVector(2, len(data), 2)
+    for item in reversed(data):
+        builder.PrependUint16(item)
+    return builder.EndVector()
+
+def CreateIndices16Vector(builder, data):
+    MeshCreateIndices16Vector(builder, data)
+
 def MeshAddIndices32(builder, indices32):
     builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(indices32), 0)
 
@@ -238,6 +258,16 @@ def MeshStartIndices32Vector(builder, numElems):
 
 def StartIndices32Vector(builder, numElems):
     return MeshStartIndices32Vector(builder, numElems)
+
+def MeshCreateIndices32Vector(builder, data):
+    data = list(data)
+    builder.StartVector(4, len(data), 4)
+    for item in reversed(data):
+        builder.PrependUint32(item)
+    return builder.EndVector()
+
+def CreateIndices32Vector(builder, data):
+    MeshCreateIndices32Vector(builder, data)
 
 def MeshAddTriangleCount(builder, triangleCount):
     builder.PrependUint32Slot(3, triangleCount, 0)
@@ -257,6 +287,16 @@ def MeshStartTriangleMaterialsVector(builder, numElems):
 def StartTriangleMaterialsVector(builder, numElems):
     return MeshStartTriangleMaterialsVector(builder, numElems)
 
+def MeshCreateTriangleMaterialsVector(builder, data):
+    data = list(data)
+    builder.StartVector(12, len(data), 4)
+    for item in reversed(data):
+        item.Pack(builder)
+    return builder.EndVector()
+
+def CreateTriangleMaterialsVector(builder, data):
+    MeshCreateTriangleMaterialsVector(builder, data)
+
 def MeshAddMaterialIndices16(builder, materialIndices16):
     builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(materialIndices16), 0)
 
@@ -269,6 +309,16 @@ def MeshStartMaterialIndices16Vector(builder, numElems):
 def StartMaterialIndices16Vector(builder, numElems):
     return MeshStartMaterialIndices16Vector(builder, numElems)
 
+def MeshCreateMaterialIndices16Vector(builder, data):
+    data = list(data)
+    builder.StartVector(2, len(data), 2)
+    for item in reversed(data):
+        builder.PrependUint16(item)
+    return builder.EndVector()
+
+def CreateMaterialIndices16Vector(builder, data):
+    MeshCreateMaterialIndices16Vector(builder, data)
+
 def MeshAddMaterialIndices32(builder, materialIndices32):
     builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(materialIndices32), 0)
 
@@ -280,6 +330,16 @@ def MeshStartMaterialIndices32Vector(builder, numElems):
 
 def StartMaterialIndices32Vector(builder, numElems):
     return MeshStartMaterialIndices32Vector(builder, numElems)
+
+def MeshCreateMaterialIndices32Vector(builder, data):
+    data = list(data)
+    builder.StartVector(4, len(data), 4)
+    for item in reversed(data):
+        builder.PrependUint32(item)
+    return builder.EndVector()
+
+def CreateMaterialIndices32Vector(builder, data):
+    MeshCreateMaterialIndices32Vector(builder, data)
 
 def MeshAddCacheName(builder, cacheName):
     builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(cacheName), 0)

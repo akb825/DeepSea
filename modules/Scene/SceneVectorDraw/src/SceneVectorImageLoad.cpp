@@ -28,6 +28,7 @@
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 
+#include <DeepSea/SceneVectorDraw/SceneVectorImage.h>
 #include <DeepSea/SceneVectorDraw/SceneVectorMaterialSet.h>
 #include <DeepSea/SceneVectorDraw/SceneVectorResources.h>
 #include <DeepSea/SceneVectorDraw/SceneVectorShaders.h>
@@ -200,5 +201,5 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 		return nullptr;
 	}
 
-	return vectorImage;
+	return dsSceneVectorImage_create(allocator, vectorImage, shaders);
 }

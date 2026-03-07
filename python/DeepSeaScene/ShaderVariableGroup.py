@@ -93,6 +93,12 @@ def ShaderVariableGroupStartDataVector(builder, numElems):
 def StartDataVector(builder, numElems):
     return ShaderVariableGroupStartDataVector(builder, numElems)
 
+def ShaderVariableGroupCreateDataVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateDataVector(builder, data):
+    ShaderVariableGroupCreateDataVector(builder, data)
+
 def ShaderVariableGroupEnd(builder):
     return builder.EndObject()
 

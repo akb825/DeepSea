@@ -140,6 +140,12 @@ def RigidBodyGroupNodeStartRigidBodyTemplatesVector(builder, numElems):
 def StartRigidBodyTemplatesVector(builder, numElems):
     return RigidBodyGroupNodeStartRigidBodyTemplatesVector(builder, numElems)
 
+def RigidBodyGroupNodeCreateRigidBodyTemplatesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateRigidBodyTemplatesVector(builder, data):
+    RigidBodyGroupNodeCreateRigidBodyTemplatesVector(builder, data)
+
 def RigidBodyGroupNodeAddConstraints(builder, constraints):
     builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(constraints), 0)
 
@@ -151,6 +157,12 @@ def RigidBodyGroupNodeStartConstraintsVector(builder, numElems):
 
 def StartConstraintsVector(builder, numElems):
     return RigidBodyGroupNodeStartConstraintsVector(builder, numElems)
+
+def RigidBodyGroupNodeCreateConstraintsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateConstraintsVector(builder, data):
+    RigidBodyGroupNodeCreateConstraintsVector(builder, data)
 
 def RigidBodyGroupNodeAddChildren(builder, children):
     builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(children), 0)
@@ -164,6 +176,12 @@ def RigidBodyGroupNodeStartChildrenVector(builder, numElems):
 def StartChildrenVector(builder, numElems):
     return RigidBodyGroupNodeStartChildrenVector(builder, numElems)
 
+def RigidBodyGroupNodeCreateChildrenVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateChildrenVector(builder, data):
+    RigidBodyGroupNodeCreateChildrenVector(builder, data)
+
 def RigidBodyGroupNodeAddItemLists(builder, itemLists):
     builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
 
@@ -175,6 +193,12 @@ def RigidBodyGroupNodeStartItemListsVector(builder, numElems):
 
 def StartItemListsVector(builder, numElems):
     return RigidBodyGroupNodeStartItemListsVector(builder, numElems)
+
+def RigidBodyGroupNodeCreateItemListsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateItemListsVector(builder, data):
+    RigidBodyGroupNodeCreateItemListsVector(builder, data)
 
 def RigidBodyGroupNodeEnd(builder):
     return builder.EndObject()

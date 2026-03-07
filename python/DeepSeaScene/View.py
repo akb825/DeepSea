@@ -106,6 +106,12 @@ def ViewStartSurfacesVector(builder, numElems):
 def StartSurfacesVector(builder, numElems):
     return ViewStartSurfacesVector(builder, numElems)
 
+def ViewCreateSurfacesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateSurfacesVector(builder, data):
+    ViewCreateSurfacesVector(builder, data)
+
 def ViewAddFramebuffers(builder, framebuffers):
     builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(framebuffers), 0)
 
@@ -117,6 +123,12 @@ def ViewStartFramebuffersVector(builder, numElems):
 
 def StartFramebuffersVector(builder, numElems):
     return ViewStartFramebuffersVector(builder, numElems)
+
+def ViewCreateFramebuffersVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateFramebuffersVector(builder, data):
+    ViewCreateFramebuffersVector(builder, data)
 
 def ViewAddScreenSize(builder, screenSize):
     builder.PrependFloat32Slot(2, screenSize, 0.0)

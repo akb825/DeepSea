@@ -84,6 +84,12 @@ def TransformNodeStartChildrenVector(builder, numElems):
 def StartChildrenVector(builder, numElems):
     return TransformNodeStartChildrenVector(builder, numElems)
 
+def TransformNodeCreateChildrenVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateChildrenVector(builder, data):
+    TransformNodeCreateChildrenVector(builder, data)
+
 def TransformNodeEnd(builder):
     return builder.EndObject()
 

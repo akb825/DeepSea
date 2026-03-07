@@ -191,6 +191,12 @@ def ConstraintNodeStartItemListsVector(builder, numElems):
 def StartItemListsVector(builder, numElems):
     return ConstraintNodeStartItemListsVector(builder, numElems)
 
+def ConstraintNodeCreateItemListsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateItemListsVector(builder, data):
+    ConstraintNodeCreateItemListsVector(builder, data)
+
 def ConstraintNodeEnd(builder):
     return builder.EndObject()
 

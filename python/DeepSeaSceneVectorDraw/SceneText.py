@@ -97,6 +97,12 @@ def SceneTextStartStylesVector(builder, numElems):
 def StartStylesVector(builder, numElems):
     return SceneTextStartStylesVector(builder, numElems)
 
+def SceneTextCreateStylesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateStylesVector(builder, data):
+    SceneTextCreateStylesVector(builder, data)
+
 def SceneTextEnd(builder):
     return builder.EndObject()
 

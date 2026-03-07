@@ -107,6 +107,12 @@ def ParticleDrawListStartInstanceDataVector(builder, numElems):
 def StartInstanceDataVector(builder, numElems):
     return ParticleDrawListStartInstanceDataVector(builder, numElems)
 
+def ParticleDrawListCreateInstanceDataVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateInstanceDataVector(builder, data):
+    ParticleDrawListCreateInstanceDataVector(builder, data)
+
 def ParticleDrawListAddCullLists(builder, cullLists):
     builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(cullLists), 0)
 
@@ -119,6 +125,12 @@ def ParticleDrawListStartCullListsVector(builder, numElems):
 def StartCullListsVector(builder, numElems):
     return ParticleDrawListStartCullListsVector(builder, numElems)
 
+def ParticleDrawListCreateCullListsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateCullListsVector(builder, data):
+    ParticleDrawListCreateCullListsVector(builder, data)
+
 def ParticleDrawListAddViews(builder, views):
     builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(views), 0)
 
@@ -130,6 +142,12 @@ def ParticleDrawListStartViewsVector(builder, numElems):
 
 def StartViewsVector(builder, numElems):
     return ParticleDrawListStartViewsVector(builder, numElems)
+
+def ParticleDrawListCreateViewsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateViewsVector(builder, data):
+    ParticleDrawListCreateViewsVector(builder, data)
 
 def ParticleDrawListEnd(builder):
     return builder.EndObject()

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 #include <DeepSea/SceneVectorDraw/SceneVectorImage.h>
 
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+
 #include <DeepSea/VectorDraw/VectorImage.h>
 
 const char* const dsSceneVectorImage_typeName = "VectorImage";
@@ -28,21 +30,62 @@ const dsCustomSceneResourceType* dsSceneVectorImage_type(void)
 	return &resourceType;
 }
 
-dsCustomSceneResource* dsSceneVectorImage_create(dsAllocator* allocator, dsVectorImage* vectorImage)
+dsSceneVectorImage* dsSceneVectorImage_create(
+	dsAllocator* allocator, dsVectorImage* image, const dsVectorShaders* shaders)
 {
-	if (!allocator || !vectorImage)
+	if (!allocator || !image || !shaders)
 	{
+		dsVectorImage_destroy(image);
+		errno = EINVAL;
+		return NULL;
+	}
+
+	dsSceneVectorImage* sceneImage = DS_ALLOCATE_OBJECT(allocator, dsSceneVectorImage);
+	if (!sceneImage)
+	{
+		dsVectorImage_destroy(image);
+		return NULL;
+	}
+
+	sceneImage->allocator = dsAllocator_keepPointer(allocator);
+	sceneImage->image = image;
+	sceneImage->shaders = shaders;
+	return sceneImage;
+}
+
+bool dsSceneVectorImage_destroy(dsSceneVectorImage* image)
+{
+	if (!image)
+		return true;
+
+	if (!dsVectorImage_destroy(image->image))
+		return false;
+
+	if (image->allocator)
+		DS_VERIFY(dsAllocator_free(image->allocator, image));
+	return true;
+}
+
+dsCustomSceneResource* dsSceneVectorImage_createResource(
+	dsAllocator* allocator, dsSceneVectorImage* image)
+{
+	if (!allocator || !image)
+	{
+		dsSceneVectorImage_destroy(image);
 		errno = EINVAL;
 		return NULL;
 	}
 
 	dsCustomSceneResource* customResource = DS_ALLOCATE_OBJECT(allocator, dsCustomSceneResource);
 	if (!customResource)
+	{
+		dsSceneVectorImage_destroy(image);
 		return NULL;
+	}
 
 	customResource->allocator = dsAllocator_keepPointer(allocator);
 	customResource->type = &resourceType;
-	customResource->resource = vectorImage;
-	customResource->destroyFunc = (dsDestroyCustomSceneResourceFunction)&dsVectorImage_destroy;
+	customResource->resource = image;
+	customResource->destroyFunc = (dsDestroyCustomSceneResourceFunction)&dsSceneVectorImage_destroy;
 	return customResource;
 }

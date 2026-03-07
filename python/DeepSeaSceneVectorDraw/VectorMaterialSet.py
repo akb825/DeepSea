@@ -74,6 +74,12 @@ def VectorMaterialSetStartMaterialsVector(builder, numElems):
 def StartMaterialsVector(builder, numElems):
     return VectorMaterialSetStartMaterialsVector(builder, numElems)
 
+def VectorMaterialSetCreateMaterialsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateMaterialsVector(builder, data):
+    VectorMaterialSetCreateMaterialsVector(builder, data)
+
 def VectorMaterialSetAddSrgb(builder, srgb):
     builder.PrependBoolSlot(1, srgb, 0)
 

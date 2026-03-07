@@ -125,6 +125,16 @@ def ModelNodeStartEmbeddedResourcesVector(builder, numElems):
 def StartEmbeddedResourcesVector(builder, numElems):
     return ModelNodeStartEmbeddedResourcesVector(builder, numElems)
 
+def ModelNodeCreateEmbeddedResourcesVector(builder, data):
+    data = list(data)
+    builder.StartVector(1, len(data), 1)
+    for item in reversed(data):
+        builder.PrependUint8(item)
+    return builder.EndVector()
+
+def CreateEmbeddedResourcesVector(builder, data):
+    ModelNodeCreateEmbeddedResourcesVector(builder, data)
+
 def ModelNodeAddModels(builder, models):
     builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(models), 0)
 
@@ -137,6 +147,12 @@ def ModelNodeStartModelsVector(builder, numElems):
 def StartModelsVector(builder, numElems):
     return ModelNodeStartModelsVector(builder, numElems)
 
+def ModelNodeCreateModelsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateModelsVector(builder, data):
+    ModelNodeCreateModelsVector(builder, data)
+
 def ModelNodeAddExtraItemLists(builder, extraItemLists):
     builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(extraItemLists), 0)
 
@@ -148,6 +164,12 @@ def ModelNodeStartExtraItemListsVector(builder, numElems):
 
 def StartExtraItemListsVector(builder, numElems):
     return ModelNodeStartExtraItemListsVector(builder, numElems)
+
+def ModelNodeCreateExtraItemListsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateExtraItemListsVector(builder, data):
+    ModelNodeCreateExtraItemListsVector(builder, data)
 
 def ModelNodeAddBounds(builder, bounds):
     builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(bounds), 0)

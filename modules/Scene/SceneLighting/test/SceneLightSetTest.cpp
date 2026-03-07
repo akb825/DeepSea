@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,6 +75,10 @@ TEST_F(SceneLightSetTest, CreateResource)
 
 	EXPECT_FALSE(dsSceneLightSet_createResource(nullptr, lightSet));
 	EXPECT_FALSE(dsSceneLightSet_createResource((dsAllocator*)&allocator, nullptr));
+
+	// Need to re-create the light set as ownership was taken previously.
+	lightSet = dsSceneLightSet_create((dsAllocator*)&allocator, 100, &ambientColor, 0.1f);
+	ASSERT_TRUE(lightSet);
 
 	dsCustomSceneResource* resource =
 		dsSceneLightSet_createResource((dsAllocator*)&allocator, lightSet);

@@ -62,6 +62,12 @@ def ViewMipmapListStartTexturesVector(builder, numElems):
 def StartTexturesVector(builder, numElems):
     return ViewMipmapListStartTexturesVector(builder, numElems)
 
+def ViewMipmapListCreateTexturesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateTexturesVector(builder, data):
+    ViewMipmapListCreateTexturesVector(builder, data)
+
 def ViewMipmapListEnd(builder):
     return builder.EndObject()
 

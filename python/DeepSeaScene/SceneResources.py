@@ -67,6 +67,12 @@ def SceneResourcesStartResourcesVector(builder, numElems):
 def StartResourcesVector(builder, numElems):
     return SceneResourcesStartResourcesVector(builder, numElems)
 
+def SceneResourcesCreateResourcesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateResourcesVector(builder, data):
+    SceneResourcesCreateResourcesVector(builder, data)
+
 def SceneResourcesEnd(builder):
     return builder.EndObject()
 

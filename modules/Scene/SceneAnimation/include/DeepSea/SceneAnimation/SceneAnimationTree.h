@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,11 +47,12 @@ DS_SCENEANIMATION_EXPORT const dsCustomSceneResourceType* dsSceneAnimationTree_t
  * @brief Creates a custom resource to wrap a dsAnimationTree.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the custom resource.
- * @param tree The animation tree to wrap.
+ * @param tree The animation tree to wrap. This will take ownership of the animation tree and
+ *     destroy it if creation fails.
  * @return The custom resource or NULL if an error occurred.
  */
-DS_SCENEANIMATION_EXPORT dsCustomSceneResource* dsSceneAnimationTree_create(dsAllocator* allocator,
-	dsAnimationTree* tree);
+DS_SCENEANIMATION_EXPORT dsCustomSceneResource* dsSceneAnimationTree_create(
+	dsAllocator* allocator, dsAnimationTree* tree);
 
 #ifdef __cplusplus
 }

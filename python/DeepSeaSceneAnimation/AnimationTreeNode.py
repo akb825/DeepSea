@@ -113,6 +113,12 @@ def AnimationTreeNodeStartChildrenVector(builder, numElems):
 def StartChildrenVector(builder, numElems):
     return AnimationTreeNodeStartChildrenVector(builder, numElems)
 
+def AnimationTreeNodeCreateChildrenVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateChildrenVector(builder, data):
+    AnimationTreeNodeCreateChildrenVector(builder, data)
+
 def AnimationTreeNodeAddItemLists(builder, itemLists):
     builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
 
@@ -124,6 +130,12 @@ def AnimationTreeNodeStartItemListsVector(builder, numElems):
 
 def StartItemListsVector(builder, numElems):
     return AnimationTreeNodeStartItemListsVector(builder, numElems)
+
+def AnimationTreeNodeCreateItemListsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateItemListsVector(builder, data):
+    AnimationTreeNodeCreateItemListsVector(builder, data)
 
 def AnimationTreeNodeEnd(builder):
     return builder.EndObject()

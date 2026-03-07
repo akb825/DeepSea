@@ -141,6 +141,12 @@ def VectorImageStartResourcesVector(builder, numElems):
 def StartResourcesVector(builder, numElems):
     return VectorImageStartResourcesVector(builder, numElems)
 
+def VectorImageCreateResourcesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateResourcesVector(builder, data):
+    VectorImageCreateResourcesVector(builder, data)
+
 def VectorImageAddSrgb(builder, srgb):
     builder.PrependBoolSlot(6, srgb, 0)
 

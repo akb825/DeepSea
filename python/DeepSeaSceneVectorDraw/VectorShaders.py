@@ -162,6 +162,12 @@ def VectorShadersStartModulesVector(builder, numElems):
 def StartModulesVector(builder, numElems):
     return VectorShadersStartModulesVector(builder, numElems)
 
+def VectorShadersCreateModulesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateModulesVector(builder, data):
+    VectorShadersCreateModulesVector(builder, data)
+
 def VectorShadersAddExtraElements(builder, extraElements):
     builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(extraElements), 0)
 
@@ -173,6 +179,12 @@ def VectorShadersStartExtraElementsVector(builder, numElems):
 
 def StartExtraElementsVector(builder, numElems):
     return VectorShadersStartExtraElementsVector(builder, numElems)
+
+def VectorShadersCreateExtraElementsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateExtraElementsVector(builder, data):
+    VectorShadersCreateExtraElementsVector(builder, data)
 
 def VectorShadersAddMaterialDesc(builder, materialDesc):
     builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(materialDesc), 0)

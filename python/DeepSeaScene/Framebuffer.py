@@ -123,6 +123,12 @@ def FramebufferStartSurfacesVector(builder, numElems):
 def StartSurfacesVector(builder, numElems):
     return FramebufferStartSurfacesVector(builder, numElems)
 
+def FramebufferCreateSurfacesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateSurfacesVector(builder, data):
+    FramebufferCreateSurfacesVector(builder, data)
+
 def FramebufferAddWidth(builder, width):
     builder.PrependFloat32Slot(2, width, 0.0)
 

@@ -99,6 +99,12 @@ def SceneLightSetStartLightsVector(builder, numElems):
 def StartLightsVector(builder, numElems):
     return SceneLightSetStartLightsVector(builder, numElems)
 
+def SceneLightSetCreateLightsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateLightsVector(builder, data):
+    SceneLightSetCreateLightsVector(builder, data)
+
 def SceneLightSetAddMaxLights(builder, maxLights):
     builder.PrependUint32Slot(1, maxLights, 0)
 

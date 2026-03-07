@@ -28,8 +28,7 @@ struct VectorImageNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_VECTORIMAGE = 6,
     VT_SIZE = 8,
     VT_Z = 10,
-    VT_VECTORSHADERS = 12,
-    VT_ITEMLISTS = 14
+    VT_ITEMLISTS = 12
   };
   const ::flatbuffers::Vector<uint8_t> *embeddedResources() const {
     return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_EMBEDDEDRESOURCES);
@@ -43,9 +42,6 @@ struct VectorImageNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t z() const {
     return GetField<int32_t>(VT_Z, 0);
   }
-  const ::flatbuffers::String *vectorShaders() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_VECTORSHADERS);
-  }
   const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_ITEMLISTS);
   }
@@ -58,8 +54,6 @@ struct VectorImageNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            verifier.VerifyString(vectorImage()) &&
            VerifyField<DeepSeaScene::Vector2f>(verifier, VT_SIZE, 4) &&
            VerifyField<int32_t>(verifier, VT_Z, 4) &&
-           VerifyOffsetRequired(verifier, VT_VECTORSHADERS) &&
-           verifier.VerifyString(vectorShaders()) &&
            VerifyOffset(verifier, VT_ITEMLISTS) &&
            verifier.VerifyVector(itemLists()) &&
            verifier.VerifyVectorOfStrings(itemLists()) &&
@@ -83,9 +77,6 @@ struct VectorImageNodeBuilder {
   void add_z(int32_t z) {
     fbb_.AddElement<int32_t>(VectorImageNode::VT_Z, z, 0);
   }
-  void add_vectorShaders(::flatbuffers::Offset<::flatbuffers::String> vectorShaders) {
-    fbb_.AddOffset(VectorImageNode::VT_VECTORSHADERS, vectorShaders);
-  }
   void add_itemLists(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> itemLists) {
     fbb_.AddOffset(VectorImageNode::VT_ITEMLISTS, itemLists);
   }
@@ -97,7 +88,6 @@ struct VectorImageNodeBuilder {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<VectorImageNode>(end);
     fbb_.Required(o, VectorImageNode::VT_VECTORIMAGE);
-    fbb_.Required(o, VectorImageNode::VT_VECTORSHADERS);
     return o;
   }
 };
@@ -108,11 +98,9 @@ inline ::flatbuffers::Offset<VectorImageNode> CreateVectorImageNode(
     ::flatbuffers::Offset<::flatbuffers::String> vectorImage = 0,
     const DeepSeaScene::Vector2f *size = nullptr,
     int32_t z = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> vectorShaders = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> itemLists = 0) {
   VectorImageNodeBuilder builder_(_fbb);
   builder_.add_itemLists(itemLists);
-  builder_.add_vectorShaders(vectorShaders);
   builder_.add_z(z);
   builder_.add_size(size);
   builder_.add_vectorImage(vectorImage);
@@ -126,11 +114,9 @@ inline ::flatbuffers::Offset<VectorImageNode> CreateVectorImageNodeDirect(
     const char *vectorImage = nullptr,
     const DeepSeaScene::Vector2f *size = nullptr,
     int32_t z = 0,
-    const char *vectorShaders = nullptr,
     const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists = nullptr) {
   auto embeddedResources__ = embeddedResources ? _fbb.CreateVector<uint8_t>(*embeddedResources) : 0;
   auto vectorImage__ = vectorImage ? _fbb.CreateString(vectorImage) : 0;
-  auto vectorShaders__ = vectorShaders ? _fbb.CreateString(vectorShaders) : 0;
   auto itemLists__ = itemLists ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*itemLists) : 0;
   return DeepSeaSceneVectorDraw::CreateVectorImageNode(
       _fbb,
@@ -138,7 +124,6 @@ inline ::flatbuffers::Offset<VectorImageNode> CreateVectorImageNodeDirect(
       vectorImage__,
       size,
       z,
-      vectorShaders__,
       itemLists__);
 }
 

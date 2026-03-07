@@ -84,6 +84,12 @@ def DiscardBoundsNodeStartChildrenVector(builder, numElems):
 def StartChildrenVector(builder, numElems):
     return DiscardBoundsNodeStartChildrenVector(builder, numElems)
 
+def DiscardBoundsNodeCreateChildrenVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateChildrenVector(builder, data):
+    DiscardBoundsNodeCreateChildrenVector(builder, data)
+
 def DiscardBoundsNodeEnd(builder):
     return builder.EndObject()
 

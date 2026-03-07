@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,8 +50,8 @@ DS_SCENEVECTORDRAW_EXPORT const dsCustomSceneResourceType* dsSceneVectorShaders_
  *     shaderModule.
  * @return The custom resource or NULL if an error occurred.
  */
-DS_SCENEVECTORDRAW_EXPORT dsCustomSceneResource* dsSceneVectorShaders_create(dsAllocator* allocator,
-	dsVectorShaders* shaders);
+DS_SCENEVECTORDRAW_EXPORT dsCustomSceneResource* dsSceneVectorShaders_create(
+	dsAllocator* allocator, dsVectorShaders* shaders);
 
 #ifdef __cplusplus
 }

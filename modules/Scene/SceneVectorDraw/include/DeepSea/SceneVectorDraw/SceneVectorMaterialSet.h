@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,8 @@ DS_SCENEVECTORDRAW_EXPORT const dsCustomSceneResourceType* dsSceneVectorMaterial
  * @brief Creates a custom resource to wrap a dsVectorMaterialSet.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the custom resource.
- * @param materialSet The vector material set to wrap.
+ * @param materialSet The vector material set to wrap. This will take ownership of the material set
+ *     and destroy it if creation fails.
  * @return The custom resource or NULL if an error occurred.
  */
 DS_SCENEVECTORDRAW_EXPORT dsCustomSceneResource* dsSceneVectorMaterialSet_create(

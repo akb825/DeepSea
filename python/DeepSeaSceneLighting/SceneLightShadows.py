@@ -200,6 +200,16 @@ def SceneLightShadowsStartMinDepthRangesVector(builder, numElems):
 def StartMinDepthRangesVector(builder, numElems):
     return SceneLightShadowsStartMinDepthRangesVector(builder, numElems)
 
+def SceneLightShadowsCreateMinDepthRangesVector(builder, data):
+    data = list(data)
+    builder.StartVector(4, len(data), 4)
+    for item in reversed(data):
+        builder.PrependFloat32(item)
+    return builder.EndVector()
+
+def CreateMinDepthRangesVector(builder, data):
+    SceneLightShadowsCreateMinDepthRangesVector(builder, data)
+
 def SceneLightShadowsAddFadeStartDistance(builder, fadeStartDistance):
     builder.PrependFloat32Slot(10, fadeStartDistance, 0.0)
 

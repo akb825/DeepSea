@@ -67,6 +67,12 @@ def TextIconGroupStartIconsVector(builder, numElems):
 def StartIconsVector(builder, numElems):
     return TextIconGroupStartIconsVector(builder, numElems)
 
+def TextIconGroupCreateIconsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateIconsVector(builder, data):
+    TextIconGroupCreateIconsVector(builder, data)
+
 def TextIconGroupEnd(builder):
     return builder.EndObject()
 

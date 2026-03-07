@@ -350,6 +350,12 @@ def RigidBodyStartShapesVector(builder, numElems):
 def StartShapesVector(builder, numElems):
     return RigidBodyStartShapesVector(builder, numElems)
 
+def RigidBodyCreateShapesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateShapesVector(builder, data):
+    RigidBodyCreateShapesVector(builder, data)
+
 def RigidBodyEnd(builder):
     return builder.EndObject()
 

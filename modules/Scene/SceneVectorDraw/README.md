@@ -127,7 +127,6 @@ The following scene node types are provided with the members that are expected:
 	* `vectorImage`: the name of the vector image to draw.
 	* `size`: the size to draw the vector image as an array of two floats. Defaults to the original image size.
 	* `z`: the Z value used for sorting text and vector elements as a signed int.
-	* `vectorShaders`: the name of the vector shaders to draw with.
 	* `itemLists`: array of item list names to add the node to.
 
 ## Scene Item Lists

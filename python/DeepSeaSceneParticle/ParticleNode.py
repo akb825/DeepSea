@@ -75,6 +75,12 @@ def ParticleNodeStartItemListsVector(builder, numElems):
 def StartItemListsVector(builder, numElems):
     return ParticleNodeStartItemListsVector(builder, numElems)
 
+def ParticleNodeCreateItemListsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateItemListsVector(builder, data):
+    ParticleNodeCreateItemListsVector(builder, data)
+
 def ParticleNodeEnd(builder):
     return builder.EndObject()
 

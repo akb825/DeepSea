@@ -80,6 +80,12 @@ def NodeChildrenStartChildrenVector(builder, numElems):
 def StartChildrenVector(builder, numElems):
     return NodeChildrenStartChildrenVector(builder, numElems)
 
+def NodeChildrenCreateChildrenVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateChildrenVector(builder, data):
+    NodeChildrenCreateChildrenVector(builder, data)
+
 def NodeChildrenEnd(builder):
     return builder.EndObject()
 

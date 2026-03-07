@@ -121,6 +121,16 @@ def VariableDataStartDataVector(builder, numElems):
 def StartDataVector(builder, numElems):
     return VariableDataStartDataVector(builder, numElems)
 
+def VariableDataCreateDataVector(builder, data):
+    data = list(data)
+    builder.StartVector(1, len(data), 1)
+    for item in reversed(data):
+        builder.PrependUint8(item)
+    return builder.EndVector()
+
+def CreateDataVector(builder, data):
+    VariableDataCreateDataVector(builder, data)
+
 def VariableDataEnd(builder):
     return builder.EndObject()
 

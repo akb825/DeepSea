@@ -82,11 +82,9 @@ dsSceneNode* dsSceneVectorImageNode_load(const dsSceneLoadContext* loadContext,
 
 	dsSceneNode* node = nullptr;
 	auto fbVectorImage = fbVectorImageNode->vectorImage();
-	auto fbVectorShaders = fbVectorImageNode->vectorShaders();
 	auto fbItemLists = fbVectorImageNode->itemLists();
 
-	dsVectorImage* vectorImage;
-	dsVectorShaders* vectorShaders;
+	dsSceneVectorImage* vectorImage;
 	const char** itemLists = nullptr;
 	uint32_t itemListCount = 0;
 
@@ -112,21 +110,7 @@ dsSceneNode* dsSceneVectorImageNode_load(const dsSceneLoadContext* loadContext,
 		goto finished;
 	}
 
-	vectorImage = reinterpret_cast<dsVectorImage*>(customResource->resource);
-
-	if (!dsSceneLoadScratchData_findResource(&resourceType,
-			reinterpret_cast<void**>(&customResource), scratchData,
-			fbVectorShaders->c_str()) ||
-		resourceType != dsSceneResourceType_Custom ||
-		customResource->type != dsSceneVectorShaders_type())
-	{
-		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Couldn't find vector shaders '%s'.",
-			fbVectorShaders->c_str());
-		goto finished;
-	}
-
-	vectorShaders = reinterpret_cast<dsVectorShaders*>(customResource->resource);
+	vectorImage = reinterpret_cast<dsSceneVectorImage*>(customResource->resource);
 
 	if (fbItemLists && fbItemLists->size() > 0)
 	{
@@ -149,9 +133,9 @@ dsSceneNode* dsSceneVectorImageNode_load(const dsSceneLoadContext* loadContext,
 
 	// NOTE: May need to add more resources to the reference count later. Don't add all resources
 	// since it would make circular references.
-	node = reinterpret_cast<dsSceneNode*>(dsSceneVectorImageNode_create(allocator, vectorImage,
-		hasSize ? &size : nullptr, fbVectorImageNode->z(), vectorShaders, itemLists, itemListCount,
-		&embeddedResources, embeddedResources ? 1 : 0));
+	node = reinterpret_cast<dsSceneNode*>(dsSceneVectorImageNode_create(allocator,
+		vectorImage->image, hasSize ? &size : nullptr, fbVectorImageNode->z(), vectorImage->shaders,
+		itemLists, itemListCount, &embeddedResources, embeddedResources ? 1 : 0));
 
 finished:
 	if (embeddedResources)

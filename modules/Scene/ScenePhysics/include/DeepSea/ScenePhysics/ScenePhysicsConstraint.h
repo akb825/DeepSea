@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,11 +76,12 @@ DS_SCENEPHYSICS_EXPORT bool dsScenePhysicsConstraint_destroy(dsScenePhysicsConst
  * @brief Creates a custom resource to wrap a dsScenePhysicsConstraint.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the custom resource.
- * @param constraint The constraint to wrap.
+ * @param constraint The scene constraint to wrap. This will take ownership of the constraint and
+ *     destroy it if creation fails.
  * @return The custom resource or NULL if an error occurred.
  */
 DS_SCENEPHYSICS_EXPORT dsCustomSceneResource* dsScenePhysicsConstraint_createResource(
-	dsAllocator* allocator, dsPhysicsConstraint* constraint);
+	dsAllocator* allocator, dsScenePhysicsConstraint* constraint);
 
 #ifdef __cplusplus
 }

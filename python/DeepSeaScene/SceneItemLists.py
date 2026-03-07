@@ -67,6 +67,12 @@ def SceneItemListsStartItemListsVector(builder, numElems):
 def StartItemListsVector(builder, numElems):
     return SceneItemListsStartItemListsVector(builder, numElems)
 
+def SceneItemListsCreateItemListsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateItemListsVector(builder, data):
+    SceneItemListsCreateItemListsVector(builder, data)
+
 def SceneItemListsEnd(builder):
     return builder.EndObject()
 

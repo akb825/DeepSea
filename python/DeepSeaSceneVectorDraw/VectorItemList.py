@@ -105,6 +105,12 @@ def VectorItemListStartInstanceDataVector(builder, numElems):
 def StartInstanceDataVector(builder, numElems):
     return VectorItemListStartInstanceDataVector(builder, numElems)
 
+def VectorItemListCreateInstanceDataVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateInstanceDataVector(builder, data):
+    VectorItemListCreateInstanceDataVector(builder, data)
+
 def VectorItemListAddMaxMaterialDescs(builder, maxMaterialDescs):
     builder.PrependInt32Slot(1, maxMaterialDescs, 0)
 
@@ -128,6 +134,12 @@ def VectorItemListStartViewsVector(builder, numElems):
 
 def StartViewsVector(builder, numElems):
     return VectorItemListStartViewsVector(builder, numElems)
+
+def VectorItemListCreateViewsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateViewsVector(builder, data):
+    VectorItemListCreateViewsVector(builder, data)
 
 def VectorItemListEnd(builder):
     return builder.EndObject()

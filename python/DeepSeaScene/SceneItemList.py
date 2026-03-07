@@ -95,6 +95,16 @@ def SceneItemListStartDataVector(builder, numElems):
 def StartDataVector(builder, numElems):
     return SceneItemListStartDataVector(builder, numElems)
 
+def SceneItemListCreateDataVector(builder, data):
+    data = list(data)
+    builder.StartVector(1, len(data), 1)
+    for item in reversed(data):
+        builder.PrependUint8(item)
+    return builder.EndVector()
+
+def CreateDataVector(builder, data):
+    SceneItemListCreateDataVector(builder, data)
+
 def SceneItemListEnd(builder):
     return builder.EndObject()
 
