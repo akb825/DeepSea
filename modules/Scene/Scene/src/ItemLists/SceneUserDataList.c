@@ -206,6 +206,7 @@ dsSceneItemList* dsSceneUserDataList_create(dsAllocator* allocator, const char* 
 	dsSceneItemList* itemList = (dsSceneItemList*)userDataList;
 	itemList->allocator = allocator;
 	itemList->type = dsSceneUserDataList_type();
+	itemList->viewFilter = NULL;
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);

@@ -25,39 +25,35 @@ class DeferredLightResolve(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # DeferredLightResolve
-    def ViewFramebufferDesc(self):
+    def ViewFilter(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
     # DeferredLightResolve
-    def LightSet(self):
+    def ViewFramebufferDesc(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
     # DeferredLightResolve
-    def ShadowManager(self):
+    def LightSet(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
     # DeferredLightResolve
-    def Ambient(self):
+    def ShadowManager(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
-            x = self._tab.Indirect(o + self._tab.Pos)
-            from DeepSeaSceneLighting.DeferredLightInfo import DeferredLightInfo
-            obj = DeferredLightInfo()
-            obj.Init(self._tab.Bytes, x)
-            return obj
+            return self._tab.String(o + self._tab.Pos)
         return None
 
     # DeferredLightResolve
-    def Directional(self):
+    def Ambient(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
@@ -68,7 +64,7 @@ class DeferredLightResolve(object):
         return None
 
     # DeferredLightResolve
-    def Point(self):
+    def Directional(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
@@ -79,7 +75,7 @@ class DeferredLightResolve(object):
         return None
 
     # DeferredLightResolve
-    def Spot(self):
+    def Point(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
@@ -90,18 +86,18 @@ class DeferredLightResolve(object):
         return None
 
     # DeferredLightResolve
-    def ShadowDirectional(self):
+    def Spot(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
-            from DeepSeaSceneLighting.DeferredShadowLightInfo import DeferredShadowLightInfo
-            obj = DeferredShadowLightInfo()
+            from DeepSeaSceneLighting.DeferredLightInfo import DeferredLightInfo
+            obj = DeferredLightInfo()
             obj.Init(self._tab.Bytes, x)
             return obj
         return None
 
     # DeferredLightResolve
-    def ShadowPoint(self):
+    def ShadowDirectional(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
@@ -112,7 +108,7 @@ class DeferredLightResolve(object):
         return None
 
     # DeferredLightResolve
-    def ShadowSpot(self):
+    def ShadowPoint(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
@@ -123,80 +119,97 @@ class DeferredLightResolve(object):
         return None
 
     # DeferredLightResolve
-    def IntensityThreshold(self):
+    def ShadowSpot(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
+        if o != 0:
+            x = self._tab.Indirect(o + self._tab.Pos)
+            from DeepSeaSceneLighting.DeferredShadowLightInfo import DeferredShadowLightInfo
+            obj = DeferredShadowLightInfo()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+    # DeferredLightResolve
+    def IntensityThreshold(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
 def DeferredLightResolveStart(builder):
-    builder.StartObject(11)
+    builder.StartObject(12)
 
 def Start(builder):
     DeferredLightResolveStart(builder)
 
+def DeferredLightResolveAddViewFilter(builder, viewFilter):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(viewFilter), 0)
+
+def AddViewFilter(builder, viewFilter):
+    DeferredLightResolveAddViewFilter(builder, viewFilter)
+
 def DeferredLightResolveAddViewFramebufferDesc(builder, viewFramebufferDesc):
-    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(viewFramebufferDesc), 0)
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(viewFramebufferDesc), 0)
 
 def AddViewFramebufferDesc(builder, viewFramebufferDesc):
     DeferredLightResolveAddViewFramebufferDesc(builder, viewFramebufferDesc)
 
 def DeferredLightResolveAddLightSet(builder, lightSet):
-    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(lightSet), 0)
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(lightSet), 0)
 
 def AddLightSet(builder, lightSet):
     DeferredLightResolveAddLightSet(builder, lightSet)
 
 def DeferredLightResolveAddShadowManager(builder, shadowManager):
-    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
+    builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
 
 def AddShadowManager(builder, shadowManager):
     DeferredLightResolveAddShadowManager(builder, shadowManager)
 
 def DeferredLightResolveAddAmbient(builder, ambient):
-    builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(ambient), 0)
+    builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(ambient), 0)
 
 def AddAmbient(builder, ambient):
     DeferredLightResolveAddAmbient(builder, ambient)
 
 def DeferredLightResolveAddDirectional(builder, directional):
-    builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(directional), 0)
+    builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(directional), 0)
 
 def AddDirectional(builder, directional):
     DeferredLightResolveAddDirectional(builder, directional)
 
 def DeferredLightResolveAddPoint(builder, point):
-    builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(point), 0)
+    builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(point), 0)
 
 def AddPoint(builder, point):
     DeferredLightResolveAddPoint(builder, point)
 
 def DeferredLightResolveAddSpot(builder, spot):
-    builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(spot), 0)
+    builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(spot), 0)
 
 def AddSpot(builder, spot):
     DeferredLightResolveAddSpot(builder, spot)
 
 def DeferredLightResolveAddShadowDirectional(builder, shadowDirectional):
-    builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(shadowDirectional), 0)
+    builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(shadowDirectional), 0)
 
 def AddShadowDirectional(builder, shadowDirectional):
     DeferredLightResolveAddShadowDirectional(builder, shadowDirectional)
 
 def DeferredLightResolveAddShadowPoint(builder, shadowPoint):
-    builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(shadowPoint), 0)
+    builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(shadowPoint), 0)
 
 def AddShadowPoint(builder, shadowPoint):
     DeferredLightResolveAddShadowPoint(builder, shadowPoint)
 
 def DeferredLightResolveAddShadowSpot(builder, shadowSpot):
-    builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(shadowSpot), 0)
+    builder.PrependUOffsetTRelativeSlot(10, flatbuffers.number_types.UOffsetTFlags.py_type(shadowSpot), 0)
 
 def AddShadowSpot(builder, shadowSpot):
     DeferredLightResolveAddShadowSpot(builder, shadowSpot)
 
 def DeferredLightResolveAddIntensityThreshold(builder, intensityThreshold):
-    builder.PrependFloat32Slot(10, intensityThreshold, 0.0)
+    builder.PrependFloat32Slot(11, intensityThreshold, 0.0)
 
 def AddIntensityThreshold(builder, intensityThreshold):
     DeferredLightResolveAddIntensityThreshold(builder, intensityThreshold)

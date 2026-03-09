@@ -17,8 +17,7 @@
 #include <DeepSea/Scene/ItemLists/SceneItemList.h>
 
 #include <DeepSea/Core/Containers/Hash.h>
-
-#include <string.h>
+#include <DeepSea/Scene/ViewFilter.h>
 
 uint32_t dsSceneItemList_hash(const dsSceneItemList* itemList)
 {
@@ -26,6 +25,7 @@ uint32_t dsSceneItemList_hash(const dsSceneItemList* itemList)
 		return 0;
 
 	uint32_t hash = dsHashPointer(itemList->type);
+	hash = dsViewFilter_hash(itemList->viewFilter, hash);
 	uint32_t hashValues[3] = {itemList->nameID, itemList->globalValueCount,
 		(itemList->needsCommandBuffer << 8) | itemList->skipPreRenderPass};
 	hash = dsHashCombineBytes(hash, hashValues, sizeof(hashValues));
@@ -41,7 +41,8 @@ bool dsSceneItemList_equal(const dsSceneItemList* left, const dsSceneItemList* r
 	if (left == right)
 		return true;
 	else if (!left || !right || !left->type || left->type != right->type ||
-		left->nameID != right->nameID || left->globalValueCount != right->globalValueCount ||
+		!dsViewFilter_equal(left->viewFilter, right->viewFilter) || left->nameID != right->nameID ||
+		left->globalValueCount != right->globalValueCount ||
 		left->needsCommandBuffer != right->needsCommandBuffer ||
 		left->skipPreRenderPass != right->skipPreRenderPass)
 	{

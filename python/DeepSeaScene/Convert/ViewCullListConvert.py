@@ -13,9 +13,29 @@
 # limitations under the License.
 
 import flatbuffers
+from .. import ViewCullList
 
 def convertViewCullList(convertContext, data, inputDir):
 	"""
-	Converts a ViewCullList. The data is ignored.
+	Converts a ViewCullList. The data map is expected to contain the following elements:
+	- viewFilter: name of the filter for what views to process. All views will be processed if
+	  unset.
 	"""
-	return bytearray()
+	try:
+		viewFilter = str(data.get('viewFilter', ''))
+	except KeyError as e:
+		raise Exception("ViewCullList data doesn't contain element " + str(e) + '.')
+	except (TypeError, ValueError):
+		raise Exception('ViweCullList data must be an object.')
+
+	builder = flatbuffers.Builder(0)
+
+	if viewFilter:
+		viewFilterOffset = builder.CreateString(viewFilter)
+	else:
+		viewFilterOffset = 0
+
+	ViewCullList.Start(builder)
+	ViewCullList.AddViewFilter(builder, viewFilterOffset)
+	builder.Finish(ViewCullList.End(builder))
+	return builder.Output()

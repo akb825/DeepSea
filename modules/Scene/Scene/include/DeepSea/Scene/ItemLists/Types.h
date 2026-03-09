@@ -45,6 +45,7 @@ typedef struct dsScene dsScene;
 typedef struct dsView dsView;
 typedef struct dsSceneItemList dsSceneItemList;
 typedef struct dsSceneInstanceData dsSceneInstanceData;
+typedef struct dsViewFilter dsViewFilter;
 /// @endcond
 
 /**
@@ -512,6 +513,13 @@ struct dsSceneItemList
 	 * @brief The type of the item list.
 	 */
 	const dsSceneItemListType* type;
+
+	/**
+	 * @brief The filter for what views the item list will be used for.
+	 *
+	 * When NULL, all filters will be accepted.
+	 */
+	const dsViewFilter* viewFilter;
 
 	/**
 	 * @brief The name of the scene item list.

@@ -42,6 +42,8 @@
 #include <DeepSea/Render/RenderPass.h>
 #include <DeepSea/Render/RenderSurface.h>
 
+#include <DeepSea/Scene/ViewFilter.h>
+
 #include <string.h>
 
 #define MAX_TASKS 100
@@ -367,9 +369,9 @@ static bool triggerThreads(dsSceneThreadManager* threadManager)
 	return true;
 }
 
-static bool triggerSharedItems(dsSceneThreadManager* threadManager, const dsScene* scene,
-	uint32_t index)
+static bool triggerSharedItems(dsSceneThreadManager* threadManager, const dsView* view, uint32_t index)
 {
+	const dsScene* scene = view->scene;
 	DS_ASSERT(index < scene->sharedItemCount);
 	const dsSceneItemLists* sharedItems = scene->sharedItems + index;
 	uint32_t processCount = 0;
@@ -389,8 +391,11 @@ static bool triggerSharedItems(dsSceneThreadManager* threadManager, const dsScen
 	for (uint32_t i = 0; i < sharedItems->count; ++i)
 	{
 		dsSceneItemList* itemList = sharedItems->itemLists[i];
-		if (!itemList->type->commitFunc)
+		if (!itemList->type->commitFunc ||
+			!dsViewFilter_containsID(itemList->viewFilter, view->nameID))
+		{
 			continue;
+		}
 
 		CommandBufferInfo* commandBufferInfo = threadManager->commandBufferInfos +
 			(commandBufferIndex++);
@@ -401,12 +406,17 @@ static bool triggerSharedItems(dsSceneThreadManager* threadManager, const dsScen
 		commandBufferInfo->framebuffer = 0;
 	}
 
+	// Some may have been skipped.
+	threadManager->commandBufferInfoCount = commandBufferIndex;
+
 	return triggerThreads(threadManager);
 }
 
-static bool triggerDraw(dsSceneThreadManager* threadManager, const dsScene* scene,
-	const uint32_t* pipelineFramebuffers)
+static bool triggerDraw(
+	dsSceneThreadManager* threadManager, const dsView* view, const uint32_t* pipelineFramebuffers)
 {
+	uint32_t viewID = view->nameID;
+	const dsScene* scene = view->scene;
 	for (uint32_t i = 0; i < scene->pipelineCount; ++i)
 	{
 		dsSceneRenderPass* sceneRenderPass = scene->pipeline[i].renderPass;
@@ -430,7 +440,8 @@ static bool triggerDraw(dsSceneThreadManager* threadManager, const dsScene* scen
 				{
 					dsSceneItemList* itemList = drawLists->itemLists[k];
 					preRenderPassCount +=
-						!itemList->skipPreRenderPass && itemList->type->preRenderPassFunc != NULL;
+						!itemList->skipPreRenderPass && itemList->type->preRenderPassFunc != NULL &&
+						dsViewFilter_containsID(itemList->viewFilter, viewID);
 				}
 			}
 
@@ -453,8 +464,11 @@ static bool triggerDraw(dsSceneThreadManager* threadManager, const dsScene* scen
 					for (uint32_t k = 0; k < drawLists->count; ++k, ++companionIndex)
 					{
 						dsSceneItemList* itemList = drawLists->itemLists[k];
-						if (itemList->skipPreRenderPass || !itemList->type->preRenderPassFunc)
+						if (itemList->skipPreRenderPass || !itemList->type->preRenderPassFunc ||
+							!dsViewFilter_containsID(itemList->viewFilter, viewID))
+						{
 							continue;
+						}
 
 						CommandBufferInfo* commandBufferInfo =
 							threadManager->commandBufferInfos + (curIndex++);
@@ -482,10 +496,14 @@ static bool triggerDraw(dsSceneThreadManager* threadManager, const dsScene* scen
 			for (uint32_t j = 0; j < renderPass->subpassCount; ++j)
 			{
 				const dsSceneItemLists* drawLists = sceneRenderPass->drawLists + j;
-				for (uint32_t k = 0; k < drawLists->count; ++k, ++curIndex)
+				for (uint32_t k = 0; k < drawLists->count; ++k)
 				{
+					const dsSceneItemList* itemList = drawLists->itemLists[k];
+					if (!dsViewFilter_containsID(itemList->viewFilter, viewID))
+						continue;
+
 					CommandBufferInfo* commandBufferInfo =
-						threadManager->commandBufferInfos + curIndex;
+						threadManager->commandBufferInfos + (curIndex++);
 					commandBufferInfo->commandBuffer = NULL;
 					commandBufferInfo->itemList = drawLists->itemLists[k];
 					commandBufferInfo->renderPass = sceneRenderPass;
@@ -494,13 +512,18 @@ static bool triggerDraw(dsSceneThreadManager* threadManager, const dsScene* scen
 				}
 			}
 
-			DS_ASSERT(curIndex == threadManager->commandBufferInfoCount);
+			DS_ASSERT(curIndex <= threadManager->commandBufferInfoCount);
+			// Some may have been skipped.
+			threadManager->commandBufferInfoCount = curIndex;
 		}
 		else
 		{
 			dsSceneItemList* itemList = scene->pipeline[i].computeItems;
-			if (!itemList->type->commitFunc)
+			if (!itemList->type->commitFunc ||
+				!dsViewFilter_containsID(itemList->viewFilter, viewID))
+			{
 				continue;
+			}
 
 			uint32_t index = threadManager->commandBufferInfoCount;
 			if (!DS_RESIZEABLE_ARRAY_ADD(threadManager->allocator,
@@ -600,8 +623,8 @@ static bool submitCommandBuffers(
 	return true;
 }
 
-dsSceneThreadManager* dsSceneThreadManager_create(dsAllocator* allocator, dsRenderer* renderer,
-	dsThreadPool* threadPool)
+dsSceneThreadManager* dsSceneThreadManager_create(
+	dsAllocator* allocator, dsRenderer* renderer, dsThreadPool* threadPool)
 {
 	if (!allocator || !renderer || !threadPool)
 	{
@@ -719,12 +742,12 @@ bool dsSceneThreadManager_draw(dsSceneThreadManager* threadManager, const dsView
 	// Shared items first.
 	DS_PROFILE_SCOPE_START("Shared Items");
 	for (uint32_t i = 0; i < scene->sharedItemCount; ++i)
-		triggerSharedItems(threadManager, scene, i);
+		triggerSharedItems(threadManager, view, i);
 	DS_PROFILE_SCOPE_END();
 
 	// Once finished, main rendering pipeline.
 	DS_PROFILE_SCOPE_START("Draw");
-	triggerDraw(threadManager, scene, pipelineFramebuffers);
+	triggerDraw(threadManager, view, pipelineFramebuffers);
 	DS_PROFILE_SCOPE_END();
 
 	DS_PROFILE_SCOPE_START("Submit");

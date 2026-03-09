@@ -16,6 +16,7 @@
 
 #include <DeepSea/SceneAnimation/SceneAnimationLoadContext.h>
 
+#include "SceneAnimationListLoad.h"
 #include "SceneAnimationNodeLoad.h"
 #include "SceneAnimationTransformNodeLoad.h"
 #include "SceneAnimationTreeNodeLoad.h"
@@ -37,20 +38,6 @@
 #include <DeepSea/SceneAnimation/SceneDirectAnimation.h>
 #include <DeepSea/SceneAnimation/SceneKeyframeAnimation.h>
 #include <DeepSea/SceneAnimation/SceneSkinningData.h>
-
-static dsSceneItemList* dsSceneAnimationList_load(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const char* name, const uint8_t* data, size_t dataSize)
-{
-	DS_UNUSED(loadContext);
-	DS_UNUSED(scratchData);
-	DS_UNUSED(resourceAllocator);
-	DS_UNUSED(userData);
-	DS_UNUSED(data);
-	DS_UNUSED(dataSize);
-
-	return (dsSceneItemList*)dsSceneAnimationList_create(allocator, name);
-}
 
 static dsSceneInstanceData* dsSceneSkinningData_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,

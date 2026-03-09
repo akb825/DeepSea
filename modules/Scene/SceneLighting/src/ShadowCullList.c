@@ -425,7 +425,7 @@ const dsSceneItemListType* dsShadowCullList_type(void)
 }
 
 dsSceneItemList* dsShadowCullList_create(dsAllocator* allocator, const char* name,
-	dsSceneLightShadows* shadows, uint32_t surface)
+	const dsViewFilter* viewFilter, dsSceneLightShadows* shadows, uint32_t surface)
 {
 	if (!allocator || !name || surface >= DS_MAX_SCENE_LIGHT_SHADOWS_SURFACES)
 	{
@@ -455,6 +455,7 @@ dsSceneItemList* dsShadowCullList_create(dsAllocator* allocator, const char* nam
 	dsSceneItemList* itemList = (dsSceneItemList*)cullList;
 	itemList->allocator = allocator;
 	itemList->type = dsShadowCullList_type();
+	itemList->viewFilter = viewFilter;
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);

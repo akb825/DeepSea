@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2025 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,6 +74,7 @@ DS_SCENELIGHTING_EXPORT const dsSceneItemListType* dsDeferredLightResolve_type(v
  * @param resourceAllocator The allocator to create graphics resources with. If NULL this will use
  *     the deferred light resolve allocator.
  * @param name The name of the deferred light resolve. This will be copied.
+ * @param viewFilter The filter for what views process, or NULL to accept all views.
  * @param viewFramebufferDesc Shader variable group description created with
  *     dsViewFramebufferData_createShaderVariableGroupDesc().
  * @param lightSet The light set to draw the lgihts from.
@@ -94,9 +95,10 @@ DS_SCENELIGHTING_EXPORT const dsSceneItemListType* dsDeferredLightResolve_type(v
  */
 DS_SCENELIGHTING_EXPORT dsDeferredLightResolve* dsDeferredLightResolve_create(
 	dsAllocator* allocator, dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
-	const char* name, const dsShaderVariableGroupDesc* viewFramebufferDesc,
-	const dsSceneLightSet* lightSet, const dsSceneShadowManager* shadowManager,
-	const dsDeferredLightDrawInfo* ambientInfo, const dsDeferredLightDrawInfo* lightInfos,
+	const char* name, const dsViewFilter* viewFilter,
+	const dsShaderVariableGroupDesc* viewFramebufferDesc, const dsSceneLightSet* lightSet,
+	const dsSceneShadowManager* shadowManager, const dsDeferredLightDrawInfo* ambientInfo,
+	const dsDeferredLightDrawInfo* lightInfos,
 	const dsDeferredShadowLightDrawInfo* shadowLightInfos, float intensityThreshold);
 
 /**

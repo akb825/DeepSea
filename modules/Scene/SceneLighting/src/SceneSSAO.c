@@ -152,7 +152,8 @@ const dsSceneItemListType* dsSceneSSAO_type(void)
 }
 
 dsSceneSSAO* dsSceneSSAO_create(dsAllocator* allocator, dsResourceManager* resourceManager,
-	dsAllocator* resourceAllocator, const char* name, dsShader* shader, dsMaterial* material)
+	dsAllocator* resourceAllocator, const char* name, const dsViewFilter* viewFilter,
+	dsShader* shader, dsMaterial* material)
 {
 	if (!allocator || !resourceManager || !name || !shader || !material ||
 		!dsSceneSSAO_canUseMaterial(material))
@@ -204,6 +205,7 @@ dsSceneSSAO* dsSceneSSAO_create(dsAllocator* allocator, dsResourceManager* resou
 	dsSceneItemList* itemList = (dsSceneItemList*)ssao;
 	itemList->allocator = dsAllocator_keepPointer(allocator);
 	itemList->type = dsSceneSSAO_type();
+	itemList->viewFilter = viewFilter;
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);

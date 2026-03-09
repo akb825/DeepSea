@@ -25,46 +25,59 @@ class ShadowCullList(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # ShadowCullList
-    def ShadowManager(self):
+    def ViewFilter(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
     # ShadowCullList
-    def Shadows(self):
+    def ShadowManager(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
     # ShadowCullList
-    def Surface(self):
+    def Shadows(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+    # ShadowCullList
+    def Surface(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
 def ShadowCullListStart(builder):
-    builder.StartObject(3)
+    builder.StartObject(4)
 
 def Start(builder):
     ShadowCullListStart(builder)
 
+def ShadowCullListAddViewFilter(builder, viewFilter):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(viewFilter), 0)
+
+def AddViewFilter(builder, viewFilter):
+    ShadowCullListAddViewFilter(builder, viewFilter)
+
 def ShadowCullListAddShadowManager(builder, shadowManager):
-    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
 
 def AddShadowManager(builder, shadowManager):
     ShadowCullListAddShadowManager(builder, shadowManager)
 
 def ShadowCullListAddShadows(builder, shadows):
-    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shadows), 0)
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(shadows), 0)
 
 def AddShadows(builder, shadows):
     ShadowCullListAddShadows(builder, shadows)
 
 def ShadowCullListAddSurface(builder, surface):
-    builder.PrependUint8Slot(2, surface, 0)
+    builder.PrependUint8Slot(3, surface, 0)
 
 def AddSurface(builder, surface):
     ShadowCullListAddSurface(builder, surface)

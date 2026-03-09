@@ -23,10 +23,14 @@ struct FullScreenResolveBuilder;
 struct FullScreenResolve FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef FullScreenResolveBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_SHADER = 4,
-    VT_MATERIAL = 6,
-    VT_DYNAMICRENDERSTATES = 8
+    VT_VIEWFILTER = 4,
+    VT_SHADER = 6,
+    VT_MATERIAL = 8,
+    VT_DYNAMICRENDERSTATES = 10
   };
+  const ::flatbuffers::String *viewFilter() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_VIEWFILTER);
+  }
   const ::flatbuffers::String *shader() const {
     return GetPointer<const ::flatbuffers::String *>(VT_SHADER);
   }
@@ -39,6 +43,8 @@ struct FullScreenResolve FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_VIEWFILTER) &&
+           verifier.VerifyString(viewFilter()) &&
            VerifyOffsetRequired(verifier, VT_SHADER) &&
            verifier.VerifyString(shader()) &&
            VerifyOffsetRequired(verifier, VT_MATERIAL) &&
@@ -53,6 +59,9 @@ struct FullScreenResolveBuilder {
   typedef FullScreenResolve Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
+  void add_viewFilter(::flatbuffers::Offset<::flatbuffers::String> viewFilter) {
+    fbb_.AddOffset(FullScreenResolve::VT_VIEWFILTER, viewFilter);
+  }
   void add_shader(::flatbuffers::Offset<::flatbuffers::String> shader) {
     fbb_.AddOffset(FullScreenResolve::VT_SHADER, shader);
   }
@@ -77,6 +86,7 @@ struct FullScreenResolveBuilder {
 
 inline ::flatbuffers::Offset<FullScreenResolve> CreateFullScreenResolve(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> viewFilter = 0,
     ::flatbuffers::Offset<::flatbuffers::String> shader = 0,
     ::flatbuffers::Offset<::flatbuffers::String> material = 0,
     ::flatbuffers::Offset<DeepSeaScene::DynamicRenderStates> dynamicRenderStates = 0) {
@@ -84,18 +94,22 @@ inline ::flatbuffers::Offset<FullScreenResolve> CreateFullScreenResolve(
   builder_.add_dynamicRenderStates(dynamicRenderStates);
   builder_.add_material(material);
   builder_.add_shader(shader);
+  builder_.add_viewFilter(viewFilter);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<FullScreenResolve> CreateFullScreenResolveDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *viewFilter = nullptr,
     const char *shader = nullptr,
     const char *material = nullptr,
     ::flatbuffers::Offset<DeepSeaScene::DynamicRenderStates> dynamicRenderStates = 0) {
+  auto viewFilter__ = viewFilter ? _fbb.CreateString(viewFilter) : 0;
   auto shader__ = shader ? _fbb.CreateString(shader) : 0;
   auto material__ = material ? _fbb.CreateString(material) : 0;
   return DeepSeaScene::CreateFullScreenResolve(
       _fbb,
+      viewFilter__,
       shader__,
       material__,
       dynamicRenderStates);

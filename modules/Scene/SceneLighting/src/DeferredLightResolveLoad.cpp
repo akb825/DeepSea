@@ -91,27 +91,43 @@ dsSceneItemList* dsDeferredLightResolve_load(const dsSceneLoadContext* loadConte
 
 	auto fbResolve = DeepSeaSceneLighting::GetDeferredLightResolve(data);
 
-	const char* viewFramebufferDescName = fbResolve->viewFramebufferDesc()->c_str();
-	dsSceneResourceType type;
-	dsShaderVariableGroupDesc* viewFramebufferDesc;
-	if (!dsSceneLoadScratchData_findResource(&type, (void**)&viewFramebufferDesc, scratchData,
-			viewFramebufferDescName) || type != dsSceneResourceType_ShaderVariableGroupDesc)
+	auto fbViewFilter = fbResolve->viewFilter();
+	dsSceneResourceType resourceType;
+	dsViewFilter* viewFilter = nullptr;
+	if (fbViewFilter)
 	{
-		errno = ENOTFOUND;
+		if (!dsSceneLoadScratchData_findResource(&resourceType,
+				reinterpret_cast<void**>(&viewFilter), scratchData, fbViewFilter->c_str()) ||
+			resourceType != dsSceneResourceType_ViewFilter)
+		{
+			DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find view filter '%s'.",
+				fbViewFilter->c_str());
+			errno = ENOTFOUND;
+			return nullptr;
+		}
+	}
+
+	const char* viewFramebufferDescName = fbResolve->viewFramebufferDesc()->c_str();
+	dsShaderVariableGroupDesc* viewFramebufferDesc;
+	if (!dsSceneLoadScratchData_findResource(&resourceType,
+			reinterpret_cast<void**>(&viewFramebufferDesc), scratchData, viewFramebufferDescName) ||
+		resourceType != dsSceneResourceType_ShaderVariableGroupDesc)
+	{
 		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find view framebuffer desc '%s'.",
 			viewFramebufferDescName);
+		errno = ENOTFOUND;
 		return nullptr;
 	}
 
 	dsCustomSceneResource* resource;
 	const char* lightSetName = fbResolve->lightSet()->c_str();
-	if (!dsSceneLoadScratchData_findResource(&type, (void**)&resource, scratchData,
-			lightSetName) || type != dsSceneResourceType_Custom ||
-		resource->type != dsSceneLightSet_type())
+	if (!dsSceneLoadScratchData_findResource(
+			&resourceType, reinterpret_cast<void**>(&resource), scratchData, lightSetName) ||
+		resourceType != dsSceneResourceType_Custom || resource->type != dsSceneLightSet_type())
 	{
+		DS_LOG_ERROR_F(
+			DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find light set '%s'.", lightSetName);
 		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find light set '%s'.",
-			lightSetName);
 		return nullptr;
 	}
 
@@ -122,13 +138,13 @@ dsSceneItemList* dsDeferredLightResolve_load(const dsSceneLoadContext* loadConte
 	if (fbShadowManager)
 	{
 		const char* shadowManagerName = fbShadowManager->c_str();
-		if (!dsSceneLoadScratchData_findResource(&type, (void**)&resource, scratchData,
-				shadowManagerName) || type != dsSceneResourceType_Custom ||
+		if (!dsSceneLoadScratchData_findResource(&resourceType, reinterpret_cast<void**>(&resource),
+				scratchData, shadowManagerName) || resourceType != dsSceneResourceType_Custom ||
 			resource->type != dsSceneShadowManager_type())
 		{
-			errno = ENOTFOUND;
 			DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find shadow manager '%s'.",
 				shadowManagerName);
+			errno = ENOTFOUND;
 			return nullptr;
 		}
 
@@ -236,6 +252,6 @@ dsSceneItemList* dsDeferredLightResolve_load(const dsSceneLoadContext* loadConte
 
 	dsRenderer* renderer = dsSceneLoadContext_getRenderer(loadContext);
 	return reinterpret_cast<dsSceneItemList*>(dsDeferredLightResolve_create(allocator,
-		renderer->resourceManager, resourceAllocator, name, viewFramebufferDesc, lightSet,
-		shadowManager, &ambientInfo, lightInfos, shadowLightInfos, intensityThreshold));
+		renderer->resourceManager, resourceAllocator, name, viewFilter, viewFramebufferDesc,
+		lightSet, shadowManager, &ambientInfo, lightInfos, shadowLightInfos, intensityThreshold));
 }

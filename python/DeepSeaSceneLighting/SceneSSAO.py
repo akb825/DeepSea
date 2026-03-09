@@ -25,33 +25,46 @@ class SceneSSAO(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # SceneSSAO
-    def Shader(self):
+    def ViewFilter(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
     # SceneSSAO
-    def Material(self):
+    def Shader(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
+    # SceneSSAO
+    def Material(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
 def SceneSSAOStart(builder):
-    builder.StartObject(2)
+    builder.StartObject(3)
 
 def Start(builder):
     SceneSSAOStart(builder)
 
+def SceneSSAOAddViewFilter(builder, viewFilter):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(viewFilter), 0)
+
+def AddViewFilter(builder, viewFilter):
+    SceneSSAOAddViewFilter(builder, viewFilter)
+
 def SceneSSAOAddShader(builder, shader):
-    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
 
 def AddShader(builder, shader):
     SceneSSAOAddShader(builder, shader)
 
 def SceneSSAOAddMaterial(builder, material):
-    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
 
 def AddMaterial(builder, material):
     SceneSSAOAddMaterial(builder, material)

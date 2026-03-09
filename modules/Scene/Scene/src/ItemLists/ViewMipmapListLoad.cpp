@@ -17,10 +17,13 @@
 #include <DeepSea/Scene/ItemLists/ViewMipmapList.h>
 
 #include "SceneLoadContextInternal.h"
+
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
+#include <DeepSea/Scene/SceneLoadScratchData.h>
 
 #if DS_GCC || DS_CLANG
 #pragma GCC diagnostic push
@@ -39,9 +42,9 @@
 #endif
 
 extern "C"
-dsSceneItemList* dsViewMipmapList_load(const dsSceneLoadContext*, dsSceneLoadScratchData*,
-	dsAllocator* allocator, dsAllocator*, void*, const char* name, const uint8_t* data,
-	size_t dataSize)
+dsSceneItemList* dsViewMipmapList_load(const dsSceneLoadContext*,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*, void*,
+	const char* name, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaScene::VerifyViewMipmapListBuffer(verifier))
@@ -52,7 +55,23 @@ dsSceneItemList* dsViewMipmapList_load(const dsSceneLoadContext*, dsSceneLoadScr
 	}
 
 	auto fbMipmapList = DeepSeaScene::GetViewMipmapList(data);
+	auto fbViewFilter = fbMipmapList->viewFilter();
 	auto fbTextureList = fbMipmapList->textures();
+
+	dsSceneResourceType resourceType;
+	dsViewFilter* viewFilter = nullptr;
+	if (fbViewFilter)
+	{
+		if (!dsSceneLoadScratchData_findResource(&resourceType,
+				reinterpret_cast<void**>(&viewFilter), scratchData, fbViewFilter->c_str()) ||
+			resourceType != dsSceneResourceType_ViewFilter)
+		{
+			DS_LOG_ERROR_F(
+				DS_SCENE_LOG_TAG, "Couldn't find view filter '%s'.", fbViewFilter->c_str());
+			errno = ENOTFOUND;
+			return nullptr;
+		}
+	}
 
 	uint32_t fullCount = fbTextureList->size();
 	const char** textureNames = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, fullCount);
@@ -72,5 +91,5 @@ dsSceneItemList* dsViewMipmapList_load(const dsSceneLoadContext*, dsSceneLoadScr
 		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "View mipmap list contains no valid texture names.");
 	}
 
-	return dsViewMipmapList_create(allocator, name, textureNames, textureCount);
+	return dsViewMipmapList_create(allocator, name, viewFilter, textureNames, textureCount);
 }

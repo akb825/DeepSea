@@ -193,18 +193,22 @@ inline ::flatbuffers::Offset<DeferredShadowLightInfo> CreateDeferredShadowLightI
 struct DeferredLightResolve FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef DeferredLightResolveBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_VIEWFRAMEBUFFERDESC = 4,
-    VT_LIGHTSET = 6,
-    VT_SHADOWMANAGER = 8,
-    VT_AMBIENT = 10,
-    VT_DIRECTIONAL = 12,
-    VT_POINT = 14,
-    VT_SPOT = 16,
-    VT_SHADOWDIRECTIONAL = 18,
-    VT_SHADOWPOINT = 20,
-    VT_SHADOWSPOT = 22,
-    VT_INTENSITYTHRESHOLD = 24
+    VT_VIEWFILTER = 4,
+    VT_VIEWFRAMEBUFFERDESC = 6,
+    VT_LIGHTSET = 8,
+    VT_SHADOWMANAGER = 10,
+    VT_AMBIENT = 12,
+    VT_DIRECTIONAL = 14,
+    VT_POINT = 16,
+    VT_SPOT = 18,
+    VT_SHADOWDIRECTIONAL = 20,
+    VT_SHADOWPOINT = 22,
+    VT_SHADOWSPOT = 24,
+    VT_INTENSITYTHRESHOLD = 26
   };
+  const ::flatbuffers::String *viewFilter() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_VIEWFILTER);
+  }
   const ::flatbuffers::String *viewFramebufferDesc() const {
     return GetPointer<const ::flatbuffers::String *>(VT_VIEWFRAMEBUFFERDESC);
   }
@@ -241,6 +245,8 @@ struct DeferredLightResolve FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_VIEWFILTER) &&
+           verifier.VerifyString(viewFilter()) &&
            VerifyOffsetRequired(verifier, VT_VIEWFRAMEBUFFERDESC) &&
            verifier.VerifyString(viewFramebufferDesc()) &&
            VerifyOffsetRequired(verifier, VT_LIGHTSET) &&
@@ -270,6 +276,9 @@ struct DeferredLightResolveBuilder {
   typedef DeferredLightResolve Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
+  void add_viewFilter(::flatbuffers::Offset<::flatbuffers::String> viewFilter) {
+    fbb_.AddOffset(DeferredLightResolve::VT_VIEWFILTER, viewFilter);
+  }
   void add_viewFramebufferDesc(::flatbuffers::Offset<::flatbuffers::String> viewFramebufferDesc) {
     fbb_.AddOffset(DeferredLightResolve::VT_VIEWFRAMEBUFFERDESC, viewFramebufferDesc);
   }
@@ -318,6 +327,7 @@ struct DeferredLightResolveBuilder {
 
 inline ::flatbuffers::Offset<DeferredLightResolve> CreateDeferredLightResolve(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> viewFilter = 0,
     ::flatbuffers::Offset<::flatbuffers::String> viewFramebufferDesc = 0,
     ::flatbuffers::Offset<::flatbuffers::String> lightSet = 0,
     ::flatbuffers::Offset<::flatbuffers::String> shadowManager = 0,
@@ -341,11 +351,13 @@ inline ::flatbuffers::Offset<DeferredLightResolve> CreateDeferredLightResolve(
   builder_.add_shadowManager(shadowManager);
   builder_.add_lightSet(lightSet);
   builder_.add_viewFramebufferDesc(viewFramebufferDesc);
+  builder_.add_viewFilter(viewFilter);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<DeferredLightResolve> CreateDeferredLightResolveDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *viewFilter = nullptr,
     const char *viewFramebufferDesc = nullptr,
     const char *lightSet = nullptr,
     const char *shadowManager = nullptr,
@@ -357,11 +369,13 @@ inline ::flatbuffers::Offset<DeferredLightResolve> CreateDeferredLightResolveDir
     ::flatbuffers::Offset<DeepSeaSceneLighting::DeferredShadowLightInfo> shadowPoint = 0,
     ::flatbuffers::Offset<DeepSeaSceneLighting::DeferredShadowLightInfo> shadowSpot = 0,
     float intensityThreshold = 0.0f) {
+  auto viewFilter__ = viewFilter ? _fbb.CreateString(viewFilter) : 0;
   auto viewFramebufferDesc__ = viewFramebufferDesc ? _fbb.CreateString(viewFramebufferDesc) : 0;
   auto lightSet__ = lightSet ? _fbb.CreateString(lightSet) : 0;
   auto shadowManager__ = shadowManager ? _fbb.CreateString(shadowManager) : 0;
   return DeepSeaSceneLighting::CreateDeferredLightResolve(
       _fbb,
+      viewFilter__,
       viewFramebufferDesc__,
       lightSet__,
       shadowManager__,

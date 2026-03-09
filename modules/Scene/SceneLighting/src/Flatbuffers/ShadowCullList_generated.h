@@ -21,10 +21,14 @@ struct ShadowCullListBuilder;
 struct ShadowCullList FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ShadowCullListBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_SHADOWMANAGER = 4,
-    VT_SHADOWS = 6,
-    VT_SURFACE = 8
+    VT_VIEWFILTER = 4,
+    VT_SHADOWMANAGER = 6,
+    VT_SHADOWS = 8,
+    VT_SURFACE = 10
   };
+  const ::flatbuffers::String *viewFilter() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_VIEWFILTER);
+  }
   const ::flatbuffers::String *shadowManager() const {
     return GetPointer<const ::flatbuffers::String *>(VT_SHADOWMANAGER);
   }
@@ -37,6 +41,8 @@ struct ShadowCullList FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_VIEWFILTER) &&
+           verifier.VerifyString(viewFilter()) &&
            VerifyOffsetRequired(verifier, VT_SHADOWMANAGER) &&
            verifier.VerifyString(shadowManager()) &&
            VerifyOffsetRequired(verifier, VT_SHADOWS) &&
@@ -50,6 +56,9 @@ struct ShadowCullListBuilder {
   typedef ShadowCullList Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
+  void add_viewFilter(::flatbuffers::Offset<::flatbuffers::String> viewFilter) {
+    fbb_.AddOffset(ShadowCullList::VT_VIEWFILTER, viewFilter);
+  }
   void add_shadowManager(::flatbuffers::Offset<::flatbuffers::String> shadowManager) {
     fbb_.AddOffset(ShadowCullList::VT_SHADOWMANAGER, shadowManager);
   }
@@ -74,25 +83,30 @@ struct ShadowCullListBuilder {
 
 inline ::flatbuffers::Offset<ShadowCullList> CreateShadowCullList(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> viewFilter = 0,
     ::flatbuffers::Offset<::flatbuffers::String> shadowManager = 0,
     ::flatbuffers::Offset<::flatbuffers::String> shadows = 0,
     uint8_t surface = 0) {
   ShadowCullListBuilder builder_(_fbb);
   builder_.add_shadows(shadows);
   builder_.add_shadowManager(shadowManager);
+  builder_.add_viewFilter(viewFilter);
   builder_.add_surface(surface);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<ShadowCullList> CreateShadowCullListDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *viewFilter = nullptr,
     const char *shadowManager = nullptr,
     const char *shadows = nullptr,
     uint8_t surface = 0) {
+  auto viewFilter__ = viewFilter ? _fbb.CreateString(viewFilter) : 0;
   auto shadowManager__ = shadowManager ? _fbb.CreateString(shadowManager) : 0;
   auto shadows__ = shadows ? _fbb.CreateString(shadows) : 0;
   return DeepSeaSceneLighting::CreateShadowCullList(
       _fbb,
+      viewFilter__,
       shadowManager__,
       shadows__,
       surface);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,26 +47,42 @@ dsSceneItemList* dsSceneShadowManagerPrepare_load(const dsSceneLoadContext*,
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaSceneLighting::VerifySceneShadowManagerPrepareBuffer(verifier))
 	{
-		errno = EFORMAT;
 		DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG,
 			"Invalid scene shadow manager prepare flatbuffer format.");
+		errno = EFORMAT;
 		return nullptr;
 	}
 
 	auto fbPrepare = DeepSeaSceneLighting::GetSceneShadowManagerPrepare(data);
+	auto fbViewFilter = fbPrepare->viewFilter();
 	const char* shadowManagerName = fbPrepare->shadowManager()->c_str();
-	dsSceneResourceType type;
-	dsCustomSceneResource* resource;
-	if (!dsSceneLoadScratchData_findResource(&type, (void**)&resource, scratchData,
-			shadowManagerName) || type != dsSceneResourceType_Custom ||
-		resource->type != dsSceneShadowManager_type())
+
+	dsSceneResourceType resourceType;
+	dsViewFilter* viewFilter = nullptr;
+	if (fbViewFilter)
 	{
-		errno = ENOTFOUND;
+		if (!dsSceneLoadScratchData_findResource(&resourceType,
+				reinterpret_cast<void**>(&viewFilter), scratchData, fbViewFilter->c_str()) ||
+			resourceType != dsSceneResourceType_ViewFilter)
+		{
+			DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find view filter '%s'.",
+				fbViewFilter->c_str());
+			errno = ENOTFOUND;
+			return nullptr;
+		}
+	}
+
+	dsCustomSceneResource* resource;
+	if (!dsSceneLoadScratchData_findResource(
+			&resourceType, reinterpret_cast<void**>(&resource), scratchData, shadowManagerName) ||
+		resourceType != dsSceneResourceType_Custom || resource->type != dsSceneShadowManager_type())
+	{
 		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find scene shadow manager '%s'.",
 			shadowManagerName);
+		errno = ENOTFOUND;
 		return nullptr;
 	}
 
 	auto shadowManager = reinterpret_cast<dsSceneShadowManager*>(resource->resource);
-	return dsSceneShadowManagerPrepare_create(allocator, name, shadowManager);
+	return dsSceneShadowManagerPrepare_create(allocator, name, viewFilter, shadowManager);
 }

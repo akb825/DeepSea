@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2025 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,13 +53,15 @@ DS_SCENELIGHTING_EXPORT const dsSceneItemListType* dsShadowCullList_type(void);
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the list with. This must support freeing memory.
  * @param name The name of the shadow cull list. This will be copied.
+ * @param viewFilter The filter for what views process, or NULL to accept all views.
  * @param shadows The scene light shadows to cull for.
  * @param surface The surface index to cull for. This must be less than
  *     DS_MAX_SCENE_LIGHT_SHADOWS_SURFACES.
  * @return The shadow cull list or NULL if the parameters are invalid.
  */
 DS_SCENELIGHTING_EXPORT dsSceneItemList* dsShadowCullList_create(dsAllocator* allocator,
-	const char* name, dsSceneLightShadows* shadows, uint32_t surface);
+	const char* name, const dsViewFilter* viewFilter, dsSceneLightShadows* shadows,
+	uint32_t surface);
 
 #ifdef __cplusplus
 }

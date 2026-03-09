@@ -80,7 +80,8 @@ The following scene node types are provided with the members that are expected:
 
 The following scene item lists are provided with the expected members:
 
-* `"AnimationList"`: item list to manage `AnimationNode`, `AnimationTranformNode`, and `AnimationTreeNode` instances. This contains no extra data members.
+* `"AnimationList"`: item list to manage `AnimationNode`, `AnimationTranformNode`, and `AnimationTreeNode` instances.
+	* `viewFilter`: name of the filter for what views to process. All views will be processed if unset.
 
 ## Instance Data
 

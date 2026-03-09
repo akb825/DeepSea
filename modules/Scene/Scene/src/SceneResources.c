@@ -46,6 +46,7 @@
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/CustomSceneResource.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
+#include <DeepSea/Scene/ViewFilter.h>
 
 #include <string.h>
 
@@ -99,6 +100,9 @@ static bool destroyResource(dsSceneResourceType type, void* resource)
 			return dsShader_destroy((dsShader*)resource);
 		case dsSceneResourceType_DrawGeometry:
 			return dsDrawGeometry_destroy((dsDrawGeometry*)resource);
+		case dsSceneResourceType_ViewFilter:
+			dsViewFilter_destroy((dsViewFilter*)resource);
+			return true;
 		case dsSceneResourceType_Custom:
 			return dsCustomSceneResource_destroy((dsCustomSceneResource*)resource);
 		default:

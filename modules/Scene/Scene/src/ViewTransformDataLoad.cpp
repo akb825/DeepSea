@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,22 +53,37 @@ dsSceneItemList* dsViewTransformData_load(const dsSceneLoadContext* loadContext,
 	}
 
 	auto fbTransformData = DeepSeaScene::GetViewTransformData(data);
+	auto fbViewFilter = fbTransformData->viewFilter();
 	const char* groupDescName = fbTransformData->variableGroupDesc()->c_str();
 
-	dsShaderVariableGroupDesc* groupDesc;
 	dsSceneResourceType resourceType;
+	dsViewFilter* viewFilter = nullptr;
+	if (fbViewFilter)
+	{
+		if (!dsSceneLoadScratchData_findResource(&resourceType,
+				reinterpret_cast<void**>(&viewFilter), scratchData, fbViewFilter->c_str()) ||
+			resourceType != dsSceneResourceType_ViewFilter)
+		{
+			DS_LOG_ERROR_F(
+				DS_SCENE_LOG_TAG, "Couldn't find view filter '%s'.", fbViewFilter->c_str());
+			errno = ENOTFOUND;
+			return nullptr;
+		}
+	}
+
+	dsShaderVariableGroupDesc* groupDesc;
 	if (!dsSceneLoadScratchData_findResource(&resourceType, reinterpret_cast<void**>(&groupDesc),
 			scratchData, groupDescName) ||
 		resourceType != dsSceneResourceType_ShaderVariableGroupDesc)
 	{
-		// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
-		errno = ENOTFOUND;
 		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
 			"Couldn't find view transform shader variable group description '%s'.", groupDescName);
+		errno = ENOTFOUND;
 		return nullptr;
 	}
 
 	dsRenderer* renderer = dsSceneLoadContext_getRenderer(loadContext);
-	return dsViewTransformData_create(allocator, name, renderer->resourceManager, groupDesc);
+	return dsViewTransformData_create(
+		allocator, name, viewFilter, renderer->resourceManager, groupDesc);
 }
 

@@ -15,5 +15,6 @@ class SceneResourceUnion(object):
     Shader = 9
     DrawGeometry = 10
     SceneNode = 11
-    CustomResource = 12
-    ResourceAction = 13
+    ViewFilter = 12
+    CustomResource = 13
+    ResourceAction = 14

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,10 +50,11 @@ DS_SCENEVECTORDRAW_EXPORT const dsSceneItemListType* dsSceneVectorDrawPrepare_ty
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the list with. This must support freeing memory.
  * @param name The name of the vector prepare list. This will be copied.
+ * @param viewFilter The filter for what views process, or NULL to accept all views.
  * @return The vector prepare list or NULL if an error occurred.
  */
-DS_SCENEVECTORDRAW_EXPORT dsSceneItemList* dsSceneVectorDrawPrepare_create(dsAllocator* allocator,
-	const char* name);
+DS_SCENEVECTORDRAW_EXPORT dsSceneItemList* dsSceneVectorDrawPrepare_create(
+	dsAllocator* allocator, const char* name, const dsViewFilter* viewFilter);
 
 #ifdef __cplusplus
 }

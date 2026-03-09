@@ -19,6 +19,8 @@ from DeepSeaScene.Convert.DynamicRenderStatesConvert import convertDynamicRender
 def convertVectorItemList(convertContext, data, inputDir):
 	"""
 	Converts a VectorItemList. The data map is expected to contain the following elements:
+	- viewFilter: name of the filter for what views to process. All views will be processed if
+	  unset.
 	- instanceData: optional list of instance data to include with the item list. Each element of
 	  the array has the following members:
 	  - type: the name of the instance data type.
@@ -45,6 +47,7 @@ def convertVectorItemList(convertContext, data, inputDir):
 	"""
 	builder = flatbuffers.Builder(0)
 	try:
+		viewFilter = str(data.get('viewFilter', ''))
 		instanceDataInfo = data.get('instanceData', [])
 		instanceData = []
 		try:
@@ -70,14 +73,15 @@ def convertVectorItemList(convertContext, data, inputDir):
 			dynamicRenderStatesOffset = convertDynamicRenderStates(dynamicRenderStateInfo, builder)
 		else:
 			dynamicRenderStatesOffset = 0
-
-		views = data.get('views', [])
-		if not isinstance(views, list):
-			raise Exception('VectorItemList "views" must be an array of strings.')
 	except KeyError as e:
 		raise Exception('VectorItemList doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):
 		raise Exception('VectorItemList must be an object.')
+
+	if viewFilter:
+		viewFilterOffset = builder.CreateString(viewFilter)
+	else:
+		viewFilterOffset = 0
 
 	instanceDataOffsets = []
 	for instanceType, instance in instanceData:
@@ -92,21 +96,10 @@ def convertVectorItemList(convertContext, data, inputDir):
 	else:
 		instanceDataOffset = 0
 
-	if views:
-		viewOffsets = []
-		for view in views:
-			viewOffsets.append(builder.CreateString(str(view)))
-		VectorItemList.StartViewsVector(builder, len(viewOffsets))
-		for offset in reversed(viewOffsets):
-			builder.PrependUOffsetTRelative(offset)
-		viewsOffset = builder.EndVector()
-	else:
-		viewsOffset = 0
-
 	VectorItemList.Start(builder)
+	VectorItemList.AddViewFilter(builder, viewFilterOffset)
 	VectorItemList.AddInstanceData(builder, instanceDataOffset)
 	VectorItemList.AddMaxMaterialDescs(builder, maxMaterialDescs)
 	VectorItemList.AddDynamicRenderStates(builder, dynamicRenderStatesOffset)
-	VectorItemList.AddViews(builder, viewsOffset)
 	builder.Finish(VectorItemList.End(builder))
 	return builder.Output()

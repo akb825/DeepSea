@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@ namespace DeepSeaScene;
 // Struct describing view transform data.
 table ViewTransformData
 {
+	// Name of the filter for what views to process. All views will be processed if unset.
+	viewFilter : string;
+
 	// The name of the shader variable group description for the transform data.
 	variableGroupDesc : string (required);
 }

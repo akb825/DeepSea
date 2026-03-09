@@ -191,6 +191,7 @@ dsSceneItemList* dsLightData_create(dsAllocator* allocator, const char* name,
 
 	itemList->allocator = dsAllocator_keepPointer(allocator);
 	itemList->type = &itemListType;
+	itemList->viewFilter = nullptr;
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);

@@ -25,20 +25,33 @@ class SceneShadowManagerPrepare(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # SceneShadowManagerPrepare
-    def ShadowManager(self):
+    def ViewFilter(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
+    # SceneShadowManagerPrepare
+    def ShadowManager(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
 def SceneShadowManagerPrepareStart(builder):
-    builder.StartObject(1)
+    builder.StartObject(2)
 
 def Start(builder):
     SceneShadowManagerPrepareStart(builder)
 
+def SceneShadowManagerPrepareAddViewFilter(builder, viewFilter):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(viewFilter), 0)
+
+def AddViewFilter(builder, viewFilter):
+    SceneShadowManagerPrepareAddViewFilter(builder, viewFilter)
+
 def SceneShadowManagerPrepareAddShadowManager(builder, shadowManager):
-    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
 
 def AddShadowManager(builder, shadowManager):
     SceneShadowManagerPrepareAddShadowManager(builder, shadowManager)

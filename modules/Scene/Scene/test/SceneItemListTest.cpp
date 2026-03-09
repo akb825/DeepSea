@@ -175,6 +175,7 @@ MockSceneItemList* createMockSceneItems(dsAllocator* allocator)
 	dsSceneItemList* baseItems = (dsSceneItemList*)mockItems;
 	baseItems->allocator = dsAllocator_keepPointer(allocator);
 	baseItems->type = &type;
+	baseItems->viewFilter = NULL;
 	baseItems->name = testItemListName;
 	baseItems->nameID = dsUniqueNameID_create(testItemListName);
 	baseItems->globalValueCount = 0;

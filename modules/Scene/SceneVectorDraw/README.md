@@ -133,8 +133,10 @@ The following scene node types are provided with the members that are expected:
 
 The following scene item lists are provided with the expected members:
 
-* `"VectorDrawPrepare"`: item list to prepare `TextNode` and `VectorImageNode` nodes for drawing. (no additional members)
+* `"VectorDrawPrepare"`: item list to prepare `TextNode` and `VectorImageNode` nodes for drawing.
+	* `viewFilter`: name of the filter for what views to process. All views will be processed if unset.
 * `"VectorItemList"`: item list to draw `TextNode` and `VectorImageNode` nodes.
+	* `viewFilter`: name of the filter for what views to process. All views will be processed if unset.
 	* `instanceData`: optional list of instance data to include with the item list. Each element of the array has the following members:
 		* `type`: the name of the instance data type.
 		* Remaining members depend on the value of `type`.

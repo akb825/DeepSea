@@ -73,7 +73,7 @@ const dsSceneItemListType* dsViewMipmapList_type(void)
 }
 
 dsSceneItemList* dsViewMipmapList_create(dsAllocator* allocator, const char* name,
-	const char* const* textureNames, uint32_t textureCount)
+	const dsViewFilter* viewFilter, const char* const* textureNames, uint32_t textureCount)
 {
 	if (!allocator || !name || !textureNames || textureCount == 0)
 	{
@@ -106,6 +106,7 @@ dsSceneItemList* dsViewMipmapList_create(dsAllocator* allocator, const char* nam
 	dsSceneItemList* itemList = (dsSceneItemList*)mipmapList;
 	itemList->allocator = dsAllocator_keepPointer(allocator);
 	itemList->type = dsViewMipmapList_type();
+	itemList->viewFilter = viewFilter;
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);

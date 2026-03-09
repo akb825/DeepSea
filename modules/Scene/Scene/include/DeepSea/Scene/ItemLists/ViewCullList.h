@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,9 +51,11 @@ DS_SCENE_EXPORT const dsSceneItemListType* dsViewCullList_type(void);
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the list with. This must support freeing memory.
  * @param name The name of the cull list. This will be copied.
+ * @param viewFilter The filter for what views process, or NULL to accept all views.
  * @return The cull list or NULL if an error occurred.
  */
-DS_SCENE_EXPORT dsSceneItemList* dsViewCullList_create(dsAllocator* allocator, const char* name);
+DS_SCENE_EXPORT dsSceneItemList* dsViewCullList_create(
+	dsAllocator* allocator, const char* name, const dsViewFilter* viewFilter);
 
 #ifdef __cplusplus
 }

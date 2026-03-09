@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2025 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ DS_SCENELIGHTING_EXPORT const dsSceneItemListType* dsSceneSSAO_type(void);
  * @param resourceAllocator The allocator to create graphics resources with. If NULL this will use
  *     the scene SSAO allocator.
  * @param name The name of the scene SSAO. This will be copied.
+ * @param viewFilter The filter for what views process, or NULL to accept all views.
  * @param shader The shader used to draw SSAO. The vertex elements for the shader are:
  *     - position: vec2 clip-space [-1, 1] values.
  * @param material The material for the SSAO. This must have the following two elements with
@@ -63,7 +64,7 @@ DS_SCENELIGHTING_EXPORT const dsSceneItemListType* dsSceneSSAO_type(void);
  */
 DS_SCENELIGHTING_EXPORT dsSceneSSAO* dsSceneSSAO_create(dsAllocator* allocator,
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, const char* name,
-	dsShader* shader, dsMaterial* material);
+	const dsViewFilter* viewFilter, dsShader* shader, dsMaterial* material);
 
 /**
  * @brief Gets the shader.

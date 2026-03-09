@@ -159,7 +159,8 @@ dsShaderVariableGroupDesc* dsViewTransformData_createShaderVariableGroupDesc(
 }
 
 dsSceneItemList* dsViewTransformData_create(dsAllocator* allocator, const char* name,
-	dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* transformDesc)
+	const dsViewFilter* viewFilter, dsResourceManager* resourceManager,
+	const dsShaderVariableGroupDesc* transformDesc)
 {
 	if (!allocator || !name || !transformDesc)
 	{
@@ -193,6 +194,7 @@ dsSceneItemList* dsViewTransformData_create(dsAllocator* allocator, const char* 
 	dsSceneItemList* itemList = (dsSceneItemList*)viewData;
 	itemList->allocator = dsAllocator_keepPointer(allocator);
 	itemList->type = dsViewTransformData_type();
+	itemList->viewFilter = viewFilter;
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);

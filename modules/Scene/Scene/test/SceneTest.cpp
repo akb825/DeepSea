@@ -86,7 +86,7 @@ struct MockSceneItemList
 	uint32_t maxRemoveItems;
 };
 
-uint64_t addMockSceneItem(dsSceneItemList* itemList, dsSceneNode* node, dsSceneTreeNode* treeNode,
+uint64_t addMockSceneItem(dsSceneItemList* itemList, dsSceneNode* node, dsSceneTreeNode*,
 	const dsSceneNodeItemData*, void**)
 {
 	if (!dsSceneNode_isOfType(node, &mockSceneNodeType))
@@ -197,6 +197,7 @@ MockSceneItemList* createMockSceneItems(
 	dsSceneItemList* baseItems = (dsSceneItemList*)mockItems;
 	baseItems->allocator = dsAllocator_keepPointer(allocator);
 	baseItems->type = &type;
+	baseItems->viewFilter = NULL;
 	baseItems->name = name;
 	baseItems->nameID = dsUniqueNameID_create(name);
 	baseItems->globalValueCount = 0;

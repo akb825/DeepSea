@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ DS_SCENE_EXPORT const dsSceneItemListType* dsSceneModelList_type(void);
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the list with. This must support freeing memory.
  * @param name The name of the model list. This will be copied.
+ * @param viewFilter The filter for what views process, or NULL to accept all views.
  * @param instanceData The list of instance datas to use. The array will be copied, and this will
  *     take ownership of each instance data. The instances will be destroyed if an error occurrs.
  * @param instanceDataCount The number of instance datas.
@@ -56,15 +57,12 @@ DS_SCENE_EXPORT const dsSceneItemListType* dsSceneModelList_type(void);
  *     assumed that the void* for the item data directly relates to a zero if in view or non-zero if
  *     out of view.
  * @param cullListCount The number of cull item lists. If zero, no culling is performed.
- * @param views The name of the views that the model list will be drawn for.
- * @param viewCount The number of views the model list will be drawn for. If zero, all views will be
- *     drawn to.
  * @return The model list or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* name,
-	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount, dsModelSortType sortType,
-	const dsDynamicRenderStates* renderStates, const char* const* cullLists, uint32_t cullListCount,
-	const char* const* views, uint32_t viewCount);
+	const dsViewFilter* viewFilter, dsSceneInstanceData* const* instanceData,
+	uint32_t instanceDataCount, dsModelSortType sortType, const dsDynamicRenderStates* renderStates,
+	const char* const* cullLists, uint32_t cullListCount);
 
 /**
  * @brief Gets the sort type for a model list.

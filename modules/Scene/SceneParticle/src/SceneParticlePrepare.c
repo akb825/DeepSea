@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -216,6 +216,7 @@ dsSceneItemList* dsSceneParticlePrepare_create(dsAllocator* allocator, const cha
 	dsSceneItemList* itemList = (dsSceneItemList*)prepareList;
 	itemList->allocator = allocator;
 	itemList->type = dsSceneParticlePrepare_type();
+	itemList->viewFilter = NULL;
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);

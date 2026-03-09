@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Aaron Barany
+ * Copyright 2025-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -285,6 +285,7 @@ dsSceneItemList* dsSceneHandoffList_create(dsAllocator* allocator, const char* n
 	dsSceneItemList* itemList = (dsSceneItemList*)handoffList;
 	itemList->allocator = allocator;
 	itemList->type = dsSceneHandoffList_type();
+	itemList->viewFilter = NULL;
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	memcpy((void*)itemList->name, name, nameLen);
 	itemList->nameID = dsUniqueNameID_create(name);

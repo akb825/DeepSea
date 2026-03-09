@@ -623,9 +623,9 @@ const dsSceneItemListType* dsDeferredLightResolve_type(void)
 
 dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, const char* name,
-	const dsShaderVariableGroupDesc* viewFramebufferDesc, const dsSceneLightSet* lightSet,
-	const dsSceneShadowManager* shadowManager, const dsDeferredLightDrawInfo* ambientInfo,
-	const dsDeferredLightDrawInfo* lightInfos,
+	const dsViewFilter* viewFilter, const dsShaderVariableGroupDesc* viewFramebufferDesc,
+	const dsSceneLightSet* lightSet, const dsSceneShadowManager* shadowManager,
+	const dsDeferredLightDrawInfo* ambientInfo, const dsDeferredLightDrawInfo* lightInfos,
 	const dsDeferredShadowLightDrawInfo* shadowLightInfos, float intensityThreshold)
 {
 	if (!allocator || !name || !viewFramebufferDesc || !lightSet || intensityThreshold <= 0)
@@ -684,6 +684,7 @@ dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 	dsSceneItemList* itemList = (dsSceneItemList*)resolve;
 	itemList->allocator = allocator;
 	itemList->type = dsDeferredLightResolve_type();
+	itemList->viewFilter = viewFilter;
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);

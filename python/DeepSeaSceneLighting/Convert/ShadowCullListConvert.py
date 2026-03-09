@@ -18,11 +18,14 @@ from .. import ShadowCullList
 def convertShadowCullList(convertContext, data, inputDir):
 	"""
 	Converts a ShadowCullList. The data map is expected to contain the following elements:
+	- viewFilter: name of the filter for what views to process. All views will be processed if
+	  unset.
 	- shadowManager: name of the shadow manager that contains the shadows being culled for.
 	- shadows: name of the shadows within the shadow manager to cull for.
 	- surface: index of the surface within the light shadows.
 	"""
 	try:
+		viewFilter = str(data.get('viewFilter', ''))
 		shadowManager = str(data['shadowManager'])
 		shadows = str(data['shadows'])
 		surfaceVal = data['surface']
@@ -39,10 +42,15 @@ def convertShadowCullList(convertContext, data, inputDir):
 
 	builder = flatbuffers.Builder(0)
 
+	if viewFilter:
+		viewFilterOffset = builder.CreateString(viewFilter)
+	else:
+		viewFilterOffset = 0
 	shadowManagerOffset = builder.CreateString(shadowManager)
 	shadowsOffset = builder.CreateString(shadows)
 
 	ShadowCullList.Start(builder)
+	ShadowCullList.AddViewFilter(builder, viewFilterOffset)
 	ShadowCullList.AddShadowManager(builder, shadowManagerOffset)
 	ShadowCullList.AddShadows(builder, shadowsOffset)
 	ShadowCullList.AddSurface(builder, surface)

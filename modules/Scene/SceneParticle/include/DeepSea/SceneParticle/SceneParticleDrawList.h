@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ DS_SCENEPARTICLE_EXPORT const dsSceneItemListType* dsSceneParticleDrawList_type(
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the list with.
  * @param name The name of the particle draw. This will be copied.
+ * @param viewFilter The filter for what views process, or NULL to accept all views.
  * @param resourceManager The resource manager to create graphics resources with.
  * @param resourceAllocator The allocator to allocate graphics resources with. If NULL, allocator
  *     will be used.
@@ -61,16 +62,12 @@ DS_SCENEPARTICLE_EXPORT const dsSceneItemListType* dsSceneParticleDrawList_type(
  *     assumed that the void* for the item data directly relates to a zero if in view or non-zero if
  *     out of view.
  * @param cullListCount The number of cull item lists. If zero, no culling is performed.
- * @param views The name of the views that the model list will be drawn for.
- * @param viewCount The number of views the model list will be drawn for. If zero, all views will be
- *     drawn to.
  * @return The particle draw or NULL if an error occurred.
  */
 DS_SCENEPARTICLE_EXPORT dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator,
-	const char* name, dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
-	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount,
-	const char* const* cullLists, uint32_t cullListCount, const char* const* views,
-	uint32_t viewCount);
+	const char* name, const dsViewFilter* viewFilter, dsResourceManager* resourceManager,
+	dsAllocator* resourceAllocator, dsSceneInstanceData* const* instanceData,
+	uint32_t instanceDataCount, const char* const* cullLists, uint32_t cullListCount);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2025 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,11 +53,12 @@ DS_SCENELIGHTING_EXPORT const dsSceneItemListType* dsSceneShadowManagerPrepare_t
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the light shadows prepare with.
  * @param name The name of the shadow manager prepare. This will be copied.
+ * @param viewFilter The filter for what views process, or NULL to accept all views.
  * @param shadowManager The scene shadow manager to prepare.
  * @return The scene shadow manager prepare or NULL if the parameters are invalid.
  */
-DS_SCENELIGHTING_EXPORT dsSceneItemList* dsSceneShadowManagerPrepare_create(
-	dsAllocator* allocator, const char* name, dsSceneShadowManager* shadowManager);
+DS_SCENELIGHTING_EXPORT dsSceneItemList* dsSceneShadowManagerPrepare_create(dsAllocator* allocator,
+	const char* name, const dsViewFilter* viewFilter, dsSceneShadowManager* shadowManager);
 
 #ifdef __cplusplus
 }

@@ -23,6 +23,8 @@ class Object:
 def convertDeferredLightResolve(convertContext, data, inputDir):
 	"""
 	Converts a DeferredLightResolve. The data map is expected to contain the following elements:
+	- viewFilter: name of the filter for what views to process. All views will be processed if
+	  unset.
 	- viewFramebufferDesc: name of the shader variable group description for dsViewFramebufferData.
 	- lightSet: name of the light set to draw the lights from.
 	- shadowManager: name of the shadow manager when drawing shadowed lights.
@@ -91,6 +93,7 @@ def convertDeferredLightResolve(convertContext, data, inputDir):
 			raise Exception('DeferredLightResolve ' + name + ' must be an object.')
 
 	try:
+		viewFilter = str(data.get('viewFilter', ''))
 		viewFramebufferDesc = str(data['viewFramebufferDesc'])
 		lightSet = str(data['lightSet'])
 		shadowManager = str(data.get('shadowManager', ''))
@@ -150,6 +153,10 @@ def convertDeferredLightResolve(convertContext, data, inputDir):
 
 	builder = flatbuffers.Builder(0)
 
+	if viewFilter:
+		viewFilterOffset = builder.CreateString(viewFilter)
+	else:
+		viewFilterOffset = 0
 	viewFramebufferDescOffset = builder.CreateString(viewFramebufferDesc)
 	lightSetOffset = builder.CreateString(lightSet)
 	if shadowManager:
@@ -240,6 +247,7 @@ def convertDeferredLightResolve(convertContext, data, inputDir):
 		shadowSpotOffset = 0
 
 	DeferredLightResolve.Start(builder)
+	DeferredLightResolve.AddViewFilter(builder, viewFilterOffset)
 	DeferredLightResolve.AddViewFramebufferDesc(builder, viewFramebufferDescOffset)
 	DeferredLightResolve.AddLightSet(builder, lightSetOffset)
 	DeferredLightResolve.AddShadowManager(builder, shadowManagerOffset)

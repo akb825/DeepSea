@@ -21,14 +21,20 @@ struct ViewTransformDataBuilder;
 struct ViewTransformData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ViewTransformDataBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_VARIABLEGROUPDESC = 4
+    VT_VIEWFILTER = 4,
+    VT_VARIABLEGROUPDESC = 6
   };
+  const ::flatbuffers::String *viewFilter() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_VIEWFILTER);
+  }
   const ::flatbuffers::String *variableGroupDesc() const {
     return GetPointer<const ::flatbuffers::String *>(VT_VARIABLEGROUPDESC);
   }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_VIEWFILTER) &&
+           verifier.VerifyString(viewFilter()) &&
            VerifyOffsetRequired(verifier, VT_VARIABLEGROUPDESC) &&
            verifier.VerifyString(variableGroupDesc()) &&
            verifier.EndTable();
@@ -39,6 +45,9 @@ struct ViewTransformDataBuilder {
   typedef ViewTransformData Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
+  void add_viewFilter(::flatbuffers::Offset<::flatbuffers::String> viewFilter) {
+    fbb_.AddOffset(ViewTransformData::VT_VIEWFILTER, viewFilter);
+  }
   void add_variableGroupDesc(::flatbuffers::Offset<::flatbuffers::String> variableGroupDesc) {
     fbb_.AddOffset(ViewTransformData::VT_VARIABLEGROUPDESC, variableGroupDesc);
   }
@@ -56,18 +65,23 @@ struct ViewTransformDataBuilder {
 
 inline ::flatbuffers::Offset<ViewTransformData> CreateViewTransformData(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> viewFilter = 0,
     ::flatbuffers::Offset<::flatbuffers::String> variableGroupDesc = 0) {
   ViewTransformDataBuilder builder_(_fbb);
   builder_.add_variableGroupDesc(variableGroupDesc);
+  builder_.add_viewFilter(viewFilter);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<ViewTransformData> CreateViewTransformDataDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *viewFilter = nullptr,
     const char *variableGroupDesc = nullptr) {
+  auto viewFilter__ = viewFilter ? _fbb.CreateString(viewFilter) : 0;
   auto variableGroupDesc__ = variableGroupDesc ? _fbb.CreateString(variableGroupDesc) : 0;
   return DeepSeaScene::CreateViewTransformData(
       _fbb,
+      viewFilter__,
       variableGroupDesc__);
 }
 

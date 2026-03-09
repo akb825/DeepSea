@@ -16,8 +16,6 @@
 
 #include <DeepSea/SceneVectorDraw/SceneVectorDrawPrepare.h>
 
-#include "SceneVectorDrawPrepareLoad.h"
-
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
@@ -175,19 +173,6 @@ static void dsSceneVectorDrawPrepare_destroy(dsSceneItemList* itemList)
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
 
-dsSceneItemList* dsSceneVectorDrawPrepare_load(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const char* name, const uint8_t* data, size_t dataSize)
-{
-	DS_UNUSED(loadContext);
-	DS_UNUSED(scratchData);
-	DS_UNUSED(resourceAllocator);
-	DS_UNUSED(userData);
-	DS_UNUSED(data);
-	DS_UNUSED(dataSize);
-	return dsSceneVectorDrawPrepare_create(allocator, name);
-}
-
 const char* const dsSceneVectorDrawPrepare_typeName = "VectorDrawPrepare";
 
 static dsSceneItemListType itemListType =
@@ -203,7 +188,8 @@ const dsSceneItemListType* dsSceneVectorDrawPrepare_type(void)
 	return &itemListType;
 }
 
-dsSceneItemList* dsSceneVectorDrawPrepare_create(dsAllocator* allocator, const char* name)
+dsSceneItemList* dsSceneVectorDrawPrepare_create(
+	dsAllocator* allocator, const char* name, const dsViewFilter* viewFilter)
 {
 	if (!allocator || !name)
 	{
@@ -235,6 +221,7 @@ dsSceneItemList* dsSceneVectorDrawPrepare_create(dsAllocator* allocator, const c
 	dsSceneItemList* itemList = (dsSceneItemList*)prepareList;
 	itemList->allocator = allocator;
 	itemList->type = dsSceneVectorDrawPrepare_type();
+	itemList->viewFilter = viewFilter;
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);

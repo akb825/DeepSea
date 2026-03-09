@@ -88,7 +88,7 @@ const dsSceneItemListType* dsSceneShadowManagerPrepare_type(void)
 }
 
 dsSceneItemList* dsSceneShadowManagerPrepare_create(dsAllocator* allocator, const char* name,
-	dsSceneShadowManager* shadowManager)
+	const dsViewFilter* viewFilter, dsSceneShadowManager* shadowManager)
 {
 	if (!allocator || !shadowManager)
 	{
@@ -113,6 +113,7 @@ dsSceneItemList* dsSceneShadowManagerPrepare_create(dsAllocator* allocator, cons
 	dsSceneItemList* itemList = (dsSceneItemList*)prepare;
 	itemList->allocator = dsAllocator_keepPointer(allocator);
 	itemList->type = dsSceneShadowManagerPrepare_type();
+	itemList->viewFilter = viewFilter;
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);

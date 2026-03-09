@@ -26,7 +26,7 @@ def convertModelNodeReconfig(convertContext, data, inputDir, outputDir):
 	- baseName: the name of the model node to clone.
 	- models: array of models to reconfigure to apply. Each element of the array has the
 	  following members:
-	  - baseName: the name of the model inside the node to use.
+	  - name: the name of the model inside the node to use.
 	  - distanceRange: array of two floats for the minimum and maximum distance to draw at.
 	    Defaults to [0, 3.402823466e38].
 	  - modelLists: array of objects describing the lists to draw the model with the shader and
@@ -45,13 +45,13 @@ def convertModelNodeReconfig(convertContext, data, inputDir, outputDir):
 			for model in modelInfos:
 				distanceRange = model.get('distanceRange', [0.0, FLT_MAX])
 				validateModelDistanceRange(distanceRange)
-				baseName = str(model['baseName'])
+				modelName = str(model['name'])
 
 				modelListInfos = model['modelLists']
 				try:
 					for modelListInfo in modelListInfos:
 						try:
-							models.append((baseName, str(modelListInfo['shader']),
+							models.append((modelName, str(modelListInfo['shader']),
 								str(modelListInfo['material']), distanceRange,
 								str(modelListInfo['list'])))
 						except KeyError as e:
@@ -62,7 +62,7 @@ def convertModelNodeReconfig(convertContext, data, inputDir, outputDir):
 					raise Exception(
 						'ModelNodeReconfig "modelLists" must be an array of objects.')
 
-			extraItemLists = data.get('extraItemLists')
+			extraItemLists = data.get('extraItemLists', [])
 			if extraItemLists and not isinstance(extraItemLists, list):
 				raise Exception('ModelNodeReconfig "extraItemLists" must be an array of strings.')
 

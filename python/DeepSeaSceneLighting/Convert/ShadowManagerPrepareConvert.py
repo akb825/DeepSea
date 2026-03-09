@@ -18,9 +18,12 @@ from .. import SceneShadowManagerPrepare
 def convertShadowManagerPrepare(convertContext, data, inputDir):
 	"""
 	Converts a ShadowManagerPrepare. The data map is expected to contain the following elements:
+	- viewFilter: name of the filter for what views to process. All views will be processed if
+	  unset.
 	- shadowManager: name of the shadow manager instance to prepare.
 	"""
 	try:
+		viewFilter = str(data.get('viewFilter', ''))
 		shadowManager = str(data['shadowManager'])
 	except KeyError as e:
 		raise Exception('ShadowManagerPrepare doesn\'t contain element ' + str(e) + '.')
@@ -29,9 +32,14 @@ def convertShadowManagerPrepare(convertContext, data, inputDir):
 
 	builder = flatbuffers.Builder(0)
 
+	if viewFilter:
+		viewFilterOffset = builder.CreateString(viewFilter)
+	else:
+		viewFilterOffset = 0
 	shadowManagerOffset = builder.CreateString(shadowManager)
 
 	SceneShadowManagerPrepare.Start(builder)
+	SceneShadowManagerPrepare.AddViewFilter(builder, viewFilterOffset)
 	SceneShadowManagerPrepare.AddShadowManager(builder, shadowManagerOffset)
 	builder.Finish(SceneShadowManagerPrepare.End(builder))
 	return builder.Output()

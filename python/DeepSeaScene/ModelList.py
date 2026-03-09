@@ -25,8 +25,15 @@ class ModelList(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # ModelList
-    def InstanceData(self, j):
+    def ViewFilter(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+    # ModelList
+    def InstanceData(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
@@ -39,26 +46,26 @@ class ModelList(object):
 
     # ModelList
     def InstanceDataLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # ModelList
     def InstanceDataIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
     # ModelList
     def SortType(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
     # ModelList
     def DynamicRenderStates(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
             from DeepSeaScene.DynamicRenderStates import DynamicRenderStates
@@ -69,7 +76,7 @@ class ModelList(object):
 
     # ModelList
     def CullLists(self, j):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             a = self._tab.Vector(o)
             return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
@@ -77,33 +84,13 @@ class ModelList(object):
 
     # ModelList
     def CullListsLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # ModelList
     def CullListsIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
-        return o == 0
-
-    # ModelList
-    def Views(self, j):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
-        if o != 0:
-            a = self._tab.Vector(o)
-            return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
-        return ""
-
-    # ModelList
-    def ViewsLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
-        if o != 0:
-            return self._tab.VectorLen(o)
-        return 0
-
-    # ModelList
-    def ViewsIsNone(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         return o == 0
 
@@ -113,8 +100,14 @@ def ModelListStart(builder):
 def Start(builder):
     ModelListStart(builder)
 
+def ModelListAddViewFilter(builder, viewFilter):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(viewFilter), 0)
+
+def AddViewFilter(builder, viewFilter):
+    ModelListAddViewFilter(builder, viewFilter)
+
 def ModelListAddInstanceData(builder, instanceData):
-    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(instanceData), 0)
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(instanceData), 0)
 
 def AddInstanceData(builder, instanceData):
     ModelListAddInstanceData(builder, instanceData)
@@ -132,19 +125,19 @@ def CreateInstanceDataVector(builder, data):
     ModelListCreateInstanceDataVector(builder, data)
 
 def ModelListAddSortType(builder, sortType):
-    builder.PrependUint8Slot(1, sortType, 0)
+    builder.PrependUint8Slot(2, sortType, 0)
 
 def AddSortType(builder, sortType):
     ModelListAddSortType(builder, sortType)
 
 def ModelListAddDynamicRenderStates(builder, dynamicRenderStates):
-    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(dynamicRenderStates), 0)
+    builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(dynamicRenderStates), 0)
 
 def AddDynamicRenderStates(builder, dynamicRenderStates):
     ModelListAddDynamicRenderStates(builder, dynamicRenderStates)
 
 def ModelListAddCullLists(builder, cullLists):
-    builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(cullLists), 0)
+    builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(cullLists), 0)
 
 def AddCullLists(builder, cullLists):
     ModelListAddCullLists(builder, cullLists)
@@ -160,24 +153,6 @@ def ModelListCreateCullListsVector(builder, data):
 
 def CreateCullListsVector(builder, data):
     ModelListCreateCullListsVector(builder, data)
-
-def ModelListAddViews(builder, views):
-    builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(views), 0)
-
-def AddViews(builder, views):
-    ModelListAddViews(builder, views)
-
-def ModelListStartViewsVector(builder, numElems):
-    return builder.StartVector(4, numElems, 4)
-
-def StartViewsVector(builder, numElems):
-    return ModelListStartViewsVector(builder, numElems)
-
-def ModelListCreateViewsVector(builder, data):
-    return builder.CreateVectorOfTables(data)
-
-def CreateViewsVector(builder, data):
-    ModelListCreateViewsVector(builder, data)
 
 def ModelListEnd(builder):
     return builder.EndObject()

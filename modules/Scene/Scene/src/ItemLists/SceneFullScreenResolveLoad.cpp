@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,12 +57,27 @@ dsSceneItemList* dsSceneFullScreenResolve_load(const dsSceneLoadContext* loadCon
 	dsResourceManager* resourceManager =
 		dsSceneLoadContext_getRenderer(loadContext)->resourceManager;
 	auto fbResolve = DeepSeaScene::GetFullScreenResolve(data);
+	auto fbViewFilter = fbResolve->viewFilter();
 	const char* shaderName = fbResolve->shader()->c_str();
 	const char* materialName = fbResolve->material()->c_str();
 	auto fbDynamicRenderStates = fbResolve->dynamicRenderStates();
 
-	dsShader* shader;
 	dsSceneResourceType resourceType;
+	dsViewFilter* viewFilter = nullptr;
+	if (fbViewFilter)
+	{
+		if (!dsSceneLoadScratchData_findResource(&resourceType,
+				reinterpret_cast<void**>(&viewFilter), scratchData, fbViewFilter->c_str()) ||
+			resourceType != dsSceneResourceType_ViewFilter)
+		{
+			DS_LOG_ERROR_F(
+				DS_SCENE_LOG_TAG, "Couldn't find view filter '%s'.", fbViewFilter->c_str());
+			errno = ENOTFOUND;
+			return nullptr;
+		}
+	}
+
+	dsShader* shader;
 	if (!dsSceneLoadScratchData_findResource(&resourceType, reinterpret_cast<void**>(&shader),
 			scratchData, shaderName) ||
 		resourceType != dsSceneResourceType_Shader)
@@ -91,5 +106,6 @@ dsSceneItemList* dsSceneFullScreenResolve_load(const dsSceneLoadContext* loadCon
 		dynamicRenderStates = DeepSeaScene::convert(*fbDynamicRenderStates);
 
 	return reinterpret_cast<dsSceneItemList*>(dsSceneFullScreenResolve_create(allocator, name,
-		resourceManager, shader, material, fbDynamicRenderStates ? &dynamicRenderStates : NULL));
+		viewFilter, resourceManager, shader, material,
+		fbDynamicRenderStates ? &dynamicRenderStates : NULL));
 }

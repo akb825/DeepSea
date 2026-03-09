@@ -68,6 +68,7 @@ DS_SCENE_EXPORT dsShaderVariableGroupDesc* dsViewTransformData_createShaderVaria
  * @brief Creates view trnasform data to use with a dsScene.
  * @param allocator The allocator to create the transform data with.
  * @param name The name of the light set prepare. This will be copied.
+ * @param viewFilter The filter for what views process, or NULL to accept all views.
  * @param resourceManager The resource manager.
  * @param transformDesc The shader variable group description created from
  *     dsViewTransformData_createShaderVariableGroupDesc(). This must remain alive at least as
@@ -75,7 +76,7 @@ DS_SCENE_EXPORT dsShaderVariableGroupDesc* dsViewTransformData_createShaderVaria
  * @return The global data or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsSceneItemList* dsViewTransformData_create(dsAllocator* allocator,
-	const char* name, dsResourceManager* resourceManager,
+	const char* name, const dsViewFilter* viewFilter, dsResourceManager* resourceManager,
 	const dsShaderVariableGroupDesc* transformDesc);
 
 #ifdef __cplusplus

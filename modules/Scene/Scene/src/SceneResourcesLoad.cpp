@@ -48,6 +48,7 @@
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/Scene/SceneResourceAction.h>
 #include <DeepSea/Scene/Types.h>
+#include <DeepSea/Scene/ViewFilter.h>
 
 #if DS_GCC || DS_CLANG
 #pragma GCC diagnostic push
@@ -155,8 +156,8 @@ static bool loadBuffer(dsSceneResources* resources, dsResourceManager* resourceM
 	if (auto fbFileRef = fbBuffer->data_as_FileReference())
 	{
 		dsResourceStream stream;
-		if (!dsResourceStream_open(&stream, DeepSeaScene::convert(fbFileRef->type()),
-				fbFileRef->path()->c_str(), "rb"))
+		if (!dsResourceStream_open(
+				&stream, DeepSeaScene::convert(fbFileRef->type()), fbFileRef->path()->c_str(), "rb"))
 		{
 			PRINT_FLATBUFFER_RESOURCE_ERROR("Couldn't open file for buffer '%s'", bufferName,
 				fileName);
@@ -1276,6 +1277,46 @@ static bool loadSceneNode(dsSceneResources* resources, dsAllocator* allocator,
 	return true;
 }
 
+static bool loadViewFilter(dsSceneResources* resources, dsAllocator* allocator,
+	const DeepSeaScene::ViewFilter* fbFilter, const char* fileName)
+{
+	const char* filterName = fbFilter->name()->c_str();
+	auto fbViewNames = fbFilter->views();
+	uint32_t viewNameCount = fbViewNames->size();
+	const char** viewNames = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, viewNameCount);
+	for (uint32_t i = 0; i < viewNameCount; ++i)
+	{
+		auto fbName = (*fbViewNames)[i];
+		if (!fbName)
+		{
+			errno = EFORMAT;
+			PRINT_FLATBUFFER_RESOURCE_ERROR(
+				"View name not set for view filter '%s'", filterName, fileName);
+			return false;
+		}
+
+		viewNames[i] = fbName->c_str();
+	}
+
+	dsViewFilter* filter = dsViewFilter_create(
+		allocator, viewNames, viewNameCount, fbFilter->invert());
+	if (!filter)
+	{
+		PRINT_FLATBUFFER_RESOURCE_ERROR("Couldn't load view filter '%s'", filterName, fileName);
+		return false;
+	}
+
+	bool success = dsSceneResources_addResource(
+		resources, filterName, dsSceneResourceType_ViewFilter, filter, true);
+	if (!success)
+	{
+		PRINT_FLATBUFFER_RESOURCE_ERROR("Couldn't add view filter '%s'", filterName, fileName);
+		return false;
+	}
+
+	return true;
+}
+
 static bool loadCustomResource(dsSceneResources* resources, dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData,
@@ -1458,6 +1499,8 @@ dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator*
 				scratchData, fbSceneNode, fileName, relativePathUserData,
 				openRelativePathStreamFunc, closeRelativePathStreamFunc);
 		}
+		else if (auto fbViewFilter = fbResource->resource_as_ViewFilter())
+			success = loadViewFilter(resources, allocator, fbViewFilter, fileName);
 		else if (auto fbCustomResource = fbResource->resource_as_CustomResource())
 		{
 			success = loadCustomResource(resources, allocator, resourceAllocator, loadContext,

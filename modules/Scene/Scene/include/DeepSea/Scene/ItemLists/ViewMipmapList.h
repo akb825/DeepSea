@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2025 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,13 +51,14 @@ DS_SCENE_EXPORT const dsSceneItemListType* dsViewMipmapList_type(void);
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the view mipmap list with.
  * @param name The name of the view mipmap list. This will be copied.
+ * @param viewFilter The filter for what views process, or NULL to accept all views.
  * @param textureNames The names of the textures to create mipmaps for. The necessary parts will be
  *     copied.
  * @param textureCount The number of names in textureNames.
  * @return The view mipmap list or NULL if an error occurred.
  */
-DS_SCENE_EXPORT dsSceneItemList* dsViewMipmapList_create(dsAllocator* allocator,
-	const char* name, const char* const* textureNames, uint32_t textureCount);
+DS_SCENE_EXPORT dsSceneItemList* dsViewMipmapList_create(dsAllocator* allocator, const char* name,
+	const dsViewFilter* viewFilter,  const char* const* textureNames, uint32_t textureCount);
 
 #ifdef __cplusplus
 }

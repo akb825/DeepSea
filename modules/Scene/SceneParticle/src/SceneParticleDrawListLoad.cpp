@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 
 #include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
+#include <DeepSea/Scene/SceneLoadScratchData.h>
 
 #include <DeepSea/SceneParticle/SceneParticleDrawList.h>
 
@@ -59,16 +60,29 @@ dsSceneItemList* dsSceneParticleDrawList_load(const dsSceneLoadContext* loadCont
 		dsSceneLoadContext_getRenderer(loadContext)->resourceManager;
 
 	auto fbDrawList = DeepSeaSceneParticle::GetParticleDrawList(data);
+	auto fbViewFilter = fbDrawList->viewFilter();
 	auto fbInstanceData = fbDrawList->instanceData();
 	auto fbCullLists = fbDrawList->cullLists();
-	auto fbViews = fbDrawList->views();
 
+	dsSceneResourceType resourceType;
+	dsViewFilter* viewFilter = nullptr;
 	dsSceneInstanceData** instanceData = nullptr;
 	uint32_t instanceDataCount = 0;
 	uint32_t cullListCount = 0;
 	const char** cullLists = nullptr;
-	uint32_t viewCount = 0;
-	const char** views = nullptr;
+
+	if (fbViewFilter)
+	{
+		if (!dsSceneLoadScratchData_findResource(&resourceType,
+				reinterpret_cast<void**>(&viewFilter), scratchData, fbViewFilter->c_str()) ||
+			resourceType != dsSceneResourceType_ViewFilter)
+		{
+			DS_LOG_ERROR_F(DS_SCENE_PARTICLE_LOG_TAG, "Couldn't find view filter '%s'.",
+				fbViewFilter->c_str());
+			errno = ENOTFOUND;
+			return nullptr;
+		}
+	}
 
 	if (fbInstanceData && fbInstanceData->size() > 0)
 	{
@@ -122,26 +136,8 @@ dsSceneItemList* dsSceneParticleDrawList_load(const dsSceneLoadContext* loadCont
 		}
 	}
 
-	if (fbViews && fbViews->size() > 0)
-	{
-		viewCount = fbViews->size();
-		views = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, viewCount);
-		for (uint32_t i = 0; i < viewCount; ++i)
-		{
-			auto fbView = (*fbViews)[i];
-			if (!fbView)
-			{
-				errno = EFORMAT;
-				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Particle draw list view name is null.");
-				goto error;
-			}
-
-			views[i] = fbView->c_str();
-		}
-	}
-
-	return dsSceneParticleDrawList_create(allocator, name, resourceManager, resourceAllocator,
-		instanceData, instanceDataCount, cullLists, cullListCount, views, viewCount);
+	return dsSceneParticleDrawList_create(allocator, name, viewFilter, resourceManager,
+		resourceAllocator, instanceData, instanceDataCount, cullLists, cullListCount);
 
 error:
 	// instanceDataCount should be the number that we need to clean up.

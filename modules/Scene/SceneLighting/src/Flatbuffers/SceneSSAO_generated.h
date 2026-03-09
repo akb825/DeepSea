@@ -21,9 +21,13 @@ struct SceneSSAOBuilder;
 struct SceneSSAO FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef SceneSSAOBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_SHADER = 4,
-    VT_MATERIAL = 6
+    VT_VIEWFILTER = 4,
+    VT_SHADER = 6,
+    VT_MATERIAL = 8
   };
+  const ::flatbuffers::String *viewFilter() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_VIEWFILTER);
+  }
   const ::flatbuffers::String *shader() const {
     return GetPointer<const ::flatbuffers::String *>(VT_SHADER);
   }
@@ -33,6 +37,8 @@ struct SceneSSAO FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_VIEWFILTER) &&
+           verifier.VerifyString(viewFilter()) &&
            VerifyOffsetRequired(verifier, VT_SHADER) &&
            verifier.VerifyString(shader()) &&
            VerifyOffsetRequired(verifier, VT_MATERIAL) &&
@@ -45,6 +51,9 @@ struct SceneSSAOBuilder {
   typedef SceneSSAO Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
+  void add_viewFilter(::flatbuffers::Offset<::flatbuffers::String> viewFilter) {
+    fbb_.AddOffset(SceneSSAO::VT_VIEWFILTER, viewFilter);
+  }
   void add_shader(::flatbuffers::Offset<::flatbuffers::String> shader) {
     fbb_.AddOffset(SceneSSAO::VT_SHADER, shader);
   }
@@ -66,22 +75,27 @@ struct SceneSSAOBuilder {
 
 inline ::flatbuffers::Offset<SceneSSAO> CreateSceneSSAO(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> viewFilter = 0,
     ::flatbuffers::Offset<::flatbuffers::String> shader = 0,
     ::flatbuffers::Offset<::flatbuffers::String> material = 0) {
   SceneSSAOBuilder builder_(_fbb);
   builder_.add_material(material);
   builder_.add_shader(shader);
+  builder_.add_viewFilter(viewFilter);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<SceneSSAO> CreateSceneSSAODirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *viewFilter = nullptr,
     const char *shader = nullptr,
     const char *material = nullptr) {
+  auto viewFilter__ = viewFilter ? _fbb.CreateString(viewFilter) : 0;
   auto shader__ = shader ? _fbb.CreateString(shader) : 0;
   auto material__ = material ? _fbb.CreateString(material) : 0;
   return DeepSeaSceneLighting::CreateSceneSSAO(
       _fbb,
+      viewFilter__,
       shader__,
       material__);
 }

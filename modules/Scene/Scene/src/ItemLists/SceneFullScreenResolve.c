@@ -212,8 +212,8 @@ void dsSceneFullScreenResolve_destroyGeometry(void)
 }
 
 dsSceneFullScreenResolve* dsSceneFullScreenResolve_create(dsAllocator* allocator, const char* name,
-	dsResourceManager* resourceManager, dsShader* shader, dsMaterial* material,
-	const dsDynamicRenderStates* renderStates)
+	const dsViewFilter* viewFilter, dsResourceManager* resourceManager, dsShader* shader,
+	dsMaterial* material, const dsDynamicRenderStates* renderStates)
 {
 	if (!allocator || !name || !resourceManager || !shader || !material)
 	{
@@ -236,6 +236,7 @@ dsSceneFullScreenResolve* dsSceneFullScreenResolve_create(dsAllocator* allocator
 	dsSceneItemList* itemList = (dsSceneItemList*)resolve;
 	itemList->allocator = dsAllocator_keepPointer(allocator);
 	itemList->type = dsSceneFullScreenResolve_type();
+	itemList->viewFilter = viewFilter;
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);

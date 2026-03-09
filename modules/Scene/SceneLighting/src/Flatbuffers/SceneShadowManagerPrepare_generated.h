@@ -21,14 +21,20 @@ struct SceneShadowManagerPrepareBuilder;
 struct SceneShadowManagerPrepare FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef SceneShadowManagerPrepareBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_SHADOWMANAGER = 4
+    VT_VIEWFILTER = 4,
+    VT_SHADOWMANAGER = 6
   };
+  const ::flatbuffers::String *viewFilter() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_VIEWFILTER);
+  }
   const ::flatbuffers::String *shadowManager() const {
     return GetPointer<const ::flatbuffers::String *>(VT_SHADOWMANAGER);
   }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_VIEWFILTER) &&
+           verifier.VerifyString(viewFilter()) &&
            VerifyOffsetRequired(verifier, VT_SHADOWMANAGER) &&
            verifier.VerifyString(shadowManager()) &&
            verifier.EndTable();
@@ -39,6 +45,9 @@ struct SceneShadowManagerPrepareBuilder {
   typedef SceneShadowManagerPrepare Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
+  void add_viewFilter(::flatbuffers::Offset<::flatbuffers::String> viewFilter) {
+    fbb_.AddOffset(SceneShadowManagerPrepare::VT_VIEWFILTER, viewFilter);
+  }
   void add_shadowManager(::flatbuffers::Offset<::flatbuffers::String> shadowManager) {
     fbb_.AddOffset(SceneShadowManagerPrepare::VT_SHADOWMANAGER, shadowManager);
   }
@@ -56,18 +65,23 @@ struct SceneShadowManagerPrepareBuilder {
 
 inline ::flatbuffers::Offset<SceneShadowManagerPrepare> CreateSceneShadowManagerPrepare(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> viewFilter = 0,
     ::flatbuffers::Offset<::flatbuffers::String> shadowManager = 0) {
   SceneShadowManagerPrepareBuilder builder_(_fbb);
   builder_.add_shadowManager(shadowManager);
+  builder_.add_viewFilter(viewFilter);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<SceneShadowManagerPrepare> CreateSceneShadowManagerPrepareDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *viewFilter = nullptr,
     const char *shadowManager = nullptr) {
+  auto viewFilter__ = viewFilter ? _fbb.CreateString(viewFilter) : 0;
   auto shadowManager__ = shadowManager ? _fbb.CreateString(shadowManager) : 0;
   return DeepSeaSceneLighting::CreateSceneShadowManagerPrepare(
       _fbb,
+      viewFilter__,
       shadowManager__);
 }
 

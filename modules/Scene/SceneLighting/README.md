@@ -86,8 +86,10 @@ The following item list types are provided with the members that are expected:
 	* `lightSet`: name of the light set to prepare.
 	* `intensityThreshold`: the threshold below which the light is considered out of view. If unset this will use the default.
 * `"ShadowManagerPrepare"`: prepares a shadow manager to be used in a scene before drawing. This must be after a `LightSetPrepare` and be in the `sharedItems` array of the scene.
+	* `viewFilter`: name of the filter for what views to process. All views will be processed if unset.
 	* `shadowManager`: name of the shadow manager to prepare.
 * `"DeferredLightResolve"`: resolves the results of deferred lighting to the screen.
+	* `viewFilter`: name of the filter for what views to process. All views will be processed if unset.
 	* `viewFramebufferDesc`: name of the shader variable group description for `dsViewFramebufferData`.
 	* `lightSet`: name of the light set to draw the lights from.
 	* `shadowManager`: name of the shadow manager when drawing shadowed lights.
@@ -120,13 +122,16 @@ The following item list types are provided with the members that are expected:
 		* `shadowTexture`: name of the shader variable for the the shadow texture.
 	* `intensityThreshold`: the threshold below which the light is considered out of view. If unset this will use the default.
 * `"ShadowCullList"`: culls nodes that derive from `dsSceneCullNode` with a shadow surface.
+	* `viewFilter`: name of the filter for what views to process. All views will be processed if unset.
 	* `shadowManager`: name of the shadow manager that contains the shadows being culled for.
 	* `shadows`: name of the shadows within the shadow manager to cull for.
 	* `surface`: index of the surface within the light shadows.
 * `"SSAO"`: calculates screen-space ambient occlusion with traditional pixel shaders.
+	* `viewFilter`: name of the filter for what views to process. All views will be processed if unset.
 	* `shader`: the shader to calculate the ambient occlusion with.
 	* `material`: the material to use with the shader.
 * `"ComputeSSAO"`: calculates screen-space ambient occlusion with a compute shader.
+	* `viewFilter`: name of the filter for what views to process. All views will be processed if unset.
 	* `shader`: the compute shader to calculate the ambient occlusion with.
 	* `material`: the material to use with the shader.
 

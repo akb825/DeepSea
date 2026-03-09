@@ -113,6 +113,9 @@ The remaining members of each element depends on the value of `type`. The builti
 * `"SceneNode"`
 	* `nodeType`: the name of the node type.
 	* Remaining members depend on the value of `nodeType`.
+* `"ViewFilter"`
+	- `views`: the names of the views in the filter.
+	- `invert`: whether to invert the filter, where all views except the ones listed will pass the filter.
 
 The different types for scene nodes are documented below.
 
@@ -299,6 +302,7 @@ Builtin item list specifications are documented below.
 
 Full screen resolve draws a full screen quad with a shader and material. This is an item list for fitting in the scene layout, but doesn't draw any instances within the scene graph. It contains the following members:
 
+* `viewFilter`: name of the filter for what views to process. All views will be processed if unset.
 * `shader`: the name of the shader to draw with.
 * `material`: the name of the material to draw with.
 * `dynamicRenderStates`: dynamic render states to apply when drawing. This may be ommitted if no dynamic render states are used. This is expected to contain any of the following members:
@@ -326,6 +330,7 @@ Handoff lists have the type name "HandoffList" and are used to adjust the transf
 
 Model lists have the type name "ModelList" and define how to draw models that reference it by name. It contains the following members:
 
+* `viewFilter`: name of the filter for what views to process. All views will be processed if unset.
 * `instanceData`: optional list of instance data to include with the model list. Each element of the array has the following members:
 	* `type`: the name of the instance data type.
 	* Remaining members depend on the value of `type`.
@@ -347,19 +352,21 @@ Model lists have the type name "ModelList" and define how to draw models that re
 	* `frontStencilReference`: int reference for just the front stencil.
 	* `backStencilReference`: int reference for just the back stencil.
 * `cullList`: array of strings for the name of item lists to handle culling. If omitted or empty, no culling is performed.
-* `views`: array of strings for the name of views to draw to. If omitted or empty, all views will be drawn to.
 
 ### View Transform Data
 
 View transform data has the type name "ViewTransformData" and sets standard view and projection transform matrices. It contains the following members:
 
+* `viewFilter`: name of the filter for what views to process. All views will be processed if unset.
 * `variableGroupDesc`: string name for the shader variable group to use.
 
 > **Note:** View transform data contains global shader variables and must be in the `sharedItems` array of the scene.
 
 ### View Cull List
 
-View cull list has the type name "ViewCullList" and performs cull checks for bounding boxes in nodes that derive from `dsSceneCullNode` against the view frustum. The data is ignored and may be omitted.
+View cull list has the type name "ViewCullList" and performs cull checks for bounding boxes in nodes that derive from `dsSceneCullNode` against the view frustum. It contains the following members:
+
+* `viewFilter`: name of the filter for what views to process. All views will be processed if unset.
 
 ### User Data List
 

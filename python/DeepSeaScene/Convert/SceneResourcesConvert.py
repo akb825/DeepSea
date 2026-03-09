@@ -56,6 +56,7 @@ from .. import VersionedShaderModule
 from .. import VertexBuffer
 from ..VertexElementFormat import VertexElementFormat
 from .. import VertexFormat
+from .. import ViewFilter
 
 class Object:
 	pass
@@ -1267,6 +1268,35 @@ def convertSceneResourcesNode(builder, convertContext, data, name, inputDir, out
 	SceneNode.AddNode(builder, nodeDataOffset)
 	return SceneNode.End(builder), SceneResourceUnion.SceneNode
 
+def convertSceneResourcesViewFilter(builder, convertContext, data, name, inputDir, outputDir):
+	try:
+		views = data['views']
+		if not isinstance(views, list):
+			raise Exception('SceneResources view filter "views" must be an array of strings.')
+		if not views:
+			raise Exception('SceneResources view filter "views" must have at least one view.')
+
+		invert = bool(data.get('invert'))
+	except KeyError as e:
+		raise Exception('SceneResources view filter doesn\'t contain element ' + str(e) + '.')
+
+	nameOffset = builder.CreateString(name)
+
+	viewOffsets = []
+	for view in views:
+		viewOffsets.append(builder.CreateString(str(view)))
+
+	ViewFilter.StartViewsVector(builder, len(viewOffsets))
+	for offset in reversed(viewOffsets):
+		builder.PrependUOffsetTRelative(offset)
+	viewsOffset = builder.EndVector()
+
+	ViewFilter.Start(builder)
+	ViewFilter.AddName(builder, nameOffset)
+	ViewFilter.AddViews(builder, viewsOffset)
+	ViewFilter.AddInvert(builder, invert)
+	return CustomResource.End(builder), SceneResourceUnion.ViewFilter
+
 def convertSceneResourcesCustomResource(
 		builder, convertContext, data, resourceType, name, inputDir, outputDir):
 	nameOffset = builder.CreateString(name)
@@ -1461,6 +1491,10 @@ def convertSceneResources(convertContext, data, inputDir, outputDir):
 	- "SceneNode"
 	  - nodeType: the name of the node type.
 	  - Remaining members depend on the value of nodeType.
+	- "ViewFilter"
+	  - views: the names of the views in the filter.
+	  - invert: whether to invert the filter, where all views except the ones listed will pass the
+	    filter.
 	"""
 	builder = flatbuffers.Builder(0)
 
@@ -1507,6 +1541,9 @@ def convertSceneResources(convertContext, data, inputDir, outputDir):
 					elif resourceType == 'SceneNode':
 						resourceOffset, unionType = convertSceneResourcesNode(
 							builder, convertContext, element, name, inputDir, outputDir)
+					elif resourceType == 'ViewFilter':
+						resourceOffset, unionType = convertSceneResourcesViewFilter(
+							builder, convertContext, element, name, inputDir, outputDir)
 					else:
 						resourceOffset, unionType = convertSceneResourcesCustomResource(builder,
 							convertContext, element, resourceType, name, inputDir, outputDir)
@@ -1518,7 +1555,7 @@ def convertSceneResources(convertContext, data, inputDir, outputDir):
 			except KeyError as e:
 				raise Exception(
 					'SceneResources resource doesn\'t contain element ' + str(e) + '.')
-	except (TypeError, ValueError):
+	except (TypeError, ValueError) as e:
 		raise Exception('SceneResources must be an array of objects.')
 
 	SceneResources.StartResourcesVector(builder, len(resourceOffsets))

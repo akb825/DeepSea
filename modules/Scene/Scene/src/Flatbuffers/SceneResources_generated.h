@@ -73,6 +73,9 @@ struct DrawGeometryBuilder;
 struct SceneNode;
 struct SceneNodeBuilder;
 
+struct ViewFilter;
+struct ViewFilterBuilder;
+
 struct CustomResource;
 struct CustomResourceBuilder;
 
@@ -95,13 +98,14 @@ enum class SceneResourceUnion : uint8_t {
   Shader = 9,
   DrawGeometry = 10,
   SceneNode = 11,
-  CustomResource = 12,
-  ResourceAction = 13,
+  ViewFilter = 12,
+  CustomResource = 13,
+  ResourceAction = 14,
   MIN = NONE,
   MAX = ResourceAction
 };
 
-inline const SceneResourceUnion (&EnumValuesSceneResourceUnion())[14] {
+inline const SceneResourceUnion (&EnumValuesSceneResourceUnion())[15] {
   static const SceneResourceUnion values[] = {
     SceneResourceUnion::NONE,
     SceneResourceUnion::Buffer,
@@ -115,6 +119,7 @@ inline const SceneResourceUnion (&EnumValuesSceneResourceUnion())[14] {
     SceneResourceUnion::Shader,
     SceneResourceUnion::DrawGeometry,
     SceneResourceUnion::SceneNode,
+    SceneResourceUnion::ViewFilter,
     SceneResourceUnion::CustomResource,
     SceneResourceUnion::ResourceAction
   };
@@ -122,7 +127,7 @@ inline const SceneResourceUnion (&EnumValuesSceneResourceUnion())[14] {
 }
 
 inline const char * const *EnumNamesSceneResourceUnion() {
-  static const char * const names[15] = {
+  static const char * const names[16] = {
     "NONE",
     "Buffer",
     "Texture",
@@ -135,6 +140,7 @@ inline const char * const *EnumNamesSceneResourceUnion() {
     "Shader",
     "DrawGeometry",
     "SceneNode",
+    "ViewFilter",
     "CustomResource",
     "ResourceAction",
     nullptr
@@ -194,6 +200,10 @@ template<> struct SceneResourceUnionTraits<DeepSeaScene::DrawGeometry> {
 
 template<> struct SceneResourceUnionTraits<DeepSeaScene::SceneNode> {
   static const SceneResourceUnion enum_value = SceneResourceUnion::SceneNode;
+};
+
+template<> struct SceneResourceUnionTraits<DeepSeaScene::ViewFilter> {
+  static const SceneResourceUnion enum_value = SceneResourceUnion::ViewFilter;
 };
 
 template<> struct SceneResourceUnionTraits<DeepSeaScene::CustomResource> {
@@ -1879,6 +1889,87 @@ inline ::flatbuffers::Offset<SceneNode> CreateSceneNodeDirect(
       node);
 }
 
+struct ViewFilter FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef ViewFilterBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_NAME = 4,
+    VT_VIEWS = 6,
+    VT_INVERT = 8
+  };
+  const ::flatbuffers::String *name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *views() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_VIEWS);
+  }
+  bool invert() const {
+    return GetField<uint8_t>(VT_INVERT, 0) != 0;
+  }
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
+           VerifyOffsetRequired(verifier, VT_VIEWS) &&
+           verifier.VerifyVector(views()) &&
+           verifier.VerifyVectorOfStrings(views()) &&
+           VerifyField<uint8_t>(verifier, VT_INVERT, 1) &&
+           verifier.EndTable();
+  }
+};
+
+struct ViewFilterBuilder {
+  typedef ViewFilter Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
+    fbb_.AddOffset(ViewFilter::VT_NAME, name);
+  }
+  void add_views(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> views) {
+    fbb_.AddOffset(ViewFilter::VT_VIEWS, views);
+  }
+  void add_invert(bool invert) {
+    fbb_.AddElement<uint8_t>(ViewFilter::VT_INVERT, static_cast<uint8_t>(invert), 0);
+  }
+  explicit ViewFilterBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<ViewFilter> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<ViewFilter>(end);
+    fbb_.Required(o, ViewFilter::VT_NAME);
+    fbb_.Required(o, ViewFilter::VT_VIEWS);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<ViewFilter> CreateViewFilter(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> views = 0,
+    bool invert = false) {
+  ViewFilterBuilder builder_(_fbb);
+  builder_.add_views(views);
+  builder_.add_name(name);
+  builder_.add_invert(invert);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<ViewFilter> CreateViewFilterDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *name = nullptr,
+    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *views = nullptr,
+    bool invert = false) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto views__ = views ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*views) : 0;
+  return DeepSeaScene::CreateViewFilter(
+      _fbb,
+      name__,
+      views__,
+      invert);
+}
+
 struct CustomResource FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef CustomResourceBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -1992,6 +2083,9 @@ struct SceneResource FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaScene::SceneNode *resource_as_SceneNode() const {
     return resource_type() == DeepSeaScene::SceneResourceUnion::SceneNode ? static_cast<const DeepSeaScene::SceneNode *>(resource()) : nullptr;
   }
+  const DeepSeaScene::ViewFilter *resource_as_ViewFilter() const {
+    return resource_type() == DeepSeaScene::SceneResourceUnion::ViewFilter ? static_cast<const DeepSeaScene::ViewFilter *>(resource()) : nullptr;
+  }
   const DeepSeaScene::CustomResource *resource_as_CustomResource() const {
     return resource_type() == DeepSeaScene::SceneResourceUnion::CustomResource ? static_cast<const DeepSeaScene::CustomResource *>(resource()) : nullptr;
   }
@@ -2050,6 +2144,10 @@ template<> inline const DeepSeaScene::DrawGeometry *SceneResource::resource_as<D
 
 template<> inline const DeepSeaScene::SceneNode *SceneResource::resource_as<DeepSeaScene::SceneNode>() const {
   return resource_as_SceneNode();
+}
+
+template<> inline const DeepSeaScene::ViewFilter *SceneResource::resource_as<DeepSeaScene::ViewFilter>() const {
+  return resource_as_ViewFilter();
 }
 
 template<> inline const DeepSeaScene::CustomResource *SceneResource::resource_as<DeepSeaScene::CustomResource>() const {
@@ -2192,6 +2290,10 @@ inline bool VerifySceneResourceUnion(::flatbuffers::VerifierTemplate<B> &verifie
     }
     case SceneResourceUnion::SceneNode: {
       auto ptr = reinterpret_cast<const DeepSeaScene::SceneNode *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case SceneResourceUnion::ViewFilter: {
+      auto ptr = reinterpret_cast<const DeepSeaScene::ViewFilter *>(obj);
       return verifier.VerifyTable(ptr);
     }
     case SceneResourceUnion::CustomResource: {

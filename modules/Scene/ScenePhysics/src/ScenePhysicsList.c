@@ -934,6 +934,7 @@ dsSceneItemList* dsScenePhysicsList_create(dsAllocator* allocator, const char* n
 	dsSceneItemList* itemList = (dsSceneItemList*)physicsList;
 	itemList->allocator = allocator;
 	itemList->type = dsScenePhysicsList_type();
+	itemList->viewFilter = NULL;
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);

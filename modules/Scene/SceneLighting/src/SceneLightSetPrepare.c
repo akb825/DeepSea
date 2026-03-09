@@ -278,6 +278,7 @@ dsSceneLightSetPrepare* dsSceneLightSetPrepare_create(dsAllocator* allocator, co
 	dsSceneItemList* itemList = (dsSceneItemList*)prepare;
 	itemList->allocator = dsAllocator_keepPointer(allocator);
 	itemList->type = dsSceneLightSetPrepare_type();
+	itemList->viewFilter = NULL;
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);

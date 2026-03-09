@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,21 +47,20 @@ DS_SCENEVECTORDRAW_EXPORT const dsSceneItemListType* dsSceneVectorItemList_type(
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the list with. This must support freeing memory.
  * @param name The name of the vector item list. This will be copied.
+ * @param viewFilter The filter for what views process, or NULL to accept all views.
  * @param resourceManager The resource manager to create graphics resources with.
  * @param instanceData The list of instance datas to use. The array will be copied, and this will
  *     take ownership of each instance data. The instances will be destroyed if an error occurrs.
  * @param instanceDataCount The number of instance datas.
  * @param maxMaterialDescs Maximum number of unique material descriptions for vector and text nodes.
  * @param renderStates The render states to use, or NULL if no special render states are needed.
- * @param views The name of the views that the model list will be drawn for.
- * @param viewCount The number of views the model list will be drawn for. If zero, all views will be
- *     drawn to.
  * @return The vector item list or NULL if an error occurred.
  */
 DS_SCENEVECTORDRAW_EXPORT dsSceneVectorItemList* dsSceneVectorItemList_create(
-	dsAllocator* allocator, const char* name, dsResourceManager* resourceManager,
-	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount, uint32_t maxMaterialDescs,
-	const dsDynamicRenderStates* renderStates, const char* const* views, uint32_t viewCount);
+	dsAllocator* allocator, const char* name, const dsViewFilter* viewFilter,
+	dsResourceManager* resourceManager, dsSceneInstanceData* const* instanceData,
+	uint32_t instanceDataCount, uint32_t maxMaterialDescs,
+	const dsDynamicRenderStates* renderStates);
 
 /**
  * @brief Gets the render states for a vector item list.

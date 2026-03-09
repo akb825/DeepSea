@@ -20,6 +20,8 @@ from ..DynamicRenderStates import DynamicRenderStates
 def convertFullScreenResolve(convertContext, data, inputDir):
 	"""
 	Converts a FullScreenResolve. The data map is expected to contain the following elements:
+	- viewFilter: name of the filter for what views to process. All views will be processed if
+	  unset.
 	- shader: the name of the shader to draw with.
 	- material: the name of the material to draw with.
 	- dynamicRenderStates: dynamic render states to apply when drawing. This may be omitted if no
@@ -43,6 +45,7 @@ def convertFullScreenResolve(convertContext, data, inputDir):
 	"""
 	builder = flatbuffers.Builder(0)
 	try:
+		viewFilter = str(data.get('viewFilter', ''))
 		shaderName = str(data['shader'])
 		materialName = str(data['material'])
 
@@ -56,10 +59,15 @@ def convertFullScreenResolve(convertContext, data, inputDir):
 	except (AttributeError, TypeError, ValueError):
 		raise Exception('FullScreenResolve must be an object.')
 
+	if viewFilter:
+		viewFilterOffset = builder.CreateString(viewFilter)
+	else:
+		viewFilterOffset = 0
 	shaderNameOffset = builder.CreateString(shaderName)
 	materialNameOffset = builder.CreateString(materialName)
 
 	FullScreenResolve.Start(builder)
+	FullScreenResolve.AddViewFilter(builder, viewFilterOffset)
 	FullScreenResolve.AddShader(builder, shaderNameOffset)
 	FullScreenResolve.AddMaterial(builder, materialNameOffset)
 	FullScreenResolve.AddDynamicRenderStates(builder, dynamicRenderStatesOffset)

@@ -22,6 +22,7 @@ def convertSSAO(convertContext, data, inputDir):
 	material: the material to use with the shader.
 	"""
 	try:
+		viewFilter = str(data.get('viewFilter', ''))
 		shader = str(data['shader'])
 		material = str(data['material'])
 	except KeyError as e:
@@ -31,10 +32,15 @@ def convertSSAO(convertContext, data, inputDir):
 
 	builder = flatbuffers.Builder(0)
 
+	if viewFilter:
+		viewFilterOffset = builder.CreateString(viewFilter)
+	else:
+		viewFilterOffset = 0
 	shaderOffset = builder.CreateString(shader)
 	materialOffset = builder.CreateString(material)
 
 	SceneSSAO.Start(builder)
+	SceneSSAO.AddViewFilter(builder, viewFilterOffset)
 	SceneSSAO.AddShader(builder, shaderOffset)
 	SceneSSAO.AddMaterial(builder, materialOffset)
 	builder.Finish(SceneSSAO.End(builder))

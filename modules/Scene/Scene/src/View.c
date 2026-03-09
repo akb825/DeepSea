@@ -50,6 +50,7 @@
 #include <DeepSea/Render/RenderSurface.h>
 
 #include <DeepSea/Scene/SceneLoadScratchData.h>
+#include <DeepSea/Scene/ViewFilter.h>
 
 #include <string.h>
 
@@ -82,9 +83,8 @@ typedef struct dsViewPrivate
 	bool surfaceSet;
 } dsViewPrivate;
 
-static size_t fullAllocSize(size_t nameLen, const dsScene* scene,
-	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount,
-	const dsViewFramebufferInfo* framebuffers, uint32_t framebufferCount)
+static size_t fullAllocSize(size_t nameLen, const dsViewSurfaceInfo* surfaces,
+	uint32_t surfaceCount, const dsViewFramebufferInfo* framebuffers, uint32_t framebufferCount)
 {
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsViewPrivate)) +
 		DS_ALIGNED_SIZE(nameLen) + DS_ALIGNED_SIZE(sizeof(dsViewSurfaceInfo)*surfaceCount) +
@@ -444,7 +444,7 @@ dsView* dsView_create(dsAllocator* allocator, const char* name, const dsScene* s
 
 	size_t nameLen = strlen(name) + 1;
 	size_t fullSize = fullAllocSize(
-		nameLen, scene, surfaces, surfaceCount, framebuffers, framebufferCount);
+		nameLen, surfaces, surfaceCount, framebuffers, framebufferCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
@@ -1249,7 +1249,7 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 		{
 			dsSceneItemList* itemList = sharedItems->itemLists[j];
 			dsCommitSceneItemListFunction commitFunc = itemList->type->commitFunc;
-			if (commitFunc)
+			if (commitFunc && dsViewFilter_containsID(itemList->viewFilter, view->nameID))
 			{
 				DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
 				commitFunc(itemList, view, commandBuffer, NULL);
@@ -1312,7 +1312,8 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 					dsSceneItemList* itemList = drawLists->itemLists[k];
 					dsPreRenderPassSceneItemListFunction preRenderPassFunc =
 						itemList->type->preRenderPassFunc;
-					if (preRenderPassFunc && !itemList->skipPreRenderPass)
+					if (preRenderPassFunc && !itemList->skipPreRenderPass &&
+						dsViewFilter_containsID(itemList->viewFilter, view->nameID))
 					{
 						DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
 						preRenderPassFunc(itemList, view, commandBuffer, &renderPassParams);
@@ -1339,6 +1340,9 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 				for (uint32_t k = 0; k < drawLists->count; ++k)
 				{
 					dsSceneItemList* itemList = drawLists->itemLists[k];
+					if (!dsViewFilter_containsID(itemList->viewFilter, view->nameID))
+						continue;
+
 					dsCommitSceneItemListFunction commitFunc = itemList->type->commitFunc;
 					DS_ASSERT(commitFunc);
 					DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);

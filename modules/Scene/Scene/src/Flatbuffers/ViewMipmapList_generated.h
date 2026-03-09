@@ -23,14 +23,20 @@ struct ViewMipmapListBuilder;
 struct ViewMipmapList FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ViewMipmapListBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_TEXTURES = 4
+    VT_VIEWFILTER = 4,
+    VT_TEXTURES = 6
   };
+  const ::flatbuffers::String *viewFilter() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_VIEWFILTER);
+  }
   const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *textures() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_TEXTURES);
   }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_VIEWFILTER) &&
+           verifier.VerifyString(viewFilter()) &&
            VerifyOffsetRequired(verifier, VT_TEXTURES) &&
            verifier.VerifyVector(textures()) &&
            verifier.VerifyVectorOfStrings(textures()) &&
@@ -42,6 +48,9 @@ struct ViewMipmapListBuilder {
   typedef ViewMipmapList Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
+  void add_viewFilter(::flatbuffers::Offset<::flatbuffers::String> viewFilter) {
+    fbb_.AddOffset(ViewMipmapList::VT_VIEWFILTER, viewFilter);
+  }
   void add_textures(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> textures) {
     fbb_.AddOffset(ViewMipmapList::VT_TEXTURES, textures);
   }
@@ -59,18 +68,23 @@ struct ViewMipmapListBuilder {
 
 inline ::flatbuffers::Offset<ViewMipmapList> CreateViewMipmapList(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> viewFilter = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> textures = 0) {
   ViewMipmapListBuilder builder_(_fbb);
   builder_.add_textures(textures);
+  builder_.add_viewFilter(viewFilter);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<ViewMipmapList> CreateViewMipmapListDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *viewFilter = nullptr,
     const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *textures = nullptr) {
+  auto viewFilter__ = viewFilter ? _fbb.CreateString(viewFilter) : 0;
   auto textures__ = textures ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*textures) : 0;
   return DeepSeaScene::CreateViewMipmapList(
       _fbb,
+      viewFilter__,
       textures__);
 }
 

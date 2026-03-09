@@ -63,6 +63,7 @@ typedef enum dsSceneResourceType
 	dsSceneResourceType_Shader,                  ///< dsShader
 	dsSceneResourceType_DrawGeometry,            ///< dsDrawGeometry
 	dsSceneResourceType_SceneNode,               ///< dsSceneNode
+	dsSceneResourceType_ViewFilter,              ///< dsViewFilter
 	dsSceneResourceType_Custom                   ///< dsCustomSceneResource
 } dsSceneResourceType;
 
@@ -535,6 +536,11 @@ struct dsView
 	 */
 	dsSpinlock globalValuesLock;
 };
+
+/**
+ * @brief Struct used to filter for either inclusion or exclusion for specific views.
+ */
+typedef struct dsViewFilter dsViewFilter;
 
 /**
  * @brief Struct that manages resources used to draw across multiple threads.

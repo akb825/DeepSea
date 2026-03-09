@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,29 +54,47 @@ dsSceneItemList* dsSceneComputeSSAO_load(const dsSceneLoadContext* loadContext,
 	}
 
 	auto fbSSAO = DeepSeaSceneLighting::GetSceneSSAO(data);
+	auto fbViewFilter = fbSSAO->viewFilter();
 	const char* shaderName = fbSSAO->shader()->c_str();
-	dsSceneResourceType type;
-	dsShader* shader;
-	if (!dsSceneLoadScratchData_findResource(&type, (void**)&shader, scratchData,
-			shaderName) || type != dsSceneResourceType_Shader)
+
+	dsSceneResourceType resourceType;
+	dsViewFilter* viewFilter = nullptr;
+	if (fbViewFilter)
 	{
-		errno = ENOTFOUND;
+		if (!dsSceneLoadScratchData_findResource(&resourceType,
+				reinterpret_cast<void**>(&viewFilter), scratchData, fbViewFilter->c_str()) ||
+			resourceType != dsSceneResourceType_ViewFilter)
+		{
+			DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find view filter '%s'.",
+				fbViewFilter->c_str());
+			errno = ENOTFOUND;
+			return nullptr;
+		}
+	}
+
+	dsShader* shader;
+	if (!dsSceneLoadScratchData_findResource(
+			&resourceType, reinterpret_cast<void**>(&shader), scratchData, shaderName) ||
+		resourceType != dsSceneResourceType_Shader)
+	{
 		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find shader '%s'.", shaderName);
+		errno = ENOTFOUND;
 		return nullptr;
 	}
 
 	const char* materialName = fbSSAO->material()->c_str();
 	dsMaterial* material;
-	if (!dsSceneLoadScratchData_findResource(&type, (void**)&material, scratchData,
-			materialName) || type != dsSceneResourceType_Material)
+	if (!dsSceneLoadScratchData_findResource(
+			&resourceType, reinterpret_cast<void**>(&material), scratchData, materialName) ||
+		resourceType != dsSceneResourceType_Material)
 	{
-		errno = ENOTFOUND;
 		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find material '%s'.", materialName);
+		errno = ENOTFOUND;
 		return nullptr;
 	}
 
 	dsResourceManager* resourceManager =
 		dsSceneLoadContext_getRenderer(loadContext)->resourceManager;
-	return (dsSceneItemList*)dsSceneComputeSSAO_create(allocator, resourceManager,
-		resourceAllocator, name, shader, material);
+	return reinterpret_cast<dsSceneItemList*>(dsSceneComputeSSAO_create(
+		allocator, resourceManager, resourceAllocator, name, viewFilter, shader, material));
 }

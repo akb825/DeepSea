@@ -129,9 +129,7 @@ struct dsSceneVectorItemList
 
 	dsSharedMaterialValues* instanceValues;
 	dsSceneInstanceData** instanceData;
-	uint32_t* viewIDs;
 	uint32_t instanceDataCount;
-	uint32_t viewCount;
 
 	Entry* entries;
 	uint32_t entryCount;
@@ -150,16 +148,6 @@ struct dsSceneVectorItemList
 	dsPoolAllocator materialPool;
 	dsHashTable* materialTable;
 };
-
-static bool isInView(const dsSceneVectorItemList* vectorList, const dsView* view)
-{
-	for (uint32_t i = 0; i < vectorList->viewCount; ++i)
-	{
-		if (vectorList->viewIDs[i] == view->nameID)
-			return true;
-	}
-	return vectorList->viewCount == 0;
-}
 
 static void getGlyphRange(uint32_t* outFirstStandardGlyph, uint32_t* outStandardGlyphCount,
 	uint32_t* outFirstIconGlyph, uint32_t* outIconGlyphCount, const dsTextLayout* layout,
@@ -547,9 +535,6 @@ static void dsSceneVectorItemList_preRenderPass(dsSceneItemList* itemList, const
 	DS_ASSERT(itemList);
 	DS_ASSERT(!itemList->skipPreRenderPass);
 	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
-	if (!isInView(vectorList, view))
-		return;
-
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
 	// Lazily remove entries.
@@ -569,9 +554,6 @@ static void dsSceneVectorItemList_commit(dsSceneItemList* itemList, const dsView
 {
 	DS_ASSERT(itemList);
 	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
-	if (!isInView(vectorList, view))
-		return;
-
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
 	if (itemList->skipPreRenderPass)
@@ -601,7 +583,6 @@ static uint32_t dsSceneVectorItemList_hash(const dsSceneItemList* itemList, uint
 		hash = dsHashCombineBytes(hash, &vectorList->renderStates, sizeof(dsDynamicRenderStates));
 	for (uint32_t i = 0; i < vectorList->instanceDataCount; ++i)
 		hash = dsSceneInstanceData_hash(vectorList->instanceData[i], hash);
-	hash = dsHashCombineBytes(hash, vectorList->viewIDs, sizeof(uint32_t)*vectorList->viewCount);
 	return hash;
 }
 
@@ -618,8 +599,7 @@ static bool dsSceneVectorItemList_equal(const dsSceneItemList* left, const dsSce
 	if (leftVectorList->hasRenderStates != rightVectorList->hasRenderStates ||
 		(leftVectorList->hasRenderStates && memcmp(&leftVectorList->renderStates,
 			&rightVectorList->renderStates, sizeof(dsDynamicRenderStates)) != 0) ||
-		leftVectorList->instanceDataCount != rightVectorList->instanceDataCount ||
-		leftVectorList->viewCount != rightVectorList->viewCount)
+		leftVectorList->instanceDataCount != rightVectorList->instanceDataCount)
 	{
 		return false;
 	}
@@ -631,12 +611,6 @@ static bool dsSceneVectorItemList_equal(const dsSceneItemList* left, const dsSce
 		{
 			return false;
 		}
-	}
-
-	for (uint32_t i = 0; i < leftVectorList->viewCount; ++i)
-	{
-		if (leftVectorList->viewIDs[i] != rightVectorList->viewIDs[i])
-			return false;
 	}
 	return true;
 }
@@ -679,12 +653,12 @@ const dsSceneItemListType* dsSceneVectorItemList_type(void)
 }
 
 dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, const char* name,
-	dsResourceManager* resourceManager, dsSceneInstanceData* const* instanceData,
-	uint32_t instanceDataCount, uint32_t maxMaterialDescs,
-	const dsDynamicRenderStates* renderStates, const char* const* views, uint32_t viewCount)
+	const dsViewFilter* viewFilter, dsResourceManager* resourceManager,
+	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount, uint32_t maxMaterialDescs,
+	const dsDynamicRenderStates* renderStates)
 {
 	if (!allocator || !name || !resourceManager || (!instanceData && instanceDataCount > 0) ||
-		maxMaterialDescs == 0 || (!views && viewCount > 0))
+		maxMaterialDescs == 0)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -715,16 +689,6 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 
 	}
 
-	for (uint32_t i = 0; i < viewCount; ++i)
-	{
-		if (!views[i])
-		{
-			errno = EINVAL;
-			destroyInstanceData(instanceData, instanceDataCount);
-			return NULL;
-		}
-	}
-
 	size_t nameLen = strlen(name);
 	size_t instanceDataSize = dsSharedMaterialValues_fullAllocSize(valueCount);
 	size_t materialPoolSize = DS_ALIGNED_SIZE(sizeof(MaterialNode))*maxMaterialDescs;
@@ -732,9 +696,8 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	size_t materialTableAllocSize = dsHashTable_fullAllocSize(materialTableSize);
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneVectorItemList)) +
 		DS_ALIGNED_SIZE(nameLen + 1) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneInstanceData*)*instanceDataCount) +
-		DS_ALIGNED_SIZE(sizeof(uint32_t)*viewCount) + instanceDataSize + materialPoolSize +
-		materialTableAllocSize;
+		DS_ALIGNED_SIZE(sizeof(dsSceneInstanceData*)*instanceDataCount) + instanceDataSize +
+		materialPoolSize + materialTableAllocSize;
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
@@ -750,6 +713,7 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	dsSceneItemList* itemList = (dsSceneItemList*)vectorList;
 	itemList->allocator = allocator;
 	itemList->type = dsSceneVectorItemList_type();
+	itemList->viewFilter = viewFilter;
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, char, nameLen + 1);
 	memcpy((void*)itemList->name, name, nameLen + 1);
 	itemList->nameID = dsUniqueNameID_create(name);
@@ -783,17 +747,6 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	else
 		vectorList->instanceData = NULL;
 	vectorList->instanceDataCount = instanceDataCount;
-
-	if (viewCount > 0)
-	{
-		vectorList->viewIDs = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t, viewCount);
-		DS_ASSERT(vectorList->viewIDs);
-		for (uint32_t i = 0; i < viewCount; ++i)
-			vectorList->viewIDs[i] = dsUniqueNameID_create(views[i]);
-	}
-	else
-		vectorList->viewIDs = NULL;
-	vectorList->viewCount = viewCount;
 
 	vectorList->entries = NULL;
 	vectorList->entryCount = 0;

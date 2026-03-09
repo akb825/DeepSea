@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,6 +67,7 @@ DS_SCENE_EXPORT void dsSceneFullScreenResolve_destroyGeometry(void);
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the list with.
  * @param name The name of the full screen resolve. This will be copied.
+ * @param viewFilter The filter for what views process, or NULL to accept all views.
  * @param resourceManager The resource manager to create graphics resources from.
  * @param shader The shader to draw with.
  * @param material The material to draw with.
@@ -74,8 +75,8 @@ DS_SCENE_EXPORT void dsSceneFullScreenResolve_destroyGeometry(void);
  * @return The full screen resolve or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsSceneFullScreenResolve* dsSceneFullScreenResolve_create(dsAllocator* allocator,
-	const char* name, dsResourceManager* resourceManager, dsShader* shader, dsMaterial* material,
-	const dsDynamicRenderStates* renderStates);
+	const char* name, const dsViewFilter* viewFilter, dsResourceManager* resourceManager,
+	dsShader* shader, dsMaterial* material, const dsDynamicRenderStates* renderStates);
 
 /**
  * @brief Gets the render states for a full screen resolve.

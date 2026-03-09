@@ -23,6 +23,8 @@ from ..Vector2f import CreateVector2f
 def convertModelList(convertContext, data, inputDir):
 	"""
 	Converts a ModelList. The data map is expected to contain the following elements:
+	- viewFilter: name of the filter for what views to process. All views will be processed if
+	  unset.
 	- instanceData: optional list of instance data to include with the model list. Each element of
 	  the array has the following members:
 	  - type: the name of the instance data type.
@@ -49,11 +51,10 @@ def convertModelList(convertContext, data, inputDir):
 	  - backStencilReference: int reference for just the back stencil.
 	- cullList: array of strings for the name of item lists to handle culling. If omitted or empty,
 	  no culling is performed.
-	- views: array of strings for the name of views to draw to. If omitted or empty, all views will
-	  be drawn to.
 	"""
 	builder = flatbuffers.Builder(0)
 	try:
+		viewFilter = str(data.get('viewFilter', ''))
 		instanceDataInfo = data.get('instanceData', [])
 		instanceData = []
 		try:
@@ -82,14 +83,15 @@ def convertModelList(convertContext, data, inputDir):
 		cullLists = data.get('cullLists', [])
 		if not isinstance(cullLists, list):
 			raise Exception('ModelList "cullList" must be an array of strings.')
-
-		views = data.get('views', [])
-		if not isinstance(views, list):
-			raise Exception('ModelList "views" must be an array of strings.')
 	except KeyError as e:
 		raise Exception('ModelList doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):
 		raise Exception('ModelList must be an object.')
+
+	if viewFilter:
+		viewFilterOffset = builder.CreateString(viewFilter)
+	else:
+		viewFilterOffset = 0
 
 	instanceDataOffsets = []
 	for instanceType, instance in instanceData:
@@ -115,22 +117,11 @@ def convertModelList(convertContext, data, inputDir):
 	else:
 		cullListsOffset = 0
 
-	if views:
-		viewOffsets = []
-		for view in views:
-			viewOffsets.append(builder.CreateString(str(view)))
-		ModelList.StartViewsVector(builder, len(viewOffsets))
-		for offset in reversed(viewOffsets):
-			builder.PrependUOffsetTRelative(offset)
-		viewsOffset = builder.EndVector()
-	else:
-		viewsOffset = 0
-
 	ModelList.Start(builder)
+	ModelList.AddViewFilter(builder, viewFilterOffset)
 	ModelList.AddInstanceData(builder, instanceDataOffset)
 	ModelList.AddSortType(builder, sortType)
 	ModelList.AddDynamicRenderStates(builder, dynamicRenderStatesOffset)
 	ModelList.AddCullLists(builder, cullListsOffset)
-	ModelList.AddViews(builder, viewsOffset)
 	builder.Finish(ModelList.End(builder))
 	return builder.Output()

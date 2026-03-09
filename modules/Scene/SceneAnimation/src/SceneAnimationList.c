@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -416,19 +416,6 @@ static void dsSceneAnimationList_destroy(dsSceneItemList* itemList)
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
 
-dsSceneItemList* dsSceneAnimationList_load(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const char* name, const uint8_t* data, size_t dataSize)
-{
-	DS_UNUSED(loadContext);
-	DS_UNUSED(scratchData);
-	DS_UNUSED(resourceAllocator);
-	DS_UNUSED(userData);
-	DS_UNUSED(data);
-	DS_UNUSED(dataSize);
-	return (dsSceneItemList*)dsSceneAnimationList_create(allocator, name);
-}
-
 const char* const dsSceneAnimationList_typeName = "AnimationList";
 
 static dsSceneItemListType itemListType =
@@ -444,7 +431,8 @@ const dsSceneItemListType* dsSceneAnimationList_type(void)
 	return &itemListType;
 }
 
-dsSceneAnimationList* dsSceneAnimationList_create(dsAllocator* allocator, const char* name)
+dsSceneAnimationList* dsSceneAnimationList_create(
+	dsAllocator* allocator, const char* name, const dsViewFilter* viewFilter)
 {
 	if (!allocator || !name)
 	{
@@ -476,6 +464,7 @@ dsSceneAnimationList* dsSceneAnimationList_create(dsAllocator* allocator, const 
 	dsSceneItemList* itemList = (dsSceneItemList*)animationList;
 	itemList->allocator = allocator;
 	itemList->type = dsSceneAnimationList_type();
+	itemList->viewFilter = viewFilter;
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,8 +42,8 @@
 
 extern "C"
 dsSceneItemList* dsShadowCullList_load(const dsSceneLoadContext*,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void*, const char* name, const uint8_t* data, size_t dataSize)
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*, void*,
+	const char* name, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaSceneLighting::VerifyShadowCullListBuffer(verifier))
@@ -54,12 +54,28 @@ dsSceneItemList* dsShadowCullList_load(const dsSceneLoadContext*,
 	}
 
 	auto fbCullList = DeepSeaSceneLighting::GetShadowCullList(data);
+	auto fbViewFilter = fbCullList->viewFilter();
 	const char* shadowManagerName = fbCullList->shadowManager()->c_str();
 	const char* shadowsName = fbCullList->shadows()->c_str();
-	dsSceneResourceType type;
+
+	dsSceneResourceType resourceType;
+	dsViewFilter* viewFilter = nullptr;
+	if (fbViewFilter)
+	{
+		if (!dsSceneLoadScratchData_findResource(&resourceType,
+				reinterpret_cast<void**>(&viewFilter), scratchData, fbViewFilter->c_str()) ||
+			resourceType != dsSceneResourceType_ViewFilter)
+		{
+			DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find view filter '%s'.",
+				fbViewFilter->c_str());
+			errno = ENOTFOUND;
+			return nullptr;
+		}
+	}
+
 	dsCustomSceneResource* resource;
-	if (!dsSceneLoadScratchData_findResource(&type, (void**)&resource, scratchData,
-			shadowManagerName) || type != dsSceneResourceType_Custom ||
+	if (!dsSceneLoadScratchData_findResource(&resourceType, (void**)&resource, scratchData,
+			shadowManagerName) || resourceType != dsSceneResourceType_Custom ||
 		resource->type != dsSceneShadowManager_type())
 	{
 		errno = ENOTFOUND;
@@ -69,8 +85,8 @@ dsSceneItemList* dsShadowCullList_load(const dsSceneLoadContext*,
 	}
 
 	auto shadowManager = reinterpret_cast<dsSceneShadowManager*>(resource->resource);
-	dsSceneLightShadows* shadows = dsSceneShadowManager_findLightShadows(shadowManager,
-		shadowsName);
+	dsSceneLightShadows* shadows = dsSceneShadowManager_findLightShadows(
+		shadowManager, shadowsName);
 	if (!shadows)
 	{
 		errno = ENOTFOUND;
@@ -80,5 +96,5 @@ dsSceneItemList* dsShadowCullList_load(const dsSceneLoadContext*,
 		return nullptr;
 	}
 
-	return dsShadowCullList_create(allocator, name, shadows, fbCullList->surface());
+	return dsShadowCullList_create(allocator, name, viewFilter, shadows, fbCullList->surface());
 }

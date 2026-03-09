@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,9 @@ namespace DeepSeaSceneVectorDraw;
 // Struct defining how to draw a list of vector items.
 table VectorItemList
 {
+	// Name of the filter for what views to process. All views will be processed if unset.
+	viewFilter : string;
+
 	// List of instance data for the vector items.
 	instanceData : [DeepSeaScene.ObjectData];
 
@@ -29,9 +32,6 @@ table VectorItemList
 
 	// Dynamic render states to apply when rendering.
 	dynamicRenderStates : DeepSeaScene.DynamicRenderStates;
-
-	// The name of the views to draw to, or empty to draw to all views.
-	views : [string];
 }
 
 root_type VectorItemList;

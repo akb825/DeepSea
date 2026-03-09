@@ -69,11 +69,11 @@ The following scene item lists are provided with the expected members:
 
 * `"ParticlePrepareList"`: creates the `dsParticleEmitter` instances for particle nodes and prepares them for drawing. (no additional members)
 * `"ParticleDrawList"`: draws particle nodes in a scene.
+	* `viewFilter`: name of the filter for what views to process. All views will be processed if unset.
 	* `instanceData`: optional list of instance data to include with the particle draw list. Each element of the array has the following members:
 		* `type`: the name of the instance data type.
 		* Remaining members depend on the value of `type`.
 	* `cullList`: array of strings for the name of item lists to handle culling. If omitted or empty, no culling is performed.
-	* `views`: array of strings for the name of views to draw to. If omitted or empty, all views will be drawn to.
 
 ## Instance Data
 

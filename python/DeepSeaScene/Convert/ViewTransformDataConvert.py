@@ -18,9 +18,12 @@ from .. import ViewTransformData
 def convertViewTransformData(convertContext, data, inputDir):
 	"""
 	Converts an ViewTransformData. The data map is expected to contain the following elements:
+	- viewFilter: name of the filter for what views to process. All views will be processed if
+	  unset.
 	- variableGroupDesc: string name for the shader variable group to use.
 	"""
 	try:
+		viewFilter = str(data.get('viewFilter', ''))
 		variableGroupDescName = str(data['variableGroupDesc'])
 	except KeyError as e:
 		raise Exception('ViewTransform doesn\'t contain element ' + str(e) + '.')
@@ -28,8 +31,15 @@ def convertViewTransformData(convertContext, data, inputDir):
 		raise Exception('ViewTransform must be an object.')
 
 	builder = flatbuffers.Builder(0)
+
+	if viewFilter:
+		viewFilterOffset = builder.CreateString(viewFilter)
+	else:
+		viewFilterOffset = 0
 	variableGroupDescNameOffset = builder.CreateString(variableGroupDescName)
+
 	ViewTransformData.Start(builder)
+	ViewTransformData.AddViewFilter(builder, viewFilterOffset)
 	ViewTransformData.AddVariableGroupDesc(builder, variableGroupDescNameOffset)
 	builder.Finish(ViewTransformData.End(builder))
 	return builder.Output()
