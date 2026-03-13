@@ -27,6 +27,7 @@
 #include <DeepSea/Render/Resources/VertexFormat.h>
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+#include <DeepSea/Scene/SceneResources.h>
 
 #include <DeepSea/SceneVectorDraw/SceneVectorNode.h>
 
@@ -36,6 +37,7 @@
 #include <DeepSea/Text/TextRenderBuffer.h>
 
 #include <string.h>
+#include <limits.h>
 
 typedef struct TextVertex
 {
@@ -88,6 +90,28 @@ static void countPreLayoutGlyphs(
 			--*outStandardGlyphCount;
 		}
 	}
+}
+
+static bool recreateLayoutVisitor(
+	const char* name, void* resource, dsSceneResourceType type, void* userData)
+{
+	DS_UNUSED(name);
+	bool* success = (bool*)userData;
+	if (type != dsSceneResourceType_SceneNode)
+		return true;
+
+	dsSceneNode* baseNode = (dsSceneNode*)resource;
+	if (!dsSceneNode_isOfType(baseNode, dsSceneTextNode_type()))
+		return true;
+
+	dsSceneTextNode* node = (dsSceneTextNode*)baseNode;
+	if (node->text->originalString && !dsSceneTextNode_recreateLayout(
+			node, 0, UINT_MAX))
+	{
+		*success = false;
+		return false;
+	}
+	return true;
 }
 
 bool dsSceneTextNode_defaultTextVertexFormat(dsVertexFormat* outFormat)
@@ -260,6 +284,18 @@ void dsSceneTextNode_defaultTessGlyphDataFunc(void* userData,
 	vertex->outlineThickness = style->outlineThickness;
 }
 
+bool dsSceneTextNode_recreateAllLayouts(const dsSceneResources* resources)
+{
+	if (!resources)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	bool success = true;
+	return dsSceneResources_forEachResource(resources, &recreateLayoutVisitor, &success) && success;
+}
+
 const char* const dsSceneTextNode_typeName = "TextNode";
 
 static dsSceneNodeType nodeType =
@@ -278,40 +314,38 @@ const dsSceneNodeType* dsSceneTextNode_setupParentType(dsSceneNodeType* type)
 	return dsSceneNode_setupParentType(type, &nodeType);
 }
 
-dsSceneTextNode* dsSceneTextNode_create(dsAllocator* allocator, const dsText* text,
-	void* textUserData, const dsTextStyle* styles, uint32_t styleCount, dsTextAlign alignment,
-	float maxWidth, float lineScale, int32_t z, uint32_t firstChar, uint32_t charCount,
-	dsShader* shader, const dsSceneTextRenderBufferInfo* textRenderBufferInfo,
-	const char* const* itemLists, uint32_t itemListCount, dsSceneResources** resources,
-	uint32_t resourceCount)
-{
-	return dsSceneTextNode_createBase(allocator, sizeof(dsSceneTextNode), text,
-		textUserData, styles, styleCount, alignment, maxWidth, lineScale, z, firstChar, charCount,
-		shader, textRenderBufferInfo, itemLists, itemListCount, resources, resourceCount);
-}
-
-dsSceneTextNode* dsSceneTextNode_createBase(dsAllocator* allocator, size_t structSize,
-	const dsText* text, void* textUserData, const dsTextStyle* styles, uint32_t styleCount,
+dsSceneTextNode* dsSceneTextNode_create(dsAllocator* allocator, const dsSceneText* text,
 	dsTextAlign alignment, float maxWidth, float lineScale, int32_t z, uint32_t firstChar,
 	uint32_t charCount, dsShader* shader, const dsSceneTextRenderBufferInfo* textRenderBufferInfo,
 	const char* const* itemLists, uint32_t itemListCount, dsSceneResources** resources,
 	uint32_t resourceCount)
 {
-	if (!allocator || !text || !styles || styleCount == 0 || !shader ||
-		!textRenderBufferInfo || !textRenderBufferInfo->vertexFormat ||
-		!textRenderBufferInfo->glyphDataFunc || (!itemLists && itemListCount > 0) ||
-		(!resources && resourceCount == 0))
+	return dsSceneTextNode_createBase(allocator, sizeof(dsSceneTextNode), text, alignment, maxWidth,
+		lineScale, z, firstChar, charCount, shader, textRenderBufferInfo, itemLists, itemListCount,
+		resources, resourceCount);
+}
+
+dsSceneTextNode* dsSceneTextNode_createBase(dsAllocator* allocator, size_t structSize,
+	const dsSceneText* text, dsTextAlign alignment, float maxWidth, float lineScale, int32_t z,
+	uint32_t firstChar, uint32_t charCount, dsShader* shader,
+	const dsSceneTextRenderBufferInfo* textRenderBufferInfo, const char* const* itemLists,
+	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount)
+{
+	if (!allocator || !text || !shader || !textRenderBufferInfo ||
+		!textRenderBufferInfo->vertexFormat || !textRenderBufferInfo->glyphDataFunc ||
+		(!itemLists && itemListCount > 0) || (!resources && resourceCount == 0))
 	{
 		errno = EINVAL;
 		return NULL;
 	}
 
-	dsTextLayout* layout = dsTextLayout_create(allocator, text, styles, styleCount);
+	dsTextLayout* layout = dsTextLayout_create(
+		allocator, text->text, text->styles, text->styleCount);
 	if (!layout)
 		return NULL;
 
 	uint32_t standardGlyphCount = 0, iconGlyphCount = 0;
-	countPreLayoutGlyphs(&standardGlyphCount, &iconGlyphCount, text);
+	countPreLayoutGlyphs(&standardGlyphCount, &iconGlyphCount, text->text);
 	dsTextRenderBuffer* renderBuffer = dsTextRenderBuffer_create(allocator, shader->resourceManager,
 		standardGlyphCount, iconGlyphCount, textRenderBufferInfo->vertexFormat,
 		dsShader_hasStage(shader, dsShaderStage_TessellationEvaluation),
@@ -324,7 +358,7 @@ dsSceneTextNode* dsSceneTextNode_createBase(dsAllocator* allocator, size_t struc
 
 	// Add the style array to the struct size to pool allocations.
 	size_t styleOffset = DS_ALIGNED_SIZE(structSize);
-	size_t finalStructSize = styleOffset + DS_ALIGNED_SIZE(sizeof(dsTextStyle)*styleCount);
+	size_t finalStructSize = styleOffset + DS_ALIGNED_SIZE(sizeof(dsTextStyle)*text->styleCount);
 
 	dsSceneTextNode* node = (dsSceneTextNode*)dsSceneVectorNode_create(
 		allocator, finalStructSize, z, itemLists, itemListCount, resources, resourceCount);
@@ -338,21 +372,66 @@ dsSceneTextNode* dsSceneTextNode_createBase(dsAllocator* allocator, size_t struc
 	dsSceneNode* baseNode = (dsSceneNode*)node;
 	baseNode->type = dsSceneTextNode_setupParentType(NULL);
 
+	node->text = text;
 	node->layout = layout;
 	node->renderBuffer = renderBuffer;
-	node->textUserData = textUserData;
 	node->shader = shader;
-	node->styles = (dsTextStyle*)((uint8_t*)node + styleOffset);
-	memcpy(node->styles, styles, sizeof(dsTextStyle)*styleCount);
-	node->styleCount = styleCount;
 	node->alignment = alignment;
 	node->maxWidth = maxWidth;
 	node->lineScale = lineScale;
 	node->firstChar = firstChar;
 	node->charCount = charCount;
 	node->layoutVersion = 0;
+	node->textVersion = text->textVersion;
 
 	return node;
+}
+
+bool dsSceneTextNode_recreateLayout(dsSceneTextNode* node, uint32_t firstChar, uint32_t charCount)
+{
+	if (!node)
+	{
+		errno = EINVAL;
+		return false;
+	}
+	else if (node->textVersion == node->text->textVersion)
+	{
+		node->firstChar = firstChar;
+		node->charCount = charCount;
+		return true;
+	}
+
+	dsSceneNode* baseNode = (dsSceneNode*)node;
+	dsAllocator* allocator = baseNode->allocator;
+	const dsSceneText* text = node->text;
+	dsShader* shader = node->shader;
+	dsTextRenderBuffer* prevRenderBuffer = node->renderBuffer;
+
+	dsTextLayout* layout = dsTextLayout_create(
+		allocator, text->text, text->styles, text->styleCount);
+	if (!layout)
+		return false;
+
+	uint32_t standardGlyphCount = 0, iconGlyphCount = 0;
+	countPreLayoutGlyphs(&standardGlyphCount, &iconGlyphCount, text->text);
+	dsTextRenderBuffer* renderBuffer = dsTextRenderBuffer_create(allocator, shader->resourceManager,
+		standardGlyphCount, iconGlyphCount, &prevRenderBuffer->geometry->vertexBuffers[0].format,
+		dsShader_hasStage(shader, dsShaderStage_TessellationEvaluation),
+		prevRenderBuffer->glyphDataFunc, prevRenderBuffer->userData);
+	if (!renderBuffer)
+	{
+		dsTextLayout_destroy(layout);
+		return false;
+	}
+
+	dsTextLayout_destroy(node->layout);
+	DS_VERIFY(dsTextRenderBuffer_destroy(prevRenderBuffer));
+
+	node->layout = layout;
+	node->renderBuffer = renderBuffer;
+	++node->layoutVersion;
+	node->textVersion = text->textVersion;
+	return true;
 }
 
 void dsSceneTextNode_updateLayout(dsSceneTextNode* node)

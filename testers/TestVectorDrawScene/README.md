@@ -4,6 +4,8 @@ The Test Vector Draw Scene tester (`deepsea_test_vector_draw_scene_app` target) 
 
 ![Test Vector Draw Scene](doc-images/VectorDrawScene.png)
 
-You may press the 1 key to toggle between text that displays character by character and a text box that cuts off the text outside of that text, scrolling up and down to reveal different parts of the text.
+You may press the 1 key, or single-tap on mobile, to toggle between text that displays character by character and a text box that cuts off the text outside of that text, scrolling up and down to reveal different parts of the text.
 
 ![Test Vector Draw Scene](doc-images/VectorDrawScene-textbox.png)
+
+You may also press the 2 key, or double-tap on mobile, to toggle between the displayed figure number.

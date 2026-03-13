@@ -104,6 +104,20 @@ DS_SCENEVECTORDRAW_EXPORT void dsSceneTextNode_defaultTessGlyphDataFunc(void* us
 	const dsVertexFormat* format, uint32_t vertexCount);
 
 /**
+ * @brief Re-creates the layout for all text nodes if the text has been updated from a
+ * resubstitution.
+ *
+ * This will only touch text nodes that have a text object that can be re-substituted. The character
+ * range will be reset to display all characters on any valid text node.
+ *
+ * @remark errno will be set on failure.
+ * @param resources The scene resources to recreate layouts on.
+ * @return False if a layout couldn't be recreated.
+ */
+DS_SCENEVECTORDRAW_EXPORT bool dsSceneTextNode_recreateAllLayouts(
+	const dsSceneResources* resources);
+
+/**
  * @brief The type name for a text node.
  */
 DS_SCENEVECTORDRAW_EXPORT extern const char* const dsSceneTextNode_typeName;
@@ -127,9 +141,6 @@ DS_SCENEVECTORDRAW_EXPORT const dsSceneNodeType* dsSceneTextNode_setupParentType
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the text node with.
  * @param text The text to draw.
- * @param textUserData User data to provide with the text.
- * @param styles The styles to apply to the text. The array will be copied.
- * @param styleCount The number of styles.
  * @param alignment The alignmnet of the text.
  * @param maxWidth The maximum width of the text when laying out.
  * @param lineScale The scale to apply to the distance between each line. Set to 1 to use the base
@@ -146,9 +157,8 @@ DS_SCENEVECTORDRAW_EXPORT const dsSceneNodeType* dsSceneTextNode_setupParentType
  * @return The text node or NULL if an error occurred.
  */
 DS_SCENEVECTORDRAW_EXPORT dsSceneTextNode* dsSceneTextNode_create(
-	dsAllocator* allocator, const dsText* text, void* textUserData, const dsTextStyle* styles,
-	uint32_t styleCount, dsTextAlign alignment, float maxWidth, float lineScale, int32_t z,
-	uint32_t firstChar, uint32_t charCount, dsShader* shader,
+	dsAllocator* allocator, const dsSceneText* text, dsTextAlign alignment, float maxWidth,
+	float lineScale, int32_t z, uint32_t firstChar, uint32_t charCount, dsShader* shader,
 	const dsSceneTextRenderBufferInfo* textRenderBufferInfo, const char* const* itemLists,
 	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount);
 
@@ -158,9 +168,6 @@ DS_SCENEVECTORDRAW_EXPORT dsSceneTextNode* dsSceneTextNode_create(
  * @param allocator The allocator to create the model node with.
  * @param structSize The size of the struct.
  * @param text The text to draw.
- * @param textUserData User data to provide with the text.
- * @param styles The styles to apply to the text. The array will be copied.
- * @param styleCount The number of styles.
  * @param alignment The alignmnet of the text.
  * @param maxWidth The maximum width of the text when laying out.
  * @param lineScale The scale to apply to the distance between each line. Set to 1 to use the base
@@ -177,17 +184,27 @@ DS_SCENEVECTORDRAW_EXPORT dsSceneTextNode* dsSceneTextNode_create(
  * @return The text node or NULL if an error occurred.
  */
 DS_SCENEVECTORDRAW_EXPORT dsSceneTextNode* dsSceneTextNode_createBase(
-	dsAllocator* allocator, size_t structSize, const dsText* text, void* textUserData,
-	const dsTextStyle* styles, uint32_t styleCount, dsTextAlign alignment, float maxWidth,
-	float lineScale, int32_t z, uint32_t firstChar, uint32_t charCount, dsShader* shader,
-	const dsSceneTextRenderBufferInfo* textRenderBufferInfo, const char* const* itemLists,
-	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount);
+	dsAllocator* allocator, size_t structSize, const dsSceneText* text, dsTextAlign alignment,
+	float maxWidth, float lineScale, int32_t z, uint32_t firstChar, uint32_t charCount,
+	dsShader* shader, const dsSceneTextRenderBufferInfo* textRenderBufferInfo,
+	const char* const* itemLists, uint32_t itemListCount, dsSceneResources** resources,
+	uint32_t resourceCount);
+
+/**
+ * @brief Re-creates the layout for a text node if the text has been updated from a resubstitution.
+ * @remark errno will be set on failure.
+ * @param node The node to recreate the layout on.
+ * @param firstChar The first character to draw.
+ * @param charCount The number of characters to draw.
+ * @return False if the layout couldn't be recreated.
+ */
+DS_SCENEVECTORDRAW_EXPORT bool dsSceneTextNode_recreateLayout(
+	dsSceneTextNode* node, uint32_t firstChar, uint32_t charCount);
 
 /**
  * @brief Triggers an update for layout when it's next updated.
  *
  * This should be called when the following changes:
- * - contents of the styles
  * - alignment
  * - maxWidth
  * - lineScale

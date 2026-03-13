@@ -91,9 +91,6 @@ typedef struct TextInfo
 	dsShader* shader;
 	const dsTextLayout* layout;
 	dsTextRenderBuffer* renderBuffer;
-	void* textUserData;
-	const dsTextStyle* styles;
-	uint32_t styleCount;
 	uint32_t firstChar;
 	uint32_t charCount;
 } TextInfo;
@@ -239,9 +236,6 @@ static bool addInstances(dsSceneItemList* itemList)
 			drawItem->text.shader = node->shader;
 			drawItem->text.layout = node->layout;
 			drawItem->text.renderBuffer = node->renderBuffer;
-			drawItem->text.textUserData = node->textUserData;
-			drawItem->text.styles = node->styles;
-			drawItem->text.styleCount = node->styleCount;
 			drawItem->text.firstChar = node->firstChar;
 			drawItem->text.charCount = node->charCount;
 			drawItem->material = entry->material->material;

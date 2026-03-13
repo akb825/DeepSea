@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,8 +112,25 @@ void dsTextSubstitutionData_destroy(dsTextSubstitutionData* data)
 	DS_VERIFY(dsAllocator_free(data->allocator, data));
 }
 
-dsTextSubstitutionTable* dsTextSubstitutionTable_create(dsAllocator* allocator,
-	uint32_t maxStrings)
+bool dsTextSubstitutionTable_needsSubstitution(const char* string)
+{
+	if (!string)
+		return false;
+
+	bool lastIsDollar = false;
+	for (const char* c = string; *c; ++c)
+	{
+		if (*c == '$')
+			lastIsDollar = true;
+		else if (*c == '{' && lastIsDollar)
+			return true;
+		else
+			lastIsDollar = false;
+	}
+	return false;
+}
+
+dsTextSubstitutionTable* dsTextSubstitutionTable_create(dsAllocator* allocator, uint32_t maxStrings)
 {
 	if (!allocator || maxStrings == 0)
 	{
@@ -165,8 +182,8 @@ uint32_t dsTextSubstitutionTable_getRemainingStrings(const dsTextSubstitutionTab
 	return (uint32_t)table->nodePool.freeCount;
 }
 
-bool dsTextSubstitutionTable_setString(dsTextSubstitutionTable* table, const char* name,
-	const char* value)
+bool dsTextSubstitutionTable_setString(
+	dsTextSubstitutionTable* table, const char* name, const char* value)
 {
 	if (!table || !name || !value)
 	{
@@ -183,8 +200,8 @@ bool dsTextSubstitutionTable_setString(dsTextSubstitutionTable* table, const cha
 		{
 			// Re-allocate string data if larger. Use only the name length for fallback copy of
 			// realloc.
-			node->stringData = dsAllocator_reallocWithFallback(table->allocator, node->stringData,
-				node->nameLen, combinedSize);
+			node->stringData = dsAllocator_reallocWithFallback(
+				table->allocator, node->stringData, node->nameLen, combinedSize);
 			if (!node->stringData)
 				return false;
 

@@ -30,8 +30,6 @@
 #include <DeepSea/SceneVectorDraw/SceneVectorResources.h>
 
 #include <DeepSea/Text/Font.h>
-#include <DeepSea/Text/Text.h>
-#include <DeepSea/Text/TextSubstitutionTable.h>
 
 #include <DeepSea/VectorDraw/VectorResources.h>
 
@@ -141,22 +139,14 @@ void* dsSceneText_load(const dsSceneLoadContext*, dsSceneLoadScratchData* scratc
 		style.verticalOffset = fbStyle->verticalOffset();
 	}
 
-	const char* string = fbSceneText->text()->c_str();
+	dsTextSubstitutionData* substitutionData = nullptr;
 	if (vectorLoadContext->substitutionTable)
 	{
-		dsTextSubstitutionData* substitutionData =
-			dsSceneVectorDrawScratchData_getTextSubstitutionData(vectorLoadContext);
+		substitutionData = dsSceneVectorDrawScratchData_getTextSubstitutionData(vectorLoadContext);
 		if (!substitutionData)
-			return nullptr;
-		string = dsTextSubstitutionTable_substitute(vectorLoadContext->substitutionTable,
-			substitutionData, string, styles, styleCount);
-		if (!string)
 			return nullptr;
 	}
 
-	dsText* text = dsText_createUTF8(font, allocator, string, false);
-	if (!text)
-		return nullptr;
-
-	return dsSceneText_create(allocator, text, nullptr, styles, styleCount);
+	return dsSceneText_create(allocator, font, fbSceneText->text()->c_str(), styles, styleCount,
+		vectorLoadContext->substitutionTable, substitutionData);
 }

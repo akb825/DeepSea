@@ -44,10 +44,12 @@
 #include <DeepSea/Scene/View.h>
 #include <DeepSea/Scene/ViewTransformData.h>
 
+#include <DeepSea/SceneVectorDraw/SceneText.h>
 #include <DeepSea/SceneVectorDraw/SceneTextNode.h>
 #include <DeepSea/SceneVectorDraw/SceneVectorDrawLoadContext.h>
 #include <DeepSea/SceneVectorDraw/SceneVectorItemList.h>
 
+#include <DeepSea/Text/TextSubstitutionData.h>
 #include <DeepSea/Text/TextSubstitutionTable.h>
 
 #include <stdio.h>
@@ -78,19 +80,27 @@ typedef struct TestVectorDrawScene
 	dsScene* scene;
 	dsView* view;
 
+	dsTextSubstitutionTable* substitutionTable;
+	dsTextSubstitutionData* substitutionData;
+
 	double changeTime;
 	unsigned int skipCount;
 	bool reverse;
 	DisplayType displayType;
+	unsigned int tigerNumber;
 
 	uint32_t fingerCount;
 	uint32_t maxFingers;
 } TestVectorDrawScene;
 
+static const char* tigerNumberKey = "tigerNum";
+static const char* tigerNumbers[] = {"1", "2"};
+
 static void printHelp(const char* programPath)
 {
 	printf("usage: %s [OPTIONS]\n", dsPath_getFileName(programPath));
-	printf("Press '1' to toggle between text display modes.\n\n");
+	printf("Press '1' to toggle between text display modes.\n");
+	printf("Press '2' to toggle the figure number.\n\n");
 	printf("options:\n");
 	printf("  -h, --help                   print this help message and exit\n");
 	printf("  -r, --renderer <renderer>    explicitly use a renderer; options are:\n");
@@ -155,6 +165,19 @@ static void toggleDisplayType(TestVectorDrawScene* testVectorDrawScene)
 	}
 }
 
+static void toggleSpelledOutNumber(TestVectorDrawScene* testVectorDrawScene)
+{
+	testVectorDrawScene->tigerNumber =
+		(unsigned int)((testVectorDrawScene->tigerNumber + 1) % DS_ARRAY_SIZE(tigerNumbers));
+	const char* text = tigerNumbers[testVectorDrawScene->tigerNumber];
+	DS_CHECK("TestVectorDrawScene", dsTextSubstitutionTable_setString(
+			testVectorDrawScene->substitutionTable, tigerNumberKey, text));
+	DS_CHECK("TestVectorDrawScene", dsSceneText_resubstituteAll(testVectorDrawScene->resources,
+		testVectorDrawScene->substitutionTable, testVectorDrawScene->substitutionData));
+	DS_CHECK("TestVectorDrawScene",
+		dsSceneTextNode_recreateAllLayouts(testVectorDrawScene->resources));
+}
+
 static bool processEvent(
 	dsApplication* application, dsWindow* window, const dsEvent* event, void* userData)
 {
@@ -190,6 +213,9 @@ static bool processEvent(
 				case dsKeyCode_1:
 					toggleDisplayType(testVectorDrawScene);
 					return false;
+				case dsKeyCode_2:
+					toggleSpelledOutNumber(testVectorDrawScene);
+					return false;
 				case dsKeyCode_ACBack:
 					dsApplication_quit(application, 0);
 					return false;
@@ -212,6 +238,9 @@ static bool processEvent(
 				{
 					case 1:
 						toggleDisplayType(testVectorDrawScene);
+						break;
+					case 2:
+						toggleSpelledOutNumber(testVectorDrawScene);
 						break;
 					default:
 						break;
@@ -301,8 +330,8 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	DS_VERIFY(dsView_draw(testVectorDrawScene->view, commandBuffer, NULL));
 }
 
-static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* application,
-	dsAllocator* allocator)
+static bool setup(
+	TestVectorDrawScene* testVectorDrawScene, dsApplication* application, dsAllocator* allocator)
 {
 	dsRenderer* renderer = application->renderer;
 	testVectorDrawScene->allocator = allocator;
@@ -344,8 +373,8 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 		return false;
 	}
 
-	dsTextSubstitutionTable* substitutionTable = dsTextSubstitutionTable_create(allocator, 1);
-	if (!substitutionTable)
+	testVectorDrawScene->substitutionTable = dsTextSubstitutionTable_create(allocator, 1);
+	if (!testVectorDrawScene->substitutionTable)
 	{
 		DS_LOG_ERROR_F("TestVectorDrawScene", "Couldn't create text substitution table: %s",
 			dsErrorString(errno));
@@ -353,12 +382,21 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 		return false;
 	}
 
-	if (!dsTextSubstitutionTable_setString(substitutionTable, "tigerNum", "1"))
+	testVectorDrawScene->substitutionData = dsTextSubstitutionData_create(allocator);
+	if (!testVectorDrawScene->substitutionTable)
+	{
+		DS_LOG_ERROR_F("TestVectorDrawScene", "Couldn't create text substitution data: %s",
+			dsErrorString(errno));
+		dsSceneLoadContext_destroy(loadContext);
+		return false;
+	}
+
+	if (!dsTextSubstitutionTable_setString(
+			testVectorDrawScene->substitutionTable, tigerNumberKey, tigerNumbers[0]))
 	{
 		DS_LOG_ERROR_F("TestVectorDrawScene", "Couldn't register text subtitution: %s",
 			dsErrorString(errno));
 		dsSceneLoadContext_destroy(loadContext);
-		dsTextSubstitutionTable_destroy(substitutionTable);
 		return false;
 	}
 
@@ -372,13 +410,12 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 	};
 
 	float pixelSize = 100.0f/(float)testVectorDrawScene->window->surface->height;
-	if (!dsSceneVectorDrawLoadConext_registerTypes(
-			loadContext, allocator, NULL, substitutionTable, &textRenderInfo, pixelSize))
+	if (!dsSceneVectorDrawLoadConext_registerTypes(loadContext, allocator, NULL,
+			testVectorDrawScene->substitutionTable, &textRenderInfo, pixelSize))
 	{
 		DS_LOG_ERROR_F("TestVectorDrawScene", "Couldn't register vector scene types: %s",
 			dsErrorString(errno));
 		dsSceneLoadContext_destroy(loadContext);
-		dsTextSubstitutionTable_destroy(substitutionTable);
 		return false;
 	}
 
@@ -389,7 +426,6 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 		DS_LOG_ERROR_F("TestVectorDrawScene", "Couldn't create load scratch data: %s",
 			dsErrorString(errno));
 		dsSceneLoadContext_destroy(loadContext);
-		dsTextSubstitutionTable_destroy(substitutionTable);
 		return false;
 	}
 
@@ -399,7 +435,6 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 	{
 		DS_LOG_ERROR_F("TestVectorDrawScene", "Couldn't open assets zip: %s", dsErrorString(errno));
 		dsSceneLoadContext_destroy(loadContext);
-		dsTextSubstitutionTable_destroy(substitutionTable);
 	}
 
 	testVectorDrawScene->resources = dsSceneResources_loadArchive(allocator, NULL, loadContext,
@@ -410,7 +445,6 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 			dsErrorString(errno));
 		dsFileArchive_close(archive);
 		dsSceneLoadContext_destroy(loadContext);
-		dsTextSubstitutionTable_destroy(substitutionTable);
 		dsSceneLoadScratchData_destroy(scratchData);
 		return false;
 	}
@@ -428,7 +462,6 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 		DS_LOG_ERROR("TestVectorDrawScene", "Couldn't find node 'figureTransformNode'.");
 		dsFileArchive_close(archive);
 		dsSceneLoadContext_destroy(loadContext);
-		dsTextSubstitutionTable_destroy(substitutionTable);
 		dsSceneLoadScratchData_destroy(scratchData);
 		return false;
 	}
@@ -441,7 +474,6 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 		DS_LOG_ERROR("TestVectorDrawScene", "Couldn't find transform node 'rootNode'.");
 		dsFileArchive_close(archive);
 		dsSceneLoadContext_destroy(loadContext);
-		dsTextSubstitutionTable_destroy(substitutionTable);
 		dsSceneLoadScratchData_destroy(scratchData);
 		return false;
 	}
@@ -453,7 +485,6 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 		DS_LOG_ERROR("TestVectorDrawScene", "Couldn't find node 'textBoxNode'.");
 		dsFileArchive_close(archive);
 		dsSceneLoadContext_destroy(loadContext);
-		dsTextSubstitutionTable_destroy(substitutionTable);
 		dsSceneLoadScratchData_destroy(scratchData);
 		return false;
 	}
@@ -468,7 +499,6 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 		DS_LOG_ERROR("TestVectorDrawScene", "Couldn't find transform node 'figureOffsetNode'.");
 		dsFileArchive_close(archive);
 		dsSceneLoadContext_destroy(loadContext);
-		dsTextSubstitutionTable_destroy(substitutionTable);
 		dsSceneLoadScratchData_destroy(scratchData);
 		return false;
 	}
@@ -482,7 +512,6 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 		DS_LOG_ERROR("TestVectorDrawScene", "Couldn't find text node 'figureNode'.");
 		dsFileArchive_close(archive);
 		dsSceneLoadContext_destroy(loadContext);
-		dsTextSubstitutionTable_destroy(substitutionTable);
 		dsSceneLoadScratchData_destroy(scratchData);
 		return false;
 	}
@@ -494,7 +523,6 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 		DS_LOG_ERROR_F("TestVectorDrawScene", "Couldn't load scene: %s", dsErrorString(errno));
 		dsFileArchive_close(archive);
 		dsSceneLoadContext_destroy(loadContext);
-		dsTextSubstitutionTable_destroy(substitutionTable);
 		dsSceneLoadScratchData_destroy(scratchData);
 		return false;
 	}
@@ -511,7 +539,6 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 		NULL, NULL, archive, "View.dsv");
 	dsFileArchive_close(archive);
 	dsSceneLoadContext_destroy(loadContext);
-	dsTextSubstitutionTable_destroy(substitutionTable);
 	dsSceneLoadScratchData_destroy(scratchData);
 	if (!testVectorDrawScene->view)
 	{
@@ -525,6 +552,8 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 
 static void shutdown(TestVectorDrawScene* testVectorDrawScene)
 {
+	dsTextSubstitutionTable_destroy(testVectorDrawScene->substitutionTable);
+	dsTextSubstitutionData_destroy(testVectorDrawScene->substitutionData);
 	DS_VERIFY(dsView_destroy(testVectorDrawScene->view));
 	dsScene_destroy(testVectorDrawScene->scene);
 	dsSceneResources_freeRef(testVectorDrawScene->resources);

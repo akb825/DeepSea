@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,15 @@ public:
 
 	dsSystemAllocator allocator;
 };
+
+TEST_F(TextSubstitutionTableTest, NeedsSubstitution)
+{
+	EXPECT_FALSE(dsTextSubstitutionTable_needsSubstitution(nullptr));
+	EXPECT_FALSE(dsTextSubstitutionTable_needsSubstitution(""));
+	EXPECT_FALSE(dsTextSubstitutionTable_needsSubstitution("I am a standard string."));
+	EXPECT_FALSE(dsTextSubstitutionTable_needsSubstitution("I am a string with separate $ and {."));
+	EXPECT_TRUE(dsTextSubstitutionTable_needsSubstitution("I am a ${subtitution} string."));
+}
 
 TEST_F(TextSubstitutionTableTest, Create)
 {

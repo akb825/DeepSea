@@ -47,14 +47,28 @@ typedef struct dsSceneText
 	dsAllocator* allocator;
 
 	/**
+	 * @brief The font for the text.
+	 */
+	dsFont* font;
+
+	/**
+	 * @brief The original string of the text to use for re-substitution.
+	 *
+	 * This will be NULL if substitution wasn't required.
+	 */
+	const char* originalString;
+
+	/**
+	 * @brief The original styles of the text to use for re-substitution.
+	 *
+	 * This will be NULL if substitution wasn't required.
+	 */
+	const dsTextStyle* originalStyles;
+
+	/**
 	 * @brief The text that has gone through initial processing, but not yet formatted.
 	 */
 	dsText* text;
-
-	/**
-	 * @brief User data to use with the text.
-	 */
-	void* userData;
 
 	/**
 	 * @brief The styles for the text.
@@ -65,6 +79,11 @@ typedef struct dsSceneText
 	 * @brief The number of styles for the text.
 	 */
 	uint32_t styleCount;
+
+	/**
+	 * @brief Version number to determine when the text has been updated.
+	 */
+	uint32_t textVersion;
 } dsSceneText;
 
 /**
@@ -157,6 +176,11 @@ typedef struct dsSceneTextNode
 	dsSceneVectorNode node;
 
 	/**
+	 * @brief The text to draw.
+	 */
+	const dsSceneText* text;
+
+	/**
 	 * @brief The text layout to draw.
 	 */
 	dsTextLayout* layout;
@@ -169,24 +193,9 @@ typedef struct dsSceneTextNode
 	dsTextRenderBuffer* renderBuffer;
 
 	/**
-	 * @brief User data to pass with the text.
-	 */
-	void* textUserData;
-
-	/**
 	 * @brief The shader to draw with.
 	 */
 	dsShader* shader;
-
-	/**
-	 * @brief The styles to apply to the text.
-	 */
-	dsTextStyle* styles;
-
-	/**
-	 * @brief The number of styles.
-	 */
-	uint32_t styleCount;
 
 	/**
 	 * @brief The alignment of the text.
@@ -219,6 +228,11 @@ typedef struct dsSceneTextNode
 	 * @brief Version number to determine when the layout needs to be be re-calculated.
 	 */
 	uint32_t layoutVersion;
+
+	/**
+	 * @brief Version number of the text for the last time the text was created.
+	 */
+	uint32_t textVersion;
 } dsSceneTextNode;
 
 /**

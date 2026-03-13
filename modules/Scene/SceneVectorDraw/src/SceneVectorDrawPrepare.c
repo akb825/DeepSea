@@ -148,9 +148,10 @@ static void dsSceneVectorDrawPrepare_commit(dsSceneItemList* itemList, const dsV
 					dsTextLayout_layout(node->layout, commandBuffer, node->alignment,
 						node->maxWidth, node->lineScale));
 				DS_VERIFY(dsTextRenderBuffer_clear(node->renderBuffer));
+				// NOTE: May need to have a way to provide text user data for render buffer in the
+				// future. Currently there would be no easy way to do so when loading from file.
 				DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
-					dsTextRenderBuffer_addText(node->renderBuffer, node->layout,
-						node->textUserData));
+					dsTextRenderBuffer_addText(node->renderBuffer, node->layout, NULL));
 				DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 					dsTextRenderBuffer_commit(node->renderBuffer, commandBuffer));
 				entry->layoutVersion = node->layoutVersion;

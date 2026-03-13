@@ -142,8 +142,7 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 
 	// NOTE: May need to add more resources to the reference count later. Don't add all resources
 	// since it would make circular references.
-	node = reinterpret_cast<dsSceneNode*>(dsSceneTextNode_create(allocator, text->text,
-		text->userData, text->styles, text->styleCount,
+	node = reinterpret_cast<dsSceneNode*>(dsSceneTextNode_create(allocator, text,
 		static_cast<dsTextAlign>(fbTextNode->alignment()), fbTextNode->maxWidth(),
 		fbTextNode->lineScale(), fbTextNode->z(), fbTextNode->firstChar(), fbTextNode->charCount(),
 		shader, &textUserData->textRenderInfo, itemLists, itemListCount, &embeddedResources,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,13 @@ extern "C"
  */
 
 /**
+ * @brief Checks whether a string needs substitution.
+ * @param string The string to check.
+ * @return Whether the string needs substitution, or contains variables with the pattern ${x}.
+ */
+DS_TEXT_EXPORT bool dsTextSubstitutionTable_needsSubstitution(const char* string);
+
+/**
  * @brief Creates a substitution table.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the substitution table with. This must support freeing
@@ -39,8 +46,8 @@ extern "C"
  * @param maxStrings The maximum number of strings for substitution.
  * @return The substitution table or NULL if an error occurred.
  */
-DS_TEXT_EXPORT dsTextSubstitutionTable* dsTextSubstitutionTable_create(dsAllocator* allocator,
-	uint32_t maxStrings);
+DS_TEXT_EXPORT dsTextSubstitutionTable* dsTextSubstitutionTable_create(
+	dsAllocator* allocator, uint32_t maxStrings);
 
 /**
  * @brief Gets the remaining strings that can be added to the substitution table.
@@ -61,8 +68,8 @@ DS_TEXT_EXPORT uint32_t dsTextSubstitutionTable_getRemainingStrings(
  * @param value The value for the string. This will be copied.
  * @return False if the string couldn't be added.
  */
-DS_TEXT_EXPORT bool dsTextSubstitutionTable_setString(dsTextSubstitutionTable* table,
-	const char* name, const char* value);
+DS_TEXT_EXPORT bool dsTextSubstitutionTable_setString(
+	dsTextSubstitutionTable* table, const char* name, const char* value);
 
 /**
  * @brief Gets a string by its name.
@@ -70,8 +77,8 @@ DS_TEXT_EXPORT bool dsTextSubstitutionTable_setString(dsTextSubstitutionTable* t
  * @param name The name of the string to get.
  * @return The string value or NULL if not found.
  */
-DS_TEXT_EXPORT const char* dsTextSubstitutionTable_getString(dsTextSubstitutionTable* table,
-	const char* name);
+DS_TEXT_EXPORT const char* dsTextSubstitutionTable_getString(
+	dsTextSubstitutionTable* table, const char* name);
 
 /**
  * @brief Removes a string from the substitution table.
@@ -79,8 +86,8 @@ DS_TEXT_EXPORT const char* dsTextSubstitutionTable_getString(dsTextSubstitutionT
  * @param name The name of the string to remove.
  * @return False if the string couldn't be removed.
  */
-DS_TEXT_EXPORT bool dsTextSubstitutionTable_removeString(dsTextSubstitutionTable* table,
-	const char* name);
+DS_TEXT_EXPORT bool dsTextSubstitutionTable_removeString(
+	dsTextSubstitutionTable* table, const char* name);
 
 /**
  * @brief Substitutes a string based on the substitution table.
@@ -96,6 +103,7 @@ DS_TEXT_EXPORT bool dsTextSubstitutionTable_removeString(dsTextSubstitutionTable
  * @param string The string to substitute.
  * @param ranges The style ranges to adjust based on the substitutions.
  * @param rangeCount The number of ranges.
+ * @return The substituted string data.
  */
 DS_TEXT_EXPORT const char* dsTextSubstitutionTable_substitute(const dsTextSubstitutionTable* table,
 	dsTextSubstitutionData* data, const char* string, dsTextStyle* ranges, uint32_t rangeCount);
