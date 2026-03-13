@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -258,12 +258,12 @@ DS_SCENE_EXPORT dsSceneItemList* dsScene_findItemList(dsScene* scene, const char
  * @brief Visits each item list in the scene configuration.
  * @remark errno will be set on failure.
  * @param scene The scene to visit the item lists in.
- * @param visitFunc The function to call for each visitor.
+ * @param visitFunc The function to call for each item list.
  * @param userData User data to pass to the visitor function.
  * @return False if the parameters are invalid.
  */
-DS_SCENE_EXPORT bool dsScene_forEachItemList(dsScene* scene,
-	dsVisitSceneItemListsFunction visitFunc, void* userData);
+DS_SCENE_EXPORT bool dsScene_forEachItemList(
+	const dsScene* scene, dsVisitSceneItemListsFunction visitFunc, void* userData);
 
 /**
  * @brief Updates dirty nodes within the scene and any item lists.

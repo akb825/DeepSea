@@ -101,6 +101,17 @@ typedef struct dsView dsView;
 typedef struct dsSceneResources dsSceneResources;
 
 /**
+ * @brief Function for visiting scene resources.
+ * @param name The name of the resource.
+ * @param resource The resource being visited.
+ * @param type The type of the resource.
+ * @param userData User data passed through to the callback.
+ * @return True to continue iteration, false to stop.
+ */
+typedef bool (*dsVisitSceneResourceFunction)(
+	const char* name, void* resource, dsSceneResourceType type, void* userData);
+
+/**
  * @brief Arbitrary type used to denote a custom resource type.
  *
  * Declare this as a static variable and take the address to denote the type. e.g.

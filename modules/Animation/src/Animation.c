@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@
 
 static int directAnimationEntryCompare(const void* left, const void* right, void* context)
 {
+	DS_UNUSED(context);
 	const dsDirectAnimation* animation = (const dsDirectAnimation*)left;
 	const dsDirectAnimationEntry* ref = (const dsDirectAnimationEntry*)right;
 	return DS_CMP(animation, ref->animation);
@@ -38,6 +39,7 @@ static int directAnimationEntryCompare(const void* left, const void* right, void
 
 static int keyframeAnimationEntryCompare(const void* left, const void* right, void* context)
 {
+	DS_UNUSED(context);
 	const dsKeyframeAnimation* animation = (const dsKeyframeAnimation*)left;
 	const dsKeyframeAnimationEntry* ref = (const dsKeyframeAnimationEntry*)right;
 	return DS_CMP(animation, ref->animation);

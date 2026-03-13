@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -178,8 +178,8 @@ DS_SCENE_EXPORT bool dsSceneResources_addResource(dsSceneResources* resources,
  *     freeing the resource if it is owned.
  * @return False if the resource couldn't be removed.
  */
-DS_SCENE_EXPORT bool dsSceneResource_removeResource(dsSceneResources* resources,
-	const char* name, bool relinquish);
+DS_SCENE_EXPORT bool dsSceneResource_removeResource(
+	dsSceneResources* resources, const char* name, bool relinquish);
 
 /**
  * @brief Finds a scene resource.
@@ -191,6 +191,17 @@ DS_SCENE_EXPORT bool dsSceneResource_removeResource(dsSceneResources* resources,
  */
 DS_SCENE_EXPORT bool dsSceneResources_findResource(dsSceneResourceType* outType, void** outResource,
 	const dsSceneResources* resources, const char* name);
+
+/**
+ * @brief Visits each resource in the scene resources.
+ * @remark errno will be set on failure.
+ * @param resources The scene resources to visit the resources in.
+ * @param visitFunc The function to call for each resource.
+ * @param userData User data to pass to the visitor function.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENE_EXPORT bool dsSceneResources_forEachResource(
+	const dsSceneResources* resources, dsVisitSceneResourceFunction visitFunc, void* userData);
 
 /**
  * @brief Adds the reference count for the scene resources.

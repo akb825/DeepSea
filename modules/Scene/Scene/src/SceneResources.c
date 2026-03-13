@@ -450,6 +450,25 @@ bool dsSceneResources_findResource(dsSceneResourceType* outType, void** outResou
 	return true;
 }
 
+bool dsSceneResources_forEachResource(
+	const dsSceneResources* resources, dsVisitSceneResourceFunction visitFunc, void* userData)
+{
+	if (!resources || !visitFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	for (const dsListNode* node = resources->resources->list.head; node; node = node->next)
+	{
+		ResourceNode* resourceNode = (ResourceNode*)node;
+		if (!visitFunc(resourceNode->name, resourceNode->resource, resourceNode->type, userData))
+			break;
+	}
+
+	return true;
+}
+
 dsSceneResources* dsSceneResources_addRef(dsSceneResources* resources)
 {
 	if (!resources)

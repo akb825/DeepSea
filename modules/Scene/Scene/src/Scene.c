@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -702,8 +702,8 @@ dsSceneItemList* dsScene_findItemList(dsScene* scene, const char* name)
 	return foundNode->list;
 }
 
-bool dsScene_forEachItemList(dsScene* scene, dsVisitSceneItemListsFunction visitFunc,
-	void* userData)
+bool dsScene_forEachItemList(
+	const dsScene* scene, dsVisitSceneItemListsFunction visitFunc, void* userData)
 {
 	if (!scene || !visitFunc)
 		return false;
