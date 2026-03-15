@@ -29,6 +29,7 @@
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/SceneResources.h>
 
+#include <DeepSea/SceneVectorDraw/SceneText.h>
 #include <DeepSea/SceneVectorDraw/SceneVectorNode.h>
 
 #include <DeepSea/Text/Font.h>
@@ -64,6 +65,13 @@ typedef struct TessTextVertexx
 	float outlinePosition;
 	float outlineThickness;
 } TessTextVertex;
+
+typedef struct SubstituteLayoutUserData
+{
+	const dsTextSubstitutionTable* substitutionTable;
+	dsTextSubstitutionData* substitutionData;
+	bool success;
+} SubstituteLayoutUserData;
 
 static void glyphPosition(dsVector2f* outPos, const dsVector2f* basePos,
 	const dsVector2f* geometryPos, float slant)
@@ -105,12 +113,50 @@ static bool recreateLayoutVisitor(
 		return true;
 
 	dsSceneTextNode* node = (dsSceneTextNode*)baseNode;
-	if (node->text->originalString && !dsSceneTextNode_recreateLayout(
-			node, 0, UINT_MAX))
+	if (node->text->originalString && !dsSceneTextNode_recreateLayout(node, 0, UINT_MAX))
 	{
 		*success = false;
 		return false;
 	}
+	return true;
+}
+
+static bool resubstituteAndRecreateLayoutVisitor(
+	const char* name, void* resource, dsSceneResourceType type, void* userData)
+{
+	DS_UNUSED(name);
+	SubstituteLayoutUserData* substituteLayout = (SubstituteLayoutUserData*)userData;
+	if (type == dsSceneResourceType_Custom)
+	{
+		dsCustomSceneResource* customResource = (dsCustomSceneResource*)resource;
+		if (customResource->type != dsSceneText_type())
+			return true;
+
+		dsSceneText* sceneText = (dsSceneText*)customResource->resource;
+		if (!dsSceneText_resubstitute(
+				sceneText, substituteLayout->substitutionTable, substituteLayout->substitutionData))
+		{
+			substituteLayout->success = false;
+			return false;
+		}
+		return true;
+	}
+
+	if (type == dsSceneResourceType_SceneNode)
+	{
+		dsSceneNode* baseNode = (dsSceneNode*)resource;
+		if (!dsSceneNode_isOfType(baseNode, dsSceneTextNode_type()))
+			return true;
+
+		dsSceneTextNode* node = (dsSceneTextNode*)baseNode;
+		if (node->text->originalString && !dsSceneTextNode_recreateLayout(node, 0, UINT_MAX))
+		{
+			substituteLayout->success = false;
+			return false;
+		}
+		return true;
+	}
+
 	return true;
 }
 
@@ -294,6 +340,22 @@ bool dsSceneTextNode_recreateAllLayouts(const dsSceneResources* resources)
 
 	bool success = true;
 	return dsSceneResources_forEachResource(resources, &recreateLayoutVisitor, &success) && success;
+}
+
+bool dsSceneTextNode_resubstituteAndRecreateAllLayouts(
+	const dsSceneResources* resources, const dsTextSubstitutionTable* substitutionTable,
+	dsTextSubstitutionData* substitutionData)
+{
+	if (!resources || !substitutionTable || !substitutionData)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	SubstituteLayoutUserData substituteLayout = {substitutionTable, substitutionData, true};
+	return dsSceneResources_forEachResource(
+			resources, &resubstituteAndRecreateLayoutVisitor, &substituteLayout) &&
+		substituteLayout.success;
 }
 
 const char* const dsSceneTextNode_typeName = "TextNode";

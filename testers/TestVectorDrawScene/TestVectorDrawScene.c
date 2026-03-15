@@ -44,7 +44,6 @@
 #include <DeepSea/Scene/View.h>
 #include <DeepSea/Scene/ViewTransformData.h>
 
-#include <DeepSea/SceneVectorDraw/SceneText.h>
 #include <DeepSea/SceneVectorDraw/SceneTextNode.h>
 #include <DeepSea/SceneVectorDraw/SceneVectorDrawLoadContext.h>
 #include <DeepSea/SceneVectorDraw/SceneVectorItemList.h>
@@ -172,10 +171,9 @@ static void toggleSpelledOutNumber(TestVectorDrawScene* testVectorDrawScene)
 	const char* text = tigerNumbers[testVectorDrawScene->tigerNumber];
 	DS_CHECK("TestVectorDrawScene", dsTextSubstitutionTable_setString(
 			testVectorDrawScene->substitutionTable, tigerNumberKey, text));
-	DS_CHECK("TestVectorDrawScene", dsSceneText_resubstituteAll(testVectorDrawScene->resources,
-		testVectorDrawScene->substitutionTable, testVectorDrawScene->substitutionData));
-	DS_CHECK("TestVectorDrawScene",
-		dsSceneTextNode_recreateAllLayouts(testVectorDrawScene->resources));
+	DS_CHECK("TestVectorDrawScene", dsSceneTextNode_resubstituteAndRecreateAllLayouts(
+		testVectorDrawScene->resources, testVectorDrawScene->substitutionTable,
+		testVectorDrawScene->substitutionData));
 }
 
 static bool processEvent(

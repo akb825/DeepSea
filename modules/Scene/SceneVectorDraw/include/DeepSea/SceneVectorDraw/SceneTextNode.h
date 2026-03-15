@@ -118,6 +118,25 @@ DS_SCENEVECTORDRAW_EXPORT bool dsSceneTextNode_recreateAllLayouts(
 	const dsSceneResources* resources);
 
 /**
+ * @brief Performs both resubstitution for all text and re-creates the layout for all text nodes if
+ * the text has been updated from a resubstitution.
+ *
+ * This is functionally the same as calling dsSceneText_resubstituteAll() and
+ * dsSceneTextNode_recreateAllLayouts(), but both are performed within a single pass for all
+ * resources. This is faster, but assumes that all text has been added prior to the text nodes that
+ * reference them, which is expected to be the case in the vast majority of cases.
+ *
+ * @remark errno will be set on failure.
+ * @param resources The scene resources to recreate layouts on.
+ * @param substitutionTable The substitution table to provide the updated values with.
+ * @param substitutionData Temporary data used to perform substitution.
+ * @return False if substitution failed or a layout couldn't be recreated.
+ */
+DS_SCENEVECTORDRAW_EXPORT bool dsSceneTextNode_resubstituteAndRecreateAllLayouts(
+	const dsSceneResources* resources, const dsTextSubstitutionTable* substitutionTable,
+	dsTextSubstitutionData* substitutionData);
+
+/**
  * @brief The type name for a text node.
  */
 DS_SCENEVECTORDRAW_EXPORT extern const char* const dsSceneTextNode_typeName;
