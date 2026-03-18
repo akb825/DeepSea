@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,12 +109,12 @@ extern "C"
  * @param y The angle around the y axis in radians.
  * @param z The angle around the z axis in radians.
  */
-DS_MATH_EXPORT void dsQuaternion4f_fromEulerAngles(dsQuaternion4f* result, float x, float y,
-	float z);
+DS_MATH_EXPORT void dsQuaternion4f_fromEulerAngles(
+	dsQuaternion4f* result, float x, float y, float z);
 
 /** @copydoc dsQuaternion4f_fromEulerAngles() */
-DS_MATH_EXPORT void dsQuaternion4d_fromEulerAngles(dsQuaternion4d* result, double x, double y,
-	double z);
+DS_MATH_EXPORT void dsQuaternion4d_fromEulerAngles(
+	dsQuaternion4d* result, double x, double y, double z);
 
 /**
  * @brief Makes a quaternion from an axis angle.
@@ -122,36 +122,36 @@ DS_MATH_EXPORT void dsQuaternion4d_fromEulerAngles(dsQuaternion4d* result, doubl
  * @param axis The axis to rotate around. This should be a unit vector.
  * @param angle The angle to rotate in radians.
  */
-DS_MATH_EXPORT void dsQuaternion4f_fromAxisAngle(dsQuaternion4f* result,
-	const dsVector3f* axis, float angle);
+DS_MATH_EXPORT void dsQuaternion4f_fromAxisAngle(
+	dsQuaternion4f* result, const dsVector3f* axis, float angle);
 
 /** @copydoc dsQuaternion4f_fromAxisAngle() */
-DS_MATH_EXPORT void dsQuaternion4d_fromAxisAngle(dsQuaternion4d* result,
-	const dsVector3d* axis, double angle);
+DS_MATH_EXPORT void dsQuaternion4d_fromAxisAngle(
+	dsQuaternion4d* result, const dsVector3d* axis, double angle);
 
 /**
  * @brief Makes a quaternion from a 3x3 rotation matrix.
  * @param[out] result The quaternion for the result.
  * @param matrix The matrix to extract the rotation from.
  */
-DS_MATH_EXPORT void dsQuaternion4f_fromMatrix33(dsQuaternion4f* result,
-	const dsMatrix33f* matrix);
+DS_MATH_EXPORT void dsQuaternion4f_fromMatrix33(
+	dsQuaternion4f* result, const dsMatrix33f* matrix);
 
 /** @copydoc dsQuaternion4f_fromMatrix33() */
-DS_MATH_EXPORT void dsQuaternion4d_fromMatrix33(dsQuaternion4d* result,
-	const dsMatrix33d* matrix);
+DS_MATH_EXPORT void dsQuaternion4d_fromMatrix33(
+	dsQuaternion4d* result, const dsMatrix33d* matrix);
 
 /**
  * @brief Makes a quaternion from a 4x4 rotation matrix.
  * @param[out] result The quaternion for the result.
  * @param matrix The matrix to extract the rotation from.
  */
-DS_MATH_EXPORT void dsQuaternion4f_fromMatrix44(dsQuaternion4f* result,
-	const dsMatrix44f* matrix);
+DS_MATH_EXPORT void dsQuaternion4f_fromMatrix44(
+	dsQuaternion4f* result, const dsMatrix44f* matrix);
 
 /** @copydoc dsQuaternion4f_fromMatrix33() */
-DS_MATH_EXPORT void dsQuaternion4d_fromMatrix44(dsQuaternion4d* result,
-	const dsMatrix44d* matrix);
+DS_MATH_EXPORT void dsQuaternion4d_fromMatrix44(
+	dsQuaternion4d* result, const dsMatrix44d* matrix);
 
 /**
  * @brief Gets the X angle from a quaternion.
@@ -227,12 +227,12 @@ DS_MATH_EXPORT void dsQuaternion4d_toMatrix44(dsMatrix44d* result, const dsQuate
  * @param result The normalized result. This may be the same as a.
  * @param a The quaternion to normalize.
  */
-DS_MATH_EXPORT inline void dsQuaternion4f_normalize(dsQuaternion4f* result,
-	const dsQuaternion4f* a);
+DS_MATH_EXPORT inline void dsQuaternion4f_normalize(
+	dsQuaternion4f* result, const dsQuaternion4f* a);
 
 /** @copydoc dsQuaternion4f_normalize() */
-DS_MATH_EXPORT inline void dsQuaternion4d_normalize(dsQuaternion4d* result,
-	const dsQuaternion4d* a);
+DS_MATH_EXPORT inline void dsQuaternion4d_normalize(
+	dsQuaternion4d* result, const dsQuaternion4d* a);
 
 /**
  * @brief Rotates a vector by a quaternion.
@@ -240,12 +240,12 @@ DS_MATH_EXPORT inline void dsQuaternion4d_normalize(dsQuaternion4d* result,
  * @param a The quaternion to rotate by.
  * @param v The vector to rotate as a Vector3 type.
  */
-DS_MATH_EXPORT inline void dsQuaternion4f_rotate(dsVector3f* result, const dsQuaternion4f* a,
-	const dsVector3f* v);
+DS_MATH_EXPORT inline void dsQuaternion4f_rotate(
+	dsVector3f* result, const dsQuaternion4f* a, const dsVector3f* v);
 
 /** @copydoc dsQuaternion4f_rotate() */
-DS_MATH_EXPORT inline void dsQuaternion4d_rotate(dsVector3d* result, const dsQuaternion4d* a,
-	const dsVector3d* v);
+DS_MATH_EXPORT inline void dsQuaternion4d_rotate(
+	dsVector3d* result, const dsQuaternion4d* a, const dsVector3d* v);
 
 /**
  * @brief Performs a spherical linear interpolation between two quaternions.
@@ -254,12 +254,12 @@ DS_MATH_EXPORT inline void dsQuaternion4d_rotate(dsVector3d* result, const dsQua
  * @param b The second quaternion.
  * @param t A value in the range [0, 1] to interpolate between a and b.
  */
-DS_MATH_EXPORT void dsQuaternion4f_slerp(dsQuaternion4f* result, const dsQuaternion4f* a,
-	const dsQuaternion4f* b, float t);
+DS_MATH_EXPORT void dsQuaternion4f_slerp(
+	dsQuaternion4f* result, const dsQuaternion4f* a, const dsQuaternion4f* b, float t);
 
 /** @copydoc dsQuaternion4f_slerp() */
-DS_MATH_EXPORT void dsQuaternion4d_slerp(dsQuaternion4d* result, const dsQuaternion4d* a,
-	const dsQuaternion4d* b, double t);
+DS_MATH_EXPORT void dsQuaternion4d_slerp(
+	dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b, double t);
 
 /// @cond
 #define dsQuaternion4_mulVecQuatConj(result, a, b) \
@@ -309,8 +309,8 @@ DS_MATH_EXPORT void dsQuaternion4d_slerp(dsQuaternion4d* result, const dsQuatern
 /// @endcond
 
 /** @copydoc dsQuaternion4_mul() */
-DS_MATH_EXPORT inline void dsQuaternion4f_mul(dsQuaternion4f* result, const dsQuaternion4f* a,
-	const dsQuaternion4f* b)
+DS_MATH_EXPORT inline void dsQuaternion4f_mul(
+	dsQuaternion4f* result, const dsQuaternion4f* a, const dsQuaternion4f* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -332,23 +332,23 @@ DS_MATH_EXPORT inline void dsQuaternion4f_mul(dsQuaternion4f* result, const dsQu
 #endif
 	t12 = dsSIMD4f_negComponents(t12, 0, 0, 0, 1);
 
-	dsSIMD4f t3 = dsSIMD4f_mul(a2012, b1202);
 #if DS_SIMD_ALWAYS_FMA
-	dsSIMD4f t03 = dsSIMD4f_fmsub(a3333, b->simd, t3);
+	dsSIMD4f t312 = dsSIMD4f_fnmadd(a2012, b1202, t12);
+	result->simd = dsSIMD4f_fmadd(a3333, b->simd, t312);
 #else
 	dsSIMD4f t0 = dsSIMD4f_mul(a3333, b->simd);
+	dsSIMD4f t3 = dsSIMD4f_mul(a2012, b1202);
 	dsSIMD4f t03 = dsSIMD4f_sub(t0, t3);
-#endif
-
 	result->simd = dsSIMD4f_add(t03, t12);
+#endif
 #else
 	dsQuaternion4_mul(*result, *a, *b);
 #endif
 }
 
 /** @copydoc dsQuaternion4_mul() */
-DS_MATH_EXPORT inline void dsQuaternion4d_mul(dsQuaternion4d* result, const dsQuaternion4d* a,
-	const dsQuaternion4d* b)
+DS_MATH_EXPORT inline void dsQuaternion4d_mul(
+	dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
