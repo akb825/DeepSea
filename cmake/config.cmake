@@ -1,4 +1,4 @@
-# Copyright 2017-2025 Aaron Barany
+# Copyright 2017-2026 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -72,6 +72,22 @@ if (MSVC)
 	elseif (NOT CMAKE_CXX_FLAGS MATCHES "/GR- ")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GR-")
 	endif()
+
+	if (DEEPSEA_ARCH MATCHES "^x86")
+		if (DEEPSEA_X86_ARCH_LEVEL GREATER_EQUAL 4)
+			add_compile_options(/arch:AVX512)
+		elseif (DEEPSEA_X86_ARCH_LEVEL EQUAL 3)
+			add_compile_options(/arch:AVX2)
+		# SSE4.2 option only available for x64, will fall back to the check below for SSE2 on x86.
+		elseif (DEEPSEA_ARCH STREQUAL x86_64 AND DEEPSEA_X86_ARCH_LEVEL EQUAL 2)
+			add_compile_options(/arch:SSE4.2)
+		# Avoid explicitly setting SSE2 for x64 as it is "unknown" despite being documented.
+		elseif (DEEPSEA_ARCH STREQUAL x86 AND DEEPSEA_X86_ARCH_LEVEL GREATER_EQUAL 1)
+			add_compile_options(/arch:SSE2)
+		elseif (DEEPSEA_ARCH STREQUAL x86)
+			add_compile_options(/arch:IA32)
+		endif()
+	endif()
 else()
 	add_compile_options(-Wall -Werror -Wconversion -Wno-sign-conversion -fno-strict-aliasing)
 	if (APPLE)
@@ -90,6 +106,31 @@ else()
 
 	# Disable RTTI, but enable exceptions.
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fexceptions")
+
+	# Enable instructions based on the x86 architecture level.
+	if (DEEPSEA_ARCH MATCHES "^x86")
+		# Level 1 is implied for x86-64.
+		if (DEEPSA_ARCH STREQUAL x86 AND DEEPSEA_X86_ARCH_LEVEL GREATER_EQUAL 1)
+			add_compile_options(-mfxsr -msse2)
+		endif()
+
+		# 64-bit only instructions.
+		if (DEEPSEA_ARCH STREQUAL x86_64 AND DEEPSEA_X86_ARCH_LEVEL GREATER_EQUAL 2)
+			add_compile_options(-mcx16 -msahf)
+		endif()
+		# All shared level 2 instructions.
+		if (DEEPSEA_X86_ARCH_LEVEL GREATER_EQUAL 2)
+			add_compile_options(-mpopcnt -msse4)
+		endif()
+
+		if (DEEPSEA_X86_ARCH_LEVEL GREATER_EQUAL 3)
+			add_compile_options(-mavx2 -mbmi2 -mf16c -mfma -mlzcnt -mmovbe)
+		endif()
+
+		if (DEEPSEA_X86_ARCH_LEVEL GREATER_EQUAL 4)
+			add_compile_options(-mavx512f -mavx512bw -mavx512cd -mavx512dq -mavx512vl)
+		endif()
+	endif()
 endif()
 
 enable_testing()

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,12 +30,14 @@ template <>
 struct Vector4TypeSelector<float>
 {
 	typedef dsVector4f Type;
+	static const float epsilon;
 };
 
 template <>
 struct Vector4TypeSelector<double>
 {
 	typedef dsVector4d Type;
+	static const double epsilon;
 };
 
 template <>
@@ -49,6 +51,9 @@ struct Vector4TypeSelector<long long>
 {
 	typedef dsVector4l Type;
 };
+
+const float Vector4TypeSelector<float>::epsilon = 1e-6f;
+const double Vector4TypeSelector<double>::epsilon = 1e-14f;
 
 template <typename T>
 class Vector4Test : public testing::Test
@@ -424,16 +429,17 @@ TEST(Vector4IntTest, Lerp)
 TYPED_TEST(Vector4FloatTest, Lerp)
 {
 	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
+	TypeParam epsilon = Vector4TypeSelector<TypeParam>::epsilon;
 
 	Vector4Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
 	Vector4Type b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6, (TypeParam)-9.8}};
 	Vector4Type result;
 
 	dsVector4_lerp(result, a, b, (TypeParam)0.3);
-	EXPECT_EQ(dsLerp(a.x, b.x, (TypeParam)0.3), result.x);
-	EXPECT_EQ(dsLerp(a.y, b.y, (TypeParam)0.3), result.y);
-	EXPECT_EQ(dsLerp(a.z, b.z, (TypeParam)0.3), result.z);
-	EXPECT_EQ(dsLerp(a.w, b.w, (TypeParam)0.3), result.w);
+	EXPECT_NEAR(dsLerp(a.x, b.x, (TypeParam)0.3), result.x, epsilon);
+	EXPECT_NEAR(dsLerp(a.y, b.y, (TypeParam)0.3), result.y, epsilon);
+	EXPECT_NEAR(dsLerp(a.z, b.z, (TypeParam)0.3), result.z, epsilon);
+	EXPECT_NEAR(dsLerp(a.w, b.w, (TypeParam)0.3), result.w, epsilon);
 }
 
 TEST(Vector4fTest, Lerp)

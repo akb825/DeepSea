@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,12 +30,14 @@ template <>
 struct Vector2TypeSelector<float>
 {
 	typedef dsVector2f Type;
+	static const float epsilon;
 };
 
 template <>
 struct Vector2TypeSelector<double>
 {
 	typedef dsVector2d Type;
+	static const double epsilon;
 };
 
 template <>
@@ -49,6 +51,9 @@ struct Vector2TypeSelector<long long>
 {
 	typedef dsVector2l Type;
 };
+
+const float Vector2TypeSelector<float>::epsilon = 1e-6f;
+const double Vector2TypeSelector<double>::epsilon = 1e-14f;
 
 template <typename T>
 class Vector2Test : public testing::Test
@@ -296,14 +301,15 @@ TEST(Vector2IntTest, Lerp)
 TYPED_TEST(Vector2FloatTest, Lerp)
 {
 	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
+	TypeParam epsilon = Vector2TypeSelector<TypeParam>::epsilon;
 
 	Vector2Type a = {{(TypeParam)-2.3, (TypeParam)4.5}};
 	Vector2Type b = {{(TypeParam)3.2, (TypeParam)-5.4}};
 	Vector2Type result;
 
 	dsVector2_lerp(result, a, b, (TypeParam)0.3);
-	EXPECT_EQ(dsLerp(a.x, b.x, (TypeParam)0.3), result.x);
-	EXPECT_EQ(dsLerp(a.y, b.y, (TypeParam)0.3), result.y);
+	EXPECT_NEAR(dsLerp(a.x, b.x, (TypeParam)0.3), result.x, epsilon);
+	EXPECT_NEAR(dsLerp(a.y, b.y, (TypeParam)0.3), result.y, epsilon);
 }
 
 TYPED_TEST(Vector2FloatTest, Normalize)

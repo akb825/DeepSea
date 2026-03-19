@@ -717,7 +717,7 @@ DS_MATH_EXPORT inline double dsVector4d_dist2(const dsVector4d* a, const dsVecto
 	temp.simd2[1] = dsSIMD2d_mul(temp.simd2[1], temp.simd2[1]);
 	return temp.x + temp.y + temp.z + temp.w;
 #else
-	return dsVector4_dot(*a, *b);
+	return dsVector4_dist2(*a, *b);
 #endif
 }
 

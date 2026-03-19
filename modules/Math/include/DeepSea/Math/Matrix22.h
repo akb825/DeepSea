@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -337,7 +337,7 @@ DS_MATH_EXPORT inline void dsMatrix22d_transformTransposed(dsVector2d* result,
 	result->simd = dsSIMD2d_add(dsSIMD2d_mul(col0, x), dsSIMD2d_mul(col1, y));
 #endif
 #else
-	dsMatrix22_transform(*result, *mat, *vec);
+	dsMatrix22_transformTransposed(*result, *mat, *vec);
 #endif
 }
 

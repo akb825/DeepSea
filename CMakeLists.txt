@@ -71,6 +71,13 @@ set(DEEPSEA_ANDROID_ASSETS_DIR src/main/assets CACHE PATH
 	"Folder relative to project app directory to place assets for Android.")
 set(DEEPSEA_NO_PREBUILT_LIBS OFF CACHE BOOL "Don't use any pre-built library dependencies.")
 
+if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+	set(defaultX86ArchLevel 3)
+else()
+	set(defaultX86ArchLevel 1)
+endif()
+set(DEEPSEA_X86_ARCH_LEVEL ${defaultX86ArchLevel} CACHE STRING "The x86-64 architecture level.")
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 if (DEEPSEA_SHARED)
