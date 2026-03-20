@@ -85,6 +85,7 @@ static void getFramebufferInfo(dsVector4i* outFramebufferSize, dsVector4f* outFr
 }
 
 #if DS_HAS_SIMD
+
 DS_SIMD_START(DS_SIMD_FLOAT4)
 static void dsParticleTransformData_populateDataSIMD(void* userData, const dsView* view,
 	const dsViewRenderPassParams* renderPassParams, const dsSceneTreeNode* const* instances,
@@ -127,6 +128,7 @@ static void dsParticleTransformData_populateDataSIMD(void* userData, const dsVie
 }
 DS_SIMD_END()
 
+#if !DS_DETERMINISTIC_MATH
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 static void dsParticleTransformData_populateDataFMA(void* userData, const dsView* view,
 	const dsViewRenderPassParams* renderPassParams, const dsSceneTreeNode* const* instances,
@@ -168,7 +170,9 @@ static void dsParticleTransformData_populateDataFMA(void* userData, const dsView
 	DS_PROFILE_FUNC_RETURN_VOID();
 }
 DS_SIMD_END()
-#endif
+#endif // !DS_DETERMINISTIC_MATH
+
+#endif // DS_HAS_SIMD
 
 static void dsParticleTransformData_populateData(void* userData, const dsView* view,
 	const dsViewRenderPassParams* renderPassParams, const dsSceneTreeNode* const* instances,
@@ -223,16 +227,31 @@ static dsSceneInstanceVariablesType instanceVariablesTypeSIMD =
 	&dsParticleTransformData_populateDataSIMD
 };
 
+#if !DS_DETERMINISTIC_MATH
 static dsSceneInstanceVariablesType instanceVariablesTypeFMA =
 {
 	&dsParticleTransformData_populateDataFMA
 };
-#endif
+#endif // !DS_DETERMINISTIC_MATH
+#endif // DS_HAS_SIMD
 
 static dsSceneInstanceVariablesType instanceVariablesType =
 {
 	&dsParticleTransformData_populateData
 };
+
+inline static const dsSceneInstanceVariablesType* optimalInstanceVariablesType(void)
+{
+#if DS_HAS_SIMD
+#if !DS_DETERMINISTIC_MATH
+	if (DS_SIMD_ALWAYS_FMA || (dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+		return &instanceVariablesTypeFMA;
+#endif
+	if (DS_SIMD_ALWAYS_FLOAT4 || (dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		return &instanceVariablesTypeSIMD;
+#endif // DS_HAS_SIMD
+	return &instanceVariablesType;
+}
 
 const char* const dsParticleTransformData_typeName = "ParticleTransformData";
 const char* const dsParticleTransformData_uniformName = "dsParticleTransformData";
@@ -277,15 +296,7 @@ dsSceneInstanceData* dsParticleTransformData_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	const dsSceneInstanceVariablesType* type;
-#if DS_HAS_SIMD
-	if (DS_SIMD_ALWAYS_FMA || (dsHostSIMDFeatures & dsSIMDFeatures_FMA))
-		type = &instanceVariablesTypeFMA;
-	else if (DS_SIMD_ALWAYS_FLOAT4 || (dsHostSIMDFeatures & dsSIMDFeatures_Float4))
-		type = &instanceVariablesTypeSIMD;
-	else
-#endif
-		type = &instanceVariablesType;
 	return dsSceneInstanceVariables_create(allocator, resourceManager,resourceAllocator,
-		transformDesc, dsUniqueNameID_create(dsParticleTransformData_uniformName), type, NULL);
+		transformDesc, dsUniqueNameID_create(dsParticleTransformData_uniformName),
+		optimalInstanceVariablesType(), NULL);
 }

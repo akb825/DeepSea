@@ -82,6 +82,7 @@ static void dummyTransformData(uint32_t instanceCount, uint8_t* data, uint32_t s
 }
 
 #if DS_HAS_SIMD
+
 DS_SIMD_START(DS_SIMD_FLOAT4)
 static void dsShadowInstanceTransformData_populateDataSIMD(void* userData, const dsView* view,
 	const dsViewRenderPassParams* renderPassParams, const dsSceneTreeNode* const* instances,
@@ -126,6 +127,7 @@ static void dsShadowInstanceTransformData_populateDataSIMD(void* userData, const
 }
 DS_SIMD_END()
 
+#if !DS_DETERMINISTIC_MATH
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 static void dsShadowInstanceTransformData_populateDataFMA(void* userData, const dsView* view,
 	const dsViewRenderPassParams* renderPassParams, const dsSceneTreeNode* const* instances,
@@ -169,7 +171,9 @@ static void dsShadowInstanceTransformData_populateDataFMA(void* userData, const 
 	DS_PROFILE_FUNC_RETURN_VOID();
 }
 DS_SIMD_END()
-#endif
+#endif // !DS_DETERMINISTIC_MATH
+
+#endif // DS_HAS_SIMD
 
 static void dsShadowInstanceTransformData_populateData(void* userData, const dsView* view,
 	const dsViewRenderPassParams* renderPassParams, const dsSceneTreeNode* const* instances,
@@ -249,6 +253,7 @@ static dsSceneInstanceVariablesType instanceVariablesTypeSIMD =
 	&ShadowUserData_destroy
 };
 
+#if !DS_DETERMINISTIC_MATH
 static dsSceneInstanceVariablesType instanceVariablesTypeFMA =
 {
 	&dsShadowInstanceTransformData_populateDataFMA,
@@ -256,7 +261,8 @@ static dsSceneInstanceVariablesType instanceVariablesTypeFMA =
 	&dsShadowInstanceTransformData_equal,
 	&ShadowUserData_destroy
 };
-#endif
+#endif // !DS_DETERMINISTIC_MATH
+#endif // DS_HAS_SIMD
 
 static dsSceneInstanceVariablesType instanceVariablesType =
 {
@@ -265,6 +271,19 @@ static dsSceneInstanceVariablesType instanceVariablesType =
 	&dsShadowInstanceTransformData_equal,
 	&ShadowUserData_destroy
 };
+
+inline static const dsSceneInstanceVariablesType* optimalInstanceVariablesType(void)
+{
+#if DS_HAS_SIMD
+#if !DS_DETERMINISTIC_MATH
+	if (DS_SIMD_ALWAYS_FMA || (dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+		return &instanceVariablesTypeFMA;
+#endif
+	if (DS_SIMD_ALWAYS_FLOAT4 || (dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		return &instanceVariablesTypeSIMD;
+#endif // DS_HAS_SIMD
+	return &instanceVariablesType;
+}
 
 const char* const dsShadowInstanceTransformData_typeName = "ShadowInstanceTransformData";
 const char* const dsShadowInstanceTransformData_uniformName = "dsShadowInstanceTransformData";
@@ -310,16 +329,6 @@ dsSceneInstanceData* dsShadowInstanceTransformData_create(dsAllocator* allocator
 		return NULL;
 	}
 
-	const dsSceneInstanceVariablesType* type;
-#if DS_HAS_SIMD
-	if (DS_SIMD_ALWAYS_FMA || (dsHostSIMDFeatures & dsSIMDFeatures_FMA))
-		type = &instanceVariablesTypeFMA;
-	else if (DS_SIMD_ALWAYS_FLOAT4 || (dsHostSIMDFeatures & dsSIMDFeatures_Float4))
-		type = &instanceVariablesTypeSIMD;
-	else
-#endif
-		type = &instanceVariablesType;
-
 	ShadowUserData* userData = DS_ALLOCATE_OBJECT(allocator, ShadowUserData);
 	if (!userData)
 		return NULL;
@@ -328,6 +337,6 @@ dsSceneInstanceData* dsShadowInstanceTransformData_create(dsAllocator* allocator
 	userData->shadows = shadows;
 	userData->surface = surface;
 	return dsSceneInstanceVariables_create(allocator, resourceManager, resourceAllocator,
-		transformDesc, dsUniqueNameID_create(dsShadowInstanceTransformData_uniformName), type,
-		userData);
+		transformDesc, dsUniqueNameID_create(dsShadowInstanceTransformData_uniformName),
+		optimalInstanceVariablesType(), userData);
 }

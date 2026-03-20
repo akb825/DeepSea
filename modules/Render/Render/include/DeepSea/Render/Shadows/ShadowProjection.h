@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,10 +77,11 @@ DS_RENDER_EXPORT bool dsShadowProjection_reset(dsShadowProjection* shadowProj);
  * @param pointCount The number of points.
  * @return False if the parameters are invalid.
  */
-DS_RENDER_EXPORT bool dsShadowProjection_addPoints(dsShadowProjection* shadowProj,
-	const dsVector3f* points, uint32_t pointCount);
+DS_RENDER_EXPORT bool dsShadowProjection_addPoints(
+	dsShadowProjection* shadowProj, const dsVector3f* points, uint32_t pointCount);
 
 #if DS_HAS_SIMD
+
 /**
  * @brief Adds points to the shadow projection using SIMD operations.
  *
@@ -92,8 +93,10 @@ DS_RENDER_EXPORT bool dsShadowProjection_addPoints(dsShadowProjection* shadowPro
  * @param pointCount The number of points.
  * @return False if the parameters are invalid.
  */
-DS_RENDER_EXPORT void dsShadowProjection_addPointsSIMD(dsShadowProjection* shadowProj,
-	const dsVector4f* points, uint32_t pointCount);
+DS_RENDER_EXPORT void dsShadowProjection_addPointsSIMD(
+	dsShadowProjection* shadowProj, const dsVector4f* points, uint32_t pointCount);
+
+#if !DS_DETERMINISTIC_MATH
 
 /**
  * @brief Adds points to the shadow projection using fused multiply-add operations.
@@ -106,9 +109,11 @@ DS_RENDER_EXPORT void dsShadowProjection_addPointsSIMD(dsShadowProjection* shado
  * @param pointCount The number of points.
  * @return False if the parameters are invalid.
  */
-DS_RENDER_EXPORT void dsShadowProjection_addPointsFMA(dsShadowProjection* shadowProj,
-	const dsVector4f* points, uint32_t pointCount);
-#endif
+DS_RENDER_EXPORT void dsShadowProjection_addPointsFMA(
+	dsShadowProjection* shadowProj, const dsVector4f* points, uint32_t pointCount);
+
+#endif // !DS_DETERMINISTIC_MATH
+#endif // DS_HAS_SIMD
 
 /**
  * @brief Computes the projection matrix for a shadow projection.

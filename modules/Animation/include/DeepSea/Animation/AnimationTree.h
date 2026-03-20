@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,8 +44,8 @@ extern "C"
  *     nodes.
  * @return The animation tree or NULL if an error occurred.
  */
-DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_create(dsAllocator* allocator,
-	const dsAnimationBuildNode* const* rootNodes, uint32_t rootNodeCount);
+DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_create(
+	dsAllocator* allocator, const dsAnimationBuildNode* const* rootNodes, uint32_t rootNodeCount);
 
 /**
  * @brief Creates an animation tree of joints.
@@ -55,8 +55,8 @@ DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_create(dsAllocator* allocat
  * @param nodeCount The number of nodes. It is not valid to have an animation tree with no nodes.
  * @return The animation tree or NULL if an error occurred.
  */
-DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_createJoints(dsAllocator* allocator,
-	const dsAnimationJointBuildNode* nodes, uint32_t nodeCount);
+DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_createJoints(
+	dsAllocator* allocator, const dsAnimationJointBuildNode* nodes, uint32_t nodeCount);
 
 /**
  * @brief Loads an animation tree from a file.
@@ -67,8 +67,8 @@ DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_createJoints(dsAllocator* a
  * @param filePath The file path for the animation tree to load.
  * @return The loaded animation tree or NULL if it couldn't be loaded.
  */
-DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_loadFile(dsAllocator* allocator,
-	dsAllocator* scratchAllocator, const char* filePath);
+DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_loadFile(
+	dsAllocator* allocator, dsAllocator* scratchAllocator, const char* filePath);
 
 /**
  * @brief Loads an animation tree from a resource file.
@@ -106,8 +106,8 @@ DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_loadArchive(dsAllocator* al
  *     current position until the end.
  * @return The loaded animation tree or NULL if it couldn't be loaded.
  */
-DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_loadStream(dsAllocator* allocator,
-	dsAllocator* scratchAllocator, dsStream* stream);
+DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_loadStream(
+	dsAllocator* allocator, dsAllocator* scratchAllocator, dsStream* stream);
 
 /**
  * @brief Loads an animation tree from a data buffer.
@@ -119,8 +119,8 @@ DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_loadStream(dsAllocator* all
  * @param size The size of the data buffer.
  * @return The loaded animation tree or NULL if it couldn't be loaded.
  */
-DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_loadData(dsAllocator* allocator,
-	dsAllocator* scratchAllocator, const void* data, size_t size);
+DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_loadData(
+	dsAllocator* allocator, dsAllocator* scratchAllocator, const void* data, size_t size);
 
 /**
  * @brief Clones an animation tree.
@@ -133,8 +133,8 @@ DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_loadData(dsAllocator* alloc
  * @param tree The animation tree.
  * @return The cloned animation tree or NULL if an error occurred.
  */
-DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_clone(dsAllocator* allocator,
-	const dsAnimationTree* tree);
+DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_clone(
+	dsAllocator* allocator, const dsAnimationTree* tree);
 
 /**
  * @brief Finds an animation node by name.
@@ -143,8 +143,8 @@ DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_clone(dsAllocator* allocato
  * @param name The name of the node.
  * @return The found node or NULL if not found.
  */
-DS_ANIMATION_EXPORT const dsAnimationNode* dsAnimationTree_findNodeName(const dsAnimationTree* tree,
-	const char* name);
+DS_ANIMATION_EXPORT const dsAnimationNode* dsAnimationTree_findNodeName(
+	const dsAnimationTree* tree, const char* name);
 
 /**
  * @brief Finds an animation node by name ID.
@@ -153,8 +153,8 @@ DS_ANIMATION_EXPORT const dsAnimationNode* dsAnimationTree_findNodeName(const ds
  * @param nameID The hash of the name of the node.
  * @return The found node or NULL if not found.
  */
-DS_ANIMATION_EXPORT const dsAnimationNode* dsAnimationTree_findNodeID(const dsAnimationTree* tree,
-	uint32_t nameID);
+DS_ANIMATION_EXPORT const dsAnimationNode* dsAnimationTree_findNodeID(
+	const dsAnimationTree* tree, uint32_t nameID);
 
 /**
  * @brief Finds an animation node index by name.
@@ -163,8 +163,8 @@ DS_ANIMATION_EXPORT const dsAnimationNode* dsAnimationTree_findNodeID(const dsAn
  * @param name The name of the node.
  * @return The found node index or DS_NO_ANIMATION_NODE if not found.
  */
-DS_ANIMATION_EXPORT uint32_t dsAnimationTree_findNodeIndexName(const dsAnimationTree* tree,
-	const char* name);
+DS_ANIMATION_EXPORT uint32_t dsAnimationTree_findNodeIndexName(
+	const dsAnimationTree* tree, const char* name);
 
 /**
  * @brief Finds an animation node index by name ID.
@@ -173,8 +173,8 @@ DS_ANIMATION_EXPORT uint32_t dsAnimationTree_findNodeIndexName(const dsAnimation
  * @param nameID The hash of the name of the node.
  * @return The found node index or DS_NO_ANIMATION_NODE if not found.
  */
-DS_ANIMATION_EXPORT uint32_t dsAnimationTree_findNodeIndexID(const dsAnimationTree* tree,
-	uint32_t nameID);
+DS_ANIMATION_EXPORT uint32_t dsAnimationTree_findNodeIndexID(
+	const dsAnimationTree* tree, uint32_t nameID);
 
 /**
  * @brief Updates the transforms for an animation tree.

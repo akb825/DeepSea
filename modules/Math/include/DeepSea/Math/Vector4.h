@@ -538,25 +538,25 @@ DS_MATH_EXPORT inline void dsVector4l_neg(dsVector4l* result, const dsVector4l* 
 }
 
 /** @copydoc dsVector4_lerp() */
-DS_MATH_EXPORT inline void dsVector4f_lerp(dsVector4f* result, const dsVector4f* a,
-	const dsVector4f* b, float t)
+DS_MATH_EXPORT inline void dsVector4f_lerp(
+	dsVector4f* result, const dsVector4f* a, const dsVector4f* b, float t)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(b);
 #if DS_SIMD_ALWAYS_FMA
-	result->simd = dsSIMD4f_fmadd(dsSIMD4f_sub(b->simd, a->simd), dsSIMD4f_set1(t), a->simd);
+	result->simd = dsSIMD4f_fmadd(dsSIMD4f_set1(t), dsSIMD4f_sub(b->simd, a->simd), a->simd);
 #elif DS_SIMD_ALWAYS_FLOAT4
 	result->simd = dsSIMD4f_add(a->simd,
-		dsSIMD4f_mul(dsSIMD4f_sub(b->simd, a->simd), dsSIMD4f_set1(t)));
+		dsSIMD4f_mul(dsSIMD4f_set1(t), dsSIMD4f_sub(b->simd, a->simd)));
 #else
 	dsVector4_lerp(*result, *a, *b, t);
 #endif
 }
 
 /** @copydoc dsVector4_lerp() */
-DS_MATH_EXPORT inline void dsVector4d_lerp(dsVector4d* result, const dsVector4d* a,
-	const dsVector4d* b, double t)
+DS_MATH_EXPORT inline void dsVector4d_lerp(
+	dsVector4d* result, const dsVector4d* a, const dsVector4d* b, double t)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -564,13 +564,13 @@ DS_MATH_EXPORT inline void dsVector4d_lerp(dsVector4d* result, const dsVector4d*
 #if DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2d t2 = dsSIMD2d_set1(t);
 #if DS_SIMD_ALWAYS_FMA
-	result->simd2[0] = dsSIMD2d_fmadd(dsSIMD2d_sub(b->simd2[0], a->simd2[0]), t2, a->simd2[0]);
-	result->simd2[1] = dsSIMD2d_fmadd(dsSIMD2d_sub(b->simd2[1], a->simd2[1]), t2, a->simd2[1]);
+	result->simd2[0] = dsSIMD2d_fmadd(t2, dsSIMD2d_sub(b->simd2[0], a->simd2[0]), a->simd2[0]);
+	result->simd2[1] = dsSIMD2d_fmadd(t2, dsSIMD2d_sub(b->simd2[1], a->simd2[1]), a->simd2[1]);
 #else
 	result->simd2[0] = dsSIMD2d_add(a->simd2[0],
-		dsSIMD2d_mul(dsSIMD2d_sub(b->simd2[0], a->simd2[0]), t2));
+		dsSIMD2d_mul(t2, dsSIMD2d_sub(b->simd2[0], a->simd2[0])));
 	result->simd2[1] = dsSIMD2d_add(a->simd2[1],
-		dsSIMD2d_mul(dsSIMD2d_sub(b->simd2[1], a->simd2[1]), t2));
+		dsSIMD2d_mul(t2, dsSIMD2d_sub(b->simd2[1], a->simd2[1])));
 #endif
 #else
 	dsVector4_lerp(*result, *a, *b, t);
@@ -578,8 +578,8 @@ DS_MATH_EXPORT inline void dsVector4d_lerp(dsVector4d* result, const dsVector4d*
 }
 
 /** @copydoc dsVector4_lerp() */
-DS_MATH_EXPORT inline void dsVector4i_lerp(dsVector4i* result, const dsVector4i* a,
-	const dsVector4i* b, float t)
+DS_MATH_EXPORT inline void dsVector4i_lerp(
+	dsVector4i* result, const dsVector4i* a, const dsVector4i* b, float t)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -591,8 +591,8 @@ DS_MATH_EXPORT inline void dsVector4i_lerp(dsVector4i* result, const dsVector4i*
 }
 
 /** @copydoc dsVector4_lerp() */
-DS_MATH_EXPORT inline void dsVector4l_lerp(dsVector4l* result, const dsVector4l* a,
-	const dsVector4l* b, double t)
+DS_MATH_EXPORT inline void dsVector4l_lerp(
+	dsVector4l* result, const dsVector4l* a, const dsVector4l* b, double t)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);

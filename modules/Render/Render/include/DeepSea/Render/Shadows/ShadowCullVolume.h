@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,8 +47,8 @@ extern "C"
  * @param toLight The direction to the light.
  * @return False if the parameters are invalid.
  */
-DS_RENDER_EXPORT bool dsShadowCullVolume_buildDirectional(dsShadowCullVolume* volume,
-	const dsFrustum3f* viewFrustum, const dsVector3f* toLight);
+DS_RENDER_EXPORT bool dsShadowCullVolume_buildDirectional(
+	dsShadowCullVolume* volume, const dsFrustum3f* viewFrustum, const dsVector3f* toLight);
 
 /**
  * @brief Builds a shadow cull volume for a spot light.
@@ -64,8 +64,8 @@ DS_RENDER_EXPORT bool dsShadowCullVolume_buildDirectional(dsShadowCullVolume* vo
  *     the light starts at a point, This frustum should be normalized.
  * @return False if the parameters are invalid.
  */
-DS_RENDER_EXPORT bool dsShadowCullVolume_buildSpot(dsShadowCullVolume* volume,
-	const dsFrustum3f* viewFrustum, const dsFrustum3f* lightFrustum);
+DS_RENDER_EXPORT bool dsShadowCullVolume_buildSpot(
+	dsShadowCullVolume* volume, const dsFrustum3f* viewFrustum, const dsFrustum3f* lightFrustum);
 
 /**
  * @brief Intersects an aligned box with a shadow cull volume.
@@ -84,7 +84,60 @@ DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectAlignedBox(
 	const dsShadowCullVolume* volume, const dsAlignedBox3f* box, dsShadowProjection* shadowProj,
 	bool clampToVolume);
 
+/**
+ * @brief Intersects an oriented box with a shadow cull volume.
+ * @param volume The cull volume to intersect.
+ * @param box The oriented box to intersect with.
+ * @param shadowProj Optional shadow projection to add the results to. If not NULL, and the box
+ *     intersects with the volume, the corners will be clamped to the volume and added to the
+ *     projection.
+ * @param clampToVolume Whether or not to clamp the bounds to the cull volume when adding points to
+ *     the shadow projection. This can be error prone in some situations, so it's only recommended
+ *     for larger bounds that could expand the shadow projection too much.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectOrientedBox(
+	const dsShadowCullVolume* volume, const dsOrientedBox3f* box, dsShadowProjection* shadowProj,
+	bool clampToVolume);
+
+/**
+ * @brief Intersects a box in matrix form with a shadow cull volume.
+ * @param volume The cull volume to intersect.
+ * @param boxMatrix The oriented box to intersect with.
+ * @param shadowProj Optional shadow projection to add the results to. If not NULL, and the box
+ *     intersects with the volume, the corners will be clamped to the volume and added to the
+ *     projection.
+ * @param clampToVolume Whether or not to clamp the bounds to the cull volume when adding points to
+ *     the shadow projection. This can be error prone in some situations, so it's only recommended
+ *     for larger bounds that could expand the shadow projection too much.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectBoxMatrix(
+	const dsShadowCullVolume* volume, const dsMatrix44f* boxMatrix, dsShadowProjection* shadowProj,
+	bool clampToVolume);
+
+/**
+ * @brief Intersects a sphere a shadow cull volume.
+ * @param volume The cull volume to intersect.
+ * @param center The center of the sphere.
+ * @param radius The radius of the sphere.
+ * @param shadowProj Optional shadow projection to add the results to. If not NULL, and the sphere
+ *     intersects with the volume, the corners of a box fitting the sphere will be clamped to the
+ *     volume and added to the projection.
+ * @param clampToVolume Whether or not to clamp the bounds to the cull volume when adding points to
+ *     the shadow projection. This can be error prone in some situations, so it's only recommended
+ *     for larger bounds that could expand the shadow projection too much.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the sphere
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectSphere(
+	const dsShadowCullVolume* volume, const dsVector3f* center, float radius,
+	dsShadowProjection* shadowProj, bool clampToVolume);
+
 #if DS_HAS_SIMD
+
 /**
  * @brief Intersects an aligned box with a shadow cull volume using SIMD operations.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
@@ -104,43 +157,6 @@ DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectAlignedBoxSIMD(
 	bool clampToVolume);
 
 /**
- * @brief Intersects an aligned box with a shadow cull volume using fused multiply-add operations.
- * @remark This can be used when dsSIMDFeatures_FMA is available.
- * @param volume The cull volume to intersect.
- * @param box The aligned box to intersect with.
- * @param shadowProj Optional shadow projection to add the results to. If not NULL, and the box
- *     intersects with the volume, the corners will be clamped to the volume and added to the
- *     projection.
- * @param clampToVolume Whether or not to clamp the bounds to the cull volume when adding points to
- *     the shadow projection. This can be error prone in some situations, so it's only recommended
- *     for larger bounds that could expand the shadow projection too much.
- * @return The intersection result. Inside and outside is with respect to the volume. If the box
- *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
- */
-DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectAlignedBoxFMA(
-	const dsShadowCullVolume* volume, const dsAlignedBox3f* box, dsShadowProjection* shadowProj,
-	bool clampToVolume);
-#endif
-
-/**
- * @brief Intersects an oriented box with a shadow cull volume.
- * @param volume The cull volume to intersect.
- * @param box The oriented box to intersect with.
- * @param shadowProj Optional shadow projection to add the results to. If not NULL, and the box
- *     intersects with the volume, the corners will be clamped to the volume and added to the
- *     projection.
- * @param clampToVolume Whether or not to clamp the bounds to the cull volume when adding points to
- *     the shadow projection. This can be error prone in some situations, so it's only recommended
- *     for larger bounds that could expand the shadow projection too much.
- * @return The intersection result. Inside and outside is with respect to the volume. If the box
- *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
- */
-DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectOrientedBox(
-	const dsShadowCullVolume* volume, const dsOrientedBox3f* box, dsShadowProjection* shadowProj,
-	bool clampToVolume);
-
-#if DS_HAS_SIMD
-/**
  * @brief Intersects an oriented box with a shadow cull volume using SIMD operations.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param volume The cull volume to intersect.
@@ -156,6 +172,44 @@ DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectOrientedBox(
  */
 DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectOrientedBoxSIMD(
 	const dsShadowCullVolume* volume, const dsOrientedBox3f* box, dsShadowProjection* shadowProj,
+	bool clampToVolume);
+
+/**
+ * @brief Intersects a box in matrix form with a shadow cull volume using SIMD operations.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param volume The cull volume to intersect.
+ * @param boxMatrix The oriented box to intersect with.
+ * @param shadowProj Optional shadow projection to add the results to. If not NULL, and the box
+ *     intersects with the volume, the corners will be clamped to the volume and added to the
+ *     projection.
+ * @param clampToVolume Whether or not to clamp the bounds to the cull volume when adding points to
+ *     the shadow projection. This can be error prone in some situations, so it's only recommended
+ *     for larger bounds that could expand the shadow projection too much.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectBoxMatrixSIMD(
+	const dsShadowCullVolume* volume, const dsMatrix44f* boxMatrix, dsShadowProjection* shadowProj,
+	bool clampToVolume);
+
+#if !DS_DETERMINISTIC_MATH
+
+/**
+ * @brief Intersects an aligned box with a shadow cull volume using fused multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_FMA is available.
+ * @param volume The cull volume to intersect.
+ * @param box The aligned box to intersect with.
+ * @param shadowProj Optional shadow projection to add the results to. If not NULL, and the box
+ *     intersects with the volume, the corners will be clamped to the volume and added to the
+ *     projection.
+ * @param clampToVolume Whether or not to clamp the bounds to the cull volume when adding points to
+ *     the shadow projection. This can be error prone in some situations, so it's only recommended
+ *     for larger bounds that could expand the shadow projection too much.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectAlignedBoxFMA(
+	const dsShadowCullVolume* volume, const dsAlignedBox3f* box, dsShadowProjection* shadowProj,
 	bool clampToVolume);
 
 /**
@@ -175,43 +229,6 @@ DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectOrientedBoxSIMD(
 DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectOrientedBoxFMA(
 	const dsShadowCullVolume* volume, const dsOrientedBox3f* box, dsShadowProjection* shadowProj,
 	bool clampToVolume);
-#endif
-
-/**
- * @brief Intersects a box in matrix form with a shadow cull volume.
- * @param volume The cull volume to intersect.
- * @param boxMatrix The oriented box to intersect with.
- * @param shadowProj Optional shadow projection to add the results to. If not NULL, and the box
- *     intersects with the volume, the corners will be clamped to the volume and added to the
- *     projection.
- * @param clampToVolume Whether or not to clamp the bounds to the cull volume when adding points to
- *     the shadow projection. This can be error prone in some situations, so it's only recommended
- *     for larger bounds that could expand the shadow projection too much.
- * @return The intersection result. Inside and outside is with respect to the volume. If the box
- *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
- */
-DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectBoxMatrix(
-	const dsShadowCullVolume* volume, const dsMatrix44f* boxMatrix, dsShadowProjection* shadowProj,
-	bool clampToVolume);
-
-#if DS_HAS_SIMD
-/**
- * @brief Intersects a box in matrix form with a shadow cull volume using SIMD operations.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param volume The cull volume to intersect.
- * @param boxMatrix The oriented box to intersect with.
- * @param shadowProj Optional shadow projection to add the results to. If not NULL, and the box
- *     intersects with the volume, the corners will be clamped to the volume and added to the
- *     projection.
- * @param clampToVolume Whether or not to clamp the bounds to the cull volume when adding points to
- *     the shadow projection. This can be error prone in some situations, so it's only recommended
- *     for larger bounds that could expand the shadow projection too much.
- * @return The intersection result. Inside and outside is with respect to the volume. If the box
- *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
- */
-DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectBoxMatrixSIMD(
-	const dsShadowCullVolume* volume, const dsMatrix44f* boxMatrix, dsShadowProjection* shadowProj,
-	bool clampToVolume);
 
 /**
  * @brief Intersects a box in matrix form with a shadow cull volume using FMA operations.
@@ -230,25 +247,9 @@ DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectBoxMatrixSIMD(
 DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectBoxMatrixFMA(
 	const dsShadowCullVolume* volume, const dsMatrix44f* boxMatrix, dsShadowProjection* shadowProj,
 	bool clampToVolume);
-#endif
 
-/**
- * @brief Intersects a sphere a shadow cull volume.
- * @param volume The cull volume to intersect.
- * @param center The center of the sphere.
- * @param radius The radius of the sphere.
- * @param shadowProj Optional shadow projection to add the results to. If not NULL, and the sphere
- *     intersects with the volume, the corners of a box fitting the sphere will be clamped to the
- *     volume and added to the projection.
- * @param clampToVolume Whether or not to clamp the bounds to the cull volume when adding points to
- *     the shadow projection. This can be error prone in some situations, so it's only recommended
- *     for larger bounds that could expand the shadow projection too much.
- * @return The intersection result. Inside and outside is with respect to the volume. If the sphere
- *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
- */
-DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectSphere(
-	const dsShadowCullVolume* volume, const dsVector3f* center, float radius,
-	dsShadowProjection* shadowProj, bool clampToVolume);
+#endif // DS_DETERMINISTIC_MATH
+#endif // DS_HAS_SIMD
 
 #ifdef __cplusplus
 }

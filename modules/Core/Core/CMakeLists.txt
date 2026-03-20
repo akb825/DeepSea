@@ -31,6 +31,12 @@ else()
 	ds_target_compile_definitions(deepsea_core PUBLIC DS_ZIP_ARCHIVE_ENABLED=0)
 endif()
 
+if (DEEPSEA_DETERMINISTIC_MATH)
+	ds_target_compile_definitions(deepsea_core PUBLIC DS_DETERMINISTIC_MATH=1)
+else()
+	ds_target_compile_definitions(deepsea_core PUBLIC DS_DETERMINISTIC_MATH=0)
+endif()
+
 if (ANDROID)
 	ds_target_link_libraries(deepsea_core PRIVATE android log)
 endif()

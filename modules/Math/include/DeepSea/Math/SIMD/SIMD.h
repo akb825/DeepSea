@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -149,10 +149,13 @@ extern "C"
  * - DS_X86_64: Float4 and Double2 will be guaranteed at compile time, though more may be explicitly
  *   enabled through compiler flags. (e.g. with -march) All other features may be available on the
  *   host CPU and can be queried at runtime.
- * - DS_ARM_32: All features except for Double2 and Double4 are guaranteed to be available at compile
- *   time. No additional features will be detected at runtime.
+ * - DS_ARM_32: All features except for Double2 and Double4 are guaranteed to be available at
+ *   compile time. No additional features will be detected at runtime.
  * - DS_ARM_64: All features except for Double4 are guaranteed to be available at compile time. No
  *   additional features will be detected at runtime.
+ *
+ * If DS_DETERMINISTIC_MATH is 1, FMA will always be disabled. DS_SIMD_ALWAYS_FMA will be set to 0,
+ * the dsSIMDFeatures_FMA bit will never be set, and functions will not be defined.
  */
 typedef enum dsSIMDFeatures
 {

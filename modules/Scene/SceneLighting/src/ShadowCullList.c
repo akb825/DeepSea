@@ -179,11 +179,13 @@ static void lazyRemoveEntries(dsShadowCullList* cullList)
 }
 
 #if DS_HAS_SIMD
+
 DS_SIMD_START(DS_SIMD_FLOAT4)
 static void dsShadowCullList_commitSIMD(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer, const dsViewRenderPassParams* renderPassParams)
 {
 	DS_ASSERT(itemList);
+	DS_UNUSED(view);
 	DS_UNUSED(commandBuffer);
 	DS_UNUSED(renderPassParams);
 	dsShadowCullList* cullList = (dsShadowCullList*)itemList;
@@ -235,11 +237,13 @@ static void dsShadowCullList_commitSIMD(dsSceneItemList* itemList, const dsView*
 }
 DS_SIMD_END()
 
+#if !DS_DETERMINISTIC_MATH
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 static void dsShadowCullList_commitFMA(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer, const dsViewRenderPassParams* renderPassParams)
 {
 	DS_ASSERT(itemList);
+	DS_UNUSED(view);
 	DS_UNUSED(commandBuffer);
 	DS_UNUSED(renderPassParams);
 	dsShadowCullList* cullList = (dsShadowCullList*)itemList;
@@ -290,12 +294,15 @@ static void dsShadowCullList_commitFMA(dsSceneItemList* itemList, const dsView* 
 	}
 }
 DS_SIMD_END()
-#endif
+#endif // !DS_DETERMINISTIC_MATH
+
+#endif // DS_HAS_SIMD
 
 static void dsShadowCullList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer, const dsViewRenderPassParams* renderPassParams)
 {
 	DS_ASSERT(itemList);
+	DS_UNUSED(view);
 	DS_UNUSED(commandBuffer);
 	DS_UNUSED(renderPassParams);
 	dsShadowCullList* cullList = (dsShadowCullList*)itemList;
@@ -391,6 +398,7 @@ static dsSceneItemListType itemListTypeSIMD =
 	.destroyFunc = &dsShadowCullList_destroy
 };
 
+#if !DS_DETERMINISTIC_MATH
 static dsSceneItemListType itemListTypeFMA =
 {
 	.addNodeFunc = &dsShadowCullList_addNode,
@@ -400,7 +408,8 @@ static dsSceneItemListType itemListTypeFMA =
 	.equalFunc = &dsShadowCullList_equal,
 	.destroyFunc = &dsShadowCullList_destroy
 };
-#endif
+#endif // !DS_DETERMINISTIC_MATH
+#endif // DS_HAS_SIMD
 
 static dsSceneItemListType itemListType =
 {
@@ -415,13 +424,14 @@ static dsSceneItemListType itemListType =
 const dsSceneItemListType* dsShadowCullList_type(void)
 {
 #if DS_HAS_SIMD
+#if !DS_DETERMINISTIC_MATH
 	if (DS_SIMD_ALWAYS_FMA || dsHostSIMDFeatures & dsSIMDFeatures_FMA)
 		return &itemListTypeFMA;
-	else if (DS_SIMD_ALWAYS_FLOAT4 || dsHostSIMDFeatures & dsSIMDFeatures_Float4)
-		return &itemListTypeSIMD;
-	else
 #endif
-		return &itemListType;
+	if (DS_SIMD_ALWAYS_FLOAT4 || dsHostSIMDFeatures & dsSIMDFeatures_Float4)
+		return &itemListTypeSIMD;
+#endif // DS_HAS_SIMD
+	return &itemListType;
 }
 
 dsSceneItemList* dsShadowCullList_create(dsAllocator* allocator, const char* name,

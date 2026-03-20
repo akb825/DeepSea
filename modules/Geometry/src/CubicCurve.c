@@ -225,18 +225,18 @@ DS_ALIGN(32) const dsMatrix44d dsCubicCurved_bezierToCubic =
 
 const dsMatrix44f dsCubicCurvef_cubicToBezier =
 {{
-	{1.0f, 1.0f     , 1.0f     , 1.0f},
-	{0.0f, 1.0f/3.0f, 2.0f/3.0f, 1.0f},
-	{0.0f, 0.0f     , 1.0f/3.0f, 1.0f},
-	{0.0f, 0.0f     , 0.0f     , 1.0f}
+	{1.0f, 1.0f        , 1.0f        , 1.0f},
+	{0.0f, 0.333333333f, 0.666666667f, 1.0f},
+	{0.0f, 0.0f        , 0.333333333f, 1.0f},
+	{0.0f, 0.0f        , 0.0f        , 1.0f}
 }};
 
 DS_ALIGN(32) const dsMatrix44d dsCubicCurved_cubicToBezier =
 {{
-	{1.0, 1.0    , 1.0    , 1.0},
-	{0.0, 1.0/3.0, 2.0/3.0, 1.0},
-	{0.0, 0.0    , 1.0/3.0, 1.0},
-	{0.0, 0.0    , 0.0    , 1.0}
+	{1.0, 1.0                , 1.0                , 1.0},
+	{0.0, 0.33333333333333333, 0.66666666666666667, 1.0},
+	{0.0, 0.0                , 0.33333333333333333, 1.0},
+	{0.0, 0.0                , 0.0                , 1.0}
 }};
 
 const dsMatrix44f dsCubicCurvef_hermiteToCubic =

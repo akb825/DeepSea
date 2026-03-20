@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "Determinism.h"
 #include <DeepSea/Math/Vector4.h>
 #include <gtest/gtest.h>
 #include <cmath>
@@ -277,10 +278,10 @@ TEST(Vector4fTest, Divide)
 	dsVector4f result;
 
 	dsVector4f_div(&result, &a, &b);
-	EXPECT_NEAR(a.x/b.x, result.x, epsilon);
-	EXPECT_NEAR(a.y/b.y, result.y, epsilon);
-	EXPECT_NEAR(a.z/b.z, result.z, epsilon);
-	EXPECT_NEAR(a.w/b.w, result.w, epsilon);
+	EXPECT_EQ_DETERMINISTIC(a.x/b.x, result.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(a.y/b.y, result.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(a.z/b.z, result.z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(a.w/b.w, result.w, epsilon);
 }
 
 TYPED_TEST(Vector4Test, Scale)
@@ -303,10 +304,10 @@ TEST(Vector4fTest, Scale)
 	dsVector4f result;
 
 	dsVector4f_scale(&result, &a, 3.2f);
-	EXPECT_FLOAT_EQ(a.x*3.2f, result.x);
-	EXPECT_FLOAT_EQ(a.y*3.2f, result.y);
-	EXPECT_FLOAT_EQ(a.z*3.2f, result.z);
-	EXPECT_FLOAT_EQ(a.w*3.2f, result.w);
+	EXPECT_EQ(a.x*3.2f, result.x);
+	EXPECT_EQ(a.y*3.2f, result.y);
+	EXPECT_EQ(a.z*3.2f, result.z);
+	EXPECT_EQ(a.w*3.2f, result.w);
 }
 
 TYPED_TEST(Vector4Test, Neg)
@@ -329,10 +330,10 @@ TEST(Vector4fTest, Neg)
 	dsVector4f result;
 
 	dsVector4f_neg(&result, &a);
-	EXPECT_FLOAT_EQ(-a.x, result.x);
-	EXPECT_FLOAT_EQ(-a.y, result.y);
-	EXPECT_FLOAT_EQ(-a.z, result.z);
-	EXPECT_FLOAT_EQ(-a.w, result.w);
+	EXPECT_EQ(-a.x, result.x);
+	EXPECT_EQ(-a.y, result.y);
+	EXPECT_EQ(-a.z, result.z);
+	EXPECT_EQ(-a.w, result.w);
 }
 
 TYPED_TEST(Vector4Test, Dot)
@@ -347,10 +348,20 @@ TYPED_TEST(Vector4Test, Dot)
 
 TEST(Vector4fTest, Dot)
 {
+	float epsilon = Vector4TypeSelector<float>::epsilon;
 	dsVector4f a = {{-2.3f, 4.5f, -6.7f, 8.9f}};
 	dsVector4f b = {{3.2f, -5.4f, 7.6f, -9.8f}};
 
-	EXPECT_FLOAT_EQ(a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w, dsVector4f_dot(&a, &b));
+	EXPECT_EQ_DETERMINISTIC(-169.8f, dsVector4f_dot(&a, &b), epsilon);
+}
+
+TEST(Vector4dTest, Dot)
+{
+	double epsilon = Vector4TypeSelector<double>::epsilon;
+	dsVector4d a = {{-2.3, 4.5, -6.7, 8.9}};
+	dsVector4d b = {{3.2, -5.4, 7.6, -9.8}};
+
+	EXPECT_EQ_DETERMINISTIC(-169.8, dsVector4d_dot(&a, &b), epsilon);
 }
 
 TYPED_TEST(Vector4Test, Length)
@@ -365,11 +376,23 @@ TYPED_TEST(Vector4Test, Length)
 
 TEST(Vector4fTest, Length)
 {
+	// Needs to be a bit larger of an epsilon when running on x87 FPU vs. SSE.
+	float epsilon = 1e-5f;
 	dsVector4f a = {{-2.3f, 4.5f, -6.7f, 8.9f}};
 
-	EXPECT_FLOAT_EQ(dsPow2(a.x) + dsPow2(a.y) + dsPow2(a.z) + dsPow2(a.w), dsVector4f_len2(&a));
-	EXPECT_FLOAT_EQ(std::sqrt(dsPow2(a.x) + dsPow2(a.y) + dsPow2(a.z) + dsPow2(a.w)),
-		dsVector4_len(&a));
+	EXPECT_EQ_DETERMINISTIC(dsVector4_len2(a), dsVector4f_len2(&a), epsilon);
+	EXPECT_EQ_DETERMINISTIC(149.63998f, dsVector4f_len2(&a), epsilon);
+	EXPECT_EQ_DETERMINISTIC(12.232742f, dsVector4_len(&a), epsilon);
+}
+
+TEST(Vector4dTest, Length)
+{
+	double epsilon = Vector4TypeSelector<double>::epsilon;
+	dsVector4d a = {{-2.3, 4.5, -6.7, 8.9}};
+
+	EXPECT_EQ_DETERMINISTIC(dsVector4_len2(a), dsVector4d_len2(&a), epsilon);
+	EXPECT_EQ_DETERMINISTIC(149.64000000000001, dsVector4d_len2(&a), epsilon);
+	EXPECT_EQ_DETERMINISTIC(12.232742946698423, dsVector4_len(&a), epsilon);
 }
 
 TYPED_TEST(Vector4Test, Distance)
@@ -387,13 +410,25 @@ TYPED_TEST(Vector4Test, Distance)
 
 TEST(Vector4fTest, Distance)
 {
+	// Needs to be a bit larger of an epsilon when running on x87 FPU vs. SSE.
+	float epsilon = 2e-5f;
 	dsVector4f a = {{-2.3f, 4.5f, -6.7f, 8.9f}};
 	dsVector4f b = {{3.2f, -5.4f, 7.6f, -9.8f}};
 
-	EXPECT_EQ(dsPow2(a.x - b.x) + dsPow2(a.y - b.y) + dsPow2(a.z - b.z) + dsPow2(a.w - b.w),
-		dsVector4f_dist2(&a, &b));
-	EXPECT_EQ(std::sqrt(dsPow2(a.x - b.x) + dsPow2(a.y - b.y) + dsPow2(a.z - b.z) +
-		dsPow2(a.w - b.w)), dsVector4_dist(&a, &b));
+	EXPECT_EQ_DETERMINISTIC(dsVector4_dist2(a, b), dsVector4f_dist2(&a, &b), epsilon);
+	EXPECT_EQ_DETERMINISTIC(682.44f, dsVector4f_dist2(&a, &b), epsilon);
+	EXPECT_EQ_DETERMINISTIC(26.123552f, dsVector4_dist(&a, &b), epsilon);
+}
+
+TEST(Vector4dTest, Distance)
+{
+	double epsilon = Vector4TypeSelector<double>::epsilon;
+	dsVector4d a = {{-2.3, 4.5, -6.7, 8.9}};
+	dsVector4d b = {{3.2, -5.4, 7.6, -9.8}};
+
+	EXPECT_EQ_DETERMINISTIC(dsVector4_dist2(a, b), dsVector4d_dist2(&a, &b), epsilon);
+	EXPECT_EQ_DETERMINISTIC(682.44, dsVector4d_dist2(&a, &b), epsilon);
+	EXPECT_EQ_DETERMINISTIC(26.123552591483421, dsVector4_dist(&a, &b), epsilon);
 }
 
 TYPED_TEST(Vector4Test, Equal)
@@ -444,15 +479,43 @@ TYPED_TEST(Vector4FloatTest, Lerp)
 
 TEST(Vector4fTest, Lerp)
 {
+	float epsilon = Vector4TypeSelector<float>::epsilon;
 	dsVector4f a = {{-2.3f, 4.5f, -6.7f, 8.9f}};
 	dsVector4f b = {{3.2f, -5.4f, 7.6f, -9.8f}};
-	dsVector4f result;
+	dsVector4f scalarResult, result;
 
+	dsVector4_lerp(scalarResult, a, b, 0.3f);
 	dsVector4f_lerp(&result, &a, &b, 0.3f);
-	EXPECT_FLOAT_EQ(dsLerp(a.x, b.x, 0.3f), result.x);
-	EXPECT_FLOAT_EQ(dsLerp(a.y, b.y, 0.3f), result.y);
-	EXPECT_FLOAT_EQ(dsLerp(a.z, b.z, 0.3f), result.z);
-	EXPECT_FLOAT_EQ(dsLerp(a.w, b.w, 0.3f), result.w);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.x, result.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.y, result.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.z, result.z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.w, result.w, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.64999985f, result.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.53f, result.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-2.4099999f, result.z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(3.289999f, result.w, epsilon);
+}
+
+TEST(Vector4dTest, Lerp)
+{
+	double epsilon = Vector4TypeSelector<double>::epsilon;
+	dsVector4d a = {{-2.3, 4.5, -6.7, 8.9}};
+	dsVector4d b = {{3.2, -5.4, 7.6, -9.8}};
+	dsVector4d scalarResult;
+	dsVector4d result;
+
+	dsVector4_lerp(scalarResult, a, b, 0.3);
+	dsVector4d_lerp(&result, &a, &b, 0.3);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.x, result.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.y, result.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.z, result.z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.w, result.w, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.64999999999999991, result.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.5299999999999998, result.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-2.41, result.z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(3.29, result.w, epsilon);
 }
 
 TYPED_TEST(Vector4FloatTest, Normalize)

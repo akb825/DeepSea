@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 #include <DeepSea/Core/Memory/Memory.h>
 
 #include <arm_neon.h>
+#include <math.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -53,7 +54,7 @@ extern "C"
 #define DS_SIMD_ALWAYS_DOUBLE2 DS_ARM_64
 #define DS_SIMD_ALWAYS_DOUBLE4 0
 #define DS_SIMD_ALWAYS_HADD 1
-#define DS_SIMD_ALWAYS_FMA 1
+#define DS_SIMD_ALWAYS_FMA !DS_DETERMINISTIC_MATH
 #define DS_SIMD_ALWAYS_HALF_FLOAT 1
 
 #if DS_MSC
@@ -268,10 +269,34 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_div(dsSIMD4f a, dsSIMD4f b)
 {
 #if DS_ARM_64
 	return vdivq_f32(a, b);
+#elif DS_DETERMINISTIC_MATH
+	return dsSIMD4f_set4(dsSIMD4f_get(a, 0)/dsSIMD4f_get(b, 0),
+		dsSIMD4f_get(a, 1)/dsSIMD4f_get(b, 1), dsSIMD4f_get(a, 2)/dsSIMD4f_get(b, 2),
+		dsSIMD4f_get(a, 3)/dsSIMD4f_get(b, 3));
 #else
 	return vmulq_f32(a, vrecpeq_f32(b));
 #endif
 }
+
+/**
+ * @brief Takes the square root of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The value to take the reciprical.
+ * @return The result of sqrt(a).
+ */
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_sqrt(dsSIMD4f a)
+{
+#if DS_ARM_64
+	return vsqrtq_f32(a);
+#elif DS_DETERMINISTIC_MATH
+	return dsSIMD4f_set4(sqrtf(dsSIMD4f_get(a, 0)), sqrtf(dsSIMD4f_get(a, 1)),
+		sqrtf(dsSIMD4f_get(a, 2)), sqrtf(dsSIMD4f_get(a, 3)));
+#else
+	return vrecpeq_f32(vrsqrteq_f32(a));
+#endif
+}
+
+#if !DS_DETERMINISTIC_MATH
 
 /**
  * @brief Takes the approximate reciprical of a SIMD value.
@@ -285,21 +310,6 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_rcp(dsSIMD4f a)
 }
 
 /**
- * @brief Takes the square root of a SIMD value.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The value to take the reciprical.
- * @return The result of sqrt(a).
- */
-DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_sqrt(dsSIMD4f a)
-{
-#if DS_ARM_64
-	return vsqrtq_f32(a);
-#else
-	return vrecpeq_f32(vrsqrteq_f32(a));
-#endif
-}
-
-/**
  * @brief Takes the approximate reciprical square root of a SIMD value.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param a The value to take the reciprical.
@@ -309,6 +319,8 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_rsqrt(dsSIMD4f a)
 {
 	return vrsqrteq_f32(a);
 }
+
+#endif // !DS_DETERMINISTIC_MATH
 
 /**
  * @brief Takes the absolute value of a SIMD value.
@@ -774,22 +786,6 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_div(dsSIMD2d a, dsSIMD2d b)
 }
 
 /**
- * @brief Takes the approximate reciprical of a SIMD value.
- * @remark This can be used when dsSIMDFeatures_Double2 is available.
- * @param a The value to take the reciprical.
- * @return The approximate result of 1/a.
- */
-DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_rcp(dsSIMD2d a)
-{
-#if DS_SIMD_ALWAYS_DOUBLE2
-	return vrecpeq_f64(a);
-#else
-	DS_ASSERT(false);
-	DS_UNREACHABLE();
-#endif
-}
-
-/**
  * @brief Takes the square root of a SIMD value.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param a The value to take the reciprical.
@@ -799,6 +795,24 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_sqrt(dsSIMD2d a)
 {
 #if DS_SIMD_ALWAYS_DOUBLE2
 	return vsqrtq_f64(a);
+#else
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+#endif
+}
+
+#if !DS_DETERMINISTIC_MATH
+
+/**
+ * @brief Takes the approximate reciprical of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The value to take the reciprical.
+ * @return The approximate result of 1/a.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_rcp(dsSIMD2d a)
+{
+#if DS_SIMD_ALWAYS_DOUBLE2
+	return vrecpeq_f64(a);
 #else
 	DS_ASSERT(false);
 	DS_UNREACHABLE();
@@ -820,6 +834,8 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_rsqrt(dsSIMD2d a)
 	DS_UNREACHABLE();
 #endif
 }
+
+#endif // !DS_DETERMINISTIC_MATH
 
 /**
  * @brief Takes the absolute value of a SIMD value.
@@ -1335,24 +1351,26 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_div(dsSIMD4d a, dsSIMD4d b)
 }
 
 /**
- * @brief Takes the approximate reciprical of a SIMD value.
- * @remark This can be used when dsSIMDFeatures_Double4 is available.
- * @param a The value to take the reciprical.
- * @return The approximate result of 1/a.
- */
-DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_rcp(dsSIMD4d a)
-{
-	DS_ASSERT(false);
-	DS_UNREACHABLE();
-}
-
-/**
  * @brief Takes the square root of a SIMD value.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param a The value to take the reciprical.
  * @return The result of sqrt(a).
  */
 DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_sqrt(dsSIMD4d a)
+{
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+}
+
+#if !DS_DETERMINISTIC_MATH
+
+/**
+ * @brief Takes the approximate reciprical of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The value to take the reciprical.
+ * @return The approximate result of 1/a.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_rcp(dsSIMD4d a)
 {
 	DS_ASSERT(false);
 	DS_UNREACHABLE();
@@ -1369,6 +1387,8 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_rsqrt(dsSIMD4d a)
 	DS_ASSERT(false);
 	DS_UNREACHABLE();
 }
+
+#endif // !DS_DETERMINISTIC_MATH
 
 /**
  * @brief Takes the absolute value of a SIMD value.
@@ -1688,6 +1708,8 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_hadd(dsSIMD4d a, dsSIMD4d b)
 	DS_UNREACHABLE();
 }
 
+#if !DS_DETERMINISTIC_MATH
+
 /**
  * @brief Performs a fused multiply add with three SIMD values.
  * @remark This can be used when dsSIMDFeatures_FMA is available.
@@ -1867,6 +1889,8 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_fnmsub(dsSIMD4d a, dsSIMD4d b, dsSIMD4d c)
 	DS_ASSERT(false);
 	DS_UNREACHABLE();
 }
+
+#endif // !DS_DETERMINISTIC_MATH
 
 /**
  * @brief Loads a single half float value.

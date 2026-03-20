@@ -24,7 +24,7 @@ jobs:
         - lib_type: Static
           cmake_args: "-DDEEPSEA_SHARED=OFF -DDEEPSEA_X86_ARCH_LEVEL=0"
         - lib_type: Shared
-          cmake_args: "-DDEEPSEA_SHARED=ON"
+          cmake_args: "-DDEEPSEA_SHARED=ON -DDEEPSEA_DETERMINISTIC_MATH=ON"
         - lib_type: Single-Shared
           cmake_args: "-DDEEPSEA_SINGLE_SHARED=ON"
     steps:
@@ -97,7 +97,7 @@ jobs:
         - lib_type: Static
           cmake_args: "-DDEEPSEA_SHARED=OFF"
         - lib_type: Shared
-          cmake_args: "-DDEEPSEA_SHARED=ON"
+          cmake_args: "-DDEEPSEA_SHARED=ON -DDEEPSEA_DETERMINISTIC_MATH=ON"
         - lib_type: Single-Shared
           cmake_args: "-DDEEPSEA_SINGLE_SHARED=ON"
     steps:
@@ -155,7 +155,7 @@ jobs:
         - arch: Win32
           libs: win32
           lib_type: Shared
-          cmake_args: "-DDEEPSEA_SHARED=ON"
+          cmake_args: "-DDEEPSEA_SHARED=ON -DDEEPSEA_DETERMINISTIC_MATH=ON"
         - arch: Win32
           libs: win32
           lib_type: Single-Shared
@@ -167,7 +167,7 @@ jobs:
         - arch: x64
           libs: win64
           lib_type: Shared
-          cmake_args: "-DDEEPSEA_SHARED=ON"
+          cmake_args: "-DDEEPSEA_SHARED=ON -DDEEPSEA_DETERMINISTIC_MATH=ON"
         - arch: x64
           libs: win64
           lib_type: Single-Shared

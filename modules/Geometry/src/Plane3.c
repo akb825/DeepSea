@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@
 
 #include <float.h>
 
-bool dsPlane3f_intersectingLine(dsRay3f* result, const dsPlane3f* firstPlane,
-	const dsPlane3f* secondPlane)
+bool dsPlane3f_intersectingLine(
+	dsRay3f* result, const dsPlane3f* firstPlane, const dsPlane3f* secondPlane)
 {
 	// http://geomalgorithms.com/a05-_intersect-1.html
 	DS_ASSERT(result);
@@ -56,8 +56,8 @@ bool dsPlane3f_intersectingLine(dsRay3f* result, const dsPlane3f* firstPlane,
 	return true;
 }
 
-bool dsPlane3d_intersectingLine(dsRay3d* result, const dsPlane3d* firstPlane,
-	const dsPlane3d* secondPlane)
+bool dsPlane3d_intersectingLine(
+	dsRay3d* result, const dsPlane3d* firstPlane, const dsPlane3d* secondPlane)
 {
 	// http://geomalgorithms.com/a05-_intersect-1.html
 	DS_ASSERT(result);
@@ -258,27 +258,31 @@ void dsPlane3f_normalize(dsPlane3f* result, const dsPlane3f* plane);
 void dsPlane3d_normalize(dsPlane3d* result, const dsPlane3d* plane);
 void dsPlane3f_transform(dsPlane3f* result, const dsMatrix44f* transform, const dsPlane3f* plane);
 void dsPlane3d_transform(dsPlane3d* result, const dsMatrix44d* transform, const dsPlane3d* plane);
-void dsPlane3f_transformInverseTranspose(dsPlane3f* result, const dsMatrix44f* transform,
-	const dsPlane3f* plane);
-void dsPlane3d_transformInverseTranspose(dsPlane3d* result, const dsMatrix44d* transform,
-	const dsPlane3d* plane);
-dsIntersectResult dsPlane3f_intersectBoxMatrix(const dsPlane3f* plane,
-	const dsMatrix44f* boxMatrix);
-dsIntersectResult dsPlane3d_intersectBoxMatrix(const dsPlane3d* plane,
-	const dsMatrix44d* boxMatrix);
-dsIntersectResult dsPlane3f_intersectBoxMatrixTranspose(const dsPlane3f* plane,
-	const dsMatrix44f* boxMatrix);
-dsIntersectResult dsPlane3d_intersectBoxMatrixTranspose(const dsPlane3d* plane,
-	const dsMatrix44d* boxMatrix);
+void dsPlane3f_transformInverseTranspose(
+	dsPlane3f* result, const dsMatrix44f* transform, const dsPlane3f* plane);
+void dsPlane3d_transformInverseTranspose(
+	dsPlane3d* result, const dsMatrix44d* transform, const dsPlane3d* plane);
+dsIntersectResult dsPlane3f_intersectBoxMatrix(
+	const dsPlane3f* plane, const dsMatrix44f* boxMatrix);
+dsIntersectResult dsPlane3d_intersectBoxMatrix(
+	const dsPlane3d* plane, const dsMatrix44d* boxMatrix);
+dsIntersectResult dsPlane3f_intersectBoxMatrixTranspose(
+	const dsPlane3f* plane, const dsMatrix44f* boxMatrix);
+dsIntersectResult dsPlane3d_intersectBoxMatrixTranspose(
+	const dsPlane3d* plane, const dsMatrix44d* boxMatrix);
 #if DS_HAS_SIMD
-dsIntersectResult dsPlane3f_intersectBoxMatrixTransposeSIMD(const dsPlane3f* plane,
-	const dsMatrix44f* boxMatrix);
-dsIntersectResult dsPlane3f_intersectBoxMatrixTransposeFMA(const dsPlane3f* plane,
-	const dsMatrix44f* boxMatrix);
-dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeSIMD2(const dsPlane3d* plane,
-	const dsMatrix44d* boxMatrix);
-dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeFMA2(const dsPlane3d* plane,
-	const dsMatrix44d* boxMatrix);
-dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeFMA4(
+dsIntersectResult dsPlane3f_intersectBoxMatrixTransposeSIMD(
+	const dsPlane3f* plane, const dsMatrix44f* boxMatrix);
+#if !DS_DETERMINISTIC_MATH
+dsIntersectResult dsPlane3f_intersectBoxMatrixTransposeFMA(
+	const dsPlane3f* plane, const dsMatrix44f* boxMatrix);
+#endif
+dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeSIMD2(
+	const dsPlane3d* plane, const dsMatrix44d* boxMatrix);
+#if !DS_DETERMINISTIC_MATH
+dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeFMA2(
+	const dsPlane3d* plane, const dsMatrix44d* boxMatrix);
+#endif
+dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeSIMD4(
 	const dsPlane3d* DS_ALIGN_PARAM(32) plane, const dsMatrix44d* DS_ALIGN_PARAM(32) boxMatrix);
 #endif

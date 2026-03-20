@@ -75,14 +75,15 @@ extern "C"
 		DS_ASSERT(&(result) != (const void*)&(a)); \
 		DS_ASSERT(&(result) != (const void*)&(b)); \
 		\
-		(result).values[0] = (a).values[3]*(b).values[0] + (b).values[3]*(a).values[0] + \
-			(a).values[1]*(b).values[2] - (a).values[2]*(b).values[1]; \
-		(result).values[1] = (a).values[3]*(b).values[1] + (b).values[3]*(a).values[1] + \
-			(a).values[2]*(b).values[0] - (a).values[0]*(b).values[2]; \
-		(result).values[2] = (a).values[3]*(b).values[2] + (b).values[3]*(a).values[2] + \
-			(a).values[0]*(b).values[1] - (a).values[1]*(b).values[0]; \
-		(result).values[3] = (a).values[3]*(b).values[3] - (a).values[0]*(b).values[0] - \
-			(a).values[1]*(b).values[1] - (a).values[2]*(b).values[2]; \
+		/* Match the ordering for SIMD version for determinism. */ \
+		(result).values[0] = ((a).values[0]*(b).values[3] + (a).values[1]*(b).values[2]) + \
+			((a).values[3]*(b).values[0] + - (a).values[2]*(b).values[1]); \
+		(result).values[1] = ((a).values[1]*(b).values[3] + (a).values[2]*(b).values[0]) + \
+			((a).values[3]*(b).values[1] - (a).values[0]*(b).values[2]); \
+		(result).values[2] = ((a).values[2]*(b).values[3] + (a).values[0]*(b).values[1]) + \
+			((a).values[3]*(b).values[2] - (a).values[1]*(b).values[0]); \
+		(result).values[3] = -((a).values[0]*(b).values[0] + (a).values[1]*(b).values[1]) + \
+			((a).values[3]*(b).values[3] - (a).values[2]*(b).values[2]); \
 	} while (0)
 
 /**

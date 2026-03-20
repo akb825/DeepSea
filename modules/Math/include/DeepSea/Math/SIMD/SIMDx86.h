@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,7 +101,7 @@ extern "C"
 #define DS_SIMD_ALWAYS_HADD 0
 #endif
 
-#if defined(__FMA__) || (DS_WINDOWS && defined(__AVX2__))
+#if !DS_DETERMINISTIC_MATH && (defined(__FMA__) || (DS_WINDOWS && defined(__AVX2__)))
 #define DS_SIMD_ALWAYS_FMA 1
 #else
 #define DS_SIMD_ALWAYS_FMA 0
@@ -309,17 +309,6 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_div(dsSIMD4f a, dsSIMD4f b)
 }
 
 /**
- * @brief Takes the approximate reciprical of a SIMD value.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The value to take the reciprical.
- * @return The approximate result of 1/a.
- */
-DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_rcp(dsSIMD4f a)
-{
-	return _mm_rcp_ps(a);
-}
-
-/**
  * @brief Takes the square root of a SIMD value.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param a The value to take the reciprical.
@@ -328,6 +317,19 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_rcp(dsSIMD4f a)
 DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_sqrt(dsSIMD4f a)
 {
 	return _mm_sqrt_ps(a);
+}
+
+#if !DS_DETERMINISTIC_MATH
+
+/**
+ * @brief Takes the approximate reciprical of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The value to take the reciprical.
+ * @return The approximate result of 1/a.
+ */
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_rcp(dsSIMD4f a)
+{
+	return _mm_rcp_ps(a);
 }
 
 /**
@@ -340,6 +342,8 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_rsqrt(dsSIMD4f a)
 {
 	return _mm_rsqrt_ps(a);
 }
+
+#endif // !DS_DETERMINISTIC_MATH
 
 /**
  * @brief Takes the absolute value of a SIMD value.
@@ -734,17 +738,6 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_div(dsSIMD2d a, dsSIMD2d b)
 }
 
 /**
- * @brief Takes the approximate reciprical of a SIMD value.
- * @remark This can be used when dsSIMDFeatures_Double2 is available.
- * @param a The value to take the reciprical.
- * @return The approximate result of 1/a.
- */
-DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_rcp(dsSIMD2d a)
-{
-	return _mm_div_pd(_mm_set1_pd(1.0), a);
-}
-
-/**
  * @brief Takes the square root of a SIMD value.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param a The value to take the reciprical.
@@ -753,6 +746,19 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_rcp(dsSIMD2d a)
 DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_sqrt(dsSIMD2d a)
 {
 	return _mm_sqrt_pd(a);
+}
+
+#if !DS_DETERMINISTIC_MATH
+
+/**
+ * @brief Takes the approximate reciprical of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The value to take the reciprical.
+ * @return The approximate result of 1/a.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_rcp(dsSIMD2d a)
+{
+	return _mm_div_pd(_mm_set1_pd(1.0), a);
 }
 
 /**
@@ -765,6 +771,8 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_rsqrt(dsSIMD2d a)
 {
 	return _mm_div_pd(_mm_set1_pd(1.0), _mm_sqrt_pd(a));
 }
+
+#endif
 
 /**
  * @brief Takes the absolute value of a SIMD value.
@@ -1169,17 +1177,6 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_div(dsSIMD4d a, dsSIMD4d b)
 }
 
 /**
- * @brief Takes the approximate reciprical of a SIMD value.
- * @remark This can be used when dsSIMDFeatures_Double4 is available.
- * @param a The value to take the reciprical.
- * @return The approximate result of 1/a.
- */
-DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_rcp(dsSIMD4d a)
-{
-	return _mm256_div_pd(_mm256_set1_pd(1.0), a);
-}
-
-/**
  * @brief Takes the square root of a SIMD value.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param a The value to take the reciprical.
@@ -1188,6 +1185,19 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_rcp(dsSIMD4d a)
 DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_sqrt(dsSIMD4d a)
 {
 	return _mm256_sqrt_pd(a);
+}
+
+#if !DS_DETERMINISTIC_MATH
+
+/**
+ * @brief Takes the approximate reciprical of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The value to take the reciprical.
+ * @return The approximate result of 1/a.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_rcp(dsSIMD4d a)
+{
+	return _mm256_div_pd(_mm256_set1_pd(1.0), a);
 }
 
 /**
@@ -1200,6 +1210,8 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_rsqrt(dsSIMD4d a)
 {
 	return _mm256_div_pd(_mm256_set1_pd(1.0), _mm256_sqrt_pd(a));
 }
+
+#endif // !DS_DETERMINISTIC_MATH
 
 /**
  * @brief Takes the absolute value of a SIMD value.
@@ -1511,6 +1523,8 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_hadd(dsSIMD4d a, dsSIMD4d b)
 
 /// @cond
 DS_SIMD_END();
+
+#if !DS_DETERMINISTIC_MATH
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA);
 /// @endcond
 
@@ -1682,6 +1696,8 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_fnmsub(dsSIMD4d a, dsSIMD4d b, dsSIMD4d c)
 
 /// @cond
 DS_SIMD_END();
+#endif // !DS_DETERMINISTIC_MATH
+
 DS_SIMD_START(DS_SIMD_HALF_FLOAT);
 /// @endcond
 

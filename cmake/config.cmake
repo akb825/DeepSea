@@ -47,6 +47,11 @@ elseif (DEEPSEA_ARCH MATCHES "^arm" OR DEEPSEA_ARCH STREQUAL "aarch64")
 	endif()
 endif()
 
+if (DEEPSEA_DETERMINISTIC_MATH AND DEEPSEA_ARCH STREQUAL x86 AND DEEPSEA_X86_ARCH_LEVEL EQUAL 0)
+	message(WARNING
+		"Using base x86 architecture in 32-bit mode with DEEPSEA_DETERMINISTIC_MATH enabled may yield different results.")
+endif()
+
 if (MSVC)
 	if (DEEPSEA_STATIC_RUNTIME)
 		set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
@@ -55,10 +60,19 @@ if (MSVC)
 				"It is not recommended to have DEEPSEA_SHARED and DEEPSEA_STATIC_RUNTIME both set to ON.")
 		endif()
 	endif()
-	# NOTE: Warning 5105 is to work around an (embarrassing) bug win the Windows headers for
+	# NOTE: Warning 5105 is to work around an (embarrassing) bug with the Windows headers for
 	# Visual Studio 2019 16.8.0.
 	add_compile_options(/W3 /WX /wd4146 /wd5105 /MP)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS)
+
+	# Allow floating-point contractions when not determinsitic math, which matches GCC behavior.
+	# This option was added in Visual Studio 2022. For previous versions, contractions were enabled
+	# for all modes except strict.
+	if (DEEPSEA_DETERMINISTIC_MATH AND MSVC_VERSION LESS 1930)
+		add_compile_options(/fp:strict)
+	elseif (NOT DEEPSEA_DETERMINISTIC_MATH AND MSVC_VERSION GREATER_EQUAL 1930)
+		add_compile_options(/fp:contract)
+	endif()
 
 	# Disable RTTI, but enable exceptions
 	if (CMAKE_CXX_FLAGS MATCHES "/EHs-c- ")
@@ -97,6 +111,9 @@ else()
 	if (DEEPSEA_SHARED)
 		add_compile_options(-fvisibility=hidden)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
+	endif()
+	if (DEEPSEA_DETERMINISTIC_MATH)
+		add_compile_options(-ffp-contract=off)
 	endif()
 
 	# GCC has problems determining array sizes in some versions.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,8 +56,8 @@ struct dsAnimationTreeNodeTable
 
 static uint32_t nextID;
 
-static dsAnimationTreeNodeTable* dsAnimationTreeNodeTable_create(dsAllocator* allocator,
-	uint32_t nodeCount)
+static dsAnimationTreeNodeTable* dsAnimationTreeNodeTable_create(
+	dsAllocator* allocator, uint32_t nodeCount)
 {
 	size_t tableSize = dsHashTable_tableSize(nodeCount);
 	size_t tableFullSize = dsHashTable_fullAllocSize(tableSize);
@@ -85,8 +85,8 @@ static dsAnimationTreeNodeTable* dsAnimationTreeNodeTable_create(dsAllocator* al
 	return table;
 }
 
-static bool dsAnimationTreeNodeTable_insert(dsAnimationTreeNodeTable* table, uint32_t index,
-	uint32_t nameID, const char* name)
+static bool dsAnimationTreeNodeTable_insert(
+	dsAnimationTreeNodeTable* table, uint32_t index, uint32_t nameID, const char* name)
 {
 	NamedHashNode* node = table->nodes + table->hashTable->list.length;
 	node->nameID = nameID;
@@ -135,8 +135,8 @@ static size_t fullAllocSizeRec(uint32_t* outNodeCount, const dsAnimationBuildNod
 	return curSize;
 }
 
-static size_t fullAllocSize(uint32_t* outNodeCount, const dsAnimationBuildNode* const* rootNodes,
-	uint32_t rootNodeCount)
+static size_t fullAllocSize(
+	uint32_t* outNodeCount, const dsAnimationBuildNode* const* rootNodes, uint32_t rootNodeCount)
 {
 	DS_ASSERT(rootNodeCount > 0);
 	*outNodeCount = 0;
@@ -249,6 +249,7 @@ static uint32_t buildTreeRec(dsAllocator* allocator, uint32_t* nextIndex, uint32
 
 #if DS_HAS_SIMD
 DS_SIMD_START(DS_SIMD_FLOAT4)
+
 static inline void updateTransformSIMD(dsAnimationTree* tree, dsAnimationNode* node)
 {
 	dsMatrix44f scale;
@@ -267,8 +268,8 @@ static inline void updateTransformSIMD(dsAnimationTree* tree, dsAnimationNode* n
 		node->transform = localTransform;
 	else
 	{
-		dsMatrix44f_affineMulSIMD(&node->transform, &tree->nodes[node->parent].transform,
-			&localTransform);
+		dsMatrix44f_affineMulSIMD(
+			&node->transform, &tree->nodes[node->parent].transform, &localTransform);
 	}
 }
 
@@ -285,15 +286,18 @@ static void updateJointTransformsSIMD(dsAnimationTree* tree)
 		dsAnimationNode* node = tree->nodes + i;
 		updateTransformSIMD(tree, node);
 		dsAnimationJointTransform* jointTransform = tree->jointTransforms + i;
-		dsMatrix44f_affineMulSIMD(&jointTransform->transform, &node->transform,
-			tree->toNodeLocalSpace + i);
-		/*dsMatrix44f_inverseTransposeSIMD(jointTransform->inverseTranspose,
-			&jointTransform->transform);*/
+		dsMatrix44f_affineMulSIMD(
+			&jointTransform->transform, &node->transform, tree->toNodeLocalSpace + i);
+		/*dsMatrix44f_inverseTransposeSIMD(
+			jointTransform->inverseTranspose, &jointTransform->transform);*/
 	}
 }
+
 DS_SIMD_END()
 
+#if !DS_DETERMINISTIC_MATH
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
+
 static inline void updateTransformFMA(dsAnimationTree* tree, dsAnimationNode* node)
 {
 	dsMatrix44f scale;
@@ -312,8 +316,8 @@ static inline void updateTransformFMA(dsAnimationTree* tree, dsAnimationNode* no
 		node->transform = localTransform;
 	else
 	{
-		dsMatrix44f_affineMulFMA(&node->transform, &tree->nodes[node->parent].transform,
-			&localTransform);
+		dsMatrix44f_affineMulFMA(
+			&node->transform, &tree->nodes[node->parent].transform, &localTransform);
 	}
 }
 
@@ -330,14 +334,16 @@ static void updateJointTransformsFMA(dsAnimationTree* tree)
 		dsAnimationNode* node = tree->nodes + i;
 		updateTransformFMA(tree, node);
 		dsAnimationJointTransform* jointTransform = tree->jointTransforms + i;
-		dsMatrix44f_affineMulFMA(&jointTransform->transform, &node->transform,
-			tree->toNodeLocalSpace + i);
-		/*dsMatrix44f_inverseTransposeFMA(jointTransform->inverseTranspose,
-			&jointTransform->transform);*/
+		dsMatrix44f_affineMulFMA(
+			&jointTransform->transform, &node->transform, tree->toNodeLocalSpace + i);
+		/*dsMatrix44f_inverseTransposeFMA(
+			jointTransform->inverseTranspose, &jointTransform->transform);*/
 	}
 }
+
 DS_SIMD_END()
-#endif
+#endif // !DS_DETERMINISTIC_MATH
+#endif // DS_HAS_SIMD
 
 static void updateTransform(dsAnimationTree* tree, dsAnimationNode* node)
 {
@@ -362,8 +368,8 @@ static void updateTransform(dsAnimationTree* tree, dsAnimationNode* node)
 	}
 }
 
-dsAnimationTree* dsAnimationTree_create(dsAllocator* allocator,
-	const dsAnimationBuildNode* const* rootNodes, uint32_t rootNodeCount)
+dsAnimationTree* dsAnimationTree_create(
+	dsAllocator* allocator, const dsAnimationBuildNode* const* rootNodes, uint32_t rootNodeCount)
 {
 	if (!allocator || !rootNodes || rootNodeCount == 0)
 	{
@@ -430,8 +436,8 @@ dsAnimationTree* dsAnimationTree_create(dsAllocator* allocator,
 	return tree;
 }
 
-dsAnimationTree* dsAnimationTree_createJoints(dsAllocator* allocator,
-	const dsAnimationJointBuildNode* nodes, uint32_t nodeCount)
+dsAnimationTree* dsAnimationTree_createJoints(
+	dsAllocator* allocator, const dsAnimationJointBuildNode* nodes, uint32_t nodeCount)
 {
 	if (!allocator || !nodes || nodeCount == 0)
 	{
@@ -551,8 +557,8 @@ dsAnimationTree* dsAnimationTree_createJoints(dsAllocator* allocator,
 	return tree;
 }
 
-dsAnimationTree* dsAnimationTree_loadFile(dsAllocator* allocator, dsAllocator* scratchAllocator,
-	const char* filePath)
+dsAnimationTree* dsAnimationTree_loadFile(
+	dsAllocator* allocator, dsAllocator* scratchAllocator, const char* filePath)
 {
 	if (!allocator || !filePath)
 	{
@@ -644,8 +650,8 @@ dsAnimationTree* dsAnimationTree_loadArchive(dsAllocator* allocator, dsAllocator
 	return tree;
 }
 
-dsAnimationTree* dsAnimationTree_loadStream(dsAllocator* allocator, dsAllocator* scratchAllocator,
-	dsStream* stream)
+dsAnimationTree* dsAnimationTree_loadStream(
+	dsAllocator* allocator, dsAllocator* scratchAllocator, dsStream* stream)
 {
 	if (!allocator || !stream)
 	{
@@ -667,8 +673,8 @@ dsAnimationTree* dsAnimationTree_loadStream(dsAllocator* allocator, dsAllocator*
 	return tree;
 }
 
-dsAnimationTree* dsAnimationTree_loadData(dsAllocator* allocator, dsAllocator* scratchAllocator,
-	const void* data, size_t size)
+dsAnimationTree* dsAnimationTree_loadData(
+	dsAllocator* allocator, dsAllocator* scratchAllocator, const void* data, size_t size)
 {
 	if (!allocator || !data || size == 0)
 	{
@@ -848,54 +854,66 @@ bool dsAnimationTree_updateTransforms(dsAnimationTree* tree)
 	{
 		DS_ASSERT(tree->toNodeLocalSpace);
 #if DS_HAS_SIMD
+#if !DS_DETERMINISTIC_MATH
 		if (DS_SIMD_ALWAYS_FMA || (dsHostSIMDFeatures & dsSIMDFeatures_FMA))
-			updateJointTransformsFMA(tree);
-		else if (DS_SIMD_ALWAYS_FLOAT4 || (dsHostSIMDFeatures & dsSIMDFeatures_Float4))
-			updateJointTransformsSIMD(tree);
-		else
-#endif
 		{
-			for (uint32_t i = 0; i < tree->nodeCount; ++i)
-			{
-				dsAnimationNode* node = tree->nodes + i;
-				updateTransform(tree, node);
-				dsAnimationJointTransform* jointTransform = tree->jointTransforms + i;
-				dsMatrix44f_affineMul(&jointTransform->transform, &node->transform,
-					tree->toNodeLocalSpace + i);
+			updateJointTransformsFMA(tree);
+			return true;
+		}
+#endif // !DS_DETERMINISTIC_MATH
+		if (DS_SIMD_ALWAYS_FLOAT4 || (dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		{
+			updateJointTransformsSIMD(tree);
+			return true;
+		}
+#endif // DS_HAS_SIMD
 
-				/*dsMatrix33f inverseTranspose;
-				dsMatrix44f_inverseTranspose(&inverseTranspose, &jointTransform->transform);
+		for (uint32_t i = 0; i < tree->nodeCount; ++i)
+		{
+			dsAnimationNode* node = tree->nodes + i;
+			updateTransform(tree, node);
+			dsAnimationJointTransform* jointTransform = tree->jointTransforms + i;
+			dsMatrix44f_affineMul(&jointTransform->transform, &node->transform,
+				tree->toNodeLocalSpace + i);
 
-				jointTransform->inverseTranspose[0].x = inverseTranspose.columns[0].x;
-				jointTransform->inverseTranspose[0].y = inverseTranspose.columns[0].y;
-				jointTransform->inverseTranspose[0].z = inverseTranspose.columns[0].z;
-				jointTransform->inverseTranspose[0].w = 0;
+			/*dsMatrix33f inverseTranspose;
+			dsMatrix44f_inverseTranspose(&inverseTranspose, &jointTransform->transform);
 
-				jointTransform->inverseTranspose[1].x = inverseTranspose.columns[1].x;
-				jointTransform->inverseTranspose[1].y = inverseTranspose.columns[1].y;
-				jointTransform->inverseTranspose[1].z = inverseTranspose.columns[1].z;
-				jointTransform->inverseTranspose[1].w = 0;
+			jointTransform->inverseTranspose[0].x = inverseTranspose.columns[0].x;
+			jointTransform->inverseTranspose[0].y = inverseTranspose.columns[0].y;
+			jointTransform->inverseTranspose[0].z = inverseTranspose.columns[0].z;
+			jointTransform->inverseTranspose[0].w = 0;
 
-				jointTransform->inverseTranspose[2].x = inverseTranspose.columns[2].x;
-				jointTransform->inverseTranspose[2].y = inverseTranspose.columns[2].y;
-				jointTransform->inverseTranspose[2].z = inverseTranspose.columns[2].z;
-				jointTransform->inverseTranspose[2].w = 0;*/
-			}
+			jointTransform->inverseTranspose[1].x = inverseTranspose.columns[1].x;
+			jointTransform->inverseTranspose[1].y = inverseTranspose.columns[1].y;
+			jointTransform->inverseTranspose[1].z = inverseTranspose.columns[1].z;
+			jointTransform->inverseTranspose[1].w = 0;
+
+			jointTransform->inverseTranspose[2].x = inverseTranspose.columns[2].x;
+			jointTransform->inverseTranspose[2].y = inverseTranspose.columns[2].y;
+			jointTransform->inverseTranspose[2].z = inverseTranspose.columns[2].z;
+			jointTransform->inverseTranspose[2].w = 0;*/
 		}
 	}
 	else
 	{
 #if DS_HAS_SIMD
+#if !DS_DETERMINISTIC_MATH
 		if (DS_SIMD_ALWAYS_FMA || (dsHostSIMDFeatures & dsSIMDFeatures_FMA))
-			updateTransformsFMA(tree);
-		else if (DS_SIMD_ALWAYS_FLOAT4 || (dsHostSIMDFeatures & dsSIMDFeatures_Float4))
-			updateTransformsSIMD(tree);
-		else
-#endif
 		{
-			for (uint32_t i = 0; i < tree->nodeCount; ++i)
-				updateTransform(tree, tree->nodes + i);
+			updateTransformsFMA(tree);
+			return true;
 		}
+#endif // !DS_DETERMINISTIC_MATH
+		if (DS_SIMD_ALWAYS_FLOAT4 || (dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		{
+			updateTransformsSIMD(tree);
+			return true;
+		}
+#endif // DS_HAS_SIMD
+
+		for (uint32_t i = 0; i < tree->nodeCount; ++i)
+			updateTransform(tree, tree->nodes + i);
 	}
 
 	return true;

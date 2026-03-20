@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ static dsSIMDFeatures detectSIMDFeatures()
 		features |= dsSIMDFeatures_Double2;
 	if (ecx & sse3Bit)
 		features |= dsSIMDFeatures_HAdd;
-	if (ecx & fmaBit)
+	if ((ecx & fmaBit) && !DS_DETERMINISTIC_MATH)
 		features |= dsSIMDFeatures_FMA;
 	if (ecx & avxBit)
 		features |= dsSIMDFeatures_Double4;
@@ -75,8 +75,11 @@ static dsSIMDFeatures detectSIMDFeatures()
 #else
 static dsSIMDFeatures detectSIMDFeatures()
 {
-	dsSIMDFeatures features =  dsSIMDFeatures_Float4 | dsSIMDFeatures_HAdd | dsSIMDFeatures_FMA |
+	dsSIMDFeatures features =  dsSIMDFeatures_Float4 | dsSIMDFeatures_HAdd |
 		dsSIMDFeatures_HalfFloat;
+#if !DS_DETERMINISTIC_MATH
+	features |= dsSIMDFeatures_FMA;
+#endif
 #if DS_ARM_64
 	features |= dsSIMDFeatures_Double2;
 #endif

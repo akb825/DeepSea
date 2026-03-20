@@ -43,6 +43,7 @@ typedef struct InstanceScreenTransform
 } InstanceScreenTransform;
 
 #if DS_HAS_SIMD
+
 DS_SIMD_START(DS_SIMD_FLOAT4)
 static void dsInstanceScreenTransformData_populateDataSIMD(void* userData, const dsView* view,
 	const dsViewRenderPassParams* renderPassParams, const dsSceneTreeNode* const* instances,
@@ -67,6 +68,7 @@ static void dsInstanceScreenTransformData_populateDataSIMD(void* userData, const
 }
 DS_SIMD_END()
 
+#if !DS_DETERMINISTIC_MATH
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 static void dsInstanceScreenTransformData_populateDataFMA(void* userData, const dsView* view,
 	const dsViewRenderPassParams* renderPassParams, const dsSceneTreeNode* const* instances,
@@ -90,7 +92,9 @@ static void dsInstanceScreenTransformData_populateDataFMA(void* userData, const 
 	DS_PROFILE_FUNC_RETURN_VOID();
 }
 DS_SIMD_END()
-#endif
+#endif // !DS_DETERMINISTIC_MATH
+
+#endif // DS_HAS_SIMD
 
 static void dsInstanceScreenTransformData_populateData(void* userData, const dsView* view,
 	const dsViewRenderPassParams* renderPassParams, const dsSceneTreeNode* const* instances,
@@ -120,16 +124,31 @@ static dsSceneInstanceVariablesType instanceVariablesTypeSIMD =
 	&dsInstanceScreenTransformData_populateDataSIMD
 };
 
+#if !DS_DETERMINISTIC_MATH
 static dsSceneInstanceVariablesType instanceVariablesTypeFMA =
 {
 	&dsInstanceScreenTransformData_populateDataFMA
 };
-#endif
+#endif // !DS_DETERMINISTIC_MATH
+#endif // DS_HAS_SIMD
 
 static dsSceneInstanceVariablesType instanceVariablesType =
 {
 	&dsInstanceScreenTransformData_populateData
 };
+
+inline static const dsSceneInstanceVariablesType* optimalInstanceVariablesType(void)
+{
+#if DS_HAS_SIMD
+#if !DS_DETERMINISTIC_MATH
+	if (DS_SIMD_ALWAYS_FMA || (dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+		return &instanceVariablesTypeFMA;
+#endif
+	if (DS_SIMD_ALWAYS_FLOAT4 || (dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		return &instanceVariablesTypeSIMD;
+#endif // DS_HAS_SIMD
+	return &instanceVariablesType;
+}
 
 const char* const dsInstanceScreenTransformData_typeName = "InstanceScreenTransformData";
 const char* const dsInstanceScreenTransformData_uniformName = "dsInstanceScreenTransformData";
@@ -174,16 +193,7 @@ dsSceneInstanceData* dsInstanceScreenTransformData_create(dsAllocator* allocator
 		return NULL;
 	}
 
-	const dsSceneInstanceVariablesType* type;
-#if DS_HAS_SIMD
-	if (DS_SIMD_ALWAYS_FMA || (dsHostSIMDFeatures & dsSIMDFeatures_FMA))
-		type = &instanceVariablesTypeFMA;
-	else if (DS_SIMD_ALWAYS_FLOAT4 || (dsHostSIMDFeatures & dsSIMDFeatures_Float4))
-		type = &instanceVariablesTypeSIMD;
-	else
-#endif
-		type = &instanceVariablesType;
 	return dsSceneInstanceVariables_create(allocator, resourceManager, resourceAllocator,
-		transformDesc, dsUniqueNameID_create(dsInstanceScreenTransformData_uniformName), type,
-		NULL);
+		transformDesc, dsUniqueNameID_create(dsInstanceScreenTransformData_uniformName),
+		optimalInstanceVariablesType(), NULL);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -177,12 +177,12 @@ DS_GEOMETRY_EXPORT void dsFrustum3d_transform(dsFrustum3d* frustum, const dsMatr
  * @param[inout] frustum The frustum to transform.
  * @param transform The inverse-transpose transformation matrix.
  */
-DS_GEOMETRY_EXPORT void dsFrustum3f_transformInverseTranspose(dsFrustum3f* frustum,
-	const dsMatrix44f* transform);
+DS_GEOMETRY_EXPORT void dsFrustum3f_transformInverseTranspose(
+	dsFrustum3f* frustum, const dsMatrix44f* transform);
 
 /** @copydoc dsFrustum3f_transformInverseTranspose() */
-DS_GEOMETRY_EXPORT void dsFrustum3d_transformInverseTranspose(dsFrustum3d* frustum,
-	const dsMatrix44d* transform);
+DS_GEOMETRY_EXPORT void dsFrustum3d_transformInverseTranspose(
+	dsFrustum3d* frustum, const dsMatrix44d* transform);
 
 /**
  * @brief Checks whether or not the frustum has an infinite far plane.
@@ -201,34 +201,12 @@ DS_GEOMETRY_EXPORT bool dsFrustum3d_isInfinite(const dsFrustum3d* frustum);
  * @return The intersection result. Inside and outside is with respect to the frustum. If the box
  * fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
-DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectAlignedBox(const dsFrustum3f* frustum,
-	const dsAlignedBox3f* box);
-
-#if DS_HAS_SIMD
-/**
- * @brief Intersects an aligned box with a frustum using simd operations.
- * @param frustum The frustum to intersect.
- * @param box The aligned box to intersect with.
- * @return The intersection result. Inside and outside is with respect to the frustum. If the box
- * fully contains the frustum, dsIntersectResult_Intersects will be returned.
- */
-DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectAlignedBoxSIMD(const dsFrustum3f* frustum,
-	const dsAlignedBox3f* box);
-
-/**
- * @brief Intersects an aligned box with a frustum using fused multiply-add operations.
- * @param frustum The frustum to intersect.
- * @param box The aligned box to intersect with.
- * @return The intersection result. Inside and outside is with respect to the frustum. If the box
- * fully contains the frustum, dsIntersectResult_Intersects will be returned.
- */
-DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectAlignedBoxFMA(const dsFrustum3f* frustum,
-	const dsAlignedBox3f* box);
-#endif
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectAlignedBox(
+	const dsFrustum3f* frustum, const dsAlignedBox3f* box);
 
 /** @copydoc dsFrustum3f_intersectAlignedBox() */
-DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectAlignedBox(const dsFrustum3d* frustum,
-	const dsAlignedBox3d* box);
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectAlignedBox(
+	const dsFrustum3d* frustum, const dsAlignedBox3d* box);
 
 /**
  * @brief Intersects an oriented box with a frustum.
@@ -237,36 +215,12 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectAlignedBox(const dsFru
  * @return The intersection result. Inside and outside is with respect to the frustum. If the box
  * fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
-DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectOrientedBox(const dsFrustum3f* frustum,
-	const dsOrientedBox3f* box);
-
-#if DS_HAS_SIMD
-/**
- * @brief Intersects an oriented box with a frustum using SIMD operations.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param frustum The frustum to intersect.
- * @param box The oriented box to intersect with.
- * @return The intersection result. Inside and outside is with respect to the frustum. If the box
- * fully contains the frustum, dsIntersectResult_Intersects will be returned.
- */
-DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectOrientedBoxSIMD(
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectOrientedBox(
 	const dsFrustum3f* frustum, const dsOrientedBox3f* box);
-
-/**
- * @brief Intersects an oriented box with a frustum using fused multiply-add operations.
- * @remark This can be used when dsSIMDFeatures_FMA is available.
- * @param frustum The frustum to intersect.
- * @param box The oriented box to intersect with.
- * @return The intersection result. Inside and outside is with respect to the frustum. If the box
- * fully contains the frustum, dsIntersectResult_Intersects will be returned.
- */
-DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectOrientedBoxFMA(
-	const dsFrustum3f* frustum, const dsOrientedBox3f* box);
-#endif
 
 /** @copydoc dsFrustum3f_intersectOrientedBox() */
-DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectOrientedBox(const dsFrustum3d* frustum,
-	const dsOrientedBox3d* box);
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectOrientedBox(
+	const dsFrustum3d* frustum, const dsOrientedBox3d* box);
 
 /**
  * @brief Intersects a box in matrix form with a frustum.
@@ -275,36 +229,12 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectOrientedBox(const dsFr
  * @return The intersection result. Inside and outside is with respect to the frustum. If the box
  * fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
-DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectBoxMatrix(const dsFrustum3f* frustum,
-	const dsMatrix44f* boxMatrix);
-
-#if DS_HAS_SIMD
-/**
- * @brief Intersects a box in matrix form with a frustum using SIMD operations.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param frustum The frustum to intersect.
- * @param boxMatrix The box in matrix form to intersect with.
- * @return The intersection result. Inside and outside is with respect to the frustum. If the box
- * fully contains the frustum, dsIntersectResult_Intersects will be returned.
- */
-DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectBoxMatrixSIMD(
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectBoxMatrix(
 	const dsFrustum3f* frustum, const dsMatrix44f* boxMatrix);
-
-/**
- * @brief Intersects a box in matrix form with a frustum using fused multiply-add operations.
- * @remark This can be used when dsSIMDFeatures_FMA is available.
- * @param frustum The frustum to intersect.
- * @param boxMatrix The box in matrix form to intersect with.
- * @return The intersection result. Inside and outside is with respect to the frustum. If the box
- * fully contains the frustum, dsIntersectResult_Intersects will be returned.
- */
-DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectBoxMatrixFMA(
-	const dsFrustum3f* frustum, const dsMatrix44f* boxMatrix);
-#endif
 
 /** @copydoc dsFrustum3f_intersectBoxMatrix() */
-DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectBoxMatrix(const dsFrustum3d* frustum,
-	const dsMatrix44d* boxMatrix);
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectBoxMatrix(
+	const dsFrustum3d* frustum, const dsMatrix44d* boxMatrix);
 
 /**
  * @brief Intersects a sphere with a frustum.
@@ -321,6 +251,77 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectSphere(const dsFrustum
 /** @copydoc dsFrustum3f_intersectSphere() */
 DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectSphere(const dsFrustum3d* frustum,
 	const dsVector3d* center, double radius);
+
+#if DS_HAS_SIMD
+
+/**
+ * @brief Intersects an aligned box with a frustum using simd operations.
+ * @param frustum The frustum to intersect.
+ * @param box The aligned box to intersect with.
+ * @return The intersection result. Inside and outside is with respect to the frustum. If the box
+ * fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectAlignedBoxSIMD(
+	const dsFrustum3f* frustum, const dsAlignedBox3f* box);
+
+/**
+ * @brief Intersects an oriented box with a frustum using SIMD operations.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param frustum The frustum to intersect.
+ * @param box The oriented box to intersect with.
+ * @return The intersection result. Inside and outside is with respect to the frustum. If the box
+ * fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectOrientedBoxSIMD(
+	const dsFrustum3f* frustum, const dsOrientedBox3f* box);
+
+/**
+ * @brief Intersects a box in matrix form with a frustum using SIMD operations.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param frustum The frustum to intersect.
+ * @param boxMatrix The box in matrix form to intersect with.
+ * @return The intersection result. Inside and outside is with respect to the frustum. If the box
+ * fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectBoxMatrixSIMD(
+	const dsFrustum3f* frustum, const dsMatrix44f* boxMatrix);
+
+#if !DS_DETERMINISTIC_MATH
+
+/**
+ * @brief Intersects an aligned box with a frustum using fused multiply-add operations.
+ * @param frustum The frustum to intersect.
+ * @param box The aligned box to intersect with.
+ * @return The intersection result. Inside and outside is with respect to the frustum. If the box
+ * fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectAlignedBoxFMA(
+	const dsFrustum3f* frustum, const dsAlignedBox3f* box);
+
+/**
+ * @brief Intersects an oriented box with a frustum using fused multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_FMA is available.
+ * @param frustum The frustum to intersect.
+ * @param box The oriented box to intersect with.
+ * @return The intersection result. Inside and outside is with respect to the frustum. If the box
+ * fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectOrientedBoxFMA(
+	const dsFrustum3f* frustum, const dsOrientedBox3f* box);
+
+/**
+ * @brief Intersects a box in matrix form with a frustum using fused multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_FMA is available.
+ * @param frustum The frustum to intersect.
+ * @param boxMatrix The box in matrix form to intersect with.
+ * @return The intersection result. Inside and outside is with respect to the frustum. If the box
+ * fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectBoxMatrixFMA(
+	const dsFrustum3f* frustum, const dsMatrix44f* boxMatrix);
+
+#endif // !DS_DETERMINISTIC_MATH
+#endif // DS_HAS_SIMD
 
 /** @copydoc dsFrustum3_fromMatrix() */
 DS_GEOMETRY_EXPORT inline void dsFrustum3f_fromMatrix(dsFrustum3f* result,

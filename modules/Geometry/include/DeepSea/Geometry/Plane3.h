@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,12 +89,12 @@ DS_GEOMETRY_EXPORT inline void dsPlane3d_normalize(dsPlane3d* result, const dsPl
  * @param transform The transformation matrix.
  * @param plane The plane to transform.
  */
-DS_GEOMETRY_EXPORT inline void dsPlane3f_transform(dsPlane3f* result, const dsMatrix44f* transform,
-	const dsPlane3f* plane);
+DS_GEOMETRY_EXPORT inline void dsPlane3f_transform(
+	dsPlane3f* result, const dsMatrix44f* transform, const dsPlane3f* plane);
 
 /** @copydoc dsPlane3f_transform() */
-DS_GEOMETRY_EXPORT inline void dsPlane3d_transform(dsPlane3d* result, const dsMatrix44d* transform,
-	const dsPlane3d* plane);
+DS_GEOMETRY_EXPORT inline void dsPlane3d_transform(
+	dsPlane3d* result, const dsMatrix44d* transform, const dsPlane3d* plane);
 
 /**
  * @brief Transforms a plane by a matrix when the inverse-transpose is already calculated.
@@ -102,12 +102,12 @@ DS_GEOMETRY_EXPORT inline void dsPlane3d_transform(dsPlane3d* result, const dsMa
  * @param transform The inverse-transpose transformation matrix.
  * @param plane The plane to transform.
  */
-DS_GEOMETRY_EXPORT inline void dsPlane3f_transformInverseTranspose(dsPlane3f* result,
-	const dsMatrix44f* transform, const dsPlane3f* plane);
+DS_GEOMETRY_EXPORT inline void dsPlane3f_transformInverseTranspose(
+	dsPlane3f* result, const dsMatrix44f* transform, const dsPlane3f* plane);
 
 /** @copydoc dsPlane3f_transformInverseTranspose() */
-DS_GEOMETRY_EXPORT inline void dsPlane3d_transformInverseTranspose(dsPlane3d* result,
-	const dsMatrix44d* transform, const dsPlane3d* plane);
+DS_GEOMETRY_EXPORT inline void dsPlane3d_transformInverseTranspose(
+	dsPlane3d* result, const dsMatrix44d* transform, const dsPlane3d* plane);
 
 /**
  * @brief Computes the intersecting line between two planes.
@@ -116,12 +116,12 @@ DS_GEOMETRY_EXPORT inline void dsPlane3d_transformInverseTranspose(dsPlane3d* re
  * @param secondPlane The second plane to intersect.
  * @return False if the planes are parallel and don't intersect.
  */
-DS_GEOMETRY_EXPORT bool dsPlane3f_intersectingLine(dsRay3f* result, const dsPlane3f* firstPlane,
-	const dsPlane3f* secondPlane);
+DS_GEOMETRY_EXPORT bool dsPlane3f_intersectingLine(
+	dsRay3f* result, const dsPlane3f* firstPlane, const dsPlane3f* secondPlane);
 
 /** @copydoc dsPlane3f_intersectingLine() */
-DS_GEOMETRY_EXPORT bool dsPlane3d_intersectingLine(dsRay3d* result, const dsPlane3d* firstPlane,
-	const dsPlane3d* secondPlane);
+DS_GEOMETRY_EXPORT bool dsPlane3d_intersectingLine(
+	dsRay3d* result, const dsPlane3d* firstPlane, const dsPlane3d* secondPlane);
 
 /**
  * @brief Computes the intersecting point between three planes.
@@ -160,12 +160,12 @@ DS_GEOMETRY_EXPORT double dsPlane3d_rayIntersection(const dsPlane3d* plane, cons
  * @param box The box to intersect with the plane.
  * @return The side of the plane that the box lies.
  */
-DS_GEOMETRY_EXPORT dsIntersectResult dsPlane3f_intersectAlignedBox(const dsPlane3f* plane,
-	const dsAlignedBox3f* box);
+DS_GEOMETRY_EXPORT dsIntersectResult dsPlane3f_intersectAlignedBox(
+	const dsPlane3f* plane, const dsAlignedBox3f* box);
 
 /** @copydoc dsPlane3f_intersectAlignedBox() */
-DS_GEOMETRY_EXPORT dsIntersectResult dsPlane3d_intersectAlignedBox(const dsPlane3d* plane,
-	const dsAlignedBox3d* box);
+DS_GEOMETRY_EXPORT dsIntersectResult dsPlane3d_intersectAlignedBox(
+	const dsPlane3d* plane, const dsAlignedBox3d* box);
 
 /**
  * @brief Intersects a plane with an oriented box.
@@ -173,12 +173,12 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsPlane3d_intersectAlignedBox(const dsPlane
  * @param box The box to intersect with the plane.
  * @return The side of the plane that the box lies.
  */
-DS_GEOMETRY_EXPORT dsIntersectResult dsPlane3f_intersectOrientedBox(const dsPlane3f* plane,
-	const dsOrientedBox3f* box);
+DS_GEOMETRY_EXPORT dsIntersectResult dsPlane3f_intersectOrientedBox(
+	const dsPlane3f* plane, const dsOrientedBox3f* box);
 
 /** @copydoc dsPlane3f_intersectOrientedBox() */
-DS_GEOMETRY_EXPORT dsIntersectResult dsPlane3d_intersectOrientedBox(const dsPlane3d* plane,
-	const dsOrientedBox3d* box);
+DS_GEOMETRY_EXPORT dsIntersectResult dsPlane3d_intersectOrientedBox(
+	const dsPlane3d* plane, const dsOrientedBox3d* box);
 
 /**
  * @brief Intersects a plane with a matrix representation of a box.
@@ -186,12 +186,12 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsPlane3d_intersectOrientedBox(const dsPlan
  * @param boxMatrix The matrix representation of the box.
  * @return The side of the plane that the box lies.
  */
-DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrix(const dsPlane3f* plane,
-	const dsMatrix44f* boxMatrix);
+DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrix(
+	const dsPlane3f* plane, const dsMatrix44f* boxMatrix);
 
 /** @copydoc dsPlane3f_intersectBoxMatrix() */
-DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrix(const dsPlane3d* plane,
-	const dsMatrix44d* boxMatrix);
+DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrix(
+	const dsPlane3d* plane, const dsMatrix44d* boxMatrix);
 
 /**
  * @brief Intersects a plane with the transpose of a matrix representation of a box.
@@ -214,6 +214,8 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrixTranspos
 DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrixTransposeSIMD(
 	const dsPlane3f* plane, const dsMatrix44f* boxMatrix);
 
+#if !DS_DETERMINISTIC_MATH
+
 /**
  * @brief Intersects a plane with the transpose of a matrix representation of a box using fused
  *     multiply-add operations.
@@ -224,6 +226,8 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrixTranspos
  */
 DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrixTransposeFMA(
 	const dsPlane3f* plane, const dsMatrix44f* boxMatrix);
+
+#endif
 
 /**
  * @brief Intersects a plane with the transpose of a matrix representation of a box using SIMD
@@ -236,6 +240,8 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrixTranspos
 DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeSIMD2(
 	const dsPlane3d* plane, const dsMatrix44d* boxMatrix);
 
+#if !DS_DETERMINISTIC_MATH
+
 /**
  * @brief Intersects a plane with the transpose of a matrix representation of a box using fused
  *     multiply-add operations.
@@ -247,15 +253,18 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTranspos
 DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeFMA2(
 	const dsPlane3d* plane, const dsMatrix44d* boxMatrix);
 
+#endif
+
 /**
  * @brief Intersects a plane with the transpose of a matrix representation of a box using fused
  *     multiply-add operations.
- * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_FMA is available.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available, and will use FMA if not
+ *     disabled through enabling determinisitic math.
  * @param plane The plane to intersect with the box.
  * @param boxMatrix The matrix representation of the box.
  * @return The side of the plane that the box lies.
  */
-DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeFMA4(
+DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeSIMD4(
 	const dsPlane3d* DS_ALIGN_PARAM(32) plane, const dsMatrix44d* DS_ALIGN_PARAM(32) boxMatrix);
 #endif
 
@@ -264,8 +273,8 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTranspos
 	const dsPlane3d* plane, const dsMatrix44d* boxMatrix);
 
 /** @copydoc dsPlane3_fromNormalPoint() */
-DS_GEOMETRY_EXPORT inline void dsPlane3f_fromNormalPoint(dsPlane3f* result,
-	const dsVector3f* normal, const dsVector3f* point)
+DS_GEOMETRY_EXPORT inline void dsPlane3f_fromNormalPoint(
+	dsPlane3f* result, const dsVector3f* normal, const dsVector3f* point)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(normal);
@@ -274,8 +283,8 @@ DS_GEOMETRY_EXPORT inline void dsPlane3f_fromNormalPoint(dsPlane3f* result,
 }
 
 /** @copydoc dsPlane3_fromNormalPoint() */
-DS_GEOMETRY_EXPORT inline void dsPlane3d_fromNormalPoint(dsPlane3d* result,
-	const dsVector3d* normal, const dsVector3d* point)
+DS_GEOMETRY_EXPORT inline void dsPlane3d_fromNormalPoint(
+	dsPlane3d* result, const dsVector3d* normal, const dsVector3d* point)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(normal);
@@ -284,8 +293,8 @@ DS_GEOMETRY_EXPORT inline void dsPlane3d_fromNormalPoint(dsPlane3d* result,
 }
 
 /** @copydoc dsPlane3_distanceToPoint() */
-DS_GEOMETRY_EXPORT inline float dsPlane3f_distanceToPoint(const dsPlane3f* plane,
-	const dsVector3f* point)
+DS_GEOMETRY_EXPORT inline float dsPlane3f_distanceToPoint(
+	const dsPlane3f* plane, const dsVector3f* point)
 {
 	DS_ASSERT(plane);
 	DS_ASSERT(point);
@@ -293,8 +302,8 @@ DS_GEOMETRY_EXPORT inline float dsPlane3f_distanceToPoint(const dsPlane3f* plane
 }
 
 /** @copydoc dsPlane3_distanceToPoint() */
-DS_GEOMETRY_EXPORT inline double dsPlane3d_distanceToPoint(const dsPlane3d* plane,
-	const dsVector3d* point)
+DS_GEOMETRY_EXPORT inline double dsPlane3d_distanceToPoint(
+	const dsPlane3d* plane, const dsVector3d* point)
 {
 	DS_ASSERT(plane);
 	DS_ASSERT(point);
@@ -319,8 +328,8 @@ DS_GEOMETRY_EXPORT inline void dsPlane3d_normalize(dsPlane3d* result, const dsPl
 	dsVector4d_scale((dsVector4d*)result, (const dsVector4d*)plane, invLength);
 }
 
-DS_GEOMETRY_EXPORT inline void dsPlane3f_transform(dsPlane3f* result, const dsMatrix44f* transform,
-	const dsPlane3f* plane)
+DS_GEOMETRY_EXPORT inline void dsPlane3f_transform(
+	dsPlane3f* result, const dsMatrix44f* transform, const dsPlane3f* plane)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(plane);
@@ -334,8 +343,8 @@ DS_GEOMETRY_EXPORT inline void dsPlane3f_transform(dsPlane3f* result, const dsMa
 	dsPlane3f_normalize(result, &transformedPlane);
 }
 
-DS_GEOMETRY_EXPORT inline void dsPlane3d_transform(dsPlane3d* result, const dsMatrix44d* transform,
-	const dsPlane3d* plane)
+DS_GEOMETRY_EXPORT inline void dsPlane3d_transform(
+	dsPlane3d* result, const dsMatrix44d* transform, const dsPlane3d* plane)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(plane);
@@ -349,8 +358,8 @@ DS_GEOMETRY_EXPORT inline void dsPlane3d_transform(dsPlane3d* result, const dsMa
 	dsPlane3d_normalize(result, &transformedPlane);
 }
 
-DS_GEOMETRY_EXPORT inline void dsPlane3f_transformInverseTranspose(dsPlane3f* result,
-	const dsMatrix44f* transform, const dsPlane3f* plane)
+DS_GEOMETRY_EXPORT inline void dsPlane3f_transformInverseTranspose(
+	dsPlane3f* result, const dsMatrix44f* transform, const dsPlane3f* plane)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(plane);
@@ -361,8 +370,8 @@ DS_GEOMETRY_EXPORT inline void dsPlane3f_transformInverseTranspose(dsPlane3f* re
 	dsPlane3f_normalize(result, &transformedPlane);
 }
 
-DS_GEOMETRY_EXPORT inline void dsPlane3d_transformInverseTranspose(dsPlane3d* result,
-	const dsMatrix44d* transform, const dsPlane3d* plane)
+DS_GEOMETRY_EXPORT inline void dsPlane3d_transformInverseTranspose(
+	dsPlane3d* result, const dsMatrix44d* transform, const dsPlane3d* plane)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(plane);
@@ -373,8 +382,8 @@ DS_GEOMETRY_EXPORT inline void dsPlane3d_transformInverseTranspose(dsPlane3d* re
 	dsPlane3d_normalize(result, &transformedPlane);
 }
 
-DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrix(const dsPlane3f* plane,
-	const dsMatrix44f* boxMatrix)
+DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrix(
+	const dsPlane3f* plane, const dsMatrix44f* boxMatrix)
 {
 	DS_ASSERT(plane);
 	DS_ASSERT(boxMatrix);
@@ -397,8 +406,8 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrix(const d
 		return dsIntersectResult_Intersects;
 }
 
-DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrix(const dsPlane3d* plane,
-	const dsMatrix44d* boxMatrix)
+DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrix(
+	const dsPlane3d* plane, const dsMatrix44d* boxMatrix)
 {
 	DS_ASSERT(plane);
 	DS_ASSERT(boxMatrix);
@@ -495,6 +504,7 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrixTranspos
 }
 DS_SIMD_END()
 
+#if !DS_DETERMINISTIC_MATH
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrixTransposeFMA(
 	const dsPlane3f* plane, const dsMatrix44f* boxMatrix)
@@ -520,6 +530,7 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrixTranspos
 		return dsIntersectResult_Intersects;
 }
 DS_SIMD_END()
+#endif // !DS_DETERMINISTIC_MATH
 
 DS_SIMD_START(DS_SIMD_DOUBLE2)
 DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeSIMD2(
@@ -549,6 +560,7 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTranspos
 }
 DS_SIMD_END()
 
+#if !DS_DETERMINISTIC_MATH
 DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_FMA)
 DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeFMA2(
 	const dsPlane3d* plane, const dsMatrix44d* boxMatrix)
@@ -575,9 +587,10 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTranspos
 		return dsIntersectResult_Intersects;
 }
 DS_SIMD_END()
+#endif // !DS_DETERMINISTIC_MATH
 
 DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_FMA)
-DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeFMA4(
+DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeSIMD4(
 	const dsPlane3d* DS_ALIGN_PARAM(32) plane, const dsMatrix44d* DS_ALIGN_PARAM(32) boxMatrix)
 {
 	DS_ASSERT(plane);
@@ -586,7 +599,7 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTranspos
 	// https://gdbooks.gitbooks.io/3dcollisions/content/Chapter2/static_aabb_plane.html
 	// Transform plane into box space then compare to to a box [-1, 1] for all dimensions.
 	DS_ALIGN(32) dsPlane3d transformedPlane;
-	dsMatrix44d_transformFMA4((dsVector4d*)&transformedPlane, boxMatrix, (const dsVector4d*)plane);
+	dsMatrix44d_transformSIMD4((dsVector4d*)&transformedPlane, boxMatrix, (const dsVector4d*)plane);
 	dsPlane3d_normalize(&transformedPlane, &transformedPlane);
 
 	dsVector4d planeAbs;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -274,8 +274,8 @@ bool dsShadowProjection_reset(dsShadowProjection* shadowProj)
 	return true;
 }
 
-bool dsShadowProjection_addPoints(dsShadowProjection* shadowProj, const dsVector3f* points,
-	uint32_t pointCount)
+bool dsShadowProjection_addPoints(
+	dsShadowProjection* shadowProj, const dsVector3f* points, uint32_t pointCount)
 {
 	if (!shadowProj || (!points && pointCount > 0))
 	{
@@ -301,9 +301,10 @@ bool dsShadowProjection_addPoints(dsShadowProjection* shadowProj, const dsVector
 }
 
 #if DS_HAS_SIMD
+
 DS_SIMD_START(DS_SIMD_FLOAT4)
-void dsShadowProjection_addPointsSIMD(dsShadowProjection* shadowProj, const dsVector4f* points,
-	uint32_t pointCount)
+void dsShadowProjection_addPointsSIMD(
+	dsShadowProjection* shadowProj, const dsVector4f* points, uint32_t pointCount)
 {
 	DS_ASSERT(shadowProj);
 	DS_ASSERT(points);
@@ -330,9 +331,11 @@ void dsShadowProjection_addPointsSIMD(dsShadowProjection* shadowProj, const dsVe
 }
 DS_SIMD_END()
 
+#if !DS_DETERMINISTIC_MATH
+
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
-void dsShadowProjection_addPointsFMA(dsShadowProjection* shadowProj, const dsVector4f* points,
-	uint32_t pointCount)
+void dsShadowProjection_addPointsFMA(
+	dsShadowProjection* shadowProj, const dsVector4f* points, uint32_t pointCount)
 {
 	DS_ASSERT(shadowProj);
 	DS_ASSERT(points);
@@ -358,7 +361,9 @@ void dsShadowProjection_addPointsFMA(dsShadowProjection* shadowProj, const dsVec
 	shadowProj->pointBounds.max = *(dsVector3f*)&boxMax;
 }
 DS_SIMD_END()
-#endif
+
+#endif // !DS_DETERMINISTIC_MATH
+#endif // DS_HAS_SIMD
 
 bool dsShadowProjection_computeMatrix(dsMatrix44f* outMatrix, const dsShadowProjection* shadowProj,
 	float paddingRatio, float minDepthRange)

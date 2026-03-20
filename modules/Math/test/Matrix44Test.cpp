@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2025 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "Determinism.h"
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Quaternion.h>
 #include <DeepSea/Math/Vector3.h>
@@ -1508,6 +1509,7 @@ TYPED_TEST(Matrix44Test, MakePerspective)
 }
 
 #if DS_HAS_SIMD
+
 TEST(Matrix44fTest, MultiplySIMD)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
@@ -1531,30 +1533,52 @@ TEST(Matrix44fTest, MultiplySIMD)
 		{-5.4f, 7.6f, 9.8f, -1.0f}
 	}};
 
-	dsMatrix44f result;
+	dsMatrix44f scalarResult, result;
+	dsMatrix44_mul(scalarResult, matrix1, matrix2);
 	dsMatrix44f_mulSIMD(&result, &matrix1, &matrix2);
 
-	EXPECT_NEAR(41.8, result.values[0][0], epsilon);
-	EXPECT_NEAR(-96.36, result.values[0][1], epsilon);
-	EXPECT_NEAR(-80.04, result.values[0][2], epsilon);
-	EXPECT_NEAR(34.28, result.values[0][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][0], result.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][1], result.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][2], result.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][3], result.values[0][3], epsilon);
 
-	EXPECT_NEAR(55.62, result.values[1][0], epsilon);
-	EXPECT_NEAR(-87.3, result.values[1][1], epsilon);
-	EXPECT_NEAR(-1.98, result.values[1][2], epsilon);
-	EXPECT_NEAR(-62.26, result.values[1][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][0], result.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][1], result.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][2], result.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][3], result.values[1][3], epsilon);
 
-	EXPECT_NEAR(-109.08, result.values[2][0], epsilon);
-	EXPECT_NEAR(48.8, result.values[2][1], epsilon);
-	EXPECT_NEAR(-28.16, result.values[2][2], epsilon);
-	EXPECT_NEAR(92.4, result.values[2][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][0], result.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][1], result.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][2], result.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][3], result.values[2][3], epsilon);
 
-	EXPECT_NEAR(-1.98, result.values[3][0], epsilon);
-	EXPECT_NEAR(80.74, result.values[3][1], epsilon);
-	EXPECT_NEAR(51.66, result.values[3][2], epsilon);
-	EXPECT_NEAR(-93.02, result.values[3][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][0], result.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][1], result.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][2], result.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][3], result.values[3][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(41.800003f, result.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-96.359993f, result.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-80.040001f, result.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(34.279999f, result.values[0][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(55.620003f, result.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-87.300003f, result.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-1.9799957f, result.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-62.259995f, result.values[1][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-109.08f, result.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(48.799999f, result.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-28.160002f, result.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(92.400002f, result.values[2][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-1.9799957f, result.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(80.739998f, result.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(51.659996f, result.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-93.020004f, result.values[3][3], epsilon);
 }
 
+#if !DS_DETERMINISTIC_MATH
 TEST(Matrix44fTest, MultiplyFMA)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
@@ -1601,8 +1625,9 @@ TEST(Matrix44fTest, MultiplyFMA)
 	EXPECT_NEAR(51.66, result.values[3][2], epsilon);
 	EXPECT_NEAR(-93.02, result.values[3][3], epsilon);
 }
+#endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, MultiplyDouble2SIMD)
+TEST(Matrix44fTest, MultiplyDoubleSIMD2)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 		return;
@@ -1625,30 +1650,52 @@ TEST(Matrix44fTest, MultiplyDouble2SIMD)
 		{-5.4, 7.6, 9.8, -1.0}
 	}};
 
-	dsMatrix44d result;
+	dsMatrix44d scalarResult, result;
+	dsMatrix44_mul(scalarResult, matrix1, matrix2);
 	dsMatrix44d_mulSIMD2(&result, &matrix1, &matrix2);
 
-	EXPECT_NEAR(41.8, result.values[0][0], epsilon);
-	EXPECT_NEAR(-96.36, result.values[0][1], epsilon);
-	EXPECT_NEAR(-80.04, result.values[0][2], epsilon);
-	EXPECT_NEAR(34.28, result.values[0][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][0], result.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][1], result.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][2], result.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][3], result.values[0][3], epsilon);
 
-	EXPECT_NEAR(55.62, result.values[1][0], epsilon);
-	EXPECT_NEAR(-87.3, result.values[1][1], epsilon);
-	EXPECT_NEAR(-1.98, result.values[1][2], epsilon);
-	EXPECT_NEAR(-62.26, result.values[1][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][0], result.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][1], result.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][2], result.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][3], result.values[1][3], epsilon);
 
-	EXPECT_NEAR(-109.08, result.values[2][0], epsilon);
-	EXPECT_NEAR(48.8, result.values[2][1], epsilon);
-	EXPECT_NEAR(-28.16, result.values[2][2], epsilon);
-	EXPECT_NEAR(92.4, result.values[2][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][0], result.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][1], result.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][2], result.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][3], result.values[2][3], epsilon);
 
-	EXPECT_NEAR(-1.98, result.values[3][0], epsilon);
-	EXPECT_NEAR(80.74, result.values[3][1], epsilon);
-	EXPECT_NEAR(51.66, result.values[3][2], epsilon);
-	EXPECT_NEAR(-93.02, result.values[3][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][0], result.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][1], result.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][2], result.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][3], result.values[3][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(41.79999999999999, result.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-96.36, result.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-80.04, result.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(34.28, result.values[0][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(55.620000000000005, result.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-87.300000000000011, result.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-1.980000000000004, result.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-62.260000000000012, result.values[1][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-109.08000000000001, result.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(48.8, result.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-28.159999999999989, result.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(92.4, result.values[2][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-1.980000000000004, result.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(80.740000000000009, result.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(51.660000000000004, result.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-93.02, result.values[3][3], epsilon);
 }
 
+#if !DS_DETERMINISTIC_MATH
 TEST(Matrix44fTest, MultiplyDouble2FMA)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
@@ -1696,11 +1743,11 @@ TEST(Matrix44fTest, MultiplyDouble2FMA)
 	EXPECT_NEAR(51.66, result.values[3][2], epsilon);
 	EXPECT_NEAR(-93.02, result.values[3][3], epsilon);
 }
+#endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, MultiplyDouble4FMA)
+TEST(Matrix44fTest, MultiplyDoubleSIMD4)
 {
-	dsSIMDFeatures features = dsSIMDFeatures_Double4 | dsSIMDFeatures_FMA;
-	if ((dsHostSIMDFeatures & features) != features)
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
@@ -1721,28 +1768,49 @@ TEST(Matrix44fTest, MultiplyDouble4FMA)
 		{-5.4, 7.6, 9.8, -1.0}
 	}};
 
-	DS_ALIGN(32) dsMatrix44d result;
-	dsMatrix44d_mulFMA4(&result, &matrix1, &matrix2);
+	DS_ALIGN(32) dsMatrix44d scalarResult, result;
+	dsMatrix44_mul(scalarResult, matrix1, matrix2);
+	dsMatrix44d_mulSIMD4(&result, &matrix1, &matrix2);
 
-	EXPECT_NEAR(41.8, result.values[0][0], epsilon);
-	EXPECT_NEAR(-96.36, result.values[0][1], epsilon);
-	EXPECT_NEAR(-80.04, result.values[0][2], epsilon);
-	EXPECT_NEAR(34.28, result.values[0][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][0], result.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][1], result.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][2], result.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][3], result.values[0][3], epsilon);
 
-	EXPECT_NEAR(55.62, result.values[1][0], epsilon);
-	EXPECT_NEAR(-87.3, result.values[1][1], epsilon);
-	EXPECT_NEAR(-1.98, result.values[1][2], epsilon);
-	EXPECT_NEAR(-62.26, result.values[1][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][0], result.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][1], result.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][2], result.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][3], result.values[1][3], epsilon);
 
-	EXPECT_NEAR(-109.08, result.values[2][0], epsilon);
-	EXPECT_NEAR(48.8, result.values[2][1], epsilon);
-	EXPECT_NEAR(-28.16, result.values[2][2], epsilon);
-	EXPECT_NEAR(92.4, result.values[2][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][0], result.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][1], result.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][2], result.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][3], result.values[2][3], epsilon);
 
-	EXPECT_NEAR(-1.98, result.values[3][0], epsilon);
-	EXPECT_NEAR(80.74, result.values[3][1], epsilon);
-	EXPECT_NEAR(51.66, result.values[3][2], epsilon);
-	EXPECT_NEAR(-93.02, result.values[3][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][0], result.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][1], result.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][2], result.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][3], result.values[3][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(41.79999999999999, result.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-96.36, result.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-80.04, result.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(34.28, result.values[0][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(55.620000000000005, result.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-87.300000000000011, result.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-1.980000000000004, result.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-62.260000000000012, result.values[1][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-109.08000000000001, result.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(48.8, result.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-28.159999999999989, result.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(92.4, result.values[2][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-1.980000000000004, result.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(80.740000000000009, result.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(51.660000000000004, result.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-93.02, result.values[3][3], epsilon);
 }
 
 TEST(Matrix44fTest, TransformSIMD)
@@ -1761,16 +1829,23 @@ TEST(Matrix44fTest, TransformSIMD)
 	}};
 
 	dsVector4f vector = {{-1.0f, 3.2f, -5.4f, 7.6f}};
-	dsVector4f result;
+	dsVector4f scalarResult, result;
 
+	dsMatrix44_transform(scalarResult, matrix, vector);
 	dsMatrix44f_transformSIMD(&result, &matrix, &vector);
 
-	EXPECT_NEAR(82.68, result.values[0], epsilon);
-	EXPECT_NEAR(-55.84, result.values[1], epsilon);
-	EXPECT_NEAR(17.16, result.values[2], epsilon);
-	EXPECT_NEAR(22.88, result.values[3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0], result.values[0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1], result.values[1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2], result.values[2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3], result.values[3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(82.68f, result.values[0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-55.840004f, result.values[1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(17.16f, result.values[2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(22.879995f, result.values[3], epsilon);
 }
 
+#if !DS_DETERMINISTIC_MATH
 TEST(Matrix44fTest, TransformFMA)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
@@ -1796,8 +1871,9 @@ TEST(Matrix44fTest, TransformFMA)
 	EXPECT_NEAR(17.16, result.values[2], epsilon);
 	EXPECT_NEAR(22.88, result.values[3], epsilon);
 }
+#endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, TransformDouble2SIMD)
+TEST(Matrix44fTest, TransformDoubleSIMD2)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 		return;
@@ -1813,16 +1889,23 @@ TEST(Matrix44fTest, TransformDouble2SIMD)
 	}};
 
 	dsVector4d vector = {{-1.0, 3.2, -5.4, 7.6}};
-	dsVector4d result;
+	dsVector4d scalarResult, result;
 
+	dsMatrix44_transform(scalarResult, matrix, vector);
 	dsMatrix44d_transformSIMD2(&result, &matrix, &vector);
 
-	EXPECT_NEAR(82.68, result.values[0], epsilon);
-	EXPECT_NEAR(-55.84, result.values[1], epsilon);
-	EXPECT_NEAR(17.16, result.values[2], epsilon);
-	EXPECT_NEAR(22.88, result.values[3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0], result.values[0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1], result.values[1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2], result.values[2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3], result.values[3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(82.679999999999993, result.values[0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-55.839999999999996, result.values[1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(17.160000000000011, result.values[2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(22.88, result.values[3], epsilon);
 }
 
+#if !DS_DETERMINISTIC_MATH
 TEST(Matrix44fTest, TransformDouble2FMA)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
@@ -1849,11 +1932,11 @@ TEST(Matrix44fTest, TransformDouble2FMA)
 	EXPECT_NEAR(17.16, result.values[2], epsilon);
 	EXPECT_NEAR(22.88, result.values[3], epsilon);
 }
+#endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, TransformDouble4FMA)
+TEST(Matrix44fTest, TransformDoubleSIMD4)
 {
-	dsSIMDFeatures features = dsSIMDFeatures_Double4 | dsSIMDFeatures_FMA;
-	if ((dsHostSIMDFeatures & features) != features)
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
@@ -1867,14 +1950,20 @@ TEST(Matrix44fTest, TransformDouble4FMA)
 	}};
 
 	DS_ALIGN(32) dsVector4d vector = {{-1.0, 3.2, -5.4, 7.6}};
-	DS_ALIGN(32) dsVector4d result;
+	DS_ALIGN(32) dsVector4d scalarResult, result;
 
-	dsMatrix44d_transformFMA4(&result, &matrix, &vector);
+	dsMatrix44_transform(scalarResult, matrix, vector);
+	dsMatrix44d_transformSIMD4(&result, &matrix, &vector);
 
-	EXPECT_NEAR(82.68, result.values[0], epsilon);
-	EXPECT_NEAR(-55.84, result.values[1], epsilon);
-	EXPECT_NEAR(17.16, result.values[2], epsilon);
-	EXPECT_NEAR(22.88, result.values[3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0], result.values[0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1], result.values[1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2], result.values[2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3], result.values[3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(82.679999999999993, result.values[0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-55.839999999999996, result.values[1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(17.160000000000011, result.values[2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(22.88, result.values[3], epsilon);
 }
 
 TEST(Matrix44fTest, TransformTransposedSIMD)
@@ -1893,16 +1982,23 @@ TEST(Matrix44fTest, TransformTransposedSIMD)
 	}};
 
 	dsVector4f vector = {{-1.0f, 3.2f, -5.4f, 7.6f}};
-	dsVector4f result;
+	dsVector4f scalarResult, result;
 
+	dsMatrix44_transformTransposed(scalarResult, matrix, vector);
 	dsMatrix44f_transformTransposedSIMD(&result, &matrix, &vector);
 
-	EXPECT_NEAR(82.68, result.values[0], epsilon);
-	EXPECT_NEAR(-55.84, result.values[1], epsilon);
-	EXPECT_NEAR(17.16, result.values[2], epsilon);
-	EXPECT_NEAR(22.88, result.values[3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0], result.values[0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1], result.values[1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2], result.values[2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3], result.values[3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(82.68f, result.values[0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-55.840004f, result.values[1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(17.16f, result.values[2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(22.8799953f, result.values[3], epsilon);
 }
 
+#if !DS_DETERMINISTIC_MATH
 TEST(Matrix44fTest, TransformTransposedFMA)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
@@ -1928,8 +2024,9 @@ TEST(Matrix44fTest, TransformTransposedFMA)
 	EXPECT_NEAR(17.16, result.values[2], epsilon);
 	EXPECT_NEAR(22.88, result.values[3], epsilon);
 }
+#endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, TransformTransposedDouble2SIMD)
+TEST(Matrix44fTest, TransformTransposedDoubleSIMD2)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 		return;
@@ -1945,16 +2042,23 @@ TEST(Matrix44fTest, TransformTransposedDouble2SIMD)
 	}};
 
 	dsVector4d vector = {{-1.0, 3.2, -5.4, 7.6}};
-	dsVector4d result;
+	dsVector4d scalarResult, result;
 
+	dsMatrix44_transformTransposed(scalarResult, matrix, vector);
 	dsMatrix44d_transformTransposedSIMD2(&result, &matrix, &vector);
 
-	EXPECT_NEAR(82.68, result.values[0], epsilon);
-	EXPECT_NEAR(-55.84, result.values[1], epsilon);
-	EXPECT_NEAR(17.16, result.values[2], epsilon);
-	EXPECT_NEAR(22.88, result.values[3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0], result.values[0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1], result.values[1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2], result.values[2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3], result.values[3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(82.679999999999993, result.values[0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-55.839999999999996, result.values[1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(17.160000000000011, result.values[2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(22.88, result.values[3], epsilon);
 }
 
+#if !DS_DETERMINISTIC_MATH
 TEST(Matrix44fTest, TransformTransposedDouble2FMA)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
@@ -1981,11 +2085,11 @@ TEST(Matrix44fTest, TransformTransposedDouble2FMA)
 	EXPECT_NEAR(17.16, result.values[2], epsilon);
 	EXPECT_NEAR(22.88, result.values[3], epsilon);
 }
+#endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, TransformTransposedDouble4FMA)
+TEST(Matrix44fTest, TransformTransposedDoubleSIMD4)
 {
-	dsSIMDFeatures features = dsSIMDFeatures_Double4 | dsSIMDFeatures_FMA;
-	if ((dsHostSIMDFeatures & features) != features)
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
@@ -1999,14 +2103,20 @@ TEST(Matrix44fTest, TransformTransposedDouble4FMA)
 	}};
 
 	DS_ALIGN(32) dsVector4d vector = {{-1.0, 3.2, -5.4, 7.6}};
-	DS_ALIGN(32) dsVector4d result;
+	DS_ALIGN(32) dsVector4d scalarResult, result;
 
-	dsMatrix44d_transformTransposedFMA4(&result, &matrix, &vector);
+	dsMatrix44_transformTransposed(scalarResult, matrix, vector);
+	dsMatrix44d_transformTransposedSIMD4(&result, &matrix, &vector);
 
-	EXPECT_NEAR(82.68, result.values[0], epsilon);
-	EXPECT_NEAR(-55.84, result.values[1], epsilon);
-	EXPECT_NEAR(17.16, result.values[2], epsilon);
-	EXPECT_NEAR(22.88, result.values[3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0], result.values[0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1], result.values[1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2], result.values[2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3], result.values[3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(82.679999999999993, result.values[0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-55.839999999999996, result.values[1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(17.160000000000011, result.values[2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(22.88, result.values[3], epsilon);
 }
 
 TEST(Matrix44fTest, TransposeSIMD)
@@ -2046,7 +2156,7 @@ TEST(Matrix44fTest, TransposeSIMD)
 	EXPECT_EQ(0.1f, result.values[3][3]);
 }
 
-TEST(Matrix44fTest, TransposeDouble2SIMD)
+TEST(Matrix44fTest, TransposeDoubleSIMD2)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 		return;
@@ -2083,7 +2193,7 @@ TEST(Matrix44fTest, TransposeDouble2SIMD)
 	EXPECT_EQ(0.1, result.values[3][3]);
 }
 
-TEST(Matrix44fTest, TransposeDouble4SIMD)
+TEST(Matrix44fTest, TransposeDoubleSIMD4)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
 		return;
@@ -2135,9 +2245,14 @@ TEST(Matrix44fTest, DeterminantSIMD)
 		{4.5f, -6.7f, -8.9f, 1.0f}
 	}};
 
-	EXPECT_NEAR(6163.7587f, dsMatrix44f_determinantSIMD(&matrix), epsilon);
+	float scalarResult = dsMatrix44_determinant(matrix);
+	float result = dsMatrix44f_determinantSIMD(&matrix);
+
+	EXPECT_EQ_DETERMINISTIC(scalarResult, result, epsilon);
+	EXPECT_EQ_DETERMINISTIC(6163.7583f, result, epsilon);
 }
 
+#if !DS_DETERMINISTIC_MATH
 TEST(Matrix44fTest, DeterminantFMA)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
@@ -2155,8 +2270,9 @@ TEST(Matrix44fTest, DeterminantFMA)
 
 	EXPECT_NEAR(6163.7587f, dsMatrix44f_determinantFMA(&matrix), epsilon);
 }
+#endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, DeterminantDouble2SIMD)
+TEST(Matrix44fTest, DeterminantDoubleSIMD2)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 		return;
@@ -2171,9 +2287,14 @@ TEST(Matrix44fTest, DeterminantDouble2SIMD)
 		{4.5, -6.7, -8.9, 1.0}
 	}};
 
-	EXPECT_NEAR(6163.7587, dsMatrix44d_determinantSIMD2(&matrix), epsilon);
+	double scalarResult = dsMatrix44_determinant(matrix);
+	double result = dsMatrix44d_determinantSIMD2(&matrix);
+
+	EXPECT_EQ_DETERMINISTIC(scalarResult, result, epsilon);
+	EXPECT_EQ_DETERMINISTIC(6163.7587000000003, result, epsilon);
 }
 
+#if !DS_DETERMINISTIC_MATH
 TEST(Matrix44fTest, DeterminantDouble2FMA)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
@@ -2192,6 +2313,7 @@ TEST(Matrix44fTest, DeterminantDouble2FMA)
 
 	EXPECT_NEAR(6163.7587, dsMatrix44d_determinantFMA2(&matrix), epsilon);
 }
+#endif // !DS_DETERMINISTIC_MATH
 
 TEST(Matrix44fTest, FastInvertSIMD)
 {
@@ -2207,36 +2329,77 @@ TEST(Matrix44fTest, FastInvertSIMD)
 	dsMatrix44f translate;
 	dsMatrix44f_makeTranslate(&translate, 1.2f, -3.4f, 5.6f);
 
-	dsMatrix44f matrix;
+	// Also verify determinism of affine multiply.
+	dsMatrix44f scalarMatrix, matrix;
+	dsMatrix44_affineMul(scalarMatrix, translate, rotate);
 	dsMatrix44f_affineMulSIMD(&matrix, &translate, &rotate);
 
-	dsMatrix44f inverse;
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][0], matrix.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][1], matrix.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][2], matrix.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][3], matrix.values[0][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][0], matrix.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][1], matrix.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][2], matrix.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][3], matrix.values[1][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][0], matrix.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][1], matrix.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][2], matrix.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][3], matrix.values[2][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][0], matrix.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][1], matrix.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][2], matrix.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][3], matrix.values[3][3], epsilon);
+
+	dsMatrix44f scalarInverse, inverse;
+	dsMatrix44_fastInvert(scalarInverse, scalarMatrix);
 	dsMatrix44f_fastInvertSIMD(&inverse, &matrix);
 
-	dsMatrix44f result;
-	dsMatrix44f_mulSIMD(&result, &inverse, &matrix);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][0], inverse.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][1], inverse.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][2], inverse.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][3], inverse.values[0][3], epsilon);
 
-	EXPECT_NEAR(1, result.values[0][0], epsilon);
-	EXPECT_NEAR(0, result.values[0][1], epsilon);
-	EXPECT_NEAR(0, result.values[0][2], epsilon);
-	EXPECT_NEAR(0, result.values[0][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][0], inverse.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][1], inverse.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][2], inverse.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][3], inverse.values[1][3], epsilon);
 
-	EXPECT_NEAR(0, result.values[1][0], epsilon);
-	EXPECT_NEAR(1, result.values[1][1], epsilon);
-	EXPECT_NEAR(0, result.values[1][2], epsilon);
-	EXPECT_NEAR(0, result.values[1][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][0], inverse.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][1], inverse.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][2], inverse.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][3], inverse.values[2][3], epsilon);
 
-	EXPECT_NEAR(0, result.values[2][0], epsilon);
-	EXPECT_NEAR(0, result.values[2][1], epsilon);
-	EXPECT_NEAR(1, result.values[2][2], epsilon);
-	EXPECT_NEAR(0, result.values[2][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][0], inverse.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][1], inverse.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][2], inverse.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][3], inverse.values[3][3], epsilon);
 
-	EXPECT_NEAR(0, result.values[3][0], epsilon);
-	EXPECT_NEAR(0, result.values[3][1], epsilon);
-	EXPECT_NEAR(0, result.values[3][2], epsilon);
-	EXPECT_NEAR(1, result.values[3][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.48296288f, inverse.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.81470478f, inverse.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.32094079f, inverse.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0f, inverse.values[0][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.83651632f, inverse.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.32094073f, inverse.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.44411427f, inverse.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0f, inverse.values[1][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.25881904f, inverse.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.48296291f, inverse.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.83651626f, inverse.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0f, inverse.values[2][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.81521344f, inverse.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.63574791f, inverse.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-6.5796089f, inverse.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0f, inverse.values[3][3], epsilon);
 }
 
+#if !DS_DETERMINISTIC_MATH
 TEST(Matrix44fTest, FastInvertFMA)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
@@ -2280,8 +2443,9 @@ TEST(Matrix44fTest, FastInvertFMA)
 	EXPECT_NEAR(0, result.values[3][2], epsilon);
 	EXPECT_NEAR(1, result.values[3][3], epsilon);
 }
+#endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, FastInvertDouble2SIMD)
+TEST(Matrix44fTest, FastInvertDoubleSIMD2)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 		return;
@@ -2295,36 +2459,77 @@ TEST(Matrix44fTest, FastInvertDouble2SIMD)
 	dsMatrix44d translate;
 	dsMatrix44d_makeTranslate(&translate, 1.2, -3.4, 5.6);
 
-	dsMatrix44d matrix;
+	// Also verify determinism of affine multiply.
+	dsMatrix44d scalarMatrix, matrix;
+	dsMatrix44_affineMul(scalarMatrix, translate, rotate);
 	dsMatrix44d_affineMulSIMD2(&matrix, &translate, &rotate);
 
-	dsMatrix44d inverse;
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][0], matrix.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][1], matrix.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][2], matrix.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][3], matrix.values[0][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][0], matrix.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][1], matrix.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][2], matrix.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][3], matrix.values[1][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][0], matrix.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][1], matrix.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][2], matrix.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][3], matrix.values[2][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][0], matrix.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][1], matrix.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][2], matrix.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][3], matrix.values[3][3], epsilon);
+
+	dsMatrix44d scalarInverse, inverse;
+	dsMatrix44_fastInvert(scalarInverse, scalarMatrix);
 	dsMatrix44d_fastInvertSIMD2(&inverse, &matrix);
 
-	dsMatrix44d result;
-	dsMatrix44d_mulSIMD2(&result, &inverse, &matrix);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][0], inverse.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][1], inverse.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][2], inverse.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][3], inverse.values[0][3], epsilon);
 
-	EXPECT_NEAR(1, result.values[0][0], epsilon);
-	EXPECT_NEAR(0, result.values[0][1], epsilon);
-	EXPECT_NEAR(0, result.values[0][2], epsilon);
-	EXPECT_NEAR(0, result.values[0][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][0], inverse.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][1], inverse.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][2], inverse.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][3], inverse.values[1][3], epsilon);
 
-	EXPECT_NEAR(0, result.values[1][0], epsilon);
-	EXPECT_NEAR(1, result.values[1][1], epsilon);
-	EXPECT_NEAR(0, result.values[1][2], epsilon);
-	EXPECT_NEAR(0, result.values[1][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][0], inverse.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][1], inverse.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][2], inverse.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][3], inverse.values[2][3], epsilon);
 
-	EXPECT_NEAR(0, result.values[2][0], epsilon);
-	EXPECT_NEAR(0, result.values[2][1], epsilon);
-	EXPECT_NEAR(1, result.values[2][2], epsilon);
-	EXPECT_NEAR(0, result.values[2][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][0], inverse.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][1], inverse.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][2], inverse.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][3], inverse.values[3][3], epsilon);
 
-	EXPECT_NEAR(0, result.values[3][0], epsilon);
-	EXPECT_NEAR(0, result.values[3][1], epsilon);
-	EXPECT_NEAR(0, result.values[3][2], epsilon);
-	EXPECT_NEAR(1, result.values[3][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.48296291314453427, inverse.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.81470476127563018, inverse.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.32094076787121251, inverse.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0, inverse.values[0][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.83651630373780783, inverse.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.32094076787121284, inverse.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.44411428382689055, inverse.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0, inverse.values[1][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.25881904510252074, inverse.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.4829629131445341, inverse.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.83651630373780794, inverse.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0f, inverse.values[2][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.81521328436098939, inverse.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.63574798931651078, inverse.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-6.5796087873886071, inverse.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0, inverse.values[3][3], epsilon);
 }
 
+#if !DS_DETERMINISTIC_MATH
 TEST(Matrix44fTest, FastInvertDouble2FMA)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
@@ -2369,11 +2574,11 @@ TEST(Matrix44fTest, FastInvertDouble2FMA)
 	EXPECT_NEAR(0, result.values[3][2], epsilon);
 	EXPECT_NEAR(1, result.values[3][3], epsilon);
 }
+#endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, FastInvertDouble4FMA)
+TEST(Matrix44fTest, FastInvertDoubleSIMD4)
 {
-	dsSIMDFeatures features = dsSIMDFeatures_Double4 | dsSIMDFeatures_FMA;
-	if ((dsHostSIMDFeatures & features) != features)
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
@@ -2385,34 +2590,74 @@ TEST(Matrix44fTest, FastInvertDouble4FMA)
 	DS_ALIGN(32) dsMatrix44d translate;
 	dsMatrix44d_makeTranslate(&translate, 1.2, -3.4, 5.6);
 
-	DS_ALIGN(32) dsMatrix44d matrix;
-	dsMatrix44d_affineMulFMA4(&matrix, &translate, &rotate);
+	// Also verify determinism of affine multiply.
+	DS_ALIGN(32) dsMatrix44d scalarMatrix, matrix;
+	dsMatrix44_affineMul(scalarMatrix, translate, rotate);
+	dsMatrix44d_affineMulSIMD4(&matrix, &translate, &rotate);
 
-	DS_ALIGN(32) dsMatrix44d inverse;
-	dsMatrix44d_fastInvertFMA4(&inverse, &matrix);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][0], matrix.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][1], matrix.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][2], matrix.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][3], matrix.values[0][3], epsilon);
 
-	DS_ALIGN(32) dsMatrix44d result;
-	dsMatrix44d_mulFMA4(&result, &inverse, &matrix);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][0], matrix.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][1], matrix.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][2], matrix.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][3], matrix.values[1][3], epsilon);
 
-	EXPECT_NEAR(1, result.values[0][0], epsilon);
-	EXPECT_NEAR(0, result.values[0][1], epsilon);
-	EXPECT_NEAR(0, result.values[0][2], epsilon);
-	EXPECT_NEAR(0, result.values[0][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][0], matrix.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][1], matrix.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][2], matrix.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][3], matrix.values[2][3], epsilon);
 
-	EXPECT_NEAR(0, result.values[1][0], epsilon);
-	EXPECT_NEAR(1, result.values[1][1], epsilon);
-	EXPECT_NEAR(0, result.values[1][2], epsilon);
-	EXPECT_NEAR(0, result.values[1][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][0], matrix.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][1], matrix.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][2], matrix.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][3], matrix.values[3][3], epsilon);
 
-	EXPECT_NEAR(0, result.values[2][0], epsilon);
-	EXPECT_NEAR(0, result.values[2][1], epsilon);
-	EXPECT_NEAR(1, result.values[2][2], epsilon);
-	EXPECT_NEAR(0, result.values[2][3], epsilon);
+	DS_ALIGN(32) dsMatrix44d scalarInverse, inverse;
+	dsMatrix44_fastInvert(scalarInverse, scalarMatrix);
+	dsMatrix44d_fastInvertSIMD4(&inverse, &matrix);
 
-	EXPECT_NEAR(0, result.values[3][0], epsilon);
-	EXPECT_NEAR(0, result.values[3][1], epsilon);
-	EXPECT_NEAR(0, result.values[3][2], epsilon);
-	EXPECT_NEAR(1, result.values[3][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][0], inverse.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][1], inverse.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][2], inverse.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][3], inverse.values[0][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][0], inverse.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][1], inverse.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][2], inverse.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][3], inverse.values[1][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][0], inverse.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][1], inverse.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][2], inverse.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][3], inverse.values[2][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][0], inverse.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][1], inverse.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][2], inverse.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][3], inverse.values[3][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.48296291314453427, inverse.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.81470476127563018, inverse.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.32094076787121251, inverse.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0, inverse.values[0][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.83651630373780783, inverse.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.32094076787121284, inverse.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.44411428382689055, inverse.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0, inverse.values[1][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.25881904510252074, inverse.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.4829629131445341, inverse.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.83651630373780794, inverse.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0f, inverse.values[2][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.81521328436098939, inverse.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.63574798931651078, inverse.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-6.5796087873886071, inverse.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0, inverse.values[3][3], epsilon);
 }
 
 TEST(Matrix44fTest, AffineInvertSIMD)
@@ -2432,39 +2677,81 @@ TEST(Matrix44fTest, AffineInvertSIMD)
 	dsMatrix44f scale;
 	dsMatrix44f_makeScale(&scale, -2.1f, 4.3f, -6.5f);
 
-	dsMatrix44f temp;
-	dsMatrix44f_affineMulSIMD(&temp, &scale, &rotate);
+	// Also verify determinism of affine multiply.
+	dsMatrix44f temp, scalarMatrix, matrix;
+	dsMatrix44_affineMul(temp, scale, rotate);
+	dsMatrix44_affineMul(scalarMatrix, translate, temp);
 
-	dsMatrix44f matrix;
+	dsMatrix44f_affineMulSIMD(&temp, &scale, &rotate);
 	dsMatrix44f_affineMulSIMD(&matrix, &translate, &temp);
 
-	dsMatrix44f inverse;
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][0], matrix.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][1], matrix.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][2], matrix.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][3], matrix.values[0][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][0], matrix.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][1], matrix.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][2], matrix.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][3], matrix.values[1][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][0], matrix.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][1], matrix.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][2], matrix.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][3], matrix.values[2][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][0], matrix.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][1], matrix.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][2], matrix.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][3], matrix.values[3][3], epsilon);
+
+	dsMatrix44f scalarInverse, inverse;
+	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
+	dsMatrix44f_affineInvert(&scalarInverse, &scalarMatrix);
 	dsMatrix44f_affineInvertSIMD(&inverse, &matrix);
 
-	dsMatrix44f result;
-	dsMatrix44f_affineMulSIMD(&result, &inverse, &matrix);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][0], inverse.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][1], inverse.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][2], inverse.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][3], inverse.values[0][3], epsilon);
 
-	EXPECT_NEAR(1, result.values[0][0], epsilon);
-	EXPECT_NEAR(0, result.values[0][1], epsilon);
-	EXPECT_NEAR(0, result.values[0][2], epsilon);
-	EXPECT_NEAR(0, result.values[0][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][0], inverse.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][1], inverse.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][2], inverse.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][3], inverse.values[1][3], epsilon);
 
-	EXPECT_NEAR(0, result.values[1][0], epsilon);
-	EXPECT_NEAR(1, result.values[1][1], epsilon);
-	EXPECT_NEAR(0, result.values[1][2], epsilon);
-	EXPECT_NEAR(0, result.values[1][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][0], inverse.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][1], inverse.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][2], inverse.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][3], inverse.values[2][3], epsilon);
 
-	EXPECT_NEAR(0, result.values[2][0], epsilon);
-	EXPECT_NEAR(0, result.values[2][1], epsilon);
-	EXPECT_NEAR(1, result.values[2][2], epsilon);
-	EXPECT_NEAR(0, result.values[2][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][0], inverse.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][1], inverse.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][2], inverse.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][3], inverse.values[3][3], epsilon);
 
-	EXPECT_NEAR(0, result.values[3][0], epsilon);
-	EXPECT_NEAR(0, result.values[3][1], epsilon);
-	EXPECT_NEAR(0, result.values[3][2], epsilon);
-	EXPECT_NEAR(1, result.values[3][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.22998233f, inverse.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.38795465f, inverse.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.15282895f, inverse.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0f, inverse.values[0][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.19453867f, inverse.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.074637376f, inverse.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.103282385f, inverse.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0f, inverse.values[1][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.03981832f, inverse.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.074301995f, inverse.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.12869483f, inverse.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0f, inverse.values[2][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(1.1603929f, inverse.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.20431265f, inverse.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.55292565f, inverse.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0f, inverse.values[3][3], epsilon);
 }
 
+#if !DS_DETERMINISTIC_MATH
 TEST(Matrix44fTest, AffineInvertFMA)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
@@ -2514,6 +2801,7 @@ TEST(Matrix44fTest, AffineInvertFMA)
 	EXPECT_NEAR(0, result.values[3][2], epsilon);
 	EXPECT_NEAR(1, result.values[3][3], epsilon);
 }
+#endif // !DS_DETERMINISTIC_MATH
 
 TEST(Matrix44fTest, AffineInvertDouble2FMA)
 {
@@ -2532,40 +2820,82 @@ TEST(Matrix44fTest, AffineInvertDouble2FMA)
 	dsMatrix44d scale;
 	dsMatrix44d_makeScale(&scale, -2.1, 4.3, -6.5);
 
-	dsMatrix44d temp;
-	dsMatrix44d_affineMulSIMD2(&temp, &scale, &rotate);
+	// Also verify determinism of affine multiply.
+	dsMatrix44d temp, scalarMatrix, matrix;
+	dsMatrix44_affineMul(temp, scale, rotate);
+	dsMatrix44_affineMul(scalarMatrix, translate, temp);
 
-	dsMatrix44d matrix;
+	dsMatrix44d_affineMulSIMD2(&temp, &scale, &rotate);
 	dsMatrix44d_affineMulSIMD2(&matrix, &translate, &temp);
 
-	dsMatrix44d inverse;
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][0], matrix.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][1], matrix.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][2], matrix.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][3], matrix.values[0][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][0], matrix.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][1], matrix.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][2], matrix.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][3], matrix.values[1][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][0], matrix.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][1], matrix.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][2], matrix.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][3], matrix.values[2][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][0], matrix.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][1], matrix.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][2], matrix.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][3], matrix.values[3][3], epsilon);
+
+	dsMatrix44d scalarInverse, inverse;
+	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
+	dsMatrix44d_affineInvert(&scalarInverse, &scalarMatrix);
 	dsMatrix44d_affineInvertSIMD2(&inverse, &matrix);
 
-	dsMatrix44d result;
-	dsMatrix44d_affineMulSIMD2(&result, &inverse, &matrix);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][0], inverse.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][1], inverse.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][2], inverse.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][3], inverse.values[0][3], epsilon);
 
-	EXPECT_NEAR(1, result.values[0][0], epsilon);
-	EXPECT_NEAR(0, result.values[0][1], epsilon);
-	EXPECT_NEAR(0, result.values[0][2], epsilon);
-	EXPECT_NEAR(0, result.values[0][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][0], inverse.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][1], inverse.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][2], inverse.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][3], inverse.values[1][3], epsilon);
 
-	EXPECT_NEAR(0, result.values[1][0], epsilon);
-	EXPECT_NEAR(1, result.values[1][1], epsilon);
-	EXPECT_NEAR(0, result.values[1][2], epsilon);
-	EXPECT_NEAR(0, result.values[1][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][0], inverse.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][1], inverse.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][2], inverse.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][3], inverse.values[2][3], epsilon);
 
-	EXPECT_NEAR(0, result.values[2][0], epsilon);
-	EXPECT_NEAR(0, result.values[2][1], epsilon);
-	EXPECT_NEAR(1, result.values[2][2], epsilon);
-	EXPECT_NEAR(0, result.values[2][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][0], inverse.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][1], inverse.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][2], inverse.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][3], inverse.values[3][3], epsilon);
 
-	EXPECT_NEAR(0, result.values[3][0], epsilon);
-	EXPECT_NEAR(0, result.values[3][1], epsilon);
-	EXPECT_NEAR(0, result.values[3][2], epsilon);
-	EXPECT_NEAR(1, result.values[3][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.22998233959263534, inverse.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.38795464822649051, inverse.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.15282893708152975, inverse.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0, inverse.values[0][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.19453867528786228, inverse.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.074637387877026243, inverse.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.10328239158764896, inverse.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0, inverse.values[1][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.039818314631157037, inverse.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.074301986637620623, inverse.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.12869481595966276, inverse.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0, inverse.values[2][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(1.1603928654243736, inverse.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.20431266608077614, inverse.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.55292556247394065, inverse.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0, inverse.values[3][3], epsilon);
 }
 
-TEST(Matrix44fTest, AffineInvertDouble2SIMD)
+#if !DS_DETERMINISTIC_MATH
+TEST(Matrix44fTest, AffineInvertDoubleSIMD2)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) != features)
@@ -2615,11 +2945,11 @@ TEST(Matrix44fTest, AffineInvertDouble2SIMD)
 	EXPECT_NEAR(0, result.values[3][2], epsilon);
 	EXPECT_NEAR(1, result.values[3][3], epsilon);
 }
+#endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, AffineInvertDouble4SIMD)
+TEST(Matrix44fTest, AffineInvertDoubleSIMD4)
 {
-	dsSIMDFeatures features = dsSIMDFeatures_Double4 | dsSIMDFeatures_FMA;
-	if ((dsHostSIMDFeatures & features) != features)
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
@@ -2634,37 +2964,78 @@ TEST(Matrix44fTest, AffineInvertDouble4SIMD)
 	DS_ALIGN(32) dsMatrix44d scale;
 	dsMatrix44d_makeScale(&scale, -2.1, 4.3, -6.5);
 
-	DS_ALIGN(32) dsMatrix44d temp;
-	dsMatrix44d_affineMulFMA4(&temp, &scale, &rotate);
+	// Also verify determinism of affine multiply.
+	DS_ALIGN(32) dsMatrix44d temp, scalarMatrix, matrix;
+	dsMatrix44_affineMul(temp, scale, rotate);
+	dsMatrix44_affineMul(scalarMatrix, translate, temp);
 
-	DS_ALIGN(32) dsMatrix44d matrix;
-	dsMatrix44d_affineMulFMA4(&matrix, &translate, &temp);
+	dsMatrix44d_affineMulSIMD4(&temp, &scale, &rotate);
+	dsMatrix44d_affineMulSIMD4(&matrix, &translate, &temp);
 
-	DS_ALIGN(32) dsMatrix44d inverse;
-	dsMatrix44d_affineInvertFMA4(&inverse, &matrix);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][0], matrix.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][1], matrix.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][2], matrix.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[0][3], matrix.values[0][3], epsilon);
 
-	DS_ALIGN(32) dsMatrix44d result;
-	dsMatrix44d_affineMulFMA4(&result, &inverse, &matrix);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][0], matrix.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][1], matrix.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][2], matrix.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[1][3], matrix.values[1][3], epsilon);
 
-	EXPECT_NEAR(1, result.values[0][0], epsilon);
-	EXPECT_NEAR(0, result.values[0][1], epsilon);
-	EXPECT_NEAR(0, result.values[0][2], epsilon);
-	EXPECT_NEAR(0, result.values[0][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][0], matrix.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][1], matrix.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][2], matrix.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[2][3], matrix.values[2][3], epsilon);
 
-	EXPECT_NEAR(0, result.values[1][0], epsilon);
-	EXPECT_NEAR(1, result.values[1][1], epsilon);
-	EXPECT_NEAR(0, result.values[1][2], epsilon);
-	EXPECT_NEAR(0, result.values[1][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][0], matrix.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][1], matrix.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][2], matrix.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarMatrix.values[3][3], matrix.values[3][3], epsilon);
 
-	EXPECT_NEAR(0, result.values[2][0], epsilon);
-	EXPECT_NEAR(0, result.values[2][1], epsilon);
-	EXPECT_NEAR(1, result.values[2][2], epsilon);
-	EXPECT_NEAR(0, result.values[2][3], epsilon);
+	DS_ALIGN(32) dsMatrix44d scalarInverse, inverse;
+	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
+	dsMatrix44d_affineInvert(&scalarInverse, &scalarMatrix);
+	dsMatrix44d_affineInvertSIMD4(&inverse, &matrix);
 
-	EXPECT_NEAR(0, result.values[3][0], epsilon);
-	EXPECT_NEAR(0, result.values[3][1], epsilon);
-	EXPECT_NEAR(0, result.values[3][2], epsilon);
-	EXPECT_NEAR(1, result.values[3][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][0], inverse.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][1], inverse.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][2], inverse.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][3], inverse.values[0][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][0], inverse.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][1], inverse.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][2], inverse.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][3], inverse.values[1][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][0], inverse.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][1], inverse.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][2], inverse.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][3], inverse.values[2][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][0], inverse.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][1], inverse.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][2], inverse.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][3], inverse.values[3][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.22998233959263534, inverse.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.38795464822649051, inverse.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.15282893708152975, inverse.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0, inverse.values[0][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.19453867528786228, inverse.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.074637387877026243, inverse.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.10328239158764896, inverse.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0, inverse.values[1][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.039818314631157037, inverse.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.074301986637620623, inverse.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.12869481595966276, inverse.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0, inverse.values[2][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(1.1603928654243736, inverse.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.20431266608077614, inverse.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.55292556247394065, inverse.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0, inverse.values[3][3], epsilon);
 }
 
 TEST(Matrix44fTest, AffineInvert33SIMD)
@@ -2690,35 +3061,38 @@ TEST(Matrix44fTest, AffineInvert33SIMD)
 	dsMatrix44f matrix;
 	dsMatrix44f_affineMulSIMD(&matrix, &translate, &temp);
 
-	dsMatrix33f matrix33;
-	dsMatrix33_copy(matrix33, matrix);
-
+	dsMatrix33f scalarInverse;
 	dsVector4f inverseVec[3];
+	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
+	dsMatrix44f_affineInvert33(&scalarInverse, &matrix);
 	dsMatrix44f_affineInvert33SIMD(inverseVec, &matrix);
 
-	dsMatrix44f inverse =
-	{{
-		{inverseVec[0].x, inverseVec[0].y, inverseVec[0].z},
-		{inverseVec[1].x, inverseVec[1].y, inverseVec[1].z},
-		{inverseVec[2].x, inverseVec[2].y, inverseVec[2].z},
-	}};
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][0], inverseVec[0].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][1], inverseVec[0].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][2], inverseVec[0].z, epsilon);
 
-	dsMatrix33f result;
-	dsMatrix33_mul(result, inverse, matrix33);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][0], inverseVec[1].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][1], inverseVec[1].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][2], inverseVec[1].z, epsilon);
 
-	EXPECT_NEAR(1, result.values[0][0], epsilon);
-	EXPECT_NEAR(0, result.values[0][1], epsilon);
-	EXPECT_NEAR(0, result.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][0], inverseVec[2].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][1], inverseVec[2].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][2], inverseVec[2].z, epsilon);
 
-	EXPECT_NEAR(0, result.values[1][0], epsilon);
-	EXPECT_NEAR(1, result.values[1][1], epsilon);
-	EXPECT_NEAR(0, result.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.22998233f, inverseVec[0].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.38795465f, inverseVec[0].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.15282895f, inverseVec[0].z, epsilon);
 
-	EXPECT_NEAR(0, result.values[2][0], epsilon);
-	EXPECT_NEAR(0, result.values[2][1], epsilon);
-	EXPECT_NEAR(1, result.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.19453867f, inverseVec[1].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.074637376f, inverseVec[1].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.103282385f, inverseVec[1].z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.03981832f, inverseVec[2].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.074301995f, inverseVec[2].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.12869483f, inverseVec[2].z, epsilon);
 }
 
+#if !DS_DETERMINISTIC_MATH
 TEST(Matrix44fTest, AffineInvert33FMA)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
@@ -2770,8 +3144,9 @@ TEST(Matrix44fTest, AffineInvert33FMA)
 	EXPECT_NEAR(0, result.values[2][1], epsilon);
 	EXPECT_NEAR(1, result.values[2][2], epsilon);
 }
+#endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, AffineInvert33Double2SIMD)
+TEST(Matrix44fTest, AffineInvert33DoubleSIMD2)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 		return;
@@ -2794,35 +3169,38 @@ TEST(Matrix44fTest, AffineInvert33Double2SIMD)
 	dsMatrix44d matrix;
 	dsMatrix44d_affineMulSIMD2(&matrix, &translate, &temp);
 
-	dsMatrix33d matrix33;
-	dsMatrix33_copy(matrix33, matrix);
-
+	dsMatrix33d scalarInverse;
 	dsVector4d inverseVec[3];
+	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
+	dsMatrix44d_affineInvert33(&scalarInverse, &matrix);
 	dsMatrix44d_affineInvert33SIMD2(inverseVec, &matrix);
 
-	dsMatrix44d inverse =
-	{{
-		{inverseVec[0].x, inverseVec[0].y, inverseVec[0].z},
-		{inverseVec[1].x, inverseVec[1].y, inverseVec[1].z},
-		{inverseVec[2].x, inverseVec[2].y, inverseVec[2].z},
-	}};
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][0], inverseVec[0].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][1], inverseVec[0].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][2], inverseVec[0].z, epsilon);
 
-	dsMatrix33d result;
-	dsMatrix33_mul(result, inverse, matrix33);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][0], inverseVec[1].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][1], inverseVec[1].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][2], inverseVec[1].z, epsilon);
 
-	EXPECT_NEAR(1, result.values[0][0], epsilon);
-	EXPECT_NEAR(0, result.values[0][1], epsilon);
-	EXPECT_NEAR(0, result.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][0], inverseVec[2].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][1], inverseVec[2].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][2], inverseVec[2].z, epsilon);
 
-	EXPECT_NEAR(0, result.values[1][0], epsilon);
-	EXPECT_NEAR(1, result.values[1][1], epsilon);
-	EXPECT_NEAR(0, result.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.22998233959263534, inverseVec[0].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.38795464822649051, inverseVec[0].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.15282893708152975, inverseVec[0].z, epsilon);
 
-	EXPECT_NEAR(0, result.values[2][0], epsilon);
-	EXPECT_NEAR(0, result.values[2][1], epsilon);
-	EXPECT_NEAR(1, result.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.19453867528786228, inverseVec[1].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.074637387877026243, inverseVec[1].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.10328239158764896, inverseVec[1].z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.039818314631157037, inverseVec[2].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.074301986637620623, inverseVec[2].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.12869481595966276, inverseVec[2].z, epsilon);
 }
 
+#if !DS_DETERMINISTIC_MATH
 TEST(Matrix44fTest, AffineInvert33Double2FMA)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
@@ -2875,11 +3253,11 @@ TEST(Matrix44fTest, AffineInvert33Double2FMA)
 	EXPECT_NEAR(0, result.values[2][1], epsilon);
 	EXPECT_NEAR(1, result.values[2][2], epsilon);
 }
+#endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, AffineInvert33Double4FMA)
+TEST(Matrix44fTest, AffineInvert33DoubleSIMD4)
 {
-	dsSIMDFeatures features = dsSIMDFeatures_Double4 | dsSIMDFeatures_FMA;
-	if ((dsHostSIMDFeatures & features) != features)
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
@@ -2895,38 +3273,40 @@ TEST(Matrix44fTest, AffineInvert33Double4FMA)
 	dsMatrix44d_makeScale(&scale, -2.1, 4.3, -6.5);
 
 	DS_ALIGN(32) dsMatrix44d temp;
-	dsMatrix44d_affineMulFMA4(&temp, &scale, &rotate);
+	dsMatrix44d_affineMulSIMD4(&temp, &scale, &rotate);
 
 	DS_ALIGN(32) dsMatrix44d matrix;
-	dsMatrix44d_affineMulFMA4(&matrix, &translate, &temp);
+	dsMatrix44d_affineMulSIMD4(&matrix, &translate, &temp);
 
-	dsMatrix33d matrix33;
-	dsMatrix33_copy(matrix33, matrix);
-
+	dsMatrix33d scalarInverse;
 	DS_ALIGN(32) dsVector4d inverseVec[3];
-	dsMatrix44d_affineInvert33FMA4(inverseVec, &matrix);
+	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
+	dsMatrix44d_affineInvert33(&scalarInverse, &matrix);
+	dsMatrix44d_affineInvert33SIMD4(inverseVec, &matrix);
 
-	DS_ALIGN(32) dsMatrix44d inverse =
-	{{
-		{inverseVec[0].x, inverseVec[0].y, inverseVec[0].z},
-		{inverseVec[1].x, inverseVec[1].y, inverseVec[1].z},
-		{inverseVec[2].x, inverseVec[2].y, inverseVec[2].z},
-	}};
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][0], inverseVec[0].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][1], inverseVec[0].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][2], inverseVec[0].z, epsilon);
 
-	dsMatrix33d result;
-	dsMatrix33_mul(result, inverse, matrix33);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][0], inverseVec[1].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][1], inverseVec[1].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][2], inverseVec[1].z, epsilon);
 
-	EXPECT_NEAR(1, result.values[0][0], epsilon);
-	EXPECT_NEAR(0, result.values[0][1], epsilon);
-	EXPECT_NEAR(0, result.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][0], inverseVec[2].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][1], inverseVec[2].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][2], inverseVec[2].z, epsilon);
 
-	EXPECT_NEAR(0, result.values[1][0], epsilon);
-	EXPECT_NEAR(1, result.values[1][1], epsilon);
-	EXPECT_NEAR(0, result.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.22998233959263534, inverseVec[0].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.38795464822649051, inverseVec[0].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.15282893708152975, inverseVec[0].z, epsilon);
 
-	EXPECT_NEAR(0, result.values[2][0], epsilon);
-	EXPECT_NEAR(0, result.values[2][1], epsilon);
-	EXPECT_NEAR(1, result.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.19453867528786228, inverseVec[1].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.074637387877026243, inverseVec[1].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.10328239158764896, inverseVec[1].z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.039818314631157037, inverseVec[2].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.074301986637620623, inverseVec[2].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.12869481595966276, inverseVec[2].z, epsilon);
 }
 
 TEST(Matrix44fTest, InvertSIMD)
@@ -2944,53 +3324,53 @@ TEST(Matrix44fTest, InvertSIMD)
 		{4.5f, -6.7f, -8.9f, 1.0f}
 	}};
 
-	dsMatrix44f inverse;
+	dsMatrix44f scalarInverse, inverse;
+	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
+	dsMatrix44f_invert(&scalarInverse, &matrix);
 	dsMatrix44f_invertSIMD(&inverse, &matrix);
 
-	dsMatrix44f result;
-	dsMatrix44f_mulSIMD(&result, &inverse, &matrix);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][0], inverse.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][1], inverse.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][2], inverse.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][3], inverse.values[0][3], epsilon);
 
-	EXPECT_NEAR(0.0820428f, inverse.values[0][0], epsilon);
-	EXPECT_NEAR(0.1057765f, inverse.values[0][1], epsilon);
-	EXPECT_NEAR(-0.0109041f, inverse.values[0][2], epsilon);
-	EXPECT_NEAR(-0.0035728f, inverse.values[0][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][0], inverse.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][1], inverse.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][2], inverse.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][3], inverse.values[1][3], epsilon);
 
-	EXPECT_NEAR(0.0897048f, inverse.values[1][0], epsilon);
-	EXPECT_NEAR(0.0753736f, inverse.values[1][1], epsilon);
-	EXPECT_NEAR(0.0767877f, inverse.values[1][2], epsilon);
-	EXPECT_NEAR(-0.0173930f, inverse.values[1][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][0], inverse.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][1], inverse.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][2], inverse.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][3], inverse.values[2][3], epsilon);
 
-	EXPECT_NEAR(-0.0136292f, inverse.values[2][0], epsilon);
-	EXPECT_NEAR(-0.0064782f, inverse.values[2][1], epsilon);
-	EXPECT_NEAR(-0.0717116f, inverse.values[2][2], epsilon);
-	EXPECT_NEAR(-0.1086034f, inverse.values[2][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][0], inverse.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][1], inverse.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][2], inverse.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][3], inverse.values[3][3], epsilon);
 
-	EXPECT_NEAR(0.1105301f, inverse.values[3][0], epsilon);
-	EXPECT_NEAR(-0.0286468f, inverse.values[3][1], epsilon);
-	EXPECT_NEAR(-0.0746872f, inverse.values[3][2], epsilon);
-	EXPECT_NEAR(-0.0670252f, inverse.values[3][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0820428059f, inverse.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.10577654f, inverse.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0109040625f, inverse.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.00357282092f, inverse.values[0][3], epsilon);
 
-	EXPECT_NEAR(1, result.values[0][0], epsilon);
-	EXPECT_NEAR(0, result.values[0][1], epsilon);
-	EXPECT_NEAR(0, result.values[0][2], epsilon);
-	EXPECT_NEAR(0, result.values[0][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0897048488f, inverse.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.075373657f, inverse.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0767877176f, inverse.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0173929613f, inverse.values[1][3], epsilon);
 
-	EXPECT_NEAR(0, result.values[1][0], epsilon);
-	EXPECT_NEAR(1, result.values[1][1], epsilon);
-	EXPECT_NEAR(0, result.values[1][2], epsilon);
-	EXPECT_NEAR(0, result.values[1][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0136291785f, inverse.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0064781853f, inverse.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0717115924f, inverse.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.108603373f, inverse.values[2][3], epsilon);
 
-	EXPECT_NEAR(0, result.values[2][0], epsilon);
-	EXPECT_NEAR(0, result.values[2][1], epsilon);
-	EXPECT_NEAR(1, result.values[2][2], epsilon);
-	EXPECT_NEAR(0, result.values[2][3], epsilon);
-
-	EXPECT_NEAR(0, result.values[3][0], epsilon);
-	EXPECT_NEAR(0, result.values[3][1], epsilon);
-	EXPECT_NEAR(0, result.values[3][2], epsilon);
-	EXPECT_NEAR(1, result.values[3][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.110530131f, inverse.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0286468063f, inverse.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0746872127f, inverse.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0670251772f, inverse.values[3][3], epsilon);
 }
 
+#if !DS_DETERMINISTIC_MATH
 TEST(Matrix44fTest, InvertFMA)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
@@ -3052,8 +3432,9 @@ TEST(Matrix44fTest, InvertFMA)
 	EXPECT_NEAR(0, result.values[3][2], epsilon);
 	EXPECT_NEAR(1, result.values[3][3], epsilon);
 }
+#endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, InvertDouble2SIMD)
+TEST(Matrix44fTest, InvertDoubleSIMD2)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 		return;
@@ -3068,53 +3449,54 @@ TEST(Matrix44fTest, InvertDouble2SIMD)
 		{4.5, -6.7, -8.9, 1.0}
 	}};
 
-	dsMatrix44d inverse;
+
+	dsMatrix44d scalarInverse, inverse;
+	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
+	dsMatrix44d_invert(&scalarInverse, &matrix);
 	dsMatrix44d_invertSIMD2(&inverse, &matrix);
 
-	dsMatrix44d result;
-	dsMatrix44d_mulSIMD2(&result, &inverse, &matrix);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][0], inverse.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][1], inverse.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][2], inverse.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][3], inverse.values[0][3], epsilon);
 
-	EXPECT_NEAR(0.08204279638656, inverse.values[0][0], epsilon);
-	EXPECT_NEAR(0.105776528857303, inverse.values[0][1], epsilon);
-	EXPECT_NEAR(-0.0109040608614341, inverse.values[0][2], epsilon);
-	EXPECT_NEAR(-0.0035728199418310, inverse.values[0][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][0], inverse.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][1], inverse.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][2], inverse.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][3], inverse.values[1][3], epsilon);
 
-	EXPECT_NEAR(0.089704841949766, inverse.values[1][0], epsilon);
-	EXPECT_NEAR(0.07537365147017, inverse.values[1][1], epsilon);
-	EXPECT_NEAR(0.076787723698529, inverse.values[1][2], epsilon);
-	EXPECT_NEAR(-0.017392958617928, inverse.values[1][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][0], inverse.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][1], inverse.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][2], inverse.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][3], inverse.values[2][3], epsilon);
 
-	EXPECT_NEAR(-0.01362918376412108, inverse.values[2][0], epsilon);
-	EXPECT_NEAR(-0.00647819000442061, inverse.values[2][1], epsilon);
-	EXPECT_NEAR(-0.071711600261055, inverse.values[2][2], epsilon);
-	EXPECT_NEAR(-0.108603375404686, inverse.values[2][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][0], inverse.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][1], inverse.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][2], inverse.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][3], inverse.values[3][3], epsilon);
 
-	EXPECT_NEAR(0.110530121823231, inverse.values[3][0], epsilon);
-	EXPECT_NEAR(-0.028646806047096, inverse.values[3][1], epsilon);
-	EXPECT_NEAR(-0.074687219666792, inverse.values[3][2], epsilon);
-	EXPECT_NEAR(-0.067025174103588, inverse.values[3][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.082042796386562006, inverse.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.10577652885730263, inverse.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.010904060861435083, inverse.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0035728199418319211, inverse.values[0][3], epsilon);
 
-	EXPECT_NEAR(1, result.values[0][0], epsilon);
-	EXPECT_NEAR(0, result.values[0][1], epsilon);
-	EXPECT_NEAR(0, result.values[0][2], epsilon);
-	EXPECT_NEAR(0, result.values[0][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.089704841949766786, inverse.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.075373651470165434, inverse.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.076787723698528307, inverse.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.01739295861792902, inverse.values[1][3], epsilon);
 
-	EXPECT_NEAR(0, result.values[1][0], epsilon);
-	EXPECT_NEAR(1, result.values[1][1], epsilon);
-	EXPECT_NEAR(0, result.values[1][2], epsilon);
-	EXPECT_NEAR(0, result.values[1][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.013629183764121066, inverse.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0064781900044205178, inverse.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.071711600261054997, inverse.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.10860337540468612, inverse.values[2][3], epsilon);
 
-	EXPECT_NEAR(0, result.values[2][0], epsilon);
-	EXPECT_NEAR(0, result.values[2][1], epsilon);
-	EXPECT_NEAR(1, result.values[2][2], epsilon);
-	EXPECT_NEAR(0, result.values[2][3], epsilon);
-
-	EXPECT_NEAR(0, result.values[3][0], epsilon);
-	EXPECT_NEAR(0, result.values[3][1], epsilon);
-	EXPECT_NEAR(0, result.values[3][2], epsilon);
-	EXPECT_NEAR(1, result.values[3][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.11053012182323105, inverse.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0286468060470959, inverse.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.074687219666791954, inverse.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.067025174103587146, inverse.values[3][3], epsilon);
 }
 
+#if !DS_DETERMINISTIC_MATH
 TEST(Matrix44fTest, InvertDouble2FMA)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
@@ -3177,6 +3559,7 @@ TEST(Matrix44fTest, InvertDouble2FMA)
 	EXPECT_NEAR(0, result.values[3][2], epsilon);
 	EXPECT_NEAR(1, result.values[3][3], epsilon);
 }
+#endif // !DS_DETERMINISTIC_MATH
 
 TEST(Matrix44fTest, InverseTransposeSIMD)
 {
@@ -3201,26 +3584,38 @@ TEST(Matrix44fTest, InverseTransposeSIMD)
 	dsMatrix44f matrix;
 	dsMatrix44f_mulSIMD(&matrix, &translate, &temp);
 
+	dsMatrix33f scalarInverseTranspose;
 	dsVector4f inverseTranspose[3];
+	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
+	dsMatrix44f_inverseTranspose(&scalarInverseTranspose, &matrix);
 	dsMatrix44f_inverseTransposeSIMD(inverseTranspose, &matrix);
 
-	dsMatrix44f inverse, inverseTransposeCheck;
-	dsMatrix44f_invertSIMD(&inverse, &matrix);
-	dsMatrix44f_transposeSIMD(&inverseTransposeCheck, &inverse);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[0][0], inverseTranspose[0].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[0][1], inverseTranspose[0].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[0][2], inverseTranspose[0].z, epsilon);
 
-	EXPECT_NEAR(inverseTransposeCheck.values[0][0], inverseTranspose[0].x, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[0][1], inverseTranspose[0].y, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[0][2], inverseTranspose[0].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[1][0], inverseTranspose[1].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[1][1], inverseTranspose[1].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[1][2], inverseTranspose[1].z, epsilon);
 
-	EXPECT_NEAR(inverseTransposeCheck.values[1][0], inverseTranspose[1].x, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[1][1], inverseTranspose[1].y, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[1][2], inverseTranspose[1].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[2][0], inverseTranspose[2].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[2][1], inverseTranspose[2].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[2][2], inverseTranspose[2].z, epsilon);
 
-	EXPECT_NEAR(inverseTransposeCheck.values[2][0], inverseTranspose[2].x, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[2][1], inverseTranspose[2].y, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[2][2], inverseTranspose[2].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.22998233f, inverseTranspose[0].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.19453867f, inverseTranspose[0].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.03981832f, inverseTranspose[0].z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.38795465f, inverseTranspose[1].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.074637376f, inverseTranspose[1].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.074301995f, inverseTranspose[1].z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.15282895f, inverseTranspose[2].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.103282385f, inverseTranspose[2].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.12869483f, inverseTranspose[2].z, epsilon);
 }
 
+#if !DS_DETERMINISTIC_MATH
 TEST(Matrix44fTest, InverseTransposeFMA)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
@@ -3263,8 +3658,9 @@ TEST(Matrix44fTest, InverseTransposeFMA)
 	EXPECT_NEAR(inverseTransposeCheck.values[2][1], inverseTranspose[2].y, epsilon);
 	EXPECT_NEAR(inverseTransposeCheck.values[2][2], inverseTranspose[2].z, epsilon);
 }
+#endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44dTest, InverseTranspose2SIMD)
+TEST(Matrix44dTest, InverseTransposeSIMD2)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 		return;
@@ -3287,26 +3683,38 @@ TEST(Matrix44dTest, InverseTranspose2SIMD)
 	dsMatrix44d matrix;
 	dsMatrix44d_mulSIMD2(&matrix, &translate, &temp);
 
+	dsMatrix33d scalarInverseTranspose;
 	dsVector4d inverseTranspose[3];
+	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
+	dsMatrix44d_inverseTranspose(&scalarInverseTranspose, &matrix);
 	dsMatrix44d_inverseTransposeSIMD2(inverseTranspose, &matrix);
 
-	dsMatrix44d inverse, inverseTransposeCheck;
-	dsMatrix44d_invertSIMD2(&inverse, &matrix);
-	dsMatrix44d_transposeSIMD2(&inverseTransposeCheck, &inverse);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[0][0], inverseTranspose[0].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[0][1], inverseTranspose[0].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[0][2], inverseTranspose[0].z, epsilon);
 
-	EXPECT_NEAR(inverseTransposeCheck.values[0][0], inverseTranspose[0].x, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[0][1], inverseTranspose[0].y, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[0][2], inverseTranspose[0].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[1][0], inverseTranspose[1].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[1][1], inverseTranspose[1].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[1][2], inverseTranspose[1].z, epsilon);
 
-	EXPECT_NEAR(inverseTransposeCheck.values[1][0], inverseTranspose[1].x, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[1][1], inverseTranspose[1].y, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[1][2], inverseTranspose[1].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[2][0], inverseTranspose[2].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[2][1], inverseTranspose[2].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[2][2], inverseTranspose[2].z, epsilon);
 
-	EXPECT_NEAR(inverseTransposeCheck.values[2][0], inverseTranspose[2].x, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[2][1], inverseTranspose[2].y, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[2][2], inverseTranspose[2].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.22998233959263534, inverseTranspose[0].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.19453867528786228, inverseTranspose[0].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.039818314631157037, inverseTranspose[0].z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.38795464822649051, inverseTranspose[1].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.074637387877026243, inverseTranspose[1].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.074301986637620623, inverseTranspose[1].z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.15282893708152975, inverseTranspose[2].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.10328239158764896, inverseTranspose[2].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.12869481595966276, inverseTranspose[2].z, epsilon);
 }
 
+#if !DS_DETERMINISTIC_MATH
 TEST(Matrix44dTest, InverseTranspose2FMA)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
@@ -3350,11 +3758,11 @@ TEST(Matrix44dTest, InverseTranspose2FMA)
 	EXPECT_NEAR(inverseTransposeCheck.values[2][1], inverseTranspose[2].y, epsilon);
 	EXPECT_NEAR(inverseTransposeCheck.values[2][2], inverseTranspose[2].z, epsilon);
 }
+#endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44dTest, InverseTranspose4FMA)
+TEST(Matrix44dTest, InverseTransposeSIMD4)
 {
-	dsSIMDFeatures features = dsSIMDFeatures_Double4 | dsSIMDFeatures_FMA;
-	if ((dsHostSIMDFeatures & features) != features)
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
@@ -3370,29 +3778,40 @@ TEST(Matrix44dTest, InverseTranspose4FMA)
 	dsMatrix44d_makeScale(&scale, -2.1, 4.3, -6.5);
 
 	DS_ALIGN(32) dsMatrix44d temp;
-	dsMatrix44d_mulFMA4(&temp, &scale, &rotate);
+	dsMatrix44d_mulSIMD4(&temp, &scale, &rotate);
 
 	DS_ALIGN(32) dsMatrix44d matrix;
-	dsMatrix44d_mulFMA4(&matrix, &translate, &temp);
+	dsMatrix44d_mulSIMD4(&matrix, &translate, &temp);
 
+	dsMatrix33d scalarInverseTranspose;
 	DS_ALIGN(32) dsVector4d inverseTranspose[3];
-	dsMatrix44d_inverseTransposeFMA4(inverseTranspose, &matrix);
+	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
+	dsMatrix44d_inverseTranspose(&scalarInverseTranspose, &matrix);
+	dsMatrix44d_inverseTransposeSIMD4(inverseTranspose, &matrix);
 
-	DS_ALIGN(32) dsMatrix44d inverse, inverseTransposeCheck;
-	dsMatrix44d_invertFMA2(&inverse, &matrix);
-	dsMatrix44d_transposeSIMD4(&inverseTransposeCheck, &inverse);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[0][0], inverseTranspose[0].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[0][1], inverseTranspose[0].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[0][2], inverseTranspose[0].z, epsilon);
 
-	EXPECT_NEAR(inverseTransposeCheck.values[0][0], inverseTranspose[0].x, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[0][1], inverseTranspose[0].y, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[0][2], inverseTranspose[0].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[1][0], inverseTranspose[1].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[1][1], inverseTranspose[1].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[1][2], inverseTranspose[1].z, epsilon);
 
-	EXPECT_NEAR(inverseTransposeCheck.values[1][0], inverseTranspose[1].x, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[1][1], inverseTranspose[1].y, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[1][2], inverseTranspose[1].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[2][0], inverseTranspose[2].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[2][1], inverseTranspose[2].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[2][2], inverseTranspose[2].z, epsilon);
 
-	EXPECT_NEAR(inverseTransposeCheck.values[2][0], inverseTranspose[2].x, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[2][1], inverseTranspose[2].y, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[2][2], inverseTranspose[2].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.22998233959263534, inverseTranspose[0].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.19453867528786228, inverseTranspose[0].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.039818314631157037, inverseTranspose[0].z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.38795464822649051, inverseTranspose[1].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.074637387877026243, inverseTranspose[1].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.074301986637620623, inverseTranspose[1].z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.15282893708152975, inverseTranspose[2].x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.10328239158764896, inverseTranspose[2].y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.12869481595966276, inverseTranspose[2].z, epsilon);
 }
 
 TEST(Matrix44dTest, TransformCompisitionSIMD)
@@ -3408,60 +3827,97 @@ TEST(Matrix44dTest, TransformCompisitionSIMD)
 		dsRadiansToDegreesf(15.0f), dsRadiansToDegreesf(-20.0f));
 	dsVector4f translate = {{-10.0f, 20.0f, -30.0f, 1.0f}};
 
-	dsMatrix44f scaleMat, rotateMat, translateMat, tempMat;
-	dsMatrix44f expectedTransform;
-	dsMatrix44f_makeScale(&scaleMat, scale.x, scale.y, scale.z);
-	dsQuaternion4f_toMatrix44(&rotateMat, &rotate);
-	dsMatrix44f_makeTranslate(&translateMat, translate.x, translate.y, translate.z);
-	dsMatrix44_affineMul(tempMat, rotateMat, scaleMat);
-	dsMatrix44_affineMul(expectedTransform, translateMat, tempMat);
-
-	dsMatrix44f transform;
+	dsMatrix44f scalarTransform, transform;
+	dsMatrix44f_composeTransformScalar(
+		&scalarTransform, reinterpret_cast<dsVector3f*>(&translate), &rotate, &scale);
 	dsMatrix44f_composeTransformSIMD(&transform, &translate, &rotate, &scale);
 
-	EXPECT_NEAR(expectedTransform.values[0][0], transform.values[0][0], epsilon);
-	EXPECT_NEAR(expectedTransform.values[0][1], transform.values[0][1], epsilon);
-	EXPECT_NEAR(expectedTransform.values[0][2], transform.values[0][2], epsilon);
-	EXPECT_NEAR(expectedTransform.values[0][3], transform.values[0][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[0][0], transform.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[0][1], transform.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[0][2], transform.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[0][3], transform.values[0][3], epsilon);
 
-	EXPECT_NEAR(expectedTransform.values[1][0], transform.values[1][0], epsilon);
-	EXPECT_NEAR(expectedTransform.values[1][1], transform.values[1][1], epsilon);
-	EXPECT_NEAR(expectedTransform.values[1][2], transform.values[1][2], epsilon);
-	EXPECT_NEAR(expectedTransform.values[1][3], transform.values[1][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[1][0], transform.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[1][1], transform.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[1][2], transform.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[1][3], transform.values[1][3], epsilon);
 
-	EXPECT_NEAR(expectedTransform.values[2][0], transform.values[2][0], epsilon);
-	EXPECT_NEAR(expectedTransform.values[2][1], transform.values[2][1], epsilon);
-	EXPECT_NEAR(expectedTransform.values[2][2], transform.values[2][2], epsilon);
-	EXPECT_NEAR(expectedTransform.values[2][3], transform.values[2][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[2][0], transform.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[2][1], transform.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[2][2], transform.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[2][3], transform.values[2][3], epsilon);
 
-	EXPECT_NEAR(expectedTransform.values[3][0], transform.values[3][0], epsilon);
-	EXPECT_NEAR(expectedTransform.values[3][1], transform.values[3][1], epsilon);
-	EXPECT_NEAR(expectedTransform.values[3][2], transform.values[3][2], epsilon);
-	EXPECT_NEAR(expectedTransform.values[3][3], transform.values[3][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[3][0], transform.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[3][1], transform.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[3][2], transform.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[3][3], transform.values[3][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.015100837f, transform.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.014520002f, transform.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.097781047f, transform.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0f, transform.values[0][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.078969799f, transform.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.17959212f, transform.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.038864277f, transform.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0f, transform.values[1][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.27187523f, transform.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.124629505f, transform.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.023480309f, transform.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0f, transform.values[2][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-10.0f, transform.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(20.0f, transform.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-30.0f, transform.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0f, transform.values[3][3], epsilon);
+
+	dsVector3f extractedScalarTranslate, extractedScalarScale;
+	dsQuaternion4f extractedScalarRotate;
+	dsMatrix44f_decomposeTransformScalar(
+		&extractedScalarTranslate, &extractedScalarRotate, &extractedScalarScale, &transform);
 
 	dsVector4f extractedTranslate, extractedScale;
 	dsQuaternion4f extractedRotate;
 	dsMatrix44f_decomposeTransformSIMD(
 		&extractedTranslate, &extractedRotate, &extractedScale, &transform);
 
-	EXPECT_NEAR(extractedTranslate.x, translate.x, epsilon);
-	EXPECT_NEAR(extractedTranslate.y, translate.y, epsilon);
-	EXPECT_NEAR(extractedTranslate.z, translate.z, epsilon);
-
+#if !DS_DETERMINISTIC_MATH
 	// May be opposite sign.
-	if ((extractedRotate.i < 0) != (rotate.i < 0))
+	if (extractedScalarRotate.i < 0)
+		dsVector4_neg(extractedScalarRotate, extractedScalarRotate);
+	if (extractedRotate.i < 0)
 		dsVector4_neg(extractedRotate, extractedRotate);
-	EXPECT_NEAR(extractedRotate.i, rotate.i, epsilon);
-	EXPECT_NEAR(extractedRotate.j, rotate.j, epsilon);
-	EXPECT_NEAR(extractedRotate.k, rotate.k, epsilon);
-	EXPECT_NEAR(extractedRotate.r, rotate.r, epsilon);
+#endif
 
-	EXPECT_NEAR(extractedScale.x, scale.x, epsilon);
-	EXPECT_NEAR(extractedScale.y, scale.y, epsilon);
-	EXPECT_NEAR(extractedScale.z, scale.z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarTranslate.x, extractedTranslate.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarTranslate.y, extractedTranslate.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarTranslate.z, extractedTranslate.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(extractedScalarRotate.i, extractedRotate.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarRotate.j, extractedRotate.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarRotate.k, extractedRotate.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarRotate.r, extractedRotate.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(extractedScalarScale.x, extractedScale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarScale.y, extractedScale.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarScale.z, extractedScale.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-10.0f, extractedTranslate.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(20.0f, extractedTranslate.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-30.0f, extractedTranslate.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.64588469f, extractedRotate.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.20903292f, extractedRotate.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.729249f, extractedRotate.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.085584275f, extractedRotate.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.099999994f, extractedScale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.19999997f, extractedScale.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.29999998f, extractedScale.z, epsilon);
 }
 
-TYPED_TEST(Matrix44Test, TransformCompisitionSIMD2)
+TEST(Matrix44dTest, TransformCompisitionSIMD2)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 		return;
@@ -3474,57 +3930,94 @@ TYPED_TEST(Matrix44Test, TransformCompisitionSIMD2)
 		dsRadiansToDegrees(15.0), dsRadiansToDegrees(-20.0));
 	dsVector4d translate = {{-10.0, 20.0, -30.0, 1.0}};
 
-	dsMatrix44d scaleMat, rotateMat, translateMat, tempMat;
-	dsMatrix44d expectedTransform;
-	dsMatrix44d_makeScale(&scaleMat, scale.x, scale.y, scale.z);
-	dsQuaternion4d_toMatrix44(&rotateMat, &rotate);
-	dsMatrix44d_makeTranslate(&translateMat, translate.x, translate.y, translate.z);
-	dsMatrix44_affineMul(tempMat, rotateMat, scaleMat);
-	dsMatrix44_affineMul(expectedTransform, translateMat, tempMat);
-
-	dsMatrix44d transform;
+	dsMatrix44d scalarTransform, transform;
+	dsMatrix44d_composeTransformScalar(
+		&scalarTransform, reinterpret_cast<dsVector3d*>(&translate), &rotate, &scale);
 	dsMatrix44d_composeTransformSIMD2(&transform, &translate, &rotate, &scale);
 
-	EXPECT_NEAR(expectedTransform.values[0][0], transform.values[0][0], epsilon);
-	EXPECT_NEAR(expectedTransform.values[0][1], transform.values[0][1], epsilon);
-	EXPECT_NEAR(expectedTransform.values[0][2], transform.values[0][2], epsilon);
-	EXPECT_NEAR(expectedTransform.values[0][3], transform.values[0][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[0][0], transform.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[0][1], transform.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[0][2], transform.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[0][3], transform.values[0][3], epsilon);
 
-	EXPECT_NEAR(expectedTransform.values[1][0], transform.values[1][0], epsilon);
-	EXPECT_NEAR(expectedTransform.values[1][1], transform.values[1][1], epsilon);
-	EXPECT_NEAR(expectedTransform.values[1][2], transform.values[1][2], epsilon);
-	EXPECT_NEAR(expectedTransform.values[1][3], transform.values[1][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[1][0], transform.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[1][1], transform.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[1][2], transform.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[1][3], transform.values[1][3], epsilon);
 
-	EXPECT_NEAR(expectedTransform.values[2][0], transform.values[2][0], epsilon);
-	EXPECT_NEAR(expectedTransform.values[2][1], transform.values[2][1], epsilon);
-	EXPECT_NEAR(expectedTransform.values[2][2], transform.values[2][2], epsilon);
-	EXPECT_NEAR(expectedTransform.values[2][3], transform.values[2][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[2][0], transform.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[2][1], transform.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[2][2], transform.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[2][3], transform.values[2][3], epsilon);
 
-	EXPECT_NEAR(expectedTransform.values[3][0], transform.values[3][0], epsilon);
-	EXPECT_NEAR(expectedTransform.values[3][1], transform.values[3][1], epsilon);
-	EXPECT_NEAR(expectedTransform.values[3][2], transform.values[3][2], epsilon);
-	EXPECT_NEAR(expectedTransform.values[3][3], transform.values[3][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[3][0], transform.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[3][1], transform.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[3][2], transform.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[3][3], transform.values[3][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.015105093323287466, transform.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.01452225227224585, transform.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.09778006107911788, transform.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0, transform.values[0][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.078985479434329264, transform.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.17958328991753142, transform.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.038873333030819336, transform.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0, transform.values[1][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.27186290108792616, transform.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.12465585490004825, transform.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.023483629429765406, transform.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0, transform.values[2][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-10.0, transform.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(20.0, transform.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-30.0, transform.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0, transform.values[3][3], epsilon);
+
+	dsVector3d extractedScalarTranslate, extractedScalarScale;
+	dsQuaternion4d extractedScalarRotate;
+	dsMatrix44d_decomposeTransformScalar(
+		&extractedScalarTranslate, &extractedScalarRotate, &extractedScalarScale, &transform);
 
 	dsVector4d extractedTranslate, extractedScale;
 	dsQuaternion4d extractedRotate;
 	dsMatrix44d_decomposeTransformSIMD2(
 		&extractedTranslate, &extractedRotate, &extractedScale, &transform);
 
-	EXPECT_NEAR(extractedTranslate.x, translate.x, epsilon);
-	EXPECT_NEAR(extractedTranslate.y, translate.y, epsilon);
-	EXPECT_NEAR(extractedTranslate.z, translate.z, epsilon);
-
+#if !DS_DETERMINISTIC_MATH
 	// May be opposite sign.
-	if ((extractedRotate.i < 0) != (rotate.i < 0))
+	if (extractedScalarRotate.i < 0)
+		dsVector4_neg(extractedScalarRotate, extractedScalarRotate);
+	if (extractedRotate.i < 0)
 		dsVector4_neg(extractedRotate, extractedRotate);
-	EXPECT_NEAR(extractedRotate.i, rotate.i, epsilon);
-	EXPECT_NEAR(extractedRotate.j, rotate.j, epsilon);
-	EXPECT_NEAR(extractedRotate.k, rotate.k, epsilon);
-	EXPECT_NEAR(extractedRotate.r, rotate.r, epsilon);
+#endif
 
-	EXPECT_NEAR(extractedScale.x, scale.x, epsilon);
-	EXPECT_NEAR(extractedScale.y, scale.y, epsilon);
-	EXPECT_NEAR(extractedScale.z, scale.z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarTranslate.x, extractedTranslate.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarTranslate.y, extractedTranslate.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarTranslate.z, extractedTranslate.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(extractedScalarRotate.i, extractedRotate.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarRotate.j, extractedRotate.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarRotate.k, extractedRotate.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarRotate.r, extractedRotate.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(extractedScalarScale.x, extractedScale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarScale.y, extractedScale.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarScale.z, extractedScale.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-10.0, extractedTranslate.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(20.0, extractedTranslate.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-30.0, extractedTranslate.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.64586894018617802, extractedRotate.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.20907876439235221, extractedRotate.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.72925409624944504, extractedRotate.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.085602835737714877, extractedRotate.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.099999999999999978, extractedScale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.19999999999999996, extractedScale.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.29999999999999993, extractedScale.z, epsilon);
 }
 
 TEST(Matrix44dTest, TransformCompisitionSIMD4)
@@ -3540,57 +4033,94 @@ TEST(Matrix44dTest, TransformCompisitionSIMD4)
 		dsRadiansToDegrees(15.0), dsRadiansToDegrees(-20.0));
 	DS_ALIGN(32) dsVector4d translate = {{-10.0, 20.0, -30.0, 1.0}};
 
-	DS_ALIGN(32) dsMatrix44d scaleMat, rotateMat, translateMat, tempMat;
-	DS_ALIGN(32) dsMatrix44d expectedTransform;
-	dsMatrix44d_makeScale(&scaleMat, scale.x, scale.y, scale.z);
-	dsQuaternion4d_toMatrix44(&rotateMat, &rotate);
-	dsMatrix44d_makeTranslate(&translateMat, translate.x, translate.y, translate.z);
-	dsMatrix44_affineMul(tempMat, rotateMat, scaleMat);
-	dsMatrix44_affineMul(expectedTransform, translateMat, tempMat);
-
-	DS_ALIGN(32) dsMatrix44d transform;
+	DS_ALIGN(32) dsMatrix44d scalarTransform, transform;
+	dsMatrix44d_composeTransformScalar(
+		&scalarTransform, reinterpret_cast<dsVector3d*>(&translate), &rotate, &scale);
 	dsMatrix44d_composeTransformSIMD4(&transform, &translate, &rotate, &scale);
 
-	EXPECT_NEAR(expectedTransform.values[0][0], transform.values[0][0], epsilon);
-	EXPECT_NEAR(expectedTransform.values[0][1], transform.values[0][1], epsilon);
-	EXPECT_NEAR(expectedTransform.values[0][2], transform.values[0][2], epsilon);
-	EXPECT_NEAR(expectedTransform.values[0][3], transform.values[0][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[0][0], transform.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[0][1], transform.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[0][2], transform.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[0][3], transform.values[0][3], epsilon);
 
-	EXPECT_NEAR(expectedTransform.values[1][0], transform.values[1][0], epsilon);
-	EXPECT_NEAR(expectedTransform.values[1][1], transform.values[1][1], epsilon);
-	EXPECT_NEAR(expectedTransform.values[1][2], transform.values[1][2], epsilon);
-	EXPECT_NEAR(expectedTransform.values[1][3], transform.values[1][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[1][0], transform.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[1][1], transform.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[1][2], transform.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[1][3], transform.values[1][3], epsilon);
 
-	EXPECT_NEAR(expectedTransform.values[2][0], transform.values[2][0], epsilon);
-	EXPECT_NEAR(expectedTransform.values[2][1], transform.values[2][1], epsilon);
-	EXPECT_NEAR(expectedTransform.values[2][2], transform.values[2][2], epsilon);
-	EXPECT_NEAR(expectedTransform.values[2][3], transform.values[2][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[2][0], transform.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[2][1], transform.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[2][2], transform.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[2][3], transform.values[2][3], epsilon);
 
-	EXPECT_NEAR(expectedTransform.values[3][0], transform.values[3][0], epsilon);
-	EXPECT_NEAR(expectedTransform.values[3][1], transform.values[3][1], epsilon);
-	EXPECT_NEAR(expectedTransform.values[3][2], transform.values[3][2], epsilon);
-	EXPECT_NEAR(expectedTransform.values[3][3], transform.values[3][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[3][0], transform.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[3][1], transform.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[3][2], transform.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[3][3], transform.values[3][3], epsilon);
 
-	dsVector4d extractedTranslate, extractedScale;
-	dsQuaternion4d extractedRotate;
+	EXPECT_EQ_DETERMINISTIC(-0.015105093323287466, transform.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.01452225227224585, transform.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.09778006107911788, transform.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0, transform.values[0][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.078985479434329264, transform.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.17958328991753142, transform.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.038873333030819336, transform.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0, transform.values[1][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.27186290108792616, transform.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.12465585490004825, transform.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.023483629429765406, transform.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0, transform.values[2][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-10.0, transform.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(20.0, transform.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-30.0, transform.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0, transform.values[3][3], epsilon);
+
+	dsVector3d extractedScalarTranslate, extractedScalarScale;
+	dsQuaternion4d extractedScalarRotate;
+	dsMatrix44d_decomposeTransformScalar(
+		&extractedScalarTranslate, &extractedScalarRotate, &extractedScalarScale, &transform);
+
+	DS_ALIGN(32) dsVector4d extractedTranslate, extractedScale;
+	DS_ALIGN(32) dsQuaternion4d extractedRotate;
 	dsMatrix44d_decomposeTransformSIMD4(
 		&extractedTranslate, &extractedRotate, &extractedScale, &transform);
 
-	EXPECT_NEAR(extractedTranslate.x, translate.x, epsilon);
-	EXPECT_NEAR(extractedTranslate.y, translate.y, epsilon);
-	EXPECT_NEAR(extractedTranslate.z, translate.z, epsilon);
-
+#if !DS_DETERMINISTIC_MATH
 	// May be opposite sign.
-	if ((extractedRotate.i < 0) != (rotate.i < 0))
+	if (extractedScalarRotate.i < 0)
+		dsVector4_neg(extractedScalarRotate, extractedScalarRotate);
+	if (extractedRotate.i < 0)
 		dsVector4_neg(extractedRotate, extractedRotate);
-	EXPECT_NEAR(extractedRotate.i, rotate.i, epsilon);
-	EXPECT_NEAR(extractedRotate.j, rotate.j, epsilon);
-	EXPECT_NEAR(extractedRotate.k, rotate.k, epsilon);
-	EXPECT_NEAR(extractedRotate.r, rotate.r, epsilon);
+#endif
 
-	EXPECT_NEAR(extractedScale.x, scale.x, epsilon);
-	EXPECT_NEAR(extractedScale.y, scale.y, epsilon);
-	EXPECT_NEAR(extractedScale.z, scale.z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarTranslate.x, extractedTranslate.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarTranslate.y, extractedTranslate.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarTranslate.z, extractedTranslate.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(extractedScalarRotate.i, extractedRotate.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarRotate.j, extractedRotate.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarRotate.k, extractedRotate.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarRotate.r, extractedRotate.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(extractedScalarScale.x, extractedScale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarScale.y, extractedScale.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(extractedScalarScale.z, extractedScale.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-10.0, extractedTranslate.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(20.0, extractedTranslate.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-30.0, extractedTranslate.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.64586894018617802, extractedRotate.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.20907876439235221, extractedRotate.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.72925409624944504, extractedRotate.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.085602835737714877, extractedRotate.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.099999999999999978, extractedScale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.19999999999999996, extractedScale.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.29999999999999993, extractedScale.z, epsilon);
 }
 
 TEST(Matrix44dTest, RigidLerpSIMD)
@@ -3628,74 +4158,52 @@ TEST(Matrix44dTest, RigidLerpSIMD)
 	dsMatrix44f_affineMulSIMD(&transformB, &translateMat, &tempMat);
 
 	float t = 0.375f;
-	dsVector3f scaleInterp;
-	dsQuaternion4f rotateInterp;
-	dsVector3f translateInterp;
-	dsVector3_lerp(scaleInterp, scaleA, scaleB, t);
-	dsQuaternion4f_slerp(&rotateInterp, &rotateA, &rotateB, t);
-	dsVector3_lerp(translateInterp, translateA, translateB, t);
-
-	dsMatrix44f expectedResult;
-	dsMatrix44f_makeScale(&scaleMat, scaleInterp.x, scaleInterp.y, scaleInterp.z);
-	dsQuaternion4f_toMatrix44(&rotateMat, &rotateInterp);
-	dsMatrix44f_makeTranslate(&translateMat, translateInterp.x, translateInterp.y,
-		translateInterp.z);
-	dsMatrix44f_affineMulSIMD(&tempMat, &rotateMat, &scaleMat);
-	dsMatrix44f_affineMulSIMD(&expectedResult, &translateMat, &tempMat);
-
-	dsMatrix44f result;
+	dsMatrix44f scalarResult, result;
+	dsMatrix44f_rigidLerpScalar(&scalarResult, &transformA, &transformB, t);
 	dsMatrix44f_rigidLerpSIMD(&result, &transformA, &transformB, t);
 
-	EXPECT_NEAR(expectedResult.values[0][0], result.values[0][0], epsilon);
-	EXPECT_NEAR(expectedResult.values[0][1], result.values[0][1], epsilon);
-	EXPECT_NEAR(expectedResult.values[0][2], result.values[0][2], epsilon);
-	EXPECT_NEAR(expectedResult.values[0][3], result.values[0][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][0], result.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][1], result.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][2], result.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][3], result.values[0][3], epsilon);
 
-	EXPECT_NEAR(expectedResult.values[1][0], result.values[1][0], epsilon);
-	EXPECT_NEAR(expectedResult.values[1][1], result.values[1][1], epsilon);
-	EXPECT_NEAR(expectedResult.values[1][2], result.values[1][2], epsilon);
-	EXPECT_NEAR(expectedResult.values[1][3], result.values[1][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][0], result.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][1], result.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][2], result.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][3], result.values[1][3], epsilon);
 
-	EXPECT_NEAR(expectedResult.values[2][0], result.values[2][0], epsilon);
-	EXPECT_NEAR(expectedResult.values[2][1], result.values[2][1], epsilon);
-	EXPECT_NEAR(expectedResult.values[2][2], result.values[2][2], epsilon);
-	EXPECT_NEAR(expectedResult.values[2][3], result.values[2][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][0], result.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][1], result.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][2], result.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][3], result.values[2][3], epsilon);
 
-	EXPECT_NEAR(expectedResult.values[3][0], result.values[3][0], epsilon);
-	EXPECT_NEAR(expectedResult.values[3][1], result.values[3][1], epsilon);
-	EXPECT_NEAR(expectedResult.values[3][2], result.values[3][2], epsilon);
-	EXPECT_NEAR(expectedResult.values[3][3], result.values[3][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][0], result.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][1], result.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][2], result.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][3], result.values[3][3], epsilon);
 
-	dsMatrix44f_makeScale(&scaleMat, scaleB.x, scaleB.y, scaleB.z);
-	dsQuaternion4f_toMatrix44(&rotateMat, &rotateB);
-	dsMatrix44f_makeTranslate(&translateMat, translateB.x, translateB.y, translateB.z);
-	dsMatrix44f_affineMulSIMD(&tempMat, &scaleMat, &translateMat);
-	dsMatrix44f_affineMulSIMD(&transformB, &rotateMat, &tempMat);
+	EXPECT_EQ_DETERMINISTIC(-0.41488755f, result.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.35542789f, result.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0543616f, result.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0f, result.values[0][3], epsilon);
 
-	t = 1.0f;
-	dsMatrix44f_rigidLerpSIMD(&result, &transformA, &transformB, t);
+	EXPECT_EQ_DETERMINISTIC(0.28865504f, result.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.81043953f, result.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.15961632f, result.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0f, result.values[1][3], epsilon);
 
-	EXPECT_NEAR(transformB.values[0][0], result.values[0][0], epsilon);
-	EXPECT_NEAR(transformB.values[0][1], result.values[0][1], epsilon);
-	EXPECT_NEAR(transformB.values[0][2], result.values[0][2], epsilon);
-	EXPECT_NEAR(transformB.values[0][3], result.values[0][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.49330112f, result.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.12890932f, result.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.23757307f, result.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0f, result.values[2][3], epsilon);
 
-	EXPECT_NEAR(transformB.values[1][0], result.values[1][0], epsilon);
-	EXPECT_NEAR(transformB.values[1][1], result.values[1][1], epsilon);
-	EXPECT_NEAR(transformB.values[1][2], result.values[1][2], epsilon);
-	EXPECT_NEAR(transformB.values[1][3], result.values[1][3], epsilon);
-
-	EXPECT_NEAR(transformB.values[2][0], result.values[2][0], epsilon);
-	EXPECT_NEAR(transformB.values[2][1], result.values[2][1], epsilon);
-	EXPECT_NEAR(transformB.values[2][2], result.values[2][2], epsilon);
-	EXPECT_NEAR(transformB.values[2][3], result.values[2][3], epsilon);
-
-	EXPECT_NEAR(transformB.values[3][0], result.values[3][0], epsilon);
-	EXPECT_NEAR(transformB.values[3][1], result.values[3][1], epsilon);
-	EXPECT_NEAR(transformB.values[3][2], result.values[3][2], epsilon);
-	EXPECT_NEAR(transformB.values[3][3], result.values[3][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.25f, result.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(6.875f, result.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-15.0f, result.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0f, result.values[3][3], epsilon);
 }
 
+#if !DS_DETERMINISTIC_MATH
 TEST(Matrix44dTest, RigidLerpFMA)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
@@ -3798,8 +4306,9 @@ TEST(Matrix44dTest, RigidLerpFMA)
 	EXPECT_NEAR(transformB.values[3][2], result.values[3][2], epsilon);
 	EXPECT_NEAR(transformB.values[3][3], result.values[3][3], epsilon);
 }
+#endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44dTest, RigidLerp2SIMD)
+TEST(Matrix44dTest, RigidLerpSIMD2)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 		return;
@@ -3834,74 +4343,52 @@ TEST(Matrix44dTest, RigidLerp2SIMD)
 	dsMatrix44d_affineMulSIMD2(&transformB, &translateMat, &tempMat);
 
 	double t = 0.375;
-	dsVector3d scaleInterp;
-	dsQuaternion4d rotateInterp;
-	dsVector3d translateInterp;
-	dsVector3_lerp(scaleInterp, scaleA, scaleB, t);
-	dsQuaternion4d_slerp(&rotateInterp, &rotateA, &rotateB, t);
-	dsVector3_lerp(translateInterp, translateA, translateB, t);
-
-	dsMatrix44d expectedResult;
-	dsMatrix44d_makeScale(&scaleMat, scaleInterp.x, scaleInterp.y, scaleInterp.z);
-	dsQuaternion4d_toMatrix44(&rotateMat, &rotateInterp);
-	dsMatrix44d_makeTranslate(&translateMat, translateInterp.x, translateInterp.y,
-		translateInterp.z);
-	dsMatrix44d_affineMulSIMD2(&tempMat, &rotateMat, &scaleMat);
-	dsMatrix44d_affineMulSIMD2(&expectedResult, &translateMat, &tempMat);
-
-	dsMatrix44d result;
+	dsMatrix44d scalarResult, result;
+	dsMatrix44d_rigidLerpScalar(&scalarResult, &transformA, &transformB, t);
 	dsMatrix44d_rigidLerpSIMD2(&result, &transformA, &transformB, t);
 
-	EXPECT_NEAR(expectedResult.values[0][0], result.values[0][0], epsilon);
-	EXPECT_NEAR(expectedResult.values[0][1], result.values[0][1], epsilon);
-	EXPECT_NEAR(expectedResult.values[0][2], result.values[0][2], epsilon);
-	EXPECT_NEAR(expectedResult.values[0][3], result.values[0][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][0], result.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][1], result.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][2], result.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][3], result.values[0][3], epsilon);
 
-	EXPECT_NEAR(expectedResult.values[1][0], result.values[1][0], epsilon);
-	EXPECT_NEAR(expectedResult.values[1][1], result.values[1][1], epsilon);
-	EXPECT_NEAR(expectedResult.values[1][2], result.values[1][2], epsilon);
-	EXPECT_NEAR(expectedResult.values[1][3], result.values[1][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][0], result.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][1], result.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][2], result.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][3], result.values[1][3], epsilon);
 
-	EXPECT_NEAR(expectedResult.values[2][0], result.values[2][0], epsilon);
-	EXPECT_NEAR(expectedResult.values[2][1], result.values[2][1], epsilon);
-	EXPECT_NEAR(expectedResult.values[2][2], result.values[2][2], epsilon);
-	EXPECT_NEAR(expectedResult.values[2][3], result.values[2][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][0], result.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][1], result.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][2], result.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][3], result.values[2][3], epsilon);
 
-	EXPECT_NEAR(expectedResult.values[3][0], result.values[3][0], epsilon);
-	EXPECT_NEAR(expectedResult.values[3][1], result.values[3][1], epsilon);
-	EXPECT_NEAR(expectedResult.values[3][2], result.values[3][2], epsilon);
-	EXPECT_NEAR(expectedResult.values[3][3], result.values[3][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][0], result.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][1], result.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][2], result.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][3], result.values[3][3], epsilon);
 
-	dsMatrix44d_makeScale(&scaleMat, scaleB.x, scaleB.y, scaleB.z);
-	dsQuaternion4d_toMatrix44(&rotateMat, &rotateB);
-	dsMatrix44d_makeTranslate(&translateMat, translateB.x, translateB.y, translateB.z);
-	dsMatrix44d_affineMulSIMD2(&tempMat, &scaleMat, &translateMat);
-	dsMatrix44d_affineMulSIMD2(&transformB, &rotateMat, &tempMat);
+	EXPECT_EQ_DETERMINISTIC(-0.4149251597996777, result.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.35544613800622904, result.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0543488060133066, result.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0, result.values[0][3], epsilon);
 
-	t = 1.0;
-	dsMatrix44d_rigidLerpSIMD2(&result, &transformA, &transformB, t);
+	EXPECT_EQ_DETERMINISTIC(0.28868738522858595, result.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.81043791760410278, result.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.15960881967930346, result.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0, result.values[1][3], epsilon);
 
-	EXPECT_NEAR(transformB.values[0][0], result.values[0][0], epsilon);
-	EXPECT_NEAR(transformB.values[0][1], result.values[0][1], epsilon);
-	EXPECT_NEAR(transformB.values[0][2], result.values[0][2], epsilon);
-	EXPECT_NEAR(transformB.values[0][3], result.values[0][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.49329018369231664, result.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.12892411213497201, result.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.23759128347439701, result.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0, result.values[2][3], epsilon);
 
-	EXPECT_NEAR(transformB.values[1][0], result.values[1][0], epsilon);
-	EXPECT_NEAR(transformB.values[1][1], result.values[1][1], epsilon);
-	EXPECT_NEAR(transformB.values[1][2], result.values[1][2], epsilon);
-	EXPECT_NEAR(transformB.values[1][3], result.values[1][3], epsilon);
-
-	EXPECT_NEAR(transformB.values[2][0], result.values[2][0], epsilon);
-	EXPECT_NEAR(transformB.values[2][1], result.values[2][1], epsilon);
-	EXPECT_NEAR(transformB.values[2][2], result.values[2][2], epsilon);
-	EXPECT_NEAR(transformB.values[2][3], result.values[2][3], epsilon);
-
-	EXPECT_NEAR(transformB.values[3][0], result.values[3][0], epsilon);
-	EXPECT_NEAR(transformB.values[3][1], result.values[3][1], epsilon);
-	EXPECT_NEAR(transformB.values[3][2], result.values[3][2], epsilon);
-	EXPECT_NEAR(transformB.values[3][3], result.values[3][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.25, result.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(6.875, result.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-15.0, result.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0, result.values[3][3], epsilon);
 }
 
+#if !DS_DETERMINISTIC_MATH
 TEST(Matrix44dTest, RigidLerp2FMA)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
@@ -4005,11 +4492,11 @@ TEST(Matrix44dTest, RigidLerp2FMA)
 	EXPECT_NEAR(transformB.values[3][2], result.values[3][2], epsilon);
 	EXPECT_NEAR(transformB.values[3][3], result.values[3][3], epsilon);
 }
+#endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44dTest, RigidLerp4FMA)
+TEST(Matrix44dTest, RigidLerpSIMD4)
 {
-	dsSIMDFeatures features = dsSIMDFeatures_Double4 | dsSIMDFeatures_FMA;
-	if ((dsHostSIMDFeatures & features) != features)
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
@@ -4025,8 +4512,8 @@ TEST(Matrix44dTest, RigidLerp4FMA)
 	dsMatrix44d_makeScale(&scaleMat, scaleA.x, scaleA.y, scaleA.z);
 	dsQuaternion4d_toMatrix44(&rotateMat, &rotateA);
 	dsMatrix44d_makeTranslate(&translateMat, translateA.x, translateA.y, translateA.z);
-	dsMatrix44d_affineMulFMA4(&tempMat, &rotateMat, &scaleMat);
-	dsMatrix44d_affineMulFMA4(&transformA, &translateMat, &tempMat);
+	dsMatrix44d_affineMulSIMD4(&tempMat, &rotateMat, &scaleMat);
+	dsMatrix44d_affineMulSIMD4(&transformA, &translateMat, &tempMat);
 
 	dsVector3d scaleB = {{3.0, 2.0, 1.0}};
 	dsQuaternion4d rotateB;
@@ -4038,78 +4525,56 @@ TEST(Matrix44dTest, RigidLerp4FMA)
 	dsMatrix44d_makeScale(&scaleMat, scaleB.x, scaleB.y, scaleB.z);
 	dsQuaternion4d_toMatrix44(&rotateMat, &rotateB);
 	dsMatrix44d_makeTranslate(&translateMat, translateB.x, translateB.y, translateB.z);
-	dsMatrix44d_affineMulFMA4(&tempMat, &rotateMat, &scaleMat);
-	dsMatrix44d_affineMulFMA4(&transformB, &translateMat, &tempMat);
+	dsMatrix44d_affineMulSIMD4(&tempMat, &rotateMat, &scaleMat);
+	dsMatrix44d_affineMulSIMD4(&transformB, &translateMat, &tempMat);
 
 	double t = 0.375;
-	dsVector3d scaleInterp;
-	dsQuaternion4d rotateInterp;
-	dsVector3d translateInterp;
-	dsVector3_lerp(scaleInterp, scaleA, scaleB, t);
-	dsQuaternion4d_slerp(&rotateInterp, &rotateA, &rotateB, t);
-	dsVector3_lerp(translateInterp, translateA, translateB, t);
+	DS_ALIGN(32) dsMatrix44d scalarResult, result;
+	dsMatrix44d_rigidLerpScalar(&scalarResult, &transformA, &transformB, t);
+	dsMatrix44d_rigidLerpSIMD4(&result, &transformA, &transformB, t);
 
-	DS_ALIGN(32) dsMatrix44d expectedResult;
-	dsMatrix44d_makeScale(&scaleMat, scaleInterp.x, scaleInterp.y, scaleInterp.z);
-	dsQuaternion4d_toMatrix44(&rotateMat, &rotateInterp);
-	dsMatrix44d_makeTranslate(&translateMat, translateInterp.x, translateInterp.y,
-		translateInterp.z);
-	dsMatrix44d_affineMulFMA4(&tempMat, &rotateMat, &scaleMat);
-	dsMatrix44d_affineMulFMA4(&expectedResult, &translateMat, &tempMat);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][0], result.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][1], result.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][2], result.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[0][3], result.values[0][3], epsilon);
 
-	DS_ALIGN(32) dsMatrix44d result;
-	dsMatrix44d_rigidLerpFMA4(&result, &transformA, &transformB, t);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][0], result.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][1], result.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][2], result.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[1][3], result.values[1][3], epsilon);
 
-	EXPECT_NEAR(expectedResult.values[0][0], result.values[0][0], epsilon);
-	EXPECT_NEAR(expectedResult.values[0][1], result.values[0][1], epsilon);
-	EXPECT_NEAR(expectedResult.values[0][2], result.values[0][2], epsilon);
-	EXPECT_NEAR(expectedResult.values[0][3], result.values[0][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][0], result.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][1], result.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][2], result.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[2][3], result.values[2][3], epsilon);
 
-	EXPECT_NEAR(expectedResult.values[1][0], result.values[1][0], epsilon);
-	EXPECT_NEAR(expectedResult.values[1][1], result.values[1][1], epsilon);
-	EXPECT_NEAR(expectedResult.values[1][2], result.values[1][2], epsilon);
-	EXPECT_NEAR(expectedResult.values[1][3], result.values[1][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][0], result.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][1], result.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][2], result.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][3], result.values[3][3], epsilon);
 
-	EXPECT_NEAR(expectedResult.values[2][0], result.values[2][0], epsilon);
-	EXPECT_NEAR(expectedResult.values[2][1], result.values[2][1], epsilon);
-	EXPECT_NEAR(expectedResult.values[2][2], result.values[2][2], epsilon);
-	EXPECT_NEAR(expectedResult.values[2][3], result.values[2][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.4149251597996777, result.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.35544613800622904, result.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0543488060133066, result.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0, result.values[0][3], epsilon);
 
-	EXPECT_NEAR(expectedResult.values[3][0], result.values[3][0], epsilon);
-	EXPECT_NEAR(expectedResult.values[3][1], result.values[3][1], epsilon);
-	EXPECT_NEAR(expectedResult.values[3][2], result.values[3][2], epsilon);
-	EXPECT_NEAR(expectedResult.values[3][3], result.values[3][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.28868738522858595, result.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.81043791760410278, result.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.15960881967930346, result.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0, result.values[1][3], epsilon);
 
-	dsMatrix44d_makeScale(&scaleMat, scaleB.x, scaleB.y, scaleB.z);
-	dsQuaternion4d_toMatrix44(&rotateMat, &rotateB);
-	dsMatrix44d_makeTranslate(&translateMat, translateB.x, translateB.y, translateB.z);
-	dsMatrix44d_affineMulFMA4(&tempMat, &scaleMat, &translateMat);
-	dsMatrix44d_affineMulFMA4(&transformB, &rotateMat, &tempMat);
+	EXPECT_EQ_DETERMINISTIC(0.49329018369231664, result.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.12892411213497201, result.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.23759128347439701, result.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0, result.values[2][3], epsilon);
 
-	t = 1.0;
-	dsMatrix44d_rigidLerpFMA4(&result, &transformA, &transformB, t);
-
-	EXPECT_NEAR(transformB.values[0][0], result.values[0][0], epsilon);
-	EXPECT_NEAR(transformB.values[0][1], result.values[0][1], epsilon);
-	EXPECT_NEAR(transformB.values[0][2], result.values[0][2], epsilon);
-	EXPECT_NEAR(transformB.values[0][3], result.values[0][3], epsilon);
-
-	EXPECT_NEAR(transformB.values[1][0], result.values[1][0], epsilon);
-	EXPECT_NEAR(transformB.values[1][1], result.values[1][1], epsilon);
-	EXPECT_NEAR(transformB.values[1][2], result.values[1][2], epsilon);
-	EXPECT_NEAR(transformB.values[1][3], result.values[1][3], epsilon);
-
-	EXPECT_NEAR(transformB.values[2][0], result.values[2][0], epsilon);
-	EXPECT_NEAR(transformB.values[2][1], result.values[2][1], epsilon);
-	EXPECT_NEAR(transformB.values[2][2], result.values[2][2], epsilon);
-	EXPECT_NEAR(transformB.values[2][3], result.values[2][3], epsilon);
-
-	EXPECT_NEAR(transformB.values[3][0], result.values[3][0], epsilon);
-	EXPECT_NEAR(transformB.values[3][1], result.values[3][1], epsilon);
-	EXPECT_NEAR(transformB.values[3][2], result.values[3][2], epsilon);
-	EXPECT_NEAR(transformB.values[3][3], result.values[3][3], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.25, result.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(6.875, result.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-15.0, result.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0, result.values[3][3], epsilon);
 }
-#endif
+
+#endif // DS_HAS_SIMD
 
 TEST(Matrix44Test, ConvertFloatToDouble)
 {

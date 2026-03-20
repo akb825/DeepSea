@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "Determinism.h"
 #include <DeepSea/Math/Quaternion.h>
 #include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Matrix44.h>
@@ -490,10 +491,15 @@ TEST(Quaternion4fTest, MultiplySIMD)
 	dsQuaternion4f_mul(&qab, &qa, &qb);
 	dsQuaternion4_mul(qabRef, qa, qb);
 
-	EXPECT_NEAR(qabRef.i, qab.i, epsilon);
-	EXPECT_NEAR(qabRef.j, qab.j, epsilon);
-	EXPECT_NEAR(qabRef.k, qab.k, epsilon);
-	EXPECT_NEAR(qabRef.r, qab.r, epsilon);
+	EXPECT_EQ_DETERMINISTIC(qabRef.i, qab.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(qabRef.j, qab.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(qabRef.k, qab.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(qabRef.r, qab.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.70289826f, qab.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.68645537f, qab.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.18280147f, qab.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.036007673f, qab.r, epsilon);
 }
 
 TEST(Quaternion4fTest, ConjugateSIMD)
