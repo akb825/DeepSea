@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -739,17 +739,17 @@ uint32_t dsPhysicsScene_intersectShapes(const dsPhysicsScene* scene,
 	DS_PROFILE_FUNC_RETURN(count);
 }
 
-bool dsPhysicsScene_update(dsPhysicsScene* scene, float time, unsigned int stepCount)
+bool dsPhysicsScene_update(dsPhysicsScene* scene, float stepTime, unsigned int stepCount)
 {
 	DS_PROFILE_FUNC_START();
-	if (!scene || !scene->engine || !scene->engine->updateSceneFunc || time < 0.0f ||
+	if (!scene || !scene->engine || !scene->engine->updateSceneFunc || stepTime < 0.0f ||
 		stepCount == 0)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (time == 0.0f)
+	if (stepTime == 0.0f)
 		DS_PROFILE_FUNC_RETURN(true);
 
 	if (scene->lock && !dsReadWriteLock_lockWrite(scene->lock))
@@ -759,7 +759,7 @@ bool dsPhysicsScene_update(dsPhysicsScene* scene, float time, unsigned int stepC
 	// members.
 	dsPhysicsSceneLock sceneLock = {.readLock = scene, .writeLock = NULL};
 	dsPhysicsEngine* engine = scene->engine;
-	bool success = engine->updateSceneFunc(engine, scene, time, stepCount, &sceneLock);
+	bool success = engine->updateSceneFunc(engine, scene, stepTime, stepCount, &sceneLock);
 
 	if (scene->lock)
 		dsReadWriteLock_unlockWrite(scene->lock);

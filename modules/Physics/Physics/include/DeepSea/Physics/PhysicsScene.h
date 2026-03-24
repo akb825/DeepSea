@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -465,12 +465,14 @@ DS_PHYSICS_EXPORT uint32_t dsPhysicsScene_intersectShapes(const dsPhysicsScene* 
  *
  * @remark errno will be set on failure.
  * @param scene The physics scene to update.
- * @param time The total amount of time to advance the physics simulation. This must be >= 0.
+ * @param stepTime The amount of time to advance the physics simulation each step. Typically this
+ *     will either be a fixed value for deterministic results (best used when deterministic math is
+ *     enabled) or a value based on the frame time. This must be >= 0.
  * @param stepCount The number of steps to perform to update the simulation. This must be at least
  *     1.
  */
 DS_PHYSICS_EXPORT bool dsPhysicsScene_update(
-	dsPhysicsScene* scene, float time, unsigned int stepCount);
+	dsPhysicsScene* scene, float stepTime, unsigned int stepCount);
 
 /**
  * @brief Destroys a physics scene.

@@ -312,4 +312,4 @@ The following scene item lists are provided with the expected members:
 	* `maxContactPoints`: the maximum number of contact points between colliding bodies. The implementation is only guaranteed to process this many contacts between bodies. If it is exceeded, further contacts may be discarded.
 	* `gravity`: array of 3 floats for the the initial gravity of the scene.
 	* `multiThreadedModifications`: whether modifications may be made across threads. When false, the locking functions will become NOPs that only enforce that the proper locking functions are used. This can reduce overhead when locking isn't required. Defaults to false.
-	* `targetStepTime`: the step time that is desired when updating the physics list. This will keep each step as close to this time as possible. Defaults to 1/60 s.
+	* `targetStepTime`: the step time that is desired when updating the physics list. This will keep each step as close to this time as possible. Defaults to 0, indicating that the update time should be passed as-is.

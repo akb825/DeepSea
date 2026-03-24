@@ -56,7 +56,7 @@ DS_SCENEPHYSICS_EXPORT const dsSceneItemListType* dsScenePhysicsList_type(void);
  * @param takeOwnership Whether to take ownership of the physics scene. If true and creation fails,
  *     the physics scene will be destroyed immediately.
  * @param targetStepTime The step time that is desired. This will keep each step as close to this
- *     time as possible.
+ *     time as possible. If 0, the step time will not be adjusted.
  * @return The scene physics list or NULL if an error occurred.
  */
 DS_SCENEPHYSICS_EXPORT dsSceneItemList* dsScenePhysicsList_create(dsAllocator* allocator,

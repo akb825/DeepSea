@@ -752,10 +752,21 @@ static void dsScenePhysicsList_preTransformUpdate(
 		}
 	}
 
-	unsigned int stepCount = (unsigned int)roundf(time/physicsList->targetStepTime);
-	if (stepCount == 0)
+	float stepTime;
+	unsigned int stepCount;
+	if (physicsList->targetStepTime > 0)
+	{
+		stepCount = (unsigned int)roundf(time/physicsList->targetStepTime);
+		if (stepCount == 0)
+			stepCount = 1;
+		stepTime = time/(float)stepCount;
+	}
+	else
+	{
+		stepTime = time;
 		stepCount = 1;
-	DS_VERIFY(dsPhysicsScene_update(physicsList->physicsScene, time, stepCount));
+	}
+	DS_VERIFY(dsPhysicsScene_update(physicsList->physicsScene, stepTime, stepCount));
 
 	// Update scene transforms for rigid bodies in motion.
 	for (unsigned int i = 0; i < physicsList->rigidBodyEntryCount; ++i)
@@ -898,7 +909,7 @@ const dsSceneItemListType* dsScenePhysicsList_type(void)
 dsSceneItemList* dsScenePhysicsList_create(dsAllocator* allocator, const char* name,
 	dsPhysicsScene* physicsScene, bool takeOwnership, float targetStepTime)
 {
-	if (!allocator || !name || physicsScene || targetStepTime <= 0)
+	if (!allocator || !name || physicsScene || targetStepTime < 0)
 	{
 		if (takeOwnership)
 			dsPhysicsScene_destroy(physicsScene);

@@ -42,7 +42,8 @@ def convertPhysicsList(convertContext, data, inputDir):
 	  locking functions will become NOPs that only enforce that the proper locking functions are
 	  used. This can reduce overhead when locking isn't required. Defaults to false.
 	- targetStepTime: the step time that is desired when updating the physics list. This will keep
-	  each step as close to this time as possible. Defaults to 1/60 s.
+	  each step as close to this time as possible. Defaults to 0, indicating that the update time
+	  should be passed as-is.
 	"""
 	try:
 		maxStaticBodies = readInt(data['maxStaticBodies'], 'max static bodies', 0)
@@ -62,7 +63,7 @@ def convertPhysicsList(convertContext, data, inputDir):
 		gravity = (readFloat(gravityData[0], 'gravity'), readFloat(gravityData[1], 'gravity'),
 			readFloat(gravityData[2], 'gravity'))
 
-		targetStepTime = readFloat(data.get('targetStepTime', 1/60), 'target step time', 0)
+		targetStepTime = readFloat(data.get('targetStepTime', 0), 'target step time', 0)
 	except (TypeError, ValueError):
 		raise Exception('PhysicsList data must be an object.')
 	except KeyError as e:

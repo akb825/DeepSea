@@ -730,13 +730,13 @@ typedef uint32_t (*dsPhysicsSceneIntersectShapesFunction)(dsPhysicsEngine* engin
  * @brief Function for updating a physics scene.
  * @param engine The physics engine the scene was created with.
  * @param scene The physics scene to update.
- * @param time The total amount of time to advance the physics simulation.
+ * @param stepTime The amount of time to advance the physics simulation each step.
  * @param stepCount The number of steps to perform to update the simulation.
  * @param lock The lock to forward to the step update function.
  * @return False if the physics scene couldn't be updated.
  */
 typedef bool (*dsPhysicsSceneUpdateFunction)(dsPhysicsEngine* engine, dsPhysicsScene* scene,
-	float time, unsigned int stepCount, const dsPhysicsSceneLock* lock);
+	float stepTime, unsigned int stepCount, const dsPhysicsSceneLock* lock);
 
 /**
  * @brief Function to get a contact point within a contact manifold.
