@@ -27,6 +27,7 @@ DS_SIMD_START(DS_SIMD_FLOAT4);
 static void SIMDTest_Float4()
 {
 	constexpr float epsilon = 1e-6f;
+	DS_UNUSED(epsilon);
 	float padding1; // Keep next value unalied.
 	DS_UNUSED(padding1);
 	float cpuA[4] = {1.2f, 3.4f, 5.6f, 7.8f};

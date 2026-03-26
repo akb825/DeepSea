@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 #include <DeepSea/Math/Matrix33.h>
 
-#include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix22.h>
+#include <DeepSea/Math/Trig.h>
 
 #define dsMatrix33_makeRotate3DImpl(result, cosX, sinX, cosY, sinY, cosZ, sinZ) \
 	do \
@@ -88,8 +88,7 @@ void dsMatrix33f_affineInvert(dsMatrix33f* result, const dsMatrix33f* a)
 	DS_ASSERT(a);
 	DS_ASSERT(result != a);
 
-	float upperDet = a->values[0][0]*a->values[1][1] -
-		a->values[1][0]*a->values[0][1];
+	float upperDet = a->values[0][0]*a->values[1][1] - a->values[1][0]*a->values[0][1];
 	DS_ASSERT(upperDet != 0);
 	float invUpperDet = 1/upperDet;
 
@@ -114,8 +113,7 @@ void dsMatrix33d_affineInvert(dsMatrix33d* result, const dsMatrix33d* a)
 	DS_ASSERT(a);
 	DS_ASSERT(result != a);
 
-	double upperDet = a->values[0][0]*a->values[1][1] -
-		a->values[1][0]*a->values[0][1];
+	double upperDet = a->values[0][0]*a->values[1][1] - a->values[1][0]*a->values[0][1];
 	DS_ASSERT(upperDet != 0);
 	double invUpperDet = 1/upperDet;
 
@@ -183,8 +181,8 @@ void dsMatrix33d_inverseTranspose(dsMatrix22d* result, const dsMatrix33d* a)
 void dsMatrix33f_makeRotate(dsMatrix33f* result, float angle)
 {
 	DS_ASSERT(result);
-	float cosAngle = cosf(angle);
-	float sinAngle = sinf(angle);
+	float sinAngle, cosAngle;
+	dsSinCosf(&sinAngle, &cosAngle, angle);
 
 	result->values[0][0] = cosAngle;
 	result->values[0][1] = sinAngle;
@@ -202,8 +200,8 @@ void dsMatrix33f_makeRotate(dsMatrix33f* result, float angle)
 void dsMatrix33d_makeRotate(dsMatrix33d* result, double angle)
 {
 	DS_ASSERT(result);
-	double cosAngle = cos(angle);
-	double sinAngle = sin(angle);
+	double sinAngle, cosAngle;
+	dsSinCosd(&sinAngle, &cosAngle, angle);
 
 	result->values[0][0] = cosAngle;
 	result->values[0][1] = sinAngle;
@@ -222,51 +220,75 @@ void dsMatrix33f_makeRotate3D(dsMatrix33f* result, float x, float y, float z)
 {
 	DS_ASSERT(result);
 
-	float cosX = cosf(x);
-	float sinX = sinf(x);
-	float cosY = cosf(y);
-	float sinY = sinf(y);
-	float cosZ = cosf(z);
-	float sinZ = sinf(z);
+	dsVector4f sinAngles, cosAngles;
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4f angles = dsSIMD4f_set4(x, y, z, 0.0f);
+#if DS_SIMD_ALWAYS_FMA
+	dsSinCosFMA4f(&sinAngles.simd, &cosAngles.simd, angles);
+#else
+	dsSinCosSIMD4f(&sinAngles.simd, &cosAngles.simd, angles);
+#endif
+#else
+	dsSinCosf(&sinAngles.x, &cosAngles.x, x);
+	dsSinCosf(&sinAngles.y, &cosAngles.y, y);
+	dsSinCosf(&sinAngles.z, &cosAngles.z, z);
+#endif
 
-	dsMatrix33_makeRotate3DImpl(*result, cosX, sinX, cosY, sinY, cosZ, sinZ);
+	dsMatrix33_makeRotate3DImpl(
+		*result, cosAngles.x, sinAngles.x, cosAngles.y, sinAngles.y, cosAngles.z, sinAngles.z);
 }
 
 void dsMatrix33d_makeRotate3D(dsMatrix33d* result, double x, double y, double z)
 {
 	DS_ASSERT(result);
 
-	double cosX = cos(x);
-	double sinX = sin(x);
-	double cosY = cos(y);
-	double sinY = sin(y);
-	double cosZ = cos(z);
-	double sinZ = sin(z);
+	DS_ALIGN(32) dsVector4d sinAngles, cosAngles;
+#if DS_SIMD_ALWAYS_DOUBLE4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4d angles = dsSIMD4d_set4(x, y, z, 0.0);
+	dsSIMD4d simdSin, simdCos;
+	dsSinCosSIMD4d(&simdSin, &simdCos, angles);
+	dsSIMD4d_store(&sinAngles, simdSin);
+	dsSIMD4d_store(&cosAngles, simdCos);
+#elif DS_SIMD_ALWAYS_DOUBLE2 && DS_SIMD_ALWAYS_INT
+	dsSIMD2d angles = dsSIMD2d_set2(x, y);
+#if DS_SIMD_ALWAYS_FMA
+	dsSinCosFMA2d(sinAngles.simd2, cosAngles.simd2, angles);
+#else
+	dsSinCosSIMD2d(sinAngles.simd2, cosAngles.simd2, angles);
+#endif
+	// Use scalar version for last angle.
+	dsSinCosd(&sinAngles.z, &cosAngles.z, z);
+#else
+	dsSinCosd(&sinAngles.x, &cosAngles.x, x);
+	dsSinCosd(&sinAngles.y, &cosAngles.y, y);
+	dsSinCosd(&sinAngles.z, &cosAngles.z, z);
+#endif
 
-	dsMatrix33_makeRotate3DImpl(*result, cosX, sinX, cosY, sinY, cosZ, sinZ);
+	dsMatrix33_makeRotate3DImpl(
+		*result, cosAngles.x, sinAngles.x, cosAngles.y, sinAngles.y, cosAngles.z, sinAngles.z);
 }
 
-void dsMatrix33f_makeRotate3DAxisAngle(dsMatrix33f* result, const dsVector3f* axis,
-	float angle)
+void dsMatrix33f_makeRotate3DAxisAngle(
+	dsMatrix33f* result, const dsVector3f* axis, float angle)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(axis);
 
-	float cosAngle = cosf(angle);
-	float sinAngle = sinf(angle);
+	float sinAngle, cosAngle;
+	dsSinCosf(&sinAngle, &cosAngle, angle);
 	float invCosAngle = 1 - cosAngle;
 
 	dsMatrix33_makeRotate3DAxisAngleImpl(*result, *axis, cosAngle, sinAngle, invCosAngle);
 }
 
-void dsMatrix33d_makeRotate3DAxisAngle(dsMatrix33d* result, const dsVector3d* axis,
-	double angle)
+void dsMatrix33d_makeRotate3DAxisAngle(
+	dsMatrix33d* result, const dsVector3d* axis, double angle)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(axis);
 
-	double cosAngle = cos(angle);
-	double sinAngle = sin(angle);
+	double sinAngle, cosAngle;
+	dsSinCosd(&sinAngle, &cosAngle, angle);
 	double invCosAngle = 1 - cosAngle;
 
 	dsMatrix33_makeRotate3DAxisAngleImpl(*result, *axis, cosAngle, sinAngle, invCosAngle);

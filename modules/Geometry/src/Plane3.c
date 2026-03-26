@@ -17,10 +17,13 @@
 #include <DeepSea/Geometry/Plane3.h>
 
 #include <DeepSea/Core/Assert.h>
+
 #include <DeepSea/Geometry/AlignedBox3.h>
 #include <DeepSea/Geometry/OrientedBox3.h>
+
 #include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Matrix44.h>
+#include <DeepSea/Math/Sqrt.h>
 
 #include <float.h>
 
@@ -51,7 +54,7 @@ bool dsPlane3f_intersectingLine(
 	dsVector3_cross(result->origin, diff, result->direction);
 	dsVector3_scale(result->origin, result->origin, invLen2);
 
-	float invLen = sqrtf(invLen2);
+	float invLen = dsSqrtf(invLen2);
 	dsVector3_scale(result->direction, result->direction, invLen);
 	return true;
 }
@@ -83,7 +86,7 @@ bool dsPlane3d_intersectingLine(
 	dsVector3_cross(result->origin, diff, result->direction);
 	dsVector3_scale(result->origin, result->origin, invLen2);
 
-	double invLen = sqrt(invLen2);
+	double invLen = dsSqrtd(invLen2);
 	dsVector3_scale(result->direction, result->direction, invLen);
 	return true;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,15 @@
 #include <DeepSea/Geometry/KdTree.h>
 
 #include "SpatialStructureShared.h"
+
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Sort.h>
+
+#include <DeepSea/Math/Sqrt.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Math/Vector3.h>
 
@@ -116,14 +119,14 @@ static uint32_t buildKdTreeBalancedRec(dsKdTree* kdTree, uint32_t start, uint32_
 	uint8_t nextAxis = (uint8_t)((axis + 1) % kdTree->axisCount);
 	if (leftCount > 0)
 	{
-		middleNode->leftNode = buildKdTreeBalancedRec(kdTree, start, leftCount, nextAxis,
-			compareFunc);
+		middleNode->leftNode = buildKdTreeBalancedRec(
+			kdTree, start, leftCount, nextAxis, compareFunc);
 	}
 
 	if (rightCount > 0)
 	{
-		middleNode->rightNode = buildKdTreeBalancedRec(kdTree, start + middle + 1, rightCount,
-			nextAxis, compareFunc);
+		middleNode->rightNode = buildKdTreeBalancedRec(
+			kdTree, start + middle + 1, rightCount, nextAxis, compareFunc);
 	}
 
 	return middleNodeIndex;
@@ -141,7 +144,7 @@ static const void* nearestNeighborRecFloat(const dsKdTree* kdTree, uint32_t curN
 		float diff = point[i] - nodePoint[i];
 		distance += dsPow2(diff);
 	}
-	distance = sqrtf(distance);
+	distance = dsSqrtf(distance);
 
 	if (node->leftNode == INVALID_NODE && node->rightNode == INVALID_NODE)
 	{
@@ -167,8 +170,8 @@ static const void* nearestNeighborRecFloat(const dsKdTree* kdTree, uint32_t curN
 	{
 		if (node->rightNode != INVALID_NODE)
 		{
-			closest = nearestNeighborRecFloat(kdTree, node->rightNode, point, curDistance,
-				nextAxis);
+			closest = nearestNeighborRecFloat(
+				kdTree, node->rightNode, point, curDistance, nextAxis);
 		}
 	}
 
@@ -184,8 +187,8 @@ static const void* nearestNeighborRecFloat(const dsKdTree* kdTree, uint32_t curN
 	{
 		if (node->rightNode != INVALID_NODE && nodePoint[axis] <= point[axis] + *curDistance)
 		{
-			const void* pathClosest = nearestNeighborRecFloat(kdTree, node->rightNode, point,
-				curDistance, nextAxis);
+			const void* pathClosest = nearestNeighborRecFloat(
+				kdTree, node->rightNode, point, curDistance, nextAxis);
 			if (pathClosest)
 				closest = pathClosest;
 		}
@@ -194,8 +197,8 @@ static const void* nearestNeighborRecFloat(const dsKdTree* kdTree, uint32_t curN
 	{
 		if (node->leftNode != INVALID_NODE && nodePoint[axis] >= point[axis] - *curDistance)
 		{
-			const void* pathClosest = nearestNeighborRecFloat(kdTree, node->leftNode, point,
-				curDistance, nextAxis);
+			const void* pathClosest = nearestNeighborRecFloat(
+				kdTree, node->leftNode, point, curDistance, nextAxis);
 			if (pathClosest)
 				closest = pathClosest;
 		}
@@ -216,7 +219,7 @@ static const void* nearestNeighborRecDouble(const dsKdTree* kdTree, uint32_t cur
 		double diff = point[i] - nodePoint[i];
 		distance += dsPow2(diff);
 	}
-	distance = sqrt(distance);
+	distance = dsSqrtd(distance);
 
 	if (node->leftNode == INVALID_NODE && node->rightNode == INVALID_NODE)
 	{
@@ -237,16 +240,16 @@ static const void* nearestNeighborRecDouble(const dsKdTree* kdTree, uint32_t cur
 	{
 		if (node->leftNode != INVALID_NODE)
 		{
-			closest = nearestNeighborRecDouble(kdTree, node->leftNode, point, curDistance,
-				nextAxis);
+			closest = nearestNeighborRecDouble(
+				kdTree, node->leftNode, point, curDistance, nextAxis);
 		}
 	}
 	else
 	{
 		if (node->rightNode != INVALID_NODE)
 		{
-			closest = nearestNeighborRecDouble(kdTree, node->rightNode, point, curDistance,
-				nextAxis);
+			closest = nearestNeighborRecDouble(
+				kdTree, node->rightNode, point, curDistance, nextAxis);
 		}
 	}
 
@@ -262,8 +265,8 @@ static const void* nearestNeighborRecDouble(const dsKdTree* kdTree, uint32_t cur
 	{
 		if (node->rightNode != INVALID_NODE && nodePoint[axis] <= point[axis] + *curDistance)
 		{
-			const void* pathClosest = nearestNeighborRecDouble(kdTree, node->rightNode, point,
-				curDistance, nextAxis);
+			const void* pathClosest = nearestNeighborRecDouble(
+				kdTree, node->rightNode, point, curDistance, nextAxis);
 			if (pathClosest)
 				closest = pathClosest;
 		}
@@ -294,7 +297,7 @@ static const void* nearestNeighborRecInt(const dsKdTree* kdTree, uint32_t curNod
 		double diff = point[i] - nodePoint[i];
 		distance += dsPow2(diff);
 	}
-	distance = sqrt(distance);
+	distance = dsSqrtd(distance);
 
 	if (node->leftNode == INVALID_NODE && node->rightNode == INVALID_NODE)
 	{
@@ -334,8 +337,8 @@ static const void* nearestNeighborRecInt(const dsKdTree* kdTree, uint32_t curNod
 	{
 		if (node->rightNode != INVALID_NODE && nodePoint[axis] <= point[axis] + *curDistance)
 		{
-			const void* pathClosest = nearestNeighborRecInt(kdTree, node->rightNode, point,
-				curDistance, nextAxis);
+			const void* pathClosest = nearestNeighborRecInt(
+				kdTree, node->rightNode, point, curDistance, nextAxis);
 			if (pathClosest)
 				closest = pathClosest;
 		}
@@ -344,8 +347,8 @@ static const void* nearestNeighborRecInt(const dsKdTree* kdTree, uint32_t curNod
 	{
 		if (node->leftNode != INVALID_NODE && nodePoint[axis] >= point[axis] - *curDistance)
 		{
-			const void* pathClosest = nearestNeighborRecInt(kdTree, node->leftNode, point,
-				curDistance, nextAxis);
+			const void* pathClosest = nearestNeighborRecInt(
+				kdTree, node->leftNode, point, curDistance, nextAxis);
 			if (pathClosest)
 				closest = pathClosest;
 		}
@@ -374,8 +377,8 @@ static bool traverseKdTreeRec(const dsKdTree* kdTree, uint32_t curNode,
 	return true;
 }
 
-dsKdTree* dsKdTree_create(dsAllocator* allocator, uint8_t axisCount, dsGeometryElement element,
-	void* userData)
+dsKdTree* dsKdTree_create(
+	dsAllocator* allocator, uint8_t axisCount, dsGeometryElement element, void* userData)
 {
 	if (!allocator || axisCount < 2 || axisCount > 3 || element < dsGeometryElement_Float ||
 		element > dsGeometryElement_Int)

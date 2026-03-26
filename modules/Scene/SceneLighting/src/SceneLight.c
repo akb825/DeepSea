@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,10 @@
 
 #include <DeepSea/Math/SIMD/SIMD.h>
 #include <DeepSea/Math/Color.h>
-#include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Packing.h>
+#include <DeepSea/Math/Sqrt.h>
+#include <DeepSea/Math/Trig.h>
 #include <DeepSea/Math/Vector3.h>
 
 #include <DeepSea/Render/Resources/GfxFormat.h>
@@ -36,7 +37,6 @@
 #include <DeepSea/Render/Renderer.h>
 
 #include <float.h>
-#include <limits.h>
 #include <string.h>
 
 static void spotPerpAxes(dsVector3f* outX, dsVector3f* outY, const dsSceneLight* light)
@@ -91,7 +91,7 @@ static float getLightRadius(const dsSceneLight* light, float intensityThreshold)
 
 	// Guaranteed that a factor is > 0, so only need to check "+" and not "-" of quadratic formula.
 	// (the "-" factor will always be < 0)
-	float root = sqrtf(innerRoot);
+	float root = dsSqrtf(innerRoot);
 	return (-b + root)/(2.0f*a);
 }
 
@@ -440,7 +440,7 @@ bool dsSceneLight_isInFrustum(const dsSceneLight* light, const dsFrustum3f* frus
 
 			// sin of the angle multiplied by the distance is how far to extend by the X and Y
 			// perpendicular axes for the spot light.
-			float outerSinAngle = sqrtf(1.0f - dsPow2(light->outerSpotCosAngle));
+			float outerSinAngle = dsSqrtf(1.0f - dsPow2(light->outerSpotCosAngle));
 			bounds.halfExtents.x = bounds.halfExtents.y = radius*outerSinAngle;
 
 			return dsFrustum3f_intersectOrientedBox(frustum, &bounds) !=  dsIntersectResult_Outside;
@@ -451,8 +451,8 @@ bool dsSceneLight_isInFrustum(const dsSceneLight* light, const dsFrustum3f* frus
 	}
 }
 
-bool dsSceneLight_getPointLightTransform(dsMatrix44f* result, const dsSceneLight* light,
-	dsCubeFace cubeFace)
+bool dsSceneLight_getPointLightTransform(
+	dsMatrix44f* result, const dsSceneLight* light, dsCubeFace cubeFace)
 {
 	if (!result || !light || light->type != dsSceneLightType_Point || cubeFace < dsCubeFace_PosX ||
 		cubeFace > dsCubeFace_NegZ)
@@ -527,7 +527,7 @@ bool dsSceneLight_getSpotLightProjection(dsMatrix44f* result, const dsSceneLight
 	if (near >= distance)
 		near = distance*0.5f;
 
-	float outerSpotAngle = acosf(light->outerSpotCosAngle)*2;
+	float outerSpotAngle = dsACosf(light->outerSpotCosAngle)*2;
 	DS_VERIFY(dsRenderer_makePerspective(result, renderer, outerSpotAngle, 1.0f, near, distance));
 	return true;
 }

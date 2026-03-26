@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,10 @@
  */
 
 #include <DeepSea/Geometry/AlignedBox2.h>
+
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Math/Sqrt.h>
+
 #include <float.h>
 #include <limits.h>
 
@@ -121,7 +124,7 @@ float dsAlignedBox2f_dist(const dsAlignedBox2f* box, const dsVector2f* point)
 	if (distance2 <= 0)
 		return distance2;
 
-	return sqrtf(distance2);
+	return dsSqrtf(distance2);
 }
 
 double dsAlignedBox2d_dist(const dsAlignedBox2d* box, const dsVector2d* point)
@@ -130,7 +133,7 @@ double dsAlignedBox2d_dist(const dsAlignedBox2d* box, const dsVector2d* point)
 	if (distance2 <= 0)
 		return distance2;
 
-	return sqrt(distance2);
+	return dsSqrtd(distance2);
 }
 
 double dsAlignedBox2i_dist(const dsAlignedBox2i* box, const dsVector2i* point)
@@ -139,7 +142,7 @@ double dsAlignedBox2i_dist(const dsAlignedBox2i* box, const dsVector2i* point)
 	if (distance2 <= 0)
 		return distance2;
 
-	return sqrt(distance2);
+	return dsSqrtd(distance2);
 }
 
 bool dsAlignedBox2f_isValid(const dsAlignedBox2f* box);

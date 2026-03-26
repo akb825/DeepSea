@@ -31,6 +31,7 @@
 #include <DeepSea/Geometry/Frustum3.h>
 
 #include <DeepSea/Math/Matrix44.h>
+#include <DeepSea/Math/Sqrt.h>
 #include <DeepSea/Math/Vector3.h>
 
 #include <DeepSea/Render/Resources/Shader.h>
@@ -126,7 +127,7 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view)
 			continue;
 
 		// Use the dist2 macro to take the first 3 vectors of the dsVector4f columns.
-		float distance = sqrtf(dsVector3_dist2(entry->transform->columns[3],
+		float distance = dsSqrtf(dsVector3_dist2(entry->transform->columns[3],
 			view->cameraMatrix.columns[3]))*view->lodBias;
 
 		dsVector3f direction;

@@ -18,9 +18,11 @@
 
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+
 #include <DeepSea/Geometry/AlignedBox3.h>
-#include <DeepSea/Math/Core.h>
+
 #include <DeepSea/Math/Matrix44.h>
+#include <DeepSea/Math/Sqrt.h>
 #include <DeepSea/Math/Vector3.h>
 #include <DeepSea/Math/Vector4.h>
 
@@ -406,7 +408,7 @@ bool dsShadowProjection_computeMatrix(dsMatrix44f* outMatrix, const dsShadowProj
 		float farDist = far - near;
 		float targetFar = targetNear + farDist;
 
-		float n = (targetNear + sqrtf(targetNear*targetFar))/shadowProj->sinViewLight;
+		float n = (targetNear + dsSqrtf(targetNear*targetFar))/shadowProj->sinViewLight;
 
 		// Take original view point X in shadow space, center Y coordinate. Offset Z to get the desired
 		// near plane. Take into account the fact that the frustum is along negative Z.

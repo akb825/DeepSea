@@ -16,15 +16,17 @@
 
 #pragma once
 
+#include <DeepSea/Math/Core.h>
 #include <gtest/gtest.h>
 
+#define EXPECT_RELATIVE_EQ(val1, val2, absoluteEps, relativeEps) \
+	EXPECT_PRED4(dsRelativeEpsilonEquald, val1, val2, absoluteEps, relativeEps)
+
 #if DS_DETERMINISTIC_MATH
-#define EXPECT_EQ_DETERMINISTIC(val1, val2, epsilon) \
-	do \
-	{ \
-		(void)epsilon; \
-		EXPECT_EQ(val1, val2); \
-	} while (0)
+#define EXPECT_EQ_DETERMINISTIC(val1, val2, epsilon) EXPECT_EQ(val1, val2)
+#define EXPECT_RELATIVE_EQ_DETERMINISTIC(val1, val2, absoluteEps, relativeEps) EXPECT_EQ(val1, val2)
 #else
 #define EXPECT_EQ_DETERMINISTIC(val1, val2, epsilon) EXPECT_NEAR(val1, val2, epsilon)
+#define EXPECT_RELATIVE_EQ_DETERMINISTIC(val1, val2, absoluteEps, relativeEps) \
+	EXPECT_RELATIVE_EQ(val1, val2, absoluteEps, relativeEps)
 #endif

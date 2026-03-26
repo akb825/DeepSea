@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,28 +58,52 @@ void dsQuaternion4f_fromEulerAngles(dsQuaternion4f* result, float x, float y, fl
 {
 	DS_ASSERT(result);
 
-	float cosX = cosf(x*0.5f);
-	float sinX = sinf(x*0.5f);
-	float cosY = cosf(y*0.5f);
-	float sinY = sinf(y*0.5f);
-	float cosZ = cosf(z*0.5f);
-	float sinZ = sinf(z*0.5f);
+	dsVector4f sinAngles, cosAngles;
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4f angles = dsSIMD4f_mul(dsSIMD4f_set4(x, y, z, 0.0f), dsSIMD4f_set1(0.5f));
+#if DS_SIMD_ALWAYS_FMA
+	dsSinCosFMA4f(&sinAngles.simd, &cosAngles.simd, angles);
+#else
+	dsSinCosSIMD4f(&sinAngles.simd, &cosAngles.simd, angles);
+#endif
+#else
+	dsSinCosf(&sinAngles.x, &cosAngles.x, x*0.5f);
+	dsSinCosf(&sinAngles.y, &cosAngles.y, y*0.5f);
+	dsSinCosf(&sinAngles.z, &cosAngles.z, z*0.5f);
+#endif
 
-	dsQuaternion4_fromEulerAnglesImpl(*result, cosX, sinX, cosY, sinY, cosZ, sinZ);
+	dsQuaternion4_fromEulerAnglesImpl(
+		*result, cosAngles.x, sinAngles.x, cosAngles.y, sinAngles.y, cosAngles.z, sinAngles.z);
 }
 
 void dsQuaternion4d_fromEulerAngles(dsQuaternion4d* result, double x, double y, double z)
 {
 	DS_ASSERT(result);
 
-	double cosX = cos(x*0.5);
-	double sinX = sin(x*0.5);
-	double cosY = cos(y*0.5);
-	double sinY = sin(y*0.5);
-	double cosZ = cos(z*0.5);
-	double sinZ = sin(z*0.5);
+	DS_ALIGN(32) dsVector4d sinAngles, cosAngles;
+#if DS_SIMD_ALWAYS_DOUBLE4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4d angles = dsSIMD4d_mul(dsSIMD4d_set4(x, y, z, 0.0), dsSIMD4d_set1(0.5));
+	dsSIMD4d simdSin, simdCos;
+	dsSinCosSIMD4d(&simdSin, &simdCos, angles);
+	dsSIMD4d_store(&sinAngles, simdSin);
+	dsSIMD4d_store(&cosAngles, simdCos);
+#elif DS_SIMD_ALWAYS_DOUBLE2 && DS_SIMD_ALWAYS_INT
+	dsSIMD2d angles = dsSIMD2d_mul(dsSIMD2d_set2(x, y), dsSIMD2d_set1(0.5));
+#if DS_SIMD_ALWAYS_FMA
+	dsSinCosFMA2d(sinAngles.simd2, cosAngles.simd2, angles);
+#else
+	dsSinCosSIMD2d(sinAngles.simd2, cosAngles.simd2, angles);
+#endif
+	// Use scalar version for last angle.
+	dsSinCosd(&sinAngles.z, &cosAngles.z, z*0.5);
+#else
+	dsSinCosd(&sinAngles.x, &cosAngles.x, x*0.5);
+	dsSinCosd(&sinAngles.y, &cosAngles.y, y*0.5);
+	dsSinCosd(&sinAngles.z, &cosAngles.z, z*0.5);
+#endif
 
-	dsQuaternion4_fromEulerAnglesImpl(*result, cosX, sinX, cosY, sinY, cosZ, sinZ);
+	dsQuaternion4_fromEulerAnglesImpl(
+		*result, cosAngles.x, sinAngles.x, cosAngles.y, sinAngles.y, cosAngles.z, sinAngles.z);
 }
 
 void dsQuaternion4f_fromAxisAngle(dsQuaternion4f* result, const dsVector3f* axis,
@@ -88,8 +112,8 @@ void dsQuaternion4f_fromAxisAngle(dsQuaternion4f* result, const dsVector3f* axis
 	DS_ASSERT(result);
 	DS_ASSERT(axis);
 
-	float cosAngle = cosf(angle*0.5f);
-	float sinAngle = sinf(angle*0.5f);
+	float sinAngle, cosAngle;
+	dsSinCosf(&sinAngle, &cosAngle, angle*0.5f);
 
 	result->i = axis->x*sinAngle;
 	result->j = axis->y*sinAngle;
@@ -103,8 +127,8 @@ void dsQuaternion4d_fromAxisAngle(dsQuaternion4d* result, const dsVector3d* axis
 	DS_ASSERT(result);
 	DS_ASSERT(axis);
 
-	double cosAngle = cos(angle*0.5);
-	double sinAngle = sin(angle*0.5);
+	double sinAngle, cosAngle;
+	dsSinCosd(&sinAngle, &cosAngle, angle*0.5);
 
 	result->i = axis->x*sinAngle;
 	result->j = axis->y*sinAngle;
@@ -117,7 +141,8 @@ void dsQuaternion4f_fromMatrix33(dsQuaternion4f* result, const dsMatrix33f* matr
 	DS_ASSERT(result);
 	DS_ASSERT(matrix);
 
-	float w = sqrtf(1.0f + matrix->values[0][0] + matrix->values[1][1] + matrix->values[2][2])/2.0f;
+	float w = dsSqrtf(
+		1.0f + matrix->values[0][0] + matrix->values[1][1] + matrix->values[2][2])/2.0f;
 	float inv4w = 1.0f/(4.0f*w);
 	dsQuaternion4_fromMatrixImpl(*result, *matrix, w, inv4w);
 }
@@ -127,7 +152,8 @@ void dsQuaternion4d_fromMatrix33(dsQuaternion4d* result, const dsMatrix33d* matr
 	DS_ASSERT(result);
 	DS_ASSERT(matrix);
 
-	double w = sqrt(1.0 + matrix->values[0][0] + matrix->values[1][1] + matrix->values[2][2])/2.0;
+	double w = dsSqrtd(
+		1.0 + matrix->values[0][0] + matrix->values[1][1] + matrix->values[2][2])/2.0;
 	double inv4w = 1.0/(4.0*w);
 	dsQuaternion4_fromMatrixImpl(*result, *matrix, w, inv4w);
 }
@@ -137,7 +163,8 @@ void dsQuaternion4f_fromMatrix44(dsQuaternion4f* result, const dsMatrix44f* matr
 	DS_ASSERT(result);
 	DS_ASSERT(matrix);
 
-	float w = sqrtf(1.0f + matrix->values[0][0] + matrix->values[1][1] + matrix->values[2][2])/2.0f;
+	float w = dsSqrtf(
+		1.0f + matrix->values[0][0] + matrix->values[1][1] + matrix->values[2][2])/2.0f;
 	float inv4w = 1.0f/(4.0f*w);
 	dsQuaternion4_fromMatrixImpl(*result, *matrix, w, inv4w);
 }
@@ -147,7 +174,8 @@ void dsQuaternion4d_fromMatrix44(dsQuaternion4d* result, const dsMatrix44d* matr
 	DS_ASSERT(result);
 	DS_ASSERT(matrix);
 
-	double w = sqrt(1.0 + matrix->values[0][0] + matrix->values[1][1] + matrix->values[2][2])/2.0;
+	double w = dsSqrtd(
+		1.0 + matrix->values[0][0] + matrix->values[1][1] + matrix->values[2][2])/2.0;
 	double inv4w = 1.0/(4.0*w);
 	dsQuaternion4_fromMatrixImpl(*result, *matrix, w, inv4w);
 }
@@ -198,8 +226,8 @@ void dsQuaternion4d_toMatrix44(dsMatrix44d* result, const dsQuaternion4d* a)
 	result->values[3][3] = 1.0;
 }
 
-void dsQuaternion4f_slerp(dsQuaternion4f* result, const dsQuaternion4f* a, const dsQuaternion4f* b,
-	float t)
+void dsQuaternion4f_slerp(
+	dsQuaternion4f* result, const dsQuaternion4f* a, const dsQuaternion4f* b, float t)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -225,13 +253,14 @@ void dsQuaternion4f_slerp(dsQuaternion4f* result, const dsQuaternion4f* a, const
 		return;
 	}
 
-	float thetaAB = acosf(cosAB);
+	float thetaAB = dsACosf(cosAB);
 	float theta = thetaAB*t;
-	float sinTheta = sinf(theta);
-	float sinThetaAB = sinf(thetaAB);
+	float sinTheta, cosTheta;
+	dsSinCosf(&sinTheta, &cosTheta, theta);
+	float sinThetaAB = dsSinf(thetaAB);
 
 	float scaleB = sinTheta/sinThetaAB;
-	float scaleA = cosf(theta) - cosAB*scaleB;
+	float scaleA = cosTheta - cosAB*scaleB;
 
 #if DS_SIMD_ALWAYS_FMA
 	result->simd = dsSIMD4f_fmadd(a->simd, dsSIMD4f_set1(scaleA),
@@ -244,8 +273,8 @@ void dsQuaternion4f_slerp(dsQuaternion4f* result, const dsQuaternion4f* a, const
 #endif
 }
 
-void dsQuaternion4d_slerp(dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b,
-	double t)
+void dsQuaternion4d_slerp(
+	dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b, double t)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -271,13 +300,14 @@ void dsQuaternion4d_slerp(dsQuaternion4d* result, const dsQuaternion4d* a, const
 		return;
 	}
 
-	double thetaAB = acos(cosAB);
+	double thetaAB = dsACosd(cosAB);
 	double theta = thetaAB*t;
-	double sinTheta = sin(theta);
-	double sinThetaAB = sin(thetaAB);
+	double sinTheta, cosTheta;
+	dsSinCosd(&sinTheta, &cosTheta, theta);
+	double sinThetaAB = dsSind(thetaAB);
 
 	double scaleB = sinTheta/sinThetaAB;
-	double scaleA = cos(theta) - cosAB*scaleB;
+	double scaleA = cosTheta - cosAB*scaleB;
 
 #if DS_SIMD_ALWAYS_DOUBLE2 && DS_SIMD_ALWAYS_FMA
 	result->simd2[0] = dsSIMD2d_fmadd(a->simd2[0], dsSIMD2d_set1(scaleA),

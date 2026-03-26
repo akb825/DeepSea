@@ -272,7 +272,8 @@ TYPED_TEST(Vector4Test, Divide)
 
 TEST(Vector4fTest, Divide)
 {
-	constexpr float epsilon = 1e-3f; // Some targets only have approximate.
+	float epsilon = Vector4TypeSelector<float>::epsilon; // Some targets only have approximate.
+	DS_UNUSED(epsilon);
 	dsVector4f a = {{-2.3f, 4.5f, -6.7f, 8.9f}};
 	dsVector4f b = {{3.2f, -5.4f, 7.6f, -9.8f}};
 	dsVector4f result;
@@ -349,6 +350,7 @@ TYPED_TEST(Vector4Test, Dot)
 TEST(Vector4fTest, Dot)
 {
 	float epsilon = Vector4TypeSelector<float>::epsilon;
+	DS_UNUSED(epsilon);
 	dsVector4f a = {{-2.3f, 4.5f, -6.7f, 8.9f}};
 	dsVector4f b = {{3.2f, -5.4f, 7.6f, -9.8f}};
 
@@ -358,6 +360,7 @@ TEST(Vector4fTest, Dot)
 TEST(Vector4dTest, Dot)
 {
 	double epsilon = Vector4TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
 	dsVector4d a = {{-2.3, 4.5, -6.7, 8.9}};
 	dsVector4d b = {{3.2, -5.4, 7.6, -9.8}};
 
@@ -378,6 +381,7 @@ TEST(Vector4fTest, Length)
 {
 	// Needs to be a bit larger of an epsilon when running on x87 FPU vs. SSE.
 	float epsilon = 1e-5f;
+	DS_UNUSED(epsilon);
 	dsVector4f a = {{-2.3f, 4.5f, -6.7f, 8.9f}};
 
 	EXPECT_EQ_DETERMINISTIC(dsVector4_len2(a), dsVector4f_len2(&a), epsilon);
@@ -388,6 +392,7 @@ TEST(Vector4fTest, Length)
 TEST(Vector4dTest, Length)
 {
 	double epsilon = Vector4TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
 	dsVector4d a = {{-2.3, 4.5, -6.7, 8.9}};
 
 	EXPECT_EQ_DETERMINISTIC(dsVector4_len2(a), dsVector4d_len2(&a), epsilon);
@@ -412,6 +417,7 @@ TEST(Vector4fTest, Distance)
 {
 	// Needs to be a bit larger of an epsilon when running on x87 FPU vs. SSE.
 	float epsilon = 2e-5f;
+	DS_UNUSED(epsilon);
 	dsVector4f a = {{-2.3f, 4.5f, -6.7f, 8.9f}};
 	dsVector4f b = {{3.2f, -5.4f, 7.6f, -9.8f}};
 
@@ -423,6 +429,7 @@ TEST(Vector4fTest, Distance)
 TEST(Vector4dTest, Distance)
 {
 	double epsilon = Vector4TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
 	dsVector4d a = {{-2.3, 4.5, -6.7, 8.9}};
 	dsVector4d b = {{3.2, -5.4, 7.6, -9.8}};
 
@@ -480,6 +487,7 @@ TYPED_TEST(Vector4FloatTest, Lerp)
 TEST(Vector4fTest, Lerp)
 {
 	float epsilon = Vector4TypeSelector<float>::epsilon;
+	DS_UNUSED(epsilon);
 	dsVector4f a = {{-2.3f, 4.5f, -6.7f, 8.9f}};
 	dsVector4f b = {{3.2f, -5.4f, 7.6f, -9.8f}};
 	dsVector4f scalarResult, result;
@@ -500,6 +508,7 @@ TEST(Vector4fTest, Lerp)
 TEST(Vector4dTest, Lerp)
 {
 	double epsilon = Vector4TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
 	dsVector4d a = {{-2.3, 4.5, -6.7, 8.9}};
 	dsVector4d b = {{3.2, -5.4, 7.6, -9.8}};
 	dsVector4d scalarResult;
@@ -521,7 +530,7 @@ TEST(Vector4dTest, Lerp)
 TEST(Vector4fTest, Normalize)
 {
 	float epsilon = Vector4TypeSelector<float>::epsilon;
-
+	DS_UNUSED(epsilon);
 	dsVector4f a = {{-2.3f, 4.5f, -6.7f, 8.9f}};
 	dsVector4f result;
 
@@ -541,7 +550,7 @@ TEST(Vector4fTest, Normalize)
 TEST(Vector4dTest, Normalize)
 {
 	double epsilon = Vector4TypeSelector<double>::epsilon;
-
+	DS_UNUSED(epsilon);
 	dsVector4d a = {{-2.3, 4.5, -6.7, 8.9}};
 	dsVector4d result;
 

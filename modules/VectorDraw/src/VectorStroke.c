@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@
 #include <DeepSea/Math/Matrix22.h>
 #include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Matrix44.h>
+#include <DeepSea/Math/Trig.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Math/Vector4.h>
 
@@ -135,7 +136,9 @@ static bool addCap(dsVectorScratchData* scratchData, const dsVector2f* position,
 			for (unsigned int i = 1; i < pointCount; ++i)
 			{
 				float theta = (float)i*incr;
-				dsVector3f basePos = {{cosf(theta), sinf(theta), 1.0f}};
+				dsVector3f basePos;
+				dsSinCosf(&basePos.y, &basePos.x, theta);
+				basePos.z = 1.0f;
 				dsVector3f pos;
 				dsMatrix33_transform(pos, matrix, basePos);
 
@@ -350,7 +353,8 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 
 	dsVector2f fromDirRight = {{fromDirection->y, -fromDirection->x}};
 	bool right = dsVector2_dot(fromDirRight, *toDirection) > 0.0f;
-	float theta = acosf(cosTheta);
+	// Only need to clamp to -1 as +1 was already checked for.
+	float theta = dsACosf(dsMax(cosTheta, -1.0f));
 
 	float halfWidth = lineWidth*0.5f;
 	dsVector2f fromOffset = {{fromDirection->y, -fromDirection->x}};
@@ -402,7 +406,7 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 
 	// We have the outside angle, we need the inside angle.
 	float miterTheta = (M_PIf - theta)/2.0f;
-	float extendLength = halfWidth/tanf(miterTheta);
+	float extendLength = halfWidth/dsTanf(miterTheta);
 	float innerExtendLength = dsMin(extendLength, segmentDistance);
 
 	uint32_t fromFirstVertex, fromSecondVertex, toFirstVertex, toSecondVertex;
@@ -723,7 +727,9 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 			for (unsigned int i = 1; i < pointCount; ++i)
 			{
 				float theta = thetaOffset + (float)i*incr;
-				dsVector3f basePos = {{cosf(theta), sinf(theta), 1.0f}};
+				dsVector3f basePos;
+				dsSinCosf(&basePos.y, &basePos.x, theta);
+				basePos.z = 1.0f;
 				dsVector3f pos;
 				dsMatrix33_transform(pos, matrix, basePos);
 
@@ -873,8 +879,8 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 		 * Theta is based on the inside angle. We use the outside angle with the dot product.
 		 */
 		DS_ASSERT(stroke->miterLimit >= 1.0f);
-		float theta = M_PIf - asinf(1.0f/stroke->miterLimit)*2.0f;
-		cosMiterThetaLimit = cosf(theta);
+		float theta = M_PIf - dsASinf(1.0f/stroke->miterLimit)*2.0f;
+		cosMiterThetaLimit = dsCosf(theta);
 	}
 
 	// Expand by a minimum of a pixel, using alpha for sub-pixel sizes.

@@ -19,9 +19,9 @@
 #include <DeepSea/Core/Config.h>
 
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Math/Sqrt.h>
 #include <DeepSea/Physics/Export.h>
 #include <DeepSea/Physics/Types.h>
-#include <math.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -510,7 +510,7 @@ inline float dsPhysicsScene_defaultCombineFriction(float frictionA, float fricti
 {
 	DS_ASSERT(frictionA >= 0);
 	DS_ASSERT(frictionB >= 0);
-	return sqrtf(frictionA*frictionB);
+	return dsSqrtf(frictionA*frictionB);
 }
 
 inline float dsPhysicsScene_defaultCombineRestitution(
@@ -523,8 +523,8 @@ inline float dsPhysicsScene_defaultCombineRestitution(
 	if (hardnessA == 0 && hardnessB == 0)
 		return (restitutionA + restitutionB)*0.5f;
 
-	float weightA = sqrtf(hardnessA*(1 - hardnessB));
-	float weightB = sqrtf(hardnessB*(1 - hardnessA));
+	float weightA = dsSqrtf(hardnessA*(1 - hardnessB));
+	float weightB = dsSqrtf(hardnessB*(1 - hardnessA));
 	return (restitutionA*weightA + restitutionB*weightB)/(weightA + weightB);
 }
 

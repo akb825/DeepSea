@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,10 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Assert.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Export.h>
+#include <DeepSea/Math/Sqrt.h>
 #include <DeepSea/Math/Types.h>
 
 #ifdef __cplusplus
@@ -706,53 +708,53 @@ DS_MATH_EXPORT inline bool dsVector3l_equal(const dsVector3l* a, const dsVector3
 inline float dsVector3f_len(const dsVector3f* a)
 {
 	DS_ASSERT(a);
-	return sqrtf(dsVector3_len2(*a));
+	return dsSqrtf(dsVector3_len2(*a));
 }
 
 inline double dsVector3d_len(const dsVector3d* a)
 {
 	DS_ASSERT(a);
-	return sqrt(dsVector3_len2(*a));
+	return dsSqrtd(dsVector3_len2(*a));
 }
 
 inline double dsVector3i_len(const dsVector3i* a)
 {
 	DS_ASSERT(a);
-	return sqrt(dsVector3_len2(*a));
+	return dsSqrtd(dsVector3_len2(*a));
 }
 
 inline double dsVector3l_len(const dsVector3l* a)
 {
 	DS_ASSERT(a);
-	return sqrt((double)dsVector3_len2(*a));
+	return dsSqrtd((double)dsVector3_len2(*a));
 }
 
 inline float dsVector3f_dist(const dsVector3f* a, const dsVector3f* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-	return sqrtf(dsVector3_dist2(*a, *b));
+	return dsSqrtf(dsVector3_dist2(*a, *b));
 }
 
 inline double dsVector3d_dist(const dsVector3d* a, const dsVector3d* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-	return sqrt(dsVector3_dist2(*a, *b));
+	return dsSqrtd(dsVector3_dist2(*a, *b));
 }
 
 inline double dsVector3i_dist(const dsVector3i* a, const dsVector3i* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-	return sqrt(dsVector3_dist2(*a, *b));
+	return dsSqrtd(dsVector3_dist2(*a, *b));
 }
 
 inline double dsVector3l_dist(const dsVector3l* a, const dsVector3l* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-	return sqrt((double)dsVector3_dist2(*a, *b));
+	return dsSqrtd((double)dsVector3_dist2(*a, *b));
 }
 
 inline void dsVector3f_normalize(dsVector3f* result, const dsVector3f* a)

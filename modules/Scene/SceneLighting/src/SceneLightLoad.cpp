@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,12 @@
  */
 
 #include "SceneLightLoad.h"
+
 #include <DeepSea/Core/Assert.h>
+
+#include <DeepSea/Math/Trig.h>
 #include <DeepSea/Math/Vector3.h>
+
 #include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
 #include <DeepSea/SceneLighting/SceneLight.h>
 
@@ -54,8 +58,8 @@ bool extractLightData(dsSceneLight& light, LightUnion type, const void* obj)
 			dsVector3f position = DeepSeaScene::convert(*spotLight.position());
 			dsVector3f direction = DeepSeaScene::convert(*spotLight.direction());
 			dsVector3f_normalize(&direction, &direction);
-			float cosInnerSpotAngle = cosf(spotLight.innerSpotAngle());
-			float cosOuterSpotAngle = cosf(spotLight.outerSpotAngle());
+			float cosInnerSpotAngle = dsCosf(spotLight.innerSpotAngle());
+			float cosOuterSpotAngle = dsCosf(spotLight.outerSpotAngle());
 			dsColor3f color = DeepSeaScene::convert(*spotLight.color());
 			return dsSceneLight_makeSpot(&light, &position, &direction, &color,
 				spotLight.intensity(), spotLight.linearFalloff(), spotLight.quadraticFalloff(),

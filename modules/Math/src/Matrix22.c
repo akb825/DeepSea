@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 
 #include <DeepSea/Math/Matrix22.h>
-#include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Trig.h>
 
 void dsMatrix22f_invert(dsMatrix22f* result, const dsMatrix22f* a)
 {
@@ -54,8 +54,8 @@ void dsMatrix22d_invert(dsMatrix22d* result, const dsMatrix22d* a)
 void dsMatrix22f_makeRotate(dsMatrix22f* result, float angle)
 {
 	DS_ASSERT(result);
-	float cosAngle = cosf(angle);
-	float sinAngle = sinf(angle);
+	float sinAngle, cosAngle;
+	dsSinCosf(&sinAngle, &cosAngle, angle);
 
 	result->values[0][0] = cosAngle;
 	result->values[0][1] = sinAngle;
@@ -67,8 +67,8 @@ void dsMatrix22f_makeRotate(dsMatrix22f* result, float angle)
 void dsMatrix22d_makeRotate(dsMatrix22d* result, double angle)
 {
 	DS_ASSERT(result);
-	double cosAngle = cos(angle);
-	double sinAngle = sin(angle);
+	double sinAngle, cosAngle;
+	dsSinCosd(&sinAngle, &cosAngle, angle);
 
 	result->values[0][0] = cosAngle;
 	result->values[0][1] = sinAngle;

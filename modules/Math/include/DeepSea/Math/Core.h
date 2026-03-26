@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,31 @@ extern "C"
 #ifndef M_PIf
 
 /**
+ * @brief M_E as a float.
+ */
+#define M_Ef ((float)M_E)
+
+/**
+ * @brief M_LOG2E as a float.
+ */
+#define M_LOG2Ef ((float)M_LOG2E)
+
+/**
+ * @brief M_LOG10E as a float.
+ */
+#define M_LOG10Ef ((float)M_LOG10E)
+
+/**
+ * @brief M_LN2 as a float.
+ */
+#define M_LN2f ((float)M_LN2)
+
+/**
+ * @brief M_LN10 as a float.
+ */
+#define M_LN10f ((float)M_LN10)
+
+/**
  * @brief M_PI as a float.
  */
 #define M_PIf ((float)M_PI)
@@ -59,6 +84,21 @@ extern "C"
  * @brief M_2_PI as a float.
  */
 #define M_2_PIf ((float)M_2_PI)
+
+/**
+ * @brief M_2_SQRTPI as a float.
+ */
+#define M_2_SQRTPIf ((float)M_2_SQRTPI)
+
+/**
+ * @brief M_SQRT2 as a float.
+ */
+#define M_SQRT2f ((float)M_SQRT2)
+
+/**
+ * @brief M_SQRT1_2 as a float.
+ */
+#define M_SQRT1_2f ((float)M_SQRT1_2)
 
 #endif
 
@@ -307,12 +347,12 @@ DS_MATH_EXPORT inline bool dsEpsilonEquald(double x, double y, double epsilon);
  *     being compared.
  * @return True the values of x and y are within epsilon.
  */
-DS_MATH_EXPORT inline bool dsRelativeEpsilonEqualf(float x, float y, float absoluteEps,
-	float relativeEps);
+DS_MATH_EXPORT inline bool dsRelativeEpsilonEqualf(
+	float x, float y, float absoluteEps, float relativeEps);
 
 /** @copydoc dsRelativeEpsilonEqualf() */
-DS_MATH_EXPORT inline bool dsRelativeEpsilonEquald(double x, double y, double absoluteEps,
-	double relativeEps);
+DS_MATH_EXPORT inline bool dsRelativeEpsilonEquald(
+	double x, double y, double absoluteEps, double relativeEps);
 
 /**
  * @brief Checks to see if a value is equal to zero within an epsilon.
@@ -327,22 +367,22 @@ DS_MATH_EXPORT inline bool dsEpsilonEqualsZerod(double x, double epsilon);
 
 DS_MATH_EXPORT inline double dsDegreesToRadiansd(double degrees)
 {
-	return degrees*M_PI/180;
+	return degrees*(M_PI/180.0);
 }
 
 DS_MATH_EXPORT inline float dsDegreesToRadiansf(float degrees)
 {
-	return degrees*M_PIf/180;
+	return degrees*(M_PIf/180.0f);
 }
 
 DS_MATH_EXPORT inline double dsRadiansToDegreesd(double radians)
 {
-	return radians*180/M_PI;
+	return radians*(180/M_PI);
 }
 
 DS_MATH_EXPORT inline float dsRadiansToDegreesf(float radians)
 {
-	return radians*180/M_PIf;
+	return radians*(180/M_PIf);
 }
 
 DS_MATH_EXPORT inline uint32_t dsNextPowerOf2(uint32_t i)
@@ -383,8 +423,8 @@ DS_MATH_EXPORT inline bool dsEpsilonEquald(double x, double y, double epsilon)
 	return fabs(x - y) <= epsilon;
 }
 
-DS_MATH_EXPORT inline bool dsRelativeEpsilonEqualf(float x, float y, float absoluteEps,
-	float relativeEps)
+DS_MATH_EXPORT inline bool dsRelativeEpsilonEqualf(
+	float x, float y, float absoluteEps, float relativeEps)
 {
 	float diff = fabsf(x - y);
 	if (diff <= absoluteEps)
@@ -395,8 +435,8 @@ DS_MATH_EXPORT inline bool dsRelativeEpsilonEqualf(float x, float y, float absol
 	return diff <= dsMax(absX, absY)*relativeEps;
 }
 
-DS_MATH_EXPORT inline bool dsRelativeEpsilonEquald(double x, double y, double absoluteEps,
-	double relativeEps)
+DS_MATH_EXPORT inline bool dsRelativeEpsilonEquald(
+	double x, double y, double absoluteEps, double relativeEps)
 {
 	double diff = fabs(x - y);
 	if (diff <= absoluteEps)

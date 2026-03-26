@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@
 
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
+#include <DeepSea/Math/Trig.h>
 
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Renderer.h>
@@ -351,8 +352,9 @@ static void update(dsApplication* application, float lastFrameTime, void* userDa
 	if (testLighting->ignoreTime)
 		testLighting->ignoreTime = false;
 
-	dsVector3f eyePos = {{sinf(testLighting->rotation)*xyDist, -cosf(testLighting->rotation)*xyDist,
-		height}};
+	float sinRotation, cosRotation;
+	dsSinCosf(&sinRotation, &cosRotation, testLighting->rotation);
+	dsVector3f eyePos = {{sinRotation*xyDist, -cosRotation*xyDist, height}};
 	dsVector3f lookAtPos = {{0.0f, 0.0f, 0.0f}};
 	dsVector3f upDir = {{0.0f, 0.0f, 1.0f}};
 	dsMatrix44f camera;

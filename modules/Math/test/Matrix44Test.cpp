@@ -1516,6 +1516,7 @@ TEST(Matrix44fTest, MultiplySIMD)
 		return;
 
 	const float epsilon = Matrix44TypeSelector<float>::epsilon;
+	DS_UNUSED(epsilon);
 
 	dsMatrix44f matrix1 =
 	{{
@@ -1633,6 +1634,7 @@ TEST(Matrix44fTest, MultiplyDoubleSIMD2)
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
 
 	dsMatrix44d matrix1 =
 	{{
@@ -1751,6 +1753,7 @@ TEST(Matrix44fTest, MultiplyDoubleSIMD4)
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
 
 	DS_ALIGN(32) dsMatrix44d matrix1 =
 	{{
@@ -1819,6 +1822,7 @@ TEST(Matrix44fTest, TransformSIMD)
 		return;
 
 	const float epsilon = Matrix44TypeSelector<float>::epsilon;
+	DS_UNUSED(epsilon);
 
 	dsMatrix44f matrix =
 	{{
@@ -1879,6 +1883,7 @@ TEST(Matrix44fTest, TransformDoubleSIMD2)
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
 
 	dsMatrix44d matrix =
 	{{
@@ -1940,6 +1945,7 @@ TEST(Matrix44fTest, TransformDoubleSIMD4)
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
 
 	DS_ALIGN(32) dsMatrix44d matrix =
 	{{
@@ -1972,6 +1978,7 @@ TEST(Matrix44fTest, TransformTransposedSIMD)
 		return;
 
 	const float epsilon = Matrix44TypeSelector<float>::epsilon;
+	DS_UNUSED(epsilon);
 
 	dsMatrix44f matrix =
 	{{
@@ -2032,6 +2039,7 @@ TEST(Matrix44fTest, TransformTransposedDoubleSIMD2)
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
 
 	dsMatrix44d matrix =
 	{{
@@ -2093,6 +2101,7 @@ TEST(Matrix44fTest, TransformTransposedDoubleSIMD4)
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
 
 	DS_ALIGN(32) dsMatrix44d matrix =
 	{{
@@ -2236,6 +2245,7 @@ TEST(Matrix44fTest, DeterminantSIMD)
 		return;
 
 	const float epsilon = Matrix44TypeSelector<float>::inverseEpsilon;
+	DS_UNUSED(epsilon);
 
 	dsMatrix44f matrix =
 	{{
@@ -2278,6 +2288,7 @@ TEST(Matrix44fTest, DeterminantDoubleSIMD2)
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::inverseEpsilon;
+	DS_UNUSED(epsilon);
 
 	dsMatrix44d matrix =
 	{{
@@ -2321,6 +2332,7 @@ TEST(Matrix44fTest, DeterminantDoubleSIMD4)
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::inverseEpsilon;
+	DS_UNUSED(epsilon);
 
 	DS_ALIGN(32) dsMatrix44d matrix =
 	{{
@@ -2343,6 +2355,7 @@ TEST(Matrix44fTest, FastInvertSIMD)
 		return;
 
 	const float epsilon = Matrix44TypeSelector<float>::epsilon;
+	DS_UNUSED(epsilon);
 
 	dsMatrix44f rotate;
 	dsMatrix44f_makeRotate(&rotate, dsDegreesToRadiansf(30.0f), dsDegreesToRadiansf(-15.0f),
@@ -2473,6 +2486,7 @@ TEST(Matrix44fTest, FastInvertDoubleSIMD2)
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
 
 	dsMatrix44d rotate;
 	dsMatrix44d_makeRotate(&rotate, dsDegreesToRadiansd(30.0), dsDegreesToRadiansd(-15.0),
@@ -2604,6 +2618,7 @@ TEST(Matrix44fTest, FastInvertDoubleSIMD4)
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
 
 	DS_ALIGN(32) dsMatrix44d rotate;
 	dsMatrix44d_makeRotate(&rotate, dsDegreesToRadiansd(30.0), dsDegreesToRadiansd(-15.0),
@@ -2688,6 +2703,7 @@ TEST(Matrix44fTest, AffineInvertSIMD)
 		return;
 
 	const float epsilon = Matrix44TypeSelector<float>::epsilon;
+	DS_UNUSED(epsilon);
 
 	dsMatrix44f rotate;
 	dsMatrix44f_makeRotate(&rotate, dsDegreesToRadiansf(30.0f),
@@ -2831,6 +2847,7 @@ TEST(Matrix44fTest, AffineInvertDouble2FMA)
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
 
 	dsMatrix44d rotate;
 	dsMatrix44d_makeRotate(&rotate, dsDegreesToRadiansd(30.0),
@@ -2975,6 +2992,7 @@ TEST(Matrix44fTest, AffineInvertDoubleSIMD4)
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
 
 	DS_ALIGN(32) dsMatrix44d rotate;
 	dsMatrix44d_makeRotate(&rotate, dsDegreesToRadiansd(30.0),
@@ -3066,6 +3084,7 @@ TEST(Matrix44fTest, AffineInvert33SIMD)
 		return;
 
 	const float epsilon = Matrix44TypeSelector<float>::epsilon;
+	DS_UNUSED(epsilon);
 
 	dsMatrix44f rotate;
 	dsMatrix44f_makeRotate(&rotate, dsDegreesToRadiansf(30.0f),
@@ -3174,6 +3193,7 @@ TEST(Matrix44fTest, AffineInvert33DoubleSIMD2)
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
 
 	dsMatrix44d rotate;
 	dsMatrix44d_makeRotate(&rotate, dsDegreesToRadiansd(30.0),
@@ -3283,6 +3303,7 @@ TEST(Matrix44fTest, AffineInvert33DoubleSIMD4)
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
 
 	DS_ALIGN(32) dsMatrix44d rotate;
 	dsMatrix44d_makeRotate(&rotate, dsDegreesToRadiansd(30.0),
@@ -3337,6 +3358,7 @@ TEST(Matrix44fTest, InvertSIMD)
 		return;
 
 	const float epsilon = Matrix44TypeSelector<float>::inverseEpsilon;
+	DS_UNUSED(epsilon);
 
 	dsMatrix44f matrix =
 	{{
@@ -3462,6 +3484,7 @@ TEST(Matrix44fTest, InvertDoubleSIMD2)
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::inverseEpsilon;
+	DS_UNUSED(epsilon);
 
 	dsMatrix44d matrix =
 	{{
@@ -3589,6 +3612,7 @@ TEST(Matrix44fTest, InvertDoubleSIMD4)
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::inverseEpsilon;
+	DS_UNUSED(epsilon);
 
 	DS_ALIGN(32) dsMatrix44d matrix =
 	{{
@@ -3651,6 +3675,7 @@ TEST(Matrix44fTest, InverseTransposeSIMD)
 		return;
 
 	const float epsilon = Matrix44TypeSelector<float>::epsilon;
+	DS_UNUSED(epsilon);
 
 	dsMatrix44f rotate;
 	dsMatrix44_makeRotate(&rotate, dsDegreesToRadiansf(30.0f), dsDegreesToRadiansf(-15.0f),
@@ -3750,6 +3775,7 @@ TEST(Matrix44dTest, InverseTransposeSIMD2)
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
 
 	dsMatrix44d rotate;
 	dsMatrix44_makeRotate(&rotate, dsDegreesToRadiansd(30.0), dsDegreesToRadiansd(-15.0),
@@ -3850,6 +3876,7 @@ TEST(Matrix44dTest, InverseTransposeSIMD4)
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
 
 	DS_ALIGN(32) dsMatrix44d rotate;
 	dsMatrix44_makeRotate(&rotate, dsDegreesToRadiansd(30.0), dsDegreesToRadiansd(-15.0),
@@ -3898,12 +3925,13 @@ TEST(Matrix44dTest, InverseTransposeSIMD4)
 	EXPECT_EQ_DETERMINISTIC(-0.12869481595966276, inverseTranspose[2].z, epsilon);
 }
 
-TEST(Matrix44dTest, TransformCompisitionSIMD)
+TEST(Matrix44fTest, TransformCompisitionSIMD)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
 		return;
 
 	const float epsilon = Matrix44TypeSelector<float>::epsilon;
+	DS_UNUSED(epsilon);
 
 	dsVector3f scale = {{0.1f, 0.2f, 0.3f}};
 	dsQuaternion4f rotate;
@@ -3936,18 +3964,18 @@ TEST(Matrix44dTest, TransformCompisitionSIMD)
 	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[3][2], transform.values[3][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[3][3], transform.values[3][3], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(-0.015100837f, transform.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0151008489f, transform.values[0][0], epsilon);
 	EXPECT_EQ_DETERMINISTIC(-0.014520002f, transform.values[0][1], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.097781047f, transform.values[0][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0f, transform.values[0][3], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(-0.078969799f, transform.values[1][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.17959212f, transform.values[1][1], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.038864277f, transform.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0789697766f, transform.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.179592133f, transform.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0388642699f, transform.values[1][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0f, transform.values[1][3], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(0.27187523f, transform.values[2][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.124629505f, transform.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.271875292f, transform.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.124629475f, transform.values[2][1], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.023480309f, transform.values[2][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0f, transform.values[2][3], epsilon);
 
@@ -3991,14 +4019,14 @@ TEST(Matrix44dTest, TransformCompisitionSIMD)
 	EXPECT_EQ_DETERMINISTIC(20.0f, extractedTranslate.y, epsilon);
 	EXPECT_EQ_DETERMINISTIC(-30.0f, extractedTranslate.z, epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(0.64588469f, extractedRotate.i, epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.20903292f, extractedRotate.j, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.729249f, extractedRotate.k, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.085584275f, extractedRotate.r, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.6458866f, extractedRotate.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.209033087f, extractedRotate.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.729251087f, extractedRotate.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.085584f, extractedRotate.r, epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(0.099999994f, extractedScale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.1f, extractedScale.x, epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.19999997f, extractedScale.y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.29999998f, extractedScale.z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.3f, extractedScale.z, epsilon);
 }
 
 TEST(Matrix44dTest, TransformCompisitionSIMD2)
@@ -4007,6 +4035,7 @@ TEST(Matrix44dTest, TransformCompisitionSIMD2)
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
 
 	dsVector3d scale = {{0.1, 0.2, 0.3}};
 	dsQuaternion4d rotate;
@@ -4039,19 +4068,19 @@ TEST(Matrix44dTest, TransformCompisitionSIMD2)
 	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[3][2], transform.values[3][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[3][3], transform.values[3][3], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(-0.015105093323287466, transform.values[0][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.01452225227224585, transform.values[0][1], epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.09778006107911788, transform.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.015105093323279473, transform.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.014522252272238152, transform.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.097780061079120267, transform.values[0][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0, transform.values[0][3], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(-0.078985479434329264, transform.values[1][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.17958328991753142, transform.values[1][1], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.038873333030819336, transform.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.078985479434332428, transform.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.17958328991753447, transform.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.038873333030798707, transform.values[1][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0, transform.values[1][3], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(0.27186290108792616, transform.values[2][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.12465585490004825, transform.values[2][1], epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.023483629429765406, transform.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.27186290108792815, transform.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.1246558549000464, transform.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.023483629429752951, transform.values[2][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0, transform.values[2][3], epsilon);
 
 	EXPECT_EQ_DETERMINISTIC(-10.0, transform.values[3][0], epsilon);
@@ -4094,14 +4123,14 @@ TEST(Matrix44dTest, TransformCompisitionSIMD2)
 	EXPECT_EQ_DETERMINISTIC(20.0, extractedTranslate.y, epsilon);
 	EXPECT_EQ_DETERMINISTIC(-30.0, extractedTranslate.z, epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(0.64586894018617802, extractedRotate.i, epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.20907876439235221, extractedRotate.j, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.72925409624944504, extractedRotate.k, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.085602835737714877, extractedRotate.r, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.64586894018620788, extractedRotate.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.20907876439232059, extractedRotate.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.72925409624943094, extractedRotate.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.085602835737748406, extractedRotate.r, epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(0.099999999999999978, extractedScale.x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.19999999999999996, extractedScale.y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.29999999999999993, extractedScale.z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.099999999999999992, extractedScale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.19999999999999993, extractedScale.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.3, extractedScale.z, epsilon);
 }
 
 TEST(Matrix44dTest, TransformCompisitionSIMD4)
@@ -4110,6 +4139,7 @@ TEST(Matrix44dTest, TransformCompisitionSIMD4)
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
 
 	dsVector3d scale = {{0.1, 0.2, 0.3}};
 	dsQuaternion4d rotate;
@@ -4142,19 +4172,19 @@ TEST(Matrix44dTest, TransformCompisitionSIMD4)
 	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[3][2], transform.values[3][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[3][3], transform.values[3][3], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(-0.015105093323287466, transform.values[0][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.01452225227224585, transform.values[0][1], epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.09778006107911788, transform.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.015105093323279473, transform.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.014522252272238152, transform.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.097780061079120267, transform.values[0][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0, transform.values[0][3], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(-0.078985479434329264, transform.values[1][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.17958328991753142, transform.values[1][1], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.038873333030819336, transform.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.078985479434332428, transform.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.17958328991753447, transform.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.038873333030798707, transform.values[1][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0, transform.values[1][3], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(0.27186290108792616, transform.values[2][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.12465585490004825, transform.values[2][1], epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.023483629429765406, transform.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.27186290108792815, transform.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.1246558549000464, transform.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.023483629429752951, transform.values[2][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0, transform.values[2][3], epsilon);
 
 	EXPECT_EQ_DETERMINISTIC(-10.0, transform.values[3][0], epsilon);
@@ -4197,22 +4227,23 @@ TEST(Matrix44dTest, TransformCompisitionSIMD4)
 	EXPECT_EQ_DETERMINISTIC(20.0, extractedTranslate.y, epsilon);
 	EXPECT_EQ_DETERMINISTIC(-30.0, extractedTranslate.z, epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(0.64586894018617802, extractedRotate.i, epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.20907876439235221, extractedRotate.j, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.72925409624944504, extractedRotate.k, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.085602835737714877, extractedRotate.r, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.64586894018620788, extractedRotate.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.20907876439232059, extractedRotate.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.72925409624943094, extractedRotate.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.085602835737748406, extractedRotate.r, epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(0.099999999999999978, extractedScale.x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.19999999999999996, extractedScale.y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.29999999999999993, extractedScale.z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.099999999999999992, extractedScale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.19999999999999993, extractedScale.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.3, extractedScale.z, epsilon);
 }
 
-TEST(Matrix44dTest, RigidLerpSIMD)
+TEST(Matrix44fTest, RigidLerpSIMD)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
 		return;
 
 	const float epsilon = Matrix44TypeSelector<float>::epsilon;
+	DS_UNUSED(epsilon);
 
 	dsVector3f scaleA = {{0.1f, 0.2f, 0.3f}};
 	dsQuaternion4f rotateA;
@@ -4266,19 +4297,19 @@ TEST(Matrix44dTest, RigidLerpSIMD)
 	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][2], result.values[3][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][3], result.values[3][3], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(-0.41488755f, result.values[0][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.35542789f, result.values[0][1], epsilon);
-	EXPECT_EQ_DETERMINISTIC(1.0543616f, result.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.414891213f, result.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.355428427f, result.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.05436468f, result.values[0][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0f, result.values[0][3], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(0.28865504f, result.values[1][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.81043953f, result.values[1][1], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.15961632f, result.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.288655192f, result.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.810444176f, result.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.159616813f, result.values[1][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0f, result.values[1][3], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(0.49330112f, result.values[2][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.12890932f, result.values[2][1], epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.23757307f, result.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.493302673f, result.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.128909409f, result.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.237571836f, result.values[2][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0f, result.values[2][3], epsilon);
 
 	EXPECT_EQ_DETERMINISTIC(1.25f, result.values[3][0], epsilon);
@@ -4288,7 +4319,7 @@ TEST(Matrix44dTest, RigidLerpSIMD)
 }
 
 #if !DS_DETERMINISTIC_MATH
-TEST(Matrix44dTest, RigidLerpFMA)
+TEST(Matrix44fTest, RigidLerpFMA)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
 		return;
@@ -4398,6 +4429,7 @@ TEST(Matrix44dTest, RigidLerpSIMD2)
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
 
 	dsVector3d scaleA = {{0.1, 0.2, 0.3}};
 	dsQuaternion4d rotateA;
@@ -4451,19 +4483,19 @@ TEST(Matrix44dTest, RigidLerpSIMD2)
 	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][2], result.values[3][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][3], result.values[3][3], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(-0.4149251597996777, result.values[0][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.35544613800622904, result.values[0][1], epsilon);
-	EXPECT_EQ_DETERMINISTIC(1.0543488060133066, result.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.41492515979964029, result.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.35544613800623698, result.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0543488060132971, result.values[0][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0, result.values[0][3], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(0.28868738522858595, result.values[1][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.81043791760410278, result.values[1][1], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.15960881967930346, result.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.28868738522852538, result.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.81043791760409467, result.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.1596088196793421, result.values[1][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0, result.values[1][3], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(0.49329018369231664, result.values[2][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.12892411213497201, result.values[2][1], epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.23759128347439701, result.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.49329018369232785, result.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.12892411213493082, result.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.23759128347438654, result.values[2][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0, result.values[2][3], epsilon);
 
 	EXPECT_EQ_DETERMINISTIC(1.25, result.values[3][0], epsilon);
@@ -4584,6 +4616,7 @@ TEST(Matrix44dTest, RigidLerpSIMD4)
 		return;
 
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
 
 	dsVector3d scaleA = {{0.1, 0.2, 0.3}};
 	dsQuaternion4d rotateA;
@@ -4637,19 +4670,19 @@ TEST(Matrix44dTest, RigidLerpSIMD4)
 	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][2], result.values[3][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][3], result.values[3][3], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(-0.4149251597996777, result.values[0][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.35544613800622904, result.values[0][1], epsilon);
-	EXPECT_EQ_DETERMINISTIC(1.0543488060133066, result.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.41492515979964029, result.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.35544613800623698, result.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0543488060132971, result.values[0][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0, result.values[0][3], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(0.28868738522858595, result.values[1][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.81043791760410278, result.values[1][1], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.15960881967930346, result.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.28868738522852538, result.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.81043791760409467, result.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.1596088196793421, result.values[1][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0, result.values[1][3], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(0.49329018369231664, result.values[2][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.12892411213497201, result.values[2][1], epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.23759128347439701, result.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.49329018369232785, result.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.12892411213493082, result.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.23759128347438654, result.values[2][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0, result.values[2][3], epsilon);
 
 	EXPECT_EQ_DETERMINISTIC(1.25, result.values[3][0], epsilon);

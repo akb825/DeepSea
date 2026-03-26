@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -129,7 +129,7 @@ bool dsParticleEmitter_update(dsParticleEmitter* emitter, float time)
 		dsParticle* particle = (dsParticle*)particlePtr;
 
 		// Take the maximum volume the particle can occupy.
-		float maxOffset = (float)(M_SQRT2*dsMax(particle->size.x, particle->size.y));
+		float maxOffset = M_SQRT2f*dsMax(particle->size.x, particle->size.y);
 		dsVector3f offset = {{maxOffset, maxOffset, maxOffset}};
 
 		dsVector3f position;

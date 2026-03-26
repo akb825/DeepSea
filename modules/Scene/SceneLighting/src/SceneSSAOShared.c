@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Random.h>
+#include <DeepSea/Math/Trig.h>
 
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
@@ -103,10 +104,9 @@ dsGfxBuffer* dsSceneSSAO_createRandomOffsets(dsResourceManager* resourceManager,
 		scale *= scale;
 		scale = dsLerp(0.1f, 1.0f, scale);
 
-		float cosTheta = cosf(theta);
-		float sinTheta = sinf(theta);
-		float cosPhi = cosf(phi);
-		float sinPhi = sinf(phi);
+		float sinTheta, cosTheta, sinPhi, cosPhi;
+		dsSinCosf(&sinTheta, &cosTheta, theta);
+		dsSinCosf(&sinPhi, &cosPhi, phi);
 
 		dsVector4f* curSample = randomOffsets + i;
 		curSample->x = cosTheta*cosPhi*scale;
@@ -130,8 +130,8 @@ dsTexture* dsSceneSSAO_createRandomRotations(dsResourceManager* resourceManager,
 		for (uint32_t j = 0; j < DS_SCENE_SSAO_ROTATION_SIZE; ++j)
 		{
 			float theta = dsRandom_nextFloatRange(&random, 0.0f, 2*M_PIf);
-			float x = cosf(theta);
-			float y = sinf(theta);
+			float x, y;
+			dsSinCosf(&y, &x, theta);
 			randomRotations[i][j][0] = (uint8_t)roundf((x*0.5f + 0.5f)*255);
 			randomRotations[i][j][1] = (uint8_t)roundf((y*0.5f + 0.5f)*255);
 		}

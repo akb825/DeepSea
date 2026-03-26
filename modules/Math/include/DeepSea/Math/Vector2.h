@@ -18,8 +18,10 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Assert.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Export.h>
+#include <DeepSea/Math/Sqrt.h>
 #include <DeepSea/Math/Types.h>
 
 #ifdef __cplusplus
@@ -664,53 +666,53 @@ DS_MATH_EXPORT inline bool dsVector2i_equal(const dsVector2i* a, const dsVector2
 inline float dsVector2f_len(const dsVector2f* a)
 {
 	DS_ASSERT(a);
-	return sqrtf(dsVector2_len2(*a));
+	return dsSqrtf(dsVector2_len2(*a));
 }
 
 inline double dsVector2d_len(const dsVector2d* a)
 {
 	DS_ASSERT(a);
-	return sqrt(dsVector2_len2(*a));
+	return dsSqrtd(dsVector2_len2(*a));
 }
 
 inline double dsVector2i_len(const dsVector2i* a)
 {
 	DS_ASSERT(a);
-	return sqrt(dsVector2_len2(*a));
+	return dsSqrtd(dsVector2_len2(*a));
 }
 
 inline double dsVector2l_len(const dsVector2l* a)
 {
 	DS_ASSERT(a);
-	return sqrt((double)dsVector2_len2(*a));
+	return dsSqrtd((double)dsVector2_len2(*a));
 }
 
 inline float dsVector2f_dist(const dsVector2f* a, const dsVector2f* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-	return sqrtf(dsVector2_dist2(*a, *b));
+	return dsSqrtf(dsVector2_dist2(*a, *b));
 }
 
 inline double dsVector2d_dist(const dsVector2d* a, const dsVector2d* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-	return sqrt(dsVector2_dist2(*a, *b));
+	return dsSqrtd(dsVector2_dist2(*a, *b));
 }
 
 inline double dsVector2i_dist(const dsVector2i* a, const dsVector2i* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-	return sqrt(dsVector2_dist2(*a, *b));
+	return dsSqrtd(dsVector2_dist2(*a, *b));
 }
 
 inline double dsVector2l_dist(const dsVector2l* a, const dsVector2l* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-	return sqrt((double)dsVector2_dist2(*a, *b));
+	return dsSqrtd((double)dsVector2_dist2(*a, *b));
 }
 
 inline void dsVector2f_normalize(dsVector2f* result, const dsVector2f* a)

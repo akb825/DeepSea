@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@
 #include <DeepSea/Core/Error.h>
 
 #include <DeepSea/Math/Color.h>
-#include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Random.h>
+#include <DeepSea/Math/Trig.h>
 #include <DeepSea/Math/Vector3.h>
 
 #include <DeepSea/Particle/ParticleVolume.h>
@@ -112,9 +112,10 @@ void dsParticle_randomDirection(dsVector3f* outDirection, dsRandom* random,
 
 	float theta = dsRandom_nextFloatRange(random, 0, 2*M_PIf);
 	float phi = dsRandom_nextFloatRange(random, 0, directionSpread);
-	float cosPhi = cosf(phi);
-	float sinPhi = sinf(phi);
-	dsVector3f direction = {{cosf(theta)*sinPhi, sinf(theta)*sinPhi, cosPhi}};
+	float sinTheta, cosTheta, sinPhi, cosPhi;
+	dsSinCosf(&sinTheta, &cosTheta, theta);
+	dsSinCosf(&sinPhi, &cosPhi, phi);
+	dsVector3f direction = {{cosTheta*sinPhi, sinTheta*sinPhi, cosPhi}};
 	dsMatrix33_transform(*outDirection, *directionMatrix, direction);
 }
 

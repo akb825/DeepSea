@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,10 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Assert.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Export.h>
+#include <DeepSea/Math/Sqrt.h>
 #include <DeepSea/Math/Types.h>
 
 #ifdef __cplusplus
@@ -750,53 +752,53 @@ DS_MATH_EXPORT inline bool dsVector4l_equal(const dsVector4l* a, const dsVector4
 DS_MATH_EXPORT inline float dsVector4f_len(const dsVector4f* a)
 {
 	DS_ASSERT(a);
-	return sqrtf(dsVector4f_len2(a));
+	return dsSqrtf(dsVector4f_len2(a));
 }
 
 DS_MATH_EXPORT inline double dsVector4d_len(const dsVector4d* a)
 {
 	DS_ASSERT(a);
-	return sqrt(dsVector4d_len2(a));
+	return dsSqrtd(dsVector4d_len2(a));
 }
 
 DS_MATH_EXPORT inline double dsVector4i_len(const dsVector4i* a)
 {
 	DS_ASSERT(a);
-	return sqrt(dsVector4_len2(*a));
+	return dsSqrtd(dsVector4_len2(*a));
 }
 
 DS_MATH_EXPORT inline double dsVector4l_len(const dsVector4l* a)
 {
 	DS_ASSERT(a);
-	return sqrt((double)dsVector4_len2(*a));
+	return dsSqrtd((double)dsVector4_len2(*a));
 }
 
 DS_MATH_EXPORT inline float dsVector4f_dist(const dsVector4f* a, const dsVector4f* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-	return sqrtf(dsVector4f_dist2(a, b));
+	return dsSqrtf(dsVector4f_dist2(a, b));
 }
 
 DS_MATH_EXPORT inline double dsVector4d_dist(const dsVector4d* a, const dsVector4d* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-	return sqrt(dsVector4d_dist2(a, b));
+	return dsSqrtd(dsVector4d_dist2(a, b));
 }
 
 DS_MATH_EXPORT inline double dsVector4i_dist(const dsVector4i* a, const dsVector4i* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-	return sqrt(dsVector4_dist2(*a, *b));
+	return dsSqrtd(dsVector4_dist2(*a, *b));
 }
 
 DS_MATH_EXPORT inline double dsVector4l_dist(const dsVector4l* a, const dsVector4l* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-	return sqrt((double)dsVector4_dist2(*a, *b));
+	return dsSqrtd((double)dsVector4_dist2(*a, *b));
 }
 
 DS_MATH_EXPORT inline void dsVector4f_normalize(dsVector4f* result, const dsVector4f* a)

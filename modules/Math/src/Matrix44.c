@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2025 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 #include <DeepSea/Math/Matrix44.h>
 
-#include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Quaternion.h>
+#include <DeepSea/Math/Trig.h>
 #include <DeepSea/Math/Vector3.h>
 #include <DeepSea/Math/Vector4.h>
 
@@ -80,28 +80,52 @@ void dsMatrix44f_makeRotate(dsMatrix44f* result, float x, float y, float z)
 {
 	DS_ASSERT(result);
 
-	float cosX = cosf(x);
-	float sinX = sinf(x);
-	float cosY = cosf(y);
-	float sinY = sinf(y);
-	float cosZ = cosf(z);
-	float sinZ = sinf(z);
+	dsVector4f sinAngles, cosAngles;
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4f angles = dsSIMD4f_set4(x, y, z, 0.0f);
+#if DS_SIMD_ALWAYS_FMA
+	dsSinCosFMA4f(&sinAngles.simd, &cosAngles.simd, angles);
+#else
+	dsSinCosSIMD4f(&sinAngles.simd, &cosAngles.simd, angles);
+#endif
+#else
+	dsSinCosf(&sinAngles.x, &cosAngles.x, x);
+	dsSinCosf(&sinAngles.y, &cosAngles.y, y);
+	dsSinCosf(&sinAngles.z, &cosAngles.z, z);
+#endif
 
-	dsMatrix44_makeRotateImpl(*result, cosX, sinX, cosY, sinY, cosZ, sinZ);
+	dsMatrix44_makeRotateImpl(
+		*result, cosAngles.x, sinAngles.x, cosAngles.y, sinAngles.y, cosAngles.z, sinAngles.z);
 }
 
 void dsMatrix44d_makeRotate(dsMatrix44d* result, double x, double y, double z)
 {
 	DS_ASSERT(result);
 
-	double cosX = cos(x);
-	double sinX = sin(x);
-	double cosY = cos(y);
-	double sinY = sin(y);
-	double cosZ = cos(z);
-	double sinZ = sin(z);
+	DS_ALIGN(32) dsVector4d sinAngles, cosAngles;
+#if DS_SIMD_ALWAYS_DOUBLE4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4d angles = dsSIMD4d_set4(x, y, z, 0.0);
+	dsSIMD4d simdSin, simdCos;
+	dsSinCosSIMD4d(&simdSin, &simdCos, angles);
+	dsSIMD4d_store(&sinAngles, simdSin);
+	dsSIMD4d_store(&cosAngles, simdCos);
+#elif DS_SIMD_ALWAYS_DOUBLE2 && DS_SIMD_ALWAYS_INT
+	dsSIMD2d angles = dsSIMD2d_set2(x, y);
+#if DS_SIMD_ALWAYS_FMA
+	dsSinCosFMA2d(sinAngles.simd2, cosAngles.simd2, angles);
+#else
+	dsSinCosSIMD2d(sinAngles.simd2, cosAngles.simd2, angles);
+#endif
+	// Use scalar version for last angle.
+	dsSinCosd(&sinAngles.z, &cosAngles.z, z);
+#else
+	dsSinCosd(&sinAngles.x, &cosAngles.x, x);
+	dsSinCosd(&sinAngles.y, &cosAngles.y, y);
+	dsSinCosd(&sinAngles.z, &cosAngles.z, z);
+#endif
 
-	dsMatrix44_makeRotateImpl(*result, cosX, sinX, cosY, sinY, cosZ, sinZ);
+	dsMatrix44_makeRotateImpl(
+		*result, cosAngles.x, sinAngles.x, cosAngles.y, sinAngles.y, cosAngles.z, sinAngles.z);
 }
 
 void dsMatrix44f_makeRotateAxisAngle(dsMatrix44f* result, const dsVector3f* axis,
@@ -110,8 +134,8 @@ void dsMatrix44f_makeRotateAxisAngle(dsMatrix44f* result, const dsVector3f* axis
 	DS_ASSERT(result);
 	DS_ASSERT(axis);
 
-	float cosAngle = cosf(angle);
-	float sinAngle = sinf(angle);
+	float sinAngle, cosAngle;
+	dsSinCosf(&sinAngle, &cosAngle, angle);
 	float invCosAngle = 1 - cosAngle;
 
 	dsMatrix44_makeRotateAxisAngleImpl(*result, *axis, cosAngle, sinAngle, invCosAngle);
@@ -123,8 +147,8 @@ void dsMatrix44d_makeRotateAxisAngle(dsMatrix44d* result, const dsVector3d* axis
 	DS_ASSERT(result);
 	DS_ASSERT(axis);
 
-	double cosAngle = cos(angle);
-	double sinAngle = sin(angle);
+	double sinAngle, cosAngle;
+	dsSinCosd(&sinAngle, &cosAngle, angle);
 	double invCosAngle = 1 - cosAngle;
 
 	dsMatrix44_makeRotateAxisAngleImpl(*result, *axis, cosAngle, sinAngle, invCosAngle);
@@ -520,7 +544,7 @@ void dsMatrix44f_makePerspective(dsMatrix44f* result, float fovy, float aspect, 
 	DS_ASSERT(aspect > 0);
 	DS_ASSERT(near != far);
 
-	float height = 1/tanf(fovy/2);
+	float height = 1/dsTanf(fovy*0.5f);
 	float width = height/aspect;
 	float yMult = options & dsProjectionMatrixOptions_InvertY ? -1.0f : 1.0f;
 	int invertZ = options & dsProjectionMatrixOptions_InvertZ;
@@ -614,7 +638,7 @@ void dsMatrix44d_makePerspective(dsMatrix44d* result, double fovy, double aspect
 	DS_ASSERT(aspect != 0);
 	DS_ASSERT(near != far);
 
-	double height = 1/tan(fovy/2);
+	double height = 1/dsTand(fovy*0.5);
 	double width = height/aspect;
 	double yMult = options & dsProjectionMatrixOptions_InvertY ? -1.0 : 1.0;
 	int invertZ = options & dsProjectionMatrixOptions_InvertZ;

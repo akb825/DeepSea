@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 #include <DeepSea/Math/Color.h>
 #include <DeepSea/Math/Matrix33.h>
+#include <DeepSea/Math/Trig.h>
 
 // See https://en.wikipedia.org/wiki/YUV for transform constants.
 const dsMatrix33f dsRGBtoYUVTransform =
@@ -170,9 +171,11 @@ void dsColor3f_createHSVTransform(dsMatrix33f* outTransform, float hueShift, flo
 	 * values. This was chosen so that fully desaturating (with a saturationScale of 0) would give
 	 * the same value as dsGrayscaleValue().
 	 */
-	float hueShiftRad = (float)(hueShift*M_PI/180.0);
-	float vsu = valueScale*saturationScale*cosf(hueShiftRad);
-	float vsw = valueScale*saturationScale*sinf(hueShiftRad);
+	float hueShiftRad = dsDegreesToRadiansf(hueShift);
+	float sinHueShift, cosHueShift;
+	dsSinCosf(&sinHueShift, &cosHueShift, hueShiftRad);
+	float vsu = valueScale*saturationScale*cosHueShift;
+	float vsw = valueScale*saturationScale*sinHueShift;
 
 	// Counter-clockwise rotation and scaling factors.
 	const dsMatrix33f yuvTransform =

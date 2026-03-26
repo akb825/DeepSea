@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,15 @@
  */
 
 #include "BasePolygon.h"
+
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Sort.h>
+
 #include <DeepSea/Geometry/AlignedBox2.h>
 #include <DeepSea/Geometry/BVH.h>
+
+#include <DeepSea/Math/Trig.h>
 
 typedef struct EdgeIntersectInfo
 {
@@ -122,7 +126,7 @@ static double angleBetween(const dsVector2d* fromDir, const dsVector2d* toDir, b
 	dsVector2d invFromDir;
 	dsVector2_neg(invFromDir, *fromDir);
 	double cosAngle = dsVector2_dot(invFromDir, *toDir);
-	double angle = acos(dsClamp(cosAngle, -1.0, 1.0));
+	double angle = dsACosd(dsClamp(cosAngle, -1.0, 1.0));
 	if ((fromDir->x*toDir->y - toDir->x*fromDir->y >= 0.0) != ccw)
 		angle = 2.0*M_PI - angle;
 	return angle;
@@ -246,7 +250,7 @@ bool dsPolygonEdgesIntersect(const dsVector2d* from, const dsVector2d* to,
 #elif DS_ARM_64
 #define DS_SWAP_SIMD(a) vextq_f64((a), (a), 1)
 #else
-#define DS_SWAP_SIMD(a) (DS_ASSERT(false), (a))
+#define DS_SWAP_SIMD(a) (a)
 #endif
 
 DS_SIMD_START(DS_SIMD_DOUBLE2)
@@ -350,7 +354,7 @@ double dsBasePolygon_edgeAngle(const dsBasePolygon* polygon, uint32_t edge,
 	dsVector2d_normalize(&edgeDir, &edgeDir);
 
 	double cosAngle = dsVector2_dot(edgeDir, *referenceDir);
-	double angle = acos(dsClamp(cosAngle, -1.0, 1.0));
+	double angle = dsACosd(dsClamp(cosAngle, -1.0, 1.0));
 	double edgeCross = referenceDir->x*edgeDir.y - edgeDir.x*referenceDir->y;
 	bool edgeCCW = edgeCross > 0;
 	bool edgeCollinear = dsEpsilonEqualsZerod(edgeCross, polygon->intersectEpsilon);

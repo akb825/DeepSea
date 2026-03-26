@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,14 @@
  */
 
 #include <DeepSea/Geometry/OrientedBox2.h>
+
 #include <DeepSea/Core/Assert.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix33.h>
+#include <DeepSea/Math/Sqrt.h>
 #include <DeepSea/Math/Vector2.h>
+
 #include <float.h>
 
 void dsOrientedBox2f_fromMatrix(dsOrientedBox2f* result, const dsMatrix33f* matrix)
@@ -539,7 +543,7 @@ float dsOrientedBox2f_dist(const dsOrientedBox2f* box, const dsVector2f* point)
 	if (distance2 <= 0)
 		return distance2;
 
-	return sqrtf(distance2);
+	return dsSqrtf(distance2);
 }
 
 double dsOrientedBox2d_dist(const dsOrientedBox2d* box, const dsVector2d* point)
@@ -548,7 +552,7 @@ double dsOrientedBox2d_dist(const dsOrientedBox2d* box, const dsVector2d* point)
 	if (distance2 <= 0)
 		return distance2;
 
-	return sqrt(distance2);
+	return dsSqrtd(distance2);
 }
 
 bool dsOrientedBox2f_isValid(const dsOrientedBox2f* box);

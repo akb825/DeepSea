@@ -476,6 +476,7 @@ TYPED_TEST(QuaternionTest, Slerp)
 TEST(Quaternion4fTest, MultiplySIMD)
 {
 	float epsilon = QuaternionTypeSelector<float>::epsilon;
+	DS_UNUSED(epsilon);
 
 	auto x = float(M_PI*3/4);
 	auto y = float(-M_PI/3);
@@ -497,9 +498,9 @@ TEST(Quaternion4fTest, MultiplySIMD)
 	EXPECT_EQ_DETERMINISTIC(qabRef.r, qab.r, epsilon);
 
 	EXPECT_EQ_DETERMINISTIC(0.70289826f, qab.i, epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.68645537f, qab.j, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.18280147f, qab.k, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.036007673f, qab.r, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.686455429f, qab.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.18280144f, qab.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0360077024f, qab.r, epsilon);
 }
 
 TEST(Quaternion4fTest, ConjugateSIMD)

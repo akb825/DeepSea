@@ -22,6 +22,8 @@
 #include <DeepSea/Math/SIMD/SIMD.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Export.h>
+#include <DeepSea/Math/Sqrt.h>
+#include <DeepSea/Math/Trig.h>
 #include <DeepSea/Math/Types.h>
 #include <DeepSea/Math/Vector3.h>
 
@@ -385,37 +387,37 @@ DS_MATH_EXPORT inline void dsQuaternion4d_conjugate(dsQuaternion4d* result, cons
 inline float dsQuaternion4f_getXAngle(const dsQuaternion4f* a)
 {
 	DS_ASSERT(a);
-	return atan2f(2*(a->r*a->i + a->j*a->k), 1 - 2*(dsPow2(a->i) + dsPow2(a->j)));
+	return dsATan2f(2*(a->r*a->i + a->j*a->k), 1 - 2*(dsPow2(a->i) + dsPow2(a->j)));
 }
 
 inline double dsQuaternion4d_getXAngle(const dsQuaternion4d* a)
 {
 	DS_ASSERT(a);
-	return atan2(2*(a->r*a->i + a->j*a->k), 1 - 2*(dsPow2(a->i) + dsPow2(a->j)));
+	return dsATan2d(2*(a->r*a->i + a->j*a->k), 1 - 2*(dsPow2(a->i) + dsPow2(a->j)));
 }
 
 inline float dsQuaternion4f_getYAngle(const dsQuaternion4f* a)
 {
 	DS_ASSERT(a);
-	return asinf(2*(a->r*a->j - a->k*a->i));
+	return dsASinf(2*(a->r*a->j - a->k*a->i));
 }
 
 inline double dsQuaternion4d_getYAngle(const dsQuaternion4d* a)
 {
 	DS_ASSERT(a);
-	return asin(2*(a->r*a->j - a->k*a->i));
+	return dsASind(2*(a->r*a->j - a->k*a->i));
 }
 
 inline float dsQuaternion4f_getZAngle(const dsQuaternion4f* a)
 {
 	DS_ASSERT(a);
-	return atan2f(2*(a->r*a->k + a->i*a->j), 1 - 2*(dsPow2(a->j) + dsPow2(a->k)));
+	return dsATan2f(2*(a->r*a->k + a->i*a->j), 1 - 2*(dsPow2(a->j) + dsPow2(a->k)));
 }
 
 inline double dsQuaternion4d_getZAngle(const dsQuaternion4d* a)
 {
 	DS_ASSERT(a);
-	return atan2(2*(a->r*a->k + a->i*a->j), 1 - 2*(dsPow2(a->j) + dsPow2(a->k)));
+	return dsATan2d(2*(a->r*a->k + a->i*a->j), 1 - 2*(dsPow2(a->j) + dsPow2(a->k)));
 }
 
 inline void dsQuaternion4f_getRotationAxis(dsVector3f* result, const dsQuaternion4f* a)
@@ -432,7 +434,7 @@ inline void dsQuaternion4f_getRotationAxis(dsVector3f* result, const dsQuaternio
 	}
 	else
 	{
-		float invLen = 1.0f/sqrtf(len2);
+		float invLen = 1.0f/dsSqrtf(len2);
 		dsVector3_scale(*result, *a, invLen);
 	}
 
@@ -454,7 +456,7 @@ inline void dsQuaternion4d_getRotationAxis(dsVector3d* result, const dsQuaternio
 	}
 	else
 	{
-		double invLen = 1.0/sqrt(len2);
+		double invLen = 1.0/dsSqrtd(len2);
 		dsVector3_scale(*result, *a, invLen);
 	}
 
@@ -465,13 +467,13 @@ inline void dsQuaternion4d_getRotationAxis(dsVector3d* result, const dsQuaternio
 inline float dsQuaternion4f_getAxisAngle(const dsQuaternion4f* a)
 {
 	DS_ASSERT(a);
-	return acosf(fabsf(a->r))*2;
+	return dsACosf(fabsf(a->r))*2;
 }
 
 inline double dsQuaternion4d_getAxisAngle(const dsQuaternion4d* a)
 {
 	DS_ASSERT(a);
-	return acos(fabs(a->r))*2;
+	return dsACosd(fabs(a->r))*2;
 }
 
 inline void dsQuaternion4f_normalize(dsQuaternion4f* result, const dsQuaternion4f* a)
@@ -495,7 +497,7 @@ inline void dsQuaternion4f_normalize(dsQuaternion4f* result, const dsQuaternion4
 	result->simd = dsSIMD4f_mul(a->simd, invLength);
 #else
 	float len2 = dsPow2(a->i) + dsPow2(a->j) + dsPow2(a->k) + dsPow2(a->r);
-	float invLen = 1.0f/sqrtf(len2);
+	float invLen = 1.0f/dsSqrtf(len2);
 	result->i = a->i*invLen;
 	result->j = a->j*invLen;
 	result->k = a->k*invLen;
@@ -509,7 +511,7 @@ inline void dsQuaternion4d_normalize(dsQuaternion4d* result, const dsQuaternion4
 	DS_ASSERT(a);
 
 	double len2 = dsPow2(a->i) + dsPow2(a->j) + dsPow2(a->k) + dsPow2(a->r);
-	double invLen = 1.0/sqrt(len2);
+	double invLen = 1.0/dsSqrtd(len2);
 	result->i = a->i*invLen;
 	result->j = a->j*invLen;
 	result->k = a->k*invLen;

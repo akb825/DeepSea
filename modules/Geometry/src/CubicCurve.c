@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@
 
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+
 #include <DeepSea/Math/Matrix44.h>
+#include <DeepSea/Math/Sqrt.h>
 #include <DeepSea/Math/Vector4.h>
 
 #include <string.h>
@@ -86,8 +88,8 @@ static bool shouldRecursef(dsVector3f* outPoint, const dsCubicCurvef* curve, flo
 		dist2 += dsPow2(lineTangent.values[i]);
 	}
 
-	float tangentDist = sqrtf(tangentDist2);
-	float dist = sqrtf(dist2);
+	float tangentDist = dsSqrtf(tangentDist2);
+	float dist = dsSqrtf(dist2);
 	float cosTangents = 0.0f;
 	for (uint32_t i = 0; i < curve->axisCount; ++i)
 		cosTangents += lineTangent.values[i]*tangent.values[i]/(dist*tangentDist);
@@ -128,8 +130,8 @@ static bool shouldRecursed(dsVector3d* outPoint, const dsCubicCurved* curve, dou
 		dist2 += dsPow2(lineTangent.values[i]);
 	}
 
-	double tangentDist = sqrt(tangentDist2);
-	double dist = sqrt(dist2);
+	double tangentDist = dsSqrtd(tangentDist2);
+	double dist = dsSqrtd(dist2);
 	double cosTangents = 0.0;
 	for (uint32_t i = 0; i < curve->axisCount; ++i)
 		cosTangents += lineTangent.values[i]*tangent.values[i]/(dist*tangentDist);

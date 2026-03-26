@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 #include <DeepSea/Core/Assert.h>
 
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Sqrt.h>
 
 #include <string.h>
 
@@ -110,9 +111,9 @@ inline static bool pivotf(float* outEigenvectors, float* outEigenvalues, float* 
 	// When using the definitions of sin (opposite/hypotenuse) and cos (adjacent/hypotenuse),
 	// the pivot value is the "opposite" value.
 	float eigenDiff = (outEigenvalues[pivotRow] - outEigenvalues[pivotCol])/2;
-	float adjacent = fabsf(eigenDiff) + sqrtf(pivotValue2 + dsPow2(eigenDiff));
+	float adjacent = fabsf(eigenDiff) + dsSqrtf(pivotValue2 + dsPow2(eigenDiff));
 	float eigenOffset = pivotValue2/adjacent;
-	float hypotenuse = sqrtf(pivotValue2 + dsPow2(adjacent));
+	float hypotenuse = dsSqrtf(pivotValue2 + dsPow2(adjacent));
 	// These values should be a valid non-zero value, otherwise the floating point math broke
 	// down for a basically non-rotated row.
 	if (!isnormal(eigenOffset) || !isnormal(hypotenuse))
@@ -164,9 +165,9 @@ inline static bool pivotd(double* outEigenvectors, double* outEigenvalues,
 	// When using the definitions of sin (opposite/hypotenuse) and cos (adjacent/hypotenuse),
 	// the pivot value is the "opposite" value.
 	double eigenDiff = (outEigenvalues[pivotRow] - outEigenvalues[pivotCol])/2;
-	double adjacent = fabs(eigenDiff) + sqrt(pivotValue2 + dsPow2(eigenDiff));
+	double adjacent = fabs(eigenDiff) + dsSqrtd(pivotValue2 + dsPow2(eigenDiff));
 	double eigenOffset = pivotValue2/adjacent;
-	double hypotenuse = sqrt(pivotValue2 + dsPow2(adjacent));
+	double hypotenuse = dsSqrtd(pivotValue2 + dsPow2(adjacent));
 	// These values should be a valid non-zero value, otherwise the floating point math broke
 	// down for a basically non-rotated row.
 	if (!isnormal(eigenOffset) || !isnormal(hypotenuse))

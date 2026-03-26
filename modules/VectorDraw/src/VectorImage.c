@@ -41,6 +41,8 @@
 #include <DeepSea/Math/Matrix22.h>
 #include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Matrix44.h>
+#include <DeepSea/Math/Sqrt.h>
+#include <DeepSea/Math/Trig.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Math/Vector4.h>
 
@@ -279,7 +281,7 @@ static bool addArc(dsVectorScratchData* scratchData, const dsVector2f* end,
 			(radius2.x*radius2.y - radius2.x*posPrime2.y - radius2.y*posPrime2.x)/
 			(radius2.x*posPrime2.y + radius2.y*posPrime2.x);
 		DS_ASSERT(centerScale >= 0.0f);
-		centerScale = sqrtf(centerScale);
+		centerScale = dsSqrtf(centerScale);
 		if (clockwise == largeArc)
 			centerScale = -centerScale;
 	}
@@ -299,7 +301,7 @@ static bool addArc(dsVectorScratchData* scratchData, const dsVector2f* end,
 	dsVector2_div(v, v, *radius);
 	float vLen = dsVector2f_len(&v);
 	float cosStartTheta = v.x/vLen;
-	float startTheta = acosf(dsClamp(cosStartTheta, -1.0f, 1.0f));
+	float startTheta = dsACosf(dsClamp(cosStartTheta, -1.0f, 1.0f));
 	if (centerPrime.y > posPrime.y)
 		startTheta = -startTheta;
 
@@ -311,7 +313,7 @@ static bool addArc(dsVectorScratchData* scratchData, const dsVector2f* end,
 	dsVector2_div(v, v, *radius);
 
 	float cosDeltaTheta = dsVector2_dot(u, v)/(dsVector2f_len(&u)*dsVector2f_len(&v));
-	float deltaTheta = acosf(dsClamp(cosDeltaTheta, -1.0f, 1.0f));
+	float deltaTheta = dsACosf(dsClamp(cosDeltaTheta, -1.0f, 1.0f));
 	if (u.y*v.x > u.x*v.y)
 		deltaTheta = -deltaTheta;
 
@@ -328,7 +330,8 @@ static bool addArc(dsVectorScratchData* scratchData, const dsVector2f* end,
 	for (unsigned int i = 1; i < pointCount; ++i)
 	{
 		float theta = startTheta + (float)i*incr;
-		dsVector2f basePos = {{cosf(theta), sinf(theta)}};
+		dsVector2f basePos;
+		dsSinCosf(&basePos.y, &basePos.x, theta);
 		dsVector2_mul(basePos, basePos, *radius);
 
 		dsVector2f position;
@@ -374,7 +377,8 @@ static bool addEllipse(dsVectorScratchData* scratchData, const dsVector2f* cente
 	for (unsigned int i = 1; i < pointCount; ++i)
 	{
 		float theta = (float)i*incr;
-		dsVector2f position = {{cosf(theta), sinf(theta)}};
+		dsVector2f position;
+		dsSinCosf(&position.y, &position.x, theta);
 		dsVector2_mul(position, position, *radius);
 		dsVector2_add(position, *center, position);
 		if (!dsVectorScratchData_addPoint(scratchData, &position, PointType_Normal))
@@ -390,7 +394,8 @@ static bool addCorner(dsVectorScratchData* scratchData, const dsVector2f* center
 {
 	if (firstPoint || joinPrev)
 	{
-		dsVector2f position = {{cosf(startTheta), sinf(startTheta)}};
+		dsVector2f position;
+		dsSinCosf(&position.y, &position.x, startTheta);
 		dsVector2_mul(position, position, *radius);
 		dsVector2_add(position, *center, position);
 		if (firstPoint)
@@ -408,7 +413,8 @@ static bool addCorner(dsVectorScratchData* scratchData, const dsVector2f* center
 	for (unsigned int i = 1; i <= pointCount; ++i)
 	{
 		float theta = startTheta + (float)i*incr;
-		dsVector2f position = {{cosf(theta), sinf(theta)}};
+		dsVector2f position;
+		dsSinCosf(&position.y, &position.x, theta);
 		dsVector2_mul(position, position, *radius);
 		dsVector2_add(position, *center, position);
 		if (!dsVectorScratchData_addPoint(scratchData, &position, PointType_Normal))

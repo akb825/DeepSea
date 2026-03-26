@@ -15,7 +15,10 @@
  */
 
 #include <DeepSea/Geometry/AlignedBox3.h>
+
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Math/Sqrt.h>
+
 #include <float.h>
 #include <limits.h>
 
@@ -124,7 +127,7 @@ float dsAlignedBox3f_dist(const dsAlignedBox3f* box, const dsVector3f* point)
 	if (distance2 <= 0)
 		return distance2;
 
-	return sqrtf(distance2);
+	return dsSqrtf(distance2);
 }
 
 double dsAlignedBox3d_dist(const dsAlignedBox3d* box, const dsVector3d* point)
@@ -133,7 +136,7 @@ double dsAlignedBox3d_dist(const dsAlignedBox3d* box, const dsVector3d* point)
 	if (distance2 <= 0)
 		return distance2;
 
-	return sqrt(distance2);
+	return dsSqrtd(distance2);
 }
 
 double dsAlignedBox3i_dist(const dsAlignedBox3i* box, const dsVector3i* point)
@@ -142,7 +145,7 @@ double dsAlignedBox3i_dist(const dsAlignedBox3i* box, const dsVector3i* point)
 	if (distance2 <= 0)
 		return distance2;
 
-	return sqrt(distance2);
+	return dsSqrtd(distance2);
 }
 
 bool dsAlignedBox3f_isValid(const dsAlignedBox3f* box);

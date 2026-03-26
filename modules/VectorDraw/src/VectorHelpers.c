@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 
 #include "VectorHelpers.h"
-#include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Trig.h>
 
 float dsVectorPixelTheta(float pixelSize, float radius)
 {
@@ -30,5 +30,5 @@ float dsVectorPixelTheta(float pixelSize, float radius)
 	if (pixelSize > radius)
 		return M_PIf;
 
-	return acosf(1.0f - pixelSize/radius);
+	return dsACosf(1.0f - pixelSize/radius);
 }

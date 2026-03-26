@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,12 @@
 
 #include <DeepSea/Geometry/AlignedBox3.h>
 
-#include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Random.h>
 #include <DeepSea/Math/Vector3.h>
+#include <DeepSea/Math/Trig.h>
 
-void dsParticleVolume_randomPosition(dsVector3f* result, dsRandom* random,
-	const dsParticleVolume* volume)
+void dsParticleVolume_randomPosition(
+	dsVector3f* result, dsRandom* random, const dsParticleVolume* volume)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(random);
@@ -51,11 +51,13 @@ void dsParticleVolume_randomPosition(dsVector3f* result, dsRandom* random,
 		{
 			float theta = dsRandom_nextFloatRange(random, 0, 2*M_PIf);
 			float phi = dsRandom_nextFloatRange(random, -M_PIf, M_PIf);
-			float cosPhi = cosf(phi);
+			float sinTheta, cosTheta, sinPhi, cosPhi;
+			dsSinCosf(&sinTheta, &cosTheta, theta);
+			dsSinCosf(&sinPhi, &cosPhi, phi);
 			dsVector3f offset;
-			offset.x = cosf(theta)*cosPhi;
-			offset.y = sinf(theta)*cosPhi;
-			offset.z = sinf(phi);
+			offset.x = cosTheta*cosPhi;
+			offset.y = sinTheta*cosPhi;
+			offset.z = sinPhi;
 
 			float radius = dsRandom_nextFloatRange(random, 0.0f, volume->sphere.radius);
 			dsVector3_scale(offset, offset, radius);
@@ -66,9 +68,11 @@ void dsParticleVolume_randomPosition(dsVector3f* result, dsRandom* random,
 		{
 			float theta = dsRandom_nextFloatRange(random, 0, 2*M_PIf);
 			float radius = dsRandom_nextFloatRange(random, 0, volume->sphere.radius);
+			float sinTheta, cosTheta;
+			dsSinCosf(&sinTheta, &cosTheta, theta);
 			dsVector3f offset;
-			offset.x = cosf(theta)*radius;
-			offset.y = sinf(theta)*radius;
+			offset.x = cosTheta*radius;
+			offset.y = sinTheta*radius;
 			offset.z = dsRandom_nextFloatCenteredRange(random, 0.0f, volume->cylinder.height/2);
 			dsVector3_add(*result, volume->cylinder.center, offset);
 			return;
