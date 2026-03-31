@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -219,7 +219,9 @@ typedef struct dsProfileFunctions
  */
 typedef struct dsTimer
 {
-	/** Implementation specific scale. */
+	/**
+	 * @brief Implementation specific scale from ticks to seconds.
+	 */
 	double scale;
 } dsTimer;
 

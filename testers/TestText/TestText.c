@@ -1117,7 +1117,7 @@ static bool setupText(
 	}
 
 	dsTimer timer = dsTimer_create();
-	double startTime = dsTimer_time(timer);
+	uint64_t startTicks = dsTimer_currentTicks();
 	if (!dsFont_preloadASCII(testText->font, commandBuffer))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create preload ASCII characters: %s",
@@ -1125,7 +1125,7 @@ static bool setupText(
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 	DS_LOG_INFO_F("TestText", "Loading ASCII characters took %f s.",
-		dsTimer_time(timer) - startTime);
+		dsTimer_ticksToSeconds(timer, dsTimer_currentTicks() - startTicks));
 
 	uint32_t textureElement = dsMaterialDesc_findElement(testText->materialDesc, dsFont_textureName);
 	DS_ASSERT(textureElement != DS_MATERIAL_UNKNOWN);

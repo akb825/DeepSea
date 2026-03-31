@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 #include <DeepSea/Core/Timer.h>
 #include <DeepSea/Core/Assert.h>
+#include <math.h>
 
 #if DS_WINDOWS
 #define WIN32_LEAN_AND_MEAN
@@ -27,50 +28,49 @@
 #include <time.h>
 #endif
 
+uint64_t dsTimer_currentTicks(void)
+{
+#if DS_WINDOWS
+	LARGE_INTEGER value;
+	DS_VERIFY(QueryPerformanceCounter(&value));
+	return value.QuadPart;
+#elif DS_APPLE
+	return mach_absolute_time();
+#else
+	struct timespec tp;
+	DS_VERIFY(clock_gettime(CLOCK_MONOTONIC, &tp) == 0);
+	return tp.tv_sec*1000000000LLU + tp.tv_nsec;
+#endif
+}
+
 dsTimer dsTimer_create(void)
 {
 	dsTimer timer;
 
 #if DS_WINDOWS
-
 	LARGE_INTEGER frequency;
 	QueryPerformanceFrequency(&frequency);
 	timer.scale = 1.0/frequency.QuadPart;
-
 #elif DS_APPLE
-
 	mach_timebase_info_data_t timebaseInfo;
 	DS_VERIFY(mach_timebase_info(&timebaseInfo) == KERN_SUCCESS);
 	// Mach time scale is in nanoseconds.
 	timer.scale = (double)timebaseInfo.numer/timebaseInfo.denom*1e-9;
-
 #else
-	timer.scale = 0;
+	timer.scale = 1e-9;
 #endif
 
 	return timer;
 }
 
-double dsTimer_time(dsTimer timer)
+uint64_t dsTimer_convertTicks(dsTimer timer, double origScale, uint64_t ticks)
 {
-#if DS_WINDOWS
+	// Avoid any potential loss in precision.
+	if (timer.scale == origScale)
+		return ticks;
 
-	DS_ASSERT(timer.scale > 0);
-	LARGE_INTEGER value;
-	DS_VERIFY(QueryPerformanceCounter(&value));
-	return value.QuadPart*timer.scale;
-
-#elif DS_APPLE
-
-	DS_ASSERT(timer.scale > 0);
-	return (double)mach_absolute_time()*timer.scale;
-
-#else
-
-	DS_UNUSED(timer);
-	struct timespec tp;
-	DS_VERIFY(clock_gettime(CLOCK_MONOTONIC, &tp) == 0);
-	return (double)tp.tv_sec + 1e-9*(double)tp.tv_nsec;
-
-#endif
+	double scaleRatio = origScale/timer.scale;
+	return (uint64_t)(round((double)ticks*scaleRatio));
 }
+
+double dsTimer_ticksToSeconds(dsTimer timer, int64_t ticks);

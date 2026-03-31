@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -436,15 +436,16 @@ int dsSDLApplication_run(dsApplication* application)
 {
 	dsTimer timer = dsTimer_create();
 	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
-	double lastPreInputTime = dsTimer_time(timer);
-	double lastUpdateTime = lastPreInputTime;
+	uint64_t lastPreInputTicks = dsTimer_currentTicks();
+	uint64_t lastUpdateTicks = lastPreInputTicks;
 	while (!sdlApplication->quit && application->windowCount > 0)
 	{
 		DS_VERIFY(dsRenderer_beginFrame(application->renderer));
 
 		if (application->preInputUpdateFunc)
 		{
-			float lastFrameTime = (float)(dsTimer_time(timer) - lastPreInputTime);
+			float lastFrameTime =
+				(float)dsTimer_ticksToSeconds(timer, dsTimer_currentTicks() - lastPreInputTicks);
 			DS_PROFILE_SCOPE_START("Pre-Input Update");
 			application->preInputUpdateFunc(application, lastFrameTime,
 				application->preInputUpdateUserData);
@@ -453,7 +454,7 @@ int dsSDLApplication_run(dsApplication* application)
 
 		// Frame time for pre-input update doesn't include pre-input update itself to more easily
 		// support use cases such as framerate limiting.
-		lastPreInputTime = dsTimer_time(timer);
+		lastPreInputTicks = dsTimer_currentTicks();
 
 		DS_PROFILE_SCOPE_START("Process Events");
 
@@ -874,9 +875,9 @@ int dsSDLApplication_run(dsApplication* application)
 		DS_PROFILE_SCOPE_END();
 
 		// Functions above may block if the app is paused, so get the current time here.
-		double curTime = dsTimer_time(timer);
-		float lastFrameTime = (float)(curTime - lastUpdateTime);
-		lastUpdateTime = curTime;
+		uint64_t curTicks = dsTimer_currentTicks();
+		float lastFrameTime = (float)dsTimer_ticksToSeconds(timer, curTicks - lastUpdateTicks);
+		lastUpdateTicks = curTicks;
 
 		// Update game inputs, primarily to maintain the rumble state.
 		for (uint32_t i = 0; i < application->gameInputCount; ++i)

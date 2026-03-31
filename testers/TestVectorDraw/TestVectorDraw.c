@@ -525,7 +525,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 
-		double start = dsTimer_time(timer);
+		uint64_t start = dsTimer_currentTicks();
 		DS_PROFILE_DYNAMIC_SCOPE_START(vectorImageFiles[i]);
 		testVectorDraw->vectorImages[i] = dsVectorImage_loadResource(allocator, NULL,
 			&initResources, dsFileResourceType_Embedded, path, 1.0f, &targetImageSize2f);
@@ -538,7 +538,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 		DS_LOG_INFO_F("TestVectorDraw", "Loaded %s in %g s", vectorImageFiles[i],
-			dsTimer_time(timer) - start);
+			dsTimer_ticksToSeconds(timer, dsTimer_currentTicks() - start));
 	}
 
 	dsVectorScratchData_destroy(scratchData);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -204,9 +204,9 @@ TEST(Thread, ThreadId)
 TEST(Thread, Sleep)
 {
 	dsTimer timer = dsTimer_create();
-	double startTime = dsTimer_time(timer);
+	uint64_t startTime = dsTimer_currentTicks();
 	dsThread_sleep(150, nullptr);
-	double endTime = dsTimer_time(timer);
+	uint64_t endTime = dsTimer_currentTicks();
 	// Give a generous error due to scheduling quantums.
-	EXPECT_NEAR(150, (endTime - startTime)*1000, 20);
+	EXPECT_NEAR(150, dsTimer_ticksToSeconds(timer, endTime - startTime)*1000, 20);
 }
