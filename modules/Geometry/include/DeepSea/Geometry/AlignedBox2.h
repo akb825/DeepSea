@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -427,8 +427,8 @@ DS_GEOMETRY_EXPORT inline bool dsAlignedBox2d_containsBox(const dsAlignedBox2d* 
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
 #if DS_SIMD_ALWAYS_DOUBLE2
-	dsSIMD2d inMin = dsSIMD2d_cmple(box->min.simd, otherBox->min.simd);
-	dsSIMD2d inMax = dsSIMD2d_cmpge(box->max.simd, otherBox->max.simd);
+	dsSIMD2db inMin = dsSIMD2d_cmple(box->min.simd, otherBox->min.simd);
+	dsSIMD2db inMax = dsSIMD2d_cmpge(box->max.simd, otherBox->max.simd);
 	dsVector2l inside;
 	inside.simd = dsSIMD2db_and(inMin, inMax);
 	return inside.x && inside.y;
@@ -462,8 +462,8 @@ DS_GEOMETRY_EXPORT inline bool dsAlignedBox2d_intersects(const dsAlignedBox2d* b
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
 #if DS_SIMD_ALWAYS_DOUBLE2
-	dsSIMD2d inMin = dsSIMD2d_cmple(box->min.simd, otherBox->max.simd);
-	dsSIMD2d inMax = dsSIMD2d_cmpge(box->max.simd, otherBox->min.simd);
+	dsSIMD2db inMin = dsSIMD2d_cmple(box->min.simd, otherBox->max.simd);
+	dsSIMD2db inMax = dsSIMD2d_cmpge(box->max.simd, otherBox->min.simd);
 	dsVector2l inside;
 	inside.simd = dsSIMD2db_and(inMin, inMax);
 	return inside.x && inside.y;

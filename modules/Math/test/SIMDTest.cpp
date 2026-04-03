@@ -993,6 +993,362 @@ TEST(SIMDTest, CompareLogicDouble4)
 	SIMDTest_CompareLogicDouble4();
 }
 
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT);
+static void SIMDTest_FloatBitfield4()
+{
+	dsVector4i cpuA =
+		{{int32_t(0x12345678), int32_t(0x87654321), int32_t(0xABCD1234), int32_t(0x4321DBCA)}};
+	dsVector4i cpuB = {{int32_t(0xDEADBEEF), int32_t(0xCAFEBABE), int32_t(0xDADB0D), 0}};
+	dsVector4i cpuResult;
+
+	dsSIMD4fb a = dsSIMD4fb_load(&cpuA);
+	dsSIMD4fb b = dsSIMD4fb_load(&cpuB);
+
+	EXPECT_EQ(cpuA.x, dsSIMD4fb_get(a, 0));
+	EXPECT_EQ(cpuA.y, dsSIMD4fb_get(a, 1));
+	EXPECT_EQ(cpuA.z, dsSIMD4fb_get(a, 2));
+	EXPECT_EQ(cpuA.w, dsSIMD4fb_get(a, 3));
+
+	dsSIMD4fb result = dsSIMD4fb_set1(-53);
+	dsSIMD4fb_store(&cpuResult, result);
+	EXPECT_EQ(-53, cpuResult.x);
+	EXPECT_EQ(-53, cpuResult.y);
+	EXPECT_EQ(-53, cpuResult.z);
+	EXPECT_EQ(-53, cpuResult.w);
+
+	result = dsSIMD4fb_set4(12, -34, 56, 0xAB);
+	dsSIMD4fb_store(&cpuResult, result);
+	EXPECT_EQ(12, cpuResult.x);
+	EXPECT_EQ(-34, cpuResult.y);
+	EXPECT_EQ(56, cpuResult.z);
+	EXPECT_EQ(0xAB, cpuResult.w);
+
+	dsVector4f fp = {{0.0f, -0.0f, 12.94f, -43.81f}};
+	result = dsSIMD4fb_fromFloatBitfield(fp.simd);
+	dsSIMD4fb_store(&cpuResult, result);
+	EXPECT_EQ(0, cpuResult.x);
+	EXPECT_EQ(0x80000000, cpuResult.y);
+	EXPECT_EQ(*reinterpret_cast<int32_t*>(&fp.z), cpuResult.z);
+	EXPECT_EQ(*reinterpret_cast<int32_t*>(&fp.w), cpuResult.w);
+
+	dsVector4f fpResult;
+	fpResult.simd = dsSIMD4fb_toFloatBitfield(result);
+	EXPECT_EQ(fp.x, fpResult.x);
+	EXPECT_EQ(fp.y, fpResult.y);
+	EXPECT_EQ(fp.z, fpResult.z);
+	EXPECT_EQ(fp.w, fpResult.w);
+
+	result = dsSIMD4fb_fromFloat(fp.simd);
+	dsSIMD4fb_store(&cpuResult, result);
+	EXPECT_EQ(0, cpuResult.x);
+	EXPECT_EQ(0, cpuResult.y);
+	EXPECT_EQ(12, cpuResult.z);
+	EXPECT_EQ(-43, cpuResult.w);
+
+	fpResult.simd = dsSIMD4fb_toFloat(result);
+	EXPECT_EQ(0.0f, fpResult.x);
+	EXPECT_EQ(0.0f, fpResult.y);
+	EXPECT_EQ(12.0f, fpResult.z);
+	EXPECT_EQ(-43.0f, fpResult.w);
+
+	result = dsSIMD4fb_neg(a);
+	dsSIMD4fb_store(&cpuResult, result);
+	EXPECT_EQ(-cpuA.x, cpuResult.x);
+	EXPECT_EQ(-cpuA.y, cpuResult.y);
+	EXPECT_EQ(-cpuA.z, cpuResult.z);
+	EXPECT_EQ(-cpuA.w, cpuResult.w);
+
+	result = dsSIMD4fb_add(a, b);
+	dsSIMD4fb_store(&cpuResult, result);
+	EXPECT_EQ(cpuA.x + cpuB.x, cpuResult.x);
+	EXPECT_EQ(cpuA.y + cpuB.y, cpuResult.y);
+	EXPECT_EQ(cpuA.z + cpuB.z, cpuResult.z);
+	EXPECT_EQ(cpuA.w + cpuB.w, cpuResult.w);
+
+	result = dsSIMD4fb_sub(a, b);
+	dsSIMD4fb_store(&cpuResult, result);
+	EXPECT_EQ(cpuA.x - cpuB.x, cpuResult.x);
+	EXPECT_EQ(cpuA.y - cpuB.y, cpuResult.y);
+	EXPECT_EQ(cpuA.z - cpuB.z, cpuResult.z);
+	EXPECT_EQ(cpuA.w - cpuB.w, cpuResult.w);
+
+	result = dsSIMD4fb_shiftLeft(a, 5);
+	dsSIMD4fb_store(&cpuResult, result);
+	EXPECT_EQ(cpuA.x << 5, cpuResult.x);
+	EXPECT_EQ(cpuA.y << 5, cpuResult.y);
+	EXPECT_EQ(cpuA.z << 5, cpuResult.z);
+	EXPECT_EQ(cpuA.w << 5, cpuResult.w);
+
+	result = dsSIMD4fb_shiftLeftConst(a, 5);
+	dsSIMD4fb_store(&cpuResult, result);
+	EXPECT_EQ(cpuA.x << 5, cpuResult.x);
+	EXPECT_EQ(cpuA.y << 5, cpuResult.y);
+	EXPECT_EQ(cpuA.z << 5, cpuResult.z);
+	EXPECT_EQ(cpuA.w << 5, cpuResult.w);
+
+	result = dsSIMD4fb_shiftRight(a, 5);
+	dsSIMD4fb_store(&cpuResult, result);
+	EXPECT_EQ(uint32_t(cpuA.x) >> 5, cpuResult.x);
+	EXPECT_EQ(uint32_t(cpuA.y) >> 5, cpuResult.y);
+	EXPECT_EQ(uint32_t(cpuA.z) >> 5, cpuResult.z);
+	EXPECT_EQ(uint32_t(cpuA.w) >> 5, cpuResult.w);
+
+	result = dsSIMD4fb_shiftRightConst(a, 5);
+	dsSIMD4fb_store(&cpuResult, result);
+	EXPECT_EQ(uint32_t(cpuA.x) >> 5, cpuResult.x);
+	EXPECT_EQ(uint32_t(cpuA.y) >> 5, cpuResult.y);
+	EXPECT_EQ(uint32_t(cpuA.z) >> 5, cpuResult.z);
+	EXPECT_EQ(uint32_t(cpuA.w) >> 5, cpuResult.w);
+}
+DS_SIMD_END();
+
+TEST(SIMDTest, FloatBitfield4)
+{
+	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int;
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	ASSERT_EQ(features, dsHostSIMDFeatures & features);
+#else
+	if ((dsHostSIMDFeatures & features) == features)
+		DS_LOG_INFO("SIMDTest", "Enabling float4 bitfield SIMD at runtime.");
+	else
+	{
+		DS_LOG_INFO("SIMDTest", "Skipping float4 bitfield SIMD tests.");
+		return;
+	}
+#endif
+
+	SIMDTest_FloatBitfield4();
+}
+
+DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT);
+static void SIMDTest_DoubleBitfield2()
+{
+	dsVector2l cpuA = {{int64_t(0x1234567887654321ULL), int64_t(0xABCD12344321DBCAULL)}};
+	dsVector2l cpuB = {{int64_t(0xDEADBEEFCAFEBABE), 0}};
+	dsVector2l cpuResult;
+
+	dsSIMD2db a = dsSIMD2db_load(&cpuA);
+	dsSIMD2db b = dsSIMD2db_load(&cpuB);
+
+	EXPECT_EQ(cpuA.x, dsSIMD2db_get(a, 0));
+	EXPECT_EQ(cpuA.y, dsSIMD2db_get(a, 1));
+
+	dsSIMD2db result = dsSIMD2db_set1(-53);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_EQ(-53, cpuResult.x);
+	EXPECT_EQ(-53, cpuResult.y);
+
+	result = dsSIMD2db_set2(12, -34);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_EQ(12, cpuResult.x);
+	EXPECT_EQ(-34, cpuResult.y);
+
+	dsVector2d fp = {{12.94, -43.81f}};
+	result = dsSIMD2db_fromDoubleBitfield(fp.simd);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_EQ(*reinterpret_cast<int64_t*>(&fp.x), cpuResult.x);
+	EXPECT_EQ(*reinterpret_cast<int64_t*>(&fp.y), cpuResult.y);
+
+	dsVector2d fpResult;
+	fpResult.simd = dsSIMD2db_toDoubleBitfield(result);
+	EXPECT_EQ(fp.x, fpResult.x);
+	EXPECT_EQ(fp.y, fpResult.y);
+
+	result = dsSIMD2db_fromDouble(fp.simd);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_EQ(12, cpuResult.x);
+	EXPECT_EQ(-43, cpuResult.y);
+
+	fpResult.simd = dsSIMD2db_toDouble(result);
+	EXPECT_EQ(12.0, fpResult.x);
+	EXPECT_EQ(-43.0, fpResult.y);
+
+	result = dsSIMD2db_neg(a);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_EQ(-cpuA.x, cpuResult.x);
+	EXPECT_EQ(-cpuA.y, cpuResult.y);
+
+	result = dsSIMD2db_add(a, b);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_EQ(cpuA.x + cpuB.x, cpuResult.x);
+	EXPECT_EQ(cpuA.y + cpuB.y, cpuResult.y);
+
+	result = dsSIMD2db_sub(a, b);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_EQ(cpuA.x - cpuB.x, cpuResult.x);
+	EXPECT_EQ(cpuA.y - cpuB.y, cpuResult.y);
+
+	result = dsSIMD2db_shiftLeft(a, 5);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_EQ(cpuA.x << 5, cpuResult.x);
+	EXPECT_EQ(cpuA.y << 5, cpuResult.y);
+
+	result = dsSIMD2db_shiftLeftConst(a, 5);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_EQ(cpuA.x << 5, cpuResult.x);
+	EXPECT_EQ(cpuA.y << 5, cpuResult.y);
+
+	result = dsSIMD2db_shiftRight(a, 5);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_EQ(uint64_t(cpuA.x) >> 5, cpuResult.x);
+	EXPECT_EQ(uint64_t(cpuA.y) >> 5, cpuResult.y);
+
+	result = dsSIMD2db_shiftRightConst(a, 5);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_EQ(uint64_t(cpuA.x) >> 5, cpuResult.x);
+	EXPECT_EQ(uint64_t(cpuA.y) >> 5, cpuResult.y);
+}
+DS_SIMD_END();
+
+TEST(SIMDTest, DoubleBitfield2)
+{
+	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int;
+#if DS_SIMD_ALWAYS_DOUBLE2 && DS_SIMD_ALWAYS_INT
+	ASSERT_EQ(features, dsHostSIMDFeatures & features);
+#else
+	if ((dsHostSIMDFeatures & features) == features)
+		DS_LOG_INFO("SIMDTest", "Enabling double2 bitfield SIMD at runtime.");
+	else
+	{
+		DS_LOG_INFO("SIMDTest", "Skipping double2 bitfield SIMD tests.");
+		return;
+	}
+#endif
+
+	SIMDTest_DoubleBitfield2();
+}
+
+DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_INT);
+static void SIMDTest_DoubleBitfield4()
+{
+	DS_ALIGN(32) dsVector4l cpuA = {{int64_t(0x123456789ABCDEFULL), int64_t(0xFEDCBA987654321ULL),
+		int64_t(0xABCDEF123456789ULL), int64_t(0x987654321FEDCBAULL)}};
+	DS_ALIGN(32) dsVector4l cpuB =
+		{{int64_t(0xDEADBEEFCAFEBABEULL), int64_t(0xDADB0D000000ULL), int64_t(0xFEED00BADULL), 0}};
+	DS_ALIGN(32) dsVector4l cpuResult;
+
+	dsSIMD4db a = dsSIMD4db_load(&cpuA);
+	dsSIMD4db b = dsSIMD4db_load(&cpuB);
+
+	EXPECT_EQ(cpuA.x, dsSIMD4db_get(a, 0));
+	EXPECT_EQ(cpuA.y, dsSIMD4db_get(a, 1));
+	EXPECT_EQ(cpuA.z, dsSIMD4db_get(a, 2));
+	EXPECT_EQ(cpuA.w, dsSIMD4db_get(a, 3));
+
+	dsSIMD4db result = dsSIMD4db_set1(-53);
+	dsSIMD4db_store(&cpuResult, result);
+	EXPECT_EQ(-53, cpuResult.x);
+	EXPECT_EQ(-53, cpuResult.y);
+	EXPECT_EQ(-53, cpuResult.z);
+	EXPECT_EQ(-53, cpuResult.w);
+
+	result = dsSIMD4db_set4(12, -34, 56, 0xAB);
+	dsSIMD4db_store(&cpuResult, result);
+	EXPECT_EQ(12, cpuResult.x);
+	EXPECT_EQ(-34, cpuResult.y);
+	EXPECT_EQ(56, cpuResult.z);
+	EXPECT_EQ(0xAB, cpuResult.w);
+
+	DS_ALIGN(32) dsVector4d fpCpu = {{0.0, -0.0, 12.94, -43.81}};
+	dsSIMD4d fp = dsSIMD4d_load(&fpCpu);
+	result = dsSIMD4db_fromDoubleBitfield(fp);
+	dsSIMD4db_store(&cpuResult, result);
+	EXPECT_EQ(0, cpuResult.x);
+	EXPECT_EQ(0x8000000000000000ULL, cpuResult.y);
+	EXPECT_EQ(*reinterpret_cast<int64_t*>(&fpCpu.z), cpuResult.z);
+	EXPECT_EQ(*reinterpret_cast<int64_t*>(&fpCpu.w), cpuResult.w);
+
+	DS_ALIGN(32) dsVector4d fpResultCpu;
+	dsSIMD4d fpResult = dsSIMD4db_toDoubleBitfield(result);
+	dsSIMD4d_store(&fpResultCpu, fpResult);
+	EXPECT_EQ(fpCpu.x, fpResultCpu.x);
+	EXPECT_EQ(fpCpu.y, fpResultCpu.y);
+	EXPECT_EQ(fpCpu.z, fpResultCpu.z);
+	EXPECT_EQ(fpCpu.w, fpResultCpu.w);
+
+	result = dsSIMD4db_fromDouble(fp);
+	dsSIMD4db_store(&cpuResult, result);
+	EXPECT_EQ(0, cpuResult.x);
+	EXPECT_EQ(0, cpuResult.y);
+	EXPECT_EQ(12, cpuResult.z);
+	EXPECT_EQ(-43, cpuResult.w);
+
+	fpResult = dsSIMD4db_toDouble(result);
+	dsSIMD4d_store(&fpResultCpu, fpResult);
+	EXPECT_EQ(0.0f, fpResultCpu.x);
+	EXPECT_EQ(0.0f, fpResultCpu.y);
+	EXPECT_EQ(12.0f, fpResultCpu.z);
+	EXPECT_EQ(-43.0f, fpResultCpu.w);
+
+	result = dsSIMD4db_neg(a);
+	dsSIMD4db_store(&cpuResult, result);
+	EXPECT_EQ(-cpuA.x, cpuResult.x);
+	EXPECT_EQ(-cpuA.y, cpuResult.y);
+	EXPECT_EQ(-cpuA.z, cpuResult.z);
+	EXPECT_EQ(-cpuA.w, cpuResult.w);
+
+	result = dsSIMD4db_add(a, b);
+	dsSIMD4db_store(&cpuResult, result);
+	EXPECT_EQ(cpuA.x + cpuB.x, cpuResult.x);
+	EXPECT_EQ(cpuA.y + cpuB.y, cpuResult.y);
+	EXPECT_EQ(cpuA.z + cpuB.z, cpuResult.z);
+	EXPECT_EQ(cpuA.w + cpuB.w, cpuResult.w);
+
+	result = dsSIMD4db_sub(a, b);
+	dsSIMD4db_store(&cpuResult, result);
+	EXPECT_EQ(cpuA.x - cpuB.x, cpuResult.x);
+	EXPECT_EQ(cpuA.y - cpuB.y, cpuResult.y);
+	EXPECT_EQ(cpuA.z - cpuB.z, cpuResult.z);
+	EXPECT_EQ(cpuA.w - cpuB.w, cpuResult.w);
+
+	result = dsSIMD4db_shiftLeft(a, 5);
+	dsSIMD4db_store(&cpuResult, result);
+	EXPECT_EQ(cpuA.x << 5, cpuResult.x);
+	EXPECT_EQ(cpuA.y << 5, cpuResult.y);
+	EXPECT_EQ(cpuA.z << 5, cpuResult.z);
+	EXPECT_EQ(cpuA.w << 5, cpuResult.w);
+
+	result = dsSIMD4db_shiftLeftConst(a, 5);
+	dsSIMD4db_store(&cpuResult, result);
+	EXPECT_EQ(cpuA.x << 5, cpuResult.x);
+	EXPECT_EQ(cpuA.y << 5, cpuResult.y);
+	EXPECT_EQ(cpuA.z << 5, cpuResult.z);
+	EXPECT_EQ(cpuA.w << 5, cpuResult.w);
+
+	result = dsSIMD4db_shiftRight(a, 5);
+	dsSIMD4db_store(&cpuResult, result);
+	EXPECT_EQ(uint64_t(cpuA.x) >> 5, cpuResult.x);
+	EXPECT_EQ(uint64_t(cpuA.y) >> 5, cpuResult.y);
+	EXPECT_EQ(uint64_t(cpuA.z) >> 5, cpuResult.z);
+	EXPECT_EQ(uint64_t(cpuA.w) >> 5, cpuResult.w);
+
+	result = dsSIMD4db_shiftRightConst(a, 5);
+	dsSIMD4db_store(&cpuResult, result);
+	EXPECT_EQ(uint64_t(cpuA.x) >> 5, cpuResult.x);
+	EXPECT_EQ(uint64_t(cpuA.y) >> 5, cpuResult.y);
+	EXPECT_EQ(uint64_t(cpuA.z) >> 5, cpuResult.z);
+	EXPECT_EQ(uint64_t(cpuA.w) >> 5, cpuResult.w);
+}
+DS_SIMD_END();
+
+TEST(SIMDTest, DoubleBitfield4)
+{
+	dsSIMDFeatures features = dsSIMDFeatures_Double4 | dsSIMDFeatures_Int;
+#if DS_SIMD_ALWAYS_DOUBLE4 && DS_SIMD_ALWAYS_INT
+	ASSERT_EQ(features, dsHostSIMDFeatures & features);
+#else
+	if ((dsHostSIMDFeatures & features) == features)
+		DS_LOG_INFO("SIMDTest", "Enabling double4 bitfield SIMD at runtime.");
+	else
+	{
+		DS_LOG_INFO("SIMDTest", "Skipping double4 bitfield SIMD tests.");
+		return;
+	}
+#endif
+
+	SIMDTest_DoubleBitfield4();
+}
+
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_HADD);
 static void SIMDTest_HAddFloat4()
 {

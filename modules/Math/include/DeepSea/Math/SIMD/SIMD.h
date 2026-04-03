@@ -140,15 +140,16 @@ extern "C"
  * assumed that if any other feature is available, Float4 will be available as well. On all current
  * platforms if Double4 is available the other math-based features (e.g. HAdd, FMA) will be
  * available as well, so there's no benefit for providing e.g. Double4 implementations with or
- * without FMA for compatibility.
+ * without FMA for compatibility. (aside from disabling all FMA through DS_DETERMINISTIC_MATH)
+ * Furthermore, all current platforms will have extended integer operations of Double2 is available,
+ * so checking for the Int feature is only needed for Float4.
  *
  * The current platforms are supported based on the platform macro:
- * - DS_X86_32: No features will be guaranteed at compile time unless explicitly enabled through
- *   compiler flags. (e.g. with -march) All features may be available on the host CPU and can be
- *   queried at runtime.
- * - DS_X86_64: Float4 and Double2 will be guaranteed at compile time, though more may be explicitly
- *   enabled through compiler flags. (e.g. with -march) All other features may be available on the
- *   host CPU and can be queried at runtime.
+ * - DS_X86_32: No features will be guaranteed at compile time if x86 architecture level is set to
+ *   0, otherwise it will follow similar rules to DS_X86_64.
+ * - DS_X86_64: Float4, Int, and Double2 will be guaranteed at compile time, though more may be
+ *   explicitly enabled through compiler flags. (e.g. by setting the x86 architecture level or
+ *   -march) All other features may be available on the host CPU and can be queried at runtime.
  * - DS_ARM_32: All features except for Double2 and Double4 are guaranteed to be available at
  *   compile time. No additional features will be detected at runtime.
  * - DS_ARM_64: All features except for Double4 are guaranteed to be available at compile time. No
@@ -161,11 +162,12 @@ typedef enum dsSIMDFeatures
 {
 	dsSIMDFeatures_None = 0,        ///< No SIMD features are supported.
 	dsSIMDFeatures_Float4 = 0x1,    ///< Standard 4 element float operations.
-	dsSIMDFeatures_Double2 = 0x2,   ///< Standard 2 element double operations.
-	dsSIMDFeatures_Double4 = 0x4,   ///< Standard 4 element double operations.
-	dsSIMDFeatures_HAdd = 0x8,      ///< Horizontal adds.
-	dsSIMDFeatures_FMA = 0x10,      ///< Fused multiply adds.
-	dsSIMDFeatures_HalfFloat = 0x20 ///< Half float conversions.
+	dsSIMDFeatures_Int = 0x2,       ///< Extended integer operations.
+	dsSIMDFeatures_Double2 = 0x4,   ///< Standard 2 element double operations.
+	dsSIMDFeatures_Double4 = 0x8,   ///< Standard 4 element double operations.
+	dsSIMDFeatures_HAdd = 0x10,     ///< Horizontal adds.
+	dsSIMDFeatures_FMA = 0x20,      ///< Fused multiply adds.
+	dsSIMDFeatures_HalfFloat = 0x40 ///< Half float conversions.
 } dsSIMDFeatures;
 
 /**

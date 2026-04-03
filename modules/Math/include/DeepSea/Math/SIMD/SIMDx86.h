@@ -18,8 +18,9 @@
 
 #include <DeepSea/Core/Config.h>
 
-#include <xmmintrin.h>
 #include <immintrin.h>
+#include <stdint.h>
+#include <xmmintrin.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -39,6 +40,7 @@ extern "C"
 /// @cond
 #if DS_CLANG || DS_GCC
 #define DS_SIMD_FLOAT4 sse
+#define DS_SIMD_INT sse2
 #define DS_SIMD_DOUBLE2 sse2
 #define DS_SIMD_DOUBLE4 avx
 #define DS_SIMD_HADD sse3
@@ -84,8 +86,10 @@ extern "C"
 #endif
 
 #if DS_X86_64 || defined(__SSE2__) || _M_IX86_FP >= 2
+#define DS_SIMD_ALWAYS_INT 1
 #define DS_SIMD_ALWAYS_DOUBLE2 1
 #else
+#define DS_SIMD_ALWAYS_INT 0
 #define DS_SIMD_ALWAYS_DOUBLE2 0
 #endif
 
@@ -130,25 +134,29 @@ typedef __m128d dsSIMD2d;
 typedef __m256d dsSIMD4d;
 
 /**
- * @brief Type for a SIMD vector of 4 bool results.
+ * @brief Type for a SIMD vector of 4 bitfield results.
  *
- * Each boolean value will be stored in a 32-bit value.
+ * Each bitfield value will be stored in a 32-bit value, and will often represent boolean values.
  */
+#if DS_SIMD_ALWAYS_INT
+typedef __m128i dsSIMD4fb;
+#else
 typedef __m128 dsSIMD4fb;
+#endif
 
 /**
- * @brief Type for a SIMD vector of 2 bool results.
+ * @brief Type for a SIMD vector of 2 bitfield results.
  *
- * Each boolean value will be stored in a 64-bit value.
+ * Each bitfield value will be stored in a 64-bit value, and will often represent boolean values.
  */
-typedef __m128d dsSIMD2db;
+typedef __m128i dsSIMD2db;
 
 /**
- * @brief Type for a SIMD vector of 4 bool results.
+ * @brief Type for a SIMD vector of 4 bitfield results.
  *
- * Each boolean value will be stored in a 64-bit value.
+ * Each bitfield value will be stored in a 64-bit value, and will often represent boolean values.
  */
-typedef __m256d dsSIMD4db;
+typedef __m256i dsSIMD4db;
 
 /**
  * @brief Type for a SIMD vector of 4 half floats.
@@ -157,6 +165,21 @@ typedef __m128i dsSIMD4hf;
 
 /// @cond
 DS_SIMD_START(DS_SIMD_FLOAT4);
+
+// NOTE: Use integer type directly for dsSIMD4fb when integer operations are guaranteed to be
+// available for better type checking. If not guaranteed, use floating-point vector type for
+// maximum compatibility.
+#if DS_SIMD_ALWAYS_INT
+#define DS_SSE_CAST_F4_TO_FB4(x) _mm_castps_si128((x))
+#define DS_SSE_CAST_FB4_TO_F4(x) _mm_castsi128_ps((x))
+#define DS_SSE_RESULT_FB4(x) (x)
+#define DS_SSE_PARAM_FB4(x) (x)
+#else
+#define DS_SSE_CAST_F4_TO_FB4(x) (x)
+#define DS_SSE_CAST_FB4_TO_F4(x) (x)
+#define DS_SSE_RESULT_FB4(x) _mm_castsi128_ps((x))
+#define DS_SSE_PARAM_FB4(x) _mm_castps_si128((x))
+#endif
 /// @endcond
 
 /**
@@ -185,6 +208,7 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_loadUnaligned(const void* fp)
  * @brief Sets a float value into all elements of a SIMD register.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param f The value to set.
+ * @return The SIMD value.
  */
 DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_set1(float f)
 {
@@ -198,6 +222,7 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_set1(float f)
  * @param y The second value.
  * @param z The third value.
  * @param w The fourth value.
+ * @return The SIMD value.
  */
 DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_set4(float x, float y, float z, float w)
 {
@@ -216,15 +241,6 @@ DS_ALWAYS_INLINE void dsSIMD4f_store(void* fp, dsSIMD4f a)
 }
 
 /**
- * @brief Gets a float element from a SIMD value.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The value to get the element from.
- * @param i The index of the element.
- * @return The element value.
- */
-#define dsSIMD4f_get(a, i) _mm_cvtss_f32(_mm_shuffle_ps((a), (a), _MM_SHUFFLE(0, 0, 0, (i))))
-
-/**
  * @brief Stores a SIMD register into four float values.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param[out] fp A pointer to the float values to store to. This may be unaligned.
@@ -234,6 +250,15 @@ DS_ALWAYS_INLINE void dsSIMD4f_storeUnaligned(void* fp, dsSIMD4f a)
 {
 	_mm_storeu_ps((float*)fp, a);
 }
+
+/**
+ * @brief Gets a float element from a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The value to get the element from.
+ * @param i The index of the element.
+ * @return The element value.
+ */
+#define dsSIMD4f_get(a, i) _mm_cvtss_f32(_mm_shuffle_ps((a), (a), _MM_SHUFFLE(0, 0, 0, (i))))
 
 /**
  * @brief Negates a SIMD value.
@@ -400,7 +425,8 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_max(dsSIMD4f a, dsSIMD4f b)
  */
 DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_select(dsSIMD4f a, dsSIMD4f b, dsSIMD4fb c)
 {
-	return _mm_or_ps(_mm_and_ps(c, a), _mm_andnot_ps(c, b));
+	return _mm_or_ps(
+		_mm_and_ps(DS_SSE_CAST_FB4_TO_F4(c), a), _mm_andnot_ps(DS_SSE_CAST_FB4_TO_F4(c), b));
 }
 
 /**
@@ -412,7 +438,7 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_select(dsSIMD4f a, dsSIMD4f b, dsSIMD4fb c)
  */
 DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4f_cmpeq(dsSIMD4f a, dsSIMD4f b)
 {
-	return _mm_cmpeq_ps(a, b);
+	return DS_SSE_CAST_F4_TO_FB4(_mm_cmpeq_ps(a, b));
 }
 
 /**
@@ -424,7 +450,7 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4f_cmpeq(dsSIMD4f a, dsSIMD4f b)
  */
 DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4f_cmpne(dsSIMD4f a, dsSIMD4f b)
 {
-	return _mm_cmpneq_ps(a, b);
+	return DS_SSE_CAST_F4_TO_FB4(_mm_cmpneq_ps(a, b));
 }
 
 /**
@@ -436,7 +462,7 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4f_cmpne(dsSIMD4f a, dsSIMD4f b)
  */
 DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4f_cmplt(dsSIMD4f a, dsSIMD4f b)
 {
-	return _mm_cmplt_ps(a, b);
+	return DS_SSE_CAST_F4_TO_FB4(_mm_cmplt_ps(a, b));
 }
 
 /**
@@ -448,7 +474,7 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4f_cmplt(dsSIMD4f a, dsSIMD4f b)
  */
 DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4f_cmple(dsSIMD4f a, dsSIMD4f b)
 {
-	return _mm_cmple_ps(a, b);
+	return DS_SSE_CAST_F4_TO_FB4(_mm_cmple_ps(a, b));
 }
 
 /**
@@ -460,7 +486,7 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4f_cmple(dsSIMD4f a, dsSIMD4f b)
  */
 DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4f_cmpgt(dsSIMD4f a, dsSIMD4f b)
 {
-	return _mm_cmpgt_ps(a, b);
+	return DS_SSE_CAST_F4_TO_FB4(_mm_cmpgt_ps(a, b));
 }
 
 /**
@@ -472,37 +498,92 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4f_cmpgt(dsSIMD4f a, dsSIMD4f b)
  */
 DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4f_cmpge(dsSIMD4f a, dsSIMD4f b)
 {
-	return _mm_cmpge_ps(a, b);
+	return DS_SSE_CAST_F4_TO_FB4(_mm_cmpge_ps(a, b));
 }
 
 /**
  * @brief Creates a SIMD value for true.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @return A SIMD value with true on all elements.
  */
 DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_true(void)
 {
+#if DS_SIMD_ALWAYS_INT
+	return _mm_set1_epi32(0xFFFFFFFF);
+#else
 	const unsigned int a = 0xFFFFFFFF;
 	return _mm_set1_ps(*(float*)&a);
+#endif
 }
 
 /**
  * @brief Creates a SIMD value for false.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @return A SIMD value with false on all elements.
  */
 DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_false(void)
 {
+#if DS_SIMD_ALWAYS_INT
+	return _mm_setzero_si128();
+#else
 	return _mm_setzero_ps();
+#endif
 }
 
 /**
- * @brief Stores a SIMD bool register into four int values.
+ * @brief Loads int values into a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param ip A pointer to the int values to load. This should be aligned to 16 bytes.
+ * @return The loaded SIMD value.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_load(const void* ip)
+{
+#if DS_SIMD_ALWAYS_INT
+	return _mm_load_si128((const dsSIMD4fb*)ip);
+#else
+	return _mm_load_ps((const float*)ip);
+#endif
+}
+
+/**
+ * @brief Loads int values into a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param ip A pointer to the int values to load. This may be unaligned.
+ * @return The loaded SIMD value.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_loadUnaligned(const void* ip)
+{
+#if DS_SIMD_ALWAYS_INT
+	return _mm_loadu_si128((const dsSIMD4fb*)(ip));
+#else
+	return _mm_loadu_ps((const float*)(ip));
+#endif
+}
+
+/**
+ * @brief Converts a SIMD float value directly to a bitfield value.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The SIMD floating-point value.
+ * @return The direct bitfield conversion from float.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_fromFloatBitfield(dsSIMD4f a)
+{
+	return DS_SSE_CAST_F4_TO_FB4(a);
+}
+
+/**
+ * @brief Stores a SIMD bitfield register into four int values.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param[out] ip A pointer to the int values to store to. This should be aligned to 16 bytes.
  * @param a The value to store.
  */
 DS_ALWAYS_INLINE void dsSIMD4fb_store(void* ip, dsSIMD4fb a)
 {
+#if DS_SIMD_ALWAYS_INT
+	_mm_store_si128((dsSIMD4fb*)ip, a);
+#else
 	_mm_store_ps((float*)ip, a);
+#endif
 }
 
 /**
@@ -513,23 +594,41 @@ DS_ALWAYS_INLINE void dsSIMD4fb_store(void* ip, dsSIMD4fb a)
  */
 DS_ALWAYS_INLINE void dsSIMD4fb_storeUnaligned(void* ip, dsSIMD4fb a)
 {
+#if DS_SIMD_ALWAYS_INT
+	_mm_storeu_si128((dsSIMD4fb*)ip, a);
+#else
 	_mm_storeu_ps((float*)ip, a);
+#endif
 }
 
 /**
- * @brief Performs a logical not on a SIMD bool value.
+ * @brief Converts a SIMD bitfield value directly to a float value.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The SIMD bitfield value.
+ * @return The direct bitfield conversion to float.
+ */
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4fb_toFloatBitfield(dsSIMD4fb a)
+{
+	return DS_SSE_CAST_FB4_TO_F4(a);
+}
+
+/**
+ * @brief Performs a logical not on a SIMD bitfield value.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param a The value to not.
  * @return The result of !a.
  */
 DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_not(dsSIMD4fb a)
 {
-	const unsigned int b = 0xFFFFFFFF;
-	return _mm_xor_ps(a, _mm_set1_ps(*(float*)&b));
+#if DS_SIMD_ALWAYS_INT
+	return _mm_xor_si128(a, dsSIMD4fb_true());
+#else
+	return _mm_xor_ps(a, dsSIMD4fb_true());
+#endif
 }
 
 /**
- * @brief Performs a logical and between two SIMD bool values.
+ * @brief Performs a logical and between two SIMD bitfield values.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param a The first value to and.
  * @param b The second value to and.
@@ -537,11 +636,15 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_not(dsSIMD4fb a)
  */
 DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_and(dsSIMD4fb a, dsSIMD4fb b)
 {
+#if DS_SIMD_ALWAYS_INT
+	return _mm_and_si128(a, b);
+#else
 	return _mm_and_ps(a, b);
+#endif
 }
 
 /**
- * @brief Performs a logical and not between two SIMD bool values.
+ * @brief Performs a logical and not between two SIMD bitfield values.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param a The first value to not then and.
  * @param b The second value to and.
@@ -549,11 +652,15 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_and(dsSIMD4fb a, dsSIMD4fb b)
  */
 DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_andnot(dsSIMD4fb a, dsSIMD4fb b)
 {
+#if DS_SIMD_ALWAYS_INT
+	return _mm_andnot_si128(a, b);
+#else
 	return _mm_andnot_ps(a, b);
+#endif
 }
 
 /**
- * @brief Performs a logical or between two SIMD bool values.
+ * @brief Performs a logical or between two SIMD bitfield values.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param a The first value to or.
  * @param b The second value to or.
@@ -561,11 +668,15 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_andnot(dsSIMD4fb a, dsSIMD4fb b)
  */
 DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_or(dsSIMD4fb a, dsSIMD4fb b)
 {
+#if DS_SIMD_ALWAYS_INT
+	return _mm_or_si128(a, b);
+#else
 	return _mm_or_ps(a, b);
+#endif
 }
 
 /**
- * @brief Performs a logical or not between two SIMD bool values.
+ * @brief Performs a logical or not between two SIMD bitfield values.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param a The first value to or.
  * @param b The second value to not then or.
@@ -573,11 +684,15 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_or(dsSIMD4fb a, dsSIMD4fb b)
  */
 DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_ornot(dsSIMD4fb a, dsSIMD4fb b)
 {
+#if DS_SIMD_ALWAYS_INT
+	return _mm_or_si128(a, dsSIMD4fb_not(b));
+#else
 	return _mm_or_ps(a, dsSIMD4fb_not(b));
+#endif
 }
 
 /**
- * @brief Performs a logical xor between two SIMD bool values.
+ * @brief Performs a logical xor between two SIMD bitfield values.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param a The first value to xor.
  * @param b The first value to xor.
@@ -585,13 +700,157 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_ornot(dsSIMD4fb a, dsSIMD4fb b)
  */
 DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_xor(dsSIMD4fb a, dsSIMD4fb b)
 {
+#if DS_SIMD_ALWAYS_INT
+	return _mm_xor_si128(a, b);
+#else
 	return _mm_xor_ps(a, b);
+#endif
 }
+
+/// @cond
+DS_SIMD_END();
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT);
+/// @endcond
+
+/**
+ * @brief Converts a SIMD float value to an integer, similar to a cast in C.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The SIMD floating-point value.
+ * @return The integer representation as would be done with an int to float cast in C.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_fromFloat(dsSIMD4f a)
+{
+	return DS_SSE_RESULT_FB4(_mm_cvttps_epi32(a));
+}
+
+/**
+ * @brief Converts a SIMD integer value to a float value, similar to a cast in C.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The SIMD integer value.
+ * @return The float value as would be done with an int to float cast in C.
+ */
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4fb_toFloat(dsSIMD4fb a)
+{
+	return _mm_cvtepi32_ps(DS_SSE_PARAM_FB4(a));
+}
+
+/**
+ * @brief Gets an integer element from a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The value to get the element from.
+ * @param i The index of the element.
+ * @return The element value.
+ */
+#define dsSIMD4fb_get(a, i) _mm_cvtsi128_si32(_mm_castps_si128( \
+	_mm_shuffle_ps(DS_SSE_CAST_FB4_TO_F4(a), DS_SSE_CAST_FB4_TO_F4(a), _MM_SHUFFLE(0, 0, 0, (i)))))
+
+/**
+ * @brief Negates an SIMD integer value.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The value to negate.
+ * @return The result of -a.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_neg(dsSIMD4fb a)
+{
+	return DS_SSE_RESULT_FB4(_mm_sub_epi32(_mm_setzero_si128(), DS_SSE_PARAM_FB4(a)));
+}
+
+/**
+ * @brief Adds two SIMD integer values.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to add.
+ * @param b The second value to add.
+ * @return The result of a + b.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_add(dsSIMD4fb a, dsSIMD4fb b)
+{
+	return DS_SSE_RESULT_FB4(_mm_add_epi32(DS_SSE_PARAM_FB4(a), DS_SSE_PARAM_FB4(b)));
+}
+
+/**
+ * @brief Subtracts two SIMD integer values.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to subtract.
+ * @param b The second value to subtract.
+ * @return The result of a - b.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_sub(dsSIMD4fb a, dsSIMD4fb b)
+{
+	return DS_SSE_RESULT_FB4(_mm_sub_epi32(DS_SSE_PARAM_FB4(a), DS_SSE_PARAM_FB4(b)));
+}
+
+/**
+ * @brief Left shifts an integer SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The value to shift left.
+ * @param b The number of bits to shift left by.
+ * @return The result of a << b.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_shiftLeft(dsSIMD4fb a, unsigned int b)
+{
+	return DS_SSE_RESULT_FB4(_mm_sll_epi32(DS_SSE_PARAM_FB4(a), _mm_set_epi32(0, 0, 0, b)));
+}
+
+/**
+ * @brief Left shifts an integer SIMD value by a constant number of bits.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The value to shift left.
+ * @param b The number of bits to shift left by as a constant integer.
+ * @return The result of a << b.
+ */
+#define dsSIMD4fb_shiftLeftConst(a, b) DS_SSE_RESULT_FB4(_mm_slli_epi32(DS_SSE_PARAM_FB4((a)), (b)))
+
+/**
+ * @brief Right shifts an integer SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The value to shift right.
+ * @param b The number of bits to shift right by.
+ * @return The result of a >> b.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_shiftRight(dsSIMD4fb a, unsigned int b)
+{
+	return DS_SSE_RESULT_FB4(_mm_srl_epi32(DS_SSE_PARAM_FB4(a), _mm_set_epi32(0, 0, 0, b)));
+}
+
+/**
+ * @brief Left shifts an integer SIMD value by a constant number of bits.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The value to shift right.
+ * @param b The number of bits to shift right by as a constant integer.
+ * @return The result of a >> b.
+ */
+#define dsSIMD4fb_shiftRightConst(a, b) \
+	DS_SSE_RESULT_FB4(_mm_srli_epi32(DS_SSE_PARAM_FB4((a)), (b)))
 
 /// @cond
 DS_SIMD_END();
 DS_SIMD_START(DS_SIMD_DOUBLE2);
 /// @endcond
+
+/**
+ * @brief Sets an int value into all elements of a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param i The value to set.
+ * @return The SIMD value.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_set1(uint32_t i)
+{
+	return DS_SSE_RESULT_FB4(_mm_set1_epi32(i));
+}
+
+/**
+ * @brief Sets a SIMD value with four int values.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param x The first value.
+ * @param y The second value.
+ * @param z The third value.
+ * @param w The fourth value.
+ * @return The SIMD value.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_set4(uint32_t x, uint32_t y, uint32_t z, uint32_t w)
+{
+	return DS_SSE_RESULT_FB4(_mm_set_epi32(w, z, y, x));
+}
 
 /**
  * @brief Loads double values into a SIMD register.
@@ -648,15 +907,6 @@ DS_ALWAYS_INLINE void dsSIMD2d_store(void* fp, dsSIMD2d a)
 }
 
 /**
- * @brief Gets a double element from a SIMD value.
- * @remark This can be used when dsSIMDFeatures_Double2 is available.
- * @param a The value to get the element from.
- * @param i The index of the element.
- * @return The element value.
- */
-#define dsSIMD2d_get(a, i) _mm_cvtsd_f64(_mm_shuffle_pd((a), (a), _MM_SHUFFLE2(0, (i))))
-
-/**
  * @brief Stores a SIMD register into four double values.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param[out] dp A pointer to the double values to store to. This may be unaligned.
@@ -666,6 +916,15 @@ DS_ALWAYS_INLINE void dsSIMD2d_storeUnaligned(void* dp, dsSIMD2d a)
 {
 	_mm_storeu_pd((double*)dp, a);
 }
+
+/**
+ * @brief Gets a double element from a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The value to get the element from.
+ * @param i The index of the element.
+ * @return The element value.
+ */
+#define dsSIMD2d_get(a, i) _mm_cvtsd_f64(_mm_shuffle_pd((a), (a), _MM_SHUFFLE2(0, (i))))
 
 /**
  * @brief Negates a SIMD value.
@@ -834,7 +1093,7 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_max(dsSIMD2d a, dsSIMD2d b)
  */
 DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_select(dsSIMD2d a, dsSIMD2d b, dsSIMD2db c)
 {
-	return _mm_or_pd(_mm_and_pd(c, a), _mm_andnot_pd(c, b));
+	return _mm_or_pd(_mm_and_pd(_mm_castsi128_pd(c), a), _mm_andnot_pd(_mm_castsi128_pd(c), b));
 }
 
 /**
@@ -846,7 +1105,7 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_select(dsSIMD2d a, dsSIMD2d b, dsSIMD2db c)
  */
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2d_cmpeq(dsSIMD2d a, dsSIMD2d b)
 {
-	return _mm_cmpeq_pd(a, b);
+	return _mm_castpd_si128(_mm_cmpeq_pd(a, b));
 }
 
 /**
@@ -858,7 +1117,7 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2d_cmpeq(dsSIMD2d a, dsSIMD2d b)
  */
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2d_cmpne(dsSIMD2d a, dsSIMD2d b)
 {
-	return _mm_cmpneq_pd(a, b);
+	return _mm_castpd_si128(_mm_cmpneq_pd(a, b));
 }
 
 /**
@@ -870,7 +1129,7 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2d_cmpne(dsSIMD2d a, dsSIMD2d b)
  */
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2d_cmplt(dsSIMD2d a, dsSIMD2d b)
 {
-	return _mm_cmplt_pd(a, b);
+	return _mm_castpd_si128(_mm_cmplt_pd(a, b));
 }
 
 /**
@@ -882,7 +1141,7 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2d_cmplt(dsSIMD2d a, dsSIMD2d b)
  */
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2d_cmple(dsSIMD2d a, dsSIMD2d b)
 {
-	return _mm_cmple_pd(a, b);
+	return _mm_castpd_si128(_mm_cmple_pd(a, b));
 }
 
 /**
@@ -894,7 +1153,7 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2d_cmple(dsSIMD2d a, dsSIMD2d b)
  */
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2d_cmpgt(dsSIMD2d a, dsSIMD2d b)
 {
-	return _mm_cmpgt_pd(a, b);
+	return _mm_castpd_si128(_mm_cmpgt_pd(a, b));
 }
 
 /**
@@ -906,37 +1165,113 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2d_cmpgt(dsSIMD2d a, dsSIMD2d b)
  */
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2d_cmpge(dsSIMD2d a, dsSIMD2d b)
 {
-	return _mm_cmpge_pd(a, b);
+	return _mm_castpd_si128(_mm_cmpge_pd(a, b));
 }
 
 /**
  * @brief Creates a SIMD value for true.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @return A SIMD value with true on all elements.
  */
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_true(void)
 {
-	const unsigned long long a = 0xFFFFFFFFFFFFFFFFULL;
-	return _mm_set1_pd(*(double*)&a);
+	return _mm_set1_epi64x(0xFFFFFFFFFFFFFFFFULL);
 }
 
 /**
  * @brief Creates a SIMD value for false.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @return A SIMD value with false on all elements.
  */
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_false(void)
 {
-	return _mm_setzero_pd();
+	return _mm_setzero_si128();
 }
 
 /**
- * @brief Stores a SIMD bool register into four int values.
+ * @brief Loads 64-bit int values into a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param ip A pointer to the 64-bit int values to load. This should be aligned to 16 bytes.
+ * @return The loaded SIMD value.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_load(const void* ip)
+{
+	return _mm_load_si128((const dsSIMD2db*)ip);
+}
+
+/**
+ * @brief Loads 64-bit int values into a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param ip A pointer to the 64-bit int values to load. This may be unaligned.
+ * @return The loaded SIMD value.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_loadUnaligned(const void* ip)
+{
+	return _mm_loadu_si128((const dsSIMD2db*)(ip));
+}
+
+/**
+ * @brief Sets a 64-bit int value into all elements of a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param i The value to set.
+ * @return The SIMD value.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_set1(uint64_t i)
+{
+	return _mm_set1_epi64x(i);
+}
+
+/**
+ * @brief Sets a SIMD value with two 64-bit int values.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param x The first value.
+ * @param y The second value.
+ * @return The SIMD value.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_set2(uint64_t x, uint64_t y)
+{
+	return _mm_set_epi64x(y, x);
+}
+
+/**
+ * @brief Converts a SIMD double value directly to a bitfield value.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The SIMD floating-point value.
+ * @return The direct bitfield conversion from double.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_fromDoubleBitfield(dsSIMD2d a)
+{
+	return _mm_castpd_si128(a);
+}
+
+/**
+ * @brief Converts a SIMD double value to a 64-bit integer, similar to a cast in C.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @remark Some implementations may only support integer values up to 32 bits.
+ * @param a The SIMD floating-point value.
+ * @return The integer representation as would be done with a 64-bit int to float cast in C.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_fromDouble(dsSIMD2d a)
+{
+	__m128i result32 = _mm_cvttpd_epi32(a);
+#if defined(__SSE_4_1__) || defined(__AVX__)
+	return _mm_cvtepi32_epi64(result32);
+#else
+	__m128i signedResult = _mm_shuffle_epi32(result32, _MM_SHUFFLE(3, 1, 2, 0));
+	__m128i signedExtend = _mm_srai_epi32(_mm_shuffle_epi32(result32, _MM_SHUFFLE(1, 3, 0, 2)), 32);
+	return _mm_or_si128(signedResult, signedExtend);
+#endif
+}
+
+/**
+ * @brief Stores a SIMD bitfield register into four int values.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param[out] ip A pointer to the int values to store to. This should be aligned to 16 bytes.
  * @param a The value to store.
  */
 DS_ALWAYS_INLINE void dsSIMD2db_store(void* ip, dsSIMD2db a)
 {
-	_mm_store_pd((double*)ip, a);
+	_mm_store_si128((dsSIMD2db*)ip, a);
 }
 
 /**
@@ -947,23 +1282,55 @@ DS_ALWAYS_INLINE void dsSIMD2db_store(void* ip, dsSIMD2db a)
  */
 DS_ALWAYS_INLINE void dsSIMD2db_storeUnaligned(void* ip, dsSIMD2db a)
 {
-	_mm_storeu_pd((double*)ip, a);
+	_mm_storeu_si128((dsSIMD2db*)ip, a);
 }
 
 /**
- * @brief Performs a logical not on a SIMD bool value.
+ * @brief Gets an integer element from a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The value to get the element from.
+ * @param i The index of the element.
+ * @return The element value.
+ */
+#define dsSIMD2db_get(a, i) _mm_cvtsi128_si64(_mm_castpd_si128(\
+	_mm_shuffle_pd(_mm_castsi128_pd((a)), _mm_castsi128_pd((a)), _MM_SHUFFLE2(0, (i)))))
+
+/**
+ * @brief Converts a SIMD bitfield value directly to a double value.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The SIMD bitfield value.
+ * @return The direct bitfield conversion to double.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2db_toDoubleBitfield(dsSIMD2db a)
+{
+	return _mm_castsi128_pd(a);
+}
+
+/**
+ * @brief Converts a SIMD integer value to a double value, similar to a cast in C.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @remark Some implementations may only support integer values up to 32 bits.
+ * @param a The SIMD integer value.
+ * @return The double value as would be done with a 64-bit int to double cast in C.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2db_toDouble(dsSIMD2db a)
+{
+	return _mm_cvtepi32_pd(_mm_shuffle_epi32(a, _MM_SHUFFLE(3, 1, 2, 0)));
+}
+
+/**
+ * @brief Performs a logical not on a SIMD bitfield value.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param a The value to not.
  * @return The result of !a.
  */
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_not(dsSIMD2db a)
 {
-	const unsigned long long b = 0xFFFFFFFFFFFFFFFFULL;
-	return _mm_xor_pd(a, _mm_set1_pd(*(double*)&b));
+	return _mm_xor_si128(a, dsSIMD2db_true());
 }
 
 /**
- * @brief Performs a logical and between two SIMD bool values.
+ * @brief Performs a logical and between two SIMD bitfield values.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param a The first value to and.
  * @param b The second value to and.
@@ -971,11 +1338,11 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_not(dsSIMD2db a)
  */
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_and(dsSIMD2db a, dsSIMD2db b)
 {
-	return _mm_and_pd(a, b);
+	return _mm_and_si128(a, b);
 }
 
 /**
- * @brief Performs a logical and not between two SIMD bool values.
+ * @brief Performs a logical and not between two SIMD bitfield values.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param a The first value to not then and.
  * @param b The second value to and.
@@ -983,11 +1350,11 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_and(dsSIMD2db a, dsSIMD2db b)
  */
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_andnot(dsSIMD2db a, dsSIMD2db b)
 {
-	return _mm_andnot_pd(a, b);
+	return _mm_andnot_si128(a, b);
 }
 
 /**
- * @brief Performs a logical or between two SIMD bool values.
+ * @brief Performs a logical or between two SIMD bitfield values.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param a The first value to or.
  * @param b The second value to or.
@@ -995,11 +1362,11 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_andnot(dsSIMD2db a, dsSIMD2db b)
  */
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_or(dsSIMD2db a, dsSIMD2db b)
 {
-	return _mm_or_pd(a, b);
+	return _mm_or_si128(a, b);
 }
 
 /**
- * @brief Performs a logical or not between two SIMD bool values.
+ * @brief Performs a logical or not between two SIMD bitfield values.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param a The first value to or.
  * @param b The second value to not then or.
@@ -1007,11 +1374,11 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_or(dsSIMD2db a, dsSIMD2db b)
  */
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_ornot(dsSIMD2db a, dsSIMD2db b)
 {
-	return _mm_or_pd(a, dsSIMD2db_not(b));
+	return _mm_or_si128(a, dsSIMD2db_not(b));
 }
 
 /**
- * @brief Performs a logical xor between two SIMD bool values.
+ * @brief Performs a logical xor between two SIMD bitfield values.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param a The first value to xor.
  * @param b The first value to xor.
@@ -1019,8 +1386,85 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_ornot(dsSIMD2db a, dsSIMD2db b)
  */
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_xor(dsSIMD2db a, dsSIMD2db b)
 {
-	return _mm_xor_pd(a, b);
+	return _mm_xor_si128(a, b);
 }
+
+/**
+ * @brief Negates an SIMD integer value.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The value to negate.
+ * @return The result of -a.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_neg(dsSIMD2db a)
+{
+	return _mm_sub_epi64(_mm_setzero_si128(), a);
+}
+
+/**
+ * @brief Adds two SIMD integer values.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The first value to add.
+ * @param b The second value to add.
+ * @return The result of a + b.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_add(dsSIMD2db a, dsSIMD2db b)
+{
+	return _mm_add_epi64(a, b);
+}
+
+/**
+ * @brief Subtracts two SIMD integer values.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The first value to subtract.
+ * @param b The second value to subtract.
+ * @return The result of a - b.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_sub(dsSIMD2db a, dsSIMD2db b)
+{
+	return _mm_sub_epi64(a, b);
+}
+
+/**
+ * @brief Left shifts an integer SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The value to shift left.
+ * @param b The number of bits to shift left by.
+ * @return The result of a << b.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_shiftLeft(dsSIMD2db a, unsigned int b)
+{
+	return _mm_sll_epi64(a, _mm_set_epi32(0, 0, 0, b));
+}
+
+/**
+ * @brief Left shifts an integer SIMD value by a constant number of bits.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The value to shift left.
+ * @param b The number of bits to shift left by as a constant integer.
+ * @return The result of a << b.
+ */
+#define dsSIMD2db_shiftLeftConst(a, b) _mm_slli_epi64((a), (b))
+
+/**
+ * @brief Right shifts an integer SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The value to shift right.
+ * @param b The number of bits to shift right by.
+ * @return The result of a >> b.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_shiftRight(dsSIMD2db a, unsigned int b)
+{
+	return _mm_srl_epi64(a, _mm_set_epi32(0, 0, 0, b));
+}
+
+/**
+ * @brief Left shifts an integer SIMD value by a constant number of bits.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The value to shift right.
+ * @param b The number of bits to shift right by as a constant integer.
+ * @return The result of a >> b.
+ */
+#define dsSIMD2db_shiftRightConst(a, b) _mm_srli_epi64((a), (b))
 
 /// @cond
 DS_SIMD_END();
@@ -1084,15 +1528,6 @@ DS_ALWAYS_INLINE void dsSIMD4d_store(void* dp, dsSIMD4d a)
 }
 
 /**
- * @brief Gets a double element from a SIMD value.
- * @remark This can be used when dsSIMDFeatures_Double4 is available.
- * @param a The value to get the element from.
- * @param i The index of the element.
- * @return The element value.
- */
-#define dsSIMD4d_get(a, i) (((const double*)&a)[i])
-
-/**
  * @brief Stores a SIMD register into four double values.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param[out] dp A pointer to the double values to store to. This may be unaligned.
@@ -1102,6 +1537,15 @@ DS_ALWAYS_INLINE void dsSIMD4d_storeUnaligned(void* dp, dsSIMD4d a)
 {
 	_mm256_storeu_pd((double*)dp, a);
 }
+
+/**
+ * @brief Gets a double element from a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The value to get the element from.
+ * @param i The index of the element.
+ * @return The element value.
+ */
+#define dsSIMD4d_get(a, i) (((const double*)&a)[i])
 
 /**
  * @brief Negates a SIMD value.
@@ -1280,7 +1724,8 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_max(dsSIMD4d a, dsSIMD4d b)
  */
 DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_select(dsSIMD4d a, dsSIMD4d b, dsSIMD4db c)
 {
-	return _mm256_or_pd(_mm256_and_pd(c, a), _mm256_andnot_pd(c, b));
+	return _mm256_or_pd(_mm256_and_pd(_mm256_castsi256_pd(c), a),
+		_mm256_andnot_pd(_mm256_castsi256_pd(c), b));
 }
 
 /**
@@ -1292,7 +1737,7 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_select(dsSIMD4d a, dsSIMD4d b, dsSIMD4db c)
  */
 DS_ALWAYS_INLINE dsSIMD4db dsSIMD4d_cmpeq(dsSIMD4d a, dsSIMD4d b)
 {
-	return _mm256_cmp_pd(a, b, _CMP_EQ_OQ);
+	return _mm256_castpd_si256(_mm256_cmp_pd(a, b, _CMP_EQ_OQ));
 }
 
 /**
@@ -1304,7 +1749,7 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4d_cmpeq(dsSIMD4d a, dsSIMD4d b)
  */
 DS_ALWAYS_INLINE dsSIMD4db dsSIMD4d_cmpne(dsSIMD4d a, dsSIMD4d b)
 {
-	return _mm256_cmp_pd(a, b, _CMP_NEQ_OQ);
+	return _mm256_castpd_si256(_mm256_cmp_pd(a, b, _CMP_NEQ_OQ));
 }
 
 /**
@@ -1316,7 +1761,7 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4d_cmpne(dsSIMD4d a, dsSIMD4d b)
  */
 DS_ALWAYS_INLINE dsSIMD4db dsSIMD4d_cmplt(dsSIMD4d a, dsSIMD4d b)
 {
-	return _mm256_cmp_pd(a, b, _CMP_LT_OQ);
+	return _mm256_castpd_si256(_mm256_cmp_pd(a, b, _CMP_LT_OQ));
 }
 
 /**
@@ -1328,7 +1773,7 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4d_cmplt(dsSIMD4d a, dsSIMD4d b)
  */
 DS_ALWAYS_INLINE dsSIMD4db dsSIMD4d_cmple(dsSIMD4d a, dsSIMD4d b)
 {
-	return _mm256_cmp_pd(a, b, _CMP_LE_OQ);
+	return _mm256_castpd_si256(_mm256_cmp_pd(a, b, _CMP_LE_OQ));
 }
 
 /**
@@ -1340,7 +1785,7 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4d_cmple(dsSIMD4d a, dsSIMD4d b)
  */
 DS_ALWAYS_INLINE dsSIMD4db dsSIMD4d_cmpgt(dsSIMD4d a, dsSIMD4d b)
 {
-	return _mm256_cmp_pd(a, b, _CMP_GT_OQ);
+	return _mm256_castpd_si256(_mm256_cmp_pd(a, b, _CMP_GT_OQ));
 }
 
 /**
@@ -1352,37 +1797,108 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4d_cmpgt(dsSIMD4d a, dsSIMD4d b)
  */
 DS_ALWAYS_INLINE dsSIMD4db dsSIMD4d_cmpge(dsSIMD4d a, dsSIMD4d b)
 {
-	return _mm256_cmp_pd(a, b, _CMP_GE_OQ);
+	return _mm256_castpd_si256(_mm256_cmp_pd(a, b, _CMP_GE_OQ));
 }
 
 /**
  * @brief Creates a SIMD value for true.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @return A SIMD value with true on all elements.
  */
 DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_true(void)
 {
-	const unsigned long long a = 0xFFFFFFFFFFFFFFFFULL;
-	return _mm256_set1_pd(*(double*)&a);
+	return _mm256_set1_epi64x(0xFFFFFFFFFFFFFFFFULL);
 }
 
 /**
  * @brief Creates a SIMD value for false.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @return A SIMD value with false on all elements.
  */
 DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_false(void)
 {
-	return _mm256_setzero_pd();
+	return _mm256_setzero_si256();
 }
 
 /**
- * @brief Stores a SIMD bool register into four int values.
+ * @brief Loads 64-bit int values into a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param ip A pointer to the 64-bit int values to load. This should be aligned to 16 bytes.
+ * @return The loaded SIMD value.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_load(const void* ip)
+{
+	return _mm256_load_si256((const dsSIMD4db*)ip);
+}
+
+/**
+ * @brief Loads 64-bit int values into a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param ip A pointer to the 64-bit int values to load. This may be unaligned.
+ * @return The loaded SIMD value.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_loadUnaligned(const void* ip)
+{
+	return _mm256_loadu_si256((const dsSIMD4db*)(ip));
+}
+
+/**
+ * @brief Sets a 64-bit int value into all elements of a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param i The value to set.
+ * @return The SIMD value.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_set1(uint64_t i)
+{
+	return _mm256_set1_epi64x(i);
+}
+
+/**
+ * @brief Sets a SIMD value with four 64-bit int values.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int are available.
+ * @param x The first value.
+ * @param y The second value.
+ * @param z The third value.
+ * @param w The fourth value.
+ * @return The SIMD value.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_set4(uint64_t x, uint64_t y, uint64_t z, uint64_t w)
+{
+	return _mm256_set_epi64x(w, z, y, x);
+}
+
+/**
+ * @brief Converts a SIMD double value directly to a bitfield value.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The SIMD floating-point value.
+ * @return The direct bitfield conversion from double.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_fromDoubleBitfield(dsSIMD4d a)
+{
+	return _mm256_castpd_si256(a);
+}
+
+/**
+ * @brief Converts a SIMD double value to a 64-bit integer, similar to a cast in C.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int are available.
+ * @remark Some implementations may only support integer values up to 32 bits.
+ * @param a The SIMD floating-point value.
+ * @return The integer representation as would be done with a 64-bit int to float cast in C.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_fromDouble(dsSIMD4d a)
+{
+	return _mm256_cvtepi32_epi64(_mm256_cvttpd_epi32(a));
+}
+
+/**
+ * @brief Stores a SIMD bitfield register into four int values.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param[out] ip A pointer to the int values to store to. This should be aligned to 16 bytes.
  * @param a The value to store.
  */
 DS_ALWAYS_INLINE void dsSIMD4db_store(void* ip, dsSIMD4db a)
 {
-	_mm256_store_pd((double*)ip, a);
+	_mm256_store_si256((dsSIMD4db*)ip, a);
 }
 
 /**
@@ -1393,23 +1909,55 @@ DS_ALWAYS_INLINE void dsSIMD4db_store(void* ip, dsSIMD4db a)
  */
 DS_ALWAYS_INLINE void dsSIMD4db_storeUnaligned(void* ip, dsSIMD4db a)
 {
-	_mm256_storeu_pd((double*)ip, a);
+	_mm256_storeu_si256((dsSIMD4db*)ip, a);
 }
 
 /**
- * @brief Performs a logical not on a SIMD bool value.
+ * @brief Gets a 64-bit int element from a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The value to get the element from.
+ * @param i The index of the element.
+ * @return The element value.
+ */
+#define dsSIMD4db_get(a, i) (((const uint64_t*)&a)[i])
+
+/**
+ * @brief Converts a SIMD bitfield value directly to a double value.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The SIMD bitfield value.
+ * @return The direct bitfield conversion to double.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4db_toDoubleBitfield(dsSIMD4db a)
+{
+	return _mm256_castsi256_pd(a);
+ }
+
+ /**
+ * @brief Converts a SIMD integer value to a double value, similar to a cast in C.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @remark Some implementations may only support integer values up to 32 bits.
+ * @param a The SIMD integer value.
+ * @return The double value as would be done with a 64-bit int to double cast in C.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4db_toDouble(dsSIMD4db a)
+{
+	return _mm256_cvtepi32_pd(_mm256_castsi256_si128(_mm256_permutevar8x32_epi32(
+		a, _mm256_set_epi32(7, 5, 3, 1, 6, 4, 2, 0))));
+}
+
+/**
+ * @brief Performs a logical not on a SIMD bitfield value.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param a The value to not.
  * @return The result of !a.
  */
 DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_not(dsSIMD4db a)
 {
-	const unsigned long long b = 0xFFFFFFFFFFFFFFFFULL;
-	return _mm256_xor_pd(a, _mm256_set1_pd(*(double*)&b));
+	return _mm256_xor_si256(a, dsSIMD4db_true());
 }
 
 /**
- * @brief Performs a logical and between two SIMD bool values.
+ * @brief Performs a logical and between two SIMD bitfield values.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param a The first value to and.
  * @param b The second value to and.
@@ -1417,11 +1965,11 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_not(dsSIMD4db a)
  */
 DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_and(dsSIMD4db a, dsSIMD4db b)
 {
-	return _mm256_and_pd(a, b);
+	return _mm256_and_si256(a, b);
 }
 
 /**
- * @brief Performs a logical and not between two SIMD bool values.
+ * @brief Performs a logical and not between two SIMD bitfield values.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param a The first value to not then and.
  * @param b The second value to and.
@@ -1429,11 +1977,11 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_and(dsSIMD4db a, dsSIMD4db b)
  */
 DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_andnot(dsSIMD4db a, dsSIMD4db b)
 {
-	return _mm256_andnot_pd(a, b);
+	return _mm256_andnot_si256(a, b);
 }
 
 /**
- * @brief Performs a logical or between two SIMD bool values.
+ * @brief Performs a logical or between two SIMD bitfield values.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param a The first value to or.
  * @param b The second value to or.
@@ -1441,11 +1989,11 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_andnot(dsSIMD4db a, dsSIMD4db b)
  */
 DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_or(dsSIMD4db a, dsSIMD4db b)
 {
-	return _mm256_or_pd(a, b);
+	return _mm256_or_si256(a, b);
 }
 
 /**
- * @brief Performs a logical or not between two SIMD bool values.
+ * @brief Performs a logical or not between two SIMD bitfield values.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param a The first value to or.
  * @param b The second value to not then or.
@@ -1453,11 +2001,11 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_or(dsSIMD4db a, dsSIMD4db b)
  */
 DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_ornot(dsSIMD4db a, dsSIMD4db b)
 {
-	return _mm256_or_pd(a, dsSIMD4db_not(b));
+	return _mm256_or_si256(a, dsSIMD4db_not(b));
 }
 
 /**
- * @brief Performs a logical xor between two SIMD bool values.
+ * @brief Performs a logical xor between two SIMD bitfield values.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param a The first value to xor.
  * @param b The first value to xor.
@@ -1465,8 +2013,85 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_ornot(dsSIMD4db a, dsSIMD4db b)
  */
 DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_xor(dsSIMD4db a, dsSIMD4db b)
 {
-	return _mm256_xor_pd(a, b);
+	return _mm256_xor_si256(a, b);
 }
+
+/**
+ * @brief Negates an SIMD integer value.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The value to negate.
+ * @return The result of -a.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_neg(dsSIMD4db a)
+{
+	return _mm256_sub_epi64(_mm256_setzero_si256(), a);
+}
+
+/**
+ * @brief Adds two SIMD integer values.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The first value to add.
+ * @param b The second value to add.
+ * @return The result of a + b.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_add(dsSIMD4db a, dsSIMD4db b)
+{
+	return _mm256_add_epi64(a, b);
+}
+
+/**
+ * @brief Subtracts two SIMD integer values.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The first value to subtract.
+ * @param b The second value to subtract.
+ * @return The result of a - b.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_sub(dsSIMD4db a, dsSIMD4db b)
+{
+	return _mm256_sub_epi64(a, b);
+}
+
+/**
+ * @brief Left shifts an integer SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The value to shift left.
+ * @param b The number of bits to shift left by.
+ * @return The result of a << b.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_shiftLeft(dsSIMD4db a, unsigned int b)
+{
+	return _mm256_sll_epi64(a, _mm_set_epi32(0, 0, 0, b));
+}
+
+/**
+ * @brief Left shifts an integer SIMD value by a constant number of bits.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The value to shift left.
+ * @param b The number of bits to shift left by as a constant integer.
+ * @return The result of a << b.
+ */
+#define dsSIMD4db_shiftLeftConst(a, b) _mm256_slli_epi64((a), (b))
+
+/**
+ * @brief Right shifts an integer SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The value to shift right.
+ * @param b The number of bits to shift right by.
+ * @return The result of a >> b.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_shiftRight(dsSIMD4db a, unsigned int b)
+{
+	return _mm256_srl_epi64(a, _mm_set_epi32(0, 0, 0, b));
+}
+
+/**
+ * @brief Left shifts an integer SIMD value by a constant number of bits.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The value to shift right.
+ * @param b The number of bits to shift right by as a constant integer.
+ * @return The result of a >> b.
+ */
+#define dsSIMD4db_shiftRightConst(a, b) _mm256_srli_epi64((a), (b))
 
 /// @cond
 DS_SIMD_END();

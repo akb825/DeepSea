@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -782,8 +782,8 @@ inline bool dsVector2d_relativeEpsilonEqual(const dsVector2d* a, const dsVector2
 #if DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2d diff = dsSIMD2d_abs(dsSIMD2d_sub(a->simd, b->simd));
 
-	dsSIMD2d epsEqual = dsSIMD2d_cmple(diff, dsSIMD2d_set1(absoluteEps));
-	dsSIMD2d relativeEqual = dsSIMD2d_cmple(diff,
+	dsSIMD2db epsEqual = dsSIMD2d_cmple(diff, dsSIMD2d_set1(absoluteEps));
+	dsSIMD2db relativeEqual = dsSIMD2d_cmple(diff,
 		dsSIMD2d_mul(dsSIMD2d_max(dsSIMD2d_abs(a->simd), dsSIMD2d_abs(b->simd)),
 			dsSIMD2d_set1(relativeEps)));
 

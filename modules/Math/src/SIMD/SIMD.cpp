@@ -60,7 +60,7 @@ static dsSIMDFeatures detectSIMDFeatures()
 
 	features |= dsSIMDFeatures_Float4;
 	if (edx & sse2Bit)
-		features |= dsSIMDFeatures_Double2;
+		features |= dsSIMDFeatures_Int | dsSIMDFeatures_Double2;
 	if (ecx & sse3Bit)
 		features |= dsSIMDFeatures_HAdd;
 	if ((ecx & fmaBit) && !DS_DETERMINISTIC_MATH)
@@ -75,8 +75,8 @@ static dsSIMDFeatures detectSIMDFeatures()
 #else
 static dsSIMDFeatures detectSIMDFeatures()
 {
-	dsSIMDFeatures features =  dsSIMDFeatures_Float4 | dsSIMDFeatures_HAdd |
-		dsSIMDFeatures_HalfFloat;
+	dsSIMDFeatures features =
+		dsSIMDFeatures_Float4 | dsSIMDFeatures_Int | dsSIMDFeatures_HAdd | dsSIMDFeatures_HalfFloat;
 #if !DS_DETERMINISTIC_MATH
 	features |= dsSIMDFeatures_FMA;
 #endif
