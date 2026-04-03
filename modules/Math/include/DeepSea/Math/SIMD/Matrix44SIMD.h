@@ -1081,7 +1081,7 @@ DS_MATH_EXPORT inline void dsMatrix44f_affineInvertSIMD(dsMatrix44f* result, con
 		dsSIMD4f_add(
 			dsSIMD4f_mul(a->columns[2].simd, a->columns[2].simd),
 			dsSIMD4f_set4(0.0f, 0.0f, 0.0f, 1.0f)));
-	dsSIMD4f invScale2 = dsSIMD4f_div(dsSIMD4f_set1(1.0f), scale2);
+	dsSIMD4f invScale2 = dsSIMD4f_rcp(scale2);
 
 	result->columns[0].simd = dsSIMD4f_mul(a->columns[0].simd, invScale2);
 	result->columns[1].simd = dsSIMD4f_mul(a->columns[1].simd, invScale2);
@@ -1108,7 +1108,7 @@ DS_MATH_EXPORT inline void dsMatrix44f_affineInvert33SIMD(
 		dsSIMD4f_add(
 			dsSIMD4f_mul(a->columns[2].simd, a->columns[2].simd),
 			dsSIMD4f_set4(0.0f, 0.0f, 0.0f, 1.0f)));
-	dsSIMD4f invScale2 = dsSIMD4f_div(dsSIMD4f_set1(1.0f), scale2);
+	dsSIMD4f invScale2 = dsSIMD4f_rcp(scale2);
 
 	result[0].simd = dsSIMD4f_mul(a->columns[0].simd, invScale2);
 	result[1].simd = dsSIMD4f_mul(a->columns[1].simd, invScale2);
@@ -1191,7 +1191,7 @@ DS_MATH_EXPORT inline void dsMatrix44f_inverseTransposeSIMD(
 		dsSIMD4f_add(
 			dsSIMD4f_mul(a->columns[2].simd, a->columns[2].simd),
 			dsSIMD4f_set4(0.0f, 0.0f, 0.0f, 1.0f)));
-	dsSIMD4f invScale2 = dsSIMD4f_div(dsSIMD4f_set1(1.0f), scale2);
+	dsSIMD4f invScale2 = dsSIMD4f_rcp(scale2);
 
 	result[0].simd = dsSIMD4f_mul(a->columns[0].simd, invScale2);
 	result[1].simd = dsSIMD4f_mul(a->columns[1].simd, invScale2);
@@ -1217,9 +1217,8 @@ DS_MATH_EXPORT inline void dsMatrix44f_decomposeTransformSIMD(dsVector4f* outPos
 	float len2z = dot.x + dot.y + dot.z;
 	outScale->simd = dsSIMD4f_sqrt(dsSIMD4f_set4(len2x, len2y, len2z, 1.0f));
 
-	dsSIMD4f one = dsSIMD4f_set1(1.0f);
 	dsVector4f invScale;
-	invScale.simd = dsSIMD4f_div(one, outScale->simd);
+	invScale.simd = dsSIMD4f_rcp(outScale->simd);
 
 	dsMatrix44f rotateMat;
 	rotateMat.columns[0].simd = dsSIMD4f_mul(matrix->columns[0].simd, dsSIMD4f_set1(invScale.x));
@@ -1476,7 +1475,7 @@ DS_MATH_EXPORT inline void dsMatrix44f_affineInvertFMA(dsMatrix44f* result, cons
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 
-	dsSIMD4f invScale2 = dsSIMD4f_div(dsSIMD4f_set1(1.0f),
+	dsSIMD4f invScale2 = dsSIMD4f_rcp(
 		dsSIMD4f_fmadd(a->columns[0].simd, a->columns[0].simd,
 		dsSIMD4f_fmadd(a->columns[1].simd, a->columns[1].simd,
 		dsSIMD4f_fmadd(a->columns[2].simd, a->columns[2].simd,
@@ -1500,7 +1499,7 @@ DS_MATH_EXPORT inline void dsMatrix44f_affineInvert33FMA(dsVector4f result[3], c
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 
-	dsSIMD4f invScale2 = dsSIMD4f_div(dsSIMD4f_set1(1.0f),
+	dsSIMD4f invScale2 = dsSIMD4f_rcp(
 		dsSIMD4f_fmadd(a->columns[0].simd, a->columns[0].simd,
 		dsSIMD4f_fmadd(a->columns[1].simd, a->columns[1].simd,
 		dsSIMD4f_fmadd(a->columns[2].simd, a->columns[2].simd,
@@ -1574,7 +1573,7 @@ DS_MATH_EXPORT inline void dsMatrix44f_inverseTransposeFMA(
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 
-	dsSIMD4f invScale2 = dsSIMD4f_div(dsSIMD4f_set1(1.0f),
+	dsSIMD4f invScale2 = dsSIMD4f_rcp(
 		dsSIMD4f_fmadd(a->columns[0].simd, a->columns[0].simd,
 		dsSIMD4f_fmadd(a->columns[1].simd, a->columns[1].simd,
 		dsSIMD4f_fmadd(a->columns[2].simd, a->columns[2].simd,
@@ -2142,8 +2141,8 @@ DS_MATH_EXPORT inline void dsMatrix44d_affineInvertSIMD2(dsMatrix44d* result, co
 		dsSIMD2d_add(
 			dsSIMD2d_mul(a->columns[2].simd2[1], a->columns[2].simd2[1]), dsSIMD2d_set2(0.0, 1.0)));
 	dsVector4d invScale2;
-	invScale2.simd2[0] = dsSIMD2d_div(dsSIMD2d_set1(1.0), scale2.simd2[0]);
-	invScale2.simd2[1] = dsSIMD2d_div(dsSIMD2d_set1(1.0), scale2.simd2[1]);
+	invScale2.simd2[0] = dsSIMD2d_rcp(scale2.simd2[0]);
+	invScale2.simd2[1] = dsSIMD2d_rcp(scale2.simd2[1]);
 
 	result->columns[0].simd2[0] = dsSIMD2d_mul(a->columns[0].simd2[0], invScale2.simd2[0]);
 	result->columns[0].simd2[1] = dsSIMD2d_mul(a->columns[0].simd2[1], invScale2.simd2[1]);
@@ -2184,8 +2183,8 @@ DS_MATH_EXPORT inline void dsMatrix44d_affineInvert33SIMD2(
 		dsSIMD2d_add(
 			dsSIMD2d_mul(a->columns[2].simd2[1], a->columns[2].simd2[1]), dsSIMD2d_set2(0.0, 1.0)));
 	dsVector4d invScale2;
-	invScale2.simd2[0] = dsSIMD2d_div(dsSIMD2d_set1(1.0), scale2.simd2[0]);
-	invScale2.simd2[1] = dsSIMD2d_div(dsSIMD2d_set1(1.0), scale2.simd2[1]);
+	invScale2.simd2[0] = dsSIMD2d_rcp(scale2.simd2[0]);
+	invScale2.simd2[1] = dsSIMD2d_rcp(scale2.simd2[1]);
 
 	result[0].simd2[0] = dsSIMD2d_mul(a->columns[0].simd2[0], invScale2.simd2[0]);
 	result[0].simd2[1] = dsSIMD2d_mul(a->columns[0].simd2[1], invScale2.simd2[1]);
@@ -2249,7 +2248,12 @@ DS_MATH_EXPORT inline void dsMatrix44d_invertSIMD2(dsMatrix44d* result, const ds
 	dsVector4d tr;
 	tr.simd2[0] = dsSIMD2d_mul(ab.simd2[0], dc0213.simd2[0]);
 	tr.simd2[1] = dsSIMD2d_mul(ab.simd2[1], dc0213.simd2[1]);
+#if DS_SIMD_ALWAYS_HADD
+	tr.simd2[0] = dsSIMD2d_hadd(tr.simd2[0], tr.simd2[1]);
+	tr.simd2[0] = dsSIMD2d_hadd(tr.simd2[0], tr.simd2[0]);
+#else
 	tr.simd2[0] = dsSIMD2d_set1((tr.x + tr.y) + (tr.z + tr.w));
+#endif
 	det44 = dsSIMD2d_sub(det44, tr.simd2[0]);
 
 	dsSIMD2d sign = dsSIMD2d_set2(1.0, -1.0);
@@ -2287,8 +2291,8 @@ DS_MATH_EXPORT inline void dsMatrix44d_inverseTransposeSIMD2(
 		dsSIMD2d_add(
 			dsSIMD2d_mul(a->columns[2].simd2[1], a->columns[2].simd2[1]), dsSIMD2d_set2(0.0, 1.0)));
 	dsVector4d invScale2;
-	invScale2.simd2[0] = dsSIMD2d_div(dsSIMD2d_set1(1.0), scale2.simd2[0]);
-	invScale2.simd2[1] = dsSIMD2d_div(dsSIMD2d_set1(1.0), scale2.simd2[1]);
+	invScale2.simd2[0] = dsSIMD2d_rcp(scale2.simd2[0]);
+	invScale2.simd2[1] = dsSIMD2d_rcp(scale2.simd2[1]);
 
 	result[0].simd2[0] = dsSIMD2d_mul(a->columns[0].simd2[0], invScale2.simd2[0]);
 	result[0].simd2[1] = dsSIMD2d_mul(a->columns[0].simd2[1], invScale2.simd2[1]);
@@ -2322,10 +2326,9 @@ DS_MATH_EXPORT inline void dsMatrix44d_decomposeTransformSIMD2(dsVector4d* outPo
 	outScale->simd2[0] = dsSIMD2d_sqrt(dsSIMD2d_set2(len2x, len2y));
 	outScale->simd2[1] = dsSIMD2d_sqrt(dsSIMD2d_set2(len2z, 1.0f));
 
-	dsSIMD2d one = dsSIMD2d_set1(1.0);
 	dsVector4d invScale;
-	invScale.simd2[0] = dsSIMD2d_div(one, outScale->simd2[0]);
-	invScale.simd2[1] = dsSIMD2d_div(one, outScale->simd2[1]);
+	invScale.simd2[0] = dsSIMD2d_rcp(outScale->simd2[0]);
+	invScale.simd2[1] = dsSIMD2d_rcp(outScale->simd2[1]);
 	dsSIMD2d invScaleX = dsSIMD2d_set1(invScale.x);
 	dsSIMD2d invScaleY = dsSIMD2d_set1(invScale.y);
 	dsSIMD2d invScaleZ = dsSIMD2d_set1(invScale.z);
@@ -2670,8 +2673,8 @@ DS_MATH_EXPORT inline void dsMatrix44d_affineInvertFMA2(dsMatrix44d* result, con
 		dsSIMD2d_fmadd(a->columns[1].simd2[1], a->columns[1].simd2[1],
 		dsSIMD2d_fmadd(a->columns[2].simd2[1], a->columns[2].simd2[1], dsSIMD2d_set2(0.0, 1.0))));
 	dsVector4d invScale2;
-	invScale2.simd2[0] = dsSIMD2d_div(dsSIMD2d_set1(1.0), scale2.simd2[0]);
-	invScale2.simd2[1] = dsSIMD2d_div(dsSIMD2d_set1(1.0), scale2.simd2[1]);
+	invScale2.simd2[0] = dsSIMD2d_rcp(scale2.simd2[0]);
+	invScale2.simd2[1] = dsSIMD2d_rcp(scale2.simd2[1]);
 
 	result->columns[0].simd2[0] = dsSIMD2d_mul(a->columns[0].simd2[0], invScale2.simd2[0]);
 	result->columns[0].simd2[1] = dsSIMD2d_mul(a->columns[0].simd2[1], invScale2.simd2[1]);
@@ -2709,8 +2712,8 @@ DS_MATH_EXPORT inline void dsMatrix44d_affineInvert33FMA2(
 		dsSIMD2d_fmadd(a->columns[1].simd2[1], a->columns[1].simd2[1],
 		dsSIMD2d_fmadd(a->columns[2].simd2[1], a->columns[2].simd2[1], dsSIMD2d_set2(0.0, 1.0))));
 	dsVector4d invScale2;
-	invScale2.simd2[0] = dsSIMD2d_div(dsSIMD2d_set1(1.0), scale2.simd2[0]);
-	invScale2.simd2[1] = dsSIMD2d_div(dsSIMD2d_set1(1.0), scale2.simd2[1]);
+	invScale2.simd2[0] = dsSIMD2d_rcp(scale2.simd2[0]);
+	invScale2.simd2[1] = dsSIMD2d_rcp(scale2.simd2[1]);
 
 	result[0].simd2[0] = dsSIMD2d_mul(a->columns[0].simd2[0], invScale2.simd2[0]);
 	result[0].simd2[1] = dsSIMD2d_mul(a->columns[0].simd2[1], invScale2.simd2[1]);
@@ -2774,7 +2777,8 @@ DS_MATH_EXPORT inline void dsMatrix44d_invertFMA2(dsMatrix44d* result, const dsM
 	dsVector4d tr;
 	tr.simd2[0] = dsSIMD2d_mul(ab.simd2[0], dc0213.simd2[0]);
 	tr.simd2[1] = dsSIMD2d_mul(ab.simd2[1], dc0213.simd2[1]);
-	tr.simd2[0] = dsSIMD2d_set1(tr.x + tr.y + tr.z + tr.w);
+	tr.simd2[0] = dsSIMD2d_hadd(tr.simd2[0], tr.simd2[1]);
+	tr.simd2[0] = dsSIMD2d_hadd(tr.simd2[0], tr.simd2[0]);
 	det44 = dsSIMD2d_sub(det44, tr.simd2[0]);
 
 	dsSIMD2d sign = dsSIMD2d_set2(1.0, -1.0);
@@ -2809,8 +2813,8 @@ DS_MATH_EXPORT inline void dsMatrix44d_inverseTransposeFMA2(
 		dsSIMD2d_fmadd(a->columns[1].simd2[1], a->columns[1].simd2[1],
 		dsSIMD2d_fmadd(a->columns[2].simd2[1], a->columns[2].simd2[1], dsSIMD2d_set2(0.0, 1.0))));
 	dsVector4d invScale2;
-	invScale2.simd2[0] = dsSIMD2d_div(dsSIMD2d_set1(1.0), scale2.simd2[0]);
-	invScale2.simd2[1] = dsSIMD2d_div(dsSIMD2d_set1(1.0), scale2.simd2[1]);
+	invScale2.simd2[0] = dsSIMD2d_rcp(scale2.simd2[0]);
+	invScale2.simd2[1] = dsSIMD2d_rcp(scale2.simd2[1]);
 
 	result[0].simd2[0] = dsSIMD2d_mul(a->columns[0].simd2[0], invScale2.simd2[0]);
 	result[0].simd2[1] = dsSIMD2d_mul(a->columns[0].simd2[1], invScale2.simd2[1]);
@@ -3121,7 +3125,7 @@ DS_MATH_EXPORT inline void dsMatrix44d_affineInvertSIMD4(
 			dsSIMD4d_mul(col2, col2),
 			dsSIMD4d_set4(0.0, 0.0, 0.0, 1.0)));
 #endif
-	invScale2 = dsSIMD4d_div(dsSIMD4d_set1(1.0), invScale2);
+	invScale2 = dsSIMD4d_rcp(invScale2);
 
 	col0 = dsSIMD4d_mul(col0, invScale2);
 	col1 = dsSIMD4d_mul(col1, invScale2);
@@ -3170,7 +3174,7 @@ DS_MATH_EXPORT inline void dsMatrix44d_affineInvert33SIMD4(
 			dsSIMD4d_mul(col2, col2),
 			dsSIMD4d_set4(0.0, 0.0, 0.0, 1.0)));
 #endif
-	invScale2 = dsSIMD4d_div(dsSIMD4d_set1(1.0), invScale2);
+	invScale2 = dsSIMD4d_rcp(invScale2);
 
 	col0 = dsSIMD4d_mul(col0, invScale2);
 	col1 = dsSIMD4d_mul(col1, invScale2);
@@ -3204,7 +3208,7 @@ DS_MATH_EXPORT inline void dsMatrix44d_inverseTransposeSIMD4(
 			dsSIMD4d_mul(col2, col2),
 			dsSIMD4d_set4(0.0, 0.0, 0.0, 1.0)));
 #endif
-	invScale2 = dsSIMD4d_div(dsSIMD4d_set1(1.0), invScale2);
+	invScale2 = dsSIMD4d_rcp(invScale2);
 
 	col0 = dsSIMD4d_mul(col0, invScale2);
 	col1 = dsSIMD4d_mul(col1, invScale2);
@@ -3241,8 +3245,7 @@ DS_MATH_EXPORT inline void dsMatrix44d_decomposeTransformSIMD4(
 	dsSIMD4d scale = dsSIMD4d_sqrt(dsSIMD4d_set4(len2x, len2y, len2z, 1.0));
 	dsSIMD4d_store(outScale, scale);
 
-	dsSIMD4d one = dsSIMD4d_set1(1.0);
-	dsSIMD4d invScale = dsSIMD4d_div(one, scale);
+	dsSIMD4d invScale = dsSIMD4d_rcp(scale);
 	dsSIMD4d invScaleX = dsSIMD4d_set1(dsSIMD4d_get(invScale, 0));
 	dsSIMD4d invScaleY = dsSIMD4d_set1(dsSIMD4d_get(invScale, 1));
 	dsSIMD4d invScaleZ = dsSIMD4d_set1(dsSIMD4d_get(invScale, 2));

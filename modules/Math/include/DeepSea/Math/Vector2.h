@@ -558,13 +558,7 @@ DS_MATH_EXPORT inline double dsVector2d_dot(const dsVector2d* a, const dsVector2
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-#if DS_SIMD_ALWAYS_DOUBLE2
-	dsVector2d temp;
-	temp.simd = dsSIMD2d_mul(a->simd, b->simd);
-	return temp.x + temp.y;
-#else
 	return dsVector2_dot(*a, *b);
-#endif
 }
 
 /** @copydoc dsVector2_dot() */
@@ -594,13 +588,7 @@ DS_MATH_EXPORT inline float dsVector2f_len2(const dsVector2f* a)
 DS_MATH_EXPORT inline double dsVector2d_len2(const dsVector2d* a)
 {
 	DS_ASSERT(a);
-#if DS_SIMD_ALWAYS_DOUBLE2
-	dsVector2d temp;
-	temp.simd = dsSIMD2d_mul(a->simd, a->simd);
-	return temp.x + temp.y;
-#else
 	return dsVector2_len2(*a);
-#endif
 }
 
 /** @copydoc dsVector2_len2() */
@@ -630,14 +618,7 @@ DS_MATH_EXPORT inline double dsVector2d_dist2(const dsVector2d* a, const dsVecto
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-#if DS_SIMD_ALWAYS_DOUBLE2
-	dsVector2d temp;
-	temp.simd = dsSIMD2d_sub(a->simd, b->simd);
-	temp.simd = dsSIMD2d_mul(temp.simd, temp.simd);
-	return temp.x + temp.y;
-#else
 	return dsVector2_dist2(*a, *b);
-#endif
 }
 
 /** @copydoc dsVector2_dist2() */
@@ -689,7 +670,7 @@ inline float dsVector2f_len(const dsVector2f* a)
 inline double dsVector2d_len(const dsVector2d* a)
 {
 	DS_ASSERT(a);
-	return sqrt(dsVector2d_len2(a));
+	return sqrt(dsVector2_len2(*a));
 }
 
 inline double dsVector2i_len(const dsVector2i* a)
@@ -715,7 +696,7 @@ inline double dsVector2d_dist(const dsVector2d* a, const dsVector2d* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-	return sqrt(dsVector2d_dist2(a, b));
+	return sqrt(dsVector2_dist2(*a, *b));
 }
 
 inline double dsVector2i_dist(const dsVector2i* a, const dsVector2i* b)

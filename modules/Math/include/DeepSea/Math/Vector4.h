@@ -158,10 +158,10 @@ extern "C"
  * @return The result of a dot b.
  */
 #define dsVector4_dot(a, b) \
-	((a).values[0]*(b).values[0] + \
-	 (a).values[1]*(b).values[1] + \
-	 (a).values[2]*(b).values[2] + \
-	 (a).values[3]*(b).values[3])
+	(((a).values[0]*(b).values[0] + \
+	 (a).values[1]*(b).values[1]) + \
+	 ((a).values[2]*(b).values[2] + \
+	 (a).values[3]*(b).values[3]))
 
 /**
  * @brief Gets the squared length of a vector.
@@ -178,10 +178,10 @@ extern "C"
  * @return The squared distance.
  */
 #define dsVector4_dist2(a, b) \
-	(dsPow2((a).values[0] - (b).values[0]) + \
-	 dsPow2((a).values[1] - (b).values[1]) + \
-	 dsPow2((a).values[2] - (b).values[2]) + \
-	 dsPow2((a).values[3] - (b).values[3]))
+	((dsPow2((a).values[0] - (b).values[0]) + \
+	 dsPow2((a).values[1] - (b).values[1])) + \
+	 (dsPow2((a).values[2] - (b).values[2]) + \
+	 dsPow2((a).values[3] - (b).values[3])))
 
 /**
  * @brief Gets whether or not two vectors are equal.
@@ -608,13 +608,8 @@ DS_MATH_EXPORT inline float dsVector4f_dot(const dsVector4f* a, const dsVector4f
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-#if DS_SIMD_ALWAYS_FLOAT4
-	dsVector4f temp;
-	temp.simd = dsSIMD4f_mul(a->simd, b->simd);
-	return temp.x + temp.y + temp.z + temp.w;
-#else
+	// SIMD not expected to help for just a single multiply.
 	return dsVector4_dot(*a, *b);
-#endif
 }
 
 /** @copydoc dsVector4_dot() */
@@ -622,14 +617,8 @@ DS_MATH_EXPORT inline double dsVector4d_dot(const dsVector4d* a, const dsVector4
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-#if DS_SIMD_ALWAYS_DOUBLE2
-	dsVector4d temp;
-	temp.simd2[0] = dsSIMD2d_mul(a->simd2[0], b->simd2[0]);
-	temp.simd2[1] = dsSIMD2d_mul(a->simd2[1], b->simd2[1]);
-	return temp.x + temp.y + temp.z + temp.w;
-#else
+	// SIMD not expected to help for just a pair of multiplies.
 	return dsVector4_dot(*a, *b);
-#endif
 }
 
 /** @copydoc dsVector4_dot() */
@@ -652,27 +641,16 @@ DS_MATH_EXPORT inline long long dsVector4l_dot(const dsVector4l* a, const dsVect
 DS_MATH_EXPORT inline float dsVector4f_len2(const dsVector4f* a)
 {
 	DS_ASSERT(a);
-#if DS_SIMD_ALWAYS_FLOAT4
-	dsVector4f temp;
-	temp.simd = dsSIMD4f_mul(a->simd, a->simd);
-	return temp.x + temp.y + temp.z + temp.w;
-#else
+	// SIMD not expected to help for just a single multiply.
 	return dsVector4_len2(*a);
-#endif
 }
 
 /** @copydoc dsVector4_len2() */
 DS_MATH_EXPORT inline double dsVector4d_len2(const dsVector4d* a)
 {
 	DS_ASSERT(a);
-#if DS_SIMD_ALWAYS_DOUBLE2
-	dsVector4d temp;
-	temp.simd2[0] = dsSIMD2d_mul(a->simd2[0], a->simd2[0]);
-	temp.simd2[1] = dsSIMD2d_mul(a->simd2[1], a->simd2[1]);
-	return temp.x + temp.y + temp.z + temp.w;
-#else
+	// SIMD not expected to help for just a pair of multiplies.
 	return dsVector4_len2(*a);
-#endif
 }
 
 /** @copydoc dsVector4_len2() */
@@ -698,7 +676,7 @@ DS_MATH_EXPORT inline float dsVector4f_dist2(const dsVector4f* a, const dsVector
 	dsVector4f temp;
 	temp.simd = dsSIMD4f_sub(a->simd, b->simd);
 	temp.simd = dsSIMD4f_mul(temp.simd, temp.simd);
-	return temp.x + temp.y + temp.z + temp.w;
+	return (temp.x + temp.y) + (temp.z + temp.w);
 #else
 	return dsVector4_dist2(*a, *b);
 #endif
@@ -715,7 +693,7 @@ DS_MATH_EXPORT inline double dsVector4d_dist2(const dsVector4d* a, const dsVecto
 	temp.simd2[1] = dsSIMD2d_sub(a->simd2[1], b->simd2[1]);
 	temp.simd2[0] = dsSIMD2d_mul(temp.simd2[0], temp.simd2[0]);
 	temp.simd2[1] = dsSIMD2d_mul(temp.simd2[1], temp.simd2[1]);
-	return temp.x + temp.y + temp.z + temp.w;
+	return (temp.x + temp.y) + (temp.z + temp.w);
 #else
 	return dsVector4_dist2(*a, *b);
 #endif
@@ -825,11 +803,15 @@ DS_MATH_EXPORT inline void dsVector4f_normalize(dsVector4f* result, const dsVect
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
+#if DS_SIMD_ALWAYS_HADD && !DS_SIMD_EMULATED_DIV_SQRT
+	dsSIMD4f length2 = dsSIMD4f_mul(a->simd, a->simd);
+	length2 = dsSIMD4f_hadd(length2, length2);
+	length2 = dsSIMD4f_hadd(length2, length2);
+	dsSIMD4f invLength = dsSIMD4f_rsqrt(length2);
+	result->simd = dsSIMD4f_mul(a->simd, invLength);
+#else
 	float length = dsVector4f_len(a);
 	DS_ASSERT(length > 0);
-#if DS_SIMD_ALWAYS_FLOAT4
-	result->simd = dsSIMD4f_mul(a->simd, dsSIMD4f_set1(1/length));
-#else
 	dsVector4_scale(*result, *a, 1/length);
 #endif
 }
@@ -838,13 +820,18 @@ DS_MATH_EXPORT inline void dsVector4d_normalize(dsVector4d* result, const dsVect
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
+#if DS_SIMD_ALWAYS_DOUBLE2 && DS_SIMD_ALWAYS_HADD && !DS_SIMD_EMULATED_DIV_SQRT
+	dsVector4d length2;
+	length2.simd2[0] = dsSIMD2d_mul(a->simd2[0], a->simd2[0]);
+	length2.simd2[1] = dsSIMD2d_mul(a->simd2[1], a->simd2[1]);
+	length2.simd2[0] = dsSIMD2d_hadd(length2.simd2[0], length2.simd2[1]);
+	length2.simd2[0] = dsSIMD2d_hadd(length2.simd2[0], length2.simd2[0]);
+	dsSIMD2d invLength = dsSIMD2d_rsqrt(length2.simd2[0]);
+	result->simd2[0] = dsSIMD2d_mul(a->simd2[0], invLength);
+	result->simd2[1] = dsSIMD2d_mul(a->simd2[1], invLength);
+#else
 	double length = dsVector4d_len(a);
 	DS_ASSERT(length > 0);
-#if DS_SIMD_ALWAYS_DOUBLE2
-	dsSIMD2d invLen = dsSIMD2d_set1(1/length);
-	result->simd2[0] = dsSIMD2d_mul(a->simd2[0], invLen);
-	result->simd2[1] = dsSIMD2d_mul(a->simd2[1], invLen);
-#else
 	dsVector4_scale(*result, *a, 1/length);
 #endif
 }

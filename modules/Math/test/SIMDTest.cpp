@@ -26,7 +26,7 @@
 DS_SIMD_START(DS_SIMD_FLOAT4);
 static void SIMDTest_Float4()
 {
-	constexpr float epsilon = 5e-3f;
+	constexpr float epsilon = 1e-6f;
 	float padding1; // Keep next value unalied.
 	DS_UNUSED(padding1);
 	float cpuA[4] = {1.2f, 3.4f, 5.6f, 7.8f};
@@ -129,21 +129,27 @@ static void SIMDTest_Float4()
 	EXPECT_EQ_DETERMINISTIC(std::sqrt(cpuA[2]), cpuResult.z, epsilon);
 	EXPECT_EQ_DETERMINISTIC(std::sqrt(cpuA[3]), cpuResult.w, epsilon);
 
-#if !DS_DETERMINISTIC_MATH
+	// Check extremes for when implementation requires estimates.
+	result = dsSIMD4f_sqrt(dsSIMD4f_set4(0.0f, 1e-32f, 1e-18f, 1e-6f));
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_EQ(0.0f, cpuResult.x);
+	EXPECT_FLOAT_EQ(std::sqrt(1e-32f), cpuResult.y);
+	EXPECT_FLOAT_EQ(std::sqrt(1e-18f), cpuResult.z);
+	EXPECT_FLOAT_EQ(std::sqrt(1e-6f), cpuResult.w);
+
 	result = dsSIMD4f_rcp(a);
 	dsSIMD4f_store(&cpuResult, result);
-	EXPECT_NEAR(1.0f/cpuA[0], cpuResult.x, epsilon);
-	EXPECT_NEAR(1.0f/cpuA[1], cpuResult.y, epsilon);
-	EXPECT_NEAR(1.0f/cpuA[2], cpuResult.z, epsilon);
-	EXPECT_NEAR(1.0f/cpuA[3], cpuResult.w, epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0f/cpuA[0], cpuResult.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0f/cpuA[1], cpuResult.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0f/cpuA[2], cpuResult.z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0f/cpuA[3], cpuResult.w, epsilon);
 
 	result = dsSIMD4f_rsqrt(a);
 	dsSIMD4f_store(&cpuResult, result);
-	EXPECT_NEAR(1.0f/std::sqrt(cpuA[0]), cpuResult.x, epsilon);
-	EXPECT_NEAR(1.0f/std::sqrt(cpuA[1]), cpuResult.y, epsilon);
-	EXPECT_NEAR(1.0f/std::sqrt(cpuA[2]), cpuResult.z, epsilon);
-	EXPECT_NEAR(1.0f/std::sqrt(cpuA[3]), cpuResult.w, epsilon);
-#endif
+	EXPECT_EQ_DETERMINISTIC(1.0f/std::sqrt(cpuA[0]), cpuResult.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0f/std::sqrt(cpuA[1]), cpuResult.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0f/std::sqrt(cpuA[2]), cpuResult.z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0f/std::sqrt(cpuA[3]), cpuResult.w, epsilon);
 
 	result = dsSIMD4f_abs(a);
 	dsSIMD4f_store(&cpuResult, result);
@@ -279,18 +285,21 @@ static void SIMDTest_Double2()
 	EXPECT_EQ(std::sqrt(cpuA[0]), cpuResult.x);
 	EXPECT_EQ(std::sqrt(cpuA[1]), cpuResult.y);
 
-#if !DS_DETERMINISTIC_MATH
-	constexpr double epsilon = 5e-3;
+	// Check extremes for when implementation requires estimates.
+	result = dsSIMD2d_sqrt(dsSIMD2d_set2(0.0, 1e-302));
+	dsSIMD2d_store(&cpuResult, result);
+	EXPECT_EQ(0.0, cpuResult.x);
+	EXPECT_DOUBLE_EQ(std::sqrt(1e-302), cpuResult.y);
+
 	result = dsSIMD2d_rcp(a);
 	dsSIMD2d_store(&cpuResult, result);
-	EXPECT_NEAR(1.0f/cpuA[0], cpuResult.x, epsilon);
-	EXPECT_NEAR(1.0f/cpuA[1], cpuResult.y, epsilon);
+	EXPECT_EQ(1.0/cpuA[0], cpuResult.x);
+	EXPECT_EQ(1.0/cpuA[1], cpuResult.y);
 
 	result = dsSIMD2d_rsqrt(a);
 	dsSIMD2d_store(&cpuResult, result);
-	EXPECT_NEAR(1.0f/std::sqrt(cpuA[0]), cpuResult.x, epsilon);
-	EXPECT_NEAR(1.0f/std::sqrt(cpuA[1]), cpuResult.y, epsilon);
-#endif
+	EXPECT_EQ(1.0/std::sqrt(cpuA[0]), cpuResult.x);
+	EXPECT_EQ(1.0/std::sqrt(cpuA[1]), cpuResult.y);
 
 	result = dsSIMD2d_abs(a);
 	dsSIMD2d_store(&cpuResult, result);
@@ -437,23 +446,27 @@ static void SIMDTest_Double4()
 	EXPECT_EQ(std::sqrt(cpuA[2]), cpuResult.z);
 	EXPECT_EQ(std::sqrt(cpuA[3]), cpuResult.w);
 
-#if !DS_DETERMINISTIC_MATH
-	constexpr double epsilon = 5e-3;
+	// Check extremes for when implementation requires estimates.
+	result = dsSIMD4d_sqrt(dsSIMD4d_set4(0.0, 1e-302, 1e-108, 1e-14));
+	dsSIMD4d_store(&cpuResult, result);
+	EXPECT_EQ(0.0, cpuResult.x);
+	EXPECT_DOUBLE_EQ(std::sqrt(1e-302), cpuResult.y);
+	EXPECT_DOUBLE_EQ(std::sqrt(1e-108), cpuResult.z);
+	EXPECT_DOUBLE_EQ(std::sqrt(1e-14), cpuResult.w);
 
 	result = dsSIMD4d_rcp(a);
 	dsSIMD4d_store(&cpuResult, result);
-	EXPECT_NEAR(1.0f/cpuA[0], cpuResult.x, epsilon);
-	EXPECT_NEAR(1.0f/cpuA[1], cpuResult.y, epsilon);
-	EXPECT_NEAR(1.0f/cpuA[2], cpuResult.z, epsilon);
-	EXPECT_NEAR(1.0f/cpuA[3], cpuResult.w, epsilon);
+	EXPECT_EQ(1.0/cpuA[0], cpuResult.x);
+	EXPECT_EQ(1.0/cpuA[1], cpuResult.y);
+	EXPECT_EQ(1.0/cpuA[2], cpuResult.z);
+	EXPECT_EQ(1.0/cpuA[3], cpuResult.w);
 
 	result = dsSIMD4d_rsqrt(a);
 	dsSIMD4d_store(&cpuResult, result);
-	EXPECT_NEAR(1.0f/std::sqrt(cpuA[0]), cpuResult.x, epsilon);
-	EXPECT_NEAR(1.0f/std::sqrt(cpuA[1]), cpuResult.y, epsilon);
-	EXPECT_NEAR(1.0f/std::sqrt(cpuA[2]), cpuResult.z, epsilon);
-	EXPECT_NEAR(1.0f/std::sqrt(cpuA[3]), cpuResult.w, epsilon);
-#endif
+	EXPECT_EQ(1.0/std::sqrt(cpuA[0]), cpuResult.x);
+	EXPECT_EQ(1.0/std::sqrt(cpuA[1]), cpuResult.y);
+	EXPECT_EQ(1.0/std::sqrt(cpuA[2]), cpuResult.z);
+	EXPECT_EQ(1.0/std::sqrt(cpuA[3]), cpuResult.w);
 
 	result = dsSIMD4d_abs(a);
 	dsSIMD4d_store(&cpuResult, result);
@@ -546,7 +559,7 @@ static void SIMDTest_CompareLogicFloat4()
 	EXPECT_EQ(7.8f, cpuFPResult.w);
 
 	dsSIMD4fb ab = dsSIMD4f_cmple(a, b);
-	fpResult = dsSIMD4f_select(a, b, ab);
+	fpResult = dsSIMD4f_select(ab, a, b);
 	dsSIMD4f_store(&cpuFPResult, fpResult);
 	EXPECT_EQ(1.1f, cpuFPResult.x);
 	EXPECT_EQ(3.4f, cpuFPResult.y);
@@ -713,7 +726,7 @@ static void SIMDTest_CompareLogicDouble2()
 	EXPECT_EQ(3.5, cpuFPResult.y);
 
 	dsSIMD2db ab = dsSIMD2d_cmple(a, b);
-	fpResult = dsSIMD2d_select(a, b, ab);
+	fpResult = dsSIMD2d_select(ab, a, b);
 	dsSIMD2d_store(&cpuFPResult, fpResult);
 	EXPECT_EQ(1.1, cpuFPResult.x);
 	EXPECT_EQ(3.4, cpuFPResult.y);
@@ -848,7 +861,7 @@ static void SIMDTest_CompareLogicDouble4()
 	EXPECT_EQ(7.8, cpuFPResult.w);
 
 	dsSIMD4db ab = dsSIMD4d_cmple(a, b);
-	fpResult = dsSIMD4d_select(a, b, ab);
+	fpResult = dsSIMD4d_select(ab, a, b);
 	dsSIMD4d_store(&cpuFPResult, fpResult);
 	EXPECT_EQ(1.1, cpuFPResult.x);
 	EXPECT_EQ(3.4, cpuFPResult.y);

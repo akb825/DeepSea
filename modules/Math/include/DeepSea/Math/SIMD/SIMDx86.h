@@ -336,7 +336,7 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_div(dsSIMD4f a, dsSIMD4f b)
 /**
  * @brief Takes the square root of a SIMD value.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The value to take the reciprical.
+ * @param a The value to take the square root.
  * @return The result of sqrt(a).
  */
 DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_sqrt(dsSIMD4f a)
@@ -344,31 +344,27 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_sqrt(dsSIMD4f a)
 	return _mm_sqrt_ps(a);
 }
 
-#if !DS_DETERMINISTIC_MATH
-
 /**
- * @brief Takes the approximate reciprical of a SIMD value.
+ * @brief Takes the reciprocal of a SIMD value.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The value to take the reciprical.
- * @return The approximate result of 1/a.
+ * @param a The value to take the reciprocal.
+ * @return The result of 1/a.
  */
 DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_rcp(dsSIMD4f a)
 {
-	return _mm_rcp_ps(a);
+	return _mm_div_ps(_mm_set1_ps(1.0f), a);
 }
 
 /**
- * @brief Takes the approximate reciprical square root of a SIMD value.
+ * @brief Takes the reciprocal square root of a SIMD value.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The value to take the reciprical.
- * @return The approximate result of 1/sqrt(a).
+ * @param a The value to take the reciprocal.
+ * @return The result of 1/sqrt(a).
  */
 DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_rsqrt(dsSIMD4f a)
 {
-	return _mm_rsqrt_ps(a);
+	return _mm_div_ps(_mm_set1_ps(1.0f), _mm_sqrt_ps(a));
 }
-
-#endif // !DS_DETERMINISTIC_MATH
 
 /**
  * @brief Takes the absolute value of a SIMD value.
@@ -418,15 +414,15 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_max(dsSIMD4f a, dsSIMD4f b)
 /**
  * @brief Selects between two vectors based on a boolean mask.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The first SIMD values to select from.
- * @param b The second SIMD values to select from.
- * @param c The boolean mask to select with.
- * @return Values from a or b for whether c is true or false, respectively.
+ * @param a The boolean mask to select with.
+ * @param b The first SIMD values to select from.
+ * @param c The second SIMD values to select from.
+ * @return The result of a ? b : c.
  */
-DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_select(dsSIMD4f a, dsSIMD4f b, dsSIMD4fb c)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_select(dsSIMD4fb a, dsSIMD4f b, dsSIMD4f c)
 {
 	return _mm_or_ps(
-		_mm_and_ps(DS_SSE_CAST_FB4_TO_F4(c), a), _mm_andnot_ps(DS_SSE_CAST_FB4_TO_F4(c), b));
+		_mm_and_ps(DS_SSE_CAST_FB4_TO_F4(a), b), _mm_andnot_ps(DS_SSE_CAST_FB4_TO_F4(a), c));
 }
 
 /**
@@ -999,7 +995,7 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_div(dsSIMD2d a, dsSIMD2d b)
 /**
  * @brief Takes the square root of a SIMD value.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
- * @param a The value to take the reciprical.
+ * @param a The value to take the square root.
  * @return The result of sqrt(a).
  */
 DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_sqrt(dsSIMD2d a)
@@ -1007,13 +1003,11 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_sqrt(dsSIMD2d a)
 	return _mm_sqrt_pd(a);
 }
 
-#if !DS_DETERMINISTIC_MATH
-
 /**
- * @brief Takes the approximate reciprical of a SIMD value.
+ * @brief Takes the reciprocal of a SIMD value.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
- * @param a The value to take the reciprical.
- * @return The approximate result of 1/a.
+ * @param a The value to take the reciprocal.
+ * @return The result of 1/a.
  */
 DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_rcp(dsSIMD2d a)
 {
@@ -1021,17 +1015,15 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_rcp(dsSIMD2d a)
 }
 
 /**
- * @brief Takes the approximate reciprical square root of a SIMD value.
+ * @brief Takes the reciprocal square root of a SIMD value.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
- * @param a The value to take the reciprical.
- * @return The approximate result of 1/sqrt(a).
+ * @param a The value to take the reciprocal.
+ * @return The result of 1/sqrt(a).
  */
 DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_rsqrt(dsSIMD2d a)
 {
 	return _mm_div_pd(_mm_set1_pd(1.0), _mm_sqrt_pd(a));
 }
-
-#endif
 
 /**
  * @brief Takes the absolute value of a SIMD value.
@@ -1086,14 +1078,14 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_max(dsSIMD2d a, dsSIMD2d b)
 /**
  * @brief Selects between two vectors based on a boolean mask.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
- * @param a The first SIMD values to select from.
- * @param b The second SIMD values to select from.
- * @param c The boolean mask to select with.
- * @return Values from a or b for whether c is true or false, respectively.
+ * @param a The boolean mask to select with.
+ * @param b The first SIMD values to select from.
+ * @param c The second SIMD values to select from.
+ * @return The result of a ? b : c.
  */
-DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_select(dsSIMD2d a, dsSIMD2d b, dsSIMD2db c)
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_select(dsSIMD2db a, dsSIMD2d b, dsSIMD2d c)
 {
-	return _mm_or_pd(_mm_and_pd(_mm_castsi128_pd(c), a), _mm_andnot_pd(_mm_castsi128_pd(c), b));
+	return _mm_or_pd(_mm_and_pd(_mm_castsi128_pd(a), b), _mm_andnot_pd(_mm_castsi128_pd(a), c));
 }
 
 /**
@@ -1623,7 +1615,7 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_div(dsSIMD4d a, dsSIMD4d b)
 /**
  * @brief Takes the square root of a SIMD value.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
- * @param a The value to take the reciprical.
+ * @param a The value to take the square root.
  * @return The result of sqrt(a).
  */
 DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_sqrt(dsSIMD4d a)
@@ -1631,13 +1623,11 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_sqrt(dsSIMD4d a)
 	return _mm256_sqrt_pd(a);
 }
 
-#if !DS_DETERMINISTIC_MATH
-
 /**
- * @brief Takes the approximate reciprical of a SIMD value.
+ * @brief Takes the reciprocal of a SIMD value.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
- * @param a The value to take the reciprical.
- * @return The approximate result of 1/a.
+ * @param a The value to take the reciprocal.
+ * @return The result of 1/a.
  */
 DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_rcp(dsSIMD4d a)
 {
@@ -1645,17 +1635,15 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_rcp(dsSIMD4d a)
 }
 
 /**
- * @brief Takes the approximate reciprical square root of a SIMD value.
+ * @brief Takes the reciprocal square root of a SIMD value.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
- * @param a The value to take the reciprical.
- * @return The approximate result of 1/sqrt(a).
+ * @param a The value to take the reciprocal.
+ * @return The result of 1/sqrt(a).
  */
 DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_rsqrt(dsSIMD4d a)
 {
 	return _mm256_div_pd(_mm256_set1_pd(1.0), _mm256_sqrt_pd(a));
 }
-
-#endif // !DS_DETERMINISTIC_MATH
 
 /**
  * @brief Takes the absolute value of a SIMD value.
@@ -1717,15 +1705,15 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_max(dsSIMD4d a, dsSIMD4d b)
 /**
  * @brief Selects between two vectors based on a boolean mask.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
- * @param a The first SIMD values to select from.
- * @param b The second SIMD values to select from.
- * @param c The boolean mask to select with.
- * @return Values from a or b for whether c is true or false, respectively.
+ * @param a The boolean mask to select with.
+ * @param b The first SIMD values to select from.
+ * @param c The second SIMD values to select from.
+ * @return The result of a ? b : c.
  */
-DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_select(dsSIMD4d a, dsSIMD4d b, dsSIMD4db c)
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_select(dsSIMD4db a, dsSIMD4d b, dsSIMD4d c)
 {
-	return _mm256_or_pd(_mm256_and_pd(_mm256_castsi256_pd(c), a),
-		_mm256_andnot_pd(_mm256_castsi256_pd(c), b));
+	return _mm256_or_pd(_mm256_and_pd(_mm256_castsi256_pd(a), b),
+		_mm256_andnot_pd(_mm256_castsi256_pd(a), c));
 }
 
 /**

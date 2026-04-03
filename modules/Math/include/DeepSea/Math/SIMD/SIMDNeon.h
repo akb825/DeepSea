@@ -51,6 +51,7 @@ extern "C"
 #define DS_SIMD_START(...)
 #define DS_SIMD_END()
 
+#define DS_SIMD_EMULATED_DIV_SQRT (DS_DETERMINISTIC_MATH && DS_ARM_32)
 #define DS_SIMD_ALWAYS_FLOAT4 1
 #define DS_SIMD_ALWAYS_INT 1
 #define DS_SIMD_ALWAYS_DOUBLE2 DS_ARM_64
@@ -263,6 +264,60 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_mul(dsSIMD4f a, dsSIMD4f b)
 }
 
 /**
+ * @brief Takes the reciprocal of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The value to take the reciprocal.
+ * @return The result of 1/a.
+ */
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_rcp(dsSIMD4f a)
+{
+#if DS_ARM_64
+	return vdivq_f32(vdupq_n_f32(1.0f), a);
+#elif DS_DETERMINISTIC_MATH
+	return dsSIMD4f_set4(1.0f/dsSIMD4f_get(a, 0), 1.0f/dsSIMD4f_get(a, 1), 1.0f/dsSIMD4f_get(a, 2),
+		1.0f/dsSIMD4f_get(a, 3));
+#else
+	// Use 2 Newton-Rhapson iterations to improve precision.
+	// Xn+1 = Xn*(2 - a*Xn)
+	// vrecpsq_f32(a, Xn) does the 2 - a*Xn portion.
+
+	dsSIMD4f xn = vrecpeq_f32(a);
+	xn = vmulq_f32(xn, vrecpsq_f32(a, xn));
+	return vmulq_f32(xn, vrecpsq_f32(a, xn));
+#endif
+}
+
+/**
+ * @brief Takes the reciprocal square root of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The value to take the reciprocal square root.
+ * @return The result of 1/sqrt(a).
+ */
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_rsqrt(dsSIMD4f a)
+{
+#if DS_ARM_64
+	return vdivq_f32(vdupq_n_f32(1.0f), vsqrtq_f32(a));
+#elif DS_DETERMINISTIC_MATH
+	return dsSIMD4f_set4(1.0f/sqrtf(dsSIMD4f_get(a, 0)), 1.0f/sqrtf(dsSIMD4f_get(a, 1)),
+		1.0f/sqrtf(dsSIMD4f_get(a, 2)), 1.0f/sqrtf(dsSIMD4f_get(a, 3)));
+#else
+	// Use 2 Newton-Rhapson iterations to improve precision.
+	// x = a^-1/2
+	// x^-2 = a
+	// x^-2 - a = 0, so root f(x) is x^-2 - a
+	// Xn+1 = Xn - f(Xn)/f'(Xn)
+	// Xn+1 = Xn - (Xn^-2 - a)/-2Xn^-3
+	// Xn+1 = Xn + (Xn - a*Xn^3)/2
+	// Xn+1 = (3 - a*Xn^2)/2*Xn
+	// vrsqrtsq_f32(a, Xn^2) does the (3 - a*Xn^2)/2 portion.
+
+	dsSIMD4f xn = vrsqrteq_f32(a);
+	xn = vmulq_f32(vrsqrtsq_f32(a, vmulq_f32(xn, xn)), xn);
+	return vmulq_f32(vrsqrtsq_f32(a, vmulq_f32(xn, xn)), xn);
+#endif
+}
+
+/**
  * @brief Divides two SIMD values.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param a The first value to divide.
@@ -278,14 +333,14 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_div(dsSIMD4f a, dsSIMD4f b)
 		dsSIMD4f_get(a, 1)/dsSIMD4f_get(b, 1), dsSIMD4f_get(a, 2)/dsSIMD4f_get(b, 2),
 		dsSIMD4f_get(a, 3)/dsSIMD4f_get(b, 3));
 #else
-	return vmulq_f32(a, vrecpeq_f32(b));
+	return vmulq_f32(a, dsSIMD4f_rcp(b));
 #endif
 }
 
 /**
  * @brief Takes the square root of a SIMD value.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The value to take the reciprical.
+ * @param a The value to take the square root.
  * @return The result of sqrt(a).
  */
 DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_sqrt(dsSIMD4f a)
@@ -296,35 +351,13 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_sqrt(dsSIMD4f a)
 	return dsSIMD4f_set4(sqrtf(dsSIMD4f_get(a, 0)), sqrtf(dsSIMD4f_get(a, 1)),
 		sqrtf(dsSIMD4f_get(a, 2)), sqrtf(dsSIMD4f_get(a, 3)));
 #else
-	return vrecpeq_f32(vrsqrteq_f32(a));
+	// sqrt(x) = x^1/2 = x^(1 - 1/2) = x*x^-1/2
+	// Need to account for zero, in which case we will get NaN.
+	dsSIMD4f zero = vdupq_n_f32(0.0);
+	dsSIMD4fb isZero = vceqq_f32(a, zero);
+	return vbslq_f32(isZero, zero, vmulq_f32(a, dsSIMD4f_rsqrt(a)));
 #endif
 }
-
-#if !DS_DETERMINISTIC_MATH
-
-/**
- * @brief Takes the approximate reciprical of a SIMD value.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The value to take the reciprical.
- * @return The approximate result of 1/a.
- */
-DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_rcp(dsSIMD4f a)
-{
-	return vrecpeq_f32(a);
-}
-
-/**
- * @brief Takes the approximate reciprical square root of a SIMD value.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The value to take the reciprical.
- * @return The approximate result of 1/sqrt(a).
- */
-DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_rsqrt(dsSIMD4f a)
-{
-	return vrsqrteq_f32(a);
-}
-
-#endif // !DS_DETERMINISTIC_MATH
 
 /**
  * @brief Takes the absolute value of a SIMD value.
@@ -384,14 +417,14 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_max(dsSIMD4f a, dsSIMD4f b)
 /**
  * @brief Selects between two vectors based on a boolean mask.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The first SIMD values to select from.
- * @param b The second SIMD values to select from.
- * @param c The boolean mask to select with.
- * @return Values from a or b for whether c is true or false, respectively.
+ * @param a The boolean mask to select with.
+ * @param b The first SIMD values to select from.
+ * @param c The second SIMD values to select from.
+ * @return The result of a ? b : c.
  */
-DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_select(dsSIMD4f a, dsSIMD4f b, dsSIMD4fb c)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_select(dsSIMD4fb a, dsSIMD4f b, dsSIMD4f c)
 {
-	return vbslq_f32(c, a, b);
+	return vbslq_f32(a, b, c);
 }
 
 /**
@@ -970,7 +1003,7 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_div(dsSIMD2d a, dsSIMD2d b)
 /**
  * @brief Takes the square root of a SIMD value.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
- * @param a The value to take the reciprical.
+ * @param a The value to take the square root.
  * @return The result of sqrt(a).
  */
 DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_sqrt(dsSIMD2d a)
@@ -983,18 +1016,16 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_sqrt(dsSIMD2d a)
 #endif
 }
 
-#if !DS_DETERMINISTIC_MATH
-
 /**
- * @brief Takes the approximate reciprical of a SIMD value.
- * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @brief Takes the reciprical of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param a The value to take the reciprical.
- * @return The approximate result of 1/a.
+ * @return The result of 1/a.
  */
 DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_rcp(dsSIMD2d a)
 {
 #if DS_SIMD_ALWAYS_DOUBLE2
-	return vrecpeq_f64(a);
+	return vdivq_f64(vdupq_n_f64(1.0), a);
 #else
 	DS_ASSERT(false);
 	DS_UNREACHABLE();
@@ -1002,22 +1033,20 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_rcp(dsSIMD2d a)
 }
 
 /**
- * @brief Takes the approximate reciprical square root of a SIMD value.
+ * @brief Takes the reciprocal square root of a SIMD value.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
- * @param a The value to take the reciprical.
- * @return The approximate result of 1/sqrt(a).
+ * @param a The value to take the reciprocal square root.
+ * @return The result of 1/sqrt(a).
  */
 DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_rsqrt(dsSIMD2d a)
 {
 #if DS_SIMD_ALWAYS_DOUBLE2
-	return vrsqrteq_f64(a);
+	return vdivq_f64(vdupq_n_f64(1.0), vsqrtq_f64(a));
 #else
 	DS_ASSERT(false);
 	DS_UNREACHABLE();
 #endif
 }
-
-#endif // !DS_DETERMINISTIC_MATH
 
 /**
  * @brief Takes the absolute value of a SIMD value.
@@ -1091,15 +1120,15 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_max(dsSIMD2d a, dsSIMD2d b)
 /**
  * @brief Selects between two vectors based on a boolean mask.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
- * @param a The first SIMD values to select from.
- * @param b The second SIMD values to select from.
- * @param c The boolean mask to select with.
- * @return Values from a or b for whether c is true or false, respectively.
+ * @param a The boolean mask to select with.
+ * @param b The first SIMD values to select from.
+ * @param c The second SIMD values to select from.
+ * @return The result of a ? b : c.
  */
-DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_select(dsSIMD2d a, dsSIMD2d b, dsSIMD2db c)
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_select(dsSIMD2db a, dsSIMD2d b, dsSIMD2d c)
 {
 #if DS_SIMD_ALWAYS_DOUBLE2
-	return vbslq_f64(c, a, b);
+	return vbslq_f64(a, b, c);
 #else
 	DS_ASSERT(false);
 	DS_UNREACHABLE();
@@ -1790,7 +1819,7 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_div(dsSIMD4d a, dsSIMD4d b)
 /**
  * @brief Takes the square root of a SIMD value.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
- * @param a The value to take the reciprical.
+ * @param a The value to take the reciprocal.
  * @return The result of sqrt(a).
  */
 DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_sqrt(dsSIMD4d a)
@@ -1799,13 +1828,23 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_sqrt(dsSIMD4d a)
 	DS_UNREACHABLE();
 }
 
-#if !DS_DETERMINISTIC_MATH
+/**
+ * @brief Takes the absolute value of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The value to take the absolute value.
+ * @return The result of abs(a).
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_abs(dsSIMD4d a)
+{
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+}
 
 /**
- * @brief Takes the approximate reciprical of a SIMD value.
- * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @brief Takes the reciprical of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param a The value to take the reciprical.
- * @return The approximate result of 1/a.
+ * @return The result of 1/a.
  */
 DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_rcp(dsSIMD4d a)
 {
@@ -1814,26 +1853,12 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_rcp(dsSIMD4d a)
 }
 
 /**
- * @brief Takes the approximate reciprical square root of a SIMD value.
- * @remark This can be used when dsSIMDFeatures_Double4 is available.
- * @param a The value to take the reciprical.
- * @return The approximate result of 1/sqrt(a).
+ * @brief Takes the reciprocal square root of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The value to take the reciprocal square root.
+ * @return The result of 1/sqrt(a).
  */
 DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_rsqrt(dsSIMD4d a)
-{
-	DS_ASSERT(false);
-	DS_UNREACHABLE();
-}
-
-#endif // !DS_DETERMINISTIC_MATH
-
-/**
- * @brief Takes the absolute value of a SIMD value.
- * @remark This can be used when dsSIMDFeatures_Double4 is available.
- * @param a The value to take the absolute value.
- * @return The result of abs(a).
- */
-DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_abs(dsSIMD4d a)
 {
 	DS_ASSERT(false);
 	DS_UNREACHABLE();
@@ -1886,12 +1911,12 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_max(dsSIMD4d a, dsSIMD4d b)
 /**
  * @brief Selects between two vectors based on a boolean mask.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
- * @param a The first SIMD values to select from.
- * @param b The second SIMD values to select from.
- * @param c The boolean mask to select with.
- * @return Values from a or b for whether c is true or false, respectively.
+ * @param a The boolean mask to select with.
+ * @param b The first SIMD values to select from.
+ * @param c The second SIMD values to select from.
+ * @return The result of a ? b : c.
  */
-DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_select(dsSIMD4d a, dsSIMD4d b, dsSIMD4db c)
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_select(dsSIMD4db a, dsSIMD4d b, dsSIMD4d c)
 {
 	DS_ASSERT(false);
 	DS_UNREACHABLE();

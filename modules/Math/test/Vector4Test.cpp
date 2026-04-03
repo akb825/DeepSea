@@ -54,7 +54,7 @@ struct Vector4TypeSelector<long long>
 };
 
 const float Vector4TypeSelector<float>::epsilon = 1e-6f;
-const double Vector4TypeSelector<double>::epsilon = 1e-14f;
+const double Vector4TypeSelector<double>::epsilon = 2e-13f;
 
 template <typename T>
 class Vector4Test : public testing::Test
@@ -402,10 +402,10 @@ TYPED_TEST(Vector4Test, Distance)
 	Vector4Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
 	Vector4Type b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6, (TypeParam)-9.8}};
 
-	EXPECT_EQ(dsPow2(a.x - b.x) + dsPow2(a.y - b.y) + dsPow2(a.z - b.z) + dsPow2(a.w - b.w),
+	EXPECT_EQ((dsPow2(a.x - b.x) + dsPow2(a.y - b.y)) + (dsPow2(a.z - b.z) + dsPow2(a.w - b.w)),
 		dsVector4_dist2(a, b));
-	EXPECT_EQ(std::sqrt(dsPow2(a.x - b.x) + dsPow2(a.y - b.y) + dsPow2(a.z - b.z) +
-		dsPow2(a.w - b.w)), dsVector4_dist(&a, &b));
+	EXPECT_DOUBLE_EQ(std::sqrt((dsPow2(a.x - b.x) + dsPow2(a.y - b.y)) + (dsPow2(a.z - b.z) +
+		dsPow2(a.w - b.w))), dsVector4_dist(&a, &b));
 }
 
 TEST(Vector4fTest, Distance)
@@ -518,19 +518,44 @@ TEST(Vector4dTest, Lerp)
 	EXPECT_EQ_DETERMINISTIC(3.29, result.w, epsilon);
 }
 
-TYPED_TEST(Vector4FloatTest, Normalize)
+TEST(Vector4fTest, Normalize)
 {
-	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
+	float epsilon = Vector4TypeSelector<float>::epsilon;
 
-	Vector4Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
-	Vector4Type result;
+	dsVector4f a = {{-2.3f, 4.5f, -6.7f, 8.9f}};
+	dsVector4f result;
 
-	TypeParam length = dsVector4_len(&a);
+	float length = dsVector4_len(&a);
 	dsVector4_normalize(&result, &a);
-	EXPECT_EQ((TypeParam)-2.3*(1/length), result.x);
-	EXPECT_EQ((TypeParam)4.5*(1/length), result.y);
-	EXPECT_EQ((TypeParam)-6.7*(1/length), result.z);
-	EXPECT_EQ((TypeParam)8.9*(1/length), result.w);
+	EXPECT_EQ_DETERMINISTIC(-2.3f*(1/length), result.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(4.5f*(1/length), result.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-6.7f*(1/length), result.z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(8.9f*(1/length), result.w, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.188019973f, result.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.367865175f, result.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.547710359f, result.z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.727555513f, result.w, epsilon);
+}
+
+TEST(Vector4dTest, Normalize)
+{
+	double epsilon = Vector4TypeSelector<double>::epsilon;
+
+	dsVector4d a = {{-2.3, 4.5, -6.7, 8.9}};
+	dsVector4d result;
+
+	double length = dsVector4_len(&a);
+	dsVector4_normalize(&result, &a);
+	EXPECT_EQ_DETERMINISTIC(-2.3*(1/length), result.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(4.5*(1/length), result.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-6.7*(1/length), result.z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(8.9*(1/length), result.w, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.1880199731181928, result.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.36786516479646419, result.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.54771035647473554, result.z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.72755554815300694, result.w, epsilon);
 }
 
 TYPED_TEST(Vector4FloatTest, EpsilonEqual)

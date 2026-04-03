@@ -30,6 +30,14 @@
 #define DS_HAS_SIMD 0
 
 /**
+ * @brief Whether there is division and sqrt instructions are emulated.
+ *
+ * Typically this will be set when determination math is enabled and only estimations are available,
+ * in which case it will fall back to scalar implementations.
+ */
+#define DS_SIMD_EMULATED_DIV_SQRT 0
+
+/**
  * @brief Define for whether or not SIMD instructions for 4 floats are always available.
  */
 #define DS_SIMD_ALWAYS_FLOAT4 0
