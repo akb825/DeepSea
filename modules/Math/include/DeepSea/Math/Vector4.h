@@ -803,10 +803,18 @@ DS_MATH_EXPORT inline void dsVector4f_normalize(dsVector4f* result, const dsVect
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
-#if DS_SIMD_ALWAYS_HADD && !DS_SIMD_EMULATED_DIV_SQRT
+#if DS_SIMD_ALWAYS_FLOAT4 && !DS_SIMD_EMULATED_DIV_SQRT
 	dsSIMD4f length2 = dsSIMD4f_mul(a->simd, a->simd);
+#if DS_SIMD_ALWAYS_HADD
 	length2 = dsSIMD4f_hadd(length2, length2);
 	length2 = dsSIMD4f_hadd(length2, length2);
+#else
+	dsSIMD4f length2X = dsSIMD4f_set1FromVec(length2, 0);
+	dsSIMD4f length2Y = dsSIMD4f_set1FromVec(length2, 1);
+	dsSIMD4f length2Z = dsSIMD4f_set1FromVec(length2, 2);
+	dsSIMD4f length2W = dsSIMD4f_set1FromVec(length2, 3);
+	length2 = dsSIMD4f_add(dsSIMD4f_add(length2X, length2Y), dsSIMD4f_add(length2Z, length2W));
+#endif
 	dsSIMD4f invLength = dsSIMD4f_rsqrt(length2);
 	result->simd = dsSIMD4f_mul(a->simd, invLength);
 #else

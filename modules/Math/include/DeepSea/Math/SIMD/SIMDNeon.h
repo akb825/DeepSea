@@ -169,6 +169,19 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_set4(float x, float y, float z, float w)
 }
 
 /**
+ * @brief Sets an element from a vector to all elements of a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The value to get the element from.
+ * @param i The index of the element to get.
+ * @return The SIMD value.
+ */
+#if DS_ARM_64
+#define dsSIMD4f_set1FromVec(a, i) vdupq_laneq_f32((a), (i))
+#else
+#define dsSIMD4f_set1FromVec(a, i) vdupq_n_f32(vgetq_lane_f32((a), (i)))
+#endif
+
+/**
  * @brief Stores a SIMD register into four float values.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param[out] fp A pointer to the float values to store to. This should be aligned to 16 bytes.
@@ -551,6 +564,19 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_set1(uint32_t i)
 }
 
 /**
+ * @brief Sets an element from a vector to all elements of a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The value to get the element from.
+ * @param i The index of the element to get.
+ * @return The SIMD value.
+ */
+#if DS_ARM_64
+#define dsSIMD4fb_set1FromVec(a, i) vdupq_laneq_u32((a), (i))
+#else
+#define dsSIMD4fb_set1FromVec(a, i) vdupq_n_u32(vgetq_lane_u32((a), (i)))
+#endif
+
+/**
  * @brief Sets a SIMD value with four int values.
  * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
  * @param x The first value.
@@ -851,6 +877,19 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_set2(double x, double y)
 	DS_UNREACHABLE();
 #endif
 }
+
+/**
+ * @brief Sets an element from a vector to all elements of a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Douvle2 is available.
+ * @param a The value to get the element from.
+ * @param i The index of the element to get.
+ * @return The SIMD value.
+ */
+#if DS_ARM_64
+#define dsSIMD2d_set1FromVec(a, i) vdupq_laneq_f64((a), (i))
+#else
+#define dsSIMD2d_set1FromVec(a, i) dsSIMD2d_set1((a).x[(i)])
+#endif
 
 /**
  * @brief Stores a SIMD register into four double values.
@@ -1332,6 +1371,19 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_set2(uint64_t x, uint64_t y)
 }
 
 /**
+ * @brief Sets an element from a vector to all elements of a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Douvle2 iand dsSIMDFeatures_Int s available.
+ * @param a The value to get the element from.
+ * @param i The index of the element to get.
+ * @return The SIMD value.
+ */
+#if DS_ARM_64
+#define dsSIMD2db_set1FromVec(a, i) vdupq_laneq_u64((a), (i))
+#else
+#define dsSIMD2db_set1FromVec(a, i) dsSIMD2db_set1((a).x[(i)])
+#endif
+
+/**
  * @brief Stores a SIMD bitfield register into four int values.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param[out] ip A pointer to the int values to store to. This should be aligned to 16 bytes.
@@ -1703,6 +1755,15 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_set4(double x, double y, double z, double w)
 }
 
 /**
+ * @brief Sets an element from a vector to all elements of a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Douvle4 is available.
+ * @param a The value to get the element from.
+ * @param i The index of the element to get.
+ * @return The SIMD value.
+ */
+#define dsSIMD4d_set1FromVec(a, i) dsSIMD4d_set1((a).x[(i)])
+
+/**
  * @brief Stores a SIMD register into four double values.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param[out] dp A pointer to the double values to store to. This should be aligned to 16 bytes.
@@ -2072,6 +2133,15 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_set4(uint64_t x, uint64_t y, uint64_t z, ui
 }
 
 /**
+ * @brief Sets an element from a vector to all elements of a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Douvle4 and dsSIMDFeatures_Int is available.
+ * @param a The value to get the element from.
+ * @param i The index of the element to get.
+ * @return The SIMD value.
+ */
+#define dsSIMD4db_set1FromVec(a, i) dsSIMD4db_set1((a).x[(i)])
+
+/**
  * @brief Converts a SIMD double value directly to a bitfield value.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param a The SIMD floating-point value.
@@ -2139,9 +2209,9 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4db_toDoubleBitfield(dsSIMD4db a)
 {
 	DS_ASSERT(false);
 	DS_UNREACHABLE();
- }
+}
 
- /**
+/**
  * @brief Converts a SIMD integer value to a double value, similar to a cast in C.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @remark Some implementations may only support integer values up to 32 bits.

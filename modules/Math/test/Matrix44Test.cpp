@@ -2315,6 +2315,28 @@ TEST(Matrix44fTest, DeterminantDouble2FMA)
 }
 #endif // !DS_DETERMINISTIC_MATH
 
+TEST(Matrix44fTest, DeterminantDoubleSIMD4)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
+		return;
+
+	const double epsilon = Matrix44TypeSelector<double>::inverseEpsilon;
+
+	DS_ALIGN(32) dsMatrix44d matrix =
+	{{
+		{-0.1, 2.3, -4.5, 6.7},
+		{8.9, -1.0, 3.2, -5.4},
+		{-7.6, 9.8, 0.1, -2.3},
+		{4.5, -6.7, -8.9, 1.0}
+	}};
+
+	double scalarResult = dsMatrix44_determinant(matrix);
+	double result = dsMatrix44d_determinantSIMD4(&matrix);
+
+	EXPECT_EQ_DETERMINISTIC(scalarResult, result, epsilon);
+	EXPECT_EQ_DETERMINISTIC(6163.7587000000003, result, epsilon);
+}
+
 TEST(Matrix44fTest, FastInvertSIMD)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
@@ -3560,6 +3582,68 @@ TEST(Matrix44fTest, InvertDouble2FMA)
 	EXPECT_NEAR(1, result.values[3][3], epsilon);
 }
 #endif // !DS_DETERMINISTIC_MATH
+
+TEST(Matrix44fTest, InvertDoubleSIMD4)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
+		return;
+
+	const double epsilon = Matrix44TypeSelector<double>::inverseEpsilon;
+
+	DS_ALIGN(32) dsMatrix44d matrix =
+	{{
+		{-0.1, 2.3, -4.5, 6.7},
+		{8.9, -1.0, 3.2, -5.4},
+		{-7.6, 9.8, 0.1, -2.3},
+		{4.5, -6.7, -8.9, 1.0}
+	}};
+
+
+	DS_ALIGN(32) dsMatrix44d scalarInverse, inverse;
+	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
+	dsMatrix44d_invert(&scalarInverse, &matrix);
+	dsMatrix44d_invertSIMD4(&inverse, &matrix);
+
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][0], inverse.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][1], inverse.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][2], inverse.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[0][3], inverse.values[0][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][0], inverse.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][1], inverse.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][2], inverse.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[1][3], inverse.values[1][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][0], inverse.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][1], inverse.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][2], inverse.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[2][3], inverse.values[2][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][0], inverse.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][1], inverse.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][2], inverse.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarInverse.values[3][3], inverse.values[3][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.082042796386562006, inverse.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.10577652885730263, inverse.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.010904060861435083, inverse.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0035728199418319211, inverse.values[0][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.089704841949766786, inverse.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.075373651470165434, inverse.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.076787723698528307, inverse.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.01739295861792902, inverse.values[1][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.013629183764121066, inverse.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0064781900044205178, inverse.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.071711600261054997, inverse.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.10860337540468612, inverse.values[2][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.11053012182323105, inverse.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0286468060470959, inverse.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.074687219666791954, inverse.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.067025174103587146, inverse.values[3][3], epsilon);
+}
 
 TEST(Matrix44fTest, InverseTransposeSIMD)
 {

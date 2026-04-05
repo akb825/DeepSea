@@ -197,24 +197,24 @@ DS_MATH_EXPORT inline void dsMatrix22d_makeScale(dsMatrix22d* result, double x, 
  * @param a The matrix to extract the eigenvalues for.
  * @return False if the eigenvalues couldn't be extracted.
  */
-DS_MATH_EXPORT inline bool dsMatrix22f_jacobiEigenvalues(dsMatrix22f* outEigenvectors,
-	dsVector2f* outEigenvalues, const dsMatrix22f* a);
+DS_MATH_EXPORT inline bool dsMatrix22f_jacobiEigenvalues(
+	dsMatrix22f* outEigenvectors, dsVector2f* outEigenvalues, const dsMatrix22f* a);
 
 /** @copydoc dsMatrix22f_jacobiEigenvalues() */
-DS_MATH_EXPORT inline bool dsMatrix22d_jacobiEigenvalues(dsMatrix22d* outEigenvectors,
-	dsVector2d* outEigenvalues, const dsMatrix22d* a);
+DS_MATH_EXPORT inline bool dsMatrix22d_jacobiEigenvalues(
+	dsMatrix22d* outEigenvectors, dsVector2d* outEigenvalues, const dsMatrix22d* a);
 
 /**
  * @brief Sorts eigenvalues and corresponding eigenvectors from largest to smallest.
  * @param[inout] eigenvectors The eigenvectors to sort.
  * @param[inout] eigenvalues The eigenvalues to sort.
  */
-DS_MATH_EXPORT inline void dsMatrix22f_sortEigenvalues(dsMatrix22f* eigenvectors,
-	dsVector2f* eigenvalues);
+DS_MATH_EXPORT inline void dsMatrix22f_sortEigenvalues(
+	dsMatrix22f* eigenvectors, dsVector2f* eigenvalues);
 
 /** @copydoc dsMatrix22f_sortEigenvalues() */
-DS_MATH_EXPORT inline void dsMatrix22d_sortEigenvalues(dsMatrix22d* eigenvectors,
-	dsVector2d* eigenvalues);
+DS_MATH_EXPORT inline void dsMatrix22d_sortEigenvalues(
+	dsMatrix22d* eigenvectors, dsVector2d* eigenvalues);
 
 /** @copydoc dsMatrix22_identity() */
 DS_MATH_EXPORT inline void dsMatrix22f_identity(dsMatrix22f* result)
@@ -231,8 +231,8 @@ DS_MATH_EXPORT inline void dsMatrix22d_identity(dsMatrix22d* result)
 }
 
 /** @copydoc dsMatrix22_mul() */
-DS_MATH_EXPORT inline void dsMatrix22f_mul(dsMatrix22f* result, const dsMatrix22f* a,
-	const dsMatrix22f* b)
+DS_MATH_EXPORT inline void dsMatrix22f_mul(
+	dsMatrix22f* result, const dsMatrix22f* a, const dsMatrix22f* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -241,31 +241,31 @@ DS_MATH_EXPORT inline void dsMatrix22f_mul(dsMatrix22f* result, const dsMatrix22
 }
 
 /** @copydoc dsMatrix22_mul() */
-DS_MATH_EXPORT inline void dsMatrix22d_mul(dsMatrix22d* result, const dsMatrix22d* a,
-	const dsMatrix22d* b)
+DS_MATH_EXPORT inline void dsMatrix22d_mul(
+	dsMatrix22d* result, const dsMatrix22d* a, const dsMatrix22d* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(b);
 #if DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
-	dsSIMD2d mul0 = dsSIMD2d_set1(b->columns[0].x);
-	dsSIMD2d mul1 = dsSIMD2d_set1(b->columns[0].y);
+	dsSIMD2d mul0 = dsSIMD2d_set1FromVec(b->columns[0].simd, 0);
+	dsSIMD2d mul1 = dsSIMD2d_set1FromVec(b->columns[0].simd, 1);
 	result->columns[0].simd = dsSIMD2d_fmadd(a->columns[0].simd, mul0,
 		dsSIMD2d_mul(a->columns[1].simd, mul1));
 
-	mul0 = dsSIMD2d_set1(b->columns[1].x);
-	mul1 = dsSIMD2d_set1(b->columns[1].y);
+	mul0 = dsSIMD2d_set1FromVec(b->columns[1].simd, 0);
+	mul1 = dsSIMD2d_set1FromVec(b->columns[1].simd, 1);
 	result->columns[1].simd = dsSIMD2d_fmadd(a->columns[0].simd, mul0,
 		dsSIMD2d_mul(a->columns[1].simd, mul1));
 #else
-	dsSIMD2d mul0 = dsSIMD2d_set1(b->columns[0].x);
-	dsSIMD2d mul1 = dsSIMD2d_set1(b->columns[0].y);
+	dsSIMD2d mul0 = dsSIMD2d_set1FromVec(b->columns[0].simd, 0);
+	dsSIMD2d mul1 = dsSIMD2d_set1FromVec(b->columns[0].simd, 1);
 	result->columns[0].simd = dsSIMD2d_add(dsSIMD2d_mul(a->columns[0].simd, mul0),
 		dsSIMD2d_mul(a->columns[1].simd, mul1));
 
-	mul0 = dsSIMD2d_set1(b->columns[1].x);
-	mul1 = dsSIMD2d_set1(b->columns[1].y);
+	mul0 = dsSIMD2d_set1FromVec(b->columns[1].simd, 0);
+	mul1 = dsSIMD2d_set1FromVec(b->columns[1].simd, 1);
 	result->columns[1].simd = dsSIMD2d_add(dsSIMD2d_mul(a->columns[0].simd, mul0),
 		dsSIMD2d_mul(a->columns[1].simd, mul1));
 #endif
@@ -275,8 +275,8 @@ DS_MATH_EXPORT inline void dsMatrix22d_mul(dsMatrix22d* result, const dsMatrix22
 }
 
 /** @copydoc dsMatrix22_transform() */
-DS_MATH_EXPORT inline void dsMatrix22f_transform(dsVector2f* result, const dsMatrix22f* mat,
-	const dsVector2f* vec)
+DS_MATH_EXPORT inline void dsMatrix22f_transform(
+	dsVector2f* result, const dsMatrix22f* mat, const dsVector2f* vec)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(mat);
@@ -285,15 +285,15 @@ DS_MATH_EXPORT inline void dsMatrix22f_transform(dsVector2f* result, const dsMat
 }
 
 /** @copydoc dsMatrix22_transform() */
-DS_MATH_EXPORT inline void dsMatrix22d_transform(dsVector2d* result, const dsMatrix22d* mat,
-	const dsVector2d* vec)
+DS_MATH_EXPORT inline void dsMatrix22d_transform(
+	dsVector2d* result, const dsMatrix22d* mat, const dsVector2d* vec)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(mat);
 	DS_ASSERT(vec);
 #if DS_SIMD_ALWAYS_DOUBLE2
-	dsSIMD2d x = dsSIMD2d_set1(vec->x);
-	dsSIMD2d y = dsSIMD2d_set1(vec->y);
+	dsSIMD2d x = dsSIMD2d_set1FromVec(vec->simd, 0);
+	dsSIMD2d y = dsSIMD2d_set1FromVec(vec->simd, 1);
 
 #if DS_SIMD_ALWAYS_FMA
 	result->simd = dsSIMD2d_fmadd(mat->columns[0].simd, x, dsSIMD2d_mul(mat->columns[1].simd, y));
@@ -307,8 +307,8 @@ DS_MATH_EXPORT inline void dsMatrix22d_transform(dsVector2d* result, const dsMat
 }
 
 /** @copydoc dsMatrix22_transformTransposed() */
-DS_MATH_EXPORT inline void dsMatrix22f_transformTransposed(dsVector2f* result,
-	const dsMatrix22f* mat, const dsVector2f* vec)
+DS_MATH_EXPORT inline void dsMatrix22f_transformTransposed(
+	dsVector2f* result, const dsMatrix22f* mat, const dsVector2f* vec)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(mat);
@@ -317,15 +317,15 @@ DS_MATH_EXPORT inline void dsMatrix22f_transformTransposed(dsVector2f* result,
 }
 
 /** @copydoc dsMatrix22_transformTransposed() */
-DS_MATH_EXPORT inline void dsMatrix22d_transformTransposed(dsVector2d* result,
-	const dsMatrix22d* mat, const dsVector2d* vec)
+DS_MATH_EXPORT inline void dsMatrix22d_transformTransposed(
+	dsVector2d* result, const dsMatrix22d* mat, const dsVector2d* vec)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(mat);
 	DS_ASSERT(vec);
 #if DS_SIMD_ALWAYS_DOUBLE2
-	dsSIMD2d x = dsSIMD2d_set1(vec->x);
-	dsSIMD2d y = dsSIMD2d_set1(vec->y);
+	dsSIMD2d x = dsSIMD2d_set1FromVec(vec->simd, 0);
+	dsSIMD2d y = dsSIMD2d_set1FromVec(vec->simd, 1);
 
 	dsSIMD2d col0 = mat->columns[0].simd;
 	dsSIMD2d col1 = mat->columns[1].simd;
@@ -397,15 +397,15 @@ inline void dsMatrix22d_makeScale(dsMatrix22d* result, double x, double y)
 	result->values[1][1] = y;
 }
 
-inline bool dsMatrix22f_jacobiEigenvalues(dsMatrix22f* outEigenvectors, dsVector2f* outEigenvalues,
-	const dsMatrix22f* a)
+inline bool dsMatrix22f_jacobiEigenvalues(
+	dsMatrix22f* outEigenvectors, dsVector2f* outEigenvalues, const dsMatrix22f* a)
 {
 	return dsJacobiEigenvaluesClassicf((float*)outEigenvectors, (float*)outEigenvalues,
 		(const float*)a, 2, 1);
 }
 
-inline bool dsMatrix22d_jacobiEigenvalues(dsMatrix22d* outEigenvectors, dsVector2d* outEigenvalues,
-	const dsMatrix22d* a)
+inline bool dsMatrix22d_jacobiEigenvalues(
+	dsMatrix22d* outEigenvectors, dsVector2d* outEigenvalues, const dsMatrix22d* a)
 {
 	return dsJacobiEigenvaluesClassicd((double*)outEigenvectors, (double*)outEigenvalues,
 		(const double*)a, 2, 1);

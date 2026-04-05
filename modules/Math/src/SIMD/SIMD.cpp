@@ -27,11 +27,22 @@
 #if DS_X86_32 || DS_X86_64
 
 #if DS_WINDOWS
-static void __get_cpuid(unsigned int level, unsigned int* eax, unsigned int* ebx, unsigned int* ecx,
-    unsigned int* edx)
+static void __get_cpuid(
+	unsigned int level, unsigned int* eax, unsigned int* ebx, unsigned int* ecx, unsigned int* edx)
 {
 	int cpuInfo[4];
 	__cpuid(cpuInfo, level);
+	*eax = cpuInfo[0];
+	*ebx = cpuInfo[1];
+	*ecx = cpuInfo[2];
+	*edx = cpuInfo[3];
+}
+
+static void __get_cpuid_count(unsigned int level, unsigned int sublevel, unsigned int* eax,
+	unsigned int* ebx, unsigned int* ecx, unsigned int* edx)
+{
+	int cpuInfo[4];
+	__cpuidex(cpuInfo, level, sublevel);
 	*eax = cpuInfo[0];
 	*ebx = cpuInfo[1];
 	*ecx = cpuInfo[2];
@@ -48,8 +59,10 @@ static dsSIMDFeatures detectSIMDFeatures()
 	// Function 1, ecx
 	const int sse3Bit = 1;
 	const int fmaBit = 1 << 12;
-	const int avxBit = 1 << 28;
 	const int f16cBit = 1 << 29;
+
+	// Function 7, sub 0, ebx
+	const int avx2Bit = 1 << 5;
 
 	dsSIMDFeatures features = dsSIMDFeatures_None;
 
@@ -65,10 +78,12 @@ static dsSIMDFeatures detectSIMDFeatures()
 		features |= dsSIMDFeatures_HAdd;
 	if ((ecx & fmaBit) && !DS_DETERMINISTIC_MATH)
 		features |= dsSIMDFeatures_FMA;
-	if (ecx & avxBit)
-		features |= dsSIMDFeatures_Double4;
 	if ((edx & sse2Bit) && (ecx & f16cBit))
 		features |= dsSIMDFeatures_HalfFloat;
+
+	__get_cpuid_count(7, 0, &eax, &ebx, &ecx, &edx);
+	if (ebx & avx2Bit)
+		features |= dsSIMDFeatures_Double4;
 
 	return features;
 }

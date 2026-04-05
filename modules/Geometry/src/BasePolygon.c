@@ -246,7 +246,7 @@ bool dsPolygonEdgesIntersect(const dsVector2d* from, const dsVector2d* to,
 #elif DS_ARM_64
 #define DS_SWAP_SIMD(a) vextq_f64((a), (a), 1)
 #else
-#define DS_SWAP_SIMD(a) a
+#define DS_SWAP_SIMD(a) (DS_ASSERT(false), (a))
 #endif
 
 DS_SIMD_START(DS_SIMD_DOUBLE2)
@@ -297,15 +297,14 @@ bool dsPolygonEdgesIntersectSIMD(const dsVector2d* from, const dsVector2d* to,
 	dsSIMD2d thisFactor2 = dsSIMD2d_mul(from->simd, DS_SWAP_SIMD(to->simd));
 	dsSIMD2d otherFactor2 = dsSIMD2d_mul(otherFrom->simd, DS_SWAP_SIMD(otherTo->simd));
 	dsSIMD2d_transpose(thisFactor2, otherFactor2);
-	dsVector2d factors2;
-	factors2.simd = dsSIMD2d_sub(thisFactor2, otherFactor2);
+	dsSIMD2d factors2 = dsSIMD2d_sub(thisFactor2, otherFactor2);
 	dsVector2d intersect;
 #if DS_SIMD_ALWAYS_FMA
-	intersect.simd = dsSIMD2d_fmsub(dsSIMD2d_set1(factors2.x), otherFromToDiff,
-		dsSIMD2d_mul(fromToDiff, dsSIMD2d_set1(factors2.y)));
+	intersect.simd = dsSIMD2d_fmsub(dsSIMD2d_set1FromVec(factors2, 0), otherFromToDiff,
+		dsSIMD2d_mul(fromToDiff, dsSIMD2d_set1FromVec(factors2, 1)));
 #else
-	intersect.simd = dsSIMD2d_sub(dsSIMD2d_mul(dsSIMD2d_set1(factors2.x), otherFromToDiff),
-		dsSIMD2d_mul(fromToDiff, dsSIMD2d_set1(factors2.y)));
+	intersect.simd = dsSIMD2d_sub(dsSIMD2d_mul(dsSIMD2d_set1FromVec(factors2, 0), otherFromToDiff),
+		dsSIMD2d_mul(fromToDiff, dsSIMD2d_set1FromVec(factors2, 1)));
 #endif
 
 	intersect.simd = dsSIMD2d_div(intersect.simd, dsSIMD2d_set1(divisor));
@@ -320,7 +319,7 @@ bool dsPolygonEdgesIntersectSIMD(const dsVector2d* from, const dsVector2d* to,
 		t = (intersect.y - from->y)/offset.y;
 
 	dsVector2d otherOffset;
-	dsVector2_sub(otherOffset, *otherTo, *otherFrom);
+	otherOffset.simd = dsSIMD2d_sub(otherTo->simd, otherFrom->simd);
 	offsetAbs.simd = dsSIMD2d_abs(otherOffset.simd);
 	double otherT;
 	if (offsetAbs.x > offsetAbs.y)

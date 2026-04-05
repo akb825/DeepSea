@@ -479,12 +479,20 @@ inline void dsQuaternion4f_normalize(dsQuaternion4f* result, const dsQuaternion4
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 
-#if DS_SIMD_ALWAYS_FLOAT4
-	dsVector4f temp;
-	temp.simd = dsSIMD4f_mul(a->simd, a->simd);
-	float len2 = temp.x + temp.y + temp.z + temp.w;
-	float invLen = 1.0f/sqrtf(len2);
-	result->simd = dsSIMD4f_mul(a->simd, dsSIMD4f_set1(invLen));
+#if DS_SIMD_ALWAYS_FLOAT4 && !DS_SIMD_EMULATED_DIV_SQRT
+	dsSIMD4f length2 = dsSIMD4f_mul(a->simd, a->simd);
+#if DS_SIMD_ALWAYS_HADD
+	length2 = dsSIMD4f_hadd(length2, length2);
+	length2 = dsSIMD4f_hadd(length2, length2);
+#else
+	dsSIMD4f length2X = dsSIMD4f_set1FromVec(length2, 0);
+	dsSIMD4f length2Y = dsSIMD4f_set1FromVec(length2, 1);
+	dsSIMD4f length2Z = dsSIMD4f_set1FromVec(length2, 2);
+	dsSIMD4f length2W = dsSIMD4f_set1FromVec(length2, 3);
+	length2 = dsSIMD4f_add(dsSIMD4f_add(length2X, length2Y), dsSIMD4f_add(length2Z, length2W));
+#endif
+	dsSIMD4f invLength = dsSIMD4f_rsqrt(length2);
+	result->simd = dsSIMD4f_mul(a->simd, invLength);
 #else
 	float len2 = dsPow2(a->i) + dsPow2(a->j) + dsPow2(a->k) + dsPow2(a->r);
 	float invLen = 1.0f/sqrtf(len2);

@@ -42,7 +42,7 @@ extern "C"
 #define DS_SIMD_FLOAT4 sse
 #define DS_SIMD_INT sse2
 #define DS_SIMD_DOUBLE2 sse2
-#define DS_SIMD_DOUBLE4 avx
+#define DS_SIMD_DOUBLE4 avx2
 #define DS_SIMD_HADD sse3
 #define DS_SIMD_FMA fma
 #define DS_SIMD_HALF_FLOAT sse2,f16c
@@ -79,6 +79,8 @@ extern "C"
 #define DS_SIMD_END()
 #endif
 
+#define DS_SIMD_EMULATED_DIV_SQRT 0
+
 #if DS_X86_64 || defined(__SSE__) || _M_IX86_FP >= 1
 #define DS_SIMD_ALWAYS_FLOAT4 1
 #else
@@ -93,7 +95,7 @@ extern "C"
 #define DS_SIMD_ALWAYS_DOUBLE2 0
 #endif
 
-#if defined(__AVX__)
+#if defined(__AVX2__)
 #define DS_SIMD_ALWAYS_DOUBLE4 1
 #else
 #define DS_SIMD_ALWAYS_DOUBLE4 0
@@ -180,6 +182,13 @@ DS_SIMD_START(DS_SIMD_FLOAT4);
 #define DS_SSE_RESULT_FB4(x) _mm_castsi128_ps((x))
 #define DS_SSE_PARAM_FB4(x) _mm_castps_si128((x))
 #endif
+
+#if DS_X86_32
+DS_ALWAYS_INLINE uint64_t dsSIMDDoubleToInt64(double x)
+{
+	return *(uint64_t*)&x;
+}
+#endif
 /// @endcond
 
 /**
@@ -228,6 +237,15 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_set4(float x, float y, float z, float w)
 {
 	return _mm_set_ps(w, z, y, x);
 }
+
+/**
+ * @brief Sets an element from a vector to all elements of a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The value to get the element from.
+ * @param i The index of the element to get.
+ * @return The SIMD value.
+ */
+#define dsSIMD4f_set1FromVec(a, i) _mm_shuffle_ps((a), (a), _MM_SHUFFLE((i), (i), (i), (i)))
 
 /**
  * @brief Stores a SIMD register into four float values.
@@ -709,6 +727,44 @@ DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT);
 /// @endcond
 
 /**
+ * @brief Sets an int value into all elements of a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param i The value to set.
+ * @return The SIMD value.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_set1(uint32_t i)
+{
+	return DS_SSE_RESULT_FB4(_mm_set1_epi32(i));
+}
+
+/**
+ * @brief Sets a SIMD value with four int values.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param x The first value.
+ * @param y The second value.
+ * @param z The third value.
+ * @param w The fourth value.
+ * @return The SIMD value.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_set4(uint32_t x, uint32_t y, uint32_t z, uint32_t w)
+{
+	return DS_SSE_RESULT_FB4(_mm_set_epi32(w, z, y, x));
+}
+
+/**
+ * @brief Sets an element from a vector to all elements of a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The value to get the element from.
+ * @param i The index of the element to get.
+ * @return The SIMD value.
+ */
+#if DS_SIMD_ALWAYS_INT
+#define dsSIMD4fb_set1FromVec(a, i) _mm_shuffle_epi32((a), _MM_SHUFFLE((i), (i), (i), (i)))
+#else
+#define dsSIMD4fb_set1FromVec(a, i) _mm_shuffle_ps((a), (a), _MM_SHUFFLE((i), (i), (i), (i)))
+#endif
+
+/**
  * @brief Converts a SIMD float value to an integer, similar to a cast in C.
  * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
  * @param a The SIMD floating-point value.
@@ -824,31 +880,6 @@ DS_SIMD_START(DS_SIMD_DOUBLE2);
 /// @endcond
 
 /**
- * @brief Sets an int value into all elements of a SIMD register.
- * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
- * @param i The value to set.
- * @return The SIMD value.
- */
-DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_set1(uint32_t i)
-{
-	return DS_SSE_RESULT_FB4(_mm_set1_epi32(i));
-}
-
-/**
- * @brief Sets a SIMD value with four int values.
- * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
- * @param x The first value.
- * @param y The second value.
- * @param z The third value.
- * @param w The fourth value.
- * @return The SIMD value.
- */
-DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_set4(uint32_t x, uint32_t y, uint32_t z, uint32_t w)
-{
-	return DS_SSE_RESULT_FB4(_mm_set_epi32(w, z, y, x));
-}
-
-/**
  * @brief Loads double values into a SIMD register.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param dp A pointer to the double values to load. This should be aligned to 16 bytes.
@@ -890,6 +921,15 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_set2(double x, double y)
 {
 	return _mm_set_pd(y, x);
 }
+
+/**
+ * @brief Sets an element from a vector to all elements of a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The value to get the element from.
+ * @param i The index of the element to get.
+ * @return The SIMD value.
+ */
+#define dsSIMD2d_set1FromVec(a, i) _mm_shuffle_pd((a), (a), _MM_SHUFFLE2((i), (i)))
 
 /**
  * @brief Stores a SIMD register into four double values.
@@ -1226,6 +1266,16 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_set2(uint64_t x, uint64_t y)
 }
 
 /**
+ * @brief Sets an element from a vector to all elements of a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The value to get the element from.
+ * @param i The index of the element to get.
+ * @return The SIMD value.
+ */
+#define dsSIMD2db_set1FromVec(a, i) _mm_castpd_si128(\
+	_mm_shuffle_pd(_mm_castsi128_pd((a)), _mm_castsi128_pd((a)), _MM_SHUFFLE2((i), (i))))
+
+/**
  * @brief Converts a SIMD double value directly to a bitfield value.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param a The SIMD floating-point value.
@@ -1284,8 +1334,13 @@ DS_ALWAYS_INLINE void dsSIMD2db_storeUnaligned(void* ip, dsSIMD2db a)
  * @param i The index of the element.
  * @return The element value.
  */
+#if DS_X86_64
 #define dsSIMD2db_get(a, i) _mm_cvtsi128_si64(_mm_castpd_si128(\
 	_mm_shuffle_pd(_mm_castsi128_pd((a)), _mm_castsi128_pd((a)), _MM_SHUFFLE2(0, (i)))))
+#else
+#define dsSIMD2db_get(a, i) dsSIMDDoubleToInt64(_mm_cvtsd_f64(\
+	_mm_shuffle_pd(_mm_castsi128_pd((a)), _mm_castsi128_pd((a)), _MM_SHUFFLE2(0, (i)))))
+#endif
 
 /**
  * @brief Converts a SIMD bitfield value directly to a double value.
@@ -1509,6 +1564,15 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_set4(double x, double y, double z, double w)
 }
 
 /**
+ * @brief Sets an element from a vector to all elements of a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The value to get the element from.
+ * @param i The index of the element to get.
+ * @return The SIMD value.
+ */
+#define dsSIMD4d_set1FromVec(a, i) _mm256_permute4x64_pd((a), _MM_SHUFFLE((i), (i), (i), (i)))
+
+/**
  * @brief Stores a SIMD register into four double values.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param[out] dp A pointer to the double values to store to. This should be aligned to 16 bytes.
@@ -1537,7 +1601,7 @@ DS_ALWAYS_INLINE void dsSIMD4d_storeUnaligned(void* dp, dsSIMD4d a)
  * @param i The index of the element.
  * @return The element value.
  */
-#define dsSIMD4d_get(a, i) (((const double*)&a)[i])
+#define dsSIMD4d_get(a, i) _mm256_cvtsd_f64(_mm256_permute4x64_pd((a), _MM_SHUFFLE(0, 0, 0, (i))))
 
 /**
  * @brief Negates a SIMD value.
@@ -1856,6 +1920,15 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_set4(uint64_t x, uint64_t y, uint64_t z, ui
 }
 
 /**
+ * @brief Sets an element from a vector to all elements of a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The value to get the element from.
+ * @param i The index of the element to get.
+ * @return The SIMD value.
+ */
+#define dsSIMD4db_set1FromVec(a, i) _mm256_permute4x64_epi64((a), _MM_SHUFFLE((i), (i), (i), (i)))
+
+/**
  * @brief Converts a SIMD double value directly to a bitfield value.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param a The SIMD floating-point value.
@@ -1907,7 +1980,12 @@ DS_ALWAYS_INLINE void dsSIMD4db_storeUnaligned(void* ip, dsSIMD4db a)
  * @param i The index of the element.
  * @return The element value.
  */
-#define dsSIMD4db_get(a, i) (((const uint64_t*)&a)[i])
+#if DS_X86_64
+#define dsSIMD4db_get(a, i) _mm256_extract_epi64((a), (i))
+#else
+#define dsSIMD4db_get(a, i) dsSIMDDoubleToInt64(\
+	_mm256_cvtsd_f64(_mm256_castsi256_pd(_mm256_permute4x64_epi64((a), _MM_SHUFFLE(0, 0, 0, (i))))))
+#endif
 
 /**
  * @brief Converts a SIMD bitfield value directly to a double value.
@@ -1918,9 +1996,9 @@ DS_ALWAYS_INLINE void dsSIMD4db_storeUnaligned(void* ip, dsSIMD4db a)
 DS_ALWAYS_INLINE dsSIMD4d dsSIMD4db_toDoubleBitfield(dsSIMD4db a)
 {
 	return _mm256_castsi256_pd(a);
- }
+}
 
- /**
+/**
  * @brief Converts a SIMD integer value to a double value, similar to a cast in C.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @remark Some implementations may only support integer values up to 32 bits.
