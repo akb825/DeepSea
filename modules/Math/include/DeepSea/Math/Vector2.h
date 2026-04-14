@@ -742,10 +742,9 @@ inline bool dsVector2f_epsilonEqual(const dsVector2f* a, const dsVector2f* b, fl
 inline bool dsVector2d_epsilonEqual(const dsVector2d* a, const dsVector2d* b, double epsilon)
 {
 #if DS_SIMD_ALWAYS_DOUBLE2
-	dsVector2l result;
-	result.simd = dsSIMD2d_cmple(dsSIMD2d_abs(dsSIMD2d_sub(a->simd, b->simd)),
-		dsSIMD2d_set1(epsilon));
-	return result.x && result.y;
+	dsSIMD2db result = dsSIMD2d_cmple(
+		dsSIMD2d_abs(dsSIMD2d_sub(a->simd, b->simd)), dsSIMD2d_set1(epsilon));
+	return dsSIMD2db_all(result) != 0;
 #else
 	return dsEpsilonEquald(a->values[0], b->values[0], epsilon) &&
 		dsEpsilonEquald(a->values[1], b->values[1], epsilon);
@@ -770,9 +769,8 @@ inline bool dsVector2d_relativeEpsilonEqual(const dsVector2d* a, const dsVector2
 		dsSIMD2d_mul(dsSIMD2d_max(dsSIMD2d_abs(a->simd), dsSIMD2d_abs(b->simd)),
 			dsSIMD2d_set1(relativeEps)));
 
-	dsVector2l result;
-	result.simd = dsSIMD2db_or(epsEqual, relativeEqual);
-	return result.x && result.y;
+	dsSIMD2db result = dsSIMD2db_or(epsEqual, relativeEqual);
+	return dsSIMD2db_all(result) != 0;
 #else
 	return dsRelativeEpsilonEquald(a->values[0], b->values[0], absoluteEps, relativeEps) &&
 		dsRelativeEpsilonEquald(a->values[1], b->values[1], absoluteEps, relativeEps);

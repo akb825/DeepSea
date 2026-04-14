@@ -1218,6 +1218,52 @@ static void SIMDTest_FloatBitfield4()
 	EXPECT_EQ(uint32_t(cpuA[1]) >> 5, cpuResult.y);
 	EXPECT_EQ(uint32_t(cpuA[2]) >> 5, cpuResult.z);
 	EXPECT_EQ(uint32_t(cpuA[3]) >> 5, cpuResult.w);
+
+	dsSIMD4fb compare = dsSIMD4fb_set4(0x12345678, 0x87654320, 0x0BCD1234, 0x4321DBCA);
+	result = dsSIMD4fb_cmpeq(a, compare);
+	dsSIMD4fb_store(&cpuResult, result);
+	EXPECT_TRUE(cpuResult.x);
+	EXPECT_FALSE(cpuResult.y);
+	EXPECT_FALSE(cpuResult.z);
+	EXPECT_TRUE(cpuResult.w);
+
+	result = dsSIMD4fb_cmpne(a, compare);
+	dsSIMD4fb_store(&cpuResult, result);
+	EXPECT_FALSE(cpuResult.x);
+	EXPECT_TRUE(cpuResult.y);
+	EXPECT_TRUE(cpuResult.z);
+	EXPECT_FALSE(cpuResult.w);
+
+	uint32_t trueValue = 0xFFFFFFFF;
+	EXPECT_EQ(trueValue, dsSIMD4fb_any(dsSIMD4fb_true()));
+	EXPECT_FALSE(dsSIMD4fb_any(dsSIMD4fb_false()));
+	EXPECT_EQ(trueValue, dsSIMD4fb_any(dsSIMD4fb_set4(trueValue, 0, 0, 0)));
+	EXPECT_EQ(trueValue, dsSIMD4fb_any(dsSIMD4fb_set4(0, trueValue, 0, 0)));
+	EXPECT_EQ(trueValue, dsSIMD4fb_any(dsSIMD4fb_set4(0, 0, trueValue, 0)));
+	EXPECT_EQ(trueValue, dsSIMD4fb_any(dsSIMD4fb_set4(0, 0, 0, trueValue)));
+	EXPECT_EQ(trueValue, dsSIMD4fb_any(dsSIMD4fb_set4(0, trueValue, trueValue, trueValue)));
+	EXPECT_EQ(trueValue, dsSIMD4fb_any(dsSIMD4fb_set4(trueValue, 0, trueValue, trueValue)));
+	EXPECT_EQ(trueValue, dsSIMD4fb_any(dsSIMD4fb_set4(trueValue, trueValue, 0, trueValue)));
+	EXPECT_EQ(trueValue, dsSIMD4fb_any(dsSIMD4fb_set4(trueValue, trueValue, trueValue, 0)));
+	EXPECT_EQ(trueValue, dsSIMD4fb_any(dsSIMD4fb_set4(0, 0, trueValue, trueValue)));
+	EXPECT_EQ(trueValue, dsSIMD4fb_any(dsSIMD4fb_set4(trueValue, trueValue, 0, 0)));
+	EXPECT_EQ(trueValue, dsSIMD4fb_any(dsSIMD4fb_set4(trueValue, 0, 0, trueValue)));
+	EXPECT_EQ(trueValue, dsSIMD4fb_any(dsSIMD4fb_set4(0, trueValue, trueValue, 0)));
+
+	EXPECT_EQ(trueValue, dsSIMD4fb_all(dsSIMD4fb_true()));
+	EXPECT_FALSE(dsSIMD4fb_all(dsSIMD4fb_false()));
+	EXPECT_FALSE(dsSIMD4fb_all(dsSIMD4fb_set4(trueValue, 0, 0, 0)));
+	EXPECT_FALSE(dsSIMD4fb_all(dsSIMD4fb_set4(0, trueValue, 0, 0)));
+	EXPECT_FALSE(dsSIMD4fb_all(dsSIMD4fb_set4(0, 0, trueValue, 0)));
+	EXPECT_FALSE(dsSIMD4fb_all(dsSIMD4fb_set4(0, 0, 0, trueValue)));
+	EXPECT_FALSE(dsSIMD4fb_all(dsSIMD4fb_set4(0, trueValue, trueValue, trueValue)));
+	EXPECT_FALSE(dsSIMD4fb_all(dsSIMD4fb_set4(trueValue, 0, trueValue, trueValue)));
+	EXPECT_FALSE(dsSIMD4fb_all(dsSIMD4fb_set4(trueValue, trueValue, 0, trueValue)));
+	EXPECT_FALSE(dsSIMD4fb_all(dsSIMD4fb_set4(trueValue, trueValue, trueValue, 0)));
+	EXPECT_FALSE(dsSIMD4fb_all(dsSIMD4fb_set4(0, 0, trueValue, trueValue)));
+	EXPECT_FALSE(dsSIMD4fb_all(dsSIMD4fb_set4(trueValue, trueValue, 0, 0)));
+	EXPECT_FALSE(dsSIMD4fb_all(dsSIMD4fb_set4(trueValue, 0, 0, trueValue)));
+	EXPECT_FALSE(dsSIMD4fb_all(dsSIMD4fb_set4(0, trueValue, trueValue, 0)));
 }
 DS_SIMD_END();
 
@@ -1344,6 +1390,28 @@ static void SIMDTest_DoubleBitfield2()
 	dsSIMD2db_store(&cpuResult, result);
 	EXPECT_EQ(uint64_t(cpuA[0]) >> 5, cpuResult.x);
 	EXPECT_EQ(uint64_t(cpuA[1]) >> 5, cpuResult.y);
+
+	dsSIMD2db compare = dsSIMD2db_set2(0x1234567887654321ULL, 0xABCD12344320DBCAULL);
+	result = dsSIMD2db_cmpeq(a, compare);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_TRUE(cpuResult.x);
+	EXPECT_FALSE(cpuResult.y);
+
+	result = dsSIMD2db_cmpne(a, compare);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_FALSE(cpuResult.x);
+	EXPECT_TRUE(cpuResult.y);
+
+	uint64_t trueValue = 0xFFFFFFFFFFFFFFFFULL;
+	EXPECT_EQ(trueValue, dsSIMD2db_any(dsSIMD2db_true()));
+	EXPECT_FALSE(dsSIMD2db_any(dsSIMD2db_false()));
+	EXPECT_EQ(trueValue, dsSIMD2db_any(dsSIMD2db_set2(trueValue, 0)));
+	EXPECT_EQ(trueValue, dsSIMD2db_any(dsSIMD2db_set2(0, trueValue)));
+
+	EXPECT_EQ(trueValue, dsSIMD2db_all(dsSIMD2db_true()));
+	EXPECT_FALSE(dsSIMD2db_all(dsSIMD2db_false()));
+	EXPECT_FALSE(dsSIMD2db_all(dsSIMD2db_set2(trueValue, 0)));
+	EXPECT_FALSE(dsSIMD2db_all(dsSIMD2db_set2(0, trueValue)));
 }
 DS_SIMD_END();
 
@@ -1519,6 +1587,53 @@ static void SIMDTest_DoubleBitfield4()
 	EXPECT_EQ(uint64_t(cpuA[1]) >> 5, cpuResult.y);
 	EXPECT_EQ(uint64_t(cpuA[2]) >> 5, cpuResult.z);
 	EXPECT_EQ(uint64_t(cpuA[3]) >> 5, cpuResult.w);
+
+	dsSIMD4db compare = dsSIMD4db_set4(
+		0x123456789ABCDEFULL, 0xFEDCBA987654320ULL, 0x0BCDEF123456789ULL, 0x987654321FEDCBAULL);
+	result = dsSIMD4db_cmpeq(a, compare);
+	dsSIMD4db_store(&cpuResult, result);
+	EXPECT_TRUE(cpuResult.x);
+	EXPECT_FALSE(cpuResult.y);
+	EXPECT_FALSE(cpuResult.z);
+	EXPECT_TRUE(cpuResult.w);
+
+	result = dsSIMD4db_cmpne(a, compare);
+	dsSIMD4db_store(&cpuResult, result);
+	EXPECT_FALSE(cpuResult.x);
+	EXPECT_TRUE(cpuResult.y);
+	EXPECT_TRUE(cpuResult.z);
+	EXPECT_FALSE(cpuResult.w);
+
+	uint64_t trueValue = 0xFFFFFFFFFFFFFFFFULL;
+	EXPECT_EQ(trueValue, dsSIMD4db_any(dsSIMD4db_true()));
+	EXPECT_FALSE(dsSIMD4db_any(dsSIMD4db_false()));
+	EXPECT_EQ(trueValue, dsSIMD4db_any(dsSIMD4db_set4(trueValue, 0, 0, 0)));
+	EXPECT_EQ(trueValue, dsSIMD4db_any(dsSIMD4db_set4(0, trueValue, 0, 0)));
+	EXPECT_EQ(trueValue, dsSIMD4db_any(dsSIMD4db_set4(0, 0, trueValue, 0)));
+	EXPECT_EQ(trueValue, dsSIMD4db_any(dsSIMD4db_set4(0, 0, 0, trueValue)));
+	EXPECT_EQ(trueValue, dsSIMD4db_any(dsSIMD4db_set4(0, trueValue, trueValue, trueValue)));
+	EXPECT_EQ(trueValue, dsSIMD4db_any(dsSIMD4db_set4(trueValue, 0, trueValue, trueValue)));
+	EXPECT_EQ(trueValue, dsSIMD4db_any(dsSIMD4db_set4(trueValue, trueValue, 0, trueValue)));
+	EXPECT_EQ(trueValue, dsSIMD4db_any(dsSIMD4db_set4(trueValue, trueValue, trueValue, 0)));
+	EXPECT_EQ(trueValue, dsSIMD4db_any(dsSIMD4db_set4(0, 0, trueValue, trueValue)));
+	EXPECT_EQ(trueValue, dsSIMD4db_any(dsSIMD4db_set4(trueValue, trueValue, 0, 0)));
+	EXPECT_EQ(trueValue, dsSIMD4db_any(dsSIMD4db_set4(trueValue, 0, 0, trueValue)));
+	EXPECT_EQ(trueValue, dsSIMD4db_any(dsSIMD4db_set4(0, trueValue, trueValue, 0)));
+
+	EXPECT_EQ(trueValue, dsSIMD4db_all(dsSIMD4db_true()));
+	EXPECT_FALSE(dsSIMD4db_all(dsSIMD4db_false()));
+	EXPECT_FALSE(dsSIMD4db_all(dsSIMD4db_set4(trueValue, 0, 0, 0)));
+	EXPECT_FALSE(dsSIMD4db_all(dsSIMD4db_set4(0, trueValue, 0, 0)));
+	EXPECT_FALSE(dsSIMD4db_all(dsSIMD4db_set4(0, 0, trueValue, 0)));
+	EXPECT_FALSE(dsSIMD4db_all(dsSIMD4db_set4(0, 0, 0, trueValue)));
+	EXPECT_FALSE(dsSIMD4db_all(dsSIMD4db_set4(0, trueValue, trueValue, trueValue)));
+	EXPECT_FALSE(dsSIMD4db_all(dsSIMD4db_set4(trueValue, 0, trueValue, trueValue)));
+	EXPECT_FALSE(dsSIMD4db_all(dsSIMD4db_set4(trueValue, trueValue, 0, trueValue)));
+	EXPECT_FALSE(dsSIMD4db_all(dsSIMD4db_set4(trueValue, trueValue, trueValue, 0)));
+	EXPECT_FALSE(dsSIMD4db_all(dsSIMD4db_set4(0, 0, trueValue, trueValue)));
+	EXPECT_FALSE(dsSIMD4db_all(dsSIMD4db_set4(trueValue, trueValue, 0, 0)));
+	EXPECT_FALSE(dsSIMD4db_all(dsSIMD4db_set4(trueValue, 0, 0, trueValue)));
+	EXPECT_FALSE(dsSIMD4db_all(dsSIMD4db_set4(0, trueValue, trueValue, 0)));
 }
 DS_SIMD_END();
 

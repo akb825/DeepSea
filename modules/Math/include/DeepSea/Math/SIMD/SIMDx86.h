@@ -896,6 +896,59 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_shiftRight(dsSIMD4fb a, unsigned int b)
 #define dsSIMD4fb_shiftRightConst(a, b) \
 	DS_SSE_RESULT_FB4(_mm_srli_epi32(DS_SSE_PARAM_FB4((a)), (b)))
 
+/**
+ * @brief Checks if two SIMD values are equal.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a == b.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_cmpeq(dsSIMD4fb a, dsSIMD4fb b)
+{
+	return DS_SSE_RESULT_FB4(_mm_cmpeq_epi32(DS_SSE_PARAM_FB4(a), DS_SSE_PARAM_FB4(b)));
+}
+
+/**
+ * @brief Checks if two SIMD values are not equal.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a != b.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_cmpne(dsSIMD4fb a, dsSIMD4fb b)
+{
+	return dsSIMD4fb_not(
+		DS_SSE_RESULT_FB4(_mm_cmpeq_epi32(DS_SSE_PARAM_FB4(a), DS_SSE_PARAM_FB4(b))));
+}
+
+/**
+ * @brief Gets whether any boolean SIMD values are set.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @remark Results are undefined if the bit values for each element aren't all 0s or all 1s.
+ * @param a The value to check.
+ * @return All 1s if any element in a is true, all 0s if every elements is false.
+ */
+DS_ALWAYS_INLINE uint32_t dsSIMD4fb_any(dsSIMD4fb a)
+{
+	__m128i temp = _mm_or_si128(DS_SSE_PARAM_FB4(a),
+		_mm_shuffle_epi32(DS_SSE_PARAM_FB4(a), _MM_SHUFFLE(2, 3, 0, 1)));
+	return _mm_cvtsi128_si32(_mm_or_si128(temp, _mm_shuffle_epi32(temp, _MM_SHUFFLE(0, 0, 2, 2))));
+}
+
+/**
+ * @brief Gets whether all boolean SIMD values are set.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @remark Results are undefined if the bit values for each element aren't all 0s or all 1s.
+ * @param a The value to check.
+ * @return All 1s if every element in a is true, all 0s if any elements is false.
+ */
+DS_ALWAYS_INLINE uint32_t dsSIMD4fb_all(dsSIMD4fb a)
+{
+	__m128i temp = _mm_and_si128(DS_SSE_PARAM_FB4(a),
+		_mm_shuffle_epi32(DS_SSE_PARAM_FB4(a), _MM_SHUFFLE(2, 3, 0, 1)));
+	return _mm_cvtsi128_si32(_mm_and_si128(temp, _mm_shuffle_epi32(temp, _MM_SHUFFLE(0, 0, 2, 2))));
+}
+
 /// @cond
 DS_SIMD_END();
 DS_SIMD_START(DS_SIMD_DOUBLE2);
@@ -1376,10 +1429,10 @@ DS_ALWAYS_INLINE void dsSIMD2db_storeUnaligned(void* ip, dsSIMD2db a)
  * @return The element value.
  */
 #if DS_X86_64
-#define dsSIMD2db_get(a, i) _mm_cvtsi128_si64(_mm_castpd_si128(\
+#define dsSIMD2db_get(a, i) _mm_cvtsi128_si64(_mm_castpd_si128( \
 	_mm_shuffle_pd(_mm_castsi128_pd((a)), _mm_castsi128_pd((a)), _MM_SHUFFLE2(0, (i)))))
 #else
-#define dsSIMD2db_get(a, i) dsSIMDDoubleToInt64(_mm_cvtsd_f64(\
+#define dsSIMD2db_get(a, i) dsSIMDDoubleToInt64(_mm_cvtsd_f64( \
 	_mm_shuffle_pd(_mm_castsi128_pd((a)), _mm_castsi128_pd((a)), _MM_SHUFFLE2(0, (i)))))
 #endif
 
@@ -1553,6 +1606,69 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_shiftRight(dsSIMD2db a, unsigned int b)
  * @return The result of a >> b.
  */
 #define dsSIMD2db_shiftRightConst(a, b) _mm_srli_epi64((a), (b))
+
+/**
+ * @brief Checks if two SIMD values are equal.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a == b.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_cmpeq(dsSIMD2db a, dsSIMD2db b)
+{
+#if defined(__SSE4_1__) || defined(__AVX__)
+	return _mm_cmpeq_epi64(a, b);
+#else
+	__m128i cmp32 = _mm_cmpeq_epi32(a, b);
+	return _mm_and_si128(cmp32, _mm_shuffle_epi32(cmp32, _MM_SHUFFLE(2, 3, 0, 1)));
+#endif
+}
+
+/**
+ * @brief Checks if two SIMD values are not equal.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a != b.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_cmpne(dsSIMD2db a, dsSIMD2db b)
+{
+	return dsSIMD2db_not(dsSIMD2db_cmpeq(a, b));
+}
+
+/**
+ * @brief Gets whether any boolean SIMD values are set.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @remark Results are undefined if the bit values for each element aren't all 0s or all 1s.
+ * @param a The value to check.
+ * @return All 1s if any element in a is true, all 0s if every elements is false.
+ */
+DS_ALWAYS_INLINE uint64_t dsSIMD2db_any(dsSIMD2db a)
+{
+	__m128i temp = _mm_or_si128(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+#if DS_X86_64
+	return _mm_cvtsi128_si64(temp);
+#else
+	return dsSIMDDoubleToInt64(_mm_cvtsd_f64(_mm_castsi128_pd(temp)));
+#endif
+}
+
+/**
+ * @brief Gets whether all boolean SIMD values are set.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @remark Results are undefined if the bit values for each element aren't all 0s or all 1s.
+ * @param a The value to check.
+ * @return All 1s if every element in a is true, all 0s if any elements is false.
+ */
+DS_ALWAYS_INLINE uint64_t dsSIMD2db_all(dsSIMD2db a)
+{
+	__m128i temp = _mm_and_si128(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+#if DS_X86_64
+	return _mm_cvtsi128_si64(temp);
+#else
+	return dsSIMDDoubleToInt64(_mm_cvtsd_f64(_mm_castsi128_pd(temp)));
+#endif
+}
 
 /// @cond
 DS_SIMD_END();
@@ -2036,7 +2152,7 @@ DS_ALWAYS_INLINE void dsSIMD4db_storeUnaligned(void* ip, dsSIMD4db a)
 #if DS_X86_64
 #define dsSIMD4db_get(a, i) _mm256_extract_epi64((a), (i))
 #else
-#define dsSIMD4db_get(a, i) dsSIMDDoubleToInt64(\
+#define dsSIMD4db_get(a, i) dsSIMDDoubleToInt64( \
 	_mm256_cvtsd_f64(_mm256_castsi256_pd(_mm256_permute4x64_epi64((a), _MM_SHUFFLE(0, 0, 0, (i))))))
 #endif
 
@@ -2211,6 +2327,66 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_shiftRight(dsSIMD4db a, unsigned int b)
  * @return The result of a >> b.
  */
 #define dsSIMD4db_shiftRightConst(a, b) _mm256_srli_epi64((a), (b))
+
+/**
+ * @brief Checks if two SIMD values are equal.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a == b.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_cmpeq(dsSIMD4db a, dsSIMD4db b)
+{
+	return _mm256_cmpeq_epi64(a, b);
+}
+
+/**
+ * @brief Checks if two SIMD values are not equal.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a != b.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_cmpne(dsSIMD4db a, dsSIMD4db b)
+{
+	return dsSIMD4db_not(_mm256_cmpeq_epi64(a, b));
+}
+
+/**
+ * @brief Gets whether any boolean SIMD values are set.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int are available.
+ * @remark Results are undefined if the bit values for each element aren't all 0s or all 1s.
+ * @param a The value to check.
+ * @return All 1s if any element in a is true, all 0s if every elements is false.
+ */
+DS_ALWAYS_INLINE uint64_t dsSIMD4db_any(dsSIMD4db a)
+{
+	__m256i temp = _mm256_or_si256(a, _mm256_permute4x64_epi64(a, _MM_SHUFFLE(2, 3, 0, 1)));
+	temp = _mm256_or_si256(temp, _mm256_permute4x64_epi64(temp, _MM_SHUFFLE(0, 0, 2, 2)));
+#if DS_X86_64
+	return _mm256_extract_epi64(temp, 0);
+#else
+	return dsSIMDDoubleToInt64(_mm256_cvtsd_f64(_mm256_castsi256_pd(temp)));
+#endif
+}
+
+/**
+ * @brief Gets whether all boolean SIMD values are set.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int are available.
+ * @remark Results are undefined if the bit values for each element aren't all 0s or all 1s.
+ * @param a The value to check.
+ * @return All 1s if every element in a is true, all 0s if any elements is false.
+ */
+DS_ALWAYS_INLINE uint64_t dsSIMD4db_all(dsSIMD4db a)
+{
+	__m256i temp = _mm256_and_si256(a, _mm256_permute4x64_epi64(a, _MM_SHUFFLE(2, 3, 0, 1)));
+	temp = _mm256_and_si256(temp, _mm256_permute4x64_epi64(temp, _MM_SHUFFLE(0, 0, 2, 2)));
+#if DS_X86_64
+	return _mm256_extract_epi64(temp, 0);
+#else
+	return dsSIMDDoubleToInt64(_mm256_cvtsd_f64(_mm256_castsi256_pd(temp)));
+#endif
+}
 
 /// @cond
 DS_SIMD_END();

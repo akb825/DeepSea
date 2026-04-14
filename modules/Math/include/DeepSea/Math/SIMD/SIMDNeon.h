@@ -833,6 +833,56 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_shiftRight(dsSIMD4fb a, unsigned int b)
 #define dsSIMD4fb_shiftRightConst(a, b) vshrq_n_u32((a), (b))
 
 /**
+ * @brief Checks if two SIMD values are equal.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a == b.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_cmpeq(dsSIMD4fb a, dsSIMD4fb b)
+{
+	return vceqq_u32(a, b);
+}
+
+/**
+ * @brief Checks if two SIMD values are not equal.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a != b.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_cmpne(dsSIMD4fb a, dsSIMD4fb b)
+{
+	return vmvnq_u32(vceqq_u32(a, b));
+}
+
+/**
+ * @brief Gets whether any boolean SIMD values are set.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @remark Results are undefined if the bit values for each element aren't all 0s or all 1s.
+ * @param a The value to check.
+ * @return All 1s if any element in a is true, all 0s if every elements is false.
+ */
+DS_ALWAYS_INLINE uint32_t dsSIMD4fb_any(dsSIMD4fb a)
+{
+	uint32x2_t temp = vorr_u32(vget_low_u32(a), vget_high_u32(a));
+	return vget_lane_u32(vorr_u32(temp, vrev64_u32(temp)), 0);
+}
+
+/**
+ * @brief Gets whether all boolean SIMD values are set.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @remark Results are undefined if the bit values for each element aren't all 0s or all 1s.
+ * @param a The value to check.
+ * @return All 1s if every element in a is true, all 0s if any elements is false.
+ */
+DS_ALWAYS_INLINE uint32_t dsSIMD4fb_all(dsSIMD4fb a)
+{
+	uint32x2_t temp = vand_u32(vget_low_u32(a), vget_high_u32(a));
+	return vget_lane_u32(vand_u32(temp, vrev64_u32(temp)), 0);
+}
+
+/**
  * @brief Loads double values into a SIMD register.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param fp A pointer to the double values to load. This should be aligned to 16 bytes.
@@ -1741,6 +1791,74 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_shiftRight(dsSIMD2db a, unsigned int b)
 #endif
 
 /**
+ * @brief Checks if two SIMD values are equal.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a == b.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_cmpeq(dsSIMD2db a, dsSIMD2db b)
+{
+#if DS_SIMD_ALWAYS_DOUBLE2
+	return vceqq_u64(a, b);
+#else
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+#endif
+}
+
+/**
+ * @brief Checks if two SIMD values are not equal.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a != b.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_cmpne(dsSIMD2db a, dsSIMD2db b)
+{
+#if DS_SIMD_ALWAYS_DOUBLE2
+	return vmvnq_u32(vceqq_u64(a, b));
+#else
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+#endif
+}
+
+/**
+ * @brief Gets whether any boolean SIMD values are set.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @remark Results are undefined if the bit values for each element aren't all 0s or all 1s.
+ * @param a The value to check.
+ * @return All 1s if any element in a is true, all 0s if every elements is false.
+ */
+DS_ALWAYS_INLINE uint64_t dsSIMD2db_any(dsSIMD2db a)
+{
+#if DS_SIMD_ALWAYS_DOUBLE2
+	return vgetq_lane_u64(a, 0) | vgetq_lane_u64(a, 1);
+#else
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+#endif
+}
+
+/**
+ * @brief Gets whether all boolean SIMD values are set.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @remark Results are undefined if the bit values for each element aren't all 0s or all 1s.
+ * @param a The value to check.
+ * @return All 1s if every element in a is true, all 0s if any elements is false.
+ */
+DS_ALWAYS_INLINE uint64_t dsSIMD2db_all(dsSIMD2db a)
+{
+#if DS_SIMD_ALWAYS_DOUBLE2
+	return vgetq_lane_u64(a, 0) & vgetq_lane_u64(a, 1);
+#else
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+#endif
+}
+
+/**
  * @brief Loads double values into a SIMD register.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param dp A pointer to the double values to load. This should be aligned to 16 bytes.
@@ -2430,6 +2548,58 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_shiftRight(dsSIMD4db a, unsigned int b)
  * @return The result of a >> b.
  */
 #define dsSIMD4db_shiftRightConst(a, b) (a)
+
+/**
+ * @brief Checks if two SIMD values are equal.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a == b.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_cmpeq(dsSIMD4db a, dsSIMD4db b)
+{
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+}
+
+/**
+ * @brief Checks if two SIMD values are not equal.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a != b.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_cmpne(dsSIMD4db a, dsSIMD4db b)
+{
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+}
+
+/**
+ * @brief Gets whether any boolean SIMD values are set.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int are available.
+ * @remark Results are undefined if the bit values for each element aren't all 0s or all 1s.
+ * @param a The value to check.
+ * @return All 1s if any element in a is true, all 0s if every elements is false.
+ */
+DS_ALWAYS_INLINE uint64_t dsSIMD4db_any(dsSIMD4db a)
+{
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+}
+
+/**
+ * @brief Gets whether all boolean SIMD values are set.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int are available.
+ * @remark Results are undefined if the bit values for each element aren't all 0s or all 1s.
+ * @param a The value to check.
+ * @return All 1s if every element in a is true, all 0s if any elements is false.
+ */
+DS_ALWAYS_INLINE uint64_t dsSIMD4db_all(dsSIMD4db a)
+{
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+}
 
 /**
  * @brief Performs a horizontal add between two SIMD values.
