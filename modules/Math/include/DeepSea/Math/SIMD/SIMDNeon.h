@@ -46,6 +46,7 @@ extern "C"
 #define DS_SIMD_DOUBLE2
 #define DS_SIMD_DOUBLE4
 #define DS_SIMD_HADD
+#define DS_SIMD_ROUNDING
 #define DS_SIMD_FMA
 #define DS_SIMD_HALF_FLOAT
 #define DS_SIMD_START(...)
@@ -57,6 +58,7 @@ extern "C"
 #define DS_SIMD_ALWAYS_DOUBLE2 DS_ARM_64
 #define DS_SIMD_ALWAYS_DOUBLE4 0
 #define DS_SIMD_ALWAYS_HADD 1
+#define DS_SIMD_ALWAYS_ROUNDING DS_ARM_64
 #define DS_SIMD_ALWAYS_FMA !DS_DETERMINISTIC_MATH
 #define DS_SIMD_ALWAYS_HALF_FLOAT 1
 
@@ -611,6 +613,22 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_fromFloatBitfield(dsSIMD4f a)
 DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_fromFloat(dsSIMD4f a)
 {
 	return vcvtq_s32_f32(a);
+}
+
+/**
+ * @brief Converts a SIMD float value to an integer with rounding.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @remark This may be inconsistent between platforms for values ending in exactly .5.
+ * @param a The SIMD floating-point value.
+ * @return The integer representation after rounding.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_round(dsSIMD4f a)
+{
+#if DS_ARM_64
+	return vcvtnq_s32_f32(a);
+#else
+	return vcvtq_s32_f32(vaddq_f32(a, vdupq_n_f32(0.5f)));
+#endif
 }
 
 /**
@@ -1433,6 +1451,23 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_fromDouble(dsSIMD2d a)
 }
 
 /**
+ * @brief Converts a SIMD double value to a 64-bit integer with rounding.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @remark Some implementations may only support integer values up to 32 bits.
+ * @param a The SIMD floating-point value.
+ * @return The integer representation after rounding.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_round(dsSIMD2d a)
+{
+#if DS_SIMD_ALWAYS_DOUBLE2
+	return vcvtnq_s64_f64(a);
+#else
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+#endif
+}
+
+/**
  * @brief Stores a SIMD register into four int values.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param[out] ip A pointer to the float values to store to. This may be unaligned.
@@ -2167,6 +2202,19 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_fromDouble(dsSIMD4d a)
 }
 
 /**
+ * @brief Converts a SIMD double value to a 64-bit integer with rounding.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int are available.
+ * @remark Some implementations may only support integer values up to 32 bits.
+ * @param a The SIMD floating-point value.
+ * @return The integer representation after rounding.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_round(dsSIMD4d a)
+{
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+}
+
+/**
  * @brief Stores a SIMD bitfield register into four int values.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param[out] ip A pointer to the int values to store to. This should be aligned to 16 bytes.
@@ -2385,7 +2433,7 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_shiftRight(dsSIMD4db a, unsigned int b)
 
 /**
  * @brief Performs a horizontal add between two SIMD values.
- * @remark This can be used when dsSIMDFeatures_HAdd is available.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_HAdd are available.
  * @param a The first value to add.
  * @param b The second value to add.
  * @return The result of (a.x + a.y, a.z + a.w, b.x + b.y, b.z + b.w)
@@ -2427,6 +2475,182 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_hadd(dsSIMD2d a, dsSIMD2d b)
  * @return The result of (a.x + a.y, b.x + b.y, a.z + a.w, b.z + b.w)
  */
 DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_hadd(dsSIMD4d a, dsSIMD4d b)
+{
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+}
+
+/**
+ * @brief Rounds SIMD values to the nearest whole number.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The values of a rounded to the nearest whole number.
+ */
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_round(dsSIMD4f a)
+{
+#if DS_SIMD_ALWAYS_ROUNDING
+	return vrndnq_f32(a);
+#else
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+#endif
+}
+
+/**
+ * @brief Truncates SIMD values by removing all decimal digits.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The values of a after removing all decimal digits.
+ */
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_trunc(dsSIMD4f a)
+{
+#if DS_SIMD_ALWAYS_ROUNDING
+	return vrndq_f32(a);
+#else
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+#endif
+}
+
+/**
+ * @brief Takes the floor of SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The floor of values of a.
+ */
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_floor(dsSIMD4f a)
+{
+#if DS_SIMD_ALWAYS_ROUNDING
+	return vrndmq_f32(a);
+#else
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+#endif
+}
+
+/**
+ * @brief Takes the ceiling of SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The ceiling of values of a.
+ */
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_ceil(dsSIMD4f a)
+{
+#if DS_SIMD_ALWAYS_ROUNDING
+	return vrndpq_f32(a);
+#else
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+#endif
+}
+
+/**
+ * @brief Rounds SIMD values to the nearest whole number.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The values of a rounded to the nearest whole number.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_round(dsSIMD2d a)
+{
+#if DS_SIMD_ALWAYS_DOUBLE2
+	return vrndnq_f64(a);
+#else
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+#endif
+}
+
+/**
+ * @brief Truncates SIMD values by removing all decimal digits.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The values of a after removing all decimal digits.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_trunc(dsSIMD2d a)
+{
+#if DS_SIMD_ALWAYS_DOUBLE2
+	return vrndq_f64(a);
+#else
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+#endif
+}
+
+/**
+ * @brief Takes the floor of SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The floor of values of a.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_floor(dsSIMD2d a)
+{
+#if DS_SIMD_ALWAYS_DOUBLE2
+	return vrndmq_f64(a);
+#else
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+#endif
+}
+
+/**
+ * @brief Takes the ceiling of SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The ceiling of values of a.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_ceil(dsSIMD2d a)
+{
+#if DS_SIMD_ALWAYS_DOUBLE2
+	return vrndpq_f64(a);
+#else
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+#endif
+}
+
+/**
+ * @brief Rounds SIMD values to the nearest whole number.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The values of a rounded to the nearest whole number.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_round(dsSIMD4d a)
+{
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+}
+
+/**
+ * @brief Truncates SIMD values by removing all decimal digits.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The values of a after removing all decimal digits.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_trunc(dsSIMD4d a)
+{
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+}
+
+/**
+ * @brief Takes the floor of SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The floor of values of a.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_floor(dsSIMD4d a)
+{
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+}
+
+/**
+ * @brief Takes the ceiling of SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The ceiling of values of a.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_ceil(dsSIMD4d a)
 {
 	DS_ASSERT(false);
 	DS_UNREACHABLE();

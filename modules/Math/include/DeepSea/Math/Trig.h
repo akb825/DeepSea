@@ -1076,8 +1076,12 @@ DS_ALWAYS_INLINE void dsSinCosSIMD4fImpl(
 	dsSIMD4f cosTaylor3 = dsSIMD4f_set1(DS_COS_TAYLOR_3f);
 
 	dsSIMD4f absAngles = dsSIMD4f_abs(angles);
-	// Use truncation to perform rounding.
+#if DS_DETERMINISTIC_MATH
+	// Not all platforms will use the same rounding mode, so round through truncation.
 	*outQuadrants = dsSIMD4fb_fromFloat(dsSIMD4f_add(dsSIMD4f_mul(absAngles, twoOverPi), half));
+#else
+	*outQuadrants = dsSIMD4fb_round(dsSIMD4f_mul(absAngles, twoOverPi));
+#endif
 
 	dsSIMD4f quadrantAngles = dsTrigQuadrantAngleSIMD4f(
 		absAngles, dsSIMD4fb_toFloat(*outQuadrants));
@@ -1153,7 +1157,6 @@ DS_MATH_EXPORT inline void dsSinCosSIMD4f(dsSIMD4f* outSin, dsSIMD4f* outCos, ds
 DS_MATH_EXPORT inline dsSIMD4f dsTanSIMD4f(dsSIMD4f angles)
 {
 	dsSIMD4f twoOverPi = dsSIMD4f_set1(M_2_PIf);
-	dsSIMD4f half = dsSIMD4f_set1(0.5f);
 	dsSIMD4f negOne = dsSIMD4f_set1(-1.0f);
 	dsSIMD4fb oneb = dsSIMD4fb_set1(1);
 
@@ -1165,8 +1168,13 @@ DS_MATH_EXPORT inline dsSIMD4f dsTanSIMD4f(dsSIMD4f angles)
 	dsSIMD4f tanTaylor6 = dsSIMD4f_set1(DS_TAN_TAYLOR_6f);
 
 	dsSIMD4f absAngles = dsSIMD4f_abs(angles);
-	// Use truncation to perform rounding.
-	dsSIMD4fb quadrants = dsSIMD4fb_fromFloat(dsSIMD4f_add(dsSIMD4f_mul(absAngles, twoOverPi), half));
+#if DS_DETERMINISTIC_MATH
+	// Not all platforms will use the same rounding mode, so round through truncation.
+	dsSIMD4fb quadrants = dsSIMD4fb_fromFloat(
+		dsSIMD4f_add(dsSIMD4f_mul(absAngles, twoOverPi), dsSIMD4f_set1(0.5f)));
+#else
+	dsSIMD4fb quadrants = dsSIMD4fb_round(dsSIMD4f_mul(absAngles, twoOverPi));
+#endif
 
 	dsSIMD4f quadrantAngles = dsTrigQuadrantAngleSIMD4f(absAngles, dsSIMD4fb_toFloat(quadrants));
 	dsSIMD4f quadrantAngles2 = dsSIMD4f_mul(quadrantAngles, quadrantAngles);
@@ -1339,8 +1347,7 @@ DS_ALWAYS_INLINE void dsSinCosFMA4fImpl(
 	dsSIMD4f cosTaylor3 = dsSIMD4f_set1(DS_COS_TAYLOR_3f);
 
 	dsSIMD4f absAngles = dsSIMD4f_abs(angles);
-	// Use truncation to perform rounding.
-	*outQuadrants = dsSIMD4fb_fromFloat(dsSIMD4f_fmadd(absAngles, twoOverPi, half));
+	*outQuadrants = dsSIMD4fb_round(dsSIMD4f_mul(absAngles, twoOverPi));
 
 	dsSIMD4f quadrantAngles = dsTrigQuadrantAngleFMA4f(
 		absAngles, dsSIMD4fb_toFloat(*outQuadrants));
@@ -1416,7 +1423,6 @@ DS_MATH_EXPORT inline void dsSinCosFMA4f(dsSIMD4f* outSin, dsSIMD4f* outCos, dsS
 DS_MATH_EXPORT inline dsSIMD4f dsTanFMA4f(dsSIMD4f angles)
 {
 	dsSIMD4f twoOverPi = dsSIMD4f_set1(M_2_PIf);
-	dsSIMD4f half = dsSIMD4f_set1(0.5f);
 	dsSIMD4f negOne = dsSIMD4f_set1(-1.0f);
 	dsSIMD4fb oneb = dsSIMD4fb_set1(1);
 
@@ -1428,8 +1434,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsTanFMA4f(dsSIMD4f angles)
 	dsSIMD4f tanTaylor6 = dsSIMD4f_set1(DS_TAN_TAYLOR_6f);
 
 	dsSIMD4f absAngles = dsSIMD4f_abs(angles);
-	// Use truncation to perform rounding.
-	dsSIMD4fb quadrants = dsSIMD4fb_fromFloat(dsSIMD4f_fmadd(absAngles, twoOverPi, half));
+	dsSIMD4fb quadrants = dsSIMD4fb_round(dsSIMD4f_mul(absAngles, twoOverPi));
 
 	dsSIMD4f quadrantAngles = dsTrigQuadrantAngleSIMD4f(absAngles, dsSIMD4fb_toFloat(quadrants));
 	dsSIMD4f quadrantAngles2 = dsSIMD4f_mul(quadrantAngles, quadrantAngles);
@@ -1607,8 +1612,7 @@ DS_ALWAYS_INLINE void dsSinCosSIMD2dImpl(
 	dsSIMD2d cosTaylor6 = dsSIMD2d_set1(DS_COS_TAYLOR_6d);
 
 	dsSIMD2d absAngles = dsSIMD2d_abs(angles);
-	// Use truncation to perform rounding.
-	*outQuadrants = dsSIMD2db_fromDouble(dsSIMD2d_add(dsSIMD2d_mul(absAngles, twoOverPi), half));
+	*outQuadrants = dsSIMD2db_round(dsSIMD2d_mul(absAngles, twoOverPi));
 
 	dsSIMD2d quadrantAngles = dsTrigQuadrantAngleSIMD2d(
 		absAngles, dsSIMD2db_toDouble(*outQuadrants));
@@ -1688,7 +1692,6 @@ DS_MATH_EXPORT inline void dsSinCosSIMD2d(dsSIMD2d* outSin, dsSIMD2d* outCos, ds
 DS_MATH_EXPORT inline dsSIMD2d dsTanSIMD2d(dsSIMD2d angles)
 {
 	dsSIMD2d twoOverPi = dsSIMD2d_set1(M_2_PI);
-	dsSIMD2d half = dsSIMD2d_set1(0.5);
 	dsSIMD2d negOne = dsSIMD2d_set1(-1.0);
 	dsSIMD2db oneb = dsSIMD2db_set1(1);
 
@@ -1702,9 +1705,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsTanSIMD2d(dsSIMD2d angles)
 	dsSIMD2d tanTaylorQ4 = dsSIMD2d_set1(DS_TAN_TAYLOR_Q_4d);
 
 	dsSIMD2d absAngles = dsSIMD2d_abs(angles);
-	// Use truncation to perform rounding.
-	dsSIMD2db quadrants = dsSIMD2db_fromDouble(
-		dsSIMD2d_add(dsSIMD2d_mul(absAngles, twoOverPi), half));
+	dsSIMD2db quadrants = dsSIMD2db_round(dsSIMD2d_mul(absAngles, twoOverPi));
 
 	dsSIMD2d quadrantAngles = dsTrigQuadrantAngleSIMD2d(absAngles, dsSIMD2db_toDouble(quadrants));
 	dsSIMD2d quadrantAngles2 = dsSIMD2d_mul(quadrantAngles, quadrantAngles);
@@ -1976,8 +1977,7 @@ DS_ALWAYS_INLINE void dsSinCosFMA2dImpl(
 	dsSIMD2d cosTaylor6 = dsSIMD2d_set1(DS_COS_TAYLOR_6d);
 
 	dsSIMD2d absAngles = dsSIMD2d_abs(angles);
-	// Use truncation to perform rounding.
-	*outQuadrants = dsSIMD2db_fromDouble(dsSIMD2d_fmadd(absAngles, twoOverPi, half));
+	*outQuadrants = dsSIMD2db_round(dsSIMD2d_mul(absAngles, twoOverPi));
 
 	dsSIMD2d quadrantAngles = dsTrigQuadrantAngleFMA2d(
 		absAngles, dsSIMD2db_toDouble(*outQuadrants));
@@ -2056,7 +2056,6 @@ DS_MATH_EXPORT inline void dsSinCosFMA2d(dsSIMD2d* outSin, dsSIMD2d* outCos, dsS
 DS_MATH_EXPORT inline dsSIMD2d dsTanFMA2d(dsSIMD2d angles)
 {
 	dsSIMD2d twoOverPi = dsSIMD2d_set1(M_2_PI);
-	dsSIMD2d half = dsSIMD2d_set1(0.5);
 	dsSIMD2d negOne = dsSIMD2d_set1(-1.0);
 	dsSIMD2db oneb = dsSIMD2db_set1(1);
 
@@ -2070,8 +2069,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsTanFMA2d(dsSIMD2d angles)
 	dsSIMD2d tanTaylorQ4 = dsSIMD2d_set1(DS_TAN_TAYLOR_Q_4d);
 
 	dsSIMD2d absAngles = dsSIMD2d_abs(angles);
-	// Use truncation to perform rounding.
-	dsSIMD2db quadrants = dsSIMD2db_fromDouble(dsSIMD2d_fmadd(absAngles, twoOverPi, half));
+	dsSIMD2db quadrants = dsSIMD2db_round(dsSIMD2d_mul(absAngles, twoOverPi));
 
 	dsSIMD2d quadrantAngles = dsTrigQuadrantAngleSIMD2d(absAngles, dsSIMD2db_toDouble(quadrants));
 	dsSIMD2d quadrantAngles2 = dsSIMD2d_mul(quadrantAngles, quadrantAngles);
@@ -2345,12 +2343,7 @@ DS_ALWAYS_INLINE void dsSinCosSIMD4dImpl(
 	dsSIMD4d cosTaylor6 = dsSIMD4d_set1(DS_COS_TAYLOR_6d);
 
 	dsSIMD4d absAngles = dsSIMD4d_abs(angles);
-	// Use truncation to perform rounding.
-#if DS_DETERMINISTIC_MATH
-	*outQuadrants = dsSIMD4db_fromDouble(dsSIMD4d_add(dsSIMD4d_mul(absAngles, twoOverPi), half));
-#else
-	*outQuadrants = dsSIMD4db_fromDouble(dsSIMD4d_fmadd(absAngles, twoOverPi, half));
-#endif
+	*outQuadrants = dsSIMD4db_round(dsSIMD4d_mul(absAngles, twoOverPi));
 
 	dsSIMD4d quadrantAngles = dsTrigQuadrantAngleSIMD4d(
 		absAngles, dsSIMD4db_toDouble(*outQuadrants));
@@ -2442,7 +2435,6 @@ DS_MATH_EXPORT inline void dsSinCosSIMD4d(dsSIMD4d* outSin, dsSIMD4d* outCos, ds
 DS_MATH_EXPORT inline dsSIMD4d dsTanSIMD4d(dsSIMD4d angles)
 {
 	dsSIMD4d twoOverPi = dsSIMD4d_set1(M_2_PI);
-	dsSIMD4d half = dsSIMD4d_set1(0.5);
 	dsSIMD4d negOne = dsSIMD4d_set1(-1.0);
 	dsSIMD4db oneb = dsSIMD4db_set1(0x1);
 
@@ -2456,13 +2448,7 @@ DS_MATH_EXPORT inline dsSIMD4d dsTanSIMD4d(dsSIMD4d angles)
 	dsSIMD4d tanTaylorQ4 = dsSIMD4d_set1(DS_TAN_TAYLOR_Q_4d);
 
 	dsSIMD4d absAngles = dsSIMD4d_abs(angles);
-	// Use truncation to perform rounding.
-#if DS_DETERMINISTIC_MATH
-	dsSIMD4db quadrants = dsSIMD4db_fromDouble(
-		dsSIMD4d_add(dsSIMD4d_mul(absAngles, twoOverPi), half));
-#else
-	dsSIMD4db quadrants = dsSIMD4db_fromDouble(dsSIMD4d_fmadd(absAngles, twoOverPi, half));
-#endif
+	dsSIMD4db quadrants = dsSIMD4db_round(dsSIMD4d_mul(absAngles, twoOverPi));
 
 	dsSIMD4d quadrantAngles = dsTrigQuadrantAngleSIMD4d(absAngles, dsSIMD4db_toDouble(quadrants));
 	dsSIMD4d quadrantAngles2 = dsSIMD4d_mul(quadrantAngles, quadrantAngles);

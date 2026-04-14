@@ -1163,6 +1163,13 @@ static void SIMDTest_FloatBitfield4()
 	EXPECT_EQ(12.0f, fpResult.z);
 	EXPECT_EQ(-43.0f, fpResult.w);
 
+	result = dsSIMD4fb_round(fp.simd);
+	dsSIMD4fb_store(&cpuResult, result);
+	EXPECT_EQ(0, cpuResult.x);
+	EXPECT_EQ(0, cpuResult.y);
+	EXPECT_EQ(13, cpuResult.z);
+	EXPECT_EQ(-44, cpuResult.w);
+
 	result = dsSIMD4fb_neg(a);
 	dsSIMD4fb_store(&cpuResult, result);
 	EXPECT_EQ(-cpuA[0], cpuResult.x);
@@ -1289,6 +1296,19 @@ static void SIMDTest_DoubleBitfield2()
 	fpResult.simd = dsSIMD2db_toDouble(result);
 	EXPECT_EQ(12.0, fpResult.x);
 	EXPECT_EQ(-43.0, fpResult.y);
+
+	result = dsSIMD2db_round(fp.simd);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_EQ(13, cpuResult.x);
+	EXPECT_EQ(-44, cpuResult.y);
+
+	// Expect round to even.
+	fp.x = 1.5;
+	fp.y = 2.5;
+	result = dsSIMD2db_round(fp.simd);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_EQ(2, cpuResult.x);
+	EXPECT_EQ(2, cpuResult.y);
 
 	result = dsSIMD2db_neg(a);
 	dsSIMD2db_store(&cpuResult, result);
@@ -1439,6 +1459,17 @@ static void SIMDTest_DoubleBitfield4()
 	EXPECT_EQ(0.0f, fpResultCpu.y);
 	EXPECT_EQ(12.0f, fpResultCpu.z);
 	EXPECT_EQ(-43.0f, fpResultCpu.w);
+
+	// Expect round to even.
+	fpCpu.x = 1.5;
+	fpCpu.y = 2.5;
+	fp = dsSIMD4d_load(&fpCpu);
+	result = dsSIMD4db_round(fp);
+	dsSIMD4db_store(&cpuResult, result);
+	EXPECT_EQ(2, cpuResult.x);
+	EXPECT_EQ(2, cpuResult.y);
+	EXPECT_EQ(13, cpuResult.z);
+	EXPECT_EQ(-44, cpuResult.w);
 
 	result = dsSIMD4db_neg(a);
 	dsSIMD4db_store(&cpuResult, result);
@@ -1612,6 +1643,288 @@ TEST(SIMDTest, HAddDouble4)
 #endif
 
 	SIMDTest_HAddDouble4();
+}
+
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_ROUNDING);
+static void SIMDTest_RoundingFloat4()
+{
+	dsVector4f cpuA = {{1.5f, 2.5f, 12.94f, -43.81f}};
+	dsVector4f cpuB = {{0.0f, -0.0f, 12.0f, -43.0f}};
+	dsVector4f cpuResult;
+
+	dsSIMD4f a = dsSIMD4f_load(&cpuA);
+	dsSIMD4f b = dsSIMD4f_load(&cpuB);
+	dsSIMD4f result = dsSIMD4f_round(a);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_EQ(2.0f, cpuResult.x);
+	EXPECT_EQ(2.0f, cpuResult.y);
+	EXPECT_EQ(13.0f, cpuResult.z);
+	EXPECT_EQ(-44.0f, cpuResult.w);
+
+	result = dsSIMD4f_round(b);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_EQ(0.0f, cpuResult.x);
+	EXPECT_EQ(-0.0f, cpuResult.y);
+	EXPECT_EQ(12.0f, cpuResult.z);
+	EXPECT_EQ(-43.0f, cpuResult.w);
+
+	result = dsSIMD4f_trunc(a);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_EQ(1.0f, cpuResult.x);
+	EXPECT_EQ(2.0f, cpuResult.y);
+	EXPECT_EQ(12.0f, cpuResult.z);
+	EXPECT_EQ(-43.0f, cpuResult.w);
+
+	result = dsSIMD4f_trunc(b);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_EQ(0.0f, cpuResult.x);
+	EXPECT_EQ(-0.0f, cpuResult.y);
+	EXPECT_EQ(12.0f, cpuResult.z);
+	EXPECT_EQ(-43.0f, cpuResult.w);
+
+	result = dsSIMD4f_floor(a);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_EQ(1.0f, cpuResult.x);
+	EXPECT_EQ(2.0f, cpuResult.y);
+	EXPECT_EQ(12.0f, cpuResult.z);
+	EXPECT_EQ(-44.0f, cpuResult.w);
+
+	result = dsSIMD4f_floor(b);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_EQ(0.0f, cpuResult.x);
+	EXPECT_EQ(-0.0f, cpuResult.y);
+	EXPECT_EQ(12.0f, cpuResult.z);
+	EXPECT_EQ(-43.0f, cpuResult.w);
+
+	result = dsSIMD4f_ceil(a);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_EQ(2.0f, cpuResult.x);
+	EXPECT_EQ(3.0f, cpuResult.y);
+	EXPECT_EQ(13.0f, cpuResult.z);
+	EXPECT_EQ(-43.0f, cpuResult.w);
+
+	result = dsSIMD4f_ceil(b);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_EQ(0.0f, cpuResult.x);
+	EXPECT_EQ(-0.0f, cpuResult.y);
+	EXPECT_EQ(12.0f, cpuResult.z);
+	EXPECT_EQ(-43.0f, cpuResult.w);
+}
+DS_SIMD_END();
+
+TEST(SIMDTest, RoundingFloat4)
+{
+#if DS_SIMD_ALWAYS_ROUNDING
+	ASSERT_TRUE(dsHostSIMDFeatures & dsSIMDFeatures_Rounding);
+#else
+	if (dsHostSIMDFeatures & dsSIMDFeatures_Rounding)
+		DS_LOG_INFO("SIMDTest", "Enabling float4 rounding SIMD at runtime.");
+	else
+	{
+		DS_LOG_INFO("SIMDTest", "Skipping float4 rounding SIMD tests.");
+		return;
+	}
+#endif
+
+	SIMDTest_RoundingFloat4();
+}
+
+DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_ROUNDING);
+static void SIMDTest_RoundingDouble2()
+{
+	dsVector2d cpuA = {{1.5, 2.5}};
+	dsVector2d cpuB = {{12.94, -43.81}};
+	dsVector2d cpuC = {{0.0, -0.0}};
+	dsVector2d cpuD = {{12.0, -43.0}};
+	dsVector2d cpuResult;
+
+	dsSIMD2d a = dsSIMD2d_load(&cpuA);
+	dsSIMD2d b = dsSIMD2d_load(&cpuB);
+	dsSIMD2d c = dsSIMD2d_load(&cpuC);
+	dsSIMD2d d = dsSIMD2d_load(&cpuD);
+	dsSIMD2d result = dsSIMD2d_round(a);
+	dsSIMD2d_store(&cpuResult, result);
+	EXPECT_EQ(2.0, cpuResult.x);
+	EXPECT_EQ(2.0, cpuResult.y);
+
+	result = dsSIMD2d_round(b);
+	dsSIMD2d_store(&cpuResult, result);
+	EXPECT_EQ(13.0, cpuResult.x);
+	EXPECT_EQ(-44.0, cpuResult.y);
+
+	result = dsSIMD2d_round(c);
+	dsSIMD2d_store(&cpuResult, result);
+	EXPECT_EQ(0.0, cpuResult.x);
+	EXPECT_EQ(-0.0, cpuResult.y);
+
+	result = dsSIMD2d_round(d);
+	dsSIMD2d_store(&cpuResult, result);
+	EXPECT_EQ(12.0, cpuResult.x);
+	EXPECT_EQ(-43.0, cpuResult.y);
+
+	result = dsSIMD2d_trunc(a);
+	dsSIMD2d_store(&cpuResult, result);
+	EXPECT_EQ(1.0, cpuResult.x);
+	EXPECT_EQ(2.0, cpuResult.y);
+
+	result = dsSIMD2d_trunc(b);
+	dsSIMD2d_store(&cpuResult, result);
+	EXPECT_EQ(12.0, cpuResult.x);
+	EXPECT_EQ(-43.0, cpuResult.y);
+
+	result = dsSIMD2d_trunc(c);
+	dsSIMD2d_store(&cpuResult, result);
+	EXPECT_EQ(0.0, cpuResult.x);
+	EXPECT_EQ(-0.0, cpuResult.y);
+
+	result = dsSIMD2d_trunc(d);
+	dsSIMD2d_store(&cpuResult, result);
+	EXPECT_EQ(12.0, cpuResult.x);
+	EXPECT_EQ(-43.0, cpuResult.y);
+
+	result = dsSIMD2d_floor(a);
+	dsSIMD2d_store(&cpuResult, result);
+	EXPECT_EQ(1.0, cpuResult.x);
+	EXPECT_EQ(2.0, cpuResult.y);
+
+	result = dsSIMD2d_floor(b);
+	dsSIMD2d_store(&cpuResult, result);
+	EXPECT_EQ(12.0, cpuResult.x);
+	EXPECT_EQ(-44.0, cpuResult.y);
+
+	result = dsSIMD2d_floor(c);
+	dsSIMD2d_store(&cpuResult, result);
+	EXPECT_EQ(0.0, cpuResult.x);
+	EXPECT_EQ(-0.0, cpuResult.y);
+
+	result = dsSIMD2d_floor(d);
+	dsSIMD2d_store(&cpuResult, result);
+	EXPECT_EQ(12.0, cpuResult.x);
+	EXPECT_EQ(-43.0, cpuResult.y);
+
+	result = dsSIMD2d_ceil(a);
+	dsSIMD2d_store(&cpuResult, result);
+	EXPECT_EQ(2.0, cpuResult.x);
+	EXPECT_EQ(3.0, cpuResult.y);
+
+	result = dsSIMD2d_ceil(b);
+	dsSIMD2d_store(&cpuResult, result);
+	EXPECT_EQ(13.0, cpuResult.x);
+	EXPECT_EQ(-43.0, cpuResult.y);
+
+	result = dsSIMD2d_ceil(c);
+	dsSIMD2d_store(&cpuResult, result);
+	EXPECT_EQ(0.0, cpuResult.x);
+	EXPECT_EQ(-0.0, cpuResult.y);
+
+	result = dsSIMD2d_ceil(d);
+	dsSIMD2d_store(&cpuResult, result);
+	EXPECT_EQ(12.0, cpuResult.x);
+	EXPECT_EQ(-43.0, cpuResult.y);
+}
+DS_SIMD_END();
+
+TEST(SIMDTest, RoundingDouble2)
+{
+	dsSIMDFeatures features = dsSIMDFeatures_HAdd | dsSIMDFeatures_Double2;
+#if DS_SIMD_ALWAYS_HADD && DS_SIMD_ALWAYS_DOUBLE2
+	ASSERT_EQ(features, dsHostSIMDFeatures & features);
+#else
+	if ((dsHostSIMDFeatures & features) == features)
+		DS_LOG_INFO("SIMDTest", "Enabling double2 rounding SIMD at runtime.");
+	else
+	{
+		DS_LOG_INFO("SIMDTest", "Skipping double2 rounding SIMD tests.");
+		return;
+	}
+#endif
+
+	SIMDTest_RoundingDouble2();
+}
+
+DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_ROUNDING);
+static void SIMDTest_RoundingDouble4()
+{
+	DS_ALIGN(32) dsVector4d cpuA = {{1.5, 2.5, 12.94, -43.81}};
+	DS_ALIGN(32) dsVector4d cpuB = {{0.0, -0.0, 12.0, -43.0}};
+	DS_ALIGN(32) dsVector4d cpuResult;
+
+	dsSIMD4d a = dsSIMD4d_load(&cpuA);
+	dsSIMD4d b = dsSIMD4d_load(&cpuB);
+	dsSIMD4d result = dsSIMD4d_round(a);
+	dsSIMD4d_store(&cpuResult, result);
+	EXPECT_EQ(2.0, cpuResult.x);
+	EXPECT_EQ(2.0, cpuResult.y);
+	EXPECT_EQ(13.0, cpuResult.z);
+	EXPECT_EQ(-44.0, cpuResult.w);
+
+	result = dsSIMD4d_round(b);
+	dsSIMD4d_store(&cpuResult, result);
+	EXPECT_EQ(0.0, cpuResult.x);
+	EXPECT_EQ(-0.0, cpuResult.y);
+	EXPECT_EQ(12.0, cpuResult.z);
+	EXPECT_EQ(-43.0, cpuResult.w);
+
+	result = dsSIMD4d_trunc(a);
+	dsSIMD4d_store(&cpuResult, result);
+	EXPECT_EQ(1.0, cpuResult.x);
+	EXPECT_EQ(2.0, cpuResult.y);
+	EXPECT_EQ(12.0, cpuResult.z);
+	EXPECT_EQ(-43.0, cpuResult.w);
+
+	result = dsSIMD4d_trunc(b);
+	dsSIMD4d_store(&cpuResult, result);
+	EXPECT_EQ(0.0, cpuResult.x);
+	EXPECT_EQ(-0.0, cpuResult.y);
+	EXPECT_EQ(12.0, cpuResult.z);
+	EXPECT_EQ(-43.0, cpuResult.w);
+
+	result = dsSIMD4d_floor(a);
+	dsSIMD4d_store(&cpuResult, result);
+	EXPECT_EQ(1.0, cpuResult.x);
+	EXPECT_EQ(2.0, cpuResult.y);
+	EXPECT_EQ(12.0, cpuResult.z);
+	EXPECT_EQ(-44.0, cpuResult.w);
+
+	result = dsSIMD4d_floor(b);
+	dsSIMD4d_store(&cpuResult, result);
+	EXPECT_EQ(0.0, cpuResult.x);
+	EXPECT_EQ(-0.0, cpuResult.y);
+	EXPECT_EQ(12.0, cpuResult.z);
+	EXPECT_EQ(-43.0, cpuResult.w);
+
+	result = dsSIMD4d_ceil(a);
+	dsSIMD4d_store(&cpuResult, result);
+	EXPECT_EQ(2.0, cpuResult.x);
+	EXPECT_EQ(3.0, cpuResult.y);
+	EXPECT_EQ(13.0, cpuResult.z);
+	EXPECT_EQ(-43.0, cpuResult.w);
+
+	result = dsSIMD4d_ceil(b);
+	dsSIMD4d_store(&cpuResult, result);
+	EXPECT_EQ(0.0, cpuResult.x);
+	EXPECT_EQ(-0.0, cpuResult.y);
+	EXPECT_EQ(12.0, cpuResult.z);
+	EXPECT_EQ(-43.0, cpuResult.w);
+}
+DS_SIMD_END();
+
+TEST(SIMDTest, RoundingDouble4)
+{
+	dsSIMDFeatures features = dsSIMDFeatures_HAdd | dsSIMDFeatures_Double4;
+#if DS_SIMD_ALWAYS_HADD && DS_SIMD_ALWAYS_DOUBLE4
+	ASSERT_EQ(features, dsHostSIMDFeatures & features);
+#else
+	if ((dsHostSIMDFeatures & features) == features)
+		DS_LOG_INFO("SIMDTest", "Enabling double4 rounding SIMD at runtime.");
+	else
+	{
+		DS_LOG_INFO("SIMDTest", "Skipping double4 rounding SIMD tests.");
+		return;
+	}
+#endif
+
+	SIMDTest_RoundingDouble4();
 }
 
 #if !DS_DETERMINISTIC_MATH

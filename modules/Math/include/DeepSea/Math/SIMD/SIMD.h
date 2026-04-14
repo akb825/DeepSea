@@ -53,9 +53,15 @@
 #define DS_SIMD_ALWAYS_DOUBLE4 0
 
 /**
- * @brief Define for whether or not SIMD instructions for horizontal adds are always  available.
+ * @brief Define for whether or not SIMD instructions for horizontal adds are always available.
  */
 #define DS_SIMD_ALWAYS_HADD 0
+
+/**
+ * @brief Define for whether or not SIMD instructions for floating-point rounding are always
+ * available.
+ */
+#define DS_SIMD_ALWAYS_ROUNDING 0
 
 /**
  * @brief Define for whether or not SIMD instructions for converting half floats will always be
@@ -96,6 +102,13 @@
  * This should be provided as an argument to DS_SIMD_START().
  */
 #define DS_SIMD_HADD
+
+/**
+ * @brief Token to enable rounding SIMD instructions.
+ *
+ * This should be provided as an argument to DS_SIMD_START().
+ */
+#define DS_SIMD_ROUNDING
 
 /**
  * @brief Token to enable fused multiply-add SIMD instructions.
@@ -149,8 +162,11 @@ extern "C"
  * platforms if Double4 is available the other math-based features (e.g. HAdd, FMA) will be
  * available as well, so there's no benefit for providing e.g. Double4 implementations with or
  * without FMA for compatibility. (aside from disabling all FMA through DS_DETERMINISTIC_MATH)
- * Furthermore, all current platforms will have extended integer operations of Double2 is available,
- * so checking for the Int feature is only needed for Float4.
+ * Similarly, when FMA is available, Int, HAdd, and Rounding are currently available across all
+ * current platforms as well, so in general FMA should be all-encompassing for the different
+ * instructions for the current vector type. Furthermore, all current platforms will have extended
+ * integer operations of Double2 is available, so checking for the Int feature is only needed for
+ * Float4.
  *
  * The current platforms are supported based on the platform macro:
  * - DS_X86_32: No features will be guaranteed at compile time if x86 architecture level is set to
@@ -174,8 +190,9 @@ typedef enum dsSIMDFeatures
 	dsSIMDFeatures_Double2 = 0x4,   ///< Standard 2 element double operations.
 	dsSIMDFeatures_Double4 = 0x8,   ///< Standard 4 element double operations.
 	dsSIMDFeatures_HAdd = 0x10,     ///< Horizontal adds.
-	dsSIMDFeatures_FMA = 0x20,      ///< Fused multiply adds.
-	dsSIMDFeatures_HalfFloat = 0x40 ///< Half float conversions.
+	dsSIMDFeatures_Rounding = 0x20, ///< Floating-point rounding operations.
+	dsSIMDFeatures_FMA = 0x40,      ///< Fused multiply adds.
+	dsSIMDFeatures_HalfFloat = 0x80 ///< Half float conversions.
 } dsSIMDFeatures;
 
 /**

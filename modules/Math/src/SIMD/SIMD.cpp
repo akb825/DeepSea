@@ -59,6 +59,7 @@ static dsSIMDFeatures detectSIMDFeatures()
 	// Function 1, ecx
 	const int sse3Bit = 1;
 	const int fmaBit = 1 << 12;
+	const int sse41Bit = 1 << 19;
 	const int f16cBit = 1 << 29;
 
 	// Function 7, sub 0, ebx
@@ -76,6 +77,8 @@ static dsSIMDFeatures detectSIMDFeatures()
 		features |= dsSIMDFeatures_Int | dsSIMDFeatures_Double2;
 	if (ecx & sse3Bit)
 		features |= dsSIMDFeatures_HAdd;
+	if (ecx & sse41Bit)
+		features |= dsSIMDFeatures_Rounding;
 	if ((ecx & fmaBit) && !DS_DETERMINISTIC_MATH)
 		features |= dsSIMDFeatures_FMA;
 	if ((edx & sse2Bit) && (ecx & f16cBit))
@@ -96,7 +99,7 @@ static dsSIMDFeatures detectSIMDFeatures()
 	features |= dsSIMDFeatures_FMA;
 #endif
 #if DS_ARM_64
-	features |= dsSIMDFeatures_Double2;
+	features |= dsSIMDFeatures_Double2 | dsSIMDFeatures_Rounding;
 #endif
 	return features;
 }

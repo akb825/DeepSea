@@ -20,6 +20,7 @@
 
 #include <immintrin.h>
 #include <stdint.h>
+#include <smmintrin.h>
 #include <xmmintrin.h>
 
 #ifdef __cplusplus
@@ -44,6 +45,7 @@ extern "C"
 #define DS_SIMD_DOUBLE2 sse2
 #define DS_SIMD_DOUBLE4 avx2
 #define DS_SIMD_HADD sse3
+#define DS_SIMD_ROUNDING sse4.1
 #define DS_SIMD_FMA fma
 #define DS_SIMD_HALF_FLOAT sse2,f16c
 
@@ -101,12 +103,20 @@ extern "C"
 #define DS_SIMD_ALWAYS_DOUBLE4 0
 #endif
 
-#if defined(__SSE3__) || (DS_WINDOWS && defined(__AVX__))
+// NOTE: Windows doesn't have any way to distinguish between AVX and SSE versions > 2.
+#if defined(__SSE3__) || defined(__AVX__)
 #define DS_SIMD_ALWAYS_HADD 1
 #else
 #define DS_SIMD_ALWAYS_HADD 0
 #endif
 
+#if defined(__SSE4_1__) || defined(__AVX__)
+#define DS_SIMD_ALWAYS_ROUNDING 1
+#else
+#define DS_SIMD_ALWAYS_ROUNDING 0
+#endif
+
+// NOTE: Windows rolls FMA with AVX2.
 #if !DS_DETERMINISTIC_MATH && (defined(__FMA__) || (DS_WINDOWS && defined(__AVX2__)))
 #define DS_SIMD_ALWAYS_FMA 1
 #else
@@ -776,6 +786,18 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_fromFloat(dsSIMD4f a)
 }
 
 /**
+ * @brief Converts a SIMD float value to an integer with rounding.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @remark This may be inconsistent between platforms for values ending in exactly .5.
+ * @param a The SIMD floating-point value.
+ * @return The integer representation after rounding.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_round(dsSIMD4f a)
+{
+	return DS_SSE_RESULT_FB4(_mm_cvtps_epi32(a));
+}
+
+/**
  * @brief Converts a SIMD integer value to a float value, similar to a cast in C.
  * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
  * @param a The SIMD integer value.
@@ -1296,6 +1318,25 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_fromDoubleBitfield(dsSIMD2d a)
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_fromDouble(dsSIMD2d a)
 {
 	__m128i result32 = _mm_cvttpd_epi32(a);
+#if defined(__SSE_4_1__) || defined(__AVX__)
+	return _mm_cvtepi32_epi64(result32);
+#else
+	__m128i signedResult = _mm_shuffle_epi32(result32, _MM_SHUFFLE(3, 1, 2, 0));
+	__m128i signedExtend = _mm_srai_epi32(_mm_shuffle_epi32(result32, _MM_SHUFFLE(1, 3, 0, 2)), 32);
+	return _mm_or_si128(signedResult, signedExtend);
+#endif
+}
+
+/**
+ * @brief Converts a SIMD double value to a 64-bit integer with rounding.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @remark Some implementations may only support integer values up to 32 bits.
+ * @param a The SIMD floating-point value.
+ * @return The integer representation after rounding.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_round(dsSIMD2d a)
+{
+	__m128i result32 = _mm_cvtpd_epi32(a);
 #if defined(__SSE_4_1__) || defined(__AVX__)
 	return _mm_cvtepi32_epi64(result32);
 #else
@@ -1952,6 +1993,18 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_fromDouble(dsSIMD4d a)
 }
 
 /**
+ * @brief Converts a SIMD double value to a 64-bit integer with rounding.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int are available.
+ * @remark Some implementations may only support integer values up to 32 bits.
+ * @param a The SIMD floating-point value.
+ * @return The integer representation after rounding.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_round(dsSIMD4d a)
+{
+	return _mm256_cvtepi32_epi64(_mm256_cvtpd_epi32(a));
+}
+
+/**
  * @brief Stores a SIMD bitfield register into four int values.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param[out] ip A pointer to the int values to store to. This should be aligned to 16 bytes.
@@ -2166,7 +2219,7 @@ DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_HADD);
 
 /**
  * @brief Performs a horizontal add between two SIMD values.
- * @remark This can be used when dsSIMDFeatures_HAdd is available.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_HAdd are available.
  * @param a The first value to add.
  * @param b The second value to add.
  * @return The result of (a.x + a.y, a.z + a.w, b.x + b.y, b.z + b.w)
@@ -2213,6 +2266,153 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_hadd(dsSIMD4d a, dsSIMD4d b)
 }
 
 /// @cond
+DS_SIMD_END();
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_ROUNDING);
+///@endcond
+
+/**
+ * @brief Rounds SIMD values to the nearest whole number.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The values of a rounded to the nearest whole number.
+ */
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_round(dsSIMD4f a)
+{
+	return _mm_round_ps(a, _MM_FROUND_TO_NEAREST_INT);
+}
+
+/**
+ * @brief Truncates SIMD values by removing all decimal digits.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The values of a after removing all decimal digits.
+ */
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_trunc(dsSIMD4f a)
+{
+	return _mm_round_ps(a, _MM_FROUND_TO_ZERO);
+}
+
+/**
+ * @brief Takes the floor of SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The floor of values of a.
+ */
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_floor(dsSIMD4f a)
+{
+	return _mm_floor_ps(a);
+}
+
+/**
+ * @brief Takes the ceiling of SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The ceiling of values of a.
+ */
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_ceil(dsSIMD4f a)
+{
+	return _mm_ceil_ps(a);
+}
+
+/// @cond
+DS_SIMD_END();
+DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_ROUNDING);
+///@endcond
+
+/**
+ * @brief Rounds SIMD values to the nearest whole number.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The values of a rounded to the nearest whole number.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_round(dsSIMD2d a)
+{
+	return _mm_round_pd(a, _MM_FROUND_TO_NEAREST_INT);
+}
+
+/**
+ * @brief Truncates SIMD values by removing all decimal digits.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The values of a after removing all decimal digits.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_trunc(dsSIMD2d a)
+{
+	return _mm_round_pd(a, _MM_FROUND_TO_ZERO);
+}
+
+/**
+ * @brief Takes the floor of SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The floor of values of a.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_floor(dsSIMD2d a)
+{
+	return _mm_floor_pd(a);
+}
+
+/**
+ * @brief Takes the ceiling of SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The ceiling of values of a.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_ceil(dsSIMD2d a)
+{
+	return _mm_ceil_pd(a);
+}
+
+/// @cond
+DS_SIMD_END();
+DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_ROUNDING);
+///@endcond
+
+/**
+ * @brief Rounds SIMD values to the nearest whole number.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The values of a rounded to the nearest whole number.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_round(dsSIMD4d a)
+{
+	return _mm256_round_pd(a, _MM_FROUND_TO_NEAREST_INT);
+}
+
+/**
+ * @brief Truncates SIMD values by removing all decimal digits.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The values of a after removing all decimal digits.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_trunc(dsSIMD4d a)
+{
+	return _mm256_round_pd(a, _MM_FROUND_TO_ZERO);
+}
+
+/**
+ * @brief Takes the floor of SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The floor of values of a.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_floor(dsSIMD4d a)
+{
+	return _mm256_floor_pd(a);
+}
+
+/**
+ * @brief Takes the ceiling of SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Rounding are available.
+ * @param a The value to round.
+ * @return The ceiling of values of a.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_ceil(dsSIMD4d a)
+{
+	return _mm256_ceil_pd(a);
+}
+
+///@cond
 DS_SIMD_END();
 
 #if !DS_DETERMINISTIC_MATH
