@@ -307,7 +307,7 @@ TYPED_TEST(TrigTest, ATan2)
 
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT)
 
-static void TrigTestFloat_SinSIMD()
+static void TrigFloatTest_SinSIMD()
 {
 	constexpr unsigned int vecSize = 4;
 	float epsilon = TrigTypeSelector<float>::epsilon;
@@ -337,7 +337,7 @@ static void TrigTestFloat_SinSIMD()
 	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.71497798f, sinAngles.w, 0.0f, epsilon);
 }
 
-static void TrigTestFloat_CosSIMD()
+static void TrigFloatTest_CosSIMD()
 {
 	constexpr unsigned int vecSize = 4;
 	float epsilon = TrigTypeSelector<float>::epsilon;
@@ -367,7 +367,7 @@ static void TrigTestFloat_CosSIMD()
 	EXPECT_RELATIVE_EQ_DETERMINISTIC(-0.699147f, cosAngles.w, 0.0f, epsilon);
 }
 
-static void TrigTestFloat_SinCosSIMD()
+static void TrigFloatTest_SinCosSIMD()
 {
 	constexpr unsigned int vecSize = 4;
 	float epsilon = TrigTypeSelector<float>::epsilon;
@@ -405,7 +405,7 @@ static void TrigTestFloat_SinCosSIMD()
 	EXPECT_RELATIVE_EQ_DETERMINISTIC(-0.699147f, cosAngles.w, 0.0f, epsilon);
 }
 
-static void TrigTestFloat_TanSIMD()
+static void TrigFloatTest_TanSIMD()
 {
 	constexpr unsigned int vecSize = 4;
 	float epsilon = TrigTypeSelector<float>::epsilon;
@@ -435,7 +435,7 @@ static void TrigTestFloat_TanSIMD()
 	EXPECT_RELATIVE_EQ_DETERMINISTIC(-1.02264333f, tanAngles.w, 0.0f, epsilon);
 }
 
-static void TrigTestFloat_ASinSIMD()
+static void TrigFloatTest_ASinSIMD()
 {
 	constexpr unsigned int vecSize = 4;
 	float epsilon = TrigTypeSelector<float>::epsilon;
@@ -465,7 +465,7 @@ static void TrigTestFloat_ASinSIMD()
 	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.746263444f, angles.w, 0.0f, epsilon);
 }
 
-static void TrigTestFloat_ACosSIMD()
+static void TrigFloatTest_ACosSIMD()
 {
 	constexpr unsigned int vecSize = 4;
 	float epsilon = TrigTypeSelector<float>::epsilon;
@@ -495,7 +495,7 @@ static void TrigTestFloat_ACosSIMD()
 	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.824532926f, angles.w, 0.0f, epsilon);
 }
 
-static void TrigTestFloat_ATanSIMD()
+static void TrigFloatTest_ATanSIMD()
 {
 	constexpr unsigned int vecSize = 4;
 	float epsilon = TrigTypeSelector<float>::epsilon;
@@ -525,7 +525,7 @@ static void TrigTestFloat_ATanSIMD()
 	EXPECT_RELATIVE_EQ_DETERMINISTIC(1.16770732f, angles.w, 0.0f, epsilon);
 }
 
-static void TrigTestFloat_ATan2SIMD()
+static void TrigFloatTest_ATan2SIMD()
 {
 	constexpr unsigned int vecSize = 4;
 	float epsilon = TrigTypeSelector<float>::epsilon;
@@ -576,66 +576,66 @@ static void TrigTestFloat_ATan2SIMD()
 
 DS_SIMD_END()
 
-TEST(TrigTestFloat, SinSIMD)
+TEST(TrigFloatTest, SinSIMD)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestFloat_SinSIMD();
+		TrigFloatTest_SinSIMD();
 }
 
-TEST(TrigTestFloat, CosSIMD)
+TEST(TrigFloatTest, CosSIMD)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestFloat_CosSIMD();
+		TrigFloatTest_CosSIMD();
 }
 
-TEST(TrigTestFloat, SinCosSIMD)
+TEST(TrigFloatTest, SinCosSIMD)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestFloat_SinCosSIMD();
+		TrigFloatTest_SinCosSIMD();
 }
 
-TEST(TrigTestFloat, TanSIMD)
+TEST(TrigFloatTest, TanSIMD)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestFloat_TanSIMD();
+		TrigFloatTest_TanSIMD();
 }
 
-TEST(TrigTestFloat, ASinSIMD)
+TEST(TrigFloatTest, ASinSIMD)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestFloat_ASinSIMD();
+		TrigFloatTest_ASinSIMD();
 }
 
-TEST(TrigTestFloat, ACosSIMD)
+TEST(TrigFloatTest, ACosSIMD)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestFloat_ACosSIMD();
+		TrigFloatTest_ACosSIMD();
 }
 
-TEST(TrigTestFloat, ATanSIMD)
+TEST(TrigFloatTest, ATanSIMD)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestFloat_ATanSIMD();
+		TrigFloatTest_ATanSIMD();
 }
 
-TEST(TrigTestFloat, ATan2SIMD)
+TEST(TrigFloatTest, ATan2SIMD)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestFloat_ATan2SIMD();
+		TrigFloatTest_ATan2SIMD();
 }
 
 #if !DS_DETERMINISTIC_MATH
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT,DS_SIMD_FMA)
 
-static void TrigTestFloat_SinFMA()
+static void TrigFloatTest_SinFMA()
 {
 	constexpr unsigned int vecSize = 4;
 	float epsilon = TrigTypeSelector<float>::epsilon;
@@ -658,7 +658,7 @@ static void TrigTestFloat_SinFMA()
 	}
 }
 
-static void TrigTestFloat_CosFMA()
+static void TrigFloatTest_CosFMA()
 {
 	constexpr unsigned int vecSize = 4;
 	float epsilon = TrigTypeSelector<float>::epsilon;
@@ -681,7 +681,7 @@ static void TrigTestFloat_CosFMA()
 	}
 }
 
-static void TrigTestFloat_SinCosFMA()
+static void TrigFloatTest_SinCosFMA()
 {
 	constexpr unsigned int vecSize = 4;
 	float epsilon = TrigTypeSelector<float>::epsilon;
@@ -706,7 +706,7 @@ static void TrigTestFloat_SinCosFMA()
 	}
 }
 
-static void TrigTestFloat_TanFMA()
+static void TrigFloatTest_TanFMA()
 {
 	constexpr unsigned int vecSize = 4;
 	float epsilon = TrigTypeSelector<float>::epsilon;
@@ -729,7 +729,7 @@ static void TrigTestFloat_TanFMA()
 	}
 }
 
-static void TrigTestFloat_ASinFMA()
+static void TrigFloatTest_ASinFMA()
 {
 	constexpr unsigned int vecSize = 4;
 	float epsilon = TrigTypeSelector<float>::epsilon;
@@ -752,7 +752,7 @@ static void TrigTestFloat_ASinFMA()
 	}
 }
 
-static void TrigTestFloat_ACosFMA()
+static void TrigFloatTest_ACosFMA()
 {
 	constexpr unsigned int vecSize = 4;
 	float epsilon = TrigTypeSelector<float>::epsilon;
@@ -775,7 +775,7 @@ static void TrigTestFloat_ACosFMA()
 	}
 }
 
-static void TrigTestFloat_ATanFMA()
+static void TrigFloatTest_ATanFMA()
 {
 	constexpr unsigned int vecSize = 4;
 	float epsilon = TrigTypeSelector<float>::epsilon;
@@ -798,7 +798,7 @@ static void TrigTestFloat_ATanFMA()
 	}
 }
 
-static void TrigTestFloat_ATan2FMA()
+static void TrigFloatTest_ATan2FMA()
 {
 	constexpr unsigned int vecSize = 4;
 	float epsilon = TrigTypeSelector<float>::epsilon;
@@ -841,66 +841,66 @@ static void TrigTestFloat_ATan2FMA()
 
 DS_SIMD_END()
 
-TEST(TrigTestFloat, SinFMA)
+TEST(TrigFloatTest, SinFMA)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestFloat_SinFMA();
+		TrigFloatTest_SinFMA();
 }
 
-TEST(TrigTestFloat, CosFMA)
+TEST(TrigFloatTest, CosFMA)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestFloat_CosFMA();
+		TrigFloatTest_CosFMA();
 }
 
-TEST(TrigTestFloat, SinCosFMA)
+TEST(TrigFloatTest, SinCosFMA)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestFloat_SinCosFMA();
+		TrigFloatTest_SinCosFMA();
 }
 
-TEST(TrigTestFloat, TanFMA)
+TEST(TrigFloatTest, TanFMA)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestFloat_TanFMA();
+		TrigFloatTest_TanFMA();
 }
 
-TEST(TrigTestFloat, ASinFMA)
+TEST(TrigFloatTest, ASinFMA)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestFloat_ASinFMA();
+		TrigFloatTest_ASinFMA();
 }
 
-TEST(TrigTestFloat, ACosFMA)
+TEST(TrigFloatTest, ACosFMA)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestFloat_ACosFMA();
+		TrigFloatTest_ACosFMA();
 }
 
-TEST(TrigTestFloat, ATanFMA)
+TEST(TrigFloatTest, ATanFMA)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestFloat_ATanFMA();
+		TrigFloatTest_ATanFMA();
 }
 
-TEST(TrigTestFloat, ATan2FMA)
+TEST(TrigFloatTest, ATan2FMA)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestFloat_ATan2FMA();
+		TrigFloatTest_ATan2FMA();
 }
 #endif // !DS_DETERMINISTIC_MATH
 
 DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT)
 
-static void TrigTestDouble_SinSIMD2()
+static void TrigDoubleTest_SinSIMD2()
 {
 	constexpr unsigned int vecSize = 2;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -931,7 +931,7 @@ static void TrigTestDouble_SinSIMD2()
 	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.71497801013649265, sinAngles.y, 0.0, epsilon);
 }
 
-static void TrigTestDouble_CosSIMD2()
+static void TrigDoubleTest_CosSIMD2()
 {
 	constexpr unsigned int vecSize = 2;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -962,7 +962,7 @@ static void TrigTestDouble_CosSIMD2()
 	EXPECT_RELATIVE_EQ_DETERMINISTIC(-0.69914694093678287, cosAngles.y, 0.0, epsilon);
 }
 
-static void TrigTestDouble_SinCosSIMD2()
+static void TrigDoubleTest_SinCosSIMD2()
 {
 	constexpr unsigned int vecSize = 2;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -1002,7 +1002,7 @@ static void TrigTestDouble_SinCosSIMD2()
 	EXPECT_RELATIVE_EQ_DETERMINISTIC(-0.69914694093678287, cosAngles.y, 0.0, epsilon);
 }
 
-static void TrigTestDouble_TanSIMD2()
+static void TrigDoubleTest_TanSIMD2()
 {
 	constexpr unsigned int vecSize = 2;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -1033,7 +1033,7 @@ static void TrigTestDouble_TanSIMD2()
 	EXPECT_RELATIVE_EQ_DETERMINISTIC(-1.0226434076626265, tanAngles.y, 0.0, epsilon);
 }
 
-static void TrigTestDouble_ASinSIMD2()
+static void TrigDoubleTest_ASinSIMD2()
 {
 	constexpr unsigned int vecSize = 2;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -1064,7 +1064,7 @@ static void TrigTestDouble_ASinSIMD2()
 	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.74626342835318737, angles.y, 0.0, epsilon);
 }
 
-static void TrigTestDouble_ACosSIMD2()
+static void TrigDoubleTest_ACosSIMD2()
 {
 	constexpr unsigned int vecSize = 2;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -1095,7 +1095,7 @@ static void TrigTestDouble_ACosSIMD2()
 	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.82453289844170918, angles.y, 0.0, epsilon);
 }
 
-static void TrigTestDouble_ATanSIMD2()
+static void TrigDoubleTest_ATanSIMD2()
 {
 	constexpr unsigned int vecSize = 2;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -1126,7 +1126,7 @@ static void TrigTestDouble_ATanSIMD2()
 	EXPECT_RELATIVE_EQ_DETERMINISTIC(1.1677072684050145, angles.y, 0.0, epsilon);
 }
 
-static void TrigTestDouble_ATan2SIMD2()
+static void TrigDoubleTest_ATan2SIMD2()
 {
 	constexpr unsigned int vecSize = 2;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -1177,66 +1177,66 @@ static void TrigTestDouble_ATan2SIMD2()
 
 DS_SIMD_END()
 
-TEST(TrigTestDouble, SinSIMD2)
+TEST(TrigDoubleTest, SinSIMD2)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_SinSIMD2();
+		TrigDoubleTest_SinSIMD2();
 }
 
-TEST(TrigTestDouble, CosSIMD2)
+TEST(TrigDoubleTest, CosSIMD2)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_CosSIMD2();
+		TrigDoubleTest_CosSIMD2();
 }
 
-TEST(TrigTestDouble, SinCosSIMD2)
+TEST(TrigDoubleTest, SinCosSIMD2)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_SinCosSIMD2();
+		TrigDoubleTest_SinCosSIMD2();
 }
 
-TEST(TrigTestDouble, TanSIMD2)
+TEST(TrigDoubleTest, TanSIMD2)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_TanSIMD2();
+		TrigDoubleTest_TanSIMD2();
 }
 
-TEST(TrigTestDouble, ASinSIMD2)
+TEST(TrigDoubleTest, ASinSIMD2)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_ASinSIMD2();
+		TrigDoubleTest_ASinSIMD2();
 }
 
-TEST(TrigTestDouble, ACosSIMD2)
+TEST(TrigDoubleTest, ACosSIMD2)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_ACosSIMD2();
+		TrigDoubleTest_ACosSIMD2();
 }
 
-TEST(TrigTestDouble, ATanSIMD2)
+TEST(TrigDoubleTest, ATanSIMD2)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_ATanSIMD2();
+		TrigDoubleTest_ATanSIMD2();
 }
 
-TEST(TrigTestDouble, ATan2SIMD2)
+TEST(TrigDoubleTest, ATan2SIMD2)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_ATan2SIMD2();
+		TrigDoubleTest_ATan2SIMD2();
 }
 #if !DS_DETERMINISTIC_MATH
 
 DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT,DS_SIMD_FMA)
 
-static void TrigTestDouble_SinFMA2()
+static void TrigDoubleTest_SinFMA2()
 {
 	constexpr unsigned int vecSize = 2;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -1259,7 +1259,7 @@ static void TrigTestDouble_SinFMA2()
 	}
 }
 
-static void TrigTestDouble_CosFMA2()
+static void TrigDoubleTest_CosFMA2()
 {
 	constexpr unsigned int vecSize = 2;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -1282,7 +1282,7 @@ static void TrigTestDouble_CosFMA2()
 	}
 }
 
-static void TrigTestDouble_SinCosFMA2()
+static void TrigDoubleTest_SinCosFMA2()
 {
 	constexpr unsigned int vecSize = 2;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -1307,7 +1307,7 @@ static void TrigTestDouble_SinCosFMA2()
 	}
 }
 
-static void TrigTestDouble_TanFMA2()
+static void TrigDoubleTest_TanFMA2()
 {
 	constexpr unsigned int vecSize = 2;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -1330,7 +1330,7 @@ static void TrigTestDouble_TanFMA2()
 	}
 }
 
-static void TrigTestDouble_ASinFMA2()
+static void TrigDoubleTest_ASinFMA2()
 {
 	constexpr unsigned int vecSize = 2;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -1353,7 +1353,7 @@ static void TrigTestDouble_ASinFMA2()
 	}
 }
 
-static void TrigTestDouble_ACosFMA2()
+static void TrigDoubleTest_ACosFMA2()
 {
 	constexpr unsigned int vecSize = 2;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -1376,7 +1376,7 @@ static void TrigTestDouble_ACosFMA2()
 	}
 }
 
-static void TrigTestDouble_ATanFMA2()
+static void TrigDoubleTest_ATanFMA2()
 {
 	constexpr unsigned int vecSize = 2;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -1399,7 +1399,7 @@ static void TrigTestDouble_ATanFMA2()
 	}
 }
 
-static void TrigTestDouble_ATan2FMA2()
+static void TrigDoubleTest_ATan2FMA2()
 {
 	constexpr unsigned int vecSize = 2;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -1442,67 +1442,67 @@ static void TrigTestDouble_ATan2FMA2()
 
 DS_SIMD_END()
 
-TEST(TrigTestDouble, SinFMA2)
+TEST(TrigDoubleTest, SinFMA2)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_SinFMA2();
+		TrigDoubleTest_SinFMA2();
 }
 
-TEST(TrigTestDouble, CosFMA2)
+TEST(TrigDoubleTest, CosFMA2)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_CosFMA2();
+		TrigDoubleTest_CosFMA2();
 }
 
-TEST(TrigTestDouble, SinCosFMA2)
+TEST(TrigDoubleTest, SinCosFMA2)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_SinCosFMA2();
+		TrigDoubleTest_SinCosFMA2();
 }
 
-TEST(TrigTestDouble, TanFMA2)
+TEST(TrigDoubleTest, TanFMA2)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_TanFMA2();
+		TrigDoubleTest_TanFMA2();
 }
 
-TEST(TrigTestDouble, ASinFMA2)
+TEST(TrigDoubleTest, ASinFMA2)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_ASinFMA2();
+		TrigDoubleTest_ASinFMA2();
 }
 
-TEST(TrigTestDouble, ACosFMA2)
+TEST(TrigDoubleTest, ACosFMA2)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_ACosFMA2();
+		TrigDoubleTest_ACosFMA2();
 }
 
-TEST(TrigTestDouble, ATanFMA2)
+TEST(TrigDoubleTest, ATanFMA2)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_ATanFMA2();
+		TrigDoubleTest_ATanFMA2();
 }
 
-TEST(TrigTestDouble, ATan2FMA2)
+TEST(TrigDoubleTest, ATan2FMA2)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_ATan2FMA2();
+		TrigDoubleTest_ATan2FMA2();
 }
 
 #endif // !DS_DETERMINISTIC_MATH
 
 DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_INT,DS_SIMD_FMA)
 
-static void TrigTestDouble_SinSIMD4()
+static void TrigDoubleTest_SinSIMD4()
 {
 	constexpr unsigned int vecSize = 4;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -1533,7 +1533,7 @@ static void TrigTestDouble_SinSIMD4()
 #endif
 }
 
-static void TrigTestDouble_CosSIMD4()
+static void TrigDoubleTest_CosSIMD4()
 {
 	constexpr unsigned int vecSize = 4;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -1564,7 +1564,7 @@ static void TrigTestDouble_CosSIMD4()
 #endif
 }
 
-static void TrigTestDouble_SinCosSIMD4()
+static void TrigDoubleTest_SinCosSIMD4()
 {
 	constexpr unsigned int vecSize = 4;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -1607,7 +1607,7 @@ static void TrigTestDouble_SinCosSIMD4()
 #endif
 }
 
-static void TrigTestDouble_TanSIMD4()
+static void TrigDoubleTest_TanSIMD4()
 {
 	constexpr unsigned int vecSize = 4;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -1638,7 +1638,7 @@ static void TrigTestDouble_TanSIMD4()
 #endif
 }
 
-static void TrigTestDouble_ASinSIMD4()
+static void TrigDoubleTest_ASinSIMD4()
 {
 	constexpr unsigned int vecSize = 4;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -1669,7 +1669,7 @@ static void TrigTestDouble_ASinSIMD4()
 #endif
 }
 
-static void TrigTestDouble_ACosSIMD4()
+static void TrigDoubleTest_ACosSIMD4()
 {
 	constexpr unsigned int vecSize = 4;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -1700,7 +1700,7 @@ static void TrigTestDouble_ACosSIMD4()
 #endif
 }
 
-static void TrigTestDouble_ATanSIMD4()
+static void TrigDoubleTest_ATanSIMD4()
 {
 	constexpr unsigned int vecSize = 4;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -1731,7 +1731,7 @@ static void TrigTestDouble_ATanSIMD4()
 #endif
 }
 
-static void TrigTestDouble_ATan2SIMD4()
+static void TrigDoubleTest_ATan2SIMD4()
 {
 	constexpr unsigned int vecSize = 4;
 	double epsilon = TrigTypeSelector<double>::epsilon;
@@ -1783,60 +1783,60 @@ static void TrigTestDouble_ATan2SIMD4()
 
 DS_SIMD_END()
 
-TEST(TrigTestDouble, SinSIMD4)
+TEST(TrigDoubleTest, SinSIMD4)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double4 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_SinSIMD4();
+		TrigDoubleTest_SinSIMD4();
 }
 
-TEST(TrigTestDouble, CosSIMD4)
+TEST(TrigDoubleTest, CosSIMD4)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double4 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_CosSIMD4();
+		TrigDoubleTest_CosSIMD4();
 }
 
-TEST(TrigTestDouble, SinCosSIMD4)
+TEST(TrigDoubleTest, SinCosSIMD4)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double4 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_SinCosSIMD4();
+		TrigDoubleTest_SinCosSIMD4();
 }
 
-TEST(TrigTestDouble, TanSIMD4)
+TEST(TrigDoubleTest, TanSIMD4)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double4 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_TanSIMD4();
+		TrigDoubleTest_TanSIMD4();
 }
 
-TEST(TrigTestDouble, ASinSIMD4)
+TEST(TrigDoubleTest, ASinSIMD4)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double4 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_ASinSIMD4();
+		TrigDoubleTest_ASinSIMD4();
 }
 
-TEST(TrigTestDouble, ACosSIMD4)
+TEST(TrigDoubleTest, ACosSIMD4)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double4 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_ACosSIMD4();
+		TrigDoubleTest_ACosSIMD4();
 }
 
-TEST(TrigTestDouble, ATanSIMD4)
+TEST(TrigDoubleTest, ATanSIMD4)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double4 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_ATanSIMD4();
+		TrigDoubleTest_ATanSIMD4();
 }
 
-TEST(TrigTestDouble, ATan2SIMD4)
+TEST(TrigDoubleTest, ATan2SIMD4)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double4 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestDouble_ATan2SIMD4();
+		TrigDoubleTest_ATan2SIMD4();
 }
 
 #endif // DS_HAS_SIMD
@@ -1861,7 +1861,7 @@ constexpr unsigned int performanceCount = 10000000;
 #if DS_HAS_SIMD
 
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT)
-static void TrigTestFloat_PerformanceSIMD4f(std::vector<float>& results,
+static void TrigFloatTest_PerformanceSIMD4f(std::vector<float>& results,
 	std::vector<float>& otherResults, const std::vector<float>& angles, std::size_t& hashValue,
 	dsTimer timer)
 {
@@ -1966,7 +1966,7 @@ DS_SIMD_END()
 #if !DS_DETERMINISTIC_MATH
 
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT,DS_SIMD_FMA)
-static void TrigTestFloat_PerformanceFMA4f(std::vector<float>& results,
+static void TrigFloatTest_PerformanceFMA4f(std::vector<float>& results,
 	std::vector<float>& otherResults, const std::vector<float>& angles, std::size_t& hashValue,
 	dsTimer timer)
 {
@@ -2072,7 +2072,7 @@ DS_SIMD_END()
 
 #endif // DS_HAS_SIMD
 
-static void TrigTestFloat_Performance()
+static void TrigFloatTest_Performance()
 {
 	std::vector<float> results(performanceCount);
 	std::vector<float> otherResults(performanceCount);
@@ -2222,13 +2222,13 @@ static void TrigTestFloat_Performance()
 
 	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestFloat_PerformanceSIMD4f(results, otherResults, angles, hashValue, timer);
+		TrigFloatTest_PerformanceSIMD4f(results, otherResults, angles, hashValue, timer);
 
 #if !DS_DETERMINISTIC_MATH
 
 	features |= dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestFloat_PerformanceFMA4f(results, otherResults, angles, hashValue, timer);
+		TrigFloatTest_PerformanceFMA4f(results, otherResults, angles, hashValue, timer);
 
 #endif // !DS_DETERMINISTIC_MATH
 #endif // DS_HAS_SIMD
@@ -2239,7 +2239,7 @@ static void TrigTestFloat_Performance()
 #if DS_HAS_SIMD
 
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT)
-static void TrigTestFloat_PerformanceSIMD2d(std::vector<double>& results,
+static void TrigFloatTest_PerformanceSIMD2d(std::vector<double>& results,
 	std::vector<double>& otherResults, const std::vector<double>& angles, std::size_t& hashValue,
 	dsTimer timer)
 {
@@ -2343,7 +2343,7 @@ DS_SIMD_END()
 
 #if !DS_DETERMINISTIC_MATH
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT,DS_SIMD_FMA)
-static void TrigTestFloat_PerformanceFMA2d(std::vector<double>& results,
+static void TrigFloatTest_PerformanceFMA2d(std::vector<double>& results,
 	std::vector<double>& otherResults, const std::vector<double>& angles, std::size_t& hashValue,
 	dsTimer timer)
 {
@@ -2458,7 +2458,7 @@ DS_SIMD_END()
 #endif // !DS_DETERMINISTIC_MATH
 
 DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_INT,DS_SIMD_FMA)
-static void TrigTestFloat_PerformanceSIMD4d(std::vector<double>& results,
+static void TrigFloatTest_PerformanceSIMD4d(std::vector<double>& results,
 	std::vector<double>& otherResults, const std::vector<double>& angles, std::size_t& hashValue,
 	dsTimer timer)
 {
@@ -2565,7 +2565,7 @@ static void TrigTestFloat_PerformanceSIMD4d(std::vector<double>& results,
 DS_SIMD_END()
 #endif // DS_HAS_SIMD
 
-static void TrigTestDouble_Performance()
+static void TrigDoubleTest_Performance()
 {
 	// Add some padding to ensure we can get aligned results.
 	unsigned int performanceCountAligned = performanceCount + 3;
@@ -2717,33 +2717,33 @@ static void TrigTestDouble_Performance()
 
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestFloat_PerformanceSIMD2d(results, otherResults, angles, hashValue, timer);
+		TrigFloatTest_PerformanceSIMD2d(results, otherResults, angles, hashValue, timer);
 
 #if !DS_DETERMINISTIC_MATH
 
 	features |= dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestFloat_PerformanceFMA2d(results, otherResults, angles, hashValue, timer);
+		TrigFloatTest_PerformanceFMA2d(results, otherResults, angles, hashValue, timer);
 
 #endif // !DS_DETERMINISTIC_MATH
 
 	features = dsSIMDFeatures_Double4 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigTestFloat_PerformanceSIMD4d(results, otherResults, angles, hashValue, timer);
+		TrigFloatTest_PerformanceSIMD4d(results, otherResults, angles, hashValue, timer);
 
 #endif // DS_HAS_SIMD
 
 	printf("\nValue to avoid optimizing out loops: 0x%X\n", static_cast<unsigned int>(hashValue));
 }
 
-TEST(TrigTestFloat, Performance)
+TEST(TrigFloatTest, Performance)
 {
-	TrigTestFloat_Performance();
+	TrigFloatTest_Performance();
 }
 
-TEST(TrigTestDouble, Performance)
+TEST(TrigDoubleTest, Performance)
 {
-	TrigTestDouble_Performance();
+	TrigDoubleTest_Performance();
 }
 
 #if DS_GCC

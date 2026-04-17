@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -228,6 +228,21 @@
 #else
 #define DS_UNREACHABLE() __builtin_unreachable()
 #endif
+
+/**
+ * @brief Macro that hints to the compiler that an expression is expected to equal a specific value.
+ * @remark Only integer values are supported, so types such as pointers and floating-point values
+ *     should have a compare for the expression so the expected value can be a 0 or 1.
+ * @param expr The expression to compare.
+ * @param val The expected value for expr.
+ * @return The result of expr.
+ */
+#if DS_MSC
+#define DS_EXPECT(expr, val) (expr)
+#else
+#define DS_EXPECT(expr, val) __builtin_expect((expr), (val))
+#endif
+
 
 /**
  * @brief Gets the number of elements within an array.
