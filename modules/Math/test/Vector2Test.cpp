@@ -260,7 +260,7 @@ TYPED_TEST(Vector2Test, Length)
 	Vector2Type a = {{(TypeParam)-2.25, (TypeParam)4.5}};
 
 	EXPECT_EQ(dsPow2(a.x) + dsPow2(a.y), dsVector2_len2(a));
-	EXPECT_EQ(std::sqrt(dsPow2(a.x) + dsPow2(a.y)), dsVector2_len(&a));
+	EXPECT_DOUBLE_EQ(std::sqrt(dsPow2(a.x) + dsPow2(a.y)), dsVector2_len(&a));
 }
 
 TYPED_TEST(Vector2Test, Distance)
@@ -271,7 +271,7 @@ TYPED_TEST(Vector2Test, Distance)
 	Vector2Type b = {{(TypeParam)3.2, (TypeParam)-5.4}};
 
 	EXPECT_EQ(dsPow2(a.x - b.x) + dsPow2(a.y - b.y), dsVector2_dist2(a, b));
-	EXPECT_EQ(std::sqrt(dsPow2(a.x - b.x) + dsPow2(a.y - b.y)), dsVector2_dist(&a, &b));
+	EXPECT_DOUBLE_EQ(std::sqrt(dsPow2(a.x - b.x) + dsPow2(a.y - b.y)), dsVector2_dist(&a, &b));
 }
 
 TYPED_TEST(Vector2Test, Equal)

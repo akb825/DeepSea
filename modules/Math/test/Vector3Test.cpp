@@ -288,7 +288,7 @@ TYPED_TEST(Vector3Test, Length)
 	Vector3Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7}};
 
 	EXPECT_EQ(dsPow2(a.x) + dsPow2(a.y) + dsPow2(a.z), dsVector3_len2(a));
-	EXPECT_EQ(std::sqrt(dsPow2(a.x) + dsPow2(a.y) + dsPow2(a.z)), dsVector3_len(&a));
+	EXPECT_DOUBLE_EQ(std::sqrt(dsPow2(a.x) + dsPow2(a.y) + dsPow2(a.z)), dsVector3_len(&a));
 }
 
 TYPED_TEST(Vector3Test, Distance)
@@ -299,8 +299,8 @@ TYPED_TEST(Vector3Test, Distance)
 	Vector3Type b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6}};
 
 	EXPECT_EQ(dsPow2(a.x - b.x) + dsPow2(a.y - b.y) + dsPow2(a.z - b.z), dsVector3_dist2(a, b));
-	EXPECT_EQ(std::sqrt(dsPow2(a.x - b.x) + dsPow2(a.y - b.y) + dsPow2(a.z - b.z)),
-			dsVector3_dist(&a, &b));
+	EXPECT_DOUBLE_EQ(std::sqrt(dsPow2(a.x - b.x) + dsPow2(a.y - b.y) + dsPow2(a.z - b.z)),
+		dsVector3_dist(&a, &b));
 }
 
 TYPED_TEST(Vector3Test, Equal)

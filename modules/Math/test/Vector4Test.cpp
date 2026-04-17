@@ -374,7 +374,8 @@ TYPED_TEST(Vector4Test, Length)
 	Vector4Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
 
 	EXPECT_EQ(dsPow2(a.x) + dsPow2(a.y) + dsPow2(a.z) + dsPow2(a.w), dsVector4_len2(a));
-	EXPECT_EQ(std::sqrt(dsPow2(a.x) + dsPow2(a.y) + dsPow2(a.z) + dsPow2(a.w)), dsVector4_len(&a));
+	EXPECT_DOUBLE_EQ(std::sqrt((dsPow2(a.x) + dsPow2(a.y)) + (dsPow2(a.z) + dsPow2(a.w))),
+		dsVector4_len(&a));
 }
 
 TEST(Vector4fTest, Length)
