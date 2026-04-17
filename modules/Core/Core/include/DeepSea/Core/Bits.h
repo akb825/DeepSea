@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,14 +39,28 @@ extern "C"
  * @param x The bitmask.
  * @return The number of leading zeros.
  */
-DS_CORE_EXPORT inline uint32_t dsClz(uint32_t x);
+DS_CORE_EXPORT inline unsigned int dsClz(uint32_t x);
+
+/**
+ * @brief Counts the leading zeros in a 64-bit integer.
+ * @param x The bitmask.
+ * @return The number of leading zeros.
+ */
+DS_CORE_EXPORT inline unsigned int dsClz64(uint64_t x);
 
 /**
  * @brief Counts the trailing zeros in a 32-bit integer.
  * @param x The bitmask.
  * @return The number of trailing zeros.
  */
-DS_CORE_EXPORT inline uint32_t dsCtz(uint32_t x);
+DS_CORE_EXPORT inline unsigned int dsCtz(uint32_t x);
+
+/**
+ * @brief Counts the trailing zeros in a 64-bit integer.
+ * @param x The bitmask.
+ * @return The number of trailing zeros.
+ */
+DS_CORE_EXPORT inline unsigned int dsCtz64(uint64_t x);
 
 /**
  * @brief Gets the index of the next item in a bitmask.
@@ -89,7 +103,7 @@ DS_CORE_EXPORT inline uint32_t dsRemoveLastBit(uint32_t x);
  */
 DS_CORE_EXPORT inline uint32_t dsCountBits(uint32_t x);
 
-inline uint32_t dsClz(uint32_t x)
+inline unsigned int dsClz(uint32_t x)
 {
 #if DS_MSC
 	if (!x)
@@ -97,7 +111,7 @@ inline uint32_t dsClz(uint32_t x)
 
 	unsigned long leading = 0;
 	_BitScanReverse(&leading, x);
-	return 31 - leading;
+	return 31 - (unsigned int)leading;
 #elif DS_GCC || DS_CLANG
 	return x ? __builtin_clz(x) : 32;
 #else
@@ -105,7 +119,34 @@ inline uint32_t dsClz(uint32_t x)
 #endif
 }
 
-inline uint32_t dsCtz(uint32_t x)
+inline unsigned int dsClz64(uint64_t x)
+{
+#if DS_MSC
+	if (!x)
+		return 64;
+
+	unsigned long leading = 0;
+#if DS_64_BIT
+	_BitScanReverse64(&leading, x);
+	return 63 - (unsigned int)leading;
+#else
+	const uint32_t* words = (const uint32_t*)&x;
+	if (words[1])
+	{
+		_BitScanReverse(&leading, words[1]);
+		return 31 - (unsigned int)leading;
+	}
+	_BitScanReverse(&leading, words[0]);
+	return 63 - (unsigned int)leading;
+#endif
+#elif DS_GCC || DS_CLANG
+	return x ? __builtin_clzll(x) : 64;
+#else
+#error Need to implement clz for current compiler.
+#endif
+}
+
+inline unsigned int dsCtz(uint32_t x)
 {
 #if DS_MSC
 	if (!x)
@@ -113,9 +154,36 @@ inline uint32_t dsCtz(uint32_t x)
 
 	unsigned long trailing = 0;
 	_BitScanForward(&trailing, x);
-	return trailing;
+	return (unsigned int)trailing;
 #elif DS_GCC || DS_CLANG
 	return x ? __builtin_ctz(x) : 32;
+#else
+#error Need to implement ctz for current compiler.
+#endif
+}
+
+inline unsigned int dsCtz64(uint64_t x)
+{
+#if DS_MSC
+	if (!x)
+		return 64;
+
+	unsigned long trailing = 0;
+#if DS_64_BIT
+	_BitScanForward64(&trailing, x);
+	return (unsigned int)trailing;
+#else
+	const uint32_t* words = (const uint32_t*)&x;
+	if (words[0])
+	{
+		_BitScanForward(&trailing, words[0]);
+		return (unsigned int)trailing;
+	}
+	_BitScanForward(&trailing, words[1]);
+	return 32 + (unsigned int)trailing;
+#endif
+#elif DS_GCC || DS_CLANG
+	return x ? __builtin_ctzll(x) : 64;
 #else
 #error Need to implement ctz for current compiler.
 #endif
@@ -133,10 +201,16 @@ inline uint32_t dsRemoveLastBit(uint32_t x)
 
 inline uint32_t dsCountBits(uint32_t x)
 {
+#if DS_MSC
+	return __popcnt(x);
+#elif DS_GCC || DS_CLANG
+	return __builtin_popcount(x);
+#else
 	// https://stackoverflow.com/questions/109023/how-to-count-the-number-of-set-bits-in-a-32-bit-integer
 	x = x - ((x >> 1) & 0x55555555U);
 	x = (x & 0x33333333U) + ((x >> 2) & 0x33333333U);
 	return (((x + (x >> 4)) & 0x0F0F0F0FU) * 0x01010101U) >> 24;
+#endif
 }
 
 #ifdef __cplusplus

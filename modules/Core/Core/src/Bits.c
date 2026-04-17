@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2025 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 
 #include <DeepSea/Core/Bits.h>
 
-uint32_t dsClz(uint32_t x);
-uint32_t dsCtz(uint32_t x);
+unsigned int dsClz(uint32_t x);
+unsigned int dsClz64(uint64_t x);
+unsigned int dsCtz(uint32_t x);
+unsigned int dsCtz64(uint64_t x);
 uint32_t dsBitmaskIndex(uint32_t x);
 uint32_t dsRemoveLastBit(uint32_t x);
 uint32_t dsCountBits(uint32_t x);
