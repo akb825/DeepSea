@@ -15,8 +15,8 @@
  */
 
 #include <DeepSea/Math/Exponent.h>
-
 #include <gtest/gtest.h>
+#include <cmath>
 
 TEST(ExponentFloatTest, SplitPow2)
 {
@@ -70,11 +70,9 @@ TEST(ExponentFloatTest, SplitPow2)
 	EXPECT_EQ(0.999999881f, dsSplitPow2f(&pow2, 1.1754942107e-38f));
 	EXPECT_EQ(-126, pow2);
 
-	EXPECT_EQ(0.5f, dsSplitPow2f(&pow2, HUGE_VALF));
-	EXPECT_EQ(129, pow2);
-
-	EXPECT_EQ(-0.5f, dsSplitPow2f(&pow2, -HUGE_VALF));
-	EXPECT_EQ(129, pow2);
+	EXPECT_EQ(HUGE_VALF, dsSplitPow2f(&pow2, HUGE_VALF));
+	EXPECT_EQ(-HUGE_VALF, dsSplitPow2f(&pow2, -HUGE_VALF));
+	EXPECT_TRUE(std::isnan(dsSplitPow2f(&pow2, std::nanf(""))));
 }
 
 TEST(ExponentFloatTest, MulPow2)
@@ -130,6 +128,10 @@ TEST(ExponentFloatTest, MulPow2)
 	EXPECT_EQ(HUGE_VALF, dsMulPow2f(1.0f, 1000));
 	EXPECT_EQ(HUGE_VALF, dsMulPow2f(3.4028234664e38f, 1));
 	EXPECT_EQ(-HUGE_VALF, dsMulPow2f(-1.0f, 1000));
+
+	// Shouldn't be able to escape infinity, and should also handle NaN.
+	EXPECT_EQ(HUGE_VALF, dsMulPow2f(HUGE_VALF, -1));
+	EXPECT_TRUE(std::isnan(dsMulPow2f(std::nanf(""), -1)));
 }
 
 TEST(ExponentDoubleTest, SplitPow2)
@@ -184,11 +186,9 @@ TEST(ExponentDoubleTest, SplitPow2)
 	EXPECT_EQ(0.99999999999999978, dsSplitPow2d(&pow2, 2.2250738585072009e-308));
 	EXPECT_EQ(-1022, pow2);
 
-	EXPECT_EQ(0.5, dsSplitPow2d(&pow2, HUGE_VAL));
-	EXPECT_EQ(1025, pow2);
-
-	EXPECT_EQ(-0.5, dsSplitPow2d(&pow2, -HUGE_VAL));
-	EXPECT_EQ(1025, pow2);
+	EXPECT_EQ(HUGE_VAL, dsSplitPow2d(&pow2, HUGE_VAL));
+	EXPECT_EQ(-HUGE_VAL, dsSplitPow2d(&pow2, -HUGE_VAL));
+	EXPECT_TRUE(std::isnan(dsSplitPow2d(&pow2, std::nan(""))));
 }
 
 TEST(ExponentDoubleTest, MulPow2)
@@ -244,4 +244,8 @@ TEST(ExponentDoubleTest, MulPow2)
 	EXPECT_EQ(HUGE_VAL, dsMulPow2d(1.0, 100000));
 	EXPECT_EQ(HUGE_VAL, dsMulPow2d(1.7976931348623157e308, 1));
 	EXPECT_EQ(-HUGE_VAL, dsMulPow2d(-1.0, 100000));
+
+	// Shouldn't be able to escape infinity, and should also handle NaN.
+	EXPECT_EQ(HUGE_VAL, dsMulPow2d(HUGE_VAL, -1));
+	EXPECT_TRUE(std::isnan(dsMulPow2d(std::nan(""), -1)));
 }

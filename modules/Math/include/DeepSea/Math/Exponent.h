@@ -53,13 +53,13 @@ extern "C"
 /**
  * @brief Splits the power of two exponent out of a floating-point value.
  *
- * If +-0 is provided, the fractional portion will be +-0 and power of two will be 0. If +-infinity
- * is provided, the fractional portion will be +-0.5 and the power of two will be above what is
- * supported for standard floating-point numbers.
+ * If +-0, infinity, or NaN is provided, x will be returned unmodified and the power of two will be
+ * 0.
  *
  * @param[out] outPow2 The power of 2 component to multiply by the return value to yield x.
  * @param x The value to split.
- * @return The fractional portion of x, expected to be in the range +-[0.5, 1) if x is not +-0.
+ * @return The fractional portion of x, expected to be in the range +-[0.5, 1) if x is not +-0,
+ *     +-infinity, or NaN.
  */
 DS_MATH_EXPORT inline float dsSplitPow2f(int* outPow2, float x);
 
@@ -152,10 +152,10 @@ DS_MATH_EXPORT inline float dsSplitPow2f(int* outPow2, float x)
 
 	uint32_t xi = *(uint32_t*)&x;
 	uint32_t expBits = xi & DS_FLT_EXP_BITS;
-	uint32_t unsignedBits = (xi & ~DS_FLT_SIGN_BIT);
+	uint32_t mantissaBits = xi & DS_FLT_MANTISSA_BITS;
 	*outPow2 = 0;
 	// Check for subnormal.
-	if (DS_EXPECT(!expBits && unsignedBits, false))
+	if (DS_EXPECT(!expBits && mantissaBits, false))
 	{
 		unsigned int subnormPow2;
 		xi = dsSubnormToNormBitsf(&subnormPow2, xi);
@@ -163,16 +163,13 @@ DS_MATH_EXPORT inline float dsSplitPow2f(int* outPow2, float x)
 		expBits = xi & DS_FLT_EXP_BITS;
 	}
 
-	uint32_t signedMantissaBits = (xi & ~DS_FLT_EXP_BITS);
-	if (unsignedBits)
+	if (expBits && expBits != DS_FLT_EXP_BITS)
 	{
 		// Aim for a final expornent of -1 to have the value in the range [0.5, 1.0).
 		unsigned int targetExpOffset = DS_FLT_EXP_OFFSET - 1;
 		*outPow2 += (int)(expBits >> DS_FLT_MANTISSA_BIT_COUNT) - targetExpOffset;
-		xi = signedMantissaBits | (targetExpOffset << DS_FLT_MANTISSA_BIT_COUNT);
+		xi = (xi & ~DS_FLT_EXP_BITS) | (targetExpOffset << DS_FLT_MANTISSA_BIT_COUNT);
 	}
-	else
-		xi = signedMantissaBits;
 	return *(float*)&xi;
 }
 
@@ -182,10 +179,10 @@ DS_MATH_EXPORT inline double dsSplitPow2d(int* outPow2, double x)
 
 	uint64_t xi = *(uint64_t*)&x;
 	uint64_t expBits = xi & DS_DBL_EXP_BITS;
-	uint64_t unsignedBits = (xi & ~DS_DBL_SIGN_BIT);
+	uint64_t mantissaBits = xi & DS_DBL_MANTISSA_BITS;
 	*outPow2 = 0;
 	// Check for subnormal.
-	if (DS_EXPECT(!expBits && unsignedBits, false))
+	if (DS_EXPECT(!expBits && mantissaBits, false))
 	{
 		unsigned int subnormPow2;
 		xi = dsSubnormToNormBitsd(&subnormPow2, xi);
@@ -193,17 +190,11 @@ DS_MATH_EXPORT inline double dsSplitPow2d(int* outPow2, double x)
 		expBits = xi & DS_DBL_EXP_BITS;
 	}
 
-	uint64_t signedMantissaBits = (xi & ~DS_DBL_EXP_BITS);
-	if (unsignedBits)
+	if (expBits && expBits != DS_DBL_EXP_BITS)
 	{
 		unsigned int targetExpOffset = DS_DBL_EXP_OFFSET - 1;
 		*outPow2 += (int)(expBits >> DS_DBL_MANTISSA_BIT_COUNT) - targetExpOffset;
-		xi = signedMantissaBits | ((uint64_t)targetExpOffset << DS_DBL_MANTISSA_BIT_COUNT);
-	}
-	else
-	{
-		*outPow2 = 0;
-		xi = signedMantissaBits;
+		xi = (xi & ~DS_DBL_EXP_BITS) | ((uint64_t)targetExpOffset << DS_DBL_MANTISSA_BIT_COUNT);
 	}
 	return *(double*)&xi;
 }
@@ -212,9 +203,9 @@ DS_MATH_EXPORT inline float dsMulPow2f(float x, int pow2)
 {
 	uint32_t xi = *(uint32_t*)&x;
 	uint32_t expBits = xi & DS_FLT_EXP_BITS;
-	uint32_t unsignedBits = (xi & ~DS_FLT_SIGN_BIT);
+	uint32_t mantissaBits = xi & DS_FLT_MANTISSA_BITS;
 	// Check for subnormal.
-	if (DS_EXPECT(!expBits && unsignedBits, false))
+	if (DS_EXPECT(!expBits && mantissaBits, false))
 	{
 		unsigned int subnormPow2;
 		xi = dsSubnormToNormBitsf(&subnormPow2, xi);
@@ -222,8 +213,7 @@ DS_MATH_EXPORT inline float dsMulPow2f(float x, int pow2)
 		expBits = xi & DS_FLT_EXP_BITS;
 	}
 
-	uint32_t signedMantissaBits = (xi & ~DS_FLT_EXP_BITS);
-	if (unsignedBits)
+	if (expBits && expBits != DS_FLT_EXP_BITS)
 	{
 		pow2 += (int)(expBits >> DS_FLT_MANTISSA_BIT_COUNT) - DS_FLT_EXP_OFFSET;
 		if (pow2 <= -DS_FLT_EXP_OFFSET)
@@ -233,17 +223,18 @@ DS_MATH_EXPORT inline float dsMulPow2f(float x, int pow2)
 		}
 		else
 		{
+			uint32_t signedMantissaBits;
 			if (pow2 > DS_FLT_EXP_OFFSET)
 			{
 				// Overflow: set up the parameters to construct infinity.
 				signedMantissaBits = xi & DS_FLT_SIGN_BIT;
 				pow2 = DS_FLT_EXP_OFFSET + 1;
 			}
+			else
+				signedMantissaBits = xi & ~DS_FLT_EXP_BITS;
 			xi = signedMantissaBits | ((pow2 + DS_FLT_EXP_OFFSET) << DS_FLT_MANTISSA_BIT_COUNT);
 		}
 	}
-	else
-		xi = signedMantissaBits;
 	return *(float*)&xi;
 }
 
@@ -251,9 +242,9 @@ DS_MATH_EXPORT inline double dsMulPow2d(double x, int pow2)
 {
 	uint64_t xi = *(uint64_t*)&x;
 	uint64_t expBits = xi & DS_DBL_EXP_BITS;
-	uint64_t unsignedBits = (xi & ~DS_DBL_SIGN_BIT);
+	uint64_t mantissaBits = xi & DS_DBL_MANTISSA_BITS;
 	// Check for subnormal.
-	if (DS_EXPECT(!expBits && unsignedBits, false))
+	if (DS_EXPECT(!expBits && mantissaBits, false))
 	{
 		unsigned int subnormPow2;
 		xi = dsSubnormToNormBitsd(&subnormPow2, xi);
@@ -261,8 +252,7 @@ DS_MATH_EXPORT inline double dsMulPow2d(double x, int pow2)
 		expBits = xi & DS_DBL_EXP_BITS;
 	}
 
-	uint64_t signedMantissaBits = (xi & ~DS_DBL_EXP_BITS);
-	if (unsignedBits)
+	if (expBits && expBits != DS_DBL_EXP_BITS)
 	{
 		pow2 += (int)(expBits >> DS_DBL_MANTISSA_BIT_COUNT) - DS_DBL_EXP_OFFSET;
 		if (pow2 <= -DS_DBL_EXP_OFFSET)
@@ -272,18 +262,19 @@ DS_MATH_EXPORT inline double dsMulPow2d(double x, int pow2)
 		}
 		else
 		{
+			uint64_t signedMantissaBits;
 			if (pow2 > DS_DBL_EXP_OFFSET)
 			{
 				// Overflow: set up the parameters to construct infinity.
 				signedMantissaBits = xi & DS_DBL_SIGN_BIT;
 				pow2 = DS_DBL_EXP_OFFSET + 1;
 			}
+			else
+				signedMantissaBits = xi & ~DS_DBL_EXP_BITS;
 			xi = signedMantissaBits |
 				((uint64_t)(pow2 + DS_DBL_EXP_OFFSET) << DS_DBL_MANTISSA_BIT_COUNT);
 		}
 	}
-	else
-		xi = signedMantissaBits;
 	return *(double*)&xi;
 }
 
