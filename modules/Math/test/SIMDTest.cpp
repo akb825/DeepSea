@@ -1084,6 +1084,7 @@ static void SIMDTest_FloatBitfield4()
 	uint32_t padding2; // Keep next value unaligned.
 	DS_UNUSED(padding2);
 	uint32_t cpuResultUnaligned[4];
+	uint32_t trueValue = 0xFFFFFFFF;
 
 	dsSIMD4fb a = dsSIMD4fb_loadUnaligned(&cpuA);
 	dsSIMD4fb b = dsSIMD4fb_load(&cpuB);
@@ -1219,6 +1220,13 @@ static void SIMDTest_FloatBitfield4()
 	EXPECT_EQ(uint32_t(cpuA[2]) >> 5, cpuResult.z);
 	EXPECT_EQ(uint32_t(cpuA[3]) >> 5, cpuResult.w);
 
+	result = dsSIMD4fb_select(dsSIMD4fb_set4(trueValue, 0, 0, trueValue), a, b);
+	dsSIMD4fb_store(&cpuResult, result);
+	EXPECT_EQ(cpuA[0], cpuResult.x);
+	EXPECT_EQ(cpuB.y, cpuResult.y);
+	EXPECT_EQ(cpuB.z, cpuResult.z);
+	EXPECT_EQ(cpuA[3], cpuResult.w);
+
 	dsSIMD4fb compare = dsSIMD4fb_set4(0x12345678, 0x87654320, 0x0BCD1234, 0x4321DBCA);
 	result = dsSIMD4fb_cmpeq(a, compare);
 	dsSIMD4fb_store(&cpuResult, result);
@@ -1234,7 +1242,34 @@ static void SIMDTest_FloatBitfield4()
 	EXPECT_TRUE(cpuResult.z);
 	EXPECT_FALSE(cpuResult.w);
 
-	uint32_t trueValue = 0xFFFFFFFF;
+	result = dsSIMD4fb_cmplts(a, compare);
+	dsSIMD4fb_store(&cpuResult, result);
+	EXPECT_FALSE(cpuResult.x);
+	EXPECT_FALSE(cpuResult.y);
+	EXPECT_TRUE(cpuResult.z);
+	EXPECT_FALSE(cpuResult.w);
+
+	result = dsSIMD4fb_cmples(a, compare);
+	dsSIMD4fb_store(&cpuResult, result);
+	EXPECT_TRUE(cpuResult.x);
+	EXPECT_FALSE(cpuResult.y);
+	EXPECT_TRUE(cpuResult.z);
+	EXPECT_TRUE(cpuResult.w);
+
+	result = dsSIMD4fb_cmpgts(a, compare);
+	dsSIMD4fb_store(&cpuResult, result);
+	EXPECT_FALSE(cpuResult.x);
+	EXPECT_TRUE(cpuResult.y);
+	EXPECT_FALSE(cpuResult.z);
+	EXPECT_FALSE(cpuResult.w);
+
+	result = dsSIMD4fb_cmpges(a, compare);
+	dsSIMD4fb_store(&cpuResult, result);
+	EXPECT_TRUE(cpuResult.x);
+	EXPECT_TRUE(cpuResult.y);
+	EXPECT_FALSE(cpuResult.z);
+	EXPECT_TRUE(cpuResult.w);
+
 	EXPECT_EQ(trueValue, dsSIMD4fb_any(dsSIMD4fb_true()));
 	EXPECT_FALSE(dsSIMD4fb_any(dsSIMD4fb_false()));
 	EXPECT_EQ(trueValue, dsSIMD4fb_any(dsSIMD4fb_set4(trueValue, 0, 0, 0)));
@@ -1290,12 +1325,13 @@ static void SIMDTest_DoubleBitfield2()
 {
 	uint64_t padding1; // Keep the next value unaligned.
 	DS_UNUSED(padding1);
-	uint64_t cpuA[2] = {0x1234567887654321ULL, 0xABCD12344321DBCAULL};
+	uint64_t cpuA[2] = {0x1234567887654321ULL, 0x1234ABCD4321DBCAULL};
 	dsVector2l cpuB = {{int64_t(0xDEADBEEFCAFEBABE), 0}};
 	dsVector2l cpuResult;
 	uint64_t padding2; // Keep the next value unaligned.
 	DS_UNUSED(padding2);
 	uint64_t cpuResultUnaligned[2];
+	uint64_t trueValue = 0xFFFFFFFFFFFFFFFFULL;
 
 	dsSIMD2db a = dsSIMD2db_loadUnaligned(&cpuA);
 	dsSIMD2db b = dsSIMD2db_load(&cpuB);
@@ -1391,7 +1427,12 @@ static void SIMDTest_DoubleBitfield2()
 	EXPECT_EQ(uint64_t(cpuA[0]) >> 5, cpuResult.x);
 	EXPECT_EQ(uint64_t(cpuA[1]) >> 5, cpuResult.y);
 
-	dsSIMD2db compare = dsSIMD2db_set2(0x1234567887654321ULL, 0xABCD12344320DBCAULL);
+	result = dsSIMD2db_select(dsSIMD2db_set2(trueValue, 0), a, b);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_EQ(cpuA[0], cpuResult.x);
+	EXPECT_EQ(cpuB.y, cpuResult.y);
+
+	dsSIMD2db compare = dsSIMD2db_set2(0x1234567887654321ULL, 0x8234ABCD4321DBCAULL);
 	result = dsSIMD2db_cmpeq(a, compare);
 	dsSIMD2db_store(&cpuResult, result);
 	EXPECT_TRUE(cpuResult.x);
@@ -1402,7 +1443,54 @@ static void SIMDTest_DoubleBitfield2()
 	EXPECT_FALSE(cpuResult.x);
 	EXPECT_TRUE(cpuResult.y);
 
-	uint64_t trueValue = 0xFFFFFFFFFFFFFFFFULL;
+	result = dsSIMD2db_cmplts(a, compare);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_FALSE(cpuResult.x);
+	EXPECT_FALSE(cpuResult.y);
+
+	result = dsSIMD2db_cmples(a, compare);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_TRUE(cpuResult.x);
+	EXPECT_FALSE(cpuResult.y);
+
+	result = dsSIMD2db_cmplts(compare, a);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_FALSE(cpuResult.x);
+	EXPECT_TRUE(cpuResult.y);
+
+	result = dsSIMD2db_cmples(compare, a);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_TRUE(cpuResult.x);
+	EXPECT_TRUE(cpuResult.y);
+
+	result = dsSIMD2db_cmpgts(a, compare);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_FALSE(cpuResult.x);
+	EXPECT_TRUE(cpuResult.y);
+
+	result = dsSIMD2db_cmpges(a, compare);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_TRUE(cpuResult.x);
+	EXPECT_TRUE(cpuResult.y);
+
+	result = dsSIMD2db_cmpgts(compare, a);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_FALSE(cpuResult.x);
+	EXPECT_FALSE(cpuResult.y);
+
+	result = dsSIMD2db_cmpges(compare, a);
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_TRUE(cpuResult.x);
+	EXPECT_FALSE(cpuResult.y);
+
+	// Double check for 32-bit compare fallback on SSE < 4.2.
+	dsSIMD2db asdf = dsSIMD2db_set2(0xFFFFFFFF00000000ULL, 0xFFFFFFFF00000001ULL);
+	result = dsSIMD2db_cmplts(asdf,
+		dsSIMD2db_set2(0xFFFFFFFF00000001ULL, 0xFFFFFFFF00000000ULL));
+	dsSIMD2db_store(&cpuResult, result);
+	EXPECT_TRUE(cpuResult.x);
+	EXPECT_FALSE(cpuResult.y);
+
 	EXPECT_EQ(trueValue, dsSIMD2db_any(dsSIMD2db_true()));
 	EXPECT_FALSE(dsSIMD2db_any(dsSIMD2db_false()));
 	EXPECT_EQ(trueValue, dsSIMD2db_any(dsSIMD2db_set2(trueValue, 0)));
@@ -1446,6 +1534,7 @@ static void SIMDTest_DoubleBitfield4()
 	uint64_t padding2; // Keep the next value unaligned.
 	DS_UNUSED(padding2);
 	uint64_t cpuResultUnaligned[4];
+	uint64_t trueValue = 0xFFFFFFFFFFFFFFFFULL;
 
 	dsSIMD4db a = dsSIMD4db_loadUnaligned(&cpuA);
 	dsSIMD4db b = dsSIMD4db_load(&cpuB);
@@ -1588,8 +1677,15 @@ static void SIMDTest_DoubleBitfield4()
 	EXPECT_EQ(uint64_t(cpuA[2]) >> 5, cpuResult.z);
 	EXPECT_EQ(uint64_t(cpuA[3]) >> 5, cpuResult.w);
 
+	result = dsSIMD4db_select(dsSIMD4db_set4(trueValue, 0, 0, trueValue), a, b);
+	dsSIMD4db_store(&cpuResult, result);
+	EXPECT_EQ(cpuA[0], cpuResult.x);
+	EXPECT_EQ(cpuB.y, cpuResult.y);
+	EXPECT_EQ(cpuB.z, cpuResult.z);
+	EXPECT_EQ(cpuA[3], cpuResult.w);
+
 	dsSIMD4db compare = dsSIMD4db_set4(
-		0x123456789ABCDEFULL, 0xFEDCBA987654320ULL, 0x0BCDEF123456789ULL, 0x987654321FEDCBAULL);
+		0x123456789ABCDEFULL, 0xFEDCBA987654322ULL, 0xFFBCDEF123456789ULL, 0x987654321FEDCBAULL);
 	result = dsSIMD4db_cmpeq(a, compare);
 	dsSIMD4db_store(&cpuResult, result);
 	EXPECT_TRUE(cpuResult.x);
@@ -1604,7 +1700,34 @@ static void SIMDTest_DoubleBitfield4()
 	EXPECT_TRUE(cpuResult.z);
 	EXPECT_FALSE(cpuResult.w);
 
-	uint64_t trueValue = 0xFFFFFFFFFFFFFFFFULL;
+	result = dsSIMD4db_cmplts(a, compare);
+	dsSIMD4db_store(&cpuResult, result);
+	EXPECT_FALSE(cpuResult.x);
+	EXPECT_TRUE(cpuResult.y);
+	EXPECT_FALSE(cpuResult.z);
+	EXPECT_FALSE(cpuResult.w);
+
+	result = dsSIMD4db_cmples(a, compare);
+	dsSIMD4db_store(&cpuResult, result);
+	EXPECT_TRUE(cpuResult.x);
+	EXPECT_TRUE(cpuResult.y);
+	EXPECT_FALSE(cpuResult.z);
+	EXPECT_TRUE(cpuResult.w);
+
+	result = dsSIMD4db_cmpgts(a, compare);
+	dsSIMD4db_store(&cpuResult, result);
+	EXPECT_FALSE(cpuResult.x);
+	EXPECT_FALSE(cpuResult.y);
+	EXPECT_TRUE(cpuResult.z);
+	EXPECT_FALSE(cpuResult.w);
+
+	result = dsSIMD4db_cmpges(a, compare);
+	dsSIMD4db_store(&cpuResult, result);
+	EXPECT_TRUE(cpuResult.x);
+	EXPECT_FALSE(cpuResult.y);
+	EXPECT_TRUE(cpuResult.z);
+	EXPECT_TRUE(cpuResult.w);
+
 	EXPECT_EQ(trueValue, dsSIMD4db_any(dsSIMD4db_true()));
 	EXPECT_FALSE(dsSIMD4db_any(dsSIMD4db_false()));
 	EXPECT_EQ(trueValue, dsSIMD4db_any(dsSIMD4db_set4(trueValue, 0, 0, 0)));

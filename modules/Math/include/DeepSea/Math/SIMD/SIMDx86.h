@@ -104,13 +104,13 @@ extern "C"
 #endif
 
 // NOTE: Windows doesn't have any way to distinguish between AVX and SSE versions > 2.
-#if defined(__SSE3__) || defined(__AVX__)
+#if defined(__SSE3__) || defined(__AVX__) || DS_X86_ARCH_LEVEL >= 2
 #define DS_SIMD_ALWAYS_HADD 1
 #else
 #define DS_SIMD_ALWAYS_HADD 0
 #endif
 
-#if defined(__SSE4_1__) || defined(__AVX__)
+#if defined(__SSE4_1__) || defined(__AVX__) || DS_X86_ARCH_LEVEL >= 2
 #define DS_SIMD_ALWAYS_ROUNDING 1
 #else
 #define DS_SIMD_ALWAYS_ROUNDING 0
@@ -640,7 +640,7 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4fb_toFloatBitfield(dsSIMD4fb a)
  * @brief Performs a logical not on a SIMD bitfield value.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param a The value to not.
- * @return The result of !a.
+ * @return The result of ~a.
  */
 DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_not(dsSIMD4fb a)
 {
@@ -672,7 +672,7 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_and(dsSIMD4fb a, dsSIMD4fb b)
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param a The first value to not then and.
  * @param b The second value to and.
- * @return The result of (!a) & b.
+ * @return The result of (~a) & b.
  */
 DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_andnot(dsSIMD4fb a, dsSIMD4fb b)
 {
@@ -704,7 +704,7 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_or(dsSIMD4fb a, dsSIMD4fb b)
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param a The first value to or.
  * @param b The second value to not then or.
- * @return The result of a | (!b).
+ * @return The result of a | (~b).
  */
 DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_ornot(dsSIMD4fb a, dsSIMD4fb b)
 {
@@ -897,6 +897,21 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_shiftRight(dsSIMD4fb a, unsigned int b)
 	DS_SSE_RESULT_FB4(_mm_srli_epi32(DS_SSE_PARAM_FB4((a)), (b)))
 
 /**
+ * @brief Selects between two vectors based on a boolean mask.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int is available.
+ * @param a The boolean mask to select with.
+ * @param b The first SIMD values to select from.
+ * @param c The second SIMD values to select from.
+ * @return The result of a ? b : c.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_select(dsSIMD4fb a, dsSIMD4fb b, dsSIMD4fb c)
+{
+	return DS_SSE_RESULT_FB4(_mm_or_si128(
+		_mm_and_si128(DS_SSE_PARAM_FB4(a), DS_SSE_PARAM_FB4(b)),
+		_mm_andnot_si128(DS_SSE_PARAM_FB4(a), DS_SSE_PARAM_FB4(c))));
+}
+
+/**
  * @brief Checks if two SIMD values are equal.
  * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
  * @param a The first value to compare.
@@ -922,7 +937,57 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_cmpne(dsSIMD4fb a, dsSIMD4fb b)
 }
 
 /**
- * @brief Gets whether any boolean SIMD values are set.
+ * @brief Checks if one SIMD values is less than another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a < b.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_cmplts(dsSIMD4fb a, dsSIMD4fb b)
+{
+	return DS_SSE_RESULT_FB4(_mm_cmplt_epi32(DS_SSE_PARAM_FB4(a), DS_SSE_PARAM_FB4(b)));
+}
+
+/**
+ * @brief Checks if one SIMD values is less than or equal to another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a <= b.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_cmples(dsSIMD4fb a, dsSIMD4fb b)
+{
+	return dsSIMD4fb_not(
+		DS_SSE_RESULT_FB4(_mm_cmplt_epi32(DS_SSE_PARAM_FB4(b), DS_SSE_PARAM_FB4(a))));
+}
+
+/**
+ * @brief Checks if one SIMD values is greater than another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a > b.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_cmpgts(dsSIMD4fb a, dsSIMD4fb b)
+{
+	return DS_SSE_RESULT_FB4(_mm_cmplt_epi32(DS_SSE_PARAM_FB4(b), DS_SSE_PARAM_FB4(a)));
+}
+
+/**
+ * @brief Checks if one SIMD values is greater than or equal to another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a >= b.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_cmpges(dsSIMD4fb a, dsSIMD4fb b)
+{
+	return dsSIMD4fb_not(
+		DS_SSE_RESULT_FB4(_mm_cmplt_epi32(DS_SSE_PARAM_FB4(a), DS_SSE_PARAM_FB4(b))));
+}
+
+/**
+ * @brief Gets whether any boolean SIMD values are set as signed integers.
  * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
  * @remark Results are undefined if the bit values for each element aren't all 0s or all 1s.
  * @param a The value to check.
@@ -1347,7 +1412,7 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_set2(uint64_t x, uint64_t y)
  * @param i The index of the element to get.
  * @return The SIMD value.
  */
-#define dsSIMD2db_set1FromVec(a, i) _mm_castpd_si128(\
+#define dsSIMD2db_set1FromVec(a, i) _mm_castpd_si128( \
 	_mm_shuffle_pd(_mm_castsi128_pd((a)), _mm_castsi128_pd((a)), _MM_SHUFFLE2((i), (i))))
 
 /**
@@ -1371,7 +1436,7 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_fromDoubleBitfield(dsSIMD2d a)
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_fromDouble(dsSIMD2d a)
 {
 	__m128i result32 = _mm_cvttpd_epi32(a);
-#if defined(__SSE_4_1__) || defined(__AVX__)
+#if defined(__SSE_4_1__) || defined(__AVX__) || DS_X86_ARCH_LEVEL >= 2
 	return _mm_cvtepi32_epi64(result32);
 #else
 	__m128i signedResult = _mm_shuffle_epi32(result32, _MM_SHUFFLE(3, 1, 2, 0));
@@ -1390,7 +1455,7 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_fromDouble(dsSIMD2d a)
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_round(dsSIMD2d a)
 {
 	__m128i result32 = _mm_cvtpd_epi32(a);
-#if defined(__SSE_4_1__) || defined(__AVX__)
+#if defined(__SSE_4_1__) || defined(__AVX__) || DS_X86_ARCH_LEVEL >= 2
 	return _mm_cvtepi32_epi64(result32);
 #else
 	__m128i signedResult = _mm_shuffle_epi32(result32, _MM_SHUFFLE(3, 1, 2, 0));
@@ -1463,7 +1528,7 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2db_toDouble(dsSIMD2db a)
  * @brief Performs a logical not on a SIMD bitfield value.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param a The value to not.
- * @return The result of !a.
+ * @return The result of ~a.
  */
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_not(dsSIMD2db a)
 {
@@ -1487,7 +1552,7 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_and(dsSIMD2db a, dsSIMD2db b)
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param a The first value to not then and.
  * @param b The second value to and.
- * @return The result of (!a) & b.
+ * @return The result of (~a) & b.
  */
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_andnot(dsSIMD2db a, dsSIMD2db b)
 {
@@ -1511,7 +1576,7 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_or(dsSIMD2db a, dsSIMD2db b)
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param a The first value to or.
  * @param b The second value to not then or.
- * @return The result of a | (!b).
+ * @return The result of a | (~b).
  */
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_ornot(dsSIMD2db a, dsSIMD2db b)
 {
@@ -1608,6 +1673,19 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_shiftRight(dsSIMD2db a, unsigned int b)
 #define dsSIMD2db_shiftRightConst(a, b) _mm_srli_epi64((a), (b))
 
 /**
+ * @brief Selects between two vectors based on a boolean mask.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The boolean mask to select with.
+ * @param b The first SIMD values to select from.
+ * @param c The second SIMD values to select from.
+ * @return The result of a ? b : c.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_select(dsSIMD2db a, dsSIMD2db b, dsSIMD2db c)
+{
+	return _mm_or_si128(_mm_and_si128(a, b), _mm_andnot_si128(a, c));
+}
+
+/**
  * @brief Checks if two SIMD values are equal.
  * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
  * @param a The first value to compare.
@@ -1616,7 +1694,7 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_shiftRight(dsSIMD2db a, unsigned int b)
  */
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_cmpeq(dsSIMD2db a, dsSIMD2db b)
 {
-#if defined(__SSE4_1__) || defined(__AVX__)
+#if defined(__SSE4_1__) || defined(__AVX__) || DS_X86_ARCH_LEVEL >= 2
 	return _mm_cmpeq_epi64(a, b);
 #else
 	__m128i cmp32 = _mm_cmpeq_epi32(a, b);
@@ -1634,6 +1712,64 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_cmpeq(dsSIMD2db a, dsSIMD2db b)
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_cmpne(dsSIMD2db a, dsSIMD2db b)
 {
 	return dsSIMD2db_not(dsSIMD2db_cmpeq(a, b));
+}
+
+/**
+ * @brief Checks if one SIMD values is less than another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a < b.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_cmplts(dsSIMD2db a, dsSIMD2db b)
+{
+#if defined(__SSE4_2__) || defined(__AVX__) || DS_X86_ARCH_LEVEL >= 2
+	return _mm_cmpgt_epi64(b, a);
+#else
+	// https://stackoverflow.com/questions/65166174/how-to-simulate-pcmpgtq-on-sse2
+	// Compare lower bits with subtraction.
+	__m128i lowerCmp = _mm_and_si128(_mm_cmpeq_epi32(a, b), _mm_sub_epi64(a, b));
+	// Mix with the upper bit compare.
+	__m128i result32 = _mm_or_si128(lowerCmp, _mm_cmplt_epi32(a, b));
+	// Expand to 64 bits.
+	return _mm_shuffle_epi32(result32, _MM_SHUFFLE(3, 3, 1, 1));
+#endif
+}
+
+/**
+ * @brief Checks if one SIMD values is less than or equal to another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a <= b.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_cmples(dsSIMD2db a, dsSIMD2db b)
+{
+	return dsSIMD2db_not(dsSIMD2db_cmplts(b, a));
+}
+
+/**
+ * @brief Checks if one SIMD values is greater than another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a > b.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_cmpgts(dsSIMD2db a, dsSIMD2db b)
+{
+	return dsSIMD2db_cmplts(b, a);
+}
+
+/**
+ * @brief Checks if one SIMD values is greater than or equal to another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a >= b.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_cmpges(dsSIMD2db a, dsSIMD2db b)
+{
+	return dsSIMD2db_not(dsSIMD2db_cmplts(a, b));
 }
 
 /**
@@ -2184,7 +2320,7 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4db_toDouble(dsSIMD4db a)
  * @brief Performs a logical not on a SIMD bitfield value.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param a The value to not.
- * @return The result of !a.
+ * @return The result of ~a.
  */
 DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_not(dsSIMD4db a)
 {
@@ -2208,7 +2344,7 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_and(dsSIMD4db a, dsSIMD4db b)
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param a The first value to not then and.
  * @param b The second value to and.
- * @return The result of (!a) & b.
+ * @return The result of (~a) & b.
  */
 DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_andnot(dsSIMD4db a, dsSIMD4db b)
 {
@@ -2232,7 +2368,7 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_or(dsSIMD4db a, dsSIMD4db b)
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param a The first value to or.
  * @param b The second value to not then or.
- * @return The result of a | (!b).
+ * @return The result of a | (~b).
  */
 DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_ornot(dsSIMD4db a, dsSIMD4db b)
 {
@@ -2329,6 +2465,19 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_shiftRight(dsSIMD4db a, unsigned int b)
 #define dsSIMD4db_shiftRightConst(a, b) _mm256_srli_epi64((a), (b))
 
 /**
+ * @brief Selects between two vectors based on a boolean mask.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int are available.
+ * @param a The boolean mask to select with.
+ * @param b The first SIMD values to select from.
+ * @param c The second SIMD values to select from.
+ * @return The result of a ? b : c.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_select(dsSIMD4db a, dsSIMD4db b, dsSIMD4db c)
+{
+	return _mm256_or_si256(_mm256_and_si256(a, b), _mm256_andnot_si256(a, c));
+}
+
+/**
  * @brief Checks if two SIMD values are equal.
  * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int are available.
  * @param a The first value to compare.
@@ -2350,6 +2499,54 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_cmpeq(dsSIMD4db a, dsSIMD4db b)
 DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_cmpne(dsSIMD4db a, dsSIMD4db b)
 {
 	return dsSIMD4db_not(_mm256_cmpeq_epi64(a, b));
+}
+
+/**
+ * @brief Checks if one SIMD values is less than another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a < b.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_cmplts(dsSIMD4db a, dsSIMD4db b)
+{
+	return _mm256_cmpgt_epi64(b, a);
+}
+
+/**
+ * @brief Checks if one SIMD values is less than or equal to another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a <= b.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_cmples(dsSIMD4db a, dsSIMD4db b)
+{
+	return dsSIMD4db_not(_mm256_cmpgt_epi64(a, b));
+}
+
+/**
+ * @brief Checks if one SIMD values is greater than another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a > b.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_cmpgts(dsSIMD4db a, dsSIMD4db b)
+{
+	return _mm256_cmpgt_epi64(a, b);
+}
+
+/**
+ * @brief Checks if one SIMD values is greater than or equal to another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a >= b.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_cmpges(dsSIMD4db a, dsSIMD4db b)
+{
+	return dsSIMD4db_not(_mm256_cmpgt_epi64(b, a));
 }
 
 /**

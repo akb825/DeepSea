@@ -688,7 +688,7 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4fb_toFloat(dsSIMD4fb a)
  * @brief Performs a logical not on a SIMD bitfield value.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param a The value to not.
- * @return The result of !a.
+ * @return The result of ~a.
  */
 DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_not(dsSIMD4fb a)
 {
@@ -712,7 +712,7 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_and(dsSIMD4fb a, dsSIMD4fb b)
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param a The first value to not then and.
  * @param b The second value to and.
- * @return The result of (!a) & b.
+ * @return The result of (~a) & b.
  */
 DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_andnot(dsSIMD4fb a, dsSIMD4fb b)
 {
@@ -736,7 +736,7 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_or(dsSIMD4fb a, dsSIMD4fb b)
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param a The first value to or.
  * @param b The second value to not then or.
- * @return The result of a | (!b).
+ * @return The result of a | (~b).
  */
 DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_ornot(dsSIMD4fb a, dsSIMD4fb b)
 {
@@ -833,6 +833,19 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_shiftRight(dsSIMD4fb a, unsigned int b)
 #define dsSIMD4fb_shiftRightConst(a, b) vshrq_n_u32((a), (b))
 
 /**
+ * @brief Selects between two vectors based on a boolean mask.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The boolean mask to select with.
+ * @param b The first SIMD values to select from.
+ * @param c The second SIMD values to select from.
+ * @return The result of a ? b : c.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_select(dsSIMD4fb a, dsSIMD4fb b, dsSIMD4fb c)
+{
+	return vbslq_u32(a, b, c);
+}
+
+/**
  * @brief Checks if two SIMD values are equal.
  * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
  * @param a The first value to compare.
@@ -854,6 +867,54 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_cmpeq(dsSIMD4fb a, dsSIMD4fb b)
 DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_cmpne(dsSIMD4fb a, dsSIMD4fb b)
 {
 	return vmvnq_u32(vceqq_u32(a, b));
+}
+
+/**
+ * @brief Checks if one SIMD values is less than another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a < b.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_cmplts(dsSIMD4fb a, dsSIMD4fb b)
+{
+	return vcltq_s32(a, b);
+}
+
+/**
+ * @brief Checks if one SIMD values is less than or equal to another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a <= b.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_cmples(dsSIMD4fb a, dsSIMD4fb b)
+{
+	return vcleq_s32(a, b);
+}
+
+/**
+ * @brief Checks if one SIMD values is greater than another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a > b.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_cmpgts(dsSIMD4fb a, dsSIMD4fb b)
+{
+	return vcgtq_s32(a, b);
+}
+
+/**
+ * @brief Checks if one SIMD values is greater than or equal to another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a >= b.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_cmpges(dsSIMD4fb a, dsSIMD4fb b)
+{
+	return vcgeq_s32(a, b);
 }
 
 /**
@@ -1583,7 +1644,7 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2db_toDouble(dsSIMD2db a)
  * @brief Performs a logical not on a SIMD bitfield value.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param a The value to not.
- * @return The result of !a.
+ * @return The result of ~a.
  */
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_not(dsSIMD2db a)
 {
@@ -1617,7 +1678,7 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_and(dsSIMD2db a, dsSIMD2db b)
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param a The first value to not then and.
  * @param b The second value to and.
- * @return The result of (!a) & b.
+ * @return The result of (~a) & b.
  */
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_andnot(dsSIMD2db a, dsSIMD2db b)
 {
@@ -1651,7 +1712,7 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_or(dsSIMD2db a, dsSIMD2db b)
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param a The first value to or.
  * @param b The second value to not then or.
- * @return The result of a | (!b).
+ * @return The result of a | (~b).
  */
 DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_ornot(dsSIMD2db a, dsSIMD2db b)
 {
@@ -1791,6 +1852,24 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_shiftRight(dsSIMD2db a, unsigned int b)
 #endif
 
 /**
+ * @brief Selects between two vectors based on a boolean mask.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param a The boolean mask to select with.
+ * @param b The first SIMD values to select from.
+ * @param c The second SIMD values to select from.
+ * @return The result of a ? b : c.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_select(dsSIMD2db a, dsSIMD2db b, dsSIMD2db c)
+{
+#if DS_SIMD_ALWAYS_DOUBLE2
+	return vbslq_u64(a, b, c);
+#else
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+#endif
+}
+
+/**
  * @brief Checks if two SIMD values are equal.
  * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
  * @param a The first value to compare.
@@ -1818,6 +1897,74 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_cmpne(dsSIMD2db a, dsSIMD2db b)
 {
 #if DS_SIMD_ALWAYS_DOUBLE2
 	return vmvnq_u32(vceqq_u64(a, b));
+#else
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+#endif
+}
+
+/**
+ * @brief Checks if one SIMD values is less than another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a < b.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_cmplts(dsSIMD2db a, dsSIMD2db b)
+{
+#if DS_SIMD_ALWAYS_DOUBLE2
+	return vcltq_s64(a, b);
+#else
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+#endif
+}
+
+/**
+ * @brief Checks if one SIMD values is less than or equal to another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a <= b.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_cmples(dsSIMD2db a, dsSIMD2db b)
+{
+#if DS_SIMD_ALWAYS_DOUBLE2
+	return vcleq_s64(a, b);
+#else
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+#endif
+}
+
+/**
+ * @brief Checks if one SIMD values is greater than another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a > b.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_cmpgts(dsSIMD2db a, dsSIMD2db b)
+{
+#if DS_SIMD_ALWAYS_DOUBLE2
+	return vcgtq_s64(a, b);
+#else
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+#endif
+}
+
+/**
+ * @brief Checks if one SIMD values is greater than or equal to another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a >= b.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_cmpges(dsSIMD2db a, dsSIMD2db b)
+{
+#if DS_SIMD_ALWAYS_DOUBLE2
+	return vcgeq_s64(a, b);
 #else
 	DS_ASSERT(false);
 	DS_UNREACHABLE();
@@ -2394,7 +2541,7 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4db_toDouble(dsSIMD4db a)
  * @brief Performs a logical not on a SIMD bitfield value.
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param a The value to not.
- * @return The result of !a.
+ * @return The result of ~a.
  */
 DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_not(dsSIMD4db a)
 {
@@ -2420,7 +2567,7 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_and(dsSIMD4db a, dsSIMD4db b)
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param a The first value to not then and.
  * @param b The second value to and.
- * @return The result of (!a) & b.
+ * @return The result of (~a) & b.
  */
 DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_andnot(dsSIMD4db a, dsSIMD4db b)
 {
@@ -2446,7 +2593,7 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_or(dsSIMD4db a, dsSIMD4db b)
  * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param a The first value to or.
  * @param b The second value to not then or.
- * @return The result of a | (!b).
+ * @return The result of a | (~b).
  */
 DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_ornot(dsSIMD4db a, dsSIMD4db b)
 {
@@ -2550,6 +2697,20 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_shiftRight(dsSIMD4db a, unsigned int b)
 #define dsSIMD4db_shiftRightConst(a, b) (a)
 
 /**
+ * @brief Selects between two vectors based on a boolean mask.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int are available.
+ * @param a The boolean mask to select with.
+ * @param b The first SIMD values to select from.
+ * @param c The second SIMD values to select from.
+ * @return The result of a ? b : c.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_select(dsSIMD4db a, dsSIMD4db b, dsSIMD4db c)
+{
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+}
+
+/**
  * @brief Checks if two SIMD values are equal.
  * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int are available.
  * @param a The first value to compare.
@@ -2570,6 +2731,58 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_cmpeq(dsSIMD4db a, dsSIMD4db b)
  * @return The result of a != b.
  */
 DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_cmpne(dsSIMD4db a, dsSIMD4db b)
+{
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+}
+
+/**
+ * @brief Checks if one SIMD values is less than another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a < b.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_cmplts(dsSIMD4db a, dsSIMD4db b)
+{
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+}
+
+/**
+ * @brief Checks if one SIMD values is less than or equal to another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a <= b.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_cmples(dsSIMD4db a, dsSIMD4db b)
+{
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+}
+
+/**
+ * @brief Checks if one SIMD values is greater than another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a > b.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_cmpgts(dsSIMD4db a, dsSIMD4db b)
+{
+	DS_ASSERT(false);
+	DS_UNREACHABLE();
+}
+
+/**
+ * @brief Checks if one SIMD values is greater than or equal to another as signed integers.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a >= b.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_cmpges(dsSIMD4db a, dsSIMD4db b)
 {
 	DS_ASSERT(false);
 	DS_UNREACHABLE();
