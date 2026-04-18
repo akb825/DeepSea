@@ -243,6 +243,28 @@
 #define DS_EXPECT(expr, val) __builtin_expect((expr), (val))
 #endif
 
+/**
+ * @brief Attributes a type to use a specific alignment.
+ * @param x The alignment to use. This will most commonly be 16.
+ */
+#if DS_GCC || DS_CLANG
+#	define DS_ALIGN(x) __attribute__((aligned(x)))
+#elif DS_MSC
+#	define DS_ALIGN(x) __declspec(align(x))
+#else
+#error Need to provide alignment implementation for this compiler.
+#endif
+
+/**
+ * @brief Attributes a type to use a specific alignment for a parameter.
+ * @param x The alignment to use. This will most commonly be 16.
+ */
+#if DS_GCC || DS_CLANG
+#	define DS_ALIGN_PARAM(x) __attribute__((aligned(x)))
+#else
+#	define DS_ALIGN_PARAM(x)
+#endif
+
 
 /**
  * @brief Gets the number of elements within an array.

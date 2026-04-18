@@ -53,7 +53,7 @@ dsSIMD4f dsASinFMA4f(dsSIMD4f x);
 dsSIMD4f dsACosFMA4f(dsSIMD4f x);
 dsSIMD4f dsATanFMA4f(dsSIMD4f x);
 dsSIMD4f dsATan2FMA4f(dsSIMD4f y, dsSIMD4f x);
-#endif
+#endif // !DS_DETERMINISTIC_MATH
 
 dsSIMD2d dsSinSIMD2d(dsSIMD2d angles);
 dsSIMD2d dsCosSIMD2d(dsSIMD2d angles);
@@ -73,7 +73,7 @@ dsSIMD2d dsASinFMA2d(dsSIMD2d x);
 dsSIMD2d dsACosFMA2d(dsSIMD2d x);
 dsSIMD2d dsATanFMA2d(dsSIMD2d x);
 dsSIMD2d dsATan2FMA2d(dsSIMD2d y, dsSIMD2d x);
-#endif
+#endif // !DS_DETERMINISTIC_MATH
 
 dsSIMD4d dsSinSIMD4d(dsSIMD4d angles);
 dsSIMD4d dsCosSIMD4d(dsSIMD4d angles);
@@ -84,4 +84,4 @@ dsSIMD4d dsACosSIMD4d(dsSIMD4d x);
 dsSIMD4d dsATanSIMD4d(dsSIMD4d x);
 dsSIMD4d dsATan2SIMD4d(dsSIMD4d y, dsSIMD4d x);
 
-#endif
+#endif // DS_HAS_SIMD

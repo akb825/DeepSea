@@ -18,7 +18,7 @@
 #include <DeepSea/Core/Timer.h>
 #include <DeepSea/Math/Random.h>
 #include <DeepSea/Math/Trig.h>
-#include <DeepSea/Math/Vector4.h>
+#include <DeepSea/Math/Types.h>
 
 #include <gtest/gtest.h>
 
