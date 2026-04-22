@@ -387,6 +387,8 @@ DS_MATH_EXPORT inline float dsRadiansToDegreesf(float radians)
 
 DS_MATH_EXPORT inline uint32_t dsNextPowerOf2(uint32_t i)
 {
+	if (i < 2)
+		return i;
 	return 1 << (32 - dsClz(i - 1));
 }
 

@@ -197,7 +197,7 @@ DS_MATH_EXPORT inline dsSIMD4d dsMulPow2SIMD4d(dsSIMD4d x, dsSIMD4db pow2);
 DS_ALWAYS_INLINE uint32_t dsSubnormToNormBitsf(unsigned int* outPow2, uint32_t xi)
 {
 	DS_ASSERT(outPow2);
-	DS_ASSERT(xi);
+	DS_ASSERT(xi & DS_FLT_MANTISSA_BITS);
 	DS_ASSERT((xi & DS_FLT_EXP_BITS) == 0);
 
 	uint32_t signBit = xi & DS_FLT_SIGN_BIT;
@@ -210,7 +210,7 @@ DS_ALWAYS_INLINE uint32_t dsSubnormToNormBitsf(unsigned int* outPow2, uint32_t x
 DS_ALWAYS_INLINE uint64_t dsSubnormToNormBitsd(unsigned int* outPow2, uint64_t xi)
 {
 	DS_ASSERT(outPow2);
-	DS_ASSERT(xi);
+	DS_ASSERT(xi & DS_DBL_MANTISSA_BITS);
 	DS_ASSERT((xi & DS_DBL_EXP_BITS) == 0);
 
 	uint64_t signBit = xi & DS_DBL_SIGN_BIT;

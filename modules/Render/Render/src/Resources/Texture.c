@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,13 @@ extern const char* dsResourceManager_noContextError;
 
 uint32_t dsTexture_maxMipmapLevels(uint32_t width, uint32_t height, uint32_t depth)
 {
-	uint32_t levelCountWidth = 32 - dsClz(width);
-	uint32_t levelCountHeight = 32 - dsClz(height);
-	uint32_t levelCountDepth = 32 - dsClz(depth);
+	uint32_t clzWidth = width ? dsClz(width) : 32;
+	uint32_t clzHeight = height ? dsClz(height) : 32;
+	uint32_t clzDepth = depth ? dsClz(depth) : 32;
+
+	uint32_t levelCountWidth = 32 - clzWidth;
+	uint32_t levelCountHeight = 32 - clzHeight;
+	uint32_t levelCountDepth = 32 - clzDepth;
 	uint32_t maxWidthHeight = dsMax(levelCountWidth, levelCountHeight);
 	return dsMax(maxWidthHeight, levelCountDepth);
 }

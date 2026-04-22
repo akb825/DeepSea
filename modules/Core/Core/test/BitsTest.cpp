@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 
 TEST(BitsTest, Clz)
 {
-	EXPECT_EQ(32U, dsClz(0));
 	EXPECT_EQ(31U, dsClz(1));
 	EXPECT_EQ(4U, dsClz(0x0FFFFFFF));
 	EXPECT_EQ(0U, dsClz(0xFFFFFFF0));
@@ -27,7 +26,6 @@ TEST(BitsTest, Clz)
 
 TEST(BitsTest, Clz64)
 {
-	EXPECT_EQ(64U, dsClz64(0));
 	EXPECT_EQ(63U, dsClz64(1));
 	EXPECT_EQ(4U, dsClz64(0x0FFFFFFFFFFFFFFFULL));
 	EXPECT_EQ(36U, dsClz64(0x000000000FFFFFFFULL));
@@ -37,7 +35,6 @@ TEST(BitsTest, Clz64)
 
 TEST(BitsTest, Ctz)
 {
-	EXPECT_EQ(32U, dsCtz(0));
 	EXPECT_EQ(0U, dsCtz(1));
 	EXPECT_EQ(0U, dsCtz(0x0FFFFFFF));
 	EXPECT_EQ(4U, dsCtz(0xFFFFFFF0));
@@ -45,7 +42,6 @@ TEST(BitsTest, Ctz)
 
 TEST(BitsTest, Ctz64)
 {
-	EXPECT_EQ(64U, dsCtz64(0));
 	EXPECT_EQ(0U, dsCtz64(1));
 	EXPECT_EQ(0U, dsCtz64(0x0FFFFFFFFFFFFFFFULL));
 	EXPECT_EQ(0U, dsCtz64(0x000000000FFFFFFFULL));

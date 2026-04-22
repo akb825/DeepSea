@@ -150,7 +150,7 @@ inline void* dsAllocator_alloc(dsAllocator* allocator, size_t size)
 inline void* dsAllocator_alignedAlloc(dsAllocator* allocator, size_t size, unsigned int alignment)
 {
 	if (!allocator || !allocator->allocFunc || alignment == 0 ||
-		(unsigned int)(1 << (32 - dsClz(alignment - 1))) != alignment)
+		(alignment > 1 && (1U << (32 - dsClz(alignment - 1))) != alignment))
 	{
 		errno = EINVAL;
 		return NULL;

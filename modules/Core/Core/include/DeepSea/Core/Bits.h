@@ -37,28 +37,28 @@ extern "C"
 /**
  * @brief Counts the leading zeros in a 32-bit integer.
  * @param x The bitmask.
- * @return The number of leading zeros.
+ * @return The number of leading zeros. The result is undefined if x is zero.
  */
 DS_CORE_EXPORT inline unsigned int dsClz(uint32_t x);
 
 /**
  * @brief Counts the leading zeros in a 64-bit integer.
  * @param x The bitmask.
- * @return The number of leading zeros.
+ * @return The number of leading zeros. The result is undefined if x is zero.
  */
 DS_CORE_EXPORT inline unsigned int dsClz64(uint64_t x);
 
 /**
  * @brief Counts the trailing zeros in a 32-bit integer.
  * @param x The bitmask.
- * @return The number of trailing zeros.
+ * @return The number of trailing zeros. The result is undefined if x is zero.
  */
 DS_CORE_EXPORT inline unsigned int dsCtz(uint32_t x);
 
 /**
  * @brief Counts the trailing zeros in a 64-bit integer.
  * @param x The bitmask.
- * @return The number of trailing zeros.
+ * @return The number of trailing zeros. The result is undefined if x is zero.
  */
 DS_CORE_EXPORT inline unsigned int dsCtz64(uint64_t x);
 
@@ -75,7 +75,7 @@ DS_CORE_EXPORT inline unsigned int dsCtz64(uint64_t x);
  * @endcode
  *
  * @param x The bitmask.
- * @return The first set bit.
+ * @return The first set bit. The result is undefined if x is zero.
  */
 DS_CORE_EXPORT inline uint32_t dsBitmaskIndex(uint32_t x);
 
@@ -106,14 +106,11 @@ DS_CORE_EXPORT inline uint32_t dsCountBits(uint32_t x);
 inline unsigned int dsClz(uint32_t x)
 {
 #if DS_MSC
-	if (!x)
-		return 32;
-
 	unsigned long leading = 0;
 	_BitScanReverse(&leading, x);
 	return 31 - (unsigned int)leading;
 #elif DS_GCC || DS_CLANG
-	return x ? __builtin_clz(x) : 32;
+	return __builtin_clz(x);
 #else
 #error Need to implement clz for current compiler.
 #endif
@@ -122,9 +119,6 @@ inline unsigned int dsClz(uint32_t x)
 inline unsigned int dsClz64(uint64_t x)
 {
 #if DS_MSC
-	if (!x)
-		return 64;
-
 	unsigned long leading = 0;
 #if DS_64_BIT
 	_BitScanReverse64(&leading, x);
@@ -140,7 +134,7 @@ inline unsigned int dsClz64(uint64_t x)
 	return 63 - (unsigned int)leading;
 #endif
 #elif DS_GCC || DS_CLANG
-	return x ? __builtin_clzll(x) : 64;
+	return __builtin_clzll(x);
 #else
 #error Need to implement clz for current compiler.
 #endif
@@ -149,14 +143,11 @@ inline unsigned int dsClz64(uint64_t x)
 inline unsigned int dsCtz(uint32_t x)
 {
 #if DS_MSC
-	if (!x)
-		return 32;
-
 	unsigned long trailing = 0;
 	_BitScanForward(&trailing, x);
 	return (unsigned int)trailing;
 #elif DS_GCC || DS_CLANG
-	return x ? __builtin_ctz(x) : 32;
+	return __builtin_ctz(x);
 #else
 #error Need to implement ctz for current compiler.
 #endif
@@ -165,9 +156,6 @@ inline unsigned int dsCtz(uint32_t x)
 inline unsigned int dsCtz64(uint64_t x)
 {
 #if DS_MSC
-	if (!x)
-		return 64;
-
 	unsigned long trailing = 0;
 #if DS_64_BIT
 	_BitScanForward64(&trailing, x);
@@ -183,7 +171,7 @@ inline unsigned int dsCtz64(uint64_t x)
 	return 32 + (unsigned int)trailing;
 #endif
 #elif DS_GCC || DS_CLANG
-	return x ? __builtin_ctzll(x) : 64;
+	return __builtin_ctzll(x);
 #else
 #error Need to implement ctz for current compiler.
 #endif
