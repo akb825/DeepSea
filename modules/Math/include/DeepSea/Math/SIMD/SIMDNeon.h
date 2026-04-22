@@ -627,7 +627,10 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_round(dsSIMD4f a)
 #if DS_ARM_64
 	return vcvtnq_s32_f32(a);
 #else
-	return vcvtq_s32_f32(vaddq_f32(a, vdupq_n_f32(0.5f)));
+	dsSIMD4fb signBit = vandq_u32(vreinterpretq_u32_f32(a), vdupq_n_u32(0x80000000));
+	dsSIMD4f signedHalf = vreinterpretq_f32_u32(vorrq_u32(
+		vreinterpretq_u32_f32(vdupq_n_f32(0.5f)), signBit));
+	return vcvtq_s32_f32(vaddq_f32(a, signedHalf));
 #endif
 }
 
