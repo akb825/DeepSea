@@ -2069,7 +2069,6 @@ static void TrigFloatTest_PerformanceFMA4f(std::vector<float>& results,
 DS_SIMD_END()
 
 #endif // !DS_DETERMINISTIC_MATH
-
 #endif // DS_HAS_SIMD
 
 static void TrigFloatTest_Performance()
@@ -2238,7 +2237,7 @@ static void TrigFloatTest_Performance()
 
 #if DS_HAS_SIMD
 
-DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT)
+DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT)
 static void TrigFloatTest_PerformanceSIMD2d(std::vector<double>& results,
 	std::vector<double>& otherResults, const std::vector<double>& angles, std::size_t& hashValue,
 	dsTimer timer)
@@ -2342,7 +2341,7 @@ static void TrigFloatTest_PerformanceSIMD2d(std::vector<double>& results,
 DS_SIMD_END()
 
 #if !DS_DETERMINISTIC_MATH
-DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT,DS_SIMD_FMA)
+DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT,DS_SIMD_FMA)
 static void TrigFloatTest_PerformanceFMA2d(std::vector<double>& results,
 	std::vector<double>& otherResults, const std::vector<double>& angles, std::size_t& hashValue,
 	dsTimer timer)

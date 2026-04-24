@@ -14,10 +14,86 @@
  * limitations under the License.
  */
 
+#include "Determinism.h"
+#include <DeepSea/Core/Timer.h>
 #include <DeepSea/Math/Exponent.h>
+#include <DeepSea/Math/Random.h>
 #include <DeepSea/Math/Types.h>
+
 #include <gtest/gtest.h>
+
 #include <cmath>
+
+// Handle older versions of gtest.
+#ifndef TYPED_TEST_SUITE
+#define TYPED_TEST_SUITE TYPED_TEST_CASE
+#endif
+
+// NOTE: For most accurate comparative performance test results on x86, build with architecture
+// level 1.
+#define DS_PERFORMANCE_TESTS 0
+
+template <typename T>
+struct ExponentTypeSelector;
+
+template <>
+struct ExponentTypeSelector<float>
+{
+	static const float epsilon;
+	static const float maxExponentMag;
+};
+
+template <>
+struct ExponentTypeSelector<double>
+{
+	static const double epsilon;
+	static const double maxExponentMag;
+};
+
+const float ExponentTypeSelector<float>::epsilon = 1e-6f;
+const float ExponentTypeSelector<float>::maxExponentMag = 40.0f;
+
+const double ExponentTypeSelector<double>::epsilon = 1e-15;
+const double ExponentTypeSelector<double>::maxExponentMag = 320.0f;
+
+template <typename T>
+class ExponentTest : public testing::Test
+{
+};
+
+using ExponentTypes = testing::Types<float, double>;
+TYPED_TEST_SUITE(ExponentTest, ExponentTypes);
+
+inline float dsExp(float x)
+{
+	return dsExpf(x);
+}
+
+inline double dsExp(double x)
+{
+	return dsExpd(x);
+}
+
+inline float randomValue(dsRandom& random, float min, float max)
+{
+	return dsRandom_nextFloatRange(&random, min, max);
+}
+
+inline double randomValue(dsRandom& random, double min, double max)
+{
+	return dsRandom_nextDoubleRange(&random, min, max);
+}
+
+#if DS_HAS_SIMD
+template <typename T>
+T* alignPtr(T* ptr, unsigned int alignment)
+{
+	return reinterpret_cast<T*>(
+		(reinterpret_cast<std::size_t>(ptr) + alignment - 1) & ~(std::size_t(alignment) - 1));
+}
+#endif
+
+constexpr unsigned int sampleCount = 1000;
 
 TEST(ExponentFloatTest, SplitPow2)
 {
@@ -251,6 +327,27 @@ TEST(ExponentDoubleTest, MulPow2)
 	EXPECT_TRUE(std::isnan(dsMulPow2d(std::nan(""), -1)));
 }
 
+TYPED_TEST(ExponentTest, Exp)
+{
+	TypeParam epsilon = ExponentTypeSelector<TypeParam>::epsilon;
+	TypeParam maxExponentMag = ExponentTypeSelector<TypeParam>::maxExponentMag;
+
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+
+	for (unsigned int i = 0; i < sampleCount; ++i)
+	{
+		TypeParam x = randomValue(random, -maxExponentMag, maxExponentMag);
+		TypeParam stdExp = std::exp(x);
+		TypeParam customExp = dsExp(x);
+		EXPECT_RELATIVE_EQ(stdExp, customExp, TypeParam(0), epsilon) << x;
+	}
+
+	EXPECT_TRUE(std::isnan(dsExp(TypeParam(std::nan("")))));
+	EXPECT_EQ(TypeParam(HUGE_VAL), dsExp(TypeParam(HUGE_VAL)));
+	EXPECT_EQ(0, dsExp(TypeParam(-HUGE_VAL)));
+}
+
 #if DS_HAS_SIMD
 
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT)
@@ -317,25 +414,25 @@ static void ExponentFloatTest_MulPow2SIMD()
 {
 	dsVector4f result;
 	result.simd = dsMulPow2SIMD4f(
-		dsSIMD4f_set4(0.0f, 0.0f, 0.0f, 0.0f), dsSIMD4fb_set4(0, 10, -10, 10000));
+		dsSIMD4f_set4(0.0f, 0.0f, 0.0f, -0.0f), dsSIMD4fb_set4(0, 10, -10, 0));
 	EXPECT_EQ(0.0f, result.x);
 	EXPECT_EQ(0.0f, result.y);
 	EXPECT_EQ(0.0f, result.z);
-	EXPECT_EQ(0.0f, result.w);
-
-	result.simd = dsMulPow2SIMD4f(
-		dsSIMD4f_set4(0.0f, -0.0f, -0.0f, -0.0f), dsSIMD4fb_set4(-10000, 0, 10, -10));
-	EXPECT_EQ(0.0f, result.x);
-	EXPECT_EQ(-0.0f, result.y);
-	EXPECT_EQ(-0.0f, result.z);
 	EXPECT_EQ(-0.0f, result.w);
 
 	result.simd = dsMulPow2SIMD4f(
-		dsSIMD4f_set4(-0.0f, -0.0f, 0.5f, -0.5f), dsSIMD4fb_set4(10000, -10000, 0, 0));
+		dsSIMD4f_set4(-0.0f, -0.0f, 0.5f, -0.5f), dsSIMD4fb_set4(10, -10, 0, 0));
 	EXPECT_EQ(-0.0f, result.x);
 	EXPECT_EQ(-0.0f, result.y);
 	EXPECT_EQ(0.5f, result.z);
 	EXPECT_EQ(-0.5f, result.w);
+
+	result.simd = dsMulPow2SIMD4f(
+		dsSIMD4f_set4(0.0f, 0.0f, -0.0f, -0.0f), dsSIMD4fb_set4(10000, -10000, 10000, -1000));
+	EXPECT_EQ(0.0f, result.x);
+	EXPECT_EQ(0.0f, result.y);
+	EXPECT_EQ(-0.0f, result.z);
+	EXPECT_EQ(-0.0f, result.w);
 
 	result.simd = dsMulPow2SIMD4f(
 		dsSIMD4f_set4(0.75f, 0.5f, -0.5f, 0.5f), dsSIMD4fb_set4(0, 1, -1, -1));
@@ -374,6 +471,46 @@ static void ExponentFloatTest_MulPow2SIMD()
 }
 
 DS_SIMD_END()
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT,DS_SIMD_ROUNDING)
+
+static void ExponentFloatTest_ExpSIMD()
+{
+	constexpr unsigned int vecSize = 4;
+	float epsilon = ExponentTypeSelector<float>::epsilon;
+	float maxExponentMag = ExponentTypeSelector<float>::maxExponentMag;
+	DS_UNUSED(epsilon);
+
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+
+	dsVector4f exp;
+	for (unsigned int i = 0; i < sampleCount; i += vecSize)
+	{
+		dsVector4f x;
+		for (unsigned int j = 0; j < vecSize; ++j)
+			x.values[j] = randomValue(random, -maxExponentMag, maxExponentMag);
+		exp.simd = dsExpSIMD4f(x.simd);
+		for (unsigned int j = 0; j < vecSize; ++j)
+		{
+			EXPECT_RELATIVE_EQ_DETERMINISTIC(
+				dsExp(x.values[j]), exp.values[j], 0.0f, epsilon) << x.values[j];
+		}
+	}
+
+	exp.simd = dsExpSIMD4f(dsSIMD4f_set4(-12.34f, -0.1234f, 0.4321f, 2.345f));
+	EXPECT_RELATIVE_EQ_DETERMINISTIC(4.37326753e-6f, exp.x, 0.0f, epsilon);
+	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.88391f, exp.y, 0.0f, epsilon);
+	EXPECT_RELATIVE_EQ_DETERMINISTIC(1.5404892f, exp.z, 0.0f, epsilon);
+	EXPECT_RELATIVE_EQ_DETERMINISTIC(10.4332733f, exp.w, 0.0f, epsilon);
+
+	exp.simd = dsExpSIMD4f(dsSIMD4f_set4(HUGE_VALF, -HUGE_VALF, std::nanf(""), 0.0f));
+	EXPECT_EQ(HUGE_VALF, exp.x);
+	EXPECT_EQ(0, exp.y);
+	EXPECT_TRUE(std::isnan(exp.z));
+	EXPECT_EQ(1, exp.w);
+}
+
+DS_SIMD_END()
 
 TEST(ExponentFloatTest, SplitPow2SIMD)
 {
@@ -388,6 +525,58 @@ TEST(ExponentFloatTest, MulPow2SIMD)
 	if ((dsHostSIMDFeatures & features) == features)
 		ExponentFloatTest_MulPow2SIMD();
 }
+
+TEST(ExponentFloatTest, ExpSIMD)
+{
+	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int | dsSIMDFeatures_Rounding;
+	if ((dsHostSIMDFeatures & features) == features)
+		ExponentFloatTest_ExpSIMD();
+}
+
+#if !DS_DETERMINISTIC_MATH
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT,DS_SIMD_ROUNDING,DS_SIMD_FMA)
+
+static void ExponentFloatTest_ExpFMA()
+{
+	constexpr unsigned int vecSize = 4;
+	float epsilon = ExponentTypeSelector<float>::epsilon;
+	float maxExponentMag = ExponentTypeSelector<float>::maxExponentMag;
+	DS_UNUSED(epsilon);
+
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+
+	dsVector4f exp;
+	for (unsigned int i = 0; i < sampleCount; i += vecSize)
+	{
+		dsVector4f x;
+		for (unsigned int j = 0; j < vecSize; ++j)
+			x.values[j] = randomValue(random, -maxExponentMag, maxExponentMag);
+		exp.simd = dsExpFMA4f(x.simd);
+		for (unsigned int j = 0; j < vecSize; ++j)
+		{
+			EXPECT_RELATIVE_EQ(dsExp(x.values[j]), exp.values[j], 0.0f, epsilon) << x.values[j];
+		}
+	}
+
+	exp.simd = dsExpFMA4f(dsSIMD4f_set4(HUGE_VALF, -HUGE_VALF, std::nanf(""), 0.0f));
+	EXPECT_EQ(HUGE_VALF, exp.x);
+	EXPECT_EQ(0, exp.y);
+	EXPECT_TRUE(std::isnan(exp.z));
+	EXPECT_EQ(1, exp.w);
+}
+
+DS_SIMD_END()
+
+TEST(ExponentFloatTest, ExpFMA)
+{
+	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int | dsSIMDFeatures_Rounding |
+		dsSIMDFeatures_FMA;
+	if ((dsHostSIMDFeatures & features) == features)
+		ExponentFloatTest_ExpFMA();
+}
+
+#endif // DS_DETERMINISTIC_MATH
 
 DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT)
 
@@ -534,6 +723,48 @@ static void ExponentDoubleTest_MulPow2SIMD2()
 }
 
 DS_SIMD_END()
+DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT,DS_SIMD_ROUNDING)
+
+static void ExponentDoubleTest_ExpSIMD2()
+{
+	constexpr unsigned int vecSize = 2;
+	double epsilon = ExponentTypeSelector<double>::epsilon;
+	double maxExponentMag = ExponentTypeSelector<double>::maxExponentMag;
+	DS_UNUSED(epsilon);
+
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+
+	dsVector2d exp;
+	for (unsigned int i = 0; i < sampleCount; i += vecSize)
+	{
+		dsVector2d x;
+		for (unsigned int j = 0; j < vecSize; ++j)
+			x.values[j] = randomValue(random, -maxExponentMag, maxExponentMag);
+		exp.simd = dsExpSIMD2d(x.simd);
+		for (unsigned int j = 0; j < vecSize; ++j)
+		{
+			EXPECT_RELATIVE_EQ_DETERMINISTIC(
+				dsExp(x.values[j]), exp.values[j], 0.0, epsilon) << x.values[j];
+		}
+	}
+
+	exp.simd = dsExpSIMD2d(dsSIMD2d_set2(-12.34, -0.1234));
+	EXPECT_RELATIVE_EQ_DETERMINISTIC(4.3732680098504342e-6, exp.x, 0.0, epsilon);
+	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.88391002782745831, exp.y, 0.0, epsilon);
+	exp.simd = dsExpSIMD2d(dsSIMD2d_set2(0.4321, 2.345));
+	EXPECT_RELATIVE_EQ_DETERMINISTIC(1.5404891563745755, exp.x, 0.0, epsilon);
+	EXPECT_RELATIVE_EQ_DETERMINISTIC(10.433272727548918, exp.y, 0.0, epsilon);
+
+	exp.simd = dsExpSIMD2d(dsSIMD2d_set2(HUGE_VAL, -HUGE_VAL));
+	EXPECT_EQ(HUGE_VAL, exp.x);
+	EXPECT_EQ(0, exp.y);
+	exp.simd = dsExpSIMD2d(dsSIMD2d_set2(std::nan(""), 0.0));
+	EXPECT_TRUE(std::isnan(exp.x));
+	EXPECT_EQ(1, exp.y);
+}
+
+DS_SIMD_END()
 
 TEST(ExponentDoubleTest, SplitPow2SIMD2)
 {
@@ -548,6 +779,58 @@ TEST(ExponentDoubleTest, MulPow2SIMD2)
 	if ((dsHostSIMDFeatures & features) == features)
 		ExponentDoubleTest_MulPow2SIMD2();
 }
+
+TEST(ExponentDoubleTest, ExpSIMD2)
+{
+	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int | dsSIMDFeatures_Rounding;
+	if ((dsHostSIMDFeatures & features) == features)
+		ExponentDoubleTest_ExpSIMD2();
+}
+
+#if !DS_DETERMINISTIC_MATH
+DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT,DS_SIMD_ROUNDING)
+
+static void ExponentDoubleTest_ExpFMA2()
+{
+	constexpr unsigned int vecSize = 2;
+	double epsilon = ExponentTypeSelector<double>::epsilon;
+	double maxExponentMag = ExponentTypeSelector<double>::maxExponentMag;
+	DS_UNUSED(epsilon);
+
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+
+	dsVector2d exp;
+	for (unsigned int i = 0; i < sampleCount; i += vecSize)
+	{
+		dsVector2d x;
+		for (unsigned int j = 0; j < vecSize; ++j)
+			x.values[j] = randomValue(random, -maxExponentMag, maxExponentMag);
+		exp.simd = dsExpFMA2d(x.simd);
+		for (unsigned int j = 0; j < vecSize; ++j)
+		{
+			EXPECT_RELATIVE_EQ(dsExp(x.values[j]), exp.values[j], 0.0, epsilon) << x.values[j];
+		}
+	}
+
+	exp.simd = dsExpFMA2d(dsSIMD2d_set2(HUGE_VAL, -HUGE_VAL));
+	EXPECT_EQ(HUGE_VAL, exp.x);
+	EXPECT_EQ(0, exp.y);
+	exp.simd = dsExpFMA2d(dsSIMD2d_set2(std::nan(""), 0.0));
+	EXPECT_TRUE(std::isnan(exp.x));
+	EXPECT_EQ(1, exp.y);
+}
+
+DS_SIMD_END()
+
+TEST(ExponentDoubleTest, ExpFMA2)
+{
+	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int |
+		dsSIMDFeatures_Rounding | dsSIMDFeatures_FMA;
+	if ((dsHostSIMDFeatures & features) == features)
+		ExponentDoubleTest_ExpFMA2();
+}
+#endif // !DS_DETERMINISTIC_MATH
 
 DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_INT)
 
@@ -624,28 +907,28 @@ static void ExponentDoubleTest_MulPow2SIMD4()
 {
 	DS_ALIGN(32) dsVector4d result;
 	dsSIMD4d simdResult = dsMulPow2SIMD4d(
-		dsSIMD4d_set4(0.0, 0.0, 0.0, 0.0), dsSIMD4db_set4(0, 10, -10, 10000));
+		dsSIMD4d_set4(0.0, 0.0, 0.0, -0.0), dsSIMD4db_set4(0, 10, -10, 0));
 	dsSIMD4d_store(&result, simdResult);
 	EXPECT_EQ(0.0, result.x);
 	EXPECT_EQ(0.0, result.y);
 	EXPECT_EQ(0.0, result.z);
-	EXPECT_EQ(0.0, result.w);
-
-	simdResult = dsMulPow2SIMD4d(
-		dsSIMD4d_set4(0.0, -0.0, -0.0, -0.0), dsSIMD4db_set4(-10000, 0, 10, -10));
-	dsSIMD4d_store(&result, simdResult);
-	EXPECT_EQ(0.0, result.x);
-	EXPECT_EQ(-0.0, result.y);
-	EXPECT_EQ(-0.0, result.z);
 	EXPECT_EQ(-0.0, result.w);
 
 	simdResult = dsMulPow2SIMD4d(
-		dsSIMD4d_set4(-0.0, -0.0, 0.5, -0.5), dsSIMD4db_set4(10000, -10000, 0, 0));
+		dsSIMD4d_set4(-0.0, -0.0, 0.5, -0.5), dsSIMD4db_set4(10, -10, 0, 0));
 	dsSIMD4d_store(&result, simdResult);
 	EXPECT_EQ(-0.0, result.x);
 	EXPECT_EQ(-0.0, result.y);
 	EXPECT_EQ(0.5, result.z);
 	EXPECT_EQ(-0.5, result.w);
+
+	simdResult = dsMulPow2SIMD4d(
+		dsSIMD4d_set4(0.0, 0.0, -0.0, -0.0), dsSIMD4db_set4(10000, -10000, 10000, -10000));
+	dsSIMD4d_store(&result, simdResult);
+	EXPECT_EQ(0.0, result.x);
+	EXPECT_EQ(0.0, result.y);
+	EXPECT_EQ(-0.0, result.z);
+	EXPECT_EQ(-0.0, result.w);
 
 	simdResult = dsMulPow2SIMD4d(
 		dsSIMD4d_set4(0.75, 0.5, -0.5, 0.5), dsSIMD4db_set4(0, 1, 1, -1));
@@ -698,6 +981,48 @@ static void ExponentDoubleTest_MulPow2SIMD4()
 }
 
 DS_SIMD_END()
+DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_INT,DS_SIMD_ROUNDING,DS_SIMD_FMA)
+
+static void ExponentDoubleTest_ExpSIMD4()
+{
+	constexpr unsigned int vecSize = 4;
+	double epsilon = ExponentTypeSelector<double>::epsilon;
+	double maxExponentMag = ExponentTypeSelector<double>::maxExponentMag;
+	DS_UNUSED(epsilon);
+
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+
+	DS_ALIGN(32) dsVector4d exp;
+	for (unsigned int i = 0; i < sampleCount; i += vecSize)
+	{
+		DS_ALIGN(32) dsVector4d x;
+		for (unsigned int j = 0; j < vecSize; ++j)
+			x.values[j] = randomValue(random, -maxExponentMag, maxExponentMag);
+		dsSIMD4d_store(&exp, dsExpSIMD4d(dsSIMD4d_load(&x)));
+		for (unsigned int j = 0; j < vecSize; ++j)
+		{
+			EXPECT_RELATIVE_EQ_DETERMINISTIC(
+				dsExp(x.values[j]), exp.values[j], 0.0, epsilon) << x.values[j];
+		}
+	}
+
+#if DS_DETERMINISTIC_MATH
+	dsSIMD4d_store(&exp, dsExpSIMD4d(dsSIMD4d_set4(-12.34, -0.1234, 0.4321, 2.345)));
+	EXPECT_RELATIVE_EQ_DETERMINISTIC(4.3732680098504342e-6, exp.x, 0.0, epsilon);
+	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.88391002782745831, exp.y, 0.0, epsilon);
+	EXPECT_RELATIVE_EQ_DETERMINISTIC(1.5404891563745755, exp.z, 0.0, epsilon);
+	EXPECT_RELATIVE_EQ_DETERMINISTIC(10.433272727548918, exp.w, 0.0, epsilon);
+#endif
+
+	dsSIMD4d_store(&exp, dsExpSIMD4d(dsSIMD4d_set4(HUGE_VAL, -HUGE_VAL, std::nan(""), 0.0)));
+	EXPECT_EQ(HUGE_VAL, exp.x);
+	EXPECT_EQ(0, exp.y);
+	EXPECT_TRUE(std::isnan(exp.z));
+	EXPECT_EQ(1, exp.w);
+}
+
+DS_SIMD_END()
 
 TEST(ExponentDoubleTest, SplitPow2SIMD4)
 {
@@ -713,4 +1038,270 @@ TEST(ExponentDoubleTest, MulPow2SIMD4)
 		ExponentDoubleTest_MulPow2SIMD4();
 }
 
+TEST(ExponentDoubleTest, ExpSIMD4)
+{
+	dsSIMDFeatures features = dsSIMDFeatures_Double4 | dsSIMDFeatures_Int | dsSIMDFeatures_Rounding;
+	if ((dsHostSIMDFeatures & features) == features)
+		ExponentDoubleTest_ExpSIMD4();
+}
+
 #endif // DS_HAS_SIMD
+
+#if DS_PERFORMANCE_TESTS
+
+#if DS_GCC
+#pragma GCC push_options
+#pragma GCC optimize("no-tree-vectorize")
+#endif
+
+#if DS_CLANG
+#define DS_NO_VECTORIZE _Pragma("clang loop vectorize(disable)")
+#elif DS_MSC
+#define DS_NO_VECTORIZE _Pragma("loop(no_vector)")
+#else
+#define DS_NO_VECTORIZE
+#endif
+
+constexpr unsigned int performanceCount = 10000000;
+
+#if DS_HAS_SIMD
+
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT,DS_SIMD_ROUNDING)
+static void ExponentFloatTest_PerformanceSIMD4f(std::vector<float>& results,
+	const std::vector<float>& x, std::size_t& hashValue, dsTimer timer)
+{
+	std::hash<float> hasher;
+	printf("\n");
+
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4f simdX = dsSIMD4f_load(x.data() + i);
+		dsSIMD4f_store(results.data() + i, dsExpSIMD4f(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom exp SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasher(results[size_t(end % performanceCount)]);
+}
+DS_SIMD_END()
+
+#if !DS_DETERMINISTIC_MATH
+
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT,DS_SIMD_ROUNDING,DS_SIMD_FMA)
+static void ExponentFloatTest_PerformanceFMA4f(std::vector<float>& results,
+	const std::vector<float>& x, std::size_t& hashValue, dsTimer timer)
+{
+	std::hash<float> hasher;
+	printf("\n");
+
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4f simdX = dsSIMD4f_load(x.data() + i);
+		dsSIMD4f_store(results.data() + i, dsExpFMA4f(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom exp FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasher(results[size_t(end % performanceCount)]);
+}
+DS_SIMD_END()
+
+#endif // !DS_DETERMINISTIC_MATH
+#endif // DS_HAS_SIMD
+
+static void ExponentFloatTest_Performance()
+{
+	float maxExponentMag = ExponentTypeSelector<float>::maxExponentMag;
+	std::vector<float> results(performanceCount);
+	std::vector<float> x(performanceCount);
+
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		x[i] = randomValue(random, -maxExponentMag, maxExponentMag);
+
+	// Keep a running hash to avoid the optimizer stripping out the loops.
+	std::hash<float> hasher;
+	std::size_t hashValue = 0;
+
+	dsTimer timer = dsTimer_create();
+	uint64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::exp(x[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("std exp time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasher(results[size_t(end % performanceCount)]);
+
+	printf("\n");
+
+	start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsExp(x[i]);
+	end = dsTimer_currentTicks();
+	printf("custom exp time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasher(results[size_t(end % performanceCount)]);
+
+#if DS_HAS_SIMD
+
+	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int | dsSIMDFeatures_Rounding;
+	if ((dsHostSIMDFeatures & features) == features)
+		ExponentFloatTest_PerformanceSIMD4f(results, x, hashValue, timer);
+
+#if !DS_DETERMINISTIC_MATH
+
+	features |= dsSIMDFeatures_FMA;
+	if ((dsHostSIMDFeatures & features) == features)
+		ExponentFloatTest_PerformanceFMA4f(results, x, hashValue, timer);
+
+#endif // !DS_DETERMINISTIC_MATH
+#endif // DS_HAS_SIMD
+
+	printf("\nValue to avoid optimizing out loops: 0x%X\n", static_cast<unsigned int>(hashValue));
+}
+
+#if DS_HAS_SIMD
+
+DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT,DS_SIMD_ROUNDING)
+static void ExponentFloatTest_PerformanceSIMD2d(std::vector<double>& results,
+	const std::vector<double>& x, std::size_t& hashValue, dsTimer timer)
+{
+	std::hash<double> hasher;
+	printf("\n");
+
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdX = dsSIMD2d_load(x.data() + i);
+		dsSIMD2d_store(results.data() + i, dsExpSIMD2d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom exp SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasher(results[size_t(end % performanceCount)]);
+}
+DS_SIMD_END()
+
+#if !DS_DETERMINISTIC_MATH
+DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT,DS_SIMD_ROUNDING,DS_SIMD_FMA)
+static void ExponentFloatTest_PerformanceFMA2d(std::vector<double>& results,
+	const std::vector<double>& x, std::size_t& hashValue, dsTimer timer)
+{
+	std::hash<double> hasher;
+	printf("\n");
+
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdX = dsSIMD2d_load(x.data() + i);
+		dsSIMD2d_store(results.data() + i, dsExpFMA2d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom exp FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasher(results[size_t(end % performanceCount)]);
+}
+DS_SIMD_END()
+#endif // !DS_DETERMINISTIC_MATH
+
+DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_INT,DS_SIMD_ROUNDING,DS_SIMD_FMA)
+static void ExponentFloatTest_PerformanceSIMD4d(std::vector<double>& results,
+	const std::vector<double>& x, std::size_t& hashValue, dsTimer timer)
+{
+	double* resultsData = alignPtr(results.data(), 32);
+	const double* xData = alignPtr(x.data(), 32);
+
+	std::hash<double> hasher;
+	printf("\n");
+
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4d simdX = dsSIMD4d_load(xData + i);
+		dsSIMD4d_store(resultsData + i, dsExpSIMD4d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom exp SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasher(results[size_t(end % performanceCount)]);
+}
+DS_SIMD_END()
+#endif // DS_HAS_SIMD
+
+static void ExponentDoubleTest_Performance()
+{
+	double maxExponentMag = ExponentTypeSelector<double>::maxExponentMag;
+	// Add some padding to ensure we can get aligned results.
+	unsigned int performanceCountAligned = performanceCount + 3;
+	std::vector<double> results(performanceCountAligned);
+	std::vector<double> x(performanceCountAligned);
+
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		x[i] = randomValue(random, -maxExponentMag, maxExponentMag);
+
+	// Keep a running hash to avoid the optimizer stripping out the loops.
+	std::hash<double> hasher;
+	std::size_t hashValue = 0;
+
+	dsTimer timer = dsTimer_create();
+	uint64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::exp(x[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("std exp time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasher(results[size_t(end % performanceCount)]);
+
+	printf("\n");
+
+	start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsExp(x[i]);
+	end = dsTimer_currentTicks();
+	printf("custom exp time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasher(results[size_t(end % performanceCount)]);
+
+#if DS_HAS_SIMD
+
+	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int | dsSIMDFeatures_Rounding;
+	if ((dsHostSIMDFeatures & features) == features)
+		ExponentFloatTest_PerformanceSIMD2d(results, x, hashValue, timer);
+
+#if !DS_DETERMINISTIC_MATH
+
+	features |= dsSIMDFeatures_FMA;
+	if ((dsHostSIMDFeatures & features) == features)
+		ExponentFloatTest_PerformanceFMA2d(results, x, hashValue, timer);
+
+#endif // !DS_DETERMINISTIC_MATH
+
+	features = dsSIMDFeatures_Double4 | dsSIMDFeatures_Int;
+	if ((dsHostSIMDFeatures & features) == features)
+		ExponentFloatTest_PerformanceSIMD4d(results, x, hashValue, timer);
+
+#endif // DS_HAS_SIMD
+
+	printf("\nValue to avoid optimizing out loops: 0x%X\n", static_cast<unsigned int>(hashValue));
+}
+
+TEST(ExponentFloatTest, Performance)
+{
+	ExponentFloatTest_Performance();
+}
+
+TEST(ExponentDoubleTest, Performance)
+{
+	ExponentDoubleTest_Performance();
+}
+
+#if DS_GCC
+#pragma GCC pop_options
+#endif
+
+#endif // DS_PERFORMANCE_TESTS
