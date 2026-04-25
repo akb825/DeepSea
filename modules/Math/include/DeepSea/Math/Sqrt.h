@@ -19,7 +19,7 @@
 #include <DeepSea/Core/Config.h>
 #include <math.h>
 
-#if DS_X86_32 || DS_X86_64
+#if DS_X86
 #include <emmintrin.h>
 #include <xmmintrin.h>
 #elif DS_ARM_64

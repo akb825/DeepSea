@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-2025 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@
 
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Quaternion.h>
+#include <DeepSea/Math/Round.h>
 #include <DeepSea/Math/Vector3.h>
 
 #include <DeepSea/Physics/Constraints/PhysicsConstraint.h>
@@ -756,7 +757,7 @@ static void dsScenePhysicsList_preTransformUpdate(
 	unsigned int stepCount;
 	if (physicsList->targetStepTime > 0)
 	{
-		stepCount = (unsigned int)roundf(time/physicsList->targetStepTime);
+		stepCount = (unsigned int)dsRoundf(time/physicsList->targetStepTime);
 		if (stepCount == 0)
 			stepCount = 1;
 		stepTime = time/(float)stepCount;

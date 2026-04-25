@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
 #include <DeepSea/Core/Sort.h>
 #include <DeepSea/Core/UniqueNameID.h>
 
-#include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Round.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -465,7 +465,7 @@ uint32_t dsApplication_adjustWindowSize(const dsApplication* application, uint32
 	if (!application || display >= application->displayCount)
 		return size;
 
-	return (uint32_t)roundf((float)size*application->displays[display].dpi/DS_REFERENCE_DPI);
+	return (uint32_t)dsRoundf((float)size*application->displays[display].dpi/DS_REFERENCE_DPI);
 #else
 	DS_UNUSED(application);
 	DS_UNUSED(display);

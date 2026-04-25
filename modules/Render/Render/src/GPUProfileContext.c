@@ -24,7 +24,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Profile.h>
 
-#include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Round.h>
 
 #include <DeepSea/Render/CommandBufferPool.h>
 #include <DeepSea/Render/CommandBuffer.h>
@@ -303,7 +303,7 @@ static void submitGPUProfileResults(dsGPUProfileContext* context, QueryPools* po
 		if (!node->invalid)
 		{
 			uint64_t timeDiff = query->time - beginQuery->time;
-			timeDiff = (uint64_t)roundf((float)timeDiff*context->resourceManager->timestampPeriod);
+			timeDiff = (uint64_t)dsRoundf((float)timeDiff*context->resourceManager->timestampPeriod);
 			node->totalTime += timeDiff;
 		}
 	}

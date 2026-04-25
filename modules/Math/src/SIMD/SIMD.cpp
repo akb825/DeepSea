@@ -18,13 +18,13 @@
 
 #if DS_WINDOWS
 #include <intrin.h>
-#elif DS_X86_32 || DS_X86_64
+#elif DS_X86
 #include <cpuid.h>
 #endif
 
 #if DS_HAS_SIMD
 
-#if DS_X86_32 || DS_X86_64
+#if DS_X86
 
 #if DS_WINDOWS
 static void __get_cpuid(

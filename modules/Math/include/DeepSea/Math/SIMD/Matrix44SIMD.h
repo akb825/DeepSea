@@ -703,7 +703,7 @@ DS_MATH_EXPORT inline void dsMatrix44d_rigidLerpSIMD4(dsMatrix44d* DS_ALIGN_PARA
 
 DS_SIMD_START(DS_SIMD_FLOAT4)
 
-#if DS_X86_32 || DS_X86_64
+#if DS_X86
 #define DS_SIMD_TRANSPOSE_33(elem0, elem1, elem2) \
 	do \
 	{ \
@@ -773,7 +773,7 @@ DS_SIMD_START(DS_SIMD_FLOAT4)
 	{ \
 		(result) = _mm_shuffle_ps((a), (a), _MM_SHUFFLE(3, 1, 2, 0)); \
 	} while (0)
-#elif DS_ARM_32 || DS_ARM_64
+#elif DS_ARM
 #define DS_SIMD_TRANSPOSE_33(elem0, elem1, elem2) \
 	do \
 	{ \
@@ -1652,7 +1652,7 @@ DS_SIMD_END()
 
 DS_SIMD_START(DS_SIMD_DOUBLE2)
 
-#if DS_X86_32 || DS_X86_64
+#if DS_X86
 #define DS_SIMD_TRANSPOSE_33(elem0, elem1, elem2) \
 	do \
 	{ \
@@ -2927,7 +2927,7 @@ DS_SIMD_END()
 
 DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_FMA)
 
-#if DS_X86_32 || DS_X86_64
+#if DS_X86
 #define DS_SIMD_TRANSPOSE_33(elem0, elem1, elem2) \
 	do \
 	{ \

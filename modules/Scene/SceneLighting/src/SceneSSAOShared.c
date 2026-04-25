@@ -20,6 +20,7 @@
 
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Random.h>
+#include <DeepSea/Math/Round.h>
 #include <DeepSea/Math/Trig.h>
 
 #include <DeepSea/Render/Resources/GfxBuffer.h>
@@ -132,8 +133,8 @@ dsTexture* dsSceneSSAO_createRandomRotations(dsResourceManager* resourceManager,
 			float theta = dsRandom_nextFloatRange(&random, 0.0f, 2*M_PIf);
 			float x, y;
 			dsSinCosf(&y, &x, theta);
-			randomRotations[i][j][0] = (uint8_t)roundf((x*0.5f + 0.5f)*255);
-			randomRotations[i][j][1] = (uint8_t)roundf((y*0.5f + 0.5f)*255);
+			randomRotations[i][j][0] = (uint8_t)dsRoundf((x*0.5f + 0.5f)*255);
+			randomRotations[i][j][1] = (uint8_t)dsRoundf((y*0.5f + 0.5f)*255);
 		}
 	}
 	dsTextureInfo textureInfo =

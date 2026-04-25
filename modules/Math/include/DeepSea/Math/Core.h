@@ -20,6 +20,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Bits.h>
 #include <DeepSea/Math/Export.h>
+#include <DeepSea/Math/Round.h>
 #include <math.h>
 
 #ifdef __cplusplus
@@ -405,14 +406,14 @@ DS_MATH_EXPORT inline float dsWrapf(float x, float min, float max)
 {
 	float delta = max - min;
 	float relX = x - min;
-	return x - delta*floorf(relX/delta);
+	return x - delta*dsFloorf(relX/delta);
 }
 
 DS_MATH_EXPORT inline double dsWrapd(double x, double min, double max)
 {
 	double delta = max - min;
 	double relX = x - min;
-	return x - delta*floor(relX/delta);
+	return x - delta*dsFloord(relX/delta);
 }
 
 DS_MATH_EXPORT inline bool dsEpsilonEqualf(float x, float y, float epsilon)

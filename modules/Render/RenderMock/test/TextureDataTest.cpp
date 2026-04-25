@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,19 @@
  */
 
 #include "Fixtures/AssetFixtureBase.h"
+
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Streams/Path.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Packing.h>
+#include <DeepSea/Math/Round.h>
+
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/Resources/TextureData.h>
+
 #include <gtest/gtest.h>
 
 extern char assetsDir[];
@@ -56,16 +61,16 @@ static bool operator==(const dsColor& color1, const Color16f& color2)
 {
 	dsVector4f color4f = {{dsUnpackHalfFloat(color2.r), dsUnpackHalfFloat(color2.g),
 		dsUnpackHalfFloat(color2.b), dsUnpackHalfFloat(color2.a)}};
-	return color1.r == round(color4f.r*255) && color1.g == round(color4f.g*255) &&
-		color1.b == round(color4f.b*255) && color1.a == round(color4f.a*255);
+	return color1.r == dsRoundd(color4f.r*255) && color1.g == dsRoundd(color4f.g*255) &&
+		color1.b == dsRoundd(color4f.b*255) && color1.a == dsRoundd(color4f.a*255);
 }
 
 static bool operator==(const dsColor& color1, uint16_t color2)
 {
 	dsVector3f color3f;
 	dsUnpackUIntR5G6B5(&color3f, color2);
-	return color1.r == round(color3f.r*255) && color1.g == round(color3f.g*255) &&
-		color1.b == round(color3f.b*255) && color1.a == 255;
+	return color1.r == dsRoundd(color3f.r*255) && color1.g == dsRoundd(color3f.g*255) &&
+		color1.b == dsRoundd(color3f.b*255) && color1.a == 255;
 }
 
 #endif

@@ -157,6 +157,11 @@
 #endif
 
 /**
+ * @brief Macro defined to whether or not the system is x86.
+ */
+#define DS_X86 (DS_X86_32 || DS_X86_64)
+
+/**
  * @brief Macro defined to whether or not the system is 64-bit ARM.
  */
 #if defined(__arm64__) || defined(__aarch64__)
@@ -175,6 +180,11 @@
 #endif
 
 /**
+ * @brief Macro defined to whether or not the system is ARM.
+ */
+#define DS_ARM (DS_ARM_32 || DS_ARM_64)
+
+/**
  * @brief Macro defined to whether or not the system is 64-bit PPC.
  */
 #if defined(__ppc64__)
@@ -191,6 +201,11 @@
 #else
 #define DS_PPC_32 0
 #endif
+
+/**
+ * @brief Macro defined to whether or not the system is PPC.
+ */
+#define DS_PPC (DS_PPC_32 || DS_PPC_64)
 
 /**
  * @brief Define for whether or not this is a debug build.

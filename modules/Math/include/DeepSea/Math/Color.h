@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Export.h>
+#include <DeepSea/Math/Round.h>
 #include <DeepSea/Math/Types.h>
 #include <DeepSea/Math/Vector3.h>
 #include <DeepSea/Math/Vector4.h>
@@ -540,9 +541,9 @@ inline dsColor dsColor_fromColor3f(const dsColor3f* color)
 	DS_ASSERT(color);
 
 	dsColor outColor;
-	outColor.r = (uint8_t)roundf(dsClamp(color->r, 0.0f, 1.0f)*255.0f);
-	outColor.g = (uint8_t)roundf(dsClamp(color->g, 0.0f, 1.0f)*255.0f);
-	outColor.b = (uint8_t)roundf(dsClamp(color->b, 0.0f, 1.0f)*255.0f);
+	outColor.r = (uint8_t)dsRoundf(dsClamp(color->r, 0.0f, 1.0f)*255.0f);
+	outColor.g = (uint8_t)dsRoundf(dsClamp(color->g, 0.0f, 1.0f)*255.0f);
+	outColor.b = (uint8_t)dsRoundf(dsClamp(color->b, 0.0f, 1.0f)*255.0f);
 	outColor.a = 255;
 	return outColor;
 }
@@ -552,10 +553,10 @@ inline dsColor dsColor_fromColor4f(const dsColor4f* color)
 	DS_ASSERT(color);
 
 	dsColor outColor;
-	outColor.r = (uint8_t)roundf(dsClamp(color->r, 0.0f, 1.0f)*255.0f);
-	outColor.g = (uint8_t)roundf(dsClamp(color->g, 0.0f, 1.0f)*255.0f);
-	outColor.b = (uint8_t)roundf(dsClamp(color->b, 0.0f, 1.0f)*255.0f);
-	outColor.a = (uint8_t)roundf(dsClamp(color->a, 0.0f, 1.0f)*255.0f);
+	outColor.r = (uint8_t)dsRoundf(dsClamp(color->r, 0.0f, 1.0f)*255.0f);
+	outColor.g = (uint8_t)dsRoundf(dsClamp(color->g, 0.0f, 1.0f)*255.0f);
+	outColor.b = (uint8_t)dsRoundf(dsClamp(color->b, 0.0f, 1.0f)*255.0f);
+	outColor.a = (uint8_t)dsRoundf(dsClamp(color->a, 0.0f, 1.0f)*255.0f);
 	return outColor;
 }
 
@@ -579,16 +580,16 @@ inline dsColor dsColor_fromHSLColor(const dsHSLColor* color)
 
 inline uint8_t dsColor_grayscale(dsColor color)
 {
-	return (uint8_t)roundf(dsGrayscaleValue(color.r, color.g, color.b));
+	return (uint8_t)dsRoundf(dsGrayscaleValue(color.r, color.g, color.b));
 }
 
 inline dsColor dsColor_lerp(dsColor x, dsColor y, float t)
 {
 	dsColor outColor;
-	outColor.r = (uint8_t)roundf(dsLerp((float)x.r, (float)y.r, t));
-	outColor.g = (uint8_t)roundf(dsLerp((float)x.g, (float)y.g, t));
-	outColor.b = (uint8_t)roundf(dsLerp((float)x.b, (float)y.b, t));
-	outColor.a = (uint8_t)roundf(dsLerp((float)x.a, (float)y.a, t));
+	outColor.r = (uint8_t)dsRoundf(dsLerp((float)x.r, (float)y.r, t));
+	outColor.g = (uint8_t)dsRoundf(dsLerp((float)x.g, (float)y.g, t));
+	outColor.b = (uint8_t)dsRoundf(dsLerp((float)x.b, (float)y.b, t));
+	outColor.a = (uint8_t)dsRoundf(dsLerp((float)x.a, (float)y.a, t));
 	return outColor;
 }
 
@@ -601,10 +602,10 @@ inline dsColor dsColor_lerpSRGB(dsColor x, dsColor y, float t)
 
 	// Do conversion directly to avoid unneeded clamping.
 	dsColor outColor;
-	outColor.r = (uint8_t)roundf(outColor4f.r*255.0f);
-	outColor.g = (uint8_t)roundf(outColor4f.g*255.0f);
-	outColor.b = (uint8_t)roundf(outColor4f.b*255.0f);
-	outColor.a = (uint8_t)roundf(outColor4f.a*255.0f);
+	outColor.r = (uint8_t)dsRoundf(outColor4f.r*255.0f);
+	outColor.g = (uint8_t)dsRoundf(outColor4f.g*255.0f);
+	outColor.b = (uint8_t)dsRoundf(outColor4f.b*255.0f);
+	outColor.a = (uint8_t)dsRoundf(outColor4f.a*255.0f);
 	return outColor;
 }
 

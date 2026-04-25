@@ -24,6 +24,7 @@
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Export.h>
 #include <DeepSea/Math/MathImpl.h>
+#include <DeepSea/Math/Round.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -508,10 +509,9 @@ DS_MATH_EXPORT inline float dsExpf(float x)
 	}
 
 	// Transform e^x to e^g*2^n.
-	// Use truncation to perform rounding for performance.
-	uint32_t signBit = xi & DS_FLT_SIGN_BIT;
-	int n = (int)(M_LOG2Ef*x + dsMathImplConditionalNegatef(0.5f, signBit));
-	float nf = (float)n;
+	int n;
+	float nf;
+	dsMathImplFastRoundif(&n, &nf, M_LOG2Ef*x);
 	float g = x - nf*DS_LN_2_1f - nf*DS_LN_2_2f;
 	float g2 = dsPow2(g);
 
@@ -535,10 +535,9 @@ DS_MATH_EXPORT inline double dsExpd(double x)
 	}
 
 	// Transform e^x to e^g*2^n.
-	// Use truncation to perform rounding for performance.
-	uint64_t signBit = xi & DS_DBL_SIGN_BIT;
-	int n = (int)(M_LOG2E*x + dsMathImplConditionalNegated(0.5, signBit));
-	double nd = (double)n;
+	int n;
+	double nd;
+	dsMathImplFastRoundid(&n, &nd, M_LOG2E*x);
 	double g = x - nd*DS_LN_2_1d - nd*DS_LN_2_2d;
 	double g2 = dsPow2(g);
 
@@ -652,16 +651,8 @@ DS_MATH_EXPORT inline dsSIMD4f dsExpSIMD4f(dsSIMD4f x)
 		dsSIMD4fb_toFloatBitfield(fltExpBits));
 
 	// Transform e^x to e^g*2^n.
-#if DS_DETERMINISTIC_MATH
-	// Use truncation to match scalar version exactly.
-	dsSIMD4fb signBit = dsSIMD4fb_and(xBits, dsSIMD4fb_set1(DS_FLT_SIGN_BIT));
-	dsSIMD4fb n = dsSIMD4fb_fromFloat(dsSIMD4f_add(dsSIMD4f_mul(log2e, x),
-		dsMathImplConditionalNegateSIMD4f(dsSIMD4f_set1(0.5f), signBit)));
-	dsSIMD4f nf = dsSIMD4fb_toFloat(n);
-#else
 	dsSIMD4f nf = dsSIMD4f_round(dsSIMD4f_mul(log2e, x));
 	dsSIMD4fb n = dsSIMD4fb_fromFloat(nf);
-#endif
 	dsSIMD4f g = dsSIMD4f_sub(dsSIMD4f_sub(x, dsSIMD4f_mul(nf, ln2_1)), dsSIMD4f_mul(nf, ln2_2));
 	dsSIMD4f g2 = dsSIMD4f_mul(g, g);
 
@@ -820,16 +811,8 @@ DS_MATH_EXPORT inline dsSIMD2d dsExpSIMD2d(dsSIMD2d x)
 		dsSIMD2db_toDoubleBitfield(dblExpBits));
 
 	// Transform e^x to e^g*2^n.
-#if DS_DETERMINISTIC_MATH
-	// Use truncation to match scalar version exactly.
-	dsSIMD2db signBit = dsSIMD2db_and(xBits, dsSIMD2db_set1(DS_DBL_SIGN_BIT));
-	dsSIMD2db n = dsSIMD2db_fromDouble(dsSIMD2d_add(dsSIMD2d_mul(log2e, x),
-		dsMathImplConditionalNegateSIMD2d(dsSIMD2d_set1(0.5), signBit)));
-	dsSIMD2d nd = dsSIMD2db_toDouble(n);
-#else
 	dsSIMD2d nd = dsSIMD2d_round(dsSIMD2d_mul(log2e, x));
 	dsSIMD2db n = dsSIMD2db_fromDouble(nd);
-#endif
 	dsSIMD2d g = dsSIMD2d_sub(dsSIMD2d_sub(x, dsSIMD2d_mul(nd, ln2_1)), dsSIMD2d_mul(nd, ln2_2));
 	dsSIMD2d g2 = dsSIMD2d_mul(g, g);
 
@@ -996,16 +979,8 @@ DS_MATH_EXPORT inline dsSIMD4d dsExpSIMD4d(dsSIMD4d x)
 		dsSIMD4db_toDoubleBitfield(dblExpBits));
 
 	// Transform e^x to e^g*2^n.
-#if DS_DETERMINISTIC_MATH
-	// Use truncation to match scalar version exactly.
-	dsSIMD4db signBit = dsSIMD4db_and(xBits, dsSIMD4db_set1(DS_DBL_SIGN_BIT));
-	dsSIMD4db n = dsSIMD4db_fromDouble(dsSIMD4d_add(dsSIMD4d_mul(log2e, x),
-		dsMathImplConditionalNegateSIMD4d(dsSIMD4d_set1(0.5), signBit)));
-	dsSIMD4d nd = dsSIMD4db_toDouble(n);
-#else
 	dsSIMD4d nd = dsSIMD4d_round(dsSIMD4d_mul(log2e, x));
 	dsSIMD4db n = dsSIMD4db_fromDouble(nd);
-#endif
 #if DS_DETERMINISTIC_MATH
 	dsSIMD4d g = dsSIMD4d_sub(dsSIMD4d_sub(x, dsSIMD4d_mul(nd, ln2_1)), dsSIMD4d_mul(nd, ln2_2));
 #else

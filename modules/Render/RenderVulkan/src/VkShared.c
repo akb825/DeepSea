@@ -22,7 +22,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
-#include <math.h>
+#include <DeepSea/Math/Round.h>
 
 typedef struct LastCallsite
 {
@@ -807,16 +807,16 @@ void dsConvertVkScissor(
 {
 	if (scissor)
 	{
-		outScissor->offset.x = (int32_t)floorf(scissor->min.x);
-		outScissor->offset.y = (int32_t)floorf(scissor->min.y);
-		outScissor->extent.width = (int32_t)ceilf(scissor->max.x - scissor->min.x);
-		outScissor->extent.height = (int32_t)ceilf(scissor->max.y - scissor->min.y);
+		outScissor->offset.x = (int32_t)dsFloorf(scissor->min.x);
+		outScissor->offset.y = (int32_t)dsFloorf(scissor->min.y);
+		outScissor->extent.width = (int32_t)dsCeilf(scissor->max.x - scissor->min.x);
+		outScissor->extent.height = (int32_t)dsCeilf(scissor->max.y - scissor->min.y);
 	}
 	else
 	{
-		outScissor->offset.x = (int32_t)floorf(viewport->x);
-		outScissor->offset.y = (int32_t)floorf(viewport->y);
-		outScissor->extent.width = (int32_t)ceilf(viewport->width);
-		outScissor->extent.height = (int32_t)ceilf(viewport->height);
+		outScissor->offset.x = (int32_t)dsFloorf(viewport->x);
+		outScissor->offset.y = (int32_t)dsFloorf(viewport->y);
+		outScissor->extent.width = (int32_t)dsCeilf(viewport->width);
+		outScissor->extent.height = (int32_t)dsCeilf(viewport->height);
 	}
 }

@@ -30,7 +30,7 @@
 #endif
 
 // NOTE: For most accurate comparative performance test results on x86, build with architecture
-// level 1.
+// level 1 or 2.
 #define DS_PERFORMANCE_TESTS 0
 
 template <typename T>

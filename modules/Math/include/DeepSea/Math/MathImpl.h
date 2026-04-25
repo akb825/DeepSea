@@ -18,6 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Math/SIMD/SIMD.h>
+#include <DeepSea/Math/Round.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -100,6 +101,42 @@ DS_ALWAYS_INLINE double dsMathImplMaskd(uint64_t mask, double value)
 	valuefi.f = value;
 	valuefi.i = valuefi.i & mask;
 	return valuefi.f;
+}
+
+DS_ALWAYS_INLINE void dsMathImplFastRoundif(int* outInt, float* outFloat, float value)
+{
+#if !DS_HAS_HARDWARE_ROUNDING && (DS_X86_64 || defined(__SSE2__) || _M_IX86_FP >= 2)
+	// Want to use this path for both deterministic and non-deterministic math when direct
+	// hardware rounding not available.
+	*outInt = _mm_cvtsi128_si32(_mm_cvtps_epi32(_mm_set_ss(value)));
+	*outFloat = (float)*outInt;
+#elif DS_HAS_HARDWARE_ROUNDING || DS_DETERMINISTIC_MATH
+	*outFloat = dsRoundf(value);
+	*outInt = (int)*outFloat;
+#else
+	uint32_t valuei = *(uint32_t*)&value;
+	uint32_t signBit = valuei & 0x80000000;
+	*outInt = (int)(value + dsMathImplConditionalNegatef(0.5f, signBit));
+	*outFloat = (float)*outInt;
+#endif
+}
+
+DS_ALWAYS_INLINE void dsMathImplFastRoundid(int* outInt, double* outDouble, double value)
+{
+#if !DS_HAS_HARDWARE_ROUNDING && (DS_X86_64 || defined(__SSE2__) || _M_IX86_FP >= 2)
+	// Want to use this path for both deterministic and non-deterministic math when direct
+	// hardware rounding not available.
+	*outInt = _mm_cvtsi128_si32(_mm_cvtpd_epi32(_mm_set_sd(value)));
+	*outDouble = (double)*outInt;
+#elif DS_HAS_HARDWARE_ROUNDING || DS_DETERMINISTIC_MATH
+	*outDouble = dsRoundd(value);
+	*outInt = (int)*outDouble;
+#else
+	uint64_t valuei = *(uint64_t*)&value;
+	uint64_t signBit = valuei & 0x8000000000000000ULL;
+	*outInt = (int)(value + dsMathImplConditionalNegated(0.5, signBit));
+	*outDouble = (double)*outInt;
+#endif
 }
 
 #if DS_HAS_SIMD

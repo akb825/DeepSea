@@ -19,9 +19,9 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Math/Export.h>
 
-#if DS_X86_32 || DS_X86_64
+#if DS_X86
 #include <DeepSea/Math/SIMD/SIMDx86.h>
-#elif DS_ARM_32 || DS_ARM_64
+#elif DS_ARM
 #include <DeepSea/Math/SIMD/SIMDNeon.h>
 #else
 /**

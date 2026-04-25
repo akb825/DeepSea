@@ -289,7 +289,7 @@ DS_MATH_EXPORT void dsQuaternion4d_slerp(
 			(a).values[0]*(b).values[1] - (a).values[1]*(b).values[0]; \
 	} while (0)
 
-#if DS_HAS_SIMD && (DS_X86_32 || DS_X86_64)
+#if DS_HAS_SIMD && DS_X86
 // NOTE: Only SSE instructions have efficient shuffle. Without it, there aren't enough operations to
 // offset the cost for manually shuffling the vectors with MOV operations. (e.g. on NEON)
 #define dsQuaternion4f_shuffle_0120_1201_2012_3333(a0120, a1201, a2012, a3333, a) \

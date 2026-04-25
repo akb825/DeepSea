@@ -38,6 +38,7 @@
 
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
+#include <DeepSea/Math/Round.h>
 
 #include <DeepSea/Render/Resources/Framebuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
@@ -1093,7 +1094,7 @@ bool dsView_update(dsView* view)
 		else
 		{
 			width = surfaceInfo->windowFramebuffer ? view->preRotateWidth : view->width;
-			width = (uint32_t)roundf(surfaceInfo->widthRatio*(float)width);
+			width = (uint32_t)dsRoundf(surfaceInfo->widthRatio*(float)width);
 		}
 
 		uint32_t height;
@@ -1102,7 +1103,7 @@ bool dsView_update(dsView* view)
 		else
 		{
 			height = surfaceInfo->windowFramebuffer ? view->preRotateHeight : view->height;
-			height = (uint32_t)roundf(surfaceInfo->heightRatio*(float)height);
+			height = (uint32_t)dsRoundf(surfaceInfo->heightRatio*(float)height);
 		}
 
 		switch (surfaceInfo->surfaceType)
@@ -1168,20 +1169,20 @@ bool dsView_update(dsView* view)
 
 		uint32_t width;
 		if (framebufferInfo->width > 0)
-			width = (uint32_t)roundf(framebufferInfo->width);
+			width = (uint32_t)dsRoundf(framebufferInfo->width);
 		else
 		{
 			width = rotated ? view->preRotateWidth : view->width;
-			width = (uint32_t)roundf(-framebufferInfo->width*(float)width);
+			width = (uint32_t)dsRoundf(-framebufferInfo->width*(float)width);
 		}
 
 		uint32_t height;
 		if (framebufferInfo->height > 0)
-			height = (uint32_t)roundf(framebufferInfo->height);
+			height = (uint32_t)dsRoundf(framebufferInfo->height);
 		else
 		{
 			height = rotated ? view->preRotateHeight : view->height;
-			height = (uint32_t)roundf(-framebufferInfo->height*(float)height);
+			height = (uint32_t)dsRoundf(-framebufferInfo->height*(float)height);
 		}
 
 		dsFramebuffer* framebuffer = NULL;

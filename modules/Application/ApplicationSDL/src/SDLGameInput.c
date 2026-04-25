@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@
 #include <DeepSea/Core/Assert.h>
 
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Round.h>
 
 static void setInputMapping(dsGameInputMap* outMapping, SDL_GameControllerButtonBind binding)
 {
@@ -394,8 +395,8 @@ static void updateRumble(dsSDLGameInput* sdlGameInput)
 	float highFrequencyStrength = dsMax(highFrequencyState->baselineStrength,
 		highFrequencyState->timedStrength);
 #if SDL_VERSION_ATLEAST(2, 0, 9)
-	SDL_JoystickRumble(sdlGameInput->joystick, (uint16_t)roundf(lowFrequencyStrength*0xFFFF),
-		(uint16_t)roundf(highFrequencyStrength*0xFFFF), 1000);
+	SDL_JoystickRumble(sdlGameInput->joystick, (uint16_t)dsRoundf(lowFrequencyStrength*0xFFFF),
+		(uint16_t)dsRoundf(highFrequencyStrength*0xFFFF), 1000);
 #else
 	float strength = (lowFrequencyStrength + highFrequencyStrength) * 0.5f;
 	if (strength == 0)
@@ -414,8 +415,8 @@ static void updateTriggerRumble(dsSDLGameInput* sdlGameInput)
 		sdlGameInput->rumbleState + dsGameInputRumble_RightTrigger;
 	float leftStrength = dsMax(leftState->baselineStrength, leftState->timedStrength);
 	float rightStrength = dsMax(rightState->baselineStrength, rightState->timedStrength);
-	SDL_JoystickRumbleTriggers(sdlGameInput->joystick, (uint16_t)roundf(leftStrength*0xFFFF),
-		(uint16_t)roundf(rightStrength*0xFFFF), 1000);
+	SDL_JoystickRumbleTriggers(sdlGameInput->joystick, (uint16_t)dsRoundf(leftStrength*0xFFFF),
+		(uint16_t)dsRoundf(rightStrength*0xFFFF), 1000);
 #else
 	DS_UNUSED(sdlGameInput);
 #endif

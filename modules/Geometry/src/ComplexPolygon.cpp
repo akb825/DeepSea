@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,13 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Geometry/AlignedBox2.h>
-#include <DeepSea/Math/Vector2.h>
+
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Round.h>
+#include <DeepSea/Math/Vector2.h>
+
 #include <string.h>
 #include <algorithm>
 
@@ -317,8 +321,8 @@ static bool simplifyFloat(dsComplexPolygon* polygon, const dsComplexPolygonLoop*
 
 			dsVector2_sub(point, point, offset);
 			dsVector2_mul(point, point, invScale);
-			path[j].X = (cInt)round((double)dsClamp(point.x, -1.0f, 1.0f)*limit);
-			path[j].Y = (cInt)round((double)dsClamp(point.y, -1.0f, 1.0f)*limit);
+			path[j].X = (cInt)dsRoundd((double)dsClamp(point.x, -1.0f, 1.0f)*limit);
+			path[j].Y = (cInt)dsRoundd((double)dsClamp(point.y, -1.0f, 1.0f)*limit);
 
 			PointRef* pointRef = polygon->originalPoints + (curOrigPoint++);
 			pointRef->clipperPoint = path[j];
@@ -330,8 +334,8 @@ static bool simplifyFloat(dsComplexPolygon* polygon, const dsComplexPolygonLoop*
 
 	std::sort(polygon->originalPoints, polygon->originalPoints + polygon->originalPointCount);
 
-	cInt xEpsilon = (cInt)ceil(polygon->epsilon*limit*invScale.x);
-	cInt yEpsilon = (cInt)ceil(polygon->epsilon*limit*invScale.y);
+	cInt xEpsilon = (cInt)dsCeild(polygon->epsilon*limit*invScale.x);
+	cInt yEpsilon = (cInt)dsCeild(polygon->epsilon*limit*invScale.y);
 	return processPolygon(polygon, paths, xEpsilon, yEpsilon, fillRule,
 		[&](dsComplexPolygon* polygon, const Path& path, uint32_t firstPoint, uint32_t pointCount)
 		{
@@ -405,8 +409,8 @@ static bool simplifyDouble(dsComplexPolygon* polygon, const dsComplexPolygonLoop
 
 			dsVector2_sub(point, point, offset);
 			dsVector2_mul(point, point, invScale);
-			path[j].X = (cInt)round(dsClamp(point.x, -1.0, 1.0)*limit);
-			path[j].Y = (cInt)round(dsClamp(point.y, -1.0, 1.0)*limit);
+			path[j].X = (cInt)dsRoundd(dsClamp(point.x, -1.0, 1.0)*limit);
+			path[j].Y = (cInt)dsRoundd(dsClamp(point.y, -1.0, 1.0)*limit);
 
 			PointRef* pointRef = polygon->originalPoints + (curOrigPoint++);
 			pointRef->clipperPoint = path[j];
@@ -418,8 +422,8 @@ static bool simplifyDouble(dsComplexPolygon* polygon, const dsComplexPolygonLoop
 
 	std::sort(polygon->originalPoints, polygon->originalPoints + polygon->originalPointCount);
 
-	cInt xEpsilon = (cInt)ceil(polygon->epsilon*limit*invScale.x);
-	cInt yEpsilon = (cInt)ceil(polygon->epsilon*limit*invScale.y);
+	cInt xEpsilon = (cInt)dsCeild(polygon->epsilon*limit*invScale.x);
+	cInt yEpsilon = (cInt)dsCeild(polygon->epsilon*limit*invScale.y);
 	return processPolygon(polygon, paths, xEpsilon, yEpsilon, fillRule,
 		[&](dsComplexPolygon* polygon, const Path& path, uint32_t firstPoint, uint32_t pointCount)
 		{
