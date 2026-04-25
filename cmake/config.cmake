@@ -20,6 +20,10 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# Make sure to link to release libraries where applicable.
+set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release)
+set(CMAKE_MAP_IMPORTED_CONFIG_MINSIZEREL Release)
+
 if (APPLE AND CMAKE_OSX_ARCHITECTURES)
 	list(LENGTH CMAKE_OSX_ARCHITECTURES architectureCount)
 	if (architectureCount EQUAL 1)

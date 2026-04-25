@@ -509,7 +509,8 @@ DS_MATH_EXPORT inline float dsExpf(float x)
 
 	// Transform e^x to e^g*2^n.
 	// Use truncation to perform rounding for performance.
-	int n = (int)(M_LOG2Ef*x + copysignf(0.5f, x));
+	uint32_t signBit = xi & DS_FLT_SIGN_BIT;
+	int n = (int)(M_LOG2Ef*x + dsMathImplConditionalNegatef(0.5f, signBit));
 	float nf = (float)n;
 	float g = x - nf*DS_LN_2_1f - nf*DS_LN_2_2f;
 	float g2 = dsPow2(g);
@@ -535,7 +536,8 @@ DS_MATH_EXPORT inline double dsExpd(double x)
 
 	// Transform e^x to e^g*2^n.
 	// Use truncation to perform rounding for performance.
-	int n = (int)(M_LOG2E*x + copysign(0.5, x));
+	uint64_t signBit = xi & DS_DBL_SIGN_BIT;
+	int n = (int)(M_LOG2E*x + dsMathImplConditionalNegated(0.5, signBit));
 	double nd = (double)n;
 	double g = x - nd*DS_LN_2_1d - nd*DS_LN_2_2d;
 	double g2 = dsPow2(g);
