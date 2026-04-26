@@ -98,6 +98,16 @@ DS_MATH_EXPORT inline float dsExpf(float x);
 /** @copydoc dsExpf() */
 DS_MATH_EXPORT inline double dsExpd(double x);
 
+/**
+ * @brief Raises 2 to an exponent.
+ * @param x The exponent to raise 2 by.
+ * @return The result of 2^x.
+ */
+DS_MATH_EXPORT inline float dsExp2f(float x);
+
+/** @copydoc dsExp2f() */
+DS_MATH_EXPORT inline double dsExp2d(double x);
+
 #if DS_HAS_SIMD
 
 /**
@@ -140,6 +150,15 @@ DS_MATH_EXPORT inline dsSIMD4f dsMulPow2SIMD4f(dsSIMD4f x, dsSIMD4fb pow2);
  */
 DS_MATH_EXPORT inline dsSIMD4f dsExpSIMD4f(dsSIMD4f x);
 
+/**
+ * @brief Raises 2 to an exponent for four values.
+ * @remark This can be used when dsSIMDFeatures_Float4, dsSIMDFeatures_Int, and
+ *     dsSIMDFeatures_Rounding are available.
+ * @param x The exponents to raise 2 by.
+ * @return The results of 2^x.
+ */
+DS_MATH_EXPORT inline dsSIMD4f dsExp2SIMD4f(dsSIMD4f x);
+
 #if !DS_DETERMINISTIC_MATH
 
 /**
@@ -150,6 +169,15 @@ DS_MATH_EXPORT inline dsSIMD4f dsExpSIMD4f(dsSIMD4f x);
  * @return The results of e^x.
  */
 DS_MATH_EXPORT inline dsSIMD4f dsExpFMA4f(dsSIMD4f x);
+
+/**
+ * @brief Raises 2 to an exponent for four values with fused multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_Float4, dsSIMDFeatures_Int, dsSIMDFeatures_Rounding,
+ *     and dsSIMDFeatures_FMA are available.
+ * @param x The exponents to raise 2 by.
+ * @return The results of 2^x.
+ */
+DS_MATH_EXPORT inline dsSIMD4f dsExp2FMA4f(dsSIMD4f x);
 
 #endif // !DS_DETERMINISTIC_MATH
 
@@ -193,6 +221,15 @@ DS_MATH_EXPORT inline dsSIMD2d dsMulPow2SIMD2d(dsSIMD2d x, dsSIMD2db pow2);
  */
 DS_MATH_EXPORT inline dsSIMD2d dsExpSIMD2d(dsSIMD2d x);
 
+/**
+ * @brief Raises 2 to an exponent for two values.
+ * @remark This can be used when dsSIMDFeatures_Double2, dsSIMDFeatures_Int, and
+ *     dsSIMDFeatures_Rounding are available.
+ * @param x The exponents to raise 2 by.
+ * @return The results of 2^x.
+ */
+DS_MATH_EXPORT inline dsSIMD2d dsExp2SIMD2d(dsSIMD2d x);
+
 #if !DS_DETERMINISTIC_MATH
 
 /**
@@ -203,6 +240,15 @@ DS_MATH_EXPORT inline dsSIMD2d dsExpSIMD2d(dsSIMD2d x);
  * @return The results of e^x.
  */
 DS_MATH_EXPORT inline dsSIMD2d dsExpFMA2d(dsSIMD2d x);
+
+/**
+ * @brief Raises 2 to an exponent for two values with fused multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_Double2, dsSIMDFeatures_Int,
+ *     dsSIMDFeatures_Rounding, and dsSIMDFeatures_FMA are available.
+ * @param x The exponents to raise 2 by.
+ * @return The results of 2^x.
+ */
+DS_MATH_EXPORT inline dsSIMD2d dsExp2FMA2d(dsSIMD2d x);
 
 #endif // !DS_DETERMINISTIC_MATH
 
@@ -247,6 +293,16 @@ DS_MATH_EXPORT inline dsSIMD4d dsMulPow2SIMD4d(dsSIMD4d x, dsSIMD4db pow2);
  */
 DS_MATH_EXPORT inline dsSIMD4d dsExpSIMD4d(dsSIMD4d x);
 
+/**
+ * @brief Raises 2 to an exponent for four values.
+ * @remark This can be used when dsSIMDFeatures_Double4, dsSIMDFeatures_Int, and
+ *     dsSIMDFeatures_Rounding are available, and will use FMA if not disabled through enabling
+ *     determinisitic math..
+ * @param x The exponents to raise 2 by.
+ * @return The results of 2^x.
+ */
+DS_MATH_EXPORT inline dsSIMD4d dsExp2SIMD4d(dsSIMD4d x);
+
 #endif // DS_HAS_SIMD
 
 /// @cond
@@ -288,6 +344,20 @@ DS_MATH_EXPORT inline dsSIMD4d dsExpSIMD4d(dsSIMD4d x);
 #define DS_EXP_TAYLOR_Q_2d 2.52448340349684104192e-3
 #define DS_EXP_TAYLOR_Q_3d 2.27265548208155028766e-1
 #define DS_EXP_TAYLOR_Q_4d 2.00000000000000000009
+
+#define DS_EXP2_TAYLOR_1f 1.535336188319500e-4f
+#define DS_EXP2_TAYLOR_2f 1.339887440266574e-3f
+#define DS_EXP2_TAYLOR_3f 9.618437357674640e-3f
+#define DS_EXP2_TAYLOR_4f 5.550332471162809e-2f
+#define DS_EXP2_TAYLOR_5f 2.402264791363012e-1f
+#define DS_EXP2_TAYLOR_6f 6.931472028550421e-1f
+
+#define DS_EXP2_TAYLOR_P_1d 2.30933477057345225087e-2
+#define DS_EXP2_TAYLOR_P_2d 2.02020656693165307700e1
+#define DS_EXP2_TAYLOR_P_3d 1.51390680115615096133e3
+
+#define DS_EXP2_TAYLOR_Q_1d 2.33184211722314911771e2
+#define DS_EXP2_TAYLOR_Q_2d 4.36821166879210612817e3
 
 DS_ALWAYS_INLINE uint32_t dsSubnormToNormBitsf(unsigned int* outPow2, uint32_t xi)
 {
@@ -551,6 +621,58 @@ DS_MATH_EXPORT inline double dsExpd(double x)
 #endif
 }
 
+DS_MATH_EXPORT inline float dsExp2f(float x)
+{
+#if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
+	uint32_t xi = *(uint32_t*)&x;
+	if (DS_EXPECT((xi & DS_FLT_EXP_BITS) == DS_FLT_EXP_BITS, false))
+	{
+		if (x == -HUGE_VALF)
+			return 0;
+		return x;
+	}
+
+	// Split into integer and fractional part.
+	int n;
+	float nf;
+	dsMathImplFastRoundif(&n, &nf, x);
+	float g = x - nf;
+
+	float egTaylor = (((((DS_EXP2_TAYLOR_1f*g + DS_EXP2_TAYLOR_2f)*g + DS_EXP2_TAYLOR_3f)*g +
+		DS_EXP2_TAYLOR_4f)*g + DS_EXP2_TAYLOR_5f)*g + DS_EXP2_TAYLOR_6f)*g + 1.0f;
+	return dsMulPow2f(egTaylor, n);
+#else
+	return exp2f(x);
+#endif
+}
+
+DS_MATH_EXPORT inline double dsExp2d(double x)
+{
+#if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
+	uint64_t xi = *(uint64_t*)&x;
+	if (DS_EXPECT((xi & DS_DBL_EXP_BITS) == DS_DBL_EXP_BITS, false))
+	{
+		if (x == -HUGE_VAL)
+			return 0;
+		return x;
+	}
+
+	// Split into integer and fractional part.
+	int n;
+	double nd;
+	dsMathImplFastRoundid(&n, &nd, x);
+	double g = x - nd;
+	double g2 = dsPow2(g);
+
+	double pTaylor = ((DS_EXP2_TAYLOR_P_1d*g2 + DS_EXP2_TAYLOR_P_2d)*g2 + DS_EXP2_TAYLOR_P_3d)*g;
+	double qTaylor = (g2 + DS_EXP2_TAYLOR_Q_1d)*g2 + DS_EXP2_TAYLOR_Q_2d;
+	double egRational = (pTaylor/(qTaylor - pTaylor))*2.0 + 1.0;
+	return dsMulPow2d(egRational, (int)n);
+#else
+	return exp2(x);
+#endif
+}
+
 #if DS_HAS_SIMD
 
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT)
@@ -663,6 +785,38 @@ DS_MATH_EXPORT inline dsSIMD4f dsExpSIMD4f(dsSIMD4f x)
 	return dsSIMD4f_select(isInfinity, infinityResult, dsMulPow2SIMD4f(egTaylor, n));
 }
 
+DS_MATH_EXPORT inline dsSIMD4f dsExp2SIMD4f(dsSIMD4f x)
+{
+	dsSIMD4fb fltExpBits = dsSIMD4fb_set1(DS_FLT_EXP_BITS);
+	dsSIMD4fb fltUnsignedBits = dsSIMD4fb_set1(~DS_FLT_SIGN_BIT);
+
+	dsSIMD4f one = dsSIMD4f_set1(1.0f);
+
+	dsSIMD4f exp2Taylor1 = dsSIMD4f_set1(DS_EXP2_TAYLOR_1f);
+	dsSIMD4f exp2Taylor2 = dsSIMD4f_set1(DS_EXP2_TAYLOR_2f);
+	dsSIMD4f exp2Taylor3 = dsSIMD4f_set1(DS_EXP2_TAYLOR_3f);
+	dsSIMD4f exp2Taylor4 = dsSIMD4f_set1(DS_EXP2_TAYLOR_4f);
+	dsSIMD4f exp2Taylor5 = dsSIMD4f_set1(DS_EXP2_TAYLOR_5f);
+	dsSIMD4f exp2Taylor6 = dsSIMD4f_set1(DS_EXP2_TAYLOR_6f);
+
+	dsSIMD4fb xBits = dsSIMD4fb_fromFloatBitfield(x);
+	dsSIMD4fb unsignedBits = dsSIMD4fb_and(xBits, fltUnsignedBits);
+	dsSIMD4fb isInfinity = dsSIMD4fb_cmpeq(unsignedBits, fltExpBits);
+	dsSIMD4f infinityResult = dsMathImplMaskSIMD4f(dsSIMD4fb_cmpeq(unsignedBits, xBits),
+		dsSIMD4fb_toFloatBitfield(fltExpBits));
+
+	// Split into integer and fractional part.
+	dsSIMD4f nf = dsSIMD4f_round(x);
+	dsSIMD4fb n = dsSIMD4fb_fromFloat(nf);
+	dsSIMD4f g = dsSIMD4f_sub(x, nf);
+
+	dsSIMD4f egTaylor = dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(
+		dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(
+		exp2Taylor1, g), exp2Taylor2), g), exp2Taylor3), g), exp2Taylor4), g), exp2Taylor5), g),
+		exp2Taylor6), g), one);
+	return dsSIMD4f_select(isInfinity, infinityResult, dsMulPow2SIMD4f(egTaylor, n));
+}
+
 DS_SIMD_END()
 
 #if !DS_DETERMINISTIC_MATH
@@ -701,6 +855,37 @@ DS_MATH_EXPORT inline dsSIMD4f dsExpFMA4f(dsSIMD4f x)
 		g, expTaylor5), g, expTaylor6), g2, g), one);
 	return dsSIMD4f_select(
 		isInfinity, infinityResult, dsMulPow2SIMD4f(egTaylor, dsSIMD4fb_fromFloat(n)));
+}
+
+DS_MATH_EXPORT inline dsSIMD4f dsExp2FMA4f(dsSIMD4f x)
+{
+	dsSIMD4fb fltExpBits = dsSIMD4fb_set1(DS_FLT_EXP_BITS);
+	dsSIMD4fb fltUnsignedBits = dsSIMD4fb_set1(~DS_FLT_SIGN_BIT);
+
+	dsSIMD4f one = dsSIMD4f_set1(1.0f);
+
+	dsSIMD4f exp2Taylor1 = dsSIMD4f_set1(DS_EXP2_TAYLOR_1f);
+	dsSIMD4f exp2Taylor2 = dsSIMD4f_set1(DS_EXP2_TAYLOR_2f);
+	dsSIMD4f exp2Taylor3 = dsSIMD4f_set1(DS_EXP2_TAYLOR_3f);
+	dsSIMD4f exp2Taylor4 = dsSIMD4f_set1(DS_EXP2_TAYLOR_4f);
+	dsSIMD4f exp2Taylor5 = dsSIMD4f_set1(DS_EXP2_TAYLOR_5f);
+	dsSIMD4f exp2Taylor6 = dsSIMD4f_set1(DS_EXP2_TAYLOR_6f);
+
+	dsSIMD4fb xBits = dsSIMD4fb_fromFloatBitfield(x);
+	dsSIMD4fb unsignedBits = dsSIMD4fb_and(xBits, fltUnsignedBits);
+	dsSIMD4fb isInfinity = dsSIMD4fb_cmpeq(unsignedBits, fltExpBits);
+	dsSIMD4f infinityResult = dsMathImplMaskSIMD4f(dsSIMD4fb_cmpeq(unsignedBits, xBits),
+		dsSIMD4fb_toFloatBitfield(fltExpBits));
+
+	// Split into integer and fractional part.
+	dsSIMD4f nf = dsSIMD4f_round(x);
+	dsSIMD4fb n = dsSIMD4fb_fromFloat(nf);
+	dsSIMD4f g = dsSIMD4f_sub(x, nf);
+
+	dsSIMD4f egTaylor = dsSIMD4f_fmadd(dsSIMD4f_fmadd(dsSIMD4f_fmadd(dsSIMD4f_fmadd(dsSIMD4f_fmadd(
+		dsSIMD4f_fmadd(exp2Taylor1, g, exp2Taylor2), g, exp2Taylor3), g, exp2Taylor4), g,
+		exp2Taylor5), g, exp2Taylor6), g, one);
+	return dsSIMD4f_select(isInfinity, infinityResult, dsMulPow2SIMD4f(egTaylor, n));
 }
 
 DS_SIMD_END()
@@ -825,6 +1010,41 @@ DS_MATH_EXPORT inline dsSIMD2d dsExpSIMD2d(dsSIMD2d x)
 	return dsSIMD2d_select(isInfinity, infinityResult, dsMulPow2SIMD2d(qRational, n));
 }
 
+DS_MATH_EXPORT inline dsSIMD2d dsExp2SIMD2d(dsSIMD2d x)
+{
+	dsSIMD2db dblExpBits = dsSIMD2db_set1(DS_DBL_EXP_BITS);
+	dsSIMD2db dblUnsignedBits = dsSIMD2db_set1(~DS_DBL_SIGN_BIT);
+
+	dsSIMD2d one = dsSIMD2d_set1(1.0);
+	dsSIMD2d two = dsSIMD2d_set1(2.0);
+
+	dsSIMD2d exp2TaylorP1 = dsSIMD2d_set1(DS_EXP2_TAYLOR_P_1d);
+	dsSIMD2d exp2TaylorP2 = dsSIMD2d_set1(DS_EXP2_TAYLOR_P_2d);
+	dsSIMD2d exp2TaylorP3 = dsSIMD2d_set1(DS_EXP2_TAYLOR_P_3d);
+
+	dsSIMD2d exp2TaylorQ1 = dsSIMD2d_set1(DS_EXP2_TAYLOR_Q_1d);
+	dsSIMD2d exp2TaylorQ2 = dsSIMD2d_set1(DS_EXP2_TAYLOR_Q_2d);
+
+	dsSIMD2db xBits = dsSIMD2db_fromDoubleBitfield(x);
+	dsSIMD2db unsignedBits = dsSIMD2db_and(xBits, dblUnsignedBits);
+	dsSIMD2db isInfinity = dsSIMD2db_cmpeq(unsignedBits, dblExpBits);
+	dsSIMD2d infinityResult = dsMathImplMaskSIMD2d(dsSIMD2db_cmpeq(unsignedBits, xBits),
+		dsSIMD2db_toDoubleBitfield(dblExpBits));
+
+	// Fall back to scalar implementation if the simple case couldn't be taken.
+	dsSIMD2d nd = dsSIMD2d_round(x);
+	dsSIMD2db n = dsSIMD2db_fromDouble(nd);
+	dsSIMD2d g = dsSIMD2d_sub(x, nd);
+	dsSIMD2d g2 = dsSIMD2d_mul(g, g);
+
+	dsSIMD2d pTaylor = dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(
+		exp2TaylorP1, g2), exp2TaylorP2), g2), exp2TaylorP3), g);
+	dsSIMD2d qTaylor = dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(g2, exp2TaylorQ1), g2), exp2TaylorQ2);
+	dsSIMD2d qRational = dsSIMD2d_add(dsSIMD2d_mul(
+		dsSIMD2d_div(pTaylor, dsSIMD2d_sub(qTaylor, pTaylor)), two), one);
+	return dsSIMD2d_select(isInfinity, infinityResult, dsMulPow2SIMD2d(qRational, n));
+}
+
 DS_SIMD_END()
 
 #if !DS_DETERMINISTIC_MATH
@@ -869,6 +1089,41 @@ DS_MATH_EXPORT inline dsSIMD2d dsExpFMA2d(dsSIMD2d x)
 		dsSIMD2d_div(pTaylor, dsSIMD2d_sub(qTaylor, pTaylor)), two, one);
 	return dsSIMD2d_select(
 		isInfinity, infinityResult, dsMulPow2SIMD2d(qRational, dsSIMD2db_fromDouble(n)));
+}
+
+DS_MATH_EXPORT inline dsSIMD2d dsExp2FMA2d(dsSIMD2d x)
+{
+	dsSIMD2db dblExpBits = dsSIMD2db_set1(DS_DBL_EXP_BITS);
+	dsSIMD2db dblUnsignedBits = dsSIMD2db_set1(~DS_DBL_SIGN_BIT);
+
+	dsSIMD2d one = dsSIMD2d_set1(1.0);
+	dsSIMD2d two = dsSIMD2d_set1(2.0);
+
+	dsSIMD2d exp2TaylorP1 = dsSIMD2d_set1(DS_EXP2_TAYLOR_P_1d);
+	dsSIMD2d exp2TaylorP2 = dsSIMD2d_set1(DS_EXP2_TAYLOR_P_2d);
+	dsSIMD2d exp2TaylorP3 = dsSIMD2d_set1(DS_EXP2_TAYLOR_P_3d);
+
+	dsSIMD2d exp2TaylorQ1 = dsSIMD2d_set1(DS_EXP2_TAYLOR_Q_1d);
+	dsSIMD2d exp2TaylorQ2 = dsSIMD2d_set1(DS_EXP2_TAYLOR_Q_2d);
+
+	dsSIMD2db xBits = dsSIMD2db_fromDoubleBitfield(x);
+	dsSIMD2db unsignedBits = dsSIMD2db_and(xBits, dblUnsignedBits);
+	dsSIMD2db isInfinity = dsSIMD2db_cmpeq(unsignedBits, dblExpBits);
+	dsSIMD2d infinityResult = dsMathImplMaskSIMD2d(dsSIMD2db_cmpeq(unsignedBits, xBits),
+		dsSIMD2db_toDoubleBitfield(dblExpBits));
+
+	// Fall back to scalar implementation if the simple case couldn't be taken.
+	dsSIMD2d nd = dsSIMD2d_round(x);
+	dsSIMD2db n = dsSIMD2db_fromDouble(nd);
+	dsSIMD2d g = dsSIMD2d_sub(x, nd);
+	dsSIMD2d g2 = dsSIMD2d_mul(g, g);
+
+	dsSIMD2d pTaylor = dsSIMD2d_mul(dsSIMD2d_fmadd(dsSIMD2d_fmadd(
+		exp2TaylorP1, g2, exp2TaylorP2), g2, exp2TaylorP3), g);
+	dsSIMD2d qTaylor = dsSIMD2d_fmadd(dsSIMD2d_add(g2, exp2TaylorQ1), g2, exp2TaylorQ2);
+	dsSIMD2d qRational = dsSIMD2d_fmadd(
+		dsSIMD2d_div(pTaylor, dsSIMD2d_sub(qTaylor, pTaylor)), two, one);
+	return dsSIMD2d_select(isInfinity, infinityResult, dsMulPow2SIMD2d(qRational, n));
 }
 
 DS_SIMD_END()
@@ -1000,6 +1255,49 @@ DS_MATH_EXPORT inline dsSIMD4d dsExpSIMD4d(dsSIMD4d x)
 		g2, expTaylorP3), g);
 	dsSIMD4d qTaylor = dsSIMD4d_fmadd(dsSIMD4d_fmadd(dsSIMD4d_fmadd(expTaylorQ1, g2, expTaylorQ2),
 		g2, expTaylorQ3), g2, expTaylorQ4);
+	dsSIMD4d qRational = dsSIMD4d_fmadd(
+		dsSIMD4d_div(pTaylor, dsSIMD4d_sub(qTaylor, pTaylor)), two, one);
+#endif
+	return dsSIMD4d_select(isInfinity, infinityResult, dsMulPow2SIMD4d(qRational, n));
+}
+
+DS_MATH_EXPORT inline dsSIMD4d dsExp2SIMD4d(dsSIMD4d x)
+{
+	dsSIMD4db dblExpBits = dsSIMD4db_set1(DS_DBL_EXP_BITS);
+	dsSIMD4db dblUnsignedBits = dsSIMD4db_set1(~DS_DBL_SIGN_BIT);
+
+	dsSIMD4d one = dsSIMD4d_set1(1.0);
+	dsSIMD4d two = dsSIMD4d_set1(2.0);
+
+	dsSIMD4d exp2TaylorP1 = dsSIMD4d_set1(DS_EXP2_TAYLOR_P_1d);
+	dsSIMD4d exp2TaylorP2 = dsSIMD4d_set1(DS_EXP2_TAYLOR_P_2d);
+	dsSIMD4d exp2TaylorP3 = dsSIMD4d_set1(DS_EXP2_TAYLOR_P_3d);
+
+	dsSIMD4d exp2TaylorQ1 = dsSIMD4d_set1(DS_EXP2_TAYLOR_Q_1d);
+	dsSIMD4d exp2TaylorQ2 = dsSIMD4d_set1(DS_EXP2_TAYLOR_Q_2d);
+
+	dsSIMD4db xBits = dsSIMD4db_fromDoubleBitfield(x);
+	dsSIMD4db unsignedBits = dsSIMD4db_and(xBits, dblUnsignedBits);
+	dsSIMD4db isInfinity = dsSIMD4db_cmpeq(unsignedBits, dblExpBits);
+	dsSIMD4d infinityResult = dsMathImplMaskSIMD4d(dsSIMD4db_cmpeq(unsignedBits, xBits),
+		dsSIMD4db_toDoubleBitfield(dblExpBits));
+
+	// Fall back to scalar implementation if the simple case couldn't be taken.
+	dsSIMD4d nd = dsSIMD4d_round(x);
+	dsSIMD4db n = dsSIMD4db_fromDouble(nd);
+	dsSIMD4d g = dsSIMD4d_sub(x, nd);
+	dsSIMD4d g2 = dsSIMD4d_mul(g, g);
+
+#if DS_DETERMINISTIC_MATH
+	dsSIMD4d pTaylor = dsSIMD4d_mul(dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(dsSIMD4d_mul(
+		exp2TaylorP1, g2), exp2TaylorP2), g2), exp2TaylorP3), g);
+	dsSIMD4d qTaylor = dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(g2, exp2TaylorQ1), g2), exp2TaylorQ2);
+	dsSIMD4d qRational = dsSIMD4d_add(dsSIMD4d_mul(
+		dsSIMD4d_div(pTaylor, dsSIMD4d_sub(qTaylor, pTaylor)), two), one);
+#else
+	dsSIMD4d pTaylor = dsSIMD4d_mul(dsSIMD4d_fmadd(dsSIMD4d_fmadd(
+		exp2TaylorP1, g2, exp2TaylorP2), g2, exp2TaylorP3), g);
+	dsSIMD4d qTaylor = dsSIMD4d_fmadd(dsSIMD4d_add(g2, exp2TaylorQ1), g2, exp2TaylorQ2);
 	dsSIMD4d qRational = dsSIMD4d_fmadd(
 		dsSIMD4d_div(pTaylor, dsSIMD4d_sub(qTaylor, pTaylor)), two, one);
 #endif
