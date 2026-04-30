@@ -20,6 +20,8 @@ float dsSplitPow2f(int* outPow2, float x);
 double dsSplitPow2d(int* outPow2, double x);
 float dsMulPow2f(float x, int pow2);
 double dsMulPow2d(double x, int pow2);
+float dsLnf(float x);
+double dsLnd(double x);
 float dsExpf(float x);
 double dsExpd(double x);
 float dsExp2f(float x);
@@ -31,11 +33,13 @@ double dsExp10d(double x);
 
 dsSIMD4f dsSplitPow2SIMD4f(dsSIMD4fb* outPow2, dsSIMD4f x);
 dsSIMD4f dsMulPow2SIMD4f(dsSIMD4f x, dsSIMD4fb pow2);
+dsSIMD4f dsLnSIMD4f(dsSIMD4f x);
 dsSIMD4f dsExpSIMD4f(dsSIMD4f x);
 dsSIMD4f dsExp2SIMD4f(dsSIMD4f x);
 dsSIMD4f dsExp10SIMD4f(dsSIMD4f x);
 
 #if !DS_DETERMINISTIC_MATH
+dsSIMD4f dsLnFMA4f(dsSIMD4f x);
 dsSIMD4f dsExpFMA4f(dsSIMD4f x);
 dsSIMD4f dsExp2FMA4f(dsSIMD4f x);
 dsSIMD4f dsExp10FMA4f(dsSIMD4f x);
@@ -43,11 +47,13 @@ dsSIMD4f dsExp10FMA4f(dsSIMD4f x);
 
 dsSIMD2d dsSplitPow2SIMD2d(dsSIMD2db* outPow2, dsSIMD2d x);
 dsSIMD2d dsMulPow2SIMD2d(dsSIMD2d x, dsSIMD2db pow2);
+dsSIMD2d dsLnSIMD2d(dsSIMD2d x);
 dsSIMD2d dsExpSIMD2d(dsSIMD2d x);
 dsSIMD2d dsExp2SIMD2d(dsSIMD2d x);
 dsSIMD2d dsExp10SIMD2d(dsSIMD2d x);
 
 #if !DS_DETERMINISTIC_MATH
+dsSIMD2d dsLnFMA2d(dsSIMD2d x);
 dsSIMD2d dsExpFMA2d(dsSIMD2d x);
 dsSIMD2d dsExp2FMA2d(dsSIMD2d x);
 dsSIMD2d dsExp10FMA2d(dsSIMD2d x);
@@ -55,6 +61,7 @@ dsSIMD2d dsExp10FMA2d(dsSIMD2d x);
 
 dsSIMD4d dsSplitPow2SIMD4d(dsSIMD4db* outPow2, dsSIMD4d x);
 dsSIMD4d dsMulPow2SIMD4d(dsSIMD4d x, dsSIMD4db pow2);
+dsSIMD4d dsLnSIMD4d(dsSIMD4d x);
 dsSIMD4d dsExpSIMD4d(dsSIMD4d x);
 dsSIMD4d dsExp2SIMD4d(dsSIMD4d x);
 dsSIMD4d dsExp10SIMD4d(dsSIMD4d x);

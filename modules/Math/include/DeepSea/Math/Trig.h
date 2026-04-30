@@ -1194,6 +1194,9 @@ DS_MATH_EXPORT inline dsSIMD4f dsTanSIMD4f(dsSIMD4f angles)
 
 DS_MATH_EXPORT inline dsSIMD4f dsASinSIMD4f(dsSIMD4f x)
 {
+	DS_ASSERT(dsSIMD4fb_all(dsSIMD4fb_and(
+		dsSIMD4f_cmpge(x, dsSIMD4f_set1(-1.0f)), dsSIMD4f_cmple(x, dsSIMD4f_set1(1.0f)))));
+
 	dsSIMD4f pi2 = dsSIMD4f_set1(M_PI_2f);
 	dsSIMD4f half =  dsSIMD4f_set1(0.5f);
 	dsSIMD4f one = dsSIMD4f_set1(1.0f);
@@ -1226,6 +1229,9 @@ DS_MATH_EXPORT inline dsSIMD4f dsASinSIMD4f(dsSIMD4f x)
 
 DS_MATH_EXPORT inline dsSIMD4f dsACosSIMD4f(dsSIMD4f x)
 {
+	DS_ASSERT(dsSIMD4fb_all(dsSIMD4fb_and(
+		dsSIMD4f_cmpge(x, dsSIMD4f_set1(-1.0f)), dsSIMD4f_cmple(x, dsSIMD4f_set1(1.0f)))));
+
 	dsSIMD4f pi = dsSIMD4f_set1(M_PIf);
 	dsSIMD4f pi2 = dsSIMD4f_set1(M_PI_2f);
 	dsSIMD4f half =  dsSIMD4f_set1(0.5f);
@@ -1453,6 +1459,9 @@ DS_MATH_EXPORT inline dsSIMD4f dsTanFMA4f(dsSIMD4f angles)
 
 DS_MATH_EXPORT inline dsSIMD4f dsASinFMA4f(dsSIMD4f x)
 {
+	DS_ASSERT(dsSIMD4fb_all(dsSIMD4fb_and(
+		dsSIMD4f_cmpge(x, dsSIMD4f_set1(-1.0f)), dsSIMD4f_cmple(x, dsSIMD4f_set1(1.0f)))));
+
 	dsSIMD4f pi2 = dsSIMD4f_set1(M_PI_2f);
 	dsSIMD4f half =  dsSIMD4f_set1(0.5f);
 	dsSIMD4f one = dsSIMD4f_set1(1.0f);
@@ -1484,6 +1493,9 @@ DS_MATH_EXPORT inline dsSIMD4f dsASinFMA4f(dsSIMD4f x)
 
 DS_MATH_EXPORT inline dsSIMD4f dsACosFMA4f(dsSIMD4f x)
 {
+	DS_ASSERT(dsSIMD4fb_all(dsSIMD4fb_and(
+		dsSIMD4f_cmpge(x, dsSIMD4f_set1(-1.0f)), dsSIMD4f_cmple(x, dsSIMD4f_set1(1.0f)))));
+
 	dsSIMD4f pi = dsSIMD4f_set1(M_PIf);
 	dsSIMD4f pi2 = dsSIMD4f_set1(M_PI_2f);
 	dsSIMD4f half =  dsSIMD4f_set1(0.5f);
@@ -1728,6 +1740,9 @@ DS_MATH_EXPORT inline dsSIMD2d dsTanSIMD2d(dsSIMD2d angles)
 
 DS_MATH_EXPORT inline dsSIMD2d dsASinSIMD2d(dsSIMD2d x)
 {
+	DS_ASSERT(dsSIMD2db_all(dsSIMD2db_and(
+		dsSIMD2d_cmpge(x, dsSIMD2d_set1(-1.0)), dsSIMD2d_cmple(x, dsSIMD2d_set1(1.0)))));
+
 	dsSIMD2d pi4 = dsSIMD2d_set1(M_PI_4);
 	dsSIMD2d pi2BitExtension = dsSIMD2d_set1(DS_PI_2_BIT_EXTENSIONd);
 	dsSIMD2d threshold = dsSIMD2d_set1(0.625);
@@ -1795,6 +1810,9 @@ DS_MATH_EXPORT inline dsSIMD2d dsASinSIMD2d(dsSIMD2d x)
 
 DS_MATH_EXPORT inline dsSIMD2d dsACosSIMD2d(dsSIMD2d x)
 {
+	DS_ASSERT(dsSIMD2db_all(dsSIMD2db_and(
+		dsSIMD2d_cmpge(x, dsSIMD2d_set1(-1.0)), dsSIMD2d_cmple(x, dsSIMD2d_set1(1.0)))));
+
 	dsSIMD2d pi2 = dsSIMD2d_set1(M_PI_2);
 	dsSIMD2d piBitExtension = dsSIMD2d_set1(DS_PI_2_BIT_EXTENSIONd*2);
 	dsSIMD2d threshold = dsSIMD2d_set1(0.625);
@@ -2092,6 +2110,9 @@ DS_MATH_EXPORT inline dsSIMD2d dsTanFMA2d(dsSIMD2d angles)
 
 DS_MATH_EXPORT inline dsSIMD2d dsASinFMA2d(dsSIMD2d x)
 {
+	DS_ASSERT(dsSIMD2db_all(dsSIMD2db_and(
+		dsSIMD2d_cmpge(x, dsSIMD2d_set1(-1.0)), dsSIMD2d_cmple(x, dsSIMD2d_set1(1.0)))));
+
 	dsSIMD2d pi4 = dsSIMD2d_set1(M_PI_4);
 	dsSIMD2d pi2BitExtension = dsSIMD2d_set1(DS_PI_2_BIT_EXTENSIONd);
 	dsSIMD2d threshold = dsSIMD2d_set1(0.625);
@@ -2157,6 +2178,9 @@ DS_MATH_EXPORT inline dsSIMD2d dsASinFMA2d(dsSIMD2d x)
 
 DS_MATH_EXPORT inline dsSIMD2d dsACosFMA2d(dsSIMD2d x)
 {
+	DS_ASSERT(dsSIMD2db_all(dsSIMD2db_and(
+		dsSIMD2d_cmpge(x, dsSIMD2d_set1(-1.0)), dsSIMD2d_cmple(x, dsSIMD2d_set1(1.0)))));
+
 	dsSIMD2d pi2 = dsSIMD2d_set1(M_PI_2);
 	dsSIMD2d piBitExtension = dsSIMD2d_set1(DS_PI_2_BIT_EXTENSIONd*2);
 	dsSIMD2d threshold = dsSIMD2d_set1(0.625);
@@ -2481,6 +2505,9 @@ DS_MATH_EXPORT inline dsSIMD4d dsTanSIMD4d(dsSIMD4d angles)
 
 DS_MATH_EXPORT inline dsSIMD4d dsASinSIMD4d(dsSIMD4d x)
 {
+	DS_ASSERT(dsSIMD4db_all(dsSIMD4db_and(
+		dsSIMD4d_cmpge(x, dsSIMD4d_set1(-1.0)), dsSIMD4d_cmple(x, dsSIMD4d_set1(1.0)))));
+
 	dsSIMD4d pi4 = dsSIMD4d_set1(M_PI_4);
 	dsSIMD4d pi2BitExtension = dsSIMD4d_set1(DS_PI_2_BIT_EXTENSIONd);
 	dsSIMD4d threshold = dsSIMD4d_set1(0.625);
@@ -2570,6 +2597,9 @@ DS_MATH_EXPORT inline dsSIMD4d dsASinSIMD4d(dsSIMD4d x)
 
 DS_MATH_EXPORT inline dsSIMD4d dsACosSIMD4d(dsSIMD4d x)
 {
+	DS_ASSERT(dsSIMD4db_all(dsSIMD4db_and(
+		dsSIMD4d_cmpge(x, dsSIMD4d_set1(-1.0)), dsSIMD4d_cmple(x, dsSIMD4d_set1(1.0)))));
+
 	dsSIMD4d pi2 = dsSIMD4d_set1(M_PI_2);
 	dsSIMD4d piBitExtension = dsSIMD4d_set1(DS_PI_2_BIT_EXTENSIONd*2);
 	dsSIMD4d threshold = dsSIMD4d_set1(0.625);

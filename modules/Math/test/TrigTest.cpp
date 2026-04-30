@@ -49,8 +49,8 @@ struct TrigTypeSelector<double>
 	static const double epsilon;
 };
 
-const float TrigTypeSelector<float>::epsilon = 1e-6f;
-const double TrigTypeSelector<double>::epsilon = 1e-15;
+const float TrigTypeSelector<float>::epsilon = 3e-7f;
+const double TrigTypeSelector<double>::epsilon = 4e-16;
 
 template <typename T>
 class TrigTest : public testing::Test
@@ -1526,10 +1526,10 @@ static void TrigDoubleTest_SinSIMD4()
 
 #if DS_DETERMINISTIC_MATH
 	dsSIMD4d_store(&sinAngles, dsSinSIMD4d(dsSIMD4d_set4(-12.34, -0.1234, 0.4321, 2.345)));
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.22444221895185537, sinAngles.x, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(-0.12308705821137626, sinAngles.y, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.41877870990075816, sinAngles.z, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.71497801013649265, sinAngles.w, 0.0, epsilon);
+	EXPECT_EQ(0.22444221895185537, sinAngles.x);
+	EXPECT_EQ(-0.12308705821137626, sinAngles.y);
+	EXPECT_EQ(0.41877870990075816, sinAngles.z);
+	EXPECT_EQ(0.71497801013649265, sinAngles.w);
 #endif
 }
 
@@ -1557,10 +1557,10 @@ static void TrigDoubleTest_CosSIMD4()
 
 #if DS_DETERMINISTIC_MATH
 	dsSIMD4d_store(&cosAngles, dsCosSIMD4d(dsSIMD4d_set4(-12.34, -0.1234, 0.4321, 2.345)));
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.97448739876509816, cosAngles.x, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.99239587670489104, cosAngles.y, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.90808831736448226, cosAngles.z, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(-0.69914694093678287, cosAngles.w, 0.0, epsilon);
+	EXPECT_EQ(0.97448739876509816, cosAngles.x);
+	EXPECT_EQ(0.99239587670489104, cosAngles.y);
+	EXPECT_EQ(0.90808831736448226, cosAngles.z);
+	EXPECT_EQ(-0.69914694093678287, cosAngles.w);
 #endif
 }
 
@@ -1595,15 +1595,15 @@ static void TrigDoubleTest_SinCosSIMD4()
 	dsSinCosSIMD4d(&simdSin, &simdCos, dsSIMD4d_set4(-12.34, -0.1234, 0.4321, 2.345));
 	dsSIMD4d_store(&sinAngles, simdSin);
 	dsSIMD4d_store(&cosAngles, simdCos);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.22444221895185537, sinAngles.x, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(-0.12308705821137626, sinAngles.y, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.41877870990075816, sinAngles.z, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.71497801013649265, sinAngles.w, 0.0, epsilon);
+	EXPECT_EQ(0.22444221895185537, sinAngles.x);
+	EXPECT_EQ(-0.12308705821137626, sinAngles.y);
+	EXPECT_EQ(0.41877870990075816, sinAngles.z);
+	EXPECT_EQ(0.71497801013649265, sinAngles.w);
 
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.97448739876509816, cosAngles.x, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.99239587670489104, cosAngles.y, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.90808831736448226, cosAngles.z, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(-0.69914694093678287, cosAngles.w, 0.0, epsilon);
+	EXPECT_EQ(0.97448739876509816, cosAngles.x);
+	EXPECT_EQ(0.99239587670489104, cosAngles.y);
+	EXPECT_EQ(0.90808831736448226, cosAngles.z);
+	EXPECT_EQ(-0.69914694093678287, cosAngles.w);
 #endif
 }
 
@@ -1631,10 +1631,10 @@ static void TrigDoubleTest_TanSIMD4()
 
 #if DS_DETERMINISTIC_MATH
 	dsSIMD4d_store(&tanAngles, dsTanSIMD4d(dsSIMD4d_set4(-12.34, -0.1234, 0.4321, 2.345)));
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.23031823627096235, tanAngles.x, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(-0.12403019913793806, tanAngles.y, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.46116517732126228, tanAngles.z, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(-1.0226434076626265, tanAngles.w, 0.0, epsilon);
+	EXPECT_EQ(0.23031823627096235, tanAngles.x);
+	EXPECT_EQ(-0.12403019913793806, tanAngles.y);
+	EXPECT_EQ(0.46116517732126228, tanAngles.z);
+	EXPECT_EQ(-1.0226434076626265, tanAngles.w);
 #endif
 }
 
@@ -1662,10 +1662,10 @@ static void TrigDoubleTest_ASinSIMD4()
 
 #if DS_DETERMINISTIC_MATH
 	dsSIMD4d_store(&angles, dsASinSIMD4d(dsSIMD4d_set4(-0.9876, -0.4321, 0.1234, 0.6789)));
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(-1.4131529841206687, angles.x, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(-0.44682009105875037, angles.y, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.12371534584255098, angles.z, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.74626342835318737, angles.w, 0.0, epsilon);
+	EXPECT_EQ(-1.4131529841206687, angles.x);
+	EXPECT_EQ(-0.44682009105875037, angles.y);
+	EXPECT_EQ(0.12371534584255098, angles.z);
+	EXPECT_EQ(0.74626342835318737, angles.w);
 #endif
 }
 
@@ -1693,10 +1693,10 @@ static void TrigDoubleTest_ACosSIMD4()
 
 #if DS_DETERMINISTIC_MATH
 	dsSIMD4d_store(&angles, dsACosSIMD4d(dsSIMD4d_set4(-0.9876, -0.4321, 0.1234, 0.6789)));
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(2.9839493109155653, angles.x, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(2.0176164178536471, angles.y, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(1.4470809809523457, angles.z, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.82453289844170918, angles.w, 0.0, epsilon);
+	EXPECT_EQ(2.9839493109155653, angles.x);
+	EXPECT_EQ(2.0176164178536471, angles.y);
+	EXPECT_EQ(1.4470809809523457, angles.z);
+	EXPECT_EQ(0.82453289844170918, angles.w);
 #endif
 }
 
@@ -1724,10 +1724,10 @@ static void TrigDoubleTest_ATanSIMD4()
 
 #if DS_DETERMINISTIC_MATH
 	dsSIMD4d_store(&angles, dsATanSIMD4d(dsSIMD4d_set4(-12.34, -0.1234, 0.4321, 2.345)));
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(-1.4899357456343294, angles.x, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(-0.12277930094473836, angles.y, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.40786900830223771, angles.z, 0.0, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(1.1677072684050145, angles.w, 0.0, epsilon);
+	EXPECT_EQ(-1.4899357456343294, angles.x);
+	EXPECT_EQ(-0.12277930094473836, angles.y);
+	EXPECT_EQ(0.40786900830223771, angles.z);
+	EXPECT_EQ(1.1677072684050145, angles.w);
 #endif
 }
 
@@ -1774,10 +1774,10 @@ static void TrigDoubleTest_ATan2SIMD4()
 #if DS_DETERMINISTIC_MATH
 	dsSIMD4d_store(&angles, dsATan2SIMD4d(dsSIMD4d_set4(-0.9876, -0.4321, 0.1234, 0.6789),
 		dsSIMD4d_set4(-12.34, 0.1234, 0.4321, -2.345)));
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(-3.0617304591858581, angles.x, 0.0f, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(-1.2926189358619253, angles.y, 0.0f, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(0.27817739093297111, angles.z, 0.0f, epsilon);
-	EXPECT_RELATIVE_EQ_DETERMINISTIC(2.8597876524421402, angles.w, 0.0f, epsilon);
+	EXPECT_EQ(-3.0617304591858581, angles.x);
+	EXPECT_EQ(-1.2926189358619253, angles.y);
+	EXPECT_EQ(0.27817739093297111, angles.z);
+	EXPECT_EQ(2.8597876524421402, angles.w);
 #endif
 }
 
@@ -2574,7 +2574,7 @@ static void TrigDoubleTest_Performance()
 
 	dsRandom random;
 	dsRandom_seed(&random, 0);
-	for (unsigned int i = 0; i < performanceCount; ++i)
+	for (unsigned int i = 0; i < performanceCountAligned; ++i)
 		angles[i] = randomValue(random, -10.0, 10.0);
 
 	// Keep a running hash to avoid the optimizer stripping out the loops.
