@@ -661,6 +661,126 @@ DS_ALWAYS_INLINE double dsMulPow2dComplete(double x, int pow2)
 	return *(double*)&xi;
 }
 
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT)
+
+DS_ALWAYS_INLINE dsSIMD4f dsSplitPow2StrictPosSIMD4f(dsSIMD4fb* outPow2, dsSIMD4f x)
+{
+	DS_ASSERT(outPow2);
+
+	dsSIMD4fb zero = dsSIMD4fb_set1(0);
+	dsSIMD4fb fltExpBits = dsSIMD4fb_set1(DS_FLT_EXP_BITS);
+	dsSIMD4fb fltMantissaBits = dsSIMD4fb_set1(DS_FLT_MANTISSA_BITS);
+	dsSIMD4fb targetExpOffset = dsSIMD4fb_set1(DS_FLT_EXP_OFFSET - 1);
+	dsSIMD4fb targetExpBits = dsSIMD4fb_set1((DS_FLT_EXP_OFFSET - 1) << DS_FLT_MANTISSA_BIT_COUNT);
+
+	dsSIMD4fb xi = dsSIMD4fb_fromFloatBitfield(x);
+	dsSIMD4fb expBits = dsSIMD4fb_and(xi, fltExpBits);
+	dsSIMD4fb mantissaBits = dsSIMD4fb_and(xi, fltMantissaBits);
+	// Check for subnormal. Using only == with andnot should be better on x86 and same on ARM
+	// compared with having and with != for mantissa check.
+	dsSIMD4fb subnormal = dsSIMD4fb_andnot(
+		dsSIMD4fb_cmpeq(mantissaBits, zero), dsSIMD4fb_cmpeq(expBits, zero));
+	if (DS_EXPECT(dsSIMD4fb_any(subnormal), false))
+	{
+		DS_ALIGN(16) int32_t scalarPow2[4];
+		DS_ALIGN(16) float scalarX[4];
+		dsSIMD4f_store(scalarX, x);
+		for (unsigned int i = 0; i < 4; ++i)
+			scalarX[i] = dsSplitPow2f(scalarPow2 + i, scalarX[i]);
+		*outPow2 = dsSIMD4fb_load(scalarPow2);
+		return dsSIMD4f_load(scalarX);
+	}
+
+	*outPow2 = dsSIMD4fb_sub(
+		dsSIMD4fb_shiftRightConst(expBits, DS_FLT_MANTISSA_BIT_COUNT), targetExpOffset);
+	return dsSIMD4fb_toFloatBitfield(dsSIMD4fb_or(dsSIMD4fb_andnot(fltExpBits, xi), targetExpBits));
+}
+
+DS_SIMD_END()
+DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT)
+
+DS_ALWAYS_INLINE dsSIMD2d dsSplitPow2StrictPosSIMD2d(dsSIMD2db* outPow2, dsSIMD2d x)
+{
+	DS_ASSERT(outPow2);
+
+	dsSIMD2db zero = dsSIMD2db_set1(0);
+	dsSIMD2db fltExpBits = dsSIMD2db_set1(DS_DBL_EXP_BITS);
+	dsSIMD2db fltMantissaBits = dsSIMD2db_set1(DS_DBL_MANTISSA_BITS);
+	dsSIMD2db targetExpOffset = dsSIMD2db_set1(DS_DBL_EXP_OFFSET - 1);
+	dsSIMD2db targetExpBits = dsSIMD2db_set1(
+		(uint64_t)(DS_DBL_EXP_OFFSET - 1) << DS_DBL_MANTISSA_BIT_COUNT);
+
+	dsSIMD2db xi = dsSIMD2db_fromDoubleBitfield(x);
+	dsSIMD2db expBits = dsSIMD2db_and(xi, fltExpBits);
+	dsSIMD2db mantissaBits = dsSIMD2db_and(xi, fltMantissaBits);
+	// Check for subnormal. Using only == with andnot should be better on x86 and same on ARM
+	// compared with having and with != for mantissa check.
+	dsSIMD2db subnormal = dsSIMD2db_andnot(
+		dsSIMD2db_cmpeq(mantissaBits, zero), dsSIMD2db_cmpeq(expBits, zero));
+	if (DS_EXPECT(dsSIMD2db_any(subnormal) != 0, false))
+	{
+		DS_ALIGN(16) int64_t scalarPow2[2];
+		DS_ALIGN(16) double scalarX[2];
+		dsSIMD2d_store(scalarX, x);
+		for (unsigned int i = 0; i < 2; ++i)
+		{
+			int pow2;
+			scalarX[i] = dsSplitPow2d(&pow2, scalarX[i]);
+			scalarPow2[i] = pow2;
+		}
+		*outPow2 = dsSIMD2db_load(scalarPow2);
+		return dsSIMD2d_load(scalarX);
+	}
+
+	*outPow2 = dsSIMD2db_sub(
+		dsSIMD2db_shiftRightConst(expBits, DS_DBL_MANTISSA_BIT_COUNT), targetExpOffset);
+	return dsSIMD2db_toDoubleBitfield(
+		dsSIMD2db_or(dsSIMD2db_andnot(fltExpBits, xi), targetExpBits));
+}
+
+DS_SIMD_END()
+DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_INT)
+
+DS_ALWAYS_INLINE dsSIMD4d dsSplitPow2StrictPosSIMD4d(dsSIMD4db* outPow2, dsSIMD4d x)
+{
+	DS_ASSERT(outPow2);
+
+	dsSIMD4db zero = dsSIMD4db_set1(0);
+	dsSIMD4db fltExpBits = dsSIMD4db_set1(DS_DBL_EXP_BITS);
+	dsSIMD4db fltMantissaBits = dsSIMD4db_set1(DS_DBL_MANTISSA_BITS);
+	dsSIMD4db targetExpOffset = dsSIMD4db_set1(DS_DBL_EXP_OFFSET - 1);
+	dsSIMD4db targetExpBits = dsSIMD4db_set1(
+		(uint64_t)(DS_DBL_EXP_OFFSET - 1) << DS_DBL_MANTISSA_BIT_COUNT);
+
+	dsSIMD4db xi = dsSIMD4db_fromDoubleBitfield(x);
+	dsSIMD4db expBits = dsSIMD4db_and(xi, fltExpBits);
+	dsSIMD4db mantissaBits = dsSIMD4db_and(xi, fltMantissaBits);
+	// Check for subnormal. Using only == with andnot should be better on x86 and same on ARM
+	// compared with having and with != for mantissa check.
+	dsSIMD4db subnormal = dsSIMD4db_andnot(
+		dsSIMD4db_cmpeq(mantissaBits, zero), dsSIMD4db_cmpeq(expBits, zero));
+	if (DS_EXPECT(dsSIMD4db_any(subnormal) != 0, false))
+	{
+		DS_ALIGN(32) int64_t scalarPow2[4];
+		DS_ALIGN(32) double scalarX[4];
+		dsSIMD4d_store(scalarX, x);
+		for (unsigned int i = 0; i < 4; ++i)
+		{
+			int pow2;
+			scalarX[i] = dsSplitPow2d(&pow2, scalarX[i]);
+			scalarPow2[i] = pow2;
+		}
+		*outPow2 = dsSIMD4db_load(scalarPow2);
+		return dsSIMD4d_load(scalarX);
+	}
+
+	*outPow2 = dsSIMD4db_sub(
+		dsSIMD4db_shiftRightConst(expBits, DS_DBL_MANTISSA_BIT_COUNT), targetExpOffset);
+	return dsSIMD4db_toDoubleBitfield(
+		dsSIMD4db_or(dsSIMD4db_andnot(fltExpBits, xi), targetExpBits));
+}
+DS_SIMD_END()
+
 /// @endcond
 
 DS_MATH_EXPORT inline float dsSplitPow2f(int* outPow2, float x)
@@ -735,16 +855,14 @@ DS_MATH_EXPORT inline float dsLnf(float x)
 	DS_ASSERT(x > 0.0f);
 
 #if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
-	int pow2;
+	int pow2 = (int)x;
 	float xm = dsSplitPow2f(&pow2, x);
 	float pow2f = (float)pow2;
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
-	float adjustedPow2f = pow2f - 1.0f;
-	float adjustedXm = xm + xm;
-	uint32_t smallValue = xm < M_SQRT1_2f;
-	pow2f = dsMathImplSelectf(smallValue, adjustedPow2f, pow2f);
-	xm = dsMathImplSelectf(smallValue, adjustedXm, xm) - 1.0f;
+	uint32_t smallValueMask = (uint32_t)(xm >= M_SQRT1_2f) - 1;
+	pow2f -= dsMathImplMaskf(smallValueMask, 1.0f);
+	xm += dsMathImplMaskf(smallValueMask, xm) - 1.0f;
 	float xm2 = dsPow2(xm);
 
 	return ((((((((DS_LN_TAYLOR_1f*xm + DS_LN_TAYLOR_2f)*xm + DS_LN_TAYLOR_3f)*xm +
@@ -766,11 +884,9 @@ DS_MATH_EXPORT inline double dsLnd(double x)
 	double pow2d = (double)pow2;
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
-	double adjustedPow2d = pow2d - 1.0;
-	double adjustedXm = xm + xm;
-	uint64_t smallValue = xm < M_SQRT1_2;
-	pow2d = dsMathImplSelectd(smallValue, adjustedPow2d, pow2d);
-	xm = dsMathImplSelectd(smallValue, adjustedXm, xm) - 1.0;
+	uint64_t smallValueMask = (uint64_t)(xm >= M_SQRT1_2) - 1;
+	pow2d -= dsMathImplMaskd(smallValueMask, 1.0);
+	xm += dsMathImplMaskd(smallValueMask, xm) - 1.0;
 	double xm2 = dsPow2(xm);
 
 	double pTaylor = (((((DS_LN_TAYLOR_P_1d*xm + DS_LN_TAYLOR_P_2d)*xm + DS_LN_TAYLOR_P_3d)*xm +
@@ -947,41 +1063,32 @@ DS_MATH_EXPORT inline dsSIMD4f dsSplitPow2SIMD4f(dsSIMD4fb* outPow2, dsSIMD4f x)
 	dsSIMD4fb fltExpBits = dsSIMD4fb_set1(DS_FLT_EXP_BITS);
 	dsSIMD4fb fltMantissaBits = dsSIMD4fb_set1(DS_FLT_MANTISSA_BITS);
 	dsSIMD4fb targetExpOffset = dsSIMD4fb_set1(DS_FLT_EXP_OFFSET - 1);
+	dsSIMD4fb targetExpBits = dsSIMD4fb_set1((DS_FLT_EXP_OFFSET - 1) << DS_FLT_MANTISSA_BIT_COUNT);
 
 	dsSIMD4fb xi = dsSIMD4fb_fromFloatBitfield(x);
 	dsSIMD4fb expBits = dsSIMD4fb_and(xi, fltExpBits);
 	dsSIMD4fb mantissaBits = dsSIMD4fb_and(xi, fltMantissaBits);
-	dsSIMD4fb startPow2;
 	// Check for subnormal. Using only == with andnot should be better on x86 and same on ARM
 	// compared with having and with != for mantissa check.
-	dsSIMD4fb subnormal = dsSIMD4fb_andnot(
-		dsSIMD4fb_cmpeq(mantissaBits, zero), dsSIMD4fb_cmpeq(expBits, zero));
+	dsSIMD4fb expBitsZero = dsSIMD4fb_cmpeq(expBits, zero);
+	dsSIMD4fb subnormal = dsSIMD4fb_andnot(dsSIMD4fb_cmpeq(mantissaBits, zero), expBitsZero);
 	if (DS_EXPECT(dsSIMD4fb_any(subnormal), false))
 	{
-		DS_ALIGN(16) uint32_t subnormPow2[4] = {}, scalarXi[4], scalarSubnormal[4];
-		dsSIMD4fb_store(scalarXi, xi);
-		dsSIMD4fb_store(scalarSubnormal, subnormal);
+		DS_ALIGN(16) int32_t scalarPow2[4];
+		DS_ALIGN(16) float scalarX[4];
+		dsSIMD4f_store(scalarX, x);
 		for (unsigned int i = 0; i < 4; ++i)
-		{
-			if (scalarSubnormal[i])
-				scalarXi[i] = dsSubnormToNormBitsf(subnormPow2 + i, scalarXi[i]);
-		}
-		xi = dsSIMD4fb_load(scalarXi);
-		startPow2 = dsSIMD4fb_neg(dsSIMD4fb_load(subnormPow2));
-		expBits = dsSIMD4fb_and(xi, fltExpBits);
+			scalarX[i] = dsSplitPow2f(scalarPow2 + i, scalarX[i]);
+		*outPow2 = dsSIMD4fb_load(scalarPow2);
+		return dsSIMD4f_load(scalarX);
 	}
-	else
-		startPow2 = dsSIMD4fb_set1(0);
 
 	// Prefer == compares for SIMD operations for performance.
-	dsSIMD4fb keepOrig = dsSIMD4fb_or(dsSIMD4fb_cmpeq(expBits, zero),
-		dsSIMD4fb_cmpeq(expBits, fltExpBits));
-	dsSIMD4fb adjustedPow2 = dsSIMD4fb_add(startPow2, dsSIMD4fb_sub(
+	dsSIMD4fb keepOrig = dsSIMD4fb_or(expBitsZero, dsSIMD4fb_cmpeq(expBits, fltExpBits));
+	*outPow2 = dsSIMD4fb_andnot(keepOrig, dsSIMD4fb_sub(
 		dsSIMD4fb_shiftRightConst(expBits, DS_FLT_MANTISSA_BIT_COUNT), targetExpOffset));
-	dsSIMD4fb adjustedXi = dsSIMD4fb_or(dsSIMD4fb_andnot(fltExpBits, xi),
-		dsSIMD4fb_shiftLeftConst(targetExpOffset, DS_FLT_MANTISSA_BIT_COUNT));
-	*outPow2 = dsSIMD4fb_select(keepOrig, startPow2, adjustedPow2);
-	return dsSIMD4fb_toFloatBitfield(dsSIMD4fb_select(keepOrig, xi, adjustedXi));
+	return dsSIMD4fb_toFloatBitfield(dsSIMD4fb_or(
+		dsSIMD4fb_andnot(fltExpBits, xi), dsSIMD4fb_select(keepOrig, expBits, targetExpBits)));
 }
 
 DS_MATH_EXPORT inline dsSIMD4f dsMulPow2SIMD4f(dsSIMD4f x, dsSIMD4fb pow2)
@@ -1029,15 +1136,13 @@ DS_MATH_EXPORT inline dsSIMD4f dsLnSIMD4f(dsSIMD4f x)
 	dsSIMD4f lnExp2 = dsSIMD4f_set1(DS_LN_EXP_2f);
 
 	dsSIMD4fb pow2;
-	dsSIMD4f xm = dsSplitPow2SIMD4f(&pow2, x);
+	dsSIMD4f xm = dsSplitPow2StrictPosSIMD4f(&pow2, x);
 	dsSIMD4f pow2f = dsSIMD4fb_toFloat(pow2);
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
-	dsSIMD4f adjustedPow2f = dsSIMD4f_sub(pow2f, one);
-	dsSIMD4f adjustedXm = dsSIMD4f_add(xm, xm);
 	dsSIMD4fb smallValue = dsSIMD4f_cmplt(xm, sqrt1_2);
-	pow2f = dsSIMD4f_select(smallValue, adjustedPow2f, pow2f);
-	xm = dsSIMD4f_sub(dsSIMD4f_select(smallValue, adjustedXm, xm), one);
+	pow2f = dsSIMD4f_sub(pow2f, dsMathImplMaskSIMD4f(smallValue, one));
+	xm = dsSIMD4f_sub(dsSIMD4f_add(xm, dsMathImplMaskSIMD4f(smallValue, xm)), one);
 	dsSIMD4f xm2 = dsSIMD4f_mul(xm, xm);
 
 	return dsSIMD4f_add(dsSIMD4f_add(dsSIMD4f_sub(dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_mul(
@@ -1181,15 +1286,13 @@ DS_MATH_EXPORT inline dsSIMD4f dsLnFMA4f(dsSIMD4f x)
 	dsSIMD4f lnExp2 = dsSIMD4f_set1(DS_LN_EXP_2f);
 
 	dsSIMD4fb pow2;
-	dsSIMD4f xm = dsSplitPow2SIMD4f(&pow2, x);
+	dsSIMD4f xm = dsSplitPow2StrictPosSIMD4f(&pow2, x);
 	dsSIMD4f pow2f = dsSIMD4fb_toFloat(pow2);
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
-	dsSIMD4f adjustedPow2f = dsSIMD4f_sub(pow2f, one);
-	dsSIMD4f adjustedXm = dsSIMD4f_add(xm, xm);
 	dsSIMD4fb smallValue = dsSIMD4f_cmplt(xm, sqrt1_2);
-	pow2f = dsSIMD4f_select(smallValue, adjustedPow2f, pow2f);
-	xm = dsSIMD4f_sub(dsSIMD4f_select(smallValue, adjustedXm, xm), one);
+	pow2f = dsSIMD4f_sub(pow2f, dsMathImplMaskSIMD4f(smallValue, one));
+	xm = dsSIMD4f_sub(dsSIMD4f_add(xm, dsMathImplMaskSIMD4f(smallValue, xm)), one);
 	dsSIMD4f xm2 = dsSIMD4f_mul(xm, xm);
 
 	return dsSIMD4f_fmadd(lnExp2, pow2f, dsSIMD4f_add(dsSIMD4f_fnmadd(half, xm2, dsSIMD4f_fmadd(
@@ -1315,45 +1418,37 @@ DS_MATH_EXPORT inline dsSIMD2d dsSplitPow2SIMD2d(dsSIMD2db* outPow2, dsSIMD2d x)
 	dsSIMD2db fltExpBits = dsSIMD2db_set1(DS_DBL_EXP_BITS);
 	dsSIMD2db fltMantissaBits = dsSIMD2db_set1(DS_DBL_MANTISSA_BITS);
 	dsSIMD2db targetExpOffset = dsSIMD2db_set1(DS_DBL_EXP_OFFSET - 1);
+	dsSIMD2db targetExpBits = dsSIMD2db_set1(
+		(uint64_t)(DS_DBL_EXP_OFFSET - 1) << DS_DBL_MANTISSA_BIT_COUNT);
 
 	dsSIMD2db xi = dsSIMD2db_fromDoubleBitfield(x);
 	dsSIMD2db expBits = dsSIMD2db_and(xi, fltExpBits);
 	dsSIMD2db mantissaBits = dsSIMD2db_and(xi, fltMantissaBits);
-	dsSIMD2db startPow2;
 	// Check for subnormal. Using only == with andnot should be better on x86 and same on ARM
 	// compared with having and with != for mantissa check.
-	dsSIMD2db subnormal = dsSIMD2db_andnot(
-		dsSIMD2db_cmpeq(mantissaBits, zero), dsSIMD2db_cmpeq(expBits, zero));
+	dsSIMD2db expBitsZero = dsSIMD2db_cmpeq(expBits, zero);
+	dsSIMD2db subnormal = dsSIMD2db_andnot(dsSIMD2db_cmpeq(mantissaBits, zero), expBitsZero);
 	if (DS_EXPECT(dsSIMD2db_any(subnormal) != 0, false))
 	{
-		DS_ALIGN(16) uint64_t subnormPow2[2] = {}, scalarXi[2], scalarSubnormal[2];
-		dsSIMD2db_store(scalarXi, xi);
-		dsSIMD2db_store(scalarSubnormal, subnormal);
+		DS_ALIGN(16) int64_t scalarPow2[2];
+		DS_ALIGN(16) double scalarX[2];
+		dsSIMD2d_store(scalarX, x);
 		for (unsigned int i = 0; i < 2; ++i)
 		{
-			if (scalarSubnormal[i])
-			{
-				unsigned int pow2;
-				scalarXi[i] = dsSubnormToNormBitsd(&pow2, scalarXi[i]);
-				subnormPow2[i] = pow2;
-			}
+			int pow2;
+			scalarX[i] = dsSplitPow2d(&pow2, scalarX[i]);
+			scalarPow2[i] = pow2;
 		}
-		xi = dsSIMD2db_load(scalarXi);
-		startPow2 = dsSIMD2db_neg(dsSIMD2db_load(subnormPow2));
-		expBits = dsSIMD2db_and(xi, fltExpBits);
+		*outPow2 = dsSIMD2db_load(scalarPow2);
+		return dsSIMD2d_load(scalarX);
 	}
-	else
-		startPow2 = dsSIMD2db_set1(0);
 
 	// Prefer == compares for SIMD operations for performance.
-	dsSIMD2db keepOrig = dsSIMD2db_or(dsSIMD2db_cmpeq(expBits, zero),
-		dsSIMD2db_cmpeq(expBits, fltExpBits));
-	dsSIMD2db adjustedPow2 = dsSIMD2db_add(startPow2, dsSIMD2db_sub(
+	dsSIMD2db keepOrig = dsSIMD2db_or(expBitsZero, dsSIMD2db_cmpeq(expBits, fltExpBits));
+	*outPow2 = dsSIMD2db_andnot(keepOrig, dsSIMD2db_sub(
 		dsSIMD2db_shiftRightConst(expBits, DS_DBL_MANTISSA_BIT_COUNT), targetExpOffset));
-	dsSIMD2db adjustedXi = dsSIMD2db_or(dsSIMD2db_andnot(fltExpBits, xi),
-		dsSIMD2db_shiftLeftConst(targetExpOffset, DS_DBL_MANTISSA_BIT_COUNT));
-	*outPow2 = dsSIMD2db_select(keepOrig, startPow2, adjustedPow2);
-	return dsSIMD2db_toDoubleBitfield(dsSIMD2db_select(keepOrig, xi, adjustedXi));
+	return dsSIMD2db_toDoubleBitfield(dsSIMD2db_or(
+		dsSIMD2db_andnot(fltExpBits, xi), dsSIMD2db_select(keepOrig, expBits, targetExpBits)));
 }
 
 DS_MATH_EXPORT inline dsSIMD2d dsMulPow2SIMD2d(dsSIMD2d x, dsSIMD2db pow2)
@@ -1405,15 +1500,13 @@ DS_MATH_EXPORT inline dsSIMD2d dsLnSIMD2d(dsSIMD2d x)
 	dsSIMD2d lnExp2 = dsSIMD2d_set1(DS_LN_EXP_2d);
 
 	dsSIMD2db pow2;
-	dsSIMD2d xm = dsSplitPow2SIMD2d(&pow2, x);
+	dsSIMD2d xm = dsSplitPow2StrictPosSIMD2d(&pow2, x);
 	dsSIMD2d pow2d = dsSIMD2db_toDouble(pow2);
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
-	dsSIMD2d adjustedPow2d = dsSIMD2d_sub(pow2d, one);
-	dsSIMD2d adjustedXm = dsSIMD2d_add(xm, xm);
 	dsSIMD2db smallValue = dsSIMD2d_cmplt(xm, sqrt1_2);
-	pow2d = dsSIMD2d_select(smallValue, adjustedPow2d, pow2d);
-	xm = dsSIMD2d_sub(dsSIMD2d_select(smallValue, adjustedXm, xm), one);
+	pow2d = dsSIMD2d_sub(pow2d, dsMathImplMaskSIMD2d(smallValue, one));
+	xm = dsSIMD2d_sub(dsSIMD2d_add(xm, dsMathImplMaskSIMD2d(smallValue, xm)), one);
 	dsSIMD2d xm2 = dsSIMD2d_mul(xm, xm);
 
 	dsSIMD2d pTaylor = dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(
@@ -1580,15 +1673,13 @@ DS_MATH_EXPORT inline dsSIMD2d dsLnFMA2d(dsSIMD2d x)
 	dsSIMD2d lnExp2 = dsSIMD2d_set1(DS_LN_EXP_2d);
 
 	dsSIMD2db pow2;
-	dsSIMD2d xm = dsSplitPow2SIMD2d(&pow2, x);
+	dsSIMD2d xm = dsSplitPow2StrictPosSIMD2d(&pow2, x);
 	dsSIMD2d pow2d = dsSIMD2db_toDouble(pow2);
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
-	dsSIMD2d adjustedPow2d = dsSIMD2d_sub(pow2d, one);
-	dsSIMD2d adjustedXm = dsSIMD2d_add(xm, xm);
 	dsSIMD2db smallValue = dsSIMD2d_cmplt(xm, sqrt1_2);
-	pow2d = dsSIMD2d_select(smallValue, adjustedPow2d, pow2d);
-	xm = dsSIMD2d_sub(dsSIMD2d_select(smallValue, adjustedXm, xm), one);
+	pow2d = dsSIMD2d_sub(pow2d, dsMathImplMaskSIMD2d(smallValue, one));
+	xm = dsSIMD2d_sub(dsSIMD2d_add(xm, dsMathImplMaskSIMD2d(smallValue, xm)), one);
 	dsSIMD2d xm2 = dsSIMD2d_mul(xm, xm);
 
 	dsSIMD2d pTaylor = dsSIMD2d_mul(dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_fmadd(
@@ -1733,45 +1824,37 @@ DS_MATH_EXPORT inline dsSIMD4d dsSplitPow2SIMD4d(dsSIMD4db* outPow2, dsSIMD4d x)
 	dsSIMD4db fltExpBits = dsSIMD4db_set1(DS_DBL_EXP_BITS);
 	dsSIMD4db fltMantissaBits = dsSIMD4db_set1(DS_DBL_MANTISSA_BITS);
 	dsSIMD4db targetExpOffset = dsSIMD4db_set1(DS_DBL_EXP_OFFSET - 1);
+	dsSIMD4db targetExpBits = dsSIMD4db_set1(
+		(uint64_t)(DS_DBL_EXP_OFFSET - 1) << DS_DBL_MANTISSA_BIT_COUNT);
 
 	dsSIMD4db xi = dsSIMD4db_fromDoubleBitfield(x);
 	dsSIMD4db expBits = dsSIMD4db_and(xi, fltExpBits);
 	dsSIMD4db mantissaBits = dsSIMD4db_and(xi, fltMantissaBits);
-	dsSIMD4db startPow2;
 	// Check for subnormal. Using only == with andnot should be better on x86 and same on ARM
 	// compared with having and with != for mantissa check.
-	dsSIMD4db subnormal = dsSIMD4db_andnot(
-		dsSIMD4db_cmpeq(mantissaBits, zero), dsSIMD4db_cmpeq(expBits, zero));
+	dsSIMD4db expBitsZero = dsSIMD4db_cmpeq(expBits, zero);
+	dsSIMD4db subnormal = dsSIMD4db_andnot(dsSIMD4db_cmpeq(mantissaBits, zero), expBitsZero);
 	if (DS_EXPECT(dsSIMD4db_any(subnormal) != 0, false))
 	{
-		DS_ALIGN(32) uint64_t subnormPow2[4] = {}, scalarXi[4], scalarSubnormal[4];
-		dsSIMD4db_store(scalarXi, xi);
-		dsSIMD4db_store(scalarSubnormal, subnormal);
+		DS_ALIGN(32) int64_t scalarPow2[4];
+		DS_ALIGN(32) double scalarX[4];
+		dsSIMD4d_store(scalarX, x);
 		for (unsigned int i = 0; i < 4; ++i)
 		{
-			if (scalarSubnormal[i])
-			{
-				unsigned int pow2;
-				scalarXi[i] = dsSubnormToNormBitsd(&pow2, scalarXi[i]);
-				subnormPow2[i] = pow2;
-			}
+			int pow2;
+			scalarX[i] = dsSplitPow2d(&pow2, scalarX[i]);
+			scalarPow2[i] = pow2;
 		}
-		xi = dsSIMD4db_load(scalarXi);
-		startPow2 = dsSIMD4db_neg(dsSIMD4db_load(subnormPow2));
-		expBits = dsSIMD4db_and(xi, fltExpBits);
+		*outPow2 = dsSIMD4db_load(scalarPow2);
+		return dsSIMD4d_load(scalarX);
 	}
-	else
-		startPow2 = dsSIMD4db_set1(0);
 
 	// Prefer == compares for SIMD operations for performance.
-	dsSIMD4db keepOrig = dsSIMD4db_or(dsSIMD4db_cmpeq(expBits, zero),
-		dsSIMD4db_cmpeq(expBits, fltExpBits));
-	dsSIMD4db adjustedPow2 = dsSIMD4db_add(startPow2, dsSIMD4db_sub(
+	dsSIMD4db keepOrig = dsSIMD4db_or(expBitsZero, dsSIMD4db_cmpeq(expBits, fltExpBits));
+	*outPow2 = dsSIMD4db_andnot(keepOrig, dsSIMD4db_sub(
 		dsSIMD4db_shiftRightConst(expBits, DS_DBL_MANTISSA_BIT_COUNT), targetExpOffset));
-	dsSIMD4db adjustedXi = dsSIMD4db_or(dsSIMD4db_andnot(fltExpBits, xi),
-		dsSIMD4db_shiftLeftConst(targetExpOffset, DS_DBL_MANTISSA_BIT_COUNT));
-	*outPow2 = dsSIMD4db_select(keepOrig, startPow2, adjustedPow2);
-	return dsSIMD4db_toDoubleBitfield(dsSIMD4db_select(keepOrig, xi, adjustedXi));
+	return dsSIMD4db_toDoubleBitfield(dsSIMD4db_or(
+		dsSIMD4db_andnot(fltExpBits, xi), dsSIMD4db_select(keepOrig, expBits, targetExpBits)));
 }
 
 DS_MATH_EXPORT inline dsSIMD4d dsMulPow2SIMD4d(dsSIMD4d x, dsSIMD4db pow2)
@@ -1823,15 +1906,13 @@ DS_MATH_EXPORT inline dsSIMD4d dsLnSIMD4d(dsSIMD4d x)
 	dsSIMD4d lnExp2 = dsSIMD4d_set1(DS_LN_EXP_2d);
 
 	dsSIMD4db pow2;
-	dsSIMD4d xm = dsSplitPow2SIMD4d(&pow2, x);
+	dsSIMD4d xm = dsSplitPow2StrictPosSIMD4d(&pow2, x);
 	dsSIMD4d pow2d = dsSIMD4db_toDouble(pow2);
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
-	dsSIMD4d adjustedPow2d = dsSIMD4d_sub(pow2d, one);
-	dsSIMD4d adjustedXm = dsSIMD4d_add(xm, xm);
 	dsSIMD4db smallValue = dsSIMD4d_cmplt(xm, sqrt1_2);
-	pow2d = dsSIMD4d_select(smallValue, adjustedPow2d, pow2d);
-	xm = dsSIMD4d_sub(dsSIMD4d_select(smallValue, adjustedXm, xm), one);
+	pow2d = dsSIMD4d_sub(pow2d, dsMathImplMaskSIMD4d(smallValue, one));
+	xm = dsSIMD4d_sub(dsSIMD4d_add(xm, dsMathImplMaskSIMD4d(smallValue, xm)), one);
 	dsSIMD4d xm2 = dsSIMD4d_mul(xm, xm);
 
 #if DS_DETERMINISTIC_MATH
