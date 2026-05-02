@@ -99,6 +99,26 @@ DS_MATH_EXPORT inline float dsLnf(float x);
 DS_MATH_EXPORT inline double dsLnd(double x);
 
 /**
+ * @brief Takes the base 2 logarithm of a value.
+ * @param x The value to take the base 2 logarithm of.
+ * @return The base 2 logarithm of x. The value is undefined if x <= 0.
+ */
+DS_MATH_EXPORT inline float dsLog2f(float x);
+
+/** @copydoc dsLog2f() */
+DS_MATH_EXPORT inline double dsLog2d(double x);
+
+/**
+ * @brief Takes the base 10 logarithm of a value.
+ * @param x The value to take the base 10 logarithm of.
+ * @return The base 10 logarithm of x. The value is undefined if x <= 0.
+ */
+DS_MATH_EXPORT inline float dsLog10f(float x);
+
+/** @copydoc dsLog10f() */
+DS_MATH_EXPORT inline double dsLog10d(double x);
+
+/**
  * @brief Raises e to an exponent.
  * @param x The exponent to raise e by.
  * @return The result of e^x.
@@ -170,6 +190,22 @@ DS_MATH_EXPORT inline dsSIMD4f dsMulPow2SIMD4f(dsSIMD4f x, dsSIMD4fb pow2);
 DS_MATH_EXPORT inline dsSIMD4f dsLnSIMD4f(dsSIMD4f x);
 
 /**
+ * @brief Takes the base 2 logarithm of four values.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param x The values to take the base 2 logarithm of.
+ * @return The base 2 logarithm of x. The values are undefined for any elements of x <= 0.
+ */
+DS_MATH_EXPORT inline dsSIMD4f dsLog2SIMD4f(dsSIMD4f x);
+
+/**
+ * @brief Takes the base 10 logarithm of four values.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int are available.
+ * @param x The values to take the base 10 logarithm of.
+ * @return The base 10 logarithm of x. The values are undefined for any elements of x <= 0.
+ */
+DS_MATH_EXPORT inline dsSIMD4f dsLog10SIMD4f(dsSIMD4f x);
+
+/**
  * @brief Raises e to an exponent for four values.
  * @remark This can be used when dsSIMDFeatures_Float4, dsSIMDFeatures_Int, and
  *     dsSIMDFeatures_Rounding are available.
@@ -206,6 +242,24 @@ DS_MATH_EXPORT inline dsSIMD4f dsExp10SIMD4f(dsSIMD4f x);
  * @return The natural logarithm of x. The values are undefined for any elements of x <= 0.
  */
 DS_MATH_EXPORT inline dsSIMD4f dsLnFMA4f(dsSIMD4f x);
+
+/**
+ * @brief Takes the base 2 logarithm of four values with fused multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_Float4, dsSIMDFeatures_Int, and dsSIMDFeatures_FMA
+ *     are available are available.
+ * @param x The values to take the base 2 logarithm of.
+ * @return The base 2 logarithm of x. The values are undefined for any elements of x <= 0.
+ */
+DS_MATH_EXPORT inline dsSIMD4f dsLog2FMA4f(dsSIMD4f x);
+
+/**
+ * @brief Takes the base 10 logarithm of four values with fused multiply-add operations..
+ * @remark This can be used when dsSIMDFeatures_Float4, dsSIMDFeatures_Int, and dsSIMDFeatures_FMA
+ *     are available are available.
+ * @param x The values to take the base 10 logarithm of.
+ * @return The base 10 logarithm of x. The values are undefined for any elements of x <= 0.
+ */
+DS_MATH_EXPORT inline dsSIMD4f dsLog10FMA4f(dsSIMD4f x);
 
 /**
  * @brief Raises e to an exponent for four values with fused multiply-add operations.
@@ -276,6 +330,22 @@ DS_MATH_EXPORT inline dsSIMD2d dsMulPow2SIMD2d(dsSIMD2d x, dsSIMD2db pow2);
 DS_MATH_EXPORT inline dsSIMD2d dsLnSIMD2d(dsSIMD2d x);
 
 /**
+ * @brief Takes the base 2 logarithm of two values.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param x The values to take the base 2 logarithm of.
+ * @return The base 2 logarithm of x. The values are undefined for any elements of x <= 0.
+ */
+DS_MATH_EXPORT inline dsSIMD2d dsLog2SIMD2d(dsSIMD2d x);
+
+/**
+ * @brief Takes the base 10 logarithm of two values.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_Int are available.
+ * @param x The values to take the base 10 logarithm of.
+ * @return The base 10 logarithm of x. The values are undefined for any elements of x <= 0.
+ */
+DS_MATH_EXPORT inline dsSIMD2d dsLog10SIMD2d(dsSIMD2d x);
+
+/**
  * @brief Raises e to an exponent for two values.
  * @remark This can be used when dsSIMDFeatures_Double2, dsSIMDFeatures_Int, and
  *     dsSIMDFeatures_Rounding are available.
@@ -312,6 +382,24 @@ DS_MATH_EXPORT inline dsSIMD2d dsExp10SIMD2d(dsSIMD2d x);
  * @return The natural logarithm of x. The values are undefined for any elements of x <= 0.
  */
 DS_MATH_EXPORT inline dsSIMD2d dsLnFMA2d(dsSIMD2d x);
+
+/**
+ * @brief Takes the base 2 logarithm of two values with fused multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_Double2, dsSIMDFeatures_Int, and dsSIMDFeatures_FMA
+ *     are available.
+ * @param x The values to take the base 2 logarithm of.
+ * @return The base 2 logarithm of x. The values are undefined for any elements of x <= 0.
+ */
+DS_MATH_EXPORT inline dsSIMD2d dsLog2FMA2d(dsSIMD2d x);
+
+/**
+ * @brief Takes the base 10 logarithm of two values with fused multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_Double2, dsSIMDFeatures_Int, and dsSIMDFeatures_FMA
+ *     are available.
+ * @param x The values to take the base 10 logarithm of.
+ * @return The base 10 logarithm of x. The values are undefined for any elements of x <= 0.
+ */
+DS_MATH_EXPORT inline dsSIMD2d dsLog10FMA2d(dsSIMD2d x);
 
 /**
  * @brief Raises e to an exponent for two values with fused multiply-add operations.
@@ -383,6 +471,24 @@ DS_MATH_EXPORT inline dsSIMD4d dsMulPow2SIMD4d(dsSIMD4d x, dsSIMD4db pow2);
 DS_MATH_EXPORT inline dsSIMD4d dsLnSIMD4d(dsSIMD4d x);
 
 /**
+ * @brief Takes the base 2 logarithm of four values.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int are available, and
+ *     will use FMA if not disabled through enabling determinisitic math.
+ * @param x The values to take the base 2 logarithm of.
+ * @return The base 2 logarithm of x. The values are undefined for any elements of x <= 0.
+ */
+DS_MATH_EXPORT inline dsSIMD4d dsLog2SIMD4d(dsSIMD4d x);
+
+/**
+ * @brief Takes the base 10 logarithm of four values.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int are available, and
+ *     will use FMA if not disabled through enabling determinisitic math.
+ * @param x The values to take the base 10 logarithm of.
+ * @return The base 10 logarithm of x. The values are undefined for any elements of x <= 0.
+ */
+DS_MATH_EXPORT inline dsSIMD4d dsLog10SIMD4d(dsSIMD4d x);
+
+/**
  * @brief Raises e to an exponent for four values.
  * @remark This can be used when dsSIMDFeatures_Double4, dsSIMDFeatures_Int, and
  *     dsSIMDFeatures_Rounding are available, and will use FMA if not disabled through enabling
@@ -446,6 +552,18 @@ DS_MATH_EXPORT inline dsSIMD4d dsExp10SIMD4d(dsSIMD4d x);
 
 #define DS_LOG10_2_1d 3.01025390625e-1
 #define DS_LOG10_2_2d 4.60503898119521373889e-6
+
+#define DS_LOG10_2_1fd 3.0078125e-1
+#define DS_LOG10_2_2fd 2.48745663981195213739e-4
+
+#define DS_LOG2_E_FRACf 0.44269504088896340735992f
+#define DS_LOG2_E_FRACd 0.44269504088896340735992
+
+#define DS_LOG10_E_1f 4.3359375e-1f
+#define DS_LOG10_E_2f 7.00731903251827651129e-4f
+
+#define DS_LOG10_E_1d 4.3359375e-1
+#define DS_LOG10_E_2d 7.00731903251827651129e-4
 
 #define DS_LN_TAYLOR_1f 7.0376836292e-2f
 #define DS_LN_TAYLOR_2f -1.1514610310e-1f
@@ -899,6 +1017,108 @@ DS_MATH_EXPORT inline double dsLnd(double x)
 #endif
 }
 
+DS_MATH_EXPORT inline float dsLog2f(float x)
+{
+	DS_ASSERT(x > 0.0f);
+
+#if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
+	int pow2 = (int)x;
+	float xm = dsSplitPow2f(&pow2, x);
+	float pow2f = (float)pow2;
+
+	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
+	uint32_t smallValueMask = (uint32_t)(xm >= M_SQRT1_2f) - 1;
+	pow2f -= dsMathImplMaskf(smallValueMask, 1.0f);
+	xm += dsMathImplMaskf(smallValueMask, xm) - 1.0f;
+	float xm2 = dsPow2(xm);
+
+	float baseLog2 = ((((((((DS_LN_TAYLOR_1f*xm + DS_LN_TAYLOR_2f)*xm + DS_LN_TAYLOR_3f)*xm +
+		DS_LN_TAYLOR_4f)*xm + DS_LN_TAYLOR_5f)*xm + DS_LN_TAYLOR_6f)*xm + DS_LN_TAYLOR_7f)*xm +
+		DS_LN_TAYLOR_8f)*xm + DS_LN_TAYLOR_9f)*xm*xm2 - 0.5f*xm2;
+	return baseLog2*DS_LOG2_E_FRACf + xm*DS_LOG2_E_FRACf + baseLog2 + xm + pow2f;
+#else
+	return log2f(x);
+#endif
+}
+
+DS_MATH_EXPORT inline double dsLog2d(double x)
+{
+	DS_ASSERT(x > 0.0);
+
+#if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
+	int pow2;
+	double xm = dsSplitPow2d(&pow2, x);
+	double pow2d = (double)pow2;
+
+	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
+	uint64_t smallValueMask = (uint64_t)(xm >= M_SQRT1_2) - 1;
+	pow2d -= dsMathImplMaskd(smallValueMask, 1.0);
+	xm += dsMathImplMaskd(smallValueMask, xm) - 1.0;
+	double xm2 = dsPow2(xm);
+
+	double pTaylor = (((((DS_LN_TAYLOR_P_1d*xm + DS_LN_TAYLOR_P_2d)*xm + DS_LN_TAYLOR_P_3d)*xm +
+		DS_LN_TAYLOR_P_4d)*xm + DS_LN_TAYLOR_P_5d)*xm + DS_LN_TAYLOR_P_6d)*xm2;
+	double qTaylor = ((((xm + DS_LN_TAYLOR_Q_1d)*xm + DS_LN_TAYLOR_Q_2d)*xm +
+		DS_LN_TAYLOR_Q_3d)*xm + DS_LN_TAYLOR_Q_4d)*xm + DS_LN_TAYLOR_Q_5d;
+	double baseLog2 = xm*pTaylor/qTaylor - 0.5*xm2;
+	return baseLog2*DS_LOG2_E_FRACd + xm*DS_LOG2_E_FRACd + baseLog2 + xm + pow2d;
+#else
+	return log2(x);
+#endif
+}
+
+DS_MATH_EXPORT inline float dsLog10f(float x)
+{
+	DS_ASSERT(x > 0.0f);
+
+#if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
+	int pow2 = (int)x;
+	float xm = dsSplitPow2f(&pow2, x);
+	float pow2f = (float)pow2;
+
+	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
+	uint32_t smallValueMask = (uint32_t)(xm >= M_SQRT1_2f) - 1;
+	pow2f -= dsMathImplMaskf(smallValueMask, 1.0f);
+	xm += dsMathImplMaskf(smallValueMask, xm) - 1.0f;
+	float xm2 = dsPow2(xm);
+
+	float baseLog10 = ((((((((DS_LN_TAYLOR_1f*xm + DS_LN_TAYLOR_2f)*xm + DS_LN_TAYLOR_3f)*xm +
+		DS_LN_TAYLOR_4f)*xm + DS_LN_TAYLOR_5f)*xm + DS_LN_TAYLOR_6f)*xm + DS_LN_TAYLOR_7f)*xm +
+		DS_LN_TAYLOR_8f)*xm + DS_LN_TAYLOR_9f)*xm*xm2 - 0.5f*xm2;
+	return (baseLog10 + xm)*DS_LOG10_E_2f + baseLog10*DS_LOG10_E_1f + xm*DS_LOG10_E_1f +
+		pow2f*DS_LOG10_2_2f + pow2f*DS_LOG10_2_1f;
+#else
+	return log10f(x);
+#endif
+}
+
+DS_MATH_EXPORT inline double dsLog10d(double x)
+{
+	DS_ASSERT(x > 0.0);
+
+#if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
+	int pow2;
+	double xm = dsSplitPow2d(&pow2, x);
+	double pow2d = (double)pow2;
+
+	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
+	uint64_t smallValueMask = (uint64_t)(xm >= M_SQRT1_2) - 1;
+	pow2d -= dsMathImplMaskd(smallValueMask, 1.0);
+	xm += dsMathImplMaskd(smallValueMask, xm) - 1.0;
+	double xm2 = dsPow2(xm);
+
+	double pTaylor = (((((DS_LN_TAYLOR_P_1d*xm + DS_LN_TAYLOR_P_2d)*xm + DS_LN_TAYLOR_P_3d)*xm +
+		DS_LN_TAYLOR_P_4d)*xm + DS_LN_TAYLOR_P_5d)*xm + DS_LN_TAYLOR_P_6d)*xm2;
+	double qTaylor = ((((xm + DS_LN_TAYLOR_Q_1d)*xm + DS_LN_TAYLOR_Q_2d)*xm +
+		DS_LN_TAYLOR_Q_3d)*xm + DS_LN_TAYLOR_Q_4d)*xm + DS_LN_TAYLOR_Q_5d;
+	double baseLog10 = xm*pTaylor/qTaylor - 0.5*xm2;
+	return (baseLog10 + xm)*DS_LOG10_E_2d + baseLog10*DS_LOG10_E_1d + xm*DS_LOG10_E_1d +
+		pow2d*DS_LOG10_2_2fd + pow2d*DS_LOG10_2_1fd;
+#else
+	return log10(x);
+#endif
+}
+
 DS_MATH_EXPORT inline float dsExpf(float x)
 {
 #if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
@@ -1153,6 +1373,88 @@ DS_MATH_EXPORT inline dsSIMD4f dsLnSIMD4f(dsSIMD4f x)
 		dsSIMD4f_mul(lnExp1, pow2f)), dsSIMD4f_mul(half, xm2)), xm), dsSIMD4f_mul(lnExp2, pow2f));
 }
 
+DS_MATH_EXPORT inline dsSIMD4f dsLog2SIMD4f(dsSIMD4f x)
+{
+	DS_ASSERT(dsSIMD4fb_all(dsSIMD4f_cmpgt(x, dsSIMD4f_set1(0.0f))));
+
+	dsSIMD4f one = dsSIMD4f_set1(1.0f);
+	dsSIMD4f half = dsSIMD4f_set1(0.5f);
+	dsSIMD4f sqrt1_2 = dsSIMD4f_set1(M_SQRT1_2f);
+	dsSIMD4f log2eFrac = dsSIMD4f_set1(DS_LOG2_E_FRACf);
+
+	dsSIMD4f lnTaylor1 = dsSIMD4f_set1(DS_LN_TAYLOR_1f);
+	dsSIMD4f lnTaylor2 = dsSIMD4f_set1(DS_LN_TAYLOR_2f);
+	dsSIMD4f lnTaylor3 = dsSIMD4f_set1(DS_LN_TAYLOR_3f);
+	dsSIMD4f lnTaylor4 = dsSIMD4f_set1(DS_LN_TAYLOR_4f);
+	dsSIMD4f lnTaylor5 = dsSIMD4f_set1(DS_LN_TAYLOR_5f);
+	dsSIMD4f lnTaylor6 = dsSIMD4f_set1(DS_LN_TAYLOR_6f);
+	dsSIMD4f lnTaylor7 = dsSIMD4f_set1(DS_LN_TAYLOR_7f);
+	dsSIMD4f lnTaylor8 = dsSIMD4f_set1(DS_LN_TAYLOR_8f);
+	dsSIMD4f lnTaylor9 = dsSIMD4f_set1(DS_LN_TAYLOR_9f);
+
+	dsSIMD4fb pow2;
+	dsSIMD4f xm = dsSplitPow2StrictPosSIMD4f(&pow2, x);
+	dsSIMD4f pow2f = dsSIMD4fb_toFloat(pow2);
+
+	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
+	dsSIMD4fb smallValue = dsSIMD4f_cmplt(xm, sqrt1_2);
+	pow2f = dsSIMD4f_sub(pow2f, dsMathImplMaskSIMD4f(smallValue, one));
+	xm = dsSIMD4f_sub(dsSIMD4f_add(xm, dsMathImplMaskSIMD4f(smallValue, xm)), one);
+	dsSIMD4f xm2 = dsSIMD4f_mul(xm, xm);
+
+	dsSIMD4f baseLog2 = dsSIMD4f_sub(dsSIMD4f_mul(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(
+		dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(
+		dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(
+		lnTaylor1, xm), lnTaylor2), xm), lnTaylor3), xm), lnTaylor4), xm), lnTaylor5), xm),
+		lnTaylor6), xm), lnTaylor7), xm), lnTaylor8), xm), lnTaylor9), xm), xm2),
+		dsSIMD4f_mul(half, xm2));
+	return dsSIMD4f_add(dsSIMD4f_add(dsSIMD4f_add(dsSIMD4f_add(dsSIMD4f_mul(baseLog2, log2eFrac),
+		dsSIMD4f_mul(xm, log2eFrac)), baseLog2), xm), pow2f);
+}
+
+DS_MATH_EXPORT inline dsSIMD4f dsLog10SIMD4f(dsSIMD4f x)
+{
+	DS_ASSERT(dsSIMD4fb_all(dsSIMD4f_cmpgt(x, dsSIMD4f_set1(0.0f))));
+
+	dsSIMD4f one = dsSIMD4f_set1(1.0f);
+	dsSIMD4f half = dsSIMD4f_set1(0.5f);
+	dsSIMD4f sqrt1_2 = dsSIMD4f_set1(M_SQRT1_2f);
+	dsSIMD4f log10e1 = dsSIMD4f_set1(DS_LOG10_E_1f);
+	dsSIMD4f log10e2 = dsSIMD4f_set1(DS_LOG10_E_2f);
+	dsSIMD4f log10_2_1 = dsSIMD4f_set1(DS_LOG10_2_1f);
+	dsSIMD4f log10_2_2 = dsSIMD4f_set1(DS_LOG10_2_2f);
+
+	dsSIMD4f lnTaylor1 = dsSIMD4f_set1(DS_LN_TAYLOR_1f);
+	dsSIMD4f lnTaylor2 = dsSIMD4f_set1(DS_LN_TAYLOR_2f);
+	dsSIMD4f lnTaylor3 = dsSIMD4f_set1(DS_LN_TAYLOR_3f);
+	dsSIMD4f lnTaylor4 = dsSIMD4f_set1(DS_LN_TAYLOR_4f);
+	dsSIMD4f lnTaylor5 = dsSIMD4f_set1(DS_LN_TAYLOR_5f);
+	dsSIMD4f lnTaylor6 = dsSIMD4f_set1(DS_LN_TAYLOR_6f);
+	dsSIMD4f lnTaylor7 = dsSIMD4f_set1(DS_LN_TAYLOR_7f);
+	dsSIMD4f lnTaylor8 = dsSIMD4f_set1(DS_LN_TAYLOR_8f);
+	dsSIMD4f lnTaylor9 = dsSIMD4f_set1(DS_LN_TAYLOR_9f);
+
+	dsSIMD4fb pow2;
+	dsSIMD4f xm = dsSplitPow2StrictPosSIMD4f(&pow2, x);
+	dsSIMD4f pow2f = dsSIMD4fb_toFloat(pow2);
+
+	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
+	dsSIMD4fb smallValue = dsSIMD4f_cmplt(xm, sqrt1_2);
+	pow2f = dsSIMD4f_sub(pow2f, dsMathImplMaskSIMD4f(smallValue, one));
+	xm = dsSIMD4f_sub(dsSIMD4f_add(xm, dsMathImplMaskSIMD4f(smallValue, xm)), one);
+	dsSIMD4f xm2 = dsSIMD4f_mul(xm, xm);
+
+	dsSIMD4f baseLog10 = dsSIMD4f_sub(dsSIMD4f_mul(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(
+		dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(
+		dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(
+		lnTaylor1, xm), lnTaylor2), xm), lnTaylor3), xm), lnTaylor4), xm), lnTaylor5), xm),
+		lnTaylor6), xm), lnTaylor7), xm), lnTaylor8), xm), lnTaylor9), xm), xm2),
+		dsSIMD4f_mul(half, xm2));
+	return dsSIMD4f_add(dsSIMD4f_add(dsSIMD4f_add(dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(
+		baseLog10, xm), log10e2), dsSIMD4f_mul(baseLog10, log10e1)), dsSIMD4f_mul(xm, log10e1)),
+		dsSIMD4f_mul(pow2f, log10_2_2)), dsSIMD4f_mul(pow2f, log10_2_1));
+}
+
 DS_SIMD_END()
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT,DS_SIMD_ROUNDING)
 
@@ -1300,6 +1602,85 @@ DS_MATH_EXPORT inline dsSIMD4f dsLnFMA4f(dsSIMD4f x)
 		dsSIMD4f_fmadd(dsSIMD4f_fmadd(dsSIMD4f_fmadd(dsSIMD4f_fmadd(lnTaylor1, xm, lnTaylor2), xm,
 		lnTaylor3), xm, lnTaylor4), xm, lnTaylor5), xm, lnTaylor6), xm), lnTaylor7), xm, lnTaylor8),
 		xm, lnTaylor9), xm), xm2, dsSIMD4f_mul(lnExp1, pow2f))), xm));
+}
+
+DS_MATH_EXPORT inline dsSIMD4f dsLog2FMA4f(dsSIMD4f x)
+{
+	DS_ASSERT(dsSIMD4fb_all(dsSIMD4f_cmpgt(x, dsSIMD4f_set1(0.0f))));
+
+	dsSIMD4f one = dsSIMD4f_set1(1.0f);
+	dsSIMD4f half = dsSIMD4f_set1(0.5f);
+	dsSIMD4f sqrt1_2 = dsSIMD4f_set1(M_SQRT1_2f);
+	dsSIMD4f log2eFrac = dsSIMD4f_set1(DS_LOG2_E_FRACf);
+
+	dsSIMD4f lnTaylor1 = dsSIMD4f_set1(DS_LN_TAYLOR_1f);
+	dsSIMD4f lnTaylor2 = dsSIMD4f_set1(DS_LN_TAYLOR_2f);
+	dsSIMD4f lnTaylor3 = dsSIMD4f_set1(DS_LN_TAYLOR_3f);
+	dsSIMD4f lnTaylor4 = dsSIMD4f_set1(DS_LN_TAYLOR_4f);
+	dsSIMD4f lnTaylor5 = dsSIMD4f_set1(DS_LN_TAYLOR_5f);
+	dsSIMD4f lnTaylor6 = dsSIMD4f_set1(DS_LN_TAYLOR_6f);
+	dsSIMD4f lnTaylor7 = dsSIMD4f_set1(DS_LN_TAYLOR_7f);
+	dsSIMD4f lnTaylor8 = dsSIMD4f_set1(DS_LN_TAYLOR_8f);
+	dsSIMD4f lnTaylor9 = dsSIMD4f_set1(DS_LN_TAYLOR_9f);
+
+	dsSIMD4fb pow2;
+	dsSIMD4f xm = dsSplitPow2StrictPosSIMD4f(&pow2, x);
+	dsSIMD4f pow2f = dsSIMD4fb_toFloat(pow2);
+
+	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
+	dsSIMD4fb smallValue = dsSIMD4f_cmplt(xm, sqrt1_2);
+	pow2f = dsSIMD4f_sub(pow2f, dsMathImplMaskSIMD4f(smallValue, one));
+	xm = dsSIMD4f_sub(dsSIMD4f_add(xm, dsMathImplMaskSIMD4f(smallValue, xm)), one);
+	dsSIMD4f xm2 = dsSIMD4f_mul(xm, xm);
+
+	dsSIMD4f baseLog2 = dsSIMD4f_fnmadd(half, xm2, dsSIMD4f_mul(dsSIMD4f_mul(dsSIMD4f_fmadd(
+		dsSIMD4f_fmadd(dsSIMD4f_fmadd(dsSIMD4f_fmadd(dsSIMD4f_fmadd(dsSIMD4f_fmadd(dsSIMD4f_fmadd(
+		dsSIMD4f_fmadd(lnTaylor1, xm, lnTaylor2), xm, lnTaylor3), xm, lnTaylor4), xm, lnTaylor5),
+		xm, lnTaylor6), xm, lnTaylor7), xm, lnTaylor8), xm, lnTaylor9), xm), xm2));
+	// Make sure the two fractional multiplies get added together before any other factors..
+	return dsSIMD4f_add(dsSIMD4f_add(dsSIMD4f_add(dsSIMD4f_fmadd(baseLog2, log2eFrac,
+		dsSIMD4f_mul(xm, log2eFrac)), baseLog2), xm), pow2f);
+}
+
+DS_MATH_EXPORT inline dsSIMD4f dsLog10FMA4f(dsSIMD4f x)
+{
+	DS_ASSERT(dsSIMD4fb_all(dsSIMD4f_cmpgt(x, dsSIMD4f_set1(0.0f))));
+
+	dsSIMD4f one = dsSIMD4f_set1(1.0f);
+	dsSIMD4f half = dsSIMD4f_set1(0.5f);
+	dsSIMD4f sqrt1_2 = dsSIMD4f_set1(M_SQRT1_2f);
+	dsSIMD4f log10e1 = dsSIMD4f_set1(DS_LOG10_E_1f);
+	dsSIMD4f log10e2 = dsSIMD4f_set1(DS_LOG10_E_2f);
+	dsSIMD4f log10_2_1 = dsSIMD4f_set1(DS_LOG10_2_1f);
+	dsSIMD4f log10_2_2 = dsSIMD4f_set1(DS_LOG10_2_2f);
+
+	dsSIMD4f lnTaylor1 = dsSIMD4f_set1(DS_LN_TAYLOR_1f);
+	dsSIMD4f lnTaylor2 = dsSIMD4f_set1(DS_LN_TAYLOR_2f);
+	dsSIMD4f lnTaylor3 = dsSIMD4f_set1(DS_LN_TAYLOR_3f);
+	dsSIMD4f lnTaylor4 = dsSIMD4f_set1(DS_LN_TAYLOR_4f);
+	dsSIMD4f lnTaylor5 = dsSIMD4f_set1(DS_LN_TAYLOR_5f);
+	dsSIMD4f lnTaylor6 = dsSIMD4f_set1(DS_LN_TAYLOR_6f);
+	dsSIMD4f lnTaylor7 = dsSIMD4f_set1(DS_LN_TAYLOR_7f);
+	dsSIMD4f lnTaylor8 = dsSIMD4f_set1(DS_LN_TAYLOR_8f);
+	dsSIMD4f lnTaylor9 = dsSIMD4f_set1(DS_LN_TAYLOR_9f);
+
+	dsSIMD4fb pow2;
+	dsSIMD4f xm = dsSplitPow2StrictPosSIMD4f(&pow2, x);
+	dsSIMD4f pow2f = dsSIMD4fb_toFloat(pow2);
+
+	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
+	dsSIMD4fb smallValue = dsSIMD4f_cmplt(xm, sqrt1_2);
+	pow2f = dsSIMD4f_sub(pow2f, dsMathImplMaskSIMD4f(smallValue, one));
+	xm = dsSIMD4f_sub(dsSIMD4f_add(xm, dsMathImplMaskSIMD4f(smallValue, xm)), one);
+	dsSIMD4f xm2 = dsSIMD4f_mul(xm, xm);
+
+	dsSIMD4f baseLog10 = dsSIMD4f_fnmadd(half, xm2, dsSIMD4f_mul(dsSIMD4f_mul(dsSIMD4f_fmadd(
+		dsSIMD4f_fmadd(dsSIMD4f_fmadd(dsSIMD4f_fmadd(dsSIMD4f_fmadd(dsSIMD4f_fmadd(dsSIMD4f_fmadd(
+		dsSIMD4f_fmadd(lnTaylor1, xm, lnTaylor2), xm, lnTaylor3), xm, lnTaylor4), xm, lnTaylor5),
+		xm, lnTaylor6), xm, lnTaylor7), xm, lnTaylor8), xm, lnTaylor9), xm), xm2));
+	return dsSIMD4f_fmadd(pow2f, log10_2_1, dsSIMD4f_fmadd(pow2f, log10_2_2, dsSIMD4f_fmadd(
+		xm, log10e1, dsSIMD4f_fmadd(dsSIMD4f_add(baseLog10, xm), log10e2,
+		dsSIMD4f_mul(baseLog10, log10e1)))));
 }
 
 DS_SIMD_END()
@@ -1521,6 +1902,100 @@ DS_MATH_EXPORT inline dsSIMD2d dsLnSIMD2d(dsSIMD2d x)
 		dsSIMD2d_mul(lnExp2, pow2d));
 }
 
+DS_MATH_EXPORT inline dsSIMD2d dsLog2SIMD2d(dsSIMD2d x)
+{
+	DS_ASSERT(dsSIMD2db_all(dsSIMD2d_cmpgt(x, dsSIMD2d_set1(0.0f))));
+
+	dsSIMD2d one = dsSIMD2d_set1(1.0);
+	dsSIMD2d half = dsSIMD2d_set1(0.5);
+	dsSIMD2d sqrt1_2 = dsSIMD2d_set1(M_SQRT1_2);
+	dsSIMD2d log2eFrac = dsSIMD2d_set1(DS_LOG2_E_FRACd);
+
+	dsSIMD2d lnTaylorP1 = dsSIMD2d_set1(DS_LN_TAYLOR_P_1d);
+	dsSIMD2d lnTaylorP2 = dsSIMD2d_set1(DS_LN_TAYLOR_P_2d);
+	dsSIMD2d lnTaylorP3 = dsSIMD2d_set1(DS_LN_TAYLOR_P_3d);
+	dsSIMD2d lnTaylorP4 = dsSIMD2d_set1(DS_LN_TAYLOR_P_4d);
+	dsSIMD2d lnTaylorP5 = dsSIMD2d_set1(DS_LN_TAYLOR_P_5d);
+	dsSIMD2d lnTaylorP6 = dsSIMD2d_set1(DS_LN_TAYLOR_P_6d);
+
+	dsSIMD2d lnTaylorQ1 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_1d);
+	dsSIMD2d lnTaylorQ2 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_2d);
+	dsSIMD2d lnTaylorQ3 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_3d);
+	dsSIMD2d lnTaylorQ4 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_4d);
+	dsSIMD2d lnTaylorQ5 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_5d);
+
+	dsSIMD2db pow2;
+	dsSIMD2d xm = dsSplitPow2StrictPosSIMD2d(&pow2, x);
+	dsSIMD2d pow2d = dsSIMD2db_toDouble(pow2);
+
+	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
+	dsSIMD2db smallValue = dsSIMD2d_cmplt(xm, sqrt1_2);
+	pow2d = dsSIMD2d_sub(pow2d, dsMathImplMaskSIMD2d(smallValue, one));
+	xm = dsSIMD2d_sub(dsSIMD2d_add(xm, dsMathImplMaskSIMD2d(smallValue, xm)), one);
+	dsSIMD2d xm2 = dsSIMD2d_mul(xm, xm);
+
+	dsSIMD2d pTaylor = dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(
+		dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(
+		lnTaylorP1, xm), lnTaylorP2), xm), lnTaylorP3), xm), lnTaylorP4), xm), lnTaylorP5), xm),
+		lnTaylorP6), xm2);
+	dsSIMD2d qTaylor = dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(
+		dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(xm, lnTaylorQ1), xm), lnTaylorQ2), xm),
+		lnTaylorQ3), xm), lnTaylorQ4), xm), lnTaylorQ5);
+	dsSIMD2d baseLog2 = dsSIMD2d_sub(dsSIMD2d_div(dsSIMD2d_mul(xm, pTaylor), qTaylor),
+		dsSIMD2d_mul(half, xm2));
+	return dsSIMD2d_add(dsSIMD2d_add(dsSIMD2d_add(dsSIMD2d_add(dsSIMD2d_mul(baseLog2, log2eFrac),
+		dsSIMD2d_mul(xm, log2eFrac)), baseLog2), xm), pow2d);
+}
+
+DS_MATH_EXPORT inline dsSIMD2d dsLog10SIMD2d(dsSIMD2d x)
+{
+	DS_ASSERT(dsSIMD2db_all(dsSIMD2d_cmpgt(x, dsSIMD2d_set1(0.0f))));
+
+	dsSIMD2d one = dsSIMD2d_set1(1.0);
+	dsSIMD2d half = dsSIMD2d_set1(0.5);
+	dsSIMD2d sqrt1_2 = dsSIMD2d_set1(M_SQRT1_2);
+	dsSIMD2d log10e1 = dsSIMD2d_set1(DS_LOG10_E_1d);
+	dsSIMD2d log10e2 = dsSIMD2d_set1(DS_LOG10_E_2d);
+	dsSIMD2d log10_2_1 = dsSIMD2d_set1(DS_LOG10_2_1fd);
+	dsSIMD2d log10_2_2 = dsSIMD2d_set1(DS_LOG10_2_2fd);
+
+	dsSIMD2d lnTaylorP1 = dsSIMD2d_set1(DS_LN_TAYLOR_P_1d);
+	dsSIMD2d lnTaylorP2 = dsSIMD2d_set1(DS_LN_TAYLOR_P_2d);
+	dsSIMD2d lnTaylorP3 = dsSIMD2d_set1(DS_LN_TAYLOR_P_3d);
+	dsSIMD2d lnTaylorP4 = dsSIMD2d_set1(DS_LN_TAYLOR_P_4d);
+	dsSIMD2d lnTaylorP5 = dsSIMD2d_set1(DS_LN_TAYLOR_P_5d);
+	dsSIMD2d lnTaylorP6 = dsSIMD2d_set1(DS_LN_TAYLOR_P_6d);
+
+	dsSIMD2d lnTaylorQ1 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_1d);
+	dsSIMD2d lnTaylorQ2 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_2d);
+	dsSIMD2d lnTaylorQ3 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_3d);
+	dsSIMD2d lnTaylorQ4 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_4d);
+	dsSIMD2d lnTaylorQ5 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_5d);
+
+	dsSIMD2db pow2;
+	dsSIMD2d xm = dsSplitPow2StrictPosSIMD2d(&pow2, x);
+	dsSIMD2d pow2d = dsSIMD2db_toDouble(pow2);
+
+	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
+	dsSIMD2db smallValue = dsSIMD2d_cmplt(xm, sqrt1_2);
+	pow2d = dsSIMD2d_sub(pow2d, dsMathImplMaskSIMD2d(smallValue, one));
+	xm = dsSIMD2d_sub(dsSIMD2d_add(xm, dsMathImplMaskSIMD2d(smallValue, xm)), one);
+	dsSIMD2d xm2 = dsSIMD2d_mul(xm, xm);
+
+	dsSIMD2d pTaylor = dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(
+		dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(
+		lnTaylorP1, xm), lnTaylorP2), xm), lnTaylorP3), xm), lnTaylorP4), xm), lnTaylorP5), xm),
+		lnTaylorP6), xm2);
+	dsSIMD2d qTaylor = dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(
+		dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(xm, lnTaylorQ1), xm), lnTaylorQ2), xm),
+		lnTaylorQ3), xm), lnTaylorQ4), xm), lnTaylorQ5);
+	dsSIMD2d baseLog10 = dsSIMD2d_sub(dsSIMD2d_div(dsSIMD2d_mul(xm, pTaylor), qTaylor),
+		dsSIMD2d_mul(half, xm2));
+	return dsSIMD2d_add(dsSIMD2d_add(dsSIMD2d_add(dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(
+		baseLog10, xm), log10e2), dsSIMD2d_mul(baseLog10, log10e1)), dsSIMD2d_mul(xm, log10e1)),
+		dsSIMD2d_mul(pow2d, log10_2_2)), dsSIMD2d_mul(pow2d, log10_2_1));
+}
+
 DS_SIMD_END()
 DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT,DS_SIMD_ROUNDING)
 
@@ -1689,6 +2164,97 @@ DS_MATH_EXPORT inline dsSIMD2d dsLnFMA2d(dsSIMD2d x)
 		xm, lnTaylorQ1), xm, lnTaylorQ2), xm, lnTaylorQ3), xm, lnTaylorQ4), xm, lnTaylorQ5);
 	return dsSIMD2d_fmadd(lnExp2, pow2d, dsSIMD2d_add(dsSIMD2d_fnmadd(half, xm2, dsSIMD2d_fmadd(
 		lnExp1, pow2d, dsSIMD2d_div(dsSIMD2d_mul(xm, pTaylor), qTaylor))), xm));
+}
+
+DS_MATH_EXPORT inline dsSIMD2d dsLog2FMA2d(dsSIMD2d x)
+{
+	DS_ASSERT(dsSIMD2db_all(dsSIMD2d_cmpgt(x, dsSIMD2d_set1(0.0f))));
+
+	dsSIMD2d one = dsSIMD2d_set1(1.0);
+	dsSIMD2d half = dsSIMD2d_set1(0.5);
+	dsSIMD2d sqrt1_2 = dsSIMD2d_set1(M_SQRT1_2);
+	dsSIMD2d log2eFrac = dsSIMD2d_set1(DS_LOG2_E_FRACd);
+
+	dsSIMD2d lnTaylorP1 = dsSIMD2d_set1(DS_LN_TAYLOR_P_1d);
+	dsSIMD2d lnTaylorP2 = dsSIMD2d_set1(DS_LN_TAYLOR_P_2d);
+	dsSIMD2d lnTaylorP3 = dsSIMD2d_set1(DS_LN_TAYLOR_P_3d);
+	dsSIMD2d lnTaylorP4 = dsSIMD2d_set1(DS_LN_TAYLOR_P_4d);
+	dsSIMD2d lnTaylorP5 = dsSIMD2d_set1(DS_LN_TAYLOR_P_5d);
+	dsSIMD2d lnTaylorP6 = dsSIMD2d_set1(DS_LN_TAYLOR_P_6d);
+
+	dsSIMD2d lnTaylorQ1 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_1d);
+	dsSIMD2d lnTaylorQ2 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_2d);
+	dsSIMD2d lnTaylorQ3 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_3d);
+	dsSIMD2d lnTaylorQ4 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_4d);
+	dsSIMD2d lnTaylorQ5 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_5d);
+
+	dsSIMD2db pow2;
+	dsSIMD2d xm = dsSplitPow2StrictPosSIMD2d(&pow2, x);
+	dsSIMD2d pow2d = dsSIMD2db_toDouble(pow2);
+
+	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
+	dsSIMD2db smallValue = dsSIMD2d_cmplt(xm, sqrt1_2);
+	pow2d = dsSIMD2d_sub(pow2d, dsMathImplMaskSIMD2d(smallValue, one));
+	xm = dsSIMD2d_sub(dsSIMD2d_add(xm, dsMathImplMaskSIMD2d(smallValue, xm)), one);
+	dsSIMD2d xm2 = dsSIMD2d_mul(xm, xm);
+
+	dsSIMD2d pTaylor = dsSIMD2d_mul(dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_fmadd(
+		dsSIMD2d_fmadd(lnTaylorP1, xm, lnTaylorP2), xm, lnTaylorP3), xm, lnTaylorP4), xm,
+		lnTaylorP5), xm, lnTaylorP6), xm2);
+	dsSIMD2d qTaylor = dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_add(
+		xm, lnTaylorQ1), xm, lnTaylorQ2), xm, lnTaylorQ3), xm, lnTaylorQ4), xm, lnTaylorQ5);
+	dsSIMD2d baseLog2 = dsSIMD2d_fnmadd(
+		half, xm2, dsSIMD2d_div(dsSIMD2d_mul(xm, pTaylor), qTaylor));
+	// Make sure the two fractional multiplies get added together before any other factors..
+	return dsSIMD2d_add(dsSIMD2d_add(dsSIMD2d_add(dsSIMD2d_fmadd(baseLog2, log2eFrac,
+		dsSIMD2d_mul(xm, log2eFrac)), baseLog2), xm), pow2d);
+}
+
+DS_MATH_EXPORT inline dsSIMD2d dsLog10FMA2d(dsSIMD2d x)
+{
+	DS_ASSERT(dsSIMD2db_all(dsSIMD2d_cmpgt(x, dsSIMD2d_set1(0.0f))));
+
+	dsSIMD2d one = dsSIMD2d_set1(1.0);
+	dsSIMD2d half = dsSIMD2d_set1(0.5);
+	dsSIMD2d sqrt1_2 = dsSIMD2d_set1(M_SQRT1_2);
+	dsSIMD2d log10e1 = dsSIMD2d_set1(DS_LOG10_E_1d);
+	dsSIMD2d log10e2 = dsSIMD2d_set1(DS_LOG10_E_2d);
+	dsSIMD2d log10_2_1 = dsSIMD2d_set1(DS_LOG10_2_1fd);
+	dsSIMD2d log10_2_2 = dsSIMD2d_set1(DS_LOG10_2_2fd);
+
+	dsSIMD2d lnTaylorP1 = dsSIMD2d_set1(DS_LN_TAYLOR_P_1d);
+	dsSIMD2d lnTaylorP2 = dsSIMD2d_set1(DS_LN_TAYLOR_P_2d);
+	dsSIMD2d lnTaylorP3 = dsSIMD2d_set1(DS_LN_TAYLOR_P_3d);
+	dsSIMD2d lnTaylorP4 = dsSIMD2d_set1(DS_LN_TAYLOR_P_4d);
+	dsSIMD2d lnTaylorP5 = dsSIMD2d_set1(DS_LN_TAYLOR_P_5d);
+	dsSIMD2d lnTaylorP6 = dsSIMD2d_set1(DS_LN_TAYLOR_P_6d);
+
+	dsSIMD2d lnTaylorQ1 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_1d);
+	dsSIMD2d lnTaylorQ2 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_2d);
+	dsSIMD2d lnTaylorQ3 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_3d);
+	dsSIMD2d lnTaylorQ4 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_4d);
+	dsSIMD2d lnTaylorQ5 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_5d);
+
+	dsSIMD2db pow2;
+	dsSIMD2d xm = dsSplitPow2StrictPosSIMD2d(&pow2, x);
+	dsSIMD2d pow2d = dsSIMD2db_toDouble(pow2);
+
+	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
+	dsSIMD2db smallValue = dsSIMD2d_cmplt(xm, sqrt1_2);
+	pow2d = dsSIMD2d_sub(pow2d, dsMathImplMaskSIMD2d(smallValue, one));
+	xm = dsSIMD2d_sub(dsSIMD2d_add(xm, dsMathImplMaskSIMD2d(smallValue, xm)), one);
+	dsSIMD2d xm2 = dsSIMD2d_mul(xm, xm);
+
+	dsSIMD2d pTaylor = dsSIMD2d_mul(dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_fmadd(
+		dsSIMD2d_fmadd(lnTaylorP1, xm, lnTaylorP2), xm, lnTaylorP3), xm, lnTaylorP4), xm,
+		lnTaylorP5), xm, lnTaylorP6), xm2);
+	dsSIMD2d qTaylor = dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_add(
+		xm, lnTaylorQ1), xm, lnTaylorQ2), xm, lnTaylorQ3), xm, lnTaylorQ4), xm, lnTaylorQ5);
+	dsSIMD2d baseLog10 = dsSIMD2d_fnmadd(
+		half, xm2, dsSIMD2d_div(dsSIMD2d_mul(xm, pTaylor), qTaylor));
+	return dsSIMD2d_fmadd(pow2d, log10_2_1, dsSIMD2d_fmadd(pow2d, log10_2_2, dsSIMD2d_fmadd(
+		xm, log10e1, dsSIMD2d_fmadd(dsSIMD2d_add(baseLog10, xm), log10e2,
+		dsSIMD2d_mul(baseLog10, log10e1)))));
 }
 
 DS_SIMD_END()
@@ -1937,6 +2503,126 @@ DS_MATH_EXPORT inline dsSIMD4d dsLnSIMD4d(dsSIMD4d x)
 #endif
 }
 
+DS_MATH_EXPORT inline dsSIMD4d dsLog2SIMD4d(dsSIMD4d x)
+{
+	DS_ASSERT(dsSIMD4db_all(dsSIMD4d_cmpgt(x, dsSIMD4d_set1(0.0f))));
+
+	dsSIMD4d one = dsSIMD4d_set1(1.0);
+	dsSIMD4d half = dsSIMD4d_set1(0.5);
+	dsSIMD4d sqrt1_2 = dsSIMD4d_set1(M_SQRT1_2);
+	dsSIMD4d log2eFrac = dsSIMD4d_set1(DS_LOG2_E_FRACd);
+
+	dsSIMD4d lnTaylorP1 = dsSIMD4d_set1(DS_LN_TAYLOR_P_1d);
+	dsSIMD4d lnTaylorP2 = dsSIMD4d_set1(DS_LN_TAYLOR_P_2d);
+	dsSIMD4d lnTaylorP3 = dsSIMD4d_set1(DS_LN_TAYLOR_P_3d);
+	dsSIMD4d lnTaylorP4 = dsSIMD4d_set1(DS_LN_TAYLOR_P_4d);
+	dsSIMD4d lnTaylorP5 = dsSIMD4d_set1(DS_LN_TAYLOR_P_5d);
+	dsSIMD4d lnTaylorP6 = dsSIMD4d_set1(DS_LN_TAYLOR_P_6d);
+
+	dsSIMD4d lnTaylorQ1 = dsSIMD4d_set1(DS_LN_TAYLOR_Q_1d);
+	dsSIMD4d lnTaylorQ2 = dsSIMD4d_set1(DS_LN_TAYLOR_Q_2d);
+	dsSIMD4d lnTaylorQ3 = dsSIMD4d_set1(DS_LN_TAYLOR_Q_3d);
+	dsSIMD4d lnTaylorQ4 = dsSIMD4d_set1(DS_LN_TAYLOR_Q_4d);
+	dsSIMD4d lnTaylorQ5 = dsSIMD4d_set1(DS_LN_TAYLOR_Q_5d);
+
+	dsSIMD4db pow2;
+	dsSIMD4d xm = dsSplitPow2StrictPosSIMD4d(&pow2, x);
+	dsSIMD4d pow2d = dsSIMD4db_toDouble(pow2);
+
+	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
+	dsSIMD4db smallValue = dsSIMD4d_cmplt(xm, sqrt1_2);
+	pow2d = dsSIMD4d_sub(pow2d, dsMathImplMaskSIMD4d(smallValue, one));
+	xm = dsSIMD4d_sub(dsSIMD4d_add(xm, dsMathImplMaskSIMD4d(smallValue, xm)), one);
+	dsSIMD4d xm2 = dsSIMD4d_mul(xm, xm);
+
+#if DS_DETERMINISTIC_MATH
+	dsSIMD4d pTaylor = dsSIMD4d_mul(dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(dsSIMD4d_mul(
+		dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(dsSIMD4d_mul(
+		lnTaylorP1, xm), lnTaylorP2), xm), lnTaylorP3), xm), lnTaylorP4), xm), lnTaylorP5), xm),
+		lnTaylorP6), xm2);
+	dsSIMD4d qTaylor = dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(
+		dsSIMD4d_mul(dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(xm, lnTaylorQ1), xm), lnTaylorQ2), xm),
+		lnTaylorQ3), xm), lnTaylorQ4), xm), lnTaylorQ5);
+	dsSIMD4d baseLog2 = dsSIMD4d_sub(dsSIMD4d_div(dsSIMD4d_mul(xm, pTaylor), qTaylor),
+		dsSIMD4d_mul(half, xm2));
+	return dsSIMD4d_add(dsSIMD4d_add(dsSIMD4d_add(dsSIMD4d_add(dsSIMD4d_mul(baseLog2, log2eFrac),
+		dsSIMD4d_mul(xm, log2eFrac)), baseLog2), xm), pow2d);
+#else
+	dsSIMD4d pTaylor = dsSIMD4d_mul(dsSIMD4d_fmadd(dsSIMD4d_fmadd(dsSIMD4d_fmadd(dsSIMD4d_fmadd(
+		dsSIMD4d_fmadd(lnTaylorP1, xm, lnTaylorP2), xm, lnTaylorP3), xm, lnTaylorP4), xm,
+		lnTaylorP5), xm, lnTaylorP6), xm2);
+	dsSIMD4d qTaylor = dsSIMD4d_fmadd(dsSIMD4d_fmadd(dsSIMD4d_fmadd(dsSIMD4d_fmadd(dsSIMD4d_add(
+		xm, lnTaylorQ1), xm, lnTaylorQ2), xm, lnTaylorQ3), xm, lnTaylorQ4), xm, lnTaylorQ5);
+	dsSIMD4d baseLog2 = dsSIMD4d_fnmadd(
+		half, xm2, dsSIMD4d_div(dsSIMD4d_mul(xm, pTaylor), qTaylor));
+	// Make sure the two fractional multiplies get added together before any other factors..
+	return dsSIMD4d_add(dsSIMD4d_add(dsSIMD4d_add(dsSIMD4d_fmadd(baseLog2, log2eFrac,
+		dsSIMD4d_mul(xm, log2eFrac)), baseLog2), xm), pow2d);
+#endif
+}
+
+DS_MATH_EXPORT inline dsSIMD4d dsLog10SIMD4d(dsSIMD4d x)
+{
+	DS_ASSERT(dsSIMD4db_all(dsSIMD4d_cmpgt(x, dsSIMD4d_set1(0.0f))));
+
+	dsSIMD4d one = dsSIMD4d_set1(1.0);
+	dsSIMD4d half = dsSIMD4d_set1(0.5);
+	dsSIMD4d sqrt1_2 = dsSIMD4d_set1(M_SQRT1_2);
+	dsSIMD4d log10e1 = dsSIMD4d_set1(DS_LOG10_E_1d);
+	dsSIMD4d log10e2 = dsSIMD4d_set1(DS_LOG10_E_2d);
+	dsSIMD4d log10_2_1 = dsSIMD4d_set1(DS_LOG10_2_1fd);
+	dsSIMD4d log10_2_2 = dsSIMD4d_set1(DS_LOG10_2_2fd);
+
+	dsSIMD4d lnTaylorP1 = dsSIMD4d_set1(DS_LN_TAYLOR_P_1d);
+	dsSIMD4d lnTaylorP2 = dsSIMD4d_set1(DS_LN_TAYLOR_P_2d);
+	dsSIMD4d lnTaylorP3 = dsSIMD4d_set1(DS_LN_TAYLOR_P_3d);
+	dsSIMD4d lnTaylorP4 = dsSIMD4d_set1(DS_LN_TAYLOR_P_4d);
+	dsSIMD4d lnTaylorP5 = dsSIMD4d_set1(DS_LN_TAYLOR_P_5d);
+	dsSIMD4d lnTaylorP6 = dsSIMD4d_set1(DS_LN_TAYLOR_P_6d);
+
+	dsSIMD4d lnTaylorQ1 = dsSIMD4d_set1(DS_LN_TAYLOR_Q_1d);
+	dsSIMD4d lnTaylorQ2 = dsSIMD4d_set1(DS_LN_TAYLOR_Q_2d);
+	dsSIMD4d lnTaylorQ3 = dsSIMD4d_set1(DS_LN_TAYLOR_Q_3d);
+	dsSIMD4d lnTaylorQ4 = dsSIMD4d_set1(DS_LN_TAYLOR_Q_4d);
+	dsSIMD4d lnTaylorQ5 = dsSIMD4d_set1(DS_LN_TAYLOR_Q_5d);
+
+	dsSIMD4db pow2;
+	dsSIMD4d xm = dsSplitPow2StrictPosSIMD4d(&pow2, x);
+	dsSIMD4d pow2d = dsSIMD4db_toDouble(pow2);
+
+	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
+	dsSIMD4db smallValue = dsSIMD4d_cmplt(xm, sqrt1_2);
+	pow2d = dsSIMD4d_sub(pow2d, dsMathImplMaskSIMD4d(smallValue, one));
+	xm = dsSIMD4d_sub(dsSIMD4d_add(xm, dsMathImplMaskSIMD4d(smallValue, xm)), one);
+	dsSIMD4d xm2 = dsSIMD4d_mul(xm, xm);
+
+#if DS_DETERMINISTIC_MATH
+	dsSIMD4d pTaylor = dsSIMD4d_mul(dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(dsSIMD4d_mul(
+		dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(dsSIMD4d_mul(
+		lnTaylorP1, xm), lnTaylorP2), xm), lnTaylorP3), xm), lnTaylorP4), xm), lnTaylorP5), xm),
+		lnTaylorP6), xm2);
+	dsSIMD4d qTaylor = dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(
+		dsSIMD4d_mul(dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(xm, lnTaylorQ1), xm), lnTaylorQ2), xm),
+		lnTaylorQ3), xm), lnTaylorQ4), xm), lnTaylorQ5);
+	dsSIMD4d baseLog10 = dsSIMD4d_sub(dsSIMD4d_div(dsSIMD4d_mul(xm, pTaylor), qTaylor),
+		dsSIMD4d_mul(half, xm2));
+	return dsSIMD4d_add(dsSIMD4d_add(dsSIMD4d_add(dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(
+		baseLog10, xm), log10e2), dsSIMD4d_mul(baseLog10, log10e1)), dsSIMD4d_mul(xm, log10e1)),
+		dsSIMD4d_mul(pow2d, log10_2_2)), dsSIMD4d_mul(pow2d, log10_2_1));
+#else
+	dsSIMD4d pTaylor = dsSIMD4d_mul(dsSIMD4d_fmadd(dsSIMD4d_fmadd(dsSIMD4d_fmadd(dsSIMD4d_fmadd(
+		dsSIMD4d_fmadd(lnTaylorP1, xm, lnTaylorP2), xm, lnTaylorP3), xm, lnTaylorP4), xm,
+		lnTaylorP5), xm, lnTaylorP6), xm2);
+	dsSIMD4d qTaylor = dsSIMD4d_fmadd(dsSIMD4d_fmadd(dsSIMD4d_fmadd(dsSIMD4d_fmadd(dsSIMD4d_add(
+		xm, lnTaylorQ1), xm, lnTaylorQ2), xm, lnTaylorQ3), xm, lnTaylorQ4), xm, lnTaylorQ5);
+	dsSIMD4d baseLog10 = dsSIMD4d_fnmadd(
+		half, xm2, dsSIMD4d_div(dsSIMD4d_mul(xm, pTaylor), qTaylor));
+	return dsSIMD4d_fmadd(pow2d, log10_2_1, dsSIMD4d_fmadd(pow2d, log10_2_2, dsSIMD4d_fmadd(
+		xm, log10e1, dsSIMD4d_fmadd(dsSIMD4d_add(baseLog10, xm), log10e2,
+		dsSIMD4d_mul(baseLog10, log10e1)))));
+#endif
+}
+
 DS_SIMD_END()
 DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_INT,DS_SIMD_ROUNDING,DS_SIMD_FMA)
 
@@ -2125,6 +2811,18 @@ DS_SIMD_END()
 
 #undef DS_LOG10_2_1d
 #undef DS_LOG10_2_2d
+
+#undef DS_LOG10_2_1fd
+#undef DS_LOG10_2_2fd
+
+#undef DS_LOG2_E_FRACf
+#undef DS_LOG2_E_FRACd
+
+#undef DS_LOG10_E_1f
+#undef DS_LOG10_E_2f
+
+#undef DS_LOG10_E_1d
+#undef DS_LOG10_E_2d
 
 #undef DS_LN_TAYLOR_1f
 #undef DS_LN_TAYLOR_2f
