@@ -19,8 +19,14 @@
 #include <DeepSea/Math/Core.h>
 #include <gtest/gtest.h>
 
+inline double dsRelativeEqualCheck(double val1, double val2, double absoluteEps, double relativeEps)
+{
+	// Check == for infinity.
+	return val1 == val2 || dsRelativeEpsilonEquald(val1, val2, absoluteEps, relativeEps);
+}
+
 #define EXPECT_RELATIVE_EQ(val1, val2, absoluteEps, relativeEps) \
-	EXPECT_PRED4(dsRelativeEpsilonEquald, val1, val2, absoluteEps, relativeEps)
+	EXPECT_PRED4(dsRelativeEqualCheck, val1, val2, absoluteEps, relativeEps)
 
 #if DS_DETERMINISTIC_MATH
 #define EXPECT_EQ_DETERMINISTIC(val1, val2, epsilon) EXPECT_EQ(val1, val2)

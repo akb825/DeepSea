@@ -55,7 +55,15 @@ extern "C"
  * than the typical standard library implementation, where a lookup table may speed up the
  * operation. In these cases, the standard library function may be used for the scalar function
  * when deterministic math isn't enabled.
+ *
+ * @remark The full precision dsPow*() functions only have scalar implementations as they can't
+ * natively utilize SIMD operations.
  */
+
+/// @cond
+// Set to 1 to test performance in all configurations.
+#define DS_ALWAYS_CUSTOM_EXPONENT_IMPL DS_DETERMINISTIC_MATH
+/// @endcond
 
 /**
  * @brief Splits the power of two exponent out of a floating-point value.
@@ -91,7 +99,7 @@ DS_MATH_EXPORT inline double dsMulPow2d(double x, int pow2);
 /**
  * @brief Takes the natural logarithm of a value.
  * @param x The value to take the natural logarithm of.
- * @return The natural logarithm of x. The value is undefined if x <= 0.
+ * @return The natural logarithm of x. The value is undefined if x <= 0 or infinity.
  */
 DS_MATH_EXPORT inline float dsLnf(float x);
 
@@ -101,7 +109,7 @@ DS_MATH_EXPORT inline double dsLnd(double x);
 /**
  * @brief Takes the base 2 logarithm of a value.
  * @param x The value to take the base 2 logarithm of.
- * @return The base 2 logarithm of x. The value is undefined if x <= 0.
+ * @return The base 2 logarithm of x. The value is undefined if x <= 0 or infinity.
  */
 DS_MATH_EXPORT inline float dsLog2f(float x);
 
@@ -111,7 +119,7 @@ DS_MATH_EXPORT inline double dsLog2d(double x);
 /**
  * @brief Takes the base 10 logarithm of a value.
  * @param x The value to take the base 10 logarithm of.
- * @return The base 10 logarithm of x. The value is undefined if x <= 0.
+ * @return The base 10 logarithm of x. The value is undefined if x <= 0 or infinity.
  */
 DS_MATH_EXPORT inline float dsLog10f(float x);
 
@@ -147,6 +155,22 @@ DS_MATH_EXPORT inline float dsExp10f(float x);
 
 /** @copydoc dsExp10f() */
 DS_MATH_EXPORT inline double dsExp10d(double x);
+
+/**
+ * @brief Raises a value to an exponent.
+ * @param x The base to raise by x.
+ * @param y The exponent to raise by y.
+ * @return The result of x^y. The result is undefined if x is infinity or negative while y is a
+ *     non-integer value.
+ */
+DS_MATH_EXPORT inline float dsPowf(float x, float y);
+
+/** @copydoc dsPowf() */
+#if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
+DS_MATH_EXPORT double dsPowd(double x, double y);
+#else
+#define dsPowd(x, y) pow(x, y)
+#endif
 
 #if DS_HAS_SIMD
 
@@ -521,9 +545,6 @@ DS_MATH_EXPORT inline dsSIMD4d dsExp10SIMD4d(dsSIMD4d x);
 #endif // DS_HAS_SIMD
 
 /// @cond
-// Set to 1 to test performance in all configurations.
-#define DS_ALWAYS_CUSTOM_EXPONENT_IMPL DS_DETERMINISTIC_MATH
-
 #define DS_FLT_SIGN_BIT 0x80000000
 #define DS_FLT_EXP_BITS 0x7F800000
 #define DS_FLT_MANTISSA_BITS 0x7FFFFF
@@ -973,14 +994,14 @@ DS_MATH_EXPORT inline float dsLnf(float x)
 	DS_ASSERT(x > 0.0f);
 
 #if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
-	int pow2 = (int)x;
+	int pow2;
 	float xm = dsSplitPow2f(&pow2, x);
-	float pow2f = (float)pow2;
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	uint32_t smallValueMask = (uint32_t)(xm >= M_SQRT1_2f) - 1;
-	pow2f -= dsMathImplMaskf(smallValueMask, 1.0f);
+	pow2 -= smallValueMask & 1;
 	xm += dsMathImplMaskf(smallValueMask, xm) - 1.0f;
+	float pow2f = (float)pow2;
 	float xm2 = dsPow2(xm);
 
 	return ((((((((DS_LN_TAYLOR_1f*xm + DS_LN_TAYLOR_2f)*xm + DS_LN_TAYLOR_3f)*xm +
@@ -999,12 +1020,12 @@ DS_MATH_EXPORT inline double dsLnd(double x)
 #if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
 	int pow2;
 	double xm = dsSplitPow2d(&pow2, x);
-	double pow2d = (double)pow2;
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	uint64_t smallValueMask = (uint64_t)(xm >= M_SQRT1_2) - 1;
-	pow2d -= dsMathImplMaskd(smallValueMask, 1.0);
+	pow2 -= (int)smallValueMask & 1;
 	xm += dsMathImplMaskd(smallValueMask, xm) - 1.0;
+	double pow2d = (double)pow2;
 	double xm2 = dsPow2(xm);
 
 	double pTaylor = (((((DS_LN_TAYLOR_P_1d*xm + DS_LN_TAYLOR_P_2d)*xm + DS_LN_TAYLOR_P_3d)*xm +
@@ -1022,14 +1043,14 @@ DS_MATH_EXPORT inline float dsLog2f(float x)
 	DS_ASSERT(x > 0.0f);
 
 #if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
-	int pow2 = (int)x;
+	int pow2;
 	float xm = dsSplitPow2f(&pow2, x);
-	float pow2f = (float)pow2;
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	uint32_t smallValueMask = (uint32_t)(xm >= M_SQRT1_2f) - 1;
-	pow2f -= dsMathImplMaskf(smallValueMask, 1.0f);
+	pow2 -= smallValueMask & 1;
 	xm += dsMathImplMaskf(smallValueMask, xm) - 1.0f;
+	float pow2f = (float)pow2;
 	float xm2 = dsPow2(xm);
 
 	float baseLog2 = ((((((((DS_LN_TAYLOR_1f*xm + DS_LN_TAYLOR_2f)*xm + DS_LN_TAYLOR_3f)*xm +
@@ -1048,12 +1069,12 @@ DS_MATH_EXPORT inline double dsLog2d(double x)
 #if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
 	int pow2;
 	double xm = dsSplitPow2d(&pow2, x);
-	double pow2d = (double)pow2;
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	uint64_t smallValueMask = (uint64_t)(xm >= M_SQRT1_2) - 1;
-	pow2d -= dsMathImplMaskd(smallValueMask, 1.0);
+	pow2 -= (int)smallValueMask & 1;
 	xm += dsMathImplMaskd(smallValueMask, xm) - 1.0;
+	double pow2d = (double)pow2;
 	double xm2 = dsPow2(xm);
 
 	double pTaylor = (((((DS_LN_TAYLOR_P_1d*xm + DS_LN_TAYLOR_P_2d)*xm + DS_LN_TAYLOR_P_3d)*xm +
@@ -1072,14 +1093,14 @@ DS_MATH_EXPORT inline float dsLog10f(float x)
 	DS_ASSERT(x > 0.0f);
 
 #if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
-	int pow2 = (int)x;
+	int pow2;
 	float xm = dsSplitPow2f(&pow2, x);
-	float pow2f = (float)pow2;
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	uint32_t smallValueMask = (uint32_t)(xm >= M_SQRT1_2f) - 1;
-	pow2f -= dsMathImplMaskf(smallValueMask, 1.0f);
+	pow2 -= smallValueMask & 1;
 	xm += dsMathImplMaskf(smallValueMask, xm) - 1.0f;
+	float pow2f = (float)pow2;
 	float xm2 = dsPow2(xm);
 
 	float baseLog10 = ((((((((DS_LN_TAYLOR_1f*xm + DS_LN_TAYLOR_2f)*xm + DS_LN_TAYLOR_3f)*xm +
@@ -1099,12 +1120,12 @@ DS_MATH_EXPORT inline double dsLog10d(double x)
 #if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
 	int pow2;
 	double xm = dsSplitPow2d(&pow2, x);
-	double pow2d = (double)pow2;
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	uint64_t smallValueMask = (uint64_t)(xm >= M_SQRT1_2) - 1;
-	pow2d -= dsMathImplMaskd(smallValueMask, 1.0);
+	pow2 -= (int)smallValueMask & 1;
 	xm += dsMathImplMaskd(smallValueMask, xm) - 1.0;
+	double pow2d = (double)pow2;
 	double xm2 = dsPow2(xm);
 
 	double pTaylor = (((((DS_LN_TAYLOR_P_1d*xm + DS_LN_TAYLOR_P_2d)*xm + DS_LN_TAYLOR_P_3d)*xm +
@@ -1269,6 +1290,54 @@ DS_MATH_EXPORT inline double dsExp10d(double x)
 		DS_EXP10_TAYLOR_Q_3d;
 	double egRational = (pTaylor/(qTaylor - pTaylor))*2.0 + 1.0;
 	return dsMulPow2d(egRational, (int)n);
+}
+
+DS_MATH_EXPORT inline float dsPowf(float x, float y)
+{
+#if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
+	if (DS_EXPECT(y == 0.0f, false))
+		return 1.0f;
+
+	// Evaluate as exp2^(y*log2(x)), utilizing doubles to ensure enough precision is preserved.
+
+	int xPow2;
+	double xm = dsSplitPow2f(&xPow2, x);
+
+	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
+	uint64_t smallValueMask = (uint64_t)(xm >= M_SQRT1_2) - 1;
+	xPow2 -= (int)smallValueMask & 1;
+	xm += dsMathImplMaskd(smallValueMask, xm) - 1.0;
+	double xPow2d = (double)xPow2;
+	double xm2 = dsPow2(xm);
+
+	double pTaylor = (((((DS_LN_TAYLOR_P_1d*xm + DS_LN_TAYLOR_P_2d)*xm + DS_LN_TAYLOR_P_3d)*xm +
+		DS_LN_TAYLOR_P_4d)*xm + DS_LN_TAYLOR_P_5d)*xm + DS_LN_TAYLOR_P_6d)*xm2;
+	double qTaylor = ((((xm + DS_LN_TAYLOR_Q_1d)*xm + DS_LN_TAYLOR_Q_2d)*xm +
+		DS_LN_TAYLOR_Q_3d)*xm + DS_LN_TAYLOR_Q_4d)*xm + DS_LN_TAYLOR_Q_5d;
+	double log2X = xm*pTaylor/qTaylor - 0.5*xm2;
+	log2X = log2X*DS_LOG2_E_FRACd + xm*DS_LOG2_E_FRACd + log2X + xm + xPow2d;
+
+	double yLog2X = y*log2X;
+
+	// Split into integer and fractional parts.
+	int n;
+	double nd;
+	dsMathImplFastRoundid(&n, &nd, yLog2X);
+	double g = yLog2X - nd;
+	double g2 = dsPow2(g);
+
+	pTaylor = ((DS_EXP2_TAYLOR_P_1d*g2 + DS_EXP2_TAYLOR_P_2d)*g2 + DS_EXP2_TAYLOR_P_3d)*g;
+	qTaylor = (g2 + DS_EXP2_TAYLOR_Q_1d)*g2 + DS_EXP2_TAYLOR_Q_2d;
+	double egRational = (pTaylor/(qTaylor - pTaylor))*2.0 + 1.0;
+	float powResult = dsMulPow2f((float)egRational, n);
+
+	// Keep sign for odd exponents. Only actually valid if an integer exponent and x is negative,
+	// but not interested in error checking within here for performance.
+	uint32_t oddExponentMask = ~(((int)y & 1) - 1);
+	return dsMathImplConditionalNegatef(powResult, dsMathImplExtractSignBitf(x) & oddExponentMask);
+#else
+	return powf(x, y);
+#endif
 }
 
 #if DS_HAS_SIMD
@@ -2868,6 +2937,20 @@ DS_SIMD_END()
 #undef DS_EXP_TAYLOR_Q_2d
 #undef DS_EXP_TAYLOR_Q_3d
 #undef DS_EXP_TAYLOR_Q_4d
+
+#undef DS_EXP2_TAYLOR_1f
+#undef DS_EXP2_TAYLOR_2f
+#undef DS_EXP2_TAYLOR_3f
+#undef DS_EXP2_TAYLOR_4f
+#undef DS_EXP2_TAYLOR_5f
+#undef DS_EXP2_TAYLOR_6f
+
+#undef DS_EXP2_TAYLOR_P_1d
+#undef DS_EXP2_TAYLOR_P_2d
+#undef DS_EXP2_TAYLOR_P_3d
+
+#undef DS_EXP2_TAYLOR_Q_1d
+#undef DS_EXP2_TAYLOR_Q_2d
 
 #undef DS_EXP10_TAYLOR_P_1d
 #undef DS_EXP10_TAYLOR_P_2d

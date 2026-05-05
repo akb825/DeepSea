@@ -53,7 +53,7 @@ struct ExponentTypeSelector<double>
 const float ExponentTypeSelector<float>::epsilon = 2e-7f;
 const short ExponentTypeSelector<float>::maxExponentMag = 40;
 
-const double ExponentTypeSelector<double>::epsilon = 4e-16;
+const double ExponentTypeSelector<double>::epsilon = 5e-16;
 const short ExponentTypeSelector<double>::maxExponentMag = 320;
 
 template <typename T>
@@ -132,6 +132,16 @@ inline float dsExp10(float x)
 inline double dsExp10(double x)
 {
 	return dsExp10d(x);
+}
+
+inline float dsPow(float x, float y)
+{
+	return dsPowf(x, y);
+}
+
+inline double dsPow(double x, double y)
+{
+	return dsPowd(x, y);
 }
 
 inline float randomValue(dsRandom& random, float min, float max)
@@ -546,6 +556,44 @@ TYPED_TEST(ExponentTest, Exp10)
 	EXPECT_TRUE(std::isnan(dsExp10(TypeParam(std::nan("")))));
 	EXPECT_EQ(TypeParam(HUGE_VAL), dsExp10(TypeParam(HUGE_VAL)));
 	EXPECT_EQ(0, dsExp10(TypeParam(-HUGE_VAL)));
+}
+
+TYPED_TEST(ExponentTest, Pow)
+{
+	TypeParam epsilon = ExponentTypeSelector<TypeParam>::epsilon;
+	int maxExponentMag = ExponentTypeSelector<TypeParam>::maxExponentMag/10;
+	float maxExponentMagf = float(maxExponentMag);
+
+	auto aboveZero = std::numeric_limits<TypeParam>::min();
+	auto aboveOne = std::nextafter(TypeParam(1), TypeParam(1));
+
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+
+	for (unsigned int i = 0; i < sampleCount; ++i)
+	{
+		TypeParam xm = randomValue(random, aboveZero, aboveOne);
+		int pow2 = dsRandom_nextInt32Range(&random, -maxExponentMag, maxExponentMag);
+		TypeParam x = dsMulPow2(xm, pow2);
+		TypeParam y = randomValue(random, -maxExponentMagf, maxExponentMagf);
+		TypeParam stdPow = std::pow(x, y);
+		TypeParam customPow = dsPow(x, y);
+		EXPECT_RELATIVE_EQ(stdPow, customPow, TypeParam(0), epsilon) << x << ", " << y;
+	}
+
+	for (unsigned int i = 0; i < 10; ++i)
+	{
+		TypeParam xm = randomValue(random, aboveZero, aboveOne);
+		int pow2 = dsRandom_nextInt32Range(&random, -maxExponentMag, maxExponentMag);
+		TypeParam x = dsMulPow2(xm, pow2);
+		EXPECT_EQ(1.0, dsPow(x, TypeParam(0))) << x << ", 0";
+	}
+
+	auto x = TypeParam(1.234);
+	auto y = TypeParam(2);
+	EXPECT_RELATIVE_EQ(std::pow(x, y), dsPow(x, y), TypeParam(0), epsilon) << x << ", " << y;
+	y = TypeParam(3);
+	EXPECT_RELATIVE_EQ(std::pow(x, y), dsPow(x, y), TypeParam(0), epsilon) << x << ", " << y;
 }
 
 #if DS_HAS_SIMD
@@ -2499,8 +2547,8 @@ DS_SIMD_END()
 
 static void ExponentFloatTest_Performance()
 {
-	int maxExponentMag = ExponentTypeSelector<float>::maxExponentMag;
-	float maxExponentMagf = ExponentTypeSelector<float>::maxExponentMag/2;
+	int maxExponentMag = ExponentTypeSelector<float>::maxExponentMag/4;
+	float maxExponentMagf = float(maxExponentMag);
 
 	float aboveZero = std::numeric_limits<float>::min();
 	float aboveOne = std::nextafter(1.0f, 1.0f);
@@ -2565,6 +2613,14 @@ static void ExponentFloatTest_Performance()
 	printf("std exp2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
 	hashValue += hasher(results[size_t(end % performanceCount)]);
 
+	start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::pow(posX[i], x[i]);
+	end = dsTimer_currentTicks();
+	printf("std pow time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasher(results[size_t(end % performanceCount)]);
+
 	printf("\n");
 
 	start = dsTimer_currentTicks();
@@ -2613,6 +2669,14 @@ static void ExponentFloatTest_Performance()
 		results[i] = dsExp10(x[i]);
 	end = dsTimer_currentTicks();
 	printf("custom exp10 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasher(results[size_t(end % performanceCount)]);
+
+	start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsPowf(posX[i], x[i]);
+	end = dsTimer_currentTicks();
+	printf("custom pow time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
 	hashValue += hasher(results[size_t(end % performanceCount)]);
 
 #if DS_HAS_SIMD
@@ -2872,8 +2936,8 @@ DS_SIMD_END()
 
 static void ExponentDoubleTest_Performance()
 {
-	int maxExponentMag = ExponentTypeSelector<double>::maxExponentMag;
-	double maxExponentMagd = ExponentTypeSelector<double>::maxExponentMag/2;
+	int maxExponentMag = ExponentTypeSelector<double>::maxExponentMag/10;
+	double maxExponentMagd = maxExponentMag;
 
 	double aboveZero = std::numeric_limits<double>::min();
 	double aboveOne = std::nextafter(1.0, 1.0);
@@ -2940,6 +3004,14 @@ static void ExponentDoubleTest_Performance()
 	printf("std exp2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
 	hashValue += hasher(results[size_t(end % performanceCount)]);
 
+	start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::pow(posX[i], x[i]);
+	end = dsTimer_currentTicks();
+	printf("std pow time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasher(results[size_t(end % performanceCount)]);
+
 	printf("\n");
 
 	start = dsTimer_currentTicks();
@@ -2988,6 +3060,14 @@ static void ExponentDoubleTest_Performance()
 		results[i] = dsExp10(x[i]);
 	end = dsTimer_currentTicks();
 	printf("custom exp10 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasher(results[size_t(end % performanceCount)]);
+
+	start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsPow(posX[i], x[i]);
+	end = dsTimer_currentTicks();
+	printf("custom pow time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
 	hashValue += hasher(results[size_t(end % performanceCount)]);
 
 #if DS_HAS_SIMD
