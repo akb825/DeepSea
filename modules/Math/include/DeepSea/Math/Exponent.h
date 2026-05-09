@@ -172,6 +172,24 @@ DS_MATH_EXPORT double dsPowd(double x, double y);
 #define dsPowd(x, y) pow(x, y)
 #endif
 
+/**
+ * @brief Raises a value to an exponent.
+ *
+ * This may be faster than the standard power function, but may have reduced precision as a result.
+ * When deterministic math is not enabled, this will use the standard library implementation instead
+ * as it typically utilizes lookup tables and is typically faster, though cannot be equivalent to
+ * the SIMD implementations.
+ *
+ * @param x The base to raise by x.
+ * @param y The exponent to raise by y.
+ * @return The result of x^y. The result is undefined if x is infinity or negative while y is a
+ *     non-integer value.
+ */
+DS_MATH_EXPORT inline float dsFastPowf(float x, float y);
+
+/** @copydoc dsFastPowf() */
+DS_MATH_EXPORT inline double dsFastPowd(double x, double y);
+
 #if DS_HAS_SIMD
 
 /**
@@ -256,6 +274,20 @@ DS_MATH_EXPORT inline dsSIMD4f dsExp2SIMD4f(dsSIMD4f x);
  */
 DS_MATH_EXPORT inline dsSIMD4f dsExp10SIMD4f(dsSIMD4f x);
 
+/**
+ * @brief Raises a value to an exponent for four values.
+ *
+ * This may be faster than calling dsPowf() individually on four values, but has reduced precision.
+ *
+ * @remark This can be used when dsSIMDFeatures_Float4, dsSIMDFeatures_Int, and
+ *     dsSIMDFeatures_Rounding are available.
+ * @param x The base to raise by x.
+ * @param y The exponent to raise by y.
+ * @return The result of x^y. The result is undefined if x is infinity or negative while y is a
+ *     non-integer value.
+ */
+DS_MATH_EXPORT inline dsSIMD4f dsFastPowSIMD4f(dsSIMD4f x, dsSIMD4f y);
+
 #if !DS_DETERMINISTIC_MATH
 
 /**
@@ -311,6 +343,20 @@ DS_MATH_EXPORT inline dsSIMD4f dsExp2FMA4f(dsSIMD4f x);
  * @return The results of 10^x.
  */
 DS_MATH_EXPORT inline dsSIMD4f dsExp10FMA4f(dsSIMD4f x);
+
+/**
+ * @brief Raises a value to an exponent for four values with fused multiply-add oprations.
+ *
+ * This is faster than calling dsPowf() individually on four values, but has reduced precision.
+ *
+ * @remark This can be used when dsSIMDFeatures_Float4, dsSIMDFeatures_Int, dsSIMDFeatures_Rounding,
+ *     and dsSIMDFeatures_FMA are available.
+ * @param x The base to raise by x.
+ * @param y The exponent to raise by y.
+ * @return The result of x^y. The result is undefined if x is infinity or negative while y is a
+ *     non-integer value.
+ */
+DS_MATH_EXPORT inline dsSIMD4f dsFastPowFMA4f(dsSIMD4f x, dsSIMD4f y);
 
 #endif // !DS_DETERMINISTIC_MATH
 
@@ -396,6 +442,20 @@ DS_MATH_EXPORT inline dsSIMD2d dsExp2SIMD2d(dsSIMD2d x);
  */
 DS_MATH_EXPORT inline dsSIMD2d dsExp10SIMD2d(dsSIMD2d x);
 
+/**
+ * @brief Raises a value to an exponent for two values.
+ *
+ * This may be faster than calling dsPowd() individually on two values, but has reduced precision.
+ *
+ * @remark This can be used when dsSIMDFeatures_Double2, dsSIMDFeatures_Int, and
+ *     dsSIMDFeatures_Rounding are available.
+ * @param x The base to raise by x.
+ * @param y The exponent to raise by y.
+ * @return The result of x^y. The result is undefined if x is infinity or negative while y is a
+ *     non-integer value.
+ */
+DS_MATH_EXPORT inline dsSIMD2d dsFastPowSIMD2d(dsSIMD2d x, dsSIMD2d y);
+
 #if !DS_DETERMINISTIC_MATH
 
 /**
@@ -451,6 +511,20 @@ DS_MATH_EXPORT inline dsSIMD2d dsExp2FMA2d(dsSIMD2d x);
  * @return The results of 10^x.
  */
 DS_MATH_EXPORT inline dsSIMD2d dsExp10FMA2d(dsSIMD2d x);
+
+/**
+ * @brief Raises a value to an exponent for two values with fused multiply-add operations.
+ *
+ * This may be faster than calling dsPowd() individually on two values, but has reduced precision.
+ *
+ * @remark This can be used when dsSIMDFeatures_Double2, dsSIMDFeatures_Int,
+ *     dsSIMDFeatures_Rounding, and dsSIMDFeatures_FMA are available.
+ * @param x The base to raise by x.
+ * @param y The exponent to raise by y.
+ * @return The result of x^y. The result is undefined if x is infinity or negative while y is a
+ *     non-integer value.
+ */
+DS_MATH_EXPORT inline dsSIMD2d dsFastPowFMA2d(dsSIMD2d x, dsSIMD2d y);
 
 #endif // !DS_DETERMINISTIC_MATH
 
@@ -541,6 +615,21 @@ DS_MATH_EXPORT inline dsSIMD4d dsExp2SIMD4d(dsSIMD4d x);
  * @return The results of 10^x.
  */
 DS_MATH_EXPORT inline dsSIMD4d dsExp10SIMD4d(dsSIMD4d x);
+
+/**
+ * @brief Raises a value to an exponent for four values.
+ *
+ * This may be faster than calling dsPowd() individually on four values, but has reduced precision.
+ *
+ * @remark This can be used when dsSIMDFeatures_Double4, dsSIMDFeatures_Int, and
+ *     dsSIMDFeatures_Rounding are available, and will use FMA if not disabled through enabling
+ *     determinisitic math.
+ * @param x The base to raise by x.
+ * @param y The exponent to raise by y.
+ * @return The result of x^y. The result is undefined if x is infinity or negative while y is a
+ *     non-integer value.
+ */
+DS_MATH_EXPORT inline dsSIMD4d dsFastPowSIMD4d(dsSIMD4d x, dsSIMD4d y);
 
 #endif // DS_HAS_SIMD
 
@@ -1000,7 +1089,7 @@ DS_MATH_EXPORT inline float dsLnf(float x)
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	uint32_t smallValueMask = (uint32_t)(xm >= M_SQRT1_2f) - 1;
 	pow2 -= smallValueMask & 1;
-	xm += dsMathImplMaskf(smallValueMask, xm) - 1.0f;
+	xm = xm + dsMathImplMaskf(smallValueMask, xm) - 1.0f;
 	float pow2f = (float)pow2;
 	float xm2 = dsPow2(xm);
 
@@ -1024,7 +1113,7 @@ DS_MATH_EXPORT inline double dsLnd(double x)
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	uint64_t smallValueMask = (uint64_t)(xm >= M_SQRT1_2) - 1;
 	pow2 -= (int)smallValueMask & 1;
-	xm += dsMathImplMaskd(smallValueMask, xm) - 1.0;
+	xm = xm + dsMathImplMaskd(smallValueMask, xm) - 1.0;
 	double pow2d = (double)pow2;
 	double xm2 = dsPow2(xm);
 
@@ -1049,7 +1138,7 @@ DS_MATH_EXPORT inline float dsLog2f(float x)
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	uint32_t smallValueMask = (uint32_t)(xm >= M_SQRT1_2f) - 1;
 	pow2 -= smallValueMask & 1;
-	xm += dsMathImplMaskf(smallValueMask, xm) - 1.0f;
+	xm = xm + dsMathImplMaskf(smallValueMask, xm) - 1.0f;
 	float pow2f = (float)pow2;
 	float xm2 = dsPow2(xm);
 
@@ -1073,7 +1162,7 @@ DS_MATH_EXPORT inline double dsLog2d(double x)
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	uint64_t smallValueMask = (uint64_t)(xm >= M_SQRT1_2) - 1;
 	pow2 -= (int)smallValueMask & 1;
-	xm += dsMathImplMaskd(smallValueMask, xm) - 1.0;
+	xm = xm + dsMathImplMaskd(smallValueMask, xm) - 1.0;
 	double pow2d = (double)pow2;
 	double xm2 = dsPow2(xm);
 
@@ -1099,7 +1188,7 @@ DS_MATH_EXPORT inline float dsLog10f(float x)
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	uint32_t smallValueMask = (uint32_t)(xm >= M_SQRT1_2f) - 1;
 	pow2 -= smallValueMask & 1;
-	xm += dsMathImplMaskf(smallValueMask, xm) - 1.0f;
+	xm = xm + dsMathImplMaskf(smallValueMask, xm) - 1.0f;
 	float pow2f = (float)pow2;
 	float xm2 = dsPow2(xm);
 
@@ -1124,7 +1213,7 @@ DS_MATH_EXPORT inline double dsLog10d(double x)
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	uint64_t smallValueMask = (uint64_t)(xm >= M_SQRT1_2) - 1;
 	pow2 -= (int)smallValueMask & 1;
-	xm += dsMathImplMaskd(smallValueMask, xm) - 1.0;
+	xm = xm + dsMathImplMaskd(smallValueMask, xm) - 1.0;
 	double pow2d = (double)pow2;
 	double xm2 = dsPow2(xm);
 
@@ -1295,18 +1384,15 @@ DS_MATH_EXPORT inline double dsExp10d(double x)
 DS_MATH_EXPORT inline float dsPowf(float x, float y)
 {
 #if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
-	if (DS_EXPECT(y == 0.0f, false))
-		return 1.0f;
-
 	// Evaluate as exp2^(y*log2(x)), utilizing doubles to ensure enough precision is preserved.
 
 	int xPow2;
-	double xm = dsSplitPow2f(&xPow2, x);
+	double xm = dsSplitPow2f(&xPow2, fabsf(x));
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	uint64_t smallValueMask = (uint64_t)(xm >= M_SQRT1_2) - 1;
 	xPow2 -= (int)smallValueMask & 1;
-	xm += dsMathImplMaskd(smallValueMask, xm) - 1.0;
+	xm = xm + dsMathImplMaskd(smallValueMask, xm) - 1.0;
 	double xPow2d = (double)xPow2;
 	double xm2 = dsPow2(xm);
 
@@ -1337,6 +1423,92 @@ DS_MATH_EXPORT inline float dsPowf(float x, float y)
 	return dsMathImplConditionalNegatef(powResult, dsMathImplExtractSignBitf(x) & oddExponentMask);
 #else
 	return powf(x, y);
+#endif
+}
+
+DS_MATH_EXPORT inline float dsFastPowf(float x, float y)
+{
+#if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
+	// Evaluate as exp2^(y*log2(x))
+
+	int xPow2;
+	float xm = dsSplitPow2f(&xPow2, fabsf(x));
+
+	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
+	uint32_t smallValueMask = (uint32_t)(xm >= M_SQRT1_2f) - 1;
+	xPow2 -= smallValueMask & 1;
+	xm = xm + dsMathImplMaskf(smallValueMask, xm) - 1.0f;
+	float xPow2f = (float)xPow2;
+	float xm2 = dsPow2(xm);
+
+	float log2X = ((((((((DS_LN_TAYLOR_1f*xm + DS_LN_TAYLOR_2f)*xm + DS_LN_TAYLOR_3f)*xm +
+		DS_LN_TAYLOR_4f)*xm + DS_LN_TAYLOR_5f)*xm + DS_LN_TAYLOR_6f)*xm + DS_LN_TAYLOR_7f)*xm +
+		DS_LN_TAYLOR_8f)*xm + DS_LN_TAYLOR_9f)*xm*xm2 - 0.5f*xm2;
+	log2X = log2X*DS_LOG2_E_FRACf + xm*DS_LOG2_E_FRACf + log2X + xm + xPow2f;
+
+	float yLog2X = y*log2X;
+
+	// Split into integer and fractional parts.
+	int n;
+	float nf;
+	dsMathImplFastRoundif(&n, &nf, yLog2X);
+	float g = yLog2X - nf;
+
+	float egTaylor = (((((DS_EXP2_TAYLOR_1f*g + DS_EXP2_TAYLOR_2f)*g + DS_EXP2_TAYLOR_3f)*g +
+		DS_EXP2_TAYLOR_4f)*g + DS_EXP2_TAYLOR_5f)*g + DS_EXP2_TAYLOR_6f)*g + 1.0f;
+	float powResult = dsMulPow2f(egTaylor, n);
+
+	// Keep sign for odd exponents. Only actually valid if an integer exponent and x is negative,
+	// but not interested in error checking within here for performance.
+	uint32_t oddExponentMask = ~(((int)y & 1) - 1);
+	return dsMathImplConditionalNegatef(powResult, dsMathImplExtractSignBitf(x) & oddExponentMask);
+#else
+	return powf(x, y);
+#endif
+}
+
+DS_MATH_EXPORT inline double dsFastPowd(double x, double y)
+{
+#if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
+	// Evaluate as exp2^(y*log2(x))
+
+	int xPow2;
+	double xm = dsSplitPow2d(&xPow2, fabs(x));
+
+	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
+	uint64_t smallValueMask = (uint64_t)(xm >= M_SQRT1_2) - 1;
+	xPow2 -= (int)smallValueMask & 1;
+	xm = xm + dsMathImplMaskd(smallValueMask, xm) - 1.0;
+	double xPow2d = (double)xPow2;
+	double xm2 = dsPow2(xm);
+
+	double pTaylor = (((((DS_LN_TAYLOR_P_1d*xm + DS_LN_TAYLOR_P_2d)*xm + DS_LN_TAYLOR_P_3d)*xm +
+		DS_LN_TAYLOR_P_4d)*xm + DS_LN_TAYLOR_P_5d)*xm + DS_LN_TAYLOR_P_6d)*xm2;
+	double qTaylor = ((((xm + DS_LN_TAYLOR_Q_1d)*xm + DS_LN_TAYLOR_Q_2d)*xm +
+		DS_LN_TAYLOR_Q_3d)*xm + DS_LN_TAYLOR_Q_4d)*xm + DS_LN_TAYLOR_Q_5d;
+	double log2X = xm*pTaylor/qTaylor - 0.5*xm2;
+	log2X = log2X*DS_LOG2_E_FRACd + xm*DS_LOG2_E_FRACd + log2X + xm + xPow2d;
+
+	double yLog2X = y*log2X;
+
+	// Split into integer and fractional parts.
+	int n;
+	double nd;
+	dsMathImplFastRoundid(&n, &nd, yLog2X);
+	double g = yLog2X - nd;
+	double g2 = dsPow2(g);
+
+	pTaylor = ((DS_EXP2_TAYLOR_P_1d*g2 + DS_EXP2_TAYLOR_P_2d)*g2 + DS_EXP2_TAYLOR_P_3d)*g;
+	qTaylor = (g2 + DS_EXP2_TAYLOR_Q_1d)*g2 + DS_EXP2_TAYLOR_Q_2d;
+	double egRational = (pTaylor/(qTaylor - pTaylor))*2.0 + 1.0;
+	double powResult = dsMulPow2d(egRational, n);
+
+	// Keep sign for odd exponents. Only actually valid if an integer exponent and x is negative,
+	// but not interested in error checking within here for performance.
+	uint64_t oddExponentMask = ~(((int)y & 1) - 1);
+	return dsMathImplConditionalNegated(powResult, dsMathImplExtractSignBitd(x) & oddExponentMask);
+#else
+	return pow(x, y);
 #endif
 }
 
@@ -1426,12 +1598,12 @@ DS_MATH_EXPORT inline dsSIMD4f dsLnSIMD4f(dsSIMD4f x)
 
 	dsSIMD4fb pow2;
 	dsSIMD4f xm = dsSplitPow2StrictPosSIMD4f(&pow2, x);
-	dsSIMD4f pow2f = dsSIMD4fb_toFloat(pow2);
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	dsSIMD4fb smallValue = dsSIMD4f_cmplt(xm, sqrt1_2);
-	pow2f = dsSIMD4f_sub(pow2f, dsMathImplMaskSIMD4f(smallValue, one));
+	pow2 = dsSIMD4fb_sub(pow2, dsSIMD4fb_shiftRightConst(smallValue, 31));
 	xm = dsSIMD4f_sub(dsSIMD4f_add(xm, dsMathImplMaskSIMD4f(smallValue, xm)), one);
+	dsSIMD4f pow2f = dsSIMD4fb_toFloat(pow2);
 	dsSIMD4f xm2 = dsSIMD4f_mul(xm, xm);
 
 	return dsSIMD4f_add(dsSIMD4f_add(dsSIMD4f_sub(dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_mul(
@@ -1463,12 +1635,12 @@ DS_MATH_EXPORT inline dsSIMD4f dsLog2SIMD4f(dsSIMD4f x)
 
 	dsSIMD4fb pow2;
 	dsSIMD4f xm = dsSplitPow2StrictPosSIMD4f(&pow2, x);
-	dsSIMD4f pow2f = dsSIMD4fb_toFloat(pow2);
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	dsSIMD4fb smallValue = dsSIMD4f_cmplt(xm, sqrt1_2);
-	pow2f = dsSIMD4f_sub(pow2f, dsMathImplMaskSIMD4f(smallValue, one));
+	pow2 = dsSIMD4fb_sub(pow2, dsSIMD4fb_shiftRightConst(smallValue, 31));
 	xm = dsSIMD4f_sub(dsSIMD4f_add(xm, dsMathImplMaskSIMD4f(smallValue, xm)), one);
+	dsSIMD4f pow2f = dsSIMD4fb_toFloat(pow2);
 	dsSIMD4f xm2 = dsSIMD4f_mul(xm, xm);
 
 	dsSIMD4f baseLog2 = dsSIMD4f_sub(dsSIMD4f_mul(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(
@@ -1505,12 +1677,12 @@ DS_MATH_EXPORT inline dsSIMD4f dsLog10SIMD4f(dsSIMD4f x)
 
 	dsSIMD4fb pow2;
 	dsSIMD4f xm = dsSplitPow2StrictPosSIMD4f(&pow2, x);
-	dsSIMD4f pow2f = dsSIMD4fb_toFloat(pow2);
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	dsSIMD4fb smallValue = dsSIMD4f_cmplt(xm, sqrt1_2);
-	pow2f = dsSIMD4f_sub(pow2f, dsMathImplMaskSIMD4f(smallValue, one));
+	pow2 = dsSIMD4fb_sub(pow2, dsSIMD4fb_shiftRightConst(smallValue, 31));
 	xm = dsSIMD4f_sub(dsSIMD4f_add(xm, dsMathImplMaskSIMD4f(smallValue, xm)), one);
+	dsSIMD4f pow2f = dsSIMD4fb_toFloat(pow2);
 	dsSIMD4f xm2 = dsSIMD4f_mul(xm, xm);
 
 	dsSIMD4f baseLog10 = dsSIMD4f_sub(dsSIMD4f_mul(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(
@@ -1631,6 +1803,72 @@ DS_MATH_EXPORT inline dsSIMD4f dsExp10SIMD4f(dsSIMD4f x)
 	return dsSIMD4f_select(isInfinity, infinityResult, dsMulPow2SIMD4f(egTaylor, n));
 }
 
+DS_MATH_EXPORT inline dsSIMD4f dsFastPowSIMD4f(dsSIMD4f x, dsSIMD4f y)
+{
+	// Evaluate as exp2^(y*log2(x))
+	dsSIMD4f sqrt1_2 = dsSIMD4f_set1(M_SQRT1_2f);
+	dsSIMD4f one = dsSIMD4f_set1(1.0f);
+	dsSIMD4fb oneb = dsSIMD4fb_set1(1);
+	dsSIMD4f half = dsSIMD4f_set1(0.5f);
+	dsSIMD4f log2eFrac = dsSIMD4f_set1(DS_LOG2_E_FRACf);
+
+	dsSIMD4f lnTaylor1f = dsSIMD4f_set1(DS_LN_TAYLOR_1f);
+	dsSIMD4f lnTaylor2f = dsSIMD4f_set1(DS_LN_TAYLOR_2f);
+	dsSIMD4f lnTaylor3f = dsSIMD4f_set1(DS_LN_TAYLOR_3f);
+	dsSIMD4f lnTaylor4f = dsSIMD4f_set1(DS_LN_TAYLOR_4f);
+	dsSIMD4f lnTaylor5f = dsSIMD4f_set1(DS_LN_TAYLOR_5f);
+	dsSIMD4f lnTaylor6f = dsSIMD4f_set1(DS_LN_TAYLOR_6f);
+	dsSIMD4f lnTaylor7f = dsSIMD4f_set1(DS_LN_TAYLOR_7f);
+	dsSIMD4f lnTaylor8f = dsSIMD4f_set1(DS_LN_TAYLOR_8f);
+	dsSIMD4f lnTaylor9f = dsSIMD4f_set1(DS_LN_TAYLOR_9f);
+
+	dsSIMD4f exp2Taylor1f = dsSIMD4f_set1(DS_EXP2_TAYLOR_1f);
+	dsSIMD4f exp2Taylor2f = dsSIMD4f_set1(DS_EXP2_TAYLOR_2f);
+	dsSIMD4f exp2Taylor3f = dsSIMD4f_set1(DS_EXP2_TAYLOR_3f);
+	dsSIMD4f exp2Taylor4f = dsSIMD4f_set1(DS_EXP2_TAYLOR_4f);
+	dsSIMD4f exp2Taylor5f = dsSIMD4f_set1(DS_EXP2_TAYLOR_5f);
+	dsSIMD4f exp2Taylor6f = dsSIMD4f_set1(DS_EXP2_TAYLOR_6f);
+
+	dsSIMD4fb xPow2;
+	dsSIMD4f xm = dsSplitPow2SIMD4f(&xPow2, dsSIMD4f_abs(x));
+
+	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
+	dsSIMD4fb smallValue = dsSIMD4f_cmplt(xm, sqrt1_2);
+	xPow2 = dsSIMD4fb_sub(xPow2, dsSIMD4fb_shiftRightConst(smallValue, 31));
+	xm = dsSIMD4f_sub(dsSIMD4f_add(xm, dsMathImplMaskSIMD4f(smallValue, xm)), one);
+	dsSIMD4f xPow2f = dsSIMD4fb_toFloat(xPow2);
+	dsSIMD4f xm2 = dsSIMD4f_mul(xm, xm);
+
+	dsSIMD4f log2X = dsSIMD4f_sub(dsSIMD4f_mul(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(
+		dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(
+		dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(
+		lnTaylor1f, xm), lnTaylor2f), xm) , lnTaylor3f), xm), lnTaylor4f), xm), lnTaylor5f), xm),
+		lnTaylor6f), xm), lnTaylor7f), xm), lnTaylor8f), xm), lnTaylor9f), xm), xm2),
+		dsSIMD4f_mul(half, xm2));
+	log2X = dsSIMD4f_add(dsSIMD4f_add(dsSIMD4f_add(dsSIMD4f_add(dsSIMD4f_mul(log2X, log2eFrac),
+		dsSIMD4f_mul(xm, log2eFrac)), log2X), xm), xPow2f);
+
+	dsSIMD4f yLog2X = dsSIMD4f_mul(y, log2X);
+
+	// Split into integer and fractional parts.
+	dsSIMD4f nf = dsSIMD4f_round(yLog2X);
+	dsSIMD4fb n = dsSIMD4fb_fromFloat(nf);
+	dsSIMD4f g = dsSIMD4f_sub(yLog2X, nf);
+
+	dsSIMD4f egTaylor = dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(
+		dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(dsSIMD4f_add(dsSIMD4f_mul(
+		exp2Taylor1f, g), exp2Taylor2f), g), exp2Taylor3f), g), exp2Taylor4f), g), exp2Taylor5f),
+		g), exp2Taylor6f), g), one);
+	dsSIMD4f powResult = dsMulPow2SIMD4f(egTaylor, n);
+
+	// Keep sign for odd exponents. Only actually valid if an integer exponent and x is negative,
+	// but not interested in error checking within here for performance.
+	dsSIMD4fb oddExponentMask = dsSIMD4fb_not(
+		dsSIMD4fb_sub(dsSIMD4fb_and(dsSIMD4fb_fromFloat(y), oneb), oneb));
+	return dsMathImplConditionalNegateSIMD4f(
+		powResult, dsSIMD4fb_and(dsMathImplExtractSignBitSIMD4f(x), oddExponentMask));
+}
+
 DS_SIMD_END()
 
 #if !DS_DETERMINISTIC_MATH
@@ -1658,12 +1896,12 @@ DS_MATH_EXPORT inline dsSIMD4f dsLnFMA4f(dsSIMD4f x)
 
 	dsSIMD4fb pow2;
 	dsSIMD4f xm = dsSplitPow2StrictPosSIMD4f(&pow2, x);
-	dsSIMD4f pow2f = dsSIMD4fb_toFloat(pow2);
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	dsSIMD4fb smallValue = dsSIMD4f_cmplt(xm, sqrt1_2);
-	pow2f = dsSIMD4f_sub(pow2f, dsMathImplMaskSIMD4f(smallValue, one));
+	pow2 = dsSIMD4fb_sub(pow2, dsSIMD4fb_shiftRightConst(smallValue, 31));
 	xm = dsSIMD4f_sub(dsSIMD4f_add(xm, dsMathImplMaskSIMD4f(smallValue, xm)), one);
+	dsSIMD4f pow2f = dsSIMD4fb_toFloat(pow2);
 	dsSIMD4f xm2 = dsSIMD4f_mul(xm, xm);
 
 	return dsSIMD4f_fmadd(lnExp2, pow2f, dsSIMD4f_add(dsSIMD4f_fnmadd(half, xm2, dsSIMD4f_fmadd(
@@ -1694,12 +1932,12 @@ DS_MATH_EXPORT inline dsSIMD4f dsLog2FMA4f(dsSIMD4f x)
 
 	dsSIMD4fb pow2;
 	dsSIMD4f xm = dsSplitPow2StrictPosSIMD4f(&pow2, x);
-	dsSIMD4f pow2f = dsSIMD4fb_toFloat(pow2);
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	dsSIMD4fb smallValue = dsSIMD4f_cmplt(xm, sqrt1_2);
-	pow2f = dsSIMD4f_sub(pow2f, dsMathImplMaskSIMD4f(smallValue, one));
+	pow2 = dsSIMD4fb_sub(pow2, dsSIMD4fb_shiftRightConst(smallValue, 31));
 	xm = dsSIMD4f_sub(dsSIMD4f_add(xm, dsMathImplMaskSIMD4f(smallValue, xm)), one);
+	dsSIMD4f pow2f = dsSIMD4fb_toFloat(pow2);
 	dsSIMD4f xm2 = dsSIMD4f_mul(xm, xm);
 
 	dsSIMD4f baseLog2 = dsSIMD4f_fnmadd(half, xm2, dsSIMD4f_mul(dsSIMD4f_mul(dsSIMD4f_fmadd(
@@ -1735,12 +1973,12 @@ DS_MATH_EXPORT inline dsSIMD4f dsLog10FMA4f(dsSIMD4f x)
 
 	dsSIMD4fb pow2;
 	dsSIMD4f xm = dsSplitPow2StrictPosSIMD4f(&pow2, x);
-	dsSIMD4f pow2f = dsSIMD4fb_toFloat(pow2);
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	dsSIMD4fb smallValue = dsSIMD4f_cmplt(xm, sqrt1_2);
-	pow2f = dsSIMD4f_sub(pow2f, dsMathImplMaskSIMD4f(smallValue, one));
+	pow2 = dsSIMD4fb_sub(pow2, dsSIMD4fb_shiftRightConst(smallValue, 31));
 	xm = dsSIMD4f_sub(dsSIMD4f_add(xm, dsMathImplMaskSIMD4f(smallValue, xm)), one);
+	dsSIMD4f pow2f = dsSIMD4fb_toFloat(pow2);
 	dsSIMD4f xm2 = dsSIMD4f_mul(xm, xm);
 
 	dsSIMD4f baseLog10 = dsSIMD4f_fnmadd(half, xm2, dsSIMD4f_mul(dsSIMD4f_mul(dsSIMD4f_fmadd(
@@ -1855,6 +2093,70 @@ DS_MATH_EXPORT inline dsSIMD4f dsExp10FMA4f(dsSIMD4f x)
 	return dsSIMD4f_select(isInfinity, infinityResult, dsMulPow2SIMD4f(egTaylor, n));
 }
 
+DS_MATH_EXPORT inline dsSIMD4f dsFastPowFMA4f(dsSIMD4f x, dsSIMD4f y)
+{
+	// Evaluate as exp2^(y*log2(x))
+	dsSIMD4f sqrt1_2 = dsSIMD4f_set1(M_SQRT1_2f);;
+	dsSIMD4f one = dsSIMD4f_set1(1.0f);
+	dsSIMD4fb oneb = dsSIMD4fb_set1(1);
+	dsSIMD4f half = dsSIMD4f_set1(0.5f);
+	dsSIMD4f log2eFrac = dsSIMD4f_set1(DS_LOG2_E_FRACf);
+
+	dsSIMD4f lnTaylor1f = dsSIMD4f_set1(DS_LN_TAYLOR_1f);
+	dsSIMD4f lnTaylor2f = dsSIMD4f_set1(DS_LN_TAYLOR_2f);
+	dsSIMD4f lnTaylor3f = dsSIMD4f_set1(DS_LN_TAYLOR_3f);
+	dsSIMD4f lnTaylor4f = dsSIMD4f_set1(DS_LN_TAYLOR_4f);
+	dsSIMD4f lnTaylor5f = dsSIMD4f_set1(DS_LN_TAYLOR_5f);
+	dsSIMD4f lnTaylor6f = dsSIMD4f_set1(DS_LN_TAYLOR_6f);
+	dsSIMD4f lnTaylor7f = dsSIMD4f_set1(DS_LN_TAYLOR_7f);
+	dsSIMD4f lnTaylor8f = dsSIMD4f_set1(DS_LN_TAYLOR_8f);
+	dsSIMD4f lnTaylor9f = dsSIMD4f_set1(DS_LN_TAYLOR_9f);
+
+	dsSIMD4f exp2Taylor1f = dsSIMD4f_set1(DS_EXP2_TAYLOR_1f);
+	dsSIMD4f exp2Taylor2f = dsSIMD4f_set1(DS_EXP2_TAYLOR_2f);
+	dsSIMD4f exp2Taylor3f = dsSIMD4f_set1(DS_EXP2_TAYLOR_3f);
+	dsSIMD4f exp2Taylor4f = dsSIMD4f_set1(DS_EXP2_TAYLOR_4f);
+	dsSIMD4f exp2Taylor5f = dsSIMD4f_set1(DS_EXP2_TAYLOR_5f);
+	dsSIMD4f exp2Taylor6f = dsSIMD4f_set1(DS_EXP2_TAYLOR_6f);
+
+	dsSIMD4fb xPow2;
+	dsSIMD4f xm = dsSplitPow2SIMD4f(&xPow2, dsSIMD4f_abs(x));
+
+	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
+	dsSIMD4fb smallValue = dsSIMD4f_cmplt(xm, sqrt1_2);
+	xPow2 = dsSIMD4fb_sub(xPow2, dsSIMD4fb_shiftRightConst(smallValue, 31));
+	xm = dsSIMD4f_sub(dsSIMD4f_add(xm, dsMathImplMaskSIMD4f(smallValue, xm)), one);
+	dsSIMD4f xPow2f = dsSIMD4fb_toFloat(xPow2);
+	dsSIMD4f xm2 = dsSIMD4f_mul(xm, xm);
+
+	dsSIMD4f log2X = dsSIMD4f_fnmadd(half, xm2, dsSIMD4f_mul(dsSIMD4f_mul(dsSIMD4f_fmadd(
+		dsSIMD4f_fmadd(dsSIMD4f_fmadd(dsSIMD4f_fmadd(dsSIMD4f_fmadd(dsSIMD4f_fmadd(dsSIMD4f_fmadd(
+		dsSIMD4f_fmadd(lnTaylor1f, xm, lnTaylor2f), xm , lnTaylor3f), xm, lnTaylor4f), xm,
+		lnTaylor5f), xm, lnTaylor6f), xm, lnTaylor7f), xm, lnTaylor8f), xm, lnTaylor9f), xm), xm2));
+	// Make sure the two fractional multiplies get added together before any other factors.
+	log2X = dsSIMD4f_add(dsSIMD4f_add(dsSIMD4f_add(dsSIMD4f_fmadd(log2X, log2eFrac,
+		dsSIMD4f_mul(xm, log2eFrac)), log2X), xm), xPow2f);
+
+	dsSIMD4f yLog2X = dsSIMD4f_mul(y, log2X);
+
+	// Split into integer and fractional parts.
+	dsSIMD4f nf = dsSIMD4f_round(yLog2X);
+	dsSIMD4fb n = dsSIMD4fb_fromFloat(nf);
+	dsSIMD4f g = dsSIMD4f_sub(yLog2X, nf);
+
+	dsSIMD4f egTaylor = dsSIMD4f_fmadd(dsSIMD4f_fmadd(dsSIMD4f_fmadd(dsSIMD4f_fmadd(dsSIMD4f_fmadd(
+		dsSIMD4f_fmadd(exp2Taylor1f, g, exp2Taylor2f), g, exp2Taylor3f), g, exp2Taylor4f), g,
+		exp2Taylor5f), g, exp2Taylor6f), g, one);
+	dsSIMD4f powResult = dsMulPow2SIMD4f(egTaylor, n);
+
+	// Keep sign for odd exponents. Only actually valid if an integer exponent and x is negative,
+	// but not interested in error checking within here for performance.
+	dsSIMD4fb oddExponentMask = dsSIMD4fb_not(
+		dsSIMD4fb_sub(dsSIMD4fb_and(dsSIMD4fb_fromFloat(y), oneb), oneb));
+	return dsMathImplConditionalNegateSIMD4f(
+		powResult, dsSIMD4fb_and(dsMathImplExtractSignBitSIMD4f(x), oddExponentMask));
+}
+
 DS_SIMD_END()
 #endif // !DS_DETERMINISTIC_MATH
 
@@ -1951,12 +2253,12 @@ DS_MATH_EXPORT inline dsSIMD2d dsLnSIMD2d(dsSIMD2d x)
 
 	dsSIMD2db pow2;
 	dsSIMD2d xm = dsSplitPow2StrictPosSIMD2d(&pow2, x);
-	dsSIMD2d pow2d = dsSIMD2db_toDouble(pow2);
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	dsSIMD2db smallValue = dsSIMD2d_cmplt(xm, sqrt1_2);
-	pow2d = dsSIMD2d_sub(pow2d, dsMathImplMaskSIMD2d(smallValue, one));
+	pow2 = dsSIMD2db_sub(pow2, dsSIMD2db_shiftRightConst(smallValue, 63));
 	xm = dsSIMD2d_sub(dsSIMD2d_add(xm, dsMathImplMaskSIMD2d(smallValue, xm)), one);
+	dsSIMD2d pow2d = dsSIMD2db_toDouble(pow2);
 	dsSIMD2d xm2 = dsSIMD2d_mul(xm, xm);
 
 	dsSIMD2d pTaylor = dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(
@@ -1995,12 +2297,12 @@ DS_MATH_EXPORT inline dsSIMD2d dsLog2SIMD2d(dsSIMD2d x)
 
 	dsSIMD2db pow2;
 	dsSIMD2d xm = dsSplitPow2StrictPosSIMD2d(&pow2, x);
-	dsSIMD2d pow2d = dsSIMD2db_toDouble(pow2);
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	dsSIMD2db smallValue = dsSIMD2d_cmplt(xm, sqrt1_2);
-	pow2d = dsSIMD2d_sub(pow2d, dsMathImplMaskSIMD2d(smallValue, one));
+	pow2 = dsSIMD2db_sub(pow2, dsSIMD2db_shiftRightConst(smallValue, 63));
 	xm = dsSIMD2d_sub(dsSIMD2d_add(xm, dsMathImplMaskSIMD2d(smallValue, xm)), one);
+	dsSIMD2d pow2d = dsSIMD2db_toDouble(pow2);
 	dsSIMD2d xm2 = dsSIMD2d_mul(xm, xm);
 
 	dsSIMD2d pTaylor = dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(
@@ -2043,12 +2345,12 @@ DS_MATH_EXPORT inline dsSIMD2d dsLog10SIMD2d(dsSIMD2d x)
 
 	dsSIMD2db pow2;
 	dsSIMD2d xm = dsSplitPow2StrictPosSIMD2d(&pow2, x);
-	dsSIMD2d pow2d = dsSIMD2db_toDouble(pow2);
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	dsSIMD2db smallValue = dsSIMD2d_cmplt(xm, sqrt1_2);
-	pow2d = dsSIMD2d_sub(pow2d, dsMathImplMaskSIMD2d(smallValue, one));
+	pow2 = dsSIMD2db_sub(pow2, dsSIMD2db_shiftRightConst(smallValue, 63));
 	xm = dsSIMD2d_sub(dsSIMD2d_add(xm, dsMathImplMaskSIMD2d(smallValue, xm)), one);
+	dsSIMD2d pow2d = dsSIMD2db_toDouble(pow2);
 	dsSIMD2d xm2 = dsSIMD2d_mul(xm, xm);
 
 	dsSIMD2d pTaylor = dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(
@@ -2187,6 +2489,81 @@ DS_MATH_EXPORT inline dsSIMD2d dsExp10SIMD2d(dsSIMD2d x)
 	return dsSIMD2d_select(isInfinity, infinityResult, dsMulPow2SIMD2d(qRational, n));
 }
 
+DS_MATH_EXPORT inline dsSIMD2d dsFastPowSIMD2d(dsSIMD2d x, dsSIMD2d y)
+{
+	// Evaluate as exp2^(y*log2(x))
+	dsSIMD2d sqrt1_2 = dsSIMD2d_set1(M_SQRT1_2);
+	dsSIMD2d one = dsSIMD2d_set1(1.0);
+	dsSIMD2db oneb = dsSIMD2db_set1(1);
+	dsSIMD2d half = dsSIMD2d_set1(0.5);
+	dsSIMD2d two = dsSIMD2d_set1(2.0);
+	dsSIMD2d log2eFrac = dsSIMD2d_set1(DS_LOG2_E_FRACd);
+
+	dsSIMD2d lnTaylorP1 = dsSIMD2d_set1(DS_LN_TAYLOR_P_1d);
+	dsSIMD2d lnTaylorP2 = dsSIMD2d_set1(DS_LN_TAYLOR_P_2d);
+	dsSIMD2d lnTaylorP3 = dsSIMD2d_set1(DS_LN_TAYLOR_P_3d);
+	dsSIMD2d lnTaylorP4 = dsSIMD2d_set1(DS_LN_TAYLOR_P_4d);
+	dsSIMD2d lnTaylorP5 = dsSIMD2d_set1(DS_LN_TAYLOR_P_5d);
+	dsSIMD2d lnTaylorP6 = dsSIMD2d_set1(DS_LN_TAYLOR_P_6d);
+
+	dsSIMD2d lnTaylorQ1 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_1d);
+	dsSIMD2d lnTaylorQ2 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_2d);
+	dsSIMD2d lnTaylorQ3 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_3d);
+	dsSIMD2d lnTaylorQ4 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_4d);
+	dsSIMD2d lnTaylorQ5 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_5d);
+
+	dsSIMD2d exp2TaylorP1 = dsSIMD2d_set1(DS_EXP2_TAYLOR_P_1d);
+	dsSIMD2d exp2TaylorP2 = dsSIMD2d_set1(DS_EXP2_TAYLOR_P_2d);
+	dsSIMD2d exp2TaylorP3 = dsSIMD2d_set1(DS_EXP2_TAYLOR_P_3d);
+
+	dsSIMD2d exp2TaylorQ1 = dsSIMD2d_set1(DS_EXP2_TAYLOR_Q_1d);
+	dsSIMD2d exp2TaylorQ2 = dsSIMD2d_set1(DS_EXP2_TAYLOR_Q_2d);
+
+	dsSIMD2db xPow2;
+	dsSIMD2d xm = dsSplitPow2SIMD2d(&xPow2, dsSIMD2d_abs(x));
+
+	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
+	dsSIMD2db smallValue = dsSIMD2d_cmplt(xm, sqrt1_2);
+	xPow2 = dsSIMD2db_sub(xPow2, dsSIMD2db_and(smallValue, oneb));
+	xm = dsSIMD2d_sub(dsSIMD2d_add(xm, dsMathImplMaskSIMD2d(smallValue, xm)), one);
+	dsSIMD2d xPow2d = dsSIMD2db_toDouble(xPow2);
+	dsSIMD2d xm2 = dsSIMD2d_mul(xm, xm);
+
+	dsSIMD2d pTaylor = dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(
+		dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(
+		lnTaylorP1, xm), lnTaylorP2), xm), lnTaylorP3), xm), lnTaylorP4), xm), lnTaylorP5), xm),
+		lnTaylorP6), xm2);
+	dsSIMD2d qTaylor = dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(
+		dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(xm, lnTaylorQ1), xm), lnTaylorQ2), xm),
+		lnTaylorQ3), xm), lnTaylorQ4), xm), lnTaylorQ5);
+	dsSIMD2d log2X = dsSIMD2d_sub(
+		dsSIMD2d_mul(xm, dsSIMD2d_div(pTaylor, qTaylor)), dsSIMD2d_mul(half, xm2));
+	log2X = dsSIMD2d_add(dsSIMD2d_add(dsSIMD2d_add(dsSIMD2d_add(dsSIMD2d_mul(log2X, log2eFrac),
+		dsSIMD2d_mul(xm, log2eFrac)), log2X), xm), xPow2d);
+
+	dsSIMD2d yLog2X = dsSIMD2d_mul(y, log2X);
+
+	// Split into integer and fractional parts.
+	dsSIMD2d nd = dsSIMD2d_round(yLog2X);
+	dsSIMD2db n = dsSIMD2db_fromDouble(nd);
+	dsSIMD2d g = dsSIMD2d_sub(yLog2X, nd);
+	dsSIMD2d g2 = dsSIMD2d_mul(g, g);
+
+	pTaylor = dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(dsSIMD2d_mul(exp2TaylorP1, g2),
+		exp2TaylorP2), g2), exp2TaylorP3), g);
+	qTaylor = dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_add(g2, exp2TaylorQ1), g2), exp2TaylorQ2);
+	dsSIMD2d egRational = dsSIMD2d_add(dsSIMD2d_mul(dsSIMD2d_div(pTaylor,
+		dsSIMD2d_sub(qTaylor, pTaylor)), two), one);
+	dsSIMD2d powResult = dsMulPow2SIMD2d(egRational, n);
+
+	// Keep sign for odd exponents. Only actually valid if an integer exponent and x is negative,
+	// but not interested in error checking within here for performance.
+	dsSIMD2db oddExponentMask = dsSIMD2db_not(
+		dsSIMD2db_sub(dsSIMD2db_and(dsSIMD2db_fromDouble(y), oneb), oneb));
+	return dsMathImplConditionalNegateSIMD2d(
+		powResult, dsSIMD2db_and(dsMathImplExtractSignBitSIMD2d(x), oddExponentMask));
+}
+
 DS_SIMD_END()
 
 #if !DS_DETERMINISTIC_MATH
@@ -2218,12 +2595,12 @@ DS_MATH_EXPORT inline dsSIMD2d dsLnFMA2d(dsSIMD2d x)
 
 	dsSIMD2db pow2;
 	dsSIMD2d xm = dsSplitPow2StrictPosSIMD2d(&pow2, x);
-	dsSIMD2d pow2d = dsSIMD2db_toDouble(pow2);
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	dsSIMD2db smallValue = dsSIMD2d_cmplt(xm, sqrt1_2);
-	pow2d = dsSIMD2d_sub(pow2d, dsMathImplMaskSIMD2d(smallValue, one));
+	pow2 = dsSIMD2db_sub(pow2, dsSIMD2db_shiftRightConst(smallValue, 63));
 	xm = dsSIMD2d_sub(dsSIMD2d_add(xm, dsMathImplMaskSIMD2d(smallValue, xm)), one);
+	dsSIMD2d pow2d = dsSIMD2db_toDouble(pow2);
 	dsSIMD2d xm2 = dsSIMD2d_mul(xm, xm);
 
 	dsSIMD2d pTaylor = dsSIMD2d_mul(dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_fmadd(
@@ -2259,12 +2636,12 @@ DS_MATH_EXPORT inline dsSIMD2d dsLog2FMA2d(dsSIMD2d x)
 
 	dsSIMD2db pow2;
 	dsSIMD2d xm = dsSplitPow2StrictPosSIMD2d(&pow2, x);
-	dsSIMD2d pow2d = dsSIMD2db_toDouble(pow2);
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	dsSIMD2db smallValue = dsSIMD2d_cmplt(xm, sqrt1_2);
-	pow2d = dsSIMD2d_sub(pow2d, dsMathImplMaskSIMD2d(smallValue, one));
+	pow2 = dsSIMD2db_sub(pow2, dsSIMD2db_shiftRightConst(smallValue, 63));
 	xm = dsSIMD2d_sub(dsSIMD2d_add(xm, dsMathImplMaskSIMD2d(smallValue, xm)), one);
+	dsSIMD2d pow2d = dsSIMD2db_toDouble(pow2);
 	dsSIMD2d xm2 = dsSIMD2d_mul(xm, xm);
 
 	dsSIMD2d pTaylor = dsSIMD2d_mul(dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_fmadd(
@@ -2306,12 +2683,12 @@ DS_MATH_EXPORT inline dsSIMD2d dsLog10FMA2d(dsSIMD2d x)
 
 	dsSIMD2db pow2;
 	dsSIMD2d xm = dsSplitPow2StrictPosSIMD2d(&pow2, x);
-	dsSIMD2d pow2d = dsSIMD2db_toDouble(pow2);
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	dsSIMD2db smallValue = dsSIMD2d_cmplt(xm, sqrt1_2);
-	pow2d = dsSIMD2d_sub(pow2d, dsMathImplMaskSIMD2d(smallValue, one));
+	pow2 = dsSIMD2db_sub(pow2, dsSIMD2db_shiftRightConst(smallValue, 63));
 	xm = dsSIMD2d_sub(dsSIMD2d_add(xm, dsMathImplMaskSIMD2d(smallValue, xm)), one);
+	dsSIMD2d pow2d = dsSIMD2db_toDouble(pow2);
 	dsSIMD2d xm2 = dsSIMD2d_mul(xm, xm);
 
 	dsSIMD2d pTaylor = dsSIMD2d_mul(dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_fmadd(
@@ -2446,6 +2823,79 @@ DS_MATH_EXPORT inline dsSIMD2d dsExp10FMA2d(dsSIMD2d x)
 	return dsSIMD2d_select(isInfinity, infinityResult, dsMulPow2SIMD2d(qRational, n));
 }
 
+DS_MATH_EXPORT inline dsSIMD2d dsFastPowFMA2d(dsSIMD2d x, dsSIMD2d y)
+{
+	// Evaluate as exp2^(y*log2(x))
+	dsSIMD2d sqrt1_2 = dsSIMD2d_set1(M_SQRT1_2);
+	dsSIMD2d one = dsSIMD2d_set1(1.0);
+	dsSIMD2db oneb = dsSIMD2db_set1(1);
+	dsSIMD2d half = dsSIMD2d_set1(0.5);
+	dsSIMD2d two = dsSIMD2d_set1(2.0);
+	dsSIMD2d log2eFrac = dsSIMD2d_set1(DS_LOG2_E_FRACd);
+
+	dsSIMD2d lnTaylorP1 = dsSIMD2d_set1(DS_LN_TAYLOR_P_1d);
+	dsSIMD2d lnTaylorP2 = dsSIMD2d_set1(DS_LN_TAYLOR_P_2d);
+	dsSIMD2d lnTaylorP3 = dsSIMD2d_set1(DS_LN_TAYLOR_P_3d);
+	dsSIMD2d lnTaylorP4 = dsSIMD2d_set1(DS_LN_TAYLOR_P_4d);
+	dsSIMD2d lnTaylorP5 = dsSIMD2d_set1(DS_LN_TAYLOR_P_5d);
+	dsSIMD2d lnTaylorP6 = dsSIMD2d_set1(DS_LN_TAYLOR_P_6d);
+
+	dsSIMD2d lnTaylorQ1 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_1d);
+	dsSIMD2d lnTaylorQ2 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_2d);
+	dsSIMD2d lnTaylorQ3 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_3d);
+	dsSIMD2d lnTaylorQ4 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_4d);
+	dsSIMD2d lnTaylorQ5 = dsSIMD2d_set1(DS_LN_TAYLOR_Q_5d);
+
+	dsSIMD2d exp2TaylorP1 = dsSIMD2d_set1(DS_EXP2_TAYLOR_P_1d);
+	dsSIMD2d exp2TaylorP2 = dsSIMD2d_set1(DS_EXP2_TAYLOR_P_2d);
+	dsSIMD2d exp2TaylorP3 = dsSIMD2d_set1(DS_EXP2_TAYLOR_P_3d);
+
+	dsSIMD2d exp2TaylorQ1 = dsSIMD2d_set1(DS_EXP2_TAYLOR_Q_1d);
+	dsSIMD2d exp2TaylorQ2 = dsSIMD2d_set1(DS_EXP2_TAYLOR_Q_2d);
+
+	dsSIMD2db xPow2;
+	dsSIMD2d xm = dsSplitPow2SIMD2d(&xPow2, dsSIMD2d_abs(x));
+
+	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
+	dsSIMD2db smallValue = dsSIMD2d_cmplt(xm, sqrt1_2);
+	xPow2 = dsSIMD2db_sub(xPow2, dsSIMD2db_and(smallValue, oneb));
+	xm = dsSIMD2d_sub(dsSIMD2d_add(xm, dsMathImplMaskSIMD2d(smallValue, xm)), one);
+	dsSIMD2d xPow2d = dsSIMD2db_toDouble(xPow2);
+	dsSIMD2d xm2 = dsSIMD2d_mul(xm, xm);
+
+	dsSIMD2d pTaylor = dsSIMD2d_mul(dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_fmadd(
+		dsSIMD2d_fmadd(lnTaylorP1, xm, lnTaylorP2), xm, lnTaylorP3), xm, lnTaylorP4), xm,
+		lnTaylorP5), xm, lnTaylorP6), xm2);
+	dsSIMD2d qTaylor = dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_fmadd(dsSIMD2d_add(
+		xm, lnTaylorQ1), xm, lnTaylorQ2), xm, lnTaylorQ3), xm, lnTaylorQ4), xm, lnTaylorQ5);
+	dsSIMD2d log2X = dsSIMD2d_fnmadd(half, xm2, dsSIMD2d_mul(xm, dsSIMD2d_div(pTaylor, qTaylor)));
+	// Make sure the two fractional multiplies get added together before any other factors.
+	log2X = dsSIMD2d_add(dsSIMD2d_add(dsSIMD2d_add(dsSIMD2d_fmadd(log2X, log2eFrac,
+		dsSIMD2d_mul(xm, log2eFrac)), log2X), xm), xPow2d);
+
+	dsSIMD2d yLog2X = dsSIMD2d_mul(y, log2X);
+
+	// Split into integer and fractional parts.
+	dsSIMD2d nd = dsSIMD2d_round(yLog2X);
+	dsSIMD2db n = dsSIMD2db_fromDouble(nd);
+	dsSIMD2d g = dsSIMD2d_sub(yLog2X, nd);
+	dsSIMD2d g2 = dsSIMD2d_mul(g, g);
+
+	pTaylor = dsSIMD2d_mul(dsSIMD2d_fmadd(dsSIMD2d_fmadd(
+		exp2TaylorP1, g2, exp2TaylorP2), g2, exp2TaylorP3), g);
+	qTaylor = dsSIMD2d_fmadd(dsSIMD2d_add(g2, exp2TaylorQ1), g2, exp2TaylorQ2);
+	dsSIMD2d egRational = dsSIMD2d_fmadd(
+		dsSIMD2d_div(pTaylor, dsSIMD2d_sub(qTaylor, pTaylor)), two, one);
+	dsSIMD2d powResult = dsMulPow2SIMD2d(egRational, n);
+
+	// Keep sign for odd exponents. Only actually valid if an integer exponent and x is negative,
+	// but not interested in error checking within here for performance.
+	dsSIMD2db oddExponentMask = dsSIMD2db_not(
+		dsSIMD2db_sub(dsSIMD2db_and(dsSIMD2db_fromDouble(y), oneb), oneb));
+	return dsMathImplConditionalNegateSIMD2d(
+		powResult, dsSIMD2db_and(dsMathImplExtractSignBitSIMD2d(x), oddExponentMask));
+}
+
 DS_SIMD_END()
 #endif // !DS_DETERMINISTIC_MATH
 
@@ -2542,12 +2992,12 @@ DS_MATH_EXPORT inline dsSIMD4d dsLnSIMD4d(dsSIMD4d x)
 
 	dsSIMD4db pow2;
 	dsSIMD4d xm = dsSplitPow2StrictPosSIMD4d(&pow2, x);
-	dsSIMD4d pow2d = dsSIMD4db_toDouble(pow2);
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	dsSIMD4db smallValue = dsSIMD4d_cmplt(xm, sqrt1_2);
-	pow2d = dsSIMD4d_sub(pow2d, dsMathImplMaskSIMD4d(smallValue, one));
+	pow2 = dsSIMD4db_sub(pow2, dsSIMD4db_shiftRightConst(smallValue, 63));
 	xm = dsSIMD4d_sub(dsSIMD4d_add(xm, dsMathImplMaskSIMD4d(smallValue, xm)), one);
+	dsSIMD4d pow2d = dsSIMD4db_toDouble(pow2);
 	dsSIMD4d xm2 = dsSIMD4d_mul(xm, xm);
 
 #if DS_DETERMINISTIC_MATH
@@ -2596,12 +3046,12 @@ DS_MATH_EXPORT inline dsSIMD4d dsLog2SIMD4d(dsSIMD4d x)
 
 	dsSIMD4db pow2;
 	dsSIMD4d xm = dsSplitPow2StrictPosSIMD4d(&pow2, x);
-	dsSIMD4d pow2d = dsSIMD4db_toDouble(pow2);
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	dsSIMD4db smallValue = dsSIMD4d_cmplt(xm, sqrt1_2);
-	pow2d = dsSIMD4d_sub(pow2d, dsMathImplMaskSIMD4d(smallValue, one));
+	pow2 = dsSIMD4db_sub(pow2, dsSIMD4db_shiftRightConst(smallValue, 63));
 	xm = dsSIMD4d_sub(dsSIMD4d_add(xm, dsMathImplMaskSIMD4d(smallValue, xm)), one);
+	dsSIMD4d pow2d = dsSIMD4db_toDouble(pow2);
 	dsSIMD4d xm2 = dsSIMD4d_mul(xm, xm);
 
 #if DS_DETERMINISTIC_MATH
@@ -2657,12 +3107,12 @@ DS_MATH_EXPORT inline dsSIMD4d dsLog10SIMD4d(dsSIMD4d x)
 
 	dsSIMD4db pow2;
 	dsSIMD4d xm = dsSplitPow2StrictPosSIMD4d(&pow2, x);
-	dsSIMD4d pow2d = dsSIMD4db_toDouble(pow2);
 
 	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
 	dsSIMD4db smallValue = dsSIMD4d_cmplt(xm, sqrt1_2);
-	pow2d = dsSIMD4d_sub(pow2d, dsMathImplMaskSIMD4d(smallValue, one));
+	pow2 = dsSIMD4db_sub(pow2, dsSIMD4db_shiftRightConst(smallValue, 63));
 	xm = dsSIMD4d_sub(dsSIMD4d_add(xm, dsMathImplMaskSIMD4d(smallValue, xm)), one);
+	dsSIMD4d pow2d = dsSIMD4db_toDouble(pow2);
 	dsSIMD4d xm2 = dsSIMD4d_mul(xm, xm);
 
 #if DS_DETERMINISTIC_MATH
@@ -2846,6 +3296,101 @@ DS_MATH_EXPORT inline dsSIMD4d dsExp10SIMD4d(dsSIMD4d x)
 		dsSIMD4d_div(pTaylor, dsSIMD4d_sub(qTaylor, pTaylor)), two, one);
 #endif
 	return dsSIMD4d_select(isInfinity, infinityResult, dsMulPow2SIMD4d(qRational, n));
+}
+
+DS_MATH_EXPORT inline dsSIMD4d dsFastPowSIMD4d(dsSIMD4d x, dsSIMD4d y)
+{
+	// Evaluate as exp2^(y*log2(x))
+	dsSIMD4d sqrt1_2 = dsSIMD4d_set1(M_SQRT1_2);
+	dsSIMD4d one = dsSIMD4d_set1(1.0);
+	dsSIMD4db oneb = dsSIMD4db_set1(1);
+	dsSIMD4d half = dsSIMD4d_set1(0.5);
+	dsSIMD4d two = dsSIMD4d_set1(2.0);
+	dsSIMD4d log2eFrac = dsSIMD4d_set1(DS_LOG2_E_FRACd);
+
+	dsSIMD4d lnTaylorP1 = dsSIMD4d_set1(DS_LN_TAYLOR_P_1d);
+	dsSIMD4d lnTaylorP2 = dsSIMD4d_set1(DS_LN_TAYLOR_P_2d);
+	dsSIMD4d lnTaylorP3 = dsSIMD4d_set1(DS_LN_TAYLOR_P_3d);
+	dsSIMD4d lnTaylorP4 = dsSIMD4d_set1(DS_LN_TAYLOR_P_4d);
+	dsSIMD4d lnTaylorP5 = dsSIMD4d_set1(DS_LN_TAYLOR_P_5d);
+	dsSIMD4d lnTaylorP6 = dsSIMD4d_set1(DS_LN_TAYLOR_P_6d);
+
+	dsSIMD4d lnTaylorQ1 = dsSIMD4d_set1(DS_LN_TAYLOR_Q_1d);
+	dsSIMD4d lnTaylorQ2 = dsSIMD4d_set1(DS_LN_TAYLOR_Q_2d);
+	dsSIMD4d lnTaylorQ3 = dsSIMD4d_set1(DS_LN_TAYLOR_Q_3d);
+	dsSIMD4d lnTaylorQ4 = dsSIMD4d_set1(DS_LN_TAYLOR_Q_4d);
+	dsSIMD4d lnTaylorQ5 = dsSIMD4d_set1(DS_LN_TAYLOR_Q_5d);
+
+	dsSIMD4d exp2TaylorP1 = dsSIMD4d_set1(DS_EXP2_TAYLOR_P_1d);
+	dsSIMD4d exp2TaylorP2 = dsSIMD4d_set1(DS_EXP2_TAYLOR_P_2d);
+	dsSIMD4d exp2TaylorP3 = dsSIMD4d_set1(DS_EXP2_TAYLOR_P_3d);
+
+	dsSIMD4d exp2TaylorQ1 = dsSIMD4d_set1(DS_EXP2_TAYLOR_Q_1d);
+	dsSIMD4d exp2TaylorQ2 = dsSIMD4d_set1(DS_EXP2_TAYLOR_Q_2d);
+
+	dsSIMD4db xPow2;
+	dsSIMD4d xm = dsSplitPow2SIMD4d(&xPow2, dsSIMD4d_abs(x));
+
+	// Adjust to the range (0.5, 2.0], adjusting the power of two if needed.
+	dsSIMD4db smallValue = dsSIMD4d_cmplt(xm, sqrt1_2);
+	xPow2 = dsSIMD4db_sub(xPow2, dsSIMD4db_and(smallValue, oneb));
+	xm = dsSIMD4d_sub(dsSIMD4d_add(xm, dsMathImplMaskSIMD4d(smallValue, xm)), one);
+	dsSIMD4d xPow2d = dsSIMD4db_toDouble(xPow2);
+	dsSIMD4d xm2 = dsSIMD4d_mul(xm, xm);
+
+#if DS_DETERMINISTIC_MATH
+	dsSIMD4d pTaylor = dsSIMD4d_mul(dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(dsSIMD4d_mul(
+		dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(dsSIMD4d_mul(
+		lnTaylorP1, xm), lnTaylorP2), xm), lnTaylorP3), xm), lnTaylorP4), xm), lnTaylorP5), xm),
+		lnTaylorP6), xm2);
+	dsSIMD4d qTaylor = dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(
+		dsSIMD4d_mul(dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(xm, lnTaylorQ1), xm), lnTaylorQ2), xm),
+		lnTaylorQ3), xm), lnTaylorQ4), xm), lnTaylorQ5);
+	dsSIMD4d log2X = dsSIMD4d_sub(
+		dsSIMD4d_mul(xm, dsSIMD4d_div(pTaylor, qTaylor)), dsSIMD4d_mul(half, xm2));
+	log2X = dsSIMD4d_add(dsSIMD4d_add(dsSIMD4d_add(dsSIMD4d_add(dsSIMD4d_mul(log2X, log2eFrac),
+		dsSIMD4d_mul(xm, log2eFrac)), log2X), xm), xPow2d);
+#else
+	dsSIMD4d pTaylor = dsSIMD4d_mul(dsSIMD4d_fmadd(dsSIMD4d_fmadd(dsSIMD4d_fmadd(dsSIMD4d_fmadd(
+		dsSIMD4d_fmadd(lnTaylorP1, xm, lnTaylorP2), xm, lnTaylorP3), xm, lnTaylorP4), xm,
+		lnTaylorP5), xm, lnTaylorP6), xm2);
+	dsSIMD4d qTaylor = dsSIMD4d_fmadd(dsSIMD4d_fmadd(dsSIMD4d_fmadd(dsSIMD4d_fmadd(dsSIMD4d_add(
+		xm, lnTaylorQ1), xm, lnTaylorQ2), xm, lnTaylorQ3), xm, lnTaylorQ4), xm, lnTaylorQ5);
+	dsSIMD4d log2X = dsSIMD4d_fnmadd(half, xm2, dsSIMD4d_mul(xm, dsSIMD4d_div(pTaylor, qTaylor)));
+	// Make sure the two fractional multiplies get added together before any other factors.
+	log2X = dsSIMD4d_add(dsSIMD4d_add(dsSIMD4d_add(dsSIMD4d_fmadd(log2X, log2eFrac,
+		dsSIMD4d_mul(xm, log2eFrac)), log2X), xm), xPow2d);
+#endif
+
+	dsSIMD4d yLog2X = dsSIMD4d_mul(y, log2X);
+
+	// Split into integer and fractional parts.
+	dsSIMD4d nd = dsSIMD4d_round(yLog2X);
+	dsSIMD4db n = dsSIMD4db_fromDouble(nd);
+	dsSIMD4d g = dsSIMD4d_sub(yLog2X, nd);
+	dsSIMD4d g2 = dsSIMD4d_mul(g, g);
+
+#if DS_DETERMINISTIC_MATH
+	pTaylor = dsSIMD4d_mul(dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(dsSIMD4d_mul(exp2TaylorP1, g2),
+		exp2TaylorP2), g2), exp2TaylorP3), g);
+	qTaylor = dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_add(g2, exp2TaylorQ1), g2), exp2TaylorQ2);
+	dsSIMD4d egRational = dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_div(pTaylor,
+		dsSIMD4d_sub(qTaylor, pTaylor)), two), one);
+#else
+	pTaylor = dsSIMD4d_mul(dsSIMD4d_fmadd(dsSIMD4d_fmadd(
+		exp2TaylorP1, g2, exp2TaylorP2), g2, exp2TaylorP3), g);
+	qTaylor = dsSIMD4d_fmadd(dsSIMD4d_add(g2, exp2TaylorQ1), g2, exp2TaylorQ2);
+	dsSIMD4d egRational = dsSIMD4d_fmadd(
+		dsSIMD4d_div(pTaylor, dsSIMD4d_sub(qTaylor, pTaylor)), two, one);
+#endif
+	dsSIMD4d powResult = dsMulPow2SIMD4d(egRational, n);
+
+	// Keep sign for odd exponents. Only actually valid if an integer exponent and x is negative,
+	// but not interested in error checking within here for performance.
+	dsSIMD4db oddExponentMask = dsSIMD4db_not(
+		dsSIMD4db_sub(dsSIMD4db_and(dsSIMD4db_fromDouble(y), oneb), oneb));
+	return dsMathImplConditionalNegateSIMD4d(
+		powResult, dsSIMD4db_and(dsMathImplExtractSignBitSIMD4d(x), oddExponentMask));
 }
 
 DS_SIMD_END()
