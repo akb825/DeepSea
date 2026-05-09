@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@
 
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Exponent.h>
 
 #include <float.h>
 
@@ -65,7 +67,7 @@ float dsComputeCascadeDistance(float near, float far, float maxFirstSplitDist, f
 
 	float cascadeFrac = (float)(index + 1)/(float)cascadeCount;
 	float linDist = near + cascadeFrac*(far - near);
-	float expDist = near*powf(far/near, cascadeFrac);
+	float expDist = near*dsPowf(far/near, cascadeFrac);
 	float distance = dsLerp(linDist, expDist, expFactor);
 	if (index == 0)
 		distance = dsMin(distance, maxFirstSplitDist);

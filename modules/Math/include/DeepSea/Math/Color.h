@@ -19,6 +19,7 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Exponent.h>
 #include <DeepSea/Math/Export.h>
 #include <DeepSea/Math/Round.h>
 #include <DeepSea/Math/Types.h>
@@ -520,14 +521,14 @@ inline float dsSRGBFromLinear(float value)
 {
 	if (value <= 0.0031308f)
 		return value*12.92f;
-	return 1.055f*powf(value, 1.0f/2.4f) - 0.055f;
+	return 1.055f*dsPowf(value, 1.0f/2.4f) - 0.055f;
 }
 
 inline float dsLinearFromSRGB(float c)
 {
 	if (c <= 0.04045f)
 		return c/12.92f;
-	return powf((c + 0.055f)/1.055f, 2.4f);
+	return dsPowf((c + 0.055f)/1.055f, 2.4f);
 }
 
 inline float dsGrayscaleValue(float r, float g, float b)
