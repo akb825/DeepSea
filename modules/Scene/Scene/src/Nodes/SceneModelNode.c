@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -147,6 +147,11 @@ dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator,
 		extraItemLists, extraItemListCount, resources, resourceCount, bounds);
 }
 
+#if DS_GCC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+
 dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t structSize,
 	const dsSceneModelInitInfo* models, uint32_t modelCount, const char* const* extraItemLists,
 	uint32_t extraItemListCount, dsSceneResources** resources, uint32_t resourceCount,
@@ -233,8 +238,8 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 	if (tempStringHashList != tempStringHashListData)
 		DS_VERIFY(dsAllocator_free(allocator, tempStringHashList));
 
-	size_t fullSize = fullAllocSize(structSize, itemLists, itemListCount, models, modelCount,
-		resourceCount);
+	size_t fullSize = fullAllocSize(
+		structSize, itemLists, itemListCount, models, modelCount, resourceCount);
 	if (fullSize == 0)
 	{
 		errno = EINVAL;
@@ -336,6 +341,10 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 
 	return node;
 }
+
+#if DS_GCC
+#pragma GCC diagnostic pop
+#endif
 
 dsSceneModelNode* dsSceneModelNode_cloneRemap(dsAllocator* allocator,
 	const dsSceneModelNode* origModel, const dsSceneMaterialRemap* remaps, uint32_t remapCount)
