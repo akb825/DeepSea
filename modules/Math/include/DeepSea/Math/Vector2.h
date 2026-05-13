@@ -19,6 +19,8 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Assert.h>
 
+#include <DeepSea/Math/SIMD/Dot.h>
+#include <DeepSea/Math/SIMD/SIMD.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Export.h>
 #include <DeepSea/Math/Sqrt.h>
@@ -225,12 +227,12 @@ DS_MATH_EXPORT inline void dsVector2d_normalize(dsVector2d* result, const dsVect
  * @param epsilon The epsilon to compare with.
  * @return True the values of a and b are within epsilon.
  */
-DS_MATH_EXPORT inline bool dsVector2f_epsilonEqual(const dsVector2f* a, const dsVector2f* b,
-	float epsilon);
+DS_MATH_EXPORT inline bool dsVector2f_epsilonEqual(
+	const dsVector2f* a, const dsVector2f* b, float epsilon);
 
 /** @copydoc dsVector2f_epsilonEqual() */
-DS_MATH_EXPORT inline bool dsVector2d_epsilonEqual(const dsVector2d* a, const dsVector2d* b,
-	double epsilon);
+DS_MATH_EXPORT inline bool dsVector2d_epsilonEqual(
+	const dsVector2d* a, const dsVector2d* b, double epsilon);
 
 /**
  * @brief Checks to see if two values are equal within a relative epsilon.
@@ -241,16 +243,16 @@ DS_MATH_EXPORT inline bool dsVector2d_epsilonEqual(const dsVector2d* a, const ds
  *     being compared.
  * @return True the values of a and b are within epsilon.
  */
-DS_MATH_EXPORT inline bool dsVector2f_relativeEpsilonEqual(const dsVector2f* a, const dsVector2f* b,
-	float absoluteEps, float relativeEps);
+DS_MATH_EXPORT inline bool dsVector2f_relativeEpsilonEqual(
+	const dsVector2f* a, const dsVector2f* b, float absoluteEps, float relativeEps);
 
 /** @copydoc dsVector2f_relativeEpsilonEqual() */
-DS_MATH_EXPORT inline bool dsVector2d_relativeEpsilonEqual(const dsVector2d* a, const dsVector2d* b,
-	double absoluteEps, double relativeEps);
+DS_MATH_EXPORT inline bool dsVector2d_relativeEpsilonEqual(
+	const dsVector2d* a, const dsVector2d* b, double absoluteEps, double relativeEps);
 
 /** @copydoc dsVector2_add() */
-DS_MATH_EXPORT inline void dsVector2f_add(dsVector2f* result, const dsVector2f* a,
-	const dsVector2f* b)
+DS_MATH_EXPORT inline void dsVector2f_add(
+	dsVector2f* result, const dsVector2f* a, const dsVector2f* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -259,8 +261,8 @@ DS_MATH_EXPORT inline void dsVector2f_add(dsVector2f* result, const dsVector2f* 
 }
 
 /** @copydoc dsVector2_add() */
-DS_MATH_EXPORT inline void dsVector2d_add(dsVector2d* result, const dsVector2d* a,
-	const dsVector2d* b)
+DS_MATH_EXPORT inline void dsVector2d_add(
+	dsVector2d* result, const dsVector2d* a, const dsVector2d* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -273,8 +275,8 @@ DS_MATH_EXPORT inline void dsVector2d_add(dsVector2d* result, const dsVector2d* 
 }
 
 /** @copydoc dsVector2_add() */
-DS_MATH_EXPORT inline void dsVector2i_add(dsVector2i* result, const dsVector2i* a,
-	const dsVector2i* b)
+DS_MATH_EXPORT inline void dsVector2i_add(
+	dsVector2i* result, const dsVector2i* a, const dsVector2i* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -283,8 +285,8 @@ DS_MATH_EXPORT inline void dsVector2i_add(dsVector2i* result, const dsVector2i* 
 }
 
 /** @copydoc dsVector2_add() */
-DS_MATH_EXPORT inline void dsVector2l_add(dsVector2l* result, const dsVector2l* a,
-	const dsVector2l* b)
+DS_MATH_EXPORT inline void dsVector2l_add(
+	dsVector2l* result, const dsVector2l* a, const dsVector2l* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -293,8 +295,8 @@ DS_MATH_EXPORT inline void dsVector2l_add(dsVector2l* result, const dsVector2l* 
 }
 
 /** @copydoc dsVector2_sub() */
-DS_MATH_EXPORT inline void dsVector2f_sub(dsVector2f* result, const dsVector2f* a,
-	const dsVector2f* b)
+DS_MATH_EXPORT inline void dsVector2f_sub(
+	dsVector2f* result, const dsVector2f* a, const dsVector2f* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -303,8 +305,8 @@ DS_MATH_EXPORT inline void dsVector2f_sub(dsVector2f* result, const dsVector2f* 
 }
 
 /** @copydoc dsVector2_sub() */
-DS_MATH_EXPORT inline void dsVector2d_sub(dsVector2d* result, const dsVector2d* a,
-	const dsVector2d* b)
+DS_MATH_EXPORT inline void dsVector2d_sub(
+	dsVector2d* result, const dsVector2d* a, const dsVector2d* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -317,8 +319,8 @@ DS_MATH_EXPORT inline void dsVector2d_sub(dsVector2d* result, const dsVector2d* 
 }
 
 /** @copydoc dsVector2_sub() */
-DS_MATH_EXPORT inline void dsVector2i_sub(dsVector2i* result, const dsVector2i* a,
-	const dsVector2i* b)
+DS_MATH_EXPORT inline void dsVector2i_sub(
+	dsVector2i* result, const dsVector2i* a, const dsVector2i* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -327,8 +329,8 @@ DS_MATH_EXPORT inline void dsVector2i_sub(dsVector2i* result, const dsVector2i* 
 }
 
 /** @copydoc dsVector2_sub() */
-DS_MATH_EXPORT inline void dsVector2l_sub(dsVector2l* result, const dsVector2l* a,
-	const dsVector2l* b)
+DS_MATH_EXPORT inline void dsVector2l_sub(
+	dsVector2l* result, const dsVector2l* a, const dsVector2l* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -337,8 +339,8 @@ DS_MATH_EXPORT inline void dsVector2l_sub(dsVector2l* result, const dsVector2l* 
 }
 
 /** @copydoc dsVector2_mul() */
-DS_MATH_EXPORT inline void dsVector2f_mul(dsVector2f* result, const dsVector2f* a,
-	const dsVector2f* b)
+DS_MATH_EXPORT inline void dsVector2f_mul(
+	dsVector2f* result, const dsVector2f* a, const dsVector2f* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -347,8 +349,8 @@ DS_MATH_EXPORT inline void dsVector2f_mul(dsVector2f* result, const dsVector2f* 
 }
 
 /** @copydoc dsVector2_mul() */
-DS_MATH_EXPORT inline void dsVector2d_mul(dsVector2d* result, const dsVector2d* a,
-	const dsVector2d* b)
+DS_MATH_EXPORT inline void dsVector2d_mul(
+	dsVector2d* result, const dsVector2d* a, const dsVector2d* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -361,8 +363,8 @@ DS_MATH_EXPORT inline void dsVector2d_mul(dsVector2d* result, const dsVector2d* 
 }
 
 /** @copydoc dsVector2_mul() */
-DS_MATH_EXPORT inline void dsVector2i_mul(dsVector2i* result, const dsVector2i* a,
-	const dsVector2i* b)
+DS_MATH_EXPORT inline void dsVector2i_mul(
+	dsVector2i* result, const dsVector2i* a, const dsVector2i* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -371,8 +373,8 @@ DS_MATH_EXPORT inline void dsVector2i_mul(dsVector2i* result, const dsVector2i* 
 }
 
 /** @copydoc dsVector2_mul() */
-DS_MATH_EXPORT inline void dsVector2l_mul(dsVector2l* result, const dsVector2l* a,
-	const dsVector2l* b)
+DS_MATH_EXPORT inline void dsVector2l_mul(
+	dsVector2l* result, const dsVector2l* a, const dsVector2l* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -381,8 +383,8 @@ DS_MATH_EXPORT inline void dsVector2l_mul(dsVector2l* result, const dsVector2l* 
 }
 
 /** @copydoc dsVector2_div() */
-DS_MATH_EXPORT inline void dsVector2f_div(dsVector2f* result, const dsVector2f* a,
-	const dsVector2f* b)
+DS_MATH_EXPORT inline void dsVector2f_div(
+	dsVector2f* result, const dsVector2f* a, const dsVector2f* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -391,8 +393,8 @@ DS_MATH_EXPORT inline void dsVector2f_div(dsVector2f* result, const dsVector2f* 
 }
 
 /** @copydoc dsVector2_div() */
-DS_MATH_EXPORT inline void dsVector2d_div(dsVector2d* result, const dsVector2d* a,
-	const dsVector2d* b)
+DS_MATH_EXPORT inline void dsVector2d_div(
+	dsVector2d* result, const dsVector2d* a, const dsVector2d* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -405,8 +407,8 @@ DS_MATH_EXPORT inline void dsVector2d_div(dsVector2d* result, const dsVector2d* 
 }
 
 /** @copydoc dsVector2_div() */
-DS_MATH_EXPORT inline void dsVector2i_div(dsVector2i* result, const dsVector2i* a,
-	const dsVector2i* b)
+DS_MATH_EXPORT inline void dsVector2i_div(
+	dsVector2i* result, const dsVector2i* a, const dsVector2i* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -415,8 +417,8 @@ DS_MATH_EXPORT inline void dsVector2i_div(dsVector2i* result, const dsVector2i* 
 }
 
 /** @copydoc dsVector2_div() */
-DS_MATH_EXPORT inline void dsVector2l_div(dsVector2l* result, const dsVector2l* a,
-	const dsVector2l* b)
+DS_MATH_EXPORT inline void dsVector2l_div(
+	dsVector2l* result, const dsVector2l* a, const dsVector2l* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -497,8 +499,8 @@ DS_MATH_EXPORT inline void dsVector2l_neg(dsVector2l* result, const dsVector2l* 
 }
 
 /** @copydoc dsVector2_lerp() */
-DS_MATH_EXPORT inline void dsVector2f_lerp(dsVector2f* result, const dsVector2f* a,
-	const dsVector2f* b, float t)
+DS_MATH_EXPORT inline void dsVector2f_lerp(
+	dsVector2f* result, const dsVector2f* a, const dsVector2f* b, float t)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -507,8 +509,8 @@ DS_MATH_EXPORT inline void dsVector2f_lerp(dsVector2f* result, const dsVector2f*
 }
 
 /** @copydoc dsVector2_lerp() */
-DS_MATH_EXPORT inline void dsVector2d_lerp(dsVector2d* result, const dsVector2d* a,
-	const dsVector2d* b, double t)
+DS_MATH_EXPORT inline void dsVector2d_lerp(
+	dsVector2d* result, const dsVector2d* a, const dsVector2d* b, double t)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -526,8 +528,8 @@ DS_MATH_EXPORT inline void dsVector2d_lerp(dsVector2d* result, const dsVector2d*
 }
 
 /** @copydoc dsVector2_lerp() */
-DS_MATH_EXPORT inline void dsVector2i_lerp(dsVector2i* result, const dsVector2i* a,
-	const dsVector2i* b, float t)
+DS_MATH_EXPORT inline void dsVector2i_lerp(
+	dsVector2i* result, const dsVector2i* a, const dsVector2i* b, float t)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -537,8 +539,8 @@ DS_MATH_EXPORT inline void dsVector2i_lerp(dsVector2i* result, const dsVector2i*
 }
 
 /** @copydoc dsVector2_lerp() */
-DS_MATH_EXPORT inline void dsVector2l_lerp(dsVector2l* result, const dsVector2l* a,
-	const dsVector2l* b, double t)
+DS_MATH_EXPORT inline void dsVector2l_lerp(
+	dsVector2l* result, const dsVector2l* a, const dsVector2l* b, double t)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -560,7 +562,11 @@ DS_MATH_EXPORT inline double dsVector2d_dot(const dsVector2d* a, const dsVector2
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	return dsSIMD2d_get(dsDot2SIMD2d(a->simd, b->simd), 0);
+#else
 	return dsVector2_dot(*a, *b);
+#endif
 }
 
 /** @copydoc dsVector2_dot() */
@@ -590,7 +596,11 @@ DS_MATH_EXPORT inline float dsVector2f_len2(const dsVector2f* a)
 DS_MATH_EXPORT inline double dsVector2d_len2(const dsVector2d* a)
 {
 	DS_ASSERT(a);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	return dsSIMD2d_get(dsDot2SIMD2d(a->simd, a->simd), 0);
+#else
 	return dsVector2_len2(*a);
+#endif
 }
 
 /** @copydoc dsVector2_len2() */
@@ -620,7 +630,12 @@ DS_MATH_EXPORT inline double dsVector2d_dist2(const dsVector2d* a, const dsVecto
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	dsSIMD2d diff = dsSIMD2d_sub(a->simd, b->simd);
+	return dsSIMD2d_get(dsDot2SIMD2d(diff, diff), 0);
+#else
 	return dsVector2_dist2(*a, *b);
+#endif
 }
 
 /** @copydoc dsVector2_dist2() */
@@ -672,7 +687,16 @@ inline float dsVector2f_len(const dsVector2f* a)
 inline double dsVector2d_len(const dsVector2d* a)
 {
 	DS_ASSERT(a);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	dsSIMD2d len2 = dsDot2SIMD2d(a->simd, a->simd);
+#if DS_SIMD_EMULATED_DIV_SQRT
+	return dsSqrtd(dsSIMD2d_get(len2, 0));
+#else
+	return dsSIMD2d_get(dsSIMD2d_sqrt(len2), 0);
+#endif
+#else
 	return dsSqrtd(dsVector2_len2(*a));
+#endif
 }
 
 inline double dsVector2i_len(const dsVector2i* a)
@@ -698,7 +722,17 @@ inline double dsVector2d_dist(const dsVector2d* a, const dsVector2d* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	dsSIMD2d diff = dsSIMD2d_sub(a->simd, b->simd);
+	dsSIMD2d dist2 = dsDot2SIMD2d(diff, diff);
+#if DS_SIMD_EMULATED_DIV_SQRT
+	return dsSqrtd(dsSIMD2d_get(dist2, 0));
+#else
+	return dsSIMD2d_get(dsSIMD2d_sqrt(dist2), 0);
+#endif
+#else
 	return dsSqrtd(dsVector2_dist2(*a, *b));
+#endif
 }
 
 inline double dsVector2i_dist(const dsVector2i* a, const dsVector2i* b)
@@ -728,9 +762,19 @@ inline void dsVector2d_normalize(dsVector2d* result, const dsVector2d* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	dsSIMD2d len2 = dsDot2SIMD2d(a->simd, a->simd);
+#if DS_SIMD_EMULATED_DIV_SQRT
+	dsSIMD2d invLength = dsSIMD2d_set1(1/dsSqrtd(dsSIMD2d_get(len2, 0)));
+#else
+	dsSIMD2d invLen = dsSIMD2d_rsqrt(len2);
+#endif
+	result->simd = dsSIMD2d_mul(a->simd, invLen);
+#else
 	double length = dsVector2d_len(a);
 	DS_ASSERT(length > 0);
 	dsVector2_scale(*result, *a, 1/length);
+#endif
 }
 
 inline bool dsVector2f_epsilonEqual(const dsVector2f* a, const dsVector2f* b, float epsilon)
@@ -751,15 +795,15 @@ inline bool dsVector2d_epsilonEqual(const dsVector2d* a, const dsVector2d* b, do
 #endif
 }
 
-inline bool dsVector2f_relativeEpsilonEqual(const dsVector2f* a, const dsVector2f* b,
-	float absoluteEps, float relativeEps)
+inline bool dsVector2f_relativeEpsilonEqual(
+	const dsVector2f* a, const dsVector2f* b, float absoluteEps, float relativeEps)
 {
 	return dsRelativeEpsilonEqualf(a->values[0], b->values[0], absoluteEps, relativeEps) &&
 		dsRelativeEpsilonEqualf(a->values[1], b->values[1], absoluteEps, relativeEps);
 }
 
-inline bool dsVector2d_relativeEpsilonEqual(const dsVector2d* a, const dsVector2d* b,
-	double absoluteEps, double relativeEps)
+inline bool dsVector2d_relativeEpsilonEqual(
+	const dsVector2d* a, const dsVector2d* b, double absoluteEps, double relativeEps)
 {
 #if DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2d diff = dsSIMD2d_abs(dsSIMD2d_sub(a->simd, b->simd));

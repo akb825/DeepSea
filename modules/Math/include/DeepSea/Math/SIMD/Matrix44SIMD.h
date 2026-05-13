@@ -19,6 +19,9 @@
 #include <DeepSea/Core/Config.h>
 
 #include <DeepSea/Core/Assert.h>
+
+#include <DeepSea/Math/SIMD/Dot.h>
+#include <DeepSea/Math/SIMD/SIMD.h>
 #include <DeepSea/Math/Export.h>
 #include <DeepSea/Math/Quaternion.h>
 #include <DeepSea/Math/Types.h>
@@ -1053,9 +1056,10 @@ DS_MATH_EXPORT inline float dsMatrix44f_determinantSIMD(const dsMatrix44f* a)
 	DS_SIMD_SHUFFLE2_0202_1313(detA, detC, a->columns[0].simd, a->columns[2].simd);
 	DS_SIMD_SHUFFLE2_0202_1313(detD, detB, a->columns[1].simd, a->columns[3].simd);
 
-	dsVector4f det;
-	det.simd = dsSIMD4f_sub(dsSIMD4f_mul(detA, detB), dsSIMD4f_mul(detC, detD));
-	float det44 = det.x*det.w + det.y*det.z;
+	dsSIMD4f det = dsSIMD4f_sub(dsSIMD4f_mul(detA, detB), dsSIMD4f_mul(detC, detD));
+	dsSIMD4f det44 = dsSIMD4f_add(
+		dsSIMD4f_mul(dsSIMD4f_set1FromVec(det, 0), dsSIMD4f_set1FromVec(det, 3)),
+		dsSIMD4f_mul(dsSIMD4f_set1FromVec(det, 1), dsSIMD4f_set1FromVec(det, 2)));
 
 	dsSIMD4f ab, dc;
 	DS_MATRIX22_ADJ_MUL(ab, a22, b22);
@@ -1064,9 +1068,8 @@ DS_MATH_EXPORT inline float dsMatrix44f_determinantSIMD(const dsMatrix44f* a)
 	dsSIMD4f dc0213;
 	DS_SIMD_SHUFFLE1_0213(dc0213, dc);
 
-	dsVector4f tr;
-	tr.simd = dsSIMD4f_mul(ab, dc0213);
-	return det44 - ((tr.x + tr.y) + (tr.z + tr.w));
+	dsSIMD4f tr = dsDot4SIMD4f(ab, dc0213);
+	return dsSIMD4f_get(dsSIMD4f_sub(det44, tr), 0);
 }
 
 DS_MATH_EXPORT inline void dsMatrix44f_fastInvertSIMD(dsMatrix44f* result, const dsMatrix44f* a)
@@ -1174,17 +1177,7 @@ DS_MATH_EXPORT inline void dsMatrix44f_invertSIMD(dsMatrix44f* result, const dsM
 
 	dsSIMD4f dc0213;
 	DS_SIMD_SHUFFLE1_0213(dc0213, dc);
-	dsSIMD4f tr = dsSIMD4f_mul(ab, dc0213);
-#if DS_SIMD_ALWAYS_HADD
-	tr = dsSIMD4f_hadd(tr, tr);
-	tr = dsSIMD4f_hadd(tr, tr);
-#else
-	dsSIMD4f trX = dsSIMD4f_set1FromVec(tr, 0);
-	dsSIMD4f trY = dsSIMD4f_set1FromVec(tr, 1);
-	dsSIMD4f trZ = dsSIMD4f_set1FromVec(tr, 2);
-	dsSIMD4f trW = dsSIMD4f_set1FromVec(tr, 3);
-	tr = dsSIMD4f_add(dsSIMD4f_add(trX, trY), dsSIMD4f_add(trZ, trW));
-#endif
+	dsSIMD4f tr = dsDot4SIMD4f(ab, dc0213);
 	det44 = dsSIMD4f_sub(det44, tr);
 
 	dsSIMD4f sign = dsSIMD4f_set4(1.0f, -1.0f, -1.0f, 1.0f);
@@ -1460,9 +1453,9 @@ DS_MATH_EXPORT inline float dsMatrix44f_determinantFMA(const dsMatrix44f* a)
 	DS_SIMD_SHUFFLE2_0202_1313(detA, detC, a->columns[0].simd, a->columns[2].simd);
 	DS_SIMD_SHUFFLE2_0202_1313(detD, detB, a->columns[1].simd, a->columns[3].simd);
 
-	dsVector4f det;
-	det.simd = dsSIMD4f_fmsub(detA, detB, dsSIMD4f_mul(detC, detD));
-	float det44 = det.x*det.w + det.y*det.z;
+	dsSIMD4f det = dsSIMD4f_fmsub(detA, detB, dsSIMD4f_mul(detC, detD));
+	dsSIMD4f det44 = dsSIMD4f_fmadd(dsSIMD4f_set1FromVec(det, 0), dsSIMD4f_set1FromVec(det, 3),
+		dsSIMD4f_mul(dsSIMD4f_set1FromVec(det, 1), dsSIMD4f_set1FromVec(det, 2)));
 
 	dsSIMD4f ab, dc;
 	DS_MATRIX22_ADJ_MUL(ab, a22, b22);
@@ -1471,9 +1464,8 @@ DS_MATH_EXPORT inline float dsMatrix44f_determinantFMA(const dsMatrix44f* a)
 	dsSIMD4f dc0213;
 	DS_SIMD_SHUFFLE1_0213(dc0213, dc);
 
-	dsVector4f tr;
-	tr.simd = dsSIMD4f_mul(ab, dc0213);
-	return det44 - ((tr.x + tr.y) + (tr.z + tr.w));
+	dsSIMD4f tr = dsDot4FMA4f(ab, dc0213);
+	return dsSIMD4f_get(dsSIMD4f_sub(det44, tr), 0);
 }
 
 DS_MATH_EXPORT inline void dsMatrix44f_fastInvertFMA(dsMatrix44f* result, const dsMatrix44f* a)
@@ -1575,9 +1567,7 @@ DS_MATH_EXPORT inline void dsMatrix44f_invertFMA(dsMatrix44f* result, const dsMa
 
 	dsSIMD4f dc0213;
 	DS_SIMD_SHUFFLE1_0213(dc0213, dc);
-	dsSIMD4f tr = dsSIMD4f_mul(ab, dc0213);
-	tr = dsSIMD4f_hadd(tr, tr);
-	tr = dsSIMD4f_hadd(tr, tr);
+	dsSIMD4f tr = dsDot4FMA4f(ab, dc0213);
 	det44 = dsSIMD4f_sub(det44, tr);
 
 	dsSIMD4f sign = dsSIMD4f_set4(1.0f, -1.0f, -1.0f, 1.0f);
@@ -2126,12 +2116,13 @@ DS_MATH_EXPORT inline double dsMatrix44d_determinantSIMD2(const dsMatrix44d* a)
 	DS_SIMD_SHUFFLE2_0202_1313(detA, detC, a->columns[0], a->columns[2]);
 	DS_SIMD_SHUFFLE2_0202_1313(detD, detB, a->columns[1], a->columns[3]);
 
-	dsVector4d det;
-	det.simd2[0] = dsSIMD2d_sub(dsSIMD2d_mul(detA.simd2[0], detB.simd2[0]),
+	dsSIMD2d det0 = dsSIMD2d_sub(dsSIMD2d_mul(detA.simd2[0], detB.simd2[0]),
 		dsSIMD2d_mul(detC.simd2[0], detD.simd2[0]));
-	det.simd2[1] = dsSIMD2d_sub(dsSIMD2d_mul(detA.simd2[1], detB.simd2[1]),
+	dsSIMD2d det1 = dsSIMD2d_sub(dsSIMD2d_mul(detA.simd2[1], detB.simd2[1]),
 		dsSIMD2d_mul(detC.simd2[1], detD.simd2[1]));
-	double det44 = det.x*det.w + det.y*det.z;
+	dsSIMD2d det44 = dsSIMD2d_add(
+		dsSIMD2d_mul(dsSIMD2d_set1FromVec(det0, 0), dsSIMD2d_set1FromVec(det1, 1)),
+		dsSIMD2d_mul(dsSIMD2d_set1FromVec(det0, 1), dsSIMD2d_set1FromVec(det1, 0)));
 
 	dsVector4d ab, dc;
 	DS_MATRIX22_ADJ_MUL(ab, a22, b22);
@@ -2140,10 +2131,8 @@ DS_MATH_EXPORT inline double dsMatrix44d_determinantSIMD2(const dsMatrix44d* a)
 	dsVector4d dc0213;
 	DS_SIMD_SHUFFLE1_0213(dc0213, dc);
 
-	dsVector4d tr;
-	tr.simd2[0] = dsSIMD2d_mul(ab.simd2[0], dc0213.simd2[0]);
-	tr.simd2[1] = dsSIMD2d_mul(ab.simd2[1], dc0213.simd2[1]);
-	return det44 - ((tr.x + tr.y) + (tr.z + tr.w));
+	dsSIMD2d tr = dsDot4SIMD2d(ab.simd2[0], ab.simd2[1], dc0213.simd2[0], dc0213.simd2[1]);
+	return dsSIMD2d_get(dsSIMD2d_sub(det44, tr), 0);
 }
 
 DS_MATH_EXPORT inline void dsMatrix44d_fastInvertSIMD2(dsMatrix44d* result, const dsMatrix44d* a)
@@ -2293,20 +2282,8 @@ DS_MATH_EXPORT inline void dsMatrix44d_invertSIMD2(dsMatrix44d* result, const ds
 
 	dsVector4d dc0213;
 	DS_SIMD_SHUFFLE1_0213(dc0213, dc);
-	dsVector4d tr;
-	tr.simd2[0] = dsSIMD2d_mul(ab.simd2[0], dc0213.simd2[0]);
-	tr.simd2[1] = dsSIMD2d_mul(ab.simd2[1], dc0213.simd2[1]);
-#if DS_SIMD_ALWAYS_HADD
-	tr.simd2[0] = dsSIMD2d_hadd(tr.simd2[0], tr.simd2[1]);
-	tr.simd2[0] = dsSIMD2d_hadd(tr.simd2[0], tr.simd2[0]);
-#else
-	tr.simd2[0] = dsSIMD2d_add(
-		dsSIMD2d_set1FromVec(tr.simd2[0], 0), dsSIMD2d_set1FromVec(tr.simd2[0], 1));
-	tr.simd2[1] = dsSIMD2d_add(
-		dsSIMD2d_set1FromVec(tr.simd2[1], 0), dsSIMD2d_set1FromVec(tr.simd2[1], 1));
-	tr.simd2[0] = dsSIMD2d_add(tr.simd2[0], tr.simd2[1]);
-#endif
-	det44 = dsSIMD2d_sub(det44, tr.simd2[0]);
+	dsSIMD2d tr = dsDot4SIMD2d(ab.simd2[0], ab.simd2[1], dc0213.simd2[0], dc0213.simd2[1]);
+	det44 = dsSIMD2d_sub(det44, tr);
 
 	dsSIMD2d sign = dsSIMD2d_set2(1.0, -1.0);
 	dsVector4d invDet44;
@@ -2670,12 +2647,12 @@ DS_MATH_EXPORT inline double dsMatrix44d_determinantFMA2(const dsMatrix44d* a)
 	DS_SIMD_SHUFFLE2_0202_1313(detA, detC, a->columns[0], a->columns[2]);
 	DS_SIMD_SHUFFLE2_0202_1313(detD, detB, a->columns[1], a->columns[3]);
 
-	dsVector4d det;
-	det.simd2[0] = dsSIMD2d_fmsub(detA.simd2[0], detB.simd2[0],
-		dsSIMD2d_mul(detC.simd2[0], detD.simd2[0]));
-	det.simd2[1] = dsSIMD2d_fmsub(detA.simd2[1], detB.simd2[1],
-		dsSIMD2d_mul(detC.simd2[1], detD.simd2[1]));
-	double det44 = det.x*det.w + det.y*det.z;
+	dsSIMD2d det0 = dsSIMD2d_fmsub(
+		detA.simd2[0], detB.simd2[0], dsSIMD2d_mul(detC.simd2[0], detD.simd2[0]));
+	dsSIMD2d det1 = dsSIMD2d_fmsub(
+		detA.simd2[1], detB.simd2[1], dsSIMD2d_mul(detC.simd2[1], detD.simd2[1]));
+	dsSIMD2d det44 = dsSIMD2d_fmadd(dsSIMD2d_set1FromVec(det0, 0), dsSIMD2d_set1FromVec(det1, 1),
+		dsSIMD2d_mul(dsSIMD2d_set1FromVec(det0, 1), dsSIMD2d_set1FromVec(det1, 0)));
 
 	dsVector4d ab, dc;
 	DS_MATRIX22_ADJ_MUL(ab, a22, b22);
@@ -2684,10 +2661,8 @@ DS_MATH_EXPORT inline double dsMatrix44d_determinantFMA2(const dsMatrix44d* a)
 	dsVector4d dc0213;
 	DS_SIMD_SHUFFLE1_0213(dc0213, dc);
 
-	dsVector4d tr;
-	tr.simd2[0] = dsSIMD2d_mul(ab.simd2[0], dc0213.simd2[0]);
-	tr.simd2[1] = dsSIMD2d_mul(ab.simd2[1], dc0213.simd2[1]);
-	return det44 - ((tr.x + tr.y) + (tr.z + tr.w));
+	dsSIMD2d tr = dsDot4FMA2d(ab.simd2[0], ab.simd2[1], dc0213.simd2[0], dc0213.simd2[1]);
+	return dsSIMD2d_get(dsSIMD2d_sub(det44, tr), 0);
 }
 
 DS_MATH_EXPORT inline void dsMatrix44d_fastInvertFMA2(dsMatrix44d* result, const dsMatrix44d* a)
@@ -2829,12 +2804,8 @@ DS_MATH_EXPORT inline void dsMatrix44d_invertFMA2(dsMatrix44d* result, const dsM
 
 	dsVector4d dc0213;
 	DS_SIMD_SHUFFLE1_0213(dc0213, dc);
-	dsVector4d tr;
-	tr.simd2[0] = dsSIMD2d_mul(ab.simd2[0], dc0213.simd2[0]);
-	tr.simd2[1] = dsSIMD2d_mul(ab.simd2[1], dc0213.simd2[1]);
-	tr.simd2[0] = dsSIMD2d_hadd(tr.simd2[0], tr.simd2[1]);
-	tr.simd2[0] = dsSIMD2d_hadd(tr.simd2[0], tr.simd2[0]);
-	det44 = dsSIMD2d_sub(det44, tr.simd2[0]);
+	dsSIMD2d tr = dsDot4FMA2d(ab.simd2[0], ab.simd2[1], dc0213.simd2[0], dc0213.simd2[1]);
+	det44 = dsSIMD2d_sub(det44, tr);
 
 	dsSIMD2d sign = dsSIMD2d_set2(1.0, -1.0);
 	dsVector4d invDet44;
@@ -3382,15 +3353,16 @@ DS_MATH_EXPORT inline double dsMatrix44d_determinantSIMD4(const dsMatrix44d* DS_
 	DS_SIMD_SHUFFLE2_0202_1313(detA, detC, col0, col2);
 	DS_SIMD_SHUFFLE2_0202_1313(detD, detB, col1, col3);
 
-	dsSIMD4d simdDet;
 #if DS_SIMD_ALWAYS_FMA
-	simdDet = dsSIMD4d_fmsub(detA, detB, dsSIMD4d_mul(detC, detD));
+	dsSIMD4d det = dsSIMD4d_fmsub(detA, detB, dsSIMD4d_mul(detC, detD));
+	dsSIMD4d det44 = dsSIMD4d_fmadd(dsSIMD4d_set1FromVec(det, 0), dsSIMD4d_set1FromVec(det, 3),
+		dsSIMD4d_mul(dsSIMD4d_set1FromVec(det, 1), dsSIMD4d_set1FromVec(det, 2)));
 #else
-	simdDet = dsSIMD4d_sub(dsSIMD4d_mul(detA, detB), dsSIMD4d_mul(detC, detD));
+	dsSIMD4d det = dsSIMD4d_sub(dsSIMD4d_mul(detA, detB), dsSIMD4d_mul(detC, detD));
+	dsSIMD4d det44 = dsSIMD4d_add(
+		dsSIMD4d_mul(dsSIMD4d_set1FromVec(det, 0), dsSIMD4d_set1FromVec(det, 3)),
+		dsSIMD4d_mul(dsSIMD4d_set1FromVec(det, 1), dsSIMD4d_set1FromVec(det, 2)));
 #endif
-	DS_ALIGN(32) dsVector4d det;
-	dsSIMD4d_store(&det, simdDet);
-	double det44 = det.x*det.w + det.y*det.z;
 
 	dsSIMD4d ab, dc;
 	DS_MATRIX22_ADJ_MUL(ab, a22, b22);
@@ -3399,9 +3371,8 @@ DS_MATH_EXPORT inline double dsMatrix44d_determinantSIMD4(const dsMatrix44d* DS_
 	dsSIMD4d dc0213;
 	DS_SIMD_SHUFFLE1_0213(dc0213, dc);
 
-	DS_ALIGN(32) dsVector4d tr;
-	dsSIMD4d_store(&tr, dsSIMD4d_mul(ab, dc0213));
-	return det44 - ((tr.x + tr.y) + (tr.z + tr.w));
+	dsSIMD4d tr = dsDot4SIMD4d(ab, dc0213);
+	return dsSIMD4d_get(dsSIMD4d_sub(det44, tr), 0);
 }
 
 DS_MATH_EXPORT inline void dsMatrix44d_fastInvertSIMD4(
@@ -3589,10 +3560,7 @@ DS_MATH_EXPORT inline void dsMatrix44d_invertSIMD4(
 
 	dsSIMD4d dc0213;
 	DS_SIMD_SHUFFLE1_0213(dc0213, dc);
-	dsSIMD4d tr = dsSIMD4d_mul(ab, dc0213);
-	// hadd for double 4 doesn't cross 128 bit boundaries.
-	tr = dsSIMD4d_hadd(tr, tr);
-	tr = dsSIMD4d_add(dsSIMD4d_set1FromVec(tr, 0), dsSIMD4d_set1FromVec(tr, 2));
+	dsSIMD4d tr = dsDot4SIMD4d(ab, dc0213);
 	det44 = dsSIMD4d_sub(det44, tr);
 
 	dsSIMD4d sign = dsSIMD4d_set4(1.0, -1.0, -1.0, 1.0);

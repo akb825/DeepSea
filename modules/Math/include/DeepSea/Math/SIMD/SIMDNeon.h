@@ -235,8 +235,8 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_neg(dsSIMD4f a)
  * @param negW Constant 1 to negate the W component or 0 to leave it unchanged.
  * @return The result of the negation.
  */
-DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_negComponents(dsSIMD4f a, uint32_t negX, uint32_t negY,
-	uint32_t negZ, uint32_t negW)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_negComponents(
+	dsSIMD4f a, uint32_t negX, uint32_t negY, uint32_t negZ, uint32_t negW)
 {
 	uint32x4_t mask = {negX, negY, negZ, negW};
 	return vreinterpretq_f32_u32(veorq_u32(vshlq_n_u32(mask, 31), vreinterpretq_u32_f32(a)));
@@ -1065,7 +1065,7 @@ DS_ALWAYS_INLINE void dsSIMD2d_storeUnaligned(void* dp, dsSIMD2d a)
 #if DS_SIMD_ALWAYS_DOUBLE2
 #define dsSIMD2d_get(a, i) vgetq_lane_f64((a), (i))
 #else
-#define dsSIMD2d_get(a, i) 0.0
+#define dsSIMD2d_get(a, i) ((void)(a), 0.0)
 #endif
 
 /**
@@ -2097,7 +2097,7 @@ DS_ALWAYS_INLINE void dsSIMD4d_storeUnaligned(void* dp, dsSIMD4d a)
  * @param i The index of the element.
  * @return The element value.
  */
-#define dsSIMD4d_get(a, i) ((void)a, 0.0)
+#define dsSIMD4d_get(a, i) ((void)(a), 0.0)
 
 /**
  * @brief Negates a SIMD value.
@@ -2121,8 +2121,8 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_neg(dsSIMD4d a)
  * @param negW Constant 1 to negate the W component or 0 to leave it unchanged.
  * @return The result of the negation.
  */
-DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_negComponents(dsSIMD4d a, uint64_t negX, uint64_t negY,
-	uint64_t negZ, uint64_t negW)
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_negComponents(
+	dsSIMD4d a, uint64_t negX, uint64_t negY, uint64_t negZ, uint64_t negW)
 {
 	DS_ASSERT(false);
 	DS_UNREACHABLE();
