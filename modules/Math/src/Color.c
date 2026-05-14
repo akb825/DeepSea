@@ -159,8 +159,8 @@ void dsColor3f_lerpSRGB(dsColor3f* outColor, const dsColor3f* x, const dsColor3f
 bool dsColor3f_equal(const dsColor3f* x, const dsColor3f* y);
 bool dsColor3f_epsilonEqual(const dsColor3f* x, const dsColor3f* y, float epsilon);
 
-void dsColor3f_createHSVTransform(dsMatrix33f* outTransform, float hueShift, float saturationScale,
-	float valueScale)
+void dsColor3f_createHSVTransform(
+	dsMatrix33f* outTransform, float hueShift, float saturationScale, float valueScale)
 {
 	DS_ASSERT(outTransform);
 

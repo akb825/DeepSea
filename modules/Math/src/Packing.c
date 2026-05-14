@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ static float overflow()
 	return f;
 }
 
-dsHalfFloat dsPackHalfFloat(float x)
+dsHalfFloat dsPackHalfFloatSoft(float x)
 {
 	dsHalfFloat halfFloat;
 	FloatInt entry;
@@ -208,7 +208,7 @@ dsHalfFloat dsPackHalfFloat(float x)
 	}
 }
 
-float dsUnpackHalfFloat(dsHalfFloat x)
+float dsUnpackHalfFloatSoft(dsHalfFloat x)
 {
 	int s = (x.data >> 15) & 0x00000001;
 	int e = (x.data >> 10) & 0x0000001f;
@@ -282,6 +282,8 @@ float dsUnpackHalfFloat(dsHalfFloat x)
 	return Result.f;
 }
 
+dsHalfFloat dsPackHalfFloat(float x);
+float dsUnpackHalfFloat(dsHalfFloat x);
 int32_t dsPackInt32(float x);
 float dsUnpackInt32(int32_t x);
 uint32_t dsPackUInt32(float x);

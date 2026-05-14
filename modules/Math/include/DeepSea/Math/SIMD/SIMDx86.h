@@ -103,7 +103,8 @@ extern "C"
 #define DS_SIMD_ALWAYS_DOUBLE4 0
 #endif
 
-// NOTE: Windows doesn't have any way to distinguish between AVX and SSE versions > 2.
+// NOTE: Windows doesn't have any way to distinguish between AVX and SSE versions > 2, so need to
+// rely on own macro to target arch level 2.
 #if defined(__SSE3__) || defined(__AVX__) || DS_X86_ARCH_LEVEL >= 2
 #define DS_SIMD_ALWAYS_HADD 1
 #else
@@ -123,7 +124,8 @@ extern "C"
 #define DS_SIMD_ALWAYS_FMA 0
 #endif
 
-#if defined(__F16C__)
+// NOTE: Windows rolls F16C with AVX2.
+#if defined(__F16C__) || (DS_WINDOWS && defined(__AVX2__))
 #define DS_SIMD_ALWAYS_HALF_FLOAT 1
 #else
 #define DS_SIMD_ALWAYS_HALF_FLOAT 0

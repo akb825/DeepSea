@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "Determinism.h"
 #include <DeepSea/Math/Color.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix33.h>
@@ -44,8 +45,8 @@ static bool testHSVColor(uint8_t red, uint8_t green, uint8_t blue, float hue, fl
 	return success;
 }
 
-static bool testHSVColor3f(float red, float green, float blue, float hue, float saturation,
-	float value, float epsilon)
+static bool testHSVColor3f(
+	float red, float green, float blue, float hue, float saturation, float value, float epsilon)
 {
 	dsColor3f expectedColor3f = {{red, green, blue}};
 	dsHSVColor expectedHSVColor = {{hue, saturation, value, 1.0f}};
@@ -70,8 +71,8 @@ static bool testHSVColor3f(float red, float green, float blue, float hue, float 
 	return success;
 }
 
-static bool testHSVColor4f(float red, float green, float blue, float hue, float saturation,
-	float value, float epsilon)
+static bool testHSVColor4f(
+	float red, float green, float blue, float hue, float saturation, float value, float epsilon)
 {
 	dsColor4f expectedColor4f = {{red, green, blue, 0.5f}};
 	dsHSVColor expectedHSVColor = {{hue, saturation, value, 0.5f}};
@@ -119,8 +120,8 @@ static bool testHSLColor(uint8_t red, uint8_t green, uint8_t blue, float hue, fl
 	return success;
 }
 
-static bool testHSLColor3f(float red, float green, float blue, float hue, float saturation,
-	float lightness, float epsilon)
+static bool testHSLColor3f(
+	float red, float green, float blue, float hue, float saturation, float lightness, float epsilon)
 {
 	dsColor3f expectedColor3f = {{red, green, blue}};
 	dsHSLColor expectedHSLColor = {{hue, saturation, lightness, 1.0f}};
@@ -506,52 +507,55 @@ TEST(ColorTest, ConvertColor4fAndHSLColor)
 TEST(ColorTest, ConvertSRGBLinear)
 {
 	const float epsilon = 1e-6f;
-	EXPECT_NEAR(0.0f, dsSRGBFromLinear(0.0f), epsilon);
-	EXPECT_NEAR(0.0998528f, dsSRGBFromLinear(0.01f), epsilon);
-	EXPECT_NEAR(0.5370987f, dsSRGBFromLinear(0.25f), epsilon);
-	EXPECT_NEAR(0.8808250f, dsSRGBFromLinear(0.75f), epsilon);
-	EXPECT_NEAR(1.0f, dsSRGBFromLinear(1.0f), epsilon);
+	DS_UNUSED(epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0f, dsSRGBFromLinear(0.0f), epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0129200006f, dsSRGBFromLinear(0.001f), epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.5370987f, dsSRGBFromLinear(0.25f), epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.8808250f, dsSRGBFromLinear(0.75f), epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.99999994f, dsSRGBFromLinear(1.0f), epsilon);
 
-	EXPECT_NEAR(0.0f, dsLinearFromSRGB(0.0f), epsilon);
-	EXPECT_NEAR(0.0007740f, dsLinearFromSRGB(0.01f), epsilon);
-	EXPECT_NEAR(0.0508761f, dsLinearFromSRGB(0.25f), epsilon);
-	EXPECT_NEAR(0.5225216f, dsLinearFromSRGB(0.75f), epsilon);
-	EXPECT_NEAR(1.0f, dsLinearFromSRGB(1.0f), epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0f, dsLinearFromSRGB(0.0f), epsilon);
+	EXPECT_EQ_DETERMINISTIC(7.73993816e-5f, dsLinearFromSRGB(0.001f), epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0508760922f, dsLinearFromSRGB(0.25f), epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.5225216f, dsLinearFromSRGB(0.75f), epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0f, dsLinearFromSRGB(1.0f), epsilon);
 }
 
 TEST(ColorTest, ConvertSRGBLinearColor3f)
 {
 	const float epsilon = 1e-6f;
-	dsColor3f color = {{0.01f, 0.25f, 0.75f}};
+	DS_UNUSED(epsilon);
+	dsColor3f color = {{0.001f, 0.25f, 0.75f}};
 	dsColor3f convertedColor;
 
 	dsColor3f_sRGBFromLinear(&convertedColor, &color);
-	EXPECT_NEAR(0.0998528f, convertedColor.r, epsilon);
-	EXPECT_NEAR(0.5370987f, convertedColor.g, epsilon);
-	EXPECT_NEAR(0.8808250f, convertedColor.b, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0129200006f, convertedColor.r, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.5370987f, convertedColor.g, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.8808250f, convertedColor.b, epsilon);
 
 	dsColor3f_linearFromSRGB(&convertedColor, &color);
-	EXPECT_NEAR(0.0007740f, convertedColor.r, epsilon);
-	EXPECT_NEAR(0.0508761f, convertedColor.g, epsilon);
-	EXPECT_NEAR(0.5225216f, convertedColor.b, epsilon);
+	EXPECT_EQ_DETERMINISTIC(7.73993816e-5f, convertedColor.r, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0508760922f, convertedColor.g, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.5225216f, convertedColor.b, epsilon);
 }
 
 TEST(ColorTest, ConvertSRGBLinearColor4f)
 {
 	const float epsilon = 1e-6f;
-	dsColor4f color = {{0.01f, 0.25f, 0.75f, 0.5f}};
+	DS_UNUSED(epsilon);
+	dsColor4f color = {{0.001f, 0.25f, 0.75f, 0.5f}};
 	dsColor4f convertedColor;
 
 	dsColor4f_sRGBFromLinear(&convertedColor, &color);
-	EXPECT_NEAR(0.0998528f, convertedColor.r, epsilon);
-	EXPECT_NEAR(0.5370987f, convertedColor.g, epsilon);
-	EXPECT_NEAR(0.8808250f, convertedColor.b, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0129200006f, convertedColor.r, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.5370987f, convertedColor.g, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.8808250f, convertedColor.b, epsilon);
 	EXPECT_EQ(0.5f, convertedColor.a);
 
 	dsColor4f_linearFromSRGB(&convertedColor, &color);
-	EXPECT_NEAR(0.0007740f, convertedColor.r, epsilon);
-	EXPECT_NEAR(0.0508761f, convertedColor.g, epsilon);
-	EXPECT_NEAR(0.5225216f, convertedColor.b, epsilon);
+	EXPECT_EQ_DETERMINISTIC(7.73993816e-5f, convertedColor.r, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0508760922f, convertedColor.g, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.5225216f, convertedColor.b, epsilon);
 	EXPECT_EQ(0.5f, convertedColor.a);
 }
 

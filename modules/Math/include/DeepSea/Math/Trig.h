@@ -696,7 +696,7 @@ DS_ALWAYS_INLINE void dsSinCosdImpl(
 }
 /// @endcond
 
-DS_MATH_EXPORT inline float dsSinf(float angle)
+inline float dsSinf(float angle)
 {
 	float sinTaylor, cosTaylor;
 	uint32_t quadrant;
@@ -709,7 +709,7 @@ DS_MATH_EXPORT inline float dsSinf(float angle)
 	return dsMathImplConditionalNegatef(dsMathImplSelectf(evenOdd, cosTaylor, sinTaylor), sign);
 }
 
-DS_MATH_EXPORT inline double dsSind(double angle)
+inline double dsSind(double angle)
 {
 	double sinTaylor, cosTaylor;
 	uint64_t quadrant;
@@ -722,7 +722,7 @@ DS_MATH_EXPORT inline double dsSind(double angle)
 	return dsMathImplConditionalNegated(dsMathImplSelectd(evenOdd, cosTaylor, sinTaylor), sign);
 }
 
-DS_MATH_EXPORT inline float dsCosf(float angle)
+inline float dsCosf(float angle)
 {
 	float sinTaylor, cosTaylor;
 	uint32_t quadrant;
@@ -735,7 +735,7 @@ DS_MATH_EXPORT inline float dsCosf(float angle)
 	return dsMathImplConditionalNegatef(dsMathImplSelectf(evenOdd, sinTaylor, cosTaylor), sign);
 }
 
-DS_MATH_EXPORT inline double dsCosd(double angle)
+inline double dsCosd(double angle)
 {
 	double sinTaylor, cosTaylor;
 	uint64_t quadrant;
@@ -748,7 +748,7 @@ DS_MATH_EXPORT inline double dsCosd(double angle)
 	return dsMathImplConditionalNegated(dsMathImplSelectd(evenOdd, sinTaylor, cosTaylor), sign);
 }
 
-DS_MATH_EXPORT inline void dsSinCosf(float* outSin, float* outCos, float angle)
+inline void dsSinCosf(float* outSin, float* outCos, float angle)
 {
 	DS_ASSERT(outSin);
 	DS_ASSERT(outCos);
@@ -773,7 +773,7 @@ DS_MATH_EXPORT inline void dsSinCosf(float* outSin, float* outCos, float angle)
 		dsMathImplSelectf(evenOdd, sinTaylor, cosTaylor), cosSign);
 }
 
-DS_MATH_EXPORT inline void dsSinCosd(double* outSin, double* outCos, double angle)
+inline void dsSinCosd(double* outSin, double* outCos, double angle)
 {
 	DS_ASSERT(outSin);
 	DS_ASSERT(outCos);
@@ -798,7 +798,7 @@ DS_MATH_EXPORT inline void dsSinCosd(double* outSin, double* outCos, double angl
 		dsMathImplSelectd(evenOdd, sinTaylor, cosTaylor), cosSign);
 }
 
-DS_MATH_EXPORT inline float dsTanf(float angle)
+inline float dsTanf(float angle)
 {
 	float absAngle = fabsf(angle);
 	// Use truncation to perform rounding.
@@ -818,7 +818,7 @@ DS_MATH_EXPORT inline float dsTanf(float angle)
 		dsMathImplExtractSignBitf(angle));
 }
 
-DS_MATH_EXPORT inline double dsTand(double angle)
+inline double dsTand(double angle)
 {
 	double absAngle = fabs(angle);
 	// Use truncation to perform rounding.
@@ -841,7 +841,7 @@ DS_MATH_EXPORT inline double dsTand(double angle)
 		dsMathImplExtractSignBitd(angle));
 }
 
-DS_MATH_EXPORT inline float dsASinf(float x)
+inline float dsASinf(float x)
 {
 	DS_ASSERT(x >= -1.0f && x <= 1.0f);
 
@@ -863,7 +863,7 @@ DS_MATH_EXPORT inline float dsASinf(float x)
 		dsMathImplExtractSignBitf(x));
 }
 
-DS_MATH_EXPORT inline double dsASind(double x)
+inline double dsASind(double x)
 {
 	DS_ASSERT(x >= -1.0 && x <= 1.0);
 
@@ -898,7 +898,7 @@ DS_MATH_EXPORT inline double dsASind(double x)
 		dsMathImplExtractSignBitd(x));
 }
 
-DS_MATH_EXPORT inline float dsACosf(float x)
+inline float dsACosf(float x)
 {
 	DS_ASSERT(x >= -1.0f && x <= 1.0f);
 
@@ -925,7 +925,7 @@ DS_MATH_EXPORT inline float dsACosf(float x)
 	return dsMathImplSelectf(adjustRange, adjustedACosTaylor, acosTaylor);
 }
 
-DS_MATH_EXPORT inline double dsACosd(double x)
+inline double dsACosd(double x)
 {
 	DS_ASSERT(x >= -1.0 && x <= 1.0);
 
@@ -968,7 +968,7 @@ DS_MATH_EXPORT inline double dsACosd(double x)
 	return dsMathImplSelectd(adjustRange, adjustedACosRational, acosRational);
 }
 
-DS_MATH_EXPORT inline float dsATanf(float x)
+inline float dsATanf(float x)
 {
 	float absX = fabsf(x);
 
@@ -988,7 +988,7 @@ DS_MATH_EXPORT inline float dsATanf(float x)
 	return dsMathImplConditionalNegatef(atanTaylor, dsMathImplExtractSignBitf(x));
 }
 
-DS_MATH_EXPORT inline double dsATand(double x)
+inline double dsATand(double x)
 {
 	double absX = fabs(x);
 
@@ -1013,7 +1013,7 @@ DS_MATH_EXPORT inline double dsATand(double x)
 	return dsMathImplConditionalNegated(atanRational, dsMathImplExtractSignBitd(x));
 }
 
-DS_MATH_EXPORT inline float dsATan2f(float y, float x)
+inline float dsATan2f(float y, float x)
 {
 	uint32_t ySign = dsMathImplExtractSignBitf(y);
 	uint32_t xSign = dsMathImplExtractSignBitf(x);
@@ -1030,7 +1030,7 @@ DS_MATH_EXPORT inline float dsATan2f(float y, float x)
 	return dsATanf(y/x) + offset;
 }
 
-DS_MATH_EXPORT inline double dsATan2d(double y, double x)
+inline double dsATan2d(double y, double x)
 {
 	uint64_t xSign = dsMathImplExtractSignBitd(x);
 	uint64_t ySign = dsMathImplExtractSignBitd(y);
@@ -1095,7 +1095,7 @@ DS_ALWAYS_INLINE void dsSinCosSIMD4fImpl(
 }
 /// @endcond
 
-DS_MATH_EXPORT inline dsSIMD4f dsSinSIMD4f(dsSIMD4f angles)
+inline dsSIMD4f dsSinSIMD4f(dsSIMD4f angles)
 {
 	dsSIMD4f sinTaylor, cosTaylor;
 	dsSIMD4fb quadrants;
@@ -1110,7 +1110,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsSinSIMD4f(dsSIMD4f angles)
 	return dsMathImplConditionalNegateSIMD4f(dsSIMD4f_select(oddEven, sinTaylor, cosTaylor), sign);
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsCosSIMD4f(dsSIMD4f angles)
+inline dsSIMD4f dsCosSIMD4f(dsSIMD4f angles)
 {
 	dsSIMD4f sinTaylor, cosTaylor;
 	dsSIMD4fb quadrants;
@@ -1126,7 +1126,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsCosSIMD4f(dsSIMD4f angles)
 	return dsMathImplConditionalNegateSIMD4f(dsSIMD4f_select(oddEven, cosTaylor, sinTaylor), sign);
 }
 
-DS_MATH_EXPORT inline void dsSinCosSIMD4f(dsSIMD4f* outSin, dsSIMD4f* outCos, dsSIMD4f angles)
+inline void dsSinCosSIMD4f(dsSIMD4f* outSin, dsSIMD4f* outCos, dsSIMD4f angles)
 {
 	DS_ASSERT(outSin);
 	DS_ASSERT(outCos);
@@ -1154,7 +1154,7 @@ DS_MATH_EXPORT inline void dsSinCosSIMD4f(dsSIMD4f* outSin, dsSIMD4f* outCos, ds
 		dsSIMD4f_select(oddEven, cosTaylor, sinTaylor), cosSign);
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsTanSIMD4f(dsSIMD4f angles)
+inline dsSIMD4f dsTanSIMD4f(dsSIMD4f angles)
 {
 	dsSIMD4f twoOverPi = dsSIMD4f_set1(M_2_PIf);
 	dsSIMD4f negOne = dsSIMD4f_set1(-1.0f);
@@ -1192,7 +1192,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsTanSIMD4f(dsSIMD4f angles)
 		dsSIMD4f_div(negOne, tanTaylor)), dsMathImplExtractSignBitSIMD4f(angles));
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsASinSIMD4f(dsSIMD4f x)
+inline dsSIMD4f dsASinSIMD4f(dsSIMD4f x)
 {
 	DS_ASSERT(dsSIMD4fb_all(dsSIMD4fb_and(
 		dsSIMD4f_cmpge(x, dsSIMD4f_set1(-1.0f)), dsSIMD4f_cmple(x, dsSIMD4f_set1(1.0f)))));
@@ -1227,7 +1227,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsASinSIMD4f(dsSIMD4f x)
 		dsMathImplExtractSignBitSIMD4f(x));
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsACosSIMD4f(dsSIMD4f x)
+inline dsSIMD4f dsACosSIMD4f(dsSIMD4f x)
 {
 	DS_ASSERT(dsSIMD4fb_all(dsSIMD4fb_and(
 		dsSIMD4f_cmpge(x, dsSIMD4f_set1(-1.0f)), dsSIMD4f_cmple(x, dsSIMD4f_set1(1.0f)))));
@@ -1269,7 +1269,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsACosSIMD4f(dsSIMD4f x)
 	return dsSIMD4f_select(adjustRange, adjustedACosTaylor, acosTaylor);
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsATanSIMD4f(dsSIMD4f x)
+inline dsSIMD4f dsATanSIMD4f(dsSIMD4f x)
 {
 	dsSIMD4f pi2 = dsSIMD4f_set1(M_PI_2f);
 	dsSIMD4f pi4 = dsSIMD4f_set1(M_PI_4f);
@@ -1300,7 +1300,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsATanSIMD4f(dsSIMD4f x)
 	return dsMathImplConditionalNegateSIMD4f(atanTaylor, dsMathImplExtractSignBitSIMD4f(x));
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsATan2SIMD4f(dsSIMD4f y, dsSIMD4f x)
+inline dsSIMD4f dsATan2SIMD4f(dsSIMD4f y, dsSIMD4f x)
 {
 	dsSIMD4f pi = dsSIMD4f_set1(M_PIf);
 	dsSIMD4f pi2 = dsSIMD4f_set1(M_PI_2f);
@@ -1367,7 +1367,7 @@ DS_ALWAYS_INLINE void dsSinCosFMA4fImpl(
 }
 /// @endcond
 
-DS_MATH_EXPORT inline dsSIMD4f dsSinFMA4f(dsSIMD4f angles)
+inline dsSIMD4f dsSinFMA4f(dsSIMD4f angles)
 {
 	dsSIMD4f sinTaylor, cosTaylor;
 	dsSIMD4fb quadrants;
@@ -1382,7 +1382,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsSinFMA4f(dsSIMD4f angles)
 	return dsMathImplConditionalNegateSIMD4f(dsSIMD4f_select(oddEven, sinTaylor, cosTaylor), sign);
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsCosFMA4f(dsSIMD4f angles)
+inline dsSIMD4f dsCosFMA4f(dsSIMD4f angles)
 {
 	dsSIMD4f sinTaylor, cosTaylor;
 	dsSIMD4fb quadrants;
@@ -1398,7 +1398,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsCosFMA4f(dsSIMD4f angles)
 	return dsMathImplConditionalNegateSIMD4f(dsSIMD4f_select(oddEven, cosTaylor, sinTaylor), sign);
 }
 
-DS_MATH_EXPORT inline void dsSinCosFMA4f(dsSIMD4f* outSin, dsSIMD4f* outCos, dsSIMD4f angles)
+inline void dsSinCosFMA4f(dsSIMD4f* outSin, dsSIMD4f* outCos, dsSIMD4f angles)
 {
 	DS_ASSERT(outSin);
 	DS_ASSERT(outCos);
@@ -1426,7 +1426,7 @@ DS_MATH_EXPORT inline void dsSinCosFMA4f(dsSIMD4f* outSin, dsSIMD4f* outCos, dsS
 		dsSIMD4f_select(oddEven, cosTaylor, sinTaylor), cosSign);
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsTanFMA4f(dsSIMD4f angles)
+inline dsSIMD4f dsTanFMA4f(dsSIMD4f angles)
 {
 	dsSIMD4f twoOverPi = dsSIMD4f_set1(M_2_PIf);
 	dsSIMD4f negOne = dsSIMD4f_set1(-1.0f);
@@ -1457,7 +1457,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsTanFMA4f(dsSIMD4f angles)
 		dsSIMD4f_div(negOne, tanTaylor)), dsMathImplExtractSignBitSIMD4f(angles));
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsASinFMA4f(dsSIMD4f x)
+inline dsSIMD4f dsASinFMA4f(dsSIMD4f x)
 {
 	DS_ASSERT(dsSIMD4fb_all(dsSIMD4fb_and(
 		dsSIMD4f_cmpge(x, dsSIMD4f_set1(-1.0f)), dsSIMD4f_cmple(x, dsSIMD4f_set1(1.0f)))));
@@ -1491,7 +1491,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsASinFMA4f(dsSIMD4f x)
 		dsMathImplExtractSignBitSIMD4f(x));
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsACosFMA4f(dsSIMD4f x)
+inline dsSIMD4f dsACosFMA4f(dsSIMD4f x)
 {
 	DS_ASSERT(dsSIMD4fb_all(dsSIMD4fb_and(
 		dsSIMD4f_cmpge(x, dsSIMD4f_set1(-1.0f)), dsSIMD4f_cmple(x, dsSIMD4f_set1(1.0f)))));
@@ -1532,7 +1532,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsACosFMA4f(dsSIMD4f x)
 	return dsSIMD4f_select(adjustRange, adjustedACosTaylor, acosTaylor);
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsATanFMA4f(dsSIMD4f x)
+inline dsSIMD4f dsATanFMA4f(dsSIMD4f x)
 {
 	dsSIMD4f pi2 = dsSIMD4f_set1(M_PI_2f);
 	dsSIMD4f pi4 = dsSIMD4f_set1(M_PI_4f);
@@ -1564,7 +1564,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsATanFMA4f(dsSIMD4f x)
 	return dsMathImplConditionalNegateSIMD4f(atanTaylor, dsMathImplExtractSignBitSIMD4f(x));
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsATan2FMA4f(dsSIMD4f y, dsSIMD4f x)
+inline dsSIMD4f dsATan2FMA4f(dsSIMD4f y, dsSIMD4f x)
 {
 	dsSIMD4f pi = dsSIMD4f_set1(M_PIf);
 	dsSIMD4f pi2 = dsSIMD4f_set1(M_PI_2f);
@@ -1642,7 +1642,7 @@ DS_ALWAYS_INLINE void dsSinCosSIMD2dImpl(
 }
 /// @endcond
 
-DS_MATH_EXPORT inline dsSIMD2d dsSinSIMD2d(dsSIMD2d angles)
+inline dsSIMD2d dsSinSIMD2d(dsSIMD2d angles)
 {
 	dsSIMD2d sinTaylor, cosTaylor;
 	dsSIMD2db quadrants;
@@ -1657,7 +1657,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsSinSIMD2d(dsSIMD2d angles)
 	return dsMathImplConditionalNegateSIMD2d(dsSIMD2d_select(oddEven, sinTaylor, cosTaylor), sign);
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsCosSIMD2d(dsSIMD2d angles)
+inline dsSIMD2d dsCosSIMD2d(dsSIMD2d angles)
 {
 	dsSIMD2d sinTaylor, cosTaylor;
 	dsSIMD2db quadrants;
@@ -1673,7 +1673,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsCosSIMD2d(dsSIMD2d angles)
 	return dsMathImplConditionalNegateSIMD2d(dsSIMD2d_select(oddEven, cosTaylor, sinTaylor), sign);
 }
 
-DS_MATH_EXPORT inline void dsSinCosSIMD2d(dsSIMD2d* outSin, dsSIMD2d* outCos, dsSIMD2d angles)
+inline void dsSinCosSIMD2d(dsSIMD2d* outSin, dsSIMD2d* outCos, dsSIMD2d angles)
 {
 	DS_ASSERT(outSin);
 	DS_ASSERT(outCos);
@@ -1701,7 +1701,7 @@ DS_MATH_EXPORT inline void dsSinCosSIMD2d(dsSIMD2d* outSin, dsSIMD2d* outCos, ds
 		dsSIMD2d_select(oddEven, cosTaylor, sinTaylor), cosSign);
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsTanSIMD2d(dsSIMD2d angles)
+inline dsSIMD2d dsTanSIMD2d(dsSIMD2d angles)
 {
 	dsSIMD2d twoOverPi = dsSIMD2d_set1(M_2_PI);
 	dsSIMD2d negOne = dsSIMD2d_set1(-1.0);
@@ -1738,7 +1738,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsTanSIMD2d(dsSIMD2d angles)
 		dsSIMD2d_div(negOne, tanRational)), dsMathImplExtractSignBitSIMD2d(angles));
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsASinSIMD2d(dsSIMD2d x)
+inline dsSIMD2d dsASinSIMD2d(dsSIMD2d x)
 {
 	DS_ASSERT(dsSIMD2db_all(dsSIMD2db_and(
 		dsSIMD2d_cmpge(x, dsSIMD2d_set1(-1.0)), dsSIMD2d_cmple(x, dsSIMD2d_set1(1.0)))));
@@ -1808,7 +1808,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsASinSIMD2d(dsSIMD2d x)
 		dsMathImplExtractSignBitSIMD2d(x));
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsACosSIMD2d(dsSIMD2d x)
+inline dsSIMD2d dsACosSIMD2d(dsSIMD2d x)
 {
 	DS_ASSERT(dsSIMD2db_all(dsSIMD2db_and(
 		dsSIMD2d_cmpge(x, dsSIMD2d_set1(-1.0)), dsSIMD2d_cmple(x, dsSIMD2d_set1(1.0)))));
@@ -1889,7 +1889,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsACosSIMD2d(dsSIMD2d x)
 	return dsSIMD2d_select(adjustRange, adjustedACosRational, acosRational);
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsATanSIMD2d(dsSIMD2d x)
+inline dsSIMD2d dsATanSIMD2d(dsSIMD2d x)
 {
 	dsSIMD2d pi2 = dsSIMD2d_set1(M_PI_2);
 	dsSIMD2d pi4 = dsSIMD2d_set1(M_PI_4);
@@ -1936,7 +1936,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsATanSIMD2d(dsSIMD2d x)
 	return dsMathImplConditionalNegateSIMD2d(atanRational, dsMathImplExtractSignBitSIMD2d(x));
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsATan2SIMD2d(dsSIMD2d y, dsSIMD2d x)
+inline dsSIMD2d dsATan2SIMD2d(dsSIMD2d y, dsSIMD2d x)
 {
 	dsSIMD2d pi = dsSIMD2d_set1(M_PI);
 	dsSIMD2d pi2 = dsSIMD2d_set1(M_PI_2);
@@ -2012,7 +2012,7 @@ DS_ALWAYS_INLINE void dsSinCosFMA2dImpl(
 }
 /// @endcond
 
-DS_MATH_EXPORT inline dsSIMD2d dsSinFMA2d(dsSIMD2d angles)
+inline dsSIMD2d dsSinFMA2d(dsSIMD2d angles)
 {
 	dsSIMD2d sinTaylor, cosTaylor;
 	dsSIMD2db quadrants;
@@ -2027,7 +2027,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsSinFMA2d(dsSIMD2d angles)
 	return dsMathImplConditionalNegateSIMD2d(dsSIMD2d_select(oddEven, sinTaylor, cosTaylor), sign);
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsCosFMA2d(dsSIMD2d angles)
+inline dsSIMD2d dsCosFMA2d(dsSIMD2d angles)
 {
 	dsSIMD2d sinTaylor, cosTaylor;
 	dsSIMD2db quadrants;
@@ -2043,7 +2043,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsCosFMA2d(dsSIMD2d angles)
 	return dsMathImplConditionalNegateSIMD2d(dsSIMD2d_select(oddEven, cosTaylor, sinTaylor), sign);
 }
 
-DS_MATH_EXPORT inline void dsSinCosFMA2d(dsSIMD2d* outSin, dsSIMD2d* outCos, dsSIMD2d angles)
+inline void dsSinCosFMA2d(dsSIMD2d* outSin, dsSIMD2d* outCos, dsSIMD2d angles)
 {
 	DS_ASSERT(outSin);
 	DS_ASSERT(outCos);
@@ -2071,7 +2071,7 @@ DS_MATH_EXPORT inline void dsSinCosFMA2d(dsSIMD2d* outSin, dsSIMD2d* outCos, dsS
 		dsSIMD2d_select(oddEven, cosTaylor, sinTaylor), cosSign);
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsTanFMA2d(dsSIMD2d angles)
+inline dsSIMD2d dsTanFMA2d(dsSIMD2d angles)
 {
 	dsSIMD2d twoOverPi = dsSIMD2d_set1(M_2_PI);
 	dsSIMD2d negOne = dsSIMD2d_set1(-1.0);
@@ -2108,7 +2108,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsTanFMA2d(dsSIMD2d angles)
 		dsSIMD2d_div(negOne, tanRational)), dsMathImplExtractSignBitSIMD2d(angles));
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsASinFMA2d(dsSIMD2d x)
+inline dsSIMD2d dsASinFMA2d(dsSIMD2d x)
 {
 	DS_ASSERT(dsSIMD2db_all(dsSIMD2db_and(
 		dsSIMD2d_cmpge(x, dsSIMD2d_set1(-1.0)), dsSIMD2d_cmple(x, dsSIMD2d_set1(1.0)))));
@@ -2176,7 +2176,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsASinFMA2d(dsSIMD2d x)
 		dsMathImplExtractSignBitSIMD2d(x));
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsACosFMA2d(dsSIMD2d x)
+inline dsSIMD2d dsACosFMA2d(dsSIMD2d x)
 {
 	DS_ASSERT(dsSIMD2db_all(dsSIMD2db_and(
 		dsSIMD2d_cmpge(x, dsSIMD2d_set1(-1.0)), dsSIMD2d_cmple(x, dsSIMD2d_set1(1.0)))));
@@ -2255,7 +2255,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsACosFMA2d(dsSIMD2d x)
 	return dsSIMD2d_select(adjustRange, adjustedACosRational, acosRational);
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsATanFMA2d(dsSIMD2d x)
+inline dsSIMD2d dsATanFMA2d(dsSIMD2d x)
 {
 	dsSIMD2d pi2 = dsSIMD2d_set1(M_PI_2);
 	dsSIMD2d pi4 = dsSIMD2d_set1(M_PI_4);
@@ -2301,7 +2301,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsATanFMA2d(dsSIMD2d x)
 	return dsMathImplConditionalNegateSIMD2d(atanRational, dsMathImplExtractSignBitSIMD2d(x));
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsATan2FMA2d(dsSIMD2d y, dsSIMD2d x)
+inline dsSIMD2d dsATan2FMA2d(dsSIMD2d y, dsSIMD2d x)
 {
 	dsSIMD2d pi = dsSIMD2d_set1(M_PI);
 	dsSIMD2d pi2 = dsSIMD2d_set1(M_PI_2);
@@ -2397,7 +2397,7 @@ DS_ALWAYS_INLINE void dsSinCosSIMD4dImpl(
 }
 /// @endcond
 
-DS_MATH_EXPORT inline dsSIMD4d dsSinSIMD4d(dsSIMD4d angles)
+inline dsSIMD4d dsSinSIMD4d(dsSIMD4d angles)
 {
 	dsSIMD4d sinTaylor, cosTaylor;
 	dsSIMD4db quadrants;
@@ -2412,7 +2412,7 @@ DS_MATH_EXPORT inline dsSIMD4d dsSinSIMD4d(dsSIMD4d angles)
 	return dsMathImplConditionalNegateSIMD4d(dsSIMD4d_select(oddEven, sinTaylor, cosTaylor), sign);
 }
 
-DS_MATH_EXPORT inline dsSIMD4d dsCosSIMD4d(dsSIMD4d angles)
+inline dsSIMD4d dsCosSIMD4d(dsSIMD4d angles)
 {
 	dsSIMD4d sinTaylor, cosTaylor;
 	dsSIMD4db quadrants;
@@ -2428,7 +2428,7 @@ DS_MATH_EXPORT inline dsSIMD4d dsCosSIMD4d(dsSIMD4d angles)
 	return dsMathImplConditionalNegateSIMD4d(dsSIMD4d_select(oddEven, cosTaylor, sinTaylor), sign);
 }
 
-DS_MATH_EXPORT inline void dsSinCosSIMD4d(dsSIMD4d* outSin, dsSIMD4d* outCos, dsSIMD4d angles)
+inline void dsSinCosSIMD4d(dsSIMD4d* outSin, dsSIMD4d* outCos, dsSIMD4d angles)
 {
 	DS_ASSERT(outSin);
 	DS_ASSERT(outCos);
@@ -2456,7 +2456,7 @@ DS_MATH_EXPORT inline void dsSinCosSIMD4d(dsSIMD4d* outSin, dsSIMD4d* outCos, ds
 		dsSIMD4d_select(oddEven, cosTaylor, sinTaylor), cosSign);
 }
 
-DS_MATH_EXPORT inline dsSIMD4d dsTanSIMD4d(dsSIMD4d angles)
+inline dsSIMD4d dsTanSIMD4d(dsSIMD4d angles)
 {
 	dsSIMD4d twoOverPi = dsSIMD4d_set1(M_2_PI);
 	dsSIMD4d negOne = dsSIMD4d_set1(-1.0);
@@ -2503,7 +2503,7 @@ DS_MATH_EXPORT inline dsSIMD4d dsTanSIMD4d(dsSIMD4d angles)
 		dsSIMD4d_div(negOne, tanRational)), dsMathImplExtractSignBitSIMD4d(angles));
 }
 
-DS_MATH_EXPORT inline dsSIMD4d dsASinSIMD4d(dsSIMD4d x)
+inline dsSIMD4d dsASinSIMD4d(dsSIMD4d x)
 {
 	DS_ASSERT(dsSIMD4db_all(dsSIMD4db_and(
 		dsSIMD4d_cmpge(x, dsSIMD4d_set1(-1.0)), dsSIMD4d_cmple(x, dsSIMD4d_set1(1.0)))));
@@ -2595,7 +2595,7 @@ DS_MATH_EXPORT inline dsSIMD4d dsASinSIMD4d(dsSIMD4d x)
 		dsMathImplExtractSignBitSIMD4d(x));
 }
 
-DS_MATH_EXPORT inline dsSIMD4d dsACosSIMD4d(dsSIMD4d x)
+inline dsSIMD4d dsACosSIMD4d(dsSIMD4d x)
 {
 	DS_ASSERT(dsSIMD4db_all(dsSIMD4db_and(
 		dsSIMD4d_cmpge(x, dsSIMD4d_set1(-1.0)), dsSIMD4d_cmple(x, dsSIMD4d_set1(1.0)))));
@@ -2702,7 +2702,7 @@ DS_MATH_EXPORT inline dsSIMD4d dsACosSIMD4d(dsSIMD4d x)
 	return dsSIMD4d_select(adjustRange, adjustedACosRational, acosRational);
 }
 
-DS_MATH_EXPORT inline dsSIMD4d dsATanSIMD4d(dsSIMD4d x)
+inline dsSIMD4d dsATanSIMD4d(dsSIMD4d x)
 {
 	dsSIMD4d pi2 = dsSIMD4d_set1(M_PI_2);
 	dsSIMD4d pi4 = dsSIMD4d_set1(M_PI_4);
@@ -2759,7 +2759,7 @@ DS_MATH_EXPORT inline dsSIMD4d dsATanSIMD4d(dsSIMD4d x)
 	return dsMathImplConditionalNegateSIMD4d(atanRational, dsMathImplExtractSignBitSIMD4d(x));
 }
 
-DS_MATH_EXPORT inline dsSIMD4d dsATan2SIMD4d(dsSIMD4d y, dsSIMD4d x)
+inline dsSIMD4d dsATan2SIMD4d(dsSIMD4d y, dsSIMD4d x)
 {
 	dsSIMD4d pi = dsSIMD4d_set1(M_PI);
 	dsSIMD4d pi2 = dsSIMD4d_set1(M_PI_2);

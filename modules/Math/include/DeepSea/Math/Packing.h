@@ -18,6 +18,8 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Assert.h>
+
+#include <DeepSea/Math/SIMD/SIMD.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Export.h>
 #include <DeepSea/Math/Round.h>
@@ -41,14 +43,14 @@ extern "C"
  * @param x The value to pack.
  * @return The packed value.
  */
-DS_MATH_EXPORT dsHalfFloat dsPackHalfFloat(float x);
+DS_MATH_EXPORT inline dsHalfFloat dsPackHalfFloat(float x);
 
 /**
  * @brief Unpcks a half float into a float.
  * @param x The value to unpack.
  * @return The unpacked value.
  */
-DS_MATH_EXPORT float dsUnpackHalfFloat(dsHalfFloat x);
+DS_MATH_EXPORT inline float dsUnpackHalfFloat(dsHalfFloat x);
 
 /**
  * @brief Packs a float into a 32-bit integer.
@@ -567,6 +569,31 @@ DS_MATH_EXPORT inline void dsUnpackUIntW2Z10Y10X10(dsVector4f* result, uint32_t 
 /** @see dsUnpackUIntW2Z10Y10X10 */
 #define dsUnpackUIntA2B10G10R10 dsUnpackUIntW2Z10Y10X10
 
+/// @cond
+DS_MATH_EXPORT dsHalfFloat dsPackHalfFloatSoft(float x);
+DS_MATH_EXPORT float dsUnpackHalfFloatSoft(dsHalfFloat x);
+/// @endcond
+
+inline dsHalfFloat dsPackHalfFloat(float x)
+{
+#if DS_SIMD_ALWAYS_HALF_FLOAT
+	dsHalfFloat result;
+	dsSIMD4hf_store1(&result, dsSIMD4hf_fromFloat(dsSIMD4f_set1(x)));
+	return result;
+#else
+	return dsPackHalfFloatSoft(x);
+#endif
+}
+
+inline float dsUnpackHalfFloat(dsHalfFloat x)
+{
+#if DS_SIMD_ALWAYS_HALF_FLOAT
+	return dsSIMD4f_get(dsSIMD4hf_toFloat(dsSIMD4hf_load1(&x)), 0);
+#else
+	return dsUnpackHalfFloatSoft(x);
+#endif
+}
+
 inline int32_t dsPackInt32(float x)
 {
 	return (int32_t)(dsRoundd((double)dsClamp(x, -1, 1)*0x7FFFFFFF));
@@ -704,10 +731,22 @@ inline void dsUnpackUIntY4X4(dsVector2f* result, uint8_t value)
 inline uint16_t dsPackIntX4Y4Z4W4(const dsVector4f* xyzw)
 {
 	DS_ASSERT(xyzw);
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4f clampedVal = dsSIMD4f_min(
+		dsSIMD4f_max(xyzw->simd, dsSIMD4f_set1(-1.0f)), dsSIMD4f_set1(1.0f));
+	dsVector4i xyzwi;
+	xyzwi.simd = dsSIMD4fb_and(
+		dsSIMD4fb_round(dsSIMD4f_mul(clampedVal, dsSIMD4f_set1(7.0f))), dsSIMD4fb_set1(0xF));
+	uint16_t x = (uint16_t)xyzwi.x;
+	uint16_t y = (uint16_t)xyzwi.y;
+	uint16_t z = (uint16_t)xyzwi.z;
+	uint16_t w = (uint16_t)xyzwi.w;
+#else
 	uint16_t x = (int16_t)(dsRoundf(dsClamp(xyzw->x, -1, 1)*0x7)) & 0xF;
 	uint16_t y = (int16_t)(dsRoundf(dsClamp(xyzw->y, -1, 1)*0x7)) & 0xF;
 	uint16_t z = (int16_t)(dsRoundf(dsClamp(xyzw->z, -1, 1)*0x7)) & 0xF;
 	uint16_t w = (int16_t)(dsRoundf(dsClamp(xyzw->w, -1, 1)*0x7)) & 0xF;
+#endif
 	return (uint16_t)(w | (z << 4) | (y << 8) | (x << 12));
 }
 
@@ -738,10 +777,21 @@ inline void dsUnpackIntX4Y4Z4W4(dsVector4f* result, uint16_t value)
 inline uint16_t dsPackUIntX4Y4Z4W4(const dsVector4f* xyzw)
 {
 	DS_ASSERT(xyzw);
-	uint16_t x = (uint16_t)(dsRoundf(dsClamp(xyzw->x, 0, 1)*0xF)) & 0xF;
-	uint16_t y = (uint16_t)(dsRoundf(dsClamp(xyzw->y, 0, 1)*0xF)) & 0xF;
-	uint16_t z = (uint16_t)(dsRoundf(dsClamp(xyzw->z, 0, 1)*0xF)) & 0xF;
-	uint16_t w = (uint16_t)(dsRoundf(dsClamp(xyzw->w, 0, 1)*0xF)) & 0xF;
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4f clampedVal = dsSIMD4f_min(
+		dsSIMD4f_max(xyzw->simd, dsSIMD4f_set1(0.0f)), dsSIMD4f_set1(1.0f));
+	dsVector4i xyzwi;
+	xyzwi.simd = dsSIMD4fb_round(dsSIMD4f_mul(clampedVal, dsSIMD4f_set1(15.0f)));
+	uint16_t x = (uint16_t)xyzwi.x;
+	uint16_t y = (uint16_t)xyzwi.y;
+	uint16_t z = (uint16_t)xyzwi.z;
+	uint16_t w = (uint16_t)xyzwi.w;
+#else
+	uint16_t x = (uint16_t)dsRoundf(dsClamp(xyzw->x, 0, 1)*0xF);
+	uint16_t y = (uint16_t)dsRoundf(dsClamp(xyzw->y, 0, 1)*0xF);
+	uint16_t z = (uint16_t)dsRoundf(dsClamp(xyzw->z, 0, 1)*0xF);
+	uint16_t w = (uint16_t)dsRoundf(dsClamp(xyzw->w, 0, 1)*0xF);
+#endif
 	return (uint16_t)(w | (z << 4) | (y << 8) | (x << 12));
 }
 
@@ -757,10 +807,22 @@ inline void dsUnpackUIntX4Y4Z4W4(dsVector4f* result, uint16_t value)
 inline uint16_t dsPackIntZ4Y4X4W4(const dsVector4f* wzyx)
 {
 	DS_ASSERT(wzyx);
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4f clampedVal = dsSIMD4f_min(
+		dsSIMD4f_max(wzyx->simd, dsSIMD4f_set1(-1.0f)), dsSIMD4f_set1(1.0f));
+	dsVector4i wzyxi;
+	wzyxi.simd = dsSIMD4fb_and(
+		dsSIMD4fb_round(dsSIMD4f_mul(clampedVal, dsSIMD4f_set1(7.0f))), dsSIMD4fb_set1(0xF));
+	uint16_t x = (uint16_t)wzyxi.x;
+	uint16_t y = (uint16_t)wzyxi.y;
+	uint16_t z = (uint16_t)wzyxi.z;
+	uint16_t w = (uint16_t)wzyxi.w;
+#else
 	uint16_t x = (int16_t)(dsRoundf(dsClamp(wzyx->x, -1, 1)*0x7)) & 0xF;
 	uint16_t y = (int16_t)(dsRoundf(dsClamp(wzyx->y, -1, 1)*0x7)) & 0xF;
 	uint16_t z = (int16_t)(dsRoundf(dsClamp(wzyx->z, -1, 1)*0x7)) & 0xF;
 	uint16_t w = (int16_t)(dsRoundf(dsClamp(wzyx->w, -1, 1)*0x7)) & 0xF;
+#endif
 	return (uint16_t)(w | (x << 4) | (y << 8) | (z << 12));
 }
 
@@ -791,10 +853,21 @@ inline void dsUnpackIntZ4Y4X4W4(dsVector4f* result, uint16_t value)
 inline uint16_t dsPackUIntZ4Y4X4W4(const dsVector4f* wzyx)
 {
 	DS_ASSERT(wzyx);
-	uint16_t x = (uint16_t)(dsRoundf(dsClamp(wzyx->x, 0, 1)*0xF)) & 0xF;
-	uint16_t y = (uint16_t)(dsRoundf(dsClamp(wzyx->y, 0, 1)*0xF)) & 0xF;
-	uint16_t z = (uint16_t)(dsRoundf(dsClamp(wzyx->z, 0, 1)*0xF)) & 0xF;
-	uint16_t w = (uint16_t)(dsRoundf(dsClamp(wzyx->w, 0, 1)*0xF)) & 0xF;
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4f clampedVal = dsSIMD4f_min(
+		dsSIMD4f_max(wzyx->simd, dsSIMD4f_set1(0.0f)), dsSIMD4f_set1(1.0f));
+	dsVector4i wzyxi;
+	wzyxi.simd = dsSIMD4fb_round(dsSIMD4f_mul(clampedVal, dsSIMD4f_set1(15.0f)));
+	uint16_t x = (uint16_t)wzyxi.x;
+	uint16_t y = (uint16_t)wzyxi.y;
+	uint16_t z = (uint16_t)wzyxi.z;
+	uint16_t w = (uint16_t)wzyxi.w;
+#else
+	uint16_t x = (uint16_t)dsRoundf(dsClamp(wzyx->x, 0, 1)*0xF);
+	uint16_t y = (uint16_t)dsRoundf(dsClamp(wzyx->y, 0, 1)*0xF);
+	uint16_t z = (uint16_t)dsRoundf(dsClamp(wzyx->z, 0, 1)*0xF);
+	uint16_t w = (uint16_t)dsRoundf(dsClamp(wzyx->w, 0, 1)*0xF);
+#endif
 	return (uint16_t)(w | (x << 4) | (y << 8) | (z << 12));
 }
 
@@ -807,13 +880,25 @@ inline void dsUnpackUIntZ4Y4X4W4(dsVector4f* result, uint16_t value)
 	result->z = (float)((value >> 12) & 0xF)/0xF;
 }
 
-inline uint16_t dsPackIntW4X4Y4Z4(const dsVector4f* wzyx)
+inline uint16_t dsPackIntW4X4Y4Z4(const dsVector4f* wxyz)
 {
-	DS_ASSERT(wzyx);
-	uint16_t x = (int16_t)(dsRoundf(dsClamp(wzyx->x, -1, 1)*0x7)) & 0xF;
-	uint16_t y = (int16_t)(dsRoundf(dsClamp(wzyx->y, -1, 1)*0x7)) & 0xF;
-	uint16_t z = (int16_t)(dsRoundf(dsClamp(wzyx->z, -1, 1)*0x7)) & 0xF;
-	uint16_t w = (int16_t)(dsRoundf(dsClamp(wzyx->w, -1, 1)*0x7)) & 0xF;
+	DS_ASSERT(wxyz);
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4f clampedVal = dsSIMD4f_min(
+		dsSIMD4f_max(wxyz->simd, dsSIMD4f_set1(-1.0f)), dsSIMD4f_set1(1.0f));
+	dsVector4i wxyzi;
+	wxyzi.simd = dsSIMD4fb_and(
+		dsSIMD4fb_round(dsSIMD4f_mul(clampedVal, dsSIMD4f_set1(7.0f))), dsSIMD4fb_set1(0xF));
+	uint16_t x = (uint16_t)wxyzi.x;
+	uint16_t y = (uint16_t)wxyzi.y;
+	uint16_t z = (uint16_t)wxyzi.z;
+	uint16_t w = (uint16_t)wxyzi.w;
+#else
+	uint16_t x = (int16_t)(dsRoundf(dsClamp(wxyz->x, -1, 1)*0x7)) & 0xF;
+	uint16_t y = (int16_t)(dsRoundf(dsClamp(wxyz->y, -1, 1)*0x7)) & 0xF;
+	uint16_t z = (int16_t)(dsRoundf(dsClamp(wxyz->z, -1, 1)*0x7)) & 0xF;
+	uint16_t w = (int16_t)(dsRoundf(dsClamp(wxyz->w, -1, 1)*0x7)) & 0xF;
+#endif
 	return (uint16_t)(z | (y << 4) | (x << 8) | (w << 12));
 }
 
@@ -841,13 +926,24 @@ inline void dsUnpackIntW4X4Y4Z4(dsVector4f* result, uint16_t value)
 	result->w = (float)component/0x7;
 }
 
-inline uint16_t dsPackUIntW4X4Y4Z4(const dsVector4f* wzyx)
+inline uint16_t dsPackUIntW4X4Y4Z4(const dsVector4f* wxyz)
 {
-	DS_ASSERT(wzyx);
-	uint16_t x = (uint16_t)(dsRoundf(dsClamp(wzyx->x, 0, 1)*0xF)) & 0xF;
-	uint16_t y = (uint16_t)(dsRoundf(dsClamp(wzyx->y, 0, 1)*0xF)) & 0xF;
-	uint16_t z = (uint16_t)(dsRoundf(dsClamp(wzyx->z, 0, 1)*0xF)) & 0xF;
-	uint16_t w = (uint16_t)(dsRoundf(dsClamp(wzyx->w, 0, 1)*0xF)) & 0xF;
+	DS_ASSERT(wxyz);
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4f clampedVal = dsSIMD4f_min(
+		dsSIMD4f_max(wxyz->simd, dsSIMD4f_set1(0.0f)), dsSIMD4f_set1(1.0f));
+	dsVector4i wxyzi;
+	wxyzi.simd = dsSIMD4fb_round(dsSIMD4f_mul(clampedVal, dsSIMD4f_set1(15.0f)));
+	uint16_t x = (uint16_t)wxyzi.x;
+	uint16_t y = (uint16_t)wxyzi.y;
+	uint16_t z = (uint16_t)wxyzi.z;
+	uint16_t w = (uint16_t)wxyzi.w;
+#else
+	uint16_t x = (uint16_t)dsRoundf(dsClamp(wxyz->x, 0, 1)*0xF);
+	uint16_t y = (uint16_t)dsRoundf(dsClamp(wxyz->y, 0, 1)*0xF);
+	uint16_t z = (uint16_t)dsRoundf(dsClamp(wxyz->z, 0, 1)*0xF);
+	uint16_t w = (uint16_t)dsRoundf(dsClamp(wxyz->w, 0, 1)*0xF);
+#endif
 	return (uint16_t)(z | (y << 4) | (x << 8) | (w << 12));
 }
 
@@ -953,10 +1049,22 @@ inline void dsUnpackUIntZ5Y6X5(dsVector3f* result, uint16_t value)
 inline uint16_t dsPackIntX5Y5Z5W1(const dsVector4f* xyzw)
 {
 	DS_ASSERT(xyzw);
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4f clampedVal = dsSIMD4f_min(
+		dsSIMD4f_max(xyzw->simd, dsSIMD4f_set4(-1.0f, -1.0f, -1.0f, 0.0f)), dsSIMD4f_set1(1.0f));
+	dsVector4i xyzwi;
+	xyzwi.simd = dsSIMD4fb_and(dsSIMD4fb_round(
+		dsSIMD4f_mul(clampedVal, dsSIMD4f_set4(15.0f, 15.0f, 15.0f, 1.0f))), dsSIMD4fb_set1(0x1F));
+	uint16_t x = (uint16_t)xyzwi.x;
+	uint16_t y = (uint16_t)xyzwi.y;
+	uint16_t z = (uint16_t)xyzwi.z;
+	uint16_t w = (uint16_t)xyzwi.w;
+#else
 	uint16_t x = (int16_t)(dsRoundf(dsClamp(xyzw->x, -1, 1)*0xF)) & 0x1F;
 	uint16_t y = (int16_t)(dsRoundf(dsClamp(xyzw->y, -1, 1)*0xF)) & 0x1F;
 	uint16_t z = (int16_t)(dsRoundf(dsClamp(xyzw->z, -1, 1)*0xF)) & 0x1F;
 	uint16_t w = (int16_t)dsRoundf(dsClamp(xyzw->w, 0, 1));
+#endif
 	return (uint16_t)(w | (z << 1) | (y << 6) | (x << 11));
 }
 
@@ -985,10 +1093,22 @@ inline void dsUnpackIntX5Y5Z5W1(dsVector4f* result, uint16_t value)
 inline uint16_t dsPackUIntX5Y5Z5W1(const dsVector4f* xyzw)
 {
 	DS_ASSERT(xyzw);
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4f clampedVal = dsSIMD4f_min(
+		dsSIMD4f_max(xyzw->simd, dsSIMD4f_set1(0.0f)), dsSIMD4f_set1(1.0f));
+	dsVector4i xyzwi;
+	xyzwi.simd = dsSIMD4fb_and(dsSIMD4fb_round(
+		dsSIMD4f_mul(clampedVal, dsSIMD4f_set4(31.0f, 31.0f, 31.0f, 1.0f))), dsSIMD4fb_set1(0x1F));
+	uint16_t x = (uint16_t)xyzwi.x;
+	uint16_t y = (uint16_t)xyzwi.y;
+	uint16_t z = (uint16_t)xyzwi.z;
+	uint16_t w = (uint16_t)xyzwi.w;
+#else
 	uint16_t x = (uint16_t)(dsRoundf(dsClamp(xyzw->x, 0, 1)*0x1F)) & 0x1F;
 	uint16_t y = (uint16_t)(dsRoundf(dsClamp(xyzw->y, 0, 1)*0x1F)) & 0x1F;
 	uint16_t z = (uint16_t)(dsRoundf(dsClamp(xyzw->z, 0, 1)*0x1F)) & 0x1F;
 	uint16_t w = (uint16_t)dsRoundf(dsClamp(xyzw->w, 0, 1));
+#endif
 	return (uint16_t)(w | (z << 1) | (y << 6) | (x << 11));
 }
 
@@ -1004,10 +1124,22 @@ inline void dsUnpackUIntX5Y5Z5W1(dsVector4f* result, uint16_t value)
 inline uint16_t dsPackIntZ5Y5X5W1(const dsVector4f* zyxw)
 {
 	DS_ASSERT(zyxw);
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4f clampedVal = dsSIMD4f_min(
+		dsSIMD4f_max(zyxw->simd, dsSIMD4f_set4(-1.0f, -1.0f, -1.0f, 0.0f)), dsSIMD4f_set1(1.0f));
+	dsVector4i zyxwi;
+	zyxwi.simd = dsSIMD4fb_and(dsSIMD4fb_round(
+		dsSIMD4f_mul(clampedVal, dsSIMD4f_set4(15.0f, 15.0f, 15.0f, 1.0f))), dsSIMD4fb_set1(0x1F));
+	uint16_t x = (uint16_t)zyxwi.x;
+	uint16_t y = (uint16_t)zyxwi.y;
+	uint16_t z = (uint16_t)zyxwi.z;
+	uint16_t w = (uint16_t)zyxwi.w;
+#else
 	uint16_t x = (int16_t)(dsRoundf(dsClamp(zyxw->x, -1, 1)*0xF)) & 0x1F;
 	uint16_t y = (int16_t)(dsRoundf(dsClamp(zyxw->y, -1, 1)*0xF)) & 0x1F;
 	uint16_t z = (int16_t)(dsRoundf(dsClamp(zyxw->z, -1, 1)*0xF)) & 0x1F;
 	uint16_t w = (int16_t)dsRoundf(dsClamp(zyxw->w, 0, 1));
+#endif
 	return (uint16_t)(w | (x << 1) | (y << 6) | (z << 11));
 }
 
@@ -1036,10 +1168,22 @@ inline void dsUnpackIntZ5Y5X5W1(dsVector4f* result, uint16_t value)
 inline uint16_t dsPackUIntZ5Y5X5W1(const dsVector4f* zyxw)
 {
 	DS_ASSERT(zyxw);
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4f clampedVal = dsSIMD4f_min(
+		dsSIMD4f_max(zyxw->simd, dsSIMD4f_set1(0.0f)), dsSIMD4f_set1(1.0f));
+	dsVector4i zyxwi;
+	zyxwi.simd = dsSIMD4fb_and(dsSIMD4fb_round(
+		dsSIMD4f_mul(clampedVal, dsSIMD4f_set4(31.0f, 31.0f, 31.0f, 1.0f))), dsSIMD4fb_set1(0x1F));
+	uint16_t x = (uint16_t)zyxwi.x;
+	uint16_t y = (uint16_t)zyxwi.y;
+	uint16_t z = (uint16_t)zyxwi.z;
+	uint16_t w = (uint16_t)zyxwi.w;
+#else
 	uint16_t x = (uint16_t)(dsRoundf(dsClamp(zyxw->x, 0, 1)*0x1F)) & 0x1F;
 	uint16_t y = (uint16_t)(dsRoundf(dsClamp(zyxw->y, 0, 1)*0x1F)) & 0x1F;
 	uint16_t z = (uint16_t)(dsRoundf(dsClamp(zyxw->z, 0, 1)*0x1F)) & 0x1F;
 	uint16_t w = (uint16_t)dsRoundf(dsClamp(zyxw->w, 0, 1));
+#endif
 	return (uint16_t)(w | (x << 1) | (y << 6) | (z << 11));
 }
 
@@ -1055,10 +1199,22 @@ inline void dsUnpackUIntZ5Y5X5W1(dsVector4f* result, uint16_t value)
 inline uint16_t dsPackIntW1X5Y5Z5(const dsVector4f* wxyz)
 {
 	DS_ASSERT(wxyz);
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4f clampedVal = dsSIMD4f_min(
+		dsSIMD4f_max(wxyz->simd, dsSIMD4f_set4(-1.0f, -1.0f, -1.0f, 0.0f)), dsSIMD4f_set1(1.0f));
+	dsVector4i wxyzi;
+	wxyzi.simd = dsSIMD4fb_and(dsSIMD4fb_round(
+		dsSIMD4f_mul(clampedVal, dsSIMD4f_set4(15.0f, 15.0f, 15.0f, 1.0f))), dsSIMD4fb_set1(0x1F));
+	uint16_t x = (uint16_t)wxyzi.x;
+	uint16_t y = (uint16_t)wxyzi.y;
+	uint16_t z = (uint16_t)wxyzi.z;
+	uint16_t w = (uint16_t)wxyzi.w;
+#else
 	uint16_t x = (int16_t)(dsRoundf(dsClamp(wxyz->x, -1, 1)*0xF)) & 0x1F;
 	uint16_t y = (int16_t)(dsRoundf(dsClamp(wxyz->y, -1, 1)*0xF)) & 0x1F;
 	uint16_t z = (int16_t)(dsRoundf(dsClamp(wxyz->z, -1, 1)*0xF)) & 0x1F;
 	uint16_t w = (int16_t)dsRoundf(dsClamp(wxyz->w, 0, 1));
+#endif
 	return (uint16_t)(z | (y << 5) | (x << 10) | (w << 15));
 }
 
@@ -1087,10 +1243,22 @@ inline void dsUnpackIntW1X5Y5Z5(dsVector4f* result, uint16_t value)
 inline uint16_t dsPackUIntW1X5Y5Z5(const dsVector4f* wxyz)
 {
 	DS_ASSERT(wxyz);
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4f clampedVal = dsSIMD4f_min(
+		dsSIMD4f_max(wxyz->simd, dsSIMD4f_set1(0.0f)), dsSIMD4f_set1(1.0f));
+	dsVector4i wxyzi;
+	wxyzi.simd = dsSIMD4fb_and(dsSIMD4fb_round(
+		dsSIMD4f_mul(clampedVal, dsSIMD4f_set4(31.0f, 31.0f, 31.0f, 1.0f))), dsSIMD4fb_set1(0x1F));
+	uint16_t x = (uint16_t)wxyzi.x;
+	uint16_t y = (uint16_t)wxyzi.y;
+	uint16_t z = (uint16_t)wxyzi.z;
+	uint16_t w = (uint16_t)wxyzi.w;
+#else
 	uint16_t x = (uint16_t)(dsRoundf(dsClamp(wxyz->x, 0, 1)*0x1F)) & 0x1F;
 	uint16_t y = (uint16_t)(dsRoundf(dsClamp(wxyz->y, 0, 1)*0x1F)) & 0x1F;
 	uint16_t z = (uint16_t)(dsRoundf(dsClamp(wxyz->z, 0, 1)*0x1F)) & 0x1F;
 	uint16_t w = (uint16_t)dsRoundf(dsClamp(wxyz->w, 0, 1));
+#endif
 	return (uint16_t)(z | (y << 5) | (x << 10) | (w << 15));
 }
 
@@ -1106,10 +1274,22 @@ inline void dsUnpackUIntW1X5Y5Z5(dsVector4f* result, uint16_t value)
 inline uint32_t dsPackIntW2X10Y10Z10(const dsVector4f* wxyz)
 {
 	DS_ASSERT(wxyz);
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4f clampedVal = dsSIMD4f_min(
+		dsSIMD4f_max(wxyz->simd, dsSIMD4f_set1(-1.0f)), dsSIMD4f_set1(1.0f));
+	dsVector4i wxyzi;
+	wxyzi.simd = dsSIMD4fb_and(dsSIMD4fb_round(dsSIMD4f_mul(clampedVal,
+		dsSIMD4f_set4(511.0f, 511.0f, 511.0f, 1.0f))), dsSIMD4fb_set4(0x3FF, 0x3FF, 0x3FF, 0x3));
+	uint32_t x = wxyzi.x;
+	uint32_t y = wxyzi.y;
+	uint32_t z = wxyzi.z;
+	uint32_t w = wxyzi.w;
+#else
 	uint32_t x = (int32_t)(dsRoundf(dsClamp(wxyz->x, -1, 1)*0x1FF)) & 0x3FF;
 	uint32_t y = (int32_t)(dsRoundf(dsClamp(wxyz->y, -1, 1)*0x1FF)) & 0x3FF;
 	uint32_t z = (int32_t)(dsRoundf(dsClamp(wxyz->z, -1, 1)*0x1FF)) & 0x3FF;
-	uint32_t w = (int32_t)(dsRoundf(dsClamp(wxyz->w, -1, 1)*0x1)) & 0x3;
+	uint32_t w = (int32_t)(dsRoundf(dsClamp(wxyz->w, -1, 1))) & 0x3;
+#endif
 	return (uint32_t)(z | (y << 10) | (x << 20) | (w << 30));
 }
 
@@ -1140,10 +1320,22 @@ inline void dsUnpackIntW2X10Y10Z10(dsVector4f* result, uint32_t value)
 inline uint32_t dsPackUIntW2X10Y10Z10(const dsVector4f* wxyz)
 {
 	DS_ASSERT(wxyz);
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4f clampedVal = dsSIMD4f_min(
+		dsSIMD4f_max(wxyz->simd, dsSIMD4f_set1(0.0f)), dsSIMD4f_set1(1.0f));
+	dsVector4i wxyzi;
+	wxyzi.simd = dsSIMD4fb_and(dsSIMD4fb_round(dsSIMD4f_mul(clampedVal,
+		dsSIMD4f_set4(1023.0f, 1023.0f, 1023.0f, 3.0f))), dsSIMD4fb_set4(0x3FF, 0x3FF, 0x3FF, 0x3));
+	uint32_t x = wxyzi.x;
+	uint32_t y = wxyzi.y;
+	uint32_t z = wxyzi.z;
+	uint32_t w = wxyzi.w;
+#else
 	uint32_t x = (uint32_t)(dsRoundf(dsClamp(wxyz->x, 0, 1)*0x3FF)) & 0x3FF;
 	uint32_t y = (uint32_t)(dsRoundf(dsClamp(wxyz->y, 0, 1)*0x3FF)) & 0x3FF;
 	uint32_t z = (uint32_t)(dsRoundf(dsClamp(wxyz->z, 0, 1)*0x3FF)) & 0x3FF;
 	uint32_t w = (uint32_t)(dsRoundf(dsClamp(wxyz->w, 0, 1)*0x3)) & 0x3;
+#endif
 	return (uint32_t)(z | (y << 10) | (x << 20) | (w << 30));
 }
 
@@ -1159,10 +1351,22 @@ inline void dsUnpackUIntW2X10Y10Z10(dsVector4f* result, uint32_t value)
 inline uint32_t dsPackIntW2Z10Y10X10(const dsVector4f* wzyx)
 {
 	DS_ASSERT(wzyx);
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4f clampedVal = dsSIMD4f_min(
+		dsSIMD4f_max(wzyx->simd, dsSIMD4f_set1(-1.0f)), dsSIMD4f_set1(1.0f));
+	dsVector4i wzyxi;
+	wzyxi.simd = dsSIMD4fb_and(dsSIMD4fb_round(dsSIMD4f_mul(clampedVal,
+		dsSIMD4f_set4(511.0f, 511.0f, 511.0f, 1.0f))), dsSIMD4fb_set4(0x3FF, 0x3FF, 0x3FF, 0x3));
+	uint32_t x = wzyxi.x;
+	uint32_t y = wzyxi.y;
+	uint32_t z = wzyxi.z;
+	uint32_t w = wzyxi.w;
+#else
 	uint32_t x = (int32_t)(dsRoundf(dsClamp(wzyx->x, -1, 1)*0x1FF)) & 0x3FF;
 	uint32_t y = (int32_t)(dsRoundf(dsClamp(wzyx->y, -1, 1)*0x1FF)) & 0x3FF;
 	uint32_t z = (int32_t)(dsRoundf(dsClamp(wzyx->z, -1, 1)*0x1FF)) & 0x3FF;
-	uint32_t w = (int32_t)(dsRoundf(dsClamp(wzyx->w, -1, 1)*0x1)) & 0x3;
+	uint32_t w = (int32_t)(dsRoundf(dsClamp(wzyx->w, -1, 1))) & 0x3;
+#endif
 	return (uint32_t)(x | (y << 10) | (z << 20) | (w << 30));
 }
 
@@ -1193,10 +1397,22 @@ inline void dsUnpackIntW2Z10Y10X10(dsVector4f* result, uint32_t value)
 inline uint32_t dsPackUIntW2Z10Y10X10(const dsVector4f* wzyx)
 {
 	DS_ASSERT(wzyx);
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4f clampedVal = dsSIMD4f_min(
+		dsSIMD4f_max(wzyx->simd, dsSIMD4f_set1(0.0f)), dsSIMD4f_set1(1.0f));
+	dsVector4i wzyxi;
+	wzyxi.simd = dsSIMD4fb_and(dsSIMD4fb_round(dsSIMD4f_mul(clampedVal,
+		dsSIMD4f_set4(1023.0f, 1023.0f, 1023.0f, 3.0f))), dsSIMD4fb_set4(0x3FF, 0x3FF, 0x3FF, 0x3));
+	uint32_t x = wzyxi.x;
+	uint32_t y = wzyxi.y;
+	uint32_t z = wzyxi.z;
+	uint32_t w = wzyxi.w;
+#else
 	uint32_t x = (uint32_t)(dsRoundf(dsClamp(wzyx->x, 0, 1)*0x3FF)) & 0x3FF;
 	uint32_t y = (uint32_t)(dsRoundf(dsClamp(wzyx->y, 0, 1)*0x3FF)) & 0x3FF;
 	uint32_t z = (uint32_t)(dsRoundf(dsClamp(wzyx->z, 0, 1)*0x3FF)) & 0x3FF;
 	uint32_t w = (uint32_t)(dsRoundf(dsClamp(wzyx->w, 0, 1)*0x3)) & 0x3;
+#endif
 	return (uint32_t)(x | (y << 10) | (z << 20) | (w << 30));
 }
 

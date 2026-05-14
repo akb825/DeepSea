@@ -1011,7 +1011,7 @@ DS_SIMD_END()
 
 /// @endcond
 
-DS_MATH_EXPORT inline float dsSplitPow2f(int* outPow2, float x)
+inline float dsSplitPow2f(int* outPow2, float x)
 {
 	DS_ASSERT(outPow2);
 
@@ -1038,7 +1038,7 @@ DS_MATH_EXPORT inline float dsSplitPow2f(int* outPow2, float x)
 	return *(float*)&xi;
 }
 
-DS_MATH_EXPORT inline double dsSplitPow2d(int* outPow2, double x)
+inline double dsSplitPow2d(int* outPow2, double x)
 {
 	DS_ASSERT(outPow2);
 
@@ -1064,21 +1064,21 @@ DS_MATH_EXPORT inline double dsSplitPow2d(int* outPow2, double x)
 	return *(double*)&xi;
 }
 
-DS_MATH_EXPORT inline float dsMulPow2f(float x, int pow2)
+inline float dsMulPow2f(float x, int pow2)
 {
 	if (DS_EXPECT(pow2 > -DS_FLT_EXP_OFFSET && pow2 <= DS_FLT_EXP_OFFSET, true))
 		return dsMulPow2fSimple(x, pow2);
 	return dsMulPow2fComplete(x, pow2);
 }
 
-DS_MATH_EXPORT inline double dsMulPow2d(double x, int pow2)
+inline double dsMulPow2d(double x, int pow2)
 {
 	if (DS_EXPECT(pow2 > -DS_DBL_EXP_OFFSET && pow2 <= DS_DBL_EXP_OFFSET, true))
 		return dsMulPow2dSimple(x, pow2);
 	return dsMulPow2dComplete(x, pow2);
 }
 
-DS_MATH_EXPORT inline float dsLnf(float x)
+inline float dsLnf(float x)
 {
 	DS_ASSERT(x > 0.0f);
 
@@ -1102,7 +1102,7 @@ DS_MATH_EXPORT inline float dsLnf(float x)
 #endif
 }
 
-DS_MATH_EXPORT inline double dsLnd(double x)
+inline double dsLnd(double x)
 {
 	DS_ASSERT(x > 0.0);
 
@@ -1127,7 +1127,7 @@ DS_MATH_EXPORT inline double dsLnd(double x)
 #endif
 }
 
-DS_MATH_EXPORT inline float dsLog2f(float x)
+inline float dsLog2f(float x)
 {
 	DS_ASSERT(x > 0.0f);
 
@@ -1151,7 +1151,7 @@ DS_MATH_EXPORT inline float dsLog2f(float x)
 #endif
 }
 
-DS_MATH_EXPORT inline double dsLog2d(double x)
+inline double dsLog2d(double x)
 {
 	DS_ASSERT(x > 0.0);
 
@@ -1177,7 +1177,7 @@ DS_MATH_EXPORT inline double dsLog2d(double x)
 #endif
 }
 
-DS_MATH_EXPORT inline float dsLog10f(float x)
+inline float dsLog10f(float x)
 {
 	DS_ASSERT(x > 0.0f);
 
@@ -1202,7 +1202,7 @@ DS_MATH_EXPORT inline float dsLog10f(float x)
 #endif
 }
 
-DS_MATH_EXPORT inline double dsLog10d(double x)
+inline double dsLog10d(double x)
 {
 	DS_ASSERT(x > 0.0);
 
@@ -1229,7 +1229,7 @@ DS_MATH_EXPORT inline double dsLog10d(double x)
 #endif
 }
 
-DS_MATH_EXPORT inline float dsExpf(float x)
+inline float dsExpf(float x)
 {
 #if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
 	uint32_t xi = *(uint32_t*)&x;
@@ -1255,7 +1255,7 @@ DS_MATH_EXPORT inline float dsExpf(float x)
 #endif
 }
 
-DS_MATH_EXPORT inline double dsExpd(double x)
+inline double dsExpd(double x)
 {
 #if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
 	uint64_t xi = *(uint64_t*)&x;
@@ -1283,7 +1283,7 @@ DS_MATH_EXPORT inline double dsExpd(double x)
 #endif
 }
 
-DS_MATH_EXPORT inline float dsExp2f(float x)
+inline float dsExp2f(float x)
 {
 #if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
 	uint32_t xi = *(uint32_t*)&x;
@@ -1308,7 +1308,7 @@ DS_MATH_EXPORT inline float dsExp2f(float x)
 #endif
 }
 
-DS_MATH_EXPORT inline double dsExp2d(double x)
+inline double dsExp2d(double x)
 {
 #if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
 	uint64_t xi = *(uint64_t*)&x;
@@ -1335,7 +1335,7 @@ DS_MATH_EXPORT inline double dsExp2d(double x)
 #endif
 }
 
-DS_MATH_EXPORT inline float dsExp10f(float x)
+inline float dsExp10f(float x)
 {
 	uint32_t xi = *(uint32_t*)&x;
 	if (DS_EXPECT((xi & DS_FLT_EXP_BITS) == DS_FLT_EXP_BITS, false))
@@ -1356,7 +1356,7 @@ DS_MATH_EXPORT inline float dsExp10f(float x)
 	return dsMulPow2f(egTaylor, n);
 }
 
-DS_MATH_EXPORT inline double dsExp10d(double x)
+inline double dsExp10d(double x)
 {
 	uint64_t xi = *(uint64_t*)&x;
 	if (DS_EXPECT((xi & DS_DBL_EXP_BITS) == DS_DBL_EXP_BITS, false))
@@ -1381,7 +1381,7 @@ DS_MATH_EXPORT inline double dsExp10d(double x)
 	return dsMulPow2d(egRational, (int)n);
 }
 
-DS_MATH_EXPORT inline float dsPowf(float x, float y)
+inline float dsPowf(float x, float y)
 {
 #if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
 	// Evaluate as exp2^(y*log2(x)), utilizing doubles to ensure enough precision is preserved.
@@ -1426,7 +1426,7 @@ DS_MATH_EXPORT inline float dsPowf(float x, float y)
 #endif
 }
 
-DS_MATH_EXPORT inline float dsFastPowf(float x, float y)
+inline float dsFastPowf(float x, float y)
 {
 #if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
 	// Evaluate as exp2^(y*log2(x))
@@ -1467,7 +1467,7 @@ DS_MATH_EXPORT inline float dsFastPowf(float x, float y)
 #endif
 }
 
-DS_MATH_EXPORT inline double dsFastPowd(double x, double y)
+inline double dsFastPowd(double x, double y)
 {
 #if DS_ALWAYS_CUSTOM_EXPONENT_IMPL
 	// Evaluate as exp2^(y*log2(x))
@@ -1516,7 +1516,7 @@ DS_MATH_EXPORT inline double dsFastPowd(double x, double y)
 
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT)
 
-DS_MATH_EXPORT inline dsSIMD4f dsSplitPow2SIMD4f(dsSIMD4fb* outPow2, dsSIMD4f x)
+inline dsSIMD4f dsSplitPow2SIMD4f(dsSIMD4fb* outPow2, dsSIMD4f x)
 {
 	DS_ASSERT(outPow2);
 
@@ -1552,7 +1552,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsSplitPow2SIMD4f(dsSIMD4fb* outPow2, dsSIMD4f x)
 		dsSIMD4fb_andnot(fltExpBits, xi), dsSIMD4fb_select(keepOrig, expBits, targetExpBits)));
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsMulPow2SIMD4f(dsSIMD4f x, dsSIMD4fb pow2)
+inline dsSIMD4f dsMulPow2SIMD4f(dsSIMD4f x, dsSIMD4fb pow2)
 {
 	dsSIMD4fb fltExpOffset = dsSIMD4fb_set1(DS_FLT_EXP_OFFSET);
 	dsSIMD4fb negFltExpOffset = dsSIMD4fb_set1(-DS_FLT_EXP_OFFSET);
@@ -1576,7 +1576,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsMulPow2SIMD4f(dsSIMD4f x, dsSIMD4fb pow2)
 	return dsSIMD4f_load(scalarX);
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsLnSIMD4f(dsSIMD4f x)
+inline dsSIMD4f dsLnSIMD4f(dsSIMD4f x)
 {
 	DS_ASSERT(dsSIMD4fb_all(dsSIMD4f_cmpgt(x, dsSIMD4f_set1(0.0f))));
 
@@ -1614,7 +1614,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsLnSIMD4f(dsSIMD4f x)
 		dsSIMD4f_mul(lnExp1, pow2f)), dsSIMD4f_mul(half, xm2)), xm), dsSIMD4f_mul(lnExp2, pow2f));
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsLog2SIMD4f(dsSIMD4f x)
+inline dsSIMD4f dsLog2SIMD4f(dsSIMD4f x)
 {
 	DS_ASSERT(dsSIMD4fb_all(dsSIMD4f_cmpgt(x, dsSIMD4f_set1(0.0f))));
 
@@ -1653,7 +1653,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsLog2SIMD4f(dsSIMD4f x)
 		dsSIMD4f_mul(xm, log2eFrac)), baseLog2), xm), pow2f);
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsLog10SIMD4f(dsSIMD4f x)
+inline dsSIMD4f dsLog10SIMD4f(dsSIMD4f x)
 {
 	DS_ASSERT(dsSIMD4fb_all(dsSIMD4f_cmpgt(x, dsSIMD4f_set1(0.0f))));
 
@@ -1699,7 +1699,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsLog10SIMD4f(dsSIMD4f x)
 DS_SIMD_END()
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT,DS_SIMD_ROUNDING)
 
-DS_MATH_EXPORT inline dsSIMD4f dsExpSIMD4f(dsSIMD4f x)
+inline dsSIMD4f dsExpSIMD4f(dsSIMD4f x)
 {
 	dsSIMD4fb fltExpBits = dsSIMD4fb_set1(DS_FLT_EXP_BITS);
 	dsSIMD4fb fltUnsignedBits = dsSIMD4fb_set1(~DS_FLT_SIGN_BIT);
@@ -1735,7 +1735,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsExpSIMD4f(dsSIMD4f x)
 	return dsSIMD4f_select(isInfinity, infinityResult, dsMulPow2SIMD4f(egTaylor, n));
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsExp2SIMD4f(dsSIMD4f x)
+inline dsSIMD4f dsExp2SIMD4f(dsSIMD4f x)
 {
 	dsSIMD4fb fltExpBits = dsSIMD4fb_set1(DS_FLT_EXP_BITS);
 	dsSIMD4fb fltUnsignedBits = dsSIMD4fb_set1(~DS_FLT_SIGN_BIT);
@@ -1767,7 +1767,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsExp2SIMD4f(dsSIMD4f x)
 	return dsSIMD4f_select(isInfinity, infinityResult, dsMulPow2SIMD4f(egTaylor, n));
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsExp10SIMD4f(dsSIMD4f x)
+inline dsSIMD4f dsExp10SIMD4f(dsSIMD4f x)
 {
 	dsSIMD4fb fltExpBits = dsSIMD4fb_set1(DS_FLT_EXP_BITS);
 	dsSIMD4fb fltUnsignedBits = dsSIMD4fb_set1(~DS_FLT_SIGN_BIT);
@@ -1803,7 +1803,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsExp10SIMD4f(dsSIMD4f x)
 	return dsSIMD4f_select(isInfinity, infinityResult, dsMulPow2SIMD4f(egTaylor, n));
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsFastPowSIMD4f(dsSIMD4f x, dsSIMD4f y)
+inline dsSIMD4f dsFastPowSIMD4f(dsSIMD4f x, dsSIMD4f y)
 {
 	// Evaluate as exp2^(y*log2(x))
 	dsSIMD4f sqrt1_2 = dsSIMD4f_set1(M_SQRT1_2f);
@@ -1874,7 +1874,7 @@ DS_SIMD_END()
 #if !DS_DETERMINISTIC_MATH
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT,DS_SIMD_FMA)
 
-DS_MATH_EXPORT inline dsSIMD4f dsLnFMA4f(dsSIMD4f x)
+inline dsSIMD4f dsLnFMA4f(dsSIMD4f x)
 {
 	DS_ASSERT(dsSIMD4fb_all(dsSIMD4f_cmpgt(x, dsSIMD4f_set1(0.0f))));
 
@@ -1911,7 +1911,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsLnFMA4f(dsSIMD4f x)
 		xm, lnTaylor9), xm), xm2, dsSIMD4f_mul(lnExp1, pow2f))), xm));
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsLog2FMA4f(dsSIMD4f x)
+inline dsSIMD4f dsLog2FMA4f(dsSIMD4f x)
 {
 	DS_ASSERT(dsSIMD4fb_all(dsSIMD4f_cmpgt(x, dsSIMD4f_set1(0.0f))));
 
@@ -1949,7 +1949,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsLog2FMA4f(dsSIMD4f x)
 		dsSIMD4f_mul(xm, log2eFrac)), baseLog2), xm), pow2f);
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsLog10FMA4f(dsSIMD4f x)
+inline dsSIMD4f dsLog10FMA4f(dsSIMD4f x)
 {
 	DS_ASSERT(dsSIMD4fb_all(dsSIMD4f_cmpgt(x, dsSIMD4f_set1(0.0f))));
 
@@ -1993,7 +1993,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsLog10FMA4f(dsSIMD4f x)
 DS_SIMD_END()
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT,DS_SIMD_ROUNDING,DS_SIMD_FMA)
 
-DS_MATH_EXPORT inline dsSIMD4f dsExpFMA4f(dsSIMD4f x)
+inline dsSIMD4f dsExpFMA4f(dsSIMD4f x)
 {
 	dsSIMD4fb fltExpBits = dsSIMD4fb_set1(DS_FLT_EXP_BITS);
 	dsSIMD4fb fltUnsignedBits = dsSIMD4fb_set1(~DS_FLT_SIGN_BIT);
@@ -2028,7 +2028,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsExpFMA4f(dsSIMD4f x)
 	return dsSIMD4f_select(isInfinity, infinityResult, dsMulPow2SIMD4f(egTaylor, n));
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsExp2FMA4f(dsSIMD4f x)
+inline dsSIMD4f dsExp2FMA4f(dsSIMD4f x)
 {
 	dsSIMD4fb fltExpBits = dsSIMD4fb_set1(DS_FLT_EXP_BITS);
 	dsSIMD4fb fltUnsignedBits = dsSIMD4fb_set1(~DS_FLT_SIGN_BIT);
@@ -2059,7 +2059,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsExp2FMA4f(dsSIMD4f x)
 	return dsSIMD4f_select(isInfinity, infinityResult, dsMulPow2SIMD4f(egTaylor, n));
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsExp10FMA4f(dsSIMD4f x)
+inline dsSIMD4f dsExp10FMA4f(dsSIMD4f x)
 {
 	dsSIMD4fb fltExpBits = dsSIMD4fb_set1(DS_FLT_EXP_BITS);
 	dsSIMD4fb fltUnsignedBits = dsSIMD4fb_set1(~DS_FLT_SIGN_BIT);
@@ -2093,7 +2093,7 @@ DS_MATH_EXPORT inline dsSIMD4f dsExp10FMA4f(dsSIMD4f x)
 	return dsSIMD4f_select(isInfinity, infinityResult, dsMulPow2SIMD4f(egTaylor, n));
 }
 
-DS_MATH_EXPORT inline dsSIMD4f dsFastPowFMA4f(dsSIMD4f x, dsSIMD4f y)
+inline dsSIMD4f dsFastPowFMA4f(dsSIMD4f x, dsSIMD4f y)
 {
 	// Evaluate as exp2^(y*log2(x))
 	dsSIMD4f sqrt1_2 = dsSIMD4f_set1(M_SQRT1_2f);;
@@ -2162,7 +2162,7 @@ DS_SIMD_END()
 
 DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT)
 
-DS_MATH_EXPORT inline dsSIMD2d dsSplitPow2SIMD2d(dsSIMD2db* outPow2, dsSIMD2d x)
+inline dsSIMD2d dsSplitPow2SIMD2d(dsSIMD2db* outPow2, dsSIMD2d x)
 {
 	DS_ASSERT(outPow2);
 
@@ -2203,7 +2203,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsSplitPow2SIMD2d(dsSIMD2db* outPow2, dsSIMD2d x)
 		dsSIMD2db_andnot(fltExpBits, xi), dsSIMD2db_select(keepOrig, expBits, targetExpBits)));
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsMulPow2SIMD2d(dsSIMD2d x, dsSIMD2db pow2)
+inline dsSIMD2d dsMulPow2SIMD2d(dsSIMD2d x, dsSIMD2db pow2)
 {
 	dsSIMD2db fltExpOffset = dsSIMD2db_set1(DS_DBL_EXP_OFFSET);
 	dsSIMD2db negFltExpOffset = dsSIMD2db_set1(-DS_DBL_EXP_OFFSET);
@@ -2227,7 +2227,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsMulPow2SIMD2d(dsSIMD2d x, dsSIMD2db pow2)
 	return dsSIMD2d_load(scalarX);
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsLnSIMD2d(dsSIMD2d x)
+inline dsSIMD2d dsLnSIMD2d(dsSIMD2d x)
 {
 	DS_ASSERT(dsSIMD2db_all(dsSIMD2d_cmpgt(x, dsSIMD2d_set1(0.0))));
 
@@ -2273,7 +2273,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsLnSIMD2d(dsSIMD2d x)
 		dsSIMD2d_mul(lnExp2, pow2d));
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsLog2SIMD2d(dsSIMD2d x)
+inline dsSIMD2d dsLog2SIMD2d(dsSIMD2d x)
 {
 	DS_ASSERT(dsSIMD2db_all(dsSIMD2d_cmpgt(x, dsSIMD2d_set1(0.0f))));
 
@@ -2318,7 +2318,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsLog2SIMD2d(dsSIMD2d x)
 		dsSIMD2d_mul(xm, log2eFrac)), baseLog2), xm), pow2d);
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsLog10SIMD2d(dsSIMD2d x)
+inline dsSIMD2d dsLog10SIMD2d(dsSIMD2d x)
 {
 	DS_ASSERT(dsSIMD2db_all(dsSIMD2d_cmpgt(x, dsSIMD2d_set1(0.0f))));
 
@@ -2370,7 +2370,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsLog10SIMD2d(dsSIMD2d x)
 DS_SIMD_END()
 DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT,DS_SIMD_ROUNDING)
 
-DS_MATH_EXPORT inline dsSIMD2d dsExpSIMD2d(dsSIMD2d x)
+inline dsSIMD2d dsExpSIMD2d(dsSIMD2d x)
 {
 	dsSIMD2db dblExpBits = dsSIMD2db_set1(DS_DBL_EXP_BITS);
 	dsSIMD2db dblUnsignedBits = dsSIMD2db_set1(~DS_DBL_SIGN_BIT);
@@ -2411,7 +2411,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsExpSIMD2d(dsSIMD2d x)
 	return dsSIMD2d_select(isInfinity, infinityResult, dsMulPow2SIMD2d(qRational, n));
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsExp2SIMD2d(dsSIMD2d x)
+inline dsSIMD2d dsExp2SIMD2d(dsSIMD2d x)
 {
 	dsSIMD2db dblExpBits = dsSIMD2db_set1(DS_DBL_EXP_BITS);
 	dsSIMD2db dblUnsignedBits = dsSIMD2db_set1(~DS_DBL_SIGN_BIT);
@@ -2446,7 +2446,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsExp2SIMD2d(dsSIMD2d x)
 	return dsSIMD2d_select(isInfinity, infinityResult, dsMulPow2SIMD2d(qRational, n));
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsExp10SIMD2d(dsSIMD2d x)
+inline dsSIMD2d dsExp10SIMD2d(dsSIMD2d x)
 {
 	dsSIMD2db dblExpBits = dsSIMD2db_set1(DS_DBL_EXP_BITS);
 	dsSIMD2db dblUnsignedBits = dsSIMD2db_set1(~DS_DBL_SIGN_BIT);
@@ -2489,7 +2489,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsExp10SIMD2d(dsSIMD2d x)
 	return dsSIMD2d_select(isInfinity, infinityResult, dsMulPow2SIMD2d(qRational, n));
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsFastPowSIMD2d(dsSIMD2d x, dsSIMD2d y)
+inline dsSIMD2d dsFastPowSIMD2d(dsSIMD2d x, dsSIMD2d y)
 {
 	// Evaluate as exp2^(y*log2(x))
 	dsSIMD2d sqrt1_2 = dsSIMD2d_set1(M_SQRT1_2);
@@ -2569,7 +2569,7 @@ DS_SIMD_END()
 #if !DS_DETERMINISTIC_MATH
 DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT,DS_SIMD_FMA)
 
-DS_MATH_EXPORT inline dsSIMD2d dsLnFMA2d(dsSIMD2d x)
+inline dsSIMD2d dsLnFMA2d(dsSIMD2d x)
 {
 	DS_ASSERT(dsSIMD2db_all(dsSIMD2d_cmpgt(x, dsSIMD2d_set1(0.0))));
 
@@ -2612,7 +2612,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsLnFMA2d(dsSIMD2d x)
 		lnExp1, pow2d, dsSIMD2d_div(dsSIMD2d_mul(xm, pTaylor), qTaylor))), xm));
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsLog2FMA2d(dsSIMD2d x)
+inline dsSIMD2d dsLog2FMA2d(dsSIMD2d x)
 {
 	DS_ASSERT(dsSIMD2db_all(dsSIMD2d_cmpgt(x, dsSIMD2d_set1(0.0f))));
 
@@ -2656,7 +2656,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsLog2FMA2d(dsSIMD2d x)
 		dsSIMD2d_mul(xm, log2eFrac)), baseLog2), xm), pow2d);
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsLog10FMA2d(dsSIMD2d x)
+inline dsSIMD2d dsLog10FMA2d(dsSIMD2d x)
 {
 	DS_ASSERT(dsSIMD2db_all(dsSIMD2d_cmpgt(x, dsSIMD2d_set1(0.0f))));
 
@@ -2706,7 +2706,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsLog10FMA2d(dsSIMD2d x)
 DS_SIMD_END()
 DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT,DS_SIMD_ROUNDING,DS_SIMD_FMA)
 
-DS_MATH_EXPORT inline dsSIMD2d dsExpFMA2d(dsSIMD2d x)
+inline dsSIMD2d dsExpFMA2d(dsSIMD2d x)
 {
 	dsSIMD2db dblExpBits = dsSIMD2db_set1(DS_DBL_EXP_BITS);
 	dsSIMD2db dblUnsignedBits = dsSIMD2db_set1(~DS_DBL_SIGN_BIT);
@@ -2747,7 +2747,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsExpFMA2d(dsSIMD2d x)
 	return dsSIMD2d_select(isInfinity, infinityResult, dsMulPow2SIMD2d(qRational, n));
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsExp2FMA2d(dsSIMD2d x)
+inline dsSIMD2d dsExp2FMA2d(dsSIMD2d x)
 {
 	dsSIMD2db dblExpBits = dsSIMD2db_set1(DS_DBL_EXP_BITS);
 	dsSIMD2db dblUnsignedBits = dsSIMD2db_set1(~DS_DBL_SIGN_BIT);
@@ -2782,7 +2782,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsExp2FMA2d(dsSIMD2d x)
 	return dsSIMD2d_select(isInfinity, infinityResult, dsMulPow2SIMD2d(qRational, n));
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsExp10FMA2d(dsSIMD2d x)
+inline dsSIMD2d dsExp10FMA2d(dsSIMD2d x)
 {
 	dsSIMD2db dblExpBits = dsSIMD2db_set1(DS_DBL_EXP_BITS);
 	dsSIMD2db dblUnsignedBits = dsSIMD2db_set1(~DS_DBL_SIGN_BIT);
@@ -2823,7 +2823,7 @@ DS_MATH_EXPORT inline dsSIMD2d dsExp10FMA2d(dsSIMD2d x)
 	return dsSIMD2d_select(isInfinity, infinityResult, dsMulPow2SIMD2d(qRational, n));
 }
 
-DS_MATH_EXPORT inline dsSIMD2d dsFastPowFMA2d(dsSIMD2d x, dsSIMD2d y)
+inline dsSIMD2d dsFastPowFMA2d(dsSIMD2d x, dsSIMD2d y)
 {
 	// Evaluate as exp2^(y*log2(x))
 	dsSIMD2d sqrt1_2 = dsSIMD2d_set1(M_SQRT1_2);
@@ -2901,7 +2901,7 @@ DS_SIMD_END()
 
 DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_INT,DS_SIMD_FMA)
 
-DS_MATH_EXPORT inline dsSIMD4d dsSplitPow2SIMD4d(dsSIMD4db* outPow2, dsSIMD4d x)
+inline dsSIMD4d dsSplitPow2SIMD4d(dsSIMD4db* outPow2, dsSIMD4d x)
 {
 	DS_ASSERT(outPow2);
 
@@ -2942,7 +2942,7 @@ DS_MATH_EXPORT inline dsSIMD4d dsSplitPow2SIMD4d(dsSIMD4db* outPow2, dsSIMD4d x)
 		dsSIMD4db_andnot(fltExpBits, xi), dsSIMD4db_select(keepOrig, expBits, targetExpBits)));
 }
 
-DS_MATH_EXPORT inline dsSIMD4d dsMulPow2SIMD4d(dsSIMD4d x, dsSIMD4db pow2)
+inline dsSIMD4d dsMulPow2SIMD4d(dsSIMD4d x, dsSIMD4db pow2)
 {
 	dsSIMD4db fltExpOffset = dsSIMD4db_set1(DS_DBL_EXP_OFFSET);
 	dsSIMD4db negFltExpOffset = dsSIMD4db_set1(-DS_DBL_EXP_OFFSET);
@@ -2966,7 +2966,7 @@ DS_MATH_EXPORT inline dsSIMD4d dsMulPow2SIMD4d(dsSIMD4d x, dsSIMD4db pow2)
 	return dsSIMD4d_load(scalarX);
 }
 
-DS_MATH_EXPORT inline dsSIMD4d dsLnSIMD4d(dsSIMD4d x)
+inline dsSIMD4d dsLnSIMD4d(dsSIMD4d x)
 {
 	DS_ASSERT(dsSIMD4db_all(dsSIMD4d_cmpgt(x, dsSIMD4d_set1(0.0))));
 
@@ -3022,7 +3022,7 @@ DS_MATH_EXPORT inline dsSIMD4d dsLnSIMD4d(dsSIMD4d x)
 #endif
 }
 
-DS_MATH_EXPORT inline dsSIMD4d dsLog2SIMD4d(dsSIMD4d x)
+inline dsSIMD4d dsLog2SIMD4d(dsSIMD4d x)
 {
 	DS_ASSERT(dsSIMD4db_all(dsSIMD4d_cmpgt(x, dsSIMD4d_set1(0.0f))));
 
@@ -3080,7 +3080,7 @@ DS_MATH_EXPORT inline dsSIMD4d dsLog2SIMD4d(dsSIMD4d x)
 #endif
 }
 
-DS_MATH_EXPORT inline dsSIMD4d dsLog10SIMD4d(dsSIMD4d x)
+inline dsSIMD4d dsLog10SIMD4d(dsSIMD4d x)
 {
 	DS_ASSERT(dsSIMD4db_all(dsSIMD4d_cmpgt(x, dsSIMD4d_set1(0.0f))));
 
@@ -3145,7 +3145,7 @@ DS_MATH_EXPORT inline dsSIMD4d dsLog10SIMD4d(dsSIMD4d x)
 DS_SIMD_END()
 DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_INT,DS_SIMD_ROUNDING,DS_SIMD_FMA)
 
-DS_MATH_EXPORT inline dsSIMD4d dsExpSIMD4d(dsSIMD4d x)
+inline dsSIMD4d dsExpSIMD4d(dsSIMD4d x)
 {
 	dsSIMD4db dblExpBits = dsSIMD4db_set1(DS_DBL_EXP_BITS);
 	dsSIMD4db dblUnsignedBits = dsSIMD4db_set1(~DS_DBL_SIGN_BIT);
@@ -3199,7 +3199,7 @@ DS_MATH_EXPORT inline dsSIMD4d dsExpSIMD4d(dsSIMD4d x)
 	return dsSIMD4d_select(isInfinity, infinityResult, dsMulPow2SIMD4d(qRational, n));
 }
 
-DS_MATH_EXPORT inline dsSIMD4d dsExp2SIMD4d(dsSIMD4d x)
+inline dsSIMD4d dsExp2SIMD4d(dsSIMD4d x)
 {
 	dsSIMD4db dblExpBits = dsSIMD4db_set1(DS_DBL_EXP_BITS);
 	dsSIMD4db dblUnsignedBits = dsSIMD4db_set1(~DS_DBL_SIGN_BIT);
@@ -3242,7 +3242,7 @@ DS_MATH_EXPORT inline dsSIMD4d dsExp2SIMD4d(dsSIMD4d x)
 	return dsSIMD4d_select(isInfinity, infinityResult, dsMulPow2SIMD4d(qRational, n));
 }
 
-DS_MATH_EXPORT inline dsSIMD4d dsExp10SIMD4d(dsSIMD4d x)
+inline dsSIMD4d dsExp10SIMD4d(dsSIMD4d x)
 {
 	dsSIMD4db dblExpBits = dsSIMD4db_set1(DS_DBL_EXP_BITS);
 	dsSIMD4db dblUnsignedBits = dsSIMD4db_set1(~DS_DBL_SIGN_BIT);
@@ -3298,7 +3298,7 @@ DS_MATH_EXPORT inline dsSIMD4d dsExp10SIMD4d(dsSIMD4d x)
 	return dsSIMD4d_select(isInfinity, infinityResult, dsMulPow2SIMD4d(qRational, n));
 }
 
-DS_MATH_EXPORT inline dsSIMD4d dsFastPowSIMD4d(dsSIMD4d x, dsSIMD4d y)
+inline dsSIMD4d dsFastPowSIMD4d(dsSIMD4d x, dsSIMD4d y)
 {
 	// Evaluate as exp2^(y*log2(x))
 	dsSIMD4d sqrt1_2 = dsSIMD4d_set1(M_SQRT1_2);

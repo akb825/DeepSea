@@ -18,9 +18,12 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Assert.h>
+
+#include <DeepSea/Math/SIMD/SIMD.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Exponent.h>
 #include <DeepSea/Math/Export.h>
+#include <DeepSea/Math/MathImpl.h>
 #include <DeepSea/Math/Round.h>
 #include <DeepSea/Math/Types.h>
 #include <DeepSea/Math/Vector3.h>
@@ -224,8 +227,8 @@ DS_MATH_EXPORT inline bool dsColor3f_equal(const dsColor3f* x, const dsColor3f* 
  * @param epsilon The epsilon to check within.
  * @return True the values of x and y are within epsilon.
  */
-DS_MATH_EXPORT inline bool dsColor3f_epsilonEqual(const dsColor3f* x, const dsColor3f* y,
-	float epsilon);
+DS_MATH_EXPORT inline bool dsColor3f_epsilonEqual(
+	const dsColor3f* x, const dsColor3f* y, float epsilon);
 
 /**
  * @brief Creates a matrix to transform an RGB color in HSV color space.
@@ -237,8 +240,8 @@ DS_MATH_EXPORT inline bool dsColor3f_epsilonEqual(const dsColor3f* x, const dsCo
  * @param saturationScale The amount to scale the saturation.
  * @param valueScale The amount to scale the value.
  */
-DS_MATH_EXPORT void dsColor3f_createHSVTransform(dsMatrix33f* outTransform, float hueShift,
-	float saturationScale, float valueScale);
+DS_MATH_EXPORT void dsColor3f_createHSVTransform(
+	dsMatrix33f* outTransform, float hueShift, float saturationScale, float valueScale);
 
 /**
  * @brief Converts to a dsColor4f from a dsColor.
@@ -297,8 +300,8 @@ DS_MATH_EXPORT inline float dsColor4f_grayscale(const dsColor4f* color);
  * @param y The second color.
  * @param t The interpolation value between x and y.
  */
-DS_MATH_EXPORT inline void dsColor4f_lerp(dsColor4f* outColor, const dsColor4f* x,
-	const dsColor4f* y, float t);
+DS_MATH_EXPORT inline void dsColor4f_lerp(
+	dsColor4f* outColor, const dsColor4f* x, const dsColor4f* y, float t);
 
 /**
  * @brief Linearly interpolates between two sRGB colors in linear color space.
@@ -307,8 +310,8 @@ DS_MATH_EXPORT inline void dsColor4f_lerp(dsColor4f* outColor, const dsColor4f* 
  * @param y The second color.
  * @param t The interpolation value between x and y.
  */
-DS_MATH_EXPORT inline void dsColor4f_lerpSRGB(dsColor4f* outColor, const dsColor4f* x,
-	const dsColor4f* y, float t);
+DS_MATH_EXPORT inline void dsColor4f_lerpSRGB(
+	dsColor4f* outColor, const dsColor4f* x, const dsColor4f* y, float t);
 
 /**
  * @brief Get whether or not two colors are equal.
@@ -327,8 +330,8 @@ DS_MATH_EXPORT inline bool dsColor4f_equal(const dsColor4f* x, const dsColor4f* 
  * @param epsilon The epsilon to check within.
  * @return True the values of x and y are within epsilon.
  */
-DS_MATH_EXPORT inline bool dsColor4f_epsilonEqual(const dsColor4f* x, const dsColor4f* y,
-	float epsilon);
+DS_MATH_EXPORT inline bool dsColor4f_epsilonEqual(
+	const dsColor4f* x, const dsColor4f* y, float epsilon);
 
 /**
  * @brief Converts to a dsHSVColor from a dsColor.
@@ -388,8 +391,8 @@ DS_MATH_EXPORT inline float dsHSVColor_grayscale(const dsHSVColor* color);
  * @param y The second color.
  * @param t The interpolation value between x and y.
  */
-DS_MATH_EXPORT inline void dsHSVColor_lerp(dsHSVColor* outColor, const dsHSVColor* x,
-	const dsHSVColor* y, float t);
+DS_MATH_EXPORT inline void dsHSVColor_lerp(
+	dsHSVColor* outColor, const dsHSVColor* x, const dsHSVColor* y, float t);
 
 /**
  * @brief Linearly interpolates between two sRGB colors in linear color space.
@@ -400,8 +403,8 @@ DS_MATH_EXPORT inline void dsHSVColor_lerp(dsHSVColor* outColor, const dsHSVColo
  * @param y The second color.
  * @param t The interpolation value between x and y.
  */
-DS_MATH_EXPORT inline void dsHSVColor_lerpSRGB(dsHSVColor* outColor, const dsHSVColor* x,
-	const dsHSVColor* y, float t);
+DS_MATH_EXPORT inline void dsHSVColor_lerpSRGB(
+	dsHSVColor* outColor, const dsHSVColor* x, const dsHSVColor* y, float t);
 
 /**
  * @brief Get whether or not two colors are equal.
@@ -420,8 +423,8 @@ DS_MATH_EXPORT inline bool dsHSVColor_equal(const dsHSVColor* x, const dsHSVColo
  * @param epsilon The epsilon to check within.
  * @return True the values of x and y are within epsilon.
  */
-DS_MATH_EXPORT inline bool dsHSVColor_epsilonEqual(const dsHSVColor* x, const dsHSVColor* y,
-	float epsilon);
+DS_MATH_EXPORT inline bool dsHSVColor_epsilonEqual(
+	const dsHSVColor* x, const dsHSVColor* y, float epsilon);
 
 /**
  * @brief Converts to a dsHSLColor from a dsColor.
@@ -482,8 +485,8 @@ DS_MATH_EXPORT inline float dsHSLColor_grayscale(const dsHSLColor* color);
  * @param y The second color.
  * @param t The interpolation value between x and y.
  */
-DS_MATH_EXPORT inline void dsHSLColor_lerp(dsHSLColor* outColor, const dsHSLColor* x,
-	const dsHSLColor* y, float t);
+DS_MATH_EXPORT inline void dsHSLColor_lerp(
+	dsHSLColor* outColor, const dsHSLColor* x, const dsHSLColor* y, float t);
 
 /**
  * @brief Linearly interpolates between two sRGB colors in linear color space.
@@ -494,8 +497,8 @@ DS_MATH_EXPORT inline void dsHSLColor_lerp(dsHSLColor* outColor, const dsHSLColo
  * @param y The second color.
  * @param t The interpolation value between x and y.
  */
-DS_MATH_EXPORT inline void dsHSLColor_lerpSRGB(dsHSLColor* outColor, const dsHSLColor* x,
-	const dsHSLColor* y, float t);
+DS_MATH_EXPORT inline void dsHSLColor_lerpSRGB(
+	dsHSLColor* outColor, const dsHSLColor* x, const dsHSLColor* y, float t);
 
 /**
  * @brief Get whether or not two colors are equal.
@@ -514,21 +517,21 @@ DS_MATH_EXPORT inline bool dsHSLColor_equal(const dsHSLColor* x, const dsHSLColo
  * @param epsilon The epsilon to check within.
  * @return True the values of x and y are within epsilon.
  */
-DS_MATH_EXPORT inline bool dsHSLColor_epsilonEqual(const dsHSLColor* x, const dsHSLColor* y,
-	float epsilon);
+DS_MATH_EXPORT inline bool dsHSLColor_epsilonEqual(
+	const dsHSLColor* x, const dsHSLColor* y, float epsilon);
 
 inline float dsSRGBFromLinear(float value)
 {
 	if (value <= 0.0031308f)
 		return value*12.92f;
-	return 1.055f*dsPowf(value, 1.0f/2.4f) - 0.055f;
+	return 1.055f*dsFastPowf(value, 1.0f/2.4f) - 0.055f;
 }
 
 inline float dsLinearFromSRGB(float c)
 {
 	if (c <= 0.04045f)
-		return c/12.92f;
-	return dsPowf((c + 0.055f)/1.055f, 2.4f);
+		return c*(1.0f/12.92f);
+	return dsFastPowf((c + 0.055f)*(1.0f/1.055f), 2.4f);
 }
 
 inline float dsGrayscaleValue(float r, float g, float b)
@@ -554,10 +557,21 @@ inline dsColor dsColor_fromColor4f(const dsColor4f* color)
 	DS_ASSERT(color);
 
 	dsColor outColor;
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	dsSIMD4f outColor4f = dsSIMD4f_mul(dsSIMD4f_min(dsSIMD4f_max(color->simd, dsSIMD4f_set1(0.0f)),
+		dsSIMD4f_set1(1.0f)), dsSIMD4f_set1(255.0f));
+	dsVector4i outColor4i;
+	outColor4i.simd = dsSIMD4fb_round(outColor4f);
+	outColor.r = (uint8_t)outColor4i.r;
+	outColor.g = (uint8_t)outColor4i.g;
+	outColor.b = (uint8_t)outColor4i.b;
+	outColor.a = (uint8_t)outColor4i.a;
+#else
 	outColor.r = (uint8_t)dsRoundf(dsClamp(color->r, 0.0f, 1.0f)*255.0f);
 	outColor.g = (uint8_t)dsRoundf(dsClamp(color->g, 0.0f, 1.0f)*255.0f);
 	outColor.b = (uint8_t)dsRoundf(dsClamp(color->b, 0.0f, 1.0f)*255.0f);
 	outColor.a = (uint8_t)dsRoundf(dsClamp(color->a, 0.0f, 1.0f)*255.0f);
+#endif
 	return outColor;
 }
 
@@ -587,10 +601,24 @@ inline uint8_t dsColor_grayscale(dsColor color)
 inline dsColor dsColor_lerp(dsColor x, dsColor y, float t)
 {
 	dsColor outColor;
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	dsVector4f xf, yf, color4f;
+	xf.simd = dsSIMD4f_set4(x.r, x.g, x.b, x.a);
+	yf.simd = dsSIMD4f_set4(y.r, y.g, y.b, y.a);
+	dsVector4f_lerp(&color4f, &xf, &yf, t);
+
+	dsVector4i color4i;
+	color4i.simd = dsSIMD4fb_round(color4f.simd);
+	outColor.r = (uint8_t)color4i.r;
+	outColor.g = (uint8_t)color4i.g;
+	outColor.b = (uint8_t)color4i.b;
+	outColor.a = (uint8_t)color4i.a;
+#else
 	outColor.r = (uint8_t)dsRoundf(dsLerp((float)x.r, (float)y.r, t));
 	outColor.g = (uint8_t)dsRoundf(dsLerp((float)x.g, (float)y.g, t));
 	outColor.b = (uint8_t)dsRoundf(dsLerp((float)x.b, (float)y.b, t));
 	outColor.a = (uint8_t)dsRoundf(dsLerp((float)x.a, (float)y.a, t));
+#endif
 	return outColor;
 }
 
@@ -603,10 +631,19 @@ inline dsColor dsColor_lerpSRGB(dsColor x, dsColor y, float t)
 
 	// Do conversion directly to avoid unneeded clamping.
 	dsColor outColor;
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
+	dsVector4i outColor4i;
+	outColor4i.simd = dsSIMD4fb_round(dsSIMD4f_mul(outColor4f.simd, dsSIMD4f_set1(255.0f)));
+	outColor.r = (uint8_t)outColor4i.r;
+	outColor.g = (uint8_t)outColor4i.g;
+	outColor.b = (uint8_t)outColor4i.b;
+	outColor.a = (uint8_t)outColor4i.a;
+#else
 	outColor.r = (uint8_t)dsRoundf(outColor4f.r*255.0f);
 	outColor.g = (uint8_t)dsRoundf(outColor4f.g*255.0f);
 	outColor.b = (uint8_t)dsRoundf(outColor4f.b*255.0f);
 	outColor.a = (uint8_t)dsRoundf(outColor4f.a*255.0f);
+#endif
 	return outColor;
 }
 
@@ -718,10 +755,15 @@ inline void dsColor4f_fromHSLColor(dsColor4f* outColor, const dsHSLColor* color)
 inline void dsColor4f_fromColor(dsColor4f* outColor, dsColor color)
 {
 	DS_ASSERT(outColor);
+#if DS_SIMD_ALWAYS_FLOAT4
+	outColor->simd = dsSIMD4f_div(
+		dsSIMD4f_set4(color.r, color.g, color.b, color.a), dsSIMD4f_set1(255.0f));
+#else
 	outColor->r = color.r/255.0f;
 	outColor->g = color.g/255.0f;
 	outColor->b = color.b/255.0f;
 	outColor->a = color.a/255.0f;
+#endif
 }
 
 inline void dsColor4f_fromColor3f(dsColor4f* outColor, const dsColor3f* color)
@@ -740,10 +782,30 @@ inline void dsColor4f_sRGBFromLinear(dsColor4f* outColor, const dsColor4f* color
 	DS_ASSERT(outColor);
 	DS_ASSERT(color);
 
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT && DS_SIMD_ALWAYS_ROUNDING
+	dsSIMD4f smallThreshold = dsSIMD4f_set1(0.0031308f);
+	dsSIMD4f smallMult = dsSIMD4f_set1(12.92f);
+	dsSIMD4f exp = dsSIMD4f_set1(1.0f/2.4f);
+	dsSIMD4f powMult = dsSIMD4f_set1(1.055f);
+	dsSIMD4f powSub = dsSIMD4f_set1(-0.055f);
+	dsSIMD4fb srgbMask = dsSIMD4fb_set4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0);
+
+	dsSIMD4f smallVal = dsSIMD4f_mul(color->simd, smallMult);
+#if DS_SIMD_ALWAYS_FMA
+	dsSIMD4f largeVal = dsSIMD4f_fmadd(powMult, dsFastPowFMA4f(color->simd, exp), powSub);
+#else
+	dsSIMD4f largeVal = dsSIMD4f_add(
+		dsSIMD4f_mul(powMult, dsFastPowSIMD4f(color->simd, exp)), powSub);
+#endif
+	dsSIMD4fb useSmallValue = dsSIMD4f_cmple(color->simd, smallThreshold);
+	dsSIMD4f srgbVal = dsSIMD4f_select(useSmallValue, smallVal, largeVal);
+	outColor->simd = dsSIMD4f_select(srgbMask, srgbVal, color->simd);
+#else
 	outColor->r = dsSRGBFromLinear(color->r);
 	outColor->g = dsSRGBFromLinear(color->g);
 	outColor->b = dsSRGBFromLinear(color->b);
 	outColor->a = color->a;
+#endif
 }
 
 inline void dsColor4f_linearFromSRGB(dsColor4f* outColor, const dsColor4f* color)
@@ -751,10 +813,30 @@ inline void dsColor4f_linearFromSRGB(dsColor4f* outColor, const dsColor4f* color
 	DS_ASSERT(outColor);
 	DS_ASSERT(color);
 
+#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT && DS_SIMD_ALWAYS_ROUNDING
+	dsSIMD4f smallThreshold = dsSIMD4f_set1(0.04045f);
+	dsSIMD4f smallMult = dsSIMD4f_set1(1.0f/12.92f);
+	dsSIMD4f exp = dsSIMD4f_set1(2.4f);
+	dsSIMD4f baseMult = dsSIMD4f_set1(1.0f/1.055f);
+	dsSIMD4f baseAdd = dsSIMD4f_set1(0.055f);
+	dsSIMD4fb linearMask = dsSIMD4fb_set4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0);
+
+	dsSIMD4f smallVal = dsSIMD4f_mul(color->simd, smallMult);
+	dsSIMD4f base = dsSIMD4f_mul(dsSIMD4f_add(color->simd, baseAdd), baseMult);
+#if DS_SIMD_ALWAYS_FMA
+	dsSIMD4f largeVal = dsFastPowFMA4f(base, exp);
+#else
+	dsSIMD4f largeVal = dsFastPowSIMD4f(base, exp);
+#endif
+	dsSIMD4fb useSmallValue = dsSIMD4f_cmple(color->simd, smallThreshold);
+	dsSIMD4f linearVal = dsSIMD4f_select(useSmallValue, smallVal, largeVal);
+	outColor->simd = dsSIMD4f_select(linearMask, linearVal, color->simd);
+#else
 	outColor->r = dsLinearFromSRGB(color->r);
 	outColor->g = dsLinearFromSRGB(color->g);
 	outColor->b = dsLinearFromSRGB(color->b);
 	outColor->a = color->a;
+#endif
 }
 
 inline float dsColor4f_grayscale(const dsColor4f* color)
@@ -772,8 +854,8 @@ inline void dsColor4f_lerp(dsColor4f* outColor, const dsColor4f* x, const dsColo
 	dsVector4f_lerp(outColor, x, y, t);
 }
 
-inline void dsColor4f_lerpSRGB(dsColor4f* outColor, const dsColor4f* x, const dsColor4f* y,
-	float t)
+inline void dsColor4f_lerpSRGB(
+	dsColor4f* outColor, const dsColor4f* x, const dsColor4f* y, float t)
 {
 	DS_ASSERT(outColor);
 	DS_ASSERT(x);
@@ -870,8 +952,8 @@ inline void dsHSVColor_lerp(dsHSVColor* outColor, const dsHSVColor* x, const dsH
 	dsVector4f_lerp((dsVector4f*)outColor, (const dsVector4f*)x, (const dsVector4f*)y, t);
 }
 
-inline void dsHSVColor_lerpSRGB(dsHSVColor* outColor, const dsHSVColor* x, const dsHSVColor* y,
-	float t)
+inline void dsHSVColor_lerpSRGB(
+	dsHSVColor* outColor, const dsHSVColor* x, const dsHSVColor* y, float t)
 {
 	DS_ASSERT(outColor);
 	DS_ASSERT(x);
@@ -880,8 +962,8 @@ inline void dsHSVColor_lerpSRGB(dsHSVColor* outColor, const dsHSVColor* x, const
 	dsHSVColor xLinear, yLinear;
 	dsHSVColor_linearFromSRGB(&xLinear, x);
 	dsHSVColor_linearFromSRGB(&yLinear, y);
-	dsVector4f_lerp((dsVector4f*)outColor, (const dsVector4f*)&xLinear,
-		(const dsVector4f*)&yLinear, t);
+	dsVector4f_lerp(
+		(dsVector4f*)outColor, (const dsVector4f*)&xLinear, (const dsVector4f*)&yLinear, t);
 	dsHSVColor_sRGBFromLinear(outColor, outColor);
 }
 
@@ -979,8 +1061,8 @@ inline void dsHSLColor_lerpSRGB(dsHSLColor* outColor, const dsHSLColor* x, const
 	dsHSLColor xLinear, yLinear;
 	dsHSLColor_linearFromSRGB(&xLinear, x);
 	dsHSLColor_linearFromSRGB(&yLinear, y);
-	dsVector4f_lerp((dsVector4f*)outColor, (const dsVector4f*)&xLinear,
-		(const dsVector4f*)&yLinear, t);
+	dsVector4f_lerp(
+		(dsVector4f*)outColor, (const dsVector4f*)&xLinear, (const dsVector4f*)&yLinear, t);
 	dsHSLColor_sRGBFromLinear(outColor, outColor);
 }
 
