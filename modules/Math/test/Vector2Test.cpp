@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "Determinism.h"
 #include <DeepSea/Math/Vector2.h>
 #include <gtest/gtest.h>
 #include <cmath>
@@ -302,14 +303,15 @@ TYPED_TEST(Vector2FloatTest, Lerp)
 {
 	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
 	TypeParam epsilon = Vector2TypeSelector<TypeParam>::epsilon;
+	DS_UNUSED(epsilon);
 
 	Vector2Type a = {{(TypeParam)-2.3, (TypeParam)4.5}};
 	Vector2Type b = {{(TypeParam)3.2, (TypeParam)-5.4}};
 	Vector2Type result;
 
 	dsVector2_lerp(result, a, b, (TypeParam)0.3);
-	EXPECT_NEAR(dsLerp(a.x, b.x, (TypeParam)0.3), result.x, epsilon);
-	EXPECT_NEAR(dsLerp(a.y, b.y, (TypeParam)0.3), result.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(dsLerp(a.x, b.x, (TypeParam)0.3), result.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(dsLerp(a.y, b.y, (TypeParam)0.3), result.y, epsilon);
 }
 
 TYPED_TEST(Vector2FloatTest, Normalize)

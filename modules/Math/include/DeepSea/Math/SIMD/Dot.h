@@ -25,6 +25,7 @@ extern "C"
 #endif
 
 /**
+ * @file
  * @brief File containing functions to perform dot products with SIMD operations.
  *
  * These will use the generally best operations available for the given platform, including special

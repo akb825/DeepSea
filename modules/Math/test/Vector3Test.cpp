@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "Determinism.h"
 #include <DeepSea/Math/Vector3.h>
 #include <gtest/gtest.h>
 #include <cmath>
@@ -334,15 +335,16 @@ TYPED_TEST(Vector3FloatTest, Lerp)
 {
 	typedef typename Vector3TypeSelector<TypeParam>::Type Vector3Type;
 	TypeParam epsilon = Vector3TypeSelector<TypeParam>::epsilon;
+	DS_UNUSED(epsilon);
 
 	Vector3Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7}};
 	Vector3Type b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6}};
 	Vector3Type result;
 
 	dsVector3_lerp(result, a, b, (TypeParam)0.3);
-	EXPECT_NEAR(dsLerp(a.x, b.x, (TypeParam)0.3), result.x, epsilon);
-	EXPECT_NEAR(dsLerp(a.y, b.y, (TypeParam)0.3), result.y, epsilon);
-	EXPECT_NEAR(dsLerp(a.z, b.z, (TypeParam)0.3), result.z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(dsLerp(a.x, b.x, (TypeParam)0.3), result.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(dsLerp(a.y, b.y, (TypeParam)0.3), result.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(dsLerp(a.z, b.z, (TypeParam)0.3), result.z, epsilon);
 }
 
 TYPED_TEST(Vector3FloatTest, Normalize)

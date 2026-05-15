@@ -179,7 +179,7 @@ extern "C"
 
 /**
  * @brief Gets the length of a vector.
- * @param a The first vector.
+ * @param a The vector.
  * @return The length.
  */
 DS_MATH_EXPORT inline float dsVector2f_len(const dsVector2f* a);

@@ -202,7 +202,7 @@ extern "C"
 
 /**
  * @brief Gets the length of a vector.
- * @param a The first vector.
+ * @param a The vector.
  * @return The length.
  */
 DS_MATH_EXPORT inline float dsVector3f_len(const dsVector3f* a);
@@ -250,12 +250,12 @@ DS_MATH_EXPORT inline void dsVector3d_normalize(dsVector3d* result, const dsVect
  * @param epsilon The epsilon to compare with.
  * @return True the values of a and b are within epsilon.
  */
-DS_MATH_EXPORT inline bool dsVector3f_epsilonEqual(const dsVector3f* a, const dsVector3f* b,
-	float epsilon);
+DS_MATH_EXPORT inline bool dsVector3f_epsilonEqual(
+	const dsVector3f* a, const dsVector3f* b, float epsilon);
 
 /** @copydoc dsVector3f_epsilonEqual() */
-DS_MATH_EXPORT inline bool dsVector3d_epsilonEqual(const dsVector3d* a, const dsVector3d* b,
-	double epsilon);
+DS_MATH_EXPORT inline bool dsVector3d_epsilonEqual(
+	const dsVector3d* a, const dsVector3d* b, double epsilon);
 
 /**
  * @brief Checks to see if two values are equal within a relative epsilon.
@@ -266,16 +266,16 @@ DS_MATH_EXPORT inline bool dsVector3d_epsilonEqual(const dsVector3d* a, const ds
  *     being compared.
  * @return True the values of a and b are within epsilon.
  */
-DS_MATH_EXPORT inline bool dsVector3f_relativeEpsilonEqual(const dsVector3f* a, const dsVector3f* b,
-	float absoluteEps, float relativeEps);
+DS_MATH_EXPORT inline bool dsVector3f_relativeEpsilonEqual(
+	const dsVector3f* a, const dsVector3f* b, float absoluteEps, float relativeEps);
 
 /** @copydoc dsVector3f_relativeEpsilonEqual() */
-DS_MATH_EXPORT inline bool dsVector3d_relativeEpsilonEqual(const dsVector3d* a, const dsVector3d* b,
-	double absoluteEps, double relativeEps);
+DS_MATH_EXPORT inline bool dsVector3d_relativeEpsilonEqual(
+	const dsVector3d* a, const dsVector3d* b, double absoluteEps, double relativeEps);
 
 /** @copydoc dsVector3_add() */
-DS_MATH_EXPORT inline void dsVector3f_add(dsVector3f* result, const dsVector3f* a,
-	const dsVector3f* b)
+DS_MATH_EXPORT inline void dsVector3f_add(
+	dsVector3f* result, const dsVector3f* a, const dsVector3f* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -284,8 +284,8 @@ DS_MATH_EXPORT inline void dsVector3f_add(dsVector3f* result, const dsVector3f* 
 }
 
 /** @copydoc dsVector3_add() */
-DS_MATH_EXPORT inline void dsVector3d_add(dsVector3d* result, const dsVector3d* a,
-	const dsVector3d* b)
+DS_MATH_EXPORT inline void dsVector3d_add(
+	dsVector3d* result, const dsVector3d* a, const dsVector3d* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -294,8 +294,8 @@ DS_MATH_EXPORT inline void dsVector3d_add(dsVector3d* result, const dsVector3d* 
 }
 
 /** @copydoc dsVector3_add() */
-DS_MATH_EXPORT inline void dsVector3i_add(dsVector3i* result, const dsVector3i* a,
-	const dsVector3i* b)
+DS_MATH_EXPORT inline void dsVector3i_add(
+	dsVector3i* result, const dsVector3i* a, const dsVector3i* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -304,8 +304,8 @@ DS_MATH_EXPORT inline void dsVector3i_add(dsVector3i* result, const dsVector3i* 
 }
 
 /** @copydoc dsVector3_add() */
-DS_MATH_EXPORT inline void dsVector3l_add(dsVector3l* result, const dsVector3l* a,
-	const dsVector3l* b)
+DS_MATH_EXPORT inline void dsVector3l_add(
+	dsVector3l* result, const dsVector3l* a, const dsVector3l* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -314,8 +314,8 @@ DS_MATH_EXPORT inline void dsVector3l_add(dsVector3l* result, const dsVector3l* 
 }
 
 /** @copydoc dsVector3_sub() */
-DS_MATH_EXPORT inline void dsVector3f_sub(dsVector3f* result, const dsVector3f* a,
-	const dsVector3f* b)
+DS_MATH_EXPORT inline void dsVector3f_sub(
+	dsVector3f* result, const dsVector3f* a, const dsVector3f* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -324,8 +324,8 @@ DS_MATH_EXPORT inline void dsVector3f_sub(dsVector3f* result, const dsVector3f* 
 }
 
 /** @copydoc dsVector3_sub() */
-DS_MATH_EXPORT inline void dsVector3d_sub(dsVector3d* result, const dsVector3d* a,
-	const dsVector3d* b)
+DS_MATH_EXPORT inline void dsVector3d_sub(
+	dsVector3d* result, const dsVector3d* a, const dsVector3d* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -334,8 +334,8 @@ DS_MATH_EXPORT inline void dsVector3d_sub(dsVector3d* result, const dsVector3d* 
 }
 
 /** @copydoc dsVector3_sub() */
-DS_MATH_EXPORT inline void dsVector3i_sub(dsVector3i* result, const dsVector3i* a,
-	const dsVector3i* b)
+DS_MATH_EXPORT inline void dsVector3i_sub(
+	dsVector3i* result, const dsVector3i* a, const dsVector3i* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -344,8 +344,8 @@ DS_MATH_EXPORT inline void dsVector3i_sub(dsVector3i* result, const dsVector3i* 
 }
 
 /** @copydoc dsVector3_sub() */
-DS_MATH_EXPORT inline void dsVector3l_sub(dsVector3l* result, const dsVector3l* a,
-	const dsVector3l* b)
+DS_MATH_EXPORT inline void dsVector3l_sub(
+	dsVector3l* result, const dsVector3l* a, const dsVector3l* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -354,8 +354,8 @@ DS_MATH_EXPORT inline void dsVector3l_sub(dsVector3l* result, const dsVector3l* 
 }
 
 /** @copydoc dsVector3_mul() */
-DS_MATH_EXPORT inline void dsVector3f_mul(dsVector3f* result, const dsVector3f* a,
-	const dsVector3f* b)
+DS_MATH_EXPORT inline void dsVector3f_mul(
+	dsVector3f* result, const dsVector3f* a, const dsVector3f* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -364,8 +364,8 @@ DS_MATH_EXPORT inline void dsVector3f_mul(dsVector3f* result, const dsVector3f* 
 }
 
 /** @copydoc dsVector3_mul() */
-DS_MATH_EXPORT inline void dsVector3d_mul(dsVector3d* result, const dsVector3d* a,
-	const dsVector3d* b)
+DS_MATH_EXPORT inline void dsVector3d_mul(
+	dsVector3d* result, const dsVector3d* a, const dsVector3d* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -374,8 +374,8 @@ DS_MATH_EXPORT inline void dsVector3d_mul(dsVector3d* result, const dsVector3d* 
 }
 
 /** @copydoc dsVector3_mul() */
-DS_MATH_EXPORT inline void dsVector3i_mul(dsVector3i* result, const dsVector3i* a,
-	const dsVector3i* b)
+DS_MATH_EXPORT inline void dsVector3i_mul(
+	dsVector3i* result, const dsVector3i* a, const dsVector3i* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -384,8 +384,8 @@ DS_MATH_EXPORT inline void dsVector3i_mul(dsVector3i* result, const dsVector3i* 
 }
 
 /** @copydoc dsVector3_mul() */
-DS_MATH_EXPORT inline void dsVector3l_mul(dsVector3l* result, const dsVector3l* a,
-	const dsVector3l* b)
+DS_MATH_EXPORT inline void dsVector3l_mul(
+	dsVector3l* result, const dsVector3l* a, const dsVector3l* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -394,8 +394,8 @@ DS_MATH_EXPORT inline void dsVector3l_mul(dsVector3l* result, const dsVector3l* 
 }
 
 /** @copydoc dsVector3_div() */
-DS_MATH_EXPORT inline void dsVector3f_div(dsVector3f* result, const dsVector3f* a,
-	const dsVector3f* b)
+DS_MATH_EXPORT inline void dsVector3f_div(
+	dsVector3f* result, const dsVector3f* a, const dsVector3f* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -404,8 +404,8 @@ DS_MATH_EXPORT inline void dsVector3f_div(dsVector3f* result, const dsVector3f* 
 }
 
 /** @copydoc dsVector3_div() */
-DS_MATH_EXPORT inline void dsVector3d_div(dsVector3d* result, const dsVector3d* a,
-	const dsVector3d* b)
+DS_MATH_EXPORT inline void dsVector3d_div(
+	dsVector3d* result, const dsVector3d* a, const dsVector3d* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -414,8 +414,8 @@ DS_MATH_EXPORT inline void dsVector3d_div(dsVector3d* result, const dsVector3d* 
 }
 
 /** @copydoc dsVector3_div() */
-DS_MATH_EXPORT inline void dsVector3i_div(dsVector3i* result, const dsVector3i* a,
-	const dsVector3i* b)
+DS_MATH_EXPORT inline void dsVector3i_div(
+	dsVector3i* result, const dsVector3i* a, const dsVector3i* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -424,8 +424,8 @@ DS_MATH_EXPORT inline void dsVector3i_div(dsVector3i* result, const dsVector3i* 
 }
 
 /** @copydoc dsVector3_div() */
-DS_MATH_EXPORT inline void dsVector3l_div(dsVector3l* result, const dsVector3l* a,
-	const dsVector3l* b)
+DS_MATH_EXPORT inline void dsVector3l_div(
+	dsVector3l* result, const dsVector3l* a, const dsVector3l* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -498,8 +498,8 @@ DS_MATH_EXPORT inline void dsVector3l_neg(dsVector3l* result, const dsVector3l* 
 }
 
 /** @copydoc dsVector3_lerp() */
-DS_MATH_EXPORT inline void dsVector3f_lerp(dsVector3f* result, const dsVector3f* a,
-	const dsVector3f* b, float t)
+DS_MATH_EXPORT inline void dsVector3f_lerp(
+	dsVector3f* result, const dsVector3f* a, const dsVector3f* b, float t)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -508,8 +508,8 @@ DS_MATH_EXPORT inline void dsVector3f_lerp(dsVector3f* result, const dsVector3f*
 }
 
 /** @copydoc dsVector3_lerp() */
-DS_MATH_EXPORT inline void dsVector3d_lerp(dsVector3d* result, const dsVector3d* a,
-	const dsVector3d* b, double t)
+DS_MATH_EXPORT inline void dsVector3d_lerp(
+	dsVector3d* result, const dsVector3d* a, const dsVector3d* b, double t)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -518,8 +518,8 @@ DS_MATH_EXPORT inline void dsVector3d_lerp(dsVector3d* result, const dsVector3d*
 }
 
 /** @copydoc dsVector3_lerp() */
-DS_MATH_EXPORT inline void dsVector3i_lerp(dsVector3i* result, const dsVector3i* a,
-	const dsVector3i* b, float t)
+DS_MATH_EXPORT inline void dsVector3i_lerp(
+	dsVector3i* result, const dsVector3i* a, const dsVector3i* b, float t)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -530,8 +530,8 @@ DS_MATH_EXPORT inline void dsVector3i_lerp(dsVector3i* result, const dsVector3i*
 }
 
 /** @copydoc dsVector3_lerp() */
-DS_MATH_EXPORT inline void dsVector3l_lerp(dsVector3l* result, const dsVector3l* a,
-	const dsVector3l* b, double t)
+DS_MATH_EXPORT inline void dsVector3l_lerp(
+	dsVector3l* result, const dsVector3l* a, const dsVector3l* b, double t)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -574,8 +574,8 @@ DS_MATH_EXPORT inline long long dsVector3l_dot(const dsVector3l* a, const dsVect
 }
 
 /** @copydoc dsVector3_cross() */
-DS_MATH_EXPORT inline void dsVector3f_cross(dsVector3f* result, const dsVector3f* a,
-	const dsVector3f* b)
+DS_MATH_EXPORT inline void dsVector3f_cross(
+	dsVector3f* result, const dsVector3f* a, const dsVector3f* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -584,8 +584,8 @@ DS_MATH_EXPORT inline void dsVector3f_cross(dsVector3f* result, const dsVector3f
 }
 
 /** @copydoc dsVector3_cross() */
-DS_MATH_EXPORT inline void dsVector3d_cross(dsVector3d* result, const dsVector3d* a,
-	const dsVector3d* b)
+DS_MATH_EXPORT inline void dsVector3d_cross(
+	dsVector3d* result, const dsVector3d* a, const dsVector3d* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -594,8 +594,8 @@ DS_MATH_EXPORT inline void dsVector3d_cross(dsVector3d* result, const dsVector3d
 }
 
 /** @copydoc dsVector3_cross() */
-DS_MATH_EXPORT inline void dsVector3i_cross(dsVector3i* result, const dsVector3i* a,
-	const dsVector3i* b)
+DS_MATH_EXPORT inline void dsVector3i_cross(
+	dsVector3i* result, const dsVector3i* a, const dsVector3i* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -604,8 +604,8 @@ DS_MATH_EXPORT inline void dsVector3i_cross(dsVector3i* result, const dsVector3i
 }
 
 /** @copydoc dsVector3_cross() */
-DS_MATH_EXPORT inline void dsVector3l_cross(dsVector3l* result, const dsVector3l* a,
-	const dsVector3l* b)
+DS_MATH_EXPORT inline void dsVector3l_cross(
+	dsVector3l* result, const dsVector3l* a, const dsVector3l* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -789,16 +789,16 @@ inline bool dsVector3d_epsilonEqual(const dsVector3d* a, const dsVector3d* b, do
 		dsEpsilonEquald(a->values[2], b->values[2], epsilon);
 }
 
-inline bool dsVector3f_relativeEpsilonEqual(const dsVector3f* a, const dsVector3f* b,
-	float absoluteEps, float relativeEps)
+inline bool dsVector3f_relativeEpsilonEqual(
+	const dsVector3f* a, const dsVector3f* b, float absoluteEps, float relativeEps)
 {
 	return dsRelativeEpsilonEqualf(a->values[0], b->values[0], absoluteEps, relativeEps) &&
 		dsRelativeEpsilonEqualf(a->values[1], b->values[1], absoluteEps, relativeEps) &&
 		dsRelativeEpsilonEqualf(a->values[2], b->values[2], absoluteEps, relativeEps);
 }
 
-inline bool dsVector3d_relativeEpsilonEqual(const dsVector3d* a, const dsVector3d* b,
-	double absoluteEps, double relativeEps)
+inline bool dsVector3d_relativeEpsilonEqual(
+	const dsVector3d* a, const dsVector3d* b, double absoluteEps, double relativeEps)
 {
 	return dsRelativeEpsilonEquald(a->values[0], b->values[0], absoluteEps, relativeEps) &&
 		dsRelativeEpsilonEquald(a->values[1], b->values[1], absoluteEps, relativeEps) &&

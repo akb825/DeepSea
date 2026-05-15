@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -954,6 +954,20 @@ typedef union dsVector4l
 		long long a;
 	};
 } dsVector4l;
+
+/**
+ * @brief Typedef for a 3-component vector of floats aligned for SIMD usage.
+ *
+ * The fourth component is not intended to be used.
+ */
+typedef dsVector4f dsVector3xf;
+
+/**
+ * @brief Typedef for a 3-component vector of doubles aligned for SIMD usage.
+ *
+ * The fourth component is not intended to be used.
+ */
+typedef dsVector4d dsVector3xd;
 
 /**
  * @brief Structure for a color.

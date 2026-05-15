@@ -201,7 +201,7 @@ extern "C"
 
 /**
  * @brief Gets the length of a vector.
- * @param a The first vector.
+ * @param a The vector.
  * @return The length.
  */
 DS_MATH_EXPORT inline float dsVector4f_len(const dsVector4f* a);
@@ -551,8 +551,8 @@ DS_MATH_EXPORT inline void dsVector4f_lerp(
 #if DS_SIMD_ALWAYS_FMA
 	result->simd = dsSIMD4f_fmadd(dsSIMD4f_set1(t), dsSIMD4f_sub(b->simd, a->simd), a->simd);
 #elif DS_SIMD_ALWAYS_FLOAT4
-	result->simd = dsSIMD4f_add(a->simd,
-		dsSIMD4f_mul(dsSIMD4f_set1(t), dsSIMD4f_sub(b->simd, a->simd)));
+	result->simd = dsSIMD4f_add(
+		a->simd, dsSIMD4f_mul(dsSIMD4f_set1(t), dsSIMD4f_sub(b->simd, a->simd)));
 #else
 	dsVector4_lerp(*result, *a, *b, t);
 #endif
@@ -571,10 +571,10 @@ DS_MATH_EXPORT inline void dsVector4d_lerp(
 	result->simd2[0] = dsSIMD2d_fmadd(t2, dsSIMD2d_sub(b->simd2[0], a->simd2[0]), a->simd2[0]);
 	result->simd2[1] = dsSIMD2d_fmadd(t2, dsSIMD2d_sub(b->simd2[1], a->simd2[1]), a->simd2[1]);
 #else
-	result->simd2[0] = dsSIMD2d_add(a->simd2[0],
-		dsSIMD2d_mul(t2, dsSIMD2d_sub(b->simd2[0], a->simd2[0])));
-	result->simd2[1] = dsSIMD2d_add(a->simd2[1],
-		dsSIMD2d_mul(t2, dsSIMD2d_sub(b->simd2[1], a->simd2[1])));
+	result->simd2[0] = dsSIMD2d_add(
+		a->simd2[0], dsSIMD2d_mul(t2, dsSIMD2d_sub(b->simd2[0], a->simd2[0])));
+	result->simd2[1] = dsSIMD2d_add(
+		a->simd2[1], dsSIMD2d_mul(t2, dsSIMD2d_sub(b->simd2[1], a->simd2[1])));
 #endif
 #else
 	dsVector4_lerp(*result, *a, *b, t);
@@ -769,7 +769,7 @@ DS_MATH_EXPORT inline float dsVector4f_len(const dsVector4f* a)
 	return dsSIMD4f_get(dsSIMD4f_sqrt(len2), 0);
 #endif
 #else
-	return dsSqrtf(dsVector4f_len2(a));
+	return dsSqrtf(dsVector4_len2(*a));
 #endif
 }
 
@@ -784,7 +784,7 @@ DS_MATH_EXPORT inline double dsVector4d_len(const dsVector4d* a)
 	return dsSIMD2d_get(dsSIMD2d_sqrt(len2), 0);
 #endif
 #else
-	return dsSqrtd(dsVector4d_len2(a));
+	return dsSqrtd(dsVector4_len2(*a));
 #endif
 }
 
@@ -813,7 +813,7 @@ DS_MATH_EXPORT inline float dsVector4f_dist(const dsVector4f* a, const dsVector4
 	return dsSIMD4f_get(dsSIMD4f_sqrt(dist2), 0);
 #endif
 #else
-	return dsSqrtf(dsVector4f_dist2(a, b));
+	return dsSqrtf(dsVector4_dist2(*a, *b));
 #endif
 }
 
@@ -831,7 +831,7 @@ DS_MATH_EXPORT inline double dsVector4d_dist(const dsVector4d* a, const dsVector
 	return dsSIMD2d_get(dsSIMD2d_sqrt(dist2), 0);
 #endif
 #else
-	return dsSqrtd(dsVector4d_dist2(a, b));
+	return dsSqrtd(dsVector4_dist2(*a, *b));
 #endif
 }
 
