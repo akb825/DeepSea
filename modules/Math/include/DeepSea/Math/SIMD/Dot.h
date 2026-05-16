@@ -159,8 +159,8 @@ DS_ALWAYS_INLINE dsSIMD2d dsDot4SIMD2d(dsSIMD2d a0, dsSIMD2d a1, dsSIMD2d b0, ds
 	dsSIMD2d ab0 = dsSIMD2d_mul(a0, b0);
 	dsSIMD2d ab1 = dsSIMD2d_mul(a1, b1);
 	// Assume additions are commutative. (should be the case if IEEE compliant)
-	dsSIMD2d abxy = dsSIMD2d_add(ab0, _mm_shuffle_pd(ab0, ab0, 0x1));
-	dsSIMD2d abzw = dsSIMD2d_add(ab1, _mm_shuffle_pd(ab1, ab1, 0x1));
+	dsSIMD2d abxy = dsSIMD2d_add(ab0, _mm_shuffle_pd(ab0, ab0, _MM_SHUFFLE2(0, 1)));
+	dsSIMD2d abzw = dsSIMD2d_add(ab1, _mm_shuffle_pd(ab1, ab1, _MM_SHUFFLE2(0, 1)));
 	return dsSIMD2d_add(abxy, abzw);
 #else
 	dsSIMD2d ab0 = dsSIMD2d_mul(a0, b0);

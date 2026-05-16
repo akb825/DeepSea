@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -330,12 +330,12 @@ DS_MATH_EXPORT void dsMatrix33d_makeRotate3D(dsMatrix33d* result, double x, doub
  * @param axis The axis to rotate around. This should be a unit vector.
  * @param angle The angle to rotate in radians.
  */
-DS_MATH_EXPORT void dsMatrix33f_makeRotate3DAxisAngle(dsMatrix33f* result, const dsVector3f* axis,
-	float angle);
+DS_MATH_EXPORT void dsMatrix33f_makeRotate3DAxisAngle(
+	dsMatrix33f* result, const dsVector3f* axis, float angle);
 
 /** @copydoc dsMatrix33f_makeRotate3DAxisAngle() */
-DS_MATH_EXPORT void dsMatrix33d_makeRotate3DAxisAngle(dsMatrix33d* result, const dsVector3d* axis,
-	double angle);
+DS_MATH_EXPORT void dsMatrix33d_makeRotate3DAxisAngle(
+	dsMatrix33d* result, const dsVector3d* axis, double angle);
 
 /**
  * @brief Makes a translation matrix.
@@ -369,8 +369,8 @@ DS_MATH_EXPORT inline void dsMatrix33d_makeScale(dsMatrix33d* result, double x, 
 DS_MATH_EXPORT inline void dsMatrix33f_makeScale3D(dsMatrix33f* result, float x, float y, float z);
 
 /** @copydoc dsMatrix33f_makeScale3D() */
-DS_MATH_EXPORT inline void dsMatrix33d_makeScale3D(dsMatrix33d* result, double x, double y,
-	double z);
+DS_MATH_EXPORT inline void dsMatrix33d_makeScale3D(
+	dsMatrix33d* result, double x, double y, double z);
 
 /**
  * @brief Extracts eigenvalues for a symmetric matrix using Jacobi iteration.
@@ -379,33 +379,59 @@ DS_MATH_EXPORT inline void dsMatrix33d_makeScale3D(dsMatrix33d* result, double x
  * @param a The matrix to extract the eigenvalues for.
  * @return False if the eigenvalues couldn't be extracted.
  */
-DS_MATH_EXPORT inline bool dsMatrix33f_jacobiEigenvalues(dsMatrix33f* outEigenvectors,
-	dsVector3f* outEigenvalues, const dsMatrix33f* a);
+DS_MATH_EXPORT inline bool dsMatrix33f_jacobiEigenvalues(
+	dsMatrix33f* outEigenvectors, dsVector3f* outEigenvalues, const dsMatrix33f* a);
 
 /** @copydoc dsMatrix22f_jacobiEigenvalues() */
-DS_MATH_EXPORT inline bool dsMatrix33d_jacobiEigenvalues(dsMatrix33d* outEigenvectors,
-	dsVector3d* outEigenvalues, const dsMatrix33d* a);
+DS_MATH_EXPORT inline bool dsMatrix33d_jacobiEigenvalues(
+	dsMatrix33d* outEigenvectors, dsVector3d* outEigenvalues, const dsMatrix33d* a);
 
 /**
  * @brief Sorts eigenvalues and corresponding eigenvectors from largest to smallest.
  * @param[inout] eigenvectors The eigenvectors to sort.
  * @param[inout] eigenvalues The eigenvalues to sort.
  */
-DS_MATH_EXPORT inline void dsMatrix33f_sortEigenvalues(dsMatrix33f* eigenvectors,
-	dsVector3f* eigenvalues);
+DS_MATH_EXPORT inline void dsMatrix33f_sortEigenvalues(
+	dsMatrix33f* eigenvectors, dsVector3f* eigenvalues);
 
 /** @copydoc dsMatrix22f_sortEigenvalues() */
-DS_MATH_EXPORT inline void dsMatrix33d_sortEigenvalues(dsMatrix33d* eigenvectors,
-	dsVector3d* eigenvalues);
+DS_MATH_EXPORT inline void dsMatrix33d_sortEigenvalues(
+	dsMatrix33d* eigenvectors, dsVector3d* eigenvalues);
 
 /// @cond
+// Keep consistent groupings with SIMD implementation to ensure determinism.
 #define dsMatrix33_determinantImpl(a, i0, i1, i2, j0, j1, j2) \
-	((a).values[i0][j0]*(a).values[i1][j1]*(a).values[i2][j2] + \
-	 (a).values[i1][j0]*(a).values[i2][j1]*(a).values[i0][j2] + \
-	 (a).values[i2][j0]*(a).values[i0][j1]*(a).values[i1][j2] - \
-	 (a).values[i2][j0]*(a).values[i1][j1]*(a).values[i0][j2] - \
-	 (a).values[i1][j0]*(a).values[i0][j1]*(a).values[i2][j2] - \
-	 (a).values[i0][j0]*(a).values[i2][j1]*(a).values[i1][j2])
+	(((a).values[i0][j0]* \
+		((a).values[i1][j1]*(a).values[i2][j2] - (a).values[i1][j2]*(a).values[i2][j1])) + \
+	((a).values[i0][j1]* \
+		((a).values[i1][j2]*(a).values[i2][j0] - (a).values[i1][j0]*(a).values[i2][j2])) + \
+	((a).values[i0][j2]* \
+		((a).values[i1][j0]*(a).values[i2][j1] - (a).values[i1][j1]*(a).values[i2][j0])))
+
+#define dsMatrix33_invertImpl(result, mat, invDet) \
+	do \
+	{ \
+		(result).values[0][0] = ((mat).values[1][1]*(mat).values[2][2] - \
+			(mat).values[1][2]*(mat).values[2][1])*invDet; \
+		(result).values[0][1] = ((mat).values[0][2]*(mat).values[2][1] - \
+			(mat).values[0][1]*(mat).values[2][2])*invDet; \
+		(result).values[0][2] = ((mat).values[0][1]*(mat).values[1][2] - \
+			(mat).values[0][2]*(mat).values[1][1])*invDet; \
+		\
+		(result).values[1][0] = ((mat).values[1][2]*(mat).values[2][0] - \
+			(mat).values[1][0]*(mat).values[2][2])*invDet; \
+		(result).values[1][1] = ((mat).values[0][0]*(mat).values[2][2] - \
+			(mat).values[0][2]*(mat).values[2][0])*invDet; \
+		(result).values[1][2] = ((mat).values[0][2]*(mat).values[1][0] - \
+			(mat).values[0][0]*(mat).values[1][2])*invDet; \
+		\
+		(result).values[2][0] = ((mat).values[1][0]*(mat).values[2][1] - \
+			(mat).values[1][1]*(mat).values[2][0])*invDet; \
+		(result).values[2][1] = ((mat).values[0][1]*(mat).values[2][0] - \
+			(mat).values[0][0]*(mat).values[2][1])*invDet; \
+		(result).values[2][2] = ((mat).values[0][0]*(mat).values[1][1] - \
+			(mat).values[0][1]*(mat).values[1][0])*invDet; \
+	} while (0)
 /// @endcond
 
 /** @copydoc dsMatrix33_identity() */
@@ -423,8 +449,8 @@ DS_MATH_EXPORT inline void dsMatrix33d_identity(dsMatrix33d* result)
 }
 
 /** @copydoc dsMatrix33_mul() */
-DS_MATH_EXPORT inline void dsMatrix33f_mul(dsMatrix33f* result, const dsMatrix33f* a,
-	const dsMatrix33f* b)
+DS_MATH_EXPORT inline void dsMatrix33f_mul(
+	dsMatrix33f* result, const dsMatrix33f* a, const dsMatrix33f* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -433,8 +459,8 @@ DS_MATH_EXPORT inline void dsMatrix33f_mul(dsMatrix33f* result, const dsMatrix33
 }
 
 /** @copydoc dsMatrix33_mul() */
-DS_MATH_EXPORT inline void dsMatrix33d_mul(dsMatrix33d* result, const dsMatrix33d* a,
-	const dsMatrix33d* b)
+DS_MATH_EXPORT inline void dsMatrix33d_mul(
+	dsMatrix33d* result, const dsMatrix33d* a, const dsMatrix33d* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -443,8 +469,8 @@ DS_MATH_EXPORT inline void dsMatrix33d_mul(dsMatrix33d* result, const dsMatrix33
 }
 
 /** @copydoc dsMatrix33_affineMul() */
-DS_MATH_EXPORT inline void dsMatrix33f_affineMul(dsMatrix33f* result, const dsMatrix33f* a,
-	const dsMatrix33f* b)
+DS_MATH_EXPORT inline void dsMatrix33f_affineMul(
+	dsMatrix33f* result, const dsMatrix33f* a, const dsMatrix33f* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -453,8 +479,8 @@ DS_MATH_EXPORT inline void dsMatrix33f_affineMul(dsMatrix33f* result, const dsMa
 }
 
 /** @copydoc dsMatrix33_affineMul() */
-DS_MATH_EXPORT inline void dsMatrix33d_affineMul(dsMatrix33d* result, const dsMatrix33d* a,
-	const dsMatrix33d* b)
+DS_MATH_EXPORT inline void dsMatrix33d_affineMul(
+	dsMatrix33d* result, const dsMatrix33d* a, const dsMatrix33d* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -463,8 +489,8 @@ DS_MATH_EXPORT inline void dsMatrix33d_affineMul(dsMatrix33d* result, const dsMa
 }
 
 /** @copydoc dsMatrix33_transform() */
-DS_MATH_EXPORT inline void dsMatrix33f_transform(dsVector3f* result, const dsMatrix33f* mat,
-	const dsVector3f* vec)
+DS_MATH_EXPORT inline void dsMatrix33f_transform(
+	dsVector3f* result, const dsMatrix33f* mat, const dsVector3f* vec)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(mat);
@@ -473,8 +499,8 @@ DS_MATH_EXPORT inline void dsMatrix33f_transform(dsVector3f* result, const dsMat
 }
 
 /** @copydoc dsMatrix33_transform() */
-DS_MATH_EXPORT inline void dsMatrix33d_transform(dsVector3d* result, const dsMatrix33d* mat,
-	const dsVector3d* vec)
+DS_MATH_EXPORT inline void dsMatrix33d_transform(
+	dsVector3d* result, const dsMatrix33d* mat, const dsVector3d* vec)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(mat);
@@ -483,8 +509,8 @@ DS_MATH_EXPORT inline void dsMatrix33d_transform(dsVector3d* result, const dsMat
 }
 
 /** @copydoc dsMatrix33_transformTransposed() */
-DS_MATH_EXPORT inline void dsMatrix33f_transformTransposed(dsVector3f* result,
-	const dsMatrix33f* mat, const dsVector3f* vec)
+DS_MATH_EXPORT inline void dsMatrix33f_transformTransposed(
+	dsVector3f* result, const dsMatrix33f* mat, const dsVector3f* vec)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(mat);
@@ -493,8 +519,8 @@ DS_MATH_EXPORT inline void dsMatrix33f_transformTransposed(dsVector3f* result,
 }
 
 /** @copydoc dsMatrix33_transformTransposed() */
-DS_MATH_EXPORT inline void dsMatrix33d_transformTransposed(dsVector3d* result,
-	const dsMatrix33d* mat, const dsVector3d* vec)
+DS_MATH_EXPORT inline void dsMatrix33d_transformTransposed(
+	dsVector3d* result, const dsMatrix33d* mat, const dsVector3d* vec)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(mat);
@@ -644,28 +670,28 @@ inline void dsMatrix33d_makeScale3D(dsMatrix33d* result, double x, double y, dou
 	result->values[2][2] = z;
 }
 
-inline bool dsMatrix33f_jacobiEigenvalues(dsMatrix33f* outEigenvectors, dsVector3f* outEigenvalues,
-	const dsMatrix33f* a)
+inline bool dsMatrix33f_jacobiEigenvalues(
+	dsMatrix33f* outEigenvectors, dsVector3f* outEigenvalues, const dsMatrix33f* a)
 {
-	return dsJacobiEigenvaluesClassicf((float*)outEigenvectors, (float*)outEigenvalues,
-		(const float*)a, 3, 6);
+	return dsJacobiEigenvaluesClassicf(
+		(float*)outEigenvectors, (float*)outEigenvalues, (const float*)a, 3, 0, 6);
 }
 
-inline bool dsMatrix33d_jacobiEigenvalues(dsMatrix33d* outEigenvectors, dsVector3d* outEigenvalues,
-	const dsMatrix33d* a)
+inline bool dsMatrix33d_jacobiEigenvalues(
+	dsMatrix33d* outEigenvectors, dsVector3d* outEigenvalues, const dsMatrix33d* a)
 {
-	return dsJacobiEigenvaluesClassicd((double*)outEigenvectors, (double*)outEigenvalues,
-		(const double*)a, 3, 12);
+	return dsJacobiEigenvaluesClassicd(
+		(double*)outEigenvectors, (double*)outEigenvalues, (const double*)a, 3, 0, 12);
 }
 
 inline void dsMatrix33f_sortEigenvalues(dsMatrix33f* eigenvectors, dsVector3f* eigenvalues)
 {
-	dsSortEigenvaluesf((float*)eigenvectors, (float*)eigenvalues, 3);
+	dsSortEigenvaluesf((float*)eigenvectors, (float*)eigenvalues, 3, 0);
 }
 
 inline void dsMatrix33d_sortEigenvalues(dsMatrix33d* eigenvectors, dsVector3d* eigenvalues)
 {
-	dsSortEigenvaluesd((double*)eigenvectors, (double*)eigenvalues, 3);
+	dsSortEigenvaluesd((double*)eigenvectors, (double*)eigenvalues, 3, 0);
 }
 
 #ifdef __cplusplus

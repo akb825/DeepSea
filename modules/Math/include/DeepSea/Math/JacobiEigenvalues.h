@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,16 +45,18 @@ extern "C"
  *     elements.
  * @param n The size of the matrix. This should typically be < 10, and will not accept a value >
  *     100.
+ * @param padding The number of extra elements on each row of the matrix. This can be used when the
+ *     portion of the matrix being worked on isn't square in memory.
  * @param maxSweeps The maximum number of sweeps to perform. Each sweep will have n*(n - 1)/2
  *     iterations.
  * @return False if the factors couldn't be found within the maximum number of sweeps.
  */
 DS_MATH_EXPORT bool dsJacobiEigenvaluesClassicf(float* outEigenvectors, float* outEigenvalues,
-	const float* matrix, unsigned int n, unsigned int maxSweeps);
+	const float* matrix, unsigned int n, unsigned int padding, unsigned int maxSweeps);
 
 /** @copydoc dsJacobiEigenvaluesClassicf() */
 DS_MATH_EXPORT bool dsJacobiEigenvaluesClassicd(double* outEigenvectors, double* outEigenvalues,
-	const double* matrix, unsigned int n, unsigned int maxSweeps);
+	const double* matrix, unsigned int n, unsigned int padding, unsigned int maxSweeps);
 
 /**
  * @brief Computes the eigenvalues for a symmetric matrix using Jacobi iteration.
@@ -71,16 +73,18 @@ DS_MATH_EXPORT bool dsJacobiEigenvaluesClassicd(double* outEigenvectors, double*
  *     elements.
  * @param n The size of the matrix. This should typically be < 10, and will not accept a value >
  *     100.
+ * @param padding The number of extra elements on each row of the matrix. This can be used when the
+ *     portion of the matrix being worked on isn't square in memory.
  * @param maxSweeps The maximum number of sweeps to perform. Each sweep will have n*(n - 1)/2
  *     iterations.
  * @return False if the factors couldn't be found within the maximum number of sweeps.
  */
 DS_MATH_EXPORT bool dsJacobiEigenvaluesCyclicf(float* outEigenvectors, float* outEigenvalues,
-	const float* matrix, unsigned int n, unsigned int maxSweeps);
+	const float* matrix, unsigned int n, unsigned int padding, unsigned int maxSweeps);
 
 /** @copydoc dsJacobiEigenvaluesCyclicf() */
 DS_MATH_EXPORT bool dsJacobiEigenvaluesCyclicd(double* outEigenvectors, double* outEigenvalues,
-	const double* matrix, unsigned int n, unsigned int maxSweeps);
+	const double* matrix, unsigned int n, unsigned int padding, unsigned int maxSweeps);
 
 /**
  * @brief Sorts the eigenvalues from largest to smallest.
@@ -92,11 +96,15 @@ DS_MATH_EXPORT bool dsJacobiEigenvaluesCyclicd(double* outEigenvectors, double* 
  * @param[inout] eigenvectors The eigenvectors. This must contain n x n elements.
  * @param[inout] eigenvalues The eigenvalues. This must contain n elements.
  * @param n The number of eigenvalues.
+ * @param padding The number of extra elements on each row of the matrix. This can be used when the
+ *     portion of the matrix being worked on isn't square in memory.
  */
-DS_MATH_EXPORT void dsSortEigenvaluesf(float* eigenvectors, float* eigenvalues, unsigned int n);
+DS_MATH_EXPORT void dsSortEigenvaluesf(
+	float* eigenvectors, float* eigenvalues, unsigned int n, unsigned int padding);
 
 /** @copydoc dsSortEigenvaluesf() */
-DS_MATH_EXPORT void dsSortEigenvaluesd(double* eigenvectors, double* eigenvalues, unsigned int n);
+DS_MATH_EXPORT void dsSortEigenvaluesd(
+	double* eigenvectors, double* eigenvalues, unsigned int n, unsigned int padding);
 
 #ifdef __cplusplus
 }

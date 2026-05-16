@@ -956,16 +956,20 @@ typedef union dsVector4l
 } dsVector4l;
 
 /**
- * @brief Typedef for a 3-component vector of floats aligned for SIMD usage.
+ * @brief Typedef for a 3-component vector of floats aligned for SIMD operations.
  *
  * The fourth component is not intended to be used.
+ *
+ * @see Vector3x.h
  */
 typedef dsVector4f dsVector3xf;
 
 /**
- * @brief Typedef for a 3-component vector of doubles aligned for SIMD usage.
+ * @brief Typedef for a 3-component vector of doubles aligned for SIMD operations.
  *
  * The fourth component is not intended to be used.
+ *
+ * @see Vector3x.h
  */
 typedef dsVector4d dsVector3xd;
 
@@ -1192,6 +1196,52 @@ typedef union dsMatrix33d
 	 */
 	dsVector3d columns[3];
 } dsMatrix33d;
+
+/**
+ * @brief Structure for a 3x3 matrix of floats aligned for SIMD operations.
+ *
+ * This can be accessed as an array of columns or a 2D array of values.
+ *
+ * @remark When bracket initializing, there must be two brackets around the list of column vectors.
+ * (i.e. {{ {x0, y0, z0}, {x1, y1, z1}, {x2, y2, z2} }})
+ *
+ * @see dsMatrix33x.h
+ */
+typedef union dsMatrix33xf
+{
+	/**
+	 * @brief The values of the matrix.
+	 */
+	float values[3][4];
+
+	/**
+	 * @brief The columns of the matrix.
+	 */
+	dsVector3xf columns[3];
+} dsMatrix33xf;
+
+/**
+ * @brief Structure for a 3x3 matrix of doubles aligned for SIMD operations.
+ *
+ * This can be accessed as an array of columns or a 2D array of values.
+ *
+ * @remark When bracket initializing, there must be two brackets around the list of column vectors.
+ * (i.e. {{ {x0, y0, z0}, {x1, y1, z1}, {x2, y2, z2} }})
+ *
+ * @see dsMatrix33x.h
+ */
+typedef union dsMatrix33xd
+{
+	/**
+	 * @brief The values of the matrix.
+	 */
+	double values[3][4];
+
+	/**
+	 * @brief The columns of the matrix.
+	 */
+	dsVector3xd columns[3];
+} dsMatrix33xd;
 
 /**
  * @brief Structure for a 4x4 matrix of floats.

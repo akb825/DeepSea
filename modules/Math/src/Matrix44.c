@@ -18,141 +18,8 @@
 
 #include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Quaternion.h>
-#include <DeepSea/Math/Trig.h>
 #include <DeepSea/Math/Vector3.h>
 #include <DeepSea/Math/Vector4.h>
-
-#define dsMatrix44_makeRotateImpl(result, cosX, sinX, cosY, sinY, cosZ, sinZ) \
-	do \
-	{ \
-		(result).values[0][0] = (cosY)*(cosZ); \
-		(result).values[0][1] = (cosY)*(sinZ); \
-		(result).values[0][2] = -(sinY); \
-		(result).values[0][3] = 0; \
-		\
-		(result).values[1][0] = (sinX)*(sinY)*(cosZ) - (cosX)*(sinZ); \
-		(result).values[1][1] = (cosX)*(cosZ) + (sinX)*(sinY)*(sinZ); \
-		(result).values[1][2] = (sinX)*(cosY); \
-		(result).values[1][3] = 0; \
-		\
-		(result).values[2][0] = (sinX)*(sinZ) + (cosX)*(sinY)*(cosZ); \
-		(result).values[2][1] = (cosX)*(sinY)*(sinZ) - (sinX)*(cosZ); \
-		(result).values[2][2] = (cosX)*(cosY); \
-		(result).values[2][3] = 0; \
-		\
-		(result).values[3][0] = 0; \
-		(result).values[3][1] = 0; \
-		(result).values[3][2] = 0; \
-		(result).values[3][3] = 1; \
-	} while (0)
-
-#define dsMatrix44_makeRotateAxisAngleImpl(result, axis, cosAngle, sinAngle, invCosAngle) \
-	do \
-	{ \
-		(result).values[0][0] = (invCosAngle)*(axis).values[0]*(axis).values[0] + (cosAngle); \
-		(result).values[0][1] = (invCosAngle)*(axis).values[0]*(axis).values[1] + \
-			(axis).values[2]*(sinAngle); \
-		(result).values[0][2] = (invCosAngle)*(axis).values[0]*(axis).values[2] - \
-			(axis).values[1]*(sinAngle); \
-		(result).values[0][3] = 0; \
-		\
-		(result).values[1][0] = (invCosAngle)*(axis).values[0]*(axis).values[1] - \
-			(axis).values[2]*(sinAngle); \
-		(result).values[1][1] = (invCosAngle)*(axis).values[1]*(axis).values[1] + (cosAngle); \
-		(result).values[1][2] = (invCosAngle)*(axis).values[1]*(axis).values[2] + \
-			(axis).values[0]*(sinAngle); \
-		(result).values[1][3] = 0; \
-		\
-		(result).values[2][0] = (invCosAngle)*(axis).values[0]*(axis).values[2] + \
-			(axis).values[1]*(sinAngle); \
-		(result).values[2][1] = (invCosAngle)*(axis).values[1]*(axis).values[2] - \
-			(axis).values[0]*(sinAngle); \
-		(result).values[2][2] = (invCosAngle)*(axis).values[2]*(axis).values[2] + (cosAngle); \
-		(result).values[2][3] = 0; \
-		\
-		(result).values[3][0] = 0; \
-		(result).values[3][1] = 0; \
-		(result).values[3][2] = 0; \
-		(result).values[3][3] = 1; \
-	} while (0)
-
-void dsMatrix44f_makeRotate(dsMatrix44f* result, float x, float y, float z)
-{
-	DS_ASSERT(result);
-
-	dsVector4f sinAngles, cosAngles;
-#if DS_SIMD_ALWAYS_FLOAT4 && DS_SIMD_ALWAYS_INT
-	dsSIMD4f angles = dsSIMD4f_set4(x, y, z, 0.0f);
-#if DS_SIMD_ALWAYS_FMA
-	dsSinCosFMA4f(&sinAngles.simd, &cosAngles.simd, angles);
-#else
-	dsSinCosSIMD4f(&sinAngles.simd, &cosAngles.simd, angles);
-#endif
-#else
-	dsSinCosf(&sinAngles.x, &cosAngles.x, x);
-	dsSinCosf(&sinAngles.y, &cosAngles.y, y);
-	dsSinCosf(&sinAngles.z, &cosAngles.z, z);
-#endif
-
-	dsMatrix44_makeRotateImpl(
-		*result, cosAngles.x, sinAngles.x, cosAngles.y, sinAngles.y, cosAngles.z, sinAngles.z);
-}
-
-void dsMatrix44d_makeRotate(dsMatrix44d* result, double x, double y, double z)
-{
-	DS_ASSERT(result);
-
-	DS_ALIGN(32) dsVector4d sinAngles, cosAngles;
-#if DS_SIMD_ALWAYS_DOUBLE4 && DS_SIMD_ALWAYS_INT
-	dsSIMD4d angles = dsSIMD4d_set4(x, y, z, 0.0);
-	dsSIMD4d simdSin, simdCos;
-	dsSinCosSIMD4d(&simdSin, &simdCos, angles);
-	dsSIMD4d_store(&sinAngles, simdSin);
-	dsSIMD4d_store(&cosAngles, simdCos);
-#elif DS_SIMD_ALWAYS_DOUBLE2 && DS_SIMD_ALWAYS_INT
-	dsSIMD2d angles = dsSIMD2d_set2(x, y);
-#if DS_SIMD_ALWAYS_FMA
-	dsSinCosFMA2d(sinAngles.simd2, cosAngles.simd2, angles);
-#else
-	dsSinCosSIMD2d(sinAngles.simd2, cosAngles.simd2, angles);
-#endif
-	// Use scalar version for last angle.
-	dsSinCosd(&sinAngles.z, &cosAngles.z, z);
-#else
-	dsSinCosd(&sinAngles.x, &cosAngles.x, x);
-	dsSinCosd(&sinAngles.y, &cosAngles.y, y);
-	dsSinCosd(&sinAngles.z, &cosAngles.z, z);
-#endif
-
-	dsMatrix44_makeRotateImpl(
-		*result, cosAngles.x, sinAngles.x, cosAngles.y, sinAngles.y, cosAngles.z, sinAngles.z);
-}
-
-void dsMatrix44f_makeRotateAxisAngle(dsMatrix44f* result, const dsVector3f* axis,
-	float angle)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(axis);
-
-	float sinAngle, cosAngle;
-	dsSinCosf(&sinAngle, &cosAngle, angle);
-	float invCosAngle = 1 - cosAngle;
-
-	dsMatrix44_makeRotateAxisAngleImpl(*result, *axis, cosAngle, sinAngle, invCosAngle);
-}
-
-void dsMatrix44d_makeRotateAxisAngle(dsMatrix44d* result, const dsVector3d* axis,
-	double angle)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(axis);
-
-	double sinAngle, cosAngle;
-	dsSinCosd(&sinAngle, &cosAngle, angle);
-	double invCosAngle = 1 - cosAngle;
-
-	dsMatrix44_makeRotateAxisAngleImpl(*result, *axis, cosAngle, sinAngle, invCosAngle);
-}
 
 void dsMatrix44f_lookAt(dsMatrix44f* result, const dsVector3f* eyePos, const dsVector3f* lookAtPos,
 	const dsVector3f* upDir)
@@ -872,10 +739,10 @@ void dsMatrix44d_affineMul(dsMatrix44d* result, const dsMatrix44d* a, const dsMa
 void dsMatrix44f_transform(dsVector4f* result, const dsMatrix44f* mat, const dsVector4f* vec);
 void dsMatrix44d_transform(dsVector4d* result, const dsMatrix44d* mat, const dsVector4d* vec);
 
-void dsMatrix44f_transformTransposed(dsVector4f* result, const dsMatrix44f* mat,
-	const dsVector4f* vec);
-void dsMatrix44d_transformTransposed(dsVector4d* result, const dsMatrix44d* mat,
-	const dsVector4d* vec);
+void dsMatrix44f_transformTransposed(
+	dsVector4f* result, const dsMatrix44f* mat, const dsVector4f* vec);
+void dsMatrix44d_transformTransposed(
+	dsVector4d* result, const dsMatrix44d* mat, const dsVector4d* vec);
 
 void dsMatrix44f_transpose(dsMatrix44f* result, const dsMatrix44f* a);
 void dsMatrix44d_transpose(dsMatrix44d* result, const dsMatrix44d* a);
@@ -898,6 +765,12 @@ void dsMatrix44d_invert(dsMatrix44d* result, const dsMatrix44d* a);
 void dsMatrix44f_inverseTranspose(dsMatrix33f* result, const dsMatrix44f* a);
 void dsMatrix44d_inverseTranspose(dsMatrix33d* result, const dsMatrix44d* a);
 
+void dsMatrix44f_makeRotate(dsMatrix44f* result, float x, float y, float z);
+void dsMatrix44d_makeRotate(dsMatrix44d* result, double x, double y, double z);
+
+void dsMatrix44f_makeRotateAxisAngle(dsMatrix44f* result, const dsVector3f* axis, float angle);
+void dsMatrix44d_makeRotateAxisAngle(dsMatrix44d* result, const dsVector3d* axis, double angle);
+
 void dsMatrix44f_makeTranslate(dsMatrix44f* result, float x, float y, float z);
 void dsMatrix44d_makeTranslate(dsMatrix44d* result, double x, double y, double z);
 
@@ -919,10 +792,10 @@ void dsMatrix44f_rigidLerp(
 void dsMatrix44d_rigidLerp(
 	dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b, double t);
 
-bool dsMatrix44f_jacobiEigenvalues(dsMatrix44f* outEigenvectors, dsVector4f* outEigenvalues,
-	const dsMatrix44f* a);
-bool dsMatrix44d_jacobiEigenvalues(dsMatrix44d* outEigenvectors, dsVector4d* outEigenvalues,
-	const dsMatrix44d* a);
+bool dsMatrix44f_jacobiEigenvalues(
+	dsMatrix44f* outEigenvectors, dsVector4f* outEigenvalues, const dsMatrix44f* a);
+bool dsMatrix44d_jacobiEigenvalues(
+	dsMatrix44d* outEigenvectors, dsVector4d* outEigenvalues, const dsMatrix44d* a);
 
 void dsMatrix44f_sortEigenvalues(dsMatrix44f* eigenvectors, dsVector4f* eigenvalues);
 void dsMatrix44d_sortEigenvalues(dsMatrix44d* eigenvectors, dsVector4d* eigenvalues);

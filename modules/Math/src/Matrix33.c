@@ -57,31 +57,6 @@
 		(result).values[2][2] = (invCosAngle)*(axis).values[2]*(axis).values[2] + (cosAngle); \
 	} while (0)
 
-#define dsMatrix33_invertImpl(result, mat, invDet) \
-	do \
-	{ \
-		(result).values[0][0] = ((mat).values[1][1]*(mat).values[2][2] - \
-			(mat).values[1][2]*(mat).values[2][1])*invDet; \
-		(result).values[0][1] = ((mat).values[0][2]*(mat).values[2][1] - \
-			(mat).values[0][1]*(mat).values[2][2])*invDet; \
-		(result).values[0][2] = ((mat).values[0][1]*(mat).values[1][2] - \
-			(mat).values[0][2]*(mat).values[1][1])*invDet; \
-		\
-		(result).values[1][0] = ((mat).values[1][2]*(mat).values[2][0] - \
-			(mat).values[1][0]*(mat).values[2][2])*invDet; \
-		(result).values[1][1] = ((mat).values[0][0]*(mat).values[2][2] - \
-			(mat).values[0][2]*(mat).values[2][0])*invDet; \
-		(result).values[1][2] = ((mat).values[0][2]*(mat).values[1][0] - \
-			(mat).values[0][0]*(mat).values[1][2])*invDet; \
-		\
-		(result).values[2][0] = ((mat).values[1][0]*(mat).values[2][1] - \
-			(mat).values[1][1]*(mat).values[2][0])*invDet; \
-		(result).values[2][1] = ((mat).values[0][1]*(mat).values[2][0] - \
-			(mat).values[0][0]*(mat).values[2][1])*invDet; \
-		(result).values[2][2] = ((mat).values[0][0]*(mat).values[1][1] - \
-			(mat).values[0][1]*(mat).values[1][0])*invDet; \
-	} while (0)
-
 void dsMatrix33f_affineInvert(dsMatrix33f* result, const dsMatrix33f* a)
 {
 	DS_ASSERT(result);
@@ -306,10 +281,10 @@ void dsMatrix33d_affineMul(dsMatrix33d* result, const dsMatrix33d* a, const dsMa
 void dsMatrix33f_transform(dsVector3f* result, const dsMatrix33f* mat, const dsVector3f* vec);
 void dsMatrix33d_transform(dsVector3d* result, const dsMatrix33d* mat, const dsVector3d* vec);
 
-void dsMatrix33f_transformTransposed(dsVector3f* result, const dsMatrix33f* mat,
-	const dsVector3f* vec);
-void dsMatrix33d_transformTransposed(dsVector3d* result, const dsMatrix33d* mat,
-	const dsVector3d* vec);
+void dsMatrix33f_transformTransposed(
+	dsVector3f* result, const dsMatrix33f* mat, const dsVector3f* vec);
+void dsMatrix33d_transformTransposed(
+	dsVector3d* result, const dsMatrix33d* mat, const dsVector3d* vec);
 
 void dsMatrix33f_transpose(dsMatrix33f* result, const dsMatrix33f* a);
 void dsMatrix33d_transpose(dsMatrix33d* result, const dsMatrix33d* a);
@@ -329,10 +304,10 @@ void dsMatrix33d_makeScale(dsMatrix33d* result, double x, double y);
 void dsMatrix33f_makeScale3D(dsMatrix33f* result, float x, float y, float z);
 void dsMatrix33d_makeScale3D(dsMatrix33d* result, double x, double y, double z);
 
-bool dsMatrix33f_jacobiEigenvalues(dsMatrix33f* outEigenvectors, dsVector3f* outEigenvalues,
-	const dsMatrix33f* a);
-bool dsMatrix33d_jacobiEigenvalues(dsMatrix33d* outEigenvectors, dsVector3d* outEigenvalues,
-	const dsMatrix33d* a);
+bool dsMatrix33f_jacobiEigenvalues(
+	dsMatrix33f* outEigenvectors, dsVector3f* outEigenvalues, const dsMatrix33f* a);
+bool dsMatrix33d_jacobiEigenvalues(
+	dsMatrix33d* outEigenvectors, dsVector3d* outEigenvalues, const dsMatrix33d* a);
 
 void dsMatrix33f_sortEigenvalues(dsMatrix33f* eigenvectors, dsVector3f* eigenvalues);
 void dsMatrix33d_sortEigenvalues(dsMatrix33d* eigenvectors, dsVector3d* eigenvalues);

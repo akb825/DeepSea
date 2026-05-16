@@ -400,25 +400,25 @@ inline void dsMatrix22d_makeScale(dsMatrix22d* result, double x, double y)
 inline bool dsMatrix22f_jacobiEigenvalues(
 	dsMatrix22f* outEigenvectors, dsVector2f* outEigenvalues, const dsMatrix22f* a)
 {
-	return dsJacobiEigenvaluesClassicf((float*)outEigenvectors, (float*)outEigenvalues,
-		(const float*)a, 2, 1);
+	return dsJacobiEigenvaluesClassicf(
+		(float*)outEigenvectors, (float*)outEigenvalues, (const float*)a, 2, 0, 1);
 }
 
 inline bool dsMatrix22d_jacobiEigenvalues(
 	dsMatrix22d* outEigenvectors, dsVector2d* outEigenvalues, const dsMatrix22d* a)
 {
-	return dsJacobiEigenvaluesClassicd((double*)outEigenvectors, (double*)outEigenvalues,
-		(const double*)a, 2, 1);
+	return dsJacobiEigenvaluesClassicd(
+		(double*)outEigenvectors, (double*)outEigenvalues, (const double*)a, 2, 0, 1);
 }
 
 inline void dsMatrix22f_sortEigenvalues(dsMatrix22f* eigenvectors, dsVector2f* eigenvalues)
 {
-	dsSortEigenvaluesf((float*)eigenvectors, (float*)eigenvalues, 2);
+	dsSortEigenvaluesf((float*)eigenvectors, (float*)eigenvalues, 2, 0);
 }
 
 inline void dsMatrix22d_sortEigenvalues(dsMatrix22d* eigenvectors, dsVector2d* eigenvalues)
 {
-	dsSortEigenvaluesd((double*)eigenvectors, (double*)eigenvalues, 2);
+	dsSortEigenvaluesd((double*)eigenvectors, (double*)eigenvalues, 2, 0);
 }
 
 #ifdef __cplusplus

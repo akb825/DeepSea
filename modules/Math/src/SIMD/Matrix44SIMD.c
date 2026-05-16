@@ -15,8 +15,6 @@
  */
 
 #include <DeepSea/Math/SIMD/Matrix44SIMD.h>
-#include <DeepSea/Math/Matrix44.h>
-#include <DeepSea/Math/Vector4.h>
 
 #if DS_HAS_SIMD
 void dsMatrix44f_mulSIMD(dsMatrix44f* result, const dsMatrix44f* a, const dsMatrix44f* b);

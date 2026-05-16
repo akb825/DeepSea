@@ -40,8 +40,8 @@
  * - Option to skip eigenvectors.
  */
 
-inline static unsigned int flattenedOffDiagonalIndex(unsigned int col, unsigned int row,
-	unsigned int n)
+inline static unsigned int flattenedOffDiagonalIndex(
+	unsigned int col, unsigned int row, unsigned int n)
 {
 	DS_ASSERT(col < row);
 	unsigned int nextCol = col + 1;
@@ -59,11 +59,11 @@ inline static void rotateOffDiagonalf(float* offDiagonalMatrix, unsigned int n, 
 	offDiagonalMatrix[yIndex] = sinRot*x + cosRot*y;
 }
 
-inline static void rotatef(float* matrix, unsigned int n, float cosRot, float sinRot,
+inline static void rotatef(float* matrix, unsigned int width, float cosRot, float sinRot,
 	unsigned int xCol, unsigned int xRow, unsigned int yCol, unsigned int yRow)
 {
-	unsigned int xIndex = xCol*n + xRow;
-	unsigned int yIndex = yCol*n + yRow;
+	unsigned int xIndex = xCol*width + xRow;
+	unsigned int yIndex = yCol*width + yRow;
 	float x = matrix[xIndex];
 	float y = matrix[yIndex];
 	matrix[xIndex] = cosRot*x - sinRot*y;
@@ -81,11 +81,11 @@ inline static void rotateOffDiagonald(double* offDiagonalMatrix, unsigned int n,
 	offDiagonalMatrix[yIndex] = sinRot*x + cosRot*y;
 }
 
-inline static void rotated(double* matrix, unsigned int n, double cosRot, double sinRot,
+inline static void rotated(double* matrix, unsigned int width, double cosRot, double sinRot,
 	unsigned int xCol, unsigned int xRow, unsigned int yCol, unsigned int yRow)
 {
-	unsigned int xIndex = xCol*n + xRow;
-	unsigned int yIndex = yCol*n + yRow;
+	unsigned int xIndex = xCol*width + xRow;
+	unsigned int yIndex = yCol*width + yRow;
 	double x = matrix[xIndex];
 	double y = matrix[yIndex];
 	matrix[xIndex] = cosRot*x - sinRot*y;
@@ -93,8 +93,8 @@ inline static void rotated(double* matrix, unsigned int n, double cosRot, double
 }
 
 inline static bool pivotf(float* outEigenvectors, float* outEigenvalues, float* offDiagonalMatrix,
-	unsigned int n, unsigned int pivotCol, unsigned int pivotRow, unsigned int pivotFlat,
-	float pivotValue)
+	unsigned int n, unsigned int padding, unsigned int pivotCol, unsigned int pivotRow,
+	unsigned int pivotFlat, float pivotValue)
 {
 	DS_ASSERT(pivotCol < pivotRow);
 
@@ -140,15 +140,16 @@ inline static bool pivotf(float* outEigenvectors, float* outEigenvalues, float* 
 		rotateOffDiagonalf(offDiagonalMatrix, n, cosRot, sinRot, pivotCol, i, pivotRow, i);
 
 	// Rotate the eigenvectors.
+	unsigned int width = n + padding;
 	for (unsigned int i = 0; i < n; ++i)
-		rotatef(outEigenvectors, n, cosRot, sinRot, pivotCol, i, pivotRow, i);
+		rotatef(outEigenvectors, width, cosRot, sinRot, pivotCol, i, pivotRow, i);
 
 	return true;
 }
 
 inline static bool pivotd(double* outEigenvectors, double* outEigenvalues,
-	double* offDiagonalMatrix, unsigned int n, unsigned int pivotCol, unsigned int pivotRow,
-	unsigned int pivotFlat, double pivotValue)
+	double* offDiagonalMatrix, unsigned int n, unsigned int padding, unsigned int pivotCol,
+	unsigned int pivotRow, unsigned int pivotFlat, double pivotValue)
 {
 	// Always clear out the pivot value first in case it's *almost* zero and fails one of the
 	// below checks.
@@ -194,14 +195,15 @@ inline static bool pivotd(double* outEigenvectors, double* outEigenvalues,
 		rotateOffDiagonald(offDiagonalMatrix, n, cosRot, sinRot, pivotCol, i, pivotRow, i);
 
 	// Rotate the eigenvectors.
+	unsigned int width = n + padding;
 	for (unsigned int i = 0; i < n; ++i)
-		rotated(outEigenvectors, n, cosRot, sinRot, pivotCol, i, pivotRow, i);
+		rotated(outEigenvectors, width, cosRot, sinRot, pivotCol, i, pivotRow, i);
 
 	return true;
 }
 
 bool dsJacobiEigenvaluesClassicf(float* outEigenvectors, float* outEigenvalues, const float* matrix,
-	unsigned int n, unsigned int maxSweeps)
+	unsigned int n, unsigned int padding, unsigned int maxSweeps)
 {
 	DS_ASSERT(outEigenvectors);
 	DS_ASSERT(outEigenvalues);
@@ -210,13 +212,14 @@ bool dsJacobiEigenvaluesClassicf(float* outEigenvectors, float* outEigenvalues, 
 	DS_ASSERT(maxSweeps > 0);
 	DS_ASSERT(n <= MAX_N);
 
+	unsigned int width = n + padding;
 	unsigned int offDiagonalCount = n*(n - 1)/2;
 
 	// Initialize the output values assuming this is a diagonal matrix.
 	for (unsigned int i = 0; i < n; ++i)
 	{
-		outEigenvalues[i] = matrix[i*n + i];
-		float* eigenvectorColumn = outEigenvectors + i*n;
+		outEigenvalues[i] = matrix[i*width + i];
+		float* eigenvectorColumn = outEigenvectors + i*width;
 		for (unsigned int j = 0; j < n; ++j)
 			eigenvectorColumn[j] = (float)(i == j);
 	}
@@ -226,7 +229,7 @@ bool dsJacobiEigenvaluesClassicf(float* outEigenvectors, float* outEigenvalues, 
 	float* offDiagonalMatrix = DS_ALLOCATE_STACK_OBJECT_ARRAY(float, offDiagonalCount);
 	for (unsigned int i = 0, flatIndex = 0; i < n - 1; ++i)
 	{
-		const float* column = matrix + i*n;
+		const float* column = matrix + i*width;
 		for (unsigned int j = i + 1; j < n; ++j, ++flatIndex)
 			offDiagonalMatrix[flatIndex] = column[j];
 	}
@@ -258,8 +261,8 @@ bool dsJacobiEigenvaluesClassicf(float* outEigenvectors, float* outEigenvalues, 
 
 		float prevRowEigenvalue = outEigenvalues[pivotRow];
 		float prevColEigenvalue = outEigenvalues[pivotCol];
-		if (!pivotf(outEigenvectors, outEigenvalues, offDiagonalMatrix, n, pivotCol, pivotRow,
-				pivotFlat, pivotValue))
+		if (!pivotf(outEigenvectors, outEigenvalues, offDiagonalMatrix, n, padding, pivotCol,
+				pivotRow, pivotFlat, pivotValue))
 		{
 			// If we couldn't pivot along the maximum value, we've converged.
 			return true;
@@ -290,7 +293,7 @@ bool dsJacobiEigenvaluesClassicf(float* outEigenvectors, float* outEigenvalues, 
 }
 
 bool dsJacobiEigenvaluesClassicd(double* outEigenvectors, double* outEigenvalues,
-	const double* matrix, unsigned int n, unsigned int maxSweeps)
+	const double* matrix, unsigned int n, unsigned int padding, unsigned int maxSweeps)
 {
 	DS_ASSERT(outEigenvectors);
 	DS_ASSERT(outEigenvalues);
@@ -299,13 +302,14 @@ bool dsJacobiEigenvaluesClassicd(double* outEigenvectors, double* outEigenvalues
 	DS_ASSERT(maxSweeps > 0);
 	DS_ASSERT(n <= MAX_N);
 
+	unsigned int width = n + padding;
 	unsigned int offDiagonalCount = n*(n - 1)/2;
 
 	// Initialize the output values assuming this is a diagonal matrix.
 	for (unsigned int i = 0; i < n; ++i)
 	{
-		outEigenvalues[i] = matrix[i*n + i];
-		double* eigenvectorColumn = outEigenvectors + i*n;
+		outEigenvalues[i] = matrix[i*width + i];
+		double* eigenvectorColumn = outEigenvectors + i*width;
 		for (unsigned int j = 0; j < n; ++j)
 			eigenvectorColumn[j] = (double)(i == j);
 	}
@@ -315,7 +319,7 @@ bool dsJacobiEigenvaluesClassicd(double* outEigenvectors, double* outEigenvalues
 	double* offDiagonalMatrix = DS_ALLOCATE_STACK_OBJECT_ARRAY(double, offDiagonalCount);
 	for (unsigned int i = 0, flatIndex = 0; i < n - 1; ++i)
 	{
-		const double* column = matrix + i*n;
+		const double* column = matrix + i*width;
 		for (unsigned int j = i + 1; j < n; ++j, ++flatIndex)
 			offDiagonalMatrix[flatIndex] = column[j];
 	}
@@ -347,8 +351,8 @@ bool dsJacobiEigenvaluesClassicd(double* outEigenvectors, double* outEigenvalues
 
 		double prevRowEigenvalue = outEigenvalues[pivotRow];
 		double prevColEigenvalue = outEigenvalues[pivotCol];
-		if (!pivotd(outEigenvectors, outEigenvalues, offDiagonalMatrix, n, pivotCol, pivotRow,
-				pivotFlat, pivotValue))
+		if (!pivotd(outEigenvectors, outEigenvalues, offDiagonalMatrix, n, padding, pivotCol,
+				pivotRow, pivotFlat, pivotValue))
 		{
 			// If we couldn't pivot along the maximum value, we've converged.
 			return true;
@@ -379,7 +383,7 @@ bool dsJacobiEigenvaluesClassicd(double* outEigenvectors, double* outEigenvalues
 }
 
 bool dsJacobiEigenvaluesCyclicf(float* outEigenvectors, float* outEigenvalues, const float* matrix,
-	unsigned int n, unsigned int maxSweeps)
+	unsigned int n, unsigned int padding, unsigned int maxSweeps)
 {
 	DS_ASSERT(outEigenvectors);
 	DS_ASSERT(outEigenvalues);
@@ -388,13 +392,14 @@ bool dsJacobiEigenvaluesCyclicf(float* outEigenvectors, float* outEigenvalues, c
 	DS_ASSERT(maxSweeps > 0);
 	DS_ASSERT(n <= MAX_N);
 
+	unsigned int width = n + padding;
 	unsigned int offDiagonalCount = n*(n - 1)/2;
 
 	// Initialize the output values assuming this is a diagonal matrix.
 	for (unsigned int i = 0; i < n; ++i)
 	{
-		outEigenvalues[i] = matrix[i*n + i];
-		float* eigenvectorColumn = outEigenvectors + i*n;
+		outEigenvalues[i] = matrix[i*width + i];
+		float* eigenvectorColumn = outEigenvectors + i*width;
 		for (unsigned int j = 0; j < n; ++j)
 			eigenvectorColumn[j] = (float)(i == j);
 	}
@@ -404,7 +409,7 @@ bool dsJacobiEigenvaluesCyclicf(float* outEigenvectors, float* outEigenvalues, c
 	float* offDiagonalMatrix = DS_ALLOCATE_STACK_OBJECT_ARRAY(float, offDiagonalCount);
 	for (unsigned int i = 0, flatIndex = 0; i < n - 1; ++i)
 	{
-		const float* column = matrix + i*n;
+		const float* column = matrix + i*width;
 		for (unsigned int j = i + 1; j < n; ++j, ++flatIndex)
 			offDiagonalMatrix[flatIndex] = column[j];
 	}
@@ -426,8 +431,8 @@ bool dsJacobiEigenvaluesCyclicf(float* outEigenvectors, float* outEigenvalues, c
 		{
 			for (unsigned int j = i + 1; j < n; ++j, ++flatIndex)
 			{
-				pivotf(outEigenvectors, outEigenvalues, offDiagonalMatrix, n, i, j, flatIndex,
-					offDiagonalMatrix[flatIndex]);
+				pivotf(outEigenvectors, outEigenvalues, offDiagonalMatrix, n, padding, i, j,
+					flatIndex, offDiagonalMatrix[flatIndex]);
 			}
 		}
 
@@ -441,7 +446,7 @@ bool dsJacobiEigenvaluesCyclicf(float* outEigenvectors, float* outEigenvalues, c
 }
 
 bool dsJacobiEigenvaluesCyclicd(double* outEigenvectors, double* outEigenvalues,
-	const double* matrix, unsigned int n, unsigned int maxSweeps)
+	const double* matrix, unsigned int n, unsigned int padding, unsigned int maxSweeps)
 {
 	DS_ASSERT(outEigenvectors);
 	DS_ASSERT(outEigenvalues);
@@ -450,13 +455,14 @@ bool dsJacobiEigenvaluesCyclicd(double* outEigenvectors, double* outEigenvalues,
 	DS_ASSERT(maxSweeps > 0);
 	DS_ASSERT(n <= MAX_N);
 
+	unsigned int width = n + padding;
 	unsigned int offDiagonalCount = n*(n - 1)/2;
 
 	// Initialize the output values assuming this is a diagonal matrix.
 	for (unsigned int i = 0; i < n; ++i)
 	{
-		outEigenvalues[i] = matrix[i*n + i];
-		double* eigenvectorColumn = outEigenvectors + i*n;
+		outEigenvalues[i] = matrix[i*width + i];
+		double* eigenvectorColumn = outEigenvectors + i*width;
 		for (unsigned int j = 0; j < n; ++j)
 			eigenvectorColumn[j] = (double)(i == j);
 	}
@@ -466,7 +472,7 @@ bool dsJacobiEigenvaluesCyclicd(double* outEigenvectors, double* outEigenvalues,
 	double* offDiagonalMatrix = DS_ALLOCATE_STACK_OBJECT_ARRAY(double, offDiagonalCount);
 	for (unsigned int i = 0, flatIndex = 0; i < n - 1; ++i)
 	{
-		const double* column = matrix + i*n;
+		const double* column = matrix + i*width;
 		for (unsigned int j = i + 1; j < n; ++j, ++flatIndex)
 			offDiagonalMatrix[flatIndex] = column[j];
 	}
@@ -487,8 +493,8 @@ bool dsJacobiEigenvaluesCyclicd(double* outEigenvectors, double* outEigenvalues,
 		{
 			for (unsigned int j = i + 1; j < n; ++j, ++flatIndex)
 			{
-				pivotd(outEigenvectors, outEigenvalues, offDiagonalMatrix, n, i, j, flatIndex,
-					offDiagonalMatrix[flatIndex]);
+				pivotd(outEigenvectors, outEigenvalues, offDiagonalMatrix, n, padding, i, j,
+					flatIndex, offDiagonalMatrix[flatIndex]);
 			}
 		}
 
@@ -501,13 +507,15 @@ bool dsJacobiEigenvaluesCyclicd(double* outEigenvectors, double* outEigenvalues,
 	return false;
 }
 
-void dsSortEigenvaluesf(float* eigenvectors, float* eigenvalues, unsigned int n)
+void dsSortEigenvaluesf(
+	float* eigenvectors, float* eigenvalues, unsigned int n, unsigned int padding)
 {
 	DS_ASSERT(eigenvectors);
 	DS_ASSERT(eigenvalues);
 	DS_ASSERT(n <= MAX_N);
 
-	const size_t vectorSize = sizeof(float)*n;
+	unsigned int width = n + padding;
+	size_t vectorSize = sizeof(float)*n;
 	float* tempVector = DS_ALLOCATE_STACK_OBJECT_ARRAY(float, n);
 	for (unsigned int i = 0; i < n; ++i)
 	{
@@ -528,20 +536,22 @@ void dsSortEigenvaluesf(float* eigenvectors, float* eigenvalues, unsigned int n)
 			eigenvalues[largestIndex] = eigenvalues[i];
 			eigenvalues[i] = largestValue;
 
-			memcpy(tempVector, eigenvectors + largestIndex*n, vectorSize);
-			memcpy(eigenvectors + largestIndex*n, eigenvectors + i*n, vectorSize);
-			memcpy(eigenvectors + i*n, tempVector, vectorSize);
+			memcpy(tempVector, eigenvectors + largestIndex*width, vectorSize);
+			memcpy(eigenvectors + largestIndex*width, eigenvectors + i*width, vectorSize);
+			memcpy(eigenvectors + i*width, tempVector, vectorSize);
 		}
 	}
 }
 
-void dsSortEigenvaluesd(double* eigenvectors, double* eigenvalues, unsigned int n)
+void dsSortEigenvaluesd(
+	double* eigenvectors, double* eigenvalues, unsigned int n, unsigned int padding)
 {
 	DS_ASSERT(eigenvectors);
 	DS_ASSERT(eigenvalues);
 	DS_ASSERT(n <= MAX_N);
 
-	const size_t vectorSize = sizeof(double)*n;
+	unsigned int width = n + padding;
+	size_t vectorSize = sizeof(double)*n;
 	double* tempVector = DS_ALLOCATE_STACK_OBJECT_ARRAY(double, n);
 	for (unsigned int i = 0; i < n; ++i)
 	{
@@ -562,9 +572,9 @@ void dsSortEigenvaluesd(double* eigenvectors, double* eigenvalues, unsigned int 
 			eigenvalues[largestIndex] = eigenvalues[i];
 			eigenvalues[i] = largestValue;
 
-			memcpy(tempVector, eigenvectors + largestIndex*n, vectorSize);
-			memcpy(eigenvectors + largestIndex*n, eigenvectors + i*n, vectorSize);
-			memcpy(eigenvectors + i*n, tempVector, vectorSize);
+			memcpy(tempVector, eigenvectors + largestIndex*width, vectorSize);
+			memcpy(eigenvectors + largestIndex*width, eigenvectors + i*width, vectorSize);
+			memcpy(eigenvectors + i*width, tempVector, vectorSize);
 		}
 	}
 }

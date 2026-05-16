@@ -105,14 +105,14 @@ inline void dsMatrix33_makeRotate3D(dsMatrix33d* result, double x, double y, dou
 	dsMatrix33d_makeRotate3D(result, x, y, z);
 }
 
-inline void dsMatrix33_makeRotate3DAxisAngle(dsMatrix33f* result, const dsVector3f* axis,
-	float angle)
+inline void dsMatrix33_makeRotate3DAxisAngle(
+	dsMatrix33f* result, const dsVector3f* axis, float angle)
 {
 	dsMatrix33f_makeRotate3DAxisAngle(result, axis, angle);
 }
 
-inline void dsMatrix33_makeRotate3DAxisAngle(dsMatrix33d* result, const dsVector3d* axis,
-	double angle)
+inline void dsMatrix33_makeRotate3DAxisAngle(
+	dsMatrix33d* result, const dsVector3d* axis, double angle)
 {
 	dsMatrix33d_makeRotate3DAxisAngle(result, axis, angle);
 }
@@ -283,9 +283,9 @@ TYPED_TEST(Matrix33Test, Transform)
 
 	Matrix33Type matrix =
 	{{
-		{(TypeParam)0.1, (TypeParam)-6.7, (TypeParam)2.3},
-		{(TypeParam)-2.3, (TypeParam)8.9, (TypeParam)-4.5},
-		{(TypeParam)4.5, (TypeParam)-0.1, (TypeParam)6.7}
+		{(TypeParam)0.1, (TypeParam)-2.3, (TypeParam)4.5},
+		{(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)-0.1},
+		{(TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7}
 	}};
 
 	Vector3Type vector = {{(TypeParam)-1.0, (TypeParam)3.2, (TypeParam)-5.4}};
@@ -293,9 +293,9 @@ TYPED_TEST(Matrix33Test, Transform)
 
 	dsMatrix33_transform(result, matrix, vector);
 
-	EXPECT_NEAR((TypeParam)-31.76, result.values[0], epsilon);
-	EXPECT_NEAR((TypeParam)35.72, result.values[1], epsilon);
-	EXPECT_NEAR((TypeParam)-52.88, result.values[2], epsilon);
+	EXPECT_NEAR((TypeParam)-33.96, result.values[0], epsilon);
+	EXPECT_NEAR((TypeParam)55.08, result.values[1], epsilon);
+	EXPECT_NEAR((TypeParam)-41.0, result.values[2], epsilon);
 }
 
 TYPED_TEST(Matrix33Test, TransformTransposed)

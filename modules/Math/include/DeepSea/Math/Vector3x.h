@@ -36,7 +36,7 @@ extern "C"
  * @file
  * @brief Functions for manipulating 3-element vectors aligned for SIMD usage.
  *
- * A dsVector3x* value may be used with these functions, or dsVector3x* type alias for readability.
+ * A dsVector4* value may be used with these functions, or dsVector3x* type alias for readability.
  *
  * This allows for SIMD operations when supported, allowing for faster processing in the vast
  * majority of situations. The value of the last element is undefined for any results. Operations
@@ -305,14 +305,14 @@ DS_MATH_EXPORT inline void dsVector3xd_cross(
 	DS_ASSERT(a);
 	DS_ASSERT(b);
 #if DS_SIMD_ALWAYS_DOUBLE2 && DS_X86
-	dsSIMD2d a12 = _mm_shuffle_pd(a->simd2[0], a->simd2[1], 0x1);
+	dsSIMD2d a12 = _mm_shuffle_pd(a->simd2[0], a->simd2[1], _MM_SHUFFLE2(0, 1));
 	dsSIMD2d a0 = a->simd2[0];
-	dsSIMD2d a20 = _mm_shuffle_pd(a->simd2[1], a->simd2[0], 0);
-	dsSIMD2d a1 =  _mm_shuffle_pd(a->simd2[0], a->simd2[0], 0x1);
-	dsSIMD2d b12 = _mm_shuffle_pd(b->simd2[0], b->simd2[1], 0x1);
+	dsSIMD2d a20 = _mm_shuffle_pd(a->simd2[1], a->simd2[0], _MM_SHUFFLE2(0, 0));
+	dsSIMD2d a1 =  _mm_shuffle_pd(a->simd2[0], a->simd2[0], _MM_SHUFFLE2(0, 1));
+	dsSIMD2d b12 = _mm_shuffle_pd(b->simd2[0], b->simd2[1], _MM_SHUFFLE2(0, 1));
 	dsSIMD2d b0 = b->simd2[0];
-	dsSIMD2d b20 = _mm_shuffle_pd(b->simd2[1], b->simd2[0], 0);
-	dsSIMD2d b1 =  _mm_shuffle_pd(b->simd2[0], b->simd2[0], 0x1);
+	dsSIMD2d b20 = _mm_shuffle_pd(b->simd2[1], b->simd2[0], _MM_SHUFFLE2(0, 0));
+	dsSIMD2d b1 =  _mm_shuffle_pd(b->simd2[0], b->simd2[0], _MM_SHUFFLE2(0, 1));
 #if DS_SIMD_ALWAYS_FMA
 	result->simd2[0] = dsSIMD2d_fmsub(a12, b20, dsSIMD2d_mul(a20, b12));
 	result->simd2[1] = dsSIMD2d_fmsub(a0, b1, dsSIMD2d_mul(a1, b0));

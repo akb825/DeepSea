@@ -364,6 +364,58 @@ TYPED_TEST(Matrix44Test, Identity)
 	EXPECT_EQ((TypeParam)1, matrix.values[3][3]);
 }
 
+TEST(Matrix44fTest, Identity)
+{
+	dsMatrix44f matrix;
+	dsMatrix44f_identity(&matrix);
+
+	EXPECT_EQ(1.0f, matrix.values[0][0]);
+	EXPECT_EQ(0.0f, matrix.values[0][1]);
+	EXPECT_EQ(0.0f, matrix.values[0][2]);
+	EXPECT_EQ(0.0f, matrix.values[0][3]);
+
+	EXPECT_EQ(0.0f, matrix.values[1][0]);
+	EXPECT_EQ(1.0f, matrix.values[1][1]);
+	EXPECT_EQ(0.0f, matrix.values[1][2]);
+	EXPECT_EQ(0.0f, matrix.values[1][3]);
+
+	EXPECT_EQ(0.0f, matrix.values[2][0]);
+	EXPECT_EQ(0.0f, matrix.values[2][1]);
+	EXPECT_EQ(1.0f, matrix.values[2][2]);
+	EXPECT_EQ(0.0f, matrix.values[2][3]);
+
+	EXPECT_EQ(0.0f, matrix.values[3][0]);
+	EXPECT_EQ(0.0f, matrix.values[3][1]);
+	EXPECT_EQ(0.0f, matrix.values[3][2]);
+	EXPECT_EQ(1.0f, matrix.values[3][3]);
+}
+
+TEST(Matrix44dTest, Identity)
+{
+	dsMatrix44d matrix;
+	dsMatrix44d_identity(&matrix);
+
+	EXPECT_EQ(1.0, matrix.values[0][0]);
+	EXPECT_EQ(0.0, matrix.values[0][1]);
+	EXPECT_EQ(0.0, matrix.values[0][2]);
+	EXPECT_EQ(0.0, matrix.values[0][3]);
+
+	EXPECT_EQ(0.0, matrix.values[1][0]);
+	EXPECT_EQ(1.0, matrix.values[1][1]);
+	EXPECT_EQ(0.0, matrix.values[1][2]);
+	EXPECT_EQ(0.0, matrix.values[1][3]);
+
+	EXPECT_EQ(0.0, matrix.values[2][0]);
+	EXPECT_EQ(0.0, matrix.values[2][1]);
+	EXPECT_EQ(1.0, matrix.values[2][2]);
+	EXPECT_EQ(0.0, matrix.values[2][3]);
+
+	EXPECT_EQ(0.0, matrix.values[3][0]);
+	EXPECT_EQ(0.0, matrix.values[3][1]);
+	EXPECT_EQ(0.0, matrix.values[3][2]);
+	EXPECT_EQ(1.0, matrix.values[3][3]);
+}
+
 TYPED_TEST(Matrix44Test, Multiply)
 {
 	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
@@ -1628,7 +1680,7 @@ TEST(Matrix44fTest, MultiplyFMA)
 }
 #endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, MultiplyDoubleSIMD2)
+TEST(Matrix44dTest, MultiplySIMD2)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 		return;
@@ -1698,7 +1750,7 @@ TEST(Matrix44fTest, MultiplyDoubleSIMD2)
 }
 
 #if !DS_DETERMINISTIC_MATH
-TEST(Matrix44fTest, MultiplyDouble2FMA)
+TEST(Matrix44dTest, Multiply2FMA)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) != features)
@@ -1747,7 +1799,7 @@ TEST(Matrix44fTest, MultiplyDouble2FMA)
 }
 #endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, MultiplyDoubleSIMD4)
+TEST(Matrix44dTest, MultiplySIMD4)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
 		return;
@@ -1877,7 +1929,7 @@ TEST(Matrix44fTest, TransformFMA)
 }
 #endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, TransformDoubleSIMD2)
+TEST(Matrix44dTest, TransformSIMD2)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 		return;
@@ -1911,7 +1963,7 @@ TEST(Matrix44fTest, TransformDoubleSIMD2)
 }
 
 #if !DS_DETERMINISTIC_MATH
-TEST(Matrix44fTest, TransformDouble2FMA)
+TEST(Matrix44dTest, Transform2FMA)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) != features)
@@ -1939,7 +1991,7 @@ TEST(Matrix44fTest, TransformDouble2FMA)
 }
 #endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, TransformDoubleSIMD4)
+TEST(Matrix44dTest, TransformSIMD4)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
 		return;
@@ -2033,7 +2085,7 @@ TEST(Matrix44fTest, TransformTransposedFMA)
 }
 #endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, TransformTransposedDoubleSIMD2)
+TEST(Matrix44dTest, TransformTransposedSIMD2)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 		return;
@@ -2067,7 +2119,7 @@ TEST(Matrix44fTest, TransformTransposedDoubleSIMD2)
 }
 
 #if !DS_DETERMINISTIC_MATH
-TEST(Matrix44fTest, TransformTransposedDouble2FMA)
+TEST(Matrix44dTest, TransformTransposed2FMA)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) != features)
@@ -2095,7 +2147,7 @@ TEST(Matrix44fTest, TransformTransposedDouble2FMA)
 }
 #endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, TransformTransposedDoubleSIMD4)
+TEST(Matrix44dTest, TransformTransposedSIMD4)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
 		return;
@@ -2165,7 +2217,7 @@ TEST(Matrix44fTest, TransposeSIMD)
 	EXPECT_EQ(0.1f, result.values[3][3]);
 }
 
-TEST(Matrix44fTest, TransposeDoubleSIMD2)
+TEST(Matrix44dTest, TransposeSIMD2)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 		return;
@@ -2202,7 +2254,7 @@ TEST(Matrix44fTest, TransposeDoubleSIMD2)
 	EXPECT_EQ(0.1, result.values[3][3]);
 }
 
-TEST(Matrix44fTest, TransposeDoubleSIMD4)
+TEST(Matrix44dTest, TransposeSIMD4)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
 		return;
@@ -2282,7 +2334,7 @@ TEST(Matrix44fTest, DeterminantFMA)
 }
 #endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, DeterminantDoubleSIMD2)
+TEST(Matrix44dTest, DeterminantSIMD2)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 		return;
@@ -2306,7 +2358,7 @@ TEST(Matrix44fTest, DeterminantDoubleSIMD2)
 }
 
 #if !DS_DETERMINISTIC_MATH
-TEST(Matrix44fTest, DeterminantDouble2FMA)
+TEST(Matrix44dTest, DeterminantFMA2)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) != features)
@@ -2326,7 +2378,7 @@ TEST(Matrix44fTest, DeterminantDouble2FMA)
 }
 #endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, DeterminantDoubleSIMD4)
+TEST(Matrix44dTest, DeterminantSIMD4)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
 		return;
@@ -2480,7 +2532,7 @@ TEST(Matrix44fTest, FastInvertFMA)
 }
 #endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, FastInvertDoubleSIMD2)
+TEST(Matrix44dTest, FastInvertSIMD2)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 		return;
@@ -2566,7 +2618,7 @@ TEST(Matrix44fTest, FastInvertDoubleSIMD2)
 }
 
 #if !DS_DETERMINISTIC_MATH
-TEST(Matrix44fTest, FastInvertDouble2FMA)
+TEST(Matrix44dTest, FastInvertFMA2)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) != features)
@@ -2612,7 +2664,7 @@ TEST(Matrix44fTest, FastInvertDouble2FMA)
 }
 #endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, FastInvertDoubleSIMD4)
+TEST(Matrix44dTest, FastInvertSIMD4)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
 		return;
@@ -2841,7 +2893,7 @@ TEST(Matrix44fTest, AffineInvertFMA)
 }
 #endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, AffineInvertDouble2FMA)
+TEST(Matrix44dTest, AffineInvertSIMD2)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 		return;
@@ -2934,7 +2986,7 @@ TEST(Matrix44fTest, AffineInvertDouble2FMA)
 }
 
 #if !DS_DETERMINISTIC_MATH
-TEST(Matrix44fTest, AffineInvertDoubleSIMD2)
+TEST(Matrix44dTest, AffineInvertFMA2)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) != features)
@@ -2986,7 +3038,7 @@ TEST(Matrix44fTest, AffineInvertDoubleSIMD2)
 }
 #endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, AffineInvertDoubleSIMD4)
+TEST(Matrix44dTest, AffineInvertSIMD4)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
 		return;
@@ -3187,7 +3239,7 @@ TEST(Matrix44fTest, AffineInvert33FMA)
 }
 #endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, AffineInvert33DoubleSIMD2)
+TEST(Matrix44dTest, AffineInvert33SIMD2)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 		return;
@@ -3243,7 +3295,7 @@ TEST(Matrix44fTest, AffineInvert33DoubleSIMD2)
 }
 
 #if !DS_DETERMINISTIC_MATH
-TEST(Matrix44fTest, AffineInvert33Double2FMA)
+TEST(Matrix44dTest, AffineInvert33FMA2)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) != features)
@@ -3297,7 +3349,7 @@ TEST(Matrix44fTest, AffineInvert33Double2FMA)
 }
 #endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, AffineInvert33DoubleSIMD4)
+TEST(Matrix44dTest, AffineInvert33SIMD4)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
 		return;
@@ -3478,7 +3530,7 @@ TEST(Matrix44fTest, InvertFMA)
 }
 #endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, InvertDoubleSIMD2)
+TEST(Matrix44dTest, InvertSIMD2)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 		return;
@@ -3542,7 +3594,7 @@ TEST(Matrix44fTest, InvertDoubleSIMD2)
 }
 
 #if !DS_DETERMINISTIC_MATH
-TEST(Matrix44fTest, InvertDouble2FMA)
+TEST(Matrix44dTest, InvertFMA2)
 {
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) != features)
@@ -3606,7 +3658,7 @@ TEST(Matrix44fTest, InvertDouble2FMA)
 }
 #endif // !DS_DETERMINISTIC_MATH
 
-TEST(Matrix44fTest, InvertDoubleSIMD4)
+TEST(Matrix44dTest, InvertSIMD4)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
 		return;
@@ -3678,7 +3730,7 @@ TEST(Matrix44fTest, InverseTransposeSIMD)
 	DS_UNUSED(epsilon);
 
 	dsMatrix44f rotate;
-	dsMatrix44_makeRotate(&rotate, dsDegreesToRadiansf(30.0f), dsDegreesToRadiansf(-15.0f),
+	dsMatrix44f_makeRotate(&rotate, dsDegreesToRadiansf(30.0f), dsDegreesToRadiansf(-15.0f),
 		dsDegreesToRadiansf(60.0f));
 
 	dsMatrix44f translate;
@@ -3733,7 +3785,7 @@ TEST(Matrix44fTest, InverseTransposeFMA)
 	const float epsilon = Matrix44TypeSelector<float>::epsilon;
 
 	dsMatrix44f rotate;
-	dsMatrix44_makeRotate(&rotate, dsDegreesToRadiansf(30.0f), dsDegreesToRadiansf(-15.0f),
+	dsMatrix44f_makeRotate(&rotate, dsDegreesToRadiansf(30.0f), dsDegreesToRadiansf(-15.0f),
 		dsDegreesToRadiansf(60.0f));
 
 	dsMatrix44f translate;
@@ -3778,7 +3830,7 @@ TEST(Matrix44dTest, InverseTransposeSIMD2)
 	DS_UNUSED(epsilon);
 
 	dsMatrix44d rotate;
-	dsMatrix44_makeRotate(&rotate, dsDegreesToRadiansd(30.0), dsDegreesToRadiansd(-15.0),
+	dsMatrix44d_makeRotate(&rotate, dsDegreesToRadiansd(30.0), dsDegreesToRadiansd(-15.0),
 		dsDegreesToRadiansd(60.0));
 
 	dsMatrix44d translate;
@@ -3834,7 +3886,7 @@ TEST(Matrix44dTest, InverseTranspose2FMA)
 	const double epsilon = Matrix44TypeSelector<double>::epsilon;
 
 	dsMatrix44d rotate;
-	dsMatrix44_makeRotate(&rotate, dsDegreesToRadiansd(30.0), dsDegreesToRadiansd(-15.0),
+	dsMatrix44d_makeRotate(&rotate, dsDegreesToRadiansd(30.0), dsDegreesToRadiansd(-15.0),
 		dsDegreesToRadiansd(60.0));
 
 	dsMatrix44d translate;
@@ -3879,7 +3931,7 @@ TEST(Matrix44dTest, InverseTransposeSIMD4)
 	DS_UNUSED(epsilon);
 
 	DS_ALIGN(32) dsMatrix44d rotate;
-	dsMatrix44_makeRotate(&rotate, dsDegreesToRadiansd(30.0), dsDegreesToRadiansd(-15.0),
+	dsMatrix44d_makeRotate(&rotate, dsDegreesToRadiansd(30.0), dsDegreesToRadiansd(-15.0),
 		dsDegreesToRadiansd(60.0));
 
 	DS_ALIGN(32) dsMatrix44d translate;

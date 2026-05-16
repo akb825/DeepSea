@@ -246,7 +246,7 @@ bool dsPolygonEdgesIntersect(const dsVector2d* from, const dsVector2d* to,
 
 #if DS_HAS_SIMD
 #if DS_X86
-#define DS_SWAP_SIMD(a) _mm_shuffle_pd((a), (a), 0x1)
+#define DS_SWAP_SIMD(a) _mm_shuffle_pd((a), (a), _MM_SHUFFLE2(0, 1))
 #elif DS_ARM_64
 #define DS_SWAP_SIMD(a) vextq_f64((a), (a), 1)
 #else

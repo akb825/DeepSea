@@ -46,7 +46,8 @@ extern "C"
 #define DS_SIMD_DOUBLE4 avx2
 #define DS_SIMD_HADD sse3
 #define DS_SIMD_ROUNDING sse4.1
-#define DS_SIMD_FMA fma
+// Include extra SSE instructions as some assumptions are made with FMA being the max feature set.
+#define DS_SIMD_FMA fma,sse4.2
 #define DS_SIMD_HALF_FLOAT sse2,f16c
 
 #define DS_SIMD_PRAGMA_IMPL(x) _Pragma(#x)
