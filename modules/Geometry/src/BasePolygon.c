@@ -448,7 +448,7 @@ bool dsBasePolygon_canConnectEdge(const dsBasePolygon* polygon, uint32_t fromVer
 		return false;
 
 	dsAlignedBox2d edgeBounds = {fromVert->point, fromVert->point};
-	dsAlignedBox2_addPoint(edgeBounds, toVert->point);
+	dsAlignedBox2d_addPoint(&edgeBounds, &toVert->point);
 
 	EdgeIntersectInfo info = {fromVert->point, toVert->point, polygon->intersectEpsilon,
 		fromVertIdx, toVertIdx, false};

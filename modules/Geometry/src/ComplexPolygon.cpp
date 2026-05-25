@@ -287,7 +287,7 @@ static bool simplifyFloat(dsComplexPolygon* polygon, const dsComplexPolygonLoop*
 			dsVector2f point;
 			if (!pointFunc(&point, polygon, loop->points, j))
 				return false;
-			dsAlignedBox2_addPoint(bounds, point);
+			dsAlignedBox2f_addPoint(&bounds, &point);
 		}
 	}
 
@@ -303,10 +303,10 @@ static bool simplifyFloat(dsComplexPolygon* polygon, const dsComplexPolygonLoop*
 	dsVector2f offset, scale, invScale;
 	dsVector2f one = {{1.0f, 1.0f}};
 	dsVector2f half = {{0.5f, 0.5f}};
-	dsAlignedBox2_center(offset, bounds);
-	dsAlignedBox2_extents(scale, bounds);
-	dsVector2_mul(scale, scale, half);
-	dsVector2_div(invScale, one, scale);
+	dsAlignedBox2f_center(&offset, &bounds);
+	dsAlignedBox2f_extents(&scale, &bounds);
+	dsVector2f_mul(&scale, &scale, &half);
+	dsVector2f_div(&invScale, &one, &scale);
 	uint32_t curOrigPoint = 0;
 	for (uint32_t i = 0; i < loopCount; ++i)
 	{
@@ -319,8 +319,8 @@ static bool simplifyFloat(dsComplexPolygon* polygon, const dsComplexPolygonLoop*
 			if (!pointFunc(&point, polygon, loop->points, j))
 				return false;
 
-			dsVector2_sub(point, point, offset);
-			dsVector2_mul(point, point, invScale);
+			dsVector2f_sub(&point, &point, &offset);
+			dsVector2f_mul(&point, &point, &invScale);
 			path[j].X = (cInt)dsRoundd((double)dsClamp(point.x, -1.0f, 1.0f)*limit);
 			path[j].Y = (cInt)dsRoundd((double)dsClamp(point.y, -1.0f, 1.0f)*limit);
 
@@ -349,8 +349,8 @@ static bool simplifyFloat(dsComplexPolygon* polygon, const dsComplexPolygonLoop*
 				{
 					dsVector2f point = {{(float)((double)path[i].X/limit),
 						(float)((double)path[i].Y/limit)}};
-					dsVector2_mul(point, point, scale);
-					dsVector2_add(points[i], point, offset);
+					dsVector2f_mul(&point, &point, &scale);
+					dsVector2f_add(points + i, &point, &offset);
 				}
 			}
 		});
@@ -372,7 +372,7 @@ static bool simplifyDouble(dsComplexPolygon* polygon, const dsComplexPolygonLoop
 			dsVector2d point;
 			if (!pointFunc(&point, polygon, loop->points, j))
 				return false;
-			dsAlignedBox2_addPoint(bounds, point);
+			dsAlignedBox2d_addPoint(&bounds, &point);
 		}
 	}
 
@@ -391,10 +391,10 @@ static bool simplifyDouble(dsComplexPolygon* polygon, const dsComplexPolygonLoop
 	dsVector2d offset, scale, invScale;
 	dsVector2d one = {{1.0, 1.0}};
 	dsVector2d half = {{0.5, 0.5}};
-	dsAlignedBox2_center(offset, bounds);
-	dsAlignedBox2_extents(scale, bounds);
-	dsVector2_mul(scale, scale, half);
-	dsVector2_div(invScale, one, scale);
+	dsAlignedBox2d_center(&offset, &bounds);
+	dsAlignedBox2d_extents(&scale, &bounds);
+	dsVector2d_mul(&scale, &scale, &half);
+	dsVector2d_div(&invScale, &one, &scale);
 	uint32_t curOrigPoint = 0;
 	for (uint32_t i = 0; i < loopCount; ++i)
 	{
@@ -407,8 +407,8 @@ static bool simplifyDouble(dsComplexPolygon* polygon, const dsComplexPolygonLoop
 			if (!pointFunc(&point, polygon, loop->points, j))
 				return false;
 
-			dsVector2_sub(point, point, offset);
-			dsVector2_mul(point, point, invScale);
+			dsVector2d_sub(&point, &point, &offset);
+			dsVector2d_mul(&point, &point, &invScale);
 			path[j].X = (cInt)dsRoundd(dsClamp(point.x, -1.0, 1.0)*limit);
 			path[j].Y = (cInt)dsRoundd(dsClamp(point.y, -1.0, 1.0)*limit);
 
@@ -436,8 +436,8 @@ static bool simplifyDouble(dsComplexPolygon* polygon, const dsComplexPolygonLoop
 				else
 				{
 					dsVector2d point = {{(double)path[i].X/limit, (double)path[i].Y/limit}};
-					dsVector2_mul(point, point, scale);
-					dsVector2_add(points[i], point, offset);
+					dsVector2d_mul(&point, &point, &scale);
+					dsVector2d_add(points + i, &point, &offset);
 				}
 			}
 		});

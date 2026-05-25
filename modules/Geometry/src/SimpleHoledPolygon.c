@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -277,7 +277,7 @@ static bool canConnectEdge(const dsSimpleHoledPolygon* polygon, uint32_t fromVer
 	const dsVector2d* fromPos = &base->vertices[fromVertIdx].point;
 	const dsVector2d* toPos = &base->vertices[toVertIdx].point;
 	dsAlignedBox2d edgeBounds = {*fromPos, *fromPos};
-	dsAlignedBox2_addPoint(edgeBounds, *toPos);
+	dsAlignedBox2d_addPoint(&edgeBounds, toPos);
 
 	DS_ASSERT(polygon->mainEdgeCount <= base->edgeCount);
 #if DS_HAS_SIMD

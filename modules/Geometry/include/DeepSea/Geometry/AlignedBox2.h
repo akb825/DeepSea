@@ -18,9 +18,15 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Assert.h>
+
 #include <DeepSea/Geometry/Export.h>
 #include <DeepSea/Geometry/Types.h>
+
+#include <DeepSea/Math/SIMD/SIMD.h>
 #include <DeepSea/Math/Core.h>
+
+#include <float.h>
+#include <limits.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -250,13 +256,13 @@ extern "C"
  *
  * @param result The box to make invalid.
  */
-DS_GEOMETRY_EXPORT void dsAlignedBox2f_makeInvalid(dsAlignedBox2f* result);
+DS_GEOMETRY_EXPORT inline void dsAlignedBox2f_makeInvalid(dsAlignedBox2f* result);
 
 /** @copydoc dsAlignedBox2f_makeInvalid() */
-DS_GEOMETRY_EXPORT void dsAlignedBox2d_makeInvalid(dsAlignedBox2d* result);
+DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_makeInvalid(dsAlignedBox2d* result);
 
 /** @copydoc dsAlignedBox2f_makeInvalid() */
-DS_GEOMETRY_EXPORT void dsAlignedBox2i_makeInvalid(dsAlignedBox2i* result);
+DS_GEOMETRY_EXPORT inline void dsAlignedBox2i_makeInvalid(dsAlignedBox2i* result);
 
 /**
  * @brief Computes the squared distance from a box to a point.
@@ -265,16 +271,16 @@ DS_GEOMETRY_EXPORT void dsAlignedBox2i_makeInvalid(dsAlignedBox2i* result);
  * @return The squared distance from box to point. If the point is within the box, 0 will be
  * returned. If the box is invalid, -1 will be returned.
  */
-DS_GEOMETRY_EXPORT float dsAlignedBox2f_dist2(const dsAlignedBox2f* box,
-	const dsVector2f* point);
+DS_GEOMETRY_EXPORT float dsAlignedBox2f_dist2(
+	const dsAlignedBox2f* box, const dsVector2f* point);
 
 /** @copydoc dsAlignedBox2f_dist2() */
-DS_GEOMETRY_EXPORT double dsAlignedBox2d_dist2(const dsAlignedBox2d* box,
-	const dsVector2d* point);
+DS_GEOMETRY_EXPORT double dsAlignedBox2d_dist2(
+	const dsAlignedBox2d* box, const dsVector2d* point);
 
 /** @copydoc dsAlignedBox2f_dist2() */
-DS_GEOMETRY_EXPORT int dsAlignedBox2i_dist2(const dsAlignedBox2i* box,
-	const dsVector2i* point);
+DS_GEOMETRY_EXPORT int dsAlignedBox2i_dist2(
+	const dsAlignedBox2i* box, const dsVector2i* point);
 
 /**
  * @brief Computes the distance from a box to a point.
@@ -283,16 +289,16 @@ DS_GEOMETRY_EXPORT int dsAlignedBox2i_dist2(const dsAlignedBox2i* box,
  * @return The distance from box to point. If the point is within the box, 0 will be returned. If
  * the box is invalid, -1 will be returned.
  */
-DS_GEOMETRY_EXPORT float dsAlignedBox2f_dist(const dsAlignedBox2f* box,
-	const dsVector2f* point);
+DS_GEOMETRY_EXPORT float dsAlignedBox2f_dist(
+	const dsAlignedBox2f* box, const dsVector2f* point);
 
 /** @copydoc dsAlignedBox2f_dist() */
-DS_GEOMETRY_EXPORT double dsAlignedBox2d_dist(const dsAlignedBox2d* box,
-	const dsVector2d* point);
+DS_GEOMETRY_EXPORT double dsAlignedBox2d_dist(
+	const dsAlignedBox2d* box, const dsVector2d* point);
 
 /** @copydoc dsAlignedBox2f_dist() */
-DS_GEOMETRY_EXPORT double dsAlignedBox2i_dist(const dsAlignedBox2i* box,
-	const dsVector2i* point);
+DS_GEOMETRY_EXPORT double dsAlignedBox2i_dist(
+	const dsAlignedBox2i* box, const dsVector2i* point);
 
 /** @copydoc dsAlignedBox2_isValid() */
 DS_GEOMETRY_EXPORT inline bool dsAlignedBox2f_isValid(const dsAlignedBox2f* box)
@@ -305,7 +311,11 @@ DS_GEOMETRY_EXPORT inline bool dsAlignedBox2f_isValid(const dsAlignedBox2f* box)
 DS_GEOMETRY_EXPORT inline bool dsAlignedBox2d_isValid(const dsAlignedBox2d* box)
 {
 	DS_ASSERT(box);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	return dsSIMD2db_all(dsSIMD2d_cmple(box->min.simd, box->max.simd)) != 0;
+#else
 	return dsAlignedBox2_isValid(*box);
+#endif
 }
 
 /** @copydoc dsAlignedBox2_isValid() */
@@ -345,8 +355,8 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox2i_addPoint(dsAlignedBox2i* box, cons
 }
 
 /** @copydoc dsAlignedBox2_addBox() */
-DS_GEOMETRY_EXPORT inline void dsAlignedBox2f_addBox(dsAlignedBox2f* box,
-	const dsAlignedBox2f* otherBox)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox2f_addBox(
+	dsAlignedBox2f* box, const dsAlignedBox2f* otherBox)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
@@ -354,8 +364,8 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox2f_addBox(dsAlignedBox2f* box,
 }
 
 /** @copydoc dsAlignedBox2_addBox() */
-DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_addBox(dsAlignedBox2d* box,
-	const dsAlignedBox2d* otherBox)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_addBox(
+	dsAlignedBox2d* box, const dsAlignedBox2d* otherBox)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
@@ -368,8 +378,8 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_addBox(dsAlignedBox2d* box,
 }
 
 /** @copydoc dsAlignedBox2_addBox() */
-DS_GEOMETRY_EXPORT inline void dsAlignedBox2i_addBox(dsAlignedBox2i* box,
-	const dsAlignedBox2i* otherBox)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox2i_addBox(
+	dsAlignedBox2i* box, const dsAlignedBox2i* otherBox)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
@@ -377,8 +387,8 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox2i_addBox(dsAlignedBox2i* box,
 }
 
 /** @copydoc dsAlignedBox2_containsPoint() */
-DS_GEOMETRY_EXPORT inline bool dsAlignedBox2f_containsPoint(const dsAlignedBox2f* box,
-	const dsVector2f* point)
+DS_GEOMETRY_EXPORT inline bool dsAlignedBox2f_containsPoint(
+	const dsAlignedBox2f* box, const dsVector2f* point)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(point);
@@ -386,25 +396,23 @@ DS_GEOMETRY_EXPORT inline bool dsAlignedBox2f_containsPoint(const dsAlignedBox2f
 }
 
 /** @copydoc dsAlignedBox2_containsPoint() */
-DS_GEOMETRY_EXPORT inline bool dsAlignedBox2d_containsPoint(const dsAlignedBox2d* box,
-	const dsVector2d* point)
+DS_GEOMETRY_EXPORT inline bool dsAlignedBox2d_containsPoint(
+	const dsAlignedBox2d* box, const dsVector2d* point)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(point);
 #if DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2db inMin = dsSIMD2d_cmple(box->min.simd, point->simd);
 	dsSIMD2db inMax = dsSIMD2d_cmpge(box->max.simd, point->simd);
-	dsVector2l inside;
-	inside.simd = dsSIMD2db_and(inMin, inMax);
-	return inside.x && inside.y;
+	return dsSIMD2db_all(dsSIMD2db_and(inMin, inMax)) != 0;
 #else
 	return dsAlignedBox2_containsPoint(*box, *point);
 #endif
 }
 
 /** @copydoc dsAlignedBox2_containsPoint() */
-DS_GEOMETRY_EXPORT inline bool dsAlignedBox2i_containsPoint(const dsAlignedBox2i* box,
-	const dsVector2i* point)
+DS_GEOMETRY_EXPORT inline bool dsAlignedBox2i_containsPoint(
+	const dsAlignedBox2i* box, const dsVector2i* point)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(point);
@@ -412,8 +420,8 @@ DS_GEOMETRY_EXPORT inline bool dsAlignedBox2i_containsPoint(const dsAlignedBox2i
 }
 
 /** @copydoc dsAlignedBox2_containsBox() */
-DS_GEOMETRY_EXPORT inline bool dsAlignedBox2f_containsBox(const dsAlignedBox2f* box,
-	const dsAlignedBox2f* otherBox)
+DS_GEOMETRY_EXPORT inline bool dsAlignedBox2f_containsBox(
+	const dsAlignedBox2f* box, const dsAlignedBox2f* otherBox)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
@@ -421,25 +429,23 @@ DS_GEOMETRY_EXPORT inline bool dsAlignedBox2f_containsBox(const dsAlignedBox2f* 
 }
 
 /** @copydoc dsAlignedBox2_containsBox() */
-DS_GEOMETRY_EXPORT inline bool dsAlignedBox2d_containsBox(const dsAlignedBox2d* box,
-	const dsAlignedBox2d* otherBox)
+DS_GEOMETRY_EXPORT inline bool dsAlignedBox2d_containsBox(
+	const dsAlignedBox2d* box, const dsAlignedBox2d* otherBox)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
 #if DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2db inMin = dsSIMD2d_cmple(box->min.simd, otherBox->min.simd);
 	dsSIMD2db inMax = dsSIMD2d_cmpge(box->max.simd, otherBox->max.simd);
-	dsVector2l inside;
-	inside.simd = dsSIMD2db_and(inMin, inMax);
-	return inside.x && inside.y;
+	return dsSIMD2db_all(dsSIMD2db_and(inMin, inMax)) != 0;
 #else
 	return dsAlignedBox2_containsBox(*box, *otherBox);
 #endif
 }
 
 /** @copydoc dsAlignedBox2_containsBox() */
-DS_GEOMETRY_EXPORT inline bool dsAlignedBox2i_containsBox(const dsAlignedBox2i* box,
-	const dsAlignedBox2i* otherBox)
+DS_GEOMETRY_EXPORT inline bool dsAlignedBox2i_containsBox(
+	const dsAlignedBox2i* box, const dsAlignedBox2i* otherBox)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
@@ -447,8 +453,8 @@ DS_GEOMETRY_EXPORT inline bool dsAlignedBox2i_containsBox(const dsAlignedBox2i* 
 }
 
 /** @copydoc dsAlignedBox2_intersects() */
-DS_GEOMETRY_EXPORT inline bool dsAlignedBox2f_intersects(const dsAlignedBox2f* box,
-	const dsAlignedBox2f* otherBox)
+DS_GEOMETRY_EXPORT inline bool dsAlignedBox2f_intersects(
+	const dsAlignedBox2f* box, const dsAlignedBox2f* otherBox)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
@@ -456,25 +462,23 @@ DS_GEOMETRY_EXPORT inline bool dsAlignedBox2f_intersects(const dsAlignedBox2f* b
 }
 
 /** @copydoc dsAlignedBox2_intersects() */
-DS_GEOMETRY_EXPORT inline bool dsAlignedBox2d_intersects(const dsAlignedBox2d* box,
-	const dsAlignedBox2d* otherBox)
+DS_GEOMETRY_EXPORT inline bool dsAlignedBox2d_intersects(
+	const dsAlignedBox2d* box, const dsAlignedBox2d* otherBox)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
 #if DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2db inMin = dsSIMD2d_cmple(box->min.simd, otherBox->max.simd);
 	dsSIMD2db inMax = dsSIMD2d_cmpge(box->max.simd, otherBox->min.simd);
-	dsVector2l inside;
-	inside.simd = dsSIMD2db_and(inMin, inMax);
-	return inside.x && inside.y;
+	return dsSIMD2db_all(dsSIMD2db_and(inMin, inMax)) != 0;
 #else
 	return dsAlignedBox2_intersects(*box, *otherBox);
 #endif
 }
 
 /** @copydoc dsAlignedBox2_intersects() */
-DS_GEOMETRY_EXPORT inline bool dsAlignedBox2i_intersects(const dsAlignedBox2i* box,
-	const dsAlignedBox2i* otherBox)
+DS_GEOMETRY_EXPORT inline bool dsAlignedBox2i_intersects(
+	const dsAlignedBox2i* box, const dsAlignedBox2i* otherBox)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
@@ -482,8 +486,8 @@ DS_GEOMETRY_EXPORT inline bool dsAlignedBox2i_intersects(const dsAlignedBox2i* b
 }
 
 /** @copydoc dsAlignedBox2_intersect() */
-DS_GEOMETRY_EXPORT inline void dsAlignedBox2f_intersect(dsAlignedBox2f* result,
-	const dsAlignedBox2f* a, const dsAlignedBox2f* b)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox2f_intersect(
+	dsAlignedBox2f* result, const dsAlignedBox2f* a, const dsAlignedBox2f* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -492,23 +496,23 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox2f_intersect(dsAlignedBox2f* result,
 }
 
 /** @copydoc dsAlignedBox2_intersect() */
-DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_intersect(dsAlignedBox2d* result,
-	const dsAlignedBox2d* a, const dsAlignedBox2d* b)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_intersect(
+	dsAlignedBox2d* result, const dsAlignedBox2d* a, const dsAlignedBox2d* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(b);
 #if DS_SIMD_ALWAYS_DOUBLE2
-	result->min.simd = dsSIMD2d_max(a->min.simd, a->min.simd);
-	result->max.simd = dsSIMD2d_min(a->max.simd, a->max.simd);
+	result->min.simd = dsSIMD2d_max(a->min.simd, b->min.simd);
+	result->max.simd = dsSIMD2d_min(a->max.simd, b->max.simd);
 #else
 	dsAlignedBox2_intersect(*result, *a, *b);
 #endif
 }
 
 /** @copydoc dsAlignedBox2_intersect() */
-DS_GEOMETRY_EXPORT inline void dsAlignedBox2i_intersect(dsAlignedBox2i* result,
-	const dsAlignedBox2i* a, const dsAlignedBox2i* b)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox2i_intersect(
+	dsAlignedBox2i* result, const dsAlignedBox2i* a, const dsAlignedBox2i* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -608,8 +612,8 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_toMatrixTranspose(dsMatrix33d* res
 }
 
 /** @copydoc dsAlignedBox2_corners() */
-DS_GEOMETRY_EXPORT inline void dsAlignedBox2f_corners(dsVector2f corners[DS_BOX2_CORNER_COUNT],
-	const dsAlignedBox2f* box)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox2f_corners(
+	dsVector2f corners[DS_BOX2_CORNER_COUNT], const dsAlignedBox2f* box)
 {
 	DS_ASSERT(corners);
 	DS_ASSERT(box);
@@ -617,8 +621,8 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox2f_corners(dsVector2f corners[DS_BOX2
 }
 
 /** @copydoc dsAlignedBox2_corners() */
-DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_corners(dsVector2d corners[DS_BOX2_CORNER_COUNT],
-	const dsAlignedBox2d* box)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_corners(
+	dsVector2d corners[DS_BOX2_CORNER_COUNT], const dsAlignedBox2d* box)
 {
 	DS_ASSERT(corners);
 	DS_ASSERT(box);
@@ -626,8 +630,8 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_corners(dsVector2d corners[DS_BOX2
 }
 
 /** @copydoc dsAlignedBox2_corners() */
-DS_GEOMETRY_EXPORT inline void dsAlignedBox2i_corners(dsVector2i corners[DS_BOX2_CORNER_COUNT],
-	const dsAlignedBox2i* box)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox2i_corners(
+	dsVector2i corners[DS_BOX2_CORNER_COUNT], const dsAlignedBox2i* box)
 {
 	DS_ASSERT(corners);
 	DS_ASSERT(box);
@@ -635,8 +639,8 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox2i_corners(dsVector2i corners[DS_BOX2
 }
 
 /** @copydoc dsAlignedBox2_closestPoint() */
-DS_GEOMETRY_EXPORT inline void dsAlignedBox2f_closestPoint(dsVector2f* result,
-	const dsAlignedBox2f* box, const dsVector2f* point)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox2f_closestPoint(
+	dsVector2f* result, const dsAlignedBox2f* box, const dsVector2f* point)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
@@ -645,14 +649,14 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox2f_closestPoint(dsVector2f* result,
 }
 
 /** @copydoc dsAlignedBox2_closestPoint() */
-DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_closestPoint(dsVector2d* result,
-	const dsAlignedBox2d* box, const dsVector2d* point)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_closestPoint(
+	dsVector2d* result, const dsAlignedBox2d* box, const dsVector2d* point)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
 	DS_ASSERT(point);
 #if DS_SIMD_ALWAYS_DOUBLE2
-	if (dsAlignedBox2_isValid(*box))
+	if (dsAlignedBox2d_isValid(box))
 		result->simd = dsSIMD2d_min(box->max.simd, dsSIMD2d_max(box->min.simd, point->simd));
 	else
 		*result = *point;
@@ -662,13 +666,48 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_closestPoint(dsVector2d* result,
 }
 
 /** @copydoc dsAlignedBox2_closestPoint() */
-DS_GEOMETRY_EXPORT inline void dsAlignedBox2i_closestPoint(dsVector2i* result,
-	const dsAlignedBox2i* box, const dsVector2i* point)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox2i_closestPoint(
+	dsVector2i* result, const dsAlignedBox2i* box, const dsVector2i* point)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
 	DS_ASSERT(point);
 	dsAlignedBox2_closestPoint(*result, *box, *point);
+}
+
+inline void dsAlignedBox2f_makeInvalid(dsAlignedBox2f* result)
+{
+	DS_ASSERT(result);
+
+	result->min.x = FLT_MAX;
+	result->min.y = FLT_MAX;
+	result->max.x = -FLT_MAX;
+	result->max.y = -FLT_MAX;
+}
+
+inline void dsAlignedBox2d_makeInvalid(dsAlignedBox2d* result)
+{
+	DS_ASSERT(result);
+
+#if DS_SIMD_ALWAYS_DOUBLE2
+	result->min.simd = dsSIMD2d_set1(DBL_MAX);
+	result->max.simd = dsSIMD2d_set1(-DBL_MAX);
+#else
+	result->min.x = DBL_MAX;
+	result->min.y = DBL_MAX;
+	result->max.x = -DBL_MAX;
+	result->max.y = -DBL_MAX;
+#endif
+}
+
+inline void dsAlignedBox2i_makeInvalid(dsAlignedBox2i* result)
+{
+	DS_ASSERT(result);
+
+	result->min.x = INT_MAX;
+	result->min.y = INT_MAX;
+	result->max.x = INT_MIN;
+	result->max.y = INT_MIN;
 }
 
 #ifdef __cplusplus

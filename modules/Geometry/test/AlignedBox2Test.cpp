@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -651,4 +651,303 @@ TEST(AlignedBox2Test, ConvertIntToDouble)
 
 	EXPECT_EQ(boxi.max.x, (int)boxd.max.x);
 	EXPECT_EQ(boxi.max.y, (int)boxd.max.y);
+}
+
+// Test double functions with macro equivalents separately for SIMD.
+
+TEST(AlignedBox2dTest, IsValid)
+{
+	dsAlignedBox2d box = {{{0.0, 0.0}}, {{1.0, 1.0}}};
+	EXPECT_TRUE(dsAlignedBox2d_isValid(&box));
+
+	box.min.x = 2.0;
+	EXPECT_FALSE(dsAlignedBox2d_isValid(&box));
+
+	box.min.x = 0.0;
+	box.min.y = 2.0;
+	EXPECT_FALSE(dsAlignedBox2d_isValid(&box));
+}
+
+TEST(AlignedBox2dTest, AddPoint)
+{
+	dsAlignedBox2d box = {{{0.0, 1.0}}, {{2.0, 3.0}}};
+
+	dsVector2d point1 = {{0.0, 3.0}};
+	dsVector2d point2 = {{1.0, 2.0}};
+	dsVector2d point3 = {{-1.0, 1.0}};
+	dsVector2d point4 = {{0.0, -2.0}};
+	dsVector2d point5 = {{3.0, 1.0}};
+	dsVector2d point6 = {{0.0, 4.0}};
+
+	dsAlignedBox2d_addPoint(&box, &point1);
+	EXPECT_EQ(0.0, box.min.x);
+	EXPECT_EQ(1.0, box.min.y);
+	EXPECT_EQ(2.0, box.max.x);
+	EXPECT_EQ(3.0, box.max.y);
+
+	dsAlignedBox2d_addPoint(&box, &point2);
+	EXPECT_EQ(0.0, box.min.x);
+	EXPECT_EQ(1.0, box.min.y);
+	EXPECT_EQ(2.0, box.max.x);
+	EXPECT_EQ(3.0, box.max.y);
+
+	dsAlignedBox2d_addPoint(&box, &point3);
+	EXPECT_EQ(-1.0, box.min.x);
+	EXPECT_EQ(1.0, box.min.y);
+	EXPECT_EQ(2.0, box.max.x);
+	EXPECT_EQ(3.0, box.max.y);
+
+	dsAlignedBox2d_addPoint(&box, &point4);
+	EXPECT_EQ(-1.0, box.min.x);
+	EXPECT_EQ(-2.0, box.min.y);
+	EXPECT_EQ(2.0, box.max.x);
+	EXPECT_EQ(3.0, box.max.y);
+
+	dsAlignedBox2d_addPoint(&box, &point5);
+	EXPECT_EQ(-1.0, box.min.x);
+	EXPECT_EQ(-2.0, box.min.y);
+	EXPECT_EQ(3.0, box.max.x);
+	EXPECT_EQ(3.0, box.max.y);
+
+	dsAlignedBox2d_addPoint(&box, &point6);
+	EXPECT_EQ(-1.0, box.min.x);
+	EXPECT_EQ(-2.0, box.min.y);
+	EXPECT_EQ(3.0, box.max.x);
+	EXPECT_EQ(4.0, box.max.y);
+}
+
+TEST(AlignedBox2dTest, AddBox)
+{
+	dsAlignedBox2d box = {{{0.0, 1.0}}, {{2.0, 3.0}}};
+
+	dsAlignedBox2d box1 = {{{1.0, 1.0}}, {{2.0, 2.0}}};
+	dsAlignedBox2d box2 = {{{-1.0, 1.0}}, {{2.0, 2.0}}};
+	dsAlignedBox2d box3 = {{{1.0, -2.0}}, {{2.0, 2.0}}};
+	dsAlignedBox2d box4 = {{{1.0, 1.0}}, {{3.0, 2.0}}};
+	dsAlignedBox2d box5 = {{{1.0, 1.0}}, {{2.0, 4.0}}};
+
+	dsAlignedBox2d_addBox(&box, &box1);
+	EXPECT_EQ(0.0, box.min.x);
+	EXPECT_EQ(1.0, box.min.y);
+	EXPECT_EQ(2.0, box.max.x);
+	EXPECT_EQ(3.0, box.max.y);
+
+	dsAlignedBox2d_addBox(&box, &box2);
+	EXPECT_EQ(-1.0, box.min.x);
+	EXPECT_EQ(1.0, box.min.y);
+	EXPECT_EQ(2.0, box.max.x);
+	EXPECT_EQ(3.0, box.max.y);
+
+	dsAlignedBox2d_addBox(&box, &box3);
+	EXPECT_EQ(-1.0, box.min.x);
+	EXPECT_EQ(-2.0, box.min.y);
+	EXPECT_EQ(2.0, box.max.x);
+	EXPECT_EQ(3.0, box.max.y);
+
+	dsAlignedBox2d_addBox(&box, &box4);
+	EXPECT_EQ(-1.0, box.min.x);
+	EXPECT_EQ(-2.0, box.min.y);
+	EXPECT_EQ(3.0, box.max.x);
+	EXPECT_EQ(3.0, box.max.y);
+
+	dsAlignedBox2d_addBox(&box, &box5);
+	EXPECT_EQ(-1.0, box.min.x);
+	EXPECT_EQ(-2.0, box.min.y);
+	EXPECT_EQ(3.0, box.max.x);
+	EXPECT_EQ(4.0, box.max.y);
+}
+
+TEST(AlignedBox2dTest, ContainsPoint)
+{
+	dsAlignedBox2d box = {{{0.0, 1.0}}, {{2.0, 3.0}}};
+
+	dsVector2d point1 = {{1.0, 2.0}};
+	dsVector2d point2 = {{-1.0, 2.0}};
+	dsVector2d point3 = {{1.0, -2.0}};
+	dsVector2d point4 = {{3.0, 2.0}};
+	dsVector2d point5 = {{1.0, 4.0}};
+
+	EXPECT_TRUE(dsAlignedBox2d_containsPoint(&box, &box.min));
+	EXPECT_TRUE(dsAlignedBox2d_containsPoint(&box, &box.max));
+	EXPECT_TRUE(dsAlignedBox2d_containsPoint(&box, &point1));
+	EXPECT_FALSE(dsAlignedBox2d_containsPoint(&box, &point2));
+	EXPECT_FALSE(dsAlignedBox2d_containsPoint(&box, &point3));
+	EXPECT_FALSE(dsAlignedBox2d_containsPoint(&box, &point4));
+	EXPECT_FALSE(dsAlignedBox2d_containsPoint(&box, &point5));
+}
+
+TEST(AlignedBox2dTest, ContainsBox)
+{
+	dsAlignedBox2d box = {{{0.0, 1.0}}, {{4.0, 5.0}}};
+
+	dsAlignedBox2d box1 = {{{1.0, 2.0}}, {{3.0, 4.0}}};
+	dsAlignedBox2d box2 = {{{-1.0, 2.0}}, {{3.0, 4.0}}};
+	dsAlignedBox2d box3 = {{{1.0, -2.0}}, {{3.0, 4.0}}};
+	dsAlignedBox2d box4 = {{{1.0, 2.0}}, {{5.0, 4.0}}};
+	dsAlignedBox2d box5 = {{{1.0, 2.0}}, {{3.0, 6.0}}};
+	dsAlignedBox2d box6 = {{{-4.0, 2.0}}, {{-2.0, 4.0}}};
+	dsAlignedBox2d box7 = {{{6.0, 2.0}}, {{8.0, 4.0}}};
+	dsAlignedBox2d box8 = {{{1.0, -2.0}}, {{3.0, -1.0}}};
+	dsAlignedBox2d box9 = {{{1.0, 6.0}}, {{3.0, 7.0}}};
+
+	EXPECT_TRUE(dsAlignedBox2d_containsBox(&box, &box));
+	EXPECT_TRUE(dsAlignedBox2d_containsBox(&box, &box1));
+	EXPECT_FALSE(dsAlignedBox2d_containsBox(&box, &box2));
+	EXPECT_FALSE(dsAlignedBox2d_containsBox(&box, &box3));
+	EXPECT_FALSE(dsAlignedBox2d_containsBox(&box, &box4));
+	EXPECT_FALSE(dsAlignedBox2d_containsBox(&box, &box5));
+	EXPECT_FALSE(dsAlignedBox2d_containsBox(&box, &box6));
+	EXPECT_FALSE(dsAlignedBox2d_containsBox(&box, &box7));
+	EXPECT_FALSE(dsAlignedBox2d_containsBox(&box, &box8));
+	EXPECT_FALSE(dsAlignedBox2d_containsBox(&box, &box9));
+}
+
+TEST(AlignedBox2dTest, Intersects)
+{
+	dsAlignedBox2d box = {{{0.0, 1.0}}, {{4.0, 5.0}}};
+
+	dsAlignedBox2d box1 = {{{1.0, 2.0}}, {{3.0, 4.0}}};
+	dsAlignedBox2d box2 = {{{-1.0, 2.0}}, {{3.0, 4.0}}};
+	dsAlignedBox2d box3 = {{{1.0, -2.0}}, {{3.0, 4.0}}};
+	dsAlignedBox2d box4 = {{{1.0, 2.0}}, {{5.0, 4.0}}};
+	dsAlignedBox2d box5 = {{{1.0, 2.0}}, {{3.0, 6.0}}};
+	dsAlignedBox2d box6 = {{{-4.0, 2.0}}, {{-2.0, 4.0}}};
+	dsAlignedBox2d box7 = {{{6.0, 2.0}}, {{8.0, 4.0}}};
+	dsAlignedBox2d box8 = {{{1.0, -2.0}}, {{3.0, -1.0}}};
+	dsAlignedBox2d box9 = {{{1.0, 6.0}}, {{3.0, 7.0}}};
+
+	EXPECT_TRUE(dsAlignedBox2d_intersects(&box, &box));
+	EXPECT_TRUE(dsAlignedBox2d_intersects(&box, &box1));
+	EXPECT_TRUE(dsAlignedBox2d_intersects(&box, &box2));
+	EXPECT_TRUE(dsAlignedBox2d_intersects(&box, &box3));
+	EXPECT_TRUE(dsAlignedBox2d_intersects(&box, &box4));
+	EXPECT_TRUE(dsAlignedBox2d_intersects(&box, &box5));
+	EXPECT_FALSE(dsAlignedBox2d_intersects(&box, &box6));
+	EXPECT_FALSE(dsAlignedBox2d_intersects(&box, &box7));
+	EXPECT_FALSE(dsAlignedBox2d_intersects(&box, &box8));
+	EXPECT_FALSE(dsAlignedBox2d_intersects(&box, &box9));
+}
+
+TEST(AlignedBox2dTest, Intersect)
+{
+	dsAlignedBox2d box = {{{0.0, 1.0}}, {{4.0, 5.0}}};
+
+	dsAlignedBox2d box1 = {{{1.0, 2.0}}, {{3.0, 4.0}}};
+	dsAlignedBox2d box2 = {{{-1.0, 2.0}}, {{3.0, 4.0}}};
+	dsAlignedBox2d box3 = {{{1.0, -2.0}}, {{3.0, 4.0}}};
+	dsAlignedBox2d box4 = {{{1.0, 2.0}}, {{5.0, 4.0}}};
+	dsAlignedBox2d box5 = {{{1.0, 2.0}}, {{3.0, 6.0}}};
+	dsAlignedBox2d box6 = {{{-4.0, 2.0}}, {{-2.0, 4.0}}};
+	dsAlignedBox2d box7 = {{{6.0, 2.0}}, {{8.0, 4.0}}};
+	dsAlignedBox2d box8 = {{{1.0, -2.0}}, {{3.0, -1.0}}};
+	dsAlignedBox2d box9 = {{{1.0, 6.0}}, {{3.0, 7.0}}};
+
+	dsAlignedBox2d intersection;
+	dsAlignedBox2d_intersect(&intersection, &box, &box);
+	EXPECT_EQ(0.0, intersection.min.x);
+	EXPECT_EQ(1.0, intersection.min.y);
+	EXPECT_EQ(4.0, intersection.max.x);
+	EXPECT_EQ(5.0, intersection.max.y);
+
+	dsAlignedBox2d_intersect(&intersection, &box, &box1);
+	EXPECT_EQ(1.0, intersection.min.x);
+	EXPECT_EQ(2.0, intersection.min.y);
+	EXPECT_EQ(3.0, intersection.max.x);
+	EXPECT_EQ(4.0, intersection.max.y);
+
+	dsAlignedBox2d_intersect(&intersection, &box, &box2);
+	EXPECT_EQ(0.0, intersection.min.x);
+	EXPECT_EQ(2.0, intersection.min.y);
+	EXPECT_EQ(3.0, intersection.max.x);
+	EXPECT_EQ(4.0, intersection.max.y);
+
+	dsAlignedBox2d_intersect(&intersection, &box, &box3);
+	EXPECT_EQ(1.0, intersection.min.x);
+	EXPECT_EQ(1.0, intersection.min.y);
+	EXPECT_EQ(3.0, intersection.max.x);
+	EXPECT_EQ(4.0, intersection.max.y);
+
+	dsAlignedBox2d_intersect(&intersection, &box, &box4);
+	EXPECT_EQ(1.0, intersection.min.x);
+	EXPECT_EQ(2.0, intersection.min.y);
+	EXPECT_EQ(4.0, intersection.max.x);
+	EXPECT_EQ(4.0, intersection.max.y);
+
+	dsAlignedBox2d_intersect(&intersection, &box, &box5);
+	EXPECT_EQ(1.0, intersection.min.x);
+	EXPECT_EQ(2.0, intersection.min.y);
+	EXPECT_EQ(3.0, intersection.max.x);
+	EXPECT_EQ(5.0, intersection.max.y);
+
+	dsAlignedBox2d_intersect(&intersection, &box, &box6);
+	EXPECT_FALSE(dsAlignedBox2d_isValid(&intersection));
+
+	dsAlignedBox2d_intersect(&intersection, &box, &box7);
+	EXPECT_FALSE(dsAlignedBox2_isValid(intersection));
+
+	dsAlignedBox2d_intersect(&intersection, &box, &box8);
+	EXPECT_FALSE(dsAlignedBox2d_isValid(&intersection));
+
+	dsAlignedBox2d_intersect(&intersection, &box, &box9);
+	EXPECT_FALSE(dsAlignedBox2d_isValid(&intersection));
+}
+
+TEST(AlignedBox2dTest, Center)
+{
+	dsAlignedBox2d box = {{{0.0, 1.0}}, {{4.0, 5.0}}};
+
+	dsVector2d center;
+	dsAlignedBox2d_center(&center, &box);
+	EXPECT_EQ(2.0, center.x);
+	EXPECT_EQ(3.0, center.y);
+}
+
+TEST(AlignedBox2dTest, Extents)
+{
+	dsAlignedBox2d box = {{{0.0, 1.0}}, {{4.0, 6.0}}};
+
+	dsVector2d extents;
+	dsAlignedBox2d_extents(&extents, &box);
+	EXPECT_EQ(4.0, extents.x);
+	EXPECT_EQ(5.0, extents.y);
+}
+
+TEST(AlignedBox2dTest, ClosestPoint)
+{
+	dsAlignedBox2d box = {{{0.0, 1.0}}, {{2.0, 3.0}}};
+
+	dsVector2d point1 = {{1.0, 2.0}};
+	dsVector2d point2 = {{-1.0, 2.0}};
+	dsVector2d point3 = {{1.0, -2.0}};
+	dsVector2d point4 = {{3.0, 2.0}};
+	dsVector2d point5 = {{1.0, 4.0}};
+
+	dsVector2d closest;
+	dsAlignedBox2d_closestPoint(&closest, &box, &box.min);
+	EXPECT_EQ(0.0, closest.x);
+	EXPECT_EQ(1.0, closest.y);
+
+	dsAlignedBox2d_closestPoint(&closest, &box, &box.max);
+	EXPECT_EQ(2.0, closest.x);
+	EXPECT_EQ(3.0, closest.y);
+
+	dsAlignedBox2d_closestPoint(&closest, &box, &point1);
+	EXPECT_EQ(1.0, closest.x);
+	EXPECT_EQ(2.0, closest.y);
+
+	dsAlignedBox2d_closestPoint(&closest, &box, &point2);
+	EXPECT_EQ(0.0, closest.x);
+	EXPECT_EQ(2.0, closest.y);
+
+	dsAlignedBox2d_closestPoint(&closest, &box, &point3);
+	EXPECT_EQ(1.0, closest.x);
+	EXPECT_EQ(1.0, closest.y);
+
+	dsAlignedBox2d_closestPoint(&closest, &box, &point4);
+	EXPECT_EQ(2.0, closest.x);
+	EXPECT_EQ(2.0, closest.y);
+
+	dsAlignedBox2d_closestPoint(&closest, &box, &point5);
+	EXPECT_EQ(1.0, closest.x);
+	EXPECT_EQ(3.0, closest.y);
 }

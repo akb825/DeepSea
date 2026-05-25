@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,18 @@
 #include <DeepSea/Geometry/BVH.h>
 
 #include "SpatialStructureShared.h"
+
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Sort.h>
+
 #include <DeepSea/Geometry/AlignedBox2.h>
 #include <DeepSea/Geometry/AlignedBox3.h>
 #include <DeepSea/Geometry/Frustum3.h>
+
 #include <string.h>
 
 #define INVALID_NODE ((uint32_t)-1)
@@ -122,38 +125,38 @@ static int compareBoundsi(const void* left, const void* right, void* context)
 // potentially causing undefined results.
 static dsIntersectResult intersectBounds2f(const void* volume, const void* bounds)
 {
-	return (dsIntersectResult)dsAlignedBox2_intersects(*(const dsAlignedBox2f*)volume,
-		*(const dsAlignedBox2f*)bounds);
+	return (dsIntersectResult)dsAlignedBox2f_intersects(
+		(const dsAlignedBox2f*)volume, (const dsAlignedBox2f*)bounds);
 }
 
 static dsIntersectResult intersectBounds2d(const void* volume, const void* bounds)
 {
-	return (dsIntersectResult)dsAlignedBox2_intersects(*(const dsAlignedBox2d*)volume,
-		*(const dsAlignedBox2d*)bounds);
+	return (dsIntersectResult)dsAlignedBox2d_intersects(
+		(const dsAlignedBox2d*)volume, (const dsAlignedBox2d*)bounds);
 }
 
 static dsIntersectResult intersectBounds2i(const void* volume, const void* bounds)
 {
-	return (dsIntersectResult)dsAlignedBox2_intersects(*(const dsAlignedBox2i*)volume,
-		*(const dsAlignedBox2i*)bounds);
+	return (dsIntersectResult)dsAlignedBox2i_intersects(
+		(const dsAlignedBox2i*)volume, (const dsAlignedBox2i*)bounds);
 }
 
 static dsIntersectResult intersectBounds3f(const void* volume, const void* bounds)
 {
-	return (dsIntersectResult)dsAlignedBox3_intersects(*(const dsAlignedBox3f*)volume,
-		*(const dsAlignedBox3f*)bounds);
+	return (dsIntersectResult)dsAlignedBox3f_intersects(
+		(const dsAlignedBox3f*)volume, (const dsAlignedBox3f*)bounds);
 }
 
 static dsIntersectResult intersectBounds3d(const void* volume, const void* bounds)
 {
-	return (dsIntersectResult)dsAlignedBox3_intersects(*(const dsAlignedBox3d*)volume,
-		*(const dsAlignedBox3d*)bounds);
+	return (dsIntersectResult)dsAlignedBox3d_intersects(
+		(const dsAlignedBox3d*)volume, (const dsAlignedBox3d*)bounds);
 }
 
 static dsIntersectResult intersectBounds3i(const void* volume, const void* bounds)
 {
-	return (dsIntersectResult)dsAlignedBox3_intersects(*(const dsAlignedBox3i*)volume,
-		*(const dsAlignedBox3i*)bounds);
+	return (dsIntersectResult)dsAlignedBox3i_intersects(
+		(const dsAlignedBox3i*)volume, (const dsAlignedBox3i*)bounds);
 }
 
 static uint32_t buildBVHBalancedRec(dsBVH* bvh, uint32_t start, uint32_t count,

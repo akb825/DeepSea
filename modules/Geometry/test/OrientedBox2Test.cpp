@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -231,6 +231,10 @@ TYPED_TEST(OrientedBox2Test, IsValid)
 	box.halfExtents.x = 3;
 	box.halfExtents.y = -1;
 	EXPECT_FALSE(dsOrientedBox2_isValid(box));
+
+	box.halfExtents.x = 0;
+	box.halfExtents.y = 0;
+	EXPECT_TRUE(dsOrientedBox2_isValid(box));
 }
 
 TYPED_TEST(OrientedBox2Test, FromAlignedBox)
@@ -800,4 +804,28 @@ TEST(OrientedBox2Test, ConvertDoubleToFloat)
 
 	EXPECT_FLOAT_EQ((float)boxd.halfExtents.x, boxf.halfExtents.x);
 	EXPECT_FLOAT_EQ((float)boxd.halfExtents.y, boxf.halfExtents.y);
+}
+
+// Test double functions with macro equivalents separately for SIMD.
+
+TEST(OrientedBox2dTest, IsValid)
+{
+	dsOrientedBox2d box =
+	{
+		{{{1.0, 0.0}, {0.0, 1.0}}},
+		{{1.0, 2.0}}, {{3.0, 4.0}}
+	};
+
+	EXPECT_TRUE(dsOrientedBox2d_isValid(&box));
+
+	box.halfExtents.x = -1.0;
+	EXPECT_FALSE(dsOrientedBox2d_isValid(&box));
+
+	box.halfExtents.x = 3.0;
+	box.halfExtents.y = -1.0;
+	EXPECT_FALSE(dsOrientedBox2d_isValid(&box));
+
+	box.halfExtents.x = 0.0;
+	box.halfExtents.y = 0.0;
+	EXPECT_TRUE(dsOrientedBox2d_isValid(&box));
 }

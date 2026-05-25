@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,17 +24,15 @@ uint8_t dsSpatialStructure_maxAxis2f(const void* bounds)
 {
 	const dsAlignedBox2f* realBounds = (const dsAlignedBox2f*)bounds;
 	dsVector2f extents;
-	dsAlignedBox2_extents(extents, *realBounds);
-	if (extents.x >= extents.y)
-		return 0;
-	return 1;
+	dsAlignedBox2f_extents(&extents, realBounds);
+	return extents.x < extents.y;
 }
 
 uint8_t dsSpatialStructure_maxAxis3f(const void* bounds)
 {
 	const dsAlignedBox3f* realBounds = (const dsAlignedBox3f*)bounds;
 	dsVector3f extents;
-	dsAlignedBox3_extents(extents, *realBounds);
+	dsAlignedBox3f_extents(&extents, realBounds);
 	if (extents.x >= extents.y && extents.x >= extents.z)
 		return 0;
 	if (extents.y >= extents.x && extents.y >= extents.z)
@@ -46,17 +44,15 @@ uint8_t dsSpatialStructure_maxAxis2d(const void* bounds)
 {
 	const dsAlignedBox2d* realBounds = (const dsAlignedBox2d*)bounds;
 	dsVector2d extents;
-	dsAlignedBox2_extents(extents, *realBounds);
-	if (extents.x >= extents.y)
-		return 0;
-	return 1;
+	dsAlignedBox2d_extents(&extents, realBounds);
+	return extents.x < extents.y;
 }
 
 uint8_t dsSpatialStructure_maxAxis3d(const void* bounds)
 {
 	const dsAlignedBox3d* realBounds = (const dsAlignedBox3d*)bounds;
 	dsVector3d extents;
-	dsAlignedBox3_extents(extents, *realBounds);
+	dsAlignedBox3d_extents(&extents, realBounds);
 	if (extents.x >= extents.y && extents.x >= extents.z)
 		return 0;
 	if (extents.y >= extents.x && extents.y >= extents.z)
@@ -68,17 +64,15 @@ uint8_t dsSpatialStructure_maxAxis2i(const void* bounds)
 {
 	const dsAlignedBox2i* realBounds = (const dsAlignedBox2i*)bounds;
 	dsVector2i extents;
-	dsAlignedBox2_extents(extents, *realBounds);
-	if (extents.x >= extents.y)
-		return 0;
-	return 1;
+	dsAlignedBox2i_extents(&extents, realBounds);
+	return extents.x < extents.y;
 }
 
 uint8_t dsSpatialStructure_maxAxis3i(const void* bounds)
 {
 	const dsAlignedBox3i* realBounds = (const dsAlignedBox3i*)bounds;
 	dsVector3i extents;
-	dsAlignedBox3_extents(extents, *realBounds);
+	dsAlignedBox3i_extents(&extents, realBounds);
 	if (extents.x >= extents.y && extents.x >= extents.z)
 		return 0;
 	if (extents.y >= extents.x && extents.y >= extents.z)

@@ -19,48 +19,15 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Math/Sqrt.h>
 
-#include <float.h>
-#include <limits.h>
-
-void dsAlignedBox2f_makeInvalid(dsAlignedBox2f* result)
-{
-	DS_ASSERT(result);
-
-	result->min.x = FLT_MAX;
-	result->min.y = FLT_MAX;
-	result->max.x = -FLT_MAX;
-	result->max.y = -FLT_MAX;
-}
-
-void dsAlignedBox2d_makeInvalid(dsAlignedBox2d* result)
-{
-	DS_ASSERT(result);
-
-	result->min.x = DBL_MAX;
-	result->min.y = DBL_MAX;
-	result->max.x = -DBL_MAX;
-	result->max.y = -DBL_MAX;
-}
-
-void dsAlignedBox2i_makeInvalid(dsAlignedBox2i* result)
-{
-	DS_ASSERT(result);
-
-	result->min.x = INT_MAX;
-	result->min.y = INT_MAX;
-	result->max.x = INT_MIN;
-	result->max.y = INT_MIN;
-}
-
 float dsAlignedBox2f_dist2(const dsAlignedBox2f* box, const dsVector2f* point)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(point);
 
-	if (!dsAlignedBox2_isValid(*box))
+	if (!dsAlignedBox2f_isValid(box))
 		return -1;
 
-	if (dsAlignedBox2_containsPoint(*box, *point))
+	if (dsAlignedBox2f_containsPoint(box, point))
 		return 0;
 
 	float dx = dsMax(box->min.x - point->x, point->x - box->max.x);
@@ -76,10 +43,10 @@ double dsAlignedBox2d_dist2(const dsAlignedBox2d* box, const dsVector2d* point)
 	DS_ASSERT(box);
 	DS_ASSERT(point);
 
-	if (!dsAlignedBox2_isValid(*box))
+	if (!dsAlignedBox2d_isValid(box))
 		return -1;
 
-	if (dsAlignedBox2_containsPoint(*box, *point))
+	if (dsAlignedBox2d_containsPoint(box, point))
 		return 0;
 
 #if DS_SIMD_ALWAYS_DOUBLE2
@@ -169,10 +136,10 @@ bool dsAlignedBox2f_intersects(const dsAlignedBox2f* box, const dsAlignedBox2f* 
 bool dsAlignedBox2d_intersects(const dsAlignedBox2d* box, const dsAlignedBox2d* otherBox);
 bool dsAlignedBox2i_intersects(const dsAlignedBox2i* box, const dsAlignedBox2i* otherBox);
 
-void dsAlignedBox2d_intersect(dsAlignedBox2d* result, const dsAlignedBox2d* a,
-	const dsAlignedBox2d* b);
-void dsAlignedBox2i_intersect(dsAlignedBox2i* result, const dsAlignedBox2i* a,
-	const dsAlignedBox2i* b);
+void dsAlignedBox2d_intersect(
+	dsAlignedBox2d* result, const dsAlignedBox2d* a, const dsAlignedBox2d* b);
+void dsAlignedBox2i_intersect(
+	dsAlignedBox2i* result, const dsAlignedBox2i* a, const dsAlignedBox2i* b);
 
 void dsAlignedBox2f_center(dsVector2f* result, const dsAlignedBox2f* box);
 void dsAlignedBox2d_center(dsVector2d* result, const dsAlignedBox2d* box);
@@ -192,9 +159,13 @@ void dsAlignedBox2f_corners(dsVector2f corners[DS_BOX2_CORNER_COUNT], const dsAl
 void dsAlignedBox2d_corners(dsVector2d corners[DS_BOX2_CORNER_COUNT], const dsAlignedBox2d* box);
 void dsAlignedBox2i_corners(dsVector2i corners[DS_BOX2_CORNER_COUNT], const dsAlignedBox2i* box);
 
-void dsAlignedBox2f_closestPoint(dsVector2f* result, const dsAlignedBox2f* box,
-	const dsVector2f* point);
-void dsAlignedBox2d_closestPoint(dsVector2d* result, const dsAlignedBox2d* box,
-	const dsVector2d* point);
-void dsAlignedBox2i_closestPoint(dsVector2i* result, const dsAlignedBox2i* box,
-	const dsVector2i* point);
+void dsAlignedBox2f_closestPoint(
+	dsVector2f* result, const dsAlignedBox2f* box, const dsVector2f* point);
+void dsAlignedBox2d_closestPoint(
+	dsVector2d* result, const dsAlignedBox2d* box, const dsVector2d* point);
+void dsAlignedBox2i_closestPoint(
+	dsVector2i* result, const dsAlignedBox2i* box, const dsVector2i* point);
+
+void dsAlignedBox2f_makeInvalid(dsAlignedBox2f* result);
+void dsAlignedBox2d_makeInvalid(dsAlignedBox2d* result);
+void dsAlignedBox2i_makeInvalid(dsAlignedBox2i* result);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,12 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Assert.h>
+
 #include <DeepSea/Geometry/AlignedBox2.h>
 #include <DeepSea/Geometry/Export.h>
 #include <DeepSea/Geometry/Types.h>
+
+#include <DeepSea/Math/SIMD/SIMD.h>
 #include <DeepSea/Math/Matrix22.h>
 
 #ifdef __cplusplus
@@ -134,12 +137,12 @@ extern "C"
  * @param[out] result The oriented box.
  * @param matrix The matrix representation.
  */
-DS_GEOMETRY_EXPORT void dsOrientedBox2f_fromMatrix(dsOrientedBox2f* result,
-	const dsMatrix33f* matrix);
+DS_GEOMETRY_EXPORT void dsOrientedBox2f_fromMatrix(
+	dsOrientedBox2f* result, const dsMatrix33f* matrix);
 
 /** @copydoc dsOrientedBox2f_fromMatrix() */
-DS_GEOMETRY_EXPORT void dsOrientedBox2d_fromMatrix(dsOrientedBox2d* result,
-	const dsMatrix33d* matrix);
+DS_GEOMETRY_EXPORT void dsOrientedBox2d_fromMatrix(
+	dsOrientedBox2d* result, const dsMatrix33d* matrix);
 
 /**
  * @brief Transforms an oriented box.
@@ -147,12 +150,12 @@ DS_GEOMETRY_EXPORT void dsOrientedBox2d_fromMatrix(dsOrientedBox2d* result,
  * @param transform The transformation matrix. This may contain a scale.
  * @return False if the box is invalid.
  */
-DS_GEOMETRY_EXPORT bool dsOrientedBox2f_transform(dsOrientedBox2f* box,
-	const dsMatrix33f* transform);
+DS_GEOMETRY_EXPORT bool dsOrientedBox2f_transform(
+	dsOrientedBox2f* box, const dsMatrix33f* transform);
 
 /** @copydoc dsOrientedBox2f_transform() */
-DS_GEOMETRY_EXPORT bool dsOrientedBox2d_transform(dsOrientedBox2d* box,
-	const dsMatrix33d* transform);
+DS_GEOMETRY_EXPORT bool dsOrientedBox2d_transform(
+	dsOrientedBox2d* box, const dsMatrix33d* transform);
 
 /**
  * @brief Adds a point to an oriented box.
@@ -171,12 +174,12 @@ DS_GEOMETRY_EXPORT void dsOrientedBox2d_addPoint(dsOrientedBox2d* box, const dsV
  * @param otherBox The other box to add.
  * @return False if otherBox is empty.
  */
-DS_GEOMETRY_EXPORT bool dsOrientedBox2f_addBox(dsOrientedBox2f* box,
-	const dsOrientedBox2f* otherBox);
+DS_GEOMETRY_EXPORT bool dsOrientedBox2f_addBox(
+	dsOrientedBox2f* box, const dsOrientedBox2f* otherBox);
 
 /** @copydoc dsOrientedBox2f_addBox() */
-DS_GEOMETRY_EXPORT bool dsOrientedBox2d_addBox(dsOrientedBox2d* box,
-	const dsOrientedBox2d* otherBox);
+DS_GEOMETRY_EXPORT bool dsOrientedBox2d_addBox(
+	dsOrientedBox2d* box, const dsOrientedBox2d* otherBox);
 
 /**
  * @brief Extracts the corners from an oriented box.
@@ -184,12 +187,12 @@ DS_GEOMETRY_EXPORT bool dsOrientedBox2d_addBox(dsOrientedBox2d* box,
  * @param box The box to extract the corners from.
  * @return False if box is empty.
  */
-DS_GEOMETRY_EXPORT bool dsOrientedBox2f_corners(dsVector2f corners[DS_BOX2_CORNER_COUNT],
-	const dsOrientedBox2f* box);
+DS_GEOMETRY_EXPORT bool dsOrientedBox2f_corners(
+	dsVector2f corners[DS_BOX2_CORNER_COUNT], const dsOrientedBox2f* box);
 
 /** @copydoc dsOrientedBox2f_corners() */
-DS_GEOMETRY_EXPORT bool dsOrientedBox2d_corners(dsVector2d corners[DS_BOX2_CORNER_COUNT],
-	const dsOrientedBox2d* box);
+DS_GEOMETRY_EXPORT bool dsOrientedBox2d_corners(
+	dsVector2d corners[DS_BOX2_CORNER_COUNT], const dsOrientedBox2d* box);
 
 /**
  * @brief Tests if one box intersects with another.
@@ -197,12 +200,12 @@ DS_GEOMETRY_EXPORT bool dsOrientedBox2d_corners(dsVector2d corners[DS_BOX2_CORNE
  * @param otherBox The other box to check.
  * @return True if box intersects with otherBox.
  */
-DS_GEOMETRY_EXPORT bool dsOrientedBox2f_intersects(const dsOrientedBox2f* box,
-	const dsOrientedBox2f* otherBox);
+DS_GEOMETRY_EXPORT bool dsOrientedBox2f_intersects(
+	const dsOrientedBox2f* box, const dsOrientedBox2f* otherBox);
 
 /** @copydoc dsOrientedBox2f_intersects() */
-DS_GEOMETRY_EXPORT bool dsOrientedBox2d_intersects(const dsOrientedBox2d* box,
-	const dsOrientedBox2d* otherBox);
+DS_GEOMETRY_EXPORT bool dsOrientedBox2d_intersects(
+	const dsOrientedBox2d* box, const dsOrientedBox2d* otherBox);
 
 /**
  * @brief Checks whether or not a point is contained in an oriented box.
@@ -210,12 +213,12 @@ DS_GEOMETRY_EXPORT bool dsOrientedBox2d_intersects(const dsOrientedBox2d* box,
  * @param point The point to check for containment.
  * @return True if the point is within the box.
  */
-DS_GEOMETRY_EXPORT bool dsOrientedBox2f_containsPoint(const dsOrientedBox2f* box,
-	const dsVector2f* point);
+DS_GEOMETRY_EXPORT bool dsOrientedBox2f_containsPoint(
+	const dsOrientedBox2f* box, const dsVector2f* point);
 
 /** @copydoc dsOrientedBox2f_containsPoint() */
-DS_GEOMETRY_EXPORT bool dsOrientedBox2d_containsPoint(const dsOrientedBox2d* box,
-	const dsVector2d* point);
+DS_GEOMETRY_EXPORT bool dsOrientedBox2d_containsPoint(
+	const dsOrientedBox2d* box, const dsVector2d* point);
 
 /**
  * @brief Computes the closest point to the box.
@@ -224,12 +227,12 @@ DS_GEOMETRY_EXPORT bool dsOrientedBox2d_containsPoint(const dsOrientedBox2d* box
  * @param point The point to check.
  * @return False if the box is invalid.
  */
-DS_GEOMETRY_EXPORT bool dsOrientedBox2f_closestPoint(dsVector2f* result, const dsOrientedBox2f* box,
-	const dsVector2f* point);
+DS_GEOMETRY_EXPORT bool dsOrientedBox2f_closestPoint(
+	dsVector2f* result, const dsOrientedBox2f* box, const dsVector2f* point);
 
 /** @copydoc dsOrientedBox2f_closestPoint() */
-DS_GEOMETRY_EXPORT bool dsOrientedBox2d_closestPoint(dsVector2d* result, const dsOrientedBox2d* box,
-	const dsVector2d* point);
+DS_GEOMETRY_EXPORT bool dsOrientedBox2d_closestPoint(
+	dsVector2d* result, const dsOrientedBox2d* box, const dsVector2d* point);
 
 /**
  * @brief Computes the squared distance from a box to a point.
@@ -238,12 +241,12 @@ DS_GEOMETRY_EXPORT bool dsOrientedBox2d_closestPoint(dsVector2d* result, const d
  * @return The squared distance from box to point. If the point is within the box, 0 will be
  * returned. If the box is invalid, -1 will be returned.
  */
-DS_GEOMETRY_EXPORT float dsOrientedBox2f_dist2(const dsOrientedBox2f* box,
-	const dsVector2f* point);
+DS_GEOMETRY_EXPORT float dsOrientedBox2f_dist2(
+	const dsOrientedBox2f* box, const dsVector2f* point);
 
 /** @copydoc dsOrientedBox2f_dist2() */
-DS_GEOMETRY_EXPORT double dsOrientedBox2d_dist2(const dsOrientedBox2d* box,
-	const dsVector2d* point);
+DS_GEOMETRY_EXPORT double dsOrientedBox2d_dist2(
+	const dsOrientedBox2d* box, const dsVector2d* point);
 
 /**
  * @brief Computes the distance from a box to a point.
@@ -252,12 +255,12 @@ DS_GEOMETRY_EXPORT double dsOrientedBox2d_dist2(const dsOrientedBox2d* box,
  * @return The distance from box to point. If the point is within the box, 0 will be returned. If
  * the box is invalid, -1 will be returned.
  */
-DS_GEOMETRY_EXPORT float dsOrientedBox2f_dist(const dsOrientedBox2f* box,
-	const dsVector2f* point);
+DS_GEOMETRY_EXPORT float dsOrientedBox2f_dist(
+	const dsOrientedBox2f* box, const dsVector2f* point);
 
 /** @copydoc dsOrientedBox2f_dist() */
-DS_GEOMETRY_EXPORT double dsOrientedBox2d_dist(const dsOrientedBox2d* box,
-	const dsVector2d* point);
+DS_GEOMETRY_EXPORT double dsOrientedBox2d_dist(
+	const dsOrientedBox2d* box, const dsVector2d* point);
 
 /** @copydoc dsOrientedBox2_isValid() */
 DS_GEOMETRY_EXPORT inline bool dsOrientedBox2f_isValid(const dsOrientedBox2f* box)
@@ -270,12 +273,16 @@ DS_GEOMETRY_EXPORT inline bool dsOrientedBox2f_isValid(const dsOrientedBox2f* bo
 DS_GEOMETRY_EXPORT inline bool dsOrientedBox2d_isValid(const dsOrientedBox2d* box)
 {
 	DS_ASSERT(box);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	return dsSIMD2db_all(dsSIMD2d_cmpge(box->halfExtents.simd, dsSIMD2d_set1(0.0))) != 0;
+#else
 	return dsOrientedBox2_isValid(*box);
+#endif
 }
 
 /** @copydoc dsOrientedBox2_toMatrix() */
-DS_GEOMETRY_EXPORT inline void dsOrientedBox2f_toMatrix(dsMatrix33f* result,
-	const dsOrientedBox2f* box)
+DS_GEOMETRY_EXPORT inline void dsOrientedBox2f_toMatrix(
+	dsMatrix33f* result, const dsOrientedBox2f* box)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
@@ -283,8 +290,8 @@ DS_GEOMETRY_EXPORT inline void dsOrientedBox2f_toMatrix(dsMatrix33f* result,
 }
 
 /** @copydoc dsOrientedBox2_toMatrix() */
-DS_GEOMETRY_EXPORT inline void dsOrientedBox2d_toMatrix(dsMatrix44d* result,
-	const dsOrientedBox2d* box)
+DS_GEOMETRY_EXPORT inline void dsOrientedBox2d_toMatrix(
+	dsMatrix44d* result, const dsOrientedBox2d* box)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
@@ -292,8 +299,8 @@ DS_GEOMETRY_EXPORT inline void dsOrientedBox2d_toMatrix(dsMatrix44d* result,
 }
 
 /** @copydoc dsOrientedBox2_toMatrixTranspose() */
-DS_GEOMETRY_EXPORT inline void dsOrientedBox2f_toMatrixTranspose(dsMatrix33f* result,
-	const dsOrientedBox2f* box)
+DS_GEOMETRY_EXPORT inline void dsOrientedBox2f_toMatrixTranspose(
+	dsMatrix33f* result, const dsOrientedBox2f* box)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
@@ -301,8 +308,8 @@ DS_GEOMETRY_EXPORT inline void dsOrientedBox2f_toMatrixTranspose(dsMatrix33f* re
 }
 
 /** @copydoc dsOrientedBox2_toMatrix() */
-DS_GEOMETRY_EXPORT inline void dsOrientedBox2d_toMatrixTranspose(dsMatrix44d* result,
-	const dsOrientedBox2d* box)
+DS_GEOMETRY_EXPORT inline void dsOrientedBox2d_toMatrixTranspose(
+	dsMatrix44d* result, const dsOrientedBox2d* box)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
@@ -310,8 +317,8 @@ DS_GEOMETRY_EXPORT inline void dsOrientedBox2d_toMatrixTranspose(dsMatrix44d* re
 }
 
 /** @copydoc dsOrientedBox2_fromAlignedBox() */
-DS_GEOMETRY_EXPORT inline void dsOrientedBox2f_fromAlignedBox(dsOrientedBox2f* result,
-	const dsAlignedBox2f* alignedBox)
+DS_GEOMETRY_EXPORT inline void dsOrientedBox2f_fromAlignedBox(
+	dsOrientedBox2f* result, const dsAlignedBox2f* alignedBox)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(alignedBox);
@@ -319,8 +326,8 @@ DS_GEOMETRY_EXPORT inline void dsOrientedBox2f_fromAlignedBox(dsOrientedBox2f* r
 }
 
 /** @copydoc dsOrientedBox2_fromAlignedBox() */
-DS_GEOMETRY_EXPORT inline void dsOrientedBox2d_fromAlignedBox(dsOrientedBox2d* result,
-	const dsAlignedBox2d* alignedBox)
+DS_GEOMETRY_EXPORT inline void dsOrientedBox2d_fromAlignedBox(
+	dsOrientedBox2d* result, const dsAlignedBox2d* alignedBox)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(alignedBox);

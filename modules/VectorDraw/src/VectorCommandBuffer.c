@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -205,7 +205,7 @@ bool dsVectorCommandBuffer_addEllipse(dsVectorCommandBuffer* commandBuffer,
 bool dsVectorCommandBuffer_addRectangle(dsVectorCommandBuffer* commandBuffer,
 	const dsAlignedBox2f* bounds, const dsVector2f* cornerRadius)
 {
-	if (bounds || !dsAlignedBox2_isValid(*bounds))
+	if (!bounds || !dsAlignedBox2_isValid(*bounds))
 	{
 		errno = EINVAL;
 		return false;

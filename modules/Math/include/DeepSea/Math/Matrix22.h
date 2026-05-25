@@ -324,17 +324,21 @@ DS_MATH_EXPORT inline void dsMatrix22d_transformTransposed(
 	DS_ASSERT(mat);
 	DS_ASSERT(vec);
 #if DS_SIMD_ALWAYS_DOUBLE2
-	dsSIMD2d x = dsSIMD2d_set1FromVec(vec->simd, 0);
-	dsSIMD2d y = dsSIMD2d_set1FromVec(vec->simd, 1);
-
 	dsSIMD2d col0 = mat->columns[0].simd;
 	dsSIMD2d col1 = mat->columns[1].simd;
-	dsSIMD2d_transpose(col0, col1);
 
 #if DS_SIMD_ALWAYS_FMA
+	dsSIMD2d_transpose(col0, col1);
+
+	dsSIMD2d x = dsSIMD2d_set1FromVec(vec->simd, 0);
+	dsSIMD2d y = dsSIMD2d_set1FromVec(vec->simd, 1);
 	result->simd = dsSIMD2d_fmadd(col0, x, dsSIMD2d_mul(col1, y));
 #else
-	result->simd = dsSIMD2d_add(dsSIMD2d_mul(col0, x), dsSIMD2d_mul(col1, y));
+	col0 = dsSIMD2d_mul(col0, vec->simd);
+	col1 = dsSIMD2d_mul(col1, vec->simd);
+	dsSIMD2d_transpose(col0, col1);
+
+	result->simd = dsSIMD2d_add(col0, col1);
 #endif
 #else
 	dsMatrix22_transformTransposed(*result, *mat, *vec);

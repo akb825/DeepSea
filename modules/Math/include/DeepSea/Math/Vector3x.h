@@ -42,6 +42,8 @@ extern "C"
  * majority of situations. The value of the last element is undefined for any results. Operations
  * are only provided for floating-point types, as integer types are more limited in the availability
  * of operations.
+ *
+ * @see dsVector3xf dsVector3xd
  */
 
 /** @copydoc dsVector3f_add() */
