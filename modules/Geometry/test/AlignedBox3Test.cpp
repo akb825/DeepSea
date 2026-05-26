@@ -536,7 +536,7 @@ TYPED_TEST(AlignedBox3FloatTest, ToMatrix)
 	typedef typename AlignedBox3TypeSelector<TypeParam>::Vector4Type Vector4Type;
 	TypeParam epsilon = AlignedBox3TypeSelector<TypeParam>::epsilon;
 
-	AlignedBox3Type box = {{{0, 1, 2}}, {{3, 4, 5}}};
+	AlignedBox3Type box = {{{0, 1, 2}}, {{3, 5, 7}}};
 
 	Matrix44Type matrix;
 	dsAlignedBox3_toMatrix(matrix, box);
@@ -560,7 +560,7 @@ TYPED_TEST(AlignedBox3FloatTest, ToMatrixTranspose)
 	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
 	typedef typename AlignedBox3TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 
-	AlignedBox3Type box = {{{0, 1, 2}}, {{3, 4, 5}}};
+	AlignedBox3Type box = {{{0, 1, 2}}, {{3, 5, 7}}};
 
 	Matrix44Type matrix, transposedMatrix;
 	dsAlignedBox3_toMatrix(matrix, box);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -281,6 +281,40 @@ typedef struct dsAlignedBox3i
 	 */
 	dsVector3i max;
 } dsAlignedBox3i;
+
+/**
+ * @brief Structure for 3D axis-aligned bounding box using floats aligned for SIMD operations.
+ * @see AlignedBox3x.h
+ */
+typedef struct dsAlignedBox3xf
+{
+	/**
+	 * @brief Minimum values for the box.
+	 */
+	dsVector3xf min;
+
+	/**
+	 * @brief Maximum values for the box.
+	 */
+	dsVector3xf max;
+} dsAlignedBox3xf;
+
+/**
+ * @brief Structure for 3D axis-aligned bounding box using doubles aligned for SIMD operations.
+ * @see AlignedBox3x.h
+ */
+typedef struct dsAlignedBox3xd
+{
+	/**
+	 * @brief Minimum values for the box.
+	 */
+	dsVector3xd min;
+
+	/**
+	 * @brief Maximum values for the box.
+	 */
+	dsVector3xd max;
+} dsAlignedBox3xd;
 
 /**
  * @brief Structure for a 2D oriented bounding box using floats.

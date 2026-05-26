@@ -186,7 +186,7 @@ extern "C"
 /**
  * @brief Converts the oriented box to a transposed matrix representation.
  *
- * This is useful to avoid the transpose in specific situations where the transpose is used.
+ * This is useful to avoid transposing in specific situations where the transpose is used.
  *
  * @param[out] result The matrix.
  * @param box The box to convert.
@@ -254,7 +254,7 @@ extern "C"
  * largest positive/negative values to ensure that intersections will always result in an invalid
  * box.
  *
- * @param result The box to make invalid.
+ * @param[out] result The box to make invalid.
  */
 DS_GEOMETRY_EXPORT inline void dsAlignedBox2f_makeInvalid(dsAlignedBox2f* result);
 
@@ -594,8 +594,8 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_toMatrix(dsMatrix33d* result, dsAl
 }
 
 /** @copydoc dsAlignedBox2_toMatrix() */
-DS_GEOMETRY_EXPORT inline void dsAlignedBox2f_toMatrixTranspose(dsMatrix33f* result,
-	dsAlignedBox2f* box)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox2f_toMatrixTranspose(
+	dsMatrix33f* result, dsAlignedBox2f* box)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
@@ -603,8 +603,8 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox2f_toMatrixTranspose(dsMatrix33f* res
 }
 
 /** @copydoc dsAlignedBox2_toMatrixTranspose() */
-DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_toMatrixTranspose(dsMatrix33d* result,
-	dsAlignedBox2d* box)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_toMatrixTranspose(
+	dsMatrix33d* result, dsAlignedBox2d* box)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);

@@ -830,7 +830,7 @@ DS_MATH_EXPORT inline double dsVector4d_dist(const dsVector4d* a, const dsVector
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-#if DS_SIMD_ALWAYS_FLOAT4
+#if DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2d diff0 = dsSIMD2d_sub(a->simd2[0], b->simd2[0]);
 	dsSIMD2d diff1 = dsSIMD2d_sub(a->simd2[1], b->simd2[1]);
 	dsSIMD2d dist2 = dsDot4SIMD2d(diff0, diff1, diff0, diff1);

@@ -27,9 +27,6 @@ float dsAlignedBox2f_dist2(const dsAlignedBox2f* box, const dsVector2f* point)
 	if (!dsAlignedBox2f_isValid(box))
 		return -1;
 
-	if (dsAlignedBox2f_containsPoint(box, point))
-		return 0;
-
 	float dx = dsMax(box->min.x - point->x, point->x - box->max.x);
 	dx = dsMax(dx, 0);
 	float dy = dsMax(box->min.y - point->y, point->y - box->max.y);
@@ -45,9 +42,6 @@ double dsAlignedBox2d_dist2(const dsAlignedBox2d* box, const dsVector2d* point)
 
 	if (!dsAlignedBox2d_isValid(box))
 		return -1;
-
-	if (dsAlignedBox2d_containsPoint(box, point))
-		return 0;
 
 #if DS_SIMD_ALWAYS_DOUBLE2
 	dsVector2d d;
@@ -73,9 +67,6 @@ int dsAlignedBox2i_dist2(const dsAlignedBox2i* box, const dsVector2i* point)
 
 	if (!dsAlignedBox2_isValid(*box))
 		return -1;
-
-	if (dsAlignedBox2_containsPoint(*box, *point))
-		return 0;
 
 	int dx = dsMax(box->min.x - point->x, point->x - box->max.x);
 	dx = dsMax(dx, 0);

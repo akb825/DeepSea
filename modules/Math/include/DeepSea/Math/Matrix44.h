@@ -768,7 +768,7 @@ DS_MATH_EXPORT inline void dsMatrix44f_transformTransposed(
 	DS_ASSERT(result != vec);
 #if DS_SIMD_ALWAYS_FMA
 	dsMatrix44f_transformTransposedFMA(result, mat, vec);
-#elif DS_SIMD_ALWAYS_SIMD
+#elif DS_SIMD_ALWAYS_FLOAT4
 	dsMatrix44f_transformTransposedSIMD(result, mat, vec);
 #else
 	dsMatrix44_transformTransposed(*result, *mat, *vec);

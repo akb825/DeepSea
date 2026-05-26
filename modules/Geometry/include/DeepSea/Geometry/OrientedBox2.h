@@ -99,7 +99,7 @@ extern "C"
 /**
  * @brief Converts the oriented box to a matrix representation.
  *
- * This is useful to avoid the transpose in specific situations where the transpose is used.
+ * This is useful to avoid transposing in specific situations where the transpose is used.
  *
  * @param[out] result The matrix.
  * @param box The box to convert.
