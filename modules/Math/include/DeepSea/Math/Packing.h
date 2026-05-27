@@ -588,7 +588,8 @@ inline dsHalfFloat dsPackHalfFloat(float x)
 inline float dsUnpackHalfFloat(dsHalfFloat x)
 {
 #if DS_SIMD_ALWAYS_HALF_FLOAT
-	return dsSIMD4f_get(dsSIMD4hf_toFloat(dsSIMD4hf_load1(&x)), 0);
+	dsSIMD4f unpacked = dsSIMD4hf_toFloat(dsSIMD4hf_load1(&x));
+	return dsSIMD4f_get(unpacked, 0);
 #else
 	return dsUnpackHalfFloatSoft(x);
 #endif

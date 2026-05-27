@@ -729,7 +729,8 @@ inline float dsMatrix33xf_determinantSIMD(const dsMatrix33xf* a)
 	DS_SIMD_SHUFFLE1_120_201(c120, c201, a->columns[2].simd);
 
 	dsSIMD4f detBC = dsSIMD4f_sub(dsSIMD4f_mul(b120, c201), dsSIMD4f_mul(b201, c120));
-	return dsSIMD4f_get(dsDot3SIMD4f(a012, detBC), 0);
+	dsSIMD4f det = dsDot3SIMD4f(a012, detBC);
+	return dsSIMD4f_get(det, 0);
 }
 
 inline void dsMatrix33xf_fastInvertSIMD(dsMatrix33xf* result, const dsMatrix33xf* a)
@@ -912,7 +913,8 @@ inline float dsMatrix33xf_determinantFMA(const dsMatrix33xf* a)
 
 	// Use nmadd rather than msub to reduce instructions on more platforms.
 	dsSIMD4f detBC = dsSIMD4f_fnmadd(b201, c120, dsSIMD4f_mul(b120, c201));
-	return dsSIMD4f_get(dsDot3FMA4f(a012, detBC), 0);
+	dsSIMD4f det = dsDot3FMA4f(a012, detBC);
+	return dsSIMD4f_get(det, 0);
 }
 
 inline void dsMatrix33xf_fastInvertFMA(dsMatrix33xf* result, const dsMatrix33xf* a)
@@ -1230,8 +1232,8 @@ inline double dsMatrix33xd_determinantSIMD2(const dsMatrix33xd* a)
 		dsSIMD2d_mul(b120.simd2[0], c201.simd2[0]), dsSIMD2d_mul(b201.simd2[0], c120.simd2[0]));
 	detBC.simd2[1] = dsSIMD2d_sub(
 		dsSIMD2d_mul(b120.simd2[1], c201.simd2[1]), dsSIMD2d_mul(b201.simd2[1], c120.simd2[1]));
-	return dsSIMD2d_get(
-		dsDot3SIMD2d(a012.simd2[0], a012.simd2[1], detBC.simd2[0], detBC.simd2[1]), 0);
+	dsSIMD2d det = dsDot3SIMD2d(a012.simd2[0], a012.simd2[1], detBC.simd2[0], detBC.simd2[1]);
+	return dsSIMD2d_get(det, 0);
 }
 
 inline void dsMatrix33xd_fastInvertSIMD2(dsMatrix33xd* result, const dsMatrix33xd* a)
@@ -1451,8 +1453,8 @@ inline double dsMatrix33xd_determinantFMA2(const dsMatrix33xd* a)
 		dsSIMD2d_mul(b120.simd2[0], c201.simd2[0]));
 	detBC.simd2[1] = dsSIMD2d_fnmadd(b201.simd2[1], c120.simd2[1],
 		dsSIMD2d_mul(b120.simd2[1], c201.simd2[1]));
-	return dsSIMD2d_get(
-		dsDot3FMA2d(a012.simd2[0], a012.simd2[1], detBC.simd2[0], detBC.simd2[1]), 0);
+	dsSIMD2d det = dsDot3FMA2d(a012.simd2[0], a012.simd2[1], detBC.simd2[0], detBC.simd2[1]);
+	return dsSIMD2d_get(det, 0);
 }
 
 inline void dsMatrix33xd_fastInvertFMA2(dsMatrix33xd* result, const dsMatrix33xd* a)
@@ -1831,7 +1833,8 @@ inline double dsMatrix33xd_determinantSIMD4(const dsMatrix33xd* DS_ALIGN_PARAM(3
 #else
 	dsSIMD4d detBC = dsSIMD4d_sub(dsSIMD4d_mul(b120, c201), dsSIMD4d_mul(b201, c120));
 #endif
-	return dsSIMD4d_get(dsDot3SIMD4d(a012, detBC), 0);
+	dsSIMD4d det = dsDot3SIMD4d(a012, detBC);
+	return dsSIMD4d_get(det, 0);
 }
 
 inline void dsMatrix33xd_fastInvertSIMD4(

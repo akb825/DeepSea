@@ -1058,7 +1058,8 @@ inline float dsMatrix44f_determinantSIMD(const dsMatrix44f* a)
 	DS_SIMD_SHUFFLE1_0213(dc0213, dc);
 
 	dsSIMD4f tr = dsDot4SIMD4f(ab, dc0213);
-	return dsSIMD4f_get(dsSIMD4f_sub(det44, tr), 0);
+	det = dsSIMD4f_sub(det44, tr);
+	return dsSIMD4f_get(det, 0);
 }
 
 inline void dsMatrix44f_fastInvertSIMD(dsMatrix44f* result, const dsMatrix44f* a)
@@ -1456,7 +1457,8 @@ inline float dsMatrix44f_determinantFMA(const dsMatrix44f* a)
 	DS_SIMD_SHUFFLE1_0213(dc0213, dc);
 
 	dsSIMD4f tr = dsDot4FMA4f(ab, dc0213);
-	return dsSIMD4f_get(dsSIMD4f_sub(det44, tr), 0);
+	det = dsSIMD4f_sub(det44, tr);
+	return dsSIMD4f_get(det, 0);
 }
 
 inline void dsMatrix44f_fastInvertFMA(dsMatrix44f* result, const dsMatrix44f* a)
@@ -2119,7 +2121,8 @@ inline double dsMatrix44d_determinantSIMD2(const dsMatrix44d* a)
 	DS_SIMD_SHUFFLE1_0213(dc0213, dc);
 
 	dsSIMD2d tr = dsDot4SIMD2d(ab.simd2[0], ab.simd2[1], dc0213.simd2[0], dc0213.simd2[1]);
-	return dsSIMD2d_get(dsSIMD2d_sub(det44, tr), 0);
+	dsSIMD2d det = dsSIMD2d_sub(det44, tr);
+	return dsSIMD2d_get(det, 0);
 }
 
 inline void dsMatrix44d_fastInvertSIMD2(dsMatrix44d* result, const dsMatrix44d* a)
@@ -2651,7 +2654,8 @@ inline double dsMatrix44d_determinantFMA2(const dsMatrix44d* a)
 	DS_SIMD_SHUFFLE1_0213(dc0213, dc);
 
 	dsSIMD2d tr = dsDot4FMA2d(ab.simd2[0], ab.simd2[1], dc0213.simd2[0], dc0213.simd2[1]);
-	return dsSIMD2d_get(dsSIMD2d_sub(det44, tr), 0);
+	dsSIMD2d det = dsSIMD2d_sub(det44, tr);
+	return dsSIMD2d_get(det, 0);
 }
 
 inline void dsMatrix44d_fastInvertFMA2(dsMatrix44d* result, const dsMatrix44d* a)
@@ -3353,7 +3357,8 @@ inline double dsMatrix44d_determinantSIMD4(const dsMatrix44d* DS_ALIGN_PARAM(32)
 	DS_SIMD_SHUFFLE1_0213(dc0213, dc);
 
 	dsSIMD4d tr = dsDot4SIMD4d(ab, dc0213);
-	return dsSIMD4d_get(dsSIMD4d_sub(det44, tr), 0);
+	det = dsSIMD4d_sub(det44, tr);
+	return dsSIMD4d_get(det, 0);
 }
 
 inline void dsMatrix44d_fastInvertSIMD4(
