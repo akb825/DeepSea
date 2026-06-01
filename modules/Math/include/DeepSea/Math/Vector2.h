@@ -729,12 +729,8 @@ inline double dsVector2d_dist(const dsVector2d* a, const dsVector2d* b)
 #if DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2d diff = dsSIMD2d_sub(a->simd, b->simd);
 	dsSIMD2d dist2 = dsDot2SIMD2d(diff, diff);
-#if DS_SIMD_EMULATED_DIV_SQRT
-	return dsSqrtd(dsSIMD2d_get(dist2, 0));
-#else
 	dsSIMD2d dist = dsSIMD2d_sqrt(dist2);
 	return dsSIMD2d_get(dist, 0);
-#endif
 #else
 	return dsSqrtd(dsVector2_dist2(*a, *b));
 #endif
@@ -769,11 +765,7 @@ inline void dsVector2d_normalize(dsVector2d* result, const dsVector2d* a)
 	DS_ASSERT(a);
 #if DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2d len2 = dsDot2SIMD2d(a->simd, a->simd);
-#if DS_SIMD_EMULATED_DIV_SQRT
-	dsSIMD2d invLength = dsSIMD2d_set1(1/dsSqrtd(dsSIMD2d_get(len2, 0)));
-#else
 	dsSIMD2d invLen = dsSIMD2d_rsqrt(len2);
-#endif
 	result->simd = dsSIMD2d_mul(a->simd, invLen);
 #else
 	double length = dsVector2d_len(a);

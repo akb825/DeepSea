@@ -785,12 +785,8 @@ DS_MATH_EXPORT inline double dsVector4d_len(const dsVector4d* a)
 	DS_ASSERT(a);
 #if DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2d len2 = dsDot4SIMD2d(a->simd2[0], a->simd2[1], a->simd2[0], a->simd2[1]);
-#if DS_SIMD_EMULATED_DIV_SQRT
-	return dsSqrtd(dsSIMD2d_get(len2, 0));
-#else
 	dsSIMD2d len = dsSIMD2d_sqrt(len2);
 	return dsSIMD2d_get(len, 0);
-#endif
 #else
 	return dsSqrtd(dsVector4_len2(*a));
 #endif
@@ -834,12 +830,8 @@ DS_MATH_EXPORT inline double dsVector4d_dist(const dsVector4d* a, const dsVector
 	dsSIMD2d diff0 = dsSIMD2d_sub(a->simd2[0], b->simd2[0]);
 	dsSIMD2d diff1 = dsSIMD2d_sub(a->simd2[1], b->simd2[1]);
 	dsSIMD2d dist2 = dsDot4SIMD2d(diff0, diff1, diff0, diff1);
-#if DS_SIMD_EMULATED_DIV_SQRT
-	return dsSqrtd(dsSIMD2d_get(dist2, 0));
-#else
 	dsSIMD2d dist = dsSIMD2d_sqrt(dist2);
 	return dsSIMD2d_get(dist, 0);
-#endif
 #else
 	return dsSqrtd(dsVector4_dist2(*a, *b));
 #endif
@@ -884,11 +876,7 @@ DS_MATH_EXPORT inline void dsVector4d_normalize(dsVector4d* result, const dsVect
 	DS_ASSERT(a);
 #if DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2d len2 = dsDot4SIMD2d(a->simd2[0], a->simd2[1], a->simd2[0], a->simd2[1]);
-#if DS_SIMD_EMULATED_DIV_SQRT
-	dsSIMD2d invLen = dsSIMD2d_set1(1/dsSqrtd(dsSIMD2d_get(len2, 0)));
-#else
 	dsSIMD2d invLen = dsSIMD2d_rsqrt(len2);
-#endif
 	result->simd2[0] = dsSIMD2d_mul(a->simd2[0], invLen);
 	result->simd2[1] = dsSIMD2d_mul(a->simd2[1], invLen);
 #else
@@ -928,7 +916,7 @@ DS_MATH_EXPORT inline bool dsVector4d_epsilonEqual(
 		dsSIMD2d_abs(dsSIMD2d_sub(a->simd2[0], b->simd2[0])), epsilon2);
 	result.simd2[1] = dsSIMD2d_cmple(
 		dsSIMD2d_abs(dsSIMD2d_sub(a->simd2[1], b->simd2[1])), epsilon2);
-	return dsSIMD2db_all(result.simd2[0]) && dsSIMD2db_all(result.simd2[1]);
+	return dsSIMD2db_all(dsSIMD2db_and(result.simd2[0], result.simd2[1]));
 #else
 	return dsEpsilonEquald(a->values[0], b->values[0], epsilon) &&
 		dsEpsilonEquald(a->values[1], b->values[1], epsilon) &&
@@ -987,7 +975,7 @@ DS_MATH_EXPORT inline bool dsVector4d_relativeEpsilonEqual(
 	dsVector4l result;
 	result.simd2[0] = dsSIMD2db_or(epsEqual.simd2[0], relativeEqual.simd2[0]);
 	result.simd2[1] = dsSIMD2db_or(epsEqual.simd2[1], relativeEqual.simd2[1]);
-	return dsSIMD2db_all(result.simd2[0]) && dsSIMD2db_all(result.simd2[1]);
+	return dsSIMD2db_all(dsSIMD2db_and(result.simd2[0], result.simd2[1]));
 #else
 	return dsRelativeEpsilonEquald(a->values[0], b->values[0], absoluteEps, relativeEps) &&
 		dsRelativeEpsilonEquald(a->values[1], b->values[1], absoluteEps, relativeEps) &&

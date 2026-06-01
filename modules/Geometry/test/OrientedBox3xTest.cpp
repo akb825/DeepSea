@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2026 Aaron Barany
+ * Copyright 2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Geometry/OrientedBox3.h>
+#include <DeepSea/Geometry/OrientedBox3x.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <gtest/gtest.h>
 
@@ -24,141 +24,197 @@
 #endif
 
 template <typename T>
-struct OrientedBox3TypeSelector;
+struct OrientedBox3xTypeSelector;
 
 template <>
-struct OrientedBox3TypeSelector<float>
+struct OrientedBox3xTypeSelector<float>
 {
-	typedef dsVector3f Vector3Type;
+	typedef dsVector3xf Vector3xType;
 	typedef dsVector4f Vector4Type;
-	typedef dsAlignedBox3f AlignedBox3Type;
+	typedef dsAlignedBox3xf AlignedBox3xType;
 	typedef dsMatrix44f Matrix44Type;
-	typedef dsOrientedBox3f OrientedBox3Type;
+	typedef dsOrientedBox3xf OrientedBox3xType;
 	static const float epsilon;
 };
 
 template <>
-struct OrientedBox3TypeSelector<double>
+struct OrientedBox3xTypeSelector<double>
 {
-	typedef dsVector3d Vector3Type;
+	typedef dsVector3xd Vector3xType;
 	typedef dsVector4d Vector4Type;
-	typedef dsAlignedBox3d AlignedBox3Type;
+	typedef dsAlignedBox3xd AlignedBox3xType;
 	typedef dsMatrix44d Matrix44Type;
-	typedef dsOrientedBox3d OrientedBox3Type;
+	typedef dsOrientedBox3xd OrientedBox3xType;
 	static const double epsilon;
 };
 
-const float OrientedBox3TypeSelector<float>::epsilon = 1e-4f;
-const double OrientedBox3TypeSelector<double>::epsilon = 1e-13f;
+const float OrientedBox3xTypeSelector<float>::epsilon = 1e-4f;
+const double OrientedBox3xTypeSelector<double>::epsilon = 1e-13f;
 
 template <typename T>
-class OrientedBox3Test : public testing::Test
+class OrientedBox3xTest : public testing::Test
 {
 };
 
-using OrientedBox3Types = testing::Types<float, double>;
-TYPED_TEST_SUITE(OrientedBox3Test, OrientedBox3Types);
+using OrientedBox3xTypes = testing::Types<float, double>;
+TYPED_TEST_SUITE(OrientedBox3xTest, OrientedBox3xTypes);
 
-inline void dsOrientedBox3_fromMatrix(dsOrientedBox3f* result, const dsMatrix44f* matrix)
+inline bool dsOrientedBox3x_isValid(const dsOrientedBox3xf* box)
 {
-	return dsOrientedBox3f_fromMatrix(result, matrix);
+	return dsOrientedBox3xf_isValid(box);
 }
 
-inline void dsOrientedBox3_fromMatrix(dsOrientedBox3d* result, const dsMatrix44d* matrix)
+inline bool dsOrientedBox3x_isValid(const dsOrientedBox3xd* box)
 {
-	return dsOrientedBox3d_fromMatrix(result, matrix);
+	return dsOrientedBox3xd_isValid(box);
 }
 
-inline bool dsOrientedBox3_transform(dsOrientedBox3f* box, const dsMatrix44f* transform)
+inline void dsOrientedBox3x_fromAlignedBox(
+	dsOrientedBox3xf* result, const dsAlignedBox3xf* alignedBox)
 {
-	return dsOrientedBox3f_transform(box, transform);
+	dsOrientedBox3xf_fromAlignedBox(result, alignedBox);
 }
 
-inline bool dsOrientedBox3_transform(dsOrientedBox3d* box, const dsMatrix44d* transform)
+inline void dsOrientedBox3x_fromAlignedBox(
+	dsOrientedBox3xd* result, const dsAlignedBox3xd* alignedBox)
 {
-	return dsOrientedBox3d_transform(box, transform);
+	dsOrientedBox3xd_fromAlignedBox(result, alignedBox);
 }
 
-inline void dsOrientedBox3_addPoint(dsOrientedBox3f* box, const dsVector3f* point)
+inline void dsOrientedBox3x_toMatrix(dsMatrix44f* result, const dsOrientedBox3xf* box)
 {
-	dsOrientedBox3f_addPoint(box, point);
+	dsOrientedBox3xf_toMatrix(result, box);
 }
 
-inline void dsOrientedBox3_addPoint(dsOrientedBox3d* box, const dsVector3d* point)
+inline void dsOrientedBox3x_toMatrix(dsMatrix44d* result, const dsOrientedBox3xd* box)
 {
-	dsOrientedBox3d_addPoint(box, point);
+	dsOrientedBox3xd_toMatrix(result, box);
 }
 
-inline bool dsOrientedBox3_addBox(dsOrientedBox3f* box, const dsOrientedBox3f* otherBox)
+inline void dsOrientedBox3x_toMatrixTranspose(dsMatrix44f* result, const dsOrientedBox3xf* box)
 {
-	return dsOrientedBox3f_addBox(box, otherBox);
+	dsOrientedBox3xf_toMatrixTranspose(result, box);
 }
 
-inline bool dsOrientedBox3_addBox(dsOrientedBox3d* box, const dsOrientedBox3d* otherBox)
+inline void dsOrientedBox3x_toMatrixTranspose(dsMatrix44d* result, const dsOrientedBox3xd* box)
 {
-	return dsOrientedBox3d_addBox(box, otherBox);
+	dsOrientedBox3xd_toMatrixTranspose(result, box);
 }
 
-inline bool dsOrientedBox3_corners(dsVector3f* corners, const dsOrientedBox3f* box)
+inline void dsOrientedBox3x_makeInvalid(dsOrientedBox3xf* result)
 {
-	return dsOrientedBox3f_corners(corners, box);
+	dsOrientedBox3xf_makeInvalid(result);
 }
 
-inline bool dsOrientedBox3_corners(dsVector3d* corners, const dsOrientedBox3d* box)
+inline void dsOrientedBox3x_makeInvalid(dsOrientedBox3xd* result)
 {
-	return dsOrientedBox3d_corners(corners, box);
+	dsOrientedBox3xd_makeInvalid(result);
 }
 
-inline bool dsOrientedBox3_intersects(const dsOrientedBox3f* box, const dsOrientedBox3f* otherBox)
+inline void dsOrientedBox3x_fromMatrix(dsOrientedBox3xf* result, const dsMatrix44f* matrix)
 {
-	return dsOrientedBox3f_intersects(box, otherBox);
+	dsOrientedBox3xf_fromMatrix(result, matrix);
 }
 
-inline bool dsOrientedBox3_intersects(const dsOrientedBox3d* box, const dsOrientedBox3d* otherBox)
+inline void dsOrientedBox3x_fromMatrix(dsOrientedBox3xd* result, const dsMatrix44d* matrix)
 {
-	return dsOrientedBox3d_intersects(box, otherBox);
+	dsOrientedBox3xd_fromMatrix(result, matrix);
 }
 
-inline bool dsOrientedBox3_containsPoint(const dsOrientedBox3f* box, const dsVector3f* point)
+inline bool dsOrientedBox3x_transform(dsOrientedBox3xf* box, const dsMatrix44f* transform)
 {
-	return dsOrientedBox3f_containsPoint(box, point);
+	return dsOrientedBox3xf_transform(box, transform);
 }
 
-inline bool dsOrientedBox3_containsPoint(const dsOrientedBox3d* box, const dsVector3d* point)
+inline bool dsOrientedBox3x_transform(dsOrientedBox3xd* box, const dsMatrix44d* transform)
 {
-	return dsOrientedBox3d_containsPoint(box, point);
+	return dsOrientedBox3xd_transform(box, transform);
 }
 
-inline bool dsOrientedBox3_closestPoint(
-	dsVector3f* result, const dsOrientedBox3f* box, const dsVector3f* point)
+inline void dsOrientedBox3x_addPoint(dsOrientedBox3xf* box, const dsVector3xf* point)
 {
-	return dsOrientedBox3f_closestPoint(result, box, point);
+	dsOrientedBox3xf_addPoint(box, point);
 }
 
-inline bool dsOrientedBox3_closestPoint(
-	dsVector3d* result, const dsOrientedBox3d* box, const dsVector3d* point)
+inline void dsOrientedBox3x_addPoint(dsOrientedBox3xd* box, const dsVector3xd* point)
 {
-	return dsOrientedBox3d_closestPoint(result, box, point);
+	dsOrientedBox3xd_addPoint(box, point);
 }
 
-inline float dsOrientedBox3_dist2(const dsOrientedBox3f* box, const dsVector3f* otherBox)
+inline bool dsOrientedBox3x_addBox(dsOrientedBox3xf* box, const dsOrientedBox3xf* otherBox)
 {
-	return dsOrientedBox3f_dist2(box, otherBox);
+	return dsOrientedBox3xf_addBox(box, otherBox);
 }
 
-inline double dsOrientedBox3_dist2(const dsOrientedBox3d* box, const dsVector3d* otherBox)
+inline bool dsOrientedBox3x_addBox(dsOrientedBox3xd* box, const dsOrientedBox3xd* otherBox)
 {
-	return dsOrientedBox3d_dist2(box, otherBox);
+	return dsOrientedBox3xd_addBox(box, otherBox);
 }
 
-inline float dsOrientedBox3_dist(const dsOrientedBox3f* box, const dsVector3f* otherBox)
+inline bool dsOrientedBox3x_corners(
+	dsVector3xf corners[DS_BOX3_CORNER_COUNT], const dsOrientedBox3xf* box)
 {
-	return dsOrientedBox3f_dist(box, otherBox);
+	return dsOrientedBox3xf_corners(corners, box);
 }
 
-inline double dsOrientedBox3_dist(const dsOrientedBox3d* box, const dsVector3d* otherBox)
+inline bool dsOrientedBox3x_corners(
+	dsVector3xd corners[DS_BOX3_CORNER_COUNT], const dsOrientedBox3xd* box)
 {
-	return dsOrientedBox3d_dist(box, otherBox);
+	return dsOrientedBox3xd_corners(corners, box);
+}
+
+inline bool dsOrientedBox3x_intersects(
+	const dsOrientedBox3xf* box, const dsOrientedBox3xf* otherBox)
+{
+	return dsOrientedBox3xf_intersects(box, otherBox);
+}
+
+inline bool dsOrientedBox3x_intersects(
+	const dsOrientedBox3xd* box, const dsOrientedBox3xd* otherBox)
+{
+	return dsOrientedBox3xd_intersects(box, otherBox);
+}
+
+inline bool dsOrientedBox3x_containsPoint(const dsOrientedBox3xf* box, const dsVector3xf* point)
+{
+	return dsOrientedBox3xf_containsPoint(box, point);
+}
+
+inline bool dsOrientedBox3x_containsPoint(const dsOrientedBox3xd* box, const dsVector3xd* point)
+{
+	return dsOrientedBox3xd_containsPoint(box, point);
+}
+
+inline bool dsOrientedBox3x_closestPoint(
+	dsVector3xf* result, const dsOrientedBox3xf* box, const dsVector3xf* point)
+{
+	return dsOrientedBox3xf_closestPoint(result, box, point);
+}
+
+inline bool dsOrientedBox3x_closestPoint(
+	dsVector3xd* result, const dsOrientedBox3xd* box, const dsVector3xd* point)
+{
+	return dsOrientedBox3xd_closestPoint(result, box, point);
+}
+
+inline float dsOrientedBox3x_dist2(const dsOrientedBox3xf* box, const dsVector3xf* point)
+{
+	return dsOrientedBox3xf_dist2(box, point);
+}
+
+inline double dsOrientedBox3x_dist2(const dsOrientedBox3xd* box, const dsVector3xd* point)
+{
+	return dsOrientedBox3xd_dist2(box, point);
+}
+
+inline float dsOrientedBox3x_dist(const dsOrientedBox3xf* box, const dsVector3xf* point)
+{
+	return dsOrientedBox3xf_dist(box, point);
+}
+
+inline double dsOrientedBox3x_dist(const dsOrientedBox3xd* box, const dsVector3xd* point)
+{
+	return dsOrientedBox3xd_dist(box, point);
 }
 
 inline void dsMatrix44_makeRotate(dsMatrix44f* result, float x, float y, float z)
@@ -191,14 +247,14 @@ inline void dsMatrix44_makeScale(dsMatrix44d* result, double x, double y, double
 	dsMatrix44d_makeScale(result, x, y, z);
 }
 
-TYPED_TEST(OrientedBox3Test, Initialize)
+TYPED_TEST(OrientedBox3xTest, Initialize)
 {
-	typedef typename OrientedBox3TypeSelector<TypeParam>::OrientedBox3Type OrientedBox3Type;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::OrientedBox3xType OrientedBox3xType;
 
-	OrientedBox3Type box =
+	OrientedBox3xType box =
 	{
-		{{ {1, 0, 0}, {0, 1, 0}, {0, 0, 1} }},
-		{{1, 2, 3}}, {{4, 5, 6}}
+		{{ {1, 0, 0, 7}, {0, 1, 0, 8}, {0, 0, 1, 9} }},
+		{{1, 2, 3, 10}}, {{4, 5, 6, 11}}
 	};
 
 	EXPECT_EQ((TypeParam)1, box.orientation.values[0][0]);
@@ -220,44 +276,44 @@ TYPED_TEST(OrientedBox3Test, Initialize)
 	EXPECT_EQ((TypeParam)6, box.halfExtents.z);
 }
 
-TYPED_TEST(OrientedBox3Test, IsValid)
+TYPED_TEST(OrientedBox3xTest, IsValid)
 {
-	typedef typename OrientedBox3TypeSelector<TypeParam>::OrientedBox3Type OrientedBox3Type;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::OrientedBox3xType OrientedBox3xType;
 
-	OrientedBox3Type box =
+	OrientedBox3xType box =
 	{
-		{{ {1, 0, 0}, {0, 1, 0}, {0, 0, 1} }},
-		{{1, 2, 3}}, {{4, 5, 6}}
+		{{ {1, 0, 0, 7}, {0, 1, 0, 8}, {0, 0, 1, 9} }},
+		{{1, 2, 3, 10}}, {{4, 5, 6, 11}}
 	};
 
-	EXPECT_TRUE(dsOrientedBox3_isValid(box));
+	EXPECT_TRUE(dsOrientedBox3x_isValid(&box));
 
 	box.halfExtents.x = -1;
-	EXPECT_FALSE(dsOrientedBox3_isValid(box));
+	EXPECT_FALSE(dsOrientedBox3x_isValid(&box));
 
 	box.halfExtents.x = 4;
 	box.halfExtents.y = -1;
-	EXPECT_FALSE(dsOrientedBox3_isValid(box));
+	EXPECT_FALSE(dsOrientedBox3x_isValid(&box));
 
 	box.halfExtents.y = 5;
 	box.halfExtents.z = -1;
-	EXPECT_FALSE(dsOrientedBox3_isValid(box));
+	EXPECT_FALSE(dsOrientedBox3x_isValid(&box));
 }
 
-TYPED_TEST(OrientedBox3Test, FromAlignedBox)
+TYPED_TEST(OrientedBox3xTest, FromAlignedBox)
 {
-	typedef typename OrientedBox3TypeSelector<TypeParam>::OrientedBox3Type OrientedBox3Type;
-	typedef typename OrientedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::OrientedBox3xType OrientedBox3xType;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::AlignedBox3xType AlignedBox3xType;
 
-	OrientedBox3Type box =
+	OrientedBox3xType box =
 	{
-		{{ {0, 0, 1}, {-1, 0, 0}, {0, 1, 0} }},
-		{{6, 5, 4}}, {{3, 2, 1}}
+		{{ {0, 0, 1, 5}, {-1, 0, 0, 6}, {0, 1, 0, 7} }},
+		{{6, 5, 4, 8}}, {{3, 2, 1, 9}}
 	};
 
-	AlignedBox3Type alignedBox = {{{0, 1, 2}}, {{4, 7, 10}}};
+	AlignedBox3xType alignedBox = {{{0, 1, 2, 10}}, {{4, 7, 10, 11}}};
 
-	dsOrientedBox3_fromAlignedBox(box, alignedBox);
+	dsOrientedBox3x_fromAlignedBox(&box, &alignedBox);
 	EXPECT_EQ((TypeParam)1, box.orientation.values[0][0]);
 	EXPECT_EQ((TypeParam)0, box.orientation.values[0][1]);
 	EXPECT_EQ((TypeParam)0, box.orientation.values[0][2]);
@@ -277,42 +333,42 @@ TYPED_TEST(OrientedBox3Test, FromAlignedBox)
 	EXPECT_EQ((TypeParam)4, box.halfExtents.z);
 }
 
-TYPED_TEST(OrientedBox3Test, MakeInvalid)
+TYPED_TEST(OrientedBox3xTest, MakeInvalid)
 {
-	typedef typename OrientedBox3TypeSelector<TypeParam>::OrientedBox3Type OrientedBox3Type;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::OrientedBox3xType OrientedBox3xType;
 
-	OrientedBox3Type box =
+	OrientedBox3xType box =
 	{
-		{{ {1, 0, 0}, {0, 1, 0}, {0, 0, 1} }},
-		{{1, 2, 3}}, {{4, 5, 6}}
+		{{ {1, 0, 0, 7}, {0, 1, 0, 8}, {0, 0, 1, 9} }},
+		{{1, 2, 3, 10}}, {{4, 5, 6, 11}}
 	};
 
-	EXPECT_TRUE(dsOrientedBox3_isValid(box));
+	EXPECT_TRUE(dsOrientedBox3x_isValid(&box));
 
-	dsOrientedBox3_makeInvalid(box);
-	EXPECT_FALSE(dsOrientedBox3_isValid(box));
+	dsOrientedBox3x_makeInvalid(&box);
+	EXPECT_FALSE(dsOrientedBox3x_isValid(&box));
 }
 
-TYPED_TEST(OrientedBox3Test, AddPoint)
+TYPED_TEST(OrientedBox3xTest, AddPoint)
 {
-	typedef typename OrientedBox3TypeSelector<TypeParam>::OrientedBox3Type OrientedBox3Type;
-	typedef typename OrientedBox3TypeSelector<TypeParam>::Vector3Type Vector3Type;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::OrientedBox3xType OrientedBox3xType;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::Vector3xType Vector3xType;
 
-	OrientedBox3Type box =
+	OrientedBox3xType box =
 	{
-		{{ {0, 0, 1}, {-1, 0, 0}, {0, 1, 0} }},
-		{{6, 5, 4}}, {{3, 2, 1}}
+		{{ {0, 0, 1, 5}, {-1, 0, 0, 6}, {0, 1, 0, 7} }},
+		{{6, 5, 4, 8}}, {{3, 2, 1, 9}}
 	};
 
-	Vector3Type point1 = {{5, 6, 3}};
-	Vector3Type point2 = {{1, 6, 3}};
-	Vector3Type point3 = {{5, 0, 3}};
-	Vector3Type point4 = {{5, 6, -1}};
-	Vector3Type point5 = {{9, 6, 3}};
-	Vector3Type point6 = {{5, 10, 3}};
-	Vector3Type point7 = {{5, 6, 11}};
+	Vector3xType point1 = {{5, 6, 3, 10}};
+	Vector3xType point2 = {{1, 6, 3, 11}};
+	Vector3xType point3 = {{5, 0, 3, 12}};
+	Vector3xType point4 = {{5, 6, -1, 13}};
+	Vector3xType point5 = {{9, 6, 3, 14}};
+	Vector3xType point6 = {{5, 10, 3, 15}};
+	Vector3xType point7 = {{5, 6, 11, 16}};
 
-	dsOrientedBox3_addPoint(&box, &point1);
+	dsOrientedBox3x_addPoint(&box, &point1);
 	EXPECT_EQ((TypeParam)6, box.center.x);
 	EXPECT_EQ((TypeParam)5, box.center.y);
 	EXPECT_EQ((TypeParam)4, box.center.z);
@@ -320,7 +376,7 @@ TYPED_TEST(OrientedBox3Test, AddPoint)
 	EXPECT_EQ((TypeParam)2, box.halfExtents.y);
 	EXPECT_EQ((TypeParam)1, box.halfExtents.z);
 
-	dsOrientedBox3_addPoint(&box, &point2);
+	dsOrientedBox3x_addPoint(&box, &point2);
 	EXPECT_EQ((TypeParam)4.5, box.center.x);
 	EXPECT_EQ((TypeParam)5, box.center.y);
 	EXPECT_EQ((TypeParam)4, box.center.z);
@@ -328,7 +384,7 @@ TYPED_TEST(OrientedBox3Test, AddPoint)
 	EXPECT_EQ((TypeParam)3.5, box.halfExtents.y);
 	EXPECT_EQ((TypeParam)1, box.halfExtents.z);
 
-	dsOrientedBox3_addPoint(&box, &point3);
+	dsOrientedBox3x_addPoint(&box, &point3);
 	EXPECT_EQ((TypeParam)4.5, box.center.x);
 	EXPECT_EQ((TypeParam)3, box.center.y);
 	EXPECT_EQ((TypeParam)4, box.center.z);
@@ -336,7 +392,7 @@ TYPED_TEST(OrientedBox3Test, AddPoint)
 	EXPECT_EQ((TypeParam)3.5, box.halfExtents.y);
 	EXPECT_EQ((TypeParam)3, box.halfExtents.z);
 
-	dsOrientedBox3_addPoint(&box, &point4);
+	dsOrientedBox3x_addPoint(&box, &point4);
 	EXPECT_EQ((TypeParam)4.5, box.center.x);
 	EXPECT_EQ((TypeParam)3, box.center.y);
 	EXPECT_EQ((TypeParam)3, box.center.z);
@@ -344,7 +400,7 @@ TYPED_TEST(OrientedBox3Test, AddPoint)
 	EXPECT_EQ((TypeParam)3.5, box.halfExtents.y);
 	EXPECT_EQ((TypeParam)3, box.halfExtents.z);
 
-	dsOrientedBox3_addPoint(&box, &point5);
+	dsOrientedBox3x_addPoint(&box, &point5);
 	EXPECT_EQ((TypeParam)5, box.center.x);
 	EXPECT_EQ((TypeParam)3, box.center.y);
 	EXPECT_EQ((TypeParam)3, box.center.z);
@@ -352,7 +408,7 @@ TYPED_TEST(OrientedBox3Test, AddPoint)
 	EXPECT_EQ((TypeParam)4, box.halfExtents.y);
 	EXPECT_EQ((TypeParam)3, box.halfExtents.z);
 
-	dsOrientedBox3_addPoint(&box, &point6);
+	dsOrientedBox3x_addPoint(&box, &point6);
 	EXPECT_EQ((TypeParam)5, box.center.x);
 	EXPECT_EQ((TypeParam)5, box.center.y);
 	EXPECT_EQ((TypeParam)3, box.center.z);
@@ -360,7 +416,7 @@ TYPED_TEST(OrientedBox3Test, AddPoint)
 	EXPECT_EQ((TypeParam)4, box.halfExtents.y);
 	EXPECT_EQ((TypeParam)5, box.halfExtents.z);
 
-	dsOrientedBox3_addPoint(&box, &point7);
+	dsOrientedBox3x_addPoint(&box, &point7);
 	EXPECT_EQ((TypeParam)5, box.center.x);
 	EXPECT_EQ((TypeParam)5, box.center.y);
 	EXPECT_EQ((TypeParam)5, box.center.z);
@@ -369,20 +425,20 @@ TYPED_TEST(OrientedBox3Test, AddPoint)
 	EXPECT_EQ((TypeParam)5, box.halfExtents.z);
 }
 
-TYPED_TEST(OrientedBox3Test, Corners)
+TYPED_TEST(OrientedBox3xTest, Corners)
 {
-	typedef typename OrientedBox3TypeSelector<TypeParam>::OrientedBox3Type OrientedBox3Type;
-	typedef typename OrientedBox3TypeSelector<TypeParam>::Vector3Type Vector3Type;
-	TypeParam epsilon = OrientedBox3TypeSelector<TypeParam>::epsilon;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::OrientedBox3xType OrientedBox3xType;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::Vector3xType Vector3xType;
+	TypeParam epsilon = OrientedBox3xTypeSelector<TypeParam>::epsilon;
 
-	OrientedBox3Type box =
+	OrientedBox3xType box =
 	{
-		{{ {0, 0, 1}, {-1, 0, 0}, {0, 1, 0} }},
-		{{6, 5, 4}}, {{3, 2, 1}}
+		{{ {0, 0, 1, 5}, {-1, 0, 0, 6}, {0, 1, 0, 7} }},
+		{{6, 5, 4, 8}}, {{3, 2, 1, 9}}
 	};
 
-	Vector3Type corners[DS_BOX3_CORNER_COUNT];
-	EXPECT_TRUE(dsOrientedBox3_corners(corners, &box));
+	Vector3xType corners[DS_BOX3_CORNER_COUNT];
+	EXPECT_TRUE(dsOrientedBox3x_corners(corners, &box));
 
 	EXPECT_NEAR(8, corners[0].x, epsilon);
 	EXPECT_NEAR(4, corners[0].y, epsilon);
@@ -417,25 +473,25 @@ TYPED_TEST(OrientedBox3Test, Corners)
 	EXPECT_NEAR(7, corners[7].z, epsilon);
 }
 
-TYPED_TEST(OrientedBox3Test, ToMatrix)
+TYPED_TEST(OrientedBox3xTest, ToMatrix)
 {
-	typedef typename OrientedBox3TypeSelector<TypeParam>::OrientedBox3Type OrientedBox3Type;
-	typedef typename OrientedBox3TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
-	typedef typename OrientedBox3TypeSelector<TypeParam>::Vector4Type Vector4Type;
-	typedef typename OrientedBox3TypeSelector<TypeParam>::Vector3Type Vector3Type;
-	TypeParam epsilon = OrientedBox3TypeSelector<TypeParam>::epsilon;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::OrientedBox3xType OrientedBox3xType;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::Matrix44Type Matrix44Type;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::Vector4Type Vector4Type;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::Vector3xType Vector3xType;
+	TypeParam epsilon = OrientedBox3xTypeSelector<TypeParam>::epsilon;
 
-	OrientedBox3Type box =
+	OrientedBox3xType box =
 	{
-		{{ {0, 0, 1}, {-1, 0, 0}, {0, 1, 0} }},
-		{{6, 5, 4}}, {{3, 2, 1}}
+		{{ {0, 0, 1, 5}, {-1, 0, 0, 6}, {0, 1, 0, 7} }},
+		{{6, 5, 4, 8}}, {{3, 2, 1, 9}}
 	};
 
-	Vector3Type corners[DS_BOX3_CORNER_COUNT];
-	EXPECT_TRUE(dsOrientedBox3_corners(corners, &box));
+	Vector3xType corners[DS_BOX3_CORNER_COUNT];
+	EXPECT_TRUE(dsOrientedBox3x_corners(corners, &box));
 
 	Matrix44Type matrix;
-	dsOrientedBox3_toMatrix(matrix, box);
+	dsOrientedBox3x_toMatrix(&matrix, &box);
 
 	Vector4Type lowerLeft = {{-1, -1, -1, 1}};
 	Vector4Type boxPoint;
@@ -450,8 +506,8 @@ TYPED_TEST(OrientedBox3Test, ToMatrix)
 	EXPECT_NEAR(corners[dsBox3Corner_XYZ].y, boxPoint.y, epsilon);
 	EXPECT_NEAR(corners[dsBox3Corner_XYZ].z, boxPoint.z, epsilon);
 
-	OrientedBox3Type restoredBox;
-	dsOrientedBox3_fromMatrix(&restoredBox, &matrix);
+	OrientedBox3xType restoredBox;
+	dsOrientedBox3x_fromMatrix(&restoredBox, &matrix);
 	EXPECT_NEAR(restoredBox.orientation.values[0][0], box.orientation.values[0][0], epsilon);
 	EXPECT_NEAR(restoredBox.orientation.values[0][1], box.orientation.values[0][1], epsilon);
 	EXPECT_NEAR(restoredBox.orientation.values[0][2], box.orientation.values[0][2], epsilon);
@@ -469,20 +525,20 @@ TYPED_TEST(OrientedBox3Test, ToMatrix)
 	EXPECT_NEAR(restoredBox.halfExtents.z, box.halfExtents.z, epsilon);
 }
 
-TYPED_TEST(OrientedBox3Test, ToMatrixTranspose)
+TYPED_TEST(OrientedBox3xTest, ToMatrixTranspose)
 {
-	typedef typename OrientedBox3TypeSelector<TypeParam>::OrientedBox3Type OrientedBox3Type;
-	typedef typename OrientedBox3TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::OrientedBox3xType OrientedBox3xType;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 
-	OrientedBox3Type box =
+	OrientedBox3xType box =
 	{
-		{{ {0, 0, 1}, {-1, 0, 0}, {0, 1, 0} }},
-		{{6, 5, 4}}, {{3, 2, 1}}
+		{{ {0, 0, 1, 5}, {-1, 0, 0, 6}, {0, 1, 0, 7} }},
+		{{6, 5, 4, 8}}, {{3, 2, 1, 9}}
 	};
 
 	Matrix44Type matrix, transposedMatrix;
-	dsOrientedBox3_toMatrix(matrix, box);
-	dsOrientedBox3_toMatrixTranspose(transposedMatrix, box);
+	dsOrientedBox3x_toMatrix(&matrix, &box);
+	dsOrientedBox3x_toMatrixTranspose(&transposedMatrix, &box);
 
 	for (unsigned int i = 0; i < 4; ++i)
 	{
@@ -491,22 +547,22 @@ TYPED_TEST(OrientedBox3Test, ToMatrixTranspose)
 	}
 }
 
-TYPED_TEST(OrientedBox3Test, Transform)
+TYPED_TEST(OrientedBox3xTest, Transform)
 {
-	typedef typename OrientedBox3TypeSelector<TypeParam>::OrientedBox3Type OrientedBox3Type;
-	typedef typename OrientedBox3TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
-	typedef typename OrientedBox3TypeSelector<TypeParam>::Vector4Type Vector4Type;
-	typedef typename OrientedBox3TypeSelector<TypeParam>::Vector3Type Vector3Type;
-	TypeParam epsilon = OrientedBox3TypeSelector<TypeParam>::epsilon;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::OrientedBox3xType OrientedBox3xType;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::Matrix44Type Matrix44Type;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::Vector4Type Vector4Type;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::Vector3xType Vector3xType;
+	TypeParam epsilon = OrientedBox3xTypeSelector<TypeParam>::epsilon;
 
-	OrientedBox3Type box =
+	OrientedBox3xType box =
 	{
-		{{ {0, 0, 1}, {-1, 0, 0}, {0, 1, 0} }},
-		{{6, 5, 4}}, {{3, 2, 1}}
+		{{ {0, 0, 1, 5}, {-1, 0, 0, 6}, {0, 1, 0, 7} }},
+		{{6, 5, 4, 8}}, {{3, 2, 1, 9}}
 	};
 
-	Vector3Type corners[DS_BOX3_CORNER_COUNT];
-	EXPECT_TRUE(dsOrientedBox3_corners(corners, &box));
+	Vector3xType corners[DS_BOX3_CORNER_COUNT];
+	EXPECT_TRUE(dsOrientedBox3x_corners(corners, &box));
 
 	Matrix44Type rotate, translate, scale, temp, transform;
 
@@ -522,7 +578,7 @@ TYPED_TEST(OrientedBox3Test, Transform)
 	Vector4Type center;
 	dsMatrix44_transform(center, transform, originalCenter);
 
-	EXPECT_TRUE(dsOrientedBox3_transform(&box, &transform));
+	EXPECT_TRUE(dsOrientedBox3x_transform(&box, &transform));
 
 	EXPECT_NEAR(rotate.values[2][0], box.orientation.values[0][0], epsilon);
 	EXPECT_NEAR(rotate.values[2][1], box.orientation.values[0][1], epsilon);
@@ -544,8 +600,8 @@ TYPED_TEST(OrientedBox3Test, Transform)
 	EXPECT_NEAR(14, box.halfExtents.y, epsilon);
 	EXPECT_NEAR(8, box.halfExtents.z, epsilon);
 
-	Vector3Type transformedCorners[DS_BOX3_CORNER_COUNT];
-	EXPECT_TRUE(dsOrientedBox3_corners(transformedCorners, &box));
+	Vector3xType transformedCorners[DS_BOX3_CORNER_COUNT];
+	EXPECT_TRUE(dsOrientedBox3x_corners(transformedCorners, &box));
 
 	for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
 	{
@@ -559,22 +615,22 @@ TYPED_TEST(OrientedBox3Test, Transform)
 	}
 }
 
-TYPED_TEST(OrientedBox3Test, TransformIncremental)
+TYPED_TEST(OrientedBox3xTest, TransformIncremental)
 {
-	typedef typename OrientedBox3TypeSelector<TypeParam>::OrientedBox3Type OrientedBox3Type;
-	typedef typename OrientedBox3TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
-	typedef typename OrientedBox3TypeSelector<TypeParam>::Vector4Type Vector4Type;
-	typedef typename OrientedBox3TypeSelector<TypeParam>::Vector3Type Vector3Type;
-	TypeParam epsilon = OrientedBox3TypeSelector<TypeParam>::epsilon;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::OrientedBox3xType OrientedBox3xType;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::Matrix44Type Matrix44Type;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::Vector4Type Vector4Type;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::Vector3xType Vector3xType;
+	TypeParam epsilon = OrientedBox3xTypeSelector<TypeParam>::epsilon;
 
-	OrientedBox3Type box =
+	OrientedBox3xType box =
 	{
-		{{ {0, 0, 1}, {-1, 0, 0}, {0, 1, 0} }},
-		{{6, 5, 4}}, {{3, 2, 1}}
+		{{ {0, 0, 1, 5}, {-1, 0, 0, 6}, {0, 1, 0, 7} }},
+		{{6, 5, 4, 8}}, {{3, 2, 1, 9}}
 	};
 
-	Vector3Type corners[DS_BOX3_CORNER_COUNT];
-	EXPECT_TRUE(dsOrientedBox3_corners(corners, &box));
+	Vector3xType corners[DS_BOX3_CORNER_COUNT];
+	EXPECT_TRUE(dsOrientedBox3x_corners(corners, &box));
 
 	Matrix44Type rotate, translate, scale, temp, transform;
 
@@ -590,9 +646,9 @@ TYPED_TEST(OrientedBox3Test, TransformIncremental)
 	Vector4Type center;
 	dsMatrix44_transform(center, transform, originalCenter);
 
-	EXPECT_TRUE(dsOrientedBox3_transform(&box, &scale));
-	EXPECT_TRUE(dsOrientedBox3_transform(&box, &rotate));
-	EXPECT_TRUE(dsOrientedBox3_transform(&box, &translate));
+	EXPECT_TRUE(dsOrientedBox3x_transform(&box, &scale));
+	EXPECT_TRUE(dsOrientedBox3x_transform(&box, &rotate));
+	EXPECT_TRUE(dsOrientedBox3x_transform(&box, &translate));
 
 	EXPECT_NEAR(rotate.values[2][0], box.orientation.values[0][0], epsilon);
 	EXPECT_NEAR(rotate.values[2][1], box.orientation.values[0][1], epsilon);
@@ -614,8 +670,8 @@ TYPED_TEST(OrientedBox3Test, TransformIncremental)
 	EXPECT_NEAR(14, box.halfExtents.y, epsilon);
 	EXPECT_NEAR(8, box.halfExtents.z, epsilon);
 
-	Vector3Type transformedCorners[DS_BOX3_CORNER_COUNT];
-	EXPECT_TRUE(dsOrientedBox3_corners(transformedCorners, &box));
+	Vector3xType transformedCorners[DS_BOX3_CORNER_COUNT];
+	EXPECT_TRUE(dsOrientedBox3x_corners(transformedCorners, &box));
 
 	for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
 	{
@@ -629,23 +685,23 @@ TYPED_TEST(OrientedBox3Test, TransformIncremental)
 	}
 }
 
-TYPED_TEST(OrientedBox3Test, AddBox)
+TYPED_TEST(OrientedBox3xTest, AddBox)
 {
-	typedef typename OrientedBox3TypeSelector<TypeParam>::OrientedBox3Type OrientedBox3Type;
-	typedef typename OrientedBox3TypeSelector<TypeParam>::Vector3Type Vector3Type;
-	typedef typename OrientedBox3TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
-	TypeParam epsilon = OrientedBox3TypeSelector<TypeParam>::epsilon;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::OrientedBox3xType OrientedBox3xType;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::Vector3xType Vector3xType;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::Matrix44Type Matrix44Type;
+	TypeParam epsilon = OrientedBox3xTypeSelector<TypeParam>::epsilon;
 
-	OrientedBox3Type box =
+	OrientedBox3xType box =
 	{
-		{{ {0, 0, 1}, {-1, 0, 0}, {0, 1, 0} }},
-		{{6, 5, 4}}, {{3, 2, 1}}
+		{{ {0, 0, 1, 5}, {-1, 0, 0, 6}, {0, 1, 0, 7} }},
+		{{6, 5, 4, 8}}, {{3, 2, 1, 9}}
 	};
 
-	OrientedBox3Type otherBox =
+	OrientedBox3xType otherBox =
 	{
-		{{ {1, 0, 0}, {0, 1, 0}, {0, 0, 1} }},
-		{{1, 2, 3}}, {{4, 5, 6}}
+		{{ {1, 0, 0, 10}, {0, 1, 0, 11}, {0, 0, 1, 12} }},
+		{{1, 2, 3, 13}}, {{4, 5, 6, 14}}
 	};
 
 	Matrix44Type rotate, translate, scale, temp, transform;
@@ -658,16 +714,16 @@ TYPED_TEST(OrientedBox3Test, AddBox)
 	dsMatrix44_mul(temp, rotate, scale);
 	dsMatrix44_mul(transform, translate, temp);
 
-	dsOrientedBox3_transform(&otherBox, &transform);
+	dsOrientedBox3x_transform(&otherBox, &transform);
 
-	Vector3Type otherBoxCorners[DS_BOX3_CORNER_COUNT];
-	EXPECT_TRUE(dsOrientedBox3_corners(otherBoxCorners, &otherBox));
+	Vector3xType otherBoxCorners[DS_BOX3_CORNER_COUNT];
+	EXPECT_TRUE(dsOrientedBox3x_corners(otherBoxCorners, &otherBox));
 
-	OrientedBox3Type addPointsBox = box;
-	dsOrientedBox3_addBox(&box, &otherBox);
+	OrientedBox3xType addPointsBox = box;
+	dsOrientedBox3x_addBox(&box, &otherBox);
 
 	for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
-		dsOrientedBox3_addPoint(&addPointsBox, otherBoxCorners + i);
+		dsOrientedBox3x_addPoint(&addPointsBox, otherBoxCorners + i);
 
 	EXPECT_NEAR(addPointsBox.center.x, box.center.x, epsilon);
 	EXPECT_NEAR(addPointsBox.center.y, box.center.y, epsilon);
@@ -677,335 +733,335 @@ TYPED_TEST(OrientedBox3Test, AddBox)
 	EXPECT_NEAR(addPointsBox.halfExtents.z, box.halfExtents.z, epsilon);
 }
 
-TYPED_TEST(OrientedBox3Test, Intersects)
+TYPED_TEST(OrientedBox3xTest, Intersects)
 {
-	typedef typename OrientedBox3TypeSelector<TypeParam>::OrientedBox3Type OrientedBox3Type;
-	typedef typename OrientedBox3TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::OrientedBox3xType OrientedBox3xType;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 
-	OrientedBox3Type box =
+	OrientedBox3xType box =
 	{
-		{{ {0, 0, 1}, {-1, 0, 0}, {0, 1, 0} }},
-		{{6, 5, 4}}, {{3, 2, 1}}
+		{{ {0, 0, 1, 5}, {-1, 0, 0, 6}, {0, 1, 0, 7} }},
+		{{6, 5, 4, 8}}, {{3, 2, 1, 9}}
 	};
 
-	OrientedBox3Type otherBox =
+	OrientedBox3xType otherBox =
 	{
-		{{ {1, 0, 0}, {0, 1, 0}, {0, 0, 1} }},
-		{{1, 2, 3}}, {{4, 5, 6}}
+		{{ {1, 0, 0, 10}, {0, 1, 0, 11}, {0, 0, 1, 12} }},
+		{{1, 2, 3, 13}}, {{4, 5, 6, 14}}
 	};
 
 	Matrix44Type rotate;
 	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30),
 		(TypeParam)dsDegreesToRadiansd(-15), (TypeParam)dsDegreesToRadiansd(60));
-	dsOrientedBox3_transform(&otherBox, &rotate);
+	dsOrientedBox3x_transform(&otherBox, &rotate);
 
 	otherBox.center.x = 6;
 	otherBox.center.y = 5;
 	otherBox.center.z = 4;
-	EXPECT_TRUE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_TRUE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	// Pass (axes)
 	otherBox.center.x = 1;
 	otherBox.center.y = 5;
 	otherBox.center.z = 4;
-	EXPECT_TRUE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_TRUE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = 11;
 	otherBox.center.y = 5;
 	otherBox.center.z = 4;
-	EXPECT_TRUE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_TRUE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = 6;
 	otherBox.center.y = 0;
 	otherBox.center.z = 4;
-	EXPECT_TRUE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_TRUE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = 6;
 	otherBox.center.y = 10;
 	otherBox.center.z = 4;
-	EXPECT_TRUE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_TRUE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = 6;
 	otherBox.center.y = 5;
 	otherBox.center.z = -1;
-	EXPECT_TRUE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_TRUE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = 6;
 	otherBox.center.y = 5;
 	otherBox.center.z = 9;
-	EXPECT_TRUE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_TRUE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	// Pass (off-axis)
 	otherBox.center.x = 3;
 	otherBox.center.y = 2;
 	otherBox.center.z = 1;
-	EXPECT_TRUE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_TRUE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = 3;
 	otherBox.center.y = 2;
 	otherBox.center.z = 7;
-	EXPECT_TRUE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_TRUE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = 3;
 	otherBox.center.y = 8;
 	otherBox.center.z = 1;
-	EXPECT_TRUE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_TRUE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = 3;
 	otherBox.center.y = 8;
 	otherBox.center.z = 7;
-	EXPECT_TRUE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_TRUE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = 9;
 	otherBox.center.y = 2;
 	otherBox.center.z = 1;
-	EXPECT_TRUE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_TRUE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = 9;
 	otherBox.center.y = 2;
 	otherBox.center.z = 7;
-	EXPECT_TRUE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_TRUE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = 9;
 	otherBox.center.y = 8;
 	otherBox.center.z = 1;
-	EXPECT_TRUE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_TRUE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = 9;
 	otherBox.center.y = 8;
 	otherBox.center.z = 7;
-	EXPECT_TRUE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_TRUE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	// Fail (axes)
 	otherBox.center.x = -6;
 	otherBox.center.y = 5;
 	otherBox.center.z = 4;
-	EXPECT_FALSE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_FALSE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = 18;
 	otherBox.center.y = 5;
 	otherBox.center.z = 4;
-	EXPECT_FALSE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_FALSE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = 6;
 	otherBox.center.y = -7;
 	otherBox.center.z = 4;
-	EXPECT_FALSE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_FALSE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = 6;
 	otherBox.center.y = 17;
 	otherBox.center.z = 4;
-	EXPECT_FALSE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_FALSE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = 6;
 	otherBox.center.y = 5;
 	otherBox.center.z = -8;
-	EXPECT_FALSE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_FALSE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = 6;
 	otherBox.center.y = 5;
 	otherBox.center.z = 16;
-	EXPECT_FALSE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_FALSE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	// Fail (off-axis)
 	otherBox.center.x = -4;
 	otherBox.center.y = -5;
 	otherBox.center.z = -6;
-	EXPECT_FALSE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_FALSE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = -4;
 	otherBox.center.y = -5;
 	otherBox.center.z = 14;
-	EXPECT_FALSE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_FALSE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = -4;
 	otherBox.center.y = 15;
 	otherBox.center.z = -6;
-	EXPECT_FALSE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_FALSE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = -4;
 	otherBox.center.y = 15;
 	otherBox.center.z = 14;
-	EXPECT_FALSE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_FALSE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = 16;
 	otherBox.center.y = -5;
 	otherBox.center.z = -6;
-	EXPECT_FALSE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_FALSE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = 16;
 	otherBox.center.y = -5;
 	otherBox.center.z = 14;
-	EXPECT_FALSE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_FALSE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = 16;
 	otherBox.center.y = 15;
 	otherBox.center.z = -6;
-	EXPECT_FALSE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_FALSE(dsOrientedBox3x_intersects(&box, &otherBox));
 
 	otherBox.center.x = 16;
 	otherBox.center.y = 15;
 	otherBox.center.z = 14;
-	EXPECT_FALSE(dsOrientedBox3_intersects(&box, &otherBox));
+	EXPECT_FALSE(dsOrientedBox3x_intersects(&box, &otherBox));
 }
 
-TYPED_TEST(OrientedBox3Test, ContainsPoint)
+TYPED_TEST(OrientedBox3xTest, ContainsPoint)
 {
-	typedef typename OrientedBox3TypeSelector<TypeParam>::OrientedBox3Type OrientedBox3Type;
-	typedef typename OrientedBox3TypeSelector<TypeParam>::Vector3Type Vector3Type;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::OrientedBox3xType OrientedBox3xType;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::Vector3xType Vector3xType;
 
-	OrientedBox3Type box =
+	OrientedBox3xType box =
 	{
-		{{ {0, 0, 1}, {-1, 0, 0}, {0, 1, 0} }},
-		{{6, 5, 4}}, {{3, 2, 1}}
+		{{ {0, 0, 1, 5}, {-1, 0, 0, 6}, {0, 1, 0, 7} }},
+		{{6, 5, 4, 8}}, {{3, 2, 1, 9}}
 	};
 
-	Vector3Type point1 = {{5, 6, 3}};
-	Vector3Type point2 = {{1, 6, 3}};
-	Vector3Type point3 = {{5, 0, 3}};
-	Vector3Type point4 = {{5, 6, -1}};
-	Vector3Type point5 = {{11, 6, 3}};
-	Vector3Type point6 = {{5, 10, 3}};
-	Vector3Type point7 = {{5, 6, 9}};
+	Vector3xType point1 = {{5, 6, 3, 10}};
+	Vector3xType point2 = {{1, 6, 3, 11}};
+	Vector3xType point3 = {{5, 0, 3, 12}};
+	Vector3xType point4 = {{5, 6, -1, 13}};
+	Vector3xType point5 = {{11, 6, 3, 14}};
+	Vector3xType point6 = {{5, 10, 3, 15}};
+	Vector3xType point7 = {{5, 6, 9, 16}};
 
-	EXPECT_TRUE(dsOrientedBox3_containsPoint(&box, &box.center));
-	EXPECT_TRUE(dsOrientedBox3_containsPoint(&box, &point1));
-	EXPECT_FALSE(dsOrientedBox3_containsPoint(&box, &point2));
-	EXPECT_FALSE(dsOrientedBox3_containsPoint(&box, &point3));
-	EXPECT_FALSE(dsOrientedBox3_containsPoint(&box, &point4));
-	EXPECT_FALSE(dsOrientedBox3_containsPoint(&box, &point5));
-	EXPECT_FALSE(dsOrientedBox3_containsPoint(&box, &point6));
-	EXPECT_FALSE(dsOrientedBox3_containsPoint(&box, &point7));
+	EXPECT_TRUE(dsOrientedBox3x_containsPoint(&box, &box.center));
+	EXPECT_TRUE(dsOrientedBox3x_containsPoint(&box, &point1));
+	EXPECT_FALSE(dsOrientedBox3x_containsPoint(&box, &point2));
+	EXPECT_FALSE(dsOrientedBox3x_containsPoint(&box, &point3));
+	EXPECT_FALSE(dsOrientedBox3x_containsPoint(&box, &point4));
+	EXPECT_FALSE(dsOrientedBox3x_containsPoint(&box, &point5));
+	EXPECT_FALSE(dsOrientedBox3x_containsPoint(&box, &point6));
+	EXPECT_FALSE(dsOrientedBox3x_containsPoint(&box, &point7));
 }
 
-TYPED_TEST(OrientedBox3Test, ClosestPoint)
+TYPED_TEST(OrientedBox3xTest, ClosestPoint)
 {
-	typedef typename OrientedBox3TypeSelector<TypeParam>::OrientedBox3Type OrientedBox3Type;
-	typedef typename OrientedBox3TypeSelector<TypeParam>::Vector3Type Vector3Type;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::OrientedBox3xType OrientedBox3xType;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::Vector3xType Vector3xType;
 
-	OrientedBox3Type box =
+	OrientedBox3xType box =
 	{
-		{{ {0, 0, 1}, {-1, 0, 0}, {0, 1, 0} }},
-		{{6, 5, 4}}, {{3, 2, 1}}
+		{{ {0, 0, 1, 5}, {-1, 0, 0, 6}, {0, 1, 0, 7} }},
+		{{6, 5, 4, 8}}, {{3, 2, 1, 9}}
 	};
 
-	Vector3Type point1 = {{5, 6, 3}};
-	Vector3Type point2 = {{1, 6, 3}};
-	Vector3Type point3 = {{5, 0, 3}};
-	Vector3Type point4 = {{5, 6, -1}};
-	Vector3Type point5 = {{11, 6, 3}};
-	Vector3Type point6 = {{5, 10, 3}};
-	Vector3Type point7 = {{5, 6, 9}};
+	Vector3xType point1 = {{5, 6, 3, 10}};
+	Vector3xType point2 = {{1, 6, 3, 11}};
+	Vector3xType point3 = {{5, 0, 3, 12}};
+	Vector3xType point4 = {{5, 6, -1, 13}};
+	Vector3xType point5 = {{11, 6, 3, 14}};
+	Vector3xType point6 = {{5, 10, 3, 15}};
+	Vector3xType point7 = {{5, 6, 9, 16}};
 
-	Vector3Type closest;
-	dsOrientedBox3_closestPoint(&closest, &box, &box.center);
+	Vector3xType closest;
+	dsOrientedBox3x_closestPoint(&closest, &box, &box.center);
 	EXPECT_EQ(box.center.x, closest.x);
 	EXPECT_EQ(box.center.y, closest.y);
 	EXPECT_EQ(box.center.z, closest.z);
 
-	dsOrientedBox3_closestPoint(&closest, &box, &point1);
+	dsOrientedBox3x_closestPoint(&closest, &box, &point1);
 	EXPECT_EQ((TypeParam)5, closest.x);
 	EXPECT_EQ((TypeParam)6, closest.y);
 	EXPECT_EQ((TypeParam)3, closest.z);
 
-	dsOrientedBox3_closestPoint(&closest, &box, &point2);
+	dsOrientedBox3x_closestPoint(&closest, &box, &point2);
 	EXPECT_EQ((TypeParam)4, closest.x);
 	EXPECT_EQ((TypeParam)6, closest.y);
 	EXPECT_EQ((TypeParam)3, closest.z);
 
-	dsOrientedBox3_closestPoint(&closest, &box, &point3);
+	dsOrientedBox3x_closestPoint(&closest, &box, &point3);
 	EXPECT_EQ((TypeParam)5, closest.x);
 	EXPECT_EQ((TypeParam)4, closest.y);
 	EXPECT_EQ((TypeParam)3, closest.z);
 
-	dsOrientedBox3_closestPoint(&closest, &box, &point4);
+	dsOrientedBox3x_closestPoint(&closest, &box, &point4);
 	EXPECT_EQ((TypeParam)5, closest.x);
 	EXPECT_EQ((TypeParam)6, closest.y);
 	EXPECT_EQ((TypeParam)1, closest.z);
 
-	dsOrientedBox3_closestPoint(&closest, &box, &point5);
+	dsOrientedBox3x_closestPoint(&closest, &box, &point5);
 	EXPECT_EQ((TypeParam)8, closest.x);
 	EXPECT_EQ((TypeParam)6, closest.y);
 	EXPECT_EQ((TypeParam)3, closest.z);
 
-	dsOrientedBox3_closestPoint(&closest, &box, &point6);
+	dsOrientedBox3x_closestPoint(&closest, &box, &point6);
 	EXPECT_EQ((TypeParam)5, closest.x);
 	EXPECT_EQ((TypeParam)6, closest.y);
 	EXPECT_EQ((TypeParam)3, closest.z);
 
-	dsOrientedBox3_closestPoint(&closest, &box, &point7);
+	dsOrientedBox3x_closestPoint(&closest, &box, &point7);
 	EXPECT_EQ((TypeParam)5, closest.x);
 	EXPECT_EQ((TypeParam)6, closest.y);
 	EXPECT_EQ((TypeParam)7, closest.z);
 }
 
-TYPED_TEST(OrientedBox3Test, Dist2)
+TYPED_TEST(OrientedBox3xTest, Dist2)
 {
-	typedef typename OrientedBox3TypeSelector<TypeParam>::OrientedBox3Type OrientedBox3Type;
-	typedef typename OrientedBox3TypeSelector<TypeParam>::Vector3Type Vector3Type;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::OrientedBox3xType OrientedBox3xType;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::Vector3xType Vector3xType;
 
-	OrientedBox3Type box =
+	OrientedBox3xType box =
 	{
-		{{ {0, 0, 1}, {-1, 0, 0}, {0, 1, 0} }},
-		{{6, 5, 4}}, {{3, 2, 1}}
+		{{ {0, 0, 1, 5}, {-1, 0, 0, 6}, {0, 1, 0, 7} }},
+		{{6, 5, 4, 8}}, {{3, 2, 1, 9}}
 	};
 
-	Vector3Type point1 = {{5, 6, 3}};
-	Vector3Type point2 = {{1, 6, 3}};
-	Vector3Type point3 = {{5, 0, 3}};
-	Vector3Type point4 = {{5, 6, -1}};
-	Vector3Type point5 = {{11, 6, 3}};
-	Vector3Type point6 = {{5, 10, 3}};
-	Vector3Type point7 = {{5, 6, 9}};
+	Vector3xType point1 = {{5, 6, 3, 10}};
+	Vector3xType point2 = {{1, 6, 3, 11}};
+	Vector3xType point3 = {{5, 0, 3, 12}};
+	Vector3xType point4 = {{5, 6, -1, 13}};
+	Vector3xType point5 = {{11, 6, 3, 14}};
+	Vector3xType point6 = {{5, 10, 3, 15}};
+	Vector3xType point7 = {{5, 6, 9, 16}};
 
-	EXPECT_EQ((TypeParam)0, dsOrientedBox3_dist2(&box, &box.center));
-	EXPECT_EQ((TypeParam)0, dsOrientedBox3_dist2(&box, &point1));
-	EXPECT_EQ((TypeParam)9, dsOrientedBox3_dist2(&box, &point2));
-	EXPECT_EQ((TypeParam)16, dsOrientedBox3_dist2(&box, &point3));
-	EXPECT_EQ((TypeParam)4, dsOrientedBox3_dist2(&box, &point4));
-	EXPECT_EQ((TypeParam)9, dsOrientedBox3_dist2(&box, &point5));
-	EXPECT_EQ((TypeParam)16, dsOrientedBox3_dist2(&box, &point6));
-	EXPECT_EQ((TypeParam)4, dsOrientedBox3_dist2(&box, &point7));
+	EXPECT_EQ((TypeParam)0, dsOrientedBox3x_dist2(&box, &box.center));
+	EXPECT_EQ((TypeParam)0, dsOrientedBox3x_dist2(&box, &point1));
+	EXPECT_EQ((TypeParam)9, dsOrientedBox3x_dist2(&box, &point2));
+	EXPECT_EQ((TypeParam)16, dsOrientedBox3x_dist2(&box, &point3));
+	EXPECT_EQ((TypeParam)4, dsOrientedBox3x_dist2(&box, &point4));
+	EXPECT_EQ((TypeParam)9, dsOrientedBox3x_dist2(&box, &point5));
+	EXPECT_EQ((TypeParam)16, dsOrientedBox3x_dist2(&box, &point6));
+	EXPECT_EQ((TypeParam)4, dsOrientedBox3x_dist2(&box, &point7));
 }
 
-TYPED_TEST(OrientedBox3Test, Dist)
+TYPED_TEST(OrientedBox3xTest, Dist)
 {
-	typedef typename OrientedBox3TypeSelector<TypeParam>::OrientedBox3Type OrientedBox3Type;
-	typedef typename OrientedBox3TypeSelector<TypeParam>::Vector3Type Vector3Type;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::OrientedBox3xType OrientedBox3xType;
+	typedef typename OrientedBox3xTypeSelector<TypeParam>::Vector3xType Vector3xType;
 
-	OrientedBox3Type box =
+	OrientedBox3xType box =
 	{
-		{{ {0, 0, 1}, {-1, 0, 0}, {0, 1, 0} }},
-		{{6, 5, 4}}, {{3, 2, 1}}
+		{{ {0, 0, 1, 5}, {-1, 0, 0, 6}, {0, 1, 0, 7} }},
+		{{6, 5, 4, 8}}, {{3, 2, 1, 9}}
 	};
 
-	Vector3Type point1 = {{5, 6, 3}};
-	Vector3Type point2 = {{1, 6, 3}};
-	Vector3Type point3 = {{5, 0, 3}};
-	Vector3Type point4 = {{5, 6, -1}};
-	Vector3Type point5 = {{11, 6, 3}};
-	Vector3Type point6 = {{5, 10, 3}};
-	Vector3Type point7 = {{5, 6, 9}};
+	Vector3xType point1 = {{5, 6, 3, 10}};
+	Vector3xType point2 = {{1, 6, 3, 11}};
+	Vector3xType point3 = {{5, 0, 3, 12}};
+	Vector3xType point4 = {{5, 6, -1, 13}};
+	Vector3xType point5 = {{11, 6, 3, 14}};
+	Vector3xType point6 = {{5, 10, 3, 15}};
+	Vector3xType point7 = {{5, 6, 9, 16}};
 
-	EXPECT_FLOAT_EQ(0.0f, (float)dsOrientedBox3_dist(&box, &box.center));
-	EXPECT_FLOAT_EQ(0.0f, (float)dsOrientedBox3_dist(&box, &point1));
-	EXPECT_FLOAT_EQ(3.0f, (float)dsOrientedBox3_dist(&box, &point2));
-	EXPECT_FLOAT_EQ(4.0f, (float)dsOrientedBox3_dist(&box, &point3));
-	EXPECT_FLOAT_EQ(2.0f, (float)dsOrientedBox3_dist(&box, &point4));
-	EXPECT_FLOAT_EQ(3.0f, (float)dsOrientedBox3_dist(&box, &point5));
-	EXPECT_FLOAT_EQ(4.0f, (float)dsOrientedBox3_dist(&box, &point6));
-	EXPECT_FLOAT_EQ(2.0f, (float)dsOrientedBox3_dist(&box, &point7));
+	EXPECT_FLOAT_EQ(0.0f, (float)dsOrientedBox3x_dist(&box, &box.center));
+	EXPECT_FLOAT_EQ(0.0f, (float)dsOrientedBox3x_dist(&box, &point1));
+	EXPECT_FLOAT_EQ(3.0f, (float)dsOrientedBox3x_dist(&box, &point2));
+	EXPECT_FLOAT_EQ(4.0f, (float)dsOrientedBox3x_dist(&box, &point3));
+	EXPECT_FLOAT_EQ(2.0f, (float)dsOrientedBox3x_dist(&box, &point4));
+	EXPECT_FLOAT_EQ(3.0f, (float)dsOrientedBox3x_dist(&box, &point5));
+	EXPECT_FLOAT_EQ(4.0f, (float)dsOrientedBox3x_dist(&box, &point6));
+	EXPECT_FLOAT_EQ(2.0f, (float)dsOrientedBox3x_dist(&box, &point7));
 }
 
-TEST(OrientedBox3, ConvertFloatToDouble)
+TEST(OrientedBox3x, ConvertFloatToDouble)
 {
-	dsOrientedBox3f boxf =
+	dsOrientedBox3xf boxf =
 	{
-		{{ {1, 0, 0}, {0, 1, 0}, {0, 0, 1} }},
-		{{1, 2, 3}}, {{4, 5, 6}}
+		{{ {1, 0, 0, 7}, {0, 1, 0, 8}, {0, 0, 1, 9} }},
+		{{1, 2, 3, 10}}, {{4, 5, 6, 11}}
 	};
 
-	dsOrientedBox3d boxd;
+	dsOrientedBox3xd boxd;
 	dsConvertFloatToDouble(boxd, boxf);
 
 	EXPECT_FLOAT_EQ(boxf.orientation.values[0][0], (float)boxd.orientation.values[0][0]);
@@ -1027,15 +1083,15 @@ TEST(OrientedBox3, ConvertFloatToDouble)
 	EXPECT_FLOAT_EQ(boxf.halfExtents.z, (float)boxd.halfExtents.z);
 }
 
-TEST(OrientedBox3, ConvertDoubleToFloat)
+TEST(OrientedBox3x, ConvertDoubleToFloat)
 {
-	dsOrientedBox3d boxd =
+	dsOrientedBox3xd boxd =
 	{
-		{{ {1, 0, 0}, {0, 1, 0}, {0, 0, 1} }},
-		{{1, 2, 3}}, {{4, 5, 6}}
+		{{ {1, 0, 0, 7}, {0, 1, 0, 8}, {0, 0, 1, 9} }},
+		{{1, 2, 3, 10}}, {{4, 5, 6, 11}}
 	};
 
-	dsOrientedBox3f boxf;
+	dsOrientedBox3xf boxf;
 	dsConvertDoubleToFloat(boxf, boxd);
 
 	EXPECT_FLOAT_EQ((float)boxd.orientation.values[0][0], boxf.orientation.values[0][0]);

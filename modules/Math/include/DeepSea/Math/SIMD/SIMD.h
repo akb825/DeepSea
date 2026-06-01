@@ -30,10 +30,25 @@
 #define DS_HAS_SIMD 0
 
 /**
+ * @brief Whether there is division and sqrt instructions are approximations.
+ *
+ * This generally means that there are approximate rcp and rsqrt operations, with div and sqrt
+ * building on these. Some functions may want to use slightly different operations if this is set,
+ * such as if both sqrt and rsqrt are needed.
+ *
+ * In practice, this should only apply to single-precision floats, no platform that supports SIMD
+ * doubles have approximate division or sqrt.
+ */
+#define DS_SIMD_APPROXIMATE_DIV_SQRT 0
+
+/**
  * @brief Whether there is division and sqrt instructions are emulated.
  *
  * Typically this will be set when determination math is enabled and only estimations are available,
  * in which case it will fall back to scalar implementations.
+ *
+ * In practice, this should only apply to single-precision floats, no platform that supports SIMD
+ * doubles have emulated division or sqrt.
  */
 #define DS_SIMD_EMULATED_DIV_SQRT 0
 

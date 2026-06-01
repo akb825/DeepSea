@@ -82,6 +82,7 @@ extern "C"
 #define DS_SIMD_END()
 #endif
 
+#define DS_SIMD_APPROXIMATE_DIV_SQRT 0
 #define DS_SIMD_EMULATED_DIV_SQRT 0
 
 #if DS_X86_64 || defined(__SSE__) || _M_IX86_FP >= 1

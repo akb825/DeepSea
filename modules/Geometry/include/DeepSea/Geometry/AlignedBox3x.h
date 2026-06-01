@@ -23,7 +23,7 @@
 #include <DeepSea/Geometry/Export.h>
 #include <DeepSea/Geometry/Types.h>
 
-#include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/SIMD/SIMD.h>
 
 #include <float.h>
 
@@ -36,12 +36,10 @@ extern "C"
  * @file
  * @brief Functions for manipulating dsAlignedBox3x* structures.
  *
- * The functions have different versions for the supported dsAlignedBox3 types. These are used when
- * the implementation cannot be practically done within a macro. There are also inline functions
- * provided to accompany the macro to use when desired. The inline functions may also be addressed
- * in order to interface with other languages.
+ * The functions have different versions for the supported dsAlignedBox3 types, and will utilize
+ * SIMD operations where supported at compile-time.
  *
- * @see dsAlignedBox3f dsAlignedBox3d dsAlignedBox3i
+ * @see dsAlignedBox3xf dsAlignedBox3xd
  */
 
 /** @see dsAlignedBox3_isValid() */
@@ -65,7 +63,7 @@ DS_GEOMETRY_EXPORT inline bool dsAlignedBox3xd_isValid(const dsAlignedBox3xd* bo
 	dsVector4l result;
 	result.simd2[0] = dsSIMD2d_cmple(box->min.simd2[0], box->max.simd2[0]);
 	result.simd2[1] = dsSIMD2d_cmple(box->min.simd2[1], box->max.simd2[1]);
-	return result.x && result.y && result.z;
+	return dsSIMD2db_all(result.simd2[0]) && result.z;
 #else
 	return dsAlignedBox3_isValid(*box);
 #endif
@@ -159,7 +157,7 @@ DS_GEOMETRY_EXPORT inline bool dsAlignedBox3xd_containsPoint(
 		dsSIMD2d_cmple(point->simd2[0], box->max.simd2[0]));
 	result.simd2[1] = dsSIMD2db_and(dsSIMD2d_cmpge(point->simd2[1], box->min.simd2[1]),
 		dsSIMD2d_cmple(point->simd2[1], box->max.simd2[1]));
-	return result.x && result.y && result.z;
+	return dsSIMD2db_all(result.simd2[0]) && result.z;
 #else
 	return dsAlignedBox3_containsPoint(*box, *point);
 #endif
@@ -193,7 +191,7 @@ DS_GEOMETRY_EXPORT inline bool dsAlignedBox3xd_containsBox(
 		dsSIMD2d_cmpge(box->max.simd2[0], otherBox->max.simd2[0]));
 	result.simd2[1] = dsSIMD2db_and(dsSIMD2d_cmple(box->min.simd2[1], otherBox->min.simd2[1]),
 		dsSIMD2d_cmpge(box->max.simd2[1], otherBox->max.simd2[1]));
-	return result.x && result.y && result.z;
+	return dsSIMD2db_all(result.simd2[0]) && result.z;
 #else
 	return dsAlignedBox3_containsBox(*box, *otherBox);
 #endif
@@ -227,7 +225,7 @@ DS_GEOMETRY_EXPORT inline bool dsAlignedBox3xd_intersects(
 		dsSIMD2d_cmpge(box->max.simd2[0], otherBox->min.simd2[0]));
 	result.simd2[1] = dsSIMD2db_and(dsSIMD2d_cmple(box->min.simd2[1], otherBox->max.simd2[1]),
 		dsSIMD2d_cmpge(box->max.simd2[1], otherBox->min.simd2[1]));
-	return result.x && result.y && result.z;
+	return dsSIMD2db_all(result.simd2[0]) && result.z;
 #else
 	return dsAlignedBox3_intersects(*box, *otherBox);
 #endif

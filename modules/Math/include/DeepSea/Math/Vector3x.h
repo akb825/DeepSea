@@ -421,12 +421,8 @@ DS_MATH_EXPORT inline double dsVector3xd_len(const dsVector3xd* a)
 	DS_ASSERT(a);
 #if DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2d len2 = dsDot3SIMD2d(a->simd2[0], a->simd2[1], a->simd2[0], a->simd2[1]);
-#if DS_SIMD_EMULATED_DIV_SQRT
-	return dsSqrtd(dsSIMD2d_get(len2, 0));
-#else
 	dsSIMD2d len = dsSIMD2d_sqrt(len2);
 	return dsSIMD2d_get(len, 0);
-#endif
 #else
 	return dsSqrtd(dsVector3_len2(*a));
 #endif
@@ -460,12 +456,8 @@ DS_MATH_EXPORT inline double dsVector3xd_dist(const dsVector3xd* a, const dsVect
 	dsSIMD2d diff0 = dsSIMD2d_sub(a->simd2[0], b->simd2[0]);
 	dsSIMD2d diff1 = dsSIMD2d_sub(a->simd2[1], b->simd2[1]);
 	dsSIMD2d dist2 = dsDot3SIMD2d(diff0, diff1, diff0, diff1);
-#if DS_SIMD_EMULATED_DIV_SQRT
-	return dsSqrtd(dsSIMD2d_get(dist2, 0));
-#else
 	dsSIMD2d dist = dsSIMD2d_sqrt(dist2);
 	return dsSIMD2d_get(dist, 0);
-#endif
 #else
 	return dsSqrtd(dsVector3_dist2(*a, *b));
 #endif
@@ -498,11 +490,7 @@ DS_MATH_EXPORT inline void dsVector3xd_normalize(dsVector3xd* result, const dsVe
 	DS_ASSERT(a);
 #if DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2d len2 = dsDot3SIMD2d(a->simd2[0], a->simd2[1], a->simd2[0], a->simd2[1]);
-#if DS_SIMD_EMULATED_DIV_SQRT
-	dsSIMD2d invLen = dsSIMD2d_set1(1/dsSqrtd(dsSIMD2d_get(len2, 0)));
-#else
 	dsSIMD2d invLen = dsSIMD2d_rsqrt(len2);
-#endif
 	result->simd2[0] = dsSIMD2d_mul(a->simd2[0], invLen);
 	result->simd2[1] = dsSIMD2d_mul(a->simd2[1], invLen);
 #else

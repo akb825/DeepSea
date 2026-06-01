@@ -131,12 +131,8 @@ double dsAlignedBox3xd_dist(const dsAlignedBox3xd* box, const dsVector3xd* point
 
 #if DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2d dist2 = dsAlignedBox3xd_dist2Impl(box, point);
-#if DS_SIMD_EMULATED_DIV_SQRT
-	return dsSqrt(dsSIMD2d_get(dist2, 0));
-#else
 	dsSIMD2d dist = dsSIMD2d_sqrt(dist2);
 	return dsSIMD2d_get(dist, 0);
-#endif
 #else
 	double dx = dsMax(box->min.x - point->x, point->x - box->max.x);
 	dx = dsMax(dx, 0.0);
@@ -186,6 +182,11 @@ void dsAlignedBox3xd_toMatrixTranspose(dsMatrix44d* result, const dsAlignedBox3x
 
 void dsAlignedBox3xf_corners(dsVector3xf corners[DS_BOX3_CORNER_COUNT], const dsAlignedBox3xf* box);
 void dsAlignedBox3xd_corners(dsVector3xd corners[DS_BOX3_CORNER_COUNT], const dsAlignedBox3xd* box);
+
+void dsAlignedBox3xf_closestPoint(
+	dsVector3xf* result, const dsAlignedBox3xf* box, const dsVector3xf* point);
+void dsAlignedBox3xd_closestPoint(
+	dsVector3xd* result, const dsAlignedBox3xd* box, const dsVector3xd* point);
 
 void dsAlignedBox3xf_makeInvalid(dsAlignedBox3xf* result);
 void dsAlignedBox3xd_makeInvalid(dsAlignedBox3xd* result);

@@ -21,7 +21,7 @@
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Sqrt.h>
-#include <DeepSea/Math/Vector3.h>
+#include <DeepSea/Math/Vector3x.h>
 
 #include <float.h>
 
@@ -30,9 +30,9 @@ void dsOrientedBox3f_fromMatrix(dsOrientedBox3f* result, const dsMatrix44f* matr
 	DS_ASSERT(result);
 	DS_ASSERT(matrix);
 
-	result->halfExtents.x = dsVector3f_len((dsVector3f*)matrix->columns);
-	result->halfExtents.y = dsVector3f_len((dsVector3f*)(matrix->columns + 1));
-	result->halfExtents.z = dsVector3f_len((dsVector3f*)(matrix->columns + 2));
+	result->halfExtents.x = dsVector3xf_len(matrix->columns);
+	result->halfExtents.y = dsVector3xf_len(matrix->columns + 1);
+	result->halfExtents.z = dsVector3xf_len(matrix->columns + 2);
 
 	float invLen = 1/result->halfExtents.x;
 	dsVector3_scale(result->orientation.columns[0], matrix->columns[0], invLen);
@@ -49,9 +49,9 @@ void dsOrientedBox3d_fromMatrix(dsOrientedBox3d* result, const dsMatrix44d* matr
 	DS_ASSERT(result);
 	DS_ASSERT(matrix);
 
-	result->halfExtents.x = dsVector3d_len((dsVector3d*)matrix->columns);
-	result->halfExtents.y = dsVector3d_len((dsVector3d*)(matrix->columns + 1));
-	result->halfExtents.z = dsVector3d_len((dsVector3d*)(matrix->columns + 2));
+	result->halfExtents.x = dsVector3xd_len(matrix->columns);
+	result->halfExtents.y = dsVector3xd_len(matrix->columns + 1);
+	result->halfExtents.z = dsVector3xd_len(matrix->columns + 2);
 
 	double invLen = 1/result->halfExtents.x;
 	dsVector3_scale(result->orientation.columns[0], matrix->columns[0], invLen);
@@ -88,7 +88,7 @@ bool dsOrientedBox3d_transform(dsOrientedBox3d* box, const dsMatrix44d* transfor
 
 	dsMatrix44d matrix, transformedMatrix;
 	dsOrientedBox3_toMatrix(matrix, *box);
-	dsMatrix44_affineMul(transformedMatrix, *transform, matrix);
+	dsMatrix44d_affineMul(&transformedMatrix, transform, &matrix);
 	dsOrientedBox3d_fromMatrix(box, &transformedMatrix);
 	return true;
 }
@@ -379,7 +379,7 @@ bool dsOrientedBox3f_intersects(const dsOrientedBox3f* box, const dsOrientedBox3
 		{
 			dotAxes[i][j] = dsVector3_dot(*boxAxis, otherBox->orientation.columns[j]);
 			absDotAxes[i][j] = fabsf(dotAxes[i][j]);
-			if (dotAxes[i][j] >= parallelCutoff)
+			if (absDotAxes[i][j] >= parallelCutoff)
 				hasParallel = true;
 		}
 
@@ -488,7 +488,7 @@ bool dsOrientedBox3d_intersects(const dsOrientedBox3d* box, const dsOrientedBox3
 		{
 			dotAxes[i][j] = dsVector3_dot(*boxAxis, otherBox->orientation.columns[j]);
 			absDotAxes[i][j] = fabs(dotAxes[i][j]);
-			if (dotAxes[i][j] >= parallelCutoff)
+			if (absDotAxes[i][j] >= parallelCutoff)
 				hasParallel = true;
 		}
 
@@ -611,8 +611,8 @@ bool dsOrientedBox3d_containsPoint(const dsOrientedBox3d* box, const dsVector3d*
 	return dsAlignedBox3_containsPoint(localBox, localPoint);
 }
 
-bool dsOrientedBox3f_closestPoint(dsVector3f* result, const dsOrientedBox3f* box,
-	const dsVector3f* point)
+bool dsOrientedBox3f_closestPoint(
+	dsVector3f* result, const dsOrientedBox3f* box, const dsVector3f* point)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
@@ -640,8 +640,8 @@ bool dsOrientedBox3f_closestPoint(dsVector3f* result, const dsOrientedBox3f* box
 	return true;
 }
 
-bool dsOrientedBox3d_closestPoint(dsVector3d* result, const dsOrientedBox3d* box,
-	const dsVector3d* point)
+bool dsOrientedBox3d_closestPoint(
+	dsVector3d* result, const dsOrientedBox3d* box, const dsVector3d* point)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);

@@ -52,6 +52,8 @@ extern "C"
 #define DS_SIMD_START(...)
 #define DS_SIMD_END()
 
+
+#define DS_SIMD_APPROXIMATE_DIV_SQRT (!DS_DETERMINISTIC_MATH && DS_ARM_32)
 #define DS_SIMD_EMULATED_DIV_SQRT (DS_DETERMINISTIC_MATH && DS_ARM_32)
 #define DS_SIMD_ALWAYS_FLOAT4 1
 #define DS_SIMD_ALWAYS_INT 1
@@ -1012,7 +1014,7 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_set2(double x, double y)
 
 /**
  * @brief Sets an element from a vector to all elements of a SIMD register.
- * @remark This can be used when dsSIMDFeatures_Douvle2 is available.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param a The value to get the element from.
  * @param i The index of the element to get.
  * @return The SIMD value.
@@ -1504,7 +1506,7 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_set2(uint64_t x, uint64_t y)
 
 /**
  * @brief Sets an element from a vector to all elements of a SIMD register.
- * @remark This can be used when dsSIMDFeatures_Douvle2 iand dsSIMDFeatures_Int s available.
+ * @remark This can be used when dsSIMDFeatures_Double2 iand dsSIMDFeatures_Int s available.
  * @param a The value to get the element from.
  * @param i The index of the element to get.
  * @return The SIMD value.
@@ -2059,7 +2061,7 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_set4(double x, double y, double z, double w)
 
 /**
  * @brief Sets an element from a vector to all elements of a SIMD register.
- * @remark This can be used when dsSIMDFeatures_Douvle4 is available.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
  * @param a The value to get the element from.
  * @param i The index of the element to get.
  * @return The SIMD value.
@@ -2437,7 +2439,7 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_set4(uint64_t x, uint64_t y, uint64_t z, ui
 
 /**
  * @brief Sets an element from a vector to all elements of a SIMD register.
- * @remark This can be used when dsSIMDFeatures_Douvle4 and dsSIMDFeatures_Int is available.
+ * @remark This can be used when dsSIMDFeatures_Double4 and dsSIMDFeatures_Int is available.
  * @param a The value to get the element from.
  * @param i The index of the element to get.
  * @return The SIMD value.

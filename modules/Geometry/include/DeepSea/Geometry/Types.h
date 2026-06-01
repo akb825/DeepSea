@@ -393,7 +393,7 @@ typedef struct dsOrientedBox3f
 
 /**
  * @brief Structure for a 3D oriented bounding box using doubles.
- * @see OrientedBox3.h
+ * @see OrientedBox3x.h
  */
 typedef struct dsOrientedBox3d
 {
@@ -415,6 +415,56 @@ typedef struct dsOrientedBox3d
 	 */
 	dsVector3d halfExtents;
 } dsOrientedBox3d;
+
+/**
+ * @brief Structure for a 3D oriented bounding box using floats aligned for SIMD operations.
+ * @see OrientedBox3x.h
+ */
+typedef struct dsOrientedBox3xf
+{
+	/**
+	 * @brief The orientation of the box.
+	 *
+	 * This must contain only a rotation. This transforms from local aligned box space to world
+	 * space.
+	 */
+	dsMatrix33xf orientation;
+
+	/**
+	 * @brief The center of the box.
+	 */
+	dsVector3xf center;
+
+	/**
+	 * @brief The half width, height, and depth of the box.
+	 */
+	dsVector3xf halfExtents;
+} dsOrientedBox3xf;
+
+/**
+ * @brief Structure for a 3D oriented bounding box using doubles aligned for SIMD operations.
+ * @see OrientedBox3.h
+ */
+typedef struct dsOrientedBox3xd
+{
+	/**
+	 * @brief The orientation of the box.
+	 *
+	 * This must contain only a rotation. This transforms from local aligned box space to world
+	 * space.
+	 */
+	dsMatrix33xd orientation;
+
+	/**
+	 * @brief The center of the box.
+	 */
+	dsVector3xd center;
+
+	/**
+	 * @brief The half width, height, and depth of the box.
+	 */
+	dsVector3xd halfExtents;
+} dsOrientedBox3xd;
 
 /**
  * @brief Structure for a plane using floats.
@@ -546,8 +596,8 @@ typedef struct dsFrustum3d
  * @return False if an error occurred.
  * @see BezierCurve.h
  */
-typedef bool (*dsCurveSampleFunctionf)(void* userData, const void* point, unsigned int axisCount,
-	float t);
+typedef bool (*dsCurveSampleFunctionf)(
+	void* userData, const void* point, unsigned int axisCount, float t);
 
 /**
  * @brief Callback function for adding a sample when tessellating a curve.
@@ -560,8 +610,8 @@ typedef bool (*dsCurveSampleFunctionf)(void* userData, const void* point, unsign
  * @return False if an error occurred.
  * @see BezierCurve.h
  */
-typedef bool (*dsCurveSampleFunctiond)(void* userData, const void* point, unsigned int axisCount,
-	double t);
+typedef bool (*dsCurveSampleFunctiond)(
+	void* userData, const void* point, unsigned int axisCount, double t);
 
 /**
  * @brief Structure for a cubic curve using floats.
@@ -648,8 +698,8 @@ typedef bool (*dsBVHObjectBoundsFunction)(void* outBounds, const dsBVH* bvh, con
  * @return True to continue traversal, false to stop traversal.
  * @see BVH.h
  */
-typedef bool (*dsBVHVisitFunction)(void* userData, const dsBVH* bvh, const void* object,
-	const void* volume);
+typedef bool (*dsBVHVisitFunction)(
+	void* userData, const dsBVH* bvh, const void* object, const void* volume);
 
 /**
  * @brief Structure for a Kd tree spacial data structure.
@@ -668,8 +718,8 @@ typedef struct dsKdTree dsKdTree;
  * @return True if outPoint was successfully assigned.
  * @see KdTree.h
  */
-typedef bool (*dsKdTreeObjectPointFunction)(void* outPoint, const dsKdTree* kdTree,
-	const void* object);
+typedef bool (*dsKdTreeObjectPointFunction)(
+	void* outPoint, const dsKdTree* kdTree, const void* object);
 
 /**
  * @brief Enum for which side of the Kd tree to follow when traversing.
@@ -755,8 +805,8 @@ typedef struct dsSimpleHoledPolygon dsSimpleHoledPolygon;
  * @return True if outPosition was successfully assigned.
  * @see SimplePolygon.h
  */
-typedef bool (*dsPolygonPositionFunction)(dsVector2d* outPosition, void* userData,
-	const void* points, uint32_t index);
+typedef bool (*dsPolygonPositionFunction)(
+	dsVector2d* outPosition, void* userData, const void* points, uint32_t index);
 
 /**
  * @brief Enum for the fill rule when triangulating a complex polygon.
@@ -807,8 +857,8 @@ typedef struct dsComplexPolygon dsComplexPolygon;
  * @param index The index of the point.
  * @see ComplexPolygon.h
  */
-typedef bool (*dsComplexPolygonPointFunction)(void* outPosition, const dsComplexPolygon* polygon,
-	const void* points, uint32_t index);
+typedef bool (*dsComplexPolygonPointFunction)(
+	void* outPosition, const dsComplexPolygon* polygon, const void* points, uint32_t index);
 
 #ifdef __cplusplus
 }
