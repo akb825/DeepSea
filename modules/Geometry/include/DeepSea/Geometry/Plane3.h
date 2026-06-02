@@ -18,8 +18,11 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Assert.h>
+
 #include <DeepSea/Geometry/Export.h>
 #include <DeepSea/Geometry/Types.h>
+
+#include <DeepSea/Math/SIMD/Dot.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Vector3.h>
 #include <DeepSea/Math/Vector4.h>
@@ -315,8 +318,14 @@ DS_GEOMETRY_EXPORT inline void dsPlane3f_normalize(dsPlane3f* result, const dsPl
 	DS_ASSERT(result);
 	DS_ASSERT(plane);
 
+#if DS_SIMD_ALWAYS_FLOAT4 && !DS_SIMD_EMULATED_DIV_SQRT
+	dsSIMD4f len2 = dsDot3SIMD4f(plane->simd, plane->simd);
+	dsSIMD4f invLen = dsSIMD4f_rsqrt(len2);
+	result->simd = dsSIMD4f_mul(plane->simd, invLen);
+#else
 	float invLength = 1/dsVector3f_len(&plane->n);
 	dsVector4f_scale((dsVector4f*)result, (const dsVector4f*)plane, invLength);
+#endif
 }
 
 DS_GEOMETRY_EXPORT inline void dsPlane3d_normalize(dsPlane3d* result, const dsPlane3d* plane)
@@ -324,8 +333,16 @@ DS_GEOMETRY_EXPORT inline void dsPlane3d_normalize(dsPlane3d* result, const dsPl
 	DS_ASSERT(result);
 	DS_ASSERT(plane);
 
+#if DS_SIMD_ALWAYS_DOUBLE2
+	dsSIMD2d len2 = dsDot3SIMD2d(
+		plane->simd2[0], plane->simd2[1], plane->simd2[0], plane->simd2[1]);
+	dsSIMD2d invLen = dsSIMD2d_rsqrt(len2);
+	result->simd2[0] = dsSIMD2d_mul(plane->simd2[0], invLen);
+	result->simd2[1] = dsSIMD2d_mul(plane->simd2[1], invLen);
+#else
 	double invLength = 1/dsVector3d_len(&plane->n);
 	dsVector4d_scale((dsVector4d*)result, (const dsVector4d*)plane, invLength);
+#endif
 }
 
 DS_GEOMETRY_EXPORT inline void dsPlane3f_transform(
@@ -338,8 +355,8 @@ DS_GEOMETRY_EXPORT inline void dsPlane3f_transform(
 	dsMatrix44f inverse;
 	dsMatrix44f_affineInvert(&inverse, transform);
 	dsPlane3f transformedPlane; // Transform requires a different result pointer.
-	dsMatrix44f_transformTransposed((dsVector4f*)&transformedPlane, &inverse,
-		(const dsVector4f*)plane);
+	dsMatrix44f_transformTransposed(
+		(dsVector4f*)&transformedPlane, &inverse, (const dsVector4f*)plane);
 	dsPlane3f_normalize(result, &transformedPlane);
 }
 
@@ -353,8 +370,8 @@ DS_GEOMETRY_EXPORT inline void dsPlane3d_transform(
 	dsMatrix44d inverse;
 	dsMatrix44d_affineInvert(&inverse, transform);
 	dsPlane3d transformedPlane; // Transform requires a different result pointer.
-	dsMatrix44d_transformTransposed((dsVector4d*)&transformedPlane, &inverse,
-		(const dsVector4d*)plane);
+	dsMatrix44d_transformTransposed(
+		(dsVector4d*)&transformedPlane, &inverse, (const dsVector4d*)plane);
 	dsPlane3d_normalize(result, &transformedPlane);
 }
 
@@ -488,7 +505,10 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrixTranspos
 	// Transform plane into box space then compare to to a box [-1, 1] for all dimensions.
 	dsPlane3f transformedPlane;
 	dsMatrix44f_transformSIMD((dsVector4f*)&transformedPlane, boxMatrix, (const dsVector4f*)plane);
-	dsPlane3f_normalize(&transformedPlane, &transformedPlane);
+
+	dsSIMD4f len2 = dsDot3SIMD4f(transformedPlane.simd, transformedPlane.simd);
+	dsSIMD4f invLen = dsSIMD4f_rsqrt(len2);
+	transformedPlane.simd = dsSIMD4f_mul(transformedPlane.simd, invLen);
 
 	// Simplification of AABB/plane intersection with extents = 1.
 	dsVector4f planeAbs;
@@ -516,7 +536,10 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrixTranspos
 	// Transform plane into box space then compare to to a box [-1, 1] for all dimensions.
 	dsPlane3f transformedPlane;
 	dsMatrix44f_transformFMA((dsVector4f*)&transformedPlane, boxMatrix, (const dsVector4f*)plane);
-	dsPlane3f_normalize(&transformedPlane, &transformedPlane);
+
+	dsSIMD4f len2 = dsDot3FMA4f(transformedPlane.simd, transformedPlane.simd);
+	dsSIMD4f invLen = dsSIMD4f_rsqrt(len2);
+	transformedPlane.simd = dsSIMD4f_mul(transformedPlane.simd, invLen);
 
 	dsVector4f planeAbs;
 	planeAbs.simd = dsSIMD4f_abs(transformedPlane.simd);
@@ -543,7 +566,12 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTranspos
 	// Transform plane into box space then compare to to a box [-1, 1] for all dimensions.
 	dsPlane3d transformedPlane;
 	dsMatrix44d_transformSIMD2((dsVector4d*)&transformedPlane, boxMatrix, (const dsVector4d*)plane);
-	dsPlane3d_normalize(&transformedPlane, &transformedPlane);
+
+	dsSIMD2d len2 = dsDot3SIMD2d(transformedPlane.simd2[0], transformedPlane.simd2[1],
+		transformedPlane.simd2[0], transformedPlane.simd2[1]);
+	dsSIMD2d invLen = dsSIMD2d_rsqrt(len2);
+	transformedPlane.simd2[0] = dsSIMD2d_mul(transformedPlane.simd2[0], invLen);
+	transformedPlane.simd2[1] = dsSIMD2d_mul(transformedPlane.simd2[1], invLen);
 
 	// Simplification of AABB/plane intersection with extents = 1.
 	dsVector4d planeAbs;
@@ -572,7 +600,12 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTranspos
 	// Transform plane into box space then compare to to a box [-1, 1] for all dimensions.
 	dsPlane3d transformedPlane;
 	dsMatrix44d_transformFMA2((dsVector4d*)&transformedPlane, boxMatrix, (const dsVector4d*)plane);
-	dsPlane3d_normalize(&transformedPlane, &transformedPlane);
+
+	dsSIMD2d len2 = dsDot3FMA2d(transformedPlane.simd2[0], transformedPlane.simd2[1],
+		transformedPlane.simd2[0], transformedPlane.simd2[1]);
+	dsSIMD2d invLen = dsSIMD2d_rsqrt(len2);
+	transformedPlane.simd2[0] = dsSIMD2d_mul(transformedPlane.simd2[0], invLen);
+	transformedPlane.simd2[1] = dsSIMD2d_mul(transformedPlane.simd2[1], invLen);
 
 	dsVector4d planeAbs;
 	planeAbs.simd2[0] = dsSIMD2d_abs(transformedPlane.simd2[0]);
@@ -602,9 +635,14 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTranspos
 	dsMatrix44d_transformSIMD4((dsVector4d*)&transformedPlane, boxMatrix, (const dsVector4d*)plane);
 	dsPlane3d_normalize(&transformedPlane, &transformedPlane);
 
-	dsVector4d planeAbs;
-	planeAbs.simd2[0] = dsSIMD2d_abs(transformedPlane.simd2[0]);
-	planeAbs.simd2[1] = dsSIMD2d_abs(transformedPlane.simd2[1]);
+	dsSIMD4d transformedPlaneSimd = dsSIMD4d_load(&transformedPlane);
+	dsSIMD4d len2 = dsDot3SIMD4d(transformedPlaneSimd, transformedPlaneSimd);
+	dsSIMD4d invLen = dsSIMD4d_rsqrt(len2);
+	transformedPlaneSimd = dsSIMD4d_mul(transformedPlaneSimd, invLen);
+	dsSIMD4d_store(&transformedPlane, transformedPlaneSimd);
+
+	DS_ALIGN(32) dsVector4d planeAbs;
+	dsSIMD4d_store(&planeAbs, dsSIMD4d_abs(transformedPlaneSimd));
 	double radius = planeAbs.x + planeAbs.y + planeAbs.z;
 
 	if (transformedPlane.d > radius)
