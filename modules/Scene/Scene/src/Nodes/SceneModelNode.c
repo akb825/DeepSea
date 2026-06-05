@@ -335,7 +335,7 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 	{
 		cullNode->hasBounds = false;
 		dsOrientedBox3_makeInvalid(node->bounds);
-		dsMatrix44_identity(cullNode->staticLocalBoxMatrix);
+		dsMatrix44f_identity(&cullNode->staticLocalBoxMatrix);
 	}
 	cullNode->getBoundsFunc = NULL;
 

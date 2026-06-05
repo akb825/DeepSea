@@ -762,8 +762,8 @@ void dsMatrix44d_affineInvert33(dsMatrix33d* result, const dsMatrix44d* a);
 void dsMatrix44f_invert(dsMatrix44f* result, const dsMatrix44f* a);
 void dsMatrix44d_invert(dsMatrix44d* result, const dsMatrix44d* a);
 
-void dsMatrix44f_inverseTranspose(dsMatrix33f* result, const dsMatrix44f* a);
-void dsMatrix44d_inverseTranspose(dsMatrix33d* result, const dsMatrix44d* a);
+void dsMatrix44f_inverseTranspose(dsMatrix33xf* result, const dsMatrix44f* a);
+void dsMatrix44d_inverseTranspose(dsMatrix33xd* result, const dsMatrix44d* a);
 
 void dsMatrix44f_makeRotate(dsMatrix44f* result, float x, float y, float z);
 void dsMatrix44d_makeRotate(dsMatrix44d* result, double x, double y, double z);

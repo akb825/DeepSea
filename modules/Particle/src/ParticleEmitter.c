@@ -87,7 +87,7 @@ dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allocator, dsParticleEm
 	emitter->material = params->material;
 	emitter->instanceValueCount = instanceValueCount;
 
-	dsMatrix44_identity(emitter->transform);
+	dsMatrix44f_identity(&emitter->transform);
 	emitter->enabled = params->enabled;
 	dsOrientedBox3_makeInvalid(emitter->bounds);
 

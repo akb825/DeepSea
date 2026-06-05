@@ -1099,3 +1099,26 @@ void dsOrientedBox3xd_makeInvalid(dsOrientedBox3xd* result);
 
 void dsOrientedBox3xf_fromMatrix(dsOrientedBox3xf* result, const dsMatrix44f* matrix);
 void dsOrientedBox3xd_fromMatrix(dsOrientedBox3xd* result, const dsMatrix44d* matrix);
+
+#if DS_HAS_SIMD
+void dsOrientedBox3xf_toMatrixSIMD(dsMatrix44f* result, const dsOrientedBox3xf* box);
+void dsOrientedBox3xf_toMatrixTransposeSIMD(dsMatrix44f* result, const dsOrientedBox3xf* box);
+void dsOrientedBox3xf_fromMatrixSIMD(dsOrientedBox3xf* result, const dsMatrix44f* matrix);
+
+void dsOrientedBox3xd_toMatrixSIMD2(dsMatrix44d* result, const dsOrientedBox3xd* box);
+void dsOrientedBox3xd_toMatrixTransposeSIMD2(dsMatrix44d* result, const dsOrientedBox3xd* box);
+void dsOrientedBox3xd_fromMatrixSIMD2(dsOrientedBox3xd* result, const dsMatrix44d* matrix);
+
+#if !DS_DETERMINISTIC_MATH
+void dsOrientedBox3xf_fromMatrixFMA(dsOrientedBox3xf* result, const dsMatrix44f* matrix);
+
+void dsOrientedBox3xd_fromMatrixFMA2(dsOrientedBox3xd* result, const dsMatrix44d* matrix);
+#endif // !DS_DETERMINISTIC_MATH
+
+void dsOrientedBox3xd_toMatrixSIMD4(
+	dsMatrix44d* DS_ALIGN_PARAM(32) result, const dsOrientedBox3xd* DS_ALIGN_PARAM(32) box);
+void dsOrientedBox3xd_toMatrixTransposeSIMD4(
+	dsMatrix44d* DS_ALIGN_PARAM(32) result, const dsOrientedBox3xd* DS_ALIGN_PARAM(32) box);
+void dsOrientedBox3xd_fromMatrixSIMD4(
+	dsOrientedBox3xd* DS_ALIGN_PARAM(32) result, const dsMatrix44d* DS_ALIGN_PARAM(32) matrix);
+#endif // DS_HAS_SIMD

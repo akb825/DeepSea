@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@
 
 #include <gtest/gtest.h>
 
-#include <cmath>
-
 class ShadowProjectionTest : public FixtureBase
 {
 };
@@ -35,16 +33,16 @@ TEST_F(ShadowProjectionTest, Initialize)
 	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
 
 	dsShadowProjection shadowProj;
-	EXPECT_FALSE(dsShadowProjection_initialize(NULL, renderer, &camera, &lightDir, NULL, NULL,
-		false));
-	EXPECT_FALSE(dsShadowProjection_initialize(&shadowProj, NULL, &camera, &lightDir, NULL, NULL,
-		false));
-	EXPECT_FALSE(dsShadowProjection_initialize(&shadowProj, renderer, NULL, &lightDir, NULL, NULL,
-		false));
-	EXPECT_FALSE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, NULL, NULL, NULL,
-		false));
-	EXPECT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
-		false));
+	EXPECT_FALSE(dsShadowProjection_initialize(
+		NULL, renderer, &camera, &lightDir, NULL, NULL, false));
+	EXPECT_FALSE(dsShadowProjection_initialize(
+		&shadowProj, NULL, &camera, &lightDir, NULL, NULL, false));
+	EXPECT_FALSE(dsShadowProjection_initialize(
+		&shadowProj, renderer, NULL, &lightDir, NULL, NULL, false));
+	EXPECT_FALSE(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, NULL, NULL, NULL, false));
+	EXPECT_TRUE(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, false));
 }
 
 TEST_F(ShadowProjectionTest, LightSpacePerspective)
@@ -59,13 +57,13 @@ TEST_F(ShadowProjectionTest, LightSpacePerspective)
 
 	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
 	dsShadowProjection shadowProj;
-	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
-		false));
+	ASSERT_TRUE(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, false));
 
-	dsVector3f points[] =
+	dsVector4f points[] =
 	{
-		{{-1.0f, -1.0f, -1.0f}},
-		{{1.0f, 1.0f, 1.0f}},
+		{{-1.0f, -1.0f, -1.0f, 1.0f}},
+		{{1.0f, 1.0f, 1.0f, 1.0f}},
 	};
 	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
 
@@ -107,13 +105,13 @@ TEST_F(ShadowProjectionTest, LightSpacePerspectiveFullRange)
 
 	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
 	dsShadowProjection shadowProj;
-	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
-		false));
+	ASSERT_TRUE(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, false));
 
-	dsVector3f points[] =
+	dsVector4f points[] =
 	{
-		{{-1.0f, -1.0f, -1.0f}},
-		{{1.0f, 1.0f, 1.0f}},
+		{{-1.0f, -1.0f, -1.0f, 1.0f}},
+		{{1.0f, 1.0f, 1.0f, 1.0f}},
 	};
 	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
 
@@ -156,13 +154,13 @@ TEST_F(ShadowProjectionTest, LightSpacePerspectiveInvertY)
 
 	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
 	dsShadowProjection shadowProj;
-	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
-		false));
+	ASSERT_TRUE(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, false));
 
-	dsVector3f points[] =
+	dsVector4f points[] =
 	{
-		{{-1.0f, -1.0f, -1.0f}},
-		{{1.0f, 1.0f, 1.0f}},
+		{{-1.0f, -1.0f, -1.0f, 1.0f}},
+		{{1.0f, 1.0f, 1.0f, 1.0f}},
 	};
 	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
 
@@ -205,13 +203,13 @@ TEST_F(ShadowProjectionTest, LightSpacePerspectiveInvertZ)
 
 	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
 	dsShadowProjection shadowProj;
-	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
-		false));
+	ASSERT_TRUE(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, false));
 
-	dsVector3f points[] =
+	dsVector4f points[] =
 	{
-		{{-1.0f, -1.0f, -1.0f}},
-		{{1.0f, 1.0f, 1.0f}},
+		{{-1.0f, -1.0f, -1.0f, 1.0f}},
+		{{1.0f, 1.0f, 1.0f, 1.0f}},
 	};
 	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
 
@@ -253,13 +251,13 @@ TEST_F(ShadowProjectionTest, LightSpacePerspectiveInvertZFullRange)
 
 	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
 	dsShadowProjection shadowProj;
-	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
-		false));
+	ASSERT_TRUE(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, false));
 
-	dsVector3f points[] =
+	dsVector4f points[] =
 	{
-		{{-1.0f, -1.0f, -1.0f}},
-		{{1.0f, 1.0f, 1.0f}},
+		{{-1.0f, -1.0f, -1.0f, 1.0f}},
+		{{1.0f, 1.0f, 1.0f, 1.0f}},
 	};
 	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
 
@@ -299,13 +297,13 @@ TEST_F(ShadowProjectionTest, Uniform)
 
 	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
 	dsShadowProjection shadowProj;
-	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
-		true));
+	ASSERT_TRUE(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, true));
 
-	dsVector3f points[] =
+	dsVector4f points[] =
 	{
-		{{-1.0f, -1.0f, -1.0f}},
-		{{1.0f, 1.0f, 1.0f}},
+		{{-1.0f, -1.0f, -1.0f, 1.0f}},
+		{{1.0f, 1.0f, 1.0f, 1.0f}},
 	};
 	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
 
@@ -346,13 +344,13 @@ TEST_F(ShadowProjectionTest, UniformFullRange)
 
 	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
 	dsShadowProjection shadowProj;
-	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
-		true));
+	ASSERT_TRUE(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, true));
 
-	dsVector3f points[] =
+	dsVector4f points[] =
 	{
-		{{-1.0f, -1.0f, -1.0f}},
-		{{1.0f, 1.0f, 1.0f}},
+		{{-1.0f, -1.0f, -1.0f, 1.0f}},
+		{{1.0f, 1.0f, 1.0f, 1.0f}},
 	};
 	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
 
@@ -394,13 +392,13 @@ TEST_F(ShadowProjectionTest, UniformInvertY)
 
 	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
 	dsShadowProjection shadowProj;
-	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
-		true));
+	ASSERT_TRUE(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, true));
 
-	dsVector3f points[] =
+	dsVector4f points[] =
 	{
-		{{-1.0f, -1.0f, -1.0f}},
-		{{1.0f, 1.0f, 1.0f}},
+		{{-1.0f, -1.0f, -1.0f, 1.0f}},
+		{{1.0f, 1.0f, 1.0f, 1.0f}},
 	};
 	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
 
@@ -442,13 +440,13 @@ TEST_F(ShadowProjectionTest, UniformInvertZ)
 
 	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
 	dsShadowProjection shadowProj;
-	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
-		true));
+	ASSERT_TRUE(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, true));
 
-	dsVector3f points[] =
+	dsVector4f points[] =
 	{
-		{{-1.0f, -1.0f, -1.0f}},
-		{{1.0f, 1.0f, 1.0f}},
+		{{-1.0f, -1.0f, -1.0f, 1.0f}},
+		{{1.0f, 1.0f, 1.0f, 1.0f}},
 	};
 	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
 
@@ -489,13 +487,13 @@ TEST_F(ShadowProjectionTest, UniformInvertZFullRange)
 
 	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
 	dsShadowProjection shadowProj;
-	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
-		true));
+	ASSERT_TRUE(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, true));
 
-	dsVector3f points[] =
+	dsVector4f points[] =
 	{
-		{{-1.0f, -1.0f, -1.0f}},
-		{{1.0f, 1.0f, 1.0f}},
+		{{-1.0f, -1.0f, -1.0f, 1.0f}},
+		{{1.0f, 1.0f, 1.0f, 1.0f}},
 	};
 	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
 
@@ -534,13 +532,13 @@ TEST_F(ShadowProjectionTest, LookIntoLight)
 
 	dsVector3f lightDir = {{1.0f, 0.0f, 0.0f}};
 	dsShadowProjection shadowProj;
-	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
-		false));
+	ASSERT_TRUE(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, false));
 
-	dsVector3f points[] =
+	dsVector4f points[] =
 	{
-		{{-1.0f, -1.0f, -1.0f}},
-		{{1.0f, 1.0f, 1.0f}},
+		{{-1.0f, -1.0f, -1.0f, 1.0f}},
+		{{1.0f, 1.0f, 1.0f, 1.0f}},
 	};
 	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
 
@@ -579,13 +577,13 @@ TEST_F(ShadowProjectionTest, LookAwayFromLight)
 
 	dsVector3f lightDir = {{-1.0f, 0.0f, 0.0f}};
 	dsShadowProjection shadowProj;
-	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
-		false));
+	ASSERT_TRUE(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, false));
 
-	dsVector3f points[] =
+	dsVector4f points[] =
 	{
-		{{-1.0f, -1.0f, -1.0f}},
-		{{1.0f, 1.0f, 1.0f}},
+		{{-1.0f, -1.0f, -1.0f, 1.0f}},
+		{{1.0f, 1.0f, 1.0f, 1.0f}},
 	};
 	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
 

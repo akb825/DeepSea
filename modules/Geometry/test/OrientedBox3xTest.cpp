@@ -508,21 +508,21 @@ TYPED_TEST(OrientedBox3xTest, ToMatrix)
 
 	OrientedBox3xType restoredBox;
 	dsOrientedBox3x_fromMatrix(&restoredBox, &matrix);
-	EXPECT_NEAR(restoredBox.orientation.values[0][0], box.orientation.values[0][0], epsilon);
-	EXPECT_NEAR(restoredBox.orientation.values[0][1], box.orientation.values[0][1], epsilon);
-	EXPECT_NEAR(restoredBox.orientation.values[0][2], box.orientation.values[0][2], epsilon);
-	EXPECT_NEAR(restoredBox.orientation.values[1][0], box.orientation.values[1][0], epsilon);
-	EXPECT_NEAR(restoredBox.orientation.values[1][1], box.orientation.values[1][1], epsilon);
-	EXPECT_NEAR(restoredBox.orientation.values[1][2], box.orientation.values[1][2], epsilon);
-	EXPECT_NEAR(restoredBox.orientation.values[2][0], box.orientation.values[2][0], epsilon);
-	EXPECT_NEAR(restoredBox.orientation.values[2][1], box.orientation.values[2][1], epsilon);
-	EXPECT_NEAR(restoredBox.orientation.values[2][2], box.orientation.values[2][2], epsilon);
-	EXPECT_NEAR(restoredBox.center.x, box.center.x, epsilon);
-	EXPECT_NEAR(restoredBox.center.y, box.center.y, epsilon);
-	EXPECT_NEAR(restoredBox.center.z, box.center.z, epsilon);
-	EXPECT_NEAR(restoredBox.halfExtents.x, box.halfExtents.x, epsilon);
-	EXPECT_NEAR(restoredBox.halfExtents.y, box.halfExtents.y, epsilon);
-	EXPECT_NEAR(restoredBox.halfExtents.z, box.halfExtents.z, epsilon);
+	EXPECT_NEAR(box.orientation.values[0][0], restoredBox.orientation.values[0][0], epsilon);
+	EXPECT_NEAR(box.orientation.values[0][1], restoredBox.orientation.values[0][1], epsilon);
+	EXPECT_NEAR(box.orientation.values[0][2], restoredBox.orientation.values[0][2], epsilon);
+	EXPECT_NEAR(box.orientation.values[1][0], restoredBox.orientation.values[1][0], epsilon);
+	EXPECT_NEAR(box.orientation.values[1][1], restoredBox.orientation.values[1][1], epsilon);
+	EXPECT_NEAR(box.orientation.values[1][2], restoredBox.orientation.values[1][2], epsilon);
+	EXPECT_NEAR(box.orientation.values[2][0], restoredBox.orientation.values[2][0], epsilon);
+	EXPECT_NEAR(box.orientation.values[2][1], restoredBox.orientation.values[2][1], epsilon);
+	EXPECT_NEAR(box.orientation.values[2][2], restoredBox.orientation.values[2][2], epsilon);
+	EXPECT_NEAR(box.center.x, restoredBox.center.x, epsilon);
+	EXPECT_NEAR(box.center.y, restoredBox.center.y, epsilon);
+	EXPECT_NEAR(box.center.z, restoredBox.center.z, epsilon);
+	EXPECT_NEAR(box.halfExtents.x, restoredBox.halfExtents.x, epsilon);
+	EXPECT_NEAR(box.halfExtents.y, restoredBox.halfExtents.y, epsilon);
+	EXPECT_NEAR(box.halfExtents.z, restoredBox.halfExtents.z, epsilon);
 }
 
 TYPED_TEST(OrientedBox3xTest, ToMatrixTranspose)
@@ -1052,6 +1052,304 @@ TYPED_TEST(OrientedBox3xTest, Dist)
 	EXPECT_FLOAT_EQ(4.0f, (float)dsOrientedBox3x_dist(&box, &point6));
 	EXPECT_FLOAT_EQ(2.0f, (float)dsOrientedBox3x_dist(&box, &point7));
 }
+
+#if DS_HAS_SIMD
+
+TEST(OrientedBox3xfTest, ToMatrixSIMD)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		return;
+
+	float epsilon = OrientedBox3xTypeSelector<float>::epsilon;
+
+	dsOrientedBox3xf box =
+	{
+		{{ {0.0f, 0.0f, 1.0f, 5.0f}, {-1.0f, 0.0f, 0.0f, 6.0f}, {0.0f, 1.0f, 0.0f, 7.0f} }},
+		{{6.0f, 5.0f, 4.0f, 8.0f}}, {{3.0f, 2.0f, 1.0f, 9.0f}}
+	};
+
+	dsVector3xf corners[DS_BOX3_CORNER_COUNT];
+	EXPECT_TRUE(dsOrientedBox3xf_corners(corners, &box));
+
+	dsMatrix44f matrix;
+	dsOrientedBox3xf_toMatrixSIMD(&matrix, &box);
+
+	dsVector4f lowerLeft = {{-1.0f, -1.0f, -1.0f, 1.0f}};
+	dsVector4f boxPoint;
+	dsMatrix44_transform(boxPoint, matrix, lowerLeft);
+	EXPECT_NEAR(corners[dsBox3Corner_xyz].x, boxPoint.x, epsilon);
+	EXPECT_NEAR(corners[dsBox3Corner_xyz].y, boxPoint.y, epsilon);
+	EXPECT_NEAR(corners[dsBox3Corner_xyz].z, boxPoint.z, epsilon);
+
+	dsVector4f upperRight = {{1.0f, 1.0f, 1.0f, 1.0f}};
+	dsMatrix44_transform(boxPoint, matrix, upperRight);
+	EXPECT_NEAR(corners[dsBox3Corner_XYZ].x, boxPoint.x, epsilon);
+	EXPECT_NEAR(corners[dsBox3Corner_XYZ].y, boxPoint.y, epsilon);
+	EXPECT_NEAR(corners[dsBox3Corner_XYZ].z, boxPoint.z, epsilon);
+
+	dsOrientedBox3xf restoredBox;
+	dsOrientedBox3xf_fromMatrixSIMD(&restoredBox, &matrix);
+	EXPECT_NEAR(box.orientation.values[0][0], restoredBox.orientation.values[0][0], epsilon);
+	EXPECT_NEAR(box.orientation.values[0][1], restoredBox.orientation.values[0][1], epsilon);
+	EXPECT_NEAR(box.orientation.values[0][2], restoredBox.orientation.values[0][2], epsilon);
+	EXPECT_NEAR(box.orientation.values[1][0], restoredBox.orientation.values[1][0], epsilon);
+	EXPECT_NEAR(box.orientation.values[1][1], restoredBox.orientation.values[1][1], epsilon);
+	EXPECT_NEAR(box.orientation.values[1][2], restoredBox.orientation.values[1][2], epsilon);
+	EXPECT_NEAR(box.orientation.values[2][0], restoredBox.orientation.values[2][0], epsilon);
+	EXPECT_NEAR(box.orientation.values[2][1], restoredBox.orientation.values[2][1], epsilon);
+	EXPECT_NEAR(box.orientation.values[2][2], restoredBox.orientation.values[2][2], epsilon);
+	EXPECT_NEAR(box.center.x, restoredBox.center.x, epsilon);
+	EXPECT_NEAR(box.center.y, restoredBox.center.y, epsilon);
+	EXPECT_NEAR(box.center.z, restoredBox.center.z, epsilon);
+	EXPECT_NEAR(box.halfExtents.x, restoredBox.halfExtents.x, epsilon);
+	EXPECT_NEAR(box.halfExtents.y, restoredBox.halfExtents.y, epsilon);
+	EXPECT_NEAR(box.halfExtents.z, restoredBox.halfExtents.z, epsilon);
+}
+
+TEST(OrientedBox3xfTest, ToMatrixTransposeSIMD)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		return;
+
+	dsOrientedBox3xf box =
+	{
+		{{ {0.0f, 0.0f, 1.0f, 5.0f}, {-1.0f, 0.0f, 0.0f, 6.0f}, {0.0f, 1.0f, 0.0f, 7.0f} }},
+		{{6.0f, 5.0f, 4.0f, 8.0f}}, {{3.0f, 2.0f, 1.0f, 9.0f}}
+	};
+
+	dsMatrix44f matrix, transposedMatrix;
+	dsOrientedBox3xf_toMatrixSIMD(&matrix, &box);
+	dsOrientedBox3xf_toMatrixTransposeSIMD(&transposedMatrix, &box);
+
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+			EXPECT_EQ(matrix.values[j][i], transposedMatrix.values[i][j]);
+	}
+}
+
+#if !DS_DETERMINISTIC_MATH
+TEST(OrientedBox3xfTest, FromMatrixFMA)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+		return;
+
+	float epsilon = OrientedBox3xTypeSelector<float>::epsilon;
+
+	dsOrientedBox3xf box =
+	{
+		{{ {0.0f, 0.0f, 1.0f, 5.0f}, {-1.0f, 0.0f, 0.0f, 6.0f}, {0.0f, 1.0f, 0.0f, 7.0f} }},
+		{{6.0f, 5.0f, 4.0f, 8.0f}}, {{3.0f, 2.0f, 1.0f, 9.0f}}
+	};
+
+	dsMatrix44f matrix;
+	dsOrientedBox3xf_toMatrixSIMD(&matrix, &box);
+
+	dsOrientedBox3xf restoredBox;
+	dsOrientedBox3xf_fromMatrixFMA(&restoredBox, &matrix);
+	EXPECT_NEAR(box.orientation.values[0][0], restoredBox.orientation.values[0][0], epsilon);
+	EXPECT_NEAR(box.orientation.values[0][1], restoredBox.orientation.values[0][1], epsilon);
+	EXPECT_NEAR(box.orientation.values[0][2], restoredBox.orientation.values[0][2], epsilon);
+	EXPECT_NEAR(box.orientation.values[1][0], restoredBox.orientation.values[1][0], epsilon);
+	EXPECT_NEAR(box.orientation.values[1][1], restoredBox.orientation.values[1][1], epsilon);
+	EXPECT_NEAR(box.orientation.values[1][2], restoredBox.orientation.values[1][2], epsilon);
+	EXPECT_NEAR(box.orientation.values[2][0], restoredBox.orientation.values[2][0], epsilon);
+	EXPECT_NEAR(box.orientation.values[2][1], restoredBox.orientation.values[2][1], epsilon);
+	EXPECT_NEAR(box.orientation.values[2][2], restoredBox.orientation.values[2][2], epsilon);
+	EXPECT_NEAR(box.center.x, restoredBox.center.x, epsilon);
+	EXPECT_NEAR(box.center.y, restoredBox.center.y, epsilon);
+	EXPECT_NEAR(box.center.z, restoredBox.center.z, epsilon);
+	EXPECT_NEAR(box.halfExtents.x, restoredBox.halfExtents.x, epsilon);
+	EXPECT_NEAR(box.halfExtents.y, restoredBox.halfExtents.y, epsilon);
+	EXPECT_NEAR(box.halfExtents.z, restoredBox.halfExtents.z, epsilon);
+}
+#endif // !DS_DETERMINISTIC_MATH
+
+TEST(OrientedBox3xdTest, ToMatrixSIMD2)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
+		return;
+
+	double epsilon = OrientedBox3xTypeSelector<double>::epsilon;
+
+	dsOrientedBox3xd box =
+	{
+		{{ {0.0, 0.0, 1.0, 5.0}, {-1.0, 0.0, 0.0, 6.0}, {0.0, 1.0, 0.0, 7.0} }},
+		{{6.0, 5.0, 4.0, 8.0}}, {{3.0, 2.0, 1.0, 9.0}}
+	};
+
+	dsVector3xd corners[DS_BOX3_CORNER_COUNT];
+	EXPECT_TRUE(dsOrientedBox3xd_corners(corners, &box));
+
+	dsMatrix44d matrix;
+	dsOrientedBox3xd_toMatrixSIMD2(&matrix, &box);
+
+	dsVector4d lowerLeft = {{-1.0, -1.0, -1.0, 1.0}};
+	dsVector4d boxPoint;
+	dsMatrix44_transform(boxPoint, matrix, lowerLeft);
+	EXPECT_NEAR(corners[dsBox3Corner_xyz].x, boxPoint.x, epsilon);
+	EXPECT_NEAR(corners[dsBox3Corner_xyz].y, boxPoint.y, epsilon);
+	EXPECT_NEAR(corners[dsBox3Corner_xyz].z, boxPoint.z, epsilon);
+
+	dsVector4d upperRight = {{1.0, 1.0, 1.0, 1.0}};
+	dsMatrix44_transform(boxPoint, matrix, upperRight);
+	EXPECT_NEAR(corners[dsBox3Corner_XYZ].x, boxPoint.x, epsilon);
+	EXPECT_NEAR(corners[dsBox3Corner_XYZ].y, boxPoint.y, epsilon);
+	EXPECT_NEAR(corners[dsBox3Corner_XYZ].z, boxPoint.z, epsilon);
+
+	dsOrientedBox3xd restoredBox;
+	dsOrientedBox3xd_fromMatrixSIMD2(&restoredBox, &matrix);
+	EXPECT_NEAR(box.orientation.values[0][0], restoredBox.orientation.values[0][0], epsilon);
+	EXPECT_NEAR(box.orientation.values[0][1], restoredBox.orientation.values[0][1], epsilon);
+	EXPECT_NEAR(box.orientation.values[0][2], restoredBox.orientation.values[0][2], epsilon);
+	EXPECT_NEAR(box.orientation.values[1][0], restoredBox.orientation.values[1][0], epsilon);
+	EXPECT_NEAR(box.orientation.values[1][1], restoredBox.orientation.values[1][1], epsilon);
+	EXPECT_NEAR(box.orientation.values[1][2], restoredBox.orientation.values[1][2], epsilon);
+	EXPECT_NEAR(box.orientation.values[2][0], restoredBox.orientation.values[2][0], epsilon);
+	EXPECT_NEAR(box.orientation.values[2][1], restoredBox.orientation.values[2][1], epsilon);
+	EXPECT_NEAR(box.orientation.values[2][2], restoredBox.orientation.values[2][2], epsilon);
+	EXPECT_NEAR(box.center.x, restoredBox.center.x, epsilon);
+	EXPECT_NEAR(box.center.y, restoredBox.center.y, epsilon);
+	EXPECT_NEAR(box.center.z, restoredBox.center.z, epsilon);
+	EXPECT_NEAR(box.halfExtents.x, restoredBox.halfExtents.x, epsilon);
+	EXPECT_NEAR(box.halfExtents.y, restoredBox.halfExtents.y, epsilon);
+	EXPECT_NEAR(box.halfExtents.z, restoredBox.halfExtents.z, epsilon);
+}
+
+TEST(OrientedBox3xdTest, ToMatrixTransposeSIMD2)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
+		return;
+
+	dsOrientedBox3xd box =
+	{
+		{{ {0.0, 0.0, 1.0, 5.0}, {-1.0, 0.0, 0.0, 6.0}, {0.0, 1.0, 0.0, 7.0} }},
+		{{6.0, 5.0, 4.0, 8.0}}, {{3.0, 2.0, 1.0, 9.0}}
+	};
+
+	dsMatrix44d matrix, transposedMatrix;
+	dsOrientedBox3xd_toMatrixSIMD2(&matrix, &box);
+	dsOrientedBox3xd_toMatrixTransposeSIMD2(&transposedMatrix, &box);
+
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+			EXPECT_EQ(matrix.values[j][i], transposedMatrix.values[i][j]);
+	}
+}
+
+#if !DS_DETERMINISTIC_MATH
+TEST(OrientedBox3xdTest, FromMatrixFMA2)
+{
+	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
+	if ((dsHostSIMDFeatures & features) != features)
+		return;
+
+	double epsilon = OrientedBox3xTypeSelector<double>::epsilon;
+
+	dsOrientedBox3xd box =
+	{
+		{{ {0.0, 0.0, 1.0, 5.0}, {-1.0, 0.0, 0.0, 6.0}, {0.0, 1.0, 0.0, 7.0} }},
+		{{6.0, 5.0, 4.0, 8.0}}, {{3.0, 2.0, 1.0, 9.0}}
+	};
+
+	dsMatrix44d matrix;
+	dsOrientedBox3xd_toMatrixSIMD2(&matrix, &box);
+
+	dsOrientedBox3xd restoredBox;
+	dsOrientedBox3xd_fromMatrixFMA2(&restoredBox, &matrix);
+	EXPECT_NEAR(box.orientation.values[0][0], restoredBox.orientation.values[0][0], epsilon);
+	EXPECT_NEAR(box.orientation.values[0][1], restoredBox.orientation.values[0][1], epsilon);
+	EXPECT_NEAR(box.orientation.values[0][2], restoredBox.orientation.values[0][2], epsilon);
+	EXPECT_NEAR(box.orientation.values[1][0], restoredBox.orientation.values[1][0], epsilon);
+	EXPECT_NEAR(box.orientation.values[1][1], restoredBox.orientation.values[1][1], epsilon);
+	EXPECT_NEAR(box.orientation.values[1][2], restoredBox.orientation.values[1][2], epsilon);
+	EXPECT_NEAR(box.orientation.values[2][0], restoredBox.orientation.values[2][0], epsilon);
+	EXPECT_NEAR(box.orientation.values[2][1], restoredBox.orientation.values[2][1], epsilon);
+	EXPECT_NEAR(box.orientation.values[2][2], restoredBox.orientation.values[2][2], epsilon);
+	EXPECT_NEAR(box.center.x, restoredBox.center.x, epsilon);
+	EXPECT_NEAR(box.center.y, restoredBox.center.y, epsilon);
+	EXPECT_NEAR(box.center.z, restoredBox.center.z, epsilon);
+	EXPECT_NEAR(box.halfExtents.x, restoredBox.halfExtents.x, epsilon);
+	EXPECT_NEAR(box.halfExtents.y, restoredBox.halfExtents.y, epsilon);
+	EXPECT_NEAR(box.halfExtents.z, restoredBox.halfExtents.z, epsilon);
+}
+#endif // !DS_DETERMINISTIC_MATH
+
+TEST(OrientedBox3xdTest, ToMatrixSIMD4)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
+		return;
+
+	double epsilon = OrientedBox3xTypeSelector<double>::epsilon;
+
+	DS_ALIGN(32) dsOrientedBox3xd box =
+	{
+		{{ {0.0, 0.0, 1.0, 5.0}, {-1.0, 0.0, 0.0, 6.0}, {0.0, 1.0, 0.0, 7.0} }},
+		{{6.0, 5.0, 4.0, 8.0}}, {{3.0, 2.0, 1.0, 9.0}}
+	};
+
+	dsVector3xd corners[DS_BOX3_CORNER_COUNT];
+	EXPECT_TRUE(dsOrientedBox3xd_corners(corners, &box));
+
+	DS_ALIGN(32) dsMatrix44d matrix;
+	dsOrientedBox3xd_toMatrixSIMD4(&matrix, &box);
+
+	dsVector4d lowerLeft = {{-1.0, -1.0, -1.0, 1.0}};
+	dsVector4d boxPoint;
+	dsMatrix44_transform(boxPoint, matrix, lowerLeft);
+	EXPECT_NEAR(corners[dsBox3Corner_xyz].x, boxPoint.x, epsilon);
+	EXPECT_NEAR(corners[dsBox3Corner_xyz].y, boxPoint.y, epsilon);
+	EXPECT_NEAR(corners[dsBox3Corner_xyz].z, boxPoint.z, epsilon);
+
+	dsVector4d upperRight = {{1.0, 1.0, 1.0, 1.0}};
+	dsMatrix44_transform(boxPoint, matrix, upperRight);
+	EXPECT_NEAR(corners[dsBox3Corner_XYZ].x, boxPoint.x, epsilon);
+	EXPECT_NEAR(corners[dsBox3Corner_XYZ].y, boxPoint.y, epsilon);
+	EXPECT_NEAR(corners[dsBox3Corner_XYZ].z, boxPoint.z, epsilon);
+
+	DS_ALIGN(32) dsOrientedBox3xd restoredBox;
+	dsOrientedBox3xd_fromMatrixSIMD4(&restoredBox, &matrix);
+	EXPECT_NEAR(box.orientation.values[0][0], restoredBox.orientation.values[0][0], epsilon);
+	EXPECT_NEAR(box.orientation.values[0][1], restoredBox.orientation.values[0][1], epsilon);
+	EXPECT_NEAR(box.orientation.values[0][2], restoredBox.orientation.values[0][2], epsilon);
+	EXPECT_NEAR(box.orientation.values[1][0], restoredBox.orientation.values[1][0], epsilon);
+	EXPECT_NEAR(box.orientation.values[1][1], restoredBox.orientation.values[1][1], epsilon);
+	EXPECT_NEAR(box.orientation.values[1][2], restoredBox.orientation.values[1][2], epsilon);
+	EXPECT_NEAR(box.orientation.values[2][0], restoredBox.orientation.values[2][0], epsilon);
+	EXPECT_NEAR(box.orientation.values[2][1], restoredBox.orientation.values[2][1], epsilon);
+	EXPECT_NEAR(box.orientation.values[2][2], restoredBox.orientation.values[2][2], epsilon);
+	EXPECT_NEAR(box.center.x, restoredBox.center.x, epsilon);
+	EXPECT_NEAR(box.center.y, restoredBox.center.y, epsilon);
+	EXPECT_NEAR(box.center.z, restoredBox.center.z, epsilon);
+	EXPECT_NEAR(box.halfExtents.x, restoredBox.halfExtents.x, epsilon);
+	EXPECT_NEAR(box.halfExtents.y, restoredBox.halfExtents.y, epsilon);
+	EXPECT_NEAR(box.halfExtents.z, restoredBox.halfExtents.z, epsilon);
+}
+
+TEST(OrientedBox3xdTest, ToMatrixTransposeSIMD4)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
+		return;
+
+	DS_ALIGN(32) dsOrientedBox3xd box =
+	{
+		{{ {0.0, 0.0, 1.0, 5.0}, {-1.0, 0.0, 0.0, 6.0}, {0.0, 1.0, 0.0, 7.0} }},
+		{{6.0, 5.0, 4.0, 8.0}}, {{3.0, 2.0, 1.0, 9.0}}
+	};
+
+	DS_ALIGN(32) dsMatrix44d matrix, transposedMatrix;
+	dsOrientedBox3xd_toMatrixSIMD4(&matrix, &box);
+	dsOrientedBox3xd_toMatrixTransposeSIMD4(&transposedMatrix, &box);
+
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+			EXPECT_EQ(matrix.values[j][i], transposedMatrix.values[i][j]);
+	}
+}
+
+#endif // DS_HAS_SIMD
 
 TEST(OrientedBox3x, ConvertFloatToDouble)
 {

@@ -54,7 +54,7 @@ typedef struct dsShadowProjection
 	/**
 	 * @brief Bounding box of the points in the shadow volume in shadow space.
 	 */
-	dsAlignedBox3f pointBounds;
+	dsAlignedBox3xf pointBounds;
 
 	/**
 	 * @brief Matrix defining the space shadows are computed in light projected space.

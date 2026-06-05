@@ -1609,7 +1609,7 @@ DS_ALWAYS_INLINE void dsSIMD2db_storeUnaligned(void* ip, dsSIMD2db a)
 #if DS_SIMD_ALWAYS_DOUBLE2
 #define dsSIMD2db_get(a, i) vgetq_lane_u64((a), (i))
 #else
-#define dsSIMD2db_get(a, i) 0
+#define dsSIMD2db_get(a, i) ((void)(a), 0)
 #endif
 
 /**
@@ -2515,7 +2515,7 @@ DS_ALWAYS_INLINE void dsSIMD4db_storeUnaligned(void* ip, dsSIMD4db a)
  * @param i The index of the element.
  * @return The element value.
  */
-#define dsSIMD4db_get(a, i) 0
+#define dsSIMD4db_get(a, i) ((void)(a), 0)
 
 /**
  * @brief Converts a SIMD bitfield value directly to a double value.

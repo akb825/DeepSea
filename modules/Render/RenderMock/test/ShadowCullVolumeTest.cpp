@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 Aaron Barany
+ * Copyright 2021-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,13 @@
 
 #include <DeepSea/Geometry/AlignedBox3.h>
 #include <DeepSea/Geometry/Frustum3.h>
+
 #include <DeepSea/Render/Shadows/ShadowCullVolume.h>
 #include <DeepSea/Render/Shadows/ShadowProjection.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
-#include <DeepSea/Math/Vector3.h>
+#include <DeepSea/Math/Vector3x.h>
 
 #include <gtest/gtest.h>
 
@@ -290,14 +292,16 @@ TEST_F(ShadowCullVolumeTest, IntersectInside)
 	dsMatrix44_identity(camera);
 
 	dsShadowProjection shadowProj;
-	DS_VERIFY(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
-		true));
+	DS_VERIFY(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, true));
 
 	dsAlignedBox3f box = {{{-1.0f, -2.0f, -6.0f}}, {{3.0f, 20.0f, -3.0f}}};
 
 	dsShadowProjection expectedShadowProj = shadowProj;
-	dsVector3f corners[DS_BOX3_CORNER_COUNT];
+	dsVector4f corners[DS_BOX3_CORNER_COUNT];
 	dsAlignedBox3_corners(corners, box);
+	for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
+		corners[i].w = 1.0f;
 	dsShadowProjection_addPoints(&expectedShadowProj, corners, DS_BOX3_CORNER_COUNT);
 
 	EXPECT_EQ(dsIntersectResult_Inside,
@@ -322,8 +326,8 @@ TEST_F(ShadowCullVolumeTest, IntersectOutside)
 	dsMatrix44_identity(camera);
 
 	dsShadowProjection shadowProj;
-	DS_VERIFY(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
-		true));
+	DS_VERIFY(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, true));
 
 	dsAlignedBox3f box = {{{-1.0f, -2.0f, 0.0f}}, {{3.0f, 20.0f, 3.0f}}};
 	EXPECT_EQ(dsIntersectResult_Outside,
@@ -332,7 +336,7 @@ TEST_F(ShadowCullVolumeTest, IntersectOutside)
 	EXPECT_FALSE(dsAlignedBox3_isValid(shadowProj.pointBounds));
 }
 
-TEST_F(ShadowCullVolumeTest, IntersectClamp)
+TEST_F(ShadowCullVolumeTest, IntersectClampAlignedBox)
 {
 	dsMatrix44f projection;
 	dsRenderer_makeOrtho(&projection, renderer, -2, 4, -3, 5, 1, 100);
@@ -347,34 +351,177 @@ TEST_F(ShadowCullVolumeTest, IntersectClamp)
 	dsMatrix44_identity(camera);
 
 	dsShadowProjection shadowProj;
-	DS_VERIFY(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
-		true));
+	DS_VERIFY(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, true));
 
 	dsAlignedBox3f box = {{{-1.0f, -2.0f, -6.0f}}, {{5.0f, 20.0f, 0.0f}}};
 
-	dsVector3f expectedCorners[] =
+	dsVector4f expectedCorners[] =
 	{
-		{{-1.0f, -2.0f, -6.0f}},
-		{{-1.0f, -2.0f, -1.0f}},
-		{{-1.0f, 20.0f, -6.0f}},
-		{{-1.0f, 20.0f, -1.0f}},
-		{{4.0f, -2.0f, -6.0f}},
-		{{4.0f, -2.0f, -1.0f}},
-		{{4.0f, 20.0f, -6.0f}},
-		{{4.0f, 20.0f, -1.0f}}
+		{{-1.0f, -2.0f, -6.0f, 1.0f}},
+		{{-1.0f, -2.0f, -1.0f, 1.0f}},
+		{{-1.0f, 20.0f, -6.0f, 1.0f}},
+		{{-1.0f, 20.0f, -1.0f, 1.0f}},
+		{{4.0f, -2.0f, -6.0f, 1.0f}},
+		{{4.0f, -2.0f, -1.0f, 1.0f}},
+		{{4.0f, 20.0f, -6.0f, 1.0f}},
+		{{4.0f, 20.0f, -1.0f, 1.0f}}
 	};
 	dsShadowProjection expectedShadowProj = shadowProj;
-	dsShadowProjection_addPoints(&expectedShadowProj, expectedCorners,
-		DS_ARRAY_SIZE(expectedCorners));
+	dsShadowProjection_addPoints(
+		&expectedShadowProj, expectedCorners, DS_ARRAY_SIZE(expectedCorners));
 
 	EXPECT_EQ(dsIntersectResult_Intersects,
 		dsShadowCullVolume_intersectAlignedBox(&volume, &box, &shadowProj, true));
 
 	const float epsilon = 1e-4f;
-	EXPECT_TRUE(dsVector3f_epsilonEqual(&expectedShadowProj.pointBounds.min,
-		&shadowProj.pointBounds.min, epsilon));
-	EXPECT_TRUE(dsVector3f_epsilonEqual(&expectedShadowProj.pointBounds.max,
-		&shadowProj.pointBounds.max, epsilon));
+	EXPECT_TRUE(dsVector3xf_epsilonEqual(
+		&expectedShadowProj.pointBounds.min, &shadowProj.pointBounds.min, epsilon));
+	EXPECT_TRUE(dsVector3xf_epsilonEqual(
+		&expectedShadowProj.pointBounds.max, &shadowProj.pointBounds.max, epsilon));
+}
+
+TEST_F(ShadowCullVolumeTest, IntersectClampAlignedBox3x)
+{
+	dsMatrix44f projection;
+	dsRenderer_makeOrtho(&projection, renderer, -2, 4, -3, 5, 1, 100);
+	dsFrustum3f frustum;
+	dsRenderer_frustumFromMatrix(&frustum, renderer, &projection);
+
+	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
+	dsShadowCullVolume volume;
+	dsShadowCullVolume_buildDirectional(&volume, &frustum, &lightDir);
+
+	dsMatrix44f camera;
+	dsMatrix44_identity(camera);
+
+	dsShadowProjection shadowProj;
+	DS_VERIFY(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, true));
+
+	dsAlignedBox3xf box = {{{-1.0f, -2.0f, -6.0f}}, {{5.0f, 20.0f, 0.0f}}};
+
+	dsVector4f expectedCorners[] =
+	{
+		{{-1.0f, -2.0f, -6.0f, 1.0f}},
+		{{-1.0f, -2.0f, -1.0f, 1.0f}},
+		{{-1.0f, 20.0f, -6.0f, 1.0f}},
+		{{-1.0f, 20.0f, -1.0f, 1.0f}},
+		{{4.0f, -2.0f, -6.0f, 1.0f}},
+		{{4.0f, -2.0f, -1.0f, 1.0f}},
+		{{4.0f, 20.0f, -6.0f, 1.0f}},
+		{{4.0f, 20.0f, -1.0f, 1.0f}}
+	};
+	dsShadowProjection expectedShadowProj = shadowProj;
+	dsShadowProjection_addPoints(
+		&expectedShadowProj, expectedCorners, DS_ARRAY_SIZE(expectedCorners));
+
+	EXPECT_EQ(dsIntersectResult_Intersects,
+		dsShadowCullVolume_intersectAlignedBox3x(&volume, &box, &shadowProj, true));
+
+	const float epsilon = 1e-4f;
+	EXPECT_TRUE(dsVector3xf_epsilonEqual(
+		&expectedShadowProj.pointBounds.min, &shadowProj.pointBounds.min, epsilon));
+	EXPECT_TRUE(dsVector3xf_epsilonEqual(
+		&expectedShadowProj.pointBounds.max, &shadowProj.pointBounds.max, epsilon));
+}
+
+TEST_F(ShadowCullVolumeTest, IntersectClampOrientedBox)
+{
+	dsMatrix44f projection;
+	dsRenderer_makeOrtho(&projection, renderer, -2, 4, -3, 5, 1, 100);
+	dsFrustum3f frustum;
+	dsRenderer_frustumFromMatrix(&frustum, renderer, &projection);
+
+	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
+	dsShadowCullVolume volume;
+	dsShadowCullVolume_buildDirectional(&volume, &frustum, &lightDir);
+
+	dsMatrix44f camera;
+	dsMatrix44_identity(camera);
+
+	dsShadowProjection shadowProj;
+	DS_VERIFY(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, true));
+
+	dsOrientedBox3f box =
+	{
+		{{ {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f} }},
+		{{2.0f, 9.0f, -3.0f}}, {{3.0f, 11.0f, 3.0f}}
+	};
+
+	dsVector4f expectedCorners[] =
+	{
+		{{-1.0f, -2.0f, -6.0f, 1.0f}},
+		{{-1.0f, -2.0f, -1.0f, 1.0f}},
+		{{-1.0f, 20.0f, -6.0f, 1.0f}},
+		{{-1.0f, 20.0f, -1.0f, 1.0f}},
+		{{4.0f, -2.0f, -6.0f, 1.0f}},
+		{{4.0f, -2.0f, -1.0f, 1.0f}},
+		{{4.0f, 20.0f, -6.0f, 1.0f}},
+		{{4.0f, 20.0f, -1.0f, 1.0f}}
+	};
+	dsShadowProjection expectedShadowProj = shadowProj;
+	dsShadowProjection_addPoints(
+		&expectedShadowProj, expectedCorners, DS_ARRAY_SIZE(expectedCorners));
+
+	EXPECT_EQ(dsIntersectResult_Intersects,
+		dsShadowCullVolume_intersectOrientedBox(&volume, &box, &shadowProj, true));
+
+	const float epsilon = 1e-4f;
+	EXPECT_TRUE(dsVector3xf_epsilonEqual(
+		&expectedShadowProj.pointBounds.min, &shadowProj.pointBounds.min, epsilon));
+	EXPECT_TRUE(dsVector3xf_epsilonEqual(
+		&expectedShadowProj.pointBounds.max, &shadowProj.pointBounds.max, epsilon));
+}
+
+TEST_F(ShadowCullVolumeTest, IntersectClampOrientedBox3x)
+{
+	dsMatrix44f projection;
+	dsRenderer_makeOrtho(&projection, renderer, -2, 4, -3, 5, 1, 100);
+	dsFrustum3f frustum;
+	dsRenderer_frustumFromMatrix(&frustum, renderer, &projection);
+
+	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
+	dsShadowCullVolume volume;
+	dsShadowCullVolume_buildDirectional(&volume, &frustum, &lightDir);
+
+	dsMatrix44f camera;
+	dsMatrix44_identity(camera);
+
+	dsShadowProjection shadowProj;
+	DS_VERIFY(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, true));
+
+	dsOrientedBox3xf box =
+	{
+		{{ {1.0f, 0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f, 2.0f}, {0.0f, 0.0f, 1.0f, 3.0f} }},
+		{{2.0f, 9.0f, -3.0f, 4.0f}}, {{3.0f, 11.0f, 3.0f, 5.0f}}
+	};
+
+	dsVector4f expectedCorners[] =
+	{
+		{{-1.0f, -2.0f, -6.0f, 1.0f}},
+		{{-1.0f, -2.0f, -1.0f, 1.0f}},
+		{{-1.0f, 20.0f, -6.0f, 1.0f}},
+		{{-1.0f, 20.0f, -1.0f, 1.0f}},
+		{{4.0f, -2.0f, -6.0f, 1.0f}},
+		{{4.0f, -2.0f, -1.0f, 1.0f}},
+		{{4.0f, 20.0f, -6.0f, 1.0f}},
+		{{4.0f, 20.0f, -1.0f, 1.0f}}
+	};
+	dsShadowProjection expectedShadowProj = shadowProj;
+	dsShadowProjection_addPoints(
+		&expectedShadowProj, expectedCorners, DS_ARRAY_SIZE(expectedCorners));
+
+	EXPECT_EQ(dsIntersectResult_Intersects,
+		dsShadowCullVolume_intersectOrientedBox3x(&volume, &box, &shadowProj, true));
+
+	const float epsilon = 1e-4f;
+	EXPECT_TRUE(dsVector3xf_epsilonEqual(
+		&expectedShadowProj.pointBounds.min, &shadowProj.pointBounds.min, epsilon));
+	EXPECT_TRUE(dsVector3xf_epsilonEqual(
+		&expectedShadowProj.pointBounds.max, &shadowProj.pointBounds.max, epsilon));
 }
 
 TEST_F(ShadowCullVolumeTest, IntersectClampBoxMatrix)
@@ -392,35 +539,347 @@ TEST_F(ShadowCullVolumeTest, IntersectClampBoxMatrix)
 	dsMatrix44_identity(camera);
 
 	dsShadowProjection shadowProj;
-	DS_VERIFY(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
-		true));
+	DS_VERIFY(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, true));
 
 	dsAlignedBox3f box = {{{-1.0f, -2.0f, -6.0f}}, {{5.0f, 20.0f, 0.0f}}};
 
 	dsMatrix44f boxMatrix;
 	dsAlignedBox3_toMatrix(boxMatrix, box);
 
-	dsVector3f expectedCorners[] =
+	dsVector4f expectedCorners[] =
 	{
-		{{-1.0f, -2.0f, -6.0f}},
-		{{-1.0f, -2.0f, -1.0f}},
-		{{-1.0f, 20.0f, -6.0f}},
-		{{-1.0f, 20.0f, -1.0f}},
-		{{4.0f, -2.0f, -6.0f}},
-		{{4.0f, -2.0f, -1.0f}},
-		{{4.0f, 20.0f, -6.0f}},
-		{{4.0f, 20.0f, -1.0f}}
+		{{-1.0f, -2.0f, -6.0f, 1.0f}},
+		{{-1.0f, -2.0f, -1.0f, 1.0f}},
+		{{-1.0f, 20.0f, -6.0f, 1.0f}},
+		{{-1.0f, 20.0f, -1.0f, 1.0f}},
+		{{4.0f, -2.0f, -6.0f, 1.0f}},
+		{{4.0f, -2.0f, -1.0f, 1.0f}},
+		{{4.0f, 20.0f, -6.0f, 1.0f}},
+		{{4.0f, 20.0f, -1.0f, 1.0f}}
 	};
 	dsShadowProjection expectedShadowProj = shadowProj;
-	dsShadowProjection_addPoints(&expectedShadowProj, expectedCorners,
-		DS_ARRAY_SIZE(expectedCorners));
+	dsShadowProjection_addPoints(
+		&expectedShadowProj, expectedCorners, DS_ARRAY_SIZE(expectedCorners));
 
 	EXPECT_EQ(dsIntersectResult_Intersects,
 		dsShadowCullVolume_intersectBoxMatrix(&volume, &boxMatrix, &shadowProj, true));
 
 	const float epsilon = 1e-4f;
-	EXPECT_TRUE(dsVector3f_epsilonEqual(&expectedShadowProj.pointBounds.min,
+	EXPECT_TRUE(dsVector3xf_epsilonEqual(&expectedShadowProj.pointBounds.min,
 		&shadowProj.pointBounds.min, epsilon));
-	EXPECT_TRUE(dsVector3f_epsilonEqual(&expectedShadowProj.pointBounds.max,
+	EXPECT_TRUE(dsVector3xf_epsilonEqual(&expectedShadowProj.pointBounds.max,
 		&shadowProj.pointBounds.max, epsilon));
 }
+
+#if DS_HAS_SIMD
+
+TEST_F(ShadowCullVolumeTest, IntersectClampAlignedBoxSIMD)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		return;
+
+	dsMatrix44f projection;
+	dsRenderer_makeOrtho(&projection, renderer, -2, 4, -3, 5, 1, 100);
+	dsFrustum3f frustum;
+	dsRenderer_frustumFromMatrix(&frustum, renderer, &projection);
+
+	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
+	dsShadowCullVolume volume;
+	dsShadowCullVolume_buildDirectional(&volume, &frustum, &lightDir);
+
+	dsMatrix44f camera;
+	dsMatrix44_identity(camera);
+
+	dsShadowProjection shadowProj;
+	DS_VERIFY(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, true));
+
+	dsAlignedBox3xf box = {{{-1.0f, -2.0f, -6.0f}}, {{5.0f, 20.0f, 0.0f}}};
+
+	dsVector4f expectedCorners[] =
+	{
+		{{-1.0f, -2.0f, -6.0f, 1.0f}},
+		{{-1.0f, -2.0f, -1.0f, 1.0f}},
+		{{-1.0f, 20.0f, -6.0f, 1.0f}},
+		{{-1.0f, 20.0f, -1.0f, 1.0f}},
+		{{4.0f, -2.0f, -6.0f, 1.0f}},
+		{{4.0f, -2.0f, -1.0f, 1.0f}},
+		{{4.0f, 20.0f, -6.0f, 1.0f}},
+		{{4.0f, 20.0f, -1.0f, 1.0f}}
+	};
+	dsShadowProjection expectedShadowProj = shadowProj;
+	dsShadowProjection_addPointsSIMD(
+		&expectedShadowProj, expectedCorners, DS_ARRAY_SIZE(expectedCorners));
+
+	EXPECT_EQ(dsIntersectResult_Intersects,
+		dsShadowCullVolume_intersectAlignedBoxSIMD(&volume, &box, &shadowProj, true));
+
+	const float epsilon = 1e-4f;
+	EXPECT_TRUE(dsVector3xf_epsilonEqual(
+		&expectedShadowProj.pointBounds.min, &shadowProj.pointBounds.min, epsilon));
+	EXPECT_TRUE(dsVector3xf_epsilonEqual(
+		&expectedShadowProj.pointBounds.max, &shadowProj.pointBounds.max, epsilon));
+}
+
+#if !DS_DETERMINISTIC_MATH
+TEST_F(ShadowCullVolumeTest, IntersectClampAlignedBoxFMA)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+		return;
+
+	dsMatrix44f projection;
+	dsRenderer_makeOrtho(&projection, renderer, -2, 4, -3, 5, 1, 100);
+	dsFrustum3f frustum;
+	dsRenderer_frustumFromMatrix(&frustum, renderer, &projection);
+
+	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
+	dsShadowCullVolume volume;
+	dsShadowCullVolume_buildDirectional(&volume, &frustum, &lightDir);
+
+	dsMatrix44f camera;
+	dsMatrix44_identity(camera);
+
+	dsShadowProjection shadowProj;
+	DS_VERIFY(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, true));
+
+	dsAlignedBox3xf box = {{{-1.0f, -2.0f, -6.0f}}, {{5.0f, 20.0f, 0.0f}}};
+
+	dsVector4f expectedCorners[] =
+	{
+		{{-1.0f, -2.0f, -6.0f, 1.0f}},
+		{{-1.0f, -2.0f, -1.0f, 1.0f}},
+		{{-1.0f, 20.0f, -6.0f, 1.0f}},
+		{{-1.0f, 20.0f, -1.0f, 1.0f}},
+		{{4.0f, -2.0f, -6.0f, 1.0f}},
+		{{4.0f, -2.0f, -1.0f, 1.0f}},
+		{{4.0f, 20.0f, -6.0f, 1.0f}},
+		{{4.0f, 20.0f, -1.0f, 1.0f}}
+	};
+	dsShadowProjection expectedShadowProj = shadowProj;
+	dsShadowProjection_addPointsFMA(
+		&expectedShadowProj, expectedCorners, DS_ARRAY_SIZE(expectedCorners));
+
+	EXPECT_EQ(dsIntersectResult_Intersects,
+		dsShadowCullVolume_intersectAlignedBoxFMA(&volume, &box, &shadowProj, true));
+
+	const float epsilon = 1e-4f;
+	EXPECT_TRUE(dsVector3xf_epsilonEqual(
+		&expectedShadowProj.pointBounds.min, &shadowProj.pointBounds.min, epsilon));
+	EXPECT_TRUE(dsVector3xf_epsilonEqual(
+		&expectedShadowProj.pointBounds.max, &shadowProj.pointBounds.max, epsilon));
+}
+#endif // !DS_DETERMINISTIC_MATH
+
+TEST_F(ShadowCullVolumeTest, IntersectClampOrientedBoxSIMD)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		return;
+
+	dsMatrix44f projection;
+	dsRenderer_makeOrtho(&projection, renderer, -2, 4, -3, 5, 1, 100);
+	dsFrustum3f frustum;
+	dsRenderer_frustumFromMatrix(&frustum, renderer, &projection);
+
+	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
+	dsShadowCullVolume volume;
+	dsShadowCullVolume_buildDirectional(&volume, &frustum, &lightDir);
+
+	dsMatrix44f camera;
+	dsMatrix44_identity(camera);
+
+	dsShadowProjection shadowProj;
+	DS_VERIFY(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, true));
+
+	dsOrientedBox3xf box =
+	{
+		{{ {1.0f, 0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f, 2.0f}, {0.0f, 0.0f, 1.0f, 3.0f} }},
+		{{2.0f, 9.0f, -3.0f, 4.0f}}, {{3.0f, 11.0f, 3.0f, 5.0f}}
+	};
+
+	dsVector4f expectedCorners[] =
+	{
+		{{-1.0f, -2.0f, -6.0f, 1.0f}},
+		{{-1.0f, -2.0f, -1.0f, 1.0f}},
+		{{-1.0f, 20.0f, -6.0f, 1.0f}},
+		{{-1.0f, 20.0f, -1.0f, 1.0f}},
+		{{4.0f, -2.0f, -6.0f, 1.0f}},
+		{{4.0f, -2.0f, -1.0f, 1.0f}},
+		{{4.0f, 20.0f, -6.0f, 1.0f}},
+		{{4.0f, 20.0f, -1.0f, 1.0f}}
+	};
+	dsShadowProjection expectedShadowProj = shadowProj;
+	dsShadowProjection_addPointsSIMD(
+		&expectedShadowProj, expectedCorners, DS_ARRAY_SIZE(expectedCorners));
+
+	EXPECT_EQ(dsIntersectResult_Intersects,
+		dsShadowCullVolume_intersectOrientedBoxSIMD(&volume, &box, &shadowProj, true));
+
+	const float epsilon = 1e-4f;
+	EXPECT_TRUE(dsVector3xf_epsilonEqual(
+		&expectedShadowProj.pointBounds.min, &shadowProj.pointBounds.min, epsilon));
+	EXPECT_TRUE(dsVector3xf_epsilonEqual(
+		&expectedShadowProj.pointBounds.max, &shadowProj.pointBounds.max, epsilon));
+}
+
+#if !DS_DETERMINISTIC_MATH
+TEST_F(ShadowCullVolumeTest, IntersectClampOrientedBoxFMA)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+		return;
+
+	dsMatrix44f projection;
+	dsRenderer_makeOrtho(&projection, renderer, -2, 4, -3, 5, 1, 100);
+	dsFrustum3f frustum;
+	dsRenderer_frustumFromMatrix(&frustum, renderer, &projection);
+
+	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
+	dsShadowCullVolume volume;
+	dsShadowCullVolume_buildDirectional(&volume, &frustum, &lightDir);
+
+	dsMatrix44f camera;
+	dsMatrix44_identity(camera);
+
+	dsShadowProjection shadowProj;
+	DS_VERIFY(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, true));
+
+	dsOrientedBox3xf box =
+	{
+		{{ {1.0f, 0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f, 2.0f}, {0.0f, 0.0f, 1.0f, 3.0f} }},
+		{{2.0f, 9.0f, -3.0f, 4.0f}}, {{3.0f, 11.0f, 3.0f, 5.0f}}
+	};
+
+	dsVector4f expectedCorners[] =
+	{
+		{{-1.0f, -2.0f, -6.0f, 1.0f}},
+		{{-1.0f, -2.0f, -1.0f, 1.0f}},
+		{{-1.0f, 20.0f, -6.0f, 1.0f}},
+		{{-1.0f, 20.0f, -1.0f, 1.0f}},
+		{{4.0f, -2.0f, -6.0f, 1.0f}},
+		{{4.0f, -2.0f, -1.0f, 1.0f}},
+		{{4.0f, 20.0f, -6.0f, 1.0f}},
+		{{4.0f, 20.0f, -1.0f, 1.0f}}
+	};
+	dsShadowProjection expectedShadowProj = shadowProj;
+	dsShadowProjection_addPointsFMA(
+		&expectedShadowProj, expectedCorners, DS_ARRAY_SIZE(expectedCorners));
+
+	EXPECT_EQ(dsIntersectResult_Intersects,
+		dsShadowCullVolume_intersectOrientedBoxFMA(&volume, &box, &shadowProj, true));
+
+	const float epsilon = 1e-4f;
+	EXPECT_TRUE(dsVector3xf_epsilonEqual(
+		&expectedShadowProj.pointBounds.min, &shadowProj.pointBounds.min, epsilon));
+	EXPECT_TRUE(dsVector3xf_epsilonEqual(
+		&expectedShadowProj.pointBounds.max, &shadowProj.pointBounds.max, epsilon));
+}
+#endif // !DS_DETERMINISTIC_MATH
+
+TEST_F(ShadowCullVolumeTest, IntersectClampBoxMatrixSIMD)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		return;
+
+	dsMatrix44f projection;
+	dsRenderer_makeOrtho(&projection, renderer, -2, 4, -3, 5, 1, 100);
+	dsFrustum3f frustum;
+	dsRenderer_frustumFromMatrix(&frustum, renderer, &projection);
+
+	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
+	dsShadowCullVolume volume;
+	dsShadowCullVolume_buildDirectional(&volume, &frustum, &lightDir);
+
+	dsMatrix44f camera;
+	dsMatrix44_identity(camera);
+
+	dsShadowProjection shadowProj;
+	DS_VERIFY(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, true));
+
+	dsAlignedBox3f box = {{{-1.0f, -2.0f, -6.0f}}, {{5.0f, 20.0f, 0.0f}}};
+
+	dsMatrix44f boxMatrix;
+	dsAlignedBox3_toMatrix(boxMatrix, box);
+
+	dsVector4f expectedCorners[] =
+	{
+		{{-1.0f, -2.0f, -6.0f, 1.0f}},
+		{{-1.0f, -2.0f, -1.0f, 1.0f}},
+		{{-1.0f, 20.0f, -6.0f, 1.0f}},
+		{{-1.0f, 20.0f, -1.0f, 1.0f}},
+		{{4.0f, -2.0f, -6.0f, 1.0f}},
+		{{4.0f, -2.0f, -1.0f, 1.0f}},
+		{{4.0f, 20.0f, -6.0f, 1.0f}},
+		{{4.0f, 20.0f, -1.0f, 1.0f}}
+	};
+	dsShadowProjection expectedShadowProj = shadowProj;
+	dsShadowProjection_addPointsSIMD(
+		&expectedShadowProj, expectedCorners, DS_ARRAY_SIZE(expectedCorners));
+
+	EXPECT_EQ(dsIntersectResult_Intersects,
+		dsShadowCullVolume_intersectBoxMatrixSIMD(&volume, &boxMatrix, &shadowProj, true));
+
+	const float epsilon = 1e-4f;
+	EXPECT_TRUE(dsVector3xf_epsilonEqual(&expectedShadowProj.pointBounds.min,
+		&shadowProj.pointBounds.min, epsilon));
+	EXPECT_TRUE(dsVector3xf_epsilonEqual(&expectedShadowProj.pointBounds.max,
+		&shadowProj.pointBounds.max, epsilon));
+}
+
+#if !DS_DETERMINISTIC_MATH
+TEST_F(ShadowCullVolumeTest, IntersectClampBoxMatrixFMA)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+		return;
+
+	dsMatrix44f projection;
+	dsRenderer_makeOrtho(&projection, renderer, -2, 4, -3, 5, 1, 100);
+	dsFrustum3f frustum;
+	dsRenderer_frustumFromMatrix(&frustum, renderer, &projection);
+
+	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
+	dsShadowCullVolume volume;
+	dsShadowCullVolume_buildDirectional(&volume, &frustum, &lightDir);
+
+	dsMatrix44f camera;
+	dsMatrix44_identity(camera);
+
+	dsShadowProjection shadowProj;
+	DS_VERIFY(dsShadowProjection_initialize(
+		&shadowProj, renderer, &camera, &lightDir, NULL, NULL, true));
+
+	dsAlignedBox3f box = {{{-1.0f, -2.0f, -6.0f}}, {{5.0f, 20.0f, 0.0f}}};
+
+	dsMatrix44f boxMatrix;
+	dsAlignedBox3_toMatrix(boxMatrix, box);
+
+	dsVector4f expectedCorners[] =
+	{
+		{{-1.0f, -2.0f, -6.0f, 1.0f}},
+		{{-1.0f, -2.0f, -1.0f, 1.0f}},
+		{{-1.0f, 20.0f, -6.0f, 1.0f}},
+		{{-1.0f, 20.0f, -1.0f, 1.0f}},
+		{{4.0f, -2.0f, -6.0f, 1.0f}},
+		{{4.0f, -2.0f, -1.0f, 1.0f}},
+		{{4.0f, 20.0f, -6.0f, 1.0f}},
+		{{4.0f, 20.0f, -1.0f, 1.0f}}
+	};
+	dsShadowProjection expectedShadowProj = shadowProj;
+	dsShadowProjection_addPointsFMA(
+		&expectedShadowProj, expectedCorners, DS_ARRAY_SIZE(expectedCorners));
+
+	EXPECT_EQ(dsIntersectResult_Intersects,
+		dsShadowCullVolume_intersectBoxMatrixFMA(&volume, &boxMatrix, &shadowProj, true));
+
+	const float epsilon = 1e-4f;
+	EXPECT_TRUE(dsVector3xf_epsilonEqual(&expectedShadowProj.pointBounds.min,
+		&shadowProj.pointBounds.min, epsilon));
+	EXPECT_TRUE(dsVector3xf_epsilonEqual(&expectedShadowProj.pointBounds.max,
+		&shadowProj.pointBounds.max, epsilon));
+}
+#endif // !DS_DETERMINISTIC_MATH
+
+#endif // DS_HAS_SIMD

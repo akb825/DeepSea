@@ -735,6 +735,23 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_xor(dsSIMD4fb a, dsSIMD4fb b)
 #endif
 }
 
+/**
+ * @brief Selects between two vectors based on a boolean mask.
+ * @remark This can be used when dsSIMDFeatures_Float4 available.
+ * @param a The boolean mask to select with.
+ * @param b The first SIMD values to select from.
+ * @param c The second SIMD values to select from.
+ * @return The result of a ? b : c.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_select(dsSIMD4fb a, dsSIMD4fb b, dsSIMD4fb c)
+{
+#if DS_SIMD_ALWAYS_INT
+	return _mm_or_si128(_mm_and_si128(a, b), _mm_andnot_si128(a, c));
+#else
+	return _mm_or_ps(_mm_and_ps(a, b), _mm_andnot_ps(a, c));
+#endif
+}
+
 /// @cond
 DS_SIMD_END();
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT);
@@ -899,21 +916,6 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_shiftRight(dsSIMD4fb a, unsigned int b)
  */
 #define dsSIMD4fb_shiftRightConst(a, b) \
 	DS_SSE_RESULT_FB4(_mm_srli_epi32(DS_SSE_PARAM_FB4((a)), (b)))
-
-/**
- * @brief Selects between two vectors based on a boolean mask.
- * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_Int is available.
- * @param a The boolean mask to select with.
- * @param b The first SIMD values to select from.
- * @param c The second SIMD values to select from.
- * @return The result of a ? b : c.
- */
-DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_select(dsSIMD4fb a, dsSIMD4fb b, dsSIMD4fb c)
-{
-	return DS_SSE_RESULT_FB4(_mm_or_si128(
-		_mm_and_si128(DS_SSE_PARAM_FB4(a), DS_SSE_PARAM_FB4(b)),
-		_mm_andnot_si128(DS_SSE_PARAM_FB4(a), DS_SSE_PARAM_FB4(c))));
-}
 
 /**
  * @brief Checks if two SIMD values are equal.

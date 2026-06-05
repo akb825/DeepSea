@@ -28,11 +28,13 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/UniqueNameID.h>
 
-#include <DeepSea/Geometry/OrientedBox3.h>
+#include <DeepSea/Geometry/AlignedBox3x.h>
+#include <DeepSea/Geometry/OrientedBox3x.h>
 
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Matrix33x.h>
 #include <DeepSea/Math/Matrix44.h>
-#include <DeepSea/Math/Vector3.h>
+#include <DeepSea/Math/Vector3x.h>
 
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
@@ -234,7 +236,7 @@ static bool bindDummyTransforms(
 		return false;
 
 	dsMatrix44f identity;
-	dsMatrix44_identity(identity);
+	dsMatrix44f_identity(&identity);
 	shadows->committedMatrices = 0;
 	memset(shadows->projectionSet, 0, sizeof(shadows->projectionSet));
 	dsVector2f dummyDist2 = {{0.0f, 1.0f}};
@@ -339,8 +341,8 @@ static bool bindDummyTransforms(
 	{
 		dsSharedMaterialValues* globalValues = dsView_lockGlobalValues(view, itemList);
 		DS_ASSERT(globalValues);
-		success = dsSceneLightShadows_bindTransformGroup(shadows, globalValues,
-			shadows->transformGroupID);
+		success = dsSceneLightShadows_bindTransformGroup(
+			shadows, globalValues, shadows->transformGroupID);
 		DS_VERIFY(dsView_unlockGlobalValues(view, itemList));
 	}
 
@@ -584,8 +586,8 @@ bool dsSceneLightShadows_prepare(
 	// Check if the light is in view based on the max distance to show shadows.
 	float intensityThreshold = dsSceneLightSet_getIntensityThreshold(shadows->lightSet);
 	dsMatrix44f shadowedProjectionMtx;
-	DS_VERIFY(dsProjectionParams_createMatrix(&shadowedProjectionMtx, &shadowedProjection,
-		renderer));
+	DS_VERIFY(dsProjectionParams_createMatrix(
+		&shadowedProjectionMtx, &shadowedProjection, renderer));
 	dsMatrix44f shadowedCullMtx;
 	dsMatrix44f_mul(&shadowedCullMtx, &shadowedProjectionMtx, &view->viewMatrix);
 	dsFrustum3f cullFrustum;
@@ -602,7 +604,7 @@ bool dsSceneLightShadows_prepare(
 		return false;
 
 	dsMatrix44f identity;
-	dsMatrix44_identity(identity);
+	dsMatrix44f_identity(&identity);
 	shadows->committedMatrices = 0;
 	memset(shadows->projectionSet, 0, sizeof(shadows->projectionSet));
 	switch (shadows->lightType)
@@ -694,8 +696,8 @@ bool dsSceneLightShadows_prepare(
 			dsMatrix44f_transform(&lightViewPos, &view->viewMatrix, &lightWorldPos);
 
 			dsMatrix44f projection;
-			DS_VERIFY(dsSceneLight_getPointLightProjection(&projection, light, renderer,
-				intensityThreshold));
+			DS_VERIFY(dsSceneLight_getPointLightProjection(
+				&projection, light, renderer, intensityThreshold));
 			for (int i = 0; i < 6; ++i)
 			{
 				dsCubeFace cubeFace = (dsCubeFace)i;
@@ -713,8 +715,8 @@ bool dsSceneLightShadows_prepare(
 				dsFrustum3f lightFrustum;
 				DS_VERIFY(dsRenderer_frustumFromMatrix(&lightFrustum, renderer, &lightProjection));
 
-				DS_VERIFY(dsShadowCullVolume_buildSpot(shadows->cullVolumes + i, &shadowedFrustum,
-					&lightFrustum));
+				DS_VERIFY(dsShadowCullVolume_buildSpot(
+					shadows->cullVolumes + i, &shadowedFrustum, &lightFrustum));
 				// Force uniform shadows since they can be hard to tune depth bias with smaller
 				// frustums and LiPSM.
 				DS_VERIFY(dsShadowProjection_initialize(shadows->projections + i, renderer,
@@ -724,10 +726,10 @@ bool dsSceneLightShadows_prepare(
 
 			if (shadows->fallback)
 			{
-				DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 1,
-					&shadowDistance, dsMaterialType_Vec2, 0, 1));
-				DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 3,
-					&lightViewPos, dsMaterialType_Vec3, 0, 1));
+				DS_VERIFY(dsShaderVariableGroup_setElementData(
+					shadows->fallback, 1, &shadowDistance, dsMaterialType_Vec2, 0, 1));
+				DS_VERIFY(dsShaderVariableGroup_setElementData(
+					shadows->fallback, 3, &lightViewPos, dsMaterialType_Vec3, 0, 1));
 			}
 			else
 			{
@@ -753,19 +755,19 @@ bool dsSceneLightShadows_prepare(
 			dsMatrix44f transform;
 			DS_VERIFY(dsSceneLight_getSpotLightTransform(&transform, light));
 			dsMatrix44f lightSpace;
-			dsMatrix44_mul(lightSpace, transform, view->cameraMatrix);
+			dsMatrix44f_mul(&lightSpace, &transform, &view->cameraMatrix);
 
 			dsMatrix44f projection;
-			DS_VERIFY(dsSceneLight_getSpotLightProjection(&projection, light, renderer,
-				intensityThreshold));
+			DS_VERIFY(dsSceneLight_getSpotLightProjection(
+				&projection, light, renderer, intensityThreshold));
 
 			dsMatrix44f lightProjection;
 			dsMatrix44f_mul(&lightProjection, &projection, &lightSpace);
 			dsFrustum3f lightFrustum;
 			DS_VERIFY(dsRenderer_frustumFromMatrix(&lightFrustum, renderer, &lightProjection));
 
-			DS_VERIFY(dsShadowCullVolume_buildSpot(shadows->cullVolumes, &shadowedFrustum,
-				&lightFrustum));
+			DS_VERIFY(dsShadowCullVolume_buildSpot(
+				shadows->cullVolumes, &shadowedFrustum, &lightFrustum));
 			// Force uniform shadows since they can be hard to tune depth bias with smaller
 			// frustums and LiPSM.
 			DS_VERIFY(dsShadowProjection_initialize(shadows->projections, renderer, &identity,
@@ -773,8 +775,8 @@ bool dsSceneLightShadows_prepare(
 
 			if (shadows->fallback)
 			{
-				DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 1,
-					&shadowDistance, dsMaterialType_Vec2, 0, 1));
+				DS_VERIFY(dsShaderVariableGroup_setElementData(
+					shadows->fallback, 1, &shadowDistance, dsMaterialType_Vec2, 0, 1));
 			}
 			else
 			{
@@ -855,6 +857,32 @@ dsIntersectResult dsSceneLightShadows_intersectAlignedBox(
 		shadows->projections + surface, clampToVolume);
 }
 
+dsIntersectResult dsSceneLightShadows_intersectAlignedBox3x(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3xf* box)
+{
+#if DS_SIMD_ALWAYS_FMA
+	return dsSceneLightShadows_intersectAlignedBoxFMA(shadows, surface, box);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	return dsSceneLightShadows_intersectAlignedBoxSIMD(shadows, surface, box);
+#else
+	if (!shadows || surface >= shadows->totalMatrices || !box)
+		return dsIntersectResult_Outside;
+
+	dsVector3xf size;
+	dsAlignedBox3xf_extents(&size, box);
+	float maxSize = dsMax(size.x, size.y);
+	maxSize = dsMax(maxSize, size.z);
+	bool clampToVolume = maxSize >= shadows->largeBoxSize;
+
+	DS_ASSERT(shadows->view);
+	dsMatrix44f boxMatrix, viewBoxMatrix;
+	dsAlignedBox3xf_toMatrix(&boxMatrix, box);
+	dsMatrix44f_affineMul(&viewBoxMatrix, &shadows->view->viewMatrix, &boxMatrix);
+	return dsShadowCullVolume_intersectBoxMatrix(shadows->cullVolumes + surface, &boxMatrix,
+		shadows->projections + surface, clampToVolume);
+#endif
+}
+
 dsIntersectResult dsSceneLightShadows_intersectOrientedBox(
 	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3f* box)
 {
@@ -873,15 +901,44 @@ dsIntersectResult dsSceneLightShadows_intersectOrientedBox(
 		shadows->projections + surface, clampToVolume);
 }
 
+dsIntersectResult dsSceneLightShadows_intersectOrientedBox3x(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3xf* box)
+{
+#if DS_SIMD_ALWAYS_FMA
+	return dsSceneLightShadows_intersectOrientedBoxFMA(shadows, surface, box);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	return dsSceneLightShadows_intersectOrientedBoxSIMD(shadows, surface, box);
+#else
+	if (!shadows || surface >= shadows->totalMatrices || !box)
+		return dsIntersectResult_Outside;
+
+	float maxHalfSize = dsMax(box->halfExtents.x, box->halfExtents.y);
+	maxHalfSize = dsMax(maxHalfSize, box->halfExtents.z);
+	bool clampToVolume = maxHalfSize*2.0f >= shadows->largeBoxSize;
+
+	DS_ASSERT(shadows->view);
+	dsMatrix44f boxMatrix, viewBoxMatrix;
+	dsOrientedBox3xf_toMatrix(&boxMatrix, box);
+	dsMatrix44f_affineMul(&viewBoxMatrix, &shadows->view->viewMatrix, &boxMatrix);
+	return dsShadowCullVolume_intersectBoxMatrix(shadows->cullVolumes + surface, &viewBoxMatrix,
+		shadows->projections + surface, clampToVolume);
+#endif
+}
+
 dsIntersectResult dsSceneLightShadows_intersectBoxMatrix(
 	dsSceneLightShadows* shadows, uint32_t surface, const dsMatrix44f* boxMatrix)
 {
+#if DS_SIMD_ALWAYS_FMA
+	return dsSceneLightShadows_intersectBoxMatrixFMA(shadows, surface, boxMatrix);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	return dsSceneLightShadows_intersectBoxMatrixSIMD(shadows, surface, boxMatrix);
+#else
 	if (!shadows || surface >= shadows->totalMatrices || !boxMatrix)
 		return dsIntersectResult_Outside;
 
-	float halfExtentsX = dsVector3f_len((const dsVector3f*)boxMatrix->columns);
-	float halfExtentsY = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 1));
-	float halfExtentsZ = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 2));
+	float halfExtentsX = dsVector3xf_len(boxMatrix->columns);
+	float halfExtentsY = dsVector3xf_len(boxMatrix->columns + 1);
+	float halfExtentsZ = dsVector3xf_len(boxMatrix->columns + 2);
 	float maxHalfSize = dsMax(halfExtentsX, halfExtentsY);
 	maxHalfSize = dsMax(maxHalfSize, halfExtentsZ);
 	bool clampToVolume = maxHalfSize*2.0f >= shadows->largeBoxSize;
@@ -891,6 +948,7 @@ dsIntersectResult dsSceneLightShadows_intersectBoxMatrix(
 	dsMatrix44f_affineMul(&viewBoxMatrix, &shadows->view->viewMatrix, boxMatrix);
 	return dsShadowCullVolume_intersectBoxMatrix(shadows->cullVolumes + surface, &viewBoxMatrix,
 		shadows->projections + surface, clampToVolume);
+#endif
 }
 
 dsIntersectResult dsSceneLightShadows_intersectSphere(
@@ -925,6 +983,28 @@ dsIntersectResult dsSceneLightShadows_intersectViewAlignedBox(
 		shadows->projections + surface, clampToVolume);
 }
 
+dsIntersectResult dsSceneLightShadows_intersectViewAlignedBox3x(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3xf* box)
+{
+#if DS_SIMD_ALWAYS_FMA
+	return dsSceneLightShadows_intersectViewAlignedBoxFMA(shadows, surface, box);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	return dsSceneLightShadows_intersectViewAlignedBoxSIMD(shadows, surface, box);
+#else
+	if (!shadows || surface >= shadows->totalMatrices || !box)
+		return dsIntersectResult_Outside;
+
+	dsVector3xf size;
+	dsAlignedBox3xf_extents(&size, box);
+	float maxSize = dsMax(size.x, size.y);
+	maxSize = dsMax(maxSize, size.z);
+	bool clampToVolume = maxSize >= shadows->largeBoxSize;
+
+	return dsShadowCullVolume_intersectAlignedBox3x(shadows->cullVolumes + surface, box,
+		shadows->projections + surface, clampToVolume);
+#endif
+}
+
 dsIntersectResult dsSceneLightShadows_intersectViewOrientedBox(
 	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3f* box)
 {
@@ -939,21 +1019,47 @@ dsIntersectResult dsSceneLightShadows_intersectViewOrientedBox(
 		shadows->projections + surface, clampToVolume);
 }
 
+dsIntersectResult dsSceneLightShadows_intersectViewOrientedBox3x(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3xf* box)
+{
+#if DS_SIMD_ALWAYS_FMA
+	return dsSceneLightShadows_intersectViewOrientedBoxFMA(shadows, surface, box);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	return dsSceneLightShadows_intersectViewOrientedBoxSIMD(shadows, surface, box);
+#else
+	if (!shadows || surface >= shadows->totalMatrices || !box)
+		return dsIntersectResult_Outside;
+
+	float maxHalfSize = dsMax(box->halfExtents.x, box->halfExtents.y);
+	maxHalfSize = dsMax(maxHalfSize, box->halfExtents.z);
+	bool clampToVolume = maxHalfSize*2.0f >= shadows->largeBoxSize;
+
+	return dsShadowCullVolume_intersectOrientedBox3x(shadows->cullVolumes + surface, box,
+		shadows->projections + surface, clampToVolume);
+#endif
+}
+
 dsIntersectResult dsSceneLightShadows_intersectViewBoxMatrix(
 	dsSceneLightShadows* shadows, uint32_t surface, const dsMatrix44f* boxMatrix)
 {
+#if DS_SIMD_ALWAYS_FMA
+	return dsSceneLightShadows_intersectViewBoxMatrixFMA(shadows, surface, boxMatrix);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	return dsSceneLightShadows_intersectViewBoxMatrixSIMD(shadows, surface, boxMatrix);
+#else
 	if (!shadows || surface >= shadows->totalMatrices || !boxMatrix)
 		return dsIntersectResult_Outside;
 
-	float halfExtentsX = dsVector3f_len((const dsVector3f*)boxMatrix->columns);
-	float halfExtentsY = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 1));
-	float halfExtentsZ = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 2));
+	float halfExtentsX = dsVector3xf_len(boxMatrix->columns);
+	float halfExtentsY = dsVector3xf_len(boxMatrix->columns + 1);
+	float halfExtentsZ = dsVector3xf_len(boxMatrix->columns + 2);
 	float maxHalfSize = dsMax(halfExtentsX, halfExtentsY);
 	maxHalfSize = dsMax(maxHalfSize, halfExtentsZ);
 	bool clampToVolume = maxHalfSize*2.0f >= shadows->largeBoxSize;
 
 	return dsShadowCullVolume_intersectBoxMatrix(shadows->cullVolumes + surface, boxMatrix,
 		shadows->projections + surface, clampToVolume);
+#endif
 }
 
 dsIntersectResult dsSceneLightShadows_intersectViewSphere(
@@ -972,27 +1078,27 @@ dsIntersectResult dsSceneLightShadows_intersectViewSphere(
 DS_SIMD_START(DS_SIMD_FLOAT4)
 
 dsIntersectResult dsSceneLightShadows_intersectAlignedBoxSIMD(
-	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3f* box)
+	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3xf* box)
 {
 	if (!shadows || surface >= shadows->totalMatrices || !box)
 		return dsIntersectResult_Outside;
 
-	dsVector3f size;
-	dsAlignedBox3_extents(size, *box);
+	dsVector3xf size;
+	dsAlignedBox3xf_extents(&size, box);
 	float maxSize = dsMax(size.x, size.y);
 	maxSize = dsMax(maxSize, size.z);
 	bool clampToVolume = maxSize >= shadows->largeBoxSize;
 
 	DS_ASSERT(shadows->view);
 	dsMatrix44f boxMatrix, viewBoxMatrix;
-	dsAlignedBox3_toMatrix(boxMatrix, *box);
+	dsAlignedBox3xf_toMatrixSIMD(&boxMatrix, box);
 	dsMatrix44f_affineMulSIMD(&viewBoxMatrix, &shadows->view->viewMatrix, &boxMatrix);
 	return dsShadowCullVolume_intersectBoxMatrixSIMD(shadows->cullVolumes + surface, &boxMatrix,
 		shadows->projections + surface, clampToVolume);
 }
 
 dsIntersectResult dsSceneLightShadows_intersectOrientedBoxSIMD(
-	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3f* box)
+	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3xf* box)
 {
 	if (!shadows || surface >= shadows->totalMatrices || !box)
 		return dsIntersectResult_Outside;
@@ -1003,7 +1109,7 @@ dsIntersectResult dsSceneLightShadows_intersectOrientedBoxSIMD(
 
 	DS_ASSERT(shadows->view);
 	dsMatrix44f boxMatrix, viewBoxMatrix;
-	dsOrientedBox3_toMatrix(boxMatrix, *box);
+	dsOrientedBox3xf_toMatrixSIMD(&boxMatrix, box);
 	dsMatrix44f_affineMulSIMD(&viewBoxMatrix, &shadows->view->viewMatrix, &boxMatrix);
 	return dsShadowCullVolume_intersectBoxMatrixSIMD(shadows->cullVolumes + surface, &viewBoxMatrix,
 		shadows->projections + surface, clampToVolume);
@@ -1015,12 +1121,16 @@ dsIntersectResult dsSceneLightShadows_intersectBoxMatrixSIMD(
 	if (!shadows || surface >= shadows->totalMatrices || !boxMatrix)
 		return dsIntersectResult_Outside;
 
-	float halfExtentsX = dsVector3f_len((const dsVector3f*)boxMatrix->columns);
-	float halfExtentsY = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 1));
-	float halfExtentsZ = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 2));
-	float maxHalfSize = dsMax(halfExtentsX, halfExtentsY);
-	maxHalfSize = dsMax(maxHalfSize, halfExtentsZ);
-	bool clampToVolume = maxHalfSize*2.0f >= shadows->largeBoxSize;
+	dsMatrix33xf matrixTrans;
+	dsMatrix33xf_transposeSIMD(&matrixTrans, (const dsMatrix33xf*)boxMatrix);
+	dsSIMD4f halfExtents2 = dsSIMD4f_add(dsSIMD4f_add(
+		dsSIMD4f_mul(matrixTrans.columns[0].simd, matrixTrans.columns[0].simd),
+		dsSIMD4f_mul(matrixTrans.columns[1].simd, matrixTrans.columns[1].simd)),
+		dsSIMD4f_mul(matrixTrans.columns[2].simd, matrixTrans.columns[2].simd));
+	dsSIMD4f halfExtents = dsSIMD4f_sqrt(halfExtents2);
+	dsSIMD4f maxHalfSize = dsSIMD4f_max(dsSIMD4f_max(dsSIMD4f_set1FromVec(halfExtents, 0),
+		dsSIMD4f_set1FromVec(halfExtents, 1)), dsSIMD4f_set1FromVec(halfExtents, 2));
+	bool clampToVolume = dsSIMD4f_get(maxHalfSize, 0)*2.0f >= shadows->largeBoxSize;
 
 	DS_ASSERT(shadows->view);
 	dsMatrix44f viewBoxMatrix;
@@ -1030,13 +1140,13 @@ dsIntersectResult dsSceneLightShadows_intersectBoxMatrixSIMD(
 }
 
 dsIntersectResult dsSceneLightShadows_intersectViewAlignedBoxSIMD(
-	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3f* box)
+	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3xf* box)
 {
 	if (!shadows || surface >= shadows->totalMatrices || !box)
 		return dsIntersectResult_Outside;
 
-	dsVector3f size;
-	dsAlignedBox3_extents(size, *box);
+	dsVector3xf size;
+	dsAlignedBox3xf_extents(&size, box);
 	float maxSize = dsMax(size.x, size.y);
 	maxSize = dsMax(maxSize, size.z);
 	bool clampToVolume = maxSize >= shadows->largeBoxSize;
@@ -1046,7 +1156,7 @@ dsIntersectResult dsSceneLightShadows_intersectViewAlignedBoxSIMD(
 }
 
 dsIntersectResult dsSceneLightShadows_intersectViewOrientedBoxSIMD(
-	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3f* box)
+	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3xf* box)
 {
 	if (!shadows || surface >= shadows->totalMatrices || !box)
 		return dsIntersectResult_Outside;
@@ -1065,12 +1175,16 @@ dsIntersectResult dsSceneLightShadows_intersectViewBoxMatrixSIMD(
 	if (!shadows || surface >= shadows->totalMatrices || !boxMatrix)
 		return dsIntersectResult_Outside;
 
-	float halfExtentsX = dsVector3f_len((const dsVector3f*)boxMatrix->columns);
-	float halfExtentsY = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 1));
-	float halfExtentsZ = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 2));
-	float maxHalfSize = dsMax(halfExtentsX, halfExtentsY);
-	maxHalfSize = dsMax(maxHalfSize, halfExtentsZ);
-	bool clampToVolume = maxHalfSize*2.0f >= shadows->largeBoxSize;
+	dsMatrix33xf matrixTrans;
+	dsMatrix33xf_transposeSIMD(&matrixTrans, (const dsMatrix33xf*)boxMatrix);
+	dsSIMD4f halfExtents2 = dsSIMD4f_add(dsSIMD4f_add(
+		dsSIMD4f_mul(matrixTrans.columns[0].simd, matrixTrans.columns[0].simd),
+		dsSIMD4f_mul(matrixTrans.columns[1].simd, matrixTrans.columns[1].simd)),
+		dsSIMD4f_mul(matrixTrans.columns[2].simd, matrixTrans.columns[2].simd));
+	dsSIMD4f halfExtents = dsSIMD4f_sqrt(halfExtents2);
+	dsSIMD4f maxHalfSize = dsSIMD4f_max(dsSIMD4f_max(dsSIMD4f_set1FromVec(halfExtents, 0),
+		dsSIMD4f_set1FromVec(halfExtents, 1)), dsSIMD4f_set1FromVec(halfExtents, 2));
+	bool clampToVolume = dsSIMD4f_get(maxHalfSize, 0)*2.0f >= shadows->largeBoxSize;
 
 	return dsShadowCullVolume_intersectBoxMatrixSIMD(shadows->cullVolumes + surface, boxMatrix,
 		shadows->projections + surface, clampToVolume);
@@ -1082,7 +1196,7 @@ DS_SIMD_END()
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 
 dsIntersectResult dsSceneLightShadows_intersectAlignedBoxFMA(
-	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3f* box)
+	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3xf* box)
 {
 	if (!shadows || surface >= shadows->totalMatrices || !box)
 		return dsIntersectResult_Outside;
@@ -1095,14 +1209,14 @@ dsIntersectResult dsSceneLightShadows_intersectAlignedBoxFMA(
 
 	DS_ASSERT(shadows->view);
 	dsMatrix44f boxMatrix, viewBoxMatrix;
-	dsAlignedBox3_toMatrix(boxMatrix, *box);
+	dsAlignedBox3xf_toMatrixSIMD(&boxMatrix, box);
 	dsMatrix44f_affineMulFMA(&viewBoxMatrix, &shadows->view->viewMatrix, &boxMatrix);
 	return dsShadowCullVolume_intersectBoxMatrixFMA(shadows->cullVolumes + surface, &boxMatrix,
 		shadows->projections + surface, clampToVolume);
 }
 
 dsIntersectResult dsSceneLightShadows_intersectOrientedBoxFMA(
-	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3f* box)
+	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3xf* box)
 {
 	if (!shadows || surface >= shadows->totalMatrices || !box)
 		return dsIntersectResult_Outside;
@@ -1113,7 +1227,7 @@ dsIntersectResult dsSceneLightShadows_intersectOrientedBoxFMA(
 
 	DS_ASSERT(shadows->view);
 	dsMatrix44f boxMatrix, viewBoxMatrix;
-	dsOrientedBox3_toMatrix(boxMatrix, *box);
+	dsOrientedBox3xf_toMatrixSIMD(&boxMatrix, box);
 	dsMatrix44f_affineMulFMA(&viewBoxMatrix, &shadows->view->viewMatrix, &boxMatrix);
 	return dsShadowCullVolume_intersectBoxMatrixFMA(shadows->cullVolumes + surface, &viewBoxMatrix,
 		shadows->projections + surface, clampToVolume);
@@ -1125,22 +1239,25 @@ dsIntersectResult dsSceneLightShadows_intersectBoxMatrixFMA(
 	if (!shadows || surface >= shadows->totalMatrices || !boxMatrix)
 		return dsIntersectResult_Outside;
 
-	float halfExtentsX = dsVector3f_len((const dsVector3f*)boxMatrix->columns);
-	float halfExtentsY = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 1));
-	float halfExtentsZ = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 2));
-	float maxHalfSize = dsMax(halfExtentsX, halfExtentsY);
-	maxHalfSize = dsMax(maxHalfSize, halfExtentsZ);
-	bool clampToVolume = maxHalfSize*2.0f >= shadows->largeBoxSize;
+	dsMatrix33xf matrixTrans;
+	dsMatrix33xf_transposeSIMD(&matrixTrans, (const dsMatrix33xf*)boxMatrix);
+	dsSIMD4f halfExtents2 = dsSIMD4f_fmadd(matrixTrans.columns[0].simd, matrixTrans.columns[0].simd,
+		dsSIMD4f_fmadd(matrixTrans.columns[1].simd, matrixTrans.columns[1].simd,
+		dsSIMD4f_mul(matrixTrans.columns[2].simd, matrixTrans.columns[2].simd)));
+	dsSIMD4f halfExtents = dsSIMD4f_sqrt(halfExtents2);
+	dsSIMD4f maxHalfSize = dsSIMD4f_max(dsSIMD4f_max(dsSIMD4f_set1FromVec(halfExtents, 0),
+		dsSIMD4f_set1FromVec(halfExtents, 1)), dsSIMD4f_set1FromVec(halfExtents, 2));
+	bool clampToVolume = dsSIMD4f_get(maxHalfSize, 0)*2.0f >= shadows->largeBoxSize;
 
 	DS_ASSERT(shadows->view);
 	dsMatrix44f viewBoxMatrix;
-	dsMatrix44f_affineMulSIMD(&viewBoxMatrix, &shadows->view->viewMatrix, boxMatrix);
+	dsMatrix44f_affineMulFMA(&viewBoxMatrix, &shadows->view->viewMatrix, boxMatrix);
 	return dsShadowCullVolume_intersectBoxMatrixFMA(shadows->cullVolumes + surface, &viewBoxMatrix,
 		shadows->projections + surface, clampToVolume);
 }
 
 dsIntersectResult dsSceneLightShadows_intersectViewAlignedBoxFMA(
-	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3f* box)
+	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3xf* box)
 {
 	if (!shadows || surface >= shadows->totalMatrices || !box)
 		return dsIntersectResult_Outside;
@@ -1156,7 +1273,7 @@ dsIntersectResult dsSceneLightShadows_intersectViewAlignedBoxFMA(
 }
 
 dsIntersectResult dsSceneLightShadows_intersectViewOrientedBoxFMA(
-	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3f* box)
+	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3xf* box)
 {
 	if (!shadows || surface >= shadows->totalMatrices || !box)
 		return dsIntersectResult_Outside;
@@ -1175,12 +1292,15 @@ dsIntersectResult dsSceneLightShadows_intersectViewBoxMatrixFMA(
 	if (!shadows || surface >= shadows->totalMatrices || !boxMatrix)
 		return dsIntersectResult_Outside;
 
-	float halfExtentsX = dsVector3f_len((const dsVector3f*)boxMatrix->columns);
-	float halfExtentsY = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 1));
-	float halfExtentsZ = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 2));
-	float maxHalfSize = dsMax(halfExtentsX, halfExtentsY);
-	maxHalfSize = dsMax(maxHalfSize, halfExtentsZ);
-	bool clampToVolume = maxHalfSize*2.0f >= shadows->largeBoxSize;
+	dsMatrix33xf matrixTrans;
+	dsMatrix33xf_transposeSIMD(&matrixTrans, (const dsMatrix33xf*)boxMatrix);
+	dsSIMD4f halfExtents2 = dsSIMD4f_fmadd(matrixTrans.columns[0].simd, matrixTrans.columns[0].simd,
+		dsSIMD4f_fmadd(matrixTrans.columns[1].simd, matrixTrans.columns[1].simd,
+		dsSIMD4f_mul(matrixTrans.columns[2].simd, matrixTrans.columns[2].simd)));
+	dsSIMD4f halfExtents = dsSIMD4f_sqrt(halfExtents2);
+	dsSIMD4f maxHalfSize = dsSIMD4f_max(dsSIMD4f_max(dsSIMD4f_set1FromVec(halfExtents, 0),
+		dsSIMD4f_set1FromVec(halfExtents, 1)), dsSIMD4f_set1FromVec(halfExtents, 2));
+	bool clampToVolume = dsSIMD4f_get(maxHalfSize, 0)*2.0f >= shadows->largeBoxSize;
 
 	return dsShadowCullVolume_intersectBoxMatrixFMA(shadows->cullVolumes + surface, boxMatrix,
 		shadows->projections + surface, clampToVolume);
@@ -1219,7 +1339,7 @@ bool dsSceneLightShadows_computeSurfaceProjection(dsSceneLightShadows* shadows, 
 	if (!dsShadowProjection_computeMatrix(shadowMtx, shadows->projections + surface, paddingRatio,
 			shadows->shadowParams.minDepthRanges[depthRangeIndex]))
 	{
-		dsMatrix44_identity(*shadowMtx);
+		dsMatrix44f_identity(shadowMtx);
 	}
 ;
 	switch (shadows->lightType)
@@ -1283,7 +1403,8 @@ bool dsSceneLightShadows_computeSurfaceProjection(dsSceneLightShadows* shadows, 
 	}
 
 	// Pre-increment, so check against one minus the total value to see when we're finished.
-	if (DS_ATOMIC_FETCH_ADD32(&shadows->committedMatrices, 1) == shadows->totalMatrices - 1)
+	if ((uint32_t)DS_ATOMIC_FETCH_ADD32(&shadows->committedMatrices, 1) ==
+		shadows->totalMatrices - 1)
 	{
 		if (shadows->fallback)
 			DS_VERIFY(dsShaderVariableGroup_commitWithoutBuffer(shadows->fallback));

@@ -108,10 +108,9 @@ bool dsRenderSurface_makeRotationMatrix44(dsMatrix44f* result, dsRenderSurfaceRo
 	switch (rotation)
 	{
 		case dsRenderSurfaceRotation_0:
-			dsMatrix44_identity(*result);
+			dsMatrix44f_identity(result);
 			return true;
 		case dsRenderSurfaceRotation_90:
-			dsMatrix44_identity(*result);
 			result->columns[0].x = 0.0f;
 			result->columns[0].y = 1.0f;
 			result->columns[0].z = 0.0f;
@@ -130,7 +129,6 @@ bool dsRenderSurface_makeRotationMatrix44(dsMatrix44f* result, dsRenderSurfaceRo
 			result->columns[3].w = 1.0f;
 			return true;
 		case dsRenderSurfaceRotation_180:
-			dsMatrix44_identity(*result);
 			result->columns[0].x = -1.0f;
 			result->columns[0].y = 0.0f;
 			result->columns[0].z = 0.0f;
@@ -149,7 +147,6 @@ bool dsRenderSurface_makeRotationMatrix44(dsMatrix44f* result, dsRenderSurfaceRo
 			result->columns[3].w = 1.0f;
 			return true;
 		case dsRenderSurfaceRotation_270:
-			dsMatrix44_identity(*result);
 			result->columns[0].x = 0.0f;
 			result->columns[0].y = -1.0f;
 			result->columns[0].z = 0.0f;

@@ -348,7 +348,7 @@ static uint64_t dsScenePhysicsList_addNode(dsSceneItemList* itemList, dsSceneNod
 		}
 		*thisItemData = entry->rigidBody;
 
-		dsMatrix44_identity(treeNode->transform);
+		dsMatrix44f_identity(&treeNode->transform);
 		if (entry->rigidBody->motionType == dsPhysicsMotionType_Dynamic)
 		{
 			treeNode->baseTransform = &entry->transform;
@@ -360,7 +360,7 @@ static uint64_t dsScenePhysicsList_addNode(dsSceneItemList* itemList, dsSceneNod
 		if (treeNode->parent)
 			dsSceneTreeNode_getCurrentTransform(&transform, treeNode->parent);
 		else
-			dsMatrix44_identity(transform);
+			dsMatrix44f_identity(&transform);
 
 		entry->rigidBody = rigidBody;
 		DS_VERIFY(dsRigidBody_setTransformMatrix(rigidBody, &transform, true));

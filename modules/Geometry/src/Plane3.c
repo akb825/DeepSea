@@ -18,12 +18,13 @@
 
 #include <DeepSea/Core/Assert.h>
 
-#include <DeepSea/Geometry/AlignedBox3.h>
-#include <DeepSea/Geometry/OrientedBox3.h>
+#include <DeepSea/Geometry/AlignedBox3x.h>
+#include <DeepSea/Geometry/OrientedBox3x.h>
 
 #include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Sqrt.h>
+#include <DeepSea/Math/Vector3x.h>
 
 #include <float.h>
 
@@ -36,26 +37,26 @@ bool dsPlane3f_intersectingLine(
 	DS_ASSERT(secondPlane);
 
 	const float epsilon2 = dsPow2(1e-6f);
-	dsVector3_cross(result->direction, firstPlane->n, secondPlane->n);
-	float len2 = dsVector3_len2(result->direction);
+	dsVector3xf_cross(&result->direction, &firstPlane->xyzd, &secondPlane->xyzd);
+	float len2 = dsVector3xf_len2(&result->direction);
 	if (len2 < epsilon2)
 		return false;
 
-	dsVector3f scaledFirstN;
-	dsVector3_scale(scaledFirstN, firstPlane->n, secondPlane->d);
+	dsVector3xf scaledFirstN;
+	dsVector3xf_scale(&scaledFirstN, &firstPlane->xyzd, secondPlane->d);
 
-	dsVector3f scaledSecondN;
-	dsVector3_scale(scaledSecondN, secondPlane->n, firstPlane->d);
+	dsVector3xf scaledSecondN;
+	dsVector3xf_scale(&scaledSecondN, &secondPlane->xyzd, firstPlane->d);
 
-	dsVector3f diff;
-	dsVector3_sub(diff, scaledFirstN, scaledSecondN);
+	dsVector3xf diff;
+	dsVector3xf_sub(&diff, &scaledFirstN, &scaledSecondN);
 
 	float invLen2 = 1/len2;
-	dsVector3_cross(result->origin, diff, result->direction);
-	dsVector3_scale(result->origin, result->origin, invLen2);
+	dsVector3xf_cross(&result->origin, &diff, &result->direction);
+	dsVector3xf_scale(&result->origin, &result->origin, invLen2);
 
 	float invLen = dsSqrtf(invLen2);
-	dsVector3_scale(result->direction, result->direction, invLen);
+	dsVector3xf_scale(&result->direction, &result->direction, invLen);
 	return true;
 }
 
@@ -68,26 +69,26 @@ bool dsPlane3d_intersectingLine(
 	DS_ASSERT(secondPlane);
 
 	const double epsilon2 = dsPow2(1e-14);
-	dsVector3_cross(result->direction, firstPlane->n, secondPlane->n);
-	double len2 = dsVector3_len2(result->direction);
+	dsVector3xd_cross(&result->direction, &firstPlane->xyzd, &secondPlane->xyzd);
+	double len2 = dsVector3xd_len2(&result->direction);
 	if (len2 < epsilon2)
 		return false;
 
-	dsVector3d scaledFirstN;
-	dsVector3_scale(scaledFirstN, firstPlane->n, secondPlane->d);
+	dsVector3xd scaledFirstN;
+	dsVector3xd_scale(&scaledFirstN, &firstPlane->xyzd, secondPlane->d);
 
-	dsVector3d scaledSecondN;
-	dsVector3_scale(scaledSecondN, secondPlane->n, firstPlane->d);
+	dsVector3xd scaledSecondN;
+	dsVector3xd_scale(&scaledSecondN, &secondPlane->xyzd, firstPlane->d);
 
-	dsVector3d diff;
-	dsVector3_sub(diff, scaledFirstN, scaledSecondN);
+	dsVector3xd diff;
+	dsVector3xd_sub(&diff, &scaledFirstN, &scaledSecondN);
 
 	double invLen2 = 1/len2;
-	dsVector3_cross(result->origin, diff, result->direction);
-	dsVector3_scale(result->origin, result->origin, invLen2);
+	dsVector3xd_cross(&result->origin, &diff, &result->direction);
+	dsVector3xd_scale(&result->origin, &result->origin, invLen2);
 
 	double invLen = dsSqrtd(invLen2);
-	dsVector3_scale(result->direction, result->direction, invLen);
+	dsVector3xd_scale(&result->direction, &result->direction, invLen);
 	return true;
 }
 
@@ -101,27 +102,28 @@ bool dsPlane3f_intersectingPoint(dsVector3f* result, const dsPlane3f* firstPlane
 	DS_ASSERT(thirdPlane);
 
 	const float epsilon2 = dsPow2(1e-6f);
-	dsVector3f crossSecondThird;
-	dsVector3_cross(crossSecondThird, secondPlane->n, thirdPlane->n);
-	float denom = dsVector3_dot(firstPlane->n, crossSecondThird);
+	dsVector3xf crossSecondThird;
+	dsVector3xf_cross(&crossSecondThird, &secondPlane->xyzd, &thirdPlane->xyzd);
+	float denom = dsVector3xf_dot(&firstPlane->xyzd, &crossSecondThird);
 	if (fabsf(denom) < epsilon2)
 		return false;
 
-	dsVector3_scale(crossSecondThird, crossSecondThird, -firstPlane->d);
+	dsVector3xf_scale(&crossSecondThird, &crossSecondThird, -firstPlane->d);
 
-	dsVector3f crossThirdFirst;
-	dsVector3_cross(crossThirdFirst, thirdPlane->n, firstPlane->n);
-	dsVector3_scale(crossThirdFirst, crossThirdFirst, -secondPlane->d);
+	dsVector3xf crossThirdFirst;
+	dsVector3xf_cross(&crossThirdFirst, &thirdPlane->xyzd, &firstPlane->xyzd);
+	dsVector3xf_scale(&crossThirdFirst, &crossThirdFirst, -secondPlane->d);
 
-	dsVector3f crossFirstSecond;
-	dsVector3_cross(crossFirstSecond, firstPlane->n, secondPlane->n);
-	dsVector3_scale(crossFirstSecond, crossFirstSecond, -thirdPlane->d);
+	dsVector3xf crossFirstSecond;
+	dsVector3xf_cross(&crossFirstSecond, &firstPlane->xyzd, &secondPlane->xyzd);
+	dsVector3xf_scale(&crossFirstSecond, &crossFirstSecond, -thirdPlane->d);
 
-	dsVector3_add(*result, crossSecondThird, crossThirdFirst);
-	dsVector3_add(*result, *result, crossFirstSecond);
+	dsVector3xf result3x;
+	dsVector3xf_add(&result3x, &crossSecondThird, &crossThirdFirst);
+	dsVector3xf_add(&result3x, &result3x, &crossFirstSecond);
 
 	float invDenom = 1/denom;
-	dsVector3_scale(*result, *result, invDenom);
+	dsVector3_scale(*result, result3x, invDenom);
 	return true;
 }
 
@@ -135,27 +137,28 @@ bool dsPlane3d_intersectingPoint(dsVector3d* result, const dsPlane3d* firstPlane
 	DS_ASSERT(thirdPlane);
 
 	const double epsilon2 = dsPow2(1e-14);
-	dsVector3d crossSecondThird;
-	dsVector3_cross(crossSecondThird, secondPlane->n, thirdPlane->n);
-	double denom = dsVector3_dot(firstPlane->n, crossSecondThird);
+	dsVector3xd crossSecondThird;
+	dsVector3xd_cross(&crossSecondThird, &secondPlane->xyzd, &thirdPlane->xyzd);
+	double denom = dsVector3xd_dot(&firstPlane->xyzd, &crossSecondThird);
 	if (fabs(denom) < epsilon2)
 		return false;
 
-	dsVector3_scale(crossSecondThird, crossSecondThird, -firstPlane->d);
+	dsVector3xd_scale(&crossSecondThird, &crossSecondThird, -firstPlane->d);
 
-	dsVector3d crossThirdFirst;
-	dsVector3_cross(crossThirdFirst, thirdPlane->n, firstPlane->n);
-	dsVector3_scale(crossThirdFirst, crossThirdFirst, -secondPlane->d);
+	dsVector3xd crossThirdFirst;
+	dsVector3xd_cross(&crossThirdFirst, &thirdPlane->xyzd, &firstPlane->xyzd);
+	dsVector3xd_scale(&crossThirdFirst, &crossThirdFirst, -secondPlane->d);
 
-	dsVector3d crossFirstSecond;
-	dsVector3_cross(crossFirstSecond, firstPlane->n, secondPlane->n);
-	dsVector3_scale(crossFirstSecond, crossFirstSecond, -thirdPlane->d);
+	dsVector3xd crossFirstSecond;
+	dsVector3xd_cross(&crossFirstSecond, &firstPlane->xyzd, &secondPlane->xyzd);
+	dsVector3xd_scale(&crossFirstSecond, &crossFirstSecond, -thirdPlane->d);
 
-	dsVector3_add(*result, crossSecondThird, crossThirdFirst);
-	dsVector3_add(*result, *result, crossFirstSecond);
+	dsVector3xd result3x;
+	dsVector3xd_add(&result3x, &crossSecondThird, &crossThirdFirst);
+	dsVector3xd_add(&result3x, &result3x, &crossFirstSecond);
 
 	double invDenom = 1/denom;
-	dsVector3_scale(*result, *result, invDenom);
+	dsVector3_scale(*result, result3x, invDenom);
 	return true;
 }
 
@@ -165,11 +168,13 @@ float dsPlane3f_rayIntersection(const dsPlane3f* plane, const dsRay3f* ray)
 	DS_ASSERT(ray);
 
 	const float epsilon2 = dsPow2(1e-6f);
-	float denom = dsVector3_dot(plane->n, ray->direction);
+	float denom = dsVector3xf_dot(&plane->xyzd, &ray->direction);
 	if (fabsf(denom) < epsilon2)
 		return FLT_MAX;
 
-	return -(dsVector3_dot(plane->n, ray->origin) + plane->d)/denom;
+	dsVector4f origin = ray->origin;
+	origin.w = 1.0f;
+	return -dsVector4f_dot(&plane->xyzd, &origin)/denom;
 }
 
 double dsPlane3d_rayIntersection(const dsPlane3d* plane, const dsRay3d* ray)
@@ -178,11 +183,13 @@ double dsPlane3d_rayIntersection(const dsPlane3d* plane, const dsRay3d* ray)
 	DS_ASSERT(ray);
 
 	const double epsilon2 = dsPow2(1e-14);
-	double denom = dsVector3_dot(plane->n, ray->direction);
+	double denom = dsVector3xd_dot(&plane->xyzd, &ray->direction);
 	if (fabs(denom) < epsilon2)
 		return DBL_MAX;
 
-	return -(dsVector3_dot(plane->n, ray->origin) + plane->d)/denom;
+	dsVector4d origin = ray->origin;
+	origin.w = 1.0;
+	return -dsVector4d_dot(&plane->xyzd, &origin)/denom;
 }
 
 dsIntersectResult dsPlane3f_intersectAlignedBox(const dsPlane3f* plane, const dsAlignedBox3f* box)
@@ -190,14 +197,22 @@ dsIntersectResult dsPlane3f_intersectAlignedBox(const dsPlane3f* plane, const ds
 	DS_ASSERT(plane);
 	DS_ASSERT(box);
 
-	dsVector3f center, halfExtents;
+	dsVector3xf center, halfExtents;
 	dsAlignedBox3_center(center, *box);
 	dsAlignedBox3_extents(halfExtents, *box);
-	dsVector3_scale(halfExtents, halfExtents, 0.5f);
+	dsVector3xf_scale(&halfExtents, &halfExtents, 0.5f);
 
-	float radius = halfExtents.x*fabsf(plane->n.x) + halfExtents.y*fabsf(plane->n.y) +
-		halfExtents.z*fabsf(plane->n.z);
-	float centerDist = dsVector3_dot(plane->n, center) + plane->d;
+	dsVector3xf absNorm;
+#if DS_SIMD_ALWAYS_FLOAT4
+	absNorm.simd = dsSIMD4f_abs(plane->xyzd.simd);
+#else
+	absNorm.x = fabsf(plane->n.x);
+	absNorm.y = fabsf(plane->n.y);
+	absNorm.z = fabsf(plane->n.z);
+#endif
+
+	float radius = dsVector3xf_dot(&halfExtents, &absNorm);
+	float centerDist = dsVector3xf_dot(&plane->xyzd, &center) + plane->d;
 
 	if (centerDist > radius)
 		return dsIntersectResult_Inside;
@@ -213,14 +228,87 @@ dsIntersectResult dsPlane3d_intersectAlignedBox(const dsPlane3d* plane, const ds
 	DS_ASSERT(box);
 
 	// https://gdbooks.gitbooks.io/3dcollisions/content/Chapter2/static_aabb_plane.html
-	dsVector3d center, halfExtents;
+	dsVector3xd center, halfExtents;
 	dsAlignedBox3_center(center, *box);
 	dsAlignedBox3_extents(halfExtents, *box);
-	dsVector3_scale(halfExtents, halfExtents, 0.5f);
+	dsVector3xd_scale(&halfExtents, &halfExtents, 0.5f);
 
-	double radius = halfExtents.x*fabs(plane->n.x) + halfExtents.y*fabs(plane->n.y) +
-		halfExtents.z*fabs(plane->n.z);
-	double centerDist = dsVector3_dot(plane->n, center) + plane->d;
+	dsVector3xd absNorm;
+#if DS_SIMD_ALWAYS_FLOAT4
+	absNorm.simd2[0] = dsSIMD2d_abs(plane->xyzd.simd2[0]);
+	absNorm.simd2[1] = dsSIMD2d_abs(plane->xyzd.simd2[1]);
+#else
+	absNorm.x = fabs(plane->n.x);
+	absNorm.y = fabs(plane->n.y);
+	absNorm.z = fabs(plane->n.z);
+#endif
+
+	double radius = dsVector3xd_dot(&halfExtents, &absNorm);
+	double centerDist = dsVector3xd_dot(&plane->xyzd, &center) + plane->d;
+
+	if (centerDist > radius)
+		return dsIntersectResult_Inside;
+	else if (centerDist < -radius)
+		return dsIntersectResult_Outside;
+	else
+		return dsIntersectResult_Intersects;
+}
+
+dsIntersectResult dsPlane3f_intersectAlignedBox3x(
+	const dsPlane3f* plane, const dsAlignedBox3xf* box)
+{
+	DS_ASSERT(plane);
+	DS_ASSERT(box);
+
+	dsVector3xf center, halfExtents;
+	dsAlignedBox3xf_center(&center, box);
+	dsAlignedBox3xf_extents(&halfExtents, box);
+	dsVector3xf_scale(&halfExtents, &halfExtents, 0.5f);
+
+	dsVector3xf absNorm;
+#if DS_SIMD_ALWAYS_FLOAT4
+	absNorm.simd = dsSIMD4f_abs(plane->xyzd.simd);
+#else
+	absNorm.x = fabsf(plane->n.x);
+	absNorm.y = fabsf(plane->n.y);
+	absNorm.z = fabsf(plane->n.z);
+#endif
+
+	float radius = dsVector3xf_dot(&halfExtents, &absNorm);
+	float centerDist = dsVector3xf_dot(&plane->xyzd, &center) + plane->d;
+
+	if (centerDist > radius)
+		return dsIntersectResult_Inside;
+	else if (centerDist < -radius)
+		return dsIntersectResult_Outside;
+	else
+		return dsIntersectResult_Intersects;
+}
+
+dsIntersectResult dsPlane3d_intersectAlignedBox3x(
+	const dsPlane3d* plane, const dsAlignedBox3xd* box)
+{
+	DS_ASSERT(plane);
+	DS_ASSERT(box);
+
+	// https://gdbooks.gitbooks.io/3dcollisions/content/Chapter2/static_aabb_plane.html
+	dsVector3xd center, halfExtents;
+	dsAlignedBox3xd_center(&center, box);
+	dsAlignedBox3xd_extents(&halfExtents, box);
+	dsVector3xd_scale(&halfExtents, &halfExtents, 0.5f);
+
+	dsVector3xd absNorm;
+#if DS_SIMD_ALWAYS_FLOAT4
+	absNorm.simd2[0] = dsSIMD2d_abs(plane->xyzd.simd2[0]);
+	absNorm.simd2[1] = dsSIMD2d_abs(plane->xyzd.simd2[1]);
+#else
+	absNorm.x = fabs(plane->n.x);
+	absNorm.y = fabs(plane->n.y);
+	absNorm.z = fabs(plane->n.z);
+#endif
+
+	double radius = dsVector3xd_dot(&halfExtents, &absNorm);
+	double centerDist = dsVector3xd_dot(&plane->xyzd, &center) + plane->d;
 
 	if (centerDist > radius)
 		return dsIntersectResult_Inside;
@@ -250,10 +338,32 @@ dsIntersectResult dsPlane3d_intersectOrientedBox(const dsPlane3d* plane, const d
 	return dsPlane3d_intersectBoxMatrixTranspose(plane, &boxMatrix);
 }
 
-void dsPlane3f_fromNormalPoint(dsPlane3f* result, const dsVector3f* normal,
-	const dsVector3f* point);
-void dsPlane3d_fromNormalPoint(dsPlane3d* result, const dsVector3d* normal,
-	const dsVector3d* point);
+dsIntersectResult dsPlane3f_intersectOrientedBox3x(
+	const dsPlane3f* plane, const dsOrientedBox3xf* box)
+{
+	DS_ASSERT(plane);
+	DS_ASSERT(box);
+
+	dsMatrix44f boxMatrix;
+	dsOrientedBox3xf_toMatrixTranspose(&boxMatrix, box);
+	return dsPlane3f_intersectBoxMatrixTranspose(plane, &boxMatrix);
+}
+
+dsIntersectResult dsPlane3d_intersectOrientedBox3x(
+	const dsPlane3d* plane, const dsOrientedBox3xd* box)
+{
+	DS_ASSERT(plane);
+	DS_ASSERT(box);
+
+	dsMatrix44d boxMatrix;
+	dsOrientedBox3xd_toMatrixTranspose(&boxMatrix, box);
+	return dsPlane3d_intersectBoxMatrixTranspose(plane, &boxMatrix);
+}
+
+void dsPlane3f_fromNormalPoint(
+	dsPlane3f* result, const dsVector3f* normal, const dsVector3f* point);
+void dsPlane3d_fromNormalPoint(
+	dsPlane3d* result, const dsVector3d* normal, const dsVector3d* point);
 
 float dsPlane3f_distanceToPoint(const dsPlane3f* plane, const dsVector3f* point);
 double dsPlane3d_distanceToPoint(const dsPlane3d* plane, const dsVector3d* point);
@@ -273,19 +383,34 @@ dsIntersectResult dsPlane3f_intersectBoxMatrixTranspose(
 	const dsPlane3f* plane, const dsMatrix44f* boxMatrix);
 dsIntersectResult dsPlane3d_intersectBoxMatrixTranspose(
 	const dsPlane3d* plane, const dsMatrix44d* boxMatrix);
+
 #if DS_HAS_SIMD
+dsIntersectResult dsPlane3f_intersectBoxMatrixSIMD(
+	const dsPlane3f* plane, const dsMatrix44f* boxMatrix);
 dsIntersectResult dsPlane3f_intersectBoxMatrixTransposeSIMD(
 	const dsPlane3f* plane, const dsMatrix44f* boxMatrix);
+
 #if !DS_DETERMINISTIC_MATH
+dsIntersectResult dsPlane3f_intersectBoxMatrixFMA(
+	const dsPlane3f* plane, const dsMatrix44f* boxMatrix);
 dsIntersectResult dsPlane3f_intersectBoxMatrixTransposeFMA(
 	const dsPlane3f* plane, const dsMatrix44f* boxMatrix);
 #endif
+
+dsIntersectResult dsPlane3d_intersectBoxMatrixSIMD2(
+	const dsPlane3d* plane, const dsMatrix44d* boxMatrix);
 dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeSIMD2(
 	const dsPlane3d* plane, const dsMatrix44d* boxMatrix);
+
 #if !DS_DETERMINISTIC_MATH
+dsIntersectResult dsPlane3d_intersectBoxMatrixFMA2(
+	const dsPlane3d* plane, const dsMatrix44d* boxMatrix);
 dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeFMA2(
 	const dsPlane3d* plane, const dsMatrix44d* boxMatrix);
 #endif
+
+dsIntersectResult dsPlane3d_intersectBoxMatrixSIMD4(
+	const dsPlane3d* DS_ALIGN_PARAM(32) plane, const dsMatrix44d* DS_ALIGN_PARAM(32) boxMatrix);
 dsIntersectResult dsPlane3d_intersectBoxMatrixTransposeSIMD4(
 	const dsPlane3d* DS_ALIGN_PARAM(32) plane, const dsMatrix44d* DS_ALIGN_PARAM(32) boxMatrix);
 #endif

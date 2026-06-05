@@ -18,3 +18,6 @@
 
 void dsRay3f_evaluate(dsVector3f* result, const dsRay3f* ray, float t);
 void dsRay3d_evaluate(dsVector3d* result, const dsRay3d* ray, double t);
+
+void dsRay3f_evaluate3x(dsVector3xf* result, const dsRay3f* ray, float t);
+void dsRay3d_evaluate3x(dsVector3xd* result, const dsRay3d* ray, double t);

@@ -84,6 +84,11 @@ DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectAlignedBox(
 	const dsShadowCullVolume* volume, const dsAlignedBox3f* box, dsShadowProjection* shadowProj,
 	bool clampToVolume);
 
+/** @copydoc dsShadowCullVolume_intersectAlignedBox() */
+DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectAlignedBox3x(
+	const dsShadowCullVolume* volume, const dsAlignedBox3xf* box, dsShadowProjection* shadowProj,
+	bool clampToVolume);
+
 /**
  * @brief Intersects an oriented box with a shadow cull volume.
  * @param volume The cull volume to intersect.
@@ -99,6 +104,11 @@ DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectAlignedBox(
  */
 DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectOrientedBox(
 	const dsShadowCullVolume* volume, const dsOrientedBox3f* box, dsShadowProjection* shadowProj,
+	bool clampToVolume);
+
+/** @copydoc dsShadowCullVolume_intersectOrientedBox() */
+DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectOrientedBox3x(
+	const dsShadowCullVolume* volume, const dsOrientedBox3xf* box, dsShadowProjection* shadowProj,
 	bool clampToVolume);
 
 /**
@@ -153,7 +163,7 @@ DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectSphere(
  *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
 DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectAlignedBoxSIMD(
-	const dsShadowCullVolume* volume, const dsAlignedBox3f* box, dsShadowProjection* shadowProj,
+	const dsShadowCullVolume* volume, const dsAlignedBox3xf* box, dsShadowProjection* shadowProj,
 	bool clampToVolume);
 
 /**
@@ -171,7 +181,7 @@ DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectAlignedBoxSIMD(
  *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
 DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectOrientedBoxSIMD(
-	const dsShadowCullVolume* volume, const dsOrientedBox3f* box, dsShadowProjection* shadowProj,
+	const dsShadowCullVolume* volume, const dsOrientedBox3xf* box, dsShadowProjection* shadowProj,
 	bool clampToVolume);
 
 /**
@@ -209,7 +219,7 @@ DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectBoxMatrixSIMD(
  *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
 DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectAlignedBoxFMA(
-	const dsShadowCullVolume* volume, const dsAlignedBox3f* box, dsShadowProjection* shadowProj,
+	const dsShadowCullVolume* volume, const dsAlignedBox3xf* box, dsShadowProjection* shadowProj,
 	bool clampToVolume);
 
 /**
@@ -227,7 +237,7 @@ DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectAlignedBoxFMA(
  *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
 DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectOrientedBoxFMA(
-	const dsShadowCullVolume* volume, const dsOrientedBox3f* box, dsShadowProjection* shadowProj,
+	const dsShadowCullVolume* volume, const dsOrientedBox3xf* box, dsShadowProjection* shadowProj,
 	bool clampToVolume);
 
 /**

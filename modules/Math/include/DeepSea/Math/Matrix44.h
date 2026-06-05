@@ -415,10 +415,10 @@ DS_MATH_EXPORT inline void dsMatrix44d_invert(dsMatrix44d* result, const dsMatri
  * @param[out] result The inverse-transposed matrix.
  * @param a The matrix to inverse-transpose. This is assumed to be an affine transform.
  */
-DS_MATH_EXPORT inline void dsMatrix44f_inverseTranspose(dsMatrix33f* result, const dsMatrix44f* a);
+DS_MATH_EXPORT inline void dsMatrix44f_inverseTranspose(dsMatrix33xf* result, const dsMatrix44f* a);
 
 /** @copydoc dsMatrix44d_invert() */
-DS_MATH_EXPORT inline void dsMatrix44d_inverseTranspose(dsMatrix33d* result, const dsMatrix44d* a);
+DS_MATH_EXPORT inline void dsMatrix44d_inverseTranspose(dsMatrix33xd* result, const dsMatrix44d* a);
 
 /**
  * @brief Makes a rotation matrix.
@@ -1184,31 +1184,17 @@ inline void dsMatrix44d_invert(dsMatrix44d* result, const dsMatrix44d* a)
 #endif
 }
 
-inline void dsMatrix44f_inverseTranspose(dsMatrix33f* result, const dsMatrix44f* a)
+inline void dsMatrix44f_inverseTranspose(dsMatrix33xf* result, const dsMatrix44f* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 
 #if DS_SIMD_ALWAYS_FLOAT4
-	dsVector4f alignedResult[4];
-
 #if DS_SIMD_ALWAYS_FMA
-	dsMatrix44f_inverseTransposeFMA(alignedResult, a);
+	dsMatrix44f_inverseTransposeFMA(result, a);
 #else
-	dsMatrix44f_inverseTransposeSIMD(alignedResult, a);
+	dsMatrix44f_inverseTransposeSIMD(result, a);
 #endif
-
-	result->columns[0].x = alignedResult[0].x;
-	result->columns[0].y = alignedResult[0].y;
-	result->columns[0].z = alignedResult[0].z;
-
-	result->columns[1].x = alignedResult[1].x;
-	result->columns[1].y = alignedResult[1].y;
-	result->columns[1].z = alignedResult[1].z;
-
-	result->columns[2].x = alignedResult[2].x;
-	result->columns[2].y = alignedResult[2].y;
-	result->columns[2].z = alignedResult[2].z;
 #else
 	float invLen2 = 1.0f/(a->values[0][0]*a->values[0][0] + a->values[1][0]*a->values[1][0] +
 		a->values[2][0]*a->values[2][0]);
@@ -1230,31 +1216,17 @@ inline void dsMatrix44f_inverseTranspose(dsMatrix33f* result, const dsMatrix44f*
 #endif
 }
 
-inline void dsMatrix44d_inverseTranspose(dsMatrix33d* result, const dsMatrix44d* a)
+inline void dsMatrix44d_inverseTranspose(dsMatrix33xd* result, const dsMatrix44d* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 
 #if DS_SIMD_ALWAYS_DOUBLE2
-	dsVector4d alignedResult[4];
-
 #if DS_SIMD_ALWAYS_FMA
-	dsMatrix44d_inverseTransposeFMA2(alignedResult, a);
+	dsMatrix44d_inverseTransposeFMA2(result, a);
 #else
-	dsMatrix44d_inverseTransposeSIMD2(alignedResult, a);
+	dsMatrix44d_inverseTransposeSIMD2(result, a);
 #endif
-
-	result->columns[0].x = alignedResult[0].x;
-	result->columns[0].y = alignedResult[0].y;
-	result->columns[0].z = alignedResult[0].z;
-
-	result->columns[1].x = alignedResult[1].x;
-	result->columns[1].y = alignedResult[1].y;
-	result->columns[1].z = alignedResult[1].z;
-
-	result->columns[2].x = alignedResult[2].x;
-	result->columns[2].y = alignedResult[2].y;
-	result->columns[2].z = alignedResult[2].z;
 #else
 	double invLen2 = 1.0/(a->values[0][0]*a->values[0][0] + a->values[1][0]*a->values[1][0] +
 		a->values[2][0]*a->values[2][0]);

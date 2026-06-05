@@ -134,7 +134,7 @@ dsSceneParticleNode* dsSceneParticleNode_create(dsAllocator* allocator,
 
 	dsSceneCullNode* cullNode = (dsSceneCullNode*)particleNode;
 	cullNode->hasBounds = true;
-	dsMatrix44_identity(cullNode->staticLocalBoxMatrix);
+	dsMatrix44f_identity(&cullNode->staticLocalBoxMatrix);
 	cullNode->getBoundsFunc = &dsSceneParticleNode_getBounds;
 
 	return particleNode;

@@ -79,7 +79,7 @@ static void dsInstanceDiscardBoundsData_populateData(void* userData, const dsVie
 		}
 		else
 		{
-			dsMatrix44_identity(instanceData->discardWorldProjInv);
+			dsMatrix44f_identity(&instanceData->discardWorldProjInv);
 			instanceData->discardBounds.x = -FLT_MAX;
 			instanceData->discardBounds.y = -FLT_MAX;
 			instanceData->discardBounds.z = FLT_MAX;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,16 +24,16 @@ extern "C"
 {
 #endif
 
-bool dsAnimationNodeMapCache_addKeyframeAnimation(dsAnimationNodeMapCache* cache,
-	const dsKeyframeAnimation* animation);
-bool dsAnimationNodeMapCache_removeKeyframeAnimation(dsAnimationNodeMapCache* cache,
-	const dsKeyframeAnimation* animation);
-bool dsAnimationNodeMapCache_addDirectAnimation(dsAnimationNodeMapCache* cache,
-	const dsDirectAnimation* animation);
-bool dsAnimationNodeMapCache_removeDirectAnimation(dsAnimationNodeMapCache* cache,
-	const dsDirectAnimation* animation);
-bool dsAnimationNodeMapCache_applyAnimation(dsAnimationNodeMapCache* cache,
-	const dsAnimation* animation, dsAnimationTree* tree);
+bool dsAnimationNodeMapCache_addKeyframeAnimation(
+	dsAnimationNodeMapCache* cache, const dsKeyframeAnimation* animation);
+bool dsAnimationNodeMapCache_removeKeyframeAnimation(
+	dsAnimationNodeMapCache* cache, const dsKeyframeAnimation* animation);
+bool dsAnimationNodeMapCache_addDirectAnimation(
+	dsAnimationNodeMapCache* cache, const dsDirectAnimation* animation);
+bool dsAnimationNodeMapCache_removeDirectAnimation(
+	dsAnimationNodeMapCache* cache, const dsDirectAnimation* animation);
+bool dsAnimationNodeMapCache_applyAnimation(
+	dsAnimationNodeMapCache* cache, const dsAnimation* animation, dsAnimationTree* tree);
 
 #ifdef __cplusplus
 }

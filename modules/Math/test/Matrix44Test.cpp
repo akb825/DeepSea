@@ -35,6 +35,7 @@ struct Matrix44TypeSelector<float>
 {
 	typedef dsMatrix44f Matrix44Type;
 	typedef dsMatrix33f Matrix33Type;
+	typedef dsMatrix33xf Matrix33xType;
 	typedef dsVector4f Vector4Type;
 	typedef dsVector3f Vector3Type;
 	typedef dsQuaternion4f Quaternion4Type;
@@ -47,6 +48,7 @@ struct Matrix44TypeSelector<double>
 {
 	typedef dsMatrix44d Matrix44Type;
 	typedef dsMatrix33d Matrix33Type;
+	typedef dsMatrix33xd Matrix33xType;
 	typedef dsVector4d Vector4Type;
 	typedef dsVector3d Vector3Type;
 	typedef dsQuaternion4d Quaternion4Type;
@@ -97,12 +99,12 @@ inline void dsMatrix44_invert(dsMatrix44d* result, const dsMatrix44d* a)
 	dsMatrix44d_invert(result, a);
 }
 
-inline void dsMatrix44_inverseTranspose(dsMatrix33f* result, const dsMatrix44f* a)
+inline void dsMatrix44_inverseTranspose(dsMatrix33xf* result, const dsMatrix44f* a)
 {
 	dsMatrix44f_inverseTranspose(result, a);
 }
 
-inline void dsMatrix44_inverseTranspose(dsMatrix33d* result, const dsMatrix44d* a)
+inline void dsMatrix44_inverseTranspose(dsMatrix33xd* result, const dsMatrix44d* a)
 {
 	dsMatrix44d_inverseTranspose(result, a);
 }
@@ -1161,7 +1163,7 @@ TYPED_TEST(Matrix44Test, AffineInvert33)
 TYPED_TEST(Matrix44Test, InverseTranspose)
 {
 	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
-	typedef typename Matrix44TypeSelector<TypeParam>::Matrix33Type Matrix33Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix33xType Matrix33xType;
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type rotate;
@@ -1180,7 +1182,7 @@ TYPED_TEST(Matrix44Test, InverseTranspose)
 	Matrix44Type matrix;
 	dsMatrix44_mul(matrix, translate, temp);
 
-	Matrix33Type inverseTranspose;
+	Matrix33xType inverseTranspose;
 	dsMatrix44_inverseTranspose(&inverseTranspose, &matrix);
 
 	Matrix44Type inverse, inverseTransposeCheck;
@@ -3745,35 +3747,43 @@ TEST(Matrix44fTest, InverseTransposeSIMD)
 	dsMatrix44f matrix;
 	dsMatrix44f_mulSIMD(&matrix, &translate, &temp);
 
-	dsMatrix33f scalarInverseTranspose;
-	dsVector4f inverseTranspose[3];
+	dsMatrix33xf scalarInverseTranspose, inverseTranspose;
 	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
 	dsMatrix44f_inverseTranspose(&scalarInverseTranspose, &matrix);
-	dsMatrix44f_inverseTransposeSIMD(inverseTranspose, &matrix);
+	dsMatrix44f_inverseTransposeSIMD(&inverseTranspose, &matrix);
 
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[0][0], inverseTranspose[0].x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[0][1], inverseTranspose[0].y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[0][2], inverseTranspose[0].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[0][0], inverseTranspose.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[0][1], inverseTranspose.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[0][2], inverseTranspose.values[0][2], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[1][0], inverseTranspose[1].x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[1][1], inverseTranspose[1].y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[1][2], inverseTranspose[1].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[1][0], inverseTranspose.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[1][1], inverseTranspose.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[1][2], inverseTranspose.values[1][2], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[2][0], inverseTranspose[2].x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[2][1], inverseTranspose[2].y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[2][2], inverseTranspose[2].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[2][0], inverseTranspose.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[2][1], inverseTranspose.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[2][2], inverseTranspose.values[2][2], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(-0.22998233f, inverseTranspose[0].x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.19453867f, inverseTranspose[0].y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.03981832f, inverseTranspose[0].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.22998233f, inverseTranspose.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.19453867f, inverseTranspose.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.03981832f, inverseTranspose.values[0][2], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(0.38795465f, inverseTranspose[1].x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.074637376f, inverseTranspose[1].y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.074301995f, inverseTranspose[1].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.38795465f, inverseTranspose.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.074637376f, inverseTranspose.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.074301995f, inverseTranspose.values[1][2], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(-0.15282895f, inverseTranspose[2].x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.103282385f, inverseTranspose[2].y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.12869483f, inverseTranspose[2].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.15282895f, inverseTranspose.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.103282385f, inverseTranspose.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.12869483f, inverseTranspose.values[2][2], epsilon);
 }
 
 #if !DS_DETERMINISTIC_MATH
@@ -3800,24 +3810,24 @@ TEST(Matrix44fTest, InverseTransposeFMA)
 	dsMatrix44f matrix;
 	dsMatrix44f_mulFMA(&matrix, &translate, &temp);
 
-	dsVector4f inverseTranspose[3];
-	dsMatrix44f_inverseTransposeFMA(inverseTranspose, &matrix);
+	dsMatrix33xf inverseTranspose;
+	dsMatrix44f_inverseTransposeFMA(&inverseTranspose, &matrix);
 
 	dsMatrix44f inverse, inverseTransposeCheck;
 	dsMatrix44f_invertFMA(&inverse, &matrix);
 	dsMatrix44f_transposeSIMD(&inverseTransposeCheck, &inverse);
 
-	EXPECT_NEAR(inverseTransposeCheck.values[0][0], inverseTranspose[0].x, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[0][1], inverseTranspose[0].y, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[0][2], inverseTranspose[0].z, epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[0][0], inverseTranspose.values[0][0], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[0][1], inverseTranspose.values[0][1], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[0][2], inverseTranspose.values[0][2], epsilon);
 
-	EXPECT_NEAR(inverseTransposeCheck.values[1][0], inverseTranspose[1].x, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[1][1], inverseTranspose[1].y, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[1][2], inverseTranspose[1].z, epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[1][0], inverseTranspose.values[1][0], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[1][1], inverseTranspose.values[1][1], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[1][2], inverseTranspose.values[1][2], epsilon);
 
-	EXPECT_NEAR(inverseTransposeCheck.values[2][0], inverseTranspose[2].x, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[2][1], inverseTranspose[2].y, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[2][2], inverseTranspose[2].z, epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[2][0], inverseTranspose.values[2][0], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[2][1], inverseTranspose.values[2][1], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[2][2], inverseTranspose.values[2][2], epsilon);
 }
 #endif // !DS_DETERMINISTIC_MATH
 
@@ -3845,35 +3855,43 @@ TEST(Matrix44dTest, InverseTransposeSIMD2)
 	dsMatrix44d matrix;
 	dsMatrix44d_mulSIMD2(&matrix, &translate, &temp);
 
-	dsMatrix33d scalarInverseTranspose;
-	dsVector4d inverseTranspose[3];
+	dsMatrix33xd scalarInverseTranspose, inverseTranspose;
 	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
 	dsMatrix44d_inverseTranspose(&scalarInverseTranspose, &matrix);
-	dsMatrix44d_inverseTransposeSIMD2(inverseTranspose, &matrix);
+	dsMatrix44d_inverseTransposeSIMD2(&inverseTranspose, &matrix);
 
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[0][0], inverseTranspose[0].x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[0][1], inverseTranspose[0].y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[0][2], inverseTranspose[0].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[0][0], inverseTranspose.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[0][1], inverseTranspose.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[0][2], inverseTranspose.values[0][2], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[1][0], inverseTranspose[1].x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[1][1], inverseTranspose[1].y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[1][2], inverseTranspose[1].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[1][0], inverseTranspose.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[1][1], inverseTranspose.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[1][2], inverseTranspose.values[1][2], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[2][0], inverseTranspose[2].x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[2][1], inverseTranspose[2].y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[2][2], inverseTranspose[2].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[2][0], inverseTranspose.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[2][1], inverseTranspose.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[2][2], inverseTranspose.values[2][2], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(-0.22998233959263534, inverseTranspose[0].x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.19453867528786228, inverseTranspose[0].y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.039818314631157037, inverseTranspose[0].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.22998233959263534, inverseTranspose.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.19453867528786228, inverseTranspose.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.039818314631157037, inverseTranspose.values[0][2], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(0.38795464822649051, inverseTranspose[1].x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.074637387877026243, inverseTranspose[1].y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.074301986637620623, inverseTranspose[1].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.38795464822649051, inverseTranspose.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.074637387877026243, inverseTranspose.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.074301986637620623, inverseTranspose.values[1][2], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(-0.15282893708152975, inverseTranspose[2].x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.10328239158764896, inverseTranspose[2].y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.12869481595966276, inverseTranspose[2].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.15282893708152975, inverseTranspose.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.10328239158764896, inverseTranspose.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.12869481595966276, inverseTranspose.values[2][2], epsilon);
 }
 
 #if !DS_DETERMINISTIC_MATH
@@ -3901,24 +3919,24 @@ TEST(Matrix44dTest, InverseTranspose2FMA)
 	dsMatrix44d matrix;
 	dsMatrix44d_mulFMA2(&matrix, &translate, &temp);
 
-	dsVector4d inverseTranspose[3];
-	dsMatrix44d_inverseTransposeFMA2(inverseTranspose, &matrix);
+	dsMatrix33xd inverseTranspose;
+	dsMatrix44d_inverseTransposeFMA2(&inverseTranspose, &matrix);
 
 	dsMatrix44d inverse, inverseTransposeCheck;
 	dsMatrix44d_invertFMA2(&inverse, &matrix);
 	dsMatrix44d_transposeSIMD2(&inverseTransposeCheck, &inverse);
 
-	EXPECT_NEAR(inverseTransposeCheck.values[0][0], inverseTranspose[0].x, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[0][1], inverseTranspose[0].y, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[0][2], inverseTranspose[0].z, epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[0][0], inverseTranspose.values[0][0], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[0][1], inverseTranspose.values[0][1], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[0][2], inverseTranspose.values[0][2], epsilon);
 
-	EXPECT_NEAR(inverseTransposeCheck.values[1][0], inverseTranspose[1].x, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[1][1], inverseTranspose[1].y, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[1][2], inverseTranspose[1].z, epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[1][0], inverseTranspose.values[1][0], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[1][1], inverseTranspose.values[1][1], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[1][2], inverseTranspose.values[1][2], epsilon);
 
-	EXPECT_NEAR(inverseTransposeCheck.values[2][0], inverseTranspose[2].x, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[2][1], inverseTranspose[2].y, epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[2][2], inverseTranspose[2].z, epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[2][0], inverseTranspose.values[2][0], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[2][1], inverseTranspose.values[2][1], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[2][2], inverseTranspose.values[2][2], epsilon);
 }
 #endif // !DS_DETERMINISTIC_MATH
 
@@ -3946,35 +3964,43 @@ TEST(Matrix44dTest, InverseTransposeSIMD4)
 	DS_ALIGN(32) dsMatrix44d matrix;
 	dsMatrix44d_mulSIMD4(&matrix, &translate, &temp);
 
-	dsMatrix33d scalarInverseTranspose;
-	DS_ALIGN(32) dsVector4d inverseTranspose[3];
+	DS_ALIGN(32) dsMatrix33xd scalarInverseTranspose, inverseTranspose;
 	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
 	dsMatrix44d_inverseTranspose(&scalarInverseTranspose, &matrix);
-	dsMatrix44d_inverseTransposeSIMD4(inverseTranspose, &matrix);
+	dsMatrix44d_inverseTransposeSIMD4(&inverseTranspose, &matrix);
 
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[0][0], inverseTranspose[0].x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[0][1], inverseTranspose[0].y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[0][2], inverseTranspose[0].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[0][0], inverseTranspose.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[0][1], inverseTranspose.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[0][2], inverseTranspose.values[0][2], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[1][0], inverseTranspose[1].x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[1][1], inverseTranspose[1].y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[1][2], inverseTranspose[1].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[1][0], inverseTranspose.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[1][1], inverseTranspose.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[1][2], inverseTranspose.values[1][2], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[2][0], inverseTranspose[2].x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[2][1], inverseTranspose[2].y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(scalarInverseTranspose.values[2][2], inverseTranspose[2].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[2][0], inverseTranspose.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[2][1], inverseTranspose.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(
+		scalarInverseTranspose.values[2][2], inverseTranspose.values[2][2], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(-0.22998233959263534, inverseTranspose[0].x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.19453867528786228, inverseTranspose[0].y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.039818314631157037, inverseTranspose[0].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.22998233959263534, inverseTranspose.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.19453867528786228, inverseTranspose.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.039818314631157037, inverseTranspose.values[0][2], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(0.38795464822649051, inverseTranspose[1].x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.074637387877026243, inverseTranspose[1].y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.074301986637620623, inverseTranspose[1].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.38795464822649051, inverseTranspose.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.074637387877026243, inverseTranspose.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.074301986637620623, inverseTranspose.values[1][2], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(-0.15282893708152975, inverseTranspose[2].x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.10328239158764896, inverseTranspose[2].y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.12869481595966276, inverseTranspose[2].z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.15282893708152975, inverseTranspose.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.10328239158764896, inverseTranspose.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.12869481595966276, inverseTranspose.values[2][2], epsilon);
 }
 
 TEST(Matrix44fTest, TransformCompisitionSIMD)

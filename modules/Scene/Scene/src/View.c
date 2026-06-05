@@ -479,8 +479,8 @@ dsView* dsView_create(dsAllocator* allocator, const char* name, const dsScene* s
 	view->screenSize = screenSize;
 	view->screenDimension = screenDimension;
 	updatePreRotatedDimensions(view);
-	dsMatrix44_identity(view->cameraMatrix);
-	dsMatrix44_identity(view->viewMatrix);
+	dsMatrix44f_identity(&view->cameraMatrix);
+	dsMatrix44f_identity(&view->viewMatrix);
 	dsView_setOrthoProjection(view, -1, 1, -1, 1, -1, 1);
 	updateScreenProjection(view);
 	view->lodBias = 1.0f;

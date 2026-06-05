@@ -57,6 +57,38 @@ DS_GEOMETRY_EXPORT inline void dsRay3d_evaluate(dsVector3d* result, const dsRay3
 	dsRay3_evaluate(*result, *ray, t);
 }
 
+/** @copydoc dsRay3_evaluate() */
+DS_GEOMETRY_EXPORT inline void dsRay3f_evaluate3x(dsVector3xf* result, const dsRay3f* ray, float t)
+{
+#if DS_SIMD_ALWAYS_FMA
+	result->simd = dsSIMD4f_fmadd(ray->direction.simd, dsSIMD4f_set1(t), ray->origin.simd);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	result->simd = dsSIMD4f_add(
+		ray->origin.simd, dsSIMD4f_mul(ray->direction.simd, dsSIMD4f_set1(t)));
+#else
+	dsRay3_evaluate(*result, *ray, t);
+#endif
+}
+
+/** @copydoc dsRay3_evaluate() */
+DS_GEOMETRY_EXPORT inline void dsRay3d_evaluate3x(dsVector3xd* result, const dsRay3d* ray, double t)
+{
+#if DS_SIMD_ALWAYS_DOUBLE2
+	dsSIMD2d t2 = dsSIMD2d_set1(t);
+#if DS_SIMD_ALWAYS_FMA
+	result->simd2[0] = dsSIMD2d_fmadd(ray->direction.simd2[0], t2, ray->origin.simd2[0]);
+	result->simd2[1] = dsSIMD2d_fmadd(ray->direction.simd2[1], t2, ray->origin.simd2[1]);
+#else
+	result->simd2[0] = dsSIMD2d_add(
+		ray->origin.simd2[0], dsSIMD2d_mul(ray->direction.simd2[0], t2));
+	result->simd2[1] = dsSIMD2d_add(
+		ray->origin.simd2[1], dsSIMD2d_mul(ray->direction.simd2[1], t2));
+#endif
+#else
+	dsRay3_evaluate(*result, *ray, t);
+#endif
+}
+
 #ifdef __cplusplus
 }
 #endif

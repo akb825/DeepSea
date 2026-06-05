@@ -113,7 +113,7 @@ static void dsParticleTransformData_populateDataSIMD(void* userData, const dsVie
 		if (emitter)
 			world = emitter->transform;
 		else
-			dsMatrix44_identity(world);
+			dsMatrix44f_identity(&world);
 		transform->world = world;
 		dsMatrix44f_affineMulSIMD(&worldView, &view->viewMatrix, &world);
 		transform->worldView = worldView;
@@ -156,7 +156,7 @@ static void dsParticleTransformData_populateDataFMA(void* userData, const dsView
 		if (emitter)
 			world = emitter->transform;
 		else
-			dsMatrix44_identity(world);
+			dsMatrix44f_identity(&world);
 		transform->world = world;
 		dsMatrix44f_affineMulFMA(&worldView, &view->viewMatrix, &world);
 		transform->worldView = worldView;
@@ -200,7 +200,7 @@ static void dsParticleTransformData_populateData(void* userData, const dsView* v
 		if (emitter)
 			world = emitter->transform;
 		else
-			dsMatrix44_identity(world);
+			dsMatrix44f_identity(&world);
 		transform->world = world;
 		dsMatrix44f_affineMul(&worldView, &view->viewMatrix, &world);
 		transform->worldView = worldView;

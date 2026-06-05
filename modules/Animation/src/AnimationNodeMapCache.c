@@ -73,8 +73,7 @@ static void evaluateCubicSpline(dsVector4f* result, const dsMatrix44f* cubicTran
 }
 
 static void applyKeyframeAnimationTransforms(WeightedTransform* transforms,
-	dsKeyframeAnimationNodeMap** nodeMaps, uint32_t nodeMapCount, const dsAnimation* animation,
-	const dsAnimationTree* tree)
+	dsKeyframeAnimationNodeMap** nodeMaps, uint32_t nodeMapCount, const dsAnimation* animation)
 {
 	dsKeyframeAnimationNodeMap** curNodeMap = nodeMaps;
 	dsKeyframeAnimationNodeMap** nodeMapEnd = nodeMaps + nodeMapCount;
@@ -170,8 +169,8 @@ static void applyKeyframeAnimationTransforms(WeightedTransform* transforms,
 				switch (channel->component)
 				{
 					case dsAnimationComponent_Translation:
-						dsVector4f_add(&transform->translation, &transform->translation,
-							&weightedValue);
+						dsVector4f_add(
+							&transform->translation, &transform->translation, &weightedValue);
 						transform->totalTranslationWeight += entry->weight;
 						break;
 					case dsAnimationComponent_Rotation:
@@ -189,7 +188,7 @@ static void applyKeyframeAnimationTransforms(WeightedTransform* transforms,
 }
 
 static void applyDirectAnimationTransforms(WeightedTransform* transforms,
-	dsDirectAnimationNodeMap** nodeMaps, uint32_t nodeMapCount, const dsAnimation* animation, const dsAnimationTree* tree)
+	dsDirectAnimationNodeMap** nodeMaps, uint32_t nodeMapCount, const dsAnimation* animation)
 {
 	dsDirectAnimationNodeMap** curNodeMap = nodeMaps;
 	dsDirectAnimationNodeMap** nodeMapEnd = nodeMaps + nodeMapCount;
@@ -241,6 +240,7 @@ static void applyDirectAnimationTransforms(WeightedTransform* transforms,
 
 static int animationTreeNodeMapCompare(const void* left, const void* right, void* context)
 {
+	DS_UNUSED(context);
 	uint32_t treeID = *(const uint32_t*)left;
 	const dsAnimationTreeNodeMap* nodeMap = (const dsAnimationTreeNodeMap*)right;
 	return DS_CMP(treeID, nodeMap->tree->id);
@@ -248,6 +248,7 @@ static int animationTreeNodeMapCompare(const void* left, const void* right, void
 
 static int directAnimationRefCompare(const void* left, const void* right, void* context)
 {
+	DS_UNUSED(context);
 	const dsDirectAnimation* animation = (const dsDirectAnimation*)left;
 	const dsDirectAnimationRef* ref = (const dsDirectAnimationRef*)right;
 	return DS_CMP(animation,ref->animation);
@@ -255,6 +256,7 @@ static int directAnimationRefCompare(const void* left, const void* right, void* 
 
 static int keyframeAnimationRefCompare(const void* left, const void* right, void* context)
 {
+	DS_UNUSED(context);
 	const dsKeyframeAnimation* animation = (const dsKeyframeAnimation*)left;
 	const dsKeyframeAnimationRef* ref = (const dsKeyframeAnimationRef*)right;
 	return DS_CMP(animation, ref->animation);
@@ -428,8 +430,8 @@ bool dsAnimationNodeMapCache_addAnimationTree(dsAnimationNodeMapCache* cache, ds
 	return true;
 }
 
-bool dsAnimationNodeMapCache_removeAnimationTree(dsAnimationNodeMapCache* cache,
-	dsAnimationTree* tree)
+bool dsAnimationNodeMapCache_removeAnimationTree(
+	dsAnimationNodeMapCache* cache, dsAnimationTree* tree)
 {
 	if (!cache || !tree)
 	{
@@ -464,8 +466,8 @@ bool dsAnimationNodeMapCache_removeAnimationTree(dsAnimationNodeMapCache* cache,
 	return found;
 }
 
-bool dsAnimationNodeMapCache_addKeyframeAnimation(dsAnimationNodeMapCache* cache,
-	const dsKeyframeAnimation* animation)
+bool dsAnimationNodeMapCache_addKeyframeAnimation(
+	dsAnimationNodeMapCache* cache, const dsKeyframeAnimation* animation)
 {
 	DS_ASSERT(cache);
 	DS_ASSERT(animation);
@@ -543,8 +545,8 @@ bool dsAnimationNodeMapCache_addKeyframeAnimation(dsAnimationNodeMapCache* cache
 
 }
 
-bool dsAnimationNodeMapCache_removeKeyframeAnimation(dsAnimationNodeMapCache* cache,
-	const dsKeyframeAnimation* animation)
+bool dsAnimationNodeMapCache_removeKeyframeAnimation(
+	dsAnimationNodeMapCache* cache, const dsKeyframeAnimation* animation)
 {
 	DS_ASSERT(cache);
 	DS_ASSERT(animation);
@@ -585,8 +587,8 @@ bool dsAnimationNodeMapCache_removeKeyframeAnimation(dsAnimationNodeMapCache* ca
 	return found;
 }
 
-bool dsAnimationNodeMapCache_addDirectAnimation(dsAnimationNodeMapCache* cache,
-	const dsDirectAnimation* animation)
+bool dsAnimationNodeMapCache_addDirectAnimation(
+	dsAnimationNodeMapCache* cache, const dsDirectAnimation* animation)
 {
 	DS_ASSERT(cache);
 	DS_ASSERT(animation);
@@ -663,8 +665,8 @@ bool dsAnimationNodeMapCache_addDirectAnimation(dsAnimationNodeMapCache* cache,
 	return true;
 }
 
-bool dsAnimationNodeMapCache_removeDirectAnimation(dsAnimationNodeMapCache* cache,
-	const dsDirectAnimation* animation)
+bool dsAnimationNodeMapCache_removeDirectAnimation(
+	dsAnimationNodeMapCache* cache, const dsDirectAnimation* animation)
 {
 	DS_ASSERT(cache);
 	DS_ASSERT(animation);
@@ -705,8 +707,8 @@ bool dsAnimationNodeMapCache_removeDirectAnimation(dsAnimationNodeMapCache* cach
 	return found;
 }
 
-bool dsAnimationNodeMapCache_applyAnimation(dsAnimationNodeMapCache* cache,
-	const dsAnimation* animation, dsAnimationTree* tree)
+bool dsAnimationNodeMapCache_applyAnimation(
+	dsAnimationNodeMapCache* cache, const dsAnimation* animation, dsAnimationTree* tree)
 {
 	DS_ASSERT(cache);
 	DS_ASSERT(animation);
@@ -730,10 +732,10 @@ bool dsAnimationNodeMapCache_applyAnimation(dsAnimationNodeMapCache* cache,
 	memset(transforms, 0, sizeof(WeightedTransform)*tree->nodeCount);
 
 	// Apply the animation channels to the transforms.
-	applyKeyframeAnimationTransforms(transforms, treeNodeMap->keyframeMaps,
-		cache->keyframeAnimationCount, animation, tree);
-	applyDirectAnimationTransforms(transforms, treeNodeMap->directMaps,
-		cache->directAnimationCount, animation, tree);
+	applyKeyframeAnimationTransforms(
+		transforms, treeNodeMap->keyframeMaps, cache->keyframeAnimationCount, animation);
+	applyDirectAnimationTransforms(
+		transforms, treeNodeMap->directMaps, cache->directAnimationCount, animation);
 
 	// Set the final non-zero weight transform values on the animation.
 	for (uint32_t i = 0; i < tree->nodeCount; ++i)

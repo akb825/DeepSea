@@ -221,7 +221,7 @@ static uint32_t buildTreeRec(dsAllocator* allocator, uint32_t* nextIndex, uint32
 	node->scale = buildNode->scale;
 	node->rotation = buildNode->rotation;
 	node->translation = buildNode->translation;
-	dsMatrix44_identity(node->transform);
+	dsMatrix44f_identity(&node->transform);
 	node->parent = parent;
 	node->childCount = buildNode->childCount;
 	if (buildNode->childCount > 0)
@@ -231,8 +231,8 @@ static uint32_t buildTreeRec(dsAllocator* allocator, uint32_t* nextIndex, uint32
 		node->children = children;
 		for (uint32_t i = 0; i < buildNode->childCount; ++i)
 		{
-			uint32_t child = buildTreeRec(allocator, nextIndex, index, buildNode->children[i],
-				nodes, nodeTable);
+			uint32_t child = buildTreeRec(
+				allocator, nextIndex, index, buildNode->children[i], nodes, nodeTable);
 			if (child == DS_NO_ANIMATION_NODE)
 				return DS_NO_ANIMATION_NODE;
 			children[i] = child;
@@ -259,8 +259,8 @@ static inline void updateTransformSIMD(dsAnimationTree* tree, dsAnimationNode* n
 	dsMatrix44f localTransform;
 	dsMatrix44f_makeScale(&scale, node->scale.x, node->scale.y, node->scale.z);
 	dsQuaternion4f_toMatrix44(&rotation, &node->rotation);
-	dsMatrix44f_makeTranslate(&translation, node->translation.x, node->translation.y,
-		node->translation.z);
+	dsMatrix44f_makeTranslate(
+		&translation, node->translation.x, node->translation.y, node->translation.z);
 	dsMatrix44f_affineMulSIMD(&rotateScale, &rotation, &scale);
 	dsMatrix44f_affineMulSIMD(&localTransform, &translation, &rotateScale);
 
@@ -505,7 +505,7 @@ dsAnimationTree* dsAnimationTree_createJoints(
 		treeNode->scale = node->scale;
 		treeNode->rotation = node->rotation;
 		treeNode->translation = node->translation;
-		dsMatrix44_identity(treeNode->transform);
+		dsMatrix44f_identity(&treeNode->transform);
 		treeNode->parent = parentNodes[i];
 		treeNode->childCount = node->childCount;
 		if (node->childCount > 0)
@@ -527,7 +527,7 @@ dsAnimationTree* dsAnimationTree_createJoints(
 		toNodeLocalSpace[i] = node->toNodeLocalSpace;
 
 		dsAnimationJointTransform* jointTransform = jointTransforms + i;
-		dsMatrix44_identity(jointTransform->transform);
+		dsMatrix44f_identity(&jointTransform->transform);
 
 		/*jointTransform->inverseTranspose[0].x = 1;
 		jointTransform->inverseTranspose[0].y = 0;
@@ -873,8 +873,8 @@ bool dsAnimationTree_updateTransforms(dsAnimationTree* tree)
 			dsAnimationNode* node = tree->nodes + i;
 			updateTransform(tree, node);
 			dsAnimationJointTransform* jointTransform = tree->jointTransforms + i;
-			dsMatrix44f_affineMul(&jointTransform->transform, &node->transform,
-				tree->toNodeLocalSpace + i);
+			dsMatrix44f_affineMul(
+				&jointTransform->transform, &node->transform, tree->toNodeLocalSpace + i);
 
 			/*dsMatrix33f inverseTranspose;
 			dsMatrix44f_inverseTranspose(&inverseTranspose, &jointTransform->transform);

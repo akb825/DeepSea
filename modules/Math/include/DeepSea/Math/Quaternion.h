@@ -19,6 +19,7 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Assert.h>
 
+#include <DeepSea/Math/SIMD/Dot.h>
 #include <DeepSea/Math/SIMD/SIMD.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Export.h>
@@ -480,21 +481,14 @@ inline void dsQuaternion4f_normalize(dsQuaternion4f* result, const dsQuaternion4
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
-
-#if DS_SIMD_ALWAYS_FLOAT4 && !DS_SIMD_EMULATED_DIV_SQRT
-	dsSIMD4f length2 = dsSIMD4f_mul(a->simd, a->simd);
-#if DS_SIMD_ALWAYS_HADD
-	length2 = dsSIMD4f_hadd(length2, length2);
-	length2 = dsSIMD4f_hadd(length2, length2);
+#if DS_SIMD_ALWAYS_FLOAT4
+	dsSIMD4f len2 = dsDot4SIMD4f(a->simd, a->simd);
+#if DS_SIMD_EMULATED_DIV_SQRT
+	dsSIMD4f invLen = dsSIMD4f_set1(1/dsSqrtf(dsSIMD4f_get(len2, 0)));
 #else
-	dsSIMD4f length2X = dsSIMD4f_set1FromVec(length2, 0);
-	dsSIMD4f length2Y = dsSIMD4f_set1FromVec(length2, 1);
-	dsSIMD4f length2Z = dsSIMD4f_set1FromVec(length2, 2);
-	dsSIMD4f length2W = dsSIMD4f_set1FromVec(length2, 3);
-	length2 = dsSIMD4f_add(dsSIMD4f_add(length2X, length2Y), dsSIMD4f_add(length2Z, length2W));
+	dsSIMD4f invLen = dsSIMD4f_rsqrt(len2);
 #endif
-	dsSIMD4f invLength = dsSIMD4f_rsqrt(length2);
-	result->simd = dsSIMD4f_mul(a->simd, invLength);
+	result->simd = dsSIMD4f_mul(a->simd, invLen);
 #else
 	float len2 = dsPow2(a->i) + dsPow2(a->j) + dsPow2(a->k) + dsPow2(a->r);
 	float invLen = 1.0f/dsSqrtf(len2);
@@ -509,13 +503,19 @@ inline void dsQuaternion4d_normalize(dsQuaternion4d* result, const dsQuaternion4
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
-
+#if DS_SIMD_ALWAYS_DOUBLE2
+	dsSIMD2d len2 = dsDot4SIMD2d(a->simd2[0], a->simd2[1], a->simd2[0], a->simd2[1]);
+	dsSIMD2d invLen = dsSIMD2d_rsqrt(len2);
+	result->simd2[0] = dsSIMD2d_mul(a->simd2[0], invLen);
+	result->simd2[1] = dsSIMD2d_mul(a->simd2[1], invLen);
+#else
 	double len2 = dsPow2(a->i) + dsPow2(a->j) + dsPow2(a->k) + dsPow2(a->r);
 	double invLen = 1.0/dsSqrtd(len2);
 	result->i = a->i*invLen;
 	result->j = a->j*invLen;
 	result->k = a->k*invLen;
 	result->r = a->r*invLen;
+#endif
 }
 
 inline void dsQuaternion4f_rotate(dsVector3f* result, const dsQuaternion4f* a, const dsVector3f* v)

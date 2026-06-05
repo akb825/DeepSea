@@ -846,6 +846,142 @@ TYPED_TEST(AlignedBox3xTest, Dist)
 	EXPECT_FLOAT_EQ(3.0f, (float)dsAlignedBox3x_dist(&box, &point7));
 }
 
+#if DS_HAS_SIMD
+
+TEST(AlignedBox3xfTest, ToMatrixSIMD)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		return;
+
+	const float epsilon = AlignedBox3xTypeSelector<float>::epsilon;
+
+	dsAlignedBox3xf box = {{{0.0f, 1.0f, 2.0f, 3.0f}}, {{3.0f, 5.0f, 7.0f, -9.0f}}};
+
+	dsMatrix44f matrix;
+	dsAlignedBox3xf_toMatrixSIMD(&matrix, &box);
+
+	dsVector4f lowerLeft = {{-1.0f, -1.0f, -1.0f, 1.0f}};
+	dsVector4f boxPoint;
+	dsMatrix44_transform(boxPoint, matrix, lowerLeft);
+	EXPECT_NEAR(box.min.x, boxPoint.x, epsilon);
+	EXPECT_NEAR(box.min.y, boxPoint.y, epsilon);
+	EXPECT_NEAR(box.min.z, boxPoint.z, epsilon);
+
+	dsVector4f upperRight = {{1.0f, 1.0f, 1.0f, 1.0f}};
+	dsMatrix44_transform(boxPoint, matrix, upperRight);
+	EXPECT_NEAR(box.max.x, boxPoint.x, epsilon);
+	EXPECT_NEAR(box.max.y, boxPoint.y, epsilon);
+	EXPECT_NEAR(box.max.z, boxPoint.z, epsilon);
+}
+
+TEST(AlignedBox3xfTest, ToMatrixTransposeSIMD)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		return;
+
+	dsAlignedBox3xf box = {{{0.0f, 1.0f, 2.0f, 3.0f}}, {{3.0f, 5.0f, 7.0f, -9.0f}}};
+
+	dsMatrix44f matrix, transposedMatrix;
+	dsAlignedBox3xf_toMatrixSIMD(&matrix, &box);
+	dsAlignedBox3xf_toMatrixTransposeSIMD(&transposedMatrix, &box);
+
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+			EXPECT_EQ(matrix.values[j][i], transposedMatrix.values[i][j]);
+	}
+}
+
+TEST(AlignedBox3xdTest, ToMatrixSIMD2)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
+		return;
+
+	const double epsilon = AlignedBox3xTypeSelector<double>::epsilon;
+
+	dsAlignedBox3xd box = {{{0.0, 1.0, 2.0, 3.0}}, {{3.0, 5.0, 7.0, -9.0}}};
+
+	dsMatrix44d matrix;
+	dsAlignedBox3xd_toMatrixSIMD2(&matrix, &box);
+
+	dsVector4d lowerLeft = {{-1.0, -1.0, -1.0, 1.0}};
+	dsVector4d boxPoint;
+	dsMatrix44_transform(boxPoint, matrix, lowerLeft);
+	EXPECT_NEAR(box.min.x, boxPoint.x, epsilon);
+	EXPECT_NEAR(box.min.y, boxPoint.y, epsilon);
+	EXPECT_NEAR(box.min.z, boxPoint.z, epsilon);
+
+	dsVector4d upperRight = {{1.0, 1.0, 1.0, 1.0}};
+	dsMatrix44_transform(boxPoint, matrix, upperRight);
+	EXPECT_NEAR(box.max.x, boxPoint.x, epsilon);
+	EXPECT_NEAR(box.max.y, boxPoint.y, epsilon);
+	EXPECT_NEAR(box.max.z, boxPoint.z, epsilon);
+}
+
+TEST(AlignedBox3xdTest, ToMatrixTransposeSIMD2)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
+		return;
+
+	dsAlignedBox3xd box = {{{0.0, 1.0, 2.0, 3.0}}, {{3.0, 5.0, 7.0, -9.0}}};
+
+	dsMatrix44d matrix, transposedMatrix;
+	dsAlignedBox3xd_toMatrixSIMD2(&matrix, &box);
+	dsAlignedBox3xd_toMatrixTransposeSIMD2(&transposedMatrix, &box);
+
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+			EXPECT_EQ(matrix.values[j][i], transposedMatrix.values[i][j]);
+	}
+}
+
+TEST(AlignedBox3xdTest, ToMatrixSIMD4)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
+		return;
+
+	const double epsilon = AlignedBox3xTypeSelector<double>::epsilon;
+
+	DS_ALIGN(32) dsAlignedBox3xd box = {{{0.0, 1.0, 2.0, 3.0}}, {{3.0, 5.0, 7.0, -9.0}}};
+
+	DS_ALIGN(32) dsMatrix44d matrix;
+	dsAlignedBox3xd_toMatrixSIMD4(&matrix, &box);
+
+	dsVector4d lowerLeft = {{-1.0, -1.0, -1.0, 1.0}};
+	dsVector4d boxPoint;
+	dsMatrix44_transform(boxPoint, matrix, lowerLeft);
+	EXPECT_NEAR(box.min.x, boxPoint.x, epsilon);
+	EXPECT_NEAR(box.min.y, boxPoint.y, epsilon);
+	EXPECT_NEAR(box.min.z, boxPoint.z, epsilon);
+
+	dsVector4d upperRight = {{1.0, 1.0, 1.0, 1.0}};
+	dsMatrix44_transform(boxPoint, matrix, upperRight);
+	EXPECT_NEAR(box.max.x, boxPoint.x, epsilon);
+	EXPECT_NEAR(box.max.y, boxPoint.y, epsilon);
+	EXPECT_NEAR(box.max.z, boxPoint.z, epsilon);
+}
+
+TEST(AlignedBox3xdTest, ToMatrixTransposeSIMD4)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
+		return;
+
+	DS_ALIGN(32) dsAlignedBox3xd box = {{{0.0, 1.0, 2.0, 3.0}}, {{3.0, 5.0, 7.0, -9.0}}};
+
+	DS_ALIGN(32) dsMatrix44d matrix, transposedMatrix;
+	dsAlignedBox3xd_toMatrixSIMD4(&matrix, &box);
+	dsAlignedBox3xd_toMatrixTransposeSIMD4(&transposedMatrix, &box);
+
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+			EXPECT_EQ(matrix.values[j][i], transposedMatrix.values[i][j]);
+	}
+}
+
+#endif // DS_HAS_SIMD
+
 TEST(AlignedBox3xTest, ConvertFloatToDouble)
 {
 	dsAlignedBox3xf boxf = {{{0, 1, 2, 6}}, {{3, 4, 5, -7}}};

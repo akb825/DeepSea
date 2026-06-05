@@ -45,7 +45,7 @@ typedef struct InstanceTransform
 {
 	dsMatrix44f world;
 	dsMatrix44f worldView;
-	dsVector4f worldViewInvTrans[3];
+	dsMatrix33xf worldViewInvTrans;
 	dsMatrix44f worldViewProj;
 	dsVector4i framebufferSize;
 	dsVector4f framebufferRotation;
@@ -100,7 +100,7 @@ static void dsInstanceTransformData_populateDataSIMD(void* userData, const dsVie
 		dsMatrix44f worldView;
 		dsMatrix44f_affineMulSIMD(&worldView, &view->viewMatrix, world);
 		transform->worldView = worldView;
-		dsMatrix44f_inverseTransposeSIMD(transform->worldViewInvTrans, &worldView);
+		dsMatrix44f_inverseTransposeSIMD(&transform->worldViewInvTrans, &worldView);
 		dsMatrix44f_mulSIMD(&transform->worldViewProj, &view->projectionMatrix, &worldView);
 		transform->framebufferSize = framebufferSize;
 		transform->framebufferRotation = framebufferRotation;
@@ -136,7 +136,7 @@ static void dsInstanceTransformData_populateDataFMA(void* userData, const dsView
 		dsMatrix44f worldView;
 		dsMatrix44f_affineMulFMA(&worldView, &view->viewMatrix, world);
 		transform->worldView = worldView;
-		dsMatrix44f_inverseTransposeFMA(transform->worldViewInvTrans, &worldView);
+		dsMatrix44f_inverseTransposeFMA(&transform->worldViewInvTrans, &worldView);
 		dsMatrix44f_mulFMA(&transform->worldViewProj, &view->projectionMatrix, &worldView);
 		transform->framebufferSize = framebufferSize;
 		transform->framebufferRotation = framebufferRotation;
@@ -173,15 +173,7 @@ static void dsInstanceTransformData_populateData(void* userData, const dsView* v
 		dsMatrix44f worldView;
 		dsMatrix44f_affineMul(&worldView, &view->viewMatrix, world);
 		transform->worldView = worldView;
-
-		dsMatrix33f worldViewInvTrans;
-		dsMatrix44f_inverseTranspose(&worldViewInvTrans, &worldView);
-		for (unsigned int i = 0; i < 3; ++i)
-		{
-			*(dsVector3f*)(transform->worldViewInvTrans + i) = worldViewInvTrans.columns[i];
-			transform->worldViewInvTrans[i].w = 0;
-		}
-
+		dsMatrix44f_inverseTranspose(&transform->worldViewInvTrans, &worldView);
 		dsMatrix44f_mul(&transform->worldViewProj, &view->projectionMatrix, &worldView);
 		transform->framebufferSize = framebufferSize;
 		transform->framebufferRotation = framebufferRotation;

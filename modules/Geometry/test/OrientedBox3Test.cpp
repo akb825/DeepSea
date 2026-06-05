@@ -452,21 +452,21 @@ TYPED_TEST(OrientedBox3Test, ToMatrix)
 
 	OrientedBox3Type restoredBox;
 	dsOrientedBox3_fromMatrix(&restoredBox, &matrix);
-	EXPECT_NEAR(restoredBox.orientation.values[0][0], box.orientation.values[0][0], epsilon);
-	EXPECT_NEAR(restoredBox.orientation.values[0][1], box.orientation.values[0][1], epsilon);
-	EXPECT_NEAR(restoredBox.orientation.values[0][2], box.orientation.values[0][2], epsilon);
-	EXPECT_NEAR(restoredBox.orientation.values[1][0], box.orientation.values[1][0], epsilon);
-	EXPECT_NEAR(restoredBox.orientation.values[1][1], box.orientation.values[1][1], epsilon);
-	EXPECT_NEAR(restoredBox.orientation.values[1][2], box.orientation.values[1][2], epsilon);
-	EXPECT_NEAR(restoredBox.orientation.values[2][0], box.orientation.values[2][0], epsilon);
-	EXPECT_NEAR(restoredBox.orientation.values[2][1], box.orientation.values[2][1], epsilon);
-	EXPECT_NEAR(restoredBox.orientation.values[2][2], box.orientation.values[2][2], epsilon);
-	EXPECT_NEAR(restoredBox.center.x, box.center.x, epsilon);
-	EXPECT_NEAR(restoredBox.center.y, box.center.y, epsilon);
-	EXPECT_NEAR(restoredBox.center.z, box.center.z, epsilon);
-	EXPECT_NEAR(restoredBox.halfExtents.x, box.halfExtents.x, epsilon);
-	EXPECT_NEAR(restoredBox.halfExtents.y, box.halfExtents.y, epsilon);
-	EXPECT_NEAR(restoredBox.halfExtents.z, box.halfExtents.z, epsilon);
+	EXPECT_NEAR(box.orientation.values[0][0], restoredBox.orientation.values[0][0], epsilon);
+	EXPECT_NEAR(box.orientation.values[0][1], restoredBox.orientation.values[0][1], epsilon);
+	EXPECT_NEAR(box.orientation.values[0][2], restoredBox.orientation.values[0][2], epsilon);
+	EXPECT_NEAR(box.orientation.values[1][0], restoredBox.orientation.values[1][0], epsilon);
+	EXPECT_NEAR(box.orientation.values[1][1], restoredBox.orientation.values[1][1], epsilon);
+	EXPECT_NEAR(box.orientation.values[1][2], restoredBox.orientation.values[1][2], epsilon);
+	EXPECT_NEAR(box.orientation.values[2][0], restoredBox.orientation.values[2][0], epsilon);
+	EXPECT_NEAR(box.orientation.values[2][1], restoredBox.orientation.values[2][1], epsilon);
+	EXPECT_NEAR(box.orientation.values[2][2], restoredBox.orientation.values[2][2], epsilon);
+	EXPECT_NEAR(box.center.x, restoredBox.center.x, epsilon);
+	EXPECT_NEAR(box.center.y, restoredBox.center.y, epsilon);
+	EXPECT_NEAR(box.center.z, restoredBox.center.z, epsilon);
+	EXPECT_NEAR(box.halfExtents.x, restoredBox.halfExtents.x, epsilon);
+	EXPECT_NEAR(box.halfExtents.y, restoredBox.halfExtents.y, epsilon);
+	EXPECT_NEAR(box.halfExtents.z, restoredBox.halfExtents.z, epsilon);
 }
 
 TYPED_TEST(OrientedBox3Test, ToMatrixTranspose)

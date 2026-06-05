@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,8 +53,8 @@ DS_ANIMATION_EXPORT dsAnimationNodeMapCache* dsAnimationNodeMapCache_create(dsAl
  * @param tree The animation tree to add to the cache. This will be cloned on the first insertion
  *     of a compatible animation tree.
  */
-DS_ANIMATION_EXPORT bool dsAnimationNodeMapCache_addAnimationTree(dsAnimationNodeMapCache* cache,
-	dsAnimationTree* tree);
+DS_ANIMATION_EXPORT bool dsAnimationNodeMapCache_addAnimationTree(
+	dsAnimationNodeMapCache* cache, dsAnimationTree* tree);
 
 /**
  * @brief Removes an animation tree from the node map cache.
@@ -66,8 +66,8 @@ DS_ANIMATION_EXPORT bool dsAnimationNodeMapCache_addAnimationTree(dsAnimationNod
  * @param cache The animation node map cache to add the animation tree to.
  * @param tree The animation tree to remove from the cache.
  */
-DS_ANIMATION_EXPORT bool dsAnimationNodeMapCache_removeAnimationTree(dsAnimationNodeMapCache* cache,
-	dsAnimationTree* tree);
+DS_ANIMATION_EXPORT bool dsAnimationNodeMapCache_removeAnimationTree(
+	dsAnimationNodeMapCache* cache, dsAnimationTree* tree);
 
 /**
  * @brief Destroys an animation node map cache.

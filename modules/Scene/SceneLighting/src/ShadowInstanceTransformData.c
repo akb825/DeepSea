@@ -51,7 +51,7 @@ typedef struct InstanceTransform
 {
 	dsMatrix44f world;
 	dsMatrix44f worldView;
-	dsVector4f worldViewInvTrans[3];
+	dsMatrix33xf worldViewInvTrans;
 	dsMatrix44f worldViewProj;
 } InstanceTransform;
 
@@ -64,20 +64,17 @@ static void ShadowUserData_destroy(void* userData)
 
 static void dummyTransformData(uint32_t instanceCount, uint8_t* data, uint32_t stride)
 {
-	dsMatrix44f identity;
-	dsMatrix44_identity(identity);
-	dsVector4f identity0 = {{1.0f, 0.0f, 0.0f, 0.0f}};
-	dsVector4f identity1 = {{0.0f, 1.0f, 0.0f, 0.0f}};
-	dsVector4f identity2 = {{0.0f, 0.0f, 1.0f, 0.0f}};
+	dsMatrix44f identity44;
+	dsMatrix44f_identity(&identity44);
+	dsMatrix33xf identity33;
+	dsMatrix33xf_identity(&identity33);
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
 		InstanceTransform* transform = (InstanceTransform*)(data);
-		transform->world = identity;
-		transform->worldView = identity;
-		transform->worldViewInvTrans[0] = identity0;
-		transform->worldViewInvTrans[1] = identity1;
-		transform->worldViewInvTrans[2] = identity2;
-		transform->worldViewProj = identity;
+		transform->world = identity44;
+		transform->worldView = identity44;
+		transform->worldViewInvTrans = identity33;
+		transform->worldViewProj = identity44;
 	}
 }
 
@@ -119,7 +116,7 @@ static void dsShadowInstanceTransformData_populateDataSIMD(void* userData, const
 		dsMatrix44f worldView;
 		dsMatrix44f_affineMulSIMD(&worldView, &view->viewMatrix, world);
 		transform->worldView = worldView;
-		dsMatrix44f_inverseTransposeSIMD(transform->worldViewInvTrans, &worldView);
+		dsMatrix44f_inverseTransposeSIMD(&transform->worldViewInvTrans, &worldView);
 		dsMatrix44f_mulSIMD(&transform->worldViewProj, projection, &worldView);
 	}
 
@@ -164,7 +161,7 @@ static void dsShadowInstanceTransformData_populateDataFMA(void* userData, const 
 		dsMatrix44f worldView;
 		dsMatrix44f_affineMulFMA(&worldView, &view->viewMatrix, world);
 		transform->worldView = worldView;
-		dsMatrix44f_inverseTransposeFMA(transform->worldViewInvTrans, &worldView);
+		dsMatrix44f_inverseTransposeFMA(&transform->worldViewInvTrans, &worldView);
 		dsMatrix44f_mulFMA(&transform->worldViewProj, projection, &worldView);
 	}
 
@@ -210,15 +207,7 @@ static void dsShadowInstanceTransformData_populateData(void* userData, const dsV
 		dsMatrix44f worldView;
 		dsMatrix44f_affineMul(&worldView, &view->viewMatrix, world);
 		transform->worldView = worldView;
-
-		dsMatrix33f worldViewInvTrans;
-		dsMatrix44f_inverseTranspose(&worldViewInvTrans, &worldView);
-		for (unsigned int i = 0; i < 3; ++i)
-		{
-			*(dsVector3f*)(transform->worldViewInvTrans + i) = worldViewInvTrans.columns[i];
-			transform->worldViewInvTrans[i].w = 0;
-		}
-
+		dsMatrix44f_inverseTranspose(&transform->worldViewInvTrans, &worldView);
 		dsMatrix44f_mul(&transform->worldViewProj, projection, &worldView);
 	}
 

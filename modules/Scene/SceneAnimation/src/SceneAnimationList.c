@@ -204,7 +204,7 @@ static uint64_t dsSceneAnimationList_addNode(dsSceneItemList* itemList, dsSceneN
 		TransformEntry* entry = animationList->transformEntries + index;
 		entry->treeNode = treeNode;
 		entry->instance = instance;
-		dsMatrix44_identity(entry->prevTransform);
+		dsMatrix44f_identity(&entry->prevTransform);
 		entry->nodeID = animationList->nextTransformNodeID++;
 		return entry->nodeID;
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ static void updateTransform(dsSceneTreeNode* node)
 		if (node->parent)
 			node->transform = node->parent->transform;
 		else
-			dsMatrix44_identity(node->transform);
+			dsMatrix44f_identity(&node->transform);
 	}
 }
 
@@ -463,7 +463,7 @@ void dsSceneTreeNode_getCurrentTransform(dsMatrix44f* outTransform, const dsScen
 	if (node->baseTransform)
 		*outTransform = *node->baseTransform;
 	else
-		dsMatrix44_identity(*outTransform);
+		dsMatrix44f_identity(outTransform);
 	while (node->parent && !node->noParentTransform)
 	{
 		node = node->parent;
@@ -483,7 +483,7 @@ void dsSceneTreeNode_getCurrentRelativeTransform(dsMatrix44f* outTransform,
 	if (node->baseTransform)
 		*outTransform = *node->baseTransform;
 	else
-		dsMatrix44_identity(*outTransform);
+		dsMatrix44f_identity(outTransform);
 	while (node->parent && node->parent != ancestorNode && !node->noParentTransform)
 	{
 		node = node->parent;

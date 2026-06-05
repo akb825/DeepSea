@@ -78,7 +78,7 @@ DS_RENDER_EXPORT bool dsShadowProjection_reset(dsShadowProjection* shadowProj);
  * @return False if the parameters are invalid.
  */
 DS_RENDER_EXPORT bool dsShadowProjection_addPoints(
-	dsShadowProjection* shadowProj, const dsVector3f* points, uint32_t pointCount);
+	dsShadowProjection* shadowProj, const dsVector4f* points, uint32_t pointCount);
 
 #if DS_HAS_SIMD
 
@@ -93,7 +93,7 @@ DS_RENDER_EXPORT bool dsShadowProjection_addPoints(
  * @param pointCount The number of points.
  * @return False if the parameters are invalid.
  */
-DS_RENDER_EXPORT void dsShadowProjection_addPointsSIMD(
+DS_RENDER_EXPORT bool dsShadowProjection_addPointsSIMD(
 	dsShadowProjection* shadowProj, const dsVector4f* points, uint32_t pointCount);
 
 #if !DS_DETERMINISTIC_MATH
@@ -109,7 +109,7 @@ DS_RENDER_EXPORT void dsShadowProjection_addPointsSIMD(
  * @param pointCount The number of points.
  * @return False if the parameters are invalid.
  */
-DS_RENDER_EXPORT void dsShadowProjection_addPointsFMA(
+DS_RENDER_EXPORT bool dsShadowProjection_addPointsFMA(
 	dsShadowProjection* shadowProj, const dsVector4f* points, uint32_t pointCount);
 
 #endif // !DS_DETERMINISTIC_MATH

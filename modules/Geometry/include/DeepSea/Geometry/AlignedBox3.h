@@ -171,7 +171,7 @@ extern "C"
 	} while (0)
 
 /**
- * @brief Converts the oriented box to a matrix representation.
+ * @brief Converts the aligned box to a matrix representation.
  *
  * The matrix will convert (-1, -1, -1) to the min point and (1, 1, 1) to the max point.
  *
@@ -200,7 +200,7 @@ extern "C"
 	} while (0)
 
 /**
- * @brief Converts the oriented box to a transposed matrix representation.
+ * @brief Converts the aligned box to a transposed matrix representation.
  *
  * This is useful to avoid transposing in specific situations where the transpose is used.
  *

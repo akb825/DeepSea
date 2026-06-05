@@ -64,7 +64,7 @@ void dsVector3xd_normalize(dsVector3xd* result, const dsVector3xd* a);
 bool dsVector3xf_epsilonEqual(const dsVector3xf* a, const dsVector3xf* b, float epsilon);
 bool dsVector3xd_epsilonEqual(const dsVector3xd* a, const dsVector3xd* b, double epsilon);
 
-bool dsVector3xxf_relativeEpsilonEqual(
-	const dsVector3f* a, const dsVector3f* b, float absoluteEps, float relativeEps);
-bool dsVector3xxd_relativeEpsilonEqual(
-	const dsVector3d* a, const dsVector3d* b, double absoluteEps, double relativeEps);
+bool dsVector3xf_relativeEpsilonEqual(
+	const dsVector3xf* a, const dsVector3xf* b, float absoluteEps, float relativeEps);
+bool dsVector3xd_relativeEpsilonEqual(
+	const dsVector3xd* a, const dsVector3xd* b, double absoluteEps, double relativeEps);

@@ -42,6 +42,82 @@ extern "C"
  * @see dsAlignedBox3xf dsAlignedBox3xd
  */
 
+#if DS_HAS_SIMD
+
+/**
+ * @brief Converts the aligned box to a matrix representation using SIMD operations.
+ *
+ * The matrix will convert (-1, -1, -1) to the min point and (1, 1, 1) to the max point.
+ *
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param[out] result The matrix.
+ * @param box The box to convert.
+ */
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3xf_toMatrixSIMD(
+	dsMatrix44f* result, const dsAlignedBox3xf* box);
+
+/**
+ * @brief Converts the aligned box to a transposed matrix representation using SIMD operations.
+ *
+ * The matrix will convert (-1, -1, -1) to the min point and (1, 1, 1) to the max point.
+ *
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param[out] result The matrix.
+ * @param box The box to convert.
+ */
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3xf_toMatrixTransposeSIMD(
+	dsMatrix44f* result, const dsAlignedBox3xf* box);
+
+/**
+ * @brief Converts the aligned box to a matrix representation using SIMD operations.
+ *
+ * The matrix will convert (-1, -1, -1) to the min point and (1, 1, 1) to the max point.
+ *
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param[out] result The matrix.
+ * @param box The box to convert.
+ */
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3xd_toMatrixSIMD2(
+	dsMatrix44d* result, const dsAlignedBox3xd* box);
+
+/**
+ * @brief Converts the aligned box to a transposed matrix representation using SIMD operations.
+ *
+ * The matrix will convert (-1, -1, -1) to the min point and (1, 1, 1) to the max point.
+ *
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param[out] result The matrix.
+ * @param box The box to convert.
+ */
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3xd_toMatrixTransposeSIMD2(
+	dsMatrix44d* result, const dsAlignedBox3xd* box);
+
+/**
+ * @brief Converts the aligned box to a matrix representation using SIMD operations.
+ *
+ * The matrix will convert (-1, -1, -1) to the min point and (1, 1, 1) to the max point.
+ *
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param[out] result The matrix.
+ * @param box The box to convert.
+ */
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3xd_toMatrixSIMD4(
+	dsMatrix44d* DS_ALIGN_PARAM(32) result, const dsAlignedBox3xd* DS_ALIGN_PARAM(32) box);
+
+/**
+ * @brief Converts the aligned box to a transposed matrix representation using SIMD operations.
+ *
+ * The matrix will convert (-1, -1, -1) to the min point and (1, 1, 1) to the max point.
+ *
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param[out] result The matrix.
+ * @param box The box to convert.
+ */
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3xd_toMatrixTransposeSIMD4(
+	dsMatrix44d* DS_ALIGN_PARAM(32) result, const dsAlignedBox3xd* DS_ALIGN_PARAM(32) box);
+
+#endif // DS_HAS_SIMD
+
 /** @see dsAlignedBox3_isValid() */
 DS_GEOMETRY_EXPORT inline bool dsAlignedBox3xf_isValid(const dsAlignedBox3xf* box)
 {
@@ -325,35 +401,8 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xf_toMatrix(
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
-#if DS_SIMD_ALWAYS_FLOAT4 && (DS_X86 || DS_ARM)
-	dsSIMD4f half = dsSIMD4f_set1(0.5f);
-	dsSIMD4f halfExtents = dsSIMD4f_mul(dsSIMD4f_sub(box->max.simd, box->min.simd), half);
-	dsSIMD4f center = dsSIMD4f_mul(dsSIMD4f_add(box->min.simd, box->max.simd), half);
-	dsSIMD4f zero = dsSIMD4f_set1(0.0f);
-#if DS_X86
-	dsSIMD4f one = dsSIMD4f_set1(1.0f);
-	dsSIMD4f halfExtents0 = _mm_shuffle_ps(halfExtents, zero, _MM_SHUFFLE(0, 0, 1, 0));
-	dsSIMD4f halfExtents1 = _mm_shuffle_ps(halfExtents, zero, _MM_SHUFFLE(0, 0, 0, 2));
-	dsSIMD4f center1 = _mm_shuffle_ps(center, one, _MM_SHUFFLE(0, 0, 0, 2));
-	result->columns[0].simd = _mm_shuffle_ps(halfExtents0, zero, _MM_SHUFFLE(0, 0, 3, 0));
-	result->columns[1].simd = _mm_shuffle_ps(halfExtents0, zero, _MM_SHUFFLE(0, 0, 1, 3));
-	result->columns[2].simd = _mm_shuffle_ps(zero, halfExtents1, _MM_SHUFFLE(3, 0, 0, 0));
-	result->columns[3].simd = _mm_shuffle_ps(center, center1, _MM_SHUFFLE(3, 0, 1, 0));
-#elif DS_ARM_64
-	result->columns[0].simd = vcopyq_laneq_f32(zero, 0, halfExtents, 0);
-	result->columns[1].simd = vcopyq_laneq_f32(zero, 1, halfExtents, 1);
-	result->columns[2].simd = vcopyq_laneq_f32(zero, 2, halfExtents, 2);
-	result->columns[3].simd = vsetq_lane_f32(1.0f, center, 3);
-#elif DS_ARM_32
-	dsVector4f scalarHalfExtents;
-	scalarHalfExtents.simd = halfExtents;
-	result->columns[0].simd = vsetq_lane_f32(scalarHalfExtents.x, zero, 0);
-	result->columns[1].simd = vsetq_lane_f32(scalarHalfExtents.y, zero, 1);
-	result->columns[2].simd = vsetq_lane_f32(scalarHalfExtents.z, zero, 2);
-	result->columns[3].simd = vsetq_lane_f32(1.0f, center, 3);
-#else
-#error Need to implement assigning of matrix columns for this platform.
-#endif
+#if DS_SIMD_ALWAYS_FLOAT4
+	dsAlignedBox3xf_toMatrixSIMD(result, box);
 #else
 	dsAlignedBox3_toMatrix(*result, *box);
 #endif
@@ -365,35 +414,8 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xd_toMatrix(
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
-#if DS_SIMD_ALWAYS_DOUBLE2 && (DS_X86 || DS_ARM)
-	dsSIMD2d half = dsSIMD2d_set1(0.5);
-	dsSIMD2d halfExtents0 = dsSIMD2d_mul(dsSIMD2d_sub(box->max.simd2[0], box->min.simd2[0]), half);
-	dsSIMD2d halfExtents1 = dsSIMD2d_mul(dsSIMD2d_sub(box->max.simd2[1], box->min.simd2[1]), half);
-	dsSIMD2d center0 = dsSIMD2d_mul(dsSIMD2d_add(box->min.simd2[0], box->max.simd2[0]), half);
-	dsSIMD2d center1 = dsSIMD2d_mul(dsSIMD2d_add(box->min.simd2[1], box->max.simd2[1]), half);
-	dsSIMD2d zero = dsSIMD2d_set1(0.0);
-	dsSIMD2d one = dsSIMD2d_set1(1.0);
-#if DS_X86
-	result->columns[0].simd2[0] = _mm_shuffle_pd(halfExtents0, zero, _MM_SHUFFLE2(0, 0));
-	result->columns[0].simd2[1] = zero;
-	result->columns[1].simd2[0] = _mm_shuffle_pd(zero, halfExtents0, _MM_SHUFFLE2(1, 0));
-	result->columns[1].simd2[1] = zero;
-	result->columns[2].simd2[0] = zero;
-	result->columns[2].simd2[1] = _mm_shuffle_pd(halfExtents1, zero, _MM_SHUFFLE2(0, 0));
-	result->columns[3].simd2[0] = center0;
-	result->columns[3].simd2[1] = _mm_shuffle_pd(center1, one, _MM_SHUFFLE2(0, 0));
-#elif DS_ARM_64
-	result->columns[0].simd2[0] = vtrn1q_f64(halfExtents0, zero);
-	result->columns[0].simd2[1] = zero;
-	result->columns[1].simd2[0] = vtrn2q_f64(zero, halfExtents0);
-	result->columns[1].simd2[1] = zero;
-	result->columns[2].simd2[0] = zero;
-	result->columns[2].simd2[1] = vtrn1q_f64(halfExtents1, zero);
-	result->columns[3].simd2[0] = center0;
-	result->columns[3].simd2[1] = vtrn1q_f64(center1, one);
-#else
-#error Need to implement assigning of matrix columns for this platform.
-#endif
+#if DS_SIMD_ALWAYS_DOUBLE2
+	dsAlignedBox3xd_toMatrixSIMD2(result, box);
 #else
 	dsAlignedBox3_toMatrix(*result, *box);
 #endif
@@ -405,45 +427,8 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xf_toMatrixTranspose(
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
-#if DS_SIMD_ALWAYS_FLOAT4 && (DS_X86 || DS_ARM)
-	dsSIMD4f half = dsSIMD4f_set1(0.5f);
-	dsSIMD4f halfExtents = dsSIMD4f_mul(dsSIMD4f_sub(box->max.simd, box->min.simd), half);
-	dsSIMD4f center = dsSIMD4f_mul(dsSIMD4f_add(box->min.simd, box->max.simd), half);
-	dsSIMD4f lastCol = dsSIMD4f_set4(0.0f, 0.0f, 0.0f, 1.0f);
-#if DS_X86
-	dsSIMD4f halfExtents0 = _mm_shuffle_ps(halfExtents, lastCol, _MM_SHUFFLE(0, 0, 1, 0));
-	dsSIMD4f halfExtents1 = _mm_shuffle_ps(halfExtents, lastCol, _MM_SHUFFLE(0, 0, 0, 2));
-	dsSIMD4f center0 = _mm_shuffle_ps(center, lastCol, _MM_SHUFFLE(0, 0, 1, 0));
-	dsSIMD4f center1 = _mm_shuffle_ps(center, lastCol, _MM_SHUFFLE(0, 0, 0, 2));
-	dsSIMD4f halfExtentsCenter1 = _mm_shuffle_ps(halfExtents1, center1, _MM_SHUFFLE(3, 0, 3, 0));
-	result->columns[0].simd = _mm_shuffle_ps(halfExtents0, center0, _MM_SHUFFLE(0, 3, 3, 0));
-	result->columns[1].simd = _mm_shuffle_ps(halfExtents0, center0, _MM_SHUFFLE(1, 3, 1, 3));
-	result->columns[2].simd = _mm_shuffle_ps(lastCol, halfExtentsCenter1, _MM_SHUFFLE(2, 0, 0, 0));
-	result->columns[3].simd = lastCol;
-#elif DS_ARM
-	float32x2_t zero = vdup_n_f32(0.0f);
-	float32x2_t halfExtents0 = vget_low_f32(halfExtents);
-	float32x2_t halfExtents1 = vget_high_f32(halfExtents);
-	float32x2_t center0 = vget_low_f32(center);
-	float32x2_t center1 = vget_high_f32(center);
-	float32x2x2_t center0Trans = vtrn_f32(zero, center0);
-#if DS_ARM_64
-	result->columns[0].simd = vcombine_f32(vtrn1_f32(halfExtents0, zero), center0Trans.val[0]);
-	result->columns[1].simd = vcombine_f32(vtrn2_f32(zero, halfExtents0), center0Trans.val[1]);
-	result->columns[2].simd = vcombine_f32(zero, vtrn1_f32(halfExtents1, center1));
-	result->columns[3].simd = lastCol;
-#else
-	float32x2x2_t halfExtents0Trans = vtrn_f32(halfExtents0, zero);
-	float32x2x2_t halfExtentsCenter1Trans = vtrn_f32(halfExtents1, center1);
-	result->columns[0].simd = vcombine_f32(halfExtents0Trans.val[0], center0Trans.val[0]);
-	result->columns[1].simd = vcombine_f32(
-		vrev64_f32(halfExtents0Trans.val[1]), center0Trans.val[1]);
-	result->columns[2].simd = vcombine_f32(zero, halfExtentsCenter1Trans.val[0]);
-	result->columns[3].simd = lastCol;
-#endif
-#else
-#error Need to implement assigning of matrix columns for this platform.
-#endif
+#if DS_SIMD_ALWAYS_FLOAT4
+	dsAlignedBox3xf_toMatrixTransposeSIMD(result, box);
 #else
 	dsAlignedBox3_toMatrixTranspose(*result, *box);
 #endif
@@ -455,35 +440,8 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xd_toMatrixTranspose(
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
-#if DS_SIMD_ALWAYS_DOUBLE2 && (DS_X86 || DS_ARM)
-	dsSIMD2d half = dsSIMD2d_set1(0.5);
-	dsSIMD2d halfExtents0 = dsSIMD2d_mul(dsSIMD2d_sub(box->max.simd2[0], box->min.simd2[0]), half);
-	dsSIMD2d halfExtents1 = dsSIMD2d_mul(dsSIMD2d_sub(box->max.simd2[1], box->min.simd2[1]), half);
-	dsSIMD2d center0 = dsSIMD2d_mul(dsSIMD2d_add(box->min.simd2[0], box->max.simd2[0]), half);
-	dsSIMD2d center1 = dsSIMD2d_mul(dsSIMD2d_add(box->min.simd2[1], box->max.simd2[1]), half);
-	dsSIMD2d zero = dsSIMD2d_set1(0.0);
-	dsSIMD2d lastCol1 = dsSIMD2d_set2(0.0, 1.0);
-#if DS_X86
-	result->columns[0].simd2[0] = _mm_shuffle_pd(halfExtents0, zero, _MM_SHUFFLE2(0, 0));
-	result->columns[0].simd2[1] = _mm_shuffle_pd(zero, center0, _MM_SHUFFLE2(0, 0));
-	result->columns[1].simd2[0] = _mm_shuffle_pd(zero, halfExtents0, _MM_SHUFFLE2(1, 0));
-	result->columns[1].simd2[1] = _mm_shuffle_pd(zero, center0, _MM_SHUFFLE2(1, 0));
-	result->columns[2].simd2[0] = zero;
-	result->columns[2].simd2[1] = _mm_shuffle_pd(halfExtents1, center1, _MM_SHUFFLE2(0, 0));
-	result->columns[3].simd2[0] = zero;
-	result->columns[3].simd2[1] = lastCol1;
-#elif DS_ARM_64
-	result->columns[0].simd2[0] = vtrn1q_f64(halfExtents0, zero);
-	result->columns[0].simd2[1] = vtrn1q_f64(zero, center0);
-	result->columns[1].simd2[0] = vtrn2q_f64(zero, halfExtents0);
-	result->columns[1].simd2[1] = vtrn2q_f64(zero, center0);
-	result->columns[2].simd2[0] = zero;
-	result->columns[2].simd2[1] = vtrn1q_f64(halfExtents1, center1);
-	result->columns[3].simd2[0] = zero;
-	result->columns[3].simd2[1] = lastCol1;
-#else
-#error Need to implement assigning of matrix columns for this platform.
-#endif
+#if DS_SIMD_ALWAYS_DOUBLE2
+	dsAlignedBox3xd_toMatrixTransposeSIMD2(result, box);
 #else
 	dsAlignedBox3_toMatrixTranspose(*result, *box);
 #endif
@@ -676,6 +634,263 @@ DS_GEOMETRY_EXPORT float dsAlignedBox3xf_dist(
 /** @copydoc dsAlignedBox3f_dist() */
 DS_GEOMETRY_EXPORT double dsAlignedBox3xd_dist(
 	const dsAlignedBox3xd* box, const dsVector3xd* point);
+
+#if DS_HAS_SIMD
+
+DS_SIMD_START(DS_SIMD_FLOAT4)
+
+inline void dsAlignedBox3xf_toMatrixSIMD(dsMatrix44f* result, const dsAlignedBox3xf* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+
+	dsSIMD4f half = dsSIMD4f_set1(0.5f);
+	dsSIMD4f halfExtents = dsSIMD4f_mul(dsSIMD4f_sub(box->max.simd, box->min.simd), half);
+	dsSIMD4f center = dsSIMD4f_mul(dsSIMD4f_add(box->min.simd, box->max.simd), half);
+	dsSIMD4f zero = dsSIMD4f_set1(0.0f);
+#if DS_X86
+	dsSIMD4f one = dsSIMD4f_set1(1.0f);
+	dsSIMD4f halfExtents0 = _mm_shuffle_ps(halfExtents, zero, _MM_SHUFFLE(0, 0, 1, 0));
+	dsSIMD4f halfExtents1 = _mm_shuffle_ps(halfExtents, zero, _MM_SHUFFLE(0, 0, 0, 2));
+	dsSIMD4f center1 = _mm_shuffle_ps(center, one, _MM_SHUFFLE(0, 0, 0, 2));
+	result->columns[0].simd = _mm_shuffle_ps(halfExtents0, zero, _MM_SHUFFLE(0, 0, 3, 0));
+	result->columns[1].simd = _mm_shuffle_ps(halfExtents0, zero, _MM_SHUFFLE(0, 0, 1, 3));
+	result->columns[2].simd = _mm_shuffle_ps(zero, halfExtents1, _MM_SHUFFLE(3, 0, 0, 0));
+	result->columns[3].simd = _mm_shuffle_ps(center, center1, _MM_SHUFFLE(3, 0, 1, 0));
+#elif DS_ARM_64
+	result->columns[0].simd = vcopyq_laneq_f32(zero, 0, halfExtents, 0);
+	result->columns[1].simd = vcopyq_laneq_f32(zero, 1, halfExtents, 1);
+	result->columns[2].simd = vcopyq_laneq_f32(zero, 2, halfExtents, 2);
+	result->columns[3].simd = vsetq_lane_f32(1.0f, center, 3);
+#elif DS_ARM_32
+	dsVector4f scalarHalfExtents;
+	scalarHalfExtents.simd = halfExtents;
+	result->columns[0].simd = vsetq_lane_f32(scalarHalfExtents.x, zero, 0);
+	result->columns[1].simd = vsetq_lane_f32(scalarHalfExtents.y, zero, 1);
+	result->columns[2].simd = vsetq_lane_f32(scalarHalfExtents.z, zero, 2);
+	result->columns[3].simd = vsetq_lane_f32(1.0f, center, 3);
+#else
+#error Need to implement assigning of matrix columns for this platform.
+#endif
+}
+
+inline void dsAlignedBox3xf_toMatrixTransposeSIMD(dsMatrix44f* result, const dsAlignedBox3xf* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+
+	dsSIMD4f half = dsSIMD4f_set1(0.5f);
+	dsSIMD4f halfExtents = dsSIMD4f_mul(dsSIMD4f_sub(box->max.simd, box->min.simd), half);
+	dsSIMD4f center = dsSIMD4f_mul(dsSIMD4f_add(box->min.simd, box->max.simd), half);
+	dsSIMD4f lastCol = dsSIMD4f_set4(0.0f, 0.0f, 0.0f, 1.0f);
+#if DS_X86
+	dsSIMD4f halfExtents0 = _mm_shuffle_ps(halfExtents, lastCol, _MM_SHUFFLE(0, 0, 1, 0));
+	dsSIMD4f halfExtents1 = _mm_shuffle_ps(halfExtents, lastCol, _MM_SHUFFLE(0, 0, 0, 2));
+	dsSIMD4f center0 = _mm_shuffle_ps(center, lastCol, _MM_SHUFFLE(0, 0, 1, 0));
+	dsSIMD4f center1 = _mm_shuffle_ps(center, lastCol, _MM_SHUFFLE(0, 0, 0, 2));
+	dsSIMD4f halfExtentsCenter1 = _mm_shuffle_ps(halfExtents1, center1, _MM_SHUFFLE(3, 0, 3, 0));
+	result->columns[0].simd = _mm_shuffle_ps(halfExtents0, center0, _MM_SHUFFLE(0, 3, 3, 0));
+	result->columns[1].simd = _mm_shuffle_ps(halfExtents0, center0, _MM_SHUFFLE(1, 3, 1, 3));
+	result->columns[2].simd = _mm_shuffle_ps(lastCol, halfExtentsCenter1, _MM_SHUFFLE(2, 0, 0, 0));
+	result->columns[3].simd = lastCol;
+#elif DS_ARM
+	float32x2_t zero = vdup_n_f32(0.0f);
+	float32x2_t halfExtents0 = vget_low_f32(halfExtents);
+	float32x2_t halfExtents1 = vget_high_f32(halfExtents);
+	float32x2_t center0 = vget_low_f32(center);
+	float32x2_t center1 = vget_high_f32(center);
+	float32x2x2_t center0Trans = vtrn_f32(zero, center0);
+#if DS_ARM_64
+	result->columns[0].simd = vcombine_f32(vtrn1_f32(halfExtents0, zero), center0Trans.val[0]);
+	result->columns[1].simd = vcombine_f32(vtrn2_f32(zero, halfExtents0), center0Trans.val[1]);
+	result->columns[2].simd = vcombine_f32(zero, vtrn1_f32(halfExtents1, center1));
+	result->columns[3].simd = lastCol;
+#else
+	float32x2x2_t halfExtents0Trans = vtrn_f32(halfExtents0, zero);
+	float32x2x2_t halfExtentsCenter1Trans = vtrn_f32(halfExtents1, center1);
+	result->columns[0].simd = vcombine_f32(halfExtents0Trans.val[0], center0Trans.val[0]);
+	result->columns[1].simd = vcombine_f32(
+		vrev64_f32(halfExtents0Trans.val[1]), center0Trans.val[1]);
+	result->columns[2].simd = vcombine_f32(zero, halfExtentsCenter1Trans.val[0]);
+	result->columns[3].simd = lastCol;
+#endif
+#else
+#error Need to implement assigning of matrix columns for this platform.
+#endif
+}
+
+DS_SIMD_END()
+DS_SIMD_START(DS_SIMD_DOUBLE2)
+
+inline void dsAlignedBox3xd_toMatrixSIMD2(dsMatrix44d* result, const dsAlignedBox3xd* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+
+	dsSIMD2d half = dsSIMD2d_set1(0.5);
+	dsSIMD2d halfExtents0 = dsSIMD2d_mul(dsSIMD2d_sub(box->max.simd2[0], box->min.simd2[0]), half);
+	dsSIMD2d halfExtents1 = dsSIMD2d_mul(dsSIMD2d_sub(box->max.simd2[1], box->min.simd2[1]), half);
+	dsSIMD2d center0 = dsSIMD2d_mul(dsSIMD2d_add(box->min.simd2[0], box->max.simd2[0]), half);
+	dsSIMD2d center1 = dsSIMD2d_mul(dsSIMD2d_add(box->min.simd2[1], box->max.simd2[1]), half);
+	dsSIMD2d zero = dsSIMD2d_set1(0.0);
+	dsSIMD2d one = dsSIMD2d_set1(1.0);
+#if DS_X86
+	result->columns[0].simd2[0] = _mm_shuffle_pd(halfExtents0, zero, _MM_SHUFFLE2(0, 0));
+	result->columns[0].simd2[1] = zero;
+	result->columns[1].simd2[0] = _mm_shuffle_pd(zero, halfExtents0, _MM_SHUFFLE2(1, 0));
+	result->columns[1].simd2[1] = zero;
+	result->columns[2].simd2[0] = zero;
+	result->columns[2].simd2[1] = _mm_shuffle_pd(halfExtents1, zero, _MM_SHUFFLE2(0, 0));
+	result->columns[3].simd2[0] = center0;
+	result->columns[3].simd2[1] = _mm_shuffle_pd(center1, one, _MM_SHUFFLE2(0, 0));
+#elif DS_ARM_64
+	result->columns[0].simd2[0] = vtrn1q_f64(halfExtents0, zero);
+	result->columns[0].simd2[1] = zero;
+	result->columns[1].simd2[0] = vtrn2q_f64(zero, halfExtents0);
+	result->columns[1].simd2[1] = zero;
+	result->columns[2].simd2[0] = zero;
+	result->columns[2].simd2[1] = vtrn1q_f64(halfExtents1, zero);
+	result->columns[3].simd2[0] = center0;
+	result->columns[3].simd2[1] = vtrn1q_f64(center1, one);
+#else
+	// Not all platforms have double2 support.
+	DS_UNUSED(result);
+	DS_UNUSED(half);
+	DS_UNUSED(halfExtents0);
+	DS_UNUSED(halfExtents1);
+	DS_UNUSED(center0);
+	DS_UNUSED(center1);
+	DS_UNUSED(zero);
+	DS_UNUSED(one);
+	DS_ASSERT(false);
+#endif
+}
+
+inline void dsAlignedBox3xd_toMatrixTransposeSIMD2(dsMatrix44d* result, const dsAlignedBox3xd* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+
+	dsSIMD2d half = dsSIMD2d_set1(0.5);
+	dsSIMD2d halfExtents0 = dsSIMD2d_mul(dsSIMD2d_sub(box->max.simd2[0], box->min.simd2[0]), half);
+	dsSIMD2d halfExtents1 = dsSIMD2d_mul(dsSIMD2d_sub(box->max.simd2[1], box->min.simd2[1]), half);
+	dsSIMD2d center0 = dsSIMD2d_mul(dsSIMD2d_add(box->min.simd2[0], box->max.simd2[0]), half);
+	dsSIMD2d center1 = dsSIMD2d_mul(dsSIMD2d_add(box->min.simd2[1], box->max.simd2[1]), half);
+	dsSIMD2d zero = dsSIMD2d_set1(0.0);
+	dsSIMD2d lastCol1 = dsSIMD2d_set2(0.0, 1.0);
+#if DS_X86
+	result->columns[0].simd2[0] = _mm_shuffle_pd(halfExtents0, zero, _MM_SHUFFLE2(0, 0));
+	result->columns[0].simd2[1] = _mm_shuffle_pd(zero, center0, _MM_SHUFFLE2(0, 0));
+	result->columns[1].simd2[0] = _mm_shuffle_pd(zero, halfExtents0, _MM_SHUFFLE2(1, 0));
+	result->columns[1].simd2[1] = _mm_shuffle_pd(zero, center0, _MM_SHUFFLE2(1, 0));
+	result->columns[2].simd2[0] = zero;
+	result->columns[2].simd2[1] = _mm_shuffle_pd(halfExtents1, center1, _MM_SHUFFLE2(0, 0));
+	result->columns[3].simd2[0] = zero;
+	result->columns[3].simd2[1] = lastCol1;
+#elif DS_ARM_64
+	result->columns[0].simd2[0] = vtrn1q_f64(halfExtents0, zero);
+	result->columns[0].simd2[1] = vtrn1q_f64(zero, center0);
+	result->columns[1].simd2[0] = vtrn2q_f64(zero, halfExtents0);
+	result->columns[1].simd2[1] = vtrn2q_f64(zero, center0);
+	result->columns[2].simd2[0] = zero;
+	result->columns[2].simd2[1] = vtrn1q_f64(halfExtents1, center1);
+	result->columns[3].simd2[0] = zero;
+	result->columns[3].simd2[1] = lastCol1;
+#else
+	// Not all platforms have double2 support.
+	DS_UNUSED(result);
+	DS_UNUSED(half);
+	DS_UNUSED(halfExtents0);
+	DS_UNUSED(halfExtents1);
+	DS_UNUSED(center0);
+	DS_UNUSED(center1);
+	DS_UNUSED(zero);
+	DS_UNUSED(lastCol1);
+	DS_ASSERT(false);
+#endif
+}
+
+DS_SIMD_END()
+DS_SIMD_START(DS_SIMD_DOUBLE4)
+
+inline void dsAlignedBox3xd_toMatrixSIMD4(
+	dsMatrix44d* DS_ALIGN_PARAM(32) result, const dsAlignedBox3xd* DS_ALIGN_PARAM(32) box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+
+	dsSIMD4d min = dsSIMD4d_load(&box->min);
+	dsSIMD4d max = dsSIMD4d_load(&box->max);
+	dsSIMD4d half = dsSIMD4d_set1(0.5);
+	dsSIMD4d halfExtents = dsSIMD4d_mul(dsSIMD4d_sub(max, min), half);
+	dsSIMD4d center = dsSIMD4d_mul(dsSIMD4d_add(min, max), half);
+	dsSIMD4d zero = dsSIMD4d_set1(0.0);
+#if DS_X86
+	dsSIMD4d one = dsSIMD4d_set1(1.0);
+	dsSIMD4d halfExtents0 = _mm256_permute2f128_pd(halfExtents, zero, _MM_SHUFFLE(0, 2, 0, 0));
+	dsSIMD4d halfExtents1 = _mm256_permute2f128_pd(zero, halfExtents, _MM_SHUFFLE(0, 3, 0, 0));
+	dsSIMD4d center0 = _mm256_permute2f128_pd(center, one, _MM_SHUFFLE(0, 2, 0, 0));
+	dsSIMD4d_store(result->columns, _mm256_shuffle_pd(halfExtents0, zero, 0));
+	dsSIMD4d_store(
+		result->columns + 1, _mm256_shuffle_pd(zero, halfExtents0, 0x2));
+	dsSIMD4d_store(
+		result->columns + 2, _mm256_shuffle_pd(halfExtents1, zero, 0));
+	dsSIMD4d_store(
+		result->columns + 3, _mm256_shuffle_pd(center, center0, 0x2));
+#else
+	// Not all platforms have double4 support.
+	DS_UNUSED(result);
+	DS_UNUSED(min);
+	DS_UNUSED(max);
+	DS_UNUSED(half);
+	DS_UNUSED(halfExtents);
+	DS_UNUSED(center);
+	DS_UNUSED(zero);
+	DS_ASSERT(false);
+#endif
+}
+
+inline void dsAlignedBox3xd_toMatrixTransposeSIMD4(
+	dsMatrix44d* DS_ALIGN_PARAM(32) result, const dsAlignedBox3xd* DS_ALIGN_PARAM(32) box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+
+	dsSIMD4d min = dsSIMD4d_load(&box->min);
+	dsSIMD4d max = dsSIMD4d_load(&box->max);
+	dsSIMD4d half = dsSIMD4d_set1(0.5);
+	dsSIMD4d halfExtents = dsSIMD4d_mul(dsSIMD4d_sub(max, min), half);
+	dsSIMD4d center = dsSIMD4d_mul(dsSIMD4d_add(min, max), half);
+	dsSIMD4d zero = dsSIMD4d_set1(0.0);
+#if DS_X86
+	dsSIMD4d halfExtents0 = _mm256_unpacklo_pd(halfExtents, zero);
+	dsSIMD4d halfExtents1 = _mm256_unpackhi_pd(zero, halfExtents);
+	dsSIMD4d center0 = _mm256_unpacklo_pd(zero, center);
+	dsSIMD4d center1 = _mm256_unpackhi_pd(zero, center);
+	dsSIMD4d halfExtentsCenter2 = _mm256_unpacklo_pd(halfExtents, center);
+	dsSIMD4d_store(result->columns,
+		_mm256_permute2f128_pd(halfExtents0, center0, _MM_SHUFFLE(0, 2, 0, 0)));
+	dsSIMD4d_store(result->columns + 1,
+		_mm256_permute2f128_pd(halfExtents1, center1, _MM_SHUFFLE(0, 2, 0, 0)));
+	dsSIMD4d_store(result->columns + 2,
+		_mm256_permute2f128_pd(zero, halfExtentsCenter2, _MM_SHUFFLE(0, 3, 0, 0)));
+	dsSIMD4d_store(result->columns + 3, dsSIMD4d_set4(0.0, 0.0, 0.0, 1.0));
+#else
+	// Not all platforms have double4 support.
+	DS_UNUSED(result);
+	DS_UNUSED(min);
+	DS_UNUSED(max);
+	DS_UNUSED(half);
+	DS_UNUSED(halfExtents);
+	DS_UNUSED(center);
+	DS_UNUSED(zero);
+	DS_ASSERT(false);
+#endif
+}
+
+DS_SIMD_END()
+
+#endif // DS_HAS_SIMD
 
 #ifdef __cplusplus
 }

@@ -190,3 +190,15 @@ void dsAlignedBox3xd_closestPoint(
 
 void dsAlignedBox3xf_makeInvalid(dsAlignedBox3xf* result);
 void dsAlignedBox3xd_makeInvalid(dsAlignedBox3xd* result);
+
+#if DS_HAS_SIMD
+void dsAlignedBox3xf_toMatrixSIMD(dsMatrix44f* result, const dsAlignedBox3xf* box);
+void dsAlignedBox3xd_toMatrixSIMD2(dsMatrix44d* result, const dsAlignedBox3xd* box);
+void dsAlignedBox3xd_toMatrixSIMD4(
+	dsMatrix44d* DS_ALIGN_PARAM(32) result, const dsAlignedBox3xd* DS_ALIGN_PARAM(32) box);
+
+void dsAlignedBox3xf_toMatrixTransposeSIMD(dsMatrix44f* result, const dsAlignedBox3xf* box);
+void dsAlignedBox3xd_toMatrixTransposeSIMD2(dsMatrix44d* result, const dsAlignedBox3xd* box);
+void dsAlignedBox3xd_toMatrixTransposeSIMD4(
+	dsMatrix44d* DS_ALIGN_PARAM(32) result, const dsAlignedBox3xd* DS_ALIGN_PARAM(32) box);
+#endif // DS_HAS_SIMD

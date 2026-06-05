@@ -150,34 +150,40 @@ typedef enum dsBox3Corner
 
 /**
  * @brief Structure for a 3D ray using floats.
+ *
+ * It is expected that implementations will typically use SIMD operations where available, so the
+ * origin and direction are both aligned for SIMD.
  */
 typedef struct dsRay3f
 {
 	/**
 	 * @brief The origin of the ray.
 	 */
-	dsVector3f origin;
+	dsVector3xf origin;
 
 	/**
 	 * @brief The direction of the ray.
 	 */
-	dsVector3f direction;
+	dsVector3xf direction;
 } dsRay3f;
 
 /**
  * @brief Structure for a 3D ray using doubles.
+ *
+ * It is expected that implementations will typically use SIMD operations where available, so the
+ * origin and direction are both aligned for SIMD.
  */
 typedef struct dsRay3d
 {
 	/**
 	 * @brief The origin of the ray.
 	 */
-	dsVector3d origin;
+	dsVector3xd origin;
 
 	/**
 	 * @brief The direction of the ray.
 	 */
-	dsVector3d direction;
+	dsVector3xd direction;
 } dsRay3d;
 
 /**
@@ -499,6 +505,11 @@ typedef union dsPlane3f
 		 */
 		float d;
 	};
+
+	/**
+	 * @brief The plane represented in a 4-element vector.
+	 */
+	dsVector4f xyzd;
 } dsPlane3f;
 
 /**
@@ -538,6 +549,11 @@ typedef union dsPlane3d
 		 */
 		double d;
 	};
+
+	/**
+	 * @brief The plane represented in a 4-element vector.
+	 */
+	dsVector4d xyzd;
 } dsPlane3d;
 
 /**

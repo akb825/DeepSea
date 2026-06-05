@@ -263,16 +263,9 @@ DS_SCENELIGHTING_EXPORT uint32_t dsSceneLightShadows_getSurfaceCount(
 DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectAlignedBox(
 	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3f* box);
 
-/**
- * @brief Intersects a box in matrix form in world space with a shadow surface.
- * @param shadows The scene light shadows.
- * @param surface The shadow surface index.
- * @param boxMatrix The box in matrix form to intersect with in world space.
- * @return The intersection result. Inside and outside is with respect to the volume. If the box
- *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
- */
-DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectBoxMatrix(
-	dsSceneLightShadows* shadows, uint32_t surface, const dsMatrix44f* boxMatrix);
+/** @copydoc dsSceneLightShadows_intersectAlignedBox() */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectAlignedBox3x(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3xf* box);
 
 /**
  * @brief Intersects an oriented box in world space with a shadow surface.
@@ -284,6 +277,21 @@ DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectBoxMatrix
  */
 DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectOrientedBox(
 	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3f* box);
+
+/** @copydoc dsSceneLightShadows_intersectOrientedBox() */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectOrientedBox3x(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3xf* box);
+
+/**
+ * @brief Intersects a box in matrix form in world space with a shadow surface.
+ * @param shadows The scene light shadows.
+ * @param surface The shadow surface index.
+ * @param boxMatrix The box in matrix form to intersect with in world space.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectBoxMatrix(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsMatrix44f* boxMatrix);
 
 /**
  * @brief Intersects a sphere in world space with a shadow surface.
@@ -308,6 +316,10 @@ DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectSphere(
 DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewAlignedBox(
 	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3f* box);
 
+/** @copydoc dsSceneLightShadows_intersectViewAlignedBox() */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewAlignedBox3x(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3xf* box);
+
 /**
  * @brief Intersects an oriented box in view space with a shadow surface.
  * @param shadows The scene light shadows.
@@ -318,6 +330,10 @@ DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewAlign
  */
 DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewOrientedBox(
 	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3f* box);
+
+/** @copydoc dsSceneLightShadows_intersectViewOrientedBox() */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewOrientedBox3x(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3xf* box);
 
 /**
  * @brief Intersects a box in matrix form in view space with a shadow surface.
@@ -354,7 +370,7 @@ DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewSpher
  *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
 DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectAlignedBoxSIMD(
-	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3f* box);
+	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3xf* box);
 
 /**
  * @brief Intersects a box in matrix form in world space with a shadow surface using SIMD
@@ -379,7 +395,7 @@ DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectBoxMatrix
  *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
 DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectOrientedBoxSIMD(
-	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3f* box);
+	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3xf* box);
 
 /**
  * @brief Intersects an aligned box in view space with a shadow surface using SIMD operations.
@@ -391,7 +407,7 @@ DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectOrientedB
  *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
 DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewAlignedBoxSIMD(
-	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3f* box);
+	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3xf* box);
 
 /**
  * @brief Intersects an oriented box in view space with a shadow surface using SIMD operations.
@@ -403,7 +419,7 @@ DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewAlign
  *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
 DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewOrientedBoxSIMD(
-	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3f* box);
+	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3xf* box);
 
 /**
  * @brief Intersects a box in matrix form in view space with a shadow surface using SIMD operations.
@@ -430,7 +446,7 @@ DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewBoxMa
  *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
 DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectAlignedBoxFMA(
-	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3f* box);
+	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3xf* box);
 
 /**
  * @brief Intersects a box in matrix form in world space with a shadow surface using fused
@@ -456,7 +472,7 @@ DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectBoxMatrix
  *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
 DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectOrientedBoxFMA(
-	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3f* box);
+	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3xf* box);
 
 /**
  * @brief Intersects an aligned box in view space with a shadow surface using fused multiply-add
@@ -469,7 +485,7 @@ DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectOrientedB
  *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
 DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewAlignedBoxFMA(
-	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3f* box);
+	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3xf* box);
 
 /**
  * @brief Intersects an oriented box in view space with a shadow surface using fused multiply-add
@@ -482,7 +498,7 @@ DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewAlign
  *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
 DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewOrientedBoxFMA(
-	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3f* box);
+	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3xf* box);
 
 /**
  * @brief Intersects a box in matrix form in view space with a shadow surface using fused

@@ -19,11 +19,11 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 
-#include <DeepSea/Geometry/AlignedBox3.h>
+#include <DeepSea/Geometry/AlignedBox3x.h>
 
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Sqrt.h>
-#include <DeepSea/Math/Vector3.h>
+#include <DeepSea/Math/Vector3x.h>
 #include <DeepSea/Math/Vector4.h>
 
 #define DS_PARALLEL_THRESHOLD 0.001f
@@ -163,12 +163,12 @@ bool dsShadowProjection_initialize(dsShadowProjection* shadowProj, const dsRende
 		return false;
 	}
 
-	dsAlignedBox3f_makeInvalid(&shadowProj->pointBounds);
+	dsAlignedBox3xf_makeInvalid(&shadowProj->pointBounds);
 
-	dsVector3f viewDir;
-	dsVector3f viewDown;
-	dsVector3f viewPos;
-	dsVector3f lightDir;
+	dsVector3xf viewDir;
+	dsVector3xf viewDown;
+	dsVector3xf viewPos;
+	dsVector3xf lightDir;
 	if (lightTransform)
 	{
 		// When a light projection is provided, perform the computations in light space.
@@ -178,21 +178,21 @@ bool dsShadowProjection_initialize(dsShadowProjection* shadowProj, const dsRende
 		dsVector4f lightVec;
 		DS_ASSERT(camera->columns[2].w == 0);
 		dsMatrix44f_transform(&lightVec, lightTransform, camera->columns + 2);
-		dsVector3f_normalize(&viewDir, (const dsVector3f*)&lightVec);
+		dsVector3xf_normalize(&viewDir, &lightVec);
 
 		DS_ASSERT(camera->columns[1].w == 0);
 		dsMatrix44f_transform(&lightVec, lightTransform, camera->columns + 1);
-		dsVector3f_normalize(&viewDown, (const dsVector3f*)&lightVec);
-		dsVector3_neg(viewDown, viewDown);
+		dsVector3xf_normalize(&viewDown, &lightVec);
+		dsVector3xf_neg(&viewDown, &viewDown);
 
 		DS_ASSERT(camera->columns[3].w == 1);
 		dsMatrix44f_transform(&lightVec, lightTransform, camera->columns + 3);
 		DS_ASSERT(lightVec.w == 1);
-		viewPos = *(dsVector3f*)&lightVec;
+		viewPos = lightVec;
 
 		dsVector4f temp = {{toLight->x, toLight->y, toLight->z, 0.0f}};
 		dsMatrix44f_transform(&lightVec, lightTransform, &temp);
-		dsVector3f_normalize(&lightDir, (const dsVector3f*)&lightVec);
+		dsVector3xf_normalize(&lightDir, &lightVec);
 
 		// NOTE: Projection inverts Z, unless of course the Z is inverted for the projection.
 		if (!(renderer->projectionOptions & dsProjectionMatrixOptions_InvertZ))
@@ -201,10 +201,12 @@ bool dsShadowProjection_initialize(dsShadowProjection* shadowProj, const dsRende
 	else
 	{
 		shadowProj->hasLightProjection = false;
-		viewDir = *(const dsVector3f*)(camera->columns + 2);
-		dsVector3_neg(viewDown, camera->columns[1]);
-		viewPos = *(const dsVector3f*)(camera->columns + 3);
-		lightDir = *toLight;
+		viewDir = camera->columns[2];
+		dsVector3xf_neg(&viewDown, camera->columns + 1);
+		viewPos = camera->columns[3];
+		lightDir.x = toLight->x;
+		lightDir.y = toLight->y;
+		lightDir.z = toLight->z;
 	}
 
 	// Define the shadow space based on the view position and direction and light.
@@ -214,31 +216,29 @@ bool dsShadowProjection_initialize(dsShadowProjection* shadowProj, const dsRende
 	shadowProj->shadowSpace.columns[1].z = lightDir.z;
 	shadowProj->shadowSpace.columns[1].w = 0;
 
-	dsVector3f viewCrossLight;
-	dsVector3_cross(viewCrossLight, viewDir, lightDir);
-	shadowProj->sinViewLight = dsVector3f_len(&viewCrossLight);
+	dsVector3xf viewCrossLight;
+	dsVector3xf_cross(&viewCrossLight, &viewDir, &lightDir);
+	shadowProj->sinViewLight = dsVector3xf_len(&viewCrossLight);
 	if (shadowProj->sinViewLight <= DS_PARALLEL_THRESHOLD)
 	{
 		// If the view is looking directlyat the light, use the down direction and fall back to
 		// uniform shadows.
-		dsVector3_cross(shadowProj->shadowSpace.columns[0], shadowProj->shadowSpace.columns[1],
-			viewDown);
+		dsVector3xf_cross(
+			shadowProj->shadowSpace.columns, shadowProj->shadowSpace.columns + 1, &viewDown);
 		shadowProj->uniform = true;
 	}
 	else
 	{
-		dsVector3_cross(shadowProj->shadowSpace.columns[0], shadowProj->shadowSpace.columns[1],
-			viewDir);
+		dsVector3xf_cross(
+			shadowProj->shadowSpace.columns, shadowProj->shadowSpace.columns + 1, &viewDir);
 		shadowProj->uniform = uniform;
 	}
-	dsVector3f_normalize((dsVector3f*)shadowProj->shadowSpace.columns,
-		(const dsVector3f*)shadowProj->shadowSpace.columns);
+	dsVector3xf_normalize(shadowProj->shadowSpace.columns, shadowProj->shadowSpace.columns);
 	shadowProj->shadowSpace.columns[0].w = 0;
 
-	dsVector3_cross(shadowProj->shadowSpace.columns[2], shadowProj->shadowSpace.columns[0],
-		shadowProj->shadowSpace.columns[1]);
-	dsVector3f_normalize((dsVector3f*)(shadowProj->shadowSpace.columns + 2),
-		(const dsVector3f*)(shadowProj->shadowSpace.columns + 2));
+	dsVector3xf_cross(shadowProj->shadowSpace.columns + 2, shadowProj->shadowSpace.columns,
+		shadowProj->shadowSpace.columns + 1);
+	dsVector3xf_normalize(shadowProj->shadowSpace.columns + 2, shadowProj->shadowSpace.columns + 2);
 	shadowProj->shadowSpace.columns[2].w = 0;
 
 	shadowProj->shadowSpace.columns[3].x = viewPos.x;
@@ -272,12 +272,46 @@ bool dsShadowProjection_reset(dsShadowProjection* shadowProj)
 		return false;
 	}
 
-	dsAlignedBox3f_makeInvalid(&shadowProj->pointBounds);
+	dsAlignedBox3xf_makeInvalid(&shadowProj->pointBounds);
 	return true;
 }
 
 bool dsShadowProjection_addPoints(
-	dsShadowProjection* shadowProj, const dsVector3f* points, uint32_t pointCount)
+	dsShadowProjection* shadowProj, const dsVector4f* points, uint32_t pointCount)
+{
+#if DS_SIMD_ALWAYS_FMA
+	return dsShadowProjection_addPointsFMA(shadowProj, points, pointCount);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	return dsShadowProjection_addPointsSIMD(shadowProj, points, pointCount);
+#else
+	if (!shadowProj || (!points && pointCount > 0))
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	for (uint32_t i = 0; i < pointCount; ++i)
+	{
+		dsVector4f proj;
+		dsMatrix44f_transform(&proj, &shadowProj->worldToShadowSpace, points + i);
+		if (dsEpsilonEqualsZerof(proj.w, 1e-3f))
+			continue;
+
+		float invW = 1/proj.w;
+		dsVector3xf worldPoint;
+		dsVector3xf_scale(&worldPoint, &proj, invW);
+		dsAlignedBox3xf_addPoint(&shadowProj->pointBounds, &worldPoint);
+	}
+
+	return true;
+#endif
+}
+
+#if DS_HAS_SIMD
+
+DS_SIMD_START(DS_SIMD_FLOAT4)
+bool dsShadowProjection_addPointsSIMD(
+	dsShadowProjection* shadowProj, const dsVector4f* points, uint32_t pointCount)
 {
 	if (!shadowProj || (!points && pointCount > 0))
 	{
@@ -287,37 +321,6 @@ bool dsShadowProjection_addPoints(
 
 	for (uint32_t i = 0; i < pointCount; ++i)
 	{
-		dsVector4f point = {{points[i].x, points[i].y, points[i].z, 1.0f}};
-		dsVector4f proj;
-		dsMatrix44f_transform(&proj, &shadowProj->worldToShadowSpace, &point);
-		if (dsEpsilonEqualsZerof(proj.w, 1e-3f))
-			continue;
-
-		float invW = 1/proj.w;
-		dsVector3f worldPoint;
-		dsVector3_scale(worldPoint, proj, invW);
-		dsAlignedBox3_addPoint(shadowProj->pointBounds, worldPoint);
-	}
-
-	return true;
-}
-
-#if DS_HAS_SIMD
-
-DS_SIMD_START(DS_SIMD_FLOAT4)
-void dsShadowProjection_addPointsSIMD(
-	dsShadowProjection* shadowProj, const dsVector4f* points, uint32_t pointCount)
-{
-	DS_ASSERT(shadowProj);
-	DS_ASSERT(points);
-	DS_ASSERT(pointCount > 0);
-
-	dsVector4f boxMin = {{shadowProj->pointBounds.min.x, shadowProj->pointBounds.min.y,
-		shadowProj->pointBounds.min.z, 0}};
-	dsVector4f boxMax = {{shadowProj->pointBounds.max.x, shadowProj->pointBounds.max.y,
-		shadowProj->pointBounds.max.z, 0}};
-	for (uint32_t i = 0; i < pointCount; ++i)
-	{
 		dsVector4f worldPoint;
 		dsMatrix44f_transformSIMD(&worldPoint, &shadowProj->worldToShadowSpace, points + i);
 		if (dsEpsilonEqualsZerof(worldPoint.w, 1e-3f))
@@ -325,28 +328,28 @@ void dsShadowProjection_addPointsSIMD(
 
 		float invW = 1/worldPoint.w;
 		dsVector4f_scale(&worldPoint, &worldPoint, invW);
-		boxMin.simd = dsSIMD4f_min(boxMin.simd, worldPoint.simd);
-		boxMax.simd = dsSIMD4f_max(boxMax.simd, worldPoint.simd);
+		shadowProj->pointBounds.min.simd = dsSIMD4f_min(
+			shadowProj->pointBounds.min.simd, worldPoint.simd);
+		shadowProj->pointBounds.max.simd = dsSIMD4f_max(
+			shadowProj->pointBounds.max.simd, worldPoint.simd);
 	}
-	shadowProj->pointBounds.min = *(dsVector3f*)&boxMin;
-	shadowProj->pointBounds.max = *(dsVector3f*)&boxMax;
+
+	return true;
 }
 DS_SIMD_END()
 
 #if !DS_DETERMINISTIC_MATH
 
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
-void dsShadowProjection_addPointsFMA(
+bool dsShadowProjection_addPointsFMA(
 	dsShadowProjection* shadowProj, const dsVector4f* points, uint32_t pointCount)
 {
-	DS_ASSERT(shadowProj);
-	DS_ASSERT(points);
-	DS_ASSERT(pointCount > 0);
+	if (!shadowProj || (!points && pointCount > 0))
+	{
+		errno = EINVAL;
+		return false;
+	}
 
-	dsVector4f boxMin = {{shadowProj->pointBounds.min.x, shadowProj->pointBounds.min.y,
-		shadowProj->pointBounds.min.z, 0}};
-	dsVector4f boxMax = {{shadowProj->pointBounds.max.x, shadowProj->pointBounds.max.y,
-		shadowProj->pointBounds.max.z, 0}};
 	for (uint32_t i = 0; i < pointCount; ++i)
 	{
 		dsVector4f worldPoint;
@@ -356,11 +359,13 @@ void dsShadowProjection_addPointsFMA(
 
 		float invW = 1/worldPoint.w;
 		dsVector4f_scale(&worldPoint, &worldPoint, invW);
-		boxMin.simd = dsSIMD4f_min(boxMin.simd, worldPoint.simd);
-		boxMax.simd = dsSIMD4f_max(boxMax.simd, worldPoint.simd);
+		shadowProj->pointBounds.min.simd = dsSIMD4f_min(
+			shadowProj->pointBounds.min.simd, worldPoint.simd);
+		shadowProj->pointBounds.max.simd = dsSIMD4f_max(
+			shadowProj->pointBounds.max.simd, worldPoint.simd);
 	}
-	shadowProj->pointBounds.min = *(dsVector3f*)&boxMin;
-	shadowProj->pointBounds.max = *(dsVector3f*)&boxMax;
+
+	return true;
 }
 DS_SIMD_END()
 
@@ -373,19 +378,19 @@ bool dsShadowProjection_computeMatrix(dsMatrix44f* outMatrix, const dsShadowProj
 	if (!outMatrix || !shadowProj || !dsAlignedBox3_isValid(shadowProj->pointBounds))
 		return false;
 
-	dsAlignedBox3f bounds = shadowProj->pointBounds;
-	dsVector3f size;
-	dsAlignedBox3_extents(size, bounds);
-	float scale = paddingRatio/2;
-	dsVector3f offset;
-	dsVector3_scale(offset, size, scale);
+	dsAlignedBox3xf bounds = shadowProj->pointBounds;
+	dsVector3xf size;
+	dsAlignedBox3xf_extents(&size, &bounds);
+	float scale = paddingRatio*0.5f;
+	dsVector3xf offset;
+	dsVector3xf_scale(&offset, &size, scale);
 
 	// Depth is along the Y axis.
-	float minDepthOffset = (minDepthRange - size.y)/2;
+	float minDepthOffset = (minDepthRange - size.y)*0.5f;
 	offset.y = dsMax(offset.y, minDepthOffset);
 
-	dsVector3_sub(bounds.min, bounds.min, offset);
-	dsVector3_add(bounds.max, bounds.max, offset);
+	dsVector3xf_sub(&bounds.min, &bounds.min, &offset);
+	dsVector3xf_add(&bounds.max, &bounds.max, &offset);
 
 	// Frustum looks along negative Z axis, so need to invert Z values.
 	float near = -bounds.max.z;
@@ -421,8 +426,8 @@ bool dsShadowProjection_computeMatrix(dsMatrix44f* outMatrix, const dsShadowProj
 		float top = yExtent;
 		float bottom = -top;
 		dsMatrix44f frustum;
-		makeShadowFrustum(&frustum, left, right, bottom, top, n, n + farDist,
-			shadowProj->projectionOptions);
+		makeShadowFrustum(
+			&frustum, left, right, bottom, top, n, n + farDist, shadowProj->projectionOptions);
 		dsMatrix44f_mul(&projection, &frustum, &translate);
 	}
 

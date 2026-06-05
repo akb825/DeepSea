@@ -336,7 +336,7 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	rootTreeNode->itemLists = NULL;
 	rootTreeNode->childCount = 0;
 	rootTreeNode->maxChildren = 0;
-	dsMatrix44_identity(rootTreeNode->transform);
+	dsMatrix44f_identity(&rootTreeNode->transform);
 	rootTreeNode->dirty = false;
 	scene->rootTreeNode.scene = scene;
 	scene->rootTreeNodePtr = (dsSceneTreeNode*)&scene->rootTreeNode;

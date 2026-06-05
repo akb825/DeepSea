@@ -36,7 +36,9 @@ struct Plane3TypeSelector<float>
 	typedef dsPlane3f Plane3Type;
 	typedef dsRay3f Ray3Type;
 	typedef dsAlignedBox3f AlignedBox3Type;
+	typedef dsAlignedBox3xf AlignedBox3xType;
 	typedef dsOrientedBox3f OrientedBox3Type;
+	typedef dsOrientedBox3xf OrientedBox3xType;
 	typedef dsMatrix44f Matrix44Type;
 	static const float epsilon;
 };
@@ -49,7 +51,9 @@ struct Plane3TypeSelector<double>
 	typedef dsPlane3d Plane3Type;
 	typedef dsRay3d Ray3Type;
 	typedef dsAlignedBox3d AlignedBox3Type;
+	typedef dsAlignedBox3xd AlignedBox3xType;
 	typedef dsOrientedBox3d OrientedBox3Type;
+	typedef dsOrientedBox3xd OrientedBox3xType;
 	typedef dsMatrix44d Matrix44Type;
 	static const double epsilon;
 };
@@ -75,38 +79,38 @@ inline void dsPlane3_normalize(dsPlane3d* result, const dsPlane3d* plane)
 	dsPlane3d_normalize(result, plane);
 }
 
-inline void dsPlane3_transform(dsPlane3f* result, const dsMatrix44f* transform,
-	const dsPlane3f* plane)
+inline void dsPlane3_transform(
+	dsPlane3f* result, const dsMatrix44f* transform, const dsPlane3f* plane)
 {
 	dsPlane3f_transform(result, transform, plane);
 }
 
-inline void dsPlane3_transform(dsPlane3d* result, const dsMatrix44d* transform,
-	const dsPlane3d* plane)
+inline void dsPlane3_transform(
+	dsPlane3d* result, const dsMatrix44d* transform, const dsPlane3d* plane)
 {
 	dsPlane3d_transform(result, transform, plane);
 }
 
-inline void dsPlane3_transformInverseTranspose(dsPlane3f* result, const dsMatrix44f* transform,
-	const dsPlane3f* plane)
+inline void dsPlane3_transformInverseTranspose(
+	dsPlane3f* result, const dsMatrix44f* transform, const dsPlane3f* plane)
 {
 	dsPlane3f_transformInverseTranspose(result, transform, plane);
 }
 
-inline void dsPlane3_transformInverseTranspose(dsPlane3d* result, const dsMatrix44d* transform,
-	const dsPlane3d* plane)
+inline void dsPlane3_transformInverseTranspose(
+	dsPlane3d* result, const dsMatrix44d* transform, const dsPlane3d* plane)
 {
 	dsPlane3d_transformInverseTranspose(result, transform, plane);
 }
 
-inline bool dsPlane3_intersectingLine(dsRay3f* result, const dsPlane3f* firstPlane,
-	const dsPlane3f* secondPlane)
+inline bool dsPlane3_intersectingLine(
+	dsRay3f* result, const dsPlane3f* firstPlane, const dsPlane3f* secondPlane)
 {
 	return dsPlane3f_intersectingLine(result, firstPlane, secondPlane);
 }
 
-inline bool dsPlane3_intersectingLine(dsRay3d* result, const dsPlane3d* firstPlane,
-	const dsPlane3d* secondPlane)
+inline bool dsPlane3_intersectingLine(
+	dsRay3d* result, const dsPlane3d* firstPlane, const dsPlane3d* secondPlane)
 {
 	return dsPlane3d_intersectingLine(result, firstPlane, secondPlane);
 }
@@ -133,50 +137,74 @@ inline double dsPlane3_rayIntersection(const dsPlane3d* plane, const dsRay3d* ra
 	return dsPlane3d_rayIntersection(plane, ray);
 }
 
-inline dsIntersectResult dsPlane3_intersectAlignedBox(const dsPlane3f* plane,
-	const dsAlignedBox3f* box)
+inline dsIntersectResult dsPlane3_intersectAlignedBox(
+	const dsPlane3f* plane, const dsAlignedBox3f* box)
 {
 	return dsPlane3f_intersectAlignedBox(plane, box);
 }
 
-inline dsIntersectResult dsPlane3_intersectAlignedBox(const dsPlane3d* plane,
-	const dsAlignedBox3d* box)
+inline dsIntersectResult dsPlane3_intersectAlignedBox(
+	const dsPlane3d* plane, const dsAlignedBox3d* box)
 {
 	return dsPlane3d_intersectAlignedBox(plane, box);
 }
 
-inline dsIntersectResult dsPlane3_intersectOrientedBox(const dsPlane3f* plane,
-	const dsOrientedBox3f* box)
+inline dsIntersectResult dsPlane3_intersectAlignedBox3x(
+	const dsPlane3f* plane, const dsAlignedBox3xf* box)
+{
+	return dsPlane3f_intersectAlignedBox3x(plane, box);
+}
+
+inline dsIntersectResult dsPlane3_intersectAlignedBox3x(
+	const dsPlane3d* plane, const dsAlignedBox3xd* box)
+{
+	return dsPlane3d_intersectAlignedBox3x(plane, box);
+}
+
+inline dsIntersectResult dsPlane3_intersectOrientedBox(
+	const dsPlane3f* plane, const dsOrientedBox3f* box)
 {
 	return dsPlane3f_intersectOrientedBox(plane, box);
 }
 
-inline dsIntersectResult dsPlane3_intersectOrientedBox(const dsPlane3d* plane,
-	const dsOrientedBox3d* box)
+inline dsIntersectResult dsPlane3_intersectOrientedBox(
+	const dsPlane3d* plane, const dsOrientedBox3d* box)
 {
 	return dsPlane3d_intersectOrientedBox(plane, box);
 }
 
-inline dsIntersectResult dsPlane3_intersectBoxMatrix(const dsPlane3f* plane,
-	const dsMatrix44f* boxMatrix)
+inline dsIntersectResult dsPlane3_intersectOrientedBox3x(
+	const dsPlane3f* plane, const dsOrientedBox3xf* box)
+{
+	return dsPlane3f_intersectOrientedBox3x(plane, box);
+}
+
+inline dsIntersectResult dsPlane3_intersectOrientedBox3x(
+	const dsPlane3d* plane, const dsOrientedBox3xd* box)
+{
+	return dsPlane3d_intersectOrientedBox3x(plane, box);
+}
+
+inline dsIntersectResult dsPlane3_intersectBoxMatrix(
+	const dsPlane3f* plane, const dsMatrix44f* boxMatrix)
 {
 	return dsPlane3f_intersectBoxMatrix(plane, boxMatrix);
 }
 
-inline dsIntersectResult dsPlane3_intersectBoxMatrix(const dsPlane3d* plane,
-	const dsMatrix44d* boxMatrix)
+inline dsIntersectResult dsPlane3_intersectBoxMatrix(
+	const dsPlane3d* plane, const dsMatrix44d* boxMatrix)
 {
 	return dsPlane3d_intersectBoxMatrix(plane, boxMatrix);
 }
 
-inline dsIntersectResult dsPlane3_intersectBoxMatrixTranspose(const dsPlane3f* plane,
-	const dsMatrix44f* boxMatrix)
+inline dsIntersectResult dsPlane3_intersectBoxMatrixTranspose(
+	const dsPlane3f* plane, const dsMatrix44f* boxMatrix)
 {
 	return dsPlane3f_intersectBoxMatrixTranspose(plane, boxMatrix);
 }
 
-inline dsIntersectResult dsPlane3_intersectBoxMatrixTranspose(const dsPlane3d* plane,
-	const dsMatrix44d* boxMatrix)
+inline dsIntersectResult dsPlane3_intersectBoxMatrixTranspose(
+	const dsPlane3d* plane, const dsMatrix44d* boxMatrix)
 {
 	return dsPlane3d_intersectBoxMatrixTranspose(plane, boxMatrix);
 }
@@ -487,6 +515,104 @@ TYPED_TEST(Plane3Test, IntersectAlignedBox)
 	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectAlignedBox(&plane, &box));
 }
 
+TYPED_TEST(Plane3Test, IntersectAlignedBox3x)
+{
+	typedef typename Plane3TypeSelector<TypeParam>::AlignedBox3xType AlignedBox3xType;
+	typedef typename Plane3TypeSelector<TypeParam>::Plane3Type Plane3Type;
+
+	AlignedBox3xType box = {{{0, 1, 2, 6}}, {{3, 4, 5, 7}}};
+
+	Plane3Type plane = {{1, 0, 0, -2}};
+	//Positive normals
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectAlignedBox3x(&plane, &box));
+
+	plane.n.x = 0;
+	plane.n.y = 1;
+	plane.d = -3;
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectAlignedBox3x(&plane, &box));
+
+	plane.n.y = 0;
+	plane.n.z = 1;
+	plane.d = -4;
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectAlignedBox3x(&plane, &box));
+
+	plane.n.z = 0;
+	plane.n.x = 1;
+	plane.d = 1;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectAlignedBox3x(&plane, &box));
+
+	plane.n.x = 0;
+	plane.n.y = 1;
+	plane.d = 0;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectAlignedBox3x(&plane, &box));
+
+	plane.n.y = 0;
+	plane.n.z = 1;
+	plane.d = -1;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectAlignedBox3x(&plane, &box));
+
+	plane.n.z = 0;
+	plane.n.x = 1;
+	plane.d = -4;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectAlignedBox3x(&plane, &box));
+
+	plane.n.x = 0;
+	plane.n.y = 1;
+	plane.d = -5;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectAlignedBox3x(&plane, &box));
+
+	plane.n.y = 0;
+	plane.n.z = 1;
+	plane.d = -6;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectAlignedBox3x(&plane, &box));
+
+	// Negative normals
+	plane.n.z = 0;
+	plane.n.x = -1;
+	plane.d = 2;
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectAlignedBox3x(&plane, &box));
+
+	plane.n.x = 0;
+	plane.n.y = -1;
+	plane.d = 3;
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectAlignedBox3x(&plane, &box));
+
+	plane.n.y = 0;
+	plane.n.z = -1;
+	plane.d = 4;
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectAlignedBox3x(&plane, &box));
+
+	plane.n.z = 0;
+	plane.n.x = -1;
+	plane.d = -1;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectAlignedBox3x(&plane, &box));
+
+	plane.n.x = 0;
+	plane.n.y = -1;
+	plane.d = 0;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectAlignedBox3x(&plane, &box));
+
+	plane.n.y = 0;
+	plane.n.z = -1;
+	plane.d = 1;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectAlignedBox3x(&plane, &box));
+
+	plane.n.z = 0;
+	plane.n.x = -1;
+	plane.d = 4;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectAlignedBox3x(&plane, &box));
+
+	plane.n.x = 0;
+	plane.n.y = -1;
+	plane.d = 5;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectAlignedBox3x(&plane, &box));
+
+	plane.n.y = 0;
+	plane.n.z = -1;
+	plane.d = 6;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectAlignedBox3x(&plane, &box));
+}
+
 TYPED_TEST(Plane3Test, IntersectOrientedBox)
 {
 	typedef typename Plane3TypeSelector<TypeParam>::OrientedBox3Type OrientedBox3Type;
@@ -587,6 +713,108 @@ TYPED_TEST(Plane3Test, IntersectOrientedBox)
 	plane.n.z = -1;
 	plane.d = 8;
 	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectOrientedBox(&plane, &box));
+}
+
+TYPED_TEST(Plane3Test, IntersectOrientedBox3x)
+{
+	typedef typename Plane3TypeSelector<TypeParam>::OrientedBox3xType OrientedBox3xType;
+	typedef typename Plane3TypeSelector<TypeParam>::Plane3Type Plane3Type;
+
+	OrientedBox3xType box =
+	{
+		{{ {0, 0, 1, 7}, {-1, 0, 0, 8}, {0, 1, 0, 9} }},
+		{{6, 5, 4, 10}}, {{3, 2, 1, 11}}
+	};
+
+	Plane3Type plane = {{1, 0, 0, -5}};
+	// Positive normals
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectOrientedBox3x(&plane, &box));
+
+	plane.n.x = 0;
+	plane.n.y = 1;
+	plane.d = -5;
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectOrientedBox3x(&plane, &box));
+
+	plane.n.y = 0;
+	plane.n.z = 1;
+	plane.d = -3;
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectOrientedBox3x(&plane, &box));
+
+	plane.n.z = 0;
+	plane.n.x = 1;
+	plane.d = -3;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectOrientedBox3x(&plane, &box));
+
+	plane.n.x = 0;
+	plane.n.y = 1;
+	plane.d = -3;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectOrientedBox3x(&plane, &box));
+
+	plane.n.y = 0;
+	plane.n.z = 1;
+	plane.d = 0;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectOrientedBox3x(&plane, &box));
+
+	plane.n.z = 0;
+	plane.n.x = 1;
+	plane.d = -9;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectOrientedBox3x(&plane, &box));
+
+	plane.n.x = 0;
+	plane.n.y = 1;
+	plane.d = -7;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectOrientedBox3x(&plane, &box));
+
+	plane.n.y = 0;
+	plane.n.z = 1;
+	plane.d = -8;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectOrientedBox3x(&plane, &box));
+
+	// Negative normals
+	plane.n.z = 0;
+	plane.n.x = -1;
+	plane.d = 5;
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectOrientedBox3x(&plane, &box));
+
+	plane.n.x = 0;
+	plane.n.y = -1;
+	plane.d = 5;
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectOrientedBox3x(&plane, &box));
+
+	plane.n.y = 0;
+	plane.n.z = -1;
+	plane.d = 3;
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectOrientedBox3x(&plane, &box));
+
+	plane.n.z = 0;
+	plane.n.x = -1;
+	plane.d = 3;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectOrientedBox3x(&plane, &box));
+
+	plane.n.x = 0;
+	plane.n.y = -1;
+	plane.d = 3;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectOrientedBox3x(&plane, &box));
+
+	plane.n.y = 0;
+	plane.n.z = -1;
+	plane.d = 0;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectOrientedBox3x(&plane, &box));
+
+	plane.n.z = 0;
+	plane.n.x = -1;
+	plane.d = 9;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectOrientedBox3x(&plane, &box));
+
+	plane.n.x = 0;
+	plane.n.y = -1;
+	plane.d = 7;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectOrientedBox3x(&plane, &box));
+
+	plane.n.y = 0;
+	plane.n.z = -1;
+	plane.d = 8;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectOrientedBox3x(&plane, &box));
 }
 
 TYPED_TEST(Plane3Test, IntersectBoxMatrixTranspose)
