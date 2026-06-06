@@ -798,7 +798,7 @@ DS_MATH_EXPORT inline void dsMatrix44f_transpose(dsMatrix44f* result, const dsMa
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
-
+	DS_ASSERT(result != a);
 #if DS_SIMD_ALWAYS_FLOAT4
 	dsMatrix44f_transposeSIMD(result, a);
 #else
@@ -811,6 +811,7 @@ DS_MATH_EXPORT inline void dsMatrix44d_transpose(dsMatrix44d* result, const dsMa
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
+	DS_ASSERT(result != a);
 #if DS_SIMD_ALWAYS_DOUBLE2
 	dsMatrix44d_transposeSIMD2(result, a);
 #else

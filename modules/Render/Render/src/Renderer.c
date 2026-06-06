@@ -547,7 +547,7 @@ bool dsRenderer_frustumFromMatrix(dsFrustum3f* result, const dsRenderer* rendere
 		return false;
 	}
 
-	dsFrustum3_fromMatrix(*result, *matrix, renderer->projectionOptions);
+	dsFrustum3f_fromMatrix(result, matrix, renderer->projectionOptions);
 	dsFrustum3f_normalize(result);
 	return true;
 }

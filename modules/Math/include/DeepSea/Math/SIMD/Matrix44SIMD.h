@@ -1024,6 +1024,7 @@ inline void dsMatrix44f_transposeSIMD(dsMatrix44f* result, const dsMatrix44f* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
+	DS_ASSERT(result != a);
 
 	result->columns[0] = a->columns[0];
 	result->columns[1] = a->columns[1];
@@ -2076,6 +2077,10 @@ inline void dsMatrix44d_transformTransposedSIMD2(
 
 inline void dsMatrix44d_transposeSIMD2(dsMatrix44d* result, const dsMatrix44d* a)
 {
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(result != a);
+
 	result->columns[0].simd2[0] = a->columns[0].simd2[0];
 	result->columns[1].simd2[0] = a->columns[1].simd2[0];
 	dsSIMD2d_transpose(result->columns[0].simd2[0], result->columns[1].simd2[0]);
@@ -3309,6 +3314,7 @@ inline void dsMatrix44d_transposeSIMD4(
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
+	DS_ASSERT(result != a);
 
 	dsSIMD4d col0 = dsSIMD4d_load(a->columns);
 	dsSIMD4d col1 = dsSIMD4d_load(a->columns + 1);

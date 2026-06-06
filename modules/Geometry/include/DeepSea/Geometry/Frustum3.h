@@ -18,8 +18,11 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Assert.h>
+
 #include <DeepSea/Geometry/Export.h>
 #include <DeepSea/Geometry/Types.h>
+
+#include <DeepSea/Math/Matrix44.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -208,6 +211,14 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectAlignedBox(
 DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectAlignedBox(
 	const dsFrustum3d* frustum, const dsAlignedBox3d* box);
 
+/** @copydoc dsFrustum3f_intersectAlignedBox() */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectAlignedBox3x(
+	const dsFrustum3f* frustum, const dsAlignedBox3xf* box);
+
+/** @copydoc dsFrustum3f_intersectAlignedBox() */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectAlignedBox3x(
+	const dsFrustum3d* frustum, const dsAlignedBox3xd* box);
+
 /**
  * @brief Intersects an oriented box with a frustum.
  * @param frustum The frustum to intersect.
@@ -221,6 +232,14 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectOrientedBox(
 /** @copydoc dsFrustum3f_intersectOrientedBox() */
 DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectOrientedBox(
 	const dsFrustum3d* frustum, const dsOrientedBox3d* box);
+
+/** @copydoc dsFrustum3f_intersectOrientedBox() */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectOrientedBox3x(
+	const dsFrustum3f* frustum, const dsOrientedBox3xf* box);
+
+/** @copydoc dsFrustum3f_intersectOrientedBox() */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectOrientedBox3x(
+	const dsFrustum3d* frustum, const dsOrientedBox3xd* box);
 
 /**
  * @brief Intersects a box in matrix form with a frustum.
@@ -256,13 +275,14 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectSphere(const dsFrustum
 
 /**
  * @brief Intersects an aligned box with a frustum using simd operations.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param frustum The frustum to intersect.
  * @param box The aligned box to intersect with.
  * @return The intersection result. Inside and outside is with respect to the frustum. If the box
  * fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
 DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectAlignedBoxSIMD(
-	const dsFrustum3f* frustum, const dsAlignedBox3f* box);
+	const dsFrustum3f* frustum, const dsAlignedBox3xf* box);
 
 /**
  * @brief Intersects an oriented box with a frustum using SIMD operations.
@@ -273,7 +293,7 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectAlignedBoxSIMD(
  * fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
 DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectOrientedBoxSIMD(
-	const dsFrustum3f* frustum, const dsOrientedBox3f* box);
+	const dsFrustum3f* frustum, const dsOrientedBox3xf* box);
 
 /**
  * @brief Intersects a box in matrix form with a frustum using SIMD operations.
@@ -290,28 +310,29 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectBoxMatrixSIMD(
 
 /**
  * @brief Intersects an aligned box with a frustum using fused multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_FMA are available.
  * @param frustum The frustum to intersect.
  * @param box The aligned box to intersect with.
  * @return The intersection result. Inside and outside is with respect to the frustum. If the box
  * fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
 DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectAlignedBoxFMA(
-	const dsFrustum3f* frustum, const dsAlignedBox3f* box);
+	const dsFrustum3f* frustum, const dsAlignedBox3xf* box);
 
 /**
  * @brief Intersects an oriented box with a frustum using fused multiply-add operations.
- * @remark This can be used when dsSIMDFeatures_FMA is available.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_FMA are available.
  * @param frustum The frustum to intersect.
  * @param box The oriented box to intersect with.
  * @return The intersection result. Inside and outside is with respect to the frustum. If the box
  * fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
 DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectOrientedBoxFMA(
-	const dsFrustum3f* frustum, const dsOrientedBox3f* box);
+	const dsFrustum3f* frustum, const dsOrientedBox3xf* box);
 
 /**
  * @brief Intersects a box in matrix form with a frustum using fused multiply-add operations.
- * @remark This can be used when dsSIMDFeatures_FMA is available.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_FMA are available.
  * @param frustum The frustum to intersect.
  * @param boxMatrix The box in matrix form to intersect with.
  * @return The intersection result. Inside and outside is with respect to the frustum. If the box
@@ -321,6 +342,108 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectBoxMatrixFMA(
 	const dsFrustum3f* frustum, const dsMatrix44f* boxMatrix);
 
 #endif // !DS_DETERMINISTIC_MATH
+
+/**
+ * @brief Intersects an aligned box with a frustum using simd operations.
+ * @param frustum The frustum to intersect.
+ * @param box The aligned box to intersect with.
+ * @return The intersection result. Inside and outside is with respect to the frustum. If the box
+ * fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectAlignedBoxSIMD2(
+	const dsFrustum3d* frustum, const dsAlignedBox3xd* box);
+
+/**
+ * @brief Intersects an oriented box with a frustum using SIMD operations.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param frustum The frustum to intersect.
+ * @param box The oriented box to intersect with.
+ * @return The intersection result. Inside and outside is with respect to the frustum. If the box
+ * fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectOrientedBoxSIMD2(
+	const dsFrustum3d* frustum, const dsOrientedBox3xd* box);
+
+/**
+ * @brief Intersects a box in matrix form with a frustum using SIMD operations.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param frustum The frustum to intersect.
+ * @param boxMatrix The box in matrix form to intersect with.
+ * @return The intersection result. Inside and outside is with respect to the frustum. If the box
+ * fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectBoxMatrixSIMD2(
+	const dsFrustum3d* frustum, const dsMatrix44d* boxMatrix);
+
+#if !DS_DETERMINISTIC_MATH
+
+/**
+ * @brief Intersects an aligned box with a frustum using fused multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_FMA are available.
+ * @param frustum The frustum to intersect.
+ * @param box The aligned box to intersect with.
+ * @return The intersection result. Inside and outside is with respect to the frustum. If the box
+ * fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectAlignedBoxFMA2(
+	const dsFrustum3d* frustum, const dsAlignedBox3xd* box);
+
+/**
+ * @brief Intersects an oriented box with a frustum using fused multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_FMA are available.
+ * @param frustum The frustum to intersect.
+ * @param box The oriented box to intersect with.
+ * @return The intersection result. Inside and outside is with respect to the frustum. If the box
+ * fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectOrientedBoxFMA2(
+	const dsFrustum3d* frustum, const dsOrientedBox3xd* box);
+
+/**
+ * @brief Intersects a box in matrix form with a frustum using fused multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_FMA are available.
+ * @param frustum The frustum to intersect.
+ * @param boxMatrix The box in matrix form to intersect with.
+ * @return The intersection result. Inside and outside is with respect to the frustum. If the box
+ * fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectBoxMatrixFMA2(
+	const dsFrustum3d* frustum, const dsMatrix44d* boxMatrix);
+
+#endif // !DS_DETERMINISTIC_MATH
+
+/**
+ * @brief Intersects an aligned box with a frustum using simd operations.
+ * @param frustum The frustum to intersect.
+ * @param box The aligned box to intersect with.
+ * @return The intersection result. Inside and outside is with respect to the frustum. If the box
+ * fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectAlignedBoxSIMD4(
+	const dsFrustum3d* DS_ALIGN_PARAM(32) frustum, const dsAlignedBox3xd* DS_ALIGN_PARAM(32) box);
+
+/**
+ * @brief Intersects an oriented box with a frustum using SIMD operations.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param frustum The frustum to intersect.
+ * @param box The oriented box to intersect with.
+ * @return The intersection result. Inside and outside is with respect to the frustum. If the box
+ * fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectOrientedBoxSIMD4(
+	const dsFrustum3d* DS_ALIGN_PARAM(32) frustum, const dsOrientedBox3xd* DS_ALIGN_PARAM(32) box);
+
+/**
+ * @brief Intersects a box in matrix form with a frustum using SIMD operations.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param frustum The frustum to intersect.
+ * @param boxMatrix The box in matrix form to intersect with.
+ * @return The intersection result. Inside and outside is with respect to the frustum. If the box
+ * fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectBoxMatrixSIMD4(
+	const dsFrustum3d* DS_ALIGN_PARAM(32) frustum, const dsMatrix44d* DS_ALIGN_PARAM(32) boxMatrix);
+
 #endif // DS_HAS_SIMD
 
 /** @copydoc dsFrustum3_fromMatrix() */
@@ -329,7 +452,45 @@ DS_GEOMETRY_EXPORT inline void dsFrustum3f_fromMatrix(dsFrustum3f* result,
 {
 	DS_ASSERT(result);
 	DS_ASSERT(matrix);
+#if DS_SIMD_ALWAYS_FLOAT4
+	dsMatrix44f matrixTrans;
+	dsMatrix44f_transposeSIMD(&matrixTrans, matrix);
+
+	result->planes[dsFrustumPlanes_Left].simd = dsSIMD4f_add(
+		matrixTrans.columns[3].simd, matrixTrans.columns[0].simd);
+	result->planes[dsFrustumPlanes_Right].simd = dsSIMD4f_sub(
+		matrixTrans.columns[3].simd, matrixTrans.columns[0].simd);
+
+	dsSIMD4f column1 = matrixTrans.columns[1].simd;
+	if (options & dsProjectionMatrixOptions_InvertY)
+		column1 = dsSIMD4f_neg(column1);
+
+	result->planes[dsFrustumPlanes_Bottom].simd = dsSIMD4f_add(
+		matrixTrans.columns[3].simd, column1);
+	result->planes[dsFrustumPlanes_Top].simd = dsSIMD4f_sub(
+		matrixTrans.columns[3].simd, column1);
+
+	dsPlane3f* nearPlane;
+	dsPlane3f* farPlane;
+	if (options & dsProjectionMatrixOptions_InvertZ)
+	{
+		nearPlane = result->planes + dsFrustumPlanes_Far;
+		farPlane = result->planes + dsFrustumPlanes_Near;
+	}
+	else
+	{
+		nearPlane = result->planes + dsFrustumPlanes_Near;
+		farPlane = result->planes + dsFrustumPlanes_Far;
+	}
+
+	if (options & dsProjectionMatrixOptions_HalfZRange)
+		nearPlane->simd = matrixTrans.columns[2].simd;
+	else
+		nearPlane->simd = dsSIMD4f_add(matrixTrans.columns[3].simd, matrixTrans.columns[2].simd);
+	farPlane->simd = dsSIMD4f_sub(matrixTrans.columns[3].simd, matrixTrans.columns[2].simd);
+#else
 	dsFrustum3_fromMatrix(*result, *matrix, options);
+#endif
 }
 
 /** @copydoc dsFrustum3_fromMatrix() */
@@ -338,7 +499,68 @@ DS_GEOMETRY_EXPORT inline void dsFrustum3d_fromMatrix(dsFrustum3d* result,
 {
 	DS_ASSERT(result);
 	DS_ASSERT(matrix);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	dsMatrix44d matrixTrans;
+	dsMatrix44d_transposeSIMD2(&matrixTrans, matrix);
+
+	result->planes[dsFrustumPlanes_Left].simd2[0] = dsSIMD2d_add(
+		matrixTrans.columns[3].simd2[0], matrixTrans.columns[0].simd2[0]);
+	result->planes[dsFrustumPlanes_Left].simd2[1] = dsSIMD2d_add(
+		matrixTrans.columns[3].simd2[1], matrixTrans.columns[0].simd2[1]);
+	result->planes[dsFrustumPlanes_Right].simd2[0] = dsSIMD2d_sub(
+		matrixTrans.columns[3].simd2[0], matrixTrans.columns[0].simd2[0]);
+	result->planes[dsFrustumPlanes_Right].simd2[1] = dsSIMD2d_sub(
+		matrixTrans.columns[3].simd2[1], matrixTrans.columns[0].simd2[1]);
+
+	dsSIMD2d column1_0 = matrixTrans.columns[1].simd2[0];
+	dsSIMD2d column1_1 = matrixTrans.columns[1].simd2[1];
+	if (options & dsProjectionMatrixOptions_InvertY)
+	{
+		column1_0 = dsSIMD2d_neg(column1_0);
+		column1_1 = dsSIMD2d_neg(column1_1);
+	}
+
+	result->planes[dsFrustumPlanes_Bottom].simd2[0] = dsSIMD2d_add(
+		matrixTrans.columns[3].simd2[0], column1_0);
+	result->planes[dsFrustumPlanes_Bottom].simd2[1] = dsSIMD2d_add(
+		matrixTrans.columns[3].simd2[1], column1_1);
+	result->planes[dsFrustumPlanes_Top].simd2[0] = dsSIMD2d_sub(
+		matrixTrans.columns[3].simd2[0], column1_0);
+	result->planes[dsFrustumPlanes_Top].simd2[1] = dsSIMD2d_sub(
+		matrixTrans.columns[3].simd2[1], column1_1);
+
+	dsPlane3d* nearPlane;
+	dsPlane3d* farPlane;
+	if (options & dsProjectionMatrixOptions_InvertZ)
+	{
+		nearPlane = result->planes + dsFrustumPlanes_Far;
+		farPlane = result->planes + dsFrustumPlanes_Near;
+	}
+	else
+	{
+		nearPlane = result->planes + dsFrustumPlanes_Near;
+		farPlane = result->planes + dsFrustumPlanes_Far;
+	}
+
+	if (options & dsProjectionMatrixOptions_HalfZRange)
+	{
+		nearPlane->simd2[0] = matrixTrans.columns[2].simd2[0];
+		nearPlane->simd2[1] = matrixTrans.columns[2].simd2[1];
+	}
+	else
+	{
+		nearPlane->simd2[0] = dsSIMD2d_add(
+			matrixTrans.columns[3].simd2[0], matrixTrans.columns[2].simd2[0]);
+		nearPlane->simd2[1] = dsSIMD2d_add(
+			matrixTrans.columns[3].simd2[1], matrixTrans.columns[2].simd2[1]);
+	}
+	farPlane->simd2[0] = dsSIMD2d_sub(
+		matrixTrans.columns[3].simd2[0], matrixTrans.columns[2].simd2[0]);
+	farPlane->simd2[1] = dsSIMD2d_sub(
+		matrixTrans.columns[3].simd2[1], matrixTrans.columns[2].simd2[1]);
+#else
 	dsFrustum3_fromMatrix(*result, *matrix, options);
+#endif
 }
 
 #ifdef __cplusplus

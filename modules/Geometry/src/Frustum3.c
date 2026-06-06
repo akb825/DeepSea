@@ -17,10 +17,12 @@
 #include <DeepSea/Geometry/Frustum3.h>
 
 #include <DeepSea/Core/Assert.h>
-#include <DeepSea/Geometry/AlignedBox3.h>
-#include <DeepSea/Geometry/OrientedBox3.h>
+
+#include <DeepSea/Geometry/AlignedBox3x.h>
+#include <DeepSea/Geometry/OrientedBox3x.h>
 #include <DeepSea/Geometry/Plane3.h>
-#include <DeepSea/Math/Matrix44.h>
+
+#include <DeepSea/Math/Vector3x.h>
 
 void dsFrustum3f_normalize(dsFrustum3f* frustum)
 {
@@ -49,8 +51,8 @@ void dsFrustum3f_transform(dsFrustum3f* frustum, const dsMatrix44f* transform)
 	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
 	for (int i = 0; i < count; ++i)
 	{
-		dsPlane3f_transformInverseTranspose(frustum->planes + i, &inverseTranspose,
-			frustum->planes + i);
+		dsPlane3f_transformInverseTranspose(
+			frustum->planes + i, &inverseTranspose, frustum->planes + i);
 	}
 }
 
@@ -65,8 +67,8 @@ void dsFrustum3d_transform(dsFrustum3d* frustum, const dsMatrix44d* transform)
 	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
 	for (int i = 0; i < count; ++i)
 	{
-		dsPlane3d_transformInverseTranspose(frustum->planes + i, &inverseTranspose,
-			frustum->planes + i);
+		dsPlane3d_transformInverseTranspose(
+			frustum->planes + i, &inverseTranspose, frustum->planes + i);
 	}
 }
 
@@ -78,8 +80,8 @@ void dsFrustum3f_transformInverseTranspose(dsFrustum3f* frustum, const dsMatrix4
 	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
 	for (int i = 0; i < count; ++i)
 	{
-		dsPlane3f_transformInverseTranspose(frustum->planes + i, transform,
-			frustum->planes + i);
+		dsPlane3f_transformInverseTranspose(
+			frustum->planes + i, transform, frustum->planes + i);
 	}
 }
 
@@ -91,8 +93,8 @@ void dsFrustum3d_transformInverseTranspose(dsFrustum3d* frustum, const dsMatrix4
 	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
 	for (int i = 0; i < count; ++i)
 	{
-		dsPlane3d_transformInverseTranspose(frustum->planes + i, transform,
-			frustum->planes + i);
+		dsPlane3d_transformInverseTranspose(
+			frustum->planes + i, transform, frustum->planes + i);
 	}
 }
 
@@ -101,8 +103,8 @@ bool dsFrustum3f_isInfinite(const dsFrustum3f* frustum)
 	DS_ASSERT(frustum);
 
 	float epsilon = 1e-6f;
-	dsVector3f zero = {{0.0f, 0.0f, 0.0f}};
-	return dsVector3f_epsilonEqual(&frustum->planes[dsFrustumPlanes_Far].n, &zero, epsilon);
+	dsVector3xf zero = {{0.0f, 0.0f, 0.0f, 0.0f}};
+	return dsVector3xf_epsilonEqual(&frustum->planes[dsFrustumPlanes_Far].xyzd, &zero, epsilon);
 }
 
 bool dsFrustum3d_isInfinite(const dsFrustum3d* frustum)
@@ -110,8 +112,8 @@ bool dsFrustum3d_isInfinite(const dsFrustum3d* frustum)
 	DS_ASSERT(frustum);
 
 	double epsilon = 1e-14;
-	dsVector3d zero = {{0.0, 0.0, 0.0}};
-	return dsVector3d_epsilonEqual(&frustum->planes[dsFrustumPlanes_Far].n, &zero, epsilon);
+	dsVector3xd zero = {{0.0, 0.0, 0.0, 0.0}};
+	return dsVector3xd_epsilonEqual(&frustum->planes[dsFrustumPlanes_Far].xyzd, &zero, epsilon);
 }
 
 dsIntersectResult dsFrustum3f_intersectAlignedBox(
@@ -126,8 +128,8 @@ dsIntersectResult dsFrustum3f_intersectAlignedBox(
 	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
 	for (int i = 0; i < count; ++i)
 	{
-		dsIntersectResult planeResult = dsPlane3f_intersectBoxMatrixTranspose(frustum->planes + i,
-			&boxMatrix);
+		dsIntersectResult planeResult = dsPlane3f_intersectBoxMatrixTranspose(
+			frustum->planes + i, &boxMatrix);
 		switch (planeResult)
 		{
 			case dsIntersectResult_Outside:
@@ -155,8 +157,8 @@ dsIntersectResult dsFrustum3d_intersectAlignedBox(
 	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
 	for (int i = 0; i < count; ++i)
 	{
-		dsIntersectResult planeResult = dsPlane3d_intersectBoxMatrixTranspose(frustum->planes + i,
-			&boxMatrix);
+		dsIntersectResult planeResult = dsPlane3d_intersectBoxMatrixTranspose(
+			frustum->planes + i, &boxMatrix);
 		switch (planeResult)
 		{
 			case dsIntersectResult_Outside:
@@ -172,6 +174,76 @@ dsIntersectResult dsFrustum3d_intersectAlignedBox(
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
 }
 
+dsIntersectResult dsFrustum3f_intersectAlignedBox3x(
+	const dsFrustum3f* frustum, const dsAlignedBox3xf* box)
+{
+	DS_ASSERT(frustum);
+	DS_ASSERT(box);
+#if DS_SIMD_ALWAYS_FMA
+	return dsFrustum3f_intersectAlignedBoxFMA(frustum, box);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	return dsFrustum3f_intersectAlignedBoxSIMD(frustum, box);
+#else
+	dsMatrix44f boxMatrix;
+	dsAlignedBox3xf_toMatrixTranspose(&boxMatrix, box);
+	bool intersects = false;
+	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
+	{
+		dsIntersectResult planeResult = dsPlane3f_intersectBoxMatrixTranspose(
+			frustum->planes + i, &boxMatrix);
+		switch (planeResult)
+		{
+			case dsIntersectResult_Outside:
+				return dsIntersectResult_Outside;
+			case dsIntersectResult_Intersects:
+				intersects = true;
+				break;
+			default:
+				break;
+		}
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+#endif
+}
+
+dsIntersectResult dsFrustum3d_intersectAlignedBox3x(
+	const dsFrustum3d* frustum, const dsAlignedBox3xd* box)
+{
+	DS_ASSERT(frustum);
+	DS_ASSERT(box);
+#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_ALWAYS_FMA
+	return dsFrustum3d_intersectAlignedBoxFMA2(frustum, box);
+#else
+	return dsFrustum3d_intersectAlignedBoxSIMD2(frustum, box);
+#endif
+#else
+	dsMatrix44d boxMatrix;
+	dsAlignedBox3xd_toMatrixTranspose(&boxMatrix, box);
+	bool intersects = false;
+	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
+	{
+		dsIntersectResult planeResult = dsPlane3d_intersectBoxMatrixTranspose(
+			frustum->planes + i, &boxMatrix);
+		switch (planeResult)
+		{
+			case dsIntersectResult_Outside:
+				return dsIntersectResult_Outside;
+			case dsIntersectResult_Intersects:
+				intersects = true;
+				break;
+			default:
+				break;
+		}
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+#endif
+}
+
 dsIntersectResult dsFrustum3f_intersectOrientedBox(
 	const dsFrustum3f* frustum, const dsOrientedBox3f* box)
 {
@@ -184,8 +256,8 @@ dsIntersectResult dsFrustum3f_intersectOrientedBox(
 	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
 	for (int i = 0; i < count; ++i)
 	{
-		dsIntersectResult planeResult = dsPlane3f_intersectBoxMatrixTranspose(frustum->planes + i,
-			&boxMatrix);
+		dsIntersectResult planeResult = dsPlane3f_intersectBoxMatrixTranspose(
+			frustum->planes + i, &boxMatrix);
 		switch (planeResult)
 		{
 			case dsIntersectResult_Outside:
@@ -213,8 +285,8 @@ dsIntersectResult dsFrustum3d_intersectOrientedBox(
 	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
 	for (int i = 0; i < count; ++i)
 	{
-		dsIntersectResult planeResult = dsPlane3d_intersectBoxMatrixTranspose(frustum->planes + i,
-			&boxMatrix);
+		dsIntersectResult planeResult = dsPlane3d_intersectBoxMatrixTranspose(
+			frustum->planes + i, &boxMatrix);
 		switch (planeResult)
 		{
 			case dsIntersectResult_Outside:
@@ -228,6 +300,76 @@ dsIntersectResult dsFrustum3d_intersectOrientedBox(
 	}
 
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+}
+
+dsIntersectResult dsFrustum3f_intersectOrientedBox3x(
+	const dsFrustum3f* frustum, const dsOrientedBox3xf* box)
+{
+	DS_ASSERT(frustum);
+	DS_ASSERT(box);
+#if DS_SIMD_ALWAYS_FMA
+	return dsFrustum3f_intersectOrientedBoxFMA(frustum, box);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	return dsFrustum3f_intersectOrientedBoxSIMD(frustum, box);
+#else
+	dsMatrix44f boxMatrix;
+	dsOrientedBox3xf_toMatrixTranspose(&boxMatrix, box);
+	bool intersects = false;
+	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
+	{
+		dsIntersectResult planeResult = dsPlane3f_intersectBoxMatrixTranspose(
+			frustum->planes + i, &boxMatrix);
+		switch (planeResult)
+		{
+			case dsIntersectResult_Outside:
+				return dsIntersectResult_Outside;
+			case dsIntersectResult_Intersects:
+				intersects = true;
+				break;
+			default:
+				break;
+		}
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+#endif
+}
+
+dsIntersectResult dsFrustum3d_intersectOrientedBox3x(
+	const dsFrustum3d* frustum, const dsOrientedBox3xd* box)
+{
+	DS_ASSERT(frustum);
+	DS_ASSERT(box);
+#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_ALWAYS_FMA
+	return dsFrustum3d_intersectOrientedBoxFMA2(frustum, box);
+#else
+	return dsFrustum3d_intersectOrientedBoxSIMD2(frustum, box);
+#endif
+#else
+	dsMatrix44d boxMatrix;
+	dsOrientedBox3xd_toMatrixTranspose(&boxMatrix, box);
+	bool intersects = false;
+	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
+	{
+		dsIntersectResult planeResult = dsPlane3d_intersectBoxMatrixTranspose(
+			frustum->planes + i, &boxMatrix);
+		switch (planeResult)
+		{
+			case dsIntersectResult_Outside:
+				return dsIntersectResult_Outside;
+			case dsIntersectResult_Intersects:
+				intersects = true;
+				break;
+			default:
+				break;
+		}
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+#endif
 }
 
 dsIntersectResult dsFrustum3f_intersectBoxMatrix(
@@ -235,15 +377,19 @@ dsIntersectResult dsFrustum3f_intersectBoxMatrix(
 {
 	DS_ASSERT(frustum);
 	DS_ASSERT(boxMatrix);
-
+#if DS_SIMD_ALWAYS_FMA
+	return dsFrustum3f_intersectBoxMatrixFMA(frustum, boxMatrix);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	return dsFrustum3f_intersectBoxMatrixSIMD(frustum, boxMatrix);
+#else
 	dsMatrix44f boxMatrixTranspose;
 	dsMatrix44f_transpose(&boxMatrixTranspose, boxMatrix);
 	bool intersects = false;
 	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
 	for (int i = 0; i < count; ++i)
 	{
-		dsIntersectResult planeResult = dsPlane3f_intersectBoxMatrixTranspose(frustum->planes + i,
-			&boxMatrixTranspose);
+		dsIntersectResult planeResult = dsPlane3f_intersectBoxMatrixTranspose(
+			frustum->planes + i, &boxMatrixTranspose);
 		switch (planeResult)
 		{
 			case dsIntersectResult_Outside:
@@ -257,6 +403,7 @@ dsIntersectResult dsFrustum3f_intersectBoxMatrix(
 	}
 
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+#endif
 }
 
 dsIntersectResult dsFrustum3d_intersectBoxMatrix(
@@ -264,15 +411,21 @@ dsIntersectResult dsFrustum3d_intersectBoxMatrix(
 {
 	DS_ASSERT(frustum);
 	DS_ASSERT(boxMatrix);
-
+#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_ALWAYS_FMA
+	return dsFrustum3d_intersectBoxMatrixFMA2(frustum, boxMatrix);
+#else
+	return dsFrustum3d_intersectBoxMatrixSIMD2(frustum, boxMatrix);
+#endif
+#else
 	dsMatrix44d boxMatrixTranspose;
 	dsMatrix44_transpose(boxMatrixTranspose, *boxMatrix);
 	bool intersects = false;
 	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
 	for (int i = 0; i < count; ++i)
 	{
-		dsIntersectResult planeResult = dsPlane3d_intersectBoxMatrixTranspose(frustum->planes + i,
-			&boxMatrixTranspose);
+		dsIntersectResult planeResult = dsPlane3d_intersectBoxMatrixTranspose(
+			frustum->planes + i, &boxMatrixTranspose);
 		switch (planeResult)
 		{
 			case dsIntersectResult_Outside:
@@ -286,6 +439,7 @@ dsIntersectResult dsFrustum3d_intersectBoxMatrix(
 	}
 
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+#endif
 }
 
 dsIntersectResult dsFrustum3f_intersectSphere(
@@ -298,7 +452,7 @@ dsIntersectResult dsFrustum3f_intersectSphere(
 	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
 	for (int i = 0; i < count; ++i)
 	{
-		float distance = dsPlane3_distanceToPoint(frustum->planes[i], *center);
+		float distance = dsPlane3f_distanceToPoint(frustum->planes + i, center);
 		if (distance < -radius)
 			return dsIntersectResult_Outside;
 		else if (distance <= radius)
@@ -318,7 +472,7 @@ dsIntersectResult dsFrustum3d_intersectSphere(
 	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
 	for (int i = 0; i < count; ++i)
 	{
-		double distance = dsPlane3_distanceToPoint(frustum->planes[i], *center);
+		double distance = dsPlane3d_distanceToPoint(frustum->planes + i, center);
 		if (distance < -radius)
 			return dsIntersectResult_Outside;
 		else if (distance <= radius)
@@ -332,13 +486,13 @@ dsIntersectResult dsFrustum3d_intersectSphere(
 DS_SIMD_START(DS_SIMD_FLOAT4)
 
 dsIntersectResult dsFrustum3f_intersectAlignedBoxSIMD(
-	const dsFrustum3f* frustum, const dsAlignedBox3f* box)
+	const dsFrustum3f* frustum, const dsAlignedBox3xf* box)
 {
 	DS_ASSERT(frustum);
 	DS_ASSERT(box);
 
 	dsMatrix44f boxMatrix;
-	dsAlignedBox3_toMatrixTranspose(boxMatrix, *box);
+	dsAlignedBox3xf_toMatrixTransposeSIMD(&boxMatrix, box);
 	bool intersects = false;
 	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
 	for (int i = 0; i < count; ++i)
@@ -361,13 +515,13 @@ dsIntersectResult dsFrustum3f_intersectAlignedBoxSIMD(
 }
 
 dsIntersectResult dsFrustum3f_intersectOrientedBoxSIMD(
-	const dsFrustum3f* frustum, const dsOrientedBox3f* box)
+	const dsFrustum3f* frustum, const dsOrientedBox3xf* box)
 {
 	DS_ASSERT(frustum);
 	DS_ASSERT(box);
 
 	dsMatrix44f boxMatrix;
-	dsOrientedBox3_toMatrixTranspose(boxMatrix, *box);
+	dsOrientedBox3xf_toMatrixTransposeSIMD(&boxMatrix, box);
 	bool intersects = false;
 	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
 	for (int i = 0; i < count; ++i)
@@ -424,13 +578,13 @@ DS_SIMD_END()
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 
 dsIntersectResult dsFrustum3f_intersectAlignedBoxFMA(
-	const dsFrustum3f* frustum, const dsAlignedBox3f* box)
+	const dsFrustum3f* frustum, const dsAlignedBox3xf* box)
 {
 	DS_ASSERT(frustum);
 	DS_ASSERT(box);
 
 	dsMatrix44f boxMatrix;
-	dsAlignedBox3_toMatrixTranspose(boxMatrix, *box);
+	dsAlignedBox3xf_toMatrixTransposeSIMD(&boxMatrix, box);
 	bool intersects = false;
 	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
 	for (int i = 0; i < count; ++i)
@@ -453,13 +607,13 @@ dsIntersectResult dsFrustum3f_intersectAlignedBoxFMA(
 }
 
 dsIntersectResult dsFrustum3f_intersectOrientedBoxFMA(
-	const dsFrustum3f* frustum, const dsOrientedBox3f* box)
+	const dsFrustum3f* frustum, const dsOrientedBox3xf* box)
 {
 	DS_ASSERT(frustum);
 	DS_ASSERT(box);
 
 	dsMatrix44f boxMatrix;
-	dsOrientedBox3_toMatrixTranspose(boxMatrix, *box);
+	dsOrientedBox3xf_toMatrixTransposeSIMD(&boxMatrix, box);
 	bool intersects = false;
 	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
 	for (int i = 0; i < count; ++i)
@@ -512,6 +666,281 @@ dsIntersectResult dsFrustum3f_intersectBoxMatrixFMA(
 
 DS_SIMD_END()
 #endif // !DS_DETERMINISTIC_MATH
+
+DS_SIMD_START(DS_SIMD_DOUBLE2)
+
+dsIntersectResult dsFrustum3d_intersectAlignedBoxSIMD2(
+	const dsFrustum3d* frustum, const dsAlignedBox3xd* box)
+{
+	DS_ASSERT(frustum);
+	DS_ASSERT(box);
+
+	dsMatrix44d boxMatrix;
+	dsAlignedBox3xd_toMatrixTransposeSIMD2(&boxMatrix, box);
+	bool intersects = false;
+	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
+	{
+		dsIntersectResult planeResult = dsPlane3d_intersectBoxMatrixTransposeSIMD2(
+			frustum->planes + i, &boxMatrix);
+		switch (planeResult)
+		{
+			case dsIntersectResult_Outside:
+				return dsIntersectResult_Outside;
+			case dsIntersectResult_Intersects:
+				intersects = true;
+				break;
+			default:
+				break;
+		}
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+}
+
+dsIntersectResult dsFrustum3d_intersectOrientedBoxSIMD2(
+	const dsFrustum3d* frustum, const dsOrientedBox3xd* box)
+{
+	DS_ASSERT(frustum);
+	DS_ASSERT(box);
+
+	dsMatrix44d boxMatrix;
+	dsOrientedBox3xd_toMatrixTransposeSIMD2(&boxMatrix, box);
+	bool intersects = false;
+	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
+	{
+		dsIntersectResult planeResult = dsPlane3d_intersectBoxMatrixTransposeSIMD2(
+			frustum->planes + i, &boxMatrix);
+		switch (planeResult)
+		{
+			case dsIntersectResult_Outside:
+				return dsIntersectResult_Outside;
+			case dsIntersectResult_Intersects:
+				intersects = true;
+				break;
+			default:
+				break;
+		}
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+}
+
+dsIntersectResult dsFrustum3d_intersectBoxMatrixSIMD2(
+	const dsFrustum3d* frustum, const dsMatrix44d* boxMatrix)
+{
+	DS_ASSERT(frustum);
+	DS_ASSERT(boxMatrix);
+
+	dsMatrix44d boxMatrixTranspose;
+	dsMatrix44d_transposeSIMD2(&boxMatrixTranspose, boxMatrix);
+	bool intersects = false;
+	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
+	{
+		dsIntersectResult planeResult = dsPlane3d_intersectBoxMatrixTransposeSIMD2(
+			frustum->planes + i, &boxMatrixTranspose);
+		switch (planeResult)
+		{
+			case dsIntersectResult_Outside:
+				return dsIntersectResult_Outside;
+			case dsIntersectResult_Intersects:
+				intersects = true;
+				break;
+			default:
+				break;
+		}
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+}
+
+DS_SIMD_END()
+
+#if !DS_DETERMINISTIC_MATH
+DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_FMA)
+
+dsIntersectResult dsFrustum3d_intersectAlignedBoxFMA2(
+	const dsFrustum3d* frustum, const dsAlignedBox3xd* box)
+{
+	DS_ASSERT(frustum);
+	DS_ASSERT(box);
+
+	dsMatrix44d boxMatrix;
+	dsAlignedBox3xd_toMatrixTransposeSIMD2(&boxMatrix, box);
+	bool intersects = false;
+	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
+	{
+		dsIntersectResult planeResult = dsPlane3d_intersectBoxMatrixTransposeFMA2(
+			frustum->planes + i, &boxMatrix);
+		switch (planeResult)
+		{
+			case dsIntersectResult_Outside:
+				return dsIntersectResult_Outside;
+			case dsIntersectResult_Intersects:
+				intersects = true;
+				break;
+			default:
+				break;
+		}
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+}
+
+dsIntersectResult dsFrustum3d_intersectOrientedBoxFMA2(
+	const dsFrustum3d* frustum, const dsOrientedBox3xd* box)
+{
+	DS_ASSERT(frustum);
+	DS_ASSERT(box);
+
+	dsMatrix44d boxMatrix;
+	dsOrientedBox3xd_toMatrixTransposeSIMD2(&boxMatrix, box);
+	bool intersects = false;
+	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
+	{
+		dsIntersectResult planeResult = dsPlane3d_intersectBoxMatrixTransposeFMA2(
+			frustum->planes + i, &boxMatrix);
+		switch (planeResult)
+		{
+			case dsIntersectResult_Outside:
+				return dsIntersectResult_Outside;
+			case dsIntersectResult_Intersects:
+				intersects = true;
+				break;
+			default:
+				break;
+		}
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+}
+
+dsIntersectResult dsFrustum3d_intersectBoxMatrixFMA2(
+	const dsFrustum3d* frustum, const dsMatrix44d* boxMatrix)
+{
+	DS_ASSERT(frustum);
+	DS_ASSERT(boxMatrix);
+
+	dsMatrix44d boxMatrixTranspose;
+	dsMatrix44d_transposeSIMD2(&boxMatrixTranspose, boxMatrix);
+	bool intersects = false;
+	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
+	{
+		dsIntersectResult planeResult = dsPlane3d_intersectBoxMatrixTransposeFMA2(
+			frustum->planes + i, &boxMatrixTranspose);
+		switch (planeResult)
+		{
+			case dsIntersectResult_Outside:
+				return dsIntersectResult_Outside;
+			case dsIntersectResult_Intersects:
+				intersects = true;
+				break;
+			default:
+				break;
+		}
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+}
+
+DS_SIMD_END()
+#endif // !DS_DETERMINISTIC_MATH
+
+DS_SIMD_START(DS_SIMD_DOUBLE2)
+
+dsIntersectResult dsFrustum3d_intersectAlignedBoxSIMD4(
+	const dsFrustum3d* DS_ALIGN_PARAM(32) frustum, const dsAlignedBox3xd* DS_ALIGN_PARAM(32) box)
+{
+	DS_ASSERT(frustum);
+	DS_ASSERT(box);
+
+	DS_ALIGN(32) dsMatrix44d boxMatrix;
+	dsAlignedBox3xd_toMatrixTransposeSIMD4(&boxMatrix, box);
+	bool intersects = false;
+	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
+	{
+		dsIntersectResult planeResult = dsPlane3d_intersectBoxMatrixTransposeSIMD4(
+			frustum->planes + i, &boxMatrix);
+		switch (planeResult)
+		{
+			case dsIntersectResult_Outside:
+				return dsIntersectResult_Outside;
+			case dsIntersectResult_Intersects:
+				intersects = true;
+				break;
+			default:
+				break;
+		}
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+}
+
+dsIntersectResult dsFrustum3d_intersectOrientedBoxSIMD4(
+	const dsFrustum3d* DS_ALIGN_PARAM(32) frustum, const dsOrientedBox3xd* DS_ALIGN_PARAM(32) box)
+{
+	DS_ASSERT(frustum);
+	DS_ASSERT(box);
+
+	DS_ALIGN(32) dsMatrix44d boxMatrix;
+	dsOrientedBox3xd_toMatrixTransposeSIMD4(&boxMatrix, box);
+	bool intersects = false;
+	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
+	{
+		dsIntersectResult planeResult = dsPlane3d_intersectBoxMatrixTransposeSIMD4(
+			frustum->planes + i, &boxMatrix);
+		switch (planeResult)
+		{
+			case dsIntersectResult_Outside:
+				return dsIntersectResult_Outside;
+			case dsIntersectResult_Intersects:
+				intersects = true;
+				break;
+			default:
+				break;
+		}
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+}
+
+dsIntersectResult dsFrustum3d_intersectBoxMatrixSIMD4(
+	const dsFrustum3d* DS_ALIGN_PARAM(32) frustum, const dsMatrix44d* DS_ALIGN_PARAM(32) boxMatrix)
+{
+	DS_ASSERT(frustum);
+	DS_ASSERT(boxMatrix);
+
+	DS_ALIGN(32) dsMatrix44d boxMatrixTranspose;
+	dsMatrix44d_transposeSIMD4(&boxMatrixTranspose, boxMatrix);
+	bool intersects = false;
+	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
+	{
+		dsIntersectResult planeResult = dsPlane3d_intersectBoxMatrixTransposeSIMD4(
+			frustum->planes + i, &boxMatrixTranspose);
+		switch (planeResult)
+		{
+			case dsIntersectResult_Outside:
+				return dsIntersectResult_Outside;
+			case dsIntersectResult_Intersects:
+				intersects = true;
+				break;
+			default:
+				break;
+		}
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+}
+
+DS_SIMD_END()
 #endif // DS_HAS_SIMD
 
 void dsFrustum3f_fromMatrix(
