@@ -454,7 +454,7 @@ bool dsBasePolygon_canConnectEdge(const dsBasePolygon* polygon, uint32_t fromVer
 		fromVertIdx, toVertIdx, false};
 	dsBVHVisitFunction visitorFunc;
 #if DS_HAS_SIMD
-	if (dsHostSIMDFeatures & dsSIMDFeatures_Double2)
+	if (DS_SIMD_ALWAYS_DOUBLE2 || (dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 		visitorFunc = &testEdgeIntersectSIMD;
 	else
 #endif

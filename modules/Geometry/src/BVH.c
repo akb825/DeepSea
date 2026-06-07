@@ -26,7 +26,7 @@
 #include <DeepSea/Core/Sort.h>
 
 #include <DeepSea/Geometry/AlignedBox2.h>
-#include <DeepSea/Geometry/AlignedBox3.h>
+#include <DeepSea/Geometry/AlignedBox3x.h>
 #include <DeepSea/Geometry/Frustum3.h>
 
 #include <string.h>
@@ -39,7 +39,7 @@ typedef struct dsBVHNode
 	uint32_t rightNode;
 	const void* object;
 	// Double for worst-case alignment.
-	DS_ALIGN(16) double bounds[];
+	DS_ALIGN(DS_ALLOC_ALIGNMENT) double bounds[];
 } dsBVHNode;
 
 struct dsBVH
@@ -50,6 +50,7 @@ struct dsBVH
 	void* userData;
 
 	dsGeometryElement element;
+	uint8_t storedAxisCount;
 	uint8_t axisCount;
 	uint8_t nodeSize;
 	uint8_t boundsSize;
@@ -159,6 +160,18 @@ static dsIntersectResult intersectBounds3i(const void* volume, const void* bound
 		(const dsAlignedBox3i*)volume, (const dsAlignedBox3i*)bounds);
 }
 
+static dsIntersectResult intersectBounds3xf(const void* volume, const void* bounds)
+{
+	return (dsIntersectResult)dsAlignedBox3xf_intersects(
+		(const dsAlignedBox3xf*)volume, (const dsAlignedBox3xf*)bounds);
+}
+
+static dsIntersectResult intersectBounds3xd(const void* volume, const void* bounds)
+{
+	return (dsIntersectResult)dsAlignedBox3xd_intersects(
+		(const dsAlignedBox3xd*)volume, (const dsAlignedBox3xd*)bounds);
+}
+
 static uint32_t buildBVHBalancedRec(dsBVH* bvh, uint32_t start, uint32_t count,
 	AddBoxFunction addBoxFunc, MaxAxisFunction maxAxisFunc, dsSortCompareFunction compareFunc,
 	uint8_t prevAxis)
@@ -174,8 +187,8 @@ static uint32_t buildBVHBalancedRec(dsBVH* bvh, uint32_t start, uint32_t count,
 		return node;
 	}
 
-	// Bounds for all current nodes. dsAlignedBox3d is the maximum storage size.
-	DS_ALIGN(16) dsAlignedBox3d bounds;
+	// Bounds for all current nodes. dsAlignedBox3xd is the maximum storage size.
+	DS_ALIGN(DS_ALLOC_ALIGNMENT) dsAlignedBox3xd bounds;
 	memcpy(&bounds, getNode(bvh->tempNodes, bvh->nodeSize, start)->bounds, bvh->boundsSize);
 	for (uint32_t i = 1; i < count; ++i)
 		addBoxFunc(&bounds, getNode(bvh->tempNodes, bvh->nodeSize, start + i)->bounds);
@@ -185,19 +198,19 @@ static uint32_t buildBVHBalancedRec(dsBVH* bvh, uint32_t start, uint32_t count,
 	if (maxAxis != prevAxis)
 	{
 		SortContext context = {maxAxis, (uint8_t)(bvh->nodeSize - bvh->boundsSize), bvh->axisCount};
-		dsSort(getNode(bvh->tempNodes, bvh->nodeSize, start), count, bvh->nodeSize, compareFunc,
-			&context);
+		dsSort(getNode(
+			bvh->tempNodes, bvh->nodeSize, start), count, bvh->nodeSize, compareFunc, &context);
 	}
 
 	// Recursively add the nodes.
 	uint32_t middle = (uint32_t)count/2;
-	uint32_t leftNode = buildBVHBalancedRec(bvh, start, middle, addBoxFunc, maxAxisFunc,
-		compareFunc, maxAxis);
+	uint32_t leftNode = buildBVHBalancedRec(
+		bvh, start, middle, addBoxFunc, maxAxisFunc, compareFunc, maxAxis);
 	if (leftNode == INVALID_NODE)
 		return INVALID_NODE;
 
-	uint32_t rightNode = buildBVHBalancedRec(bvh, start + middle, count - middle, addBoxFunc,
-		maxAxisFunc, compareFunc, maxAxis);
+	uint32_t rightNode = buildBVHBalancedRec(
+		bvh, start + middle, count - middle, addBoxFunc, maxAxisFunc, compareFunc, maxAxis);
 	if (rightNode == INVALID_NODE)
 		return INVALID_NODE;
 
@@ -298,11 +311,11 @@ static bool intersectBVHRec(const dsBVH* bvh, uint32_t* count, const dsBVHNode* 
 	return intersectBVHRec(bvh, count, right, volume, visitor, userData, intersectFunc, enclosing);
 }
 
-dsBVH* dsBVH_create(dsAllocator* allocator, uint8_t axisCount, dsGeometryElement element,
-	void* userData)
+dsBVH* dsBVH_create(
+	dsAllocator* allocator, uint8_t axisCount, dsGeometryElement element, void* userData)
 {
-	if (!allocator || axisCount < 2 || axisCount > 3 || element < dsGeometryElement_Float ||
-		element > dsGeometryElement_Int)
+	if (!allocator || axisCount < 2 || axisCount > 4 || element < dsGeometryElement_Float ||
+		element > dsGeometryElement_Int || (axisCount == 4 && element > dsGeometryElement_Double))
 	{
 		errno = EINVAL;
 		return NULL;
@@ -322,7 +335,9 @@ dsBVH* dsBVH_create(dsAllocator* allocator, uint8_t axisCount, dsGeometryElement
 	memset(bvh, 0, sizeof(dsBVH));
 	bvh->allocator = dsAllocator_keepPointer(allocator);
 	bvh->userData = userData;
-	bvh->axisCount = axisCount;
+	bvh->storedAxisCount = axisCount;
+	// If axisCount is 4, the extra value is padding.
+	bvh->axisCount = dsMin(axisCount, 3);
 	bvh->element = element;
 	switch (element)
 	{
@@ -352,7 +367,7 @@ uint8_t dsBVH_getAxisCount(const dsBVH* bvh)
 	if (!bvh)
 		return 0;
 
-	return bvh->axisCount;
+	return bvh->storedAxisCount;
 }
 
 dsGeometryElement dsBVH_getElement(const dsBVH* bvh)
@@ -408,6 +423,12 @@ bool dsBVH_build(dsBVH* bvh, const void* objects, uint32_t objectCount, size_t o
 				addBoxFunc = (AddBoxFunction)&dsAlignedBox2f_addBox;
 				maxAxisFunc = &dsSpatialStructure_maxAxis2f;
 			}
+			else if (bvh->storedAxisCount == 4)
+			{
+				DS_ASSERT(bvh->axisCount == 3);
+				addBoxFunc = (AddBoxFunction)&dsAlignedBox3xf_addBox;
+				maxAxisFunc = &dsSpatialStructure_maxAxis3xf;
+			}
 			else
 			{
 				DS_ASSERT(bvh->axisCount == 3);
@@ -421,6 +442,12 @@ bool dsBVH_build(dsBVH* bvh, const void* objects, uint32_t objectCount, size_t o
 			{
 				addBoxFunc = (AddBoxFunction)&dsAlignedBox2d_addBox;
 				maxAxisFunc = &dsSpatialStructure_maxAxis2d;
+			}
+			else if (bvh->storedAxisCount == 4)
+			{
+				DS_ASSERT(bvh->axisCount == 3);
+				addBoxFunc = (AddBoxFunction)&dsAlignedBox3xd_addBox;
+				maxAxisFunc = &dsSpatialStructure_maxAxis3xd;
 			}
 			else
 			{
@@ -466,8 +493,8 @@ bool dsBVH_build(dsBVH* bvh, const void* objects, uint32_t objectCount, size_t o
 		if (!bvh->tempNodes || objectCount > bvh->maxTempNodes)
 		{
 			dsAllocator_free(bvh->allocator, bvh->tempNodes);
-			bvh->tempNodes = (dsBVHNode*)dsAllocator_alloc(bvh->allocator,
-				bvh->nodeSize*objectCount);
+			bvh->tempNodes = (dsBVHNode*)dsAllocator_alloc(
+				bvh->allocator, bvh->nodeSize*objectCount);
 			if (!bvh)
 				return false;
 			bvh->maxTempNodes = objectCount;
@@ -483,8 +510,8 @@ bool dsBVH_build(dsBVH* bvh, const void* objects, uint32_t objectCount, size_t o
 			node->leftNode = node->rightNode = INVALID_NODE;
 		}
 
-		rootNode = buildBVHBalancedRec(bvh, 0, objectCount, addBoxFunc, maxAxisFunc, compareFunc,
-			bvh->axisCount);
+		rootNode = buildBVHBalancedRec(
+			bvh, 0, objectCount, addBoxFunc, maxAxisFunc, compareFunc, bvh->axisCount);
 	}
 	else
 		rootNode = buildBVHRec(bvh, objects, 0, objectCount, objectSize, addBoxFunc);
@@ -517,6 +544,11 @@ bool dsBVH_update(dsBVH* bvh)
 		case dsGeometryElement_Float:
 			if (bvh->axisCount == 2)
 				addBoxFunc = (AddBoxFunction)&dsAlignedBox2f_addBox;
+			else if (bvh->storedAxisCount == 4)
+			{
+				DS_ASSERT(bvh->axisCount == 3);
+				addBoxFunc = (AddBoxFunction)&dsAlignedBox3xf_addBox;
+			}
 			else
 			{
 				DS_ASSERT(bvh->axisCount == 3);
@@ -526,6 +558,11 @@ bool dsBVH_update(dsBVH* bvh)
 		case dsGeometryElement_Double:
 			if (bvh->axisCount == 2)
 				addBoxFunc = (AddBoxFunction)&dsAlignedBox2d_addBox;
+			else if (bvh->storedAxisCount == 4)
+			{
+				DS_ASSERT(bvh->axisCount == 3);
+				addBoxFunc = (AddBoxFunction)&dsAlignedBox3xd_addBox;
+			}
 			else
 			{
 				DS_ASSERT(bvh->axisCount == 3);
@@ -554,8 +591,8 @@ bool dsBVH_empty(const dsBVH* bvh)
 	return !bvh || bvh->nodeCount == 0;
 }
 
-uint32_t dsBVH_intersectBounds(const dsBVH* bvh, const void* bounds, dsBVHVisitFunction visitor,
-	void* userData)
+uint32_t dsBVH_intersectBounds(
+	const dsBVH* bvh, const void* bounds, dsBVHVisitFunction visitor, void* userData)
 {
 	if (!bvh || bvh->nodeCount == 0 || !bounds)
 		return 0;
@@ -566,6 +603,11 @@ uint32_t dsBVH_intersectBounds(const dsBVH* bvh, const void* bounds, dsBVHVisitF
 		case dsGeometryElement_Float:
 			if (bvh->axisCount == 2)
 				intersectFunc = &intersectBounds2f;
+			else if (bvh->storedAxisCount == 4)
+			{
+				DS_ASSERT(bvh->axisCount == 3);
+				intersectFunc = &intersectBounds3xf;
+			}
 			else
 			{
 				DS_ASSERT(bvh->axisCount == 3);
@@ -575,6 +617,11 @@ uint32_t dsBVH_intersectBounds(const dsBVH* bvh, const void* bounds, dsBVHVisitF
 		case dsGeometryElement_Double:
 			if (bvh->axisCount == 2)
 				intersectFunc = &intersectBounds2d;
+			else if (bvh->storedAxisCount == 4)
+			{
+				DS_ASSERT(bvh->axisCount == 3);
+				intersectFunc = &intersectBounds3xd;
+			}
 			else
 			{
 				DS_ASSERT(bvh->axisCount == 3);
@@ -600,8 +647,8 @@ uint32_t dsBVH_intersectBounds(const dsBVH* bvh, const void* bounds, dsBVHVisitF
 	return count;
 }
 
-uint32_t dsBVH_intersectFrustum(const dsBVH* bvh, const void* frustum, dsBVHVisitFunction visitor,
-	void* userData)
+uint32_t dsBVH_intersectFrustum(
+	const dsBVH* bvh, const void* frustum, dsBVHVisitFunction visitor, void* userData)
 {
 	if (!bvh || bvh->nodeCount == 0 || !frustum || bvh->axisCount != 3 ||
 		bvh->element == dsGeometryElement_Int)
@@ -613,10 +660,44 @@ uint32_t dsBVH_intersectFrustum(const dsBVH* bvh, const void* frustum, dsBVHVisi
 	switch (bvh->element)
 	{
 		case dsGeometryElement_Float:
-			intersectFunc = (IntersectFunction)&dsFrustum3f_intersectAlignedBox;
+			if (bvh->storedAxisCount == 4)
+			{
+#if DS_HAS_SIMD
+				if (DS_SIMD_ALWAYS_FLOAT4 || (dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+				{
+#if !DS_DETERMINISTIC_MATH
+					if (DS_SIMD_ALWAYS_FMA || (dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+						intersectFunc = (IntersectFunction)&dsFrustum3f_intersectAlignedBoxFMA;
+					else
+#endif // !DS_DETERMINISTIC_MATH
+						intersectFunc = (IntersectFunction)&dsFrustum3f_intersectAlignedBoxSIMD;
+				}
+				else
+#endif // DS_HAS_SIMD
+					intersectFunc = (IntersectFunction)&dsFrustum3f_intersectAlignedBox3x;
+			}
+			else
+				intersectFunc = (IntersectFunction)&dsFrustum3f_intersectAlignedBox;
 			break;
 		case dsGeometryElement_Double:
-			intersectFunc = (IntersectFunction)&dsFrustum3d_intersectAlignedBox;
+			if (bvh->storedAxisCount == 4)
+			{
+#if DS_HAS_SIMD
+				if (DS_SIMD_ALWAYS_DOUBLE2 || (dsHostSIMDFeatures & dsSIMDFeatures_Double2))
+				{
+#if !DS_DETERMINISTIC_MATH
+					if (DS_SIMD_ALWAYS_FMA || (dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+						intersectFunc = (IntersectFunction)&dsFrustum3d_intersectAlignedBoxFMA2;
+					else
+#endif // !DS_DETERMINISTIC_MATH
+						intersectFunc = (IntersectFunction)&dsFrustum3d_intersectAlignedBoxSIMD2;
+				}
+				else
+#endif // DS_HAS_SIMD
+					intersectFunc = (IntersectFunction)&dsFrustum3d_intersectAlignedBox3x;
+			}
+			else
+				intersectFunc = (IntersectFunction)&dsFrustum3d_intersectAlignedBox;
 			break;
 		default:
 			DS_ASSERT(false);

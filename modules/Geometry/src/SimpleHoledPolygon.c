@@ -281,7 +281,7 @@ static bool canConnectEdge(const dsSimpleHoledPolygon* polygon, uint32_t fromVer
 
 	DS_ASSERT(polygon->mainEdgeCount <= base->edgeCount);
 #if DS_HAS_SIMD
-	if (dsHostSIMDFeatures & dsSIMDFeatures_Double2)
+	if (DS_SIMD_ALWAYS_DOUBLE2 || (dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 	{
 		for (uint32_t i = polygon->mainEdgeCount; i < base->edgeCount; i += 2)
 		{

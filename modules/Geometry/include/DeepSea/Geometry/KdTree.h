@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,8 +46,8 @@ extern "C"
  * @param userData User data associated with the Kd tree.
  * @return The created Kd tree, or NULL if it couldn't be created.
  */
-DS_GEOMETRY_EXPORT dsKdTree* dsKdTree_create(dsAllocator* allocator, uint8_t axisCount,
-	dsGeometryElement element, void* userData);
+DS_GEOMETRY_EXPORT dsKdTree* dsKdTree_create(
+	dsAllocator* allocator, uint8_t axisCount, dsGeometryElement element, void* userData);
 
 /**
  * @brief Gets the number of axes for the bounds within a Kd tree.
@@ -120,8 +120,8 @@ DS_GEOMETRY_EXPORT const void*  dsKdTree_nearestNeighbor(const dsKdTree* kdTree,
  *     to compare with.
  * @return False if an error occurred.
  */
-DS_GEOMETRY_EXPORT bool dsKdTree_traverse(const dsKdTree* kdTree,
-	dsKdTreeTraverseFunction traverseFunc, void* userData);
+DS_GEOMETRY_EXPORT bool dsKdTree_traverse(
+	const dsKdTree* kdTree, dsKdTreeTraverseFunction traverseFunc, void* userData);
 
 /**
  * @brief Clears the contents of the Kd tree.

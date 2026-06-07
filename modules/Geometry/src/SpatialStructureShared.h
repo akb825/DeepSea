@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,3 +36,5 @@ uint8_t dsSpatialStructure_maxAxis2d(const void* bounds);
 uint8_t dsSpatialStructure_maxAxis3d(const void* bounds);
 uint8_t dsSpatialStructure_maxAxis2i(const void* bounds);
 uint8_t dsSpatialStructure_maxAxis3i(const void* bounds);
+uint8_t dsSpatialStructure_maxAxis3xf(const void* bounds);
+uint8_t dsSpatialStructure_maxAxis3xd(const void* bounds);

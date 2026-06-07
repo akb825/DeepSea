@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,17 @@
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/SystemAllocator.h>
+
 #include <DeepSea/Geometry/AlignedBox2.h>
-#include <DeepSea/Geometry/AlignedBox3.h>
+#include <DeepSea/Geometry/AlignedBox3x.h>
 #include <DeepSea/Geometry/BVH.h>
 #include <DeepSea/Geometry/Frustum3.h>
+
 #include <DeepSea/Math/Matrix44.h>
+#include <DeepSea/Math/Vector2.h>
+#include <DeepSea/Math/Vector3.h>
+
 #include <gtest/gtest.h>
-#include <cmath>
 
 // Handle older versions of gtest.
 #ifndef TYPED_TEST_SUITE
@@ -69,6 +73,16 @@ uint8_t BVHParamSelector<3, int>::axisCount = 3;
 template <>
 dsGeometryElement BVHParamSelector<3, int>::element = dsGeometryElement_Int;
 
+template <>
+uint8_t BVHParamSelector<4, float>::axisCount = 4;
+template <>
+dsGeometryElement BVHParamSelector<4, float>::element = dsGeometryElement_Float;
+
+template <>
+uint8_t BVHParamSelector<4, double>::axisCount = 4;
+template <>
+dsGeometryElement BVHParamSelector<4, double>::element = dsGeometryElement_Double;
+
 template <int N, typename T>
 struct BVHSelector {};
 
@@ -84,15 +98,20 @@ struct BVHSelector<2, float> : public BVHParamSelector<2, float>
 		return alignedBox;
 	}
 
-	static FrustumType createFrustum(float minX, float minY, float minZ, float maxX, float maxY,
-		float maxZ)
+	static FrustumType createFrustum(
+		float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
 	{
 		dsMatrix44f matrix;
-		dsMatrix44f_makeOrtho(&matrix, minX, maxX, minY, maxY, -maxZ, -minZ,
-			dsProjectionMatrixOptions_None);
+		dsMatrix44f_makeOrtho(
+			&matrix, minX, maxX, minY, maxY, -maxZ, -minZ, dsProjectionMatrixOptions_None);
 		FrustumType frustum;
 		dsFrustum3f_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
 		return frustum;
+	}
+
+	static bool boundsEqual(const AlignedBoxType& lhs, const AlignedBoxType& rhs)
+	{
+		return dsVector2_equal(lhs.min, rhs.min) && dsVector2_equal(lhs.max, rhs.max);
 	}
 };
 
@@ -109,15 +128,20 @@ struct BVHSelector<2, double> : public BVHParamSelector<2, double>
 		return alignedBox;
 	}
 
-	static FrustumType createFrustum(float minX, float minY, float minZ, float maxX, float maxY,
-		float maxZ)
+	static FrustumType createFrustum(
+		float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
 	{
 		dsMatrix44d matrix;
-		dsMatrix44d_makeOrtho(&matrix, minX, maxX, minY, maxY, -maxZ, -minZ,
-			dsProjectionMatrixOptions_None);
+		dsMatrix44d_makeOrtho(
+			&matrix, minX, maxX, minY, maxY, -maxZ, -minZ, dsProjectionMatrixOptions_None);
 		FrustumType frustum;
 		dsFrustum3d_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
 		return frustum;
+	}
+
+	static bool boundsEqual(const AlignedBoxType& lhs, const AlignedBoxType& rhs)
+	{
+		return dsVector2_equal(lhs.min, rhs.min) && dsVector2_equal(lhs.max, rhs.max);
 	}
 };
 
@@ -133,15 +157,20 @@ struct BVHSelector<2, int> : public BVHParamSelector<2, int>
 		return alignedBox;
 	}
 
-	static FrustumType createFrustum(float minX, float minY, float minZ, float maxX, float maxY,
-		float maxZ)
+	static FrustumType createFrustum(
+		float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
 	{
 		dsMatrix44f matrix;
-		dsMatrix44f_makeOrtho(&matrix, minX, maxX, minY, maxY, -maxZ, -minZ,
-			dsProjectionMatrixOptions_None);
+		dsMatrix44f_makeOrtho(
+			&matrix, minX, maxX, minY, maxY, -maxZ, -minZ, dsProjectionMatrixOptions_None);
 		FrustumType frustum;
 		dsFrustum3f_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
 		return frustum;
+	}
+
+	static bool boundsEqual(const AlignedBoxType& lhs, const AlignedBoxType& rhs)
+	{
+		return dsVector2_equal(lhs.min, rhs.min) && dsVector2_equal(lhs.max, rhs.max);
 	}
 };
 
@@ -158,15 +187,20 @@ struct BVHSelector<3, float> : public BVHParamSelector<3, float>
 		return alignedBox;
 	}
 
-	static FrustumType createFrustum(float minX, float minY, float minZ, float maxX, float maxY,
-		float maxZ)
+	static FrustumType createFrustum(
+		float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
 	{
 		dsMatrix44f matrix;
-		dsMatrix44f_makeOrtho(&matrix, minX, maxX, minY, maxY, -maxZ, -minZ,
-			dsProjectionMatrixOptions_None);
+		dsMatrix44f_makeOrtho(
+			&matrix, minX, maxX, minY, maxY, -maxZ, -minZ, dsProjectionMatrixOptions_None);
 		FrustumType frustum;
 		dsFrustum3f_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
 		return frustum;
+	}
+
+	static bool boundsEqual(const AlignedBoxType& lhs, const AlignedBoxType& rhs)
+	{
+		return dsVector3_equal(lhs.min, rhs.min) && dsVector3_equal(lhs.max, rhs.max);
 	}
 };
 
@@ -183,15 +217,20 @@ struct BVHSelector<3, double> : public BVHParamSelector<3, double>
 		return alignedBox;
 	}
 
-	static FrustumType createFrustum(float minX, float minY, float minZ, float maxX, float maxY,
-		float maxZ)
+	static FrustumType createFrustum(
+		float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
 	{
 		dsMatrix44d matrix;
-		dsMatrix44d_makeOrtho(&matrix, minX, maxX, minY, maxY, -maxZ, -minZ,
-			dsProjectionMatrixOptions_None);
+		dsMatrix44d_makeOrtho(
+			&matrix, minX, maxX, minY, maxY, -maxZ, -minZ, dsProjectionMatrixOptions_None);
 		FrustumType frustum;
 		dsFrustum3d_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
 		return frustum;
+	}
+
+	static bool boundsEqual(const AlignedBoxType& lhs, const AlignedBoxType& rhs)
+	{
+		return dsVector3_equal(lhs.min, rhs.min) && dsVector3_equal(lhs.max, rhs.max);
 	}
 };
 
@@ -207,15 +246,82 @@ struct BVHSelector<3, int> : public BVHParamSelector<3, int>
 		return alignedBox;
 	}
 
-	static FrustumType createFrustum(float minX, float minY, float minZ, float maxX, float maxY,
-		float maxZ)
+	static FrustumType createFrustum(
+		float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
 	{
 		dsMatrix44f matrix;
-		dsMatrix44f_makeOrtho(&matrix, minX, maxX, minY, maxY, -maxZ, -minZ,
-			dsProjectionMatrixOptions_None);
+		dsMatrix44f_makeOrtho(
+			&matrix, minX, maxX, minY, maxY, -maxZ, -minZ, dsProjectionMatrixOptions_None);
 		FrustumType frustum;
 		dsFrustum3f_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
 		return frustum;
+	}
+
+	static bool boundsEqual(const AlignedBoxType& lhs, const AlignedBoxType& rhs)
+	{
+		return dsVector3_equal(lhs.min, rhs.min) && dsVector3_equal(lhs.max, rhs.max);
+	}
+};
+
+template <>
+struct BVHSelector<4, float> : public BVHParamSelector<4, float>
+{
+	typedef dsAlignedBox3xf AlignedBoxType;
+	typedef dsFrustum3f FrustumType;
+
+	static AlignedBoxType createBounds(int minX, int minY, int minZ, int maxX, int maxY, int maxZ)
+	{
+		AlignedBoxType alignedBox = {
+			{{(float)minX, (float)minY, (float)minZ, (float)(minX - minY + minZ)}},
+			{{(float)maxX, (float)maxY, (float)maxZ, (float)(-maxX + maxY - maxZ)}}};
+		return alignedBox;
+	}
+
+	static FrustumType createFrustum(
+		float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
+	{
+		dsMatrix44f matrix;
+		dsMatrix44f_makeOrtho(
+			&matrix, minX, maxX, minY, maxY, -maxZ, -minZ, dsProjectionMatrixOptions_None);
+		FrustumType frustum;
+		dsFrustum3f_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
+		return frustum;
+	}
+
+	static bool boundsEqual(const AlignedBoxType& lhs, const AlignedBoxType& rhs)
+	{
+		return dsVector3_equal(lhs.min, rhs.min) && dsVector3_equal(lhs.max, rhs.max);
+	}
+};
+
+template <>
+struct BVHSelector<4, double> : public BVHParamSelector<4, double>
+{
+	typedef dsAlignedBox3xd AlignedBoxType;
+	typedef dsFrustum3d FrustumType;
+
+	static AlignedBoxType createBounds(int minX, int minY, int minZ, int maxX, int maxY, int maxZ)
+	{
+		AlignedBoxType alignedBox = {
+			{{(double)minX, (double)minY, (double)minZ, (double)(minX - minY + minZ)}},
+			{{(double)maxX, (double)maxY, (double)maxZ, (double)(-maxX + maxY - maxZ)}}};
+		return alignedBox;
+	}
+
+	static FrustumType createFrustum(
+		float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
+	{
+		dsMatrix44d matrix;
+		dsMatrix44d_makeOrtho(
+			&matrix, minX, maxX, minY, maxY, -maxZ, -minZ, dsProjectionMatrixOptions_None);
+		FrustumType frustum;
+		dsFrustum3d_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
+		return frustum;
+	}
+
+	static bool boundsEqual(const AlignedBoxType& lhs, const AlignedBoxType& rhs)
+	{
+		return dsVector3_equal(lhs.min, rhs.min) && dsVector3_equal(lhs.max, rhs.max);
 	}
 };
 
@@ -259,8 +365,8 @@ public:
 		return SelectorT::createBounds(minX, minY, minZ, maxX, maxY, maxZ);
 	}
 
-	static FrustumType createFrustum(float minX, float minY, float minZ, float maxX, float maxY,
-		float maxZ)
+	static FrustumType createFrustum(
+		float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
 	{
 		return SelectorT::createFrustum(minX, minY, minZ, maxX, maxY, maxZ);
 	}
@@ -284,6 +390,11 @@ public:
 		return true;
 	}
 
+	static bool boundsEqual(const AlignedBoxType& lhs, const AlignedBoxType& rhs)
+	{
+		return SelectorT::boundsEqual(lhs, rhs);
+	}
+
 	template <typename T>
 	static bool lambdaAdapterImpl(void* userData, const dsBVH*, const void* object, const void*)
 	{
@@ -298,8 +409,8 @@ public:
 	}
 
 	template <typename T>
-	static bool indexLambdaAdapterImpl(void* userData, const dsBVH* bvh, const void* object,
-		const void*)
+	static bool indexLambdaAdapterImpl(
+		void* userData, const dsBVH* bvh, const void* object, const void*)
 	{
 		auto objects = (const TestObject*)dsBVH_getUserData(bvh);
 		(*(T*)userData)(objects[(size_t)object]);
@@ -335,7 +446,8 @@ public:
 };
 
 using BVHTypes = testing::Types<BVHSelector<2, float>, BVHSelector<2, double>, BVHSelector<2, int>,
-	BVHSelector<3, float>, BVHSelector<3, double>, BVHSelector<3, int>>;
+	BVHSelector<3, float>, BVHSelector<3, double>, BVHSelector<3, int>, BVHSelector<4, float>,
+	BVHSelector<4, double>>;
 TYPED_TEST_SUITE(BVHTest, BVHTypes);
 
 TYPED_TEST(BVHTest, Create)
@@ -356,8 +468,8 @@ TYPED_TEST(BVHTest, SeparateBoxes)
 	using AlignedBoxType = typename TestFixture::AlignedBoxType;
 
 	TestFixture* fixture = this;
-	dsBVH* bvh = dsBVH_create((dsAllocator*)&fixture->allocator, TestFixture::axisCount(),
-		TestFixture::element(), NULL);
+	dsBVH* bvh = dsBVH_create(
+		(dsAllocator*)&fixture->allocator, TestFixture::axisCount(), TestFixture::element(), NULL);
 	ASSERT_TRUE(bvh);
 
 	TestObject data[] =
@@ -369,8 +481,8 @@ TYPED_TEST(BVHTest, SeparateBoxes)
 	};
 
 	EXPECT_TRUE(dsBVH_empty(bvh));
-	EXPECT_TRUE(dsBVH_build(bvh, data, DS_ARRAY_SIZE(data), sizeof(TestObject),
-		&TestFixture::getBounds, false));
+	EXPECT_TRUE(dsBVH_build(
+		bvh, data, DS_ARRAY_SIZE(data), sizeof(TestObject), &TestFixture::getBounds, false));
 	EXPECT_FALSE(dsBVH_empty(bvh));
 
 	AlignedBoxType testBounds = TestFixture::createBounds(0, 0, 0, 0, 0, 0);
@@ -420,18 +532,21 @@ TYPED_TEST(BVHTest, SeparateBoxes)
 	EXPECT_EQ(4U, dsBVH_intersectBounds(bvh, &testBounds, nullptr, nullptr));
 
 	std::pair<int, int> visitCounts = {0, 1};
-	EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
+	EXPECT_EQ(1U, dsBVH_intersectBounds(
+		bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
 
 	visitCounts = {0, 2};
-	EXPECT_EQ(2U, dsBVH_intersectBounds(bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
+	EXPECT_EQ(2U, dsBVH_intersectBounds(
+		bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
 
 	visitCounts = {0, 3};
-	EXPECT_EQ(3U, dsBVH_intersectBounds(bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
+	EXPECT_EQ(3U, dsBVH_intersectBounds(
+		bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
 
 	AlignedBoxType bounds;
 	EXPECT_TRUE(dsBVH_getBounds(&bounds, bvh));
 	AlignedBoxType fullBounds = TestFixture::createBounds(-2, -2, 0, 2, 2, 0);
-	EXPECT_EQ(0, memcmp(&fullBounds, &bounds, sizeof(AlignedBoxType)));
+	EXPECT_TRUE(TestFixture::boundsEqual(fullBounds, bounds));
 
 	dsBVH_destroy(bvh);
 }
@@ -442,8 +557,8 @@ TYPED_TEST(BVHTest, SeparateBoxesBalanced)
 	using AlignedBoxType = typename TestFixture::AlignedBoxType;
 
 	TestFixture* fixture = this;
-	dsBVH* bvh = dsBVH_create((dsAllocator*)&fixture->allocator, TestFixture::axisCount(),
-		TestFixture::element(), NULL);
+	dsBVH* bvh = dsBVH_create(
+		(dsAllocator*)&fixture->allocator, TestFixture::axisCount(), TestFixture::element(), NULL);
 	ASSERT_TRUE(bvh);
 
 	TestObject data[] =
@@ -455,8 +570,8 @@ TYPED_TEST(BVHTest, SeparateBoxesBalanced)
 	};
 
 	EXPECT_TRUE(dsBVH_empty(bvh));
-	EXPECT_TRUE(dsBVH_build(bvh, data, DS_ARRAY_SIZE(data), sizeof(TestObject),
-		&TestFixture::getBounds, true));
+	EXPECT_TRUE(dsBVH_build(
+		bvh, data, DS_ARRAY_SIZE(data), sizeof(TestObject), &TestFixture::getBounds, true));
 	EXPECT_FALSE(dsBVH_empty(bvh));
 
 	AlignedBoxType testBounds = TestFixture::createBounds(0, 0, 0, 0, 0, 0);
@@ -468,8 +583,8 @@ TYPED_TEST(BVHTest, SeparateBoxesBalanced)
 			EXPECT_EQ(0, object.data);
 		};
 		testBounds = TestFixture::createBounds(-2, -2, 0, 0, 0, 0);
-		EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(1U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -478,8 +593,8 @@ TYPED_TEST(BVHTest, SeparateBoxesBalanced)
 			EXPECT_EQ(1, object.data);
 		};
 		testBounds = TestFixture::createBounds(0, -2, 0, 2, 0, 0);
-		EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(1U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -488,8 +603,8 @@ TYPED_TEST(BVHTest, SeparateBoxesBalanced)
 			EXPECT_EQ(2, object.data);
 		};
 		testBounds = TestFixture::createBounds(-2, 0, 0, 0, 2, 0);
-		EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(1U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -498,29 +613,29 @@ TYPED_TEST(BVHTest, SeparateBoxesBalanced)
 			EXPECT_EQ(3, object.data);
 		};
 		testBounds = TestFixture::createBounds(0, 0, 0, 2, 2, 0);
-		EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(1U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	testBounds = TestFixture::createBounds(-1, -1, 0, 1, 1, 0);
 	EXPECT_EQ(4U, dsBVH_intersectBounds(bvh, &testBounds, nullptr, nullptr));
 
 	std::pair<int, int> visitCounts = {0, 1};
-	EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, &TestFixture::limitedVisits,
-		&visitCounts));
+	EXPECT_EQ(1U, dsBVH_intersectBounds(
+		bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
 
 	visitCounts = {0, 2};
-	EXPECT_EQ(2U, dsBVH_intersectBounds(bvh, &testBounds, &TestFixture::limitedVisits,
-		&visitCounts));
+	EXPECT_EQ(2U, dsBVH_intersectBounds(
+		bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
 
 	visitCounts = {0, 3};
-	EXPECT_EQ(3U, dsBVH_intersectBounds(bvh, &testBounds, &TestFixture::limitedVisits,
-		&visitCounts));
+	EXPECT_EQ(3U, dsBVH_intersectBounds(
+		bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
 
 	AlignedBoxType bounds;
 	EXPECT_TRUE(dsBVH_getBounds(&bounds, bvh));
 	AlignedBoxType fullBounds = TestFixture::createBounds(-2, -2, 0, 2, 2, 0);
-	EXPECT_EQ(0, memcmp(&fullBounds, &bounds, sizeof(AlignedBoxType)));
+	EXPECT_TRUE(TestFixture::boundsEqual(fullBounds, bounds));
 
 	dsBVH_destroy(bvh);
 }
@@ -556,8 +671,8 @@ TYPED_TEST(BVHTest, OverlappingBoxes)
 			EXPECT_EQ(4, object.data);
 		};
 		testBounds = TestFixture::createBounds(0, 0, 0, 0, 0, 0);
-		EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(1U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -566,8 +681,8 @@ TYPED_TEST(BVHTest, OverlappingBoxes)
 			EXPECT_TRUE(object.data == 0 || object.data == 4);
 		};
 		testBounds = TestFixture::createBounds(-2, -2, 0, 0, 0, 0);
-		EXPECT_EQ(2U, dsBVH_intersectBounds(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(2U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -576,8 +691,8 @@ TYPED_TEST(BVHTest, OverlappingBoxes)
 			EXPECT_TRUE(object.data == 1 || object.data == 4);
 		};
 		testBounds = TestFixture::createBounds(0, -2, 0, 2, 0, 0);
-		EXPECT_EQ(2U, dsBVH_intersectBounds(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(2U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -586,8 +701,8 @@ TYPED_TEST(BVHTest, OverlappingBoxes)
 			EXPECT_TRUE(object.data == 2 || object.data == 4);
 		};
 		testBounds = TestFixture::createBounds(-2, 0, 0, 0, 2, 0);
-		EXPECT_EQ(2U, dsBVH_intersectBounds(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(2U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -596,33 +711,33 @@ TYPED_TEST(BVHTest, OverlappingBoxes)
 			EXPECT_TRUE(object.data == 3 || object.data == 4);
 		};
 		testBounds = TestFixture::createBounds(0, 0, 0, 2, 2, 0);
-		EXPECT_EQ(2U, dsBVH_intersectBounds(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(2U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	testBounds = TestFixture::createBounds(-1, -1, 0, 1, 1, 0);
 	EXPECT_EQ(5U, dsBVH_intersectBounds(bvh, &testBounds, nullptr, nullptr));
 
 	std::pair<int, int> visitCounts = {0, 1};
-	EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, &TestFixture::limitedVisits,
-		&visitCounts));
+	EXPECT_EQ(1U, dsBVH_intersectBounds(
+		bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
 
 	visitCounts = {0, 2};
-	EXPECT_EQ(2U, dsBVH_intersectBounds(bvh, &testBounds, &TestFixture::limitedVisits,
-		&visitCounts));
+	EXPECT_EQ(2U, dsBVH_intersectBounds(
+		bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
 
 	visitCounts = {0, 3};
-	EXPECT_EQ(3U, dsBVH_intersectBounds(bvh, &testBounds, &TestFixture::limitedVisits,
-		&visitCounts));
+	EXPECT_EQ(3U, dsBVH_intersectBounds(
+		bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
 
 	visitCounts = {0, 4};
-	EXPECT_EQ(4U, dsBVH_intersectBounds(bvh, &testBounds, &TestFixture::limitedVisits,
-		&visitCounts));
+	EXPECT_EQ(4U, dsBVH_intersectBounds(
+		bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
 
 	AlignedBoxType bounds;
 	EXPECT_TRUE(dsBVH_getBounds(&bounds, bvh));
 	AlignedBoxType fullBounds = TestFixture::createBounds(-3, -3, 0, 3, 3, 0);
-	EXPECT_EQ(0, memcmp(&fullBounds, &bounds, sizeof(AlignedBoxType)));
+	EXPECT_TRUE(TestFixture::boundsEqual(fullBounds, bounds));
 
 	dsBVH_destroy(bvh);
 }
@@ -647,8 +762,8 @@ TYPED_TEST(BVHTest, OverlappingBoxesBalanced)
 	};
 
 	EXPECT_TRUE(dsBVH_empty(bvh));
-	EXPECT_TRUE(dsBVH_build(bvh, data, DS_ARRAY_SIZE(data), sizeof(TestObject),
-		&TestFixture::getBounds, true));
+	EXPECT_TRUE(dsBVH_build(
+		bvh, data, DS_ARRAY_SIZE(data), sizeof(TestObject), &TestFixture::getBounds, true));
 	EXPECT_FALSE(dsBVH_empty(bvh));
 
 	AlignedBoxType testBounds;
@@ -658,8 +773,8 @@ TYPED_TEST(BVHTest, OverlappingBoxesBalanced)
 			EXPECT_EQ(4, object.data);
 		};
 		testBounds = TestFixture::createBounds(0, 0, 0, 0, 0, 0);
-		EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(1U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -668,8 +783,8 @@ TYPED_TEST(BVHTest, OverlappingBoxesBalanced)
 			EXPECT_TRUE(object.data == 0 || object.data == 4);
 		};
 		testBounds = TestFixture::createBounds(-2, -2, 0, 0, 0, 0);
-		EXPECT_EQ(2U, dsBVH_intersectBounds(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(2U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -678,8 +793,8 @@ TYPED_TEST(BVHTest, OverlappingBoxesBalanced)
 			EXPECT_TRUE(object.data == 1 || object.data == 4);
 		};
 		testBounds = TestFixture::createBounds(0, -2, 0, 2, 0, 0);
-		EXPECT_EQ(2U, dsBVH_intersectBounds(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(2U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -688,8 +803,8 @@ TYPED_TEST(BVHTest, OverlappingBoxesBalanced)
 			EXPECT_TRUE(object.data == 2 || object.data == 4);
 		};
 		testBounds = TestFixture::createBounds(-2, 0, 0, 0, 2, 0);
-		EXPECT_EQ(2U, dsBVH_intersectBounds(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(2U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -698,33 +813,33 @@ TYPED_TEST(BVHTest, OverlappingBoxesBalanced)
 			EXPECT_TRUE(object.data == 3 || object.data == 4);
 		};
 		testBounds = TestFixture::createBounds(0, 0, 0, 2, 2, 0);
-		EXPECT_EQ(2U, dsBVH_intersectBounds(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(2U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	testBounds = TestFixture::createBounds(-1, -1, 0, 1, 1, 0);
 	EXPECT_EQ(5U, dsBVH_intersectBounds(bvh, &testBounds, nullptr, nullptr));
 
 	std::pair<int, int> visitCounts = {0, 1};
-	EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, &TestFixture::limitedVisits,
-		&visitCounts));
+	EXPECT_EQ(1U, dsBVH_intersectBounds(
+		bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
 
 	visitCounts = {0, 2};
-	EXPECT_EQ(2U, dsBVH_intersectBounds(bvh, &testBounds, &TestFixture::limitedVisits,
-		&visitCounts));
+	EXPECT_EQ(2U, dsBVH_intersectBounds(
+		bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
 
 	visitCounts = {0, 3};
-	EXPECT_EQ(3U, dsBVH_intersectBounds(bvh, &testBounds, &TestFixture::limitedVisits,
-		&visitCounts));
+	EXPECT_EQ(3U, dsBVH_intersectBounds(
+		bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
 
 	visitCounts = {0, 4};
-	EXPECT_EQ(4U, dsBVH_intersectBounds(bvh, &testBounds, &TestFixture::limitedVisits,
-		&visitCounts));
+	EXPECT_EQ(4U, dsBVH_intersectBounds(
+		bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
 
 	AlignedBoxType bounds;
 	EXPECT_TRUE(dsBVH_getBounds(&bounds, bvh));
 	AlignedBoxType fullBounds = TestFixture::createBounds(-3, -3, 0, 3, 3, 0);
-	EXPECT_EQ(0, memcmp(&fullBounds, &bounds, sizeof(AlignedBoxType)));
+	EXPECT_TRUE(TestFixture::boundsEqual(fullBounds, bounds));
 
 	dsBVH_destroy(bvh);
 }
@@ -735,8 +850,8 @@ TYPED_TEST(BVHTest, ObjectPointer)
 	using AlignedBoxType = typename TestFixture::AlignedBoxType;
 
 	TestFixture* fixture = this;
-	dsBVH* bvh = dsBVH_create((dsAllocator*)&fixture->allocator, TestFixture::axisCount(),
-		TestFixture::element(), NULL);
+	dsBVH* bvh = dsBVH_create(
+		(dsAllocator*)&fixture->allocator, TestFixture::axisCount(), TestFixture::element(), NULL);
 	ASSERT_TRUE(bvh);
 
 	TestObject* data[] =
@@ -761,8 +876,8 @@ TYPED_TEST(BVHTest, ObjectPointer)
 			EXPECT_EQ(0, object.data);
 		};
 		testBounds = TestFixture::createBounds(-2, -2, 0, 0, 0, 0);
-		EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(1U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -771,8 +886,8 @@ TYPED_TEST(BVHTest, ObjectPointer)
 			EXPECT_EQ(1, object.data);
 		};
 		testBounds = TestFixture::createBounds(0, -2, 0, 2, 0, 0);
-		EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(1U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -781,8 +896,8 @@ TYPED_TEST(BVHTest, ObjectPointer)
 			EXPECT_EQ(2, object.data);
 		};
 		testBounds = TestFixture::createBounds(-2, 0, 0, 0, 2, 0);
-		EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(1U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -791,8 +906,8 @@ TYPED_TEST(BVHTest, ObjectPointer)
 			EXPECT_EQ(3, object.data);
 		};
 		testBounds = TestFixture::createBounds(0, 0, 0, 2, 2, 0);
-		EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(1U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	testBounds = TestFixture::createBounds(-1, -1, 0, 1, 1, 0);
@@ -818,8 +933,8 @@ TYPED_TEST(BVHTest, ObjectIndex)
 	};
 
 	TestFixture* fixture = this;
-	dsBVH* bvh = dsBVH_create((dsAllocator*)&fixture->allocator, TestFixture::axisCount(),
-		TestFixture::element(), data);
+	dsBVH* bvh = dsBVH_create(
+		(dsAllocator*)&fixture->allocator, TestFixture::axisCount(), TestFixture::element(), data);
 	ASSERT_TRUE(bvh);
 
 	EXPECT_TRUE(dsBVH_empty(bvh));
@@ -836,8 +951,8 @@ TYPED_TEST(BVHTest, ObjectIndex)
 			EXPECT_EQ(0, object.data);
 		};
 		testBounds = TestFixture::createBounds(-2, -2, 0, 0, 0, 0);
-		EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, fixture->indexLambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(1U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->indexLambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -846,8 +961,8 @@ TYPED_TEST(BVHTest, ObjectIndex)
 			EXPECT_EQ(1, object.data);
 		};
 		testBounds = TestFixture::createBounds(0, -2, 0, 2, 0, 0);
-		EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, fixture->indexLambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(1U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->indexLambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -856,8 +971,8 @@ TYPED_TEST(BVHTest, ObjectIndex)
 			EXPECT_EQ(2, object.data);
 		};
 		testBounds = TestFixture::createBounds(-2, 0, 0, 0, 2, 0);
-		EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, fixture->indexLambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(1U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->indexLambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -866,8 +981,8 @@ TYPED_TEST(BVHTest, ObjectIndex)
 			EXPECT_EQ(3, object.data);
 		};
 		testBounds = TestFixture::createBounds(0, 0, 0, 2, 2, 0);
-		EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, fixture->indexLambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(1U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->indexLambdaAdapter(testFunc), &testFunc));
 	}
 
 	testBounds = TestFixture::createBounds(-1, -1, 0, 1, 1, 0);
@@ -882,8 +997,8 @@ TYPED_TEST(BVHTest, SeparateBoxesFrustum)
 	using FrustumType = typename TestFixture::FrustumType;
 
 	TestFixture* fixture = this;
-	dsBVH* bvh = dsBVH_create((dsAllocator*)&fixture->allocator, TestFixture::axisCount(),
-		TestFixture::element(), NULL);
+	dsBVH* bvh = dsBVH_create(
+		(dsAllocator*)&fixture->allocator, TestFixture::axisCount(), TestFixture::element(), NULL);
 	ASSERT_TRUE(bvh);
 
 	TestObject data[] =
@@ -895,11 +1010,11 @@ TYPED_TEST(BVHTest, SeparateBoxesFrustum)
 	};
 
 	EXPECT_TRUE(dsBVH_empty(bvh));
-	EXPECT_TRUE(dsBVH_build(bvh, data, DS_ARRAY_SIZE(data), sizeof(TestObject),
-		&TestFixture::getBounds, false));
+	EXPECT_TRUE(dsBVH_build(
+		bvh, data, DS_ARRAY_SIZE(data), sizeof(TestObject), &TestFixture::getBounds, false));
 	EXPECT_FALSE(dsBVH_empty(bvh));
 
-	bool hasIntersects = TestFixture::axisCount() == 3 &&
+	bool hasIntersects = TestFixture::axisCount() >= 3 &&
 		TestFixture::element() != dsGeometryElement_Int;
 	FrustumType testFrustum = TestFixture::createFrustum(-0.1f, -0.1f, -0.1f, 0.1f, 0.1f, 0.1f);
 	EXPECT_EQ(0U, dsBVH_intersectFrustum(bvh, &testFrustum, nullptr, nullptr));
@@ -910,8 +1025,8 @@ TYPED_TEST(BVHTest, SeparateBoxesFrustum)
 			EXPECT_EQ(0, object.data);
 		};
 		testFrustum = TestFixture::createFrustum(-2.0f, -2.0f, -0.1f, 0.0f, 0.0f, 0.1f);
-		EXPECT_EQ(1U*hasIntersects, dsBVH_intersectFrustum(bvh, &testFrustum,
-			fixture->lambdaAdapter(testFunc), &testFunc));
+		EXPECT_EQ(1U*hasIntersects, dsBVH_intersectFrustum(
+			bvh, &testFrustum, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -920,8 +1035,8 @@ TYPED_TEST(BVHTest, SeparateBoxesFrustum)
 			EXPECT_EQ(1, object.data);
 		};
 		testFrustum = TestFixture::createFrustum(0.0f, -2.0f, -0.1f, 2.0f, 0.0f, 0.1f);
-		EXPECT_EQ(1U*hasIntersects, dsBVH_intersectFrustum(bvh, &testFrustum,
-			fixture->lambdaAdapter(testFunc), &testFunc));
+		EXPECT_EQ(1U*hasIntersects, dsBVH_intersectFrustum(
+			bvh, &testFrustum, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -930,8 +1045,8 @@ TYPED_TEST(BVHTest, SeparateBoxesFrustum)
 			EXPECT_EQ(2, object.data);
 		};
 		testFrustum = TestFixture::createFrustum(-2.0f, 0.0f, -0.1f, 0.0f, 2.0f, 0.1f);
-		EXPECT_EQ(1U*hasIntersects, dsBVH_intersectFrustum(bvh, &testFrustum,
-			fixture->lambdaAdapter(testFunc), &testFunc));
+		EXPECT_EQ(1U*hasIntersects, dsBVH_intersectFrustum(
+			bvh, &testFrustum, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -940,24 +1055,24 @@ TYPED_TEST(BVHTest, SeparateBoxesFrustum)
 			EXPECT_EQ(3, object.data);
 		};
 		testFrustum = TestFixture::createFrustum(0.0f, 0.0f, -0.1f, 2.0f, 2.0f, 0.1f);
-		EXPECT_EQ(1U*hasIntersects, dsBVH_intersectFrustum(bvh, &testFrustum,
-			fixture->lambdaAdapter(testFunc), &testFunc));
+		EXPECT_EQ(1U*hasIntersects, dsBVH_intersectFrustum(
+			bvh, &testFrustum, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	testFrustum = TestFixture::createFrustum(-1.0f, -1.0f, -0.1f, 1.0f, 1.0f, 0.1f);
 	EXPECT_EQ(4U*hasIntersects, dsBVH_intersectFrustum(bvh, &testFrustum, nullptr, nullptr));
 
 	std::pair<int, int> visitCounts = {0, 1};
-	EXPECT_EQ(1U*hasIntersects, dsBVH_intersectFrustum(bvh, &testFrustum,
-		&TestFixture::limitedVisits, &visitCounts));
+	EXPECT_EQ(1U*hasIntersects, dsBVH_intersectFrustum(
+		bvh, &testFrustum, &TestFixture::limitedVisits, &visitCounts));
 
 	visitCounts = {0, 2};
-	EXPECT_EQ(2U*hasIntersects, dsBVH_intersectFrustum(bvh, &testFrustum,
-		&TestFixture::limitedVisits, &visitCounts));
+	EXPECT_EQ(2U*hasIntersects, dsBVH_intersectFrustum(
+		bvh, &testFrustum, &TestFixture::limitedVisits, &visitCounts));
 
 	visitCounts = {0, 3};
-	EXPECT_EQ(3U*hasIntersects, dsBVH_intersectFrustum(bvh, &testFrustum,
-		&TestFixture::limitedVisits, &visitCounts));
+	EXPECT_EQ(3U*hasIntersects, dsBVH_intersectFrustum(
+		bvh, &testFrustum, &TestFixture::limitedVisits, &visitCounts));
 
 	dsBVH_destroy(bvh);
 }
@@ -968,8 +1083,8 @@ TYPED_TEST(BVHTest, OverlappingBoxesFrustum)
 	using FrustumType = typename TestFixture::FrustumType;
 
 	TestFixture* fixture = this;
-	dsBVH* bvh = dsBVH_create((dsAllocator*)&fixture->allocator, TestFixture::axisCount(),
-		TestFixture::element(), NULL);
+	dsBVH* bvh = dsBVH_create(
+		(dsAllocator*)&fixture->allocator, TestFixture::axisCount(), TestFixture::element(), NULL);
 	ASSERT_TRUE(bvh);
 
 	TestObject data[] =
@@ -982,11 +1097,11 @@ TYPED_TEST(BVHTest, OverlappingBoxesFrustum)
 	};
 
 	EXPECT_TRUE(dsBVH_empty(bvh));
-	EXPECT_TRUE(dsBVH_build(bvh, data, DS_ARRAY_SIZE(data), sizeof(TestObject),
-		&TestFixture::getBounds, false));
+	EXPECT_TRUE(dsBVH_build(
+		bvh, data, DS_ARRAY_SIZE(data), sizeof(TestObject), &TestFixture::getBounds, false));
 	EXPECT_FALSE(dsBVH_empty(bvh));
 
-	bool hasIntersects = TestFixture::axisCount() == 3 &&
+	bool hasIntersects = TestFixture::axisCount() >= 3 &&
 		TestFixture::element() != dsGeometryElement_Int;
 	FrustumType testFrustum;
 	{
@@ -995,8 +1110,8 @@ TYPED_TEST(BVHTest, OverlappingBoxesFrustum)
 			EXPECT_EQ(4, object.data);
 		};
 		FrustumType testFrustum = TestFixture::createFrustum(-0.1f, -0.1f, -0.1f, 0.1f, 0.1f, 0.1f);
-		EXPECT_EQ(1U*hasIntersects, dsBVH_intersectFrustum(bvh, &testFrustum,
-			fixture->lambdaAdapter(testFunc), &testFunc));
+		EXPECT_EQ(1U*hasIntersects, dsBVH_intersectFrustum(
+			bvh, &testFrustum, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -1005,8 +1120,8 @@ TYPED_TEST(BVHTest, OverlappingBoxesFrustum)
 			EXPECT_TRUE(object.data == 0 || object.data == 4);
 		};
 		testFrustum = TestFixture::createFrustum(-2.0f, -2.0f, -0.1f, 0.0f, 0.0f, 0.1f);
-		EXPECT_EQ(2U*hasIntersects, dsBVH_intersectFrustum(bvh, &testFrustum,
-			fixture->lambdaAdapter(testFunc), &testFunc));
+		EXPECT_EQ(2U*hasIntersects, dsBVH_intersectFrustum(
+			bvh, &testFrustum, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -1015,8 +1130,8 @@ TYPED_TEST(BVHTest, OverlappingBoxesFrustum)
 			EXPECT_TRUE(object.data == 1 || object.data == 4);
 		};
 		testFrustum = TestFixture::createFrustum(0.0f, -2.0f, -0.1f, 2.0f, 0.0f, 0.1f);
-		EXPECT_EQ(2U*hasIntersects, dsBVH_intersectFrustum(bvh, &testFrustum,
-			fixture->lambdaAdapter(testFunc), &testFunc));
+		EXPECT_EQ(2U*hasIntersects, dsBVH_intersectFrustum(
+			bvh, &testFrustum, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -1025,8 +1140,8 @@ TYPED_TEST(BVHTest, OverlappingBoxesFrustum)
 			EXPECT_TRUE(object.data == 2 || object.data == 4);
 		};
 		testFrustum = TestFixture::createFrustum(-2.0f, 0.0f, -0.1f, 0.0f, 2.0f, 0.1f);
-		EXPECT_EQ(2U*hasIntersects, dsBVH_intersectFrustum(bvh, &testFrustum,
-			fixture->lambdaAdapter(testFunc), &testFunc));
+		EXPECT_EQ(2U*hasIntersects, dsBVH_intersectFrustum(
+			bvh, &testFrustum, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -1035,28 +1150,28 @@ TYPED_TEST(BVHTest, OverlappingBoxesFrustum)
 			EXPECT_TRUE(object.data == 3 || object.data == 4);
 		};
 		testFrustum = TestFixture::createFrustum(0.0f, 0.0f, -0.1f, 2.0f, 2.0f, 0.1f);
-		EXPECT_EQ(2U*hasIntersects, dsBVH_intersectFrustum(bvh, &testFrustum,
-			fixture->lambdaAdapter(testFunc), &testFunc));
+		EXPECT_EQ(2U*hasIntersects, dsBVH_intersectFrustum(
+			bvh, &testFrustum, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	testFrustum = TestFixture::createFrustum(-1.0f, -1.0f, -0.1f, 1.0f, 1.0f, 0.1f);
 	EXPECT_EQ(5U*hasIntersects, dsBVH_intersectFrustum(bvh, &testFrustum, nullptr, nullptr));
 
 	std::pair<int, int> visitCounts = {0, 1};
-	EXPECT_EQ(1U*hasIntersects, dsBVH_intersectFrustum(bvh, &testFrustum,
-		&TestFixture::limitedVisits, &visitCounts));
+	EXPECT_EQ(1U*hasIntersects, dsBVH_intersectFrustum(
+		bvh, &testFrustum, &TestFixture::limitedVisits, &visitCounts));
 
 	visitCounts = {0, 2};
-	EXPECT_EQ(2U*hasIntersects, dsBVH_intersectFrustum(bvh, &testFrustum,
-		&TestFixture::limitedVisits, &visitCounts));
+	EXPECT_EQ(2U*hasIntersects, dsBVH_intersectFrustum(
+		bvh, &testFrustum, &TestFixture::limitedVisits, &visitCounts));
 
 	visitCounts = {0, 3};
-	EXPECT_EQ(3U*hasIntersects, dsBVH_intersectFrustum(bvh, &testFrustum,
-		&TestFixture::limitedVisits, &visitCounts));
+	EXPECT_EQ(3U*hasIntersects, dsBVH_intersectFrustum(
+		bvh, &testFrustum, &TestFixture::limitedVisits, &visitCounts));
 
 	visitCounts = {0, 4};
-	EXPECT_EQ(4U*hasIntersects, dsBVH_intersectFrustum(bvh, &testFrustum,
-		&TestFixture::limitedVisits, &visitCounts));
+	EXPECT_EQ(4U*hasIntersects, dsBVH_intersectFrustum(
+		bvh, &testFrustum, &TestFixture::limitedVisits, &visitCounts));
 
 	dsBVH_destroy(bvh);
 }
@@ -1080,8 +1195,8 @@ TYPED_TEST(BVHTest, Update)
 	};
 
 	EXPECT_TRUE(dsBVH_empty(bvh));
-	EXPECT_TRUE(dsBVH_build(bvh, data, DS_ARRAY_SIZE(data), sizeof(TestObject),
-		&TestFixture::getBounds, false));
+	EXPECT_TRUE(dsBVH_build(
+		bvh, data, DS_ARRAY_SIZE(data), sizeof(TestObject), &TestFixture::getBounds, false));
 	EXPECT_FALSE(dsBVH_empty(bvh));
 
 	std::swap(data[0].bounds, data[1].bounds);
@@ -1097,8 +1212,8 @@ TYPED_TEST(BVHTest, Update)
 			EXPECT_EQ(1, object.data);
 		};
 		testBounds = TestFixture::createBounds(-2, -2, 0, 0, 0, 0);
-		EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(1U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -1107,8 +1222,8 @@ TYPED_TEST(BVHTest, Update)
 			EXPECT_EQ(0, object.data);
 		};
 		testBounds = TestFixture::createBounds(0, -2, 0, 2, 0, 0);
-		EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(1U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -1117,8 +1232,8 @@ TYPED_TEST(BVHTest, Update)
 			EXPECT_EQ(3, object.data);
 		};
 		testBounds = TestFixture::createBounds(-2, 0, 0, 0, 2, 0);
-		EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(1U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	{
@@ -1127,24 +1242,24 @@ TYPED_TEST(BVHTest, Update)
 			EXPECT_EQ(2, object.data);
 		};
 		testBounds = TestFixture::createBounds(0, 0, 0, 2, 2, 0);
-		EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
-			&testFunc));
+		EXPECT_EQ(1U, dsBVH_intersectBounds(
+			bvh, &testBounds, fixture->lambdaAdapter(testFunc), &testFunc));
 	}
 
 	testBounds = TestFixture::createBounds(-1, -1, 0, 1, 1, 0);
 	EXPECT_EQ(4U, dsBVH_intersectBounds(bvh, &testBounds, nullptr, nullptr));
 
 	std::pair<int, int> visitCounts = {0, 1};
-	EXPECT_EQ(1U, dsBVH_intersectBounds(bvh, &testBounds, &TestFixture::limitedVisits,
-		&visitCounts));
+	EXPECT_EQ(1U, dsBVH_intersectBounds(
+		bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
 
 	visitCounts = {0, 2};
-	EXPECT_EQ(2U, dsBVH_intersectBounds(bvh, &testBounds, &TestFixture::limitedVisits,
-		&visitCounts));
+	EXPECT_EQ(2U, dsBVH_intersectBounds(
+		bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
 
 	visitCounts = {0, 3};
-	EXPECT_EQ(3U, dsBVH_intersectBounds(bvh, &testBounds, &TestFixture::limitedVisits,
-		&visitCounts));
+	EXPECT_EQ(3U, dsBVH_intersectBounds(
+		bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
 
 	dsBVH_destroy(bvh);
 }

@@ -16,7 +16,7 @@
 
 #include "SpatialStructureShared.h"
 #include <DeepSea/Geometry/AlignedBox2.h>
-#include <DeepSea/Geometry/AlignedBox3.h>
+#include <DeepSea/Geometry/AlignedBox3x.h>
 
 const void* dsSpatialStructure_getObject(const void* objects, size_t objectSize, uint32_t index);
 
@@ -73,6 +73,30 @@ uint8_t dsSpatialStructure_maxAxis3i(const void* bounds)
 	const dsAlignedBox3i* realBounds = (const dsAlignedBox3i*)bounds;
 	dsVector3i extents;
 	dsAlignedBox3i_extents(&extents, realBounds);
+	if (extents.x >= extents.y && extents.x >= extents.z)
+		return 0;
+	if (extents.y >= extents.x && extents.y >= extents.z)
+		return 1;
+	return 2;
+}
+
+uint8_t dsSpatialStructure_maxAxis3xf(const void* bounds)
+{
+	const dsAlignedBox3xf* realBounds = (const dsAlignedBox3xf*)bounds;
+	dsVector3xf extents;
+	dsAlignedBox3xf_extents(&extents, realBounds);
+	if (extents.x >= extents.y && extents.x >= extents.z)
+		return 0;
+	if (extents.y >= extents.x && extents.y >= extents.z)
+		return 1;
+	return 2;
+}
+
+uint8_t dsSpatialStructure_maxAxis3xd(const void* bounds)
+{
+	const dsAlignedBox3xd* realBounds = (const dsAlignedBox3xd*)bounds;
+	dsVector3xd extents;
+	dsAlignedBox3xd_extents(&extents, realBounds);
 	if (extents.x >= extents.y && extents.x >= extents.z)
 		return 0;
 	if (extents.y >= extents.x && extents.y >= extents.z)

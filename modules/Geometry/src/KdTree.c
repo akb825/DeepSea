@@ -40,7 +40,7 @@ typedef struct dsKdTreeNode
 	uint32_t rightNode;
 	const void* object;
 	// Double for worst-case alignment.
-	DS_ALIGN(16) double point[];
+	DS_ALIGN(DS_ALLOC_ALIGNMENT) double point[];
 } dsKdTreeNode;
 
 struct dsKdTree
@@ -106,8 +106,8 @@ static uint32_t buildKdTreeBalancedRec(dsKdTree* kdTree, uint32_t start, uint32_
 
 	// Sort based on the maximum dimension.
 	SortContext context = {axis, (uint8_t)(kdTree->nodeSize - kdTree->pointSize)};
-	dsSort(getNode(kdTree->nodes, kdTree->nodeSize, start), count, kdTree->nodeSize, compareFunc,
-		&context);
+	dsSort(getNode(
+		kdTree->nodes, kdTree->nodeSize, start), count, kdTree->nodeSize, compareFunc, &context);
 
 	// Recurse down the middle.
 	uint32_t middle = count/2;
@@ -525,20 +525,20 @@ const void* dsKdTree_nearestNeighbor(const dsKdTree* kdTree, const void* point)
 		case dsGeometryElement_Float:
 		{
 			float distance = FLT_MAX;
-			return nearestNeighborRecFloat(kdTree, kdTree->rootNode, (const float*)point,
-				&distance, 0);
+			return nearestNeighborRecFloat(
+				kdTree, kdTree->rootNode, (const float*)point, &distance, 0);
 		}
 		case dsGeometryElement_Double:
 		{
 			double distance = DBL_MAX;
-			return nearestNeighborRecDouble(kdTree, kdTree->rootNode, (const double*)point,
-				&distance, 0);
+			return nearestNeighborRecDouble(
+				kdTree, kdTree->rootNode, (const double*)point, &distance, 0);
 		}
 		case dsGeometryElement_Int:
 		{
 			double distance = DBL_MAX;
-			return nearestNeighborRecInt(kdTree, kdTree->rootNode, (const int*)point,
-				&distance, 0);
+			return nearestNeighborRecInt(
+				kdTree, kdTree->rootNode, (const int*)point, &distance, 0);
 		}
 	}
 
@@ -546,8 +546,8 @@ const void* dsKdTree_nearestNeighbor(const dsKdTree* kdTree, const void* point)
 	return NULL;
 }
 
-bool dsKdTree_traverse(const dsKdTree* kdTree, dsKdTreeTraverseFunction traverseFunc,
-	void* userData)
+bool dsKdTree_traverse(
+	const dsKdTree* kdTree, dsKdTreeTraverseFunction traverseFunc, void* userData)
 {
 	if (!kdTree || !traverseFunc)
 	{

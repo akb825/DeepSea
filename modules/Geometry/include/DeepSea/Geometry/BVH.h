@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,13 +47,15 @@ extern "C"
  * @brief Creates a BVH.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the BVH with. This must support freeing memory.
- * @param axisCount The number of axes for the bounding boxes. This must be 2 or 3.
+ * @param axisCount The number of axes for the bounding boxes. This must be 2, 3, or 4. A value of
+ *     4 is treated the same as 3, except an empty axis is stored to allow for padding for SIMD
+ *     operations, and is only allowed for floating-point types.
  * @param element The type for each bounds element.
  * @param userData User data associated with the BVH.
  * @return The created BVH or NULL if it couldn't be created.
  */
-DS_GEOMETRY_EXPORT dsBVH* dsBVH_create(dsAllocator* allocator, uint8_t axisCount,
-	dsGeometryElement element, void* userData);
+DS_GEOMETRY_EXPORT dsBVH* dsBVH_create(
+	dsAllocator* allocator, uint8_t axisCount, dsGeometryElement element, void* userData);
 
 /**
  * @brief Gets the number of axes for the bounds within a BVH.
@@ -144,8 +146,8 @@ DS_GEOMETRY_EXPORT bool dsBVH_empty(const dsBVH* bvh);
  * @param userData User data to pass to the visitor function.
  * @return The number of objects that intersected.
  */
-DS_GEOMETRY_EXPORT uint32_t dsBVH_intersectBounds(const dsBVH* bvh, const void* bounds,
-	dsBVHVisitFunction visitor, void* userData);
+DS_GEOMETRY_EXPORT uint32_t dsBVH_intersectBounds(
+	const dsBVH* bvh, const void* bounds, dsBVHVisitFunction visitor, void* userData);
 
 /**
  * @brief Intersects a frustum with the BVH.
@@ -158,8 +160,8 @@ DS_GEOMETRY_EXPORT uint32_t dsBVH_intersectBounds(const dsBVH* bvh, const void* 
  * @param userData User data to pass to the visitor function.
  * @return The number of objects that intersected.
  */
-DS_GEOMETRY_EXPORT uint32_t dsBVH_intersectFrustum(const dsBVH* bvh, const void* frustum,
-	dsBVHVisitFunction visitor, void* userData);
+DS_GEOMETRY_EXPORT uint32_t dsBVH_intersectFrustum(
+	const dsBVH* bvh, const void* frustum, dsBVHVisitFunction visitor, void* userData);
 
 /**
  * @brief Gets the bounds of the BVH.
