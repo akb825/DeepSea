@@ -280,7 +280,7 @@ DS_SCENELIGHTING_EXPORT float dsSceneLightSet_getIntensityThreshold(
  */
 DS_SCENELIGHTING_EXPORT uint32_t dsSceneLightSet_findBrightestLights(
 	const dsSceneLight** outBrightestLights, uint32_t outLightCount, bool* outHasMainLight,
-	const dsSceneLightSet* lightSet, const dsVector3f* position);
+	const dsSceneLightSet* lightSet, const dsVector3xf* position);
 
 /**
  * @brief Visits each light that's inside a frustum.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,16 @@
 
 #include "FixtureBase.h"
 
-#include <DeepSea/Geometry/AlignedBox3.h>
+#include <DeepSea/Geometry/AlignedBox3x.h>
 #include <DeepSea/Geometry/Frustum3.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Packing.h>
-#include <DeepSea/Math/Vector3.h>
+#include <DeepSea/Math/Vector3x.h>
+
 #include <DeepSea/Render/Resources/VertexFormat.h>
+
 #include <DeepSea/SceneLighting/SceneLight.h>
 
 #include <gtest/gtest.h>
@@ -131,7 +134,7 @@ TEST_F(SceneLightTest, GetSpotLightVertexFormat)
 TEST_F(SceneLightTest, MakeDirectional)
 {
 	dsSceneLight light;
-	dsVector3f direction = {{1.0f, 0.0f, 0.0f}};
+	dsVector3xf direction = {{1.0f, 0.0f, 0.0f, 2.0f}};
 	dsColor3f color = {{0.1f, 0.2f, 0.3f}};
 	float intensity = 3.5f;
 
@@ -154,24 +157,24 @@ TEST_F(SceneLightTest, MakeDirectional)
 TEST_F(SceneLightTest, MakePoint)
 {
 	dsSceneLight light;
-	dsVector3f position = {{1.0f, 2.0f, 3.0f}};
+	dsVector3xf position = {{1.0f, 2.0f, 3.0f, 4.0f}};
 	dsColor3f color = {{0.1f, 0.2f, 0.3f}};
 	float intensity = 3.5f;
 	float linearFalloff = 1.0f;
 	float quadraticFalloff = 2.0f;
 
-	EXPECT_FALSE(dsSceneLight_makePoint(nullptr, &position, &color, intensity, linearFalloff,
-		quadraticFalloff));
-	EXPECT_FALSE(dsSceneLight_makePoint(&light, nullptr, &color, intensity, linearFalloff,
-		quadraticFalloff));
-	EXPECT_FALSE(dsSceneLight_makePoint(&light, &position, nullptr, intensity, linearFalloff,
-		quadraticFalloff));
-	EXPECT_FALSE(dsSceneLight_makePoint(&light, &position, &color, intensity, -1,
-		quadraticFalloff));
+	EXPECT_FALSE(dsSceneLight_makePoint(
+		nullptr, &position, &color, intensity, linearFalloff, quadraticFalloff));
+	EXPECT_FALSE(dsSceneLight_makePoint(
+		&light, nullptr, &color, intensity, linearFalloff, quadraticFalloff));
+	EXPECT_FALSE(dsSceneLight_makePoint(
+		&light, &position, nullptr, intensity, linearFalloff, quadraticFalloff));
+	EXPECT_FALSE(dsSceneLight_makePoint(
+		&light, &position, &color, intensity, -1, quadraticFalloff));
 	EXPECT_FALSE(dsSceneLight_makePoint(&light, &position, &color, intensity, linearFalloff, -1));
 
-	EXPECT_TRUE(dsSceneLight_makePoint(&light, &position, &color, intensity, linearFalloff,
-		quadraticFalloff));
+	EXPECT_TRUE(dsSceneLight_makePoint(
+		&light, &position, &color, intensity, linearFalloff, quadraticFalloff));
 	EXPECT_EQ(dsSceneLightType_Point, light.type);
 	EXPECT_TRUE(dsVector3_equal(position, light.position));
 	EXPECT_TRUE(dsVector3_equal(zero, light.direction));
@@ -186,8 +189,8 @@ TEST_F(SceneLightTest, MakePoint)
 TEST_F(SceneLightTest, MakeSpot)
 {
 	dsSceneLight light;
-	dsVector3f position = {{1.0f, 2.0f, 3.0f}};
-	dsVector3f direction = {{1.0f, 0.0f, 0.0f}};
+	dsVector3xf position = {{1.0f, 2.0f, 3.0f, 4.0f}};
+	dsVector3xf direction = {{1.0f, 0.0f, 0.0f, 2.0f}};
 	dsColor3f color = {{0.1f, 0.2f, 0.3f}};
 	float intensity = 3.5f;
 	float linearFalloff = 1.0f;
@@ -226,8 +229,8 @@ TEST_F(SceneLightTest, MakeSpot)
 TEST_F(SceneLightTest, GetFalloff)
 {
 	dsSceneLight light;
-	dsVector3f position = {{1.0f, 2.0f, 3.0f}};
-	dsVector3f direction = {{1.0f, 0.0f, 0.0f}};
+	dsVector3xf position = {{1.0f, 2.0f, 3.0f, 4.0f}};
+	dsVector3xf direction = {{1.0f, 0.0f, 0.0f, 2.0f}};
 	dsColor3f color = {{0.1f, 0.2f, 0.3f}};
 	float intensity = 3.5f;
 	float linearFalloff = 1.0f;
@@ -235,14 +238,14 @@ TEST_F(SceneLightTest, GetFalloff)
 	float innerSpotCosAngle = 0.75f;
 	float outerSpotCosAngle = 0.5f;
 
-	dsVector3f objectPos = {{4.0f, 1.0f, 0.0f}};
-	float distance = dsVector3f_dist(&position, &objectPos);
+	dsVector3xf objectPos = {{4.0f, 1.0f, 0.0f, -1.0f}};
+	float distance = dsVector3xf_dist(&position, &objectPos);
 
 	EXPECT_TRUE(dsSceneLight_makeDirectional(&light, &direction, &color, intensity));
 	EXPECT_EQ(1.0f, dsSceneLight_getFalloff(&light, &objectPos));
 
-	EXPECT_TRUE(dsSceneLight_makePoint(&light, &position, &color, intensity, linearFalloff,
-		quadraticFalloff));
+	EXPECT_TRUE(dsSceneLight_makePoint(
+		&light, &position, &color, intensity, linearFalloff, quadraticFalloff));
 
 	float expectedFalloff = 1.0f/(1.0f + linearFalloff*distance + quadraticFalloff*dsPow2(distance));
 	EXPECT_NEAR(expectedFalloff, dsSceneLight_getFalloff(&light, &objectPos), 1e-6f);
@@ -264,8 +267,8 @@ TEST_F(SceneLightTest, GetFalloff)
 TEST_F(SceneLightTest, ComputeBounds)
 {
 	dsSceneLight light;
-	dsVector3f position = {{1.0f, 2.0f, 3.0f}};
-	dsVector3f direction = {{1.0f, 0.0f, 0.0f}};
+	dsVector3xf position = {{1.0f, 2.0f, 3.0f, 4.0f}};
+	dsVector3xf direction = {{1.0f, 0.0f, 0.0f, 2.0f}};
 	dsColor3f color = {{0.1f, 0.2f, 0.3f}};
 	float intensity = 3.5f;
 	float linearFalloff = 1.0f;
@@ -273,10 +276,10 @@ TEST_F(SceneLightTest, ComputeBounds)
 	float innerSpotCosAngle = 0.75f;
 	float outerSpotCosAngle = 0.5f;
 
-	dsAlignedBox3f bounds;
+	dsAlignedBox3xf bounds;
 	EXPECT_TRUE(dsSceneLight_makeDirectional(&light, &direction, &color, intensity));
-	EXPECT_TRUE(dsSceneLight_computeBounds(&bounds, &light,
-		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
+	EXPECT_TRUE(dsSceneLight_computeBounds(
+		&bounds, &light, DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
 
 	EXPECT_EQ(std::numeric_limits<float>::lowest(), bounds.min.x);
 	EXPECT_EQ(std::numeric_limits<float>::lowest(), bounds.min.y);
@@ -285,13 +288,13 @@ TEST_F(SceneLightTest, ComputeBounds)
 	EXPECT_EQ(std::numeric_limits<float>::max(), bounds.max.y);
 	EXPECT_EQ(std::numeric_limits<float>::max(), bounds.max.z);
 
-	EXPECT_TRUE(dsSceneLight_makePoint(&light, &position, &color, intensity, linearFalloff,
-		quadraticFalloff));
-	EXPECT_TRUE(dsSceneLight_computeBounds(&bounds, &light,
-		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
+	EXPECT_TRUE(dsSceneLight_makePoint(
+		&light, &position, &color, intensity, linearFalloff, quadraticFalloff));
+	EXPECT_TRUE(dsSceneLight_computeBounds(
+		&bounds, &light, DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
 
-	dsVector3f corners[DS_BOX3_CORNER_COUNT];
-	dsAlignedBox3_corners(corners, bounds);
+	dsVector3xf corners[DS_BOX3_CORNER_COUNT];
+	dsAlignedBox3xf_corners(corners, &bounds);
 	for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
 	{
 		EXPECT_GE(DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD,
@@ -300,10 +303,10 @@ TEST_F(SceneLightTest, ComputeBounds)
 
 	EXPECT_TRUE(dsSceneLight_makeSpot(&light, &position, &direction, &color, intensity,
 		linearFalloff, quadraticFalloff, innerSpotCosAngle, outerSpotCosAngle));
-	EXPECT_TRUE(dsSceneLight_computeBounds(&bounds, &light,
-		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
+	EXPECT_TRUE(dsSceneLight_computeBounds(
+		&bounds, &light, DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
 
-	dsAlignedBox3_corners(corners, bounds);
+	dsAlignedBox3xf_corners(corners, &bounds);
 	for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
 	{
 		EXPECT_GE(DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD,
@@ -314,8 +317,8 @@ TEST_F(SceneLightTest, ComputeBounds)
 TEST_F(SceneLightTest, IsInFrustum)
 {
 	dsSceneLight light;
-	dsVector3f position = {{1.0f, 2.0f, 3.0f}};
-	dsVector3f direction = {{1.0f, 0.0f, 0.0f}};
+	dsVector3xf position = {{1.0f, 2.0f, 3.0f, 4.0f}};
+	dsVector3xf direction = {{1.0f, 0.0f, 0.0f, 2.0f}};
 	dsColor3f color = {{0.1f, 0.2f, 0.3f}};
 	float intensity = 3.5f;
 	float linearFalloff = 1.0f;
@@ -355,14 +358,14 @@ TEST_F(SceneLightTest, IsInFrustum)
 TEST_F(SceneLightTest, GetPointLightProjection)
 {
 	dsSceneLight light;
-	dsVector3f position = {{1.0f, 2.0f, 3.0f}};
+	dsVector3xf position = {{1.0f, 2.0f, 3.0f, 4.0f}};
 	dsColor3f color = {{0.1f, 0.2f, 0.3f}};
 	float intensity = 3.5f;
 	float linearFalloff = 1.0f;
 	float quadraticFalloff = 2.0f;
 
-	ASSERT_TRUE(dsSceneLight_makePoint(&light, &position, &color, intensity, linearFalloff,
-		quadraticFalloff));
+	ASSERT_TRUE(dsSceneLight_makePoint(
+		&light, &position, &color, intensity, linearFalloff, quadraticFalloff));
 
 	dsMatrix44f transform;
 	dsMatrix44f projection;
@@ -447,8 +450,8 @@ TEST_F(SceneLightTest, GetPointLightProjection)
 TEST_F(SceneLightTest, GetSpotLightProjection)
 {
 	dsSceneLight light;
-	dsVector3f position = {{1.0f, 2.0f, 3.0f}};
-	dsVector3f direction = {{1.0f, 0.0f, 0.0f}};
+	dsVector3xf position = {{1.0f, 2.0f, 3.0f, 4.0f}};
+	dsVector3xf direction = {{1.0f, 0.0f, 0.0f, 2.0f}};
 	dsColor3f color = {{0.1f, 0.2f, 0.3f}};
 	float intensity = 3.5f;
 	float linearFalloff = 1.0f;
@@ -460,15 +463,15 @@ TEST_F(SceneLightTest, GetSpotLightProjection)
 		linearFalloff, quadraticFalloff, innerSpotCosAngle, outerSpotCosAngle));
 
 	dsMatrix44f transform;
-	EXPECT_FALSE(dsSceneLight_getPointLightTransform(&transform, &light,
-		dsCubeFace_PosX));
+	EXPECT_FALSE(dsSceneLight_getPointLightTransform(
+		&transform, &light, dsCubeFace_PosX));
 	ASSERT_TRUE(dsSceneLight_getSpotLightTransform(&transform, &light));
 
 	dsMatrix44f projection;
-	EXPECT_FALSE(dsSceneLight_getPointLightProjection(&projection, &light, renderer,
-		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
-	ASSERT_TRUE(dsSceneLight_getSpotLightProjection(&projection, &light, renderer,
-		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
+	EXPECT_FALSE(dsSceneLight_getPointLightProjection(
+		&projection, &light, renderer, DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
+	ASSERT_TRUE(dsSceneLight_getSpotLightProjection(
+		&projection, &light, renderer, DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
 
 	dsMatrix44f spotProjection;
 	dsMatrix44_mul(spotProjection, projection, transform);
@@ -542,8 +545,8 @@ TEST_F(SceneLightTest, GetAmbientLightVertices)
 TEST_F(SceneLightTest, GetDirectionalLightVertices)
 {
 	dsSceneLight light;
-	dsVector3f position = {{1.0f, 2.0f, 3.0f}};
-	dsVector3f direction = {{1.0f, 0.0f, 0.0f}};
+	dsVector3xf position = {{1.0f, 2.0f, 3.0f, 4.0f}};
+	dsVector3xf direction = {{1.0f, 0.0f, 0.0f, 2.0f}};
 	dsColor3f color = {{0.1f, 0.2f, 0.3f}};
 	float intensity = 3.5f;
 	float linearFalloff = 1.0f;
@@ -608,8 +611,8 @@ TEST_F(SceneLightTest, GetDirectionalLightVertices)
 	EXPECT_EQ(2U, lightIndices[4]);
 	EXPECT_EQ(3U, lightIndices[5]);
 
-	EXPECT_TRUE(dsSceneLight_makePoint(&light, &position, &color, intensity, linearFalloff,
-		quadraticFalloff));
+	EXPECT_TRUE(dsSceneLight_makePoint(
+		&light, &position, &color, intensity, linearFalloff, quadraticFalloff));
 	EXPECT_FALSE(dsSceneLight_getDirectionalLightVertices(lightVertices,
 		DS_DIRECTIONAL_LIGHT_VERTEX_COUNT, lightIndices, DS_DIRECTIONAL_LIGHT_INDEX_COUNT,
 		&light, 0));
@@ -624,8 +627,8 @@ TEST_F(SceneLightTest, GetDirectionalLightVertices)
 TEST_F(SceneLightTest, GetPointLightVertices)
 {
 	dsSceneLight light;
-	dsVector3f position = {{1.0f, 2.0f, 3.0f}};
-	dsVector3f direction = {{1.0f, 0.0f, 0.0f}};
+	dsVector3xf position = {{1.0f, 2.0f, 3.0f, 4.0f}};
+	dsVector3xf direction = {{1.0f, 0.0f, 0.0f, 2.0f}};
 	dsColor3f color = {{0.1f, 0.2f, 0.3f}};
 	float intensity = 3.5f;
 	float linearFalloff = 1.0f;
@@ -641,8 +644,8 @@ TEST_F(SceneLightTest, GetPointLightVertices)
 		lightIndices, DS_POINT_LIGHT_INDEX_COUNT, &light,
 		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD, 0));
 
-	EXPECT_TRUE(dsSceneLight_makePoint(&light, &position, &color, intensity, linearFalloff,
-		quadraticFalloff));
+	EXPECT_TRUE(dsSceneLight_makePoint(
+		&light, &position, &color, intensity, linearFalloff, quadraticFalloff));
 
 	EXPECT_FALSE(dsSceneLight_getPointLightVertices(nullptr, DS_POINT_LIGHT_VERTEX_COUNT,
 		lightIndices, DS_POINT_LIGHT_INDEX_COUNT, &light,
@@ -782,8 +785,8 @@ TEST_F(SceneLightTest, GetPointLightVertices)
 TEST_F(SceneLightTest, GetSpotLightVertices)
 {
 	dsSceneLight light;
-	dsVector3f position = {{1.0f, 2.0f, 3.0f}};
-	dsVector3f direction = {{1.0f, 0.0f, 0.0f}};
+	dsVector3xf position = {{1.0f, 2.0f, 3.0f, 4.0f}};
+	dsVector3xf direction = {{1.0f, 0.0f, 0.0f, 2.0f}};
 	dsColor3f color = {{0.1f, 0.2f, 0.3f}};
 	float intensity = 3.5f;
 	float linearFalloff = 1.0f;

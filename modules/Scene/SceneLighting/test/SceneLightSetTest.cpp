@@ -164,14 +164,14 @@ TEST_F(SceneLightSetTest, FindBrightestLights)
 	dsSceneLightSet* lightSet = dsSceneLightSet_create((dsAllocator*)&allocator, 4, &color, 0.1f);
 	ASSERT_TRUE(lightSet);
 
-	dsVector3f direction = {{0.0f, 0.0f, -1.0f}};
+	dsVector3xf direction = {{0.0f, 0.0f, -1.0f}};
 	dsSceneLight* light1 = dsSceneLightSet_addLightName(lightSet, "first");
 	ASSERT_TRUE(dsSceneLight_makeDirectional(light1, &direction, &color, 1.0f));
 
 	dsSceneLight* light2 = dsSceneLightSet_addLightName(lightSet, "second");
 	ASSERT_TRUE(dsSceneLight_makeDirectional(light2, &direction, &color, 0.05f));
 
-	dsVector3f position = {{-1.0f, 0.0f, 0.0f}};
+	dsVector3xf position = {{-1.0f, 0.0f, 0.0f}};
 	dsSceneLight* light3 = dsSceneLightSet_addLightName(lightSet, "third");
 	ASSERT_TRUE(dsSceneLight_makePoint(light3, &position, &color, 1.0f, 1.0f, 1.0f));
 
@@ -179,8 +179,8 @@ TEST_F(SceneLightSetTest, FindBrightestLights)
 	direction.x = -1.0f;
 	direction.z = 0.0f;
 	dsSceneLight* light4 = dsSceneLightSet_addLightName(lightSet, "fourth");
-	ASSERT_TRUE(dsSceneLight_makeSpot(light4, &position, &direction, &color, 1.0f, 1.0f, 1.0f,
-		0.5f, 0.5f));
+	ASSERT_TRUE(dsSceneLight_makeSpot(
+		light4, &position, &direction, &color, 1.0f, 1.0f, 1.0f, 0.5f, 0.5f));
 
 	EXPECT_TRUE(dsSceneLightSet_prepare(lightSet, 0.1f));
 
@@ -189,30 +189,30 @@ TEST_F(SceneLightSetTest, FindBrightestLights)
 	bool hasMain = false;
 	position.x = 0.0f;
 	uint32_t lightCount = 4;
-	ASSERT_EQ(3U, dsSceneLightSet_findBrightestLights(brightestLights, lightCount, &hasMain,
-		lightSet, &position));
+	ASSERT_EQ(3U, dsSceneLightSet_findBrightestLights(
+		brightestLights, lightCount, &hasMain, lightSet, &position));
 	EXPECT_TRUE(hasLight(brightestLights, lightCount, light1));
 	EXPECT_TRUE(hasLight(brightestLights, lightCount, light3));
 	EXPECT_TRUE(hasLight(brightestLights, lightCount, light4));
 
 	position.x = -0.5f;
 	lightCount = 2;
-	ASSERT_EQ(2U, dsSceneLightSet_findBrightestLights(brightestLights, lightCount, &hasMain,
-		lightSet, &position));
+	ASSERT_EQ(2U, dsSceneLightSet_findBrightestLights(
+		brightestLights, lightCount, &hasMain, lightSet, &position));
 	EXPECT_TRUE(hasLight(brightestLights, lightCount, light1));
 	EXPECT_TRUE(hasLight(brightestLights, lightCount, light3));
 
 	position.x = 0.5f;
-	ASSERT_EQ(2U, dsSceneLightSet_findBrightestLights(brightestLights, lightCount, &hasMain,
-		lightSet, &position));
+	ASSERT_EQ(2U, dsSceneLightSet_findBrightestLights(
+		brightestLights, lightCount, &hasMain, lightSet, &position));
 	EXPECT_TRUE(hasLight(brightestLights, lightCount, light1));
 	EXPECT_TRUE(hasLight(brightestLights, lightCount, light4));
 
 	position.x = -1.0f;
 	position.z = 2.0f;
 	lightCount = 4;
-	ASSERT_EQ(2U, dsSceneLightSet_findBrightestLights(brightestLights, lightCount, &hasMain,
-		lightSet, &position));
+	ASSERT_EQ(2U, dsSceneLightSet_findBrightestLights(
+		brightestLights, lightCount, &hasMain, lightSet, &position));
 	EXPECT_TRUE(hasLight(brightestLights, lightCount, light1));
 	EXPECT_TRUE(hasLight(brightestLights, lightCount, light3));
 
@@ -220,15 +220,15 @@ TEST_F(SceneLightSetTest, FindBrightestLights)
 	position.z = 0.0f;
 	lightCount = 2;
 	ASSERT_TRUE(dsSceneLightSet_setMainLightName(lightSet, "second"));
-	ASSERT_EQ(2U, dsSceneLightSet_findBrightestLights(brightestLights, lightCount, &hasMain,
-		lightSet, &position));
+	ASSERT_EQ(2U, dsSceneLightSet_findBrightestLights(
+		brightestLights, lightCount, &hasMain, lightSet, &position));
 	EXPECT_TRUE(hasLight(brightestLights, lightCount, light1));
 	EXPECT_TRUE(hasLight(brightestLights, lightCount, light4));
 	EXPECT_FALSE(hasMain);
 
 	light2->intensity = 0.2f;
-	ASSERT_EQ(2U, dsSceneLightSet_findBrightestLights(brightestLights, lightCount, &hasMain,
-		lightSet, &position));
+	ASSERT_EQ(2U, dsSceneLightSet_findBrightestLights(
+		brightestLights, lightCount, &hasMain, lightSet, &position));
 	EXPECT_EQ(light2, brightestLights[0]);
 	EXPECT_TRUE(hasLight(brightestLights, lightCount, light1));
 	EXPECT_TRUE(hasLight(brightestLights, lightCount, light2));
@@ -242,14 +242,14 @@ TEST_F(SceneLightSetTest, ForEachLightInFrustum)
 	dsSceneLightSet* lightSet = dsSceneLightSet_create((dsAllocator*)&allocator, 4, &color, 0.1f);
 	ASSERT_TRUE(lightSet);
 
-	dsVector3f direction = {{0.0f, 0.0f, -1.0f}};
+	dsVector3xf direction = {{0.0f, 0.0f, -1.0f}};
 	dsSceneLight* light1 = dsSceneLightSet_addLightName(lightSet, "first");
 	ASSERT_TRUE(dsSceneLight_makeDirectional(light1, &direction, &color, 1.0f));
 
 	dsSceneLight* light2 = dsSceneLightSet_addLightName(lightSet, "second");
 	ASSERT_TRUE(dsSceneLight_makeDirectional(light2, &direction, &color, 0.05f));
 
-	dsVector3f position = {{-1.0f, 0.0f, 0.0f}};
+	dsVector3xf position = {{-1.0f, 0.0f, 0.0f}};
 	dsSceneLight* light3 = dsSceneLightSet_addLightName(lightSet, "third");
 	ASSERT_TRUE(dsSceneLight_makePoint(light3, &position, &color, 1.0f, 1.0f, 1.0f));
 
@@ -257,15 +257,15 @@ TEST_F(SceneLightSetTest, ForEachLightInFrustum)
 	direction.x = 1.0f;
 	direction.z = 0.0f;
 	dsSceneLight* light4 = dsSceneLightSet_addLightName(lightSet, "fourth");
-	ASSERT_TRUE(dsSceneLight_makeSpot(light4, &position, &direction, &color, 1.0f, 1.0f, 1.0f,
-		0.5f, 0.5f));
+	ASSERT_TRUE(dsSceneLight_makeSpot(
+		light4, &position, &direction, &color, 1.0f, 1.0f, 1.0f, 0.5f, 0.5f));
 
 	EXPECT_TRUE(dsSceneLightSet_prepare(lightSet, 0.1f));
 
 	dsMatrix44f projection;
 	dsFrustum3f frustum;
-	dsMatrix44f_makeOrtho(&projection, -2.0f, 0.0f, -1.0f, 0.0f, -1.0f, 1.0f,
-		dsProjectionMatrixOptions_None);
+	dsMatrix44f_makeOrtho(
+		&projection, -2.0f, 0.0f, -1.0f, 0.0f, -1.0f, 1.0f, dsProjectionMatrixOptions_None);
 	dsFrustum3_fromMatrix(frustum, projection, dsProjectionMatrixOptions_None);
 
 	std::vector<const dsSceneLight*> lights;
@@ -273,8 +273,8 @@ TEST_F(SceneLightSetTest, ForEachLightInFrustum)
 	EXPECT_TRUE(hasLight(lights, light1));
 	EXPECT_TRUE(hasLight(lights, light3));
 
-	dsMatrix44f_makeOrtho(&projection, 0.0f, 2.0f, -1.0f, 0.0f, -1.0f, 1.0f,
-		dsProjectionMatrixOptions_None);
+	dsMatrix44f_makeOrtho(
+		&projection, 0.0f, 2.0f, -1.0f, 0.0f, -1.0f, 1.0f, dsProjectionMatrixOptions_None);
 	dsFrustum3_fromMatrix(frustum, projection, dsProjectionMatrixOptions_None);
 
 	lights.clear();
@@ -283,8 +283,8 @@ TEST_F(SceneLightSetTest, ForEachLightInFrustum)
 	EXPECT_TRUE(hasLight(lights, light3));
 	EXPECT_TRUE(hasLight(lights, light4));
 
-	dsMatrix44f_makeOrtho(&projection, 2.0f, 4.0f, -1.0f, 0.0f, -1.0f, 1.0f,
-		dsProjectionMatrixOptions_None);
+	dsMatrix44f_makeOrtho(
+		&projection, 2.0f, 4.0f, -1.0f, 0.0f, -1.0f, 1.0f, dsProjectionMatrixOptions_None);
 	dsFrustum3_fromMatrix(frustum, projection, dsProjectionMatrixOptions_None);
 	EXPECT_EQ(2U, dsSceneLightSet_forEachLightInFrustum(lightSet, &frustum, &visitLight, &lights));
 	EXPECT_TRUE(hasLight(lights, light1));

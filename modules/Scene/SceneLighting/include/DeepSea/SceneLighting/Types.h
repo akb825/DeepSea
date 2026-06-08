@@ -79,12 +79,12 @@ typedef struct dsSceneLight
 	/**
 	 * @brief The position of the light.
 	 */
-	dsVector3f position;
+	dsVector3xf position;
 
 	/**
 	 * @brief The direction of the light.
 	 */
-	dsVector3f direction;
+	dsVector3xf direction;
 
 	/**
 	 * @brief The color of the light.

@@ -115,8 +115,8 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLight_getSpotLightVertexFormat(dsVertexForma
  * @param intensity The intensity of the light.
  * @return False if the parameters are invalid.
  */
-DS_SCENELIGHTING_EXPORT bool dsSceneLight_makeDirectional(dsSceneLight* outLight,
-	const dsVector3f* direction, const dsColor3f* color, float intensity);
+DS_SCENELIGHTING_EXPORT bool dsSceneLight_makeDirectional(
+	dsSceneLight* outLight, const dsVector3xf* direction, const dsColor3f* color, float intensity);
 
 /**
  * @brief Makes a point light.
@@ -130,7 +130,7 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLight_makeDirectional(dsSceneLight* outLight
  * @return False if the parameters are invalid.
  */
 DS_SCENELIGHTING_EXPORT bool dsSceneLight_makePoint(dsSceneLight* outLight,
-	const dsVector3f* position, const dsColor3f* color, float intensity, float linearFalloff,
+	const dsVector3xf* position, const dsColor3f* color, float intensity, float linearFalloff,
 	float quadraticFalloff);
 
 /**
@@ -150,7 +150,7 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLight_makePoint(dsSceneLight* outLight,
  * @return False if the parameters are invalid.
  */
 DS_SCENELIGHTING_EXPORT bool dsSceneLight_makeSpot(dsSceneLight* outLight,
-	const dsVector3f* position, const dsVector3f* direction, const dsColor3f* color,
+	const dsVector3xf* position, const dsVector3xf* direction, const dsColor3f* color,
 	float intensity, float linearFalloff, float quadraticFalloff, float innerSpotCosAngle,
 	float outerSpotCosAngle);
 
@@ -160,8 +160,8 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLight_makeSpot(dsSceneLight* outLight,
  * @param position The reference position.
  * @return The value to multiply the color and intensity for the falloff.
  */
-DS_SCENELIGHTING_EXPORT float dsSceneLight_getFalloff(const dsSceneLight* light,
-	const dsVector3f* position);
+DS_SCENELIGHTING_EXPORT float dsSceneLight_getFalloff(
+	const dsSceneLight* light, const dsVector3xf* position);
 
 /**
  * @brief Gets the final intensity of the light based on a position.
@@ -172,8 +172,8 @@ DS_SCENELIGHTING_EXPORT float dsSceneLight_getFalloff(const dsSceneLight* light,
  * @param position The reference position.
  * @return The intensity at the position.
  */
-DS_SCENELIGHTING_EXPORT float dsSceneLight_getIntensity(const dsSceneLight* light,
-	const dsVector3f* position);
+DS_SCENELIGHTING_EXPORT float dsSceneLight_getIntensity(
+	const dsSceneLight* light, const dsVector3xf* position);
 
 /**
  * @brief Computes the bounding box for a light.
@@ -184,8 +184,8 @@ DS_SCENELIGHTING_EXPORT float dsSceneLight_getIntensity(const dsSceneLight* ligh
  *     must be > 0. Use DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD for the default value.
  * @return False if the parameters are invalid.
  */
-DS_SCENELIGHTING_EXPORT bool dsSceneLight_computeBounds(dsAlignedBox3f* outBounds,
-	const dsSceneLight* light, float intensityThreshold);
+DS_SCENELIGHTING_EXPORT bool dsSceneLight_computeBounds(
+	dsAlignedBox3xf* outBounds, const dsSceneLight* light, float intensityThreshold);
 
 /**
  * @brief Checks whether a light intersects witha frustum.
@@ -199,8 +199,8 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLight_computeBounds(dsAlignedBox3f* outBound
  *     Use DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD for the default value.
  * @return True if the light is visible inside of the frustum.
  */
-DS_SCENELIGHTING_EXPORT bool dsSceneLight_isInFrustum(const dsSceneLight* light,
-	const dsFrustum3f* frustum, float intensityThreshold);
+DS_SCENELIGHTING_EXPORT bool dsSceneLight_isInFrustum(
+	const dsSceneLight* light, const dsFrustum3f* frustum, float intensityThreshold);
 
 /**
  * @brief Gets the transform matrix for a cube face of a point light.
@@ -210,8 +210,8 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLight_isInFrustum(const dsSceneLight* light,
  * @param cubeFace The cube face to get the transform matrix for.
  * @return False if the parameters are invalid.
  */
-DS_SCENELIGHTING_EXPORT bool dsSceneLight_getPointLightTransform(dsMatrix44f* result,
-	const dsSceneLight* light, dsCubeFace cubeFace);
+DS_SCENELIGHTING_EXPORT bool dsSceneLight_getPointLightTransform(
+	dsMatrix44f* result, const dsSceneLight* light, dsCubeFace cubeFace);
 
 /**
  * @brief Gets the projection matrix for a cube face of a point light.

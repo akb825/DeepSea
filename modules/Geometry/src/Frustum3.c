@@ -482,6 +482,58 @@ dsIntersectResult dsFrustum3d_intersectSphere(
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
 }
 
+dsIntersectResult dsFrustum3f_intersectSphere3x(
+	const dsFrustum3f* frustum, const dsVector3xf* center, float radius)
+{
+	DS_ASSERT(frustum);
+	DS_ASSERT(center);
+#if DS_SIMD_ALWAYS_FMA
+	return dsFrustum3f_intersectSphereFMA(frustum, center, radius);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	return dsFrustum3f_intersectSphereSIMD(frustum, center, radius);
+#else
+	bool intersects = false;
+	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
+	{
+		float distance = dsPlane3f_distanceToPoint(frustum->planes + i, (const dsVector3f*)center);
+		if (distance < -radius)
+			return dsIntersectResult_Outside;
+		else if (distance <= radius)
+			intersects = true;
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+#endif
+}
+
+dsIntersectResult dsFrustum3d_intersectSphere3x(
+	const dsFrustum3d* frustum, const dsVector3xd* center, double radius)
+{
+	DS_ASSERT(frustum);
+	DS_ASSERT(center);
+#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_ALWAYS_FMA
+	return dsFrustum3d_intersectSphereFMA2(frustum, center, radius);
+#else
+	return dsFrustum3d_intersectSphereSIMD2(frustum, center, radius);
+#endif
+#else
+	bool intersects = false;
+	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
+	{
+		double distance = dsPlane3d_distanceToPoint(frustum->planes + i, (const dsVector3d*)center);
+		if (distance < -radius)
+			return dsIntersectResult_Outside;
+		else if (distance <= radius)
+			intersects = true;
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+#endif
+}
+
 #if DS_HAS_SIMD
 DS_SIMD_START(DS_SIMD_FLOAT4)
 
@@ -567,6 +619,28 @@ dsIntersectResult dsFrustum3f_intersectBoxMatrixSIMD(
 			default:
 				break;
 		}
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+}
+
+dsIntersectResult dsFrustum3f_intersectSphereSIMD(
+	const dsFrustum3f* frustum, const dsVector3xf* center, float radius)
+{
+	DS_ASSERT(frustum);
+	DS_ASSERT(center);
+
+	bool intersects = false;
+	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	dsSIMD4f centerPos = dsSIMD4f_set4(center->x, center->y, center->z, 1.0f);
+	for (int i = 0; i < count; ++i)
+	{
+		dsSIMD4f dist4 = dsDot4SIMD4f(frustum->planes[i].simd, centerPos);
+		float distance = dsSIMD4f_get(dist4, 0);
+		if (distance < -radius)
+			return dsIntersectResult_Outside;
+		else if (distance <= radius)
+			intersects = true;
 	}
 
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
@@ -664,6 +738,28 @@ dsIntersectResult dsFrustum3f_intersectBoxMatrixFMA(
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
 }
 
+dsIntersectResult dsFrustum3f_intersectSphereFMA(
+	const dsFrustum3f* frustum, const dsVector3xf* center, float radius)
+{
+	DS_ASSERT(frustum);
+	DS_ASSERT(center);
+
+	bool intersects = false;
+	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	dsSIMD4f centerPos = dsSIMD4f_set4(center->x, center->y, center->z, 1.0f);
+	for (int i = 0; i < count; ++i)
+	{
+		dsSIMD4f dist4 = dsDot4FMA4f(frustum->planes[i].simd, centerPos);
+		float distance = dsSIMD4f_get(dist4, 0);
+		if (distance < -radius)
+			return dsIntersectResult_Outside;
+		else if (distance <= radius)
+			intersects = true;
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+}
+
 DS_SIMD_END()
 #endif // !DS_DETERMINISTIC_MATH
 
@@ -751,6 +847,30 @@ dsIntersectResult dsFrustum3d_intersectBoxMatrixSIMD2(
 			default:
 				break;
 		}
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+}
+
+dsIntersectResult dsFrustum3d_intersectSphereSIMD2(
+	const dsFrustum3d* frustum, const dsVector3xd* center, double radius)
+{
+	DS_ASSERT(frustum);
+	DS_ASSERT(center);
+
+	bool intersects = false;
+	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	dsSIMD2d centerPos0 = center->simd2[0];
+	dsSIMD2d centerPos1 = dsSIMD2d_set2(center->z, 1.0);
+	for (int i = 0; i < count; ++i)
+	{
+		const dsPlane3d* plane = frustum->planes + i;
+		dsSIMD2d dist2 = dsDot4SIMD2d(plane->simd2[0], plane->simd2[1], centerPos0, centerPos1);
+		double distance = dsSIMD2d_get(dist2, 0);
+		if (distance < -radius)
+			return dsIntersectResult_Outside;
+		else if (distance <= radius)
+			intersects = true;
 	}
 
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
@@ -848,10 +968,34 @@ dsIntersectResult dsFrustum3d_intersectBoxMatrixFMA2(
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
 }
 
+dsIntersectResult dsFrustum3d_intersectSphereFMA2(
+	const dsFrustum3d* frustum, const dsVector3xd* center, double radius)
+{
+	DS_ASSERT(frustum);
+	DS_ASSERT(center);
+
+	bool intersects = false;
+	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	dsSIMD2d centerPos0 = center->simd2[0];
+	dsSIMD2d centerPos1 = dsSIMD2d_set2(center->z, 1.0);
+	for (int i = 0; i < count; ++i)
+	{
+		const dsPlane3d* plane = frustum->planes + i;
+		dsSIMD2d dist2 = dsDot4FMA2d(plane->simd2[0], plane->simd2[1], centerPos0, centerPos1);
+		double distance = dsSIMD2d_get(dist2, 0);
+		if (distance < -radius)
+			return dsIntersectResult_Outside;
+		else if (distance <= radius)
+			intersects = true;
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+}
+
 DS_SIMD_END()
 #endif // !DS_DETERMINISTIC_MATH
 
-DS_SIMD_START(DS_SIMD_DOUBLE2)
+DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_FMA)
 
 dsIntersectResult dsFrustum3d_intersectAlignedBoxSIMD4(
 	const dsFrustum3d* DS_ALIGN_PARAM(32) frustum, const dsAlignedBox3xd* DS_ALIGN_PARAM(32) box)
@@ -935,6 +1079,29 @@ dsIntersectResult dsFrustum3d_intersectBoxMatrixSIMD4(
 			default:
 				break;
 		}
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+}
+
+dsIntersectResult dsFrustum3d_intersectSphereSIMD4(const dsFrustum3d* DS_ALIGN_PARAM(32) frustum,
+	const dsVector3xd* DS_ALIGN_PARAM(32) center, double radius)
+{
+	DS_ASSERT(frustum);
+	DS_ASSERT(center);
+
+	bool intersects = false;
+	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	dsSIMD4d centerPos = dsSIMD4d_set4(center->x, center->y, center->z, 1.0);
+	for (int i = 0; i < count; ++i)
+	{
+		dsSIMD4d plane = dsSIMD4d_load(frustum->planes + i);
+		dsSIMD4d dist4 = dsDot4SIMD4d(plane, centerPos);
+		double distance = dsSIMD4d_get(dist4, 0);
+		if (distance < -radius)
+			return dsIntersectResult_Outside;
+		else if (distance <= radius)
+			intersects = true;
 	}
 
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;

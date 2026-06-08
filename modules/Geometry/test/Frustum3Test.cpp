@@ -39,6 +39,7 @@ struct Frustum3TypeSelector<float>
 	typedef dsMatrix44f Matrix44Type;
 	typedef dsPlane3f Plane3Type;
 	typedef dsVector3f Vector3Type;
+	typedef dsVector3xf Vector3xType;
 	typedef dsAlignedBox3f AlignedBox3Type;
 	typedef dsAlignedBox3xf AlignedBox3xType;
 	typedef dsOrientedBox3f OrientedBox3Type;
@@ -53,6 +54,7 @@ struct Frustum3TypeSelector<double>
 	typedef dsMatrix44d Matrix44Type;
 	typedef dsPlane3d Plane3Type;
 	typedef dsVector3d Vector3Type;
+	typedef dsVector3xd Vector3xType;
 	typedef dsAlignedBox3d AlignedBox3Type;
 	typedef dsAlignedBox3xd AlignedBox3xType;
 	typedef dsOrientedBox3d OrientedBox3Type;
@@ -182,6 +184,18 @@ inline dsIntersectResult dsFrustum3_intersectSphere(
 	const dsFrustum3d* frustum, const dsVector3d* center, double radius)
 {
 	return dsFrustum3d_intersectSphere(frustum, center, radius);
+}
+
+inline dsIntersectResult dsFrustum3_intersectSphere3x(
+	const dsFrustum3f* frustum, const dsVector3xf* center, float radius)
+{
+	return dsFrustum3f_intersectSphere3x(frustum, center, radius);
+}
+
+inline dsIntersectResult dsFrustum3_intersectSphere3x(
+	const dsFrustum3d* frustum, const dsVector3xd* center, double radius)
+{
+	return dsFrustum3d_intersectSphere3x(frustum, center, radius);
 }
 
 inline void dsMatrix44_makeRotate(dsMatrix44f* result, float x, float y, float z)
@@ -1656,7 +1670,7 @@ TYPED_TEST(Frustum3Test, IntersectedBoxMatrix)
 	EXPECT_EQ(dsIntersectResult_Intersects, dsFrustum3_intersectBoxMatrix(&frustum, &boxMatrix));
 }
 
-TYPED_TEST(Frustum3Test, IntersectedSphere)
+TYPED_TEST(Frustum3Test, IntersectSphere)
 {
 	typedef typename Frustum3TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 	typedef typename Frustum3TypeSelector<TypeParam>::Vector3Type Vector3Type;
@@ -1722,6 +1736,74 @@ TYPED_TEST(Frustum3Test, IntersectedSphere)
 	center.z = 3;
 	radius = 20;
 	EXPECT_EQ(dsIntersectResult_Intersects, dsFrustum3_intersectSphere(&frustum, &center, radius));
+}
+
+TYPED_TEST(Frustum3Test, IntersectSphere3x)
+{
+	typedef typename Frustum3TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
+	typedef typename Frustum3TypeSelector<TypeParam>::Vector3xType Vector3xType;
+	typedef typename Frustum3TypeSelector<TypeParam>::Frustum3Type Frustum3Type;
+
+	// NOTE: Z is inverted for ortho matrices.
+	Matrix44Type matrix;
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, dsProjectionMatrixOptions_None);
+
+	Frustum3Type frustum;
+	dsFrustum3_fromMatrix(frustum, matrix, dsProjectionMatrixOptions_None);
+	dsFrustum3_normalize(&frustum);
+
+	Vector3xType center = {{0, 1, 2, 3}};
+	TypeParam radius = 1;
+
+	EXPECT_EQ(dsIntersectResult_Inside, dsFrustum3_intersectSphere3x(&frustum, &center, radius));
+
+	// Intersect
+	center.x = TypeParam(-2.5);
+	EXPECT_EQ(dsIntersectResult_Intersects, dsFrustum3_intersectSphere3x(&frustum, &center, radius));
+
+	center.x = TypeParam(3.5);
+	EXPECT_EQ(dsIntersectResult_Intersects, dsFrustum3_intersectSphere3x(&frustum, &center, radius));
+
+	center.x = 0;
+	center.y = TypeParam(-4.5);
+	EXPECT_EQ(dsIntersectResult_Intersects, dsFrustum3_intersectSphere3x(&frustum, &center, radius));
+
+	center.y = TypeParam(5.5);
+	EXPECT_EQ(dsIntersectResult_Intersects, dsFrustum3_intersectSphere3x(&frustum, &center, radius));
+
+	center.y = 1;
+	center.z = TypeParam(6.5);
+	EXPECT_EQ(dsIntersectResult_Intersects, dsFrustum3_intersectSphere3x(&frustum, &center, radius));
+
+	center.z = TypeParam(-7.5);
+	EXPECT_EQ(dsIntersectResult_Intersects, dsFrustum3_intersectSphere3x(&frustum, &center, radius));
+
+	// Outside
+	center.z = 3;
+	center.x = TypeParam(-3.5);
+	EXPECT_EQ(dsIntersectResult_Outside, dsFrustum3_intersectSphere3x(&frustum, &center, radius));
+
+	center.x = TypeParam(4.5);
+	EXPECT_EQ(dsIntersectResult_Outside, dsFrustum3_intersectSphere3x(&frustum, &center, radius));
+
+	center.x = 0;
+	center.y = TypeParam(-5.5);
+	EXPECT_EQ(dsIntersectResult_Outside, dsFrustum3_intersectSphere3x(&frustum, &center, radius));
+
+	center.y = TypeParam(6.5);
+	EXPECT_EQ(dsIntersectResult_Outside, dsFrustum3_intersectSphere3x(&frustum, &center, radius));
+
+	center.y = 1;
+	center.z = TypeParam(7.5);
+	EXPECT_EQ(dsIntersectResult_Outside, dsFrustum3_intersectSphere3x(&frustum, &center, radius));
+
+	center.z = TypeParam(-8.5);
+	EXPECT_EQ(dsIntersectResult_Outside, dsFrustum3_intersectSphere3x(&frustum, &center, radius));
+
+	// Surrounding
+	center.z = 3;
+	radius = 20;
+	EXPECT_EQ(dsIntersectResult_Intersects, dsFrustum3_intersectSphere3x(&frustum, &center, radius));
 }
 
 #if DS_HAS_SIMD
@@ -1909,8 +1991,7 @@ TEST(Frustum3dTest, IntersectAlignedBoxSIMD2)
 
 	// NOTE: Z is inverted for ortho matrices.
 	dsMatrix44d matrix;
-	dsMatrix44d_makeOrtho(
-		&matrix, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, dsProjectionMatrixOptions_None);
+	dsMatrix44d_makeOrtho(&matrix, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, dsProjectionMatrixOptions_None);
 
 	dsFrustum3d frustum;
 	dsFrustum3d_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
@@ -1998,8 +2079,7 @@ TEST(Frustum3dTest, IntersectAlignedBoxFMA2)
 
 	// NOTE: Z is inverted for ortho matrices.
 	dsMatrix44d matrix;
-	dsMatrix44d_makeOrtho(
-		&matrix, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, dsProjectionMatrixOptions_None);
+	dsMatrix44d_makeOrtho(&matrix, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, dsProjectionMatrixOptions_None);
 
 	dsFrustum3d frustum;
 	dsFrustum3d_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
@@ -2086,8 +2166,7 @@ TEST(Frustum3dTest, IntersectAlignedBoxSIMD4)
 
 	// NOTE: Z is inverted for ortho matrices.
 	dsMatrix44d matrix;
-	dsMatrix44d_makeOrtho(
-		&matrix, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, dsProjectionMatrixOptions_None);
+	dsMatrix44d_makeOrtho(&matrix, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, dsProjectionMatrixOptions_None);
 
 	DS_ALIGN(32) dsFrustum3d frustum;
 	dsFrustum3d_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
@@ -2319,8 +2398,7 @@ TEST(Frustum3dTest, IntersectedOrientedBoxSIMD2)
 
 	// NOTE: Z is inverted for ortho matrices.
 	dsMatrix44d matrix;
-	dsMatrix44d_makeOrtho(
-		&matrix, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, dsProjectionMatrixOptions_None);
+	dsMatrix44d_makeOrtho(&matrix, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, dsProjectionMatrixOptions_None);
 
 	dsFrustum3d frustum;
 	dsFrustum3d_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
@@ -2393,8 +2471,7 @@ TEST(Frustum3dTest, IntersectedOrientedBoxFMA2)
 
 	// NOTE: Z is inverted for ortho matrices.
 	dsMatrix44d matrix;
-	dsMatrix44d_makeOrtho(
-		&matrix, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, dsProjectionMatrixOptions_None);
+	dsMatrix44d_makeOrtho(&matrix, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, dsProjectionMatrixOptions_None);
 
 	dsFrustum3d frustum;
 	dsFrustum3d_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
@@ -2466,8 +2543,7 @@ TEST(Frustum3dTest, IntersectedOrientedBoxSIMD4)
 
 	// NOTE: Z is inverted for ortho matrices.
 	dsMatrix44d matrix;
-	dsMatrix44d_makeOrtho(
-		&matrix, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, dsProjectionMatrixOptions_None);
+	dsMatrix44d_makeOrtho(&matrix, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, dsProjectionMatrixOptions_None);
 
 	DS_ALIGN(32) dsFrustum3d frustum;
 	dsFrustum3d_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
@@ -2732,8 +2808,7 @@ TEST(Frustum3dTest, IntersectedBoxMatrixSIMD2)
 
 	// NOTE: Z is inverted for ortho matrices.
 	dsMatrix44d matrix;
-	dsMatrix44d_makeOrtho(
-		&matrix, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, dsProjectionMatrixOptions_None);
+	dsMatrix44d_makeOrtho(&matrix, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, dsProjectionMatrixOptions_None);
 
 	dsFrustum3d frustum;
 	dsFrustum3d_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
@@ -2829,8 +2904,7 @@ TEST(Frustum3dTest, IntersectedBoxMatrixFMA2)
 
 	// NOTE: Z is inverted for ortho matrices.
 	dsMatrix44d matrix;
-	dsMatrix44d_makeOrtho(
-		&matrix, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, dsProjectionMatrixOptions_None);
+	dsMatrix44d_makeOrtho(&matrix, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, dsProjectionMatrixOptions_None);
 
 	dsFrustum3d frustum;
 	dsFrustum3d_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
@@ -2925,8 +2999,7 @@ TEST(Frustum3dTest, IntersectedBoxMatrixSIMD4)
 
 	// NOTE: Z is inverted for ortho matrices.
 	dsMatrix44d matrix;
-	dsMatrix44d_makeOrtho(
-		&matrix, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, dsProjectionMatrixOptions_None);
+	dsMatrix44d_makeOrtho(&matrix, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, dsProjectionMatrixOptions_None);
 
 	DS_ALIGN(32) dsFrustum3d frustum;
 	dsFrustum3d_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
@@ -3011,6 +3084,411 @@ TEST(Frustum3dTest, IntersectedBoxMatrixSIMD4)
 	dsOrientedBox3xd_toMatrixSIMD4(&boxMatrix, &box);
 	EXPECT_EQ(
 		dsIntersectResult_Intersects, dsFrustum3d_intersectBoxMatrixSIMD4(&frustum, &boxMatrix));
+}
+
+TEST(Frustum3fTest, IntersectSphereSIMD)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		return;
+
+	// NOTE: Z is inverted for ortho matrices.
+	dsMatrix44f matrix;
+	dsMatrix44f_makeOrtho(
+		&matrix, -2.0f, 3.0f, -4.0f, 5.0f, -6.0f, 7.0f, dsProjectionMatrixOptions_None);
+
+	dsFrustum3f frustum;
+	dsFrustum3f_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
+	dsFrustum3f_normalize(&frustum);
+
+	dsVector3xf center = {{0.0f, 1.0f, 2.0f, 3.0f}};
+	float radius = 1.0f;
+
+	EXPECT_EQ(dsIntersectResult_Inside, dsFrustum3f_intersectSphereSIMD(&frustum, &center, radius));
+
+	// Intersect
+	center.x = -2.5f;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3f_intersectSphereSIMD(&frustum, &center, radius));
+
+	center.x = 3.5f;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3f_intersectSphereSIMD(&frustum, &center, radius));
+
+	center.x = 0.0f;
+	center.y = -4.5f;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3f_intersectSphereSIMD(&frustum, &center, radius));
+
+	center.y = 5.5f;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3f_intersectSphereSIMD(&frustum, &center, radius));
+
+	center.y = 1;
+	center.z = 6.5f;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3f_intersectSphereSIMD(&frustum, &center, radius));
+
+	center.z = -7.5f;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3f_intersectSphereSIMD(&frustum, &center, radius));
+
+	// Outside
+	center.z = 3.0f;
+	center.x = -3.5f;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3f_intersectSphereSIMD(&frustum, &center, radius));
+
+	center.x = 4.5f;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3f_intersectSphereSIMD(&frustum, &center, radius));
+
+	center.x = 0.0f;
+	center.y = -5.5f;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3f_intersectSphereSIMD(&frustum, &center, radius));
+
+	center.y = 6.5f;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3f_intersectSphereSIMD(&frustum, &center, radius));
+
+	center.y = 1.0f;
+	center.z = 7.5f;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3f_intersectSphereSIMD(&frustum, &center, radius));
+
+	center.z = -8.5f;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3f_intersectSphereSIMD(&frustum, &center, radius));
+
+	// Surrounding
+	center.z = 3.0f;
+	radius = 20.0f;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3f_intersectSphereSIMD(&frustum, &center, radius));
+}
+
+#if !DS_DETERMINISTIC_MATH
+TEST(Frustum3fTest, IntersectSphereFMA)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+		return;
+
+	// NOTE: Z is inverted for ortho matrices.
+	dsMatrix44f matrix;
+	dsMatrix44f_makeOrtho(
+		&matrix, -2.0f, 3.0f, -4.0f, 5.0f, -6.0f, 7.0f, dsProjectionMatrixOptions_None);
+
+	dsFrustum3f frustum;
+	dsFrustum3f_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
+	dsFrustum3f_normalize(&frustum);
+
+	dsVector3xf center = {{0.0f, 1.0f, 2.0f, 3.0f}};
+	float radius = 1.0f;
+
+	EXPECT_EQ(dsIntersectResult_Inside, dsFrustum3f_intersectSphereFMA(&frustum, &center, radius));
+
+	// Intersect
+	center.x = -2.5f;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3f_intersectSphereFMA(&frustum, &center, radius));
+
+	center.x = 3.5f;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3f_intersectSphereFMA(&frustum, &center, radius));
+
+	center.x = 0.0f;
+	center.y = -4.5f;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3f_intersectSphereFMA(&frustum, &center, radius));
+
+	center.y = 5.5f;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3f_intersectSphereFMA(&frustum, &center, radius));
+
+	center.y = 1;
+	center.z = 6.5f;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3f_intersectSphereFMA(&frustum, &center, radius));
+
+	center.z = -7.5f;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3f_intersectSphereFMA(&frustum, &center, radius));
+
+	// Outside
+	center.z = 3.0f;
+	center.x = -3.5f;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3f_intersectSphereFMA(&frustum, &center, radius));
+
+	center.x = 4.5f;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3f_intersectSphereFMA(&frustum, &center, radius));
+
+	center.x = 0.0f;
+	center.y = -5.5f;
+	EXPECT_EQ(dsIntersectResult_Outside, dsFrustum3f_intersectSphereFMA(&frustum, &center, radius));
+
+	center.y = 6.5f;
+	EXPECT_EQ(dsIntersectResult_Outside, dsFrustum3f_intersectSphereFMA(&frustum, &center, radius));
+
+	center.y = 1.0f;
+	center.z = 7.5f;
+	EXPECT_EQ(dsIntersectResult_Outside, dsFrustum3f_intersectSphereFMA(&frustum, &center, radius));
+
+	center.z = -8.5f;
+	EXPECT_EQ(dsIntersectResult_Outside, dsFrustum3f_intersectSphereFMA(&frustum, &center, radius));
+
+	// Surrounding
+	center.z = 3.0f;
+	radius = 20.0f;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3f_intersectSphereFMA(&frustum, &center, radius));
+}
+#endif // !DS_DETERMINISTIC_MATH
+
+TEST(Frustum3dTest, IntersectSphereSIMD2)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
+		return;
+
+	// NOTE: Z is inverted for ortho matrices.
+	dsMatrix44d matrix;
+	dsMatrix44d_makeOrtho(&matrix, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, dsProjectionMatrixOptions_None);
+
+	dsFrustum3d frustum;
+	dsFrustum3d_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
+	dsFrustum3d_normalize(&frustum);
+
+	dsVector3xd center = {{0.0, 1.0, 2.0, 3.0}};
+	double radius = 1.0;
+
+	EXPECT_EQ(
+		dsIntersectResult_Inside, dsFrustum3d_intersectSphereSIMD2(&frustum, &center, radius));
+
+	// Intersect
+	center.x = -2.5;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3d_intersectSphereSIMD2(&frustum, &center, radius));
+
+	center.x = 3.5;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3d_intersectSphereSIMD2(&frustum, &center, radius));
+
+	center.x = 0.0;
+	center.y = -4.5;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3d_intersectSphereSIMD2(&frustum, &center, radius));
+
+	center.y = 5.5;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3d_intersectSphereSIMD2(&frustum, &center, radius));
+
+	center.y = 1;
+	center.z = 6.5;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3d_intersectSphereSIMD2(&frustum, &center, radius));
+
+	center.z = -7.5;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3d_intersectSphereSIMD2(&frustum, &center, radius));
+
+	// Outside
+	center.z = 3.0;
+	center.x = -3.5;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3d_intersectSphereSIMD2(&frustum, &center, radius));
+
+	center.x = 4.5;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3d_intersectSphereSIMD2(&frustum, &center, radius));
+
+	center.x = 0.0;
+	center.y = -5.5;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3d_intersectSphereSIMD2(&frustum, &center, radius));
+
+	center.y = 6.5;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3d_intersectSphereSIMD2(&frustum, &center, radius));
+
+	center.y = 1.0;
+	center.z = 7.5;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3d_intersectSphereSIMD2(&frustum, &center, radius));
+
+	center.z = -8.5;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3d_intersectSphereSIMD2(&frustum, &center, radius));
+
+	// Surrounding
+	center.z = 3.0;
+	radius = 20.0;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3d_intersectSphereSIMD2(&frustum, &center, radius));
+}
+
+#if !DS_DETERMINISTIC_MATH
+TEST(Frustum3dTest, IntersectSphereFMA2)
+{
+	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
+	if ((dsHostSIMDFeatures & features) != features)
+		return;
+
+	// NOTE: Z is inverted for ortho matrices.
+	dsMatrix44d matrix;
+	dsMatrix44d_makeOrtho(&matrix, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, dsProjectionMatrixOptions_None);
+
+	dsFrustum3d frustum;
+	dsFrustum3d_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
+	dsFrustum3d_normalize(&frustum);
+
+	dsVector3xd center = {{0.0, 1.0, 2.0, 3.0}};
+	double radius = 1.0;
+
+	EXPECT_EQ(dsIntersectResult_Inside, dsFrustum3d_intersectSphereFMA2(&frustum, &center, radius));
+
+	// Intersect
+	center.x = -2.5;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3d_intersectSphereFMA2(&frustum, &center, radius));
+
+	center.x = 3.5;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3d_intersectSphereFMA2(&frustum, &center, radius));
+
+	center.x = 0.0;
+	center.y = -4.5;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3d_intersectSphereFMA2(&frustum, &center, radius));
+
+	center.y = 5.5;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3d_intersectSphereFMA2(&frustum, &center, radius));
+
+	center.y = 1;
+	center.z = 6.5;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3d_intersectSphereFMA2(&frustum, &center, radius));
+
+	center.z = -7.5;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3d_intersectSphereFMA2(&frustum, &center, radius));
+
+	// Outside
+	center.z = 3.0;
+	center.x = -3.5;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3d_intersectSphereFMA2(&frustum, &center, radius));
+
+	center.x = 4.5;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3d_intersectSphereFMA2(&frustum, &center, radius));
+
+	center.x = 0.0;
+	center.y = -5.5;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3d_intersectSphereFMA2(&frustum, &center, radius));
+
+	center.y = 6.5;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3d_intersectSphereFMA2(&frustum, &center, radius));
+
+	center.y = 1.0;
+	center.z = 7.5;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3d_intersectSphereFMA2(&frustum, &center, radius));
+
+	center.z = -8.5;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3d_intersectSphereFMA2(&frustum, &center, radius));
+
+	// Surrounding
+	center.z = 3.0;
+	radius = 20.0;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3d_intersectSphereFMA2(&frustum, &center, radius));
+}
+#endif // !DS_DETERMINISTIC_MATH
+
+TEST(Frustum3dTest, IntersectSphereSIMD4)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
+		return;
+
+	// NOTE: Z is inverted for ortho matrices.
+	dsMatrix44d matrix;
+	dsMatrix44d_makeOrtho(&matrix, -2.0, 3.0, -4.0, 5.0, -6.0, 7.0, dsProjectionMatrixOptions_None);
+
+	DS_ALIGN(32) dsFrustum3d frustum;
+	dsFrustum3d_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
+	dsFrustum3d_normalize(&frustum);
+
+	DS_ALIGN(32) dsVector3xd center = {{0.0, 1.0, 2.0, 3.0}};
+	double radius = 1.0;
+
+	EXPECT_EQ(
+		dsIntersectResult_Inside, dsFrustum3d_intersectSphereSIMD4(&frustum, &center, radius));
+
+	// Intersect
+	center.x = -2.5;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3d_intersectSphereSIMD4(&frustum, &center, radius));
+
+	center.x = 3.5;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3d_intersectSphereSIMD4(&frustum, &center, radius));
+
+	center.x = 0.0;
+	center.y = -4.5;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3d_intersectSphereSIMD4(&frustum, &center, radius));
+
+	center.y = 5.5;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3d_intersectSphereSIMD4(&frustum, &center, radius));
+
+	center.y = 1;
+	center.z = 6.5;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3d_intersectSphereSIMD4(&frustum, &center, radius));
+
+	center.z = -7.5;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3d_intersectSphereSIMD4(&frustum, &center, radius));
+
+	// Outside
+	center.z = 3.0;
+	center.x = -3.5;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3d_intersectSphereSIMD4(&frustum, &center, radius));
+
+	center.x = 4.5;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3d_intersectSphereSIMD4(&frustum, &center, radius));
+
+	center.x = 0.0;
+	center.y = -5.5;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3d_intersectSphereSIMD4(&frustum, &center, radius));
+
+	center.y = 6.5;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3d_intersectSphereSIMD4(&frustum, &center, radius));
+
+	center.y = 1.0;
+	center.z = 7.5;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3d_intersectSphereSIMD4(&frustum, &center, radius));
+
+	center.z = -8.5;
+	EXPECT_EQ(
+		dsIntersectResult_Outside, dsFrustum3d_intersectSphereSIMD4(&frustum, &center, radius));
+
+	// Surrounding
+	center.z = 3.0;
+	radius = 20.0;
+	EXPECT_EQ(
+		dsIntersectResult_Intersects, dsFrustum3d_intersectSphereSIMD4(&frustum, &center, radius));
 }
 
 #endif // DS_HAS_SIMD

@@ -63,7 +63,7 @@ typedef struct FindBrightestData
 	const dsSceneLight** brightestLights;
 	float* intensities;
 	uint32_t* lightCount;
-	const dsVector3f* position;
+	const dsVector3xf* position;
 	uint32_t mainLightID;
 	uint32_t startIndex;
 	uint32_t maxLights;
@@ -88,8 +88,8 @@ static bool getLightBounds(void* outBounds, const dsBVH* bvh, const void* object
 {
 	const dsSceneLightSet* lightSet = (const dsSceneLightSet*)dsBVH_getUserData(bvh);
 	DS_ASSERT(lightSet);
-	return dsSceneLight_computeBounds((dsAlignedBox3f*)outBounds, (const dsSceneLight*)object,
-		lightSet->intensityThreshold);
+	return dsSceneLight_computeBounds(
+		(dsAlignedBox3xf*)outBounds, (const dsSceneLight*)object, lightSet->intensityThreshold);
 }
 
 static uint32_t findDimmestLight(const float* intensities, uint32_t startIndex, uint32_t lightCount)
@@ -108,8 +108,8 @@ static uint32_t findDimmestLight(const float* intensities, uint32_t startIndex, 
 	return index;
 }
 
-static bool visitBrightestLights(void* userData, const dsBVH* bvh, const void* object,
-	const void* bounds)
+static bool visitBrightestLights(
+	void* userData, const dsBVH* bvh, const void* object, const void* bounds)
 {
 	DS_UNUSED(bvh);
 	DS_UNUSED(bounds);
@@ -141,15 +141,15 @@ static bool visitBrightestLights(void* userData, const dsBVH* bvh, const void* o
 	return true;
 }
 
-static bool visitLightFunc(void* userData, const dsBVH* bvh, const void* object,
-	const void* frustum)
+static bool visitLightFunc(
+	void* userData, const dsBVH* bvh, const void* object, const void* frustum)
 {
 	DS_UNUSED(bvh);
 	VisitLightData* lightData = (VisitLightData*)userData;
 	const dsSceneLight* light = (const dsSceneLight*)object;
 	// Do a more precise check first.
-	if (!dsSceneLight_isInFrustum(light, (const dsFrustum3f*)frustum,
-			lightData->lightSet->intensityThreshold))
+	if (!dsSceneLight_isInFrustum(
+			light, (const dsFrustum3f*)frustum, lightData->lightSet->intensityThreshold))
 	{
 		return true;
 	}
@@ -202,20 +202,20 @@ dsSceneLightSet* dsSceneLightSet_create(dsAllocator* allocator, uint32_t maxLigh
 
 	void* lightPool = dsAllocator_alloc((dsAllocator*)&bufferAlloc, lightPoolSize);
 	DS_ASSERT(lightPool);
-	DS_VERIFY(dsPoolAllocator_initialize(&lightSet->lightAllocator, sizeof(LightNode), maxLights,
-		lightPool, lightPoolSize));
+	DS_VERIFY(dsPoolAllocator_initialize(
+		&lightSet->lightAllocator, sizeof(LightNode), maxLights, lightPool, lightPoolSize));
 
-	lightSet->lightTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		lightTableBufferSize);
+	lightSet->lightTable = (dsHashTable*)dsAllocator_alloc(
+		(dsAllocator*)&bufferAlloc, lightTableBufferSize);
 	DS_ASSERT(lightSet->lightTable);
-	DS_VERIFY(dsHashTable_initialize(lightSet->lightTable, lightTableSize, &dsHash32,
-		&dsHash32Equal));
+	DS_VERIFY(dsHashTable_initialize(
+		lightSet->lightTable, lightTableSize, &dsHash32, &dsHash32Equal));
 
 	lightSet->directionalLights = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneLight*, maxLights);
 	DS_ASSERT(lightSet->directionalLights);
 	lightSet->directionalLightCount = 0;
 
-	lightSet->spatialLights = dsBVH_create(allocator, 3, dsGeometryElement_Float, lightSet);
+	lightSet->spatialLights = dsBVH_create(allocator, 4, dsGeometryElement_Float, lightSet);
 	if (!lightSet->spatialLights)
 	{
 		dsSceneLightSet_destroy(lightSet);
@@ -445,8 +445,8 @@ bool dsSceneLightSet_getAmbient(dsColor3f* outAmbient, const dsSceneLightSet* li
 	return true;
 }
 
-bool dsSceneLightSet_setAmbient(dsSceneLightSet* lightSet, const dsColor3f* color,
-	float intensity)
+bool dsSceneLightSet_setAmbient(
+	dsSceneLightSet* lightSet, const dsColor3f* color, float intensity)
 {
 	if (!lightSet || !color)
 	{
@@ -512,7 +512,7 @@ float dsSceneLightSet_getIntensityThreshold(const dsSceneLightSet* lightSet)
 
 uint32_t dsSceneLightSet_findBrightestLights(const dsSceneLight** outBrightestLights,
 	uint32_t outLightCount, bool* outHasMainLight, const dsSceneLightSet* lightSet,
-	const dsVector3f* position)
+	const dsVector3xf* position)
 {
 	if (!outBrightestLights || outLightCount == 0 || !outHasMainLight || !lightSet || !position)
 	{
@@ -560,7 +560,7 @@ uint32_t dsSceneLightSet_findBrightestLights(const dsSceneLight** outBrightestLi
 	}
 
 	// Then check the spatial lights.
-	dsAlignedBox3f bounds = {*position, *position};
+	dsAlignedBox3xf bounds = {*position, *position};
 	FindBrightestData visitData = {outBrightestLights, intensities, &lightCount, position,
 		lightSet->mainLightID, *outHasMainLight, outLightCount, lightSet->intensityThreshold};
 	dsBVH_intersectBounds(lightSet->spatialLights, &bounds, &visitBrightestLights, &visitData);
@@ -586,8 +586,8 @@ uint32_t dsSceneLightSet_forEachLightInFrustum(const dsSceneLightSet* lightSet,
 	}
 
 	VisitLightData lightData = {visitor, lightSet, userData, directionalCount};
-	dsBVH_intersectFrustum(lightSet->spatialLights, frustum, visitor ? &visitLightFunc : NULL,
-		&lightData);
+	dsBVH_intersectFrustum(
+		lightSet->spatialLights, frustum, visitor ? &visitLightFunc : NULL, &lightData);
 	return lightData.count;
 }
 

@@ -39,8 +39,8 @@ typedef struct Entry
 {
 	const dsSceneTreeNode* treeNode;
 	dsSceneLight* light;
-	dsVector3f position;
-	dsVector3f direction;
+	dsVector3xf position;
+	dsVector3xf direction;
 	uint64_t nodeID;
 } Entry;
 
@@ -60,11 +60,13 @@ struct dsSceneLightSetPrepare
 	uint32_t maxRemoveEntries;
 };
 
-static void transformLight(dsSceneLight* light, const dsVector3f* position,
-	const dsVector3f* direction, const dsMatrix44f* transform)
+static void transformLight(dsSceneLight* light, const dsVector3xf* position,
+	const dsVector3xf* direction, const dsMatrix44f* transform)
 {
-	dsVector4f position4 = {{position->x, position->y, position->z, 1.0f}};
-	dsVector4f direction4 = {{direction->x, direction->y, direction->z, 0.0f}};
+	dsVector4f position4 = *position;
+	dsVector4f direction4 = *direction;
+	position4.w = 1.0f;
+	direction4.w = 0.0f;
 
 	dsMatrix44f inverse;
 	dsMatrix44f_affineInvert(&inverse, transform);
@@ -73,8 +75,8 @@ static void transformLight(dsSceneLight* light, const dsVector3f* position,
 	dsMatrix44f_transform(&transformedPosition, transform, &position4);
 	dsMatrix44f_transformTransposed(&transformedDirection, transform, &direction4);
 
-	light->position = *(dsVector3f*)&transformedPosition;
-	light->direction = *(dsVector3f*)&transformedDirection;
+	light->position = transformedPosition;
+	light->direction = transformedDirection;
 }
 
 static uint64_t dsSceneLightSetPrepare_addNode(dsSceneItemList* itemList, dsSceneNode* node,

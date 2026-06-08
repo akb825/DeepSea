@@ -963,8 +963,31 @@ dsIntersectResult dsSceneLightShadows_intersectSphere(
 	dsVector4f worldCenter = {{center->x, center->y, center->z, 1.0f}};
 	dsVector4f viewCenter;
 	dsMatrix44f_transform(&viewCenter, &shadows->view->viewMatrix, &worldCenter);
-	return dsShadowCullVolume_intersectSphere(shadows->cullVolumes + surface,
-		(dsVector3f*)&viewCenter, radius, shadows->projections + surface, clampToVolume);
+	return dsShadowCullVolume_intersectSphere3x(shadows->cullVolumes + surface,
+		&viewCenter, radius, shadows->projections + surface, clampToVolume);
+}
+
+dsIntersectResult dsSceneLightShadows_intersectSphere3x(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsVector3xf* center, float radius)
+{
+#if DS_SIMD_ALWAYS_FMA
+	return dsSceneLightShadows_intersectSphereFMA(shadows, surface, center, radius);
+#elif DS_SIMD_ALWAYS_SIMD
+	return dsSceneLightShadows_intersectSphereSIMD(shadows, surface, center, radius);
+#else
+	if (!shadows || surface >= shadows->totalMatrices || !center || radius < 0)
+		return dsIntersectResult_Outside;
+
+	bool clampToVolume = radius*2.0f >= shadows->largeBoxSize;
+
+	DS_ASSERT(shadows->view);
+	dsVector4f worldCenter = *center;
+	worldCenter.w = 1.0f;
+	dsVector4f viewCenter;
+	dsMatrix44f_transform(&viewCenter, &shadows->view->viewMatrix, &worldCenter);
+	return dsShadowCullVolume_intersectSphere3x(shadows->cullVolumes + surface,
+		&viewCenter, radius, shadows->projections + surface, clampToVolume);
+#endif
 }
 
 dsIntersectResult dsSceneLightShadows_intersectViewAlignedBox(
@@ -1074,6 +1097,24 @@ dsIntersectResult dsSceneLightShadows_intersectViewSphere(
 		shadows->projections + surface, clampToVolume);
 }
 
+dsIntersectResult dsSceneLightShadows_intersectViewSphere3x(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsVector3xf* center, float radius)
+{
+#if DS_SIMD_ALWAYS_FMA
+	return dsSceneLightShadows_intersectViewSphereFMA(shadows, surface, center, radius);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	return dsSceneLightShadows_intersectViewSphereSIMD(shadows, surface, center, radius);
+#else
+	if (!shadows || surface >= shadows->totalMatrices || !center || radius < 0)
+		return dsIntersectResult_Outside;
+
+	bool clampToVolume = radius*2.0f >= shadows->largeBoxSize;
+
+	return dsShadowCullVolume_intersectSphere3x(shadows->cullVolumes + surface, center, radius,
+		shadows->projections + surface, clampToVolume);
+#endif
+}
+
 #if DS_HAS_SIMD
 DS_SIMD_START(DS_SIMD_FLOAT4)
 
@@ -1095,6 +1136,23 @@ dsIntersectResult dsSceneLightShadows_intersectAlignedBoxSIMD(
 	dsMatrix44f_affineMulSIMD(&viewBoxMatrix, &shadows->view->viewMatrix, &boxMatrix);
 	return dsShadowCullVolume_intersectBoxMatrixSIMD(shadows->cullVolumes + surface, &boxMatrix,
 		shadows->projections + surface, clampToVolume);
+}
+
+dsIntersectResult dsSceneLightShadows_intersectSphereSIMD(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsVector3xf* center, float radius)
+{
+	if (!shadows || surface >= shadows->totalMatrices || !center || radius < 0)
+		return dsIntersectResult_Outside;
+
+	bool clampToVolume = radius*2.0f >= shadows->largeBoxSize;
+
+	DS_ASSERT(shadows->view);
+	dsVector4f worldCenter;
+	worldCenter.simd = dsSIMD4f_set4(center->x, center->y, center->z, 1.0f);
+	dsVector4f viewCenter;
+	dsMatrix44f_transformSIMD(&viewCenter, &shadows->view->viewMatrix, &worldCenter);
+	return dsShadowCullVolume_intersectSphereSIMD(shadows->cullVolumes + surface,
+		&viewCenter, radius, shadows->projections + surface, clampToVolume);
 }
 
 dsIntersectResult dsSceneLightShadows_intersectOrientedBoxSIMD(
@@ -1190,6 +1248,18 @@ dsIntersectResult dsSceneLightShadows_intersectViewBoxMatrixSIMD(
 		shadows->projections + surface, clampToVolume);
 }
 
+dsIntersectResult dsSceneLightShadows_intersectViewSphereSIMD(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsVector3xf* center, float radius)
+{
+	if (!shadows || surface >= shadows->totalMatrices || !center || radius < 0)
+		return dsIntersectResult_Outside;
+
+	bool clampToVolume = radius*2.0f >= shadows->largeBoxSize;
+
+	return dsShadowCullVolume_intersectSphereSIMD(shadows->cullVolumes + surface, center, radius,
+		shadows->projections + surface, clampToVolume);
+}
+
 DS_SIMD_END()
 
 #if !DS_DETERMINISTIC_MATH
@@ -1256,6 +1326,23 @@ dsIntersectResult dsSceneLightShadows_intersectBoxMatrixFMA(
 		shadows->projections + surface, clampToVolume);
 }
 
+dsIntersectResult dsSceneLightShadows_intersectSphereFMA(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsVector3xf* center, float radius)
+{
+	if (!shadows || surface >= shadows->totalMatrices || !center || radius < 0)
+		return dsIntersectResult_Outside;
+
+	bool clampToVolume = radius*2.0f >= shadows->largeBoxSize;
+
+	DS_ASSERT(shadows->view);
+	dsVector4f worldCenter;
+	worldCenter.simd = dsSIMD4f_set4(center->x, center->y, center->z, 1.0f);
+	dsVector4f viewCenter;
+	dsMatrix44f_transformFMA(&viewCenter, &shadows->view->viewMatrix, &worldCenter);
+	return dsShadowCullVolume_intersectSphereFMA(shadows->cullVolumes + surface,
+		&viewCenter, radius, shadows->projections + surface, clampToVolume);
+}
+
 dsIntersectResult dsSceneLightShadows_intersectViewAlignedBoxFMA(
 	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3xf* box)
 {
@@ -1306,6 +1393,18 @@ dsIntersectResult dsSceneLightShadows_intersectViewBoxMatrixFMA(
 		shadows->projections + surface, clampToVolume);
 }
 
+dsIntersectResult dsSceneLightShadows_intersectViewSphereFMA(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsVector3xf* center, float radius)
+{
+	if (!shadows || surface >= shadows->totalMatrices || !center || radius < 0)
+		return dsIntersectResult_Outside;
+
+	bool clampToVolume = radius*2.0f >= shadows->largeBoxSize;
+
+	return dsShadowCullVolume_intersectSphereFMA(shadows->cullVolumes + surface, center, radius,
+		shadows->projections + surface, clampToVolume);
+}
+
 DS_SIMD_END()
 #endif // !DS_DETERMINISTIC_MATH
 #endif // DS_HAS_SIMD
@@ -1326,8 +1425,8 @@ bool dsSceneLightShadows_computeSurfaceProjection(dsSceneLightShadows* shadows, 
 
 	uint32_t expectedSet = false;
 	uint32_t isSet = true;
-	if (!DS_ATOMIC_COMPARE_EXCHANGE32(shadows->projectionSet + surface, &expectedSet, &isSet,
-			false))
+	if (!DS_ATOMIC_COMPARE_EXCHANGE32(
+			shadows->projectionSet + surface, &expectedSet, &isSet, false))
 	{
 		errno = EPERM;
 		return false;
@@ -1341,7 +1440,7 @@ bool dsSceneLightShadows_computeSurfaceProjection(dsSceneLightShadows* shadows, 
 	{
 		dsMatrix44f_identity(shadowMtx);
 	}
-;
+
 	switch (shadows->lightType)
 	{
 		case dsSceneLightType_Directional:
@@ -1349,8 +1448,8 @@ bool dsSceneLightShadows_computeSurfaceProjection(dsSceneLightShadows* shadows, 
 			{
 				if (shadows->fallback)
 				{
-					DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 0,
-						&shadowMtx, dsMaterialType_Mat4, surface, 1));
+					DS_VERIFY(dsShaderVariableGroup_setElementData(
+						shadows->fallback, 0, &shadowMtx, dsMaterialType_Mat4, surface, 1));
 				}
 				else
 				{
@@ -1363,8 +1462,8 @@ bool dsSceneLightShadows_computeSurfaceProjection(dsSceneLightShadows* shadows, 
 			{
 				if (shadows->fallback)
 				{
-					DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 0, &shadowMtx,
-						dsMaterialType_Mat4, 0, 1));
+					DS_VERIFY(dsShaderVariableGroup_setElementData(
+						shadows->fallback, 0, &shadowMtx, dsMaterialType_Mat4, 0, 1));
 				}
 				else
 				{
@@ -1376,8 +1475,8 @@ bool dsSceneLightShadows_computeSurfaceProjection(dsSceneLightShadows* shadows, 
 		case dsSceneLightType_Point:
 			if (shadows->fallback)
 			{
-				DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 0,
-					&shadowMtx, dsMaterialType_Mat4, surface, 1));
+				DS_VERIFY(dsShaderVariableGroup_setElementData(
+					shadows->fallback, 0, &shadowMtx, dsMaterialType_Mat4, surface, 1));
 			}
 			else
 			{
@@ -1388,8 +1487,8 @@ bool dsSceneLightShadows_computeSurfaceProjection(dsSceneLightShadows* shadows, 
 		case dsSceneLightType_Spot:
 			if (shadows->fallback)
 			{
-				DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 0, &shadowMtx,
-					dsMaterialType_Mat4, 0, 1));
+				DS_VERIFY(dsShaderVariableGroup_setElementData(
+					shadows->fallback, 0, &shadowMtx, dsMaterialType_Mat4, 0, 1));
 			}
 			else
 			{

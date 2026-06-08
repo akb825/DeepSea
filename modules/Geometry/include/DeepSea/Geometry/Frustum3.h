@@ -264,12 +264,20 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectBoxMatrix(
  * @return The intersection result. Inside and outside is with respect to the frustum. If the box
  * fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
-DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectSphere(const dsFrustum3f* frustum,
-	const dsVector3f* center, float radius);
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectSphere(
+	const dsFrustum3f* frustum, const dsVector3f* center, float radius);
 
 /** @copydoc dsFrustum3f_intersectSphere() */
-DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectSphere(const dsFrustum3d* frustum,
-	const dsVector3d* center, double radius);
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectSphere(
+	const dsFrustum3d* frustum, const dsVector3d* center, double radius);
+
+/** @copydoc dsFrustum3f_intersectSphere() */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectSphere3x(
+	const dsFrustum3f* frustum, const dsVector3xf* center, float radius);
+
+/** @copydoc dsFrustum3f_intersectSphere() */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectSphere3x(
+	const dsFrustum3d* frustum, const dsVector3xd* center, double radius);
 
 #if DS_HAS_SIMD
 
@@ -306,6 +314,19 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectOrientedBoxSIMD(
 DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectBoxMatrixSIMD(
 	const dsFrustum3f* frustum, const dsMatrix44f* boxMatrix);
 
+/**
+ * @brief Intersects a sphere with a frustum.
+ * @remark This will only give accurate results for normalized frustums.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param frustum The frustum to intersect.
+ * @param center The center of the sphere.
+ * @param radius The radius of the sphere.
+ * @return The intersection result. Inside and outside is with respect to the frustum. If the box
+ * fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectSphereSIMD(
+	const dsFrustum3f* frustum, const dsVector3xf* center, float radius);
+
 #if !DS_DETERMINISTIC_MATH
 
 /**
@@ -341,6 +362,19 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectOrientedBoxFMA(
 DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectBoxMatrixFMA(
 	const dsFrustum3f* frustum, const dsMatrix44f* boxMatrix);
 
+/**
+ * @brief Intersects a sphere with a frustum.
+ * @remark This will only give accurate results for normalized frustums.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_FMA are available.
+ * @param frustum The frustum to intersect.
+ * @param center The center of the sphere.
+ * @param radius The radius of the sphere.
+ * @return The intersection result. Inside and outside is with respect to the frustum. If the box
+ * fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectSphereFMA(
+	const dsFrustum3f* frustum, const dsVector3xf* center, float radius);
+
 #endif // !DS_DETERMINISTIC_MATH
 
 /**
@@ -374,6 +408,19 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectOrientedBoxSIMD2(
  */
 DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectBoxMatrixSIMD2(
 	const dsFrustum3d* frustum, const dsMatrix44d* boxMatrix);
+
+/**
+ * @brief Intersects a sphere with a frustum.
+ * @remark This will only give accurate results for normalized frustums.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param frustum The frustum to intersect.
+ * @param center The center of the sphere.
+ * @param radius The radius of the sphere.
+ * @return The intersection result. Inside and outside is with respect to the frustum. If the box
+ * fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectSphereSIMD2(
+	const dsFrustum3d* frustum, const dsVector3xd* center, double radius);
 
 #if !DS_DETERMINISTIC_MATH
 
@@ -410,6 +457,19 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectOrientedBoxFMA2(
 DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectBoxMatrixFMA2(
 	const dsFrustum3d* frustum, const dsMatrix44d* boxMatrix);
 
+/**
+ * @brief Intersects a sphere with a frustum.
+ * @remark This will only give accurate results for normalized frustums.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_FMA are available.
+ * @param frustum The frustum to intersect.
+ * @param center The center of the sphere.
+ * @param radius The radius of the sphere.
+ * @return The intersection result. Inside and outside is with respect to the frustum. If the box
+ * fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectSphereFMA2(
+	const dsFrustum3d* frustum, const dsVector3xd* center, double radius);
+
 #endif // !DS_DETERMINISTIC_MATH
 
 /**
@@ -443,6 +503,20 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectOrientedBoxSIMD4(
  */
 DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectBoxMatrixSIMD4(
 	const dsFrustum3d* DS_ALIGN_PARAM(32) frustum, const dsMatrix44d* DS_ALIGN_PARAM(32) boxMatrix);
+
+/**
+ * @brief Intersects a sphere with a frustum.
+ * @remark This will only give accurate results for normalized frustums.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param frustum The frustum to intersect.
+ * @param center The center of the sphere.
+ * @param radius The radius of the sphere.
+ * @return The intersection result. Inside and outside is with respect to the frustum. If the box
+ * fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectSphereSIMD4(
+	const dsFrustum3d* DS_ALIGN_PARAM(32) frustum, const dsVector3xd* DS_ALIGN_PARAM(32) center,
+	double radius);
 
 #endif // DS_HAS_SIMD
 

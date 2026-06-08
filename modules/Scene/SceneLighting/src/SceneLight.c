@@ -19,9 +19,9 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 
-#include <DeepSea/Geometry/AlignedBox3.h>
+#include <DeepSea/Geometry/AlignedBox3x.h>
 #include <DeepSea/Geometry/Frustum3.h>
-#include <DeepSea/Geometry/OrientedBox3.h>
+#include <DeepSea/Geometry/OrientedBox3x.h>
 
 #include <DeepSea/Math/SIMD/SIMD.h>
 #include <DeepSea/Math/Color.h>
@@ -39,29 +39,31 @@
 #include <float.h>
 #include <string.h>
 
-static void spotPerpAxes(dsVector3f* outX, dsVector3f* outY, const dsSceneLight* light)
+static void spotPerpAxes(dsVector3xf* outX, dsVector3xf* outY, const dsSceneLight* light)
 {
 	const float epsilon = 1e-6f;
-	dsVector3f z;
-	dsVector3_neg(z, light->direction);
+	dsVector3xf z;
+	dsVector3xf_neg(&z, &light->direction);
 	if (dsEpsilonEqualsZerof(z.x, epsilon) && dsEpsilonEqualsZerof(z.z, epsilon))
 	{
-		outY->x = 1.0;
-		outY->y = 0.0;
-		outY->z = 0.0;
+		outY->x = 1.0f;
+		outY->y = 0.0f;
+		outY->z = 0.0f;
+		outY->w = 0.0f;
 	}
 	else
 	{
-		outY->x = 0.0;
-		outY->y = 1.0;
-		outY->z = 0.0;
+		outY->x = 0.0f;
+		outY->y = 1.0f;
+		outY->z = 0.0f;
+		outY->w = 0.0f;
 	}
 
-	dsVector3_cross(*outX, *outY, z);
-	dsVector3f_normalize(outX, outX);
+	dsVector3xf_cross(outX, outY, &z);
+	dsVector3xf_normalize(outX, outX);
 
-	dsVector3_cross(*outY, z, *outX);
-	dsVector3f_normalize(outY, outY);
+	dsVector3xf_cross(outY, &z, outX);
+	dsVector3xf_normalize(outY, outY);
 }
 
 static inline float getLightIntensity(const dsSceneLight* light)
@@ -218,8 +220,8 @@ bool dsSceneLight_getSpotLightVertexFormat(dsVertexFormat* outFormat)
 	return true;
 }
 
-bool dsSceneLight_makeDirectional(dsSceneLight* outLight, const dsVector3f* direction,
-	const dsColor3f* color, float intensity)
+bool dsSceneLight_makeDirectional(
+	dsSceneLight* outLight, const dsVector3xf* direction, const dsColor3f* color, float intensity)
 {
 	if (!outLight || !direction || !color)
 	{
@@ -239,7 +241,7 @@ bool dsSceneLight_makeDirectional(dsSceneLight* outLight, const dsVector3f* dire
 	return true;
 }
 
-bool dsSceneLight_makePoint(dsSceneLight* outLight, const dsVector3f* position,
+bool dsSceneLight_makePoint(dsSceneLight* outLight, const dsVector3xf* position,
 	const dsColor3f* color, float intensity, float linearFalloff, float quadraticFalloff)
 {
 	if (!outLight || !position || !color || linearFalloff < 0 || quadraticFalloff < 0)
@@ -260,8 +262,8 @@ bool dsSceneLight_makePoint(dsSceneLight* outLight, const dsVector3f* position,
 	return true;
 }
 
-bool dsSceneLight_makeSpot(dsSceneLight* outLight, const dsVector3f* position,
-	const dsVector3f* direction, const dsColor3f* color, float intensity, float linearFalloff,
+bool dsSceneLight_makeSpot(dsSceneLight* outLight, const dsVector3xf* position,
+	const dsVector3xf* direction, const dsColor3f* color, float intensity, float linearFalloff,
 	float quadraticFalloff, float innerSpotCosAngle, float outerSpotCosAngle)
 {
 	if (!outLight || !position || !direction || !color || innerSpotCosAngle < outerSpotCosAngle ||
@@ -283,7 +285,7 @@ bool dsSceneLight_makeSpot(dsSceneLight* outLight, const dsVector3f* position,
 	return true;
 }
 
-float dsSceneLight_getFalloff(const dsSceneLight* light, const dsVector3f* position)
+float dsSceneLight_getFalloff(const dsSceneLight* light, const dsVector3xf* position)
 {
 	DS_ASSERT(light);
 	DS_ASSERT(position);
@@ -291,9 +293,9 @@ float dsSceneLight_getFalloff(const dsSceneLight* light, const dsVector3f* posit
 	if (light->type == dsSceneLightType_Directional)
 		return 1.0f;
 
-	dsVector3f direction;
-	dsVector3_sub(direction, *position, light->position);
-	float distance = dsVector3f_len(&direction);
+	dsVector3xf direction;
+	dsVector3xf_sub(&direction, position, &light->position);
+	float distance = dsVector3xf_len(&direction);
 	float distanceFalloff =
 		1/(1.0f + light->linearFalloff*distance + light->quadraticFalloff*dsPow2(distance));
 	if (light->type == dsSceneLightType_Point)
@@ -304,8 +306,8 @@ float dsSceneLight_getFalloff(const dsSceneLight* light, const dsVector3f* posit
 	if (distance < epsilon)
 		return distanceFalloff;
 
-	dsVector3_scale(direction, direction, 1.0f/distance);
-	float cosAngle = dsVector3_dot(direction, light->direction);
+	dsVector3xf_scale(&direction, &direction, 1.0f/distance);
+	float cosAngle = dsVector3xf_dot(&direction, &light->direction);
 
 	// Inner cos angle should be larger than the cos outer angle.
 	if (cosAngle >= light->innerSpotCosAngle)
@@ -318,15 +320,15 @@ float dsSceneLight_getFalloff(const dsSceneLight* light, const dsVector3f* posit
 	return spotFalloff*distanceFalloff;
 }
 
-float dsSceneLight_getIntensity(const dsSceneLight* light, const dsVector3f* position)
+float dsSceneLight_getIntensity(const dsSceneLight* light, const dsVector3xf* position)
 {
 	DS_ASSERT(light);
 	DS_ASSERT(position);
 	return dsSceneLight_getFalloff(light, position)*getLightIntensity(light);
 }
 
-bool dsSceneLight_computeBounds(dsAlignedBox3f* outBounds, const dsSceneLight* light,
-	float intensityThreshold)
+bool dsSceneLight_computeBounds(
+	dsAlignedBox3xf* outBounds, const dsSceneLight* light, float intensityThreshold)
 {
 	if (!outBounds || !light || intensityThreshold <= 0)
 	{
@@ -338,71 +340,78 @@ bool dsSceneLight_computeBounds(dsAlignedBox3f* outBounds, const dsSceneLight* l
 	{
 		if (getLightIntensity(light) >= intensityThreshold)
 		{
+#if DS_SIMD_ALWAYS_FLOAT4
+			outBounds->min.simd = dsSIMD4f_set1(-FLT_MAX);
+			outBounds->max.simd = dsSIMD4f_set1(FLT_MAX);
+#else
 			outBounds->min.x = -FLT_MAX;
 			outBounds->min.y = -FLT_MAX;
 			outBounds->min.z = -FLT_MAX;
+			outBounds->min.w = -FLT_MAX;
 			outBounds->max.x = FLT_MAX;
 			outBounds->max.y = FLT_MAX;
 			outBounds->max.z = FLT_MAX;
+			outBounds->max.w = FLT_MAX;
+#endif
 		}
 		else
-			dsAlignedBox3f_makeInvalid(outBounds);
+			dsAlignedBox3xf_makeInvalid(outBounds);
 		return true;
 	}
 
 	float radius = getLightRadius(light, intensityThreshold);
 	if (radius <= 0)
 	{
-		dsAlignedBox3f_makeInvalid(outBounds);
+		dsAlignedBox3xf_makeInvalid(outBounds);
 		return true;
 	}
 
 	if (light->type == dsSceneLightType_Point)
 	{
-		dsVector3f sizeOffset = {{radius, radius, radius}};
-		dsVector3_sub(outBounds->min, light->position, sizeOffset);
-		dsVector3_add(outBounds->max, light->position, sizeOffset);
+		dsVector3xf sizeOffset = {{radius, radius, radius, radius}};
+		dsVector3xf_sub(&outBounds->min, &light->position, &sizeOffset);
+		dsVector3xf_add(&outBounds->max, &light->position, &sizeOffset);
 		return true;
 	}
 
 	DS_ASSERT(light->type == dsSceneLightType_Spot);
 
 	// Create an orthonormal basis around the spotlight.
-	dsVector3f spotX, spotY;
+	dsVector3xf spotX, spotY;
 	spotPerpAxes(&spotX, &spotY, light);
 
 	outBounds->min = outBounds->max = light->position;
 
 	// Middle of the spotlight where it ends.
-	dsVector3f middlePos;
-	dsVector3_scale(middlePos, light->direction, radius);
-	dsVector3_add(middlePos, middlePos, light->position);
+	dsVector3xf middlePos;
+	dsVector3xf_scale(&middlePos, &light->direction, radius);
+	dsVector3xf_add(&middlePos, &middlePos, &light->position);
 
 	// cos of the angle multiplied by the distance is how far to extend by the X and Y perpendicular
 	// axes for the spot light.
 	float spotEndDist = light->outerSpotCosAngle*radius;
-	dsVector3_scale(spotX, spotX, spotEndDist);
-	dsVector3_scale(spotY, spotY, spotEndDist);
+	dsVector3xf_scale(&spotX, &spotX, spotEndDist);
+	dsVector3xf_scale(&spotY, &spotY, spotEndDist);
 
-	dsVector3f extremeX, extremePos;
-	dsVector3_sub(extremeX, middlePos, spotX);
-	dsVector3_sub(extremePos, extremeX, spotY);
-	dsAlignedBox3_addPoint(*outBounds, extremePos);
+	dsVector3xf extremeX, extremePos;
+	dsVector3xf_sub(&extremeX, &middlePos, &spotX);
+	dsVector3xf_sub(&extremePos, &extremeX, &spotY);
+	dsAlignedBox3xf_addPoint(outBounds, &extremePos);
 
-	dsVector3_add(extremePos, extremeX, spotY);
-	dsAlignedBox3_addPoint(*outBounds, extremePos);
+	dsVector3xf_add(&extremePos, &extremeX, &spotY);
+	dsAlignedBox3xf_addPoint(outBounds, &extremePos);
 
-	dsVector3_add(extremeX, middlePos, spotX);
-	dsVector3_sub(extremePos, extremeX, spotY);
-	dsAlignedBox3_addPoint(*outBounds, extremePos);
+	dsVector3xf_add(&extremeX, &middlePos, &spotX);
+	dsVector3xf_sub(&extremePos, &extremeX, &spotY);
+	dsAlignedBox3xf_addPoint(outBounds, &extremePos);
 
-	dsVector3_add(extremePos, extremeX, spotY);
-	dsAlignedBox3_addPoint(*outBounds, extremePos);
+	dsVector3xf_add(&extremePos, &extremeX, &spotY);
+	dsAlignedBox3xf_addPoint(outBounds, &extremePos);
 	return true;
 }
 
-bool dsSceneLight_isInFrustum(const dsSceneLight* light, const dsFrustum3f* frustum,
-	float intensityThreshold)
+bool dsSceneLight_isInFrustum(
+	const dsSceneLight* light, const dsFrustum3f* frustum, float intensityThreshold)
 {
 	if (!light || !frustum)
 		return false;
@@ -420,30 +429,31 @@ bool dsSceneLight_isInFrustum(const dsSceneLight* light, const dsFrustum3f* frus
 			if (radius <= 0)
 				return false;
 
-			return dsFrustum3f_intersectSphere(frustum, &light->position, radius) !=
-				dsIntersectResult_Outside;
+			return dsFrustum3f_intersectSphere3x(
+				frustum, &light->position, radius) != dsIntersectResult_Outside;
 		}
 		case dsSceneLightType_Spot:
 		{
 			// Use an oriented box as the simplest approximation.
-			dsOrientedBox3f bounds;
+			dsOrientedBox3xf bounds;
 			float radius = getLightRadius(light, intensityThreshold);
 			if (radius <= 0)
 				return false;
 
 			spotPerpAxes(bounds.orientation.columns, bounds.orientation.columns + 1, light);
-			dsVector3_neg(bounds.orientation.columns[2], light->direction);
+			dsVector3xf_neg(bounds.orientation.columns + 2, &light->direction);
 
 			bounds.halfExtents.z = radius*0.5f;
-			dsVector3_scale(bounds.center, light->direction, bounds.halfExtents.z);
-			dsVector3_add(bounds.center, bounds.center, light->position);
+			dsVector3xf_scale(&bounds.center, &light->direction, bounds.halfExtents.z);
+			dsVector3xf_add(&bounds.center, &bounds.center, &light->position);
 
 			// sin of the angle multiplied by the distance is how far to extend by the X and Y
 			// perpendicular axes for the spot light.
 			float outerSinAngle = dsSqrtf(1.0f - dsPow2(light->outerSpotCosAngle));
 			bounds.halfExtents.x = bounds.halfExtents.y = radius*outerSinAngle;
 
-			return dsFrustum3f_intersectOrientedBox(frustum, &bounds) !=  dsIntersectResult_Outside;
+			return dsFrustum3f_intersectOrientedBox3x(
+				frustum, &bounds) != dsIntersectResult_Outside;
 		}
 		default:
 			DS_ASSERT(false);
@@ -499,9 +509,9 @@ bool dsSceneLight_getSpotLightTransform(dsMatrix44f* result, const dsSceneLight*
 	}
 
 	dsMatrix44f lightWorld;
-	spotPerpAxes((dsVector3f*)lightWorld.columns, (dsVector3f*)(lightWorld.columns + 1), light);
-	dsVector3_neg(lightWorld.columns[2], light->direction);
-	*(dsVector3f*)(lightWorld.values + 3) = light->position;
+	spotPerpAxes(lightWorld.columns, lightWorld.columns + 1, light);
+	dsVector3xf_neg(lightWorld.columns + 2, &light->direction);
+	lightWorld.columns[3] = light->position;
 
 	lightWorld.values[0][3] = 0.0f;
 	lightWorld.values[1][3] = 0.0f;
@@ -698,7 +708,7 @@ bool dsSceneLight_getPointLightVertices(
 	dsVector3_add(bounds.max, light->position, sizeOffset);
 
 	dsPointLightVertex commonData;
-	commonData.lightPosition = light->position;
+	commonData.lightPosition = *(const dsVector3f*)&light->position;
 
 #if DS_HAS_SIMD
 	if (DS_SIMD_ALWAYS_HALF_FLOAT || (dsHostSIMDFeatures & dsSIMDFeatures_HalfFloat))
@@ -845,7 +855,7 @@ bool dsSceneLight_getSpotLightVertices(dsSpotLightVertex* outVertices, uint32_t 
 	}
 
 	dsSpotLightVertex commonData;
-	commonData.lightPosition = light->position;
+	commonData.lightPosition = *(const dsVector3f*)&light->position;
 	commonData.direction[0] = dsPackInt16(-light->direction.x);
 	commonData.direction[1] = dsPackInt16(-light->direction.y);
 	commonData.direction[2] = dsPackInt16(-light->direction.z);
@@ -870,33 +880,33 @@ bool dsSceneLight_getSpotLightVertices(dsSpotLightVertex* outVertices, uint32_t 
 	const size_t commonDataSize = sizeof(dsSpotLightVertex) -
 		offsetof(dsSpotLightVertex, lightPosition);
 
-	outVertices[0].vertexPosition = light->position;
+	outVertices[0].vertexPosition = *(const dsVector3f*)&light->position;
 	memcpy(&outVertices[0].lightPosition, &commonData.lightPosition, commonDataSize);
 
 	// Create an orthonormal basis around the spotlight.
-	dsVector3f spotX, spotY;
+	dsVector3xf spotX, spotY;
 	spotPerpAxes(&spotX, &spotY, light);
 
 	// Middle of the spotlight where it ends.
-	dsVector3f middlePos;
-	dsVector3_scale(middlePos, light->direction, radius);
-	dsVector3_add(middlePos, middlePos, light->position);
+	dsVector3xf middlePos;
+	dsVector3xf_scale(&middlePos, &light->direction, radius);
+	dsVector3xf_add(&middlePos, &middlePos, &light->position);
 
 	// cos of the angle multiplied by the distance is how far to extend by the X and Y perpendicular
 	// axes for the spot light.
 	float spotEndDist = light->outerSpotCosAngle*radius;
-	dsVector3_scale(spotX, spotX, spotEndDist);
-	dsVector3_scale(spotY, spotY, spotEndDist);
+	dsVector3xf_scale(&spotX, &spotX, spotEndDist);
+	dsVector3xf_scale(&spotY, &spotY, spotEndDist);
 
-	dsVector3f extremeX;
-	dsVector3_sub(extremeX, middlePos, spotX);
+	dsVector3xf extremeX;
+	dsVector3xf_sub(&extremeX, &middlePos, &spotX);
 	dsVector3_sub(outVertices[1].vertexPosition, extremeX, spotY);
 	memcpy(&outVertices[1].lightPosition, &commonData.lightPosition, commonDataSize);
 
 	dsVector3_add(outVertices[2].vertexPosition, extremeX, spotY);
 	memcpy(&outVertices[2].lightPosition, &commonData.lightPosition, commonDataSize);
 
-	dsVector3_add(extremeX, middlePos, spotX);
+	dsVector3xf_add(&extremeX, &middlePos, &spotX);
 	dsVector3_sub(outVertices[3].vertexPosition, extremeX, spotY);
 	memcpy(&outVertices[3].lightPosition, &commonData.lightPosition, commonDataSize);
 

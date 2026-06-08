@@ -668,6 +668,51 @@ dsIntersectResult dsShadowCullVolume_intersectSphere(const dsShadowCullVolume* v
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
 }
 
+dsIntersectResult dsShadowCullVolume_intersectSphere3x(const dsShadowCullVolume* volume,
+	const dsVector3xf* center, float radius, dsShadowProjection* shadowProj, bool clampToVolume)
+{
+#if DS_SIMD_ALWAYS_FMA
+	return dsShadowCullVolume_intersectSphereFMA(volume, center, radius, shadowProj, clampToVolume);
+#elif DS_SIMD_ALWAYS_SIMD
+	return dsShadowCullVolume_intersectSphereSIMD(
+		volume, center, radius, shadowProj, clampToVolume);
+#else
+	if (!volume || volume->planeCount == 0 || !center || radius < 0)
+		return dsIntersectResult_Outside;
+
+	bool intersects = false;
+	for (uint32_t i = 0; i < volume->planeCount; ++i)
+	{
+		float distance = dsPlane3f_distanceToPoint(volume->planes + i, (const dsVector3f*)center);
+		if (distance < -radius)
+			return dsIntersectResult_Outside;
+		else if (distance <= radius)
+			intersects = true;
+	}
+
+	if (shadowProj)
+	{
+		dsAlignedBox3xf box;
+		dsVector3xf radiusVec = {{radius, radius, radius}};
+		dsVector3xf_sub(&box.min, center, &radiusVec);
+		dsVector3xf_add(&box.max, center, &radiusVec);
+
+		dsVector4f corners[DS_BOX3_CORNER_COUNT];
+		dsAlignedBox3xf_corners(corners, &box);
+		for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
+			corners[i].w = 1.0f;
+		if (clampToVolume && intersects)
+		{
+			addClampedPointsToProjection(volume, corners, shadowProj,
+				(PointInBoxFunction)&dsAlignedBox3xf_containsPoint, &box);
+		}
+		else
+			DS_VERIFY(dsShadowProjection_addPoints(shadowProj, corners, DS_BOX3_CORNER_COUNT));
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+#endif
+}
 
 #if DS_HAS_SIMD
 DS_SIMD_START(DS_SIMD_FLOAT4)
@@ -795,6 +840,47 @@ dsIntersectResult dsShadowCullVolume_intersectBoxMatrixSIMD(const dsShadowCullVo
 		}
 		else
 			dsShadowProjection_addPointsSIMD(shadowProj, corners, DS_BOX3_CORNER_COUNT);
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+}
+
+dsIntersectResult dsShadowCullVolume_intersectSphereSIMD(const dsShadowCullVolume* volume,
+	const dsVector3xf* center, float radius, dsShadowProjection* shadowProj, bool clampToVolume)
+{
+	if (!volume || volume->planeCount == 0 || !center || radius < 0)
+		return dsIntersectResult_Outside;
+
+	bool intersects = false;
+	dsSIMD4f centerPos = dsSIMD4f_set4(center->x, center->y, center->z, 1.0f);
+	for (uint32_t i = 0; i < volume->planeCount; ++i)
+	{
+		dsSIMD4f dist4 = dsDot4SIMD4f(volume->planes[i].simd, centerPos);
+		float distance = dsSIMD4f_get(dist4, 0);
+		if (distance < -radius)
+			return dsIntersectResult_Outside;
+		else if (distance <= radius)
+			intersects = true;
+	}
+
+	if (shadowProj)
+	{
+		dsSIMD4f radius4 = dsSIMD4f_set1(radius);
+		dsAlignedBox3xf box;
+		box.min.simd = dsSIMD4f_sub(center->simd, radius4);
+		box.max.simd = dsSIMD4f_add(center->simd, radius4);
+
+		dsVector4f corners[DS_BOX3_CORNER_COUNT];
+		dsAlignedBox3xf_corners(corners, &box);
+		for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
+			corners[i].w = 1.0f;
+		if (clampToVolume && intersects)
+		{
+			addClampedPointsToProjection(volume, corners, shadowProj,
+				(PointInBoxFunction)&dsAlignedBox3xf_containsPoint, &box);
+		}
+		else
+			DS_VERIFY(dsShadowProjection_addPointsSIMD(shadowProj, corners, DS_BOX3_CORNER_COUNT));
 	}
 
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
@@ -928,6 +1014,47 @@ dsIntersectResult dsShadowCullVolume_intersectBoxMatrixFMA(const dsShadowCullVol
 		}
 		else
 			dsShadowProjection_addPointsFMA(shadowProj, corners, DS_BOX3_CORNER_COUNT);
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+}
+
+dsIntersectResult dsShadowCullVolume_intersectSphereFMA(const dsShadowCullVolume* volume,
+	const dsVector3xf* center, float radius, dsShadowProjection* shadowProj, bool clampToVolume)
+{
+	if (!volume || volume->planeCount == 0 || !center || radius < 0)
+		return dsIntersectResult_Outside;
+
+	bool intersects = false;
+	dsSIMD4f centerPos = dsSIMD4f_set4(center->x, center->y, center->z, 1.0f);
+	for (uint32_t i = 0; i < volume->planeCount; ++i)
+	{
+		dsSIMD4f dist4 = dsDot4FMA4f(volume->planes[i].simd, centerPos);
+		float distance = dsSIMD4f_get(dist4, 0);
+		if (distance < -radius)
+			return dsIntersectResult_Outside;
+		else if (distance <= radius)
+			intersects = true;
+	}
+
+	if (shadowProj)
+	{
+		dsSIMD4f radius4 = dsSIMD4f_set1(radius);
+		dsAlignedBox3xf box;
+		box.min.simd = dsSIMD4f_sub(center->simd, radius4);
+		box.max.simd = dsSIMD4f_add(center->simd, radius4);
+
+		dsVector4f corners[DS_BOX3_CORNER_COUNT];
+		dsAlignedBox3xf_corners(corners, &box);
+		for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
+			corners[i].w = 1.0f;
+		if (clampToVolume && intersects)
+		{
+			addClampedPointsToProjection(volume, corners, shadowProj,
+				(PointInBoxFunction)&dsAlignedBox3xf_containsPoint, &box);
+		}
+		else
+			DS_VERIFY(dsShadowProjection_addPointsFMA(shadowProj, corners, DS_BOX3_CORNER_COUNT));
 	}
 
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;

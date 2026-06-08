@@ -135,7 +135,7 @@ static void dsInstanceForwardLightData_populateData(void* userData, const dsView
 		dsVector4f* spotCosAngles = (dsVector4f*)(data + spotCosAnglesOffset);
 		dsColor4f* ambientColorHasMain = (dsColor4f*)(data + ambientColorHasMainOffset);
 
-		const dsVector3f* position = (const dsVector3f*)(transform->columns + 3);
+		const dsVector3xf* position = transform->columns + 3;
 		bool hasMainLight = false;
 		uint32_t brightestLightCount = dsSceneLightSet_findBrightestLights(brightestLights,
 			lightCount, &hasMainLight, lightSet, position);
