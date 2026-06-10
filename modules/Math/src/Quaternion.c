@@ -106,8 +106,8 @@ void dsQuaternion4d_fromEulerAngles(dsQuaternion4d* result, double x, double y, 
 		*result, cosAngles.x, sinAngles.x, cosAngles.y, sinAngles.y, cosAngles.z, sinAngles.z);
 }
 
-void dsQuaternion4f_fromAxisAngle(dsQuaternion4f* result, const dsVector3f* axis,
-	float angle)
+void dsQuaternion4f_fromAxisAngle(
+	dsQuaternion4f* result, const dsVector3f* axis, float angle)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(axis);
@@ -121,8 +121,8 @@ void dsQuaternion4f_fromAxisAngle(dsQuaternion4f* result, const dsVector3f* axis
 	result->r = cosAngle;
 }
 
-void dsQuaternion4d_fromAxisAngle(dsQuaternion4d* result, const dsVector3d* axis,
-	double angle)
+void dsQuaternion4d_fromAxisAngle(
+	dsQuaternion4d* result, const dsVector3d* axis, double angle)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(axis);
@@ -148,6 +148,28 @@ void dsQuaternion4f_fromMatrix33(dsQuaternion4f* result, const dsMatrix33f* matr
 }
 
 void dsQuaternion4d_fromMatrix33(dsQuaternion4d* result, const dsMatrix33d* matrix)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(matrix);
+
+	double w = dsSqrtd(
+		1.0 + matrix->values[0][0] + matrix->values[1][1] + matrix->values[2][2])/2.0;
+	double inv4w = 1.0/(4.0*w);
+	dsQuaternion4_fromMatrixImpl(*result, *matrix, w, inv4w);
+}
+
+void dsQuaternion4f_fromMatrix33x(dsQuaternion4f* result, const dsMatrix33xf* matrix)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(matrix);
+
+	float w = dsSqrtf(
+		1.0f + matrix->values[0][0] + matrix->values[1][1] + matrix->values[2][2])/2.0f;
+	float inv4w = 1.0f/(4.0f*w);
+	dsQuaternion4_fromMatrixImpl(*result, *matrix, w, inv4w);
+}
+
+void dsQuaternion4d_fromMatrix33x(dsQuaternion4d* result, const dsMatrix33xd* matrix)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(matrix);
@@ -192,6 +214,26 @@ void dsQuaternion4d_toMatrix33(dsMatrix33d* result, const dsQuaternion4d* a)
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	dsQuaternion4_toMatrixImpl(*result, *a);
+}
+
+void dsQuaternion4f_toMatrix33x(dsMatrix33xf* result, const dsQuaternion4f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsQuaternion4_toMatrixImpl(*result, *a);
+	result->columns[0].w = 0.0f;
+	result->columns[1].w = 0.0f;
+	result->columns[2].w = 0.0f;
+}
+
+void dsQuaternion4d_toMatrix33x(dsMatrix33xd* result, const dsQuaternion4d* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsQuaternion4_toMatrixImpl(*result, *a);
+	result->columns[0].w = 0.0;
+	result->columns[1].w = 0.0;
+	result->columns[2].w = 0.0;
 }
 
 void dsQuaternion4f_toMatrix44(dsMatrix44f* result, const dsQuaternion4f* a)
@@ -280,7 +322,7 @@ void dsQuaternion4d_slerp(
 	DS_ASSERT(a);
 	DS_ASSERT(b);
 
-	double cosAB = dsVector4_dot(*a, *b);
+	double cosAB = dsVector4d_dot((const dsVector4d*)a, (const dsVector4d*)b);
 
 	// Make sure the shortest path is taken.
 	dsQuaternion4d negB;
@@ -334,6 +376,9 @@ double dsQuaternion4d_getZAngle(const dsQuaternion4d* a);
 void dsQuaternion4f_getRotationAxis(dsVector3f* result, const dsQuaternion4f* a);
 void dsQuaternion4d_getRotationAxis(dsVector3d* result, const dsQuaternion4d* a);
 
+void dsQuaternion4f_getRotationAxis3x(dsVector3xf* result, const dsQuaternion4f* a);
+void dsQuaternion4d_getRotationAxis3x(dsVector3xd* result, const dsQuaternion4d* a);
+
 float dsQuaternion4f_getAxisAngle(const dsQuaternion4f* a);
 double dsQuaternion4d_getAxisAngle(const dsQuaternion4d* a);
 
@@ -348,3 +393,42 @@ void dsQuaternion4d_mul(dsQuaternion4d* result, const dsQuaternion4d* a, const d
 
 void dsQuaternion4f_conjugate(dsQuaternion4f* result, const dsQuaternion4f* a);
 void dsQuaternion4d_conjugate(dsQuaternion4d* result, const dsQuaternion4d* a);
+
+#if DS_HAS_SIMD
+
+void dsQuaternion4f_mulSIMD(
+	dsQuaternion4f* result, const dsQuaternion4f* a, const dsQuaternion4f* b);
+void dsQuaternion4f_conjugateSIMD(dsQuaternion4f* result, const dsQuaternion4f* a);
+void dsQuaternion4f_normalizeSIMD(dsQuaternion4f* result, const dsQuaternion4f* a);
+void dsQuaternion4f_rotateSIMD(dsVector3xf* result, const dsQuaternion4f* a, const dsVector3xf* v);
+
+#if !DS_DETERMINISTIC_MATH
+void dsQuaternion4f_mulFMA(
+	dsQuaternion4f* result, const dsQuaternion4f* a, const dsQuaternion4f* b);
+void dsQuaternion4f_normalizeFMA(dsQuaternion4f* result, const dsQuaternion4f* a);
+void dsQuaternion4f_rotateFMA(dsVector3xf* result, const dsQuaternion4f* a, const dsVector3xf* v);
+#endif // !DS_DETERMINISTIC_MATH
+
+void dsQuaternion4d_mulSIMD2(
+	dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b);
+void dsQuaternion4d_conjugateSIMD2(dsQuaternion4d* result, const dsQuaternion4d* a);
+void dsQuaternion4d_normalizeSIMD2(dsQuaternion4d* result, const dsQuaternion4d* a);
+void dsQuaternion4d_rotateSIMD2(dsVector3xd* result, const dsQuaternion4d* a, const dsVector3xd* v);
+
+#if !DS_DETERMINISTIC_MATH
+void dsQuaternion4d_mulFMA2(
+	dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b);
+void dsQuaternion4d_normalizeFMA2(dsQuaternion4d* result, const dsQuaternion4d* a);
+void dsQuaternion4d_rotateFMA2(dsVector3xd* result, const dsQuaternion4d* a, const dsVector3xd* v);
+#endif // !DS_DETERMINISTIC_MATH
+
+void dsQuaternion4d_mulSIMD4(dsQuaternion4d* DS_ALIGN_PARAM(32) result,
+	const dsQuaternion4d* DS_ALIGN_PARAM(32) a, const dsQuaternion4d* DS_ALIGN_PARAM(32) b);
+void dsQuaternion4d_conjugateSIMD4(
+	dsQuaternion4d* DS_ALIGN_PARAM(32) result, const dsQuaternion4d* DS_ALIGN_PARAM(32) a);
+void dsQuaternion4d_normalizeSIMD4(
+	dsQuaternion4d* DS_ALIGN_PARAM(32) result, const dsQuaternion4d* DS_ALIGN_PARAM(32) a);
+void dsQuaternion4d_rotateSIMD4(dsVector3xd* DS_ALIGN_PARAM(32) result,
+	const dsQuaternion4d* DS_ALIGN_PARAM(32) a, const dsVector3xd* DS_ALIGN_PARAM(32) v);
+
+#endif // DS_HAS_SIMD

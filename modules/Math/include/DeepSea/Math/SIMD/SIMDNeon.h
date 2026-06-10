@@ -1094,7 +1094,7 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_neg(dsSIMD2d a)
  * @param negY Constant 1 to negate the Y component or 0 to leave it unchanged.
  * @return The result of the negation.
  */
-DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_negComponents(dsSIMD4f a, uint64_t negX, uint64_t negY)
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_negComponents(dsSIMD2d a, uint64_t negX, uint64_t negY)
 {
 #if DS_SIMD_ALWAYS_DOUBLE2
 	uint64x2_t mask = {negX, negY};
