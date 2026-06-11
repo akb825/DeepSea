@@ -319,6 +319,11 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xf_intersect(
 	result->max.simd = dsSIMD4f_min(a->max.simd, b->max.simd);
 #else
 	dsAlignedBox3_intersect(*result, *a, *b);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->min.w = 0;
+	result->max.w = 0;
+#endif
 #endif
 }
 
@@ -336,6 +341,11 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xd_intersect(
 	result->max.simd2[1] = dsSIMD2d_min(a->max.simd2[1], b->max.simd2[1]);
 #else
 	dsAlignedBox3_intersect(*result, *a, *b);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->min.w = 0;
+	result->max.w = 0;
+#endif
 #endif
 }
 
@@ -350,6 +360,10 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xf_center(
 	result->simd = dsSIMD4f_mul(dsSIMD4f_add(box->min.simd, box->max.simd), half);
 #else
 	dsAlignedBox3_center(*result, *box);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -365,6 +379,10 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xd_center(
 	result->simd2[1] = dsSIMD2d_mul(dsSIMD2d_add(box->min.simd2[1], box->max.simd2[1]), half);
 #else
 	dsAlignedBox3_center(*result, *box);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -378,6 +396,10 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xf_extents(
 	result->simd = dsSIMD4f_sub(box->max.simd, box->min.simd);
 #else
 	dsAlignedBox3_extents(*result, *box);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -392,6 +414,10 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xd_extents(
 	result->simd2[1] = dsSIMD2d_sub(box->max.simd2[1], box->min.simd2[1]);
 #else
 	dsAlignedBox3_extents(*result, *box);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -495,6 +521,12 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xf_corners(
 	corners[dsBox3Corner_XYZ].simd = box->max.simd;
 #else
 	dsAlignedBox3_corners(corners, *box);
+
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
+		corners[i].w = 0;
+#endif
 #endif
 }
 
@@ -532,6 +564,12 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xd_corners(
 	corners[dsBox3Corner_XYZ].simd2[1] = box->max.simd2[1];
 #else
 	dsAlignedBox3_corners(corners, *box);
+
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
+		corners[i].w = 0;
+#endif
 #endif
 }
 
@@ -549,6 +587,10 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xf_closestPoint(
 		result->simd = point->simd;
 #else
 	dsAlignedBox3_closestPoint(*result, *box, *point);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -574,6 +616,10 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xd_closestPoint(
 	}
 #else
 	dsAlignedBox3_closestPoint(*result, *box, *point);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 

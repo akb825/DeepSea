@@ -1214,6 +1214,13 @@ inline void dsMatrix44f_inverseTranspose(dsMatrix33xf* result, const dsMatrix44f
 	result->values[0][2] = a->values[0][2]*invLen2;
 	result->values[1][2] = a->values[1][2]*invLen2;
 	result->values[2][2] = a->values[2][2]*invLen2;
+
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->columns[0].w = 0;
+	result->columns[1].w = 0;
+	result->columns[2].w = 0;
+#endif
 #endif
 }
 
@@ -1246,6 +1253,13 @@ inline void dsMatrix44d_inverseTranspose(dsMatrix33xd* result, const dsMatrix44d
 	result->values[0][2] = a->values[0][2]*invLen2;
 	result->values[1][2] = a->values[1][2]*invLen2;
 	result->values[2][2] = a->values[2][2]*invLen2;
+
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->columns[0].w = 0;
+	result->columns[1].w = 0;
+	result->columns[2].w = 0;
+#endif
 #endif
 }
 

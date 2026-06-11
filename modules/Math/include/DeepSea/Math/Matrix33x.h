@@ -53,6 +53,12 @@ DS_MATH_EXPORT inline void dsMatrix33xf_identity(dsMatrix33xf* result)
 	result->columns[2].simd = dsSIMD4f_set4(0.0f, 0.0f, 1.0f, 0.0f);
 #else
 	dsMatrix33_identity(*result);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->columns[0].w = 0;
+	result->columns[1].w = 0;
+	result->columns[2].w = 0;
+#endif
 #endif
 }
 
@@ -69,6 +75,12 @@ DS_MATH_EXPORT inline void dsMatrix33xd_identity(dsMatrix33xd* result)
 	result->columns[2].simd2[1] = dsSIMD2d_set2(1.0f, 0.0f);
 #else
 	dsMatrix33_identity(*result);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->columns[0].w = 0;
+	result->columns[1].w = 0;
+	result->columns[2].w = 0;
+#endif
 #endif
 }
 
@@ -87,6 +99,12 @@ DS_MATH_EXPORT inline void dsMatrix33xf_mul(
 	dsMatrix33xf_mulSIMD(result, a, b);
 #else
 	dsMatrix33_mul(*result, *a, *b);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->columns[0].w = 0;
+	result->columns[1].w = 0;
+	result->columns[2].w = 0;
+#endif
 #endif
 }
 
@@ -107,6 +125,12 @@ DS_MATH_EXPORT inline void dsMatrix33xd_mul(
 #endif
 #else
 	dsMatrix33_mul(*result, *a, *b);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->columns[0].w = 0;
+	result->columns[1].w = 0;
+	result->columns[2].w = 0;
+#endif
 #endif
 }
 
@@ -125,6 +149,12 @@ DS_MATH_EXPORT inline void dsMatrix33xf_affineMul(
 	dsMatrix33xf_affineMulSIMD(result, a, b);
 #else
 	dsMatrix33_affineMul(*result, *a, *b);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->columns[0].w = 0;
+	result->columns[1].w = 0;
+	result->columns[2].w = 0;
+#endif
 #endif
 }
 
@@ -145,6 +175,12 @@ DS_MATH_EXPORT inline void dsMatrix33xd_affineMul(
 #endif
 #else
 	dsMatrix33_affineMul(*result, *a, *b);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->columns[0].w = 0;
+	result->columns[1].w = 0;
+	result->columns[2].w = 0;
+#endif
 #endif
 }
 
@@ -162,6 +198,10 @@ DS_MATH_EXPORT inline void dsMatrix33xf_transform(
 	dsMatrix33xf_transformSIMD(result, mat, vec);
 #else
 	dsMatrix33_transform(*result, *mat, *vec);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -181,6 +221,10 @@ DS_MATH_EXPORT inline void dsMatrix33xd_transform(
 #endif
 #else
 	dsMatrix33_transform(*result, *mat, *vec);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -198,6 +242,10 @@ DS_MATH_EXPORT inline void dsMatrix33xf_transformTransposed(
 	dsMatrix33xf_transformTransposedSIMD(result, mat, vec);
 #else
 	dsMatrix33_transformTransposed(*result, *mat, *vec);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -217,6 +265,10 @@ DS_MATH_EXPORT inline void dsMatrix33xd_transformTransposed(
 #endif
 #else
 	dsMatrix33_transformTransposed(*result, *mat, *vec);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -230,6 +282,12 @@ DS_MATH_EXPORT inline void dsMatrix33xf_transpose(dsMatrix33xf* result, const ds
 	dsMatrix33xf_transposeSIMD(result, a);
 #else
 	dsMatrix33_transpose(*result, *a);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->columns[0].w = 0;
+	result->columns[1].w = 0;
+	result->columns[2].w = 0;
+#endif
 #endif
 }
 
@@ -243,6 +301,12 @@ DS_MATH_EXPORT inline void dsMatrix33xd_transpose(dsMatrix33xd* result, const ds
 	dsMatrix33xd_transposeSIMD2(result, a);
 #else
 	dsMatrix33_transpose(*result, *a);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->columns[0].w = 0;
+	result->columns[1].w = 0;
+	result->columns[2].w = 0;
+#endif
 #endif
 }
 
@@ -303,6 +367,12 @@ DS_MATH_EXPORT inline void dsMatrix33xd_fastInvert(dsMatrix33xd* result, const d
 #endif
 #else
 	dsMatrix33_fastInvert(*result, *a);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->columns[0].w = 0;
+	result->columns[1].w = 0;
+	result->columns[2].w = 0;
+#endif
 #endif
 }
 
@@ -334,6 +404,13 @@ DS_MATH_EXPORT inline void dsMatrix33xf_affineInvert(dsMatrix33xf* result, const
 	result->values[2][1] = -a->values[2][0]*result->values[0][1] -
 		a->values[2][1]*result->values[1][1];
 	result->values[2][2] = 1;
+
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->columns[0].w = 0;
+	result->columns[1].w = 0;
+	result->columns[2].w = 0;
+#endif
 #endif
 }
 
@@ -367,6 +444,13 @@ DS_MATH_EXPORT inline void dsMatrix33xd_affineInvert(dsMatrix33xd* result, const
 	result->values[2][1] = -a->values[2][0]*result->values[0][1] -
 		a->values[2][1]*result->values[1][1];
 	result->values[2][2] = 1;
+
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->columns[0].w = 0;
+	result->columns[1].w = 0;
+	result->columns[2].w = 0;
+#endif
 #endif
 }
 
@@ -385,6 +469,13 @@ DS_MATH_EXPORT inline void dsMatrix33xf_invert(dsMatrix33xf* result, const dsMat
 	DS_ASSERT(det != 0);
 	float invDet = 1/det;
 	dsMatrix33_invertImpl(*result, *a, invDet);
+
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->columns[0].w = 0;
+	result->columns[1].w = 0;
+	result->columns[2].w = 0;
+#endif
 #endif
 }
 
@@ -405,6 +496,13 @@ DS_MATH_EXPORT inline void dsMatrix33xd_invert(dsMatrix33xd* result, const dsMat
 	DS_ASSERT(det != 0);
 	double invDet = 1/det;
 	dsMatrix33_invertImpl(*result, *a, invDet);
+
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->columns[0].w = 0;
+	result->columns[1].w = 0;
+	result->columns[2].w = 0;
+#endif
 #endif
 }
 

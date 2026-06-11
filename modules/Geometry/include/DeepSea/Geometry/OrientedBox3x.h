@@ -287,6 +287,10 @@ DS_GEOMETRY_EXPORT inline void dsOrientedBox3xf_makeInvalid(dsOrientedBox3xf* re
 	result->halfExtents.simd = dsSIMD4f_set1(-1.0f);
 #else
 	dsOrientedBox3_makeInvalid(*result);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->halfExtents.w = 0;
+#endif
 #endif
 }
 
@@ -300,6 +304,10 @@ DS_GEOMETRY_EXPORT inline void dsOrientedBox3xd_makeInvalid(dsOrientedBox3xd* re
 	result->halfExtents.simd2[1] = negOne;
 #else
 	dsOrientedBox3_makeInvalid(*result);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->halfExtents.w = 0;
+#endif
 #endif
 }
 
@@ -326,6 +334,15 @@ DS_GEOMETRY_EXPORT inline void dsOrientedBox3xf_fromMatrix(
 	dsVector3_scale(result->orientation.columns[2], matrix->columns[2], invLen);
 
 	result->center = matrix->columns[3];
+
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->halfExtents.w = 0;
+	result->center.w = 0;
+	result->orientation.columns[0].w = 0;
+	result->orientation.columns[1].w = 0;
+	result->orientation.columns[2].w = 0;
+#endif
 #endif
 }
 
@@ -354,6 +371,15 @@ DS_GEOMETRY_EXPORT inline void dsOrientedBox3xd_fromMatrix(
 	dsVector3_scale(result->orientation.columns[2], matrix->columns[2], invLen);
 
 	result->center = matrix->columns[3];
+
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->halfExtents.w = 0;
+	result->center.w = 0;
+	result->orientation.columns[0].w = 0;
+	result->orientation.columns[1].w = 0;
+	result->orientation.columns[2].w = 0;
+#endif
 #endif
 }
 

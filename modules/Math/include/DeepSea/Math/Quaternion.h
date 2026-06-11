@@ -796,6 +796,10 @@ inline void dsQuaternion4f_rotate3x(
 	dsQuaternion4f tempQuat;
 	dsQuaternion4_mulVecQuatConj(tempQuat, *v, *a);
 	dsQuaternion4_mulToVector(*result, *a, tempQuat);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -816,6 +820,10 @@ inline void dsQuaternion4d_rotate3x(
 	dsQuaternion4d tempQuat;
 	dsQuaternion4_mulVecQuatConj(tempQuat, *v, *a);
 	dsQuaternion4_mulToVector(*result, *a, tempQuat);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 

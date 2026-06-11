@@ -57,6 +57,10 @@ DS_MATH_EXPORT inline void dsVector3xf_add(
 	result->simd = dsSIMD4f_add(a->simd, b->simd);
 #else
 	dsVector3_add(*result, *a, *b);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -72,6 +76,10 @@ DS_MATH_EXPORT inline void dsVector3xd_add(
 	result->simd2[1] = dsSIMD2d_add(a->simd2[1], b->simd2[1]);
 #else
 	dsVector3_add(*result, *a, *b);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -86,6 +94,10 @@ DS_MATH_EXPORT inline void dsVector3xf_sub(
 	result->simd = dsSIMD4f_sub(a->simd, b->simd);
 #else
 	dsVector3_sub(*result, *a, *b);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -101,6 +113,10 @@ DS_MATH_EXPORT inline void dsVector3xd_sub(
 	result->simd2[1] = dsSIMD2d_sub(a->simd2[1], b->simd2[1]);
 #else
 	dsVector3_sub(*result, *a, *b);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -115,6 +131,10 @@ DS_MATH_EXPORT inline void dsVector3xf_mul(
 	result->simd = dsSIMD4f_mul(a->simd, b->simd);
 #else
 	dsVector3_mul(*result, *a, *b);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -130,6 +150,10 @@ DS_MATH_EXPORT inline void dsVector3xd_mul(
 	result->simd2[1] = dsSIMD2d_mul(a->simd2[1], b->simd2[1]);
 #else
 	dsVector3_mul(*result, *a, *b);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -144,6 +168,10 @@ DS_MATH_EXPORT inline void dsVector3xf_div(
 	result->simd = dsSIMD4f_div(a->simd, b->simd);
 #else
 	dsVector3_div(*result, *a, *b);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -159,6 +187,10 @@ DS_MATH_EXPORT inline void dsVector3xd_div(
 	result->simd2[1] = dsSIMD2d_div(a->simd2[1], b->simd2[1]);
 #else
 	dsVector3_div(*result, *a, *b);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -171,6 +203,10 @@ DS_MATH_EXPORT inline void dsVector3xf_scale(dsVector3xf* result, const dsVector
 	result->simd = dsSIMD4f_mul(a->simd, dsSIMD4f_set1(s));
 #else
 	dsVector3_scale(*result, *a, s);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -185,6 +221,10 @@ DS_MATH_EXPORT inline void dsVector3xd_scale(dsVector3xd* result, const dsVector
 	result->simd2[1] = dsSIMD2d_mul(a->simd2[1], s2);
 #else
 	dsVector3_scale(*result, *a, s);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -197,6 +237,10 @@ DS_MATH_EXPORT inline void dsVector3xf_neg(dsVector3xf* result, const dsVector3x
 	result->simd = dsSIMD4f_neg(a->simd);
 #else
 	dsVector3_neg(*result, *a);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -210,6 +254,10 @@ DS_MATH_EXPORT inline void dsVector3xd_neg(dsVector3xd* result, const dsVector3x
 	result->simd2[1] = dsSIMD2d_neg(a->simd2[1]);
 #else
 	dsVector3_neg(*result, *a);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -227,6 +275,10 @@ DS_MATH_EXPORT inline void dsVector3xf_lerp(
 		a->simd, dsSIMD4f_mul(dsSIMD4f_set1(t), dsSIMD4f_sub(b->simd, a->simd)));
 #else
 	dsVector3_lerp(*result, *a, *b, t);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -250,6 +302,10 @@ DS_MATH_EXPORT inline void dsVector3xd_lerp(
 #endif
 #else
 	dsVector3_lerp(*result, *a, *b, t);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -335,6 +391,10 @@ DS_MATH_EXPORT inline void dsVector3xf_cross(
 #endif
 #else
 	dsVector3_cross(*result, *a, *b);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -389,6 +449,10 @@ DS_MATH_EXPORT inline void dsVector3xd_cross(
 #endif
 #else
 	dsVector3_cross(*result, *a, *b);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
 #endif
 }
 
@@ -546,7 +610,7 @@ DS_MATH_EXPORT inline void dsVector3xf_normalize(dsVector3xf* result, const dsVe
 #else
 	float length = dsVector3xf_len(a);
 	DS_ASSERT(length > 0);
-	dsVector3_scale(*result, *a, 1/length);
+	dsVector3xf_scale(result, a, 1/length);
 #endif
 }
 
@@ -563,7 +627,7 @@ DS_MATH_EXPORT inline void dsVector3xd_normalize(dsVector3xd* result, const dsVe
 #else
 	double length = dsVector3xd_len(a);
 	DS_ASSERT(length > 0);
-	dsVector3_scale(*result, *a, 1/length);
+	dsVector3xd_scale(result, a, 1/length);
 #endif
 }
 

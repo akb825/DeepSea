@@ -411,6 +411,7 @@ void dsOrientedBox3xf_addPoint(dsOrientedBox3xf* box, const dsVector3xf* point)
 		box->halfExtents.x = 0;
 		box->halfExtents.y = 0;
 		box->halfExtents.z = 0;
+		box->halfExtents.w = 0;
 #endif
 	}
 }
@@ -450,6 +451,7 @@ void dsOrientedBox3xd_addPoint(dsOrientedBox3xd* box, const dsVector3xd* point)
 		box->halfExtents.x = 0;
 		box->halfExtents.y = 0;
 		box->halfExtents.z = 0;
+		box->halfExtents.w = 0;
 #endif
 	}
 }
