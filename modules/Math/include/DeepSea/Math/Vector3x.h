@@ -279,6 +279,42 @@ DS_MATH_EXPORT inline double dsVector3xd_dot(const dsVector3xd* a, const dsVecto
 #endif
 }
 
+#if DS_HAS_SIMD
+/// @cond
+#if DS_X86
+#define DS_SIMD_SHUFFLE_120_201(a120, a201, a) \
+	do \
+	{ \
+		(a120) = _mm_shuffle_ps((a), (a), _MM_SHUFFLE(3, 0, 2, 1)); \
+		(a201) = _mm_shuffle_ps((a), (a), _MM_SHUFFLE(3, 1, 0, 2)); \
+	} while (0)
+#elif DS_ARM_32
+	#define DS_SIMD_SHUFFLE_120_201(a120, a201, a) \
+		do \
+		{ \
+			float32x2_t _a01 = vget_low_f32((a)); \
+			float32x2_t _a23 = vget_high_f32((a)); \
+			float32x2_t _a12 = vext_f32(_a01, _a23, 1); \
+			float32x2x2_t _a2031 = vtrn_f32(_a23, _a01); \
+			(a120) = vcombine_f32(_a12, _a01); \
+			(a201) = vcombine_f32(_a2031.val[0], _a12); \
+		} while (0)
+#elif DS_ARM_64
+	#define DS_SIMD_SHUFFLE_120_201(a120, a201, a) \
+		do \
+		{ \
+			float32x2_t _a01 = vget_low_f32((a)); \
+			float32x2_t _a23 = vget_high_f32((a)); \
+			float32x2_t _a12 = vext_f32(_a01, _a23, 1); \
+			(a120) = vcombine_f32(_a12, _a01); \
+			(a201) = vcombine_f32(vtrn1_f32(_a23, _a01), _a12); \
+		} while (0)
+#else
+#error Need to implement shuffling of cross product factors on this platform.
+#endif
+/// @endcond
+#endif // DS_HAS_SIMD
+
 /** @copydoc dsVector3_cross() */
 DS_MATH_EXPORT inline void dsVector3xf_cross(
 	dsVector3xf* result, const dsVector3xf* a, const dsVector3xf* b)
@@ -286,11 +322,12 @@ DS_MATH_EXPORT inline void dsVector3xf_cross(
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-#if DS_SIMD_ALWAYS_FLOAT4 && DS_X86
-	dsSIMD4f a120 = _mm_shuffle_ps(a->simd, a->simd, _MM_SHUFFLE(3, 0, 2, 1));
-	dsSIMD4f a201 = _mm_shuffle_ps(a->simd, a->simd, _MM_SHUFFLE(3, 1, 0, 2));
-	dsSIMD4f b120 = _mm_shuffle_ps(b->simd, b->simd, _MM_SHUFFLE(3, 0, 2, 1));
-	dsSIMD4f b201 = _mm_shuffle_ps(b->simd, b->simd, _MM_SHUFFLE(3, 1, 0, 2));
+#if DS_SIMD_ALWAYS_FLOAT4
+	dsSIMD4f a120, a201;
+	DS_SIMD_SHUFFLE_120_201(a120, a201, a->simd);
+	dsSIMD4f b120, b201;
+	DS_SIMD_SHUFFLE_120_201(b120, b201, b->simd);
+
 #if DS_SIMD_ALWAYS_FMA
 	result->simd = dsSIMD4f_fmsub(a120, b201, dsSIMD4f_mul(a201, b120));
 #else
@@ -301,6 +338,35 @@ DS_MATH_EXPORT inline void dsVector3xf_cross(
 #endif
 }
 
+#if DS_HAS_SIMD
+#undef DS_SIMD_SHUFFLE_120_201
+
+/// @cond
+#if DS_X86
+#define DS_SIMD_SHUFFLE_12_20(a12, a20, a) \
+	do \
+	{ \
+		(a12) = _mm_shuffle_pd((a).simd2[0], (a).simd2[1], _MM_SHUFFLE2(0, 1)); \
+		(a20) = _mm_shuffle_pd((a).simd2[1], (a).simd2[0], _MM_SHUFFLE2(0, 0)); \
+	} while (0)
+#elif DS_ARM_64
+#define DS_SIMD_SHUFFLE_12_20(a12, a20, a) \
+	do \
+	{ \
+		(a12) = vextq_f64((a).simd2[0], (a).simd2[1], 1); \
+		(a20) = vtrn1q_f64((a).simd2[1], (a).simd2[0]); \
+	} while (0)
+#else
+#define DS_SIMD_SHUFFLE_12_20(a12, a20, a) \
+	do \
+	{ \
+		(a12) = (a).simd2[0]; \
+		(a20) = (a).simd2[1]; \
+	} while (0)
+#endif
+/// @endcond
+#endif // DS_HAS_SIMD
+
 /** @copydoc dsVector3_cross() */
 DS_MATH_EXPORT inline void dsVector3xd_cross(
 	dsVector3xd* result, const dsVector3xd* a, const dsVector3xd* b)
@@ -308,26 +374,27 @@ DS_MATH_EXPORT inline void dsVector3xd_cross(
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-#if DS_SIMD_ALWAYS_DOUBLE2 && DS_X86
-	dsSIMD2d a12 = _mm_shuffle_pd(a->simd2[0], a->simd2[1], _MM_SHUFFLE2(0, 1));
-	dsSIMD2d a0 = a->simd2[0];
-	dsSIMD2d a20 = _mm_shuffle_pd(a->simd2[1], a->simd2[0], _MM_SHUFFLE2(0, 0));
-	dsSIMD2d a1 =  _mm_shuffle_pd(a->simd2[0], a->simd2[0], _MM_SHUFFLE2(0, 1));
-	dsSIMD2d b12 = _mm_shuffle_pd(b->simd2[0], b->simd2[1], _MM_SHUFFLE2(0, 1));
-	dsSIMD2d b0 = b->simd2[0];
-	dsSIMD2d b20 = _mm_shuffle_pd(b->simd2[1], b->simd2[0], _MM_SHUFFLE2(0, 0));
-	dsSIMD2d b1 =  _mm_shuffle_pd(b->simd2[0], b->simd2[0], _MM_SHUFFLE2(0, 1));
+#if DS_SIMD_ALWAYS_DOUBLE2
+	dsSIMD2d a12, a20;
+	DS_SIMD_SHUFFLE_12_20(a12, a20, *a);
+	dsSIMD2d b12, b20;
+	DS_SIMD_SHUFFLE_12_20(b12, b20, *b);
+
 #if DS_SIMD_ALWAYS_FMA
 	result->simd2[0] = dsSIMD2d_fmsub(a12, b20, dsSIMD2d_mul(a20, b12));
-	result->simd2[1] = dsSIMD2d_fmsub(a0, b1, dsSIMD2d_mul(a1, b0));
+	result->simd2[1] = dsSIMD2d_fmsub(a->simd2[0], b12, dsSIMD2d_mul(a12, b->simd2[0]));
 #else
 	result->simd2[0] = dsSIMD2d_sub(dsSIMD2d_mul(a12, b20), dsSIMD2d_mul(a20, b12));
-	result->simd2[1] = dsSIMD2d_sub(dsSIMD2d_mul(a0, b1), dsSIMD2d_mul(a1, b0));
+	result->simd2[1] = dsSIMD2d_sub(dsSIMD2d_mul(a->simd2[0], b12), dsSIMD2d_mul(a12, b->simd2[0]));
 #endif
 #else
 	dsVector3_cross(*result, *a, *b);
 #endif
 }
+
+#if DS_HAS_SIMD
+#undef DS_SIMD_SHUFFLE_12_20
+#endif
 
 /** @copydoc dsVector3_len2() */
 DS_MATH_EXPORT inline float dsVector3xf_len2(const dsVector3xf* a)
