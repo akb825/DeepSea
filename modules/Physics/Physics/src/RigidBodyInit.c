@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@
 
 bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit,
 	dsRigidBodyFlags flags, dsPhysicsMotionType motionType, dsPhysicsLayer layer,
-	const dsVector3f* position, dsQuaternion4f* orientation, const dsVector3f* scale,
+	const dsVector3xf* position, dsQuaternion4f* orientation, const dsVector3xf* scale,
 	float friction, float restitution, float hardness)
 {
 	if (!rigidBodyInit || motionType < dsPhysicsMotionType_Static ||
@@ -98,8 +98,8 @@ bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit,
 
 bool dsRigidBodyInit_initializeGroup(dsRigidBodyInit* rigidBodyInit,
 	dsRigidBodyGroup* group, dsRigidBodyFlags flags, dsPhysicsMotionType motionType,
-	dsPhysicsLayer layer, const dsVector3f* position, dsQuaternion4f* orientation,
-	const dsVector3f* scale, float friction, float restitution, float hardness)
+	dsPhysicsLayer layer, const dsVector3xf* position, dsQuaternion4f* orientation,
+	const dsVector3xf* scale, float friction, float restitution, float hardness)
 {
 	if (!rigidBodyInit || !group || (group->motionType == dsPhysicsMotionType_Unknown &&
 			(motionType < dsPhysicsMotionType_Static ||

@@ -388,6 +388,9 @@ void dsQuaternion4d_normalize(dsQuaternion4d* result, const dsQuaternion4d* a);
 void dsQuaternion4f_rotate(dsVector3f* result, const dsQuaternion4f* a, const dsVector3f* v);
 void dsQuaternion4d_rotate(dsVector3d* result, const dsQuaternion4d* a, const dsVector3d* v);
 
+void dsQuaternion4f_rotate3x(dsVector3xf* result, const dsQuaternion4f* a, const dsVector3xf* v);
+void dsQuaternion4d_rotate3x(dsVector3xd* result, const dsQuaternion4d* a, const dsVector3xd* v);
+
 void dsQuaternion4f_mul(dsQuaternion4f* result, const dsQuaternion4f* a, const dsQuaternion4f* b);
 void dsQuaternion4d_mul(dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b);
 

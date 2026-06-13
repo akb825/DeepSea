@@ -22,8 +22,8 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
-#include <DeepSea/Geometry/AlignedBox3.h>
-#include <DeepSea/Geometry/OrientedBox3.h>
+#include <DeepSea/Geometry/AlignedBox3x.h>
+#include <DeepSea/Geometry/OrientedBox3x.h>
 
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
@@ -89,7 +89,7 @@ dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allocator, dsParticleEm
 
 	dsMatrix44f_identity(&emitter->transform);
 	emitter->enabled = params->enabled;
-	dsOrientedBox3_makeInvalid(emitter->bounds);
+	dsOrientedBox3xf_makeInvalid(&emitter->bounds);
 
 	emitter->updateFunc = updateFunc;
 	emitter->populateInstanceValuesFunc = params->populateInstanceValuesFunc;
@@ -119,8 +119,8 @@ bool dsParticleEmitter_update(dsParticleEmitter* emitter, float time)
 	emitter->particleCount = nextParticleCount;
 
 	// Update the bounds once we've gotten the full particle list.
-	dsAlignedBox3f baseBounds;
-	dsAlignedBox3f_makeInvalid(&baseBounds);
+	dsAlignedBox3xf baseBounds;
+	dsAlignedBox3xf_makeInvalid(&baseBounds);
 
 	uint8_t* particleEnd = emitter->particles + emitter->particleCount*emitter->sizeofParticle;
 	for (uint8_t* particlePtr = emitter->particles; particlePtr < particleEnd;
@@ -130,23 +130,23 @@ bool dsParticleEmitter_update(dsParticleEmitter* emitter, float time)
 
 		// Take the maximum volume the particle can occupy.
 		float maxOffset = M_SQRT2f*dsMax(particle->size.x, particle->size.y);
-		dsVector3f offset = {{maxOffset, maxOffset, maxOffset}};
+		dsVector3xf offset = {{maxOffset, maxOffset, maxOffset}};
 
-		dsVector3f position;
-		dsVector3_add(position, particle->position, offset);
-		dsAlignedBox3_addPoint(baseBounds, position);
+		dsVector3xf position;
+		dsVector3xf_add(&position, &particle->position, &offset);
+		dsAlignedBox3xf_addPoint(&baseBounds, &position);
 
-		dsVector3_sub(position, particle->position, offset);
-		dsAlignedBox3_addPoint(baseBounds, position);
+		dsVector3xf_sub(&position, &particle->position, &offset);
+		dsAlignedBox3xf_addPoint(&baseBounds, &position);
 	}
 
-	if (dsAlignedBox3_isValid(baseBounds))
+	if (dsAlignedBox3xf_isValid(&baseBounds))
 	{
-		dsOrientedBox3f_fromAlignedBox(&emitter->bounds, &baseBounds);
-		dsOrientedBox3f_transform(&emitter->bounds, &emitter->transform);
+		dsOrientedBox3xf_fromAlignedBox(&emitter->bounds, &baseBounds);
+		dsOrientedBox3xf_transform(&emitter->bounds, &emitter->transform);
 	}
 	else
-		dsOrientedBox3_makeInvalid(emitter->bounds);
+		dsOrientedBox3xf_makeInvalid(&emitter->bounds);
 
 	return true;
 }

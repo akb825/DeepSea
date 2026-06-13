@@ -22,7 +22,7 @@
 
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Random.h>
-#include <DeepSea/Math/Vector3.h>
+#include <DeepSea/Math/Vector3x.h>
 
 #include <DeepSea/Particle/ParticleEmitter.h>
 #include <DeepSea/Particle/Particle.h>
@@ -38,7 +38,7 @@ struct dsStandardParticleEmitter
 typedef struct dsStandardParticle
 {
 	dsParticle particle;
-	dsVector3f direction;
+	dsVector3xf direction;
 	float speed;
 	float rotationSpeed;
 	float timeScale;
@@ -52,9 +52,9 @@ static bool advanceParticle(dsParticle* nextParticle, const dsParticle* prevPart
 	if (nextT > 1)
 		return false;
 
-	dsVector3f offset;
-	dsVector3_scale(offset, prevStandardParticle->direction, prevStandardParticle->speed*time);
-	dsVector3_add(nextParticle->position, prevParticle->position, offset);
+	dsVector3xf offset;
+	dsVector3xf_scale(&offset, &prevStandardParticle->direction, prevStandardParticle->speed*time);
+	dsVector3xf_add(&nextParticle->position, &prevParticle->position, &offset);
 
 	nextParticle->rotation.x = prevParticle->rotation.x + prevStandardParticle->rotationSpeed*time;
 	nextParticle->rotation.x = dsWrapf(nextParticle->rotation.x, (float)(-M_PI), (float)(M_PI));
@@ -104,7 +104,7 @@ static uint32_t dsStandardParticleEmitter_update(dsParticleEmitter* emitter, flo
 		return nextParticleCount;
 
 	const dsStandardParticleEmitterOptions* options = &standardEmitter->options;
-	dsMatrix33f directionMatrix;
+	dsMatrix33xf directionMatrix;
 	dsParticle_createDirectionMatrix(&directionMatrix, &options->baseDirection);
 
 	const dsVector2f zeroRange = {{0.0f, 0.0f}};

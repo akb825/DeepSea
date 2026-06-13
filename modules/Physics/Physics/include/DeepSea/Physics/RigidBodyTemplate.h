@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-2025 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -166,8 +166,8 @@ DS_PHYSICS_EXPORT dsRigidBodyTemplate* dsRigidBodyTemplate_loadData(dsPhysicsEng
  * @return False if the shape couldn't be added.
  */
 DS_PHYSICS_EXPORT bool dsRigidBodyTemplate_addShape(dsRigidBodyTemplate* rigidBodyTemplate,
-	dsPhysicsShape* shape, const dsVector3f* translate, const dsQuaternion4f* rotate,
-	const dsVector3f* scale, float density, const dsPhysicsShapePartMaterial* material);
+	dsPhysicsShape* shape, const dsVector3xf* translate, const dsQuaternion4f* rotate,
+	const dsVector3xf* scale, float density, const dsPhysicsShapePartMaterial* material);
 
 /**
  * @brief Finalizes the shapes on a rigid body.
@@ -194,7 +194,7 @@ DS_PHYSICS_EXPORT bool dsRigidBodyTemplate_addShape(dsRigidBodyTemplate* rigidBo
  * @return False if the shapes couldn't be finalized.
  */
 DS_PHYSICS_EXPORT bool dsRigidBodyTemplate_finalizeShapes(dsRigidBodyTemplate* rigidBodyTemplate,
-	const float* mass, const dsVector3f* rotationPointShift);
+	const float* mass, const dsVector3xf* rotationPointShift);
 
 /**
  * @brief Instantiates a rigid body from the template.
@@ -218,8 +218,8 @@ DS_PHYSICS_EXPORT bool dsRigidBodyTemplate_finalizeShapes(dsRigidBodyTemplate* r
 DS_PHYSICS_EXPORT dsRigidBody* dsRigidBodyTemplate_instantiate(
 	const dsRigidBodyTemplate* rigidBodyTemplate, dsAllocator* allocator,
 	void* userData, dsDestroyUserDataFunction destroyUserDataFunc, dsRigidBodyGroup* group,
-	const dsVector3f* position, dsQuaternion4f* orientation, const dsVector3f* scale,
-	const dsVector3f* linearVelocity, const dsVector3f* angularVelocity);
+	const dsVector3xf* position, dsQuaternion4f* orientation, const dsVector3xf* scale,
+	const dsVector3xf* linearVelocity, const dsVector3xf* angularVelocity);
 
 /**
  * @brief Destroys a rigid body template.

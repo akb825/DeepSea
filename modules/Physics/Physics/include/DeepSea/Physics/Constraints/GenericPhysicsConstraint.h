@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,8 +58,8 @@ DS_PHYSICS_EXPORT const dsPhysicsConstraintType* dsGenericPhysicsConstraint_type
  */
 DS_PHYSICS_EXPORT dsGenericPhysicsConstraint* dsGenericPhysicsConstraint_create(
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstOrientation,
-	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
+	const dsVector3xf* firstPosition, const dsQuaternion4f* firstOrientation,
+	const dsPhysicsActor* secondActor, const dsVector3xf* secondPosition,
 	const dsQuaternion4f* secondOrientation,
 	const dsGenericPhysicsConstraintLimit limits[DS_PHYSICS_CONSTRAINT_DOF_COUNT],
 	const dsGenericPhysicsConstraintMotor motors[DS_PHYSICS_CONSTRAINT_DOF_COUNT],
@@ -126,8 +126,8 @@ DS_PHYSICS_EXPORT bool dsGenericPhysicsConstraint_setCombineSwingTwistMotor(
  */
 DS_PHYSICS_EXPORT void dsGenericPhysicsConstraint_initialize(dsGenericPhysicsConstraint* constraint,
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstOrientation,
-	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
+	const dsVector3xf* firstPosition, const dsQuaternion4f* firstOrientation,
+	const dsPhysicsActor* secondActor, const dsVector3xf* secondPosition,
 	const dsQuaternion4f* secondOrientation,
 	const dsGenericPhysicsConstraintLimit limits[DS_PHYSICS_CONSTRAINT_DOF_COUNT],
 	const dsGenericPhysicsConstraintMotor motors[DS_PHYSICS_CONSTRAINT_DOF_COUNT],

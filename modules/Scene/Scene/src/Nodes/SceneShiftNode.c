@@ -98,8 +98,7 @@ bool dsSceneShiftNode_setOrigin(dsSceneShiftNode* node, const dsVector3d* origin
 
 	dsVector3d offset;
 	dsVector3_sub(offset, node->origin, *origin);
-	dsVector3f offset3f;
-	dsConvertDoubleToFloat(offset3f, offset);
+	dsVector3xf offset3f = {{(float)offset.x, (float)offset.y, (float)offset.z}};
 
 	dsSceneNode* baseNode = (dsSceneNode*)node;
 	for (uint32_t i = 0; i < baseNode->childCount; ++i)

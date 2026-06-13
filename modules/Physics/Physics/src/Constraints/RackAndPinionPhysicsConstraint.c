@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@
 #include <DeepSea/Physics/Types.h>
 
 static bool isConstraintValid(const dsPhysicsConstraint* constraint,
-	const dsPhysicsActor* actor, const dsVector3f* axis)
+	const dsPhysicsActor* actor, const dsVector3xf* axis)
 {
 	if (!constraint || !actor)
 		return true;
@@ -41,20 +41,26 @@ static bool isConstraintValid(const dsPhysicsConstraint* constraint,
 		(const dsRevolutePhysicsConstraint*)constraint;
 	const dsSliderPhysicsConstraint* sliderConstraint =
 		(const dsSliderPhysicsConstraint*)constraint;
-	dsVector3f constraintAxis;
+	dsVector3xf constraintAxis;
 	if (constraint->firstActor == actor)
 	{
 		if (isRevolute)
-			dsQuaternion4f_getRotationAxis(&constraintAxis, &revoluteConstraint->firstOrientation);
+		{
+			dsQuaternion4f_getRotationAxis3x(
+				&constraintAxis, &revoluteConstraint->firstOrientation);
+		}
 		else
-			dsQuaternion4f_getRotationAxis(&constraintAxis, &sliderConstraint->firstOrientation);
+			dsQuaternion4f_getRotationAxis3x(&constraintAxis, &sliderConstraint->firstOrientation);
 	}
 	else if (constraint->secondActor == actor)
 	{
 		if (isRevolute)
-			dsQuaternion4f_getRotationAxis(&constraintAxis, &revoluteConstraint->secondOrientation);
+		{
+			dsQuaternion4f_getRotationAxis3x(
+				&constraintAxis, &revoluteConstraint->secondOrientation);
+		}
 		else
-			dsQuaternion4f_getRotationAxis(&constraintAxis, &sliderConstraint->secondOrientation);
+			dsQuaternion4f_getRotationAxis3x(&constraintAxis, &sliderConstraint->secondOrientation);
 	}
 	else
 	{
@@ -146,9 +152,9 @@ float dsRackAndPinionPhysicsConstraint_computeRatio(unsigned int rackToothCount,
 }
 
 dsRackAndPinionPhysicsConstraint* dsRackAndPinionPhysicsConstraint_create(dsPhysicsEngine* engine,
-	dsAllocator* allocator, const dsPhysicsActor* rackActor, const dsVector3f* rackAxis,
+	dsAllocator* allocator, const dsPhysicsActor* rackActor, const dsVector3xf* rackAxis,
 	const dsSliderPhysicsConstraint* rackConstraint, const dsPhysicsActor* pinionActor,
-	const dsVector3f* pinionAxis, const dsRevolutePhysicsConstraint* pinionConstraint, float ratio)
+	const dsVector3xf* pinionAxis, const dsRevolutePhysicsConstraint* pinionConstraint, float ratio)
 {
 	if (!engine || !engine->createRackAndPinionConstraintFunc ||
 		!engine->destroyRackAndPinionConstraintFunc || !rackAxis ||
@@ -185,9 +191,9 @@ bool dsRackAndPinionPhysicsConstraint_setRatio(
 
 void dsRackAndPinionPhysicsConstraint_initialize(
 	dsRackAndPinionPhysicsConstraint* constraint, dsPhysicsEngine* engine, dsAllocator* allocator,
-	const dsPhysicsActor* rackActor, const dsVector3f* rackAxis,
+	const dsPhysicsActor* rackActor, const dsVector3xf* rackAxis,
 	const dsSliderPhysicsConstraint* rackConstraint, const dsPhysicsActor* pinionActor,
-	const dsVector3f* pinionAxis, const dsRevolutePhysicsConstraint* pinionConstraint, float ratio,
+	const dsVector3xf* pinionAxis, const dsRevolutePhysicsConstraint* pinionConstraint, float ratio,
 	void* impl)
 {
 	DS_ASSERT(constraint);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,7 +132,7 @@ dsRigidBodyTemplate* dsRigidBodyTemplate_loadImpl(dsPhysicsEngine* engine, dsAll
 			}
 
 			auto fbTranslate = fbShapeInstance->translate();
-			dsVector3f translate;
+			dsVector3xf translate;
 			if (fbTranslate)
 				translate = DeepSeaPhysics::convert(*fbTranslate);
 
@@ -142,7 +142,7 @@ dsRigidBodyTemplate* dsRigidBodyTemplate_loadImpl(dsPhysicsEngine* engine, dsAll
 				rotate = DeepSeaPhysics::convert(*fbRotate);
 
 			auto fbScale = fbShapeInstance->scale();
-			dsVector3f scale;
+			dsVector3xf scale;
 			if (fbScale)
 				scale = DeepSeaPhysics::convert(*fbScale);
 
@@ -170,7 +170,7 @@ dsRigidBodyTemplate* dsRigidBodyTemplate_loadImpl(dsPhysicsEngine* engine, dsAll
 				float mass = fbShiftedMass->mass();
 
 				auto fbRotationPointShift = fbShiftedMass->rotationPointShift();
-				dsVector3f rotationPointShift;
+				dsVector3xf rotationPointShift;
 				if (fbRotationPointShift)
 					rotationPointShift = DeepSeaPhysics::convert(*fbRotationPointShift);
 

@@ -746,7 +746,7 @@ bool dsAnimationNodeMapCache_applyAnimation(
 		{
 			dsVector4f_scale(&transform->translation, &transform->translation,
 				1/transform->totalTranslationWeight);
-			node->translation = *(dsVector3f*)&transform->translation;
+			node->translation = transform->translation;
 		}
 
 		if (transform->totalRotationWeight > 0)
@@ -757,9 +757,9 @@ bool dsAnimationNodeMapCache_applyAnimation(
 
 		if (transform->totalScaleWeight > 0)
 		{
-			dsVector4f_scale(&transform->scale, &transform->scale,
-				1/transform->totalScaleWeight);
-			node->scale = *(dsVector3f*)&transform->scale;
+			dsVector4f_scale(
+				&transform->scale, &transform->scale, 1/transform->totalScaleWeight);
+			node->scale = transform->scale;
 		}
 	}
 

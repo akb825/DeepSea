@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,16 @@
  */
 
 #include <DeepSea/Geometry/AlignedBox2.h>
-#include <DeepSea/Geometry/AlignedBox3.h>
-#include <DeepSea/Geometry/OrientedBox3.h>
+#include <DeepSea/Geometry/AlignedBox3x.h>
+#include <DeepSea/Geometry/OrientedBox3x.h>
 
 #include <DeepSea/Math/Color.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Random.h>
 #include <DeepSea/Math/Vector2.h>
-#include <DeepSea/Math/Vector3.h>
+#include <DeepSea/Math/Vector3x.h>
+
 #include <DeepSea/Particle/Particle.h>
 
 #include <gtest/gtest.h>
@@ -35,7 +36,7 @@ static const unsigned int cIterations = 1000;
 
 TEST(ParticleTest, RandomPositionBox)
 {
-	dsAlignedBox3f box = {{{-1.0f, -2.0f, -3.0f}}, {{4.0f, 5.0f, 6.0f}}};
+	dsAlignedBox3xf box = {{{-1.0f, -2.0f, -3.0f}}, {{4.0f, 5.0f, 6.0f}}};
 	dsParticleVolume volume;
 	volume.type = dsParticleVolumeType_Box;
 	volume.box = box;
@@ -46,15 +47,15 @@ TEST(ParticleTest, RandomPositionBox)
 	transform.columns[3].y = 3.4f;
 	transform.columns[3].z = -5.6f;
 
-	dsVector3f epsilonVec = {{1e-5f, 1e-5f, 1e-5f}};
-	dsVector3_sub(box.min, box.min, epsilonVec);
-	dsVector3_add(box.max, box.max, epsilonVec);
-	dsOrientedBox3f referenceBox;
-	dsOrientedBox3_fromAlignedBox(referenceBox, box);
-	ASSERT_TRUE(dsOrientedBox3f_transform(&referenceBox, &transform));
+	dsVector3xf epsilonVec = {{1e-5f, 1e-5f, 1e-5f}};
+	dsVector3xf_sub(&box.min, &box.min, &epsilonVec);
+	dsVector3xf_add(&box.max, &box.max, &epsilonVec);
+	dsOrientedBox3xf referenceBox;
+	dsOrientedBox3xf_fromAlignedBox(&referenceBox, &box);
+	ASSERT_TRUE(dsOrientedBox3xf_transform(&referenceBox, &transform));
 
-	dsAlignedBox3f pointBox;
-	dsAlignedBox3f_makeInvalid(&pointBox);
+	dsAlignedBox3xf pointBox;
+	dsAlignedBox3xf_makeInvalid(&pointBox);
 
 	dsRandom random;
 	dsRandom_seed(&random, 0);
@@ -62,13 +63,13 @@ TEST(ParticleTest, RandomPositionBox)
 	for (unsigned int i = 0; i < cIterations; ++i)
 	{
 		dsParticle_randomPosition(&particle, &random, &volume, &transform);
-		EXPECT_TRUE(dsOrientedBox3f_containsPoint(&referenceBox, &particle.position));
-		dsAlignedBox3_addPoint(pointBox, particle.position);
+		EXPECT_TRUE(dsOrientedBox3xf_containsPoint(&referenceBox, &particle.position));
+		dsAlignedBox3xf_addPoint(&pointBox, &particle.position);
 	}
 
 	// Rotated so fuzzy size check.
-	dsVector3f size;
-	dsAlignedBox3_extents(size, pointBox);
+	dsVector3xf size;
+	dsAlignedBox3xf_extents(&size, &pointBox);
 	EXPECT_LT(5.0f, size.x);
 	EXPECT_LT(7.0f, size.y);
 	EXPECT_LT(9.0f, size.z);
@@ -89,11 +90,11 @@ TEST(ParticleTest, RandomPositionSphere)
 	dsMatrix44f transform;
 	dsMatrix44f_makeTranslate(&transform, 0.1f, -0.2f, 0.3f);
 
-	dsVector3f transformedCenter;
-	dsVector3_add(transformedCenter, volume.sphere.center, transform.columns[3]);
+	dsVector3xf transformedCenter;
+	dsVector3xf_add(&transformedCenter, &volume.sphere.center, transform.columns + 3);
 
-	dsAlignedBox3f pointBox;
-	dsAlignedBox3f_makeInvalid(&pointBox);
+	dsAlignedBox3xf pointBox;
+	dsAlignedBox3xf_makeInvalid(&pointBox);
 
 	dsRandom random;
 	dsRandom_seed(&random, 0);
@@ -101,15 +102,15 @@ TEST(ParticleTest, RandomPositionSphere)
 	for (unsigned int i = 0; i < cIterations; ++i)
 	{
 		dsParticle_randomPosition(&particle, &random, &volume, &transform);
-		float distance = dsVector3f_dist(&particle.position, &transformedCenter);
+		float distance = dsVector3xf_dist(&particle.position, &transformedCenter);
 		EXPECT_GT(volume.sphere.radius + 1e-5f, distance);
-		dsAlignedBox3_addPoint(pointBox, particle.position);
+		dsAlignedBox3xf_addPoint(&pointBox, &particle.position);
 	}
 
 	float maxSize = 2*volume.sphere.radius + 1e-5f;
 	float minSize = 0.9f*maxSize;
-	dsVector3f size;
-	dsAlignedBox3_extents(size, pointBox);
+	dsVector3xf size;
+	dsAlignedBox3xf_extents(&size, &pointBox);
 	EXPECT_LT(minSize, size.x);
 	EXPECT_LT(minSize, size.y);
 	EXPECT_LT(minSize, size.z);
@@ -131,11 +132,11 @@ TEST(ParticleTest, RandomPositionCylinder)
 	dsMatrix44f transform;
 	dsMatrix44f_makeTranslate(&transform, 0.1f, -0.2f, 0.3f);
 
-	dsVector3f transformedCenter;
-	dsVector3_add(transformedCenter, volume.sphere.center, transform.columns[3]);
+	dsVector3xf transformedCenter;
+	dsVector3xf_add(&transformedCenter, &volume.sphere.center, transform.columns + 3);
 
-	dsAlignedBox3f pointBox;
-	dsAlignedBox3f_makeInvalid(&pointBox);
+	dsAlignedBox3xf pointBox;
+	dsAlignedBox3xf_makeInvalid(&pointBox);
 
 	dsRandom random;
 	dsRandom_seed(&random, 0);
@@ -148,15 +149,15 @@ TEST(ParticleTest, RandomPositionCylinder)
 		EXPECT_GT(volume.cylinder.radius + 1e-5f, distance);
 		EXPECT_LT(transformedCenter.z - volume.cylinder.height/2 - 1e-5f, particle.position.z);
 		EXPECT_GT(transformedCenter.z + volume.cylinder.height/2 + 1e-5f, particle.position.z);
-		dsAlignedBox3_addPoint(pointBox, particle.position);
+		dsAlignedBox3xf_addPoint(&pointBox, &particle.position);
 	}
 
-	dsVector3f maxSize = {{volume.cylinder.radius*2 + 1e-5f, volume.cylinder.radius*2 + 1e-5f,
+	dsVector3xf maxSize = {{volume.cylinder.radius*2 + 1e-5f, volume.cylinder.radius*2 + 1e-5f,
 		volume.cylinder.height + 1e-5f}};
-	dsVector3f minSize;
-	dsVector3_scale(minSize, maxSize, 0.9f);
-	dsVector3f size;
-	dsAlignedBox3_extents(size, pointBox);
+	dsVector3xf minSize;
+	dsVector3xf_scale(&minSize, &maxSize, 0.9f);
+	dsVector3xf size;
+	dsAlignedBox3xf_extents(&size, &pointBox);
 	EXPECT_LT(minSize.x, size.x);
 	EXPECT_LT(minSize.y, size.y);
 	EXPECT_LT(minSize.z, size.z);
@@ -211,10 +212,10 @@ TEST(ParticleTest, RandomSize)
 
 TEST(ParticleTest, RandomDirection)
 {
-	dsVector3f baseDirection = {{-0.3f, 1.2f, -4.5f}};
-	dsVector3f_normalize(&baseDirection, &baseDirection);
+	dsVector3xf baseDirection = {{-0.3f, 1.2f, -4.5f}};
+	dsVector3xf_normalize(&baseDirection, &baseDirection);
 
-	dsMatrix33f directionMatrix;
+	dsMatrix33xf directionMatrix;
 	dsParticle_createDirectionMatrix(&directionMatrix, &baseDirection);
 
 	float angle = 1.2f;
@@ -224,10 +225,10 @@ TEST(ParticleTest, RandomDirection)
 	dsRandom_seed(&random, 0);
 	for (unsigned int i = 0; i < cIterations; ++i)
 	{
-		dsVector3f direction;
+		dsVector3xf direction;
 		dsParticle_randomDirection(&direction, &random, &directionMatrix, angle);
-		EXPECT_LT(cosAngle - 1e-5f, dsVector3_dot(baseDirection, direction));
-		EXPECT_FLOAT_EQ(1.0f, dsVector3f_len(&direction));
+		EXPECT_LT(cosAngle - 1e-5f, dsVector3xf_dot(&baseDirection, &direction));
+		EXPECT_FLOAT_EQ(1.0f, dsVector3xf_len(&direction));
 	}
 }
 
@@ -308,8 +309,8 @@ TEST(ParticleTest, RandomColor)
 	dsParticle particle;
 	for (unsigned int i = 0; i < cIterations; ++i)
 	{
-		dsParticle_randomColor(&particle, &random, &hueRange, &saturationRange, &valueRange,
-			&alphaRange);
+		dsParticle_randomColor(
+			&particle, &random, &hueRange, &saturationRange, &valueRange, &alphaRange);
 		dsHSVColor hsvColor;
 		dsHSVColor_fromColor(&hsvColor, particle.color);
 		EXPECT_TRUE(dsAlignedBox3_containsPoint(hsvRange, *(dsVector3f*)&hsvColor)) << hsvColor.h <<

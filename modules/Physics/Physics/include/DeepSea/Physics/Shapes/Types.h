@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,8 +76,8 @@ typedef struct dsPhysicsMassProperties dsPhysicsMassProperties;
  * @param density The density of the shape.
  * @return False if the shape is invalid for mass properties.
  */
-typedef bool (*dsGetPhysicsShapeMassPropertiesFunction)(dsPhysicsMassProperties* outMassProperties,
-	const dsPhysicsShape* shape, float density);
+typedef bool (*dsGetPhysicsShapeMassPropertiesFunction)(
+	dsPhysicsMassProperties* outMassProperties, const dsPhysicsShape* shape, float density);
 
 /**
  * @brief Function to get the physics material for a face of a shape.
@@ -86,8 +86,8 @@ typedef bool (*dsGetPhysicsShapeMassPropertiesFunction)(dsPhysicsMassProperties*
  * @param faceIndex The index of the face to get the material for.
  * @return False if the material couldn't be queried.
  */
-typedef bool (*dsGetPhysicsShapeMaterialFunction)(dsPhysicsShapePartMaterial* outMaterial,
-	const dsPhysicsShape* shape, uint32_t faceIndex);
+typedef bool (*dsGetPhysicsShapeMaterialFunction)(
+	dsPhysicsShapePartMaterial* outMaterial, const dsPhysicsShape* shape, uint32_t faceIndex);
 
 /**
  * @brief Function to destroy a physics shape.
@@ -191,7 +191,7 @@ struct dsPhysicsShape
 	 *
 	 * This will be populated by the base implementations in the Physics library.
 	 */
-	dsAlignedBox3f bounds;
+	dsAlignedBox3xf bounds;
 
 	/**
 	 * @brief Pointer to the shape implementation.
@@ -277,12 +277,12 @@ typedef struct dsPhysicsShapeInstance
 	/**
 	 * @brief The translation for the shape.
 	 */
-	dsVector3f translate;
+	dsVector3xf translate;
 
 	/**
 	 * @brief The scale for the shape.
 	 */
-	dsVector3f scale;
+	dsVector3xf scale;
 
 	/**
 	 * @brief The rotation for the shape.
@@ -330,7 +330,7 @@ typedef struct dsPhysicsBox
 	 *
 	 * The full box geometry ranges from -halfExtents to +halfExtents.
 	 */
-	dsVector3f halfExtents;
+	dsVector3xf halfExtents;
 
 	/**
 	 * @brief The convex radius for collision checks.
@@ -531,8 +531,8 @@ typedef struct dsPhysicsMesh
  * @param radius The radius of the sphere.
  * @return The sphere or NULL if it couldn't be created.
  */
-typedef dsPhysicsSphere* (*dsCreatePhysicsSphereFunction)(dsPhysicsEngine* engine,
-	dsAllocator* allocator, float radius);
+typedef dsPhysicsSphere* (*dsCreatePhysicsSphereFunction)(
+	dsPhysicsEngine* engine, dsAllocator* allocator, float radius);
 
 /**
  * @brief Function to destroy a physics sphere.
@@ -551,7 +551,7 @@ typedef bool (*dsDestroyPhysicsSphereFunction)(dsPhysicsEngine* engine, dsPhysic
  * @return The box or NULL if it couldn't be created.
  */
 typedef dsPhysicsBox* (*dsCreatePhysicsBoxFunction)(dsPhysicsEngine* engine,
-	dsAllocator* allocator, const dsVector3f* halfExtents, float convexRadius);
+	dsAllocator* allocator, const dsVector3xf* halfExtents, float convexRadius);
 
 /**
  * @brief Function to destroy a physics box.
@@ -601,8 +601,8 @@ typedef dsPhysicsCylinder* (*dsCreatePhysicsCylinderFunction)(dsPhysicsEngine* e
  * @param cylinder The cylinder to destroy.
  * @return False if the cylinder couldn't be destroyed.
  */
-typedef bool (*dsDestroyPhysicsCylinderFunction)(dsPhysicsEngine* engine,
-	dsPhysicsCylinder* cylinder);
+typedef bool (*dsDestroyPhysicsCylinderFunction)(
+	dsPhysicsEngine* engine, dsPhysicsCylinder* cylinder);
 
 /**
  * @brief Function to create a physics cone.
@@ -647,8 +647,8 @@ typedef dsPhysicsConvexHull* (*dsCreatePhysicsConvexHullFunction)(dsPhysicsEngin
  * @param convexHull The convex hull to destroy.
  * @return False if the convex hull couldn't be destroyed.
  */
-typedef bool (*dsDestroyPhysicsConvexHullFunction)(dsPhysicsEngine* engine,
-	dsPhysicsConvexHull* convexHull);
+typedef bool (*dsDestroyPhysicsConvexHullFunction)(
+	dsPhysicsEngine* engine, dsPhysicsConvexHull* convexHull);
 
 /**
  * @brief Function to get a vertex from the convex hull.
@@ -657,7 +657,7 @@ typedef bool (*dsDestroyPhysicsConvexHullFunction)(dsPhysicsEngine* engine,
  * @param convexHull The convex hull to get the vertex from.
  * @param vertexIndex The index to the vertex to get.
  */
-typedef void (*dsGetPhysicsConvexHullVertexFunction)(dsVector3f* outVertex, dsPhysicsEngine* engine,
+typedef void (*dsGetPhysicsConvexHullVertexFunction)(dsVector3xf* outVertex, dsPhysicsEngine* engine,
 	const dsPhysicsConvexHull* convexHull, uint32_t vertexIndex);
 
 /**
@@ -668,8 +668,8 @@ typedef void (*dsGetPhysicsConvexHullVertexFunction)(dsVector3f* outVertex, dsPh
  * @param faceIndex The index of the face to get the index count from.
  * @return The number of vertex indices for the face.
  */
-typedef uint32_t (*dsGetPhysicsConvexHullFaceVertexCountFunction)(dsPhysicsEngine* engine,
-	const dsPhysicsConvexHull* convexHull, uint32_t faceIndex);
+typedef uint32_t (*dsGetPhysicsConvexHullFaceVertexCountFunction)(
+	dsPhysicsEngine* engine, const dsPhysicsConvexHull* convexHull, uint32_t faceIndex);
 
 /**
  * @brief Function to get the face for a convex hull.
@@ -684,7 +684,7 @@ typedef uint32_t (*dsGetPhysicsConvexHullFaceVertexCountFunction)(dsPhysicsEngin
  * @return The number of vertex indices for the face.
  */
 typedef uint32_t (*dsGetPhysicsConvexHullFaceFunction)(uint32_t* outIndices,
-	uint32_t outIndexCapacity, dsVector3f* outNormal, dsPhysicsEngine* engine,
+	uint32_t outIndexCapacity, dsVector3xf* outNormal, dsPhysicsEngine* engine,
 	const dsPhysicsConvexHull* convexHull, uint32_t faceIndex);
 
 /**

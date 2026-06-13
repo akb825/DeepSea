@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -254,8 +254,8 @@ static void collectParticles(dsParticleDraw* drawer, const dsMatrix44f* viewMatr
 
 #if DS_HAS_SIMD
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_HALF_FLOAT)
-static bool populateParticleGeometrySIMD(dsParticleDraw* drawer, BufferInfo* bufferInfo,
-	uint32_t particleCount)
+static bool populateParticleGeometrySIMD(
+	dsParticleDraw* drawer, BufferInfo* bufferInfo, uint32_t particleCount)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -296,7 +296,9 @@ static bool populateParticleGeometrySIMD(dsParticleDraw* drawer, BufferInfo* buf
 			dsSIMD4f_set4(particle->intensity, (float)particle->textureIndex, particle->t, 0.0f)));
 		for (unsigned int j = 0; j < 4; ++j, ++vertices)
 		{
-			vertices->position = particle->position;
+			vertices->position.x = particle->position.x;
+			vertices->position.y = particle->position.y;
+			vertices->position.z = particle->position.z;
 			vertices->offset[0] = packedOffsets[j*2];
 			vertices->offset[1] = packedOffsets[j*2 + 1];
 			vertices->rotation[0] = packedRotation[0];
@@ -334,8 +336,8 @@ static bool populateParticleGeometrySIMD(dsParticleDraw* drawer, BufferInfo* buf
 DS_SIMD_END()
 #endif
 
-static bool populateParticleGeometry(dsParticleDraw* drawer, BufferInfo* bufferInfo,
-	uint32_t particleCount)
+static bool populateParticleGeometry(
+	dsParticleDraw* drawer, BufferInfo* bufferInfo, uint32_t particleCount)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -373,7 +375,9 @@ static bool populateParticleGeometry(dsParticleDraw* drawer, BufferInfo* bufferI
 			dsPackHalfFloat((float)particle->textureIndex), dsPackHalfFloat(particle->t), {0}};
 		for (unsigned int j = 0; j < 4; ++j, ++vertices)
 		{
-			vertices->position = particle->position;
+			vertices->position.x = particle->position.x;
+			vertices->position.y = particle->position.y;
+			vertices->position.z = particle->position.z;
 			vertices->offset[0] = packedOffsets[j][0];
 			vertices->offset[1] = packedOffsets[j][1];
 			vertices->rotation[0] = packedRotation[0];
@@ -413,6 +417,7 @@ static bool drawParticles(dsParticleDraw* drawer, const dsParticleEmitter* const
 	uint32_t emitterCount, BufferInfo* bufferInfo, uint32_t particleCount,
 	dsCommandBuffer* commandBuffer, const dsSharedMaterialValues* globalValues, void* drawData)
 {
+	DS_UNUSED(emitterCount);
 	DS_PROFILE_FUNC_START();
 
 	uint32_t indexCount = 0;
@@ -451,14 +456,15 @@ static bool drawParticles(dsParticleDraw* drawer, const dsParticleEmitter* const
 		if (changeEmitter)
 		{
 			// Prepare for the next batch of particles when the emitters changes
+			DS_ASSERT(particleRef->emitter < emitterCount);
 			prevEmitter = particleRef->emitter;
 			const dsParticleEmitter* emitter = emitters[particleRef->emitter];
 			DS_ASSERT(emitter);
 			if (drawer->instanceValues)
 			{
 				DS_VERIFY(dsSharedMaterialValues_clear(drawer->instanceValues));
-				if (!dsParticleEmitter_populateInstanceValues(emitter, drawer->instanceValues,
-						particleRef->emitter, drawData))
+				if (!dsParticleEmitter_populateInstanceValues(
+						emitter, drawer->instanceValues, particleRef->emitter, drawData))
 				{
 					if (prevShader)
 						DS_VERIFY(dsShader_unbind(prevShader, commandBuffer));
@@ -470,8 +476,8 @@ static bool drawParticles(dsParticleDraw* drawer, const dsParticleEmitter* const
 			{
 				if (prevShader)
 					DS_VERIFY(dsShader_unbind(prevShader, commandBuffer));
-				if (!dsShader_bind(emitter->shader, commandBuffer, emitter->material,
-						globalValues, NULL))
+				if (!dsShader_bind(
+						emitter->shader, commandBuffer, emitter->material, globalValues, NULL))
 				{
 					DS_PROFILE_FUNC_RETURN(false);
 				}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,9 +73,9 @@ void dsPhysicsSphere_initialize(dsPhysicsSphere* sphere, dsPhysicsEngine* engine
 	DS_ASSERT(engine);
 	DS_ASSERT(radius > 0);
 
-	dsAlignedBox3f bounds;
-	bounds.min.x = bounds.min.y = bounds.min.z = -radius;
-	bounds.max.x = bounds.max.y = bounds.max.z = radius;
+	dsAlignedBox3xf bounds;
+	bounds.min.x = bounds.min.y = bounds.min.z = bounds.min.w = -radius;
+	bounds.max.x = bounds.max.y = bounds.max.z = bounds.max.w = radius;
 
 	DS_VERIFY(dsPhysicsShape_initialize((dsPhysicsShape*)sphere, engine, allocator,
 		dsPhysicsSphere_type(), &bounds, impl,

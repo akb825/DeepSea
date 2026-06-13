@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,8 +66,8 @@ DS_PHYSICS_EXPORT const dsPhysicsConstraintType* dsSliderPhysicsConstraint_type(
  */
 DS_PHYSICS_EXPORT dsSliderPhysicsConstraint* dsSliderPhysicsConstraint_create(
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstOrientation,
-	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
+	const dsVector3xf* firstPosition, const dsQuaternion4f* firstOrientation,
+	const dsPhysicsActor* secondActor, const dsVector3xf* secondPosition,
 	const dsQuaternion4f* secondOrientation, bool limitEnabled, float minDistance,
 	float maxDistance, float limitStiffness, float limitDamping,
 	dsPhysicsConstraintMotorType motorType, float motorTarget, float maxMotorForce);
@@ -136,9 +136,9 @@ DS_PHYSICS_EXPORT bool dsSliderPhysicsConstraint_setMotor(dsSliderPhysicsConstra
  */
 DS_PHYSICS_EXPORT void dsSliderPhysicsConstraint_initialize(
 	dsSliderPhysicsConstraint* constraint, dsPhysicsEngine* engine, dsAllocator* allocator,
-	const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
+	const dsPhysicsActor* firstActor, const dsVector3xf* firstPosition,
 	const dsQuaternion4f* firstOrientation, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, const dsQuaternion4f* secondOrientation, bool limitEnabled,
+	const dsVector3xf* secondPosition, const dsQuaternion4f* secondOrientation, bool limitEnabled,
 	float minDistance, float maxDistance, float limitStiffness, float limitDamping,
 	dsPhysicsConstraintMotorType motorType, float motorTarget, float maxMotorForce, void* impl);
 

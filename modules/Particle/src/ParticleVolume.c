@@ -19,14 +19,14 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 
-#include <DeepSea/Geometry/AlignedBox3.h>
+#include <DeepSea/Geometry/AlignedBox3x.h>
 
 #include <DeepSea/Math/Random.h>
-#include <DeepSea/Math/Vector3.h>
+#include <DeepSea/Math/Vector3x.h>
 #include <DeepSea/Math/Trig.h>
 
 void dsParticleVolume_randomPosition(
-	dsVector3f* result, dsRandom* random, const dsParticleVolume* volume)
+	dsVector3xf* result, dsRandom* random, const dsParticleVolume* volume)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(random);
@@ -36,15 +36,16 @@ void dsParticleVolume_randomPosition(
 	{
 		case dsParticleVolumeType_Box:
 		{
-			dsVector3f center, range;
-			dsAlignedBox3_center(center, volume->box);
-			dsAlignedBox3_extents(range, volume->box);
-			dsVector3_scale(range, range, 0.5f);
+			dsVector3xf center, range;
+			dsAlignedBox3xf_center(&center, &volume->box);
+			dsAlignedBox3xf_extents(&range, &volume->box);
+			dsVector3xf_scale(&range, &range, 0.5f);
 			for (unsigned int i = 0; i < 3; ++i)
 			{
-				result->values[i] = dsRandom_nextFloatCenteredRange(random, center.values[i],
-					range.values[i]);
+				result->values[i] = dsRandom_nextFloatCenteredRange(
+					random, center.values[i], range.values[i]);
 			}
+			result->w = 0.0f;
 			return;
 		}
 		case dsParticleVolumeType_Sphere:
@@ -54,14 +55,11 @@ void dsParticleVolume_randomPosition(
 			float sinTheta, cosTheta, sinPhi, cosPhi;
 			dsSinCosf(&sinTheta, &cosTheta, theta);
 			dsSinCosf(&sinPhi, &cosPhi, phi);
-			dsVector3f offset;
-			offset.x = cosTheta*cosPhi;
-			offset.y = sinTheta*cosPhi;
-			offset.z = sinPhi;
+			dsVector3xf offset = {{cosTheta*cosPhi, sinTheta*cosPhi, sinPhi}};
 
 			float radius = dsRandom_nextFloatRange(random, 0.0f, volume->sphere.radius);
-			dsVector3_scale(offset, offset, radius);
-			dsVector3_add(*result, volume->sphere.center, offset);
+			dsVector3xf_scale(&offset, &offset, radius);
+			dsVector3xf_add(result, &volume->sphere.center, &offset);
 			return;
 		}
 		case dsParticleVolumeType_Cylinder:
@@ -70,11 +68,12 @@ void dsParticleVolume_randomPosition(
 			float radius = dsRandom_nextFloatRange(random, 0, volume->sphere.radius);
 			float sinTheta, cosTheta;
 			dsSinCosf(&sinTheta, &cosTheta, theta);
-			dsVector3f offset;
+			dsVector3xf offset;
 			offset.x = cosTheta*radius;
 			offset.y = sinTheta*radius;
 			offset.z = dsRandom_nextFloatCenteredRange(random, 0.0f, volume->cylinder.height/2);
-			dsVector3_add(*result, volume->cylinder.center, offset);
+			offset.w = 0.0f;
+			dsVector3xf_add(result, &volume->cylinder.center, &offset);
 			return;
 		}
 	}

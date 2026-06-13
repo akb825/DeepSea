@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -135,7 +135,7 @@ dsRigidBody* dsRigidBody_loadImpl(dsPhysicsEngine* engine, dsAllocator* allocato
 	if (fbPosition)
 		init.position = DeepSeaPhysics::convert(*fbPosition);
 	else
-		std::memset(&init.position, 0, sizeof(dsVector3f));
+		std::memset(&init.position, 0, sizeof(dsVector3xf));
 
 	auto fbOrientation = fbRigidBody->orientation();
 	if (fbOrientation)
@@ -153,13 +153,13 @@ dsRigidBody* dsRigidBody_loadImpl(dsPhysicsEngine* engine, dsAllocator* allocato
 	if (fbLinearVelocity)
 		init.linearVelocity = DeepSeaPhysics::convert(*fbLinearVelocity);
 	else
-		std::memset(&init.linearVelocity, 0, sizeof(dsVector3f));
+		std::memset(&init.linearVelocity, 0, sizeof(dsVector3xf));
 
 	auto fbAngularVelocity = fbRigidBody->angularVelocity();
 	if (fbAngularVelocity)
 		init.angularVelocity = DeepSeaPhysics::convert(*fbAngularVelocity);
 	else
-		std::memset(&init.angularVelocity, 0, sizeof(dsVector3f));
+		std::memset(&init.angularVelocity, 0, sizeof(dsVector3xf));
 
 	init.friction = fbRigidBody->friction();
 	init.restitution = fbRigidBody->restitution();
@@ -202,7 +202,7 @@ dsRigidBody* dsRigidBody_loadImpl(dsPhysicsEngine* engine, dsAllocator* allocato
 			}
 
 			auto fbTranslate = fbShapeInstance->translate();
-			dsVector3f translate;
+			dsVector3xf translate;
 			if (fbTranslate)
 				translate = DeepSeaPhysics::convert(*fbTranslate);
 
@@ -212,7 +212,7 @@ dsRigidBody* dsRigidBody_loadImpl(dsPhysicsEngine* engine, dsAllocator* allocato
 				rotate = DeepSeaPhysics::convert(*fbRotate);
 
 			auto fbScale = fbShapeInstance->scale();
-			dsVector3f scale;
+			dsVector3xf scale;
 			if (fbScale)
 				scale = DeepSeaPhysics::convert(*fbScale);
 
@@ -239,7 +239,7 @@ dsRigidBody* dsRigidBody_loadImpl(dsPhysicsEngine* engine, dsAllocator* allocato
 				float mass = fbShiftedMass->mass();
 
 				auto fbRotationPointShift = fbShiftedMass->rotationPointShift();
-				dsVector3f rotationPointShift;
+				dsVector3xf rotationPointShift;
 				if (fbRotationPointShift)
 					rotationPointShift = DeepSeaPhysics::convert(*fbRotationPointShift);
 

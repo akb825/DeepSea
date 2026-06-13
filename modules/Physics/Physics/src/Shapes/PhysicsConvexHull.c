@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 
-#include <DeepSea/Geometry/AlignedBox3.h>
+#include <DeepSea/Geometry/AlignedBox3x.h>
 
 #include <DeepSea/Math/Core.h>
 
@@ -33,8 +33,8 @@
 
 #define MAX_STACK_INDICES 2048
 
-static bool dsPhysicsConvexHull_getMassProperties(dsPhysicsMassProperties* outMassProperties,
-	const dsPhysicsShape* shape, float density)
+static bool dsPhysicsConvexHull_getMassProperties(
+	dsPhysicsMassProperties* outMassProperties, const dsPhysicsShape* shape, float density)
 {
 	DS_ASSERT(outMassProperties);
 	DS_ASSERT(shape);
@@ -81,7 +81,7 @@ dsPhysicsConvexHull* dsPhysicsConvexHull_create(dsPhysicsEngine* engine, dsAlloc
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if (vertexStride < sizeof(dsVector3f))
+	if (vertexStride < sizeof(dsVector3xf))
 	{
 		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG, "Convex hull vertex stride must be at least 3 floats.");
 		errno = EINVAL;
@@ -103,8 +103,8 @@ dsPhysicsConvexHull* dsPhysicsConvexHull_create(dsPhysicsEngine* engine, dsAlloc
 	DS_PROFILE_FUNC_RETURN(convexHull);
 }
 
-bool dsPhysicsConvexHull_getVertex(dsVector3f* outVertex, const dsPhysicsConvexHull* convexHull,
-	uint32_t vertexIndex)
+bool dsPhysicsConvexHull_getVertex(
+	dsVector3xf* outVertex, const dsPhysicsConvexHull* convexHull, uint32_t vertexIndex)
 {
 	const dsPhysicsShape* shape = (const dsPhysicsShape*)convexHull;
 	if (!outVertex || !convexHull || !shape->engine || !shape->engine->getConvexHullVertexFunc)
@@ -123,8 +123,8 @@ bool dsPhysicsConvexHull_getVertex(dsVector3f* outVertex, const dsPhysicsConvexH
 	return true;
 }
 
-uint32_t dsPhysicsConvexHull_getFaceVertexCount(const dsPhysicsConvexHull* convexHull,
-	uint32_t faceIndex)
+uint32_t dsPhysicsConvexHull_getFaceVertexCount(
+	const dsPhysicsConvexHull* convexHull, uint32_t faceIndex)
 {
 	const dsPhysicsShape* shape = (const dsPhysicsShape*)convexHull;
 	if (!convexHull || !shape->engine || !shape->engine->getConvexHullFaceVertexCountFunc)
@@ -143,7 +143,7 @@ uint32_t dsPhysicsConvexHull_getFaceVertexCount(const dsPhysicsConvexHull* conve
 }
 
 uint32_t dsPhysicsConvexHull_getFace(uint32_t* outIndices, uint32_t outIndexCapacity,
-	dsVector3f* outNormal, const dsPhysicsConvexHull* convexHull, uint32_t faceIndex)
+	dsVector3xf* outNormal, const dsPhysicsConvexHull* convexHull, uint32_t faceIndex)
 {
 	const dsPhysicsShape* shape = (const dsPhysicsShape*)convexHull;
 	if (!outIndices || !convexHull || !shape->engine || !shape->engine->getConvexHullFaceFunc)
@@ -170,13 +170,13 @@ bool dsPhysicsConvexHull_initialize(dsPhysicsConvexHull* convexHull, dsPhysicsEn
 	DS_ASSERT(engine);
 	DS_ASSERT(vertices);
 	DS_ASSERT(vertexCount > 0);
-	DS_ASSERT(vertexStride >= sizeof(dsVector3f));
+	DS_ASSERT(vertexStride >= sizeof(dsVector3xf));
 	DS_ASSERT(convexRadius >= 0);
 
 	// Bounding box for the shape.
 	const uint8_t* vertexBytes = (const uint8_t*)vertices;
-	dsAlignedBox3f bounds;
-	dsAlignedBox3f_makeInvalid(&bounds);
+	dsAlignedBox3xf bounds;
+	dsAlignedBox3xf_makeInvalid(&bounds);
 	for (uint32_t i = 0; i < vertexCount; ++i)
 	{
 		const dsVector3f* point = (const dsVector3f*)(vertexBytes + i*vertexStride);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ extern "C"
  */
 DS_PHYSICS_EXPORT bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit,
 	dsRigidBodyFlags flags, dsPhysicsMotionType motionType, dsPhysicsLayer layer,
-	const dsVector3f* position, dsQuaternion4f* orientation, const dsVector3f* scale,
+	const dsVector3xf* position, dsQuaternion4f* orientation, const dsVector3xf* scale,
 	float friction, float restitution, float hardness);
 
 /**
@@ -86,8 +86,8 @@ DS_PHYSICS_EXPORT bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit
  */
 DS_PHYSICS_EXPORT bool dsRigidBodyInit_initializeGroup(dsRigidBodyInit* rigidBodyInit,
 	dsRigidBodyGroup* group, dsRigidBodyFlags flags, dsPhysicsMotionType motionType,
-	dsPhysicsLayer layer, const dsVector3f* position, dsQuaternion4f* orientation,
-	const dsVector3f* scale, float friction, float restitution, float hardness);
+	dsPhysicsLayer layer, const dsVector3xf* position, dsQuaternion4f* orientation,
+	const dsVector3xf* scale, float friction, float restitution, float hardness);
 
 /**
  * @brief Checks whether a rigid body initialization object is valid.

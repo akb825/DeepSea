@@ -49,18 +49,12 @@ typedef struct ParticleTransform
 {
 	dsMatrix44f world;
 	dsMatrix44f worldView;
-	dsVector4f localWorldOrientation[3];
-	dsVector4f localViewOrientation[3];
+	dsMatrix33xf localWorldOrientation;
+	dsMatrix33xf localViewOrientation;
 	dsMatrix44f worldViewProj;
 	dsVector4i framebufferSize;
 	dsVector4f framebufferRotation;
 } ParticleTransform;
-
-static inline void toMatrix33Vectors(dsVector4f outVectors[3], const dsMatrix33f* inMatrix)
-{
-	for (unsigned int i = 0; i < 3; ++i)
-		*(dsVector3f*)(outVectors + i) = inMatrix->columns[i];
-}
 
 static void getFramebufferInfo(dsVector4i* outFramebufferSize, dsVector4f* outFramebufferRotation,
 	const dsViewRenderPassParams* renderPassParams)
@@ -117,8 +111,8 @@ static void dsParticleTransformData_populateDataSIMD(void* userData, const dsVie
 		transform->world = world;
 		dsMatrix44f_affineMulSIMD(&worldView, &view->viewMatrix, &world);
 		transform->worldView = worldView;
-		dsMatrix44f_affineInvert33SIMD(transform->localWorldOrientation, &world);
-		dsMatrix44f_affineInvert33SIMD(transform->localViewOrientation, &worldView);
+		dsMatrix44f_affineInvert33SIMD(&transform->localWorldOrientation, &world);
+		dsMatrix44f_affineInvert33SIMD(&transform->localViewOrientation, &worldView);
 		dsMatrix44f_mulSIMD(&transform->worldViewProj, &view->projectionMatrix, &worldView);
 		transform->framebufferSize = framebufferSize;
 		transform->framebufferRotation = framebufferRotation;
@@ -160,8 +154,8 @@ static void dsParticleTransformData_populateDataFMA(void* userData, const dsView
 		transform->world = world;
 		dsMatrix44f_affineMulFMA(&worldView, &view->viewMatrix, &world);
 		transform->worldView = worldView;
-		dsMatrix44f_affineInvert33FMA(transform->localWorldOrientation, &world);
-		dsMatrix44f_affineInvert33FMA(transform->localViewOrientation, &worldView);
+		dsMatrix44f_affineInvert33FMA(&transform->localWorldOrientation, &world);
+		dsMatrix44f_affineInvert33FMA(&transform->localViewOrientation, &worldView);
 		dsMatrix44f_mulFMA(&transform->worldViewProj, &view->projectionMatrix, &worldView);
 		transform->framebufferSize = framebufferSize;
 		transform->framebufferRotation = framebufferRotation;
@@ -204,13 +198,8 @@ static void dsParticleTransformData_populateData(void* userData, const dsView* v
 		transform->world = world;
 		dsMatrix44f_affineMul(&worldView, &view->viewMatrix, &world);
 		transform->worldView = worldView;
-
-		dsMatrix33f tempMatrix33Inv;
-		dsMatrix44f_affineInvert33(&tempMatrix33Inv, &world);
-		toMatrix33Vectors(transform->localWorldOrientation, &tempMatrix33Inv);
-
-		dsMatrix44f_affineInvert33(&tempMatrix33Inv, &worldView);
-		toMatrix33Vectors(transform->localViewOrientation, &tempMatrix33Inv);
+		dsMatrix44f_affineInvert33(&transform->localWorldOrientation, &world);
+		dsMatrix44f_affineInvert33(&transform->localWorldOrientation, &worldView);
 
 		dsMatrix44f_mul(
 			&transform->worldViewProj, &view->projectionMatrix, &transform->worldView);

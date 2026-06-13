@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -212,14 +212,14 @@ typedef struct dsPhysicsMassProperties
 	 * isn't stored here since translating is a lossy process, where translating by a then b isn't
 	 * the same result as translating once by (a + b).
 	 */
-	dsMatrix33f centeredInertia;
+	dsMatrix33xf centeredInertia;
 
 	/**
 	 * @brief The center of mass.
 	 *
 	 * This will usually equal inertiaTranslate, but may differ if shifted.
 	 */
-	dsVector3f centerOfMass;
+	dsVector3xf centerOfMass;
 
 	/**
 	 * @brief The total mass for the object.
@@ -235,7 +235,7 @@ typedef struct dsPhysicsMassProperties
 	 * This will be the point around which the object will rotate when in free-fall and is usually
 	 * the center of mass.
 	 */
-	dsVector3f inertiaTranslate;
+	dsVector3xf inertiaTranslate;
 
 	/**
 	 * @brief Rotation for the frame of reference of the inertia tensor.

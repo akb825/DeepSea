@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-2025 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -305,7 +305,7 @@ dsRigidBodyTemplate* dsRigidBodyTemplate_loadData(dsPhysicsEngine* engine, dsAll
 }
 
 bool dsRigidBodyTemplate_addShape(dsRigidBodyTemplate* rigidBodyTemplate, dsPhysicsShape* shape,
-	const dsVector3f* translate, const dsQuaternion4f* rotate, const dsVector3f* scale,
+	const dsVector3xf* translate, const dsQuaternion4f* rotate, const dsVector3xf* scale,
 	float density, const dsPhysicsShapePartMaterial* material)
 {
 	if (!rigidBodyTemplate || !shape || !shape->type || (scale && (scale->x == 0.0f ||
@@ -398,7 +398,7 @@ bool dsRigidBodyTemplate_addShape(dsRigidBodyTemplate* rigidBodyTemplate, dsPhys
 }
 
 bool dsRigidBodyTemplate_finalizeShapes(dsRigidBodyTemplate* rigidBodyTemplate, const float* mass,
-	const dsVector3f* rotationPointShift)
+	const dsVector3xf* rotationPointShift)
 {
 	if (!rigidBodyTemplate)
 	{
@@ -434,8 +434,8 @@ bool dsRigidBodyTemplate_finalizeShapes(dsRigidBodyTemplate* rigidBodyTemplate, 
 
 dsRigidBody* dsRigidBodyTemplate_instantiate(const dsRigidBodyTemplate* rigidBodyTemplate,
 	dsAllocator* allocator, void* userData, dsDestroyUserDataFunction destroyUserDataFunc,
-	dsRigidBodyGroup* group, const dsVector3f* position, dsQuaternion4f* orientation,
-	const dsVector3f* scale, const dsVector3f* linearVelocity, const dsVector3f* angularVelocity)
+	dsRigidBodyGroup* group, const dsVector3xf* position, dsQuaternion4f* orientation,
+	const dsVector3xf* scale, const dsVector3xf* linearVelocity, const dsVector3xf* angularVelocity)
 {
 	if (!rigidBodyTemplate || !rigidBodyTemplate->engine ||
 		(group && group->motionType != dsPhysicsMotionType_Unknown &&

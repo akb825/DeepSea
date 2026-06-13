@@ -37,35 +37,31 @@ bool extractLightData(dsSceneLight& light, LightUnion type, const void* obj)
 		case LightUnion::DirectionalLight:
 		{
 			auto& directionalLight = *reinterpret_cast<const DirectionalLight*>(obj);
-			const dsVector3f& direction = DeepSeaScene::convert(*directionalLight.direction());
-			dsVector3xf direction3x = {{direction.x, direction.y, direction.z}};
-			dsVector3xf_normalize(&direction3x, &direction3x);
+			dsVector3xf direction = DeepSeaScene::convert3x(*directionalLight.direction());
+			dsVector3xf_normalize(&direction, &direction);
 			dsColor3f color = DeepSeaScene::convert(*directionalLight.color());
 			DS_VERIFY(dsSceneLight_makeDirectional(
-				&light, &direction3x, &color, directionalLight.intensity()));
+				&light, &direction, &color, directionalLight.intensity()));
 			return true;
 		}
 		case LightUnion::PointLight:
 		{
 			auto& pointLight = *reinterpret_cast<const PointLight*>(obj);
-			const dsVector3f& position = DeepSeaScene::convert(*pointLight.position());
-			dsVector3xf position3x = {{position.x, position.y, position.z}};
+			dsVector3xf position = DeepSeaScene::convert3x(*pointLight.position());
 			dsColor3f color = DeepSeaScene::convert(*pointLight.color());
-			return dsSceneLight_makePoint(&light, &position3x, &color, pointLight.intensity(),
+			return dsSceneLight_makePoint(&light, &position, &color, pointLight.intensity(),
 				pointLight.linearFalloff(),pointLight.quadraticFalloff());
 		}
 		case LightUnion::SpotLight:
 		{
 			auto& spotLight = *reinterpret_cast<const SpotLight*>(obj);
-			const dsVector3f& position = DeepSeaScene::convert(*spotLight.position());
-			dsVector3xf position3x = {{position.x, position.y, position.z}};
-			const dsVector3f& direction = DeepSeaScene::convert(*spotLight.direction());
-			dsVector3xf direction3x = {{direction.x, direction.y, direction.z}};
-			dsVector3xf_normalize(&direction3x, &direction3x);
+			dsVector3xf position = DeepSeaScene::convert3x(*spotLight.position());
+			dsVector3xf direction = DeepSeaScene::convert3x(*spotLight.direction());
+			dsVector3xf_normalize(&direction, &direction);
 			float cosInnerSpotAngle = dsCosf(spotLight.innerSpotAngle());
 			float cosOuterSpotAngle = dsCosf(spotLight.outerSpotAngle());
 			dsColor3f color = DeepSeaScene::convert(*spotLight.color());
-			return dsSceneLight_makeSpot(&light, &position3x, &direction3x, &color,
+			return dsSceneLight_makeSpot(&light, &position, &direction, &color,
 				spotLight.intensity(), spotLight.linearFalloff(), spotLight.quadraticFalloff(),
 				cosInnerSpotAngle, cosOuterSpotAngle);
 		}

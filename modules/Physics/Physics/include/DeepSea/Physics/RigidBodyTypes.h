@@ -206,7 +206,7 @@ typedef struct dsRigidBodyInit
 	/**
 	 * @brief The position of the body in world space.
 	 */
-	dsVector3f position;
+	dsVector3xf position;
 
 	/**
 	 * @brief The orientation of the body in world space.
@@ -218,17 +218,17 @@ typedef struct dsRigidBodyInit
 	 *
 	 * This will only be used if dsRigidBodyFlags_Scalable is set.
 	 */
-	dsVector3f scale;
+	dsVector3xf scale;
 
 	/**
 	 * @brief The initial linear velocity of the body.
 	 */
-	dsVector3f linearVelocity;
+	dsVector3xf linearVelocity;
 
 	/**
 	 * @brief The initial angular velocity of the body.
 	 */
-	dsVector3f angularVelocity;
+	dsVector3xf angularVelocity;
 
 	/**
 	 * @brief The coefficient of friction, with 0 meaning no friction and increasing values having
@@ -333,7 +333,7 @@ typedef struct dsRigidBody
 	/**
 	 * @brief The position of the body in world space.
 	 */
-	dsVector3f position;
+	dsVector3xf position;
 
 	/**
 	 * @brief The orientation of the body in world space.
@@ -346,7 +346,7 @@ typedef struct dsRigidBody
 	 * This will only be used if dsRigidBodyFlags_Scalable is set, and will not be updated by the
 	 * physics simulation.
 	 */
-	dsVector3f scale;
+	dsVector3xf scale;
 
 	/**
 	 * @brief Flags to control the behavior of the rigid body.
@@ -615,8 +615,8 @@ typedef bool (*dsDestroyRigidBodyFunction)(dsPhysicsEngine* engine, dsRigidBody*
  * @return The ID for the added shape instance or DS_INVALID_PHYSICS_ID if it couldn't be added.
  */
 typedef uint32_t (*dsAddRigidBodyShapeFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
-	dsPhysicsShape* shape, const dsVector3f* translate, const dsQuaternion4f* rotate,
-	const dsVector3f* scale, float density, const dsPhysicsShapePartMaterial* material);
+	dsPhysicsShape* shape, const dsVector3xf* translate, const dsQuaternion4f* rotate,
+	const dsVector3xf* scale, float density, const dsPhysicsShapePartMaterial* material);
 
 /**
  * @brief Function to set the transform for a shape within a rigid body.
@@ -629,8 +629,8 @@ typedef uint32_t (*dsAddRigidBodyShapeFunction)(dsPhysicsEngine* engine, dsRigid
  * @return False if the transform couldn't be changed.
  */
 typedef bool (*dsSetRigidBodyShapeTransformFunction)(dsPhysicsEngine* engine,
-	dsRigidBody* rigidBody, uint32_t index, const dsVector3f* translate,
-	const dsQuaternion4f* rotate, const dsVector3f* scale);
+	dsRigidBody* rigidBody, uint32_t index, const dsVector3xf* translate,
+	const dsQuaternion4f* rotate, const dsVector3xf* scale);
 
 /**
  * @brief Function to set the material for a shape within a rigid body.
@@ -650,8 +650,8 @@ typedef bool (*dsSetRigidBodyShapeMaterialFunction)(dsPhysicsEngine* engine,
  * @param index The index of the shape to remove.
  * @return False if the shape couldn't be removed.
  */
-typedef bool (*dsRemoveRigidBodyShapeFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
-	uint32_t index);
+typedef bool (*dsRemoveRigidBodyShapeFunction)(
+	dsPhysicsEngine* engine, dsRigidBody* rigidBody, uint32_t index);
 
 /**
  * @brief Function to finalize the shapes on a rigid body.
@@ -660,8 +660,8 @@ typedef bool (*dsRemoveRigidBodyShapeFunction)(dsPhysicsEngine* engine, dsRigidB
  * @param massProperties The mass properties for the rigid body.
  * @return False if the shapes couldn't be finalized.
  */
-typedef bool (*dsFinalizeRigidBodyShapesFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
-	const dsPhysicsMassProperties* massProperties);
+typedef bool (*dsFinalizeRigidBodyShapesFunction)(
+	dsPhysicsEngine* engine, dsRigidBody* rigidBody, const dsPhysicsMassProperties* massProperties);
 
 /**
  * @brief Function to set the flags for a rigid body.
@@ -670,8 +670,8 @@ typedef bool (*dsFinalizeRigidBodyShapesFunction)(dsPhysicsEngine* engine, dsRig
  * @param flags The new flags.
  * @return False if the flags couldn't be applied.
  */
-typedef bool (*dsSetRigidBodyFlagsFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
-	dsRigidBodyFlags flags);
+typedef bool (*dsSetRigidBodyFlagsFunction)(
+	dsPhysicsEngine* engine, dsRigidBody* rigidBody, dsRigidBodyFlags flags);
 
 /**
  * @brief Function to set the motion type on a rigid body.
@@ -680,8 +680,8 @@ typedef bool (*dsSetRigidBodyFlagsFunction)(dsPhysicsEngine* engine, dsRigidBody
  * @param motionType The new motion type.
  * @return False if the motion type couldn't be changed.
  */
-typedef bool (*dsSetRigidBodyMotionTypeFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
-	dsPhysicsMotionType motionType);
+typedef bool (*dsSetRigidBodyMotionTypeFunction)(
+	dsPhysicsEngine* engine, dsRigidBody* rigidBody, dsPhysicsMotionType motionType);
 
 /**
  * @brief Function to set the degree of freedom mask on a rigid body.
@@ -690,8 +690,8 @@ typedef bool (*dsSetRigidBodyMotionTypeFunction)(dsPhysicsEngine* engine, dsRigi
  * @param dofMask The new degree of freedom mask.
  * @return False if the degree of freedom mask couldn't be set.
  */
-typedef bool (*dsSetRigidBodyDOFMaskFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
-	dsPhysicsDOFMask dofMask);
+typedef bool (*dsSetRigidBodyDOFMaskFunction)(
+	dsPhysicsEngine* engine, dsRigidBody* rigidBody, dsPhysicsDOFMask dofMask);
 
 /**
  * @brief Function to set the collision group on a rigid body.
@@ -700,8 +700,8 @@ typedef bool (*dsSetRigidBodyDOFMaskFunction)(dsPhysicsEngine* engine, dsRigidBo
  * @param collisionGroup The new collision group.
  * @return False if the collision group couldn't be set.
  */
-typedef bool (*dsSetRigidBodyCollisionGroupFunction)(dsPhysicsEngine* engine,
-	dsRigidBody* rigidBody, uint64_t collisionGroup);
+typedef bool (*dsSetRigidBodyCollisionGroupFunction)(
+	dsPhysicsEngine* engine, dsRigidBody* rigidBody, uint64_t collisionGroup);
 
 /**
  * @brief Function to set the can collision groups collide function on a rigid body.
@@ -724,7 +724,7 @@ typedef bool (*dsSetRigidBodyCanCollisionGroupsCollideFunction)(dsPhysicsEngine*
  * @return False if the transform couldn't be set.
  */
 typedef bool (*dsSetRigidBodyTransformFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
-	const dsVector3f* position, const dsQuaternion4f* orientation, const dsVector3f* scale,
+	const dsVector3xf* position, const dsQuaternion4f* orientation, const dsVector3xf* scale,
 	bool activate);
 
 /**
@@ -737,7 +737,7 @@ typedef bool (*dsSetRigidBodyTransformFunction)(dsPhysicsEngine* engine, dsRigid
  * @return False if the kinematic target couldn't be set.
  */
 typedef bool (*dsSetRigidBodyKinematicTargetFunction)(dsPhysicsEngine* engine,
-	dsRigidBody* rigidBody, float time, const dsVector3f* position,
+	dsRigidBody* rigidBody, float time, const dsVector3xf* position,
 	const dsQuaternion4f* orientation);
 
 /**
@@ -747,8 +747,8 @@ typedef bool (*dsSetRigidBodyKinematicTargetFunction)(dsPhysicsEngine* engine,
  * @param value The new value.
  * @return False if the value couldn't be set.
  */
-typedef bool (*dsSetRigidBodyFloatValueFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
-	float value);
+typedef bool (*dsSetRigidBodyFloatValueFunction)(
+	dsPhysicsEngine* engine, dsRigidBody* rigidBody, float value);
 
 /**
  * @brief Function to get a vector value from a rigid body.
@@ -757,8 +757,8 @@ typedef bool (*dsSetRigidBodyFloatValueFunction)(dsPhysicsEngine* engine, dsRigi
  * @param rigidBody The rigid body to get the value from.
  * @return False if the value couldn't be queried.
  */
-typedef bool (*dsGetRigidBodyVectorValueFunction)(dsVector3f* outValue, dsPhysicsEngine* engine,
-	const dsRigidBody* rigidBody);
+typedef bool (*dsGetRigidBodyVectorValueFunction)(
+	dsVector3xf* outValue, dsPhysicsEngine* engine, const dsRigidBody* rigidBody);
 
 /**
  * @brief Function to set a vector value on a rigid body.
@@ -767,8 +767,8 @@ typedef bool (*dsGetRigidBodyVectorValueFunction)(dsVector3f* outValue, dsPhysic
  * @param value The new value.
  * @return False if the value couldn't be set.
  */
-typedef bool (*dsSetRigidBodyVectorValueFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
-	const dsVector3f* value);
+typedef bool (*dsSetRigidBodyVectorValueFunction)(
+	dsPhysicsEngine* engine, dsRigidBody* rigidBody, const dsVector3xf* value);
 
 /**
  * @brief Function to clear the accumulated force, torque, or impulse on a rigid body.
@@ -785,8 +785,8 @@ typedef bool (*dsClearRigidBodyForceFunction)(dsPhysicsEngine* engine, dsRigidBo
  * @param active Whether the rigid body is active.
  * @return False if the active state couldn't be set.
  */
-typedef bool (*dsSetRigidBodyActiveFunction)(dsPhysicsEngine* engine, dsRigidBody* rigidBody,
-	bool active);
+typedef bool (*dsSetRigidBodyActiveFunction)(
+	dsPhysicsEngine* engine, dsRigidBody* rigidBody, bool active);
 
 /**
  * @brief Function to find a rigid body group by name.

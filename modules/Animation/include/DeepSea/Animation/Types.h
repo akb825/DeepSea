@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -191,7 +191,7 @@ typedef struct dsAnimationNode
 	/**
 	 * @brief The scale of the node.
 	 */
-	dsVector3f scale;
+	dsVector3xf scale;
 
 	/**
 	 * @brief The rotation of the node.
@@ -201,7 +201,7 @@ typedef struct dsAnimationNode
 	/**
 	 * @brief The translation of the node.
 	 */
-	dsVector3f translation;
+	dsVector3xf translation;
 
 	/**
 	 * @brief The cached transform for this node within the animation tree.

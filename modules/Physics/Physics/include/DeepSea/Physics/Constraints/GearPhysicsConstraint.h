@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,8 +44,8 @@ DS_PHYSICS_EXPORT const dsPhysicsConstraintType* dsGearPhysicsConstraint_type(vo
  * @param secondActorToothCount The number of teeth for the second actor.
  * @return The ratio or 0 if the parameters are invalid.
  */
-DS_PHYSICS_EXPORT float dsGearPhysicsConstraint_computeRatio(unsigned int firstActorToothCount,
-	unsigned int secondActorToothCount);
+DS_PHYSICS_EXPORT float dsGearPhysicsConstraint_computeRatio(
+	unsigned int firstActorToothCount, unsigned int secondActorToothCount);
 
 /**
  * @brief Creates a gear physics constraint.
@@ -69,9 +69,9 @@ DS_PHYSICS_EXPORT float dsGearPhysicsConstraint_computeRatio(unsigned int firstA
  * @return The gear constraint or NULL if it couldn't be created.
  */
 DS_PHYSICS_EXPORT dsGearPhysicsConstraint* dsGearPhysicsConstraint_create(dsPhysicsEngine* engine,
-	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3f* firstAxis,
+	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3xf* firstAxis,
 	const dsRevolutePhysicsConstraint* firstConstraint, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondAxis, const dsRevolutePhysicsConstraint* secondConstraint, float ratio);
+	const dsVector3xf* secondAxis, const dsRevolutePhysicsConstraint* secondConstraint, float ratio);
 
 /**
  * @brief Sets the gear ratio for a gear physics constraint.
@@ -82,8 +82,8 @@ DS_PHYSICS_EXPORT dsGearPhysicsConstraint* dsGearPhysicsConstraint_create(dsPhys
  *     aligned.
  * @return False if the ratio couldn't be set.
  */
-DS_PHYSICS_EXPORT bool dsGearPhysicsConstraint_setRatio(dsGearPhysicsConstraint* constraint,
-	float ratio);
+DS_PHYSICS_EXPORT bool dsGearPhysicsConstraint_setRatio(
+	dsGearPhysicsConstraint* constraint, float ratio);
 
 /**
  * @brief Initializes a gear physics constraint.
@@ -108,8 +108,8 @@ DS_PHYSICS_EXPORT bool dsGearPhysicsConstraint_setRatio(dsGearPhysicsConstraint*
  */
 DS_PHYSICS_EXPORT void dsGearPhysicsConstraint_initialize(dsGearPhysicsConstraint* constraint,
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstAxis, const dsRevolutePhysicsConstraint* firstConstraint,
-	const dsPhysicsActor* secondActor, const dsVector3f* secondAxis,
+	const dsVector3xf* firstAxis, const dsRevolutePhysicsConstraint* firstConstraint,
+	const dsPhysicsActor* secondActor, const dsVector3xf* secondAxis,
 	const dsRevolutePhysicsConstraint* secondConstraint, float ratio, void* impl);
 
 #ifdef __cplusplus

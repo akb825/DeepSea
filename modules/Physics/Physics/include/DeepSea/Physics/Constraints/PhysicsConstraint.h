@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-2025 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -215,8 +215,8 @@ DS_PHYSICS_EXPORT bool dsPhysicsConstraint_setEnabled(
  * @param constraint The physics constraint to get the force for.
  * @return False if the force couldn't be queried.
  */
-DS_PHYSICS_EXPORT bool dsPhysicsConstraint_getLastAppliedForce(dsVector3f* outForce,
-	const dsPhysicsConstraint* constraint);
+DS_PHYSICS_EXPORT bool dsPhysicsConstraint_getLastAppliedForce(
+	dsVector3xf* outForce, const dsPhysicsConstraint* constraint);
 
 /**
  * @brief Gets the torque applied in the previous step to enforce a physics constraint.
@@ -229,8 +229,8 @@ DS_PHYSICS_EXPORT bool dsPhysicsConstraint_getLastAppliedForce(dsVector3f* outFo
  * @param constraint The physics constraint to get the torque for.
  * @return False if the force couldn't be queried.
  */
-DS_PHYSICS_EXPORT bool dsPhysicsConstraint_getLastAppliedTorque(dsVector3f* outTorque,
-	const dsPhysicsConstraint* constraint);
+DS_PHYSICS_EXPORT bool dsPhysicsConstraint_getLastAppliedTorque(
+	dsVector3xf* outTorque, const dsPhysicsConstraint* constraint);
 
 /**
  * @brief Destroys a physics constraint.

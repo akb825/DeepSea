@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,14 +60,15 @@ namespace
 // 64 KB
 constexpr unsigned int maxStackMaterials = 2730;
 
-dsPhysicsShape* loadBox(dsPhysicsEngine* engine, dsAllocator* allocator,
-	const DeepSeaPhysics::Box& fbBox)
+dsPhysicsShape* loadBox(
+	dsPhysicsEngine* engine, dsAllocator* allocator, const DeepSeaPhysics::Box& fbBox)
 {
 	float convexRadius = fbBox.convexRadius();
 	if (convexRadius < 0)
 		convexRadius = DS_DEFAULT_PHYSICS_SHAPE_CONVEX_RADIUS;
-	return reinterpret_cast<dsPhysicsShape*>(dsPhysicsBox_create(engine, allocator,
-		&DeepSeaPhysics::convert(*fbBox.halfExtents()), convexRadius));
+	dsVector3xf halfExtents = DeepSeaPhysics::convert(*fbBox.halfExtents());
+	return reinterpret_cast<dsPhysicsShape*>(dsPhysicsBox_create(
+		engine, allocator,&halfExtents, convexRadius));
 }
 
 dsPhysicsShape* loadCapsule(dsPhysicsEngine* engine, dsAllocator* allocator,

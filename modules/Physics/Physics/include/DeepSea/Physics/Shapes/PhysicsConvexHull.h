@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ DS_PHYSICS_EXPORT dsPhysicsConvexHull* dsPhysicsConvexHull_create(dsPhysicsEngin
  * @param vertexIndex The index of the vertex.
  * @return False if the vertex couldn't be accessed.
  */
-DS_PHYSICS_EXPORT bool dsPhysicsConvexHull_getVertex(dsVector3f* outVertex,
+DS_PHYSICS_EXPORT bool dsPhysicsConvexHull_getVertex(dsVector3xf* outVertex,
 	const dsPhysicsConvexHull* convexHull, uint32_t vertexIndex);
 
 /**
@@ -90,7 +90,7 @@ DS_PHYSICS_EXPORT uint32_t dsPhysicsConvexHull_getFaceVertexCount(
  * @return The number of vertices in the face or 0 if the face couldn't be queried.
  */
 DS_PHYSICS_EXPORT uint32_t dsPhysicsConvexHull_getFace(uint32_t* outIndices,
-	uint32_t outIndexCapacity, dsVector3f* outNormal, const dsPhysicsConvexHull* convexHull,
+	uint32_t outIndexCapacity, dsVector3xf* outNormal, const dsPhysicsConvexHull* convexHull,
 	uint32_t faceIndex);
 
 /**

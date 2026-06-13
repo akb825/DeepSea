@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,8 +57,8 @@ DS_PHYSICS_EXPORT const dsPhysicsConstraintType* dsDistancePhysicsConstraint_typ
  */
 DS_PHYSICS_EXPORT dsDistancePhysicsConstraint* dsDistancePhysicsConstraint_create(
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, float minDistance, float maxDistance, float limitStiffness,
+	const dsVector3xf* firstPosition, const dsPhysicsActor* secondActor,
+	const dsVector3xf* secondPosition, float minDistance, float maxDistance, float limitStiffness,
 	float limitDamping);
 
 /**
@@ -95,8 +95,8 @@ DS_PHYSICS_EXPORT bool dsDistancePhysicsConstraint_setLimit(
  */
 DS_PHYSICS_EXPORT void dsDistancePhysicsConstraint_initialize(
 	dsDistancePhysicsConstraint* constraint, dsPhysicsEngine* engine, dsAllocator* allocator,
-	const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
-	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition, float minDistance,
+	const dsPhysicsActor* firstActor, const dsVector3xf* firstPosition,
+	const dsPhysicsActor* secondActor, const dsVector3xf* secondPosition, float minDistance,
 	float maxDistance, float limitStiffness, float limitDamping, void* impl);
 
 #ifdef __cplusplus

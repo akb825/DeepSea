@@ -250,7 +250,7 @@ bool dsPhysicsScene_removePostStepListener(dsPhysicsScene* scene, uint32_t liste
 	return engine->removeScenePostStepListenerFunc(engine, scene, listenerID);
 }
 
-bool dsPhysicsScene_setGravity(dsPhysicsScene* scene, const dsVector3f* gravity)
+bool dsPhysicsScene_setGravity(dsPhysicsScene* scene, const dsVector3xf* gravity)
 {
 	if (!scene || !scene->engine || !scene->engine->setPhysicsSceneGravityFunc || !gravity)
 	{
@@ -446,8 +446,8 @@ bool dsPhysicsScene_removeRigidBodies(dsPhysicsScene* scene, dsRigidBody* const*
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsPhysicsScene_addRigidBodyGroup(dsPhysicsScene* scene, dsRigidBodyGroup* group, bool activate,
-	const dsPhysicsSceneLock* lock)
+bool dsPhysicsScene_addRigidBodyGroup(
+	dsPhysicsScene* scene, dsRigidBodyGroup* group, bool activate, const dsPhysicsSceneLock* lock)
 {
 	DS_PROFILE_FUNC_START();
 	if (!scene || !scene->engine || !scene->engine->addSceneRigidBodyGroupFunc || !group || !lock)
@@ -479,8 +479,8 @@ bool dsPhysicsScene_addRigidBodyGroup(dsPhysicsScene* scene, dsRigidBodyGroup* g
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsPhysicsScene_removeRigidBodyGroup(dsPhysicsScene* scene, dsRigidBodyGroup* group,
-	const dsPhysicsSceneLock* lock)
+bool dsPhysicsScene_removeRigidBodyGroup(
+	dsPhysicsScene* scene, dsRigidBodyGroup* group, const dsPhysicsSceneLock* lock)
 {
 	DS_PROFILE_FUNC_START();
 	if (!scene || !scene->engine || !scene->engine->removeSceneRigidBodyGroupFunc || !group ||
@@ -845,8 +845,8 @@ void dsPhysicsScene_shutdown(dsPhysicsScene* scene)
 }
 
 float dsPhysicsScene_defaultCombineFriction(float frictionA, float frictionB);
-float dsPhysicsScene_defaultCombineRestitution(float restitutionA, float hardnessA,
-	float restitutionB, float hardnessB);
+float dsPhysicsScene_defaultCombineRestitution(
+	float restitutionA, float hardnessA, float restitutionB, float hardnessB);
 float dsPhysicsScene_combineFriction(const dsPhysicsScene* scene, float frictionA, float frictionB);
 float dsPhysicsScene_combineRestitution(const dsPhysicsScene* scene, float restitutionA,
 	float hardnessA, float restitutionB, float hardnessB);

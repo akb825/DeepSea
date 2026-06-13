@@ -240,7 +240,7 @@ static bool dsSceneAnimationRagdollInstance_recreateAnimation(
 		dsMatrix44f relativeTransform;
 		dsSceneTreeNode_getCurrentRelativeTransform(
 			&relativeTransform, nodeRef->node, nodeRef->relativeNode);
-		dsVector3f position, scale;
+		dsVector3xf position, scale;
 		dsQuaternion4f orientation;
 		dsMatrix44f_decomposeTransform(&position, &orientation, &scale, &relativeTransform);
 
@@ -248,10 +248,7 @@ static bool dsSceneAnimationRagdollInstance_recreateAnimation(
 		{
 			curChannel->node = nodeRef->nodeName;
 			curChannel->component = dsAnimationComponent_Translation;
-			curChannel->value.x = position.x;
-			curChannel->value.y = position.y;
-			curChannel->value.z = position.z;
-			curChannel->value.w = 0;
+			curChannel->value = position;
 			++curChannel;
 		}
 
@@ -267,10 +264,7 @@ static bool dsSceneAnimationRagdollInstance_recreateAnimation(
 		{
 			curChannel->node = nodeRef->nodeName;
 			curChannel->component = dsAnimationComponent_Translation;
-			curChannel->value.x = scale.x;
-			curChannel->value.y = scale.y;
-			curChannel->value.z = scale.z;
-			curChannel->value.w = 0;
+			curChannel->value = scale;
 			++curChannel;
 		}
 	}
@@ -299,7 +293,7 @@ static void dsSceneAnimationRagdollInstance_update(dsAllocator* allocator,
 		dsMatrix44f relativeTransform;
 		dsSceneTreeNode_getCurrentRelativeTransform(
 			&relativeTransform, nodeRef->node, nodeRef->relativeNode);
-		dsVector3f position, scale;
+		dsVector3xf position, scale;
 		dsQuaternion4f orientation;
 		dsMatrix44f_decomposeTransform(&position, &orientation, &scale, &relativeTransform);
 
@@ -307,10 +301,7 @@ static void dsSceneAnimationRagdollInstance_update(dsAllocator* allocator,
 		{
 			DS_ASSERT(curChannel->node == nodeRef->nodeName);
 			DS_ASSERT(curChannel->component == dsAnimationComponent_Translation);
-			curChannel->value.x = position.x;
-			curChannel->value.y = position.y;
-			curChannel->value.z = position.z;
-			curChannel->value.w = 0;
+			curChannel->value = position;
 			++curChannel;
 		}
 
@@ -326,10 +317,7 @@ static void dsSceneAnimationRagdollInstance_update(dsAllocator* allocator,
 		{
 			DS_ASSERT(curChannel->node == nodeRef->nodeName);
 			DS_ASSERT(curChannel->component == dsAnimationComponent_Translation);
-			curChannel->value.x = scale.x;
-			curChannel->value.y = scale.y;
-			curChannel->value.z = scale.z;
-			curChannel->value.w = 0;
+			curChannel->value = scale;
 			++curChannel;
 		}
 	}

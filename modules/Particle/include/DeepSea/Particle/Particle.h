@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,8 +60,8 @@ DS_PARTICLE_EXPORT void dsParticle_randomSize(dsParticle* particle, dsRandom* ra
  * @param[out] result The direction matrix.
  * @param baseDirection The base direction to orient the matrix. This is expected to be normalized.
  */
-DS_PARTICLE_EXPORT void dsParticle_createDirectionMatrix(dsMatrix33f* result,
-	const dsVector3f* baseDirection);
+DS_PARTICLE_EXPORT void dsParticle_createDirectionMatrix(
+	dsMatrix33xf* result, const dsVector3xf* baseDirection);
 
 /**
  * @brief Generates a random direction for a particle.
@@ -77,8 +77,8 @@ DS_PARTICLE_EXPORT void dsParticle_createDirectionMatrix(dsMatrix33f* result,
  *     will always follow the base direction, pi/2 would be a hemisphere, and pi would be a full
  *     sphere.
  */
-DS_PARTICLE_EXPORT void dsParticle_randomDirection(dsVector3f* outDirection, dsRandom* random,
-	const dsMatrix33f* directionMatrix, float directionSpread);
+DS_PARTICLE_EXPORT void dsParticle_randomDirection(dsVector3xf* outDirection, dsRandom* random,
+	const dsMatrix33xf* directionMatrix, float directionSpread);
 
 /**
  * @brief Generates a random rotation for a particle.

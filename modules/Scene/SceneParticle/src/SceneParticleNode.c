@@ -21,7 +21,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 
-#include <DeepSea/Geometry/OrientedBox3.h>
+#include <DeepSea/Geometry/OrientedBox3x.h>
 
 #include <DeepSea/Math/Matrix44.h>
 
@@ -52,7 +52,7 @@ static bool dsSceneParticleNode_getBounds(dsMatrix44f* outBoxMatrix, const dsSce
 	if (!emitter)
 		return false;
 
-	dsOrientedBox3f_toMatrix(outBoxMatrix, &emitter->bounds);
+	dsOrientedBox3xf_toMatrix(outBoxMatrix, &emitter->bounds);
 	return true;
 }
 

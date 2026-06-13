@@ -702,10 +702,10 @@ bool dsSceneLight_getPointLightVertices(
 		return false;
 	}
 
-	dsAlignedBox3f bounds;
-	dsVector3f sizeOffset = {{radius, radius, radius}};
-	dsVector3_sub(bounds.min, light->position, sizeOffset);
-	dsVector3_add(bounds.max, light->position, sizeOffset);
+	dsAlignedBox3xf bounds;
+	dsVector3xf sizeOffset = {{radius, radius, radius}};
+	dsVector3xf_sub(&bounds.min, &light->position, &sizeOffset);
+	dsVector3xf_add(&bounds.max, &light->position, &sizeOffset);
 
 	dsPointLightVertex commonData;
 	commonData.lightPosition = *(const dsVector3f*)&light->position;

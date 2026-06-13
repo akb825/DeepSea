@@ -218,9 +218,15 @@ static uint32_t buildTreeRec(dsAllocator* allocator, uint32_t* nextIndex, uint32
 	uint32_t index = (*nextIndex)++;
 	dsAnimationNode* node = nodes + index;
 	node->nameID = dsUniqueNameID_create(buildNode->name);
-	node->scale = buildNode->scale;
+	node->scale.x = buildNode->scale.x;
+	node->scale.y = buildNode->scale.y;
+	node->scale.z = buildNode->scale.z;
+	node->scale.w = 0.0f;
 	node->rotation = buildNode->rotation;
-	node->translation = buildNode->translation;
+	node->translation.x = buildNode->translation.x;
+	node->translation.y = buildNode->translation.y;
+	node->translation.z = buildNode->translation.z;
+	node->translation.w = 0.0f;
 	dsMatrix44f_identity(&node->transform);
 	node->parent = parent;
 	node->childCount = buildNode->childCount;
@@ -502,9 +508,15 @@ dsAnimationTree* dsAnimationTree_createJoints(
 		DS_ASSERT(treeNode);
 
 		treeNode->nameID = dsUniqueNameID_create(node->name);
-		treeNode->scale = node->scale;
+		treeNode->scale.x = node->scale.x;
+		treeNode->scale.y = node->scale.y;
+		treeNode->scale.z = node->scale.z;
+		treeNode->scale.w = 0.0f;
 		treeNode->rotation = node->rotation;
-		treeNode->translation = node->translation;
+		treeNode->translation.x = node->translation.x;
+		treeNode->translation.y = node->translation.y;
+		treeNode->translation.z = node->translation.z;
+		treeNode->translation.w = 0.0f;
 		dsMatrix44f_identity(&treeNode->transform);
 		treeNode->parent = parentNodes[i];
 		treeNode->childCount = node->childCount;

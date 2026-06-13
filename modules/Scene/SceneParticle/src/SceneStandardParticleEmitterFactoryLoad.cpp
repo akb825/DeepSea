@@ -22,7 +22,7 @@
 #include <DeepSea/Core/Timer.h>
 
 #include <DeepSea/Math/Random.h>
-#include <DeepSea/Math/Vector3.h>
+#include <DeepSea/Math/Vector3x.h>
 
 #include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
@@ -113,15 +113,15 @@ void* dsSceneStandardParticleEmitterFactory_load(const dsSceneLoadContext*,
 		{
 			auto fbBox = fbFactory->spawnVolume_as_ParticleBox();
 			options.spawnVolume.type = dsParticleVolumeType_Box;
-			options.spawnVolume.box.min = DeepSeaScene::convert(*fbBox->min());
-			options.spawnVolume.box.max = DeepSeaScene::convert(*fbBox->max());
+			options.spawnVolume.box.min = DeepSeaScene::convert3x(*fbBox->min());
+			options.spawnVolume.box.max = DeepSeaScene::convert3x(*fbBox->max());
 			break;
 		}
 		case DeepSeaSceneParticle::ParticleVolume::ParticleSphere:
 		{
 			auto fbSphere = fbFactory->spawnVolume_as_ParticleSphere();
 			options.spawnVolume.type = dsParticleVolumeType_Sphere;
-			options.spawnVolume.sphere.center = DeepSeaScene::convert(*fbSphere->center());
+			options.spawnVolume.sphere.center = DeepSeaScene::convert3x(*fbSphere->center());
 			options.spawnVolume.sphere.radius = fbSphere->radius();
 			break;
 		}
@@ -129,7 +129,7 @@ void* dsSceneStandardParticleEmitterFactory_load(const dsSceneLoadContext*,
 		{
 			auto fbCylinder = fbFactory->spawnVolume_as_ParticleCylinder();
 			options.spawnVolume.type = dsParticleVolumeType_Cylinder;
-			options.spawnVolume.cylinder.center = DeepSeaScene::convert(*fbCylinder->center());
+			options.spawnVolume.cylinder.center = DeepSeaScene::convert3x(*fbCylinder->center());
 			options.spawnVolume.cylinder.radius = fbCylinder->radius();
 			options.spawnVolume.cylinder.height = fbCylinder->height();
 			break;
@@ -146,8 +146,8 @@ void* dsSceneStandardParticleEmitterFactory_load(const dsSceneLoadContext*,
 	else
 		options.heightRange.x = options.heightRange.y = -1;
 	options.rotationRange = DeepSeaScene::convert(*fbFactory->rotationRange());
-	options.baseDirection = DeepSeaScene::convert(*fbFactory->baseDirection());
-	dsVector3f_normalize(&options.baseDirection, &options.baseDirection);
+	options.baseDirection = DeepSeaScene::convert3x(*fbFactory->baseDirection());
+	dsVector3xf_normalize(&options.baseDirection, &options.baseDirection);
 	options.directionSpread = fbFactory->directionSpread();
 	options.spawnTimeRange = DeepSeaScene::convert(*fbFactory->spawnTimeRange());
 	options.activeTimeRange = DeepSeaScene::convert(*fbFactory->activeTimeRange());
@@ -165,6 +165,6 @@ void* dsSceneStandardParticleEmitterFactory_load(const dsSceneLoadContext*,
 	uint64_t seed = fbFactory->seed();
 	if (seed == 0)
 		seed = dsRandom_createSeed();
-	return dsSceneStandardParticleEmitterFactory_create(allocator, &params, seed, &options,
-		fbFactory->startTime(), relativeNode);
+	return dsSceneStandardParticleEmitterFactory_create(
+		allocator, &params, seed, &options, fbFactory->startTime(), relativeNode);
 }

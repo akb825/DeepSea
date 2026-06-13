@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,19 +77,19 @@ typedef struct dsPhysicsActorContactPoint
 	/**
 	 * @brief The point on the first actor.
 	 */
-	dsVector3f pointA;
+	dsVector3xf pointA;
 
 	/**
 	 * @brief The point on the second actor.
 	 */
-	dsVector3f pointB;
+	dsVector3xf pointB;
 
 	/**
 	 * @brief The normal relative to the first actor.
 	 *
 	 * Negate to have the normal relative to the second actor.
 	 */
-	dsVector3f normal;
+	dsVector3xf normal;
 
 	/**
 	 * @brief The signed distance between the points.
@@ -175,7 +175,7 @@ typedef struct dsPhysicsActorContactProperties
 	/**
 	 * @brief The target velocity relative to the first actor.
 	 */
-	dsVector3f targetVelocity;
+	dsVector3xf targetVelocity;
 } dsPhysicsActorContactProperties;
 
 /**
@@ -246,7 +246,7 @@ typedef struct dsPhysicsSceneSettings
 	/**
 	 * @brief The initial gravity for the scene.
 	 */
-	dsVector3f gravity;
+	dsVector3xf gravity;
 
 	/**
 	 * @brief Whether modifications may be made across threads.
@@ -302,8 +302,8 @@ typedef float (*dsCombineFrictionFunction)(float frictionA, float frictionB);
  * @param hardnessB The second hardness value.
  * @return The combined restitution value.
  */
-typedef float (*dsCombineRestitutionFunction)(float restitutionA, float hardnessA,
-	float restitutionB, float hardnessB);
+typedef float (*dsCombineRestitutionFunction)(
+	float restitutionA, float hardnessA, float restitutionB, float hardnessB);
 
 /**
  * @brief Function to respond to a physics scene being stepped.
@@ -323,8 +323,8 @@ typedef void (*dsOnPhysicsSceneStepFunction)(dsPhysicsScene* scene, float time,
  * @param manifold The contact manifold for the event.
  * @param userData User data supplied for the event.
  */
-typedef void (*dsPhysicsActorContactManifoldFunction)(dsPhysicsScene* scene,
-	const dsPhysicsActorContactManifold* manifold, void* userData);
+typedef void (*dsPhysicsActorContactManifoldFunction)(
+	dsPhysicsScene* scene, const dsPhysicsActorContactManifold* manifold, void* userData);
 
 /**
  * @brief Function to update to physics actor contact properties.
@@ -335,8 +335,8 @@ typedef void (*dsPhysicsActorContactManifoldFunction)(dsPhysicsScene* scene,
  *     properties were set on the manifold, or false if the properties were left unchanged, in which
  *     case the implementation will assume the defaults should be used for all properties.
  */
-typedef bool (*dsUpdatePhysicsActorContactPropertiesFunction)(dsPhysicsScene* scene,
-	dsPhysicsActorContactManifold* manifold, void* userData);
+typedef bool (*dsUpdatePhysicsActorContactPropertiesFunction)(
+	dsPhysicsScene* scene, dsPhysicsActorContactManifold* manifold, void* userData);
 
 /**
  * @brief Function to check whether a physics actor may be intersected with for a query.
@@ -359,8 +359,8 @@ typedef bool (*dsCanIntersectPhysicsActorFunction)(
  * @param normal The normal of the intersected shape.
  */
 typedef void (*dsAddPhysicsRayIntersectionResult)(void* userData, const dsPhysicsActor* actor,
-	uint32_t shapeIndex, uint32_t faceIndex, float t, const dsVector3f* point,
-	const dsVector3f* normal);
+	uint32_t shapeIndex, uint32_t faceIndex, float t, const dsVector3xf* point,
+	const dsVector3xf* normal);
 
 /**
  * @brief Function to add an intersection result for a shape intersection.
@@ -369,8 +369,8 @@ typedef void (*dsAddPhysicsRayIntersectionResult)(void* userData, const dsPhysic
  * @param contactPoint The contact point of the intersection. Shape A is for the input shape
  *     instances, while shape B is for the actor parameter.
  */
-typedef void (*dsAddPhysicsShapeIntersectionResult)(void* userData, const dsPhysicsActor* actor,
-	const dsPhysicsActorContactPoint* contactPoint);
+typedef void (*dsAddPhysicsShapeIntersectionResult)(
+	void* userData, const dsPhysicsActor* actor, const dsPhysicsActorContactPoint* contactPoint);
 
 /**
  * @brief Struct defining a scene of objects in a physics simulation.
@@ -473,7 +473,7 @@ typedef struct dsPhysicsScene
 	/**
 	 * @brief The gravity applied to the scene.
 	 */
-	dsVector3f gravity;
+	dsVector3xf gravity;
 
 	/**
 	 * @brief The number of actors in the scene.
@@ -518,8 +518,8 @@ typedef bool (*dsDestroyPhysicsSceneFunction)(dsPhysicsEngine* engine, dsPhysics
  * @param combineFunc The friction combine function.
  * @return False if the friction combine function couldn't be set.
  */
-typedef bool (*dsSetPhysicsSceneCombineFrictionFunction)(dsPhysicsEngine* engine,
-	dsPhysicsScene* scene, dsCombineFrictionFunction combineFunc);
+typedef bool (*dsSetPhysicsSceneCombineFrictionFunction)(
+	dsPhysicsEngine* engine, dsPhysicsScene* scene, dsCombineFrictionFunction combineFunc);
 
 /**
  * @brief Function to set the combine restitution function on a physics scene.
@@ -528,8 +528,8 @@ typedef bool (*dsSetPhysicsSceneCombineFrictionFunction)(dsPhysicsEngine* engine
  * @param combineFunc The restitution combine function.
  * @return False if the restitution combine function couldn't be set.
  */
-typedef bool (*dsSetPhysicsSceneCombineRestitutionFunction)(dsPhysicsEngine* engine,
-	dsPhysicsScene* scene, dsCombineRestitutionFunction combineFunc);
+typedef bool (*dsSetPhysicsSceneCombineRestitutionFunction)(
+	dsPhysicsEngine* engine, dsPhysicsScene* scene, dsCombineRestitutionFunction combineFunc);
 
 /**
  * @brief Function to set a physics actor contact manifold callback on a physics scene.
@@ -577,8 +577,8 @@ typedef uint32_t (*dsAddPhysicsSceneStepListenerFunction)(dsPhysicsEngine* engin
  * @param listenerID The ID for the listener returned when it was added.
  * @return False if the listener couldn't be removed.
  */
-typedef bool (*dsRemovePhysicsSceneStepListenerFunction)(dsPhysicsEngine* engine,
-	dsPhysicsScene* scene, uint32_t listenerID);
+typedef bool (*dsRemovePhysicsSceneStepListenerFunction)(
+	dsPhysicsEngine* engine, dsPhysicsScene* scene, uint32_t listenerID);
 
 /**
  * @brief Sets the gravity for the physics scene.
@@ -587,8 +587,8 @@ typedef bool (*dsRemovePhysicsSceneStepListenerFunction)(dsPhysicsEngine* engine
  * @param gravity The new gravity.
  * @return False if the gravity couldn't be set.
  */
-typedef bool (*dsSetPhysicsSceneGravityFunction)(dsPhysicsEngine* engine, dsPhysicsScene* scene,
-	const dsVector3f* gravity);
+typedef bool (*dsSetPhysicsSceneGravityFunction)(
+	dsPhysicsEngine* engine, dsPhysicsScene* scene, const dsVector3xf* gravity);
 
 /**
  * @brief Function to add rigid bodies to a physics scene.
@@ -621,8 +621,8 @@ typedef bool (*dsPhysicsSceneRemoveRigidBodiesFunction)(dsPhysicsEngine* engine,
  * @param activate Whether the rigid bodies should be activated on insertion.
  * @return False if the rigid group body group couldn't be added.
  */
-typedef bool (*dsPhysicsSceneAddRigidBodyGroupFunction)(dsPhysicsEngine* engine,
-	dsPhysicsScene* scene, dsRigidBodyGroup* group, bool activate);
+typedef bool (*dsPhysicsSceneAddRigidBodyGroupFunction)(
+	dsPhysicsEngine* engine, dsPhysicsScene* scene, dsRigidBodyGroup* group, bool activate);
 
 /**
  * @brief Function to remove a rigid body group from a physics scene.
@@ -631,8 +631,8 @@ typedef bool (*dsPhysicsSceneAddRigidBodyGroupFunction)(dsPhysicsEngine* engine,
  * @param group The rigid body group to remove.
  * @return False if the rigid body group couldn't be removed.
  */
-typedef bool (*dsPhysicsSceneRemoveRigidBodyGroupFunction)(dsPhysicsEngine* engine,
-	dsPhysicsScene* scene, dsRigidBodyGroup* group);
+typedef bool (*dsPhysicsSceneRemoveRigidBodyGroupFunction)(
+	dsPhysicsEngine* engine, dsPhysicsScene* scene, dsRigidBodyGroup* group);
 
 /**
  * @brief Function to get actors from a physics scene.

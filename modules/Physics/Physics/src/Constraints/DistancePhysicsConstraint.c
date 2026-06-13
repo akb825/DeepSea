@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,8 +50,8 @@ const dsPhysicsConstraintType* dsDistancePhysicsConstraint_type(void)
 }
 
 dsDistancePhysicsConstraint* dsDistancePhysicsConstraint_create(dsPhysicsEngine* engine,
-	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
-	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition, float minDistance,
+	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3xf* firstPosition,
+	const dsPhysicsActor* secondActor, const dsVector3xf* secondPosition, float minDistance,
 	float maxDistance, float limitStiffness, float limitDamping)
 {
 	if (!engine || !engine->createDistanceConstraintFunc ||
@@ -91,8 +91,8 @@ float damping)
 
 void dsDistancePhysicsConstraint_initialize(dsDistancePhysicsConstraint* constraint,
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, float minDistance, float maxDistance, float limitStiffness,
+	const dsVector3xf* firstPosition, const dsPhysicsActor* secondActor,
+	const dsVector3xf* secondPosition, float minDistance, float maxDistance, float limitStiffness,
 	float limitDamping, void* impl)
 {
 	DS_ASSERT(constraint);

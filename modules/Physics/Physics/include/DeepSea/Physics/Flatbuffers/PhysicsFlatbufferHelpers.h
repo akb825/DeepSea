@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,9 +52,10 @@ namespace DeepSeaPhysics
  * @param vector The vector to convert.
  * @return The converted vector.
  */
-inline const dsVector3f& convert(const Vector3f& vector)
+inline dsVector3xf convert(const Vector3f& vector)
 {
-	return reinterpret_cast<const dsVector3f&>(vector);
+	dsVector3xf value = {{vector.x(), vector.y(), vector.z()}};
+	return value;
 }
 
 /**
@@ -74,9 +75,15 @@ inline dsQuaternion4f convert(const Quaternion4f& quaternion)
  * @param matrix The matr9x to convert.
  * @return The converted matrix.
  */
-inline const dsMatrix33f& convert(const Matrix33f& matrix)
+inline dsMatrix33xf convert(const Matrix33f& matrix)
 {
-	return reinterpret_cast<const dsMatrix33f&>(matrix);
+	dsMatrix33xf value =
+	{{
+		{matrix.column0().x(), matrix.column0().y(), matrix.column0().z()},
+		{matrix.column1().x(), matrix.column1().y(), matrix.column1().z()},
+		{matrix.column2().x(), matrix.column2().y(), matrix.column2().z()}
+	}};
+	return value;
 }
 
 /**
@@ -155,7 +162,7 @@ inline dsPhysicsMassProperties convert(const MassProperties& massProperties)
 	if (fbInertiaTranslate)
 		value.inertiaTranslate = convert(*fbInertiaTranslate);
 	else
-		std::memset(&value.inertiaTranslate, 0, sizeof(dsVector3f));
+		std::memset(&value.inertiaTranslate, 0, sizeof(dsVector3xf));
 
 	auto fbCenterOfMass = massProperties.centerOfMass();
 	if (fbCenterOfMass)

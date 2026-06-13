@@ -724,30 +724,52 @@ DS_MATH_EXPORT inline void dsMatrix33xd_makeScale3D(
 
 /** @copydoc dsMatrix33f_jacobiEigenvalues() */
 DS_MATH_EXPORT inline bool dsMatrix33xf_jacobiEigenvalues(
-	dsMatrix33xf* outEigenvectors, dsVector3f* outEigenvalues, const dsMatrix33xf* a)
+	dsMatrix33xf* outEigenvectors, dsVector3xf* outEigenvalues, const dsMatrix33xf* a)
 {
-	return dsJacobiEigenvaluesClassicf(
+	DS_ASSERT(outEigenvectors);
+	DS_ASSERT(outEigenvalues);
+	DS_ASSERT(a);
+
+	bool result = dsJacobiEigenvaluesClassicf(
 		(float*)outEigenvectors, (float*)outEigenvalues, (const float*)a, 3, 1, 6);
+
+	// Avoid potential subnormal values with uninitialized memory.
+	outEigenvectors->columns[0].w = 0;
+	outEigenvectors->columns[1].w = 0;
+	outEigenvectors->columns[2].w = 0;
+	outEigenvalues->w = 0;
+	return result;
 }
 
 /** @copydoc dsMatrix33f_jacobiEigenvalues() */
 DS_MATH_EXPORT inline bool dsMatrix33xd_jacobiEigenvalues(
-	dsMatrix33xd* outEigenvectors, dsVector3d* outEigenvalues, const dsMatrix33xd* a)
+	dsMatrix33xd* outEigenvectors, dsVector3xd* outEigenvalues, const dsMatrix33xd* a)
 {
-	return dsJacobiEigenvaluesClassicd(
+	DS_ASSERT(outEigenvectors);
+	DS_ASSERT(outEigenvalues);
+	DS_ASSERT(a);
+
+	bool result = dsJacobiEigenvaluesClassicd(
 		(double*)outEigenvectors, (double*)outEigenvalues, (const double*)a, 3, 1, 12);
+
+	// Avoid potential subnormal values with uninitialized memory.
+	outEigenvectors->columns[0].w = 0;
+	outEigenvectors->columns[1].w = 0;
+	outEigenvectors->columns[2].w = 0;
+	outEigenvalues->w = 0;
+	return result;
 }
 
 /** @copydoc dsMatrix33f_sortEigenvalues() */
 DS_MATH_EXPORT inline void dsMatrix33xf_sortEigenvalues(
-	dsMatrix33xf* eigenvectors, dsVector3f* eigenvalues)
+	dsMatrix33xf* eigenvectors, dsVector3xf* eigenvalues)
 {
 	dsSortEigenvaluesf((float*)eigenvectors, (float*)eigenvalues, 3, 1);
 }
 
 /** @copydoc dsMatrix33f_sortEigenvalues() */
 DS_MATH_EXPORT inline void dsMatrix33xd_sortEigenvalues(
-	dsMatrix33xd* eigenvectors, dsVector3d* eigenvalues)
+	dsMatrix33xd* eigenvectors, dsVector3xd* eigenvalues)
 {
 	dsSortEigenvaluesd((double*)eigenvectors, (double*)eigenvalues, 3, 1);
 }

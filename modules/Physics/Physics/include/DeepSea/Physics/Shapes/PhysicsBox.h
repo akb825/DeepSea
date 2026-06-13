@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ DS_PHYSICS_EXPORT const dsPhysicsShapeType* dsPhysicsBox_type(void);
  * @return The box or NULL if it couldn't be created.
  */
 DS_PHYSICS_EXPORT dsPhysicsBox* dsPhysicsBox_create(dsPhysicsEngine* engine,
-	dsAllocator* allocator, const dsVector3f* halfExtents, float convexRadius);
+	dsAllocator* allocator, const dsVector3xf* halfExtents, float convexRadius);
 
 /**
  * @brief Initializes a physics box
@@ -66,7 +66,7 @@ DS_PHYSICS_EXPORT dsPhysicsBox* dsPhysicsBox_create(dsPhysicsEngine* engine,
  * @param convexRadius The convex radius used for collision checks.
  */
 DS_PHYSICS_EXPORT void dsPhysicsBox_initialize(dsPhysicsBox* box, dsPhysicsEngine* engine,
-	dsAllocator* allocator, void* impl, const dsVector3f* halfExtents, float convexRadius);
+	dsAllocator* allocator, void* impl, const dsVector3xf* halfExtents, float convexRadius);
 
 #ifdef __cplusplus
 }

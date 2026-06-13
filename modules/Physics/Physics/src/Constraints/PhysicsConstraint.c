@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-2025 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -227,7 +227,7 @@ bool dsPhysicsConstraint_setEnabled(dsPhysicsConstraint* constraint, bool enable
 }
 
 bool dsPhysicsConstraint_getLastAppliedForce(
-	dsVector3f* outForce, const dsPhysicsConstraint* constraint)
+	dsVector3xf* outForce, const dsPhysicsConstraint* constraint)
 {
 	if (!outForce || !constraint || !constraint->engine)
 	{
@@ -249,7 +249,7 @@ bool dsPhysicsConstraint_getLastAppliedForce(
 }
 
 bool dsPhysicsConstraint_getLastAppliedTorque(
-	dsVector3f* outTorque, const dsPhysicsConstraint* constraint)
+	dsVector3xf* outTorque, const dsPhysicsConstraint* constraint)
 {
 	if (!outTorque || !constraint || !constraint->engine)
 	{

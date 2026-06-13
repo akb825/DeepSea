@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ typedef void (*dsSetupSceneTreeNodeFunction)(dsSceneNode* node, dsSceneTreeNode*
  * @param node The base node.
  * @param shift The amount to shift the node.
  */
-typedef void (*dsShiftSceneNodeFunction)(dsSceneNode* node, const dsVector3f* shift);
+typedef void (*dsShiftSceneNodeFunction)(dsSceneNode* node, const dsVector3xf* shift);
 
 /**
  * @brief Function for destroying a scene node.

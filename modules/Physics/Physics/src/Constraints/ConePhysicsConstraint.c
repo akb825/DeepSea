@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,9 +48,9 @@ const dsPhysicsConstraintType* dsConePhysicsConstraint_type(void)
 }
 
 dsConePhysicsConstraint* dsConePhysicsConstraint_create(dsPhysicsEngine* engine,
-	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
+	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3xf* firstPosition,
 	const dsQuaternion4f* firstOrientation, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, const dsQuaternion4f* secondOrientation, float maxAngle)
+	const dsVector3xf* secondPosition, const dsQuaternion4f* secondOrientation, float maxAngle)
 {
 	if (!engine || !engine->createConeConstraintFunc || !engine->destroyConeConstraintFunc ||
 		!firstPosition || !firstOrientation || !secondPosition || !secondOrientation ||
@@ -83,8 +83,8 @@ bool dsConePhysicsConstraint_setMaxAngle(dsConePhysicsConstraint* constraint, fl
 
 void dsConePhysicsConstraint_initialize(dsConePhysicsConstraint* constraint,
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsQuaternion4f* firstOrientation,
-	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition,
+	const dsVector3xf* firstPosition, const dsQuaternion4f* firstOrientation,
+	const dsPhysicsActor* secondActor, const dsVector3xf* secondPosition,
 	const dsQuaternion4f* secondOrientation, float maxAngle, void* impl)
 {
 	DS_ASSERT(engine);

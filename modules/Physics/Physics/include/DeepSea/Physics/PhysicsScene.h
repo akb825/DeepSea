@@ -245,7 +245,7 @@ DS_PHYSICS_EXPORT bool dsPhysicsScene_removePostStepListener(
  * @param gravity The new gravity for the physics scene.
  * @return False if the gravity couldn't be set.
  */
-DS_PHYSICS_EXPORT bool dsPhysicsScene_setGravity(dsPhysicsScene* scene, const dsVector3f* gravity);
+DS_PHYSICS_EXPORT bool dsPhysicsScene_setGravity(dsPhysicsScene* scene, const dsVector3xf* gravity);
 
 /**
  * @brief Locks the physics scene for reading.
@@ -320,8 +320,8 @@ DS_PHYSICS_EXPORT bool dsPhysicsScene_removeRigidBodies(dsPhysicsScene* scene,
  * @param lock The previously acquired lock. This must have been locked for writing.
  * @return False if the rigid body group couldn't be added.
  */
-DS_PHYSICS_EXPORT bool dsPhysicsScene_addRigidBodyGroup(dsPhysicsScene* scene,
-	dsRigidBodyGroup* group, bool activate, const dsPhysicsSceneLock* lock);
+DS_PHYSICS_EXPORT bool dsPhysicsScene_addRigidBodyGroup(
+	dsPhysicsScene* scene, dsRigidBodyGroup* group, bool activate, const dsPhysicsSceneLock* lock);
 
 /**
  * @brief Removes a rigid body group from a physics scene.
@@ -331,8 +331,8 @@ DS_PHYSICS_EXPORT bool dsPhysicsScene_addRigidBodyGroup(dsPhysicsScene* scene,
  * @param lock The previously acquired lock. This must have been locked for writing.
  * @return False if the rigid body group couldn't be removed.
  */
-DS_PHYSICS_EXPORT bool dsPhysicsScene_removeRigidBodyGroup(dsPhysicsScene* scene,
-	dsRigidBodyGroup* group, const dsPhysicsSceneLock* lock);
+DS_PHYSICS_EXPORT bool dsPhysicsScene_removeRigidBodyGroup(
+	dsPhysicsScene* scene, dsRigidBodyGroup* group, const dsPhysicsSceneLock* lock);
 
 /**
  * @brief Gets actors from a physics scene.
@@ -528,8 +528,8 @@ inline float dsPhysicsScene_defaultCombineRestitution(
 	return (restitutionA*weightA + restitutionB*weightB)/(weightA + weightB);
 }
 
-inline float dsPhysicsScene_combineFriction(const dsPhysicsScene* scene,
-	float frictionA, float frictionB)
+inline float dsPhysicsScene_combineFriction(
+	const dsPhysicsScene* scene, float frictionA, float frictionB)
 {
 	DS_ASSERT(scene);
 	DS_ASSERT(scene->combineFrictionFunc);

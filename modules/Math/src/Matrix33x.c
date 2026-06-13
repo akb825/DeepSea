@@ -240,9 +240,9 @@ void dsMatrix33xf_makeScale3D(dsMatrix33xf* result, float x, float y, float z);
 void dsMatrix33xd_makeScale3D(dsMatrix33xd* result, double x, double y, double z);
 
 bool dsMatrix33xf_jacobiEigenvalues(
-	dsMatrix33xf* outEigenvectors, dsVector3f* outEigenvalues, const dsMatrix33xf* a);
+	dsMatrix33xf* outEigenvectors, dsVector3xf* outEigenvalues, const dsMatrix33xf* a);
 bool dsMatrix33xd_jacobiEigenvalues(
-	dsMatrix33xd* outEigenvectors, dsVector3d* outEigenvalues, const dsMatrix33xd* a);
+	dsMatrix33xd* outEigenvectors, dsVector3xd* outEigenvalues, const dsMatrix33xd* a);
 
-void dsMatrix33xf_sortEigenvalues(dsMatrix33xf* eigenvectors, dsVector3f* eigenvalues);
-void dsMatrix33xd_sortEigenvalues(dsMatrix33xd* eigenvectors, dsVector3d* eigenvalues);
+void dsMatrix33xf_sortEigenvalues(dsMatrix33xf* eigenvectors, dsVector3xf* eigenvalues);
+void dsMatrix33xd_sortEigenvalues(dsMatrix33xd* eigenvectors, dsVector3xd* eigenvalues);

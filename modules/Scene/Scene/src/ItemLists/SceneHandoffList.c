@@ -39,8 +39,8 @@ typedef struct Entry
 {
 	dsMatrix44f transform;
 	dsQuaternion4f prevOrientation;
-	dsVector3f prevPosition;
-	dsVector3f prevScale;
+	dsVector3xf prevPosition;
+	dsVector3xf prevScale;
 	float t;
 	const dsMatrix44f* commonAncestorTransform;
 	dsSceneTreeNode* node;
@@ -67,6 +67,7 @@ static uint64_t dsSceneHandoffList_addNode(dsSceneItemList* itemList, dsSceneNod
 {
 	DS_ASSERT(itemList);
 	DS_UNUSED(itemData);
+	DS_UNUSED(thisItemData);
 	if (!dsSceneNode_isOfType(node, dsSceneHandoffNode_type()) || !treeNode->parent)
 		return DS_NO_SCENE_NODE;
 
@@ -175,6 +176,7 @@ static void dsSceneHandoffList_preTransformUpdate(
 	dsSceneItemList* itemList, const dsScene* scene, float time)
 {
 	DS_ASSERT(itemList);
+	DS_UNUSED(scene);
 	dsSceneHandoffList* handoffList = (dsSceneHandoffList*)itemList;
 
 	// Lazily remove entries.
@@ -190,19 +192,19 @@ static void dsSceneHandoffList_preTransformUpdate(
 		entry->t += time/transitionTime;
 		if (entry->t < 1.0f)
 		{
-			dsVector3f targetPosition, targetScale;
+			dsVector3xf targetPosition, targetScale;
 			dsQuaternion4f targetOrientation;
 			dsMatrix44f commonAncestorInv, relativeTransform;
 			dsMatrix44f_affineInvert(&commonAncestorInv, entry->commonAncestorTransform);
 			dsMatrix44f_affineMul(
 				&relativeTransform, &commonAncestorInv, entry->parentTransform);
-			dsMatrix44f_decomposeTransform(&targetPosition, &targetOrientation, &targetScale,
-				&relativeTransform);
+			dsMatrix44f_decomposeTransform(
+				&targetPosition, &targetOrientation, &targetScale, &relativeTransform);
 
-			dsVector3f position, scale;
+			dsVector3xf position, scale;
 			dsQuaternion4f orientation;
-			dsVector3_lerp(position, entry->prevPosition, targetPosition, entry->t);
-			dsVector3_lerp(scale, entry->prevScale, targetScale, entry->t);
+			dsVector3xf_lerp(&position, &entry->prevPosition, &targetPosition, entry->t);
+			dsVector3xf_lerp(&scale, &entry->prevScale, &targetScale, entry->t);
 			dsQuaternion4f_slerp(
 				&orientation, &entry->prevOrientation, &targetOrientation, entry->t);
 

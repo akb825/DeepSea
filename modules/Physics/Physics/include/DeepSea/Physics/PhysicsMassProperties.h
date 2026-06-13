@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_initializeEmpty(
  * @return False if the parameters are invalid.
  */
 DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_initializeBox(
-	dsPhysicsMassProperties* massProperties, const dsVector3f* halfExtents, float density);
+	dsPhysicsMassProperties* massProperties, const dsVector3xf* halfExtents, float density);
 
 /**
  * @brief Initializes mass properties for a sphere.
@@ -119,7 +119,7 @@ DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_initializeCone(
  * @param indices The indices for the mesh. At least 3 indices must be provided.
  * @param indexCount The number of indices. This must be a multiple of 3.
  * @param indexSize The size of the index. Must be sizeof(uint16_t) or sizeof(uint32_t).
- * @param density The density of the cconvex hull. This must be > 0.
+ * @param density The density of the convex hull. This must be > 0.
  * @return False if the parameters are invalid.
  */
 DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_initializeMesh(
@@ -155,8 +155,8 @@ DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_initializeCombined(
  * @param mass The new mass.
  * @return False if the parameters are invalid.
  */
-DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_setMass(dsPhysicsMassProperties* massProperties,
-	float mass);
+DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_setMass(
+	dsPhysicsMassProperties* massProperties, float mass);
 
 /**
  * @brief Transforms the mass properties.
@@ -178,7 +178,7 @@ DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_setMass(dsPhysicsMassProperties* 
  * @return False if the transforn couldn't be applied.
  */
 DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_transform(dsPhysicsMassProperties* massProperties,
-	const dsVector3f* translate, const dsQuaternion4f* rotate, const dsVector3f* scale);
+	const dsVector3xf* translate, const dsQuaternion4f* rotate, const dsVector3xf* scale);
 
 /**
  * @brief Shifts mass properties so that the frame for the inertia tensor is moved, but the shape's
@@ -196,7 +196,7 @@ DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_transform(dsPhysicsMassProperties
  * @return False if the shift couldn't be applied.
  */
 DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_shift(dsPhysicsMassProperties* massProperties,
-	const dsVector3f* translate, const dsQuaternion4f* rotate);
+	const dsVector3xf* translate, const dsQuaternion4f* rotate);
 
 /**
  * @brief Gets the final inertia tensor for mass properties relative to inertiaTranslate and
@@ -206,8 +206,8 @@ DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_shift(dsPhysicsMassProperties* ma
  * @param massProperties The mass properties.
  * @return False if the parameters are invalid.
  */
-DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_getInertia(dsMatrix33f* outInertia,
-	const dsPhysicsMassProperties* massProperties);
+DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_getInertia(
+	dsMatrix33xf* outInertia, const dsPhysicsMassProperties* massProperties);
 
 /**
  * @brief Gets the final inertia tensor for mass properties relative to inertiaTranslate and
@@ -225,8 +225,8 @@ DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_getInertia(dsMatrix33f* outInerti
  * @param massProperties The mass properties.
  * @return False if the parameters are invalid.
  */
-DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_getDecomposedInertia(dsMatrix33f* outInertiaRotate,
-	dsVector3f* outInertiaDiagonal, const dsPhysicsMassProperties* massProperties);
+DS_PHYSICS_EXPORT bool dsPhysicsMassProperties_getDecomposedInertia(dsMatrix33xf* outInertiaRotate,
+	dsVector3xf* outInertiaDiagonal, const dsPhysicsMassProperties* massProperties);
 
 #ifdef __cplusplus
 }

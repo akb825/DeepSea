@@ -120,11 +120,11 @@ DS_MATH_EXPORT inline void dsMatrix44f_affineInvertSIMD(dsMatrix44f* result, con
 /**
  * @brief Inverts the upper 3x3 portion of an affine matrix.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param[out] result The inverted matrix as 3 aligned dsVector4f elements.
+ * @param[out] result The inverted matrix.
  * @param a The matrix to invert.
  */
 DS_MATH_EXPORT inline void dsMatrix44f_affineInvert33SIMD(
-	dsVector4f result[3], const dsMatrix44f* a);
+	dsMatrix33xf* result, const dsMatrix44f* a);
 
 /**
  * @brief Inverts a matrix.
@@ -155,8 +155,8 @@ DS_MATH_EXPORT inline void dsMatrix44f_inverseTransposeSIMD(
  * @param[out] outScale The scale of the transform.
  * @param matrix The matrix to extract the transform from.
  */
-DS_MATH_EXPORT inline void dsMatrix44f_decomposeTransformSIMD(dsVector4f* outPosition,
-	dsQuaternion4f* outOrientation, dsVector4f* outScale, const dsMatrix44f* matrix);
+DS_MATH_EXPORT inline void dsMatrix44f_decomposeTransformSIMD(dsVector3xf* outPosition,
+	dsQuaternion4f* outOrientation, dsVector3xf* outScale, const dsMatrix44f* matrix);
 
 /**
  * @brief Composes a transform into a matrix.
@@ -172,7 +172,7 @@ DS_MATH_EXPORT inline void dsMatrix44f_decomposeTransformSIMD(dsVector4f* outPos
  * @param scale The scale of the transform.
  */
 DS_MATH_EXPORT inline void dsMatrix44f_composeTransformSIMD(dsMatrix44f* result,
-	const dsVector4f* position, const dsQuaternion4f* orientation, const dsVector3f* scale);
+	const dsVector3xf* position, const dsQuaternion4f* orientation, const dsVector3xf* scale);
 
 /**
  * @brief Linearly interpolates between two rigid transform matrices.
@@ -255,11 +255,11 @@ DS_MATH_EXPORT inline void dsMatrix44f_affineInvertFMA(dsMatrix44f* result, cons
 /**
  * @brief Inverts the upper 3x3 portion of an affine matrix using fused multiply-add operations.
  * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_FMA are available.
- * @param[out] result The inverted matrix as 3 aligned dsVector4f elements.
+ * @param[out] result The inverted matrix.
  * @param a The matrix to invert.
  */
 DS_MATH_EXPORT inline void dsMatrix44f_affineInvert33FMA(
-	dsVector4f result[3], const dsMatrix44f* a);
+	dsMatrix33xf* result, const dsMatrix44f* a);
 
 /**
  * @brief Inverts a matrix using fused multiply-add operations.
@@ -367,11 +367,11 @@ DS_MATH_EXPORT inline void dsMatrix44d_affineInvertSIMD2(dsMatrix44d* result, co
 /**
  * @brief Inverts the upper 3x3 portion of an affine matrix.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param[out] result The inverted matrix as 3 aligned dsVector4f elements.
+ * @param[out] result The inverted matrix.
  * @param a The matrix to invert.
  */
 DS_MATH_EXPORT inline void dsMatrix44d_affineInvert33SIMD2(
-	dsVector4d result[3], const dsMatrix44d* a);
+	dsMatrix33xd* result, const dsMatrix44d* a);
 
 /**
  * @brief Inverts a matrix.
@@ -402,8 +402,8 @@ DS_MATH_EXPORT inline void dsMatrix44d_inverseTransposeSIMD2(
  * @param[out] outScale The scale of the transform.
  * @param matrix The matrix to extract the transform from.
  */
-DS_MATH_EXPORT inline void dsMatrix44d_decomposeTransformSIMD2(dsVector4d* outPosition,
-	dsQuaternion4d* outOrientation, dsVector4d* outScale, const dsMatrix44d* matrix);
+DS_MATH_EXPORT inline void dsMatrix44d_decomposeTransformSIMD2(dsVector3xd* outPosition,
+	dsQuaternion4d* outOrientation, dsVector3xd* outScale, const dsMatrix44d* matrix);
 
 /**
  * @brief Composes a transform into a matrix.
@@ -419,7 +419,7 @@ DS_MATH_EXPORT inline void dsMatrix44d_decomposeTransformSIMD2(dsVector4d* outPo
  * @param scale The scale of the transform.
  */
 DS_MATH_EXPORT inline void dsMatrix44d_composeTransformSIMD2(dsMatrix44d* result,
-	const dsVector4d* position, const dsQuaternion4d* orientation, const dsVector3d* scale);
+	const dsVector3xd* position, const dsQuaternion4d* orientation, const dsVector3xd* scale);
 
 /**
  * @brief Linearly interpolates between two rigid transform matrices.
@@ -502,11 +502,11 @@ DS_MATH_EXPORT inline void dsMatrix44d_affineInvertFMA2(dsMatrix44d* result, con
 /**
  * @brief Inverts the upper 3x3 portion of an affine matrix using fused multiply-add operations.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param[out] result The inverted matrix as 3 aligned dsVector4f elements.
+ * @param[out] result The inverted matrix.
  * @param a The matrix to invert.
  */
 DS_MATH_EXPORT inline void dsMatrix44d_affineInvert33FMA2(
-	dsVector4d result[3], const dsMatrix44d* a);
+	dsMatrix33xd* result, const dsMatrix44d* a);
 
 /**
  * @brief Inverts a matrix using fused multiply-add operations.
@@ -626,11 +626,11 @@ DS_MATH_EXPORT inline void dsMatrix44d_affineInvertSIMD4(
  * @brief Inverts the upper 3x3 portion of an affine matrix.
  * @remark This can be used when dsSIMDFeatures_Double4 is available, and will use FMA if not
  *     disabled through enabling determinisitic math.
- * @param[out] result The inverted matrix as 3 aligned dsVector4f elements.
+ * @param[out] result The inverted matrix.
  * @param a The matrix to invert.
  */
 DS_MATH_EXPORT inline void dsMatrix44d_affineInvert33SIMD4(
-	dsVector4d* DS_ALIGN_PARAM(32) result, const dsMatrix44d* DS_ALIGN_PARAM(32) a);
+	dsMatrix33xd* DS_ALIGN_PARAM(32) result, const dsMatrix44d* DS_ALIGN_PARAM(32) a);
 
 /**
  * @brief Inverts a matrix.
@@ -665,8 +665,8 @@ DS_MATH_EXPORT inline void dsMatrix44d_inverseTransposeSIMD4(
  * @param matrix The matrix to extract the transform from.
  */
 DS_MATH_EXPORT inline void dsMatrix44d_decomposeTransformSIMD4(
-	dsVector4d* DS_ALIGN_PARAM(32) outPosition, dsQuaternion4d* outOrientation,
-	dsVector4d* DS_ALIGN_PARAM(32) outScale, const dsMatrix44d* DS_ALIGN_PARAM(32) matrix);
+	dsVector3xd* DS_ALIGN_PARAM(32) outPosition, dsQuaternion4d* outOrientation,
+	dsVector3xd* DS_ALIGN_PARAM(32) outScale, const dsMatrix44d* DS_ALIGN_PARAM(32) matrix);
 
 /**
  * @brief Composes a transform into a matrix.
@@ -683,8 +683,8 @@ DS_MATH_EXPORT inline void dsMatrix44d_decomposeTransformSIMD4(
  * @param scale The scale of the transform.
  */
 DS_MATH_EXPORT inline void dsMatrix44d_composeTransformSIMD4(dsMatrix44d* DS_ALIGN_PARAM(32) result,
-	const dsVector4d* DS_ALIGN_PARAM(32) position, const dsQuaternion4d* orientation,
-	const dsVector3d* scale);
+	const dsVector3xd* DS_ALIGN_PARAM(32) position, const dsQuaternion4d* orientation,
+	const dsVector3xd* DS_ALIGN_PARAM(32) scale);
 
 /**
  * @brief Linearly interpolates between two rigid transform matrices.
@@ -1108,7 +1108,7 @@ inline void dsMatrix44f_affineInvertSIMD(dsMatrix44f* result, const dsMatrix44f*
 			dsSIMD4f_mul(result->columns[2].simd, dsSIMD4f_set1FromVec(a->columns[3].simd, 2))));
 }
 
-inline void dsMatrix44f_affineInvert33SIMD(dsVector4f result[3], const dsMatrix44f* a)
+inline void dsMatrix44f_affineInvert33SIMD(dsMatrix33xf* result, const dsMatrix44f* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -1121,11 +1121,11 @@ inline void dsMatrix44f_affineInvert33SIMD(dsVector4f result[3], const dsMatrix4
 			dsSIMD4f_set4(0.0f, 0.0f, 0.0f, 1.0f)));
 	dsSIMD4f invScale2 = dsSIMD4f_rcp(scale2);
 
-	result[0].simd = dsSIMD4f_mul(a->columns[0].simd, invScale2);
-	result[1].simd = dsSIMD4f_mul(a->columns[1].simd, invScale2);
-	result[2].simd = dsSIMD4f_mul(a->columns[2].simd, invScale2);
+	result->columns[0].simd = dsSIMD4f_mul(a->columns[0].simd, invScale2);
+	result->columns[1].simd = dsSIMD4f_mul(a->columns[1].simd, invScale2);
+	result->columns[2].simd = dsSIMD4f_mul(a->columns[2].simd, invScale2);
 
-	DS_SIMD_TRANSPOSE_33(result[0].simd, result[1].simd, result[2].simd);
+	DS_SIMD_TRANSPOSE_33(result->columns[0].simd, result->columns[1].simd, result->columns[2].simd);
 }
 
 inline void dsMatrix44f_invertSIMD(dsMatrix44f* result, const dsMatrix44f* a)
@@ -1202,8 +1202,8 @@ inline void dsMatrix44f_inverseTransposeSIMD(dsMatrix33xf* result, const dsMatri
 	result->columns[2].simd = dsSIMD4f_mul(a->columns[2].simd, invScale2);
 }
 
-inline void dsMatrix44f_decomposeTransformSIMD(dsVector4f* outPosition,
-	dsQuaternion4f* outOrientation, dsVector4f* outScale, const dsMatrix44f* matrix)
+inline void dsMatrix44f_decomposeTransformSIMD(dsVector3xf* outPosition,
+	dsQuaternion4f* outOrientation, dsVector3xf* outScale, const dsMatrix44f* matrix)
 {
 	DS_ASSERT(outPosition);
 	DS_ASSERT(outOrientation);
@@ -1235,7 +1235,7 @@ inline void dsMatrix44f_decomposeTransformSIMD(dsVector4f* outPosition,
 }
 
 inline void dsMatrix44f_composeTransformSIMD(dsMatrix44f* result,
-	const dsVector4f* position, const dsQuaternion4f* orientation, const dsVector3f* scale)
+	const dsVector3xf* position, const dsQuaternion4f* orientation, const dsVector3xf* scale)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(position);
@@ -1243,10 +1243,15 @@ inline void dsMatrix44f_composeTransformSIMD(dsMatrix44f* result,
 	DS_ASSERT(scale);
 
 	dsQuaternion4f_toMatrix44(result, orientation);
-	result->columns[0].simd = dsSIMD4f_mul(result->columns[0].simd, dsSIMD4f_set1(scale->x));
-	result->columns[1].simd = dsSIMD4f_mul(result->columns[1].simd, dsSIMD4f_set1(scale->y));
-	result->columns[2].simd = dsSIMD4f_mul(result->columns[2].simd, dsSIMD4f_set1(scale->z));
-	result->columns[3].simd = position->simd;
+	result->columns[0].simd = dsSIMD4f_mul(
+		result->columns[0].simd, dsSIMD4f_set1FromVec(scale->simd, 0));
+	result->columns[1].simd = dsSIMD4f_mul(
+		result->columns[1].simd, dsSIMD4f_set1FromVec(scale->simd, 1));
+	result->columns[2].simd = dsSIMD4f_mul(
+		result->columns[2].simd, dsSIMD4f_set1FromVec(scale->simd, 2));
+	result->columns[3].x = position->x;
+	result->columns[3].y = position->y;
+	result->columns[3].z = position->z;
 }
 
 inline void dsMatrix44f_rigidLerpSIMD(
@@ -1269,8 +1274,7 @@ inline void dsMatrix44f_rigidLerpSIMD(
 		dsSIMD4f_mul(t4, dsSIMD4f_sub(scaleB.simd, scaleA.simd)));
 	dsQuaternion4f_slerp(&orientationInterp, &orientationA, &orientationB, t);
 
-	dsMatrix44f_composeTransformSIMD(
-		result, &positionInterp, &orientationInterp, (dsVector3f*)&scaleInterp);
+	dsMatrix44f_composeTransformSIMD(result, &positionInterp, &orientationInterp, &scaleInterp);
 }
 
 #undef DS_MATRIX22_MUL
@@ -1504,7 +1508,7 @@ inline void dsMatrix44f_affineInvertFMA(dsMatrix44f* result, const dsMatrix44f* 
 		dsSIMD4f_set4(0.0f, 0.0f, 0.0f, -1.0f))));
 }
 
-inline void dsMatrix44f_affineInvert33FMA(dsVector4f result[3], const dsMatrix44f* a)
+inline void dsMatrix44f_affineInvert33FMA(dsMatrix33xf* result, const dsMatrix44f* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -1515,11 +1519,11 @@ inline void dsMatrix44f_affineInvert33FMA(dsVector4f result[3], const dsMatrix44
 		dsSIMD4f_fmadd(a->columns[2].simd, a->columns[2].simd,
 			dsSIMD4f_set4(0.0f, 0.0f, 0.0f, 1.0f)))));
 
-	result[0].simd = dsSIMD4f_mul(a->columns[0].simd, invScale2);
-	result[1].simd = dsSIMD4f_mul(a->columns[1].simd, invScale2);
-	result[2].simd = dsSIMD4f_mul(a->columns[2].simd, invScale2);
+	result->columns[0].simd = dsSIMD4f_mul(a->columns[0].simd, invScale2);
+	result->columns[1].simd = dsSIMD4f_mul(a->columns[1].simd, invScale2);
+	result->columns[2].simd = dsSIMD4f_mul(a->columns[2].simd, invScale2);
 
-	DS_SIMD_TRANSPOSE_33(result[0].simd, result[1].simd, result[2].simd);
+	DS_SIMD_TRANSPOSE_33(result->columns[0].simd, result->columns[1].simd, result->columns[2].simd);
 }
 
 inline void dsMatrix44f_invertFMA(dsMatrix44f* result, const dsMatrix44f* a)
@@ -1613,8 +1617,7 @@ inline void dsMatrix44f_rigidLerpFMA(
 	scaleInterp.simd = dsSIMD4f_fmadd(t4, dsSIMD4f_sub(scaleB.simd, scaleA.simd), scaleA.simd);
 	dsQuaternion4f_slerp(&orientationInterp, &orientationA, &orientationB, t);
 
-	dsMatrix44f_composeTransformSIMD(
-		result, &positionInterp, &orientationInterp, (dsVector3f*)&scaleInterp);
+	dsMatrix44f_composeTransformSIMD(result, &positionInterp, &orientationInterp, &scaleInterp);
 }
 
 #undef DS_MATRIX22_MUL
@@ -2196,7 +2199,7 @@ inline void dsMatrix44d_affineInvertSIMD2(dsMatrix44d* result, const dsMatrix44d
 		dsSIMD2d_mul(result->columns[2].simd2[1], z)));
 }
 
-inline void dsMatrix44d_affineInvert33SIMD2(dsVector4d result[3], const dsMatrix44d* a)
+inline void dsMatrix44d_affineInvert33SIMD2(dsMatrix33xd* result, const dsMatrix44d* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -2215,14 +2218,14 @@ inline void dsMatrix44d_affineInvert33SIMD2(dsVector4d result[3], const dsMatrix
 	invScale2.simd2[0] = dsSIMD2d_rcp(scale2.simd2[0]);
 	invScale2.simd2[1] = dsSIMD2d_rcp(scale2.simd2[1]);
 
-	result[0].simd2[0] = dsSIMD2d_mul(a->columns[0].simd2[0], invScale2.simd2[0]);
-	result[0].simd2[1] = dsSIMD2d_mul(a->columns[0].simd2[1], invScale2.simd2[1]);
-	result[1].simd2[0] = dsSIMD2d_mul(a->columns[1].simd2[0], invScale2.simd2[0]);
-	result[1].simd2[1] = dsSIMD2d_mul(a->columns[1].simd2[1], invScale2.simd2[1]);
-	result[2].simd2[0] = dsSIMD2d_mul(a->columns[2].simd2[0], invScale2.simd2[0]);
-	result[2].simd2[1] = dsSIMD2d_mul(a->columns[2].simd2[1], invScale2.simd2[1]);
+	result->columns[0].simd2[0] = dsSIMD2d_mul(a->columns[0].simd2[0], invScale2.simd2[0]);
+	result->columns[0].simd2[1] = dsSIMD2d_mul(a->columns[0].simd2[1], invScale2.simd2[1]);
+	result->columns[1].simd2[0] = dsSIMD2d_mul(a->columns[1].simd2[0], invScale2.simd2[0]);
+	result->columns[1].simd2[1] = dsSIMD2d_mul(a->columns[1].simd2[1], invScale2.simd2[1]);
+	result->columns[2].simd2[0] = dsSIMD2d_mul(a->columns[2].simd2[0], invScale2.simd2[0]);
+	result->columns[2].simd2[1] = dsSIMD2d_mul(a->columns[2].simd2[1], invScale2.simd2[1]);
 
-	DS_SIMD_TRANSPOSE_33(result[0], result[1], result[2]);
+	DS_SIMD_TRANSPOSE_33(result->columns[0], result->columns[1], result->columns[2]);
 }
 
 inline void dsMatrix44d_invertSIMD2(dsMatrix44d* result, const dsMatrix44d* a)
@@ -2326,8 +2329,8 @@ inline void dsMatrix44d_inverseTransposeSIMD2(dsMatrix33xd* result, const dsMatr
 	result->columns[2].simd2[1] = dsSIMD2d_mul(a->columns[2].simd2[1], invScale2.simd2[1]);
 }
 
-inline void dsMatrix44d_decomposeTransformSIMD2(dsVector4d* outPosition,
-	dsQuaternion4d* outOrientation, dsVector4d* outScale, const dsMatrix44d* matrix)
+inline void dsMatrix44d_decomposeTransformSIMD2(dsVector3xd* outPosition,
+	dsQuaternion4d* outOrientation, dsVector3xd* outScale, const dsMatrix44d* matrix)
 {
 	DS_ASSERT(outPosition);
 	DS_ASSERT(outOrientation);
@@ -2368,7 +2371,7 @@ inline void dsMatrix44d_decomposeTransformSIMD2(dsVector4d* outPosition,
 }
 
 inline void dsMatrix44d_composeTransformSIMD2(dsMatrix44d* result,
-	const dsVector4d* position, const dsQuaternion4d* orientation, const dsVector3d* scale)
+	const dsVector3xd* position, const dsQuaternion4d* orientation, const dsVector3xd* scale)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(position);
@@ -2376,17 +2379,17 @@ inline void dsMatrix44d_composeTransformSIMD2(dsMatrix44d* result,
 	DS_ASSERT(scale);
 
 	dsQuaternion4d_toMatrix44(result, orientation);
-	dsSIMD2d scale1 = dsSIMD2d_set1(scale->x);
+	dsSIMD2d scale1 = dsSIMD2d_set1FromVec(scale->simd2[0], 0);
 	result->columns[0].simd2[0] = dsSIMD2d_mul(result->columns[0].simd2[0], scale1);
 	result->columns[0].simd2[1] = dsSIMD2d_mul(result->columns[0].simd2[1], scale1);
-	scale1 = dsSIMD2d_set1(scale->y);
+	scale1 = dsSIMD2d_set1FromVec(scale->simd2[0], 1);
 	result->columns[1].simd2[0] = dsSIMD2d_mul(result->columns[1].simd2[0], scale1);
 	result->columns[1].simd2[1] = dsSIMD2d_mul(result->columns[1].simd2[1], scale1);
-	scale1 = dsSIMD2d_set1(scale->z);
+	scale1 = dsSIMD2d_set1FromVec(scale->simd2[1], 0);
 	result->columns[2].simd2[0] = dsSIMD2d_mul(result->columns[2].simd2[0], scale1);
 	result->columns[2].simd2[1] = dsSIMD2d_mul(result->columns[2].simd2[1], scale1);
 	result->columns[3].simd2[0] = position->simd2[0];
-	result->columns[3].simd2[1] = position->simd2[1];
+	result->columns[3].z = position->z;
 }
 
 inline void dsMatrix44d_rigidLerpSIMD2(
@@ -2413,8 +2416,7 @@ inline void dsMatrix44d_rigidLerpSIMD2(
 		dsSIMD2d_mul(t2, dsSIMD2d_sub(scaleB.simd2[1], scaleA.simd2[1])));
 	dsQuaternion4d_slerp(&orientationInterp, &orientationA, &orientationB, t);
 
-	dsMatrix44d_composeTransformSIMD2(
-		result, &positionInterp, &orientationInterp, (dsVector3d*)&scaleInterp);
+	dsMatrix44d_composeTransformSIMD2(result, &positionInterp, &orientationInterp, &scaleInterp);
 }
 
 #undef DS_MATRIX22_MUL
@@ -2724,7 +2726,7 @@ inline void dsMatrix44d_affineInvertFMA2(dsMatrix44d* result, const dsMatrix44d*
 		dsSIMD2d_fmadd(result->columns[2].simd2[1], z, dsSIMD2d_set2(0.0, -1.0))));
 }
 
-inline void dsMatrix44d_affineInvert33FMA2(dsVector4d result[3], const dsMatrix44d* a)
+inline void dsMatrix44d_affineInvert33FMA2(dsMatrix33xd* result, const dsMatrix44d* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -2740,14 +2742,14 @@ inline void dsMatrix44d_affineInvert33FMA2(dsVector4d result[3], const dsMatrix4
 	invScale2.simd2[0] = dsSIMD2d_rcp(scale2.simd2[0]);
 	invScale2.simd2[1] = dsSIMD2d_rcp(scale2.simd2[1]);
 
-	result[0].simd2[0] = dsSIMD2d_mul(a->columns[0].simd2[0], invScale2.simd2[0]);
-	result[0].simd2[1] = dsSIMD2d_mul(a->columns[0].simd2[1], invScale2.simd2[1]);
-	result[1].simd2[0] = dsSIMD2d_mul(a->columns[1].simd2[0], invScale2.simd2[0]);
-	result[1].simd2[1] = dsSIMD2d_mul(a->columns[1].simd2[1], invScale2.simd2[1]);
-	result[2].simd2[0] = dsSIMD2d_mul(a->columns[2].simd2[0], invScale2.simd2[0]);
-	result[2].simd2[1] = dsSIMD2d_mul(a->columns[2].simd2[1], invScale2.simd2[1]);
+	result->columns[0].simd2[0] = dsSIMD2d_mul(a->columns[0].simd2[0], invScale2.simd2[0]);
+	result->columns[0].simd2[1] = dsSIMD2d_mul(a->columns[0].simd2[1], invScale2.simd2[1]);
+	result->columns[1].simd2[0] = dsSIMD2d_mul(a->columns[1].simd2[0], invScale2.simd2[0]);
+	result->columns[1].simd2[1] = dsSIMD2d_mul(a->columns[1].simd2[1], invScale2.simd2[1]);
+	result->columns[2].simd2[0] = dsSIMD2d_mul(a->columns[2].simd2[0], invScale2.simd2[0]);
+	result->columns[2].simd2[1] = dsSIMD2d_mul(a->columns[2].simd2[1], invScale2.simd2[1]);
 
-	DS_SIMD_TRANSPOSE_33(result[0], result[1], result[2]);
+	DS_SIMD_TRANSPOSE_33(result->columns[0], result->columns[1], result->columns[2]);
 }
 
 inline void dsMatrix44d_invertFMA2(dsMatrix44d* result, const dsMatrix44d* a)
@@ -2872,8 +2874,7 @@ inline void dsMatrix44d_rigidLerpFMA2(
 		t2, dsSIMD2d_sub(scaleB.simd2[1], scaleA.simd2[1]), scaleA.simd2[1]);
 	dsQuaternion4d_slerp(&orientationInterp, &orientationA, &orientationB, t);
 
-	dsMatrix44d_composeTransformSIMD2(
-		result, &positionInterp, &orientationInterp, (dsVector3d*)&scaleInterp);
+	dsMatrix44d_composeTransformSIMD2(result, &positionInterp, &orientationInterp, &scaleInterp);
 }
 
 #undef DS_MATRIX22_MUL
@@ -3449,7 +3450,7 @@ inline void dsMatrix44d_affineInvertSIMD4(
 }
 
 inline void dsMatrix44d_affineInvert33SIMD4(
-	dsVector4d* DS_ALIGN_PARAM(32) result, const dsMatrix44d* DS_ALIGN_PARAM(32) a)
+	dsMatrix33xd* DS_ALIGN_PARAM(32) result, const dsMatrix44d* DS_ALIGN_PARAM(32) a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -3477,9 +3478,9 @@ inline void dsMatrix44d_affineInvert33SIMD4(
 
 	DS_SIMD_TRANSPOSE_33(col0, col1, col2);
 
-	dsSIMD4d_store(result, col0);
-	dsSIMD4d_store(result + 1, col1);
-	dsSIMD4d_store(result + 2, col2);
+	dsSIMD4d_store(result->columns, col0);
+	dsSIMD4d_store(result->columns + 1, col1);
+	dsSIMD4d_store(result->columns + 2, col2);
 }
 
 inline void dsMatrix44d_invertSIMD4(
@@ -3604,8 +3605,8 @@ inline void dsMatrix44d_inverseTransposeSIMD4(
 }
 
 inline void dsMatrix44d_decomposeTransformSIMD4(
-	dsVector4d* DS_ALIGN_PARAM(32) outPosition, dsQuaternion4d* DS_ALIGN_PARAM(32) outOrientation,
-	dsVector4d* DS_ALIGN_PARAM(32) outScale, const dsMatrix44d* DS_ALIGN_PARAM(32) matrix)
+	dsVector3xd* DS_ALIGN_PARAM(32) outPosition, dsQuaternion4d* DS_ALIGN_PARAM(32) outOrientation,
+	dsVector3xd* DS_ALIGN_PARAM(32) outScale, const dsMatrix44d* DS_ALIGN_PARAM(32) matrix)
 {
 	DS_ASSERT(outPosition);
 	DS_ASSERT(outOrientation);
@@ -3642,8 +3643,8 @@ inline void dsMatrix44d_decomposeTransformSIMD4(
 }
 
 inline void dsMatrix44d_composeTransformSIMD4(dsMatrix44d* DS_ALIGN_PARAM(32) result,
-	const dsVector4d* DS_ALIGN_PARAM(32) position, const dsQuaternion4d* orientation,
-	const dsVector3d* scale)
+	const dsVector3xd* DS_ALIGN_PARAM(32) position, const dsQuaternion4d* orientation,
+	const dsVector3xd* DS_ALIGN_PARAM(32) scale)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(position);
@@ -3651,13 +3652,16 @@ inline void dsMatrix44d_composeTransformSIMD4(dsMatrix44d* DS_ALIGN_PARAM(32) re
 	DS_ASSERT(scale);
 
 	dsQuaternion4d_toMatrix44(result, orientation);
+	dsSIMD4d scaleSIMD = dsSIMD4d_load(scale);
 	dsSIMD4d_store(result->columns,
-		dsSIMD4d_mul(dsSIMD4d_load(result->columns), dsSIMD4d_set1(scale->x)));
+		dsSIMD4d_mul(dsSIMD4d_load(result->columns), dsSIMD4d_set1FromVec(scaleSIMD, 0)));
 	dsSIMD4d_store(result->columns + 1,
-		dsSIMD4d_mul(dsSIMD4d_load(result->columns + 1), dsSIMD4d_set1(scale->y)));
+		dsSIMD4d_mul(dsSIMD4d_load(result->columns + 1), dsSIMD4d_set1FromVec(scaleSIMD, 1)));
 	dsSIMD4d_store(result->columns + 2,
-		dsSIMD4d_mul(dsSIMD4d_load(result->columns + 2), dsSIMD4d_set1(scale->z)));
-	dsSIMD4d_store(result->columns + 3, dsSIMD4d_load(position));
+		dsSIMD4d_mul(dsSIMD4d_load(result->columns + 2), dsSIMD4d_set1FromVec(scaleSIMD, 2)));
+	result->columns[3].x = position->x;
+	result->columns[3].y = position->y;
+	result->columns[3].z = position->z;
 }
 
 inline void dsMatrix44d_rigidLerpSIMD4(dsMatrix44d* DS_ALIGN_PARAM(32) result,
@@ -3696,8 +3700,7 @@ inline void dsMatrix44d_rigidLerpSIMD4(dsMatrix44d* DS_ALIGN_PARAM(32) result,
 
 	dsQuaternion4d_slerp(&orientationInterp, &orientationA, &orientationB, t);
 
-	dsMatrix44d_composeTransformSIMD4(
-		result, &positionInterp, &orientationInterp, (dsVector3d*)&scaleInterp);
+	dsMatrix44d_composeTransformSIMD4(result, &positionInterp, &orientationInterp, &scaleInterp);
 }
 
 #undef DS_MATRIX22_MUL

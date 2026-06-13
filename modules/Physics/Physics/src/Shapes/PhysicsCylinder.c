@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,7 +92,7 @@ void dsPhysicsCylinder_initialize(dsPhysicsCylinder* cylinder, dsPhysicsEngine* 
 	DS_ASSERT(radius > 0);
 	DS_ASSERT(axis >= dsPhysicsAxis_X && axis <= dsPhysicsAxis_Z);
 
-	dsAlignedBox3f bounds;
+	dsAlignedBox3xf bounds;
 	switch (axis)
 	{
 		case dsPhysicsAxis_X:
@@ -114,6 +114,7 @@ void dsPhysicsCylinder_initialize(dsPhysicsCylinder* cylinder, dsPhysicsEngine* 
 			bounds.max.x = bounds.max.y = radius;
 			break;
 	}
+	bounds.min.w = bounds.max.w = 0.0f;
 
 	DS_VERIFY(dsPhysicsShape_initialize((dsPhysicsShape*)cylinder, engine, allocator,
 		dsPhysicsCylinder_type(), &bounds, impl,

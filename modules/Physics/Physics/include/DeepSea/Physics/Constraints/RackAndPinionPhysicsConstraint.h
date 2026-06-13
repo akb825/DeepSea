@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,8 +71,8 @@ DS_PHYSICS_EXPORT float dsRackAndPinionPhysicsConstraint_computeRatio(unsigned i
  */
 DS_PHYSICS_EXPORT dsRackAndPinionPhysicsConstraint* dsRackAndPinionPhysicsConstraint_create(
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* rackActor,
-	const dsVector3f* rackAxis, const dsSliderPhysicsConstraint* rackConstraint,
-	const dsPhysicsActor* pinionActor, const dsVector3f* pinionAxis,
+	const dsVector3xf* rackAxis, const dsSliderPhysicsConstraint* rackConstraint,
+	const dsPhysicsActor* pinionActor, const dsVector3xf* pinionAxis,
 	const dsRevolutePhysicsConstraint* pinionConstraint, float ratio);
 
 /**
@@ -84,8 +84,8 @@ DS_PHYSICS_EXPORT dsRackAndPinionPhysicsConstraint* dsRackAndPinionPhysicsConstr
  *     aligned.
  * @return False if the ratio couldn't be set.
  */
-DS_PHYSICS_EXPORT bool dsRackAndPinionPhysicsConstraint_setRatio(dsRackAndPinionPhysicsConstraint* constraint,
-	float ratio);
+DS_PHYSICS_EXPORT bool dsRackAndPinionPhysicsConstraint_setRatio(
+	dsRackAndPinionPhysicsConstraint* constraint, float ratio);
 
 /**
  * @brief Initializes a rack and pinion physics constraint.
@@ -110,9 +110,9 @@ DS_PHYSICS_EXPORT bool dsRackAndPinionPhysicsConstraint_setRatio(dsRackAndPinion
  */
 DS_PHYSICS_EXPORT void dsRackAndPinionPhysicsConstraint_initialize(
 	dsRackAndPinionPhysicsConstraint* constraint, dsPhysicsEngine* engine, dsAllocator* allocator,
-	const dsPhysicsActor* rackActor, const dsVector3f* rackAxis,
+	const dsPhysicsActor* rackActor, const dsVector3xf* rackAxis,
 	const dsSliderPhysicsConstraint* rackConstraint, const dsPhysicsActor* pinionActor,
-	const dsVector3f* pinionAxis, const dsRevolutePhysicsConstraint* pinionConstraint, float ratio,
+	const dsVector3xf* pinionAxis, const dsRevolutePhysicsConstraint* pinionConstraint, float ratio,
 	void* impl);
 
 #ifdef __cplusplus

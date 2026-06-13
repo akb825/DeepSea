@@ -145,6 +145,28 @@ inline const dsVector3d& convert(const Vector3d& vector)
 }
 
 /**
+ * @brief Converts from a flatbuffer Vector3f to a dsVector3xf.
+ * @param vector The vector to convert.
+ * @return The converted vector.
+ */
+inline dsVector3xf convert3x(const Vector3f& vector)
+{
+	dsVector3xf value = {{vector.x(), vector.y(), vector.z()}};
+	return value;
+}
+
+/**
+ * @brief Converts from a flatbuffer Vector3d to a dsVector3xd.
+ * @param vector The vector to convert.
+ * @return The converted vector.
+ */
+inline dsVector3xd convert3x(const Vector3d& vector)
+{
+	dsVector3xd value = {{vector.x(), vector.y(), vector.z()}};
+	return value;
+}
+
+/**
  * @brief Converts from a flatbuffer Vector4f to a dsVector4f.
  * @param vector The vector to convert.
  * @return The converted vector.
@@ -199,6 +221,21 @@ inline const dsAlignedBox3f& convert(const AlignedBox3f& box)
 }
 
 /**
+ * @brief Converts from a flatbuffer AlignedBox3f to a dsAlignedBox3xf.
+ * @param box The box to convert.
+ * @return The converted box.
+ */
+inline dsAlignedBox3xf convert3x(const AlignedBox3f& box)
+{
+	dsAlignedBox3xf value =
+	{
+		{{box.min().x(), box.min().y(), box.min().z()}},
+		{{box.max().x(), box.max().y(), box.max().z()}}
+	};
+	return value;
+}
+
+/**
  * @brief Converts from a flatbuffer Matrix33f to a dsMatrix33f.
  * @param matrix The matrix to convert.
  * @return The converted matrix.
@@ -206,6 +243,22 @@ inline const dsAlignedBox3f& convert(const AlignedBox3f& box)
 inline const dsMatrix33f& convert(const Matrix33f& matrix)
 {
 	return reinterpret_cast<const dsMatrix33f&>(matrix);
+}
+
+/**
+ * @brief Converts from a flatbuffer Matrix33f to a dsMatrix33xf.
+ * @param matrix The matrix to convert.
+ * @return The converted matrix.
+ */
+inline dsMatrix33xf convert3x(const Matrix33f& matrix)
+{
+	dsMatrix33xf value =
+	{{
+		{matrix.column0().x(), matrix.column0().y(), matrix.column0().z()},
+		{matrix.column1().x(), matrix.column1().y(), matrix.column1().z()},
+		{matrix.column2().x(), matrix.column2().y(), matrix.column2().z()}
+	}};
+	return value;
 }
 
 /**

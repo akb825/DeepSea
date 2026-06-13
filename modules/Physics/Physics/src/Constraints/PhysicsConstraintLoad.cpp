@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,7 +117,7 @@ dsPhysicsConstraint* loadFixedConstraint(dsPhysicsEngine* engine, dsAllocator* a
 			return nullptr;
 	}
 
-	dsVector3f firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
+	dsVector3xf firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
 	dsQuaternion4f firstOrientation = DeepSeaPhysics::convert(*fbConstraint.firstOrientation());
 
 	auto fbSecondActor = fbConstraint.secondActor();
@@ -130,7 +130,7 @@ dsPhysicsConstraint* loadFixedConstraint(dsPhysicsEngine* engine, dsAllocator* a
 			return nullptr;
 	}
 
-	dsVector3f secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
+	dsVector3xf secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
 	dsQuaternion4f secondOrientation = DeepSeaPhysics::convert(*fbConstraint.secondOrientation());
 
 	return reinterpret_cast<dsPhysicsConstraint*>(dsFixedPhysicsConstraint_create(engine, allocator,
@@ -152,7 +152,7 @@ dsPhysicsConstraint* loadPointConstraint(dsPhysicsEngine* engine, dsAllocator* a
 			return nullptr;
 	}
 
-	dsVector3f firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
+	dsVector3xf firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
 
 	auto fbSecondActor = fbConstraint.secondActor();
 	dsPhysicsActor* secondActor = nullptr;
@@ -164,7 +164,7 @@ dsPhysicsConstraint* loadPointConstraint(dsPhysicsEngine* engine, dsAllocator* a
 			return nullptr;
 	}
 
-	dsVector3f secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
+	dsVector3xf secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
 
 	return reinterpret_cast<dsPhysicsConstraint*>(dsPointPhysicsConstraint_create(engine, allocator,
 		firstActor, &firstPosition, secondActor, &secondPosition));
@@ -184,7 +184,7 @@ dsPhysicsConstraint* loadConeConstraint(dsPhysicsEngine* engine, dsAllocator* al
 			return nullptr;
 	}
 
-	dsVector3f firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
+	dsVector3xf firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
 	dsQuaternion4f firstOrientation = DeepSeaPhysics::convert(*fbConstraint.firstOrientation());
 
 	auto fbSecondActor = fbConstraint.secondActor();
@@ -197,7 +197,7 @@ dsPhysicsConstraint* loadConeConstraint(dsPhysicsEngine* engine, dsAllocator* al
 			return nullptr;
 	}
 
-	dsVector3f secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
+	dsVector3xf secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
 	dsQuaternion4f secondOrientation = DeepSeaPhysics::convert(*fbConstraint.secondOrientation());
 
 	return reinterpret_cast<dsPhysicsConstraint*>(dsConePhysicsConstraint_create(engine, allocator,
@@ -219,7 +219,7 @@ dsPhysicsConstraint* loadSwingTwistConstraint(dsPhysicsEngine* engine, dsAllocat
 			return nullptr;
 	}
 
-	dsVector3f firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
+	dsVector3xf firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
 	dsQuaternion4f firstOrientation = DeepSeaPhysics::convert(*fbConstraint.firstOrientation());
 
 	auto fbSecondActor = fbConstraint.secondActor();
@@ -232,7 +232,7 @@ dsPhysicsConstraint* loadSwingTwistConstraint(dsPhysicsEngine* engine, dsAllocat
 			return nullptr;
 	}
 
-	dsVector3f secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
+	dsVector3xf secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
 	dsQuaternion4f secondOrientation = DeepSeaPhysics::convert(*fbConstraint.secondOrientation());
 
 	dsQuaternion4f motorTargetOrientation;
@@ -262,7 +262,7 @@ dsPhysicsConstraint* loadRevoluteConstraint(dsPhysicsEngine* engine, dsAllocator
 			return nullptr;
 	}
 
-	dsVector3f firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
+	dsVector3xf firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
 	dsQuaternion4f firstOrientation = DeepSeaPhysics::convert(*fbConstraint.firstOrientation());
 
 	auto fbSecondActor = fbConstraint.secondActor();
@@ -275,7 +275,7 @@ dsPhysicsConstraint* loadRevoluteConstraint(dsPhysicsEngine* engine, dsAllocator
 			return nullptr;
 	}
 
-	dsVector3f secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
+	dsVector3xf secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
 	dsQuaternion4f secondOrientation = DeepSeaPhysics::convert(*fbConstraint.secondOrientation());
 
 	return reinterpret_cast<dsPhysicsConstraint*>(dsRevolutePhysicsConstraint_create(engine,
@@ -300,7 +300,7 @@ dsPhysicsConstraint* loadDistanceConstraint(dsPhysicsEngine* engine, dsAllocator
 			return nullptr;
 	}
 
-	dsVector3f firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
+	dsVector3xf firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
 
 	auto fbSecondActor = fbConstraint.secondActor();
 	dsPhysicsActor* secondActor = nullptr;
@@ -312,7 +312,7 @@ dsPhysicsConstraint* loadDistanceConstraint(dsPhysicsEngine* engine, dsAllocator
 			return nullptr;
 	}
 
-	dsVector3f secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
+	dsVector3xf secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
 
 	return reinterpret_cast<dsPhysicsConstraint*>(dsDistancePhysicsConstraint_create(engine,
 		allocator, firstActor, &firstPosition, secondActor, &secondPosition,
@@ -334,7 +334,7 @@ dsPhysicsConstraint* loadSliderConstraint(dsPhysicsEngine* engine, dsAllocator* 
 			return nullptr;
 	}
 
-	dsVector3f firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
+	dsVector3xf firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
 	dsQuaternion4f firstOrientation = DeepSeaPhysics::convert(*fbConstraint.firstOrientation());
 
 	auto fbSecondActor = fbConstraint.secondActor();
@@ -347,7 +347,7 @@ dsPhysicsConstraint* loadSliderConstraint(dsPhysicsEngine* engine, dsAllocator* 
 			return nullptr;
 	}
 
-	dsVector3f secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
+	dsVector3xf secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
 	dsQuaternion4f secondOrientation = DeepSeaPhysics::convert(*fbConstraint.secondOrientation());
 
 	return reinterpret_cast<dsPhysicsConstraint*>(dsSliderPhysicsConstraint_create(engine,
@@ -372,7 +372,7 @@ dsPhysicsConstraint* loadGenericConstraint(dsPhysicsEngine* engine, dsAllocator*
 			return nullptr;
 	}
 
-	dsVector3f firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
+	dsVector3xf firstPosition = DeepSeaPhysics::convert(*fbConstraint.firstPosition());
 	dsQuaternion4f firstOrientation = DeepSeaPhysics::convert(*fbConstraint.firstOrientation());
 
 	auto fbSecondActor = fbConstraint.secondActor();
@@ -385,7 +385,7 @@ dsPhysicsConstraint* loadGenericConstraint(dsPhysicsEngine* engine, dsAllocator*
 			return nullptr;
 	}
 
-	dsVector3f secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
+	dsVector3xf secondPosition = DeepSeaPhysics::convert(*fbConstraint.secondPosition());
 	dsQuaternion4f secondOrientation = DeepSeaPhysics::convert(*fbConstraint.secondOrientation());
 
 	dsGenericPhysicsConstraintLimit limits[DS_PHYSICS_CONSTRAINT_DOF_COUNT];
@@ -491,8 +491,8 @@ dsPhysicsConstraint* loadGearConstraint(dsPhysicsEngine* engine, dsAllocator* al
 			return nullptr;
 	}
 
-	dsVector3f firstAxis = DeepSeaPhysics::convert(*fbConstraint.firstAxis());
-	dsVector3f_normalize(&firstAxis, &firstAxis);
+	dsVector3xf firstAxis = DeepSeaPhysics::convert(*fbConstraint.firstAxis());
+	dsVector3xf_normalize(&firstAxis, &firstAxis);
 
 	auto fbFirstConstraint = fbConstraint.firstConstraint();
 	dsPhysicsConstraint* firstConstraint = nullptr;
@@ -532,8 +532,8 @@ dsPhysicsConstraint* loadGearConstraint(dsPhysicsEngine* engine, dsAllocator* al
 			return nullptr;
 	}
 
-	dsVector3f secondAxis = DeepSeaPhysics::convert(*fbConstraint.secondAxis());
-	dsVector3f_normalize(&secondAxis, &secondAxis);
+	dsVector3xf secondAxis = DeepSeaPhysics::convert(*fbConstraint.secondAxis());
+	dsVector3xf_normalize(&secondAxis, &secondAxis);
 
 	auto fbSecondConstraint = fbConstraint.secondConstraint();
 	dsPhysicsConstraint* secondConstraint = nullptr;
@@ -584,8 +584,8 @@ dsPhysicsConstraint* loadRackAndPinionConstraint(dsPhysicsEngine* engine, dsAllo
 			return nullptr;
 	}
 
-	dsVector3f rackAxis = DeepSeaPhysics::convert(*fbConstraint.rackAxis());
-	dsVector3f_normalize(&rackAxis, &rackAxis);
+	dsVector3xf rackAxis = DeepSeaPhysics::convert(*fbConstraint.rackAxis());
+	dsVector3xf_normalize(&rackAxis, &rackAxis);
 
 	auto fbRackConstraint = fbConstraint.rackConstraint();
 	dsPhysicsConstraint* rackConstraint = nullptr;
@@ -625,8 +625,8 @@ dsPhysicsConstraint* loadRackAndPinionConstraint(dsPhysicsEngine* engine, dsAllo
 			return nullptr;
 	}
 
-	dsVector3f pinionAxis = DeepSeaPhysics::convert(*fbConstraint.pinionAxis());
-	dsVector3f_normalize(&pinionAxis, &pinionAxis);
+	dsVector3xf pinionAxis = DeepSeaPhysics::convert(*fbConstraint.pinionAxis());
+	dsVector3xf_normalize(&pinionAxis, &pinionAxis);
 
 	auto fbPinionConstraint = fbConstraint.pinionConstraint();
 	dsPhysicsConstraint* pinionConstraint = nullptr;

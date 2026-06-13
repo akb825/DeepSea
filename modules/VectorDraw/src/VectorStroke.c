@@ -28,7 +28,7 @@
 
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix22.h>
-#include <DeepSea/Math/Matrix33.h>
+#include <DeepSea/Math/Matrix33x.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Trig.h>
 #include <DeepSea/Math/Vector2.h>
@@ -119,7 +119,7 @@ static bool addCap(dsVectorScratchData* scratchData, const dsVector2f* position,
 	{
 		case dsLineCap_Round:
 		{
-			dsMatrix33f matrix =
+			dsMatrix33xf matrix =
 			{{
 				{offset.x, offset.y, 0.0f},
 				{-offset.y, offset.x, 0.0f},
@@ -136,11 +136,12 @@ static bool addCap(dsVectorScratchData* scratchData, const dsVector2f* position,
 			for (unsigned int i = 1; i < pointCount; ++i)
 			{
 				float theta = (float)i*incr;
-				dsVector3f basePos;
+				dsVector3xf basePos;
 				dsSinCosf(&basePos.y, &basePos.x, theta);
 				basePos.z = 1.0f;
-				dsVector3f pos;
-				dsMatrix33_transform(pos, matrix, basePos);
+				basePos.w = 0.0f;
+				dsVector3xf pos;
+				dsMatrix33xf_transform(&pos, &matrix, &basePos);
 
 				curVertex = dsVectorScratchData_addShapeVertex(scratchData);
 				if (!curVertex)
@@ -688,30 +689,36 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 			break;
 		case dsLineJoin_Round:
 		{
-			dsMatrix33f matrix;
+			dsMatrix33xf matrix;
 			if (right)
 			{
 				matrix.columns[0].x = toOffset.x;
 				matrix.columns[0].y = toOffset.y;
 				matrix.columns[0].z = 0.0f;
+				matrix.columns[0].w = 0.0f;
 				matrix.columns[1].x = -toOffset.y;
 				matrix.columns[1].y = toOffset.x;
 				matrix.columns[1].z = 0.0f;
+				matrix.columns[1].w = 0.0f;
 				matrix.columns[2].x = position->x;
 				matrix.columns[2].y = position->y;
 				matrix.columns[2].z = 1.0f;
+				matrix.columns[2].w = 0.0f;
 			}
 			else
 			{
 				matrix.columns[0].x = fromOffset.x;
 				matrix.columns[0].y = fromOffset.y;
 				matrix.columns[0].z = 0.0f;
+				matrix.columns[0].w = 0.0f;
 				matrix.columns[1].x = -fromOffset.y;
 				matrix.columns[1].y = fromOffset.x;
 				matrix.columns[1].z = 0.0f;
+				matrix.columns[1].w = 0.0f;
 				matrix.columns[2].x = position->x;
 				matrix.columns[2].y = position->y;
 				matrix.columns[2].z = 1.0f;
+				matrix.columns[2].w = 0.0f;
 			}
 
 			float thetaOffset = 0.0f;
@@ -727,11 +734,12 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 			for (unsigned int i = 1; i < pointCount; ++i)
 			{
 				float theta = thetaOffset + (float)i*incr;
-				dsVector3f basePos;
+				dsVector3xf basePos;
 				dsSinCosf(&basePos.y, &basePos.x, theta);
 				basePos.z = 1.0f;
-				dsVector3f pos;
-				dsMatrix33_transform(pos, matrix, basePos);
+				basePos.w = 0.0f;
+				dsVector3xf pos;
+				dsMatrix33xf_transform(&pos, &matrix, &basePos);
 
 				curVertex = dsVectorScratchData_addShapeVertex(scratchData);
 				if (!curVertex)

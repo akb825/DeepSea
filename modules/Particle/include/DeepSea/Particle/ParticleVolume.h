@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,8 +39,8 @@ extern "C"
  * @param[inout] random The random number generator.
  * @param volume The volume to create the position from.
  */
-DS_PARTICLE_EXPORT void dsParticleVolume_randomPosition(dsVector3f* result, dsRandom* random,
-	const dsParticleVolume* volume);
+DS_PARTICLE_EXPORT void dsParticleVolume_randomPosition(
+	dsVector3xf* result, dsRandom* random, const dsParticleVolume* volume);
 
 #ifdef __cplusplus
 }

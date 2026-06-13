@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Geometry/AlignedBox3.h>
-#include <DeepSea/Geometry/OrientedBox3.h>
+#include <DeepSea/Geometry/AlignedBox3x.h>
+#include <DeepSea/Geometry/OrientedBox3x.h>
 
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Quaternion.h>
-#include <DeepSea/Math/Vector3.h>
+#include <DeepSea/Math/Vector3x.h>
 #include <DeepSea/Math/Vector4.h>
 
 #include <DeepSea/Physics/PhysicsMassProperties.h>
@@ -68,7 +68,7 @@ TEST(PhysicsMassPropertiesTest, InitializeBox)
 	float depth = 4.0f;
 	float density = 2.5f;
 
-	dsVector3f halfExtents = {{width/2, height/2, depth/2}};
+	dsVector3xf halfExtents = {{width/2, height/2, depth/2}};
 	dsPhysicsMassProperties massProperties;
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeBox(&massProperties, &halfExtents, density));
 
@@ -86,7 +86,7 @@ TEST(PhysicsMassPropertiesTest, InitializeBox)
 	EXPECT_EQ(0, massProperties.inertiaRotate.k);
 	EXPECT_EQ(1, massProperties.inertiaRotate.r);
 
-	dsMatrix33f inertia;
+	dsMatrix33xf inertia;
 	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
 
 	EXPECT_FLOAT_EQ(1.0f/12.0f*mass*(dsPow2(height) + dsPow2(depth)), inertia.values[0][0]);
@@ -124,7 +124,7 @@ TEST(PhysicsMassPropertiesTest, InitializeSphere)
 	EXPECT_EQ(0, massProperties.inertiaRotate.k);
 	EXPECT_EQ(1, massProperties.inertiaRotate.r);
 
-	dsMatrix33f inertia;
+	dsMatrix33xf inertia;
 	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
 
 	EXPECT_FLOAT_EQ(2.0f/5.0f*mass*dsPow2(radius), inertia.values[0][0]);
@@ -167,7 +167,7 @@ TEST(PhysicsMassPropertiesTest, InitializeCylinder)
 	float heightInertia = 1/2.0f*mass*dsPow2(radius);
 	float radiusInertia = 1/12.0f*mass*(3*dsPow2(radius) + dsPow2(height));
 
-	dsMatrix33f inertia;
+	dsMatrix33xf inertia;
 	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
 
 	EXPECT_FLOAT_EQ(heightInertia, inertia.values[0][0]);
@@ -256,7 +256,7 @@ TEST(PhysicsMassPropertiesTest, InitializeCapsule)
 	float radiusInertia = cylinderMass*(dsPow2(height)/12.0f + dsPow2(radius)/4.0f) +
 		2*hemisphereMass*(2/5.0f*dsPow2(radius) + dsPow2(height)/4.0f + 3/8.0f*height*radius);
 
-	dsMatrix33f inertia;
+	dsMatrix33xf inertia;
 	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
 
 	EXPECT_FLOAT_EQ(heightInertia, inertia.values[0][0]);
@@ -338,7 +338,7 @@ TEST(PhysicsMassPropertiesTest, InitializeCone)
 	float heightInertia = 3/10.0f*mass*dsPow2(radius);
 	float radiusInertia = mass*(3/20.0f*dsPow2(radius) + 3/80.0f*dsPow2(height));
 
-	dsMatrix33f inertia;
+	dsMatrix33xf inertia;
 	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
 
 	EXPECT_FLOAT_EQ(heightInertia, inertia.values[0][0]);
@@ -406,25 +406,25 @@ TEST(PhysicsMassPropertiesTest, InitializeCone)
 
 TEST(PhysicsMassPropertiesTest, InitializeMesh)
 {
-	dsAlignedBox3f box =
+	dsAlignedBox3xf box =
 	{
 		{{-1.5f, 3.5f, 6.0f}},
 		{{3.0f, 9.0f, 12.5f}}
 	};
 	float density = 2.5f;
 
-	dsVector3f corners[DS_BOX3_CORNER_COUNT];
-	dsAlignedBox3_corners(corners, box);
+	dsVector3xf corners[DS_BOX3_CORNER_COUNT];
+	dsAlignedBox3xf_corners(corners, &box);
 
 	dsPhysicsMassProperties massProperties;
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeMesh(&massProperties, corners,
-		DS_BOX3_CORNER_COUNT, sizeof(dsVector3f), boxIndices, boxIndexCount,
+		DS_BOX3_CORNER_COUNT, sizeof(dsVector3xf), boxIndices, boxIndexCount,
 		sizeof(*boxIndices), density));
 
-	dsVector3f halfExtents, center;
-	dsAlignedBox3_extents(halfExtents, box);
-	dsVector3_scale(halfExtents, halfExtents, 0.5f);
-	dsAlignedBox3_center(center, box);
+	dsVector3xf halfExtents, center;
+	dsAlignedBox3xf_extents(&halfExtents, &box);
+	dsVector3xf_scale(&halfExtents, &halfExtents, 0.5f);
+	dsAlignedBox3xf_center(&center, &box);
 	dsPhysicsMassProperties boxMassProperties;
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeBox(&boxMassProperties, &halfExtents, density));
 
@@ -437,7 +437,7 @@ TEST(PhysicsMassPropertiesTest, InitializeMesh)
 	EXPECT_EQ(0, massProperties.inertiaRotate.k);
 	EXPECT_EQ(1, massProperties.inertiaRotate.r);
 
-	dsMatrix33f inertia;
+	dsMatrix33xf inertia;
 	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
 
 	for (unsigned int i = 0; i < 3; ++i)
@@ -467,7 +467,7 @@ TEST(PhysicsMassPropertiesTest, InitializeCapsuleMesh)
 	constexpr uint32_t cylinderTriangleCount = circleSteps*2;
 	constexpr uint32_t triangleCount = hemisphereTriangleCount*2 + cylinderTriangleCount;
 
-	dsVector3f vertices[vertexCount];
+	dsVector3xf vertices[vertexCount];
 	uint32_t indices[triangleCount*3];
 	uint32_t curBotVertex = 0, curTopVertex = hemisphereVertexCount, curBotIndex = 0,
 		curTopIndex = hemisphereTriangleCount*3, curCylinderIndex = hemisphereTriangleCount*6;
@@ -565,7 +565,7 @@ TEST(PhysicsMassPropertiesTest, InitializeCapsuleMesh)
 
 	dsPhysicsMassProperties meshMassProperties;
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeMesh(&meshMassProperties, vertices, vertexCount,
-		sizeof(dsVector3f), indices, triangleCount*3, sizeof(*indices), density));
+		sizeof(dsVector3xf), indices, triangleCount*3, sizeof(*indices), density));
 
 	dsPhysicsMassProperties capsuleMassProperties;
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeCapsule(&capsuleMassProperties, height/2, radius,
@@ -606,8 +606,8 @@ TEST(PhysicsMassPropertiesTest, InitializeCombined)
 	dsQuaternion4f_fromEulerAngles(&orientation, dsDegreesToRadiansf(-5.0f),
 		dsDegreesToRadiansf(45.0f), dsDegreesToRadiansf(-65.0f));
 
-	dsOrientedBox3f box;
-	dsQuaternion4f_toMatrix33(&box.orientation, &orientation);
+	dsOrientedBox3xf box;
+	dsQuaternion4f_toMatrix33x(&box.orientation, &orientation);
 	box.center.x = 5.0f;
 	box.center.y = -10.0f;
 	box.center.z = 15.0f;
@@ -615,25 +615,25 @@ TEST(PhysicsMassPropertiesTest, InitializeCombined)
 	box.halfExtents.y = height/2;
 	box.halfExtents.z = depth/2;
 
-	dsVector3f corners[DS_BOX3_CORNER_COUNT];
-	dsOrientedBox3f_corners(corners, &box);
+	dsVector3xf corners[DS_BOX3_CORNER_COUNT];
+	dsOrientedBox3xf_corners(corners, &box);
 
 	dsPhysicsMassProperties meshMassProperties;
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeMesh(&meshMassProperties, corners,
-		DS_BOX3_CORNER_COUNT, sizeof(dsVector3f), boxIndices, boxIndexCount,
+		DS_BOX3_CORNER_COUNT, sizeof(dsVector3xf), boxIndices, boxIndexCount,
 		sizeof(*boxIndices), density));
 	EXPECT_FLOAT_EQ(box.center.x, meshMassProperties.inertiaTranslate.x);
 	EXPECT_FLOAT_EQ(box.center.y, meshMassProperties.inertiaTranslate.y);
 	EXPECT_FLOAT_EQ(box.center.z, meshMassProperties.inertiaTranslate.z);
 
 	// Combine two half boxes into one.
-	dsVector3f halfBoxHalfExtents = {{width/4, height/2, depth/2}};
+	dsVector3xf halfBoxHalfExtents = {{width/4, height/2, depth/2}};
 	dsPhysicsMassProperties halfBoxMassProperties;
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeBox(&halfBoxMassProperties, &halfBoxHalfExtents,
 		density));
 
 	// Right box.
-	dsVector3f halfBoxOffset = {{width/4, 0, 0}};
+	dsVector3xf halfBoxOffset = {{width/4, 0, 0}};
 	dsPhysicsMassProperties rightBoxMassProperties = halfBoxMassProperties;
 	ASSERT_TRUE(dsPhysicsMassProperties_transform(
 		&rightBoxMassProperties, &halfBoxOffset, NULL, NULL));
@@ -684,7 +684,7 @@ TEST(PhysicsMassPropertiesTest, SetMass)
 	float depth = 4.0f;
 	float density = 2.5f;
 
-	dsVector3f halfExtents = {{width/2, height/2, depth/2}};
+	dsVector3xf halfExtents = {{width/2, height/2, depth/2}};
 	dsPhysicsMassProperties massProperties;
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeBox(&massProperties, &halfExtents, density));
 	ASSERT_TRUE(dsPhysicsMassProperties_setMass(&massProperties, massProperties.mass*3.0f));
@@ -711,7 +711,7 @@ TEST(PhysicsMassPropertiesTest, Transform)
 	float depth = 4.0f;
 	float density = 2.5f;
 
-	dsVector3f halfExtents = {{width/2, height/2, depth/2}};
+	dsVector3xf halfExtents = {{width/2, height/2, depth/2}};
 	dsPhysicsMassProperties boxMassProperties;
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeBox(&boxMassProperties, &halfExtents, density));
 
@@ -721,14 +721,14 @@ TEST(PhysicsMassPropertiesTest, Transform)
 	dsQuaternion4f_fromEulerAngles(&rotateB, dsDegreesToRadiansf(-5.0f),
 		dsDegreesToRadiansf(45.0f), dsDegreesToRadiansf(-65.0f));
 
-	dsVector3f translateA = {{5.0f, -10.0f, 15.0f}};
-	dsVector3f translateB = {{-20.0f, 25.0f, -30.0f}};
+	dsVector3xf translateA = {{5.0f, -10.0f, 15.0f}};
+	dsVector3xf translateB = {{-20.0f, 25.0f, -30.0f}};
 
 	halfExtents.x = halfExtents.y = halfExtents.z = 0.5f;
 	dsPhysicsMassProperties massProperties;
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeBox(&massProperties, &halfExtents, density));
 
-	dsVector3f scale = {{width/2, height/2, depth/2}};
+	dsVector3xf scale = {{width/2, height/2, depth/2}};
 	ASSERT_TRUE(dsPhysicsMassProperties_transform(&massProperties, &translateA, &rotateA, &scale));
 
 	// Can't apply a non-uniform scale once rotated.
@@ -750,14 +750,18 @@ TEST(PhysicsMassPropertiesTest, Transform)
 
 	dsMatrix44f transformA;
 	dsQuaternion4f_toMatrix44(&transformA, &rotateA);
-	*reinterpret_cast<dsVector3f*>(transformA.columns + 3) = translateA;
+	transformA.columns[3].x = translateA.x;
+	transformA.columns[3].y = translateA.y;
+	transformA.columns[3].z = translateA.z;
 
 	dsMatrix44f transformB;
 	dsQuaternion4f_toMatrix44(&transformB, &rotateB);
 	dsVector4f_scale(&transformB.columns[0], &transformB.columns[0], 2.0f);
 	dsVector4f_scale(&transformB.columns[1], &transformB.columns[1], 2.0f);
 	dsVector4f_scale(&transformB.columns[2], &transformB.columns[2], 2.0f);
-	*reinterpret_cast<dsVector3f*>(transformB.columns + 3) = translateB;
+	transformB.columns[3].x = translateB.x;
+	transformB.columns[3].y = translateB.y;
+	transformB.columns[3].z = translateB.z;
 
 	dsMatrix44f finalTransform;
 	dsMatrix44f_mul(&finalTransform, &transformB, &transformA);
@@ -796,8 +800,8 @@ TEST(PhysicsMassPropertiesTest, ShiftTranslate)
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeCone(&massProperties, height, radius,
 		dsPhysicsAxis_X, density));
 
-	dsVector3f offset;
-	dsVector3_neg(offset, massProperties.inertiaTranslate);
+	dsVector3xf offset;
+	dsVector3xf_neg(&offset, &massProperties.inertiaTranslate);
 	ASSERT_TRUE(dsPhysicsMassProperties_shift(&massProperties, &offset, NULL));
 
 	float volume = M_PIf*dsPow2(radius)*height/3.0f;
@@ -814,7 +818,7 @@ TEST(PhysicsMassPropertiesTest, ShiftTranslate)
 	float heightInertia = 3/10.0f*mass*dsPow2(radius);
 	float radiusInertia = mass*(3/20.0f*dsPow2(radius) + 3/5.0f*dsPow2(height));
 
-	dsMatrix33f inertia;
+	dsMatrix33xf inertia;
 	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
 
 	EXPECT_FLOAT_EQ(heightInertia, inertia.values[0][0]);
@@ -830,12 +834,12 @@ TEST(PhysicsMassPropertiesTest, ShiftTranslate)
 	EXPECT_FLOAT_EQ(radiusInertia, inertia.values[2][2]);
 
 	// Move back to undo the shift.
-	dsVector3_neg(offset, massProperties.inertiaTranslate);
+	dsVector3xf_neg(&offset, &massProperties.inertiaTranslate);
 	ASSERT_TRUE(dsPhysicsMassProperties_shift(&massProperties, &offset, NULL));
 
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeCone(&massProperties, height, radius,
 		dsPhysicsAxis_Y, density));
-	dsVector3_neg(offset, massProperties.inertiaTranslate);
+	dsVector3xf_neg(&offset, &massProperties.inertiaTranslate);
 	ASSERT_TRUE(dsPhysicsMassProperties_shift(&massProperties, &offset, NULL));
 
 	EXPECT_FLOAT_EQ(mass, massProperties.mass);
@@ -862,7 +866,7 @@ TEST(PhysicsMassPropertiesTest, ShiftTranslate)
 
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeCone(&massProperties, height, radius,
 		dsPhysicsAxis_Z, density));
-	dsVector3_neg(offset, massProperties.inertiaTranslate);
+	dsVector3xf_neg(&offset, &massProperties.inertiaTranslate);
 	ASSERT_TRUE(dsPhysicsMassProperties_shift(&massProperties, &offset, NULL));
 
 	EXPECT_FLOAT_EQ(mass, massProperties.mass);
@@ -899,8 +903,8 @@ TEST(PhysicsMassPropertiesTest, ShiftRotate)
 	dsQuaternion4f_fromEulerAngles(&orientation, dsDegreesToRadiansf(-5.0f),
 		dsDegreesToRadiansf(45.0f), dsDegreesToRadiansf(-65.0f));
 
-	dsOrientedBox3f box;
-	dsQuaternion4f_toMatrix33(&box.orientation, &orientation);
+	dsOrientedBox3xf box;
+	dsQuaternion4f_toMatrix33x(&box.orientation, &orientation);
 	box.center.x = 5.0f;
 	box.center.y = -10.0f;
 	box.center.z = 15.0f;
@@ -908,12 +912,12 @@ TEST(PhysicsMassPropertiesTest, ShiftRotate)
 	box.halfExtents.y = height/2;
 	box.halfExtents.z = depth/2;
 
-	dsVector3f corners[DS_BOX3_CORNER_COUNT];
-	dsOrientedBox3f_corners(corners, &box);
+	dsVector3xf corners[DS_BOX3_CORNER_COUNT];
+	dsOrientedBox3xf_corners(corners, &box);
 
 	dsPhysicsMassProperties meshMassProperties;
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeMesh(&meshMassProperties, corners,
-		DS_BOX3_CORNER_COUNT, sizeof(dsVector3f), boxIndices, boxIndexCount,
+		DS_BOX3_CORNER_COUNT, sizeof(dsVector3xf), boxIndices, boxIndexCount,
 		sizeof(*boxIndices), density));
 	EXPECT_FLOAT_EQ(box.center.x, meshMassProperties.inertiaTranslate.x);
 	EXPECT_FLOAT_EQ(box.center.y, meshMassProperties.inertiaTranslate.y);
@@ -925,8 +929,8 @@ TEST(PhysicsMassPropertiesTest, ShiftRotate)
 
 	dsQuaternion4f orientationInv;
 	dsQuaternion4f_conjugate(&orientationInv, &orientation);
-	dsVector3f orientationSpaceCenter;
-	dsQuaternion4f_rotate(&orientationSpaceCenter, &orientation, &box.center);
+	dsVector3xf orientationSpaceCenter;
+	dsQuaternion4f_rotate3x(&orientationSpaceCenter, &orientation, &box.center);
 
 	ASSERT_TRUE(dsPhysicsMassProperties_transform(
 		&massProperties, &orientationSpaceCenter, NULL, NULL));
@@ -989,15 +993,15 @@ TEST(PhysicsMassPropertiesTest, DecomposeInertia)
 	dsQuaternion4f orientation;
 	dsQuaternion4f_fromEulerAngles(&orientation, dsDegreesToRadiansf(-5.0f),
 		dsDegreesToRadiansf(45.0f), dsDegreesToRadiansf(-65.0f));
-	dsVector3f translate = {{5.0f, -10.0f, 15.0f}};
+	dsVector3xf translate = {{5.0f, -10.0f, 15.0f}};
 
-	dsVector3f halfExtents = {{width/2, height/2, depth/2}};
+	dsVector3xf halfExtents = {{width/2, height/2, depth/2}};
 	dsPhysicsMassProperties massProperties;
 	ASSERT_TRUE(dsPhysicsMassProperties_initializeBox(&massProperties, &halfExtents, density));
 	ASSERT_TRUE(dsPhysicsMassProperties_shift(&massProperties, &translate, &orientation));
 
-	dsMatrix33f rotate;
-	dsVector3f diagonal;
+	dsMatrix33xf rotate;
+	dsVector3xf diagonal;
 	EXPECT_TRUE(dsPhysicsMassProperties_getDecomposedInertia(&rotate, &diagonal, &massProperties));
 	for (unsigned int i = 0; i < 3; ++i)
 	{
@@ -1008,15 +1012,15 @@ TEST(PhysicsMassPropertiesTest, DecomposeInertia)
 		}
 	}
 
-	dsMatrix33f rotateTrans, diagonalMat;
-	dsMatrix33_transpose(rotateTrans, rotate);
-	dsMatrix33f_makeScale3D(&diagonalMat, diagonal.x, diagonal.y, diagonal.z);
+	dsMatrix33xf rotateTrans, diagonalMat;
+	dsMatrix33xf_transpose(&rotateTrans, &rotate);
+	dsMatrix33xf_makeScale3D(&diagonalMat, diagonal.x, diagonal.y, diagonal.z);
 
-	dsMatrix33f temp, restoredInertia;
-	dsMatrix33_mul(temp, rotate, diagonalMat);
-	dsMatrix33_mul(restoredInertia, temp, rotateTrans);
+	dsMatrix33xf temp, restoredInertia;
+	dsMatrix33xf_mul(&temp, &rotate, &diagonalMat);
+	dsMatrix33xf_mul(&restoredInertia, &temp, &rotateTrans);
 
-	dsMatrix33f inertia;
+	dsMatrix33xf inertia;
 	ASSERT_TRUE(dsPhysicsMassProperties_getInertia(&inertia, &massProperties));
 
 	const float decomposeEpsilon = 4e-3f;

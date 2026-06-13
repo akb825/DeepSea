@@ -18,7 +18,7 @@
 
 #include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Quaternion.h>
-#include <DeepSea/Math/Vector3.h>
+#include <DeepSea/Math/Vector3x.h>
 #include <DeepSea/Math/Vector4.h>
 
 void dsMatrix44f_lookAt(dsMatrix44f* result, const dsVector3f* eyePos, const dsVector3f* lookAtPos,
@@ -591,8 +591,8 @@ void dsMatrix44d_makePerspective(dsMatrix44d* result, double fovy, double aspect
 	result->values[3][3] = 0;
 }
 
-void dsMatrix44f_decomposeTransformScalar(dsVector3f* outPosition, dsQuaternion4f* outOrientation,
-	dsVector3f* outScale, const dsMatrix44f* matrix)
+void dsMatrix44f_decomposeTransformScalar(dsVector3xf* outPosition, dsQuaternion4f* outOrientation,
+	dsVector3xf* outScale, const dsMatrix44f* matrix)
 {
 	DS_ASSERT(outPosition);
 	DS_ASSERT(outOrientation);
@@ -602,12 +602,14 @@ void dsMatrix44f_decomposeTransformScalar(dsVector3f* outPosition, dsQuaternion4
 	outPosition->x = matrix->columns[3].x;
 	outPosition->y = matrix->columns[3].y;
 	outPosition->z = matrix->columns[3].z;
+	outPosition->w = 0.0f;
 
 	dsVector3f one = {{1.0f, 1.0f, 1.0f}};
 
-	outScale->x = dsVector3f_len((const dsVector3f*)matrix->columns);
-	outScale->y = dsVector3f_len((const dsVector3f*)(matrix->columns + 1));
-	outScale->z = dsVector3f_len((const dsVector3f*)(matrix->columns + 2));
+	outScale->x = dsVector3xf_len(matrix->columns);
+	outScale->y = dsVector3xf_len(matrix->columns + 1);
+	outScale->z = dsVector3xf_len(matrix->columns + 2);
+	outScale->w = 0.0f;
 
 	dsVector3f invScale;
 	dsVector3_div(invScale, one, *outScale);
@@ -620,8 +622,8 @@ void dsMatrix44f_decomposeTransformScalar(dsVector3f* outPosition, dsQuaternion4
 	dsQuaternion4f_fromMatrix33(outOrientation, &rotateMat);
 }
 
-void dsMatrix44d_decomposeTransformScalar(dsVector3d* outPosition, dsQuaternion4d* outOrientation,
-	dsVector3d* outScale, const dsMatrix44d* matrix)
+void dsMatrix44d_decomposeTransformScalar(dsVector3xd* outPosition, dsQuaternion4d* outOrientation,
+	dsVector3xd* outScale, const dsMatrix44d* matrix)
 {
 	DS_ASSERT(outPosition);
 	DS_ASSERT(outOrientation);
@@ -631,12 +633,14 @@ void dsMatrix44d_decomposeTransformScalar(dsVector3d* outPosition, dsQuaternion4
 	outPosition->x = matrix->columns[3].x;
 	outPosition->y = matrix->columns[3].y;
 	outPosition->z = matrix->columns[3].z;
+	outPosition->w = 0.0;
 
 	dsVector3d one = {{1.0, 1.0, 1.0}};
 
-	outScale->x = dsVector3d_len((const dsVector3d*)matrix->columns);
-	outScale->y = dsVector3d_len((const dsVector3d*)(matrix->columns + 1));
-	outScale->z = dsVector3d_len((const dsVector3d*)(matrix->columns + 2));
+	outScale->x = dsVector3xd_len(matrix->columns);
+	outScale->y = dsVector3xd_len(matrix->columns + 1);
+	outScale->z = dsVector3xd_len(matrix->columns + 2);
+	outScale->w = 0.0;
 
 	dsVector3d invScale;
 	dsVector3_div(invScale, one, *outScale);
@@ -649,8 +653,8 @@ void dsMatrix44d_decomposeTransformScalar(dsVector3d* outPosition, dsQuaternion4
 	dsQuaternion4d_fromMatrix33(outOrientation, &rotateMat);
 }
 
-void dsMatrix44f_composeTransformScalar(dsMatrix44f* result, const dsVector3f* position,
-	const dsQuaternion4f* orientation, const dsVector3f* scale)
+void dsMatrix44f_composeTransformScalar(dsMatrix44f* result, const dsVector3xf* position,
+	const dsQuaternion4f* orientation, const dsVector3xf* scale)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(position);
@@ -658,18 +662,16 @@ void dsMatrix44f_composeTransformScalar(dsMatrix44f* result, const dsVector3f* p
 	DS_ASSERT(scale);
 
 	dsQuaternion4f_toMatrix44(result, orientation);
-	dsVector3f_scale((dsVector3f*)result->columns, (dsVector3f*)result->columns, scale->x);
-	dsVector3f_scale(
-		(dsVector3f*)(result->columns + 1), (dsVector3f*)(result->columns + 1), scale->y);
-	dsVector3f_scale(
-		(dsVector3f*)(result->columns + 2), (dsVector3f*)(result->columns + 2), scale->z);
+	dsVector3xf_scale(result->columns, result->columns, scale->x);
+	dsVector3xf_scale(result->columns + 1, result->columns + 1, scale->y);
+	dsVector3xf_scale(result->columns + 2, result->columns + 2, scale->z);
 	result->columns[3].x = position->x;
 	result->columns[3].y = position->y;
 	result->columns[3].z = position->z;
 }
 
-void dsMatrix44d_composeTransformScalar(dsMatrix44d* result, const dsVector3d* position,
-	const dsQuaternion4d* orientation, const dsVector3d* scale)
+void dsMatrix44d_composeTransformScalar(dsMatrix44d* result, const dsVector3xd* position,
+	const dsQuaternion4d* orientation, const dsVector3xd* scale)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(position);
@@ -677,11 +679,9 @@ void dsMatrix44d_composeTransformScalar(dsMatrix44d* result, const dsVector3d* p
 	DS_ASSERT(scale);
 
 	dsQuaternion4d_toMatrix44(result, orientation);
-	dsVector3d_scale((dsVector3d*)result->columns, (dsVector3d*)result->columns, scale->x);
-	dsVector3d_scale(
-		(dsVector3d*)(result->columns + 1), (dsVector3d*)(result->columns + 1), scale->y);
-	dsVector3d_scale(
-		(dsVector3d*)(result->columns + 2), (dsVector3d*)(result->columns + 2), scale->z);
+	dsVector3xd_scale(result->columns, result->columns, scale->x);
+	dsVector3xd_scale(result->columns + 1, result->columns + 1, scale->y);
+	dsVector3xd_scale(result->columns + 2, result->columns + 2, scale->z);
 	result->columns[3].x = position->x;
 	result->columns[3].y = position->y;
 	result->columns[3].z = position->z;
@@ -694,7 +694,7 @@ void dsMatrix44f_rigidLerpScalar(
 	DS_ASSERT(a);
 	DS_ASSERT(b);
 
-	dsVector3f positionA, scaleA, positionB, scaleB, positionInterp, scaleInterp;
+	dsVector3xf positionA, scaleA, positionB, scaleB, positionInterp, scaleInterp;
 	dsQuaternion4f orientationA, orientationB, orientationInterp;
 
 	dsMatrix44f_decomposeTransformScalar(&positionA, &orientationA, &scaleA, a);
@@ -714,7 +714,7 @@ void dsMatrix44d_rigidLerpScalar(
 	DS_ASSERT(a);
 	DS_ASSERT(b);
 
-	dsVector3d positionA, scaleA, positionB, scaleB, positionInterp, scaleInterp;
+	dsVector3xd positionA, scaleA, positionB, scaleB, positionInterp, scaleInterp;
 	dsQuaternion4d orientationA, orientationB, orientationInterp;
 
 	dsMatrix44d_decomposeTransformScalar(&positionA, &orientationA, &scaleA, a);
@@ -756,8 +756,8 @@ void dsMatrix44d_fastInvert(dsMatrix44d* result, const dsMatrix44d* a);
 void dsMatrix44f_affineInvert(dsMatrix44f* result, const dsMatrix44f* a);
 void dsMatrix44d_affineInvert(dsMatrix44d* result, const dsMatrix44d* a);
 
-void dsMatrix44f_affineInvert33(dsMatrix33f* result, const dsMatrix44f* a);
-void dsMatrix44d_affineInvert33(dsMatrix33d* result, const dsMatrix44d* a);
+void dsMatrix44f_affineInvert33(dsMatrix33xf* result, const dsMatrix44f* a);
+void dsMatrix44d_affineInvert33(dsMatrix33xd* result, const dsMatrix44d* a);
 
 void dsMatrix44f_invert(dsMatrix44f* result, const dsMatrix44f* a);
 void dsMatrix44d_invert(dsMatrix44d* result, const dsMatrix44d* a);
@@ -777,15 +777,15 @@ void dsMatrix44d_makeTranslate(dsMatrix44d* result, double x, double y, double z
 void dsMatrix44f_makeScale(dsMatrix44f* result, float x, float y, float z);
 void dsMatrix44d_makeScale(dsMatrix44d* result, double x, double y, double z);
 
-void dsMatrix44f_decomposeTransform(dsVector3f* outPosition, dsQuaternion4f* outOrientation,
-	dsVector3f* outScale, const dsMatrix44f* matrix);
-void dsMatrix44d_decomposeTransform(dsVector3d* outPosition, dsQuaternion4d* outOrientation,
-	dsVector3d* outScale, const dsMatrix44d* matrix);
+void dsMatrix44f_decomposeTransform(dsVector3xf* outPosition, dsQuaternion4f* outOrientation,
+	dsVector3xf* outScale, const dsMatrix44f* matrix);
+void dsMatrix44d_decomposeTransform(dsVector3xd* outPosition, dsQuaternion4d* outOrientation,
+	dsVector3xd* outScale, const dsMatrix44d* matrix);
 
-void dsMatrix44f_composeTransform(dsMatrix44f* result, const dsVector3f* position,
-	const dsQuaternion4f* orientation, const dsVector3f* scale);
-void dsMatrix44d_composeTransform(dsMatrix44d* result, const dsVector3d* position,
-	const dsQuaternion4d* orientation, const dsVector3d* scale);
+void dsMatrix44f_composeTransform(dsMatrix44f* result, const dsVector3xf* position,
+	const dsQuaternion4f* orientation, const dsVector3xf* scale);
+void dsMatrix44d_composeTransform(dsMatrix44d* result, const dsVector3xd* position,
+	const dsQuaternion4d* orientation, const dsVector3xd* scale);
 
 void dsMatrix44f_rigidLerp(
 	dsMatrix44f* result, const dsMatrix44f* a, const dsMatrix44f* b, float t);

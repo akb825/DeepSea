@@ -31,7 +31,8 @@
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Quaternion.h>
 #include <DeepSea/Math/Round.h>
-#include <DeepSea/Math/Vector3.h>
+#include <DeepSea/Math/Vector3x.h>
+#include <DeepSea/Math/Vector4.h>
 
 #include <DeepSea/Physics/Constraints/PhysicsConstraint.h>
 #include <DeepSea/Physics/PhysicsScene.h>
@@ -74,13 +75,13 @@ typedef struct RigidBodyEntry
 	dsMatrix44f transform;
 	dsMatrix44f prevTransform;
 	dsQuaternion4f prevOrientation;
-	dsVector3f prevPosition;
-	dsVector3f prevScale;
+	dsVector3xf prevPosition;
+	dsVector3xf prevScale;
 	dsVector3d prevOrigin;
 
 	dsQuaternion4f targetOrientation;
-	dsVector3f targetPosition;
-	dsVector3f targetScale;
+	dsVector3xf targetPosition;
+	dsVector3xf targetScale;
 
 	dsPhysicsMotionType prevMotionType;
 	uint64_t nodeID;
@@ -176,7 +177,7 @@ static void dsScenePhysicsList_preStepUpdate(dsPhysicsScene* scene, float time, 
 
 			// Scale can't be updated kinematically, need to update immediately. Skip updating
 			// scale if not different.
-			if (!dsVector3_equal(entry->prevScale, entry->targetScale))
+			if (!dsVector3xf_equal(&entry->prevScale, &entry->targetScale))
 				dsRigidBody_setTransform(rigidBody, NULL, NULL, &entry->targetScale, false);
 		}
 	}
@@ -193,19 +194,19 @@ static void dsScenePhysicsList_preStepUpdate(dsPhysicsScene* scene, float time, 
 				continue;
 			}
 
-			dsVector3f position;
+			dsVector3xf position;
 			dsQuaternion4f orientation;
-			dsVector3_lerp(position, entry->prevPosition, entry->targetPosition, t);
+			dsVector3xf_lerp(&position, &entry->prevPosition, &entry->targetPosition, t);
 			dsQuaternion4f_slerp(
 				&orientation, &entry->prevOrientation, &entry->targetOrientation, t);
 			dsRigidBody_setKinematicTarget(rigidBody, time, &position, &orientation);
 
 			// Scale can't be updated kinematically, need to update immediately. Skip updating
 			// scale if not different.
-			if (!dsVector3_equal(entry->prevScale, entry->targetScale))
+			if (!dsVector3xf_equal(&entry->prevScale, &entry->targetScale))
 			{
-				dsVector3f scale;
-				dsVector3_lerp(scale, entry->prevScale, entry->targetScale, t);
+				dsVector3xf scale;
+				dsVector3xf_lerp(&scale, &entry->prevScale, &entry->targetScale, t);
 				dsRigidBody_setTransform(rigidBody, NULL, NULL, &scale, false);
 			}
 		}
@@ -670,18 +671,17 @@ static void dsScenePhysicsList_preTransformUpdate(
 
 			dsVector3d offset;
 			dsVector3_sub(offset, entry->prevOrigin, origin);
-			dsVector3f offset3f;
-			dsConvertDoubleToFloat(offset3f, offset);
+			dsVector3xf offset3f = {{(float)offset.x, (float)offset.y, (float)offset.z}};
 			entry->prevOrigin = origin;
 
-			dsVector3f newPosition;
-			dsVector3_add(newPosition, rigidBody->position, offset3f);
+			dsVector3xf newPosition;
+			dsVector3xf_add(&newPosition, &rigidBody->position, &offset3f);
 			dsRigidBody_setTransform(rigidBody, &newPosition, NULL, NULL, false);
 
 			// Add to the previous value to ensure that any differences are properly calculated.
-			dsVector3_add(entry->prevPosition, entry->prevPosition, offset3f);
-			dsVector3_add(
-				entry->prevTransform.columns[3], entry->prevTransform.columns[3], offset3f);
+			dsVector3xf_add(&entry->prevPosition, &entry->prevPosition, &offset3f);
+			dsVector3xf_add(
+				entry->prevTransform.columns + 3, entry->prevTransform.columns + 3, &offset3f);
 		}
 	}
 
@@ -737,7 +737,7 @@ static void dsScenePhysicsList_preTransformUpdate(
 					entry->targetOrientation = rigidBody->orientation;
 					entry->targetPosition = rigidBody->position;
 					// Only update scale if sufficiently different.
-					if (dsVector3f_epsilonEqual(
+					if (dsVector3xf_epsilonEqual(
 							&entry->targetScale, &rigidBody->scale, SCALE_EPSILON))
 					{
 						entry->targetScale = entry->prevScale;
@@ -775,10 +775,10 @@ static void dsScenePhysicsList_preTransformUpdate(
 		RigidBodyEntry* entry = physicsList->rigidBodyEntries + i;
 		dsRigidBody* rigidBody = entry->rigidBody;
 		if (rigidBody->motionType == dsPhysicsMotionType_Dynamic &&
-			(memcmp(&rigidBody->orientation, &entry->prevOrientation,
-				sizeof(dsQuaternion4f)) != 0 ||
-			memcmp(&rigidBody->position, &entry->prevPosition, sizeof(dsVector3f)) != 0 ||
-			memcmp(&rigidBody->scale, &entry->prevScale, sizeof(dsVector3f)) != 0))
+			(!dsVector4f_equal((const dsVector4f*)&rigidBody->orientation,
+				(const dsVector4f*)&entry->prevOrientation) ||
+			!dsVector3xf_equal(&rigidBody->position, &entry->prevPosition) ||
+			!dsVector3xf_equal(&rigidBody->scale, &entry->prevScale)))
 		{
 			DS_VERIFY(dsRigidBody_getTransformMatrix(&entry->transform, rigidBody));
 			entry->transform  = entry->prevTransform = entry->transform;
@@ -851,8 +851,8 @@ static void dsScenePhysicsList_destroy(dsSceneItemList* itemList)
 			RigidBodyGroupEntry* entry = physicsList->groupEntries + i;
 			DS_VERIFY(dsPhysicsScene_removeConstraints(physicsList->physicsScene,
 				entry->data->constraints, entry->data->constraintCount, &lock));
-			DS_VERIFY(dsPhysicsScene_removeRigidBodyGroup(physicsList->physicsScene,
-				entry->data->group, &lock));
+			DS_VERIFY(dsPhysicsScene_removeRigidBodyGroup(
+				physicsList->physicsScene, entry->data->group, &lock));
 			dsSceneRigidBodyGroupNodeData_destroy(entry->data);
 		}
 

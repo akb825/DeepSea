@@ -375,7 +375,7 @@ DS_SIMD_END()
 bool dsShadowProjection_computeMatrix(dsMatrix44f* outMatrix, const dsShadowProjection* shadowProj,
 	float paddingRatio, float minDepthRange)
 {
-	if (!outMatrix || !shadowProj || !dsAlignedBox3_isValid(shadowProj->pointBounds))
+	if (!outMatrix || !shadowProj || !dsAlignedBox3xf_isValid(&shadowProj->pointBounds))
 		return false;
 
 	dsAlignedBox3xf bounds = shadowProj->pointBounds;

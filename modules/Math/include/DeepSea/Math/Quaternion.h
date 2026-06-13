@@ -787,7 +787,6 @@ inline void dsQuaternion4f_rotate3x(
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(v);
-	DS_ASSERT(result != v);
 #if DS_SIMD_ALWAYS_FMA
 	dsQuaternion4f_rotateFMA(result, a, v);
 #elif DS_SIMD_ALWAYS_FLOAT4
@@ -809,7 +808,6 @@ inline void dsQuaternion4d_rotate3x(
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(v);
-	DS_ASSERT(result != v);
 #if DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	dsQuaternion4d_rotateFMA2(result, a, v);
@@ -956,7 +954,6 @@ inline void dsQuaternion4f_rotateSIMD(
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(v);
-	DS_ASSERT(result != v);
 
 	// v*a(conjugate), accounting for the fact that as a vector v.r is 0.
 	dsSIMD4f v0120, v1201, v2012;
@@ -1025,7 +1022,6 @@ inline void dsQuaternion4f_rotateFMA(
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(v);
-	DS_ASSERT(result != v);
 
 	// v*a(conjugate), accounting for the fact that as a vector v.r is 0.
 	dsSIMD4f v0120, v1201, v2012;
@@ -1159,7 +1155,6 @@ inline void dsQuaternion4d_rotateSIMD2(
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(v);
-	DS_ASSERT(result != v);
 
 	// v*a(conjugate), accounting for the fact that as a vector v.r is 0.
 	dsSIMD2d v20, v12;
@@ -1239,7 +1234,6 @@ inline void dsQuaternion4d_rotateFMA2(
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(v);
-	DS_ASSERT(result != v);
 
 	// v*a(conjugate), accounting for the fact that as a vector v.r is 0.
 	dsSIMD2d v20, v12;
@@ -1373,7 +1367,6 @@ inline void dsQuaternion4d_rotateSIMD4(dsVector3xd* DS_ALIGN_PARAM(32) result,
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(v);
-	DS_ASSERT(result != v);
 
 	dsSIMD4d simdA = dsSIMD4d_load(a);
 	dsSIMD4d simdV = dsSIMD4d_load(v);

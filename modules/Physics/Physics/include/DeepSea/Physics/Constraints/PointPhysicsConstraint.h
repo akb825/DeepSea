@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,8 +52,8 @@ DS_PHYSICS_EXPORT const dsPhysicsConstraintType* dsPointPhysicsConstraint_type(v
  * @return The point constraint or NULL if it couldn't be created.
  */
 DS_PHYSICS_EXPORT dsPointPhysicsConstraint* dsPointPhysicsConstraint_create(dsPhysicsEngine* engine,
-	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3f* firstPosition,
-	const dsPhysicsActor* secondActor, const dsVector3f* secondPosition);
+	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3xf* firstPosition,
+	const dsPhysicsActor* secondActor, const dsVector3xf* secondPosition);
 
 /**
  * @brief Initializes a point physics constraint
@@ -71,8 +71,8 @@ DS_PHYSICS_EXPORT dsPointPhysicsConstraint* dsPointPhysicsConstraint_create(dsPh
  */
 DS_PHYSICS_EXPORT void dsPointPhysicsConstraint_initialize(dsPointPhysicsConstraint* constraint,
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstPosition, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondPosition, void* impl);
+	const dsVector3xf* firstPosition, const dsPhysicsActor* secondActor,
+	const dsVector3xf* secondPosition, void* impl);
 
 #ifdef __cplusplus
 }

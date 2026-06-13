@@ -30,9 +30,10 @@ static void dsSceneTransformNode_setupTreeNode(dsSceneNode* node, dsSceneTreeNod
 	treeNode->baseTransform = &((dsSceneTransformNode*)node)->transform;
 }
 
-static void dsSceneTransformNode_shift(dsSceneNode* node, const dsVector3f* shift)
+static void dsSceneTransformNode_shift(dsSceneNode* node, const dsVector3xf* shift)
 {
 	dsSceneTransformNode* transformNode = (dsSceneTransformNode*)node;
+	// Ensure the w value remains untouched.
 	dsVector3_add(transformNode->transform.columns[3], transformNode->transform.columns[3], *shift);
 	for (uint32_t i = 0; i < node->treeNodeCount; ++i)
 		dsSceneTreeNode_markDirty(node->treeNodes[i]);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,8 +44,8 @@ extern "C"
  * @param shapeCount The number of shapes in the rigid body.
  * @return Whether the transform is valid for the rigid body flags.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_extractTransformFromMatrix(dsVector3f* outPosition,
-	dsQuaternion4f* outOrientation, dsVector3f* outScale, bool* outHasScale,
+DS_PHYSICS_EXPORT bool dsRigidBody_extractTransformFromMatrix(dsVector3xf* outPosition,
+	dsQuaternion4f* outOrientation, dsVector3xf* outScale, bool* outHasScale,
 	const dsMatrix44f* transform, dsRigidBodyFlags flags, const dsPhysicsShapeInstance* shapes,
 	uint32_t shapeCount);
 
@@ -60,8 +60,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_extractTransformFromMatrix(dsVector3f* outPos
  * @param initParams The initialization parameters to describe the rigid body.
  * @return The rigid body or NULL if it couldn't be created.
  */
-DS_PHYSICS_EXPORT dsRigidBody* dsRigidBody_create(dsPhysicsEngine* engine, dsAllocator* allocator,
-	const dsRigidBodyInit* initParams);
+DS_PHYSICS_EXPORT dsRigidBody* dsRigidBody_create(
+	dsPhysicsEngine* engine, dsAllocator* allocator, const dsRigidBodyInit* initParams);
 
 /**
  * @brief Loads a rigid body from a file.
@@ -215,7 +215,7 @@ DS_PHYSICS_EXPORT dsRigidBody* dsRigidBody_loadData(dsPhysicsEngine* engine,
  * @return The ID of the shape or DS_INVALID_PHYSICS_ID if the shape couldn't be added.
  */
 DS_PHYSICS_EXPORT uint32_t dsRigidBody_addShape(dsRigidBody* rigidBody, dsPhysicsShape* shape,
-	const dsVector3f* translate, const dsQuaternion4f* rotate, const dsVector3f* scale,
+	const dsVector3xf* translate, const dsQuaternion4f* rotate, const dsVector3xf* scale,
 	float density, const dsPhysicsShapePartMaterial* material);
 
 /**
@@ -235,7 +235,7 @@ DS_PHYSICS_EXPORT uint32_t dsRigidBody_addShape(dsRigidBody* rigidBody, dsPhysic
  * @return False if the transform couldn't be set on the shape.
  */
 DS_PHYSICS_EXPORT bool dsRigidBody_setShapeTransformID(dsRigidBody* rigidBody, uint32_t shapeID,
-	const dsVector3f* translate, const dsQuaternion4f* rotate, const dsVector3f* scale);
+	const dsVector3xf* translate, const dsQuaternion4f* rotate, const dsVector3xf* scale);
 
 /**
  * @brief Sets the transform for a shape on a rigid body.
@@ -254,8 +254,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setShapeTransformID(dsRigidBody* rigidBody, u
  * @return False if the transform couldn't be set on the shape.
  */
 DS_PHYSICS_EXPORT bool dsRigidBody_setShapeTransformIndex(dsRigidBody* rigidBody,
-	uint32_t shapeIndex, const dsVector3f* translate, const dsQuaternion4f* rotate,
-	const dsVector3f* scale);
+	uint32_t shapeIndex, const dsVector3xf* translate, const dsQuaternion4f* rotate,
+	const dsVector3xf* scale);
 
 /**
  * @brief Sets the material for a shape on a rigid body.
@@ -267,8 +267,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setShapeTransformIndex(dsRigidBody* rigidBody
  *     ignored if the shape has per-face materials.
  * @return False if the transform couldn't be set on the shape.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_setShapeMaterialID(dsRigidBody* rigidBody, uint32_t shapeID,
-	const dsPhysicsShapePartMaterial* material);
+DS_PHYSICS_EXPORT bool dsRigidBody_setShapeMaterialID(
+	dsRigidBody* rigidBody, uint32_t shapeID, const dsPhysicsShapePartMaterial* material);
 
 /**
  * @brief Sets the material for a shape on a rigid body.
@@ -356,8 +356,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_computeDefaultMassProperties(
  *     mass or NULL to leave the point of rotation at the center of mass.
  * @return False if the shapes couldn't be finalized.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_finalizeShapes(dsRigidBody* rigidBody, const float* mass,
-	const dsVector3f* rotationPointShift);
+DS_PHYSICS_EXPORT bool dsRigidBody_finalizeShapes(
+	dsRigidBody* rigidBody, const float* mass, const dsVector3xf* rotationPointShift);
 
 /**
  * @brief Finalizes the shapes on a rigid body, allowing it to be used for physics simulations.
@@ -374,8 +374,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_finalizeShapes(dsRigidBody* rigidBody, const 
  * @param massProperties The mass properties to use.
  * @return False if the shapes couldn't be finalized.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_finalizeShapesCustomMassProperties(dsRigidBody* rigidBody,
-	const dsPhysicsMassProperties* massProperties);
+DS_PHYSICS_EXPORT bool dsRigidBody_finalizeShapesCustomMassProperties(
+	dsRigidBody* rigidBody, const dsPhysicsMassProperties* massProperties);
 
 /**
  * @brief Gets the material for a shape in a rigid body by ID.
@@ -427,8 +427,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_removeFlags(dsRigidBody* rigidBody, dsRigidBo
  * @param motionType The new motion type.
  * @return False if the motion type couldn't be changed.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_setMotionType(dsRigidBody* rigidBody,
-	dsPhysicsMotionType motionType);
+DS_PHYSICS_EXPORT bool dsRigidBody_setMotionType(
+	dsRigidBody* rigidBody, dsPhysicsMotionType motionType);
 
 /**
  * @brief Sets the degree of freedom mask for a rigid body.
@@ -446,8 +446,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setDOFMask(dsRigidBody* rigidBody, dsPhysicsD
  * @param collisionGroup The new collision group.
  * @return False if the collision group couldn't be set.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_setCollisionGroup(dsRigidBody* rigidBody,
-	uint64_t collisionGroup);
+DS_PHYSICS_EXPORT bool dsRigidBody_setCollisionGroup(
+	dsRigidBody* rigidBody, uint64_t collisionGroup);
 
 /**
  * @brief Sets the can collision groups collide function for a rigid body.
@@ -456,8 +456,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setCollisionGroup(dsRigidBody* rigidBody,
  * @param canCollideFunc The new can collision groups collide function.
  * @return False if the can collision groups collide function couldn't be set.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_setCanCollisionGroupsCollideFunction(dsRigidBody* rigidBody,
-	dsCanCollisionGroupsCollideFunction canCollideFunc);
+DS_PHYSICS_EXPORT bool dsRigidBody_setCanCollisionGroupsCollideFunction(
+	dsRigidBody* rigidBody, dsCanCollisionGroupsCollideFunction canCollideFunc);
 
 /**
  * @brief Sets the transform for a rigid body.
@@ -469,8 +469,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setCanCollisionGroupsCollideFunction(dsRigidB
  * @param activate Whether to activate the rigid body if it's currently inactive.
  * @return False if the transform couldn't be set.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_setTransform(dsRigidBody* rigidBody, const dsVector3f* position,
-	const dsQuaternion4f* orientation, const dsVector3f* scale, bool activate);
+DS_PHYSICS_EXPORT bool dsRigidBody_setTransform(dsRigidBody* rigidBody, const dsVector3xf* position,
+	const dsQuaternion4f* orientation, const dsVector3xf* scale, bool activate);
 
 /**
  * @brief Gets the transform matrix for a rigid body.
@@ -479,8 +479,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setTransform(dsRigidBody* rigidBody, const ds
  * @param rigidBody The rigid body to get the transform for.
  * @return False if the transform couldn't be computed.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_getTransformMatrix(dsMatrix44f* outTransform,
-	const dsRigidBody* rigidBody);
+DS_PHYSICS_EXPORT bool dsRigidBody_getTransformMatrix(
+	dsMatrix44f* outTransform, const dsRigidBody* rigidBody);
 
 /**
  * @brief Sets the transform for a rigid body based on a tranform matrix.
@@ -490,8 +490,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_getTransformMatrix(dsMatrix44f* outTransform,
  * @param activate Whether to activate the rigid body if it's currently inactive.
  * @return False if the transform couldn't be set.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_setTransformMatrix(dsRigidBody* rigidBody,
-	const dsMatrix44f* transform, bool activate);
+DS_PHYSICS_EXPORT bool dsRigidBody_setTransformMatrix(
+	dsRigidBody* rigidBody, const dsMatrix44f* transform, bool activate);
 
 /**
  * @brief Sets the target transform for a kinematic rigid body.
@@ -511,7 +511,7 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setTransformMatrix(dsRigidBody* rigidBody,
  * @return False if the kinematic target couldn't be set.
  */
 DS_PHYSICS_EXPORT bool dsRigidBody_setKinematicTarget(dsRigidBody* rigidBody,
-	float time, const dsVector3f* position, const dsQuaternion4f* orientation);
+	float time, const dsVector3xf* position, const dsQuaternion4f* orientation);
 
 /**
  * @brief Sets the target transform for a kinematic rigid body based on a transform matrix.
@@ -532,8 +532,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setKinematicTarget(dsRigidBody* rigidBody,
  *     over the time step.
  * @return False if the kinematic target couldn't be set.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_setKinematicTargetMatrix(dsRigidBody* rigidBody,
-	float time, const dsMatrix44f* transform);
+DS_PHYSICS_EXPORT bool dsRigidBody_setKinematicTargetMatrix(
+	dsRigidBody* rigidBody, float time, const dsMatrix44f* transform);
 
 /**
  * @brief Gets the position around which the rigid body will rotate in world space.
@@ -543,8 +543,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setKinematicTargetMatrix(dsRigidBody* rigidBo
  * @param rigidBody The rigid body to change the mass on.
  * @return False if the rotation position qouldn't be queried.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_getWorldRotationPosition(dsVector3f* outPosition,
-	const dsRigidBody* rigidBody);
+DS_PHYSICS_EXPORT bool dsRigidBody_getWorldRotationPosition(
+	dsVector3xf* outPosition, const dsRigidBody* rigidBody);
 
 /**
  * @brief Sets the mass for a rigid body.
@@ -609,8 +609,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setAngularDamping(dsRigidBody* rigidBody, flo
  * @param maxLinearVelocity The new max linear velocity.
  * @return False if the max linear velocity couldn't be set.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_setMaxLinearVelocity(dsRigidBody* rigidBody,
-	float maxLinearVelocity);
+DS_PHYSICS_EXPORT bool dsRigidBody_setMaxLinearVelocity(
+	dsRigidBody* rigidBody, float maxLinearVelocity);
 
 /**
  * @brief Sets the max angular velocity for a rigid body.
@@ -619,8 +619,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setMaxLinearVelocity(dsRigidBody* rigidBody,
  * @param maxAngularVelocity The new max angular velocity.
  * @return False if the max angular velocity couldn't be set.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_setMaxAngularVelocity(dsRigidBody* rigidBody,
-	float maxAngularVelocity);
+DS_PHYSICS_EXPORT bool dsRigidBody_setMaxAngularVelocity(
+	dsRigidBody* rigidBody, float maxAngularVelocity);
 
 /**
  * @brief Gets the current linear velocity for a rigid body.
@@ -632,8 +632,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setMaxAngularVelocity(dsRigidBody* rigidBody,
  * @param rigidBody The rigid body to get the linear velocity for.
  * @return False if the linear velocity couldn't be queried.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_getLinearVelocity(dsVector3f* outVelocity,
-	const dsRigidBody* rigidBody);
+DS_PHYSICS_EXPORT bool dsRigidBody_getLinearVelocity(
+	dsVector3xf* outVelocity, const dsRigidBody* rigidBody);
 
 /**
  * @brief Sets the current linear velocity for a rigid body.
@@ -645,8 +645,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_getLinearVelocity(dsVector3f* outVelocity,
  * @param velocity The new linear velocity.
  * @return False if the linear velocity couldn't be set.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_setLinearVelocity(dsRigidBody* rigidBody,
-	const dsVector3f* velocity);
+DS_PHYSICS_EXPORT bool dsRigidBody_setLinearVelocity(
+	dsRigidBody* rigidBody, const dsVector3xf* velocity);
 
 /**
  * @brief Gets the current angular velocity for a rigid body.
@@ -658,8 +658,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setLinearVelocity(dsRigidBody* rigidBody,
  * @param rigidBody The rigid body to get the angular velocity for.
  * @return False if the angular velocity couldn't be queried.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_getAngularVelocity(dsVector3f* outVelocity,
-	const dsRigidBody* rigidBody);
+DS_PHYSICS_EXPORT bool dsRigidBody_getAngularVelocity(
+	dsVector3xf* outVelocity, const dsRigidBody* rigidBody);
 
 /**
  * @brief Sets the current angular velocity for a rigid body.
@@ -671,8 +671,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_getAngularVelocity(dsVector3f* outVelocity,
  * @param velocity The new angular velocity.
  * @return False if the angular velocity couldn't be set.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_setAngularVelocity(dsRigidBody* rigidBody,
-	const dsVector3f* velocity);
+DS_PHYSICS_EXPORT bool dsRigidBody_setAngularVelocity(
+	dsRigidBody* rigidBody, const dsVector3xf* velocity);
 
 /**
  * @brief Adds a force to a rigid body.
@@ -687,7 +687,7 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setAngularVelocity(dsRigidBody* rigidBody,
  * @param force The force, or mass times acceleration.
  * @return False if the force couldn't be added.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_addForce(dsRigidBody* rigidBody, const dsVector3f* force);
+DS_PHYSICS_EXPORT bool dsRigidBody_addForce(dsRigidBody* rigidBody, const dsVector3xf* force);
 
 /**
  * @brief Adds a force to a rigid body at a point.
@@ -704,8 +704,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_addForce(dsRigidBody* rigidBody, const dsVect
  * @param point The point the force is applied to.
  * @return False if the force couldn't be added.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_addForceAtPoint(dsRigidBody* rigidBody, const dsVector3f* force,
-	const dsVector3f* point);
+DS_PHYSICS_EXPORT bool dsRigidBody_addForceAtPoint(
+	dsRigidBody* rigidBody, const dsVector3xf* force, const dsVector3xf* point);
 
 /**
  * @brief Clears the previously accumulated force for a rigid body.
@@ -735,7 +735,7 @@ DS_PHYSICS_EXPORT bool dsRigidBody_clearForce(dsRigidBody* rigidBody);
  * @param torque The torque, or mass times angular acceleration.
  * @return False if the force couldn't be added.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_addTorque(dsRigidBody* rigidBody, const dsVector3f* torque);
+DS_PHYSICS_EXPORT bool dsRigidBody_addTorque(dsRigidBody* rigidBody, const dsVector3xf* torque);
 
 /**
  * @brief Clears the previously accumulated torque for a rigid body.
@@ -765,8 +765,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_clearTorque(dsRigidBody* rigidBody);
  * @param impulse The linear impulse, or mass times linear velocity.
  * @return False if the force couldn't be added.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_addLinearImpulse(dsRigidBody* rigidBody,
-	const dsVector3f* impulse);
+DS_PHYSICS_EXPORT bool dsRigidBody_addLinearImpulse(
+	dsRigidBody* rigidBody, const dsVector3xf* impulse);
 
 /**
  * @brief Clears the previously accumulated linear impulse for a rigid body.
@@ -796,8 +796,8 @@ DS_PHYSICS_EXPORT bool dsRigidBody_clearLinearImpulse(dsRigidBody* rigidBody);
  * @param impulse The angular impulse, or mass times angular velocity.
  * @return False if the force couldn't be added.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_addAngularImpulse(dsRigidBody* rigidBody,
-	const dsVector3f* impulse);
+DS_PHYSICS_EXPORT bool dsRigidBody_addAngularImpulse(
+	dsRigidBody* rigidBody, const dsVector3xf* impulse);
 
 /**
  * @brief Clears the previously accumulated angular impulse for a rigid body.

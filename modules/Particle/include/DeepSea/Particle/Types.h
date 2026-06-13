@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ typedef struct dsParticleVolume
 		/**
 		 * @brief The box when type is dsParticleVolumeType_Box.
 		 */
-		dsAlignedBox3f box;
+		dsAlignedBox3xf box;
 
 		/**
 		 * @brief The spehre when the type is dsParticleVolumeType_Sphere.
@@ -77,7 +77,7 @@ typedef struct dsParticleVolume
 			/**
 			 * @brief The center of the sphere.
 			 */
-			dsVector3f center;
+			dsVector3xf center;
 
 			/**
 			 * @brief The radius of the sphere.
@@ -93,7 +93,7 @@ typedef struct dsParticleVolume
 			/**
 			 * @brief The center of the cylinder.
 			 */
-			dsVector3f center;
+			dsVector3xf center;
 
 			/**
 			 * @brief The radius of the cylinder along the XY plane.
@@ -131,7 +131,7 @@ typedef struct dsParticle
 	/**
 	 * @brief The position of the particle.
 	 */
-	dsVector3f position;
+	dsVector3xf position;
 
 	/**
 	 * @brief The size of the particle.
@@ -348,7 +348,7 @@ struct dsParticleEmitter
 	 *
 	 * This will be automatically computed on update.
 	 */
-	dsOrientedBox3f bounds;
+	dsOrientedBox3xf bounds;
 
 	/**
 	 * @brief Function to update the particle emitter.
@@ -388,6 +388,11 @@ typedef struct dsStandardParticleEmitterOptions
 	dsMatrix44f spawnVolumeMatrix;
 
 	/**
+	 * @brief The base direction particles move in.
+	 */
+	dsVector3xf baseDirection;
+
+	/**
 	 * @brief The minimum and maximum width of the particle.
 	 */
 	dsVector2f widthRange;
@@ -406,11 +411,6 @@ typedef struct dsStandardParticleEmitterOptions
 	 * -PI/2 will wrap around at PI back to -PI)
 	 */
 	dsVector2f rotationRange;
-
-	/**
-	 * @brief The base direction particles move in.
-	 */
-	dsVector3f baseDirection;
 
 	/**
 	 * @brief The spread along the base direction as an angle in radians.

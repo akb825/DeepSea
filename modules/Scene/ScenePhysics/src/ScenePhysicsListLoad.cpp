@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,9 +46,9 @@
 #pragma warning(pop)
 #endif
 
-dsSceneItemList* dsScenePhysicsList_load(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const char* name, const uint8_t* data, size_t dataSize)
+dsSceneItemList* dsScenePhysicsList_load(const dsSceneLoadContext*, dsSceneLoadScratchData*,
+	dsAllocator* allocator, dsAllocator*, void* userData, const char* name, const uint8_t* data,
+	size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaScenePhysics::VerifyPhysicsListBuffer(verifier))
@@ -69,7 +69,7 @@ dsSceneItemList* dsScenePhysicsList_load(const dsSceneLoadContext* loadContext,
 	settings.maxConstraints = fbPhysicsList->maxConstraints();
 	settings.maxBodyCollisionPairs = fbPhysicsList->maxBodyCollisionPairs();
 	settings.maxContactPoints = fbPhysicsList->maxContactPoints();
-	settings.gravity = DeepSeaScene::convert(*fbPhysicsList->gravity());
+	settings.gravity = DeepSeaScene::convert3x(*fbPhysicsList->gravity());
 	settings.multiThreadedModifications = fbPhysicsList->multiThreadedModifications();
 
 	dsScenePhysicsLoadData* listData = (dsScenePhysicsLoadData*)userData;

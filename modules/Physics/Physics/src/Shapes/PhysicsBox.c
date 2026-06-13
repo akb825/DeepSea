@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,14 @@
 #include <DeepSea/Core/Log.h>
 
 #include <DeepSea/Math/Core.h>
-#include <DeepSea/Math/Vector3.h>
+#include <DeepSea/Math/Vector3x.h>
 
 #include <DeepSea/Physics/Shapes/PhysicsShape.h>
 #include <DeepSea/Physics/PhysicsMassProperties.h>
 #include <DeepSea/Physics/Types.h>
 
-static bool dsPhysicsBox_getMassProperties(dsPhysicsMassProperties* outMassProperties,
-	const dsPhysicsShape* shape, float density)
+static bool dsPhysicsBox_getMassProperties(
+	dsPhysicsMassProperties* outMassProperties, const dsPhysicsShape* shape, float density)
 {
 	DS_ASSERT(outMassProperties);
 	DS_ASSERT(shape);
@@ -37,11 +37,15 @@ static bool dsPhysicsBox_getMassProperties(dsPhysicsMassProperties* outMassPrope
 	DS_ASSERT(density > 0);
 
 	const dsPhysicsBox* box = (const dsPhysicsBox*)shape;
-	dsVector3f halfExtents = box->halfExtents;
+	dsVector3xf halfExtents = box->halfExtents;
 	// Make no extent is zero.
+#if DS_SIMD_ALWAYS_FLOAT4
+	halfExtents.simd = dsSIMD4f_max(halfExtents.simd, dsSIMD4f_set1(box->convexRadius));
+#else
 	halfExtents.x = dsMax(halfExtents.x, box->convexRadius);
 	halfExtents.x = dsMax(halfExtents.y, box->convexRadius);
 	halfExtents.x = dsMax(halfExtents.z, box->convexRadius);
+#endif
 	return dsPhysicsMassProperties_initializeBox(outMassProperties, &halfExtents, density);
 }
 
@@ -53,7 +57,7 @@ const dsPhysicsShapeType* dsPhysicsBox_type(void)
 }
 
 dsPhysicsBox* dsPhysicsBox_create(dsPhysicsEngine* engine, dsAllocator* allocator,
-	const dsVector3f* halfExtents, float convexRadius)
+	const dsVector3xf* halfExtents, float convexRadius)
 {
 	if (!engine || !engine->createBoxFunc || !engine->destroyBoxFunc || !halfExtents)
 	{
@@ -82,15 +86,15 @@ dsPhysicsBox* dsPhysicsBox_create(dsPhysicsEngine* engine, dsAllocator* allocato
 }
 
 void dsPhysicsBox_initialize(dsPhysicsBox* box, dsPhysicsEngine* engine, dsAllocator* allocator,
-	void* impl, const dsVector3f* halfExtents, float convexRadius)
+	void* impl, const dsVector3xf* halfExtents, float convexRadius)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(engine);
 	DS_ASSERT(halfExtents && halfExtents->x >= 0 && halfExtents->y >= 0 && halfExtents->z >= 0);
 	DS_ASSERT(convexRadius >= 0);
 
-	dsAlignedBox3f bounds;
-	dsVector3_neg(bounds.min, *halfExtents);
+	dsAlignedBox3xf bounds;
+	dsVector3xf_neg(&bounds.min, halfExtents);
 	bounds.max = *halfExtents;
 	DS_VERIFY(dsPhysicsShape_initialize((dsPhysicsShape*)box, engine, allocator,
 		dsPhysicsBox_type(), &bounds, impl, (dsDestroyPhysicsShapeFunction)engine->destroyBoxFunc));

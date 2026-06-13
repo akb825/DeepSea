@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ extern "C"
  * @return False if the parameters are invalid.
  */
 DS_PHYSICS_EXPORT bool dsPhysicsShape_initialize(dsPhysicsShape* shape, dsPhysicsEngine* engine,
-	dsAllocator* allocator, const dsPhysicsShapeType* type, const dsAlignedBox3f* bounds,
+	dsAllocator* allocator, const dsPhysicsShapeType* type, const dsAlignedBox3xf* bounds,
 	void* impl, dsDestroyPhysicsShapeFunction destroyFunc);
 
 /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,17 +29,17 @@
 #include <DeepSea/Physics/Types.h>
 
 static bool isConstraintValid(const dsRevolutePhysicsConstraint* constraint,
-	const dsPhysicsActor* actor, const dsVector3f* axis)
+	const dsPhysicsActor* actor, const dsVector3xf* axis)
 {
 	if (!constraint || !actor)
 		return true;
 
 	const dsPhysicsConstraint* baseConstraint = (const dsPhysicsConstraint*)constraint;
-	dsVector3f constraintAxis;
+	dsVector3xf constraintAxis;
 	if (baseConstraint->firstActor == actor)
-		dsQuaternion4f_getRotationAxis(&constraintAxis, &constraint->firstOrientation);
+		dsQuaternion4f_getRotationAxis3x(&constraintAxis, &constraint->firstOrientation);
 	else if (baseConstraint->secondActor == actor)
-		dsQuaternion4f_getRotationAxis(&constraintAxis, &constraint->secondOrientation);
+		dsQuaternion4f_getRotationAxis3x(&constraintAxis, &constraint->secondOrientation);
 	else
 	{
 		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
@@ -88,7 +88,7 @@ static dsPhysicsConstraint* dsGearPhysicsConstraint_clone(const dsPhysicsConstra
 	return (dsPhysicsConstraint*)dsGearPhysicsConstraint_create(constraint->engine, allocator,
 		firstActor, &gearConstraint->firstAxis,
 		(const dsRevolutePhysicsConstraint*)firstConnectedConstraint, secondActor,
-		&gearConstraint->secondAxis, (const dsRevolutePhysicsConstraint*)firstConnectedConstraint,
+		&gearConstraint->secondAxis, (const dsRevolutePhysicsConstraint*)secondConnectedConstraint,
 		gearConstraint->ratio);
 }
 
@@ -98,8 +98,8 @@ const dsPhysicsConstraintType* dsGearPhysicsConstraint_type(void)
 	return &type;
 }
 
-float dsGearPhysicsConstraint_computeRatio(unsigned int firstActorToothCount,
-	unsigned int secondActorToothCount)
+float dsGearPhysicsConstraint_computeRatio(
+	unsigned int firstActorToothCount, unsigned int secondActorToothCount)
 {
 	if (firstActorToothCount == 0 || secondActorToothCount == 0)
 	{
@@ -111,9 +111,9 @@ float dsGearPhysicsConstraint_computeRatio(unsigned int firstActorToothCount,
 }
 
 dsGearPhysicsConstraint* dsGearPhysicsConstraint_create(dsPhysicsEngine* engine,
-	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3f* firstAxis,
+	dsAllocator* allocator, const dsPhysicsActor* firstActor, const dsVector3xf* firstAxis,
 	const dsRevolutePhysicsConstraint* firstConstraint, const dsPhysicsActor* secondActor,
-	const dsVector3f* secondAxis, const dsRevolutePhysicsConstraint* secondConstraint, float ratio)
+	const dsVector3xf* secondAxis, const dsRevolutePhysicsConstraint* secondConstraint, float ratio)
 {
 	if (!engine || !engine->createGearConstraintFunc || !engine->destroyGearConstraintFunc ||
 		!firstAxis || !isConstraintValid(firstConstraint, firstActor, firstAxis) || !secondAxis ||
@@ -146,8 +146,8 @@ bool dsGearPhysicsConstraint_setRatio(dsGearPhysicsConstraint* constraint, float
 
 void dsGearPhysicsConstraint_initialize(dsGearPhysicsConstraint* constraint,
 	dsPhysicsEngine* engine, dsAllocator* allocator, const dsPhysicsActor* firstActor,
-	const dsVector3f* firstAxis, const dsRevolutePhysicsConstraint* firstConstraint,
-	const dsPhysicsActor* secondActor, const dsVector3f* secondAxis,
+	const dsVector3xf* firstAxis, const dsRevolutePhysicsConstraint* firstConstraint,
+	const dsPhysicsActor* secondActor, const dsVector3xf* secondAxis,
 	const dsRevolutePhysicsConstraint* secondConstraint, float ratio, void* impl)
 {
 	DS_ASSERT(constraint);

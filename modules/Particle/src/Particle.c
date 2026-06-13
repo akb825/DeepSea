@@ -19,11 +19,11 @@
 #include <DeepSea/Core/Error.h>
 
 #include <DeepSea/Math/Color.h>
-#include <DeepSea/Math/Matrix33.h>
+#include <DeepSea/Math/Matrix33x.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Random.h>
 #include <DeepSea/Math/Trig.h>
-#include <DeepSea/Math/Vector3.h>
+#include <DeepSea/Math/Vector3x.h>
 
 #include <DeepSea/Particle/ParticleVolume.h>
 
@@ -48,12 +48,10 @@ void dsParticle_randomPosition(dsParticle* particle, dsRandom* random,
 	DS_ASSERT(volumeMatrix);
 
 	dsVector4f basePos;
+	dsParticleVolume_randomPosition(&basePos, random, volume);
 	basePos.w = 1.0f;
-	dsParticleVolume_randomPosition((dsVector3f*)&basePos, random, volume);
 
-	dsVector4f transformedPos;
-	dsMatrix44f_transform(&transformedPos, volumeMatrix, &basePos);
-	particle->position = *(dsVector3f*)&transformedPos;
+	dsMatrix44f_transform(&particle->position, volumeMatrix, &basePos);
 }
 
 void dsParticle_randomSize(dsParticle* particle, dsRandom* random, const dsVector2f* widthRange,
@@ -64,8 +62,8 @@ void dsParticle_randomSize(dsParticle* particle, dsRandom* random, const dsVecto
 	DS_ASSERT(widthRange);
 
 	// Use centered range to avoid bias towards min.
-	particle->size.x = dsRandom_nextFloatCenteredRange(random, (widthRange->x + widthRange->y)*0.5f,
-		(widthRange->y - widthRange->x)*0.5f);
+	particle->size.x = dsRandom_nextFloatCenteredRange(
+		random, (widthRange->x + widthRange->y)*0.5f, (widthRange->y - widthRange->x)*0.5f);
 	if (!heightRange || heightRange->y < 0)
 		particle->size.y = particle->size.x;
 	else
@@ -75,30 +73,31 @@ void dsParticle_randomSize(dsParticle* particle, dsRandom* random, const dsVecto
 	}
 }
 
-void dsParticle_createDirectionMatrix(dsMatrix33f* result, const dsVector3f* baseDirection)
+void dsParticle_createDirectionMatrix(dsMatrix33xf* result, const dsVector3xf* baseDirection)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(baseDirection);
-	DS_ASSERT(dsEpsilonEqualf(dsVector3f_len(baseDirection), 1.0f, 1e-5f));
+	DS_ASSERT(dsEpsilonEqualf(dsVector3xf_len(baseDirection), 1.0f, 1e-5f));
 
 	result->columns[2] = *baseDirection;
 
 	result->columns[0].x = 1;
 	result->columns[0].y = 0;
 	result->columns[0].z = 0;
-	if (dsEpsilonEqualf(dsVector3_dot(result->columns[0], result->columns[2]), 1, 1e-4f))
+	result->columns[0].w = 0;
+	if (dsEpsilonEqualf(dsVector3xf_dot(result->columns, result->columns + 2), 1, 1e-4f))
 	{
 		result->columns[0].x = 0;
-		result->columns[1].x = 0;
+		result->columns[0].y = 1;
 	}
 
-	dsVector3_cross(result->columns[1], result->columns[2], result->columns[0]);
-	dsVector3f_normalize(&result->columns[1], &result->columns[1]);
-	dsVector3_cross(result->columns[0], result->columns[1], result->columns[2]);
+	dsVector3xf_cross(result->columns + 1, result->columns + 2, result->columns);
+	dsVector3xf_normalize(result->columns + 1, result->columns + 1);
+	dsVector3xf_cross(result->columns, result->columns + 1, result->columns + 2);
 }
 
-void dsParticle_randomDirection(dsVector3f* outDirection, dsRandom* random,
-	const dsMatrix33f* directionMatrix, float directionSpread)
+void dsParticle_randomDirection(dsVector3xf* outDirection, dsRandom* random,
+	const dsMatrix33xf* directionMatrix, float directionSpread)
 {
 	DS_ASSERT(outDirection);
 	DS_ASSERT(random);
@@ -115,8 +114,8 @@ void dsParticle_randomDirection(dsVector3f* outDirection, dsRandom* random,
 	float sinTheta, cosTheta, sinPhi, cosPhi;
 	dsSinCosf(&sinTheta, &cosTheta, theta);
 	dsSinCosf(&sinPhi, &cosPhi, phi);
-	dsVector3f direction = {{cosTheta*sinPhi, sinTheta*sinPhi, cosPhi}};
-	dsMatrix33_transform(*outDirection, *directionMatrix, direction);
+	dsVector3xf direction = {{cosTheta*sinPhi, sinTheta*sinPhi, cosPhi}};
+	dsMatrix33xf_transform(outDirection, directionMatrix, &direction);
 }
 
 void dsParticle_randomRotation(dsParticle* particle, dsRandom* random,
