@@ -811,6 +811,406 @@ TEST(Quaternion4dTest, ConjugateSIMD4)
 	EXPECT_NEAR(0, ident.k, epsilon);
 }
 
+TEST(Quaternion4fTest, ToMatrix33SIMD)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		return;
+
+	float epsilon = QuaternionTypeSelector<float>::epsilon;
+	DS_UNUSED(epsilon);
+
+	float x = M_PIf*3/4;
+	float y = -M_PIf/3;
+	float z = -M_PIf/5;
+
+	dsQuaternion4f q;
+	dsQuaternion4f_fromEulerAngles(&q, x, y, z);
+
+	dsMatrix33xf qm;
+	dsQuaternion4f_toMatrix33SIMD(&qm, &q);
+
+	dsMatrix33f qmScalar;
+	dsQuaternion4f_toMatrix33(&qmScalar, &q);
+
+	for (int i = 0; i < 3; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+			EXPECT_EQ_DETERMINISTIC(qmScalar.values[i][j], qm.values[i][j], epsilon);
+	}
+
+	EXPECT_EQ_DETERMINISTIC(0.404508471f, qm.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.293892652f, qm.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.866025329f, qm.values[0][2], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.911046624f, qm.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.212117672f, qm.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.353553385f, qm.values[1][2], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.0797926486f, qm.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.932004809f, qm.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.353553295f, qm.values[2][2], epsilon);
+}
+
+#if !DS_DETERMINISTIC_MATH
+TEST(Quaternion4fTest, ToMatrix33FMA)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+		return;
+
+	float epsilon = QuaternionTypeSelector<float>::epsilon;
+
+	float x = M_PIf*3/4;
+	float y = -M_PIf/3;
+	float z = -M_PIf/5;
+
+	dsQuaternion4f q;
+	dsQuaternion4f_fromEulerAngles(&q, x, y, z);
+
+	dsMatrix33xf qm;
+	dsQuaternion4f_toMatrix33FMA(&qm, &q);
+
+	dsMatrix33f qmScalar;
+	dsQuaternion4f_toMatrix33(&qmScalar, &q);
+
+	for (int i = 0; i < 3; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+			EXPECT_NEAR(qmScalar.values[i][j], qm.values[i][j], epsilon);
+	}
+}
+#endif // !DS_DETERMINISTIC_MATH
+
+TEST(Quaternion4dTest, ToMatrix33SIMD2)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
+		return;
+
+	double epsilon = QuaternionTypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
+
+	double x = M_PI*3/4;
+	double y = -M_PI/3;
+	double z = -M_PI/5;
+
+	dsQuaternion4d q;
+	dsQuaternion4d_fromEulerAngles(&q, x, y, z);
+
+	dsMatrix33xd qm;
+	dsQuaternion4d_toMatrix33SIMD2(&qm, &q);
+
+	dsMatrix33d qmScalar;
+	dsQuaternion4d_toMatrix33(&qmScalar, &q);
+
+	for (int i = 0; i < 3; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+			EXPECT_EQ_DETERMINISTIC(qmScalar.values[i][j], qm.values[i][j], epsilon) << i << ", " << j;
+	}
+
+	EXPECT_EQ_DETERMINISTIC(0.40450849718747384, qm.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.29389262614623657, qm.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.86602540378443849, qm.values[0][2], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.91104664514213074, qm.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.21211791620527531, qm.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.35355339059327384, qm.values[1][2], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.079792769587223922, qm.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.93200488943009308, qm.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.35355339059327373, qm.values[2][2], epsilon);
+}
+
+#if !DS_DETERMINISTIC_MATH
+TEST(Quaternion4dTest, ToMatrix33FMA2)
+{
+	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
+	if ((dsHostSIMDFeatures & features) != features)
+		return;
+
+	double epsilon = QuaternionTypeSelector<double>::epsilon;
+
+	double x = M_PI*3/4;
+	double y = -M_PI/3;
+	double z = -M_PI/5;
+
+	dsQuaternion4d q;
+	dsQuaternion4d_fromEulerAngles(&q, x, y, z);
+
+	dsMatrix33xd qm;
+	dsQuaternion4d_toMatrix33SIMD2(&qm, &q);
+
+	dsMatrix33d qmScalar;
+	dsQuaternion4d_toMatrix33(&qmScalar, &q);
+
+	for (int i = 0; i < 3; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+			EXPECT_NEAR(qmScalar.values[i][j], qm.values[i][j], epsilon);
+	}
+}
+#endif // !DS_DETERMINISTIC_MATH
+
+TEST(Quaternion4dTest, ToMatrix33SIMD4)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
+		return;
+
+	double epsilon = QuaternionTypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
+
+	double x = M_PI*3/4;
+	double y = -M_PI/3;
+	double z = -M_PI/5;
+
+	DS_ALIGN(32) dsQuaternion4d q;
+	dsQuaternion4d_fromEulerAngles(&q, x, y, z);
+
+	DS_ALIGN(32) dsMatrix33xd qm;
+	dsQuaternion4d_toMatrix33SIMD4(&qm, &q);
+
+	dsMatrix33d qmScalar;
+	dsQuaternion4d_toMatrix33(&qmScalar, &q);
+
+	for (int i = 0; i < 3; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+			EXPECT_EQ_DETERMINISTIC(qmScalar.values[i][j], qm.values[i][j], epsilon) << i << ", " << j;
+	}
+
+	EXPECT_EQ_DETERMINISTIC(0.40450849718747384, qm.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.29389262614623657, qm.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.86602540378443849, qm.values[0][2], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.91104664514213074, qm.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.21211791620527531, qm.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.35355339059327384, qm.values[1][2], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.079792769587223922, qm.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.93200488943009308, qm.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.35355339059327373, qm.values[2][2], epsilon);
+}
+
+TEST(Quaternion4fTest, ToMatrix44SIMD)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		return;
+
+	float epsilon = QuaternionTypeSelector<float>::epsilon;
+	DS_UNUSED(epsilon);
+
+	float x = M_PIf*3/4;
+	float y = -M_PIf/3;
+	float z = -M_PIf/5;
+
+	dsQuaternion4f q;
+	dsQuaternion4f_fromEulerAngles(&q, x, y, z);
+
+	dsMatrix44f qm;
+	dsQuaternion4f_toMatrix44SIMD(&qm, &q);
+
+	dsMatrix33f qmScalar;
+	dsQuaternion4f_toMatrix33(&qmScalar, &q);
+
+	for (int i = 0; i < 3; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+			EXPECT_EQ_DETERMINISTIC(qmScalar.values[i][j], qm.values[i][j], epsilon);
+	}
+
+	EXPECT_EQ_DETERMINISTIC(0.404508471f, qm.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.293892652f, qm.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.866025329f, qm.values[0][2], epsilon);
+	EXPECT_EQ(0.0f, qm.values[0][3]);
+
+	EXPECT_EQ_DETERMINISTIC(-0.911046624f, qm.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.212117672f, qm.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.353553385f, qm.values[1][2], epsilon);
+	EXPECT_EQ(0.0f, qm.values[1][3]);
+
+	EXPECT_EQ_DETERMINISTIC(0.0797926486f, qm.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.932004809f, qm.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.353553295f, qm.values[2][2], epsilon);
+	EXPECT_EQ(0.0f, qm.values[2][3]);
+
+	EXPECT_EQ(0.0f, qm.values[3][0]);
+	EXPECT_EQ(0.0f, qm.values[3][1]);
+	EXPECT_EQ(0.0f, qm.values[3][2]);
+	EXPECT_EQ(1.0f, qm.values[3][3]);
+}
+
+#if !DS_DETERMINISTIC_MATH
+TEST(Quaternion4fTest, ToMatrix44FMA)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+		return;
+
+	float epsilon = QuaternionTypeSelector<float>::epsilon;
+
+	float x = M_PIf*3/4;
+	float y = -M_PIf/3;
+	float z = -M_PIf/5;
+
+	dsQuaternion4f q;
+	dsQuaternion4f_fromEulerAngles(&q, x, y, z);
+
+	dsMatrix44f qm;
+	dsQuaternion4f_toMatrix44FMA(&qm, &q);
+
+	dsMatrix33f qmScalar;
+	dsQuaternion4f_toMatrix33(&qmScalar, &q);
+
+	for (int i = 0; i < 3; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+			EXPECT_NEAR(qmScalar.values[i][j], qm.values[i][j], epsilon);
+	}
+
+	EXPECT_EQ(0.0f, qm.values[0][3]);
+	EXPECT_EQ(0.0f, qm.values[1][3]);
+	EXPECT_EQ(0.0f, qm.values[2][3]);
+
+	EXPECT_EQ(0.0f, qm.values[3][0]);
+	EXPECT_EQ(0.0f, qm.values[3][1]);
+	EXPECT_EQ(0.0f, qm.values[3][2]);
+	EXPECT_EQ(1.0f, qm.values[3][3]);
+}
+#endif // !DS_DETERMINISTIC_MATH
+
+TEST(Quaternion4dTest, ToMatrix44SIMD2)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
+		return;
+
+	double epsilon = QuaternionTypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
+
+	double x = M_PI*3/4;
+	double y = -M_PI/3;
+	double z = -M_PI/5;
+
+	dsQuaternion4d q;
+	dsQuaternion4d_fromEulerAngles(&q, x, y, z);
+
+	dsMatrix44d qm;
+	dsQuaternion4d_toMatrix44SIMD2(&qm, &q);
+
+	dsMatrix33d qmScalar;
+	dsQuaternion4d_toMatrix33(&qmScalar, &q);
+
+	for (int i = 0; i < 3; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+			EXPECT_EQ_DETERMINISTIC(qmScalar.values[i][j], qm.values[i][j], epsilon) << i << ", " << j;
+	}
+
+	EXPECT_EQ_DETERMINISTIC(0.40450849718747384, qm.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.29389262614623657, qm.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.86602540378443849, qm.values[0][2], epsilon);
+	EXPECT_EQ(0.0, qm.values[0][3]);
+
+	EXPECT_EQ_DETERMINISTIC(-0.91104664514213074, qm.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.21211791620527531, qm.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.35355339059327384, qm.values[1][2], epsilon);
+	EXPECT_EQ(0.0, qm.values[1][3]);
+
+	EXPECT_EQ_DETERMINISTIC(0.079792769587223922, qm.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.93200488943009308, qm.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.35355339059327373, qm.values[2][2], epsilon);
+	EXPECT_EQ(0.0, qm.values[2][3]);
+
+	EXPECT_EQ(0.0, qm.values[3][0]);
+	EXPECT_EQ(0.0, qm.values[3][1]);
+	EXPECT_EQ(0.0, qm.values[3][2]);
+	EXPECT_EQ(1.0, qm.values[3][3]);
+}
+
+#if !DS_DETERMINISTIC_MATH
+TEST(Quaternion4dTest, ToMatrix44FMA2)
+{
+	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
+	if ((dsHostSIMDFeatures & features) != features)
+		return;
+
+	double epsilon = QuaternionTypeSelector<double>::epsilon;
+
+	double x = M_PI*3/4;
+	double y = -M_PI/3;
+	double z = -M_PI/5;
+
+	dsQuaternion4d q;
+	dsQuaternion4d_fromEulerAngles(&q, x, y, z);
+
+	dsMatrix44d qm;
+	dsQuaternion4d_toMatrix44SIMD2(&qm, &q);
+
+	dsMatrix33d qmScalar;
+	dsQuaternion4d_toMatrix33(&qmScalar, &q);
+
+	for (int i = 0; i < 3; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+			EXPECT_NEAR(qmScalar.values[i][j], qm.values[i][j], epsilon);
+	}
+
+	EXPECT_EQ(0.0, qm.values[0][3]);
+	EXPECT_EQ(0.0, qm.values[1][3]);
+	EXPECT_EQ(0.0, qm.values[2][3]);
+
+	EXPECT_EQ(0.0, qm.values[3][0]);
+	EXPECT_EQ(0.0, qm.values[3][1]);
+	EXPECT_EQ(0.0, qm.values[3][2]);
+	EXPECT_EQ(1.0, qm.values[3][3]);
+}
+#endif // !DS_DETERMINISTIC_MATH
+
+TEST(Quaternion4dTest, ToMatrix44SIMD4)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
+		return;
+
+	double epsilon = QuaternionTypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
+
+	double x = M_PI*3/4;
+	double y = -M_PI/3;
+	double z = -M_PI/5;
+
+	DS_ALIGN(32) dsQuaternion4d q;
+	dsQuaternion4d_fromEulerAngles(&q, x, y, z);
+
+	DS_ALIGN(32) dsMatrix44d qm;
+	dsQuaternion4d_toMatrix44SIMD4(&qm, &q);
+
+	dsMatrix33d qmScalar;
+	dsQuaternion4d_toMatrix33(&qmScalar, &q);
+
+	for (int i = 0; i < 3; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+			EXPECT_EQ_DETERMINISTIC(qmScalar.values[i][j], qm.values[i][j], epsilon) << i << ", " << j;
+	}
+
+	EXPECT_EQ_DETERMINISTIC(0.40450849718747384, qm.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.29389262614623657, qm.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.86602540378443849, qm.values[0][2], epsilon);
+	EXPECT_EQ(0.0, qm.values[0][3]);
+
+	EXPECT_EQ_DETERMINISTIC(-0.91104664514213074, qm.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.21211791620527531, qm.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.35355339059327384, qm.values[1][2], epsilon);
+	EXPECT_EQ(0.0, qm.values[1][3]);
+
+	EXPECT_EQ_DETERMINISTIC(0.079792769587223922, qm.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.93200488943009308, qm.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.35355339059327373, qm.values[2][2], epsilon);
+	EXPECT_EQ(0.0, qm.values[2][3]);
+
+	EXPECT_EQ(0.0, qm.values[3][0]);
+	EXPECT_EQ(0.0, qm.values[3][1]);
+	EXPECT_EQ(0.0, qm.values[3][2]);
+	EXPECT_EQ(1.0, qm.values[3][3]);
+}
+
 TEST(Quaternion4fTest, RotateSIMD)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))

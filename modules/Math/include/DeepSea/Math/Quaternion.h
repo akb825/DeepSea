@@ -126,11 +126,11 @@ DS_MATH_EXPORT void dsQuaternion4d_fromEulerAngles(
  * @param axis The axis to rotate around. This should be a unit vector.
  * @param angle The angle to rotate in radians.
  */
-DS_MATH_EXPORT void dsQuaternion4f_fromAxisAngle(
+DS_MATH_EXPORT inline void dsQuaternion4f_fromAxisAngle(
 	dsQuaternion4f* result, const dsVector3f* axis, float angle);
 
 /** @copydoc dsQuaternion4f_fromAxisAngle() */
-DS_MATH_EXPORT void dsQuaternion4d_fromAxisAngle(
+DS_MATH_EXPORT inline void dsQuaternion4d_fromAxisAngle(
 	dsQuaternion4d* result, const dsVector3d* axis, double angle);
 
 /**
@@ -138,19 +138,19 @@ DS_MATH_EXPORT void dsQuaternion4d_fromAxisAngle(
  * @param[out] result The quaternion for the result.
  * @param matrix The matrix to extract the rotation from.
  */
-DS_MATH_EXPORT void dsQuaternion4f_fromMatrix33(
+DS_MATH_EXPORT inline void dsQuaternion4f_fromMatrix33(
 	dsQuaternion4f* result, const dsMatrix33f* matrix);
 
 /** @copydoc dsQuaternion4f_fromMatrix33() */
-DS_MATH_EXPORT void dsQuaternion4d_fromMatrix33(
+DS_MATH_EXPORT inline void dsQuaternion4d_fromMatrix33(
 	dsQuaternion4d* result, const dsMatrix33d* matrix);
 
 /** @copydoc dsQuaternion4f_fromMatrix33() */
-DS_MATH_EXPORT void dsQuaternion4f_fromMatrix33x(
+DS_MATH_EXPORT inline void dsQuaternion4f_fromMatrix33x(
 	dsQuaternion4f* result, const dsMatrix33xf* matrix);
 
 /** @copydoc dsQuaternion4f_fromMatrix33() */
-DS_MATH_EXPORT void dsQuaternion4d_fromMatrix33x(
+DS_MATH_EXPORT inline void dsQuaternion4d_fromMatrix33x(
 	dsQuaternion4d* result, const dsMatrix33xd* matrix);
 
 /**
@@ -158,11 +158,11 @@ DS_MATH_EXPORT void dsQuaternion4d_fromMatrix33x(
  * @param[out] result The quaternion for the result.
  * @param matrix The matrix to extract the rotation from.
  */
-DS_MATH_EXPORT void dsQuaternion4f_fromMatrix44(
+DS_MATH_EXPORT inline void dsQuaternion4f_fromMatrix44(
 	dsQuaternion4f* result, const dsMatrix44f* matrix);
 
 /** @copydoc dsQuaternion4f_fromMatrix33() */
-DS_MATH_EXPORT void dsQuaternion4d_fromMatrix44(
+DS_MATH_EXPORT inline void dsQuaternion4d_fromMatrix44(
 	dsQuaternion4d* result, const dsMatrix44d* matrix);
 
 /**
@@ -231,22 +231,24 @@ DS_MATH_EXPORT inline double dsQuaternion4d_getAxisAngle(const dsQuaternion4d* a
  * @param[out] result The matrix for the result.
  * @param a The quaternion to extract the rotation from.
  */
-DS_MATH_EXPORT void dsQuaternion4f_toMatrix33(dsMatrix33f* result, const dsQuaternion4f* a);
+DS_MATH_EXPORT inline void dsQuaternion4f_toMatrix33(dsMatrix33f* result, const dsQuaternion4f* a);
 
 /** @copydoc dsQuaternion4f_toMatrix33() */
-DS_MATH_EXPORT void dsQuaternion4d_toMatrix33(dsMatrix33d* result, const dsQuaternion4d* a);
+DS_MATH_EXPORT inline void dsQuaternion4d_toMatrix33(dsMatrix33d* result, const dsQuaternion4d* a);
 
 /** @copydoc dsQuaternion4f_toMatrix33() */
-DS_MATH_EXPORT void dsQuaternion4f_toMatrix33x(dsMatrix33xf* result, const dsQuaternion4f* a);
+DS_MATH_EXPORT inline void dsQuaternion4f_toMatrix33x(
+	dsMatrix33xf* result, const dsQuaternion4f* a);
 
 /** @copydoc dsQuaternion4f_toMatrix33() */
-DS_MATH_EXPORT void dsQuaternion4d_toMatrix33x(dsMatrix33xd* result, const dsQuaternion4d* a);
+DS_MATH_EXPORT inline void dsQuaternion4d_toMatrix33x(
+	dsMatrix33xd* result, const dsQuaternion4d* a);
 
 /** @copydoc dsQuaternion4f_toMatrix33() */
-DS_MATH_EXPORT void dsQuaternion4f_toMatrix44(dsMatrix44f* result, const dsQuaternion4f* a);
+DS_MATH_EXPORT inline void dsQuaternion4f_toMatrix44(dsMatrix44f* result, const dsQuaternion4f* a);
 
 /** @copydoc dsQuaternion4f_toMatrix33() */
-DS_MATH_EXPORT void dsQuaternion4d_toMatrix44(dsMatrix44d* result, const dsQuaternion4d* a);
+DS_MATH_EXPORT inline void dsQuaternion4d_toMatrix44(dsMatrix44d* result, const dsQuaternion4d* a);
 
 /**
  * @brief Normalizes a quaternion.
@@ -322,6 +324,24 @@ DS_MATH_EXPORT inline void dsQuaternion4f_conjugateSIMD(
 	dsQuaternion4f* result, const dsQuaternion4f* a);
 
 /**
+ * @brief Makes a rotation matrix from a quaternion using SIMD operations.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param[out] result The matrix for the result.
+ * @param a The quaternion to extract the rotation from.
+ */
+DS_MATH_EXPORT inline void dsQuaternion4f_toMatrix33SIMD(
+	dsMatrix33xf* result, const dsQuaternion4f* a);
+
+/**
+ * @brief Makes a rotation matrix from a quaternion using SIMD operations.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param[out] result The matrix for the result.
+ * @param a The quaternion to extract the rotation from.
+ */
+DS_MATH_EXPORT inline void dsQuaternion4f_toMatrix44SIMD(
+	dsMatrix44f* result, const dsQuaternion4f* a);
+
+/**
  * @brief Normalizes a quaternion using SIMD operations.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param result The normalized result. This may be the same as a.
@@ -353,6 +373,24 @@ DS_MATH_EXPORT inline void dsQuaternion4f_rotateSIMD(
  */
 DS_MATH_EXPORT inline void dsQuaternion4f_mulFMA(
 	dsQuaternion4f* result, const dsQuaternion4f* a, const dsQuaternion4f* b);
+
+/**
+ * @brief Makes a rotation matrix from a quaternion using fused multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_FMA are available.
+ * @param[out] result The matrix for the result.
+ * @param a The quaternion to extract the rotation from.
+ */
+DS_MATH_EXPORT inline void dsQuaternion4f_toMatrix33FMA(
+	dsMatrix33xf* result, const dsQuaternion4f* a);
+
+/**
+ * @brief Makes a rotation matrix from a quaternion using fused multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_FMA are available.
+ * @param[out] result The matrix for the result.
+ * @param a The quaternion to extract the rotation from.
+ */
+DS_MATH_EXPORT inline void dsQuaternion4f_toMatrix44FMA(
+	dsMatrix44f* result, const dsQuaternion4f* a);
 
 /**
  * @brief Normalizes a quaternion using fused multiply-add operations.
@@ -400,6 +438,24 @@ DS_MATH_EXPORT inline void dsQuaternion4d_conjugateSIMD2(
 	dsQuaternion4d* result, const dsQuaternion4d* a);
 
 /**
+ * @brief Makes a rotation matrix from a quaternion using SIMD operations.
+ * @remark This can be used when dsSIMDFeatures_Double24 is available.
+ * @param[out] result The matrix for the result.
+ * @param a The quaternion to extract the rotation from.
+ */
+DS_MATH_EXPORT inline void dsQuaternion4d_toMatrix33SIMD2(
+	dsMatrix33xd* result, const dsQuaternion4d* a);
+
+/**
+ * @brief Makes a rotation matrix from a quaternion using SIMD operations.
+ * @remark This can be used when dsSIMDFeatures_Double24 is available.
+ * @param[out] result The matrix for the result.
+ * @param a The quaternion to extract the rotation from.
+ */
+DS_MATH_EXPORT inline void dsQuaternion4d_toMatrix44SIMD2(
+	dsMatrix44d* result, const dsQuaternion4d* a);
+
+/**
  * @brief Normalizes a quaternion using SIMD operations.
  * @remark This can be used when dsSIMDFeatures_Double2 is available.
  * @param result The normalized result. This may be the same as a.
@@ -431,6 +487,24 @@ DS_MATH_EXPORT inline void dsQuaternion4d_rotateSIMD2(
  */
 DS_MATH_EXPORT inline void dsQuaternion4d_mulFMA2(
 	dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b);
+
+/**
+ * @brief Makes a rotation matrix from a quaternion using fused multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_FMA are available.
+ * @param[out] result The matrix for the result.
+ * @param a The quaternion to extract the rotation from.
+ */
+DS_MATH_EXPORT inline void dsQuaternion4d_toMatrix33FMA2(
+	dsMatrix33xd* result, const dsQuaternion4d* a);
+
+/**
+ * @brief Makes a rotation matrix from a quaternion using fused multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_FMA are available.
+ * @param[out] result The matrix for the result.
+ * @param a The quaternion to extract the rotation from.
+ */
+DS_MATH_EXPORT inline void dsQuaternion4d_toMatrix44FMA2(
+	dsMatrix44d* result, const dsQuaternion4d* a);
 
 /**
  * @brief Normalizes a quaternion using fused multiply-add operations.
@@ -479,6 +553,26 @@ DS_MATH_EXPORT inline void dsQuaternion4d_conjugateSIMD4(
 	dsQuaternion4d* DS_ALIGN_PARAM(32) result, const dsQuaternion4d* DS_ALIGN_PARAM(32) a);
 
 /**
+ * @brief Makes a rotation matrix from a quaternion using SIMD operations.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available, and will use FMA if not
+ *     disabled through enabling determinisitic math.
+ * @param[out] result The matrix for the result.
+ * @param a The quaternion to extract the rotation from.
+ */
+DS_MATH_EXPORT inline void dsQuaternion4d_toMatrix33SIMD4(
+	dsMatrix33xd* DS_ALIGN_PARAM(32) result, const dsQuaternion4d* DS_ALIGN_PARAM(32) a);
+
+/**
+ * @brief Makes a rotation matrix from a quaternion using SIMD operations.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available, and will use FMA if not
+ *     disabled through enabling determinisitic math.
+ * @param[out] result The matrix for the result.
+ * @param a The quaternion to extract the rotation from.
+ */
+DS_MATH_EXPORT inline void dsQuaternion4d_toMatrix44SIMD4(
+	dsMatrix44d* DS_ALIGN_PARAM(32) result, const dsQuaternion4d* DS_ALIGN_PARAM(32) a);
+
+/**
  * @brief Normalizes a quaternion using SIMD operations.
  * @remark This can be used when dsSIMDFeatures_Double4 is available, and will use FMA if not
  *     disabled through enabling determinisitic math.
@@ -525,6 +619,46 @@ DS_MATH_EXPORT inline void dsQuaternion4d_rotateSIMD4(dsVector3xd* DS_ALIGN_PARA
 		(result).values[2] = ((a).values[2]*(b).values[3] + (a).values[3]*(b).values[2]) + \
 			((a).values[0]*(b).values[1] - (a).values[1]*(b).values[0]); \
 	} while (0)
+
+#define dsQuaternion4_fromMatrixImpl(result, matrix, w, inv4w) \
+	do \
+	{ \
+		(result).values[0] = ((matrix).values[1][2] - (matrix).values[2][1])*inv4w; \
+		(result).values[1] = ((matrix).values[2][0] - (matrix).values[0][2])*inv4w; \
+		(result).values[2] = ((matrix).values[0][1] - (matrix).values[1][0])*inv4w; \
+		(result).values[3] = w; \
+	} \
+	while (0)
+
+#define dsQuaternion4_toMatrixImpl(result, a) \
+	do \
+	{ \
+		/* \
+		 * Use addition instead of multiplying by 2 to match SIMD. Should guarantee same values \
+		 * for deterministic math, and duplicate factors should optimize out. \
+		 */ \
+		(result).values[0][0] = 1 - ((dsPow2((a).values[1]) + dsPow2((a).values[2])) + \
+			(dsPow2((a).values[1]) + dsPow2((a).values[2]))); \
+		(result).values[0][1] = ((a).values[0]*(a).values[1] + (a).values[3]*(a).values[2]) + \
+			((a).values[0]*(a).values[1] + (a).values[3]*(a).values[2]); \
+		(result).values[0][2] = ((a).values[0]*(a).values[2] - (a).values[3]*(a).values[1]) + \
+			((a).values[0]*(a).values[2] - (a).values[3]*(a).values[1]); \
+		\
+		(result).values[1][0] = ((a).values[0]*(a).values[1] - (a).values[3]*(a).values[2]) + \
+			((a).values[0]*(a).values[1] - (a).values[3]*(a).values[2]); \
+		(result).values[1][1] = 1 - ((dsPow2((a).values[0]) + dsPow2((a).values[2])) + \
+			(dsPow2((a).values[0]) + dsPow2((a).values[2]))); \
+		(result).values[1][2] = ((a).values[3]*(a).values[0] + (a).values[1]*(a).values[2]) + \
+			((a).values[3]*(a).values[0] + (a).values[1]*(a).values[2]); \
+		\
+		(result).values[2][0] = ((a).values[3]*(a).values[1] + (a).values[0]*(a).values[2]) + \
+			((a).values[3]*(a).values[1] + (a).values[0]*(a).values[2]); \
+		(result).values[2][1] = ((a).values[1]*(a).values[2] - (a).values[3]*(a).values[0]) + \
+			((a).values[1]*(a).values[2] - (a).values[3]*(a).values[0]); \
+		(result).values[2][2] = 1 - ((dsPow2((a).values[0]) + dsPow2((a).values[1])) + \
+			(dsPow2((a).values[0]) + dsPow2((a).values[1]))); \
+	} \
+	while (0)
 /// @endcond
 
 /** @copydoc dsQuaternion4_mul() */
@@ -587,6 +721,102 @@ DS_MATH_EXPORT inline void dsQuaternion4d_conjugate(dsQuaternion4d* result, cons
 #else
 	dsQuaternion4_conjugate(*result, *a);
 #endif
+}
+
+inline void dsQuaternion4f_fromAxisAngle(
+	dsQuaternion4f* result, const dsVector3f* axis, float angle)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(axis);
+
+	float sinAngle, cosAngle;
+	dsSinCosf(&sinAngle, &cosAngle, angle*0.5f);
+
+	result->i = axis->x*sinAngle;
+	result->j = axis->y*sinAngle;
+	result->k = axis->z*sinAngle;
+	result->r = cosAngle;
+}
+
+inline void dsQuaternion4d_fromAxisAngle(
+	dsQuaternion4d* result, const dsVector3d* axis, double angle)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(axis);
+
+	double sinAngle, cosAngle;
+	dsSinCosd(&sinAngle, &cosAngle, angle*0.5);
+
+	result->i = axis->x*sinAngle;
+	result->j = axis->y*sinAngle;
+	result->k = axis->z*sinAngle;
+	result->r = cosAngle;
+}
+
+inline void dsQuaternion4f_fromMatrix33(dsQuaternion4f* result, const dsMatrix33f* matrix)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(matrix);
+
+	float w = dsSqrtf(
+		(1.0f + matrix->values[0][0]) + (matrix->values[1][1] + matrix->values[2][2]))*0.5f;
+	float inv4w = 1.0f/(4.0f*w);
+	dsQuaternion4_fromMatrixImpl(*result, *matrix, w, inv4w);
+}
+
+inline void dsQuaternion4d_fromMatrix33(dsQuaternion4d* result, const dsMatrix33d* matrix)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(matrix);
+
+	double w = dsSqrtd(
+		(1.0 + matrix->values[0][0]) + (matrix->values[1][1] + matrix->values[2][2]))*0.5;
+	double inv4w = 1.0/(4.0*w);
+	dsQuaternion4_fromMatrixImpl(*result, *matrix, w, inv4w);
+}
+
+inline void dsQuaternion4f_fromMatrix33x(dsQuaternion4f* result, const dsMatrix33xf* matrix)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(matrix);
+
+	float w = dsSqrtf(
+		(1.0f + matrix->values[0][0]) + (matrix->values[1][1] + matrix->values[2][2]))*0.5f;
+	float inv4w = 1.0f/(4.0f*w);
+	dsQuaternion4_fromMatrixImpl(*result, *matrix, w, inv4w);
+}
+
+inline void dsQuaternion4d_fromMatrix33x(dsQuaternion4d* result, const dsMatrix33xd* matrix)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(matrix);
+
+	double w = dsSqrtd(
+		(1.0 + matrix->values[0][0]) + (matrix->values[1][1] + matrix->values[2][2]))*0.5;
+	double inv4w = 1.0/(4.0*w);
+	dsQuaternion4_fromMatrixImpl(*result, *matrix, w, inv4w);
+}
+
+inline void dsQuaternion4f_fromMatrix44(dsQuaternion4f* result, const dsMatrix44f* matrix)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(matrix);
+
+	float w = dsSqrtf(
+		(1.0f + matrix->values[0][0]) + (matrix->values[1][1] + matrix->values[2][2]))*0.5f;
+	float inv4w = 1.0f/(4.0f*w);
+	dsQuaternion4_fromMatrixImpl(*result, *matrix, w, inv4w);
+}
+
+inline void dsQuaternion4d_fromMatrix44(dsQuaternion4d* result, const dsMatrix44d* matrix)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(matrix);
+
+	double w = dsSqrtd(
+		(1.0 + matrix->values[0][0]) + (matrix->values[1][1] + matrix->values[2][2]))*0.5;
+	double inv4w = 1.0/(4.0*w);
+	dsQuaternion4_fromMatrixImpl(*result, *matrix, w, inv4w);
 }
 
 inline float dsQuaternion4f_getXAngle(const dsQuaternion4f* a)
@@ -725,6 +955,106 @@ inline double dsQuaternion4d_getAxisAngle(const dsQuaternion4d* a)
 	return dsACosd(fabs(a->r))*2;
 }
 
+inline void dsQuaternion4f_toMatrix33(dsMatrix33f* result, const dsQuaternion4f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsQuaternion4_toMatrixImpl(*result, *a);
+}
+
+inline void dsQuaternion4d_toMatrix33(dsMatrix33d* result, const dsQuaternion4d* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsQuaternion4_toMatrixImpl(*result, *a);
+}
+
+inline void dsQuaternion4f_toMatrix33x(dsMatrix33xf* result, const dsQuaternion4f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+#if DS_SIMD_ALWAYS_FMA
+	dsQuaternion4f_toMatrix33FMA(result, a);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	dsQuaternion4f_toMatrix33SIMD(result, a);
+#else
+	dsQuaternion4_toMatrixImpl(*result, *a);
+
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->columns[0].w = 0;
+	result->columns[1].w = 0;
+	result->columns[2].w = 0;
+#endif
+#endif
+}
+
+inline void dsQuaternion4d_toMatrix33x(dsMatrix33xd* result, const dsQuaternion4d* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_ALWAYS_FMA
+	dsQuaternion4d_toMatrix33FMA2(result, a);
+#else
+	dsQuaternion4d_toMatrix33SIMD2(result, a);
+#endif
+#else
+	dsQuaternion4_toMatrixImpl(*result, *a);
+
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->columns[0].w = 0;
+	result->columns[1].w = 0;
+	result->columns[2].w = 0;
+#endif
+#endif
+}
+
+inline void dsQuaternion4f_toMatrix44(dsMatrix44f* result, const dsQuaternion4f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+#if DS_SIMD_ALWAYS_FMA
+	dsQuaternion4f_toMatrix44FMA(result, a);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	dsQuaternion4f_toMatrix44SIMD(result, a);
+#else
+	dsQuaternion4_toMatrixImpl(*result, *a);
+	result->values[0][3] = 0.0f;
+	result->values[1][3] = 0.0f;
+	result->values[2][3] = 0.0f;
+
+	result->values[3][0] = 0.0f;
+	result->values[3][1] = 0.0f;
+	result->values[3][2] = 0.0f;
+	result->values[3][3] = 1.0f;
+#endif
+}
+
+inline void dsQuaternion4d_toMatrix44(dsMatrix44d* result, const dsQuaternion4d* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_ALWAYS_FMA
+	dsQuaternion4d_toMatrix44FMA2(result, a);
+#else
+	dsQuaternion4d_toMatrix44SIMD2(result, a);
+#endif
+#else
+	dsQuaternion4_toMatrixImpl(*result, *a);
+	result->values[0][3] = 0.0;
+	result->values[1][3] = 0.0;
+	result->values[2][3] = 0.0;
+
+	result->values[3][0] = 0.0;
+	result->values[3][1] = 0.0;
+	result->values[3][2] = 0.0;
+	result->values[3][3] = 1.0;
+#endif
+}
+
 inline void dsQuaternion4f_normalize(dsQuaternion4f* result, const dsQuaternion4f* a)
 {
 	DS_ASSERT(result);
@@ -827,6 +1157,8 @@ inline void dsQuaternion4d_rotate3x(
 
 #undef dsQuaternion4_mulVecQuatConj
 #undef dsQuaternion4_mulToVector
+#undef dsQuaternion4_fromMatrixImpl
+#undef dsQuaternion4_toMatrixImpl
 
 #if DS_HAS_SIMD
 
@@ -847,7 +1179,40 @@ inline void dsQuaternion4d_rotate3x(
 		(a2011) = _mm_shuffle_ps((a), (a), _MM_SHUFFLE(1, 1, 0, 2)); \
 		(a1202) = _mm_shuffle_ps((a), (a), _MM_SHUFFLE(2, 0, 2, 1)); \
 	} while (0)
-#elif DS_ARM_32
+
+#define DS_SIMD_SHUFFLE_001_102_103_110_223_231_320_321( \
+		a001, a102, a103, a110, a223, a231, a320, a321, a) \
+	do \
+	{ \
+		(a001) = _mm_shuffle_ps((a), (a), _MM_SHUFFLE(3, 1, 0, 0)); \
+		(a102) = _mm_shuffle_ps((a), (a), _MM_SHUFFLE(3, 2, 0, 1)); \
+		(a103) = _mm_shuffle_ps((a), (a), _MM_SHUFFLE(3, 3, 0, 1)); \
+		(a110) = _mm_shuffle_ps((a), (a), _MM_SHUFFLE(3, 0, 1, 1)); \
+		(a223) = _mm_shuffle_ps((a), (a), _MM_SHUFFLE(3, 3, 2, 2)); \
+		(a231) = _mm_shuffle_ps((a), (a), _MM_SHUFFLE(3, 1, 3, 2)); \
+		(a320) = _mm_shuffle_ps((a), (a), _MM_SHUFFLE(3, 0, 2, 3)); \
+		(a321) = _mm_shuffle_ps((a), (a), _MM_SHUFFLE(3, 1, 2, 3)); \
+	} while (0)
+#elif DS_ARM
+#define DS_SIMD_SHUFFLE_001_102_103_110_223_231_320_321( \
+		a001, a102, a103, a110, a223, a231, a320, a321, a) \
+	do \
+	{ \
+		float32x2_t _a01 = vget_low_f32((a)); \
+		float32x2_t _a23 = vget_high_f32((a)); \
+		float32x2_t _a10 = vrev64_f32(_a01); \
+		float32x2_t _a32 = vrev64_f32(_a23); \
+		(a001) = vcombine_f32(vdup_lane_f32(_a01, 0), _a10); \
+		(a102) = vcombine_f32(_a10, _a23); \
+		(a103) = vcombine_f32(_a10, _a32); \
+		(a110) = vcombine_f32(vdup_lane_f32(_a01, 1), _a01); \
+		(a223) = vcombine_f32(vdup_lane_f32(_a23, 0), _a32); \
+		(a231) = vcombine_f32(_a23, _a10); \
+		(a320) = vcombine_f32(_a32, _a01); \
+		(a321) = vcombine_f32(_a32, _a10); \
+	} while (0)
+
+#if DS_ARM_32
 #define DS_SIMD_SHUFFLE_0120_1201_2012(a0120, a1201, a2012, a) \
 	do \
 	{ \
@@ -870,7 +1235,7 @@ inline void dsQuaternion4d_rotate3x(
 		(a2011) = vcombine_f32(_a2031.val[0], vdup_lane_f32(_a01, 1)); \
 		(a1202) = vcombine_f32(vext_f32(_a01, _a23, 1), vrev64_f32(_a2031.val[0])); \
 	} while (0)
-#elif DS_ARM_64
+#else
 #define DS_SIMD_SHUFFLE_0120_1201_2012(a0120, a1201, a2012, a) \
 	do \
 	{ \
@@ -893,6 +1258,7 @@ inline void dsQuaternion4d_rotate3x(
 		(a2011) = vcombine_f32(vtrn1_f32(_a23, _a01), vdup_lane_f32(_a01, 1)); \
 		(a1202) = vcombine_f32(vext_f32(_a01, _a23, 1), vtrn1_f32(_a01, _a23)); \
 	} while (0)
+#endif
 #else
 #error Need to provide quaternion shuffling implementations for this platform.
 #endif
@@ -932,6 +1298,82 @@ inline void dsQuaternion4f_conjugateSIMD(dsQuaternion4f* result, const dsQuatern
 	DS_ASSERT(a);
 
 	result->simd = dsSIMD4f_negComponents(a->simd, 1, 1, 1, 0);
+}
+
+inline void dsQuaternion4f_toMatrix33SIMD(dsMatrix33xf* result, const dsQuaternion4f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+
+	dsSIMD4f a001, a102, a103, a110, a223, a231, a320, a321;
+	DS_SIMD_SHUFFLE_001_102_103_110_223_231_320_321(
+		a001, a102, a103, a110, a223, a231, a320, a321, a->simd);
+
+#if DS_SIMD_ALWAYS_INT
+	dsSIMD4fb neg0 = dsSIMD4fb_set4(0x80000000, 0, 0, 0);
+	dsSIMD4fb neg1 = dsSIMD4fb_set4(0, 0x80000000, 0, 0);
+	dsSIMD4fb neg2 = dsSIMD4fb_set4(0, 0, 0x80000000, 0);
+#else
+	static const DS_ALIGN(16) uint32_t neg0Val[4] = {0x80000000, 0, 0, 0};
+	static const DS_ALIGN(16) uint32_t neg1Val[4] = {0, 0x80000000, 0, 0};
+	static const DS_ALIGN(16) uint32_t neg2Val[4] = {0, 0, 0x80000000, 0};
+
+	dsSIMD4fb neg0 = dsSIMD4fb_load(neg0Val);
+	dsSIMD4fb neg1 = dsSIMD4fb_load(neg1Val);
+	dsSIMD4fb neg2 = dsSIMD4fb_load(neg2Val);
+#endif
+
+	dsSIMD4f one0 = dsSIMD4f_set4(1.0f, 0.0f, 0.0f, 0.0f);
+	dsSIMD4f one1 = dsSIMD4f_set4(0.0f, 1.0f, 0.0f, 0.0f);
+	dsSIMD4f one2 = dsSIMD4f_set4(0.0f, 0.0f, 1.0f, 0.0f);
+
+	dsSIMD4f col0 = dsSIMD4f_mul(a110, a102);
+	dsSIMD4f col1 = dsSIMD4fb_toFloatBitfield(
+		dsSIMD4fb_xor(dsSIMD4fb_fromFloatBitfield(dsSIMD4f_mul(a223, a231)), neg2));
+	dsSIMD4f col = dsSIMD4f_add(col0, col1);
+	col = dsSIMD4fb_toFloatBitfield(
+		dsSIMD4fb_xor(dsSIMD4fb_fromFloatBitfield(dsSIMD4f_add(col, col)), neg0));
+	result->columns[0].simd = dsSIMD4f_add(one0, col);
+
+	col0 = dsSIMD4f_mul(dsSIMD4f_set1FromVec(a->simd, 0), a103);
+	col1 = dsSIMD4fb_toFloatBitfield(dsSIMD4fb_xor(
+		dsSIMD4fb_fromFloatBitfield(dsSIMD4f_mul(dsSIMD4f_set1FromVec(a->simd, 2), a321)), neg0));
+	col = dsSIMD4f_add(col0, col1);
+	col = dsSIMD4fb_toFloatBitfield(
+		dsSIMD4fb_xor(dsSIMD4fb_fromFloatBitfield(dsSIMD4f_add(col, col)), neg1));
+	result->columns[1].simd = dsSIMD4f_add(one1, col);
+
+	col0 = dsSIMD4f_mul(a110, a320);
+	col1 = dsSIMD4fb_toFloatBitfield(
+		dsSIMD4fb_xor(dsSIMD4fb_fromFloatBitfield(dsSIMD4f_mul(a001, a231)), neg1));
+	col = dsSIMD4f_add(col0, col1);
+	col = dsSIMD4fb_toFloatBitfield(
+		dsSIMD4fb_xor(dsSIMD4fb_fromFloatBitfield(dsSIMD4f_add(col, col)), neg2));
+	result->columns[2].simd = dsSIMD4f_add(one2, col);
+}
+
+inline void dsQuaternion4f_toMatrix44SIMD(dsMatrix44f* result, const dsQuaternion4f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+
+	dsQuaternion4f_toMatrix33SIMD((dsMatrix33xf*)result, a);
+
+#if DS_SIMD_ALWAYS_INT
+	dsSIMD4fb mask = dsSIMD4fb_set4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0);
+#else
+	static const DS_ALIGN(16) uint32_t maskVal[4] = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0};
+
+	dsSIMD4fb mask = dsSIMD4fb_load(maskVal);
+#endif
+
+	result->columns[0].simd = dsSIMD4fb_toFloatBitfield(dsSIMD4fb_and(
+		dsSIMD4fb_fromFloatBitfield(result->columns[0].simd), mask));
+	result->columns[1].simd = dsSIMD4fb_toFloatBitfield(dsSIMD4fb_and(
+		dsSIMD4fb_fromFloatBitfield(result->columns[1].simd), mask));
+	result->columns[2].simd = dsSIMD4fb_toFloatBitfield(dsSIMD4fb_and(
+		dsSIMD4fb_fromFloatBitfield(result->columns[2].simd), mask));
+	result->columns[3].simd = dsSIMD4f_set4(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 inline void dsQuaternion4f_normalizeSIMD(dsQuaternion4f* result, const dsQuaternion4f* a)
@@ -1002,6 +1444,63 @@ inline void dsQuaternion4f_mulFMA(
 	result->simd = dsSIMD4f_fmadd(dsSIMD4f_set1FromVec(a->simd, 3), b->simd, t312);
 }
 
+inline void dsQuaternion4f_toMatrix33FMA(dsMatrix33xf* result, const dsQuaternion4f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+
+	dsSIMD4f a001, a102, a103, a110, a223, a231, a320, a321;
+	DS_SIMD_SHUFFLE_001_102_103_110_223_231_320_321(
+		a001, a102, a103, a110, a223, a231, a320, a321, a->simd);
+
+	dsSIMD4fb neg0 = dsSIMD4fb_set4(0x80000000, 0, 0, 0);
+	dsSIMD4fb neg1 = dsSIMD4fb_set4(0, 0x80000000, 0, 0);
+	dsSIMD4fb neg2 = dsSIMD4fb_set4(0, 0, 0x80000000, 0);
+
+	dsSIMD4f one0 = dsSIMD4f_set4(1.0f, 0.0f, 0.0f, 0.0f);
+	dsSIMD4f one1 = dsSIMD4f_set4(0.0f, 1.0f, 0.0f, 0.0f);
+	dsSIMD4f one2 = dsSIMD4f_set4(0.0f, 0.0f, 1.0f, 0.0f);
+
+	dsSIMD4f col1 = dsSIMD4fb_toFloatBitfield(
+		dsSIMD4fb_xor(dsSIMD4fb_fromFloatBitfield(dsSIMD4f_mul(a223, a231)), neg2));
+	dsSIMD4f col = dsSIMD4f_fmadd(a110, a102, col1);
+	col = dsSIMD4fb_toFloatBitfield(
+		dsSIMD4fb_xor(dsSIMD4fb_fromFloatBitfield(dsSIMD4f_add(col, col)), neg0));
+	result->columns[0].simd = dsSIMD4f_add(one0, col);
+
+	col1 = dsSIMD4fb_toFloatBitfield(dsSIMD4fb_xor(
+		dsSIMD4fb_fromFloatBitfield(dsSIMD4f_mul(dsSIMD4f_set1FromVec(a->simd, 2), a321)), neg0));
+	col = dsSIMD4f_fmadd(dsSIMD4f_set1FromVec(a->simd, 0), a103, col1);
+	col = dsSIMD4fb_toFloatBitfield(
+		dsSIMD4fb_xor(dsSIMD4fb_fromFloatBitfield(dsSIMD4f_add(col, col)), neg1));
+	result->columns[1].simd = dsSIMD4f_add(one1, col);
+
+	col1 = dsSIMD4fb_toFloatBitfield(
+		dsSIMD4fb_xor(dsSIMD4fb_fromFloatBitfield(dsSIMD4f_mul(a001, a231)), neg1));
+	col = dsSIMD4f_fmadd(a110, a320, col1);
+	col = dsSIMD4fb_toFloatBitfield(
+		dsSIMD4fb_xor(dsSIMD4fb_fromFloatBitfield(dsSIMD4f_add(col, col)), neg2));
+	result->columns[2].simd = dsSIMD4f_add(one2, col);
+}
+
+inline void dsQuaternion4f_toMatrix44FMA(dsMatrix44f* result, const dsQuaternion4f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+
+	dsQuaternion4f_toMatrix33FMA((dsMatrix33xf*)result, a);
+
+	dsSIMD4fb mask = dsSIMD4fb_set4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0);
+
+	result->columns[0].simd = dsSIMD4fb_toFloatBitfield(dsSIMD4fb_and(
+		dsSIMD4fb_fromFloatBitfield(result->columns[0].simd), mask));
+	result->columns[1].simd = dsSIMD4fb_toFloatBitfield(dsSIMD4fb_and(
+		dsSIMD4fb_fromFloatBitfield(result->columns[1].simd), mask));
+	result->columns[2].simd = dsSIMD4fb_toFloatBitfield(dsSIMD4fb_and(
+		dsSIMD4fb_fromFloatBitfield(result->columns[2].simd), mask));
+	result->columns[3].simd = dsSIMD4f_set4(0.0f, 0.0f, 0.0f, 1.0f);
+}
+
 inline void dsQuaternion4f_normalizeFMA(dsQuaternion4f* result, const dsQuaternion4f* a)
 {
 	DS_ASSERT(result);
@@ -1045,6 +1544,7 @@ DS_SIMD_END()
 
 #undef DS_SIMD_SHUFFLE_0120_1201_2012
 #undef DS_SIMD_SHUFFLE_3330_2011_1202
+#undef DS_SIMD_SHUFFLE_001_102_103_110_223_231_320_321
 
 /// @cond
 #if DS_X86
@@ -1061,6 +1561,12 @@ DS_SIMD_END()
 		(a30) = _mm_shuffle_pd((a).simd2[1], (a).simd2[0], _MM_SHUFFLE2(0, 1)); \
 		(a02) = _mm_shuffle_pd((a).simd2[0], (a).simd2[1], _MM_SHUFFLE2(0, 0)); \
 	} while (0)
+
+#define DS_SIMD_SHUFFLE_10(a10, a) \
+	do \
+	{ \
+		(a10) = _mm_shuffle_pd((a), (a), _MM_SHUFFLE2(0, 1)); \
+	} while (0)
 #elif DS_ARM_64
 #define DS_SIMD_SHUFFLE_20_12(a20, a12, a) \
 	do \
@@ -1075,6 +1581,12 @@ DS_SIMD_END()
 		(a30) = vextq_f64((a).simd2[1], (a).simd2[0], 1); \
 		(a02) = vtrn1q_f64((a).simd2[0], (a).simd2[1]); \
 	} while (0)
+
+#define DS_SIMD_SHUFFLE_10(a10, a) \
+	do \
+	{ \
+		(a10) = vextq_f64((a), (a), 1); \
+	} while (0)
 #else
 #define DS_SIMD_SHUFFLE_20_12(a20, a12, a) \
 	do \
@@ -1088,6 +1600,12 @@ DS_SIMD_END()
 	{ \
 		(a30) = (a).simd2[0]; \
 		(a02) = (a).simd2[1]; \
+	} while (0)
+
+#define DS_SIMD_SHUFFLE_10(a10, a) \
+	do \
+	{ \
+		(a10) = a; \
 	} while (0)
 #endif
 /// @endcond
@@ -1136,6 +1654,81 @@ inline void dsQuaternion4d_conjugateSIMD2(dsQuaternion4d* result, const dsQuater
 
 	result->simd2[0] = dsSIMD2d_neg(a->simd2[0]);
 	result->simd2[1] = dsSIMD2d_negComponents(a->simd2[1], 1, 0);
+}
+
+inline void dsQuaternion4d_toMatrix33SIMD2(dsMatrix33xd* result, const dsQuaternion4d* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+
+	dsSIMD2d a10, a32;
+	DS_SIMD_SHUFFLE_10(a10, a->simd2[0]);
+	DS_SIMD_SHUFFLE_10(a32, a->simd2[1]);
+
+	dsSIMD2d a00 = dsSIMD2d_set1FromVec(a->simd2[0], 0);
+	dsSIMD2d a11 = dsSIMD2d_set1FromVec(a->simd2[0], 1);
+	dsSIMD2d a22 = dsSIMD2d_set1FromVec(a->simd2[1], 0);
+
+	dsSIMD2db neg0 = dsSIMD2db_set2(0x8000000000000000ULL, 0);
+	dsSIMD2db neg1 = dsSIMD2db_set2(0, 0x8000000000000000ULL);
+
+	dsSIMD2d one0 = dsSIMD2d_set2(1.0, 0.0);
+	dsSIMD2d one1 = dsSIMD2d_set2(0.0, 1.0);
+
+	dsSIMD2d col00 = dsSIMD2d_mul(a11, a10);
+	dsSIMD2d col01 = dsSIMD2d_mul(a->simd2[0], a->simd2[1]);
+	dsSIMD2d col10 = dsSIMD2d_mul(a22, a->simd2[1]);
+	dsSIMD2d col11 = dsSIMD2db_toDoubleBitfield(
+		dsSIMD2db_xor(dsSIMD2db_fromDoubleBitfield(dsSIMD2d_mul(a32, a10)), neg0));
+	dsSIMD2d col0 = dsSIMD2d_add(col00, col10);
+	dsSIMD2d col1 = dsSIMD2d_add(col01, col11);
+	col0 = dsSIMD2db_toDoubleBitfield(
+		dsSIMD2db_xor(dsSIMD2db_fromDoubleBitfield(dsSIMD2d_add(col0, col0)), neg0));
+	result->columns[0].simd2[0] = dsSIMD2d_add(one0, col0);
+	result->columns[0].simd2[1] = dsSIMD2d_add(col1, col1);
+
+	col00 = dsSIMD2d_mul(a00, a10);
+	col01 = dsSIMD2d_mul(a00, a32);
+	col10 = dsSIMD2db_toDoubleBitfield(dsSIMD2db_xor(
+		dsSIMD2db_fromDoubleBitfield(dsSIMD2d_mul(a22, a32)), neg0));
+	col11 = dsSIMD2d_mul(a22, a10);
+	col0 = dsSIMD2d_add(col00, col10);
+	col1 = dsSIMD2d_add(col01, col11);
+	col0 = dsSIMD2db_toDoubleBitfield(
+		dsSIMD2db_xor(dsSIMD2db_fromDoubleBitfield(dsSIMD2d_add(col0, col0)), neg1));
+	result->columns[1].simd2[0] = dsSIMD2d_add(one1, col0);
+	result->columns[1].simd2[1] = dsSIMD2d_add(col1, col1);
+
+	col00 = dsSIMD2d_mul(a11, a32);
+	col01 = dsSIMD2d_mul(a->simd2[0], a->simd2[0]);
+	col10 = dsSIMD2db_toDoubleBitfield(dsSIMD2db_xor(
+		dsSIMD2db_fromDoubleBitfield(dsSIMD2d_mul(a00, a->simd2[1])), neg1));
+	col11 = dsSIMD2d_mul(a10, a10);
+	col0 = dsSIMD2d_add(col00, col10);
+	col1 = dsSIMD2d_add(col01, col11);
+	col1 = dsSIMD2db_toDoubleBitfield(
+		dsSIMD2db_xor(dsSIMD2db_fromDoubleBitfield(dsSIMD2d_add(col1, col1)), neg0));
+	result->columns[2].simd2[0] = dsSIMD2d_add(col0, col0);
+	result->columns[2].simd2[1] = dsSIMD2d_add(one0, col1);
+}
+
+inline void dsQuaternion4d_toMatrix44SIMD2(dsMatrix44d* result, const dsQuaternion4d* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+
+	dsQuaternion4d_toMatrix33SIMD2((dsMatrix33xd*)result, a);
+
+	dsSIMD2db mask = dsSIMD2db_set2(0xFFFFFFFFFFFFFFFFULL, 0);
+
+	result->columns[0].simd2[1] = dsSIMD2db_toDoubleBitfield(dsSIMD2db_and(
+		dsSIMD2db_fromDoubleBitfield(result->columns[0].simd2[1]), mask));
+	result->columns[1].simd2[1] = dsSIMD2db_toDoubleBitfield(dsSIMD2db_and(
+		dsSIMD2db_fromDoubleBitfield(result->columns[1].simd2[1]), mask));
+	result->columns[2].simd2[1] = dsSIMD2db_toDoubleBitfield(dsSIMD2db_and(
+		dsSIMD2db_fromDoubleBitfield(result->columns[2].simd2[1]), mask));
+	result->columns[3].simd2[0] = dsSIMD2d_set1(0.0);
+	result->columns[3].simd2[1] = dsSIMD2d_set2(0.0, 1.0);
 }
 
 inline void dsQuaternion4d_normalizeSIMD2(dsQuaternion4d* result, const dsQuaternion4d* a)
@@ -1217,6 +1810,75 @@ inline void dsQuaternion4d_mulFMA2(
 	result->simd2[1] = dsSIMD2d_fmadd(a33, b->simd2[1], t312_1);
 }
 
+inline void dsQuaternion4d_toMatrix33FMA2(dsMatrix33xd* result, const dsQuaternion4d* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+
+	dsSIMD2d a10, a32;
+	DS_SIMD_SHUFFLE_10(a10, a->simd2[0]);
+	DS_SIMD_SHUFFLE_10(a32, a->simd2[1]);
+
+	dsSIMD2d a00 = dsSIMD2d_set1FromVec(a->simd2[0], 0);
+	dsSIMD2d a11 = dsSIMD2d_set1FromVec(a->simd2[0], 1);
+	dsSIMD2d a22 = dsSIMD2d_set1FromVec(a->simd2[1], 0);
+
+	dsSIMD2db neg0 = dsSIMD2db_set2(0x8000000000000000ULL, 0);
+	dsSIMD2db neg1 = dsSIMD2db_set2(0, 0x8000000000000000ULL);
+
+	dsSIMD2d one0 = dsSIMD2d_set2(1.0, 0.0);
+	dsSIMD2d one1 = dsSIMD2d_set2(0.0, 1.0);
+
+	dsSIMD2d col10 = dsSIMD2d_mul(a22, a->simd2[1]);
+	dsSIMD2d col11 = dsSIMD2db_toDoubleBitfield(
+		dsSIMD2db_xor(dsSIMD2db_fromDoubleBitfield(dsSIMD2d_mul(a32, a10)), neg0));
+	dsSIMD2d col0 = dsSIMD2d_fmadd(a11, a10, col10);
+	dsSIMD2d col1 = dsSIMD2d_fmadd(a->simd2[0], a->simd2[1], col11);
+	col0 = dsSIMD2db_toDoubleBitfield(
+		dsSIMD2db_xor(dsSIMD2db_fromDoubleBitfield(dsSIMD2d_add(col0, col0)), neg0));
+	result->columns[0].simd2[0] = dsSIMD2d_add(one0, col0);
+	result->columns[0].simd2[1] = dsSIMD2d_add(col1, col1);
+
+	col10 = dsSIMD2db_toDoubleBitfield(dsSIMD2db_xor(
+		dsSIMD2db_fromDoubleBitfield(dsSIMD2d_mul(a22, a32)), neg0));
+	col11 = dsSIMD2d_mul(a22, a10);
+	col0 = dsSIMD2d_fmadd(a00, a10, col10);
+	col1 = dsSIMD2d_fmadd(a00, a32, col11);
+	col0 = dsSIMD2db_toDoubleBitfield(
+		dsSIMD2db_xor(dsSIMD2db_fromDoubleBitfield(dsSIMD2d_add(col0, col0)), neg1));
+	result->columns[1].simd2[0] = dsSIMD2d_add(one1, col0);
+	result->columns[1].simd2[1] = dsSIMD2d_add(col1, col1);
+
+	col10 = dsSIMD2db_toDoubleBitfield(dsSIMD2db_xor(
+		dsSIMD2db_fromDoubleBitfield(dsSIMD2d_mul(a00, a->simd2[1])), neg1));
+	col11 = dsSIMD2d_mul(a10, a10);
+	col0 = dsSIMD2d_fmadd(a11, a32, col10);
+	col1 = dsSIMD2d_fmadd(a->simd2[0], a->simd2[0], col11);
+	col1 = dsSIMD2db_toDoubleBitfield(
+		dsSIMD2db_xor(dsSIMD2db_fromDoubleBitfield(dsSIMD2d_add(col1, col1)), neg0));
+	result->columns[2].simd2[0] = dsSIMD2d_add(col0, col0);
+	result->columns[2].simd2[1] = dsSIMD2d_add(one0, col1);
+}
+
+inline void dsQuaternion4d_toMatrix44FMA2(dsMatrix44d* result, const dsQuaternion4d* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+
+	dsQuaternion4d_toMatrix33FMA2((dsMatrix33xd*)result, a);
+
+	dsSIMD2db mask = dsSIMD2db_set2(0xFFFFFFFFFFFFFFFFULL, 0);
+
+	result->columns[0].simd2[1] = dsSIMD2db_toDoubleBitfield(dsSIMD2db_and(
+		dsSIMD2db_fromDoubleBitfield(result->columns[0].simd2[1]), mask));
+	result->columns[1].simd2[1] = dsSIMD2db_toDoubleBitfield(dsSIMD2db_and(
+		dsSIMD2db_fromDoubleBitfield(result->columns[1].simd2[1]), mask));
+	result->columns[2].simd2[1] = dsSIMD2db_toDoubleBitfield(dsSIMD2db_and(
+		dsSIMD2db_fromDoubleBitfield(result->columns[2].simd2[1]), mask));
+	result->columns[3].simd2[0] = dsSIMD2d_set1(0.0);
+	result->columns[3].simd2[1] = dsSIMD2d_set2(0.0, 1.0);
+}
+
 inline void dsQuaternion4d_normalizeFMA2(dsQuaternion4d* result, const dsQuaternion4d* a)
 {
 	DS_ASSERT(result);
@@ -1262,6 +1924,7 @@ DS_SIMD_END()
 
 #undef DS_SIMD_SHUFFLE_20_12
 #undef DS_SIMD_SHUFFLE_30_02
+#undef DS_SIMD_SHUFFLE_10
 
 /// @cond
 #if DS_X86
@@ -1280,6 +1943,20 @@ DS_SIMD_END()
 		(a2011) = _mm256_permute4x64_pd((a), _MM_SHUFFLE(1, 1, 0, 2)); \
 		(a1202) = _mm256_permute4x64_pd((a), _MM_SHUFFLE(2, 0, 2, 1)); \
 	} while (0)
+
+#define DS_SIMD_SHUFFLE_001_102_103_110_223_231_320_321( \
+		a001, a102, a103, a110, a223, a231, a320, a321, a) \
+	do \
+	{ \
+		(a001) = _mm256_permute4x64_pd((a), _MM_SHUFFLE(3, 1, 0, 0)); \
+		(a102) = _mm256_permute4x64_pd((a), _MM_SHUFFLE(3, 2, 0, 1)); \
+		(a103) = _mm256_permute4x64_pd((a), _MM_SHUFFLE(3, 3, 0, 1)); \
+		(a110) = _mm256_permute4x64_pd((a), _MM_SHUFFLE(3, 0, 1, 1)); \
+		(a223) = _mm256_permute4x64_pd((a), _MM_SHUFFLE(3, 3, 2, 2)); \
+		(a231) = _mm256_permute4x64_pd((a), _MM_SHUFFLE(3, 1, 3, 2)); \
+		(a320) = _mm256_permute4x64_pd((a), _MM_SHUFFLE(3, 0, 2, 3)); \
+		(a321) = _mm256_permute4x64_pd((a), _MM_SHUFFLE(3, 1, 2, 3)); \
+	} while (0)
 #else
 #define DS_SIMD_SHUFFLE_0120_1201_2012(a0120, a1201, a2012, a) \
 	do \
@@ -1295,6 +1972,20 @@ DS_SIMD_END()
 		(a3330) = (a); \
 		(a2011) = (a); \
 		(a1202) = (a); \
+	} while (0)
+
+#define DS_SIMD_SHUFFLE_001_102_103_110_223_231_320_321( \
+		a001, a102, a103, a110, a223, a231, a320, a321, a) \
+	do \
+	{ \
+		(a001) = (a); \
+		(a102) = (a); \
+		(a103) = (a); \
+		(a110) = (a); \
+		(a223) = (a); \
+		(a231) = (a); \
+		(a320) = (a); \
+		(a321) = (a); \
 	} while (0)
 #endif
 /// @endcond
@@ -1349,6 +2040,80 @@ inline void dsQuaternion4d_conjugateSIMD4(
 	dsSIMD4d_store(result, dsSIMD4d_negComponents(simdA, 1, 1, 1, 0));
 }
 
+inline void dsQuaternion4d_toMatrix33SIMD4(
+	dsMatrix33xd* DS_ALIGN_PARAM(32) result, const dsQuaternion4d* DS_ALIGN_PARAM(32) a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+
+	dsSIMD4d simdA = dsSIMD4d_load(a);
+
+	dsSIMD4d a001, a102, a103, a110, a223, a231, a320, a321;
+	DS_SIMD_SHUFFLE_001_102_103_110_223_231_320_321(
+		a001, a102, a103, a110, a223, a231, a320, a321, simdA);
+
+	dsSIMD4db neg0 = dsSIMD4db_set4(0x8000000000000000ULL, 0, 0, 0);
+	dsSIMD4db neg1 = dsSIMD4db_set4(0, 0x8000000000000000ULL, 0, 0);
+	dsSIMD4db neg2 = dsSIMD4db_set4(0, 0, 0x8000000000000000ULL, 0);
+
+	dsSIMD4d one0 = dsSIMD4d_set4(1.0, 0.0, 0.0, 0.0);
+	dsSIMD4d one1 = dsSIMD4d_set4(0.0, 1.0, 0.0, 0.0);
+	dsSIMD4d one2 = dsSIMD4d_set4(0.0, 0.0, 1.0, 0.0);
+
+	dsSIMD4d col1 = dsSIMD4db_toDoubleBitfield(
+		dsSIMD4db_xor(dsSIMD4db_fromDoubleBitfield(dsSIMD4d_mul(a223, a231)), neg2));
+#if DS_SIMD_ALWAYS_FMA
+	dsSIMD4d col = dsSIMD4d_fmadd(a110, a102, col1);
+#else
+	dsSIMD4d col = dsSIMD4d_add(dsSIMD4d_mul(a110, a102), col1);
+#endif
+	col = dsSIMD4db_toDoubleBitfield(
+		dsSIMD4db_xor(dsSIMD4db_fromDoubleBitfield(dsSIMD4d_add(col, col)), neg0));
+	dsSIMD4d_store(result->columns, dsSIMD4d_add(one0, col));
+
+	col1 = dsSIMD4db_toDoubleBitfield(dsSIMD4db_xor(
+		dsSIMD4db_fromDoubleBitfield(dsSIMD4d_mul(dsSIMD4d_set1FromVec(simdA, 2), a321)), neg0));
+#if DS_SIMD_ALWAYS_FMA
+	col = dsSIMD4d_fmadd(dsSIMD4d_set1FromVec(simdA, 0), a103, col1);
+#else
+	col = dsSIMD4d_add(dsSIMD4d_mul(dsSIMD4d_set1FromVec(simdA, 0), a103), col1);
+#endif
+	col = dsSIMD4db_toDoubleBitfield(
+		dsSIMD4db_xor(dsSIMD4db_fromDoubleBitfield(dsSIMD4d_add(col, col)), neg1));
+	dsSIMD4d_store(result->columns + 1, dsSIMD4d_add(one1, col));
+
+	col1 = dsSIMD4db_toDoubleBitfield(
+		dsSIMD4db_xor(dsSIMD4db_fromDoubleBitfield(dsSIMD4d_mul(a001, a231)), neg1));
+#if DS_SIMD_ALWAYS_FMA
+	col = dsSIMD4d_fmadd(a110, a320, col1);
+#else
+	col = dsSIMD4d_add(dsSIMD4d_mul(a110, a320), col1);
+#endif
+	col = dsSIMD4db_toDoubleBitfield(
+		dsSIMD4db_xor(dsSIMD4db_fromDoubleBitfield(dsSIMD4d_add(col, col)), neg2));
+	dsSIMD4d_store(result->columns + 2, dsSIMD4d_add(one2, col));
+}
+
+inline void dsQuaternion4d_toMatrix44SIMD4(
+	dsMatrix44d* DS_ALIGN_PARAM(32) result, const dsQuaternion4d* DS_ALIGN_PARAM(32) a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+
+	dsQuaternion4d_toMatrix33SIMD4((dsMatrix33xd*)result, a);
+
+	dsSIMD4db mask = dsSIMD4db_set4(
+		0xFFFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL, 0);
+
+	dsSIMD4d_store(result->columns, dsSIMD4db_toDoubleBitfield(dsSIMD4db_and(
+		dsSIMD4db_fromDoubleBitfield(dsSIMD4d_load(result->columns)), mask)));
+	dsSIMD4d_store(result->columns + 1, dsSIMD4db_toDoubleBitfield(dsSIMD4db_and(
+		dsSIMD4db_fromDoubleBitfield(dsSIMD4d_load(result->columns + 1)), mask)));
+	dsSIMD4d_store(result->columns + 2, dsSIMD4db_toDoubleBitfield(dsSIMD4db_and(
+		dsSIMD4db_fromDoubleBitfield(dsSIMD4d_load(result->columns + 2)), mask)));
+	dsSIMD4d_store(result->columns + 3, dsSIMD4d_set4(0.0, 0.0, 0.0, 1.0));
+}
+
 inline void dsQuaternion4d_normalizeSIMD4(
 	dsQuaternion4d* DS_ALIGN_PARAM(32) result, const dsQuaternion4d* DS_ALIGN_PARAM(32) a)
 {
@@ -1401,6 +2166,7 @@ DS_SIMD_END()
 
 #undef DS_SIMD_SHUFFLE_0120_1201_2012
 #undef DS_SIMD_SHUFFLE_3330_2011_1202
+#undef DS_SIMD_SHUFFLE_001_102_103_110_223_231_320_321
 
 #endif // DS_HAS_SIMD
 

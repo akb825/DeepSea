@@ -1483,7 +1483,9 @@ inline void dsMatrix44d_decomposeTransform(dsVector3xd* outPosition,
 inline void dsMatrix44f_composeTransform(dsMatrix44f* result,
 	const dsVector3xf* position, const dsQuaternion4f* orientation, const dsVector3xf* scale)
 {
-#if DS_SIMD_ALWAYS_FLOAT4
+#if DS_SIMD_ALWAYS_FMA
+	dsMatrix44f_composeTransformFMA(result, position, orientation, scale);
+#elif DS_SIMD_ALWAYS_FLOAT4
 	dsMatrix44f_composeTransformSIMD(result, position, orientation, scale);
 #else
 	dsMatrix44f_composeTransformScalar(result, position, orientation, scale);
@@ -1494,7 +1496,11 @@ inline void dsMatrix44d_composeTransform(dsMatrix44d* result,
 	const dsVector3xd* position, const dsQuaternion4d* orientation, const dsVector3xd* scale)
 {
 #if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_ALWAYS_FMA
+	dsMatrix44d_composeTransformFMA2(result, position, orientation, scale);
+#else
 	dsMatrix44d_composeTransformSIMD2(result, position, orientation, scale);
+#endif
 #else
 	dsMatrix44d_composeTransformScalar(result, position, orientation, scale);
 #endif

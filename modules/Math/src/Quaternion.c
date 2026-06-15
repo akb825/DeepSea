@@ -27,33 +27,6 @@
 	} \
 	while (0)
 
-#define dsQuaternion4_fromMatrixImpl(result, matrix, w, inv4w) \
-	do \
-	{ \
-		(result).values[0] = ((matrix).values[1][2] - (matrix).values[2][1])*inv4w; \
-		(result).values[1] = ((matrix).values[2][0] - (matrix).values[0][2])*inv4w; \
-		(result).values[2] = ((matrix).values[0][1] - (matrix).values[1][0])*inv4w; \
-		(result).values[3] = w; \
-	} \
-	while (0)
-
-#define dsQuaternion4_toMatrixImpl(result, a) \
-	do \
-	{ \
-		(result).values[0][0] = 1 - 2*(dsPow2((a).values[1]) + dsPow2((a).values[2])); \
-		(result).values[0][1] = 2*((a).values[0]*(a).values[1] + (a).values[3]*(a).values[2]); \
-		(result).values[0][2] = 2*((a).values[0]*(a).values[2] - (a).values[3]*(a).values[1]); \
-		\
-		(result).values[1][0] = 2*((a).values[0]*(a).values[1] - (a).values[3]*(a).values[2]); \
-		(result).values[1][1] = 1 - 2*(dsPow2((a).values[0]) + dsPow2((a).values[2])); \
-		(result).values[1][2] = 2*((a).values[3]*(a).values[0] + (a).values[1]*(a).values[2]); \
-		\
-		(result).values[2][0] = 2*((a).values[3]*(a).values[1] + (a).values[0]*(a).values[2]); \
-		(result).values[2][1] = 2*((a).values[1]*(a).values[2] - (a).values[3]*(a).values[0]); \
-		(result).values[2][2] = 1 - 2*(dsPow2((a).values[0]) + dsPow2((a).values[1])); \
-	} \
-	while (0)
-
 void dsQuaternion4f_fromEulerAngles(dsQuaternion4f* result, float x, float y, float z)
 {
 	DS_ASSERT(result);
@@ -104,168 +77,6 @@ void dsQuaternion4d_fromEulerAngles(dsQuaternion4d* result, double x, double y, 
 
 	dsQuaternion4_fromEulerAnglesImpl(
 		*result, cosAngles.x, sinAngles.x, cosAngles.y, sinAngles.y, cosAngles.z, sinAngles.z);
-}
-
-void dsQuaternion4f_fromAxisAngle(
-	dsQuaternion4f* result, const dsVector3f* axis, float angle)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(axis);
-
-	float sinAngle, cosAngle;
-	dsSinCosf(&sinAngle, &cosAngle, angle*0.5f);
-
-	result->i = axis->x*sinAngle;
-	result->j = axis->y*sinAngle;
-	result->k = axis->z*sinAngle;
-	result->r = cosAngle;
-}
-
-void dsQuaternion4d_fromAxisAngle(
-	dsQuaternion4d* result, const dsVector3d* axis, double angle)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(axis);
-
-	double sinAngle, cosAngle;
-	dsSinCosd(&sinAngle, &cosAngle, angle*0.5);
-
-	result->i = axis->x*sinAngle;
-	result->j = axis->y*sinAngle;
-	result->k = axis->z*sinAngle;
-	result->r = cosAngle;
-}
-
-void dsQuaternion4f_fromMatrix33(dsQuaternion4f* result, const dsMatrix33f* matrix)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(matrix);
-
-	float w = dsSqrtf(
-		1.0f + matrix->values[0][0] + matrix->values[1][1] + matrix->values[2][2])/2.0f;
-	float inv4w = 1.0f/(4.0f*w);
-	dsQuaternion4_fromMatrixImpl(*result, *matrix, w, inv4w);
-}
-
-void dsQuaternion4d_fromMatrix33(dsQuaternion4d* result, const dsMatrix33d* matrix)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(matrix);
-
-	double w = dsSqrtd(
-		1.0 + matrix->values[0][0] + matrix->values[1][1] + matrix->values[2][2])/2.0;
-	double inv4w = 1.0/(4.0*w);
-	dsQuaternion4_fromMatrixImpl(*result, *matrix, w, inv4w);
-}
-
-void dsQuaternion4f_fromMatrix33x(dsQuaternion4f* result, const dsMatrix33xf* matrix)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(matrix);
-
-	float w = dsSqrtf(
-		1.0f + matrix->values[0][0] + matrix->values[1][1] + matrix->values[2][2])/2.0f;
-	float inv4w = 1.0f/(4.0f*w);
-	dsQuaternion4_fromMatrixImpl(*result, *matrix, w, inv4w);
-}
-
-void dsQuaternion4d_fromMatrix33x(dsQuaternion4d* result, const dsMatrix33xd* matrix)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(matrix);
-
-	double w = dsSqrtd(
-		1.0 + matrix->values[0][0] + matrix->values[1][1] + matrix->values[2][2])/2.0;
-	double inv4w = 1.0/(4.0*w);
-	dsQuaternion4_fromMatrixImpl(*result, *matrix, w, inv4w);
-}
-
-void dsQuaternion4f_fromMatrix44(dsQuaternion4f* result, const dsMatrix44f* matrix)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(matrix);
-
-	float w = dsSqrtf(
-		1.0f + matrix->values[0][0] + matrix->values[1][1] + matrix->values[2][2])/2.0f;
-	float inv4w = 1.0f/(4.0f*w);
-	dsQuaternion4_fromMatrixImpl(*result, *matrix, w, inv4w);
-}
-
-void dsQuaternion4d_fromMatrix44(dsQuaternion4d* result, const dsMatrix44d* matrix)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(matrix);
-
-	double w = dsSqrtd(
-		1.0 + matrix->values[0][0] + matrix->values[1][1] + matrix->values[2][2])/2.0;
-	double inv4w = 1.0/(4.0*w);
-	dsQuaternion4_fromMatrixImpl(*result, *matrix, w, inv4w);
-}
-
-void dsQuaternion4f_toMatrix33(dsMatrix33f* result, const dsQuaternion4f* a)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(a);
-	dsQuaternion4_toMatrixImpl(*result, *a);
-}
-
-void dsQuaternion4d_toMatrix33(dsMatrix33d* result, const dsQuaternion4d* a)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(a);
-	dsQuaternion4_toMatrixImpl(*result, *a);
-}
-
-void dsQuaternion4f_toMatrix33x(dsMatrix33xf* result, const dsQuaternion4f* a)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(a);
-	dsQuaternion4_toMatrixImpl(*result, *a);
-	result->columns[0].w = 0.0f;
-	result->columns[1].w = 0.0f;
-	result->columns[2].w = 0.0f;
-}
-
-void dsQuaternion4d_toMatrix33x(dsMatrix33xd* result, const dsQuaternion4d* a)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(a);
-	dsQuaternion4_toMatrixImpl(*result, *a);
-	result->columns[0].w = 0.0;
-	result->columns[1].w = 0.0;
-	result->columns[2].w = 0.0;
-}
-
-void dsQuaternion4f_toMatrix44(dsMatrix44f* result, const dsQuaternion4f* a)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(a);
-
-	dsQuaternion4_toMatrixImpl(*result, *a);
-	result->values[0][3] = 0.0f;
-	result->values[1][3] = 0.0f;
-	result->values[2][3] = 0.0f;
-
-	result->values[3][0] = 0.0f;
-	result->values[3][1] = 0.0f;
-	result->values[3][2] = 0.0f;
-	result->values[3][3] = 1.0f;
-}
-
-void dsQuaternion4d_toMatrix44(dsMatrix44d* result, const dsQuaternion4d* a)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(a);
-
-	dsQuaternion4_toMatrixImpl(*result, *a);
-	result->values[0][3] = 0.0;
-	result->values[1][3] = 0.0;
-	result->values[2][3] = 0.0;
-
-	result->values[3][0] = 0.0;
-	result->values[3][1] = 0.0;
-	result->values[3][2] = 0.0;
-	result->values[3][3] = 1.0;
 }
 
 void dsQuaternion4f_slerp(
@@ -364,6 +175,18 @@ void dsQuaternion4d_slerp(
 #endif
 }
 
+void dsQuaternion4f_fromAxisAngle(dsQuaternion4f* result, const dsVector3f* axis, float angle);
+void dsQuaternion4d_fromAxisAngle(dsQuaternion4d* result, const dsVector3d* axis, double angle);
+
+void dsQuaternion4f_fromMatrix33(dsQuaternion4f* result, const dsMatrix33f* matrix);
+void dsQuaternion4d_fromMatrix33(dsQuaternion4d* result, const dsMatrix33d* matrix);
+
+void dsQuaternion4f_fromMatrix33x(dsQuaternion4f* result, const dsMatrix33xf* matrix);
+void dsQuaternion4d_fromMatrix33x(dsQuaternion4d* result, const dsMatrix33xd* matrix);
+
+void dsQuaternion4f_fromMatrix44(dsQuaternion4f* result, const dsMatrix44f* matrix);
+void dsQuaternion4d_fromMatrix44(dsQuaternion4d* result, const dsMatrix44d* matrix);
+
 float dsQuaternion4f_getXAngle(const dsQuaternion4f* a);
 double dsQuaternion4d_getXAngle(const dsQuaternion4d* a);
 
@@ -381,6 +204,15 @@ void dsQuaternion4d_getRotationAxis3x(dsVector3xd* result, const dsQuaternion4d*
 
 float dsQuaternion4f_getAxisAngle(const dsQuaternion4f* a);
 double dsQuaternion4d_getAxisAngle(const dsQuaternion4d* a);
+
+void dsQuaternion4f_toMatrix33(dsMatrix33f* result, const dsQuaternion4f* a);
+void dsQuaternion4d_toMatrix33(dsMatrix33d* result, const dsQuaternion4d* a);
+
+void dsQuaternion4f_toMatrix33x(dsMatrix33xf* result, const dsQuaternion4f* a);
+void dsQuaternion4d_toMatrix33x(dsMatrix33xd* result, const dsQuaternion4d* a);
+
+void dsQuaternion4f_toMatrix44(dsMatrix44f* result, const dsQuaternion4f* a);
+void dsQuaternion4d_toMatrix44(dsMatrix44d* result, const dsQuaternion4d* a);
 
 void dsQuaternion4f_normalize(dsQuaternion4f* result, const dsQuaternion4f* a);
 void dsQuaternion4d_normalize(dsQuaternion4d* result, const dsQuaternion4d* a);
@@ -402,12 +234,16 @@ void dsQuaternion4d_conjugate(dsQuaternion4d* result, const dsQuaternion4d* a);
 void dsQuaternion4f_mulSIMD(
 	dsQuaternion4f* result, const dsQuaternion4f* a, const dsQuaternion4f* b);
 void dsQuaternion4f_conjugateSIMD(dsQuaternion4f* result, const dsQuaternion4f* a);
+void dsQuaternion4f_toMatrix33SIMD(dsMatrix33xf* result, const dsQuaternion4f* a);
+void dsQuaternion4f_toMatrix44SIMD(dsMatrix44f* result, const dsQuaternion4f* a);
 void dsQuaternion4f_normalizeSIMD(dsQuaternion4f* result, const dsQuaternion4f* a);
 void dsQuaternion4f_rotateSIMD(dsVector3xf* result, const dsQuaternion4f* a, const dsVector3xf* v);
 
 #if !DS_DETERMINISTIC_MATH
 void dsQuaternion4f_mulFMA(
 	dsQuaternion4f* result, const dsQuaternion4f* a, const dsQuaternion4f* b);
+void dsQuaternion4f_toMatrix33FMA(dsMatrix33xf* result, const dsQuaternion4f* a);
+void dsQuaternion4f_toMatrix44FMA(dsMatrix44f* result, const dsQuaternion4f* a);
 void dsQuaternion4f_normalizeFMA(dsQuaternion4f* result, const dsQuaternion4f* a);
 void dsQuaternion4f_rotateFMA(dsVector3xf* result, const dsQuaternion4f* a, const dsVector3xf* v);
 #endif // !DS_DETERMINISTIC_MATH
@@ -415,12 +251,16 @@ void dsQuaternion4f_rotateFMA(dsVector3xf* result, const dsQuaternion4f* a, cons
 void dsQuaternion4d_mulSIMD2(
 	dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b);
 void dsQuaternion4d_conjugateSIMD2(dsQuaternion4d* result, const dsQuaternion4d* a);
+void dsQuaternion4d_toMatrix33SIMD2(dsMatrix33xd* result, const dsQuaternion4d* a);
+void dsQuaternion4d_toMatrix44SIMD2(dsMatrix44d* result, const dsQuaternion4d* a);
 void dsQuaternion4d_normalizeSIMD2(dsQuaternion4d* result, const dsQuaternion4d* a);
 void dsQuaternion4d_rotateSIMD2(dsVector3xd* result, const dsQuaternion4d* a, const dsVector3xd* v);
 
 #if !DS_DETERMINISTIC_MATH
 void dsQuaternion4d_mulFMA2(
 	dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b);
+void dsQuaternion4d_toMatrix33FMA2(dsMatrix33xd* result, const dsQuaternion4d* a);
+void dsQuaternion4d_toMatrix44FMA2(dsMatrix44d* result, const dsQuaternion4d* a);
 void dsQuaternion4d_normalizeFMA2(dsQuaternion4d* result, const dsQuaternion4d* a);
 void dsQuaternion4d_rotateFMA2(dsVector3xd* result, const dsQuaternion4d* a, const dsVector3xd* v);
 #endif // !DS_DETERMINISTIC_MATH
@@ -429,6 +269,10 @@ void dsQuaternion4d_mulSIMD4(dsQuaternion4d* DS_ALIGN_PARAM(32) result,
 	const dsQuaternion4d* DS_ALIGN_PARAM(32) a, const dsQuaternion4d* DS_ALIGN_PARAM(32) b);
 void dsQuaternion4d_conjugateSIMD4(
 	dsQuaternion4d* DS_ALIGN_PARAM(32) result, const dsQuaternion4d* DS_ALIGN_PARAM(32) a);
+void dsQuaternion4d_toMatrix33SIMD4(
+	dsMatrix33xd* DS_ALIGN_PARAM(32) result, const dsQuaternion4d* DS_ALIGN_PARAM(32) a);
+void dsQuaternion4d_toMatrix44SIMD4(
+	dsMatrix44d* DS_ALIGN_PARAM(32) result, const dsQuaternion4d* DS_ALIGN_PARAM(32) a);
 void dsQuaternion4d_normalizeSIMD4(
 	dsQuaternion4d* DS_ALIGN_PARAM(32) result, const dsQuaternion4d* DS_ALIGN_PARAM(32) a);
 void dsQuaternion4d_rotateSIMD4(dsVector3xd* DS_ALIGN_PARAM(32) result,

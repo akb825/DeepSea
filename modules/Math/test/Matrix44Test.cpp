@@ -4090,6 +4090,46 @@ TEST(Matrix44fTest, TransformCompisitionSIMD)
 	EXPECT_EQ_DETERMINISTIC(0.3f, extractedScale.z, epsilon);
 }
 
+#if !DS_DETERMINISTIC_MATH
+TEST(Matrix44fTest, TransformCompisitionFMA)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+		return;
+
+	const float epsilon = Matrix44TypeSelector<float>::epsilon;
+
+	dsVector3xf scale = {{0.1f, 0.2f, 0.3f}};
+	dsQuaternion4f rotate;
+	dsQuaternion4f_fromEulerAngles(&rotate, dsRadiansToDegreesf(-10.0f),
+		dsRadiansToDegreesf(15.0f), dsRadiansToDegreesf(-20.0f));
+	dsVector3xf translate = {{-10.0f, 20.0f, -30.0f, 1.0f}};
+
+	dsMatrix44f scalarTransform, transform;
+	dsMatrix44f_composeTransformScalar(&scalarTransform, &translate, &rotate, &scale);
+	dsMatrix44f_composeTransformFMA(&transform, &translate, &rotate, &scale);
+
+	EXPECT_NEAR(scalarTransform.values[0][0], transform.values[0][0], epsilon);
+	EXPECT_NEAR(scalarTransform.values[0][1], transform.values[0][1], epsilon);
+	EXPECT_NEAR(scalarTransform.values[0][2], transform.values[0][2], epsilon);
+	EXPECT_NEAR(scalarTransform.values[0][3], transform.values[0][3], epsilon);
+
+	EXPECT_NEAR(scalarTransform.values[1][0], transform.values[1][0], epsilon);
+	EXPECT_NEAR(scalarTransform.values[1][1], transform.values[1][1], epsilon);
+	EXPECT_NEAR(scalarTransform.values[1][2], transform.values[1][2], epsilon);
+	EXPECT_NEAR(scalarTransform.values[1][3], transform.values[1][3], epsilon);
+
+	EXPECT_NEAR(scalarTransform.values[2][0], transform.values[2][0], epsilon);
+	EXPECT_NEAR(scalarTransform.values[2][1], transform.values[2][1], epsilon);
+	EXPECT_NEAR(scalarTransform.values[2][2], transform.values[2][2], epsilon);
+	EXPECT_NEAR(scalarTransform.values[2][3], transform.values[2][3], epsilon);
+
+	EXPECT_NEAR(scalarTransform.values[3][0], transform.values[3][0], epsilon);
+	EXPECT_NEAR(scalarTransform.values[3][1], transform.values[3][1], epsilon);
+	EXPECT_NEAR(scalarTransform.values[3][2], transform.values[3][2], epsilon);
+	EXPECT_NEAR(scalarTransform.values[3][3], transform.values[3][3], epsilon);
+}
+#endif // !DS_DETERMINISTIC_MATH
+
 TEST(Matrix44dTest, TransformCompisitionSIMD2)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
@@ -4192,6 +4232,48 @@ TEST(Matrix44dTest, TransformCompisitionSIMD2)
 	EXPECT_EQ_DETERMINISTIC(0.19999999999999993, extractedScale.y, epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.3, extractedScale.z, epsilon);
 }
+
+#if !DS_DETERMINISTIC_MATH
+TEST(Matrix44dTest, TransformCompisitionFMA2)
+{
+	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
+	if ((dsHostSIMDFeatures & features) != features)
+		return;
+
+	const double epsilon = Matrix44TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
+
+	dsVector3xd scale = {{0.1, 0.2, 0.3}};
+	dsQuaternion4d rotate;
+	dsQuaternion4d_fromEulerAngles(&rotate, dsRadiansToDegrees(-10.0),
+		dsRadiansToDegrees(15.0), dsRadiansToDegrees(-20.0));
+	dsVector3xd translate = {{-10.0, 20.0, -30.0, 1.0}};
+
+	dsMatrix44d scalarTransform, transform;
+	dsMatrix44d_composeTransformScalar(&scalarTransform, &translate, &rotate, &scale);
+	dsMatrix44d_composeTransformFMA2(&transform, &translate, &rotate, &scale);
+
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[0][0], transform.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[0][1], transform.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[0][2], transform.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[0][3], transform.values[0][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[1][0], transform.values[1][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[1][1], transform.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[1][2], transform.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[1][3], transform.values[1][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[2][0], transform.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[2][1], transform.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[2][2], transform.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[2][3], transform.values[2][3], epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[3][0], transform.values[3][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[3][1], transform.values[3][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[3][2], transform.values[3][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransform.values[3][3], transform.values[3][3], epsilon);
+}
+#endif // !DS_DETERMINISTIC_MATH
 
 TEST(Matrix44dTest, TransformCompisitionSIMD4)
 {
@@ -4542,19 +4624,19 @@ TEST(Matrix44dTest, RigidLerpSIMD2)
 	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][2], result.values[3][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][3], result.values[3][3], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(-0.41492515979964029, result.values[0][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.35544613800623698, result.values[0][1], epsilon);
-	EXPECT_EQ_DETERMINISTIC(1.0543488060132971, result.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.41492515979964051, result.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.35544613800623714, result.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0543488060132973, result.values[0][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0, result.values[0][3], epsilon);
 
 	EXPECT_EQ_DETERMINISTIC(0.28868738522852538, result.values[1][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.81043791760409467, result.values[1][1], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.1596088196793421, result.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.810437917604095, result.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.15960881967934218, result.values[1][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0, result.values[1][3], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(0.49329018369232785, result.values[2][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.12892411213493082, result.values[2][1], epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.23759128347438654, result.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.49329018369232802, result.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.1289241121349308, result.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.23759128347438641, result.values[2][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0, result.values[2][3], epsilon);
 
 	EXPECT_EQ_DETERMINISTIC(1.25, result.values[3][0], epsilon);
@@ -4729,19 +4811,19 @@ TEST(Matrix44dTest, RigidLerpSIMD4)
 	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][2], result.values[3][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(scalarResult.values[3][3], result.values[3][3], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(-0.41492515979964029, result.values[0][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.35544613800623698, result.values[0][1], epsilon);
-	EXPECT_EQ_DETERMINISTIC(1.0543488060132971, result.values[0][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.41492515979964051, result.values[0][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.35544613800623714, result.values[0][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0543488060132973, result.values[0][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0, result.values[0][3], epsilon);
 
 	EXPECT_EQ_DETERMINISTIC(0.28868738522852538, result.values[1][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.81043791760409467, result.values[1][1], epsilon);
-	EXPECT_EQ_DETERMINISTIC(-0.1596088196793421, result.values[1][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.810437917604095, result.values[1][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.15960881967934218, result.values[1][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0, result.values[1][3], epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(0.49329018369232785, result.values[2][0], epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.12892411213493082, result.values[2][1], epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.23759128347438654, result.values[2][2], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.49329018369232802, result.values[2][0], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.1289241121349308, result.values[2][1], epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.23759128347438641, result.values[2][2], epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.0, result.values[2][3], epsilon);
 
 	EXPECT_EQ_DETERMINISTIC(1.25, result.values[3][0], epsilon);
