@@ -2703,191 +2703,898 @@ TEST(ExponentDoubleTest, FastPowSIMD4)
 #endif
 
 constexpr unsigned int performanceCount = 10000000;
+static std::hash<float> hasherf;
+static std::hash<double> hasherd;
+
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceStdLn(
+	float* results, const float* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::log(posX[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("std ln time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceStdLog2(
+	float* results, const float* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::log2(posX[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("std log2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceStdLog10(
+	float* results, const float* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::log10(posX[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("std log10 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceStdExp(
+	float* results, const float* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::exp(x[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("std exp time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceStdExp2(
+	float* results, const float* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::exp2(x[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("std exp2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceStdPow(
+	float* results, const float* x, const float* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::pow(posX[i], x[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("std pow time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceCustomLn(
+	float* results, const float* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsLn(posX[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom ln time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceCustomLog2(
+	float* results, const float* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsLog2(posX[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom log2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceCustomLog10(
+	float* results, const float* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsLog10(posX[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom log10 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceCustomExp(
+	float* results, const float* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsExp(x[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom exp time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceCustomExp2(
+	float* results, const float* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsExp2(x[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom exp2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceCustomExp10(
+	float* results, const float* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsExp10(x[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom exp10 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceCustomPow(
+	float* results, const float* x, const float* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsPow(posX[i], x[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom pow time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceFastPow(
+	float* results, const float* x, const float* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsFastPow(posX[i], x[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom fast pow time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
 #if DS_HAS_SIMD
 
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT,DS_SIMD_ROUNDING)
-static void ExponentFloatTest_PerformanceSIMD4f(std::vector<float>& results,
-	const std::vector<float>& x, const std::vector<float>& posX, std::size_t& hashValue,
-	dsTimer timer)
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceLnSIMD4f(
+	float* results, const float* posX, std::size_t& hashValue, dsTimer timer)
 {
-	std::hash<float> hasher;
-	printf("\n");
-
 	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; i += 4)
 	{
-		dsSIMD4f simdX = dsSIMD4f_load(posX.data() + i);
-		dsSIMD4f_store(results.data() + i, dsLnSIMD4f(simdX));
+		dsSIMD4f simdX = dsSIMD4f_load(posX + i);
+		dsSIMD4f_store(results + i, dsLnSIMD4f(simdX));
 	}
 	uint64_t end = dsTimer_currentTicks();
 	printf("custom ln SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceLog2SIMD4f(
+	float* results, const float* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; i += 4)
 	{
-		dsSIMD4f simdX = dsSIMD4f_load(posX.data() + i);
-		dsSIMD4f_store(results.data() + i, dsLog2SIMD4f(simdX));
+		dsSIMD4f simdX = dsSIMD4f_load(posX + i);
+		dsSIMD4f_store(results + i, dsLog2SIMD4f(simdX));
 	}
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("custom log2 SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceLog10SIMD4f(
+	float* results, const float* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; i += 4)
 	{
-		dsSIMD4f simdX = dsSIMD4f_load(posX.data() + i);
-		dsSIMD4f_store(results.data() + i, dsLog10SIMD4f(simdX));
+		dsSIMD4f simdX = dsSIMD4f_load(posX + i);
+		dsSIMD4f_store(results + i, dsLog10SIMD4f(simdX));
 	}
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("custom log10 SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceExpSIMD4f(
+	float* results, const float* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; i += 4)
 	{
-		dsSIMD4f simdX = dsSIMD4f_load(x.data() + i);
-		dsSIMD4f_store(results.data() + i, dsExpSIMD4f(simdX));
+		dsSIMD4f simdX = dsSIMD4f_load(x + i);
+		dsSIMD4f_store(results + i, dsExpSIMD4f(simdX));
 	}
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("custom exp SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceExp2SIMD4f(
+	float* results, const float* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; i += 4)
 	{
-		dsSIMD4f simdX = dsSIMD4f_load(x.data() + i);
-		dsSIMD4f_store(results.data() + i, dsExp2SIMD4f(simdX));
+		dsSIMD4f simdX = dsSIMD4f_load(x + i);
+		dsSIMD4f_store(results + i, dsExp2SIMD4f(simdX));
 	}
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("custom exp2 SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceExp10SIMD4f(
+	float* results, const float* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; i += 4)
 	{
-		dsSIMD4f simdX = dsSIMD4f_load(x.data() + i);
-		dsSIMD4f_store(results.data() + i, dsExp10SIMD4f(simdX));
+		dsSIMD4f simdX = dsSIMD4f_load(x + i);
+		dsSIMD4f_store(results + i, dsExp2SIMD4f(simdX));
 	}
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("custom exp10 SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void ExponentFloatTest_PerformancePowSIMD4f(
+	float* results, const float* x, const float* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; i += 4)
 	{
-		dsSIMD4f simdX = dsSIMD4f_load(posX.data() + i);
-		dsSIMD4f simdY = dsSIMD4f_load(x.data() + i);
-		dsSIMD4f_store(results.data() + i, dsFastPowSIMD4f(simdX, simdY));
+		dsSIMD4f simdX = dsSIMD4f_load(posX + i);
+		dsSIMD4f simdY = dsSIMD4f_load(x + i);
+		dsSIMD4f_store(results + i, dsFastPowSIMD4f(simdX, simdY));
 	}
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("custom fast pow SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
 }
 DS_SIMD_END()
 
 #if !DS_DETERMINISTIC_MATH
 
 DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT,DS_SIMD_ROUNDING,DS_SIMD_FMA)
-static void ExponentFloatTest_PerformanceFMA4f(std::vector<float>& results,
-	const std::vector<float>& x, const std::vector<float>& posX, std::size_t& hashValue,
-	dsTimer timer)
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceLnFMA4f(
+	float* results, const float* posX, std::size_t& hashValue, dsTimer timer)
 {
-	std::hash<float> hasher;
-	printf("\n");
-
 	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; i += 4)
 	{
-		dsSIMD4f simdX = dsSIMD4f_load(posX.data() + i);
-		dsSIMD4f_store(results.data() + i, dsLnFMA4f(simdX));
+		dsSIMD4f simdX = dsSIMD4f_load(posX + i);
+		dsSIMD4f_store(results + i, dsLnFMA4f(simdX));
 	}
 	uint64_t end = dsTimer_currentTicks();
 	printf("custom ln FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceLog2FMA4f(
+	float* results, const float* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; i += 4)
 	{
-		dsSIMD4f simdX = dsSIMD4f_load(posX.data() + i);
-		dsSIMD4f_store(results.data() + i, dsLog2FMA4f(simdX));
+		dsSIMD4f simdX = dsSIMD4f_load(posX + i);
+		dsSIMD4f_store(results + i, dsLog2FMA4f(simdX));
 	}
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("custom log2 FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceLog10FMA4f(
+	float* results, const float* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; i += 4)
 	{
-		dsSIMD4f simdX = dsSIMD4f_load(posX.data() + i);
-		dsSIMD4f_store(results.data() + i, dsLog10FMA4f(simdX));
+		dsSIMD4f simdX = dsSIMD4f_load(posX + i);
+		dsSIMD4f_store(results + i, dsLog10FMA4f(simdX));
 	}
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("custom log10 FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceExpFMA4f(
+	float* results, const float* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; i += 4)
 	{
-		dsSIMD4f simdX = dsSIMD4f_load(x.data() + i);
-		dsSIMD4f_store(results.data() + i, dsExpFMA4f(simdX));
+		dsSIMD4f simdX = dsSIMD4f_load(x + i);
+		dsSIMD4f_store(results + i, dsExpFMA4f(simdX));
 	}
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("custom exp FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceExp2FMA4f(
+	float* results, const float* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; i += 4)
 	{
-		dsSIMD4f simdX = dsSIMD4f_load(x.data() + i);
-		dsSIMD4f_store(results.data() + i, dsExp2FMA4f(simdX));
+		dsSIMD4f simdX = dsSIMD4f_load(x + i);
+		dsSIMD4f_store(results + i, dsExp2FMA4f(simdX));
 	}
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("custom exp2 FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void ExponentFloatTest_PerformanceExp10FMA4f(
+	float* results, const float* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; i += 4)
 	{
-		dsSIMD4f simdX = dsSIMD4f_load(x.data() + i);
-		dsSIMD4f_store(results.data() + i, dsExp10FMA4f(simdX));
+		dsSIMD4f simdX = dsSIMD4f_load(x + i);
+		dsSIMD4f_store(results + i, dsExp2FMA4f(simdX));
 	}
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("custom exp10 FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void ExponentFloatTest_PerformancePowFMA4f(
+	float* results, const float* x, const float* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; i += 4)
 	{
-		dsSIMD4f simdX = dsSIMD4f_load(posX.data() + i);
-		dsSIMD4f simdY = dsSIMD4f_load(x.data() + i);
-		dsSIMD4f_store(results.data() + i, dsFastPowFMA4f(simdX, simdY));
+		dsSIMD4f simdX = dsSIMD4f_load(posX + i);
+		dsSIMD4f simdY = dsSIMD4f_load(x + i);
+		dsSIMD4f_store(results + i, dsFastPowFMA4f(simdX, simdY));
 	}
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("custom fast pow FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
 }
 DS_SIMD_END()
 
 #endif // !DS_DETERMINISTIC_MATH
 #endif // DS_HAS_SIMD
 
-static void ExponentFloatTest_Performance()
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceStdLn(
+	double* results, const double* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::log(posX[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("std ln time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceStdLog2(
+	double* results, const double* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::log2(posX[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("std log2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceStdLog10(
+	double* results, const double* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::log10(posX[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("std log10 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceStdExp(
+	double* results, const double* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::exp(x[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("std exp time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceStdExp2(
+	double* results, const double* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::exp2(x[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("std exp2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceStdPow(
+	double* results, const double* x, const double* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::pow(posX[i], x[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("std pow time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceCustomLn(
+	double* results, const double* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsLn(posX[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom ln time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceCustomLog2(
+	double* results, const double* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsLog2(posX[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom log2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceCustomLog10(
+	double* results, const double* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsLog10(posX[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom log10 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceCustomExp(
+	double* results, const double* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsExp(x[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom exp time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceCustomExp2(
+	double* results, const double* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsExp2(x[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom exp2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceCustomExp10(
+	double* results, const double* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsExp10(x[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom exp10 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceCustomPow(
+	double* results, const double* x, const double* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsPow(posX[i], x[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom pow time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceFastPow(
+	double* results, const double* x, const double* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsFastPow(posX[i], x[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom fast pow time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+#if DS_HAS_SIMD
+
+DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT,DS_SIMD_ROUNDING)
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceLnSIMD2d(
+	double* results, const double* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdX = dsSIMD2d_load(posX + i);
+		dsSIMD2d_store(results + i, dsLnSIMD2d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom ln SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceLog2SIMD2d(
+	double* results, const double* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdX = dsSIMD2d_load(posX + i);
+		dsSIMD2d_store(results + i, dsLog2SIMD2d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom log2 SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceLog10SIMD2d(
+	double* results, const double* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdX = dsSIMD2d_load(posX + i);
+		dsSIMD2d_store(results + i, dsLog10SIMD2d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom log10 SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceExpSIMD2d(
+	double* results, const double* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdX = dsSIMD2d_load(x + i);
+		dsSIMD2d_store(results + i, dsExpSIMD2d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom exp SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceExp2SIMD2d(
+	double* results, const double* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdX = dsSIMD2d_load(x + i);
+		dsSIMD2d_store(results + i, dsExp2SIMD2d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom exp2 SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceExp10SIMD2d(
+	double* results, const double* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdX = dsSIMD2d_load(x + i);
+		dsSIMD2d_store(results + i, dsExp2SIMD2d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom exp10 SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformancePowSIMD2d(
+	double* results, const double* x, const double* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdX = dsSIMD2d_load(posX + i);
+		dsSIMD2d simdY = dsSIMD2d_load(x + i);
+		dsSIMD2d_store(results + i, dsFastPowSIMD2d(simdX, simdY));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom fast pow SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+DS_SIMD_END()
+
+#if !DS_DETERMINISTIC_MATH
+DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT,DS_SIMD_ROUNDING,DS_SIMD_FMA)
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceLnFMA2d(
+	double* results, const double* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdX = dsSIMD2d_load(posX + i);
+		dsSIMD2d_store(results + i, dsLnFMA2d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom ln FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceLog2FMA2d(
+	double* results, const double* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdX = dsSIMD2d_load(posX + i);
+		dsSIMD2d_store(results + i, dsLog2FMA2d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom log2 FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceLog10FMA2d(
+	double* results, const double* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdX = dsSIMD2d_load(posX + i);
+		dsSIMD2d_store(results + i, dsLog10FMA2d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom log10 FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceExpFMA2d(
+	double* results, const double* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdX = dsSIMD2d_load(x + i);
+		dsSIMD2d_store(results + i, dsExpFMA2d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom exp FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceExp2FMA2d(
+	double* results, const double* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdX = dsSIMD2d_load(x + i);
+		dsSIMD2d_store(results + i, dsExp2FMA2d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom exp2 FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceExp10FMA2d(
+	double* results, const double* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdX = dsSIMD2d_load(x + i);
+		dsSIMD2d_store(results + i, dsExp2FMA2d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom exp10 FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformancePowFMA2d(
+	double* results, const double* x, const double* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdX = dsSIMD2d_load(posX + i);
+		dsSIMD2d simdY = dsSIMD2d_load(x + i);
+		dsSIMD2d_store(results + i, dsFastPowFMA2d(simdX, simdY));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom fast pow FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+DS_SIMD_END()
+#endif // !DS_DETERMINISTIC_MATH
+
+DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_INT,DS_SIMD_ROUNDING,DS_SIMD_FMA)
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceLnSIMD4d(
+	double* results, const double* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4d simdX = dsSIMD4d_load(posX + i);
+		dsSIMD4d_store(results + i, dsLnSIMD4d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom ln SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceLog2SIMD4d(
+	double* results, const double* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4d simdX = dsSIMD4d_load(posX + i);
+		dsSIMD4d_store(results + i, dsLog2SIMD4d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom log2 SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceLog10SIMD4d(
+	double* results, const double* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4d simdX = dsSIMD4d_load(posX + i);
+		dsSIMD4d_store(results + i, dsLog10SIMD4d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom log10 SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceExpSIMD4d(
+	double* results, const double* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4d simdX = dsSIMD4d_load(x + i);
+		dsSIMD4d_store(results + i, dsExpSIMD4d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom exp SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceExp2SIMD4d(
+	double* results, const double* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4d simdX = dsSIMD4d_load(x + i);
+		dsSIMD4d_store(results + i, dsExp2SIMD4d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom exp2 SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformanceExp10SIMD4d(
+	double* results, const double* x, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4d simdX = dsSIMD4d_load(x + i);
+		dsSIMD4d_store(results + i, dsExp2SIMD4d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom exp10 SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void ExponentDoubleTest_PerformancePowSIMD4d(
+	double* results, const double* x, const double* posX, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4d simdX = dsSIMD4d_load(posX + i);
+		dsSIMD4d simdY = dsSIMD4d_load(x + i);
+		dsSIMD4d_store(results + i, dsFastPowSIMD4d(simdX, simdY));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom fast pow SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+DS_SIMD_END()
+#endif // DS_HAS_SIMD
+
+TEST(ExponentFloatTest, Performance)
 {
 	int maxExponentMag = ExponentTypeSelector<float>::maxExponentMag/4;
 	float maxExponentMagf = float(maxExponentMag);
@@ -2899,147 +3606,71 @@ static void ExponentFloatTest_Performance()
 	std::vector<float> x(performanceCount);
 	std::vector<float> posX(performanceCount);
 
+	float* resultsData = results.data();
+	float* xData = x.data();
+	float* posXData = posX.data();
+
 	dsRandom random;
 	dsRandom_seed(&random, 0);
 	for (unsigned int i = 0; i < performanceCount; ++i)
 	{
-		x[i] = randomValue(random, -maxExponentMagf, maxExponentMagf);
+		xData[i] = randomValue(random, -maxExponentMagf, maxExponentMagf);
 
 		float xm = randomValue(random, aboveZero, aboveOne);
 		int pow2 = dsRandom_nextInt32Range(&random, -maxExponentMag, maxExponentMag);
-		posX[i] = dsMulPow2f(xm, pow2);
+		posXData[i] = dsMulPow2f(xm, pow2);
 	}
 
 	// Keep a running hash to avoid the optimizer stripping out the loops.
-	std::hash<float> hasher;
 	std::size_t hashValue = 0;
-
 	dsTimer timer = dsTimer_create();
-	uint64_t start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = std::log(posX[i]);
-	uint64_t end = dsTimer_currentTicks();
-	printf("std ln time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
 
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = std::log2(posX[i]);
-	end = dsTimer_currentTicks();
-	printf("std log2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = std::log10(posX[i]);
-	end = dsTimer_currentTicks();
-	printf("std log10 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = std::exp(x[i]);
-	end = dsTimer_currentTicks();
-	printf("std exp time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = std::exp2(x[i]);
-	end = dsTimer_currentTicks();
-	printf("std exp2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = std::pow(posX[i], x[i]);
-	end = dsTimer_currentTicks();
-	printf("std pow time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	ExponentFloatTest_PerformanceStdLn(resultsData, posXData, hashValue, timer);
+	ExponentFloatTest_PerformanceStdLog2(resultsData, posXData, hashValue, timer);
+	ExponentFloatTest_PerformanceStdLog10(resultsData, posXData, hashValue, timer);
+	ExponentFloatTest_PerformanceStdExp(resultsData, xData, hashValue, timer);
+	ExponentFloatTest_PerformanceStdExp2(resultsData, xData, hashValue, timer);
+	ExponentFloatTest_PerformanceStdPow(resultsData, xData, posXData, hashValue, timer);
 
 	printf("\n");
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsLn(posX[i]);
-	end = dsTimer_currentTicks();
-	printf("custom ln time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsLog2(posX[i]);
-	end = dsTimer_currentTicks();
-	printf("custom log2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsLog10(posX[i]);
-	end = dsTimer_currentTicks();
-	printf("custom log10 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsExp(x[i]);
-	end = dsTimer_currentTicks();
-	printf("custom exp time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsExp2(x[i]);
-	end = dsTimer_currentTicks();
-	printf("custom exp2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsExp10(x[i]);
-	end = dsTimer_currentTicks();
-	printf("custom exp10 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsPow(posX[i], x[i]);
-	end = dsTimer_currentTicks();
-	printf("custom pow time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsFastPow(posX[i], x[i]);
-	end = dsTimer_currentTicks();
-	printf("custom fast pow time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	ExponentFloatTest_PerformanceCustomLn(resultsData, posXData, hashValue, timer);
+	ExponentFloatTest_PerformanceCustomLog2(resultsData, posXData, hashValue, timer);
+	ExponentFloatTest_PerformanceCustomLog10(resultsData, posXData, hashValue, timer);
+	ExponentFloatTest_PerformanceCustomExp(resultsData, xData, hashValue, timer);
+	ExponentFloatTest_PerformanceCustomExp2(resultsData, xData, hashValue, timer);
+	ExponentFloatTest_PerformanceCustomExp10(resultsData, xData, hashValue, timer);
+	ExponentFloatTest_PerformanceCustomPow(resultsData, xData, posXData, hashValue, timer);
+	ExponentFloatTest_PerformanceFastPow(resultsData, xData, posXData, hashValue, timer);
 
 #if DS_HAS_SIMD
 
 	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int | dsSIMDFeatures_Rounding;
 	if ((dsHostSIMDFeatures & features) == features)
-		ExponentFloatTest_PerformanceSIMD4f(results, x, posX, hashValue, timer);
+	{
+		printf("\n");
+		ExponentFloatTest_PerformanceLnSIMD4f(resultsData, posXData, hashValue, timer);
+		ExponentFloatTest_PerformanceLog2SIMD4f(resultsData, posXData, hashValue, timer);
+		ExponentFloatTest_PerformanceLog10SIMD4f(resultsData, posXData, hashValue, timer);
+		ExponentFloatTest_PerformanceExpSIMD4f(resultsData, xData, hashValue, timer);
+		ExponentFloatTest_PerformanceExp2SIMD4f(resultsData, xData, hashValue, timer);
+		ExponentFloatTest_PerformanceExp10SIMD4f(resultsData, xData, hashValue, timer);
+		ExponentFloatTest_PerformancePowSIMD4f(resultsData, xData, posXData, hashValue, timer);
+	}
 
 #if !DS_DETERMINISTIC_MATH
 
 	features |= dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) == features)
-		ExponentFloatTest_PerformanceFMA4f(results, x, posX, hashValue, timer);
+	{
+		printf("\n");
+		ExponentFloatTest_PerformanceLnFMA4f(resultsData, posXData, hashValue, timer);
+		ExponentFloatTest_PerformanceLog2FMA4f(resultsData, posXData, hashValue, timer);
+		ExponentFloatTest_PerformanceLog10FMA4f(resultsData, posXData, hashValue, timer);
+		ExponentFloatTest_PerformanceExpFMA4f(resultsData, xData, hashValue, timer);
+		ExponentFloatTest_PerformanceExp2FMA4f(resultsData, xData, hashValue, timer);
+		ExponentFloatTest_PerformanceExp10FMA4f(resultsData, xData, hashValue, timer);
+		ExponentFloatTest_PerformancePowFMA4f(resultsData, xData, posXData, hashValue, timer);
+	}
 
 #endif // !DS_DETERMINISTIC_MATH
 #endif // DS_HAS_SIMD
@@ -3047,280 +3678,7 @@ static void ExponentFloatTest_Performance()
 	printf("\nValue to avoid optimizing out loops: 0x%X\n", static_cast<unsigned int>(hashValue));
 }
 
-#if DS_HAS_SIMD
-
-DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT,DS_SIMD_ROUNDING)
-static void ExponentFloatTest_PerformanceSIMD2d(std::vector<double>& results,
-	const std::vector<double>& x, const std::vector<double>& posX, std::size_t& hashValue,
-	dsTimer timer)
-{
-	std::hash<double> hasher;
-	printf("\n");
-
-	int64_t start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdX = dsSIMD2d_load(posX.data() + i);
-		dsSIMD2d_store(results.data() + i, dsLnSIMD2d(simdX));
-	}
-	uint64_t end = dsTimer_currentTicks();
-	printf("custom ln SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdX = dsSIMD2d_load(posX.data() + i);
-		dsSIMD2d_store(results.data() + i, dsLog2SIMD2d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom log2 SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdX = dsSIMD2d_load(posX.data() + i);
-		dsSIMD2d_store(results.data() + i, dsLog10SIMD2d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom log10 SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdX = dsSIMD2d_load(x.data() + i);
-		dsSIMD2d_store(results.data() + i, dsExpSIMD2d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom exp SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdX = dsSIMD2d_load(x.data() + i);
-		dsSIMD2d_store(results.data() + i, dsExp2SIMD2d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom exp2 SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdX = dsSIMD2d_load(x.data() + i);
-		dsSIMD2d_store(results.data() + i, dsExp10SIMD2d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom exp10 SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdX = dsSIMD2d_load(posX.data() + i);
-		dsSIMD2d simdY = dsSIMD2d_load(x.data() + i);
-		dsSIMD2d_store(results.data() + i, dsFastPowSIMD2d(simdX, simdY));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom fast pow SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-}
-DS_SIMD_END()
-
-#if !DS_DETERMINISTIC_MATH
-DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT,DS_SIMD_ROUNDING,DS_SIMD_FMA)
-static void ExponentFloatTest_PerformanceFMA2d(std::vector<double>& results,
-	const std::vector<double>& x, const std::vector<double>& posX, std::size_t& hashValue,
-	dsTimer timer)
-{
-	std::hash<double> hasher;
-	printf("\n");
-
-	int64_t start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdX = dsSIMD2d_load(posX.data() + i);
-		dsSIMD2d_store(results.data() + i, dsLnFMA2d(simdX));
-	}
-	uint64_t end = dsTimer_currentTicks();
-	printf("custom ln FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdX = dsSIMD2d_load(posX.data() + i);
-		dsSIMD2d_store(results.data() + i, dsLog2FMA2d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom log2 FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdX = dsSIMD2d_load(posX.data() + i);
-		dsSIMD2d_store(results.data() + i, dsLog10FMA2d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom log10 FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdX = dsSIMD2d_load(x.data() + i);
-		dsSIMD2d_store(results.data() + i, dsExpFMA2d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom exp FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdX = dsSIMD2d_load(x.data() + i);
-		dsSIMD2d_store(results.data() + i, dsExp2FMA2d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom exp2 FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdX = dsSIMD2d_load(x.data() + i);
-		dsSIMD2d_store(results.data() + i, dsExp10FMA2d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom exp10 FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdX = dsSIMD2d_load(posX.data() + i);
-		dsSIMD2d simdY = dsSIMD2d_load(x.data() + i);
-		dsSIMD2d_store(results.data() + i, dsFastPowFMA2d(simdX, simdY));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom fast pow FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-}
-DS_SIMD_END()
-#endif // !DS_DETERMINISTIC_MATH
-
-DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_INT,DS_SIMD_ROUNDING,DS_SIMD_FMA)
-static void ExponentFloatTest_PerformanceSIMD4d(std::vector<double>& results,
-	const std::vector<double>& x, const std::vector<double>& posX, std::size_t& hashValue,
-	dsTimer timer)
-{
-	double* resultsData = alignPtr(results.data(), 32);
-	const double* xData = alignPtr(x.data(), 32);
-	const double* posXData = alignPtr(posX.data(), 32);
-
-	std::hash<double> hasher;
-	printf("\n");
-
-	int64_t start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4d simdX = dsSIMD4d_load(posXData + i);
-		dsSIMD4d_store(resultsData + i, dsLnSIMD4d(simdX));
-	}
-	uint64_t end = dsTimer_currentTicks();
-	printf("custom ln SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4d simdX = dsSIMD4d_load(posXData + i);
-		dsSIMD4d_store(resultsData + i, dsLog2SIMD4d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom log2 SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4d simdX = dsSIMD4d_load(posXData + i);
-		dsSIMD4d_store(resultsData + i, dsLog10SIMD4d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom log10 SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4d simdX = dsSIMD4d_load(xData + i);
-		dsSIMD4d_store(resultsData + i, dsExpSIMD4d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom exp SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4d simdX = dsSIMD4d_load(xData + i);
-		dsSIMD4d_store(resultsData + i, dsExp2SIMD4d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom exp2 SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4d simdX = dsSIMD4d_load(xData + i);
-		dsSIMD4d_store(resultsData + i, dsExp10SIMD4d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom exp10 SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4d simdX = dsSIMD4d_load(posXData + i);
-		dsSIMD4d simdY = dsSIMD4d_load(xData + i);
-		dsSIMD4d_store(resultsData + i, dsFastPowSIMD4d(simdX, simdY));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom fast pow SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-}
-DS_SIMD_END()
-#endif // DS_HAS_SIMD
-
-static void ExponentDoubleTest_Performance()
+TEST(ExponentDoubleTest, Performance)
 {
 	int maxExponentMag = ExponentTypeSelector<double>::maxExponentMag/10;
 	double maxExponentMagd = maxExponentMag;
@@ -3334,167 +3692,90 @@ static void ExponentDoubleTest_Performance()
 	std::vector<double> x(performanceCountAligned);
 	std::vector<double> posX(performanceCountAligned);
 
+	double* resultsData = alignPtr(results.data(), 32);
+	double* xData = alignPtr(x.data(), 32);
+	double* posXData = alignPtr(posX.data(), 32);
+
 	dsRandom random;
 	dsRandom_seed(&random, 0);
-	for (unsigned int i = 0; i < performanceCountAligned; ++i)
+	for (unsigned int i = 0; i < performanceCount; ++i)
 	{
-		x[i] = randomValue(random, -maxExponentMagd, maxExponentMagd);
+		xData[i] = randomValue(random, -maxExponentMagd, maxExponentMagd);
 
 		double xm = randomValue(random, aboveZero, aboveOne);
 		int pow2 = dsRandom_nextInt32Range(&random, -maxExponentMag, maxExponentMag);
-		posX[i] = dsMulPow2d(xm, pow2);
+		posXData[i] = dsMulPow2d(xm, pow2);
 	}
 
 	// Keep a running hash to avoid the optimizer stripping out the loops.
-	std::hash<double> hasher;
 	std::size_t hashValue = 0;
-
 	dsTimer timer = dsTimer_create();
-	uint64_t start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = std::log(posX[i]);
-	uint64_t end = dsTimer_currentTicks();
-	printf("std ln time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
 
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = std::log2(posX[i]);
-	end = dsTimer_currentTicks();
-	printf("std log2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = std::log10(posX[i]);
-	end = dsTimer_currentTicks();
-	printf("std log10 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = std::exp(x[i]);
-	end = dsTimer_currentTicks();
-	printf("std exp time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = std::exp2(x[i]);
-	end = dsTimer_currentTicks();
-	printf("std exp2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = std::pow(posX[i], x[i]);
-	end = dsTimer_currentTicks();
-	printf("std pow time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	ExponentDoubleTest_PerformanceStdLn(resultsData, posXData, hashValue, timer);
+	ExponentDoubleTest_PerformanceStdLog2(resultsData, posXData, hashValue, timer);
+	ExponentDoubleTest_PerformanceStdLog10(resultsData, posXData, hashValue, timer);
+	ExponentDoubleTest_PerformanceStdExp(resultsData, xData, hashValue, timer);
+	ExponentDoubleTest_PerformanceStdExp2(resultsData, xData, hashValue, timer);
+	ExponentDoubleTest_PerformanceStdPow(resultsData, xData, posXData, hashValue, timer);
 
 	printf("\n");
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsLn(posX[i]);
-	end = dsTimer_currentTicks();
-	printf("custom ln time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsLog2(posX[i]);
-	end = dsTimer_currentTicks();
-	printf("custom log2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsLog10(posX[i]);
-	end = dsTimer_currentTicks();
-	printf("custom log10 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsExp(x[i]);
-	end = dsTimer_currentTicks();
-	printf("custom exp time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsExp2(x[i]);
-	end = dsTimer_currentTicks();
-	printf("custom exp2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsExp10(x[i]);
-	end = dsTimer_currentTicks();
-	printf("custom exp10 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsPow(posX[i], x[i]);
-	end = dsTimer_currentTicks();
-	printf("custom pow time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsFastPow(posX[i], x[i]);
-	end = dsTimer_currentTicks();
-	printf("custom fast pow time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	ExponentDoubleTest_PerformanceCustomLn(resultsData, posXData, hashValue, timer);
+	ExponentDoubleTest_PerformanceCustomLog2(resultsData, posXData, hashValue, timer);
+	ExponentDoubleTest_PerformanceCustomLog10(resultsData, posXData, hashValue, timer);
+	ExponentDoubleTest_PerformanceCustomExp(resultsData, xData, hashValue, timer);
+	ExponentDoubleTest_PerformanceCustomExp2(resultsData, xData, hashValue, timer);
+	ExponentDoubleTest_PerformanceCustomExp10(resultsData, xData, hashValue, timer);
+	ExponentDoubleTest_PerformanceCustomPow(resultsData, xData, posXData, hashValue, timer);
+	ExponentDoubleTest_PerformanceFastPow(resultsData, xData, posXData, hashValue, timer);
 
 #if DS_HAS_SIMD
 
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int | dsSIMDFeatures_Rounding;
 	if ((dsHostSIMDFeatures & features) == features)
-		ExponentFloatTest_PerformanceSIMD2d(results, x, posX, hashValue, timer);
+	{
+		printf("\n");
+		ExponentDoubleTest_PerformanceLnSIMD2d(resultsData, posXData, hashValue, timer);
+		ExponentDoubleTest_PerformanceLog2SIMD2d(resultsData, posXData, hashValue, timer);
+		ExponentDoubleTest_PerformanceLog10SIMD2d(resultsData, posXData, hashValue, timer);
+		ExponentDoubleTest_PerformanceExpSIMD2d(resultsData, xData, hashValue, timer);
+		ExponentDoubleTest_PerformanceExp2SIMD2d(resultsData, xData, hashValue, timer);
+		ExponentDoubleTest_PerformanceExp10SIMD2d(resultsData, xData, hashValue, timer);
+		ExponentDoubleTest_PerformancePowSIMD2d(resultsData, xData, posXData, hashValue, timer);
+	}
 
 #if !DS_DETERMINISTIC_MATH
 
 	features |= dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) == features)
-		ExponentFloatTest_PerformanceFMA2d(results, x, posX, hashValue, timer);
+	{
+		printf("\n");
+		ExponentDoubleTest_PerformanceLnFMA2d(resultsData, posXData, hashValue, timer);
+		ExponentDoubleTest_PerformanceLog2FMA2d(resultsData, posXData, hashValue, timer);
+		ExponentDoubleTest_PerformanceLog10FMA2d(resultsData, posXData, hashValue, timer);
+		ExponentDoubleTest_PerformanceExpFMA2d(resultsData, xData, hashValue, timer);
+		ExponentDoubleTest_PerformanceExp2FMA2d(resultsData, xData, hashValue, timer);
+		ExponentDoubleTest_PerformanceExp10FMA2d(resultsData, xData, hashValue, timer);
+		ExponentDoubleTest_PerformancePowFMA2d(resultsData, xData, posXData, hashValue, timer);
+	}
 
 #endif // !DS_DETERMINISTIC_MATH
 
 	features = dsSIMDFeatures_Double4 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		ExponentFloatTest_PerformanceSIMD4d(results, x, posX, hashValue, timer);
+	{
+		printf("\n");
+		ExponentDoubleTest_PerformanceLnSIMD4d(resultsData, posXData, hashValue, timer);
+		ExponentDoubleTest_PerformanceLog2SIMD4d(resultsData, posXData, hashValue, timer);
+		ExponentDoubleTest_PerformanceLog10SIMD4d(resultsData, posXData, hashValue, timer);
+		ExponentDoubleTest_PerformanceExpSIMD4d(resultsData, xData, hashValue, timer);
+		ExponentDoubleTest_PerformanceExp2SIMD4d(resultsData, xData, hashValue, timer);
+		ExponentDoubleTest_PerformanceExp10SIMD4d(resultsData, xData, hashValue, timer);
+		ExponentDoubleTest_PerformancePowSIMD4d(resultsData, xData, posXData, hashValue, timer);
+	}
 
 #endif // DS_HAS_SIMD
 
 	printf("\nValue to avoid optimizing out loops: 0x%X\n", static_cast<unsigned int>(hashValue));
-}
-
-TEST(ExponentFloatTest, Performance)
-{
-	ExponentFloatTest_Performance();
-}
-
-TEST(ExponentDoubleTest, Performance)
-{
-	ExponentDoubleTest_Performance();
 }
 
 #if DS_GCC

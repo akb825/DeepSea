@@ -228,6 +228,15 @@
 #endif
 
 /**
+ * @brief Macro to never inline a function.
+ */
+#if DS_MSC
+#define DS_NEVER_INLINE __declspec(noinline)
+#else
+#define DS_NEVER_INLINE __attribute__((noinline)) inline
+#endif
+
+/**
  * @brief Macro for an unused variable.
  *
  * This can be used to work around compiler warnings.

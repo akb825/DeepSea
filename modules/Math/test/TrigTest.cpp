@@ -1857,377 +1857,1122 @@ TEST(TrigDoubleTest, ATan2SIMD4)
 #endif
 
 constexpr unsigned int performanceCount = 10000000;
+static std::hash<float> hasherf;
+static std::hash<double> hasherd;
 
-#if DS_HAS_SIMD
-
-DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT)
-static void TrigFloatTest_PerformanceSIMD4f(std::vector<float>& results,
-	std::vector<float>& otherResults, const std::vector<float>& angles, std::size_t& hashValue,
-	dsTimer timer)
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceStdSin(
+	float* results, const float* angles, std::size_t& hashValue, dsTimer timer)
 {
-	std::hash<float> hasher;
-	printf("\n");
-
 	int64_t start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4f simdAngles = dsSIMD4f_load(angles.data() + i);
-		dsSIMD4f_store(results.data() + i, dsSinSIMD4f(simdAngles));
-	}
-	uint64_t end = dsTimer_currentTicks();
-	printf("custom sin SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4f simdAngles = dsSIMD4f_load(angles.data() + i);
-		dsSIMD4f_store(results.data() + i, dsCosSIMD4f(simdAngles));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom cos SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4f simdAngles = dsSIMD4f_load(angles.data() + i);
-		dsSIMD4f simdSin, simdCos;
-		dsSinCosSIMD4f(&simdSin, &simdCos, simdAngles);
-		dsSIMD4f_store(results.data() + i, simdSin);
-		dsSIMD4f_store(otherResults.data() + i, simdCos);
-	}
-	end = dsTimer_currentTicks();
-	printf("custom sincos SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-	hashValue += hasher(otherResults[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4f simdAngles = dsSIMD4f_load(angles.data() + i);
-		dsSIMD4f_store(results.data() + i, dsTanSIMD4f(simdAngles));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom tan SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4f simdX = dsSIMD4f_load(otherResults.data() + i);
-		dsSIMD4f_store(results.data() + i, dsASinSIMD4f(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom asin SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4f simdX = dsSIMD4f_load(otherResults.data() + i);
-		dsSIMD4f_store(results.data() + i, dsACosSIMD4f(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom acos SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4f simdX = dsSIMD4f_load(angles.data() + i);
-		dsSIMD4f_store(results.data() + i, dsATanSIMD4f(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom atan SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4f simdY = dsSIMD4f_load(angles.data() + i);
-		dsSIMD4f simdX = dsSIMD4f_load(angles.data() + performanceCount - i - 4);
-		dsSIMD4f_store(results.data() + i, dsATan2SIMD4f(simdY, simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom atan2 SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-}
-DS_SIMD_END()
-
-#if !DS_DETERMINISTIC_MATH
-
-DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT,DS_SIMD_FMA)
-static void TrigFloatTest_PerformanceFMA4f(std::vector<float>& results,
-	std::vector<float>& otherResults, const std::vector<float>& angles, std::size_t& hashValue,
-	dsTimer timer)
-{
-	std::hash<float> hasher;
-	printf("\n");
-
-	int64_t start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4f simdAngles = dsSIMD4f_load(angles.data() + i);
-		dsSIMD4f_store(results.data() + i, dsSinFMA4f(simdAngles));
-	}
-	uint64_t end = dsTimer_currentTicks();
-	printf("custom sin FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4f simdAngles = dsSIMD4f_load(angles.data() + i);
-		dsSIMD4f_store(results.data() + i, dsCosFMA4f(simdAngles));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom cos FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4f simdAngles = dsSIMD4f_load(angles.data() + i);
-		dsSIMD4f simdSin, simdCos;
-		dsSinCosFMA4f(&simdSin, &simdCos, simdAngles);
-		dsSIMD4f_store(results.data() + i, simdSin);
-		dsSIMD4f_store(otherResults.data() + i, simdCos);
-	}
-	end = dsTimer_currentTicks();
-	printf("custom sincos FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-	hashValue += hasher(otherResults[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4f simdAngles = dsSIMD4f_load(angles.data() + i);
-		dsSIMD4f_store(results.data() + i, dsTanFMA4f(simdAngles));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom tan FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4f simdX = dsSIMD4f_load(otherResults.data() + i);
-		dsSIMD4f_store(results.data() + i, dsASinFMA4f(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom asin FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4f simdX = dsSIMD4f_load(otherResults.data() + i);
-		dsSIMD4f_store(results.data() + i, dsACosFMA4f(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom acos FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4f simdX = dsSIMD4f_load(angles.data() + i);
-		dsSIMD4f_store(results.data() + i, dsATanFMA4f(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom atan FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4f simdY = dsSIMD4f_load(angles.data() + i);
-		dsSIMD4f simdX = dsSIMD4f_load(angles.data() + performanceCount - i - 4);
-		dsSIMD4f_store(results.data() + i, dsATan2FMA4f(simdY, simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom atan2 FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-}
-DS_SIMD_END()
-
-#endif // !DS_DETERMINISTIC_MATH
-#endif // DS_HAS_SIMD
-
-static void TrigFloatTest_Performance()
-{
-	std::vector<float> results(performanceCount);
-	std::vector<float> otherResults(performanceCount);
-	std::vector<float> angles(performanceCount);
-
-	dsRandom random;
-	dsRandom_seed(&random, 0);
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		angles[i] = randomValue(random, -10.0f, 10.0f);
-
-	// Keep a running hash to avoid the optimizer stripping out the loops.
-	std::hash<float> hasher;
-	std::size_t hashValue = 0;
-
-	dsTimer timer = dsTimer_create();
-	uint64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; ++i)
 		results[i] = std::sin(angles[i]);
 	uint64_t end = dsTimer_currentTicks();
 	printf("std sin time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceStdCos(
+	float* results, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; ++i)
 		results[i] = std::cos(angles[i]);
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("std cos time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceStdSinCos(
+	float* results, float* otherResults, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; ++i)
 	{
 		results[i] = std::sin(angles[i]);
 		otherResults[i] = std::cos(angles[i]);
 	}
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("std sincos time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-	hashValue += hasher(otherResults[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(otherResults[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceStdTan(
+	float* results, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; ++i)
 		results[i] = std::tan(angles[i]);
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("std tan time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceStdASin(
+	float* results, const float* otherResults, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; ++i)
 		results[i] = std::asin(otherResults[i]);
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("std asin time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceStdACos(
+	float* results, const float* otherResults, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; ++i)
 		results[i] = std::acos(otherResults[i]);
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("std acos time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceStdATan(
+	float* results, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; ++i)
 		results[i] = std::atan(angles[i]);
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("std atan time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceStdATan2(
+	float* results, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; ++i)
 		results[i] = std::atan2(angles[i], angles[performanceCount - i - 1]);
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("std atan2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	printf("\n");
-
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceCustomSin(
+	float* results, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; ++i)
 		results[i] = dsSin(angles[i]);
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("custom sin time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceCustomCos(
+	float* results, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; ++i)
 		results[i] = dsCos(angles[i]);
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("custom cos time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceCustomSinCos(
+	float* results, float* otherResults, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; ++i)
 		dsSinCos(results[i], otherResults[i], angles[i]);
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("custom sincos time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(otherResults[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceCustomTan(
+	float* results, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; ++i)
 		results[i] = dsTan(angles[i]);
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("custom tan time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceCustomASin(
+	float* results, const float* otherResults, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; ++i)
 		results[i] = dsASin(otherResults[i]);
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("custom asin time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceCustomACos(
+	float* results, const float* otherResults, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; ++i)
 		results[i] = dsACos(otherResults[i]);
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("custom acos time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceCustomATan(
+	float* results, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; ++i)
 		results[i] = dsATan(angles[i]);
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("custom atan time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
 
-	start = dsTimer_currentTicks();
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceCustomATan2(
+	float* results, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
 	DS_NO_VECTORIZE
 	for (unsigned int i = 0; i < performanceCount; ++i)
 		results[i] = dsATan2(angles[i], angles[performanceCount - i - 1]);
-	end = dsTimer_currentTicks();
+	uint64_t end = dsTimer_currentTicks();
 	printf("custom atan2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+#if DS_HAS_SIMD
+
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT)
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceSinSIMD4f(
+	float* results, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4f simdAngles = dsSIMD4f_load(angles + i);
+		dsSIMD4f_store(results + i, dsSinSIMD4f(simdAngles));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom sin SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceCosSIMD4f(
+	float* results, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4f simdAngles = dsSIMD4f_load(angles + i);
+		dsSIMD4f_store(results + i, dsCosSIMD4f(simdAngles));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom cos SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceSinCosSIMD4f(
+	float* results, float* otherResults, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4f simdAngles = dsSIMD4f_load(angles + i);
+		dsSIMD4f simdSin, simdCos;
+		dsSinCosSIMD4f(&simdSin, &simdCos, simdAngles);
+		dsSIMD4f_store(results + i, simdSin);
+		dsSIMD4f_store(otherResults + i, simdCos);
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom sincos SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(otherResults[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceTanSIMD4f(
+	float* results, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4f simdAngles = dsSIMD4f_load(angles + i);
+		dsSIMD4f_store(results + i, dsTanSIMD4f(simdAngles));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom tan SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceASinSIMD4f(
+	float* results, const float* otherResults, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4f simdX = dsSIMD4f_load(otherResults + i);
+		dsSIMD4f_store(results + i, dsASinSIMD4f(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom asin SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceACosSIMD4f(
+	float* results, const float* otherResults, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4f simdX = dsSIMD4f_load(otherResults + i);
+		dsSIMD4f_store(results + i, dsACosSIMD4f(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom acos SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceATanSIMD4f(
+	float* results, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4f simdX = dsSIMD4f_load(angles + i);
+		dsSIMD4f_store(results + i, dsATanSIMD4f(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom atan SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceATan2SIMD4f(
+	float* results, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4f simdY = dsSIMD4f_load(angles + i);
+		dsSIMD4f simdX = dsSIMD4f_load(angles + performanceCount - i - 4);
+		dsSIMD4f_store(results + i, dsATan2SIMD4f(simdY, simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom atan2 SIMD4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+DS_SIMD_END()
+
+#if !DS_DETERMINISTIC_MATH
+
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_INT,DS_SIMD_FMA)
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceSinFMA4f(
+	float* results, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4f simdAngles = dsSIMD4f_load(angles + i);
+		dsSIMD4f_store(results + i, dsSinFMA4f(simdAngles));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom sin FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceCosFMA4f(
+	float* results, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4f simdAngles = dsSIMD4f_load(angles + i);
+		dsSIMD4f_store(results + i, dsCosFMA4f(simdAngles));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom cos FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceSinCosFMA4f(
+	float* results, float* otherResults, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4f simdAngles = dsSIMD4f_load(angles + i);
+		dsSIMD4f simdSin, simdCos;
+		dsSinCosFMA4f(&simdSin, &simdCos, simdAngles);
+		dsSIMD4f_store(results + i, simdSin);
+		dsSIMD4f_store(otherResults + i, simdCos);
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom sincos FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+	hashValue += hasherf(otherResults[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceTanFMA4f(
+	float* results, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4f simdAngles = dsSIMD4f_load(angles + i);
+		dsSIMD4f_store(results + i, dsTanFMA4f(simdAngles));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom tan FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceASinFMA4f(
+	float* results, const float* otherResults, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4f simdX = dsSIMD4f_load(otherResults + i);
+		dsSIMD4f_store(results + i, dsASinFMA4f(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom asin FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceACosFMA4f(
+	float* results, const float* otherResults, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4f simdX = dsSIMD4f_load(otherResults + i);
+		dsSIMD4f_store(results + i, dsACosFMA4f(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom acos FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceATanFMA4f(
+	float* results, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4f simdX = dsSIMD4f_load(angles + i);
+		dsSIMD4f_store(results + i, dsATanFMA4f(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom atan FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigFloatTest_PerformanceATan2FMA4f(
+	float* results, const float* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4f simdY = dsSIMD4f_load(angles + i);
+		dsSIMD4f simdX = dsSIMD4f_load(angles + performanceCount - i - 4);
+		dsSIMD4f_store(results + i, dsATan2FMA4f(simdY, simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom atan2 FMA4f time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherf(results[size_t(end % performanceCount)]);
+}
+DS_SIMD_END()
+
+#endif // !DS_DETERMINISTIC_MATH
+#endif // DS_HAS_SIMD
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceStdSin(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::sin(angles[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("std sin time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceStdCos(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::cos(angles[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("std cos time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceStdSinCos(
+	double* results, double* otherResults, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+	{
+		results[i] = std::sin(angles[i]);
+		otherResults[i] = std::cos(angles[i]);
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("std sincos time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+	hashValue += hasherd(otherResults[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceStdTan(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::tan(angles[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("std tan time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceStdASin(
+	double* results, const double* otherResults, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::asin(otherResults[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("std asin time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceStdACos(
+	double* results, const double* otherResults, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::acos(otherResults[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("std acos time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceStdATan(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::atan(angles[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("std atan time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceStdATan2(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = std::atan2(angles[i], angles[performanceCount - i - 1]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("std atan2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceCustomSin(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsSin(angles[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom sin time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceCustomCos(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsCos(angles[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom cos time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceCustomSinCos(double* results,
+	double* otherResults, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		dsSinCos(results[i], otherResults[i], angles[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom sincos time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+	hashValue += hasherd(otherResults[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceCustomTan(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsTan(angles[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom tan time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceCustomASin(
+	double* results, const double* otherResults, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsASin(otherResults[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom asin time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceCustomACos(
+	double* results, const double* otherResults, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsACos(otherResults[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom acos time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceCustomATan(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsATan(angles[i]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom atan time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceCustomATan2(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		results[i] = dsATan2(angles[i], angles[performanceCount - i - 1]);
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom atan2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+#if DS_HAS_SIMD
+
+DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT)
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceSinSIMD2d(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdAngles = dsSIMD2d_load(angles + i);
+		dsSIMD2d_store(results + i, dsSinSIMD2d(simdAngles));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom sin SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceCosSIMD2d(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdAngles = dsSIMD2d_load(angles + i);
+		dsSIMD2d_store(results + i, dsCosSIMD2d(simdAngles));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom cos SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceSinCosSIMD2d(
+	double* results, double* otherResults, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdAngles = dsSIMD2d_load(angles + i);
+		dsSIMD2d simdSin, simdCos;
+		dsSinCosSIMD2d(&simdSin, &simdCos, simdAngles);
+		dsSIMD2d_store(results + i, simdSin);
+		dsSIMD2d_store(otherResults + i, simdCos);
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom sincos SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+	hashValue += hasherd(otherResults[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceTanSIMD2d(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdAngles = dsSIMD2d_load(angles + i);
+		dsSIMD2d_store(results + i, dsTanSIMD2d(simdAngles));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom tan SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceASinSIMD2d(
+	double* results, const double* otherResults, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdX = dsSIMD2d_load(otherResults + i);
+		dsSIMD2d_store(results + i, dsASinSIMD2d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom asin SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceACosSIMD2d(
+	double* results, const double* otherResults, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdX = dsSIMD2d_load(otherResults + i);
+		dsSIMD2d_store(results + i, dsACosSIMD2d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom acos SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceATanSIMD2d(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdX = dsSIMD2d_load(angles + i);
+		dsSIMD2d_store(results + i, dsATanSIMD2d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom atan SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceATan2SIMD2d(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdY = dsSIMD2d_load(angles + i);
+		dsSIMD2d simdX = dsSIMD2d_load(angles + performanceCount - i - 2);
+		dsSIMD2d_store(results + i, dsATan2SIMD2d(simdY, simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom atan2 SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+DS_SIMD_END()
+
+#if !DS_DETERMINISTIC_MATH
+DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT,DS_SIMD_FMA)
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceSinFMA2d(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdAngles = dsSIMD2d_load(angles + i);
+		dsSIMD2d_store(results + i, dsSinFMA2d(simdAngles));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom sin FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceCosFMA2d(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdAngles = dsSIMD2d_load(angles + i);
+		dsSIMD2d_store(results + i, dsCosFMA2d(simdAngles));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom cos FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceSinCosFMA2d(
+	double* results, double* otherResults, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdAngles = dsSIMD2d_load(angles + i);
+		dsSIMD2d simdSin, simdCos;
+		dsSinCosFMA2d(&simdSin, &simdCos, simdAngles);
+		dsSIMD2d_store(results + i, simdSin);
+		dsSIMD2d_store(otherResults + i, simdCos);
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom sincos FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+	hashValue += hasherd(otherResults[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceTanFMA2d(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdAngles = dsSIMD2d_load(angles + i);
+		dsSIMD2d_store(results + i, dsTanFMA2d(simdAngles));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom tan FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceASinFMA2d(
+	double* results, const double* otherResults, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdX = dsSIMD2d_load(otherResults + i);
+		dsSIMD2d_store(results + i, dsASinFMA2d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom asin FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceACosFMA2d(
+	double* results, const double* otherResults, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdX = dsSIMD2d_load(otherResults + i);
+		dsSIMD2d_store(results + i, dsACosFMA2d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom acos FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceATanFMA2d(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdX = dsSIMD2d_load(angles + i);
+		dsSIMD2d_store(results + i, dsATanFMA2d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom atan FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceATan2FMA2d(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 2)
+	{
+		dsSIMD2d simdY = dsSIMD2d_load(angles + i);
+		dsSIMD2d simdX = dsSIMD2d_load(angles + performanceCount - i - 2);
+		dsSIMD2d_store(results + i, dsATan2FMA2d(simdY, simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom atan2 FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+DS_SIMD_END()
+#endif // !DS_DETERMINISTIC_MATH
+
+DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_INT,DS_SIMD_FMA)
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceSinSIMD4d(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4d simdAngles = dsSIMD4d_load(angles + i);
+		dsSIMD4d_store(results + i, dsSinSIMD4d(simdAngles));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom sin SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceCosSIMD4d(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4d simdAngles = dsSIMD4d_load(angles + i);
+		dsSIMD4d_store(results + i, dsCosSIMD4d(simdAngles));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom cos SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceSinCosSIMD4d(
+	double* results, double* otherResults, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4d simdAngles = dsSIMD4d_load(angles + i);
+		dsSIMD4d simdSin, simdCos;
+		dsSinCosSIMD4d(&simdSin, &simdCos, simdAngles);
+		dsSIMD4d_store(results + i, simdSin);
+		dsSIMD4d_store(otherResults + i, simdCos);
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom sincos SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+	hashValue += hasherd(otherResults[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceTanSIMD4d(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4d simdAngles = dsSIMD4d_load(angles + i);
+		dsSIMD4d_store(results + i, dsTanSIMD4d(simdAngles));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom tan SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceASinSIMD4d(
+	double* results, const double* otherResults, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4d simdX = dsSIMD4d_load(otherResults + i);
+		dsSIMD4d_store(results + i, dsASinSIMD4d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom asin SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceACosSIMD4d(
+	double* results, const double* otherResults, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4d simdX = dsSIMD4d_load(otherResults + i);
+		dsSIMD4d_store(results + i, dsACosSIMD4d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom acos SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceATanSIMD4d(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4d simdX = dsSIMD4d_load(angles + i);
+		dsSIMD4d_store(results + i, dsATanSIMD4d(simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom atan SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+
+static DS_NEVER_INLINE void TrigDoubleTest_PerformanceATan2SIMD4d(
+	double* results, const double* angles, std::size_t& hashValue, dsTimer timer)
+{
+	int64_t start = dsTimer_currentTicks();
+	DS_NO_VECTORIZE
+	for (unsigned int i = 0; i < performanceCount; i += 4)
+	{
+		dsSIMD4d simdY = dsSIMD4d_load(angles + i);
+		dsSIMD4d simdX = dsSIMD4d_load(angles + performanceCount - i - 4);
+		dsSIMD4d_store(results + i, dsATan2SIMD4d(simdY, simdX));
+	}
+	uint64_t end = dsTimer_currentTicks();
+	printf("custom atan2 SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
+	hashValue += hasherd(results[size_t(end % performanceCount)]);
+}
+DS_SIMD_END()
+#endif // DS_HAS_SIMD
+
+TEST(TrigFloatTest, Performance)
+{
+	std::vector<float> results(performanceCount);
+	std::vector<float> otherResults(performanceCount);
+	std::vector<float> angles(performanceCount);
+
+	float* resultsData = results.data();
+	float* otherResultsData = otherResults.data();
+	float* anglesData = angles.data();
+
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		anglesData[i] = randomValue(random, -10.0f, 10.0f);
+
+	// Keep a running hash to avoid the optimizer stripping out the loops.
+	std::size_t hashValue = 0;
+	dsTimer timer = dsTimer_create();
+
+	TrigFloatTest_PerformanceStdSin(resultsData, anglesData, hashValue, timer);
+	TrigFloatTest_PerformanceStdCos(resultsData, anglesData, hashValue, timer);
+	TrigFloatTest_PerformanceStdSinCos(resultsData, otherResultsData, anglesData, hashValue, timer);
+	TrigFloatTest_PerformanceStdTan(resultsData, anglesData, hashValue, timer);
+	TrigFloatTest_PerformanceStdASin(resultsData, otherResultsData, hashValue, timer);
+	TrigFloatTest_PerformanceStdACos(resultsData, otherResultsData, hashValue, timer);
+	TrigFloatTest_PerformanceStdATan(resultsData, anglesData, hashValue, timer);
+	TrigFloatTest_PerformanceStdATan2(resultsData, anglesData, hashValue, timer);
+
+	printf("\n");
+	TrigFloatTest_PerformanceCustomSin(resultsData, anglesData, hashValue, timer);
+	TrigFloatTest_PerformanceCustomCos(resultsData, anglesData, hashValue, timer);
+	TrigFloatTest_PerformanceCustomSinCos(
+		resultsData, otherResultsData, anglesData, hashValue, timer);
+	TrigFloatTest_PerformanceCustomTan(resultsData, anglesData, hashValue, timer);
+	TrigFloatTest_PerformanceCustomASin(resultsData, otherResultsData, hashValue, timer);
+	TrigFloatTest_PerformanceCustomACos(resultsData, otherResultsData, hashValue, timer);
+	TrigFloatTest_PerformanceCustomATan(resultsData, anglesData, hashValue, timer);
+	TrigFloatTest_PerformanceCustomATan2(resultsData, anglesData, hashValue, timer);
 
 #if DS_HAS_SIMD
 
 	dsSIMDFeatures features = dsSIMDFeatures_Float4 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigFloatTest_PerformanceSIMD4f(results, otherResults, angles, hashValue, timer);
+	{
+		printf("\n");
+		TrigFloatTest_PerformanceSinSIMD4f(resultsData, anglesData, hashValue, timer);
+		TrigFloatTest_PerformanceCosSIMD4f(resultsData, anglesData, hashValue, timer);
+		TrigFloatTest_PerformanceSinCosSIMD4f(
+			resultsData, otherResultsData, anglesData, hashValue, timer);
+		TrigFloatTest_PerformanceTanSIMD4f(resultsData, anglesData, hashValue, timer);
+		TrigFloatTest_PerformanceASinSIMD4f(resultsData, otherResultsData, hashValue, timer);
+		TrigFloatTest_PerformanceACosSIMD4f(resultsData, otherResultsData, hashValue, timer);
+		TrigFloatTest_PerformanceATanSIMD4f(resultsData, anglesData, hashValue, timer);
+		TrigFloatTest_PerformanceATan2SIMD4f(resultsData, anglesData, hashValue, timer);
+	}
 
 #if !DS_DETERMINISTIC_MATH
 
 	features |= dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigFloatTest_PerformanceFMA4f(results, otherResults, angles, hashValue, timer);
+	{
+		printf("\n");
+		TrigFloatTest_PerformanceSinFMA4f(resultsData, anglesData, hashValue, timer);
+		TrigFloatTest_PerformanceCosFMA4f(resultsData, anglesData, hashValue, timer);
+		TrigFloatTest_PerformanceSinCosFMA4f(
+			resultsData, otherResultsData, anglesData, hashValue, timer);
+		TrigFloatTest_PerformanceTanFMA4f(resultsData, anglesData, hashValue, timer);
+		TrigFloatTest_PerformanceASinFMA4f(resultsData, otherResultsData, hashValue, timer);
+		TrigFloatTest_PerformanceACosFMA4f(resultsData, otherResultsData, hashValue, timer);
+		TrigFloatTest_PerformanceATanFMA4f(resultsData, anglesData, hashValue, timer);
+		TrigFloatTest_PerformanceATan2FMA4f(resultsData, anglesData, hashValue, timer);
+	}
 
 #endif // !DS_DETERMINISTIC_MATH
 #endif // DS_HAS_SIMD
@@ -2235,336 +2980,7 @@ static void TrigFloatTest_Performance()
 	printf("\nValue to avoid optimizing out loops: 0x%X\n", static_cast<unsigned int>(hashValue));
 }
 
-#if DS_HAS_SIMD
-
-DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT)
-static void TrigFloatTest_PerformanceSIMD2d(std::vector<double>& results,
-	std::vector<double>& otherResults, const std::vector<double>& angles, std::size_t& hashValue,
-	dsTimer timer)
-{
-	std::hash<double> hasher;
-	printf("\n");
-
-	int64_t start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdAngles = dsSIMD2d_load(angles.data() + i);
-		dsSIMD2d_store(results.data() + i, dsSinSIMD2d(simdAngles));
-	}
-	uint64_t end = dsTimer_currentTicks();
-	printf("custom sin SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdAngles = dsSIMD2d_load(angles.data() + i);
-		dsSIMD2d_store(results.data() + i, dsCosSIMD2d(simdAngles));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom cos SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdAngles = dsSIMD2d_load(angles.data() + i);
-		dsSIMD2d simdSin, simdCos;
-		dsSinCosSIMD2d(&simdSin, &simdCos, simdAngles);
-		dsSIMD2d_store(results.data() + i, simdSin);
-		dsSIMD2d_store(otherResults.data() + i, simdCos);
-	}
-	end = dsTimer_currentTicks();
-	printf("custom sincos SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-	hashValue += hasher(otherResults[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdAngles = dsSIMD2d_load(angles.data() + i);
-		dsSIMD2d_store(results.data() + i, dsTanSIMD2d(simdAngles));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom tan SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdX = dsSIMD2d_load(otherResults.data() + i);
-		dsSIMD2d_store(results.data() + i, dsASinSIMD2d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom asin SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdX = dsSIMD2d_load(otherResults.data() + i);
-		dsSIMD2d_store(results.data() + i, dsACosSIMD2d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom acos SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdX = dsSIMD2d_load(angles.data() + i);
-		dsSIMD2d_store(results.data() + i, dsATanSIMD2d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom acos SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdY = dsSIMD2d_load(angles.data() + i);
-		dsSIMD2d simdX = dsSIMD2d_load(angles.data() + performanceCount - i - 2);
-		dsSIMD2d_store(results.data() + i, dsATan2SIMD2d(simdY, simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom atan2 SIMD2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-}
-DS_SIMD_END()
-
-#if !DS_DETERMINISTIC_MATH
-DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_INT,DS_SIMD_FMA)
-static void TrigFloatTest_PerformanceFMA2d(std::vector<double>& results,
-	std::vector<double>& otherResults, const std::vector<double>& angles, std::size_t& hashValue,
-	dsTimer timer)
-{
-	std::hash<double> hasher;
-	printf("\n");
-
-	int64_t start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdAngles = dsSIMD2d_load(angles.data() + i);
-		dsSIMD2d_store(results.data() + i, dsSinFMA2d(simdAngles));
-	}
-	uint64_t end = dsTimer_currentTicks();
-	printf("custom sin FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdAngles = dsSIMD2d_load(angles.data() + i);
-		dsSIMD2d_store(results.data() + i, dsCosFMA2d(simdAngles));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom cos FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdAngles = dsSIMD2d_load(angles.data() + i);
-		dsSIMD2d simdSin, simdCos;
-		dsSinCosFMA2d(&simdSin, &simdCos, simdAngles);
-		dsSIMD2d_store(results.data() + i, simdSin);
-		dsSIMD2d_store(otherResults.data() + i, simdCos);
-	}
-	end = dsTimer_currentTicks();
-	printf("custom sincos FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-	hashValue += hasher(otherResults[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdAngles = dsSIMD2d_load(angles.data() + i);
-		dsSIMD2d_store(results.data() + i, dsTanFMA2d(simdAngles));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom tan FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdX = dsSIMD2d_load(otherResults.data() + i);
-		dsSIMD2d_store(results.data() + i, dsASinFMA2d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom asin FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdX = dsSIMD2d_load(otherResults.data() + i);
-		dsSIMD2d_store(results.data() + i, dsACosFMA2d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom acos FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdX = dsSIMD2d_load(otherResults.data() + i);
-		dsSIMD2d_store(results.data() + i, dsASinFMA2d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom asin FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdX = dsSIMD2d_load(angles.data() + i);
-		dsSIMD2d_store(results.data() + i, dsATanFMA2d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom atan FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 2)
-	{
-		dsSIMD2d simdY = dsSIMD2d_load(angles.data() + i);
-		dsSIMD2d simdX = dsSIMD2d_load(angles.data() + performanceCount - i - 2);
-		dsSIMD2d_store(results.data() + i, dsATan2FMA2d(simdY, simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom atan2 FMA2d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-}
-DS_SIMD_END()
-#endif // !DS_DETERMINISTIC_MATH
-
-DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_INT,DS_SIMD_FMA)
-static void TrigFloatTest_PerformanceSIMD4d(std::vector<double>& results,
-	std::vector<double>& otherResults, const std::vector<double>& angles, std::size_t& hashValue,
-	dsTimer timer)
-{
-	double* resultsData = alignPtr(results.data(), 32);
-	double* otherResultsData = alignPtr(otherResults.data(), 32);
-	const double* anglesData = alignPtr(angles.data(), 32);
-
-	std::hash<double> hasher;
-	printf("\n");
-
-	int64_t start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4d simdAngles = dsSIMD4d_load(anglesData + i);
-		dsSIMD4d_store(resultsData + i, dsSinSIMD4d(simdAngles));
-	}
-	uint64_t end = dsTimer_currentTicks();
-	printf("custom sin SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4d simdAngles = dsSIMD4d_load(anglesData + i);
-		dsSIMD4d_store(resultsData + i, dsCosSIMD4d(simdAngles));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom cos SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4d simdAngles = dsSIMD4d_load(anglesData + i);
-		dsSIMD4d simdSin, simdCos;
-		dsSinCosSIMD4d(&simdSin, &simdCos, simdAngles);
-		dsSIMD4d_store(resultsData + i, simdSin);
-		dsSIMD4d_store(otherResultsData + i, simdCos);
-	}
-	end = dsTimer_currentTicks();
-	printf("custom sincos SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-	hashValue += hasher(otherResults[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4d simdAngles = dsSIMD4d_load(anglesData + i);
-		dsSIMD4d_store(resultsData + i, dsTanSIMD4d(simdAngles));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom tan SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4d simdX = dsSIMD4d_load(otherResultsData + i);
-		dsSIMD4d_store(resultsData + i, dsASinSIMD4d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom asin SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4d simdX = dsSIMD4d_load(otherResultsData + i);
-		dsSIMD4d_store(resultsData + i, dsACosSIMD4d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom acos SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4d simdX = dsSIMD4d_load(anglesData + i);
-		dsSIMD4d_store(resultsData + i, dsATanSIMD4d(simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom atan SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; i += 4)
-	{
-		dsSIMD4d simdY = dsSIMD4d_load(anglesData + i);
-		dsSIMD4d simdX = dsSIMD4d_load(anglesData + performanceCount - i - 4);
-		dsSIMD4d_store(resultsData + i, dsATan2SIMD4d(simdY, simdX));
-	}
-	end = dsTimer_currentTicks();
-	printf("custom atan2 SIMD4d time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-}
-DS_SIMD_END()
-#endif // DS_HAS_SIMD
-
-static void TrigDoubleTest_Performance()
+TEST(TrigDoubleTest, Performance)
 {
 	// Add some padding to ensure we can get aligned results.
 	unsigned int performanceCountAligned = performanceCount + 3;
@@ -2572,177 +2988,94 @@ static void TrigDoubleTest_Performance()
 	std::vector<double> otherResults(performanceCountAligned);
 	std::vector<double> angles(performanceCountAligned);
 
+	double* resultsData = alignPtr(results.data(), 32);
+	double* otherResultsData = alignPtr(otherResults.data(), 32);
+	double* anglesData = alignPtr(angles.data(), 32);
+
 	dsRandom random;
 	dsRandom_seed(&random, 0);
-	for (unsigned int i = 0; i < performanceCountAligned; ++i)
-		angles[i] = randomValue(random, -10.0, 10.0);
+	for (unsigned int i = 0; i < performanceCount; ++i)
+		anglesData[i] = randomValue(random, -10.0, 10.0);
 
 	// Keep a running hash to avoid the optimizer stripping out the loops.
-	std::hash<double> hasher;
 	std::size_t hashValue = 0;
-
 	dsTimer timer = dsTimer_create();
-	uint64_t start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = std::sin(angles[i]);
-	uint64_t end = dsTimer_currentTicks();
-	printf("std sin time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
 
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = std::cos(angles[i]);
-	end = dsTimer_currentTicks();
-	printf("std cos time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-	{
-		results[i] = std::sin(angles[i]);
-		otherResults[i] = std::cos(angles[i]);
-	}
-	end = dsTimer_currentTicks();
-	printf("std sincos time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-	hashValue += hasher(otherResults[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = std::tan(angles[i]);
-	end = dsTimer_currentTicks();
-	printf("std tan time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = std::asin(otherResults[i]);
-	end = dsTimer_currentTicks();
-	printf("std asin time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = std::acos(otherResults[i]);
-	end = dsTimer_currentTicks();
-	printf("std acos time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = std::atan(angles[i]);
-	end = dsTimer_currentTicks();
-	printf("std atan time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = std::atan2(angles[i], angles[performanceCount - i - 1]);
-	end = dsTimer_currentTicks();
-	printf("std atan2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	TrigDoubleTest_PerformanceStdSin(resultsData, anglesData, hashValue, timer);
+	TrigDoubleTest_PerformanceStdCos(resultsData, anglesData, hashValue, timer);
+	TrigDoubleTest_PerformanceStdSinCos(
+		resultsData, otherResultsData, anglesData, hashValue, timer);
+	TrigDoubleTest_PerformanceStdTan(resultsData, anglesData, hashValue, timer);
+	TrigDoubleTest_PerformanceStdASin(resultsData, otherResultsData, hashValue, timer);
+	TrigDoubleTest_PerformanceStdACos(resultsData, otherResultsData, hashValue, timer);
+	TrigDoubleTest_PerformanceStdATan(resultsData, anglesData, hashValue, timer);
+	TrigDoubleTest_PerformanceStdATan2(resultsData, anglesData, hashValue, timer);
 
 	printf("\n");
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsSin(angles[i]);
-	end = dsTimer_currentTicks();
-	printf("custom sin time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsCos(angles[i]);
-	end = dsTimer_currentTicks();
-	printf("custom cos time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		dsSinCos(results[i], otherResults[i], angles[i]);
-	end = dsTimer_currentTicks();
-	printf("custom sincos time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsTan(angles[i]);
-	end = dsTimer_currentTicks();
-	printf("custom tan time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsASin(otherResults[i]);
-	end = dsTimer_currentTicks();
-	printf("custom asin time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsACos(otherResults[i]);
-	end = dsTimer_currentTicks();
-	printf("custom acos time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsATan(angles[i]);
-	end = dsTimer_currentTicks();
-	printf("custom atan time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
-
-	start = dsTimer_currentTicks();
-	DS_NO_VECTORIZE
-	for (unsigned int i = 0; i < performanceCount; ++i)
-		results[i] = dsATan2(angles[i], angles[performanceCount - i - 1]);
-	end = dsTimer_currentTicks();
-	printf("custom atan2 time: %f s\n", dsTimer_ticksToSeconds(timer, end - start));
-	hashValue += hasher(results[size_t(end % performanceCount)]);
+	TrigDoubleTest_PerformanceCustomSin(resultsData, anglesData, hashValue, timer);
+	TrigDoubleTest_PerformanceCustomCos(resultsData, anglesData, hashValue, timer);
+	TrigDoubleTest_PerformanceCustomSinCos(
+		resultsData, otherResultsData, anglesData, hashValue, timer);
+	TrigDoubleTest_PerformanceCustomTan(resultsData, anglesData, hashValue, timer);
+	TrigDoubleTest_PerformanceCustomASin(resultsData, otherResultsData, hashValue, timer);
+	TrigDoubleTest_PerformanceCustomACos(resultsData, otherResultsData, hashValue, timer);
+	TrigDoubleTest_PerformanceCustomATan(resultsData, anglesData, hashValue, timer);
+	TrigDoubleTest_PerformanceCustomATan2(resultsData, anglesData, hashValue, timer);
 
 #if DS_HAS_SIMD
 
 	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigFloatTest_PerformanceSIMD2d(results, otherResults, angles, hashValue, timer);
+	{
+		printf("\n");
+		TrigDoubleTest_PerformanceSinSIMD2d(resultsData, anglesData, hashValue, timer);
+		TrigDoubleTest_PerformanceCosSIMD2d(resultsData, anglesData, hashValue, timer);
+		TrigDoubleTest_PerformanceSinCosSIMD2d(
+			resultsData, otherResultsData, anglesData, hashValue, timer);
+		TrigDoubleTest_PerformanceTanSIMD2d(resultsData, anglesData, hashValue, timer);
+		TrigDoubleTest_PerformanceASinSIMD2d(resultsData, otherResultsData, hashValue, timer);
+		TrigDoubleTest_PerformanceACosSIMD2d(resultsData, otherResultsData, hashValue, timer);
+		TrigDoubleTest_PerformanceATanSIMD2d(resultsData, anglesData, hashValue, timer);
+		TrigDoubleTest_PerformanceATan2SIMD2d(resultsData, anglesData, hashValue, timer);
+	}
 
 #if !DS_DETERMINISTIC_MATH
 
 	features |= dsSIMDFeatures_FMA;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigFloatTest_PerformanceFMA2d(results, otherResults, angles, hashValue, timer);
+	{
+		printf("\n");
+		TrigDoubleTest_PerformanceSinFMA2d(resultsData, anglesData, hashValue, timer);
+		TrigDoubleTest_PerformanceCosFMA2d(resultsData, anglesData, hashValue, timer);
+		TrigDoubleTest_PerformanceSinCosFMA2d(
+			resultsData, otherResultsData, anglesData, hashValue, timer);
+		TrigDoubleTest_PerformanceTanFMA2d(resultsData, anglesData, hashValue, timer);
+		TrigDoubleTest_PerformanceASinFMA2d(resultsData, otherResultsData, hashValue, timer);
+		TrigDoubleTest_PerformanceACosFMA2d(resultsData, otherResultsData, hashValue, timer);
+		TrigDoubleTest_PerformanceATanFMA2d(resultsData, anglesData, hashValue, timer);
+		TrigDoubleTest_PerformanceATan2FMA2d(resultsData, anglesData, hashValue, timer);
+	}
 
 #endif // !DS_DETERMINISTIC_MATH
 
 	features = dsSIMDFeatures_Double4 | dsSIMDFeatures_Int;
 	if ((dsHostSIMDFeatures & features) == features)
-		TrigFloatTest_PerformanceSIMD4d(results, otherResults, angles, hashValue, timer);
+	{
+		printf("\n");
+		TrigDoubleTest_PerformanceSinSIMD4d(resultsData, anglesData, hashValue, timer);
+		TrigDoubleTest_PerformanceCosSIMD4d(resultsData, anglesData, hashValue, timer);
+		TrigDoubleTest_PerformanceSinCosSIMD4d(
+			resultsData, otherResultsData, anglesData, hashValue, timer);
+		TrigDoubleTest_PerformanceTanSIMD4d(resultsData, anglesData, hashValue, timer);
+		TrigDoubleTest_PerformanceASinSIMD4d(resultsData, otherResultsData, hashValue, timer);
+		TrigDoubleTest_PerformanceACosSIMD4d(resultsData, otherResultsData, hashValue, timer);
+		TrigDoubleTest_PerformanceATanSIMD4d(resultsData, anglesData, hashValue, timer);
+		TrigDoubleTest_PerformanceATan2SIMD4d(resultsData, anglesData, hashValue, timer);
+	}
 
 #endif // DS_HAS_SIMD
 
 	printf("\nValue to avoid optimizing out loops: 0x%X\n", static_cast<unsigned int>(hashValue));
-}
-
-TEST(TrigFloatTest, Performance)
-{
-	TrigFloatTest_Performance();
-}
-
-TEST(TrigDoubleTest, Performance)
-{
-	TrigDoubleTest_Performance();
 }
 
 #if DS_GCC
