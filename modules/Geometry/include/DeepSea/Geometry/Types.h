@@ -535,6 +535,13 @@ typedef union dsPlane3d
 	 */
 #if DS_HAS_SIMD
 	dsSIMD2d simd2[2];
+
+#if DS_SIMD_PREFER_DOUBLE4
+	/**
+	 * @brief SIMD value as a single vector when alignment rules make it safe to use.
+	 */
+	dsSIMD4d simd;
+#endif
 #endif
 
 	struct

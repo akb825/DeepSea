@@ -73,7 +73,14 @@ DS_GEOMETRY_EXPORT inline void dsRay3f_evaluate3x(dsVector3xf* result, const dsR
 /** @copydoc dsRay3_evaluate() */
 DS_GEOMETRY_EXPORT inline void dsRay3d_evaluate3x(dsVector3xd* result, const dsRay3d* ray, double t)
 {
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+#if DS_SIMD_ALWAYS_FMA
+	result->simd = dsSIMD4d_fmadd(ray->direction.simd, dsSIMD4d_set1(t), ray->origin.simd);
+#else
+	result->simd = dsSIMD4d_add(
+		ray->origin.simd, dsSIMD4d_mul(ray->direction.simd, dsSIMD4d_set1(t)));
+#endif
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2d t2 = dsSIMD2d_set1(t);
 #if DS_SIMD_ALWAYS_FMA
 	result->simd2[0] = dsSIMD2d_fmadd(ray->direction.simd2[0], t2, ray->origin.simd2[0]);

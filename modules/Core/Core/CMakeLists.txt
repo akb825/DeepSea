@@ -8,9 +8,16 @@ if (DEEPSEA_PROFILING)
 else()
 	set(profilingEnabled 0)
 endif()
+
+if (DEEPSEA_HEAVY_DOUBLE_USAGE)
+	set(heavyDoubleUsage 1)
+else()
+	set(heavyDoubleUsage 0)
+endif()
+
 ds_target_compile_definitions(deepsea_core PUBLIC DS_PROFILING_ENABLED=${profilingEnabled}
-	DS_MAJOR_VERSION=${DEEPSEA_MAJOR_VERSION} DS_MINOR_VERSION=${DEEPSEA_MINOR_VERSION}
-	DS_PATCH_VERSION=${DEEPSEA_PATCH_VERSION})
+	DS_HEAVY_DOUBLE_USAGE=${heavyDoubleUsage} DS_MAJOR_VERSION=${DEEPSEA_MAJOR_VERSION}
+	DS_MINOR_VERSION=${DEEPSEA_MINOR_VERSION} DS_PATCH_VERSION=${DEEPSEA_PATCH_VERSION})
 ds_target_link_libraries(deepsea_core PUBLIC ${CMAKE_THREAD_LIBS_INIT} PRIVATE ${CMAKE_DL_LIBS})
 
 set(externalDeps)

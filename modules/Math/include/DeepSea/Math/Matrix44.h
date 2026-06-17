@@ -637,7 +637,12 @@ DS_MATH_EXPORT inline void dsMatrix44f_identity(dsMatrix44f* result)
 DS_MATH_EXPORT inline void dsMatrix44d_identity(dsMatrix44d* result)
 {
 	DS_ASSERT(result);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	result->columns[0].simd = dsSIMD4d_set4(1.0, 0.0, 0.0, 0.0);
+	result->columns[1].simd = dsSIMD4d_set4(0.0, 1.0, 0.0, 0.0);
+	result->columns[2].simd = dsSIMD4d_set4(0.0, 0.0, 1.0, 0.0);
+	result->columns[3].simd = dsSIMD4d_set4(0.0, 0.0, 0.0, 1.0);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	result->columns[0].simd2[0] = dsSIMD2d_set2(1.0, 0.0);
 	result->columns[0].simd2[1] = dsSIMD2d_set1(0.0);
 	result->columns[1].simd2[0] = dsSIMD2d_set2(0.0, 1.0);
@@ -676,7 +681,9 @@ DS_MATH_EXPORT inline void dsMatrix44d_mul(
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsMatrix44d_mulSIMD4(result, a, b);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	dsMatrix44d_mulFMA2(result, a, b);
 #else
@@ -712,7 +719,9 @@ DS_MATH_EXPORT inline void dsMatrix44d_affineMul(
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsMatrix44d_affineMulSIMD4(result, a, b);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	dsMatrix44d_affineMulFMA2(result, a, b);
 #else
@@ -747,7 +756,9 @@ DS_MATH_EXPORT inline void dsMatrix44d_transform(
 	DS_ASSERT(result);
 	DS_ASSERT(mat);
 	DS_ASSERT(vec);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsMatrix44d_transformSIMD4(result, mat, vec);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	dsMatrix44d_transformFMA2(result, mat, vec);
 #else
@@ -782,7 +793,9 @@ DS_MATH_EXPORT inline void dsMatrix44d_transformTransposed(dsVector4d* result,
 	DS_ASSERT(result);
 	DS_ASSERT(mat);
 	DS_ASSERT(vec);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsMatrix44d_transformTransposedSIMD4(result, mat, vec);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	dsMatrix44d_transformTransposedFMA2(result, mat, vec);
 #else
@@ -812,7 +825,9 @@ DS_MATH_EXPORT inline void dsMatrix44d_transpose(dsMatrix44d* result, const dsMa
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(result != a);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsMatrix44d_transposeSIMD4(result, a);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	dsMatrix44d_transposeSIMD2(result, a);
 #else
 	dsMatrix44_transpose(*result, *a);
@@ -836,7 +851,9 @@ DS_MATH_EXPORT inline float dsMatrix44f_determinant(dsMatrix44f* a)
 DS_MATH_EXPORT inline double dsMatrix44d_determinant(dsMatrix44d* a)
 {
 	DS_ASSERT(a);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	return dsMatrix44d_determinantSIMD4(a);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	return dsMatrix44d_determinantFMA2(a);
 #else
@@ -866,7 +883,9 @@ DS_MATH_EXPORT inline void dsMatrix44d_fastInvert(dsMatrix44d* result, const dsM
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsMatrix44d_fastInvertSIMD4(result, a);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	dsMatrix44d_fastInvertFMA2(result, a);
 #else
@@ -882,7 +901,6 @@ inline void dsMatrix44f_affineInvert(dsMatrix44f* result, const dsMatrix44f* a)
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(result != a);
-
 #if DS_SIMD_ALWAYS_FMA
 	dsMatrix44f_affineInvertFMA(result, a);
 #elif DS_SIMD_ALWAYS_FLOAT4
@@ -916,8 +934,9 @@ inline void dsMatrix44d_affineInvert(dsMatrix44d* result, const dsMatrix44d* a)
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(result != a);
-
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsMatrix44d_affineInvertSIMD4(result, a);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	dsMatrix44d_affineInvertFMA2(result, a);
 #else
@@ -951,7 +970,6 @@ inline void dsMatrix44f_affineInvert33(dsMatrix33xf* result, const dsMatrix44f* 
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
-
 #if DS_SIMD_ALWAYS_FLOAT4
 #if DS_SIMD_ALWAYS_FMA
 	dsMatrix44f_affineInvert33FMA(result, a);
@@ -981,8 +999,9 @@ inline void dsMatrix44d_affineInvert33(dsMatrix33xd* result, const dsMatrix44d* 
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
-
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsMatrix44d_affineInvert33SIMD4(result, a);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	dsMatrix44d_affineInvert33FMA2(result, a);
 #else
@@ -1012,7 +1031,6 @@ inline void dsMatrix44f_invert(dsMatrix44f* result, const dsMatrix44f* a)
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(result != a);
-
 #if DS_SIMD_ALWAYS_FMA
 	dsMatrix44f_invertFMA(result, a);
 #elif DS_SIMD_ALWAYS_FLOAT4
@@ -1093,8 +1111,9 @@ inline void dsMatrix44d_invert(dsMatrix44d* result, const dsMatrix44d* a)
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(result != a);
-
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsMatrix44d_invertSIMD4(result, a);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	dsMatrix44d_invertFMA2(result, a);
 #else
@@ -1175,7 +1194,6 @@ inline void dsMatrix44f_inverseTranspose(dsMatrix33xf* result, const dsMatrix44f
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
-
 #if DS_SIMD_ALWAYS_FLOAT4
 #if DS_SIMD_ALWAYS_FMA
 	dsMatrix44f_inverseTransposeFMA(result, a);
@@ -1214,8 +1232,9 @@ inline void dsMatrix44d_inverseTranspose(dsMatrix33xd* result, const dsMatrix44d
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
-
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsMatrix44d_inverseTransposeSIMD4(result, a);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	dsMatrix44d_inverseTransposeFMA2(result, a);
 #else
@@ -1267,7 +1286,9 @@ inline void dsMatrix44d_makeRotate(dsMatrix44d* result, double x, double y, doub
 {
 	DS_ASSERT(result);
 	dsMatrix33xd_makeRotate3D((dsMatrix33xd*)result, x, y, z);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	result->columns[3].simd = dsSIMD4d_set4(0.0, 0.0, 0.0, 1.0);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	result->columns[3].simd2[0] = dsSIMD2d_set1(0.0);
 	result->columns[3].simd2[1] = dsSIMD2d_set2(0.0f, 1.0);
 #else
@@ -1298,7 +1319,9 @@ inline void dsMatrix44d_makeRotateAxisAngle(
 {
 	DS_ASSERT(result);
 	dsMatrix33xd_makeRotate3DAxisAngle((dsMatrix33xd*)result, axis, angle);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	result->columns[3].simd = dsSIMD4d_set4(0.0, 0.0, 0.0, 1.0);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	result->columns[3].simd2[0] = dsSIMD2d_set1(0.0);
 	result->columns[3].simd2[1] = dsSIMD2d_set2(0.0f, 1.0);
 #else
@@ -1343,7 +1366,12 @@ inline void dsMatrix44f_makeTranslate(dsMatrix44f* result, float x, float y, flo
 inline void dsMatrix44d_makeTranslate(dsMatrix44d* result, double x, double y, double z)
 {
 	DS_ASSERT(result);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	result->columns[0].simd = dsSIMD4d_set4(1.0, 0.0, 0.0, 0.0);
+	result->columns[1].simd = dsSIMD4d_set4(0.0, 1.0, 0.0, 0.0);
+	result->columns[2].simd = dsSIMD4d_set4(0.0, 0.0, 1.0, 0.0);
+	result->columns[3].simd = dsSIMD4d_set4(x, y, z, 1.0);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	result->columns[0].simd2[0] = dsSIMD2d_set2(1.0, 0.0);
 	result->columns[0].simd2[1] = dsSIMD2d_set1(0.0);
 	result->columns[1].simd2[0] = dsSIMD2d_set2(0.0, 1.0);
@@ -1409,7 +1437,12 @@ inline void dsMatrix44f_makeScale(dsMatrix44f* result, float x, float y, float z
 inline void dsMatrix44d_makeScale(dsMatrix44d* result, double x, double y, double z)
 {
 	DS_ASSERT(result);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	result->columns[0].simd = dsSIMD4d_set4(x, 0.0, 0.0, 0.0);
+	result->columns[1].simd = dsSIMD4d_set4(0.0, y, 0.0, 0.0);
+	result->columns[2].simd = dsSIMD4d_set4(0.0, 0.0, z, 0.0);
+	result->columns[3].simd = dsSIMD4d_set4(0.0, 0.0, 0.0, 1.0);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	result->columns[0].simd2[0] = dsSIMD2d_set2(x, 0.0);
 	result->columns[0].simd2[1] = dsSIMD2d_set1(0.0);
 	result->columns[1].simd2[0] = dsSIMD2d_set2(0.0, y);
@@ -1473,7 +1506,9 @@ inline void dsMatrix44f_decomposeTransform(dsVector3xf* outPosition,
 inline void dsMatrix44d_decomposeTransform(dsVector3xd* outPosition,
 	dsQuaternion4d* outOrientation, dsVector3xd* outScale, const dsMatrix44d* matrix)
 {
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsMatrix44d_decomposeTransformSIMD4(outPosition, outOrientation, outScale, matrix);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	dsMatrix44d_decomposeTransformSIMD2(outPosition, outOrientation, outScale, matrix);
 #else
 	dsMatrix44d_decomposeTransformScalar(outPosition, outOrientation, outScale, matrix);
@@ -1495,7 +1530,9 @@ inline void dsMatrix44f_composeTransform(dsMatrix44f* result,
 inline void dsMatrix44d_composeTransform(dsMatrix44d* result,
 	const dsVector3xd* position, const dsQuaternion4d* orientation, const dsVector3xd* scale)
 {
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsMatrix44d_composeTransformSIMD4(result, position, orientation, scale);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	dsMatrix44d_composeTransformFMA2(result, position, orientation, scale);
 #else
@@ -1521,7 +1558,9 @@ inline void dsMatrix44f_rigidLerp(
 inline void dsMatrix44d_rigidLerp(
 	dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b, double t)
 {
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsMatrix44d_rigidLerpSIMD4(result, a, b, t);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	dsMatrix44d_rigidLerpFMA2(result, a, b, t);
 #else

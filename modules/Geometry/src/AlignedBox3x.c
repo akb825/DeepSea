@@ -31,7 +31,17 @@ static inline dsSIMD4f dsAlignedBox3xf_dist2Impl(
 }
 #endif
 
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+static inline dsSIMD4d dsAlignedBox3xd_dist2Impl(
+	const dsAlignedBox3xd* box, const dsVector3xd* point)
+{
+	dsSIMD4d minDiff = dsSIMD4d_sub(box->min.simd, point->simd);
+	dsSIMD4d maxDiff = dsSIMD4d_sub(point->simd, box->max.simd);
+
+	dsSIMD4d baseDist = dsSIMD4d_max(dsSIMD4d_max(minDiff, maxDiff), dsSIMD4d_set1(0.0f));
+	return dsDot3SIMD4d(baseDist, baseDist);
+}
+#elif DS_SIMD_ALWAYS_DOUBLE2
 static inline dsSIMD2d dsAlignedBox3xd_dist2Impl(
 	const dsAlignedBox3xd* box, const dsVector3xd* point)
 {
@@ -78,7 +88,10 @@ double dsAlignedBox3xd_dist2(const dsAlignedBox3xd* box, const dsVector3xd* poin
 	if (!dsAlignedBox3xd_isValid(box))
 		return -1.0;
 
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsSIMD4d dist2 = dsAlignedBox3xd_dist2Impl(box, point);
+	return dsSIMD4d_get(dist2, 0);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2d dist2 = dsAlignedBox3xd_dist2Impl(box, point);
 	return dsSIMD2d_get(dist2, 0);
 #else
@@ -129,7 +142,11 @@ double dsAlignedBox3xd_dist(const dsAlignedBox3xd* box, const dsVector3xd* point
 	if (!dsAlignedBox3xd_isValid(box))
 		return -1.0;
 
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsSIMD4d dist2 = dsAlignedBox3xd_dist2Impl(box, point);
+	dsSIMD4d dist = dsSIMD4d_sqrt(dist2);
+	return dsSIMD4d_get(dist, 0);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2d dist2 = dsAlignedBox3xd_dist2Impl(box, point);
 	dsSIMD2d dist = dsSIMD2d_sqrt(dist2);
 	return dsSIMD2d_get(dist, 0);

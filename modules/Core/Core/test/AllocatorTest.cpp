@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,17 @@
 
 TEST(Allocator, AlignedSize)
 {
+#if DS_ALLOC_ALIGNMENT == 16
 	EXPECT_EQ(16U, DS_ALIGNED_SIZE(1U));
 	EXPECT_EQ(16U, DS_ALIGNED_SIZE(16U));
 	EXPECT_EQ(32U, DS_ALIGNED_SIZE(17U));
+#elif DS_ALLOC_ALIGNMENT == 32
+	EXPECT_EQ(32U, DS_ALIGNED_SIZE(1U));
+	EXPECT_EQ(32U, DS_ALIGNED_SIZE(32U));
+	EXPECT_EQ(64U, DS_ALIGNED_SIZE(33U));
+#else
+#error Need to populate test cases for current alignment.
+#endif
 }
 
 TEST(Allocator, CustomAlignedSize)
@@ -36,15 +44,29 @@ TEST(Allocator, CustomAlignedSize)
 
 TEST(Allocator, RealignedSize)
 {
-	EXPECT_EQ(16U, DS_REALIGNED_SIZE(16U, DS_ALLOC_ALIGNMENT));
-	EXPECT_EQ(32U, DS_REALIGNED_SIZE(17U, DS_ALLOC_ALIGNMENT));
-	EXPECT_EQ(48U, DS_REALIGNED_SIZE(33U, DS_ALLOC_ALIGNMENT));
+#if DS_ALLOC_ALIGNMENT == 16
+	EXPECT_EQ(16U, DS_REALIGNED_SIZE(16U, 16U));
+	EXPECT_EQ(32U, DS_REALIGNED_SIZE(17U, 16U));
+	EXPECT_EQ(48U, DS_REALIGNED_SIZE(33U, 16U));
 
 	EXPECT_EQ(48U, DS_REALIGNED_SIZE(16U, 32U));
 	EXPECT_EQ(48U, DS_REALIGNED_SIZE(17U, 32U));
 	EXPECT_EQ(80U, DS_REALIGNED_SIZE(33U, 32U));
 
 	EXPECT_EQ(112U, DS_REALIGNED_SIZE(1U, 64U));
+#elif DS_ALLOC_ALIGNMENT == 32
+	EXPECT_EQ(32U, DS_REALIGNED_SIZE(32U, 32U));
+	EXPECT_EQ(64U, DS_REALIGNED_SIZE(33U, 32U));
+	EXPECT_EQ(96U, DS_REALIGNED_SIZE(65U, 32U));
+
+	EXPECT_EQ(96U, DS_REALIGNED_SIZE(32U, 64U));
+	EXPECT_EQ(96U, DS_REALIGNED_SIZE(33U, 64U));
+	EXPECT_EQ(160U, DS_REALIGNED_SIZE(65U, 64U));
+
+	EXPECT_EQ(224U, DS_REALIGNED_SIZE(1U, 128U));
+#else
+#error Need to populate test cases for current alignment.
+#endif
 }
 
 TEST(Allocator, Empty)

@@ -132,6 +132,8 @@ extern "C"
 #else
 #define DS_SIMD_ALWAYS_HALF_FLOAT 0
 #endif
+
+#define DS_SIMD_PREFER_DOUBLE4 (DS_SIMD_ALWAYS_DOUBLE4 && DS_HEAVY_DOUBLE_USAGE)
 /// @endcond
 
 /**

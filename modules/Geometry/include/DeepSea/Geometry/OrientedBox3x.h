@@ -190,7 +190,11 @@ DS_GEOMETRY_EXPORT inline bool dsOrientedBox3xf_isValid(const dsOrientedBox3xf* 
 DS_GEOMETRY_EXPORT inline bool dsOrientedBox3xd_isValid(const dsOrientedBox3xd* box)
 {
 	DS_ASSERT(box);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsVector4l result;
+	result.simd = dsSIMD4d_cmpge(box->halfExtents.simd, dsSIMD4d_set1(0.0));
+	return result.x && result.y && result.z;
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2d zero = dsSIMD2d_set1(0.0);
 	dsVector4l result;
 	result.simd2[0] = dsSIMD2d_cmpge(box->halfExtents.simd2[0], zero);
@@ -246,7 +250,9 @@ DS_GEOMETRY_EXPORT inline void dsOrientedBox3xd_toMatrix(
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsOrientedBox3xd_toMatrixSIMD4(result, box);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	dsOrientedBox3xd_toMatrixSIMD2(result, box);
 #else
 	dsOrientedBox3_toMatrix(*result, *box);
@@ -272,7 +278,9 @@ DS_GEOMETRY_EXPORT inline void dsOrientedBox3xd_toMatrixTranspose(
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsOrientedBox3xd_toMatrixTransposeSIMD4(result, box);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	dsOrientedBox3xd_toMatrixTransposeSIMD2(result, box);
 #else
 	dsOrientedBox3_toMatrixTranspose(*result, *box);
@@ -298,7 +306,9 @@ DS_GEOMETRY_EXPORT inline void dsOrientedBox3xf_makeInvalid(dsOrientedBox3xf* re
 DS_GEOMETRY_EXPORT inline void dsOrientedBox3xd_makeInvalid(dsOrientedBox3xd* result)
 {
 	DS_ASSERT(result);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	result->halfExtents.simd = dsSIMD4d_set1(-1.0);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2d negOne = dsSIMD2d_set1(-1.0);
 	result->halfExtents.simd2[0] = negOne;
 	result->halfExtents.simd2[1] = negOne;
@@ -352,7 +362,9 @@ DS_GEOMETRY_EXPORT inline void dsOrientedBox3xd_fromMatrix(
 {
 	DS_ASSERT(result);
 	DS_ASSERT(matrix);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsOrientedBox3xd_fromMatrixSIMD4(result, matrix);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	dsOrientedBox3xd_fromMatrixFMA2(result, matrix);
 #else

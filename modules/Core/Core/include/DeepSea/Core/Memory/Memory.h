@@ -32,14 +32,15 @@ extern "C"
  * @brief The alignment of allocated memory.
  *
  * This is the alignment used within the DeepSea libraries, and allows for 128 bit SIMD types to be
- * used directly.
- *
- * TODO: If 256 bit SIMD operations become commonplace to use, should set this to 32 for platforms
- * where such instructions are possible (currently just x86 32/64), allowing them to be used without
- * explicit alignment. For now this isn't done to reduce waste for extra padding, since
- * single-precsion floats are almost exclusively used..
+ * used directly. If DEEPSEA_HEAVY_DOUBLE_USAGE is set through CMake and AVX2 is supported, this
+ * will be set to allow for 256 bit SIMD types at the expense for higher memory usage and slower
+ * allocations in some situations.
  */
+#if DS_HEAVY_DOUBLE_USAGE && defined(__AVX2__)
+#define DS_ALLOC_ALIGNMENT 32
+#else
 #define DS_ALLOC_ALIGNMENT 16
+#endif
 
 /**
  * @brief Gets the aligned size for a custom alignment.
@@ -66,7 +67,7 @@ extern "C"
  * @brief Gets the size when re-aligning from the default alignment to a custom alignment.
  * @param x The original size.
  * @param alignment The alignment. This must be a power of two and >= DS_ALLOC_ALIGNMENT.
- * @return The aligned size.
+ * @return The size to allow re-alignment.
  */
 #define DS_REALIGNED_SIZE(x, alignment) \
 	(DS_CUSTOM_ALIGNED_SIZE(x, alignment) + ((alignment) - DS_ALLOC_ALIGNMENT))

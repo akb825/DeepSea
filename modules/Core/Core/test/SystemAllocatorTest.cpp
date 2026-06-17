@@ -253,7 +253,7 @@ TEST(SystemAllocator, AlignedReallocation)
 TEST(SystemAllocator, Limit)
 {
 	dsSystemAllocator systemAllocator;
-	ASSERT_TRUE(dsSystemAllocator_initialize(&systemAllocator, 1024));
+	ASSERT_TRUE(dsSystemAllocator_initialize(&systemAllocator, 1152));
 	dsAllocator* allocator = (dsAllocator*)&systemAllocator;
 
 	void* ptr1 = dsAllocator_alloc(allocator, 512);

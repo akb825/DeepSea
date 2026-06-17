@@ -162,7 +162,10 @@ void dsQuaternion4d_slerp(
 	double scaleB = sinTheta/sinThetaAB;
 	double scaleA = cosTheta - cosAB*scaleB;
 
-#if DS_SIMD_ALWAYS_DOUBLE2 && DS_SIMD_ALWAYS_FMA
+#if DS_SIMD_PREFER_DOUBLE4 && DS_SIMD_ALWAYS_FMA
+	result->simd = dsSIMD4d_fmadd(a->simd, dsSIMD4d_set1(scaleA),
+		dsSIMD4d_mul(b->simd, dsSIMD4d_set1(scaleB)));
+#elif DS_SIMD_ALWAYS_DOUBLE2 && DS_SIMD_ALWAYS_FMA
 	result->simd2[0] = dsSIMD2d_fmadd(a->simd2[0], dsSIMD2d_set1(scaleA),
 		dsSIMD2d_mul(b->simd2[0], dsSIMD2d_set1(scaleB)));
 	result->simd2[1] = dsSIMD2d_fmadd(a->simd2[1], dsSIMD2d_set1(scaleA),

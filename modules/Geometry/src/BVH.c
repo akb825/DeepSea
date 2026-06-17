@@ -682,6 +682,9 @@ uint32_t dsBVH_intersectFrustum(
 		case dsGeometryElement_Double:
 			if (bvh->storedAxisCount == 4)
 			{
+#if DS_SIMD_PREFER_DOUBLE4
+				intersectFunc = (IntersectFunction)&dsFrustum3d_intersectAlignedBoxSIMD4;
+#else
 #if DS_HAS_SIMD
 				if (DS_SIMD_ALWAYS_DOUBLE2 || (dsHostSIMDFeatures & dsSIMDFeatures_Double2))
 				{
@@ -695,6 +698,7 @@ uint32_t dsBVH_intersectFrustum(
 				else
 #endif // DS_HAS_SIMD
 					intersectFunc = (IntersectFunction)&dsFrustum3d_intersectAlignedBox3x;
+#endif // DS_SIMD_PREFER_DOUBLE4
 			}
 			else
 				intersectFunc = (IntersectFunction)&dsFrustum3d_intersectAlignedBox;

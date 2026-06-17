@@ -414,7 +414,11 @@ DS_GEOMETRY_EXPORT inline double dsPlane3d_distanceToPoint(
 {
 	DS_ASSERT(plane);
 	DS_ASSERT(point);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsSIMD4d point4 = dsSIMD4d_set4(point->x, point->y, point->z, 1.0);
+	dsSIMD4d dist = dsDot4SIMD4d(plane->simd, point4);
+	return dsSIMD4d_get(dist, 0);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2d point0 = dsSIMD2d_set2(point->x, point->y);
 	dsSIMD2d point1 = dsSIMD2d_set2(point->z, 1.0);
 	dsSIMD2d dist = dsDot4SIMD2d(plane->simd2[0], plane->simd2[1], point0, point1);
@@ -444,7 +448,11 @@ DS_GEOMETRY_EXPORT inline void dsPlane3d_normalize(dsPlane3d* result, const dsPl
 	DS_ASSERT(result);
 	DS_ASSERT(plane);
 
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsSIMD4d len2 = dsDot3SIMD4d(plane->simd, plane->simd);
+	dsSIMD4d invLen = dsSIMD4d_rsqrt(len2);
+	result->simd = dsSIMD4d_mul(plane->simd, invLen);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2d len2 = dsDot3SIMD2d(
 		plane->simd2[0], plane->simd2[1], plane->simd2[0], plane->simd2[1]);
 	dsSIMD2d invLen = dsSIMD2d_rsqrt(len2);
@@ -544,7 +552,9 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrix(
 {
 	DS_ASSERT(plane);
 	DS_ASSERT(boxMatrix);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	return dsPlane3d_intersectBoxMatrixSIMD4(plane, boxMatrix);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	return dsPlane3d_intersectBoxMatrixFMA2(plane, boxMatrix);
 #else
@@ -603,7 +613,9 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTranspos
 {
 	DS_ASSERT(plane);
 	DS_ASSERT(boxMatrix);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	return dsPlane3d_intersectBoxMatrixTransposeSIMD4(plane, boxMatrix);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	return dsPlane3d_intersectBoxMatrixTransposeFMA2(plane, boxMatrix);
 #else

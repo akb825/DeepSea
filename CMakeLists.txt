@@ -72,6 +72,8 @@ set(DEEPSEA_ANDROID_ASSETS_DIR src/main/assets CACHE PATH
 set(DEEPSEA_NO_PREBUILT_LIBS OFF CACHE BOOL "Don't use any pre-built library dependencies.")
 set(DEEPSEA_DETERMINISTIC_MATH OFF CACHE BOOL
 	"Ensure determinisitic math results across all platforms at the expense of performance.")
+set(DEEPSEA_HEAVY_DOUBLE_USAGE OFF CACHE BOOL
+	"Hint that doubles will be heavily usesd, and may make some tradeoffs to allow for more aggressive SIMD usage if available.")
 
 if (CMAKE_SIZEOF_VOID_P EQUAL 8)
 	set(defaultX86ArchLevel 3)

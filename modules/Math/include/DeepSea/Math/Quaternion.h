@@ -688,7 +688,9 @@ DS_MATH_EXPORT inline void dsQuaternion4d_mul(
 	DS_ASSERT(b);
 	DS_ASSERT(result != a);
 	DS_ASSERT(result != b);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsQuaternion4d_mulSIMD4(result, a, b);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	dsQuaternion4d_mulFMA2(result, a, b);
 #else
@@ -716,7 +718,9 @@ DS_MATH_EXPORT inline void dsQuaternion4d_conjugate(dsQuaternion4d* result, cons
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsQuaternion4d_conjugateSIMD4(result, a);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	dsQuaternion4d_conjugateSIMD2(result, a);
 #else
 	dsQuaternion4_conjugate(*result, *a);
@@ -993,7 +997,9 @@ inline void dsQuaternion4d_toMatrix33x(dsMatrix33xd* result, const dsQuaternion4
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsQuaternion4d_toMatrix33SIMD4(result, a);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	dsQuaternion4d_toMatrix33FMA2(result, a);
 #else
@@ -1036,7 +1042,9 @@ inline void dsQuaternion4d_toMatrix44(dsMatrix44d* result, const dsQuaternion4d*
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsQuaternion4d_toMatrix44SIMD4(result, a);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	dsQuaternion4d_toMatrix44FMA2(result, a);
 #else
@@ -1077,7 +1085,9 @@ inline void dsQuaternion4d_normalize(dsQuaternion4d* result, const dsQuaternion4
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsQuaternion4d_normalizeSIMD4(result, a);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	dsQuaternion4d_normalizeSIMD2(result, a);
 #else
 	double len2 = dsPow2(a->i) + dsPow2(a->j) + dsPow2(a->k) + dsPow2(a->r);
@@ -1138,7 +1148,9 @@ inline void dsQuaternion4d_rotate3x(
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(v);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsQuaternion4d_rotateSIMD4(result, a, v);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	dsQuaternion4d_rotateFMA2(result, a, v);
 #else

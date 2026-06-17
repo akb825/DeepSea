@@ -94,7 +94,11 @@ void dsMatrix33xd_makeRotate(dsMatrix33xd* result, double angle)
 	double sinAngle, cosAngle;
 	dsSinCosd(&sinAngle, &cosAngle, angle);
 
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	result->columns[0].simd = dsSIMD4d_set4(cosAngle, sinAngle, 0.0, 0.0);
+	result->columns[1].simd = dsSIMD4d_set4(-sinAngle, cosAngle, 0.0, 0.0);
+	result->columns[2].simd = dsSIMD4d_set4(0.0, 0.0, 1.0, 0.0);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	result->columns[0].simd2[0] = dsSIMD2d_set2(cosAngle, sinAngle);
 	result->columns[0].simd2[1] = dsSIMD2d_set1(0.0);
 	result->columns[1].simd2[0] = dsSIMD2d_set2(-sinAngle, cosAngle);

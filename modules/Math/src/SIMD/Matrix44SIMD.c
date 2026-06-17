@@ -101,12 +101,15 @@ void dsMatrix44d_transformTransposedSIMD4(dsVector4d* DS_ALIGN_PARAM(32) result,
 	const dsMatrix44d* DS_ALIGN_PARAM(32) mat, const dsVector4d* DS_ALIGN_PARAM(32) vec);
 void dsMatrix44d_transposeSIMD4(dsMatrix44d* DS_ALIGN_PARAM(32) result,
 	const dsMatrix44d* DS_ALIGN_PARAM(32) a);
+double dsMatrix44d_determinantSIMD4(const dsMatrix44d* DS_ALIGN_PARAM(32) a);
 void dsMatrix44d_fastInvertSIMD4(
 	dsMatrix44d* DS_ALIGN_PARAM(32) result, const dsMatrix44d* DS_ALIGN_PARAM(32) a);
 void dsMatrix44d_affineInvertSIMD4(
 	dsMatrix44d* DS_ALIGN_PARAM(32) result, const dsMatrix44d* DS_ALIGN_PARAM(32) a);
 void dsMatrix44d_affineInvert33SIMD4(
 	dsMatrix33xd* DS_ALIGN_PARAM(32) result, const dsMatrix44d* DS_ALIGN_PARAM(32) a);
+void dsMatrix44d_invertSIMD4(
+	dsMatrix44d* DS_ALIGN_PARAM(32) result, const dsMatrix44d* DS_ALIGN_PARAM(32) a);
 void dsMatrix44d_inverseTransposeSIMD4(
 	dsMatrix33xd* DS_ALIGN_PARAM(32) result, const dsMatrix44d* DS_ALIGN_PARAM(32) a);
 void dsMatrix44d_decomposeTransformSIMD4(dsVector3xd* DS_ALIGN_PARAM(32) outPosition,

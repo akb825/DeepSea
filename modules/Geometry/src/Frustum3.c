@@ -213,7 +213,9 @@ dsIntersectResult dsFrustum3d_intersectAlignedBox3x(
 {
 	DS_ASSERT(frustum);
 	DS_ASSERT(box);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	return dsFrustum3d_intersectAlignedBoxSIMD4(frustum, box);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	return dsFrustum3d_intersectAlignedBoxFMA2(frustum, box);
 #else
@@ -341,7 +343,9 @@ dsIntersectResult dsFrustum3d_intersectOrientedBox3x(
 {
 	DS_ASSERT(frustum);
 	DS_ASSERT(box);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	return dsFrustum3d_intersectOrientedBoxSIMD4(frustum, box);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	return dsFrustum3d_intersectOrientedBoxFMA2(frustum, box);
 #else
@@ -411,7 +415,9 @@ dsIntersectResult dsFrustum3d_intersectBoxMatrix(
 {
 	DS_ASSERT(frustum);
 	DS_ASSERT(boxMatrix);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	return dsFrustum3d_intersectBoxMatrixSIMD4(frustum, boxMatrix);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	return dsFrustum3d_intersectBoxMatrixFMA2(frustum, boxMatrix);
 #else
@@ -512,7 +518,9 @@ dsIntersectResult dsFrustum3d_intersectSphere3x(
 {
 	DS_ASSERT(frustum);
 	DS_ASSERT(center);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	return dsFrustum3d_intersectSphereSIMD4(frustum, center, radius);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
 	return dsFrustum3d_intersectSphereFMA2(frustum, center, radius);
 #else

@@ -91,6 +91,14 @@
 #define DS_SIMD_ALWAYS_HALF_FLOAT 0
 
 /**
+ * @brief Whether to prefer usage of SIMD for 4 doubles over 2 doubles.
+ *
+ * This will only be set to 1 if DS_SIMD_ALWAYS_DOUBLE4 is 1, and indicates that the default
+ * allocation alignment will accomodate dsSIMD4d.
+ */
+#define DS_SIMD_PREFER_DOUBLE4 0
+
+/**
  * @brief Token to enable 4-float SIMD instructions.
  *
  * This should be provided as an argument to DS_SIMD_START().

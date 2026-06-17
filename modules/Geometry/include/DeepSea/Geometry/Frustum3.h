@@ -573,7 +573,43 @@ DS_GEOMETRY_EXPORT inline void dsFrustum3d_fromMatrix(dsFrustum3d* result,
 {
 	DS_ASSERT(result);
 	DS_ASSERT(matrix);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsMatrix44d matrixTrans;
+	dsMatrix44d_transposeSIMD4(&matrixTrans, matrix);
+
+	result->planes[dsFrustumPlanes_Left].simd = dsSIMD4d_add(
+		matrixTrans.columns[3].simd, matrixTrans.columns[0].simd);
+	result->planes[dsFrustumPlanes_Right].simd = dsSIMD4d_sub(
+		matrixTrans.columns[3].simd, matrixTrans.columns[0].simd);
+
+	dsSIMD4d column1 = matrixTrans.columns[1].simd;
+	if (options & dsProjectionMatrixOptions_InvertY)
+		column1 = dsSIMD4d_neg(column1);
+
+	result->planes[dsFrustumPlanes_Bottom].simd = dsSIMD4d_add(
+		matrixTrans.columns[3].simd, column1);
+	result->planes[dsFrustumPlanes_Top].simd = dsSIMD4d_sub(
+		matrixTrans.columns[3].simd, column1);
+
+	dsPlane3d* nearPlane;
+	dsPlane3d* farPlane;
+	if (options & dsProjectionMatrixOptions_InvertZ)
+	{
+		nearPlane = result->planes + dsFrustumPlanes_Far;
+		farPlane = result->planes + dsFrustumPlanes_Near;
+	}
+	else
+	{
+		nearPlane = result->planes + dsFrustumPlanes_Near;
+		farPlane = result->planes + dsFrustumPlanes_Far;
+	}
+
+	if (options & dsProjectionMatrixOptions_HalfZRange)
+		nearPlane->simd = matrixTrans.columns[2].simd;
+	else
+		nearPlane->simd = dsSIMD4d_add(matrixTrans.columns[3].simd, matrixTrans.columns[2].simd);
+	farPlane->simd = dsSIMD4d_sub(matrixTrans.columns[3].simd, matrixTrans.columns[2].simd);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	dsMatrix44d matrixTrans;
 	dsMatrix44d_transposeSIMD2(&matrixTrans, matrix);
 

@@ -194,9 +194,64 @@ static inline bool dsOrientedBox3xf_intersectsSIMD(
 #error Need to implement vector combination for this platform.
 #endif
 
-static inline bool dsOrientedBox3xd_intersectsSIMD2(
+static inline bool dsOrientedBox3xd_intersectsSIMD(
 	const dsOrientedBox3xd* box, const dsOrientedBox3xd* otherBox)
 {
+#if DS_SIMD_ALWAYS_DOUBLE4
+#if !DS_SIMD_PREFER_DOUBLE4
+	DS_ALIGN(32) dsOrientedBox3xd boxAligned = *box, otherBoxAligned = *otherBox;
+	box = &boxAligned;
+	otherBox = &otherBoxAligned;
+#endif
+
+	DS_ALIGN(32) dsMatrix33xd orientationTrans, otherOrientationTrans;
+	dsMatrix33xd_transposeSIMD4(&orientationTrans, &box->orientation);
+	dsMatrix33xd_transposeSIMD4(&otherOrientationTrans, &otherBox->orientation);
+
+	DS_ALIGN(32) dsMatrix33xd dotAxes;
+	dsMatrix33xd_mulSIMD4(&dotAxes, &otherOrientationTrans, &box->orientation);
+
+	DS_ALIGN(32) dsMatrix33xd absDotAxes;
+	dsSIMD4d_store(absDotAxes.columns, dsSIMD4d_abs(dsSIMD4d_load(dotAxes.columns)));
+	dsSIMD4d_store(absDotAxes.columns + 1, dsSIMD4d_abs(dsSIMD4d_load(dotAxes.columns + 1)));
+	dsSIMD4d_store(absDotAxes.columns + 2, dsSIMD4d_abs(dsSIMD4d_load(dotAxes.columns + 2)));
+
+	DS_ALIGN(32) dsVector3xd centerDiff, dotDiffAxes;
+	dsVector3xd_sub(&centerDiff, &otherBox->center, &box->center);
+	dsMatrix33xd_transformSIMD4(&dotDiffAxes, &orientationTrans, &centerDiff);
+
+	DS_ALIGN(32) dsVector3xd radii, dists;
+	dsMatrix33xd_transformTransposedSIMD4(&radii, &absDotAxes, &otherBox->halfExtents);
+	dsSIMD4d_store(&radii, dsSIMD4d_add(dsSIMD4d_load(&radii), dsSIMD4d_load(&box->halfExtents)));
+	dsMatrix33xd_transformSIMD4(&dists, &orientationTrans, &centerDiff);
+
+	// radiusCmp is for outside radius for this case.
+	dsSIMD4db simdRadiusCmp;
+	simdRadiusCmp = dsSIMD4d_cmpgt(dsSIMD4d_abs(dsSIMD4d_load(&dists)), dsSIMD4d_load(&radii));
+
+	dsMatrix33xd_transformSIMD4(&radii, &absDotAxes, &box->halfExtents);
+	dsSIMD4d_store(
+		&radii, dsSIMD4d_add(dsSIMD4d_load(&radii), dsSIMD4d_load(&otherBox->halfExtents)));
+	dsMatrix33xd_transformSIMD4(&dists, &otherOrientationTrans, &centerDiff);
+
+	simdRadiusCmp = dsSIMD4db_or(
+		simdRadiusCmp, dsSIMD4d_cmpgt(dsSIMD4d_abs(dsSIMD4d_load(&dists)), dsSIMD4d_load(&radii)));
+
+	DS_ALIGN(32) dsVector4l radiusCmp;
+	dsSIMD4db_store(&radiusCmp, simdRadiusCmp);
+	if (radiusCmp.x || radiusCmp.y || radiusCmp.z)
+		return false;
+
+	// When there's a parallel set of axes it degenerates to 2D.
+	dsSIMD4d parallelCutoff = dsSIMD4d_set1(PARALLEL_CUTOFFd);
+	dsVector4l hasParallel;
+	dsSIMD4db_store(&hasParallel, dsSIMD4db_or(dsSIMD4db_or(
+			dsSIMD4d_cmpge(dsSIMD4d_load(absDotAxes.columns), parallelCutoff),
+			dsSIMD4d_cmpge(dsSIMD4d_load(absDotAxes.columns + 1), parallelCutoff)),
+		dsSIMD4d_cmpge(dsSIMD4d_load(absDotAxes.columns + 3), parallelCutoff)));
+	if (hasParallel.x || hasParallel.y || hasParallel.z)
+		return true;
+#else
 	dsMatrix33xd orientationTrans, otherOrientationTrans;
 	dsMatrix33xd_transposeSIMD2(&orientationTrans, &box->orientation);
 	dsMatrix33xd_transposeSIMD2(&otherOrientationTrans, &otherBox->orientation);
@@ -252,7 +307,10 @@ static inline bool dsOrientedBox3xd_intersectsSIMD2(
 		dsSIMD2d_cmpge(absDotAxes.columns[3].simd2[1], parallelCutoff));
 	if (dsSIMD2db_any(hasParallel.simd2[0]) || hasParallel.z)
 		return true;
+#endif
 
+	// Always use double2 for the following part due to the lack of shuffling between pairs of
+	// dsSIMD4d vectors. Most of the benefits for double4 would would have already been gained.
 	dsSIMD2d dotDiffAxesX = dsSIMD2d_set1FromVec(dotDiffAxes.simd2[0], 0);
 	dsSIMD2d dotDiffAxesY = dsSIMD2d_set1FromVec(dotDiffAxes.simd2[0], 1);
 	dsSIMD2d dotDiffAxesZ = dsSIMD2d_set1FromVec(dotDiffAxes.simd2[1], 0);
@@ -445,7 +503,9 @@ void dsOrientedBox3xd_addPoint(dsOrientedBox3xd* box, const dsVector3xd* point)
 	else
 	{
 		box->center = *point;
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+		box->halfExtents.simd = dsSIMD4d_set1(0.0);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 		box->halfExtents.simd2[0] = box->halfExtents.simd2[1] = dsSIMD2d_set1(0.0);
 #else
 		box->halfExtents.x = 0;
@@ -808,7 +868,7 @@ bool dsOrientedBox3xd_intersects(const dsOrientedBox3xd* box, const dsOrientedBo
 		return false;
 
 #if DS_SIMD_ALWAYS_DOUBLE2
-	return dsOrientedBox3xd_intersectsSIMD2(box, otherBox);
+	return dsOrientedBox3xd_intersectsSIMD(box, otherBox);
 #else
 	// Optimized separating axes as explained by
 	// https://www.geometrictools.com/Documentation/DynamicCollisionDetection.pdf

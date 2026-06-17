@@ -135,7 +135,11 @@ DS_GEOMETRY_EXPORT inline bool dsAlignedBox3xf_isValid(const dsAlignedBox3xf* bo
 DS_GEOMETRY_EXPORT inline bool dsAlignedBox3xd_isValid(const dsAlignedBox3xd* box)
 {
 	DS_ASSERT(box);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsVector4l result;
+	result.simd = dsSIMD4d_cmple(box->min.simd, box->max.simd);
+	return result.x && result.y && result.z;
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	dsVector4l result;
 	result.simd2[0] = dsSIMD2d_cmple(box->min.simd2[0], box->max.simd2[0]);
 	result.simd2[1] = dsSIMD2d_cmple(box->min.simd2[1], box->max.simd2[1]);
@@ -165,7 +169,10 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xd_addPoint(
 {
 	DS_ASSERT(box);
 	DS_ASSERT(point);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	box->min.simd = dsSIMD4d_min(box->min.simd, point->simd);
+	box->max.simd = dsSIMD4d_max(box->max.simd, point->simd);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	box->min.simd2[0] = dsSIMD2d_min(box->min.simd2[0], point->simd2[0]);
 	box->min.simd2[1] = dsSIMD2d_min(box->min.simd2[1], point->simd2[1]);
 	box->max.simd2[0] = dsSIMD2d_max(box->max.simd2[0], point->simd2[0]);
@@ -195,7 +202,10 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xd_addBox(
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	box->min.simd = dsSIMD4d_min(box->min.simd, otherBox->min.simd);
+	box->max.simd = dsSIMD4d_max(box->max.simd, otherBox->max.simd);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	box->min.simd2[0] = dsSIMD2d_min(box->min.simd2[0], otherBox->min.simd2[0]);
 	box->min.simd2[1] = dsSIMD2d_min(box->min.simd2[1], otherBox->min.simd2[1]);
 	box->max.simd2[0] = dsSIMD2d_max(box->max.simd2[0], otherBox->max.simd2[0]);
@@ -227,7 +237,12 @@ DS_GEOMETRY_EXPORT inline bool dsAlignedBox3xd_containsPoint(
 {
 	DS_ASSERT(box);
 	DS_ASSERT(point);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsVector4l result;
+	result.simd = dsSIMD4db_and(
+		dsSIMD4d_cmpge(point->simd, box->min.simd), dsSIMD4d_cmple(point->simd, box->max.simd));
+	return result.x && result.y && result.z;
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	dsVector4l result;
 	result.simd2[0] = dsSIMD2db_and(dsSIMD2d_cmpge(point->simd2[0], box->min.simd2[0]),
 		dsSIMD2d_cmple(point->simd2[0], box->max.simd2[0]));
@@ -261,7 +276,12 @@ DS_GEOMETRY_EXPORT inline bool dsAlignedBox3xd_containsBox(
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsVector4l result;
+	result.simd = dsSIMD4db_and(dsSIMD4d_cmple(box->min.simd, otherBox->min.simd),
+		dsSIMD4d_cmpge(box->max.simd, otherBox->max.simd));
+	return result.x && result.y && result.z;
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	dsVector4l result;
 	result.simd2[0] = dsSIMD2db_and(dsSIMD2d_cmple(box->min.simd2[0], otherBox->min.simd2[0]),
 		dsSIMD2d_cmpge(box->max.simd2[0], otherBox->max.simd2[0]));
@@ -295,7 +315,12 @@ DS_GEOMETRY_EXPORT inline bool dsAlignedBox3xd_intersects(
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsVector4l result;
+	result.simd = dsSIMD4db_and(dsSIMD4d_cmple(box->min.simd, otherBox->max.simd),
+		dsSIMD4d_cmpge(box->max.simd, otherBox->min.simd));
+	return result.x && result.y && result.z;
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	dsVector4l result;
 	result.simd2[0] = dsSIMD2db_and(dsSIMD2d_cmple(box->min.simd2[0], otherBox->max.simd2[0]),
 		dsSIMD2d_cmpge(box->max.simd2[0], otherBox->min.simd2[0]));
@@ -334,7 +359,10 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xd_intersect(
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(b);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	result->min.simd = dsSIMD4d_max(a->min.simd, b->min.simd);
+	result->max.simd = dsSIMD4d_min(a->max.simd, b->max.simd);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	result->min.simd2[0] = dsSIMD2d_max(a->min.simd2[0], b->min.simd2[0]);
 	result->min.simd2[1] = dsSIMD2d_max(a->min.simd2[1], b->min.simd2[1]);
 	result->max.simd2[0] = dsSIMD2d_min(a->max.simd2[0], b->max.simd2[0]);
@@ -373,7 +401,10 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xd_center(
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsSIMD4d half = dsSIMD4d_set1(0.5);
+	result->simd = dsSIMD4d_mul(dsSIMD4d_add(box->min.simd, box->max.simd), half);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2d half = dsSIMD2d_set1(0.5);
 	result->simd2[0] = dsSIMD2d_mul(dsSIMD2d_add(box->min.simd2[0], box->max.simd2[0]), half);
 	result->simd2[1] = dsSIMD2d_mul(dsSIMD2d_add(box->min.simd2[1], box->max.simd2[1]), half);
@@ -409,7 +440,9 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xd_extents(
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	result->simd = dsSIMD4d_sub(box->max.simd, box->min.simd);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	result->simd2[0] = dsSIMD2d_sub(box->max.simd2[0], box->min.simd2[0]);
 	result->simd2[1] = dsSIMD2d_sub(box->max.simd2[1], box->min.simd2[1]);
 #else
@@ -440,7 +473,9 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xd_toMatrix(
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsAlignedBox3xd_toMatrixSIMD4(result, box);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	dsAlignedBox3xd_toMatrixSIMD2(result, box);
 #else
 	dsAlignedBox3_toMatrix(*result, *box);
@@ -466,7 +501,9 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xd_toMatrixTranspose(
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	dsAlignedBox3xd_toMatrixTransposeSIMD4(result, box);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	dsAlignedBox3xd_toMatrixTransposeSIMD2(result, box);
 #else
 	dsAlignedBox3_toMatrixTranspose(*result, *box);
@@ -601,7 +638,12 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xd_closestPoint(
 	DS_ASSERT(result);
 	DS_ASSERT(box);
 	DS_ASSERT(point);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	if (dsAlignedBox3xd_isValid(box))
+		result->simd = dsSIMD4d_min(box->max.simd, dsSIMD4d_max(box->min.simd, point->simd));
+	else
+		result->simd = point->simd;
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	if (dsAlignedBox3xd_isValid(box))
 	{
 		result->simd2[0] = dsSIMD2d_min(
@@ -646,7 +688,10 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3xf_makeInvalid(dsAlignedBox3xf* resu
 DS_GEOMETRY_EXPORT inline void dsAlignedBox3xd_makeInvalid(dsAlignedBox3xd* result)
 {
 	DS_ASSERT(result);
-#if DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_PREFER_DOUBLE4
+	result->min.simd = dsSIMD4d_set1(DBL_MAX);
+	result->max.simd = dsSIMD4d_set1(-DBL_MAX);
+#elif DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2d minVal = dsSIMD2d_set1(DBL_MAX);
 	dsSIMD2d maxVal = dsSIMD2d_set1(-DBL_MAX);
 	result->min.simd2[0] = minVal;

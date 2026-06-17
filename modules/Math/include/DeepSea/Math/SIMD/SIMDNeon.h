@@ -63,6 +63,7 @@ extern "C"
 #define DS_SIMD_ALWAYS_ROUNDING DS_ARM_64
 #define DS_SIMD_ALWAYS_FMA !DS_DETERMINISTIC_MATH
 #define DS_SIMD_ALWAYS_HALF_FLOAT 1
+#define DS_SIMD_PREFER_DOUBLE4 0
 
 #if DS_MSC
 #define DS_ASSUME_SIMD_ALIGNED(x) (((uintptr_t)(x) & 0xF) == 0 ? (x) : __assume(0))

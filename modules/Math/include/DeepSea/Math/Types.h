@@ -695,6 +695,13 @@ typedef union dsVector4d
 	 * @brief SIMD value as 2 double vectors when supported.
 	 */
 	dsSIMD2d simd2[2];
+
+#if DS_SIMD_PREFER_DOUBLE4
+	/**
+	 * @brief SIMD value as a single vector when alignment rules make it safe to use.
+	 */
+	dsSIMD4d simd;
+#endif
 #endif
 
 	struct
@@ -885,6 +892,13 @@ typedef union dsVector4l
 	 * @brief SIMD value as 2 double bools when supported.
 	 */
 	dsSIMD2db simd2[2];
+
+#if DS_SIMD_PREFER_DOUBLE4
+	/**
+	 * @brief SIMD value as a single vector when alignment rules make it safe to use.
+	 */
+	dsSIMD4db simd;
+#endif
 #endif
 
 	struct
@@ -1358,6 +1372,13 @@ typedef union dsQuaternion4d
 	 * @brief SIMD value as 2 double vectors when supported.
 	 */
 	dsSIMD2d simd2[2];
+
+#if DS_SIMD_PREFER_DOUBLE4
+	/**
+	 * @brief SIMD value as a single vector when alignment rules make it safe to use.
+	 */
+	dsSIMD4d simd;
+#endif
 #endif
 
 	struct
