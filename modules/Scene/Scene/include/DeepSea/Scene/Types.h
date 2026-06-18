@@ -89,6 +89,75 @@ typedef struct dsView dsView;
 /// @endcond
 
 /**
+ * @brief Struct that manages a tick of time for each update.
+ *
+ * This manages both dynamic and fixed update intervals. When dynamic update intervals are used, the
+ * time from the last frame will be used to update the scene. However, when fixed update intervals
+ * are used, it will use fixed increments and interpolate the transforms between those intervals.
+ *
+ * @see SceneTick.h
+ */
+typedef struct dsSceneTick
+{
+	/**
+	 * @brief The timer to convert from raw ticks to seconds.
+	 */
+	dsTimer timer;
+
+	/**
+	 * @brief The total number of timer ticks processed by this instance.
+	 */
+	uint64_t totalTimerTicks;
+
+	/**
+	 * @brief The number of timer ticks for the most recent update.
+	 *
+	 * It is recommended to use this value when accumulating large time values for highest accuracy.
+	 */
+	uint64_t thisTimerTicks;
+
+	/**
+	 * @brief The amount of time to advance for fixed updates.
+	 *
+	 * When set to a non-zero value, all updates should use this period to advance the time. When
+	 * set to zero, thisTime should be used to update the scene.
+	 */
+	float updatePeriod;
+
+	/**
+	 * @brief The amount of time to advance for this update.
+	 *
+	 * The value may either be fixed or dynamic, depending on updatePeriod. To simplify usage, it
+	 * will be set to 0 if stepCount is 0.
+	 */
+	float stepTime;
+
+	/**
+	 * @brief The number of steps to advance the scene.
+	 *
+	 * When a fixed update period is used, this can be any number >= 0 depending on situations such
+	 * as not enough time passing to advance to the next step or enough passing to require multiple
+	 * steps to catch up to the current time. When a dynamic update period is used, this will always
+	 * be 1 unless no time has passed. (e.g. the application was put in the background, the time may
+	 * be set to 0 to avoid having a huge update)
+	 */
+	unsigned int stepCount;
+
+	/**
+	 * @brief The amount to interpolate between the previous step and current one.
+	 *
+	 * A value of 0 indicates to use the previous step's values, while a value of 1 indicates to use
+	 * the current step's values. This will always be 1 when dynamic update periods are used.
+	 */
+	float stepInterp;
+
+	/**
+	 * @brief The amount of real time for this update in seconds.
+	 */
+	float thisTime;
+} dsSceneTick;
+
+/**
  * @brief Struct for holding a collection of resources used in a scene.
  *
  * The resources held in the collection may be referenced by name, and allow a way to easily access
