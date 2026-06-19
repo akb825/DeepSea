@@ -434,7 +434,6 @@ bool dsSDLApplication_prepareRendererOptions(dsRendererOptions* options, uint32_
 
 int dsSDLApplication_run(dsApplication* application)
 {
-	dsTimer timer = dsTimer_create();
 	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
 	uint64_t lastPreInputTicks = dsTimer_currentTicks();
 	uint64_t lastUpdateTicks = lastPreInputTicks;
@@ -444,11 +443,11 @@ int dsSDLApplication_run(dsApplication* application)
 
 		if (application->preInputUpdateFunc)
 		{
-			float lastFrameTime =
-				(float)dsTimer_ticksToSeconds(timer, dsTimer_currentTicks() - lastPreInputTicks);
+			uint64_t curTicks = dsTimer_currentTicks();
+			uint64_t lastFrameTicks = curTicks - lastPreInputTicks;
 			DS_PROFILE_SCOPE_START("Pre-Input Update");
-			application->preInputUpdateFunc(application, lastFrameTime,
-				application->preInputUpdateUserData);
+			application->preInputUpdateFunc(
+				application, curTicks, lastFrameTicks, application->preInputUpdateUserData);
 			DS_PROFILE_SCOPE_END();
 		}
 
@@ -500,7 +499,9 @@ int dsSDLApplication_run(dsApplication* application)
 		{
 			dsWindow* window = NULL;
 			dsEvent event;
-			event.time = sdlEvent.common.timestamp/1000.0;
+			// NOTE: The timestamp is populated when the event is processed within SDL, so use the
+			// pre-input ticks to keep the events in the same relative time.
+			event.time = lastPreInputTicks;
 			switch (sdlEvent.type)
 			{
 				case SDL_QUIT:
@@ -669,8 +670,8 @@ int dsSDLApplication_run(dsApplication* application)
 				case SDL_JOYAXISMOTION:
 				{
 					event.type = dsAppEventType_GameInputAxis;
-					event.gameInputAxis.gameInput = dsSDLGameInput_find(application,
-						sdlEvent.jaxis.which);
+					event.gameInputAxis.gameInput = dsSDLGameInput_find(
+						application, sdlEvent.jaxis.which);
 					DS_ASSERT(event.gameInputAxis.gameInput);
 					dsGameInputMap inputMap = {dsGameInputMethod_Axis, sdlEvent.jaxis.axis};
 					event.gameInputAxis.mapping = dsGameInput_findControllerMapping(
@@ -681,8 +682,8 @@ int dsSDLApplication_run(dsApplication* application)
 				}
 				case SDL_JOYBALLMOTION:
 					event.type = dsAppEventType_GameInputBall;
-					event.gameInputBall.gameInput = dsSDLGameInput_find(application,
-						sdlEvent.jball.which);
+					event.gameInputBall.gameInput = dsSDLGameInput_find(
+						application, sdlEvent.jball.which);
 					DS_ASSERT(event.gameInputBall.gameInput);
 					event.gameInputBall.delta.x = sdlEvent.jball.xrel;
 					event.gameInputBall.delta.y = sdlEvent.jball.yrel;
@@ -693,8 +694,8 @@ int dsSDLApplication_run(dsApplication* application)
 					dsGameInput* gameInput = dsSDLGameInput_find(application, sdlEvent.jhat.which);
 					DS_ASSERT(gameInput);
 					event.gameInputDPad.gameInput = gameInput;
-					if (dsGameInput_isInputControllerMapped(gameInput, dsGameInputMethod_DPad,
-							sdlEvent.jhat.value))
+					if (dsGameInput_isInputControllerMapped(
+							gameInput, dsGameInputMethod_DPad, sdlEvent.jhat.value))
 					{
 						// May result in multiple events.
 						dsSDLGameInput_dispatchControllerDPadEvents(gameInput, application,
@@ -704,8 +705,8 @@ int dsSDLApplication_run(dsApplication* application)
 					}
 
 					event.gameInputDPad.dpad = sdlEvent.jhat.hat;
-					dsSDLGameInput_convertHatDirection(&event.gameInputDPad.direction,
-						sdlEvent.jhat.value);
+					dsSDLGameInput_convertHatDirection(
+						&event.gameInputDPad.direction, sdlEvent.jhat.value);
 					break;
 				}
 				case SDL_JOYBUTTONDOWN:
@@ -713,8 +714,8 @@ int dsSDLApplication_run(dsApplication* application)
 				{
 					event.type = sdlEvent.type == SDL_JOYBUTTONUP ?
 						dsAppEventType_GameInputButtonUp : dsAppEventType_GameInputButtonDown;
-					event.gameInputButton.gameInput = dsSDLGameInput_find(application,
-						sdlEvent.jbutton.which);
+					event.gameInputButton.gameInput = dsSDLGameInput_find(
+						application, sdlEvent.jbutton.which);
 					DS_ASSERT(event.gameInputButton.gameInput);
 					dsGameInputMap inputMap = {dsGameInputMethod_Button, sdlEvent.jbutton.button};
 					event.gameInputAxis.mapping = dsGameInput_findControllerMapping(
@@ -724,8 +725,8 @@ int dsSDLApplication_run(dsApplication* application)
 				}
 				case SDL_JOYDEVICEADDED:
 				{
-					dsGameInput* gameInput = dsSDLGameInput_add(application,
-						sdlEvent.jdevice.which);
+					dsGameInput* gameInput = dsSDLGameInput_add(
+						application, sdlEvent.jdevice.which);
 					if (!gameInput)
 					{
 						DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG,
@@ -740,8 +741,8 @@ int dsSDLApplication_run(dsApplication* application)
 				}
 				case SDL_JOYDEVICEREMOVED:
 					event.type = dsAppEventType_GameInputDisconnected;
-					event.gameInputConnect.gameInput = dsSDLGameInput_find(application,
-						sdlEvent.jdevice.which);
+					event.gameInputConnect.gameInput = dsSDLGameInput_find(
+						application, sdlEvent.jdevice.which);
 					DS_ASSERT(event.gameInputConnect.gameInput);
 					break;
 #if SDL_VERSION_ATLEAST(2, 0, 14)
@@ -763,8 +764,8 @@ int dsSDLApplication_run(dsApplication* application)
 							DS_ASSERT(false);
 							break;
 					}
-					event.touch.gameInput = dsSDLGameInput_find(application,
-						sdlEvent.ctouchpad.which);
+					event.touch.gameInput = dsSDLGameInput_find(
+						application, sdlEvent.ctouchpad.which);
 					DS_ASSERT(event.touch.gameInput);
 					event.touch.touchID = sdlEvent.ctouchpad.touchpad;
 					event.touch.fingerID = sdlEvent.ctouchpad.finger;
@@ -777,8 +778,8 @@ int dsSDLApplication_run(dsApplication* application)
 				case SDL_CONTROLLERSENSORUPDATE:
 					event.type = dsAppEventType_MotionSensor;
 					event.motionSensor.sensor = NULL;
-					event.motionSensor.gameInput = dsSDLGameInput_find(application,
-						sdlEvent.csensor.which);
+					event.motionSensor.gameInput = dsSDLGameInput_find(
+						application, sdlEvent.csensor.which);
 					DS_ASSERT(event.motionSensor.gameInput);
 					switch (sdlEvent.csensor.sensor)
 					{
@@ -837,8 +838,8 @@ int dsSDLApplication_run(dsApplication* application)
 #if SDL_VERSION_ATLEAST(2, 0, 9)
 				case SDL_SENSORUPDATE:
 					event.type = dsAppEventType_MotionSensor;
-					event.motionSensor.sensor = dsSDLMotionSensor_find(application,
-						sdlEvent.sensor.which);
+					event.motionSensor.sensor = dsSDLMotionSensor_find(
+						application, sdlEvent.sensor.which);
 					DS_ASSERT(event.motionSensor.sensor);
 					event.motionSensor.gameInput = NULL;
 					event.motionSensor.type = event.motionSensor.sensor->type;
@@ -866,8 +867,8 @@ int dsSDLApplication_run(dsApplication* application)
 				DS_VERIFY(dsSDLGameInput_remove(application, sdlEvent.jdevice.which));
 			else if (sdlEvent.type == SDL_USEREVENT && sdlEvent.user.data2)
 			{
-				((dsCustomEventCleanupFunction)sdlEvent.user.data2)(sdlEvent.user.code,
-					sdlEvent.user.data1);
+				((dsCustomEventCleanupFunction)sdlEvent.user.data2)(
+					sdlEvent.user.code, sdlEvent.user.data1);
 			}
 
 			hasEvent = SDL_PollEvent(&sdlEvent);
@@ -876,17 +877,18 @@ int dsSDLApplication_run(dsApplication* application)
 
 		// Functions above may block if the app is paused, so get the current time here.
 		uint64_t curTicks = dsTimer_currentTicks();
-		float lastFrameTime = (float)dsTimer_ticksToSeconds(timer, curTicks - lastUpdateTicks);
+		uint64_t lastFrameTicks = curTicks - lastUpdateTicks;
 		lastUpdateTicks = curTicks;
 
 		// Update game inputs, primarily to maintain the rumble state.
 		for (uint32_t i = 0; i < application->gameInputCount; ++i)
-			dsSDLGameInput_update(application->gameInputs[i], lastFrameTime);
+			dsSDLGameInput_update(application->gameInputs[i], lastFrameTicks);
 
 		if (application->updateFunc)
 		{
 			DS_PROFILE_SCOPE_START("Update");
-			application->updateFunc(application, lastFrameTime, application->updateUserData);
+			application->updateFunc(
+				application, curTicks, lastFrameTicks, application->updateUserData);
 			DS_PROFILE_SCOPE_END();
 		}
 
@@ -1247,7 +1249,8 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 		baseApplication->displays = displays;
 		for (uint32_t i = 0; i < baseApplication->displayCount; ++i)
 		{
-			displays[i].name = SDL_GetDisplayName(i);
+			dsDisplayInfo* display = displays + i;
+			display->name = SDL_GetDisplayName(i);
 
 			SDL_DisplayMode defaultMode;
 			DS_VERIFY(SDL_GetDesktopDisplayMode(i, &defaultMode) == 0);
@@ -1261,19 +1264,19 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 					++displayModeCount;
 			}
 
-			displays[i].displayModeCount = displayModeCount;
-			if (displays[i].displayModeCount > 0)
+			display->displayModeCount = displayModeCount;
+			if (display->displayModeCount > 0)
 			{
-				dsDisplayMode* displayModes = DS_ALLOCATE_OBJECT_ARRAY(allocator, dsDisplayMode,
-					displays[i].displayModeCount);
+				dsDisplayMode* displayModes = DS_ALLOCATE_OBJECT_ARRAY(
+					allocator, dsDisplayMode, display->displayModeCount);
 				if (!displayModes)
 				{
 					dsSDLApplication_destroy(baseApplication);
 					return NULL;
 				}
 
-				displays[i].displayModes = displayModes;
-				displays[i].defaultMode = displayModeCount;
+				display->displayModes = displayModes;
+				display->defaultMode = displayModeCount;
 				uint32_t curIndex = 0;
 				for (uint32_t j = 0; j < displayModeTotal; ++j)
 				{
@@ -1282,27 +1285,28 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 					if (mode.format != defaultMode.format)
 						continue;
 
-					displayModes[curIndex].displayIndex = i;
-					displayModes[curIndex].width = mode.w;
-					displayModes[curIndex].height = mode.h;
-					displayModes[curIndex].refreshRate = (float)mode.refresh_rate;
+					dsDisplayMode* displayMode = displayModes + curIndex;
+					displayMode->displayIndex = i;
+					displayMode->width = mode.w;
+					displayMode->height = mode.h;
+					displayMode->refreshRate = (float)mode.refresh_rate;
 
 					if (mode.format == defaultMode.format && mode.w == defaultMode.w &&
 						mode.h == defaultMode.h && mode.refresh_rate == defaultMode.refresh_rate)
 					{
-						displays[i].defaultMode = curIndex;
+						display->defaultMode = curIndex;
 					}
 
 					++curIndex;
 				}
 				DS_ASSERT(curIndex == displayModeCount);
-				DS_ASSERT(displays[i].defaultMode < displayModeCount);
+				DS_ASSERT(display->defaultMode < displayModeCount);
 			}
 
 #if SDL_VERSION_ATLEAST(2, 0, 4)
-			if (SDL_GetDisplayDPI(i, NULL, &displays[i].dpi, NULL) != 0)
+			if (SDL_GetDisplayDPI(i, NULL, &display->dpi, NULL) != 0)
 #endif
-				displays[i].dpi = DS_DEFAULT_DPI;
+				display->dpi = DS_DEFAULT_DPI;
 		}
 	}
 

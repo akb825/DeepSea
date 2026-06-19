@@ -47,6 +47,7 @@
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/Scene/SceneResources.h>
 #include <DeepSea/Scene/SceneThreadManager.h>
+#include <DeepSea/Scene/SceneTick.h>
 #include <DeepSea/Scene/View.h>
 #include <DeepSea/Scene/ViewTransformData.h>
 
@@ -91,12 +92,12 @@ typedef struct TestLighting
 	dsScene* scene;
 	dsView* view;
 
+	dsSceneTick tick;
 	uint32_t aaSamples;
 	LightingType lightingType;
 	float rotation;
 	uint32_t fingerCount;
 	uint32_t maxFingers;
-	bool ignoreTime;
 	bool stop;
 } TestLighting;
 
@@ -279,9 +280,6 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 			if (event->type == dsAppEventType_SurfaceInvalidated)
 				dsView_update(testLighting->view);
 			return true;
-		case dsAppEventType_WillEnterForeground:
-			testLighting->ignoreTime = true;
-			return true;
 		case dsAppEventType_KeyDown:
 			if (event->key.repeat)
 				return false;
@@ -334,23 +332,22 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 	}
 }
 
-static void update(dsApplication* application, float lastFrameTime, void* userData)
+static void update(
+	dsApplication* application, uint64_t absoluteTime, uint64_t lastFrameTime, void* userData)
 {
 	DS_UNUSED(application);
-	DS_UNUSED(lastFrameTime);
 
 	TestLighting* testLighting = (TestLighting*)userData;
+	DS_VERIFY(dsSceneTick_update(&testLighting->tick, absoluteTime, lastFrameTime));
 
 	const float speed = 0.4f;
 	const float xyDist = 7.0f;
 	const float height = 9.0f;
-	if (!testLighting->stop && !testLighting->ignoreTime)
+	if (!testLighting->stop)
 	{
-		testLighting->rotation = dsWrapf(testLighting->rotation + lastFrameTime*speed,
-			0.0f, 2*M_PIf);
+		testLighting->rotation = dsWrapf(
+			testLighting->rotation + testLighting->tick.thisTime*speed, 0.0f, 2*M_PIf);
 	}
-	if (testLighting->ignoreTime)
-		testLighting->ignoreTime = false;
 
 	float sinRotation, cosRotation;
 	dsSinCosf(&sinRotation, &cosRotation, testLighting->rotation);
@@ -361,7 +358,7 @@ static void update(dsApplication* application, float lastFrameTime, void* userDa
 	dsMatrix44f_lookAt(&camera, &eyePos, &lookAtPos, &upDir);
 	dsView_setCameraMatrix(testLighting->view, &camera);
 
-	DS_VERIFY(dsScene_update(testLighting->scene, lastFrameTime));
+	DS_VERIFY(dsScene_update(testLighting->scene, testLighting->tick.thisTime));
 	DS_VERIFY(dsView_update(testLighting->view));
 }
 
@@ -642,6 +639,7 @@ static bool setup(TestLighting* testLighting, dsApplication* application, dsAllo
 
 	dsFileArchive_close(archive);
 	dsView_setPerspectiveProjection(testLighting->view, dsDegreesToRadiansf(45.0f), 0.1f, 100.0f);
+	DS_VERIFY(dsSceneTick_initialize(&testLighting->tick, 0.0f, 1.0f));
 	return true;
 }
 

@@ -20,8 +20,10 @@
 TEST(TimerTest, TicksToSeconds)
 {
 	dsTimer timer = {1e-3};
-	uint64_t ticks = 10000;
-	EXPECT_EQ(timer.scale*(double)ticks, dsTimer_ticksToSeconds(timer, ticks));
+	int64_t ticks = 10000;
+	double seconds = 10.0;
+	EXPECT_DOUBLE_EQ(seconds, dsTimer_ticksToSeconds(timer, ticks));
+	EXPECT_EQ(ticks, dsTimer_secondsToTicks(timer, seconds));
 }
 
 TEST(TimerTest, ConvertTicks)

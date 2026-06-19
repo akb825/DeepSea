@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ typedef struct dsSDLRumbleState
 {
 	float baselineStrength;
 	float timedStrength;
-	float timedDuration;
+	int64_t timedDuration;
 } dsSDLRumbleState;
 
 typedef struct dsSDLGameInput
@@ -54,32 +54,32 @@ dsGameInput* dsSDLGameInput_add(dsApplication* application, uint32_t index);
 bool dsSDLGameInput_remove(dsApplication* application, SDL_JoystickID id);
 dsGameInput* dsSDLGameInput_find(dsApplication* application, SDL_JoystickID id);
 
-void dsSDLGameInput_update(dsGameInput* gameInput, float time);
+void dsSDLGameInput_update(dsGameInput* gameInput, uint64_t elapsedTime);
 void dsSDLGameInput_dispatchControllerDPadEvents(dsGameInput* gameInput, dsApplication* application,
-	dsWindow* window, uint32_t dpad, Sint8 value, double time);
+	dsWindow* window, uint32_t dpad, Sint8 value, uint64_t time);
 
-dsGameInputBattery dsSDLGameInput_getBattery(const dsApplication* application,
-	const dsGameInput* gameInput);
+dsGameInputBattery dsSDLGameInput_getBattery(
+	const dsApplication* application, const dsGameInput* gameInput);
 float dsSDLGameInput_getAxis(const dsApplication* application, const dsGameInput* gameInput,
 	uint32_t axis);
-float dsSDLGameInput_getControllerAxis(const dsApplication* application,
-	const dsGameInput* gameInput, dsGameControllerMap mapping);
-bool dsSDLGameInput_isButtonPressed(const dsApplication* application,
-	const dsGameInput* gameInput, uint32_t button);
-bool dsSDLGameInput_isControllerButtonPressed(const dsApplication* application,
-	const dsGameInput* gameInput, dsGameControllerMap mapping);
+float dsSDLGameInput_getControllerAxis(
+	const dsApplication* application, const dsGameInput* gameInput, dsGameControllerMap mapping);
+bool dsSDLGameInput_isButtonPressed(
+	const dsApplication* application, const dsGameInput* gameInput, uint32_t button);
+bool dsSDLGameInput_isControllerButtonPressed(
+	const dsApplication* application, const dsGameInput* gameInput, dsGameControllerMap mapping);
 bool dsSDLGameInput_getDPadDirection(dsVector2i* outDirection, const dsApplication* application,
 	const dsGameInput* gameInput, uint32_t dpad);
-bool dsSDLGameInput_setBaselineRumble(dsApplication* application, dsGameInput* gameInput,
-	dsGameInputRumble rumble, float strength);
-float dsSDLGameInput_getBaselineRumble(dsApplication* application, const dsGameInput* gameInput,
-	dsGameInputRumble rumble);
+bool dsSDLGameInput_setBaselineRumble(
+	dsApplication* application, dsGameInput* gameInput, dsGameInputRumble rumble, float strength);
+float dsSDLGameInput_getBaselineRumble(
+	dsApplication* application, const dsGameInput* gameInput, dsGameInputRumble rumble);
 bool dsSDLGameInput_setTimedRumble(dsApplication* application, dsGameInput* gameInput,
 	dsGameInputRumble rumble, float strength, float duration);
 float dsSDLGameInput_getTimedRumble(float* outDuration, dsApplication* application,
 	const dsGameInput* gameInput, dsGameInputRumble rumble);
 bool dsSDLGameInput_setLEDColor(dsApplication* application, dsGameInput* gameInput, dsColor color);
-bool dsSDLGameInput_hasMotionSensor(const dsApplication* application, const dsGameInput* gameInput,
-	dsMotionSensorType type);
+bool dsSDLGameInput_hasMotionSensor(
+	const dsApplication* application, const dsGameInput* gameInput, dsMotionSensorType type);
 bool dsSDLGameInput_getMotionSensorData(dsVector3f* outData, const dsApplication* application,
 	const dsGameInput* gameInput, dsMotionSensorType type);

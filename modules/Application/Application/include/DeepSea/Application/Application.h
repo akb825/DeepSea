@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,8 +43,8 @@ extern "C"
  * @param responder The responder to add.
  * @return The ID of the responder, or 0 if an error occurred.
  */
-DS_APPLICATION_EXPORT uint32_t dsApplication_addWindowResponder(dsApplication* application,
-	const dsWindowResponder* responder);
+DS_APPLICATION_EXPORT uint32_t dsApplication_addWindowResponder(
+	dsApplication* application, const dsWindowResponder* responder);
 
 /**
  * @brief Removes a window responder from an application.
@@ -53,8 +53,8 @@ DS_APPLICATION_EXPORT uint32_t dsApplication_addWindowResponder(dsApplication* a
  * @param responderID The ID of the responder to remove.
  * @return True if the responder was removed.
  */
-DS_APPLICATION_EXPORT bool dsApplication_removeWindowResponder(dsApplication* application,
-	uint32_t responderID);
+DS_APPLICATION_EXPORT bool dsApplication_removeWindowResponder(
+	dsApplication* application, uint32_t responderID);
 
 /**
  * @brief Adds an event responder to an application.
@@ -63,8 +63,8 @@ DS_APPLICATION_EXPORT bool dsApplication_removeWindowResponder(dsApplication* ap
  * @param responder The responder to add.
  * @return The ID of the responder, or 0 if an error occurred.
  */
-DS_APPLICATION_EXPORT uint32_t dsApplication_addEventResponder(dsApplication* application,
-	const dsEventResponder* responder);
+DS_APPLICATION_EXPORT uint32_t dsApplication_addEventResponder(
+	dsApplication* application, const dsEventResponder* responder);
 
 /**
  * @brief Removes an event responder from an application.
@@ -73,8 +73,8 @@ DS_APPLICATION_EXPORT uint32_t dsApplication_addEventResponder(dsApplication* ap
  * @param responderID The ID of the responder to remove.
  * @return True if the responder was removed.
  */
-DS_APPLICATION_EXPORT bool dsApplication_removeEventResponder(dsApplication* application,
-	uint32_t responderID);
+DS_APPLICATION_EXPORT bool dsApplication_removeEventResponder(
+	dsApplication* application, uint32_t responderID);
 
 /**
  * @brief Sets the pre-input update function for the application.
@@ -165,8 +165,8 @@ DS_APPLICATION_EXPORT bool dsApplication_removeWindow(dsApplication* application
  * @param gameInput The game input device to add.
  * @return True if the game input that was added.
  */
-DS_APPLICATION_EXPORT bool dsApplication_addGameInput(dsApplication* application,
-	dsGameInput* gameInput);
+DS_APPLICATION_EXPORT bool dsApplication_addGameInput(
+	dsApplication* application, dsGameInput* gameInput);
 
 /**
  * @brief Removes a game input from the application without destroying it.
@@ -178,8 +178,8 @@ DS_APPLICATION_EXPORT bool dsApplication_addGameInput(dsApplication* application
  * @param gameInput The game input device to remove.
  * @return True if the game input was removed.
  */
-DS_APPLICATION_EXPORT bool dsApplication_removeGameInput(dsApplication* application,
-	dsGameInput* gameInput);
+DS_APPLICATION_EXPORT bool dsApplication_removeGameInput(
+	dsApplication* application, dsGameInput* gameInput);
 
 /**
  * @brief Adds an existing motion sensor to the application.
@@ -191,8 +191,8 @@ DS_APPLICATION_EXPORT bool dsApplication_removeGameInput(dsApplication* applicat
  * @param sensor The motion sensor device to add.
  * @return True if the motion sensor that was added.
  */
-DS_APPLICATION_EXPORT bool dsApplication_addMotionSensor(dsApplication* application,
-	dsMotionSensor* sensor);
+DS_APPLICATION_EXPORT bool dsApplication_addMotionSensor(
+	dsApplication* application, dsMotionSensor* sensor);
 
 /**
  * @brief Removes a motion sensor from the application without destroying it.
@@ -204,8 +204,8 @@ DS_APPLICATION_EXPORT bool dsApplication_addMotionSensor(dsApplication* applicat
  * @param sensor The motion sensor to remove.
  * @return True if the motion sensor was removed.
  */
-DS_APPLICATION_EXPORT bool dsApplication_removeMotionSensor(dsApplication* application,
-	dsMotionSensor* sensor);
+DS_APPLICATION_EXPORT bool dsApplication_removeMotionSensor(
+	dsApplication* application, dsMotionSensor* sensor);
 
 /**
  * @brief Shows a message box and blocks execution until it's dismissed.
@@ -251,8 +251,8 @@ DS_APPLICATION_EXPORT bool dsApplication_quit(dsApplication* application, int ex
  * @param event The custom event to queue.
  * @return False if the event couldn't be added.
  */
-DS_APPLICATION_EXPORT bool dsApplication_addCustomEvent(dsApplication* application,
-	dsWindow* window, const dsCustomEvent* event);
+DS_APPLICATION_EXPORT bool dsApplication_addCustomEvent(
+	dsApplication* application, dsWindow* window, const dsCustomEvent* event);
 
 /**
  * @brief Gets the current event time.
@@ -288,8 +288,8 @@ DS_APPLICATION_EXPORT double dsApplication_getCurrentEventTime(const dsApplicati
  * @param application The application.
  * @return The current power state, determining if a battery is present and if it is charging.
  */
-DS_APPLICATION_EXPORT dsSystemPowerState dsApplication_getPowerState(int* outRemainingTime,
-	int* outBatteryPercent, const dsApplication* application);
+DS_APPLICATION_EXPORT dsSystemPowerState dsApplication_getPowerState(
+	int* outRemainingTime, int* outBatteryPercent, const dsApplication* application);
 
 /**
  * @brief Gets the bounds for the display in display coordinates.
@@ -299,8 +299,8 @@ DS_APPLICATION_EXPORT dsSystemPowerState dsApplication_getPowerState(int* outRem
  * @param display The index of the display.
  * @return False if an error occurred.
  */
-DS_APPLICATION_EXPORT bool dsApplication_getDisplayBounds(dsAlignedBox2i* outBounds,
-	const dsApplication* application, uint32_t display);
+DS_APPLICATION_EXPORT bool dsApplication_getDisplayBounds(
+	dsAlignedBox2i* outBounds, const dsApplication* application, uint32_t display);
 
 /**
  * @brief Adjusts the size of the window based on the DPI.
@@ -314,8 +314,8 @@ DS_APPLICATION_EXPORT bool dsApplication_getDisplayBounds(dsAlignedBox2i* outBou
  * @param size The size to adjust.
  * @return The adjusted size.
  */
-DS_APPLICATION_EXPORT uint32_t dsApplication_adjustWindowSize(const dsApplication* application,
-	uint32_t display, uint32_t size);
+DS_APPLICATION_EXPORT uint32_t dsApplication_adjustWindowSize(
+	const dsApplication* application, uint32_t display, uint32_t size);
 
 /**
  * @brief Adjusts an arbitary size based on the DPI.
@@ -327,8 +327,8 @@ DS_APPLICATION_EXPORT uint32_t dsApplication_adjustWindowSize(const dsApplicatio
  * @param size The size to adjust.
  * @return The adjusted size.
  */
-DS_APPLICATION_EXPORT float dsApplication_adjustSize(const dsApplication* application,
-	uint32_t display, float size);
+DS_APPLICATION_EXPORT float dsApplication_adjustSize(
+	const dsApplication* application, uint32_t display, float size);
 
 /**
  * @brief Gets the cursor used by the application.
@@ -376,8 +376,8 @@ DS_APPLICATION_EXPORT bool dsApplication_setCursorHidden(dsApplication* applicat
  * @param key The key to check.
  * @return True if the key is pressed.
  */
-DS_APPLICATION_EXPORT bool dsApplication_isKeyPressed(const dsApplication* application,
-	dsKeyCode key);
+DS_APPLICATION_EXPORT bool dsApplication_isKeyPressed(
+	const dsApplication* application, dsKeyCode key);
 
 /**
  * @brief Gets the currently pressed key modifiers.
@@ -412,8 +412,8 @@ DS_APPLICATION_EXPORT bool dsApplication_endTextInput(dsApplication* application
  * @param rect The renctangle to edit text in.
  * @return False if the input rectangle couldn't be set.
  */
-DS_APPLICATION_EXPORT bool dsApplication_setTextInputRect(dsApplication* application,
-	const dsAlignedBox2i* rect);
+DS_APPLICATION_EXPORT bool dsApplication_setTextInputRect(
+	dsApplication* application, const dsAlignedBox2i* rect);
 
 /**
  * @brief Gets the current position of the mouse.
@@ -422,8 +422,8 @@ DS_APPLICATION_EXPORT bool dsApplication_setTextInputRect(dsApplication* applica
  * @param application The application.
  * @return False if the position couldn't be queried.
  */
-DS_APPLICATION_EXPORT bool dsApplication_getMousePosition(dsVector2i* outPosition,
-	const dsApplication* application);
+DS_APPLICATION_EXPORT bool dsApplication_getMousePosition(
+	dsVector2i* outPosition, const dsApplication* application);
 
 /**
  * @brief Sets the current position of the mouse.
@@ -436,8 +436,8 @@ DS_APPLICATION_EXPORT bool dsApplication_getMousePosition(dsVector2i* outPositio
  *     coordinates.
  * @param position The position of the mouse.
  */
-DS_APPLICATION_EXPORT bool dsApplication_setMousePosition(dsApplication* application,
-	dsWindow* window, const dsVector2i* position);
+DS_APPLICATION_EXPORT bool dsApplication_setMousePosition(
+	dsApplication* application, dsWindow* window, const dsVector2i* position);
 
 /**
  * @brief Gets the currently pressed mouse buttons.
@@ -464,8 +464,8 @@ DS_APPLICATION_EXPORT dsWindow* dsApplication_getFocusWindow(const dsApplication
  * @param event The event to send.
  * @return False if an error occurred.
  */
-DS_APPLICATION_EXPORT bool dsApplication_dispatchEvent(dsApplication* application, dsWindow* window,
-	const dsEvent* event);
+DS_APPLICATION_EXPORT bool dsApplication_dispatchEvent(
+	dsApplication* application, dsWindow* window, const dsEvent* event);
 
 /**
  * @brief Initializes the members of an application.

@@ -105,6 +105,13 @@ typedef struct dsSceneTick
 	dsTimer timer;
 
 	/**
+	 * @brief The absolute time in ticks, relative to an arbitrary start.
+	 *
+	 * This is primarily useful as a reference for events.
+	 */
+	uint64_t absoluteTimerTicks;
+
+	/**
 	 * @brief The total number of timer ticks processed by this instance.
 	 */
 	uint64_t totalTimerTicks;
@@ -115,6 +122,15 @@ typedef struct dsSceneTick
 	 * It is recommended to use this value when accumulating large time values for highest accuracy.
 	 */
 	uint64_t thisTimerTicks;
+
+	/**
+	 * @brief The maximum number of ticks to accept for a single update.
+	 *
+	 * If an update exceeds this number of ticks, it will be forced to 0. This avoids problematic
+	 * situations such as the application being put in the background causing extremely long
+	 * updates, resulting in a very large step count.
+	 */
+	uint64_t maxTimerTicks;
 
 	/**
 	 * @brief The amount of time to advance for fixed updates.

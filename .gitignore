@@ -4,6 +4,7 @@ __pycache__
 .DS_Store
 .cmake
 .idea
+.qtcreator
 .vscode
 *.pyc
 *.swp

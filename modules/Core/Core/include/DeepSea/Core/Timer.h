@@ -61,6 +61,14 @@ DS_CORE_EXPORT inline double dsTimer_ticksToSeconds(dsTimer timer, int64_t ticks
 }
 
 /**
+ * @brief Converts seconds to ticks for a timer.
+ * @param timer The timer.
+ * @param seconds The number of seconds.
+ * @return The number of ticks based on the seconds.
+ */
+DS_CORE_EXPORT int64_t dsTimer_secondsToTicks(dsTimer timer, double seconds);
+
+/**
  * @brief Converts ticks from one timer to another.
  *
  * This can be used if the total number of ticks (e.g. total runtime) is saved and loaded on a

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,11 +43,11 @@
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/Scene/SceneResources.h>
 #include <DeepSea/Scene/SceneThreadManager.h>
+#include <DeepSea/Scene/SceneTick.h>
 #include <DeepSea/Scene/View.h>
 #include <DeepSea/Scene/ViewTransformData.h>
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #if DS_HAS_EASY_PROFILER
@@ -67,8 +67,8 @@ typedef struct TestScene
 	dsThreadPool* threadPool;
 	dsSceneThreadManager* threadManager;
 
+	dsSceneTick tick;
 	uint64_t invalidatedFrame;
-	bool ignoreTime;
 	bool secondarySceneSet;
 	bool multithreadedRendering;
 	float rotation;
@@ -98,8 +98,8 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 	return false;
 }
 
-static bool processEvent(dsApplication* application, dsWindow* window, const dsEvent* event,
-	void* userData)
+static bool processEvent(
+	dsApplication* application, dsWindow* window, const dsEvent* event, void* userData)
 {
 	TestScene* testScene = (TestScene*)userData;
 	dsRenderer* renderer = application->renderer;
@@ -124,9 +124,6 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 			if (event->type == dsAppEventType_SurfaceInvalidated)
 				dsView_update(testScene->view);
 			return true;
-		case dsAppEventType_WillEnterForeground:
-			testScene->ignoreTime = true;
-			return true;
 		case dsAppEventType_KeyDown:
 			if (event->key.repeat)
 				return false;
@@ -145,8 +142,8 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 				else
 					samples = 1;
 				dsRenderer_setSamples(renderer, samples);
-				DS_LOG_INFO_F("TestScene", "Togging anti-aliasing: %s",
-					samples == 1 ? "off" : "on");
+				DS_LOG_INFO_F(
+					"TestScene", "Togging anti-aliasing: %s", samples == 1 ? "off" : "on");
 			}
 			else if (event->key.key == dsKeyCode_2)
 			{
@@ -177,22 +174,19 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 	}
 }
 
-static void update(dsApplication* application, float lastFrameTime, void* userData)
+static void update(
+	dsApplication* application, uint64_t absoluteTime, uint64_t lastFrameTime, void* userData)
 {
 	DS_UNUSED(application);
 
 	TestScene* testScene = (TestScene*)userData;
+	DS_VERIFY(dsSceneTick_update(&testScene->tick, absoluteTime, lastFrameTime));
 
-	if (testScene->ignoreTime)
-		testScene->ignoreTime = false;
-	else
-	{
-		// radians/s
-		const float rate = M_PI_2f;
-		testScene->rotation += lastFrameTime*rate;
-		while (testScene->rotation > 2*M_PIf)
-			testScene->rotation = testScene->rotation - 2*M_PIf;
-	}
+	// radians/s
+	const float rate = M_PI_2f;
+	testScene->rotation += testScene->tick.thisTime*rate;
+	while (testScene->rotation > 2*M_PIf)
+		testScene->rotation = testScene->rotation - 2*M_PIf;
 
 	dsMatrix44f transform;
 	dsMatrix44f_makeRotate(&transform, 0, testScene->rotation, 0);
@@ -204,7 +198,7 @@ static void update(dsApplication* application, float lastFrameTime, void* userDa
 	transform.columns[3].z = 5.0f;
 	DS_VERIFY(dsSceneTransformNode_setTransform(testScene->secondaryTransform, &transform));
 
-	DS_VERIFY(dsScene_update(testScene->scene, lastFrameTime));
+	DS_VERIFY(dsScene_update(testScene->scene, testScene->tick.thisTime));
 	DS_VERIFY(dsView_update(testScene->view));
 }
 
@@ -359,6 +353,7 @@ static bool setup(TestScene* testScene, dsApplication* application, dsAllocator*
 	if (!testScene->threadManager)
 		return false;
 
+	DS_VERIFY(dsSceneTick_initialize(&testScene->tick, 0.0f, 1.0f));
 	return true;
 }
 

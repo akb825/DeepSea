@@ -23,6 +23,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Timer.h>
 
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
@@ -93,6 +94,7 @@ typedef struct TestRenderSubpass
 	dsDrawGeometry* cubeGeometry;
 	dsDrawGeometry* resolveGeometry;
 
+	dsTimer timer;
 	uint32_t channelRElement;
 	uint32_t channelGElement;
 	uint32_t channelBElement;
@@ -360,7 +362,8 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 	}
 }
 
-static void update(dsApplication* application, float lastFrameTime, void* userData)
+static void update(
+	dsApplication* application, uint64_t absoluteTime, uint64_t lastFrameTime, void* userData)
 {
 	DS_UNUSED(application);
 
@@ -368,7 +371,8 @@ static void update(dsApplication* application, float lastFrameTime, void* userDa
 
 	// radians/s
 	const float rate = M_PI_2f;
-	testRenderSubpass->rotation += lastFrameTime*rate;
+	testRenderSubpass->rotation +=
+		(float)dsTimer_ticksToSeconds(testRenderSubpass->timer, lastFrameTime)*rate;
 	while (testRenderSubpass->rotation > 2*M_PIf)
 		testRenderSubpass->rotation = testRenderSubpass->rotation - 2*M_PIf;
 
@@ -490,13 +494,14 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	}
 }
 
-static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* application,
-	dsAllocator* allocator)
+static bool setup(
+	TestRenderSubpass* testRenderSubpass, dsApplication* application, dsAllocator* allocator)
 {
 	dsRenderer* renderer = application->renderer;
 	dsResourceManager* resourceManager = renderer->resourceManager;
 	testRenderSubpass->allocator = allocator;
 	testRenderSubpass->renderer = renderer;
+	testRenderSubpass->timer = dsTimer_create();
 
 	dsEventResponder responder = {&processEvent, testRenderSubpass, 0, 0};
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));

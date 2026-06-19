@@ -41,6 +41,7 @@
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/Scene/SceneResources.h>
+#include <DeepSea/Scene/SceneTick.h>
 #include <DeepSea/Scene/View.h>
 #include <DeepSea/Scene/ViewTransformData.h>
 
@@ -82,8 +83,8 @@ typedef struct TestVectorDrawScene
 	dsTextSubstitutionTable* substitutionTable;
 	dsTextSubstitutionData* substitutionData;
 
+	dsSceneTick tick;
 	double changeTime;
-	unsigned int skipCount;
 	bool reverse;
 	DisplayType displayType;
 	unsigned int tigerNumber;
@@ -201,10 +202,6 @@ static bool processEvent(
 			if (event->type == dsAppEventType_SurfaceInvalidated)
 				dsView_update(testVectorDrawScene->view);
 			return true;
-		case dsAppEventType_WillEnterForeground:
-			// Takes two frames to go through the bad frame time values.
-			testVectorDrawScene->skipCount = 2;
-			return false;
 		case dsAppEventType_KeyDown:
 			switch (event->key.key)
 			{
@@ -251,16 +248,15 @@ static bool processEvent(
 	}
 }
 
-static void update(dsApplication* application, float lastFrameTime, void* userData)
+static void update(
+	dsApplication* application, uint64_t absoluteTime, uint64_t lastFrameTime, void* userData)
 {
 	DS_UNUSED(application);
 
 	TestVectorDrawScene* testVectorDrawScene = (TestVectorDrawScene*)userData;
+	DS_VERIFY(dsSceneTick_update(&testVectorDrawScene->tick, absoluteTime, lastFrameTime));
 
-	if (testVectorDrawScene->skipCount > 0)
-		--testVectorDrawScene->skipCount;
-	else
-		testVectorDrawScene->changeTime += lastFrameTime;
+	testVectorDrawScene->changeTime += testVectorDrawScene->tick.thisTime;
 	switch (testVectorDrawScene->displayType)
 	{
 		case DisplayType_CharByChar:
@@ -312,7 +308,7 @@ static void update(dsApplication* application, float lastFrameTime, void* userDa
 			break;
 	}
 
-	DS_VERIFY(dsScene_update(testVectorDrawScene->scene, lastFrameTime));
+	DS_VERIFY(dsScene_update(testVectorDrawScene->scene, testVectorDrawScene->tick.thisTime));
 	DS_VERIFY(dsView_update(testVectorDrawScene->view));
 }
 
@@ -545,6 +541,7 @@ static bool setup(
 	}
 
 	updateRootTransform(testVectorDrawScene->view, testVectorDrawScene->rootNode);
+	DS_VERIFY(dsSceneTick_initialize(&testVectorDrawScene->tick, 0.0f, 1.0f));
 	return true;
 }
 

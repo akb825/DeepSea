@@ -14,30 +14,35 @@
  * limitations under the License.
  */
 
+#include <DeepSea/Core/Timer.h>
 #include <DeepSea/Scene/SceneTick.h>
 #include <gtest/gtest.h>
 
 TEST(SceneTickTest, UpdateDynamicPeriod)
 {
 	dsSceneTick tick;
-	EXPECT_FALSE(dsSceneTick_initialize(nullptr, 0.0f));
-	EXPECT_FALSE(dsSceneTick_initialize(&tick, -1.0f));
-	ASSERT_TRUE(dsSceneTick_initialize(&tick, 0.0f));
+	EXPECT_FALSE(dsSceneTick_initialize(nullptr, 0.0f, 0.0f));
+	EXPECT_FALSE(dsSceneTick_initialize(&tick, -1.0f, 0.0f));
+	EXPECT_FALSE(dsSceneTick_initialize(&tick, 0.0f, -1.0f));
+	ASSERT_TRUE(dsSceneTick_initialize(&tick, 0.0f, 0.0f));
 
 	// Use a dummy timer scale to allow for fixed tick values.
 	EXPECT_NE(0U, tick.timer.scale);
 	tick.timer.scale = 0.001;
 
+	EXPECT_EQ(0U, tick.absoluteTimerTicks);
 	EXPECT_EQ(0U, tick.totalTimerTicks);
 	EXPECT_EQ(0U, tick.thisTimerTicks);
+	EXPECT_EQ(UINT64_MAX, tick.maxTimerTicks);
 	EXPECT_EQ(0.0f, tick.updatePeriod);
 	EXPECT_EQ(0.0f, tick.stepTime);
 	EXPECT_EQ(0U, tick.stepCount);
 	EXPECT_EQ(1.0f, tick.stepInterp);
 	EXPECT_EQ(0.0f, tick.thisTime);
 
-	EXPECT_FALSE(dsSceneTick_update(nullptr, 32));
-	EXPECT_TRUE(dsSceneTick_update(&tick, 32));
+	EXPECT_FALSE(dsSceneTick_update(nullptr, 123, 32));
+	EXPECT_TRUE(dsSceneTick_update(&tick, 123, 32));
+	EXPECT_EQ(123U, tick.absoluteTimerTicks);
 	EXPECT_EQ(32U, tick.totalTimerTicks);
 	EXPECT_EQ(32U, tick.thisTimerTicks);
 	EXPECT_EQ(0.0f, tick.updatePeriod);
@@ -46,7 +51,8 @@ TEST(SceneTickTest, UpdateDynamicPeriod)
 	EXPECT_EQ(1.0f, tick.stepInterp);
 	EXPECT_FLOAT_EQ(0.032f, tick.thisTime);
 
-	EXPECT_TRUE(dsSceneTick_update(&tick, 0));
+	EXPECT_TRUE(dsSceneTick_update(&tick, 125, 0));
+	EXPECT_EQ(125U, tick.absoluteTimerTicks);
 	EXPECT_EQ(32U, tick.totalTimerTicks);
 	EXPECT_EQ(0U, tick.thisTimerTicks);
 	EXPECT_EQ(0.0f, tick.updatePeriod);
@@ -55,7 +61,8 @@ TEST(SceneTickTest, UpdateDynamicPeriod)
 	EXPECT_EQ(1.0f, tick.stepInterp);
 	EXPECT_EQ(0.0f, tick.thisTime);
 
-	EXPECT_TRUE(dsSceneTick_update(&tick, 17));
+	EXPECT_TRUE(dsSceneTick_update(&tick, 154, 17));
+	EXPECT_EQ(154U, tick.absoluteTimerTicks);
 	EXPECT_EQ(49U, tick.totalTimerTicks);
 	EXPECT_EQ(17U, tick.thisTimerTicks);
 	EXPECT_EQ(0.0f, tick.updatePeriod);
@@ -71,21 +78,26 @@ TEST(SceneTickTest, UpdateFixedPeriod)
 
 	float updatePeriod = 1/60.0f;
 	dsSceneTick tick;
-	ASSERT_TRUE(dsSceneTick_initialize(&tick, updatePeriod));
+	ASSERT_TRUE(dsSceneTick_initialize(&tick, updatePeriod, 5.0f));
 
 	// Use a dummy timer scale to allow for fixed tick values.
 	EXPECT_NE(0U, tick.timer.scale);
+	double origScale = tick.timer.scale;
 	tick.timer.scale = 0.001;
+	tick.maxTimerTicks = dsTimer_convertTicks(tick.timer, origScale, tick.maxTimerTicks);
 
+	EXPECT_EQ(0U, tick.absoluteTimerTicks);
 	EXPECT_EQ(0U, tick.totalTimerTicks);
 	EXPECT_EQ(0U, tick.thisTimerTicks);
+	EXPECT_EQ(5000, tick.maxTimerTicks);
 	EXPECT_EQ(updatePeriod, tick.updatePeriod);
 	EXPECT_EQ(0.0f, tick.stepTime);
 	EXPECT_EQ(0U, tick.stepCount);
 	EXPECT_EQ(1.0f, tick.stepInterp);
 	EXPECT_EQ(0.0f, tick.thisTime);
 
-	EXPECT_TRUE(dsSceneTick_update(&tick, 0));
+	EXPECT_TRUE(dsSceneTick_update(&tick, 123, 0));
+	EXPECT_EQ(123U, tick.absoluteTimerTicks);
 	EXPECT_EQ(0U, tick.totalTimerTicks);
 	EXPECT_EQ(0U, tick.thisTimerTicks);
 	EXPECT_EQ(updatePeriod, tick.updatePeriod);
@@ -94,7 +106,8 @@ TEST(SceneTickTest, UpdateFixedPeriod)
 	EXPECT_EQ(0.0f, tick.stepInterp);
 	EXPECT_EQ(0.0f, tick.thisTime);
 
-	EXPECT_TRUE(dsSceneTick_update(&tick, 1));
+	EXPECT_TRUE(dsSceneTick_update(&tick, 124, 1));
+	EXPECT_EQ(124U, tick.absoluteTimerTicks);
 	EXPECT_EQ(1U, tick.totalTimerTicks);
 	EXPECT_EQ(1U, tick.thisTimerTicks);
 	EXPECT_EQ(updatePeriod, tick.updatePeriod);
@@ -103,7 +116,8 @@ TEST(SceneTickTest, UpdateFixedPeriod)
 	EXPECT_NEAR(0.001f/updatePeriod, tick.stepInterp, epsilon);
 	EXPECT_FLOAT_EQ(0.001f, tick.thisTime);
 
-	EXPECT_TRUE(dsSceneTick_update(&tick, 12));
+	EXPECT_TRUE(dsSceneTick_update(&tick, 136, 12));
+	EXPECT_EQ(136U, tick.absoluteTimerTicks);
 	EXPECT_EQ(13U, tick.totalTimerTicks);
 	EXPECT_EQ(12U, tick.thisTimerTicks);
 	EXPECT_EQ(updatePeriod, tick.updatePeriod);
@@ -112,7 +126,8 @@ TEST(SceneTickTest, UpdateFixedPeriod)
 	EXPECT_NEAR(0.013f/updatePeriod, tick.stepInterp, epsilon);
 	EXPECT_FLOAT_EQ(0.012f, tick.thisTime);
 
-	EXPECT_TRUE(dsSceneTick_update(&tick, 9));
+	EXPECT_TRUE(dsSceneTick_update(&tick, 145, 9));
+	EXPECT_EQ(145U, tick.absoluteTimerTicks);
 	EXPECT_EQ(22U, tick.totalTimerTicks);
 	EXPECT_EQ(9U, tick.thisTimerTicks);
 	EXPECT_EQ(updatePeriod, tick.updatePeriod);
@@ -121,7 +136,8 @@ TEST(SceneTickTest, UpdateFixedPeriod)
 	EXPECT_NEAR((0.022f - updatePeriod)/updatePeriod, tick.stepInterp, epsilon);
 	EXPECT_FLOAT_EQ(0.009f, tick.thisTime);
 
-	EXPECT_TRUE(dsSceneTick_update(&tick, 0));
+	EXPECT_TRUE(dsSceneTick_update(&tick, 145, 0));
+	EXPECT_EQ(145U, tick.absoluteTimerTicks);
 	EXPECT_EQ(22U, tick.totalTimerTicks);
 	EXPECT_EQ(0U, tick.thisTimerTicks);
 	EXPECT_EQ(updatePeriod, tick.updatePeriod);
@@ -130,7 +146,8 @@ TEST(SceneTickTest, UpdateFixedPeriod)
 	EXPECT_NEAR((0.022f - updatePeriod)/updatePeriod, tick.stepInterp, epsilon);
 	EXPECT_EQ(0.0f, tick.thisTime);
 
-	EXPECT_TRUE(dsSceneTick_update(&tick, 33));
+	EXPECT_TRUE(dsSceneTick_update(&tick, 178, 33));
+	EXPECT_EQ(178U, tick.absoluteTimerTicks);
 	EXPECT_EQ(55U, tick.totalTimerTicks);
 	EXPECT_EQ(33U, tick.thisTimerTicks);
 	EXPECT_EQ(updatePeriod, tick.updatePeriod);
@@ -138,4 +155,14 @@ TEST(SceneTickTest, UpdateFixedPeriod)
 	EXPECT_EQ(2U, tick.stepCount);
 	EXPECT_NEAR((0.055f - 3*updatePeriod)/updatePeriod, tick.stepInterp, epsilon);
 	EXPECT_FLOAT_EQ(0.033f, tick.thisTime);
+
+	EXPECT_TRUE(dsSceneTick_update(&tick, 20000, 10000));
+	EXPECT_EQ(20000U, tick.absoluteTimerTicks);
+	EXPECT_EQ(55U, tick.totalTimerTicks);
+	EXPECT_EQ(0U, tick.thisTimerTicks);
+	EXPECT_EQ(updatePeriod, tick.updatePeriod);
+	EXPECT_EQ(0.0f, tick.stepTime);
+	EXPECT_EQ(0U, tick.stepCount);
+	EXPECT_NEAR((0.055f - 3*updatePeriod)/updatePeriod, tick.stepInterp, epsilon);
+	EXPECT_FLOAT_EQ(0.0f, tick.thisTime);
 }

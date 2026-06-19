@@ -418,16 +418,11 @@ typedef struct dsEvent
 	dsAppEventType type;
 
 	/**
-	 * @brief The relative time of this event in seconds.
+	 * @brief The relative time of this event in timer ticks.
 	 *
-	 * The time starts at an arbitrary value, but should be consistent between events.
-	 *
-	 * @remark Some implementations use 32-bit internal timers. For example, a 32-bit millisecond
-	 * value will wrap around in ~49 days. While unlikely to occur in real-world scenarios, a sanity
-	 * check (e.g. clamping relative times so they don't become negative) can be used to minimize
-	 * the impact.
+	 * This will be relative to the absolute timer ticks reported in the update function.
 	 */
-	double time;
+	uint64_t time;
 
 	union
 	{
@@ -551,11 +546,12 @@ typedef struct dsEvent
 /**
  * @brief Function to update the application.
  * @param application The application.
- * @param lastFrameTime The time it took to execute the last frame in seconds.
+ * @param absoluteTime The absolute time in timer ticks. Events will be relative to this time.
+ * @param lastFrameTime The time it took to execute the last frame in timer ticks.
  * @param userData The user data registered with the function.
  */
-typedef void (*dsUpdateApplicationFunction)(dsApplication* application, float lastFrameTime,
-	void* userData);
+typedef void (*dsUpdateApplicationFunction)(
+	dsApplication* application, uint64_t absoluteTime, uint64_t lastFrameTime, void* userData);
 
 /**
  * @brief Function to finish the frame in the application.
@@ -604,8 +600,8 @@ typedef void (*dsQuitApplicationFunction)(dsApplication* application, int return
  * @param event The custom event to queue.
  * @return False if the event couldn't be added.
  */
-typedef bool (*dsAddCustomApplicationEventFunction)(dsApplication* application, dsWindow* window,
-	const dsCustomEvent* event);
+typedef bool (*dsAddCustomApplicationEventFunction)(
+	dsApplication* application, dsWindow* window, const dsCustomEvent* event);
 
 /**
  * @brief Function for getting the current event time.
@@ -623,8 +619,8 @@ typedef double (*dsGetCurrentApplicationEventTimeFunction)(const dsApplication* 
  * @param application The application.
  * @return The current power state, determining if a battery is present and if it is charging.
  */
-typedef dsSystemPowerState (*dsGetApplicationPowerStateFunction)(int* outRemainingTime,
-	int* outBatteryPercent, const dsApplication* application);
+typedef dsSystemPowerState (*dsGetApplicationPowerStateFunction)(
+	int* outRemainingTime, int* outBatteryPercent, const dsApplication* application);
 
 /**
  * @brief Function for getting the display bounds.
@@ -632,8 +628,8 @@ typedef dsSystemPowerState (*dsGetApplicationPowerStateFunction)(int* outRemaini
  * @param application The application.
  * @param display The index of the display.
  */
-typedef void (*dsGetApplicationDisplayBoundsFunction)(dsAlignedBox2i* outBounds,
-	const dsApplication* application, uint32_t display);
+typedef void (*dsGetApplicationDisplayBoundsFunction)(
+	dsAlignedBox2i* outBounds, const dsApplication* application, uint32_t display);
 
 /**
  * @brief Function to get the current cursor.
@@ -682,8 +678,8 @@ typedef void (*dsWindowAddedFunction)(dsApplication* application, dsWindow* wind
  * @param window The window that was removed.
  * @param userData The user data registered with the function.
  */
-typedef void (*dsWindowRemovedFunction)(dsApplication* application, dsWindow* window,
-	void* userData);
+typedef void (*dsWindowRemovedFunction)(
+	dsApplication* application, dsWindow* window, void* userData);
 
 /**
  * @brief Function to respond to an event.
@@ -693,8 +689,8 @@ typedef void (*dsWindowRemovedFunction)(dsApplication* application, dsWindow* wi
  * @param userData The user data registered with the function.
  * @return True to continue passing the event, false to avoid sending any further.
  */
-typedef bool (*dsWindowEventFunction)(dsApplication* application, dsWindow* window,
-	const dsEvent* event, void* userData);
+typedef bool (*dsWindowEventFunction)(
+	dsApplication* application, dsWindow* window, const dsEvent* event, void* userData);
 
 /**
  * @brief Function for getting whether or not a key is pressed.
@@ -731,8 +727,8 @@ typedef bool (*dsEndApplicationTextInputFunction)(dsApplication* application);
  * @param rect The renctangle to edit text in.
  * @return False if the input rectangle couldn't be set.
  */
-typedef bool (*dsSetApplicationTextInputRectFunction)(dsApplication* application,
-	const dsAlignedBox2i* rect);
+typedef bool (*dsSetApplicationTextInputRectFunction)(
+	dsApplication* application, const dsAlignedBox2i* rect);
 
 /**
  * @brief Function for getting the mouse position.
@@ -740,8 +736,8 @@ typedef bool (*dsSetApplicationTextInputRectFunction)(dsApplication* application
  * @param application The application.
  * @return False if the position couldn't be queried.
  */
-typedef bool (*dsGetApplicationMousePositionFunction)(dsVector2i* outPosition,
-	const dsApplication* application);
+typedef bool (*dsGetApplicationMousePositionFunction)(
+	dsVector2i* outPosition, const dsApplication* application);
 
 /**
  * @brief Function for setting the mouse position.
@@ -750,8 +746,8 @@ typedef bool (*dsGetApplicationMousePositionFunction)(dsVector2i* outPosition,
  *     coordinates.
  * @param position The position of the mouse.
  */
-typedef bool (*dsSetApplicationMousePositionFunction)(dsApplication* application, dsWindow* window,
-	const dsVector2i* position);
+typedef bool (*dsSetApplicationMousePositionFunction)(
+	dsApplication* application, dsWindow* window, const dsVector2i* position);
 
 /**
  * @brief Function for getting the currently pressed mouse buttons.
@@ -805,8 +801,8 @@ typedef dsWindow* (*dsGetFocusWindowFunction)(const dsApplication* application);
  * @param window The window to set the title on.
  * @param title The new title.
  */
-typedef bool (*dsSetWindowTileFunction)(dsApplication* application, dsWindow* window,
-	const char* title);
+typedef bool (*dsSetWindowTileFunction)(
+	dsApplication* application, dsWindow* window, const char* title);
 
 /**
  * @brief Function for setting the display mode of the window.
@@ -815,8 +811,8 @@ typedef bool (*dsSetWindowTileFunction)(dsApplication* application, dsWindow* wi
  * @param displayMode The new display mode.
  * @return False if the display mode couldn't be set.
  */
-typedef bool (*dsSetWindowDisplayModeFunction)(dsApplication* application, dsWindow* window,
-	const dsDisplayMode* displayMode);
+typedef bool (*dsSetWindowDisplayModeFunction)(
+	dsApplication* application, dsWindow* window, const dsDisplayMode* displayMode);
 
 /**
  * @brief Function for resizing a window.
@@ -826,8 +822,8 @@ typedef bool (*dsSetWindowDisplayModeFunction)(dsApplication* application, dsWin
  * @param height The new height.
  * @return False if the window couldn't be resized.
  */
-typedef bool (*dsResizeWindowFunction)(dsApplication* application, dsWindow* window, uint32_t width,
-	uint32_t height);
+typedef bool (*dsResizeWindowFunction)(
+	dsApplication* application, dsWindow* window, uint32_t width, uint32_t height);
 
 /**
  * @brief Function for getting the size of a window.
@@ -858,8 +854,8 @@ typedef bool (*dsGetWindowPixelSizeFunction)(uint32_t* outWidth, uint32_t* outHe
  * @param style The new window style.
  * @return False if the window style couldn't be set.
  */
-typedef bool (*dsSetWindowStyleFunction)(dsApplication* application, dsWindow* window,
-	dsWindowStyle style);
+typedef bool (*dsSetWindowStyleFunction)(
+	dsApplication* application, dsWindow* window, dsWindowStyle style);
 
 /**
  * @brief Function for getting the position of a window.
@@ -868,8 +864,8 @@ typedef bool (*dsSetWindowStyleFunction)(dsApplication* application, dsWindow* w
  * @param window The window to set the position for.
  * @return False if the window position couldn't be queried.
  */
-typedef bool (*dsGetWindowPositionFunction)(dsVector2i* outPosition,
-	const dsApplication* application, const dsWindow* window);
+typedef bool (*dsGetWindowPositionFunction)(
+	dsVector2i* outPosition, const dsApplication* application, const dsWindow* window);
 
 /**
  * @brief Function for setting the position of a window.
@@ -879,8 +875,8 @@ typedef bool (*dsGetWindowPositionFunction)(dsVector2i* outPosition,
  * @param center True to center the window.
  * @return False if the window couldn't be moved.
  */
-typedef bool (*dsSetWindowPositionFunction)(dsApplication* application, dsWindow* window,
-	const dsVector2i* position, bool center);
+typedef bool (*dsSetWindowPositionFunction)(
+	dsApplication* application, dsWindow* window, const dsVector2i* position, bool center);
 
 /**
  * @brief Function to get whether or not a window is hidden.
@@ -897,8 +893,8 @@ typedef bool (*dsGetWindowHiddenFunction)(const dsApplication* application, cons
  * @param hidden True if the window is hidden.
  * @return False if the window couldn't be hidden.
  */
-typedef bool (*dsSetWindowHiddenFunction)(dsApplication* application, dsWindow* window,
-	bool hidden);
+typedef bool (*dsSetWindowHiddenFunction)(
+	dsApplication* application, dsWindow* window, bool hidden);
 
 /**
  * @brief Function to get whether or not a window is minimized.
@@ -906,8 +902,8 @@ typedef bool (*dsSetWindowHiddenFunction)(dsApplication* application, dsWindow* 
  * @param window The window to check.
  * @return True if the window is minimized.
  */
-typedef bool (*dsGetWindowMinimizedFunction)(const dsApplication* application,
-	const dsWindow* window);
+typedef bool (*dsGetWindowMinimizedFunction)(
+	const dsApplication* application, const dsWindow* window);
 
 /**
  * @brief Function to get whether or not a window is maximized.
@@ -915,8 +911,8 @@ typedef bool (*dsGetWindowMinimizedFunction)(const dsApplication* application,
  * @param window The window to check.
  * @return True if the window is maximized.
  */
-typedef bool (*dsGetWindowMaximizedFunction)(const dsApplication* application,
-	const dsWindow* window);
+typedef bool (*dsGetWindowMaximizedFunction)(
+	const dsApplication* application, const dsWindow* window);
 
 /**
  * @brief Function to minimize a window.
@@ -948,8 +944,8 @@ typedef bool (*dsRestoreWindowFunction)(dsApplication* application, dsWindow* wi
  * @param window The window to check.
  * @return True if the window has grabbed input.
  */
-typedef bool (*dsGetWindowGrabbedInputFunction)(const dsApplication* application,
-	const dsWindow* window);
+typedef bool (*dsGetWindowGrabbedInputFunction)(
+	const dsApplication* application, const dsWindow* window);
 
 /**
  * @brief Function for setting whether or not a window has grabbed input.
@@ -958,8 +954,8 @@ typedef bool (*dsGetWindowGrabbedInputFunction)(const dsApplication* application
  * @param grab True to grab input.
  * @return False if the input grab state couldn't be set.
  */
-typedef bool (*dsSetWindowGrabbedInputFunction)(dsApplication* application, dsWindow* window,
-	bool grab);
+typedef bool (*dsSetWindowGrabbedInputFunction)(
+	dsApplication* application, dsWindow* window, bool grab);
 
 /**
  * @brief Function to raise a window to the top and gives it focus.
@@ -975,8 +971,8 @@ typedef bool (*dsRaiseWindowFunction)(dsApplication* application, dsWindow* wind
  * @param gameInput The game input device to get the battery level from.
  * @return The battery level.
  */
-typedef dsGameInputBattery (*dsGetGameInputBatteryFunction)(const dsApplication* application,
-	const dsGameInput* gameInput);
+typedef dsGameInputBattery (*dsGetGameInputBatteryFunction)(
+	const dsApplication* application, const dsGameInput* gameInput);
 
 /**
  * @brief Function for getting the state of a game input axis.
@@ -985,8 +981,8 @@ typedef dsGameInputBattery (*dsGetGameInputBatteryFunction)(const dsApplication*
  * @param axis The index of the axis.
  * @return The axis value.
  */
-typedef float (*dsGetGameInputAxisFunction)(const dsApplication* application,
-	const dsGameInput* gameInput, uint32_t axis);
+typedef float (*dsGetGameInputAxisFunction)(
+	const dsApplication* application, const dsGameInput* gameInput, uint32_t axis);
 
 /**
  * @brief Function for getting the state of a game input axis based on the game controller mapping.
@@ -995,8 +991,8 @@ typedef float (*dsGetGameInputAxisFunction)(const dsApplication* application,
  * @param mapping The controller mapping.
  * @return The axis value.
  */
-typedef float (*dsGetGameInputControllerAxisFunction)(const dsApplication* application,
-	const dsGameInput* gameInput, dsGameControllerMap mapping);
+typedef float (*dsGetGameInputControllerAxisFunction)(
+	const dsApplication* application, const dsGameInput* gameInput, dsGameControllerMap mapping);
 
 /**
  * @brief Function for getting if a game input button is pressed.
@@ -1005,8 +1001,8 @@ typedef float (*dsGetGameInputControllerAxisFunction)(const dsApplication* appli
  * @param button The button to check.
  * @return True if the button is pressed.
  */
-typedef bool (*dsIsGameInputButtonPressedFunction)(const dsApplication* application,
-	const dsGameInput* gameInput, uint32_t button);
+typedef bool (*dsIsGameInputButtonPressedFunction)(
+	const dsApplication* application, const dsGameInput* gameInput, uint32_t button);
 
 /**
  * @brief Function for getting if a game input button is pressed based on the game controller
@@ -1016,8 +1012,8 @@ typedef bool (*dsIsGameInputButtonPressedFunction)(const dsApplication* applicat
  * @param mapping The controller mapping.
  * @return True if the button is pressed.
  */
-typedef bool (*dsIsGameInputControllerButtonPressedFunction)(const dsApplication* application,
-	const dsGameInput* gameInput, dsGameControllerMap mapping);
+typedef bool (*dsIsGameInputControllerButtonPressedFunction)(
+	const dsApplication* application, const dsGameInput* gameInput, dsGameControllerMap mapping);
 
 /**
  * @brief Function for setting baseline rumble on a game input.
@@ -1027,8 +1023,8 @@ typedef bool (*dsIsGameInputControllerButtonPressedFunction)(const dsApplication
  * @param strength The strength of the rumble in the range [0, 1].
  * @return False if rumble couldn't be set.
  */
-typedef bool (*dsSetGameInputBaselineRumbleFunction)(dsApplication* application,
-	dsGameInput* gameInput, dsGameInputRumble rumble, float strength);
+typedef bool (*dsSetGameInputBaselineRumbleFunction)(
+	dsApplication* application, dsGameInput* gameInput, dsGameInputRumble rumble, float strength);
 
 /**
  * @brief Function for getting baseline rumble on a game input.
@@ -1037,8 +1033,8 @@ typedef bool (*dsSetGameInputBaselineRumbleFunction)(dsApplication* application,
  * @param rumble The type of rumble to get.
  * @return The strength of the rumble.
  */
-typedef float (*dsGetGameInputBaselineRumbleFunction)(dsApplication* application,
-	const dsGameInput* gameInput, dsGameInputRumble rumble);
+typedef float (*dsGetGameInputBaselineRumbleFunction)(
+	dsApplication* application, const dsGameInput* gameInput, dsGameInputRumble rumble);
 
 /**
  * @brief Function for setting timed rumble on a game input.
@@ -1070,8 +1066,8 @@ typedef float (*dsGetGameInputTimedRumbleFunction)(float* outDuration, dsApplica
  * @param color The color of the LED.
  * @return False if the LED color couldn't be set.
  */
-typedef bool (*dsSetGameInputLEDColorFunction)(dsApplication* application,
-	dsGameInput* gameInput, dsColor color);
+typedef bool (*dsSetGameInputLEDColorFunction)(
+	dsApplication* application, dsGameInput* gameInput, dsColor color);
 
 /**
  * @brief Function to get whether or not a game input has a motion sensor.
@@ -1080,8 +1076,8 @@ typedef bool (*dsSetGameInputLEDColorFunction)(dsApplication* application,
  * @param type The type of motion sensor to check for.
  * @return Whether or not the motion sensor is present.
  */
-typedef bool (*dsGameInputHasMotionSensor)(const dsApplication* application,
-	const dsGameInput* gameInput, dsMotionSensorType type);
+typedef bool (*dsGameInputHasMotionSensor)(
+	const dsApplication* application, const dsGameInput* gameInput, dsMotionSensorType type);
 
 /**
  * @brief Function to get game input motion sensor data.
@@ -1101,8 +1097,8 @@ typedef bool (*dsGetGameInputMotionSensorData)(dsVector3f* outData,
  * @param sensor The motion sensor to get the data from.
  * @return False if the motion sensor state couldn't be queried.
  */
-typedef bool (*dsGetApplicationMotionSensorDataFunction)(dsVector3f* outData,
-	const dsApplication* application, const dsMotionSensor* sensor);
+typedef bool (*dsGetApplicationMotionSensorDataFunction)(
+	dsVector3f* outData, const dsApplication* application, const dsMotionSensor* sensor);
 
 /**
  * @brief Function for getting the game input D-pad direction.

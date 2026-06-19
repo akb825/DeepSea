@@ -19,17 +19,22 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Timer.h>
 
-bool dsSceneTick_initialize(dsSceneTick* outTick, float updatePeriod)
+bool dsSceneTick_initialize(dsSceneTick* outTick, float updatePeriod, float maxTime)
 {
-	if (!outTick || updatePeriod < 0.0f)
+	if (!outTick || updatePeriod < 0.0f || maxTime < 0.0f)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
 	outTick->timer = dsTimer_create();
+	outTick->absoluteTimerTicks = 0;
 	outTick->totalTimerTicks = 0;
 	outTick->thisTimerTicks = 0;
+	if (maxTime == 0.0f)
+		outTick->maxTimerTicks = UINT64_MAX;
+	else
+		outTick->maxTimerTicks = dsTimer_secondsToTicks(outTick->timer, maxTime);
 	outTick->updatePeriod = updatePeriod;
 	outTick->stepTime = 0.0f;
 	outTick->stepCount = 0;
@@ -40,7 +45,7 @@ bool dsSceneTick_initialize(dsSceneTick* outTick, float updatePeriod)
 	return true;
 }
 
-bool dsSceneTick_update(dsSceneTick* tick, uint64_t timerTicks)
+bool dsSceneTick_update(dsSceneTick* tick, uint64_t absoluteTicks, uint64_t elapsedTicks)
 {
 	if (!tick)
 	{
@@ -48,9 +53,13 @@ bool dsSceneTick_update(dsSceneTick* tick, uint64_t timerTicks)
 		return false;
 	}
 
-	tick->totalTimerTicks += timerTicks;
-	tick->thisTimerTicks = timerTicks;
-	tick->thisTime = (float)dsTimer_ticksToSeconds(tick->timer, timerTicks);
+	if (elapsedTicks > tick->maxTimerTicks)
+		elapsedTicks = 0;
+
+	tick->absoluteTimerTicks = absoluteTicks;
+	tick->totalTimerTicks += elapsedTicks;
+	tick->thisTimerTicks = elapsedTicks;
+	tick->thisTime = (float)dsTimer_ticksToSeconds(tick->timer, elapsedTicks);
 
 	if (tick->updatePeriod == 0.0f)
 	{

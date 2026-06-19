@@ -63,6 +63,11 @@ dsTimer dsTimer_create(void)
 	return timer;
 }
 
+int64_t dsTimer_secondsToTicks(dsTimer timer, double seconds)
+{
+	return (int64_t)round(seconds/timer.scale);
+}
+
 uint64_t dsTimer_convertTicks(dsTimer timer, double origScale, uint64_t ticks)
 {
 	// Avoid any potential loss in precision.

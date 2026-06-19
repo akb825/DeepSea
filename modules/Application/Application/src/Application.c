@@ -52,8 +52,8 @@ static int compareEventResponders(const void* left, const void* right)
 	return DS_CMP(((dsEventResponder*)left)->priority, ((dsEventResponder*)right)->priority);
 }
 
-uint32_t dsApplication_addWindowResponder(dsApplication* application,
-	const dsWindowResponder* responder)
+uint32_t dsApplication_addWindowResponder(
+	dsApplication* application, const dsWindowResponder* responder)
 {
 	if (!application || !responder)
 	{
@@ -97,7 +97,8 @@ bool dsApplication_removeWindowResponder(dsApplication* application, uint32_t re
 	return false;
 }
 
-uint32_t dsApplication_addEventResponder(dsApplication* application, const dsEventResponder* responder)
+uint32_t dsApplication_addEventResponder(
+	dsApplication* application, const dsEventResponder* responder)
 {
 	if (!application || !responder || !responder->eventFunc)
 	{
@@ -410,8 +411,8 @@ bool dsApplication_quit(dsApplication* application, int exitCode)
 	return true;
 }
 
-bool dsApplication_addCustomEvent(dsApplication* application, dsWindow* window,
-	const dsCustomEvent* event)
+bool dsApplication_addCustomEvent(
+	dsApplication* application, dsWindow* window, const dsCustomEvent* event)
 {
 	if (!application || !application->addCustomEventFunc || !event)
 	{
@@ -430,8 +431,8 @@ double dsApplication_getCurrentEventTime(const dsApplication* application)
 	return application->getCurrentEventTimeFunc(application);
 }
 
-dsSystemPowerState dsApplication_getPowerState(int* outRemainingTime, int* outBatteryPercent,
-	const dsApplication* application)
+dsSystemPowerState dsApplication_getPowerState(
+	int* outRemainingTime, int* outBatteryPercent, const dsApplication* application)
 {
 	if (!application || !application->getPowerStateFunc)
 		return dsSystemPowerState_Unknown;
@@ -439,8 +440,8 @@ dsSystemPowerState dsApplication_getPowerState(int* outRemainingTime, int* outBa
 	return application->getPowerStateFunc(outRemainingTime, outBatteryPercent, application);
 }
 
-bool dsApplication_getDisplayBounds(dsAlignedBox2i* outBounds, const dsApplication* application,
-	uint32_t display)
+bool dsApplication_getDisplayBounds(
+	dsAlignedBox2i* outBounds, const dsApplication* application, uint32_t display)
 {
 	if (!outBounds || !application || !application->getDisplayBoundsfunc)
 	{
@@ -458,8 +459,8 @@ bool dsApplication_getDisplayBounds(dsAlignedBox2i* outBounds, const dsApplicati
 	return true;
 }
 
-uint32_t dsApplication_adjustWindowSize(const dsApplication* application, uint32_t display,
-	uint32_t size)
+uint32_t dsApplication_adjustWindowSize(
+	const dsApplication* application, uint32_t display, uint32_t size)
 {
 #if (DS_LINUX && !DS_ANDROID) || DS_WINDOWS
 	if (!application || display >= application->displayCount)
@@ -579,8 +580,8 @@ bool dsApplication_getMousePosition(dsVector2i* outPosition, const dsApplication
 	return application->getMousePositionFunc(outPosition, application);
 }
 
-bool dsApplication_setMousePosition(dsApplication* application, dsWindow* window,
-	const dsVector2i* position)
+bool dsApplication_setMousePosition(
+	dsApplication* application, dsWindow* window, const dsVector2i* position)
 {
 	if (!application || !application->setMousePositionFunc || !position)
 	{
@@ -607,8 +608,8 @@ dsWindow* dsApplication_getFocusWindow(const dsApplication* application)
 	return application->getFocusWindowFunc(application);
 }
 
-bool dsApplication_dispatchEvent(dsApplication* application, dsWindow* window,
-	const dsEvent* event)
+bool dsApplication_dispatchEvent(
+	dsApplication* application, dsWindow* window, const dsEvent* event)
 {
 	if (!application || !event)
 	{

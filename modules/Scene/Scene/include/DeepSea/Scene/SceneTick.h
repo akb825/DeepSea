@@ -38,18 +38,25 @@ extern "C"
  * @param updatePeriod The update period in seconds. Updates will always be performed in increments
  *     of this time. A value of zero indicates that the previous frame's time should be used,
  *     allowing for dynamic time steps.
+ * @param maxTime The maximum time in seconds beyond which this will discard the update entirely.
+ *     For example, if the application was placed in the background or computer put to sleep, this
+ *     can be used to avoid problematically long updates. A value of zero indicates to accept any
+ *     update time, otherwise elapsed times that exceed this will be forced to zero.
  * @return False if the parameters are invalid.
  */
-DS_SCENE_EXPORT bool dsSceneTick_initialize(dsSceneTick* outTick, float updatePeriod);
+DS_SCENE_EXPORT bool dsSceneTick_initialize(
+	dsSceneTick* outTick, float updatePeriod, float maxTime);
 
 /**
  * @brief Updates a scene tick based on time progressing from the timer.
  * @remark errno will be set on failure.
  * @param tick The scene tick to update.
- * @param timerTicks The number of ticks from the the timer.
+ * @param absoluteTicks The current absolute time in timer ticks.
+ * @param elapsedTicks The amount of time that has elapsed in ticks.
  * @return False if an error occurred.
  */
-DS_SCENE_EXPORT bool dsSceneTick_update(dsSceneTick* tick, uint64_t timerTicks);
+DS_SCENE_EXPORT bool dsSceneTick_update(
+	dsSceneTick* tick, uint64_t absoluteTicks, uint64_t elapsedTicks);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/Scene/SceneResources.h>
+#include <DeepSea/Scene/SceneTick.h>
 #include <DeepSea/Scene/View.h>
 #include <DeepSea/Scene/ViewTransformData.h>
 
@@ -55,7 +56,6 @@
 #include <DeepSea/SceneParticle/SceneParticleNode.h>
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #if DS_HAS_EASY_PROFILER
@@ -78,9 +78,9 @@ typedef struct TestParticles
 	dsScene* scene;
 	dsView* view;
 
+	dsSceneTick tick;
 	uint32_t fingerCount;
 	uint32_t maxFingers;
-	bool ignoreTime;
 	bool stop;
 } TestParticles;
 
@@ -168,8 +168,8 @@ static void toggleRotatingTorch(TestParticles* testParticles)
 		DS_CHECK("TestParticles", dsSceneNode_addChild(rootNode, rotatingTorch));
 }
 
-static bool processEvent(dsApplication* application, dsWindow* window, const dsEvent* event,
-	void* userData)
+static bool processEvent(
+	dsApplication* application, dsWindow* window, const dsEvent* event, void* userData)
 {
 	TestParticles* testParticles = (TestParticles*)userData;
 	DS_ASSERT(!window || window == testParticles->window);
@@ -190,9 +190,6 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 			// Need to update the view again if the surfaces have been set.
 			if (event->type == dsAppEventType_SurfaceInvalidated)
 				dsView_update(testParticles->view);
-			return true;
-		case dsAppEventType_WillEnterForeground:
-			testParticles->ignoreTime = true;
 			return true;
 		case dsAppEventType_KeyDown:
 			if (event->key.repeat)
@@ -241,17 +238,18 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 	}
 }
 
-static void update(dsApplication* application, float lastFrameTime, void* userData)
+static void update(
+	dsApplication* application, uint64_t absoluteTime, uint64_t lastFrameTime, void* userData)
 {
 	DS_UNUSED(application);
-	DS_UNUSED(lastFrameTime);
 
 	TestParticles* testParticles = (TestParticles*)userData;
-	if (!testParticles->stop && !testParticles->ignoreTime)
+	DS_VERIFY(dsSceneTick_update(&testParticles->tick, absoluteTime, lastFrameTime));
+	if (!testParticles->stop)
 	{
 		const float speed = 0.4f;
 		dsMatrix44f rotate;
-		dsMatrix44f_makeRotate(&rotate, 0.0f, 0.0f, speed*lastFrameTime);
+		dsMatrix44f_makeRotate(&rotate, 0.0f, 0.0f, speed*testParticles->tick.thisTime);
 		for (unsigned int i = 0; i < DS_ARRAY_SIZE(testParticles->rotatingTorches); ++i)
 		{
 			dsSceneTransformNode* transformNode = testParticles->rotatingTorches[i];
@@ -260,10 +258,8 @@ static void update(dsApplication* application, float lastFrameTime, void* userDa
 			dsSceneTransformNode_setTransform(transformNode, &updatedTransform);
 		}
 	}
-	if (testParticles->ignoreTime)
-		testParticles->ignoreTime = false;
 
-	DS_VERIFY(dsScene_update(testParticles->scene, lastFrameTime));
+	DS_VERIFY(dsScene_update(testParticles->scene, testParticles->tick.thisTime));
 	DS_VERIFY(dsView_update(testParticles->view));
 }
 
@@ -527,6 +523,7 @@ static bool setup(TestParticles* testParticles, dsApplication* application, dsAl
 	dsMatrix44f_lookAt(&camera, &eyePos, &lookAtPos, &upDir);
 	dsView_setCameraMatrix(testParticles->view, &camera);
 
+	DS_VERIFY(dsSceneTick_initialize(&testParticles->tick, 0.0f, 1.0f));
 	return true;
 }
 

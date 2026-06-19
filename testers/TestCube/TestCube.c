@@ -23,6 +23,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Timer.h>
 
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
@@ -64,6 +65,7 @@ typedef struct TestCube
 	dsGfxBuffer* drawBuffer;
 	dsDrawGeometry* geometry;
 
+	dsTimer timer;
 	uint64_t invalidatedFrame;
 	uint32_t modelViewProjectionElement;
 	float rotation;
@@ -204,8 +206,8 @@ static bool createFramebuffer(TestCube* testCube)
 	return true;
 }
 
-static bool processEvent(dsApplication* application, dsWindow* window, const dsEvent* event,
-	void* userData)
+static bool processEvent(
+	dsApplication* application, dsWindow* window, const dsEvent* event, void* userData)
 {
 	TestCube* testCube = (TestCube*)userData;
 	dsRenderer* renderer = application->renderer;
@@ -263,15 +265,17 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 	}
 }
 
-static void update(dsApplication* application, float lastFrameTime, void* userData)
+static void update(
+	dsApplication* application, uint64_t absoluteTime, uint64_t lastFrameTime, void* userData)
 {
 	DS_UNUSED(application);
+	DS_UNUSED(absoluteTime);
 
 	TestCube* testCube = (TestCube*)userData;
 
 	// radians/s
 	const float rate = M_PI_2f;
-	testCube->rotation += lastFrameTime*rate;
+	testCube->rotation += (float)dsTimer_ticksToSeconds(testCube->timer, lastFrameTime)*rate;
 	while (testCube->rotation > 2*M_PIf)
 		testCube->rotation = testCube->rotation - 2*M_PIf;
 
@@ -281,8 +285,8 @@ static void update(dsApplication* application, float lastFrameTime, void* userDa
 	dsMatrix44f modelView, modelViewProjection;
 	dsMatrix44f_affineMul(&modelView, &testCube->view, &model);
 	dsMatrix44f_mul(&modelViewProjection, &testCube->projection, &modelView);
-	DS_VERIFY(dsMaterial_setElementData(testCube->material, 0, &modelViewProjection,
-		dsMaterialType_Mat4, 0, 1));
+	DS_VERIFY(dsMaterial_setElementData(
+		testCube->material, 0, &modelViewProjection, dsMaterialType_Mat4, 0, 1));
 }
 
 static void draw(dsApplication* application, dsWindow* window, void* userData)
@@ -319,6 +323,7 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 	dsResourceManager* resourceManager = renderer->resourceManager;
 	testCube->allocator = allocator;
 	testCube->renderer = renderer;
+	testCube->timer = dsTimer_create();
 
 	dsEventResponder responder = {&processEvent, testCube, 0, 0};
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));

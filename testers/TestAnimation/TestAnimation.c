@@ -43,6 +43,7 @@
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/Scene/SceneResources.h>
+#include <DeepSea/Scene/SceneTick.h>
 #include <DeepSea/Scene/View.h>
 
 #include <DeepSea/SceneAnimation/SceneAnimationLoadContext.h>
@@ -71,7 +72,7 @@
 #define WALK_SCALE 1.5f
 #define RUN_SPEED 2.0f
 #define RUN_SCALE 2.0f
-#define UPDATE_STEP (1.0f/60.0f)
+#define UPDATE_STEP 1.0f
 
 typedef struct AnimationState
 {
@@ -99,9 +100,9 @@ typedef struct TestAnimation
 	dsDirectAnimation* holdTorchAnimation;
 	AnimationState characterAnimations[2];
 
+	dsSceneTick tick;
 	uint32_t fingerCount;
 	uint32_t maxFingers;
-	bool ignoreTime;
 } TestAnimation;
 
 static void printHelp(const char* programPath)
@@ -138,8 +139,8 @@ static void cycleSpeed(AnimationState* state)
 		state->targetSpeed = IDLE_SPEED;
 }
 
-static bool processEvent(dsApplication* application, dsWindow* window, const dsEvent* event,
-	void* userData)
+static bool processEvent(
+	dsApplication* application, dsWindow* window, const dsEvent* event, void* userData)
 {
 	TestAnimation* testAnimation = (TestAnimation*)userData;
 	DS_ASSERT(!window || window == testAnimation->window);
@@ -162,9 +163,6 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 			// Need to update the view again if the surfaces have been set.
 			if (event->type == dsAppEventType_SurfaceInvalidated)
 				dsView_update(testAnimation->view);
-			return true;
-		case dsAppEventType_WillEnterForeground:
-			testAnimation->ignoreTime = true;
 			return true;
 		case dsAppEventType_KeyDown:
 			if (event->key.repeat)
@@ -207,12 +205,13 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 	}
 }
 
-static void update(dsApplication* application, float lastFrameTime, void* userData)
+static void update(
+	dsApplication* application, uint64_t absoluteTime, uint64_t lastFrameTime, void* userData)
 {
 	DS_UNUSED(application);
-	DS_UNUSED(lastFrameTime);
 
 	TestAnimation* testAnimation = (TestAnimation*)userData;
+	DS_VERIFY(dsSceneTick_update(&testAnimation->tick, absoluteTime, lastFrameTime));
 	for (uint32_t i = 0; i < DS_ARRAY_SIZE(testAnimation->characterAnimations); ++i)
 	{
 		AnimationState* animationState = testAnimation->characterAnimations + i;
@@ -221,12 +220,12 @@ static void update(dsApplication* application, float lastFrameTime, void* userDa
 
 		if (animationState->speed < animationState->targetSpeed)
 		{
-			animationState->speed += UPDATE_STEP;
+			animationState->speed += UPDATE_STEP*testAnimation->tick.thisTime;
 			animationState->speed = dsMin(animationState->speed, animationState->targetSpeed);
 		}
 		else
 		{
-			animationState->speed -= UPDATE_STEP;
+			animationState->speed -= UPDATE_STEP*testAnimation->tick.thisTime;
 			animationState->speed = dsMax(animationState->speed, animationState->targetSpeed);
 		}
 
@@ -273,7 +272,7 @@ static void update(dsApplication* application, float lastFrameTime, void* userDa
 			runEntry->time = 0;
 	}
 
-	DS_VERIFY(dsScene_update(testAnimation->scene, lastFrameTime));
+	DS_VERIFY(dsScene_update(testAnimation->scene, testAnimation->tick.thisTime));
 	DS_VERIFY(dsView_update(testAnimation->view));
 }
 
@@ -380,8 +379,8 @@ static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAl
 		"shadowInstanceTransformDesc", dsSceneResourceType_ShaderVariableGroupDesc, groupDesc,
 		true));
 
-	groupDesc = dsInstanceForwardLightData_createShaderVariableGroupDesc(resourceManager, allocator,
-		DS_DEFAULT_FORWARD_LIGHT_COUNT);
+	groupDesc = dsInstanceForwardLightData_createShaderVariableGroupDesc(
+		resourceManager, allocator, DS_DEFAULT_FORWARD_LIGHT_COUNT);
 	if (!groupDesc)
 	{
 		DS_LOG_ERROR_F("TestAnimation",
@@ -394,8 +393,8 @@ static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAl
 	DS_VERIFY(dsSceneResources_addResource(testAnimation->builtinResources,
 		"instanceForwardLightDesc", dsSceneResourceType_ShaderVariableGroupDesc, groupDesc, true));
 
-	groupDesc = dsSceneSkinningData_createTextureInfoShaderVariableGroupDesc(resourceManager,
-		allocator);
+	groupDesc = dsSceneSkinningData_createTextureInfoShaderVariableGroupDesc(
+		resourceManager, allocator);
 	if (!groupDesc)
 	{
 		DS_LOG_ERROR_F("TestAnimation",
@@ -421,8 +420,8 @@ static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAl
 		dsSceneLoadScratchData_destroy(scratchData);
 		return false;
 	}
-	DS_VERIFY(dsSceneLoadScratchData_pushSceneResources(scratchData,
-		&testAnimation->baseResources, 1));
+	DS_VERIFY(dsSceneLoadScratchData_pushSceneResources(
+		scratchData, &testAnimation->baseResources, 1));
 
 	if (dsSceneSkinningData_useBuffers(resourceManager))
 	{
@@ -633,6 +632,7 @@ static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAl
 	dsMatrix44f_lookAt(&camera, &eyePos, &lookAtPos, &upDir);
 	dsView_setCameraMatrix(testAnimation->view, &camera);
 
+	DS_VERIFY(dsSceneTick_initialize(&testAnimation->tick, 0.0f, 1.0f));
 	return true;
 }
 
