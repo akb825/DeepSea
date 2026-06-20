@@ -358,7 +358,7 @@ static void update(
 	dsMatrix44f_lookAt(&camera, &eyePos, &lookAtPos, &upDir);
 	dsView_setCameraMatrix(testLighting->view, &camera);
 
-	DS_VERIFY(dsScene_update(testLighting->scene, testLighting->tick.thisTime));
+	DS_VERIFY(dsScene_update(testLighting->scene, &testLighting->tick));
 	DS_VERIFY(dsView_update(testLighting->view));
 }
 

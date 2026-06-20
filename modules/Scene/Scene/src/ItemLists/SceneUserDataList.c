@@ -111,11 +111,13 @@ static void dsSceneUserDataList_removeNode(
 	}
 }
 
-static void dsSceneUserDataList_update(dsSceneItemList* itemList, const dsScene* scene, float time)
+static void dsSceneUserDataList_update(
+	dsSceneItemList* itemList, const dsScene* scene, const dsSceneTick* tick, unsigned int step)
 {
 	DS_ASSERT(itemList);
 	DS_UNUSED(scene);
-	DS_UNUSED(time);
+	DS_UNUSED(tick);
+	DS_UNUSED(step);
 	dsSceneUserDataList* userDataList = (dsSceneUserDataList*)itemList;
 
 	// Lazily remove entries.

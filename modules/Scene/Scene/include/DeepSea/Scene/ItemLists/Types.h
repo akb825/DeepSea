@@ -45,6 +45,7 @@ typedef struct dsScene dsScene;
 typedef struct dsView dsView;
 typedef struct dsSceneItemList dsSceneItemList;
 typedef struct dsSceneInstanceData dsSceneInstanceData;
+typedef struct dsSceneTick dsSceneTick;
 typedef struct dsViewFilter dsViewFilter;
 /// @endcond
 
@@ -348,10 +349,11 @@ typedef void (*dsReparentSceneItemListNodeFunction)(dsSceneItemList* itemList, u
  * @brief Function for updating a scene item list.
  * @param itemList The scene item list to update.
  * @param scene The scene the item list belongs to.
- * @param time The time since the last update.
+ * @param tick The scene tick.
+ * @param step The step being updated within the tick.
  */
 typedef void (*dsUpdateSceneItemListFunction)(
-	dsSceneItemList* itemList, const dsScene* scene, float time);
+	dsSceneItemList* itemList, const dsScene* scene, const dsSceneTick* tick, unsigned int step);
 
 /**
  * @brief Function for execution operations for a scene item list before a render pass.

@@ -717,41 +717,44 @@ bool dsScene_forEachItemList(
 	return true;
 }
 
-bool dsScene_update(dsScene* scene, float time)
+bool dsScene_update(dsScene* scene, const dsSceneTick* tick)
 {
 	DS_PROFILE_FUNC_START();
-	if (!scene)
+	if (!scene || !tick || tick->stepCount == 0)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	for (dsListNode* node = scene->itemLists->list.head; node; node = node->next)
+	for (unsigned int i = 0; i < tick->stepCount; ++i)
 	{
-		dsSceneItemList* itemList = ((dsSceneItemListNode*)node)->list;
-		dsUpdateSceneItemListFunction preTransformUpdateFunc =
-			itemList->type->preTransformUpdateFunc;
-		if (preTransformUpdateFunc)
+		for (dsListNode* node = scene->itemLists->list.head; node; node = node->next)
 		{
-			DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-			preTransformUpdateFunc(itemList, scene, time);
-			DS_PROFILE_SCOPE_END();
+			dsSceneItemList* itemList = ((dsSceneItemListNode*)node)->list;
+			dsUpdateSceneItemListFunction preTransformUpdateFunc =
+				itemList->type->preTransformUpdateFunc;
+			if (preTransformUpdateFunc)
+			{
+				DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
+				preTransformUpdateFunc(itemList, scene, tick, i);
+				DS_PROFILE_SCOPE_END();
+			}
 		}
-	}
 
-	for (uint32_t i = 0; i < scene->dirtyNodeCount; ++i)
-		dsSceneTreeNode_updateSubtree(scene->dirtyNodes[i]);
-	scene->dirtyNodeCount = 0;
+		for (uint32_t j = 0; j < scene->dirtyNodeCount; ++j)
+			dsSceneTreeNode_updateSubtree(scene->dirtyNodes[j]);
+		scene->dirtyNodeCount = 0;
 
-	for (dsListNode* node = scene->itemLists->list.head; node; node = node->next)
-	{
-		dsSceneItemList* itemList = ((dsSceneItemListNode*)node)->list;
-		dsUpdateSceneItemListFunction updateFunc = itemList->type->updateFunc;
-		if (updateFunc)
+		for (dsListNode* node = scene->itemLists->list.head; node; node = node->next)
 		{
-			DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
-			updateFunc(itemList, scene, time);
-			DS_PROFILE_SCOPE_END();
+			dsSceneItemList* itemList = ((dsSceneItemListNode*)node)->list;
+			dsUpdateSceneItemListFunction updateFunc = itemList->type->updateFunc;
+			if (updateFunc)
+			{
+				DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
+				updateFunc(itemList, scene, tick, i);
+				DS_PROFILE_SCOPE_END();
+			}
 		}
 	}
 

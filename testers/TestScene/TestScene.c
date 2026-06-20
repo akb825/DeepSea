@@ -198,7 +198,7 @@ static void update(
 	transform.columns[3].z = 5.0f;
 	DS_VERIFY(dsSceneTransformNode_setTransform(testScene->secondaryTransform, &transform));
 
-	DS_VERIFY(dsScene_update(testScene->scene, testScene->tick.thisTime));
+	DS_VERIFY(dsScene_update(testScene->scene, &testScene->tick));
 	DS_VERIFY(dsView_update(testScene->view));
 }
 

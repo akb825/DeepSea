@@ -19,6 +19,8 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Timer.h>
 
+#include <DeepSea/Math/Core.h>
+
 bool dsSceneTick_initialize(dsSceneTick* outTick, float updatePeriod, float maxTime)
 {
 	if (!outTick || updatePeriod < 0.0f || maxTime < 0.0f)
@@ -37,7 +39,7 @@ bool dsSceneTick_initialize(dsSceneTick* outTick, float updatePeriod, float maxT
 		outTick->maxTimerTicks = dsTimer_secondsToTicks(outTick->timer, maxTime);
 	outTick->updatePeriod = updatePeriod;
 	outTick->stepTime = 0.0f;
-	outTick->stepCount = 0;
+	outTick->stepCount = 1;
 	// Initialize stepInterp to 1 so that a fixed update period will trigger an update at the start
 	// of time rolling over rather than at the end.
 	outTick->stepInterp = 1.0f;
@@ -64,16 +66,17 @@ bool dsSceneTick_update(dsSceneTick* tick, uint64_t absoluteTicks, uint64_t elap
 	if (tick->updatePeriod == 0.0f)
 	{
 		tick->stepTime = tick->thisTime;
-		tick->stepCount = tick->stepTime != 0.0f;
+		tick->stepCount = 1;
 		tick->stepInterp = 1.0f;
 	}
 	else
 	{
 		float normalizedUpdate = tick->stepInterp + tick->thisTime/tick->updatePeriod;
-		tick->stepCount = (unsigned int)normalizedUpdate;
-		normalizedUpdate -= (float)tick->stepCount;
+		unsigned int stepCount = (unsigned int)normalizedUpdate;
+		normalizedUpdate -= (float)stepCount;
+		tick->stepCount = dsMax(stepCount, 1U);
 		tick->stepInterp = normalizedUpdate;
-		tick->stepTime = tick->stepCount > 0 ? tick->updatePeriod : 0.0f;
+		tick->stepTime = stepCount > 0 ? tick->updatePeriod : 0.0f;
 	}
 
 	return true;

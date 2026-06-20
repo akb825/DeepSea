@@ -259,7 +259,7 @@ static void update(
 		}
 	}
 
-	DS_VERIFY(dsScene_update(testParticles->scene, testParticles->tick.thisTime));
+	DS_VERIFY(dsScene_update(testParticles->scene, &testParticles->tick));
 	DS_VERIFY(dsView_update(testParticles->view));
 }
 

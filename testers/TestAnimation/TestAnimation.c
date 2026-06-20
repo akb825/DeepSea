@@ -272,7 +272,7 @@ static void update(
 			runEntry->time = 0;
 	}
 
-	DS_VERIFY(dsScene_update(testAnimation->scene, testAnimation->tick.thisTime));
+	DS_VERIFY(dsScene_update(testAnimation->scene, &testAnimation->tick));
 	DS_VERIFY(dsView_update(testAnimation->view));
 }
 

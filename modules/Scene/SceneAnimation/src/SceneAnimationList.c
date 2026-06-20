@@ -334,10 +334,17 @@ static void dsSceneAnimationList_removeNode(
 }
 
 static void dsSceneAnimationList_preTransformUpdate(
-	dsSceneItemList* itemList, const dsScene* scene, float time)
+	dsSceneItemList* itemList, const dsScene* scene, const dsSceneTick* tick, unsigned int step)
 {
 	DS_ASSERT(itemList);
+	DS_ASSERT(tick);
 	DS_UNUSED(scene);
+
+	// TODO: Update transform for each step to allow for transforms at each discrete step, and have
+	// final display transform at the end.
+	if (step != tick->stepCount - 1)
+		return;
+
 	dsSceneAnimationList* animationList = (dsSceneAnimationList*)itemList;
 
 	// Lazily remove entries.
@@ -358,13 +365,13 @@ static void dsSceneAnimationList_preTransformUpdate(
 		animationList->removeTransformEntryCount);
 	animationList->removeTransformEntryCount = 0;
 
-	if (time != 0)
+	if (tick->thisTime != 0)
 	{
 		for (uint32_t i = 0; i < animationList->animationEntryCount; ++i)
 		{
 			AnimationEntry* entry = animationList->animationEntries + i;
 			DS_CHECK(DS_SCENE_ANIMATION_LOG_TAG,
-				dsAnimation_update(entry->instance->animation, time));
+				dsAnimation_update(entry->instance->animation, tick->thisTime));
 		}
 	}
 

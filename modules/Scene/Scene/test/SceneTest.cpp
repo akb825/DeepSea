@@ -29,6 +29,7 @@
 #include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Scene.h>
+#include <DeepSea/Scene/SceneTick.h>
 
 #include <gtest/gtest.h>
 
@@ -133,7 +134,8 @@ void updateMockSceneItem(dsSceneItemList* itemList, dsSceneTreeNode*, uint64_t n
 		++item->updateCount;
 }
 
-void updateMockSceneItems(dsSceneItemList* itemList, const dsScene*, float)
+void updateMockSceneItems(
+	dsSceneItemList* itemList, const dsScene*, const dsSceneTick*, unsigned int)
 {
 	auto mockList = reinterpret_cast<MockSceneItemList*>(itemList);
 
@@ -228,6 +230,9 @@ class SceneTest : public FixtureBase
 
 TEST_F(SceneTest, CreateExistingScene)
 {
+	dsSceneTick tick;
+	ASSERT_TRUE(dsSceneTick_initialize(&tick, 0.0f, 0.0f));
+
 	constexpr unsigned int firstListCount = 3;
 	bool firstListsAlive[firstListCount];
 	MockSceneItemList* firstMockLists[firstListCount];
@@ -270,12 +275,12 @@ TEST_F(SceneTest, CreateExistingScene)
 	ASSERT_TRUE(dsSceneNode_addChild((dsSceneNode*)transform2, mockNode1));
 
 	ASSERT_TRUE(dsScene_addNode(firstScene, (dsSceneNode*)transform1));
-	EXPECT_TRUE(dsScene_update(firstScene, 0));
+	EXPECT_TRUE(dsScene_update(firstScene, &tick));
 
 	auto transform1Node = reinterpret_cast<dsSceneNode*>(transform1);
 	for (uint32_t i = 0; i < transform1Node->treeNodeCount; ++i)
 		dsSceneTreeNode_markDirty(transform1Node->treeNodes[i]);
-	EXPECT_TRUE(dsScene_update(firstScene, 0));
+	EXPECT_TRUE(dsScene_update(firstScene, &tick));
 
 	for (unsigned int i = 0; i < firstListCount; ++i)
 	{
@@ -318,7 +323,7 @@ TEST_F(SceneTest, CreateExistingScene)
 
 	for (uint32_t i = 0; i < transform1Node->treeNodeCount; ++i)
 		dsSceneTreeNode_markDirty(transform1Node->treeNodes[i]);
-	EXPECT_TRUE(dsScene_update(secondScene, 0));
+	EXPECT_TRUE(dsScene_update(secondScene, &tick));
 
 	MockSceneItemList* finalLists[secondListCount] =
 		{firstMockLists[1], secondMockLists[1], secondMockLists[2]};

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,8 +63,9 @@ table PhysicsList
 	multiThreadedModifications : bool = false;
 
 	// The step time that is desired when updating the physics list. This will keep each step as
-	// close to this time as possible. Defaults to 1/60 s.
-	targetStepTime : float = 0.01666667;
+	// close to this time as possible. This will be ignored if a fixed update period is used for the
+	// scene. Defaults to 0, indicating that the update time should be passed as-is.
+	targetStepTime : float = 0.0;
 }
 
 root_type PhysicsList;

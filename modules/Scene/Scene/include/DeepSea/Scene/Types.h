@@ -143,19 +143,17 @@ typedef struct dsSceneTick
 	/**
 	 * @brief The amount of time to advance for this update.
 	 *
-	 * The value may either be fixed or dynamic, depending on updatePeriod. To simplify usage, it
-	 * will be set to 0 if stepCount is 0.
+	 * The value may either be fixed or dynamic, depending on updatePeriod. This will be 0 if time
+	 * should not be advanced this frame, whether the fixed period wasn't exceeded or the update was
+	 * discarded due to exceeding maxTimerTicks.
 	 */
 	float stepTime;
 
 	/**
 	 * @brief The number of steps to advance the scene.
 	 *
-	 * When a fixed update period is used, this can be any number >= 0 depending on situations such
-	 * as not enough time passing to advance to the next step or enough passing to require multiple
-	 * steps to catch up to the current time. When a dynamic update period is used, this will always
-	 * be 1 unless no time has passed. (e.g. the application was put in the background, the time may
-	 * be set to 0 to avoid having a huge update)
+	 * This may be a number >= 1 for fixed update periods, or 1 if dynamic. This will be set to 1
+	 * even if stepTime is 0, as generally some
 	 */
 	unsigned int stepCount;
 
@@ -169,6 +167,9 @@ typedef struct dsSceneTick
 
 	/**
 	 * @brief The amount of real time for this update in seconds.
+	 *
+	 * This will be the same as stepTime for dynamic update periods. For fixed update periods, it
+	 * will be the total time for stepTime*stepCount plus the remainder put in stepInterp.
 	 */
 	float thisTime;
 } dsSceneTick;

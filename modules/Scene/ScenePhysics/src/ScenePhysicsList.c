@@ -631,7 +631,7 @@ static void dsScenePhysicsList_removeNode(
 }
 
 static void dsScenePhysicsList_preTransformUpdate(
-	dsSceneItemList* itemList, const dsScene* scene, float time)
+	dsSceneItemList* itemList, const dsScene* scene, const dsSceneTick* tick, unsigned int step)
 {
 	DS_ASSERT(itemList);
 	DS_UNUSED(scene);
@@ -755,21 +755,22 @@ static void dsScenePhysicsList_preTransformUpdate(
 
 	float stepTime;
 	unsigned int stepCount;
-	if (physicsList->targetStepTime > 0)
+	if (tick->updatePeriod > 0.0f && physicsList->targetStepTime > 0.0f)
 	{
-		stepCount = (unsigned int)dsRoundf(time/physicsList->targetStepTime);
+		stepCount = (unsigned int)dsRoundf(tick->stepTime/physicsList->targetStepTime);
 		if (stepCount == 0)
 			stepCount = 1;
-		stepTime = time/(float)stepCount;
+		stepTime = tick->stepTime/(float)stepCount;
 	}
 	else
 	{
-		stepTime = time;
+		stepTime = tick->stepTime;
 		stepCount = 1;
 	}
 	DS_VERIFY(dsPhysicsScene_update(physicsList->physicsScene, stepTime, stepCount));
 
 	// Update scene transforms for rigid bodies in motion.
+	// TODO: Interpolate for display transform on last step.
 	for (unsigned int i = 0; i < physicsList->rigidBodyEntryCount; ++i)
 	{
 		RigidBodyEntry* entry = physicsList->rigidBodyEntries + i;

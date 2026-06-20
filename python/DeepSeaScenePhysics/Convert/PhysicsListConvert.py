@@ -42,8 +42,8 @@ def convertPhysicsList(convertContext, data, inputDir):
 	  locking functions will become NOPs that only enforce that the proper locking functions are
 	  used. This can reduce overhead when locking isn't required. Defaults to false.
 	- targetStepTime: the step time that is desired when updating the physics list. This will keep
-	  each step as close to this time as possible. Defaults to 0, indicating that the update time
-	  should be passed as-is.
+	  each step as close to this time as possible. This will be ignored if a fixed update period is
+	  used for the scene. Defaults to 0, indicating that the update time should be passed as-is.
 	"""
 	try:
 		maxStaticBodies = readInt(data['maxStaticBodies'], 'max static bodies', 0)

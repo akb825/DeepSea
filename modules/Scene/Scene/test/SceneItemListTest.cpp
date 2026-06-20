@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@
 #include <DeepSea/Scene/Nodes/SceneTransformNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Scene.h>
+#include <DeepSea/Scene/SceneTick.h>
 
 #include <gtest/gtest.h>
 
@@ -128,7 +129,8 @@ void updateMockSceneItem(dsSceneItemList* itemList, dsSceneTreeNode*, uint64_t n
 		++item->updateCount;
 }
 
-void updateMockSceneItems(dsSceneItemList* itemList, const dsScene*, float)
+void updateMockSceneItems(
+	dsSceneItemList* itemList, const dsScene*, const dsSceneTick*, unsigned int)
 {
 	auto mockList = reinterpret_cast<MockSceneItemList*>(itemList);
 
@@ -236,6 +238,8 @@ public:
 
 TEST_F(SceneItemListTest, NodeHierarchy)
 {
+	dsSceneTick tick;
+	ASSERT_TRUE(dsSceneTick_initialize(&tick, 0.0f, 0.0f));
 	dsSceneNode* mockNode1 = createMockNode((dsAllocator*)&allocator);
 	ASSERT_TRUE(mockNode1);
 	dsSceneNode* mockNode2 = createMockNode((dsAllocator*)&allocator);
@@ -270,7 +274,7 @@ TEST_F(SceneItemListTest, NodeHierarchy)
 	EXPECT_TRUE(matricesEqual(&expectedTransform, mockSceneItems->items[2].transform));
 
 	EXPECT_TRUE(dsSceneNode_removeChildNode((dsSceneNode*)transform1, (dsSceneNode*)transform2));
-	EXPECT_TRUE(dsScene_update(scene, 0));
+	EXPECT_TRUE(dsScene_update(scene, &tick));
 	ASSERT_EQ(1U, mockSceneItems->itemCount);
 	EXPECT_EQ(mockNode1, mockSceneItems->items[0].node);
 	EXPECT_TRUE(matricesEqual(&matrix1, mockSceneItems->items[0].transform));
@@ -286,7 +290,7 @@ TEST_F(SceneItemListTest, NodeHierarchy)
 
 	EXPECT_TRUE(dsSceneNode_reparentChildNode((dsSceneNode*)transform2, mockNode2,
 		(dsSceneNode*)transform1));
-	EXPECT_TRUE(dsScene_update(scene, 0));
+	EXPECT_TRUE(dsScene_update(scene, &tick));
 	ASSERT_EQ(3U, mockSceneItems->itemCount);
 	EXPECT_EQ(mockNode1, mockSceneItems->items[0].node);
 	EXPECT_TRUE(matricesEqual(&matrix1, mockSceneItems->items[0].transform));
@@ -303,6 +307,8 @@ TEST_F(SceneItemListTest, NodeHierarchy)
 
 TEST_F(SceneItemListTest, UpdateTransforms)
 {
+	dsSceneTick tick;
+	ASSERT_TRUE(dsSceneTick_initialize(&tick, 0.0f, 0.0f));
 	dsSceneNode* mockNode1 = createMockNode((dsAllocator*)&allocator);
 	ASSERT_TRUE(mockNode1);
 	dsSceneNode* mockNode2 = createMockNode((dsAllocator*)&allocator);
@@ -338,7 +344,7 @@ TEST_F(SceneItemListTest, UpdateTransforms)
 
 	dsMatrix44f_makeTranslate(&matrix2, 7.2f, 2.6f, -5.3f);
 	EXPECT_TRUE(dsSceneTransformNode_setTransform(transform2, &matrix2));
-	EXPECT_TRUE(dsScene_update(scene, 0.0f));
+	EXPECT_TRUE(dsScene_update(scene, &tick));
 
 	ASSERT_EQ(3U, mockSceneItems->itemCount);
 	EXPECT_EQ(mockNode1, mockSceneItems->items[0].node);
@@ -355,7 +361,7 @@ TEST_F(SceneItemListTest, UpdateTransforms)
 
 	dsMatrix44f_makeRotate(&matrix1, M_PI_4f, M_PIf, -M_PI_2f);
 	EXPECT_TRUE(dsSceneTransformNode_setTransform(transform1, &matrix1));
-	EXPECT_TRUE(dsScene_update(scene, 0.0f));
+	EXPECT_TRUE(dsScene_update(scene, &tick));
 
 	ASSERT_EQ(3U, mockSceneItems->itemCount);
 	EXPECT_EQ(mockNode1, mockSceneItems->items[0].node);
@@ -372,7 +378,7 @@ TEST_F(SceneItemListTest, UpdateTransforms)
 
 	EXPECT_TRUE(dsSceneTransformNode_setTransform(transform1, &matrix2));
 	dsScene_clearNodes(scene);
-	EXPECT_TRUE(dsScene_update(scene, 0.0f));
+	EXPECT_TRUE(dsScene_update(scene, &tick));
 	ASSERT_EQ(0U, mockSceneItems->itemCount);
 
 	dsSceneNode_freeRef(mockNode1);

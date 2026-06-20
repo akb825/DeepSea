@@ -308,7 +308,7 @@ static void update(
 			break;
 	}
 
-	DS_VERIFY(dsScene_update(testVectorDrawScene->scene, testVectorDrawScene->tick.thisTime));
+	DS_VERIFY(dsScene_update(testVectorDrawScene->scene, &testVectorDrawScene->tick));
 	DS_VERIFY(dsView_update(testVectorDrawScene->view));
 }
 

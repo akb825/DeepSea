@@ -103,7 +103,7 @@ class PhysicsList(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
-        return 0.01666667
+        return 0.0
 
 def PhysicsListStart(builder):
     builder.StartObject(11)
@@ -172,7 +172,7 @@ def AddMultiThreadedModifications(builder, multiThreadedModifications):
     PhysicsListAddMultiThreadedModifications(builder, multiThreadedModifications)
 
 def PhysicsListAddTargetStepTime(builder, targetStepTime):
-    builder.PrependFloat32Slot(10, targetStepTime, 0.01666667)
+    builder.PrependFloat32Slot(10, targetStepTime, 0.0)
 
 def AddTargetStepTime(builder, targetStepTime):
     PhysicsListAddTargetStepTime(builder, targetStepTime)

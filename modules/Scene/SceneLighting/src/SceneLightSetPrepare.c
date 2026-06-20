@@ -184,11 +184,16 @@ static void dsSceneLightSetPrepare_removeNode(
 }
 
 static void dsSceneLightSetPrepare_update(
-	dsSceneItemList* itemList, const dsScene* scene, float time)
+	dsSceneItemList* itemList, const dsScene* scene, const dsSceneTick* tick, unsigned int step)
 {
 	DS_ASSERT(itemList);
+	DS_ASSERT(tick);
 	DS_UNUSED(scene);
-	DS_UNUSED(time);
+
+	// Only need to prepare once at the last tick.
+	if (step != tick->stepCount - 1)
+		return;
+
 	dsSceneLightSetPrepare* prepare = (dsSceneLightSetPrepare*)itemList;
 
 	// Lazily remove entries.

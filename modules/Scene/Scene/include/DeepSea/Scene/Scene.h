@@ -269,10 +269,10 @@ DS_SCENE_EXPORT bool dsScene_forEachItemList(
  * @brief Updates dirty nodes within the scene and any item lists.
  * @remark errno will be set on failure.
  * @param scene The scene to update.
- * @param time The time elapsed since the last update.
+ * @param tick The scene tick.
  * @return False if the parameters are invalid.
  */
-DS_SCENE_EXPORT bool dsScene_update(dsScene* scene, float time);
+DS_SCENE_EXPORT bool dsScene_update(dsScene* scene, const dsSceneTick* tick);
 
 /**
  * @brief Destroys a scene.

@@ -131,10 +131,16 @@ static void dsLightFlicker_removeNode(
 	}
 }
 
-static void dsLightFlicker_update(dsSceneItemList* itemList, const dsScene* scene, float time)
+static void dsLightFlicker_update(
+	dsSceneItemList* itemList, const dsScene* scene, const dsSceneTick* tick, unsigned int step)
 {
 	DS_ASSERT(itemList);
+	DS_ASSERT(tick);
 	DS_UNUSED(scene);
+
+	if (step != tick->stepCount - 1)
+		return;
+
 	dsLightFlicker* flicker = (dsLightFlicker*)itemList;
 
 	// Lazily remove entries.
@@ -157,7 +163,7 @@ static void dsLightFlicker_update(dsSceneItemList* itemList, const dsScene* scen
 				flicker->intensityRange.x, flicker->intensityRange.y);
 		}
 		else
-			entry->time -= time;
+			entry->time -= tick->thisTime;
 
 		// Expect only one iteration, so don't avoid extra operations if it loops again.
 		while (entry->time <= 0)

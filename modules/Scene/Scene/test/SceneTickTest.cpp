@@ -36,7 +36,7 @@ TEST(SceneTickTest, UpdateDynamicPeriod)
 	EXPECT_EQ(UINT64_MAX, tick.maxTimerTicks);
 	EXPECT_EQ(0.0f, tick.updatePeriod);
 	EXPECT_EQ(0.0f, tick.stepTime);
-	EXPECT_EQ(0U, tick.stepCount);
+	EXPECT_EQ(1U, tick.stepCount);
 	EXPECT_EQ(1.0f, tick.stepInterp);
 	EXPECT_EQ(0.0f, tick.thisTime);
 
@@ -57,7 +57,7 @@ TEST(SceneTickTest, UpdateDynamicPeriod)
 	EXPECT_EQ(0U, tick.thisTimerTicks);
 	EXPECT_EQ(0.0f, tick.updatePeriod);
 	EXPECT_EQ(0.0f, tick.stepTime);
-	EXPECT_EQ(0U, tick.stepCount);
+	EXPECT_EQ(1U, tick.stepCount);
 	EXPECT_EQ(1.0f, tick.stepInterp);
 	EXPECT_EQ(0.0f, tick.thisTime);
 
@@ -92,7 +92,7 @@ TEST(SceneTickTest, UpdateFixedPeriod)
 	EXPECT_EQ(5000, tick.maxTimerTicks);
 	EXPECT_EQ(updatePeriod, tick.updatePeriod);
 	EXPECT_EQ(0.0f, tick.stepTime);
-	EXPECT_EQ(0U, tick.stepCount);
+	EXPECT_EQ(1U, tick.stepCount);
 	EXPECT_EQ(1.0f, tick.stepInterp);
 	EXPECT_EQ(0.0f, tick.thisTime);
 
@@ -112,7 +112,7 @@ TEST(SceneTickTest, UpdateFixedPeriod)
 	EXPECT_EQ(1U, tick.thisTimerTicks);
 	EXPECT_EQ(updatePeriod, tick.updatePeriod);
 	EXPECT_EQ(0.0f, tick.stepTime);
-	EXPECT_EQ(0U, tick.stepCount);
+	EXPECT_EQ(1U, tick.stepCount);
 	EXPECT_NEAR(0.001f/updatePeriod, tick.stepInterp, epsilon);
 	EXPECT_FLOAT_EQ(0.001f, tick.thisTime);
 
@@ -122,7 +122,7 @@ TEST(SceneTickTest, UpdateFixedPeriod)
 	EXPECT_EQ(12U, tick.thisTimerTicks);
 	EXPECT_EQ(updatePeriod, tick.updatePeriod);
 	EXPECT_EQ(0.0f, tick.stepTime);
-	EXPECT_EQ(0U, tick.stepCount);
+	EXPECT_EQ(1U, tick.stepCount);
 	EXPECT_NEAR(0.013f/updatePeriod, tick.stepInterp, epsilon);
 	EXPECT_FLOAT_EQ(0.012f, tick.thisTime);
 
@@ -142,7 +142,7 @@ TEST(SceneTickTest, UpdateFixedPeriod)
 	EXPECT_EQ(0U, tick.thisTimerTicks);
 	EXPECT_EQ(updatePeriod, tick.updatePeriod);
 	EXPECT_EQ(0.0f, tick.stepTime);
-	EXPECT_EQ(0U, tick.stepCount);
+	EXPECT_EQ(1U, tick.stepCount);
 	EXPECT_NEAR((0.022f - updatePeriod)/updatePeriod, tick.stepInterp, epsilon);
 	EXPECT_EQ(0.0f, tick.thisTime);
 
@@ -162,7 +162,7 @@ TEST(SceneTickTest, UpdateFixedPeriod)
 	EXPECT_EQ(0U, tick.thisTimerTicks);
 	EXPECT_EQ(updatePeriod, tick.updatePeriod);
 	EXPECT_EQ(0.0f, tick.stepTime);
-	EXPECT_EQ(0U, tick.stepCount);
+	EXPECT_EQ(1U, tick.stepCount);
 	EXPECT_NEAR((0.055f - 3*updatePeriod)/updatePeriod, tick.stepInterp, epsilon);
 	EXPECT_FLOAT_EQ(0.0f, tick.thisTime);
 }

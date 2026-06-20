@@ -66,7 +66,7 @@ struct PhysicsList FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     return GetField<uint8_t>(VT_MULTITHREADEDMODIFICATIONS, 0) != 0;
   }
   float targetStepTime() const {
-    return GetField<float>(VT_TARGETSTEPTIME, 0.01666667f);
+    return GetField<float>(VT_TARGETSTEPTIME, 0.0f);
   }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
@@ -121,7 +121,7 @@ struct PhysicsListBuilder {
     fbb_.AddElement<uint8_t>(PhysicsList::VT_MULTITHREADEDMODIFICATIONS, static_cast<uint8_t>(multiThreadedModifications), 0);
   }
   void add_targetStepTime(float targetStepTime) {
-    fbb_.AddElement<float>(PhysicsList::VT_TARGETSTEPTIME, targetStepTime, 0.01666667f);
+    fbb_.AddElement<float>(PhysicsList::VT_TARGETSTEPTIME, targetStepTime, 0.0f);
   }
   explicit PhysicsListBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -147,7 +147,7 @@ inline ::flatbuffers::Offset<PhysicsList> CreatePhysicsList(
     uint32_t maxContactPoints = 0,
     const DeepSeaScene::Vector3f *gravity = nullptr,
     bool multiThreadedModifications = false,
-    float targetStepTime = 0.01666667f) {
+    float targetStepTime = 0.0f) {
   PhysicsListBuilder builder_(_fbb);
   builder_.add_targetStepTime(targetStepTime);
   builder_.add_gravity(gravity);

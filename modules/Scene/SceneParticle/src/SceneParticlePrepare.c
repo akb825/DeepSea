@@ -118,10 +118,17 @@ static void dsSceneParticlePrepare_removeNode(
 }
 
 static void dsSceneParticlePrepare_update(
-	dsSceneItemList* itemList, const dsScene* scene, float time)
+	dsSceneItemList* itemList, const dsScene* scene, const dsSceneTick* tick, unsigned int step)
 {
 	DS_ASSERT(itemList);
+	DS_ASSERT(tick);
 	DS_UNUSED(scene);
+
+	// Since particles are purely visual, and interpolating them across fixed steps can be
+	// expensive, always treat as a dynamic update with one step at the end.
+	if (step != tick->stepCount - 1)
+		return;
+
 	dsSceneParticlePrepare* prepareList = (dsSceneParticlePrepare*)itemList;
 
 	// Lazily remove entries.
@@ -133,8 +140,8 @@ static void dsSceneParticlePrepare_update(
 	for (uint32_t i = 0; i < prepareList->entryCount; ++i)
 	{
 		Entry* entry = prepareList->entries + i;
-		DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG,
-			dsSceneParticleNode_updateEmitter(entry->node, entry->emitter, entry->treeNode, time));
+		DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG, dsSceneParticleNode_updateEmitter(
+			entry->node, entry->emitter, entry->treeNode, tick->thisTime));
 	}
 }
 

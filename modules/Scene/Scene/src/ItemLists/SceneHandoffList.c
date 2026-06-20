@@ -173,10 +173,17 @@ static void dsSceneHandoffList_reparentNode(dsSceneItemList* itemList, uint64_t 
 }
 
 static void dsSceneHandoffList_preTransformUpdate(
-	dsSceneItemList* itemList, const dsScene* scene, float time)
+	dsSceneItemList* itemList, const dsScene* scene, const dsSceneTick* tick, unsigned int step)
 {
 	DS_ASSERT(itemList);
+	DS_ASSERT(tick);
 	DS_UNUSED(scene);
+
+	// TODO: Update transform for each step to allow for transforms at each discrete step, and have
+	// final display transform at the end.
+	if (step != tick->stepCount - 1)
+		return;
+
 	dsSceneHandoffList* handoffList = (dsSceneHandoffList*)itemList;
 
 	// Lazily remove entries.
@@ -189,7 +196,7 @@ static void dsSceneHandoffList_preTransformUpdate(
 	{
 		Entry* entry = handoffList->entries + i;
 		float transitionTime = ((dsSceneHandoffNode*)entry->node->node)->transitionTime;
-		entry->t += time/transitionTime;
+		entry->t += tick->thisTime/transitionTime;
 		if (entry->t < 1.0f)
 		{
 			dsVector3xf targetPosition, targetScale;
