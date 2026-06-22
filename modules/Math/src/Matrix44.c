@@ -687,46 +687,6 @@ void dsMatrix44d_composeTransformScalar(dsMatrix44d* result, const dsVector3xd* 
 	result->columns[3].z = position->z;
 }
 
-void dsMatrix44f_rigidLerpScalar(
-	dsMatrix44f* result, const dsMatrix44f* a, const dsMatrix44f* b, float t)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(a);
-	DS_ASSERT(b);
-
-	dsVector3xf positionA, scaleA, positionB, scaleB, positionInterp, scaleInterp;
-	dsQuaternion4f orientationA, orientationB, orientationInterp;
-
-	dsMatrix44f_decomposeTransformScalar(&positionA, &orientationA, &scaleA, a);
-	dsMatrix44f_decomposeTransformScalar(&positionB, &orientationB, &scaleB, b);
-
-	dsVector3_lerp(positionInterp, positionA, positionB, t);
-	dsVector3_lerp(scaleInterp, scaleA, scaleB, t);
-	dsQuaternion4f_slerp(&orientationInterp, &orientationA, &orientationB, t);
-
-	dsMatrix44f_composeTransformScalar(result, &positionInterp, &orientationInterp, &scaleInterp);
-}
-
-void dsMatrix44d_rigidLerpScalar(
-	dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b, double t)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(a);
-	DS_ASSERT(b);
-
-	dsVector3xd positionA, scaleA, positionB, scaleB, positionInterp, scaleInterp;
-	dsQuaternion4d orientationA, orientationB, orientationInterp;
-
-	dsMatrix44d_decomposeTransformScalar(&positionA, &orientationA, &scaleA, a);
-	dsMatrix44d_decomposeTransformScalar(&positionB, &orientationB, &scaleB, b);
-
-	dsVector3_lerp(positionInterp, positionA, positionB, t);
-	dsVector3_lerp(scaleInterp, scaleA, scaleB, t);
-	dsQuaternion4d_slerp(&orientationInterp, &orientationA, &orientationB, t);
-
-	dsMatrix44d_composeTransformScalar(result, &positionInterp, &orientationInterp, &scaleInterp);
-}
-
 void dsMatrix44f_identity(dsMatrix44f* result);
 void dsMatrix44d_identity(dsMatrix44d* result);
 
@@ -786,11 +746,6 @@ void dsMatrix44f_composeTransform(dsMatrix44f* result, const dsVector3xf* positi
 	const dsQuaternion4f* orientation, const dsVector3xf* scale);
 void dsMatrix44d_composeTransform(dsMatrix44d* result, const dsVector3xd* position,
 	const dsQuaternion4d* orientation, const dsVector3xd* scale);
-
-void dsMatrix44f_rigidLerp(
-	dsMatrix44f* result, const dsMatrix44f* a, const dsMatrix44f* b, float t);
-void dsMatrix44d_rigidLerp(
-	dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b, double t);
 
 bool dsMatrix44f_jacobiEigenvalues(
 	dsMatrix44f* outEigenvectors, dsVector4f* outEigenvalues, const dsMatrix44f* a);

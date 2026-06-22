@@ -1355,7 +1355,7 @@ TEST(Matrix33xfTest, DeterminantFMA)
 		{2.3f, -4.5f, 6.7f, 3.0f}
 	}};
 
-	float result = dsMatrix33xf_determinantSIMD(&matrix);
+	float result = dsMatrix33xf_determinantFMA(&matrix);
 	EXPECT_NEAR(-53.2399864f, result, epsilon);
 }
 #endif // !DS_DETERMINISTIC_MATH

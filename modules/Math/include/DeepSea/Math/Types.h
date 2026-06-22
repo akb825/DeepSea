@@ -1406,6 +1406,50 @@ typedef union dsQuaternion4d
 } dsQuaternion4d;
 
 /**
+ * @brief Container for a 3D rigid transform as a separate position, orientation, and scale.
+ * @see RigidTransform3.h
+ */
+typedef struct dsRigidTransform3f
+{
+	/**
+	 * @brief The position of the transform.
+	 */
+	dsVector3xf position;
+
+	/**
+	 * @brief The orientation of the transform.
+	 */
+	dsQuaternion4f orientation;
+
+	/**
+	 * @brief The scale of the transform.
+	 */
+	dsVector3xf scale;
+} dsRigidTransform3f;
+
+/**
+ * @brief Container for a 3D rigid transform as a separate position, orientation, and scale.
+ * @see RigidTransform3.h
+ */
+typedef struct dsRigidTransform3d
+{
+	/**
+	 * @brief The position of the transform.
+	 */
+	dsVector3xd position;
+
+	/**
+	 * @brief The orientation of the transform.
+	 */
+	dsQuaternion4d orientation;
+
+	/**
+	 * @brief The scale of the transform.
+	 */
+	dsVector3xd scale;
+} dsRigidTransform3d;
+
+/**
  * @brief Structure that holds the state for random number generation.
  * @remark This must not be zero-initialized! Use dsRandom_seed() to initialize the state properly,
  *     even if you use a default seed of 0.

@@ -481,7 +481,7 @@ inline void dsOrientedBox3xf_toMatrixSIMD(dsMatrix44f* result, const dsOrientedB
 #if DS_SIMD_ALWAYS_INT
 	dsSIMD4fb mask = dsSIMD4fb_set4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0);
 #else
-	DS_ALIGN(16) uint32_t maskData[4] = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0};
+	static const DS_ALIGN(16) uint32_t maskData[4] = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0};
 	dsSIMD4fb mask = dsSIMD4fb_load(maskData);
 #endif
 

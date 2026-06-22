@@ -33,8 +33,6 @@ void dsMatrix44f_decomposeTransformSIMD(dsVector3xf* outPosition, dsQuaternion4f
 	dsVector3xf* outScale, const dsMatrix44f* matrix);
 void dsMatrix44f_composeTransformSIMD(dsMatrix44f* result, const dsVector3xf* position,
 	const dsQuaternion4f* orientation, const dsVector3xf* scale);
-void dsMatrix44f_rigidLerpSIMD(
-	dsMatrix44f* result, const dsMatrix44f* a, const dsMatrix44f* b, float t);
 
 #if !DS_DETERMINISTIC_MATH
 void dsMatrix44f_mulFMA(dsMatrix44f* result, const dsMatrix44f* a, const dsMatrix44f* b);
@@ -50,8 +48,6 @@ void dsMatrix44f_invertFMA(dsMatrix44f* result, const dsMatrix44f* a);
 void dsMatrix44f_inverseTransposeFMA(dsMatrix33xf* result, const dsMatrix44f* a);
 void dsMatrix44f_composeTransformFMA(dsMatrix44f* result,
 	const dsVector3xf* position, const dsQuaternion4f* orientation, const dsVector3xf* scale);
-void dsMatrix44f_rigidLerpFMA(
-	dsMatrix44f* result, const dsMatrix44f* a, const dsMatrix44f* b, float t);
 #endif
 
 void dsMatrix44d_mulSIMD2(dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b);
@@ -70,8 +66,6 @@ void dsMatrix44d_decomposeTransformSIMD2(dsVector3xd* outPosition, dsQuaternion4
 	dsVector3xd* outScale, const dsMatrix44d* matrix);
 void dsMatrix44d_composeTransformSIMD2(dsMatrix44d* result, const dsVector3xd* position,
 	const dsQuaternion4d* orientation, const dsVector3xd* scale);
-void dsMatrix44d_rigidLerpSIMD2(
-	dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b, double t);
 
 #if !DS_DETERMINISTIC_MATH
 void dsMatrix44d_mulFMA2(dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b);
@@ -87,8 +81,6 @@ void dsMatrix44d_invertFMA2(dsMatrix44d* result, const dsMatrix44d* a);
 void dsMatrix44d_inverseTransposeFMA2(dsMatrix33xd* result, const dsMatrix44d* a);
 void dsMatrix44d_composeTransformFMA2(dsMatrix44d* result, const dsVector3xd* position,
 	const dsQuaternion4d* orientation, const dsVector3xd* scale);
-void dsMatrix44d_rigidLerpFMA2(
-	dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b, double t);
 #endif // !DS_DETERMINISTIC_MATH
 
 void dsMatrix44d_mulSIMD4(dsMatrix44d* DS_ALIGN_PARAM(32) result,
@@ -118,6 +110,4 @@ void dsMatrix44d_decomposeTransformSIMD4(dsVector3xd* DS_ALIGN_PARAM(32) outPosi
 void dsMatrix44d_composeTransformSIMD4(dsMatrix44d* DS_ALIGN_PARAM(32) result,
 	const dsVector3xd* DS_ALIGN_PARAM(32) position, const dsQuaternion4d* orientation,
 	const dsVector3xd* DS_ALIGN_PARAM(32) scale);
-void dsMatrix44d_rigidLerpSIMD4(dsMatrix44d* DS_ALIGN_PARAM(32) result,
-	const dsMatrix44d* DS_ALIGN_PARAM(32) a, const dsMatrix44d* DS_ALIGN_PARAM(32) b, double t);
 #endif

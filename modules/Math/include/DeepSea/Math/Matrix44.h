@@ -510,20 +510,6 @@ DS_MATH_EXPORT inline void dsMatrix44d_composeTransform(dsMatrix44d* result,
 	const dsVector3xd* position, const dsQuaternion4d* orientation, const dsVector3xd* scale);
 
 /**
- * @brief Linearly interpolates between two rigid transform matrices.
- * @param[out] result The matrix for the result.
- * @param a The first transform matrix to enterpolate.
- * @param b The second transform matrix to interpolate.
- * @param t The interpolation value between a and b.
- */
-DS_MATH_EXPORT inline void dsMatrix44f_rigidLerp(
-	dsMatrix44f* result, const dsMatrix44f* a, const dsMatrix44f* b, float t);
-
-/** @copydoc dsMatrix44f_rigidLerp() */
-DS_MATH_EXPORT inline void dsMatrix44d_rigidLerp(
-	dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b, double t);
-
-/**
  * @brief Makes a matrix that looks at a position.
  * @param[out] result The matrix for the result.
  * @param eyePos The eye position for the center of the transform.
@@ -1486,11 +1472,6 @@ DS_MATH_EXPORT void dsMatrix44f_composeTransformScalar(dsMatrix44f* result,
 	const dsVector3xf* position, const dsQuaternion4f* orientation, const dsVector3xf* scale);
 DS_MATH_EXPORT void dsMatrix44d_composeTransformScalar(dsMatrix44d* result,
 	const dsVector3xd* position, const dsQuaternion4d* orientation, const dsVector3xd* scale);
-
-DS_MATH_EXPORT void dsMatrix44f_rigidLerpScalar(dsMatrix44f* result, const dsMatrix44f* a,
-	const dsMatrix44f* b, float t);
-DS_MATH_EXPORT void dsMatrix44d_rigidLerpScalar(dsMatrix44d* result, const dsMatrix44d* a,
-	const dsMatrix44d* b, double t);
 /// @endcond
 
 inline void dsMatrix44f_decomposeTransform(dsVector3xf* outPosition,
@@ -1540,34 +1521,6 @@ inline void dsMatrix44d_composeTransform(dsMatrix44d* result,
 #endif
 #else
 	dsMatrix44d_composeTransformScalar(result, position, orientation, scale);
-#endif
-}
-
-inline void dsMatrix44f_rigidLerp(
-	dsMatrix44f* result, const dsMatrix44f* a, const dsMatrix44f* b, float t)
-{
-#if DS_SIMD_ALWAYS_FMA
-	dsMatrix44f_rigidLerpFMA(result, a, b, t);
-#elif DS_SIMD_ALWAYS_FLOAT4
-	dsMatrix44f_rigidLerpSIMD(result, a, b, t);
-#else
-	dsMatrix44f_rigidLerpScalar(result, a, b, t);
-#endif
-}
-
-inline void dsMatrix44d_rigidLerp(
-	dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b, double t)
-{
-#if DS_SIMD_PREFER_DOUBLE4
-	dsMatrix44d_rigidLerpSIMD4(result, a, b, t);
-#elif DS_SIMD_ALWAYS_DOUBLE2
-#if DS_SIMD_ALWAYS_FMA
-	dsMatrix44d_rigidLerpFMA2(result, a, b, t);
-#else
-	dsMatrix44d_rigidLerpSIMD2(result, a, b, t);
-#endif
-#else
-	dsMatrix44d_rigidLerpScalar(result, a, b, t);
 #endif
 }
 
