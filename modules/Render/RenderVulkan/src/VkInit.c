@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -319,8 +319,8 @@ static VkBool32 VKAPI_PTR oldDebugFunc(VkDebugReportFlagsEXT flags,
 		function = "<unknown>";
 		line = 0;
 	}
-	dsLog_messagef(logLevel, DS_RENDER_VULKAN_LOG_TAG, file, line, function, "%s: %s", pLayerPrefix,
-		pMessage);
+	dsLog_messagef(
+		logLevel, DS_RENDER_VULKAN_LOG_TAG, file, line, function, "%s: %s", pLayerPrefix, pMessage);
 
 	// Continue executing the function.
 	return false;
@@ -501,18 +501,18 @@ static void findDeviceExtensions(DeviceExtensions* outExtensions, dsVkDevice* de
 	device->hasLazyAllocation = false;
 
 	uint32_t extensionCount = 0;
-	DS_VK_CALL(instance->vkEnumerateDeviceExtensionProperties)(device->physicalDevice, NULL,
-		&extensionCount, NULL);
+	DS_VK_CALL(instance->vkEnumerateDeviceExtensionProperties)(
+		device->physicalDevice, NULL, &extensionCount, NULL);
 	if (extensionCount == 0)
 		return;
 
-	VkExtensionProperties* extensions = DS_ALLOCATE_OBJECT_ARRAY(allocator, VkExtensionProperties,
-		extensionCount);
+	VkExtensionProperties* extensions = DS_ALLOCATE_OBJECT_ARRAY(
+		allocator, VkExtensionProperties, extensionCount);
 	if (!extensions)
 		return;
 
-	instance->vkEnumerateDeviceExtensionProperties(device->physicalDevice, NULL, &extensionCount,
-		extensions);
+	instance->vkEnumerateDeviceExtensionProperties(
+		device->physicalDevice, NULL, &extensionCount, extensions);
 	for (uint32_t i = 0; i < extensionCount; ++i)
 	{
 		if (strcmp(extensions[i].extensionName, maintenance1ExtensionName) == 0)
@@ -573,8 +573,8 @@ static void addDeviceExtensions(dsVkDevice* device,
 	}
 }
 
-static VkPhysicalDevice findPhysicalDevice(dsVkInstance* instance,
-	const dsRendererOptions* options)
+static VkPhysicalDevice findPhysicalDevice(
+	dsVkInstance* instance, const dsRendererOptions* options)
 {
 	if (!dsGatherVkPhysicalDevices(instance))
 		return NULL;
@@ -599,10 +599,12 @@ static VkPhysicalDevice findPhysicalDevice(dsVkInstance* instance,
 	DS_VK_CALL(instance->vkEnumeratePhysicalDevices)(instance->instance, &deviceCount, devices);
 	for (uint32_t i = 0; i < deviceCount; ++i)
 	{
+		VkPhysicalDevice device = devices[i];
+
 		// Make sure this device supports graphics.
 		uint32_t queueFamilyCount = 0;
-		DS_VK_CALL(instance->vkGetPhysicalDeviceQueueFamilyProperties)(devices[i],
-			&queueFamilyCount, NULL);
+		DS_VK_CALL(instance->vkGetPhysicalDeviceQueueFamilyProperties)(
+			device, &queueFamilyCount, NULL);
 		if (queueFamilyCount > DS_MAX_QUEUE_FAMILIES)
 		{
 			DS_LOG_WARNING_F(DS_RENDER_VULKAN_LOG_TAG, "An unusually high number of queue families "
@@ -612,8 +614,8 @@ static VkPhysicalDevice findPhysicalDevice(dsVkInstance* instance,
 		}
 
 		VkQueueFamilyProperties queueFamilies[DS_MAX_QUEUE_FAMILIES];
-		DS_VK_CALL(instance->vkGetPhysicalDeviceQueueFamilyProperties)(devices[i],
-			&queueFamilyCount, queueFamilies);
+		DS_VK_CALL(instance->vkGetPhysicalDeviceQueueFamilyProperties)(
+			device, &queueFamilyCount, queueFamilies);
 		bool supportsGraphics = false;
 		for (uint32_t j = 0; j < queueFamilyCount; ++j)
 		{
@@ -638,33 +640,33 @@ static VkPhysicalDevice findPhysicalDevice(dsVkInstance* instance,
 			VkPhysicalDeviceProperties2KHR properties2;
 			properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
 			properties2.pNext = &deviceID;
-			DS_VK_CALL(instance->vkGetPhysicalDeviceProperties2)(devices[i], &properties2);
+			DS_VK_CALL(instance->vkGetPhysicalDeviceProperties2)(device, &properties2);
 
 			if (memcmp(deviceID.deviceUUID, extraDeviceInfo[defaultPhysicalDevice].uuid,
 					DS_DEVICE_UUID_SIZE) == 0)
 			{
-				defaultDevice = devices[i];
+				defaultDevice = device;
 			}
 
 			if (memcmp(deviceID.deviceUUID, options->deviceUUID, DS_DEVICE_UUID_SIZE) == 0)
-				explicitDevice = devices[i];
+				explicitDevice = device;
 
 			if (options->deviceName && !namedDevice &&
 					strcasestr(properties2.properties.deviceName, options->deviceName))
 			{
-				namedDevice = devices[i];
+				namedDevice = device;
 			}
 		}
 
 		// Fallback default, used in case the devices have changed for some reason or if device info
 		// isn't supported.
 		VkPhysicalDeviceProperties properties;
-		DS_VK_CALL(instance->vkGetPhysicalDeviceProperties)(devices[i], &properties);
+		DS_VK_CALL(instance->vkGetPhysicalDeviceProperties)(device, &properties);
 
 		dsRenderDeviceType deviceType = convertDeviceType(properties.deviceType);
 		if (deviceType < defaultDeviceType)
 		{
-			fallbackDefaultDevice = devices[i];
+			fallbackDefaultDevice = device;
 			defaultDeviceType = deviceType;
 		}
 	}
@@ -730,8 +732,8 @@ static bool initializeDeviceList(void)
 	return true;
 }
 
-bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options,
-	bool handleErrors)
+bool dsCreateVkInstance(
+	dsVkInstance* instance, const dsRendererOptions* options, bool handleErrors)
 {
 	if (options && options->gfxAPIAllocator && (!options->gfxAPIAllocator->freeFunc ||
 		!options->gfxAPIAllocator->reallocFunc))
@@ -759,8 +761,8 @@ bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options
 		}
 	}
 
-	instance->vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)dsDynamicLib_loadSymbol(library,
-		"vkGetInstanceProcAddr");
+	instance->vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)dsDynamicLib_loadSymbol(
+		library, "vkGetInstanceProcAddr");
 	if (!instance->vkGetInstanceProcAddr)
 	{
 		DS_LOG_ERROR_F(DS_RENDER_VULKAN_LOG_TAG, "Couldn't load vkGetInstanceProcAddr: %s",
@@ -960,28 +962,30 @@ bool dsGatherVkPhysicalDevices(dsVkInstance* instance)
 	dsRenderDeviceType defaultDeviceType = dsRenderDeviceType_Unknown;
 	VkPhysicalDevice devices[DS_MAX_DEVICES];
 	physicalDeviceCount = DS_MAX_DEVICES;
-	DS_VK_CALL(instance->vkEnumeratePhysicalDevices)(instance->instance, &physicalDeviceCount,
-		devices);
+	DS_VK_CALL(instance->vkEnumeratePhysicalDevices)(
+		instance->instance, &physicalDeviceCount, devices);
 	for (uint32_t i = 0; i < physicalDeviceCount;)
 	{
-		DS_VK_CALL(instance->vkGetPhysicalDeviceProperties)(devices[i], physicalDevices + i);
+		VkPhysicalDevice device = devices[i];
+		ExtraDeviceInfo* deviceInfo = extraDeviceInfo + i;
+		DS_VK_CALL(instance->vkGetPhysicalDeviceProperties)(device, physicalDevices + i);
 
 		// Make sure this device supports graphics.
 		uint32_t queueFamilyCount = DS_MAX_QUEUE_FAMILIES;
 		VkQueueFamilyProperties queueFamilies[DS_MAX_QUEUE_FAMILIES];
-		DS_VK_CALL(instance->vkGetPhysicalDeviceQueueFamilyProperties)(devices[i],
-			&queueFamilyCount, queueFamilies);
-		extraDeviceInfo[i].supportsGraphics = false;
+		DS_VK_CALL(instance->vkGetPhysicalDeviceQueueFamilyProperties)(
+			device, &queueFamilyCount, queueFamilies);
+		deviceInfo->supportsGraphics = false;
 		for (uint32_t j = 0; j < queueFamilyCount; ++j)
 		{
 			if (queueFamilies[j].queueFlags & VK_QUEUE_GRAPHICS_BIT)
 			{
-				extraDeviceInfo[i].supportsGraphics = true;
+				deviceInfo->supportsGraphics = true;
 				break;
 			}
 		}
 
-		if (!extraDeviceInfo[i].supportsGraphics)
+		if (!deviceInfo->supportsGraphics)
 		{
 			++i;
 			continue;
@@ -1004,8 +1008,8 @@ bool dsGatherVkPhysicalDevices(dsVkInstance* instance)
 			VkPhysicalDeviceProperties2KHR properties2;
 			properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
 			properties2.pNext = &deviceID;
-			DS_VK_CALL(instance->vkGetPhysicalDeviceProperties2)(devices[i], &properties2);
-			memcpy(extraDeviceInfo[i].uuid, deviceID.deviceUUID, DS_DEVICE_UUID_SIZE);
+			DS_VK_CALL(instance->vkGetPhysicalDeviceProperties2)(device, &properties2);
+			memcpy(deviceInfo->uuid, deviceID.deviceUUID, DS_DEVICE_UUID_SIZE);
 		}
 
 		++i;
@@ -1039,12 +1043,14 @@ bool dsQueryVkDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount)
 		if (!extraDeviceInfo[i].supportsGraphics)
 			continue;
 
-		outDevices[idx].name = physicalDevices[i].deviceName;
-		outDevices[idx].vendorID = physicalDevices[i].vendorID;
-		outDevices[idx].deviceID = physicalDevices[i].deviceID;
-		outDevices[idx].deviceType = convertDeviceType(physicalDevices[i].deviceType);
-		outDevices[idx].isDefault = i == defaultPhysicalDevice;
-		memcpy(outDevices[idx].deviceUUID, extraDeviceInfo[i].uuid, DS_DEVICE_UUID_SIZE);
+		VkPhysicalDeviceProperties* physicalDevice = physicalDevices + i;
+		dsRenderDeviceInfo* device = outDevices + idx;
+		device->name = physicalDevice->deviceName;
+		device->vendorID = physicalDevice->vendorID;
+		device->deviceID = physicalDevice->deviceID;
+		device->deviceType = convertDeviceType(physicalDevice->deviceType);
+		device->isDefault = i == defaultPhysicalDevice;
+		memcpy(device->deviceUUID, extraDeviceInfo[i].uuid, DS_DEVICE_UUID_SIZE);
 		++idx;
 	}
 
@@ -1085,8 +1091,8 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	}
 
 	DS_VK_CALL(instance->vkGetPhysicalDeviceFeatures)(device->physicalDevice, &device->features);
-	DS_VK_CALL(instance->vkGetPhysicalDeviceProperties)(device->physicalDevice,
-		&device->properties);
+	DS_VK_CALL(instance->vkGetPhysicalDeviceProperties)(
+		device->physicalDevice, &device->properties);
 
 	// We don't need these features.
 	device->features.robustBufferAccess = false;
@@ -1123,16 +1129,12 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	bool useValidation = enableValidation(options);
 	bool useMarkers = enableMarkers(useValidation);
 
-	const char* enabledLayers[DS_MAX_ENABLED_EXTENSIONS];
-	uint32_t enabledLayerCount = 0;
-	addLayers(enabledLayers, &enabledLayerCount, useValidation);
-
 	DeviceExtensions extensions;
 	memset(&extensions, 0, sizeof(DeviceExtensions));
 	const char* enabledExtensions[DS_MAX_ENABLED_EXTENSIONS];
 	uint32_t enabledExtensionCount = 0;
-	addDeviceExtensions(device, allocator, &extensions, enabledExtensions, &enabledExtensionCount,
-		useMarkers);
+	addDeviceExtensions(
+		device, allocator, &extensions, enabledExtensions, &enabledExtensionCount, useMarkers);
 
 	VkDeviceCreateInfo deviceCreateInfo =
 	{
@@ -1140,12 +1142,12 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 		NULL,
 		0,
 		1, &queueCreateInfo,
-		enabledLayerCount, enabledLayers,
+		0, NULL,
 		enabledExtensionCount, enabledExtensions,
 		&device->features
 	};
-	VkResult result = DS_VK_CALL(instance->vkCreateDevice)(device->physicalDevice,
-		&deviceCreateInfo, instance->allocCallbacksPtr, &device->device);
+	VkResult result = DS_VK_CALL(instance->vkCreateDevice)(
+		device->physicalDevice, &deviceCreateInfo, instance->allocCallbacksPtr, &device->device);
 	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create Vulkan device"))
 		return false;
 

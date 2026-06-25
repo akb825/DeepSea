@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,13 @@
 
 #define DS_HIGHEST_KNOWN_VULKAN_VERSOIN VK_API_VERSION_1_4
 
-bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options,
-	bool handleErrors);
+bool dsCreateVkInstance(
+	dsVkInstance* instance, const dsRendererOptions* options, bool handleErrors);
 void dsDestroyVkInstance(dsVkInstance* instance);
 
 bool dsGatherVkPhysicalDevices(dsVkInstance* instance);
 bool dsQueryVkDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount);
 bool dsGetDefaultVkDevice(dsRenderDeviceInfo* outDevice);
 
-bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator,
-	const dsRendererOptions* options);
+bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRendererOptions* options);
 void dsDestroyVkDevice(dsVkDevice* device);
