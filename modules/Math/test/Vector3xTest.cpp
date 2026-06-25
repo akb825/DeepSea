@@ -395,6 +395,16 @@ TYPED_TEST(Vector3xTest, Lerp)
 	EXPECT_EQ_DETERMINISTIC(dsLerp(a.x, b.x, (TypeParam)0.3), result.x, epsilon);
 	EXPECT_EQ_DETERMINISTIC(dsLerp(a.y, b.y, (TypeParam)0.3), result.y, epsilon);
 	EXPECT_EQ_DETERMINISTIC(dsLerp(a.z, b.z, (TypeParam)0.3), result.z, epsilon);
+
+	dsVector3x_lerp(&result, &a, &b, (TypeParam)0);
+	EXPECT_EQ(a.x, result.x);
+	EXPECT_EQ(a.y, result.y);
+	EXPECT_EQ(a.z, result.z);
+
+	dsVector3x_lerp(&result, &a, &b, (TypeParam)1);
+	EXPECT_EQ(b.x, result.x);
+	EXPECT_EQ(b.y, result.y);
+	EXPECT_EQ(b.z, result.z);
 }
 
 TYPED_TEST(Vector3xTest, Normalize)

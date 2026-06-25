@@ -281,10 +281,11 @@ DS_MATH_EXPORT inline void dsVector3xf_lerp(
 	DS_ASSERT(a);
 	DS_ASSERT(b);
 #if DS_SIMD_ALWAYS_FMA
-	result->simd = dsSIMD4f_fmadd(dsSIMD4f_set1(t), dsSIMD4f_sub(b->simd, a->simd), a->simd);
+	result->simd = dsSIMD4f_fmadd(
+		dsSIMD4f_set1(1.0f - t), a->simd, dsSIMD4f_mul(dsSIMD4f_set1(t), b->simd));
 #elif DS_SIMD_ALWAYS_FLOAT4
 	result->simd = dsSIMD4f_add(
-		a->simd, dsSIMD4f_mul(dsSIMD4f_set1(t), dsSIMD4f_sub(b->simd, a->simd)));
+		dsSIMD4f_mul(dsSIMD4f_set1(1.0f - t), a->simd), dsSIMD4f_mul(dsSIMD4f_set1(t), b->simd));
 #else
 	dsVector3_lerp(*result, *a, *b, t);
 #if DS_HAS_SIMD
@@ -303,21 +304,23 @@ DS_MATH_EXPORT inline void dsVector3xd_lerp(
 	DS_ASSERT(b);
 #if DS_SIMD_PREFER_DOUBLE4
 #if DS_SIMD_ALWAYS_FMA
-	result->simd = dsSIMD4d_fmadd(dsSIMD4d_set1(t), dsSIMD4d_sub(b->simd, a->simd), a->simd);
+	result->simd = dsSIMD4d_fmadd(
+		dsSIMD4d_set1(1.0 - t), a->simd, dsSIMD4d_mul(dsSIMD4d_set1(t), b->simd));
 #else
 	result->simd = dsSIMD4d_add(
-		a->simd, dsSIMD4d_mul(dsSIMD4d_set1(t), dsSIMD4d_sub(b->simd, a->simd)));
+		dsSIMD4d_mul(dsSIMD4d_set1(1.0 - t), a->simd), dsSIMD4d_mul(dsSIMD4d_set1(t), b->simd));
 #endif
 #elif DS_SIMD_ALWAYS_DOUBLE2
 	dsSIMD2d t2 = dsSIMD2d_set1(t);
+	dsSIMD2d invT2 = dsSIMD2d_set1(1.0 - t);
 #if DS_SIMD_ALWAYS_FMA
-	result->simd2[0] = dsSIMD2d_fmadd(t2, dsSIMD2d_sub(b->simd2[0], a->simd2[0]), a->simd2[0]);
-	result->simd2[1] = dsSIMD2d_fmadd(t2, dsSIMD2d_sub(b->simd2[1], a->simd2[1]), a->simd2[1]);
+	result->simd2[0] = dsSIMD2d_fmadd(invT2, a->simd2[0], dsSIMD2d_mul(t2, b->simd2[0]));
+	result->simd2[1] = dsSIMD2d_fmadd(invT2, a->simd2[1], dsSIMD2d_mul(t2, b->simd2[1]));
 #else
 	result->simd2[0] = dsSIMD2d_add(
-		a->simd2[0], dsSIMD2d_mul(t2, dsSIMD2d_sub(b->simd2[0], a->simd2[0])));
+		dsSIMD2d_mul(invT2, a->simd2[0]), dsSIMD2d_mul(t2, b->simd2[0]));
 	result->simd2[1] = dsSIMD2d_add(
-		a->simd2[1], dsSIMD2d_mul(t2, dsSIMD2d_sub(b->simd2[1], a->simd2[1])));
+		dsSIMD2d_mul(invT2, a->simd2[1]), dsSIMD2d_mul(t2, b->simd2[1]));
 #endif
 #else
 	dsVector3_lerp(*result, *a, *b, t);

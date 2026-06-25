@@ -517,10 +517,11 @@ DS_MATH_EXPORT inline void dsVector2d_lerp(
 	DS_ASSERT(b);
 #if DS_SIMD_ALWAYS_DOUBLE2
 #if DS_SIMD_ALWAYS_FMA
-	result->simd = dsSIMD2d_fmadd(dsSIMD2d_sub(b->simd, a->simd), dsSIMD2d_set1(t), a->simd);
+	result->simd = dsSIMD2d_fmadd(
+		dsSIMD2d_set1(1.0 - t), a->simd, dsSIMD2d_mul(dsSIMD2d_set1(t), b->simd));
 #else
-	result->simd = dsSIMD2d_add(a->simd,
-		dsSIMD2d_mul(dsSIMD2d_sub(b->simd, a->simd), dsSIMD2d_set1(t)));
+	result->simd = dsSIMD2d_add(
+		dsSIMD2d_mul(dsSIMD2d_set1(1.0 - t), a->simd), dsSIMD2d_mul(dsSIMD2d_set1(t), b->simd));
 #endif
 #else
 	dsVector2_lerp(*result, *a, *b, t);

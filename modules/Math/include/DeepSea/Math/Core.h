@@ -149,7 +149,7 @@ extern "C"
  * @param t The interpolation value between x and y.
  * @return The interpolated value.
  */
-#define dsLerp(x, y, t) ((x) + (t)*((y) - (x)))
+#define dsLerp(x, y, t) ((1 - (t))*(x) + (t)*(y))
 
 /**
  * @brief Converts from any structure that contains entirely floats (e.g. dsVector3f, dsMatrix44f)

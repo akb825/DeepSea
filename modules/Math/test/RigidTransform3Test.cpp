@@ -1760,8 +1760,8 @@ TEST(RigidTransform3fTest, LerpSIMD)
 	EXPECT_EQ_DETERMINISTIC(-0.821273148f, transformInterp.orientation.k, epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.191532031f, transformInterp.orientation.r, epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(1.18750012f, transformInterp.scale.x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.87499994f, transformInterp.scale.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.1875f, transformInterp.scale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.875f, transformInterp.scale.y, epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.5625f, transformInterp.scale.z, epsilon);
 }
 
@@ -1802,8 +1802,8 @@ TEST(RigidTransform3fTest, LerpFMA)
 	EXPECT_NEAR(-0.821273148f, transformInterp.orientation.k, epsilon);
 	EXPECT_NEAR(0.191532031f, transformInterp.orientation.r, epsilon);
 
-	EXPECT_NEAR(1.18750012f, transformInterp.scale.x, epsilon);
-	EXPECT_NEAR(0.87499994f, transformInterp.scale.y, epsilon);
+	EXPECT_NEAR(1.1875f, transformInterp.scale.x, epsilon);
+	EXPECT_NEAR(0.875f, transformInterp.scale.y, epsilon);
 	EXPECT_NEAR(0.5625f, transformInterp.scale.z, epsilon);
 }
 #endif // !DS_DETERMINISTIC_MATH
@@ -2033,8 +2033,8 @@ TEST(RigidTransform3fTest, NearLerpSIMD)
 	EXPECT_EQ_DETERMINISTIC(-0.742810905f, transformInterp.orientation.k, epsilon);
 	EXPECT_EQ_DETERMINISTIC(-0.016820224f, transformInterp.orientation.r, epsilon);
 
-	EXPECT_EQ_DETERMINISTIC(1.18750012f, transformInterp.scale.x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.87499994f, transformInterp.scale.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.1875f, transformInterp.scale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.875f, transformInterp.scale.y, epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.5625f, transformInterp.scale.z, epsilon);
 }
 
@@ -2078,8 +2078,8 @@ TEST(RigidTransform3fTest, NearLerpFMA)
 	EXPECT_NEAR(-0.742810905f, transformInterp.orientation.k, epsilon);
 	EXPECT_NEAR(-0.016820224f, transformInterp.orientation.r, epsilon);
 
-	EXPECT_NEAR(1.18750012f, transformInterp.scale.x, epsilon);
-	EXPECT_NEAR(0.87499994f, transformInterp.scale.y, epsilon);
+	EXPECT_NEAR(1.1875f, transformInterp.scale.x, epsilon);
+	EXPECT_NEAR(0.875f, transformInterp.scale.y, epsilon);
 	EXPECT_NEAR(0.5625f, transformInterp.scale.z, epsilon);
 }
 #endif // !DS_DETERMINISTIC_MATH
@@ -2139,7 +2139,7 @@ TEST(RigidTransform3dTest, NearLerpSIMD2)
 	EXPECT_EQ_DETERMINISTIC(-15.0, transformInterp.position.z, epsilon);
 
 	EXPECT_EQ_DETERMINISTIC(-0.66066352072076651, transformInterp.orientation.i, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.10674456069643105, transformInterp.orientation.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.10674456069643107, transformInterp.orientation.j, epsilon);
 	EXPECT_EQ_DETERMINISTIC(-0.74286611721458073, transformInterp.orientation.k, epsilon);
 	EXPECT_EQ_DETERMINISTIC(-0.016710566869509218, transformInterp.orientation.r, epsilon);
 
@@ -2185,7 +2185,7 @@ TEST(RigidTransform3dTest, NearLerpFMA2)
 	EXPECT_NEAR(-15.0, transformInterp.position.z, epsilon);
 
 	EXPECT_NEAR(-0.66066352072076651, transformInterp.orientation.i, epsilon);
-	EXPECT_NEAR(0.10674456069643105, transformInterp.orientation.j, epsilon);
+	EXPECT_NEAR(0.10674456069643107, transformInterp.orientation.j, epsilon);
 	EXPECT_NEAR(-0.74286611721458073, transformInterp.orientation.k, epsilon);
 	EXPECT_NEAR(-0.016710566869509218, transformInterp.orientation.r, epsilon);
 
@@ -2250,7 +2250,7 @@ TEST(RigidTransform3dTest, NearLerpSIMD4)
 	EXPECT_EQ_DETERMINISTIC(-15.0, transformInterp.position.z, epsilon);
 
 	EXPECT_EQ_DETERMINISTIC(-0.66066352072076651, transformInterp.orientation.i, epsilon);
-	EXPECT_EQ_DETERMINISTIC(0.10674456069643105, transformInterp.orientation.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.10674456069643107, transformInterp.orientation.j, epsilon);
 	EXPECT_EQ_DETERMINISTIC(-0.74286611721458073, transformInterp.orientation.k, epsilon);
 	EXPECT_EQ_DETERMINISTIC(-0.016710566869509218, transformInterp.orientation.r, epsilon);
 

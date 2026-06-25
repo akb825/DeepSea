@@ -484,6 +484,18 @@ TYPED_TEST(Vector4FloatTest, Lerp)
 	EXPECT_EQ_DETERMINISTIC(dsLerp(a.y, b.y, (TypeParam)0.3), result.y, epsilon);
 	EXPECT_EQ_DETERMINISTIC(dsLerp(a.z, b.z, (TypeParam)0.3), result.z, epsilon);
 	EXPECT_EQ_DETERMINISTIC(dsLerp(a.w, b.w, (TypeParam)0.3), result.w, epsilon);
+
+	dsVector4_lerp(result, a, b, 0);
+	EXPECT_EQ(a.x, result.x);
+	EXPECT_EQ(a.y, result.y);
+	EXPECT_EQ(a.z, result.z);
+	EXPECT_EQ(a.w, result.w);
+
+	dsVector4_lerp(result, a, b, 1);
+	EXPECT_EQ(b.x, result.x);
+	EXPECT_EQ(b.y, result.y);
+	EXPECT_EQ(b.z, result.z);
+	EXPECT_EQ(b.w, result.w);
 }
 
 TEST(Vector4fTest, Lerp)
@@ -502,9 +514,21 @@ TEST(Vector4fTest, Lerp)
 	EXPECT_EQ_DETERMINISTIC(scalarResult.w, result.w, epsilon);
 
 	EXPECT_EQ_DETERMINISTIC(-0.64999985f, result.x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(1.53f, result.y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(-2.4099999f, result.z, epsilon);
-	EXPECT_EQ_DETERMINISTIC(3.289999f, result.w, epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.52999973f, result.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-2.40999961f, result.z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(3.28999949f, result.w, epsilon);
+
+	dsVector4f_lerp(&result, &a, &b, 0.0f);
+	EXPECT_EQ(a.x, result.x);
+	EXPECT_EQ(a.y, result.y);
+	EXPECT_EQ(a.z, result.z);
+	EXPECT_EQ(a.w, result.w);
+
+	dsVector4f_lerp(&result, &a, &b, 1.0f);
+	EXPECT_EQ(b.x, result.x);
+	EXPECT_EQ(b.y, result.y);
+	EXPECT_EQ(b.z, result.z);
+	EXPECT_EQ(b.w, result.w);
 }
 
 TEST(Vector4dTest, Lerp)
@@ -525,8 +549,20 @@ TEST(Vector4dTest, Lerp)
 
 	EXPECT_EQ_DETERMINISTIC(-0.64999999999999991, result.x, epsilon);
 	EXPECT_EQ_DETERMINISTIC(1.5299999999999998, result.y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(-2.41, result.z, epsilon);
-	EXPECT_EQ_DETERMINISTIC(3.29, result.w, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-2.4099999999999997, result.z, epsilon);
+	EXPECT_EQ_DETERMINISTIC(3.2899999999999996, result.w, epsilon);
+
+	dsVector4d_lerp(&result, &a, &b, 0.0);
+	EXPECT_EQ(a.x, result.x);
+	EXPECT_EQ(a.y, result.y);
+	EXPECT_EQ(a.z, result.z);
+	EXPECT_EQ(a.w, result.w);
+
+	dsVector4d_lerp(&result, &a, &b, 1.0);
+	EXPECT_EQ(b.x, result.x);
+	EXPECT_EQ(b.y, result.y);
+	EXPECT_EQ(b.z, result.z);
+	EXPECT_EQ(b.w, result.w);
 }
 
 TEST(Vector4fTest, Normalize)

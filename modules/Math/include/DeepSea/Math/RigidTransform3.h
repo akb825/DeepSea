@@ -973,10 +973,11 @@ inline void dsRigidTransform3f_lerpSIMD(
 	DS_ASSERT(b);
 
 	dsSIMD4f t4 = dsSIMD4f_set1(t);
+	dsSIMD4f invT4 = dsSIMD4f_set1(1.0f - t);
 	result->position.simd = dsSIMD4f_add(
-		a->position.simd, dsSIMD4f_mul(t4, dsSIMD4f_sub(b->position.simd, a->position.simd)));
+		dsSIMD4f_mul(invT4, a->position.simd), dsSIMD4f_mul(t4, b->position.simd));
 	result->scale.simd = dsSIMD4f_add(
-		a->scale.simd, dsSIMD4f_mul(t4, dsSIMD4f_sub(b->scale.simd, a->scale.simd)));
+		dsSIMD4f_mul(invT4, a->scale.simd), dsSIMD4f_mul(t4, b->scale.simd));
 	dsQuaternion4f_slerp(&result->orientation, &a->orientation, &b->orientation, t);
 }
 
@@ -988,12 +989,13 @@ inline void dsRigidTransform3f_nearLerpSIMD(
 	DS_ASSERT(b);
 
 	dsSIMD4f t4 = dsSIMD4f_set1(t);
+	dsSIMD4f invT4 = dsSIMD4f_set1(1.0f - t);
 	result->position.simd = dsSIMD4f_add(
-		a->position.simd, dsSIMD4f_mul(t4, dsSIMD4f_sub(b->position.simd, a->position.simd)));
-	result->orientation.simd = dsSIMD4f_add(a->orientation.simd,
-		dsSIMD4f_mul(t4, dsSIMD4f_sub(b->orientation.simd, a->orientation.simd)));
+		dsSIMD4f_mul(invT4, a->position.simd), dsSIMD4f_mul(t4, b->position.simd));
+	result->orientation.simd = dsSIMD4f_add(
+		dsSIMD4f_mul(invT4, a->orientation.simd), dsSIMD4f_mul(t4, b->orientation.simd));
 	result->scale.simd = dsSIMD4f_add(
-		a->scale.simd, dsSIMD4f_mul(t4, dsSIMD4f_sub(b->scale.simd, a->scale.simd)));
+		dsSIMD4f_mul(invT4, a->scale.simd), dsSIMD4f_mul(t4, b->scale.simd));
 
 	dsSIMD4f len2 = dsDot4SIMD4f(result->orientation.simd, result->orientation.simd);
 #if DS_SIMD_EMULATED_DIV_SQRT
@@ -1081,10 +1083,10 @@ inline void dsRigidTransform3f_lerpFMA(
 	DS_ASSERT(b);
 
 	dsSIMD4f t4 = dsSIMD4f_set1(t);
+	dsSIMD4f invT4 = dsSIMD4f_set1(1.0f - t);
 	result->position.simd = dsSIMD4f_fmadd(
-		t4, dsSIMD4f_sub(b->position.simd, a->position.simd), a->position.simd);
-	result->scale.simd = dsSIMD4f_fmadd(
-		t4, dsSIMD4f_sub(b->scale.simd, a->scale.simd), a->scale.simd);
+		invT4, a->position.simd, dsSIMD4f_mul(t4, b->position.simd));
+	result->scale.simd = dsSIMD4f_fmadd(invT4, a->scale.simd, dsSIMD4f_mul(t4, b->scale.simd));
 	dsQuaternion4f_slerp(&result->orientation, &a->orientation, &b->orientation, t);
 }
 
@@ -1096,12 +1098,12 @@ inline void dsRigidTransform3f_nearLerpFMA(
 	DS_ASSERT(b);
 
 	dsSIMD4f t4 = dsSIMD4f_set1(t);
+	dsSIMD4f invT4 = dsSIMD4f_set1(1.0f - t);
 	result->position.simd = dsSIMD4f_fmadd(
-		t4, dsSIMD4f_sub(b->position.simd, a->position.simd), a->position.simd);
+		invT4, a->position.simd, dsSIMD4f_mul(t4, b->position.simd));
 	result->orientation.simd = dsSIMD4f_fmadd(
-		t4, dsSIMD4f_sub(b->orientation.simd, a->orientation.simd), a->orientation.simd);
-	result->scale.simd = dsSIMD4f_fmadd(
-		t4, dsSIMD4f_sub(b->scale.simd, a->scale.simd), a->scale.simd);
+		invT4, a->orientation.simd, dsSIMD4f_mul(t4, b->orientation.simd));
+	result->scale.simd = dsSIMD4f_fmadd(invT4, a->scale.simd, dsSIMD4f_mul(t4, b->scale.simd));
 
 	dsSIMD4f len2 = dsDot4FMA4f(result->orientation.simd, result->orientation.simd);
 	dsSIMD4f invLen = dsSIMD4f_rsqrt(len2);
@@ -1171,14 +1173,15 @@ inline void dsRigidTransform3d_lerpSIMD2(
 	DS_ASSERT(b);
 
 	dsSIMD2d t2 = dsSIMD2d_set1(t);
-	result->position.simd2[0] = dsSIMD2d_add(a->position.simd2[0],
-		dsSIMD2d_mul(t2, dsSIMD2d_sub(b->position.simd2[0], a->position.simd2[0])));
-	result->position.simd2[1] = dsSIMD2d_add(a->position.simd2[1],
-		dsSIMD2d_mul(t2, dsSIMD2d_sub(b->position.simd2[1], a->position.simd2[1])));
-	result->scale.simd2[0] = dsSIMD2d_add(a->scale.simd2[0],
-		dsSIMD2d_mul(t2, dsSIMD2d_sub(b->scale.simd2[0], a->scale.simd2[0])));
-	result->scale.simd2[1] = dsSIMD2d_add(a->scale.simd2[1],
-		dsSIMD2d_mul(t2, dsSIMD2d_sub(b->scale.simd2[1], a->scale.simd2[1])));
+	dsSIMD2d invT2 = dsSIMD2d_set1(1.0 - t);
+	result->position.simd2[0] = dsSIMD2d_add(
+		dsSIMD2d_mul(invT2, a->position.simd2[0]),  dsSIMD2d_mul(t2, b->position.simd2[0]));
+	result->position.simd2[1] = dsSIMD2d_add(
+		dsSIMD2d_mul(invT2, a->position.simd2[1]),  dsSIMD2d_mul(t2, b->position.simd2[1]));
+	result->scale.simd2[0] = dsSIMD2d_add(
+		dsSIMD2d_mul(invT2, a->scale.simd2[0]),  dsSIMD2d_mul(t2, b->scale.simd2[0]));
+	result->scale.simd2[1] = dsSIMD2d_add(
+		dsSIMD2d_mul(invT2, a->scale.simd2[1]),  dsSIMD2d_mul(t2, b->scale.simd2[1]));
 	dsQuaternion4d_slerp(&result->orientation, &a->orientation, &b->orientation, t);
 }
 
@@ -1190,18 +1193,19 @@ inline void dsRigidTransform3d_nearLerpSIMD2(
 	DS_ASSERT(b);
 
 	dsSIMD2d t2 = dsSIMD2d_set1(t);
-	result->position.simd2[0] = dsSIMD2d_add(a->position.simd2[0],
-		dsSIMD2d_mul(t2, dsSIMD2d_sub(b->position.simd2[0], a->position.simd2[0])));
-	result->position.simd2[1] = dsSIMD2d_add(a->position.simd2[1],
-		dsSIMD2d_mul(t2, dsSIMD2d_sub(b->position.simd2[1], a->position.simd2[1])));
-	result->orientation.simd2[0] = dsSIMD2d_add(a->orientation.simd2[0],
-		dsSIMD2d_mul(t2, dsSIMD2d_sub(b->orientation.simd2[0], a->orientation.simd2[0])));
-	result->orientation.simd2[1] = dsSIMD2d_add(a->orientation.simd2[1],
-		dsSIMD2d_mul(t2, dsSIMD2d_sub(b->orientation.simd2[1], a->orientation.simd2[1])));
-	result->scale.simd2[0] = dsSIMD2d_add(a->scale.simd2[0],
-		dsSIMD2d_mul(t2, dsSIMD2d_sub(b->scale.simd2[0], a->scale.simd2[0])));
-	result->scale.simd2[1] = dsSIMD2d_add(a->scale.simd2[1],
-		dsSIMD2d_mul(t2, dsSIMD2d_sub(b->scale.simd2[1], a->scale.simd2[1])));
+	dsSIMD2d invT2 = dsSIMD2d_set1(1.0 - t);
+	result->position.simd2[0] = dsSIMD2d_add(
+		dsSIMD2d_mul(invT2, a->position.simd2[0]),  dsSIMD2d_mul(t2, b->position.simd2[0]));
+	result->position.simd2[1] = dsSIMD2d_add(
+		dsSIMD2d_mul(invT2, a->position.simd2[1]),  dsSIMD2d_mul(t2, b->position.simd2[1]));
+	result->orientation.simd2[0] = dsSIMD2d_add(
+		dsSIMD2d_mul(invT2, a->orientation.simd2[0]),  dsSIMD2d_mul(t2, b->orientation.simd2[0]));
+	result->orientation.simd2[1] = dsSIMD2d_add(
+		dsSIMD2d_mul(invT2, a->orientation.simd2[1]),  dsSIMD2d_mul(t2, b->orientation.simd2[1]));
+	result->scale.simd2[0] = dsSIMD2d_add(
+		dsSIMD2d_mul(invT2, a->scale.simd2[0]),  dsSIMD2d_mul(t2, b->scale.simd2[0]));
+	result->scale.simd2[1] = dsSIMD2d_add(
+		dsSIMD2d_mul(invT2, a->scale.simd2[1]),  dsSIMD2d_mul(t2, b->scale.simd2[1]));
 
 	dsSIMD2d len2 = dsDot4SIMD2d(result->orientation.simd2[0], result->orientation.simd2[1],
 		result->orientation.simd2[0], result->orientation.simd2[1]);
@@ -1290,14 +1294,15 @@ inline void dsRigidTransform3d_lerpFMA2(
 	DS_ASSERT(b);
 
 	dsSIMD2d t2 = dsSIMD2d_set1(t);
+	dsSIMD2d invT2 = dsSIMD2d_set1(1.0 - t);
 	result->position.simd2[0] = dsSIMD2d_fmadd(
-		t2, dsSIMD2d_sub(b->position.simd2[0], a->position.simd2[0]), a->position.simd2[0]);
+		invT2, a->position.simd2[0], dsSIMD2d_mul(t2, b->position.simd2[0]));
 	result->position.simd2[1] = dsSIMD2d_fmadd(
-		t2, dsSIMD2d_sub(b->position.simd2[1], a->position.simd2[1]), a->position.simd2[1]);
+		invT2, a->position.simd2[1], dsSIMD2d_mul(t2, b->position.simd2[1]));
 	result->scale.simd2[0] = dsSIMD2d_fmadd(
-		t2, dsSIMD2d_sub(b->scale.simd2[0], a->scale.simd2[0]), a->scale.simd2[0]);
+		invT2, a->scale.simd2[0], dsSIMD2d_mul(t2, b->scale.simd2[0]));
 	result->scale.simd2[1] = dsSIMD2d_fmadd(
-		t2, dsSIMD2d_sub(b->scale.simd2[1], a->scale.simd2[1]), a->scale.simd2[1]);
+		invT2, a->scale.simd2[1], dsSIMD2d_mul(t2, b->scale.simd2[1]));
 	dsQuaternion4d_slerp(&result->orientation, &a->orientation, &b->orientation, t);
 }
 
@@ -1309,18 +1314,19 @@ inline void dsRigidTransform3d_nearLerpFMA2(
 	DS_ASSERT(b);
 
 	dsSIMD2d t2 = dsSIMD2d_set1(t);
+	dsSIMD2d invT2 = dsSIMD2d_set1(1.0 - t);
 	result->position.simd2[0] = dsSIMD2d_fmadd(
-		t2, dsSIMD2d_sub(b->position.simd2[0], a->position.simd2[0]), a->position.simd2[0]);
+		invT2, a->position.simd2[0], dsSIMD2d_mul(t2, b->position.simd2[0]));
 	result->position.simd2[1] = dsSIMD2d_fmadd(
-		t2, dsSIMD2d_sub(b->position.simd2[1], a->position.simd2[1]), a->position.simd2[1]);
-	result->orientation.simd2[0] = dsSIMD2d_fmadd(t2,
-		dsSIMD2d_sub(b->orientation.simd2[0], a->orientation.simd2[0]), a->orientation.simd2[0]);
-	result->orientation.simd2[1] = dsSIMD2d_fmadd(t2,
-		dsSIMD2d_sub(b->orientation.simd2[1], a->orientation.simd2[1]), a->orientation.simd2[1]);
+		invT2, a->position.simd2[1], dsSIMD2d_mul(t2, b->position.simd2[1]));
+	result->orientation.simd2[0] = dsSIMD2d_fmadd(
+		invT2, a->orientation.simd2[0], dsSIMD2d_mul(t2, b->orientation.simd2[0]));
+	result->orientation.simd2[1] = dsSIMD2d_fmadd(
+		invT2, a->orientation.simd2[1], dsSIMD2d_mul(t2, b->orientation.simd2[1]));
 	result->scale.simd2[0] = dsSIMD2d_fmadd(
-		t2, dsSIMD2d_sub(b->scale.simd2[0], a->scale.simd2[0]), a->scale.simd2[0]);
+		invT2, a->scale.simd2[0], dsSIMD2d_mul(t2, b->scale.simd2[0]));
 	result->scale.simd2[1] = dsSIMD2d_fmadd(
-		t2, dsSIMD2d_sub(b->scale.simd2[1], a->scale.simd2[1]), a->scale.simd2[1]);
+		invT2, a->scale.simd2[1], dsSIMD2d_mul(t2, b->scale.simd2[1]));
 
 	dsSIMD2d len2 = dsDot4FMA2d(result->orientation.simd2[0], result->orientation.simd2[1],
 		result->orientation.simd2[0], result->orientation.simd2[1]);
@@ -1393,20 +1399,17 @@ inline void dsRigidTransform3d_lerpSIMD4(dsRigidTransform3d* DS_ALIGN_PARAM(32) 
 	DS_ASSERT(b);
 
 	dsSIMD4d t4 = dsSIMD4d_set1(t);
+	dsSIMD4d invT4 = dsSIMD4d_set1(1.0 - t);
 #if DS_SIMD_ALWAYS_FMA
-	dsSIMD4d aVal = dsSIMD4d_load(&a->position);
 	dsSIMD4d_store(&result->position, dsSIMD4d_fmadd(
-		t4, dsSIMD4d_sub(dsSIMD4d_load(&b->position), aVal), aVal));
-	aVal = dsSIMD4d_load(&a->scale);
+		invT4, dsSIMD4d_load(&a->position), dsSIMD4d_mul(t4, dsSIMD4d_load(&b->position))));
 	dsSIMD4d_store(&result->scale, dsSIMD4d_fmadd(
-		t4, dsSIMD4d_sub(dsSIMD4d_load(&b->scale), aVal), aVal));
+		invT4, dsSIMD4d_load(&a->scale), dsSIMD4d_mul(t4, dsSIMD4d_load(&b->scale))));
 #else
-	dsSIMD4d aVal = dsSIMD4d_load(&a->position);
-	dsSIMD4d_store(&result->position, dsSIMD4d_add(
-		aVal, dsSIMD4d_mul(t4, dsSIMD4d_sub(dsSIMD4d_load(&b->position), aVal))));
-	aVal = dsSIMD4d_load(&a->scale);
+	dsSIMD4d_store(&result->position, dsSIMD4d_add(dsSIMD4d_mul(invT4, dsSIMD4d_load(&a->position)),
+		dsSIMD4d_mul(t4, dsSIMD4d_load(&b->position))));
 	dsSIMD4d_store(&result->scale, dsSIMD4d_add(
-		aVal, dsSIMD4d_mul(t4, dsSIMD4d_sub(dsSIMD4d_load(&b->scale), aVal))));
+		dsSIMD4d_mul(invT4, dsSIMD4d_load(&a->scale)), dsSIMD4d_mul(t4, dsSIMD4d_load(&b->scale))));
 #endif
 	dsQuaternion4d_slerp(&result->orientation, &a->orientation, &b->orientation, t);
 }
@@ -1420,26 +1423,22 @@ inline void dsRigidTransform3d_nearLerpSIMD4(dsRigidTransform3d* DS_ALIGN_PARAM(
 	DS_ASSERT(b);
 
 	dsSIMD4d t4 = dsSIMD4d_set1(t);
+	dsSIMD4d invT4 = dsSIMD4d_set1(1.0 - t);
 #if DS_SIMD_ALWAYS_FMA
-	dsSIMD4d aVal = dsSIMD4d_load(&a->position);
 	dsSIMD4d_store(&result->position, dsSIMD4d_fmadd(
-		t4, dsSIMD4d_sub(dsSIMD4d_load(&b->position), aVal), aVal));
-	aVal = dsSIMD4d_load(&a->orientation);
+		invT4, dsSIMD4d_load(&a->position), dsSIMD4d_mul(t4, dsSIMD4d_load(&b->position))));
 	dsSIMD4d_store(&result->orientation, dsSIMD4d_fmadd(
-		t4, dsSIMD4d_sub(dsSIMD4d_load(&b->orientation), aVal), aVal));
-	aVal = dsSIMD4d_load(&a->scale);
+		invT4, dsSIMD4d_load(&a->orientation), dsSIMD4d_mul(t4, dsSIMD4d_load(&b->orientation))));
 	dsSIMD4d_store(&result->scale, dsSIMD4d_fmadd(
-		t4, dsSIMD4d_sub(dsSIMD4d_load(&b->scale), aVal), aVal));
+		invT4, dsSIMD4d_load(&a->scale), dsSIMD4d_mul(t4, dsSIMD4d_load(&b->scale))));
 #else
-	dsSIMD4d aVal = dsSIMD4d_load(&a->position);
-	dsSIMD4d_store(&result->position, dsSIMD4d_add(
-		aVal, dsSIMD4d_mul(t4, dsSIMD4d_sub(dsSIMD4d_load(&b->position), aVal))));
-	aVal = dsSIMD4d_load(&a->orientation);
+	dsSIMD4d_store(&result->position, dsSIMD4d_add(dsSIMD4d_mul(invT4, dsSIMD4d_load(&a->position)),
+		dsSIMD4d_mul(t4, dsSIMD4d_load(&b->position))));
 	dsSIMD4d_store(&result->orientation, dsSIMD4d_add(
-		aVal, dsSIMD4d_mul(t4, dsSIMD4d_sub(dsSIMD4d_load(&b->orientation), aVal))));
-	aVal = dsSIMD4d_load(&a->scale);
+		dsSIMD4d_mul(invT4, dsSIMD4d_load(&a->orientation)),
+		dsSIMD4d_mul(t4, dsSIMD4d_load(&b->orientation))));
 	dsSIMD4d_store(&result->scale, dsSIMD4d_add(
-		aVal, dsSIMD4d_mul(t4, dsSIMD4d_sub(dsSIMD4d_load(&b->scale), aVal))));
+		dsSIMD4d_mul(invT4, dsSIMD4d_load(&a->scale)), dsSIMD4d_mul(t4, dsSIMD4d_load(&b->scale))));
 #endif
 
 	dsSIMD4d orientation = dsSIMD4d_load(&result->orientation);
