@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,8 +143,8 @@ static void applyKeyframeAnimationTransforms(WeightedTransform* transforms,
 						{
 							const dsQuaternion4f* firstValue =
 								(dsQuaternion4f*)channel->values + startKeyframe;
-							dsQuaternion4f_slerp((dsQuaternion4f*)&value, firstValue,
-								firstValue + 1, t);
+							dsQuaternion4f_unitLerp(
+								(dsQuaternion4f*)&value, firstValue, firstValue + 1, t);
 						}
 						else
 						{

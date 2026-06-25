@@ -27,6 +27,7 @@
 #include <DeepSea/Math/Trig.h>
 #include <DeepSea/Math/Types.h>
 #include <DeepSea/Math/Vector3x.h>
+#include <DeepSea/Math/Vector4.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -297,6 +298,24 @@ DS_MATH_EXPORT void dsQuaternion4f_slerp(
 DS_MATH_EXPORT void dsQuaternion4d_slerp(
 	dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b, double t);
 
+/**
+ * @brief Performs a linear interpolation between two unit quaternions.
+ *
+ * This may be used as an approximation of a slerp, typically for quaternions that are expected to
+ * be near each-other where the error can be largely ignored.
+ *
+ * @param[out] result The interpolated result. This may be the same as a or b.
+ * @param a The first quaternion.
+ * @param b The second quaternion.
+ * @param t A value in the range [0, 1] to interpolate between a and b.
+ */
+DS_MATH_EXPORT inline void dsQuaternion4f_unitLerp(
+	dsQuaternion4f* result, const dsQuaternion4f* a, const dsQuaternion4f* b, float t);
+
+/** @copydoc dsQuaternion4f_slerp() */
+DS_MATH_EXPORT inline void dsQuaternion4d_unitLerp(
+	dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b, double t);
+
 #if DS_HAS_SIMD
 
 /**
@@ -360,6 +379,21 @@ DS_MATH_EXPORT inline void dsQuaternion4f_normalizeSIMD(
 DS_MATH_EXPORT inline void dsQuaternion4f_rotateSIMD(
 	dsVector3xf* result, const dsQuaternion4f* a, const dsVector3xf* v);
 
+/**
+ * @brief Performs a linear interpolation between two unit quaternions using SIMD operations.
+ *
+ * This may be used as an approximation of a slerp, typically for quaternions that are expected to
+ * be near each-other where the error can be largely ignored.
+ *
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param[out] result The interpolated result. This may be the same as a or b.
+ * @param a The first quaternion.
+ * @param b The second quaternion.
+ * @param t A value in the range [0, 1] to interpolate between a and b.
+ */
+DS_MATH_EXPORT inline void dsQuaternion4f_unitLerpSIMD(
+	dsQuaternion4f* result, const dsQuaternion4f* a, const dsQuaternion4f* b, float t);
+
 #if !DS_DETERMINISTIC_MATH
 
 /**
@@ -410,6 +444,22 @@ DS_MATH_EXPORT inline void dsQuaternion4f_normalizeFMA(
  */
 DS_MATH_EXPORT inline void dsQuaternion4f_rotateFMA(
 	dsVector3xf* result, const dsQuaternion4f* a, const dsVector3xf* v);
+
+/**
+ * @brief Performs a linear interpolation between two unit quaternions using fused multiply-add
+ * operations.
+ *
+ * This may be used as an approximation of a slerp, typically for quaternions that are expected to
+ * be near each-other where the error can be largely ignored.
+ *
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_FMA are available.
+ * @param[out] result The interpolated result. This may be the same as a or b.
+ * @param a The first quaternion.
+ * @param b The second quaternion.
+ * @param t A value in the range [0, 1] to interpolate between a and b.
+ */
+DS_MATH_EXPORT inline void dsQuaternion4f_unitLerpFMA(
+	dsQuaternion4f* result, const dsQuaternion4f* a, const dsQuaternion4f* b, float t);
 
 #endif // !DS_DETERMINISTIC_MATH
 
@@ -474,6 +524,21 @@ DS_MATH_EXPORT inline void dsQuaternion4d_normalizeSIMD2(
 DS_MATH_EXPORT inline void dsQuaternion4d_rotateSIMD2(
 	dsVector3xd* result, const dsQuaternion4d* a, const dsVector3xd* v);
 
+/**
+ * @brief Performs a linear interpolation between two unit quaternions using SIMD operations.
+ *
+ * This may be used as an approximation of a slerp, typically for quaternions that are expected to
+ * be near each-other where the error can be largely ignored.
+ *
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param[out] result The interpolated result. This may be the same as a or b.
+ * @param a The first quaternion.
+ * @param b The second quaternion.
+ * @param t A value in the range [0, 1] to interpolate between a and b.
+ */
+DS_MATH_EXPORT inline void dsQuaternion4d_unitLerpSIMD2(
+	dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b, double t);
+
 #if !DS_DETERMINISTIC_MATH
 
 /**
@@ -524,6 +589,22 @@ DS_MATH_EXPORT inline void dsQuaternion4d_normalizeFMA2(
  */
 DS_MATH_EXPORT inline void dsQuaternion4d_rotateFMA2(
 	dsVector3xd* result, const dsQuaternion4d* a, const dsVector3xd* v);
+
+/**
+ * @brief Performs a linear interpolation between two unit quaternions using fused multiply-add
+ * operations.
+ *
+ * This may be used as an approximation of a slerp, typically for quaternions that are expected to
+ * be near each-other where the error can be largely ignored.
+ *
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_FMA are available.
+ * @param[out] result The interpolated result. This may be the same as a or b.
+ * @param a The first quaternion.
+ * @param b The second quaternion.
+ * @param t A value in the range [0, 1] to interpolate between a and b.
+ */
+DS_MATH_EXPORT inline void dsQuaternion4d_unitLerpFMA2(
+	dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b, double t);
 
 #endif // !DS_DETERMINISTIC_MATH
 
@@ -592,6 +673,23 @@ DS_MATH_EXPORT inline void dsQuaternion4d_normalizeSIMD4(
  */
 DS_MATH_EXPORT inline void dsQuaternion4d_rotateSIMD4(dsVector3xd* DS_ALIGN_PARAM(32) result,
 	const dsQuaternion4d* DS_ALIGN_PARAM(32) a, const dsVector3xd* DS_ALIGN_PARAM(32) v);
+
+/**
+ * @brief Performs a linear interpolation between two unit quaternions using SIMD operations.
+ *
+ * This may be used as an approximation of a slerp, typically for quaternions that are expected to
+ * be near each-other where the error can be largely ignored.
+ *
+ * @remark This can be used when dsSIMDFeatures_Double4 is available, and will use FMA if not
+ *     disabled through enabling determinisitic math.
+ * @param[out] result The interpolated result. This may be the same as a or b.
+ * @param a The first quaternion.
+ * @param b The second quaternion.
+ * @param t A value in the range [0, 1] to interpolate between a and b.
+ */
+DS_MATH_EXPORT inline void dsQuaternion4d_unitLerpSIMD4(dsQuaternion4d* DS_ALIGN_PARAM(32) result,
+	const dsQuaternion4d* DS_ALIGN_PARAM(32) a, const dsQuaternion4d* DS_ALIGN_PARAM(32) b,
+	double t);
 
 #endif // DS_HAS_SIMD
 
@@ -1072,12 +1170,7 @@ inline void dsQuaternion4f_normalize(dsQuaternion4f* result, const dsQuaternion4
 #elif DS_SIMD_ALWAYS_FLOAT4
 	dsQuaternion4f_normalizeSIMD(result, a);
 #else
-	float len2 = dsPow2(a->i) + dsPow2(a->j) + dsPow2(a->k) + dsPow2(a->r);
-	float invLen = 1.0f/dsSqrtf(len2);
-	result->i = a->i*invLen;
-	result->j = a->j*invLen;
-	result->k = a->k*invLen;
-	result->r = a->r*invLen;
+	dsVector4f_normalize((dsVector4f*)result, (const dsVector4f*)a);
 #endif
 }
 
@@ -1090,12 +1183,7 @@ inline void dsQuaternion4d_normalize(dsQuaternion4d* result, const dsQuaternion4
 #elif DS_SIMD_ALWAYS_DOUBLE2
 	dsQuaternion4d_normalizeSIMD2(result, a);
 #else
-	double len2 = dsPow2(a->i) + dsPow2(a->j) + dsPow2(a->k) + dsPow2(a->r);
-	double invLen = 1.0/dsSqrtd(len2);
-	result->i = a->i*invLen;
-	result->j = a->j*invLen;
-	result->k = a->k*invLen;
-	result->r = a->r*invLen;
+	dsVector4d_normalize((dsVector4d*)result, (const dsVector4d*)a);
 #endif
 }
 
@@ -1164,6 +1252,62 @@ inline void dsQuaternion4d_rotate3x(
 	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
 	result->w = 0;
 #endif
+#endif
+}
+
+inline void dsQuaternion4f_unitLerp(
+	dsQuaternion4f* result, const dsQuaternion4f* a, const dsQuaternion4f* b, float t)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+#if DS_SIMD_ALWAYS_FMA
+	dsQuaternion4f_unitLerpFMA(result, a, b, t);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	dsQuaternion4f_unitLerpSIMD(result, a, b, t);
+#else
+	dsVector4f* result4f = (dsVector4f*)result;
+	const dsVector4f* a4f = (const dsVector4f*)a;
+	const dsVector4f* b4f = (const dsVector4f*)b;
+	dsVector4f negB;
+	if (dsVector4f_dot(a4f, b4f) < 0.0f)
+	{
+		dsVector4f_neg(&negB, b4f);
+		b4f = &negB;
+	}
+
+	dsVector4f_lerp(result4f, a4f, b4f, t);
+	dsVector4f_normalize(result4f, result4f);
+#endif
+}
+
+inline void dsQuaternion4d_unitLerp(
+	dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b, double t)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+#if DS_SIMD_PREFER_DOUBLE4
+	dsQuaternion4d_unitLerpSIMD4(result, a, b, t);
+#elif DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_ALWAYS_FMA
+	dsQuaternion4d_unitLerpFMA2(result, a, b, t);
+#else
+	dsQuaternion4d_unitLerpSIMD2(result, a, b, t);
+#endif
+#else
+	dsVector4d* result4d = (dsVector4d*)result;
+	const dsVector4d* a4d = (const dsVector4d*)a;
+	const dsVector4d* b4d = (const dsVector4d*)b;
+	dsVector4d negB;
+	if (dsVector4d_dot(a4d, b4d) < 0.0)
+	{
+		dsVector4d_neg(&negB, b4d);
+		b4d = &negB;
+	}
+
+	dsVector4d_lerp(result4d, a4d, b4d, t);
+	dsVector4d_normalize(result4d, result4d);
 #endif
 }
 
@@ -1429,6 +1573,20 @@ inline void dsQuaternion4f_rotateSIMD(
 	dsQuaternion4f_mulSIMD((dsQuaternion4f*)result, a, &va);
 }
 
+inline void dsQuaternion4f_unitLerpSIMD(
+	dsQuaternion4f* result, const dsQuaternion4f* a, const dsQuaternion4f* b, float t)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+
+	dsSIMD4fb dotNeg = dsSIMD4f_cmplt(dsDot4SIMD4f(a->simd, b->simd), dsSIMD4f_set1(0.0f));
+	dsSIMD4f simdB = dsSIMD4f_select(dotNeg, dsSIMD4f_neg(b->simd), b->simd);
+	result->simd = dsSIMD4f_add(
+		dsSIMD4f_mul(dsSIMD4f_set1(1.0f - t), a->simd), dsSIMD4f_mul(dsSIMD4f_set1(t), simdB));
+	dsQuaternion4f_normalizeSIMD(result, result);
+}
+
 DS_SIMD_END()
 
 #if !DS_DETERMINISTIC_MATH
@@ -1549,6 +1707,20 @@ inline void dsQuaternion4f_rotateFMA(
 	va.simd = dsSIMD4f_fmadd(v2012, a1202, t12);
 
 	dsQuaternion4f_mulFMA((dsQuaternion4f*)result, a, &va);
+}
+
+inline void dsQuaternion4f_unitLerpFMA(
+	dsQuaternion4f* result, const dsQuaternion4f* a, const dsQuaternion4f* b, float t)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+
+	dsSIMD4fb dotNeg = dsSIMD4f_cmplt(dsDot4FMA4f(a->simd, b->simd), dsSIMD4f_set1(0.0f));
+	dsSIMD4f simdB = dsSIMD4f_select(dotNeg, dsSIMD4f_neg(b->simd), b->simd);
+	result->simd = dsSIMD4f_fmadd(
+		dsSIMD4f_set1(1.0f - t), a->simd, dsSIMD4f_mul(dsSIMD4f_set1(t), simdB));
+	dsQuaternion4f_normalizeFMA(result, result);
 }
 
 DS_SIMD_END()
@@ -1788,6 +1960,24 @@ inline void dsQuaternion4d_rotateSIMD2(
 	dsQuaternion4d_mulSIMD2((dsQuaternion4d*)result, a, &va);
 }
 
+inline void dsQuaternion4d_unitLerpSIMD2(
+	dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b, double t)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+
+	dsSIMD2d t2 = dsSIMD2d_set1(t);
+	dsSIMD2d invT2 = dsSIMD2d_set1(1.0 - t);
+	dsSIMD2db dotNeg = dsSIMD2d_cmplt(
+		dsDot4SIMD2d(a->simd2[0], a->simd2[1], b->simd2[0], b->simd2[1]), dsSIMD2d_set1(0.0));
+	dsSIMD2d simdB0 = dsSIMD2d_select(dotNeg, dsSIMD2d_neg(b->simd2[0]), b->simd2[0]);
+	dsSIMD2d simdB1 = dsSIMD2d_select(dotNeg, dsSIMD2d_neg(b->simd2[1]), b->simd2[1]);
+	result->simd2[0] = dsSIMD2d_add(dsSIMD2d_mul(invT2, a->simd2[0]), dsSIMD2d_mul(t2, simdB0));
+	result->simd2[1] = dsSIMD2d_add(dsSIMD2d_mul(invT2, a->simd2[1]), dsSIMD2d_mul(t2, simdB1));
+	dsQuaternion4d_normalizeSIMD2(result, result);
+}
+
 DS_SIMD_END()
 
 #if !DS_DETERMINISTIC_MATH
@@ -1929,6 +2119,24 @@ inline void dsQuaternion4d_rotateFMA2(
 	va.simd2[1] = dsSIMD2d_fmadd(v12, a02, t12_1);
 
 	dsQuaternion4d_mulFMA2((dsQuaternion4d*)result, a, &va);
+}
+
+inline void dsQuaternion4d_unitLerpFMA2(
+	dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b, double t)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+
+	dsSIMD2d t2 = dsSIMD2d_set1(t);
+	dsSIMD2d invT2 = dsSIMD2d_set1(1.0 - t);
+	dsSIMD2db dotNeg = dsSIMD2d_cmplt(
+		dsDot4FMA2d(a->simd2[0], a->simd2[1], b->simd2[0], b->simd2[1]), dsSIMD2d_set1(0.0));
+	dsSIMD2d simdB0 = dsSIMD2d_select(dotNeg, dsSIMD2d_neg(b->simd2[0]), b->simd2[0]);
+	dsSIMD2d simdB1 = dsSIMD2d_select(dotNeg, dsSIMD2d_neg(b->simd2[1]), b->simd2[1]);
+	result->simd2[0] = dsSIMD2d_fmadd(invT2, a->simd2[0], dsSIMD2d_mul(t2, simdB0));
+	result->simd2[1] = dsSIMD2d_fmadd(invT2, a->simd2[1], dsSIMD2d_mul(t2, simdB1));
+	dsQuaternion4d_normalizeFMA2(result, result);
 }
 
 DS_SIMD_END()
@@ -2172,6 +2380,28 @@ inline void dsQuaternion4d_rotateSIMD4(dsVector3xd* DS_ALIGN_PARAM(32) result,
 #endif
 
 	dsQuaternion4d_mulSIMD4((dsQuaternion4d*)result, a, &va);
+}
+
+inline void dsQuaternion4d_unitLerpSIMD4(dsQuaternion4d* DS_ALIGN_PARAM(32) result,
+	const dsQuaternion4d* DS_ALIGN_PARAM(32) a, const dsQuaternion4d* DS_ALIGN_PARAM(32) b,
+	double t)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+
+	dsSIMD4d simdA = dsSIMD4d_load(a);
+	dsSIMD4d simdB = dsSIMD4d_load(b);
+	dsSIMD4db dotNeg = dsSIMD4d_cmplt(dsDot4SIMD4d(simdA, simdB), dsSIMD4d_set1(0.0));
+	simdB = dsSIMD4d_select(dotNeg, dsSIMD4d_neg(simdB), simdB);
+#if DS_SIMD_ALWAYS_FMA
+	dsSIMD4d_store(result, dsSIMD4d_fmadd(
+		dsSIMD4d_set1(1.0 - t), simdA, dsSIMD4d_mul(dsSIMD4d_set1(t), simdB)));
+#else
+	dsSIMD4d_store(result, dsSIMD4d_add(
+		dsSIMD4d_mul(dsSIMD4d_set1(1.0 - t), simdA), dsSIMD4d_mul(dsSIMD4d_set1(t), simdB)));
+#endif
+	dsQuaternion4d_normalizeSIMD4(result, result);
 }
 
 DS_SIMD_END()

@@ -197,7 +197,7 @@ static void dsScenePhysicsList_preStepUpdate(dsPhysicsScene* scene, float time, 
 			dsVector3xf position;
 			dsQuaternion4f orientation;
 			dsVector3xf_lerp(&position, &entry->prevPosition, &entry->targetPosition, t);
-			dsQuaternion4f_slerp(
+			dsQuaternion4f_unitLerp(
 				&orientation, &entry->prevOrientation, &entry->targetOrientation, t);
 			dsRigidBody_setKinematicTarget(rigidBody, time, &position, &orientation);
 
@@ -635,6 +635,7 @@ static void dsScenePhysicsList_preTransformUpdate(
 {
 	DS_ASSERT(itemList);
 	DS_UNUSED(scene);
+	DS_UNUSED(step);
 	dsScenePhysicsList* physicsList = (dsScenePhysicsList*)itemList;
 
 	// Lazily remove entries.
@@ -767,6 +768,8 @@ static void dsScenePhysicsList_preTransformUpdate(
 		stepTime = tick->stepTime;
 		stepCount = 1;
 	}
+	physicsList->updateTime = tick->stepTime;
+	physicsList->thisStepTime = 0.0f;
 	DS_VERIFY(dsPhysicsScene_update(physicsList->physicsScene, stepTime, stepCount));
 
 	// Update scene transforms for rigid bodies in motion.

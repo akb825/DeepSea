@@ -15,7 +15,6 @@
  */
 
 #include <DeepSea/Math/Quaternion.h>
-#include <DeepSea/Math/Vector4.h>
 
 #define dsQuaternion4_fromEulerAnglesImpl(result, cosX, sinX, cosY, sinY, cosZ, sinZ) \
 	do \
@@ -232,6 +231,11 @@ void dsQuaternion4d_mul(dsQuaternion4d* result, const dsQuaternion4d* a, const d
 void dsQuaternion4f_conjugate(dsQuaternion4f* result, const dsQuaternion4f* a);
 void dsQuaternion4d_conjugate(dsQuaternion4d* result, const dsQuaternion4d* a);
 
+void dsQuaternion4f_unitLerp(
+	dsQuaternion4f* result, const dsQuaternion4f* a, const dsQuaternion4f* b, float t);
+void dsQuaternion4d_unitLerp(
+	dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b, double t);
+
 #if DS_HAS_SIMD
 
 void dsQuaternion4f_mulSIMD(
@@ -241,6 +245,8 @@ void dsQuaternion4f_toMatrix33SIMD(dsMatrix33xf* result, const dsQuaternion4f* a
 void dsQuaternion4f_toMatrix44SIMD(dsMatrix44f* result, const dsQuaternion4f* a);
 void dsQuaternion4f_normalizeSIMD(dsQuaternion4f* result, const dsQuaternion4f* a);
 void dsQuaternion4f_rotateSIMD(dsVector3xf* result, const dsQuaternion4f* a, const dsVector3xf* v);
+void dsQuaternion4f_unitLerpSIMD(
+	dsQuaternion4f* result, const dsQuaternion4f* a, const dsQuaternion4f* b, float t);
 
 #if !DS_DETERMINISTIC_MATH
 void dsQuaternion4f_mulFMA(
@@ -249,6 +255,8 @@ void dsQuaternion4f_toMatrix33FMA(dsMatrix33xf* result, const dsQuaternion4f* a)
 void dsQuaternion4f_toMatrix44FMA(dsMatrix44f* result, const dsQuaternion4f* a);
 void dsQuaternion4f_normalizeFMA(dsQuaternion4f* result, const dsQuaternion4f* a);
 void dsQuaternion4f_rotateFMA(dsVector3xf* result, const dsQuaternion4f* a, const dsVector3xf* v);
+void dsQuaternion4f_unitLerpFMA(
+	dsQuaternion4f* result, const dsQuaternion4f* a, const dsQuaternion4f* b, float t);
 #endif // !DS_DETERMINISTIC_MATH
 
 void dsQuaternion4d_mulSIMD2(
@@ -258,6 +266,8 @@ void dsQuaternion4d_toMatrix33SIMD2(dsMatrix33xd* result, const dsQuaternion4d* 
 void dsQuaternion4d_toMatrix44SIMD2(dsMatrix44d* result, const dsQuaternion4d* a);
 void dsQuaternion4d_normalizeSIMD2(dsQuaternion4d* result, const dsQuaternion4d* a);
 void dsQuaternion4d_rotateSIMD2(dsVector3xd* result, const dsQuaternion4d* a, const dsVector3xd* v);
+void dsQuaternion4d_unitLerpSIMD2(
+	dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b, double t);
 
 #if !DS_DETERMINISTIC_MATH
 void dsQuaternion4d_mulFMA2(
@@ -266,6 +276,8 @@ void dsQuaternion4d_toMatrix33FMA2(dsMatrix33xd* result, const dsQuaternion4d* a
 void dsQuaternion4d_toMatrix44FMA2(dsMatrix44d* result, const dsQuaternion4d* a);
 void dsQuaternion4d_normalizeFMA2(dsQuaternion4d* result, const dsQuaternion4d* a);
 void dsQuaternion4d_rotateFMA2(dsVector3xd* result, const dsQuaternion4d* a, const dsVector3xd* v);
+void dsQuaternion4d_unitLerpFMA2(
+	dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b, double t);
 #endif // !DS_DETERMINISTIC_MATH
 
 void dsQuaternion4d_mulSIMD4(dsQuaternion4d* DS_ALIGN_PARAM(32) result,
@@ -280,5 +292,8 @@ void dsQuaternion4d_normalizeSIMD4(
 	dsQuaternion4d* DS_ALIGN_PARAM(32) result, const dsQuaternion4d* DS_ALIGN_PARAM(32) a);
 void dsQuaternion4d_rotateSIMD4(dsVector3xd* DS_ALIGN_PARAM(32) result,
 	const dsQuaternion4d* DS_ALIGN_PARAM(32) a, const dsVector3xd* DS_ALIGN_PARAM(32) v);
+void dsQuaternion4d_unitLerpSIMD4(dsQuaternion4d* DS_ALIGN_PARAM(32) result,
+	const dsQuaternion4d* DS_ALIGN_PARAM(32) a, const dsQuaternion4d* DS_ALIGN_PARAM(32) b,
+	double t);
 
 #endif // DS_HAS_SIMD

@@ -250,6 +250,18 @@ inline void dsQuaternion4_slerp(
 	dsQuaternion4d_slerp(result, a, b, t);
 }
 
+inline void dsQuaternion4_unitLerp(
+	dsQuaternion4f* result, const dsQuaternion4f* a, const dsQuaternion4f* b, float t)
+{
+	dsQuaternion4f_unitLerp(result, a, b, t);
+}
+
+inline void dsQuaternion4_unitLerp(
+	dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b, double t)
+{
+	dsQuaternion4d_unitLerp(result, a, b, t);
+}
+
 inline void dsMatrix33_makeRotate3D(dsMatrix33f* result, float x, float y, float z)
 {
 	dsMatrix33f_makeRotate3D(result, x, y, z);
@@ -551,7 +563,7 @@ TYPED_TEST(QuaternionTest, Slerp)
 	typedef typename QuaternionTypeSelector<TypeParam>::Vector3Type Vector3Type;
 	TypeParam epsilon = QuaternionTypeSelector<TypeParam>::epsilon;
 
-	Vector3Type axis = {{1.2f, -3.4f, 2.1f}};
+	Vector3Type axis = {{TypeParam(1.2), TypeParam(-3.4), TypeParam(2.1)}};
 	dsVector3_normalize(&axis, &axis);
 	auto theta0 = TypeParam(-M_PI/3);
 	auto theta1 = TypeParam(M_PI/2);
@@ -576,6 +588,44 @@ TYPED_TEST(QuaternionTest, Slerp)
 	theta1 = 2*TypeParam(M_PI) + theta1; // Wraps around the other way.
 	dsQuaternion4_fromAxisAngle(&q01, &axis, dsLerp(theta0, theta1, t));
 	dsQuaternion4_slerp(&sq01, &q0, &q1, t);
+
+	EXPECT_NEAR(q01.r, sq01.r, epsilon);
+	EXPECT_NEAR(q01.i, sq01.i, epsilon);
+	EXPECT_NEAR(q01.j, sq01.j, epsilon);
+	EXPECT_NEAR(q01.k, sq01.k, epsilon);
+}
+
+TYPED_TEST(QuaternionTest, UnitLerp)
+{
+	typedef typename QuaternionTypeSelector<TypeParam>::QuaternionType QuaternionType;
+	typedef typename QuaternionTypeSelector<TypeParam>::Vector3Type Vector3Type;
+	TypeParam epsilon = TypeParam(0.05);
+
+	Vector3Type axis = {{TypeParam(1.2), TypeParam(-3.4), TypeParam(2.1)}};
+	dsVector3_normalize(&axis, &axis);
+	auto theta0 = TypeParam(-M_PI/3);
+	auto theta1 = TypeParam(M_PI/2);
+	auto t = TypeParam(0.37);
+
+	QuaternionType q0, q1, q01, sq01;
+	dsQuaternion4_fromAxisAngle(&q0, &axis, theta0);
+	dsQuaternion4_fromAxisAngle(&q1, &axis, theta1);
+	dsQuaternion4_fromAxisAngle(&q01, &axis, dsLerp(theta0, theta1, t));
+	dsQuaternion4_unitLerp(&sq01, &q0, &q1, t);
+
+	EXPECT_NEAR(q01.r, sq01.r, epsilon);
+	EXPECT_NEAR(q01.i, sq01.i, epsilon);
+	EXPECT_NEAR(q01.j, sq01.j, epsilon);
+	EXPECT_NEAR(q01.k, sq01.k, epsilon);
+
+	theta0 = TypeParam(M_PI*4/3);
+	theta1 = TypeParam(-M_PI);
+
+	dsQuaternion4_fromAxisAngle(&q0, &axis, theta0);
+	dsQuaternion4_fromAxisAngle(&q1, &axis, theta1);
+	theta1 = 2*TypeParam(M_PI) + theta1; // Wraps around the other way.
+	dsQuaternion4_fromAxisAngle(&q01, &axis, dsLerp(theta0, theta1, t));
+	dsQuaternion4_unitLerp(&sq01, &q0, &q1, t);
 
 	EXPECT_NEAR(q01.r, sq01.r, epsilon);
 	EXPECT_NEAR(q01.i, sq01.i, epsilon);
@@ -1381,6 +1431,233 @@ TEST(Quaternion4dTest, RotateSIMD4)
 	EXPECT_EQ_DETERMINISTIC(4.0298082997966667, vq.x, epsilon);
 	EXPECT_EQ_DETERMINISTIC(-4.8506976170860687, vq.y, epsilon);
 	EXPECT_EQ_DETERMINISTIC(-2.1427500307981391, vq.z, epsilon);
+}
+
+TEST(Quaternion4fTest, UnitLerpSIMD)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		return;
+
+	float epsilon = QuaternionTypeSelector<float>::epsilon;
+	DS_UNUSED(epsilon);
+
+	dsVector3f axis = {{1.2f, -3.4f, 2.1f}};
+	dsVector3f_normalize(&axis, &axis);
+	float theta0 = -M_PIf/3;
+	float theta1 = M_PIf/2;
+	float t = 0.37f;
+
+	dsQuaternion4f q0, q1, scalarQ01, q01;
+	dsQuaternion4f_fromAxisAngle(&q0, &axis, theta0);
+	dsQuaternion4f_fromAxisAngle(&q1, &axis, theta1);
+	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
+	dsQuaternion4f_unitLerp(&scalarQ01, &q0, &q1, t);
+	dsQuaternion4f_unitLerpSIMD(&q01, &q0, &q1, t);
+
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.i, q01.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.j, q01.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.k, q01.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.r, q01.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.018973209f, q01.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.0537574477f, q01.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0332031175f, q01.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.99782145f, q01.r, epsilon);
+
+	theta0 = M_PIf*4/3;
+	theta1 = -M_PIf;
+
+	dsQuaternion4f_fromAxisAngle(&q0, &axis, theta0);
+	dsQuaternion4f_fromAxisAngle(&q1, &axis, theta1);
+	dsQuaternion4f_unitLerp(&scalarQ01, &q0, &q1, t);
+	dsQuaternion4f_unitLerpSIMD(&q01, &q0, &q1, t);
+
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.i, q01.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.j, q01.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.k, q01.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.r, q01.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.271951f, q01.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.77052778f, q01.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.47591418f, q01.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.325323492f, q01.r, epsilon);
+}
+
+#if !DS_DETERMINISTIC_MATH
+TEST(Quaternion4fTest, UnitLerpFMA)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+		return;
+
+	float epsilon = QuaternionTypeSelector<float>::epsilon;
+
+	dsVector3f axis = {{1.2f, -3.4f, 2.1f}};
+	dsVector3f_normalize(&axis, &axis);
+	float theta0 = -M_PIf/3;
+	float theta1 = M_PIf/2;
+	float t = 0.37f;
+
+	dsQuaternion4f q0, q1, q01;
+	dsQuaternion4f_fromAxisAngle(&q0, &axis, theta0);
+	dsQuaternion4f_fromAxisAngle(&q1, &axis, theta1);
+	dsQuaternion4f_unitLerpFMA(&q01, &q0, &q1, t);
+
+	EXPECT_NEAR(-0.018973209f, q01.i, epsilon);
+	EXPECT_NEAR(0.0537574477f, q01.j, epsilon);
+	EXPECT_NEAR(-0.0332031175f, q01.k, epsilon);
+	EXPECT_NEAR(0.99782145f, q01.r, epsilon);
+
+	theta0 = M_PIf*4/3;
+	theta1 = -M_PIf;
+
+	dsQuaternion4f_fromAxisAngle(&q0, &axis, theta0);
+	dsQuaternion4f_fromAxisAngle(&q1, &axis, theta1);
+	dsQuaternion4f_unitLerpFMA(&q01, &q0, &q1, t);
+
+	EXPECT_NEAR(0.271951f, q01.i, epsilon);
+	EXPECT_NEAR(-0.77052778f, q01.j, epsilon);
+	EXPECT_NEAR(0.47591418f, q01.k, epsilon);
+	EXPECT_NEAR(-0.325323492f, q01.r, epsilon);
+}
+#endif // !DS_DETERMINISTIC_MATH
+
+TEST(Quaternion4dTest, UnitLerpSIMD2)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
+		return;
+
+	double epsilon = QuaternionTypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
+
+	dsVector3d axis = {{1.2, -3.4, 2.1}};
+	dsVector3d_normalize(&axis, &axis);
+	double theta0 = -M_PI/3;
+	double theta1 = M_PI/2;
+	double t = 0.37;
+
+	dsQuaternion4d q0, q1, scalarQ01, q01;
+	dsQuaternion4d_fromAxisAngle(&q0, &axis, theta0);
+	dsQuaternion4d_fromAxisAngle(&q1, &axis, theta1);
+	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
+	dsQuaternion4d_unitLerp(&scalarQ01, &q0, &q1, t);
+	dsQuaternion4d_unitLerpSIMD2(&q01, &q0, &q1, t);
+
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.i, q01.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.j, q01.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.k, q01.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.r, q01.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.018973219323469841, q01.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.053757454749831166, q01.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.033203133816072199, q01.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.99782147948023014, q01.r, epsilon);
+
+	theta0 = M_PI*4/3;
+	theta1 = -M_PI;
+
+	dsQuaternion4d_fromAxisAngle(&q0, &axis, theta0);
+	dsQuaternion4d_fromAxisAngle(&q1, &axis, theta1);
+	dsQuaternion4d_unitLerp(&scalarQ01, &q0, &q1, t);
+	dsQuaternion4d_unitLerpSIMD2(&q01, &q0, &q1, t);
+
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.i, q01.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.j, q01.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.k, q01.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.r, q01.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.27195096528547191, q01.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.77052773497550353, q01.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.47591418924957574, q01.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.32532347991612776, q01.r, epsilon);
+}
+
+#if !DS_DETERMINISTIC_MATH
+TEST(Quaternion4dTest, UnitLerpFMA2)
+{
+	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
+	if ((dsHostSIMDFeatures & features) != features)
+		return;
+
+	double epsilon = QuaternionTypeSelector<double>::epsilon;
+
+	dsVector3d axis = {{1.2, -3.4, 2.1}};
+	dsVector3d_normalize(&axis, &axis);
+	double theta0 = -M_PI/3;
+	double theta1 = M_PI/2;
+	double t = 0.37;
+
+	dsQuaternion4d q0, q1, q01;
+	dsQuaternion4d_fromAxisAngle(&q0, &axis, theta0);
+	dsQuaternion4d_fromAxisAngle(&q1, &axis, theta1);
+	dsQuaternion4d_unitLerpFMA2(&q01, &q0, &q1, t);
+
+	EXPECT_NEAR(-0.018973219323469841, q01.i, epsilon);
+	EXPECT_NEAR(0.053757454749831166, q01.j, epsilon);
+	EXPECT_NEAR(-0.033203133816072199, q01.k, epsilon);
+	EXPECT_NEAR(0.99782147948023014, q01.r, epsilon);
+
+	theta0 = M_PI*4/3;
+	theta1 = -M_PI;
+
+	dsQuaternion4d_fromAxisAngle(&q0, &axis, theta0);
+	dsQuaternion4d_fromAxisAngle(&q1, &axis, theta1);
+	dsQuaternion4d_unitLerpFMA2(&q01, &q0, &q1, t);
+
+	EXPECT_NEAR(0.27195096528547191, q01.i, epsilon);
+	EXPECT_NEAR(-0.77052773497550353, q01.j, epsilon);
+	EXPECT_NEAR(0.47591418924957574, q01.k, epsilon);
+	EXPECT_NEAR(-0.32532347991612776, q01.r, epsilon);
+}
+#endif // !DS_DETERMINISTIC_MATH
+
+TEST(Quaternion4dTest, UnitLerpSIMD4)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
+		return;
+
+	double epsilon = QuaternionTypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
+
+	dsVector3d axis = {{1.2, -3.4, 2.1}};
+	dsVector3d_normalize(&axis, &axis);
+	double theta0 = -M_PI/3;
+	double theta1 = M_PI/2;
+	double t = 0.37;
+
+	DS_ALIGN(32) dsQuaternion4d q0, q1, scalarQ01, q01;
+	dsQuaternion4d_fromAxisAngle(&q0, &axis, theta0);
+	dsQuaternion4d_fromAxisAngle(&q1, &axis, theta1);
+	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
+	dsQuaternion4d_unitLerp(&scalarQ01, &q0, &q1, t);
+	dsQuaternion4d_unitLerpSIMD4(&q01, &q0, &q1, t);
+
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.i, q01.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.j, q01.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.k, q01.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.r, q01.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.018973219323469841, q01.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.053757454749831166, q01.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.033203133816072199, q01.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.99782147948023014, q01.r, epsilon);
+
+	theta0 = M_PI*4/3;
+	theta1 = -M_PI;
+
+	dsQuaternion4d_fromAxisAngle(&q0, &axis, theta0);
+	dsQuaternion4d_fromAxisAngle(&q1, &axis, theta1);
+	dsQuaternion4d_unitLerp(&scalarQ01, &q0, &q1, t);
+	dsQuaternion4d_unitLerpSIMD4(&q01, &q0, &q1, t);
+
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.i, q01.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.j, q01.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.k, q01.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarQ01.r, q01.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.27195096528547191, q01.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.77052773497550353, q01.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.47591418924957574, q01.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.32532347991612776, q01.r, epsilon);
 }
 
 #endif // DS_HAS_SIMD

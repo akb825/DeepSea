@@ -212,7 +212,7 @@ static void dsSceneHandoffList_preTransformUpdate(
 			dsQuaternion4f orientation;
 			dsVector3xf_lerp(&position, &entry->prevPosition, &targetPosition, entry->t);
 			dsVector3xf_lerp(&scale, &entry->prevScale, &targetScale, entry->t);
-			dsQuaternion4f_slerp(
+			dsQuaternion4f_unitLerp(
 				&orientation, &entry->prevOrientation, &targetOrientation, entry->t);
 
 			dsMatrix44f_composeTransform(&relativeTransform, &position, &orientation, &scale);
