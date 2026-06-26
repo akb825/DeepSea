@@ -40,6 +40,11 @@ void dsRigidTransform3f_mul(
 void dsRigidTransform3d_mul(
 	dsRigidTransform3d* result, const dsRigidTransform3d* a, const dsRigidTransform3d* b);
 
+void dsRigidTransform3f_transform(
+	dsVector3xf* result, const dsRigidTransform3f* transform, const dsVector3xf* point);
+void dsRigidTransform3d_transform(
+	dsVector3xd* result, const dsRigidTransform3d* transform, const dsVector3xd* point);
+
 void dsRigidTransform3f_lerp(
 	dsRigidTransform3f* result, const dsRigidTransform3f* a, const dsRigidTransform3f* b, float t);
 void dsRigidTransform3d_lerp(
@@ -61,6 +66,8 @@ void dsRigidTransform3f_makeOrientationConsistentSIMD(
 	dsRigidTransform3f* transform, const dsQuaternion4f* otherOrientation);
 void dsRigidTransform3f_mulSIMD(
 	dsRigidTransform3f* result, const dsRigidTransform3f* a, const dsRigidTransform3f* b);
+void dsRigidTransform3f_transformSIMD(
+	dsVector3xf* result, const dsRigidTransform3f* transform, const dsVector3xf* point);
 void dsRigidTransform3f_lerpSIMD(
 	dsRigidTransform3f* result, const dsRigidTransform3f* a, const dsRigidTransform3f* b, float t);
 void dsRigidTransform3f_nearLerpSIMD(
@@ -73,6 +80,8 @@ void dsRigidTransform3f_makeOrientationConsistentFMA(
 	dsRigidTransform3f* transform, const dsQuaternion4f* otherOrientation);
 void dsRigidTransform3f_mulFMA(
 	dsRigidTransform3f* result, const dsRigidTransform3f* a, const dsRigidTransform3f* b);
+void dsRigidTransform3f_transformFMA(
+	dsVector3xf* result, const dsRigidTransform3f* transform, const dsVector3xf* point);
 void dsRigidTransform3f_lerpFMA(
 	dsRigidTransform3f* result, const dsRigidTransform3f* a, const dsRigidTransform3f* b, float t);
 void dsRigidTransform3f_nearLerpFMA(
@@ -85,6 +94,8 @@ void dsRigidTransform3d_makeOrientationConsistentSIMD2(
 	dsRigidTransform3d* transform, const dsQuaternion4d* otherOrientation);
 void dsRigidTransform3d_mulSIMD2(
 	dsRigidTransform3d* result, const dsRigidTransform3d* a, const dsRigidTransform3d* b);
+void dsRigidTransform3d_transformSIMD2(
+	dsVector3xd* result, const dsRigidTransform3d* transform, const dsVector3xd* point);
 void dsRigidTransform3d_lerpSIMD2(
 	dsRigidTransform3d* result, const dsRigidTransform3d* a, const dsRigidTransform3d* b, double t);
 void dsRigidTransform3d_nearLerpSIMD2(
@@ -97,6 +108,8 @@ void dsRigidTransform3d_makeOrientationConsistentFMA2(
 	dsRigidTransform3d* transform, const dsQuaternion4d* otherOrientation);
 void dsRigidTransform3d_mulFMA2(
 	dsRigidTransform3d* result, const dsRigidTransform3d* a, const dsRigidTransform3d* b);
+void dsRigidTransform3d_transformFMA2(
+	dsVector3xd* result, const dsRigidTransform3d* transform, const dsVector3xd* point);
 void dsRigidTransform3d_lerpFMA2(
 	dsRigidTransform3d* result, const dsRigidTransform3d* a, const dsRigidTransform3d* b, double t);
 void dsRigidTransform3d_nearLerpFMA2(
@@ -112,6 +125,8 @@ void dsRigidTransform3d_makeOrientationConsistentSIMD4(
 	const dsQuaternion4d* DS_ALIGN_PARAM(32) otherOrientation);
 void dsRigidTransform3d_mulSIMD4(dsRigidTransform3d* DS_ALIGN_PARAM(32) result,
 	const dsRigidTransform3d* DS_ALIGN_PARAM(32) a, const dsRigidTransform3d* DS_ALIGN_PARAM(32) b);
+void dsRigidTransform3d_transformSIMD4(
+	dsVector3xd* result, const dsRigidTransform3d* transform, const dsVector3xd* point);
 void dsRigidTransform3d_lerpSIMD4(dsRigidTransform3d* DS_ALIGN_PARAM(32) result,
 	const dsRigidTransform3d* DS_ALIGN_PARAM(32) a, const dsRigidTransform3d* DS_ALIGN_PARAM(32) b,
 	double t);

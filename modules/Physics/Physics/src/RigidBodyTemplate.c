@@ -30,7 +30,7 @@
 #include <DeepSea/Core/Log.h>
 
 #include <DeepSea/Math/Core.h>
-#include <DeepSea/Math/Quaternion.h>
+#include <DeepSea/Math/RigidTransform3.h>
 
 #include <DeepSea/Physics/Shapes/PhysicsShape.h>
 #include <DeepSea/Physics/PhysicsMassProperties.h>
@@ -460,26 +460,21 @@ dsRigidBody* dsRigidBodyTemplate_instantiate(const dsRigidBodyTemplate* rigidBod
 	init.layer = rigidBodyTemplate->layer;
 	init.collisionGroup = rigidBodyTemplate->collisionGroup;
 	init.canCollisionGroupsCollideFunc = rigidBodyTemplate->canCollisionGroupsCollideFunc;
-	if (position)
-		init.position = *position;
-	else
-		memset(&init.position, 0, sizeof(init.position));
-	if (orientation)
-		init.orientation = *orientation;
-	else
-		dsQuaternion4_identityRotation(init.orientation);
-	if (scale)
-		init.scale = *scale;
-	else
-		memset(&init.scale, 0, sizeof(init.scale));
+	dsRigidTransform3f_initialize(&init.transform, position, orientation, scale);
 	if (linearVelocity)
 		init.linearVelocity = *linearVelocity;
 	else
-		memset(&init.linearVelocity, 0, sizeof(init.linearVelocity));
+	{
+		init.linearVelocity.x = init.linearVelocity.y = init.linearVelocity.z =
+			init.linearVelocity.w = 0.0f;
+	}
 	if (angularVelocity)
 		init.angularVelocity = *angularVelocity;
 	else
-		memset(&init.angularVelocity, 0, sizeof(init.angularVelocity));
+	{
+		init.angularVelocity.x = init.angularVelocity.y = init.angularVelocity.z =
+			init.angularVelocity.w = 0.0f;
+	}
 	init.friction = rigidBodyTemplate->friction;
 	init.restitution = rigidBodyTemplate->restitution;
 	init.hardness = rigidBodyTemplate->hardness;

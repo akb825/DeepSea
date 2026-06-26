@@ -21,7 +21,7 @@
 #include <DeepSea/Core/Log.h>
 
 #include <DeepSea/Math/Core.h>
-#include <DeepSea/Math/Quaternion.h>
+#include <DeepSea/Math/RigidTransform3.h>
 
 #include <string.h>
 
@@ -44,6 +44,14 @@ bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit,
 		return false;
 	}
 
+	if (scale && !(flags & dsRigidBodyFlags_Scalable) &&
+		(scale->x != 1.0f || scale->y != 1.0f || scale->z != 1.0f))
+	{
+		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
+			"Rigid body must have scalable flag set to have a scale.");
+		return false;
+	}
+
 	rigidBodyInit->userData = NULL;
 	rigidBodyInit->destroyUserDataFunc = NULL;
 	rigidBodyInit->group = NULL;
@@ -53,38 +61,11 @@ bool dsRigidBodyInit_initialize(dsRigidBodyInit* rigidBodyInit,
 	rigidBodyInit->layer = layer;
 	rigidBodyInit->collisionGroup = 0;
 	rigidBodyInit->canCollisionGroupsCollideFunc = NULL;
-
-	if (position)
-		rigidBodyInit->position = *position;
-	else
-		memset(&rigidBodyInit->position, 0, sizeof(rigidBodyInit->position));
-
-	if (orientation)
-		rigidBodyInit->orientation = *orientation;
-	else
-		dsQuaternion4_identityRotation(rigidBodyInit->orientation);
-
-	if (scale)
-	{
-		if (!(flags & dsRigidBodyFlags_Scalable) &&
-			(scale->x != 1 || scale->y != 1 || scale->z != 1))
-		{
-			DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
-				"Rigid body must have scalable flag set to have a scale.");
-			return false;
-		}
-		rigidBodyInit->scale = *scale;
-	}
-	else
-	{
-		rigidBodyInit->scale.x = 1;
-		rigidBodyInit->scale.y = 1;
-		rigidBodyInit->scale.z = 1;
-	}
-
-	memset(&rigidBodyInit->linearVelocity, 0, sizeof(rigidBodyInit->linearVelocity));
-	memset(&rigidBodyInit->angularVelocity, 0, sizeof(rigidBodyInit->angularVelocity));
-
+	dsRigidTransform3f_initialize(&rigidBodyInit->transform, position, orientation, scale);
+	rigidBodyInit->linearVelocity.x = rigidBodyInit->linearVelocity.y =
+		rigidBodyInit->linearVelocity.z = rigidBodyInit->linearVelocity.w = 0.0f;
+	rigidBodyInit->angularVelocity.x = rigidBodyInit->angularVelocity.y =
+		rigidBodyInit->angularVelocity.z = rigidBodyInit->angularVelocity.w = 0.0f;
 	rigidBodyInit->friction = friction;
 	rigidBodyInit->restitution = restitution;
 	rigidBodyInit->hardness = hardness;
@@ -164,24 +145,25 @@ bool dsRigidBodyInit_isValid(const dsRigidBodyInit* rigidBodyInit)
 
 	// Must be identity scale if not scalable.
 	if (!(rigidBodyInit->flags & dsRigidBodyFlags_Scalable) &&
-		(rigidBodyInit->scale.x != 1 || rigidBodyInit->scale.y != 1 || rigidBodyInit->scale.z != 1))
+		(rigidBodyInit->transform.scale.x != 1.0f || rigidBodyInit->transform.scale.y != 1.0f ||
+		rigidBodyInit->transform.scale.z != 1.0f))
 	{
 		return false;
 	}
 
 	// Cannot have a velocity set if not dynamic.
 	if (rigidBodyInit->motionType != dsPhysicsMotionType_Dynamic &&
-		(rigidBodyInit->linearVelocity.x != 0 || rigidBodyInit->linearVelocity.y != 0 ||
-		rigidBodyInit->linearVelocity.z != 0 || rigidBodyInit->angularVelocity.x != 0 ||
-		rigidBodyInit->angularVelocity.y != 0 || rigidBodyInit->angularVelocity.z != 0))
+		(rigidBodyInit->linearVelocity.x != 0.0f || rigidBodyInit->linearVelocity.y != 0.0f ||
+		rigidBodyInit->linearVelocity.z != 0.0f || rigidBodyInit->angularVelocity.x != 0.0f ||
+		rigidBodyInit->angularVelocity.y != 0.0f || rigidBodyInit->angularVelocity.z != 0.0f))
 	{
 		return false;
 	}
 
 	// General ranges.
-	return rigidBodyInit->friction >= 0 && rigidBodyInit->restitution >= 0 &&
-		rigidBodyInit->restitution <= 1 && rigidBodyInit->hardness <= 0 &&
-		rigidBodyInit->hardness >= 1 && rigidBodyInit->linearDamping >= 0 &&
-		rigidBodyInit->angularDamping >= 0 && rigidBodyInit->maxLinearVelocity >= 0 &&
-		rigidBodyInit->maxAngularVelocity >= 0;
+	return rigidBodyInit->friction >= 0.0f && rigidBodyInit->restitution >= 0.0f &&
+		rigidBodyInit->restitution <= 1.0f && rigidBodyInit->hardness <= 0.0f &&
+		rigidBodyInit->hardness >= 1.0f && rigidBodyInit->linearDamping >= 0.0f &&
+		rigidBodyInit->angularDamping >= 0.0f && rigidBodyInit->maxLinearVelocity >= 0.0f &&
+		rigidBodyInit->maxAngularVelocity >= 0.0f;
 }

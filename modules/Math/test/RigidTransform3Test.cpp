@@ -124,6 +124,18 @@ inline void dsRigidTransform3_mul(
 	dsRigidTransform3d_mul(result, a, b);
 }
 
+inline void dsRigidTransform3_transform(
+	dsVector3xf* result, const dsRigidTransform3f* transform, const dsVector3xf* point)
+{
+	dsRigidTransform3f_transform(result, transform, point);
+}
+
+inline void dsRigidTransform3_transform(
+	dsVector3xd* result, const dsRigidTransform3d* transform, const dsVector3xd* point)
+{
+	dsRigidTransform3d_transform(result, transform, point);
+}
+
 inline void dsRigidTransform3_lerp(
 	dsRigidTransform3f* result, const dsRigidTransform3f* a, const dsRigidTransform3f* b, float t)
 {
@@ -544,9 +556,41 @@ TYPED_TEST(RigidTransform3Test, Multiply)
 	EXPECT_NEAR(expectedMatrix.values[3][3], matrix.values[3][3], epsilon);
 }
 
+TYPED_TEST(RigidTransform3Test, Transform)
+{
+	typedef typename RigidTransform3TypeSelector<TypeParam>::RigidTransform3Type
+		RigidTransform3Type;
+	typedef typename RigidTransform3TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
+	typedef typename RigidTransform3TypeSelector<TypeParam>::Vector3xType Vector3xType;
+	typedef typename RigidTransform3TypeSelector<TypeParam>::Quaternion4Type Quaternion4Type;
+	TypeParam epsilon = RigidTransform3TypeSelector<TypeParam>::epsilon;
+
+	Vector3xType position = {{(TypeParam)-10, (TypeParam)20, (TypeParam)-30}};
+	Quaternion4Type orientation;
+	dsQuaternion4_fromEulerAngles(&orientation, dsRadiansToDegrees((TypeParam)-10),
+		dsRadiansToDegrees((TypeParam)15), dsRadiansToDegrees((TypeParam)-20));
+	Vector3xType scale = {{(TypeParam)0.1, (TypeParam)0.2, (TypeParam)0.3}};
+	RigidTransform3Type transform;
+	dsRigidTransform3_initialize(&transform, &position, &orientation, &scale);
+
+	Vector3xType point = {{(TypeParam)1.2, (TypeParam)-3.4, (TypeParam)5.6, (TypeParam)1}};
+
+	Matrix44Type matrix;
+	dsRigidTransform3_toMatrix(&matrix, &transform);
+	Vector3xType expectedResult;
+	dsMatrix44_transform(expectedResult, matrix, point);
+
+	Vector3xType result;
+	dsRigidTransform3_transform(&result, &transform, &point);
+	EXPECT_NEAR(expectedResult.x, result.x, epsilon);
+	EXPECT_NEAR(expectedResult.y, result.y, epsilon);
+	EXPECT_NEAR(expectedResult.z, result.z, epsilon);
+}
+
 TYPED_TEST(RigidTransform3Test, Lerp)
 {
-	typedef typename RigidTransform3TypeSelector<TypeParam>::RigidTransform3Type RigidTransform3Type;
+	typedef typename RigidTransform3TypeSelector<TypeParam>::RigidTransform3Type
+		RigidTransform3Type;
 	typedef typename RigidTransform3TypeSelector<TypeParam>::Vector3xType Vector3xType;
 	typedef typename RigidTransform3TypeSelector<TypeParam>::Quaternion4Type Quaternion4Type;
 	TypeParam epsilon = RigidTransform3TypeSelector<TypeParam>::epsilon;
@@ -611,7 +655,8 @@ TYPED_TEST(RigidTransform3Test, Lerp)
 
 TYPED_TEST(RigidTransform3Test, NearLerp)
 {
-	typedef typename RigidTransform3TypeSelector<TypeParam>::RigidTransform3Type RigidTransform3Type;
+	typedef typename RigidTransform3TypeSelector<TypeParam>::RigidTransform3Type
+		RigidTransform3Type;
 	typedef typename RigidTransform3TypeSelector<TypeParam>::Vector3xType Vector3xType;
 	typedef typename RigidTransform3TypeSelector<TypeParam>::Quaternion4Type Quaternion4Type;
 	TypeParam epsilon = RigidTransform3TypeSelector<TypeParam>::epsilon;
@@ -1702,6 +1747,147 @@ TEST(RigidTransform3dTest, MultiplySIMD4)
 	EXPECT_EQ_DETERMINISTIC(0.12, transform.scale.x, epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.26, transform.scale.y, epsilon);
 	EXPECT_EQ_DETERMINISTIC(0.42, transform.scale.z, epsilon);
+}
+
+TEST(RigidTransform3fTest, TransformSIMD)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		return;
+
+	float epsilon = RigidTransform3TypeSelector<float>::epsilon;
+	DS_UNUSED(epsilon);
+
+	dsVector3xf position = {{-10.0f, 20.0f, -30.0f}};
+	dsQuaternion4f orientation;
+	dsQuaternion4f_fromEulerAngles(&orientation, dsRadiansToDegreesf(-10.0f),
+		dsRadiansToDegreesf(15.0f), dsRadiansToDegreesf(-20.0f));
+	dsVector3xf scale = {{0.1f, 0.2f, 0.3f}};
+	dsRigidTransform3f transform;
+	dsRigidTransform3f_initialize(&transform, &position, &orientation, &scale);
+
+	dsVector3xf point = {{1.2f, -3.4f, 5.6f, 7.8f}};
+	dsVector3xf scalarResult, result;
+	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
+	dsRigidTransform3f_transform(&scalarResult, &transform, &point);
+	dsRigidTransform3f_transformSIMD(&result, &transform, &point);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.x, result.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.y, result.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.z, result.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-8.22712231f, result.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(19.8952637f, result.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-29.6190338f, result.z, epsilon);
+}
+
+#if !DS_DETERMINISTIC_MATH
+TEST(RigidTransform3fTest, TransformFMA)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+		return;
+
+	float epsilon = RigidTransform3TypeSelector<float>::epsilon;
+
+	dsVector3xf position = {{-10.0f, 20.0f, -30.0f}};
+	dsQuaternion4f orientation;
+	dsQuaternion4f_fromEulerAngles(&orientation, dsRadiansToDegreesf(-10.0f),
+		dsRadiansToDegreesf(15.0f), dsRadiansToDegreesf(-20.0f));
+	dsVector3xf scale = {{0.1f, 0.2f, 0.3f}};
+	dsRigidTransform3f transform;
+	dsRigidTransform3f_initialize(&transform, &position, &orientation, &scale);
+
+	dsVector3xf point = {{1.2f, -3.4f, 5.6f, 7.8f}};
+	dsVector3xf result;
+	dsRigidTransform3f_transformFMA(&result, &transform, &point);
+	EXPECT_NEAR(-8.22712231f, result.x, epsilon);
+	EXPECT_NEAR(19.8952637f, result.y, epsilon);
+	EXPECT_NEAR(-29.6190338f, result.z, epsilon);
+}
+#endif // !DS_DETERMINISTIC_MATH
+
+TEST(RigidTransform3dTest, TransformSIMD2)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
+		return;
+
+	double epsilon = RigidTransform3TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
+
+	dsVector3xd position = {{-10.0, 20.0, -30.0}};
+	dsQuaternion4d orientation;
+	dsQuaternion4d_fromEulerAngles(&orientation, dsRadiansToDegreesd(-10.0),
+		dsRadiansToDegreesd(15.0), dsRadiansToDegreesd(-20.0));
+	dsVector3xd scale = {{0.1, 0.2, 0.3}};
+	dsRigidTransform3d transform;
+	dsRigidTransform3d_initialize(&transform, &position, &orientation, &scale);
+
+	dsVector3xd point = {{1.2, -3.4, 5.6, 7.8}};
+	dsVector3xd scalarResult, result;
+	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
+	dsRigidTransform3d_transform(&scalarResult, &transform, &point);
+	dsRigidTransform3d_transformSIMD2(&result, &transform, &point);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.x, result.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.y, result.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.z, result.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-8.2271432358188079, result.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(19.895083695552671, result.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-29.618986269593723, result.z, epsilon);
+}
+
+#if !DS_DETERMINISTIC_MATH
+TEST(RigidTransform3dTest, TransformFMA2)
+{
+	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
+	if ((dsHostSIMDFeatures & features) != features)
+		return;
+
+	double epsilon = RigidTransform3TypeSelector<double>::epsilon;
+
+	dsVector3xd position = {{-10.0, 20.0, -30.0}};
+	dsQuaternion4d orientation;
+	dsQuaternion4d_fromEulerAngles(&orientation, dsRadiansToDegreesd(-10.0),
+		dsRadiansToDegreesd(15.0), dsRadiansToDegreesd(-20.0));
+	dsVector3xd scale = {{0.1, 0.2, 0.3}};
+	dsRigidTransform3d transform;
+	dsRigidTransform3d_initialize(&transform, &position, &orientation, &scale);
+
+	dsVector3xd point = {{1.2, -3.4, 5.6, 7.8}};
+	dsVector3xd result;
+	dsRigidTransform3d_transformFMA2(&result, &transform, &point);
+	EXPECT_NEAR(-8.2271432358188079, result.x, epsilon);
+	EXPECT_NEAR(19.895083695552671, result.y, epsilon);
+	EXPECT_NEAR(-29.618986269593723, result.z, epsilon);
+}
+#endif // !DS_DETERMINISTIC_MATH
+
+TEST(RigidTransform3dTest, TransformSIMD4)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
+		return;
+
+	double epsilon = RigidTransform3TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
+
+	dsVector3xd position = {{-10.0, 20.0, -30.0}};
+	dsQuaternion4d orientation;
+	dsQuaternion4d_fromEulerAngles(&orientation, dsRadiansToDegreesd(-10.0),
+		dsRadiansToDegreesd(15.0), dsRadiansToDegreesd(-20.0));
+	dsVector3xd scale = {{0.1, 0.2, 0.3}};
+	DS_ALIGN(32) dsRigidTransform3d transform;
+	dsRigidTransform3d_initialize(&transform, &position, &orientation, &scale);
+
+	dsVector3xd point = {{1.2, -3.4, 5.6, 7.8}};
+	DS_ALIGN(32) dsVector3xd scalarResult, result;
+	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
+	dsRigidTransform3d_transform(&scalarResult, &transform, &point);
+	dsRigidTransform3d_transformSIMD4(&result, &transform, &point);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.x, result.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.y, result.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarResult.z, result.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-8.2271432358188079, result.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(19.895083695552671, result.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-29.618986269593723, result.z, epsilon);
 }
 
 TEST(RigidTransform3fTest, LerpSIMD)

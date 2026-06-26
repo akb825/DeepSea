@@ -29,8 +29,8 @@
 #include <DeepSea/Core/Log.h>
 
 #include <DeepSea/Math/Core.h>
-#include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Quaternion.h>
+#include <DeepSea/Math/RigidTransform3.h>
 #include <DeepSea/Math/Vector3.h>
 
 #include <DeepSea/Physics/Shapes/PhysicsShape.h>
@@ -145,24 +145,23 @@ inline static bool getShapeMaterial(dsPhysicsShapePartMaterial* outMaterial,
 	return true;
 }
 
-bool dsRigidBody_extractTransformFromMatrix(dsVector3xf* outPosition, dsQuaternion4f* outOrientation,
-	dsVector3xf* outScale, bool* outHasScale, const dsMatrix44f* transform, dsRigidBodyFlags flags,
+bool dsRigidBody_extractTransformFromMatrix(dsRigidTransform3f* outTransform,
+	bool* outHasScale, const dsMatrix44f* matrix, dsRigidBodyFlags flags,
 	const dsPhysicsShapeInstance* shapes, uint32_t shapeCount)
 {
-	if (!outPosition || !outOrientation || !outScale || !outHasScale || !transform ||
-		(!shapes && shapeCount > 0))
+	if (!outTransform || !outHasScale || !matrix || (!shapes && shapeCount > 0))
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	dsMatrix44f_decomposeTransform(outPosition, outOrientation, outScale, transform);
+	dsRigidTransform3f_fromMatrix(outTransform, matrix);
 
 	dsVector3xf one = {{1.0f, 1.0f, 1.0f}};
-	bool unitScale = dsVector3xf_epsilonEqual(outScale, &one, SCALE_EPSILON);
+	bool unitScale = dsVector3xf_epsilonEqual(&outTransform->scale, &one, SCALE_EPSILON);
 	bool scalable = (flags & dsRigidBodyFlags_Scalable) != 0;
 	if (unitScale)
-		*outScale = one; // Avoid unit scales that are slightly off.
+		outTransform->scale = one; // Avoid unit scales that are slightly off.
 	else
 	{
 		if (!scalable)
@@ -173,11 +172,11 @@ bool dsRigidBody_extractTransformFromMatrix(dsVector3xf* outPosition, dsQuaterni
 			return false;
 		}
 
-		if (dsEpsilonEqualf(outScale->x, outScale->y, SCALE_EPSILON) &&
-			dsEpsilonEqualf(outScale->x, outScale->z, SCALE_EPSILON))
+		if (dsEpsilonEqualf(outTransform->scale.x, outTransform->scale.y, SCALE_EPSILON) &&
+			dsEpsilonEqualf(outTransform->scale.x, outTransform->scale.z, SCALE_EPSILON))
 		{
 			// Avoid uniform scales that are slightly off.
-			outScale->y = outScale->z = outScale->x;
+			outTransform->scale.y = outTransform->scale.z = outTransform->scale.x;
 		}
 		else
 		{
@@ -447,7 +446,8 @@ uint32_t dsRigidBody_addShape(dsRigidBody* rigidBody, dsPhysicsShape* shape,
 	}
 
 	if (rotate &&
-		(rigidBody->scale.x != rigidBody->scale.y || rigidBody->scale.x != rigidBody->scale.z))
+		(rigidBody->transform.scale.x != rigidBody->transform.scale.y ||
+		rigidBody->transform.scale.x != rigidBody->transform.scale.z))
 	{
 		DS_LOG_ERROR(DS_PHYSICS_LOG_TAG,
 			"Attempting to set rotation for a shape on a rigid body with non-uniform scale.");
@@ -1025,42 +1025,40 @@ bool dsRigidBody_setTransform(dsRigidBody* rigidBody, const dsVector3xf* positio
 
 bool dsRigidBody_getTransformMatrix(dsMatrix44f* outTransform, const dsRigidBody* rigidBody)
 {
-	if (outTransform || !rigidBody)
+	if (!outTransform || !rigidBody)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	dsMatrix44f translate;
-	dsMatrix44f_composeTransform(
-		&translate, &rigidBody->position, &rigidBody->orientation, &rigidBody->scale);
+	dsRigidTransform3f_toMatrix(outTransform, &rigidBody->transform);
 	return true;
 }
 
 bool dsRigidBody_setTransformMatrix(
-	dsRigidBody* rigidBody, const dsMatrix44f* transform, bool activate)
+	dsRigidBody* rigidBody, const dsMatrix44f* matrix, bool activate)
 {
 	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
-	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyTransformFunc || !transform)
+	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyTransformFunc || !matrix)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	dsVector3xf position, scale;
-	dsQuaternion4f orientation;
+	dsRigidTransform3f transform;
 	bool hasScale;
-	if (!dsRigidBody_extractTransformFromMatrix(&position, &orientation, &scale, &hasScale,
-			transform, rigidBody->flags, rigidBody->shapes, rigidBody->shapeCount))
+	if (!dsRigidBody_extractTransformFromMatrix(&transform, &hasScale, matrix, rigidBody->flags,
+			rigidBody->shapes, rigidBody->shapeCount))
 	{
 		return false;
 	}
 
 	// Check if scale has changed rather than any scale at all.
-	hasScale = !dsVector3xf_epsilonEqual(&scale, &rigidBody->scale, SCALE_EPSILON);
+	hasScale = !dsVector3xf_epsilonEqual(
+		&transform.scale, &rigidBody->transform.scale, SCALE_EPSILON);
 	dsPhysicsEngine* engine = actor->engine;
-	return engine->setRigidBodyTransformFunc(engine, rigidBody, &position, &orientation,
-		hasScale ? &scale : NULL, activate);
+	return engine->setRigidBodyTransformFunc(engine, rigidBody, &transform.position,
+		&transform.orientation, hasScale ? &transform.scale : NULL, activate);
 }
 
 bool dsRigidBody_setKinematicTarget(dsRigidBody* rigidBody, float time, const dsVector3xf* position,
@@ -1087,11 +1085,11 @@ bool dsRigidBody_setKinematicTarget(dsRigidBody* rigidBody, float time, const ds
 }
 
 bool dsRigidBody_setKinematicTargetMatrix(
-	dsRigidBody* rigidBody, float time, const dsMatrix44f* transform)
+	dsRigidBody* rigidBody, float time, const dsMatrix44f* matrix)
 {
 	dsPhysicsActor* actor = (dsPhysicsActor*)rigidBody;
 	if (!rigidBody || !actor->engine || !actor->engine->setRigidBodyKinematicTargetFunc ||
-		!actor->engine->setRigidBodyTransformFunc || time < 0 || !transform)
+		!actor->engine->setRigidBodyTransformFunc || time < 0 || !matrix)
 	{
 		errno = EINVAL;
 		return false;
@@ -1105,20 +1103,19 @@ bool dsRigidBody_setKinematicTargetMatrix(
 		return false;
 	}
 
-	dsVector3xf position, scale;
-	dsQuaternion4f orientation;
+	dsRigidTransform3f transform;
 	bool hasScale;
-	if (!dsRigidBody_extractTransformFromMatrix(&position, &orientation, &scale, &hasScale,
-			transform, rigidBody->flags, rigidBody->shapes, rigidBody->shapeCount))
+	if (!dsRigidBody_extractTransformFromMatrix(&transform, &hasScale, matrix, rigidBody->flags,
+			rigidBody->shapes, rigidBody->shapeCount))
 	{
 		return false;
 	}
 
 	dsPhysicsEngine* engine = actor->engine;
-	if (!dsVector3xf_epsilonEqual(&scale, &rigidBody->scale, SCALE_EPSILON))
-		engine->setRigidBodyTransformFunc(engine, rigidBody, NULL, NULL, &scale, false);
+	if (!dsVector3xf_epsilonEqual(&transform.scale, &rigidBody->transform.scale, SCALE_EPSILON))
+		engine->setRigidBodyTransformFunc(engine, rigidBody, NULL, NULL, &transform.scale, false);
 	return engine->setRigidBodyKinematicTargetFunc(
-		engine, rigidBody, time, &position, &orientation);
+		engine, rigidBody, time, &transform.position, &transform.orientation);
 }
 
 bool dsRigidBody_getWorldRotationPosition(dsVector3xf* outPosition, const dsRigidBody* rigidBody)
@@ -1145,9 +1142,8 @@ bool dsRigidBody_getWorldRotationPosition(dsVector3xf* outPosition, const dsRigi
 		return false;
 	}
 
-	dsVector3xf_mul(outPosition, &rigidBody->massProperties.inertiaTranslate, &rigidBody->scale);
-	dsQuaternion4f_rotate3x(outPosition, &rigidBody->orientation, outPosition);
-	dsVector3xf_add(outPosition, outPosition, &rigidBody->position);
+	dsRigidTransform3f_transform(
+		outPosition, &rigidBody->transform, &rigidBody->massProperties.inertiaTranslate);
 	return true;
 }
 
@@ -1424,9 +1420,8 @@ bool dsRigidBody_addForceAtPoint(
 	}
 
 	dsVector3xf rotationPos;
-	dsVector3xf_mul(&rotationPos, &rigidBody->massProperties.inertiaTranslate, &rigidBody->scale);
-	dsQuaternion4f_rotate3x(&rotationPos, &rigidBody->orientation, &rotationPos);
-	dsVector3xf_add(&rotationPos, &rotationPos, &rigidBody->position);
+	dsRigidTransform3f_transform(
+		&rotationPos, &rigidBody->transform, &rigidBody->massProperties.inertiaTranslate);
 
 	dsVector3xf relativePos, torque;
 	dsVector3xf_sub(&relativePos, point, &rotationPos);
@@ -1669,8 +1664,8 @@ bool dsRigidBody_destroy(dsRigidBody* rigidBody)
 	return engine->destroyRigidBodyFunc(engine, rigidBody);
 }
 
-void dsRigidBody_initialize(dsRigidBody* rigidBody, dsPhysicsEngine* engine,
-	dsAllocator* allocator, const dsRigidBodyInit* initParams)
+void dsRigidBody_initialize(dsRigidBody* rigidBody, dsPhysicsEngine* engine, dsAllocator* allocator,
+	const dsRigidBodyInit* initParams)
 {
 	DS_ASSERT(rigidBody);
 	DS_ASSERT(engine);
@@ -1689,9 +1684,7 @@ void dsRigidBody_initialize(dsRigidBody* rigidBody, dsPhysicsEngine* engine,
 	actor->userData = initParams->userData;
 
 	rigidBody->active = false;
-	rigidBody->position = initParams->position;
-	rigidBody->orientation = initParams->orientation;
-	rigidBody->scale = initParams->scale;
+	rigidBody->transform = initParams->transform;
 	rigidBody->flags = initParams->flags;
 	rigidBody->motionType = initParams->motionType;
 	rigidBody->dofMask = initParams->dofMask;

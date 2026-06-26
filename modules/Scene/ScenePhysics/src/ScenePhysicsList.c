@@ -29,7 +29,7 @@
 #include <DeepSea/Core/UniqueNameID.h>
 
 #include <DeepSea/Math/Matrix44.h>
-#include <DeepSea/Math/Quaternion.h>
+#include <DeepSea/Math/RigidTransform3.h>
 #include <DeepSea/Math/Round.h>
 #include <DeepSea/Math/Vector3x.h>
 #include <DeepSea/Math/Vector4.h>
@@ -72,16 +72,11 @@ typedef struct RigidBodyEntry
 	dsSceneTreeNode* treeNode;
 	dsRigidBody* rigidBody;
 
-	dsMatrix44f transform;
-	dsMatrix44f prevTransform;
-	dsQuaternion4f prevOrientation;
-	dsVector3xf prevPosition;
-	dsVector3xf prevScale;
+	dsMatrix44f matrix;
+	dsMatrix44f prevMatrix;
+	dsRigidTransform3f prevTransform;
+	dsRigidTransform3f targetTransform;
 	dsVector3d prevOrigin;
-
-	dsQuaternion4f targetOrientation;
-	dsVector3xf targetPosition;
-	dsVector3xf targetScale;
 
 	dsPhysicsMotionType prevMotionType;
 	uint64_t nodeID;
@@ -159,7 +154,7 @@ static void dsScenePhysicsList_preStepUpdate(dsPhysicsScene* scene, float time, 
 	physicsList->thisStepTime += time;
 	float t = physicsList->thisStepTime/physicsList->updateTime;
 	// Update the target for each kinematic rigid body for this time step.
-	if (t > 1.0f - T_EPSILON)
+	if (t >= 1.0f - T_EPSILON)
 	{
 		// Set to final target.
 		for (unsigned int i = 0; i < physicsList->rigidBodyEntryCount; ++i)
@@ -167,18 +162,21 @@ static void dsScenePhysicsList_preStepUpdate(dsPhysicsScene* scene, float time, 
 			RigidBodyEntry* entry = physicsList->rigidBodyEntries + i;
 			dsRigidBody* rigidBody = entry->rigidBody;
 			if (rigidBody->motionType != dsPhysicsMotionType_Kinematic ||
-				memcmp(&entry->transform, &entry->prevTransform, sizeof(dsMatrix44f)) == 0)
+				memcmp(&entry->matrix, &entry->prevMatrix, sizeof(dsMatrix44f)) == 0)
 			{
 				continue;
 			}
 
-			dsRigidBody_setKinematicTarget(
-				rigidBody, time, &entry->targetPosition, &entry->targetOrientation);
+			dsRigidBody_setKinematicTarget(rigidBody, time, &entry->targetTransform.position,
+				&entry->targetTransform.orientation);
 
 			// Scale can't be updated kinematically, need to update immediately. Skip updating
 			// scale if not different.
-			if (!dsVector3xf_equal(&entry->prevScale, &entry->targetScale))
-				dsRigidBody_setTransform(rigidBody, NULL, NULL, &entry->targetScale, false);
+			if (!dsVector3xf_equal(&entry->prevTransform.scale, &entry->targetTransform.scale))
+			{
+				dsRigidBody_setTransform(
+					rigidBody, NULL, NULL, &entry->targetTransform.scale, false);
+			}
 		}
 	}
 	else
@@ -189,26 +187,19 @@ static void dsScenePhysicsList_preStepUpdate(dsPhysicsScene* scene, float time, 
 			RigidBodyEntry* entry = physicsList->rigidBodyEntries + i;
 			dsRigidBody* rigidBody = entry->rigidBody;
 			if (rigidBody->motionType != dsPhysicsMotionType_Kinematic ||
-				memcmp(&entry->transform, &entry->prevTransform, sizeof(dsMatrix44f)) == 0)
+				memcmp(&entry->matrix, &entry->prevMatrix, sizeof(dsMatrix44f)) == 0)
 			{
 				continue;
 			}
 
-			dsVector3xf position;
-			dsQuaternion4f orientation;
-			dsVector3xf_lerp(&position, &entry->prevPosition, &entry->targetPosition, t);
-			dsQuaternion4f_unitLerp(
-				&orientation, &entry->prevOrientation, &entry->targetOrientation, t);
-			dsRigidBody_setKinematicTarget(rigidBody, time, &position, &orientation);
+			dsRigidTransform3f interpTransform;
+			dsRigidTransform3f_nearLerp(
+				&interpTransform, &entry->prevTransform, &entry->targetTransform, t);
 
 			// Scale can't be updated kinematically, need to update immediately. Skip updating
 			// scale if not different.
-			if (!dsVector3xf_equal(&entry->prevScale, &entry->targetScale))
-			{
-				dsVector3xf scale;
-				dsVector3xf_lerp(&scale, &entry->prevScale, &entry->targetScale, t);
-				dsRigidBody_setTransform(rigidBody, NULL, NULL, &scale, false);
-			}
+			if (!dsVector3xf_equal(&entry->prevTransform.scale, &entry->targetTransform.scale))
+				dsRigidBody_setTransform(rigidBody, NULL, NULL, &interpTransform.scale, false);
 		}
 	}
 }
@@ -352,31 +343,29 @@ static uint64_t dsScenePhysicsList_addNode(dsSceneItemList* itemList, dsSceneNod
 		dsMatrix44f_identity(&treeNode->transform);
 		if (entry->rigidBody->motionType == dsPhysicsMotionType_Dynamic)
 		{
-			treeNode->baseTransform = &entry->transform;
+			treeNode->baseTransform = &entry->matrix;
 			treeNode->noParentTransform = true;
 		}
 
 		// Set the initial transform based on the current node.
-		dsMatrix44f transform;
+		dsMatrix44f matrix;
 		if (treeNode->parent)
-			dsSceneTreeNode_getCurrentTransform(&transform, treeNode->parent);
+			dsSceneTreeNode_getCurrentTransform(&matrix, treeNode->parent);
 		else
-			dsMatrix44f_identity(&transform);
+			dsMatrix44f_identity(&matrix);
 
 		entry->rigidBody = rigidBody;
-		DS_VERIFY(dsRigidBody_setTransformMatrix(rigidBody, &transform, true));
-		entry->prevOrientation = rigidBody->orientation;
-		entry->prevPosition = rigidBody->position;
-		entry->prevScale = rigidBody->scale;
+		DS_VERIFY(dsRigidBody_setTransformMatrix(rigidBody, &matrix, true));
+		entry->prevTransform = rigidBody->transform;
 		entry->prevMotionType = rigidBody->motionType;
 		if (physicsList->shiftNode)
 			entry->prevOrigin = physicsList->shiftNode->origin;
 		else
-			memset(&entry->prevOrigin, 0, sizeof(dsVector3d));
+			entry->prevOrigin.x = entry->prevOrigin.y = entry->prevOrigin.z = 0.0;
 
 		// Extract transform based on components to ensure consistent results when not in motion.
-		DS_VERIFY(dsRigidBody_getTransformMatrix(&entry->transform, entry->rigidBody));
-		entry->prevTransform = entry->transform;
+		dsRigidTransform3f_toMatrix(&entry->matrix, &entry->rigidBody->transform);
+		entry->prevMatrix = entry->matrix;
 
 		entry->nodeID = physicsList->nextRigidBodyNodeID++;
 		return entry->nodeID;
@@ -659,10 +648,10 @@ static void dsScenePhysicsList_preTransformUpdate(
 	if (physicsList->shiftNode)
 		origin = physicsList->shiftNode->origin;
 	else
-		memset(&origin, 0, sizeof(dsVector3d));
+		origin.x = origin.y = origin.z = 0.0;
 
 	// Adjust the shift if the origin changed.
-	if (memcmp(&origin, &physicsList->prevOrigin, sizeof(dsVector3d)) != 0)
+	if (!dsVector3d_equal(&origin, &physicsList->prevOrigin))
 	{
 		physicsList->prevOrigin = origin;
 		for (unsigned int i = 0; i < physicsList->rigidBodyEntryCount; ++i)
@@ -676,13 +665,14 @@ static void dsScenePhysicsList_preTransformUpdate(
 			entry->prevOrigin = origin;
 
 			dsVector3xf newPosition;
-			dsVector3xf_add(&newPosition, &rigidBody->position, &offset3f);
+			dsVector3xf_add(&newPosition, &rigidBody->transform.position, &offset3f);
 			dsRigidBody_setTransform(rigidBody, &newPosition, NULL, NULL, false);
 
 			// Add to the previous value to ensure that any differences are properly calculated.
-			dsVector3xf_add(&entry->prevPosition, &entry->prevPosition, &offset3f);
 			dsVector3xf_add(
-				entry->prevTransform.columns + 3, entry->prevTransform.columns + 3, &offset3f);
+				&entry->prevTransform.position, &entry->prevTransform.position, &offset3f);
+			dsVector3xf_add(
+				entry->prevMatrix.columns + 3, entry->prevMatrix.columns + 3, &offset3f);
 		}
 	}
 
@@ -696,7 +686,7 @@ static void dsScenePhysicsList_preTransformUpdate(
 			entry->prevMotionType = rigidBody->motionType;
 			if (rigidBody->motionType == dsPhysicsMotionType_Dynamic)
 			{
-				entry->treeNode->baseTransform = &entry->transform;
+				entry->treeNode->baseTransform = &entry->matrix;
 				entry->treeNode->noParentTransform = true;
 			}
 			else
@@ -710,41 +700,42 @@ static void dsScenePhysicsList_preTransformUpdate(
 		{
 			case dsPhysicsMotionType_Static:
 			{
-				dsMatrix44f transform;
-				dsSceneTreeNode_getCurrentTransform(&transform, entry->treeNode->parent);
-				if (memcmp(&transform, &entry->prevTransform, sizeof(dsMatrix44f)) != 0)
+				dsMatrix44f matrix;
+				dsSceneTreeNode_getCurrentTransform(&matrix, entry->treeNode->parent);
+				if (memcmp(&matrix, &entry->prevMatrix, sizeof(dsMatrix44f)) != 0)
 				{
 					// Static rigid bodies take the new position immediately.
-					DS_VERIFY(dsRigidBody_setTransformMatrix(rigidBody, &transform, false));
-					entry->transform = entry->prevTransform = transform;
-					entry->prevOrientation = rigidBody->orientation;
-					entry->prevPosition = rigidBody->position;
-					entry->prevScale = rigidBody->scale;
+					DS_VERIFY(dsRigidBody_setTransformMatrix(rigidBody, &matrix, false));
+					entry->matrix = entry->prevMatrix = matrix;
+					entry->prevTransform = rigidBody->transform;
 				}
 				break;
 			}
 			case dsPhysicsMotionType_Kinematic:
 			{
-				dsMatrix44f transform;
-				dsSceneTreeNode_getCurrentTransform(&transform, entry->treeNode->parent);
-				if (memcmp(&transform, &entry->prevTransform, sizeof(dsMatrix44f)) != 0)
+				dsMatrix44f matrix;
+				dsSceneTreeNode_getCurrentTransform(&matrix, entry->treeNode->parent);
+				if (memcmp(&matrix, &entry->prevMatrix, sizeof(dsMatrix44f)) != 0)
 				{
 					// Will need to interpolate kinematic target for each step.
 					bool hasScale;
-					DS_VERIFY(dsRigidBody_extractTransformFromMatrix(&entry->targetPosition,
-						&entry->targetOrientation, &entry->targetScale, &hasScale, &transform,
-						rigidBody->flags, rigidBody->shapes, rigidBody->shapeCount));
-					entry->transform = entry->prevTransform = transform;
-					entry->targetOrientation = rigidBody->orientation;
-					entry->targetPosition = rigidBody->position;
+					DS_VERIFY(dsRigidBody_extractTransformFromMatrix(&entry->targetTransform,
+						&hasScale, &matrix, rigidBody->flags, rigidBody->shapes,
+						rigidBody->shapeCount));
+					entry->matrix = entry->prevMatrix = matrix;
+					entry->targetTransform.position = rigidBody->transform.position;
+					entry->targetTransform.orientation = rigidBody->transform.orientation;
 					// Only update scale if sufficiently different.
-					if (dsVector3xf_epsilonEqual(
-							&entry->targetScale, &rigidBody->scale, SCALE_EPSILON))
+					if (dsVector3xf_epsilonEqual(&entry->targetTransform.scale,
+							&rigidBody->transform.scale, SCALE_EPSILON))
 					{
-						entry->targetScale = entry->prevScale;
+						entry->targetTransform.scale = entry->prevTransform.scale;
 					}
 					else
-						entry->targetScale = rigidBody->scale;
+						entry->targetTransform.scale = rigidBody->transform.scale;
+					// Keep orientations consistent so it can be lerped without checking each time.
+					dsRigidTransform3f_makeOrientationConsistent(
+						&entry->targetTransform, &entry->prevTransform.orientation);
 				}
 				break;
 			}
@@ -779,16 +770,11 @@ static void dsScenePhysicsList_preTransformUpdate(
 		RigidBodyEntry* entry = physicsList->rigidBodyEntries + i;
 		dsRigidBody* rigidBody = entry->rigidBody;
 		if (rigidBody->motionType == dsPhysicsMotionType_Dynamic &&
-			(!dsVector4f_equal((const dsVector4f*)&rigidBody->orientation,
-				(const dsVector4f*)&entry->prevOrientation) ||
-			!dsVector3xf_equal(&rigidBody->position, &entry->prevPosition) ||
-			!dsVector3xf_equal(&rigidBody->scale, &entry->prevScale)))
+			!dsRigidTransform3f_equal(&entry->prevTransform, &rigidBody->transform))
 		{
-			DS_VERIFY(dsRigidBody_getTransformMatrix(&entry->transform, rigidBody));
-			entry->transform  = entry->prevTransform = entry->transform;
-			entry->prevOrientation = rigidBody->orientation;
-			entry->prevPosition = rigidBody->position;
-			entry->prevScale = rigidBody->scale;
+			dsRigidTransform3f_toMatrix(&entry->matrix, &rigidBody->transform);
+			entry->prevMatrix = entry->matrix;
+			entry->prevTransform = rigidBody->transform;
 		}
 	}
 }

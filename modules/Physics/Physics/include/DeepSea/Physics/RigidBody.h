@@ -34,20 +34,17 @@ extern "C"
 /**
  * @brief Extracts the transform components from a matrix.
  * @remark errno will be set on failure.
- * @param[out] outPosition The position component of the transform.
- * @param[out] outOrientation The orientation component of the transform.
- * @param[out] outScale The scale component of the transform.
+ * @param[out] outTransform The rigid transform components.
  * @param[out] outHasScale Whether a scale is present in the transform.
- * @param transform The transofmr matrix to extract the components from.
+ * @param matrix The transform matrix to extract the components from.
  * @param flags The flags for the rigid body.
  * @param shapes The shapes for the rigid body.
  * @param shapeCount The number of shapes in the rigid body.
  * @return Whether the transform is valid for the rigid body flags.
  */
-DS_PHYSICS_EXPORT bool dsRigidBody_extractTransformFromMatrix(dsVector3xf* outPosition,
-	dsQuaternion4f* outOrientation, dsVector3xf* outScale, bool* outHasScale,
-	const dsMatrix44f* transform, dsRigidBodyFlags flags, const dsPhysicsShapeInstance* shapes,
-	uint32_t shapeCount);
+DS_PHYSICS_EXPORT bool dsRigidBody_extractTransformFromMatrix(dsRigidTransform3f* outTransform,
+	bool* outHasScale, const dsMatrix44f* matrix, dsRigidBodyFlags flags,
+	const dsPhysicsShapeInstance* shapes, uint32_t shapeCount);
 
 /**
  * @brief Creates a rigid body.
@@ -486,12 +483,12 @@ DS_PHYSICS_EXPORT bool dsRigidBody_getTransformMatrix(
  * @brief Sets the transform for a rigid body based on a tranform matrix.
  * @remark errno will be set on failure.
  * @param rigidBody The rigid body to change the transform on.
- * @param transform The transform matrix. This is expected to be orthogonal and not contain sheer.
+ * @param matrix The transform matrix. This is expected to be orthogonal and not contain sheer.
  * @param activate Whether to activate the rigid body if it's currently inactive.
  * @return False if the transform couldn't be set.
  */
 DS_PHYSICS_EXPORT bool dsRigidBody_setTransformMatrix(
-	dsRigidBody* rigidBody, const dsMatrix44f* transform, bool activate);
+	dsRigidBody* rigidBody, const dsMatrix44f* matrix, bool activate);
 
 /**
  * @brief Sets the target transform for a kinematic rigid body.
@@ -526,14 +523,14 @@ DS_PHYSICS_EXPORT bool dsRigidBody_setKinematicTarget(dsRigidBody* rigidBody,
  * @param rigidBody The rigid body to set the kinematic target transform on.
  * @param time The time for the step, most commonly forwarded from the time parameter of a
  *     dsOnPhysicsSceneStepFunction callback.
- * @param transform The transform matrix. This is expected to be orthogonal and not contain sheer.
+ * @param matrix The transform matrix. This is expected to be orthogonal and not contain sheer.
  *     If the transform has scale that's different from the current scale factor, it will be set
  *     as weith dsRigidBody_setTransform(), meaning that it will be immediately applied rather than
  *     over the time step.
  * @return False if the kinematic target couldn't be set.
  */
 DS_PHYSICS_EXPORT bool dsRigidBody_setKinematicTargetMatrix(
-	dsRigidBody* rigidBody, float time, const dsMatrix44f* transform);
+	dsRigidBody* rigidBody, float time, const dsMatrix44f* matrix);
 
 /**
  * @brief Gets the position around which the rigid body will rotate in world space.

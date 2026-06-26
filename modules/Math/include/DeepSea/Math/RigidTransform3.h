@@ -139,6 +139,19 @@ DS_MATH_EXPORT inline void dsRigidTransform3d_mul(
 	dsRigidTransform3d* result, const dsRigidTransform3d* a, const dsRigidTransform3d* b);
 
 /**
+ * @brief Transforms a point with a rigid transform.
+ * @param[out] result The transformed point.
+ * @param transform The transform to apply to the point.
+ * @param point The point to transform.
+ */
+DS_MATH_EXPORT inline void dsRigidTransform3f_transform(
+	dsVector3xf* result, const dsRigidTransform3f* transform, const dsVector3xf* point);
+
+/** dsRigidTransform3f_transform() */
+DS_MATH_EXPORT inline void dsRigidTransform3d_transform(
+	dsVector3xd* result, const dsRigidTransform3d* transform, const dsVector3xd* point);
+
+/**
  * @brief Interpolates between two rigid transforms.
  * @param[out] result The result of the interpolation.
  * @param a The first rigid transform.
@@ -250,6 +263,16 @@ DS_MATH_EXPORT inline void dsRigidTransform3f_mulSIMD(
 	dsRigidTransform3f* result, const dsRigidTransform3f* a, const dsRigidTransform3f* b);
 
 /**
+ * @brief Transforms a point with a rigid transform using SIMD operations.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param[out] result The transformed point.
+ * @param transform The transform to apply to the point.
+ * @param point The point to transform.
+ */
+DS_MATH_EXPORT inline void dsRigidTransform3f_transformSIMD(
+	dsVector3xf* result, const dsRigidTransform3f* transform, const dsVector3xf* point);
+
+/**
  * @brief Interpolates between two rigid transforms using SIMD operations.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param[out] result The result of the interpolation.
@@ -333,6 +356,16 @@ DS_MATH_EXPORT inline void dsRigidTransform3f_mulFMA(
 	dsRigidTransform3f* result, const dsRigidTransform3f* a, const dsRigidTransform3f* b);
 
 /**
+ * @brief Transforms a point with a rigid transform using fused multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_FMA are available.
+ * @param[out] result The transformed point.
+ * @param transform The transform to apply to the point.
+ * @param point The point to transform.
+ */
+DS_MATH_EXPORT inline void dsRigidTransform3f_transformFMA(
+	dsVector3xf* result, const dsRigidTransform3f* transform, const dsVector3xf* point);
+
+/**
  * @brief Interpolates between two rigid transforms using fused multiply-add operations.
  * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_FMA are available.
  * @param[out] result The result of the interpolation.
@@ -410,6 +443,16 @@ DS_MATH_EXPORT inline void dsRigidTransform3d_makeOrientationConsistentSIMD2(
  */
 DS_MATH_EXPORT inline void dsRigidTransform3d_mulSIMD2(
 	dsRigidTransform3d* result, const dsRigidTransform3d* a, const dsRigidTransform3d* b);
+
+/**
+ * @brief Transforms a point with a rigid transform using SIMD operations.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param[out] result The transformed point.
+ * @param transform The transform to apply to the point.
+ * @param point The point to transform.
+ */
+DS_MATH_EXPORT inline void dsRigidTransform3d_transformSIMD2(
+	dsVector3xd* result, const dsRigidTransform3d* transform, const dsVector3xd* point);
 
 /**
  * @brief Interpolates between two rigid transforms using SIMD operations.
@@ -495,6 +538,16 @@ DS_MATH_EXPORT inline void dsRigidTransform3d_mulFMA2(
 	dsRigidTransform3d* result, const dsRigidTransform3d* a, const dsRigidTransform3d* b);
 
 /**
+ * @brief Transforms a point with a rigid transform using fused multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_FMA are available.
+ * @param[out] result The transformed point.
+ * @param transform The transform to apply to the point.
+ * @param point The point to transform.
+ */
+DS_MATH_EXPORT inline void dsRigidTransform3d_transformFMA2(
+	dsVector3xd* result, const dsRigidTransform3d* transform, const dsVector3xd* point);
+
+/**
  * @brief Interpolates between two rigid transforms using fused multiply-add operations.
  * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_FMA are available.
  * @param[out] result The result of the interpolation.
@@ -578,6 +631,18 @@ DS_MATH_EXPORT inline void dsRigidTransform3d_makeOrientationConsistentSIMD4(
 DS_MATH_EXPORT inline void dsRigidTransform3d_mulSIMD4(
 	dsRigidTransform3d* DS_ALIGN_PARAM(32) result, const dsRigidTransform3d* DS_ALIGN_PARAM(32) a,
 	const dsRigidTransform3d* DS_ALIGN_PARAM(32) b);
+
+/**
+ * @brief Transforms a point with a rigid transform using SIMD operations.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available, and will use FMA if not
+ *     disabled through enabling determinisitic math.
+ * @param[out] result The transformed point.
+ * @param transform The transform to apply to the point.
+ * @param point The point to transform.
+ */
+DS_MATH_EXPORT inline void dsRigidTransform3d_transformSIMD4(dsVector3xd* DS_ALIGN_PARAM(32) result,
+	const dsRigidTransform3d* DS_ALIGN_PARAM(32) transform,
+	const dsVector3xd* DS_ALIGN_PARAM(32) point);
 
 /**
  * @brief Interpolates between two rigid transforms using SIMD operations.
@@ -803,6 +868,44 @@ inline void dsRigidTransform3d_mul(
 #endif
 }
 
+inline void dsRigidTransform3f_transform(
+	dsVector3xf* result, const dsRigidTransform3f* transform, const dsVector3xf* point)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(transform);
+	DS_ASSERT(point);
+#if DS_SIMD_ALWAYS_FMA
+	dsRigidTransform3f_transformFMA(result, transform, point);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	dsRigidTransform3f_transformSIMD(result, transform, point);
+#else
+	dsVector3xf_mul(result, &transform->scale, point);
+	dsQuaternion4f_rotate3x(result, &transform->orientation, result);
+	dsVector3xf_add(result, &transform->position, result);
+#endif
+}
+
+inline void dsRigidTransform3d_transform(
+	dsVector3xd* result, const dsRigidTransform3d* transform, const dsVector3xd* point)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(transform);
+	DS_ASSERT(point);
+#if DS_SIMD_PREFER_DOUBLE4
+	dsRigidTransform3d_transformSIMD4(result, transform, point);
+#elif DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_ALWAYS_FMA
+	dsRigidTransform3d_transformFMA2(result, transform, point);
+#else
+	dsRigidTransform3d_transformSIMD2(result, transform, point);
+#endif
+#else
+	dsVector3xd_mul(result, &transform->scale, point);
+	dsQuaternion4d_rotate3x(result, &transform->orientation, result);
+	dsVector3xd_add(result, &transform->position, result);
+#endif
+}
+
 inline void dsRigidTransform3f_lerp(
 	dsRigidTransform3f* result, const dsRigidTransform3f* a, const dsRigidTransform3f* b, float t)
 {
@@ -965,6 +1068,18 @@ inline void dsRigidTransform3f_mulSIMD(
 	result->scale.simd = dsSIMD4f_mul(a->scale.simd, b->scale.simd);
 }
 
+inline void dsRigidTransform3f_transformSIMD(
+	dsVector3xf* result, const dsRigidTransform3f* transform, const dsVector3xf* point)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(transform);
+	DS_ASSERT(point);
+
+	result->simd = dsSIMD4f_mul(transform->scale.simd, point->simd);
+	dsQuaternion4f_rotateSIMD(result, &transform->orientation, result);
+	result->simd = dsSIMD4f_add(transform->position.simd, result->simd);
+}
+
 inline void dsRigidTransform3f_lerpSIMD(
 	dsRigidTransform3f* result, const dsRigidTransform3f* a, const dsRigidTransform3f* b, float t)
 {
@@ -1075,6 +1190,18 @@ inline void dsRigidTransform3f_mulFMA(
 	result->scale.simd = dsSIMD4f_mul(a->scale.simd, b->scale.simd);
 }
 
+inline void dsRigidTransform3f_transformFMA(
+	dsVector3xf* result, const dsRigidTransform3f* transform, const dsVector3xf* point)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(transform);
+	DS_ASSERT(point);
+
+	result->simd = dsSIMD4f_mul(transform->scale.simd, point->simd);
+	dsQuaternion4f_rotateFMA(result, &transform->orientation, result);
+	result->simd = dsSIMD4f_add(transform->position.simd, result->simd);
+}
+
 inline void dsRigidTransform3f_lerpFMA(
 	dsRigidTransform3f* result, const dsRigidTransform3f* a, const dsRigidTransform3f* b, float t)
 {
@@ -1163,6 +1290,20 @@ inline void dsRigidTransform3d_mulSIMD2(
 	dsQuaternion4d_mulSIMD2(&result->orientation, &a->orientation, &b->orientation);
 	result->scale.simd2[0] = dsSIMD2d_mul(a->scale.simd2[0], b->scale.simd2[0]);
 	result->scale.simd2[1] = dsSIMD2d_mul(a->scale.simd2[1], b->scale.simd2[1]);
+}
+
+inline void dsRigidTransform3d_transformSIMD2(
+	dsVector3xd* result, const dsRigidTransform3d* transform, const dsVector3xd* point)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(transform);
+	DS_ASSERT(point);
+
+	result->simd2[0] = dsSIMD2d_mul(transform->scale.simd2[0], point->simd2[0]);
+	result->simd2[1] = dsSIMD2d_mul(transform->scale.simd2[1], point->simd2[1]);
+	dsQuaternion4d_rotateSIMD2(result, &transform->orientation, result);
+	result->simd2[0] = dsSIMD2d_add(transform->position.simd2[0], result->simd2[0]);
+	result->simd2[1] = dsSIMD2d_add(transform->position.simd2[1], result->simd2[1]);
 }
 
 inline void dsRigidTransform3d_lerpSIMD2(
@@ -1286,6 +1427,20 @@ inline void dsRigidTransform3d_mulFMA2(
 	result->scale.simd2[1] = dsSIMD2d_mul(a->scale.simd2[1], b->scale.simd2[1]);
 }
 
+inline void dsRigidTransform3d_transformFMA2(
+	dsVector3xd* result, const dsRigidTransform3d* transform, const dsVector3xd* point)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(transform);
+	DS_ASSERT(point);
+
+	result->simd2[0] = dsSIMD2d_mul(transform->scale.simd2[0], point->simd2[0]);
+	result->simd2[1] = dsSIMD2d_mul(transform->scale.simd2[1], point->simd2[1]);
+	dsQuaternion4d_rotateFMA2(result, &transform->orientation, result);
+	result->simd2[0] = dsSIMD2d_add(transform->position.simd2[0], result->simd2[0]);
+	result->simd2[1] = dsSIMD2d_add(transform->position.simd2[1], result->simd2[1]);
+}
+
 inline void dsRigidTransform3d_lerpFMA2(
 	dsRigidTransform3d* result, const dsRigidTransform3d* a, const dsRigidTransform3d* b, double t)
 {
@@ -1388,6 +1543,19 @@ inline void dsRigidTransform3d_mulSIMD4(dsRigidTransform3d* DS_ALIGN_PARAM(32) r
 	dsQuaternion4d_mulSIMD4(&result->orientation, &a->orientation, &b->orientation);
 	dsSIMD4d_store(
 		&result->scale, dsSIMD4d_mul(dsSIMD4d_load(&a->scale), dsSIMD4d_load(&b->scale)));
+}
+
+inline void dsRigidTransform3d_transformSIMD4(
+	dsVector3xd* result, const dsRigidTransform3d* transform, const dsVector3xd* point)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(transform);
+	DS_ASSERT(point);
+
+	dsSIMD4d_store(result, dsSIMD4d_mul(dsSIMD4d_load(&transform->scale), dsSIMD4d_load(point)));
+	dsQuaternion4d_rotateSIMD4(result, &transform->orientation, result);
+	dsSIMD4d_store(
+		result, dsSIMD4d_add(dsSIMD4d_load(&transform->position), dsSIMD4d_load(result)));
 }
 
 inline void dsRigidTransform3d_lerpSIMD4(dsRigidTransform3d* DS_ALIGN_PARAM(32) result,

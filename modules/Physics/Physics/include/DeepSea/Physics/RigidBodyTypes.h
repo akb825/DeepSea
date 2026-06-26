@@ -204,21 +204,11 @@ typedef struct dsRigidBodyInit
 	dsCanCollisionGroupsCollideFunction canCollisionGroupsCollideFunc;
 
 	/**
-	 * @brief The position of the body in world space.
-	 */
-	dsVector3xf position;
-
-	/**
-	 * @brief The orientation of the body in world space.
-	 */
-	dsQuaternion4f orientation;
-
-	/**
-	 * @brief The scale factor of the body.
+	 * @brief The transform of the body in world space.
 	 *
-	 * This will only be used if dsRigidBodyFlags_Scalable is set.
+	 * The scale will only be used if dsRigidBodyFlags_Scalable is set.
 	 */
-	dsVector3xf scale;
+	dsRigidTransform3f transform;
 
 	/**
 	 * @brief The initial linear velocity of the body.
@@ -331,22 +321,12 @@ typedef struct dsRigidBody
 	bool active;
 
 	/**
-	 * @brief The position of the body in world space.
-	 */
-	dsVector3xf position;
-
-	/**
-	 * @brief The orientation of the body in world space.
-	 */
-	dsQuaternion4f orientation;
-
-	/**
-	 * @brief The scale factor of the body.
+	 * @brief The transform of the body in world space.
 	 *
-	 * This will only be used if dsRigidBodyFlags_Scalable is set, and will not be updated by the
-	 * physics simulation.
+	 * The scale will only be used if dsRigidBodyFlags_Scalable is set, and will not be updated by
+	 * the physics simulation.
 	 */
-	dsVector3xf scale;
+	dsRigidTransform3f transform;
 
 	/**
 	 * @brief Flags to control the behavior of the rigid body.

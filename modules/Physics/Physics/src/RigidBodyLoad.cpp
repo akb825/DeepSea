@@ -27,8 +27,6 @@
 #include <DeepSea/Physics/Shapes/PhysicsShape.h>
 #include <DeepSea/Physics/RigidBody.h>
 
-#include <cstring>
-
 #if DS_GCC || DS_CLANG
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
@@ -133,33 +131,45 @@ dsRigidBody* dsRigidBody_loadImpl(dsPhysicsEngine* engine, dsAllocator* allocato
 
 	auto fbPosition = fbRigidBody->position();
 	if (fbPosition)
-		init.position = DeepSeaPhysics::convert(*fbPosition);
+		init.transform.position = DeepSeaPhysics::convert(*fbPosition);
 	else
-		std::memset(&init.position, 0, sizeof(dsVector3xf));
+	{
+		init.transform.position.x = init.transform.position.y = init.transform.position.z =
+			init.transform.position.w = 0.0f;
+	}
 
 	auto fbOrientation = fbRigidBody->orientation();
 	if (fbOrientation)
-		init.orientation = DeepSeaPhysics::convert(*fbOrientation);
+		init.transform.orientation = DeepSeaPhysics::convert(*fbOrientation);
 	else
-		dsQuaternion4_identityRotation(init.orientation);
+		dsQuaternion4_identityRotation(init.transform.orientation);
 
 	auto fbScale = fbRigidBody->scale();
 	if (fbScale && (init.flags & dsRigidBodyFlags_Scalable))
-		init.scale = DeepSeaPhysics::convert(*fbScale);
+		init.transform.scale = DeepSeaPhysics::convert(*fbScale);
 	else
-		init.scale.x = init.scale.y = init.scale.z = 1.0f;
+	{
+		init.transform.scale.x = init.transform.scale.y = init.transform.scale.z =
+			init.transform.scale.w = 1.0f;
+	}
 
 	auto fbLinearVelocity = fbRigidBody->linearVelocity();
 	if (fbLinearVelocity)
 		init.linearVelocity = DeepSeaPhysics::convert(*fbLinearVelocity);
 	else
-		std::memset(&init.linearVelocity, 0, sizeof(dsVector3xf));
+	{
+		init.linearVelocity.x = init.linearVelocity.y = init.linearVelocity.z =
+			init.linearVelocity.w = 0.0f;
+	}
 
 	auto fbAngularVelocity = fbRigidBody->angularVelocity();
 	if (fbAngularVelocity)
 		init.angularVelocity = DeepSeaPhysics::convert(*fbAngularVelocity);
 	else
-		std::memset(&init.angularVelocity, 0, sizeof(dsVector3xf));
+	{
+		init.angularVelocity.x = init.angularVelocity.y = init.angularVelocity.z =
+			init.angularVelocity.w = 0.0f;
+	}
 
 	init.friction = fbRigidBody->friction();
 	init.restitution = fbRigidBody->restitution();
