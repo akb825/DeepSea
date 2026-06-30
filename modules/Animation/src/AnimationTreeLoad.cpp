@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Log.h>
 
-#include <DeepSea/Math/Types.h>
+#include <DeepSea/Math/Quaternion.h>
 
 #include <cstring>
 
@@ -84,45 +84,42 @@ static dsAnimationBuildNode* createBuildNodesRec(const DeepSeaAnimation::Animati
 	auto fbScale = fbNode.scale();
 	if (fbScale)
 	{
-		buildNode.scale.x = fbScale->x();
-		buildNode.scale.y = fbScale->y();
-		buildNode.scale.z = fbScale->z();
+		buildNode.transform.scale.x = fbScale->x();
+		buildNode.transform.scale.y = fbScale->y();
+		buildNode.transform.scale.z = fbScale->z();
+		buildNode.transform.scale.w = 1.0f;
 	}
 	else
 	{
-		buildNode.scale.x = 0.0f;
-		buildNode.scale.y = 0.0f;
-		buildNode.scale.z = 0.0f;
+		buildNode.transform.scale.x = buildNode.transform.scale.y = buildNode.transform.scale.z =
+			buildNode.transform.scale.w = 1.0f;
 	}
 
 	auto fbRotation = fbNode.rotation();
 	if (fbRotation)
 	{
-		buildNode.rotation.r = fbRotation->r();
-		buildNode.rotation.i = fbRotation->i();
-		buildNode.rotation.j = fbRotation->j();
-		buildNode.rotation.k = fbRotation->k();
+		buildNode.transform.orientation.r = fbRotation->r();
+		buildNode.transform.orientation.i = fbRotation->i();
+		buildNode.transform.orientation.j = fbRotation->j();
+		buildNode.transform.orientation.k = fbRotation->k();
 	}
 	else
 	{
-		buildNode.rotation.r = 1.0f;
-		buildNode.rotation.i = 0.0f;
-		buildNode.rotation.j = 0.0f;
-		buildNode.rotation.k = 0.0f;
+		dsQuaternion4_identityRotation(buildNode.transform.orientation);
 	}
 
 	auto fbTranslation = fbNode.translation();
 	if (fbTranslation)
 	{
-		buildNode.translation.x = fbTranslation->x();
-		buildNode.translation.y = fbTranslation->y();
-		buildNode.translation.z = fbTranslation->z();
+		buildNode.transform.position.x = fbTranslation->x();
+		buildNode.transform.position.y = fbTranslation->y();
+		buildNode.transform.position.z = fbTranslation->z();
+		buildNode.transform.position.w = 0.0f;
 	}
 	else
 	{
-		buildNode.translation.x = 0.0f;
-		buildNode.translation.y = 0.0f;
-		buildNode.translation.z = 0.0f;
+		buildNode.transform.position.x = buildNode.transform.position.y =
+			buildNode.transform.position.z = buildNode.transform.position.w = 0.0f;
 	}
 
 	if (buildNode.childCount > 0)
@@ -274,45 +271,42 @@ static dsAnimationTree* dsAnimationTree_loadJointNodes(dsAllocator* allocator,
 		auto fbScale = fbNode->scale();
 		if (fbScale)
 		{
-			buildNode.scale.x = fbScale->x();
-			buildNode.scale.y = fbScale->y();
-			buildNode.scale.z = fbScale->z();
+			buildNode.transform.scale.x = fbScale->x();
+			buildNode.transform.scale.y = fbScale->y();
+			buildNode.transform.scale.z = fbScale->z();
+			buildNode.transform.scale.w = 1.0f;
 		}
 		else
 		{
-			buildNode.scale.x = 0.0f;
-			buildNode.scale.y = 0.0f;
-			buildNode.scale.z = 0.0f;
+			buildNode.transform.scale.x = buildNode.transform.scale.y = buildNode.transform.scale.z =
+				buildNode.transform.scale.w = 1.0f;
 		}
 
 		auto fbRotation = fbNode->rotation();
 		if (fbRotation)
 		{
-			buildNode.rotation.r = fbRotation->r();
-			buildNode.rotation.i = fbRotation->i();
-			buildNode.rotation.j = fbRotation->j();
-			buildNode.rotation.k = fbRotation->k();
+			buildNode.transform.orientation.r = fbRotation->r();
+			buildNode.transform.orientation.i = fbRotation->i();
+			buildNode.transform.orientation.j = fbRotation->j();
+			buildNode.transform.orientation.k = fbRotation->k();
 		}
 		else
 		{
-			buildNode.rotation.r = 1.0f;
-			buildNode.rotation.i = 0.0f;
-			buildNode.rotation.j = 0.0f;
-			buildNode.rotation.k = 0.0f;
+			dsQuaternion4_identityRotation(buildNode.transform.orientation);
 		}
 
 		auto fbTranslation = fbNode->translation();
 		if (fbTranslation)
 		{
-			buildNode.translation.x = fbTranslation->x();
-			buildNode.translation.y = fbTranslation->y();
-			buildNode.translation.z = fbTranslation->z();
+			buildNode.transform.position.x = fbTranslation->x();
+			buildNode.transform.position.y = fbTranslation->y();
+			buildNode.transform.position.z = fbTranslation->z();
+			buildNode.transform.position.w = 0.0f;
 		}
 		else
 		{
-			buildNode.translation.x = 0.0f;
-			buildNode.translation.y = 0.0f;
-			buildNode.translation.z = 0.0f;
+			buildNode.transform.position.x = buildNode.transform.position.y =
+				buildNode.transform.position.z = buildNode.transform.position.w = 0.0f;
 		}
 
 		auto fbLocalSpace = fbNode->toLocalSpace();

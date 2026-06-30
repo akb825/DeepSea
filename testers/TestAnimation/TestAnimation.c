@@ -58,6 +58,7 @@
 #include <DeepSea/SceneLighting/ShadowInstanceTransformData.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #if DS_HAS_EASY_PROFILER
@@ -117,6 +118,8 @@ static void printHelp(const char* programPath)
 			dsRenderBootstrap_rendererName((dsRendererType)i));
 	}
 	printf("  -d, --device <device>        use a graphics device by name\n");
+	printf("  -u, --update-fps <fps>       the fps to update at, interpolating between\n");
+	printf("                               updates; 0 or unset uses frame time each frame\n");
 }
 
 static bool validateAllocator(dsAllocator* allocator, const char* name)
@@ -212,6 +215,9 @@ static void update(
 
 	TestAnimation* testAnimation = (TestAnimation*)userData;
 	DS_VERIFY(dsSceneTick_update(&testAnimation->tick, absoluteTime, lastFrameTime));
+	// NOTE: In a "real" application, this should update the state within a scene item list,
+	// allowing it to update on each step.
+	float updateTime = testAnimation->tick.stepTime*(float)testAnimation->tick.stepCount;
 	for (uint32_t i = 0; i < DS_ARRAY_SIZE(testAnimation->characterAnimations); ++i)
 	{
 		AnimationState* animationState = testAnimation->characterAnimations + i;
@@ -220,12 +226,12 @@ static void update(
 
 		if (animationState->speed < animationState->targetSpeed)
 		{
-			animationState->speed += UPDATE_STEP*testAnimation->tick.thisTime;
+			animationState->speed += UPDATE_STEP*updateTime;
 			animationState->speed = dsMin(animationState->speed, animationState->targetSpeed);
 		}
 		else
 		{
-			animationState->speed -= UPDATE_STEP*testAnimation->tick.thisTime;
+			animationState->speed -= UPDATE_STEP*updateTime;
 			animationState->speed = dsMax(animationState->speed, animationState->targetSpeed);
 		}
 
@@ -251,7 +257,7 @@ static void update(
 			animationState->animation, testAnimation->idleAnimation);
 		DS_ASSERT(idleEntry);
 		idleEntry->timeScale = timeScale;
-		idleEntry->weight = idleWeight;
+		idleEntry->nextWeight = idleWeight;
 		if (animationState->speed >= WALK_SPEED)
 			idleEntry->time = 0;
 
@@ -259,7 +265,7 @@ static void update(
 			animationState->animation, testAnimation->walkAnimation);
 		DS_ASSERT(idleEntry);
 		walkEntry->timeScale = timeScale;
-		walkEntry->weight = walkWeight;
+		walkEntry->nextWeight = walkWeight;
 		if (animationState->speed == IDLE_SPEED)
 			walkEntry->time = 0;
 
@@ -267,7 +273,7 @@ static void update(
 			animationState->animation, testAnimation->runAnimation);
 		DS_ASSERT(idleEntry);
 		runEntry->timeScale = timeScale;
-		runEntry->weight = runWeight;
+		runEntry->nextWeight = runWeight;
 		if (animationState->speed == IDLE_SPEED)
 			runEntry->time = 0;
 	}
@@ -288,7 +294,8 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	DS_VERIFY(dsView_draw(testAnimation->view, commandBuffer, NULL));
 }
 
-static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAllocator* allocator)
+static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAllocator* allocator,
+	float updateFps)
 {
 	dsRenderer* renderer = application->renderer;
 	dsResourceManager* resourceManager = renderer->resourceManager;
@@ -593,7 +600,7 @@ static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAl
 		if (i == 0)
 		{
 			if (!dsAnimation_addDirectAnimation(animationState->animation,
-					testAnimation->holdTorchAnimation, HOLD_TORCH_WEIGHT))
+					testAnimation->holdTorchAnimation, HOLD_TORCH_WEIGHT, HOLD_TORCH_WEIGHT))
 			{
 				DS_LOG_ERROR_F("TestAnimation", "Couldn't add holdTorchAnimation under %s.",
 					nodeNames[i]);
@@ -601,22 +608,25 @@ static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAl
 			}
 		}
 
+		// Set all animation time scales to idle scale, as all animations will be scaled based on
+		// state to keep them in sync.
 		if (!dsAnimation_addKeyframeAnimation(animationState->animation,
-				testAnimation->idleAnimation, ACTIVE_WEIGHT, 0.0f, IDLE_SCALE, true))
+				testAnimation->idleAnimation, ACTIVE_WEIGHT, ACTIVE_WEIGHT, 0.0f, 0.0f, IDLE_SCALE,
+				true))
 		{
 			DS_LOG_ERROR_F("TestAnimation", "Couldn't add idleAnimation under %s.", nodeNames[i]);
 			return false;
 		}
 
 		if (!dsAnimation_addKeyframeAnimation(animationState->animation,
-				testAnimation->walkAnimation, 0.0f, 0.0f, IDLE_SCALE, true))
+				testAnimation->walkAnimation, 0.0f, 0.0f, 0.0f, 0.0f, IDLE_SCALE, true))
 		{
 			DS_LOG_ERROR_F("TestAnimation", "Couldn't add walkAnimation under %s.", nodeNames[i]);
 			return false;
 		}
 
 		if (!dsAnimation_addKeyframeAnimation(animationState->animation,
-				testAnimation->runAnimation, 0.0f, 0.0f, IDLE_SCALE, true))
+				testAnimation->runAnimation, 0.0f, 0.0f, 0.0f, 0.0f, IDLE_SCALE, true))
 		{
 			DS_LOG_ERROR_F("TestAnimation", "Couldn't add runAnimation under %s.", nodeNames[i]);
 			return false;
@@ -632,7 +642,8 @@ static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAl
 	dsMatrix44f_lookAt(&camera, &eyePos, &lookAtPos, &upDir);
 	dsView_setCameraMatrix(testAnimation->view, &camera);
 
-	DS_VERIFY(dsSceneTick_initialize(&testAnimation->tick, 0.0f, 1.0f));
+	float updatePeriod = updateFps > 0.0f ? 1.0f/updateFps : 0.0f;
+	DS_VERIFY(dsSceneTick_initialize(&testAnimation->tick, updatePeriod, 1.0f));
 	return true;
 }
 
@@ -658,6 +669,7 @@ int dsMain(int argc, const char** argv)
 
 	dsRendererType rendererType = dsRendererType_Default;
 	const char* deviceName = NULL;
+	float updateFps = 0.0f;
 	for (int i = 1; i < argc; ++i)
 	{
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
@@ -690,6 +702,24 @@ int dsMain(int argc, const char** argv)
 				return 1;
 			}
 			deviceName = argv[++i];
+		}
+		else if (strcmp(argv[i], "-u") == 0 || strcmp(argv[i], "--update-fps") == 0)
+		{
+			if (i == argc - 1)
+			{
+				printf("--update-fps option requires an argument\n");
+				printHelp(argv[0]);
+				return 1;
+			}
+
+			char* endPtr;
+			updateFps = strtof(argv[++i], &endPtr);
+			if (updateFps < 0.0f || *endPtr)
+			{
+				printf("--update-fps option must be a float >= 0\n");
+				printHelp(argv[0]);
+				return 1;
+			}
 		}
 		else if (*argv[i])
 		{
@@ -725,8 +755,8 @@ int dsMain(int argc, const char** argv)
 		return 0;
 	}
 
-	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
-		(dsAllocator*)&renderAllocator, &rendererOptions);
+	dsRenderer* renderer = dsRenderBootstrap_createRenderer(
+		rendererType, (dsAllocator*)&renderAllocator, &rendererOptions);
 	if (!renderer)
 	{
 		DS_LOG_ERROR_F("TestAnimation", "Couldn't create renderer: %s", dsErrorString(errno));
@@ -749,13 +779,13 @@ int dsMain(int argc, const char** argv)
 	}
 
 	char assetsPath[DS_PATH_MAX];
-	DS_VERIFY(dsResourceStream_getPath(assetsPath, sizeof(assetsPath), dsFileResourceType_Embedded,
-		"TestAnimation-assets"));
+	DS_VERIFY(dsResourceStream_getPath(
+		assetsPath, sizeof(assetsPath), dsFileResourceType_Embedded, "TestAnimation-assets"));
 	dsResourceStream_setEmbeddedDirectory(assetsPath);
 
 	TestAnimation testAnimation;
 	memset(&testAnimation, 0, sizeof(testAnimation));
-	if (!setup(&testAnimation, application, (dsAllocator*)&testAnimationAllocator))
+	if (!setup(&testAnimation, application, (dsAllocator*)&testAnimationAllocator, updateFps))
 	{
 		shutdown(&testAnimation);
 		return 3;

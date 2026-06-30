@@ -29,7 +29,7 @@
 #include <DeepSea/SceneAnimation/SceneAnimationTreeNode.h>
 
 dsSceneAnimationTreeInstance* dsSceneAnimationTreeInstance_create(dsAllocator* allocator,
-	const dsAnimation* animation, dsAnimationTree* animationTree)
+	const dsAnimation* animation, dsAnimationTree* animationTree, const float* curStepT)
 {
 	DS_ASSERT(allocator);
 	DS_ASSERT(animation);
@@ -50,7 +50,9 @@ dsSceneAnimationTreeInstance* dsSceneAnimationTreeInstance_create(dsAllocator* a
 		return NULL;
 	}
 
-	instance->dirty = true;
+	instance->lastChangeCount = (uint64_t)-1;
+	instance->curStepT = curStepT;
+	instance->lastStepT = 0.0f;
 	DS_VERIFY(dsSpinlock_initialize(&instance->lock));
 	return instance;
 }
@@ -78,12 +80,19 @@ void dsSceneAnimationTreeInstance_updateUnlocked(dsSceneAnimationTreeInstance* i
 {
 	DS_ASSERT(instance);
 
-	if (!instance->dirty)
-		return;
-
-	DS_CHECK(DS_SCENE_ANIMATION_LOG_TAG,
-		dsAnimation_apply(instance->animation, instance->animationTree));
-	instance->dirty = false;
+	if (instance->lastChangeCount != instance->animation->changeCount)
+	{
+		DS_CHECK(DS_SCENE_ANIMATION_LOG_TAG,
+			dsAnimation_apply(instance->animation, instance->animationTree, *instance->curStepT));
+		instance->lastChangeCount = instance->animation->changeCount;
+		instance->lastStepT = *instance->curStepT;
+	}
+	else if (instance->lastStepT != *instance->curStepT)
+	{
+		DS_CHECK(DS_SCENE_ANIMATION_LOG_TAG,
+			dsAnimationTree_updateTransforms(instance->animationTree, *instance->curStepT));
+		instance->lastStepT = *instance->curStepT;
+	}
 }
 
 void dsSceneAnimationTreeInstance_update(dsSceneAnimationTreeInstance* instance)

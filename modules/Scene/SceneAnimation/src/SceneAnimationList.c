@@ -98,6 +98,8 @@ typedef struct dsSceneAnimationList
 	uint64_t* removeTransformEntries;
 	uint32_t removeTransformEntryCount;
 	uint32_t maxRemoveTransformEntries;
+
+	float curStepT;
 } dsSceneAnimationList;
 
 static uint64_t dsSceneAnimationList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
@@ -158,7 +160,7 @@ static uint64_t dsSceneAnimationList_addNode(dsSceneItemList* itemList, dsSceneN
 
 		TreeEntry* entry = animationList->treeEntries + index;
 		entry->instance = dsSceneAnimationTreeInstance_create(itemList->allocator, animation,
-			animationTreeNode->animationTree);
+			animationTreeNode->animationTree, &animationList->curStepT);
 		if (!entry->instance)
 		{
 			--animationList->treeEntryCount;
@@ -182,8 +184,8 @@ static uint64_t dsSceneAnimationList_addNode(dsSceneItemList* itemList, dsSceneN
 			return DS_NO_SCENE_NODE;
 		}
 
-		uint32_t nodeIndex = dsAnimationTree_findNodeIndexID(instance->animationTree,
-			animationTransformNode->animationNodeID);
+		uint32_t nodeIndex = dsAnimationTree_findNodeIndexID(
+			instance->animationTree, animationTransformNode->animationNodeID);
 		if (nodeIndex == DS_NO_ANIMATION_NODE)
 		{
 			DS_LOG_ERROR_F(DS_SCENE_ANIMATION_LOG_TAG,
@@ -199,7 +201,7 @@ static uint64_t dsSceneAnimationList_addNode(dsSceneItemList* itemList, dsSceneN
 			return DS_NO_SCENE_NODE;
 		}
 
-		treeNode->baseTransform = &instance->animationTree->nodes[nodeIndex].transform;
+		treeNode->baseTransform = &instance->animationTree->nodes[nodeIndex].fullTransform;
 
 		TransformEntry* entry = animationList->transformEntries + index;
 		entry->treeNode = treeNode;
@@ -212,8 +214,8 @@ static uint64_t dsSceneAnimationList_addNode(dsSceneItemList* itemList, dsSceneN
 	{
 		const dsSceneAnimationRagdollNode* ragdollNode = (const dsSceneAnimationRagdollNode*)node;
 		const dsSceneTreeNode* animationNode = treeNode->parent;
-		while (animationNode && !dsSceneNode_isOfType(animationNode->node, animationNodeType))
-			animationNode = animationNode->parent;
+		while (animationNode && !dsSceneNode_isOfType(
+			animationNode->node, animationNodeType)) animationNode = animationNode->parent;
 
 		uint64_t nodeID = animationNode ? dsSceneTreeNode_getNodeID(animationNode, itemList) :
 			DS_NO_SCENE_NODE;
@@ -340,11 +342,6 @@ static void dsSceneAnimationList_preTransformUpdate(
 	DS_ASSERT(tick);
 	DS_UNUSED(scene);
 
-	// TODO: Update transform for each step to allow for transforms at each discrete step, and have
-	// final display transform at the end.
-	if (step != tick->stepCount - 1)
-		return;
-
 	dsSceneAnimationList* animationList = (dsSceneAnimationList*)itemList;
 
 	// Lazily remove entries.
@@ -365,21 +362,17 @@ static void dsSceneAnimationList_preTransformUpdate(
 		animationList->removeTransformEntryCount);
 	animationList->removeTransformEntryCount = 0;
 
-	if (tick->thisTime != 0)
+	// Set stepT to 1 when not the last step so it avoids interpolating for intermediate steps.
+	float stepT = step == tick->stepCount - 1 ? tick->stepInterp : 1.0f;
+	animationList->curStepT = stepT;
+	if (tick->stepTime > 0.0f)
 	{
 		for (uint32_t i = 0; i < animationList->animationEntryCount; ++i)
 		{
 			AnimationEntry* entry = animationList->animationEntries + i;
 			DS_CHECK(DS_SCENE_ANIMATION_LOG_TAG,
-				dsAnimation_update(entry->instance->animation, tick->thisTime));
+				dsAnimation_update(entry->instance->animation, tick->stepTime));
 		}
-	}
-
-	for (uint32_t i = 0; i < animationList->treeEntryCount; ++i)
-	{
-		TreeEntry* entry = animationList->treeEntries + i;
-		// Mark as dirty to lazily update the trees.
-		entry->instance->dirty = true;
 	}
 
 	for (uint32_t i = 0; i < animationList->transformEntryCount; ++i)

@@ -79,7 +79,7 @@ typedef struct dsAnimationJointTransform
 	 *
 	 * This is stored as 3 vector 4s to make it easier to transfer to shaders.
 	 */
-	//dsVector4f inverseTranspose[3];
+	//dsMatrix33xf inverseTranspose;
 } dsAnimationJointTransform;
 
 /**
@@ -99,19 +99,9 @@ typedef struct dsAnimationBuildNode
 	const char* name;
 
 	/**
-	 * @brief The scale of the node.
+	 * @brief The transform for this node relative to its parent.
 	 */
-	dsVector3f scale;
-
-	/**
-	 * @brief The rotation of the node.
-	 */
-	dsQuaternion4f rotation;
-
-	/**
-	 * @brief The translation of the node.
-	 */
-	dsVector3f translation;
+	dsRigidTransform3f transform;
 
 	/**
 	 * @brief The number of children for the node.
@@ -141,19 +131,9 @@ typedef struct dsAnimationJointBuildNode
 	const char* name;
 
 	/**
-	 * @brief The scale of the node.
+	 * @brief The transform for the node relative to its parent.
 	 */
-	dsVector3f scale;
-
-	/**
-	 * @brief The rotation of the node.
-	 */
-	dsQuaternion4f rotation;
-
-	/**
-	 * @brief The translation of the node.
-	 */
-	dsVector3f translation;
+	dsRigidTransform3f transform;
 
 	/**
 	 * @brief Transform to the local space of the node.
@@ -189,24 +169,22 @@ typedef struct dsAnimationNode
 	uint32_t nameID;
 
 	/**
-	 * @brief The scale of the node.
+	 * @brief The transform for this node relative to its parent for the previous update.
+	 *
+	 * This will be set when a step interpolation other than 1 is used.
 	 */
-	dsVector3xf scale;
+	dsRigidTransform3f prevTransform;
 
 	/**
-	 * @brief The rotation of the node.
+	 * @brief The transform for this node relative to its parent.
 	 */
-	dsQuaternion4f rotation;
+	dsRigidTransform3f transform;
 
 	/**
-	 * @brief The translation of the node.
+	 * @brief The cached transform for this node within the animation tree interpolated between the
+	 * previous and current step.
 	 */
-	dsVector3xf translation;
-
-	/**
-	 * @brief The cached transform for this node within the animation tree.
-	 */
-	dsMatrix44f transform;
+	dsMatrix44f fullTransform;
 
 	/**
 	 * @brief The index of the parent.
@@ -433,6 +411,13 @@ typedef struct dsDirectAnimationChannel
 	dsAnimationComponent component;
 
 	/**
+	 * @brief The previous value of the component.
+	 *
+	 * This will use three or four of the value components based on the animation component.
+	 */
+	dsVector4f prevValue;
+
+	/**
 	 * @brief The value of the component.
 	 *
 	 * This will use three or four of the value components based on the animation component.
@@ -477,14 +462,19 @@ typedef struct dsKeyframeAnimationEntry
 	const dsKeyframeAnimation* animation;
 
 	/**
+	 * @brief The previous time for the entry.
+	 */
+	float prevTime;
+
+	/**
 	 * @brief The current time for the entry.
 	 */
-	double time;
+	float time;
 
 	/**
 	 * @brief The scale to apply when incrementing the time.
 	 */
-	double timeScale;
+	float timeScale;
 
 	/**
 	 * @brief Whether to wrap the time or clamp to the limits of the animation.
@@ -492,9 +482,19 @@ typedef struct dsKeyframeAnimationEntry
 	bool wrap;
 
 	/**
+	 * @brief The previous weight for animation.
+	 */
+	float prevWeight;
+
+	/**
 	 * @brief The weight for animation.
 	 */
 	float weight;
+
+	/**
+	 * @brief The weight for animation that will be used for the next update.
+	 */
+	float nextWeight;
 } dsKeyframeAnimationEntry;
 
 /**
@@ -510,9 +510,19 @@ typedef struct dsDirectAnimationEntry
 	const dsDirectAnimation* animation;
 
 	/**
+	 * @brief The previous weight for animation.
+	 */
+	float prevWeight;
+
+	/**
 	 * @brief The weight for animation.
 	 */
 	float weight;
+
+	/**
+	 * @brief The weight for animation that will be used for the next update.
+	 */
+	float nextWeight;
 } dsDirectAnimationEntry;
 
 /**
@@ -569,6 +579,14 @@ typedef struct dsAnimation
 	 * @brief The maximum number of keyframe entries currently allocated.
 	 */
 	uint32_t maxDirectEntries;
+
+	/**
+	 * @brief Counter that's incremented for every update or whenever a component animation is added
+	 * or removed.
+	 *
+	 * This may be used by higher level systems to decide when to update the animation.
+	 */
+	uint64_t changeCount;
 } dsAnimation;
 
 #ifdef __cplusplus

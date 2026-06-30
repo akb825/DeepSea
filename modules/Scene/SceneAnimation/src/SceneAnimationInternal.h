@@ -61,7 +61,9 @@ typedef struct dsSceneAnimationTreeInstance
 	dsAllocator* allocator;
 	const dsAnimation* animation;
 	dsAnimationTree* animationTree;
-	bool dirty;
+	uint64_t lastChangeCount;
+	const float* curStepT;
+	float lastStepT;
 	dsSpinlock lock;
 } dsSceneAnimationTreeInstance;
 

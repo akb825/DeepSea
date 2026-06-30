@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,6 +81,7 @@ dsDirectAnimation* dsDirectAnimation_create(dsAllocator* allocator,
 		toChannel->node = node;
 
 		toChannel->component = fromChannel->component;
+		toChannel->prevValue = fromChannel->prevValue;
 		toChannel->value = fromChannel->value;
 	}
 	animation->channels = animationChannels;
@@ -88,8 +89,8 @@ dsDirectAnimation* dsDirectAnimation_create(dsAllocator* allocator,
 	return animation;
 }
 
-dsDirectAnimation* dsDirectAnimation_loadFile(dsAllocator* allocator, dsAllocator* scratchAllocator,
-	const char* filePath)
+dsDirectAnimation* dsDirectAnimation_loadFile(
+	dsAllocator* allocator, dsAllocator* scratchAllocator, const char* filePath)
 {
 	if (!allocator || !filePath)
 	{
@@ -113,8 +114,8 @@ dsDirectAnimation* dsDirectAnimation_loadFile(dsAllocator* allocator, dsAllocato
 	if (!buffer)
 		return NULL;
 
-	dsDirectAnimation* tree = dsDirectAnimation_loadImpl(allocator, scratchAllocator, buffer, size,
-		filePath);
+	dsDirectAnimation* tree = dsDirectAnimation_loadImpl(
+		allocator, scratchAllocator, buffer, size, filePath);
 	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
 	return tree;
 }
@@ -144,8 +145,8 @@ dsDirectAnimation* dsDirectAnimation_loadResource(dsAllocator* allocator,
 	if (!buffer)
 		return NULL;
 
-	dsDirectAnimation* tree = dsDirectAnimation_loadImpl(allocator, scratchAllocator, buffer, size,
-		filePath);
+	dsDirectAnimation* tree = dsDirectAnimation_loadImpl(
+		allocator, scratchAllocator, buffer, size, filePath);
 	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
 	return tree;
 }
@@ -175,14 +176,14 @@ dsDirectAnimation* dsDirectAnimation_loadArchive(dsAllocator* allocator,
 	if (!buffer)
 		return NULL;
 
-	dsDirectAnimation* tree = dsDirectAnimation_loadImpl(allocator, scratchAllocator, buffer, size,
-		filePath);
+	dsDirectAnimation* tree = dsDirectAnimation_loadImpl(
+		allocator, scratchAllocator, buffer, size, filePath);
 	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
 	return tree;
 }
 
-dsDirectAnimation* dsDirectAnimation_loadStream(dsAllocator* allocator,
-	dsAllocator* scratchAllocator, dsStream* stream)
+dsDirectAnimation* dsDirectAnimation_loadStream(
+	dsAllocator* allocator, dsAllocator* scratchAllocator, dsStream* stream)
 {
 	if (!allocator || !stream)
 	{
@@ -204,8 +205,8 @@ dsDirectAnimation* dsDirectAnimation_loadStream(dsAllocator* allocator,
 	return tree;
 }
 
-dsDirectAnimation* dsDirectAnimation_loadData(dsAllocator* allocator, dsAllocator* scratchAllocator,
-	const void* data, size_t size)
+dsDirectAnimation* dsDirectAnimation_loadData(
+	dsAllocator* allocator, dsAllocator* scratchAllocator, const void* data, size_t size)
 {
 	if (!allocator || !data || size == 0)
 	{

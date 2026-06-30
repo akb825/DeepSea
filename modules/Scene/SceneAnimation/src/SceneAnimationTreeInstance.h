@@ -25,7 +25,7 @@ extern "C"
 #endif
 
 dsSceneAnimationTreeInstance* dsSceneAnimationTreeInstance_create(dsAllocator* allocator,
-	const dsAnimation* animation, dsAnimationTree* animationTree);
+	const dsAnimation* animation, dsAnimationTree* animationTree, const float* curStepT);
 dsSceneAnimationTreeInstance* dsSceneAnimationTreeInstance_find(const dsSceneTreeNode* treeNode);
 void dsSceneAnimationTreeInstance_updateUnlocked(dsSceneAnimationTreeInstance* instance);
 void dsSceneAnimationTreeInstance_update(dsSceneAnimationTreeInstance* instance);

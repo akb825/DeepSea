@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,8 +54,8 @@ DS_ANIMATION_EXPORT dsDirectAnimation* dsDirectAnimation_create(dsAllocator* all
  * @param filePath The file path for the direct animation to load.
  * @return The loaded direct animation or NULL if it couldn't be loaded.
  */
-DS_ANIMATION_EXPORT dsDirectAnimation* dsDirectAnimation_loadFile(dsAllocator* allocator,
-	dsAllocator* scratchAllocator, const char* filePath);
+DS_ANIMATION_EXPORT dsDirectAnimation* dsDirectAnimation_loadFile(
+	dsAllocator* allocator, dsAllocator* scratchAllocator, const char* filePath);
 
 /**
  * @brief Loads an direct animation from a resource file.
@@ -93,8 +93,8 @@ DS_ANIMATION_EXPORT dsDirectAnimation* dsDirectAnimation_loadArchive(dsAllocator
  *     current position until the end.
  * @return The loaded direct animation or NULL if it couldn't be loaded.
  */
-DS_ANIMATION_EXPORT dsDirectAnimation* dsDirectAnimation_loadStream(dsAllocator* allocator,
-	dsAllocator* scratchAllocator, dsStream* stream);
+DS_ANIMATION_EXPORT dsDirectAnimation* dsDirectAnimation_loadStream(
+	dsAllocator* allocator, dsAllocator* scratchAllocator, dsStream* stream);
 
 /**
  * @brief Loads an direct animation from a data buffer.
@@ -106,8 +106,8 @@ DS_ANIMATION_EXPORT dsDirectAnimation* dsDirectAnimation_loadStream(dsAllocator*
  * @param size The size of the data buffer.
  * @return The loaded direct animation or NULL if it couldn't be loaded.
  */
-DS_ANIMATION_EXPORT dsDirectAnimation* dsDirectAnimation_loadData(dsAllocator* allocator,
-	dsAllocator* scratchAllocator, const void* data, size_t size);
+DS_ANIMATION_EXPORT dsDirectAnimation* dsDirectAnimation_loadData(
+	dsAllocator* allocator, dsAllocator* scratchAllocator, const void* data, size_t size);
 
 /**
  * @brief Destroys a direct animation.

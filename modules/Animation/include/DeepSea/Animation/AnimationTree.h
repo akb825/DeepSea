@@ -180,9 +180,10 @@ DS_ANIMATION_EXPORT uint32_t dsAnimationTree_findNodeIndexID(
  * @brief Updates the transforms for an animation tree.
  * @remark errno will be set on failure.
  * @param tree The animation tree.
+ * @param stepT The t value to interpolate between the previous and current time.
  * @return False if tree is NULL.
  */
-DS_ANIMATION_EXPORT bool dsAnimationTree_updateTransforms(dsAnimationTree* tree);
+DS_ANIMATION_EXPORT bool dsAnimationTree_updateTransforms(dsAnimationTree* tree, float stepT);
 
 /**
  * @brief Destroys an animation tree.

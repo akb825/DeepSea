@@ -21,6 +21,9 @@ void dsRigidTransform3f_initialize(dsRigidTransform3f* result,
 void dsRigidTransform3d_initialize(dsRigidTransform3d* result,
 	const dsVector3xd* position, const dsQuaternion4d* orientation, const dsVector3xd* scale);
 
+void dsRigidTransform3f_identity(dsRigidTransform3f* result);
+void dsRigidTransform3d_identity(dsRigidTransform3d* result);
+
 void dsRigidTransform3f_fromMatrix(dsRigidTransform3f* result, const dsMatrix44f* matrix);
 void dsRigidTransform3d_fromMatrix(dsRigidTransform3d* result, const dsMatrix44d* matrix);
 

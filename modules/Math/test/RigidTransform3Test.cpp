@@ -70,6 +70,16 @@ inline void dsRigidTransform3_initialize(dsRigidTransform3d* result,
 	dsRigidTransform3d_initialize(result, position, orientation, scale);
 }
 
+inline void dsRigidTransform3_identity(dsRigidTransform3f* result)
+{
+	dsRigidTransform3f_identity(result);
+}
+
+inline void dsRigidTransform3_identity(dsRigidTransform3d* result)
+{
+	dsRigidTransform3d_identity(result);
+}
+
 inline void dsRigidTransform3_fromMatrix(dsRigidTransform3f* result, const dsMatrix44f* matrix)
 {
 	dsRigidTransform3f_fromMatrix(result, matrix);
@@ -334,6 +344,28 @@ TYPED_TEST(RigidTransform3Test, Initialize)
 	EXPECT_EQ(orientation.j, transform.orientation.j);
 	EXPECT_EQ(orientation.k, transform.orientation.k);
 	EXPECT_EQ(orientation.r, transform.orientation.r);
+
+	EXPECT_EQ(1, transform.scale.x);
+	EXPECT_EQ(1, transform.scale.y);
+	EXPECT_EQ(1, transform.scale.z);
+}
+
+TYPED_TEST(RigidTransform3Test, Identity)
+{
+	typedef typename RigidTransform3TypeSelector<TypeParam>::RigidTransform3Type
+		RigidTransform3Type;
+
+	RigidTransform3Type transform;
+	dsRigidTransform3_identity(&transform);
+
+	EXPECT_EQ(0, transform.position.x);
+	EXPECT_EQ(0, transform.position.y);
+	EXPECT_EQ(0, transform.position.z);
+
+	EXPECT_EQ(0, transform.orientation.i);
+	EXPECT_EQ(0, transform.orientation.j);
+	EXPECT_EQ(0, transform.orientation.k);
+	EXPECT_EQ(1, transform.orientation.r);
 
 	EXPECT_EQ(1, transform.scale.x);
 	EXPECT_EQ(1, transform.scale.y);

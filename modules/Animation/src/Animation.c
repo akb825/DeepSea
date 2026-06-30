@@ -72,13 +72,13 @@ dsAnimation* dsAnimation_create(dsAllocator* allocator, dsAnimationNodeMapCache*
 	animation->directEntries = NULL;
 	animation->directEntryCount = 0;
 	animation->maxDirectEntries = 0;
-
+	animation->changeCount = 0;
 	return animation;
 }
 
 bool dsAnimation_addKeyframeAnimation(dsAnimation* animation,
-	const dsKeyframeAnimation* keyframeAnimation, float weight, double time, double timeScale,
-	bool wrap)
+	const dsKeyframeAnimation* keyframeAnimation, float prevWeight, float weight, float prevTime,
+	float time, float timeScale, bool wrap)
 {
 	if (!animation || !keyframeAnimation)
 	{
@@ -88,8 +88,8 @@ bool dsAnimation_addKeyframeAnimation(dsAnimation* animation,
 
 	const dsKeyframeAnimationEntry* prevEntry =
 		(const dsKeyframeAnimationEntry*)dsBinarySearchLowerBound(keyframeAnimation,
-			animation->keyframeEntries, animation->keyframeEntryCount, sizeof(dsKeyframeAnimationEntry),
-			&keyframeAnimationEntryCompare, NULL);
+			animation->keyframeEntries, animation->keyframeEntryCount,
+			sizeof(dsKeyframeAnimationEntry), &keyframeAnimationEntryCompare, NULL);
 	if (prevEntry && prevEntry->animation == keyframeAnimation)
 	{
 		errno = EPERM;
@@ -116,15 +116,19 @@ bool dsAnimation_addKeyframeAnimation(dsAnimation* animation,
 
 	dsKeyframeAnimationEntry* entry = animation->keyframeEntries + index;
 	entry->animation = keyframeAnimation;
+	entry->prevTime = prevTime;
 	entry->time = time;
 	entry->timeScale = timeScale;
 	entry->wrap = wrap;
-	entry->weight = weight;
+	entry->prevWeight = prevWeight;
+	entry->weight = entry->nextWeight = weight;
+
+	++animation->changeCount;
 	return true;
 }
 
-dsKeyframeAnimationEntry* dsAnimation_findKeyframeAnimationEntry(dsAnimation* animation,
-	const dsKeyframeAnimation* keyframeAnimation)
+dsKeyframeAnimationEntry* dsAnimation_findKeyframeAnimationEntry(
+	dsAnimation* animation, const dsKeyframeAnimation* keyframeAnimation)
 {
 	if (!animation || !keyframeAnimation)
 		return NULL;
@@ -134,8 +138,8 @@ dsKeyframeAnimationEntry* dsAnimation_findKeyframeAnimationEntry(dsAnimation* an
 		&keyframeAnimationEntryCompare, NULL);
 }
 
-bool dsAnimation_removeKeyframeAnimation(dsAnimation* animation,
-	const dsKeyframeAnimation* keyframeAnimation)
+bool dsAnimation_removeKeyframeAnimation(
+	dsAnimation* animation, const dsKeyframeAnimation* keyframeAnimation)
 {
 	if (!animation || !keyframeAnimation)
 	{
@@ -156,13 +160,15 @@ bool dsAnimation_removeKeyframeAnimation(dsAnimation* animation,
 	// Need to shift the entries back into place.
 	for (size_t i = entry - animation->keyframeEntries; i < animation->keyframeEntryCount; ++i)
 		animation->keyframeEntries[i] = animation->keyframeEntries[i + 1];
-	DS_VERIFY(dsAnimationNodeMapCache_removeKeyframeAnimation(animation->nodeMapCache,
-		keyframeAnimation));
+	DS_VERIFY(dsAnimationNodeMapCache_removeKeyframeAnimation(
+		animation->nodeMapCache, keyframeAnimation));
+
+	++animation->changeCount;
 	return true;
 }
 
 bool dsAnimation_addDirectAnimation(dsAnimation* animation,
-	const dsDirectAnimation* directAnimation, float weight)
+	const dsDirectAnimation* directAnimation, float prevWeight, float weight)
 {
 	if (!animation || !directAnimation)
 	{
@@ -199,12 +205,15 @@ bool dsAnimation_addDirectAnimation(dsAnimation* animation,
 
 	dsDirectAnimationEntry* entry = animation->directEntries + index;
 	entry->animation = directAnimation;
-	entry->weight = weight;
+	entry->prevWeight = weight;
+	entry->weight = entry->nextWeight = weight;
+
+	++animation->changeCount;
 	return true;
 }
 
-dsDirectAnimationEntry* dsAnimation_findDirectAnimationEntry(dsAnimation* animation,
-	const dsDirectAnimation* directAnimation)
+dsDirectAnimationEntry* dsAnimation_findDirectAnimationEntry(
+	dsAnimation* animation, const dsDirectAnimation* directAnimation)
 {
 	if (!animation || !directAnimation)
 		return NULL;
@@ -214,8 +223,8 @@ dsDirectAnimationEntry* dsAnimation_findDirectAnimationEntry(dsAnimation* animat
 		&directAnimationEntryCompare, NULL);
 }
 
-bool dsAnimation_removeDirectAnimation(dsAnimation* animation,
-	const dsDirectAnimation* directAnimation)
+bool dsAnimation_removeDirectAnimation(
+	dsAnimation* animation, const dsDirectAnimation* directAnimation)
 {
 	if (!animation || !directAnimation)
 		return false;
@@ -233,12 +242,14 @@ bool dsAnimation_removeDirectAnimation(dsAnimation* animation,
 	// Need to shift the entries back into place.
 	for (size_t i = entry - animation->directEntries; i < animation->directEntryCount; ++i)
 		animation->directEntries[i] = animation->directEntries[i + 1];
-	DS_VERIFY(dsAnimationNodeMapCache_removeDirectAnimation(animation->nodeMapCache,
-		directAnimation));
+	DS_VERIFY(dsAnimationNodeMapCache_removeDirectAnimation(
+		animation->nodeMapCache, directAnimation));
+
+	++animation->changeCount;
 	return true;
 }
 
-bool dsAnimation_update(dsAnimation* animation, double time)
+bool dsAnimation_update(dsAnimation* animation, float time)
 {
 	if (!animation)
 	{
@@ -249,18 +260,28 @@ bool dsAnimation_update(dsAnimation* animation, double time)
 	for (uint32_t i = 0; i < animation->keyframeEntryCount; ++i)
 	{
 		dsKeyframeAnimationEntry* entry = animation->keyframeEntries + i;
+		entry->prevWeight = entry->weight;
+		entry->weight = entry->nextWeight;
+		entry->prevTime = entry->time;
 		entry->time += time*entry->timeScale;
 		if (entry->wrap)
 		{
 			entry->time =
-				dsWrapd(entry->time, entry->animation->minTime, entry->animation->maxTime);
+				dsWrapf(entry->time, entry->animation->minTime, entry->animation->maxTime);
 		}
 	}
 
+	for (uint32_t i = 0; i < animation->directEntryCount; ++i)
+	{
+		dsDirectAnimationEntry* entry = animation->directEntries + i;
+		entry->prevWeight = entry->weight;
+	}
+
+	++animation->changeCount;
 	return true;
 }
 
-bool dsAnimation_apply(const dsAnimation* animation, dsAnimationTree* tree)
+bool dsAnimation_apply(const dsAnimation* animation, dsAnimationTree* tree, float stepT)
 {
 	if (!animation || !tree)
 	{
@@ -268,8 +289,9 @@ bool dsAnimation_apply(const dsAnimation* animation, dsAnimationTree* tree)
 		return false;
 	}
 
-	return dsAnimationNodeMapCache_applyAnimation(animation->nodeMapCache, animation, tree) &&
-		dsAnimationTree_updateTransforms(tree);
+	return dsAnimationNodeMapCache_applyAnimation(
+			animation->nodeMapCache, animation, tree, stepT < 1.0f) &&
+		dsAnimationTree_updateTransforms(tree, stepT);
 }
 
 void dsAnimation_destroy(dsAnimation* animation)
@@ -279,14 +301,14 @@ void dsAnimation_destroy(dsAnimation* animation)
 
 	for (uint32_t i = 0; i < animation->keyframeEntryCount; ++i)
 	{
-		DS_VERIFY(dsAnimationNodeMapCache_removeKeyframeAnimation(animation->nodeMapCache,
-			animation->keyframeEntries[i].animation));
+		DS_VERIFY(dsAnimationNodeMapCache_removeKeyframeAnimation(
+			animation->nodeMapCache, animation->keyframeEntries[i].animation));
 	}
 
 	for (uint32_t i = 0; i < animation->directEntryCount; ++i)
 	{
-		DS_VERIFY(dsAnimationNodeMapCache_removeDirectAnimation(animation->nodeMapCache,
-			animation->directEntries[i].animation));
+		DS_VERIFY(dsAnimationNodeMapCache_removeDirectAnimation(
+			animation->nodeMapCache, animation->directEntries[i].animation));
 	}
 
 	DS_VERIFY(dsAllocator_free(animation->allocator, animation->keyframeEntries));

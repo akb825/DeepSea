@@ -53,6 +53,15 @@ DS_MATH_EXPORT inline void dsRigidTransform3d_initialize(dsRigidTransform3d* res
 	const dsVector3xd* position, const dsQuaternion4d* orientation, const dsVector3xd* scale);
 
 /**
+ * @brief Initializes a rigid transform to identity.
+ * @param[out] result The rigid transform.
+ */
+DS_MATH_EXPORT inline void dsRigidTransform3f_identity(dsRigidTransform3f* result);
+
+/** @copydoc dsRigidTransform3f_identity() */
+DS_MATH_EXPORT inline void dsRigidTransform3d_identity(dsRigidTransform3d* result);
+
+/**
  * @brief Extracts the rigid transform from a matrix.
  * @param[out] result The rigid transform.
  * @param matrix The transform matrix. It is expected to be explicitly a rigid transform.
@@ -732,6 +741,24 @@ inline void dsRigidTransform3d_initialize(dsRigidTransform3d* result,
 		result->scale = *scale;
 	else
 		result->scale.x = result->scale.y = result->scale.z = result->scale.w = 1.0;
+}
+
+inline void dsRigidTransform3f_identity(dsRigidTransform3f* result)
+{
+	DS_ASSERT(result);
+
+	result->position.x = result->position.y = result->position.z = result->position.w = 0.0f;
+	dsQuaternion4_identityRotation(result->orientation);
+	result->scale.x = result->scale.y = result->scale.z = result->scale.w = 1.0f;
+}
+
+inline void dsRigidTransform3d_identity(dsRigidTransform3d* result)
+{
+	DS_ASSERT(result);
+
+	result->position.x = result->position.y = result->position.z = result->position.w = 0.0;
+	dsQuaternion4_identityRotation(result->orientation);
+	result->scale.x = result->scale.y = result->scale.z = result->scale.w = 1.0;
 }
 
 inline void dsRigidTransform3f_fromMatrix(dsRigidTransform3f* result, const dsMatrix44f* matrix)

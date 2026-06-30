@@ -37,21 +37,22 @@
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Quaternion.h>
-#include <DeepSea/Math/Vector4.h>
+#include <DeepSea/Math/Vector3x.h>
 
 #include <string.h>
 
 typedef struct WeightedTransform
 {
-	dsVector4f translation;
+	dsVector3xf translation;
 	dsVector4f rotation;
-	dsVector4f scale;
+	dsVector3xf scale;
+
 	float totalTranslationWeight;
 	float totalRotationWeight;
 	float totalScaleWeight;
 } WeightedTransform;
 
-static uint32_t findEndKeyframe(const float* keyframeTimes, uint32_t keyframeCount, double time)
+static uint32_t findEndKeyframe(const float* keyframeTimes, uint32_t keyframeCount, float time)
 {
 	// NOTE: If there's regularly many keyframes can use a binary search. Expected to be a fairly
 	// small number of keyframes on average, so a linear search should be fine and in many cases
@@ -72,15 +73,114 @@ static void evaluateCubicSpline(dsVector4f* result, const dsMatrix44f* cubicTran
 	dsMatrix44f_transform(result, cubicTransposed, &eval);
 }
 
-static void applyKeyframeAnimationTransforms(WeightedTransform* transforms,
-	dsKeyframeAnimationNodeMap** nodeMaps, uint32_t nodeMapCount, const dsAnimation* animation)
+static void addTransformValue(WeightedTransform* transform, dsAnimationComponent component,
+	const dsVector4f* value, float weight)
+{
+	dsVector4f weightedValue;
+	dsVector4f_scale(&weightedValue, value, weight);
+	switch (component)
+	{
+		case dsAnimationComponent_Translation:
+			dsVector3xf_add(
+				&transform->translation, &transform->translation, &weightedValue);
+			transform->totalTranslationWeight += weight;
+			break;
+		case dsAnimationComponent_Rotation:
+			dsVector4f_add(&transform->rotation, &transform->rotation, &weightedValue);
+			transform->totalRotationWeight += weight;
+			break;
+		case dsAnimationComponent_Scale:
+			dsVector3xf_add(&transform->scale, &transform->scale, &weightedValue);
+			transform->totalScaleWeight += weight;
+			break;
+	}
+}
+
+static void applyKeyframeTransforms(WeightedTransform* transforms,
+	const dsAnimationKeyframes* keyframes, const dsAnimationKeyframesNodeMap* keyframesMap,
+	float time, float weight)
+{
+	// Find wich pair of keyframes to interpolate between.
+	uint32_t startKeyframe;
+	float t;
+	if (time <= keyframes->keyframeTimes[0] || keyframes->keyframeCount == 1)
+	{
+		startKeyframe = 0;
+		t = 0;
+	}
+	else if (time >= keyframes->keyframeTimes[keyframes->keyframeCount - 1])
+	{
+		startKeyframe = keyframes->keyframeCount - 2;
+		t = 1;
+	}
+	else
+	{
+		uint32_t endKeyframe = findEndKeyframe(
+			keyframes->keyframeTimes, keyframes->keyframeCount, time);
+		DS_ASSERT(endKeyframe > 0);
+		startKeyframe = endKeyframe - 1;
+		float startTime = keyframes->keyframeTimes[startKeyframe];
+		float endTime = keyframes->keyframeTimes[endKeyframe];
+		t = (time - startTime)/(endTime - startTime);
+	}
+
+	for (uint32_t k = 0; k < keyframes->channelCount; ++k)
+	{
+		const dsKeyframeAnimationChannel* channel = keyframes->channels + k;
+		uint32_t nodeIndex = keyframesMap->channelNodes[k];
+		if (nodeIndex == DS_NO_ANIMATION_NODE)
+			continue;
+
+		WeightedTransform* transform = transforms + nodeIndex;
+		dsVector4f value;
+		switch (channel->interpolation)
+		{
+			case dsAnimationInterpolation_Step:
+				value = channel->values[startKeyframe];
+				break;
+			case dsAnimationInterpolation_Linear:
+				DS_ASSERT(keyframes->keyframeCount > 1);
+				if (channel->component == dsAnimationComponent_Rotation)
+				{
+					const dsQuaternion4f* firstValue =
+						(dsQuaternion4f*)channel->values + startKeyframe;
+					dsQuaternion4f_unitLerp(
+						(dsQuaternion4f*)&value, firstValue, firstValue + 1, t);
+				}
+				else
+				{
+					const dsVector4f* firstValue = channel->values + startKeyframe;
+					dsVector4f_lerp(&value, firstValue, firstValue + 1, t);
+				}
+				break;
+			case dsAnimationInterpolation_Cubic:
+			{
+				const dsMatrix44f* cubicTransposed =
+					(const dsMatrix44f*)channel->values + startKeyframe;
+				evaluateCubicSpline(&value, cubicTransposed, t);
+				break;
+			}
+			default:
+				DS_ASSERT(false);
+				DS_UNREACHABLE();
+		}
+
+		addTransformValue(transform, channel->component, &value, weight);
+	}
+}
+
+static void applyKeyframeAnimationTransforms(WeightedTransform* prevTransforms,
+	WeightedTransform* transforms, dsKeyframeAnimationNodeMap** nodeMaps, uint32_t nodeMapCount,
+	const dsAnimation* animation)
 {
 	dsKeyframeAnimationNodeMap** curNodeMap = nodeMaps;
 	dsKeyframeAnimationNodeMap** nodeMapEnd = nodeMaps + nodeMapCount;
 	for (uint32_t i = 0; i < animation->keyframeEntryCount; ++i)
 	{
 		const dsKeyframeAnimationEntry* entry = animation->keyframeEntries + i;
-		if (entry->weight <= 0)
+		bool computePrev = prevTransforms && entry->prevWeight > 0.0f;
+		bool computeCur = entry->weight > 0.0f;
+		if (!computePrev && !computeCur)
 			continue;
 
 		const dsKeyframeAnimation* keyframeAnimation = entry->animation;
@@ -99,103 +199,32 @@ static void applyKeyframeAnimationTransforms(WeightedTransform* transforms,
 			const dsAnimationKeyframesNodeMap* keyframesMap = map->keyframesMaps + j;
 			DS_ASSERT(keyframes->channelCount == keyframesMap->channelCount);
 
-			// Find wich pair of keyframes to interpolate between.
-			uint32_t startKeyframe;
-			float t;
-			if (entry->time <= keyframes->keyframeTimes[0] || keyframes->keyframeCount == 1)
+			if (computePrev)
 			{
-				startKeyframe = 0;
-				t = 0;
+				applyKeyframeTransforms(
+					prevTransforms, keyframes, keyframesMap, entry->prevTime, entry->prevWeight);
 			}
-			else if (entry->time >= keyframes->keyframeTimes[keyframes->keyframeCount - 1])
+			if (computeCur)
 			{
-				startKeyframe = keyframes->keyframeCount - 2;
-				t = 1;
-			}
-			else
-			{
-				uint32_t endKeyframe = findEndKeyframe(keyframes->keyframeTimes,
-					keyframes->keyframeCount, entry->time);
-				DS_ASSERT(endKeyframe > 0);
-				startKeyframe = endKeyframe - 1;
-				float startTime = keyframes->keyframeTimes[startKeyframe];
-				float endTime = keyframes->keyframeTimes[endKeyframe];
-				t = (float)(entry->time - startTime)/(endTime - startTime);
-			}
-
-			for (uint32_t k = 0; k < keyframes->channelCount; ++k)
-			{
-				const dsKeyframeAnimationChannel* channel = keyframes->channels + k;
-				uint32_t nodeIndex = keyframesMap->channelNodes[k];
-				if (nodeIndex == DS_NO_ANIMATION_NODE)
-					continue;
-
-				WeightedTransform* transform = transforms + nodeIndex;
-				dsVector4f value;
-				switch (channel->interpolation)
-				{
-					case dsAnimationInterpolation_Step:
-						value = channel->values[startKeyframe];
-						break;
-					case dsAnimationInterpolation_Linear:
-						DS_ASSERT(keyframes->keyframeCount > 1);
-						if (channel->component == dsAnimationComponent_Rotation)
-						{
-							const dsQuaternion4f* firstValue =
-								(dsQuaternion4f*)channel->values + startKeyframe;
-							dsQuaternion4f_unitLerp(
-								(dsQuaternion4f*)&value, firstValue, firstValue + 1, t);
-						}
-						else
-						{
-							const dsVector4f* firstValue = channel->values + startKeyframe;
-							dsVector4f_lerp(&value, firstValue, firstValue + 1, t);
-						}
-						break;
-					case dsAnimationInterpolation_Cubic:
-					{
-						const dsMatrix44f* cubicTransposed =
-							(const dsMatrix44f*)channel->values + startKeyframe;
-						evaluateCubicSpline(&value, cubicTransposed, t);
-						break;
-					}
-					default:
-						DS_ASSERT(false);
-						DS_UNREACHABLE();
-				}
-
-				dsVector4f weightedValue;
-				dsVector4f_scale(&weightedValue, &value, entry->weight);
-				switch (channel->component)
-				{
-					case dsAnimationComponent_Translation:
-						dsVector4f_add(
-							&transform->translation, &transform->translation, &weightedValue);
-						transform->totalTranslationWeight += entry->weight;
-						break;
-					case dsAnimationComponent_Rotation:
-						dsVector4f_add(&transform->rotation, &transform->rotation, &weightedValue);
-						transform->totalRotationWeight += entry->weight;
-						break;
-					case dsAnimationComponent_Scale:
-						dsVector4f_add(&transform->scale, &transform->scale, &weightedValue);
-						transform->totalScaleWeight += entry->weight;
-						break;
-				}
+				applyKeyframeTransforms(
+					transforms, keyframes, keyframesMap, entry->time, entry->weight);
 			}
 		}
 	}
 }
 
-static void applyDirectAnimationTransforms(WeightedTransform* transforms,
-	dsDirectAnimationNodeMap** nodeMaps, uint32_t nodeMapCount, const dsAnimation* animation)
+static void applyDirectAnimationTransforms(WeightedTransform* prevTransforms,
+	WeightedTransform* transforms, dsDirectAnimationNodeMap** nodeMaps, uint32_t nodeMapCount,
+	const dsAnimation* animation)
 {
 	dsDirectAnimationNodeMap** curNodeMap = nodeMaps;
 	dsDirectAnimationNodeMap** nodeMapEnd = nodeMaps + nodeMapCount;
 	for (uint32_t i = 0; i < animation->directEntryCount; ++i)
 	{
 		const dsDirectAnimationEntry* entry = animation->directEntries + i;
-		if (entry->weight <= 0)
+		bool computePrev = prevTransforms && entry->prevWeight > 0.0f;
+		bool computeCur = entry->weight > 0.0f;
+		if (!computePrev && !computeCur)
 			continue;
 
 		const dsDirectAnimation* directAnimation = entry->animation;
@@ -214,25 +243,16 @@ static void applyDirectAnimationTransforms(WeightedTransform* transforms,
 			uint32_t nodeIndex = map->channelNodes[j];
 			if (nodeIndex == DS_NO_ANIMATION_NODE)
 				continue;
-			WeightedTransform* transform = transforms + nodeIndex;
 
-			dsVector4f weightedValue;
-			dsVector4f_scale(&weightedValue, &channel->value, entry->weight);
-			switch (channel->component)
+			if (computePrev)
 			{
-				case dsAnimationComponent_Translation:
-					dsVector4f_add(&transform->translation, &transform->translation,
-						&weightedValue);
-					transform->totalTranslationWeight += entry->weight;
-					break;
-				case dsAnimationComponent_Rotation:
-					dsVector4f_add(&transform->rotation, &transform->rotation, &weightedValue);
-					transform->totalRotationWeight += entry->weight;
-					break;
-				case dsAnimationComponent_Scale:
-					dsVector4f_add(&transform->scale, &transform->scale, &weightedValue);
-					transform->totalScaleWeight += entry->weight;
-					break;
+				addTransformValue(prevTransforms + nodeIndex, channel->component,
+					&channel->prevValue, entry->prevWeight);
+			}
+			if (computeCur)
+			{
+				addTransformValue(
+					transforms + nodeIndex, channel->component, &channel->value, entry->weight);
 			}
 		}
 	}
@@ -273,6 +293,29 @@ static void freeAnimationTreeNodeMap(dsAnimationNodeMapCache* cache, dsAnimation
 	DS_VERIFY(dsAllocator_free(cache->allocator, map->directMaps));
 
 	dsAnimationTree_destroy(map->tree);
+}
+
+static void applyWeightedTransform(
+	dsRigidTransform3f* outTransform, const WeightedTransform* weightedTransform)
+{
+	if (weightedTransform->totalTranslationWeight > 0.0f)
+	{
+		dsVector3xf_scale(&outTransform->position, &weightedTransform->translation,
+			1/weightedTransform->totalTranslationWeight);
+	}
+
+	if (weightedTransform->totalRotationWeight > 0.0f)
+	{
+		// With normalization no need to scale based on the total weight.
+		dsQuaternion4f_normalize(
+			&outTransform->orientation, (const dsQuaternion4f*)&weightedTransform->rotation);
+	}
+
+	if (weightedTransform->totalScaleWeight > 0.0f)
+	{
+		dsVector3xf_scale(
+			&outTransform->scale, &weightedTransform->scale, 1/weightedTransform->totalScaleWeight);
+	}
 }
 
 dsAnimationNodeMapCache* dsAnimationNodeMapCache_create(dsAllocator* allocator)
@@ -707,8 +750,8 @@ bool dsAnimationNodeMapCache_removeDirectAnimation(
 	return found;
 }
 
-bool dsAnimationNodeMapCache_applyAnimation(
-	dsAnimationNodeMapCache* cache, const dsAnimation* animation, dsAnimationTree* tree)
+bool dsAnimationNodeMapCache_applyAnimation(dsAnimationNodeMapCache* cache,
+	const dsAnimation* animation, dsAnimationTree* tree, bool computePrev)
 {
 	DS_ASSERT(cache);
 	DS_ASSERT(animation);
@@ -727,40 +770,29 @@ bool dsAnimationNodeMapCache_applyAnimation(
 	}
 
 	// Expect we don't have 100s of thousands of nodes.
+	uint32_t transformCount = tree->nodeCount;
+	if (computePrev)
+		transformCount *= 2;
 	WeightedTransform* transforms =
-		DS_ALLOCATE_STACK_OBJECT_ARRAY(WeightedTransform, tree->nodeCount);
-	memset(transforms, 0, sizeof(WeightedTransform)*tree->nodeCount);
+		DS_ALLOCATE_STACK_OBJECT_ARRAY(WeightedTransform, transformCount);
+	memset(transforms, 0, sizeof(WeightedTransform)*transformCount);
+	WeightedTransform* prevTransforms = computePrev ? transforms + tree->nodeCount : NULL;
 
 	// Apply the animation channels to the transforms.
-	applyKeyframeAnimationTransforms(
-		transforms, treeNodeMap->keyframeMaps, cache->keyframeAnimationCount, animation);
-	applyDirectAnimationTransforms(
-		transforms, treeNodeMap->directMaps, cache->directAnimationCount, animation);
+	applyKeyframeAnimationTransforms(prevTransforms, transforms, treeNodeMap->keyframeMaps,
+		cache->keyframeAnimationCount, animation);
+	applyDirectAnimationTransforms(prevTransforms, transforms, treeNodeMap->directMaps,
+		cache->directAnimationCount, animation);
 
 	// Set the final non-zero weight transform values on the animation.
 	for (uint32_t i = 0; i < tree->nodeCount; ++i)
 	{
 		dsAnimationNode* node = tree->nodes + i;
-		WeightedTransform* transform = transforms + i;
-		if (transform->totalTranslationWeight > 0)
-		{
-			dsVector4f_scale(&transform->translation, &transform->translation,
-				1/transform->totalTranslationWeight);
-			node->translation = transform->translation;
-		}
-
-		if (transform->totalRotationWeight > 0)
-		{
-			// With normalization no need to scale based on the total weight.
-			dsQuaternion4f_normalize(&node->rotation, (const dsQuaternion4f*)&transform->rotation);
-		}
-
-		if (transform->totalScaleWeight > 0)
-		{
-			dsVector4f_scale(
-				&transform->scale, &transform->scale, 1/transform->totalScaleWeight);
-			node->scale = transform->scale;
-		}
+		applyWeightedTransform(&node->transform, transforms + i);
+		if (computePrev)
+			applyWeightedTransform(&node->prevTransform, prevTransforms + i);
+		else
+			node->prevTransform = node->prevTransform;
 	}
 
 	DS_VERIFY(dsReadWriteSpinlock_unlockRead(&cache->lock));

@@ -32,8 +32,8 @@ bool dsAnimationNodeMapCache_addDirectAnimation(
 	dsAnimationNodeMapCache* cache, const dsDirectAnimation* animation);
 bool dsAnimationNodeMapCache_removeDirectAnimation(
 	dsAnimationNodeMapCache* cache, const dsDirectAnimation* animation);
-bool dsAnimationNodeMapCache_applyAnimation(
-	dsAnimationNodeMapCache* cache, const dsAnimation* animation, dsAnimationTree* tree);
+bool dsAnimationNodeMapCache_applyAnimation(dsAnimationNodeMapCache* cache,
+	const dsAnimation* animation, dsAnimationTree* tree, bool computePrev);
 
 #ifdef __cplusplus
 }

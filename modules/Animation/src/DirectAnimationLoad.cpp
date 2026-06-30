@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,6 +118,7 @@ dsDirectAnimation* dsDirectAnimation_loadImpl(dsAllocator* allocator, dsAllocato
 		channel->node = fbChannel->node()->c_str();
 		channel->component = static_cast<dsAnimationComponent>(fbChannel->component());
 		std::memcpy(&channel->value, fbChannel->value(), sizeof(dsVector4f));
+		channel->prevValue = channel->value;
 	}
 
 	dsDirectAnimation* animation = dsDirectAnimation_create(allocator, channels, channelCount);

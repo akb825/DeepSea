@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,23 +43,26 @@ extern "C"
  *     least as long as the animation.
  * @return The animation or NULL if an error occurred.
  */
-DS_ANIMATION_EXPORT dsAnimation* dsAnimation_create(dsAllocator* allocator,
-	dsAnimationNodeMapCache* nodeMapCache);
+DS_ANIMATION_EXPORT dsAnimation* dsAnimation_create(
+	dsAllocator* allocator, dsAnimationNodeMapCache* nodeMapCache);
 
 /**
  * @brief Adds a keyframe animation to the animation.
  * @remark errno will be set on failure.
  * @param animation The animation.
  * @param keyframeAnimation They keyframe animation to add.
+ * @param prevWeight The weight of the keyframe animation for the previous time.
  * @param weight The weight of the keyframe animation.
+ * @param prevTime The initial previous time of the entry. This may be used when using fixed update
+ *     steps to interpolate with the current time to get the final visual results.
  * @param time The initial time of the entry.
  * @param timeScale The scale to apply to the time when incrementing the entry time.
  * @param wrap Whether to wrap or clamp the time when evaluating the animation.
  * @return False if an error occurred.
  */
 DS_ANIMATION_EXPORT bool dsAnimation_addKeyframeAnimation(dsAnimation* animation,
-	const dsKeyframeAnimation* keyframeAnimation, float weight, double time, double timeScale,
-	bool wrap);
+	const dsKeyframeAnimation* keyframeAnimation, float prevWeight, float weight, float prevTime,
+	float time, float timeScale, bool wrap);
 
 /**
  * @brief Finds a keyframe animation entry in an animation.
@@ -78,19 +81,20 @@ DS_ANIMATION_EXPORT dsKeyframeAnimationEntry* dsAnimation_findKeyframeAnimationE
  * @param keyframeAnimation The keyframe animation.
  * @return False if the animation wasn't found.
  */
-DS_ANIMATION_EXPORT bool dsAnimation_removeKeyframeAnimation(dsAnimation* animation,
-	const dsKeyframeAnimation* keyframeAnimation);
+DS_ANIMATION_EXPORT bool dsAnimation_removeKeyframeAnimation(
+	dsAnimation* animation, const dsKeyframeAnimation* keyframeAnimation);
 
 /**
  * @brief Adds a direct animation to the animation.
  * @remark errno will be set on failure.
  * @param animation The animation.
  * @param directAnimation They direct animation to add.
+ * @param prevWeight The weight of the keyframe animation for the previous time.
  * @param weight The weight of the direct animation.
  * @return False if an error occurred.
  */
 DS_ANIMATION_EXPORT bool dsAnimation_addDirectAnimation(dsAnimation* animation,
-	const dsDirectAnimation* directAnimation, float weight);
+	const dsDirectAnimation* directAnimation, float prevWeight, float weight);
 
 /**
  * @brief Finds a direct animation entry in an animation.
@@ -109,8 +113,8 @@ DS_ANIMATION_EXPORT dsDirectAnimationEntry* dsAnimation_findDirectAnimationEntry
  * @param directAnimation The direct animation.
  * @return False if the animation wasn't found.
  */
-DS_ANIMATION_EXPORT bool dsAnimation_removeDirectAnimation(dsAnimation* animation,
-	const dsDirectAnimation* directAnimation);
+DS_ANIMATION_EXPORT bool dsAnimation_removeDirectAnimation(
+	dsAnimation* animation, const dsDirectAnimation* directAnimation);
 
 /**
  * @brief Updates the animation.
@@ -119,7 +123,7 @@ DS_ANIMATION_EXPORT bool dsAnimation_removeDirectAnimation(dsAnimation* animatio
  * @param time The time to advance keyframe animations.
  * @return False if the parameters are invalid.
  */
-DS_ANIMATION_EXPORT bool dsAnimation_update(dsAnimation* animation, double time);
+DS_ANIMATION_EXPORT bool dsAnimation_update(dsAnimation* animation, float time);
 
 /**
  * @brief Applies an animation to an animation tree.
@@ -128,9 +132,11 @@ DS_ANIMATION_EXPORT bool dsAnimation_update(dsAnimation* animation, double time)
  * @param tree The animation tree to apply the animation to. The animation tree, or a compatible
  *     clone, must have been previously added to the animation node map cache the animation was
  *     created with.
+ * @param stepT The t value to interpolate between the previous and current time.
  * @return False if the animation couldn't be applied.
  */
-DS_ANIMATION_EXPORT bool dsAnimation_apply(const dsAnimation* animation, dsAnimationTree* tree);
+DS_ANIMATION_EXPORT bool dsAnimation_apply(
+	const dsAnimation* animation, dsAnimationTree* tree, float stepT);
 
 /**
  * @brief Destroys a direct animation.
