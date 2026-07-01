@@ -168,6 +168,13 @@ static bool processEvent(
 				DS_LOG_INFO_F("TestScene", "Togging multi-threaded rendering: %s",
 					testScene->multithreadedRendering ? "on" : "off");
 			}
+			else if (event->key.key == dsKeyCode_V)
+			{
+				if (testScene->renderer->vsync == dsVSync_Disabled)
+					dsRenderer_setVSync(testScene->renderer, dsVSync_TripleBuffer);
+				else
+					dsRenderer_setVSync(testScene->renderer, dsVSync_Disabled);
+			}
 			return false;
 		default:
 			return true;
@@ -421,6 +428,7 @@ int dsMain(int argc, const char** argv)
 	DS_LOG_INFO("TestScene", "Press '1' to toggle anti-aliasing.");
 	DS_LOG_INFO("TestScene", "Press '2' to toggle sub-scene.");
 	DS_LOG_INFO("TestScene", "Press '3' to toggle multi-threaded rendering.");
+	DS_LOG_INFO("TestScene", "Press 'V' to toggle vsync.");
 
 	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));

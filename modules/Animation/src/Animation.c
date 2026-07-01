@@ -205,7 +205,7 @@ bool dsAnimation_addDirectAnimation(dsAnimation* animation,
 
 	dsDirectAnimationEntry* entry = animation->directEntries + index;
 	entry->animation = directAnimation;
-	entry->prevWeight = weight;
+	entry->prevWeight = prevWeight;
 	entry->weight = entry->nextWeight = weight;
 
 	++animation->changeCount;

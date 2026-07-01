@@ -16,6 +16,7 @@ The following keys can test behavior of the lighting:
 * `1`: toggle anti-aliasing for forward lighting. Unlike other testers, this only toggles anti-aliasing for offscreen render targets, so it doesn't require re-creating the window surface.
 * `space`: pause/unpause spinning of the scene.
 * `enter`: cycle through the lighting modes in the order of forward, deferred, deferred with SSAO.
+* `V`: toggle vsync.
 
 On mobile platforms, a one-finger tap pauses/unpauses spinning of the scene and a two-finger tap cycles through the lighting modes.
 

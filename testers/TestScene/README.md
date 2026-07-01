@@ -12,7 +12,8 @@ A custom `dsSceneGlobalData` instance is used for basic lighting, demonstrating 
 The following keys can test behavior of the scene rendering:
 
 * `1`: toggle anti-aliasing. This will open a new window as some platforms tie anti-aliasing to the window surface.
-* `2`: toggles displaying the secondary scene of the red cube and green rectangle.
-* `3`: Toggles multithreaded rendering. This uses multiple threads to process the different item lists in the scene. This is primarily used to verify that the system works, though larger scenes may see a performance improvement on multi-core systems.
+* `2`: toggle displaying the secondary scene of the red cube and green rectangle.
+* `3`: toggle multithreaded rendering. This uses multiple threads to process the different item lists in the scene. This is primarily used to verify that the system works, though larger scenes may see a performance improvement on multi-core systems.
+* `V`: toggle vsync.
 
 ![Test Scene](doc-images/TestScene.png)

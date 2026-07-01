@@ -245,19 +245,19 @@ static bool processEvent(
 			}
 			else if (event->key.key == dsKeyCode_2)
 			{
-				if (renderer->vsync == dsVSync_Disabled)
-					dsRenderer_setVSync(renderer, dsVSync_TripleBuffer);
-				else
-					dsRenderer_setVSync(renderer, dsVSync_Disabled);
-			}
-			else if (event->key.key == dsKeyCode_3)
-			{
 				float anisotropy = renderer->defaultAnisotropy;
 				if (anisotropy == 1.0f)
 					anisotropy = renderer->maxAnisotropy;
 				else
 					anisotropy = 1.0f;
 				dsRenderer_setDefaultAnisotropy(renderer, anisotropy);
+			}
+			else if (event->key.key == dsKeyCode_V)
+			{
+				if (renderer->vsync == dsVSync_Disabled)
+					dsRenderer_setVSync(renderer, dsVSync_TripleBuffer);
+				else
+					dsRenderer_setVSync(renderer, dsVSync_Disabled);
 			}
 			return false;
 		default:
@@ -553,8 +553,8 @@ int dsMain(int argc, const char** argv)
 
 	DS_LOG_INFO_F("TestCube", "Render using %s", dsRenderBootstrap_rendererName(rendererType));
 	DS_LOG_INFO("TestCube", "Press '1' to toggle anti-aliasing.");
-	DS_LOG_INFO("TestCube", "Press '2' to toggle vsync.");
-	DS_LOG_INFO("TestCube", "Press '3' to toggle anisotropic filtering.");
+	DS_LOG_INFO("TestCube", "Press '2' to toggle anisotropic filtering.");
+	DS_LOG_INFO("TestCube", "Press 'V' to toggle vsync.");
 
 	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));

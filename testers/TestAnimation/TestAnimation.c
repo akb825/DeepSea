@@ -177,6 +177,13 @@ static bool processEvent(
 				cycleSpeed(testAnimation->characterAnimations);
 			else if (event->key.key == dsKeyCode_2)
 				cycleSpeed(testAnimation->characterAnimations + 1);
+			else if (event->key.key == dsKeyCode_V)
+			{
+				if (testAnimation->renderer->vsync == dsVSync_Disabled)
+					dsRenderer_setVSync(testAnimation->renderer, dsVSync_TripleBuffer);
+				else
+					dsRenderer_setVSync(testAnimation->renderer, dsVSync_Disabled);
+			}
 			return false;
 		case dsAppEventType_TouchFingerDown:
 			++testAnimation->fingerCount;
@@ -730,8 +737,9 @@ int dsMain(int argc, const char** argv)
 	}
 
 	DS_LOG_INFO_F("TestAnimation", "Render using %s", dsRenderBootstrap_rendererName(rendererType));
-	DS_LOG_INFO("TestAnimation", "Press 1 to cycle animations for the first character.");
-	DS_LOG_INFO("TestAnimation", "Press 2 to cycle animations for the second character.");
+	DS_LOG_INFO("TestAnimation", "Press '1' to cycle animations for the first character.");
+	DS_LOG_INFO("TestAnimation", "Press '2' to cycle animations for the second character.");
+	DS_LOG_INFO("TestAnimation", "Press 'V' to toggle vsync.");
 
 	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));

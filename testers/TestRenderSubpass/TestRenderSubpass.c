@@ -335,8 +335,8 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 	return true;
 }
 
-static bool processEvent(dsApplication* application, dsWindow* window, const dsEvent* event,
-	void* userData)
+static bool processEvent(
+	dsApplication* application, dsWindow* window, const dsEvent* event, void* userData)
 {
 	DS_UNUSED(application);
 
@@ -366,6 +366,7 @@ static void update(
 	dsApplication* application, uint64_t absoluteTime, uint64_t lastFrameTime, void* userData)
 {
 	DS_UNUSED(application);
+	DS_UNUSED(absoluteTime);
 
 	TestRenderSubpass* testRenderSubpass = (TestRenderSubpass*)userData;
 

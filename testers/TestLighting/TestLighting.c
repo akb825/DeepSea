@@ -257,8 +257,8 @@ static void nextLightingType(TestLighting* testLighting)
 	}
 }
 
-static bool processEvent(dsApplication* application, dsWindow* window, const dsEvent* event,
-	void* userData)
+static bool processEvent(
+	dsApplication* application, dsWindow* window, const dsEvent* event, void* userData)
 {
 	TestLighting* testLighting = (TestLighting*)userData;
 	dsRenderer* renderer = testLighting->renderer;
@@ -300,6 +300,13 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 					dsRenderer_setDefaultSamples(renderer, testLighting->aaSamples);
 				DS_LOG_INFO_F("TestLighting", "Togging anti-aliasing: %s",
 					testLighting->aaSamples == 1 ? "off" : "on");
+			}
+			else if (event->key.key == dsKeyCode_V)
+			{
+				if (testLighting->renderer->vsync == dsVSync_Disabled)
+					dsRenderer_setVSync(testLighting->renderer, dsVSync_TripleBuffer);
+				else
+					dsRenderer_setVSync(testLighting->renderer, dsVSync_Disabled);
 			}
 			return false;
 		case dsAppEventType_TouchFingerDown:
@@ -718,6 +725,7 @@ int dsMain(int argc, const char** argv)
 	DS_LOG_INFO("TestLighting", "Press space to pause/unpause.");
 	DS_LOG_INFO("TestLighting", "Press enter to cycle lighting types.");
 	DS_LOG_INFO("TestLighting", "Press '1' to toggle anti-aliasing for forward lighting.");
+	DS_LOG_INFO("TestLighting", "Press 'V' to toggle vsync.");
 
 	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));

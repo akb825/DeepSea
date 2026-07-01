@@ -203,6 +203,13 @@ static bool processEvent(
 				toggleStaticTorch(testParticles);
 			else if (event->key.key == dsKeyCode_2)
 				toggleRotatingTorch(testParticles);
+			else if (event->key.key == dsKeyCode_V)
+			{
+				if (testParticles->renderer->vsync == dsVSync_Disabled)
+					dsRenderer_setVSync(testParticles->renderer, dsVSync_TripleBuffer);
+				else
+					dsRenderer_setVSync(testParticles->renderer, dsVSync_Disabled);
+			}
 			return false;
 		case dsAppEventType_TouchFingerDown:
 			++testParticles->fingerCount;
@@ -597,8 +604,9 @@ int dsMain(int argc, const char** argv)
 
 	DS_LOG_INFO_F("TestParticles", "Render using %s", dsRenderBootstrap_rendererName(rendererType));
 	DS_LOG_INFO("TestParticles", "Press space to pause/unpause.");
-	DS_LOG_INFO("TestParticles", "Press 1 to extinguish/light the middle torch.");
-	DS_LOG_INFO("TestParticles", "Press 2 to toggle one of the moving torches.");
+	DS_LOG_INFO("TestParticles", "Press '1' to extinguish/light the middle torch.");
+	DS_LOG_INFO("TestParticles", "Press '2' to toggle one of the moving torches.");
+	DS_LOG_INFO("TestParticles", "Press 'V' to toggle vsync.");
 
 	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));

@@ -2,7 +2,7 @@
 
 The Test Vector Draw tester (`deepsea_test_vector_draw_app` target) tests displaying vector images converted from SVGs. Various cases of different shapes, materials, and text are tested.
 
-When running the tester, the left and right arrow keys can be used to cycle through the different test cases. On mobile devices with a touchscreen, a one-finger tap cycles forward and two-finger tap cycles backwards. The `w` key may be used to toggle displaying wireframe. The `--srgb` command-line parameter may optionally be passed to perform sRGB correct rendering, where the gradients are computed in linear color space.
+When running the tester, the left and right arrow keys can be used to cycle through the different test cases. On mobile devices with a touchscreen, a one-finger tap cycles forward and two-finger tap cycles backwards. The `W` key may be used to toggle displaying wireframe, and the `V` key may be used to toggle vsync. The `--srgb` command-line parameter may optionally be passed to perform sRGB correct rendering, where the gradients are computed in linear color space.
 
 ## Test cases
 

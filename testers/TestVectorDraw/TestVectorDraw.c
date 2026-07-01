@@ -201,8 +201,8 @@ static void prevImage(TestVectorDraw* testVectorDraw)
 	testVectorDraw->updateImage = true;
 }
 
-static bool processEvent(dsApplication* application, dsWindow* window, const dsEvent* event,
-	void* userData)
+static bool processEvent(
+	dsApplication* application, dsWindow* window, const dsEvent* event, void* userData)
 {
 	DS_UNUSED(application);
 
@@ -230,6 +230,12 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 					return false;
 				case dsKeyCode_W:
 					testVectorDraw->wireframe = !testVectorDraw->wireframe;
+					return false;
+				case dsKeyCode_V:
+					if (testVectorDraw->renderer->vsync == dsVSync_Disabled)
+						dsRenderer_setVSync(testVectorDraw->renderer, dsVSync_TripleBuffer);
+					else
+						dsRenderer_setVSync(testVectorDraw->renderer, dsVSync_Disabled);
 					return false;
 				case dsKeyCode_ACBack:
 					dsApplication_quit(application, 0);
@@ -621,6 +627,9 @@ int dsMain(int argc, const char** argv)
 
 	DS_LOG_INFO_F("TestVectorDraw", "Render using %s",
 		dsRenderBootstrap_rendererName(rendererType));
+	DS_LOG_INFO("TestVectorDraw", "Use left and right arrows to cycle through test cases.");
+	DS_LOG_INFO("TestVectorDraw", "Press 'W' to toggle wireframe.");
+	DS_LOG_INFO("TestVectorDraw", "Press 'V' to toggle vsync.");
 
 	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));

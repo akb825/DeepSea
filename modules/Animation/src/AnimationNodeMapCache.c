@@ -52,7 +52,8 @@ typedef struct WeightedTransform
 	float totalScaleWeight;
 } WeightedTransform;
 
-static uint32_t findEndKeyframe(const float* keyframeTimes, uint32_t keyframeCount, float time)
+static inline uint32_t findEndKeyframe(
+	const float* keyframeTimes, uint32_t keyframeCount, float time)
 {
 	// NOTE: If there's regularly many keyframes can use a binary search. Expected to be a fairly
 	// small number of keyframes on average, so a linear search should be fine and in many cases
@@ -66,14 +67,15 @@ static uint32_t findEndKeyframe(const float* keyframeTimes, uint32_t keyframeCou
 	return keyframeCount - 1;
 }
 
-static void evaluateCubicSpline(dsVector4f* result, const dsMatrix44f* cubicTransposed, float t)
+static inline void evaluateCubicSpline(
+	dsVector4f* result, const dsMatrix44f* cubicTransposed, float t)
 {
 	float t2 = t*t;
 	dsVector4f eval = {{1.0f, t, t2, t2*t}};
 	dsMatrix44f_transform(result, cubicTransposed, &eval);
 }
 
-static void addTransformValue(WeightedTransform* transform, dsAnimationComponent component,
+static inline void addTransformValue(WeightedTransform* transform, dsAnimationComponent component,
 	const dsVector4f* value, float weight)
 {
 	dsVector4f weightedValue;
@@ -103,7 +105,10 @@ static void applyKeyframeTransforms(WeightedTransform* transforms,
 	// Find wich pair of keyframes to interpolate between.
 	uint32_t startKeyframe;
 	float t;
-	if (time <= keyframes->keyframeTimes[0] || keyframes->keyframeCount == 1)
+	// NOTE: Don't early-out if time is exactly equal to keyframeTimes[0], as it's expected that a
+	// missed branch prediction would be more expensive than taking the code path for interpolation.
+	// Which branches are taken should be fairly consistent in this case.
+	if (time < keyframes->keyframeTimes[0] || keyframes->keyframeCount == 1)
 	{
 		startKeyframe = 0;
 		t = 0;

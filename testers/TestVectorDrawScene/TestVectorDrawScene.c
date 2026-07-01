@@ -211,6 +211,12 @@ static bool processEvent(
 				case dsKeyCode_2:
 					toggleSpelledOutNumber(testVectorDrawScene);
 					return false;
+				case dsKeyCode_V:
+					if (testVectorDrawScene->renderer->vsync == dsVSync_Disabled)
+						dsRenderer_setVSync(testVectorDrawScene->renderer, dsVSync_TripleBuffer);
+					else
+						dsRenderer_setVSync(testVectorDrawScene->renderer, dsVSync_Disabled);
+					return false;
 				case dsKeyCode_ACBack:
 					dsApplication_quit(application, 0);
 					return false;
@@ -607,6 +613,9 @@ int dsMain(int argc, const char** argv)
 
 	DS_LOG_INFO_F("TestVectorDrawScene", "Render using %s",
 		dsRenderBootstrap_rendererName(rendererType));
+	DS_LOG_INFO("TestVectorDrawScene", "Press '1' to toggle text display mode.");
+	DS_LOG_INFO("TestVectorDrawScene", "Press '2' to toggle figure number.");
+	DS_LOG_INFO("TestVectorDrawScene", "Press 'V' to toggle vsync.");
 
 	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));

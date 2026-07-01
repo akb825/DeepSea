@@ -696,8 +696,8 @@ static void prevText(TestText* testText)
 	createText(testText, testText->renderer->mainCommandBuffer);
 }
 
-static bool processEvent(dsApplication* application, dsWindow* window, const dsEvent* event,
-	void* userData)
+static bool processEvent(
+	dsApplication* application, dsWindow* window, const dsEvent* event, void* userData)
 {
 	DS_UNUSED(application);
 
@@ -722,6 +722,12 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 					return false;
 				case dsKeyCode_Left:
 					prevText(testText);
+					return false;
+				case dsKeyCode_V:
+					if (testText->renderer->vsync == dsVSync_Disabled)
+						dsRenderer_setVSync(testText->renderer, dsVSync_TripleBuffer);
+					else
+						dsRenderer_setVSync(testText->renderer, dsVSync_Disabled);
 					return false;
 				case dsKeyCode_ACBack:
 					dsApplication_quit(application, 0);
@@ -1378,6 +1384,8 @@ int dsMain(int argc, const char** argv)
 	}
 
 	DS_LOG_INFO_F("TestText", "Render using %s", dsRenderBootstrap_rendererName(rendererType));
+	DS_LOG_INFO("TestText", "Use left and right arrows to cycle through test cases.");
+	DS_LOG_INFO("TestText", "Press 'V' to toggle vsync.");
 
 	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));

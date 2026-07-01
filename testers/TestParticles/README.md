@@ -7,5 +7,6 @@ The following keys can test the behavior of the application:
 * `space` (one-finger tap on mobile): pause/unpause the rotation of the torches.
 * `1` (two-finger tap on mobile): extinguish or light the center torch. Extinguishing the torch will stop any new particles from being created, but the existing particles will continue to move. The light will also be removed when it is extinguished.
 * `2` (three-finger tap on mobile): toggle whether or not one of the rotating torches is visible. This will fully remove it from the scene graph, removing the particle emitters and light.
+* `V`: toggle vsync.
 
 ![Test Particles](doc-images/TestParticles.png)
