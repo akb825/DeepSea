@@ -505,8 +505,8 @@ bool dsVkCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
 	return true;
 }
 
-bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	dsCommandBuffer* submitBuffer)
+bool dsVkCommandBuffer_submit(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, dsCommandBuffer* submitBuffer)
 {
 	DS_UNUSED(renderer);
 	DS_ASSERT(submitBuffer != renderer->mainCommandBuffer);
@@ -541,8 +541,8 @@ bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuff
 	// Copy over the readback offscreens.
 	for (uint32_t i = 0; i < vkSubmitBuffer->readbackOffscreenCount; ++i)
 	{
-		if (!dsVkCommandBuffer_addReadbackOffscreen(commandBuffer,
-				vkSubmitBuffer->readbackOffscreens[i]))
+		if (!dsVkCommandBuffer_addReadbackOffscreen(
+				commandBuffer, vkSubmitBuffer->readbackOffscreens[i]))
 		{
 			return false;
 		}
@@ -671,8 +671,8 @@ void dsVkCommandBuffer_submitFence(dsCommandBuffer* commandBuffer, bool readback
 	{
 		dsVkCommandBufferWrapper* wrapper = (dsVkCommandBufferWrapper*)commandBuffer;
 		dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)wrapper->realCommandBuffer;
-		dsVkRenderer_flushImpl(commandBuffer->renderer, readback || vkCommandBuffer->fenceReadback,
-			false);
+		dsVkRenderer_flushImpl(
+			commandBuffer->renderer, readback || vkCommandBuffer->fenceReadback, NULL, 0);
 		vkCommandBuffer->fenceSet = false;
 		vkCommandBuffer->fenceReadback = false;
 		return;
@@ -787,8 +787,8 @@ bool dsVkCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
 	return true;
 }
 
-void dsVkCommandBuffer_bindPipeline(dsCommandBuffer* commandBuffer, VkCommandBuffer submitBuffer,
-	VkPipeline pipeline)
+void dsVkCommandBuffer_bindPipeline(
+	dsCommandBuffer* commandBuffer, VkCommandBuffer submitBuffer, VkPipeline pipeline)
 {
 	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
@@ -800,8 +800,8 @@ void dsVkCommandBuffer_bindPipeline(dsCommandBuffer* commandBuffer, VkCommandBuf
 	vkCommandBuffer->activePipeline = pipeline;
 }
 
-void dsVkCommandBuffer_bindComputePipeline(dsCommandBuffer* commandBuffer,
-	VkCommandBuffer submitBuffer, VkPipeline pipeline)
+void dsVkCommandBuffer_bindComputePipeline(
+	dsCommandBuffer* commandBuffer, VkCommandBuffer submitBuffer, VkPipeline pipeline)
 {
 	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
@@ -877,8 +877,8 @@ void* dsVkCommandBuffer_getTempData(size_t* outOffset, VkBuffer* outBuffer,
 		return dsVkTempBuffer_allocate(outOffset, buffer, size, alignment);
 	}
 
-	dsVkTempBuffer* buffer = dsVkTempBuffer_create(commandBuffer->allocator, device,
-		DS_TEMP_BUFFER_CAPACITY);
+	dsVkTempBuffer* buffer = dsVkTempBuffer_create(
+		commandBuffer->allocator, device, DS_TEMP_BUFFER_CAPACITY);
 	if (!buffer)
 		return NULL;
 
@@ -931,8 +931,8 @@ VkBufferMemoryBarrier* dsVkCommandBuffer_addBufferBarrier(dsCommandBuffer* comma
 	return vkCommandBuffer->bufferBarriers + index;
 }
 
-bool dsVkCommandBuffer_submitMemoryBarriers(dsCommandBuffer* commandBuffer,
-	VkPipelineStageFlags srcStages, VkPipelineStageFlags dstStages)
+bool dsVkCommandBuffer_submitMemoryBarriers(
+	dsCommandBuffer* commandBuffer, VkPipelineStageFlags srcStages, VkPipelineStageFlags dstStages)
 {
 	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
@@ -1079,8 +1079,8 @@ void dsVkCommandBuffer_submittedResources(dsCommandBuffer* commandBuffer, uint64
 	dsVkSharedDescriptorSets_clearLastSet(&vkCommandBuffer->instanceDescriptorSets, false);
 }
 
-void dsVkCommandBuffer_submittedReadbackOffscreens(dsCommandBuffer* commandBuffer,
-	uint64_t submitCount)
+void dsVkCommandBuffer_submittedReadbackOffscreens(
+	dsCommandBuffer* commandBuffer, uint64_t submitCount)
 {
 	DS_ASSERT(commandBuffer != commandBuffer->renderer->mainCommandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
@@ -1097,8 +1097,8 @@ void dsVkCommandBuffer_submittedReadbackOffscreens(dsCommandBuffer* commandBuffe
 	vkCommandBuffer->readbackOffscreenCount = 0;
 }
 
-void dsVkCommandBuffer_submittedRenderSurfaces(dsCommandBuffer* commandBuffer,
-	uint64_t submitCount)
+void dsVkCommandBuffer_submittedRenderSurfaces(
+	dsCommandBuffer* commandBuffer, uint64_t submitCount)
 {
 	DS_ASSERT(commandBuffer != commandBuffer->renderer->mainCommandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
@@ -1109,7 +1109,7 @@ void dsVkCommandBuffer_submittedRenderSurfaces(dsCommandBuffer* commandBuffer,
 		DS_ATOMIC_FETCH_ADD32(&surface->resource.commandBufferCount, -1);
 		DS_VERIFY(dsSpinlock_lock(&surface->resource.lock));
 		surface->resource.lastUsedSubmit = submitCount;
-		surface->imageData[surface->imageDataIndex].lastUsedSubmit = submitCount;
+		surface->acquireImageData[surface->imageAcquireIndex].lastUsedSubmit = submitCount;
 		DS_VERIFY(dsSpinlock_unlock(&surface->resource.lock));
 	}
 	vkCommandBuffer->renderSurfaceCount = 0;

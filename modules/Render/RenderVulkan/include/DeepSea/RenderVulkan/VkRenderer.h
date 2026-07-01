@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,8 +64,8 @@ DS_RENDERVULKAN_EXPORT bool dsVkRenderer_getDefaultDevice(dsRenderDeviceInfo* ou
  * @param options The options to initialize Vulkan with.
  * @return The created renderer, or NULL if the renderer coulnd't be created.
  */
-DS_RENDERVULKAN_EXPORT dsRenderer* dsVkRenderer_create(dsAllocator* allocator,
-	const dsRendererOptions* options);
+DS_RENDERVULKAN_EXPORT dsRenderer* dsVkRenderer_create(
+	dsAllocator* allocator, const dsRendererOptions* options);
 
 #ifdef __cplusplus
 }

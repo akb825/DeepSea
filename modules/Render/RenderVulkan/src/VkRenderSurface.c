@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -300,8 +300,8 @@ bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 	return surfaceData != NULL;
 }
 
-bool dsVkRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderSurface* renderSurface)
+bool dsVkRenderSurface_beginDraw(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsRenderSurface* renderSurface)
 {
 	dsVkRenderSurface* vkSurface = (dsVkRenderSurface*)renderSurface;
 	DS_VERIFY(dsSpinlock_lock(&vkSurface->lock));
@@ -341,22 +341,22 @@ bool dsVkRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandB
 	return false;
 }
 
-bool dsVkRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderSurface* renderSurface)
+bool dsVkRenderSurface_endDraw(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsRenderSurface* renderSurface)
 {
 	DS_UNUSED(renderer);
 	const dsVkRenderSurface* vkSurface = (const dsVkRenderSurface*)renderSurface;
 	return transitionToPresentable(commandBuffer, vkSurface->surfaceData);
 }
 
-bool dsVkRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** renderSurfaces,
-	uint32_t count)
+bool dsVkRenderSurface_swapBuffers(
+	dsRenderer* renderer, dsRenderSurface** renderSurfaces, uint32_t count)
 {
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	uint64_t submitCount = vkRenderer->submitCount;
-	VkSemaphore semaphore = dsVkRenderer_flushImpl(renderer, true, true);
 	VkSwapchainKHR* swapchains = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkSwapchainKHR, count);
 	uint32_t* imageIndices = DS_ALLOCATE_STACK_OBJECT_ARRAY(uint32_t, count);
+	VkSemaphore* submitSemaphores = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkSemaphore, count);
 	for (uint32_t i = 0; i < count; ++i)
 	{
 		dsVkRenderSurface* vkSurface = (dsVkRenderSurface*)renderSurfaces[i];
@@ -376,15 +376,18 @@ bool dsVkRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** rende
 
 		swapchains[i] = surfaceData->swapchain;
 		imageIndices[i] = surfaceData->imageIndex;
+		submitSemaphores[i] = surfaceData->imageSubmitSemaphores[surfaceData->imageIndex];
 		DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
 	}
+
+	dsVkRenderer_flushImpl(renderer, true, submitSemaphores, count);
 
 	DS_PROFILE_SCOPE_START("vkQueuePresentKHR");
 	VkPresentInfoKHR presentInfo =
 	{
 		VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
 		NULL,
-		1, &semaphore,
+		count, submitSemaphores,
 		count, swapchains, imageIndices,
 		NULL
 	};

@@ -684,9 +684,10 @@ struct dsVkRenderSurfaceData
 
 	VkSwapchainKHR swapchain;
 	VkImage* images;
+	VkSemaphore* imageSubmitSemaphores;
 	VkImageView* leftImageViews;
 	VkImageView* rightImageViews;
-	dsVkSurfaceImageData* imageData;
+	dsVkSurfaceImageData* acquireImageData;
 	uint32_t imageCount;
 
 	uint32_t width;
@@ -698,7 +699,7 @@ struct dsVkRenderSurfaceData
 	dsVSync vsync;
 
 	uint32_t imageIndex;
-	uint32_t imageDataIndex;
+	uint32_t imageAcquireIndex;
 
 	VkDeviceMemory resolveMemory;
 	VkImage resolveImage;
@@ -989,7 +990,6 @@ typedef struct dsVkSubmitInfo
 	dsVkCommandBuffer commandBuffer;
 	VkCommandBuffer resourceCommands;
 	VkFence fence;
-	VkSemaphore semaphore;
 } dsVkSubmitInfo;
 
 typedef struct dsVkRenderer

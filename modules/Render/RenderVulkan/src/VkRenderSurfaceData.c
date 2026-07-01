@@ -58,8 +58,8 @@ static bool hasFormat(const VkSurfaceFormatKHR* surfaceFormats, uint32_t formatC
 	return false;
 }
 
-static bool supportsFormat(dsVkDevice* device, VkSurfaceKHR surface, VkFormat format,
-	VkColorSpaceKHR colorSpace)
+static bool supportsFormat(
+	dsVkDevice* device, VkSurfaceKHR surface, VkFormat format, VkColorSpaceKHR colorSpace)
 {
 	dsVkInstance* instance = &device->instance;
 
@@ -79,8 +79,8 @@ static bool supportsFormat(dsVkDevice* device, VkSurfaceKHR surface, VkFormat fo
 	return hasFormat(surfaceFormats, formatCount, format, colorSpace);
 }
 
-static bool hasPresentMode(const VkPresentModeKHR* presentModes, uint32_t presentModeCount,
-	VkPresentModeKHR mode)
+static bool hasPresentMode(
+	const VkPresentModeKHR* presentModes, uint32_t presentModeCount, VkPresentModeKHR mode)
 {
 	for (uint32_t i = 0; i < presentModeCount; ++i)
 	{
@@ -134,8 +134,8 @@ static uint32_t getImageCount(VkPresentModeKHR presentMode, dsVSync vsync)
 	}
 }
 
-static bool createResolveImage(dsVkRenderSurfaceData* surfaceData, VkFormat format,
-	uint32_t width, uint32_t height)
+static bool createResolveImage(
+	dsVkRenderSurfaceData* surfaceData, VkFormat format, uint32_t width, uint32_t height)
 {
 	dsRenderer* renderer = surfaceData->renderer;
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
@@ -208,8 +208,8 @@ static bool createResolveImage(dsVkRenderSurfaceData* surfaceData, VkFormat form
 	return DS_HANDLE_VK_RESULT(result, "Couldn't create image view");
 }
 
-static bool createDepthImage(dsVkRenderSurfaceData* surfaceData, uint32_t width, uint32_t height,
-	dsRenderSurfaceUsage usage)
+static bool createDepthImage(
+	dsVkRenderSurfaceData* surfaceData, uint32_t width, uint32_t height, dsRenderSurfaceUsage usage)
 {
 	dsRenderer* renderer = surfaceData->renderer;
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
@@ -439,6 +439,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVkRenderSurfaceData)) +
 		DS_ALIGNED_SIZE(sizeof(VkImage)*imageCount) +
+		DS_ALIGNED_SIZE(sizeof(VkSemaphore)*imageCount) +
 		DS_ALIGNED_SIZE(sizeof(VkImageView)*imageCount) +
 		DS_ALIGNED_SIZE(sizeof(dsVkSurfaceImageData)*imageCount);
 	if (renderer->stereoscopic)
@@ -468,36 +469,54 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	DS_ASSERT(surfaceData->images);
 	memset(surfaceData->images, 0, sizeof(VkImage)*imageCount);
 
+	surfaceData->imageSubmitSemaphores = DS_ALLOCATE_OBJECT_ARRAY(
+		&bufferAlloc, VkSemaphore, imageCount);
+	DS_ASSERT(surfaceData->imageSubmitSemaphores);
+	memset(surfaceData->imageSubmitSemaphores, 0, sizeof(VkSemaphore)*imageCount);
+
 	surfaceData->leftImageViews = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkImageView, imageCount);
 	DS_ASSERT(surfaceData->leftImageViews);
 	memset(surfaceData->leftImageViews, 0, sizeof(VkImageView)*imageCount);
 
 	if (renderer->stereoscopic)
 	{
-		surfaceData->rightImageViews = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkImageView,
-			imageCount);
+		surfaceData->rightImageViews = DS_ALLOCATE_OBJECT_ARRAY(
+			&bufferAlloc, VkImageView, imageCount);
 		DS_ASSERT(surfaceData->rightImageViews);
 		memset(surfaceData->rightImageViews, 0, sizeof(VkImageView)*imageCount);
 	}
 
-	surfaceData->imageData = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsVkSurfaceImageData,
-		imageCount);
-	DS_ASSERT(surfaceData->imageData);
-	memset(surfaceData->imageData, 0, sizeof(dsVkSurfaceImageData)*imageCount);
+	surfaceData->acquireImageData = DS_ALLOCATE_OBJECT_ARRAY(
+		&bufferAlloc, dsVkSurfaceImageData, imageCount);
+	DS_ASSERT(surfaceData->acquireImageData);
+	memset(surfaceData->acquireImageData, 0, sizeof(dsVkSurfaceImageData)*imageCount);
 
 	surfaceData->imageCount = imageCount;
 
-	result = DS_VK_CALL(device->vkGetSwapchainImagesKHR)(device->device, swapchain, &imageCount,
-		surfaceData->images);
+	result = DS_VK_CALL(device->vkGetSwapchainImagesKHR)(
+		device->device, swapchain, &imageCount, surfaceData->images);
 	if (!DS_HANDLE_VK_RESULT(result, "Couldn't get swapchain images"))
 	{
 		dsVkRenderSurfaceData_destroy(surfaceData);
 		return NULL;
 	}
 
+	VkSemaphoreCreateInfo semaphoreCreateInfo =
+	{
+		VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+		NULL,
+		0
+	};
+
 	for (uint32_t i = 0; i < imageCount; ++i)
 	{
-		dsVkSurfaceImageData* imageData = surfaceData->imageData + i;
+		result = DS_VK_CALL(device->vkCreateSemaphore)(device->device, &semaphoreCreateInfo,
+			instance->allocCallbacksPtr, surfaceData->imageSubmitSemaphores + i);
+		if (!DS_HANDLE_VK_RESULT(result, "Couldn't create semaphore"))
+		{
+			dsVkRenderSurfaceData_destroy(surfaceData);
+			return NULL;
+		}
 
 		VkImageViewCreateInfo imageViewCreateInfo =
 		{
@@ -532,22 +551,16 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 			}
 		}
 
-		VkSemaphoreCreateInfo semaphoreCreateInfo =
-		{
-			VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
-			NULL,
-			0
-		};
-
+		dsVkSurfaceImageData* imageAcquireData = surfaceData->acquireImageData + i;
 		result = DS_VK_CALL(device->vkCreateSemaphore)(device->device, &semaphoreCreateInfo,
-			instance->allocCallbacksPtr, &imageData->semaphore);
+			instance->allocCallbacksPtr, &imageAcquireData->semaphore);
 		if (!DS_HANDLE_VK_RESULT(result, "Couldn't create semaphore"))
 		{
 			dsVkRenderSurfaceData_destroy(surfaceData);
 			return NULL;
 		}
 
-		imageData->lastUsedSubmit = DS_NOT_SUBMITTED;
+		imageAcquireData->lastUsedSubmit = DS_NOT_SUBMITTED;
 	}
 
 	surfaceData->vsync = vsync;
@@ -577,12 +590,13 @@ dsVkSurfaceResult dsVkRenderSurfaceData_acquireImage(dsVkRenderSurfaceData* surf
 
 	dsRenderer* renderer = surfaceData->renderer;
 
-	surfaceData->imageDataIndex = (surfaceData->imageDataIndex + 1) % surfaceData->imageCount;
-	dsVkSurfaceImageData* imageData = surfaceData->imageData + surfaceData->imageDataIndex;
-	if (imageData->lastUsedSubmit != DS_NOT_SUBMITTED)
+	surfaceData->imageAcquireIndex = (surfaceData->imageAcquireIndex + 1) % surfaceData->imageCount;
+	dsVkSurfaceImageData* imageAcquireData =
+		surfaceData->acquireImageData + surfaceData->imageAcquireIndex;
+	if (imageAcquireData->lastUsedSubmit != DS_NOT_SUBMITTED)
 	{
-		dsGfxFenceResult fenceResult = dsVkRenderer_waitForSubmit(renderer,
-			imageData->lastUsedSubmit, DS_DEFAULT_WAIT_TIMEOUT);
+		dsGfxFenceResult fenceResult = dsVkRenderer_waitForSubmit(
+			renderer, imageAcquireData->lastUsedSubmit, DS_DEFAULT_WAIT_TIMEOUT);
 		if (fenceResult == dsGfxFenceResult_Error)
 			DS_PROFILE_FUNC_RETURN(dsVkSurfaceResult_Error);
 	}
@@ -590,7 +604,8 @@ dsVkSurfaceResult dsVkRenderSurfaceData_acquireImage(dsVkRenderSurfaceData* surf
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	// NOTE: Would use default timeout, but warns each frame on Android.
 	VkResult result = DS_VK_CALL(device->vkAcquireNextImageKHR)(device->device,
-		surfaceData->swapchain, UINT64_MAX, imageData->semaphore, 0, &surfaceData->imageIndex);
+		surfaceData->swapchain, UINT64_MAX, imageAcquireData->semaphore, 0,
+		&surfaceData->imageIndex);
 	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
 		DS_PROFILE_FUNC_RETURN(dsVkSurfaceResult_OutOfDate);
 	if (DS_HANDLE_VK_RESULT(result, "Couldn't acquire next image"))
@@ -609,62 +624,68 @@ void dsVkRenderSurfaceData_destroy(dsVkRenderSurfaceData* surfaceData)
 
 	if (surfaceData->depthImageView)
 	{
-		DS_VK_CALL(device->vkDestroyImageView)(device->device, surfaceData->depthImageView,
-			instance->allocCallbacksPtr);
+		DS_VK_CALL(device->vkDestroyImageView)(
+			device->device, surfaceData->depthImageView, instance->allocCallbacksPtr);
 	}
 	if (surfaceData->depthImage)
 	{
-		DS_VK_CALL(device->vkDestroyImage)(device->device, surfaceData->depthImage,
-			instance->allocCallbacksPtr);
+		DS_VK_CALL(device->vkDestroyImage)(
+			device->device, surfaceData->depthImage, instance->allocCallbacksPtr);
 	}
 	if (surfaceData->depthMemory)
 	{
-		DS_VK_CALL(device->vkFreeMemory)(device->device, surfaceData->depthMemory,
-			instance->allocCallbacksPtr);
+		DS_VK_CALL(device->vkFreeMemory)(
+			device->device, surfaceData->depthMemory, instance->allocCallbacksPtr);
 	}
 
 	if (surfaceData->resolveImageView)
 	{
-		DS_VK_CALL(device->vkDestroyImageView)(device->device, surfaceData->resolveImageView,
-			instance->allocCallbacksPtr);
+		DS_VK_CALL(device->vkDestroyImageView)(
+			device->device, surfaceData->resolveImageView, instance->allocCallbacksPtr);
 	}
 	if (surfaceData->resolveImage)
 	{
-		DS_VK_CALL(device->vkDestroyImage)(device->device, surfaceData->resolveImage,
-			instance->allocCallbacksPtr);
+		DS_VK_CALL(device->vkDestroyImage)(
+			device->device, surfaceData->resolveImage, instance->allocCallbacksPtr);
 	}
 	if (surfaceData->resolveMemory)
 	{
-		DS_VK_CALL(device->vkFreeMemory)(device->device, surfaceData->resolveMemory,
-			instance->allocCallbacksPtr);
+		DS_VK_CALL(device->vkFreeMemory)(
+			device->device, surfaceData->resolveMemory, instance->allocCallbacksPtr);
 	}
 
 	for (uint32_t i = 0; i < surfaceData->imageCount; ++i)
 	{
+		if (surfaceData->imageSubmitSemaphores[i])
+		{
+			DS_VK_CALL(device->vkDestroySemaphore)(
+				device->device, surfaceData->imageSubmitSemaphores[i], instance->allocCallbacksPtr);
+		}
+
 		if (surfaceData->leftImageViews[i])
 		{
-			DS_VK_CALL(device->vkDestroyImageView)(device->device, surfaceData->leftImageViews[i],
-				instance->allocCallbacksPtr);
+			DS_VK_CALL(device->vkDestroyImageView)(
+				device->device, surfaceData->leftImageViews[i], instance->allocCallbacksPtr);
 		}
 
 		if (surfaceData->rightImageViews && surfaceData->rightImageViews[i])
 		{
-			DS_VK_CALL(device->vkDestroyImageView)(device->device, surfaceData->rightImageViews[i],
-				instance->allocCallbacksPtr);
+			DS_VK_CALL(device->vkDestroyImageView)(
+				device->device, surfaceData->rightImageViews[i], instance->allocCallbacksPtr);
 		}
 
-		const dsVkSurfaceImageData* imageData = surfaceData->imageData + i;
-		if (imageData->semaphore)
+		const dsVkSurfaceImageData* imageAcquireData = surfaceData->acquireImageData + i;
+		if (imageAcquireData->semaphore)
 		{
-			DS_VK_CALL(device->vkDestroySemaphore)(device->device, imageData->semaphore,
-				instance->allocCallbacksPtr);
+			DS_VK_CALL(device->vkDestroySemaphore)(
+				device->device, imageAcquireData->semaphore, instance->allocCallbacksPtr);
 		}
 	}
 
 	if (surfaceData->swapchain)
 	{
-		DS_VK_CALL(device->vkDestroySwapchainKHR)(device->device, surfaceData->swapchain,
-			instance->allocCallbacksPtr);
+		DS_VK_CALL(device->vkDestroySwapchainKHR)(
+			device->device, surfaceData->swapchain, instance->allocCallbacksPtr);
 	}
 
 	if (surfaceData->allocator)

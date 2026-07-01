@@ -99,31 +99,19 @@ static bool createCommandBuffers(dsVkRenderer* renderer)
 		0
 	};
 
-	VkSemaphoreCreateInfo semaphoreCreateInfo =
-	{
-		VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
-		NULL,
-		0
-	};
-
 	for (uint32_t i = 0; i < DS_MAX_SUBMITS; ++i)
 	{
 		dsVkSubmitInfo* submit = renderer->submits + i;
 		submit->submitIndex = DS_NOT_SUBMITTED;
 		if (!dsVkCommandBuffer_initialize(&submit->commandBuffer, baseRenderer,
-			baseRenderer->allocator, dsCommandBufferUsage_Standard, 0))
+				baseRenderer->allocator, dsCommandBufferUsage_Standard, 0))
 		{
 			return false;
 		}
 
-		VkResult result = DS_VK_CALL(device->vkCreateFence)(device->device, &fenceCreateInfo,
-			instance->allocCallbacksPtr, &submit->fence);
+		VkResult result = DS_VK_CALL(device->vkCreateFence)(
+			device->device, &fenceCreateInfo, instance->allocCallbacksPtr, &submit->fence);
 		if (!DS_HANDLE_VK_RESULT(result, "Couldn't create fence"))
-			return false;
-
-		result = DS_VK_CALL(device->vkCreateSemaphore)(device->device, &semaphoreCreateInfo,
-			instance->allocCallbacksPtr, &submit->semaphore);
-		if (!DS_HANDLE_VK_RESULT(result, "Couldn't create semaphore"))
 			return false;
 	}
 
@@ -365,8 +353,8 @@ static void freeResources(dsVkRenderer* renderer, uint64_t finishedSubmitCount)
 	{
 		dsVkTempBuffer* buffer = prevDeleteList->tempBuffers[i];
 		DS_ASSERT(buffer);
-		dsVkRenderer_deleteTempBuffer(baseRenderer, buffer,
-			!dsVkResource_isInUse(&buffer->resource, finishedSubmitCount));
+		dsVkRenderer_deleteTempBuffer(
+			baseRenderer, buffer, !dsVkResource_isInUse(&buffer->resource, finishedSubmitCount));
 	}
 
 	for (uint32_t i = 0; i < prevDeleteList->renderbufferCount; ++i)
@@ -391,8 +379,8 @@ static void freeResources(dsVkRenderer* renderer, uint64_t finishedSubmitCount)
 		dsGfxFence* fence = prevDeleteList->fences[i];
 		DS_ASSERT(fence);
 		dsVkGfxFence* vkFence = (dsVkGfxFence*)fence;
-		dsVkRenderer_deleteFence(baseRenderer, fence,
-			!dsVkResource_isInUse(&vkFence->resource, finishedSubmitCount));
+		dsVkRenderer_deleteFence(
+			baseRenderer, fence, !dsVkResource_isInUse(&vkFence->resource, finishedSubmitCount));
 	}
 
 	for (uint32_t i = 0; i < prevDeleteList->queryCount; ++i)
@@ -440,8 +428,8 @@ static void freeResources(dsVkRenderer* renderer, uint64_t finishedSubmitCount)
 	{
 		dsVkCommandPoolData* pool = prevDeleteList->commandPools[i];
 		DS_ASSERT(pool);
-		dsVkRenderer_deleteCommandPool(baseRenderer, pool,
-			!dsVkResource_isInUse(&pool->resource, finishedSubmitCount));
+		dsVkRenderer_deleteCommandPool(
+			baseRenderer, pool, !dsVkResource_isInUse(&pool->resource, finishedSubmitCount));
 	}
 
 	for (uint32_t i = 0; i < prevDeleteList->renderPassCount; ++i)
@@ -784,8 +772,8 @@ static void processRenderbuffers(dsVkRenderer* renderer, dsVkProcessResourceList
 		dsVkRenderbuffer* vkRenderbuffer = (dsVkRenderbuffer*)renderbuffer;
 
 		VkImageAspectFlags aspectMask = dsVkImageAspectFlags(renderbuffer->format);
-		VkImageSubresourceRange fullLayout = {aspectMask, 0, VK_REMAINING_MIP_LEVELS, 0,
-			VK_REMAINING_ARRAY_LAYERS};
+		VkImageSubresourceRange fullLayout =
+			{aspectMask, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS};
 		bool isDepthStencil = dsGfxFormat_isDepthStencil(renderbuffer->format);
 		dsTextureUsage usage = 0;
 		if (renderbuffer->usage & dsRenderbufferUsage_BlitFrom)
@@ -810,8 +798,8 @@ static void processRenderSurfaces(dsVkRenderer* renderer, dsVkProcessResourceLis
 
 	VkImageAspectFlags depthAspectMask =
 		dsVkImageAspectFlags(baseRenderer->surfaceDepthStencilFormat);
-	VkImageSubresourceRange fullDepthLayout = {depthAspectMask, 0, VK_REMAINING_MIP_LEVELS, 0,
-		VK_REMAINING_ARRAY_LAYERS};
+	VkImageSubresourceRange fullDepthLayout =
+		{depthAspectMask, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS};
 
 	for (uint32_t i = 0; i < resourceList->renderSurfaceCount; ++i)
 	{
@@ -914,7 +902,7 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 }
 
 static bool beginDraw(dsCommandBuffer* commandBuffer, VkCommandBuffer submitBuffer,
-	const dsDrawGeometry* geometry, const dsDrawRange* drawRange, dsPrimitiveType primitiveType)
+	const dsDrawGeometry* geometry, dsPrimitiveType primitiveType)
 {
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)dsVkCommandBuffer_get(commandBuffer);
@@ -970,12 +958,11 @@ static bool beginDraw(dsCommandBuffer* commandBuffer, VkCommandBuffer submitBuff
 }
 
 static bool beginIndexedDraw(dsCommandBuffer* commandBuffer, VkCommandBuffer submitBuffer,
-	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange,
-	dsPrimitiveType primitiveType)
+	const dsDrawGeometry* geometry, dsPrimitiveType primitiveType)
 {
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)dsVkCommandBuffer_get(commandBuffer);
-	if (!beginDraw(commandBuffer, submitBuffer, geometry, NULL, primitiveType))
+	if (!beginDraw(commandBuffer, submitBuffer, geometry, primitiveType))
 		return false;
 
 	const dsIndexBuffer* indexBuffer = &geometry->indexBuffer;
@@ -994,8 +981,8 @@ static bool beginIndexedDraw(dsCommandBuffer* commandBuffer, VkCommandBuffer sub
 	return true;
 }
 
-static bool beginDispatch(dsRenderer* renderer, VkCommandBuffer submitBuffer,
-	dsCommandBuffer* commandBuffer)
+static bool beginDispatch(
+	dsRenderer* renderer, VkCommandBuffer submitBuffer, dsCommandBuffer* commandBuffer)
 {
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)dsVkCommandBuffer_get(commandBuffer);
 	if (!vkCommandBuffer->activeComputeShader ||
@@ -1186,8 +1173,11 @@ static void setEndBlitSurfaceBarrierInfo(const dsRenderer* renderer, VkImageMemo
 	}
 }
 
-static VkSemaphore preFlush(dsRenderer* renderer, bool readback, bool useSemaphore)
+static void preFlush(dsRenderer* renderer, bool readback, const VkSemaphore* signalSemaphores,
+	uint32_t signalSemaphoreCount)
 {
+	DS_ASSERT(signalSemaphores || signalSemaphoreCount == 0);
+
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	dsVkDevice* device = &vkRenderer->device;
 
@@ -1232,12 +1222,10 @@ static VkSemaphore preFlush(dsRenderer* renderer, bool readback, bool useSemapho
 		for (uint32_t i = 0; i < vkSubmitBuffer->renderSurfaceCount; ++i)
 		{
 			dsVkRenderSurfaceData* surface = vkSubmitBuffer->renderSurfaces[i];
-			waitSemaphores[i] = surface->imageData[surface->imageDataIndex].semaphore;
+			waitSemaphores[i] = surface->acquireImageData[surface->imageAcquireIndex].semaphore;
 			waitStages[i] = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		}
 	}
-
-	VkSemaphore submittedSemaphore = useSemaphore ? submit->semaphore : 0;
 
 	VkSubmitInfo submitInfo =
 	{
@@ -1245,7 +1233,7 @@ static VkSemaphore preFlush(dsRenderer* renderer, bool readback, bool useSemapho
 		NULL,
 		vkSubmitBuffer->renderSurfaceCount, waitSemaphores, waitStages,
 		vkSubmitBuffer->submitBufferCount, vkSubmitBuffer->submitBuffers,
-		useSemaphore ? 1 : 0, &submittedSemaphore
+		signalSemaphoreCount, signalSemaphores
 	};
 
 	DS_PROFILE_SCOPE_START("vkQueueSubmit");
@@ -1259,8 +1247,6 @@ static VkSemaphore preFlush(dsRenderer* renderer, bool readback, bool useSemapho
 	if (readback)
 		dsVkCommandBuffer_submittedReadbackOffscreens(submitBuffer, submit->submitIndex);
 	DS_PROFILE_SCOPE_END();
-
-	return submittedSemaphore;
 }
 
 static void postFlush(dsRenderer* renderer)
@@ -1452,8 +1438,8 @@ bool dsVkRenderer_clearAttachments(dsRenderer* renderer, dsCommandBuffer* comman
 		vkRegion->layerCount = region->layerCount;
 	}
 
-	DS_VK_CALL(device->vkCmdClearAttachments)(submitBuffer, vkAttachmentCount, vkAttachments,
-		regionCount, vkRegions);
+	DS_VK_CALL(device->vkCmdClearAttachments)(
+		submitBuffer, vkAttachmentCount, vkAttachments, regionCount, vkRegions);
 	return true;
 }
 
@@ -1462,11 +1448,8 @@ bool dsVkRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 {
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
-	if (!submitBuffer || !beginDraw(
-			commandBuffer, submitBuffer, geometry, drawRange, primitiveType))
-	{
+	if (!submitBuffer || !beginDraw(commandBuffer, submitBuffer, geometry, primitiveType))
 		return false;
-	}
 
 	DS_VK_CALL(device->vkCmdDraw)(submitBuffer, drawRange->vertexCount, drawRange->instanceCount,
 		drawRange->firstVertex, drawRange->firstInstance);
@@ -1479,11 +1462,8 @@ bool dsVkRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuff
 {
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
-	if (!submitBuffer || !beginIndexedDraw(
-			commandBuffer, submitBuffer, geometry, drawRange, primitiveType))
-	{
+	if (!submitBuffer || !beginIndexedDraw(commandBuffer, submitBuffer, geometry, primitiveType))
 		return false;
-	}
 
 	DS_VK_CALL(device->vkCmdDrawIndexed)(submitBuffer, drawRange->indexCount,
 		drawRange->instanceCount, drawRange->firstIndex, drawRange->vertexOffset,
@@ -1497,7 +1477,7 @@ bool dsVkRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuf
 {
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
-	if (!submitBuffer || !beginDraw(commandBuffer, submitBuffer, geometry, NULL, primitiveType))
+	if (!submitBuffer || !beginDraw(commandBuffer, submitBuffer, geometry, primitiveType))
 		return false;
 
 	dsVkGfxBufferData* indirectBufferData = dsVkGfxBuffer_getData((dsGfxBuffer*)indirectBuffer,
@@ -1529,11 +1509,8 @@ bool dsVkRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* com
 {
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
-	if (!submitBuffer || !beginIndexedDraw(commandBuffer, submitBuffer, geometry, NULL,
-			primitiveType))
-	{
+	if (!submitBuffer || !beginIndexedDraw(commandBuffer, submitBuffer, geometry, primitiveType))
 		return false;
-	}
 
 	dsVkGfxBufferData* indirectBufferData = dsVkGfxBuffer_getData((dsGfxBuffer*)indirectBuffer,
 		commandBuffer);
@@ -1558,8 +1535,8 @@ bool dsVkRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* com
 	return true;
 }
 
-bool dsVkRenderer_dispatchCompute(dsRenderer* renderer, dsCommandBuffer* commandBuffer, uint32_t x,
-	uint32_t y, uint32_t z)
+bool dsVkRenderer_dispatchCompute(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, uint32_t x, uint32_t y, uint32_t z)
 {
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
@@ -1584,8 +1561,8 @@ bool dsVkRenderer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer*
 	if (!submitBuffer || !beginDispatch(renderer, submitBuffer, commandBuffer))
 		return false;
 
-	DS_VK_CALL(device->vkCmdDispatchIndirect)(submitBuffer,
-		dsVkGfxBufferData_getBuffer(indirectBufferData), offset);
+	DS_VK_CALL(device->vkCmdDispatchIndirect)(
+		submitBuffer, dsVkGfxBufferData_getBuffer(indirectBufferData), offset);
 	return true;
 }
 
@@ -1814,7 +1791,7 @@ bool dsVkRenderer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBu
 
 bool dsVkRenderer_flush(dsRenderer* renderer)
 {
-	dsVkRenderer_flushImpl(renderer, true, false);
+	dsVkRenderer_flushImpl(renderer, true, NULL, 0);
 	return true;
 }
 
@@ -1825,7 +1802,7 @@ bool dsVkRenderer_waitUntilIdle(dsRenderer* renderer)
 
 	// NOTE: Don't lock for submitCuont since waitUntilIdle() can only be called on the main thread.
 	uint64_t submitCount = vkRenderer->submitCount;
-	preFlush(renderer, true, false);
+	preFlush(renderer, true, NULL, 0);
 	DS_VK_CALL(device->vkQueueWaitIdle)(device->queue);
 	postFlush(renderer);
 
@@ -1859,21 +1836,15 @@ bool dsVkRenderer_destroy(dsRenderer* renderer)
 
 		if (submit->fence)
 		{
-			DS_VK_CALL(device->vkDestroyFence)(device->device, submit->fence,
-				instance->allocCallbacksPtr);
-		}
-
-		if (submit->semaphore)
-		{
-			DS_VK_CALL(device->vkDestroySemaphore)(device->device, submit->semaphore,
-				instance->allocCallbacksPtr);
+			DS_VK_CALL(device->vkDestroyFence)(
+				device->device, submit->fence, instance->allocCallbacksPtr);
 		}
 	}
 
 	if (vkRenderer->defaultSampler)
 	{
-		DS_VK_CALL(device->vkDestroySampler)(device->device, vkRenderer->defaultSampler,
-			instance->allocCallbacksPtr);
+		DS_VK_CALL(device->vkDestroySampler)(
+			device->device, vkRenderer->defaultSampler, instance->allocCallbacksPtr);
 	}
 
 	dsVkBarrierList_shutdown(&vkRenderer->preResourceBarriers);
@@ -2028,8 +1999,8 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	DS_VERIFY(dsSpinlock_initialize(&renderer->deleteLock));
 	renderer->submitLock = dsMutex_create((dsAllocator*)&bufferAlloc, "Vulkan submit");
 	DS_ASSERT(renderer->submitLock);
-	renderer->waitCondition = dsConditionVariable_create((dsAllocator*)&bufferAlloc,
-		"Fence wait");
+	renderer->waitCondition = dsConditionVariable_create(
+		(dsAllocator*)&bufferAlloc, "Fence wait");
 	DS_ASSERT(renderer->waitCondition);
 
 	if (!dsCreateVkInstance(&renderer->device.instance, options, true) ||
@@ -2130,8 +2101,8 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
-	dsGfxFormat colorFormat = dsRenderer_optionsColorFormat(options,
-		useBGRASurface(baseRenderer->deviceName), true);
+	dsGfxFormat colorFormat = dsRenderer_optionsColorFormat(
+		options, useBGRASurface(baseRenderer->deviceName), true);
 	if (!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, colorFormat))
 	{
 		errno = EPERM;
@@ -2236,17 +2207,18 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	return baseRenderer;
 }
 
-VkSemaphore dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback, bool useSemaphore)
+void dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback,
+	const VkSemaphore* signalSemaphores, uint32_t signalSemaphoreCount)
 {
 	DS_PROFILE_FUNC_START();
 
-	VkSemaphore submittedSemaphore = preFlush(renderer, readback, useSemaphore);
+	preFlush(renderer, readback, signalSemaphores, signalSemaphoreCount);
 	postFlush(renderer);
-	DS_PROFILE_FUNC_RETURN(submittedSemaphore);
+	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
-dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submitCount,
-	uint64_t timeout)
+dsGfxFenceResult dsVkRenderer_waitForSubmit(
+	dsRenderer* renderer, uint64_t submitCount, uint64_t timeout)
 {
 	VkFence fences[DS_MAX_SUBMITS];
 	uint32_t fenceCount = 0;

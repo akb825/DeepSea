@@ -26,7 +26,6 @@ typedef enum dsVkSurfaceResult
 	dsVkSurfaceResult_OutOfDate,
 } dsVkSurfaceResult;
 
-
 dsRenderSurfaceRotation dsVkRenderSurfaceData_getRotation(VkSurfaceTransformFlagBitsKHR rotation);
 dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRenderer* renderer,
 	VkSurfaceKHR surface, dsVSync vsync, VkSwapchainKHR prevSwapchain, dsRenderSurfaceUsage usage,
