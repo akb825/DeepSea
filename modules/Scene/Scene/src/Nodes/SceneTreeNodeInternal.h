@@ -25,4 +25,6 @@ void dsSceneTreeNode_removeSubtree(dsSceneNode* node, dsSceneNode* child);
 bool dsSceneTreeNode_reparentSubtree(dsSceneNode* node, dsSceneNode* child, dsSceneNode* newParent);
 bool dsSceneTreeNode_transferSceneNodes(dsSceneNode* prevRoot, dsSceneNode* newRoot,
 	const dsScene* newScene, const dsHashTable* commonItemLists);
-void dsSceneTreeNode_updateSubtree(dsSceneTreeNode* node);
+// Returns false if another update will be required later.
+bool dsSceneTreeNode_updateSubtree(
+	dsSceneTreeNode* node, uint64_t frameNumber, uint64_t stepNumber, float stepT);

@@ -96,7 +96,7 @@ uint64_t addMockSceneItem(dsSceneItemList* itemList, dsSceneNode* node, dsSceneT
 	}
 
 	mockList->items[index].node = node;
-	mockList->items[index].transform = &treeNode->transform;
+	mockList->items[index].transform = &treeNode->curFrameWorldTransform;
 	mockList->items[index].updateCount = 0;
 	mockList->items[index].nodeID = mockList->nextNodeID;
 	return mockList->nextNodeID++;

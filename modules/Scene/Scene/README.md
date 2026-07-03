@@ -12,6 +12,17 @@ Nodes are reference counted. When created, they have a reference count of 1. Cal
 
 > **Note:** If you create a node and hand it off to another object (e.g. as a child of another node), make sure to call `dsSceneNode_freeRef()` once you no longer need the direct pointer to decrement the initial reference count from creation.
 
+## Transform management
+
+Scene transforms support discrete time-step updates, where a fixed update value is used and any time in-between is interpolated. This is opt-in, and may allow for situations like consistent physics behavior or deterministic results. To support this, the following transforms are kept track for each `dsSceneTreeNode`:
+
+* Current step transform, relative to the parent.
+* Previous step transform, relative to the parent.
+* Current frame transform in world space.
+* Previous frame transform in world space. This is intended for rendering, such as velocity vectors, and won't be updated if the transform hasn't changed. (in which case the current frame transform should be used instead)
+
+To support interpolation, the previous and current step transforms utilize `dsRigidTransform3f`. To avoid situations where the transform can't be properly combined or inverted, it is best to avoid non-uniform scales (where scale x, y, and z aren't all the same value) for non-leaf transforms.
+
 ## Performance considerations
 
 Traditionally scene graphs are traversed each time you draw. However, this can be very inefficient when much of the graph remains unchanged between frames, and the constant jumping around memory is very cache inefficient. This traversal also cannot be parallelized.
@@ -43,10 +54,6 @@ One of the most commonly item list types is `dsSceneModelList` for drawing model
 Some item list types, such as `dsSceneModelList`, contain a list of `dsSceneInstanceData` instances. This allows data to be bound before drawing each instance.
 
 The most common type to use is `dsSceneInstanceVariables`, which places shader variable data into a buffer and binds the offset to the shader. `dsInstanceTransformData` is a helper for creating a `dsSceneInstanceVariables` instance that contains standard transform matrices for each instance.
-
-# Global data
-
-`dsSceneGlobalData` is similar to `dsSceneItemList`, except it works with data global to the scene rather than individual instances. For example, `dsViewTransformData` sets standard view and projection matrices that can be shared across all instances.
 
 # Scene draw sequence
 

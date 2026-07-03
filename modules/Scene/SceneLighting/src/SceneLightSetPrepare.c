@@ -127,7 +127,7 @@ static uint64_t dsSceneLightSetPrepare_addNode(dsSceneItemList* itemList, dsScen
 
 	*thisItemData = light;
 	transformLight(light, &templateLight->position, &templateLight->direction,
-		&treeNode->transform);
+		&treeNode->curFrameWorldTransform);
 
 	Entry* entry = prepare->entries + index;
 	entry->treeNode = treeNode;
@@ -152,7 +152,7 @@ static void dsSceneLightSetPrepare_updateNode(
 	if (entry)
 	{
 		transformLight(entry->light, &entry->position, &entry->direction,
-			&entry->treeNode->transform);
+			&entry->treeNode->curFrameWorldTransform);
 	}
 }
 

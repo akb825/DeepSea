@@ -371,7 +371,7 @@ static uint64_t dsSceneModelList_addNode(dsSceneItemList* itemList, dsSceneNode*
 	Entry* entry = modelList->entries + index;
 	entry->node = modelNode;
 	entry->treeNode = treeNode;
-	entry->transform = &treeNode->transform;
+	entry->transform = &treeNode->curFrameWorldTransform;
 	entry->itemData = itemData;
 	entry->nodeID = modelList->nextNodeID++;
 	return entry->nodeID;

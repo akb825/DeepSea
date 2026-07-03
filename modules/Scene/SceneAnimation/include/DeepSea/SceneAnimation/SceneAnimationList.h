@@ -66,10 +66,12 @@ DS_SCENEANIMATION_EXPORT dsSceneAnimationList* dsSceneAnimationList_create(
  *
  * @remark errno will be set on failure.
  * @param animationList The scene animation list.
+ * @param stepNumber The absolute step number for the current update.
+ * @param stepT The interpolation between the previous and current step.
  * @return False if the animation list ragdolls couldn't be updated.
  */
 DS_SCENEANIMATION_EXPORT bool dsSceneAnimationList_updateRagdolls(
-	dsSceneAnimationList* animationList);
+	dsSceneAnimationList* animationList, uint64_t stepNumber, float stepT);
 
 #ifdef __cplusplus
 }

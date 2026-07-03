@@ -20,23 +20,21 @@
 #include <DeepSea/Core/Assert.h>
 
 #include <DeepSea/Math/Matrix44.h>
-#include <DeepSea/Math/Vector3.h>
+#include <DeepSea/Math/Vector4.h>
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 
 static void dsSceneTransformNode_setupTreeNode(dsSceneNode* node, dsSceneTreeNode* treeNode)
 {
-	treeNode->baseTransform = &((dsSceneTransformNode*)node)->transform;
+	treeNode->baseFrameTransform = &((dsSceneTransformNode*)node)->transform;
 }
 
 static void dsSceneTransformNode_shift(dsSceneNode* node, const dsVector3xf* shift)
 {
 	dsSceneTransformNode* transformNode = (dsSceneTransformNode*)node;
-	// Ensure the w value remains untouched.
-	dsVector3_add(transformNode->transform.columns[3], transformNode->transform.columns[3], *shift);
-	for (uint32_t i = 0; i < node->treeNodeCount; ++i)
-		dsSceneTreeNode_markDirty(node->treeNodes[i]);
+	dsVector4f_add(
+		transformNode->transform.columns + 3, transformNode->transform.columns + 3, shift);
 }
 
 static void dsSceneTransformNode_destroy(dsSceneNode* node)

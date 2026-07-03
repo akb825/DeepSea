@@ -58,7 +58,7 @@ static void dsInstanceScreenTransformData_populateDataSIMD(void* userData, const
 	DS_ASSERT(stride >= sizeof(InstanceScreenTransform));
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
-		const dsMatrix44f* world = &instances[i]->transform;
+		const dsMatrix44f* world = &instances[i]->curFrameWorldTransform;
 		InstanceScreenTransform* transform = (InstanceScreenTransform*)(data);
 		transform->world = *world;
 		dsMatrix44f_mulSIMD(&transform->worldProj, &view->screenProjectionMatrix, world);
@@ -83,7 +83,7 @@ static void dsInstanceScreenTransformData_populateDataFMA(void* userData, const 
 	DS_ASSERT(stride >= sizeof(InstanceScreenTransform));
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
-		const dsMatrix44f* world = &instances[i]->transform;
+		const dsMatrix44f* world = &instances[i]->curFrameWorldTransform;
 		InstanceScreenTransform* transform = (InstanceScreenTransform*)(data);
 		transform->world = *world;
 		dsMatrix44f_mulFMA(&transform->worldProj, &view->screenProjectionMatrix, world);
@@ -109,7 +109,7 @@ static void dsInstanceScreenTransformData_populateData(void* userData, const dsV
 	DS_ASSERT(stride >= sizeof(InstanceScreenTransform));
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
-		const dsMatrix44f* world = &instances[i]->transform;
+		const dsMatrix44f* world = &instances[i]->curFrameWorldTransform;
 		InstanceScreenTransform* transform = (InstanceScreenTransform*)(data);
 		transform->world = *world;
 		dsMatrix44f_mul(&transform->worldProj, &view->screenProjectionMatrix, world);

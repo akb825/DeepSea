@@ -219,7 +219,8 @@ static uint32_t buildTreeRec(dsAllocator* allocator, uint32_t* nextIndex, uint32
 	dsAnimationNode* node = nodes + index;
 	node->nameID = dsUniqueNameID_create(buildNode->name);
 	node->prevTransform = node->transform = buildNode->transform;
-	dsMatrix44f_identity(&node->fullTransform);
+	dsRigidTransform3f_identity(&node->fullTransform);
+	dsMatrix44f_identity(&node->fullInterpTransform);
 	node->parent = parent;
 	node->childCount = buildNode->childCount;
 	if (buildNode->childCount > 0)
@@ -257,26 +258,30 @@ static inline void updateTransformSIMD(dsAnimationTree* tree, dsAnimationNode* n
 	dsRigidTransform3f_toMatrixSIMD(&localMatrix, &interpTransform);
 
 	if (node->parent == DS_NO_ANIMATION_NODE)
-		node->fullTransform = localMatrix;
+	{
+		node->fullTransform = node->transform;
+		node->fullInterpTransform = localMatrix;
+	}
 	else
 	{
+		const dsAnimationNode* parent = tree->nodes + node->parent;
+		dsRigidTransform3f_mulSIMD(
+			&node->fullTransform, &parent->fullTransform, &node->transform);
 		dsMatrix44f_affineMulSIMD(
-			&node->fullTransform, &tree->nodes[node->parent].fullTransform, &localMatrix);
+			&node->fullInterpTransform, &parent->fullInterpTransform, &localMatrix);
 	}
 }
 
 static inline void updateCurTransformSIMD(dsAnimationTree* tree, dsAnimationNode* node)
 {
-	dsMatrix44f localMatrix;
-	dsRigidTransform3f_toMatrixSIMD(&localMatrix, &node->transform);
-
 	if (node->parent == DS_NO_ANIMATION_NODE)
-		node->fullTransform = localMatrix;
+		node->fullTransform = node->transform;
 	else
 	{
-		dsMatrix44f_affineMulSIMD(
-			&node->fullTransform, &tree->nodes[node->parent].fullTransform, &localMatrix);
+		dsRigidTransform3f_mulSIMD(
+			&node->fullTransform, &tree->nodes[node->parent].fullTransform, &node->transform);
 	}
+	dsRigidTransform3f_toMatrixSIMD(&node->fullInterpTransform, &node->fullTransform);
 }
 
 static void updateTransformsSIMD(dsAnimationTree* tree, float stepT)
@@ -303,7 +308,7 @@ static void updateJointTransformsSIMD(dsAnimationTree* tree, float stepT)
 			updateTransformSIMD(tree, node, stepT);
 			dsAnimationJointTransform* jointTransform = tree->jointTransforms + i;
 			dsMatrix44f_affineMulSIMD(
-				&jointTransform->transform, &node->fullTransform, tree->toNodeLocalSpace + i);
+				&jointTransform->transform, &node->fullInterpTransform, tree->toNodeLocalSpace + i);
 			/*dsMatrix44f_inverseTransposeSIMD(
 				jointTransform->inverseTranspose, &jointTransform->transform);*/
 		}
@@ -316,7 +321,7 @@ static void updateJointTransformsSIMD(dsAnimationTree* tree, float stepT)
 			updateCurTransformSIMD(tree, node);
 			dsAnimationJointTransform* jointTransform = tree->jointTransforms + i;
 			dsMatrix44f_affineMulSIMD(
-				&jointTransform->transform, &node->fullTransform, tree->toNodeLocalSpace + i);
+				&jointTransform->transform, &node->fullInterpTransform, tree->toNodeLocalSpace + i);
 			/*dsMatrix44f_inverseTransposeSIMD(
 				jointTransform->inverseTranspose, &jointTransform->transform);*/
 		}
@@ -337,26 +342,30 @@ static inline void updateTransformFMA(dsAnimationTree* tree, dsAnimationNode* no
 	dsRigidTransform3f_toMatrixFMA(&localMatrix, &interpTransform);
 
 	if (node->parent == DS_NO_ANIMATION_NODE)
-		node->fullTransform = localMatrix;
+	{
+		node->fullTransform = node->transform;
+		node->fullInterpTransform = localMatrix;
+	}
 	else
 	{
+		const dsAnimationNode* parent = tree->nodes + node->parent;
+		dsRigidTransform3f_mulFMA(
+			&node->fullTransform, &parent->fullTransform, &node->transform);
 		dsMatrix44f_affineMulFMA(
-			&node->fullTransform, &tree->nodes[node->parent].fullTransform, &localMatrix);
+			&node->fullInterpTransform, &parent->fullInterpTransform, &localMatrix);
 	}
 }
 
 static inline void updateCurTransformFMA(dsAnimationTree* tree, dsAnimationNode* node)
 {
-	dsMatrix44f localMatrix;
-	dsRigidTransform3f_toMatrixFMA(&localMatrix, &node->transform);
-
 	if (node->parent == DS_NO_ANIMATION_NODE)
-		node->fullTransform = localMatrix;
+		node->fullTransform = node->transform;
 	else
 	{
-		dsMatrix44f_affineMulFMA(
-			&node->fullTransform, &tree->nodes[node->parent].fullTransform, &localMatrix);
+		dsRigidTransform3f_mulFMA(
+			&node->fullTransform, &tree->nodes[node->parent].fullTransform, &node->transform);
 	}
+	dsRigidTransform3f_toMatrixFMA(&node->fullInterpTransform, &node->fullTransform);
 }
 
 static void updateTransformsFMA(dsAnimationTree* tree, float stepT)
@@ -383,7 +392,7 @@ static void updateJointTransformsFMA(dsAnimationTree* tree, float stepT)
 			updateTransformFMA(tree, node, stepT);
 			dsAnimationJointTransform* jointTransform = tree->jointTransforms + i;
 			dsMatrix44f_affineMulFMA(
-				&jointTransform->transform, &node->fullTransform, tree->toNodeLocalSpace + i);
+				&jointTransform->transform, &node->fullInterpTransform, tree->toNodeLocalSpace + i);
 			/*dsMatrix44f_inverseTransposeFMA(
 				jointTransform->inverseTranspose, &jointTransform->transform);*/
 		}
@@ -396,7 +405,7 @@ static void updateJointTransformsFMA(dsAnimationTree* tree, float stepT)
 			updateCurTransformFMA(tree, node);
 			dsAnimationJointTransform* jointTransform = tree->jointTransforms + i;
 			dsMatrix44f_affineMulFMA(
-				&jointTransform->transform, &node->fullTransform, tree->toNodeLocalSpace + i);
+				&jointTransform->transform, &node->fullInterpTransform, tree->toNodeLocalSpace + i);
 			/*dsMatrix44f_inverseTransposeFMA(
 				jointTransform->inverseTranspose, &jointTransform->transform);*/
 		}
@@ -416,26 +425,30 @@ static inline void updateTransform(dsAnimationTree* tree, dsAnimationNode* node,
 	dsRigidTransform3f_toMatrix(&localMatrix, &interpTransform);
 
 	if (node->parent == DS_NO_ANIMATION_NODE)
-		node->fullTransform = localMatrix;
+	{
+		node->fullTransform = node->transform;
+		node->fullInterpTransform = localMatrix;
+	}
 	else
 	{
+		const dsAnimationNode* parent = tree->nodes + node->parent;
+		dsRigidTransform3f_mul(
+			&node->fullTransform, &parent->fullTransform, &node->transform);
 		dsMatrix44f_affineMul(
-			&node->fullTransform, &tree->nodes[node->parent].fullTransform, &localMatrix);
+			&node->fullInterpTransform, &parent->fullInterpTransform, &localMatrix);
 	}
 }
 
 static inline void updateCurTransform(dsAnimationTree* tree, dsAnimationNode* node)
 {
-	dsMatrix44f localMatrix;
-	dsRigidTransform3f_toMatrix(&localMatrix, &node->transform);
-
 	if (node->parent == DS_NO_ANIMATION_NODE)
-		node->fullTransform = localMatrix;
+		node->fullTransform = node->transform;
 	else
 	{
-		dsMatrix44f_affineMul(
-			&node->fullTransform, &tree->nodes[node->parent].fullTransform, &localMatrix);
+		dsRigidTransform3f_mul(
+			&node->fullTransform, &tree->nodes[node->parent].fullTransform, &node->transform);
 	}
+	dsRigidTransform3f_toMatrix(&node->fullInterpTransform, &node->fullTransform);
 }
 
 static void updateTransforms(dsAnimationTree* tree, float stepT)
@@ -462,7 +475,7 @@ static void updateJointTransforms(dsAnimationTree* tree, float stepT)
 			updateTransform(tree, node, stepT);
 			dsAnimationJointTransform* jointTransform = tree->jointTransforms + i;
 			dsMatrix44f_affineMul(
-				&jointTransform->transform, &node->fullTransform, tree->toNodeLocalSpace + i);
+				&jointTransform->transform, &node->fullInterpTransform, tree->toNodeLocalSpace + i);
 			/*dsMatrix44f_inverseTranspose(
 				jointTransform->inverseTranspose, &jointTransform->transform);*/
 		}
@@ -475,7 +488,7 @@ static void updateJointTransforms(dsAnimationTree* tree, float stepT)
 			updateCurTransform(tree, node);
 			dsAnimationJointTransform* jointTransform = tree->jointTransforms + i;
 			dsMatrix44f_affineMul(
-				&jointTransform->transform, &node->fullTransform, tree->toNodeLocalSpace + i);
+				&jointTransform->transform, &node->fullInterpTransform, tree->toNodeLocalSpace + i);
 			/*dsMatrix44f_inverseTranspose(
 				jointTransform->inverseTranspose, &jointTransform->transform);*/
 		}
@@ -617,7 +630,8 @@ dsAnimationTree* dsAnimationTree_createJoints(
 
 		treeNode->nameID = dsUniqueNameID_create(node->name);
 		treeNode->prevTransform = treeNode->transform = node->transform;
-		dsMatrix44f_identity(&treeNode->fullTransform);
+		dsRigidTransform3f_identity(&treeNode->fullTransform);
+		dsMatrix44f_identity(&treeNode->fullInterpTransform);
 		treeNode->parent = parentNodes[i];
 		treeNode->childCount = node->childCount;
 		if (node->childCount > 0)

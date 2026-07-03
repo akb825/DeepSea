@@ -36,6 +36,7 @@
 #include <DeepSea/Scene/ItemLists/SceneItemListEntries.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneTreeNode.h>
+#include <DeepSea/Scene/SceneTick.h>
 
 #include <DeepSea/SceneAnimation/SceneAnimationNode.h>
 #include <DeepSea/SceneAnimation/SceneAnimationRagdollNode.h>
@@ -201,11 +202,15 @@ static uint64_t dsSceneAnimationList_addNode(dsSceneItemList* itemList, dsSceneN
 			return DS_NO_SCENE_NODE;
 		}
 
-		treeNode->baseTransform = &instance->animationTree->nodes[nodeIndex].fullTransform;
+		const dsAnimationNode* animationNode = instance->animationTree->nodes + nodeIndex;
+		treeNode->baseStepTransform = &animationNode->fullTransform;
+		treeNode->baseFrameTransform = &animationNode->fullInterpTransform;
 
 		TransformEntry* entry = animationList->transformEntries + index;
 		entry->treeNode = treeNode;
 		entry->instance = instance;
+		// Setting the previous transform to identity should ensure that the next update will dirty
+		// the node if needed.
 		dsMatrix44f_identity(&entry->prevTransform);
 		entry->nodeID = animationList->nextTransformNodeID++;
 		return entry->nodeID;
@@ -363,7 +368,7 @@ static void dsSceneAnimationList_preTransformUpdate(
 	animationList->removeTransformEntryCount = 0;
 
 	// Set stepT to 1 when not the last step so it avoids interpolating for intermediate steps.
-	float stepT = step == tick->stepCount - 1 ? tick->stepInterp : 1.0f;
+	float stepT = dsSceneTick_interpForStep(tick, step);
 	animationList->curStepT = stepT;
 	if (tick->stepTime > 0.0f)
 	{
@@ -375,15 +380,16 @@ static void dsSceneAnimationList_preTransformUpdate(
 		}
 	}
 
+	// Update the transforms for any animation transform node that moved.
 	for (uint32_t i = 0; i < animationList->transformEntryCount; ++i)
 	{
 		TransformEntry* entry = animationList->transformEntries + i;
 		dsSceneAnimationTreeInstance_updateUnlocked(entry->instance);
 		dsSceneTreeNode* treeNode = entry->treeNode;
-		if (memcmp(treeNode->baseTransform, &entry->prevTransform, sizeof(dsMatrix44f)) != 0)
+		if (memcmp(treeNode->baseFrameTransform, &entry->prevTransform, sizeof(dsMatrix44f)) != 0)
 		{
 			dsSceneTreeNode_markDirty(treeNode);
-			entry->prevTransform = *treeNode->baseTransform;
+			entry->prevTransform = *treeNode->baseFrameTransform;
 		}
 	}
 }
@@ -503,7 +509,8 @@ dsSceneAnimationList* dsSceneAnimationList_create(
 	return animationList;
 }
 
-bool dsSceneAnimationList_updateRagdolls(dsSceneAnimationList* animationList)
+bool dsSceneAnimationList_updateRagdolls(
+	dsSceneAnimationList* animationList, uint64_t stepNumber, float stepT)
 {
 	if (!animationList)
 	{
@@ -521,7 +528,7 @@ bool dsSceneAnimationList_updateRagdolls(dsSceneAnimationList* animationList)
 	for (uint32_t i = 0; i < animationList->animationEntryCount; ++i)
 	{
 		AnimationEntry* entry = animationList->animationEntries + i;
-		dsSceneAnimationInstance_updateRagdolls(entry->instance);
+		dsSceneAnimationInstance_updateRagdolls(entry->instance, stepNumber, stepT != 1.0f);
 	}
 	return true;
 }

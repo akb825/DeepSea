@@ -266,6 +266,20 @@ DS_SCENE_EXPORT bool dsScene_forEachItemList(
 	const dsScene* scene, dsVisitSceneItemListsFunction visitFunc, void* userData);
 
 /**
+ * @brief Gets the tick provided for the last update.
+ *
+ * This may be used to see how time progressed when needed after the update itself. For example,
+ * some rendering techniques such as motion blur may need to know how much time progressed since
+ * last frame.
+ *
+ * @remark errno will be set on failure.
+ * @param scene The scene to get the last update tick from.
+ * @return The last update tick or NULL if scene is NULL. The pointer will remain consistent, so it
+ *     may be cached if the scene remains the same.
+ */
+DS_SCENE_EXPORT const dsSceneTick* dsScene_getLastUpdateTick(const dsScene* scene);
+
+/**
  * @brief Updates dirty nodes within the scene and any item lists.
  * @remark errno will be set on failure.
  * @param scene The scene to update.

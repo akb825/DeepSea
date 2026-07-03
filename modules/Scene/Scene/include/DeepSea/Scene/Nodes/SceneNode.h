@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,8 +46,8 @@ DS_SCENE_EXPORT extern const char* const dsSceneNodeRef_typeName;
  * @param itemListCount The number of item lists.
  * @return The size of the memory for the item lists or 0 if the inputs are invalid.
  */
-DS_SCENE_EXPORT size_t dsSceneNode_itemListsAllocSize(const char* const* itemLists,
-	uint32_t itemListCount);
+DS_SCENE_EXPORT size_t dsSceneNode_itemListsAllocSize(
+	const char* const* itemLists, uint32_t itemListCount);
 
 /**
  * @brief Copies a list of item list names.
@@ -56,8 +56,8 @@ DS_SCENE_EXPORT size_t dsSceneNode_itemListsAllocSize(const char* const* itemLis
  * @param itemListCount The number of item lsits.
  * @return The copied item list names or NULL if itemLists is empty or an error occurred.
  */
-DS_SCENE_EXPORT const char* const* dsSceneNode_copyItemLists(dsAllocator* allocator,
-	const char* const* itemLists, uint32_t itemListCount);
+DS_SCENE_EXPORT const char* const* dsSceneNode_copyItemLists(
+	dsAllocator* allocator, const char* const* itemLists, uint32_t itemListCount);
 
 /**
  * @brief Sets up the parent type for a node.
@@ -101,8 +101,8 @@ DS_SCENE_EXPORT const char* const* dsSceneNode_copyItemLists(dsAllocator* alloca
  * @param parentType The parent type to set.
  * @return type, or parentType if type is NULL.
  */
-DS_SCENE_EXPORT const dsSceneNodeType* dsSceneNode_setupParentType(dsSceneNodeType* type,
-	const dsSceneNodeType* parentType);
+DS_SCENE_EXPORT const dsSceneNodeType* dsSceneNode_setupParentType(
+	dsSceneNodeType* type, const dsSceneNodeType* parentType);
 
 /**
  * @brief Loads a scene node hierarchy from a flatbuffer data buffer.
@@ -191,8 +191,8 @@ DS_SCENE_EXPORT bool dsSceneNode_removeChildNode(dsSceneNode* node, dsSceneNode*
  *     nodes (i.e. node->treeNodeCount == newParent->treeNodeCount) to move the child.
  * @return False if an error occurred.
  */
-DS_SCENE_EXPORT bool dsSceneNode_reparentChildIndex(dsSceneNode* node, uint32_t childIndex,
-	dsSceneNode* newParent);
+DS_SCENE_EXPORT bool dsSceneNode_reparentChildIndex(
+	dsSceneNode* node, uint32_t childIndex, dsSceneNode* newParent);
 
 /**
  * @brief Moves a child node from this to another parent.
@@ -207,8 +207,8 @@ DS_SCENE_EXPORT bool dsSceneNode_reparentChildIndex(dsSceneNode* node, uint32_t 
  *     nodes (i.e. node->treeNodeCount == newParent->treeNodeCount) to move the child.
  * @return False if an error occurred.
  */
-DS_SCENE_EXPORT bool dsSceneNode_reparentChildNode(dsSceneNode* node, dsSceneNode* child,
-	dsSceneNode* newParent);
+DS_SCENE_EXPORT bool dsSceneNode_reparentChildNode(
+	dsSceneNode* node, dsSceneNode* child, dsSceneNode* newParent);
 
 /**
  * @brief Finds a unique tree node based on a scene node hierarchy.
@@ -225,8 +225,8 @@ DS_SCENE_EXPORT bool dsSceneNode_reparentChildNode(dsSceneNode* node, dsSceneNod
  * @param descendentNode The descendent node to find the unique tree node for.
  * @return The unique tree node for descendentNode or NULL if not found.
  */
-DS_SCENE_EXPORT dsSceneTreeNode* dsSceneNode_findUniqueTreeNode(const dsSceneNode* baseNode,
-	const dsSceneNode* descendentNode);
+DS_SCENE_EXPORT dsSceneTreeNode* dsSceneNode_findUniqueTreeNode(
+	const dsSceneNode* baseNode, const dsSceneNode* descendentNode);
 
 /**
  * @brief Clears all chidlren from a scene node.

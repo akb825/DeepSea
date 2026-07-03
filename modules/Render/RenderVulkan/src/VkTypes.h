@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
 #define VK_NO_PROTOTYPES
 #include <vulkan/vulkan_core.h>
 
-#define DS_NOT_SUBMITTED (uint64_t)-1
+#define DS_NOT_SUBMITTED ((uint64_t)-1)
 #define DS_DELAY_FRAMES 3
 #define DS_EXPECTED_FRAME_FLUSHES 2
 #define DS_MAX_SUBMITS (DS_DELAY_FRAMES*DS_EXPECTED_FRAME_FLUSHES)

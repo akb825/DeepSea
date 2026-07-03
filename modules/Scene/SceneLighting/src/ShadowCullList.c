@@ -121,7 +121,7 @@ static uint64_t dsShadowCullList_addNode(dsSceneItemList* itemList, dsSceneNode*
 
 	StaticEntry* entry = cullList->staticEntries + index;
 	entry->localBoxMatrix = cullNode->staticLocalBoxMatrix;
-	entry->transform = &treeNode->transform;
+	entry->transform = &treeNode->curFrameWorldTransform;
 	entry->result = (bool*)thisItemData;
 	entry->nodeID = cullList->nextStaticNodeID++;
 	return entry->nodeID;

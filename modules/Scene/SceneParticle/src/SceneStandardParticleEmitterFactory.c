@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,8 @@ typedef struct dsSceneStandardParticleEmitterFactory
 	float startTime;
 } dsSceneStandardParticleEmitterFactory;
 
-static const dsMatrix44f* findRelativeTransform(const dsSceneTreeNode* treeNode,
-	const dsSceneNode* relativeNode)
+static const dsMatrix44f* findRelativeTransform(
+	const dsSceneTreeNode* treeNode, const dsSceneNode* relativeNode)
 {
 	if (!relativeNode)
 		return NULL;
@@ -53,7 +53,7 @@ static const dsMatrix44f* findRelativeTransform(const dsSceneTreeNode* treeNode,
 		if (!parent)
 			return NULL;
 		else if (parent->node == relativeNode)
-			return &parent->transform;
+			return &parent->curFrameWorldTransform;
 		treeNode = parent;
 	} while (true);
 }
@@ -81,7 +81,7 @@ static dsParticleEmitter* dsSceneStandardParticleEmitterFactory_createEmitter(
 		return NULL;
 	}
 
-	const dsMatrix44f* transform = &treeNode->transform;
+	const dsMatrix44f* transform = &treeNode->curFrameWorldTransform;
 	const dsMatrix44f* relativeTransform = findRelativeTransform(treeNode, factory->relativeNode);
 
 	dsParticleEmitterParams params = factory->params;
@@ -121,7 +121,7 @@ static bool dsSceneStandardParticleEmitterFactory_updateEmitter(
 		return false;
 	}
 
-	const dsMatrix44f* transform = &treeNode->transform;
+	const dsMatrix44f* transform = &treeNode->curFrameWorldTransform;
 	// NOTE: Could cache this, but would take extra effort to wrap the particle emitter. Expected
 	// to be at most a couple of nodes up, so don't expect a large impact on performance.
 	const dsMatrix44f* relativeTransform = findRelativeTransform(treeNode, factory->relativeNode);

@@ -33,11 +33,13 @@
 #include <DeepSea/Core/Profile.h>
 
 #include <DeepSea/Math/Matrix44.h>
+#include <DeepSea/Math/RigidTransform3.h>
 
 #include <DeepSea/Scene/ItemLists/SceneItemList.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/Scene/SceneRenderPass.h>
+#include <DeepSea/Scene/SceneTick.h>
 
 #include <string.h>
 
@@ -336,8 +338,16 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	rootTreeNode->itemLists = NULL;
 	rootTreeNode->childCount = 0;
 	rootTreeNode->maxChildren = 0;
-	dsMatrix44f_identity(&rootTreeNode->transform);
-	rootTreeNode->dirty = false;
+	rootTreeNode->noParentTransform = false;
+	rootTreeNode->lastUpdatedStepT = 1.0f;
+	rootTreeNode->lastUpdatedStep = 0;
+	rootTreeNode->lastUpdatedFrame = 0;
+	rootTreeNode->baseStepTransform = NULL;
+	rootTreeNode->baseFrameTransform = NULL;
+	dsRigidTransform3f_identity(&rootTreeNode->prevStepLocalTransform);
+	dsRigidTransform3f_identity(&rootTreeNode->curStepLocalTransform);
+	dsMatrix44f_identity(&rootTreeNode->prevFrameWorldTransform);
+	dsMatrix44f_identity(&rootTreeNode->curFrameWorldTransform);
 	scene->rootTreeNode.scene = scene;
 	scene->rootTreeNodePtr = (dsSceneTreeNode*)&scene->rootTreeNode;
 	scene->rootNode.treeNodes = &scene->rootTreeNodePtr;
@@ -717,6 +727,17 @@ bool dsScene_forEachItemList(
 	return true;
 }
 
+const dsSceneTick* dsScene_getLastUpdateTick(const dsScene* scene)
+{
+	if (!scene)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	return &scene->lastUpdateTick;
+}
+
 bool dsScene_update(dsScene* scene, const dsSceneTick* tick)
 {
 	DS_PROFILE_FUNC_START();
@@ -726,8 +747,15 @@ bool dsScene_update(dsScene* scene, const dsSceneTick* tick)
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	scene->lastUpdateTick = *tick;
+
+	uint64_t startStep = dsSceneTick_absoluteStepNumber(tick, 0);
+	uint64_t frameNumber = scene->renderer->frameNumber;
 	for (unsigned int i = 0; i < tick->stepCount; ++i)
 	{
+		uint64_t thisStep = startStep + i;
+		float thisStepT = i == tick->stepCount - 1 ? tick->stepInterp : 1.0f;
+
 		for (dsListNode* node = scene->itemLists->list.head; node; node = node->next)
 		{
 			dsSceneItemList* itemList = ((dsSceneItemListNode*)node)->list;
@@ -741,9 +769,16 @@ bool dsScene_update(dsScene* scene, const dsSceneTick* tick)
 			}
 		}
 
+		// Update the transforms for each dirty scene tree node. They may remain dirty if the
+		// transform requires further updating if it's  currently using an interpolated value.
+		uint32_t newDirtyNodeCount = 0;
 		for (uint32_t j = 0; j < scene->dirtyNodeCount; ++j)
-			dsSceneTreeNode_updateSubtree(scene->dirtyNodes[j]);
-		scene->dirtyNodeCount = 0;
+		{
+			dsSceneTreeNode* node = scene->dirtyNodes[j];
+			if (!dsSceneTreeNode_updateSubtree(node, frameNumber, thisStep, thisStepT))
+				scene->dirtyNodes[newDirtyNodeCount++] = node;
+		}
+		scene->dirtyNodeCount = newDirtyNodeCount;
 
 		for (dsListNode* node = scene->itemLists->list.head; node; node = node->next)
 		{

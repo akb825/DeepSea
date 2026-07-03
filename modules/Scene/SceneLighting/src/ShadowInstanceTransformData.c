@@ -109,7 +109,7 @@ static void dsShadowInstanceTransformData_populateDataSIMD(void* userData, const
 
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
-		const dsMatrix44f* world = &instances[i]->transform;
+		const dsMatrix44f* world = &instances[i]->curFrameWorldTransform;
 		InstanceTransform* transform = (InstanceTransform*)(data);
 		transform->world = *world;
 		// Store intermeidate on the stack to avoid reading back from GPU memory.
@@ -154,7 +154,7 @@ static void dsShadowInstanceTransformData_populateDataFMA(void* userData, const 
 
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
-		const dsMatrix44f* world = &instances[i]->transform;
+		const dsMatrix44f* world = &instances[i]->curFrameWorldTransform;
 		InstanceTransform* transform = (InstanceTransform*)(data);
 		transform->world = *world;
 		// Store intermeidate on the stack to avoid reading back from GPU memory.
@@ -200,7 +200,7 @@ static void dsShadowInstanceTransformData_populateData(void* userData, const dsV
 
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
-		const dsMatrix44f* world = &instances[i]->transform;
+		const dsMatrix44f* world = &instances[i]->curFrameWorldTransform;
 		InstanceTransform* transform = (InstanceTransform*)(data);
 		transform->world = *world;
 		// Store intermeidate on the stack to avoid reading back from GPU memory.

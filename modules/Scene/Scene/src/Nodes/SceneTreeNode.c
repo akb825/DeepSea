@@ -27,32 +27,107 @@
 #include <DeepSea/Core/Error.h>
 
 #include <DeepSea/Math/Matrix44.h>
+#include <DeepSea/Math/RigidTransform3.h>
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneTransformNode.h>
 
 #include <string.h>
 
-static void updateTransform(dsSceneTreeNode* node)
+static inline bool isDirty(const dsSceneTreeNode* node, uint64_t stepNumber, float stepT)
 {
-	if (node->baseTransform)
+	/*
+	 * Dirty if:
+	 * 1. The last updated step is explicitly set to DS_SCENE_TREE_NODE_DIRTY (max value).
+	 * 2. The last updated step is this step, and the stepT doesn't match.
+	 * 3. The last updated step is before this step, and the stepT isn't 1.
+	 */
+	return node->lastUpdatedStep > stepNumber ||
+		(node->lastUpdatedStep == stepNumber && node->lastUpdatedStepT != stepT) ||
+		(node->lastUpdatedStep < stepNumber && node->lastUpdatedStepT != 1.0f);
+}
+
+static inline void updateCurFrameWorldTransform(
+	dsSceneTreeNode* node, const dsMatrix44f* localTransform)
+{
+	if (localTransform)
 	{
 		if (node->parent && !node->noParentTransform)
-			dsMatrix44f_affineMul(&node->transform, &node->parent->transform, node->baseTransform);
+		{
+			dsMatrix44f_affineMul(&node->curFrameWorldTransform,
+				&node->parent->curFrameWorldTransform, localTransform);
+		}
 		else
-			node->transform = *node->baseTransform;
+			node->curFrameWorldTransform = *localTransform;
 	}
 	else
 	{
 		if (node->parent)
-			node->transform = node->parent->transform;
+			node->curFrameWorldTransform = node->parent->curFrameWorldTransform;
 		else
-			dsMatrix44f_identity(&node->transform);
+			dsMatrix44f_identity(&node->curFrameWorldTransform);
 	}
 }
 
-static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child,
-	dsScene* scene, dsAllocator* allocator)
+static bool updateTransform(dsSceneTreeNode* node, float stepT, bool advanceStep)
+{
+	dsMatrix44f derivedLocalTransform;
+	const dsMatrix44f* localTransform = node->baseFrameTransform;
+	if (node->baseStepTransform)
+	{
+		if (advanceStep)
+		{
+			node->prevStepLocalTransform = node->curStepLocalTransform;
+			node->curStepLocalTransform = *node->baseStepTransform;
+		}
+
+		dsRigidTransform3f_makeOrientationConsistent(
+			&node->curStepLocalTransform, &node->prevStepLocalTransform.orientation);
+		if (!localTransform)
+		{
+			dsRigidTransform3f curFrameTransform;
+			dsRigidTransform3f_nearLerp(&curFrameTransform, &node->prevStepLocalTransform,
+				&node->curStepLocalTransform, stepT);
+			dsRigidTransform3f_toMatrix(&derivedLocalTransform, &curFrameTransform);
+			localTransform = &derivedLocalTransform;
+		}
+	}
+	else if (localTransform)
+	{
+		dsRigidTransform3f_fromMatrix(&node->prevStepLocalTransform, localTransform);
+		node->curStepLocalTransform = node->prevStepLocalTransform;
+	}
+
+	updateCurFrameWorldTransform(node, localTransform);
+	// Update is finished if there is no base step transform, which will require re-interpolation
+	// when stepT increments.
+	return node->baseStepTransform == NULL;
+}
+
+static void updateOnlyCurTransform(dsSceneTreeNode* node)
+{
+	dsMatrix44f derivedLocalTransform;
+	const dsMatrix44f* localTransform = node->baseFrameTransform;
+	if (node->baseStepTransform)
+	{
+		node->prevStepLocalTransform = node->curStepLocalTransform = *node->baseStepTransform;
+		if (!localTransform)
+		{
+			dsRigidTransform3f_toMatrix(&derivedLocalTransform, node->baseStepTransform);
+			localTransform = &derivedLocalTransform;
+		}
+	}
+	else if (localTransform)
+	{
+		dsRigidTransform3f_fromMatrix(&node->prevStepLocalTransform, localTransform);
+		node->curStepLocalTransform = node->prevStepLocalTransform;
+	}
+
+	updateCurFrameWorldTransform(node, localTransform);
+}
+
+static dsSceneTreeNode* addNode(
+	dsSceneTreeNode* node, dsSceneNode* child, dsScene* scene, dsAllocator* allocator)
 {
 	uint32_t childIndex = node->childCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(node->allocator, node->children, node->childCount,
@@ -83,8 +158,8 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child,
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
-	dsSceneTreeNode* childTreeNode = DS_ALLOCATE_OBJECT(&bufferAlloc,
-		dsSceneTreeNode);
+	dsSceneTreeNode* childTreeNode = DS_ALLOCATE_OBJECT(
+		&bufferAlloc, dsSceneTreeNode);
 	DS_ASSERT(childTreeNode);
 
 	childTreeNode->allocator = allocator;
@@ -93,19 +168,30 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child,
 	childTreeNode->children = NULL;
 	childTreeNode->childCount = 0;
 	childTreeNode->maxChildren = 0;
-	childTreeNode->dirty = false;
+	childTreeNode->lastUpdatedStepT = 1.0f;
+	childTreeNode->lastUpdatedStep = 0;
+	childTreeNode->lastUpdatedFrame = scene->renderer->frameNumber;
 	childTreeNode->noParentTransform = false;
-	childTreeNode->baseTransform = NULL;
+	childTreeNode->baseStepTransform = NULL;
+	childTreeNode->baseFrameTransform = NULL;
 	dsSetupSceneTreeNodeFunction setupTreeNodeFunc = child->type->setupTreeNodeFunc;
 	if (setupTreeNodeFunc)
 		setupTreeNodeFunc(child, childTreeNode);
-	updateTransform(childTreeNode);
 
-	childTreeNode->itemLists = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneItemEntry,
-		child->itemListCount);
+	// prev/cur step transforms won't be set if no "base" transforms are set.
+	dsRigidTransform3f_identity(&childTreeNode->prevStepLocalTransform);
+	childTreeNode->curStepLocalTransform = childTreeNode->prevStepLocalTransform;
+
+	updateOnlyCurTransform(childTreeNode);
+
+	// Seed the previous frame transform with the current frame transform.
+	childTreeNode->prevFrameWorldTransform = childTreeNode->curFrameWorldTransform;
+
+	childTreeNode->itemLists = DS_ALLOCATE_OBJECT_ARRAY(
+		&bufferAlloc, dsSceneItemEntry, child->itemListCount);
 	DS_ASSERT(childTreeNode->itemLists || child->itemListCount == 0);
-	childTreeNode->itemData.itemData = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneItemData,
-		child->itemListCount);
+	childTreeNode->itemData.itemData = DS_ALLOCATE_OBJECT_ARRAY(
+		&bufferAlloc, dsSceneItemData, child->itemListCount);
 	DS_ASSERT(childTreeNode->itemData.itemData || child->itemListCount == 0);
 	childTreeNode->itemData.count = child->itemListCount;
 
@@ -121,8 +207,8 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child,
 		// Always initialize to NULL, regardless of the branch.
 		itemData->data = NULL;
 
-		dsSceneItemListNode* node = (dsSceneItemListNode*)dsHashTable_find(scene->itemLists,
-			child->itemLists[i]);
+		dsSceneItemListNode* node = (dsSceneItemListNode*)dsHashTable_find(
+			scene->itemLists, child->itemLists[i]);
 		if (!node || !node->list->type->addNodeFunc || !node->list->type->removeNodeFunc)
 		{
 			itemEntry->list = NULL;
@@ -132,8 +218,8 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child,
 
 		itemData->nameID = node->list->nameID;
 		itemEntry->list = node->list;
-		itemEntry->entry = node->list->type->addNodeFunc(node->list, child, childTreeNode,
-			&childTreeNode->itemData, &itemData->data);
+		itemEntry->entry = node->list->type->addNodeFunc(
+			node->list, child, childTreeNode, &childTreeNode->itemData, &itemData->data);
 	}
 
 	node->children[childIndex] = childTreeNode;
@@ -296,20 +382,70 @@ static void moveToScene(
 		moveToScene(node->children[i], newScene, commonItemLists);
 }
 
-static void updateSubtreeRec(dsSceneTreeNode* node)
+static bool updateSubtreeRec(
+	dsSceneTreeNode* node, uint64_t frameNumber, uint64_t stepNumber, float stepT)
 {
-	updateTransform(node);
-	node->dirty = false;
+	// Check frame for prevFrameWorldTransform as multiple updates may occur per frame.
+	if (node->lastUpdatedFrame != frameNumber)
+	{
+		node->prevFrameWorldTransform = node->curFrameWorldTransform;
+		node->lastUpdatedFrame = frameNumber;
+	}
+
+	// If this was last updated in a previous step, then the transform becomes the current step's
+	// transform, ignoring stepT for the current step.
+	bool updateFinished;
+	if (node->lastUpdatedStep < stepNumber)
+	{
+		updateOnlyCurTransform(node);
+		node->lastUpdatedStepT = 1.0f;
+		updateFinished = true;
+	}
+	else
+	{
+		updateFinished = updateTransform(node, stepT, node->lastUpdatedStep > stepNumber);
+		node->lastUpdatedStep = stepNumber;
+		node->lastUpdatedStepT = stepT;
+	}
+
 	for (uint32_t i = 0; i < node->node->itemListCount; ++i)
 	{
-		uint64_t entry = node->itemLists[i].entry;
-		dsSceneItemList* list = node->itemLists[i].list;
+		const dsSceneItemEntry* itemListEntry = node->itemLists + i;
+		uint64_t entry = itemListEntry->entry;
+		dsSceneItemList* list = itemListEntry->list;
 		if (entry != DS_NO_SCENE_NODE && list->type->updateNodeFunc)
 			list->type->updateNodeFunc(list, node, entry);
 	}
 
 	for (uint32_t i = 0; i < node->childCount; ++i)
-		updateSubtreeRec(node->children[i]);
+		updateFinished &= updateSubtreeRec(node->children[i], frameNumber, stepNumber, stepT);
+	return updateFinished;
+}
+
+static void updateSubtreeOnlyCurTransformRec(
+	dsSceneTreeNode* node, uint64_t frameNumber, uint64_t stepNumber)
+{
+	// Check frame for prevFrameWorldTransform as multiple updates may occur per frame.
+	if (node->lastUpdatedFrame != frameNumber)
+	{
+		node->prevFrameWorldTransform = node->curFrameWorldTransform;
+		node->lastUpdatedFrame = frameNumber;
+	}
+
+	updateOnlyCurTransform(node);
+	node->lastUpdatedStep = stepNumber;
+	node->lastUpdatedStepT = 1.0f;
+	for (uint32_t i = 0; i < node->node->itemListCount; ++i)
+	{
+		const dsSceneItemEntry* itemListEntry = node->itemLists + i;
+		uint64_t entry = itemListEntry->entry;
+		dsSceneItemList* list = itemListEntry->list;
+		if (entry != DS_NO_SCENE_NODE && list->type->updateNodeFunc)
+			list->type->updateNodeFunc(list, node, entry);
+	}
+
+	for (uint32_t i = 0; i < node->childCount; ++i)
+		updateSubtreeOnlyCurTransformRec(node->children[i], frameNumber, stepNumber);
 }
 
 dsScene* dsSceneTreeNode_getScene(dsSceneTreeNode* node)
@@ -426,17 +562,24 @@ bool dsSceneTreeNode_transferSceneNodes(dsSceneNode* prevRoot, dsSceneNode* newR
 	return true;
 }
 
-void dsSceneTreeNode_updateSubtree(dsSceneTreeNode* node)
+bool dsSceneTreeNode_updateSubtree(
+	dsSceneTreeNode* node, uint64_t frameNumber, uint64_t stepNumber, float stepT)
 {
 	// This may have already been updated by a different subtree.
-	if (!node->dirty)
-		return;
+	if (!isDirty(node, stepNumber, stepT))
+		return true;
 
 	// Find the top-most dirty node to update from.
-	while (node->parent && node->parent->dirty)
+	while (node->parent && isDirty(node->parent, stepNumber, stepT))
 		node = node->parent;
 
-	updateSubtreeRec(node);
+	// Check for stepT equal to 1 for either intermediate steps or dynamic updates where the
+	// transforms don't need interpolation.
+	if (stepT < 1.0f)
+		return updateSubtreeRec(node, frameNumber, stepNumber, stepT);
+
+	updateSubtreeOnlyCurTransformRec(node, frameNumber, stepNumber);
+	return true;
 }
 
 void dsSceneTreeNode_markDirty(dsSceneTreeNode* node)
@@ -445,34 +588,43 @@ void dsSceneTreeNode_markDirty(dsSceneTreeNode* node)
 	dsScene* scene = dsSceneTreeNode_getScene(node);
 	DS_ASSERT(scene);
 
-	node->dirty = true;
-	// Since the dirty flag is used, don't bother a linear search to see if already on the list.
+	node->lastUpdatedStep = DS_SCENE_TREE_NODE_DIRTY;
+	// Since the dirty value is used, don't bother a linear search to see if already on the list.
 	uint32_t index = scene->dirtyNodeCount;
-	if (DS_RESIZEABLE_ARRAY_ADD(scene->allocator, scene->dirtyNodes, scene->dirtyNodeCount,
-			scene->maxDirtyNodes, 1))
+	if (DS_RESIZEABLE_ARRAY_ADD(
+			scene->allocator, scene->dirtyNodes, scene->dirtyNodeCount, scene->maxDirtyNodes, 1))
 	{
 		scene->dirtyNodes[index] = node;
 	}
 }
 
-void dsSceneTreeNode_getCurrentTransform(dsMatrix44f* outTransform, const dsSceneTreeNode* node)
+void dsSceneTreeNode_getCurrentStepTransform(
+	dsRigidTransform3f* outTransform, const dsSceneTreeNode* node)
 {
 	DS_ASSERT(outTransform);
 	DS_ASSERT(node);
 
-	if (node->baseTransform)
-		*outTransform = *node->baseTransform;
+	if (node->baseStepTransform)
+		*outTransform = *node->baseStepTransform;
+	else if (node->baseFrameTransform)
+		dsRigidTransform3f_fromMatrix(outTransform, node->baseFrameTransform);
 	else
-		dsMatrix44f_identity(outTransform);
+		dsRigidTransform3f_identity(outTransform);
 	while (node->parent && !node->noParentTransform)
 	{
 		node = node->parent;
-		if (node->baseTransform)
-			dsMatrix44f_affineMul(outTransform, node->baseTransform, outTransform);
+		if (node->baseStepTransform)
+			dsRigidTransform3f_mul(outTransform, node->baseStepTransform, outTransform);
+		else if (node->baseFrameTransform)
+		{
+			dsRigidTransform3f frameTransform;
+			dsRigidTransform3f_fromMatrix(&frameTransform, node->baseFrameTransform);
+			dsRigidTransform3f_mul(outTransform, &frameTransform, outTransform);
+		}
 	}
 }
 
-void dsSceneTreeNode_getCurrentRelativeTransform(dsMatrix44f* outTransform,
+void dsSceneTreeNode_getCurrentStepRelativeTransform(dsRigidTransform3f* outTransform,
 	const dsSceneTreeNode* node, const dsSceneTreeNode* ancestorNode)
 {
 	DS_ASSERT(outTransform);
@@ -480,15 +632,23 @@ void dsSceneTreeNode_getCurrentRelativeTransform(dsMatrix44f* outTransform,
 	DS_ASSERT(ancestorNode);
 	DS_ASSERT(node != ancestorNode);
 
-	if (node->baseTransform)
-		*outTransform = *node->baseTransform;
+	if (node->baseStepTransform)
+		*outTransform = *node->baseStepTransform;
+	else if (node->baseFrameTransform)
+		dsRigidTransform3f_fromMatrix(outTransform, node->baseFrameTransform);
 	else
-		dsMatrix44f_identity(outTransform);
+		dsRigidTransform3f_identity(outTransform);
 	while (node->parent && node->parent != ancestorNode && !node->noParentTransform)
 	{
 		node = node->parent;
-		if (node->baseTransform)
-			dsMatrix44f_affineMul(outTransform, node->baseTransform, outTransform);
+		if (node->baseStepTransform)
+			dsRigidTransform3f_mul(outTransform, node->baseStepTransform, outTransform);
+		else if (node->baseFrameTransform)
+		{
+			dsRigidTransform3f frameTransform;
+			dsRigidTransform3f_fromMatrix(&frameTransform, node->baseFrameTransform);
+			dsRigidTransform3f_mul(outTransform, &frameTransform, outTransform);
+		}
 	}
 
 	DS_ASSERT(node->noParentTransform || node->parent == ancestorNode);
@@ -496,10 +656,99 @@ void dsSceneTreeNode_getCurrentRelativeTransform(dsMatrix44f* outTransform,
 	// relative transform.
 	if (node->noParentTransform)
 	{
-		dsMatrix44f ancestorTransform, ancestorTransformInv;
-		dsSceneTreeNode_getCurrentTransform(&ancestorTransform, ancestorNode);
-		dsMatrix44f_affineInvert(&ancestorTransformInv, &ancestorTransform);
-		dsMatrix44f_affineMul(outTransform, &ancestorTransformInv, outTransform);
+		dsRigidTransform3f ancestorTransform, ancestorTransformInv;
+		dsSceneTreeNode_getCurrentStepTransform(&ancestorTransform, ancestorNode);
+		dsRigidTransform3f_invert(&ancestorTransformInv, &ancestorTransform);
+		dsRigidTransform3f_mul(outTransform, &ancestorTransformInv, outTransform);
+	}
+}
+
+void dsSceneTreeNode_getStepTransforms(dsRigidTransform3f* outPrevTransform,
+	dsRigidTransform3f* outCurTransform, const dsSceneTreeNode* node, uint64_t stepNumber)
+{
+	DS_ASSERT(outPrevTransform);
+	DS_ASSERT(outCurTransform);
+	DS_ASSERT(node);
+
+	if (node->baseStepTransform)
+		*outCurTransform = *node->baseStepTransform;
+	else if (node->baseFrameTransform)
+		dsRigidTransform3f_fromMatrix(outCurTransform, node->baseFrameTransform);
+	else
+		dsRigidTransform3f_identity(outCurTransform);
+
+	*outPrevTransform = node->lastUpdatedStep == stepNumber ?
+		node->prevStepLocalTransform : node->curStepLocalTransform;
+
+	while (node->parent && !node->noParentTransform)
+	{
+		node = node->parent;
+		if (node->baseStepTransform)
+			dsRigidTransform3f_mul(outCurTransform, node->baseStepTransform, outCurTransform);
+		else if (node->baseFrameTransform)
+		{
+			dsRigidTransform3f frameTransform;
+			dsRigidTransform3f_fromMatrix(&frameTransform, node->baseFrameTransform);
+			dsRigidTransform3f_mul(outCurTransform, &frameTransform, outCurTransform);
+		}
+		else
+			continue; // No need to update previous transform.
+
+		const dsRigidTransform3f* prevLocalTransform = node->lastUpdatedStep == stepNumber ?
+			&node->prevStepLocalTransform : &node->curStepLocalTransform;
+		dsRigidTransform3f_mul(outPrevTransform, prevLocalTransform, outPrevTransform);
+	}
+}
+
+void dsSceneTreeNode_getStepRelativeTransforms(dsRigidTransform3f* outPrevTransform,
+	dsRigidTransform3f* outCurTransform, const dsSceneTreeNode* node,
+	const dsSceneTreeNode* ancestorNode, uint64_t stepNumber)
+{
+	DS_ASSERT(outPrevTransform);
+	DS_ASSERT(outCurTransform);
+	DS_ASSERT(node);
+
+	if (node->baseStepTransform)
+		*outCurTransform = *node->baseStepTransform;
+	else if (node->baseFrameTransform)
+		dsRigidTransform3f_fromMatrix(outCurTransform, node->baseFrameTransform);
+	else
+		dsRigidTransform3f_identity(outCurTransform);
+
+	*outPrevTransform = node->lastUpdatedStep == stepNumber ?
+		node->prevStepLocalTransform : node->curStepLocalTransform;
+
+	while (node->parent && node->parent != ancestorNode && !node->noParentTransform)
+	{
+		node = node->parent;
+		if (node->baseStepTransform)
+			dsRigidTransform3f_mul(outCurTransform, node->baseStepTransform, outCurTransform);
+		else if (node->baseFrameTransform)
+		{
+			dsRigidTransform3f frameTransform;
+			dsRigidTransform3f_fromMatrix(&frameTransform, node->baseFrameTransform);
+			dsRigidTransform3f_mul(outCurTransform, &frameTransform, outCurTransform);
+		}
+		else
+			continue; // No need to update previous transform.
+
+		const dsRigidTransform3f* prevLocalTransform = node->lastUpdatedStep == stepNumber ?
+			&node->prevStepLocalTransform : &node->curStepLocalTransform;
+		dsRigidTransform3f_mul(outPrevTransform, prevLocalTransform, outPrevTransform);
+	}
+
+	DS_ASSERT(node->noParentTransform || node->parent == ancestorNode);
+	// If the chain was cut off by a node with an explicit transform, must manually compute the
+	// relative transforms.
+	if (node->noParentTransform)
+	{
+		dsRigidTransform3f ancestorPrevTransform, ancestorCurTransform, ancestorTransformInv;
+		dsSceneTreeNode_getStepTransforms(
+			&ancestorPrevTransform, &ancestorCurTransform, ancestorNode, stepNumber);
+		dsRigidTransform3f_invert(&ancestorTransformInv, &ancestorPrevTransform);
+		dsRigidTransform3f_mul(outPrevTransform, &ancestorTransformInv, outPrevTransform);
+		dsRigidTransform3f_invert(&ancestorTransformInv, &ancestorCurTransform);
+		dsRigidTransform3f_mul(outCurTransform, &ancestorTransformInv, outCurTransform);
 	}
 }
 

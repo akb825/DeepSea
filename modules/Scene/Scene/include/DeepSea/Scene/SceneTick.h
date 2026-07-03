@@ -58,6 +58,34 @@ DS_SCENE_EXPORT bool dsSceneTick_initialize(
 DS_SCENE_EXPORT bool dsSceneTick_update(
 	dsSceneTick* tick, uint64_t absoluteTicks, uint64_t elapsedTicks);
 
+/**
+ * @brief Gets the total step number for a given step within a tick.
+ *
+ * tick->totalSteps is the total number of steps once the updates are complete, this allows getting
+ * an absolute step number during an update within the tick.
+ *
+ * @param tick The current tick.
+ * @param step The step number within the tick.
+ * @return The absolute tick number from when the tick started keeping track.
+ */
+DS_SCENE_EXPORT uint64_t dsSceneTick_absoluteStepNumber(
+	const dsSceneTick* tick, unsigned int step);
+
+/**
+ * @brief Gets the interpolation for a step within the tick.
+ * @param tick The current tick.
+ * @param step THe step within the tick.
+ * @return The interpolation to use for this step.
+ */
+DS_SCENE_EXPORT inline float dsSceneTick_interpForStep(const dsSceneTick* tick, unsigned int step);
+
+inline float dsSceneTick_interpForStep(const dsSceneTick* tick, unsigned int step)
+{
+	if (!tick || step != tick->stepCount - 1)
+		return 1.0f;
+	return tick->stepInterp;
+}
+
 #ifdef __cplusplus
 }
 #endif

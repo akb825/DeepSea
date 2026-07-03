@@ -330,7 +330,7 @@ static void drawItems(
 				dsFont* font = text->font;
 
 				const dsMatrix44f* nodeTransform =
-					&vectorList->instances[drawItem->instance]->transform;
+					&vectorList->instances[drawItem->instance]->curFrameWorldTransform;
 				dsMatrix44f modelProjection;
 				dsMatrix44f_mul(&modelProjection, &view->screenProjectionMatrix, nodeTransform);
 				// Invert Y for drawing.
@@ -405,7 +405,7 @@ static void drawItems(
 					drawItem->image.size.y/imageSize.y, 1.0f);
 
 				const dsMatrix44f* nodeTransform =
-					&vectorList->instances[drawItem->instance]->transform;
+					&vectorList->instances[drawItem->instance]->curFrameWorldTransform;
 				dsMatrix44f transform;
 				dsMatrix44f_affineMul(&transform, nodeTransform, &scale);
 

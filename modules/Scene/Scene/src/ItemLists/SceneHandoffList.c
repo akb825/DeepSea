@@ -25,26 +25,22 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/UniqueNameID.h>
 
-#include <DeepSea/Math/Matrix44.h>
-#include <DeepSea/Math/Quaternion.h>
-#include <DeepSea/Math/Vector3.h>
+#include <DeepSea/Math/RigidTransform3.h>
 
 #include <DeepSea/Scene/ItemLists/SceneItemListEntries.h>
 #include <DeepSea/Scene/Nodes/SceneHandoffNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 
 #include <string.h>
 
 typedef struct Entry
 {
-	dsMatrix44f transform;
-	dsQuaternion4f prevOrientation;
-	dsVector3xf prevPosition;
-	dsVector3xf prevScale;
+	dsRigidTransform3f fullStepTransform;
+	dsRigidTransform3f prevTransform;
 	float t;
-	const dsMatrix44f* commonAncestorTransform;
 	dsSceneTreeNode* node;
-	const dsMatrix44f* parentTransform;
+	const dsSceneTreeNode* commonAncestor;
 	uint64_t nodeID;
 } Entry;
 
@@ -85,23 +81,11 @@ static uint64_t dsSceneHandoffList_addNode(dsSceneItemList* itemList, dsSceneNod
 		rootNode = rootNode->parent;
 
 	Entry* entry = handoffList->entries + index;
-	entry->transform = treeNode->parent->transform;
-	dsQuaternion4_identityRotation(entry->prevOrientation);
-	entry->prevPosition.x = 0.0f;
-	entry->prevPosition.y = 0.0f;
-	entry->prevPosition.z = 0.0f;
-	entry->prevScale.x = 1.0f;
-	entry->prevScale.y = 1.0f;
-	entry->prevScale.z = 1.0f;
+	dsRigidTransform3f_identity(&entry->prevTransform);
 	entry->t = 1.0f;
-	entry->commonAncestorTransform = &rootNode->transform;
 	entry->node = treeNode;
-	entry->parentTransform = &treeNode->parent->transform;
+	entry->commonAncestor = rootNode;
 	entry->nodeID = handoffList->nextNodeID++;
-
-	treeNode->baseTransform = &entry->transform;
-	treeNode->noParentTransform = true;
-
 	return entry->nodeID;
 }
 
@@ -133,7 +117,7 @@ static void dsSceneHandoffList_reparentNode(dsSceneItemList* itemList, uint64_t 
 
 	Entry* entry = (Entry*)dsSceneItemListEntries_findEntry(handoffList->entries,
 		handoffList->entryCount, sizeof(Entry), offsetof(Entry, nodeID), nodeID);
-	if (!entry)
+	if (!entry || ((dsSceneHandoffNode*)entry->node->node)->transitionTime <= 0.0f)
 		return;
 
 	// Check if there's a common ancestor between the new and old parent.
@@ -157,19 +141,20 @@ static void dsSceneHandoffList_reparentNode(dsSceneItemList* itemList, uint64_t 
 	if (!commonAncestor)
 		return;
 
-	// Get the decomposed original transform relative to the common ancestor.
-	dsMatrix44f commonAncestorInv, relativeTransform;
-	dsMatrix44f_affineInvert(&commonAncestorInv, &commonAncestor->transform);
-	dsMatrix44f_affineMul(
-		&relativeTransform, &commonAncestorInv, entry->parentTransform);
-	dsMatrix44f_decomposeTransform(&entry->prevPosition, &entry->prevOrientation,
-		&entry->prevScale, &relativeTransform);
+	// Get the original transform relative to the common ancestor.
+	dsSceneTreeNode* node = entry->node;
+	entry->commonAncestor = commonAncestor;
+	dsSceneTreeNode_getCurrentStepRelativeTransform(&entry->prevTransform, node, commonAncestor);
 
-	// Update the entry now that we got the previous transform information out.
-	entry->commonAncestorTransform = &commonAncestor->transform;
-	DS_ASSERT(entry->node->parent);
-	entry->parentTransform = &entry->node->parent->transform;
+	dsRigidTransform3f commonTransform;
+	dsSceneTreeNode_getCurrentStepTransform(&commonTransform, commonAncestor);
+	dsRigidTransform3f_mul(&entry->fullStepTransform, &commonTransform, &entry->prevTransform);
 	entry->t = 0.0f;
+
+	// Make sure the node transform follows the computed entry transform.
+	node->noParentTransform = true;
+	node->baseStepTransform = &entry->fullStepTransform;
+	dsSceneTreeNode_markDirty(node);
 }
 
 static void dsSceneHandoffList_preTransformUpdate(
@@ -178,11 +163,7 @@ static void dsSceneHandoffList_preTransformUpdate(
 	DS_ASSERT(itemList);
 	DS_ASSERT(tick);
 	DS_UNUSED(scene);
-
-	// TODO: Update transform for each step to allow for transforms at each discrete step, and have
-	// final display transform at the end.
-	if (step != tick->stepCount - 1)
-		return;
+	DS_UNUSED(step);
 
 	dsSceneHandoffList* handoffList = (dsSceneHandoffList*)itemList;
 
@@ -192,38 +173,45 @@ static void dsSceneHandoffList_preTransformUpdate(
 		handoffList->removeEntryCount);
 	handoffList->removeEntryCount = 0;
 
+	// If time doesn't advance, expect no changes are required.
+	if (tick->stepTime == 0.0f)
+		return;
+
 	for (uint32_t i = 0; i < handoffList->entryCount; ++i)
 	{
 		Entry* entry = handoffList->entries + i;
-		float transitionTime = ((dsSceneHandoffNode*)entry->node->node)->transitionTime;
-		entry->t += tick->thisTime/transitionTime;
+		if (entry->t == 1.0f)
+			continue;
+
+		dsSceneTreeNode* node = entry->node;
+		float transitionTime = ((dsSceneHandoffNode*)node->node)->transitionTime;
+		entry->t += tick->stepTime/transitionTime;
 		if (entry->t < 1.0f)
 		{
-			dsVector3xf targetPosition, targetScale;
-			dsQuaternion4f targetOrientation;
-			dsMatrix44f commonAncestorInv, relativeTransform;
-			dsMatrix44f_affineInvert(&commonAncestorInv, entry->commonAncestorTransform);
-			dsMatrix44f_affineMul(
-				&relativeTransform, &commonAncestorInv, entry->parentTransform);
-			dsMatrix44f_decomposeTransform(
-				&targetPosition, &targetOrientation, &targetScale, &relativeTransform);
-
-			dsVector3xf position, scale;
-			dsQuaternion4f orientation;
-			dsVector3xf_lerp(&position, &entry->prevPosition, &targetPosition, entry->t);
-			dsVector3xf_lerp(&scale, &entry->prevScale, &targetScale, entry->t);
-			dsQuaternion4f_unitLerp(
-				&orientation, &entry->prevOrientation, &targetOrientation, entry->t);
-
-			dsMatrix44f_composeTransform(&relativeTransform, &position, &orientation, &scale);
-			dsMatrix44f_affineMul(
-				&entry->transform, entry->commonAncestorTransform, &relativeTransform);
+			// Update the latest transform. Use built-in interpolation for transform between frames.
+			// It would technically be more correct to compute the interpolated transform relative
+			// to the common ancestor, but this would be somewhat expensive to do.
+			const dsSceneTreeNode* commonAncestor = entry->commonAncestor;
+			dsRigidTransform3f curTransform, commonTransform;
+			dsSceneTreeNode_getCurrentStepRelativeTransform(&curTransform, node, commonAncestor);
+			dsSceneTreeNode_getCurrentStepTransform(&commonTransform, commonAncestor);
+			dsRigidTransform3f_makeOrientationConsistent(
+				&curTransform, &entry->prevTransform.orientation);
+			dsRigidTransform3f_nearLerp(
+				&curTransform, &entry->prevTransform, &curTransform, entry->t);
+			dsRigidTransform3f_mul(&entry->fullStepTransform, &commonTransform, &curTransform);
 		}
 		else
 		{
 			entry->t = 1.0f;
-			entry->transform = *entry->parentTransform;
+			// Switch back to using the parent transform as-is.
+			node->noParentTransform = false;
+			node->baseStepTransform = NULL;
+			dsRigidTransform3f_identity(&node->prevStepLocalTransform);
+			node->curStepLocalTransform = node->prevStepLocalTransform;
 		}
+
+		dsSceneTreeNode_markDirty(node);
 	}
 }
 

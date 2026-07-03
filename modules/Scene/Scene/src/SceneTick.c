@@ -32,6 +32,7 @@ bool dsSceneTick_initialize(dsSceneTick* outTick, float updatePeriod, float maxT
 	outTick->timer = dsTimer_create();
 	outTick->absoluteTimerTicks = 0;
 	outTick->totalTimerTicks = 0;
+	outTick->totalSteps = 0;
 	outTick->thisTimerTicks = 0;
 	if (maxTime == 0.0f)
 		outTick->maxTimerTicks = UINT64_MAX;
@@ -68,12 +69,14 @@ bool dsSceneTick_update(dsSceneTick* tick, uint64_t absoluteTicks, uint64_t elap
 		tick->stepTime = tick->thisTime;
 		tick->stepCount = 1;
 		tick->stepInterp = 1.0f;
+		tick->totalSteps += elapsedTicks > 0;
 	}
 	else
 	{
 		float normalizedUpdate = tick->stepInterp + tick->thisTime/tick->updatePeriod;
 		unsigned int stepCount = (unsigned int)normalizedUpdate;
 		normalizedUpdate -= (float)stepCount;
+		tick->totalSteps += stepCount;
 		tick->stepCount = dsMax(stepCount, 1U);
 		tick->stepInterp = normalizedUpdate;
 		tick->stepTime = stepCount > 0 ? tick->updatePeriod : 0.0f;
@@ -81,3 +84,18 @@ bool dsSceneTick_update(dsSceneTick* tick, uint64_t absoluteTicks, uint64_t elap
 
 	return true;
 }
+
+uint64_t dsSceneTick_absoluteStepNumber(const dsSceneTick* tick, unsigned int step)
+{
+	if (!tick)
+		return step;
+
+	uint64_t startStep = tick->totalSteps;
+	// stepCount is always a minimum of 1, so to properly keep track of each step number within the
+	// loop we should only subtract the current number of steps if any time progressed.
+	if (tick->thisTimerTicks > 0)
+		startStep -= tick->stepCount;
+	return startStep + step;
+}
+
+float dsSceneTick_interpForStep(const dsSceneTick* tick, unsigned int step);

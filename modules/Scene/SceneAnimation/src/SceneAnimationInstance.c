@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Aaron Barany
+ * Copyright 2025-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Sort.h>
 
-#include <DeepSea/Math/Matrix44.h>
+#include <DeepSea/Math/RigidTransform3.h>
 
 #include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 
@@ -197,8 +197,92 @@ static bool dsSceneAnimationRagdollInstance_setWeight(
 	return true;
 }
 
+static void dsSceneAnimationRagdollInstance_updateChannels(
+	dsSceneAnimationRagdollInstance* instance,  dsDirectAnimationChannel* channels,
+	uint32_t channelCount, uint64_t stepNumber, bool needsInterp)
+{
+	DS_UNUSED(channelCount);
+	dsDirectAnimationChannel* curChannel = channels;
+	if (needsInterp)
+	{
+		for (uint32_t i = 0; i < instance->nodeRefCount; ++i)
+		{
+			const dsSceneAnimationRagdollNodeRef* nodeRef = instance->nodeRefs + i;
+			dsRigidTransform3f prevRelativeTransform, curRelativeTransform;
+			dsSceneTreeNode_getStepRelativeTransforms(&prevRelativeTransform, &curRelativeTransform,
+				nodeRef->node, nodeRef->relativeNode, stepNumber);
+
+			if (nodeRef->animationComponents & (1 << dsAnimationComponent_Translation))
+			{
+				curChannel->node = nodeRef->nodeName;
+				curChannel->component = dsAnimationComponent_Translation;
+				curChannel->prevValue = prevRelativeTransform.position;
+				curChannel->value = curRelativeTransform.position;
+				++curChannel;
+			}
+
+			if (nodeRef->animationComponents & (1 << dsAnimationComponent_Rotation))
+			{
+				curChannel->node = nodeRef->nodeName;
+				curChannel->component = dsAnimationComponent_Rotation;
+				curChannel->prevValue = *(dsVector4f*)&prevRelativeTransform.orientation;
+				curChannel->value = *(dsVector4f*)&curRelativeTransform.orientation;
+				++curChannel;
+			}
+
+			if (nodeRef->animationComponents & (1 << dsAnimationComponent_Scale))
+			{
+				curChannel->node = nodeRef->nodeName;
+				curChannel->component = dsAnimationComponent_Translation;
+				curChannel->prevValue = prevRelativeTransform.scale;
+				curChannel->value = curRelativeTransform.scale;
+				++curChannel;
+			}
+		}
+	}
+	else
+	{
+		for (uint32_t i = 0; i < instance->nodeRefCount; ++i)
+		{
+			const dsSceneAnimationRagdollNodeRef* nodeRef = instance->nodeRefs + i;
+			dsRigidTransform3f relativeTransform;
+			dsSceneTreeNode_getCurrentStepRelativeTransform(
+				&relativeTransform, nodeRef->node, nodeRef->relativeNode);
+
+			if (nodeRef->animationComponents & (1 << dsAnimationComponent_Translation))
+			{
+				curChannel->node = nodeRef->nodeName;
+				curChannel->component = dsAnimationComponent_Translation;
+				curChannel->value = relativeTransform.position;
+				curChannel->prevValue = curChannel->value;
+				++curChannel;
+			}
+
+			if (nodeRef->animationComponents & (1 << dsAnimationComponent_Rotation))
+			{
+				curChannel->node = nodeRef->nodeName;
+				curChannel->component = dsAnimationComponent_Rotation;
+				curChannel->value = *(dsVector4f*)&relativeTransform.orientation;
+				curChannel->prevValue = curChannel->value;
+				++curChannel;
+			}
+
+			if (nodeRef->animationComponents & (1 << dsAnimationComponent_Scale))
+			{
+				curChannel->node = nodeRef->nodeName;
+				curChannel->component = dsAnimationComponent_Translation;
+				curChannel->value = relativeTransform.scale;
+				curChannel->prevValue = curChannel->value;
+				++curChannel;
+			}
+		}
+	}
+	DS_ASSERT(curChannel == channels + channelCount);
+}
+
 static bool dsSceneAnimationRagdollInstance_recreateAnimation(
-	dsAllocator* allocator, dsSceneAnimationRagdollInstance* instance, dsAnimation* animation)
+	dsAllocator* allocator, dsSceneAnimationRagdollInstance* instance, dsAnimation* animation,
+	uint64_t stepNumber, bool needsInterp)
 {
 	if (!instance->dirty)
 		return false;
@@ -233,42 +317,8 @@ static bool dsSceneAnimationRagdollInstance_recreateAnimation(
 		return true;
 	}
 
-	dsDirectAnimationChannel* curChannel = instance->tempChannels;
-	for (uint32_t i = 0; i < instance->nodeRefCount; ++i)
-	{
-		const dsSceneAnimationRagdollNodeRef* nodeRef = instance->nodeRefs + i;
-		dsMatrix44f relativeTransform;
-		dsSceneTreeNode_getCurrentRelativeTransform(
-			&relativeTransform, nodeRef->node, nodeRef->relativeNode);
-		dsVector3xf position, scale;
-		dsQuaternion4f orientation;
-		dsMatrix44f_decomposeTransform(&position, &orientation, &scale, &relativeTransform);
-
-		if (nodeRef->animationComponents & (1 << dsAnimationComponent_Translation))
-		{
-			curChannel->node = nodeRef->nodeName;
-			curChannel->component = dsAnimationComponent_Translation;
-			curChannel->value = position;
-			++curChannel;
-		}
-
-		if (nodeRef->animationComponents & (1 << dsAnimationComponent_Rotation))
-		{
-			curChannel->node = nodeRef->nodeName;
-			curChannel->component = dsAnimationComponent_Rotation;
-			curChannel->value = *(dsVector4f*)&orientation;
-			++curChannel;
-		}
-
-		if (nodeRef->animationComponents & (1 << dsAnimationComponent_Scale))
-		{
-			curChannel->node = nodeRef->nodeName;
-			curChannel->component = dsAnimationComponent_Translation;
-			curChannel->value = scale;
-			++curChannel;
-		}
-	}
-	DS_ASSERT(curChannel == instance->tempChannels + channelCount);
+	dsSceneAnimationRagdollInstance_updateChannels(
+		instance, instance->tempChannels, channelCount, stepNumber, needsInterp);
 
 	instance->animation = dsDirectAnimation_create(allocator, instance->tempChannels, channelCount);
 	if (!instance->animation)
@@ -278,50 +328,17 @@ static bool dsSceneAnimationRagdollInstance_recreateAnimation(
 }
 
 static void dsSceneAnimationRagdollInstance_update(dsAllocator* allocator,
-	dsSceneAnimationRagdollInstance* instance, dsAnimation* animation)
+	dsSceneAnimationRagdollInstance* instance, dsAnimation* animation, uint64_t stepNumber,
+	bool needsInterp)
 {
 	dsSceneAnimationRagdollInstance_removeNodeRefs(instance);
 	bool updated = dsSceneAnimationRagdollInstance_recreateAnimation(
-		allocator, instance, animation);
+		allocator, instance, animation, stepNumber, needsInterp);
 	if (updated || instance->weight == 0.0f || !instance->animation)
 		return;
 
-	dsDirectAnimationChannel* curChannel = instance->animation->channels;
-	for (uint32_t i = 0; i < instance->nodeRefCount; ++i)
-	{
-		const dsSceneAnimationRagdollNodeRef* nodeRef = instance->nodeRefs + i;
-		dsMatrix44f relativeTransform;
-		dsSceneTreeNode_getCurrentRelativeTransform(
-			&relativeTransform, nodeRef->node, nodeRef->relativeNode);
-		dsVector3xf position, scale;
-		dsQuaternion4f orientation;
-		dsMatrix44f_decomposeTransform(&position, &orientation, &scale, &relativeTransform);
-
-		if (nodeRef->animationComponents & (1 << dsAnimationComponent_Translation))
-		{
-			DS_ASSERT(curChannel->node == nodeRef->nodeName);
-			DS_ASSERT(curChannel->component == dsAnimationComponent_Translation);
-			curChannel->value = position;
-			++curChannel;
-		}
-
-		if (nodeRef->animationComponents & (1 << dsAnimationComponent_Rotation))
-		{
-			DS_ASSERT(curChannel->node == nodeRef->nodeName);
-			DS_ASSERT(curChannel->component == dsAnimationComponent_Rotation);
-			curChannel->value = *(dsVector4f*)&orientation;
-			++curChannel;
-		}
-
-		if (nodeRef->animationComponents & (1 << dsAnimationComponent_Scale))
-		{
-			DS_ASSERT(curChannel->node == nodeRef->nodeName);
-			DS_ASSERT(curChannel->component == dsAnimationComponent_Translation);
-			curChannel->value = scale;
-			++curChannel;
-		}
-	}
-	DS_ASSERT(curChannel == instance->animation->channels + instance->animation->channelCount);
+	dsSceneAnimationRagdollInstance_updateChannels(instance, instance->animation->channels,
+		instance->animation->channelCount, stepNumber, needsInterp);
 }
 
 static void dsSceneAnimationRagdollInstance_shutdown(dsAllocator* allocator,
@@ -333,8 +350,8 @@ static void dsSceneAnimationRagdollInstance_shutdown(dsAllocator* allocator,
 	DS_VERIFY(dsAllocator_free(allocator, instance->tempChannels));
 }
 
-dsSceneAnimationInstance* dsSceneAnimationInstance_create(dsAllocator* allocator,
-	dsAnimationNodeMapCache* nodeMapCache)
+dsSceneAnimationInstance* dsSceneAnimationInstance_create(
+	dsAllocator* allocator, dsAnimationNodeMapCache* nodeMapCache)
 {
 	dsSceneAnimationInstance* instance = DS_ALLOCATE_OBJECT(allocator, dsSceneAnimationInstance);
 	if (!instance)
@@ -399,12 +416,13 @@ bool dsSceneAnimationInstance_setAdditionRagdollWeight(
 		&instance->additionRagdoll, instance->animation, weight);
 }
 
-void dsSceneAnimationInstance_updateRagdolls(dsSceneAnimationInstance* instance)
+void dsSceneAnimationInstance_updateRagdolls(
+	dsSceneAnimationInstance* instance, uint64_t stepNumber, bool needInterp)
 {
-	dsSceneAnimationRagdollInstance_update(
-		instance->allocator, &instance->skeletonRagdoll, instance->animation);
-	dsSceneAnimationRagdollInstance_update(
-		instance->allocator, &instance->additionRagdoll, instance->animation);
+	dsSceneAnimationRagdollInstance_update(instance->allocator, &instance->skeletonRagdoll,
+		instance->animation, stepNumber, needInterp);
+	dsSceneAnimationRagdollInstance_update(instance->allocator, &instance->additionRagdoll,
+		instance->animation, stepNumber, needInterp);
 }
 
 void dsSceneAnimationInstance_destroy(dsSceneAnimationInstance* instance)

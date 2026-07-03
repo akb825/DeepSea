@@ -93,7 +93,7 @@ static void dsInstanceTransformData_populateDataSIMD(void* userData, const dsVie
 	getFramebufferInfo(&framebufferSize, &framebufferRotation, renderPassParams);
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
-		const dsMatrix44f* world = &instances[i]->transform;
+		const dsMatrix44f* world = &instances[i]->curFrameWorldTransform;
 		InstanceTransform* transform = (InstanceTransform*)(data);
 		transform->world = *world;
 		// Store intermeidate on the stack to avoid reading back from GPU memory.
@@ -129,7 +129,7 @@ static void dsInstanceTransformData_populateDataFMA(void* userData, const dsView
 	getFramebufferInfo(&framebufferSize, &framebufferRotation, renderPassParams);
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
-		const dsMatrix44f* world = &instances[i]->transform;
+		const dsMatrix44f* world = &instances[i]->curFrameWorldTransform;
 		InstanceTransform* transform = (InstanceTransform*)(data);
 		transform->world = *world;
 		// Store intermeidate on the stack to avoid reading back from GPU memory.
@@ -166,7 +166,7 @@ static void dsInstanceTransformData_populateData(void* userData, const dsView* v
 	getFramebufferInfo(&framebufferSize, &framebufferRotation, renderPassParams);
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
-		const dsMatrix44f* world = &instances[i]->transform;
+		const dsMatrix44f* world = &instances[i]->curFrameWorldTransform;
 		InstanceTransform* transform = (InstanceTransform*)(data);
 		transform->world = *world;
 		// Store intermeidate on the stack to avoid reading back from GPU memory.

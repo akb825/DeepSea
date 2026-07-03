@@ -181,10 +181,15 @@ typedef struct dsAnimationNode
 	dsRigidTransform3f transform;
 
 	/**
+	 * @brief The cached transform for this node within the animation tree for the current step.
+	 */
+	dsRigidTransform3f fullTransform;
+
+	/**
 	 * @brief The cached transform for this node within the animation tree interpolated between the
 	 * previous and current step.
 	 */
-	dsMatrix44f fullTransform;
+	dsMatrix44f fullInterpTransform;
 
 	/**
 	 * @brief The index of the parent.

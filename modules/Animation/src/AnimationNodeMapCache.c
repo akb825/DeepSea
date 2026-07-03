@@ -105,18 +105,18 @@ static void applyKeyframeTransforms(WeightedTransform* transforms,
 	// Find wich pair of keyframes to interpolate between.
 	uint32_t startKeyframe;
 	float t;
-	// NOTE: Don't early-out if time is exactly equal to keyframeTimes[0], as it's expected that a
-	// missed branch prediction would be more expensive than taking the code path for interpolation.
-	// Which branches are taken should be fairly consistent in this case.
+	// NOTE: Don't early-out if time is exactly equal to the start or end time, as it's expected
+	// that a missed branch prediction would be more expensive than taking the code path for
+	// interpolation. Which branches are taken should be fairly consistent in this case.
 	if (time < keyframes->keyframeTimes[0] || keyframes->keyframeCount == 1)
 	{
 		startKeyframe = 0;
-		t = 0;
+		t = 0.0f;
 	}
-	else if (time >= keyframes->keyframeTimes[keyframes->keyframeCount - 1])
+	else if (time > keyframes->keyframeTimes[keyframes->keyframeCount - 1])
 	{
 		startKeyframe = keyframes->keyframeCount - 2;
-		t = 1;
+		t = 1.0f;
 	}
 	else
 	{
@@ -144,6 +144,7 @@ static void applyKeyframeTransforms(WeightedTransform* transforms,
 				value = channel->values[startKeyframe];
 				break;
 			case dsAnimationInterpolation_Linear:
+				// Would have been forced to step at creation if keyframeCount is 1.
 				DS_ASSERT(keyframes->keyframeCount > 1);
 				if (channel->component == dsAnimationComponent_Rotation)
 				{

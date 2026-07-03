@@ -40,6 +40,11 @@ typedef struct dsSceneTreeNode dsSceneTreeNode;
 /// @endcond
 
 /**
+ * @brief Constant for the last updated step that denotes the tree node is dirty.
+ */
+#define DS_SCENE_TREE_NODE_DIRTY ((uint64_t)-1)
+
+/**
  * @brief Function for setting up a scene tree node.
  * @param node The base node.
  * @param treeNode The tree node to set up.
@@ -49,7 +54,7 @@ typedef void (*dsSetupSceneTreeNodeFunction)(dsSceneNode* node, dsSceneTreeNode*
 /**
  * @brief Function for shifting the origin of a scene node.
  * @param node The base node.
- * @param shift The amount to shift the node.
+ * @param shift The amount to shift the node. The w value is guaranteed to be 0.
  */
 typedef void (*dsShiftSceneNodeFunction)(dsSceneNode* node, const dsVector3xf* shift);
 
@@ -699,31 +704,76 @@ struct dsSceneTreeNode
 	dsSceneNodeItemData itemData;
 
 	/**
-	 * @brief Whether or not the transform is dirty.
-	 */
-	bool dirty;
-
-	/**
 	 * @brief Whether the parent transform should be ignored.
 	 *
-	 * Specialized node types may set this to true to use baseTransform as-is without using the
-	 * parent transform.
+	 * Specialized node types may set this to true to use baseCurStepTransform and/or
+	 * baseCurFrameTransform as-is without using the parent transform.
 	 */
 	bool noParentTransform;
 
 	/**
-	 * @brief The base transform for the node.
-	 *
-	 * If non-NULL, this will multiply with the parent transform. This is primarily set by
-	 * dsSceneTransformNode, but may be set by other node types when specialized control over the
-	 * transform is needed.
+	 * @brief The last step interpolation the transforms were updated.
 	 */
-	const dsMatrix44f* baseTransform;
+	float lastUpdatedStepT;
 
 	/**
-	 * @brief The transform for the node.
+	 * @brief The last step the transforms were updated.
+	 *
+	 * When DS_SCENE_TREE_NODE_DIRTY, it denotes that the node is dirty and must be updated.
 	 */
-	dsMatrix44f transform;
+	uint64_t lastUpdatedStep;
+
+	/**
+	 * @brief The last frame the transforms were updated.
+	 */
+	uint64_t lastUpdatedFrame;
+
+	/**
+	 * @brief The base transform for the current step for the node.
+	 *
+	 * If non-NULL, this will multiply with the parent transform to produce the world-space
+	 * transform for this node. If this is NULL and baseFrameTransform is not, the step transforms
+	 * will be match the frame transform. If both are NULL, this node's trnasform will be identity.
+	 */
+	const dsRigidTransform3f* baseStepTransform;
+
+	/**
+	 * @brief The base transform for the current frame for the node.
+	 *
+	 * If non-NULL, this will multiply with the parent transform to produce the world-space
+	 * transform for this node. If this is NULL and baseStepTransform is not, the frame transform
+	 * will be interpolated from the step transforms. If both are NULL, this node's transform will
+	 * be identity.
+	 */
+	const dsMatrix44f* baseFrameTransform;
+
+	/**
+	 * @brief The local local transform, relative to the parent, for the previous step.
+	 *
+	 * When using fixed update steps, this may be used to interpolate the current frame transform.
+	 */
+	dsRigidTransform3f prevStepLocalTransform;
+
+	/**
+	 * @brief The local local transform, relative to the parent, for the current step.
+	 *
+	 * When using fixed update steps, this may be used to interpolate the current frame transform.
+	 */
+	dsRigidTransform3f curStepLocalTransform;
+
+	/**
+	 * @brief The world transform for the previous frame.
+	 *
+	 * This may be used in conjunction with curFrameWorldTransform to create motion vectors. This
+	 * should only be used if lastUpdatedFrame is the current frame, otherwise it should be assumed
+	 * that the node was stationary and curFrameWorldTransform was the transform last frame.
+	 */
+	dsMatrix44f prevFrameWorldTransform;
+
+	/**
+	 * @brief The world transform for the current frame.
+	 */
+	dsMatrix44f curFrameWorldTransform;
 };
 
 #ifdef __cplusplus

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Aaron Barany
+ * Copyright 2025-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,24 +68,18 @@ DS_SCENE_EXPORT dsSceneShiftNode* dsSceneShiftNode_create(dsAllocator* allocator
 DS_SCENE_EXPORT bool dsSceneShiftNode_setOrigin(dsSceneShiftNode* node, const dsVector3d* origin);
 
 /**
- * @brief Gets the position of a child node including any parent shift node's origin.
+ * @brief Gets the origin for a given node.
+ *
+ * This will check for the presence of a dsSceneShiftNode ancestor, otherwise the origin will be at
+ * (0, 0, 0).
+ *
  * @remark errno will be set on failure.
- * @param[out] outPosition The position of the node.
- * @param node The node to get the position of.
- * @return False if the position couldn't be queried.
+ * @param[out] outOrigin The origin of the node.
+ * @param node The node to get the origin of.
+ * @return False if the parameteers are invalid.
  */
-DS_SCENE_EXPORT bool dsSceneShiftNode_getChildPosition(
-	dsVector3d* outPosition, dsSceneTreeNode* node);
-
-/**
- * @brief Gets the transform of a child node including any parent shift node's origin.
- * @remark errno will be set on failure.
- * @param[out] outTransform The transform of the node.
- * @param node The node to get the position of.
- * @return False if the transform couldn't be queried.
- */
-DS_SCENE_EXPORT bool dsSceneShiftNode_getChildTransform(
-	dsMatrix44d* outTransform, dsSceneTreeNode* node);
+DS_SCENE_EXPORT bool dsSceneShiftNode_getOriginForNode(
+	dsVector3d* outOrigin, const dsSceneTreeNode* node);
 
 #ifdef __cplusplus
 }

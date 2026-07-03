@@ -124,7 +124,7 @@ static void dsInstanceForwardLightData_populateData(void* userData, const dsView
 		DS_ALLOCATE_STACK_OBJECT_ARRAY(const dsSceneLight*, lightCount);
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
-		const dsMatrix44f* transform = &instances[i]->transform;
+		const dsMatrix44f* transform = &instances[i]->curFrameWorldTransform;
 		// Make sure any unset lights are 0 initialized.
 		memset(data, 0, stride);
 		dsVector4f* positionAndType = (dsVector4f*)(data + positionAndTypeOffset);

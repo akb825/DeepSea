@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,8 +48,8 @@ DS_SCENE_EXPORT const dsSceneNodeType* dsSceneCullNode_type(void);
  * @param treeNode The tree node for the instance to check.
  * @return False if there's no bounds available.
  */
-DS_SCENE_EXPORT bool dsSceneCullNode_getBounds(dsMatrix44f* outBoxMatrix,
-	const dsSceneCullNode* node, const dsSceneTreeNode* treeNode);
+DS_SCENE_EXPORT bool dsSceneCullNode_getBounds(
+	dsMatrix44f* outBoxMatrix, const dsSceneCullNode* node, const dsSceneTreeNode* treeNode);
 
 #ifdef __cplusplus
 }

@@ -117,6 +117,14 @@ typedef struct dsSceneTick
 	uint64_t totalTimerTicks;
 
 	/**
+	 * @brief The total number of steps taken.
+	 *
+	 * This will either be the number of discrete steps or non-zero updates when dynamic updaets are
+	 * made. In other words, it is the number of times that time has advanced.
+	 */
+	uint64_t totalSteps;
+
+	/**
 	 * @brief The number of timer ticks for the most recent update.
 	 *
 	 * It is recommended to use this value when accumulating large time values for highest accuracy.
@@ -135,8 +143,8 @@ typedef struct dsSceneTick
 	/**
 	 * @brief The amount of time to advance for fixed updates.
 	 *
-	 * When set to a non-zero value, all updates should use this period to advance the time. When
-	 * set to zero, thisTime should be used to update the scene.
+	 * When set to a non-zero value, each update will be an integer number of steps of this time.
+	 * When set to zero, updates will vary based on the last frame time.
 	 */
 	float updatePeriod;
 

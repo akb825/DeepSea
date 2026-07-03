@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Aaron Barany
+ * Copyright 2025-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,53 @@
 #include <DeepSea/Core/Error.h>
 
 #include <DeepSea/Math/Vector3.h>
+#include <DeepSea/Math/Vector3x.h>
+#include <DeepSea/Math/Vector4.h>
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
 #include <string.h>
+
+static void offsetPositionsRec(dsSceneTreeNode* node, const dsVector3xf* offset)
+{
+	// Update both previous and current transforms, as this represents a shift in reference for the
+	// same final world position. Node world transforms are always updated
+	dsVector4f_add(node->prevFrameWorldTransform.columns + 3,
+		node->prevFrameWorldTransform.columns + 3, offset);
+	dsVector4f_add(node->curFrameWorldTransform.columns + 3,
+		node->curFrameWorldTransform.columns + 3, offset);
+
+	// Also update the local step transforms when the parent is ignored.
+	if (node->noParentTransform)
+	{
+		dsVector3xf_add(&node->prevStepLocalTransform.position,
+			&node->prevStepLocalTransform.position, offset);
+		dsVector3xf_add(&node->curStepLocalTransform.position,
+			&node->curStepLocalTransform.position, offset);
+	}
+
+	for (uint32_t i = 0; i < node->childCount; ++i)
+		offsetPositionsRec(node->children[i], offset);
+}
+
+static void offsetBasePositions(dsSceneTreeNode* node, const dsVector3xf* offset)
+{
+	// Update both previous and current transforms, as this represents a shift in reference for the
+	// same final world position.
+	dsVector4f_add(node->prevFrameWorldTransform.columns + 3,
+		node->prevFrameWorldTransform.columns + 3, offset);
+	dsVector4f_add(node->curFrameWorldTransform.columns + 3,
+		node->curFrameWorldTransform.columns + 3, offset);
+
+	// Also update the local step transforms for the nodes directly under the shift node.
+	dsVector3xf_add(&node->prevStepLocalTransform.position,
+		&node->prevStepLocalTransform.position, offset);
+	dsVector3xf_add(&node->curStepLocalTransform.position,
+		&node->curStepLocalTransform.position, offset);
+
+	for (uint32_t i = 0; i < node->childCount; ++i)
+		offsetPositionsRec(node->children[i], offset);
+}
 
 static void dsSceneShiftNode_destroy(dsSceneNode* node)
 {
@@ -69,8 +112,8 @@ dsSceneShiftNode* dsSceneShiftNode_create(dsAllocator* allocator,
 		itemLists, itemListCount);
 	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
-	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneShiftNode_type(),
-			itemListsCopy, itemListCount))
+	if (!dsSceneNode_initialize(
+			(dsSceneNode*)node, allocator, dsSceneShiftNode_type(), itemListsCopy, itemListCount))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, node));
@@ -80,7 +123,7 @@ dsSceneShiftNode* dsSceneShiftNode_create(dsAllocator* allocator,
 	if (origin)
 		node->origin = *origin;
 	else
-		memset(&node->origin, 0, sizeof(dsVector3d));
+		node->origin.x = node->origin.y = node->origin.z = 0.0;
 
 	return node;
 }
@@ -98,7 +141,7 @@ bool dsSceneShiftNode_setOrigin(dsSceneShiftNode* node, const dsVector3d* origin
 
 	dsVector3d offset;
 	dsVector3_sub(offset, node->origin, *origin);
-	dsVector3xf offset3f = {{(float)offset.x, (float)offset.y, (float)offset.z}};
+	dsVector3xf offset3f = {{(float)offset.x, (float)offset.y, (float)offset.z, 0.0f}};
 
 	dsSceneNode* baseNode = (dsSceneNode*)node;
 	for (uint32_t i = 0; i < baseNode->childCount; ++i)
@@ -107,53 +150,33 @@ bool dsSceneShiftNode_setOrigin(dsSceneShiftNode* node, const dsVector3d* origin
 		dsShiftSceneNodeFunction shiftNodeFunc = child->type->shiftNodeFunc;
 		if (shiftNodeFunc)
 			shiftNodeFunc(child, &offset3f);
+		for (uint32_t j = 0; j < child->treeNodeCount; ++j)
+			offsetBasePositions(child->treeNodes[j], &offset3f);
 	}
 
 	return true;
 }
 
-bool dsSceneShiftNode_getChildPosition(dsVector3d* outPosition, dsSceneTreeNode* node)
+bool dsSceneShiftNode_getOriginForNode(dsVector3d* outOrigin, const dsSceneTreeNode* node)
 {
-	if (!outPosition || !node)
+	if (!outOrigin || !node)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	dsConvertFloatToDouble(*outPosition, *(dsVector3f*)(node->transform.columns + 3));
 	do
 	{
 		if (dsSceneNode_isOfType(node->node, dsSceneShiftNode_type()))
 		{
 			dsSceneShiftNode* shiftNode = (dsSceneShiftNode*)node->node;
-			dsVector3_add(*outPosition, shiftNode->origin, *outPosition);
-			break;
+			*outOrigin = shiftNode->origin;
+			return true;
 		}
 
 		node = node->parent;
 	} while (node);
-	return true;
-}
 
-bool dsSceneShiftNode_getChildTransform(dsMatrix44d* outTransform, dsSceneTreeNode* node)
-{
-	if (!outTransform || !node)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	dsConvertFloatToDouble(*outTransform, node->transform);
-	do
-	{
-		if (dsSceneNode_isOfType(node->node, dsSceneShiftNode_type()))
-		{
-			dsSceneShiftNode* shiftNode = (dsSceneShiftNode*)node->node;
-			dsVector3_add(outTransform->columns[3], shiftNode->origin, outTransform->columns[3]);
-			break;
-		}
-
-		node = node->parent;
-	} while (node);
+	outOrigin->x = outOrigin->y = outOrigin->z = 0.0;
 	return true;
 }

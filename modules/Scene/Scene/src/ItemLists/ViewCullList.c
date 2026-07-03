@@ -115,7 +115,7 @@ static uint64_t dsViewCullList_addNode(dsSceneItemList* itemList, dsSceneNode* n
 
 	StaticEntry* entry = cullList->staticEntries + index;
 	entry->localBoxMatrix = cullNode->staticLocalBoxMatrix;
-	entry->transform = &treeNode->transform;
+	entry->transform = &treeNode->curFrameWorldTransform;
 	entry->result = (bool*)thisItemData;
 	entry->nodeID = cullList->nextStaticNodeID++;
 	return entry->nodeID;

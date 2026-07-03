@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Aaron Barany
+ * Copyright 2025-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ extern "C"
 {
 #endif
 
-dsSceneAnimationInstance* dsSceneAnimationInstance_create(dsAllocator* allocator,
-	dsAnimationNodeMapCache* nodeMapCache);
+dsSceneAnimationInstance* dsSceneAnimationInstance_create(
+	dsAllocator* allocator, dsAnimationNodeMapCache* nodeMapCache);
 bool dsSceneAnimationInstance_addSkeletonRagdollNode(dsSceneAnimationInstance* instance,
 	const dsSceneAnimationRagdollNode* ragdollNode, dsSceneTreeNode* treeNode);
 bool dsSceneAnimationInstance_addAdditionRagdollNode(dsSceneAnimationInstance* instance,
@@ -38,7 +38,8 @@ bool dsSceneAnimationInstance_setSkeletonRagdollWeight(
 	dsSceneAnimationInstance* instance, float weight);
 bool dsSceneAnimationInstance_setAdditionRagdollWeight(
 	dsSceneAnimationInstance* instance, float weight);
-void dsSceneAnimationInstance_updateRagdolls(dsSceneAnimationInstance* instance);
+void dsSceneAnimationInstance_updateRagdolls(
+	dsSceneAnimationInstance* instance, uint64_t stepNumber, bool needInterp);
 void dsSceneAnimationInstance_destroy(dsSceneAnimationInstance* instance);
 
 #ifdef __cplusplus

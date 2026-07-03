@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Aaron Barany
+ * Copyright 2025-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,8 +65,8 @@ dsSceneAnimationRagdollNode* dsSceneAnimationRagdollNode_create(dsAllocator* all
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
-	dsSceneAnimationRagdollNode* node = DS_ALLOCATE_OBJECT(&bufferAlloc,
-		dsSceneAnimationRagdollNode);
+	dsSceneAnimationRagdollNode* node = DS_ALLOCATE_OBJECT(
+		&bufferAlloc, dsSceneAnimationRagdollNode);
 
 	const char* const* itemListsCopy = dsSceneNode_copyItemLists((dsAllocator*)&bufferAlloc,
 		itemLists, itemListCount);

@@ -82,6 +82,6 @@ const dsAlignedBox2f* dsSceneDiscardBoundsNode_getDiscardBoundsForInstance(
 	if (!dsAlignedBox2_isValid(discardBoundsNode->discardBounds))
 		return NULL;
 
-	*outTransform = treeNode->transform;
+	*outTransform = treeNode->curFrameWorldTransform;
 	return &discardBoundsNode->discardBounds;
 }

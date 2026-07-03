@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,8 @@
 
 #include <string.h>
 
-static dsSceneTreeNode* findUniqueTreeNodeRec(dsSceneTreeNode* treeNode,
-	const dsSceneNode* descendentNode)
+static dsSceneTreeNode* findUniqueTreeNodeRec(
+	dsSceneTreeNode* treeNode, const dsSceneNode* descendentNode)
 {
 	for (uint32_t i = 0; i < treeNode->childCount; ++i)
 	{
@@ -83,8 +83,8 @@ size_t dsSceneNode_itemListsAllocSize(const char* const* itemLists, uint32_t ite
 	return fullSize;
 }
 
-const char* const* dsSceneNode_copyItemLists(dsAllocator* allocator,
-	const char* const* itemLists, uint32_t itemListCount)
+const char* const* dsSceneNode_copyItemLists(
+	dsAllocator* allocator, const char* const* itemLists, uint32_t itemListCount)
 {
 	if (!allocator || !itemLists || itemListCount == 0)
 		return NULL;
@@ -105,8 +105,8 @@ const char* const* dsSceneNode_copyItemLists(dsAllocator* allocator,
 	return (const char* const*)itemListsCopy;
 }
 
-const dsSceneNodeType* dsSceneNode_setupParentType(dsSceneNodeType* type,
-	const dsSceneNodeType* parentType)
+const dsSceneNodeType* dsSceneNode_setupParentType(
+	dsSceneNodeType* type, const dsSceneNodeType* parentType)
 {
 	if (!type)
 		return parentType;
@@ -327,16 +327,8 @@ bool dsSceneNode_reparentChildIndex(dsSceneNode* node, uint32_t childIndex, dsSc
 	--node->childCount;
 
 	// Once fully succeeded, mark the subtrees as dirty.
-	for (uint32_t i = 0; i < newParent->treeNodeCount; ++i)
-	{
-		dsSceneTreeNode* treeNode = newParent->treeNodes[i];
-		for (uint32_t j = 0; j < treeNode->childCount; ++j)
-		{
-			dsSceneTreeNode* childTreeNode = treeNode->children[j];
-			if (childTreeNode->node == child)
-				dsSceneTreeNode_markDirty(childTreeNode);
-		}
-	}
+	for (uint32_t i = 0; i < child->treeNodeCount; ++i)
+		dsSceneTreeNode_markDirty(child->treeNodes[i]);
 
 	return true;
 }
@@ -365,8 +357,8 @@ bool dsSceneNode_reparentChildNode(dsSceneNode* node, dsSceneNode* child, dsScen
 	return dsSceneNode_reparentChildIndex(node, childIndex, newParent);
 }
 
-dsSceneTreeNode* dsSceneNode_findUniqueTreeNode(const dsSceneNode* baseNode,
-	const dsSceneNode* descendentNode)
+dsSceneTreeNode* dsSceneNode_findUniqueTreeNode(
+	const dsSceneNode* baseNode, const dsSceneNode* descendentNode)
 {
 	if (!descendentNode)
 	{
