@@ -205,6 +205,23 @@ DS_MATH_EXPORT inline void dsRigidTransform3d_nearLerp(
 	dsRigidTransform3d* result, const dsRigidTransform3d* a, const dsRigidTransform3d* b, double t);
 
 /**
+ * @brief Inverts a rigid transform.
+ *
+ * The result will not be correct if the transform contains both a rotation and non-uniform scale,
+ * as it would require a different ordering to apply the components than is defined by the rigid
+ * transform.
+ *
+ * @param[out] result The inverted transform.
+ * @param a The transform to invert.
+ */
+DS_MATH_EXPORT inline void dsRigidTransform3f_invert(
+	dsRigidTransform3f* result, const dsRigidTransform3f* a);
+
+/** @copydoc dsRigidTransform3f_invert() */
+DS_MATH_EXPORT inline void dsRigidTransform3d_invert(
+	dsRigidTransform3d* result, const dsRigidTransform3d* a);
+
+/**
  * @brief Checks if two rigid transforms are exactly equal.
  *
  * This will consider equivalent orientations (where one is negated from the other) to be equal.
@@ -310,6 +327,20 @@ DS_MATH_EXPORT inline void dsRigidTransform3f_nearLerpSIMD(
 	dsRigidTransform3f* result, const dsRigidTransform3f* a, const dsRigidTransform3f* b, float t);
 
 /**
+ * @brief Inverts a rigid transform using SIMD operations.
+ *
+ * The result will not be correct if the transform contains both a rotation and non-uniform scale,
+ * as it would require a different ordering to apply the components than is defined by the rigid
+ * transform.
+ *
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param[out] result The inverted transform.
+ * @param a The transform to invert.
+ */
+DS_MATH_EXPORT inline void dsRigidTransform3f_invertSIMD(
+	dsRigidTransform3f* result, const dsRigidTransform3f* a);
+
+/**
  * @brief Checks if two rigid transforms are exactly equal using SIMD operations.
  *
  * This will consider equivalent orientations (where one is negated from the other) to be equal.
@@ -402,6 +433,20 @@ DS_MATH_EXPORT inline void dsRigidTransform3f_lerpFMA(
 DS_MATH_EXPORT inline void dsRigidTransform3f_nearLerpFMA(
 	dsRigidTransform3f* result, const dsRigidTransform3f* a, const dsRigidTransform3f* b, float t);
 
+/**
+ * @brief Inverts a rigid transform using fused multiply-add operations.
+ *
+ * The result will not be correct if the transform contains both a rotation and non-uniform scale,
+ * as it would require a different ordering to apply the components than is defined by the rigid
+ * transform.
+ *
+ * @remark This can be used when dsSIMDFeatures_Float4 and dsSIMDFeatures_FMA are available.
+ * @param[out] result The inverted transform.
+ * @param a The transform to invert.
+ */
+DS_MATH_EXPORT inline void dsRigidTransform3f_invertFMA(
+	dsRigidTransform3f* result, const dsRigidTransform3f* a);
+
 #endif // !DS_DETERMINISTIC_MATH
 
 /**
@@ -490,6 +535,20 @@ DS_MATH_EXPORT inline void dsRigidTransform3d_lerpSIMD2(
  */
 DS_MATH_EXPORT inline void dsRigidTransform3d_nearLerpSIMD2(
 	dsRigidTransform3d* result, const dsRigidTransform3d* a, const dsRigidTransform3d* b, double t);
+
+/**
+ * @brief Inverts a rigid transform using SIMD operations.
+ *
+ * The result will not be correct if the transform contains both a rotation and non-uniform scale,
+ * as it would require a different ordering to apply the components than is defined by the rigid
+ * transform.
+ *
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param[out] result The inverted transform.
+ * @param a The transform to invert.
+ */
+DS_MATH_EXPORT inline void dsRigidTransform3d_invertSIMD2(
+	dsRigidTransform3d* result, const dsRigidTransform3d* a);
 
 /**
  * @brief Checks if two rigid transforms are exactly equal using SIMD operations.
@@ -583,6 +642,20 @@ DS_MATH_EXPORT inline void dsRigidTransform3d_lerpFMA2(
  */
 DS_MATH_EXPORT inline void dsRigidTransform3d_nearLerpFMA2(
 	dsRigidTransform3d* result, const dsRigidTransform3d* a, const dsRigidTransform3d* b, double t);
+
+/**
+ * @brief Inverts a rigid transform using fused multiply-add operations.
+ *
+ * The result will not be correct if the transform contains both a rotation and non-uniform scale,
+ * as it would require a different ordering to apply the components than is defined by the rigid
+ * transform.
+ *
+ * @remark This can be used when dsSIMDFeatures_Double2 and dsSIMDFeatures_FMA are available.
+ * @param[out] result The inverted transform.
+ * @param a The transform to invert.
+ */
+DS_MATH_EXPORT inline void dsRigidTransform3d_invertFMA2(
+	dsRigidTransform3d* result, const dsRigidTransform3d* a);
 
 #endif // !DS_DETERMINISTIC_MATH
 
@@ -684,6 +757,21 @@ DS_MATH_EXPORT inline void dsRigidTransform3d_lerpSIMD4(
 DS_MATH_EXPORT inline void dsRigidTransform3d_nearLerpSIMD4(
 	dsRigidTransform3d* DS_ALIGN_PARAM(32) result, const dsRigidTransform3d* DS_ALIGN_PARAM(32) a,
 	const dsRigidTransform3d* DS_ALIGN_PARAM(32) b, double t);
+
+/**
+ * @brief Inverts a rigid transform using SIMD operations.
+ *
+ * The result will not be correct if the transform contains both a rotation and non-uniform scale,
+ * as it would require a different ordering to apply the components than is defined by the rigid
+ * transform.
+ *
+ * @remark This can be used when dsSIMDFeatures_Double4 is available, and will use FMA if not
+ *     disabled through enabling determinisitic math.
+ * @param[out] result The inverted transform.
+ * @param a The transform to invert.
+ */
+DS_MATH_EXPORT inline void dsRigidTransform3d_invertSIMD4(
+	dsRigidTransform3d* DS_ALIGN_PARAM(32) result, const dsRigidTransform3d* DS_ALIGN_PARAM(32) a);
 
 /**
  * @brief Checks if two rigid transforms are exactly equal using SIMD operations.
@@ -1013,6 +1101,46 @@ inline void dsRigidTransform3d_nearLerp(
 #endif
 }
 
+inline void dsRigidTransform3f_invert(dsRigidTransform3f* result, const dsRigidTransform3f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+#if DS_SIMD_ALWAYS_FMA
+	dsRigidTransform3f_invertFMA(result, a);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	dsRigidTransform3f_invertSIMD(result, a);
+#else
+	dsVector3xf one = {{1.0f, 1.0f, 1.0f, 1.0f}};
+	dsVector3xf_div(&result->scale, &one, &a->scale);
+	dsQuaternion4f_conjugate(&result->orientation, &a->orientation);
+	dsVector3xf_neg(&result->position, &a->position);
+	dsVector3xf_mul(&result->position, &result->scale, &result->position);
+	dsQuaternion4f_rotate3x(&result->position, &result->orientation, &result->position);
+#endif
+}
+
+inline void dsRigidTransform3d_invert(dsRigidTransform3d* result, const dsRigidTransform3d* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+#if DS_SIMD_PREFER_DOUBLE4
+	dsRigidTransform3d_invertSIMD4(result, a);
+#elif DS_SIMD_ALWAYS_DOUBLE2
+#if DS_SIMD_ALWAYS_FMA
+	dsRigidTransform3d_invertFMA2(result, a);
+#else
+	dsRigidTransform3d_invertSIMD2(result, a);
+#endif
+#else
+	dsVector3xd one = {{1.0, 1.0, 1.0, 1.0}};
+	dsVector3xd_div(&result->scale, &one, &a->scale);
+	dsQuaternion4d_conjugate(&result->orientation, &a->orientation);
+	dsVector3xd_neg(&result->position, &a->position);
+	dsVector3xd_mul(&result->position, &result->scale, &result->position);
+	dsQuaternion4d_rotate3x(&result->position, &result->orientation, &result->position);
+#endif
+}
+
 inline bool dsRigidTransform3f_equal(const dsRigidTransform3f* a, const dsRigidTransform3f* b)
 {
 	DS_ASSERT(a);
@@ -1148,6 +1276,18 @@ inline void dsRigidTransform3f_nearLerpSIMD(
 	result->orientation.simd = dsSIMD4f_mul(result->orientation.simd, invLen);
 }
 
+inline void dsRigidTransform3f_invertSIMD(dsRigidTransform3f* result, const dsRigidTransform3f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+
+	result->scale.simd = dsSIMD4f_rcp(a->scale.simd);
+	dsQuaternion4f_conjugateSIMD(&result->orientation, &a->orientation);
+	result->position.simd = dsSIMD4f_neg(a->position.simd);
+	result->position.simd = dsSIMD4f_mul(result->scale.simd, result->position.simd);
+	dsQuaternion4f_rotateSIMD(&result->position, &result->orientation, &result->position);
+}
+
 inline bool dsRigidTransform3f_equalSIMD(const dsRigidTransform3f* a, const dsRigidTransform3f* b)
 {
 	DS_ASSERT(a);
@@ -1262,6 +1402,18 @@ inline void dsRigidTransform3f_nearLerpFMA(
 	dsSIMD4f len2 = dsDot4FMA4f(result->orientation.simd, result->orientation.simd);
 	dsSIMD4f invLen = dsSIMD4f_rsqrt(len2);
 	result->orientation.simd = dsSIMD4f_mul(result->orientation.simd, invLen);
+}
+
+inline void dsRigidTransform3f_invertFMA(dsRigidTransform3f* result, const dsRigidTransform3f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+
+	result->scale.simd = dsSIMD4f_rcp(a->scale.simd);
+	dsQuaternion4f_conjugateSIMD(&result->orientation, &a->orientation);
+	result->position.simd = dsSIMD4f_neg(a->position.simd);
+	result->position.simd = dsSIMD4f_mul(result->scale.simd, result->position.simd);
+	dsQuaternion4f_rotateFMA(&result->position, &result->orientation, &result->position);
 }
 
 DS_SIMD_END()
@@ -1380,6 +1532,21 @@ inline void dsRigidTransform3d_nearLerpSIMD2(
 	dsSIMD2d invLen = dsSIMD2d_rsqrt(len2);
 	result->orientation.simd2[0] = dsSIMD2d_mul(result->orientation.simd2[0], invLen);
 	result->orientation.simd2[1] = dsSIMD2d_mul(result->orientation.simd2[1], invLen);
+}
+
+inline void dsRigidTransform3d_invertSIMD2(dsRigidTransform3d* result, const dsRigidTransform3d* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+
+	result->scale.simd2[0] = dsSIMD2d_rcp(a->scale.simd2[0]);
+	result->scale.simd2[1] = dsSIMD2d_rcp(a->scale.simd2[1]);
+	dsQuaternion4d_conjugateSIMD2(&result->orientation, &a->orientation);
+	result->position.simd2[0] = dsSIMD2d_neg(a->position.simd2[0]);
+	result->position.simd2[1] = dsSIMD2d_neg(a->position.simd2[1]);
+	result->position.simd2[0] = dsSIMD2d_mul(result->scale.simd2[0], result->position.simd2[0]);
+	result->position.simd2[1] = dsSIMD2d_mul(result->scale.simd2[1], result->position.simd2[1]);
+	dsQuaternion4d_rotateSIMD2(&result->position, &result->orientation, &result->position);
 }
 
 inline bool dsRigidTransform3d_equalSIMD2(const dsRigidTransform3d* a, const dsRigidTransform3d* b)
@@ -1517,6 +1684,21 @@ inline void dsRigidTransform3d_nearLerpFMA2(
 	result->orientation.simd2[1] = dsSIMD2d_mul(result->orientation.simd2[1], invLen);
 }
 
+inline void dsRigidTransform3d_invertFMA2(dsRigidTransform3d* result, const dsRigidTransform3d* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+
+	result->scale.simd2[0] = dsSIMD2d_rcp(a->scale.simd2[0]);
+	result->scale.simd2[1] = dsSIMD2d_rcp(a->scale.simd2[1]);
+	dsQuaternion4d_conjugateSIMD2(&result->orientation, &a->orientation);
+	result->position.simd2[0] = dsSIMD2d_neg(a->position.simd2[0]);
+	result->position.simd2[1] = dsSIMD2d_neg(a->position.simd2[1]);
+	result->position.simd2[0] = dsSIMD2d_mul(result->scale.simd2[0], result->position.simd2[0]);
+	result->position.simd2[1] = dsSIMD2d_mul(result->scale.simd2[1], result->position.simd2[1]);
+	dsQuaternion4d_rotateFMA2(&result->position, &result->orientation, &result->position);
+}
+
 DS_SIMD_END()
 #endif // !DS_DETERMINISTIC_MATH
 
@@ -1640,6 +1822,21 @@ inline void dsRigidTransform3d_nearLerpSIMD4(dsRigidTransform3d* DS_ALIGN_PARAM(
 	dsSIMD4d len2 = dsDot4SIMD4d(orientation, orientation);
 	dsSIMD4d invLen = dsSIMD4d_rsqrt(len2);
 	dsSIMD4d_store(&result->orientation, dsSIMD4d_mul(orientation, invLen));
+}
+
+inline void dsRigidTransform3d_invertSIMD4(
+	dsRigidTransform3d* DS_ALIGN_PARAM(32) result, const dsRigidTransform3d* DS_ALIGN_PARAM(32) a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+
+	dsSIMD4d invScale = dsSIMD4d_rcp(dsSIMD4d_load(&a->scale));
+	dsSIMD4d_store(&result->scale, invScale);
+	dsQuaternion4d_conjugateSIMD4(&result->orientation, &a->orientation);
+	dsSIMD4d invPos = dsSIMD4d_neg(dsSIMD4d_load(&a->position));
+	invPos = dsSIMD4d_mul(invScale, invPos);
+	dsSIMD4d_store(&result->position, invPos);
+	dsQuaternion4d_rotateSIMD4(&result->position, &result->orientation, &result->position);
 }
 
 inline bool dsRigidTransform3d_equalSIMD4(

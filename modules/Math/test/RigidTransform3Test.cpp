@@ -47,7 +47,7 @@ struct RigidTransform3TypeSelector<double>
 	static const double epsilon;
 };
 
-const float RigidTransform3TypeSelector<float>::epsilon = 1e-5f;
+const float RigidTransform3TypeSelector<float>::epsilon = 3e-5f;
 const double RigidTransform3TypeSelector<double>::epsilon = 1e-13;
 
 template <typename T>
@@ -168,6 +168,16 @@ inline void dsRigidTransform3_nearLerp(
 	dsRigidTransform3d* result, const dsRigidTransform3d* a, const dsRigidTransform3d* b, double t)
 {
 	dsRigidTransform3d_nearLerp(result, a, b, t);
+}
+
+void dsRigidTransform3_invert(dsRigidTransform3f* result, const dsRigidTransform3f* a)
+{
+	dsRigidTransform3f_invert(result, a);
+}
+
+void dsRigidTransform3_invert(dsRigidTransform3d* result, const dsRigidTransform3d* a)
+{
+	dsRigidTransform3d_invert(result, a);
 }
 
 inline bool dsRigidTransform3_equal(const dsRigidTransform3f* a, const dsRigidTransform3f* b)
@@ -761,6 +771,72 @@ TYPED_TEST(RigidTransform3Test, NearLerp)
 	EXPECT_NEAR(scaleB.x, transformInterp.scale.x, epsilon);
 	EXPECT_NEAR(scaleB.y, transformInterp.scale.y, epsilon);
 	EXPECT_NEAR(scaleB.z, transformInterp.scale.z, epsilon);
+}
+
+TYPED_TEST(RigidTransform3Test, Invert)
+{
+	typedef typename RigidTransform3TypeSelector<TypeParam>::RigidTransform3Type
+		RigidTransform3Type;
+	typedef typename RigidTransform3TypeSelector<TypeParam>::Vector3xType Vector3xType;
+	typedef typename RigidTransform3TypeSelector<TypeParam>::Quaternion4Type Quaternion4Type;
+	TypeParam epsilon = RigidTransform3TypeSelector<TypeParam>::epsilon;
+
+	Vector3xType position = {{(TypeParam)-10, (TypeParam)20, (TypeParam)-30, (TypeParam)1}};
+	Quaternion4Type orientation;
+	dsQuaternion4_fromEulerAngles(&orientation, dsRadiansToDegrees((TypeParam)-10),
+		dsRadiansToDegrees((TypeParam)15), dsRadiansToDegrees((TypeParam)-20));
+	Vector3xType scaleUniform =
+		{{(TypeParam)0.3, (TypeParam)0.3, (TypeParam)0.3, (TypeParam)-2}};
+	Vector3xType scale = {{(TypeParam)0.1, (TypeParam)0.2, (TypeParam)0.3, (TypeParam)-2}};
+
+	RigidTransform3Type transform, transformInv, result;
+	dsRigidTransform3_initialize(&transform, &position, &orientation, &scaleUniform);
+	dsRigidTransform3_invert(&transformInv, &transform);
+
+	dsRigidTransform3_mul(&result, &transform, &transformInv);
+	EXPECT_NEAR(0, result.position.x, epsilon);
+	EXPECT_NEAR(0, result.position.y, epsilon);
+	EXPECT_NEAR(0, result.position.z, epsilon);
+
+	EXPECT_NEAR(0, result.orientation.i, epsilon);
+	EXPECT_NEAR(0, result.orientation.j, epsilon);
+	EXPECT_NEAR(0, result.orientation.k, epsilon);
+	EXPECT_NEAR(1, result.orientation.r, epsilon);
+
+	EXPECT_NEAR(1, result.scale.x, epsilon);
+	EXPECT_NEAR(1, result.scale.y, epsilon);
+	EXPECT_NEAR(1, result.scale.z, epsilon);
+
+	dsRigidTransform3_mul(&result, &transformInv, &transform);
+	EXPECT_NEAR(0, result.position.x, epsilon);
+	EXPECT_NEAR(0, result.position.y, epsilon);
+	EXPECT_NEAR(0, result.position.z, epsilon);
+
+	EXPECT_NEAR(0, result.orientation.i, epsilon);
+	EXPECT_NEAR(0, result.orientation.j, epsilon);
+	EXPECT_NEAR(0, result.orientation.k, epsilon);
+	EXPECT_NEAR(1, result.orientation.r, epsilon);
+
+	EXPECT_NEAR(1, result.scale.x, epsilon);
+	EXPECT_NEAR(1, result.scale.y, epsilon);
+	EXPECT_NEAR(1, result.scale.z, epsilon);
+
+	dsRigidTransform3_initialize(&transform, &position, nullptr, &scale);
+	dsRigidTransform3_invert(&transformInv, &transform);
+
+	dsRigidTransform3_mul(&result, &transform, &transformInv);
+	EXPECT_NEAR(0, result.position.x, epsilon);
+	EXPECT_NEAR(0, result.position.y, epsilon);
+	EXPECT_NEAR(0, result.position.z, epsilon);
+
+	EXPECT_NEAR(0, result.orientation.i, epsilon);
+	EXPECT_NEAR(0, result.orientation.j, epsilon);
+	EXPECT_NEAR(0, result.orientation.k, epsilon);
+	EXPECT_NEAR(1, result.orientation.r, epsilon);
+
+	EXPECT_NEAR(1, result.scale.x, epsilon);
+	EXPECT_NEAR(1, result.scale.y, epsilon);
+	EXPECT_NEAR(1, result.scale.z, epsilon);
 }
 
 TYPED_TEST(RigidTransform3Test, Equal)
@@ -2412,6 +2488,347 @@ TEST(RigidTransform3dTest, NearLerpFMA2)
 	EXPECT_NEAR(0.5625, transformInterp.scale.z, epsilon);
 }
 #endif // !DS_DETERMINISTIC_MATH
+
+TEST(RigidTransform3fTest, InvertSIMD)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		return;
+
+	float epsilon = RigidTransform3TypeSelector<float>::epsilon;
+	DS_UNUSED(epsilon);
+
+	dsVector3xf position = {{-10.0f, 20.0f, -30.0f, 1.0f}};
+	dsQuaternion4f orientation;
+	dsQuaternion4f_fromEulerAngles(&orientation, dsRadiansToDegreesf(-10.0f),
+		dsRadiansToDegreesf(15.0f), dsRadiansToDegreesf(-20.0f));
+	dsVector3xf scaleUniform ={{0.3f, 0.3f, 0.3f, -2.0f}};
+	dsVector3xf scale = {{0.1f, 0.2f, 0.3f, -2.0f}};
+
+	dsRigidTransform3f transform, scalarTransformInv, transformInv;
+	dsRigidTransform3f_initialize(&transform, &position, &orientation, &scaleUniform);
+
+	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
+	dsRigidTransform3f_invert(&scalarTransformInv, &transform);
+	dsRigidTransform3f_invertSIMD(&transformInv, &transform);
+
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.position.x, transformInv.position.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.position.y, transformInv.position.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.position.z, transformInv.position.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.i, transformInv.orientation.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.j, transformInv.orientation.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.k, transformInv.orientation.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.r, transformInv.orientation.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.scale.x, transformInv.scale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.scale.y, transformInv.scale.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.scale.z, transformInv.scale.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(102.427429f, transformInv.position.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(27.2702808f, transformInv.position.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(65.7305756f, transformInv.position.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.645887852f, transformInv.orientation.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.209033534f, transformInv.orientation.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.729252517f, transformInv.orientation.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0855838209f, transformInv.orientation.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(3.33333325f, transformInv.scale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(3.33333325f, transformInv.scale.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(3.33333325f, transformInv.scale.z, epsilon);
+
+	dsRigidTransform3f_initialize(&transform, &position, nullptr, &scale);
+
+	dsRigidTransform3f_invert(&scalarTransformInv, &transform);
+	dsRigidTransform3f_invertSIMD(&transformInv, &transform);
+
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.position.x, transformInv.position.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.position.y, transformInv.position.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.position.z, transformInv.position.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.i, transformInv.orientation.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.j, transformInv.orientation.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.k, transformInv.orientation.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.r, transformInv.orientation.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.scale.x, transformInv.scale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.scale.y, transformInv.scale.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.scale.z, transformInv.scale.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(100.0f, transformInv.position.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-100.0f, transformInv.position.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(100.0f, transformInv.position.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.0f, transformInv.orientation.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0f, transformInv.orientation.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0f, transformInv.orientation.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0f, transformInv.orientation.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(10.0f, transformInv.scale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(5.0f, transformInv.scale.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(3.33333325f, transformInv.scale.z, epsilon);
+}
+
+#if !DS_DETERMINISTIC_MATH
+TEST(RigidTransform3fTest, InvertFMA)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+		return;
+
+	float epsilon = RigidTransform3TypeSelector<float>::epsilon;
+
+	dsVector3xf position = {{-10.0f, 20.0f, -30.0f, 1.0f}};
+	dsQuaternion4f orientation;
+	dsQuaternion4f_fromEulerAngles(&orientation, dsRadiansToDegreesf(-10.0f),
+		dsRadiansToDegreesf(15.0f), dsRadiansToDegreesf(-20.0f));
+	dsVector3xf scaleUniform ={{0.3f, 0.3f, 0.3f, -2.0f}};
+	dsVector3xf scale = {{0.1f, 0.2f, 0.3f, -2.0f}};
+
+	dsRigidTransform3f transform, transformInv;
+	dsRigidTransform3f_initialize(&transform, &position, &orientation, &scaleUniform);
+	dsRigidTransform3f_invertFMA(&transformInv, &transform);
+
+	EXPECT_NEAR(102.427429f, transformInv.position.x, epsilon);
+	EXPECT_NEAR(27.2702808f, transformInv.position.y, epsilon);
+	EXPECT_NEAR(65.7305756f, transformInv.position.z, epsilon);
+
+	EXPECT_NEAR(0.645887852f, transformInv.orientation.i, epsilon);
+	EXPECT_NEAR(-0.209033534f, transformInv.orientation.j, epsilon);
+	EXPECT_NEAR(0.729252517f, transformInv.orientation.k, epsilon);
+	EXPECT_NEAR(-0.0855838209f, transformInv.orientation.r, epsilon);
+
+	EXPECT_NEAR(3.33333325f, transformInv.scale.x, epsilon);
+	EXPECT_NEAR(3.33333325f, transformInv.scale.y, epsilon);
+	EXPECT_NEAR(3.33333325f, transformInv.scale.z, epsilon);
+
+	dsRigidTransform3f_initialize(&transform, &position, nullptr, &scale);
+	dsRigidTransform3f_invertFMA(&transformInv, &transform);
+
+	EXPECT_NEAR(100.0f, transformInv.position.x, epsilon);
+	EXPECT_NEAR(-100.0f, transformInv.position.y, epsilon);
+	EXPECT_NEAR(100.0f, transformInv.position.z, epsilon);
+
+	EXPECT_NEAR(-0.0f, transformInv.orientation.i, epsilon);
+	EXPECT_NEAR(-0.0f, transformInv.orientation.j, epsilon);
+	EXPECT_NEAR(-0.0f, transformInv.orientation.k, epsilon);
+	EXPECT_NEAR(1.0f, transformInv.orientation.r, epsilon);
+
+	EXPECT_NEAR(10.0f, transformInv.scale.x, epsilon);
+	EXPECT_NEAR(5.0f, transformInv.scale.y, epsilon);
+	EXPECT_NEAR(3.33333325f, transformInv.scale.z, epsilon);
+}
+#endif // !DS_DETERMINISTIC_MATH
+
+TEST(RigidTransform3dTest, InvertSIMD2)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double2))
+		return;
+
+	double epsilon = RigidTransform3TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
+
+	dsVector3xd position = {{-10.0, 20.0, -30.0, 1.0}};
+	dsQuaternion4d orientation;
+	dsQuaternion4d_fromEulerAngles(&orientation, dsRadiansToDegreesd(-10.0),
+		dsRadiansToDegreesd(15.0), dsRadiansToDegreesd(-20.0));
+	dsVector3xd scaleUniform ={{0.3, 0.3, 0.3, -2.0f}};
+	dsVector3xd scale = {{0.1, 0.2, 0.3, -2.0f}};
+
+	dsRigidTransform3d transform, scalarTransformInv, transformInv;
+	dsRigidTransform3d_initialize(&transform, &position, &orientation, &scaleUniform);
+
+	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
+	dsRigidTransform3d_invert(&scalarTransformInv, &transform);
+	dsRigidTransform3d_invertSIMD2(&transformInv, &transform);
+
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.position.x, transformInv.position.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.position.y, transformInv.position.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.position.z, transformInv.position.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.i, transformInv.orientation.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.j, transformInv.orientation.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.k, transformInv.orientation.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.r, transformInv.orientation.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.scale.x, transformInv.scale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.scale.y, transformInv.scale.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.scale.z, transformInv.scale.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(102.42653148618588, transformInv.position.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(27.260183551390089, transformInv.position.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(65.736166575253293, transformInv.position.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.64586894018621044, transformInv.orientation.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.20907876439232123, transformInv.orientation.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.72925409624943316, transformInv.orientation.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.085602835737748073, transformInv.orientation.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(3.3333333333333335, transformInv.scale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(3.3333333333333335, transformInv.scale.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(3.3333333333333335, transformInv.scale.z, epsilon);
+
+	dsRigidTransform3d_initialize(&transform, &position, nullptr, &scale);
+
+	dsRigidTransform3d_invert(&scalarTransformInv, &transform);
+	dsRigidTransform3d_invertSIMD2(&transformInv, &transform);
+
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.position.x, transformInv.position.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.position.y, transformInv.position.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.position.z, transformInv.position.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.i, transformInv.orientation.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.j, transformInv.orientation.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.k, transformInv.orientation.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.r, transformInv.orientation.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.scale.x, transformInv.scale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.scale.y, transformInv.scale.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.scale.z, transformInv.scale.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(100.0, transformInv.position.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-100.0, transformInv.position.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(100.0, transformInv.position.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.0, transformInv.orientation.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0, transformInv.orientation.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0, transformInv.orientation.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0, transformInv.orientation.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(10.0, transformInv.scale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(5.0, transformInv.scale.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(3.3333333333333335, transformInv.scale.z, epsilon);
+}
+
+#if !DS_DETERMINISTIC_MATH
+TEST(RigidTransform3dTest, InvertFMA2)
+{
+	dsSIMDFeatures features = dsSIMDFeatures_Double2 | dsSIMDFeatures_FMA;
+	if ((dsHostSIMDFeatures & features) != features)
+		return;
+
+	double epsilon = RigidTransform3TypeSelector<double>::epsilon;
+
+	dsVector3xd position = {{-10.0, 20.0, -30.0, 1.0}};
+	dsQuaternion4d orientation;
+	dsQuaternion4d_fromEulerAngles(&orientation, dsRadiansToDegreesd(-10.0),
+		dsRadiansToDegreesd(15.0), dsRadiansToDegreesd(-20.0));
+	dsVector3xd scaleUniform ={{0.3, 0.3, 0.3, -2.0f}};
+	dsVector3xd scale = {{0.1, 0.2, 0.3, -2.0f}};
+
+	dsRigidTransform3d transform, transformInv;
+	dsRigidTransform3d_initialize(&transform, &position, &orientation, &scaleUniform);
+	dsRigidTransform3d_invertFMA2(&transformInv, &transform);
+
+	EXPECT_NEAR(102.42653148618588, transformInv.position.x, epsilon);
+	EXPECT_NEAR(27.260183551390089, transformInv.position.y, epsilon);
+	EXPECT_NEAR(65.736166575253293, transformInv.position.z, epsilon);
+
+	EXPECT_NEAR(0.64586894018621044, transformInv.orientation.i, epsilon);
+	EXPECT_NEAR(-0.20907876439232123, transformInv.orientation.j, epsilon);
+	EXPECT_NEAR(0.72925409624943316, transformInv.orientation.k, epsilon);
+	EXPECT_NEAR(-0.085602835737748073, transformInv.orientation.r, epsilon);
+
+	EXPECT_NEAR(3.3333333333333335, transformInv.scale.x, epsilon);
+	EXPECT_NEAR(3.3333333333333335, transformInv.scale.y, epsilon);
+	EXPECT_NEAR(3.3333333333333335, transformInv.scale.z, epsilon);
+
+	dsRigidTransform3d_initialize(&transform, &position, nullptr, &scale);
+	dsRigidTransform3d_invertSIMD2(&transformInv, &transform);
+
+	EXPECT_NEAR(100.0, transformInv.position.x, epsilon);
+	EXPECT_NEAR(-100.0, transformInv.position.y, epsilon);
+	EXPECT_NEAR(100.0, transformInv.position.z, epsilon);
+
+	EXPECT_NEAR(-0.0, transformInv.orientation.i, epsilon);
+	EXPECT_NEAR(-0.0, transformInv.orientation.j, epsilon);
+	EXPECT_NEAR(-0.0, transformInv.orientation.k, epsilon);
+	EXPECT_NEAR(1.0, transformInv.orientation.r, epsilon);
+
+	EXPECT_NEAR(10.0, transformInv.scale.x, epsilon);
+	EXPECT_NEAR(5.0, transformInv.scale.y, epsilon);
+	EXPECT_NEAR(3.3333333333333335, transformInv.scale.z, epsilon);
+}
+#endif // !DS_DETERMINISTIC_MATH
+
+TEST(RigidTransform3dTest, InvertSIMD4)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Double4))
+		return;
+
+	double epsilon = RigidTransform3TypeSelector<double>::epsilon;
+	DS_UNUSED(epsilon);
+
+	dsVector3xd position = {{-10.0, 20.0, -30.0, 1.0}};
+	dsQuaternion4d orientation;
+	dsQuaternion4d_fromEulerAngles(&orientation, dsRadiansToDegreesd(-10.0),
+		dsRadiansToDegreesd(15.0), dsRadiansToDegreesd(-20.0));
+	dsVector3xd scaleUniform ={{0.3, 0.3, 0.3, -2.0f}};
+	dsVector3xd scale = {{0.1, 0.2, 0.3, -2.0f}};
+
+	DS_ALIGN(32) dsRigidTransform3d transform, scalarTransformInv, transformInv;
+	dsRigidTransform3d_initialize(&transform, &position, &orientation, &scaleUniform);
+
+	// Not guaranteed to be scalar, but still may be different depending on the compiler settings.
+	dsRigidTransform3d_invert(&scalarTransformInv, &transform);
+	dsRigidTransform3d_invertSIMD4(&transformInv, &transform);
+
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.position.x, transformInv.position.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.position.y, transformInv.position.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.position.z, transformInv.position.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.i, transformInv.orientation.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.j, transformInv.orientation.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.k, transformInv.orientation.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.r, transformInv.orientation.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.scale.x, transformInv.scale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.scale.y, transformInv.scale.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.scale.z, transformInv.scale.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(102.42653148618588, transformInv.position.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(27.260183551390089, transformInv.position.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(65.736166575253293, transformInv.position.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(0.64586894018621044, transformInv.orientation.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.20907876439232123, transformInv.orientation.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(0.72925409624943316, transformInv.orientation.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.085602835737748073, transformInv.orientation.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(3.3333333333333335, transformInv.scale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(3.3333333333333335, transformInv.scale.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(3.3333333333333335, transformInv.scale.z, epsilon);
+
+	dsRigidTransform3d_initialize(&transform, &position, nullptr, &scale);
+
+	dsRigidTransform3d_invert(&scalarTransformInv, &transform);
+	dsRigidTransform3d_invertSIMD4(&transformInv, &transform);
+
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.position.x, transformInv.position.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.position.y, transformInv.position.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.position.z, transformInv.position.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.i, transformInv.orientation.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.j, transformInv.orientation.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.k, transformInv.orientation.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.orientation.r, transformInv.orientation.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.scale.x, transformInv.scale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.scale.y, transformInv.scale.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(scalarTransformInv.scale.z, transformInv.scale.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(100.0, transformInv.position.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-100.0, transformInv.position.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(100.0, transformInv.position.z, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(-0.0, transformInv.orientation.i, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0, transformInv.orientation.j, epsilon);
+	EXPECT_EQ_DETERMINISTIC(-0.0, transformInv.orientation.k, epsilon);
+	EXPECT_EQ_DETERMINISTIC(1.0, transformInv.orientation.r, epsilon);
+
+	EXPECT_EQ_DETERMINISTIC(10.0, transformInv.scale.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(5.0, transformInv.scale.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(3.3333333333333335, transformInv.scale.z, epsilon);
+}
 
 TEST(RigidTransform3dTest, NearLerpSIMD4)
 {

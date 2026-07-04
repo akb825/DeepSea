@@ -58,6 +58,9 @@ void dsRigidTransform3f_nearLerp(
 void dsRigidTransform3d_nearLerp(
 	dsRigidTransform3d* result, const dsRigidTransform3d* a, const dsRigidTransform3d* b, double t);
 
+void dsRigidTransform3f_invert(dsRigidTransform3f* result, const dsRigidTransform3f* a);
+void dsRigidTransform3d_invert(dsRigidTransform3d* result, const dsRigidTransform3d* a);
+
 bool dsRigidTransform3f_equal(const dsRigidTransform3f* a, const dsRigidTransform3f* b);
 bool dsRigidTransform3d_equal(const dsRigidTransform3d* a, const dsRigidTransform3d* b);
 
@@ -75,6 +78,7 @@ void dsRigidTransform3f_lerpSIMD(
 	dsRigidTransform3f* result, const dsRigidTransform3f* a, const dsRigidTransform3f* b, float t);
 void dsRigidTransform3f_nearLerpSIMD(
 	dsRigidTransform3f* result, const dsRigidTransform3f* a, const dsRigidTransform3f* b, float t);
+void dsRigidTransform3f_invertSIMD(dsRigidTransform3f* result, const dsRigidTransform3f* a);
 bool dsRigidTransform3f_equalSIMD(const dsRigidTransform3f* a, const dsRigidTransform3f* b);
 
 #if !DS_DETERMINISTIC_MATH
@@ -89,6 +93,7 @@ void dsRigidTransform3f_lerpFMA(
 	dsRigidTransform3f* result, const dsRigidTransform3f* a, const dsRigidTransform3f* b, float t);
 void dsRigidTransform3f_nearLerpFMA(
 	dsRigidTransform3f* result, const dsRigidTransform3f* a, const dsRigidTransform3f* b, float t);
+void dsRigidTransform3f_invertFMA(dsRigidTransform3f* result, const dsRigidTransform3f* a);
 #endif // !DS_DETERMINISTIC_MATH
 
 void dsRigidTransform3d_fromMatrixSIMD2(dsRigidTransform3d* result, const dsMatrix44d* matrix);
@@ -103,6 +108,7 @@ void dsRigidTransform3d_lerpSIMD2(
 	dsRigidTransform3d* result, const dsRigidTransform3d* a, const dsRigidTransform3d* b, double t);
 void dsRigidTransform3d_nearLerpSIMD2(
 	dsRigidTransform3d* result, const dsRigidTransform3d* a, const dsRigidTransform3d* b, double t);
+void dsRigidTransform3d_invertSIMD2(dsRigidTransform3d* result, const dsRigidTransform3d* a);
 bool dsRigidTransform3d_equalSIMD2(const dsRigidTransform3d* a, const dsRigidTransform3d* b);
 
 #if !DS_DETERMINISTIC_MATH
@@ -117,6 +123,7 @@ void dsRigidTransform3d_lerpFMA2(
 	dsRigidTransform3d* result, const dsRigidTransform3d* a, const dsRigidTransform3d* b, double t);
 void dsRigidTransform3d_nearLerpFMA2(
 	dsRigidTransform3d* result, const dsRigidTransform3d* a, const dsRigidTransform3d* b, double t);
+void dsRigidTransform3d_invertFMA2(dsRigidTransform3d* result, const dsRigidTransform3d* a);
 #endif // !DS_DETERMINISTIC_MATH
 
 void dsRigidTransform3d_fromMatrixSIMD4(
@@ -136,6 +143,8 @@ void dsRigidTransform3d_lerpSIMD4(dsRigidTransform3d* DS_ALIGN_PARAM(32) result,
 void dsRigidTransform3d_nearLerpSIMD4(dsRigidTransform3d* DS_ALIGN_PARAM(32) result,
 	const dsRigidTransform3d* DS_ALIGN_PARAM(32) a, const dsRigidTransform3d* DS_ALIGN_PARAM(32) b,
 	double t);
+void dsRigidTransform3d_invertSIMD4(
+	dsRigidTransform3d* DS_ALIGN_PARAM(32) result, const dsRigidTransform3d* DS_ALIGN_PARAM(32) a);
 bool dsRigidTransform3d_equalSIMD4(
 	const dsRigidTransform3d* DS_ALIGN_PARAM(32) a, const dsRigidTransform3d* DS_ALIGN_PARAM(32) b);
 
