@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-2025 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,8 +105,8 @@ dsSceneRigidBodyNode* dsSceneRigidBodyNode_create(dsAllocator* allocator, const 
 	dsSceneRigidBodyNode* node = DS_ALLOCATE_OBJECT(&bufferAlloc, dsSceneRigidBodyNode);
 	DS_ASSERT(node);
 
-	const char* const* itemListsCopy = dsSceneNode_copyItemLists((dsAllocator*)&bufferAlloc,
-		itemLists, itemListCount);
+	const char* const* itemListsCopy = dsSceneNode_copyItemLists(
+		(dsAllocator*)&bufferAlloc, itemLists, itemListCount);
 	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneRigidBodyNode_type(),

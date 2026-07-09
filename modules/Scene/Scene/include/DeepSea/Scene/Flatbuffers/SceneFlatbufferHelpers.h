@@ -179,6 +179,18 @@ inline dsVector4f convert(const Vector4f& vector)
 }
 
 /**
+ * @brief Converts from a flatbuffer Vector4f to a dsQuaternion4f.
+ * @param quaternion The quaternion to convert.
+ * @return The converted quaternion.
+ */
+inline dsQuaternion4f convert(const Quaternion4f& quaternion)
+{
+	// Avoid unaligned access.
+	dsQuaternion4f value = {{quaternion.i(), quaternion.j(), quaternion.k(), quaternion.r()}};
+	return value;
+}
+
+/**
  * @brief Converts from a flatbuffer Color3f to a dsColor3f.
  * @param color The color to convert.
  * @return The converted color.

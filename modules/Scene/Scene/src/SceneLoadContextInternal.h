@@ -24,6 +24,11 @@ extern "C"
 {
 #endif
 
+dsSceneNode* dsSceneDynamicTransformNode_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,
+	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
+	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc);
 dsSceneNode* dsSceneHandoffNode_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const uint8_t* data, size_t dataSize, void* relativePathUserData,

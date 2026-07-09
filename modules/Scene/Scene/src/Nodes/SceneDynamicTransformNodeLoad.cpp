@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2026 Aaron Barany
+ * Copyright 2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Scene/Nodes/SceneTransformNode.h>
+#include <DeepSea/Scene/Nodes/SceneDynamicTransformNode.h>
 
 #include "SceneLoadContextInternal.h"
 
@@ -22,6 +22,8 @@
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
+#include <DeepSea/Math/Quaternion.h>
 
 #include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
@@ -35,7 +37,7 @@
 #pragma warning(disable: 4244)
 #endif
 
-#include "Flatbuffers/TransformNode_generated.h"
+#include "Flatbuffers/DynamicTransformNode_generated.h"
 
 #if DS_GCC || DS_CLANG
 #pragma GCC diagnostic pop
@@ -44,25 +46,43 @@
 #endif
 
 extern "C"
-dsSceneNode* dsSceneTransformNode_load(const dsSceneLoadContext* loadContext,
+dsSceneNode* dsSceneDynamicTransformNode_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void*, const uint8_t* data, size_t dataSize, void* relativePathUserData,
 	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
 	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
-	if (!DeepSeaScene::VerifyTransformNodeBuffer(verifier))
+	if (!DeepSeaScene::VerifyDynamicTransformNodeBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid transform node flatbuffer format.");
+		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid Dynamictransform node flatbuffer format.");
 		return nullptr;
 	}
 
-	auto fbTransformNode = DeepSeaScene::GetTransformNode(data);
-	const DeepSeaScene::Matrix44f* fbTransform = fbTransformNode->transform();
-	dsMatrix44f transform;
-	if (fbTransform)
-		transform = DeepSeaScene::convert(*fbTransform);
+	auto fbTransformNode = DeepSeaScene::GetDynamicTransformNode(data);
+
+	dsRigidTransform3f transform;
+	const DeepSeaScene::Vector3f* fbScale = fbTransformNode->scale();
+	if (fbScale)
+		transform.scale = DeepSeaScene::convert3x(*fbScale);
+	else
+		transform.scale.x = transform.scale.y = transform.scale.z = transform.scale.w = 1.0f;
+
+	const DeepSeaScene::Quaternion4f* fbOrientation = fbTransformNode->orientation();
+	if (fbOrientation)
+		transform.orientation = DeepSeaScene::convert(*fbOrientation);
+	else
+		dsQuaternion4_identityRotation(transform.orientation);
+
+	const DeepSeaScene::Vector3f* fbPosition = fbTransformNode->position();
+	if (fbPosition)
+		transform.position = DeepSeaScene::convert3x(*fbPosition);
+	else
+	{
+		transform.position.x = transform.position.y = transform.position.z = transform.position.w =
+			0.0f;
+	}
 
 	auto fbItemLists = fbTransformNode->itemLists();
 	uint32_t itemListCount = fbItemLists ? fbItemLists->size() : 0U;
@@ -75,7 +95,7 @@ dsSceneNode* dsSceneTransformNode_load(const dsSceneLoadContext* loadContext,
 			auto fbItemList = (*fbItemLists)[i];
 			if (!fbItemList)
 			{
-				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Transform node item list name is null.");
+				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Dynamic transform node item list name is null.");
 				errno = EFORMAT;
 				return nullptr;
 			}
@@ -84,8 +104,8 @@ dsSceneNode* dsSceneTransformNode_load(const dsSceneLoadContext* loadContext,
 		}
 	}
 
-	auto node = reinterpret_cast<dsSceneNode*>(dsSceneTransformNode_create(allocator,
-		fbTransform ? &transform : nullptr, itemLists, itemListCount));
+	auto node = reinterpret_cast<dsSceneNode*>(
+		dsSceneDynamicTransformNode_create(allocator, &transform, itemLists, itemListCount));
 	if (!node)
 		return nullptr;
 

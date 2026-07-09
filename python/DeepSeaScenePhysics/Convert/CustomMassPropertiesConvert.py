@@ -13,13 +13,14 @@
 # limitations under the License.
 
 import flatbuffers
-from .Helpers import eulerToQuaternion, readFloat
+from .Helpers import readFloat
 from DeepSeaPhysics.CustomMassProperties import CustomMassProperties
 from DeepSeaPhysics.Matrix33f import CreateMatrix33f
 from DeepSeaPhysics.Quaternion4f import CreateQuaternion4f
 from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import MassProperties
 from DeepSeaPhysics import ShiftedMass
+from DeepSeaScene.Convert.Quaternion import eulerToQuaternion
 
 def convertCustomMassProperties(convertContext, data, builder):
 	if not data:

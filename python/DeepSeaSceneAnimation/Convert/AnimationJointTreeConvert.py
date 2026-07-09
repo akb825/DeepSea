@@ -15,12 +15,12 @@
 import flatbuffers
 import os
 
-from DeepSeaAnimation.Convert.Quaternion import eulerToQuaternion
 from DeepSeaAnimation.Matrix44f import CreateMatrix44f
 from DeepSeaAnimation.Quaternion4f import CreateQuaternion4f
 from DeepSeaAnimation.Vector3f import CreateVector3f
 from DeepSeaAnimation import AnimationJointTreeNode as AnimationJointNode
 from DeepSeaAnimation import AnimationTree
+from DeepSeaScene.Convert.Quaternion import eulerToQuaternion
 
 class AnimationJointTreeNode:
 	"""

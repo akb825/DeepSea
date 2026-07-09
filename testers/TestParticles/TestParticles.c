@@ -192,25 +192,29 @@ static bool processEvent(
 				dsView_update(testParticles->view);
 			return true;
 		case dsAppEventType_KeyDown:
-			if (event->key.repeat)
-				return false;
-
-			if (event->key.key == dsKeyCode_ACBack)
-				dsApplication_quit(application, 0);
-			else if (event->key.key == dsKeyCode_Space)
-				testParticles->stop = !testParticles->stop;
-			else if (event->key.key == dsKeyCode_1)
-				toggleStaticTorch(testParticles);
-			else if (event->key.key == dsKeyCode_2)
-				toggleRotatingTorch(testParticles);
-			else if (event->key.key == dsKeyCode_V)
+			switch (event->key.key)
 			{
-				if (testParticles->renderer->vsync == dsVSync_Disabled)
-					dsRenderer_setVSync(testParticles->renderer, dsVSync_TripleBuffer);
-				else
-					dsRenderer_setVSync(testParticles->renderer, dsVSync_Disabled);
+				case dsKeyCode_Space:
+					testParticles->stop = !testParticles->stop;
+					return false;
+				case dsKeyCode_1:
+					toggleStaticTorch(testParticles);
+					return false;
+				case dsKeyCode_2:
+					toggleRotatingTorch(testParticles);
+					return false;
+				case dsKeyCode_V:
+					if (testParticles->renderer->vsync == dsVSync_Disabled)
+						dsRenderer_setVSync(testParticles->renderer, dsVSync_TripleBuffer);
+					else
+						dsRenderer_setVSync(testParticles->renderer, dsVSync_Disabled);
+					return false;
+				case dsKeyCode_ACBack:
+					dsApplication_quit(application, 0);
+					return false;
+				default:
+					return true;
 			}
-			return false;
 		case dsAppEventType_TouchFingerDown:
 			++testParticles->fingerCount;
 			testParticles->maxFingers =

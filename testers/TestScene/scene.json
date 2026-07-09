@@ -13,6 +13,12 @@
 		],
 		[
 			{
+				"type": "TestSceneUpdate",
+				"name": "update"
+			}
+		],
+		[
+			{
 				"type": "ViewCullList",
 				"name": "cullList"
 			}

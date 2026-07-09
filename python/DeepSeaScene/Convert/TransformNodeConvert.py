@@ -33,6 +33,7 @@ def convertTransformNode(convertContext, data, inputDir, outputDir):
 	- children: an array of child nodes. Each element is an object with the following elements:
 	  - nodeType: the name of the node type.
 	  - data: the data for the node.
+	- itemLists: array of item list names to process the node with.
 	"""
 	builder = flatbuffers.Builder(0)
 	try:
@@ -49,6 +50,8 @@ def convertTransformNode(convertContext, data, inputDir, outputDir):
 					raise Exception('Child node data doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):
 			raise Exception('TransformNode "children" must be an array of objects.')
+
+		itemLists = data.get('itemLists')
 	except KeyError as e:
 		raise Exception('TransformNode data doesn\'t contain element ' + str(e) + '.')
 	except (TypeError, ValueError):
@@ -62,8 +65,24 @@ def convertTransformNode(convertContext, data, inputDir, outputDir):
 	else:
 		childrenOffset = 0
 
+	if itemLists:
+		itemListOffsets = []
+		try:
+			for item in itemLists:
+				itemListOffsets.append(builder.CreateString(str(item)))
+		except (TypeError, ValueError):
+			raise Exception('TransformNode "itemLists" must be an array of strings.')
+
+		TransformNode.StartItemListsVector(builder, len(itemListOffsets))
+		for offset in reversed(itemListOffsets):
+			builder.PrependUOffsetTRelative(offset)
+		itemListsOffset = builder.EndVector()
+	else:
+		itemListsOffset = 0
+
 	TransformNode.Start(builder)
 	TransformNode.AddTransform(builder, CreateMatrix44f(builder, *matrix))
 	TransformNode.AddChildren(builder, childrenOffset)
+	TransformNode.AddItemLists(builder, itemListsOffset)
 	builder.Finish(TransformNode.End(builder))
 	return builder.Output()

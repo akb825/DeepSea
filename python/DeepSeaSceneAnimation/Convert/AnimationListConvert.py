@@ -13,29 +13,9 @@
 # limitations under the License.
 
 import flatbuffers
-from .. import AnimationList
 
 def convertAnimationList(convertContext, data, inputDir):
 	"""
-	Converts an AnimationList. The data map is expected to contain the following elements:
-	- viewFilter: name of the filter for what views to process. All views will be processed if
-	  unset.
+	Converts an AnimationList. The data map is ignored.
 	"""
-	try:
-		viewFilter = str(data.get('viewFilter', ''))
-	except KeyError as e:
-		raise Exception("AnimationList data doesn't contain element " + str(e) + '.')
-	except (TypeError, ValueError):
-		raise Exception('ViweCullList data must be an object.')
-
-	builder = flatbuffers.Builder(0)
-
-	if viewFilter:
-		viewFilterOffset = builder.CreateString(viewFilter)
-	else:
-		viewFilterOffset = 0
-
-	AnimationList.Start(builder)
-	AnimationList.AddViewFilter(builder, viewFilterOffset)
-	builder.Finish(AnimationList.End(builder))
-	return builder.Output()
+	return bytearray()

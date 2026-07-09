@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2026 Aaron Barany
+ * Copyright 2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,51 +14,51 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Scene/Nodes/SceneTransformNode.h>
+#include <DeepSea/Scene/Nodes/SceneDynamicTransformNode.h>
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 
-#include <DeepSea/Math/Matrix44.h>
-#include <DeepSea/Math/Vector4.h>
+#include <DeepSea/Math/RigidTransform3.h>
+#include <DeepSea/Math/Vector3x.h>
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 
-static void dsSceneTransformNode_setupTreeNode(dsSceneNode* node, dsSceneTreeNode* treeNode)
+static void dsSceneDynamicTransformNode_setupTreeNode(dsSceneNode* node, dsSceneTreeNode* treeNode)
 {
-	treeNode->baseFrameTransform = &((dsSceneTransformNode*)node)->transform;
+	treeNode->baseStepTransform = &((dsSceneDynamicTransformNode*)node)->transform;
 }
 
-static void dsSceneTransformNode_shift(dsSceneNode* node, const dsVector3xf* shift)
+static void dsSceneDynamicTransformNode_shift(dsSceneNode* node, const dsVector3xf* shift)
 {
-	dsSceneTransformNode* transformNode = (dsSceneTransformNode*)node;
-	dsVector4f_add(
-		transformNode->transform.columns + 3, transformNode->transform.columns + 3, shift);
+	dsSceneDynamicTransformNode* transformNode = (dsSceneDynamicTransformNode*)node;
+	dsVector3xf_add(
+		&transformNode->transform.position, &transformNode->transform.position, shift);
 }
 
-static void dsSceneTransformNode_destroy(dsSceneNode* node)
+static void dsSceneDynamicTransformNode_destroy(dsSceneNode* node)
 {
 	DS_VERIFY(dsAllocator_free(node->allocator, node));
 }
 
-const char* const dsSceneTransformNode_typeName = "TransformNode";
+const char* const dsSceneDynamicTransformNode_typeName = "DynamicTransformNode";
 
 static dsSceneNodeType nodeType =
 {
-	.setupTreeNodeFunc = &dsSceneTransformNode_setupTreeNode,
-	.shiftNodeFunc = &dsSceneTransformNode_shift,
-	.destroyFunc = &dsSceneTransformNode_destroy
+	.setupTreeNodeFunc = &dsSceneDynamicTransformNode_setupTreeNode,
+	.shiftNodeFunc = &dsSceneDynamicTransformNode_shift,
+	.destroyFunc = &dsSceneDynamicTransformNode_destroy
 };
 
-const dsSceneNodeType* dsSceneTransformNode_type(void)
+const dsSceneNodeType* dsSceneDynamicTransformNode_type(void)
 {
 	return &nodeType;
 }
 
-dsSceneTransformNode* dsSceneTransformNode_create(dsAllocator* allocator,
-	const dsMatrix44f* transform, const char* const* itemLists, uint32_t itemListCount)
+dsSceneDynamicTransformNode* dsSceneDynamicTransformNode_create(dsAllocator* allocator,
+	const dsRigidTransform3f* transform, const char* const* itemLists, uint32_t itemListCount)
 {
 	if (!allocator || (!itemLists && itemListCount > 0))
 	{
@@ -66,7 +66,7 @@ dsSceneTransformNode* dsSceneTransformNode_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneTransformNode)) +
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneDynamicTransformNode)) +
 		dsSceneNode_itemListsAllocSize(itemLists, itemListCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
@@ -75,7 +75,8 @@ dsSceneTransformNode* dsSceneTransformNode_create(dsAllocator* allocator,
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
-	dsSceneTransformNode* transformNode = DS_ALLOCATE_OBJECT(&bufferAlloc, dsSceneTransformNode);
+	dsSceneDynamicTransformNode* transformNode = DS_ALLOCATE_OBJECT(
+		&bufferAlloc, dsSceneDynamicTransformNode);
 	DS_ASSERT(transformNode);
 
 	const char* const* itemListsCopy = dsSceneNode_copyItemLists(
@@ -84,7 +85,7 @@ dsSceneTransformNode* dsSceneTransformNode_create(dsAllocator* allocator,
 
 	dsSceneNode* baseNode = (dsSceneNode*)transformNode;
 	if (!dsSceneNode_initialize(
-			baseNode, allocator, dsSceneTransformNode_type(), itemListsCopy, itemListCount))
+			baseNode, allocator, dsSceneDynamicTransformNode_type(), itemListsCopy, itemListCount))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, transformNode));
@@ -94,11 +95,12 @@ dsSceneTransformNode* dsSceneTransformNode_create(dsAllocator* allocator,
 	if (transform)
 		transformNode->transform = *transform;
 	else
-		dsMatrix44f_identity(&transformNode->transform);
+		dsRigidTransform3f_identity(&transformNode->transform);
 	return transformNode;
 }
 
-bool dsSceneTransformNode_setTransform(dsSceneTransformNode* node, const dsMatrix44f* transform)
+bool dsSceneDynamicTransformNode_setTransform(
+	dsSceneDynamicTransformNode* node, const dsRigidTransform3f* transform)
 {
 	if (!node || !transform)
 	{

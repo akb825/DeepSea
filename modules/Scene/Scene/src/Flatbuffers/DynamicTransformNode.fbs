@@ -14,14 +14,27 @@
  * limitations under the License.
  */
 
-namespace DeepSeaSceneAnimation;
+include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
 
+namespace DeepSeaScene;
 
-// Struct defining a list of animation related resources in a scene.
-table AnimationList
+// Struct describing a dynamictransform scene node.
+table DynamicTransformNode
 {
-	// Name of the filter for what views to process. All views will be processed if unset.
-	viewFilter : string;
+	// The scale of the transform.
+	scale : Vector3f;
+
+	// The orientation of the transform.
+	orientation : Quaternion4f;
+
+	// The position of the transform.
+	position : Vector3f;
+
+	// The child nodes for the transform.
+	children : [ObjectData];
+
+	// The item lists the to process the node with.
+	itemLists : [string];
 }
 
-root_type AnimationList;
+root_type DynamicTransformNode;

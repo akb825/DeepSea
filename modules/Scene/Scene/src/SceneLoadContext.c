@@ -34,6 +34,7 @@
 #include <DeepSea/Scene/ItemLists/ViewCullList.h>
 #include <DeepSea/Scene/ItemLists/ViewFramebufferData.h>
 #include <DeepSea/Scene/ItemLists/ViewMipmapList.h>
+#include <DeepSea/Scene/Nodes/SceneDynamicTransformNode.h>
 #include <DeepSea/Scene/Nodes/SceneHandoffNode.h>
 #include <DeepSea/Scene/Nodes/SceneModelNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
@@ -79,46 +80,48 @@ dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator, dsRenderer
 		dsHashString, dsHashStringEqual);
 
 	// Built-in types.
-	dsSceneLoadContext_registerNodeType(context, dsSceneHandoffNode_typeName,
-		&dsSceneHandoffNode_load, NULL, NULL);
-	dsSceneLoadContext_registerNodeType(context, dsSceneModelNode_typeName, &dsSceneModelNode_load,
-		NULL, NULL);
-	dsSceneLoadContext_registerNodeType(context, dsSceneModelNode_reconfigTypeName,
-		&dsSceneModelNode_loadReconfig, NULL, NULL);
-	dsSceneLoadContext_registerNodeType(context, dsSceneModelNode_remapTypeName,
-		&dsSceneModelNode_loadRemap, NULL, NULL);
-	dsSceneLoadContext_registerNodeType(context, dsSceneNodeRef_typeName, &dsSceneNodeRef_load,
-		NULL, NULL);
-	dsSceneLoadContext_registerNodeType(context, dsSceneShiftNode_typeName,
-		&dsSceneShiftNode_load, NULL, NULL);
-	dsSceneLoadContext_registerNodeType(context, dsSceneTransformNode_typeName,
-		&dsSceneTransformNode_load, NULL, NULL);
+	dsSceneLoadContext_registerNodeType(context, dsSceneDynamicTransformNode_typeName,
+		&dsSceneDynamicTransformNode_load, NULL, NULL);
+	dsSceneLoadContext_registerNodeType(
+		context, dsSceneHandoffNode_typeName, &dsSceneHandoffNode_load, NULL, NULL);
+	dsSceneLoadContext_registerNodeType(
+		context, dsSceneModelNode_typeName, &dsSceneModelNode_load, NULL, NULL);
+	dsSceneLoadContext_registerNodeType(
+		context, dsSceneModelNode_reconfigTypeName, &dsSceneModelNode_loadReconfig, NULL, NULL);
+	dsSceneLoadContext_registerNodeType(
+		context, dsSceneModelNode_remapTypeName, &dsSceneModelNode_loadRemap, NULL, NULL);
+	dsSceneLoadContext_registerNodeType(
+		context, dsSceneNodeRef_typeName, &dsSceneNodeRef_load, NULL, NULL);
+	dsSceneLoadContext_registerNodeType(
+		context, dsSceneShiftNode_typeName, &dsSceneShiftNode_load, NULL, NULL);
+	dsSceneLoadContext_registerNodeType(
+		context, dsSceneTransformNode_typeName, &dsSceneTransformNode_load, NULL, NULL);
 
-	dsSceneLoadContext_registerItemListType(context, dsSceneFullScreenResolve_typeName,
-		&dsSceneFullScreenResolve_load, NULL, NULL);
-	dsSceneLoadContext_registerItemListType(context, dsSceneHandoffList_typeName,
-		&dsSceneHandoffList_load, NULL, NULL);
-	dsSceneLoadContext_registerItemListType(context, dsSceneModelList_typeName,
-		&dsSceneModelList_load, NULL, NULL);
-	dsSceneLoadContext_registerItemListType(context, dsSceneUserDataList_typeName,
-		&dsSceneUserDataList_load, NULL, NULL);
-	dsSceneLoadContext_registerItemListType(context, dsViewCullList_typeName,
-		&dsViewCullList_load, NULL, NULL);
-	dsSceneLoadContext_registerItemListType(context, dsViewMipmapList_typeName,
-		&dsViewMipmapList_load, NULL, NULL);
-	dsSceneLoadContext_registerItemListType(context, dsViewTransformData_typeName,
-		&dsViewTransformData_load, NULL, NULL);
+	dsSceneLoadContext_registerItemListType(
+		context, dsSceneFullScreenResolve_typeName, &dsSceneFullScreenResolve_load, NULL, NULL);
+	dsSceneLoadContext_registerItemListType(
+		context, dsSceneHandoffList_typeName, &dsSceneHandoffList_load, NULL, NULL);
+	dsSceneLoadContext_registerItemListType(
+		context, dsSceneModelList_typeName, &dsSceneModelList_load, NULL, NULL);
+	dsSceneLoadContext_registerItemListType(
+		context, dsSceneUserDataList_typeName, &dsSceneUserDataList_load, NULL, NULL);
+	dsSceneLoadContext_registerItemListType(
+		context, dsViewCullList_typeName, &dsViewCullList_load, NULL, NULL);
+	dsSceneLoadContext_registerItemListType(
+		context, dsViewMipmapList_typeName, &dsViewMipmapList_load, NULL, NULL);
+	dsSceneLoadContext_registerItemListType(
+		context, dsViewTransformData_typeName, &dsViewTransformData_load, NULL, NULL);
 
 	dsSceneLoadContext_registerInstanceDataType(context, dsInstanceScreenTransformData_typeName,
 		&dsInstanceScreenTransformData_load, NULL, NULL);
-	dsSceneLoadContext_registerInstanceDataType(context, dsInstanceTransformData_typeName,
-		&dsInstanceTransformData_load, NULL, NULL);
-	dsSceneLoadContext_registerInstanceDataType(context, dsViewFramebufferData_typeName,
-		&dsViewFramebufferData_load, NULL, NULL);
+	dsSceneLoadContext_registerInstanceDataType(
+		context, dsInstanceTransformData_typeName, &dsInstanceTransformData_load, NULL, NULL);
+	dsSceneLoadContext_registerInstanceDataType(
+		context, dsViewFramebufferData_typeName, &dsViewFramebufferData_load, NULL, NULL);
 
 	// Actions aren't exposed in code so inlined names.
-	dsSceneLoadContext_registerResourceActionType(context, "NodeChildren",
-		&dsSceneNodeChildren_load, NULL, NULL, 0);
+	dsSceneLoadContext_registerResourceActionType(
+		context, "NodeChildren", &dsSceneNodeChildren_load, NULL, NULL, 0);
 
 	return context;
 }

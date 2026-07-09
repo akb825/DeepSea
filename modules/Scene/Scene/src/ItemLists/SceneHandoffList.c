@@ -224,8 +224,6 @@ static void dsSceneHandoffList_destroy(dsSceneItemList* itemList)
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
 
-const char* const dsSceneHandoffList_typeName = "HandoffList";
-
 dsSceneItemList* dsSceneHandoffList_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const char* name, const uint8_t* data, size_t dataSize)
@@ -238,6 +236,8 @@ dsSceneItemList* dsSceneHandoffList_load(const dsSceneLoadContext* loadContext,
 	DS_UNUSED(dataSize);
 	return dsSceneHandoffList_create(allocator, name);
 }
+
+const char* const dsSceneHandoffList_typeName = "HandoffList";
 
 static dsSceneItemListType itemListType =
 {

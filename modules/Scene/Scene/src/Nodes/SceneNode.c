@@ -214,8 +214,8 @@ bool dsSceneNode_addChild(dsSceneNode* node, dsSceneNode* child)
 	}
 
 	uint32_t index = node->childCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(node->allocator, node->children, node->childCount,
-			node->maxChildren, 1))
+	if (!DS_RESIZEABLE_ARRAY_ADD(
+			node->allocator, node->children, node->childCount, node->maxChildren, 1))
 	{
 		return false;
 	}

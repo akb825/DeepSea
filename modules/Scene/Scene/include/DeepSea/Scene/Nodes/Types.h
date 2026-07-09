@@ -228,6 +228,11 @@ typedef struct dsSceneShiftNode
 
 /**
  * @brief Scene node implementation that contains a transform for any subnodes.
+ *
+ * The transform is expected to rarely change. Use dsSceneDynamicTransformNode for a node that is
+ * constantly in motion, ensuring that the results are properly interpolated when fixed update steps
+ * are used.
+ *
  * @remark None of the members should be modified outside of the implementation.
  * @see SceneTransformNode
  */
@@ -249,6 +254,34 @@ typedef struct dsSceneTransformNode
 	 */
 	dsMatrix44f transform;
 } dsSceneTransformNode;
+
+/**
+ * @brief Scene node implementation that contains a dynamic transform for any subnodes.
+ *
+ * The transform is expected to change often, ensuring it is interpolated properly when fixed update
+ * steps are used.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ * @see SceneDynamicTransformNode
+ */
+typedef struct dsSceneDynamicTransformNode
+{
+	/**
+	 * @brief The base node.
+	 */
+	dsSceneNode node;
+
+	/**
+	 * @brief The transform for the node.
+	 *
+	 * This is the local transform for this node relative to any parent nodes.
+	 *
+	 * This should not be assigned directly since it won't udpate the transforms for any children.
+	 * Instead, dsSceneTransformNode_setTransform() should be called. The children will then have
+	 * their transforms updated in the call to dsScene_update().
+	 */
+	dsRigidTransform3f transform;
+} dsSceneDynamicTransformNode;
 
 /**
  * @brief Function to get the bounds for a cull node.

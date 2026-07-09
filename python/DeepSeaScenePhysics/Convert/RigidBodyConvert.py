@@ -14,7 +14,7 @@
 
 import flatbuffers
 from .CustomMassPropertiesConvert import convertCustomMassProperties
-from .Helpers import eulerToQuaternion, readFloat, readInt
+from .Helpers import readFloat, readInt
 from .ShapeInstanceConvert import convertShapeInstance
 from DeepSeaPhysics import ShapeInstance
 from DeepSeaPhysics.DOFMask import DOFMask
@@ -24,6 +24,7 @@ from DeepSeaPhysics.RigidBodyFlags import RigidBodyFlags
 from DeepSeaPhysics.Quaternion4f import CreateQuaternion4f
 from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import RigidBody
+from DeepSeaScene.Convert.Quaternion import eulerToQuaternion
 
 def convertRigidBody(convertContext, data, inputDir, outputDir):
 	"""

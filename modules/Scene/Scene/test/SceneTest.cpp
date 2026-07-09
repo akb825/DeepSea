@@ -263,10 +263,10 @@ TEST_F(SceneTest, CreateExistingScene)
 	dsMatrix44f_makeRotate(&matrix1, M_PI_2f, -M_PI_4f, M_PIf);
 	dsMatrix44f_makeTranslate(&matrix2, 3.2f, -5.3f, 1.3f);
 	dsSceneTransformNode* transform1 =
-		dsSceneTransformNode_create((dsAllocator*)&allocator, &matrix1);
+		dsSceneTransformNode_create((dsAllocator*)&allocator, &matrix1, NULL, 0);
 	ASSERT_TRUE(transform1);
 	dsSceneTransformNode* transform2 =
-		dsSceneTransformNode_create((dsAllocator*)&allocator, &matrix2);
+		dsSceneTransformNode_create((dsAllocator*)&allocator, &matrix2, NULL, 0);
 	ASSERT_TRUE(transform2);
 
 	ASSERT_TRUE(dsSceneNode_addChild((dsSceneNode*)transform1, mockNode1));

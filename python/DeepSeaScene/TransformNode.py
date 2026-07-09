@@ -60,8 +60,28 @@ class TransformNode(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
+    # TransformNode
+    def ItemLists(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
+        return ""
+
+    # TransformNode
+    def ItemListsLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # TransformNode
+    def ItemListsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        return o == 0
+
 def TransformNodeStart(builder):
-    builder.StartObject(2)
+    builder.StartObject(3)
 
 def Start(builder):
     TransformNodeStart(builder)
@@ -89,6 +109,24 @@ def TransformNodeCreateChildrenVector(builder, data):
 
 def CreateChildrenVector(builder, data):
     TransformNodeCreateChildrenVector(builder, data)
+
+def TransformNodeAddItemLists(builder, itemLists):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
+
+def AddItemLists(builder, itemLists):
+    TransformNodeAddItemLists(builder, itemLists)
+
+def TransformNodeStartItemListsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
+def StartItemListsVector(builder, numElems):
+    return TransformNodeStartItemListsVector(builder, numElems)
+
+def TransformNodeCreateItemListsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateItemListsVector(builder, data):
+    TransformNodeCreateItemListsVector(builder, data)
 
 def TransformNodeEnd(builder):
     return builder.EndObject()

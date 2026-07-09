@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import flatbuffers
-from .Helpers import eulerToQuaternion, readFloat
+from .Helpers import readFloat
 from .PhysicsBoxConvert import convertPhysicsBoxOffset
 from .PhysicsCapsuleConvert import convertPhysicsCapsuleOffset
 from .PhysicsConeConvert import convertPhysicsConeOffset
@@ -27,6 +27,7 @@ from DeepSeaPhysics.ShapePartMaterial import CreateShapePartMaterial
 from DeepSeaPhysics.ShapeUnion import ShapeUnion
 from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import ShapeInstance
+from DeepSeaScene.Convert.Quaternion import eulerToQuaternion
 
 shapeTypeToConvertFunc = {
 	ShapeUnion.Box: convertPhysicsBoxOffset,

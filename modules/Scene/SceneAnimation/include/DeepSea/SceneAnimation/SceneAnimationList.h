@@ -51,11 +51,10 @@ DS_SCENEANIMATION_EXPORT const dsSceneItemListType* dsSceneAnimationList_type(vo
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the list with. This must support freeing memory.
  * @param name The name of the scene animation list. This will be copied.
- * @param viewFilter The filter for what views process, or NULL to accept all views.
  * @return The scene animation list or NULL if an error occurred.
  */
 DS_SCENEANIMATION_EXPORT dsSceneAnimationList* dsSceneAnimationList_create(
-	dsAllocator* allocator, const char* name, const dsViewFilter* viewFilter);
+	dsAllocator* allocator, const char* name);
 
 /**
  * @brief Updates the ragdolls within a scene animation list.

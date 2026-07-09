@@ -15,13 +15,14 @@
 import math
 
 import flatbuffers
-from .Helpers import eulerToQuaternion, readFloat
+from .Helpers import readFloat
 from DeepSeaPhysics.ConstraintMotorType import ConstraintMotorType
 from DeepSeaPhysics.ConstraintUnion import ConstraintUnion
 from DeepSeaPhysics.Quaternion4f import CreateQuaternion4f
 from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import SwingTwistConstraint
 from DeepSeaPhysics import Constraint
+from DeepSeaScene.Convert.Quaternion import eulerToQuaternion
 
 def convertSwingTwistPhysicsConstraint(convertContext, data, inputDir, outputDir):
 	"""

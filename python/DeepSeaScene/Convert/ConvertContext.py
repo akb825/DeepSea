@@ -16,6 +16,7 @@ import os
 
 from .FullScreenResolveConvert import convertFullScreenResolve
 from .GLTFModel import registerGLTFModelType
+from .DynamicTransformNodeConvert import convertDynamicTransformNode
 from .HandoffListConvert import convertHandoffList
 from .HandoffNodeConvert import convertHandoffNode
 from .InstanceScreenTransformDataConvert import convertInstanceScreenTransformData
@@ -70,6 +71,7 @@ class ConvertContext:
 		}
 
 		self.nodeTypeMap = {
+			'DynamicTransformNode': convertDynamicTransformNode,
 			'HandoffNode': convertHandoffNode,
 			'ModelNode': convertModelNode,
 			'ModelNodeReconfig': convertModelNodeReconfig,

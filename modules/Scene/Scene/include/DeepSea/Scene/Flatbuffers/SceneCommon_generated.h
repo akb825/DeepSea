@@ -26,6 +26,8 @@ struct Vector3d;
 
 struct Vector4f;
 
+struct Quaternion4f;
+
 struct Color3f;
 
 struct Color4f;
@@ -974,6 +976,41 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector4f FLATBUFFERS_FINAL_CLASS {
   }
 };
 FLATBUFFERS_STRUCT_END(Vector4f, 16);
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Quaternion4f FLATBUFFERS_FINAL_CLASS {
+ private:
+  float i_;
+  float j_;
+  float k_;
+  float r_;
+
+ public:
+  Quaternion4f()
+      : i_(0),
+        j_(0),
+        k_(0),
+        r_(0) {
+  }
+  Quaternion4f(float _i, float _j, float _k, float _r)
+      : i_(::flatbuffers::EndianScalar(_i)),
+        j_(::flatbuffers::EndianScalar(_j)),
+        k_(::flatbuffers::EndianScalar(_k)),
+        r_(::flatbuffers::EndianScalar(_r)) {
+  }
+  float i() const {
+    return ::flatbuffers::EndianScalar(i_);
+  }
+  float j() const {
+    return ::flatbuffers::EndianScalar(j_);
+  }
+  float k() const {
+    return ::flatbuffers::EndianScalar(k_);
+  }
+  float r() const {
+    return ::flatbuffers::EndianScalar(r_);
+  }
+};
+FLATBUFFERS_STRUCT_END(Quaternion4f, 16);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Color3f FLATBUFFERS_FINAL_CLASS {
  private:

@@ -281,34 +281,36 @@ static bool processEvent(
 				dsView_update(testLighting->view);
 			return true;
 		case dsAppEventType_KeyDown:
-			if (event->key.repeat)
-				return false;
-
-			if (event->key.key == dsKeyCode_ACBack)
-				dsApplication_quit(application, 0);
-			else if (event->key.key == dsKeyCode_Space)
-				testLighting->stop = !testLighting->stop;
-			else if (event->key.key == dsKeyCode_Enter)
-				nextLightingType(testLighting);
-			else if (event->key.key == dsKeyCode_1)
+			switch (event->key.key)
 			{
-				if (testLighting->aaSamples == 1)
-					testLighting->aaSamples = 4;
-				else
-					testLighting->aaSamples = 1;
-				if (testLighting->lightingType == LightingType_Forward)
-					dsRenderer_setDefaultSamples(renderer, testLighting->aaSamples);
-				DS_LOG_INFO_F("TestLighting", "Togging anti-aliasing: %s",
-					testLighting->aaSamples == 1 ? "off" : "on");
+				case dsKeyCode_Space:
+					testLighting->stop = !testLighting->stop;
+					return false;
+				case dsKeyCode_Enter:
+					nextLightingType(testLighting);
+					return false;
+				case dsKeyCode_1:
+					if (testLighting->aaSamples == 1)
+						testLighting->aaSamples = 4;
+					else
+						testLighting->aaSamples = 1;
+					if (testLighting->lightingType == LightingType_Forward)
+						dsRenderer_setDefaultSamples(renderer, testLighting->aaSamples);
+					DS_LOG_INFO_F("TestLighting", "Togging anti-aliasing: %s",
+						testLighting->aaSamples == 1 ? "off" : "on");
+					return false;
+				case dsKeyCode_V:
+					if (testLighting->renderer->vsync == dsVSync_Disabled)
+						dsRenderer_setVSync(testLighting->renderer, dsVSync_TripleBuffer);
+					else
+						dsRenderer_setVSync(testLighting->renderer, dsVSync_Disabled);
+					return false;
+				case dsKeyCode_ACBack:
+					dsApplication_quit(application, 0);
+					return false;
+				default:
+					return true;
 			}
-			else if (event->key.key == dsKeyCode_V)
-			{
-				if (testLighting->renderer->vsync == dsVSync_Disabled)
-					dsRenderer_setVSync(testLighting->renderer, dsVSync_TripleBuffer);
-				else
-					dsRenderer_setVSync(testLighting->renderer, dsVSync_Disabled);
-			}
-			return false;
 		case dsAppEventType_TouchFingerDown:
 			++testLighting->fingerCount;
 			testLighting->maxFingers = dsMax(testLighting->fingerCount, testLighting->maxFingers);

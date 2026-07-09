@@ -195,10 +195,12 @@ static dsSceneTreeNode* addNode(
 	DS_ASSERT(childTreeNode->itemData.itemData || child->itemListCount == 0);
 	childTreeNode->itemData.count = child->itemListCount;
 
+	node->children[childIndex] = childTreeNode;
+	child->treeNodes[treeNodeIndex] = childTreeNode;
+
 	// Initialize the item list data so searches through it in a node add function won't ever reveal
 	// uninitialized data.
 	memset(childTreeNode->itemData.itemData, 0, sizeof(dsSceneItemData)*child->itemListCount);
-
 	for (uint32_t i = 0; i < child->itemListCount; ++i)
 	{
 		dsSceneItemData* itemData = childTreeNode->itemData.itemData + i;
@@ -221,9 +223,6 @@ static dsSceneTreeNode* addNode(
 		itemEntry->entry = node->list->type->addNodeFunc(
 			node->list, child, childTreeNode, &childTreeNode->itemData, &itemData->data);
 	}
-
-	node->children[childIndex] = childTreeNode;
-	child->treeNodes[treeNodeIndex] = childTreeNode;
 	return childTreeNode;
 }
 

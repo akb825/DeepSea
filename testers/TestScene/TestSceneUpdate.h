@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,11 @@
  * limitations under the License.
  */
 
-include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
+#pragma once
 
-namespace DeepSeaScene;
+#include <DeepSea/Scene/Types.h>
 
-// Struct describing a transform scene node.
-table TransformNode
-{
-	// The transform matrix for the node.
-	transform : Matrix44f;
-
-	// The child nodes for the transform.
-	children : [ObjectData];
-
-	// The item lists the to process the node with.
-	itemLists : [string];
-}
-
-root_type TransformNode;
+dsSceneItemList* dsTestSceneUpdate_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const char* name, const uint8_t* data, size_t dataSize);
+void dsTestSceneUpdate_togglePaused(dsSceneItemList* itemList);

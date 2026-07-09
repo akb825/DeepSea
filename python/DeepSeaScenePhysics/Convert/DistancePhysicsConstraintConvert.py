@@ -13,11 +13,12 @@
 # limitations under the License.
 
 import flatbuffers
-from .Helpers import eulerToQuaternion, readFloat
+from .Helpers import readFloat
 from DeepSeaPhysics.ConstraintUnion import ConstraintUnion
 from DeepSeaPhysics.Vector3f import CreateVector3f
 from DeepSeaPhysics import DistanceConstraint
 from DeepSeaPhysics import Constraint
+from DeepSeaScene.Convert.Quaternion import eulerToQuaternion
 
 def convertDistancePhysicsConstraint(convertContext, data, inputDir, outputDir):
 	"""

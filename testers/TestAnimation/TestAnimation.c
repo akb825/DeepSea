@@ -168,23 +168,26 @@ static bool processEvent(
 				dsView_update(testAnimation->view);
 			return true;
 		case dsAppEventType_KeyDown:
-			if (event->key.repeat)
-				return false;
-
-			if (event->key.key == dsKeyCode_ACBack)
-				dsApplication_quit(application, 0);
-			else if (event->key.key == dsKeyCode_1)
-				cycleSpeed(testAnimation->characterAnimations);
-			else if (event->key.key == dsKeyCode_2)
-				cycleSpeed(testAnimation->characterAnimations + 1);
-			else if (event->key.key == dsKeyCode_V)
+			switch (event->key.key)
 			{
-				if (testAnimation->renderer->vsync == dsVSync_Disabled)
-					dsRenderer_setVSync(testAnimation->renderer, dsVSync_TripleBuffer);
-				else
-					dsRenderer_setVSync(testAnimation->renderer, dsVSync_Disabled);
+				case dsKeyCode_1:
+					cycleSpeed(testAnimation->characterAnimations);
+					return false;
+				case dsKeyCode_2:
+					cycleSpeed(testAnimation->characterAnimations + 1);
+					return false;
+				case dsKeyCode_V:
+					if (testAnimation->renderer->vsync == dsVSync_Disabled)
+						dsRenderer_setVSync(testAnimation->renderer, dsVSync_TripleBuffer);
+					else
+						dsRenderer_setVSync(testAnimation->renderer, dsVSync_Disabled);
+					return false;
+				case dsKeyCode_ACBack:
+					dsApplication_quit(application, 0);
+					return false;
+				default:
+					return true;
 			}
-			return false;
 		case dsAppEventType_TouchFingerDown:
 			++testAnimation->fingerCount;
 			testAnimation->maxFingers =

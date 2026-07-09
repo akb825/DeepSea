@@ -8,8 +8,8 @@ if (NOT MSLC)
 endif()
 
 set(shaderConfigs)
-set(source TestScene.c LightData.cpp LightData.h LightData.fbs TestSceneCube.msl
-	TestSceneGround.msl)
+set(source TestScene.c LightData.cpp LightData.h TestSceneUpdate.c TestSceneUpdate.h LightData.fbs
+	TestSceneCube.msl TestSceneGround.msl)
 if (TARGET DeepSea::RenderOpenGL)
 	list(APPEND shaderConfigs glsl-1.1 glsl-1.5 glsl-es-1.0 glsl-es-3.0)
 endif()

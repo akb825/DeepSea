@@ -61,5 +61,9 @@ def convertLightData(convertContext, data, inputDir):
 	builder.Finish(LightData.End(builder))
 	return builder.Output()
 
+def convertEmptyItemList(convertContext, data, inputDir):
+	return bytearray()
+
 def deepSeaSceneExtension(convertContext):
 	convertContext.addItemListType('LightData', convertLightData)
+	convertContext.addItemListType('TestSceneUpdate', convertEmptyItemList)

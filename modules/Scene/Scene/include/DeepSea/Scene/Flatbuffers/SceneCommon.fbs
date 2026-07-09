@@ -284,6 +284,15 @@ struct Vector4f
 	w : float;
 }
 
+// Struct describing a quaternion.
+struct Quaternion4f
+{
+	i : float;
+	j : float;
+	k : float;
+	r : float;
+}
+
 // Struct describing a floating-point color without alpha.
 struct Color3f
 {

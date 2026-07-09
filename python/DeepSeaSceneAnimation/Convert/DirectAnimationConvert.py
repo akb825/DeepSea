@@ -17,8 +17,8 @@ import flatbuffers
 from DeepSeaAnimation import DirectAnimationChannel
 from DeepSeaAnimation import DirectAnimation
 from DeepSeaAnimation.AnimationComponent import AnimationComponent
-from DeepSeaAnimation.Convert.Quaternion import eulerToQuaternion
 from DeepSeaAnimation.Vector4f import CreateVector4f
+from DeepSeaScene.Convert.Quaternion import eulerToQuaternion
 
 class Object:
 	pass

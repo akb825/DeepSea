@@ -245,6 +245,17 @@ Transform nodes have the type string "TransformNode" and contains the following 
 	* `type`: the name of the node type.
 	* Remaining members depend on the value of `nodeType`.
 
+## Dynamic Transform Node
+
+Dynamic transform nodes have the type string "DynamicTransformNode" and contains the following members:
+
+* `scale`: array of 3 floats for the scale along the X, Y, and Z axes. Defaults to `[1, 1, 1]`.
+* `rotate`: array of 3 floats for the X, Y, and Z rotation in degrees. Defaults to `[0, 0, 0]`.
+* `translate`: array of 3 floats for the translation along X, Y, and Z. Defaults to `[0, 0, 0]`.
+* `children`: an array of child nodes. Each element is an object with the following elements:
+	* `type`: the name of the node type.
+	* Remaining members depend on the value of `nodeType`.
+
 # Scene
 
 The scene describes the how to process and draw a scene, as well as the list of nodes to initially populate the scene with. The JSON object (or Python dict supplied directly) has the following elements:
@@ -322,7 +333,7 @@ Full screen resolve draws a full screen quad with a shader and material. This is
 	* `frontStencilReference`: int reference for just the front stencil.
 	* `backStencilReference`: int reference for just the back stencil.
 
-### Handoff list
+### Handoff List
 
 Handoff lists have the type name "HandoffList" and are used to adjust the transform of `dsSceneHandoffNode` instances. The data is ignored and may be omitted.
 
