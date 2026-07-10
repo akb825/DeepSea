@@ -271,8 +271,8 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 		pipelineCount == 0)
 	{
 		errno = EINVAL;
-		destroyObjects(sharedItems, sharedItemCount, pipeline, pipelineCount, userData,
-			destroyUserDataFunc);
+		destroyObjects(
+			sharedItems, sharedItemCount, pipeline, pipelineCount, userData, destroyUserDataFunc);
 		dsScene_destroy(prevScene);
 		return NULL;
 	}
@@ -281,8 +281,8 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Scene allocator must support freeing memory.");
-		destroyObjects(sharedItems, sharedItemCount, pipeline, pipelineCount, userData,
-			destroyUserDataFunc);
+		destroyObjects(
+			sharedItems, sharedItemCount, pipeline, pipelineCount, userData, destroyUserDataFunc);
 		dsScene_destroy(prevScene);
 		return NULL;
 	}
@@ -293,8 +293,8 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	if (fullSize == 0)
 	{
 		errno = EINVAL;
-		destroyObjects(sharedItems, sharedItemCount, pipeline, pipelineCount, userData,
-			destroyUserDataFunc);
+		destroyObjects(
+			sharedItems, sharedItemCount, pipeline, pipelineCount, userData, destroyUserDataFunc);
 		dsScene_destroy(prevScene);
 		return NULL;
 	}
@@ -303,16 +303,17 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	dsHashTable* prevItemLists = NULL;
 	if (!hashPrevItemLists(&prevItemListData, &prevItemLists, prevScene, allocator))
 	{
-		destroyObjects(sharedItems, sharedItemCount, pipeline, pipelineCount, userData,
-			destroyUserDataFunc);
+		destroyObjects(
+			sharedItems, sharedItemCount, pipeline, pipelineCount, userData, destroyUserDataFunc);
 		dsScene_destroy(prevScene);
+		return NULL;
 	}
 
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
-		destroyObjects(sharedItems, sharedItemCount, pipeline, pipelineCount, userData,
-			destroyUserDataFunc);
+		destroyObjects(
+			sharedItems, sharedItemCount, pipeline, pipelineCount, userData, destroyUserDataFunc);
 		dsScene_destroy(prevScene);
 		DS_VERIFY(dsAllocator_free(allocator, prevItemListData));
 		return NULL;
@@ -390,8 +391,8 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	size_t hashTableSize = dsHashTable_fullAllocSize(tableSize);
 	scene->itemLists = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, hashTableSize);
 	DS_ASSERT(scene->itemLists);
-	DS_VERIFY(dsHashTable_initialize(scene->itemLists, tableSize, &dsHashString,
-		&dsHashStringEqual));
+	DS_VERIFY(dsHashTable_initialize(
+		scene->itemLists, tableSize, &dsHashString, &dsHashStringEqual));
 
 	scene->dirtyNodes = NULL;
 	scene->dirtyNodeCount = 0;
