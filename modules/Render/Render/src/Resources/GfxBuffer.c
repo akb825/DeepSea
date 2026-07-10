@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -185,8 +185,8 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, dsGfxBufferMap flags, size_t offset, 
 	uint32_t alignment = resourceManager->minNonCoherentMappingAlignment;
 	if (alignment > 0 && !(buffer->memoryHints & dsGfxMemory_Coherent))
 		adjustAlignment(alignment, buffer->size, &offset, &size, &rem);
-	void* ptr = buffer->resourceManager->mapBufferFunc(resourceManager, buffer, flags, offset,
-		size);
+	void* ptr = buffer->resourceManager->mapBufferFunc(
+		resourceManager, buffer, flags, offset, size);
 	if (!ptr)
 		DS_PROFILE_FUNC_RETURN(NULL);
 	ptr = (uint8_t*)ptr + rem;
@@ -240,8 +240,8 @@ bool dsGfxBuffer_flush(dsGfxBuffer* buffer, size_t offset, size_t size)
 	}
 
 	size_t rem;
-	adjustAlignment(resourceManager->minNonCoherentMappingAlignment, buffer->size, &offset, &size,
-		&rem);
+	adjustAlignment(
+		resourceManager->minNonCoherentMappingAlignment, buffer->size, &offset, &size, &rem);
 
 	bool success = resourceManager->flushBufferFunc(resourceManager, buffer, offset, size);
 	DS_PROFILE_FUNC_RETURN(success);
@@ -271,8 +271,8 @@ bool dsGfxBuffer_invalidate(dsGfxBuffer* buffer, size_t offset, size_t size)
 	}
 
 	size_t rem;
-	adjustAlignment(resourceManager->minNonCoherentMappingAlignment, buffer->size, &offset, &size,
-		&rem);
+	adjustAlignment(
+		resourceManager->minNonCoherentMappingAlignment, buffer->size, &offset, &size, &rem);
 
 	bool success = resourceManager->invalidateBufferFunc(resourceManager, buffer, offset, size);
 	DS_PROFILE_FUNC_RETURN(success);

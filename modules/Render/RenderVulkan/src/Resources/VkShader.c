@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,9 @@
 #include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
+
 #include <DeepSea/Math/Core.h>
+
 #include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/MaterialDesc.h>
 #include <DeepSea/Render/Resources/MaterialType.h>
@@ -1194,8 +1196,8 @@ bool dsVkShader_updateDynamicRenderStates(dsResourceManager* resourceManager,
 	return bindShaderStates(submitBuffer, shader, renderStates);
 }
 
-bool dsVkShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
-	const dsShader* shader)
+bool dsVkShader_unbind(
+	dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer, const dsShader* shader)
 {
 	DS_UNUSED(resourceManager);
 	DS_UNUSED(commandBuffer);
@@ -1254,8 +1256,8 @@ bool dsVkShader_updateComputeInstanceValues(dsResourceManager* resourceManager,
 		VK_PIPELINE_BIND_POINT_COMPUTE);
 }
 
-bool dsVkShader_unbindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
-	const dsShader* shader)
+bool dsVkShader_unbindCompute(
+	dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer, const dsShader* shader)
 {
 	DS_UNUSED(resourceManager);
 	DS_UNUSED(commandBuffer);
@@ -1436,9 +1438,10 @@ void dsVkShader_removeRenderPass(dsShader* shader, dsVkRenderPassData* renderPas
 	// Remove all pipelines for the render pass.
 	for (uint32_t i = 0; i < vkShader->pipelineCount;)
 	{
-		if (vkShader->pipelines[i]->renderPass == renderPass->lifetime)
+		dsVkPipeline* pipeline = vkShader->pipelines[i];
+		if (pipeline && pipeline->renderPass == renderPass->lifetime)
 		{
-			dsVkRenderer_deletePipeline(renderer, vkShader->pipelines[i], true);
+			dsVkRenderer_deletePipeline(renderer, pipeline, true);
 			vkShader->pipelines[i] = vkShader->pipelines[vkShader->pipelineCount - 1];
 			--vkShader->pipelineCount;
 		}
@@ -1547,17 +1550,20 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 		anisotropy = 1.0f;
 
 	dsVkPipelineKey pipelineKey;
-	dsVkPipeline_initializeKey(&pipelineKey, samples, anisotropy, primitiveType, geometry,
-		renderPassData, subpassIndex);
+	dsVkPipeline_initializeKey(
+		&pipelineKey, samples, anisotropy, primitiveType, geometry, renderPassData, subpassIndex);
 	uint32_t hash = dsVkPipeline_hash(&pipelineKey);
 
 	DS_VERIFY(dsSpinlock_lock(&vkShader->pipelineLock));
 
-	// Search for an existing pipeline
+	// Search for an existing pipeline.
 	for (uint32_t i = 0; i < vkShader->pipelineCount; ++i)
 	{
 		dsVkPipeline* pipeline = vkShader->pipelines[i];
-		if (dsVkPipeline_isEquivalent(pipeline, hash, &pipelineKey, geometry))
+		// Pipeline may be NULL if still in the process of creating on another thread. In practice
+		// this highly unlikely to result in duplicate pipelines, as drawing to the same render pass
+		// shouldn't be done concurrently across threads.
+		if (pipeline && dsVkPipeline_isEquivalent(pipeline, hash, &pipelineKey, geometry))
 		{
 			VkPipeline vkPipeline = pipeline->pipeline;
 			if (!dsVkCommandBuffer_addResource(commandBuffer, &pipeline->resource))
@@ -1570,21 +1576,32 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 	// Add a new pipeline if not present.
 	uint32_t index = vkShader->pipelineCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(vkShader->scratchAllocator, vkShader->pipelines,
-		vkShader->pipelineCount, vkShader->maxPipelines, 1))
+			vkShader->pipelineCount, vkShader->maxPipelines, 1))
 	{
 		DS_VERIFY(dsSpinlock_unlock(&vkShader->pipelineLock));
 		return 0;
 	}
 
-	vkShader->pipelines[index] = dsVkPipeline_create(vkShader->scratchAllocator, shader,
-		index > 0 ? vkShader->pipelines[0]->pipeline : 0, hash, samples, anisotropy, primitiveType,
-		geometry, renderPassData, subpassIndex);
-	if (!vkShader->pipelines[index])
+	// Pipeline creation can be slow, so do so outside of the lock.
+	vkShader->pipelines[index] = NULL;
+	VkPipeline existingPipeline = index > 0 && vkShader->pipelines[0] ?
+		vkShader->pipelines[0]->pipeline : 0;
+	DS_VERIFY(dsSpinlock_unlock(&vkShader->pipelineLock));
+
+	dsVkPipeline* newPipeline = dsVkPipeline_create(vkShader->scratchAllocator, shader,
+		existingPipeline, hash, samples, anisotropy, primitiveType, geometry, renderPassData,
+		subpassIndex);
+
+	DS_VERIFY(dsSpinlock_lock(&vkShader->pipelineLock));
+	if (!newPipeline)
 	{
-		--vkShader->pipelineCount;
+		// Only decrement pipelineCount if no others were added while unlocked.
+		if (index == vkShader->pipelineCount - 1)
+			--vkShader->pipelineCount;
 		DS_VERIFY(dsSpinlock_unlock(&vkShader->pipelineLock));
 		return 0;
 	}
+	vkShader->pipelines[index] = newPipeline;
 
 	// Register the render pass.
 	bool hasRenderPass = false;
@@ -1601,7 +1618,7 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 	{
 		uint32_t passIndex = vkShader->usedRenderPassCount;
 		if (!DS_RESIZEABLE_ARRAY_ADD(vkShader->scratchAllocator, vkShader->usedRenderPasses,
-			vkShader->usedRenderPassCount, vkShader->maxUsedRenderPasses, 1))
+				vkShader->usedRenderPassCount, vkShader->maxUsedRenderPasses, 1))
 		{
 			dsVkPipeline_destroy(vkShader->pipelines[index]);
 			--vkShader->pipelineCount;

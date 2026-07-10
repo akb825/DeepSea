@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -530,15 +530,15 @@ static void initializeFormats(dsVkResourceManager* resourceManager)
 	}
 }
 
-static bool getPipelineCachePath(char* outPath, uint32_t pathLength, const char* shaderCacheDir,
-	const dsVkDevice* device)
+static bool getPipelineCachePath(
+	char* outPath, uint32_t pathLength, const char* shaderCacheDir, const dsVkDevice* device)
 {
 	static const char hexTable[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B',
 		'C', 'D', 'E', 'F'};
 	char fileName[DS_PIPELINE_CACHE_NAME_LEN];
-	for (int i = 0; i < VK_UUID_SIZE; ++i)
+	for (unsigned int i = 0; i < VK_UUID_SIZE; ++i)
 	{
-		DS_ASSERT(i+2 < DS_PIPELINE_CACHE_NAME_LEN);
+		DS_ASSERT(i*2 < DS_PIPELINE_CACHE_NAME_LEN);
 		uint8_t uuidByte = device->properties.pipelineCacheUUID[i];
 		fileName[i*2] = hexTable[(uuidByte & 0xF0) >> 4];
 		fileName[i*2 + 1] = hexTable[uuidByte & 0xF];
@@ -557,8 +557,8 @@ static bool getPipelineCachePath(char* outPath, uint32_t pathLength, const char*
 	return true;
 }
 
-static void* readPipelineCache(uint32_t* outSize, dsAllocator* allocator,
-	const char* shaderCacheDir, const dsVkDevice* device)
+static void* readPipelineCache(
+	uint32_t* outSize, dsAllocator* allocator, const char* shaderCacheDir, const dsVkDevice* device)
 {
 	char path[DS_PATH_MAX];
 	if (!getPipelineCachePath(path, DS_PATH_MAX, shaderCacheDir, device))
@@ -764,8 +764,8 @@ bool dsVkResourceManager_releaseResourceContext(dsResourceManager* resourceManag
 	return true;
 }
 
-dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRenderer* renderer,
-	const char* shaderCacheDir)
+dsResourceManager* dsVkResourceManager_create(
+	dsAllocator* allocator, dsVkRenderer* renderer, const char* shaderCacheDir)
 {
 	DS_ASSERT(allocator);
 	DS_ASSERT(renderer);
@@ -962,8 +962,8 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 		memcpy(stringCopy, shaderCacheDir, length);
 		resourceManager->shaderCacheDir = stringCopy;
 
-		pipelineCacheData = readPipelineCache(&pipelineCacheDataSize, allocator, shaderCacheDir,
-			device);
+		pipelineCacheData = readPipelineCache(
+			&pipelineCacheDataSize, allocator, shaderCacheDir, device);
 	}
 
 	dsVkInstance* instance = &device->instance;

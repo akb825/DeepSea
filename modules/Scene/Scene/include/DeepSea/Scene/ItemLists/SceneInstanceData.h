@@ -80,8 +80,8 @@ DS_SCENE_EXPORT bool dsSceneInstanceData_populateData(dsSceneInstanceData* insta
  * @param values The values to bind to.
  * @return False if an error occurred.
  */
-DS_SCENE_EXPORT bool dsSceneInstanceData_bindInstance(dsSceneInstanceData* instanceData,
-	uint32_t index, dsSharedMaterialValues* values);
+DS_SCENE_EXPORT bool dsSceneInstanceData_bindInstance(
+	dsSceneInstanceData* instanceData, uint32_t index, dsSharedMaterialValues* values);
 
 /**
  * @brief Finishes the current set of instance data.

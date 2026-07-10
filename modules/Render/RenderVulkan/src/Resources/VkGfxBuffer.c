@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 #include "Resources/VkGfxBuffer.h"
 #include "Resources/VkGfxBufferData.h"
-#include "Resources/VkResource.h"
 #include "Resources/VkTexture.h"
-#include "VkBarrierList.h"
 #include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
 #include "VkShared.h"
@@ -31,8 +29,11 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Math/Core.h>
+
 #include <DeepSea/Render/Resources/GfxFormat.h>
+
 #include <string.h>
 
 static bool copyDataCommandBuffer(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
@@ -69,8 +70,8 @@ static bool copyDataCommandBuffer(dsCommandBuffer* commandBuffer, dsGfxBuffer* b
 	};
 	VkPipelineStageFlags stages = dsVkReadBufferStageFlags(renderer, buffer->usage) |
 		dsVkWriteBufferStageFlags(renderer, bufferData->usage, canMapMainBuffer);
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, stages,
-		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 1, &barrier, 0, NULL);
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(
+		vkCommandBuffer, stages, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 1, &barrier, 0, NULL);
 
 	DS_VK_CALL(device->vkCmdUpdateBuffer)(vkCommandBuffer, dstBuffer, offset, size, data);
 
@@ -287,8 +288,8 @@ dsGfxBuffer* dsVkGfxBuffer_create(dsResourceManager* resourceManager, dsAllocato
 	baseBuffer->memoryHints = memoryHints;
 	baseBuffer->size = size;
 
-	buffer->bufferData = dsVkGfxBufferData_create(resourceManager, allocator,
-		resourceManager->allocator, usage, memoryHints, data, size);
+	buffer->bufferData = dsVkGfxBufferData_create(
+		resourceManager, allocator, resourceManager->allocator, usage, memoryHints, data, size);
 	if (!buffer->bufferData)
 	{
 		if (baseBuffer->allocator)
@@ -364,8 +365,8 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 		DS_VERIFY(dsSpinlock_unlock(&bufferData->resource.lock));
 		DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
 
-		dsGfxFenceResult fenceResult = dsVkRenderer_waitForSubmit(renderer, lastUsedSubmit,
-			DS_DEFAULT_WAIT_TIMEOUT);
+		dsGfxFenceResult fenceResult = dsVkRenderer_waitForSubmit(
+			renderer, lastUsedSubmit, DS_DEFAULT_WAIT_TIMEOUT);
 
 		DS_VERIFY(dsSpinlock_lock(&vkBuffer->lock));
 		DS_VERIFY(dsSpinlock_lock(&bufferData->resource.lock));
@@ -406,8 +407,8 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 
 	DS_ASSERT(bufferData->hostMemory);
 	void* memory = NULL;
-	VkResult result = DS_VK_CALL(device->vkMapMemory)(device->device, bufferData->hostMemory,
-		offset, size, 0, &memory);
+	VkResult result = DS_VK_CALL(device->vkMapMemory)(
+		device->device, bufferData->hostMemory, offset, size, 0, &memory);
 	if (!DS_HANDLE_VK_RESULT(result, "Couldn't map buffer memory"))
 	{
 		bufferData->mappedStart = 0;
@@ -467,7 +468,7 @@ bool dsVkGfxBuffer_unmap(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 		{
 			uint32_t rangeIndex = bufferData->dirtyRangeCount;
 			if (DS_RESIZEABLE_ARRAY_ADD(bufferData->scratchAllocator, bufferData->dirtyRanges,
-				bufferData->dirtyRangeCount, bufferData->maxDirtyRanges, 1))
+					bufferData->dirtyRangeCount, bufferData->maxDirtyRanges, 1))
 			{
 				bufferData->dirtyRanges[rangeIndex].start = bufferData->mappedStart;
 				bufferData->dirtyRanges[rangeIndex].size = bufferData->mappedSize;
@@ -647,8 +648,8 @@ bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 	barriers[0].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 	barriers[1].dstAccessMask = barriers[1].srcAccessMask;
 	barriers[1].srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-		stages, 0, 0, NULL, 2, barriers, 0, NULL);
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(
+		vkCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, stages, 0, 0, NULL, 2, barriers, 0, NULL);
 	return true;
 }
 
@@ -737,11 +738,11 @@ bool dsVkGfxBuffer_copyToTexture(dsResourceManager* resourceManager, dsCommandBu
 		dsVkWriteBufferStageFlags(renderer, srcBuffer->usage, srcCanMapMainBuffer);
 	VkPipelineStageFlags dstStageFlags = dsVkReadImageStageFlags(renderer, dstTexture->usage,
 			dstTexture->offscreen && dstIsDepthStencil && !dstTexture->resolve) |
-		dsVkWriteImageStageFlags(renderer, dstTexture->usage, dstTexture->offscreen,
-			dstIsDepthStencil);
+		dsVkWriteImageStageFlags(
+			renderer, dstTexture->usage, dstTexture->offscreen, dstIsDepthStencil);
 	VkPipelineStageFlags stageFlags = srcStageFlags | dstStageFlags;
-	dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, stageFlags,
-		VK_PIPELINE_STAGE_TRANSFER_BIT);
+	dsVkCommandBuffer_submitMemoryBarriers(
+		commandBuffer, stageFlags, VK_PIPELINE_STAGE_TRANSFER_BIT);
 	DS_VK_CALL(device->vkCmdCopyBufferToImage)(vkCommandBuffer,
 		dsVkGfxBufferData_getBuffer(srcBufferData), dstVkTexture->deviceImage,
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, regionCount, imageCopies);
@@ -755,8 +756,8 @@ bool dsVkGfxBuffer_copyToTexture(dsResourceManager* resourceManager, dsCommandBu
 		dsVkCommandBuffer_resetMemoryBarriers(commandBuffer);
 		return false;
 	}
-	dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-		stageFlags);
+	dsVkCommandBuffer_submitMemoryBarriers(
+		commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, stageFlags);
 
 	return true;
 }

@@ -140,8 +140,8 @@ static bool reserveSpace(dsSceneInstanceVariables* variables, uint32_t maxInstan
 		variables->curBuffer = variables->buffers + index;
 
 	DS_ASSERT(variables->curBuffer);
-	variables->curBufferData = dsGfxBuffer_map(variables->curBuffer->buffer,
-		dsGfxBufferMap_Write, 0, DS_MAP_FULL_BUFFER);
+	variables->curBufferData = dsGfxBuffer_map(
+		variables->curBuffer->buffer, dsGfxBufferMap_Write, 0, DS_MAP_FULL_BUFFER);
 	return variables->curBufferData != NULL;
 }
 
@@ -171,8 +171,8 @@ static bool dsSceneInstanceVariables_populateData(dsSceneInstanceData* instanceD
 	return true;
 }
 
-static bool dsSceneInstanceVariables_bindInstance(dsSceneInstanceData* instanceData, uint32_t index,
-	dsSharedMaterialValues* values)
+static bool dsSceneInstanceVariables_bindInstance(
+	dsSceneInstanceData* instanceData, uint32_t index, dsSharedMaterialValues* values)
 {
 	dsSceneInstanceVariables* variables = (dsSceneInstanceVariables*)instanceData;
 	DS_ASSERT(variables);
@@ -416,11 +416,12 @@ dsSceneInstanceData* dsSceneInstanceVariables_create(dsAllocator* allocator,
 		for (uint32_t i = 0; i < dataDesc->elementCount; ++i)
 		{
 			const dsShaderVariableElement* element = dataDesc->elements + i;
-			variables->cpuInfo[i].elementSize = dsMaterialType_cpuSize(element->type);
-			variables->cpuInfo[i].columnCount = dsMaterialType_matrixColumns(element->type);
-			variables->cpuInfo[i].columnSize =
-				dsMaterialType_cpuSize(dsMaterialType_matrixColumnType(element->type));
-			DS_ASSERT(variables->cpuInfo[i].elementSize > 0);
+			CPUInfo* cpuInfo = variables->cpuInfo + i;
+			cpuInfo->elementSize = dsMaterialType_cpuSize(element->type);
+			cpuInfo->columnCount = dsMaterialType_matrixColumns(element->type);
+			cpuInfo->columnSize = dsMaterialType_cpuSize(
+				dsMaterialType_matrixColumnType(element->type));
+			DS_ASSERT(cpuInfo->elementSize > 0);
 		}
 	}
 	else

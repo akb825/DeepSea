@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1229,8 +1229,11 @@ id<MTLRenderPipelineState> dsMTLShader_getPipeline(dsShader* shader, dsCommandBu
 	for (uint32_t i = 0; i < mtlShader->pipelineCount; ++i)
 	{
 		dsMTLPipeline* pipeline = mtlShader->pipelines[i];
-		if (dsMTLPipeline_isEquivalent(pipeline, hash, samples, primitiveType, geometry, renderPass,
-				subpassIndex))
+		// Pipeline may be NULL if still in the process of creating on another thread. In practice
+		// this highly unlikely to result in duplicate pipelines, as drawing to the same render pass
+		// shouldn't be done concurrently across threads.
+		if (pipeline && dsMTLPipeline_isEquivalent(
+				pipeline, hash, samples, primitiveType, geometry, renderPass, subpassIndex))
 		{
 			id<MTLRenderPipelineState> mtlPipeline =
 				(__bridge id<MTLRenderPipelineState>)pipeline->pipeline;
@@ -1242,20 +1245,29 @@ id<MTLRenderPipelineState> dsMTLShader_getPipeline(dsShader* shader, dsCommandBu
 	// Add a new pipeline if not present.
 	uint32_t index = mtlShader->pipelineCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(mtlShader->scratchAllocator, mtlShader->pipelines,
-		mtlShader->pipelineCount, mtlShader->maxPipelines, 1))
+			mtlShader->pipelineCount, mtlShader->maxPipelines, 1))
 	{
 		DS_VERIFY(dsSpinlock_unlock(&mtlShader->pipelineLock));
 		return 0;
 	}
 
-	mtlShader->pipelines[index] = dsMTLPipeline_create(mtlShader->scratchAllocator, shader,
+	// Pipeline creation can be slow, so do so outside of the lock.
+	mtlShader->pipelines[index] = NULL;
+	DS_VERIFY(dsSpinlock_unlock(&mtlShader->pipelineLock));
+
+	dsMTLPipeline* newPipeline = dsMTLPipeline_create(mtlShader->scratchAllocator, shader,
 		hash, samples, primitiveType, geometry, renderPass, subpassIndex);
-	if (!mtlShader->pipelines[index])
+
+	DS_VERIFY(dsSpinlock_lock(&mtlShader->pipelineLock));
+	if (!newPipeline)
 	{
-		--mtlShader->pipelineCount;
+		// Only decrement pipelineCount if no others were added while unlocked.
+		if (index == mtlShader->pipelineCount - 1)
+			--mtlShader->pipelineCount;
 		DS_VERIFY(dsSpinlock_unlock(&mtlShader->pipelineLock));
 		return 0;
 	}
+	mtlShader->pipelines[index] = newPipeline;
 
 	// Register the render pass.
 	bool hasRenderPass = false;
@@ -1272,7 +1284,7 @@ id<MTLRenderPipelineState> dsMTLShader_getPipeline(dsShader* shader, dsCommandBu
 	{
 		uint32_t passIndex = mtlShader->usedRenderPassCount;
 		if (!DS_RESIZEABLE_ARRAY_ADD(mtlShader->scratchAllocator, mtlShader->usedRenderPasses,
-			mtlShader->usedRenderPassCount, mtlShader->maxUsedRenderPasses, 1))
+				mtlShader->usedRenderPassCount, mtlShader->maxUsedRenderPasses, 1))
 		{
 			dsMTLPipeline_destroy(mtlShader->pipelines[index]);
 			--mtlShader->pipelineCount;
@@ -1324,9 +1336,10 @@ void dsMTLShader_removeRenderPass(dsShader* shader, dsRenderPass* renderPass)
 	// Remove all pipelines for the render pass.
 	for (uint32_t i = 0; i < mtlShader->pipelineCount;)
 	{
-		if (mtlShader->pipelines[i]->renderPass == mtlRenderPass->lifetime)
+		dsMTLPipeline* pipeline = mtlShader->pipelines[i];
+		if (pipeline && pipeline->renderPass == mtlRenderPass->lifetime)
 		{
-			dsMTLPipeline_destroy(mtlShader->pipelines[i]);
+			dsMTLPipeline_destroy(pipeline);
 			mtlShader->pipelines[i] = mtlShader->pipelines[mtlShader->pipelineCount - 1];
 			--mtlShader->pipelineCount;
 		}

@@ -19,8 +19,8 @@
 #include <DeepSea/Core/Config.h>
 #include "VkTypes.h"
 
-dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice* device,
-	const dsRenderPass* renderPass);
+dsVkRenderPassData* dsVkRenderPassData_create(
+	dsAllocator* allocator, dsVkDevice* device, const dsRenderPass* renderPass);
 bool dsVkRenderPassData_begin(const dsVkRenderPassData* renderPass,
 	dsCommandBuffer* commandBuffer, const dsFramebuffer* framebuffer,
 	const dsAlignedBox3f* viewport, const dsAlignedBox2f* scissor,

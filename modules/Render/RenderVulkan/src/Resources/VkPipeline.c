@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,10 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Math/Core.h>
+
 #include <string.h>
 
 #if DS_64BIT
@@ -62,9 +65,11 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 	dsPrimitiveType primitiveType, const dsDrawGeometry* geometry,
 	const dsVkRenderPassData* renderPassData, uint32_t subpass)
 {
+	DS_PROFILE_FUNC_START();
+
 	dsVkPipeline* pipeline = DS_ALLOCATE_OBJECT(allocator, dsVkPipeline);
 	if (!pipeline)
-		return NULL;
+		DS_PROFILE_FUNC_RETURN(NULL);
 
 	dsResourceManager* resourceManager = shader->resourceManager;
 	dsVkResourceManager* vkResourceManager = (dsVkResourceManager*)resourceManager;
@@ -93,13 +98,14 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 		if (i == mslStage_Compute || !vkShader->shaders[i])
 			continue;
 
-		stages[stageCount].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		stages[stageCount].pNext = NULL;
-		stages[stageCount].flags = 0;
-		stages[stageCount].stage = dsVkShaderStage((mslStage)i);
-		stages[stageCount].module = vkShader->shaders[i];
-		stages[stageCount].pName = "main";
-		stages[stageCount].pSpecializationInfo = NULL;
+		VkPipelineShaderStageCreateInfo* stage = stages + stageCount;
+		stage->sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		stage->pNext = NULL;
+		stage->flags = 0;
+		stage->stage = dsVkShaderStage((mslStage)i);
+		stage->module = vkShader->shaders[i];
+		stage->pName = "main";
+		stage->pSpecializationInfo = NULL;
 		++stageCount;
 	}
 
@@ -125,27 +131,29 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 			if (!createdBinding)
 			{
 				DS_ASSERT(format->size > 0);
-				vertexBindings[bindingCount].binding = bindingCount;
-				vertexBindings[bindingCount].stride = format->size;
-				vertexBindings[bindingCount].inputRate = format->instanced ? VK_VERTEX_INPUT_RATE_INSTANCE :
+				VkVertexInputBindingDescription* vertexBinding = vertexBindings + bindingCount;
+				vertexBinding->binding = bindingCount;
+				vertexBinding->stride = format->size;
+				vertexBinding->inputRate = format->instanced ? VK_VERTEX_INPUT_RATE_INSTANCE :
 					VK_VERTEX_INPUT_RATE_VERTEX;
 				createdBinding = true;
 			}
 
-			const dsVkFormatInfo* formatInfo = dsVkResourceManager_getFormat(resourceManager,
-				format->elements[attribute].format);
+			const dsVkFormatInfo* formatInfo = dsVkResourceManager_getFormat(
+				resourceManager, format->elements[attribute].format);
 			if (!formatInfo)
 			{
 				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Unknown vertex attribute format.");
 				dsVkPipeline_destroy(pipeline);
-				return NULL;
+				DS_PROFILE_FUNC_RETURN(NULL);
 			}
 
-			attributes[attributeCount].location = attribute;
-			attributes[attributeCount].binding = bindingCount;
-			attributes[attributeCount].format = formatInfo->vkFormat;
-			attributes[attributeCount].offset = format->elements[attribute].offset;
+			VkVertexInputAttributeDescription* inputAttrib = attributes + attributeCount;
+			inputAttrib->location = attribute;
+			inputAttrib->binding = bindingCount;
+			inputAttrib->format = formatInfo->vkFormat;
+			inputAttrib->offset = format->elements[attribute].offset;
 			++attributeCount;
 			DS_ASSERT(attributeCount <= DS_MAX_ALLOWED_VERTEX_ATTRIBS);
 		}
@@ -208,10 +216,10 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create graphics pipeline"))
 	{
 		dsVkPipeline_destroy(pipeline);
-		return NULL;
+		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	return pipeline;
+	DS_PROFILE_FUNC_RETURN(pipeline);
 }
 
 bool dsVkPipeline_isEquivalent(const dsVkPipeline* pipeline, uint32_t hash,

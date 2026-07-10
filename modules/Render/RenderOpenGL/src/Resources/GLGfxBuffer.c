@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Math/Core.h>
 
 #include <string.h>
@@ -53,8 +54,8 @@ static bool needsMapEmulation(const dsResourceManager* resourceManager, dsGfxBuf
 	return false;
 }
 
-static bool readBufferData(void* outData, dsGfxBuffer* buffer, GLenum bufferType, size_t offset,
-	size_t size)
+static bool readBufferData(
+	void* outData, dsGfxBuffer* buffer, GLenum bufferType, size_t offset, size_t size)
 {
 	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
 
@@ -102,8 +103,8 @@ static bool readBufferData(void* outData, dsGfxBuffer* buffer, GLenum bufferType
 	return true;
 }
 
-static bool writeBufferData(dsGfxBuffer* buffer, GLenum bufferType, size_t offset, size_t size,
-	const void* data)
+static bool writeBufferData(
+	dsGfxBuffer* buffer, GLenum bufferType, size_t offset, size_t size, const void* data)
 {
 	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
 	glBindBuffer(bufferType, glBuffer->bufferId);

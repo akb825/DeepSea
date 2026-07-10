@@ -286,7 +286,7 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 			else if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
 				samples = renderer->defaultSamples;
 			if (dsVkAttachmentHasResolve(renderPass->subpasses, renderPass->subpassCount, i,
-					attachment->samples, renderer->surfaceSamples, renderer->defaultSamples))
+					samples, renderer->surfaceSamples, renderer->defaultSamples))
 			{
 				uint32_t resolveAttachmentIndex = attachmentCount + resolveIndex;
 				renderPassData->resolveIndices[i] = resolveAttachmentIndex;

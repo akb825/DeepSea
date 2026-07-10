@@ -33,9 +33,12 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Math/Core.h>
+
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
+
 #include <string.h>
 
 static VkCommandBuffer getVkCommandBuffer(dsCommandBuffer* commandBuffer)

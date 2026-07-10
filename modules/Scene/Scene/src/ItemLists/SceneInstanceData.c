@@ -35,8 +35,8 @@ bool dsSceneInstanceData_populateData(dsSceneInstanceData* instanceData,
 		instanceData, view, commandBuffer, renderPassParams, instances, instanceCount);
 }
 
-bool dsSceneInstanceData_bindInstance(dsSceneInstanceData* instanceData, uint32_t index,
-	dsSharedMaterialValues* values)
+bool dsSceneInstanceData_bindInstance(
+	dsSceneInstanceData* instanceData, uint32_t index, dsSharedMaterialValues* values)
 {
 	if (!instanceData || !instanceData->type || !instanceData->type->bindInstanceFunc ||
 		(!values && instanceData->valueCount > 0))

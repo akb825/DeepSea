@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Profile.h>
+
 #include <string.h>
 
 #import <Metal/MTLRenderPipeline.h>
@@ -208,8 +210,8 @@ static bool setupVertexState(dsShader* shader, MTLRenderPipelineDescriptor* desc
 			}
 
 			const dsVertexElement* element = formats[i].elements + j;
-			MTLVertexFormat format = dsMTLResourceManager_getVertexFormat(resourceManager,
-				element->format);
+			MTLVertexFormat format = dsMTLResourceManager_getVertexFormat(
+				resourceManager, element->format);
 			if (format == MTLVertexFormatInvalid)
 			{
 				DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Unkonwn vertex format.");
@@ -245,8 +247,8 @@ static void setupColorAttachments(dsShader* shader, MTLRenderPipelineDescriptor*
 		const dsAttachmentInfo* attachment = renderPass->attachments + attachmentIndex;
 		MTLRenderPipelineColorAttachmentDescriptor* colorDescriptor =
 			descriptor.colorAttachments[i];
-		colorDescriptor.pixelFormat = dsMTLResourceManager_getPixelFormat(resourceManager,
-			attachment->format);
+		colorDescriptor.pixelFormat = dsMTLResourceManager_getPixelFormat(
+			resourceManager, attachment->format);
 		colorDescriptor.writeMask = convertColorWriteMask(attachmentState->colorWriteMask);
 		colorDescriptor.blendingEnabled = attachmentState->blendEnable == mslBool_True;
 		colorDescriptor.alphaBlendOperation = convertBlendOp(attachmentState->alphaBlendOp);
@@ -354,9 +356,11 @@ dsMTLPipeline* dsMTLPipeline_create(dsAllocator* allocator, dsShader* shader, ui
 {
 	@autoreleasepool
 	{
+		DS_PROFILE_FUNC_START();
+
 		dsMTLPipeline* pipeline = DS_ALLOCATE_OBJECT(allocator, dsMTLPipeline);
 		if (!pipeline)
-			return NULL;
+			DS_PROFILE_FUNC_RETURN(NULL);
 
 		dsMTLShader* mtlShader = (dsMTLShader*)shader;
 		dsResourceManager* resourceManager = shader->resourceManager;
@@ -373,8 +377,8 @@ dsMTLPipeline* dsMTLPipeline_create(dsAllocator* allocator, dsShader* shader, ui
 		pipeline->subpass = subpass;
 		for (uint32_t i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
 		{
-			memcpy(pipeline->formats + i, &geometry->vertexBuffers[i].format,
-				sizeof(dsVertexFormat));
+			memcpy(
+				pipeline->formats + i, &geometry->vertexBuffers[i].format, sizeof(dsVertexFormat));
 		}
 
 		// Maybe add support for tessellation shaders some day. See rant in hasTessellationShaders()
@@ -384,13 +388,13 @@ dsMTLPipeline* dsMTLPipeline_create(dsAllocator* allocator, dsShader* shader, ui
 		{
 			errno = ENOMEM;
 			dsMTLPipeline_destroy(pipeline);
-			return NULL;
+			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
 		if (!setupVertexState(shader, descriptor, pipeline->formats))
 		{
 			dsMTLPipeline_destroy(pipeline);
-			return NULL;
+			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
 		descriptor.vertexFunction =
@@ -412,7 +416,7 @@ dsMTLPipeline* dsMTLPipeline_create(dsAllocator* allocator, dsShader* shader, ui
 				"Error creating pipeline for shader %s.%s: %s", shader->module->name,
 				shader->name, error.localizedDescription.UTF8String);
 			dsMTLPipeline_destroy(pipeline);
-			return NULL;
+			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 		else if (!renderPipeline)
 		{
@@ -420,12 +424,12 @@ dsMTLPipeline* dsMTLPipeline_create(dsAllocator* allocator, dsShader* shader, ui
 				"Error creating pipeline for shader %s.%s.", shader->module->name,
 				shader->name);
 			dsMTLPipeline_destroy(pipeline);
-			return NULL;
+			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
 		pipeline->pipeline = CFBridgingRetain(renderPipeline);
 
-		return pipeline;
+		DS_PROFILE_FUNC_RETURN(pipeline);
 	}
 }
 
@@ -447,7 +451,7 @@ bool dsMTLPipeline_isEquivalent(const dsMTLPipeline* pipeline, uint32_t hash, ui
 	for (uint32_t i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
 	{
 		if (memcmp(pipeline->formats + i, &geometry->vertexBuffers[i].format,
-			sizeof(dsVertexFormat)) != 0)
+				sizeof(dsVertexFormat)) != 0)
 		{
 			return false;
 		}

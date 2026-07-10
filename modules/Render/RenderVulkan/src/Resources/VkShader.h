@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,16 +30,16 @@ bool dsVkShader_updateInstanceValues(dsResourceManager* resourceManager,
 bool dsVkShader_updateDynamicRenderStates(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader,
 	const dsDynamicRenderStates* renderStates);
-bool dsVkShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
-	const dsShader* shader);
+bool dsVkShader_unbind(
+	dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer, const dsShader* shader);
 bool dsVkShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,
 	const dsSharedMaterialValues* globalValues);
 bool dsVkShader_updateComputeInstanceValues(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader,
 	const dsSharedMaterialValues* instanceValues);
-bool dsVkShader_unbindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
-	const dsShader* shader);
+bool dsVkShader_unbindCompute(
+	dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer, const dsShader* shader);
 bool dsVkShader_destroy(dsResourceManager* resourceManager, dsShader* shader);
 
 bool dsVkShader_addMaterial(dsShader* shader, dsDeviceMaterial* material);

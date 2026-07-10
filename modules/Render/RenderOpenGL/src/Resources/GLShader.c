@@ -212,8 +212,8 @@ error:
 	return false;
 }
 
-static bool compileShaders(GLuint shaderIds[mslStage_Count], dsShaderModule* module,
-	const mslPipeline* pipeline)
+static bool compileShaders(
+	GLuint shaderIds[mslStage_Count], dsShaderModule* module, const mslPipeline* pipeline)
 {
 	static GLenum stageMap[] =
 	{
@@ -241,8 +241,8 @@ static bool compileShaders(GLuint shaderIds[mslStage_Count], dsShaderModule* mod
 	return true;
 }
 
-static bool setVertexInputs(dsShaderModule* module, const mslPipeline* pipeline,
-	uint32_t pipelineIndex, GLuint programId)
+static bool setVertexInputs(
+	dsShaderModule* module, const mslPipeline* pipeline, uint32_t pipelineIndex, GLuint programId)
 {
 	for (uint32_t i = 0; i < pipeline->attributeCount; ++i)
 	{
@@ -261,8 +261,8 @@ static bool setVertexInputs(dsShaderModule* module, const mslPipeline* pipeline,
 	return true;
 }
 
-static bool setFragmentOutputs(dsShaderModule* module, const mslPipeline* pipeline,
-	uint32_t pipelineIndex, GLuint programId)
+static bool setFragmentOutputs(
+	dsShaderModule* module, const mslPipeline* pipeline, uint32_t pipelineIndex, GLuint programId)
 {
 	if (!ANYGL_SUPPORTED(glBindFragDataLocation))
 		return true;
@@ -947,12 +947,13 @@ bool dsGLShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* comman
 	const dsSharedMaterialValues* globalValues, const dsDynamicRenderStates* renderStates)
 {
 	DS_ASSERT(resourceManager);
+	DS_UNUSED(resourceManager);
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(shader);
 	DS_ASSERT(material);
 
-	return dsGLCommandBuffer_bindShaderAndMaterial(commandBuffer, shader, material, globalValues,
-		renderStates);
+	return dsGLCommandBuffer_bindShaderAndMaterial(
+		commandBuffer, shader, material, globalValues, renderStates);
 }
 
 bool dsGLShader_updateInstanceValues(dsResourceManager* resourceManager,
@@ -994,12 +995,13 @@ bool dsGLShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer*
 	const dsSharedMaterialValues* sharedValues)
 {
 	DS_ASSERT(resourceManager);
+	DS_UNUSED(resourceManager);
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(shader);
 	DS_ASSERT(material);
 
-	return dsGLCommandBuffer_bindComputeShaderAndMaterial(commandBuffer, shader, material,
-		sharedValues);
+	return dsGLCommandBuffer_bindComputeShaderAndMaterial(
+		commandBuffer, shader, material, sharedValues);
 }
 
 bool dsGLShader_updateComputeInstanceValues(dsResourceManager* resourceManager,
@@ -1011,12 +1013,12 @@ bool dsGLShader_updateComputeInstanceValues(dsResourceManager* resourceManager,
 	DS_ASSERT(shader);
 	DS_ASSERT(instanceValues);
 
-	return dsGLCommandBuffer_setComputeInstanceMaterialValues(commandBuffer, shader,
-		instanceValues);
+	return dsGLCommandBuffer_setComputeInstanceMaterialValues(
+		commandBuffer, shader, instanceValues);
 }
 
-bool dsGLShader_unbindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
-	const dsShader* shader)
+bool dsGLShader_unbindCompute(
+	dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer, const dsShader* shader)
 {
 	DS_UNUSED(resourceManager);
 	DS_ASSERT(commandBuffer);

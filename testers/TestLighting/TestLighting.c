@@ -402,8 +402,8 @@ static bool setup(TestLighting* testLighting, dsApplication* application, dsAllo
 	testLighting->allocator = allocator;
 	testLighting->renderer = renderer;
 
-	testLighting->threadPool = dsResourceManager_createThreadPool(allocator, resourceManager,
-		dsThreadPool_defaultThreadCount(), 0);
+	testLighting->threadPool = dsResourceManager_createThreadPool(
+		allocator, resourceManager, dsThreadPool_defaultThreadCount(), 0);
 	if (!testLighting->threadPool)
 		return false;
 
