@@ -205,6 +205,13 @@ dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const dsText* text,
 		return NULL;
 	}
 
+	if (styleCount > SIZE_MAX/sizeof(dsTextStyle))
+	{
+		errno = ERANGE;
+		DS_LOG_ERROR(DS_TEXT_LOG_TAG, "Style count is too large for a text layout.");
+		return NULL;
+	}
+
 	bool rangesValid = true;
 	if (styles[0].start != 0)
 		rangesValid = false;
