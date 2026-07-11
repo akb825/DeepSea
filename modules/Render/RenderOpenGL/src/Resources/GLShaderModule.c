@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 #include "AnyGL/AnyGL.h"
 #include "GLHelpers.h"
 #include "GLTypes.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -29,22 +30,29 @@
 
 #define DS_SHADER_ERROR (GLuint)-1
 
-dsShaderModule* dsGLShaderModule_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	mslModule* module, const char* name)
+dsShaderModule* dsGLShaderModule_create(
+	dsResourceManager* resourceManager, dsAllocator* allocator, mslModule* module, const char* name)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
 
 	size_t nameLen = strlen(name) + 1;
 	uint32_t shaderCount = mslModule_shaderCount(module);
-	size_t totalSize = DS_ALIGNED_SIZE(sizeof(dsGLShaderModule)) + DS_ALIGNED_SIZE(nameLen) +
-		DS_ALIGNED_SIZE(sizeof(GLuint)*shaderCount);
-	void* buffer = dsAllocator_alloc(allocator, totalSize);
+	size_t fullSize = sizeof(dsGLShaderModule);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(char), nameLen},
+		{sizeof(GLuint), shaderCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
+
+	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
 
 	dsBufferAllocator bufferAlloc;
-	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, totalSize));
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 	dsGLShaderModule* shaderModule = DS_ALLOCATE_OBJECT(&bufferAlloc, dsGLShaderModule);
 	DS_ASSERT(shaderModule);
 

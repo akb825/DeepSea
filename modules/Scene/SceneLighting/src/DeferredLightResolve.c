@@ -647,7 +647,10 @@ dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 
 	uint32_t maxLights = dsSceneLightSet_getMaxLights(lightSet);
 	size_t nameLen = strlen(name) + 1;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsDeferredLightResolve)) + DS_ALIGNED_SIZE(nameLen);
+	size_t fullSize = sizeof(dsDeferredLightResolve);
+	if (!dsAddAlignedSize(&fullSize, nameLen, DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	uint32_t maxShadowLights = 0;
 	bool hasShadows = false;
 	if (shadowManager && shadowLightInfos)
@@ -663,10 +666,15 @@ dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 				continue;
 			}
 
-			fullSize += DS_ALIGNED_SIZE(sizeof(dsSceneLightShadows*)*maxShadowLights);
 			hasShadows = true;
+			if (!dsAddAlignedArraySize(
+					&fullSize, sizeof(dsSceneLightShadows*), maxShadowLights, DS_ALLOC_ALIGNMENT))
+			{
+				return NULL;
+			}
 		}
 	}
+
 	uint32_t instanceValueCount = 1;
 	if (hasShadows)
 		instanceValueCount += 2;

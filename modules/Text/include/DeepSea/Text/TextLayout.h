@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ extern "C"
  *
  * This won't include any memory for computing the lines.
  *
+ * @remark errno will be set on failure.
  * @param text The text that will be used to create the layout.
  * @param styleCount The number of styles.
  * @return The full allocation size or 0 if invalid.
@@ -70,8 +71,8 @@ DS_TEXT_EXPORT size_t dsTextLayout_fullAllocSize(const dsText* text, uint32_t st
  * @param slant The slant to apply.
  * @return False if the parameters are invalid.
  */
-DS_TEXT_EXPORT bool dsTextLayout_applySlantToBounds(dsAlignedBox2f* outBounds,
-	const dsAlignedBox2f* glyphBounds, float slant);
+DS_TEXT_EXPORT bool dsTextLayout_applySlantToBounds(
+	dsAlignedBox2f* outBounds, const dsAlignedBox2f* glyphBounds, float slant);
 
 /**
  * @brief Creates a layout for a piece fo text.
@@ -85,8 +86,8 @@ DS_TEXT_EXPORT bool dsTextLayout_applySlantToBounds(dsAlignedBox2f* outBounds,
  *     increasing, non-overlapping, and cover the full range of text.
  * @param styleCount The number of styles.
  */
-DS_TEXT_EXPORT dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const dsText* text,
-	const dsTextStyle* styles, uint32_t styleCount);
+DS_TEXT_EXPORT dsTextLayout* dsTextLayout_create(
+	dsAllocator* allocator, const dsText* text, const dsTextStyle* styles, uint32_t styleCount);
 
 /**
  * @brief Resolves the alignment based on the text.
@@ -135,8 +136,8 @@ DS_TEXT_EXPORT bool dsTextLayout_refresh(dsTextLayout* layout, dsCommandBuffer* 
  * @param charCount The number of characters to refresh.
  * @return False if an error occurred.
  */
-DS_TEXT_EXPORT bool dsTextLayout_refreshRange(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
-	uint32_t firstChar, uint32_t charCount);
+DS_TEXT_EXPORT bool dsTextLayout_refreshRange(
+	dsTextLayout* layout, dsCommandBuffer* commandBuffer, uint32_t firstChar, uint32_t charCount);
 
 /**
  * @brief Destroys a text layout object.

@@ -239,8 +239,10 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 		}
 	}
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVkRenderPassData)) +
-		DS_ALIGNED_SIZE(sizeof(uint32_t)*attachmentCount);
+	size_t fullSize = sizeof(dsVkRenderPassData);
+	if (!dsAddAlignedArraySize(&fullSize, sizeof(uint32_t), attachmentCount, DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -451,8 +453,8 @@ bool dsVkRenderPassData_addFramebuffer(dsVkRenderPassData* renderPass, dsFramebu
 	return true;
 }
 
-void dsVkRenderPassData_removeFramebuffer(dsVkRenderPassData* renderPass,
-	dsFramebuffer* framebuffer)
+void dsVkRenderPassData_removeFramebuffer(
+	dsVkRenderPassData* renderPass, dsFramebuffer* framebuffer)
 {
 	dsVkFramebuffer* vkFramebuffer = (dsVkFramebuffer*)framebuffer;
 	DS_VERIFY(dsSpinlock_lock(&renderPass->framebufferLock));

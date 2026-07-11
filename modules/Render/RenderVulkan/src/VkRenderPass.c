@@ -33,18 +33,33 @@
 static size_t fullAllocSize(uint32_t attachmentCount, const dsRenderSubpassInfo* subpasses,
 	uint32_t subpassCount, uint32_t dependencyCount)
 {
-	size_t totalSize = DS_ALIGNED_SIZE(sizeof(dsVkRenderPass)) +
-		DS_ALIGNED_SIZE(sizeof(dsAttachmentInfo)*attachmentCount) +
-		DS_ALIGNED_SIZE(sizeof(dsSubpassDependency)*dependencyCount) +
-		DS_ALIGNED_SIZE(sizeof(VkSubpassDependency)*dependencyCount) +
-		DS_ALIGNED_SIZE(sizeof(dsRenderSubpassInfo)*subpassCount);
+	size_t fullSize = sizeof(dsVkRenderPass);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(dsAttachmentInfo), attachmentCount},
+		{sizeof(dsSubpassDependency), dependencyCount},
+		{sizeof(VkSubpassDependency), dependencyCount},
+		{sizeof(dsRenderSubpassInfo), subpassCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return 0;
+
 	for (uint32_t i = 0; i < subpassCount; ++i)
 	{
-		totalSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*subpasses[i].inputAttachmentCount) +
-			DS_ALIGNED_SIZE(sizeof(dsAttachmentRef)*subpasses[i].colorAttachmentCount) +
-			DS_ALIGNED_SIZE(strlen(subpasses[i].name) + 1);
+		const dsRenderSubpassInfo* subpass = subpasses + i;
+		dsMemorySize subpassSizes[] =
+		{
+			{sizeof(uint32_t), subpass->inputAttachmentCount},
+			{sizeof(dsAttachmentRef), subpass->colorAttachmentCount},
+			{sizeof(char), strlen(subpass->name) + 1}
+		};
+		if (!dsAccumulateAlignedSizes(
+				&fullSize, subpassSizes, DS_ARRAY_SIZE(subpassSizes), DS_ALLOC_ALIGNMENT))
+		{
+			return 0;
+		}
 	}
-	return totalSize;
+	return fullSize;
 }
 
 dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
@@ -60,14 +75,14 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 	else if (dependencyCount == DS_DEFAULT_SUBPASS_DEPENDENCIES)
 		finalDependencyCount = dsRenderPass_countDefaultDependencies(subpasses, subpassCount);
 
-	size_t totalSize = fullAllocSize(attachmentCount, subpasses, subpassCount,
-		finalDependencyCount);
-	void* buffer = dsAllocator_alloc(allocator, totalSize);
+	size_t fullSize = fullAllocSize(
+		attachmentCount, subpasses, subpassCount, finalDependencyCount);
+	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
 
 	dsBufferAllocator bufferAlloc;
-	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, totalSize));
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 	dsVkRenderPass* renderPass = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVkRenderPass);
 	DS_ASSERT(renderPass);
 
@@ -220,8 +235,8 @@ bool dsVkRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* commandBu
 	return dsVkRenderPassData_nextSubpass(renderPassData, commandBuffer, index, secondary);
 }
 
-bool dsVkRenderPass_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass)
+bool dsVkRenderPass_end(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsRenderPass* renderPass)
 {
 	DS_UNUSED(renderer);
 	// Guaranteed that dsVkRenderPass_getData() was called earlier, and will return the same value.

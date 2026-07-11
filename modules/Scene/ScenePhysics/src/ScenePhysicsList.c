@@ -915,7 +915,14 @@ dsSceneItemList* dsScenePhysicsList_create(dsAllocator* allocator, const char* n
 	}
 
 	size_t nameLen = strlen(name) + 1;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsScenePhysicsList)) + DS_ALIGNED_SIZE(nameLen);
+	size_t fullSize = sizeof(dsScenePhysicsList);
+	if (!dsAddAlignedSize(&fullSize, nameLen, DS_ALLOC_ALIGNMENT))
+	{
+		if (takeOwnership)
+			dsPhysicsScene_destroy(physicsScene);
+		return NULL;
+	}
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{

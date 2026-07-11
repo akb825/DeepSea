@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,9 +36,10 @@ extern "C"
 
 /**
  * @brief Gets the size of a buffer based on the chunk size and count.
+ * @remark errno will be set on failure.
  * @param chunkSize The size of each chunk.
  * @param chunkCount The number of chunks to have available.
- * @return The buffer size.
+ * @return The buffer size or 0 if invalid.
  */
 DS_CORE_EXPORT size_t dsPoolAllocator_bufferSize(size_t chunkSize, size_t chunkCount);
 
@@ -65,8 +66,8 @@ DS_CORE_EXPORT bool dsPoolAllocator_initialize(dsPoolAllocator* allocator, size_
  *     buffer and chunk size.
  * @return The allocated memory or NULL if an error occurred.
  */
-DS_CORE_EXPORT void* dsPoolAllocator_alloc(dsPoolAllocator* allocator, size_t size,
-	unsigned int alignment);
+DS_CORE_EXPORT void* dsPoolAllocator_alloc(
+	dsPoolAllocator* allocator, size_t size, unsigned int alignment);
 
 /**
  * @brief Frees memory from the pool allocator.

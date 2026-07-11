@@ -46,18 +46,22 @@ uint32_t dsTexture_maxMipmapLevels(uint32_t width, uint32_t height, uint32_t dep
 size_t dsTexture_size(const dsTextureInfo* info)
 {
 	if (!info || info->width == 0 || info->height == 0)
+	{
+		errno = EINVAL;
 		return 0;
+	}
 
 	uint32_t depth = dsMax(1U, info->depth);
 	uint32_t samples = dsMax(1U, info->samples);
-	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(info->width, info->height,
-		DS_MIP_DEPTH(info->dimension, depth));
+	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(
+		info->width, info->height, DS_MIP_DEPTH(info->dimension, depth));
 	uint32_t mipLevels = dsMin(info->mipLevels, maxMipLevels);
 	mipLevels = dsMax(1U, mipLevels);
 
 	unsigned int blockX, blockY, minX, minY;
 	if (!dsGfxFormat_blockDimensions(&blockX, &blockY, info->format))
 		return 0;
+
 	DS_VERIFY(dsGfxFormat_minDimensions(&minX, &minY, info->format));
 	unsigned int formatSize = dsGfxFormat_size(info->format);
 	DS_ASSERT(formatSize > 0);
@@ -70,12 +74,38 @@ size_t dsTexture_size(const dsTextureInfo* info)
 	{
 		size_t curBlocksX = (dsMax(curWidth, minX) + blockX - 1)/blockX;
 		size_t curBlocksY = (dsMax(curHeight, minY) + blockY - 1)/blockY;
-		size += curBlocksX*curBlocksY*formatSize*curDepth;
+		size_t formatDepth = formatSize*curDepth;
+		size_t formatDepthX = formatDepth*curBlocksX;
+		size_t thisSize = formatDepthX*curBlocksY;
+		if (!DS_ARRAY_SIZE_VALID(formatSize, curDepth) ||
+			!DS_ARRAY_SIZE_VALID(formatDepth, curBlocksX) ||
+			!DS_ARRAY_SIZE_VALID(formatDepthX, curBlocksY) ||
+			!DS_CAN_ADD_SIZES(size, thisSize))
+		{
+			errno = ERANGE;
+			return 0;
+		}
+
+		size += thisSize;
+	}
+
+	if (!DS_ARRAY_SIZE_VALID(size, samples))
+	{
+		errno = ERANGE;
+		return 0;
 	}
 
 	size *= samples;
 	if (info->dimension == dsTextureDim_Cube)
+	{
+		if (!DS_ARRAY_SIZE_VALID(size, 6))
+		{
+			errno = ERANGE;
+			return 0;
+		}
+
 		size *= 6;
+	}
 	return size;
 }
 
@@ -102,8 +132,8 @@ uint32_t dsTexture_surfaceCount(const dsTextureInfo* info)
 	return mipLevels*depth*faces;
 }
 
-uint32_t dsTexture_surfaceIndex(const dsTextureInfo* info, dsCubeFace cubeFace, uint32_t depthIndex,
-	uint32_t mipIndex)
+uint32_t dsTexture_surfaceIndex(
+	const dsTextureInfo* info, dsCubeFace cubeFace, uint32_t depthIndex, uint32_t mipIndex)
 {
 	if (!info)
 		return DS_INVALID_TEXTURE_SURFACE;
@@ -145,8 +175,8 @@ uint32_t dsTexture_surfaceIndex(const dsTextureInfo* info, dsCubeFace cubeFace, 
 	return mipIndex*depth*faces + depthIndex*faces + cubeFace;
 }
 
-size_t dsTexture_surfaceOffset(const dsTextureInfo* info, dsCubeFace cubeFace, uint32_t depthIndex,
-	uint32_t mipIndex)
+size_t dsTexture_surfaceOffset(
+	const dsTextureInfo* info, dsCubeFace cubeFace, uint32_t depthIndex, uint32_t mipIndex)
 {
 	if (!info || info->width == 0 || info->height == 0)
 		return DS_INVALID_TEXTURE_OFFSET;

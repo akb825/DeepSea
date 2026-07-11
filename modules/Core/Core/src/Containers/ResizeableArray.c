@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,27 +31,47 @@ bool dsResizeableArray_add(dsAllocator* allocator, void** buffer, uint32_t* elem
 		return false;
 	}
 
-	if (*elementCount + addCount <= *maxElements)
+	if (*elementCount > UINT32_MAX - addCount)
 	{
-		*elementCount += addCount;
+		errno = ERANGE;
+		return false;
+	}
+
+	uint32_t newCount = *elementCount + addCount;
+	if (newCount <= *maxElements)
+	{
+		*elementCount = newCount;
 		return true;
 	}
 
 	uint32_t newMaxElements = *maxElements*2;
-	if (newMaxElements < *elementCount + addCount)
-		newMaxElements = *elementCount + addCount;
+	if (newMaxElements < newCount)
+		newMaxElements = newCount;
 
 	const uint32_t minElements = 16;
 	if (newMaxElements < minElements)
 		newMaxElements = minElements;
 
+	// Avoid size overflow.
+	size_t maxPossibleElements = SIZE_MAX/elementSize;
+	if (newMaxElements > maxPossibleElements)
+	{
+		if (maxPossibleElements <= UINT32_MAX)
+			newMaxElements = (uint32_t)maxPossibleElements;
+		if (newMaxElements < newCount)
+		{
+			errno = ERANGE;
+			return false;
+		}
+	}
+
 	DS_ASSERT(newMaxElements >= *elementCount + addCount);
-	void* newBuffer = dsAllocator_reallocWithFallback(allocator, *buffer, *elementCount*elementSize,
-		newMaxElements*elementSize);
+	void* newBuffer = dsAllocator_reallocWithFallback(
+		allocator, *buffer, *elementCount*elementSize, newMaxElements*elementSize);
 	if (!newBuffer)
 		return false;
 
-	*elementCount += addCount;
+	*elementCount = newCount;
 	*maxElements = newMaxElements;
 	*buffer = newBuffer;
 	return true;

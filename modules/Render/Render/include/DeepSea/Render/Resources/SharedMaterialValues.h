@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,8 +67,9 @@ DS_RENDER_EXPORT size_t dsSharedMaterialValues_sizeof(void);
 
 /**
  * @brief Gets the full allocated size of dsSharedMaterialValues.
+ * @remark errno will be set on failure.
  * @param maxValues The maximum number of values that can be stored.
- * @return The full allocated size of dsSharedMaterialValues.
+ * @return The full allocated size of dsSharedMaterialValues or 0 if invalid.
  */
 DS_RENDER_EXPORT size_t dsSharedMaterialValues_fullAllocSize(uint32_t maxValues);
 
@@ -78,8 +79,8 @@ DS_RENDER_EXPORT size_t dsSharedMaterialValues_fullAllocSize(uint32_t maxValues)
  * @param allocator The allocator to create the shared material values with.
  * @param maxValues The maximum number of values to use.
  */
-DS_RENDER_EXPORT dsSharedMaterialValues* dsSharedMaterialValues_create(dsAllocator* allocator,
-	uint32_t maxValues);
+DS_RENDER_EXPORT dsSharedMaterialValues* dsSharedMaterialValues_create(
+	dsAllocator* allocator, uint32_t maxValues);
 
 /**
  * @brief Gets the maximum number of material values that can be set.
@@ -124,8 +125,8 @@ DS_RENDER_EXPORT dsTexture* dsSharedMaterialValues_getTextureID(
  * @return False if the parameters are invalid, there isn't space available, or a value with the
  *     name is set that isn't a texture.
  */
-DS_RENDER_EXPORT bool dsSharedMaterialValues_setTextureName(dsSharedMaterialValues* values,
-	const char* name, dsTexture* texture);
+DS_RENDER_EXPORT bool dsSharedMaterialValues_setTextureName(
+	dsSharedMaterialValues* values, const char* name, dsTexture* texture);
 
 /**
  * @brief Sets a texture value by ID.
@@ -136,8 +137,8 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_setTextureName(dsSharedMaterialValu
  * @return False if the parameters are invalid, there isn't space available, or a value with the
  *     name is set that isn't a texture.
  */
-DS_RENDER_EXPORT bool dsSharedMaterialValues_setTextureID(dsSharedMaterialValues* values,
-	uint32_t nameID, dsTexture* texture);
+DS_RENDER_EXPORT bool dsSharedMaterialValues_setTextureID
+	(dsSharedMaterialValues* values, uint32_t nameID, dsTexture* texture);
 
 /**
  * @brief Gets a texture buffer value by name.
@@ -300,8 +301,8 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_setBufferID(dsSharedMaterialValues*
  * @param name The name of the value to remvoe.
  * @return True if the value was removed.
  */
-DS_RENDER_EXPORT bool dsSharedMaterialValues_removeValueName(dsSharedMaterialValues* values,
-	const char* name);
+DS_RENDER_EXPORT bool dsSharedMaterialValues_removeValueName(
+	dsSharedMaterialValues* values, const char* name);
 
 /**
  * @brief Removes a shared material value by ID.
@@ -309,8 +310,8 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_removeValueName(dsSharedMaterialVal
  * @param nameID The hash of the name of the value to remvoe.
  * @return True if the value was removed.
  */
-DS_RENDER_EXPORT bool dsSharedMaterialValues_removeValueID(dsSharedMaterialValues* values,
-	uint32_t nameID);
+DS_RENDER_EXPORT bool dsSharedMaterialValues_removeValueID(
+	dsSharedMaterialValues* values, uint32_t nameID);
 
 /**
  * @brief Clears the shared material values.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,13 @@
  */
 
 #include <DeepSea/Render/Resources/MaterialType.h>
-#include <DeepSea/Math/Core.h>
+
+#include <DeepSea/Core/Memory/Memory.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Bits.h>
+#include <DeepSea/Core/Error.h>
+
+#include <DeepSea/Math/Core.h>
 
 static const uint8_t bufferAlignment[] =
 {
@@ -301,16 +306,32 @@ uint8_t dsMaterialType_cpuAlignment(dsMaterialType type)
 size_t dsMaterialType_addElementCPUSize(size_t* curSize, dsMaterialType type, uint32_t count)
 {
 	if (!curSize)
+	{
+		errno = EINVAL;
 		return DS_INVALID_MATERIAL_OFFSET;
+	}
 
 	uint32_t alignment = dsMaterialType_cpuAlignment(type);
 	if (alignment == 0)
+	{
+		errno = 0;
 		return DS_INVALID_MATERIAL_OFFSET;
+	}
+	DS_ASSERT(DS_IS_POWER_OF_2(alignment));
 
-	size_t offset = ((*curSize + alignment - 1)/alignment)*alignment;
 	if (count == 0)
 		count = 1;
-	*curSize = offset + dsMaterialType_cpuSize(type)*count;
+	size_t offset = DS_ALIGNED_SIZE(*curSize, alignment);
+	size_t typeSize = dsMaterialType_cpuSize(type);
+	size_t elementSize = typeSize*count;
+	if (offset < *curSize || !DS_ARRAY_SIZE_VALID(typeSize, count) ||
+		!DS_CAN_ADD_SIZES(offset, elementSize))
+	{
+		errno = ERANGE;
+		return DS_INVALID_MATERIAL_OFFSET;
+	}
+
+	*curSize = offset + elementSize;
 	return offset;
 }
 
@@ -338,7 +359,7 @@ uint8_t dsMaterialType_blockAlignment(dsMaterialType type, bool isArray)
 	if (isArray)
 	{
 		const size_t vec4Size = sizeof(float)*4;
-		typeAlignment = (uint8_t)(((typeAlignment + vec4Size - 1)/vec4Size)*vec4Size);
+		typeAlignment = (uint8_t)DS_ALIGNED_SIZE(typeAlignment, vec4Size);
 	}
 
 	return typeAlignment;
@@ -347,16 +368,33 @@ uint8_t dsMaterialType_blockAlignment(dsMaterialType type, bool isArray)
 size_t dsMaterialType_addElementBlockSize(size_t* curSize, dsMaterialType type, uint32_t count)
 {
 	if (!curSize)
+	{
+		errno = EINVAL;
 		return DS_INVALID_MATERIAL_OFFSET;
+	}
 
-	uint32_t alignment = dsMaterialType_blockAlignment(type, count > 0);
+	bool isArray = count > 0;
+	uint32_t alignment = dsMaterialType_blockAlignment(type, isArray);
 	if (alignment == 0)
+	{
+		errno = 0;
 		return DS_INVALID_MATERIAL_OFFSET;
+	}
+	DS_ASSERT(DS_IS_POWER_OF_2(alignment));
 
-	size_t offset = ((*curSize + alignment - 1)/alignment)*alignment;
 	if (count == 0)
 		count = 1;
-	*curSize = offset + dsMaterialType_blockSize(type, count > 1)*count;
+	size_t offset = DS_ALIGNED_SIZE(*curSize, alignment);
+	size_t typeSize = dsMaterialType_blockSize(type, isArray);
+	size_t elementSize = typeSize*count;
+	if (offset < *curSize || !DS_ARRAY_SIZE_VALID(typeSize, count) ||
+		!DS_CAN_ADD_SIZES(offset, elementSize))
+	{
+		errno = ERANGE;
+		return DS_INVALID_MATERIAL_OFFSET;
+	}
+
+	*curSize = offset + elementSize;
 	return offset;
 }
 
@@ -385,15 +423,31 @@ uint8_t dsMaterialType_bufferAlignment(dsMaterialType type)
 size_t dsMaterialType_addElementBufferSize(size_t* curSize, dsMaterialType type, uint32_t count)
 {
 	if (!curSize)
+	{
+		errno = EINVAL;
 		return DS_INVALID_MATERIAL_OFFSET;
+	}
 
 	uint32_t alignment = dsMaterialType_bufferAlignment(type);
 	if (alignment == 0)
+	{
+		errno = 0;
 		return DS_INVALID_MATERIAL_OFFSET;
+	}
+	DS_ASSERT(DS_IS_POWER_OF_2(alignment));
 
-	size_t offset = ((*curSize + alignment - 1)/alignment)*alignment;
 	if (count == 0)
 		count = 1;
-	*curSize = offset + dsMaterialType_bufferSize(type)*count;
+	size_t offset = DS_ALIGNED_SIZE(*curSize, alignment);
+	size_t typeSize = dsMaterialType_bufferSize(type);
+	size_t elementSize = typeSize*count;
+	if (offset < *curSize || !DS_ARRAY_SIZE_VALID(typeSize, count) ||
+		!DS_CAN_ADD_SIZES(offset, elementSize))
+	{
+		errno = ERANGE;
+		return DS_INVALID_MATERIAL_OFFSET;
+	}
+
+	*curSize = offset + elementSize;
 	return offset;
 }

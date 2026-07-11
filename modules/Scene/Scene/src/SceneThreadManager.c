@@ -640,8 +640,11 @@ dsSceneThreadManager* dsSceneThreadManager_create(
 		return NULL;
 	}
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneThreadManager)) +
-		dsThreadTaskQueue_fullAllocSize(MAX_TASKS);
+	size_t fullSize =sizeof(dsSceneThreadManager);
+	size_t taskQueueSize = dsThreadTaskQueue_fullAllocSize(MAX_TASKS);
+	if (taskQueueSize == 0 || !dsAddAlignedSize(&fullSize, taskQueueSize, DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;

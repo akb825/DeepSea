@@ -107,7 +107,7 @@ void* dsVkTempBuffer_allocate(size_t* outOffset, dsVkTempBuffer* buffer, size_t 
 			(uint32_t)buffer->device->properties.limits.nonCoherentAtomSize);
 	}
 
-	size_t offset = DS_CUSTOM_ALIGNED_SIZE(buffer->size, alignment);
+	size_t offset = DS_ALIGNED_SIZE(buffer->size, alignment);
 	if (!DS_IS_BUFFER_RANGE_VALID(offset, size, DS_TEMP_BUFFER_CAPACITY))
 		return NULL;
 

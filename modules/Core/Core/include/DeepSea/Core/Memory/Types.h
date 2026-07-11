@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,8 +57,8 @@ typedef struct dsAllocator dsAllocator;
  * @return The allocated memory or NULL if an error occurred. errno should be set if an error
  *     occurred.
  */
-typedef void* (*dsAllocatorAllocFunction)(dsAllocator* allocator, size_t size,
-	unsigned int alignment);
+typedef void* (*dsAllocatorAllocFunction)(
+	dsAllocator* allocator, size_t size, unsigned int alignment);
 
 /**
  * @brief Function for re-allocating from the allocator.
@@ -276,6 +276,28 @@ typedef struct dsPoolAllocator
  * @see Lifetime.h
  */
 typedef struct dsLifetime dsLifetime;
+
+/**
+ * @brief Struct for the size of memory that may be an array of elements.
+ */
+typedef struct dsMemorySize
+{
+	/**
+	 * @brief The size of each element.
+	 *
+	 * It is considered invalid if this is 0 unless count is also 0. This allows easier chaining
+	 * of calls to get the full size of objects, assuming that the previous call resulted in
+	 * overflow.
+	 */
+	size_t elementSize;
+
+	/**
+	 * @brief The number of elements.
+	 *
+	 * This should be 1 if a non-array.
+	 */
+	size_t count;
+} dsMemorySize;
 
 #ifdef __cplusplus
 }

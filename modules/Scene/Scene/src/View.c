@@ -87,29 +87,53 @@ typedef struct dsViewPrivate
 static size_t fullAllocSize(size_t nameLen, const dsViewSurfaceInfo* surfaces,
 	uint32_t surfaceCount, const dsViewFramebufferInfo* framebuffers, uint32_t framebufferCount)
 {
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsViewPrivate)) +
-		DS_ALIGNED_SIZE(nameLen) + DS_ALIGNED_SIZE(sizeof(dsViewSurfaceInfo)*surfaceCount) +
-		DS_ALIGNED_SIZE(sizeof(void*)*surfaceCount) +
-		DS_ALIGNED_SIZE(sizeof(IndexNode)*surfaceCount) +
-		dsHashTable_fullAllocSize(dsHashTable_tableSize(surfaceCount)) +
-		DS_ALIGNED_SIZE(sizeof(dsViewFramebufferInfo)*framebufferCount) +
-		DS_ALIGNED_SIZE(sizeof(dsRotatedFramebuffer)*framebufferCount);
-
+	size_t fullSize = sizeof(dsViewPrivate);
 	for (uint32_t i = 0; i < surfaceCount; ++i)
-		fullSize += DS_ALIGNED_SIZE(strlen(surfaces[i].name) + 1);
+	{
+		if (!dsAddAlignedSize(&fullSize, strlen(surfaces[i].name) + 1, DS_ALLOC_ALIGNMENT))
+			return 0;
+	}
 
 	uint32_t maxSurfaces = 0;
 	for (uint32_t i = 0; i < framebufferCount; ++i)
 	{
 		const dsViewFramebufferInfo* framebuffer = framebuffers + i;
-		fullSize += DS_ALIGNED_SIZE(strlen(framebuffer->name) + 1);
-		fullSize += DS_ALIGNED_SIZE(sizeof(dsFramebufferSurface)*framebuffer->surfaceCount);
+		dsMemorySize framebufferSizes[] =
+		{
+			{sizeof(char), strlen(framebuffer->name) + 1},
+			{sizeof(dsFramebufferSurface), framebuffer->surfaceCount}
+		};
+		if (!dsAccumulateAlignedSizes(
+				&fullSize, framebufferSizes, DS_ARRAY_SIZE(framebufferSizes), DS_ALLOC_ALIGNMENT))
+		{
+			return 0;
+		}
+
 		for (uint32_t j = 0; j < framebuffer->surfaceCount; ++j)
-			fullSize += DS_ALIGNED_SIZE(strlen((const char*)framebuffer->surfaces[j].surface) + 1);
+		{
+			if (!dsAddAlignedSize(&fullSize,
+					strlen((const char*)framebuffer->surfaces[j].surface) + 1, DS_ALLOC_ALIGNMENT))
+			{
+				return 0;
+			}
+		}
 		maxSurfaces = dsMax(maxSurfaces, framebuffer->surfaceCount);
 	}
 
-	fullSize += DS_ALIGNED_SIZE(sizeof(dsFramebufferSurface)*maxSurfaces);
+	size_t hashTableSize = dsHashTable_sizeof(dsHashTable_tableSize(surfaceCount));
+	dsMemorySize sizes[] =
+	{
+		{sizeof(char), nameLen},
+		{sizeof(dsViewSurfaceInfo), surfaceCount},
+		{sizeof(void*), surfaceCount},
+		{sizeof(IndexNode), surfaceCount},
+		{hashTableSize, 1},
+		{sizeof(dsViewFramebufferInfo), framebufferCount},
+		{sizeof(dsRotatedFramebuffer), framebufferCount},
+		{sizeof(dsFramebufferSurface), maxSurfaces}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return 0;
 
 	return fullSize;
 }
@@ -513,7 +537,7 @@ dsView* dsView_create(dsAllocator* allocator, const char* name, const dsScene* s
 
 	size_t surfaceTableSize = dsHashTable_tableSize(surfaceCount);
 	privateView->surfaceTable = (dsHashTable*)dsAllocator_alloc(
-		(dsAllocator*)&bufferAlloc, dsHashTable_fullAllocSize(surfaceTableSize));
+		(dsAllocator*)&bufferAlloc, dsHashTable_sizeof(surfaceTableSize));
 	DS_ASSERT(privateView->surfaceTable);
 	DS_VERIFY(dsHashTable_initialize(
 		privateView->surfaceTable, surfaceTableSize, &dsHashString, &dsHashStringEqual));

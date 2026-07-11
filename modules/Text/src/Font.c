@@ -467,8 +467,13 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 	if (!allocator)
 		allocator = dsFaceGroup_getAllocator(group);
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsFont)) +
-		DS_ALIGNED_SIZE(sizeof(dsFontFace*)*faceCount);
+	size_t fullSize = sizeof(dsFont);
+	if (!dsAddAlignedArraySize(&fullSize, sizeof(dsFontFace*), faceCount, DS_ALLOC_ALIGNMENT))
+	{
+		dsFaceGroup_unlock(group);
+		return NULL;
+	}
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{

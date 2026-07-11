@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,50 +32,75 @@ dsShaderVariableGroupDesc* dsDefaultShaderVariableGroupDesc_create(
 	DS_ASSERT(elements);
 	DS_ASSERT(elementCount > 0);
 
-	size_t size = DS_ALIGNED_SIZE(sizeof(dsShaderVariableGroupDesc)) +
-		DS_ALIGNED_SIZE(sizeof(dsShaderVariableElement)*elementCount) +
-		DS_ALIGNED_SIZE(sizeof(dsShaderVariablePos)*elementCount);
+	size_t fullSize = sizeof(dsShaderVariableGroupDesc);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(dsShaderVariableElement), elementCount},
+		{sizeof(dsShaderVariablePos), elementCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	for (uint32_t i = 0; i < elementCount; ++i)
-		size += DS_ALIGNED_SIZE(strlen(elements[i].name) + 1);
-	void* buffer = dsAllocator_alloc(allocator, size);
+	{
+		if (!dsAddAlignedSize(&fullSize, strlen(elements[i].name) + 1, DS_ALLOC_ALIGNMENT))
+			return NULL;
+	}
+
+	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
 
 	dsBufferAllocator bufferAlloc;
-	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, size));
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
-	dsShaderVariableGroupDesc* groupDesc = DS_ALLOCATE_OBJECT(&bufferAlloc,
-		dsShaderVariableGroupDesc);
+	dsShaderVariableGroupDesc* groupDesc = DS_ALLOCATE_OBJECT(
+		&bufferAlloc, dsShaderVariableGroupDesc);
 	DS_ASSERT(groupDesc);
 
 	groupDesc->resourceManager = resourceManager;
 	groupDesc->allocator = dsAllocator_keepPointer(allocator);
 	groupDesc->elementCount = elementCount;
-	groupDesc->elements = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsShaderVariableElement,
-		elementCount);
+	groupDesc->elements = DS_ALLOCATE_OBJECT_ARRAY(
+		&bufferAlloc, dsShaderVariableElement, elementCount);
 	DS_ASSERT(groupDesc->elements);
 	memcpy(groupDesc->elements, elements, sizeof(dsShaderVariableElement)*elementCount);
 
-	groupDesc->positions = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsShaderVariablePos,
-		elementCount);
+	groupDesc->positions = DS_ALLOCATE_OBJECT_ARRAY(
+		&bufferAlloc, dsShaderVariablePos, elementCount);
 	DS_ASSERT(groupDesc->positions);
 	size_t curSize = 0;
 	for (uint32_t i = 0; i < elementCount; ++i)
 	{
-		size_t nameLen = strlen(elements[i].name) + 1;
+		dsShaderVariableElement* element = groupDesc->elements + i;
+		dsShaderVariablePos* position = groupDesc->positions + i;
+
+		size_t nameLen = strlen(element->name) + 1;
 		char* nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 		DS_ASSERT(nameCopy);
-		memcpy(nameCopy, elements[i].name, nameLen);
-		groupDesc->elements[i].name = nameCopy;
+		memcpy(nameCopy, element->name, nameLen);
+		element->name = nameCopy;
 
-		groupDesc->positions[i].offset = (uint32_t)dsMaterialType_addElementBlockSize(&curSize,
-			elements[i].type, elements[i].count);
-		if (elements[i].count > 0)
-			groupDesc->positions[i].stride = dsMaterialType_blockSize(elements[i].type, true);
+		size_t offset = dsMaterialType_addElementBlockSize(
+			&curSize, element->type, element->count);
+		// 32-bit integers track the offset, so ensure that no individual shader variable group
+		// exceeds this size. Sizes exceeding 4 GB should use buffers rather than the higher-level
+		// shader variable group.
+		if (offset == DS_INVALID_MATERIAL_OFFSET || offset > UINT32_MAX || curSize > UINT32_MAX)
+		{
+			if (allocator->freeFunc)
+				DS_VERIFY(dsAllocator_free(allocator, groupDesc));
+			errno = ERANGE;
+			return NULL;
+		}
+
+		position->offset = (uint32_t)offset;
+		if (element->count > 0)
+			position->stride = dsMaterialType_blockSize(element->type, true);
 		else
-			groupDesc->positions[i].stride = 0;
-		groupDesc->positions[i].matrixColStride = dsMaterialType_blockAlignment(
-			dsMaterialType_matrixColumnType(elements[i].type), true);
+			position->stride = 0;
+		position->matrixColStride = dsMaterialType_blockAlignment(
+			dsMaterialType_matrixColumnType(element->type), true);
 	}
 
 	return groupDesc;

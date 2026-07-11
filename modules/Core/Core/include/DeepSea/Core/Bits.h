@@ -35,6 +35,12 @@ extern "C"
  */
 
 /**
+ * @brief Checks whether a value is a power of two.
+ * @param x The value to check.
+ */
+#define DS_IS_POWER_OF_2(x) ((x) && ((x) & ((x) - 1)) == 0)
+
+/**
  * @brief Counts the leading zeros in a 32-bit integer.
  * @param x The bitmask.
  * @return The number of leading zeros. The result is undefined if x is zero.

@@ -419,8 +419,14 @@ dsSceneTextNode* dsSceneTextNode_createBase(dsAllocator* allocator, size_t struc
 	}
 
 	// Add the style array to the struct size to pool allocations.
-	size_t styleOffset = DS_ALIGNED_SIZE(structSize);
-	size_t finalStructSize = styleOffset + DS_ALIGNED_SIZE(sizeof(dsTextStyle)*text->styleCount);
+	size_t finalStructSize = structSize;
+	if (!dsAddAlignedArraySize(
+			&finalStructSize, sizeof(dsTextStyle), text->styleCount, DS_ALLOC_ALIGNMENT))
+	{
+		dsTextLayout_destroy(layout);
+		DS_VERIFY(dsTextRenderBuffer_destroy(renderBuffer));
+		return NULL;
+	}
 
 	dsSceneTextNode* node = (dsSceneTextNode*)dsSceneVectorNode_create(
 		allocator, finalStructSize, z, itemLists, itemListCount, resources, resourceCount);

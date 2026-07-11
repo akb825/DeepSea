@@ -39,8 +39,13 @@ dsDirectAnimation* dsDirectAnimation_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsDirectAnimation)) +
-		DS_ALIGNED_SIZE(sizeof(dsDirectAnimationChannel)*channelCount);
+	size_t fullSize = sizeof(dsDirectAnimation);
+	if (!dsAddAlignedArraySize(
+			&fullSize, sizeof(dsDirectAnimationChannel), channelCount, DS_ALLOC_ALIGNMENT))
+	{
+		return NULL;
+	}
+
 	for (uint32_t i = 0; i < channelCount; ++i)
 	{
 		const dsDirectAnimationChannel* curChannel = channels + i;
@@ -50,7 +55,8 @@ dsDirectAnimation* dsDirectAnimation_create(dsAllocator* allocator,
 			return NULL;
 		}
 
-		fullSize += DS_ALIGNED_SIZE(strlen(curChannel->node) + 1);
+		if (!dsAddAlignedSize(&fullSize, strlen(curChannel->node) + 1, DS_ALLOC_ALIGNMENT))
+			return NULL;
 	}
 
 	void* buffer = dsAllocator_alloc(allocator, fullSize);

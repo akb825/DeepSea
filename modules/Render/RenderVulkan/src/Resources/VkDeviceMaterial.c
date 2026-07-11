@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@
 #include "Resources/VkTexture.h"
 #include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
-#include "VkShared.h"
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -32,9 +31,11 @@
 #include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
+
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
+
 #include <string.h>
 
 dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
@@ -50,11 +51,17 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 	const dsVkBindingCounts* bindingCounts =
 		&vkMaterialDesc->bindings[dsMaterialBinding_Material].bindingCounts;
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsDeviceMaterial)) +
-		DS_ALIGNED_SIZE(sizeof(VkWriteDescriptorSet)*bindingCounts->total) +
-		DS_ALIGNED_SIZE(sizeof(VkDescriptorImageInfo)*bindingCounts->textures) +
-		DS_ALIGNED_SIZE(sizeof(VkDescriptorBufferInfo)*bindingCounts->buffers) +
-		DS_ALIGNED_SIZE(sizeof(VkBufferView)*bindingCounts->texelBuffers);
+	size_t fullSize = sizeof(dsDeviceMaterial);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(VkWriteDescriptorSet), bindingCounts->total},
+		{sizeof(VkDescriptorImageInfo), bindingCounts->textures},
+		{sizeof(VkDescriptorBufferInfo), bindingCounts->buffers},
+		{sizeof(VkBufferView), bindingCounts->texelBuffers}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -86,8 +93,8 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 	bindingMemory->counts = *bindingCounts;
 	if (bindingCounts->total > 0)
 	{
-		bindingMemory->bindings = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkWriteDescriptorSet,
-			bindingCounts->total);
+		bindingMemory->bindings = DS_ALLOCATE_OBJECT_ARRAY(
+			&bufferAlloc, VkWriteDescriptorSet, bindingCounts->total);
 		DS_ASSERT(bindingMemory->bindings);
 	}
 	else
@@ -95,8 +102,8 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 
 	if (bindingCounts->textures > 0)
 	{
-		bindingMemory->imageInfos = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkDescriptorImageInfo,
-			bindingCounts->textures);
+		bindingMemory->imageInfos = DS_ALLOCATE_OBJECT_ARRAY(
+			&bufferAlloc, VkDescriptorImageInfo, bindingCounts->textures);
 		DS_ASSERT(bindingMemory->imageInfos);
 		memset(bindingMemory->imageInfos, 0, sizeof(VkDescriptorImageInfo)*bindingCounts->textures);
 	}
@@ -105,8 +112,8 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 
 	if (bindingCounts->buffers > 0)
 	{
-		bindingMemory->bufferInfos = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkDescriptorBufferInfo,
-			bindingCounts->buffers);
+		bindingMemory->bufferInfos = DS_ALLOCATE_OBJECT_ARRAY(
+			&bufferAlloc, VkDescriptorBufferInfo, bindingCounts->buffers);
 		DS_ASSERT(bindingMemory->bufferInfos);
 		memset(bindingMemory->bufferInfos, 0,
 			sizeof(VkDescriptorBufferInfo)*bindingCounts->buffers);
@@ -116,8 +123,8 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 
 	if (bindingCounts->texelBuffers > 0)
 	{
-		bindingMemory->bufferViews = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkBufferView,
-			bindingCounts->texelBuffers);
+		bindingMemory->bufferViews = DS_ALLOCATE_OBJECT_ARRAY(
+			&bufferAlloc, VkBufferView, bindingCounts->texelBuffers);
 		DS_ASSERT(bindingMemory->bufferViews);
 		memset(bindingMemory->bufferViews, 0, sizeof(VkBufferView)*bindingCounts->texelBuffers);
 	}
@@ -130,8 +137,8 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 	return deviceMaterial;
 }
 
-void dsVkDeviceMaterial_destroy(dsResourceManager* resourceManager, dsMaterial* material,
-	dsDeviceMaterial* deviceMaterial)
+void dsVkDeviceMaterial_destroy(
+	dsResourceManager* resourceManager, dsMaterial* material, dsDeviceMaterial* deviceMaterial)
 {
 	DS_UNUSED(resourceManager);
 
@@ -188,8 +195,8 @@ void dsVkDeviceMaterial_removeShader(dsDeviceMaterial* material, dsShader* shade
 	dsVkMaterialDesc_freeDescriptor(shader->materialDesc, descriptor);
 }
 
-VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuffer,
-	dsDeviceMaterial* material, dsShader* shader)
+VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(
+	dsCommandBuffer* commandBuffer, dsDeviceMaterial* material, dsShader* shader)
 {
 	dsVkShader* vkShader = (dsVkShader*)shader;
 	dsRenderer* renderer = commandBuffer->renderer;

@@ -70,7 +70,7 @@
 
 static size_t fullAllocSize(void)
 {
-	return DS_ALIGNED_SIZE(sizeof(dsVkRenderer)) + dsMutex_fullAllocSize() +
+	return DS_ALIGNED_SIZE(sizeof(dsVkRenderer), DS_ALLOC_ALIGNMENT) + dsMutex_fullAllocSize() +
 		dsConditionVariable_fullAllocSize();
 }
 

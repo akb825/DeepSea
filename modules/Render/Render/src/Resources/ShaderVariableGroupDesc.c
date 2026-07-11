@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,12 +32,13 @@ static bool hasDuplicates(const dsShaderVariableElement* elements, uint32_t elem
 	bool hasDuplicate = false;
 	for (uint32_t i = 0; i < elementCount; ++i)
 	{
+		const char* firstName = elements[i].name;
 		for (uint32_t j = i + 1; j < elementCount; ++j)
 		{
-			if (strcmp(elements[i].name, elements[j].name) == 0)
+			if (strcmp(firstName, elements[j].name) == 0)
 			{
-				DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Element '%s' specified multiple times.",
-					elements[i].name);
+				DS_LOG_ERROR_F(
+					DS_RENDER_LOG_TAG, "Element '%s' specified multiple times.", firstName);
 				hasDuplicate = true;
 				break;
 			}
@@ -94,23 +95,24 @@ dsShaderVariableGroupDesc* dsShaderVariableGroupDesc_create(dsResourceManager* r
 	bool elementsValid = !hasDuplicates(elements, elementCount);
 	for (uint32_t i = 0; i < elementCount; ++i)
 	{
-		if (!elements[i].name)
+		const dsShaderVariableElement* element = elements + i;
+		if (!element->name)
 		{
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Element name not given.");
 			elementsValid = false;
 			continue;
 		}
 
-		if ((unsigned int)elements[i].type >= dsMaterialType_Count)
+		if ((unsigned int)element->type >= dsMaterialType_Count)
 		{
-			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Invalid type for element '%s'.", elements[i].name);
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Invalid type for element '%s'.", element->name);
 			elementsValid = false;
 		}
 
-		if (elements[i].type >= dsMaterialType_Texture)
+		if (element->type >= dsMaterialType_Texture)
 		{
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Shader variable groups may only contain primitive, "
-				"vector, and matrix types for element '%s'.", elements[i].name);
+				"vector, and matrix types for element '%s'.", element->name);
 			elementsValid = false;
 		}
 	}

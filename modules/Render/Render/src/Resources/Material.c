@@ -61,7 +61,13 @@ static size_t addElementSize(size_t* curSize, dsMaterialType type, uint32_t coun
 	{
 		DS_ASSERT(count == 0);
 		size_t alignment = sizeof(void*);
-		size_t offset = ((*curSize + alignment - 1)/alignment)*alignment;
+		size_t offset = DS_ALIGNED_SIZE(*curSize, alignment);
+		if (offset < *curSize || !DS_CAN_ADD_SIZES(offset, sizeof(dsTexture*)))
+		{
+			errno = ERANGE;
+			return DS_INVALID_MATERIAL_OFFSET;
+		}
+
 		*curSize = offset + sizeof(dsTexture*);
 		return offset;
 	}
@@ -69,7 +75,13 @@ static size_t addElementSize(size_t* curSize, dsMaterialType type, uint32_t coun
 	{
 		DS_ASSERT(count == 0);
 		size_t alignment = sizeof(void*);
-		size_t offset = ((*curSize + alignment - 1)/alignment)*alignment;
+		size_t offset = DS_ALIGNED_SIZE(*curSize, alignment);
+		if (offset < *curSize || !DS_CAN_ADD_SIZES(offset, sizeof(TextureBufferData)))
+		{
+			errno = ERANGE;
+			return DS_INVALID_MATERIAL_OFFSET;
+		}
+
 		*curSize = offset + sizeof(TextureBufferData);
 		return offset;
 	}
@@ -77,7 +89,13 @@ static size_t addElementSize(size_t* curSize, dsMaterialType type, uint32_t coun
 	{
 		DS_ASSERT(count == 0);
 		size_t alignment = sizeof(void*);
-		size_t offset = ((*curSize + alignment - 1)/alignment)*alignment;
+		size_t offset = DS_ALIGNED_SIZE(*curSize, alignment);
+		if (offset < *curSize || !DS_CAN_ADD_SIZES(offset, sizeof(BufferData)))
+		{
+			errno = ERANGE;
+			return DS_INVALID_MATERIAL_OFFSET;
+		}
+
 		*curSize = offset + sizeof(BufferData);
 		return offset;
 	}
@@ -90,10 +108,12 @@ static size_t getDataSize(const dsMaterialDesc* description)
 	size_t dataSize = 0;
 	for (uint32_t i = 0; i < description->elementCount; ++i)
 	{
-		if (description->elements[i].binding != dsMaterialBinding_Material)
+		const dsMaterialElement* element = description->elements + i;
+		if (element->binding != dsMaterialBinding_Material)
 			continue;
 
-		addElementSize(&dataSize, description->elements[i].type, description->elements[i].count);
+		if (addElementSize(&dataSize, element->type, element->count) == DS_INVALID_MATERIAL_OFFSET)
+			return DS_INVALID_MATERIAL_OFFSET;
 	}
 	return dataSize;
 }
@@ -147,12 +167,24 @@ static bool validateGetSetElement(const dsMaterial* material, uint32_t element, 
 
 static size_t fullAllocSize(const dsMaterialDesc* description)
 {
-	return DS_ALIGNED_SIZE(sizeof(dsMaterial)) + DS_ALIGNED_SIZE(getDataSize(description)) +
-		DS_ALIGNED_SIZE(sizeof(uint32_t)*description->elementCount);
+	size_t fullSize = sizeof(dsMaterial);
+	size_t dataSize = getDataSize(description);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(uint8_t), dataSize}, // Allowed to be 0.
+		{sizeof(uint32_t), description->elementCount}
+	};
+	if (dataSize == DS_INVALID_MATERIAL_OFFSET ||
+		!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+	{
+		return 0;
+	}
+
+	return fullSize;
 }
 
-dsMaterial* dsMaterial_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	const dsMaterialDesc* description)
+dsMaterial* dsMaterial_create(
+	dsResourceManager* resourceManager, dsAllocator* allocator, const dsMaterialDesc* description)
 {
 	if (!resourceManager || (!allocator && !resourceManager->allocator) || !description)
 	{
@@ -187,6 +219,7 @@ dsMaterial* dsMaterial_create(dsResourceManager* resourceManager, dsAllocator* a
 	}
 
 	size_t dataSize = getDataSize(description);
+	DS_ASSERT(dataSize != DS_INVALID_MATERIAL_OFFSET);
 	if (dataSize > 0)
 	{
 		material->data = (uint8_t*)dsAllocator_alloc((dsAllocator*)&bufferAllocator, dataSize);
@@ -215,8 +248,8 @@ dsMaterial* dsMaterial_create(dsResourceManager* resourceManager, dsAllocator* a
 	// Create the device material if needed.
 	if (resourceManager->createDeviceMaterialFunc && resourceManager->destroyDeviceMaterialFunc)
 	{
-		material->deviceMaterial = resourceManager->createDeviceMaterialFunc(resourceManager,
-			material, allocator);
+		material->deviceMaterial = resourceManager->createDeviceMaterialFunc(
+			resourceManager, material, allocator);
 		if (!material->deviceMaterial)
 		{
 			dsMaterial_destroy(material);

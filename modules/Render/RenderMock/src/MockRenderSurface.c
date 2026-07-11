@@ -32,7 +32,10 @@ dsRenderSurface* dsMockRenderSurface_create(dsRenderer* renderer, dsAllocator* a
 	DS_UNUSED(osHandle);
 
 	size_t nameLen = strlen(name) + 1;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsRenderSurface)) + DS_ALIGNED_SIZE(nameLen);
+	size_t fullSize = sizeof(dsRenderSurface);
+	if (!dsAddAlignedSize(&fullSize, nameLen, DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;

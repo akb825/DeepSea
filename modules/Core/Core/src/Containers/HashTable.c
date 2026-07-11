@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,12 +34,29 @@ size_t dsHashTable_tableSize(size_t maxElements)
 size_t dsHashTable_sizeof(size_t tableSize)
 {
 	// Subtract the single element for the table used to satisfy the compiler.
-	return sizeof(dsHashTable) - sizeof(dsHashTableNode*) + tableSize*sizeof(dsHashTableNode*);
+	size_t baseSize = sizeof(dsHashTable) - sizeof(dsHashTableNode*);
+	size_t arraySize = tableSize*sizeof(dsHashTableNode*);
+	if (!DS_ARRAY_SIZE_VALID(sizeof(dsHashTableNode*), tableSize) ||
+		!DS_CAN_ADD_SIZES(baseSize, arraySize))
+	{
+		errno = ERANGE;
+		return 0;
+	}
+
+	return baseSize + arraySize;;
 }
 
 size_t dsHashTable_fullAllocSize(size_t tableSize)
 {
-	return DS_ALIGNED_SIZE(dsHashTable_sizeof(tableSize));
+	size_t baseSize = dsHashTable_sizeof(tableSize);
+	size_t alignedSize = DS_ALIGNED_SIZE(baseSize, DS_ALLOC_ALIGNMENT);
+	if (alignedSize < baseSize)
+	{
+		errno = ERANGE;
+		return 0;
+	}
+
+	return alignedSize;
 }
 
 bool dsHashTable_initialize(dsHashTable* hashTable, size_t tableSize, dsHashFunction hashFunc,

@@ -309,10 +309,18 @@ dsSceneInstanceData* dsViewFramebufferData_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsViewFramebufferData));
+	size_t fullSize = sizeof(dsViewFramebufferData);
 	bool needsFallback = !dsShaderVariableGroup_useGfxBuffer(resourceManager);
 	if (needsFallback)
-		fullSize += dsShaderVariableGroup_fullAllocSize(resourceManager, dataDesc);
+	{
+		size_t variableGroupSize = dsShaderVariableGroup_fullAllocSize(resourceManager, dataDesc);
+		if (variableGroupSize == 0 ||
+			!dsAddAlignedSize(&fullSize, variableGroupSize, DS_ALLOC_ALIGNMENT))
+		{
+			return NULL;
+		}
+	}
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -340,7 +348,7 @@ dsSceneInstanceData* dsViewFramebufferData_create(dsAllocator* allocator,
 	framebufferData->bufferSize = (uint32_t)sizeof(ViewFramebuffer);
 	if (resourceManager->minUniformBlockAlignment > 0)
 	{
-		framebufferData->bufferSize = DS_CUSTOM_ALIGNED_SIZE(
+		framebufferData->bufferSize = DS_ALIGNED_SIZE(
 			framebufferData->bufferSize, resourceManager->minUniformBlockAlignment);
 	}
 	framebufferData->nameID = dsUniqueNameID_create(dsViewFramebufferData_uniformName);

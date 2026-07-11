@@ -59,15 +59,18 @@ dsSceneVectorNode* dsSceneVectorNode_create(dsAllocator* allocator, size_t struc
 		}
 	}
 
-	size_t itemListsSize = dsSceneNode_itemListsAllocSize(itemLists, itemListCount);
-	if (itemListsSize == 0)
+	size_t fullSize = structSize;
+	bool hasItemLists = itemListCount > 0;
+	size_t itemListsSize =
+		hasItemLists ? dsSceneNode_itemListsAllocSize(itemLists, itemListCount) : 0;
+	dsMemorySize sizes[] =
 	{
-		errno = EINVAL;
+		{itemListsSize, hasItemLists},
+		{sizeof(dsSceneResources*), resourceCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
 		return NULL;
-	}
 
-	size_t fullSize = DS_ALIGNED_SIZE(structSize) + itemListsSize +
-		DS_ALIGNED_SIZE(sizeof(dsSceneResources*)*resourceCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;

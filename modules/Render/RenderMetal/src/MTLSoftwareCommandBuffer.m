@@ -302,6 +302,13 @@ typedef struct PushDebugGroupCommand
 static Command* allocateCommand(dsCommandBuffer* commandBuffer, CommandType type, size_t size)
 {
 	DS_ASSERT(size >= sizeof(Command));
+	size_t alignedSize = DS_ALIGNED_SIZE(size, DS_ALLOC_ALIGNMENT);
+	if (alignedSize < size || size > UINT32_MAX)
+	{
+		 errno = ERANGE;
+		 return NULL;
+	}
+
 	dsMTLSoftwareCommandBuffer* mtlCommandBuffer = (dsMTLSoftwareCommandBuffer*)commandBuffer;
 	int prevErrno = errno;
 	dsAllocator* commandAllocator = (dsAllocator*)&mtlCommandBuffer->commands;
@@ -323,18 +330,18 @@ static Command* allocateCommand(dsCommandBuffer* commandBuffer, CommandType type
 		if (!newBuffer)
 			return NULL;
 
-		DS_VERIFY(dsBufferAllocator_initialize(&mtlCommandBuffer->commands, newBuffer,
-			newBufferSize));
+		DS_VERIFY(dsBufferAllocator_initialize(
+			&mtlCommandBuffer->commands, newBuffer, newBufferSize));
 		commandAllocator->size = prevSize;
 		commandAllocator->currentAllocations = prevCurrentAllocations;
 		commandAllocator->totalAllocations = prevTotalAllocations;
-		command = (Command*)dsAllocator_alloc((dsAllocator*)&mtlCommandBuffer->commands,
-			size);
+		command = (Command*)dsAllocator_alloc(
+			(dsAllocator*)&mtlCommandBuffer->commands, size);
 		DS_ASSERT(command);
 	}
 
 	command->type = type;
-	command->size = (uint32_t)DS_ALIGNED_SIZE(size);
+	command->size = (uint32_t)alignedSize;
 	return command;
 }
 
@@ -1068,11 +1075,17 @@ bool dsMTLSoftwareCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 {
 	DS_ASSERT(attachmentCount > 0);
 	DS_ASSERT(regionCount > 0);
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(ClearAttachmentsCommand)) +
-		DS_ALIGNED_SIZE(sizeof(dsClearAttachment)*attachmentCount) +
-		DS_ALIGNED_SIZE(sizeof(dsAttachmentClearRegion)*regionCount);
-	ClearAttachmentsCommand* command = (ClearAttachmentsCommand*)allocateCommand(commandBuffer,
-		CommandType_ClearAttachments, fullSize);
+	size_t fullSize = sizeof(ClearAttachmentsCommand);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(dsClearAttachment), attachmentCount},
+		{sizeof(dsAttachmentClearRegion), regionCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return false;
+
+	ClearAttachmentsCommand* command = (ClearAttachmentsCommand*)allocateCommand(
+		commandBuffer, CommandType_ClearAttachments, fullSize);
 	if (!command)
 		return false;
 

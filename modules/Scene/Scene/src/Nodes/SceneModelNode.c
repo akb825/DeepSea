@@ -40,42 +40,63 @@
 static size_t fullAllocSize(size_t structSize, const char** drawLists, uint32_t drawListCount,
 	const dsSceneModelInitInfo* models, uint32_t modelCount, uint32_t resourceCount)
 {
-	size_t itemListsSize = dsSceneNode_itemListsAllocSize(drawLists, drawListCount);
-	if (drawListCount > 0 && itemListsSize == 0)
-		return 0;
-
-	size_t fullSize = DS_ALIGNED_SIZE(structSize) + itemListsSize +
-		DS_ALIGNED_SIZE(sizeof(dsSceneModelInfo)*modelCount) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneResources*)*resourceCount);
+	size_t fullSize = structSize;
 	uint32_t drawRangeCount = 0;
 	for (uint32_t i = 0; i < modelCount; ++i)
 	{
-		const char* name = models[i].name;
-		if (name)
-			fullSize += DS_ALIGNED_SIZE(strlen(name) + 1);
-		drawRangeCount += models[i].drawRangeCount;
+		const dsSceneModelInitInfo* model = models + i;
+		const char* name = model->name;
+		if (name && !dsAddAlignedSize(&fullSize, strlen(name) + 1, DS_ALLOC_ALIGNMENT))
+			return 0;
+		drawRangeCount += model->drawRangeCount;
 	}
 
-	return fullSize + DS_ALIGNED_SIZE(sizeof(dsSceneModelDrawRange)*drawRangeCount);
+	bool hasItemLists = drawListCount > 0;
+	size_t itemListsSize =
+		hasItemLists ? dsSceneNode_itemListsAllocSize(drawLists, drawListCount) : 0;
+	dsMemorySize sizes[] =
+	{
+		{itemListsSize, hasItemLists},
+		{sizeof(dsSceneModelInfo), modelCount},
+		{sizeof(dsSceneResources*), resourceCount},
+		{sizeof(dsSceneModelDrawRange), drawRangeCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return 0;
+
+	return fullSize;
 }
 
 static size_t cloneRemapFullAllocSize(size_t structSize, const dsSceneModelNode* model)
 {
 	const dsSceneNode* node = (const dsSceneNode*)model;
-	size_t fullSize = DS_ALIGNED_SIZE(structSize) +
-		dsSceneNode_itemListsAllocSize(node->itemLists, node->itemListCount) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneModelInfo)*model->modelCount) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneResources*)*model->resourceCount);
+
+	size_t fullSize = structSize;
 	uint32_t drawRangeCount = 0;
 	for (uint32_t i = 0; i < model->modelCount; ++i)
 	{
-		const char* name = model->models[i].name;
-		if (name)
-			fullSize += DS_ALIGNED_SIZE(strlen(name) + 1);
-		drawRangeCount += model->models[i].drawRangeCount;
+		const dsSceneModelInfo* modelInfo = model->models + i;
+		const char* name = modelInfo->name;
+		if (name && !dsAddAlignedSize(&fullSize, strlen(name) + 1, DS_ALLOC_ALIGNMENT))
+			return 0;
+
+		drawRangeCount += modelInfo->drawRangeCount;
 	}
 
-	return fullSize + DS_ALIGNED_SIZE(sizeof(dsSceneModelDrawRange)*drawRangeCount);
+	bool hasItemLists = node->itemListCount > 0;
+	size_t itemListsSize =
+		hasItemLists ? dsSceneNode_itemListsAllocSize(node->itemLists, node->itemListCount) : 0;
+	dsMemorySize sizes[] =
+	{
+		{itemListsSize, hasItemLists},
+		{sizeof(dsSceneModelInfo), model->modelCount},
+		{sizeof(dsSceneResources*), model->resourceCount},
+		{sizeof(dsSceneModelDrawRange), drawRangeCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return 0;
+
+	return fullSize;
 }
 
 static void populateItemList(const char** itemLists, uint32_t* ids, uint32_t* itemListCount,
@@ -240,12 +261,6 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 
 	size_t fullSize = fullAllocSize(
 		structSize, itemLists, itemListCount, models, modelCount, resourceCount);
-	if (fullSize == 0)
-	{
-		errno = EINVAL;
-		return NULL;
-	}
-
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{

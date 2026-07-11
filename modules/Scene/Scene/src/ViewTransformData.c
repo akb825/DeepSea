@@ -178,9 +178,17 @@ dsSceneItemList* dsViewTransformData_create(dsAllocator* allocator, const char* 
 		return NULL;
 	}
 
+	size_t fullSize = sizeof(dsViewTransformData);
 	size_t nameLen = strlen(name) + 1;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsViewTransformData)) + DS_ALIGNED_SIZE(nameLen) +
-		dsShaderVariableGroup_fullAllocSize(resourceManager, transformDesc);
+	size_t variableGroupSize = dsShaderVariableGroup_fullAllocSize(resourceManager, transformDesc);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(char), nameLen},
+		{variableGroupSize, 1}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;

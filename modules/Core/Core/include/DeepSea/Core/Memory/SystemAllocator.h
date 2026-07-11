@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,8 +48,8 @@ DS_CORE_EXPORT bool dsSystemAllocator_initialize(dsSystemAllocator* allocator, s
  * @param alignment The minimum alignment for the allocation.
  * @return The allocated memory or NULL if an error occurred.
  */
-DS_CORE_EXPORT void* dsSystemAllocator_alloc(dsSystemAllocator* allocator, size_t size,
-	unsigned int alignment);
+DS_CORE_EXPORT void* dsSystemAllocator_alloc(
+	dsSystemAllocator* allocator, size_t size, unsigned int alignment);
 
 /**
  * @brief Re-allocates memory from the system allocator.
@@ -60,8 +60,8 @@ DS_CORE_EXPORT void* dsSystemAllocator_alloc(dsSystemAllocator* allocator, size_
  * @param alignment The minimum alignment for the allocation.
  * @return The allocated memory or NULL. If NULL and size isn't 0, an error occurred.
  */
-DS_CORE_EXPORT void* dsSystemAllocator_realloc(dsSystemAllocator* allocator, void* ptr, size_t size,
-	unsigned int alignment);
+DS_CORE_EXPORT void* dsSystemAllocator_realloc(
+	dsSystemAllocator* allocator, void* ptr, size_t size, unsigned int alignment);
 
 /**
  * @brief Frees memory from the system allocator.

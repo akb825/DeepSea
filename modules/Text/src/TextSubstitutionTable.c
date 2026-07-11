@@ -146,11 +146,18 @@ dsTextSubstitutionTable* dsTextSubstitutionTable_create(dsAllocator* allocator, 
 		return NULL;
 	}
 
+	size_t fullSize = sizeof(dsTextSubstitutionTable);
 	size_t tableSize = dsHashTable_tableSize(maxStrings);
 	size_t tableAllocSize = dsHashTable_fullAllocSize(tableSize);
 	size_t poolSize = dsPoolAllocator_bufferSize(sizeof(SubstitutionNode), maxStrings);
+	dsMemorySize sizes[] =
+	{
+		{tableAllocSize, 1},
+		{poolSize, 1}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsTextSubstitutionTable)) + tableAllocSize + poolSize;
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -168,8 +175,8 @@ dsTextSubstitutionTable* dsTextSubstitutionTable_create(dsAllocator* allocator, 
 
 	void* poolBuffer = dsAllocator_alloc((dsAllocator*)&bufferAlloc, poolSize);
 	DS_ASSERT(poolBuffer);
-	DS_VERIFY(dsPoolAllocator_initialize(&table->nodePool, sizeof(SubstitutionNode), maxStrings,
-		poolBuffer, poolSize));
+	DS_VERIFY(dsPoolAllocator_initialize(
+		&table->nodePool, sizeof(SubstitutionNode), maxStrings, poolBuffer, poolSize));
 
 	return table;
 }

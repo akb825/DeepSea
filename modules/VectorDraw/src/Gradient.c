@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,17 +21,23 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Math/Color.h>
 #include <DeepSea/Math/Core.h>
+
 #include <string.h>
 
 size_t dsGradient_fullAllocSize(uint32_t stopCount)
 {
-	return DS_ALIGNED_SIZE(sizeof(dsGradient)) + DS_ALIGNED_SIZE(sizeof(dsGradientStop)*stopCount);
+	size_t fullSize = sizeof(dsGradient);
+	if (!dsAddAlignedArraySize(&fullSize, sizeof(dsGradientStop), stopCount, DS_ALLOC_ALIGNMENT))
+		return 0;
+
+	return fullSize;
 }
 
-dsGradient* dsGradient_create(dsAllocator* allocator, const dsGradientStop* stops,
-	uint32_t stopCount)
+dsGradient* dsGradient_create(
+	dsAllocator* allocator, const dsGradientStop* stops, uint32_t stopCount)
 {
 	if (!allocator || !stops || stopCount == 0)
 	{
@@ -42,7 +48,8 @@ dsGradient* dsGradient_create(dsAllocator* allocator, const dsGradientStop* stop
 	float lastT = -1;
 	for (uint32_t i = 0; i < stopCount; ++i)
 	{
-		if (stops[i].position < 0 || stops[i].position > 1 || stops[i].position <= lastT)
+		const dsGradientStop* stop = stops + i;
+		if (stop->position < 0 || stop->position > 1 || stop->position <= lastT)
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "Gradient stops must be monotonically increasing "
@@ -77,11 +84,9 @@ bool dsGradient_isValid(const dsGradient* gradient)
 	float lastT = -1;
 	for (uint32_t i = 0; i < gradient->stopCount; ++i)
 	{
-		if (gradient->stops[i].position < 0 || gradient->stops[i].position > 1 ||
-			gradient->stops[i].position <= lastT)
-		{
+		const dsGradientStop* stop = gradient->stops + i;
+		if (stop->position < 0 || stop->position > 1 || stop->position <= lastT)
 			return false;
-		}
 	}
 
 	return true;
@@ -102,14 +107,16 @@ dsColor dsGradient_evaluate(const dsGradient* gradient, float t, bool srgb)
 
 	for (uint32_t i = 1; i < gradient->stopCount; ++i)
 	{
-		if (t > gradient->stops[i].position)
+		const dsGradientStop* stop = gradient->stops + i;
+		if (t > stop->position)
 			continue;
 
-		float interpT = t - gradient->stops[i - 1].position;
-		interpT /= gradient->stops[i].position - gradient->stops[i - 1].position;
+		const dsGradientStop* prevStop = stop - 1;
+		float interpT = t - prevStop->position;
+		interpT /= stop->position - prevStop->position;
 
-		dsColor color1 = gradient->stops[i - 1].color;
-		dsColor color2 = gradient->stops[i].color;
+		dsColor color1 = prevStop->color;
+		dsColor color2 = stop->color;
 		if (srgb)
 			return dsColor_lerpSRGB(color1, color2, interpT);
 		else

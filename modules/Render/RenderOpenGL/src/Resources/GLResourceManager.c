@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,9 +36,12 @@
 #include <DeepSea/Core/Thread/Mutex.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Math/Core.h>
+
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
+
 #include <stdint.h>
 #include <string.h>
 
@@ -55,9 +58,15 @@ enum FormatBit
 
 static size_t dsGLResourceManager_fullAllocSize(const dsRendererOptions* options)
 {
-	return DS_ALIGNED_SIZE(sizeof(dsGLResourceManager)) +
-		DS_ALIGNED_SIZE(options->maxResourceThreads*sizeof(dsResourceContext)) +
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsGLResourceManager), DS_ALLOC_ALIGNMENT) +
 		dsMutex_fullAllocSize();
+	if (!dsAddAlignedArraySize(
+			&fullSize, sizeof(dsResourceContext), options->maxResourceThreads, DS_ALLOC_ALIGNMENT))
+	{
+		return 0;
+	}
+
+	return fullSize;
 }
 
 static void glGetSizeT(GLenum pname, size_t* value)

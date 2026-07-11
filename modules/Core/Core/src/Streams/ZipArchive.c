@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Aaron Barany
+ * Copyright 2025-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -401,8 +401,14 @@ static size_t getFullAllocSize(
 {
 	const uint16_t encryptionFlag = 0x1;
 
-	size_t fullAllocSize = DS_ALIGNED_SIZE(sizeof(dsZipArchive)) +
-		DS_ALIGNED_SIZE(strlen(path) + 1) + DS_ALIGNED_SIZE(sizeof(FileEntry)*entryCount);
+	size_t fullAllocSize = sizeof(dsZipArchive);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(char), strlen(path) + 1},
+		{sizeof(FileEntry), entryCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullAllocSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return 0;
 
 	if (!dsStream_seek(stream, firstDirRecordOffset, dsStreamSeekWay_Beginning))
 	{
@@ -440,17 +446,19 @@ static size_t getFullAllocSize(
 		{
 			DS_LOG_ERROR_F(DS_CORE_LOG_TAG, "Multi-disk .zip file '%s' not supported.", path);
 			errno = EFORMAT;
-			return false;
+			return 0;
 		}
 
-		fullAllocSize += DS_ALIGNED_SIZE(header.fileNameLength + 1);
+		if (!dsAddAlignedSize(&fullAllocSize, header.fileNameLength + 1, DS_ALLOC_ALIGNMENT))
+			return 0;
+
 		if (!dsStream_seek(stream,
 				header.fileNameLength + header.extraFieldLength + header.fileCommentLength,
 				dsStreamSeekWay_Current))
 		{
 			DS_LOG_ERROR_F(DS_CORE_LOG_TAG, "File '%s' is not a valid .zip file.", path);
 			errno = EFORMAT;
-			return false;
+			return 0;
 		}
 	}
 
@@ -670,9 +678,6 @@ static dsZipArchive* openZipImpl(dsAllocator* allocator, dsFileResourceType type
 	}
 
 	size_t fullAllocSize = getFullAllocSize(stream, path, firstDirRecordOffset, entryCount);
-	if (fullAllocSize == 0)
-		return NULL;
-
 	void* buffer = dsAllocator_alloc(allocator, fullAllocSize);
 	if (!buffer)
 		return NULL;
@@ -1191,9 +1196,9 @@ dsDirectoryIterator dsZipArchive_openDirectory(const dsZipArchive* archive, cons
 		}
 	}
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsDirectoryIteratorInfo));
-	if (pathLen > 0)
-		fullSize += DS_ALIGNED_SIZE(pathLen + 1);
+	size_t fullSize = sizeof(dsDirectoryIteratorInfo);
+	if (pathLen > 0 && !dsAddAlignedSize(&fullSize, pathLen + 1, DS_ALLOC_ALIGNMENT))
+		return NULL;
 
 	void* buffer = dsAllocator_alloc(archive->allocator, fullSize);
 	if (!buffer)
@@ -1332,9 +1337,9 @@ dsStream* dsZipArchive_openFile(const dsZipArchive* archive, const char* path)
 
 	size_t fullSize;
 	if (archive->resourceType < 0)
-		fullSize = DS_ALIGNED_SIZE(sizeof(dsFileStream));
+		fullSize = sizeof(dsFileStream);
 	else
-		fullSize = DS_ALIGNED_SIZE(sizeof(dsResourceStream));
+		fullSize = sizeof(dsResourceStream);
 
 	size_t compressedBufferSize = 0;
 	size_t uncompressedBufferSize = 0;
@@ -1345,11 +1350,19 @@ dsStream* dsZipArchive_openFile(const dsZipArchive* archive, const char* path)
 			compressedBufferSize = (size_t)entry->compressedSize;
 		if (entry->uncompressedSize < uncompressedBufferSize)
 			uncompressedBufferSize = (size_t)entry->uncompressedSize;
-		fullSize += DS_ALIGNED_SIZE(sizeof(dsCompressedZipStream)) +
-			DS_ALIGNED_SIZE(compressedBufferSize) + DS_ALIGNED_SIZE(uncompressedBufferSize);
+
+		dsMemorySize sizes[] =
+		{
+			{sizeof(dsCompressedZipStream), 1},
+			// Pass sizes as count so it's valid for them to be 0.
+			{sizeof(uint8_t), compressedBufferSize},
+			{sizeof(uint8_t), uncompressedBufferSize}
+		};
+		if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+			return NULL;
 	}
-	else
-		fullSize += DS_ALIGNED_SIZE(sizeof(dsUncompressedZipStream));
+	else if (!dsAddAlignedSize(&fullSize, sizeof(dsUncompressedZipStream), DS_ALLOC_ALIGNMENT))
+		return NULL;
 
 	void* buffer = dsAllocator_alloc(archive->allocator, fullSize);
 	if (!buffer)

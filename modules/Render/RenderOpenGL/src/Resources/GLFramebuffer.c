@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,8 +105,15 @@ dsFramebuffer* dsGLFramebuffer_create(dsResourceManager* resourceManager, dsAllo
 	DS_ASSERT(surfaces || surfaceCount == 0);
 
 	size_t nameLen = strlen(name) + 1;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsGLFramebuffer)) +
-		DS_ALIGNED_SIZE(sizeof(dsFramebufferSurface)*surfaceCount) + DS_ALIGNED_SIZE(nameLen);
+	size_t fullSize = sizeof(dsGLFramebuffer);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(dsFramebufferSurface), surfaceCount},
+		{sizeof(char), nameLen}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;

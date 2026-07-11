@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,71 @@
 #include <DeepSea/ScenePhysics/ScenePhysicsList.h>
 
 #include <string.h>
+
+static size_t getFullAllocSize(dsPhysicsMotionType motionType,
+	const dsNamedSceneRigidBodyTemplate* rigidBodies, uint32_t rigidBodyCount,
+	const dsNamedScenePhysicsConstraint* constraints, uint32_t constraintCount,
+	const char* const* itemLists, uint32_t itemListCount)
+{
+	size_t fullSize = sizeof(dsSceneRigidBodyNode);
+	for (uint32_t i = 0; i < rigidBodyCount; ++i)
+	{
+		const dsNamedSceneRigidBodyTemplate* rigidBody = rigidBodies + i;
+		if (!rigidBody->name || !rigidBody->rigidBodyTemplate)
+		{
+			errno = EINVAL;
+			return 0;
+		}
+
+		if (motionType != dsPhysicsMotionType_Unknown &&
+			((rigidBody->rigidBodyTemplate->flags & dsRigidBodyFlags_MutableMotionType) ||
+			rigidBody->rigidBodyTemplate->motionType != motionType))
+		{
+			DS_LOG_ERROR_F(DS_SCENE_PHYSICS_LOG_TAG,
+				"Rigid body '%s' doesn't have compatble motion type for rigid body group node.",
+				rigidBody->name);
+			errno = EINVAL;
+			return 0;
+		}
+
+		if (!dsAddAlignedSize(&fullSize, strlen(rigidBody->name) + 1, DS_ALLOC_ALIGNMENT))
+			return 0;
+	}
+
+	for (uint32_t i = 0; i < constraintCount; ++i)
+	{
+		const dsNamedScenePhysicsConstraint* constraint = constraints + i;
+		if (!constraint->name || !constraint->constraint)
+		{
+			errno = EINVAL;
+			return 0;
+		}
+
+		if (!dsAddAlignedSize(&fullSize, strlen(constraint->name) + 1, DS_ALLOC_ALIGNMENT))
+			return 0;
+	}
+
+	size_t rigidBodyTableSize = dsHashTable_tableSize(rigidBodyCount);
+	size_t rigidBodyTableAllocSize = dsHashTable_sizeof(rigidBodyTableSize);
+	size_t constraintTableSize = dsHashTable_tableSize(constraintCount);
+	bool hasConstraints = constraintCount > 0;
+	size_t constraintTableAllocSize = hasConstraints ? dsHashTable_sizeof(constraintTableSize) : 0;
+	bool hasItemLists = itemListCount > 0;
+	size_t itemListsSize =
+		hasItemLists ? dsSceneNode_itemListsAllocSize(itemLists, itemListCount) : 0;
+	dsMemorySize sizes[] =
+	{
+		{rigidBodyTableAllocSize, 1},
+		{sizeof(RigidBodyNode), rigidBodyCount},
+		{constraintTableAllocSize, hasConstraints},
+		{sizeof(ConstraintNode), constraintCount},
+		{itemListsSize, hasItemLists},
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return 0;
+
+	return fullSize;
+}
 
 static void cleanup(const dsNamedSceneRigidBodyTemplate* rigidBodies, uint32_t rigidBodyCount,
 	const dsNamedScenePhysicsConstraint* constraints, uint32_t constraintCount)
@@ -115,59 +180,8 @@ dsSceneRigidBodyGroupNode* dsSceneRigidBodyGroupNode_create(dsAllocator* allocat
 		return NULL;
 	}
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneRigidBodyNode)) +
-		dsSceneNode_itemListsAllocSize(itemLists, itemListCount);
-
-	for (uint32_t i = 0; i < rigidBodyCount; ++i)
-	{
-		const dsNamedSceneRigidBodyTemplate* rigidBody = rigidBodies + i;
-		if (!rigidBody->name || !rigidBody->rigidBodyTemplate)
-		{
-			cleanup(rigidBodies, rigidBodyCount, constraints, constraintCount);
-			errno = EINVAL;
-			return NULL;
-		}
-
-		if (motionType != dsPhysicsMotionType_Unknown &&
-			((rigidBody->rigidBodyTemplate->flags & dsRigidBodyFlags_MutableMotionType) ||
-			rigidBody->rigidBodyTemplate->motionType != motionType))
-		{
-			DS_LOG_ERROR_F(DS_SCENE_PHYSICS_LOG_TAG,
-				"Rigid body '%s' doesn't have compatble motion type for rigid body group node.",
-				rigidBody->name);
-			cleanup(rigidBodies, rigidBodyCount, constraints, constraintCount);
-			errno = EINVAL;
-			return NULL;
-		}
-
-		fullSize += DS_ALIGNED_SIZE(strlen(rigidBody->name) + 1);
-	}
-	size_t rigidBodyTableSize = dsHashTable_tableSize(rigidBodyCount);
-	size_t rigidBodyTableAllocSize = dsHashTable_fullAllocSize(rigidBodyTableSize);
-	fullSize += rigidBodyTableAllocSize;
-	fullSize += DS_ALIGNED_SIZE(sizeof(RigidBodyNode)*rigidBodyCount);
-
-	for (uint32_t i = 0; i < constraintCount; ++i)
-	{
-		const dsNamedScenePhysicsConstraint* constraint = constraints + i;
-		if (!constraint->name || !constraint->constraint)
-		{
-			cleanup(rigidBodies, rigidBodyCount, constraints, constraintCount);
-			errno = EINVAL;
-			return NULL;
-		}
-
-		fullSize += DS_ALIGNED_SIZE(strlen(constraint->name) + 1);
-	}
-	size_t constraintTableSize = dsHashTable_tableSize(constraintCount);
-	size_t constraintTableAllocSize = 0;
-	if (constraintCount > 0)
-	{
-		constraintTableAllocSize = dsHashTable_fullAllocSize(constraintTableSize);
-		fullSize += constraintTableAllocSize;
-		fullSize += DS_ALIGNED_SIZE(sizeof(ConstraintNode)*constraintCount);
-	}
-
+	size_t fullSize = getFullAllocSize(motionType, rigidBodies, rigidBodyCount, constraints,
+		constraintCount, itemLists, itemListCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
@@ -193,8 +207,10 @@ dsSceneRigidBodyGroupNode* dsSceneRigidBodyGroupNode_create(dsAllocator* allocat
 		return NULL;
 	}
 
-	node->rigidBodies = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		rigidBodyTableAllocSize);
+	size_t rigidBodyTableSize = dsHashTable_tableSize(rigidBodyCount);
+	size_t rigidBodyTableAllocSize = dsHashTable_sizeof(rigidBodyTableSize);
+	node->rigidBodies = (dsHashTable*)dsAllocator_alloc(
+		(dsAllocator*)&bufferAlloc, rigidBodyTableAllocSize);
 	DS_ASSERT(node->rigidBodies);
 	DS_VERIFY(dsHashTable_initialize(
 		node->rigidBodies, rigidBodyTableSize, &dsHash32, &dsHash32Equal));
@@ -210,8 +226,8 @@ dsSceneRigidBodyGroupNode* dsSceneRigidBodyGroupNode_create(dsAllocator* allocat
 		rigidBodyNode->rigidBody = rigidBody->rigidBodyTemplate;
 		rigidBodyNode->owned = rigidBody->transferOwnership;
 
-		if (!dsHashTable_insert(node->rigidBodies, &rigidBodyNode->nameID,
-				(dsHashTableNode*)rigidBodyNode, NULL))
+		if (!dsHashTable_insert(
+				node->rigidBodies, &rigidBodyNode->nameID, (dsHashTableNode*)rigidBodyNode, NULL))
 		{
 			DS_LOG_ERROR_F(DS_SCENE_PHYSICS_LOG_TAG,
 				"Multiple rigid bodies with name '%s' for scene rigid body group node.",
@@ -227,8 +243,10 @@ dsSceneRigidBodyGroupNode* dsSceneRigidBodyGroupNode_create(dsAllocator* allocat
 
 	if (rigidBodyCount > 0)
 	{
-		node->constraints = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-			constraintTableAllocSize);
+		size_t constraintTableSize = dsHashTable_tableSize(constraintCount);
+		size_t constraintTableAllocSize = dsHashTable_sizeof(constraintTableSize);
+		node->constraints = (dsHashTable*)dsAllocator_alloc(
+			(dsAllocator*)&bufferAlloc, constraintTableAllocSize);
 		DS_ASSERT(node->constraints);
 		DS_VERIFY(dsHashTable_initialize(
 			node->constraints, constraintTableSize, &dsHash32, &dsHash32Equal));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,8 +45,9 @@ extern "C"
  *
  * This doesn't include the size for the texture.
  *
+ * @remark errno will be set on failure.
  * @param maxMaterials the maximum number of materials that can be held.
- * @return The full allocation size.
+ * @return The full allocation size or 0 if inavlid.
  */
 DS_VECTORDRAW_EXPORT size_t dsVectorMaterialSet_fullAllocSize(uint32_t maxMaterials);
 
@@ -105,8 +106,8 @@ DS_VECTORDRAW_EXPORT bool dsVectorMaterialSet_addMaterial(dsVectorMaterialSet* m
  * @param color The new color.
  * @return False if the color couldn't be set.
  */
-DS_VECTORDRAW_EXPORT bool dsVectorMaterialSet_setMaterialColor(dsVectorMaterialSet* materials,
-	const char* name, dsColor color);
+DS_VECTORDRAW_EXPORT bool dsVectorMaterialSet_setMaterialColor(
+	dsVectorMaterialSet* materials, const char* name, dsColor color);
 
 /**
  * @brief Sets the gradient for a material.
@@ -121,8 +122,8 @@ DS_VECTORDRAW_EXPORT bool dsVectorMaterialSet_setMaterialColor(dsVectorMaterialS
  * @param own True to take ownership of the material gradient.
  * @return False if the color couldn't be set.
  */
-DS_VECTORDRAW_EXPORT bool dsVectorMaterialSet_setMaterialGradient(dsVectorMaterialSet* materials,
-	const char* name, const dsGradient* gradient, bool own);
+DS_VECTORDRAW_EXPORT bool dsVectorMaterialSet_setMaterialGradient(
+	dsVectorMaterialSet* materials, const char* name, const dsGradient* gradient, bool own);
 
 /**
  * @brief Replaces a previously set material.
@@ -130,11 +131,11 @@ DS_VECTORDRAW_EXPORT bool dsVectorMaterialSet_setMaterialGradient(dsVectorMateri
  * @param materials The material set.
  * @param name The name of the material.
  * @param material The new material to set.
- * @param ownGradient True to take ownership of the material gradient.
+ * @param own True to take ownership of the material gradient.
  * @return False if the color couldn't be set.
  */
-DS_VECTORDRAW_EXPORT bool dsVectorMaterialSet_setMaterial(dsVectorMaterialSet* materials,
-	const char* name, const dsVectorMaterial* material, bool ownGradient);
+DS_VECTORDRAW_EXPORT bool dsVectorMaterialSet_setMaterial(
+	dsVectorMaterialSet* materials, const char* name, const dsVectorMaterial* material, bool own);
 
 /**
  * @brief Finds a material in the material set.
@@ -171,8 +172,8 @@ DS_VECTORDRAW_EXPORT dsVectorMaterialType dsVectorMaterialSet_getMaterialType(
  * @param commandBuffer The command buffer to place the commands on.
  * @return False if the material set couldn't be updated.
  */
-DS_VECTORDRAW_EXPORT bool dsVectorMaterialSet_update(dsVectorMaterialSet* materials,
-	dsCommandBuffer* commandBuffer);
+DS_VECTORDRAW_EXPORT bool dsVectorMaterialSet_update(
+	dsVectorMaterialSet* materials, dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Gets the texture that contains the material colors.

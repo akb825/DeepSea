@@ -779,19 +779,27 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	bool hasSamplers = ANYGL_SUPPORTED(glGenSamplers);
 	bool useGfxBuffers = dsShaderVariableGroup_useGfxBuffer(resourceManager);
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsGLShader)) +
-		DS_ALIGNED_SIZE(sizeof(mslSamplerState)*pipeline.samplerStateCount) +
-		DS_ALIGNED_SIZE(sizeof(dsGLUniformInfo)*materialDesc->elementCount);
-	if (hasSamplers)
-		fullSize += DS_ALIGNED_SIZE(sizeof(GLuint)*pipeline.samplerStateCount);
+	size_t fullSize = sizeof(dsGLShader);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(mslSamplerState), pipeline.samplerStateCount},
+		{sizeof(dsGLUniformInfo), materialDesc->elementCount},
+		{sizeof(GLuint), hasSamplers ? pipeline.samplerStateCount : 0}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	if (!useGfxBuffers)
 	{
 		for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 		{
 			const dsShaderVariableGroupDesc* groupDesc =
 				materialDesc->elements[i].shaderVariableGroupDesc;
-			if (groupDesc)
-				fullSize += DS_ALIGNED_SIZE(sizeof(GLuint)*groupDesc->elementCount);
+			if (groupDesc && !dsAddAlignedArraySize(
+					&fullSize, sizeof(GLuint), groupDesc->elementCount, DS_ALLOC_ALIGNMENT))
+			{
+				return NULL;
+			}
 		}
 	}
 

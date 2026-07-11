@@ -33,7 +33,7 @@ bool dsVkRenderPassData_addShader(dsVkRenderPassData* renderPass, dsShader* shad
 void dsVkRenderPassData_removeShader(dsVkRenderPassData* renderPass, dsShader* shader);
 
 bool dsVkRenderPassData_addFramebuffer(dsVkRenderPassData* renderPass, dsFramebuffer* framebuffer);
-void dsVkRenderPassData_removeFramebuffer(dsVkRenderPassData* renderPass,
-	dsFramebuffer* framebuffer);
+void dsVkRenderPassData_removeFramebuffer(
+	dsVkRenderPassData* renderPass, dsFramebuffer* framebuffer);
 
 void dsVkRenderPassData_destroy(dsVkRenderPassData* renderPass);

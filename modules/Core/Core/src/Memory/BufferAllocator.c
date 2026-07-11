@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,13 @@ bool dsBufferAllocator_initialize(dsBufferAllocator* allocator, void* buffer, si
 		return false;
 	}
 
-	((dsAllocator*)allocator)->size = 0;
-	((dsAllocator*)allocator)->totalAllocations = 0;
-	((dsAllocator*)allocator)->currentAllocations = 0;
-	((dsAllocator*)allocator)->allocFunc = (dsAllocatorAllocFunction)&dsBufferAllocator_alloc;
-	((dsAllocator*)allocator)->reallocFunc = NULL;
-	((dsAllocator*)allocator)->freeFunc = NULL;
+	dsAllocator* baseAllocator = (dsAllocator*)allocator;
+	baseAllocator->size = 0;
+	baseAllocator->totalAllocations = 0;
+	baseAllocator->currentAllocations = 0;
+	baseAllocator->allocFunc = (dsAllocatorAllocFunction)&dsBufferAllocator_alloc;
+	baseAllocator->reallocFunc = NULL;
+	baseAllocator->freeFunc = NULL;
 
 	allocator->buffer = buffer;
 	allocator->bufferSize = bufferSize;
@@ -47,19 +48,26 @@ void* dsBufferAllocator_alloc(dsBufferAllocator* allocator, size_t size, unsigne
 		return NULL;
 	}
 
+	dsAllocator* baseAllocator = (dsAllocator*)allocator;
 	size_t alignmentOffset = 0;
 	uintptr_t bufferRem = ((uintptr_t)allocator->buffer & (alignment - 1));
 	if (bufferRem > 0)
 		alignmentOffset = alignment - bufferRem;
 
 	// Use atomic operations to allow for thread safety.
-	// PTR is the same size is size_t.
 	size_t curSize, offset, nextSize;
-	DS_ATOMIC_LOAD_SIZE(&((dsAllocator*)allocator)->size, &curSize);
+	DS_ATOMIC_LOAD_SIZE(&baseAllocator->size, &curSize);
 	do
 	{
-		offset = alignmentOffset + DS_CUSTOM_ALIGNED_SIZE(curSize, alignment);
-		if (offset + size > allocator->bufferSize)
+		size_t alignedCurSize = DS_ALIGNED_SIZE(curSize, alignment);
+		if (alignedCurSize < curSize || !DS_CAN_ADD_SIZES(alignmentOffset, alignedCurSize))
+		{
+			errno = ERANGE;
+			return NULL;
+		}
+
+		offset = alignmentOffset + alignedCurSize;
+		if (!DS_CAN_ADD_SIZES(offset, size) || offset + size > allocator->bufferSize)
 		{
 			errno = ENOMEM;
 			return NULL;
@@ -67,11 +75,10 @@ void* dsBufferAllocator_alloc(dsBufferAllocator* allocator, size_t size, unsigne
 
 		nextSize = offset + size;
 	}
-	while (!DS_ATOMIC_COMPARE_EXCHANGE_SIZE(&((dsAllocator*)allocator)->size, &curSize, &nextSize,
-		true));
+	while (!DS_ATOMIC_COMPARE_EXCHANGE_SIZE(&baseAllocator->size, &curSize, &nextSize, true));
 
-	DS_ATOMIC_FETCH_ADD32(&((dsAllocator*)allocator)->totalAllocations, 1);
-	DS_ATOMIC_FETCH_ADD32(&((dsAllocator*)allocator)->currentAllocations, 1);
+	DS_ATOMIC_FETCH_ADD32(&baseAllocator->totalAllocations, 1);
+	DS_ATOMIC_FETCH_ADD32(&baseAllocator->currentAllocations, 1);
 	return (uint8_t*)allocator->buffer + offset;
 }
 
@@ -83,8 +90,9 @@ bool dsBufferAllocator_reset(dsBufferAllocator* allocator)
 		return false;
 	}
 
-	((dsAllocator*)allocator)->size = 0;
-	((dsAllocator*)allocator)->totalAllocations = 0;
-	((dsAllocator*)allocator)->currentAllocations = 0;
+	dsAllocator* baseAllocator = (dsAllocator*)allocator;
+	baseAllocator->size = 0;
+	baseAllocator->totalAllocations = 0;
+	baseAllocator->currentAllocations = 0;
 	return true;
 }

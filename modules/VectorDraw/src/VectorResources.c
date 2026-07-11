@@ -93,9 +93,24 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 
 size_t dsVectorResources_fullAllocSize(uint32_t maxResources)
 {
-	size_t tableSize = dsHashTable_tableSize(maxResources);
-	return DS_ALIGNED_SIZE(sizeof(dsVectorResources)) + dsHashTable_fullAllocSize(tableSize) +
-		dsPoolAllocator_bufferSize(sizeof(ResourceNode), maxResources);
+	if (maxResources == 0)
+	{
+		errno = EINVAL;
+		return 0;
+	}
+
+	size_t fullSize = sizeof(dsVectorResources);
+	size_t hashTableSize = dsHashTable_sizeof(dsHashTable_tableSize(maxResources));
+	size_t poolSize = dsPoolAllocator_bufferSize(sizeof(ResourceNode), maxResources);
+	dsMemorySize sizes[] =
+	{
+		{hashTableSize, 1},
+		{poolSize, 1}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return 0;
+
+	return fullSize;
 }
 
 dsVectorResources* dsVectorReosurces_create(dsAllocator* allocator, uint32_t maxResources)
@@ -119,8 +134,8 @@ dsVectorResources* dsVectorReosurces_create(dsAllocator* allocator, uint32_t max
 	resources->allocator = dsAllocator_keepPointer(allocator);
 
 	size_t tableSize = dsHashTable_tableSize(maxResources);
-	resources->resourceTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		dsHashTable_fullAllocSize(tableSize));
+	resources->resourceTable = (dsHashTable*)dsAllocator_alloc(
+		(dsAllocator*)&bufferAlloc, dsHashTable_sizeof(tableSize));
 	DS_ASSERT(resources->resourceTable);
 	DS_VERIFY(dsHashTable_initialize(
 		resources->resourceTable, tableSize, &dsHashString, &dsHashStringEqual));

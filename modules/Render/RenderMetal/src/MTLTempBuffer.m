@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,13 @@ void* dsMTLTempBuffer_allocate(uint32_t* outOffset, id<MTLBuffer>* outMTLBuffer,
 	dsMTLTempBuffer* buffer, uint32_t size, uint32_t alignment)
 {
 	DS_ASSERT(size <= DS_MAX_TEMP_BUFFER_ALLOC);
-	uint32_t offset = DS_CUSTOM_ALIGNED_SIZE(buffer->size, alignment);
+	uint32_t offset = DS_ALIGNED_SIZE(buffer->size, alignment);
+	if (offset < buffer->size || offset > UINT32_MAX - size)
+	{
+		errno = ERANGE;
+		return NULL;
+	}
+
 	if (!DS_IS_BUFFER_RANGE_VALID(offset, size, DS_TEMP_BUFFER_CAPACITY))
 		return NULL;
 

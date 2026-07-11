@@ -144,9 +144,15 @@ static dsSceneTreeNode* addNode(
 		return NULL;
 	}
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneTreeNode)) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneItemEntry)*child->itemListCount) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneItemData)*child->itemListCount);
+	size_t fullSize = sizeof(dsSceneTreeNode);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(dsSceneItemEntry), child->itemListCount},
+		{sizeof(dsSceneItemData), child->itemListCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{

@@ -85,9 +85,26 @@ dsSceneRigidBodyNode* dsSceneRigidBodyNode_create(dsAllocator* allocator, const 
 		return NULL;
 	}
 
+	size_t fullSize = sizeof(dsSceneRigidBodyNode);
 	size_t nameLen = rigidBodyName ? strlen(rigidBodyName) + 1 : 0;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneRigidBodyNode)) +
-		DS_ALIGNED_SIZE(nameLen) + dsSceneNode_itemListsAllocSize(itemLists, itemListCount);
+	bool hasItemLists = itemListCount > 0;
+	size_t itemListsSize =
+		hasItemLists ? dsSceneNode_itemListsAllocSize(itemLists, itemListCount) : 0;
+	dsMemorySize sizes[] =
+	{
+		{sizeof(char), nameLen},
+		{itemListsSize, hasItemLists}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+	{
+		if (transferOwnership)
+		{
+			dsRigidBody_destroy(rigidBody);
+			dsRigidBodyTemplate_destroy(rigidBodyTemplate);
+		}
+		return NULL;
+	}
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{

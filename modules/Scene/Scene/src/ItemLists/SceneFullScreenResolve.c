@@ -222,7 +222,10 @@ dsSceneFullScreenResolve* dsSceneFullScreenResolve_create(dsAllocator* allocator
 	}
 
 	size_t nameLen = strlen(name) + 1;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneFullScreenResolve)) + DS_ALIGNED_SIZE(nameLen);
+	size_t fullSize = sizeof(dsSceneFullScreenResolve);
+	if (!dsAddAlignedSize(&fullSize, nameLen, DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;

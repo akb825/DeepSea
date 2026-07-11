@@ -377,8 +377,8 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 		return NULL;
 	}
 
-	size_t totalSize = DS_ALIGNED_SIZE(sizeof(dsRenderer)) +
-		DS_ALIGNED_SIZE(sizeof(dsCommandBuffer));
+	size_t totalSize = DS_ALIGNED_SIZE(sizeof(dsRenderer), DS_ALLOC_ALIGNMENT) +
+		DS_ALIGNED_SIZE(sizeof(dsCommandBuffer), DS_ALLOC_ALIGNMENT);
 	void* buffer = dsAllocator_alloc(allocator, totalSize);
 	if (!buffer)
 		return NULL;

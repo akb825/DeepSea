@@ -33,11 +33,12 @@ extern "C"
 
 /**
  * @brief Gets the full size of the scene render pass.
+ * @remark errno will be set on failure.
  * @param framebuffer The name of the framebuffer.
  * @param clearValueCount The number of clear values.
  * @param subpassDrawLists The subpass draw lists.
  * @param subpassDrawListCount The number of subpass draw lists.
- * @return The full allocation size, or 0 if the subpass draw lists aren't valid.
+ * @return The full allocation size, or 0 if invalid.
  */
 DS_SCENE_EXPORT size_t dsSceneRenderPass_fullAllocSize(const char* framebuffer,
 	uint32_t clearValueCount, const dsSceneItemLists* subpassDrawLists,

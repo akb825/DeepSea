@@ -39,9 +39,10 @@ DS_TEXT_EXPORT size_t dsTextIcons_sizeof(void);
 
 /**
  * @brief Calculates the full allocation size of text icons.
+ * @remark errno will be set on failure.
  * @param codepointRangeCount The number of codepoint ranges.
  * @param maxIcons The maximum icons to store.
- * @return The full allocation size for the text icons.
+ * @return The full allocation size for the text icons or 0 if invalid.
  */
 DS_TEXT_EXPORT size_t dsTextIcons_fullAllocSize(uint32_t codepointRangeCount, uint32_t maxIcons);
 

@@ -62,7 +62,10 @@ size_t dsViewFilter_sizeof(void)
 
 size_t dsViewFilter_fullAllocSize(uint32_t viewNameCount)
 {
-	return DS_ALIGNED_SIZE(sizeof(dsViewFilter)) + DS_ALIGNED_SIZE(sizeof(uint32_t)*viewNameCount);
+	size_t fullSize = sizeof(dsViewFilter);
+	if (!dsAddAlignedArraySize(&fullSize, sizeof(uint32_t), viewNameCount, DS_ALLOC_ALIGNMENT))
+		return 0;
+	return fullSize;
 }
 
 dsViewFilter* dsViewFilter_create(

@@ -49,8 +49,8 @@ TEST(BufferAllocator, Initialize)
 
 TEST(BufferAllocator, Allocate)
 {
-	const unsigned int bufferSize =
-		DS_ALIGNED_SIZE(10) + DS_ALIGNED_SIZE(30) + DS_ALIGNED_SIZE(40) + 4;
+	const unsigned int bufferSize = DS_ALIGNED_SIZE(10, DS_ALLOC_ALIGNMENT) +
+		DS_ALIGNED_SIZE(30, DS_ALLOC_ALIGNMENT) + DS_ALIGNED_SIZE(40, DS_ALLOC_ALIGNMENT) + 4;
 	DS_ALIGN(DS_ALLOC_ALIGNMENT) uint8_t buffer[bufferSize];
 
 	dsBufferAllocator allocator;
@@ -61,14 +61,14 @@ TEST(BufferAllocator, Allocate)
 	EXPECT_EQ(10U, ((dsAllocator*)&allocator)->size);
 	EXPECT_EQ(1U, ((dsAllocator*)&allocator)->totalAllocations);
 	EXPECT_EQ(1U, ((dsAllocator*)&allocator)->currentAllocations);
-	unsigned int curOffset = DS_ALIGNED_SIZE(10);
+	unsigned int curOffset = DS_ALIGNED_SIZE(10, DS_ALLOC_ALIGNMENT);
 
 	void* ptr2 = dsAllocator_alloc((dsAllocator*)&allocator, 30);
 	EXPECT_EQ((uintptr_t)ptr1 + curOffset, (uintptr_t)ptr2);
 	EXPECT_EQ(curOffset + 30, ((dsAllocator*)&allocator)->size);
 	EXPECT_EQ(2U, ((dsAllocator*)&allocator)->totalAllocations);
 	EXPECT_EQ(2U, ((dsAllocator*)&allocator)->currentAllocations);
-	curOffset += DS_ALIGNED_SIZE(30);
+	curOffset += DS_ALIGNED_SIZE(30, DS_ALLOC_ALIGNMENT);
 
 	EXPECT_NULL_ERRNO(
 		ENOMEM, dsAllocator_alloc((dsAllocator*)&allocator, bufferSize - curOffset + 1));
@@ -78,7 +78,7 @@ TEST(BufferAllocator, Allocate)
 	EXPECT_EQ(curOffset + 40, ((dsAllocator*)&allocator)->size);
 	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->totalAllocations);
 	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->currentAllocations);
-	curOffset += DS_ALIGNED_SIZE(40);
+	curOffset += DS_ALIGNED_SIZE(40, DS_ALLOC_ALIGNMENT);
 
 	void* ptr4 = dsAllocator_alloc((dsAllocator*)&allocator, 1);
 	EXPECT_EQ((uintptr_t)ptr1 + curOffset, (uintptr_t)ptr4);
@@ -93,8 +93,9 @@ TEST(BufferAllocator, Allocate)
 
 TEST(BufferAllocator, AlignedAllocate)
 {
-	const unsigned int bufferSize = DS_ALIGNED_SIZE(10) + DS_ALIGNED_SIZE(30) +
-		DS_ALIGNED_SIZE(40) + DS_CUSTOM_ALIGNED_SIZE(32, 64) + DS_CUSTOM_ALIGNED_SIZE(16, 64);
+	const unsigned int bufferSize = DS_ALIGNED_SIZE(10, DS_ALLOC_ALIGNMENT) +
+		DS_ALIGNED_SIZE(30, DS_ALLOC_ALIGNMENT) + DS_ALIGNED_SIZE(40, DS_ALLOC_ALIGNMENT) +
+		DS_ALIGNED_SIZE(32, 64) + DS_ALIGNED_SIZE(16, 64);
 	DS_ALIGN(DS_ALLOC_ALIGNMENT) uint8_t buffer[bufferSize];
 
 	dsBufferAllocator allocator;
@@ -105,34 +106,34 @@ TEST(BufferAllocator, AlignedAllocate)
 	EXPECT_EQ(10U, ((dsAllocator*)&allocator)->size);
 	EXPECT_EQ(1U, ((dsAllocator*)&allocator)->totalAllocations);
 	EXPECT_EQ(1U, ((dsAllocator*)&allocator)->currentAllocations);
-	unsigned int curOffset = DS_ALIGNED_SIZE(10);
+	unsigned int curOffset = DS_ALIGNED_SIZE(10, DS_ALLOC_ALIGNMENT);
 
 	void* ptr2 = dsAllocator_alloc((dsAllocator*)&allocator, 30);
 	EXPECT_EQ((uintptr_t)ptr1 + curOffset, (uintptr_t)ptr2);
 	EXPECT_EQ(curOffset + 30, ((dsAllocator*)&allocator)->size);
 	EXPECT_EQ(2U, ((dsAllocator*)&allocator)->totalAllocations);
 	EXPECT_EQ(2U, ((dsAllocator*)&allocator)->currentAllocations);
-	curOffset += DS_ALIGNED_SIZE(30);
+	curOffset += DS_ALIGNED_SIZE(30, DS_ALLOC_ALIGNMENT);
 
 	void* ptr3 = dsAllocator_alloc((dsAllocator*)&allocator, 40);
 	EXPECT_EQ((uintptr_t)ptr1 + curOffset, (uintptr_t)ptr3);
 	EXPECT_EQ(curOffset + 40U, ((dsAllocator*)&allocator)->size);
 	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->totalAllocations);
 	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->currentAllocations);
-	curOffset += DS_ALIGNED_SIZE(40);
+	curOffset += DS_ALIGNED_SIZE(40, DS_ALLOC_ALIGNMENT);
 
 	void* ptr4 = dsAllocator_alloc((dsAllocator*)&allocator, 1);
 	EXPECT_EQ((uintptr_t)ptr1 + curOffset, (uintptr_t)ptr4);
 	EXPECT_EQ(curOffset + 1, ((dsAllocator*)&allocator)->size);
 	EXPECT_EQ(4U, ((dsAllocator*)&allocator)->totalAllocations);
 	EXPECT_EQ(4U, ((dsAllocator*)&allocator)->currentAllocations);
-	curOffset += DS_ALIGNED_SIZE(1);
+	curOffset += DS_ALIGNED_SIZE(1, DS_ALLOC_ALIGNMENT);
 
 	void* ptr5 = dsAllocator_alignedAlloc((dsAllocator*)&allocator, 16, 64);
 	EXPECT_NE(nullptr, ptr5);
 	EXPECT_EQ(0U, (uintptr_t)ptr5 % 64);
 	size_t size = ((dsAllocator*)&allocator)->size;
-	size_t baseExpectedSize = DS_CUSTOM_ALIGNED_SIZE(curOffset, 64) + 16;
+	size_t baseExpectedSize = DS_ALIGNED_SIZE(curOffset, 64) + 16;
 #if DS_ALLOC_ALIGNMENT == 16
 	EXPECT_TRUE(size == baseExpectedSize || size == baseExpectedSize + 16 ||
 		size == baseExpectedSize + 32 || size == baseExpectedSize + 48) << "size: " << size <<

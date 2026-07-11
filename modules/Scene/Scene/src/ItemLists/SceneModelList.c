@@ -571,11 +571,24 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 		}
 	}
 
-	size_t nameLen = strlen(name);
-	size_t instanceDataSize = valueCount > 0 ? dsSharedMaterialValues_fullAllocSize(valueCount) : 0;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneModelList)) + DS_ALIGNED_SIZE(nameLen + 1) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneInstanceData*)*instanceDataCount) + instanceDataSize +
-		DS_ALIGNED_SIZE(sizeof(uint32_t)*cullListCount);
+	size_t fullSize = sizeof(dsSceneModelList);
+	size_t nameLen = strlen(name) + 1;
+	bool hasInstanceData = valueCount > 0;
+	size_t instanceDataSize =
+		hasInstanceData ? dsSharedMaterialValues_fullAllocSize(valueCount) : 0;
+	dsMemorySize sizes[] =
+	{
+		{sizeof(char), nameLen},
+		{sizeof(dsSceneInstanceData*), instanceDataCount},
+		{instanceDataSize, hasInstanceData},
+		{sizeof(uint32_t), cullListCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+	{
+		destroyInstanceData(instanceData, instanceDataCount);
+		return NULL;
+	}
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
@@ -592,8 +605,8 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 	itemList->allocator = allocator;
 	itemList->type = dsSceneModelList_type();
 	itemList->viewFilter = viewFilter;
-	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen + 1);
-	memcpy((void*)itemList->name, name, nameLen + 1);
+	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+	memcpy((void*)itemList->name, name, nameLen);
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = true;
@@ -610,7 +623,7 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 
 	if (instanceDataCount > 0)
 	{
-		if (valueCount > 0)
+		if (hasInstanceData)
 		{
 			modelList->instanceValues = dsSharedMaterialValues_create(
 				(dsAllocator*)&bufferAlloc, valueCount);

@@ -161,15 +161,23 @@ dsTextRenderBuffer* dsTextRenderBuffer_create(dsAllocator* allocator,
 	}
 
 	const uint32_t max16BitIndices = 1 << 16;
-	uint32_t indexSize = (uint32_t)(maxStandardGlyphs*4 < max16BitIndices ? sizeof(uint16_t) :
-		sizeof(uint32_t));
+	size_t indexSize = maxStandardGlyphs*4 < max16BitIndices ? sizeof(uint16_t) : sizeof(uint32_t);
 	uint32_t vertexCount = tessellationShader ? 1 : 4;
-	uint32_t vertexBufferSize = vertexFormat->size*maxStandardGlyphs*vertexCount;
-	uint32_t indexBufferSize = tessellationShader ? 0 : indexSize*maxStandardGlyphs*6;
+	size_t glyphVertexSize = vertexFormat->size*vertexCount;
+	size_t vertexBufferSize = glyphVertexSize*maxStandardGlyphs;
+	size_t indexBufferSize = tessellationShader ? 0 : indexSize*maxStandardGlyphs*6;
+	size_t bufferSize = vertexBufferSize + indexBufferSize;
+	if (!DS_ARRAY_SIZE_VALID(glyphVertexSize, maxStandardGlyphs) ||
+		!DS_ARRAY_SIZE_VALID(indexSize*6, maxStandardGlyphs) ||
+		!DS_CAN_ADD_SIZES(vertexBufferSize, indexBufferSize) || bufferSize > UINT32_MAX)
+	{
+		errno = ERANGE;
+		return NULL;
+	}
+
 	dsGfxBufferUsage usage = dsGfxBufferUsage_Vertex | dsGfxBufferUsage_CopyTo;
 	if (!tessellationShader)
 		usage |= dsGfxBufferUsage_Index;
-	uint32_t bufferSize = vertexBufferSize + indexBufferSize;
 	dsGfxBuffer* gfxBuffer = dsGfxBuffer_create(resourceManager, allocator, usage,
 		dsGfxMemory_Stream | dsGfxMemory_Draw | dsGfxMemory_GPUOnly, NULL, bufferSize);
 	if (!gfxBuffer)
@@ -178,7 +186,8 @@ dsTextRenderBuffer* dsTextRenderBuffer_create(dsAllocator* allocator,
 	dsVertexBuffer vertexBuffer = {gfxBuffer, 0, maxStandardGlyphs*vertexCount, *vertexFormat};
 	dsVertexBuffer* vertexBufferPtrs[DS_MAX_GEOMETRY_VERTEX_BUFFERS] =
 		{&vertexBuffer, NULL, NULL, NULL};
-	dsIndexBuffer indexBuffer = {gfxBuffer, vertexBufferSize, maxStandardGlyphs*6, indexSize};
+	dsIndexBuffer indexBuffer =
+		{gfxBuffer, vertexBufferSize, maxStandardGlyphs*6, (uint32_t)indexSize};
 	dsDrawGeometry* geometry = dsDrawGeometry_create(resourceManager, allocator, vertexBufferPtrs,
 		tessellationShader ? NULL : &indexBuffer);
 	if (!geometry)
@@ -187,11 +196,30 @@ dsTextRenderBuffer* dsTextRenderBuffer_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	uint32_t tempDataSize = bufferSize + (uint32_t)sizeof(dsIconGlyph)*maxIconGlyphs +
-		(uint32_t)sizeof(dsTextIcons*)*maxIconGlyphs;
+	size_t tempDataSize = bufferSize;
+	dsMemorySize tempSizes[] =
+	{
+		{sizeof(dsIconGlyph), maxIconGlyphs},
+		{sizeof(dsTextIcons*), maxIconGlyphs}
+	};
+	if (!dsAccumulateAlignedSizes(
+			&tempDataSize, tempSizes, DS_ARRAY_SIZE(tempSizes), DS_ALLOC_ALIGNMENT) ||
+		tempDataSize > UINT32_MAX)
+	{
+		DS_VERIFY(dsDrawGeometry_destroy(geometry));
+		DS_VERIFY(dsGfxBuffer_destroy(gfxBuffer));
+		errno = ERANGE;
+		return NULL;
+	}
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsTextRenderBuffer)) +
-		DS_ALIGNED_SIZE(tempDataSize);
+	size_t fullSize = sizeof(dsTextRenderBuffer);
+	if (!dsAddAlignedSize(&fullSize, tempDataSize, DS_ALLOC_ALIGNMENT))
+	{
+		DS_VERIFY(dsDrawGeometry_destroy(geometry));
+		DS_VERIFY(dsGfxBuffer_destroy(gfxBuffer));
+		return NULL;
+	}
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
@@ -213,7 +241,7 @@ dsTextRenderBuffer* dsTextRenderBuffer_create(dsAllocator* allocator,
 	renderBuffer->maxIconGlyphs = maxIconGlyphs;
 	renderBuffer->queuedStandardGlyphs = 0;
 	renderBuffer->queuedIconGlyphs = 0;
-	renderBuffer->tempIconOffset = bufferSize;
+	renderBuffer->tempIconOffset = (uint32_t)bufferSize;
 	renderBuffer->tempData = dsAllocator_alloc((dsAllocator*)&bufferAlloc, tempDataSize);
 	DS_ASSERT(renderBuffer->tempData);
 

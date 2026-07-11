@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,9 @@
 #include "Resources/VkFramebuffer.h"
 
 #include "Resources/VkRealFramebuffer.h"
-#include "Resources/VkResourceManager.h"
 #include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
 #include "VkRenderPassData.h"
-#include "VkShared.h"
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -59,14 +57,21 @@ dsFramebuffer* dsVkFramebuffer_create(dsResourceManager* resourceManager, dsAllo
 	uint32_t height, uint32_t layers)
 {
 	size_t nameLen = strlen(name) + 1;
-	size_t bufferSize = DS_ALIGNED_SIZE(sizeof(dsVkFramebuffer)) +
-		DS_ALIGNED_SIZE(sizeof(dsFramebufferSurface)*surfaceCount) + DS_ALIGNED_SIZE(nameLen);
-	void* buffer = dsAllocator_alloc(allocator, bufferSize);
+	size_t fullSize = sizeof(dsVkFramebuffer);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(dsFramebufferSurface), surfaceCount},
+		{sizeof(char), nameLen}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
+
+	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
 
 	dsBufferAllocator bufferAlloc;
-	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, bufferSize));
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 	dsVkFramebuffer* framebuffer = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVkFramebuffer);
 	DS_ASSERT(framebuffer);
 
@@ -225,8 +230,8 @@ dsVkRealFramebuffer* dsVkFramebuffer_getRealFramebuffer(dsFramebuffer* framebuff
 	return realFramebuffer;
 }
 
-void dsVkFramebuffer_removeRenderPass(dsFramebuffer* framebuffer,
-	const dsVkRenderPassData* renderPass)
+void dsVkFramebuffer_removeRenderPass(
+	dsFramebuffer* framebuffer, const dsVkRenderPassData* renderPass)
 {
 	dsVkFramebuffer* vkFramebuffer = (dsVkFramebuffer*)framebuffer;
 	DS_VERIFY(dsSpinlock_lock(&vkFramebuffer->lock));

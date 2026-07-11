@@ -34,6 +34,7 @@
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Assert.h>
+
 #include <DeepSea/Render/Resources/DefaultShaderVariableGroupDesc.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
@@ -59,11 +60,15 @@ static dsResourceContext dummyContext;
 static size_t fullAllocSize(const char* shaderCacheDir)
 {
 	size_t pathLen = shaderCacheDir ? strlen(shaderCacheDir) + 1 : 0;
-	return DS_ALIGNED_SIZE(sizeof(dsVkResourceManager)) + DS_ALIGNED_SIZE(pathLen);
+	size_t fullSize = sizeof(dsVkResourceManager);
+	if (!dsAddAlignedSize(&fullSize, pathLen, DS_ALLOC_ALIGNMENT))
+		return 0;
+
+	return fullSize;
 }
 
-static void initializeFormat(dsVkResourceManager* resourceManager, dsGfxFormat format,
-	VkFormat vkFormat)
+static void initializeFormat(
+	dsVkResourceManager* resourceManager, dsGfxFormat format, VkFormat vkFormat)
 {
 	dsVkDevice* device = resourceManager->device;
 	dsVkInstance* instance = &device->instance;
@@ -655,8 +660,8 @@ bufferError:
 	return false;
 }
 
-bool dsVkResourceManager_vertexFormatSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format)
+bool dsVkResourceManager_vertexFormatSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format)
 {
 	const dsVkFormatInfo* formatInfo = dsVkResourceManager_getFormat(resourceManager, format);
 	if (!formatInfo)
@@ -665,8 +670,8 @@ bool dsVkResourceManager_vertexFormatSupported(const dsResourceManager* resource
 	return (formatInfo->properties.bufferFeatures & VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT) != 0;
 }
 
-bool dsVkResourceManager_textureFormatSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format)
+bool dsVkResourceManager_textureFormatSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format)
 {
 	const dsVkFormatInfo* formatInfo = dsVkResourceManager_getFormat(resourceManager, format);
 	if (!formatInfo)
@@ -676,8 +681,8 @@ bool dsVkResourceManager_textureFormatSupported(const dsResourceManager* resourc
 		VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT) != 0;
 }
 
-bool dsVkResourceManager_textureBufferFormatSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format)
+bool dsVkResourceManager_textureBufferFormatSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format)
 {
 	const dsVkFormatInfo* formatInfo = dsVkResourceManager_getFormat(resourceManager, format);
 	if (!formatInfo)
@@ -687,8 +692,8 @@ bool dsVkResourceManager_textureBufferFormatSupported(const dsResourceManager* r
 		VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT) != 0;
 }
 
-bool dsVkResourceManager_imageFormatSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format)
+bool dsVkResourceManager_imageFormatSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format)
 {
 	const dsVkFormatInfo* formatInfo = dsVkResourceManager_getFormat(resourceManager, format);
 	if (!formatInfo)
@@ -698,8 +703,8 @@ bool dsVkResourceManager_imageFormatSupported(const dsResourceManager* resourceM
 		VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT) != 0;
 }
 
-bool dsVkResourceManager_renderTargetFormatSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format)
+bool dsVkResourceManager_renderTargetFormatSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format)
 {
 	const dsVkFormatInfo* formatInfo = dsVkResourceManager_getFormat(resourceManager, format);
 	if (!formatInfo)
@@ -731,15 +736,15 @@ bool dsVkResourceManager_surfaceBlitFormatsSupported(const dsResourceManager* re
 	return dsGfxFormat_standardSurfaceBlitSupported(srcFormat, dstFormat, filter);
 }
 
-bool dsVkResourceManager_generateMipmapFormatSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format)
+bool dsVkResourceManager_generateMipmapFormatSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format)
 {
-	return dsVkResourceManager_surfaceBlitFormatsSupported(resourceManager, format, format,
-		dsBlitFilter_Linear);
+	return dsVkResourceManager_surfaceBlitFormatsSupported(
+		resourceManager, format, format, dsBlitFilter_Linear);
 }
 
-bool dsVkResourceManager_textureCopyFormatsSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat srcFormat, dsGfxFormat dstFormat)
+bool dsVkResourceManager_textureCopyFormatsSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat srcFormat, dsGfxFormat dstFormat)
 {
 	if (!dsVkResourceManager_textureFormatSupported(resourceManager, srcFormat) ||
 		!dsVkResourceManager_textureFormatSupported(resourceManager, dstFormat))
@@ -756,8 +761,8 @@ dsResourceContext* dsVkResourceManager_acquireResourceContext(dsResourceManager*
 	return &dummyContext;
 }
 
-bool dsVkResourceManager_releaseResourceContext(dsResourceManager* resourceManager,
-	dsResourceContext* context)
+bool dsVkResourceManager_releaseResourceContext(
+	dsResourceManager* resourceManager, dsResourceContext* context)
 {
 	DS_UNUSED(resourceManager);
 	DS_UNUSED(context);
@@ -987,8 +992,8 @@ dsResourceManager* dsVkResourceManager_create(
 	return baseResourceManager;
 }
 
-const dsVkFormatInfo* dsVkResourceManager_getFormat(const dsResourceManager* resourceManager,
-	dsGfxFormat format)
+const dsVkFormatInfo* dsVkResourceManager_getFormat(
+	const dsResourceManager* resourceManager, dsGfxFormat format)
 {
 	const dsVkResourceManager* vkResourceManager = (const dsVkResourceManager*)resourceManager;
 	uint32_t index = dsGfxFormat_standardIndex(format);

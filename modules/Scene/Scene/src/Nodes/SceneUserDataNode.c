@@ -52,8 +52,14 @@ dsSceneUserDataNode* dsSceneUserDataNode_create(dsAllocator* allocator, void* us
 		return NULL;
 	}
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneUserDataNode)) +
-		dsSceneNode_itemListsAllocSize(itemLists, itemListCount);
+	size_t fullSize = sizeof(dsSceneUserDataNode);
+	if (itemListCount > 0)
+	{
+		size_t itemListsSize = dsSceneNode_itemListsAllocSize(itemLists, itemListCount);
+		if (itemListsSize == 0 || !dsAddAlignedSize(&fullSize, itemListsSize, DS_ALLOC_ALIGNMENT))
+			return NULL;
+	}
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;

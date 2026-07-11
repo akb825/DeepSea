@@ -69,17 +69,28 @@ const char* const dsSceneNodeRef_typeName = "ReferenceNode";
 
 size_t dsSceneNode_itemListsAllocSize(const char* const* itemLists, uint32_t itemListCount)
 {
-	if (itemListCount == 0)
+	if (!itemLists || itemListCount == 0)
+	{
+		errno = EINVAL;
+		return 0;
+	}
+
+	size_t fullSize = 0;
+	if (!dsAddAlignedArraySize(&fullSize, sizeof(const char*), itemListCount, DS_ALLOC_ALIGNMENT))
 		return 0;
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(const char*)*itemListCount);
 	for (uint32_t i = 0; i < itemListCount; ++i)
 	{
 		if (!itemLists[i])
+		{
+			errno = EINVAL;
 			return 0;
+		}
 
-		fullSize += DS_ALIGNED_SIZE(strlen(itemLists[i]) + 1);
+		if (!dsAddAlignedSize(&fullSize, strlen(itemLists[i]) + 1, DS_ALLOC_ALIGNMENT))
+			return 0;
 	}
+
 	return fullSize;
 }
 

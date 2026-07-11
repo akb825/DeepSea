@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,8 @@ dsShader* dsMockShader_create(dsResourceManager* resourceManager, dsAllocator* a
 	DS_ASSERT(shaderIndex < dsShaderModule_shaderCount(module));
 	DS_ASSERT(materialDesc);
 
-	size_t size = DS_ALIGNED_SIZE(sizeof(dsShader)) + DS_ALIGNED_SIZE(sizeof(mslPipeline));
+	size_t size = DS_ALIGNED_SIZE(sizeof(dsShader), DS_ALLOC_ALIGNMENT) +
+		DS_ALIGNED_SIZE(sizeof(mslPipeline), DS_ALLOC_ALIGNMENT);
 	void* buffer = dsAllocator_alloc(allocator, size);
 	if (!buffer)
 		return NULL;

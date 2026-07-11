@@ -55,9 +55,19 @@ dsSceneAnimationRagdollNode* dsSceneAnimationRagdollNode_create(dsAllocator* all
 		return NULL;
 	}
 
+	size_t fullSize = sizeof(dsSceneAnimationRagdollNode);
 	size_t nameLen = strlen(animationNodeName) + 1;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneAnimationRagdollNode)) +
-		DS_ALIGNED_SIZE(nameLen) + dsSceneNode_itemListsAllocSize(itemLists, itemListCount);
+	bool hasItemLists = itemListCount > 0;
+	size_t itemListsSize =
+		hasItemLists ? dsSceneNode_itemListsAllocSize(itemLists, itemListCount) : 0;
+	dsMemorySize sizes[] =
+	{
+		{sizeof(char), nameLen},
+		{itemListsSize, hasItemLists}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -68,8 +78,8 @@ dsSceneAnimationRagdollNode* dsSceneAnimationRagdollNode_create(dsAllocator* all
 	dsSceneAnimationRagdollNode* node = DS_ALLOCATE_OBJECT(
 		&bufferAlloc, dsSceneAnimationRagdollNode);
 
-	const char* const* itemListsCopy = dsSceneNode_copyItemLists((dsAllocator*)&bufferAlloc,
-		itemLists, itemListCount);
+	const char* const* itemListsCopy = dsSceneNode_copyItemLists(
+		(dsAllocator*)&bufferAlloc, itemLists, itemListCount);
 	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator,

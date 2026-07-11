@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,15 +87,16 @@ DS_RENDER_EXPORT uint8_t dsMaterialType_cpuAlignment(dsMaterialType type);
  * This can be used for building up local storage for material elements for access on the CPU. This
  * may not match alignment and packing restrictions for direct access on the GPU.
  *
+ * @remark errno will be set on failure.
  * @param[inout] curSize The current size. The element size will be added to this, along with any
  *     adjustment for alignment.
  * @param type The material type.
  * @param count The number of array elements. A value of 0 indicates a single non-array element.
  * @return The offset of the element. This will take the CPU alignment into account. If not a valid
- *     type, DS_INVALID_MATERIAL_OFFSET will be returned.
+ *     type or an overflow would occur, DS_INVALID_MATERIAL_OFFSET will be returned.
  */
-DS_RENDER_EXPORT size_t dsMaterialType_addElementCPUSize(size_t* curSize, dsMaterialType type,
-	uint32_t count);
+DS_RENDER_EXPORT size_t dsMaterialType_addElementCPUSize(
+	size_t* curSize, dsMaterialType type, uint32_t count);
 
 /**
  * @brief Gets the size of a material type for a uniform block on the GPU.
@@ -125,15 +126,16 @@ DS_RENDER_EXPORT uint8_t dsMaterialType_blockAlignment(dsMaterialType type, bool
  * This can be used for setting up storage and accessing material elements used with a uniform block
  * used by the GPU. This follows the std140 layout standard.
  *
+ * @remark errno will be set on failure.
  * @param[inout] curSize The current size. The element size will be added to this, along with any
  *     adjustment for alignment.
  * @param type The material type.
  * @param count The number of array elements. A value of 0 indicates a single non-array element.
  * @return The offset of the element. This will take the uniform block alignment into account. If
- *    not a valid type, DS_INVALID_MATERIAL_OFFSET will be returned.
+ *    not a valid type or an overflow would occur, DS_INVALID_MATERIAL_OFFSET will be returned.
  */
-DS_RENDER_EXPORT size_t dsMaterialType_addElementBlockSize(size_t* curSize, dsMaterialType type,
-	uint32_t count);
+DS_RENDER_EXPORT size_t dsMaterialType_addElementBlockSize(
+	size_t* curSize, dsMaterialType type, uint32_t count);
 
 /**
  * @brief Gets the size of a material type for a storage buffer on the GPU.
@@ -161,15 +163,16 @@ DS_RENDER_EXPORT uint8_t dsMaterialType_bufferAlignment(dsMaterialType type);
  * This can be used for setting up storage and accessing material elements used with a storage
  * buffer used by the GPU. This follows the std430 layout standard.
  *
+ * @remark errno will be set on failure.
  * @param[inout] curSize The current size. The element size will be added to this, along with any
  *     adjustment for alignment.
  * @param type The material type.
  * @param count The number of array elements. A value of 0 indicates a single non-array element.
  * @return The offset of the element. This will take the storage buffer alignment into account. If
- *    not a valid type, DS_INVALID_MATERIAL_OFFSET will be returned.
+ *    not a valid type or an overflow would occur, DS_INVALID_MATERIAL_OFFSET will be returned.
  */
-DS_RENDER_EXPORT size_t dsMaterialType_addElementBufferSize(size_t* curSize, dsMaterialType type,
-	uint32_t count);
+DS_RENDER_EXPORT size_t dsMaterialType_addElementBufferSize(
+	size_t* curSize, dsMaterialType type, uint32_t count);
 
 #ifdef __cplusplus
 }

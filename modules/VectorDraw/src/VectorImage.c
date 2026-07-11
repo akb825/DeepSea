@@ -906,11 +906,20 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 
 	uint32_t infoTextureCount = (scratchData->vectorInfoCount + INFOS_PER_TEXTURE - 1)/
 		INFOS_PER_TEXTURE;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVectorImage)) +
-		DS_ALIGNED_SIZE(sizeof(VectorImagePiece)*scratchData->pieceCount) +
-		DS_ALIGNED_SIZE(sizeof(dsTexture*)*infoTextureCount) +
-		DS_ALIGNED_SIZE(sizeof(dsTextLayout*)*scratchData->textLayoutCount) +
-		DS_ALIGNED_SIZE(sizeof(TextDrawInfo)*scratchData->textDrawInfoCount);
+	size_t fullSize = sizeof(dsVectorImage);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(VectorImagePiece), scratchData->pieceCount},
+		{sizeof(dsTexture*), infoTextureCount},
+		{sizeof(dsTextLayout*), scratchData->textLayoutCount},
+		{sizeof(TextDrawInfo), scratchData->textDrawInfoCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+	{
+		dsVectorScratchData_reset(scratchData);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{

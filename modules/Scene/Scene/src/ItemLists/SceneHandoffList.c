@@ -269,7 +269,10 @@ dsSceneItemList* dsSceneHandoffList_create(dsAllocator* allocator, const char* n
 	}
 
 	size_t nameLen = strlen(name) + 1;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneHandoffList)) + DS_ALIGNED_SIZE(nameLen);
+	size_t fullSize = sizeof(dsSceneHandoffList);
+	if (!dsAddAlignedSize(&fullSize, nameLen, DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;

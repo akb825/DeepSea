@@ -1011,8 +1011,25 @@ dsTextDirection dsFaceGroup_textDirection(uint32_t script)
 
 size_t dsFaceGroup_fullAllocSize(uint32_t maxFaces)
 {
-	return DS_ALIGNED_SIZE(sizeof(dsFaceGroup)) + DS_ALIGNED_SIZE(sizeof(dsFontFace)*maxFaces) +
-		dsMutex_fullAllocSize() + dsHashTable_fullAllocSize(dsHashTable_tableSize(maxFaces));
+	size_t fullSize = sizeof(dsFaceGroup);
+	size_t faceSize = sizeof(dsFontFace)*maxFaces;
+	if (!DS_ARRAY_SIZE_VALID(sizeof(dsFontFace), maxFaces) || !DS_CAN_ADD_SIZES(fullSize, faceSize))
+	{
+		errno = ERANGE;
+		return 0;
+	}
+
+	fullSize += faceSize;
+	size_t hashTableSize = dsHashTable_sizeof(dsHashTable_tableSize(maxFaces));
+	dsMemorySize sizes[] =
+	{
+		{dsMutex_fullAllocSize(), 1},
+		{hashTableSize, 1}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return 0;
+
+	return fullSize;
 }
 
 dsFaceGroup* dsFaceGroup_create(
@@ -1040,18 +1057,19 @@ dsFaceGroup* dsFaceGroup_create(
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	dsFaceGroup* faceGroup = (dsFaceGroup*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		DS_ALIGNED_SIZE(sizeof(dsFaceGroup)) + DS_ALIGNED_SIZE(sizeof(dsFontFace)*maxFaces));
+
+	size_t baseSize = sizeof(dsFaceGroup) + sizeof(dsFontFace)*maxFaces;
+	dsFaceGroup* faceGroup = (dsFaceGroup*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, baseSize);
 	DS_ASSERT(faceGroup);
 
 	size_t hashTableSize = dsHashTable_tableSize(maxFaces);
 	faceGroup->allocator = dsAllocator_keepPointer(allocator);
 	faceGroup->scratchAllocator = scratchAllocator;
-	faceGroup->faceHashTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		dsHashTable_fullAllocSize(hashTableSize));
+	faceGroup->faceHashTable = (dsHashTable*)dsAllocator_alloc(
+		(dsAllocator*)&bufferAlloc, dsHashTable_sizeof(hashTableSize));
 	DS_ASSERT(faceGroup->faceHashTable);
-	DS_VERIFY(dsHashTable_initialize(faceGroup->faceHashTable, hashTableSize, &dsHashString,
-		dsHashStringEqual));
+	DS_VERIFY(dsHashTable_initialize(
+		faceGroup->faceHashTable, hashTableSize, &dsHashString, dsHashStringEqual));
 
 	faceGroup->mutex = dsMutex_create((dsAllocator*)&bufferAlloc, "Face Group");
 	faceGroup->unicode = hb_unicode_funcs_get_default();

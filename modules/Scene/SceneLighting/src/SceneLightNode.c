@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,16 +63,19 @@ dsSceneLightNode* dsSceneLightNode_create(dsAllocator* allocator, const dsSceneL
 		return NULL;
 	}
 
-	size_t itemListsSize = dsSceneNode_itemListsAllocSize(itemLists, itemListCount);
-	if (itemListsSize == 0)
+	size_t fullSize = sizeof(dsSceneLightNode);
+	size_t nameLen = strlen(lightBaseName) + 1;
+	bool hasItemLists = itemListCount > 0;
+	size_t itemListsSize =
+		hasItemLists ? dsSceneNode_itemListsAllocSize(itemLists, itemListCount) : 0;
+	dsMemorySize sizes[] =
 	{
-		errno = EINVAL;
+		{sizeof(char), nameLen},
+		{itemListsSize, hasItemLists}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
 		return NULL;
-	}
 
-	size_t lightBaseNameLen = strlen(lightBaseName) + 1;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneLightNode)) + itemListsSize +
-		DS_ALIGNED_SIZE(lightBaseNameLen);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -98,9 +101,9 @@ dsSceneLightNode* dsSceneLightNode_create(dsAllocator* allocator, const dsSceneL
 	lightNode->templateLight = *templateLight;
 	lightNode->templateLight.nameID = 0;
 
-	char* lightBaseNameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, lightBaseNameLen);
+	char* lightBaseNameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(lightBaseNameCopy);
-	memcpy(lightBaseNameCopy, lightBaseName, lightBaseNameLen);
+	memcpy(lightBaseNameCopy, lightBaseName, nameLen);
 	lightNode->lightBaseName = lightBaseNameCopy;
 	lightNode->singleInstance = singleInstance;
 

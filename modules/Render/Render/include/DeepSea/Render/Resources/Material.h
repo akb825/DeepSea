@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,8 +51,8 @@ extern "C"
  * @param description The description for the material.
  * @return The created material, or NULL if it couldn't be created.
  */
-DS_RENDER_EXPORT dsMaterial* dsMaterial_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator,const dsMaterialDesc* description);
+DS_RENDER_EXPORT dsMaterial* dsMaterial_create(
+	dsResourceManager* resourceManager, dsAllocator* allocator,const dsMaterialDesc* description);
 
 /**
  * @brief Gets the resource manager the material was created with.
@@ -101,8 +101,8 @@ DS_RENDER_EXPORT bool dsMaterial_getElementData(void* outData, const dsMaterial*
  * @param element The element index.
  * @return The pointer to the element data, or NULL if invalid.
  */
-DS_RENDER_EXPORT const void* dsMaterial_getRawElementData(const dsMaterial* material,
-	uint32_t element);
+DS_RENDER_EXPORT const void* dsMaterial_getRawElementData(
+	const dsMaterial* material, uint32_t element);
 
 /**
  * @brief Sets the data for an element of a primitive, vector, or matrix type.
@@ -134,8 +134,8 @@ DS_RENDER_EXPORT dsTexture* dsMaterial_getTexture(const dsMaterial* material, ui
  * @param texture The texture to set.
  * @return Flase if the parameters are invalid or the element isn't a texture.
  */
-DS_RENDER_EXPORT bool dsMaterial_setTexture(dsMaterial* material, uint32_t element,
-	dsTexture* texture);
+DS_RENDER_EXPORT bool dsMaterial_setTexture(
+	dsMaterial* material, uint32_t element, dsTexture* texture);
 
 /**
  * @brief Gets the texture buffer data for a material element.
@@ -169,8 +169,8 @@ DS_RENDER_EXPORT bool dsMaterial_setTextureBuffer(dsMaterial* material, uint32_t
  * @param element The index of the element to get.
  * @return The shader variable group, or NULL if not found or unset.
  */
-DS_RENDER_EXPORT dsShaderVariableGroup* dsMaterial_getVariableGroup(const dsMaterial* material,
-	uint32_t element);
+DS_RENDER_EXPORT dsShaderVariableGroup* dsMaterial_getVariableGroup(
+	const dsMaterial* material, uint32_t element);
 
 /**
  * @brief Sets the shader variable group data for a material element.
@@ -180,8 +180,8 @@ DS_RENDER_EXPORT dsShaderVariableGroup* dsMaterial_getVariableGroup(const dsMate
  * @param group The shader variable group to set.
  * @return Flase if the parameters are invalid or the element isn't a shader variable group.
  */
-DS_RENDER_EXPORT bool dsMaterial_setVariableGroup(dsMaterial* material, uint32_t element,
-	dsShaderVariableGroup* group);
+DS_RENDER_EXPORT bool dsMaterial_setVariableGroup(
+	dsMaterial* material, uint32_t element, dsShaderVariableGroup* group);
 
 /**
  * @brief Gets the buffer data for a material element.
@@ -191,8 +191,8 @@ DS_RENDER_EXPORT bool dsMaterial_setVariableGroup(dsMaterial* material, uint32_t
  * @param element The index of the element to get.
  * @return The buffer, or NULL if not found or unset.
  */
-DS_RENDER_EXPORT dsGfxBuffer* dsMaterial_getBuffer(size_t* outOffset, size_t* outSize,
-	const dsMaterial* material, uint32_t element);
+DS_RENDER_EXPORT dsGfxBuffer* dsMaterial_getBuffer(
+	size_t* outOffset, size_t* outSize, const dsMaterial* material, uint32_t element);
 
 /**
  * @brief Sets the buffer data for a material element.
@@ -204,8 +204,8 @@ DS_RENDER_EXPORT dsGfxBuffer* dsMaterial_getBuffer(size_t* outOffset, size_t* ou
  * @param size The size to use within the buffer.
  * @return Flase if the parameters are invalid or the element isn't a buffer.
  */
-DS_RENDER_EXPORT bool dsMaterial_setBuffer(dsMaterial* material, uint32_t element,
-	dsGfxBuffer* buffer, size_t offset, size_t size);
+DS_RENDER_EXPORT bool dsMaterial_setBuffer(
+	dsMaterial* material, uint32_t element, dsGfxBuffer* buffer, size_t offset, size_t size);
 
 /**
  * @brief Commits changes to the material values.

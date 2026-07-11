@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,8 +45,13 @@ dsKeyframeAnimation* dsKeyframeAnimation_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsKeyframeAnimation)) +
-		DS_ALIGNED_SIZE(sizeof(dsAnimationKeyframes)*keyframesCount);
+	size_t fullSize = sizeof(dsKeyframeAnimation);
+	if (!dsAddAlignedArraySize(
+			&fullSize, sizeof(dsAnimationKeyframes), keyframesCount, DS_ALLOC_ALIGNMENT))
+	{
+		return NULL;
+	}
+
 	float minTime = FLT_MAX;
 	float maxTime = -FLT_MAX;
 	for (uint32_t i = 0; i < keyframesCount; ++i)
@@ -73,8 +78,16 @@ dsKeyframeAnimation* dsKeyframeAnimation_create(dsAllocator* allocator,
 			}
 		}
 
-		fullSize += DS_ALIGNED_SIZE(sizeof(float)*curKeyframes->keyframeCount) +
-			DS_ALIGNED_SIZE(sizeof(dsKeyframeAnimationChannel)*curKeyframes->channelCount);
+		dsMemorySize keyframeSizes[] =
+		{
+			{sizeof(float), curKeyframes->keyframeCount},
+			{sizeof(dsKeyframeAnimationChannel), curKeyframes->channelCount}
+		};
+		if (!dsAccumulateAlignedSizes(
+				&fullSize, keyframeSizes, DS_ARRAY_SIZE(keyframeSizes), DS_ALLOC_ALIGNMENT))
+		{
+			return NULL;
+		}
 
 		for (uint32_t j = 0; j < curKeyframes->channelCount; ++j)
 		{
@@ -114,8 +127,16 @@ dsKeyframeAnimation* dsKeyframeAnimation_create(dsAllocator* allocator,
 				return NULL;
 			}
 
-			fullSize += DS_ALIGNED_SIZE(strlen(curChannel->node) + 1) +
-				DS_ALIGNED_SIZE(sizeof(dsVector4f)*finalValueCount);
+			dsMemorySize channelSizes[] =
+			{
+				{sizeof(char), strlen(curChannel->node) + 1},
+				{sizeof(dsVector4f), finalValueCount}
+			};
+			if (!dsAccumulateAlignedSizes(
+					&fullSize, channelSizes, DS_ARRAY_SIZE(channelSizes), DS_ALLOC_ALIGNMENT))
+			{
+				return NULL;
+			}
 		}
 	}
 

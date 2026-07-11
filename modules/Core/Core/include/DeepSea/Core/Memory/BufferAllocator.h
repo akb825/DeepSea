@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,8 +42,8 @@ extern "C"
  * @param bufferSize The size of the buffer in bytes.
  * @return False if the allocator couldn't be iniitialized.
  */
-DS_CORE_EXPORT bool dsBufferAllocator_initialize(dsBufferAllocator* allocator, void* buffer,
-	size_t bufferSize);
+DS_CORE_EXPORT bool dsBufferAllocator_initialize(
+	dsBufferAllocator* allocator, void* buffer, size_t bufferSize);
 
 /**
  * @brief Allocates memory from the buffer allocator.
@@ -54,8 +54,8 @@ DS_CORE_EXPORT bool dsBufferAllocator_initialize(dsBufferAllocator* allocator, v
  *     to align the memory. Use DS_REALIGNED_SIZE() to compute the size to take this into account.
  * @return The allocated memory or NULL if an error occurred.
  */
-DS_CORE_EXPORT void* dsBufferAllocator_alloc(dsBufferAllocator* allocator, size_t size,
-	unsigned int alignment);
+DS_CORE_EXPORT void* dsBufferAllocator_alloc(
+	dsBufferAllocator* allocator, size_t size, unsigned int alignment);
 
 /**
  * @brief Resets the buffer allocator to the beginning.

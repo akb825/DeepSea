@@ -59,8 +59,15 @@ dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allocator, dsParticleEm
 		return NULL;
 	}
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeofParticleEmitter) +
-		DS_ALIGNED_SIZE(sizeofParticle*params->maxParticles)*2;
+	size_t fullSize = sizeofParticleEmitter;
+	dsMemorySize sizes[] =
+	{
+		{sizeofParticle, params->maxParticles},
+		{sizeofParticle, params->maxParticles}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -73,11 +80,11 @@ dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allocator, dsParticleEm
 
 	emitter->allocator = dsAllocator_keepPointer(allocator);
 	emitter->type = type;
-	emitter->particles = (uint8_t*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		sizeofParticle*params->maxParticles);
+	emitter->particles = (uint8_t*)dsAllocator_allocArray(
+		(dsAllocator*)&bufferAlloc, sizeofParticle, params->maxParticles);
 	DS_ASSERT(emitter->particles);
-	emitter->tempParticles = (uint8_t*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		sizeofParticle*params->maxParticles);
+	emitter->tempParticles = (uint8_t*)dsAllocator_allocArray(
+		(dsAllocator*)&bufferAlloc, sizeofParticle, params->maxParticles);
 	DS_ASSERT(emitter->tempParticles);
 	emitter->sizeofParticle = (uint32_t)sizeofParticle;
 	emitter->particleCount = 0;

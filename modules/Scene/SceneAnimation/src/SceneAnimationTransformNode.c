@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,9 +52,19 @@ dsSceneAnimationTransformNode* dsSceneAnimationTransformNode_create(dsAllocator*
 		return NULL;
 	}
 
+	size_t fullSize = sizeof(dsSceneAnimationTransformNode);
 	size_t nameLen = strlen(animationNodeName) + 1;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneAnimationTransformNode)) +
-		DS_ALIGNED_SIZE(nameLen) + dsSceneNode_itemListsAllocSize(itemLists, itemListCount);
+	bool hasItemLists = itemListCount > 0;
+	size_t itemListsSize =
+		hasItemLists ? dsSceneNode_itemListsAllocSize(itemLists, itemListCount) : 0;
+	dsMemorySize sizes[] =
+	{
+		{sizeof(char), nameLen},
+		{itemListsSize, hasItemLists}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;

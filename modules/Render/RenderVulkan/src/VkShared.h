@@ -36,8 +36,7 @@ const char* dsGetVkResultString(VkResult result);
 bool dsHandleVkResult(VkResult result, const char* failMessage, const char* file, unsigned int line,
 	const char* function);
 void dsSetLastVkCallsite(const char* file, const char* function, unsigned int line);
-void dsGetLastVkCallsite(const char** file, const char** function,
-	unsigned int* line);
+void dsGetLastVkCallsite(const char** file, const char** function, unsigned int* line);
 
 void dsVkGetBufferMemoryRequirements(const dsVkDevice* device, VkBuffer buffer,
 	VkMemoryRequirements* requirements, VkBuffer* dedicatedBuffer);
@@ -62,25 +61,25 @@ VkAccessFlags dsVkWriteBufferAccessFlags(dsGfxBufferUsage usage, bool canMapMain
 
 bool dsVkImageUsageSupportsTransient(VkImageUsageFlags usage);
 
-VkPipelineStageFlags dsVkPipelineStageFlags(const dsRenderer* renderer, dsGfxPipelineStage stages,
-	bool isSrc);
+VkPipelineStageFlags dsVkPipelineStageFlags(
+	const dsRenderer* renderer, dsGfxPipelineStage stages, bool isSrc);
 VkAccessFlags dsVkAccessFlags(dsGfxAccess access);
 
 VkPipelineStageFlags dsVkReadBufferStageFlags(const dsRenderer* renderer, dsGfxBufferUsage usage);
-VkPipelineStageFlags dsVkWriteBufferStageFlags(const dsRenderer* renderer, dsGfxBufferUsage usage,
-	bool canMapMainBuffer);
+VkPipelineStageFlags dsVkWriteBufferStageFlags(
+	const dsRenderer* renderer, dsGfxBufferUsage usage, bool canMapMainBuffer);
 
 VkAccessFlags dsVkReadImageAccessFlags(dsTextureUsage usage);
 VkAccessFlags dsVkWriteImageAccessFlags(dsTextureUsage usage, bool offscreen, bool depthStencil);
 
-VkPipelineStageFlags dsVkReadImageStageFlags(const dsRenderer* renderer, dsTextureUsage usage,
-	bool depthStencilAttachment);
-VkPipelineStageFlags dsVkWriteImageStageFlags(const dsRenderer* renderer, dsTextureUsage usage,
-	bool offscreen, bool depthStencil);
+VkPipelineStageFlags dsVkReadImageStageFlags(
+	const dsRenderer* renderer, dsTextureUsage usage, bool depthStencilAttachment);
+VkPipelineStageFlags dsVkWriteImageStageFlags(
+	const dsRenderer* renderer, dsTextureUsage usage, bool offscreen, bool depthStencil);
 
 VkImageAspectFlags dsVkImageAspectFlags(dsGfxFormat format);
-VkImageAspectFlags dsVkClearDepthStencilImageAspectFlags(dsGfxFormat format,
-	dsClearDepthStencil surfaceParts);
+VkImageAspectFlags dsVkClearDepthStencilImageAspectFlags(
+	dsGfxFormat format, dsClearDepthStencil surfaceParts);
 VkDescriptorType dsVkDescriptorType(dsMaterialType type, dsMaterialBinding binding);
 
 VkCompareOp dsVkCompareOp(mslCompareOp compareOp, VkCompareOp defaultOp);

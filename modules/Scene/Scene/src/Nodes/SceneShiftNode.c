@@ -96,8 +96,14 @@ dsSceneShiftNode* dsSceneShiftNode_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneShiftNode)) +
-		dsSceneNode_itemListsAllocSize(itemLists, itemListCount);
+	size_t fullSize = sizeof(dsSceneShiftNode);
+	if (itemListCount > 0)
+	{
+		size_t itemListsSize = dsSceneNode_itemListsAllocSize(itemLists, itemListCount);
+		if (itemListsSize == 0 || !dsAddAlignedSize(&fullSize, itemListsSize, DS_ALLOC_ALIGNMENT))
+			return NULL;
+	}
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;

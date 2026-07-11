@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 
 #include "Resources/VkShaderModule.h"
-#include "VkShared.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -25,11 +25,14 @@
 #include <MSL/Client/ModuleC.h>
 #include <string.h>
 
-dsShaderModule* dsVkShaderModule_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	mslModule* module, const char* name)
+dsShaderModule* dsVkShaderModule_create(
+	dsResourceManager* resourceManager, dsAllocator* allocator, mslModule* module, const char* name)
 {
 	size_t nameLen = strlen(name) + 1;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsShaderModule)) + DS_ALIGNED_SIZE(nameLen);
+	size_t fullSize = sizeof(dsShaderModule);
+	if (!dsAddAlignedSize(&fullSize, nameLen, DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;

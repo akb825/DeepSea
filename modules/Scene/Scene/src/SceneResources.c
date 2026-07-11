@@ -70,8 +70,8 @@ struct dsSceneResources
 static dsHashTable* createHashTable(dsBufferAllocator* allocator, uint32_t maxItems)
 {
 	size_t tableSize = dsHashTable_tableSize(maxItems);
-	dsHashTable* hashTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)allocator,
-		dsHashTable_fullAllocSize(tableSize));
+	dsHashTable* hashTable = (dsHashTable*)dsAllocator_alloc(
+		(dsAllocator*)allocator, dsHashTable_sizeof(tableSize));
 	DS_ASSERT(hashTable);
 	DS_VERIFY(dsHashTable_initialize(hashTable, tableSize, dsHashString, dsHashStringEqual));
 	return hashTable;
@@ -124,9 +124,18 @@ size_t dsSceneResources_sizeof(void)
 
 size_t dsSceneResources_fullAllocSize(uint32_t maxResources)
 {
-	return DS_ALIGNED_SIZE(sizeof(dsSceneResources)) +
-		dsHashTable_fullAllocSize(dsHashTable_tableSize(maxResources)) +
-		dsPoolAllocator_bufferSize(sizeof(ResourceNode), maxResources);
+	size_t fullSize = sizeof(dsSceneResources);
+	size_t hashTableSize = dsHashTable_sizeof(dsHashTable_tableSize(maxResources));
+	size_t poolSize = dsPoolAllocator_bufferSize(sizeof(ResourceNode), maxResources);
+	dsMemorySize sizes[] =
+	{
+		{hashTableSize, 1},
+		{poolSize, 1}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return 0;
+
+	return fullSize;
 }
 
 dsSceneResources* dsSceneResources_create(dsAllocator* allocator, uint32_t maxResources)

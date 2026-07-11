@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,9 @@
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Math/Core.h>
+
 #include <string.h>
 
 typedef struct DescriptorSetInfo
@@ -52,20 +54,30 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
 	dsVkInstance* instance = &device->instance;
 
-	size_t bufferSize = DS_ALIGNED_SIZE(sizeof(dsVkMaterialDesc)) +
-		DS_ALIGNED_SIZE(sizeof(dsMaterialElement)*elementCount) +
-		DS_ALIGNED_SIZE(sizeof(uint32_t)*elementCount) +
-		DS_ALIGNED_SIZE(sizeof(VkDescriptorSetLayoutBinding)*bindingCounts[0]) +
-		DS_ALIGNED_SIZE(sizeof(VkDescriptorSetLayoutBinding)*bindingCounts[1]) +
-		DS_ALIGNED_SIZE(sizeof(VkDescriptorSetLayoutBinding)*bindingCounts[2]);
+	size_t fullSize = sizeof(dsVkMaterialDesc);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(dsMaterialElement), elementCount},
+		{sizeof(uint32_t), elementCount},
+		{sizeof(VkDescriptorSetLayoutBinding), bindingCounts[0]},
+		{sizeof(VkDescriptorSetLayoutBinding), bindingCounts[1]},
+		{sizeof(VkDescriptorSetLayoutBinding), bindingCounts[2]}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	for (uint32_t i = 0; i < elementCount; ++i)
-		bufferSize += DS_ALIGNED_SIZE(strlen(elements[i].name) + 1);
-	void* buffer = dsAllocator_alloc(allocator, bufferSize);
+	{
+		if (!dsAddAlignedSize(&fullSize, strlen(elements[i].name) + 1, DS_ALLOC_ALIGNMENT))
+			return NULL;
+	}
+
+	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
 
 	dsBufferAllocator bufferAlloc;
-	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, bufferSize));
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 	dsVkMaterialDesc* materialDesc = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVkMaterialDesc);
 	DS_ASSERT(materialDesc);
 
@@ -76,8 +88,8 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 
 	if (elementCount > 0)
 	{
-		baseMaterialDesc->elements = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsMaterialElement,
-			elementCount);
+		baseMaterialDesc->elements = DS_ALLOCATE_OBJECT_ARRAY(
+			&bufferAlloc, dsMaterialElement, elementCount);
 		DS_ASSERT(baseMaterialDesc->elements);
 		memcpy(baseMaterialDesc->elements, elements, sizeof(dsMaterialElement)*elementCount);
 
@@ -90,8 +102,8 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 			baseMaterialDesc->elements[i].name = nameCopy;
 		}
 
-		materialDesc->elementMappings = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t,
-			elementCount);
+		materialDesc->elementMappings = DS_ALLOCATE_OBJECT_ARRAY(
+			&bufferAlloc, uint32_t, elementCount);
 		DS_ASSERT(materialDesc->elementMappings);
 		memset(materialDesc->elementMappings, 0xFF, sizeof(uint32_t)*elementCount);
 	}
@@ -115,21 +127,22 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 		}
 
 		bindings->setIndex = setIndex++;
-		bindings->bindings = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkDescriptorSetLayoutBinding,
-			bindingCounts[i]);
+		bindings->bindings = DS_ALLOCATE_OBJECT_ARRAY(
+			&bufferAlloc, VkDescriptorSetLayoutBinding, bindingCounts[i]);
 		DS_ASSERT(bindings->bindings);
 
 		uint32_t index = 0;
 		for (uint32_t j = 0; j < elementCount; ++j)
 		{
-			if (elements[j].binding != i)
+			const dsMaterialElement* element = elements + j;
+			if (element->binding != i)
 				continue;
 
-			VkDescriptorType type = dsVkDescriptorType(elements[j].type, i);
+			VkDescriptorType type = dsVkDescriptorType(element->type, i);
 			if (type == VK_DESCRIPTOR_TYPE_MAX_ENUM)
 				continue;
 
-			switch (elements[j].type)
+			switch (element->type)
 			{
 				case dsMaterialType_Texture:
 				case dsMaterialType_Image:
@@ -156,7 +169,7 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 			VkDescriptorSetLayoutBinding* binding = bindings->bindings + index;
 			binding->binding = index;
 			binding->descriptorType = type;
-			binding->descriptorCount = dsMax(1U, elements[j].count);
+			binding->descriptorCount = dsMax(1U, element->count);
 			if (type == VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT)
 				binding->stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 			else
@@ -177,8 +190,8 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 			bindings->bindings
 		};
 
-		VkResult result = DS_VK_CALL(device->vkCreateDescriptorSetLayout)(device->device,
-			&createInfo, instance->allocCallbacksPtr, &bindings->descriptorSets);
+		VkResult result = DS_VK_CALL(device->vkCreateDescriptorSetLayout)(
+			device->device, &createInfo, instance->allocCallbacksPtr, &bindings->descriptorSets);
 		if (!DS_HANDLE_VK_RESULT(result, "Couldn't create descriptor set layout"))
 		{
 			dsVkMaterialDesc_destroy(resourceManager, baseMaterialDesc);
@@ -224,8 +237,8 @@ bool dsVkMaterialDesc_destroy(dsResourceManager* resourceManager, dsMaterialDesc
 	return true;
 }
 
-void dsVkMaterialDesc_initializeBindings(const dsMaterialDesc* materialDesc,
-	dsVkBindingMemory* bindingMemory, dsMaterialBinding binding)
+void dsVkMaterialDesc_initializeBindings(
+	const dsMaterialDesc* materialDesc, dsVkBindingMemory* bindingMemory, dsMaterialBinding binding)
 {
 	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
 	uint32_t index = 0;
@@ -294,8 +307,8 @@ void dsVkMaterialDesc_initializeBindings(const dsMaterialDesc* materialDesc,
 	DS_ASSERT(bufferViewIndex == bindingMemory->counts.texelBuffers);
 }
 
-dsVkMaterialDescriptor* dsVkMaterialDesc_createDescriptor(const dsMaterialDesc* materialDesc,
-	dsAllocator* allocator, dsMaterialBinding binding)
+dsVkMaterialDescriptor* dsVkMaterialDesc_createDescriptor(
+	const dsMaterialDesc* materialDesc, dsAllocator* allocator, dsMaterialBinding binding)
 {
 	dsVkMaterialDesc* vkMaterialDesc = (dsVkMaterialDesc*)materialDesc;
 	dsVkMaterialDescBindings* bindings = vkMaterialDesc->bindings + binding;
@@ -327,8 +340,8 @@ dsVkMaterialDescriptor* dsVkMaterialDesc_createDescriptor(const dsMaterialDesc* 
 	return descriptor;
 }
 
-void dsVkMaterialDesc_freeDescriptor(const dsMaterialDesc* materialDesc,
-	dsVkMaterialDescriptor* descriptor)
+void dsVkMaterialDesc_freeDescriptor(
+	const dsMaterialDesc* materialDesc, dsVkMaterialDescriptor* descriptor)
 {
 	if (!descriptor)
 		return;

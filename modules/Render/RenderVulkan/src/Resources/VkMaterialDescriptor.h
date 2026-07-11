@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,10 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 	const dsMaterialDesc* materialDesc, const dsVkBindingCounts* counts, dsMaterialBinding binding);
 bool dsVkMaterialDescriptor_shouldCheckPointers(const dsVkMaterialDescriptor* descriptor,
 	const dsVkSamplerList* samplers, const void* refObject, uint32_t pointerVersion);
-bool dsVkMaterialDescriptor_shouldCheckOffsets(const dsVkMaterialDescriptor* descriptor,
-	uint32_t offsetVersion);
-bool dsVkMaterialDescriptor_isUpToDate(const dsVkMaterialDescriptor* descriptor,
-	const dsVkBindingMemory* bindingMemory);
+bool dsVkMaterialDescriptor_shouldCheckOffsets(
+	const dsVkMaterialDescriptor* descriptor, uint32_t offsetVersion);
+bool dsVkMaterialDescriptor_isUpToDate(
+	const dsVkMaterialDescriptor* descriptor, const dsVkBindingMemory* bindingMemory);
 void dsVkMaterialDescriptor_updateEarlyChecks(dsVkMaterialDescriptor* descriptor,
 	const dsVkSamplerList* samplers, const void* refObject, uint32_t pointerVersion,
 	uint32_t offsetVersion);

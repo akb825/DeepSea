@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ size_t dsConditionVariable_sizeof(void)
 
 size_t dsConditionVariable_fullAllocSize(void)
 {
-	return DS_ALIGNED_SIZE(sizeof(dsConditionVariable));
+	return DS_ALIGNED_SIZE(sizeof(dsConditionVariable), DS_ALLOC_ALIGNMENT);
 }
 
 dsConditionVariable* dsConditionVariable_create(dsAllocator* allocator, const char* name)
@@ -81,8 +81,8 @@ dsConditionVariable* dsConditionVariable_create(dsAllocator* allocator, const ch
 	return condition;
 }
 
-dsConditionVariableResult dsConditionVariable_wait(dsConditionVariable* condition,
-	dsMutex* mutex)
+dsConditionVariableResult dsConditionVariable_wait(
+	dsConditionVariable* condition, dsMutex* mutex)
 {
 	if (!condition || !mutex)
 	{

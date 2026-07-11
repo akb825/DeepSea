@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,31 @@
 
 #include "Resources/GLGfxQueryPool.h"
 
-#include "AnyGL/AnyGL.h"
 #include "AnyGL/gl.h"
 #include "GLCommandBuffer.h"
-#include "GLHelpers.h"
 #include "GLResource.h"
 #include "GLTypes.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <string.h>
 
-dsGfxQueryPool* dsGLGfxQueryPool_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	dsGfxQueryType type, uint32_t count)
+dsGfxQueryPool* dsGLGfxQueryPool_create(
+	dsResourceManager* resourceManager, dsAllocator* allocator, dsGfxQueryType type, uint32_t count)
 {
 	DS_ASSERT(allocator);
 
+	size_t poolSize = sizeof(GLuint)*count;
+	if (!DS_ARRAY_SIZE_VALID(sizeof(GLuint), count) ||
+		!DS_CAN_ADD_SIZES(sizeof(dsGLGfxQueryPool), poolSize))
+	{
+		errno = ERANGE;
+		return false;
+	}
+
 	dsGLRenderer* glRenderer = (dsGLRenderer*)resourceManager->renderer;
 	dsGLGfxQueryPool* queries = (dsGLGfxQueryPool*)dsAllocator_alloc(allocator,
-		sizeof(dsGLGfxQueryPool) + count*sizeof(GLuint));
+		sizeof(dsGLGfxQueryPool) + poolSize);
 	if (!queries)
 		return NULL;
 

@@ -493,8 +493,8 @@ bool dsBVH_build(dsBVH* bvh, const void* objects, uint32_t objectCount, size_t o
 		if (!bvh->tempNodes || objectCount > bvh->maxTempNodes)
 		{
 			dsAllocator_free(bvh->allocator, bvh->tempNodes);
-			bvh->tempNodes = (dsBVHNode*)dsAllocator_alloc(
-				bvh->allocator, bvh->nodeSize*objectCount);
+			bvh->tempNodes = (dsBVHNode*)dsAllocator_allocArray(
+				bvh->allocator, bvh->nodeSize, objectCount);
 			if (!bvh)
 				return false;
 			bvh->maxTempNodes = objectCount;

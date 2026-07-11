@@ -52,9 +52,10 @@ DS_RENDER_EXPORT size_t dsShaderVariableGroup_sizeof(void);
  * blocks. A separate allocator may be used for the dsGfxBuffer instance so the rest of the memory
  * may be pre-allocated if desired.
  *
+ * @remark errno will be set on failure.
  * @param resourceManager The resource manager the shader variable group will be allocated with.
  * @param description The description for the shader variable group.
- * @return The full allocated size of dsShaderVariableGroup.
+ * @return The full allocated size of dsShaderVariableGroup or 0 if invalid.
  */
 DS_RENDER_EXPORT size_t dsShaderVariableGroup_fullAllocSize(
 	const dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* description);

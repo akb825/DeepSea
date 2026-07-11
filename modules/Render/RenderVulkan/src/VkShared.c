@@ -406,8 +406,8 @@ bool dsVkImageUsageSupportsTransient(VkImageUsageFlags usage)
 		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)) == 0;
 }
 
-VkPipelineStageFlags dsVkPipelineStageFlags(const dsRenderer* renderer, dsGfxPipelineStage stages,
-	bool isSrc)
+VkPipelineStageFlags dsVkPipelineStageFlags(
+	const dsRenderer* renderer, dsGfxPipelineStage stages, bool isSrc)
 {
 	VkPipelineStageFlags flags = 0;
 	if (stages & dsGfxPipelineStage_CommandBuffer)
@@ -528,8 +528,8 @@ VkAccessFlags dsVkAccessFlags(dsGfxAccess access)
 	return flags;
 }
 
-VkPipelineStageFlags dsVkWriteBufferStageFlags(const dsRenderer* renderer, dsGfxBufferUsage usage,
-	bool canMapMainBuffer)
+VkPipelineStageFlags dsVkWriteBufferStageFlags(
+	const dsRenderer* renderer, dsGfxBufferUsage usage, bool canMapMainBuffer)
 {
 	VkPipelineStageFlags flags = 0;
 	if (canMapMainBuffer)
@@ -581,8 +581,8 @@ VkAccessFlags dsVkWriteImageAccessFlags(dsTextureUsage usage, bool offscreen, bo
 	return flags;
 }
 
-VkPipelineStageFlags dsVkReadImageStageFlags(const dsRenderer* renderer, dsTextureUsage usage,
-	bool depthStencilAttachment)
+VkPipelineStageFlags dsVkReadImageStageFlags(
+	const dsRenderer* renderer, dsTextureUsage usage, bool depthStencilAttachment)
 {
 	VkAccessFlags flags = 0;
 	if (depthStencilAttachment)
@@ -607,8 +607,8 @@ VkPipelineStageFlags dsVkReadImageStageFlags(const dsRenderer* renderer, dsTextu
 	return flags;
 }
 
-VkPipelineStageFlags dsVkWriteImageStageFlags(const dsRenderer* renderer, dsTextureUsage usage,
-	bool offscreen, bool depthStencil)
+VkPipelineStageFlags dsVkWriteImageStageFlags(
+	const dsRenderer* renderer, dsTextureUsage usage, bool offscreen, bool depthStencil)
 {
 	VkPipelineStageFlags flags = 0;
 	if (offscreen)
@@ -655,8 +655,8 @@ VkImageAspectFlags dsVkImageAspectFlags(dsGfxFormat format)
 	}
 }
 
-VkImageAspectFlags dsVkClearDepthStencilImageAspectFlags(dsGfxFormat format,
-	dsClearDepthStencil surfaceParts)
+VkImageAspectFlags dsVkClearDepthStencilImageAspectFlags(
+	dsGfxFormat format, dsClearDepthStencil surfaceParts)
 {
 	VkImageAspectFlags aspectFlags = 0;
 	if (surfaceParts & dsClearDepthStencil_Depth)

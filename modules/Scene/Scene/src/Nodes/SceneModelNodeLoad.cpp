@@ -106,10 +106,16 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
 	DS_ASSERT(scratchAllocator);
 
-	size_t tempSize = DS_ALIGNED_SIZE(modelInfoCount*sizeof(dsSceneModelInitInfo)) +
-		DS_ALIGNED_SIZE(drawRangeCount*sizeof(dsSceneModelDrawRange));
-	if (fbExtraItemLists && fbExtraItemLists->size() > 0)
-		tempSize += DS_ALIGNED_SIZE(fbExtraItemLists->size()*sizeof(const char*));
+	size_t tempSize = 0;
+	dsMemorySize sizes[] =
+	{
+		{sizeof(dsSceneModelInitInfo), modelInfoCount},
+		{sizeof(dsSceneModelDrawRange), drawRangeCount},
+		{sizeof(const char*), fbExtraItemLists ? fbExtraItemLists->size() : 0}
+	};
+	if (!dsAccumulateAlignedSizes(&tempSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return nullptr;
+
 	void* tempBuffer = dsAllocator_alloc(scratchAllocator, tempSize);
 	if (!tempBuffer)
 		return nullptr;

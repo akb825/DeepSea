@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,10 +61,18 @@ size_t dsThreadTaskQueue_sizeof(void)
 size_t dsThreadTaskQueue_fullAllocSize(uint32_t maxTasks)
 {
 	if (maxTasks == 0)
+	{
+		errno = EINVAL;
+		return 0;
+	}
+
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsThreadTaskQueue), DS_ALLOC_ALIGNMENT) +
+		dsConditionVariable_fullAllocSize();
+	size_t poolSize = dsPoolAllocator_bufferSize(sizeof(dsThreadTaskEntry), maxTasks);
+	if (poolSize == 0 || !dsAddAlignedSize(&fullSize, poolSize, DS_ALLOC_ALIGNMENT))
 		return 0;
 
-	return DS_ALIGNED_SIZE(sizeof(dsThreadTaskQueue)) + dsConditionVariable_fullAllocSize() +
-		dsPoolAllocator_bufferSize(sizeof(dsThreadTaskEntry), maxTasks);
+	return fullSize;
 }
 
 dsThreadTaskQueue* dsThreadTaskQueue_create(dsAllocator* allocator,

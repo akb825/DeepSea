@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,11 @@ inline static size_t adjustSize(size_t size, unsigned int alignment)
 #if NO_MALLOC_SIZE
 	if (alignment < sizeof(dsMallocInfo))
 		alignment = (unsigned int)sizeof(dsMallocInfo);
+	if (!DS_CAN_ADD_SIZES(size, alignment))
+	{
+		errno = ERANGE;
+		return 0;
+	}
 	return size + alignment;
 #else
 	DS_UNUSED(alignment);
@@ -120,6 +125,9 @@ inline static void* mallocImpl(size_t size, unsigned int alignment)
 		return NULL;
 
 	size_t allocSize = adjustSize(size, alignment);
+	// Size forced to 0 for integer overflow.
+	if (allocSize == 0)
+		return NULL;
 
 	void* ptr;
 #if DS_WINDOWS
@@ -154,10 +162,13 @@ inline static void freeImpl(void* ptr)
 inline static void* reallocImpl(void* ptr, size_t size, unsigned int alignment)
 {
 	size_t allocSize = adjustSize(size, alignment);
+	// Size forced to 0 for integer overflow.
+	if (allocSize == 0)
+		return NULL;
 
 #if DS_WINDOWS
-	return adjustPointer(_aligned_realloc(originalPointer(ptr), allocSize, alignment), size,
-		alignment);
+	return adjustPointer(
+		_aligned_realloc(originalPointer(ptr), allocSize, alignment), size, alignment);
 #else
 	if (alignment <= MALLOC_ALIGNMENT)
 		return adjustPointer(realloc(originalPointer(ptr), allocSize), size, alignment);
@@ -201,12 +212,13 @@ bool dsSystemAllocator_initialize(dsSystemAllocator* allocator, size_t limit)
 		return false;
 	}
 
-	((dsAllocator*)allocator)->size = 0;
-	((dsAllocator*)allocator)->totalAllocations = 0;
-	((dsAllocator*)allocator)->currentAllocations = 0;
-	((dsAllocator*)allocator)->allocFunc = (dsAllocatorAllocFunction)&dsSystemAllocator_alloc;
-	((dsAllocator*)allocator)->reallocFunc = (dsAllocatorReallocFunction)&dsSystemAllocator_realloc;
-	((dsAllocator*)allocator)->freeFunc = (dsAllocatorFreeFunction)&dsSystemAllocator_free;
+	dsAllocator* baseAllocator = (dsAllocator*)allocator;
+	baseAllocator->size = 0;
+	baseAllocator->totalAllocations = 0;
+	baseAllocator->currentAllocations = 0;
+	baseAllocator->allocFunc = (dsAllocatorAllocFunction)&dsSystemAllocator_alloc;
+	baseAllocator->reallocFunc = (dsAllocatorReallocFunction)&dsSystemAllocator_realloc;
+	baseAllocator->freeFunc = (dsAllocatorFreeFunction)&dsSystemAllocator_free;
 	allocator->limit = limit;
 	return true;
 }
@@ -223,8 +235,9 @@ void* dsSystemAllocator_alloc(dsSystemAllocator* allocator, size_t size, unsigne
 		return NULL;
 
 	// Check to see if the size will exceed the limit.
+	dsAllocator* baseAllocator = (dsAllocator*)allocator;
 	size_t allocatorSize;
-	DS_ATOMIC_LOAD_SIZE(&((dsAllocator*)allocator)->size, &allocatorSize);
+	DS_ATOMIC_LOAD_SIZE(&baseAllocator->size, &allocatorSize);
 	if (allocatorSize + size > allocator->limit)
 	{
 		errno = ENOMEM;
@@ -250,16 +263,16 @@ void* dsSystemAllocator_alloc(dsSystemAllocator* allocator, size_t size, unsigne
 			return NULL;
 		}
 	}
-	while (!DS_ATOMIC_COMPARE_EXCHANGE_SIZE(&((dsAllocator*)allocator)->size, &allocatorSize,
-		&updatedSize, true));
+	while (!DS_ATOMIC_COMPARE_EXCHANGE_SIZE(
+		&baseAllocator->size, &allocatorSize, &updatedSize, true));
 
-	DS_ATOMIC_FETCH_ADD32(&((dsAllocator*)allocator)->totalAllocations, 1);
-	DS_ATOMIC_FETCH_ADD32(&((dsAllocator*)allocator)->currentAllocations, 1);
+	DS_ATOMIC_FETCH_ADD32(&baseAllocator->totalAllocations, 1);
+	DS_ATOMIC_FETCH_ADD32(&baseAllocator->currentAllocations, 1);
 	return ptr;
 }
 
-void* dsSystemAllocator_realloc(dsSystemAllocator* allocator, void* ptr, size_t size,
-	unsigned int alignment)
+void* dsSystemAllocator_realloc(
+	dsSystemAllocator* allocator, void* ptr, size_t size, unsigned int alignment)
 {
 	if (!allocator)
 	{
@@ -302,8 +315,8 @@ void* dsSystemAllocator_realloc(dsSystemAllocator* allocator, void* ptr, size_t 
 	{
 		updatedSize = allocatorSize + allocSize - origSize;
 	}
-	while (!DS_ATOMIC_COMPARE_EXCHANGE_SIZE(&((dsAllocator*)allocator)->size, &allocatorSize,
-		&updatedSize, true));
+	while (!DS_ATOMIC_COMPARE_EXCHANGE_SIZE(
+		&((dsAllocator*)allocator)->size, &allocatorSize, &updatedSize, true));
 
 	DS_ATOMIC_FETCH_ADD32(&((dsAllocator*)allocator)->totalAllocations, 1);
 	if (!ptr)
@@ -323,8 +336,9 @@ bool dsSystemAllocator_free(dsSystemAllocator* allocator, void* ptr)
 	if (!ptr)
 		return true;
 
-	DS_ATOMIC_FETCH_ADD_SIZE(&((dsAllocator*)allocator)->size, -getMallocSize(ptr));
-	DS_ATOMIC_FETCH_ADD32(&((dsAllocator*)allocator)->currentAllocations, -1);
+	dsAllocator* baseAllocator = (dsAllocator*)allocator;
+	DS_ATOMIC_FETCH_ADD_SIZE(&baseAllocator->size, -getMallocSize(ptr));
+	DS_ATOMIC_FETCH_ADD32(&baseAllocator->currentAllocations, -1);
 	freeImpl(ptr);
 	return true;
 }

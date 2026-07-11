@@ -39,9 +39,12 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Math/Core.h>
+
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Renderer.h>
+
 #include <string.h>
 
 #define DS_SYNC_POOL_COUNT 100
@@ -135,8 +138,12 @@ static void APIENTRY debugOutput(GLenum source, GLenum type, GLuint id, GLenum s
 static size_t dsGLRenderer_fullAllocSize(const dsRendererOptions* options)
 {
 	size_t pathLen = options->shaderCacheDir ? strlen(options->shaderCacheDir) + 1 : 0;
-	return DS_ALIGNED_SIZE(sizeof(dsGLRenderer)) + dsMutex_fullAllocSize() +
-		DS_ALIGNED_SIZE(pathLen);
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsGLRenderer), DS_ALLOC_ALIGNMENT) +
+		dsMutex_fullAllocSize();
+	if (!dsAddAlignedSize(&fullSize,  pathLen, DS_ALLOC_ALIGNMENT))
+		return 0;
+
+	return fullSize;
 }
 
 static bool hasRequiredFunctions(void)
@@ -154,8 +161,8 @@ static void printGLInfo(dsGLRenderer* renderer, uint32_t major, uint32_t minor, 
 	uint32_t glslMinor)
 {
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
-	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "OpenGL%s %u.%u", ANYGL_GLES ? " ES" : "", major,
-		minor);
+	DS_LOG_DEBUG_F(
+		DS_RENDER_OPENGL_LOG_TAG, "OpenGL%s %u.%u", ANYGL_GLES ? " ES" : "", major, minor);
 	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Shader version: %s%u.%u", ANYGL_GLES ? "ES " : "",
 		glslMajor, glslMinor);
 	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Vendor: %s", baseRenderer->vendorName);

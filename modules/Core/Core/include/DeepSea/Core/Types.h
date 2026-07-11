@@ -169,8 +169,8 @@ typedef void (*dsProfileStatFunction)(void* userData, void** localData, const ch
  * @param name The name of the time.
  * @param timeNs The time spent for rendering in nanoseconds.
  */
-typedef void (*dsProfileGpuFunction)(void* userData, const char* category, const char* name,
-	uint64_t timeNs);
+typedef void (*dsProfileGpuFunction)(
+	void* userData, const char* category, const char* name, uint64_t timeNs);
 
 /**
  * @brief Struct containing the function pointers for the profiler.

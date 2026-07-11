@@ -389,15 +389,22 @@ dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator, const ch
 		return NULL;
 	}
 
+	size_t fullSize = sizeof(dsSceneLightShadows);
 	size_t nameLen = strlen(name) + 1;
 	bool needsFallback = !dsShaderVariableGroup_useGfxBuffer(resourceManager);
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneLightShadows)) + DS_ALIGNED_SIZE(nameLen);
-	if (needsFallback)
-		fullSize += dsShaderVariableGroup_fullAllocSize(resourceManager, transformGroupDesc);
+	size_t variableGroupSize = needsFallback ?
+		dsShaderVariableGroup_fullAllocSize(resourceManager, transformGroupDesc) : 0;
+	dsMemorySize sizes[] =
+	{
+		{sizeof(char), nameLen},
+		{variableGroupSize, needsFallback}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
 
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
-		return false;
+		return NULL;
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));

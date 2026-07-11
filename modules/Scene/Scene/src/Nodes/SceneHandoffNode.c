@@ -49,8 +49,14 @@ dsSceneHandoffNode* dsSceneHandoffNode_create(dsAllocator* allocator, float tran
 		return NULL;
 	}
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneHandoffNode)) +
-		dsSceneNode_itemListsAllocSize(itemLists, itemListCount);
+	size_t fullSize = sizeof(dsSceneHandoffNode);
+	if (itemListCount > 0)
+	{
+		size_t itemListSize = dsSceneNode_itemListsAllocSize(itemLists, itemListCount);
+		if (itemListSize == 0 || !dsAddAlignedSize(&fullSize, itemListSize, DS_ALLOC_ALIGNMENT))
+			return NULL;
+	}
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;

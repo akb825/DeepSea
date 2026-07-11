@@ -420,6 +420,13 @@ static void freeSurfaceRef(dsGfxSurfaceType type, void* surface)
 static Command* allocateCommand(dsCommandBuffer* commandBuffer, CommandType type, size_t size)
 {
 	DS_ASSERT(size >= sizeof(Command));
+	size_t alignedSize = DS_ALIGNED_SIZE(size, DS_ALLOC_ALIGNMENT);
+	if (alignedSize < size || alignedSize > UINT32_MAX)
+	{
+		errno = ERANGE;
+		return NULL;
+	}
+
 	dsGLOtherCommandBuffer* glCommandBuffer = (dsGLOtherCommandBuffer*)commandBuffer;
 	int prevErrno = errno;
 	dsAllocator* commandAllocator = (dsAllocator*)&glCommandBuffer->buffer;
@@ -449,7 +456,7 @@ static Command* allocateCommand(dsCommandBuffer* commandBuffer, CommandType type
 	}
 
 	command->type = type;
-	command->size = (uint32_t)DS_ALIGNED_SIZE(size);
+	command->size = (uint32_t)alignedSize;
 	return command;
 }
 
@@ -1157,11 +1164,17 @@ bool dsGLOtherCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 {
 	DS_ASSERT(attachmentCount > 0);
 	DS_ASSERT(regionCount > 0);
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(ClearAttachmentsCommand)) +
-		DS_ALIGNED_SIZE(sizeof(dsClearAttachment)*attachmentCount) +
-		DS_ALIGNED_SIZE(sizeof(dsAttachmentClearRegion)*regionCount);
-	ClearAttachmentsCommand* command = (ClearAttachmentsCommand*)allocateCommand(commandBuffer,
-		CommandType_ClearAttachments, fullSize);
+	size_t fullSize = sizeof(ClearAttachmentsCommand);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(dsClearAttachment), attachmentCount},
+		{sizeof(dsAttachmentClearRegion), regionCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return false;
+
+	ClearAttachmentsCommand* command = (ClearAttachmentsCommand*)allocateCommand(
+		commandBuffer, CommandType_ClearAttachments, fullSize);
 	if (!command)
 		return false;
 

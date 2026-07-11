@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2025 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,15 +44,17 @@ DS_CORE_EXPORT size_t dsHashTable_tableSize(size_t maxElements);
 
 /**
  * @brief Calculates the size of a hash table.
+ * @remark errno will be set on failure.
  * @param tableSize The number of hash buckets for the hash table.
- * @return The size of the hash table.
+ * @return The size of the hash table or 0 if invalid.
  */
 DS_CORE_EXPORT size_t dsHashTable_sizeof(size_t tableSize);
 
 /**
  * @brief Calculates the full allocated size of a hash table, including padding.
+ * @remark errno will be set on failure.
  * @param tableSize The number of hash buckets for the hash table.
- * @return The full allocated size of the hash table.
+ * @return The full allocated size of the hash table or 0 if invalid.
  */
 DS_CORE_EXPORT size_t dsHashTable_fullAllocSize(size_t tableSize);
 

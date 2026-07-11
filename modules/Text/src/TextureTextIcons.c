@@ -389,7 +389,7 @@ dsTextIcons* dsTextureTextIcons_create(dsAllocator* allocator, dsResourceManager
 	{
 		size_t stride = sizeof(dsMatrix44f);
 		if (resourceManager->minUniformBlockAlignment > 0)
-			stride = DS_CUSTOM_ALIGNED_SIZE(stride, resourceManager->minUniformBlockAlignment);
+			stride = DS_ALIGNED_SIZE(stride, resourceManager->minUniformBlockAlignment);
 		textureIcons->iconDataStride = (uint32_t)stride;
 	}
 	else

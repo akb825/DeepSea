@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ size_t dsLifetime_sizeof(void)
 
 size_t dsLifetime_fullAllocSize(void)
 {
-	return DS_ALIGNED_SIZE(sizeof(dsLifetime));
+	return DS_ALIGNED_SIZE(sizeof(dsLifetime), DS_ALLOC_ALIGNMENT);
 }
 
 dsLifetime* dsLifetime_create(dsAllocator* allocator, void* object)

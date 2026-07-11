@@ -82,8 +82,15 @@ dsSceneNode* dsSceneModelNode_loadReconfig(const dsSceneLoadContext*,
 	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
 	DS_ASSERT(scratchAllocator);
 
-	size_t tempSize = DS_ALIGNED_SIZE(modelCount*sizeof(dsSceneModelReconfig)) +
-		DS_ALIGNED_SIZE(extraItemListCount*sizeof(const char*));
+	size_t tempSize = 0;
+	dsMemorySize sizes[] =
+	{
+		{sizeof(dsSceneModelReconfig), modelCount},
+		{sizeof(const char*), extraItemListCount}
+	};
+	if (!dsAccumulateAlignedSizes(&tempSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return nullptr;
+
 	void* tempBuffer = dsAllocator_alloc(scratchAllocator, tempSize);
 	if (!tempBuffer)
 		return nullptr;

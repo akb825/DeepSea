@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,9 +63,24 @@ typedef struct dsMaterialNode
 
 size_t dsVectorMaterialSet_fullAllocSize(uint32_t maxMaterials)
 {
-	return DS_ALIGNED_SIZE(sizeof(dsVectorMaterialSet)) +
-		dsHashTable_fullAllocSize(dsHashTable_tableSize(maxMaterials)) +
-		dsPoolAllocator_bufferSize(sizeof(dsMaterialNode), maxMaterials);
+	if (maxMaterials == 0)
+	{
+		errno = EINVAL;
+		return 0;
+	}
+
+	size_t fullSize = sizeof(dsVectorMaterialSet);
+	size_t hashTableSize = dsHashTable_sizeof(dsHashTable_tableSize(maxMaterials));
+	size_t poolSize = dsPoolAllocator_bufferSize(sizeof(dsMaterialNode), maxMaterials);
+	dsMemorySize sizes[] =
+	{
+		{hashTableSize, 1},
+		{poolSize, 1}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return 0;
+
+	return fullSize;
 }
 
 dsVectorMaterialSet* dsVectorMaterialSet_create(dsAllocator* allocator,
@@ -149,8 +164,8 @@ dsVectorMaterialSet* dsVectorMaterialSet_create(dsAllocator* allocator,
 	materials->allocator = dsAllocator_keepPointer(allocator);
 
 	size_t materialTableSize = dsHashTable_tableSize(maxMaterials);
-	materials->materialTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		dsHashTable_fullAllocSize(materialTableSize));
+	materials->materialTable = (dsHashTable*)dsAllocator_alloc(
+		(dsAllocator*)&bufferAlloc, dsHashTable_fullAllocSize(materialTableSize));
 	DS_ASSERT(materials->materialTable);
 	DS_VERIFY(dsHashTable_initialize(materials->materialTable, materialTableSize, &dsHashString,
 		&dsHashStringEqual));
@@ -227,8 +242,8 @@ bool dsVectorMaterialSet_addMaterial(dsVectorMaterialSet* materials, const char*
 	return true;
 }
 
-bool dsVectorMaterialSet_setMaterialColor(dsVectorMaterialSet* materials, const char* name,
-	dsColor color)
+bool dsVectorMaterialSet_setMaterialColor(
+	dsVectorMaterialSet* materials, const char* name, dsColor color)
 {
 	if (!materials || !name)
 	{
@@ -258,8 +273,8 @@ bool dsVectorMaterialSet_setMaterialColor(dsVectorMaterialSet* materials, const 
 	return true;
 }
 
-bool dsVectorMaterialSet_setMaterialGradient(dsVectorMaterialSet* materials,
-	const char* name, const dsGradient* gradient, bool own)
+bool dsVectorMaterialSet_setMaterialGradient(
+	dsVectorMaterialSet* materials, const char* name, const dsGradient* gradient, bool own)
 {
 	if (!materials || !name || dsGradient_isValid(gradient))
 	{
@@ -322,8 +337,8 @@ uint32_t dsVectorMaterialSet_findMaterialIndex(const dsVectorMaterialSet* materi
 	return node->index;
 }
 
-dsVectorMaterialType dsVectorMaterialSet_getMaterialType(const dsVectorMaterialSet* materials,
-	const char* name)
+dsVectorMaterialType dsVectorMaterialSet_getMaterialType(
+	const dsVectorMaterialSet* materials, const char* name)
 {
 	if (!materials || !name)
 		return dsVectorMaterialType_Color;
@@ -335,8 +350,8 @@ dsVectorMaterialType dsVectorMaterialSet_getMaterialType(const dsVectorMaterialS
 	return node->material.materialType;
 }
 
-bool dsVectorMaterialSet_setMaterial(dsVectorMaterialSet* materials,
-	const char* name, const dsVectorMaterial* material, bool own)
+bool dsVectorMaterialSet_setMaterial(
+	dsVectorMaterialSet* materials, const char* name, const dsVectorMaterial* material, bool own)
 {
 	if (!materials || !name || !material)
 	{

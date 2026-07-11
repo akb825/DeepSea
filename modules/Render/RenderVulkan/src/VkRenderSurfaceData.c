@@ -266,8 +266,8 @@ static bool createDepthImage(
 	if (memoryIndex == DS_INVALID_HEAP)
 		return false;
 
-	surfaceData->depthMemory = dsAllocateVkMemory(device, &requirements, memoryIndex,
-		dedicatedImage, 0);
+	surfaceData->depthMemory = dsAllocateVkMemory(
+		device, &requirements, memoryIndex, dedicatedImage, 0);
 	if (!surfaceData->depthMemory)
 		return false;
 
@@ -428,22 +428,27 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create swapchain"))
 		return NULL;
 
-	result = DS_VK_CALL(device->vkGetSwapchainImagesKHR)(device->device, swapchain, &imageCount,
-		NULL);
+	result = DS_VK_CALL(device->vkGetSwapchainImagesKHR)(
+		device->device, swapchain, &imageCount, NULL);
 	if (!DS_HANDLE_VK_RESULT(result, "Couldn't get swapchain images"))
 	{
-		DS_VK_CALL(device->vkDestroySwapchainKHR)(device->device, swapchain,
-			instance->allocCallbacksPtr);
+		DS_VK_CALL(device->vkDestroySwapchainKHR)(
+			device->device, swapchain, instance->allocCallbacksPtr);
 		return NULL;
 	}
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVkRenderSurfaceData)) +
-		DS_ALIGNED_SIZE(sizeof(VkImage)*imageCount) +
-		DS_ALIGNED_SIZE(sizeof(VkSemaphore)*imageCount) +
-		DS_ALIGNED_SIZE(sizeof(VkImageView)*imageCount) +
-		DS_ALIGNED_SIZE(sizeof(dsVkSurfaceImageData)*imageCount);
-	if (renderer->stereoscopic)
-		fullSize += DS_ALIGNED_SIZE(sizeof(VkImageView)*imageCount);
+	size_t fullSize = sizeof(dsVkRenderSurfaceData);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(VkImage), imageCount},
+		{sizeof(VkSemaphore), imageCount},
+		{sizeof(VkImageView), imageCount},
+		{sizeof(dsVkSurfaceImageData), imageCount},
+		{sizeof(VkImageView), renderer->stereoscopic ? imageCount : 0}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{

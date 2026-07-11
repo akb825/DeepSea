@@ -267,13 +267,13 @@ static void submitGPUProfileResults(dsGPUProfileContext* context, QueryPools* po
 	if (!context->hashTable || hashTableSize > context->hashTable->tableSize)
 	{
 		dsAllocator_free(context->allocator, context->hashTable);
-		context->hashTable = (dsHashTable*)dsAllocator_alloc(context->allocator,
-			dsHashTable_fullAllocSize(hashTableSize));
+		context->hashTable = (dsHashTable*)dsAllocator_alloc(
+			context->allocator, dsHashTable_sizeof(hashTableSize));
 		if (!context->hashTable)
 			DS_PROFILE_FUNC_RETURN_VOID();
 
-		DS_VERIFY(dsHashTable_initialize(context->hashTable, hashTableSize, &queryHash,
-			&queryKeysEqual));
+		DS_VERIFY(dsHashTable_initialize(
+			context->hashTable, hashTableSize, &queryHash, &queryKeysEqual));
 	}
 
 	// First pass: accumulate the times for the same context/name pairs.

@@ -260,14 +260,23 @@ static void copyBlendAttachmentState(VkPipelineColorBlendAttachmentState* vkBlen
 static size_t fullAllocSize(const mslModule* module, const mslPipeline* pipeline,
 	const dsMaterialDesc* materialDesc, uint32_t pushConstantCount, uint32_t samplerCount)
 {
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVkShader)) +
-		DS_ALIGNED_SIZE(sizeof(dsVkPushConstantMapping)*pushConstantCount) +
-		(samplerCount > 0 ?
-			DS_ALIGNED_SIZE(sizeof(dsVkSamplerMapping)*materialDesc->elementCount) : 0U);
+	size_t fullSize = sizeof(dsVkShader);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(dsVkPushConstantMapping), pushConstantCount},
+		{sizeof(dsVkSamplerMapping), samplerCount > 0 ? materialDesc->elementCount : 0}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return 0;
+
 	for (int i = 0; i < mslStage_Count; ++i)
 	{
-		if (pipeline->shaders[i] != MSL_UNKNOWN)
-			fullSize += DS_ALIGNED_SIZE(mslModule_shaderSize(module, pipeline->shaders[i]));
+		uint32_t shader = pipeline->shaders[i];
+		if (shader != MSL_UNKNOWN &&
+			!dsAddAlignedSize(&fullSize, mslModule_shaderSize(module, shader), DS_ALLOC_ALIGNMENT))
+		{
+			return 0;
+		}
 	}
 	return fullSize;
 }
@@ -940,8 +949,8 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	if (!scratchAllocator->freeFunc)
 		scratchAllocator = resourceManager->allocator;
 
-	size_t fullSize = fullAllocSize(module->module, &pipeline, materialDesc, pushConstantCount,
-		samplerCount);
+	size_t fullSize = fullAllocSize(
+		module->module, &pipeline, materialDesc, pushConstantCount, samplerCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;

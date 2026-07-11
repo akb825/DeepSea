@@ -53,11 +53,20 @@ dsScenePhysicsConstraint* dsScenePhysicsConstraint_create(dsAllocator* allocator
 	size_t secondConnectedConstraintInstanceLen = secondConnectedConstraintInstance ?
 		strlen(secondConnectedConstraintInstance) + 1 : 0;
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsScenePhysicsConstraint)) +
-		DS_ALIGNED_SIZE(firstRigidBodyInstanceLen) +
-		DS_ALIGNED_SIZE(firstConnectedConstraintInstanceLen) +
-		DS_ALIGNED_SIZE(secondRigidBodyInstanceLen) +
-		DS_ALIGNED_SIZE(secondConnectedConstraintInstanceLen);
+	size_t fullSize = sizeof(dsScenePhysicsConstraint);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(char), firstRigidBodyInstanceLen},
+		{sizeof(char), firstConnectedConstraintInstanceLen},
+		{sizeof(char), secondRigidBodyInstanceLen},
+		{sizeof(char), secondConnectedConstraintInstanceLen}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+	{
+		dsPhysicsConstraint_destroy(constraint);
+		return NULL;
+	}
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
@@ -68,8 +77,8 @@ dsScenePhysicsConstraint* dsScenePhysicsConstraint_create(dsAllocator* allocator
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
-	dsScenePhysicsConstraint* sceneConstraint = DS_ALLOCATE_OBJECT(&bufferAlloc,
-		dsScenePhysicsConstraint);
+	dsScenePhysicsConstraint* sceneConstraint = DS_ALLOCATE_OBJECT(
+		&bufferAlloc, dsScenePhysicsConstraint);
 	DS_ASSERT(sceneConstraint);
 	sceneConstraint->allocator = dsAllocator_keepPointer(allocator);
 	sceneConstraint->constraint = constraint;

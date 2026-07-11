@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -158,12 +158,22 @@ static void updateGlyph(dsFont* font, dsCommandBuffer* commandBuffer, uint32_t f
 size_t dsTextLayout_fullAllocSize(const dsText* text, uint32_t styleCount)
 {
 	if (!text || styleCount == 0)
+	{
+		errno = EINVAL;
+		return 0;
+	}
+
+	size_t fullSize = sizeof(dsTextLayout);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(dsGlyphLayout), text->glyphCount},
+		{sizeof(uint32_t), text->glyphCount},
+		{sizeof(dsTextStyle), styleCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
 		return 0;
 
-	return DS_ALIGNED_SIZE(sizeof(dsTextLayout)) +
-		DS_ALIGNED_SIZE(text->glyphCount*sizeof(dsGlyphLayout)) +
-		DS_ALIGNED_SIZE(text->glyphCount*sizeof(uint32_t)) +
-		DS_ALIGNED_SIZE(styleCount*sizeof(dsTextStyle));
+	return fullSize;
 }
 
 bool dsTextLayout_applySlantToBounds(
@@ -196,8 +206,8 @@ bool dsTextLayout_applySlantToBounds(
 	return true;
 }
 
-dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const dsText* text,
-	const dsTextStyle* styles, uint32_t styleCount)
+dsTextLayout* dsTextLayout_create(
+	dsAllocator* allocator, const dsText* text, const dsTextStyle* styles, uint32_t styleCount)
 {
 	if (!allocator || !text || !styles || styleCount == 0)
 	{
@@ -742,8 +752,8 @@ bool dsTextLayout_refresh(dsTextLayout* layout, dsCommandBuffer* commandBuffer)
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
-bool dsTextLayout_refreshRange(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
-	uint32_t firstChar, uint32_t charCount)
+bool dsTextLayout_refreshRange(
+	dsTextLayout* layout, dsCommandBuffer* commandBuffer, uint32_t firstChar, uint32_t charCount)
 {
 	if (!layout || !commandBuffer)
 	{

@@ -42,9 +42,10 @@ DS_SCENE_EXPORT extern const char* const dsSceneNodeRef_typeName;
  * This can be added to the other node memory to combine with a single allocation. This assumes one
  * allocation for the array, then a separate allocation for each string.
  *
+ * @remark errno will be set on failure.
  * @param itemLists The list of item list names to use.
  * @param itemListCount The number of item lists.
- * @return The size of the memory for the item lists or 0 if the inputs are invalid.
+ * @return The size of the memory for the item lists or 0 if invalid.
  */
 DS_SCENE_EXPORT size_t dsSceneNode_itemListsAllocSize(
 	const char* const* itemLists, uint32_t itemListCount);

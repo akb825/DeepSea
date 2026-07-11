@@ -18,10 +18,13 @@
 
 #include "Resources/GLResource.h"
 #include "GLTypes.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
+
 #include <DeepSea/Render/Resources/MaterialType.h>
+
 #include <string.h>
 
 dsShaderVariableGroupDesc* dsGLShaderVariableGroupDesc_create(dsResourceManager* resourceManager,
@@ -31,11 +34,21 @@ dsShaderVariableGroupDesc* dsGLShaderVariableGroupDesc_create(dsResourceManager*
 	DS_ASSERT(allocator);
 	DS_ASSERT(elements);
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsGLShaderVariableGroupDesc)) +
-		DS_ALIGNED_SIZE(elementCount*sizeof(dsShaderVariableElement)) +
-		DS_ALIGNED_SIZE(elementCount*sizeof(dsShaderVariablePos));
+	size_t fullSize = sizeof(dsGLShaderVariableGroupDesc);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(dsShaderVariableElement), elementCount},
+		{sizeof(dsShaderVariablePos), elementCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	for (uint32_t i = 0; i < elementCount; ++i)
-		fullSize += DS_ALIGNED_SIZE(strlen(elements[i].name) + 1);
+	{
+		if (!dsAddAlignedSize(&fullSize, strlen(elements[i].name) + 1, DS_ALLOC_ALIGNMENT))
+			return NULL;
+	}
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -62,16 +75,25 @@ dsShaderVariableGroupDesc* dsGLShaderVariableGroupDesc_create(dsResourceManager*
 	size_t curSize = 0;
 	for (uint32_t i = 0; i < elementCount; ++i)
 	{
-		const dsShaderVariableElement* element = elements + i;
+		dsShaderVariableElement* element = baseGroupDesc->elements + i;
 		size_t nameLen = strlen(element->name) + 1;
 		char* nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 		DS_ASSERT(nameCopy);
 		memcpy(nameCopy, element->name, nameLen);
-		baseGroupDesc->elements[i].name = nameCopy;
+		element->name = nameCopy;
 
 		dsShaderVariablePos* position = baseGroupDesc->positions + i;
-		position->offset = (uint32_t)dsMaterialType_addElementBlockSize(
+		// Check for overflow based on 32-bit integer storage.
+		size_t offset = dsMaterialType_addElementBlockSize(
 			&curSize, element->type, element->count);
+		if (offset == DS_INVALID_MATERIAL_OFFSET || offset > UINT32_MAX || curSize > UINT32_MAX)
+		{
+			if (allocator->freeFunc)
+				DS_VERIFY(dsAllocator_free(allocator, groupDesc));
+			return NULL;
+		}
+
+		position->offset = (uint32_t)offset;
 		if (element->count > 0)
 			position->stride = dsMaterialType_blockSize(element->type, true);
 		else

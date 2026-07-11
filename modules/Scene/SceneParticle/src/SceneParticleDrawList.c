@@ -377,10 +377,19 @@ dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const ch
 	}
 
 	size_t nameLen = strlen(name) + 1;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneParticleDrawList)) +
-		DS_ALIGNED_SIZE(nameLen) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneInstanceData*)*instanceDataCount) +
-		DS_ALIGNED_SIZE(sizeof(uint32_t)*cullListCount);
+	size_t fullSize = sizeof(dsSceneParticleDrawList);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(char), nameLen},
+		{sizeof(dsSceneInstanceData*), instanceDataCount},
+		{sizeof(uint32_t), cullListCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+	{
+		destroyInstanceData(instanceData, instanceDataCount);
+		return NULL;
+	}
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{

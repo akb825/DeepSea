@@ -1,5 +1,5 @@
 /*
-* Copyright 2018-2022 Aaron Barany
+* Copyright 2018-2026 Aaron Barany
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 #include "Resources/VkMaterialDescriptor.h"
 
-#include "Resources/VkGfxBufferData.h"
 #include "Resources/VkResource.h"
-#include "Resources/VkTexture.h"
-#include "VkRendererInternal.h"
 #include "VkShared.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -37,10 +34,16 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 	const dsMaterialDesc* materialDesc, const dsVkBindingCounts* counts, dsMaterialBinding binding)
 {
 	DS_ASSERT(counts->total > 0);
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVkMaterialDescriptor)) +
-		DS_ALIGNED_SIZE(sizeof(VkDescriptorImageInfo)*counts->textures) +
-		DS_ALIGNED_SIZE(sizeof(VkDescriptorBufferInfo)*counts->buffers) +
-		DS_ALIGNED_SIZE(sizeof(VkBufferView)*counts->texelBuffers);
+	size_t fullSize = sizeof(dsVkMaterialDescriptor);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(VkDescriptorImageInfo), counts->textures},
+		{sizeof(VkDescriptorBufferInfo), counts->buffers},
+		{sizeof(VkBufferView), counts->texelBuffers}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -106,7 +109,7 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 	if (!layout)
 		return descriptor;
 
-	VkDescriptorPoolSize sizes[DS_MAX_DESCRIPTOR_SETS];
+	VkDescriptorPoolSize poolSizes[DS_MAX_DESCRIPTOR_SETS];
 	uint32_t poolSizeCount = 0;
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
@@ -123,20 +126,21 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 		uint32_t index;
 		for (index = 0; index < poolSizeCount; ++index)
 		{
-			if (sizes[index].type == type)
+			if (poolSizes[index].type == type)
 				break;
 		}
 
+		VkDescriptorPoolSize* poolSize = poolSizes + index;
 		if (index == poolSizeCount)
 		{
 			DS_ASSERT(index < DS_MAX_DESCRIPTOR_SETS);
 			++poolSizeCount;
 
-			sizes[index].type = type;
-			sizes[index].descriptorCount = 0;
+			poolSize->type = type;
+			poolSize->descriptorCount = 0;
 		}
 
-		++sizes[index].descriptorCount;
+		++poolSize->descriptorCount;
 	}
 
 	VkDescriptorPoolCreateInfo poolCreateInfo =
@@ -145,11 +149,11 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 		NULL,
 		0,
 		1,
-		poolSizeCount, sizes
+		poolSizeCount, poolSizes
 	};
 
-	VkResult result = DS_VK_CALL(device->vkCreateDescriptorPool)(device->device, &poolCreateInfo,
-		instance->allocCallbacksPtr, &descriptor->pool);
+	VkResult result = DS_VK_CALL(device->vkCreateDescriptorPool)(
+		device->device, &poolCreateInfo, instance->allocCallbacksPtr, &descriptor->pool);
 	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create descriptor pool"))
 	{
 		dsVkMaterialDescriptor_destroy(descriptor);
@@ -163,8 +167,8 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 		descriptor->pool,
 		1, &layout
 	};
-	result = DS_VK_CALL(device->vkAllocateDescriptorSets)(device->device, &setAllocateInfo,
-		&descriptor->set);
+	result = DS_VK_CALL(device->vkAllocateDescriptorSets)(
+		device->device, &setAllocateInfo, &descriptor->set);
 	if (!DS_HANDLE_VK_RESULT(result, "Couldn't allocate descriptor sets"))
 	{
 		dsVkMaterialDescriptor_destroy(descriptor);
@@ -181,14 +185,14 @@ bool dsVkMaterialDescriptor_shouldCheckPointers(const dsVkMaterialDescriptor* de
 		descriptor->pointerVersion != pointerVersion;
 }
 
-bool dsVkMaterialDescriptor_shouldCheckOffsets(const dsVkMaterialDescriptor* descriptor,
-	uint32_t offsetVersion)
+bool dsVkMaterialDescriptor_shouldCheckOffsets(
+	const dsVkMaterialDescriptor* descriptor, uint32_t offsetVersion)
 {
 	return descriptor->offsetVersion != offsetVersion;
 }
 
-bool dsVkMaterialDescriptor_isUpToDate(const dsVkMaterialDescriptor* descriptor,
-	const dsVkBindingMemory* bindingMemory)
+bool dsVkMaterialDescriptor_isUpToDate(
+	const dsVkMaterialDescriptor* descriptor, const dsVkBindingMemory* bindingMemory)
 {
 	DS_ASSERT(memcmp(&descriptor->counts, &bindingMemory->counts, sizeof(dsVkBindingCounts)) == 0);
 	return memcmp(descriptor->imageInfos, bindingMemory->imageInfos,
@@ -236,8 +240,8 @@ void dsVkMaterialDescriptor_update(dsVkMaterialDescriptor* descriptor, const dsS
 
 	if (bindingMemory->counts.total > 0)
 	{
-		DS_VK_CALL(device->vkUpdateDescriptorSets)(device->device, bindingMemory->counts.total,
-			bindingMemory->bindings, 0, NULL);
+		DS_VK_CALL(device->vkUpdateDescriptorSets)(
+			device->device, bindingMemory->counts.total, bindingMemory->bindings, 0, NULL);
 	}
 }
 

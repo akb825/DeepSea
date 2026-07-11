@@ -36,17 +36,32 @@
 static size_t fullAllocSize(uint32_t attachmentCount, const dsRenderSubpassInfo* subpasses,
 	uint32_t subpassCount, uint32_t dependencyCount)
 {
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsMTLRenderPass)) +
-		DS_ALIGNED_SIZE(sizeof(dsAttachmentInfo)*attachmentCount) +
-		DS_ALIGNED_SIZE(sizeof(dsRenderSubpassInfo)*subpassCount) +
-		DS_ALIGNED_SIZE(sizeof(dsMTLSubpassInfo)*subpassCount) +
-		DS_ALIGNED_SIZE(sizeof(dsSubpassDependency)*dependencyCount);
+	size_t fullSize = sizeof(dsMTLRenderPass);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(dsAttachmentInfo), attachmentCount},
+		{sizeof(dsRenderSubpassInfo), subpassCount},
+		{sizeof(dsMTLSubpassInfo), subpassCount},
+		{sizeof(dsSubpassDependency), dependencyCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return 0;
+
 	for (uint32_t i = 0; i < subpassCount; ++i)
 	{
-		fullSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*subpasses[i].inputAttachmentCount) +
-			DS_ALIGNED_SIZE(sizeof(dsAttachmentRef)*subpasses[i].colorAttachmentCount) +
-			DS_ALIGNED_SIZE(sizeof(dsMTLAttachmentInfo)*subpasses[i].colorAttachmentCount) +
-			DS_ALIGNED_SIZE(strlen(subpasses[i].name) + 1);
+		const dsRenderSubpassInfo* subpass = subpasses + i;
+		dsMemorySize subpassSizes[] =
+		{
+			{sizeof(uint32_t), subpass->inputAttachmentCount},
+			{sizeof(dsAttachmentRef), subpass->colorAttachmentCount},
+			{sizeof(dsMTLAttachmentInfo), subpass->colorAttachmentCount},
+			{sizeof(char), strlen(subpass->name) + 1}
+		};
+		if (!dsAccumulateAlignedSizes(
+				&fullSize, subpassSizes, DS_ARRAY_SIZE(subpassSizes), DS_ALLOC_ALIGNMENT))
+		{
+			return 0;
+		}
 	}
 	return fullSize;
 }
@@ -359,8 +374,8 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 		else if (dependencyCount == DS_DEFAULT_SUBPASS_DEPENDENCIES)
 			finalDependencyCount = dsRenderPass_countDefaultDependencies(subpasses, subpassCount);
 
-		size_t fullSize = fullAllocSize(attachmentCount, subpasses, subpassCount,
-			finalDependencyCount);
+		size_t fullSize = fullAllocSize(
+			attachmentCount, subpasses, subpassCount, finalDependencyCount);
 		void* buffer = dsAllocator_alloc(allocator, fullSize);
 		if (!buffer)
 			return NULL;

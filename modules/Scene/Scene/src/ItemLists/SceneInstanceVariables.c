@@ -350,13 +350,25 @@ dsSceneInstanceData* dsSceneInstanceVariables_create(dsAllocator* allocator,
 	if (!resourceAllocator)
 		resourceAllocator = allocator;
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneInstanceVariables));
+	size_t fullSize = sizeof(dsSceneInstanceVariables);
 	bool needsFallback = !dsShaderVariableGroup_useGfxBuffer(resourceManager);
 	if (needsFallback)
 	{
-		fullSize += DS_ALIGNED_SIZE(sizeof(CPUInfo)*dataDesc->elementCount) +
-			dsShaderVariableGroup_fullAllocSize(resourceManager, dataDesc);
+		size_t variableGroupSize = dsShaderVariableGroup_fullAllocSize(resourceManager, dataDesc);
+		dsMemorySize sizes[] =
+		{
+			{sizeof(CPUInfo), dataDesc->elementCount},
+			{variableGroupSize, 1}
+		};
+		if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		{
+			dsDestroyUserDataFunction destroyUserDataFunc =
+				instanceVariablesType->destroyUserDataFunc;
+			if (destroyUserDataFunc)
+				destroyUserDataFunc(userData);
+		}
 	}
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
@@ -393,7 +405,7 @@ dsSceneInstanceData* dsSceneInstanceVariables_create(dsAllocator* allocator,
 
 	size_t stride = instanceSize;
 	if (resourceManager->minUniformBlockAlignment > 0)
-		stride = DS_CUSTOM_ALIGNED_SIZE(stride, resourceManager->minUniformBlockAlignment);
+		stride = DS_ALIGNED_SIZE(stride, resourceManager->minUniformBlockAlignment);
 	DS_ASSERT(stride <= UINT_MAX);
 	variables->stride = (uint32_t)stride;
 

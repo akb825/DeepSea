@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,14 +29,21 @@ dsFramebuffer* dsMTLFramebuffer_create(dsResourceManager* resourceManager, dsAll
 	DS_ASSERT(resourceManager);
 
 	size_t nameLen = strlen(name) + 1;
-	size_t bufferSize = DS_ALIGNED_SIZE(sizeof(dsFramebuffer)) +
-		DS_ALIGNED_SIZE(sizeof(dsFramebufferSurface)*surfaceCount) + DS_ALIGNED_SIZE(nameLen);
-	void* buffer = dsAllocator_alloc(allocator, bufferSize);
+	size_t fullSize = sizeof(dsFramebuffer);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(dsFramebufferSurface), surfaceCount},
+		{sizeof(char), nameLen}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
+
+	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
 
 	dsBufferAllocator bufferAlloc;
-	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, bufferSize));
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
 	dsFramebuffer* framebuffer = DS_ALLOCATE_OBJECT(&bufferAlloc, dsFramebuffer);
 	DS_ASSERT(framebuffer);

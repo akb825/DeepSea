@@ -46,23 +46,43 @@ size_t dsSceneRenderPass_fullAllocSize(const char* framebuffer, uint32_t clearVa
 	const dsSceneItemLists* subpassDrawLists, uint32_t subpassDrawListCount)
 {
 	if (!framebuffer || !subpassDrawLists)
+	{
+		errno = EINVAL;
+		return 0;
+	}
+
+	size_t fullSize = sizeof(dsSceneRenderPass);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(char), strlen(framebuffer) + 1},
+		{sizeof(dsSurfaceClearValue), clearValueCount},
+		{sizeof(dsSceneItemLists), subpassDrawListCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
 		return 0;
 
-	size_t fullSize = DS_ALIGNED_SIZE(strlen(framebuffer) + 1) +
-		DS_ALIGNED_SIZE(sizeof(dsSurfaceClearValue)*clearValueCount) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneRenderPass)) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneItemLists)*subpassDrawListCount);
 	for (uint32_t i = 0; i < subpassDrawListCount; ++i)
 	{
 		const dsSceneItemLists* drawLists = subpassDrawLists + i;
 		if (drawLists->count > 0 && !drawLists->itemLists)
+		{
+			errno = EINVAL;
 			return 0;
+		}
 
-		fullSize += DS_ALIGNED_SIZE(sizeof(dsSceneItemList*)*drawLists->count);
+		if (!dsAddAlignedArraySize(
+				&fullSize, sizeof(dsSceneItemList*), drawLists->count, DS_ALLOC_ALIGNMENT))
+		{
+			return 0;
+		}
+
 		for (uint32_t j = 0; j < drawLists->count; ++j)
 		{
 			if (!drawLists->itemLists[j])
+			{
+				errno = EINVAL;
 				return 0;
+			}
 		}
 	}
 

@@ -46,17 +46,27 @@
 static size_t fullAllocSize(const mslPipeline* pipeline, uint32_t elementCount,
 	uint32_t pushConstantCount)
 {
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsMTLShader));
+	size_t fullSize = sizeof(dsMTLShader);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(CFTypeRef), pipeline->samplerStateCount},
+		{sizeof(dsMTLUniformInfo), elementCount},
+		{sizeof(dsMTLPushConstantInfo), pushConstantCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return 0;
 
 	for (int i = 0; i < mslStage_Count; ++i)
 	{
-		if (pipeline->shaders[i] != DS_MATERIAL_UNKNOWN)
-			fullSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*pipeline->uniformCount);
+		uint32_t shader = pipeline->shaders[i];
+		if (shader != DS_MATERIAL_UNKNOWN &&
+			!dsAddAlignedArraySize(
+				&fullSize, sizeof(uint32_t), pipeline->uniformCount, DS_ALLOC_ALIGNMENT))
+		{
+			return 0;
+		}
 	}
 
-	fullSize += DS_ALIGNED_SIZE(sizeof(CFTypeRef)*pipeline->samplerStateCount);
-	fullSize += DS_ALIGNED_SIZE(sizeof(dsMTLUniformInfo)*elementCount);
-	fullSize += DS_ALIGNED_SIZE(sizeof(dsMTLPushConstantInfo)*pushConstantCount);
 	return fullSize;
 }
 

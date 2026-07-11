@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,16 +23,25 @@
 dsMaterialDesc* dsMTLMaterialDesc_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator, const dsMaterialElement* elements, uint32_t elementCount)
 {
-	size_t size = DS_ALIGNED_SIZE(sizeof(dsMaterialDesc)) +
-		DS_ALIGNED_SIZE(sizeof(dsMaterialElement)*elementCount);
+	size_t fullSize = sizeof(dsMaterialDesc);
+	if (!dsAddAlignedArraySize(
+			&fullSize, sizeof(dsMaterialElement), elementCount, DS_ALLOC_ALIGNMENT))
+	{
+		return NULL;
+	}
+
 	for (uint32_t i = 0; i < elementCount; ++i)
-		size += DS_ALIGNED_SIZE(strlen(elements[i].name) + 1);
-	void* buffer = dsAllocator_alloc(allocator, size);
+	{
+		if (!dsAddAlignedSize(&fullSize, strlen(elements[i].name) + 1, DS_ALLOC_ALIGNMENT))
+			return NULL;
+	}
+
+	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
 
 	dsBufferAllocator bufferAlloc;
-	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, size));
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
 	dsMaterialDesc* materialDesc = DS_ALLOCATE_OBJECT(&bufferAlloc, dsMaterialDesc);
 	DS_ASSERT(materialDesc);

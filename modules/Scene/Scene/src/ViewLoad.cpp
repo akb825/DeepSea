@@ -66,30 +66,43 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::Surface>* fbSurfa
 	if (totalSurfaceCount == 0)
 	{
 		PRINT_FLATBUFFER_ERROR("View contains no surfaces", fileName);
+		errno = EFORMAT;
 		return 0;
 	}
-
-	size_t tempSize = DS_ALIGNED_SIZE(totalSurfaceCount*sizeof(dsViewSurfaceInfo));
 
 	uint32_t framebufferCount = fbFramebuffers.size();
 	if (framebufferCount == 0)
 	{
 		PRINT_FLATBUFFER_ERROR("View framebuffer array is empty", fileName);
+		errno = EFORMAT;
 		return 0;
 	}
-	tempSize += DS_ALIGNED_SIZE(framebufferCount*sizeof(dsViewFramebufferInfo));
+
+	size_t tempSize = 0;
+	dsMemorySize sizes[] =
+	{
+		{sizeof(dsViewSurfaceInfo), totalSurfaceCount},
+		{sizeof(dsViewFramebufferInfo), framebufferCount}
+	};
+	if (!dsAccumulateAlignedSizes(&tempSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return 0;
 
 	for (auto fbFramebuffer : fbFramebuffers)
 	{
 		if (!fbFramebuffer)
 		{
 			PRINT_FLATBUFFER_ERROR("View framebuffer is null", fileName);
+			errno = EFORMAT;
 			return 0;
 		}
 
 		auto fbFramebufferSurfaces = fbFramebuffer->surfaces();
-		if (fbFramebufferSurfaces && fbFramebufferSurfaces->size() > 0)
-			tempSize += DS_ALIGNED_SIZE(fbFramebufferSurfaces->size()*sizeof(dsFramebufferSurface));
+		if (fbFramebufferSurfaces &&
+			!dsAddAlignedArraySize(&tempSize, sizeof(dsFramebufferSurface),
+				fbFramebufferSurfaces->size(), DS_ALLOC_ALIGNMENT))
+		{
+			return 0;
+		}
 	}
 
 	return tempSize;
@@ -126,10 +139,7 @@ dsView* dsView_loadImpl(dsAllocator* allocator, const char* name, const dsScene*
 	DS_ASSERT(scratchAllocator);
 	size_t tempSize = getTempSize(fbSurfaces, surfaceCount, *fbFramebuffers, fileName);
 	if (tempSize == 0)
-	{
-		errno = EFORMAT;
 		return nullptr;
-	}
 
 	void* tempBuffer = dsAllocator_alloc(scratchAllocator, tempSize);
 	if (!tempBuffer)

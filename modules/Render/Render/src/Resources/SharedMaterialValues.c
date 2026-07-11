@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -228,9 +228,18 @@ size_t dsSharedMaterialValues_sizeof(void)
 
 size_t dsSharedMaterialValues_fullAllocSize(uint32_t maxValues)
 {
-	return DS_ALIGNED_SIZE(sizeof(dsSharedMaterialValues)) +
-		DS_ALIGNED_SIZE(dsPoolAllocator_bufferSize(sizeof(Entry), maxValues)) +
-		dsHashTable_fullAllocSize(dsHashTable_tableSize(maxValues));
+	size_t fullSize = sizeof(dsSharedMaterialValues);
+	size_t poolSize = dsPoolAllocator_bufferSize(sizeof(Entry), maxValues);
+	size_t hashTableSize = dsHashTable_sizeof(dsHashTable_tableSize(maxValues));
+	dsMemorySize sizes[] =
+	{
+		{poolSize, 1},
+		{hashTableSize, 1}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return 0;
+
+	return fullSize;
 }
 
 dsSharedMaterialValues* dsSharedMaterialValues_create(dsAllocator* allocator, uint32_t maxValues)
@@ -257,14 +266,15 @@ dsSharedMaterialValues* dsSharedMaterialValues_create(dsAllocator* allocator, ui
 	size_t poolSize = dsPoolAllocator_bufferSize(sizeof(Entry), maxValues);
 	void* poolBuffer = dsAllocator_alloc((dsAllocator*)&bufferAllocator, poolSize);
 	DS_ASSERT(poolBuffer);
-	DS_VERIFY(dsPoolAllocator_initialize(&materialValues->entryPool, sizeof(Entry), maxValues,
-		poolBuffer, poolSize));
+	DS_VERIFY(dsPoolAllocator_initialize(
+		&materialValues->entryPool, sizeof(Entry), maxValues, poolBuffer, poolSize));
 
 	size_t tableSize = dsHashTable_tableSize(maxValues);
-	materialValues->hashTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAllocator,
-		dsHashTable_fullAllocSize(tableSize));
-	DS_VERIFY(dsHashTable_initialize(materialValues->hashTable, tableSize, &dsHash32,
-		&dsHash32Equal));
+	size_t hashTableSize = dsHashTable_sizeof(tableSize);
+	materialValues->hashTable = (dsHashTable*)dsAllocator_alloc(
+		(dsAllocator*)&bufferAllocator, hashTableSize);
+	DS_VERIFY(dsHashTable_initialize(
+		materialValues->hashTable, tableSize, &dsHash32, &dsHash32Equal));
 	materialValues->pointerVersion = 0;
 	materialValues->offsetVersion = 0;
 	return materialValues;
@@ -286,8 +296,8 @@ uint32_t dsSharedMaterialValues_getRemainingValues(const dsSharedMaterialValues*
 	return (uint32_t)values->entryPool.freeCount;
 }
 
-dsTexture* dsSharedMaterialValues_getTextureName(const dsSharedMaterialValues* values,
-	const char* name)
+dsTexture* dsSharedMaterialValues_getTextureName(
+	const dsSharedMaterialValues* values, const char* name)
 {
 	if (!values || !name)
 		return NULL;
@@ -295,8 +305,8 @@ dsTexture* dsSharedMaterialValues_getTextureName(const dsSharedMaterialValues* v
 	return (dsTexture*)getValue(NULL, NULL, NULL, values, dsUniqueNameID_get(name), Type_Texture);
 }
 
-dsTexture* dsSharedMaterialValues_getTextureID(const dsSharedMaterialValues* values,
-	uint32_t nameID)
+dsTexture* dsSharedMaterialValues_getTextureID(
+	const dsSharedMaterialValues* values, uint32_t nameID)
 {
 	if (!values)
 		return NULL;
@@ -317,8 +327,8 @@ bool dsSharedMaterialValues_setTextureName(dsSharedMaterialValues* values, const
 		values, dsUniqueNameID_create(name), Type_Texture, texture, dsGfxFormat_Unknown, 0, 0);
 }
 
-bool dsSharedMaterialValues_setTextureID(dsSharedMaterialValues* values, uint32_t nameID,
-	dsTexture* texture)
+bool dsSharedMaterialValues_setTextureID(
+	dsSharedMaterialValues* values, uint32_t nameID, dsTexture* texture)
 {
 	if (!values || !nameID)
 	{
@@ -400,8 +410,8 @@ dsShaderVariableGroup* dsSharedMaterialValues_getVariableGroupID(
 		NULL, NULL, NULL, values, nameID, Type_ShaderVariableGroup);
 }
 
-bool dsSharedMaterialValues_setVariableGroupName(dsSharedMaterialValues* values,
-	const char* name, dsShaderVariableGroup* group)
+bool dsSharedMaterialValues_setVariableGroupName(
+	dsSharedMaterialValues* values, const char* name, dsShaderVariableGroup* group)
 {
 	if (!values || !name)
 		return false;
@@ -410,8 +420,8 @@ bool dsSharedMaterialValues_setVariableGroupName(dsSharedMaterialValues* values,
 		dsGfxFormat_Unknown, 0, 0);
 }
 
-bool dsSharedMaterialValues_setVariableGroupID(dsSharedMaterialValues* values,
-	uint32_t nameID, dsShaderVariableGroup* group)
+bool dsSharedMaterialValues_setVariableGroupID(
+	dsSharedMaterialValues* values, uint32_t nameID, dsShaderVariableGroup* group)
 {
 	if (!values || !nameID)
 		return false;

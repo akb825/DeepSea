@@ -683,15 +683,26 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 
 	}
 
-	size_t nameLen = strlen(name);
+	size_t fullSize = sizeof(dsSceneVectorItemList);
+	size_t nameLen = strlen(name) + 1;
 	size_t instanceDataSize = dsSharedMaterialValues_fullAllocSize(valueCount);
-	size_t materialPoolSize = DS_ALIGNED_SIZE(sizeof(MaterialNode))*maxMaterialDescs;
+	size_t materialPoolSize = dsPoolAllocator_bufferSize(sizeof(MaterialNode), maxMaterialDescs);
 	size_t materialTableSize = dsHashTable_tableSize(maxMaterialDescs);
 	size_t materialTableAllocSize = dsHashTable_fullAllocSize(materialTableSize);
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneVectorItemList)) +
-		DS_ALIGNED_SIZE(nameLen + 1) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneInstanceData*)*instanceDataCount) + instanceDataSize +
-		materialPoolSize + materialTableAllocSize;
+	dsMemorySize sizes[] =
+	{
+		{sizeof(char), nameLen},
+		{sizeof(dsSceneInstanceData*), instanceDataCount},
+		{instanceDataSize, 1},
+		{materialPoolSize, 1},
+		{materialTableAllocSize, 1}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+	{
+		destroyInstanceData(instanceData, instanceDataCount);
+		return NULL;
+	}
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
@@ -708,8 +719,8 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	itemList->allocator = allocator;
 	itemList->type = dsSceneVectorItemList_type();
 	itemList->viewFilter = viewFilter;
-	itemList->name = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, char, nameLen + 1);
-	memcpy((void*)itemList->name, name, nameLen + 1);
+	itemList->name = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, char, nameLen);
+	memcpy((void*)itemList->name, name, nameLen);
 	itemList->nameID = dsUniqueNameID_create(name);
 	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = true;

@@ -91,8 +91,15 @@ dsSceneItemList* dsViewMipmapList_create(dsAllocator* allocator, const char* nam
 	}
 
 	size_t nameLen = strlen(name) + 1;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsViewMipmapList)) + DS_ALIGNED_SIZE(nameLen) +
-		DS_ALIGNED_SIZE(textureCount*sizeof(uint32_t));
+	size_t fullSize = sizeof(dsViewMipmapList);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(char), nameLen},
+		{sizeof(uint32_t), textureCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;

@@ -207,8 +207,10 @@ dsSceneItemList* dsSceneVectorDrawPrepare_create(
 	}
 
 	size_t nameLen = strlen(name) + 1;
-	size_t fullSize =
-		DS_ALIGNED_SIZE(sizeof(dsSceneVectorDrawPrepare)) + DS_ALIGNED_SIZE(nameLen);
+	size_t fullSize = sizeof(dsSceneVectorDrawPrepare);
+	if (!dsAddAlignedSize(&fullSize, nameLen, DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;

@@ -73,6 +73,7 @@ static size_t getRawBufferSize(const dsShaderVariableGroupDesc* description, boo
 {
 	if (useGfxBuffer)
 	{
+		// This should have previously checked for overflow.
 		uint32_t lastEleement = description->elementCount - 1;
 		return description->positions[lastEleement].offset +
 			elementSize(description->elements + lastEleement,
@@ -82,8 +83,12 @@ static size_t getRawBufferSize(const dsShaderVariableGroupDesc* description, boo
 	size_t dataSize = 0;
 	for (uint32_t i = 0; i < description->elementCount; ++i)
 	{
-		dsMaterialType_addElementCPUSize(&dataSize, description->elements[i].type,
-			description->elements[i].count);
+		const dsShaderVariableElement* element = description->elements + i;
+		if (dsMaterialType_addElementCPUSize(&dataSize, element->type, element->count) ==
+			DS_INVALID_MATERIAL_OFFSET)
+		{
+			return 0;
+		}
 	}
 	return dataSize;
 }
@@ -138,12 +143,16 @@ size_t dsShaderVariableGroup_fullAllocSize(
 	if (!resourceManager || !description)
 		return 0;
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsShaderVariableGroup));
-
+	size_t fullSize = sizeof(dsShaderVariableGroup);
 	bool useGfxBuffer = dsShaderVariableGroup_useGfxBuffer(resourceManager);
-	fullSize += DS_ALIGNED_SIZE(getRawBufferSize(description, useGfxBuffer));
-	if (!useGfxBuffer)
-		fullSize += DS_ALIGNED_SIZE(description->elementCount*sizeof(PositionInfo));
+	size_t bufferSize = getRawBufferSize(description, useGfxBuffer);
+	dsMemorySize sizes[] =
+	{
+		{bufferSize, 1},
+		{sizeof(PositionInfo), useGfxBuffer ? 0 : description->elementCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return 0;
 
 	return fullSize;
 }
@@ -186,7 +195,6 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 	}
 
 	size_t totalSize = dsShaderVariableGroup_fullAllocSize(resourceManager, description);
-	DS_ASSERT(totalSize > 0);
 	void* fullMem = dsAllocator_alloc(allocator, totalSize);
 	if (!fullMem)
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -221,8 +229,8 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 		}
 		else
 			memoryFlags = dsGfxMemory_GPUOnly | dsGfxMemory_Draw | dsGfxMemory_Dynamic;
-		group->buffer = dsGfxBuffer_create(resourceManager, gfxBufferAllocator, usageFlags,
-			memoryFlags, NULL, DS_ALIGNED_SIZE(bufferSize));
+		group->buffer = dsGfxBuffer_create(
+			resourceManager, gfxBufferAllocator, usageFlags, memoryFlags, NULL, bufferSize);
 
 		if (!group->buffer)
 		{
@@ -238,8 +246,8 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 	// Cache the position of each element.
 	if (!useGfxBuffer)
 	{
-		group->rawDataPositions = DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator, PositionInfo,
-			description->elementCount);
+		group->rawDataPositions = DS_ALLOCATE_OBJECT_ARRAY(
+			&bufferAllocator, PositionInfo, description->elementCount);
 		DS_ASSERT(group->rawDataPositions);
 
 		size_t curSize = 0;

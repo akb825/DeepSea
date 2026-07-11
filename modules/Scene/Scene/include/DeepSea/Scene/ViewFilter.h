@@ -41,8 +41,9 @@ DS_SCENE_EXPORT size_t dsViewFilter_sizeof(void);
 
 /**
  * @brief Gets the full allocation size of dsViewFilter.
+ * @remark errno will be set on failure.
  * @param viewNameCount The number of view names used in the filter.
- * @return The full allocation size of dsViewFilter.
+ * @return The full allocation size of dsViewFilter or 0 if invalid.
  */
 DS_SCENE_EXPORT size_t dsViewFilter_fullAllocSize(uint32_t viewNameCount);
 

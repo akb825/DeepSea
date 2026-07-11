@@ -166,10 +166,12 @@ bool dsPhysicsConvexHull_initialize(dsPhysicsConvexHull* convexHull, dsPhysicsEn
 	dsAllocator* allocator, void* impl, const void* vertices, uint32_t vertexCount,
 	size_t vertexStride, uint32_t faceCount, float convexRadius)
 {
+	DS_UNUSED(convexRadius);
 	DS_ASSERT(convexHull);
 	DS_ASSERT(engine);
 	DS_ASSERT(vertices);
 	DS_ASSERT(vertexCount > 0);
+	DS_ASSERT(convexHull->faceCount > 0);
 	DS_ASSERT(vertexStride >= sizeof(dsVector3xf));
 	DS_ASSERT(convexRadius >= 0);
 
@@ -207,8 +209,8 @@ bool dsPhysicsConvexHull_initialize(dsPhysicsConvexHull* convexHull, dsPhysicsEn
 
 	for (uint32_t i = 0, index = 0; i < convexHull->faceCount; ++i)
 	{
-		uint32_t faceVertexCount = engine->getConvexHullFaceFunc(faceVertices, maxFaceVertices, NULL,
-			engine, convexHull, i);
+		uint32_t faceVertexCount = engine->getConvexHullFaceFunc(
+			faceVertices, maxFaceVertices, NULL, engine, convexHull, i);
 		// Triangulate as a vertex fan.
 		DS_ASSERT(faceVertexCount >= 3);
 		for (uint32_t j = 2; j < faceVertexCount; ++j)

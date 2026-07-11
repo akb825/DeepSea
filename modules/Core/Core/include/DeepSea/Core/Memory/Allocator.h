@@ -18,9 +18,9 @@
 
 #include <DeepSea/Core/Config.h>
 
-#include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Memory/Memory.h>
 #include <DeepSea/Core/Memory/Types.h>
+#include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Export.h>
 
@@ -43,8 +43,8 @@ extern "C"
  * @param type The type to allocate.
  * @return The allocated object, or NULL if the allocation failed.
  */
-#define DS_ALLOCATE_OBJECT(allocator, type) ((type*)dsAllocator_alloc( \
-		(dsAllocator*)(allocator), sizeof(type)))
+#define DS_ALLOCATE_OBJECT(allocator, type) \
+	((type*)dsAllocator_alloc((dsAllocator*)(allocator), sizeof(type)))
 
 /**
  * @brief Macro to allocate an array of objects and return it as a pointer to that object type.
@@ -55,8 +55,8 @@ extern "C"
  * @param count The number of objects to allocate.
  * @return The allocated array, or NULL if the allocation failed.
  */
-#define DS_ALLOCATE_OBJECT_ARRAY(allocator, type, count) ((type*)dsAllocator_alloc( \
-		(dsAllocator*)(allocator), sizeof(type)*(count)))
+#define DS_ALLOCATE_OBJECT_ARRAY(allocator, type, count) \
+	((type*)dsAllocator_allocArray((dsAllocator*)(allocator), sizeof(type), count))
 
 /**
  * @brief Allocates memory from the allocator.
@@ -71,6 +71,22 @@ extern "C"
 DS_CORE_EXPORT inline void* dsAllocator_alloc(dsAllocator* allocator, size_t size);
 
 /**
+ * @brief Allocates memory for an array from the allocator.
+ *
+ * The alignment of the returned pointer will be aligned by DS_ALLOC_ALIGNMENT. This is mostly the
+ * same as dsAllocator_alloc(), except it will also check for overflow when multiplying the size
+ * by the count.
+ *
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to allocate from.
+ * @param elemSize The size of each array element.
+ * @param count The number of elements to allocate.
+ * @return The allocated memory or NULL if an error occurred or size is 0.
+ */
+DS_CORE_EXPORT inline void* dsAllocator_allocArray(
+	dsAllocator* allocator, size_t elemSize, size_t count);
+
+/**
  * @brief Allocates aligned memory from the allocator.
  * @remark errno will be set on failure.
  * @param allocator The allocator to allocate from.
@@ -78,8 +94,8 @@ DS_CORE_EXPORT inline void* dsAllocator_alloc(dsAllocator* allocator, size_t siz
  * @param alignment The alignment to allocate. This must be a power of two.
  * @return The allocated memory or NULL if an error occurred or size is 0.
  */
-DS_CORE_EXPORT inline void* dsAllocator_alignedAlloc(dsAllocator* allocator, size_t size,
-	unsigned int alignment);
+DS_CORE_EXPORT inline void* dsAllocator_alignedAlloc(
+	dsAllocator* allocator, size_t size, unsigned int alignment);
 
 /**
  * @brief Re-allocates memory from the allocator.
@@ -110,8 +126,8 @@ DS_CORE_EXPORT inline void* dsAllocator_realloc(dsAllocator* allocator, void* pt
  * @return The allocated memory or NULL if an error occurred or newSize is 0. The original pointer
  *     will remain intact if an error occurred.
  */
-DS_CORE_EXPORT void* dsAllocator_reallocWithFallback(dsAllocator* allocator, void* ptr,
-	size_t origSize, size_t newSize);
+DS_CORE_EXPORT void* dsAllocator_reallocWithFallback(
+	dsAllocator* allocator, void* ptr, size_t origSize, size_t newSize);
 
 /**
  * @brief Frees memory from the allocator.
@@ -147,10 +163,20 @@ inline void* dsAllocator_alloc(dsAllocator* allocator, size_t size)
 	return allocator->allocFunc(allocator, size, DS_ALLOC_ALIGNMENT);
 }
 
+inline void* dsAllocator_allocArray(dsAllocator* allocator, size_t elemSize, size_t count)
+{
+	if (!DS_ARRAY_SIZE_VALID(elemSize, count))
+	{
+		errno = ERANGE;
+		return NULL;
+	}
+
+	return dsAllocator_alloc(allocator, elemSize*count);
+}
+
 inline void* dsAllocator_alignedAlloc(dsAllocator* allocator, size_t size, unsigned int alignment)
 {
-	if (!allocator || !allocator->allocFunc || alignment == 0 ||
-		(alignment > 1 && (1U << (32 - dsClz(alignment - 1))) != alignment))
+	if (!allocator || !allocator->allocFunc || alignment == 0 || !DS_IS_POWER_OF_2(alignment))
 	{
 		errno = EINVAL;
 		return NULL;

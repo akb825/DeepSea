@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -301,10 +301,17 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 		DS_PROFILE_FUNC_RETURN(NULL);
 
 	// Now copy the contents into the final text object.
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsText)) + DS_ALIGNED_SIZE(length*sizeof(uint32_t)) +
-		DS_ALIGNED_SIZE(length*sizeof(dsCharMapping)) +
-		DS_ALIGNED_SIZE(scratchText->glyphCount*sizeof(dsGlyph)) +
-		DS_ALIGNED_SIZE(rangeCount*sizeof(dsTextRange));
+	size_t fullSize = sizeof(dsText);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(uint32_t), length},
+		{sizeof(dsCharMapping), length},
+		{sizeof(dsGlyph), scratchText->glyphCount},
+		{sizeof(dsTextRange), rangeCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		DS_PROFILE_FUNC_RETURN(NULL);
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		DS_PROFILE_FUNC_RETURN(NULL);

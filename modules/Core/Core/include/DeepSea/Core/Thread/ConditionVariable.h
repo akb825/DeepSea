@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,8 +56,8 @@ DS_CORE_EXPORT size_t dsConditionVariable_fullAllocSize(void);
  *     NULL, will be set to "Condition".
  * @return The condition variable, or NULL if it couldn't be created.
  */
-DS_CORE_EXPORT dsConditionVariable* dsConditionVariable_create(dsAllocator* allocator,
-	const char* name);
+DS_CORE_EXPORT dsConditionVariable* dsConditionVariable_create(
+	dsAllocator* allocator, const char* name);
 
 /**
  * @brief Waits for a condition variable to be notified with dsConditionVariable_notifiedOne() or
@@ -68,8 +68,8 @@ DS_CORE_EXPORT dsConditionVariable* dsConditionVariable_create(dsAllocator* allo
  *     locked again before this function returns.
  * @return The result of waiting.
  */
-DS_CORE_EXPORT dsConditionVariableResult dsConditionVariable_wait(dsConditionVariable* condition,
-	dsMutex* mutex);
+DS_CORE_EXPORT dsConditionVariableResult dsConditionVariable_wait(
+	dsConditionVariable* condition, dsMutex* mutex);
 
 /**
  * @brief Waits for a condition variable to be notified with dsConditionVariable_notifiedOne(),

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,8 +72,14 @@ dsSceneAnimationNode* dsSceneAnimationNode_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneAnimationNode)) +
-		dsSceneNode_itemListsAllocSize(itemLists, itemListCount);
+	size_t fullSize = sizeof(dsSceneAnimationNode);
+	if (itemListCount > 0)
+	{
+		size_t itemListsSize = dsSceneNode_itemListsAllocSize(itemLists, itemListCount);
+		if (itemListsSize == 0 || !dsAddAlignedSize(&fullSize, itemListsSize, DS_ALLOC_ALIGNMENT))
+			return NULL;
+	}
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;

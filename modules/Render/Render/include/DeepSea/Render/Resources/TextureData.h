@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,8 +43,8 @@ extern "C"
  *     values when creating the final texture.
  * @return The created texture data, or NULL if it couldn't be created.
  */
-DS_RENDER_EXPORT dsTextureData* dsTextureData_create(dsAllocator* allocator,
-	const dsTextureInfo* info);
+DS_RENDER_EXPORT dsTextureData* dsTextureData_create(
+	dsAllocator* allocator, const dsTextureInfo* info);
 
 /**
  * @brief Creates a texture from texture data.
@@ -74,8 +74,8 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_createTexture(dsResourceManager* resou
  * @param filePath The file to load.
  * @return The created texture data, or NULL if it couldn't be created.
  */
-DS_RENDER_EXPORT dsTextureData* dsTextureData_loadFile(dsAllocator* allocator,
-	const char* filePath);
+DS_RENDER_EXPORT dsTextureData* dsTextureData_loadFile(
+	dsAllocator* allocator, const char* filePath);
 
 /**
  * @brief Loads a texture file from a resource to a new texture data instance.
@@ -88,8 +88,8 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadFile(dsAllocator* allocator,
  * @param filePath The file to load.
  * @return The created texture data, or NULL if it couldn't be created.
  */
-DS_RENDER_EXPORT dsTextureData* dsTextureData_loadResource(dsAllocator* allocator,
-	dsFileResourceType type, const char* filePath);
+DS_RENDER_EXPORT dsTextureData* dsTextureData_loadResource(
+	dsAllocator* allocator, dsFileResourceType type, const char* filePath);
 
 /**
  * @brief Loads a texture file from within an archive to a new texture data instance.
@@ -102,8 +102,8 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadResource(dsAllocator* allocato
  * @param filePath The file to load.
  * @return The created texture data, or NULL if it couldn't be created.
  */
-DS_RENDER_EXPORT dsTextureData* dsTextureData_loadArchive(dsAllocator* allocator,
-	const dsFileArchive* archive, const char* filePath);
+DS_RENDER_EXPORT dsTextureData* dsTextureData_loadArchive(
+	dsAllocator* allocator, const dsFileArchive* archive, const char* filePath);
 
 /**
  * @brief Loads a texture file from a stream to a new texture data instance.
@@ -220,8 +220,8 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_loadStreamToTexture(dsResourceManager*
  * @param filePath The file to load.
  * @return The created texture data, or NULL if it couldn't be created.
  */
-DS_RENDER_EXPORT dsTextureData* dsTextureData_loadDDSFile(dsAllocator* allocator,
-	const char* filePath);
+DS_RENDER_EXPORT dsTextureData* dsTextureData_loadDDSFile(
+	dsAllocator* allocator, const char* filePath);
 
 /**
  * @brief Loads a DDS texture resource file to a new texture data instance.
@@ -231,8 +231,8 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadDDSFile(dsAllocator* allocator
  * @param filePath The file to load.
  * @return The created texture data, or NULL if it couldn't be created.
  */
-DS_RENDER_EXPORT dsTextureData* dsTextureData_loadDDSResource(dsAllocator* allocator,
-	dsFileResourceType type, const char* filePath);
+DS_RENDER_EXPORT dsTextureData* dsTextureData_loadDDSResource(
+	dsAllocator* allocator, dsFileResourceType type, const char* filePath);
 
 /**
  * @brief Loads a DDS texture file from a stream to a new texture data instance.
@@ -241,8 +241,8 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadDDSResource(dsAllocator* alloc
  * @param stream The file to load the texture from.
  * @return The created texture data, or NULL if it couldn't be created.
  */
-DS_RENDER_EXPORT dsTextureData* dsTextureData_loadDDSStream(dsAllocator* allocator,
-	dsStream* stream);
+DS_RENDER_EXPORT dsTextureData* dsTextureData_loadDDSStream(
+	dsAllocator* allocator, dsStream* stream);
 
 /**
  * @brief Loads a DDS texture file to a new texture instance.
@@ -313,8 +313,8 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_loadDDSStreamToTexture(dsResourceManag
  * @param filePath The file to load.
  * @return The created texture data, or NULL if it couldn't be created.
  */
-DS_RENDER_EXPORT dsTextureData* dsTextureData_loadKTXFile(dsAllocator* allocator,
-	const char* filePath);
+DS_RENDER_EXPORT dsTextureData* dsTextureData_loadKTXFile(
+	dsAllocator* allocator, const char* filePath);
 
 /**
  * @brief Loads a KTX texture resource file to a new texture data instance.
@@ -324,8 +324,8 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadKTXFile(dsAllocator* allocator
  * @param filePath The file to load.
  * @return The created texture data, or NULL if it couldn't be created.
  */
-DS_RENDER_EXPORT dsTextureData* dsTextureData_loadKTXResource(dsAllocator* allocator,
-	dsFileResourceType type, const char* filePath);
+DS_RENDER_EXPORT dsTextureData* dsTextureData_loadKTXResource(
+	dsAllocator* allocator, dsFileResourceType type, const char* filePath);
 
 /**
  * @brief Loads a KTX texture file from a stream to a new texture data instance.
@@ -334,8 +334,8 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadKTXResource(dsAllocator* alloc
  * @param stream The file to load the texture from.
  * @return The created texture data, or NULL if it couldn't be created.
  */
-DS_RENDER_EXPORT dsTextureData* dsTextureData_loadKTXStream(dsAllocator* allocator,
-	dsStream* stream);
+DS_RENDER_EXPORT dsTextureData* dsTextureData_loadKTXStream(
+	dsAllocator* allocator, dsStream* stream);
 
 /**
  * @brief Loads a KTX texture file to a new texture instance.
@@ -406,8 +406,8 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_loadKTXStreamToTexture(dsResourceManag
  * @param filePath The file to load.
  * @return The created texture data, or NULL if it couldn't be created.
  */
-DS_RENDER_EXPORT dsTextureData* dsTextureData_loadPVRFile(dsAllocator* allocator,
-	const char* filePath);
+DS_RENDER_EXPORT dsTextureData* dsTextureData_loadPVRFile(
+	dsAllocator* allocator, const char* filePath);
 
 /**
  * @brief Loads a PVR texture resource file to a new texture data instance.
@@ -417,8 +417,8 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadPVRFile(dsAllocator* allocator
  * @param filePath The file to load.
  * @return The created texture data, or NULL if it couldn't be created.
  */
-DS_RENDER_EXPORT dsTextureData* dsTextureData_loadPVRResource(dsAllocator* allocator,
-	dsFileResourceType type, const char* filePath);
+DS_RENDER_EXPORT dsTextureData* dsTextureData_loadPVRResource(
+	dsAllocator* allocator, dsFileResourceType type, const char* filePath);
 
 /**
  * @brief Loads a PVR texture file from a stream to a new texture data instance.
@@ -427,8 +427,8 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadPVRResource(dsAllocator* alloc
  * @param stream The file to load the texture from.
  * @return The created texture data, or NULL if it couldn't be created.
  */
-DS_RENDER_EXPORT dsTextureData* dsTextureData_loadPVRStream(dsAllocator* allocator,
-	dsStream* stream);
+DS_RENDER_EXPORT dsTextureData* dsTextureData_loadPVRStream(
+	dsAllocator* allocator, dsStream* stream);
 
 /**
  * @brief Loads a PVR texture file to a new texture instance.

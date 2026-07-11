@@ -48,11 +48,19 @@ size_t dsTextIcons_sizeof(void)
 
 size_t dsTextIcons_fullAllocSize(uint32_t codepointRangeCount, uint32_t maxIcons)
 {
-	size_t tableSize = dsHashTable_tableSize(maxIcons);
-	return DS_ALIGNED_SIZE(sizeof(dsTextIcons)) +
-		DS_ALIGNED_SIZE(sizeof(dsIndexRange)*codepointRangeCount) +
-		DS_ALIGNED_SIZE(sizeof(dsIconGlyph)*maxIcons) +
-		DS_ALIGNED_SIZE(sizeof(dsIconGlyphNode)*maxIcons) + dsHashTable_fullAllocSize(tableSize);
+	size_t fullSize = sizeof(dsTextIcons);
+	size_t hashTableSize = dsHashTable_sizeof(dsHashTable_tableSize(maxIcons));
+	dsMemorySize sizes[] =
+	{
+		{sizeof(dsIndexRange), codepointRangeCount},
+		{sizeof(dsIconGlyph), maxIcons},
+		{sizeof(dsIconGlyphNode), maxIcons},
+		{hashTableSize, 1}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return 0;
+
+	return fullSize;
 }
 
 dsTextIcons* dsTextIcons_create(dsAllocator* allocator, const dsIndexRange* codepointRanges,

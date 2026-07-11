@@ -67,12 +67,15 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* 
 	if (fbSharedItems && fbSharedItems->size() > 0)
 	{
 		uint32_t count = fbSharedItems->size();
-		tempSize += DS_ALIGNED_SIZE(count*sizeof(dsSceneItemLists));
+		if (!dsAddAlignedArraySize(&tempSize, sizeof(dsSceneItemLists), count, DS_ALLOC_ALIGNMENT))
+			return 0;
+
 		for (auto fbItemsArray : *fbSharedItems)
 		{
 			if (!fbItemsArray)
 			{
 				PRINT_FLATBUFFER_ERROR("Scene shared item list array is null", fileName);
+				errno = EFORMAT;
 				return 0;
 			}
 
@@ -80,9 +83,14 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* 
 			if (itemCount == 0)
 			{
 				PRINT_FLATBUFFER_ERROR("Scene shared item list array is empty", fileName);
+				errno = EFORMAT;
 				return 0;
 			}
-			tempSize += DS_ALIGNED_SIZE(itemCount*sizeof(dsSceneItemList*));
+			if (!dsAddAlignedArraySize(
+					&tempSize, sizeof(dsSceneItemList*), itemCount, DS_ALLOC_ALIGNMENT))
+			{
+				return 0;
+			}
 		}
 	}
 
@@ -90,9 +98,16 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* 
 	if (pipelineCount == 0)
 	{
 		PRINT_FLATBUFFER_ERROR("Scene pipeline is empty", fileName);
+		errno = EFORMAT;
 		return 0;
 	}
-	tempSize += DS_ALIGNED_SIZE(pipelineCount*sizeof(dsScenePipelineItem));
+
+	if (!dsAddAlignedArraySize(
+			&tempSize, sizeof(dsScenePipelineItem), pipelineCount, DS_ALLOC_ALIGNMENT))
+	{
+		return 0;
+	}
+
 	size_t maxRenderPassSize = 0;
 	for (auto fbPipelineItem : fbPipeline)
 	{
@@ -109,19 +124,37 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* 
 			if (fbAttachments)
 			{
 				uint32_t attachmentCount = fbAttachments->size();
-				renderPassSize += DS_ALIGNED_SIZE(attachmentCount*sizeof(dsAttachmentInfo)) +
-					DS_ALIGNED_SIZE(attachmentCount*sizeof(dsSurfaceClearValue));
+				dsMemorySize attachmentSizes[] =
+				{
+					{sizeof(dsAttachmentInfo), attachmentCount},
+					{sizeof(dsSurfaceClearValue), attachmentCount}
+				};
+				if (!dsAccumulateAlignedSizes(&renderPassSize, attachmentSizes,
+						DS_ARRAY_SIZE(attachmentSizes), DS_ALLOC_ALIGNMENT))
+				{
+					return 0;
+				}
 			}
 			auto fbSubpasses = fbRenderPass->subpasses();
 			uint32_t subpassCount = fbSubpasses->size();
 			if (subpassCount == 0)
 			{
 				PRINT_FLATBUFFER_ERROR("Scene render pass subpass array is empty", fileName);
+				errno = EFORMAT;
 				return 0;
 			}
 
-			renderPassSize += DS_ALIGNED_SIZE(subpassCount*sizeof(dsRenderSubpassInfo)) +
-				DS_ALIGNED_SIZE(subpassCount*sizeof(dsSceneItemLists));
+			dsMemorySize subpassSizes[] =
+			{
+				{sizeof(dsRenderSubpassInfo), subpassCount},
+				{sizeof(dsSceneItemLists), subpassCount}
+			};
+			if (!dsAccumulateAlignedSizes(&renderPassSize, subpassSizes,
+					DS_ARRAY_SIZE(subpassSizes), DS_ALLOC_ALIGNMENT))
+			{
+				return 0;
+			}
+
 			for (auto fbSubpass : *fbSubpasses)
 			{
 				if (!fbSubpass)
@@ -131,14 +164,19 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* 
 				}
 
 				auto fbInputAttachments = fbSubpass->inputAttachments();
-				if (fbInputAttachments && fbInputAttachments->size())
-					renderPassSize += DS_ALIGNED_SIZE(fbInputAttachments->size()*sizeof(uint32_t));
+				if (fbInputAttachments && fbInputAttachments->size() &&
+					!dsAddAlignedArraySize(&renderPassSize, sizeof(uint32_t),
+						fbInputAttachments->size(), DS_ALLOC_ALIGNMENT))
+				{
+					return 0;
+				}
 
 				auto fbColorAttachments = fbSubpass->colorAttachments();
-				if (fbColorAttachments && fbColorAttachments->size())
+				if (fbColorAttachments && fbColorAttachments->size() &&
+					!dsAddAlignedArraySize(&renderPassSize, sizeof(dsAttachmentRef),
+						fbColorAttachments->size(), DS_ALLOC_ALIGNMENT))
 				{
-					renderPassSize +=
-						DS_ALIGNED_SIZE(fbColorAttachments->size()*sizeof(dsAttachmentRef));
+					return 0;
 				}
 
 				uint32_t drawListCount = fbSubpass->drawLists()->size();
@@ -148,14 +186,19 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* 
 					return 0;
 				}
 
-				renderPassSize += DS_ALIGNED_SIZE(drawListCount*sizeof(dsSceneItemList*));
+				if (!dsAddAlignedArraySize(&renderPassSize, sizeof(dsSceneItemList*), drawListCount,
+						DS_ALLOC_ALIGNMENT))
+				{
+					return 0;
+				}
 			}
 
 			auto fbDependencies = fbRenderPass->dependencies();
-			if (fbDependencies)
+			if (fbDependencies &&
+				!dsAddAlignedArraySize(&renderPassSize, sizeof(dsSubpassDependency),
+					fbDependencies->size(), DS_ALLOC_ALIGNMENT))
 			{
-				fbDependencies +=
-					DS_ALIGNED_SIZE(fbDependencies->size()*sizeof(dsSubpassDependency));
+				return 0;
 			}
 
 			maxRenderPassSize = std::max(maxRenderPassSize, renderPassSize);
@@ -167,11 +210,13 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* 
 		else
 		{
 			PRINT_FLATBUFFER_ERROR("Scene pipeline item is null", fileName);
+			errno = EFORMAT;
 			return 0;
 		}
 	}
-	tempSize += maxRenderPassSize;
 
+	if (!dsAddAlignedSize(&tempSize, maxRenderPassSize, DS_ALLOC_ALIGNMENT))
+		return 0;
 	return tempSize;
 }
 
@@ -433,10 +478,7 @@ dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator
 	DS_ASSERT(scratchAllocator);
 	size_t tempSize = getTempSize(fbSharedItems, *fbPipeline, fileName);
 	if (tempSize == 0)
-	{
-		errno = EFORMAT;
 		return nullptr;
-	}
 
 	void* tempBuffer = dsAllocator_alloc(scratchAllocator, tempSize);
 	if (!tempBuffer)

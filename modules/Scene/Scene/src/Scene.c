@@ -74,29 +74,36 @@ static size_t fullAllocSize(uint32_t* outNameCount, uint32_t* outGlobalValueCoun
 	const dsSceneItemLists* sharedItems, uint32_t sharedItemCount,
 	const dsScenePipelineItem* pipeline, uint32_t pipelineCount)
 {
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsScene)) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneItemList)*sharedItemCount) +
-		DS_ALIGNED_SIZE(sizeof(dsScenePipelineItem)*pipelineCount);
-
+	size_t fullSize = sizeof(dsScene);
 	*outNameCount = 0;
 	*outGlobalValueCount = 0;
 	for (uint32_t i = 0; i < sharedItemCount; ++i)
 	{
 		const dsSceneItemLists* itemLists = sharedItems + i;
-		if (sharedItems[i].count > 0 && !itemLists->itemLists)
+		if (itemLists->count > 0 && !itemLists->itemLists)
+		{
+			errno = EINVAL;
 			return 0;
+		}
 
 		for (uint32_t j = 0; j < itemLists->count; ++j)
 		{
 			const dsSceneItemList* itemList = itemLists->itemLists[j];
 			if (!itemList || !itemList->type)
+			{
+				errno = EINVAL;
 				return 0;
+			}
 
 			*outGlobalValueCount += itemList->globalValueCount;
 		}
 
 		*outNameCount += itemLists->count;
-		fullSize += DS_ALIGNED_SIZE(sizeof(dsSceneItemList*)*itemLists->count);
+		if (!dsAddAlignedArraySize(
+				&fullSize, sizeof(dsSceneItemList*), itemLists->count, DS_ALLOC_ALIGNMENT))
+		{
+			return 0;
+		}
 	}
 
 	for (uint32_t i = 0; i < pipelineCount; ++i)
@@ -107,6 +114,7 @@ static size_t fullAllocSize(uint32_t* outNameCount, uint32_t* outGlobalValueCoun
 		{
 			DS_LOG_ERROR(DS_SCENE_LOG_TAG,
 				"A scene pipeline item must contain either a render pass or a compute item.");
+			errno = EINVAL;
 			return 0;
 		}
 
@@ -126,6 +134,7 @@ static size_t fullAllocSize(uint32_t* outNameCount, uint32_t* outGlobalValueCoun
 						DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
 							"Scene item list '%s' inside render subpass '%s' must have a commit "
 							"function.", itemList->name, baseRenderPass->subpasses[j].name);
+						errno = EINVAL;
 						return 0;
 					}
 					else if (itemList->globalValueCount > 0)
@@ -133,6 +142,7 @@ static size_t fullAllocSize(uint32_t* outNameCount, uint32_t* outGlobalValueCoun
 						DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
 							"Scene item list '%s' with global values must be in the sharedItems "
 							"array.", itemList->name);
+						errno = EINVAL;
 						return 0;
 					}
 				}
@@ -149,6 +159,7 @@ static size_t fullAllocSize(uint32_t* outNameCount, uint32_t* outGlobalValueCoun
 				DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
 					"Scene item list '%s' with global values must be in the sharedItem array.",
 					itemList->name);
+				errno = EINVAL;
 				return 0;
 			}
 			else if (itemList->type->preRenderPassFunc)
@@ -156,26 +167,46 @@ static size_t fullAllocSize(uint32_t* outNameCount, uint32_t* outGlobalValueCoun
 				DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
 					"Compute scene item list '%s' may not have a preRenderPass function.",
 					itemList->name);
+				errno = EINVAL;
 				return 0;
 			}
 			++*outNameCount;
 		}
 	}
 
-	return fullSize + dsHashTable_fullAllocSize(dsHashTable_tableSize(*outNameCount)) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneItemListNode)**outNameCount);
+	size_t hashTableSize = dsHashTable_sizeof(dsHashTable_tableSize(*outNameCount));
+	dsMemorySize sizes[] =
+	{
+		{sizeof(dsSceneItemList), sharedItemCount},
+		{sizeof(dsScenePipelineItem), pipelineCount},
+		{sizeof(dsSceneItemListNode), *outNameCount},
+		{hashTableSize, 1}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return 0;
+
+	return fullSize;
 }
 
-static bool hashPrevItemLists(void** outData, dsHashTable** outHashTable,
-	dsScene* prevScene, dsAllocator* allocator)
+static bool hashPrevItemLists(
+	void** outData, dsHashTable** outHashTable, dsScene* prevScene, dsAllocator* allocator)
 {
 	if (!prevScene)
 		return true;
 
 	size_t itemListCount = prevScene->itemLists->list.length;
 	size_t tableSize = dsHashTable_tableSize(itemListCount);
-	size_t hashTableSize = dsHashTable_fullAllocSize(tableSize);
-	size_t fullSize = DS_ALIGNED_SIZE(itemListCount*sizeof(dsSceneItemListNode)) + hashTableSize;
+	size_t hashTableSize = dsHashTable_sizeof(tableSize);
+	DS_ASSERT(hashTableSize > 0); // Should have already succeeded.
+	size_t fullSize = 0;
+	dsMemorySize sizes[] =
+	{
+		{sizeof(dsSceneItemListNode), itemListCount},
+		{hashTableSize, 1}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return false;
+
 	*outData = dsAllocator_alloc(allocator, fullSize);
 	if (!*outData)
 		return false;
@@ -288,11 +319,10 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	}
 
 	uint32_t nameCount, globalValueCount;
-	size_t fullSize = fullAllocSize(&nameCount, &globalValueCount, sharedItems, sharedItemCount,
-		pipeline, pipelineCount);
+	size_t fullSize = fullAllocSize(
+		&nameCount, &globalValueCount, sharedItems, sharedItemCount, pipeline, pipelineCount);
 	if (fullSize == 0)
 	{
-		errno = EINVAL;
 		destroyObjects(
 			sharedItems, sharedItemCount, pipeline, pipelineCount, userData, destroyUserDataFunc);
 		dsScene_destroy(prevScene);
@@ -388,7 +418,8 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	scene->globalValueCount = globalValueCount;
 
 	size_t tableSize = dsHashTable_tableSize(nameCount);
-	size_t hashTableSize = dsHashTable_fullAllocSize(tableSize);
+	size_t hashTableSize = dsHashTable_sizeof(tableSize);
+	DS_ASSERT(hashTableSize);
 	scene->itemLists = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, hashTableSize);
 	DS_ASSERT(scene->itemLists);
 	DS_VERIFY(dsHashTable_initialize(

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,8 +60,9 @@ DS_RENDER_EXPORT uint32_t dsTexture_maxMipmapLevels(uint32_t width, uint32_t hei
 
 /**
  * @brief Gets the size of a texture in bytes.
+ * @remark errno will be set on failure.
  * @param info The info for the texture.
- * @return The size of the texture in bytes, or 0 if invalid.
+ * @return The size of the texture in bytes or 0 if invalid.
  */
 DS_RENDER_EXPORT size_t dsTexture_size(const dsTextureInfo* info);
 
@@ -80,8 +81,8 @@ DS_RENDER_EXPORT uint32_t dsTexture_surfaceCount(const dsTextureInfo* info);
  * @param mipIndex The mipmap index.
  * @return The index to the surface, or DS_INVALID_TEXTURE_SURFACE if the surface is out of range.
  */
-DS_RENDER_EXPORT uint32_t dsTexture_surfaceIndex(const dsTextureInfo* info,
-	dsCubeFace cubeFace, uint32_t depthIndex, uint32_t mipIndex);
+DS_RENDER_EXPORT uint32_t dsTexture_surfaceIndex(
+	const dsTextureInfo* info, dsCubeFace cubeFace, uint32_t depthIndex, uint32_t mipIndex);
 
 /**
  * @brief Gets the offset for a surface within a texture.
@@ -91,8 +92,8 @@ DS_RENDER_EXPORT uint32_t dsTexture_surfaceIndex(const dsTextureInfo* info,
  * @param mipIndex The mipmap index.
  * @return The offset to the surface, or DS_INVALID_TEXTURE_OFFSET if the surface is out of range.
  */
-DS_RENDER_EXPORT size_t dsTexture_surfaceOffset(const dsTextureInfo* info, dsCubeFace cubeFace,
-	uint32_t depthIndex, uint32_t mipIndex);
+DS_RENDER_EXPORT size_t dsTexture_surfaceOffset(
+	const dsTextureInfo* info, dsCubeFace cubeFace, uint32_t depthIndex, uint32_t mipIndex);
 
 /**
  * @brief Gets the offset for a layer within a texture.

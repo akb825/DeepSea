@@ -714,16 +714,40 @@ bool dsVectorScratchData_hasGeometry(const dsVectorScratchData* data)
 dsGfxBuffer* dsVectorScratchData_createGfxBuffer(
 	dsVectorScratchData* data, dsResourceManager* resourceManager, dsAllocator* allocator)
 {
-	size_t shapeVertexSize = data->shapeVertexCount*sizeof(ShapeVertex);
-	size_t imageVertexSize = data->imageVertexCount*sizeof(ImageVertex);
-	size_t indexSize = data->indexCount*sizeof(uint16_t);
+	if (!DS_ARRAY_SIZE_VALID(sizeof(ShapeVertex), data->shapeVertexCount) ||
+		!DS_ARRAY_SIZE_VALID(sizeof(ImageVertex), data->imageVertexCount) ||
+		!DS_ARRAY_SIZE_VALID(sizeof(uint16_t), data->indexCount))
+	{
+		errno = ERANGE;
+		return NULL;
+	}
+
+	size_t shapeVertexSize = sizeof(ShapeVertex)*data->shapeVertexCount;
+	size_t imageVertexSize = sizeof(ImageVertex)*data->imageVertexCount;
+	size_t indexSize = sizeof(uint16_t)*data->indexCount;
 
 	// End of the buffer must be a multiple of 4 for some platforms.
-	size_t alignedIndexSize = DS_CUSTOM_ALIGNED_SIZE(indexSize, 4);
-
-	size_t totalSize = shapeVertexSize + imageVertexSize + alignedIndexSize;
-	if (totalSize == 0)
+	size_t alignedIndexSize = DS_ALIGNED_SIZE(indexSize, 4);
+	if (alignedIndexSize < indexSize)
+	{
+		errno = ERANGE;
 		return NULL;
+	}
+
+	size_t vertexSize = shapeVertexSize + imageVertexSize;
+	size_t totalSize = vertexSize + alignedIndexSize;
+	if (!DS_CAN_ADD_SIZES(shapeVertexSize, imageVertexSize) ||
+		!DS_CAN_ADD_SIZES(vertexSize, alignedIndexSize))
+	{
+		errno = ERANGE;
+		return NULL;
+	}
+
+	if (totalSize == 0)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
 
 	if (!data->combinedBuffer || data->combinedBufferSize < totalSize)
 	{

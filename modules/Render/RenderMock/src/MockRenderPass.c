@@ -38,16 +38,33 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 		finalDependencyCount = 0;
 	else if (dependencyCount == DS_DEFAULT_SUBPASS_DEPENDENCIES)
 		finalDependencyCount = dsRenderPass_countDefaultDependencies(subpasses, subpassCount);
-	size_t totalSize = DS_ALIGNED_SIZE(sizeof(dsRenderPass)) +
-		DS_ALIGNED_SIZE(sizeof(dsAttachmentInfo)*attachmentCount) +
-		DS_ALIGNED_SIZE(sizeof(dsRenderSubpassInfo)*subpassCount) +
-		DS_ALIGNED_SIZE(sizeof(dsSubpassDependency)*finalDependencyCount);
+
+	size_t totalSize = sizeof(dsRenderPass);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(dsAttachmentInfo), attachmentCount},
+		{sizeof(dsRenderSubpassInfo), subpassCount},
+		{sizeof(dsSubpassDependency), finalDependencyCount}
+	};
+	if (!dsAccumulateAlignedSizes(&totalSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	for (uint32_t i = 0; i < subpassCount; ++i)
 	{
-		totalSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*subpasses[i].inputAttachmentCount) +
-			DS_ALIGNED_SIZE(sizeof(dsAttachmentRef)*subpasses[i].colorAttachmentCount) +
-			DS_ALIGNED_SIZE(strlen(subpasses[i].name) + 1);
+		const dsRenderSubpassInfo* subpass = subpasses + i;
+		dsMemorySize subpassSizes[] =
+		{
+			{sizeof(uint32_t), subpass->inputAttachmentCount},
+			{sizeof(dsAttachmentRef), subpass->colorAttachmentCount},
+			{sizeof(char), strlen(subpass->name) + 1}
+		};
+		if (!dsAccumulateAlignedSizes(
+				&totalSize, subpassSizes, DS_ARRAY_SIZE(subpassSizes), DS_ALLOC_ALIGNMENT))
+		{
+			return NULL;
+		}
 	}
+
 	void* buffer = dsAllocator_alloc(allocator, totalSize);
 	if (!buffer)
 		return NULL;

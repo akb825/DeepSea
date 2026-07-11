@@ -42,8 +42,10 @@ DS_SCENE_EXPORT size_t dsSceneResources_sizeof(void);
 
 /**
  * @brief Gets the full allocated size of dsSceneResources.
+ * @remark errno will be set on failure.
  * @param maxResources The maximum number of resources that can be held.
- * @return The full allocated size of the dsSceneResources instance.
+ * @return The full allocated size of the dsSceneResources instance or NULL if maxResources would
+ *     cause an overflow.
  */
 DS_SCENE_EXPORT size_t dsSceneResources_fullAllocSize(uint32_t maxResources);
 
@@ -54,8 +56,8 @@ DS_SCENE_EXPORT size_t dsSceneResources_fullAllocSize(uint32_t maxResources);
  * @param maxResources The maximum number of resources that can be held.
  * @return The scene resources or NULL if an error occurred.
  */
-DS_SCENE_EXPORT dsSceneResources* dsSceneResources_create(dsAllocator* allocator,
-	uint32_t maxResources);
+DS_SCENE_EXPORT dsSceneResources* dsSceneResources_create(
+	dsAllocator* allocator, uint32_t maxResources);
 
 /**
  * @brief Loads scene resources from a file.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,27 @@
 
 size_t dsPoolAllocator_bufferSize(size_t chunkSize, size_t chunkCount)
 {
-	return DS_ALIGNED_SIZE(chunkSize)*chunkCount;
+	if (chunkSize == 0 || chunkCount == 0)
+	{
+		errno = EINVAL;
+		return 0;
+	}
+
+	// Avoid overflow.
+	size_t alignedChunkSize = DS_ALIGNED_SIZE(chunkSize, DS_ALLOC_ALIGNMENT);
+	if (alignedChunkSize < chunkSize || !DS_ARRAY_SIZE_VALID(alignedChunkSize, chunkCount))
+	{
+		errno = ERANGE;
+		return 0;
+	}
+
+	return alignedChunkSize*chunkCount;
 }
 
 bool dsPoolAllocator_initialize(dsPoolAllocator* allocator, size_t chunkSize, size_t chunkCount,
 	void* buffer, size_t bufferSize)
 {
-	if (!allocator || !chunkSize || !chunkCount || !buffer ||
+	if (!allocator || chunkSize == 0 || chunkCount == 0 || !buffer ||
 		(uintptr_t)buffer % DS_ALLOC_ALIGNMENT != 0 ||
 		bufferSize != dsPoolAllocator_bufferSize(chunkSize, chunkCount))
 	{
@@ -47,16 +61,17 @@ bool dsPoolAllocator_initialize(dsPoolAllocator* allocator, size_t chunkSize, si
 
 	DS_VERIFY(dsSpinlock_initialize(&allocator->lock));
 
-	((dsAllocator*)allocator)->size = 0;
-	((dsAllocator*)allocator)->totalAllocations = 0;
-	((dsAllocator*)allocator)->currentAllocations = 0;
-	((dsAllocator*)allocator)->allocFunc = (dsAllocatorAllocFunction)&dsPoolAllocator_alloc;
-	((dsAllocator*)allocator)->reallocFunc = NULL;
-	((dsAllocator*)allocator)->freeFunc = (dsAllocatorFreeFunction)&dsPoolAllocator_free;
+	dsAllocator* baseAllocator = (dsAllocator*)allocator;
+	baseAllocator->size = 0;
+	baseAllocator->totalAllocations = 0;
+	baseAllocator->currentAllocations = 0;
+	baseAllocator->allocFunc = (dsAllocatorAllocFunction)&dsPoolAllocator_alloc;
+	baseAllocator->reallocFunc = NULL;
+	baseAllocator->freeFunc = (dsAllocatorFreeFunction)&dsPoolAllocator_free;
 
 	allocator->buffer = buffer;
 	allocator->bufferSize = bufferSize;
-	allocator->chunkSize = DS_ALIGNED_SIZE(chunkSize);
+	allocator->chunkSize = DS_ALIGNED_SIZE(chunkSize, DS_ALLOC_ALIGNMENT);
 	allocator->chunkCount = chunkCount;
 	allocator->head = 0;
 	allocator->freeCount = chunkCount;
@@ -131,9 +146,10 @@ void* dsPoolAllocator_alloc(dsPoolAllocator* allocator, size_t size, unsigned in
 
 	if (retVal)
 	{
-		((dsAllocator*)allocator)->size += allocator->chunkSize;
-		++((dsAllocator*)allocator)->totalAllocations;
-		++((dsAllocator*)allocator)->currentAllocations;
+		dsAllocator* baseAllocator = (dsAllocator*)allocator;
+		baseAllocator->size += allocator->chunkSize;
+		++baseAllocator->totalAllocations;
+		++baseAllocator->currentAllocations;
 		DS_ASSERT(((dsAllocator*)allocator)->size <= allocator->bufferSize);
 	}
 
@@ -181,9 +197,10 @@ bool dsPoolAllocator_free(dsPoolAllocator* allocator, void* ptr)
 	allocator->head = index;
 	++allocator->freeCount;
 
-	DS_ASSERT(((dsAllocator*)allocator)->size >= allocator->chunkSize);
-	((dsAllocator*)allocator)->size -= allocator->chunkSize;
-	--((dsAllocator*)allocator)->currentAllocations;
+	dsAllocator* baseAllocator = (dsAllocator*)allocator;
+	DS_ASSERT(baseAllocator->size >= allocator->chunkSize);
+	baseAllocator->size -= allocator->chunkSize;
+	--baseAllocator->currentAllocations;
 
 	DS_VERIFY(dsSpinlock_unlock(&allocator->lock));
 	return true;
@@ -198,9 +215,10 @@ bool dsPoolAllocator_reset(dsPoolAllocator* allocator)
 		return false;
 	}
 
-	((dsAllocator*)allocator)->size = 0;
-	((dsAllocator*)allocator)->totalAllocations = 0;
-	((dsAllocator*)allocator)->currentAllocations = 0;
+	dsAllocator* baseAllocator = (dsAllocator*)allocator;
+	baseAllocator->size = 0;
+	baseAllocator->totalAllocations = 0;
+	baseAllocator->currentAllocations = 0;
 
 	allocator->head = 0;
 	allocator->freeCount = allocator->chunkCount;
@@ -275,8 +293,9 @@ void dsPoolAllocator_shutdown(dsPoolAllocator* allocator)
 	if (!allocator || !allocator->buffer)
 		return;
 
-	((dsAllocator*)allocator)->totalAllocations = 0;
-	((dsAllocator*)allocator)->currentAllocations = 0;
+	dsAllocator* baseAllocator = (dsAllocator*)allocator;
+	baseAllocator->totalAllocations = 0;
+	baseAllocator->currentAllocations = 0;
 
 	allocator->buffer = NULL;
 	allocator->bufferSize = 0;

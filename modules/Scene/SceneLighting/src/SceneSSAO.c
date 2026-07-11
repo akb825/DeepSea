@@ -190,8 +190,16 @@ dsSceneSSAO* dsSceneSSAO_create(dsAllocator* allocator, dsResourceManager* resou
 		materialDesc->elements[viewFramebufferElement].shaderVariableGroupDesc;
 
 	size_t nameLen = strlen(name) + 1;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneSSAO)) + DS_ALIGNED_SIZE(nameLen) +
-		dsSharedMaterialValues_fullAllocSize(1);
+	size_t fullSize = sizeof(dsSceneSSAO);
+	size_t materialValueSize = dsSharedMaterialValues_fullAllocSize(1);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(char), nameLen},
+		{materialValueSize, 1}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;

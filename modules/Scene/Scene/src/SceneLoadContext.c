@@ -51,7 +51,7 @@ size_t dsSceneLoadContext_sizeof(void)
 
 size_t dsSceneLoadContext_fullAllocSize(void)
 {
-	return DS_ALIGNED_SIZE(sizeof(dsSceneLoadContext));
+	return DS_ALIGNED_SIZE(sizeof(dsSceneLoadContext), DS_ALLOC_ALIGNMENT);
 }
 
 dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator, dsRenderer* renderer)

@@ -468,8 +468,10 @@ dsSceneAnimationList* dsSceneAnimationList_create(dsAllocator* allocator, const 
 	}
 
 	size_t nameLen = strlen(name) + 1;
-	size_t fullSize =
-		DS_ALIGNED_SIZE(sizeof(dsSceneAnimationList)) + DS_ALIGNED_SIZE(nameLen);
+	size_t fullSize = sizeof(dsSceneAnimationList);
+	if (!dsAddAlignedSize(&fullSize, nameLen, DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;

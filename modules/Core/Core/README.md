@@ -17,7 +17,7 @@ The `ds<Struct>_sizeof()` function is the equivalent of calling `sizeof(<Struct>
 
 The `ds<Struct>_fullAllocSize()` function is used to determine the full size to allocate for a type, including any sub-allocations. This can be used to pre-allocate a buffer for the object, then use a `dsBufferAllocator` to allocate each sub-object by incrementing the buffer pointer. If the size is variable, `ds<Struct>_fullAllocSize()` will provide parameters to provide extra information to calculate the size.
 
-Implementations of `ds<Struct>_fullAllocSize()` should use the `DS_ALIGNED_SIZE()` macro in `DeepSea/Core/Memory/Memory.h` for each required allocation to ensure proper packing based on the alignment rules. In the most simple implemenetation, `ds<Struct>_fullAllocSize()` would return `DS_ALIGNED_SIZE(sizeof(ds<Struct>))`.
+Implementations of `ds<Struct>_fullAllocSize()` should use the functions in `DeepSea/Core/Memory/Memory.h` for each required allocation to ensure proper packing based on the alignment rules and check for integer overflow. In the most simple implemenetation, `ds<Struct>_fullAllocSize()` would return `DS_ALIGNED_SIZE(sizeof(ds<Struct>), DS_ALLOC_ALIGNMENT)`.
 
 When allocating an array of objects based on `ds<Struct>_fullAllocSize()`, each element should be a pointer, even if the struct definition is publicly provided. This is because any sub-allocations or extra padding might cause the array access to be incorrect.
 

@@ -175,9 +175,17 @@ dsSceneItemList* dsLightData_create(dsAllocator* allocator, const char* name,
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(lightDesc);
 
+	size_t fullSize = sizeof(dsLightData);
 	size_t nameLen = strlen(name) + 1;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsLightData)) + DS_ALIGNED_SIZE(nameLen) +
-		dsShaderVariableGroup_fullAllocSize(resourceManager, lightDesc);
+	size_t variableGroupSize = dsShaderVariableGroup_fullAllocSize(resourceManager, lightDesc);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(char), nameLen},
+		{variableGroupSize, 1}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return nullptr;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return nullptr;

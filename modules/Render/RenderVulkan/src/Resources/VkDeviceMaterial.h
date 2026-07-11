@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,9 @@
 
 dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 	dsMaterial* material, dsAllocator* allocator);
-void dsVkDeviceMaterial_destroy(dsResourceManager* resourceManager, dsMaterial* material,
-	dsDeviceMaterial* deviceMaterial);
+void dsVkDeviceMaterial_destroy(
+	dsResourceManager* resourceManager, dsMaterial* material, dsDeviceMaterial* deviceMaterial);
 
 void dsVkDeviceMaterial_removeShader(dsDeviceMaterial* material, dsShader* shader);
-VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuffer,
-	dsDeviceMaterial* material, dsShader* shader);
+VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(
+	dsCommandBuffer* commandBuffer, dsDeviceMaterial* material, dsShader* shader);

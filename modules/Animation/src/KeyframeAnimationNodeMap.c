@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,12 +32,21 @@ dsKeyframeAnimationNodeMap* dsKeyframeAnimationNodeMap_create(
 		return NULL;
 	}
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsKeyframeAnimationNodeMap)) +
-		DS_ALIGNED_SIZE(sizeof(dsAnimationKeyframesNodeMap)*animation->keyframesCount);
+	size_t fullSize = sizeof(dsKeyframeAnimationNodeMap);
+	if (!dsAddAlignedArraySize(&fullSize, sizeof(dsAnimationKeyframesNodeMap),
+			animation->keyframesCount, DS_ALLOC_ALIGNMENT))
+	{
+		return NULL;
+	}
+
 	for (uint32_t i = 0; i < animation->keyframesCount; ++i)
 	{
 		const dsAnimationKeyframes* curKeyframes = animation->keyframes + i;
-		fullSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*curKeyframes->channelCount);
+		if (!dsAddAlignedArraySize(&fullSize, sizeof(uint32_t),
+				curKeyframes->channelCount, DS_ALLOC_ALIGNMENT))
+		{
+			return NULL;
+		}
 	}
 
 	void* buffer = dsAllocator_alloc(allocator, fullSize);

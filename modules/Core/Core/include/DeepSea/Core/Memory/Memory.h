@@ -18,6 +18,9 @@
 
 #include <DeepSea/Core/Config.h>
 
+#include <DeepSea/Core/Memory/Types.h>
+#include <DeepSea/Core/Export.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -43,25 +46,13 @@ extern "C"
 #endif
 
 /**
- * @brief Gets the aligned size for a custom alignment.
+ * @brief Gets the aligned size.
  * @param x The original size.
  * @param alignment The alignment. This must be a power of two.
  * @return The aligned size.
  */
-#define DS_CUSTOM_ALIGNED_SIZE(x, alignment) \
+#define DS_ALIGNED_SIZE(x, alignment) \
 	(((x) + (alignment) - 1) & ~(((size_t)(alignment)) - 1))
-
-/**
- * @brief Gets the aligned size of an object.
- *
- * This can be used to calculate the amount of space to allocate to preserve alignment according to
- * DS_ALLOC_ALIGNMENT. For example, when pre-allocating a pool of memory for a group of objects
- * and advancing the memory pointer for each object.
- *
- * @param x The original size.
- * @return The aligned size.
- */
-#define DS_ALIGNED_SIZE(x) DS_CUSTOM_ALIGNED_SIZE(x, DS_ALLOC_ALIGNMENT)
 
 /**
  * @brief Gets the size when re-aligning from the default alignment to a custom alignment.
@@ -70,7 +61,73 @@ extern "C"
  * @return The size to allow re-alignment.
  */
 #define DS_REALIGNED_SIZE(x, alignment) \
-	(DS_CUSTOM_ALIGNED_SIZE(x, alignment) + ((alignment) - DS_ALLOC_ALIGNMENT))
+	(DS_ALIGNED_SIZE(x, alignment) + ((alignment) - DS_ALLOC_ALIGNMENT))
+
+/**
+ * @brief Checks whether two sizes can be added, avoiding integer overflow.
+ * @param firstSize The first size to add.
+ * @param secondSize The seconds size to add.
+ * @return Whether firstSize + secondSize can be performed without integer overflow.
+ */
+#define DS_CAN_ADD_SIZES(firstSize, secondSize) ((firstSize) <= (SIZE_MAX - (secondSize)))
+
+/**
+ * @brief Checks whether an array size is valid, avoiding integer overflow.
+ * @param elemSize The size of each array element.
+ * @param count The number of array elements.
+ * @return False if count would cause an integer overflow for the full size.
+ */
+#define DS_ARRAY_SIZE_VALID(elemSize, count) ((size_t)(count) <= (SIZE_MAX/(elemSize)))
+
+/**
+ * @brief Adds one aligned size to another, checking for integer overflow.
+ *
+ * This is useful when computing the size to allocate a single buffer that is then chunked into
+ * multiple sub-allocations.
+ *
+ * @remark errno will be set on failure.
+ * @param[inout] fullSize The full allocation size. This will be aligned if not already.
+ * @param newSize The size to add to fullSize. This will be aligned for allocation.
+ * @param alignment The alignment to use. This must be a power of two.
+ * @return Flase if the final memory size would result in an integer overflow.
+ */
+DS_CORE_EXPORT bool dsAddAlignedSize(size_t* fullSize, size_t newSize, unsigned int alignment);
+
+/**
+ * @brief Adds the aligned size for an array to the full allocation size, checking for integer
+ *     overflow.
+ *
+ * The full array size will be aligned rather than each individual element. This is useful when
+ * computing the size to allocate a single buffer that is then chunked into multiple
+ * sub-allocations.
+ *
+ * @remark errno will be set on failure.
+ * @param[inout] fullSize The full allocation size. This will be aligned if not already.
+ * @param elemSize The size of each array element.
+ * @param count The nubmer of array elements.
+ * @param alignment The alignment to use. This must be a power of two.
+ * @return Flase if the final memory size would result in an integer overflow.
+ */
+DS_CORE_EXPORT bool dsAddAlignedArraySize(
+	size_t* fullSize, size_t elemSize, size_t count, unsigned int alignment);
+
+/**
+ * @brief Accumulates any number of aligned sizes into a full count, checking for integer overflow.
+ *
+ * This is useful when computing the size to allocate a single buffer that is then chunked into
+ * multiple sub-allocations.
+ *
+ * @remark errno will be set on failure.
+ * @param[inout] fullSize The full allocation size. This will be aligned if not already.
+ * @param sizes The sizes to accumulate, either for arrays or non-arrays with the count set to 1.
+ *     This will assume that any 0 elementSize when the count isn't also 0 resulted from a previous
+ *     call to get the full size failing.
+ * @param sizeCount The number of elements in sizes.
+ * @param alignment The alignment to use. This must be a power of two.
+ * @return Flase if the final memory size would result in an integer overflow.
+ */
+DS_CORE_EXPORT bool dsAccumulateAlignedSizes(
+	size_t* fullSize, const dsMemorySize* sizes, unsigned int sizeCount, unsigned int alignment);
 
 #ifdef __cplusplus
 }

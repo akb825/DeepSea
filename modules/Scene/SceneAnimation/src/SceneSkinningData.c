@@ -153,10 +153,11 @@ static bool populateBufferData(dsSceneInstanceData* instanceData)
 	for (uint32_t i = 0; i < skinningData->instanceCount; ++i)
 	{
 		const dsAnimationTree* animationTree = skinningData->instances[i].animationTree;
-		if (animationTree)
+		if (animationTree &&
+			!dsAddAlignedArraySize(&bufferSize, sizeof(dsAnimationJointTransform),
+				animationTree->nodeCount, alignment))
 		{
-			bufferSize += DS_CUSTOM_ALIGNED_SIZE(
-				animationTree->nodeCount*sizeof(dsAnimationJointTransform), alignment);
+			return false;
 		}
 	}
 
@@ -182,7 +183,7 @@ static bool populateBufferData(dsSceneInstanceData* instanceData)
 		instance->offset = offset;
 		instance->size = copySize;
 		memcpy(bufferData + offset, animationTree->jointTransforms, copySize);
-		offset += DS_CUSTOM_ALIGNED_SIZE(copySize, alignment);
+		offset += DS_ALIGNED_SIZE(copySize, alignment);
 	}
 
 	DS_VERIFY(dsGfxBuffer_unmap(buffer));
@@ -705,8 +706,8 @@ dsSceneInstanceData* dsSceneSkinningData_create(dsAllocator* allocator,
 
 	if (skinningData->skinningMethod == SkinningMethod_Textures)
 	{
-		skinningData->tempTextureData = (dsAnimationJointTransform*)dsAllocator_alloc(allocator,
-			skinningData->textureSize);
+		skinningData->tempTextureData = (dsAnimationJointTransform*)dsAllocator_alloc(
+			allocator, skinningData->textureSize);
 		if (!skinningData->tempTextureData)
 		{
 			dsSceneSkinningData_destroy(instanceData);

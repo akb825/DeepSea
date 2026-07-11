@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2024 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,12 +79,26 @@ dsSceneShadowManager* dsSceneShadowManager_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	size_t tableSize = dsHashTable_tableSize(lightShadowsCount);
+	size_t fullSize = sizeof(dsSceneShadowManager);
 	size_t namedPoolSize = dsPoolAllocator_bufferSize(sizeof(NamedShadowsNode), lightShadowsCount);
 	size_t lightPoolSize = dsPoolAllocator_bufferSize(sizeof(LightShadowsNode), lightShadowsCount);
-	size_t hashTableSize = dsHashTable_fullAllocSize(tableSize);
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneShadowManager)) + namedPoolSize +
-		lightPoolSize + hashTableSize*2;
+	size_t tableSize = dsHashTable_tableSize(lightShadowsCount);
+	size_t hashTableSize = dsHashTable_sizeof(tableSize);
+	dsMemorySize sizes[] =
+	{
+		{namedPoolSize, 1},
+		{lightPoolSize, 1},
+		{hashTableSize, 1},
+		{hashTableSize, 1}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+	{
+		int prevErrno = errno;
+		destroyLightShadows(lightShadows, lightShadowsCount);
+		errno = prevErrno;
+		return NULL;
+	}
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
@@ -109,13 +123,13 @@ dsSceneShadowManager* dsSceneShadowManager_create(dsAllocator* allocator,
 
 	shadowManager->namedShadowsTable =
 		(dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, hashTableSize);
-	DS_VERIFY(dsHashTable_initialize(shadowManager->namedShadowsTable, tableSize, &dsHashString,
-		&dsHashStringEqual));
+	DS_VERIFY(dsHashTable_initialize(
+		shadowManager->namedShadowsTable, tableSize, &dsHashString, &dsHashStringEqual));
 
 	shadowManager->lightShadowsTable =
 		(dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, hashTableSize);
-	DS_VERIFY(dsHashTable_initialize(shadowManager->lightShadowsTable, tableSize, &dsHash32,
-		&dsHash32Equal));
+	DS_VERIFY(dsHashTable_initialize(
+		shadowManager->lightShadowsTable, tableSize, &dsHash32, &dsHash32Equal));
 
 	for (uint32_t i = 0; i < lightShadowsCount; ++i)
 	{

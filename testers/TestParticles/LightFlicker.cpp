@@ -251,7 +251,10 @@ dsSceneItemList* dsLightFlicker_create(dsAllocator* allocator, const char* name,
 	DS_ASSERT(intensityRange);
 
 	size_t nameLen = strlen(name) + 1;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsLightFlicker)) + DS_ALIGNED_SIZE(nameLen);
+	size_t fullSize = sizeof(dsLightFlicker);
+	if (!dsAddAlignedSize(&fullSize, nameLen, DS_ALLOC_ALIGNMENT))
+		return nullptr;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return nullptr;

@@ -59,8 +59,12 @@
 
 static size_t dsMTLRenderer_fullAllocSize(size_t deviceNameLen)
 {
-	return DS_ALIGNED_SIZE(sizeof(dsMTLRenderer)) + DS_ALIGNED_SIZE(deviceNameLen + 1) +
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsMTLRenderer), DS_ALLOC_ALIGNMENT) +
 		dsConditionVariable_fullAllocSize() + dsMutex_fullAllocSize();
+	if (!dsAddAlignedSize(&fullSize, deviceNameLen, DS_ALLOC_ALIGNMENT))
+		return 0;
+
+	return fullSize;
 }
 
 static uint32_t getShaderVersion(void)
@@ -800,7 +804,7 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		}
 
 		const char* deviceName = device.name.UTF8String;
-		size_t deviceNameLen = strlen(deviceName);
+		size_t deviceNameLen = strlen(deviceName) + 1;
 
 		size_t bufferSize = dsMTLRenderer_fullAllocSize(deviceNameLen);
 		void* buffer = dsAllocator_alloc(allocator, bufferSize);
@@ -862,10 +866,10 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		baseRenderer->shaderLanguage = "metal-macos";
 #endif
 
-		char* deviceNameCopy = (char*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-			deviceNameLen + 1);
+		char* deviceNameCopy = (char*)dsAllocator_alloc(
+			(dsAllocator*)&bufferAlloc, deviceNameLen);
 		DS_ASSERT(deviceNameCopy);
-		memcpy(deviceNameCopy, deviceName, deviceNameLen + 1);
+		memcpy(deviceNameCopy, deviceName, deviceNameLen);
 		baseRenderer->deviceName = deviceNameCopy;
 		baseRenderer->shaderVersion = getShaderVersion();
 		baseRenderer->vendorID = 0;

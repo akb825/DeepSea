@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ bool dsVkMaterialDesc_destroy(dsResourceManager* resourceManager, dsMaterialDesc
 
 void dsVkMaterialDesc_initializeBindings(const dsMaterialDesc* materialDesc,
 	dsVkBindingMemory* bindingMemory, dsMaterialBinding binding);
-dsVkMaterialDescriptor* dsVkMaterialDesc_createDescriptor(const dsMaterialDesc* materialDesc,
-	dsAllocator* allocator, dsMaterialBinding binding);
-void dsVkMaterialDesc_freeDescriptor(const dsMaterialDesc* materialDesc,
-	dsVkMaterialDescriptor* descriptor);
+dsVkMaterialDescriptor* dsVkMaterialDesc_createDescriptor(
+	const dsMaterialDesc* materialDesc, dsAllocator* allocator, dsMaterialBinding binding);
+void dsVkMaterialDesc_freeDescriptor(
+	const dsMaterialDesc* materialDesc, dsVkMaterialDescriptor* descriptor);

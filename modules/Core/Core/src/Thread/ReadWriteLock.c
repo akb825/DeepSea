@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ size_t dsReadWriteLock_sizeof(void)
 
 size_t dsReadWriteLock_fullAllocSize(void)
 {
-	return DS_ALIGNED_SIZE(sizeof(dsReadWriteLock)) + dsMutex_fullAllocSize() +
+	return DS_ALIGNED_SIZE(sizeof(dsReadWriteLock), DS_ALLOC_ALIGNMENT) + dsMutex_fullAllocSize() +
 		dsConditionVariable_fullAllocSize();
 }
 

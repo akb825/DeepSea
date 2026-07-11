@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@
 #include <DeepSea/Core/Config.h>
 #include "VkTypes.h"
 
-dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRenderer* renderer,
-	const char* shaderCacheDir);
-const dsVkFormatInfo* dsVkResourceManager_getFormat(const dsResourceManager* resourceManager,
-	dsGfxFormat format);
+dsResourceManager* dsVkResourceManager_create(
+	dsAllocator* allocator, dsVkRenderer* renderer, const char* shaderCacheDir);
+const dsVkFormatInfo* dsVkResourceManager_getFormat(
+	const dsResourceManager* resourceManager, dsGfxFormat format);
 void dsVkResourceManager_destroy(dsResourceManager* resourceManager);

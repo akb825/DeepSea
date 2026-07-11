@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,12 +32,12 @@
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/Types.h>
 
-dsTextureData* dsTextureData_loadDDS(bool* isDDS, dsAllocator* allocator, dsStream* stream,
-	const char* filePath);
-dsTextureData* dsTextureData_loadKTX(bool* isKTX, dsAllocator* allocator, dsStream* stream,
-	const char* filePath);
-dsTextureData* dsTextureData_loadPVR(bool* isPVR, dsAllocator* allocator, dsStream* stream,
-	const char* filePath);
+dsTextureData* dsTextureData_loadDDS(
+	bool* isDDS, dsAllocator* allocator, dsStream* stream, const char* filePath);
+dsTextureData* dsTextureData_loadKTX(
+	bool* isKTX, dsAllocator* allocator, dsStream* stream, const char* filePath);
+dsTextureData* dsTextureData_loadPVR(
+	bool* isPVR, dsAllocator* allocator, dsStream* stream, const char* filePath);
 
 // Order from most to fewest supported formats to attempt to process the most common formats first.
 static dsTextureData* (*loadTextureFuncs[])(bool*, dsAllocator*, dsStream*, const char*) =
@@ -83,19 +83,19 @@ dsTextureData* dsTextureData_create(dsAllocator* allocator, const dsTextureInfo*
 
 	dsTextureInfo texInfo = *info;
 
-	uint32_t maxLevels = dsTexture_maxMipmapLevels(texInfo.width, texInfo.height,
-		DS_MIP_DEPTH(texInfo.dimension, texInfo.depth));
+	uint32_t maxLevels = dsTexture_maxMipmapLevels(
+		texInfo.width, texInfo.height, DS_MIP_DEPTH(texInfo.dimension, texInfo.depth));
 	texInfo.mipLevels = dsMin(maxLevels, texInfo.mipLevels);
 	texInfo.mipLevels = dsMax(texInfo.mipLevels, 1U);
 	size_t dataSize = dsTexture_size(&texInfo);
-	if (dataSize == 0)
+	if (dataSize == 0 || !DS_CAN_ADD_SIZES(sizeof(dsTextureData), dataSize))
 	{
 		errno = EINVAL;
 		return NULL;
 	}
 
-	dsTextureData* textureData = (dsTextureData*)dsAllocator_alloc(allocator,
-		sizeof(dsTextureData) + dataSize);
+	dsTextureData* textureData = (dsTextureData*)dsAllocator_alloc(
+		allocator, sizeof(dsTextureData) + dataSize);
 	if (!textureData)
 		return NULL;
 
@@ -203,8 +203,8 @@ dsTextureData* dsTextureData_loadFile(dsAllocator* allocator, const char* filePa
 	DS_PROFILE_FUNC_RETURN(textureData);
 }
 
-dsTextureData* dsTextureData_loadResource(dsAllocator* allocator, dsFileResourceType type,
-	const char* filePath)
+dsTextureData* dsTextureData_loadResource(
+	dsAllocator* allocator, dsFileResourceType type, const char* filePath)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -245,8 +245,8 @@ dsTextureData* dsTextureData_loadResource(dsAllocator* allocator, dsFileResource
 	DS_PROFILE_FUNC_RETURN(textureData);
 }
 
-dsTextureData* dsTextureData_loadArchive(dsAllocator* allocator, const dsFileArchive* archive,
-	const char* filePath)
+dsTextureData* dsTextureData_loadArchive(
+	dsAllocator* allocator, const dsFileArchive* archive, const char* filePath)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -278,8 +278,8 @@ dsTextureData* dsTextureData_loadArchive(dsAllocator* allocator, const dsFileArc
 	// If check is false, we couldn't find the format.
 	if (!isFormat)
 	{
-		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Unknown texture file format when reading file '%s'.",
-			filePath);
+		DS_LOG_ERROR_F(
+			DS_RENDER_LOG_TAG, "Unknown texture file format when reading file '%s'.", filePath);
 		errno = EFORMAT;
 	}
 
@@ -362,8 +362,8 @@ dsTexture* dsTextureData_loadFileToTexture(dsResourceManager* resourceManager,
 	if (!textureData)
 		return NULL;
 
-	dsTexture* texture = dsTextureData_createTexture(resourceManager, textureAllocator, textureData,
-		options, usage, memoryHints);
+	dsTexture* texture = dsTextureData_createTexture(
+		resourceManager, textureAllocator, textureData, options, usage, memoryHints);
 	dsTextureData_destroy(textureData);
 	return texture;
 }
@@ -391,8 +391,8 @@ dsTexture* dsTextureData_loadArchiveToTexture(dsResourceManager* resourceManager
 	if (!textureData)
 		return NULL;
 
-	dsTexture* texture = dsTextureData_createTexture(resourceManager, textureAllocator, textureData,
-		options, usage, memoryHints);
+	dsTexture* texture = dsTextureData_createTexture(
+		resourceManager, textureAllocator, textureData, options, usage, memoryHints);
 	dsTextureData_destroy(textureData);
 	return texture;
 }
@@ -420,8 +420,8 @@ dsTexture* dsTextureData_loadResourceToTexture(dsResourceManager* resourceManage
 	if (!textureData)
 		return NULL;
 
-	dsTexture* texture = dsTextureData_createTexture(resourceManager, textureAllocator, textureData,
-		options, usage, memoryHints);
+	dsTexture* texture = dsTextureData_createTexture(
+		resourceManager, textureAllocator, textureData, options, usage, memoryHints);
 	dsTextureData_destroy(textureData);
 	return texture;
 }
@@ -448,8 +448,8 @@ dsTexture* dsTextureData_loadStreamToTexture(dsResourceManager* resourceManager,
 	if (!textureData)
 		return NULL;
 
-	dsTexture* texture = dsTextureData_createTexture(resourceManager, textureAllocator, textureData,
-		options, usage, memoryHints);
+	dsTexture* texture = dsTextureData_createTexture(
+		resourceManager, textureAllocator, textureData, options, usage, memoryHints);
 	dsTextureData_destroy(textureData);
 	return texture;
 }

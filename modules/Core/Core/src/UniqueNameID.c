@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -135,7 +135,10 @@ uint32_t dsUniqueNameID_create(const char* name)
 		}
 
 		size_t nameLen = strlen(name) + 1;
-		size_t fullSize = DS_ALIGNED_SIZE(sizeof(UniqueNameNode)) + DS_ALIGNED_SIZE(nameLen);
+		size_t fullSize = sizeof(UniqueNameNode);
+		if (!dsAddAlignedSize(&fullSize, nameLen, DS_ALLOC_ALIGNMENT))
+			return 0;
+
 		void* buffer = dsAllocator_alloc(sUniqueNameIDs->allocator, fullSize);
 		if (!buffer)
 		{

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,9 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Assert.h>
+
 #include <DeepSea/Render/Resources/GfxFormat.h>
+
 #include <string.h>
 
 static bool getImageViews(dsResourceManager* resourceManager, const dsFramebufferSurface* surfaces,
@@ -231,16 +233,22 @@ dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsAllocator* allocator,
 	uint32_t framebufferCount = surfaceData ? surfaceData->imageCount : 1;
 
 	uint32_t imageCount = renderPassData->fullAttachmentCount;
-	size_t bufferSize = DS_ALIGNED_SIZE(sizeof(dsVkRealFramebuffer)) +
-		DS_ALIGNED_SIZE(sizeof(VkFramebuffer)*framebufferCount) +
-		DS_ALIGNED_SIZE(sizeof(VkImageView)*imageCount) +
-		DS_ALIGNED_SIZE(sizeof(bool)*imageCount);
-	void* buffer = dsAllocator_alloc(allocator, bufferSize);
+	size_t fullSize = sizeof(dsVkRealFramebuffer);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(VkFramebuffer), framebufferCount},
+		{sizeof(VkImageView), imageCount},
+		{sizeof(bool), imageCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
+
+	void* buffer = dsAllocator_alloc(allocator, fullSize );
 	if (!buffer)
 		return NULL;
 
 	dsBufferAllocator bufferAlloc;
-	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, bufferSize));
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize ));
 
 	dsVkRealFramebuffer* realFramebuffer = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVkRealFramebuffer);
 	DS_ASSERT(realFramebuffer);
@@ -324,8 +332,8 @@ void dsVkRealFramebuffer_destroy(dsVkRealFramebuffer* framebuffer)
 	{
 		if (framebuffer->imageViewTemp[i])
 		{
-			DS_VK_CALL(device->vkDestroyImageView)(device->device, framebuffer->imageViews[i],
-				instance->allocCallbacksPtr);
+			DS_VK_CALL(device->vkDestroyImageView)(
+				device->device, framebuffer->imageViews[i], instance->allocCallbacksPtr);
 		}
 	}
 
@@ -333,8 +341,8 @@ void dsVkRealFramebuffer_destroy(dsVkRealFramebuffer* framebuffer)
 	{
 		if (framebuffer->framebuffers[i])
 		{
-			DS_VK_CALL(device->vkDestroyFramebuffer)(device->device, framebuffer->framebuffers[i],
-				instance->allocCallbacksPtr);
+			DS_VK_CALL(device->vkDestroyFramebuffer)(
+				device->device, framebuffer->framebuffers[i], instance->allocCallbacksPtr);
 		}
 	}
 

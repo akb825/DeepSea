@@ -39,8 +39,9 @@ DS_CORE_EXPORT size_t dsThreadTaskQueue_sizeof(void);
 
 /**
  * @brief Gets the full allocation size of dsThreadTaskQueue.
+ * @remark errno will be set on failure.
  * @param maxTasks The maximum number of tasks that can be queued at once.
- * @return The full allocation size of dsThreadTaskQueue.
+ * @return The full allocation size of dsThreadTaskQueue or 0 if invalid.
  */
 DS_CORE_EXPORT size_t dsThreadTaskQueue_fullAllocSize(uint32_t maxTasks);
 

@@ -30,7 +30,9 @@
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Render/Renderer.h>
+
 #include <string.h>
 
 static bool transitionToRenderable(dsCommandBuffer* commandBuffer, dsVkRenderSurfaceData* surface)
@@ -147,7 +149,14 @@ dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	dsAdjustVkSurfaceCapabilities(&surfaceInfo, widthHint, heightHint);
 
 	size_t nameLen = strlen(name) + 1;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVkRenderSurface)) + DS_ALIGNED_SIZE(nameLen);
+	size_t fullSize = sizeof(dsVkRenderSurface);
+	if (!dsAddAlignedSize(&fullSize, nameLen, DS_ALLOC_ALIGNMENT))
+	{
+		if (type != dsRenderSurfaceType_Direct)
+			dsVkPlatform_destroySurface(&vkRenderer->platform, surface);
+		return NULL;
+	}
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{

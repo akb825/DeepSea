@@ -29,8 +29,8 @@ bool dsVkRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount, bool secondary);
 bool dsVkRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, uint32_t index, bool secondary);
-bool dsVkRenderPass_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass);
+bool dsVkRenderPass_end(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsRenderPass* renderPass);
 bool dsVkRenderPass_destroy(dsRenderer* renderer, dsRenderPass* renderPass);
 
 dsVkRenderPassData* dsVkRenderPass_getData(const dsRenderPass* renderPass);

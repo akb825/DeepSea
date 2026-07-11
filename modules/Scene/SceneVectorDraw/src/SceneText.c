@@ -106,14 +106,18 @@ dsSceneText* dsSceneText_create(dsAllocator* allocator, dsFont* font, const char
 	}
 	bool needsSubstitution = substitutionTable && dsTextSubstitutionTable_needsSubstitution(string);
 
-	size_t stringSize = 0;
 	size_t styleSize = sizeof(dsTextStyle)*styleCount;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneText)) + DS_ALIGNED_SIZE(styleSize);
-	if (needsSubstitution)
+	size_t fullSize = sizeof(dsSceneText);
+	size_t stringSize = needsSubstitution ? strlen(string) + 1 : 0;
+	dsMemorySize sizes[] =
 	{
-		stringSize = strlen(string) + 1;
-		fullSize += DS_ALIGNED_SIZE(stringSize) + DS_ALIGNED_SIZE(styleSize);
-	}
+		{sizeof(char), stringSize},
+		{sizeof(dsTextStyle), styleCount},
+		{sizeof(dsTextStyle), needsSubstitution ? styleCount : 0}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return NULL;
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -164,16 +164,35 @@ dsScenePhysicsConstraintNode* dsScenePhysicsConstraintNode_create(dsAllocator* a
 		return NULL;
 	}
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsScenePhysicsConstraintNode)) +
-		dsSceneNode_itemListsAllocSize(itemLists, itemListCount);
-	if (firstActor && firstActor->instanceName)
-		fullSize += strlen(firstActor->instanceName) + 1;
-	if (firstConnectedConstraint && firstConnectedConstraint->instanceName)
-		fullSize += strlen(firstConnectedConstraint->instanceName) + 1;
-	if (secondActor && secondActor->instanceName)
-		fullSize += strlen(secondActor->instanceName) + 1;
-	if (secondConnectedConstraint && secondConnectedConstraint->instanceName)
-		fullSize += strlen(secondConnectedConstraint->instanceName) + 1;
+	size_t fullSize = sizeof(dsScenePhysicsConstraintNode);
+	bool hasItemLists = itemListCount > 0;
+	size_t itemListsSize =
+		hasItemLists ? dsSceneNode_itemListsAllocSize(itemLists, itemListCount) : 0;
+	size_t firstActorNameLen =
+		firstActor && firstActor->instanceName ? strlen(firstActor->instanceName) + 1 : 0;
+	size_t firstConstraintNameLen =
+		firstConnectedConstraint && firstConnectedConstraint->instanceName ?
+			strlen(firstConnectedConstraint->instanceName) + 1 : 0;
+	size_t secondActorNameLen =
+		secondActor && secondActor->instanceName ? strlen(secondActor->instanceName) + 1 : 0;
+	size_t secondConstraintNameLen =
+		secondConnectedConstraint && secondConnectedConstraint->instanceName ?
+			strlen(secondConnectedConstraint->instanceName) + 1 : 0;
+	dsMemorySize sizes[] =
+	{
+		{itemListsSize, hasItemLists},
+		{sizeof(char), firstActorNameLen},
+		{sizeof(char), firstConstraintNameLen},
+		{sizeof(char), secondActorNameLen},
+		{sizeof(char), secondConstraintNameLen}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+	{
+		if (takeOwnership)
+			dsPhysicsConstraint_destroy(constraint);
+		return NULL;
+	}
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{

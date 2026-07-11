@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,11 @@
 #include "Resources/GLResource.h"
 #include "Resources/GLShaderVariableGroupDesc.h"
 #include "GLTypes.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
+
 #include <string.h>
 
 dsMaterialDesc* dsGLMaterialDesc_create(dsResourceManager* resourceManager, dsAllocator* allocator,
@@ -30,10 +32,19 @@ dsMaterialDesc* dsGLMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 	DS_ASSERT(allocator);
 	DS_ASSERT(elements || elementCount == 0);
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsGLMaterialDesc)) +
-		DS_ALIGNED_SIZE(elementCount*sizeof(dsMaterialElement));
+	size_t fullSize = sizeof(dsGLMaterialDesc);
+	if (!dsAddAlignedArraySize(
+			&fullSize, sizeof(dsMaterialElement), elementCount, DS_ALLOC_ALIGNMENT))
+	{
+		return NULL;
+	}
+
 	for (uint32_t i = 0; i < elementCount; ++i)
-		fullSize += DS_ALIGNED_SIZE(strlen(elements[i].name) + 1);
+	{
+		if (!dsAddAlignedSize(&fullSize, strlen(elements[i].name) + 1, DS_ALLOC_ALIGNMENT))
+			return NULL;
+	}
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;

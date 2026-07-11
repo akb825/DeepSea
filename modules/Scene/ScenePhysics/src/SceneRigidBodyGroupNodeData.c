@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aaron Barany
+ * Copyright 2024-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,16 @@
 size_t dsSceneRigidBodyGroupNodeData_fullAllocSize(const dsSceneRigidBodyGroupNode* node)
 {
 	DS_ASSERT(node);
-	return DS_ALIGNED_SIZE(sizeof(dsSceneRigidBodyGroupNodeData)) +
-		DS_ALIGNED_SIZE(node->rigidBodyCount*sizeof(dsRigidBody*)) +
-		DS_ALIGNED_SIZE(node->constraintCount*sizeof(dsPhysicsConstraint*));
+	size_t fullSize = sizeof(dsSceneRigidBodyGroupNodeData);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(dsRigidBody*), node->rigidBodyCount},
+		{sizeof(dsPhysicsConstraint*), node->constraintCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return 0;
+
+	return fullSize;
 }
 
 dsSceneRigidBodyGroupNodeData* dsSceneRigidBodyGroupNodeData_create(dsAllocator* allocator,

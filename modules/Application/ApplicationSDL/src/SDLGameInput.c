@@ -99,9 +99,13 @@ static dsGameInput* createGameInput(dsApplication* application, uint32_t index)
 	}
 
 	uint32_t dpadCount = SDL_JoystickNumHats(joystick);
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSDLGameInput));
-	if (controller && dpadCount > 0)
-		fullSize += DS_ALIGNED_SIZE(sizeof(dsVector2i)*dpadCount);
+	size_t fullSize = sizeof(dsSDLGameInput);
+	if (controller && dpadCount > 0 &&
+		!dsAddAlignedArraySize(&fullSize, sizeof(dsVector2f), dpadCount, DS_ALLOC_ALIGNMENT))
+	{
+		return NULL;
+	}
+
 	void* buffer = dsAllocator_alloc(application->allocator, fullSize);
 	if (!buffer)
 	{

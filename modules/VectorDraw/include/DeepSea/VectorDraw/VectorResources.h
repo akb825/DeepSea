@@ -37,8 +37,9 @@ extern "C"
 
 /**
  * @brief Gets the full allocation size of vector resources.
+ * @remark errno will be set on failure.
  * @param maxResources The maximum resources to store.
- * @return The full allocation size.
+ * @return The full allocation size or 0 if invalid.
  */
 DS_VECTORDRAW_EXPORT size_t dsVectorResources_fullAllocSize(uint32_t maxResources);
 

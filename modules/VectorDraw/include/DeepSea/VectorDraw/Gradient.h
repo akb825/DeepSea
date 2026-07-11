@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,9 @@ extern "C"
 
 /**
  * @brief Gets the full allocation size of a gradient.
+ * @remark errno will be set on failure.
  * @param stopCount The number of gradient stops.
- * @return The full allocation size.
+ * @return The full allocation size or 0 if inavlid.
  */
 DS_VECTORDRAW_EXPORT size_t dsGradient_fullAllocSize(uint32_t stopCount);
 
@@ -46,8 +47,8 @@ DS_VECTORDRAW_EXPORT size_t dsGradient_fullAllocSize(uint32_t stopCount);
  * @param stopCount The number of stops.
  * @return The gradient, or NULL if it couldn't be created.
  */
-DS_VECTORDRAW_EXPORT dsGradient* dsGradient_create(dsAllocator* allocator,
-	const dsGradientStop* stops, uint32_t stopCount);
+DS_VECTORDRAW_EXPORT dsGradient* dsGradient_create(
+	dsAllocator* allocator, const dsGradientStop* stops, uint32_t stopCount);
 
 /**
  * @brief Checks that a gradient is valid.
