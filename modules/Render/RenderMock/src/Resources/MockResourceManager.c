@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2025 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,30 +49,30 @@ static bool textureFormatSupported(const dsResourceManager* resourceManager, dsG
 	return true;
 }
 
-static bool textureBufferFormatSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format)
+static bool textureBufferFormatSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format)
 {
 	DS_UNUSED(resourceManager);
 	return !dsGfxFormat_compressedIndex(format) && !dsGfxFormat_specialIndex(format);
 }
 
-static bool imageFormatSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format)
+static bool imageFormatSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format)
 {
 	DS_UNUSED(resourceManager);
 	return !dsGfxFormat_compressedIndex(format) &&
 		(!dsGfxFormat_specialIndex(format) || format == dsGfxFormat_B10G11R11_UFloat);
 }
 
-static bool renderTargetFormatSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format)
+static bool renderTargetFormatSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format)
 {
 	DS_UNUSED(resourceManager);
 	return !dsGfxFormat_compressedIndex(format);
 }
 
-static bool copyFormatsSupported(const dsResourceManager* resourceManager, dsGfxFormat srcFormat,
-	dsGfxFormat dstFormat)
+static bool copyFormatsSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat srcFormat, dsGfxFormat dstFormat)
 {
 	return textureFormatSupported(resourceManager, srcFormat) &&
 		textureFormatSupported(resourceManager, dstFormat) && srcFormat == dstFormat;
@@ -86,8 +86,8 @@ static bool blitFormatsSupported(const dsResourceManager* resourceManager, dsGfx
 		filter == dsBlitFilter_Nearest;
 }
 
-static bool generateMipmapsFormatSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format)
+static bool generateMipmapsFormatSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format)
 {
 	DS_UNUSED(resourceManager);
 	return !dsGfxFormat_compressedIndex(format) && !dsGfxFormat_specialIndex(format);

@@ -18,6 +18,7 @@
 
 #include "SceneVectorDrawScratchData.h"
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -61,6 +62,9 @@ void* dsSceneText_load(const dsSceneLoadContext*, dsSceneLoadScratchData* scratc
 		return nullptr;
 	}
 
+	constexpr uint32_t maxStackStyles = 2048;
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
+
 	auto vectorLoadContext = reinterpret_cast<dsSceneVectorDrawLoadContext*>(userData);
 	float pixelScale = 1.9f/vectorLoadContext->pixelSize;
 	auto fbSceneText = DeepSeaSceneVectorDraw::GetSceneText(data);
@@ -94,7 +98,19 @@ void* dsSceneText_load(const dsSceneLoadContext*, dsSceneLoadScratchData* scratc
 
 	auto fbStyles = fbSceneText->styles();
 	uint32_t styleCount = fbStyles->size();
-	dsTextStyle* styles = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsTextStyle, styleCount);
+	bool heapStyles = styleCount > maxStackStyles;
+	dsTextStyle* styles;
+	if (heapStyles)
+	{
+		styles = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsTextStyle, styleCount);
+		if (!styles)
+			return nullptr;
+	}
+	else if (styleCount > 0)
+		styles = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsTextStyle, styleCount);
+	else
+		styles = nullptr;
+
 	for (uint32_t i = 0; i < styleCount; ++i)
 	{
 		auto fbStyle = (*fbStyles)[i];
@@ -144,9 +160,16 @@ void* dsSceneText_load(const dsSceneLoadContext*, dsSceneLoadScratchData* scratc
 	{
 		substitutionData = dsSceneVectorDrawScratchData_getTextSubstitutionData(vectorLoadContext);
 		if (!substitutionData)
+		{
+			if (heapStyles)
+				DS_VERIFY(dsAllocator_free(scratchAllocator, styles));
 			return nullptr;
+		}
 	}
 
-	return dsSceneText_create(allocator, font, fbSceneText->text()->c_str(), styles, styleCount,
-		vectorLoadContext->substitutionTable, substitutionData);
+	dsSceneText* text = dsSceneText_create(allocator, font, fbSceneText->text()->c_str(), styles,
+		styleCount, vectorLoadContext->substitutionTable, substitutionData);
+	if (heapStyles)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, styles));
+	return text;
 }

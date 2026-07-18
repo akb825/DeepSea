@@ -219,8 +219,8 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 	return dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, srcStages, srcStages);
 }
 
-dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice* device,
-	const dsRenderPass* renderPass)
+dsVkRenderPassData* dsVkRenderPassData_create(
+	dsAllocator* allocator, dsVkDevice* device, const dsRenderPass* renderPass)
 {
 	const dsRenderer* renderer = renderPass->renderer;
 	uint32_t attachmentCount = renderPass->attachmentCount;

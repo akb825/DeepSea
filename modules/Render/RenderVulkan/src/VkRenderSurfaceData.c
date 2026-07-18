@@ -69,8 +69,10 @@ static bool supportsFormat(
 	if (!DS_HANDLE_VK_RESULT(result, "Couldn't get surface formats"))
 		return false;
 
-	VkSurfaceFormatKHR* surfaceFormats = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkSurfaceFormatKHR,
-		formatCount);
+	// No practical way for this to be millions of formats, and no way to maliciously force it to be
+	// too large without replacing Vulkan library.
+	VkSurfaceFormatKHR* surfaceFormats = DS_ALLOCATE_STACK_OBJECT_ARRAY(
+		VkSurfaceFormatKHR, formatCount);
 	result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceFormatsKHR)(
 		device->physicalDevice, surface, &formatCount, surfaceFormats);
 	if (!DS_HANDLE_VK_RESULT(result, "Couldn't get surface formats"))
@@ -96,11 +98,13 @@ static VkPresentModeKHR getPresentMode(dsVkDevice* device, VkSurfaceKHR surface,
 	dsVkInstance* instance = &device->instance;
 	uint32_t modeCount = 0;
 
-	DS_VK_CALL(instance->vkGetPhysicalDeviceSurfacePresentModesKHR)(device->physicalDevice, surface,
-		&modeCount, NULL);
+	DS_VK_CALL(instance->vkGetPhysicalDeviceSurfacePresentModesKHR)(
+		device->physicalDevice, surface, &modeCount, NULL);
 	if (modeCount == 0)
 		return VK_PRESENT_MODE_FIFO_KHR;
 
+	// No practical way for this to be millions of present modes, and no way to maliciously force it
+	// to be too large without replacing Vulkan library.
 	VkPresentModeKHR* presentModes = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkPresentModeKHR, modeCount);
 	VkResult result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfacePresentModesKHR)(
 		device->physicalDevice, surface, &modeCount, presentModes);

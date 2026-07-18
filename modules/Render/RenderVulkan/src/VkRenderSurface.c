@@ -35,6 +35,8 @@
 
 #include <string.h>
 
+#define MAX_STACK_RENDER_SURFACES 4096
+
 static bool transitionToRenderable(dsCommandBuffer* commandBuffer, dsVkRenderSurfaceData* surface)
 {
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
@@ -363,9 +365,44 @@ bool dsVkRenderSurface_swapBuffers(
 {
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	uint64_t submitCount = vkRenderer->submitCount;
-	VkSwapchainKHR* swapchains = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkSwapchainKHR, count);
-	uint32_t* imageIndices = DS_ALLOCATE_STACK_OBJECT_ARRAY(uint32_t, count);
-	VkSemaphore* submitSemaphores = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkSemaphore, count);
+
+	void* tempBuffer;
+	VkSwapchainKHR* swapchains;
+	uint32_t* imageIndices;
+	VkSemaphore* submitSemaphores;
+	if (count > MAX_STACK_RENDER_SURFACES)
+	{
+		size_t tempSize = 0;
+		dsMemorySize sizes[] =
+		{
+			{sizeof(VkSwapchainKHR), count},
+			{sizeof(uint32_t), count},
+			{sizeof(VkSemaphore), count}
+		};
+		if (!dsAccumulateAlignedSizes(&tempSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+			return false;
+
+		tempBuffer = dsAllocator_alloc(renderer->allocator, tempSize);
+		if (!tempBuffer)
+			return false;
+
+		dsBufferAllocator bufferAlloc;
+		DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, tempBuffer, tempSize));
+		swapchains = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkSwapchainKHR, count);
+		DS_ASSERT(swapchains);
+		imageIndices = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t, count);
+		DS_ASSERT(imageIndices);
+		submitSemaphores = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkSemaphore, count);
+		DS_ASSERT(submitSemaphores);
+	}
+	else
+	{
+		tempBuffer = NULL;
+		swapchains = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkSwapchainKHR, count);
+		imageIndices = DS_ALLOCATE_STACK_OBJECT_ARRAY(uint32_t, count);
+		submitSemaphores = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkSemaphore, count);
+	}
+
 	for (uint32_t i = 0; i < count; ++i)
 	{
 		dsVkRenderSurface* vkSurface = (dsVkRenderSurface*)renderSurfaces[i];
@@ -374,6 +411,7 @@ bool dsVkRenderSurface_swapBuffers(
 		if (!surfaceData)
 		{
 			DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
+			DS_VERIFY(dsAllocator_free(renderer->allocator, tempBuffer));
 			errno = EAGAIN;
 			return false;
 		}
@@ -403,6 +441,7 @@ bool dsVkRenderSurface_swapBuffers(
 
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	VkResult result = DS_VK_CALL(device->vkQueuePresentKHR)(device->queue, &presentInfo);
+	DS_VERIFY(dsAllocator_free(renderer->allocator, tempBuffer));
 	DS_PROFILE_SCOPE_END();
 	return DS_HANDLE_VK_RESULT(result, "Couldn't queue present");
 }

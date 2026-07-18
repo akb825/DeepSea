@@ -16,8 +16,9 @@
 
 #include "SceneRigidBodyNodeLoad.h"
 
-#include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/StackAllocator.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
@@ -43,6 +44,8 @@
 #elif DS_MSC
 #pragma warning(pop)
 #endif
+
+constexpr uint32_t maxStackItemLists = 16384;
 
 static dsSceneNode* finishLoad(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
@@ -99,20 +102,32 @@ dsSceneNode* dsSceneRigidBodyNode_load(const dsSceneLoadContext* loadContext,
 		return nullptr;
 	}
 
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
 	auto fbRigidBodyNode = DeepSeaScenePhysics::GetRigidBodyNode(data);
 
 	auto fbItemLists = fbRigidBodyNode->itemLists();
 	uint32_t itemListCount = fbItemLists ? fbItemLists->size() : 0U;
-	const char** itemLists = NULL;
+	bool heapItemLists = itemListCount > maxStackItemLists;
+	const char** itemLists = nullptr;
 	if (itemListCount > 0)
 	{
-		itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+		if (heapItemLists)
+		{
+			itemLists = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, const char*, itemListCount);
+			if (!itemLists)
+				return nullptr;
+		}
+		else
+			itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+
 		for (uint32_t i = 0; i < itemListCount; ++i)
 		{
 			auto fbItemList = (*fbItemLists)[i];
 			if (!fbItemList)
 			{
 				DS_LOG_ERROR(DS_SCENE_PHYSICS_LOG_TAG, "Rigid body node item list name is null.");
+				if (!heapItemLists)
+					DS_VERIFY(dsAllocator_free(scratchAllocator, itemLists));
 				errno = EFORMAT;
 				return nullptr;
 			}
@@ -123,6 +138,8 @@ dsSceneNode* dsSceneRigidBodyNode_load(const dsSceneLoadContext* loadContext,
 
 	auto node = reinterpret_cast<dsSceneNode*>(dsSceneRigidBodyNode_create(allocator,
 		fbRigidBodyNode->rigidBody()->c_str(), nullptr, nullptr, false, itemLists, itemListCount));
+	if (!heapItemLists)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, itemLists));
 	return finishLoad(loadContext, scratchData, allocator, resourceAllocator, fbRigidBodyNode,
 		node, relativePathUserData, openRelativePathStreamFunc, closeRelativePathStreamFunc);
 }
@@ -141,6 +158,7 @@ dsSceneNode* dsSceneRigidBodyNode_loadUnique(const dsSceneLoadContext* loadConte
 		return nullptr;
 	}
 
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
 	auto fbRigidBodyNode = DeepSeaScenePhysics::GetRigidBodyNode(data);
 
 	const char* rigidBodyName = fbRigidBodyNode->rigidBody()->c_str();
@@ -160,16 +178,27 @@ dsSceneNode* dsSceneRigidBodyNode_loadUnique(const dsSceneLoadContext* loadConte
 
 	auto fbItemLists = fbRigidBodyNode->itemLists();
 	uint32_t itemListCount = fbItemLists ? fbItemLists->size() : 0U;
-	const char** itemLists = NULL;
+	bool heapItemLists = itemListCount > maxStackItemLists;
+	const char** itemLists = nullptr;
 	if (itemListCount > 0)
 	{
-		itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+		if (heapItemLists)
+		{
+			itemLists = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, const char*, itemListCount);
+			if (!itemLists)
+				return nullptr;
+		}
+		else
+			itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+
 		for (uint32_t i = 0; i < itemListCount; ++i)
 		{
 			auto fbItemList = (*fbItemLists)[i];
 			if (!fbItemList)
 			{
 				DS_LOG_ERROR(DS_SCENE_PHYSICS_LOG_TAG, "Rigid body node item list name is null.");
+				if (!heapItemLists)
+					DS_VERIFY(dsAllocator_free(scratchAllocator, itemLists));
 				errno = EFORMAT;
 				return nullptr;
 			}
@@ -180,6 +209,8 @@ dsSceneNode* dsSceneRigidBodyNode_loadUnique(const dsSceneLoadContext* loadConte
 
 	auto node = reinterpret_cast<dsSceneNode*>(dsSceneRigidBodyNode_create(
 		allocator, nullptr, rigidBody, nullptr, false, itemLists, itemListCount));
+	if (!heapItemLists)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, itemLists));
 	return finishLoad(loadContext, scratchData, allocator, resourceAllocator, fbRigidBodyNode,
 		node, relativePathUserData, openRelativePathStreamFunc, closeRelativePathStreamFunc);
 }
@@ -198,6 +229,7 @@ dsSceneNode* dsSceneRigidBodyNode_loadTemplate(const dsSceneLoadContext* loadCon
 		return nullptr;
 	}
 
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
 	auto fbRigidBodyNode = DeepSeaScenePhysics::GetRigidBodyNode(data);
 
 	const char* rigidBodyName = fbRigidBodyNode->rigidBody()->c_str();
@@ -218,16 +250,27 @@ dsSceneNode* dsSceneRigidBodyNode_loadTemplate(const dsSceneLoadContext* loadCon
 
 	auto fbItemLists = fbRigidBodyNode->itemLists();
 	uint32_t itemListCount = fbItemLists ? fbItemLists->size() : 0U;
-	const char** itemLists = NULL;
+	bool heapItemLists = itemListCount > maxStackItemLists;
+	const char** itemLists = nullptr;
 	if (itemListCount > 0)
 	{
-		itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+		if (heapItemLists)
+		{
+			itemLists = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, const char*, itemListCount);
+			if (!itemLists)
+				return nullptr;
+		}
+		else
+			itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+
 		for (uint32_t i = 0; i < itemListCount; ++i)
 		{
 			auto fbItemList = (*fbItemLists)[i];
 			if (!fbItemList)
 			{
 				DS_LOG_ERROR(DS_SCENE_PHYSICS_LOG_TAG, "Rigid body node item list name is null.");
+				if (!heapItemLists)
+					DS_VERIFY(dsAllocator_free(scratchAllocator, itemLists));
 				errno = EFORMAT;
 				return nullptr;
 			}
@@ -238,6 +281,8 @@ dsSceneNode* dsSceneRigidBodyNode_loadTemplate(const dsSceneLoadContext* loadCon
 
 	auto node = reinterpret_cast<dsSceneNode*>(dsSceneRigidBodyNode_create(
 		allocator, nullptr, nullptr, rigidBodyTemplate, false, itemLists, itemListCount));
+	if (!heapItemLists)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, itemLists));
 	return finishLoad(loadContext, scratchData, allocator, resourceAllocator, fbRigidBodyNode,
 		node, relativePathUserData, openRelativePathStreamFunc, closeRelativePathStreamFunc);
 }

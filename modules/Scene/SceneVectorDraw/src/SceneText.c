@@ -29,6 +29,8 @@
 
 #include <string.h>
 
+#define MAX_STACK_STYLES 2048
+
 typedef struct SubstituteAllUserData
 {
 	const dsTextSubstitutionTable* substitutionTable;
@@ -185,8 +187,8 @@ dsSceneText* dsSceneText_create(dsAllocator* allocator, dsFont* font, const char
 	return sceneText;
 }
 
-bool dsSceneText_resubstitute(dsSceneText* text,
-	const dsTextSubstitutionTable* substitutionTable, dsTextSubstitutionData* substitutionData)
+bool dsSceneText_resubstitute(dsSceneText* text, const dsTextSubstitutionTable* substitutionTable,
+	dsTextSubstitutionData* substitutionData)
 {
 	if (!text || !substitutionTable || !substitutionData)
 	{
@@ -199,10 +201,19 @@ bool dsSceneText_resubstitute(dsSceneText* text,
 
 	// Operate on a temporary stack array of styles to avoid corrupting the styles on failure.
 	dsTextStyle* tempStyles = NULL;
+	bool heapStyles = text->styleCount > MAX_STACK_STYLES;
 	size_t styleSize = 0;
 	if (text->originalStyles)
 	{
-		tempStyles = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsTextStyle, text->styleCount);
+		if (heapStyles)
+		{
+			tempStyles = DS_ALLOCATE_OBJECT_ARRAY(text->allocator, dsTextStyle, text->styleCount);
+			if (!tempStyles)
+				return false;
+		}
+		else
+			tempStyles = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsTextStyle, text->styleCount);
+
 		styleSize = sizeof(dsTextStyle)*text->styleCount;
 		memcpy(tempStyles, text->originalStyles, styleSize);
 	}
@@ -210,16 +221,26 @@ bool dsSceneText_resubstitute(dsSceneText* text,
 	const char* string = dsTextSubstitutionTable_substitute(
 		substitutionTable, substitutionData, text->originalString, tempStyles, text->styleCount);
 	if (!string)
+	{
+		if (heapStyles)
+			DS_VERIFY(dsAllocator_free(text->allocator, tempStyles));
 		return false;
+	}
 
 	dsText* newText = dsText_create(text->font, text->allocator, string, dsUnicodeType_UTF8, false);
 	if (!newText)
+	{
+		if (heapStyles)
+			DS_VERIFY(dsAllocator_free(text->allocator, tempStyles));
 		return false;
+	}
 
 	dsText_destroy(text->text);
 	text->text = newText;
 	if (tempStyles)
 		memcpy(text->styles, tempStyles, styleSize);
+	if (heapStyles)
+		DS_VERIFY(dsAllocator_free(text->allocator, tempStyles));
 	++text->textVersion;
 	return true;
 }

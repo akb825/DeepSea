@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@
 #include <DeepSea/Core/Config.h>
 #include "VkTypes.h"
 
-void dsVkBarrierList_initialize(dsVkBarrierList* barriers, dsAllocator* allocator,
-	dsVkDevice* device);
+void dsVkBarrierList_initialize(
+	dsVkBarrierList* barriers, dsAllocator* allocator, dsVkDevice* device);
 
 bool dsVkBarrierList_addBufferBarrier(dsVkBarrierList* barriers, VkBuffer buffer,
 	VkDeviceSize offset, VkDeviceSize size, dsGfxBufferUsage srcUsage, dsGfxBufferUsage dstUsage,

@@ -21,8 +21,8 @@
 #include <DeepSea/Core/Assert.h>
 #include <string.h>
 
-void dsVkBarrierList_initialize(dsVkBarrierList* barriers, dsAllocator* allocator,
-	dsVkDevice* device)
+void dsVkBarrierList_initialize(
+	dsVkBarrierList* barriers, dsAllocator* allocator, dsVkDevice* device)
 {
 	memset(barriers, 0, sizeof(*barriers));
 	DS_ASSERT(allocator->freeFunc);

@@ -43,7 +43,7 @@
 #pragma warning(pop)
 #endif
 
-#define DS_MAX_STACK_NODES 1024
+#define MAX_STACK_NODES 1024
 
 static uint32_t countNodes(
 	const flatbuffers::Vector<flatbuffers::Offset<DeepSeaAnimation::AnimationTreeNode>>& fbNodes)
@@ -159,32 +159,29 @@ static dsAnimationTree* dsAnimationTree_loadNodes(dsAllocator* allocator,
 		return nullptr;
 	}
 
-	bool heapNodes;
+	bool heapNodes = nodeCount > MAX_STACK_NODES;
 	dsAnimationBuildNode* buildNodes;
 	const dsAnimationBuildNode** buildNodePtrs;
-	if (nodeCount <= DS_MAX_STACK_NODES)
+	if (heapNodes)
 	{
-		heapNodes = false;
-		buildNodes = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsAnimationBuildNode, nodeCount);
-		buildNodePtrs = DS_ALLOCATE_STACK_OBJECT_ARRAY(const dsAnimationBuildNode*, nodeCount);
-	}
-	else
-	{
-		heapNodes = scratchAllocator->freeFunc != nullptr;
 		buildNodes = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsAnimationBuildNode, nodeCount);
 		if (buildNodes)
 			return nullptr;
 
-		buildNodePtrs = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, const dsAnimationBuildNode*,
-			nodeCount);
+		buildNodePtrs = DS_ALLOCATE_OBJECT_ARRAY(
+			scratchAllocator, const dsAnimationBuildNode*, nodeCount);
 		if (!buildNodePtrs)
 		{
-			if (heapNodes)
+			if (scratchAllocator->freeFunc)
 				DS_VERIFY(dsAllocator_free(scratchAllocator, buildNodePtrs));
 			return nullptr;
 		}
 	}
-
+	else
+	{
+		buildNodes = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsAnimationBuildNode, nodeCount);
+		buildNodePtrs = DS_ALLOCATE_STACK_OBJECT_ARRAY(const dsAnimationBuildNode*, nodeCount);
+	}
 
 	uint32_t rootNodeCount = 0;
 	for (auto fbRootNode : fbRootNodes)
@@ -207,7 +204,7 @@ static dsAnimationTree* dsAnimationTree_loadNodes(dsAllocator* allocator,
 	}
 
 	dsAnimationTree* tree = dsAnimationTree_create(allocator, rootNodes, rootNodeCount);
-	if (heapNodes)
+	if (heapNodes && scratchAllocator->freeFunc)
 	{
 		DS_VERIFY(dsAllocator_free(scratchAllocator, buildNodes));
 		DS_VERIFY(dsAllocator_free(scratchAllocator, buildNodePtrs));
@@ -232,20 +229,16 @@ static dsAnimationTree* dsAnimationTree_loadJointNodes(dsAllocator* allocator,
 	}
 
 	dsAnimationJointBuildNode* buildNodes;
-	bool heapNodes;
-	if (nodeCount <= DS_MAX_STACK_NODES)
+	bool heapNodes = nodeCount > MAX_STACK_NODES;
+	if (heapNodes)
 	{
-		buildNodes = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsAnimationJointBuildNode, nodeCount);
-		heapNodes = false;
-	}
-	else
-	{
-		heapNodes = scratchAllocator->freeFunc != nullptr;
-		buildNodes = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsAnimationJointBuildNode,
-			nodeCount);
+		buildNodes = DS_ALLOCATE_OBJECT_ARRAY(
+			scratchAllocator, dsAnimationJointBuildNode, nodeCount);
 		if (buildNodes)
 			return nullptr;
 	}
+	else
+		buildNodes = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsAnimationJointBuildNode, nodeCount);
 
 	for (uint32_t i = 0; i < nodeCount; ++i)
 	{
@@ -326,7 +319,7 @@ static dsAnimationTree* dsAnimationTree_loadJointNodes(dsAllocator* allocator,
 	}
 
 	dsAnimationTree* tree = dsAnimationTree_createJoints(allocator, buildNodes, nodeCount);
-	if (heapNodes)
+	if (heapNodes && scratchAllocator->freeFunc)
 		DS_VERIFY(dsAllocator_free(scratchAllocator, buildNodes));
 	return tree;
 }

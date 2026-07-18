@@ -18,6 +18,7 @@
 
 #include "SceneVectorDrawTypes.h"
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -63,10 +64,13 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaSceneVectorDraw::VerifyTextNodeBuffer(verifier))
 	{
-		errno = EFORMAT;
 		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Invalid text node flatbuffer format.");
+		errno = EFORMAT;
 		return nullptr;
 	}
+
+	constexpr uint32_t maxStackItemLists = 16384;
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
 
 	auto fbTextNode = DeepSeaSceneVectorDraw::GetTextNode(data);
 	auto fbEmbeddedResources = fbTextNode->embeddedResources();
@@ -93,8 +97,9 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 
 	dsSceneText* text;
 	dsShader* shader;
-	const char** itemLists = nullptr;
 	uint32_t itemListCount = 0;
+	bool heapItemLists = false;
+	const char** itemLists = nullptr;
 
 	dsSceneResourceType resourceType;
 	dsCustomSceneResource* customResource;
@@ -103,9 +108,9 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 		resourceType != dsSceneResourceType_Custom ||
 		customResource->type != dsSceneText_type())
 	{
+		DS_LOG_ERROR_F(
+			DS_SCENE_VECTOR_DRAW_LOG_TAG, "Couldn't find scene text '%s'.", fbText->c_str());
 		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Couldn't find scene text '%s'.",
-			fbText->c_str());
 		goto finished;
 	}
 
@@ -115,24 +120,33 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 			reinterpret_cast<void**>(&shader), scratchData, fbShader->c_str()) ||
 		resourceType != dsSceneResourceType_Shader)
 	{
+		DS_LOG_ERROR_F(
+			DS_SCENE_VECTOR_DRAW_LOG_TAG, "Couldn't find shader '%s'.", fbShader->c_str());
 		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Couldn't find shader '%s'.",
-			fbShader->c_str());
 		goto finished;
 	}
 
-	if (fbItemLists && fbItemLists->size() > 0)
+	itemListCount = fbItemLists ? fbItemLists->size() : 0;
+	if (itemListCount > 0)
 	{
-		itemListCount = fbItemLists->size();
-		itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+		heapItemLists = itemListCount > maxStackItemLists;
+		if (heapItemLists)
+		{
+			itemLists = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, const char*, itemListCount);
+			if (!itemLists)
+				return nullptr;
+		}
+		else
+			itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+
 		for (uint32_t i = 0; i < itemListCount; ++i)
 		{
 			auto item = (*fbItemLists)[i];
 			if (!item)
 			{
-				errno = EFORMAT;
 				DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 					"Vector image node extra item name is null.");
+				errno = EFORMAT;
 				goto finished;
 			}
 
@@ -151,6 +165,8 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 finished:
 	if (embeddedResources)
 		DS_VERIFY(dsSceneLoadScratchData_popSceneResources(scratchData, 1));
+	if (heapItemLists)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, itemLists));
 
 	return node;
 }

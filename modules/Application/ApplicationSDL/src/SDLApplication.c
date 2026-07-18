@@ -88,17 +88,19 @@ static uint32_t showMessageBoxImpl(SDL_Window* parentWindow, dsMessageBoxType ty
 	messageBox.numbuttons = buttonCount;
 	messageBox.colorScheme = NULL;
 
-	SDL_MessageBoxButtonData* buttonData = DS_ALLOCATE_STACK_OBJECT_ARRAY(SDL_MessageBoxButtonData,
-		buttonCount);
+	DS_ASSERT(buttonCount <= DS_MAX_MESSAGE_BOX_BUTTONS);
+	SDL_MessageBoxButtonData* buttonData = DS_ALLOCATE_STACK_OBJECT_ARRAY(
+		SDL_MessageBoxButtonData, buttonCount);
 	for (uint32_t i = 0; i < buttonCount; ++i)
 	{
-		buttonData[i].flags = 0;
+		SDL_MessageBoxButtonData* button = buttonData + i;
+		button->flags = 0;
 		if (i == enterButton)
-			buttonData[i].flags |= SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT;
+			button->flags |= SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT;
 		if (i == escapeButton)
-			buttonData[i].flags |= SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT;
-		buttonData[i].buttonid = i;
-		buttonData[i].text = buttons[i];
+			button->flags |= SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT;
+		button->buttonid = i;
+		button->text = buttons[i];
 	}
 	messageBox.buttons = buttonData;
 
@@ -373,8 +375,8 @@ uint32_t dsSDLApplication_showMessageBoxBase(dsApplication* application,
 {
 	DS_UNUSED(application);
 	SDL_Window* sdlWindow = parentWindow ? ((dsSDLWindow*)parentWindow)->sdlWindow : NULL;
-	return showMessageBoxImpl(sdlWindow, type, title, message, buttons, buttonCount, enterButton,
-		escapeButton);
+	return showMessageBoxImpl(
+		sdlWindow, type, title, message, buttons, buttonCount, enterButton, escapeButton);
 }
 
 bool dsSDLApplication_prepareRendererOptions(dsRendererOptions* options, uint32_t rendererID)
@@ -1114,6 +1116,7 @@ uint32_t dsSDLApplication_showMessageBox(dsMessageBoxType type, const char* titl
 	uint32_t escapeButton)
 {
 	if (!title || !message || !buttons || buttonCount == 0 ||
+		buttonCount > DS_MAX_MESSAGE_BOX_BUTTONS ||
 		(enterButton != DS_MESSAGE_BOX_NO_BUTTON && enterButton >= buttonCount) ||
 		(escapeButton != DS_MESSAGE_BOX_NO_BUTTON && escapeButton >= buttonCount))
 	{
@@ -1121,8 +1124,8 @@ uint32_t dsSDLApplication_showMessageBox(dsMessageBoxType type, const char* titl
 		return DS_MESSAGE_BOX_NO_BUTTON;
 	}
 
-	return showMessageBoxImpl(NULL, type, title, message, buttons, buttonCount, enterButton,
-		escapeButton);
+	return showMessageBoxImpl(
+		NULL, type, title, message, buttons, buttonCount, enterButton, escapeButton);
 }
 
 dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* renderer, int argc,

@@ -16,6 +16,7 @@
 
 #include "SceneVectorItemListLoad.h"
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -55,6 +56,9 @@ dsSceneItemList* dsSceneVectorItemList_load(const dsSceneLoadContext* loadContex
 		return nullptr;
 	}
 
+	constexpr uint32_t maxStackInstanceData = 16384;
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
+
 	auto fbVectorList = DeepSeaSceneVectorDraw::GetVectorItemList(data);
 	auto fbViewFilter = fbVectorList->viewFilter();
 	auto fbInstanceData = fbVectorList->instanceData();
@@ -64,9 +68,11 @@ dsSceneItemList* dsSceneVectorItemList_load(const dsSceneLoadContext* loadContex
 		dsSceneLoadContext_getRenderer(loadContext)->resourceManager;
 	dsSceneResourceType resourceType;
 	dsViewFilter* viewFilter = nullptr;
+	bool heapInstanceData = false;
 	uint32_t instanceDataCount = 0;
 	dsSceneInstanceData** instanceData = nullptr;
 	dsDynamicRenderStates dynamicRenderStates;
+	dsSceneItemList* itemList;
 
 	if (fbViewFilter)
 	{
@@ -81,11 +87,19 @@ dsSceneItemList* dsSceneVectorItemList_load(const dsSceneLoadContext* loadContex
 		}
 	}
 
-	if (fbInstanceData && fbInstanceData->size() > 0)
+	instanceDataCount = fbInstanceData ? fbInstanceData->size() : 0;
+	if (instanceDataCount > 0)
 	{
-		instanceDataCount = fbInstanceData->size();
-		instanceData = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsSceneInstanceData*, instanceDataCount);
-		DS_ASSERT(instanceData);
+		heapInstanceData = instanceDataCount > maxStackInstanceData;
+		if (heapInstanceData)
+		{
+			instanceData = DS_ALLOCATE_OBJECT_ARRAY(
+				scratchAllocator, dsSceneInstanceData*, instanceDataCount);
+			if (!instanceData)
+				goto error;
+		}
+		else
+			instanceData = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsSceneInstanceData*, instanceDataCount);
 
 		for (uint32_t i = 0; i < instanceDataCount; ++i)
 		{
@@ -162,13 +176,18 @@ dsSceneItemList* dsSceneVectorItemList_load(const dsSceneLoadContext* loadContex
 		dynamicRenderStates.backStencilReference = fbDynamicRenderStates->backStencilReference();
 	}
 
-	return reinterpret_cast<dsSceneItemList*>(dsSceneVectorItemList_create(allocator, name,
+	itemList = reinterpret_cast<dsSceneItemList*>(dsSceneVectorItemList_create(allocator, name,
 		viewFilter, resourceManager, instanceData, instanceDataCount,
 		fbVectorList->maxMaterialDescs(), fbDynamicRenderStates ? &dynamicRenderStates : nullptr));
+	if (heapInstanceData)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, instanceData));
+	return itemList;
 
 error:
 	// instanceDataCount should be the number that we need to clean up.
 	for (uint32_t i = 0; i < instanceDataCount; ++i)
 		dsSceneInstanceData_destroy(instanceData[i]);
+	if (heapInstanceData)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, instanceData));
 	return nullptr;
 }

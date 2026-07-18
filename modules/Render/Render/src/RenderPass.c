@@ -644,16 +644,17 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 
 	for (uint32_t i = 0; i < attachmentCount; ++i)
 	{
-		if (attachments[i].format != renderer->surfaceColorFormat &&
-			attachments[i].format != renderer->surfaceDepthStencilFormat &&
-			!dsGfxFormat_renderTargetSupported(renderer->resourceManager, attachments[i].format))
+		const dsAttachmentInfo* attachment = attachments + i;
+		if (attachment->format != renderer->surfaceColorFormat &&
+			attachment->format != renderer->surfaceDepthStencilFormat &&
+			!dsGfxFormat_renderTargetSupported(renderer->resourceManager, attachment->format))
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attachment format cannot be rendered to.");
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
-		if (attachments[i].samples == 0)
+		if (attachment->samples == 0)
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -665,16 +666,17 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 	dsResourceManager* resourceManager = renderer->resourceManager;
 	for (uint32_t i = 0; i < subpassCount; ++i)
 	{
-		if (!subpasses[i].inputAttachments && subpasses[i].inputAttachmentCount > 0)
+		const dsRenderSubpassInfo* subpass = subpasses + i;
+		if (!subpass->inputAttachments && subpass->inputAttachmentCount > 0)
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid subpass input attachments.");
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
-		for (uint32_t j = 0; j < subpasses[i].inputAttachmentCount; ++j)
+		for (uint32_t j = 0; j < subpass->inputAttachmentCount; ++j)
 		{
-			if (subpasses[i].inputAttachments[j] >= attachmentCount)
+			if (subpass->inputAttachments[j] >= attachmentCount)
 			{
 				errno = EINDEX;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Subpass input attachment out of range.");
@@ -682,14 +684,14 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 			}
 		}
 
-		if (!subpasses[i].colorAttachments && subpasses[i].colorAttachmentCount > 0)
+		if (!subpass->colorAttachments && subpass->colorAttachmentCount > 0)
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid subpass color attachments.");
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
-		if (subpasses[i].colorAttachmentCount > renderer->maxColorAttachments)
+		if (subpass->colorAttachmentCount > renderer->maxColorAttachments)
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -697,23 +699,32 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
+		if (subpass->inputAttachmentCount > renderer->maxInputAttachments)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Render subpass input attachments exceeds the maximum for the current target.");
+			DS_PROFILE_FUNC_RETURN(NULL);
+		}
+
 		bool anyColorAttachmentSet = false;
 		uint32_t samples = 0;
-		for (uint32_t j = 0; j < subpasses[i].colorAttachmentCount; ++j)
+		for (uint32_t j = 0; j < subpass->colorAttachmentCount; ++j)
 		{
-			uint32_t attachment = subpasses[i].colorAttachments[j].attachmentIndex;
-			if (attachment == DS_NO_ATTACHMENT)
+			uint32_t attachmentIndex = subpass->colorAttachments[j].attachmentIndex;
+			if (attachmentIndex == DS_NO_ATTACHMENT)
 				continue;
 
 			anyColorAttachmentSet = true;
-			if (attachment >= attachmentCount)
+			if (attachmentIndex >= attachmentCount)
 			{
 				errno = EINDEX;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Subpass color attachment out of range.");
 				DS_PROFILE_FUNC_RETURN(NULL);
 			}
 
-			if (dsGfxFormat_isDepthStencil(attachments[attachment].format))
+			const dsAttachmentInfo* attachment = attachments + attachmentIndex;
+			if (dsGfxFormat_isDepthStencil(attachment->format))
 			{
 				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -722,8 +733,8 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 			}
 
 			if (samples == 0)
-				samples = attachments[attachment].samples;
-			else if (samples != attachments[attachment].samples)
+				samples = attachment->samples;
+			else if (samples != attachment->samples)
 			{
 				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "All color and depth attachments must have the "
@@ -740,7 +751,7 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
-		const dsAttachmentRef* depthStencilAttachment = &subpasses[i].depthStencilAttachment;
+		const dsAttachmentRef* depthStencilAttachment = &subpass->depthStencilAttachment;
 		if (depthStencilAttachment->attachmentIndex != DS_NO_ATTACHMENT)
 		{
 			if (depthStencilAttachment->attachmentIndex >= attachmentCount)
@@ -790,8 +801,9 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 	{
 		for (uint32_t i = 0; i < dependencyCount; ++i)
 		{
-			if (dependencies[i].srcSubpass == DS_EXTERNAL_SUBPASS &&
-				dependencies[i].dstSubpass == DS_EXTERNAL_SUBPASS)
+			const dsSubpassDependency* dependency = dependencies + i;
+			if (dependency->srcSubpass == DS_EXTERNAL_SUBPASS &&
+				dependency->dstSubpass == DS_EXTERNAL_SUBPASS)
 			{
 				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -799,26 +811,26 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 				DS_PROFILE_FUNC_RETURN(NULL);
 			}
 
-			if ((dependencies[i].srcSubpass != DS_EXTERNAL_SUBPASS &&
-					dependencies[i].srcSubpass >= subpassCount) ||
-				(dependencies[i].dstSubpass != DS_EXTERNAL_SUBPASS &&
-					dependencies[i].dstSubpass >= subpassCount))
+			if ((dependency->srcSubpass != DS_EXTERNAL_SUBPASS &&
+					dependency->srcSubpass >= subpassCount) ||
+				(dependency->dstSubpass != DS_EXTERNAL_SUBPASS &&
+					dependency->dstSubpass >= subpassCount))
 			{
 				errno = EINDEX;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Subpass dependencies out of range.");
 				DS_PROFILE_FUNC_RETURN(NULL);
 			}
 
-			if (dependencies[i].srcSubpass != DS_EXTERNAL_SUBPASS &&
-				dependencies[i].dstSubpass != DS_EXTERNAL_SUBPASS &&
-				dependencies[i].srcSubpass > dependencies[i].dstSubpass)
+			if (dependency->srcSubpass != DS_EXTERNAL_SUBPASS &&
+				dependency->dstSubpass != DS_EXTERNAL_SUBPASS &&
+				dependency->srcSubpass > dependency->dstSubpass)
 			{
 				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Subpasses may only depend on previous subpasses.");
 				DS_PROFILE_FUNC_RETURN(NULL);
 			}
 
-			if (dependencies[i].srcStages == 0 || dependencies[i].dstStages == 0)
+			if (dependency->srcStages == 0 || dependency->dstStages == 0)
 			{
 				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -826,8 +838,8 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 				DS_PROFILE_FUNC_RETURN(NULL);
 			}
 
-			if (dependencies[i].srcSubpass == dependencies[i].dstSubpass &&
-				!dependencies[i].regionDependency)
+			if (dependency->srcSubpass == dependency->dstSubpass &&
+				!dependency->regionDependency)
 			{
 				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG,

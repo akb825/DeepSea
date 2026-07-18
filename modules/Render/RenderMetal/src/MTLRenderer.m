@@ -959,6 +959,9 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 			return NULL;
 		}
 
+		// No native input attachment support, so same limit as max samplers per shader.
+		baseRenderer->maxInputAttachments = baseRenderer->resourceManager->maxSamplers;
+
 		baseRenderer->surfaceColorFormat = colorFormat;
 
 		// 16 and 24-bit depth not always supported.

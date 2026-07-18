@@ -79,21 +79,17 @@ dsDirectAnimation* dsDirectAnimation_loadImpl(dsAllocator* allocator, dsAllocato
 		return nullptr;
 	}
 
-	bool heapChannels;
+	bool heapChannels = channelCount > DS_MAX_STACK_CHANNELS;
 	dsDirectAnimationChannel* channels;
-	if (channelCount <= DS_MAX_STACK_CHANNELS)
+	if (heapChannels)
 	{
-		heapChannels = false;
-		channels = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsDirectAnimationChannel, channelCount);
-	}
-	else
-	{
-		heapChannels = scratchAllocator->freeFunc != nullptr;
-		channels =
-			DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsDirectAnimationChannel, channelCount);
+		channels = DS_ALLOCATE_OBJECT_ARRAY(
+			scratchAllocator, dsDirectAnimationChannel, channelCount);
 		if (!channels)
 			return nullptr;
 	}
+	else
+		channels = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsDirectAnimationChannel, channelCount);
 
 	for (uint32_t i = 0; i < channelCount; ++i)
 	{
@@ -109,7 +105,7 @@ dsDirectAnimation* dsDirectAnimation_loadImpl(dsAllocator* allocator, dsAllocato
 			else
 				DS_LOG_ERROR(DS_ANIMATION_LOG_TAG, "Channel not set in direct animation.");
 
-			if (heapChannels)
+			if (heapChannels && scratchAllocator->freeFunc)
 				DS_VERIFY(dsAllocator_free(scratchAllocator, channels));
 			return nullptr;
 		}
@@ -122,7 +118,7 @@ dsDirectAnimation* dsDirectAnimation_loadImpl(dsAllocator* allocator, dsAllocato
 	}
 
 	dsDirectAnimation* animation = dsDirectAnimation_create(allocator, channels, channelCount);
-	if (heapChannels)
+	if (heapChannels && scratchAllocator->freeFunc)
 		DS_VERIFY(dsAllocator_free(scratchAllocator, channels));
 	return animation;
 }

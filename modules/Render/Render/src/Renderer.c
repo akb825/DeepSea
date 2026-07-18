@@ -19,6 +19,7 @@
 #include "GPUProfileContext.h"
 #include "ResourceCommandBuffers.h"
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
@@ -47,6 +48,8 @@
 #endif
 
 _Static_assert(DS_MAX_ATTACHMENTS == MSL_MAX_ATTACHMENTS, "Max attachments don't match.");
+
+#define MAX_STACK_STRING_LENGTH 131072
 
 static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uint32_t* outWidth,
 	uint32_t* outHeight, uint32_t* outLayers, uint32_t* outMipLevels, const dsRenderer* renderer,
@@ -472,8 +475,8 @@ bool dsRenderer_shaderVersionToString(char* outBuffer, uint32_t bufferSize,
 	return true;
 }
 
-bool dsRenderer_shaderVersionFromString(dsShaderVersion* outVersion, const dsRenderer* renderer,
-	const char* versionString)
+bool dsRenderer_shaderVersionFromString(
+	dsShaderVersion* outVersion, const dsRenderer* renderer, const char* versionString)
 {
 	if (!outVersion || !renderer || !versionString)
 		return false;
@@ -481,8 +484,21 @@ bool dsRenderer_shaderVersionFromString(dsShaderVersion* outVersion, const dsRen
 	const char* formatSuffix = "-%u.%u";
 	size_t languageStrLen = strlen(renderer->shaderLanguage);
 	size_t suffixStrLen = strlen(formatSuffix);
-	size_t totalLen = languageStrLen + suffixStrLen + 1;
-	char* formatStr = DS_ALLOCATE_STACK_OBJECT_ARRAY(char, totalLen);
+	size_t totalLen = languageStrLen + suffixStrLen;
+	if (!DS_CAN_ADD_SIZES(languageStrLen, suffixStrLen) || !DS_CAN_ADD_SIZES(totalLen, 1))
+		return false;
+	++totalLen;
+
+	bool heapStr = totalLen > MAX_STACK_STRING_LENGTH;
+	char* formatStr;
+	if (heapStr)
+	{
+		formatStr = DS_ALLOCATE_OBJECT_ARRAY(renderer->allocator, char, totalLen);
+		if (!formatStr)
+			return false;
+	}
+	else
+		formatStr = DS_ALLOCATE_STACK_OBJECT_ARRAY(char, totalLen);
 
 	// Use memcpy for max efficiency and avoid compiler warnings when lengths are already
 	// well-defined.
@@ -490,7 +506,10 @@ bool dsRenderer_shaderVersionFromString(dsShaderVersion* outVersion, const dsRen
 	memcpy(formatStr + languageStrLen, formatSuffix, suffixStrLen + 1);
 
 	unsigned int majorVer, minorVer;
-	if (sscanf(versionString, formatStr, &majorVer, &minorVer) != 2)
+	bool match = sscanf(versionString, formatStr, &majorVer, &minorVer) == 2;
+	if (heapStr)
+		DS_VERIFY(dsAllocator_free(renderer->allocator, formatStr));
+	if (!match)
 		return false;
 
 	outVersion->rendererID = renderer->rendererID;

@@ -20,11 +20,13 @@
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
 #include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+#include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/Scene/Types.h>
 
 #if DS_GCC || DS_CLANG
@@ -58,6 +60,9 @@ dsSceneNode* dsSceneTransformNode_load(const dsSceneLoadContext* loadContext,
 		return nullptr;
 	}
 
+	constexpr uint32_t maxStackItemLists = 16384;
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
+
 	auto fbTransformNode = DeepSeaScene::GetTransformNode(data);
 	const DeepSeaScene::Matrix44f* fbTransform = fbTransformNode->transform();
 	dsMatrix44f transform;
@@ -66,16 +71,27 @@ dsSceneNode* dsSceneTransformNode_load(const dsSceneLoadContext* loadContext,
 
 	auto fbItemLists = fbTransformNode->itemLists();
 	uint32_t itemListCount = fbItemLists ? fbItemLists->size() : 0U;
-	const char** itemLists = NULL;
+	bool heapItemLists = itemListCount > maxStackItemLists;
+	const char** itemLists = nullptr;
 	if (itemListCount > 0)
 	{
-		itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+		if (heapItemLists)
+		{
+			itemLists = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, const char*, itemListCount);
+			if (!itemLists)
+				return nullptr;
+		}
+		else
+			itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+
 		for (uint32_t i = 0; i < itemListCount; ++i)
 		{
 			auto fbItemList = (*fbItemLists)[i];
 			if (!fbItemList)
 			{
 				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Transform node item list name is null.");
+				if (heapItemLists)
+					DS_VERIFY(dsAllocator_free(scratchAllocator, itemLists));
 				errno = EFORMAT;
 				return nullptr;
 			}
@@ -86,6 +102,8 @@ dsSceneNode* dsSceneTransformNode_load(const dsSceneLoadContext* loadContext,
 
 	auto node = reinterpret_cast<dsSceneNode*>(dsSceneTransformNode_create(allocator,
 		fbTransform ? &transform : nullptr, itemLists, itemListCount));
+	if (heapItemLists)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, itemLists));
 	if (!node)
 		return nullptr;
 
@@ -110,7 +128,10 @@ dsSceneNode* dsSceneTransformNode_load(const dsSceneLoadContext* loadContext,
 			bool success = dsSceneNode_addChild(node, child);
 			dsSceneNode_freeRef(child);
 			if (!success)
+			{
+				dsSceneNode_freeRef(node);
 				return nullptr;
+			}
 		}
 	}
 

@@ -39,6 +39,8 @@
 
 #include <string.h>
 
+#define MAX_STACK_PARENT_NODES 32768
+
 typedef struct NamedHashNode
 {
 	dsHashTableNode node;
@@ -603,19 +605,39 @@ dsAnimationTree* dsAnimationTree_createJoints(
 		return NULL;
 	}
 
-	uint32_t* parentNodes = DS_ALLOCATE_STACK_OBJECT_ARRAY(uint32_t, nodeCount);
+	bool heapParentNodes = nodeCount > MAX_STACK_PARENT_NODES;
+	uint32_t* parentNodes;
+	if (heapParentNodes)
+	{
+		parentNodes = DS_ALLOCATE_OBJECT_ARRAY(allocator, uint32_t, nodeCount);
+		if (!parentNodes)
+			return NULL;
+	}
+	else
+		parentNodes = DS_ALLOCATE_STACK_OBJECT_ARRAY(uint32_t, nodeCount);
+
 	uint32_t rootNodeCount;
 	size_t fullSize = fullAllocSizeJoints(parentNodes, &rootNodeCount, nodes, nodeCount);
 	if (fullSize == 0)
-		return false;
+	{
+		if (heapParentNodes && allocator->freeFunc)
+			DS_VERIFY(dsAllocator_free(allocator, parentNodes));
+		return NULL;
+	}
 
 	dsAnimationTreeNodeTable* nodeTable = dsAnimationTreeNodeTable_create(allocator, nodeCount);
 	if (!nodeTable)
+	{
+		if (heapParentNodes && allocator->freeFunc)
+			DS_VERIFY(dsAllocator_free(allocator, parentNodes));
 		return NULL;
+	}
 
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
+		if (heapParentNodes && allocator->freeFunc)
+			DS_VERIFY(dsAllocator_free(allocator, parentNodes));
 		dsAnimationTreeNodeTable_freeRef(nodeTable);
 		return NULL;
 	}
@@ -689,10 +711,15 @@ dsAnimationTree* dsAnimationTree_createJoints(
 		hashNode->index = i;
 		if (!dsAnimationTreeNodeTable_insert(nodeTable, i, treeNode->nameID, node->name))
 		{
+			if (heapParentNodes && allocator->freeFunc)
+				DS_VERIFY(dsAllocator_free(allocator, parentNodes));
 			dsAnimationTree_destroy(tree);
 			return NULL;
 		}
 	}
+
+	if (heapParentNodes && allocator->freeFunc)
+		DS_VERIFY(dsAllocator_free(allocator, parentNodes));
 
 	return tree;
 }

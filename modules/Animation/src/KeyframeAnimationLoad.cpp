@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,8 +44,8 @@
 #endif
 
 // 128 KB max stack usage through alloca.
-#define DS_MAX_STACK_KEYFRAMES_AND_CHANNELS 1024
-#define DS_MAX_STACK_VALUES 6144
+#define MAX_STACK_KEYFRAMES_AND_CHANNELS 1024
+#define MAX_STACK_VALUES 6144
 
 dsKeyframeAnimation* dsKeyframeAnimation_loadImpl(dsAllocator* allocator, dsAllocator* scratchAllocator,
 	const void* data, size_t size, const char* name)
@@ -172,65 +172,57 @@ dsKeyframeAnimation* dsKeyframeAnimation_loadImpl(dsAllocator* allocator, dsAllo
 		}
 	}
 
-	bool heapKeyframes;
-	uint32_t stackCount;
+	bool heapKeyframes = keyframesCount > MAX_STACK_KEYFRAMES_AND_CHANNELS;
+	uint32_t stackCount = 0;
 	dsAnimationKeyframes* keyframes;
-	if (keyframesCount <= DS_MAX_STACK_KEYFRAMES_AND_CHANNELS)
+	if (heapKeyframes)
 	{
-		heapKeyframes = false;
-		stackCount = keyframesCount;
-		keyframes = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsAnimationKeyframes, keyframesCount);
-	}
-	else
-	{
-		heapKeyframes = scratchAllocator->freeFunc != nullptr;
-		keyframes =
-			DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsAnimationKeyframes, keyframesCount);
-		stackCount = 0;
+		keyframes = DS_ALLOCATE_OBJECT_ARRAY(
+			scratchAllocator, dsAnimationKeyframes, keyframesCount);
 		if (!keyframes)
 			return nullptr;
 	}
-
-	bool heapChannels;
-	dsKeyframeAnimationChannel* channels;
-	if (stackCount + totalChannelCount <= DS_MAX_STACK_KEYFRAMES_AND_CHANNELS)
-	{
-		heapChannels = false;
-		channels = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsKeyframeAnimationChannel, totalChannelCount);
-	}
 	else
 	{
-		heapChannels = scratchAllocator->freeFunc != nullptr;
-		channels = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsKeyframeAnimationChannel,
-			totalChannelCount);
+		stackCount = keyframesCount;
+		keyframes = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsAnimationKeyframes, keyframesCount);
+	}
+
+	bool heapChannels = stackCount + totalChannelCount > MAX_STACK_KEYFRAMES_AND_CHANNELS;
+	dsKeyframeAnimationChannel* channels;
+	if (heapChannels)
+	{
+		channels = DS_ALLOCATE_OBJECT_ARRAY(
+			scratchAllocator, dsKeyframeAnimationChannel, totalChannelCount);
 		if (!channels)
 		{
-			if (heapKeyframes)
+			if (heapKeyframes && scratchAllocator->freeFunc)
 				DS_VERIFY(dsAllocator_free(scratchAllocator, keyframes));
 			return nullptr;
 		}
 	}
-
-	bool heapValues;
-	dsVector4f* values;
-	if (totalValueCount <= DS_MAX_STACK_VALUES)
-	{
-		heapValues = false;
-		values = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsVector4f, totalValueCount);
-	}
 	else
+		channels = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsKeyframeAnimationChannel, totalChannelCount);
+
+	bool heapValues = totalValueCount > MAX_STACK_VALUES;
+	dsVector4f* values;
+	if (heapValues)
 	{
-		heapValues = scratchAllocator->freeFunc != nullptr;
 		values = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsVector4f, totalValueCount);
 		if (!values)
 		{
-			if (heapKeyframes)
-				DS_VERIFY(dsAllocator_free(scratchAllocator, keyframes));
-			if (heapChannels)
-				DS_VERIFY(dsAllocator_free(scratchAllocator, channels));
+			if (scratchAllocator->freeFunc)
+			{
+				if (heapKeyframes)
+					DS_VERIFY(dsAllocator_free(scratchAllocator, keyframes));
+				if (heapChannels)
+					DS_VERIFY(dsAllocator_free(scratchAllocator, channels));
+			}
 			return nullptr;
 		}
 	}
+	else
+		values = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsVector4f, totalValueCount);
 
 	dsKeyframeAnimationChannel* nextChannels = channels;
 	uint32_t valueOffset = 0;
@@ -270,13 +262,16 @@ dsKeyframeAnimation* dsKeyframeAnimation_loadImpl(dsAllocator* allocator, dsAllo
 	DS_ASSERT(nextChannels == channels + totalChannelCount);
 	DS_ASSERT(valueOffset == totalValueCount);
 
-	dsKeyframeAnimation* animation =
-		dsKeyframeAnimation_create(allocator, keyframes, keyframesCount);
-	if (heapKeyframes)
-		DS_VERIFY(dsAllocator_free(scratchAllocator, keyframes));
-	if (heapChannels)
-		DS_VERIFY(dsAllocator_free(scratchAllocator, channels));
-	if (heapValues)
-		DS_VERIFY(dsAllocator_free(scratchAllocator, values));
+	dsKeyframeAnimation* animation = dsKeyframeAnimation_create(
+		allocator, keyframes, keyframesCount);
+	if (scratchAllocator->freeFunc)
+	{
+		if (heapKeyframes)
+			DS_VERIFY(dsAllocator_free(scratchAllocator, keyframes));
+		if (heapChannels)
+			DS_VERIFY(dsAllocator_free(scratchAllocator, channels));
+		if (heapValues)
+			DS_VERIFY(dsAllocator_free(scratchAllocator, values));
+	}
 	return animation;
 }

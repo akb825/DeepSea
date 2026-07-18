@@ -18,6 +18,7 @@
 
 #include "SceneLoadContextInternal.h"
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -56,6 +57,9 @@ dsSceneItemList* dsSceneModelList_load(const dsSceneLoadContext* loadContext,
 		return nullptr;
 	}
 
+	constexpr uint32_t maxStackItems = 8192;
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
+
 	auto fbModelList = DeepSeaScene::GetModelList(data);
 	auto fbViewFilter = fbModelList->viewFilter();
 	auto fbInstanceData = fbModelList->instanceData();
@@ -65,10 +69,13 @@ dsSceneItemList* dsSceneModelList_load(const dsSceneLoadContext* loadContext,
 	dsSceneResourceType resourceType;
 	dsViewFilter* viewFilter = nullptr;
 	uint32_t instanceDataCount = 0;
+	bool heapInstanceData = false;
 	dsSceneInstanceData** instanceData = nullptr;
 	dsDynamicRenderStates dynamicRenderStates;
 	uint32_t cullListCount = 0;
+	bool heapCullLists = false;
 	const char** cullLists = nullptr;
+	dsSceneItemList* itemList = nullptr;
 
 	if (fbViewFilter)
 	{
@@ -83,10 +90,19 @@ dsSceneItemList* dsSceneModelList_load(const dsSceneLoadContext* loadContext,
 		}
 	}
 
-	if (fbInstanceData && fbInstanceData->size() > 0)
+	instanceDataCount = fbInstanceData ? fbInstanceData->size() : 0;
+	if (instanceDataCount > 0)
 	{
-		instanceDataCount = fbInstanceData->size();
-		instanceData = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsSceneInstanceData*, instanceDataCount);
+		heapInstanceData = instanceDataCount > maxStackItems;
+		if (heapInstanceData)
+		{
+			instanceData = DS_ALLOCATE_OBJECT_ARRAY(
+				scratchAllocator, dsSceneInstanceData*, instanceDataCount);
+			if (!instanceData)
+				return nullptr;
+		}
+		else
+			instanceData = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsSceneInstanceData*, instanceDataCount);
 
 		for (uint32_t i = 0; i < instanceDataCount; ++i)
 		{
@@ -118,10 +134,19 @@ dsSceneItemList* dsSceneModelList_load(const dsSceneLoadContext* loadContext,
 	if (fbDynamicRenderStates)
 		dynamicRenderStates = DeepSeaScene::convert(*fbDynamicRenderStates);
 
-	if (fbCullLists && fbCullLists->size() > 0)
+	cullListCount = fbCullLists ? fbCullLists->size() : 0;
+	if (cullListCount > 0)
 	{
-		cullListCount = fbCullLists->size();
-		cullLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, cullListCount);
+		heapCullLists = cullListCount > maxStackItems;
+		if (heapCullLists)
+		{
+			cullLists = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, const char*, cullListCount);
+			if (!cullLists)
+				goto error;
+		}
+		else
+			cullLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, cullListCount);
+
 		for (uint32_t i = 0; i < cullListCount; ++i)
 		{
 			auto fbCullList = (*fbCullLists)[i];
@@ -136,13 +161,23 @@ dsSceneItemList* dsSceneModelList_load(const dsSceneLoadContext* loadContext,
 		}
 	}
 
-	return reinterpret_cast<dsSceneItemList*>(dsSceneModelList_create(allocator, name, viewFilter,
-		instanceData, instanceDataCount, static_cast<dsModelSortType>(fbModelList->sortType()),
+	itemList = reinterpret_cast<dsSceneItemList*>(dsSceneModelList_create(allocator, name,
+		viewFilter, instanceData, instanceDataCount,
+		static_cast<dsModelSortType>(fbModelList->sortType()),
 		fbDynamicRenderStates ? &dynamicRenderStates : nullptr, cullLists, cullListCount));
+	if (heapInstanceData)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, instanceData));
+	if (heapCullLists)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, cullLists));
+	return itemList;
 
 error:
 	// instanceDataCount should be the number that we need to clean up.
 	for (uint32_t i = 0; i < instanceDataCount; ++i)
 		dsSceneInstanceData_destroy(instanceData[i]);
-	return nullptr;
+	if (heapInstanceData)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, instanceData));
+	if (heapCullLists)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, cullLists));
+	return itemList;
 }

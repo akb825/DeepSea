@@ -27,6 +27,7 @@
 
 #include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+#include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/Scene/Types.h>
 
 #if DS_GCC || DS_CLANG
@@ -60,6 +61,9 @@ dsSceneNode* dsSceneDynamicTransformNode_load(const dsSceneLoadContext* loadCont
 		return nullptr;
 	}
 
+	constexpr uint32_t maxStackItemLists = 16384;
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
+
 	auto fbTransformNode = DeepSeaScene::GetDynamicTransformNode(data);
 
 	dsRigidTransform3f transform;
@@ -86,16 +90,27 @@ dsSceneNode* dsSceneDynamicTransformNode_load(const dsSceneLoadContext* loadCont
 
 	auto fbItemLists = fbTransformNode->itemLists();
 	uint32_t itemListCount = fbItemLists ? fbItemLists->size() : 0U;
-	const char** itemLists = NULL;
+	bool heapItemLists = itemListCount > maxStackItemLists;
+	const char** itemLists = nullptr;
 	if (itemListCount > 0)
 	{
-		itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+		if (heapItemLists)
+		{
+			itemLists = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, const char*, itemListCount);
+			if (!itemLists)
+				return nullptr;
+		}
+		else
+			itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+
 		for (uint32_t i = 0; i < itemListCount; ++i)
 		{
 			auto fbItemList = (*fbItemLists)[i];
 			if (!fbItemList)
 			{
 				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Dynamic transform node item list name is null.");
+				if (heapItemLists)
+					DS_VERIFY(dsAllocator_free(scratchAllocator, itemLists));
 				errno = EFORMAT;
 				return nullptr;
 			}
@@ -106,6 +121,8 @@ dsSceneNode* dsSceneDynamicTransformNode_load(const dsSceneLoadContext* loadCont
 
 	auto node = reinterpret_cast<dsSceneNode*>(
 		dsSceneDynamicTransformNode_create(allocator, &transform, itemLists, itemListCount));
+	if (heapItemLists)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, itemLists));
 	if (!node)
 		return nullptr;
 
@@ -130,7 +147,10 @@ dsSceneNode* dsSceneDynamicTransformNode_load(const dsSceneLoadContext* loadCont
 			bool success = dsSceneNode_addChild(node, child);
 			dsSceneNode_freeRef(child);
 			if (!success)
+			{
+				dsSceneNode_freeRef(node);
 				return nullptr;
+			}
 		}
 	}
 

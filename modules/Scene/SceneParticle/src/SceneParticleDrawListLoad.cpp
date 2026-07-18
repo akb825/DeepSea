@@ -56,6 +56,8 @@ dsSceneItemList* dsSceneParticleDrawList_load(const dsSceneLoadContext* loadCont
 		return nullptr;
 	}
 
+	constexpr uint32_t maxStackItems = 8192;
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
 	dsResourceManager* resourceManager =
 		dsSceneLoadContext_getRenderer(loadContext)->resourceManager;
 
@@ -66,10 +68,13 @@ dsSceneItemList* dsSceneParticleDrawList_load(const dsSceneLoadContext* loadCont
 
 	dsSceneResourceType resourceType;
 	dsViewFilter* viewFilter = nullptr;
-	dsSceneInstanceData** instanceData = nullptr;
 	uint32_t instanceDataCount = 0;
+	bool heapInstanceData = false;
+	dsSceneInstanceData** instanceData = nullptr;
 	uint32_t cullListCount = 0;
+	bool heapCullLists = false;
 	const char** cullLists = nullptr;
+	dsSceneItemList* particleDrawList;
 
 	if (fbViewFilter)
 	{
@@ -84,11 +89,19 @@ dsSceneItemList* dsSceneParticleDrawList_load(const dsSceneLoadContext* loadCont
 		}
 	}
 
-	if (fbInstanceData && fbInstanceData->size() > 0)
+	instanceDataCount = fbInstanceData ? fbInstanceData->size() : 0;
+	if (instanceDataCount > 0)
 	{
-		instanceDataCount = fbInstanceData->size();
-		instanceData = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsSceneInstanceData*, instanceDataCount);
-		DS_ASSERT(instanceData);
+		heapInstanceData = instanceDataCount > maxStackItems;
+		if (heapInstanceData)
+		{
+			instanceData = DS_ALLOCATE_OBJECT_ARRAY(
+				scratchAllocator, dsSceneInstanceData*, instanceDataCount);
+			if (!instanceData)
+				return nullptr;
+		}
+		else
+			instanceData = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsSceneInstanceData*, instanceDataCount);
 
 		for (uint32_t i = 0; i < instanceDataCount; ++i)
 		{
@@ -118,10 +131,19 @@ dsSceneItemList* dsSceneParticleDrawList_load(const dsSceneLoadContext* loadCont
 		}
 	}
 
-	if (fbCullLists && fbCullLists->size() > 0)
+	cullListCount = fbCullLists ? fbCullLists->size() : 0;
+	if (cullListCount > 0)
 	{
-		cullListCount = fbCullLists->size();
-		cullLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, cullListCount);
+		heapCullLists = cullListCount > maxStackItems;
+		if (heapCullLists)
+		{
+			cullLists = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, const char*, cullListCount);
+			if (!cullLists)
+				goto error;
+		}
+		else
+			cullLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, cullListCount);
+
 		for (uint32_t i = 0; i < cullListCount; ++i)
 		{
 			auto fbCullList = (*fbCullLists)[i];
@@ -136,12 +158,21 @@ dsSceneItemList* dsSceneParticleDrawList_load(const dsSceneLoadContext* loadCont
 		}
 	}
 
-	return dsSceneParticleDrawList_create(allocator, name, viewFilter, resourceManager,
+	particleDrawList = dsSceneParticleDrawList_create(allocator, name, viewFilter, resourceManager,
 		resourceAllocator, instanceData, instanceDataCount, cullLists, cullListCount);
+	if (heapInstanceData)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, instanceData));
+	if (heapCullLists)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, cullLists));
+	return particleDrawList;
 
 error:
 	// instanceDataCount should be the number that we need to clean up.
 	for (uint32_t i = 0; i < instanceDataCount; ++i)
 		dsSceneInstanceData_destroy(instanceData[i]);
+	if (heapInstanceData)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, instanceData));
+	if (heapCullLists)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, cullLists));
 	return nullptr;
 }

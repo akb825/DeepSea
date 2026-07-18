@@ -105,16 +105,16 @@ TEST_F(RenderPassTest, DefaultDependencies)
 
 	// One higher to guarantee no out of bounds access when testing limit check.
 	dsSubpassDependency dependencies[dependencyCount + 1];
-	EXPECT_FALSE(dsRenderPass_setDefaultDependencies(nullptr, dependencyCount, subpasses,
-		subpassCount));
-	EXPECT_FALSE(dsRenderPass_setDefaultDependencies(dependencies, dependencyCount, nullptr,
-		subpassCount));
-	EXPECT_FALSE(dsRenderPass_setDefaultDependencies(dependencies, dependencyCount - 1, subpasses,
-		subpassCount));
-	EXPECT_FALSE(dsRenderPass_setDefaultDependencies(dependencies, dependencyCount + 1, subpasses,
-		subpassCount));
-	EXPECT_TRUE(dsRenderPass_setDefaultDependencies(dependencies, dependencyCount, subpasses,
-		subpassCount));
+	EXPECT_FALSE(dsRenderPass_setDefaultDependencies(
+		nullptr, dependencyCount, subpasses, subpassCount));
+	EXPECT_FALSE(dsRenderPass_setDefaultDependencies(
+		dependencies, dependencyCount, nullptr, subpassCount));
+	EXPECT_FALSE(dsRenderPass_setDefaultDependencies(
+		dependencies, dependencyCount - 1, subpasses, subpassCount));
+	EXPECT_FALSE(dsRenderPass_setDefaultDependencies(
+		dependencies, dependencyCount + 1, subpasses, subpassCount));
+	EXPECT_TRUE(dsRenderPass_setDefaultDependencies(
+		dependencies, dependencyCount, subpasses, subpassCount));
 
 	dsSubpassDependency referenceFirstDependency;
 	memset(&referenceFirstDependency, 0, sizeof(dsSubpassDependency));
@@ -384,8 +384,8 @@ TEST_F(RenderPassTest, Create)
 	renderPass = dsRenderPass_create(renderer, nullptr, attachments, attachmentCount, subpasses,
 		subpassCount, nullptr, DS_DEFAULT_SUBPASS_DEPENDENCIES);
 	ASSERT_TRUE(renderPass);
-	EXPECT_EQ(dsRenderPass_countDefaultDependencies(subpasses, subpassCount),
-		renderPass->subpassDependencyCount);
+	EXPECT_EQ(dsRenderPass_countDefaultDependencies(
+		subpasses, subpassCount), renderPass->subpassDependencyCount);
 	EXPECT_TRUE(dsRenderPass_destroy(renderPass));
 }
 

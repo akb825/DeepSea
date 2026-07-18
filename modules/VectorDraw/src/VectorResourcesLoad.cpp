@@ -16,6 +16,7 @@
 
 #include <DeepSea/VectorDraw/VectorResources.h>
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Streams/MemoryStream.h>
 #include <DeepSea/Core/Assert.h>
@@ -51,6 +52,8 @@
 #elif DS_MSC
 #pragma warning(pop)
 #endif
+
+constexpr uint32_t maxStackElements = 8192;
 
 static void printFlatbufferError(const char* name)
 {
@@ -95,8 +98,8 @@ static dsTexture* loadTexture(const DeepSeaVectorDraw::TextureResource& fbTextur
 		return texture;
 	}
 
-	errno = EFORMAT;
 	printFlatbufferError(name);
+	errno = EFORMAT;
 	return nullptr;
 }
 
@@ -126,28 +129,39 @@ static dsVectorImage* loadVectorImage(const DeepSeaVectorDraw::VectorImageResour
 			data->data(), data->size(), pixelSize, size);
 	}
 
-	errno = EFORMAT;
 	printFlatbufferError(name);
+	errno = EFORMAT;
 	return nullptr;
 }
 
 static dsTextIcons* loadTextIcons(const DeepSeaVectorDraw::TextIcons& fbTextIcons,
-	const dsVectorResources* resources, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	dsResourceManager* resourceManager, const dsVectorShaders* vectorIconShaders,
-	const dsShader* textureIconShader, const dsMaterial* textureIconMaterial, const char* name)
+	const dsVectorResources* resources, dsAllocator* allocator, dsAllocator* scratchAllocator,
+	dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
+	const dsVectorShaders* vectorIconShaders, const dsShader* textureIconShader,
+	const dsMaterial* textureIconMaterial, const char* name)
 {
 	uint32_t iconCount = 0;
 	auto fbIcons = fbTextIcons.icons();
 	uint32_t codepointRangeCount = fbIcons->size();
 	if (codepointRangeCount == 0)
 	{
-		errno = EFORMAT;
 		printFlatbufferError(name);
+		errno = EFORMAT;
 		return nullptr;
 	}
 
-	dsIndexRange* codepointRanges =
-		DS_ALLOCATE_STACK_OBJECT_ARRAY(dsIndexRange, codepointRangeCount);
+	bool heapCodepointRanges = codepointRangeCount > maxStackElements;
+	dsIndexRange* codepointRanges;
+	if (heapCodepointRanges)
+	{
+		codepointRanges = DS_ALLOCATE_OBJECT_ARRAY(
+			scratchAllocator, dsIndexRange, codepointRangeCount);
+		if (!codepointRanges)
+			return nullptr;
+	}
+	else
+		codepointRanges = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsIndexRange, codepointRangeCount);
+
 	for (uint32_t i = 0; i < codepointRangeCount; ++i)
 	{
 		uint32_t minCodepoint = std::numeric_limits<uint32_t>::max();
@@ -155,8 +169,10 @@ static dsTextIcons* loadTextIcons(const DeepSeaVectorDraw::TextIcons& fbTextIcon
 		auto fbIconGroup = (*fbIcons)[i];
 		if (!fbIconGroup)
 		{
-			errno = EFORMAT;
+			if (heapCodepointRanges)
+				DS_VERIFY(dsAllocator_free(scratchAllocator, codepointRanges));
 			printFlatbufferError(name);
+			errno = EFORMAT;
 			return nullptr;
 		}
 
@@ -164,7 +180,10 @@ static dsTextIcons* loadTextIcons(const DeepSeaVectorDraw::TextIcons& fbTextIcon
 		uint32_t rangeCount = fbIconRange->size();
 		if (rangeCount == 0)
 		{
+			if (heapCodepointRanges)
+				DS_VERIFY(dsAllocator_free(scratchAllocator, codepointRanges));
 			printFlatbufferError(name);
+			errno = EFORMAT;
 			return nullptr;
 		}
 
@@ -174,8 +193,10 @@ static dsTextIcons* loadTextIcons(const DeepSeaVectorDraw::TextIcons& fbTextIcon
 			auto fbIcon = (*fbIconRange)[j];
 			if (!fbIcon)
 			{
-				errno = EFORMAT;
+				if (heapCodepointRanges)
+					DS_VERIFY(dsAllocator_free(scratchAllocator, codepointRanges));
 				printFlatbufferError(name);
+				errno = EFORMAT;
 				return nullptr;
 			}
 
@@ -195,15 +216,19 @@ static dsTextIcons* loadTextIcons(const DeepSeaVectorDraw::TextIcons& fbTextIcon
 		{
 			if (!textureIconShader)
 			{
-				errno = EINVAL;
+				if (heapCodepointRanges)
+					DS_VERIFY(dsAllocator_free(scratchAllocator, codepointRanges));
 				DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG,
 					"Must provide texture icon shader to vector resources load.");
+				errno = EINVAL;
 				return nullptr;
 			}
 
 			dsTextIcons* textIcons = dsTextureTextIcons_create(allocator, resourceManager,
 				resourceAllocator, textureIconShader, textureIconMaterial, codepointRanges,
 				codepointRangeCount, iconCount);
+			if (heapCodepointRanges)
+				DS_VERIFY(dsAllocator_free(scratchAllocator, codepointRanges));
 			if (!textIcons)
 				return nullptr;
 
@@ -221,7 +246,6 @@ static dsTextIcons* loadTextIcons(const DeepSeaVectorDraw::TextIcons& fbTextIcon
 							&resourceType, (void**)&texture, resources, iconName) ||
 						resourceType != dsVectorResourceType_Texture)
 					{
-						errno = ENOTFOUND;
 						if (name)
 						{
 							DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Couldn't find texture '%s' for "
@@ -232,6 +256,7 @@ static dsTextIcons* loadTextIcons(const DeepSeaVectorDraw::TextIcons& fbTextIcon
 							DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Couldn't find texture '%s' for "
 								"text icons in vector resources.", iconName);
 						}
+						errno = ENOTFOUND;
 						return nullptr;
 					}
 
@@ -253,14 +278,18 @@ static dsTextIcons* loadTextIcons(const DeepSeaVectorDraw::TextIcons& fbTextIcon
 		{
 			if (!vectorIconShaders)
 			{
-				errno = EINVAL;
+				if (heapCodepointRanges)
+					DS_VERIFY(dsAllocator_free(scratchAllocator, codepointRanges));
 				DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG,
 					"Must provide vector icon shaders to vector resources load.");
+				errno = EINVAL;
 				return nullptr;
 			}
 
 			dsTextIcons* textIcons = dsVectorTextIcons_create(allocator, resourceManager,
 				vectorIconShaders, codepointRanges, codepointRangeCount, iconCount);
+			if (heapCodepointRanges)
+				DS_VERIFY(dsAllocator_free(scratchAllocator, codepointRanges));
 			if (!textIcons)
 				return nullptr;
 
@@ -278,7 +307,6 @@ static dsTextIcons* loadTextIcons(const DeepSeaVectorDraw::TextIcons& fbTextIcon
 							&resourceType, (void**)&image, resources, iconName) ||
 						resourceType != dsVectorResourceType_VectorImage)
 					{
-						errno = ENOTFOUND;
 						if (name)
 						{
 							DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Couldn't find vector image "
@@ -289,6 +317,7 @@ static dsTextIcons* loadTextIcons(const DeepSeaVectorDraw::TextIcons& fbTextIcon
 							DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Couldn't find vector image "
 								"'%s' for text icons in vector resources.", iconName);
 						}
+						errno = ENOTFOUND;
 						return nullptr;
 					}
 
@@ -308,8 +337,10 @@ static dsTextIcons* loadTextIcons(const DeepSeaVectorDraw::TextIcons& fbTextIcon
 		}
 	}
 
-	errno = EFORMAT;
+	if (heapCodepointRanges)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, codepointRanges));
 	printFlatbufferError(name);
+	errno = EFORMAT;
 	return nullptr;
 }
 
@@ -330,9 +361,9 @@ static dsFaceGroup* loadFaceGroup(const DeepSeaVectorDraw::FaceGroup& fbFaceGrou
 		auto faceRef = (*faces)[i];
 		if (!faceRef)
 		{
-			errno = EFORMAT;
 			printFlatbufferError(name);
 			dsFaceGroup_destroy(faceGroup);
+			errno = EFORMAT;
 			return nullptr;
 		}
 
@@ -356,9 +387,9 @@ static dsFaceGroup* loadFaceGroup(const DeepSeaVectorDraw::FaceGroup& fbFaceGrou
 		}
 		else
 		{
-			errno = EFORMAT;
 			printFlatbufferError(name);
 			dsFaceGroup_destroy(faceGroup);
+			errno = EFORMAT;
 			return nullptr;
 		}
 
@@ -373,8 +404,8 @@ static dsFaceGroup* loadFaceGroup(const DeepSeaVectorDraw::FaceGroup& fbFaceGrou
 }
 
 static dsFont* loadFont(const DeepSeaVectorDraw::Font& fbFont, const dsVectorResources* resources,
-	dsAllocator* allocator, dsResourceManager* resourceManager, const dsTextQuality* qualityRemap,
-	const char* name)
+	dsAllocator* allocator, dsAllocator* scratchAllocator, dsResourceManager* resourceManager,
+	const dsTextQuality* qualityRemap, const char* name)
 {
 	const char* faceGroupName = fbFont.faceGroup()->c_str();
 	dsVectorResourceType resourceType;
@@ -383,7 +414,6 @@ static dsFont* loadFont(const DeepSeaVectorDraw::Font& fbFont, const dsVectorRes
 			&resourceType, (void**)&faceGroup, resources, faceGroupName) ||
 		resourceType != dsVectorResourceType_FaceGroup)
 	{
-		errno = ENOTFOUND;
 		if (name)
 		{
 			DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG,
@@ -395,28 +425,8 @@ static dsFont* loadFont(const DeepSeaVectorDraw::Font& fbFont, const dsVectorRes
 			DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG,
 				"Couldn't find face group '%s' for font in vector resources.", faceGroupName);
 		}
+		errno = ENOTFOUND;
 		return nullptr;
-	}
-
-	auto fbFaces = fbFont.faces();
-	const char** faces = nullptr;
-	uint32_t faceCount = 0;
-	if (fbFaces && !fbFaces->empty())
-	{
-		faceCount = fbFaces->size();
-		faces = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, faceCount);
-		for (uint32_t i = 0; i < faceCount; ++i)
-		{
-			auto fbFace = (*fbFaces)[i];
-			if (!fbFace)
-			{
-				errno = EFORMAT;
-				printFlatbufferError(name);
-				return nullptr;
-			}
-
-			faces[i] = fbFace->c_str();
-		}
 	}
 
 	dsTextIcons* textIcons = nullptr;
@@ -428,7 +438,6 @@ static dsFont* loadFont(const DeepSeaVectorDraw::Font& fbFont, const dsVectorRes
 				&resourceType, (void**)&textIcons, resources, iconsName) ||
 			resourceType != dsVectorResourceType_TextIcons)
 		{
-			errno = ENOTFOUND;
 			if (name)
 			{
 				DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG,
@@ -440,7 +449,39 @@ static dsFont* loadFont(const DeepSeaVectorDraw::Font& fbFont, const dsVectorRes
 				DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG,
 					"Couldn't find text icons '%s' for font in vector resources.", iconsName);
 			}
+			errno = ENOTFOUND;
 			return nullptr;
+		}
+	}
+
+	auto fbFaces = fbFont.faces();
+	const char** faces = nullptr;
+	uint32_t faceCount = fbFaces ? fbFaces->size() : 0;
+	bool heapFaces = faceCount > maxStackElements;
+	if (faceCount > 0)
+	{
+		if (heapFaces)
+		{
+			faces = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, const char*, faceCount);
+			if (!faces)
+				return nullptr;
+		}
+		else
+			faces = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, faceCount);
+
+		for (uint32_t i = 0; i < faceCount; ++i)
+		{
+			auto fbFace = (*fbFaces)[i];
+			if (!fbFace)
+			{
+				if (heapFaces)
+					DS_VERIFY(dsAllocator_free(scratchAllocator, faces));
+				printFlatbufferError(name);
+				errno = EFORMAT;
+				return nullptr;
+			}
+
+			faces[i] = fbFace->c_str();
 		}
 	}
 
@@ -450,8 +491,11 @@ static dsFont* loadFont(const DeepSeaVectorDraw::Font& fbFont, const dsVectorRes
 	if (qualityRemap)
 		quality = qualityRemap[quality];
 
-	return dsFont_create(faceGroup, resourceManager, allocator, faces, faceCount, textIcons,
+	dsFont* font = dsFont_create(faceGroup, resourceManager, allocator, faces, faceCount, textIcons,
 		quality, static_cast<dsTextCache>(fbFont.cacheSize()));
+	if (heapFaces)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, faces));
+	return font;
 }
 
 extern "C"
@@ -467,8 +511,8 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 	flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(data), size);
 	if (!DeepSeaVectorDraw::VerifyVectorResourcesBuffer(verifier))
 	{
-		errno = EFORMAT;
 		printFlatbufferError(name);
+		errno = EFORMAT;
 		return nullptr;
 	}
 
@@ -482,8 +526,8 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 	uint32_t resourceCount = fbResources->size();
 	if (resourceCount == 0)
 	{
-		errno = EFORMAT;
 		printFlatbufferError(name);
+		errno = EFORMAT;
 		return nullptr;
 	}
 
@@ -491,14 +535,31 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 	if (!resources)
 		return nullptr;
 
+	bool heapAllResources = false;
+	dsVectorResources** allResources = nullptr;
 	dsVectorImageInitResources initResourcesWithThis;
 	if (initResources)
 	{
 		initResourcesWithThis = *initResources;
 
 		// Add these resources to the list of vector resources for initialization.
-		dsVectorResources** allResources = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsVectorResources*,
-			initResources->resourceCount + 1);
+		uint32_t resourceCount = initResources->resourceCount + 1;
+		if (resourceCount < initResources->resourceCount)
+		{
+			errno = ERANGE;
+			return nullptr;
+		}
+
+		heapAllResources = resourceCount > maxStackElements;
+		if (heapAllResources)
+		{
+			allResources = DS_ALLOCATE_OBJECT_ARRAY(
+				scratchAllocator, dsVectorResources*, resourceCount);
+			if (!allResources)
+				return nullptr;
+		}
+		else
+			allResources = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsVectorResources*, resourceCount);
 		memcpy(allResources, initResources->resources,
 			sizeof(dsVectorResources*)*initResources->resourceCount);
 		allResources[initResources->resourceCount] = resources;
@@ -511,9 +572,11 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 		auto fbResource = (*fbResources)[i];
 		if (!fbResource)
 		{
-			errno = EFORMAT;
+			if (heapAllResources)
+				DS_VERIFY(dsAllocator_free(scratchAllocator, allResources));
 			printFlatbufferError(name);
 			DS_VERIFY(dsVectorResources_destroy(resources));
+			errno = EFORMAT;
 			return nullptr;
 		}
 
@@ -549,9 +612,9 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 			case DeepSeaVectorDraw::VectorResourceUnion::TextIcons:
 			{
 				resourceType = dsVectorResourceType_TextIcons;
-				resource = loadTextIcons(*fbResource->resource_as_TextIcons(), resources, allocator,
-					resourceAllocator, resourceManager, vectorIconShaders, textureIconShader,
-					textureIconMaterial, name);
+				resource = loadTextIcons(*fbResource->resource_as_TextIcons(), resources,
+					allocator, scratchAllocator, resourceAllocator, resourceManager,
+					vectorIconShaders, textureIconShader, textureIconMaterial, name);
 				break;
 			}
 			case DeepSeaVectorDraw::VectorResourceUnion::FaceGroup:
@@ -566,18 +629,22 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 			{
 				resourceType = dsVectorResourceType_Font;
 				resource = loadFont(*fbResource->resource_as_Font(), resources, allocator,
-					resourceManager, qualityRemap, name);
+					scratchAllocator, resourceManager, qualityRemap, name);
 				break;
 			}
 			default:
-				errno = EFORMAT;
+				if (heapAllResources)
+					DS_VERIFY(dsAllocator_free(scratchAllocator, allResources));
 				printFlatbufferError(name);
 				dsVectorResources_destroy(resources);
+				errno = EFORMAT;
 				return nullptr;
 		}
 
 		if (!resource)
 		{
+			if (heapAllResources)
+				DS_VERIFY(dsAllocator_free(scratchAllocator, allResources));
 			dsVectorResources_destroy(resources);
 			return nullptr;
 		}
@@ -594,10 +661,14 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 				DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG,
 					"Couldn't resource '%s' for font in vector resources.", resourceName);
 			}
+			if (heapAllResources)
+				DS_VERIFY(dsAllocator_free(scratchAllocator, allResources));
 			dsVectorResources_destroy(resources);
 			return nullptr;
 		}
 	}
 
+	if (heapAllResources)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, allResources));
 	return resources;
 }

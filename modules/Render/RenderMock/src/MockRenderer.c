@@ -17,7 +17,6 @@
 #include <DeepSea/RenderMock/MockRenderer.h>
 
 #include "Resources/MockResourceManager.h"
-#include "Resources/MockTexture.h"
 #include "MockCommandBuffer.h"
 #include "MockCommandBufferPool.h"
 #include "MockRenderPass.h"
@@ -426,6 +425,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->mainCommandBuffer->boundComputeShader = NULL;
 
 	renderer->maxColorAttachments = 4;
+	renderer->maxInputAttachments = 16;
 	renderer->maxSurfaceSamples = 16;
 	renderer->maxAnisotropy = 16;
 

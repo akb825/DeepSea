@@ -16,8 +16,9 @@
 
 #include "ScenePhysicsConstraintNodeLoad.h"
 
-#include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/StackAllocator.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
@@ -142,6 +143,9 @@ dsSceneNode* dsScenePhysicsConstraintNode_load(const dsSceneLoadContext*,
 		DS_LOG_ERROR(DS_SCENE_PHYSICS_LOG_TAG, "Invalid physics constraint node flatbuffer format.");
 		return nullptr;
 	}
+
+	constexpr uint32_t maxStackItemLists = 16384;
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
 
 	auto fbConstraintNode = DeepSeaScenePhysics::GetConstraintNode(data);
 
@@ -298,10 +302,19 @@ dsSceneNode* dsScenePhysicsConstraintNode_load(const dsSceneLoadContext*,
 
 	auto fbItemLists = fbConstraintNode->itemLists();
 	uint32_t itemListCount = fbItemLists ? fbItemLists->size() : 0U;
-	const char** itemLists = NULL;
+	bool heapItemLists = itemListCount > maxStackItemLists;
+	const char** itemLists = nullptr;
 	if (itemListCount > 0)
 	{
-		itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+		if (heapItemLists)
+		{
+			itemLists = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, const char*, itemListCount);
+			if (!itemLists)
+				return nullptr;
+		}
+		else
+			itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+
 		for (uint32_t i = 0; i < itemListCount; ++i)
 		{
 			auto fbItemList = (*fbItemLists)[i];
@@ -309,6 +322,8 @@ dsSceneNode* dsScenePhysicsConstraintNode_load(const dsSceneLoadContext*,
 			{
 				DS_LOG_ERROR(DS_SCENE_PHYSICS_LOG_TAG,
 					"Physics constraint node item list name is null.");
+				if (heapItemLists)
+					DS_VERIFY(dsAllocator_free(scratchAllocator, itemLists));
 				errno = EFORMAT;
 				return nullptr;
 			}
@@ -317,7 +332,10 @@ dsSceneNode* dsScenePhysicsConstraintNode_load(const dsSceneLoadContext*,
 		}
 	}
 
-	return reinterpret_cast<dsSceneNode*>(dsScenePhysicsConstraintNode_create(
+	auto node = reinterpret_cast<dsSceneNode*>(dsScenePhysicsConstraintNode_create(
 		allocator, constraint, false, &firstActor, &firstConnectedConstraint, &secondActor,
 		&secondConnectedConstraint, itemLists, itemListCount));
+	if (heapItemLists)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, itemLists));
+	return node;
 }

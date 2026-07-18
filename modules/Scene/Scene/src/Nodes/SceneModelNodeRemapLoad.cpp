@@ -18,6 +18,7 @@
 
 #include "SceneLoadContextInternal.h"
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -58,6 +59,9 @@ dsSceneNode* dsSceneModelNode_loadRemap(const dsSceneLoadContext*,
 		return nullptr;
 	}
 
+	constexpr uint32_t maxStackRemaps = 4096;
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
+
 	auto fbModelNode = DeepSeaScene::GetModelNodeRemap(data);
 
 	const char* name = fbModelNode->name()->c_str();
@@ -69,16 +73,24 @@ dsSceneNode* dsSceneModelNode_loadRemap(const dsSceneLoadContext*,
 	{
 		errno = ENOTFOUND;
 		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't find model node '%s'.", name);
-		return NULL;
+		return nullptr;
 	}
 
 	auto fbRemaps = fbModelNode->materialRemaps();
+	uint32_t remapCount = fbRemaps ? fbRemaps->size() : 0;
+	bool heapRemaps = remapCount > maxStackRemaps;
 	dsSceneMaterialRemap* remaps = nullptr;
-	uint32_t remapCount = 0;
-	if (fbRemaps)
+	if (remapCount > 0)
 	{
-		remapCount = fbRemaps->size();
-		remaps = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsSceneMaterialRemap, remapCount);
+		if (heapRemaps)
+		{
+			remaps = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsSceneMaterialRemap, remapCount);
+			if (!remaps)
+				return nullptr;
+		}
+		else
+			remaps = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsSceneMaterialRemap, remapCount);
+
 		for (uint32_t i = 0; i < remapCount; ++i)
 		{
 			auto fbRemap = (*fbRemaps)[i];
@@ -101,9 +113,11 @@ dsSceneNode* dsSceneModelNode_loadRemap(const dsSceneLoadContext*,
 							fbShader->c_str()) ||
 						type != dsSceneResourceType_Shader)
 					{
+						DS_LOG_ERROR_F(
+							DS_SCENE_LOG_TAG, "Couldn't find shader '%s'.", fbShader->c_str());
+						if (heapRemaps)
+							DS_VERIFY(dsAllocator_free(scratchAllocator, remaps));
 						errno = ENOTFOUND;
-						DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't find shader '%s'.",
-							fbShader->c_str());
 						return NULL;
 					}
 				}
@@ -118,9 +132,11 @@ dsSceneNode* dsSceneModelNode_loadRemap(const dsSceneLoadContext*,
 							fbMaterial->c_str()) ||
 						type != dsSceneResourceType_Material)
 					{
+						DS_LOG_ERROR_F(
+							DS_SCENE_LOG_TAG, "Couldn't find material '%s'.", fbMaterial->c_str());
+						if (heapRemaps)
+							DS_VERIFY(dsAllocator_free(scratchAllocator, remaps));
 						errno = ENOTFOUND;
-						DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't find material '%s'.",
-							fbMaterial->c_str());
 						return NULL;
 					}
 				}
@@ -138,6 +154,9 @@ dsSceneNode* dsSceneModelNode_loadRemap(const dsSceneLoadContext*,
 		}
 	}
 
-	return reinterpret_cast<dsSceneNode*>(dsSceneModelNode_cloneRemap(allocator,
+	auto node = reinterpret_cast<dsSceneNode*>(dsSceneModelNode_cloneRemap(allocator,
 		reinterpret_cast<dsSceneModelNode*>(origNode), remaps, remapCount));
+	if (heapRemaps)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, remaps));
+	return node;
 }

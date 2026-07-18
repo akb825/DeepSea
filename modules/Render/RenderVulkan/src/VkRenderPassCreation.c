@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,15 @@
 
 #include "Resources/VkResourceManager.h"
 #include "VkShared.h"
+
+#include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+
 #include <DeepSea/Render/Resources/GfxFormat.h>
+
 #include <string.h>
 
 typedef enum AttachmentUsage
@@ -30,6 +35,8 @@ typedef enum AttachmentUsage
 	AttachmentUsage_ReadAfter = 0x2,
 	AttachmentUsage_Current = 0x4
 } AttachmentUsage;
+
+#define MAX_TEMP_STACK_SIZE 131072
 
 static bool mustKeepMultisampledAttachment(dsAttachmentUsage usage, uint32_t samples)
 {
@@ -45,8 +52,43 @@ static bool needsResolve(uint32_t samples, uint32_t surfaceSamples, uint32_t def
 			samples > 1);
 }
 
-static void addLegacySubpassAttachmentUsageBits(AttachmentUsage* usages,
-	const VkSubpassDescription* subpass, AttachmentUsage usage)
+static size_t legacyRenderPassTempSize(const dsVkRenderPassData* renderPassData)
+{
+	const dsRenderPass* renderPass = renderPassData->renderPass;
+	size_t fullSize = 0;
+	dsMemorySize sizes[] =
+	{
+		{sizeof(VkAttachmentDescription), renderPassData->fullAttachmentCount},
+		{sizeof(AttachmentUsage), renderPassData->fullAttachmentCount},
+		{sizeof(VkSubpassDescription), renderPass->subpassCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return 0;
+
+	for (uint32_t i = 0; i < renderPass->subpassCount; ++i)
+	{
+		const dsRenderSubpassInfo* subpass = renderPass->subpasses + i;
+		bool hasDepthStencil = subpass->depthStencilAttachment.attachmentIndex != DS_NO_ATTACHMENT;
+		dsMemorySize subpassSizes[] =
+		{
+			{sizeof(VkAttachmentReference), subpass->inputAttachmentCount},
+			{sizeof(VkAttachmentReference), subpass->colorAttachmentCount},
+			{sizeof(VkAttachmentReference), subpass->colorAttachmentCount}, // Assume resolve.
+			{sizeof(VkAttachmentReference), hasDepthStencil},
+			{sizeof(uint32_t), renderPassData->fullAttachmentCount}
+		};
+		if (!dsAccumulateAlignedSizes(
+				&fullSize, subpassSizes, DS_ARRAY_SIZE(subpassSizes), DS_ALLOC_ALIGNMENT))
+		{
+			return 0;
+		}
+	}
+
+	return fullSize;
+}
+
+static void addLegacySubpassAttachmentUsageBits(
+	AttachmentUsage* usages, const VkSubpassDescription* subpass, AttachmentUsage usage)
 {
 	// Don't add input attchments if only writing, since it's a read-only operation.
 	if (usage & ~AttachmentUsage_WriteBefore)
@@ -141,26 +183,26 @@ static void findLegacyAttachmentsAfterUses(AttachmentUsage* usages,
 }
 
 static void findLegacyPreserveAttachments(uint32_t* outAttachments, uint32_t* outCount,
-	const VkAttachmentDescription* attachments, uint32_t attachmentCount,
-	const VkSubpassDescription* subpasses, uint32_t subpassCount,
+	AttachmentUsage* attachmentUsages, const VkAttachmentDescription* attachments,
+	uint32_t attachmentCount, const VkSubpassDescription* subpasses, uint32_t subpassCount,
 	const VkSubpassDependency* dependencies, uint32_t dependencyCount, uint32_t curSubpass)
 {
-	AttachmentUsage* usages = DS_ALLOCATE_STACK_OBJECT_ARRAY(AttachmentUsage, attachmentCount);
-	memset(usages, 0, sizeof(AttachmentUsage)*attachmentCount);
+	memset(attachmentUsages, 0, sizeof(AttachmentUsage)*attachmentCount);
 
 	// Find the usage flags for the current subpass, before the current subpass (by dependencies),
 	// and after the current subpass (by dependencies).
-	addLegacySubpassAttachmentUsageBits(usages, subpasses + curSubpass, AttachmentUsage_Current);
+	addLegacySubpassAttachmentUsageBits(
+		attachmentUsages, subpasses + curSubpass, AttachmentUsage_Current);
 	findLegacyAttachmentsBeforeUses(
-		usages, subpasses, subpassCount, dependencies, dependencyCount, curSubpass, 0);
+		attachmentUsages, subpasses, subpassCount, dependencies, dependencyCount, curSubpass, 0);
 	findLegacyAttachmentsAfterUses(
-		usages, subpasses, subpassCount, dependencies, dependencyCount, curSubpass, 0);
+		attachmentUsages, subpasses, subpassCount, dependencies, dependencyCount, curSubpass, 0);
 
 	*outCount = 0;
 	for (uint32_t i = 0; i < attachmentCount; ++i)
 	{
 		// Add implicit uses based on attachment operations.
-		AttachmentUsage usage = usages[i];
+		AttachmentUsage usage = attachmentUsages[i];
 		const VkAttachmentDescription* attachment = attachments + i;
 		if (attachment->loadOp != VK_ATTACHMENT_LOAD_OP_DONT_CARE)
 			usage |= AttachmentUsage_WriteBefore;
@@ -173,8 +215,8 @@ static void findLegacyPreserveAttachments(uint32_t* outAttachments, uint32_t* ou
 	}
 }
 
-static bool createLegacyRenderPass(dsVkRenderPassData* renderPassData,
-	uint32_t resolveAttachmentCount)
+static bool createLegacyRenderPass(
+	dsVkRenderPassData* renderPassData, uint32_t resolveAttachmentCount, dsAllocator* allocator)
 {
 	DS_UNUSED(resolveAttachmentCount);
 	const dsRenderPass* renderPass = renderPassData->renderPass;
@@ -186,8 +228,9 @@ static bool createLegacyRenderPass(dsVkRenderPassData* renderPassData,
 	VkAttachmentDescription* vkAttachments = NULL;
 	if (renderPassData->attachmentCount > 0)
 	{
-		vkAttachments = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkAttachmentDescription,
-			renderPassData->fullAttachmentCount);
+		vkAttachments = DS_ALLOCATE_OBJECT_ARRAY(
+			allocator, VkAttachmentDescription, renderPassData->fullAttachmentCount);
+		DS_ASSERT(vkAttachments);
 
 		uint32_t resolveIndex = 0;
 		for (uint32_t i = 0; i < renderPassData->attachmentCount; ++i)
@@ -196,13 +239,13 @@ static bool createLegacyRenderPass(dsVkRenderPassData* renderPassData,
 			VkAttachmentDescription* vkAttachment = vkAttachments + i;
 			dsAttachmentUsage usage = attachment->usage;
 
-			const dsVkFormatInfo* format = dsVkResourceManager_getFormat(renderer->resourceManager,
-				attachment->format);
+			const dsVkFormatInfo* format = dsVkResourceManager_getFormat(
+				renderer->resourceManager, attachment->format);
 			if (!format)
 			{
 				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Unknown format.");
-				return 0;
+				return false;
 			}
 
 			vkAttachment->flags = 0;
@@ -260,8 +303,9 @@ static bool createLegacyRenderPass(dsVkRenderPassData* renderPassData,
 		DS_ASSERT(resolveIndex == resolveAttachmentCount);
 	}
 
-	VkSubpassDescription* vkSubpasses = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkSubpassDescription,
-		renderPass->subpassCount);
+	VkSubpassDescription* vkSubpasses = DS_ALLOCATE_OBJECT_ARRAY(
+		allocator, VkSubpassDescription, renderPass->subpassCount);
+	DS_ASSERT(vkSubpasses);
 	for (uint32_t i = 0; i < renderPass->subpassCount; ++i)
 	{
 		const dsRenderSubpassInfo* curSubpass = renderPass->subpasses + i;
@@ -280,8 +324,9 @@ static bool createLegacyRenderPass(dsVkRenderPassData* renderPassData,
 
 		if (curSubpass->inputAttachmentCount > 0)
 		{
-			VkAttachmentReference* inputAttachments = DS_ALLOCATE_STACK_OBJECT_ARRAY(
-				VkAttachmentReference, curSubpass->inputAttachmentCount);
+			VkAttachmentReference* inputAttachments = DS_ALLOCATE_OBJECT_ARRAY(
+				allocator, VkAttachmentReference, curSubpass->inputAttachmentCount);
+			DS_ASSERT(inputAttachments);
 			for (uint32_t j = 0; j < vkSubpass->inputAttachmentCount; ++j)
 			{
 				uint32_t attachment = curSubpass->inputAttachments[j];
@@ -310,8 +355,9 @@ static bool createLegacyRenderPass(dsVkRenderPassData* renderPassData,
 
 		if (curSubpass->colorAttachmentCount > 0)
 		{
-			VkAttachmentReference* colorAttachments = DS_ALLOCATE_STACK_OBJECT_ARRAY(
-				VkAttachmentReference, curSubpass->colorAttachmentCount);
+			VkAttachmentReference* colorAttachments = DS_ALLOCATE_OBJECT_ARRAY(
+				allocator, VkAttachmentReference, curSubpass->colorAttachmentCount);
+			DS_ASSERT(colorAttachments);
 
 			bool hasResolve = false;
 			for (uint32_t j = 0; j < vkSubpass->colorAttachmentCount; ++j)
@@ -333,8 +379,9 @@ static bool createLegacyRenderPass(dsVkRenderPassData* renderPassData,
 			vkSubpass->pColorAttachments = colorAttachments;
 			if (hasResolve)
 			{
-				VkAttachmentReference* resolveAttachments = DS_ALLOCATE_STACK_OBJECT_ARRAY(
-					VkAttachmentReference, curSubpass->colorAttachmentCount);
+				VkAttachmentReference* resolveAttachments = DS_ALLOCATE_OBJECT_ARRAY(
+					allocator, VkAttachmentReference, curSubpass->colorAttachmentCount);
+				DS_ASSERT(resolveAttachments);
 
 				for (uint32_t j = 0; j < vkSubpass->colorAttachmentCount; ++j)
 				{
@@ -375,7 +422,9 @@ static bool createLegacyRenderPass(dsVkRenderPassData* renderPassData,
 				}
 			}
 
-			VkAttachmentReference* depthSubpass = DS_ALLOCATE_STACK_OBJECT(VkAttachmentReference);
+			VkAttachmentReference* depthSubpass = DS_ALLOCATE_OBJECT(
+				allocator, VkAttachmentReference);
+			DS_ASSERT(depthSubpass);
 			depthSubpass->attachment = depthStencilAttachment->attachmentIndex;
 			depthSubpass->layout = isInput ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL :
 				VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
@@ -384,15 +433,18 @@ static bool createLegacyRenderPass(dsVkRenderPassData* renderPassData,
 	}
 
 	// Set up dependencies after all of the subpasses are otherwise set up.
+	AttachmentUsage* attachmentUsages = DS_ALLOCATE_OBJECT_ARRAY(
+		allocator, AttachmentUsage, renderPassData->fullAttachmentCount);
+	DS_ASSERT(renderPassData->fullAttachmentCount == 0 || attachmentUsages);
 	for (uint32_t i = 0; i < renderPass->subpassCount; ++i)
 	{
 		VkSubpassDescription* vkSubpass = vkSubpasses + i;
-		uint32_t* preserveAttachments = DS_ALLOCATE_STACK_OBJECT_ARRAY(uint32_t,
-			renderPassData->fullAttachmentCount);
+		uint32_t* preserveAttachments = DS_ALLOCATE_OBJECT_ARRAY(
+			allocator, uint32_t, renderPassData->fullAttachmentCount);
 		DS_ASSERT(preserveAttachments);
 		vkSubpass->pPreserveAttachments = preserveAttachments;
 		findLegacyPreserveAttachments(preserveAttachments, &vkSubpass->preserveAttachmentCount,
-			vkAttachments, renderPassData->fullAttachmentCount, vkSubpasses,
+			attachmentUsages, vkAttachments, renderPassData->fullAttachmentCount, vkSubpasses,
 			renderPass->subpassCount, vkRenderPass->vkDependencies,
 			renderPass->subpassDependencyCount, i);
 	}
@@ -407,13 +459,52 @@ static bool createLegacyRenderPass(dsVkRenderPassData* renderPassData,
 		renderPass->subpassDependencyCount, vkRenderPass->vkDependencies
 	};
 
-	VkResult result = DS_VK_CALL(device->vkCreateRenderPass)(device->device, &createInfo,
-		instance->allocCallbacksPtr, &renderPassData->vkRenderPass);
+	VkResult result = DS_VK_CALL(device->vkCreateRenderPass)(
+		device->device, &createInfo, instance->allocCallbacksPtr, &renderPassData->vkRenderPass);
 	return DS_HANDLE_VK_RESULT(result, "Couldn't create render pass");
 }
 
-static void addSubpassAttachmentUsageBits(AttachmentUsage* usages,
-	const VkSubpassDescription2KHR* subpass, AttachmentUsage usage)
+static size_t renderPassTempSize(const dsVkRenderPassData* renderPassData)
+{
+	const dsRenderPass* renderPass = renderPassData->renderPass;
+	size_t fullSize = 0;
+	dsMemorySize sizes[] =
+	{
+		{sizeof(VkAttachmentDescription2KHR), renderPassData->fullAttachmentCount},
+		{sizeof(AttachmentUsage), renderPassData->fullAttachmentCount},
+		{sizeof(VkSubpassDescription2KHR), renderPass->subpassCount},
+		{sizeof(VkSubpassDependency2KHR), renderPass->subpassDependencyCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+		return 0;
+
+	for (uint32_t i = 0; i < renderPass->subpassCount; ++i)
+	{
+		const dsRenderSubpassInfo* subpass = renderPass->subpasses + i;
+		bool hasDepthStencil = subpass->depthStencilAttachment.attachmentIndex != DS_NO_ATTACHMENT;
+		dsMemorySize subpassSizes[] =
+		{
+			{sizeof(VkAttachmentReference2KHR), subpass->inputAttachmentCount},
+			{sizeof(VkAttachmentReference2KHR), subpass->colorAttachmentCount},
+			{sizeof(VkAttachmentReference2KHR), hasDepthStencil},
+			{sizeof(uint32_t), renderPassData->fullAttachmentCount},
+			// Assume resolve.
+			{sizeof(VkAttachmentReference2KHR), subpass->colorAttachmentCount},
+			{sizeof(VkAttachmentReference2KHR), hasDepthStencil},
+			{sizeof(VkSubpassDescriptionDepthStencilResolveKHR), hasDepthStencil},
+		};
+		if (!dsAccumulateAlignedSizes(
+				&fullSize, subpassSizes, DS_ARRAY_SIZE(subpassSizes), DS_ALLOC_ALIGNMENT))
+		{
+			return 0;
+		}
+	}
+
+	return fullSize;
+}
+
+static void addSubpassAttachmentUsageBits(
+	AttachmentUsage* usages, const VkSubpassDescription2KHR* subpass, AttachmentUsage usage)
 {
 	// Don't add input attchments if only writing, since it's a read-only operation.
 	if (usage & ~AttachmentUsage_WriteBefore)
@@ -525,27 +616,27 @@ static void findAttachmentsAfterUses(AttachmentUsage* usages,
 }
 
 static void findPreserveAttachments(uint32_t* outAttachments, uint32_t* outCount,
-	const VkAttachmentDescription2KHR* attachments, uint32_t attachmentCount,
-	const VkSubpassDescription2KHR* subpasses, uint32_t subpassCount,
+	AttachmentUsage* attachmentUsages, const VkAttachmentDescription2KHR* attachments,
+	uint32_t attachmentCount, const VkSubpassDescription2KHR* subpasses, uint32_t subpassCount,
 	const VkSubpassDependency* dependencies, uint32_t dependencyCount, uint32_t curSubpass)
 {
-	AttachmentUsage* usages = DS_ALLOCATE_STACK_OBJECT_ARRAY(AttachmentUsage, attachmentCount);
-	memset(usages, 0, sizeof(AttachmentUsage)*attachmentCount);
+	memset(attachmentUsages, 0, sizeof(AttachmentUsage)*attachmentCount);
 
 	// Find the usage flags for the current subpass, before the current subpass (by dependencies),
 	// and after the current subpass (by dependencies).
-	addSubpassAttachmentUsageBits(usages, subpasses + curSubpass, AttachmentUsage_Current);
-	findAttachmentsBeforeUses(usages, subpasses, subpassCount, dependencies, dependencyCount,
-		curSubpass, 0);
-	findAttachmentsAfterUses(usages, subpasses, subpassCount, dependencies, dependencyCount,
-		curSubpass, 0);
+	addSubpassAttachmentUsageBits(
+		attachmentUsages, subpasses + curSubpass, AttachmentUsage_Current);
+	findAttachmentsBeforeUses(
+		attachmentUsages, subpasses, subpassCount, dependencies, dependencyCount, curSubpass, 0);
+	findAttachmentsAfterUses(
+		attachmentUsages, subpasses, subpassCount, dependencies, dependencyCount, curSubpass, 0);
 
 	*outCount = 0;
 	for (uint32_t i = 0; i < attachmentCount; ++i)
 	{
 		// Add implicit uses based on attachment operations.
 		const VkAttachmentDescription2KHR* attachment = attachments + i;
-		AttachmentUsage usage = usages[i];
+		AttachmentUsage usage = attachmentUsages[i];
 		if (attachment->loadOp != VK_ATTACHMENT_LOAD_OP_DONT_CARE)
 			usage |= AttachmentUsage_WriteBefore;
 		if (attachment->storeOp != VK_ATTACHMENT_STORE_OP_DONT_CARE)
@@ -557,7 +648,8 @@ static void findPreserveAttachments(uint32_t* outAttachments, uint32_t* outCount
 	}
 }
 
-static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolveAttachmentCount)
+static bool createRenderPass(
+	dsVkRenderPassData* renderPassData, uint32_t resolveAttachmentCount, dsAllocator* allocator)
 {
 	DS_UNUSED(resolveAttachmentCount);
 	const dsRenderPass* renderPass = renderPassData->renderPass;
@@ -569,8 +661,9 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 	VkAttachmentDescription2KHR* vkAttachments = NULL;
 	if (renderPassData->attachmentCount > 0)
 	{
-		vkAttachments = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkAttachmentDescription2KHR,
-			renderPassData->fullAttachmentCount);
+		vkAttachments = DS_ALLOCATE_OBJECT_ARRAY(
+			allocator, VkAttachmentDescription2KHR, renderPassData->fullAttachmentCount);
+		DS_ASSERT(vkAttachments);
 
 		uint32_t resolveIndex = 0;
 		for (uint32_t i = 0; i < renderPassData->attachmentCount; ++i)
@@ -585,7 +678,7 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 			{
 				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Unknown format.");
-				return 0;
+				return false;
 			}
 
 			vkAttachment->sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2_KHR;
@@ -645,8 +738,9 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 		DS_ASSERT(resolveIndex == resolveAttachmentCount);
 	}
 
-	VkSubpassDescription2KHR* vkSubpasses = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkSubpassDescription2KHR,
-		renderPass->subpassCount);
+	VkSubpassDescription2KHR* vkSubpasses = DS_ALLOCATE_OBJECT_ARRAY(
+		allocator, VkSubpassDescription2KHR, renderPass->subpassCount);
+	DS_ASSERT(vkSubpasses);
 	for (uint32_t i = 0; i < renderPass->subpassCount; ++i)
 	{
 		const dsRenderSubpassInfo* curSubpass = renderPass->subpasses + i;
@@ -668,8 +762,9 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 
 		if (curSubpass->inputAttachmentCount > 0)
 		{
-			VkAttachmentReference2KHR* inputAttachments = DS_ALLOCATE_STACK_OBJECT_ARRAY(
-				VkAttachmentReference2KHR, curSubpass->inputAttachmentCount);
+			VkAttachmentReference2KHR* inputAttachments = DS_ALLOCATE_OBJECT_ARRAY(
+				allocator, VkAttachmentReference2KHR, curSubpass->inputAttachmentCount);
+			DS_ASSERT(inputAttachments);
 			for (uint32_t j = 0; j < vkSubpass->inputAttachmentCount; ++j)
 			{
 				VkAttachmentReference2KHR* inputAttachment = inputAttachments + j;
@@ -702,8 +797,9 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 
 		if (curSubpass->colorAttachmentCount > 0)
 		{
-			VkAttachmentReference2KHR* colorAttachments = DS_ALLOCATE_STACK_OBJECT_ARRAY(
-				VkAttachmentReference2KHR, curSubpass->colorAttachmentCount);
+			VkAttachmentReference2KHR* colorAttachments = DS_ALLOCATE_OBJECT_ARRAY(
+				allocator, VkAttachmentReference2KHR, curSubpass->colorAttachmentCount);
+			DS_ASSERT(colorAttachments);
 
 			bool hasResolve = false;
 			for (uint32_t j = 0; j < vkSubpass->colorAttachmentCount; ++j)
@@ -728,8 +824,9 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 			vkSubpass->pColorAttachments = colorAttachments;
 			if (hasResolve)
 			{
-				VkAttachmentReference2KHR* resolveAttachments = DS_ALLOCATE_STACK_OBJECT_ARRAY(
-					VkAttachmentReference2KHR, curSubpass->colorAttachmentCount);
+				VkAttachmentReference2KHR* resolveAttachments = DS_ALLOCATE_OBJECT_ARRAY(
+					allocator, VkAttachmentReference2KHR, curSubpass->colorAttachmentCount);
+				DS_ASSERT(resolveAttachments);
 
 				for (uint32_t j = 0; j < vkSubpass->colorAttachmentCount; ++j)
 				{
@@ -781,8 +878,9 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 
 			VkImageAspectFlags aspectMask = dsVkImageAspectFlags(
 				renderPass->attachments[depthStencilAttachment->attachmentIndex].format);
-			VkAttachmentReference2KHR* depthAttachment =
-				DS_ALLOCATE_STACK_OBJECT(VkAttachmentReference2KHR);
+			VkAttachmentReference2KHR* depthAttachment = DS_ALLOCATE_OBJECT(
+				allocator, VkAttachmentReference2KHR);
+			DS_ASSERT(depthAttachment);
 			depthAttachment->sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2_KHR;
 			depthAttachment->pNext = NULL;
 			depthAttachment->attachment = depthStencilAttachment->attachmentIndex;
@@ -796,8 +894,9 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 				uint32_t resolveAttachment =
 					renderPassData->resolveIndices[depthStencilAttachment->attachmentIndex];
 				DS_ASSERT(resolveAttachment != DS_NO_ATTACHMENT);
-				VkAttachmentReference2KHR* attachmentRef =
-					DS_ALLOCATE_STACK_OBJECT(VkAttachmentReference2KHR);
+				VkAttachmentReference2KHR* attachmentRef = DS_ALLOCATE_OBJECT(
+					allocator, VkAttachmentReference2KHR);
+				DS_ASSERT(attachmentRef);
 				attachmentRef->sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2_KHR;
 				attachmentRef->pNext = NULL;
 				attachmentRef->attachment = resolveAttachment;
@@ -805,7 +904,8 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 				attachmentRef->aspectMask = aspectMask;
 
 				VkSubpassDescriptionDepthStencilResolveKHR* depthStencilResolve =
-					DS_ALLOCATE_STACK_OBJECT(VkSubpassDescriptionDepthStencilResolveKHR);
+					DS_ALLOCATE_OBJECT(allocator, VkSubpassDescriptionDepthStencilResolveKHR);
+				DS_ASSERT(depthStencilResolve);
 				depthStencilResolve->sType =
 					VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_DEPTH_STENCIL_RESOLVE_KHR;
 				depthStencilResolve->pNext = NULL;
@@ -825,21 +925,25 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 	}
 
 	// Set up dependencies after all of the subpasses are otherwise set up.
+	AttachmentUsage* attachmentUsages = DS_ALLOCATE_OBJECT_ARRAY(
+		allocator, AttachmentUsage, renderPassData->fullAttachmentCount);
+	DS_ASSERT(renderPassData->fullAttachmentCount == 0 || attachmentUsages);
 	for (uint32_t i = 0; i < renderPass->subpassCount; ++i)
 	{
 		VkSubpassDescription2KHR* vkSubpass = vkSubpasses + i;
-		uint32_t* preserveAttachments = DS_ALLOCATE_STACK_OBJECT_ARRAY(uint32_t,
-			renderPassData->fullAttachmentCount);
+		uint32_t* preserveAttachments = DS_ALLOCATE_OBJECT_ARRAY(
+			allocator, uint32_t, renderPassData->fullAttachmentCount);
 		DS_ASSERT(preserveAttachments);
 		vkSubpass->pPreserveAttachments = preserveAttachments;
 		findPreserveAttachments(preserveAttachments, &vkSubpass->preserveAttachmentCount,
-			vkAttachments, renderPassData->fullAttachmentCount, vkSubpasses,
+			attachmentUsages, vkAttachments, renderPassData->fullAttachmentCount, vkSubpasses,
 			renderPass->subpassCount, vkRenderPass->vkDependencies,
 			renderPass->subpassDependencyCount, i);
 	}
 
-	VkSubpassDependency2KHR* dependencies = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkSubpassDependency2KHR,
-		renderPass->subpassDependencyCount);
+	VkSubpassDependency2KHR* dependencies = DS_ALLOCATE_OBJECT_ARRAY(
+		allocator, VkSubpassDependency2KHR, renderPass->subpassDependencyCount);
+	DS_ASSERT(renderPass->subpassDependencyCount == 0 || dependencies);
 	for (uint32_t i = 0; i < renderPass->subpassDependencyCount; ++i)
 	{
 		VkSubpassDependency2KHR* dependency = dependencies + i;
@@ -906,7 +1010,41 @@ bool dsVkAttachmentHasResolve(const dsRenderSubpassInfo* subpasses, uint32_t sub
 bool dsCreateUnderlyingVkRenderPass(
 	dsVkRenderPassData* renderPassData, uint32_t resolveAttachmentCount)
 {
-	if (renderPassData->device->vkCreateRenderPass2)
-		return createRenderPass(renderPassData, resolveAttachmentCount);
-	return createLegacyRenderPass(renderPassData, resolveAttachmentCount);
+	// Use renderer allocator to create the temporary memory for the Vulkan render pass if it
+	// exceeds the max size for the stack.
+	dsAllocator* allocator = renderPassData->renderPass->renderer->allocator;
+	bool legacyRenderPasses = !renderPassData->device->vkCreateRenderPass2;
+	size_t tempSize = legacyRenderPasses ?
+		legacyRenderPassTempSize(renderPassData) : renderPassTempSize(renderPassData);
+	if (tempSize == 0)
+		return false;
+
+	bool heapTempBuffer = tempSize > MAX_TEMP_STACK_SIZE;
+	void* tempBuffer;
+	if (heapTempBuffer)
+	{
+		tempBuffer = dsAllocator_alloc(allocator, tempSize);
+		if (!tempBuffer)
+			return false;
+	}
+	else
+		tempBuffer = DS_ALLOCATE_STACK_OBJECT_ARRAY(uint8_t, tempSize);
+
+	dsBufferAllocator bufferAlloc;
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, tempBuffer, tempSize));
+	bool result;
+	if (legacyRenderPasses)
+	{
+		result = createLegacyRenderPass(
+			renderPassData, resolveAttachmentCount, (dsAllocator*)&bufferAlloc);
+	}
+	else
+	{
+		result = createRenderPass(
+			renderPassData, resolveAttachmentCount, (dsAllocator*)&bufferAlloc);
+	}
+
+	if (heapTempBuffer)
+		DS_VERIFY(dsAllocator_free(allocator, tempBuffer));
+	return result;
 }

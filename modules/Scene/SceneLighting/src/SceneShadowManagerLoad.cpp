@@ -16,6 +16,7 @@
 
 #include "SceneShadowManagerLoad.h"
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -56,7 +57,11 @@ void* dsSceneShadowManager_load(const dsSceneLoadContext* loadContext,
 		return nullptr;
 	}
 
+	constexpr uint32_t maxStackShadows = 16384;
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
+
 	auto fbShadowManager = DeepSeaSceneLighting::GetSceneShadowManager(data);
+	dsSceneShadowManager* shadowManager;
 
 	auto fbShadows = fbShadowManager->shadows();
 	uint32_t shadowCount = fbShadows->size();
@@ -69,19 +74,27 @@ void* dsSceneShadowManager_load(const dsSceneLoadContext* loadContext,
 
 	dsResourceManager* resourceManager =
 		dsSceneLoadContext_getRenderer(loadContext)->resourceManager;
-	dsSceneLightShadows** shadows =
-		DS_ALLOCATE_STACK_OBJECT_ARRAY(dsSceneLightShadows*, shadowCount);
+	bool heapShadows = shadowCount > maxStackShadows;
+	dsSceneLightShadows** shadows;
+	if (heapShadows)
+	{
+		shadows = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsSceneLightShadows*, shadowCount);
+		if (!shadows)
+			return nullptr;
+	}
+	else
+		shadows = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsSceneLightShadows*, shadowCount);
+
 	for (uint32_t i = 0; i < shadowCount; ++i)
 	{
 		auto fbLightShadows = (*fbShadows)[i];
 		if (!fbLightShadows)
 		{
-			for (uint32_t j = 0; j < i; ++j)
-				dsSceneLightShadows_destroy(shadows[j]);
-			errno = EFORMAT;
+			shadowCount = i;
 			DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG,
 				"Scene shadow manager contains an unset light shadows element.");
-			return nullptr;
+			errno = EFORMAT;
+			goto error;
 		}
 
 		const char* shadowsName = fbLightShadows->name()->c_str();
@@ -92,12 +105,11 @@ void* dsSceneShadowManager_load(const dsSceneLoadContext* loadContext,
 				&type, (void**)&resource, scratchData, lightSetName) ||
 			type != dsSceneResourceType_Custom || resource->type != dsSceneLightSet_type())
 		{
-			for (uint32_t j = 0; j < i; ++j)
-				dsSceneLightShadows_destroy(shadows[j]);
+			shadowCount = i;
+			DS_LOG_ERROR_F(
+				DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find light set '%s'.", lightSetName);
 			errno = ENOTFOUND;
-			DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find light set '%s'.",
-				lightSetName);
-			return nullptr;
+			goto error;
 		}
 
 		auto lightSet = reinterpret_cast<dsSceneLightSet*>(resource->resource);
@@ -111,12 +123,11 @@ void* dsSceneShadowManager_load(const dsSceneLoadContext* loadContext,
 		if (!dsSceneLoadScratchData_findResource(&type, (void**)&transformGroupDesc, scratchData,
 				transformGroupDescName) || type != dsSceneResourceType_ShaderVariableGroupDesc)
 		{
-			for (uint32_t j = 0; j < i; ++j)
-				dsSceneLightShadows_destroy(shadows[j]);
-			errno = ENOTFOUND;
+			shadowCount = i;
 			DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG,
 				"Couldn't find shader variable group description '%s'.", lightSetName);
-			return nullptr;
+			errno = ENOTFOUND;
+			goto error;
 		}
 
 		auto fbTransformGroupName = fbLightShadows->transformGroupName();
@@ -146,16 +157,26 @@ void* dsSceneShadowManager_load(const dsSceneLoadContext* loadContext,
 			&params);
 		if (!lightShadows)
 		{
-			// Guarantee errno is preserved.
-			int prevErrno = errno;
-			for (uint32_t j = 0; j < i; ++j)
-				dsSceneLightShadows_destroy(shadows[j]);
-			errno = prevErrno;
-			return nullptr;
+			shadowCount = i;
+			goto error;
 		}
 
 		shadows[i] = lightShadows;
 	}
 
-	return dsSceneShadowManager_create(allocator, shadows, shadowCount);
+	shadowManager = dsSceneShadowManager_create(allocator, shadows, shadowCount);
+	if (heapShadows)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, shadows));
+	return shadowManager;
+
+error:
+	// Guarantee errno is preserved.
+	int prevErrno = errno;
+	// shadowCount should be set to the number that needs to be cleaned up.
+	for (uint32_t i = 0; i < shadowCount; ++i)
+		dsSceneLightShadows_destroy(shadows[i]);
+	if (heapShadows)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, shadows));
+	errno = prevErrno;
+	return nullptr;
 }

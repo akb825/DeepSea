@@ -36,6 +36,9 @@
 
 #include <string.h>
 
+// 2048 regions is ~112 KB of stack space. After that use heap space.
+#define MAX_STACK_REGIONS 2048
+
 static bool copyDataCommandBuffer(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
 	size_t offset, const void* data, size_t size)
 {
@@ -686,8 +689,7 @@ bool dsVkGfxBuffer_copyToTexture(dsResourceManager* resourceManager, dsCommandBu
 		return false;
 	}
 
-	// 1024 regions is ~56 KB of stack space. After that use heap space.
-	bool heapRegions = regionCount > 1024;
+	bool heapRegions = regionCount > MAX_STACK_REGIONS;
 	dsAllocator* scratchAllocator = resourceManager->allocator;
 	VkBufferImageCopy* imageCopies;
 	if (heapRegions)

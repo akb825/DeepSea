@@ -2076,6 +2076,11 @@ struct dsRenderer
 	uint32_t maxColorAttachments;
 
 	/**
+	 * @brief The maximum number of input attachments when drawing a render subpass.
+	 */
+	uint32_t maxInputAttachments;
+
+	/**
 	 * @brief The maximum number of samples for render surfaces.
 	 */
 	uint32_t maxSurfaceSamples;

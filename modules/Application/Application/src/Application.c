@@ -379,7 +379,7 @@ uint32_t dsApplication_showMessageBox(dsApplication* application, dsWindow* pare
 	uint32_t buttonCount, uint32_t enterButton, uint32_t escapeButton)
 {
 	if (!application || !application->showMessageBoxFunc || !title || !message || !buttons ||
-		buttonCount == 0 ||
+		buttonCount == 0 || buttonCount > DS_MAX_MESSAGE_BOX_BUTTONS ||
 		(enterButton != DS_MESSAGE_BOX_NO_BUTTON && enterButton >= buttonCount) ||
 		(escapeButton != DS_MESSAGE_BOX_NO_BUTTON && escapeButton >= buttonCount))
 	{

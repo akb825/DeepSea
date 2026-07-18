@@ -522,7 +522,8 @@ uint32_t dsSceneLightSet_findBrightestLights(const dsSceneLight** outBrightestLi
 	uint32_t outLightCount, bool* outHasMainLight, const dsSceneLightSet* lightSet,
 	const dsVector3xf* position)
 {
-	if (!outBrightestLights || outLightCount == 0 || !outHasMainLight || !lightSet || !position)
+	if (!outBrightestLights || outLightCount == 0 || outLightCount > DS_MAX_BRIGHTEST_LIGHTS ||
+		!outHasMainLight || !lightSet || !position)
 	{
 		errno = EINVAL;
 		return 0;

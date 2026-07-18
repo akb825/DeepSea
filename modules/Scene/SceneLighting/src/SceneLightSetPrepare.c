@@ -35,6 +35,8 @@
 
 #include <string.h>
 
+#define MAX_STACK_NAME_LEN 131072
+
 typedef struct Entry
 {
 	const dsSceneTreeNode* treeNode;
@@ -98,6 +100,7 @@ static uint64_t dsSceneLightSetPrepare_addNode(dsSceneItemList* itemList, dsScen
 
 	const dsSceneLightNode* lightNode = (const dsSceneLightNode*)node;
 	const char* baseName = dsSceneLightNode_getLightBaseName(lightNode);
+	bool heapLightName = false;
 	const char* lightName;
 	if (dsSceneLightNode_getSingleInstance(lightNode))
 		lightName = baseName;
@@ -106,12 +109,22 @@ static uint64_t dsSceneLightSetPrepare_addNode(dsSceneItemList* itemList, dsScen
 		size_t baseNameLen = strlen(baseName);
 		const size_t maxExtraLen = 21; // Max 64-bit value and a period.
 		size_t fullNameLen = baseNameLen + maxExtraLen + 1;
-		lightName = DS_ALLOCATE_STACK_OBJECT_ARRAY(char, fullNameLen);
+		heapLightName = fullNameLen > MAX_STACK_NAME_LEN;
+		if (heapLightName)
+		{
+			lightName = DS_ALLOCATE_OBJECT_ARRAY(itemList->allocator, char, fullNameLen);
+			if (!lightName)
+				return DS_NO_SCENE_NODE;
+		}
+		else
+			lightName = DS_ALLOCATE_STACK_OBJECT_ARRAY(char, fullNameLen);
 		snprintf((char*)lightName, fullNameLen, "%s.%llu", baseName,
 			(unsigned long long)prepare->nextNodeID);
 	}
 
 	dsSceneLight* light = dsSceneLightSet_addLightName(prepare->lightSet, lightName);
+	if (heapLightName)
+		DS_VERIFY(dsAllocator_free(itemList->allocator, (void*)lightName));
 	if (!light)
 	{
 		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't create light '%s' for light node.",

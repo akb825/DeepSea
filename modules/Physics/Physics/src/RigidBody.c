@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-202k Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@
 
 #include <string.h>
 
-#define MAX_STACK_MASS_PROPERTIES 256
+#define MAX_STACK_MASS_PROPERTIES 1024
 #define SCALE_EPSILON 1e-5f
 
 static bool hasMassProperties(const dsRigidBody* rigidBody)
@@ -48,9 +48,7 @@ static bool hasMassProperties(const dsRigidBody* rigidBody)
 		(rigidBody->flags & dsRigidBodyFlags_MutableMotionType);
 }
 
-// For some reason GCC (at least with 13.2) complains that massPropertiesPtrs is maybe
-// uninitialized, despite very clearly being assigned in all code paths, even if explicitly
-// initializing to NULL on declaration. Only option is to disable the warning for the function.
+// GCC will sometimes give bogus warnings about "maybe uninitialized" when using alloca().
 #if DS_GCC
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
@@ -65,8 +63,8 @@ static bool computeDefaultMassProperties(
 	const dsPhysicsMassProperties** massPropertiesPtrs;
 	if (heapMassProperties)
 	{
-		shapeMassProperties = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsPhysicsMassProperties,
-			rigidBody->shapeCount);
+		shapeMassProperties = DS_ALLOCATE_OBJECT_ARRAY(
+			scratchAllocator, dsPhysicsMassProperties, rigidBody->shapeCount);
 		if (!shapeMassProperties)
 			return false;
 
@@ -80,10 +78,10 @@ static bool computeDefaultMassProperties(
 	}
 	else
 	{
-		shapeMassProperties =
-			DS_ALLOCATE_STACK_OBJECT_ARRAY(dsPhysicsMassProperties, rigidBody->shapeCount);
-		massPropertiesPtrs =
-			DS_ALLOCATE_STACK_OBJECT_ARRAY(const dsPhysicsMassProperties*, rigidBody->shapeCount);
+		shapeMassProperties = DS_ALLOCATE_STACK_OBJECT_ARRAY(
+			dsPhysicsMassProperties, rigidBody->shapeCount);
+		massPropertiesPtrs = DS_ALLOCATE_STACK_OBJECT_ARRAY(
+			const dsPhysicsMassProperties*, rigidBody->shapeCount);
 	}
 
 	for (uint32_t i = 0; i < rigidBody->shapeCount; ++i)
@@ -106,8 +104,8 @@ static bool computeDefaultMassProperties(
 			shape->hasRotate ? &shape->rotate : NULL, shape->hasScale ? &shape->scale : NULL));
 	}
 
-	DS_VERIFY(dsPhysicsMassProperties_initializeCombined(outMassProperties, massPropertiesPtrs,
-		rigidBody->shapeCount));
+	DS_VERIFY(dsPhysicsMassProperties_initializeCombined(
+		outMassProperties, massPropertiesPtrs, rigidBody->shapeCount));
 
 	if (heapMassProperties)
 	{

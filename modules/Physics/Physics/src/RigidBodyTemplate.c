@@ -39,7 +39,7 @@
 
 #include <string.h>
 
-#define MAX_STACK_MASS_PROPERTIES 256
+#define MAX_STACK_MASS_PROPERTIES 1024
 
 static bool hasMassProperties(const dsRigidBodyTemplate* rigidBodyTemplate)
 {
@@ -47,9 +47,7 @@ static bool hasMassProperties(const dsRigidBodyTemplate* rigidBodyTemplate)
 		(rigidBodyTemplate->flags & dsRigidBodyFlags_MutableMotionType);
 }
 
-// For some reason GCC (at least with 13.2) complains that massPropertiesPtrs is maybe
-// uninitialized, despite very clearly being assigned in all code paths, even if explicitly
-// initializing to NULL on declaration. Only option is to disable the warning for the function.
+// GCC will sometimes give bogus warnings about "maybe uninitialized" when using alloca().
 #if DS_GCC
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
@@ -78,10 +76,10 @@ static bool computeDefaultMassProperties(dsRigidBodyTemplate* rigidBodyTemplate)
 	}
 	else
 	{
-		shapeMassProperties =
-			DS_ALLOCATE_STACK_OBJECT_ARRAY(dsPhysicsMassProperties, rigidBodyTemplate->shapeCount);
-		massPropertiesPtrs = DS_ALLOCATE_STACK_OBJECT_ARRAY(const dsPhysicsMassProperties*,
-			rigidBodyTemplate->shapeCount);
+		shapeMassProperties = DS_ALLOCATE_STACK_OBJECT_ARRAY(
+			dsPhysicsMassProperties, rigidBodyTemplate->shapeCount);
+		massPropertiesPtrs = DS_ALLOCATE_STACK_OBJECT_ARRAY(
+			const dsPhysicsMassProperties*, rigidBodyTemplate->shapeCount);
 	}
 
 	for (uint32_t i = 0; i < rigidBodyTemplate->shapeCount; ++i)

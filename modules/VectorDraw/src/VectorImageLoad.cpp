@@ -18,6 +18,7 @@
 
 #include "VectorScratchDataImpl.h"
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -65,24 +66,39 @@ static void printFlatbufferError(const char* name)
 }
 
 static dsGradient* readGradient(dsAllocator* allocator,
-	const flatbuffers::Vector<const DeepSeaVectorDraw::GradientStop*>& stopArray, const char* name)
+	const flatbuffers::Vector<const DeepSeaVectorDraw::GradientStop*>& stopArray, const char* name,
+	dsAllocator* scratchAllocator)
 {
+	constexpr uint32_t maxStackStops = 16384;
+
 	uint32_t stopCount = stopArray.size();
 	if (stopCount == 0)
 	{
-		errno = EFORMAT;
 		printFlatbufferError(name);
+		errno = EFORMAT;
 		return nullptr;
 	}
 
-	auto gradientStops = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsGradientStop, stopCount);
+	bool heapStops = stopCount > maxStackStops;
+	dsGradientStop* gradientStops;
+	if (heapStops)
+	{
+		gradientStops = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsGradientStop, stopCount);
+		if (!gradientStops)
+			return nullptr;
+	}
+	else
+		gradientStops = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsGradientStop, stopCount);
+
 	for (uint32_t i = 0; i < stopCount; ++i)
 	{
 		auto stopRef = stopArray[i];
 		if (!stopRef)
 		{
-			errno = EFORMAT;
 			printFlatbufferError(name);
+			if (heapStops)
+				DS_VERIFY(dsAllocator_free(scratchAllocator, gradientStops));
+			errno = EFORMAT;
 			return nullptr;
 		}
 
@@ -90,7 +106,10 @@ static dsGradient* readGradient(dsAllocator* allocator,
 		gradientStops[i].color = reinterpret_cast<const dsColor&>(stopRef->color());
 	}
 
-	return dsGradient_create(allocator, gradientStops, stopCount);
+	dsGradient* gradient = dsGradient_create(allocator, gradientStops, stopCount);
+	if (heapStops)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, gradientStops));
+	return gradient;
 }
 
 static bool readMaterials(dsVectorMaterialSet** outMaterials, dsAllocator* allocator,
@@ -115,8 +134,8 @@ static bool readMaterials(dsVectorMaterialSet** outMaterials, dsAllocator* alloc
 		return true;
 	}
 
-	dsVectorMaterialSet* materials = dsVectorMaterialSet_create(allocator, resourceManager,
-		resourceAllocator, totalMaterialCount, srgb);
+	dsVectorMaterialSet* materials = dsVectorMaterialSet_create(
+		allocator, resourceManager, resourceAllocator, totalMaterialCount, srgb);
 	if (!materials)
 		return false;
 
@@ -125,9 +144,9 @@ static bool readMaterials(dsVectorMaterialSet** outMaterials, dsAllocator* alloc
 		auto colorRef = (*colorMaterials)[i];
 		if (!colorRef)
 		{
-			errno = EFORMAT;
 			printFlatbufferError(name);
 			dsVectorMaterialSet_destroy(materials);
+			errno = EFORMAT;
 			return false;
 		}
 
@@ -141,18 +160,20 @@ static bool readMaterials(dsVectorMaterialSet** outMaterials, dsAllocator* alloc
 		}
 	}
 
+	dsAllocator* scratchAllocator = resourceManager->allocator;
 	for (uint32_t i = 0; i < linearGradientCount; ++i)
 	{
 		auto linearGradientRef = (*linearGradients)[i];
 		if (!linearGradientRef)
 		{
-			errno = EFORMAT;
 			printFlatbufferError(name);
 			dsVectorMaterialSet_destroy(materials);
+			errno = EFORMAT;
 			return false;
 		}
 
-		dsGradient* gradient = readGradient(allocator, *linearGradientRef->gradient(), name);
+		dsGradient* gradient = readGradient(
+			allocator, *linearGradientRef->gradient(), name, scratchAllocator);
 		if (!gradient)
 		{
 			dsVectorMaterialSet_destroy(materials);
@@ -166,8 +187,8 @@ static bool readMaterials(dsVectorMaterialSet** outMaterials, dsAllocator* alloc
 			static_cast<dsGradientEdge>(linearGradientRef->edge()),
 			static_cast<dsVectorMaterialSpace>(linearGradientRef->coordinateSpace()),
 			reinterpret_cast<const dsMatrix33f*>(linearGradientRef->transform())));
-		if (!dsVectorMaterialSet_addMaterial(materials, linearGradientRef->name()->c_str(),
-			&material, true))
+		if (!dsVectorMaterialSet_addMaterial(
+				materials, linearGradientRef->name()->c_str(), &material, true))
 		{
 			dsGradient_destroy(gradient);
 			dsVectorMaterialSet_destroy(materials);
@@ -180,13 +201,14 @@ static bool readMaterials(dsVectorMaterialSet** outMaterials, dsAllocator* alloc
 		auto radialGradientRef = (*radialGradients)[i];
 		if (!radialGradientRef)
 		{
-			errno = EFORMAT;
 			printFlatbufferError(name);
 			dsVectorMaterialSet_destroy(materials);
+			errno = EFORMAT;
 			return false;
 		}
 
-		dsGradient* gradient = readGradient(allocator, *radialGradientRef->gradient(), name);
+		dsGradient* gradient = readGradient(
+			allocator, *radialGradientRef->gradient(), name, scratchAllocator);
 		if (!gradient)
 		{
 			dsVectorMaterialSet_destroy(materials);
@@ -202,8 +224,8 @@ static bool readMaterials(dsVectorMaterialSet** outMaterials, dsAllocator* alloc
 			static_cast<dsGradientEdge>(radialGradientRef->edge()),
 			static_cast<dsVectorMaterialSpace>(radialGradientRef->coordinateSpace()),
 			reinterpret_cast<const dsMatrix33f*>(radialGradientRef->transform())));
-		if (!dsVectorMaterialSet_addMaterial(materials, radialGradientRef->name()->c_str(),
-				&material, true))
+		if (!dsVectorMaterialSet_addMaterial(
+				materials, radialGradientRef->name()->c_str(), &material, true))
 		{
 			dsGradient_destroy(gradient);
 			dsVectorMaterialSet_destroy(materials);
@@ -237,7 +259,6 @@ static dsFont* findFont(dsVectorResources* const* resources, uint32_t resourceCo
 		}
 	}
 
-	errno = ENOTFOUND;
 	if (name)
 	{
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG,
@@ -249,6 +270,7 @@ static dsFont* findFont(dsVectorResources* const* resources, uint32_t resourceCo
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG,
 			"Font '%s' isn't present in vector resources for vector image.", fontName);
 	}
+	errno = ENOTFOUND;
 	return nullptr;
 }
 
@@ -274,7 +296,6 @@ static dsTexture* findTexture(dsVectorResources* const* resources, uint32_t reso
 		}
 	}
 
-	errno = ENOTFOUND;
 	if (name)
 	{
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG,
@@ -286,6 +307,7 @@ static dsTexture* findTexture(dsVectorResources* const* resources, uint32_t reso
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG,
 			"Texture '%s' isn't present in vector resources for vector image.", textureName);
 	}
+	errno = ENOTFOUND;
 	return nullptr;
 }
 
@@ -298,8 +320,8 @@ static dsVectorImage* readVectorImage(dsAllocator* allocator, dsAllocator* resou
 	uint32_t commandCount = commandList->size();
 	if (commandCount == 0)
 	{
-		errno = EFORMAT;
 		printFlatbufferError(name);
+		errno = EFORMAT;
 		return nullptr;
 	}
 
@@ -313,8 +335,8 @@ static dsVectorImage* readVectorImage(dsAllocator* allocator, dsAllocator* resou
 		auto commandRef = (*commandList)[i];
 		if (!commandRef)
 		{
-			errno = EFORMAT;
 			printFlatbufferError(name);
+			errno = EFORMAT;
 			return nullptr;
 		}
 
@@ -490,8 +512,8 @@ static dsVectorImage* readVectorImage(dsAllocator* allocator, dsAllocator* resou
 				break;
 			}
 			default:
-				errno = EFORMAT;
 				printFlatbufferError(name);
+				errno = EFORMAT;
 				return nullptr;
 		}
 	}
@@ -523,8 +545,8 @@ dsVectorImage* dsVectorImage_loadImpl(dsAllocator* allocator, dsAllocator* resou
 	flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(data), size);
 	if (!DeepSeaVectorDraw::VerifyVectorImageBuffer(verifier))
 	{
-		errno = EFORMAT;
 		printFlatbufferError(name);
+		errno = EFORMAT;
 		return nullptr;
 	}
 

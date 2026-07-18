@@ -205,7 +205,21 @@ bool dsPhysicsConvexHull_initialize(dsPhysicsConvexHull* convexHull, dsPhysicsEn
 	}
 	else
 		indices = DS_ALLOCATE_STACK_OBJECT_ARRAY(uint32_t, indexCount);
-	uint32_t* faceVertices = DS_ALLOCATE_STACK_OBJECT_ARRAY(uint32_t, maxFaceVertices);
+
+	uint32_t* faceVertices;
+	bool heapVertices = maxFaceVertices > MAX_STACK_INDICES;
+	if (heapVertices)
+	{
+		faceVertices = DS_ALLOCATE_OBJECT_ARRAY(engine->allocator, uint32_t, indexCount);
+		if (!faceVertices)
+		{
+			if (heapIndices)
+				DS_VERIFY(dsAllocator_free(engine->allocator, indices));
+			return false;
+		}
+	}
+	else
+		faceVertices = DS_ALLOCATE_STACK_OBJECT_ARRAY(uint32_t, maxFaceVertices);
 
 	for (uint32_t i = 0, index = 0; i < convexHull->faceCount; ++i)
 	{
@@ -232,6 +246,8 @@ bool dsPhysicsConvexHull_initialize(dsPhysicsConvexHull* convexHull, dsPhysicsEn
 
 	if (heapIndices)
 		DS_VERIFY(dsAllocator_free(engine->allocator, indices));
+	if (heapVertices)
+		DS_VERIFY(dsAllocator_free(engine->allocator, faceVertices));
 
 	DS_VERIFY(dsPhysicsShape_initialize((dsPhysicsShape*)convexHull, engine, allocator,
 		dsPhysicsConvexHull_type(), &bounds, impl,

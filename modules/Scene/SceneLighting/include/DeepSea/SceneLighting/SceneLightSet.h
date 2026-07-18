@@ -39,6 +39,14 @@ extern "C"
  */
 
 /**
+ * @brief The maximum number of brightest lights that can be queried at once.
+ *
+ * In general, it is expected only a small number of lights would be queried. This is inteded as a
+ * sanity check to guarantee temporary memory can be allocated on the stack.
+ */
+#define DS_MAX_BRIGHTEST_LIGHTS 1024
+
+/**
  * @brief The type name for a scene light set.
  */
 DS_SCENELIGHTING_EXPORT extern const char* const dsSceneLightSet_typeName;
@@ -271,7 +279,8 @@ DS_SCENELIGHTING_EXPORT float dsSceneLightSet_getIntensityThreshold(
  * The main light will always be assigned to index 0 if it's present and visible.
  *
  * @param[out] outBrightestLights The output to contain the brightest lights.
- * @param outLightCount The maximum number of lights in outBrightestLIghts.
+ * @param outLightCount The maximum number of lights in outBrightestLIghts. This must be at most
+ *     DS_MAX_BRIGHTEST_LIGHTS.
  * @param[out] outHasMainLight Whether or not the main light is in the output.
  * @param lightSet The light set.
  * @param position The position to use to evaluate which lights are brightest.

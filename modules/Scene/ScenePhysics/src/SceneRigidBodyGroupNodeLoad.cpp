@@ -16,8 +16,9 @@
 
 #include "SceneRigidBodyGroupNodeLoad.h"
 
-#include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/StackAllocator.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
@@ -60,15 +61,45 @@ dsSceneNode* dsSceneRigidBodyGroupNode_load(const dsSceneLoadContext* loadContex
 		return nullptr;
 	}
 
+	constexpr uint32_t maxStackItems = 2048;
+	constexpr uint32_t maxStackConstraints = 1024;
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
+
 	auto fbRigidBodyGroupNode = DeepSeaScenePhysics::GetRigidBodyGroupNode(data);
 
 	auto fbRigidBodyTemplates = fbRigidBodyGroupNode->rigidBodyTemplates();
 	uint32_t rigidBodyCount = fbRigidBodyTemplates ? fbRigidBodyTemplates->size() : 0;
-	dsNamedSceneRigidBodyTemplate* rigidBodyTemplates = NULL;
+	bool heapRigidBodies = rigidBodyCount > maxStackItems;
+	dsNamedSceneRigidBodyTemplate* rigidBodyTemplates = nullptr;
+
+	auto fbConstraints = fbRigidBodyGroupNode->constraints();
+	uint32_t constraintCount = fbConstraints ? fbConstraints->size() : 0;
+	bool heapConstraints = constraintCount > maxStackConstraints;
+	dsNamedScenePhysicsConstraint* constraints = nullptr;
+
+	auto fbItemLists = fbRigidBodyGroupNode->itemLists();
+	uint32_t itemListCount = fbItemLists ? fbItemLists->size() : 0U;
+	bool heapItemLists = itemListCount > maxStackItems;
+	const char** itemLists = nullptr;
+
+	auto fbChildren = fbRigidBodyGroupNode->children();
+	dsSceneNode* node;
+
 	if (rigidBodyCount > 0)
 	{
-		rigidBodyTemplates =  DS_ALLOCATE_STACK_OBJECT_ARRAY(
-			dsNamedSceneRigidBodyTemplate, rigidBodyCount);
+		if (heapRigidBodies)
+		{
+			rigidBodyTemplates =  DS_ALLOCATE_OBJECT_ARRAY(
+				scratchAllocator, dsNamedSceneRigidBodyTemplate, rigidBodyCount);
+			if (!rigidBodyTemplates)
+				goto error;
+		}
+		else
+		{
+			rigidBodyTemplates =  DS_ALLOCATE_STACK_OBJECT_ARRAY(
+				dsNamedSceneRigidBodyTemplate, rigidBodyCount);
+		}
+
 		for (uint32_t i = 0; i < rigidBodyCount; ++i)
 		{
 			auto fbRigidBodyTemplateName = (*fbRigidBodyTemplates)[i];
@@ -77,7 +108,7 @@ dsSceneNode* dsSceneRigidBodyGroupNode_load(const dsSceneLoadContext* loadContex
 				DS_LOG_ERROR(DS_SCENE_PHYSICS_LOG_TAG,
 					"Rigid body group node rigid body template name is null.");
 				errno = EFORMAT;
-				return nullptr;
+				goto error;
 			}
 
 			const char* rigidBodyTemplateName = fbRigidBodyTemplateName->c_str();
@@ -91,7 +122,7 @@ dsSceneNode* dsSceneRigidBodyGroupNode_load(const dsSceneLoadContext* loadContex
 				DS_LOG_ERROR_F(DS_SCENE_PHYSICS_LOG_TAG, "Couldn't find rigid body template '%s'.",
 					rigidBodyTemplateName);
 				errno = ENOTFOUND;
-				return nullptr;
+				goto error;
 			}
 
 			dsNamedSceneRigidBodyTemplate* rigidBodyTemplate = rigidBodyTemplates + i;
@@ -102,14 +133,21 @@ dsSceneNode* dsSceneRigidBodyGroupNode_load(const dsSceneLoadContext* loadContex
 		}
 	}
 
-
-	auto fbConstraints = fbRigidBodyGroupNode->constraints();
-	uint32_t constraintCount = fbConstraints ? fbConstraints->size() : 0;
-	dsNamedScenePhysicsConstraint* constraints = NULL;
 	if (constraintCount > 0)
 	{
-		constraints =  DS_ALLOCATE_STACK_OBJECT_ARRAY(
-			dsNamedScenePhysicsConstraint, constraintCount);
+		if (heapConstraints)
+		{
+			constraints =  DS_ALLOCATE_OBJECT_ARRAY(
+				scratchAllocator, dsNamedScenePhysicsConstraint, constraintCount);
+			if (!constraints)
+				goto error;
+		}
+		else
+		{
+			constraints =  DS_ALLOCATE_STACK_OBJECT_ARRAY(
+				dsNamedScenePhysicsConstraint, constraintCount);
+		}
+
 		for (uint32_t i = 0; i < constraintCount; ++i)
 		{
 			auto fbConstraintName = (*fbConstraints)[i];
@@ -118,7 +156,7 @@ dsSceneNode* dsSceneRigidBodyGroupNode_load(const dsSceneLoadContext* loadContex
 				DS_LOG_ERROR(DS_SCENE_PHYSICS_LOG_TAG,
 					"Rigid body group node constraint name is null.");
 				errno = EFORMAT;
-				return nullptr;
+				goto error;
 			}
 
 			const char* constraintName = fbConstraintName->c_str();
@@ -132,7 +170,7 @@ dsSceneNode* dsSceneRigidBodyGroupNode_load(const dsSceneLoadContext* loadContex
 				DS_LOG_ERROR_F(DS_SCENE_PHYSICS_LOG_TAG, "Couldn't find physics constraint '%s'.",
 					constraintName);
 				errno = ENOTFOUND;
-				return nullptr;
+				goto error;
 			}
 
 			auto scenePhysicsConstraint =
@@ -151,12 +189,17 @@ dsSceneNode* dsSceneRigidBodyGroupNode_load(const dsSceneLoadContext* loadContex
 		}
 	}
 
-	auto fbItemLists = fbRigidBodyGroupNode->itemLists();
-	uint32_t itemListCount = fbItemLists ? fbItemLists->size() : 0U;
-	const char** itemLists = NULL;
 	if (itemListCount > 0)
 	{
-		itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+		if (heapItemLists)
+		{
+			itemLists = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, const char*, itemListCount);
+			if (!itemLists)
+				goto error;
+		}
+		else
+			itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+
 		for (uint32_t i = 0; i < itemListCount; ++i)
 		{
 			auto fbItemList = (*fbItemLists)[i];
@@ -165,20 +208,25 @@ dsSceneNode* dsSceneRigidBodyGroupNode_load(const dsSceneLoadContext* loadContex
 				DS_LOG_ERROR(DS_SCENE_PHYSICS_LOG_TAG,
 					"Rigid body group node item list name is null.");
 				errno = EFORMAT;
-				return nullptr;
+				goto error;
 			}
 
 			itemLists[i] = fbItemList->c_str();
 		}
 	}
 
-	auto node = reinterpret_cast<dsSceneNode*>(dsSceneRigidBodyGroupNode_create(allocator,
+	node = reinterpret_cast<dsSceneNode*>(dsSceneRigidBodyGroupNode_create(allocator,
 		DeepSeaPhysics::convert(fbRigidBodyGroupNode->motionType()), rigidBodyTemplates,
 		rigidBodyCount, constraints, constraintCount, itemLists, itemListCount));
+	if (heapRigidBodies)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, rigidBodyTemplates));
+	if (heapConstraints)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, constraints));
+	if (heapItemLists)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, itemLists));
 	if (!node)
 		return nullptr;
 
-	auto fbChildren = fbRigidBodyGroupNode->children();
 	if (fbChildren)
 	{
 		for (auto fbNode : *fbChildren)
@@ -206,5 +254,12 @@ dsSceneNode* dsSceneRigidBodyGroupNode_load(const dsSceneLoadContext* loadContex
 		}
 	}
 
-	return node;
+error:
+	if (heapRigidBodies)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, rigidBodyTemplates));
+	if (heapConstraints)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, constraints));
+	if (heapItemLists)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, itemLists));
+	return nullptr;
 }

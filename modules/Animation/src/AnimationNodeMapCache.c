@@ -52,6 +52,8 @@ typedef struct WeightedTransform
 	float totalScaleWeight;
 } WeightedTransform;
 
+#define MAX_STACK_TRANSFORMS 2048
+
 static inline uint32_t findEndKeyframe(
 	const float* keyframeTimes, uint32_t keyframeCount, float time)
 {
@@ -775,12 +777,22 @@ bool dsAnimationNodeMapCache_applyAnimation(dsAnimationNodeMapCache* cache,
 		return true;
 	}
 
-	// Expect we don't have 100s of thousands of nodes.
 	uint32_t transformCount = tree->nodeCount;
 	if (computePrev)
 		transformCount *= 2;
-	WeightedTransform* transforms =
-		DS_ALLOCATE_STACK_OBJECT_ARRAY(WeightedTransform, transformCount);
+	WeightedTransform* transforms;
+	bool heapTransforms = transformCount > MAX_STACK_TRANSFORMS;
+	if (heapTransforms)
+	{
+		transforms = DS_ALLOCATE_OBJECT_ARRAY(cache->allocator, WeightedTransform, transformCount);
+		if (!transforms)
+		{
+			DS_VERIFY(dsReadWriteSpinlock_unlockRead(&cache->lock));
+			return false;
+		}
+	}
+	else
+		transforms = DS_ALLOCATE_STACK_OBJECT_ARRAY(WeightedTransform, transformCount);
 	memset(transforms, 0, sizeof(WeightedTransform)*transformCount);
 	WeightedTransform* prevTransforms = computePrev ? transforms + tree->nodeCount : NULL;
 
@@ -800,6 +812,9 @@ bool dsAnimationNodeMapCache_applyAnimation(dsAnimationNodeMapCache* cache,
 		else
 			node->prevTransform = node->prevTransform;
 	}
+
+	if (heapTransforms)
+		dsAllocator_free(cache->allocator, transforms);
 
 	DS_VERIFY(dsReadWriteSpinlock_unlockRead(&cache->lock));
 	return true;

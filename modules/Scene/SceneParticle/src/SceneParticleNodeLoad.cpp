@@ -18,6 +18,7 @@
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
@@ -55,6 +56,9 @@ dsSceneNode* dsSceneParticleNode_load(const dsSceneLoadContext* loadContext,
 		return nullptr;
 	}
 
+	constexpr uint32_t maxStackItemLists = 16384;
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
+
 	auto fbParticleNode = DeepSeaSceneParticle::GetParticleNode(data);
 
 	const char* factoryName = fbParticleNode->particleEmitterFactory()->c_str();
@@ -75,17 +79,28 @@ dsSceneNode* dsSceneParticleNode_load(const dsSceneLoadContext* loadContext,
 
 	auto fbItemLists = fbParticleNode->itemLists();
 	uint32_t itemListCount = fbItemLists ? fbItemLists->size() : 0U;
-	const char** itemLists = NULL;
+	bool heapItemLists = itemListCount > maxStackItemLists;
+	const char** itemLists = nullptr;
 	if (itemListCount > 0)
 	{
-		itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+		if (heapItemLists)
+		{
+			itemLists = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, const char*, itemListCount);
+			if (!itemLists)
+				return nullptr;
+		}
+		else
+			itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+
 		for (uint32_t i = 0; i < itemListCount; ++i)
 		{
 			auto fbItemList = (*fbItemLists)[i];
 			if (!fbItemList)
 			{
-				errno = EFORMAT;
 				DS_LOG_ERROR(DS_SCENE_PARTICLE_LOG_TAG, "Particle node item list name is null.");
+				if (!heapItemLists)
+					DS_VERIFY(dsAllocator_free(scratchAllocator, itemLists));
+				errno = EFORMAT;
 				return nullptr;
 			}
 
@@ -93,7 +108,10 @@ dsSceneNode* dsSceneParticleNode_load(const dsSceneLoadContext* loadContext,
 		}
 	}
 
-	return (dsSceneNode*)dsSceneParticleNode_create(allocator, allocator,
+	auto node = reinterpret_cast<dsSceneNode*>(dsSceneParticleNode_create(allocator, allocator,
 		factory->createEmitterFunc, factory->updateEmitterFunc, factory->userData, nullptr,
-		itemLists, itemListCount);
+		itemLists, itemListCount));
+	if (heapItemLists)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, itemLists));
+	return node;
 }

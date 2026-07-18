@@ -58,19 +58,37 @@ static void setString(const char*& string, const flatbuffers::String* fbString)
 		string = fbString->c_str();
 }
 
+// GCC will sometimes give bogus warnings about "maybe uninitialized" when using alloca().
+#if DS_GCC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+
 static dsVectorShaderModule* loadShaderModule(
 	dsResourceManager* resourceManager, dsAllocator* allocator,
 	const FlatbufferVector<DeepSeaScene::VersionedShaderModule>* shaderModules,
 	const dsMaterialElement* extraElements, uint32_t extraElementCount,
 	void* relativePathUserData,
 	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
-	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc)
+	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc,
+	dsAllocator* scratchAllocator)
 {
 	if (!shaderModules)
 		return nullptr;
 
+	constexpr uint32_t maxStackShaderModules = 8192;
+
 	uint32_t shaderModuleCount = shaderModules->size();
-	auto versionStrings = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, shaderModuleCount);
+	bool heapVersionStrings = shaderModuleCount > maxStackShaderModules;
+	const char** versionStrings;
+	if (heapVersionStrings)
+	{
+		versionStrings = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, const char*, shaderModuleCount);
+		if (!versionStrings)
+			return nullptr;
+	}
+	else
+		versionStrings = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, shaderModuleCount);
 	for (uint32_t i = 0; i < shaderModuleCount; ++i)
 	{
 		auto fbShaderModule = (*shaderModules)[i];
@@ -78,13 +96,15 @@ static dsVectorShaderModule* loadShaderModule(
 	}
 
 	uint32_t versionIndex;
-	const char* versionString = dsRenderer_chooseShaderVersionString(&versionIndex,
-		resourceManager->renderer, versionStrings, shaderModuleCount);
+	const char* versionString = dsRenderer_chooseShaderVersionString(
+		&versionIndex, resourceManager->renderer, versionStrings, shaderModuleCount);
+	if (heapVersionStrings)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, versionStrings));
 	if (!versionString)
 	{
-		errno = ENOTFOUND;
 		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 			"No supported version found for vector shader module.");
+		errno = ENOTFOUND;
 		return nullptr;
 	}
 
@@ -115,11 +135,15 @@ static dsVectorShaderModule* loadShaderModule(
 	}
 	else
 	{
-		errno = EFORMAT;
 		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG, "No data provided for vector shader module.");
+		errno = EFORMAT;
 		return nullptr;
 	}
 }
+
+#if DS_GCC
+#pragma GCC diagnostic pop
+#endif
 
 void* dsSceneVectorShaders_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator*, dsAllocator* resourceAllocator,
@@ -130,10 +154,13 @@ void* dsSceneVectorShaders_load(const dsSceneLoadContext* loadContext,
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaSceneVectorDraw::VerifyVectorShadersBuffer(verifier))
 	{
-		errno = EFORMAT;
 		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Invalid vector shaders flatbuffer format.");
+		errno = EFORMAT;
 		return nullptr;
 	}
+
+	constexpr uint32_t maxStackExtraElements = 1365;
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
 
 	dsResourceManager* resourceManager =
 		dsSceneLoadContext_getRenderer(loadContext)->resourceManager;
@@ -141,11 +168,20 @@ void* dsSceneVectorShaders_load(const dsSceneLoadContext* loadContext,
 
 	auto fbExtraElements = fbVectorShaders->extraElements();
 	dsMaterialElement* extraElements = nullptr;
-	uint32_t extraElementCount = 0;
-	if (fbExtraElements)
+	uint32_t extraElementCount = fbExtraElements ? fbExtraElements->size() : 0;
+	bool heapExtraElements = extraElementCount > maxStackExtraElements;
+	if (extraElementCount > 0)
 	{
-		extraElementCount = fbExtraElements->size();
-		extraElements = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsMaterialElement, extraElementCount);
+		if (heapExtraElements)
+		{
+			extraElements = DS_ALLOCATE_OBJECT_ARRAY(
+				scratchAllocator, dsMaterialElement, extraElementCount);
+			if (!heapExtraElements)
+				return nullptr;
+		}
+		else
+			extraElements = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsMaterialElement, extraElementCount);
+
 		for (uint32_t i = 0; i < extraElementCount; ++i)
 		{
 			auto fbExtraElement = (*fbExtraElements)[i];
@@ -165,10 +201,12 @@ void* dsSceneVectorShaders_load(const dsSceneLoadContext* loadContext,
 						fbGroupDescName->c_str()) ||
 					resourceType != dsSceneResourceType_ShaderVariableGroupDesc)
 				{
-					errno = ENOTFOUND;
+					if (heapExtraElements)
+						DS_VERIFY(dsAllocator_free(scratchAllocator, extraElements));
 					DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 						"Couldn't find shader variable group description '%s'.",
 						fbGroupDescName->c_str());
+					errno = ENOTFOUND;
 					return nullptr;
 				}
 
@@ -181,7 +219,9 @@ void* dsSceneVectorShaders_load(const dsSceneLoadContext* loadContext,
 
 	dsVectorShaderModule* shaderModule = loadShaderModule(resourceManager, resourceAllocator,
 		fbVectorShaders->modules(), extraElements, extraElementCount, relativePathUserData,
-		openRelativePathStreamFunc, closeRelativePathStreamFunc);
+		openRelativePathStreamFunc, closeRelativePathStreamFunc, scratchAllocator);
+	if (heapExtraElements)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, extraElements));
 	if (!shaderModule)
 		return nullptr;
 

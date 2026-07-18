@@ -20,7 +20,6 @@
 #include "Resources/VkGfxBufferData.h"
 #include "Resources/VkResource.h"
 #include "Resources/VkResourceManager.h"
-#include "VkBarrierList.h"
 #include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
 #include "VkShared.h"
@@ -38,6 +37,9 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <string.h>
+
+// 1024 regions is ~72 KB of stack space. After that use heap space.
+#define MAX_STACK_REGIONS 1024
 
 inline static void adjustAlignment(size_t alignment, VkDeviceSize totalSize, VkDeviceSize* offset,
 	VkDeviceSize* size, size_t* rem)
@@ -845,8 +847,7 @@ bool dsVkTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* comma
 		return false;
 	}
 
-	// 1024 regions is ~72 KB of stack space. After that use heap space.
-	bool heapRegions = regionCount > 1024;
+	bool heapRegions = regionCount > MAX_STACK_REGIONS;
 	dsAllocator* scratchAllocator = resourceManager->allocator;
 	VkImageCopy* imageCopies;
 	if (heapRegions)
@@ -888,11 +889,11 @@ bool dsVkTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* comma
 		uint32_t layerCount, depthCount;
 		if (srcIs3D != dstIs3D && region->layers != 1)
 		{
+			DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG,
+				"Cannot copy between a 3D texture and non-3D texture with multiple layers.");
 			if (heapRegions)
 				DS_VERIFY(dsAllocator_free(scratchAllocator, imageCopies));
 			errno = EINVAL;
-			DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG,
-				"Cannot copy between a 3D texture and non-3D texture with multiple layers.");
 			return false;
 		}
 
@@ -987,8 +988,7 @@ bool dsVkTexture_copyToBuffer(dsResourceManager* resourceManager, dsCommandBuffe
 		return false;
 	}
 
-	// 1024 regions is ~56 KB of stack space. After that use heap space.
-	bool heapRegions = regionCount > 1024;
+	bool heapRegions = regionCount > MAX_STACK_REGIONS;
 	dsAllocator* scratchAllocator = resourceManager->allocator;
 	VkBufferImageCopy* imageCopies;
 	if (heapRegions)

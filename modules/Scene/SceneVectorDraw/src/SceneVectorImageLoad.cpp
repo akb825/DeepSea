@@ -60,11 +60,13 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaSceneVectorDraw::VerifyVectorImageBuffer(verifier))
 	{
-		errno = EFORMAT;
 		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Invalid scene vector image flatbuffer format.");
+		errno = EFORMAT;
 		return nullptr;
 	}
 
+	constexpr uint32_t maxStackResources = 16384;
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
 	dsResourceManager* resourceManager =
 		dsSceneLoadContext_getRenderer(loadContext)->resourceManager;
 	auto vectorLoadContext = reinterpret_cast<dsSceneVectorDrawLoadContext*>(userData);
@@ -95,47 +97,13 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 			resourceType != dsSceneResourceType_Custom ||
 			resource->type != dsSceneVectorMaterialSet_type())
 		{
-			errno = ENOTFOUND;
 			DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 				"Couldn't find vector scene material set '%s'.", fbSharedMaterials->c_str());
+			errno = ENOTFOUND;
 			return nullptr;
 		}
 
 		sharedMaterials = reinterpret_cast<dsVectorMaterialSet*>(resource->resource);
-	}
-
-	auto fbResources = fbVectorImage->resources();
-	dsVectorResources** resources = nullptr;
-	uint32_t resourceCount = 0;
-	if (fbResources)
-	{
-		resourceCount = fbResources->size();
-		resources = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsVectorResources*, resourceCount);
-		for (uint32_t i = 0; i < resourceCount; ++i)
-		{
-			auto fbResource = (*fbResources)[i];
-			if (!fbResource)
-			{
-				errno = EFORMAT;
-				DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Vector scene resource is unset.");
-				return nullptr;
-			}
-
-			dsCustomSceneResource* resource;
-			dsSceneResourceType resourceType;
-			if (!dsSceneLoadScratchData_findResource(&resourceType,
-					reinterpret_cast<void**>(&resource), scratchData, fbResource->c_str()) ||
-				resourceType != dsSceneResourceType_Custom ||
-				resource->type != dsSceneVectorResources_type())
-			{
-				errno = ENOTFOUND;
-				DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG,
-					"Couldn't find vector scene resource '%s'.", fbResource->c_str());
-				return nullptr;
-			}
-
-			resources[i] = reinterpret_cast<dsVectorResources*>(resource->resource);
-		}
 	}
 
 	auto fbShaders = fbVectorImage->vectorShaders();
@@ -148,13 +116,60 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 			resourceType != dsSceneResourceType_Custom ||
 			resource->type != dsSceneVectorShaders_type())
 		{
-			errno = ENOTFOUND;
 			DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 				"Couldn't find vector scene shaders '%s'.", fbShaders->c_str());
+			errno = ENOTFOUND;
 			return nullptr;
 		}
 
 		shaders = reinterpret_cast<dsVectorShaders*>(resource->resource);
+	}
+
+	auto fbResources = fbVectorImage->resources();
+	dsVectorResources** resources = nullptr;
+	uint32_t resourceCount = fbResources ? fbResources->size() : 0;
+	bool heapResources =resourceCount > maxStackResources;
+	if (resourceCount > 0)
+	{
+		if (heapResources)
+		{
+			resources = DS_ALLOCATE_OBJECT_ARRAY(
+				scratchAllocator, dsVectorResources*, resourceCount);
+			if (!resources)
+				return nullptr;
+		}
+		else
+			resources = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsVectorResources*, resourceCount);
+
+		for (uint32_t i = 0; i < resourceCount; ++i)
+		{
+			auto fbResource = (*fbResources)[i];
+			if (!fbResource)
+			{
+				DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Vector scene resource is unset.");
+				if (heapResources)
+					DS_VERIFY(dsAllocator_free(scratchAllocator, resources));
+				errno = EFORMAT;
+				return nullptr;
+			}
+
+			dsCustomSceneResource* resource;
+			dsSceneResourceType resourceType;
+			if (!dsSceneLoadScratchData_findResource(&resourceType,
+					reinterpret_cast<void**>(&resource), scratchData, fbResource->c_str()) ||
+				resourceType != dsSceneResourceType_Custom ||
+				resource->type != dsSceneVectorResources_type())
+			{
+				DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG,
+					"Couldn't find vector scene resource '%s'.", fbResource->c_str());
+				if (heapResources)
+					DS_VERIFY(dsAllocator_free(scratchAllocator, resources));
+				errno = ENOTFOUND;
+				return nullptr;
+			}
+
+			resources[i] = reinterpret_cast<dsVectorResources*>(resource->resource);
+		}
 	}
 
 	dsVectorImageInitResources initResources =
@@ -170,7 +185,7 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 		fbVectorImage->srgb()
 	};
 
-	dsVectorImage* vectorImage;
+	dsVectorImage* vectorImage = nullptr;
 	if (auto fileRef = fbVectorImage->image_as_FileReference())
 	{
 		vectorImage = dsVectorImage_loadResource(allocator, resourceAllocator, &initResources,
@@ -181,12 +196,12 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 	{
 		dsStream* stream = openRelativePathStreamFunc(
 			relativePathUserData, fbRelativePathRef->path()->c_str(), "rb");
-		if (!stream)
-			return nullptr;
-
-		vectorImage = dsVectorImage_loadStream(allocator, resourceAllocator, &initResources,
-			stream, vectorLoadContext->pixelSize, hasSize ? &size : nullptr);
-		closeRelativePathStreamFunc(relativePathUserData, stream);
+		if (stream)
+		{
+			vectorImage = dsVectorImage_loadStream(allocator, resourceAllocator, &initResources,
+				stream, vectorLoadContext->pixelSize, hasSize ? &size : nullptr);
+			closeRelativePathStreamFunc(relativePathUserData, stream);
+		}
 	}
 	else if (auto rawData = fbVectorImage->image_as_RawData())
 	{
@@ -198,8 +213,11 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 	{
 		errno = EFORMAT;
 		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG, "No data provided for vector image");
-		return nullptr;
 	}
+	if (heapResources)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, resources));
+	if (!vectorImage)
+		return nullptr;
 
 	return dsSceneVectorImage_create(allocator, vectorImage, shaders);
 }

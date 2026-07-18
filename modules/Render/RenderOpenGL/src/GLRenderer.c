@@ -659,8 +659,8 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	if (ANYGL_SUPPORTED(glDrawBuffers))
 	{
 		glGetIntegerv(GL_MAX_DRAW_BUFFERS, (GLint*)&baseRenderer->maxColorAttachments);
-		baseRenderer->maxColorAttachments = dsMin(baseRenderer->maxColorAttachments,
-			DS_MAX_ATTACHMENTS);
+		baseRenderer->maxColorAttachments = dsMin(
+			baseRenderer->maxColorAttachments, DS_MAX_ATTACHMENTS);
 	}
 	else
 		baseRenderer->maxColorAttachments = 1;
@@ -688,13 +688,16 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	renderer->curSurfaceType = GLSurfaceType_Left;
 	renderer->curFbo = 0;
 
-	baseRenderer->resourceManager = (dsResourceManager*)dsGLResourceManager_create(allocator,
-		renderer);
+	baseRenderer->resourceManager = (dsResourceManager*)dsGLResourceManager_create(
+		allocator, renderer);
 	if (!baseRenderer->resourceManager)
 	{
 		dsGLRenderer_destroy(baseRenderer);
 		return NULL;
 	}
+
+	// No native input attachment support, so same limit as max samplers per shader.
+	baseRenderer->maxInputAttachments = baseRenderer->resourceManager->maxSamplers;
 
 	baseRenderer->platform = resolvedPlatform;
 	if (ANYGL_GLES)
@@ -718,8 +721,8 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 			break;
 	}
 
-	baseRenderer->mainCommandBuffer = (dsCommandBuffer*)dsGLMainCommandBuffer_create(baseRenderer,
-		allocator);
+	baseRenderer->mainCommandBuffer = (dsCommandBuffer*)dsGLMainCommandBuffer_create(
+		baseRenderer, allocator);
 	if (!baseRenderer->mainCommandBuffer)
 	{
 		dsGLRenderer_destroy(baseRenderer);

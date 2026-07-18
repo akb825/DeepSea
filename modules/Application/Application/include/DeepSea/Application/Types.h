@@ -56,6 +56,11 @@ extern "C"
 #define DS_MESSAGE_BOX_NO_BUTTON ((uint32_t)-1)
 
 /**
+ * @brief The maximum number of buttons that can be used in a message box.
+ */
+#define DS_MAX_MESSAGE_BOX_BUTTONS 10
+
+/**
  * @brief Log tag used by the render library.
  */
 #define DS_APPLICATION_LOG_TAG "application"

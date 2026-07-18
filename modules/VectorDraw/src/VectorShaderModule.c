@@ -99,8 +99,8 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 	if (customElements && customElementCount > 0)
 	{
 		finalMaterialElementCount += customElementCount;
-		finalMaterialElements = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsMaterialElement,
-			finalMaterialElementCount);
+		finalMaterialElements = DS_ALLOCATE_STACK_OBJECT_ARRAY(
+			dsMaterialElement, finalMaterialElementCount);
 		memcpy(finalMaterialElements, materialElements,
 			sizeof(dsMaterialElement)*DS_ARRAY_SIZE(materialElements));
 		memcpy(finalMaterialElements + DS_ARRAY_SIZE(materialElements), customElements,

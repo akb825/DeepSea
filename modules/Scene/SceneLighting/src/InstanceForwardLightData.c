@@ -50,7 +50,7 @@ static bool isLightDescValid(const dsShaderVariableGroupDesc* lightDesc)
 		return false;
 
 	uint32_t lightCount = lightDesc->elements[0].count;
-	if (lightCount == 0)
+	if (lightCount == 0 || lightCount > DS_MAX_BRIGHTEST_LIGHTS)
 		return false;
 
 	for (uint32_t i = 0; i < lightDesc->elementCount; ++i)
@@ -105,23 +105,24 @@ static void dsInstanceForwardLightData_populateData(void* userData, const dsView
 	DS_ASSERT(lightCount > 0);
 
 	size_t size = 0;
-	size_t positionAndTypeOffset = dsMaterialType_addElementBlockSize(&size, dsMaterialType_Vec4,
-		lightCount);
-	size_t directionAndLinearFalloffOffset = dsMaterialType_addElementBlockSize(&size,
-		dsMaterialType_Vec4, lightCount);
-	size_t colorAndQuadraticFalloffOffset = dsMaterialType_addElementBlockSize(&size,
-		dsMaterialType_Vec4, lightCount);
-	size_t spotCosAnglesOffset = dsMaterialType_addElementBlockSize(&size, dsMaterialType_Vec2,
-		lightCount);
-	size_t ambientColorHasMainOffset = dsMaterialType_addElementBlockSize(&size,
-		dsMaterialType_Vec4, 0);
+	size_t positionAndTypeOffset = dsMaterialType_addElementBlockSize(
+		&size, dsMaterialType_Vec4, lightCount);
+	size_t directionAndLinearFalloffOffset = dsMaterialType_addElementBlockSize(
+		&size, dsMaterialType_Vec4, lightCount);
+	size_t colorAndQuadraticFalloffOffset = dsMaterialType_addElementBlockSize(
+		&size, dsMaterialType_Vec4, lightCount);
+	size_t spotCosAnglesOffset = dsMaterialType_addElementBlockSize(
+		&size, dsMaterialType_Vec2, lightCount);
+	size_t ambientColorHasMainOffset = dsMaterialType_addElementBlockSize(
+		&size, dsMaterialType_Vec4, 0);
 	DS_ASSERT(size <= stride);
 
 	dsColor3f ambient;
 	DS_VERIFY(dsSceneLightSet_getAmbient(&ambient, lightSet));
 
-	const dsSceneLight** brightestLights =
-		DS_ALLOCATE_STACK_OBJECT_ARRAY(const dsSceneLight*, lightCount);
+	DS_ASSERT(lightCount <= DS_MAX_BRIGHTEST_LIGHTS);
+	const dsSceneLight** brightestLights = DS_ALLOCATE_STACK_OBJECT_ARRAY(
+		const dsSceneLight*, lightCount);
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
 		const dsMatrix44f* transform = &instances[i]->curFrameWorldTransform;
@@ -137,8 +138,8 @@ static void dsInstanceForwardLightData_populateData(void* userData, const dsView
 
 		const dsVector3xf* position = transform->columns + 3;
 		bool hasMainLight = false;
-		uint32_t brightestLightCount = dsSceneLightSet_findBrightestLights(brightestLights,
-			lightCount, &hasMainLight, lightSet, position);
+		uint32_t brightestLightCount = dsSceneLightSet_findBrightestLights(
+			brightestLights, lightCount, &hasMainLight, lightSet, position);
 		for (uint32_t j = 0; j < brightestLightCount; ++j)
 		{
 			const dsSceneLight* light = brightestLights[j];
@@ -151,18 +152,21 @@ static void dsInstanceForwardLightData_populateData(void* userData, const dsView
 			tempVec.y = -light->direction.y;
 			tempVec.z = -light->direction.z;
 			tempVec.w = 0.0f;
-			dsMatrix44f_transform(directionAndLinearFalloff + j, &view->viewMatrix, &tempVec);
-			directionAndLinearFalloff[j].w = light->linearFalloff;
+			dsVector4f* thisDirectionAndLinearFalloff = directionAndLinearFalloff + j;
+			dsMatrix44f_transform(thisDirectionAndLinearFalloff, &view->viewMatrix, &tempVec);
+			thisDirectionAndLinearFalloff->w = light->linearFalloff;
 
-			colorAndQuadraticFalloff[j].r = light->color.r*light->intensity;
-			colorAndQuadraticFalloff[j].g = light->color.g*light->intensity;
-			colorAndQuadraticFalloff[j].b = light->color.b*light->intensity;
-			colorAndQuadraticFalloff[j].w = light->quadraticFalloff;
+			dsVector4f* thisColorAndQuadraticFalloff = colorAndQuadraticFalloff + j;
+			thisColorAndQuadraticFalloff->r = light->color.r*light->intensity;
+			thisColorAndQuadraticFalloff->g = light->color.g*light->intensity;
+			thisColorAndQuadraticFalloff->b = light->color.b*light->intensity;
+			thisColorAndQuadraticFalloff->w = light->quadraticFalloff;
 
-			spotCosAngles[j].x = light->innerSpotCosAngle;
-			spotCosAngles[j].y = light->outerSpotCosAngle;
-			spotCosAngles[j].z = 0.0f;
-			spotCosAngles[j].w = 0.0f;
+			dsVector4f* thisSpotCosAngles = spotCosAngles + j;
+			thisSpotCosAngles->x = light->innerSpotCosAngle;
+			thisSpotCosAngles->y = light->outerSpotCosAngle;
+			thisSpotCosAngles->z = 0.0f;
+			thisSpotCosAngles->w = 0.0f;
 		}
 
 		*(dsColor3f*)ambientColorHasMain = ambient;

@@ -57,8 +57,8 @@
 namespace
 {
 
-// 64 KB
-constexpr unsigned int maxStackMaterials = 2730;
+// 128 KB
+constexpr unsigned int maxStackMaterials = 5460;
 
 dsPhysicsShape* loadBox(
 	dsPhysicsEngine* engine, dsAllocator* allocator, const DeepSeaPhysics::Box& fbBox)
@@ -223,13 +223,13 @@ dsPhysicsShape* loadMesh(dsPhysicsEngine* engine, dsAllocator* allocator,
 		}
 
 		materialCount = fbMaterials->size();
-		if (materialCount > maxStackMaterials)
+		heapMaterials = materialCount > maxStackMaterials;
+		if (heapMaterials)
 		{
 			materials = DS_ALLOCATE_OBJECT_ARRAY(
 				engine->allocator, dsPhysicsShapePartMaterial, materialCount);
 			if (!materials)
 				return nullptr;
-			heapMaterials = true;
 		}
 		else
 			materials = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsPhysicsShapePartMaterial, materialCount);

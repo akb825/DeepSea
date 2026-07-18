@@ -44,7 +44,12 @@ bool dsResizeableArray_add(dsAllocator* allocator, void** buffer, uint32_t* elem
 		return true;
 	}
 
-	uint32_t newMaxElements = *maxElements*2;
+	uint32_t newMaxElements;
+	if (*maxElements <= UINT32_MAX/2)
+		newMaxElements = *maxElements*2;
+	else
+		newMaxElements = UINT32_MAX;
+
 	if (newMaxElements < newCount)
 		newMaxElements = newCount;
 

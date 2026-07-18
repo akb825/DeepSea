@@ -20,6 +20,7 @@
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
@@ -52,10 +53,13 @@ dsSceneNode* dsSceneLightNode_load(const dsSceneLoadContext* loadContext,
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaSceneLighting::VerifyLightNodeBuffer(verifier))
 	{
-		errno = EFORMAT;
 		DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG, "Invalid light node flatbuffer format.");
+		errno = EFORMAT;
 		return nullptr;
 	}
+
+	constexpr uint32_t maxStackItemLists = 16384;
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
 
 	auto fbLightNode = DeepSeaSceneLighting::GetLightNode(data);
 
@@ -65,24 +69,36 @@ dsSceneNode* dsSceneLightNode_load(const dsSceneLoadContext* loadContext,
 	if (!DeepSeaSceneLighting::extractLightData(templateLight, fbLightNode->templateLight_type(),
 			fbLightNode->templateLight()))
 	{
+		DS_LOG_ERROR_F(
+			DS_SCENE_LIGHTING_LOG_TAG, "Invalid light '%s' for scene light node.", lightBaseName);
 		errno = EFORMAT;
-		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Invalid light '%s' for scene light node.",
-			lightBaseName);
+		return nullptr;
 	}
 
 	auto fbItemLists = fbLightNode->itemLists();
 	uint32_t itemListCount = fbItemLists ? fbItemLists->size() : 0U;
-	const char** itemLists = NULL;
+	bool heapItemLists = itemListCount > maxStackItemLists;
+	const char** itemLists = nullptr;
 	if (itemListCount > 0)
 	{
-		itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+		if (heapItemLists)
+		{
+			itemLists = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, const char*, itemListCount);
+			if (!itemLists)
+				return nullptr;
+		}
+		else
+			itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+
 		for (uint32_t i = 0; i < itemListCount; ++i)
 		{
 			auto fbItemList = (*fbItemLists)[i];
 			if (!fbItemList)
 			{
-				errno = EFORMAT;
 				DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG, "Light node item list name is null.");
+				if (heapItemLists)
+					DS_VERIFY(dsAllocator_free(scratchAllocator, itemLists));
+				errno = EFORMAT;
 				return nullptr;
 			}
 
@@ -90,6 +106,9 @@ dsSceneNode* dsSceneLightNode_load(const dsSceneLoadContext* loadContext,
 		}
 	}
 
-	return (dsSceneNode*)dsSceneLightNode_create(allocator, &templateLight, lightBaseName,
-		fbLightNode->singleInstance(), itemLists, itemListCount);
+	auto node = reinterpret_cast<dsSceneNode*>(dsSceneLightNode_create(allocator, &templateLight,
+		lightBaseName, fbLightNode->singleInstance(), itemLists, itemListCount));
+	if (heapItemLists)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, itemLists));
+	return node;
 }

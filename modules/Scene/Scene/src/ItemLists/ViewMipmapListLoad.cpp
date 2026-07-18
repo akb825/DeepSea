@@ -18,6 +18,7 @@
 
 #include "SceneLoadContextInternal.h"
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -54,6 +55,9 @@ dsSceneItemList* dsViewMipmapList_load(const dsSceneLoadContext*,
 		return nullptr;
 	}
 
+	constexpr uint32_t maxStackTextures = 16384;
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
+
 	auto fbMipmapList = DeepSeaScene::GetViewMipmapList(data);
 	auto fbViewFilter = fbMipmapList->viewFilter();
 	auto fbTextureList = fbMipmapList->textures();
@@ -74,7 +78,16 @@ dsSceneItemList* dsViewMipmapList_load(const dsSceneLoadContext*,
 	}
 
 	uint32_t fullCount = fbTextureList->size();
-	const char** textureNames = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, fullCount);
+	bool heapTextureNames = fullCount > maxStackTextures;
+	const char** textureNames;
+	if (heapTextureNames)
+	{
+		textureNames = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, const char*, fullCount);
+		if (!textureNames)
+			return nullptr;
+	}
+	else
+		textureNames = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, fullCount);
 	uint32_t textureCount = 0;
 	for (uint32_t i = 0; i < fullCount; ++i)
 	{
@@ -87,9 +100,16 @@ dsSceneItemList* dsViewMipmapList_load(const dsSceneLoadContext*,
 
 	if (textureCount == 0)
 	{
-		errno = EFORMAT;
+		if (heapTextureNames)
+			DS_VERIFY(dsAllocator_free(scratchAllocator, textureNames));
 		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "View mipmap list contains no valid texture names.");
+		errno = EFORMAT;
+		return nullptr;
 	}
 
-	return dsViewMipmapList_create(allocator, name, viewFilter, textureNames, textureCount);
+	dsSceneItemList* itemList =  dsViewMipmapList_create(
+		allocator, name, viewFilter, textureNames, textureCount);
+	if (heapTextureNames)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, textureNames));
+	return itemList;
 }

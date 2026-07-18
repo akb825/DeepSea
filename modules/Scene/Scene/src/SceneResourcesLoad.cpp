@@ -996,17 +996,34 @@ static bool loadMaterialCopy(dsSceneResources* resources, dsResourceManager* res
 		fbMaterialCopy->addData(), materialName, fileName);
 }
 
+// GCC will sometimes give bogus warnings about "maybe uninitialized" when using alloca().
+#if DS_GCC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+
 static dsShaderModule* loadShaderModule(dsResourceManager* resourceManager, dsAllocator* allocator,
 	const FlatbufferVector<DeepSeaScene::VersionedShaderModule>* shaderModules,
-	const char* shaderModuleName, const char* fileName, void* relativePathUserData,
-	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
+	const char* shaderModuleName, const char* fileName, dsAllocator* scratchAllocator,
+	void* relativePathUserData, dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
 	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	if (!shaderModules)
 		return nullptr;
 
+	constexpr uint32_t maxStackVersionStrings = 16384;
+
 	uint32_t shaderModuleCount = shaderModules->size();
-	auto versionStrings = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, shaderModuleCount);
+	bool heapVersionStrings = shaderModuleCount > maxStackVersionStrings;
+	const char** versionStrings;
+	if (heapVersionStrings)
+	{
+		versionStrings = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, const char*, shaderModuleCount);
+		if (!versionStrings)
+			return nullptr;
+	}
+	else
+		versionStrings = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, shaderModuleCount);
 	for (uint32_t i = 0; i < shaderModuleCount; ++i)
 	{
 		auto fbShaderModule = (*shaderModules)[i];
@@ -1016,11 +1033,13 @@ static dsShaderModule* loadShaderModule(dsResourceManager* resourceManager, dsAl
 	uint32_t versionIndex;
 	const char* versionString = dsRenderer_chooseShaderVersionString(&versionIndex,
 		resourceManager->renderer, versionStrings, shaderModuleCount);
+	if (heapVersionStrings)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, versionStrings));
 	if (!versionString)
 	{
-		errno = ENOTFOUND;
 		PRINT_FLATBUFFER_RESOURCE_ERROR("No supported version found for shader module '%s'",
 			shaderModuleName, fileName);
+		errno = ENOTFOUND;
 		return nullptr;
 	}
 
@@ -1058,16 +1077,20 @@ static dsShaderModule* loadShaderModule(dsResourceManager* resourceManager, dsAl
 	}
 }
 
+#if DS_GCC
+#pragma GCC diagnostic pop
+#endif
+
 static bool loadShaderModule(dsSceneResources* resources, dsResourceManager* resourceManager,
 	dsAllocator* allocator, const DeepSeaScene::ShaderModule* fbShaderModule,
-	const char* fileName, void* relativePathUserData,
+	const char* fileName, dsAllocator* scratchAllocator, void* relativePathUserData,
 	dsOpenRelativePathStreamFunction openRelativePathStreamFunc,
 	dsCloseRelativePathStreamFunction closeRelativePathStreamFunc)
 {
 	const char* shaderModuleName = fbShaderModule->name()->c_str();
 	dsShaderModule* shaderModule = loadShaderModule(resourceManager, allocator,
-		fbShaderModule->modules(), shaderModuleName, fileName, relativePathUserData,
-		openRelativePathStreamFunc, closeRelativePathStreamFunc);
+		fbShaderModule->modules(), shaderModuleName, fileName, scratchAllocator,
+		relativePathUserData, openRelativePathStreamFunc, closeRelativePathStreamFunc);
 
 	if (!shaderModule)
 	{
@@ -1277,21 +1300,40 @@ static bool loadSceneNode(dsSceneResources* resources, dsAllocator* allocator,
 	return true;
 }
 
+// GCC will sometimes give bogus warnings about "maybe uninitialized" when using alloca().
+#if DS_GCC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+
 static bool loadViewFilter(dsSceneResources* resources, dsAllocator* allocator,
-	const DeepSeaScene::ViewFilter* fbFilter, const char* fileName)
+	const DeepSeaScene::ViewFilter* fbFilter, const char* fileName, dsAllocator* scratchAllocator)
 {
+	constexpr uint32_t maxStackViewNames = 16384;
+
 	const char* filterName = fbFilter->name()->c_str();
 	auto fbViewNames = fbFilter->views();
 	uint32_t viewNameCount = fbViewNames->size();
-	const char** viewNames = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, viewNameCount);
+	bool heapViewNames = viewNameCount > maxStackViewNames;
+	const char** viewNames;
+	if (heapViewNames)
+	{
+		viewNames = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, const char*, viewNameCount);
+		if (!viewNames)
+			return false;
+	}
+	else
+		viewNames = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, viewNameCount);
 	for (uint32_t i = 0; i < viewNameCount; ++i)
 	{
 		auto fbName = (*fbViewNames)[i];
 		if (!fbName)
 		{
-			errno = EFORMAT;
 			PRINT_FLATBUFFER_RESOURCE_ERROR(
 				"View name not set for view filter '%s'", filterName, fileName);
+			if (heapViewNames)
+				DS_VERIFY(dsAllocator_free(scratchAllocator, viewNames));
+			errno = EFORMAT;
 			return false;
 		}
 
@@ -1300,6 +1342,8 @@ static bool loadViewFilter(dsSceneResources* resources, dsAllocator* allocator,
 
 	dsViewFilter* filter = dsViewFilter_create(
 		allocator, viewNames, viewNameCount, fbFilter->invert());
+	if (heapViewNames)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, viewNames));
 	if (!filter)
 	{
 		PRINT_FLATBUFFER_RESOURCE_ERROR("Couldn't load view filter '%s'", filterName, fileName);
@@ -1316,6 +1360,10 @@ static bool loadViewFilter(dsSceneResources* resources, dsAllocator* allocator,
 
 	return true;
 }
+
+#if DS_GCC
+#pragma GCC diagnostic pop
+#endif
 
 static bool loadCustomResource(dsSceneResources* resources, dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
@@ -1480,8 +1528,8 @@ dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator*
 		else if (auto fbShaderModule = fbResource->resource_as_ShaderModule())
 		{
 			success = loadShaderModule(resources, resourceManager, resourceAllocator,
-				fbShaderModule, fileName, relativePathUserData, openRelativePathStreamFunc,
-				closeRelativePathStreamFunc);
+				fbShaderModule, fileName, scratchAllocator, relativePathUserData,
+				openRelativePathStreamFunc, closeRelativePathStreamFunc);
 		}
 		else if (auto fbShader = fbResource->resource_as_Shader())
 		{
@@ -1500,7 +1548,10 @@ dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator*
 				openRelativePathStreamFunc, closeRelativePathStreamFunc);
 		}
 		else if (auto fbViewFilter = fbResource->resource_as_ViewFilter())
-			success = loadViewFilter(resources, allocator, fbViewFilter, fileName);
+		{
+			success = loadViewFilter(
+				resources, allocator, fbViewFilter, fileName, scratchAllocator);
+		}
 		else if (auto fbCustomResource = fbResource->resource_as_CustomResource())
 		{
 			success = loadCustomResource(resources, allocator, resourceAllocator, loadContext,

@@ -16,6 +16,7 @@
 
 #include "SceneVectorImageNodeLoad.h"
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -63,6 +64,9 @@ dsSceneNode* dsSceneVectorImageNode_load(const dsSceneLoadContext* loadContext,
 		return nullptr;
 	}
 
+	constexpr uint32_t maxStackItemLists = 16384;
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
+
 	auto fbVectorImageNode = DeepSeaSceneVectorDraw::GetVectorImageNode(data);
 	auto fbEmbeddedResources = fbVectorImageNode->embeddedResources();
 	dsSceneResources* embeddedResources = NULL;
@@ -85,8 +89,9 @@ dsSceneNode* dsSceneVectorImageNode_load(const dsSceneLoadContext* loadContext,
 	auto fbItemLists = fbVectorImageNode->itemLists();
 
 	dsSceneVectorImage* vectorImage;
-	const char** itemLists = nullptr;
 	uint32_t itemListCount = 0;
+	bool heapItemLists = false;
+	const char** itemLists = nullptr;
 
 	auto fbSize = fbVectorImageNode->size();
 	dsVector2f size;
@@ -112,10 +117,19 @@ dsSceneNode* dsSceneVectorImageNode_load(const dsSceneLoadContext* loadContext,
 
 	vectorImage = reinterpret_cast<dsSceneVectorImage*>(customResource->resource);
 
-	if (fbItemLists && fbItemLists->size() > 0)
+	itemListCount = fbItemLists ? fbItemLists->size() : 0;
+	if (itemListCount > 0)
 	{
-		itemListCount = fbItemLists->size();
-		itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+		heapItemLists = itemListCount > maxStackItemLists;
+		if (heapItemLists)
+		{
+			itemLists = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, const char*, itemListCount);
+			if (!itemLists)
+				goto finished;
+		}
+		else
+			itemLists = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, itemListCount);
+
 		for (uint32_t i = 0; i < itemListCount; ++i)
 		{
 			auto item = (*fbItemLists)[i];
@@ -140,6 +154,8 @@ dsSceneNode* dsSceneVectorImageNode_load(const dsSceneLoadContext* loadContext,
 finished:
 	if (embeddedResources)
 		DS_VERIFY(dsSceneLoadScratchData_popSceneResources(scratchData, 1));
+	if (heapItemLists)
+		DS_VERIFY(dsAllocator_free(scratchAllocator, itemLists));
 
 	return node;
 }

@@ -68,6 +68,13 @@
 #include <limits.h>
 #include <string.h>
 
+// Target ~128 KB for max stack allocations.
+#define MAX_STACK_RENDER_SURFACES 10240
+#define MAX_STACK_CLEAR_ATTACHMENTS 2560
+#define MAX_STACK_CLEAR_REGIONS 2560
+#define MAX_STACK_IMAGE_BLITS 1536
+#define MAX_STACK_MEMORY_BARRIERS 5120
+
 static size_t fullAllocSize(void)
 {
 	return DS_ALIGNED_SIZE(sizeof(dsVkRenderer), DS_ALLOC_ALIGNMENT) + dsMutex_fullAllocSize() +
@@ -1211,14 +1218,34 @@ static void preFlush(dsRenderer* renderer, bool readback, const VkSemaphore* sig
 		dsVkCommandBuffer_endSubmitCommands(submitBuffer);
 	dsVkCommandBuffer_finishCommandBuffer(submitBuffer);
 
+	bool heapWait = vkSubmitBuffer->renderSurfaceCount > MAX_STACK_RENDER_SURFACES;
 	VkSemaphore* waitSemaphores = NULL;
 	VkPipelineStageFlags* waitStages = NULL;
 	if (vkSubmitBuffer->renderSurfaceCount > 0)
 	{
-		waitSemaphores = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkSemaphore,
-			vkSubmitBuffer->renderSurfaceCount);
-		waitStages = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkPipelineStageFlags,
-			vkSubmitBuffer->renderSurfaceCount);
+		if (heapWait)
+		{
+			waitSemaphores = DS_ALLOCATE_OBJECT_ARRAY(
+				renderer->allocator, VkSemaphore, vkSubmitBuffer->renderSurfaceCount);
+			if (!DS_CHECK(DS_RENDER_LOG_TAG, waitSemaphores != NULL))
+				return;
+
+			waitStages = DS_ALLOCATE_OBJECT_ARRAY(
+				renderer->allocator, VkPipelineStageFlags, vkSubmitBuffer->renderSurfaceCount);
+			if (!DS_CHECK(DS_RENDER_LOG_TAG, waitStages != NULL))
+			{
+				DS_VERIFY(dsAllocator_free(renderer->allocator, waitSemaphores));
+				return;
+			}
+		}
+		else
+		{
+			waitSemaphores = DS_ALLOCATE_STACK_OBJECT_ARRAY(
+				VkSemaphore, vkSubmitBuffer->renderSurfaceCount);
+			waitStages = DS_ALLOCATE_STACK_OBJECT_ARRAY(
+				VkPipelineStageFlags, vkSubmitBuffer->renderSurfaceCount);
+		}
+
 		for (uint32_t i = 0; i < vkSubmitBuffer->renderSurfaceCount; ++i)
 		{
 			dsVkRenderSurfaceData* surface = vkSubmitBuffer->renderSurfaces[i];
@@ -1239,6 +1266,12 @@ static void preFlush(dsRenderer* renderer, bool readback, const VkSemaphore* sig
 	DS_PROFILE_SCOPE_START("vkQueueSubmit");
 	DS_VK_CALL(device->vkQueueSubmit)(device->queue, 1, &submitInfo, submit->fence);
 	DS_PROFILE_SCOPE_END();
+
+	if (heapWait)
+	{
+		DS_VERIFY(dsAllocator_free(renderer->allocator, waitSemaphores));
+		DS_VERIFY(dsAllocator_free(renderer->allocator, waitStages));
+	}
 
 	// Clean up the previous command buffer.
 	DS_PROFILE_SCOPE_START("Post submit cleanup");
@@ -1380,8 +1413,17 @@ bool dsVkRenderer_clearAttachments(dsRenderer* renderer, dsCommandBuffer* comman
 	if (!submitBuffer)
 		return false;
 
-	VkClearAttachment* vkAttachments = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkClearAttachment,
-		attachmentCount);
+	bool heapAttachments = attachmentCount > MAX_STACK_CLEAR_ATTACHMENTS;
+	VkClearAttachment* vkAttachments;
+	if (heapAttachments)
+	{
+		vkAttachments = DS_ALLOCATE_OBJECT_ARRAY(
+			renderer->allocator, VkClearAttachment, attachmentCount);
+		if (!vkAttachments)
+			return false;
+	}
+	else
+		vkAttachments = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkClearAttachment, attachmentCount);
 	const dsRenderPass* renderPass = commandBuffer->boundRenderPass;
 	const dsRenderSubpassInfo* subpass = renderPass->subpasses + commandBuffer->activeRenderSubpass;
 	VkImageAspectFlags depthStencilAspect = 0;
@@ -1423,9 +1465,26 @@ bool dsVkRenderer_clearAttachments(dsRenderer* renderer, dsCommandBuffer* comman
 	}
 
 	if (vkAttachmentCount == 0)
+	{
+		if (heapAttachments)
+			DS_VERIFY(dsAllocator_free(renderer->allocator, vkAttachments));
 		return true;
+	}
 
-	VkClearRect* vkRegions = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkClearRect, regionCount);
+	bool heapRegions = regionCount > MAX_STACK_CLEAR_REGIONS;
+	VkClearRect* vkRegions;
+	if (heapRegions)
+	{
+		vkRegions = DS_ALLOCATE_OBJECT_ARRAY(renderer->allocator, VkClearRect, attachmentCount);
+		if (!vkRegions)
+		{
+			if (heapAttachments)
+				DS_VERIFY(dsAllocator_free(renderer->allocator, vkAttachments));
+			return false;
+		}
+	}
+	else
+		vkRegions = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkClearRect, regionCount);
 	for (uint32_t i = 0; i < regionCount; ++i)
 	{
 		const dsAttachmentClearRegion* region = regions + i;
@@ -1440,6 +1499,10 @@ bool dsVkRenderer_clearAttachments(dsRenderer* renderer, dsCommandBuffer* comman
 
 	DS_VK_CALL(device->vkCmdClearAttachments)(
 		submitBuffer, vkAttachmentCount, vkAttachments, regionCount, vkRegions);
+	if (heapAttachments)
+		DS_VERIFY(dsAllocator_free(renderer->allocator, vkAttachments));
+	if (heapRegions)
+		DS_VERIFY(dsAllocator_free(renderer->allocator, vkRegions));
 	return true;
 }
 
@@ -1677,10 +1740,9 @@ bool dsVkRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuff
 		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 2, imageBarriers);
 
 	// Perform the blit.
-	// 512 regions is ~41 KB of stack space. After that use heap space.
-	bool heapRegions = regionCount > 512;
+	bool heapBlits = regionCount > MAX_STACK_IMAGE_BLITS;
 	VkImageBlit* imageBlits;
-	if (heapRegions)
+	if (heapBlits)
 	{
 		imageBlits = DS_ALLOCATE_OBJECT_ARRAY(renderer->allocator, VkImageBlit, regionCount);
 		if (!imageBlits)
@@ -1742,7 +1804,7 @@ bool dsVkRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuff
 		imageBarriers[0].newLayout, imageBarriers[1].image, imageBarriers[1].newLayout, regionCount,
 		imageBlits, vkFilter);
 
-	if (heapRegions)
+	if (heapBlits)
 		DS_VERIFY(dsAllocator_free(renderer->allocator, imageBlits));
 
 	// Image barriers to clean up after the blit.
@@ -1771,13 +1833,25 @@ bool dsVkRenderer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBu
 	if (!submitBuffer)
 		return false;
 
-	VkMemoryBarrier* memoryBarriers = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkMemoryBarrier, barrierCount);
+	bool heapBarriers = barrierCount > MAX_STACK_MEMORY_BARRIERS;
+	VkMemoryBarrier* memoryBarriers;
+	if (heapBarriers)
+	{
+		memoryBarriers = DS_ALLOCATE_OBJECT_ARRAY(
+			renderer->allocator, VkMemoryBarrier, barrierCount);
+		if (!memoryBarriers)
+			return false;
+	}
+	else
+		memoryBarriers = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkMemoryBarrier, barrierCount);
 	for (uint32_t i = 0; i < barrierCount; ++i)
 	{
-		memoryBarriers[i].sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-		memoryBarriers[i].pNext = NULL;
-		memoryBarriers[i].srcAccessMask = dsVkAccessFlags(barriers[i].beforeAccess);
-		memoryBarriers[i].dstAccessMask = dsVkAccessFlags(barriers[i].afterAccess);
+		const dsGfxMemoryBarrier* barrier = barriers + i;
+		VkMemoryBarrier* vkBarrier = memoryBarriers + i;
+		vkBarrier->sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+		vkBarrier->pNext = NULL;
+		vkBarrier->srcAccessMask = dsVkAccessFlags(barrier->beforeAccess);
+		vkBarrier->dstAccessMask = dsVkAccessFlags(barrier->afterAccess);
 	}
 
 	VkPipelineStageFlags srcStages =  dsVkPipelineStageFlags(renderer, beforeStages, true);
@@ -1786,6 +1860,8 @@ bool dsVkRenderer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBu
 		commandBuffer->boundRenderPass ? VK_DEPENDENCY_BY_REGION_BIT : 0;
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(submitBuffer, srcStages, dstStages, dependencyFlags,
 		barrierCount, memoryBarriers, 0, NULL, 0, NULL);
+	if (heapBarriers)
+		DS_VERIFY(dsAllocator_free(renderer->allocator, memoryBarriers));
 	return true;
 }
 
@@ -2053,7 +2129,9 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		DS_LOG_DEBUG_F(DS_RENDER_VULKAN_LOG_TAG, "Using device: %s", baseRenderer->deviceName);
 
 	const VkPhysicalDeviceLimits* limits = &deviceProperties->limits;
-	baseRenderer->maxColorAttachments = dsMin(limits->maxColorAttachments, DS_MAX_ATTACHMENTS);
+	baseRenderer->maxColorAttachments = limits->maxColorAttachments;
+	baseRenderer->maxInputAttachments = dsMin(
+		limits->maxDescriptorSetInputAttachments, DS_MAX_ATTACHMENTS);
 	// framebufferColorSampleCounts is a bitmask. Compute the maximum bit that's set.
 	DS_ASSERT(limits->framebufferColorSampleCounts > 0);
 	baseRenderer->maxSurfaceSamples = 1U << (31 - dsClz(limits->framebufferColorSampleCounts));

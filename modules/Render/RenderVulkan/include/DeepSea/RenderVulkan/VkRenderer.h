@@ -46,8 +46,8 @@ DS_RENDERVULKAN_EXPORT bool dsVkRenderer_isSupported(void);
  *     initial value is the capacity of outDevices.
  * @return False if the parameters are invalid.
  */
-DS_RENDERVULKAN_EXPORT bool dsVkRenderer_queryDevices(dsRenderDeviceInfo* outDevices,
-	uint32_t* outDeviceCount);
+DS_RENDERVULKAN_EXPORT bool dsVkRenderer_queryDevices(
+	dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount);
 
 /**
  * @brief Gets the default device that will be used with Vulkan.
