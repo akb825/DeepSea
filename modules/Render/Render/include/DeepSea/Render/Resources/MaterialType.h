@@ -34,7 +34,7 @@ extern "C"
 /**
  * @brief Constant for an invalid offset.
  */
-#define DS_INVALID_MATERIAL_OFFSET ((size_t)-1)
+#define DS_INVALID_MATERIAL_OFFSET SIZE_MAX
 
 /**
  * @brief Gets the number of rows for a matrix type.

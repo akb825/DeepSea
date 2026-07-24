@@ -38,7 +38,7 @@ extern "C"
 /**
  * @brief Constant for an index representing no node.
  */
-#define DS_NO_ANIMATION_NODE ((uint32_t)-1)
+#define DS_NO_ANIMATION_NODE UINT32_MAX
 
 /// @cond
 typedef struct dsAnimationBuildNode dsAnimationBuildNode;

@@ -50,7 +50,7 @@ dsSceneAnimationTreeInstance* dsSceneAnimationTreeInstance_create(dsAllocator* a
 		return NULL;
 	}
 
-	instance->lastChangeCount = (uint64_t)-1;
+	instance->lastChangeCount = UINT64_MAX;
 	instance->curStepT = curStepT;
 	instance->lastStepT = 0.0f;
 	DS_VERIFY(dsSpinlock_initialize(&instance->lock));

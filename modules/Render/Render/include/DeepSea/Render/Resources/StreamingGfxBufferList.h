@@ -38,7 +38,7 @@ extern "C"
 /**
  * @brief Constant for no found streaming graphics buffer.
  */
-#define DS_NO_STREAMING_GFX_BUFFER (uint32_t)-1
+#define DS_NO_STREAMING_GFX_BUFFER UINT32_MAX
 
 /**
  * @brief Finds the next buffer to use.

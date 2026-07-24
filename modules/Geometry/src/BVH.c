@@ -31,7 +31,7 @@
 
 #include <string.h>
 
-#define INVALID_NODE ((uint32_t)-1)
+#define INVALID_NODE UINT32_MAX
 
 typedef struct dsBVHNode
 {

@@ -262,7 +262,7 @@ static void drawGeometry(
 	dsRenderer* renderer = commandBuffer->renderer;
 	dsShader* lastShader = NULL;
 	dsMaterial* lastMaterial = NULL;
-	uint32_t lastInstance = (uint32_t)-1;
+	uint32_t lastInstance = UINT32_MAX;
 	dsDynamicRenderStates* renderStates =
 		modelList->hasRenderStates ? &modelList->renderStates : NULL;
 	bool hasInstances = modelList->instanceDataCount > 0;

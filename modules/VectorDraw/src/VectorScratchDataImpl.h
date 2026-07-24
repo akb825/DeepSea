@@ -26,7 +26,7 @@ extern "C"
 #endif
 
 #define INFOS_PER_TEXTURE 1024
-#define NOT_FOUND ((uint32_t)-1)
+#define NOT_FOUND UINT32_MAX
 
 typedef enum PointType
 {

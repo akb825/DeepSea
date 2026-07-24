@@ -41,12 +41,12 @@ extern "C"
 /**
  * @brief Constant for an invalid offset.
  */
-#define DS_INVALID_TEXTURE_OFFSET ((size_t)-1)
+#define DS_INVALID_TEXTURE_OFFSET SIZE_MAX
 
 /**
  * @brief Constant for an invalid surface index.
  */
-#define DS_INVALID_TEXTURE_SURFACE ((uint32_t)-1)
+#define DS_INVALID_TEXTURE_SURFACE UINT32_MAX
 
 /**
  * @brief Gets the maximum number of mipmap levels for a texture.

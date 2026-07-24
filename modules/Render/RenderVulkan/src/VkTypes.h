@@ -26,7 +26,7 @@
 #define VK_NO_PROTOTYPES
 #include <vulkan/vulkan_core.h>
 
-#define DS_NOT_SUBMITTED ((uint64_t)-1)
+#define DS_NOT_SUBMITTED UINT64_MAX
 #define DS_DELAY_FRAMES 3
 #define DS_EXPECTED_FRAME_FLUSHES 2
 #define DS_MAX_SUBMITS (DS_DELAY_FRAMES*DS_EXPECTED_FRAME_FLUSHES)

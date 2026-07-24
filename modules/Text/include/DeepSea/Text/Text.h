@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,8 +65,8 @@ DS_TEXT_EXPORT dsText* dsText_create(dsFont* font, dsAllocator* allocator, const
  *     text detection and using different faces based on different scripts within the same string.
  * @return The text, or NULL if an error occurred.
  */
-DS_TEXT_EXPORT dsText* dsText_createUTF8(dsFont* font, dsAllocator* allocator, const char* string,
-	bool uniformScript);
+DS_TEXT_EXPORT dsText* dsText_createUTF8(
+	dsFont* font, dsAllocator* allocator, const char* string, bool uniformScript);
 
 /**
  * @brief Creates a text object from a string.
@@ -79,8 +79,8 @@ DS_TEXT_EXPORT dsText* dsText_createUTF8(dsFont* font, dsAllocator* allocator, c
  *     text detection and using different faces based on different scripts within the same string.
  * @return The text, or NULL if an error occurred.
  */
-DS_TEXT_EXPORT dsText* dsText_createUTF16(dsFont* font, dsAllocator* allocator,
-	const uint16_t* string, bool uniformScript);
+DS_TEXT_EXPORT dsText* dsText_createUTF16(
+	dsFont* font, dsAllocator* allocator, const uint16_t* string, bool uniformScript);
 
 /**
  * @brief Creates a text object from a string.
@@ -93,8 +93,8 @@ DS_TEXT_EXPORT dsText* dsText_createUTF16(dsFont* font, dsAllocator* allocator,
  *     text detection and using different faces based on different scripts within the same string.
  * @return The text, or NULL if an error occurred.
  */
-DS_TEXT_EXPORT dsText* dsText_createUTF32(dsFont* font, dsAllocator* allocator,
-	const uint32_t* string, bool uniformScript);
+DS_TEXT_EXPORT dsText* dsText_createUTF32(
+	dsFont* font, dsAllocator* allocator, const uint32_t* string, bool uniformScript);
 
 /**
  * @brief Destroys a text object.

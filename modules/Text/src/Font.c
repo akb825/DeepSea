@@ -43,7 +43,7 @@
 
 #define INTERSECT_EPSILON 1e-5f
 
-typedef uint32_t (*NextCodepointFunction)(const void* string, uint32_t* index);
+typedef uint32_t (*NextCodepointFunction)(const void* string, size_t* index);
 
 typedef enum PolygonResult
 {
@@ -211,7 +211,7 @@ static bool preloadGlyphs(dsFont* font, dsCommandBuffer* commandBuffer, const vo
 
 	dsFaceGroup_lock(font->group);
 
-	uint32_t index = 0;
+	size_t index = 0;
 	do
 	{
 		uint32_t codepoint = nextCodepointFunc(string, &index);

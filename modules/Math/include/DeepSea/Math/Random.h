@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -142,8 +142,8 @@ DS_MATH_EXPORT inline uint32_t dsRandom_nextUInt32(dsRandom* random, uint32_t ma
  * @param maxValue The maximum value.
  * @return A random value in the range of [minValue, maxValue].
  */
-DS_MATH_EXPORT inline uint32_t dsRandom_nextUInt32Range(dsRandom* random, uint32_t minValue,
-	uint32_t maxValue);
+DS_MATH_EXPORT inline uint32_t dsRandom_nextUInt32Range(
+	dsRandom* random, uint32_t minValue, uint32_t maxValue);
 
 /**
  * @brief Gets the next random value as an int32_t value in a custom range.
@@ -154,8 +154,8 @@ DS_MATH_EXPORT inline uint32_t dsRandom_nextUInt32Range(dsRandom* random, uint32
  * @param maxValue The maximum value.
  * @return A random value in the range of [minValue, maxValue].
  */
-DS_MATH_EXPORT inline int32_t dsRandom_nextInt32Range(dsRandom* random, int32_t minValue,
-	int32_t maxValue);
+DS_MATH_EXPORT inline int32_t dsRandom_nextInt32Range(
+	dsRandom* random, int32_t minValue, int32_t maxValue);
 
 /**
  * @brief Gets the next random value as a uint64_t value up to a maximum.
@@ -176,8 +176,8 @@ DS_MATH_EXPORT inline uint64_t dsRandom_nextUInt64(dsRandom* random, uint64_t ma
  * @param maxValue The maximum value.
  * @return A random value in the range of [minValue, maxValue].
  */
-DS_MATH_EXPORT inline uint64_t dsRandom_nextUInt64Range(dsRandom* random, uint64_t minValue,
-	uint64_t maxValue);
+DS_MATH_EXPORT inline uint64_t dsRandom_nextUInt64Range(
+	dsRandom* random, uint64_t minValue, uint64_t maxValue);
 
 /**
  * @brief Gets the next random value as an int64_t value in a custom range.
@@ -188,8 +188,8 @@ DS_MATH_EXPORT inline uint64_t dsRandom_nextUInt64Range(dsRandom* random, uint64
  * @param maxValue The maximum value.
  * @return A random value in the range of [minValue, maxValue].
  */
-DS_MATH_EXPORT inline int64_t dsRandom_nextInt64Range(dsRandom* random, int64_t minValue,
-	int64_t maxValue);
+DS_MATH_EXPORT inline int64_t dsRandom_nextInt64Range(
+	dsRandom* random, int64_t minValue, int64_t maxValue);
 
 /**
  * @brief Gets the next random value as a float in the range [0, 1).
@@ -214,8 +214,8 @@ DS_MATH_EXPORT inline float dsRandom_nextSignedFloat(dsRandom* random);
  * @param maxBound The maximum bounds that all values will be less than.
  * @return A random float value in the range [minValue, maxBound).
  */
-DS_MATH_EXPORT inline float dsRandom_nextFloatRange(dsRandom* random, float minValue,
-	float maxBound);
+DS_MATH_EXPORT inline float dsRandom_nextFloatRange(
+	dsRandom* random, float minValue, float maxBound);
 
 /**
  * @brief Gets the next random value as a float in a custom centered range.
@@ -226,8 +226,8 @@ DS_MATH_EXPORT inline float dsRandom_nextFloatRange(dsRandom* random, float minV
  * @param range The maximum bound distance to the left and right of centerValue.
  * @return A random float value in the range (centerValue - range, centerValue + range).
  */
-DS_MATH_EXPORT inline float dsRandom_nextFloatCenteredRange(dsRandom* random, float centerValue,
-	float range);
+DS_MATH_EXPORT inline float dsRandom_nextFloatCenteredRange(
+	dsRandom* random, float centerValue, float range);
 
 /**
  * @brief Gets the next random value as a double in the range [0, 1).
@@ -252,8 +252,8 @@ DS_MATH_EXPORT inline double dsRandom_nextSignedDouble(dsRandom* random);
  * @param maxBound The maximum bounds that all values will be less than.
  * @return A random double value in the range [minValue, maxBound).
  */
-DS_MATH_EXPORT inline double dsRandom_nextDoubleRange(dsRandom* random, double minValue,
-	double maxBound);
+DS_MATH_EXPORT inline double dsRandom_nextDoubleRange(
+	dsRandom* random, double minValue, double maxBound);
 
 /**
  * @brief Gets the next random value as a double in a custom centered range.
@@ -264,8 +264,8 @@ DS_MATH_EXPORT inline double dsRandom_nextDoubleRange(dsRandom* random, double m
  * @param range The maximum bound distance to the left and right of centerValue.
  * @return A random double value in the range (centerValue - range, centerValue + range).
  */
-DS_MATH_EXPORT inline double dsRandom_nextDoubleCenteredRange(dsRandom* random, double centerValue,
-	double range);
+DS_MATH_EXPORT inline double dsRandom_nextDoubleCenteredRange(
+	dsRandom* random, double centerValue, double range);
 
 DS_MATH_EXPORT inline uint64_t dsRandom_nextSeed(uint64_t* state)
 {
@@ -310,7 +310,7 @@ DS_MATH_EXPORT inline uint32_t dsRandom_nextUInt32(dsRandom* random, uint32_t ma
 {
 	if (maxValue == 0)
 		return 0;
-	else if (maxValue == (uint32_t)-1)
+	else if (maxValue == UINT32_MAX)
 		return (uint32_t)dsRandom_next(random);
 
 	// Single debiased mod method from: https://www.pcg-random.org/posts/bounded-rands.html
@@ -325,15 +325,15 @@ DS_MATH_EXPORT inline uint32_t dsRandom_nextUInt32(dsRandom* random, uint32_t ma
 	return result;
 }
 
-DS_MATH_EXPORT inline uint32_t dsRandom_nextUInt32Range(dsRandom* random, uint32_t minValue,
-	uint32_t maxValue)
+DS_MATH_EXPORT inline uint32_t dsRandom_nextUInt32Range(
+	dsRandom* random, uint32_t minValue, uint32_t maxValue)
 {
 	DS_ASSERT(minValue <= maxValue);
 	return dsRandom_nextUInt32(random, maxValue - minValue) + minValue;
 }
 
-DS_MATH_EXPORT inline int32_t dsRandom_nextInt32Range(dsRandom* random, int32_t minValue,
-	int32_t maxValue)
+DS_MATH_EXPORT inline int32_t dsRandom_nextInt32Range(
+	dsRandom* random, int32_t minValue, int32_t maxValue)
 {
 	DS_ASSERT(minValue <= maxValue);
 	return dsRandom_nextUInt32(random, maxValue - minValue) + minValue;
@@ -343,7 +343,7 @@ DS_MATH_EXPORT inline uint64_t dsRandom_nextUInt64(dsRandom* random, uint64_t ma
 {
 	if (maxValue == 0)
 		return 0;
-	else if (maxValue == (uint64_t)-1)
+	else if (maxValue == UINT64_MAX)
 		return dsRandom_next(random);
 
 	// Single debiased mod method from: https://www.pcg-random.org/posts/bounded-rands.html
@@ -358,15 +358,15 @@ DS_MATH_EXPORT inline uint64_t dsRandom_nextUInt64(dsRandom* random, uint64_t ma
 	return result;
 }
 
-DS_MATH_EXPORT inline uint64_t dsRandom_nextUInt64Range(dsRandom* random, uint64_t minValue,
-	uint64_t maxValue)
+DS_MATH_EXPORT inline uint64_t dsRandom_nextUInt64Range(
+	dsRandom* random, uint64_t minValue, uint64_t maxValue)
 {
 	DS_ASSERT(minValue <= maxValue);
 	return dsRandom_nextUInt64(random, maxValue - minValue) + minValue;
 }
 
-DS_MATH_EXPORT inline int64_t dsRandom_nextInt64Range(dsRandom* random, int64_t minValue,
-	int64_t maxValue)
+DS_MATH_EXPORT inline int64_t dsRandom_nextInt64Range(
+	dsRandom* random, int64_t minValue, int64_t maxValue)
 {
 	DS_ASSERT(minValue <= maxValue);
 	return dsRandom_nextUInt64(random, maxValue - minValue) + minValue;
@@ -384,16 +384,16 @@ DS_MATH_EXPORT inline float dsRandom_nextSignedFloat(dsRandom* random)
 	return bits & 1 ? -unsignedFloat : unsignedFloat;
 }
 
-DS_MATH_EXPORT inline float dsRandom_nextFloatRange(dsRandom* random, float minValue,
-	float maxBound)
+DS_MATH_EXPORT inline float dsRandom_nextFloatRange(
+	dsRandom* random, float minValue, float maxBound)
 {
 	DS_ASSERT(minValue <= maxBound);
 	float range = maxBound - minValue;
 	return dsRandom_nextFloat(random)*range + minValue;
 }
 
-DS_MATH_EXPORT inline float dsRandom_nextFloatCenteredRange(dsRandom* random, float centerValue,
-	float range)
+DS_MATH_EXPORT inline float dsRandom_nextFloatCenteredRange(
+	dsRandom* random, float centerValue, float range)
 {
 	DS_ASSERT(range >= 0);
 	return dsRandom_nextSignedFloat(random)*range + centerValue;
@@ -411,16 +411,16 @@ DS_MATH_EXPORT inline double dsRandom_nextSignedDouble(dsRandom* random)
 	return bits & 1 ? -unsignedDouble : unsignedDouble;
 }
 
-DS_MATH_EXPORT inline double dsRandom_nextDoubleRange(dsRandom* random, double minValue,
-	double maxBound)
+DS_MATH_EXPORT inline double dsRandom_nextDoubleRange(
+	dsRandom* random, double minValue, double maxBound)
 {
 	DS_ASSERT(minValue <= maxBound);
 	double range = maxBound - minValue;
 	return dsRandom_nextDouble(random)*range + minValue;
 }
 
-DS_MATH_EXPORT inline double dsRandom_nextDoubleCenteredRange(dsRandom* random, double centerValue,
-	double range)
+DS_MATH_EXPORT inline double dsRandom_nextDoubleCenteredRange(
+	dsRandom* random, double centerValue, double range)
 {
 	DS_ASSERT(range >= 0);
 	return dsRandom_nextSignedDouble(random)*range + centerValue;

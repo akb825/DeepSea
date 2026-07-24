@@ -21,7 +21,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 
-#define DS_NONE ((size_t)-1)
+#define DS_NONE SIZE_MAX
 #define DS_BASE_PTR(allocator, index) \
 	((uint8_t*)(allocator)->buffer + (index)*(allocator)->chunkSize)
 

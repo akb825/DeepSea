@@ -33,7 +33,7 @@
 
 #include <string.h>
 
-#define INVALID_INDEX ((uint32_t)-1)
+#define INVALID_INDEX UINT32_MAX
 #define QUERY_POOL_SIZE 1000
 #define MAX_STRING_LENGTH 32
 #define DELAY_FRAMES 2

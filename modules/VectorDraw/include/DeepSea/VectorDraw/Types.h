@@ -40,7 +40,7 @@ extern "C"
 /**
  * @brief Constant for no clipping path to be applied.
  */
-#define DS_VECTOR_NO_CLIP_PATH ((uint32_t)-1)
+#define DS_VECTOR_NO_CLIP_PATH UINT32_MAX
 
 /**
  * @brief Constant for the maximum length of a vector resource name, including the null terminator.

@@ -42,7 +42,7 @@ typedef struct dsSceneTreeNode dsSceneTreeNode;
 /**
  * @brief Constant for the last updated step that denotes the tree node is dirty.
  */
-#define DS_SCENE_TREE_NODE_DIRTY ((uint64_t)-1)
+#define DS_SCENE_TREE_NODE_DIRTY UINT64_MAX
 
 /**
  * @brief Function for setting up a scene tree node.

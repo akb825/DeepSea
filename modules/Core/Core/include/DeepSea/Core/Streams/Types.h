@@ -80,7 +80,7 @@ extern "C"
 /**
  * @brief Constant for an invalid stream position.
  */
-#define DS_STREAM_INVALID_POS ((uint64_t)-1)
+#define DS_STREAM_INVALID_POS UINT64_MAX
 
 /// @cond Doxygen_Suppress
 typedef struct dsAllocator dsAllocator;

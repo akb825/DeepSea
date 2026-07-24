@@ -38,12 +38,12 @@ extern "C"
 /**
  * @brief Constant for mapping the full buffer.
  */
-#define DS_MAP_FULL_BUFFER ((size_t)-1)
+#define DS_MAP_FULL_BUFFER SIZE_MAX
 
 /**
  * @brief Constant for using all mip levels.
  */
-#define DS_ALL_MIP_LEVELS ((uint32_t)-1)
+#define DS_ALL_MIP_LEVELS UINT32_MAX
 
 /**
  * @brief Constant for the maximum number of allowed vertex attributes.

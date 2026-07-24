@@ -27,7 +27,7 @@
 #define DS_VK_CALL(func) (func)
 #endif
 
-#define DS_INVALID_HEAP (uint32_t)-1
+#define DS_INVALID_HEAP UINT32_MAX
 
 #define DS_HANDLE_VK_RESULT(result, failMessage) \
 	dsHandleVkResult(result, failMessage, __FILE__, __LINE__, __FUNCTION__)

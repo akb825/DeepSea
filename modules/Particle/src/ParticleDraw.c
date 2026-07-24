@@ -422,7 +422,7 @@ static bool drawParticles(dsParticleDraw* drawer, const dsParticleEmitter* const
 
 	uint32_t indexCount = 0;
 	uint32_t startParticle = 0;
-	uint32_t prevEmitter = (uint32_t)-1;
+	uint32_t prevEmitter = UINT32_MAX;
 	dsShader* prevShader = NULL;
 	dsMaterial* prevMaterial = NULL;
 	for (uint32_t i = 0; i < particleCount; ++i, indexCount += INDEX_COUNT)

@@ -32,7 +32,7 @@ class ShadowCullVolumeTest : public FixtureBase
 {
 };
 
-static const uint32_t notFound = (uint32_t)-1;
+static const uint32_t notFound = UINT32_MAX;
 
 static uint32_t findPlane(const dsShadowCullVolume* volume, const dsPlane3f* plane)
 {

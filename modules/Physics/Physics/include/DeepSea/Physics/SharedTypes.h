@@ -34,7 +34,7 @@ extern "C"
 /**
  * @brief Constant for an invalid ID for a physics object.
  */
-#define DS_INVALID_PHYSICS_ID (uint32_t)-1
+#define DS_INVALID_PHYSICS_ID UINT32_MAX
 
 /**
  * @brief Enum describing a layer of physics objects.

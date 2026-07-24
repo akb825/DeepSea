@@ -27,8 +27,8 @@
 #include <DeepSea/Core/Profile.h>
 #include <string.h>
 
-typedef uint32_t (*dsNextCodepointFunction)(const void* string, uint32_t* index);
-typedef uint32_t (*dsCodepointCountFunction)(const void* string);
+typedef uint32_t (*NextCodepointFunction)(const void* string, size_t* index);
+typedef size_t (*CodepointCountFunction)(const void* string);
 
 typedef struct dsScriptInfo
 {
@@ -198,7 +198,7 @@ static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount, bo
 }
 
 static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* string,
-	dsNextCodepointFunction nextCodepoint, dsCodepointCountFunction codepointCount,
+	NextCodepointFunction nextCodepoint, CodepointCountFunction codepointCount,
 	dsUnicodeType type, bool uniformScript)
 {
 	DS_PROFILE_FUNC_START();
@@ -214,14 +214,15 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 	// so it doesn't require additional locks.
 	dsFaceGroup_lock(font->group);
 
-	uint32_t length = codepointCount(string);
-	if (length == DS_UNICODE_INVALID)
+	size_t fullLength = codepointCount(string);
+	if (fullLength == DS_UNICODE_INVALID_OFFSET || fullLength > UINT32_MAX)
 	{
 		dsFaceGroup_unlock(font->group);
 		errno = EFORMAT;
 		DS_LOG_ERROR(DS_TEXT_LOG_TAG, "Invalid Unicode string.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
+	uint32_t length = (uint32_t)fullLength;
 
 	uint32_t runCount;
 	dsRunInfo* runs;
@@ -259,7 +260,7 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 	scratchText->font = font;
 
 	uint32_t* characters = (uint32_t*)scratchText->characters;
-	uint32_t index = 0;
+	size_t index = 0;
 	for (uint32_t i = 0; i < length; ++i)
 		characters[i] = nextCodepoint(string, &index);
 
@@ -383,21 +384,21 @@ dsText* dsText_create(dsFont* font, dsAllocator* allocator, const void* string, 
 	if (!allocator)
 		allocator = dsFont_getAllocator(font);
 
-	dsNextCodepointFunction nextCodepoint;
-	dsCodepointCountFunction codepointCount;
+	NextCodepointFunction nextCodepoint;
+	CodepointCountFunction codepointCount;
 	switch (type)
 	{
 		case dsUnicodeType_UTF8:
-			nextCodepoint = (dsNextCodepointFunction)&dsUTF8_nextCodepoint;
-			codepointCount = (dsCodepointCountFunction)&dsUTF8_codepointCount;
+			nextCodepoint = (NextCodepointFunction)&dsUTF8_nextCodepoint;
+			codepointCount = (CodepointCountFunction)&dsUTF8_codepointCount;
 			break;
 		case dsUnicodeType_UTF16:
-			nextCodepoint = (dsNextCodepointFunction)&dsUTF16_nextCodepoint;
-			codepointCount = (dsCodepointCountFunction)&dsUTF16_codepointCount;
+			nextCodepoint = (NextCodepointFunction)&dsUTF16_nextCodepoint;
+			codepointCount = (CodepointCountFunction)&dsUTF16_codepointCount;
 			break;
 		case dsUnicodeType_UTF32:
-			nextCodepoint = (dsNextCodepointFunction)&dsUTF32_nextCodepoint;
-			codepointCount = (dsCodepointCountFunction)&dsUTF32_codepointCount;
+			nextCodepoint = (NextCodepointFunction)&dsUTF32_nextCodepoint;
+			codepointCount = (CodepointCountFunction)&dsUTF32_codepointCount;
 			break;
 		default:
 			errno = EINVAL;
@@ -407,8 +408,8 @@ dsText* dsText_create(dsFont* font, dsAllocator* allocator, const void* string, 
 		uniformScript);
 }
 
-dsText* dsText_createUTF8(dsFont* font, dsAllocator* allocator, const char* string,
-	bool uniformScript)
+dsText* dsText_createUTF8(
+	dsFont* font, dsAllocator* allocator, const char* string, bool uniformScript)
 {
 	if (!font || (!allocator && !dsFont_getAllocator(font)))
 	{
@@ -418,12 +419,12 @@ dsText* dsText_createUTF8(dsFont* font, dsAllocator* allocator, const char* stri
 
 	if (!allocator)
 		allocator = dsFont_getAllocator(font);
-	return createTextImpl(font, allocator, string, (dsNextCodepointFunction)&dsUTF8_nextCodepoint,
-		(dsCodepointCountFunction)&dsUTF8_codepointCount, dsUnicodeType_UTF8, uniformScript);
+	return createTextImpl(font, allocator, string, (NextCodepointFunction)&dsUTF8_nextCodepoint,
+		(CodepointCountFunction)&dsUTF8_codepointCount, dsUnicodeType_UTF8, uniformScript);
 }
 
-dsText* dsText_createUTF16(dsFont* font, dsAllocator* allocator, const uint16_t* string,
-	bool uniformScript)
+dsText* dsText_createUTF16(
+	dsFont* font, dsAllocator* allocator, const uint16_t* string, bool uniformScript)
 {
 	if (!font || (!allocator && !dsFont_getAllocator(font)))
 	{
@@ -433,12 +434,12 @@ dsText* dsText_createUTF16(dsFont* font, dsAllocator* allocator, const uint16_t*
 
 	if (!allocator)
 		allocator = dsFont_getAllocator(font);
-	return createTextImpl(font, allocator, string, (dsNextCodepointFunction)&dsUTF16_nextCodepoint,
-		(dsCodepointCountFunction)&dsUTF16_codepointCount, dsUnicodeType_UTF16, uniformScript);
+	return createTextImpl(font, allocator, string, (NextCodepointFunction)&dsUTF16_nextCodepoint,
+		(CodepointCountFunction)&dsUTF16_codepointCount, dsUnicodeType_UTF16, uniformScript);
 }
 
-dsText* dsText_createUTF32(dsFont* font, dsAllocator* allocator, const uint32_t* string,
-	bool uniformScript)
+dsText* dsText_createUTF32(
+	dsFont* font, dsAllocator* allocator, const uint32_t* string, bool uniformScript)
 {
 	if (!font || (!allocator && !dsFont_getAllocator(font)))
 	{
@@ -448,8 +449,8 @@ dsText* dsText_createUTF32(dsFont* font, dsAllocator* allocator, const uint32_t*
 
 	if (!allocator)
 		allocator = dsFont_getAllocator(font);
-	return createTextImpl(font, allocator, string, (dsNextCodepointFunction)&dsUTF32_nextCodepoint,
-		(dsCodepointCountFunction)&dsUTF32_codepointCount, dsUnicodeType_UTF32, uniformScript);
+	return createTextImpl(font, allocator, string, (NextCodepointFunction)&dsUTF32_nextCodepoint,
+		(CodepointCountFunction)&dsUTF32_codepointCount, dsUnicodeType_UTF32, uniformScript);
 }
 
 void dsText_destroy(dsText* text)

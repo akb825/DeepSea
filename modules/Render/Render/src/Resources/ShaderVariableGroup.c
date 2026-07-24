@@ -211,7 +211,7 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 	group->buffer = NULL;
 	group->rawData = NULL;
 	group->rawDataPositions = NULL;
-	group->dirtyStart = (size_t)-1;
+	group->dirtyStart = SIZE_MAX;
 	group->dirtyEnd = 0;
 	group->commitCount = 0;
 
@@ -372,7 +372,7 @@ bool dsShaderVariableGroup_commit(dsShaderVariableGroup* group, dsCommandBuffer*
 			group->rawData + group->dirtyStart, group->dirtyEnd - group->dirtyStart);
 		if (success)
 		{
-			group->dirtyStart = (size_t)-1;
+			group->dirtyStart = SIZE_MAX;
 			group->dirtyEnd = 0;
 		}
 	}

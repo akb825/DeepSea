@@ -55,7 +55,7 @@
 #include <string.h>
 
 #define MAX_CASCADE_COUNT 4
-#define INVALID_INDEX ((uint32_t)-1)
+#define INVALID_INDEX UINT32_MAX
 
 struct ShadowBufferInfo
 {

@@ -66,7 +66,7 @@ extern "C"
  * and used as an index instead. This is mainly useful in cases where an array can be resized,
  * invalidating the pointers within the array.
  */
-#define DS_GEOMETRY_OBJECT_INDICES ((size_t)-1)
+#define DS_GEOMETRY_OBJECT_INDICES SIZE_MAX
 
 /**
  * @brief Default epsilon for determining if polygon points are equal for doubles.

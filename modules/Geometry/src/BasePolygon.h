@@ -22,7 +22,7 @@
 #include <DeepSea/Geometry/Types.h>
 #include <DeepSea/Math/Vector2.h>
 
-#define NOT_FOUND ((uint32_t)-1)
+#define NOT_FOUND UINT32_MAX
 
 typedef struct EdgeConnection
 {
