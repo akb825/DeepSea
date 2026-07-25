@@ -90,32 +90,32 @@ varying(vertex, fragment)
 	/**
 	 * @brief Opacity and material index.
 	 */
-	vec2 vfOpacityMaterialIndex;
+	flat vec2 vfOpacityMaterialIndex;
 
 	/**
 	 * @brief The bounds of the shape.
 	 */
-	vec4 vfShapeBounds;
+	flat vec4 vfShapeBounds;
 
 	/**
 	 * @brief The first material info vector.
 	 */
-	vec4 vfMatInfo0;
+	flat vec4 vfMatInfo0;
 
 	/**
 	 * @brief The second material info vector.
 	 */
-	vec4 vfMatInfo1;
+	flat vec4 vfMatInfo1;
 
 	/**
 	 * @brief The third material info vector.
 	 */
-	vec4 vfMatInfo2;
+	flat vec4 vfMatInfo2;
 
 	/**
 	 * @brief The fourth material info vector.
 	 */
-	vec4 vfMatInfo3;
+	flat vec4 vfMatInfo3;
 }
 
 /**
@@ -158,8 +158,8 @@ vec4 dsVectorElementFill_processVertex()
 void dsVectorElementFill_defaultVertex()
 {
 	gl_Position = dsVectorElementFill_processVertex();
-	dsVectorMaterial_getInfo(vfMatInfo0, vfMatInfo1, vfMatInfo2, vfMatInfo3,
-		int(viMaterialIndex.y));
+	dsVectorMaterial_getInfo(
+		vfMatInfo0, vfMatInfo1, vfMatInfo2, vfMatInfo3, int(viMaterialIndex.y));
 	gl_Position = DS_ADJUST_CLIP(gl_Position);
 }
 

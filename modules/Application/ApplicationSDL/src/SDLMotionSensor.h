@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,7 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Application/Types.h>
 
-#include <math.h>
-#include <SDL.h>
-
-#if !SDL_VERSION_ATLEAST(2, 0, 9)
-typedef struct SDL_Sensor SDL_Sensor;
-typedef Sint32 SDL_SensorID;
-#endif
+#include <SDL3/SDL.h>
 
 typedef struct dsSDLMotionSensor
 {
@@ -36,10 +30,10 @@ typedef struct dsSDLMotionSensor
 bool dsSDLMotionSensor_setup(dsApplication* application);
 void dsSDLMotionSensor_freeAll(dsMotionSensor** sensors, uint32_t sensorCount);
 
-dsMotionSensor* dsSDLMotionSensor_add(dsApplication* application, uint32_t index);
+dsMotionSensor* dsSDLMotionSensor_add(dsApplication* application, SDL_SensorID id);
 bool dsSDLMotionSensor_remove(dsApplication* application, SDL_SensorID id);
 dsMotionSensor* dsSDLMotionSensor_find(dsApplication* application, SDL_SensorID id);
 
-bool dsSDLMotionSensor_getData(dsVector3f* outData, const dsApplication* application,
-	const dsMotionSensor* sensor);
+bool dsSDLMotionSensor_getData(
+	dsVector3f* outData, const dsApplication* application, const dsMotionSensor* sensor);
 

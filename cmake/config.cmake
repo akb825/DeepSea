@@ -266,7 +266,7 @@ macro(ds_find_package target)
 
 	if (DEEPSEA_SINGLE_SHARED)
 		set_property(GLOBAL PROPERTY DEEPSEA_FIND_${target} ${target} ${ARGN})
-		set_property(GLOBAL PROPERTY DEEPSEA_FIND_PACKAGES DEEPSEA_FIND_${target})
+		set_property(GLOBAL APPEND PROPERTY DEEPSEA_FIND_PACKAGES DEEPSEA_FIND_${target})
 	endif()
 endmacro()
 

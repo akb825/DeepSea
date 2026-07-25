@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -183,37 +183,37 @@ dsKeyCode dsFromSDLScancode(SDL_Scancode scanCode)
 		case SDL_SCANCODE_NUMLOCKCLEAR:
 			return dsKeyCode_NumLock;
 		case SDL_SCANCODE_KP_DIVIDE:
-			return dsKeyCode_KpDivide;
+			return dsKeyCode_KeypadDivide;
 		case SDL_SCANCODE_KP_MULTIPLY:
-			return dsKeyCode_KpMultiply;
+			return dsKeyCode_KeypadMultiply;
 		case SDL_SCANCODE_KP_MINUS:
-			return dsKeyCode_KpMinus;
+			return dsKeyCode_KeypadMinus;
 		case SDL_SCANCODE_KP_PLUS:
-			return dsKeyCode_KpPlus;
+			return dsKeyCode_KeypadPlus;
 		case SDL_SCANCODE_KP_ENTER:
-			return dsKeyCode_KpEnter;
+			return dsKeyCode_KeypadEnter;
 		case SDL_SCANCODE_KP_1:
-			return dsKeyCode_Kp1;
+			return dsKeyCode_Keypad1;
 		case SDL_SCANCODE_KP_2:
-			return dsKeyCode_Kp2;
+			return dsKeyCode_Keypad2;
 		case SDL_SCANCODE_KP_3:
-			return dsKeyCode_Kp3;
+			return dsKeyCode_Keypad3;
 		case SDL_SCANCODE_KP_4:
-			return dsKeyCode_Kp4;
+			return dsKeyCode_Keypad4;
 		case SDL_SCANCODE_KP_5:
-			return dsKeyCode_Kp5;
+			return dsKeyCode_Keypad5;
 		case SDL_SCANCODE_KP_6:
-			return dsKeyCode_Kp6;
+			return dsKeyCode_Keypad6;
 		case SDL_SCANCODE_KP_7:
-			return dsKeyCode_Kp7;
+			return dsKeyCode_Keypad7;
 		case SDL_SCANCODE_KP_8:
-			return dsKeyCode_Kp8;
+			return dsKeyCode_Keypad8;
 		case SDL_SCANCODE_KP_9:
-			return dsKeyCode_Kp9;
+			return dsKeyCode_Keypad9;
 		case SDL_SCANCODE_KP_0:
-			return dsKeyCode_Kp0;
+			return dsKeyCode_Keypad0;
 		case SDL_SCANCODE_KP_PERIOD:
-			return dsKeyCode_KpPeriod;
+			return dsKeyCode_KeypadPeriod;
 		case SDL_SCANCODE_NONUSBACKSLASH:
 			return dsKeyCode_NonUSBackslash;
 		case SDL_SCANCODE_APPLICATION:
@@ -221,7 +221,7 @@ dsKeyCode dsFromSDLScancode(SDL_Scancode scanCode)
 		case SDL_SCANCODE_POWER:
 			return dsKeyCode_Power;
 		case SDL_SCANCODE_KP_EQUALS:
-			return dsKeyCode_KpEquals;
+			return dsKeyCode_KeypadEquals;
 		case SDL_SCANCODE_F13:
 			return dsKeyCode_F13;
 		case SDL_SCANCODE_F14:
@@ -275,9 +275,9 @@ dsKeyCode dsFromSDLScancode(SDL_Scancode scanCode)
 		case SDL_SCANCODE_VOLUMEDOWN:
 			return dsKeyCode_VolumeDown;
 		case SDL_SCANCODE_KP_COMMA:
-			return dsKeyCode_KpComma;
+			return dsKeyCode_KeypadComma;
 		case SDL_SCANCODE_KP_EQUALSAS400:
-			return dsKeyCode_KpEqualsAS400;
+			return dsKeyCode_KeypadEqualsAS400;
 		case SDL_SCANCODE_INTERNATIONAL1:
 			return dsKeyCode_International1;
 		case SDL_SCANCODE_INTERNATIONAL2:
@@ -339,9 +339,9 @@ dsKeyCode dsFromSDLScancode(SDL_Scancode scanCode)
 		case SDL_SCANCODE_EXSEL:
 			return dsKeyCode_ExSel;
 		case SDL_SCANCODE_KP_00:
-			return dsKeyCode_Kp00;
+			return dsKeyCode_Keypad00;
 		case SDL_SCANCODE_KP_000:
-			return dsKeyCode_Kp000;
+			return dsKeyCode_Keypad000;
 		case SDL_SCANCODE_THOUSANDSSEPARATOR:
 			return dsKeyCode_ThousandsSeparator;
 		case SDL_SCANCODE_DECIMALSEPARATOR:
@@ -351,85 +351,85 @@ dsKeyCode dsFromSDLScancode(SDL_Scancode scanCode)
 		case SDL_SCANCODE_CURRENCYSUBUNIT:
 			return dsKeyCode_CurrencySubUnit;
 		case SDL_SCANCODE_KP_LEFTPAREN:
-			return dsKeyCode_KpLeftParen;
+			return dsKeyCode_KeypadLeftParen;
 		case SDL_SCANCODE_KP_RIGHTPAREN:
-			return dsKeyCode_KpRightParen;
+			return dsKeyCode_KeypadRightParen;
 		case SDL_SCANCODE_KP_LEFTBRACE:
-			return dsKeyCode_KpLeftBrace;
+			return dsKeyCode_KeypadLeftBrace;
 		case SDL_SCANCODE_KP_RIGHTBRACE:
-			return dsKeyCode_KpRightBrace;
+			return dsKeyCode_KeypadRightBrace;
 		case SDL_SCANCODE_KP_TAB:
-			return dsKeyCode_KpTab;
+			return dsKeyCode_KeypadTab;
 		case SDL_SCANCODE_KP_BACKSPACE:
-			return dsKeyCode_KpBackspace;
+			return dsKeyCode_KeypadBackspace;
 		case SDL_SCANCODE_KP_A:
-			return dsKeyCode_KpA;
+			return dsKeyCode_KeypadA;
 		case SDL_SCANCODE_KP_B:
-			return dsKeyCode_KpB;
+			return dsKeyCode_KeypadB;
 		case SDL_SCANCODE_KP_C:
-			return dsKeyCode_KpC;
+			return dsKeyCode_KeypadC;
 		case SDL_SCANCODE_KP_D:
-			return dsKeyCode_KpD;
+			return dsKeyCode_KeypadD;
 		case SDL_SCANCODE_KP_E:
-			return dsKeyCode_KpE;
+			return dsKeyCode_KeypadE;
 		case SDL_SCANCODE_KP_F:
-			return dsKeyCode_KpF;
+			return dsKeyCode_KeypadF;
 		case SDL_SCANCODE_KP_XOR:
-			return dsKeyCode_KpXOr;
+			return dsKeyCode_KeypadXOr;
 		case SDL_SCANCODE_KP_POWER:
-			return dsKeyCode_KpPower;
+			return dsKeyCode_KeypadPower;
 		case SDL_SCANCODE_KP_PERCENT:
-			return dsKeyCode_KpPercent;
+			return dsKeyCode_KeypadPercent;
 		case SDL_SCANCODE_KP_LESS:
-			return dsKeyCode_KpLess;
+			return dsKeyCode_KeypadLess;
 		case SDL_SCANCODE_KP_GREATER:
-			return dsKeyCode_KpGreater;
+			return dsKeyCode_KeypadGreater;
 		case SDL_SCANCODE_KP_AMPERSAND:
-			return dsKeyCode_KpAmperstand;
+			return dsKeyCode_KeypadAmperstand;
 		case SDL_SCANCODE_KP_DBLAMPERSAND:
-			return dsKeyCode_KpDoubleAmperstand;
+			return dsKeyCode_KeypadDoubleAmperstand;
 		case SDL_SCANCODE_KP_VERTICALBAR:
-			return dsKeyCode_KpPipe;
+			return dsKeyCode_KeypadPipe;
 		case SDL_SCANCODE_KP_DBLVERTICALBAR:
-			return dsKeyCode_KpDoublePipe;
+			return dsKeyCode_KeypadDoublePipe;
 		case SDL_SCANCODE_KP_COLON:
-			return dsKeyCode_KpColon;
+			return dsKeyCode_KeypadColon;
 		case SDL_SCANCODE_KP_HASH:
-			return dsKeyCode_KpHash;
+			return dsKeyCode_KeypadHash;
 		case SDL_SCANCODE_KP_SPACE:
-			return dsKeyCode_KpSpace;
+			return dsKeyCode_KeypadSpace;
 		case SDL_SCANCODE_KP_AT:
-			return dsKeyCode_KpAt;
+			return dsKeyCode_KeypadAt;
 		case SDL_SCANCODE_KP_EXCLAM:
-			return dsKeyCode_KpExclamation;
+			return dsKeyCode_KeypadExclamation;
 		case SDL_SCANCODE_KP_MEMSTORE:
-			return dsKeyCode_KpMemStore;
+			return dsKeyCode_KeypadMemStore;
 		case SDL_SCANCODE_KP_MEMRECALL:
-			return dsKeyCode_KpMemRecall;
+			return dsKeyCode_KeypadMemRecall;
 		case SDL_SCANCODE_KP_MEMCLEAR:
-			return dsKeyCode_KpMemClear;
+			return dsKeyCode_KeypadMemClear;
 		case SDL_SCANCODE_KP_MEMADD:
-			return dsKeyCode_KpMemAdd;
+			return dsKeyCode_KeypadMemAdd;
 		case SDL_SCANCODE_KP_MEMSUBTRACT:
-			return dsKeyCode_KpMemSubtract;
+			return dsKeyCode_KeypadMemSubtract;
 		case SDL_SCANCODE_KP_MEMMULTIPLY:
-			return dsKeyCode_KpMemMultiply;
+			return dsKeyCode_KeypadMemMultiply;
 		case SDL_SCANCODE_KP_MEMDIVIDE:
-			return dsKeyCode_KpMemDivide;
+			return dsKeyCode_KeypadMemDivide;
 		case SDL_SCANCODE_KP_PLUSMINUS:
-			return dsKeyCode_KpPlusMinus;
+			return dsKeyCode_KeypadPlusMinus;
 		case SDL_SCANCODE_KP_CLEAR:
-			return dsKeyCode_KpClear;
+			return dsKeyCode_KeypadClear;
 		case SDL_SCANCODE_KP_CLEARENTRY:
-			return dsKeyCode_KpClearEntry;
+			return dsKeyCode_KeypadClearEntry;
 		case SDL_SCANCODE_KP_BINARY:
-			return dsKeyCode_KpBinary;
+			return dsKeyCode_KeypadBinary;
 		case SDL_SCANCODE_KP_OCTAL:
-			return dsKeyCode_KpOctal;
+			return dsKeyCode_KeypadOctal;
 		case SDL_SCANCODE_KP_DECIMAL:
-			return dsKeyCode_KpDecimal;
+			return dsKeyCode_KeypadDecimal;
 		case SDL_SCANCODE_KP_HEXADECIMAL:
-			return dsKeyCode_KpHex;
+			return dsKeyCode_KeypadHex;
 		case SDL_SCANCODE_LCTRL:
 			return dsKeyCode_LControl;
 		case SDL_SCANCODE_LSHIFT:
@@ -448,26 +448,50 @@ dsKeyCode dsFromSDLScancode(SDL_Scancode scanCode)
 			return dsKeyCode_RWinCmd;
 		case SDL_SCANCODE_MODE:
 			return dsKeyCode_Mode;
-		case SDL_SCANCODE_AUDIONEXT:
-			return dsKeyCode_AudioNext;
-		case SDL_SCANCODE_AUDIOPREV:
-			return dsKeyCode_AudioPrev;
-		case SDL_SCANCODE_AUDIOSTOP:
-			return dsKeyCode_AudioStop;
-		case SDL_SCANCODE_AUDIOPLAY:
-			return dsKeyCode_AudioPlay;
-		case SDL_SCANCODE_AUDIOMUTE:
-			return dsKeyCode_AudioMute;
-		case SDL_SCANCODE_MEDIASELECT:
+		case SDL_SCANCODE_SLEEP:
+			return dsKeyCode_Sleep;
+		case SDL_SCANCODE_WAKE:
+			return dsKeyCode_Wake;
+		case SDL_SCANCODE_CHANNEL_INCREMENT:
+			return dsKeyCode_ChannelUp;
+		case SDL_SCANCODE_CHANNEL_DECREMENT:
+			return dsKeyCode_ChannelDown;
+		case SDL_SCANCODE_MEDIA_PLAY:
+			return dsKeyCode_MediaPlay;
+		case SDL_SCANCODE_MEDIA_PAUSE:
+			return dsKeyCode_MediaPause;
+		case SDL_SCANCODE_MEDIA_RECORD:
+			return dsKeyCode_MediaRecord;
+		case SDL_SCANCODE_MEDIA_FAST_FORWARD:
+			return dsKeyCode_MediaFastForward;
+		case SDL_SCANCODE_MEDIA_REWIND:
+			return dsKeyCode_MediaRewind;
+		case SDL_SCANCODE_MEDIA_NEXT_TRACK:
+			return dsKeyCode_MediaNext;
+		case SDL_SCANCODE_MEDIA_PREVIOUS_TRACK:
+			return dsKeyCode_MediaPrevious;
+		case SDL_SCANCODE_MEDIA_STOP:
+			return dsKeyCode_MediaStop;
+		case SDL_SCANCODE_MEDIA_EJECT:
+			return dsKeyCode_MediaEject;
+		case SDL_SCANCODE_MEDIA_PLAY_PAUSE:
+			return dsKeyCode_MediaPlayPause;
+		case SDL_SCANCODE_MEDIA_SELECT:
 			return dsKeyCode_MediaSelect;
-		case SDL_SCANCODE_WWW:
-			return dsKeyCode_WWW;
-		case SDL_SCANCODE_MAIL:
-			return dsKeyCode_Mail;
-		case SDL_SCANCODE_CALCULATOR:
-			return dsKeyCode_Calculator;
-		case SDL_SCANCODE_COMPUTER:
-			return dsKeyCode_Computer;
+		case SDL_SCANCODE_AC_NEW:
+			return dsKeyCode_ACNew;
+		case SDL_SCANCODE_AC_OPEN:
+			return dsKeyCode_ACOpen;
+		case SDL_SCANCODE_AC_CLOSE:
+			return dsKeyCode_ACClose;
+		case SDL_SCANCODE_AC_EXIT:
+			return dsKeyCode_ACExit;
+		case SDL_SCANCODE_AC_SAVE:
+			return dsKeyCode_ACSave;
+		case SDL_SCANCODE_AC_PRINT:
+			return dsKeyCode_ACPrint;
+		case SDL_SCANCODE_AC_PROPERTIES:
+			return dsKeyCode_ACProperties;
 		case SDL_SCANCODE_AC_SEARCH:
 			return dsKeyCode_ACSearch;
 		case SDL_SCANCODE_AC_HOME:
@@ -482,33 +506,6 @@ dsKeyCode dsFromSDLScancode(SDL_Scancode scanCode)
 			return dsKeyCode_ACRefresh;
 		case SDL_SCANCODE_AC_BOOKMARKS:
 			return dsKeyCode_ACBookmarks;
-		case SDL_SCANCODE_BRIGHTNESSDOWN:
-			return dsKeyCode_BrightnessDown;
-		case SDL_SCANCODE_BRIGHTNESSUP:
-			return dsKeyCode_BrightnessUp;
-		case SDL_SCANCODE_DISPLAYSWITCH:
-			return dsKeyCode_DisplaySwitch;
-		case SDL_SCANCODE_KBDILLUMTOGGLE:
-			return dsKeyCode_KbdIllumToggle;
-		case SDL_SCANCODE_KBDILLUMDOWN:
-			return dsKeyCode_KbdIllumDown;
-		case SDL_SCANCODE_KBDILLUMUP:
-			return dsKeyCode_KbdIllumUp;
-		case SDL_SCANCODE_EJECT:
-			return dsKeyCode_Eject;
-		case SDL_SCANCODE_SLEEP:
-			return dsKeyCode_Sleep;
-		case SDL_SCANCODE_APP1:
-			return dsKeyCode_App1;
-		case SDL_SCANCODE_APP2:
-			return dsKeyCode_App2;
-#if SDL_VERSION_ATLEAST(2, 0, 6)
-		case SDL_SCANCODE_AUDIOREWIND:
-			return dsKeyCode_AudioRewind;
-		case SDL_SCANCODE_AUDIOFASTFORWARD:
-			return dsKeyCode_AudioFastForward;
-#endif
-#if SDL_VERSION_ATLEAST(2, 24, 0)
 		case SDL_SCANCODE_SOFTLEFT:
 			return dsKeyCode_SoftLeft;
 		case SDL_SCANCODE_SOFTRIGHT:
@@ -517,8 +514,8 @@ dsKeyCode dsFromSDLScancode(SDL_Scancode scanCode)
 			return dsKeyCode_Call;
 		case SDL_SCANCODE_ENDCALL:
 			return dsKeyCode_EndCall;
-#endif
-		case SDL_NUM_SCANCODES:
+		case SDL_SCANCODE_RESERVED:
+		case SDL_SCANCODE_COUNT:
 			return dsKeyCode_Count;
 	}
 
@@ -689,37 +686,37 @@ SDL_Scancode dsToSDLScancode(dsKeyCode keyCode)
 			return SDL_SCANCODE_UP;
 		case dsKeyCode_NumLock:
 			return SDL_SCANCODE_NUMLOCKCLEAR;
-		case dsKeyCode_KpDivide:
+		case dsKeyCode_KeypadDivide:
 			return SDL_SCANCODE_KP_DIVIDE;
-		case dsKeyCode_KpMultiply:
+		case dsKeyCode_KeypadMultiply:
 			return SDL_SCANCODE_KP_MULTIPLY;
-		case dsKeyCode_KpMinus:
+		case dsKeyCode_KeypadMinus:
 			return SDL_SCANCODE_KP_MINUS;
-		case dsKeyCode_KpPlus:
+		case dsKeyCode_KeypadPlus:
 			return SDL_SCANCODE_KP_PLUS;
-		case dsKeyCode_KpEnter:
+		case dsKeyCode_KeypadEnter:
 			return SDL_SCANCODE_KP_ENTER;
-		case dsKeyCode_Kp1:
+		case dsKeyCode_Keypad1:
 			return SDL_SCANCODE_KP_1;
-		case dsKeyCode_Kp2:
+		case dsKeyCode_Keypad2:
 			return SDL_SCANCODE_KP_2;
-		case dsKeyCode_Kp3:
+		case dsKeyCode_Keypad3:
 			return SDL_SCANCODE_KP_3;
-		case dsKeyCode_Kp4:
+		case dsKeyCode_Keypad4:
 			return SDL_SCANCODE_KP_4;
-		case dsKeyCode_Kp5:
+		case dsKeyCode_Keypad5:
 			return SDL_SCANCODE_KP_5;
-		case dsKeyCode_Kp6:
+		case dsKeyCode_Keypad6:
 			return SDL_SCANCODE_KP_6;
-		case dsKeyCode_Kp7:
+		case dsKeyCode_Keypad7:
 			return SDL_SCANCODE_KP_7;
-		case dsKeyCode_Kp8:
+		case dsKeyCode_Keypad8:
 			return SDL_SCANCODE_KP_8;
-		case dsKeyCode_Kp9:
+		case dsKeyCode_Keypad9:
 			return SDL_SCANCODE_KP_9;
-		case dsKeyCode_Kp0:
+		case dsKeyCode_Keypad0:
 			return SDL_SCANCODE_KP_0;
-		case dsKeyCode_KpPeriod:
+		case dsKeyCode_KeypadPeriod:
 			return SDL_SCANCODE_KP_PERIOD;
 		case dsKeyCode_NonUSBackslash:
 			return SDL_SCANCODE_NONUSBACKSLASH;
@@ -727,7 +724,7 @@ SDL_Scancode dsToSDLScancode(dsKeyCode keyCode)
 			return SDL_SCANCODE_APPLICATION;
 		case dsKeyCode_Power:
 			return SDL_SCANCODE_POWER;
-		case dsKeyCode_KpEquals:
+		case dsKeyCode_KeypadEquals:
 			return SDL_SCANCODE_KP_EQUALS;
 		case dsKeyCode_F13:
 			return SDL_SCANCODE_F13;
@@ -781,9 +778,9 @@ SDL_Scancode dsToSDLScancode(dsKeyCode keyCode)
 			return SDL_SCANCODE_VOLUMEUP;
 		case dsKeyCode_VolumeDown:
 			return SDL_SCANCODE_VOLUMEDOWN;
-		case dsKeyCode_KpComma:
+		case dsKeyCode_KeypadComma:
 			return SDL_SCANCODE_KP_COMMA;
-		case dsKeyCode_KpEqualsAS400:
+		case dsKeyCode_KeypadEqualsAS400:
 			return SDL_SCANCODE_KP_EQUALSAS400;
 		case dsKeyCode_International1:
 			return SDL_SCANCODE_INTERNATIONAL1;
@@ -845,9 +842,9 @@ SDL_Scancode dsToSDLScancode(dsKeyCode keyCode)
 			return SDL_SCANCODE_CRSEL;
 		case dsKeyCode_ExSel:
 			return SDL_SCANCODE_EXSEL;
-		case dsKeyCode_Kp00:
+		case dsKeyCode_Keypad00:
 			return SDL_SCANCODE_KP_00;
-		case dsKeyCode_Kp000:
+		case dsKeyCode_Keypad000:
 			return SDL_SCANCODE_KP_000;
 		case dsKeyCode_ThousandsSeparator:
 			return SDL_SCANCODE_THOUSANDSSEPARATOR;
@@ -857,85 +854,85 @@ SDL_Scancode dsToSDLScancode(dsKeyCode keyCode)
 			return SDL_SCANCODE_CURRENCYUNIT;
 		case dsKeyCode_CurrencySubUnit:
 			return SDL_SCANCODE_CURRENCYSUBUNIT;
-		case dsKeyCode_KpLeftParen:
+		case dsKeyCode_KeypadLeftParen:
 			return SDL_SCANCODE_KP_LEFTPAREN;
-		case dsKeyCode_KpRightParen:
+		case dsKeyCode_KeypadRightParen:
 			return SDL_SCANCODE_KP_RIGHTPAREN;
-		case dsKeyCode_KpLeftBrace:
+		case dsKeyCode_KeypadLeftBrace:
 			return SDL_SCANCODE_KP_LEFTBRACE;
-		case dsKeyCode_KpRightBrace:
+		case dsKeyCode_KeypadRightBrace:
 			return SDL_SCANCODE_KP_RIGHTBRACE;
-		case dsKeyCode_KpTab:
+		case dsKeyCode_KeypadTab:
 			return SDL_SCANCODE_KP_TAB;
-		case dsKeyCode_KpBackspace:
+		case dsKeyCode_KeypadBackspace:
 			return SDL_SCANCODE_KP_BACKSPACE;
-		case dsKeyCode_KpA:
+		case dsKeyCode_KeypadA:
 			return SDL_SCANCODE_KP_A;
-		case dsKeyCode_KpB:
+		case dsKeyCode_KeypadB:
 			return SDL_SCANCODE_KP_B;
-		case dsKeyCode_KpC:
+		case dsKeyCode_KeypadC:
 			return SDL_SCANCODE_KP_C;
-		case dsKeyCode_KpD:
+		case dsKeyCode_KeypadD:
 			return SDL_SCANCODE_KP_D;
-		case dsKeyCode_KpE:
+		case dsKeyCode_KeypadE:
 			return SDL_SCANCODE_KP_E;
-		case dsKeyCode_KpF:
+		case dsKeyCode_KeypadF:
 			return SDL_SCANCODE_KP_F;
-		case dsKeyCode_KpXOr:
+		case dsKeyCode_KeypadXOr:
 			return SDL_SCANCODE_KP_XOR;
-		case dsKeyCode_KpPower:
+		case dsKeyCode_KeypadPower:
 			return SDL_SCANCODE_KP_POWER;
-		case dsKeyCode_KpPercent:
+		case dsKeyCode_KeypadPercent:
 			return SDL_SCANCODE_KP_PERCENT;
-		case dsKeyCode_KpLess:
+		case dsKeyCode_KeypadLess:
 			return SDL_SCANCODE_KP_LESS;
-		case dsKeyCode_KpGreater:
+		case dsKeyCode_KeypadGreater:
 			return SDL_SCANCODE_KP_GREATER;
-		case dsKeyCode_KpAmperstand:
+		case dsKeyCode_KeypadAmperstand:
 			return SDL_SCANCODE_KP_AMPERSAND;
-		case dsKeyCode_KpDoubleAmperstand:
+		case dsKeyCode_KeypadDoubleAmperstand:
 			return SDL_SCANCODE_KP_DBLAMPERSAND;
-		case dsKeyCode_KpPipe:
+		case dsKeyCode_KeypadPipe:
 			return SDL_SCANCODE_KP_VERTICALBAR;
-		case dsKeyCode_KpDoublePipe:
+		case dsKeyCode_KeypadDoublePipe:
 			return SDL_SCANCODE_KP_DBLVERTICALBAR;
-		case dsKeyCode_KpColon:
+		case dsKeyCode_KeypadColon:
 			return SDL_SCANCODE_KP_COLON;
-		case dsKeyCode_KpHash:
+		case dsKeyCode_KeypadHash:
 			return SDL_SCANCODE_KP_HASH;
-		case dsKeyCode_KpSpace:
+		case dsKeyCode_KeypadSpace:
 			return SDL_SCANCODE_KP_SPACE;
-		case dsKeyCode_KpAt:
+		case dsKeyCode_KeypadAt:
 			return SDL_SCANCODE_KP_AT;
-		case dsKeyCode_KpExclamation:
+		case dsKeyCode_KeypadExclamation:
 			return SDL_SCANCODE_KP_EXCLAM;
-		case dsKeyCode_KpMemStore:
+		case dsKeyCode_KeypadMemStore:
 			return SDL_SCANCODE_KP_MEMSTORE;
-		case dsKeyCode_KpMemRecall:
+		case dsKeyCode_KeypadMemRecall:
 			return SDL_SCANCODE_KP_MEMRECALL;
-		case dsKeyCode_KpMemClear:
+		case dsKeyCode_KeypadMemClear:
 			return SDL_SCANCODE_KP_MEMCLEAR;
-		case dsKeyCode_KpMemAdd:
+		case dsKeyCode_KeypadMemAdd:
 			return SDL_SCANCODE_KP_MEMADD;
-		case dsKeyCode_KpMemSubtract:
+		case dsKeyCode_KeypadMemSubtract:
 			return SDL_SCANCODE_KP_MEMSUBTRACT;
-		case dsKeyCode_KpMemMultiply:
+		case dsKeyCode_KeypadMemMultiply:
 			return SDL_SCANCODE_KP_MEMMULTIPLY;
-		case dsKeyCode_KpMemDivide:
+		case dsKeyCode_KeypadMemDivide:
 			return SDL_SCANCODE_KP_MEMDIVIDE;
-		case dsKeyCode_KpPlusMinus:
+		case dsKeyCode_KeypadPlusMinus:
 			return SDL_SCANCODE_KP_PLUSMINUS;
-		case dsKeyCode_KpClear:
+		case dsKeyCode_KeypadClear:
 			return SDL_SCANCODE_KP_CLEAR;
-		case dsKeyCode_KpClearEntry:
+		case dsKeyCode_KeypadClearEntry:
 			return SDL_SCANCODE_KP_CLEARENTRY;
-		case dsKeyCode_KpBinary:
+		case dsKeyCode_KeypadBinary:
 			return SDL_SCANCODE_KP_BINARY;
-		case dsKeyCode_KpOctal:
+		case dsKeyCode_KeypadOctal:
 			return SDL_SCANCODE_KP_OCTAL;
-		case dsKeyCode_KpDecimal:
+		case dsKeyCode_KeypadDecimal:
 			return SDL_SCANCODE_KP_DECIMAL;
-		case dsKeyCode_KpHex:
+		case dsKeyCode_KeypadHex:
 			return SDL_SCANCODE_KP_HEXADECIMAL;
 		case dsKeyCode_LControl:
 			return SDL_SCANCODE_LCTRL;
@@ -955,26 +952,54 @@ SDL_Scancode dsToSDLScancode(dsKeyCode keyCode)
 			return SDL_SCANCODE_RGUI;
 		case dsKeyCode_Mode:
 			return SDL_SCANCODE_MODE;
-		case dsKeyCode_AudioNext:
-			return SDL_SCANCODE_AUDIONEXT;
-		case dsKeyCode_AudioPrev:
-			return SDL_SCANCODE_AUDIOPREV;
-		case dsKeyCode_AudioStop:
-			return SDL_SCANCODE_AUDIOSTOP;
-		case dsKeyCode_AudioPlay:
-			return SDL_SCANCODE_AUDIOPLAY;
-		case dsKeyCode_AudioMute:
-			return SDL_SCANCODE_AUDIOMUTE;
+		case dsKeyCode_ChannelUp:
+			return SDL_SCANCODE_CHANNEL_INCREMENT;
+		case dsKeyCode_ChannelDown:
+			return SDL_SCANCODE_CHANNEL_DECREMENT;
+		case dsKeyCode_MediaPlay:
+			return SDL_SCANCODE_MEDIA_PLAY;
+		case dsKeyCode_MediaPause:
+			return SDL_SCANCODE_MEDIA_PAUSE;
+		case dsKeyCode_MediaPlayPause:
+			return SDL_SCANCODE_MEDIA_PLAY_PAUSE;
+		case dsKeyCode_MediaRecord:
+			return SDL_SCANCODE_MEDIA_RECORD;
+		case dsKeyCode_MediaFastForward:
+			return SDL_SCANCODE_MEDIA_FAST_FORWARD;
+		case dsKeyCode_MediaRewind:
+			return SDL_SCANCODE_MEDIA_REWIND;
+		case dsKeyCode_MediaNext:
+			return SDL_SCANCODE_MEDIA_NEXT_TRACK;
+		case dsKeyCode_MediaPrevious:
+			return SDL_SCANCODE_MEDIA_PREVIOUS_TRACK;
+		case dsKeyCode_MediaStop:
+			return SDL_SCANCODE_MEDIA_STOP;
+		case dsKeyCode_MediaEject:
+			return SDL_SCANCODE_MEDIA_EJECT;
 		case dsKeyCode_MediaSelect:
-			return SDL_SCANCODE_MEDIASELECT;
+			return SDL_SCANCODE_MEDIA_SELECT;
 		case dsKeyCode_WWW:
-			return SDL_SCANCODE_WWW;
+			return SDL_SCANCODE_UNKNOWN;
 		case dsKeyCode_Mail:
-			return SDL_SCANCODE_MAIL;
+			return SDL_SCANCODE_UNKNOWN;
 		case dsKeyCode_Calculator:
-			return SDL_SCANCODE_CALCULATOR;
+			return SDL_SCANCODE_UNKNOWN;
 		case dsKeyCode_Computer:
-			return SDL_SCANCODE_COMPUTER;
+			return SDL_SCANCODE_UNKNOWN;
+		case dsKeyCode_ACNew:
+			return SDL_SCANCODE_AC_NEW;
+		case dsKeyCode_ACOpen:
+			return SDL_SCANCODE_AC_OPEN;
+		case dsKeyCode_ACClose:
+			return SDL_SCANCODE_AC_CLOSE;
+		case dsKeyCode_ACExit:
+			return SDL_SCANCODE_AC_EXIT;
+		case dsKeyCode_ACSave:
+			return SDL_SCANCODE_AC_SAVE;
+		case dsKeyCode_ACPrint:
+			return SDL_SCANCODE_AC_PRINT;
+		case dsKeyCode_ACProperties:
+			return SDL_SCANCODE_AC_PROPERTIES;
 		case dsKeyCode_ACSearch:
 			return SDL_SCANCODE_AC_SEARCH;
 		case dsKeyCode_ACHome:
@@ -990,36 +1015,21 @@ SDL_Scancode dsToSDLScancode(dsKeyCode keyCode)
 		case dsKeyCode_ACBookmarks:
 			return SDL_SCANCODE_AC_BOOKMARKS;
 		case dsKeyCode_BrightnessDown:
-			return SDL_SCANCODE_BRIGHTNESSDOWN;
+			return SDL_SCANCODE_UNKNOWN;
 		case dsKeyCode_BrightnessUp:
-			return SDL_SCANCODE_BRIGHTNESSUP;
+			return SDL_SCANCODE_UNKNOWN;
 		case dsKeyCode_DisplaySwitch:
-			return SDL_SCANCODE_DISPLAYSWITCH;
-		case dsKeyCode_KbdIllumToggle:
-			return SDL_SCANCODE_KBDILLUMTOGGLE;
-		case dsKeyCode_KbdIllumDown:
-			return SDL_SCANCODE_KBDILLUMDOWN;
-		case dsKeyCode_KbdIllumUp:
-			return SDL_SCANCODE_KBDILLUMUP;
-		case dsKeyCode_Eject:
-			return SDL_SCANCODE_EJECT;
+			return SDL_SCANCODE_UNKNOWN;
+		case dsKeyCode_KeyboardIlluminationToggle:
+			return SDL_SCANCODE_UNKNOWN;
+		case dsKeyCode_KeyboardIlluminationDown:
+			return SDL_SCANCODE_UNKNOWN;
+		case dsKeyCode_KeyboardIlluminationUp:
+			return SDL_SCANCODE_UNKNOWN;
 		case dsKeyCode_Sleep:
 			return SDL_SCANCODE_SLEEP;
-		case dsKeyCode_App1:
-			return SDL_SCANCODE_APP1;
-		case dsKeyCode_App2:
-			return SDL_SCANCODE_APP2;
-#if SDL_VERSION_ATLEAST(2, 0, 6)
-		case dsKeyCode_AudioRewind:
-			return SDL_SCANCODE_AUDIOREWIND;
-		case dsKeyCode_AudioFastForward:
-			return SDL_SCANCODE_AUDIOFASTFORWARD;
-#else
-		case dsKeyCode_AudioRewind:
-		case dsKeyCode_AudioFastForward:
-			return SDL_SCANCODE_UNKNOWN;
-#endif
-#if SDL_VERSION_ATLEAST(2, 24, 0)
+		case dsKeyCode_Wake:
+			return SDL_SCANCODE_WAKE;
 		case dsKeyCode_SoftLeft:
 			return SDL_SCANCODE_SOFTLEFT;
 		case dsKeyCode_SoftRight:
@@ -1028,13 +1038,6 @@ SDL_Scancode dsToSDLScancode(dsKeyCode keyCode)
 			return SDL_SCANCODE_CALL;
 		case dsKeyCode_EndCall:
 			return SDL_SCANCODE_ENDCALL;
-#else
-		case dsKeyCode_SoftLeft:
-		case dsKeyCode_SoftRight:
-		case dsKeyCode_Call:
-		case dsKeyCode_EndCall:
-			return SDL_SCANCODE_UNKNOWN;
-#endif
 		case dsKeyCode_Count:
 			return SDL_SCANCODE_UNKNOWN;
 	}
@@ -1045,27 +1048,27 @@ SDL_Scancode dsToSDLScancode(dsKeyCode keyCode)
 dsKeyModifier dsFromSDLKeyMod(SDL_Keymod modifiers)
 {
 	uint32_t curMods = 0;
-	if (modifiers & KMOD_LSHIFT)
+	if (modifiers & SDL_KMOD_LSHIFT)
 		curMods |= dsKeyModifier_LShift;
-	if (modifiers & KMOD_RSHIFT)
+	if (modifiers & SDL_KMOD_RSHIFT)
 		curMods |= dsKeyModifier_RShift;
-	if (modifiers & KMOD_LCTRL)
+	if (modifiers & SDL_KMOD_LCTRL)
 		curMods |= dsKeyModifier_LCtrl;
-	if (modifiers & KMOD_RCTRL)
+	if (modifiers & SDL_KMOD_RCTRL)
 		curMods |= dsKeyModifier_RCtrl;
-	if (modifiers & KMOD_LALT)
+	if (modifiers & SDL_KMOD_LALT)
 		curMods |= dsKeyModifier_LAlt;
-	if (modifiers & KMOD_RALT)
+	if (modifiers & SDL_KMOD_RALT)
 		curMods |= dsKeyModifier_RAlt;
-	if (modifiers & KMOD_LGUI)
+	if (modifiers & SDL_KMOD_LGUI)
 		curMods |= dsKeyModifier_LWinCmd;
-	if (modifiers & KMOD_RGUI)
+	if (modifiers & SDL_KMOD_RGUI)
 		curMods |= dsKeyModifier_RWinCmd;
-	if (modifiers & KMOD_NUM)
+	if (modifiers & SDL_KMOD_NUM)
 		curMods |= dsKeyModifier_NumLock;
-	if (modifiers & KMOD_CAPS)
+	if (modifiers & SDL_KMOD_CAPS)
 		curMods |= dsKeyModifier_CapsLock;
-	if (modifiers & KMOD_MODE)
+	if (modifiers & SDL_KMOD_MODE)
 		curMods |= dsKeyModifier_Mode;
 
 	return (dsKeyModifier)curMods;

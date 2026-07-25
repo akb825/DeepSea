@@ -335,28 +335,40 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 	return true;
 }
 
-static bool processEvent(
-	dsApplication* application, dsWindow* window, const dsEvent* event, void* userData)
+static bool processEvent(dsApplication* application, const dsEvent* event, void* userData)
 {
-	DS_UNUSED(application);
-
 	TestRenderSubpass* testRenderSubpass = (TestRenderSubpass*)userData;
-	DS_ASSERT(!window || window == testRenderSubpass->window);
 	switch (event->type)
 	{
 		case dsAppEventType_WindowClosed:
-			DS_VERIFY(dsWindow_destroy(window));
+		case dsAppEventType_WindowDestroyed:
+			DS_ASSERT(event->window == testRenderSubpass->window);
+			DS_VERIFY(dsWindow_destroy(testRenderSubpass->window));
 			testRenderSubpass->window = NULL;
 			return false;
-		case dsAppEventType_WindowResized:
+		case dsAppEventType_WindowChanged:
+			DS_ASSERT(event->windowChange.window == testRenderSubpass->window);
+			if (event->windowChange.flags & dsWindowChangeFlags_SurfaceSize &&
+				!createFramebuffer(testRenderSubpass))
+			{
+				abort();
+			}
+			return true;
 		case dsAppEventType_SurfaceInvalidated:
+			DS_ASSERT(event->window == testRenderSubpass->window);
 			if (!createFramebuffer(testRenderSubpass))
 				abort();
 			return true;
 		case dsAppEventType_KeyDown:
-			if (event->key.key == dsKeyCode_ACBack)
+			if (event->key.window != testRenderSubpass->window)
+				return true;
+
+			if (event->key.key == dsKeyCode_ACBack || event->key.key == dsKeyCode_ACExit)
+			{
 				dsApplication_quit(application, 0);
-			return false;
+				return false;
+			}
+			return true;
 		default:
 			return true;
 	}
@@ -508,26 +520,16 @@ static bool setup(
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
 	DS_VERIFY(dsApplication_setUpdateFunction(application, &update, testRenderSubpass, NULL));
 
-	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
-	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
+	uint32_t width = dsApplication_adjustWindowSize(application, NULL, 800);
+	uint32_t height = dsApplication_adjustWindowSize(application, NULL, 600);
 	dsRenderSurfaceUsage surfaceUsage = dsRenderSurfaceUsage_ClientRotations;
 	if (!NO_BLIT)
 		surfaceUsage |= dsRenderSurfaceUsage_BlitColorTo;
 	testRenderSubpass->window = dsWindow_create(application, allocator, "Test Render Subpass",
-		NULL, NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate,
-		surfaceUsage);
+		NULL, NULL, width, height, dsWindowFlags_Resizable, surfaceUsage);
 	if (!testRenderSubpass->window)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create window: %s", dsErrorString(errno));
-		return false;
-	}
-
-	if (DS_ANDROID || DS_IOS)
-		dsWindow_setStyle(testRenderSubpass->window, dsWindowStyle_FullScreen);
-
-	if (!dsWindow_createSurface(testRenderSubpass->window))
-	{
-		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create window surface: %s", dsErrorString(errno));
 		return false;
 	}
 

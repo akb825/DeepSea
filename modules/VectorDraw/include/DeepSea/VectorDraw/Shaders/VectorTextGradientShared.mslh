@@ -117,42 +117,42 @@ varying(tessellation_evaluation, fragment)
 	/**
 	 * @brief The first fill material info vector.
 	 */
-	vec4 vfFillInfo0;
+	flat vec4 vfFillInfo0;
 
 	/**
 	 * @brief The second fill material info vector.
 	 */
-	vec4 vfFillInfo1;
+	flat vec4 vfFillInfo1;
 
 	/**
 	 * @brief The third fill material info vector.
 	 */
-	vec4 vfFillInfo2;
+	flat vec4 vfFillInfo2;
 
 	/**
 	 * @brief The fourth fill material info vector.
 	 */
-	vec4 vfFillInfo3;
+	flat vec4 vfFillInfo3;
 
 	/**
 	 * @brief The first outline material info vector.
 	 */
-	vec4 vfOutlineInfo0;
+	flat vec4 vfOutlineInfo0;
 
 	/**
 	 * @brief The second outline material info vector.
 	 */
-	vec4 vfOutlineInfo1;
+	flat vec4 vfOutlineInfo1;
 
 	/**
 	 * @brief The third outline material info vector.
 	 */
-	vec4 vfOutlineInfo2;
+	flat vec4 vfOutlineInfo2;
 
 	/**
 	 * @brief The fourth outline material info vector.
 	 */
-	vec4 vfOutlineInfo3;
+	flat vec4 vfOutlineInfo3;
 }
 #else
 varying(vertex, fragment)
@@ -160,42 +160,42 @@ varying(vertex, fragment)
 	/**
 	 * @brief The first fill material info vector.
 	 */
-	vec4 vfFillInfo0;
+	flat vec4 vfFillInfo0;
 
 	/**
 	 * @brief The second fill material info vector.
 	 */
-	vec4 vfFillInfo1;
+	flat vec4 vfFillInfo1;
 
 	/**
 	 * @brief The third fill material info vector.
 	 */
-	vec4 vfFillInfo2;
+	flat vec4 vfFillInfo2;
 
 	/**
 	 * @brief The fourth fill material info vector.
 	 */
-	vec4 vfFillInfo3;
+	flat vec4 vfFillInfo3;
 
 	/**
 	 * @brief The first outline material info vector.
 	 */
-	vec4 vfOutlineInfo0;
+	flat vec4 vfOutlineInfo0;
 
 	/**
 	 * @brief The second outline material info vector.
 	 */
-	vec4 vfOutlineInfo1;
+	flat vec4 vfOutlineInfo1;
 
 	/**
 	 * @brief The third outline material info vector.
 	 */
-	vec4 vfOutlineInfo2;
+	flat vec4 vfOutlineInfo2;
 
 	/**
 	 * @brief The fourth outline material info vector.
 	 */
-	vec4 vfOutlineInfo3;
+	flat vec4 vfOutlineInfo3;
 }
 #endif
 
@@ -206,8 +206,8 @@ varying(vertex, fragment)
  * @param[out] info2 The third info vector.
  * @param[out] info3 The fourth info vector.
  */
-void dsVectorText_getFillMaterialInfo(out vec4 info0, out vec4 info1, out vec4 info2,
-	out vec4 info3, int index)
+void dsVectorText_getFillMaterialInfo(
+	out vec4 info0, out vec4 info1, out vec4 info2, out vec4 info3, int index)
 {
 	if (index == DS_NO_VECTOR_MATERIAL)
 		dsVectorMaterial_invalidInfo(info0, info1, info2, info3);
@@ -225,8 +225,8 @@ void dsVectorText_getFillMaterialInfo(out vec4 info0, out vec4 info1, out vec4 i
  * @param[out] info2 The third info vector.
  * @param[out] info3 The fourth info vector.
  */
-void dsVectorText_getOutlineMaterialInfo(out vec4 info0, out vec4 info1, out vec4 info2,
-	out vec4 info3, int index)
+void dsVectorText_getOutlineMaterialInfo(
+	out vec4 info0, out vec4 info1, out vec4 info2, out vec4 info3, int index)
 {
 	if (index == DS_NO_VECTOR_MATERIAL)
 		dsVectorMaterial_invalidInfo(info0, info1, info2, info3);

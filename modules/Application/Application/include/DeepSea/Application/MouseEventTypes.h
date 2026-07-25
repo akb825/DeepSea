@@ -51,11 +51,20 @@ typedef enum dsMouseButton
  */
 #define DS_MOUSE_BUTTON(x) (dsMouseButton)(1 << x)
 
+/// @cond
+typedef struct dsWindow dsWindow;
+/// @endcond
+
 /**
  * @brief Structure containing information about a mouse button event.
  */
 typedef struct dsMouseButtonEvent
 {
+	/**
+	 * @brief The window the mouse was over.
+	 */
+	const dsWindow* window;
+
 	/**
 	 * @brief The ID for the mouse.
 	 */
@@ -71,7 +80,7 @@ typedef struct dsMouseButtonEvent
 	/**
 	 * @brief The position of the mouse relative to the window in display coordinates.
 	 */
-	dsVector2i position;
+	dsVector2f position;
 } dsMouseButtonEvent;
 
 /**
@@ -80,6 +89,11 @@ typedef struct dsMouseButtonEvent
 typedef struct dsMouseMoveEvent
 {
 	/**
+	 * @brief The window the mouse was over.
+	 */
+	const dsWindow* window;
+
+	/**
 	 * @brief The ID for the mouse.
 	 */
 	uint32_t mouseID;
@@ -87,12 +101,12 @@ typedef struct dsMouseMoveEvent
 	/**
 	 * @brief The position of the mouse relative to the window in display coordinates.
 	 */
-	dsVector2i position;
+	dsVector2f position;
 
 	/**
 	 * @brief The amount scrolled in the X direction in display coordinates.
 	 */
-	dsVector2i delta;
+	dsVector2f delta;
 } dsMouseMoveEvent;
 
 /**
@@ -101,6 +115,11 @@ typedef struct dsMouseMoveEvent
 typedef struct dsMouseWheelEvent
 {
 	/**
+	 * @brief The window the mouse was over.
+	 */
+	const dsWindow* window;
+
+	/**
 	 * @brief The ID for the mouse.
 	 */
 	uint32_t mouseID;
@@ -108,12 +127,12 @@ typedef struct dsMouseWheelEvent
 	/**
 	 * @brief The position of the mouse relative to the window in display coordinates.
 	 */
-	dsVector2i position;
+	dsVector2f position;
 
 	/**
 	 * @brief The amount scrolled in the direction.
 	 */
-	dsVector2i delta;
+	dsVector2f delta;
 
 	/**
 	 * @brief True if the Y direction is flipped due to "natural" scrolling.

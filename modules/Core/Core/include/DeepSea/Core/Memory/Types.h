@@ -100,7 +100,7 @@ typedef bool (*dsAllocatorFreeFunction)(dsAllocator* allocator, void* ptr);
  *
  * @see Allocator.h
  */
-struct dsAllocator
+typedef struct dsAllocator
 {
 	/**
 	 * @brief The current size of allocated memory.
@@ -152,7 +152,7 @@ struct dsAllocator
 	 * shouldn't be kept for later use.
 	 */
 	dsAllocatorFreeFunction freeFunc;
-};
+} dsAllocator;
 
 /**
  * @brief Structure for a system allocator.

@@ -237,7 +237,6 @@ bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 	if (vkSurface->surfaceData && !vkSurface->surfaceError &&
 		vkSurface->surfaceData->vsync == renderer->vsync)
 	{
-		dsAdjustVkSurfaceCapabilities(&surfaceInfo, widthHint, heightHint);
 		uint32_t width = surfaceInfo.currentExtent.width;
 		uint32_t height = surfaceInfo.currentExtent.height;
 		dsRenderSurfaceRotation rotation = dsRenderSurfaceRotation_0;
@@ -258,15 +257,11 @@ bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 			return true;
 		}
 	}
-	else
+	else if (surfaceInfo.currentExtent.width == 0 || surfaceInfo.currentExtent.height == 0)
 	{
-		// If we didn't take the above code path, need to check for size of 0. (e.g. minimized)
-		dsAdjustVkSurfaceCapabilities(&surfaceInfo, widthHint, heightHint);
-		if (surfaceInfo.currentExtent.width == 0 || surfaceInfo.currentExtent.height == 0)
-		{
-			DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
-			return true;
-		}
+		// Zero size may indicate e.g. minimized. Skip until it's a valid size.
+		DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
+		return true;
 	}
 
 	// NOTE: Some systems need to wait until all of the render commands have come through before

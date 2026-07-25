@@ -97,22 +97,22 @@ varying(vertex, fragment)
 	/**
 	 * @brief The position of the light.
 	 */
-	vec3 vfLightPosition;
+	flat vec3 vfLightPosition;
 
 	/**
 	 * @brief The direction to the light.
 	 */
-	vec3 vfLightDirection;
+	flat vec3 vfLightDirection;
 
 	/**
 	 * @brief The color of the light.
 	 */
-	vec3 vfLightColor;
+	flat vec3 vfLightColor;
 
 	/**
 	 * @brief The linear and quadratic falloff factors and cosine min and max spot angles.
 	 */
-	vec4 vfLightFalloffAndSpotAngles;
+	flat vec4 vfLightFalloffAndSpotAngles;
 
 	/**
 	 * @brief The clip coordinates for the pixel.

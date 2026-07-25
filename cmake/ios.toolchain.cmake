@@ -73,7 +73,7 @@
 #    CMAKE_OSX_SYSROOT, but can also be manually specified (although this should
 #    not be required).
 #
-# DEPLOYMENT_TARGET: Minimum SDK version to target. Default 2.0 on watchOS and 11.0 on tvOS+iOS
+# DEPLOYMENT_TARGET: Minimum SDK version to target. Default 2.0 on watchOS and 12.0 on tvOS+iOS
 #
 # ENABLE_BITCODE: (1|0) Enables or disables bitcode support. Default 1 (true)
 #

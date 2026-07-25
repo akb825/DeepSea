@@ -75,9 +75,10 @@ static size_t getRawBufferSize(const dsShaderVariableGroupDesc* description, boo
 	{
 		// This should have previously checked for overflow.
 		uint32_t lastEleement = description->elementCount - 1;
-		return description->positions[lastEleement].offset +
+		size_t size = description->positions[lastEleement].offset +
 			elementSize(description->elements + lastEleement,
 				description->positions + lastEleement);
+		return DS_ALIGNED_SIZE(size, description->resourceManager->minUniformBlockAlignment);
 	}
 
 	size_t dataSize = 0;

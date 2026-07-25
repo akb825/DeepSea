@@ -206,60 +206,75 @@ static bool createFramebuffer(TestCube* testCube)
 	return true;
 }
 
-static bool processEvent(
-	dsApplication* application, dsWindow* window, const dsEvent* event, void* userData)
+static bool processEvent(dsApplication* application, const dsEvent* event, void* userData)
 {
 	TestCube* testCube = (TestCube*)userData;
 	dsRenderer* renderer = application->renderer;
-	DS_ASSERT(!window || window == testCube->window);
 	switch (event->type)
 	{
 		case dsAppEventType_WindowClosed:
-			DS_VERIFY(dsWindow_destroy(window));
+		case dsAppEventType_WindowDestroyed:
+			DS_ASSERT(event->window == testCube->window);
+			DS_VERIFY(dsWindow_destroy(testCube->window));
 			testCube->window = NULL;
 			return false;
-		case dsAppEventType_WindowResized:
+		case dsAppEventType_WindowChanged:
+			DS_ASSERT(event->windowChange.window == testCube->window);
+			if (event->windowChange.flags & dsWindowChangeFlags_SurfaceSize &&
+				!createFramebuffer(testCube))
+			{
+				abort();
+			}
+			return true;
 		case dsAppEventType_SurfaceInvalidated:
+			DS_ASSERT(event->window == testCube->window);
 			if (!createFramebuffer(testCube))
 				abort();
 			testCube->invalidatedFrame = renderer->frameNumber;
 			return true;
 		case dsAppEventType_KeyDown:
-			if (event->key.repeat)
-				return false;
+			if (event->key.window != testCube->window)
+				return true;
 
-			if (event->key.key == dsKeyCode_ACBack)
-				dsApplication_quit(application, 0);
-			else if (event->key.key == dsKeyCode_1)
+			switch (event->key.key)
 			{
-				// The key down will be re-sent when re-creating the window.
-				if (testCube->invalidatedFrame + 2 > renderer->frameNumber)
+				case dsKeyCode_1:
+				{
+					// The key down will be re-sent when re-creating the window.
+					if (testCube->invalidatedFrame + 2 > renderer->frameNumber)
+						return true;
+
+					uint32_t samples = renderer->surfaceSamples;
+					if (samples == 1)
+						samples = 4;
+					else
+						samples = 1;
+					dsRenderer_setSamples(renderer, samples);
 					return false;
-
-				uint32_t samples = renderer->surfaceSamples;
-				if (samples == 1)
-					samples = 4;
-				else
-					samples = 1;
-				dsRenderer_setSamples(renderer, samples);
+				}
+				case dsKeyCode_2:
+				{
+					float anisotropy = renderer->defaultAnisotropy;
+					if (anisotropy == 1.0f)
+						anisotropy = renderer->maxAnisotropy;
+					else
+						anisotropy = 1.0f;
+					dsRenderer_setDefaultAnisotropy(renderer, anisotropy);
+					return false;
+				}
+				case dsKeyCode_V:
+					if (renderer->vsync == dsVSync_Disabled)
+						dsRenderer_setVSync(renderer, dsVSync_TripleBuffer);
+					else
+						dsRenderer_setVSync(renderer, dsVSync_Disabled);
+					return false;
+				case dsKeyCode_ACBack:
+				case dsKeyCode_ACExit:
+					dsApplication_quit(application, 0);
+					return false;
+				default:
+					return true;
 			}
-			else if (event->key.key == dsKeyCode_2)
-			{
-				float anisotropy = renderer->defaultAnisotropy;
-				if (anisotropy == 1.0f)
-					anisotropy = renderer->maxAnisotropy;
-				else
-					anisotropy = 1.0f;
-				dsRenderer_setDefaultAnisotropy(renderer, anisotropy);
-			}
-			else if (event->key.key == dsKeyCode_V)
-			{
-				if (renderer->vsync == dsVSync_Disabled)
-					dsRenderer_setVSync(renderer, dsVSync_TripleBuffer);
-				else
-					dsRenderer_setVSync(renderer, dsVSync_Disabled);
-			}
-			return false;
 		default:
 			return true;
 	}
@@ -329,19 +344,15 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
 	DS_VERIFY(dsApplication_setUpdateFunction(application, &update, testCube, NULL));
 
-	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
-	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
-	testCube->window = dsWindow_create(application, allocator, "Test Cube", NULL,
-		NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate,
-		dsRenderSurfaceUsage_ClientRotations);
+	uint32_t width = dsApplication_adjustWindowSize(application, NULL, 800);
+	uint32_t height = dsApplication_adjustWindowSize(application, NULL, 600);
+	testCube->window = dsWindow_create(application, allocator, "Test Cube", NULL, NULL, width,
+		height, dsWindowFlags_Resizable, dsRenderSurfaceUsage_ClientRotations);
 	if (!testCube->window)
 	{
 		DS_LOG_ERROR_F("TestCube", "Couldn't create window: %s", dsErrorString(errno));
 		return false;
 	}
-
-	if (DS_ANDROID || DS_IOS)
-		dsWindow_setStyle(testCube->window, dsWindowStyle_FullScreen);
 
 	if (!dsWindow_createSurface(testCube->window))
 	{

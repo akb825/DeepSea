@@ -1932,7 +1932,7 @@ typedef bool (*dsBindComputeShaderFunction)(dsResourceManager* resourceManager,
  *
  * @see ResourceManager.h
  */
-struct dsResourceManager
+typedef struct dsResourceManager
 {
 	/**
 	 * The renderer this belongs to.
@@ -2633,7 +2633,7 @@ struct dsResourceManager
 	 * @brief Compute shader unbinding function.
 	 */
 	dsUnbindShaderFunction unbindComputeShaderFunc;
-};
+} dsResourceManager;
 
 #ifdef __cplusplus
 }

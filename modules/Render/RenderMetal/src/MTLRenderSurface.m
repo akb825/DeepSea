@@ -376,7 +376,7 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 			format = MTLPixelFormatBGRA8Unorm_sRGB;
 		}
 		else if (renderer->surfaceColorFormat ==
-			dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16, dsGfxFormat_SRGB))
+			dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16, dsGfxFormat_Float))
 		{
 			format = MTLPixelFormatRGBA16Float;
 		}
@@ -385,7 +385,7 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 #if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
 		layer.displaySyncEnabled = renderer->vsync != dsVSync_Disabled;
 #endif
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101100
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101100 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 160000
 		layer.wantsExtendedDynamicRangeContent = format == MTLPixelFormatRGBA16Float;
 #endif
 

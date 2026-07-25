@@ -80,22 +80,6 @@ if (NOT DEEPSEA_NO_PREBUILT_LIBS)
 			list(REMOVE_ITEM prebuiltDlls ${gtestLibs})
 			list(REMOVE_ITEM cmakeFolders ${DEEPSEA_PREBUILT_LIBS_DIR}/lib/cmake/GTest)
 
-			# Only the static or dynamic SDL library based on what's needed.
-			if (NOT ANDROID)
-				if (DEEPSEA_SHARED)
-					set(unusedSdlLibs ${DEEPSEA_PREBUILT_LIBS_DIR}/lib/libSDL2.a
-						${DEEPSEA_PREBUILT_LIBS_DIR}/lib/SDL2-static.lib)
-				else()
-					set(unusedSdlLibs ${DEEPSEA_PREBUILT_LIBS_DIR}/lib/libSDL2.so
-						${DEEPSEA_PREBUILT_LIBS_DIR}/lib/libSDL2.dylib
-						${DEEPSEA_PREBUILT_LIBS_DIR}/lib/SDL2.lib
-						${DEEPSEA_PREBUILT_LIBS_DIR}/lib/SDL2.dll)
-				endif()
-				list(REMOVE_ITEM prebuiltLibs ${unusedSdlLibs})
-				list(REMOVE_ITEM prebuiltSharedLibs ${unusedSdlLibs})
-				list(REMOVE_ITEM prebuiltDlls ${unusedSdlLibs})
-			endif()
-
 			install(FILES ${prebuiltLibs} DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT dev)
 			install(PROGRAMS ${prebuiltSharedLibs} DESTINATION ${CMAKE_INSTALL_LIBDIR}
 				COMPONENT dev)

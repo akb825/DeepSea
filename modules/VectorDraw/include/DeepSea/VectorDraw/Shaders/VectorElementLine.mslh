@@ -84,32 +84,32 @@ varying(vertex, fragment)
 	/**
 	 * @brief The bounds of the shape.
 	 */
-	vec4 vfShapeBounds;
+	flat vec4 vfShapeBounds;
 
 	/**
 	 * @brief The information for the dashed line.
 	 */
-	vec4 vfDashArray;
+	flat vec4 vfDashArray;
 
 	/**
 	 * @brief The first material info vector.
 	 */
-	vec4 vfMatInfo0;
+	flat vec4 vfMatInfo0;
 
 	/**
 	 * @brief The second material info vector.
 	 */
-	vec4 vfMatInfo1;
+	flat vec4 vfMatInfo1;
 
 	/**
 	 * @brief The third material info vector.
 	 */
-	vec4 vfMatInfo2;
+	flat vec4 vfMatInfo2;
 
 	/**
 	 * @brief The fourth material info vector.
 	 */
-	vec4 vfMatInfo3;
+	flat vec4 vfMatInfo3;
 }
 
 /**
@@ -140,8 +140,8 @@ vec4 dsVectorElementLine_processVertex()
 	mat3 transform = dsVectorShared_getElementTransform(elementInfo);
 
 	vfPosition.xy = viPositionLineInfo.xy;
-	vfLineDistancesOpacityMaterialIndex = vec4(viPositionLineInfo.zw, elementInfo[2].z,
-		viMaterialIndex.y);
+	vfLineDistancesOpacityMaterialIndex = vec4(
+		viPositionLineInfo.zw, elementInfo[2].z, viMaterialIndex.y);
 	vfShapeBounds = dsVectorShared_getElementBounds(elementInfo);
 	vfDashArray = elementInfo[3];
 	return dsVectorShared_transform(vfPosition.zw, viPositionLineInfo.xy, transform);

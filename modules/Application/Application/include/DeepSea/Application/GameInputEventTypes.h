@@ -68,7 +68,7 @@ typedef enum dsGameControllerMap
 	dsGameControllerMap_FaceButton2,   ///< The third face button.
 	dsGameControllerMap_FaceButton3,   ///< The fourth face button.
 	dsGameControllerMap_Start,         ///< The start/+ button.
-	dsGameControllerMap_Select,        ///< The select/back/- button.
+	dsGameControllerMap_Back,          ///< The select/back/- button.
 	dsGameControllerMap_Home,          ///< The home/guide button.
 	dsGameControllerMap_LeftStick,     ///< Button for pressing the left control stick.
 	dsGameControllerMap_RightStick,    ///< Button for pressing the right control stick.
@@ -76,12 +76,17 @@ typedef enum dsGameControllerMap
 	dsGameControllerMap_RightShoulder, ///< The right shoulder button.
 	dsGameControllerMap_LeftTrigger,   ///< The left shoulder trigger.
 	dsGameControllerMap_RightTrigger,  ///< The right shoulder trigger.
-	dsGameControllerMap_Paddle0,       ///< First paddle.
-	dsGameControllerMap_Paddle1,       ///< Second paddle.
-	dsGameControllerMap_Paddle2,       ///< Third paddle.
-	dsGameControllerMap_Paddle3,       ///< Fourth paddle.
+	dsGameControllerMap_LeftPaddle0,   ///< First left paddle.
+	dsGameControllerMap_LeftPaddle1,   ///< Second left paddle.
+	dsGameControllerMap_RightPaddle0,  ///< First right paddle.
+	dsGameControllerMap_RightPaddle1,  ///< Second rgiht paddle.
 	dsGameControllerMap_Touchpad,      ///< Touchpad button.
 	dsGameControllerMap_MiscButton0,   ///< The share/microphone/camera button.
+	dsGameControllerMap_MiscButton1,   ///< Miscellaneous button.
+	dsGameControllerMap_MiscButton2,   ///< GameCube left trigger click.
+	dsGameControllerMap_MiscButton3,   ///< GameCube right trigger click.
+	dsGameControllerMap_MiscButton4,   ///< Miscellaneous button.
+	dsGameControllerMap_MiscButton5,   ///< Miscellaneous button.
 	dsGameControllerMap_Count          ///< The number of game controller input maps.
 } dsGameControllerMap;
 
@@ -95,6 +100,31 @@ typedef enum dsGameInputMethod
 	dsGameInputMethod_Button,       ///< A button that is either pressed or not.
 	dsGameInputMethod_DPad          ///< A D-pad or hat.
 } dsGameInputMethod;
+
+/**
+ * @brief Enum for the range of a game input axis.
+ */
+typedef enum dsGameInputAxisRange
+{
+	dsGameInputAxisRange_Full,     ///< The full range [-1, 1].
+	dsGameInputAxisRange_Negative, ///< The negative range [-1, 0].
+	dsGameInputAxisRange_Positive  ///< The positive range [0, 1].
+} dsGameInputAxisRange;
+
+/**
+ * @brief Enum for an individual direction within a dpad.
+ */
+typedef enum dsGameInputDirection
+{
+	dsGameInputDirection_Left,      ///< Left, or value -1 on the x axis.
+	dsGameInputDirection_Right,     ///< Right, or value +1 on the x axis.
+	dsGameInputDirection_Down,      ///< Down, or value -1 on the y axis.
+	dsGameInputDirection_Up,        ///< Up, or value +1 on the y axis.
+	dsGameInputDirection_XAxis,     ///< Either direction on the x axis.
+	dsGameInputDirection_InvXAxis,  ///< Either direction on the x axis, inverted.
+	dsGameInputDirection_YAxis,     ///< Either direction on the y axis.
+	dsGameInputDirection_InvYAxis   ///< Either direction on the y axis, inverted.
+} dsGameInputDirection;
 
 /**
  * @brief Struct defining a mapping to a specific input on a game input device.
@@ -112,36 +142,41 @@ typedef struct dsGameInputMap
 	uint16_t index;
 
 	/**
-	 * @brief The D-pad axis when the method is dsGameInputMethod_DPad.
+	 * @brief The original axis range as a value of dsGameInputAxisRange.
 	 */
-	uint8_t dpadAxis;
+	uint8_t origAxisRange;
 
 	/**
-	 * @brief The D-pad axis value when the method is dsGameInputMethod_DPad.
+	 * @brief The mapped axis range as a value of dsGameInputAxisRange.
 	 */
-	int8_t dpadAxisValue;
+	uint8_t mappedAxisRange;
+
+	/**
+	 * @brief Whether the axis is inverted.
+	 */
+	bool invertAxis;
+
+	/**
+	 * @brief The direction on the dpad as a value of dsGameInputDirection.
+	 */
+	uint8_t dpadDirection;
 } dsGameInputMap;
 
 /// @cond
+typedef struct dsWindow dsWindow;
 typedef struct dsGameInput dsGameInput;
 /// @endcond
-
-/**
- * @brief Struct containing information about connecting a game input.
- */
-typedef struct dsGameInputConnectEvent
-{
-	/**
-	 * @brief The game input device.
-	 */
-	const dsGameInput* gameInput;
-} dsGameInputConnectEvent;
 
 /**
  * @brief Struct containing information about moving a game input axis.
  */
 typedef struct dsGameInputAxisEvent
 {
+	/**
+	 * @brief The window that has focus for game inputs.
+	 */
+	const dsWindow* window;
+
 	/**
 	 * @brief The game input device.
 	 */
@@ -155,7 +190,8 @@ typedef struct dsGameInputAxisEvent
 	/**
 	 * @brief The axis that was modified.
 	 *
-	 * In general this should be ignored if mapping is valid.
+	 * In general this should be ignored if mapping is valid. This has no meaning if the controller
+	 * mapping maps to a D-pad axis rather than an individual button.
 	 */
 	uint32_t axis;
 
@@ -170,6 +206,11 @@ typedef struct dsGameInputAxisEvent
  */
 typedef struct dsGameInputButtonEvent
 {
+	/**
+	 * @brief The window that has focus for game inputs.
+	 */
+	const dsWindow* window;
+
 	/**
 	 * @brief The game input device.
 	 */
@@ -195,6 +236,11 @@ typedef struct dsGameInputButtonEvent
 typedef struct dsGameInputBallEvent
 {
 	/**
+	 * @brief The window that has focus for game inputs.
+	 */
+	const dsWindow* window;
+
+	/**
 	 * @brief The game input device.
 	 */
 	const dsGameInput* gameInput;
@@ -215,6 +261,11 @@ typedef struct dsGameInputBallEvent
  */
 typedef struct dsGameInputDPadEvent
 {
+	/**
+	 * @brief The window that has focus for game inputs.
+	 */
+	const dsWindow* window;
+
 	/**
 	 * @brief The game input device.
 	 */

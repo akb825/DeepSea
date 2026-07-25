@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,10 @@
  */
 
 #include <DeepSea/Core/Config.h>
-#include <SDL_main.h>
+
+// Wrap SDL functions to ensure we only need to link to SDL once.
+#define SDL_RunApp dsSDL_RunApp
+#include <SDL3/SDL_main.h>
 
 // Make sure the main function is visible on Android.
 #if DS_ANDROID

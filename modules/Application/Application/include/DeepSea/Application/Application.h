@@ -247,28 +247,11 @@ DS_APPLICATION_EXPORT bool dsApplication_quit(dsApplication* application, int ex
  * @brief Adds a custom event to be placed on the event queue.
  * @remark errno will be set on failure.
  * @param application The application.
- * @param window The window associated with the event.
  * @param event The custom event to queue.
  * @return False if the event couldn't be added.
  */
 DS_APPLICATION_EXPORT bool dsApplication_addCustomEvent(
-	dsApplication* application, dsWindow* window, const dsCustomEvent* event);
-
-/**
- * @brief Gets the current event time.
- *
- * This can be used to find what an event's time is relative to the current one, as it is
- * implementation defined what the start point is.
- *
- * @remark Some implementations use 32-bit internal timers. For example, a 32-bit millisecond value
- * will wrap around in ~49 days. While unlikely to occur in real-world scenarios, a sanity check
- * (e.g. clamping relative times so they don't become negative) can be used to minimize the impact.
- *
- * @remark Some implementations use
- * @param application The application.
- * @return The current event time in seconds.
- */
-DS_APPLICATION_EXPORT double dsApplication_getCurrentEventTime(const dsApplication* application);
+	dsApplication* application, const dsCustomEvent* event);
 
 /**
  * @brief Gets the current power state of the system.
@@ -292,43 +275,24 @@ DS_APPLICATION_EXPORT dsSystemPowerState dsApplication_getPowerState(
 	int* outRemainingTime, int* outBatteryPercent, const dsApplication* application);
 
 /**
- * @brief Gets the bounds for the display in display coordinates.
+ * @brief Finds a display by ID.
  * @remark errno will be set on failure.
- * @param[out] outBounds The bounds for the display.
  * @param application The application.
- * @param display The index of the display.
- * @return False if an error occurred.
+ * @param displayID The ID of the display.
+ * @return The display or NULL if it couldn't be found.
  */
-DS_APPLICATION_EXPORT bool dsApplication_getDisplayBounds(
-	dsAlignedBox2i* outBounds, const dsApplication* application, uint32_t display);
+DS_APPLICATION_EXPORT const dsDisplayInfo* dsApplication_findDisplay(
+	const dsApplication* application, uint64_t displayID);
 
 /**
- * @brief Adjusts the size of the window based on the DPI.
- *
- * On Linux and Windows this will multiply the size based on the DPI of the display compared to the
- * reference DPI. Other platforms won't perform this step, since it's either already done by the OS
- * (for macOS) or doesn't apply due to not having standard windows. (e.g. Android)
- *
+ * @brief Adjusts the size of the window based on the display scale.
  * @param application The application.
- * @param display The index of the display.
+ * @param display The display. If NULL, the primary display will be used.
  * @param size The size to adjust.
  * @return The adjusted size.
  */
 DS_APPLICATION_EXPORT uint32_t dsApplication_adjustWindowSize(
-	const dsApplication* application, uint32_t display, uint32_t size);
-
-/**
- * @brief Adjusts an arbitary size based on the DPI.
- *
- * This will multiply the size based on the DPI of the display compared to the reference DPI.
- *
- * @param application The application.
- * @param display The index of the display.
- * @param size The size to adjust.
- * @return The adjusted size.
- */
-DS_APPLICATION_EXPORT float dsApplication_adjustSize(
-	const dsApplication* application, uint32_t display, float size);
+	const dsApplication* application, const dsDisplayInfo* display, uint32_t size);
 
 /**
  * @brief Gets the cursor used by the application.
@@ -387,35 +351,6 @@ DS_APPLICATION_EXPORT bool dsApplication_isKeyPressed(
 DS_APPLICATION_EXPORT dsKeyModifier dsApplication_getKeyModifiers(const dsApplication* application);
 
 /**
- * @brief Begins accepting text input.
- * @remark errno will be set on failure.
- * @param application The application.
- * @return False if input couldn't be begun.
- */
-DS_APPLICATION_EXPORT bool dsApplication_beginTextInput(dsApplication* application);
-
-/**
- * @brief Ends accepting text input.
- * @remark errno will be set on failure.
- * @param application The application.
- * @return False if input couldn't be ended.
- */
-DS_APPLICATION_EXPORT bool dsApplication_endTextInput(dsApplication* application);
-
-/**
- * @brief Sets the editing rectangle for editing text.
- *
- * This is generally used for suggestions for unicode entry.
- *
- * @remark errno will be set on failure.
- * @param application The application.
- * @param rect The renctangle to edit text in.
- * @return False if the input rectangle couldn't be set.
- */
-DS_APPLICATION_EXPORT bool dsApplication_setTextInputRect(
-	dsApplication* application, const dsAlignedBox2i* rect);
-
-/**
  * @brief Gets the current position of the mouse.
  * @remark errno will be set on failure.
  * @param[out] outPosition The position of the mouse in screen coordinates.
@@ -423,7 +358,7 @@ DS_APPLICATION_EXPORT bool dsApplication_setTextInputRect(
  * @return False if the position couldn't be queried.
  */
 DS_APPLICATION_EXPORT bool dsApplication_getMousePosition(
-	dsVector2i* outPosition, const dsApplication* application);
+	dsVector2f* outPosition, const dsApplication* application);
 
 /**
  * @brief Sets the current position of the mouse.
@@ -437,7 +372,7 @@ DS_APPLICATION_EXPORT bool dsApplication_getMousePosition(
  * @param position The position of the mouse.
  */
 DS_APPLICATION_EXPORT bool dsApplication_setMousePosition(
-	dsApplication* application, dsWindow* window, const dsVector2i* position);
+	dsApplication* application, dsWindow* window, const dsVector2f* position);
 
 /**
  * @brief Gets the currently pressed mouse buttons.
@@ -459,13 +394,33 @@ DS_APPLICATION_EXPORT dsWindow* dsApplication_getFocusWindow(const dsApplication
  *
  * This is usually called by the application, but could also be used to generate fake events.
  *
+ * @remark errno will be set on failure.
  * @param application The application.
- * @param window The window that the event originated fromm.
  * @param event The event to send.
  * @return False if an error occurred.
  */
 DS_APPLICATION_EXPORT bool dsApplication_dispatchEvent(
-	dsApplication* application, dsWindow* window, const dsEvent* event);
+	dsApplication* application, const dsEvent* event);
+
+#if DS_ANDROID
+/**
+ * @brief Requests a permission from Android.
+ *
+ * Some permissions are designated as "dangerous", and require an explicit request to be made at
+ * runtime. This should only need to be done for functionality outside of the responsibilities of
+ * the applicatoin library.
+ *
+ * @remark errno will be set on failure.
+ * @param application The application.
+ * @param permission The Android permission name, such as "android.permission.ACCESS_LOCAL_NETWORK".
+ * @param resultFunc The function to be called for the result. This may be invoked on another
+ *     thread.
+ * @param userData The user data to forward to resultFunc.
+ * @return False if the request could not be sent.
+ */
+DS_APPLICATION_EXPORT bool dsApplication_requestAndroidPermission(dsApplication* application,
+	const char* permission, dsHandleAndroidPermissionResultFunction resultFunc, void* userData);
+#endif
 
 /**
  * @brief Initializes the members of an application.

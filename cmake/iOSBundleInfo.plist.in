@@ -32,5 +32,17 @@
 	<string>${MACOSX_BUNDLE_COPYRIGHT}</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Connect to Bluetooth controllers.</string>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>blackColor</string>
+	</dict>
 </dict>
 </plist>

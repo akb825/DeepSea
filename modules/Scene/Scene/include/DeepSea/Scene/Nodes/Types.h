@@ -70,7 +70,7 @@ typedef void (*dsDestroySceneNodeFunction)(dsSceneNode* node);
  * The type should be declared as a static variable. See dsSceneNode_setupParentType() for
  * information for how to set up the parent type.
  */
-struct dsSceneNodeType
+typedef struct dsSceneNodeType
 {
 	/**
 	 * @brief The parent type of the node, or NULL if there is no base type.
@@ -96,7 +96,7 @@ struct dsSceneNodeType
 	 * @brief Function to destroy a scene node.
 	 */
 	dsDestroySceneNodeFunction destroyFunc;
-};
+} dsSceneNodeType;
 
 /**
  * @brief Struct for a node within a scene graph.
@@ -129,7 +129,7 @@ struct dsSceneNodeType
  * @remark None of the members should be modified outside of the implementation.
  * @see SceneNode.h
  */
-struct dsSceneNode
+typedef struct dsSceneNode
 {
 	/**
 	 * @brief The allocator for the node.
@@ -199,7 +199,7 @@ struct dsSceneNode
 	 * @brief Function called on destruction to destroy the user data.
 	 */
 	dsDestroyUserDataFunction destroyUserDataFunc;
-};
+} dsSceneNode;
 
 /**
  * @brief Scene node implementation that shifts the contents of the scene.
@@ -302,7 +302,7 @@ typedef bool (*dsGetSceneCullNodeBoundsFunction)(dsMatrix44f* outBoxMatrix,
  * @remark This is intended to be a base node type for any node that can be culled.
  * @see SceneCullNode.h
  */
-struct dsSceneCullNode
+typedef struct dsSceneCullNode
 {
 	/**
 	 * @brief The base node.
@@ -330,7 +330,7 @@ struct dsSceneCullNode
 	 * different transform from the node transform.
 	 */
 	dsGetSceneCullNodeBoundsFunction getBoundsFunc;
-};
+} dsSceneCullNode;
 
 /**
  * @brief Union for the draw range of a model.
@@ -694,7 +694,7 @@ typedef struct dsSceneItemEntry
  *
  * @see SceneTreeNode.h
  */
-struct dsSceneTreeNode
+typedef struct dsSceneTreeNode
 {
 	/**
 	 * @brief The allocator the tree node was created with.
@@ -807,7 +807,7 @@ struct dsSceneTreeNode
 	 * @brief The world transform for the current frame.
 	 */
 	dsMatrix44f curFrameWorldTransform;
-};
+} dsSceneTreeNode;
 
 #ifdef __cplusplus
 }

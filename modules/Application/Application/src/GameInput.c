@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,55 +24,53 @@ bool dsGameInput_hasControllerMapping(const dsGameInput* gameInput, dsGameContro
 		gameInput->controllerMapping[mapping].method != dsGameInputMethod_Invalid;
 }
 
-bool dsGameInput_isInputControllerMapped(const dsGameInput* gameInput, dsGameInputMethod method,
-	uint32_t index)
+dsGameControllerMap dsGameInput_getAxisControllerMap(
+	const dsGameInput* gameInput, uint32_t axis)
 {
-	if (!gameInput || method == dsGameInputMethod_Invalid)
-		return false;
-
-	for (int i = 0; i < dsGameControllerMap_Count; ++i)
-	{
-		const dsGameInputMap* mapping = gameInput->controllerMapping + i;
-		{
-			if (mapping->method == method && mapping->index == index)
-				return true;
-		}
-	}
-
-	return false;
-}
-
-dsGameControllerMap dsGameInput_findControllerMapping(const dsGameInput* gameInput,
-	const dsGameInputMap* inputMap)
-{
-	if (!gameInput || !inputMap || inputMap->method == dsGameInputMethod_Invalid)
+	if (!gameInput || !gameInput->axisControllerMaps || axis >= gameInput->axisCount)
 		return dsGameControllerMap_Invalid;
 
-	for (int i = 0; i < dsGameControllerMap_Count; ++i)
-	{
-		const dsGameInputMap* mapping = gameInput->controllerMapping + i;
-		{
-			if (mapping->method == inputMap->method && mapping->index == inputMap->index &&
-				(mapping->method != dsGameInputMethod_DPad ||
-					(mapping->method == dsGameInputMethod_DPad &&
-						mapping->dpadAxis == inputMap->dpadAxis &&
-						mapping->dpadAxisValue == inputMap->dpadAxisValue)))
-			{
-				return (dsGameControllerMap)i;
-			}
-		}
-	}
-
-	return dsGameControllerMap_Invalid;
+	return gameInput->axisControllerMaps[axis];
 }
 
-dsGameInputBattery dsGameInput_getBattery(const dsGameInput* gameInput)
+dsGameControllerMap dsGameInput_getButtonControllerMap(
+	const dsGameInput* gameInput, uint32_t button)
 {
-	if (!gameInput || !gameInput->application || !gameInput->application->getGameInputBatteryFunc)
-		return dsGameInputBattery_Unknown;
+	if (!gameInput || !gameInput->buttonControllerMaps || button >= gameInput->buttonCount)
+		return dsGameControllerMap_Invalid;
+
+	return gameInput->buttonControllerMaps[button];
+}
+
+dsGameControllerMap dsGameInput_getDPadControllerMap(
+	const dsGameInput* gameInput, uint32_t dpad, dsGameInputDirection direction)
+{
+	if (direction == dsGameInputDirection_XAxis || direction == dsGameInputDirection_InvXAxis)
+		direction = dsGameInputDirection_Left;
+	if (direction == dsGameInputDirection_YAxis || direction == dsGameInputDirection_InvYAxis)
+		direction = dsGameInputDirection_Down;
+
+	if (!gameInput || !gameInput->dpadControllerMaps || dpad >= gameInput->dpadCount ||
+		direction < dsGameInputDirection_Left || direction > dsGameInputDirection_Up)
+	{
+		return dsGameControllerMap_Invalid;
+	}
+
+	return gameInput->dpadControllerMaps[dpad*4 + direction];
+}
+
+dsSystemPowerState dsGameInput_getPowerState(int* outBatteryPercent, const dsGameInput* gameInput)
+{
+	if (!gameInput || !gameInput->application ||
+		!gameInput->application->getGameInputPowerStateFunc)
+	{
+		if (outBatteryPercent)
+			*outBatteryPercent = -1;
+		return dsSystemPowerState_Unknown;
+	}
 
 	const dsApplication* application = gameInput->application;
-	return application->getGameInputBatteryFunc(application, gameInput);
+	return application->getGameInputPowerStateFunc(outBatteryPercent, application, gameInput);
 }
 
 float dsGameInput_getAxis(const dsGameInput* gameInput, uint32_t axis)
@@ -111,8 +109,8 @@ bool dsGameInput_isButtonPressed(const dsGameInput* gameInput, uint32_t button)
 	return application->isGameInputButtonPressedFunc(application, gameInput, button);
 }
 
-bool dsGameInput_isControllerButtonPressed(const dsGameInput* gameInput,
-	dsGameControllerMap mapping)
+bool dsGameInput_isControllerButtonPressed(
+	const dsGameInput* gameInput, dsGameControllerMap mapping)
 {
 	if (!dsGameInput_hasControllerMapping(gameInput, mapping) || !gameInput->application ||
 		!gameInput->application->isGameInputControllerButtonPressedFunc)
@@ -124,8 +122,8 @@ bool dsGameInput_isControllerButtonPressed(const dsGameInput* gameInput,
 	return application->isGameInputControllerButtonPressedFunc(application, gameInput, mapping);
 }
 
-bool dsGameInput_getDPadDirection(dsVector2i* outDirection, const dsGameInput* gameInput,
-	uint32_t dpad)
+bool dsGameInput_getDPadDirection(
+	dsVector2i* outDirection, const dsGameInput* gameInput, uint32_t dpad)
 {
 	if (!outDirection || !gameInput || !gameInput->application ||
 		!gameInput->application->getGameInputDPadDirectionFunc)
@@ -204,8 +202,8 @@ float dsGameInput_getBaselineRumble(const dsGameInput* gameInput, dsGameInputRum
 	return application->getGameInputBaselineRumbleFunc(application, gameInput, rumble);
 }
 
-bool dsGameInput_setTimedRumble(dsGameInput* gameInput, dsGameInputRumble rumble, float strength,
-	float duration)
+bool dsGameInput_setTimedRumble(
+	dsGameInput* gameInput, dsGameInputRumble rumble, float strength, float duration)
 {
 	if (!gameInput || !gameInput->application ||
 		!gameInput->application->setGameInputBaselineRumbleFunc || strength < 0 || strength > 1 ||
@@ -240,8 +238,8 @@ bool dsGameInput_setTimedRumble(dsGameInput* gameInput, dsGameInputRumble rumble
 		application, gameInput, rumble, strength, duration);
 }
 
-float dsGameInput_getTimedRumble(float* outDuration, const dsGameInput* gameInput,
-	dsGameInputRumble rumble)
+float dsGameInput_getTimedRumble(
+	float* outDuration, const dsGameInput* gameInput, dsGameInputRumble rumble)
 {
 	if (!gameInput || !gameInput->application ||
 		!gameInput->application->getGameInputTimedRumbleFunc)
@@ -294,6 +292,18 @@ bool dsGameInput_setLEDColor(dsGameInput* gameInput, dsColor color)
 	return application->setGameInputLEDColorFunc(application, gameInput, color);
 }
 
+bool dsGameInput_setPlayer(dsGameInput* gameInput, uint32_t player)
+{
+	if (!gameInput || !gameInput->application || !gameInput->application->setGameInputPlayerFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsApplication* application = gameInput->application;
+	return application->setGameInputPlayerFunc(application, gameInput, player);
+}
+
 bool dsGameInput_hasMotionSensor(const dsGameInput* gameInput, dsMotionSensorType type)
 {
 	if (!gameInput || !gameInput->application ||
@@ -307,8 +317,8 @@ bool dsGameInput_hasMotionSensor(const dsGameInput* gameInput, dsMotionSensorTyp
 	return application->gameInputHasMotionSensorFunc(application, gameInput, type);
 }
 
-bool dsGameInput_getMotionSensorData(dsVector3f* outData, const dsGameInput* gameInput,
-	dsMotionSensorType type)
+bool dsGameInput_getMotionSensorData(
+	dsVector3f* outData, const dsGameInput* gameInput, dsMotionSensorType type)
 {
 	if (!outData || !gameInput || !gameInput->application ||
 		!gameInput->application->getGameInputMotionSensorDataFunc)

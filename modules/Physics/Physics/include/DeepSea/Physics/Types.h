@@ -771,7 +771,7 @@ typedef bool (*dsSetPhysicsActorContactPropertiesFunction)(dsPhysicsEngine* engi
  * @remark None of the members should be modified outside of the implementation.
  * @see PhysicsEngine.h
  */
-struct dsPhysicsEngine
+typedef struct dsPhysicsEngine
 {
 	/**
 	 * @brief Allocator for the physics engine.
@@ -1528,7 +1528,7 @@ struct dsPhysicsEngine
 	 * @brief Function to set the rack and pinion ratio for a rack and pinion physics constraint.
 	 */
 	dsSetRackAndPinionPhysicsConstraintRatioFunction setRackAndPinionConstraintRatioFunc;
-};
+} dsPhysicsEngine;
 
 #ifdef __cplusplus
 }

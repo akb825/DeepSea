@@ -27,29 +27,36 @@
 #include <DeepSea/Application/GameInput.h>
 #include <DeepSea/Application/Window.h>
 
+#include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
-#include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Core/Timer.h>
 
+#include <DeepSea/Math/Vector2.h>
+
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderSurface.h>
 
-#include <SDL.h>
-#include <SDL_syswm.h>
+#include <SDL3/SDL.h>
 #include <stdio.h>
 #include <string.h>
 
-#define DS_MAX_WINDOWS 100U
+#define MAX_SWAP_WINDOWS 100U
 
 // Need to swap middle and right buttons.
 #define SDL_MOUSE_TO_DS_MOUSE_MASK(x) (((x) & ~(SDL_BUTTON_MMASK | SDL_BUTTON_RMASK)) | \
 	(((x) & SDL_BUTTON_MMASK) << 1) | (((x) & SDL_BUTTON_RMASK) >> 1))
+
+// Currently there is only a handful of window and window change flags, so use this to cache the
+// changes when re-creating samples.
+#define CACHED_CHANGE_MASK 0xFFFF0000
+#define CACHED_CHANGE_SHIFT 16
 
 typedef struct dsSDLApplication
 {
@@ -99,13 +106,13 @@ static uint32_t showMessageBoxImpl(SDL_Window* parentWindow, dsMessageBoxType ty
 			button->flags |= SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT;
 		if (i == escapeButton)
 			button->flags |= SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT;
-		button->buttonid = i;
+		button->buttonID = i;
 		button->text = buttons[i];
 	}
 	messageBox.buttons = buttonData;
 
 	int buttonId = 0;
-	if (SDL_ShowMessageBox(&messageBox, &buttonId) != 0)
+	if (!SDL_ShowMessageBox(&messageBox, &buttonId))
 	{
 		errno = EINVAL;
 		return DS_MESSAGE_BOX_NO_BUTTON;
@@ -114,17 +121,29 @@ static uint32_t showMessageBoxImpl(SDL_Window* parentWindow, dsMessageBoxType ty
 	return buttonId;
 }
 
-#if defined(SDL_VIDEO_DRIVER_WAYLAND)
-
 static void* createBackgroundGLWindow(void* userData, dsRenderSurfaceType surfaceType)
 {
 	DS_UNUSED(userData);
 	DS_UNUSED(surfaceType);
 	DS_ASSERT(surfaceType == dsRenderSurfaceType_Window);
-	return SDL_CreateWindow("background", 0, 0, 1, 1, SDL_WINDOW_HIDDEN);
+
+	SDL_Window* window = NULL;
+	SDL_PropertiesID windowProps = SDL_CreateProperties();
+	if (windowProps)
+	{
+		SDL_SetNumberProperty(windowProps, SDL_PROP_WINDOW_CREATE_FLAGS_NUMBER, SDL_WINDOW_HIDDEN);
+		SDL_SetBooleanProperty(
+			windowProps, SDL_PROP_WINDOW_CREATE_WAYLAND_CREATE_EGL_WINDOW_BOOLEAN, true);
+		SDL_SetBooleanProperty(
+			windowProps, SDL_PROP_WINDOW_CREATE_EXTERNAL_GRAPHICS_CONTEXT_BOOLEAN, true);
+		window = SDL_CreateWindowWithProperties(windowProps);
+		SDL_DestroyProperties(windowProps);
+	}
+	return window;
 }
 
-static void destroyBackgroundGLWindow(void* userData, dsRenderSurfaceType surfaceType, void* surface)
+static void destroyBackgroundGLWindow(
+	void* userData, dsRenderSurfaceType surfaceType, void* surface)
 {
 	DS_UNUSED(userData);
 	DS_UNUSED(surfaceType);
@@ -141,23 +160,215 @@ static void* getWaylandGLWindowHandle(
 	DS_ASSERT(surfaceType == dsRenderSurfaceType_Window);
 	DS_ASSERT(surface);
 
-	SDL_SysWMinfo info;
-	SDL_VERSION(&info.version);
-	DS_VERIFY(SDL_GetWindowWMInfo((SDL_Window*)surface, &info));
-	return info.info.wl.egl_window;
+	return SDL_GetPointerProperty(
+		SDL_GetWindowProperties((SDL_Window*)surface), SDL_PROP_WINDOW_WAYLAND_EGL_WINDOW_POINTER,
+		NULL);
 }
 
-#endif // SDL_VIDEO_DRIVER_WAYLAND
-
-static dsWindow* findWindow(dsApplication* application, uint32_t windowId)
+static dsWindow* findWindow(dsApplication* application, uint32_t windowID)
 {
 	for (uint32_t i = 0; i < application->windowCount; ++i)
 	{
-		if (SDL_GetWindowID(((dsSDLWindow*)application->windows[i])->sdlWindow) == windowId)
+		if (SDL_GetWindowID(((dsSDLWindow*)application->windows[i])->sdlWindow) == windowID)
 			return application->windows[i];
 	}
 
 	return NULL;
+}
+
+inline static dsDisplayInfo* findDisplay(dsApplication* application, uint32_t displayID)
+{
+	// Mutable find, and also doesn't set errno if not found.
+	for (uint32_t i = 0; i < application->displayCount; ++i)
+	{
+		dsDisplayInfo* display = application->displays[i];
+		if (display->id == displayID)
+			return display;
+	}
+
+	return NULL;
+}
+
+inline static dsRenderSurfaceRotation baseRotation(SDL_DisplayOrientation orientation)
+{
+	switch (orientation)
+	{
+		case SDL_ORIENTATION_UNKNOWN:
+		case SDL_ORIENTATION_LANDSCAPE:
+			return dsRenderSurfaceRotation_0;
+		case SDL_ORIENTATION_LANDSCAPE_FLIPPED:
+			return dsRenderSurfaceRotation_180;
+		case SDL_ORIENTATION_PORTRAIT:
+			return dsRenderSurfaceRotation_90;
+		case SDL_ORIENTATION_PORTRAIT_FLIPPED:
+			return dsRenderSurfaceRotation_270;
+	}
+
+	DS_ASSERT(false);
+	return dsRenderSurfaceRotation_0;
+}
+
+static dsRenderSurfaceRotation displayOrientationToRotation(
+	SDL_DisplayOrientation nativeOrientation, SDL_DisplayOrientation curOrientation)
+{
+	dsRenderSurfaceRotation nativeRotation = baseRotation(nativeOrientation);
+	dsRenderSurfaceRotation curRotation = baseRotation(curOrientation);
+	int rotationDiff = curRotation - nativeRotation;
+	if (rotationDiff < 0)
+		rotationDiff += 4;
+	DS_ASSERT(rotationDiff >= dsRenderSurfaceRotation_0 &&
+		rotationDiff <= dsRenderSurfaceRotation_270);
+	return (dsRenderSurfaceRotation)rotationDiff;
+}
+
+inline static void rectToBounds(dsAlignedBox2i* outBounds, const SDL_Rect* rect)
+{
+	outBounds->min.x = rect->x;
+	outBounds->min.y = rect->y;
+	outBounds->max.x = rect->x + rect->w;
+	outBounds->max.y = rect->y + rect->h;
+}
+
+dsDisplayInfo* createDisplay(dsAllocator* allocator, SDL_DisplayID displayID)
+{
+	const char* name = SDL_GetDisplayName(displayID);
+	size_t nameLen = name ? strlen(name) + 1 : 0;
+
+	const SDL_DisplayMode* defaultMode = SDL_GetDesktopDisplayMode(displayID);
+	if (!defaultMode)
+	{
+		DS_LOG_ERROR_F(
+			DS_APPLICATION_LOG_TAG, "Couldn't get default display mode: %s", SDL_GetError());
+		errno = EPERM;
+		return NULL;
+	}
+
+	int sdlModeCount;
+	SDL_DisplayMode** sdlModes = SDL_GetFullscreenDisplayModes(displayID, &sdlModeCount);
+	if (!sdlModes)
+	{
+		DS_LOG_ERROR_F(DS_APPLICATION_LOG_TAG, "Couldn't get display modes: %s", SDL_GetError());
+		errno = EPERM;
+		return NULL;
+	}
+
+	uint32_t displayModeCount = 0;
+	for (int i = 0; i < sdlModeCount; ++i)
+	{
+		if (sdlModes[i]->format == defaultMode->format)
+			++displayModeCount;
+	}
+
+	size_t fullSize = sizeof(dsDisplayInfo);
+	dsMemorySize sizes[] =
+	{
+		{sizeof(char), nameLen},
+		{sizeof(dsDisplayMode), displayModeCount}
+	};
+	if (!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
+	{
+		SDL_free(sdlModes);
+		return NULL;
+	}
+
+	void* buffer = dsAllocator_alloc(allocator, fullSize);
+	if (!buffer)
+	{
+		SDL_free(sdlModes);
+		return NULL;
+	}
+
+	dsBufferAllocator bufferAlloc;
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
+
+	dsDisplayInfo* display = DS_ALLOCATE_OBJECT(&bufferAlloc, dsDisplayInfo);
+	DS_ASSERT(display);
+
+	char* nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+	DS_ASSERT(nameCopy || !name);
+	memcpy(nameCopy, name, nameLen);
+
+	dsDisplayMode* displayModes = NULL;
+	display->defaultMode = 0;
+	if (displayModeCount > 0)
+	{
+		displayModes = DS_ALLOCATE_OBJECT_ARRAY(
+			&bufferAlloc, dsDisplayMode, displayModeCount);
+		DS_ASSERT(displayModes);
+		for (int i = 0, j = 0; i < sdlModeCount; ++i)
+		{
+			const SDL_DisplayMode* sdlMode = sdlModes[i];
+			if (sdlMode->format != defaultMode->format)
+				continue;
+
+			dsDisplayMode* displayMode = displayModes + j;
+			displayMode->displayID = displayID;
+			displayMode->width = sdlMode->w;
+			displayMode->height = sdlMode->h;
+			displayMode->refreshRate = sdlMode->refresh_rate;
+
+			if (sdlMode->w == defaultMode->w && sdlMode->h == defaultMode->h &&
+				sdlMode->refresh_rate == defaultMode->refresh_rate)
+			{
+				display->defaultMode = j;
+			}
+
+			++j;
+		}
+	}
+	SDL_free(sdlModes);
+
+	display->name = nameCopy;
+	display->displayModes = displayModes;
+	display->id = displayID;
+	display->displayModeCount = displayModeCount;
+	display->scale = SDL_GetDisplayContentScale(displayID);
+
+	display->rotation = displayOrientationToRotation(
+		SDL_GetNaturalDisplayOrientation(displayID), SDL_GetCurrentDisplayOrientation(displayID));
+
+	SDL_Rect rect;
+	DS_VERIFY(SDL_GetDisplayBounds(displayID, &rect));
+	rectToBounds(&display->desktopBounds, &rect);
+
+	DS_VERIFY(SDL_GetDisplayUsableBounds(displayID, &rect));
+	rectToBounds(&display->usableBounds, &rect);
+
+	return display;
+}
+
+static bool updateDisplayBounds(dsDisplayInfo* display)
+{
+	SDL_Rect rect;
+	DS_VERIFY(SDL_GetDisplayBounds((uint32_t)display->id, &rect));
+
+	dsAlignedBox2i bounds;
+	rectToBounds(&bounds, &rect);
+	bool changed = false;
+	if (memcmp(&bounds, &display->desktopBounds, sizeof(dsAlignedBox2i)) != 0)
+	{
+		display->desktopBounds = bounds;
+		changed = true;
+	}
+
+	DS_VERIFY(SDL_GetDisplayUsableBounds((uint32_t)display->id, &rect));
+	rectToBounds(&bounds, &rect);
+	if (memcmp(&bounds, &display->usableBounds, sizeof(dsAlignedBox2i)) != 0)
+	{
+		display->usableBounds = bounds;
+		changed = true;
+	}
+
+	return changed;
+}
+
+static void updatePrimaryDisplay(dsApplication* application)
+{
+	SDL_DisplayID primaryDisplayID = SDL_GetPrimaryDisplay();
+	if (application->primaryDisplay && application->primaryDisplay->id == primaryDisplayID)
+		return;
+
+	application->primaryDisplay = findDisplay(application, primaryDisplayID);
 }
 
 static bool setGLAttributes(dsRenderer* renderer)
@@ -236,7 +447,607 @@ static bool setGLAttributes(dsRenderer* renderer)
 	return true;
 }
 
-static void updateWindowSamples(dsApplication* application)
+static bool updateWindowState(
+	dsEvent* outEvent, dsApplication* application, dsWindow* window, bool validDisplayOnly)
+{
+	dsSDLWindow* sdlWindow = ((dsSDLWindow*)window);
+	SDL_Window* internalWindow = sdlWindow->sdlWindow;
+
+	SDL_WindowFlags sdlFlags = SDL_GetWindowFlags(internalWindow);
+
+	dsWindowFlags flags = window->flags & ~dsWindowFlags_EventMask;
+	if (sdlFlags & SDL_WINDOW_HIDDEN)
+		flags |= dsWindowFlags_Hidden;
+	if (sdlFlags & SDL_WINDOW_MAXIMIZED)
+		flags |= dsWindowFlags_Maximized;
+	if (sdlFlags & SDL_WINDOW_MINIMIZED)
+		flags |= dsWindowFlags_Minimized;
+
+	dsWindowStyle style;
+	if (sdlFlags & SDL_WINDOW_FULLSCREEN)
+	{
+		if (SDL_GetWindowFullscreenMode(internalWindow))
+			style = dsWindowStyle_FullScreen;
+		else
+			style = dsWindowStyle_FullScreenBorderless;
+	}
+	else
+		style = dsWindowStyle_Normal;
+
+	dsVector2i position;
+	SDL_GetWindowPosition(internalWindow, &position.x, &position.y);
+
+	uint32_t width, height;
+	SDL_GetWindowSize(internalWindow, (int*)&width, (int*)&height);
+
+	float contentScale = SDL_GetWindowDisplayScale(internalWindow);
+
+	SDL_Rect safeArea;
+	SDL_GetWindowSafeArea(internalWindow, &safeArea);
+	dsAlignedBox2i safeBounds;
+	rectToBounds(&safeBounds, &safeArea);
+
+	SDL_DisplayID displayID = SDL_GetDisplayForWindow(internalWindow);
+
+	dsWindowChangeFlags changeFlags = 0;
+
+	// Check for display first to avoid sending events for invalid displays.
+	if (!window->display || window->display->id != displayID)
+	{
+		const dsDisplayInfo* display = findDisplay(application, displayID);
+		if (!display && validDisplayOnly)
+			return false;
+
+		// Sanity check if display continues to be invalid.
+		if (window->display != display)
+		{
+			changeFlags |= dsWindowChangeFlags_Display;
+			window->display = display;
+		}
+	}
+
+	if (window->flags != flags)
+	{
+		if ((window->flags & dsWindowFlags_Hidden) != (flags & dsWindowFlags_Hidden))
+			changeFlags |= dsWindowChangeFlags_Hidden;
+		if ((window->flags & dsWindowFlags_Maximized) != (flags & dsWindowFlags_Maximized))
+			changeFlags |= dsWindowChangeFlags_Maximized;
+		if ((window->flags & dsWindowFlags_Minimized) != (flags & dsWindowFlags_Minimized))
+			changeFlags |= dsWindowChangeFlags_Minimized;
+		window->flags = flags;
+	}
+
+	if (window->style != style)
+	{
+		changeFlags |= dsWindowChangeFlags_Style;
+		window->style = style;
+	}
+
+	if (!dsVector2_equal(window->position, position))
+	{
+		changeFlags |= dsWindowChangeFlags_Position;
+		window->position = position;
+	}
+
+	if (window->width != width || window->height != height)
+	{
+		changeFlags |= dsWindowChangeFlags_Size;
+		window->width = width;
+		window->height = height;
+	}
+
+	const dsRenderSurface* surface = window->surface;
+	if (surface && (sdlWindow->curSurfaceWidth != surface->width ||
+		sdlWindow->curSurfaceHeight != surface->height ||
+		sdlWindow->curSurfaceRotation != surface->rotation))
+	{
+		changeFlags |= dsWindowChangeFlags_SurfaceSize;
+		sdlWindow->curSurfaceWidth = surface->width;
+		sdlWindow->curSurfaceHeight = surface->height;
+		sdlWindow->curSurfaceRotation = surface->rotation;
+	}
+
+	if (window->contentScale != contentScale)
+	{
+		changeFlags |= dsWindowChangeFlags_ContentScale;
+		window->contentScale = contentScale;
+	}
+
+	if (!dsVector2_equal(window->safeArea.min, safeBounds.min) ||
+		!dsVector2_equal(window->safeArea.max, safeBounds.max))
+	{
+		changeFlags |= dsWindowChangeFlags_SafeArea;
+		window->safeArea = safeBounds;
+	}
+
+	if (changeFlags == 0)
+		return false;
+
+	outEvent->type = dsAppEventType_WindowChanged;
+	outEvent->windowChange.window = window;
+	outEvent->windowChange.flags = changeFlags;
+	return true;
+}
+
+#if DS_ANDROID
+static void invalidateWindowSurfaces(dsApplication* application)
+{
+	for (unsigned int i = 0; i < application->windowCount; ++i)
+	{
+		dsWindow* window = application->windows[i];
+		dsRenderSurface_destroy(window->surface);
+		window->surface = NULL;
+		dsSDLWindow_createSurfaceInternal(window);
+
+		dsEvent event;
+		event.type = dsAppEventType_SurfaceInvalidated;
+		event.window = window;
+		dsApplication_dispatchEvent(application, &event);
+	}
+}
+#endif
+
+static bool convertEvent(
+	dsEvent* outEvent, dsApplication* application, dsWindow* focusWindow, const SDL_Event* sdlEvent)
+{
+	switch (sdlEvent->type)
+	{
+		case SDL_EVENT_WILL_ENTER_BACKGROUND:
+			outEvent->type = dsAppEventType_WillEnterBackground;
+			return true;
+		case SDL_EVENT_DID_ENTER_BACKGROUND:
+			outEvent->type = dsAppEventType_DidEnterBackground;
+			return true;
+		case SDL_EVENT_WILL_ENTER_FOREGROUND:
+			outEvent->type = dsAppEventType_WillEnterForeground;
+			return true;
+		case SDL_EVENT_DID_ENTER_FOREGROUND:
+			outEvent->type = dsAppEventType_DidEnterForeground;
+			return true;
+		case SDL_EVENT_DISPLAY_ORIENTATION:
+		{
+			dsDisplayInfo* display = findDisplay(application, sdlEvent->display.displayID);
+			if (!display)
+				return false;
+
+			display->rotation = displayOrientationToRotation(
+				SDL_GetNaturalDisplayOrientation(sdlEvent->display.displayID),
+				(SDL_DisplayOrientation)sdlEvent->display.data1);
+
+			outEvent->type = dsAppEventType_DisplayRotated;
+			outEvent->display = display;
+			return true;
+		}
+		case SDL_EVENT_DISPLAY_ADDED:
+		{
+			dsDisplayInfo* display = createDisplay(
+				application->allocator, sdlEvent->display.displayID);
+			uint32_t index = application->displayCount;
+			if (!DS_CHECK(DS_APPLICATION_SDL_LOG_TAG, display != NULL &&
+					DS_RESIZEABLE_ARRAY_ADD(application->allocator, application->displays,
+					application->displayCount, application->displayCapacity, 1)))
+			{
+				return false;
+			}
+
+			updatePrimaryDisplay(application);
+			application->displays[index] = display;
+			outEvent->type = dsAppEventType_DisplayConnected;
+			outEvent->display = display;
+			return true;
+		}
+		case SDL_EVENT_DISPLAY_REMOVED:
+			outEvent->display = findDisplay(application, sdlEvent->display.displayID);
+			if (!outEvent->display)
+				return false;
+
+			updatePrimaryDisplay(application);
+			outEvent->type = dsAppEventType_DisplayDisconnected;
+			return true;
+		case SDL_EVENT_DISPLAY_MOVED:
+		case SDL_EVENT_DISPLAY_USABLE_BOUNDS_CHANGED:
+		{
+			dsDisplayInfo* display = findDisplay(application, sdlEvent->display.displayID);
+			if (!display || !updateDisplayBounds(display))
+				return false;
+
+			outEvent->type = dsAppEventType_DisplayBoundsChanged;
+			outEvent->display = display;
+			return true;
+		}
+		case SDL_EVENT_DISPLAY_DESKTOP_MODE_CHANGED:
+		{
+			dsDisplayInfo* display = findDisplay(application, sdlEvent->display.displayID);
+			const SDL_DisplayMode* sdlMode = SDL_GetDesktopDisplayMode(sdlEvent->display.displayID);
+			if (!display || !sdlMode)
+				return false;
+
+			for (uint32_t i = 0; i < display->displayModeCount; ++i)
+			{
+				const dsDisplayMode* displayMode = display->displayModes + i;
+				if ((int)displayMode->width == sdlMode->w &&
+					(int)displayMode->height == sdlMode->h &&
+					displayMode->refreshRate == sdlMode->refresh_rate)
+				{
+					display->defaultMode = i;
+					outEvent->type = dsAppEventType_DefaultDisplayModeChanged;
+					outEvent->display = display;
+					return true;
+				}
+			}
+			return false;
+		}
+		case SDL_EVENT_DISPLAY_CONTENT_SCALE_CHANGED:
+		{
+			dsDisplayInfo* display = findDisplay(application, sdlEvent->display.displayID);
+			if (!display)
+				return false;
+
+			display->scale = SDL_GetDisplayContentScale(sdlEvent->display.displayID);
+			outEvent->type = dsAppEventType_DisplayScaleChanged;
+			outEvent->display = display;
+			return true;
+		}
+		case SDL_EVENT_WINDOW_SHOWN:
+		case SDL_EVENT_WINDOW_HIDDEN:
+		case SDL_EVENT_WINDOW_MOVED:
+		case SDL_EVENT_WINDOW_RESIZED:
+		case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+		case SDL_EVENT_WINDOW_MINIMIZED:
+		case SDL_EVENT_WINDOW_MAXIMIZED:
+		case SDL_EVENT_WINDOW_RESTORED:
+		case SDL_EVENT_WINDOW_DISPLAY_CHANGED:
+		case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
+		case SDL_EVENT_WINDOW_SAFE_AREA_CHANGED:
+		case SDL_EVENT_WINDOW_ENTER_FULLSCREEN:
+		case SDL_EVENT_WINDOW_LEAVE_FULLSCREEN:
+		{
+#if DS_ANDROID
+			if (sdlEvent->type == SDL_EVENT_WINDOW_RESTORED)
+			{
+				invalidateWindowSurfaces(application);
+				// Make sure invalidated surfaces fully go through the GPU.
+				dsRenderer_waitUntilIdle(application->renderer);
+			}
+#endif
+			dsWindow* window = findWindow(application, sdlEvent->window.windowID);
+			if (!window)
+				return false;
+
+			return updateWindowState(outEvent, application, window, true);
+		}
+		case SDL_EVENT_WINDOW_MOUSE_ENTER:
+			outEvent->window = findWindow(application, sdlEvent->window.windowID);
+			if (!outEvent->window)
+				return false;
+
+			outEvent->type = dsAppEventType_MouseEntered;
+			return true;
+		case SDL_EVENT_WINDOW_MOUSE_LEAVE:
+			outEvent->window = findWindow(application, sdlEvent->window.windowID);
+			if (!outEvent->window)
+				return false;
+
+			outEvent->type = dsAppEventType_MouseLeft;
+			return true;
+		case SDL_EVENT_WINDOW_FOCUS_GAINED:
+			outEvent->window = findWindow(application, sdlEvent->window.windowID);
+			if (!outEvent->window)
+				return false;
+
+			outEvent->type = dsAppEventType_FocusGained;
+			return true;
+		case SDL_EVENT_WINDOW_FOCUS_LOST:
+			outEvent->window = findWindow(application, sdlEvent->window.windowID);
+			if (!outEvent->window)
+				return false;
+
+			outEvent->type = dsAppEventType_FocusLost;
+			return true;
+		case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+		{
+			dsWindow* window = findWindow(application, sdlEvent->window.windowID);
+			if (!window)
+				return false;
+
+			if (!outEvent->window->closeFunc ||
+				outEvent->window->closeFunc(window, outEvent->window->closeUserData))
+			{
+				outEvent->type = dsAppEventType_WindowClosed;
+				outEvent->window = window;
+				dsWindow_setHidden(window, true);
+				return true;
+			}
+			return false;
+		}
+		case SDL_EVENT_WINDOW_DESTROYED:
+		{
+			dsWindow* window = findWindow(application, sdlEvent->window.windowID);
+			if (!window)
+				return false;
+
+			outEvent->type = dsAppEventType_WindowDestroyed;
+			outEvent->window = window;
+			return true;
+		}
+		case SDL_EVENT_KEY_DOWN:
+		case SDL_EVENT_KEY_UP:
+			outEvent->type = sdlEvent->type == SDL_EVENT_KEY_DOWN ? dsAppEventType_KeyDown :
+				dsAppEventType_KeyUp;
+			outEvent->key.window = findWindow(application, sdlEvent->key.windowID);
+			if (!outEvent->key.window)
+				outEvent->key.window = focusWindow;
+			outEvent->key.key = dsFromSDLScancode(sdlEvent->key.scancode);
+			outEvent->key.modifiers = dsFromSDLKeyMod((SDL_Keymod)sdlEvent->key.mod);
+			outEvent->key.repeat = sdlEvent->key.repeat != 0;
+			return true;
+		case SDL_EVENT_TEXT_EDITING:
+			outEvent->type = dsAppEventType_TextEdit;
+			outEvent->textEdit.window = findWindow(application, sdlEvent->edit.windowID);
+			if (!outEvent->textEdit.window)
+				outEvent->textEdit.window = focusWindow;
+			outEvent->textEdit.cursor = sdlEvent->edit.start;
+			outEvent->textEdit.selectionLength = sdlEvent->edit.length;
+			outEvent->textEdit.text = sdlEvent->edit.text;
+			return true;
+		case SDL_EVENT_TEXT_INPUT:
+			outEvent->type = dsAppEventType_TextInput;
+			outEvent->textInput.window = findWindow(application, sdlEvent->text.windowID);
+			if (!outEvent->textInput.window)
+				outEvent->textInput.window = focusWindow;
+			outEvent->textInput.text = sdlEvent->text.text;
+			return true;
+		case SDL_EVENT_MOUSE_MOTION:
+			if (sdlEvent->motion.which == SDL_TOUCH_MOUSEID)
+				return false;
+
+			outEvent->type = dsAppEventType_MouseMove;
+			outEvent->mouseMove.window = findWindow(application, sdlEvent->motion.windowID);
+			if (!outEvent->mouseMove.window)
+				outEvent->mouseMove.window = focusWindow;
+			outEvent->mouseMove.mouseID = sdlEvent->motion.which;
+			outEvent->mouseMove.position.x = sdlEvent->motion.x;
+			outEvent->mouseMove.position.y = sdlEvent->motion.y;
+			outEvent->mouseMove.delta.x = sdlEvent->motion.xrel;
+			outEvent->mouseMove.delta.y = sdlEvent->motion.yrel;
+			return true;
+		case SDL_EVENT_MOUSE_BUTTON_DOWN:
+		case SDL_EVENT_MOUSE_BUTTON_UP:
+			if (sdlEvent->button.which == SDL_TOUCH_MOUSEID)
+				return false;
+
+			outEvent->type = sdlEvent->type == SDL_EVENT_MOUSE_BUTTON_UP ?
+				dsAppEventType_MouseButtonUp : dsAppEventType_MouseButtonDown;
+			outEvent->mouseButton.window = findWindow(application, sdlEvent->button.windowID);
+			if (!outEvent->mouseButton.window)
+				outEvent->mouseButton.window = focusWindow;
+			outEvent->mouseButton.mouseID = sdlEvent->button.which;
+			outEvent->mouseButton.button = DS_MOUSE_BUTTON(sdlEvent->button.button);
+			outEvent->mouseButton.button = SDL_MOUSE_TO_DS_MOUSE_MASK(outEvent->mouseButton.button);
+			outEvent->mouseButton.position.x = sdlEvent->button.x;
+			outEvent->mouseButton.position.y = sdlEvent->button.y;
+			return true;
+		case SDL_EVENT_MOUSE_WHEEL:
+			if (sdlEvent->wheel.which == SDL_TOUCH_MOUSEID)
+				return false;
+
+			outEvent->type = dsAppEventType_MouseWheel;
+			outEvent->mouseWheel.window = findWindow(application, sdlEvent->wheel.windowID);
+			if (!outEvent->mouseWheel.window)
+				outEvent->mouseWheel.window = focusWindow;
+			outEvent->mouseWheel.mouseID = sdlEvent->wheel.which;
+			outEvent->mouseWheel.position.x = sdlEvent->wheel.mouse_x;
+			outEvent->mouseWheel.position.y = sdlEvent->wheel.mouse_y;
+			outEvent->mouseWheel.delta.x = sdlEvent->wheel.x;
+			outEvent->mouseWheel.delta.y = sdlEvent->wheel.y;
+			outEvent->mouseWheel.yFlipped = sdlEvent->wheel.direction == SDL_MOUSEWHEEL_FLIPPED;
+			return true;
+		case SDL_EVENT_JOYSTICK_AXIS_MOTION:
+		{
+			const dsGameInput* gameInput = dsSDLGameInput_find(application, sdlEvent->jaxis.which);
+			if (!gameInput || sdlEvent->jaxis.axis >= gameInput->axisCount)
+				return false;
+
+			outEvent->type = dsAppEventType_GameInputAxis;
+			outEvent->gameInputAxis.window = focusWindow;
+			outEvent->gameInputAxis.gameInput = gameInput;
+			outEvent->gameInputAxis.mapping = dsGameInput_getAxisControllerMap(
+				gameInput, sdlEvent->jaxis.axis);
+			outEvent->gameInputAxis.axis = sdlEvent->jaxis.axis;
+			outEvent->gameInputAxis.value = dsSDLGameInput_getAxisValue(sdlEvent->jaxis.value);
+			return true;
+		}
+		case SDL_EVENT_JOYSTICK_BALL_MOTION:
+		{
+			const dsGameInput* gameInput =  dsSDLGameInput_find(application, sdlEvent->jball.which);
+			if (!gameInput || sdlEvent->jball.ball >= gameInput->ballCount)
+				return false;
+
+			outEvent->type = dsAppEventType_GameInputBall;
+			outEvent->gameInputAxis.window = focusWindow;
+			outEvent->gameInputBall.gameInput = gameInput;
+			outEvent->gameInputBall.delta.x = sdlEvent->jball.xrel;
+			outEvent->gameInputBall.delta.y = sdlEvent->jball.yrel;
+			return true;
+		}
+		case SDL_EVENT_JOYSTICK_HAT_MOTION:
+		{
+			dsGameInput* gameInput = dsSDLGameInput_find(application, sdlEvent->jhat.which);
+			if (!gameInput || sdlEvent->jhat.hat >= gameInput->dpadCount)
+				return false;
+
+			// Controller mapped events are deployed as button events, which may be multiple
+			// events. Avoid sending the dpad event if all the changes are mapped.
+			if (dsSDLGameInput_dispatchControllerDPadEvents(gameInput, application,
+					focusWindow, sdlEvent->jhat.hat, sdlEvent->jhat.value, outEvent->time))
+			{
+				return false;
+			}
+
+			outEvent->type = dsAppEventType_GameInputDPad;
+			outEvent->gameInputAxis.window = focusWindow;
+			outEvent->gameInputDPad.gameInput = gameInput;
+			outEvent->gameInputDPad.dpad = sdlEvent->jhat.hat;
+			dsSDLGameInput_convertHatDirection(
+				&outEvent->gameInputDPad.direction, sdlEvent->jhat.value);
+			return true;
+		}
+		case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
+		case SDL_EVENT_JOYSTICK_BUTTON_UP:
+		{
+			const dsGameInput* gameInput = dsSDLGameInput_find(application, sdlEvent->jbutton.which);
+			if (!gameInput || sdlEvent->jbutton.button >= gameInput->buttonCount)
+				return false;
+
+			outEvent->type = sdlEvent->type == SDL_EVENT_JOYSTICK_BUTTON_UP ?
+				dsAppEventType_GameInputButtonUp : dsAppEventType_GameInputButtonDown;
+			outEvent->gameInputButton.window = focusWindow;
+			outEvent->gameInputButton.gameInput = gameInput;
+			outEvent->gameInputAxis.mapping = dsGameInput_getButtonControllerMap(
+				gameInput, sdlEvent->jbutton.button);
+			outEvent->gameInputButton.button = sdlEvent->jbutton.button;
+			return true;
+		}
+		case SDL_EVENT_JOYSTICK_ADDED:
+		{
+			dsGameInput* gameInput = dsSDLGameInput_add(
+				application, sdlEvent->jdevice.which);
+			if (!gameInput)
+			{
+				DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG,
+					"Couldn't add gameInput: %s", dsErrorString(errno));
+				return false;
+			}
+
+			outEvent->type = dsAppEventType_GameInputConnected;
+			outEvent->gameInputConnect = gameInput;
+			return true;
+		}
+		case SDL_EVENT_JOYSTICK_REMOVED:
+			outEvent->type = dsAppEventType_GameInputDisconnected;
+			outEvent->gameInputConnect = dsSDLGameInput_find(application, sdlEvent->jdevice.which);
+			return outEvent->gameInputConnect != NULL;
+		case SDL_EVENT_GAMEPAD_TOUCHPAD_DOWN:
+		case SDL_EVENT_GAMEPAD_TOUCHPAD_UP:
+		case SDL_EVENT_GAMEPAD_TOUCHPAD_MOTION:
+			switch (sdlEvent->type)
+			{
+				case SDL_EVENT_GAMEPAD_TOUCHPAD_DOWN:
+					outEvent->type = dsAppEventType_TouchFingerDown;
+					break;
+				case SDL_EVENT_GAMEPAD_TOUCHPAD_UP:
+					outEvent->type = dsAppEventType_TouchFingerUp;
+					break;
+				case SDL_EVENT_GAMEPAD_TOUCHPAD_MOTION:
+					outEvent->type = dsAppEventType_TouchMoved;
+					break;
+				default:
+					DS_ASSERT(false);
+					break;
+			}
+			outEvent->touch.gameInput = dsSDLGameInput_find(
+				application, sdlEvent->gtouchpad.which);
+			if (!outEvent->touch.gameInput)
+				return false;
+
+			outEvent->touch.window = focusWindow;
+			outEvent->touch.touchID = sdlEvent->gtouchpad.touchpad;
+			outEvent->touch.fingerID = sdlEvent->gtouchpad.finger;
+			outEvent->touch.position.x = sdlEvent->gtouchpad.x;
+			outEvent->touch.position.y = sdlEvent->gtouchpad.y;
+			outEvent->touch.delta.x = 0;
+			outEvent->touch.delta.y = 0;
+			outEvent->touch.pressure = sdlEvent->gtouchpad.pressure;
+			return true;
+		case SDL_EVENT_GAMEPAD_SENSOR_UPDATE:
+			outEvent->type = dsAppEventType_MotionSensor;
+			outEvent->motionSensor.window = focusWindow;
+			outEvent->motionSensor.sensor = NULL;
+			outEvent->motionSensor.gameInput = dsSDLGameInput_find(
+				application, sdlEvent->gsensor.which);
+			if (!outEvent->motionSensor.gameInput)
+				return false;
+
+			switch (sdlEvent->gsensor.sensor)
+			{
+				case SDL_SENSOR_ACCEL:
+					outEvent->motionSensor.type = dsMotionSensorType_Accelerometer;
+					break;
+				case SDL_SENSOR_GYRO:
+					outEvent->motionSensor.type = dsMotionSensorType_Gyroscope;
+					break;
+				case SDL_SENSOR_ACCEL_L:
+					outEvent->motionSensor.type = dsMotionSensorType_AccelerometerLeft;
+					break;
+				case SDL_SENSOR_GYRO_L:
+					outEvent->motionSensor.type = dsMotionSensorType_GyroscopeLeft;
+					break;
+				case SDL_SENSOR_ACCEL_R:
+					outEvent->motionSensor.type = dsMotionSensorType_AccelerometerRight;
+					break;
+				case SDL_SENSOR_GYRO_R:
+					outEvent->motionSensor.type = dsMotionSensorType_GyroscopeRight;
+					break;
+				default:
+					return false;
+			}
+			memcpy(&outEvent->motionSensor.data, sdlEvent->gsensor.data, sizeof(dsVector3f));
+			return true;
+		case SDL_EVENT_FINGER_DOWN:
+		case SDL_EVENT_FINGER_UP:
+		case SDL_EVENT_FINGER_MOTION:
+			switch (sdlEvent->type)
+			{
+				case SDL_EVENT_FINGER_DOWN:
+					outEvent->type = dsAppEventType_TouchFingerDown;
+					break;
+				case SDL_EVENT_FINGER_UP:
+					outEvent->type = dsAppEventType_TouchFingerUp;
+					break;
+				case SDL_EVENT_FINGER_MOTION:
+					outEvent->type = dsAppEventType_TouchMoved;
+					break;
+				default:
+					DS_ASSERT(false);
+					break;
+			}
+			outEvent->touch.window = findWindow(application, sdlEvent->tfinger.windowID);
+			if (!outEvent->touch.window)
+				outEvent->touch.window = focusWindow;
+			outEvent->touch.gameInput = NULL;
+			outEvent->touch.touchID = sdlEvent->tfinger.touchID;
+			outEvent->touch.fingerID = sdlEvent->tfinger.fingerID;
+			outEvent->touch.position.x = sdlEvent->tfinger.x;
+			outEvent->touch.position.y = sdlEvent->tfinger.y;
+			outEvent->touch.delta.x = sdlEvent->tfinger.dx;
+			outEvent->touch.delta.y = sdlEvent->tfinger.dy;
+			outEvent->touch.pressure = sdlEvent->tfinger.pressure;
+			return true;
+		case SDL_EVENT_SENSOR_UPDATE:
+			outEvent->type = dsAppEventType_MotionSensor;
+			outEvent->motionSensor.sensor = dsSDLMotionSensor_find(
+				application, sdlEvent->sensor.which);
+			if (!outEvent->motionSensor.sensor)
+				return false;
+
+			outEvent->motionSensor.window = NULL;
+			outEvent->motionSensor.gameInput = NULL;
+			outEvent->motionSensor.type = outEvent->motionSensor.sensor->type;
+			memcpy(&outEvent->motionSensor.data, sdlEvent->sensor.data, sizeof(dsVector3f));
+			return true;
+		case SDL_EVENT_USER:
+			outEvent->type = dsAppEventType_Custom;
+			outEvent->custom.eventID = sdlEvent->user.code;
+			outEvent->custom.window = findWindow(application, sdlEvent->user.windowID);
+			outEvent->custom.userData = sdlEvent->user.data1;
+			outEvent->custom.cleanupFunc = (dsCustomEventCleanupFunction)sdlEvent->user.data2;
+			return true;
+		default:
+			return false;
+	}
+}
+
+static void updateWindowSamples(dsApplication* application, uint64_t eventTime)
 {
 	if (application->windowCount == 0)
 		return;
@@ -253,27 +1064,21 @@ static void updateWindowSamples(dsApplication* application)
 	if (!setSamples)
 		return;
 
-	// Cache existing window values.
-	for (unsigned int i = 0; i < application->windowCount; ++i)
+	// Make absolutely sure that the state is fully up to date. Cache the change flags in the window
+	// flag upper bits so events can be changed afterward.
+	dsWindow* focusWindow = dsSDLWindow_getFocusWindow(application);
+	for (uint32_t i = 0; i < application->windowCount; ++i)
 	{
 		dsWindow* window = application->windows[i];
-		dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
+		SDL_SyncWindow(((dsSDLWindow*)window)->sdlWindow);
+		dsEvent dummyEvent;
+		if (updateWindowState(&dummyEvent, application, window, false))
+			window->flags = window->flags | (dummyEvent.windowChange.flags << CACHED_CHANGE_SHIFT);
 
-		dsSDLWindow_getSize(&sdlWindow->curWidth, &sdlWindow->curHeight, application, window);
-		dsSDLWindow_getPosition(&sdlWindow->curPosition, application, window);
-
-		sdlWindow->curFlags = dsWindowFlags_DelaySurfaceCreate;
-		if (dsSDLWindow_getHidden(application, window))
-			sdlWindow->curFlags |= dsWindowFlags_Hidden;
-		if (SDL_GetWindowFlags(sdlWindow->sdlWindow) & SDL_WINDOW_RESIZABLE)
-			sdlWindow->curFlags |= dsWindowFlags_Resizeable;
-		if (dsSDLWindow_getMinimized(application, window))
-			sdlWindow->curFlags |= dsWindowFlags_Minimized;
-		if (dsSDLWindow_getMaximized(application, window))
-			sdlWindow->curFlags |= dsWindowFlags_Maximized;
-		if (dsSDLWindow_getGrabbedInput(application, window))
-			sdlWindow->curFlags |= dsWindowFlags_GrabInput;
-		sdlWindow->hasFocus = dsSDLWindow_getFocusWindow(application) == window;
+		// If the surface creation was delayed and it still hasn't been created, keep track of that
+		// state.
+		if (!window->surface)
+			window->flags |= dsWindowFlags_DelaySurfaceCreate;
 	}
 
 	if (application->renderer->surfaceSamples > 1)
@@ -291,24 +1096,14 @@ static void updateWindowSamples(dsApplication* application)
 	for (unsigned int i = 0; i < application->windowCount; ++i)
 		dsSDLWindow_destroyComponents(application->windows[i]);
 
-#if DS_LINUX && !DS_ANDROID
+#if !DS_WINDOWS && !DS_APPLE && !DS_ANDROID
 	dsRenderer* renderer = application->renderer;
 	if (renderer->platform != dsGfxPlatform_Wayland && renderer->surfaceConfig)
 	{
-		// Need to restart video on X11 for new visual ID.
-		SDL_VideoQuit();
+		// Need to update visual ID.
 		char visualId[20];
 		snprintf(visualId, sizeof(visualId), "%d", (int)(size_t)renderer->surfaceConfig);
-		setenv("SDL_VIDEO_X11_VISUALID", visualId, true);
-		SDL_VideoInit("x11");
-
-		// Windows were destroyed.
-		for (unsigned int i = 0; i < application->windowCount; ++i)
-		{
-			dsWindow* window = application->windows[i];
-			dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
-			sdlWindow->sdlWindow = NULL;
-		}
+		SDL_SetHintWithPriority(SDL_HINT_VIDEO_X11_WINDOW_VISUALID, visualId, SDL_HINT_OVERRIDE);
 	}
 #endif
 
@@ -316,58 +1111,54 @@ static void updateWindowSamples(dsApplication* application)
 	for (unsigned int i = 0; i < application->windowCount; ++i)
 	{
 		dsWindow* window = application->windows[i];
-		dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
 
-		const char* title = window->title;
-		const char* surfaceName = sdlWindow->surfaceName;
-		dsDisplayMode displayMode = window->displayMode;
-		dsWindowStyle style = window->style;
+		// Pull out the cached change flags so we know what may have changed since the events were
+		// processed.
+		dsWindowChangeFlags changeFlags =
+			(window->flags & CACHED_CHANGE_MASK) >> CACHED_CHANGE_SHIFT;
+		window->flags &= ~CACHED_CHANGE_MASK;
 
-		if (!dsSDLWindow_createComponents(window, title, surfaceName, &sdlWindow->curPosition,
-				sdlWindow->curWidth, sdlWindow->curHeight, sdlWindow->curFlags))
+		// Flag to delay surface creation shouldn't be kept beyond the cached state.
+		dsWindowFlags componentFlags = window->flags;
+		window->flags &= ~dsWindowFlags_DelaySurfaceCreate;
+
+		// If the surface creation was delayed and not created yet,
+		if (!dsSDLWindow_createComponents(
+				window, &window->position, window->width, window->height, componentFlags))
 		{
-			DS_LOG_FATAL_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't allocate window: %s",
-				dsErrorString(errno));
+			DS_LOG_FATAL_F(
+				DS_APPLICATION_SDL_LOG_TAG, "Couldn't allocate window: %s", dsErrorString(errno));
 			abort();
 		}
 
-		DS_VERIFY(dsSDLWindow_setDisplayMode(application, window, &displayMode));
-		if (style != dsWindowStyle_Normal)
-			DS_VERIFY(dsSDLWindow_setStyle(application, window, style));
-
-		if (!dsSDLWindow_createSurfaceInternal(window, sdlWindow->surfaceName))
+		dsEvent event;
+		event.time = eventTime;
+		if (!(componentFlags & dsWindowFlags_DelaySurfaceCreate))
 		{
-			DS_LOG_FATAL_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't allocate window surface: %s",
-				dsErrorString(errno));
-			abort();
+			event.type = dsAppEventType_SurfaceInvalidated;
+			event.window = window;
+			dsApplication_dispatchEvent(application, &event);
 		}
 
-		if (sdlWindow->hasFocus)
-			dsSDLWindow_raise(application, window);
-
-		dsEvent event;
-		event.type = dsAppEventType_SurfaceInvalidated;
-		dsApplication_dispatchEvent(application, window, &event);
+		// The window may not have been exactly what was requested on re-creation.
+		bool newUpdates = updateWindowState(&event, application, window, false);
+		if (newUpdates || changeFlags != 0)
+		{
+			if (newUpdates)
+				event.windowChange.flags |= changeFlags;
+			else
+			{
+				event.type = dsAppEventType_WindowChanged;
+				event.windowChange.window = window;
+				event.windowChange.flags = changeFlags;
+			}
+			dsApplication_dispatchEvent(application, &event);
+		}
 	}
-}
 
-#if DS_ANDROID
-static void invalidateWindowSurfaces(dsApplication* application)
-{
-	for (unsigned int i = 0; i < application->windowCount; ++i)
-	{
-		dsWindow* window = application->windows[i];
-		const char* surfaceName = window->surface->name;
-		dsRenderSurface_destroy(window->surface);
-		window->surface = NULL;
-		dsSDLWindow_createSurfaceInternal(window, surfaceName);
-
-		dsEvent event;
-		event.type = dsAppEventType_SurfaceInvalidated;
-		dsApplication_dispatchEvent(application, window, &event);
-	}
+	if (focusWindow)
+		dsSDLWindow_raise(application, focusWindow);
 }
-#endif
 
 uint32_t dsSDLApplication_showMessageBoxBase(dsApplication* application,
 	dsWindow* parentWindow, dsMessageBoxType type, const char* title, const char* message,
@@ -381,7 +1172,6 @@ uint32_t dsSDLApplication_showMessageBoxBase(dsApplication* application,
 
 bool dsSDLApplication_prepareRendererOptions(dsRendererOptions* options, uint32_t rendererID)
 {
-#if defined(SDL_VIDEO_DRIVER_WAYLAND)
 	options->platform = dsRenderer_resolvePlatform(options->platform);
 	// Only need special render surface handling for OpenGL on Wayland.
 	if ((rendererID != DS_GL_RENDERER_ID && rendererID != DS_GLES_RENDERER_ID) ||
@@ -390,48 +1180,23 @@ bool dsSDLApplication_prepareRendererOptions(dsRendererOptions* options, uint32_
 		return true;
 	}
 
-	// TODO: With SDL3, set SDL_PROP_WINDOW_CREATE_WAYLAND_CREATE_EGL_WINDOW_BOOLEAN property to
-	// true. For now, there is no way to create the EGL window without the surface, so force to
-	// x11.
-	options->platform = dsGfxPlatform_X11;
-	return true;
-
-	if (SDL_VideoInit("wayland") != 0)
+	SDL_SetHintWithPriority(SDL_HINT_VIDEO_DRIVER, "wayland", SDL_HINT_OVERRIDE);
+	if (!SDL_InitSubSystem(SDL_INIT_VIDEO))
 	{
-		errno = EPERM;
-		DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't initialize SDL video: %s",
-			SDL_GetError());
+		DS_LOG_ERROR_F(
+			DS_APPLICATION_SDL_LOG_TAG, "Couldn't initialize SDL video: %s", SDL_GetError());
 		SDL_Quit();
+		errno = EPERM;
 		return false;
 	}
-
-	// Need to create an initial window to set the display.
-	SDL_Window* tempWindow = SDL_CreateWindow("background", 0, 0, 1, 1, SDL_WINDOW_HIDDEN);
-	if (!tempWindow)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't create SDL window: %s",
-			SDL_GetError());
-		SDL_Quit();
-		return false;
-	}
-
-	SDL_SysWMinfo info;
-	SDL_VERSION(&info.version);
-	DS_VERIFY(SDL_GetWindowWMInfo(tempWindow, &info));
-	options->osDisplay = info.info.wl.display;
-	SDL_DestroyWindow(tempWindow);
 
 	options->backgroundSurfaceType = dsRenderSurfaceType_Window;
+	options->osDisplay = SDL_GetPointerProperty(
+		SDL_GetGlobalProperties(), SDL_PROP_GLOBAL_VIDEO_WAYLAND_WL_DISPLAY_POINTER, NULL);
 	options->createBackgroundSurfaceFunc = &createBackgroundGLWindow;
 	options->destroyBackgroundSurfaceFunc = &destroyBackgroundGLWindow;
 	options->getBackgroundSurfaceHandleFunc = &getWaylandGLWindowHandle;
 	return true;
-#else
-	DS_UNUSED(options);
-	DS_UNUSED(rendererID);
-	return true;
-#endif
 }
 
 int dsSDLApplication_run(dsApplication* application)
@@ -457,423 +1222,119 @@ int dsSDLApplication_run(dsApplication* application)
 		// support use cases such as framerate limiting.
 		lastPreInputTicks = dsTimer_currentTicks();
 
+		// Get the same reference point of time from SDL. May be a few ticks off based on delay
+		// between function calls, but should be a lot more accurate than replacing with the current
+		// time when we process the event.
+		uint64_t lastPreInputNS = SDL_GetTicksNS();
+
 		DS_PROFILE_SCOPE_START("Process Events");
 
 		// Need to pump events to get updated window sizes. Use implicit event pump from event poll
 		// to avoid double-pumping.
 		SDL_Event sdlEvent;
-		int hasEvent = SDL_PollEvent(&sdlEvent);
+		bool hasEvent = SDL_PollEvent(&sdlEvent);
 
-		// Check if any size has changed.
+		// Update the render surfaces before processing any events. This ensures that the size will
+		// be updated even if no events were generated (e.g. different event timing, state
+		// management when the window size doesn't match the pixel size), and window events will be
+		// grouped so inter-dependent changes are processed at the same time.
 		for (uint32_t i = 0; i < application->windowCount; ++i)
 		{
 			dsWindow* window = application->windows[i];
+			if (!window->surface)
+				continue;
 
-			dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
-			uint32_t newWidth = sdlWindow->curWidth, newHeight = sdlWindow->curHeight;
-			dsSDLWindow_getSize(&newWidth, &newHeight, application, window);
-
-			// NOTE: Sometimes the surface resize doesn't correspond with the window resize event.
-			dsRenderSurface_update(window->surface, newWidth, newHeight);
-
-			// Sometimes the surface will be updated during rendering, so use the cached versions
-			// for compare rather than the surface values before update.
-			if (window->surface->width != sdlWindow->curSurfaceWidth ||
-				window->surface->height != sdlWindow->curSurfaceHeight ||
-				window->surface->rotation != sdlWindow->curSurfaceRotation)
-			{
-				sdlWindow->curWidth = newWidth;
-				sdlWindow->curHeight = newHeight;
-				sdlWindow->curSurfaceWidth = window->surface->width;
-				sdlWindow->curSurfaceHeight = window->surface->height;
-				sdlWindow->curSurfaceRotation = window->surface->rotation;
-
-				dsEvent event;
-				event.type = dsAppEventType_WindowResized;
-				event.resize.width = window->surface->width;
-				event.resize.height = window->surface->height;
-				dsApplication_dispatchEvent(application, window, &event);
-			}
+			SDL_Window* sdlWindow = ((dsSDLWindow*)window)->sdlWindow;
+			int pixelWidth, pixelHeight;
+			SDL_GetWindowSizeInPixels(sdlWindow, &pixelWidth, &pixelHeight);
+			dsRenderSurface_update(window->surface, pixelWidth, pixelHeight);
 		}
 
 		dsWindow* focusWindow = dsSDLWindow_getFocusWindow(application);
 		while (hasEvent)
 		{
-			dsWindow* window = NULL;
+			if (sdlEvent.type == SDL_EVENT_QUIT || sdlEvent.type == SDL_EVENT_TERMINATING)
+				return sdlApplication->exitCode;
+
 			dsEvent event;
-			// NOTE: The timestamp is populated when the event is processed within SDL, so use the
-			// pre-input ticks to keep the events in the same relative time.
-			event.time = lastPreInputTicks;
-			switch (sdlEvent.type)
+
+			// Convert timestamp to ticks.
+			int64_t relativeEventNS = ((SDL_CommonEvent*)&sdlEvent)->timestamp - lastPreInputNS;
+			double relativeEventTime = (double)relativeEventNS*1e-9;
+			event.time = lastPreInputTicks +
+				dsTimer_secondsToTicks(application->timer, relativeEventTime);
+
+			const dsDisplayInfo* prevPrimaryDisplay = application->primaryDisplay;
+			if (!convertEvent(&event, application, focusWindow, &sdlEvent))
 			{
-				case SDL_QUIT:
-				case SDL_APP_TERMINATING:
-					return sdlApplication->exitCode;
-				case SDL_APP_WILLENTERBACKGROUND:
-					event.type = dsAppEventType_WillEnterBackground;
-					break;
-				case SDL_APP_DIDENTERBACKGROUND:
-					event.type = dsAppEventType_DidEnterBackground;
-					break;
-				case SDL_APP_WILLENTERFOREGROUND:
-					event.type = dsAppEventType_WillEnterForeground;
-					break;
-				case SDL_APP_DIDENTERFOREGROUND:
-					event.type = dsAppEventType_DidEnterForeground;
-#if DS_ANDROID
-					invalidateWindowSurfaces(application);
-					// Make sure invalidated surfaces fully go through the GPU.
-					dsRenderer_waitUntilIdle(application->renderer);
-#endif
-					break;
-				case SDL_WINDOWEVENT:
-				{
-					window = findWindow(application, sdlEvent.window.windowID);
-					if (!window)
-					{
-						hasEvent = SDL_PollEvent(&sdlEvent);
-						continue;
-					}
-
-					switch (sdlEvent.window.event)
-					{
-						case SDL_WINDOWEVENT_SHOWN:
-							event.type = dsAppEventType_WindowShown;
-							break;
-						case SDL_WINDOWEVENT_HIDDEN:
-							event.type = dsAppEventType_WindowHidden;
-							break;
-						case SDL_WINDOWEVENT_MINIMIZED:
-							event.type = dsAppEventType_WindowMinimized;
-							break;
-						case SDL_WINDOWEVENT_RESTORED:
-							event.type = dsAppEventType_WindowRestored;
-							break;
-						case SDL_WINDOWEVENT_ENTER:
-							event.type = dsAppEventType_MouseEntered;
-							break;
-						case SDL_WINDOWEVENT_LEAVE:
-							event.type = dsAppEventType_MouseLeft;
-							break;
-						case SDL_WINDOWEVENT_FOCUS_GAINED:
-							event.type = dsAppEventType_FocusGained;
-							break;
-						case SDL_WINDOWEVENT_FOCUS_LOST:
-							event.type = dsAppEventType_FocusLost;
-							break;
-						case SDL_WINDOWEVENT_CLOSE:
-							if (!window->closeFunc ||
-								window->closeFunc(window, window->closeUserData))
-							{
-								event.type = dsAppEventType_WindowClosed;
-								dsWindow_setHidden(window, true);
-							}
-							else
-							{
-								hasEvent = SDL_PollEvent(&sdlEvent);
-								continue;
-							}
-							break;
-						default:
-							hasEvent = SDL_PollEvent(&sdlEvent);
-							continue;
-					}
-					break;
-				}
-				case SDL_KEYDOWN:
-				case SDL_KEYUP:
-					window = findWindow(application, sdlEvent.key.windowID);
-					event.type = sdlEvent.type == SDL_KEYDOWN ? dsAppEventType_KeyDown :
-						dsAppEventType_KeyUp;
-					event.key.key = dsFromSDLScancode(sdlEvent.key.keysym.scancode);
-					event.key.modifiers = dsFromSDLKeyMod((SDL_Keymod)sdlEvent.key.keysym.mod);
-					event.key.repeat = sdlEvent.key.repeat != 0;
-					break;
-				case SDL_TEXTEDITING:
-				{
-					window = findWindow(application, sdlEvent.edit.windowID);
-					event.type = dsAppEventType_TextEdit;
-					event.textEdit.cursor = sdlEvent.edit.start;
-					event.textEdit.selectionLength = sdlEvent.edit.length;
-					_Static_assert(sizeof(event.textEdit.text) >= sizeof(sdlEvent.edit.text),
-						"Invalid SDL text size.");
-					memcpy(event.textEdit.text, sdlEvent.edit.text, sizeof(sdlEvent.edit.text));
-					break;
-				}
-				case SDL_TEXTINPUT:
-				{
-					window = findWindow(application, sdlEvent.text.windowID);
-					event.type = dsAppEventType_TextInput;
-					_Static_assert(sizeof(event.textInput.text) >= sizeof(sdlEvent.text.text),
-						"Invalid SDL text size.");
-					memcpy(event.textInput.text, sdlEvent.text.text, sizeof(sdlEvent.text.text));
-					break;
-				}
-				case SDL_MOUSEMOTION:
-					if (sdlEvent.motion.which == SDL_TOUCH_MOUSEID)
-					{
-						hasEvent = SDL_PollEvent(&sdlEvent);
-						continue;
-					}
-
-					window = findWindow(application, sdlEvent.motion.windowID);
-					event.type = dsAppEventType_MouseMove;
-					event.mouseMove.mouseID = sdlEvent.motion.which;
-					event.mouseMove.position.x = sdlEvent.motion.x;
-					event.mouseMove.position.y = sdlEvent.motion.y;
-					event.mouseMove.delta.x = sdlEvent.motion.xrel;
-					event.mouseMove.delta.y = sdlEvent.motion.yrel;
-					break;
-				case SDL_MOUSEBUTTONDOWN:
-				case SDL_MOUSEBUTTONUP:
-					if (sdlEvent.button.which == SDL_TOUCH_MOUSEID)
-					{
-						hasEvent = SDL_PollEvent(&sdlEvent);
-						continue;
-					}
-
-					window = findWindow(application, sdlEvent.button.windowID);
-					event.type = sdlEvent.type == SDL_MOUSEBUTTONUP ? dsAppEventType_MouseButtonUp :
-						dsAppEventType_MouseButtonDown;
-					event.mouseButton.mouseID = sdlEvent.button.which;
-					event.mouseButton.button = DS_MOUSE_BUTTON(sdlEvent.button.button);
-					event.mouseButton.button = SDL_MOUSE_TO_DS_MOUSE_MASK(event.mouseButton.button);
-					event.mouseButton.position.x = sdlEvent.button.x;
-					event.mouseButton.position.y = sdlEvent.button.y;
-					break;
-				case SDL_MOUSEWHEEL:
-					if (sdlEvent.wheel.which == SDL_TOUCH_MOUSEID)
-					{
-						hasEvent = SDL_PollEvent(&sdlEvent);
-						continue;
-					}
-
-					window = findWindow(application, sdlEvent.wheel.windowID);
-					event.type = dsAppEventType_MouseWheel;
-					event.mouseWheel.mouseID = sdlEvent.wheel.which;
-#if SDL_VERSION_ATLEAST(2, 26, 0)
-					event.mouseWheel.position.x = sdlEvent.wheel.mouseX;
-					event.mouseWheel.position.y = sdlEvent.wheel.mouseY;
-#else
-					SDL_GetMouseState(&event.mouseWheel.position.x, &event.mouseWheel.position.y);
-					if (window)
-					{
-						int windowX, windowY;
-						SDL_GetWindowPosition(((dsSDLWindow*)window)->sdlWindow, &windowX,
-							&windowY);
-						event.mouseWheel.position.x -= windowX;
-						event.mouseWheel.position.y -= windowY;
-					}
-#endif
-					event.mouseWheel.delta.x = sdlEvent.wheel.x;
-					event.mouseWheel.delta.y = sdlEvent.wheel.y;
-					event.mouseWheel.yFlipped = sdlEvent.wheel.direction == SDL_MOUSEWHEEL_FLIPPED;
-					break;
-				case SDL_JOYAXISMOTION:
-				{
-					event.type = dsAppEventType_GameInputAxis;
-					event.gameInputAxis.gameInput = dsSDLGameInput_find(
-						application, sdlEvent.jaxis.which);
-					DS_ASSERT(event.gameInputAxis.gameInput);
-					dsGameInputMap inputMap = {dsGameInputMethod_Axis, sdlEvent.jaxis.axis};
-					event.gameInputAxis.mapping = dsGameInput_findControllerMapping(
-						event.gameInputAxis.gameInput, &inputMap);
-					event.gameInputAxis.axis = sdlEvent.jaxis.axis;
-					event.gameInputAxis.value = dsSDLGameInput_getAxisValue(sdlEvent.jaxis.value);
-					break;
-				}
-				case SDL_JOYBALLMOTION:
-					event.type = dsAppEventType_GameInputBall;
-					event.gameInputBall.gameInput = dsSDLGameInput_find(
-						application, sdlEvent.jball.which);
-					DS_ASSERT(event.gameInputBall.gameInput);
-					event.gameInputBall.delta.x = sdlEvent.jball.xrel;
-					event.gameInputBall.delta.y = sdlEvent.jball.yrel;
-					break;
-				case SDL_JOYHATMOTION:
-				{
-					event.type = dsAppEventType_GameInputDPad;
-					dsGameInput* gameInput = dsSDLGameInput_find(application, sdlEvent.jhat.which);
-					DS_ASSERT(gameInput);
-					event.gameInputDPad.gameInput = gameInput;
-					if (dsGameInput_isInputControllerMapped(
-							gameInput, dsGameInputMethod_DPad, sdlEvent.jhat.value))
-					{
-						// May result in multiple events.
-						dsSDLGameInput_dispatchControllerDPadEvents(gameInput, application,
-							focusWindow, sdlEvent.jhat.hat, sdlEvent.jhat.value, event.time);
-						hasEvent = SDL_PollEvent(&sdlEvent);
-						continue;
-					}
-
-					event.gameInputDPad.dpad = sdlEvent.jhat.hat;
-					dsSDLGameInput_convertHatDirection(
-						&event.gameInputDPad.direction, sdlEvent.jhat.value);
-					break;
-				}
-				case SDL_JOYBUTTONDOWN:
-				case SDL_JOYBUTTONUP:
-				{
-					event.type = sdlEvent.type == SDL_JOYBUTTONUP ?
-						dsAppEventType_GameInputButtonUp : dsAppEventType_GameInputButtonDown;
-					event.gameInputButton.gameInput = dsSDLGameInput_find(
-						application, sdlEvent.jbutton.which);
-					DS_ASSERT(event.gameInputButton.gameInput);
-					dsGameInputMap inputMap = {dsGameInputMethod_Button, sdlEvent.jbutton.button};
-					event.gameInputAxis.mapping = dsGameInput_findControllerMapping(
-						event.gameInputAxis.gameInput, &inputMap);
-					event.gameInputButton.button = sdlEvent.jbutton.button;
-					break;
-				}
-				case SDL_JOYDEVICEADDED:
-				{
-					dsGameInput* gameInput = dsSDLGameInput_add(
-						application, sdlEvent.jdevice.which);
-					if (!gameInput)
-					{
-						DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG,
-							"Couldn't add gameInput: %s", dsErrorString(errno));
-						hasEvent = SDL_PollEvent(&sdlEvent);
-						continue;
-					}
-
-					event.type = dsAppEventType_GameInputConnected;
-					event.gameInputConnect.gameInput = gameInput;
-					break;
-				}
-				case SDL_JOYDEVICEREMOVED:
-					event.type = dsAppEventType_GameInputDisconnected;
-					event.gameInputConnect.gameInput = dsSDLGameInput_find(
-						application, sdlEvent.jdevice.which);
-					DS_ASSERT(event.gameInputConnect.gameInput);
-					break;
-#if SDL_VERSION_ATLEAST(2, 0, 14)
-				case SDL_CONTROLLERTOUCHPADDOWN:
-				case SDL_CONTROLLERTOUCHPADUP:
-				case SDL_CONTROLLERTOUCHPADMOTION:
-					switch (sdlEvent.type)
-					{
-						case SDL_CONTROLLERTOUCHPADDOWN:
-							event.type = dsAppEventType_TouchFingerDown;
-							break;
-						case SDL_CONTROLLERTOUCHPADUP:
-							event.type = dsAppEventType_TouchFingerUp;
-							break;
-						case SDL_CONTROLLERTOUCHPADMOTION:
-							event.type = dsAppEventType_TouchMoved;
-							break;
-						default:
-							DS_ASSERT(false);
-							break;
-					}
-					event.touch.gameInput = dsSDLGameInput_find(
-						application, sdlEvent.ctouchpad.which);
-					DS_ASSERT(event.touch.gameInput);
-					event.touch.touchID = sdlEvent.ctouchpad.touchpad;
-					event.touch.fingerID = sdlEvent.ctouchpad.finger;
-					event.touch.position.x = sdlEvent.ctouchpad.x;
-					event.touch.position.y = sdlEvent.ctouchpad.y;
-					event.touch.delta.x = 0;
-					event.touch.delta.y = 0;
-					event.touch.pressure = sdlEvent.ctouchpad.pressure;
-					break;
-				case SDL_CONTROLLERSENSORUPDATE:
-					event.type = dsAppEventType_MotionSensor;
-					event.motionSensor.sensor = NULL;
-					event.motionSensor.gameInput = dsSDLGameInput_find(
-						application, sdlEvent.csensor.which);
-					DS_ASSERT(event.motionSensor.gameInput);
-					switch (sdlEvent.csensor.sensor)
-					{
-						case SDL_SENSOR_ACCEL:
-							event.motionSensor.type = dsMotionSensorType_Accelerometer;
-							break;
-						case SDL_SENSOR_GYRO:
-							event.motionSensor.type = dsMotionSensorType_Gyroscope;
-							break;
-						default:
-							hasEvent = SDL_PollEvent(&sdlEvent);
-							continue;
-					}
-					memcpy(&event.motionSensor.data, sdlEvent.csensor.data, sizeof(dsVector3f));
-					break;
-#endif
-				case SDL_FINGERDOWN:
-				case SDL_FINGERUP:
-				case SDL_FINGERMOTION:
-#if SDL_VERSION_ATLEAST(2, 0, 12)
-					window = findWindow(application, sdlEvent.tfinger.windowID);
-#endif
-					switch (sdlEvent.type)
-					{
-						case SDL_FINGERDOWN:
-							event.type = dsAppEventType_TouchFingerDown;
-							break;
-						case SDL_FINGERUP:
-							event.type = dsAppEventType_TouchFingerUp;
-							break;
-						case SDL_FINGERMOTION:
-							event.type = dsAppEventType_TouchMoved;
-							break;
-						default:
-							DS_ASSERT(false);
-							break;
-					}
-					event.touch.gameInput = NULL;
-					event.touch.touchID = sdlEvent.tfinger.touchId;
-					event.touch.fingerID = sdlEvent.tfinger.fingerId;
-					event.touch.position.x = sdlEvent.tfinger.x;
-					event.touch.position.y = sdlEvent.tfinger.y;
-					event.touch.delta.x = sdlEvent.tfinger.dx;
-					event.touch.delta.y = sdlEvent.tfinger.dy;
-					event.touch.pressure = sdlEvent.tfinger.pressure;
-					break;
-				case SDL_MULTIGESTURE:
-					event.type = dsAppEventType_MultiTouch;
-					event.multiTouch.touchID = sdlEvent.mgesture.touchId;
-					event.multiTouch.rotation = sdlEvent.mgesture.dTheta;
-					event.multiTouch.pinch = sdlEvent.mgesture.dDist;
-					event.multiTouch.position.x = sdlEvent.mgesture.x;
-					event.multiTouch.position.y = sdlEvent.mgesture.y;
-					event.multiTouch.fingerCount = sdlEvent.mgesture.numFingers;
-					break;
-#if SDL_VERSION_ATLEAST(2, 0, 9)
-				case SDL_SENSORUPDATE:
-					event.type = dsAppEventType_MotionSensor;
-					event.motionSensor.sensor = dsSDLMotionSensor_find(
-						application, sdlEvent.sensor.which);
-					DS_ASSERT(event.motionSensor.sensor);
-					event.motionSensor.gameInput = NULL;
-					event.motionSensor.type = event.motionSensor.sensor->type;
-					memcpy(&event.motionSensor.data, sdlEvent.sensor.data, sizeof(dsVector3f));
-					break;
-#endif
-				case SDL_USEREVENT:
-					window = findWindow(application, sdlEvent.user.windowID);
-					event.type = dsAppEventType_Custom;
-					event.custom.eventID = sdlEvent.user.code;
-					event.custom.userData = sdlEvent.user.data1;
-					event.custom.cleanupFunc = (dsCustomEventCleanupFunction)sdlEvent.user.data2;
-					break;
-				default:
-					hasEvent = SDL_PollEvent(&sdlEvent);
-					continue;
+				hasEvent = SDL_PollEvent(&sdlEvent);
+				continue;
 			}
 
-			if (!window)
-				window = focusWindow;
-			dsApplication_dispatchEvent(application, window, &event);
+			dsApplication_dispatchEvent(application, &event);
+
+			// Must dispatch primary display change after the original event.
+			if (application->primaryDisplay != prevPrimaryDisplay)
+			{
+				event.type = dsAppEventType_PrimaryDisplayChanged;
+				event.display = application->primaryDisplay;
+				dsApplication_dispatchEvent(application, &event);
+			}
 
 			// Some events require cleanup.
-			if (sdlEvent.type == SDL_JOYDEVICEREMOVED)
+			if (sdlEvent.type == SDL_EVENT_DISPLAY_REMOVED)
+			{
+				// Sanity check: clear out any windows that reference the removed display.
+				for (uint32_t i = 0; i < application->windowCount; ++i)
+				{
+					dsWindow* window = application->windows[i];
+					if (window->display && window->display->id == sdlEvent.display.displayID)
+						window->display = NULL;
+				}
+
+				for (uint32_t i = 0; i < application->displayCount; ++i)
+				{
+					dsDisplayInfo* display = application->displays[i];
+					if (display->id == sdlEvent.display.displayID)
+					{
+						// Constant-time removal.
+						application->displays[i] =
+							application->displays[application->displayCount - 1];
+						--application->displayCount;
+						DS_VERIFY(dsAllocator_free(application->allocator, display));
+						break;
+					}
+				}
+			}
+			else if (sdlEvent.type == SDL_EVENT_WINDOW_DESTROYED)
+				dsWindow_destroy(findWindow(application, sdlEvent.window.windowID));
+			else if (sdlEvent.type == SDL_EVENT_JOYSTICK_REMOVED)
 				DS_VERIFY(dsSDLGameInput_remove(application, sdlEvent.jdevice.which));
-			else if (sdlEvent.type == SDL_USEREVENT && sdlEvent.user.data2)
+			else if (sdlEvent.type == SDL_EVENT_USER && sdlEvent.user.data2)
 			{
 				((dsCustomEventCleanupFunction)sdlEvent.user.data2)(
 					sdlEvent.user.code, sdlEvent.user.data1);
 			}
 
 			hasEvent = SDL_PollEvent(&sdlEvent);
+		}
+
+		// Sanity check for any windows that might have a missing display or render surface size
+		// change didn't get caught by other events.
+		for (uint32_t i = 0; i < application->windowCount; ++i)
+		{
+			dsWindow* window = application->windows[i];
+			dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
+			const dsRenderSurface* surface = window->surface;
+			if (!window->display || (surface && (sdlWindow->curSurfaceWidth != surface->width ||
+				sdlWindow->curSurfaceHeight != surface->height ||
+				sdlWindow->curSurfaceRotation != surface->rotation)))
+			{
+				dsEvent event;
+				event.time = lastPreInputTicks;
+				if (updateWindowState(&event, application, window, false))
+					dsApplication_dispatchEvent(application, &event);
+			}
 		}
 		DS_PROFILE_SCOPE_END();
 
@@ -896,17 +1357,11 @@ int dsSDLApplication_run(dsApplication* application)
 
 		// If the samples have changed, need to re-create the windows. Do between update and draw
 		// since update is most likely to have changed the samples.
-		updateWindowSamples(application);
+		updateWindowSamples(application, dsTimer_currentTicks());
 
 		DS_PROFILE_SCOPE_START("Draw");
 		uint32_t swapSurfaceCount = 0;
-		dsRenderSurface* swapSurfaces[DS_MAX_WINDOWS];
-		if (application->windowCount > DS_MAX_WINDOWS)
-		{
-			DS_LOG_FATAL_F(DS_APPLICATION_SDL_LOG_TAG, "A maximum of %u windows is supported.",
-				DS_MAX_WINDOWS);
-			abort();
-		}
+		dsRenderSurface* swapSurfaces[MAX_SWAP_WINDOWS];
 
 		dsCommandBuffer* commandBuffer = application->renderer->mainCommandBuffer;
 		for (uint32_t i = 0; i < application->windowCount; ++i)
@@ -915,16 +1370,22 @@ int dsSDLApplication_run(dsApplication* application)
 			if (!window->drawFunc || !window->surface)
 				continue;
 
-			if (dsRenderSurface_beginDraw(window->surface, commandBuffer))
-			{
-				window->drawFunc(application, window, window->drawUserData);
-				dsRenderSurface_endDraw(window->surface, commandBuffer);
-				swapSurfaces[swapSurfaceCount++] = window->surface;
-			}
+			if (!dsRenderSurface_beginDraw(window->surface, commandBuffer))
+				continue;
+
+			window->drawFunc(application, window, window->drawUserData);
+			dsRenderSurface_endDraw(window->surface, commandBuffer);
+			swapSurfaces[swapSurfaceCount++] = window->surface;
 
 			// Flush between windows. This avoids render commands for multiple windows being batched
 			// together, allowing for render commands to be executed on the GPU sooner.
-			if (i < application->windowCount - 1)
+			// Force a swap buffers if we've exceeded the maximum number of windows to swap at once.
+			if (swapSurfaceCount >= MAX_SWAP_WINDOWS)
+			{
+				dsRenderSurface_swapBuffers(swapSurfaces, swapSurfaceCount);
+				swapSurfaceCount = 0;
+			}
+			else if (i < application->windowCount - 1)
 				dsRenderer_flush(application->renderer);
 		}
 		DS_PROFILE_SCOPE_END();
@@ -952,30 +1413,27 @@ void dsSDLApplication_quit(dsApplication* application, int exitCode)
 	sdlApplication->exitCode = exitCode;
 }
 
-bool dsSDLApplication_addCustomEvent(dsApplication* application, dsWindow* window,
-	const dsCustomEvent* event)
+bool dsSDLApplication_addCustomEvent(dsApplication* application, const dsCustomEvent* event)
 {
 	DS_UNUSED(application);
 	DS_ASSERT(event);
 	SDL_Event userEvent;
-	userEvent.type = SDL_USEREVENT;
-	if (window)
-		userEvent.user.windowID = SDL_GetWindowID(((dsSDLWindow*)window)->sdlWindow);
+	userEvent.type = SDL_EVENT_USER;
+	if (event->window)
+		userEvent.user.windowID = SDL_GetWindowID(((dsSDLWindow*)event->window)->sdlWindow);
 	else
 		userEvent.user.windowID = 0;
 	userEvent.user.code = event->eventID;
 	userEvent.user.data1 = event->userData;
 	userEvent.user.data2 = event->cleanupFunc;
 
-	return SDL_PushEvent(&userEvent) != 0;
-}
-
-double dsSDLApplication_getCurrentEventTime(const dsApplication* application)
-{
-	DS_UNUSED(application);
-	// NOTE: Would ideally use SDL_GetTicks64(), but events are locked into 32-bit timestamps until
-	// the ABI is allowed to change. This is currently planned for SDL 3.
-	return (double)SDL_GetTicks()/1000.0;
+	if (!SDL_PushEvent(&userEvent))
+	{
+		DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't push event: %s", SDL_GetError());
+		errno = EPERM;
+		return false;
+	}
+	return true;
 }
 
 dsSystemPowerState dsSDLApplication_getPowerState(int* outRemainingTime, int* outBatteryPercent,
@@ -984,6 +1442,7 @@ dsSystemPowerState dsSDLApplication_getPowerState(int* outRemainingTime, int* ou
 	DS_UNUSED(application);
 	switch (SDL_GetPowerInfo(outRemainingTime, outBatteryPercent))
 	{
+		case SDL_POWERSTATE_ERROR:
 		case SDL_POWERSTATE_UNKNOWN:
 			return dsSystemPowerState_Unknown;
 		case SDL_POWERSTATE_ON_BATTERY:
@@ -998,18 +1457,6 @@ dsSystemPowerState dsSDLApplication_getPowerState(int* outRemainingTime, int* ou
 
 	DS_ASSERT(false);
 	return dsSystemPowerState_Unknown;
-}
-
-void dsSDLApplication_getDisplayBounds(dsAlignedBox2i* outBounds, const dsApplication* application,
-	uint32_t display)
-{
-	DS_UNUSED(application);
-	SDL_Rect rect = {0, 0, 0, 0};
-	SDL_GetDisplayBounds(display, &rect);
-	outBounds->min.x = rect.x;
-	outBounds->min.y = rect.y;
-	outBounds->max.x = rect.x + rect.w;
-	outBounds->max.y = rect.y + rect.h;
 }
 
 dsCursor dsSDLApplication_getCursor(const dsApplication* application)
@@ -1034,13 +1481,16 @@ bool dsSDLApplication_setCursor(dsApplication* application, dsCursor cursor)
 bool dsSDLApplication_getCursorHidden(const dsApplication* application)
 {
 	DS_UNUSED(application);
-	return SDL_ShowCursor(-1);
+	return SDL_CursorVisible();
 }
 
 bool dsSDLApplication_setCursorHidden(dsApplication* application, bool hidden)
 {
 	DS_UNUSED(application);
-	SDL_ShowCursor(hidden);
+	if (hidden)
+		SDL_HideCursor();
+	else
+		SDL_ShowCursor();
 	return true;
 }
 
@@ -1056,45 +1506,22 @@ dsKeyModifier dsSDLApplication_getKeyModifiers(const dsApplication* application)
 	return dsFromSDLKeyMod(SDL_GetModState());
 }
 
-bool dsSDLApplication_beginTextInput(dsApplication* application)
-{
-	DS_UNUSED(application);
-	SDL_StartTextInput();
-	return true;
-}
-
-bool dsSDLApplication_endTextInput(dsApplication* application)
-{
-	DS_UNUSED(application);
-	SDL_StopTextInput();
-	return true;
-}
-
-bool dsSDLApplication_setTextInputRect(dsApplication* application, const dsAlignedBox2i* bounds)
-{
-	DS_UNUSED(application);
-	SDL_Rect rect = {bounds->min.x, bounds->min.y, bounds->max.x -bounds->max.x,
-		bounds->max.y - bounds->min.y};
-	SDL_SetTextInputRect(&rect);
-	return true;
-}
-
-bool dsSDLApplication_getMousePosition(dsVector2i* outPosition, const dsApplication* application)
+bool dsSDLApplication_getMousePosition(dsVector2f* outPosition, const dsApplication* application)
 {
 	DS_UNUSED(application);
 	SDL_GetMouseState(&outPosition->x, &outPosition->y);
 	return true;
 }
 
-bool dsSDLApplication_setMousePosition(dsApplication* application, dsWindow* window,
-	const dsVector2i* position)
+bool dsSDLApplication_setMousePosition(
+	dsApplication* application, dsWindow* window, const dsVector2f* position)
 {
 	DS_UNUSED(application);
 	if (window)
 		SDL_WarpMouseInWindow(((dsSDLWindow*)window)->sdlWindow, position->x, position->y);
 	else
 	{
-		if (SDL_WarpMouseGlobal(position->x, position->y) != 0)
+		if (!SDL_WarpMouseGlobal(position->x, position->y))
 		{
 			errno = EPERM;
 			return false;
@@ -1110,6 +1537,15 @@ uint32_t dsSDLApplication_getPressedMouseButtons(const dsApplication* applicatio
 	uint32_t sdlButtons = SDL_GetMouseState(NULL, NULL);
 	return SDL_MOUSE_TO_DS_MOUSE_MASK(sdlButtons);
 }
+
+#if DS_ANDROID
+bool dsSDLApplication_requestAndroidPermission(dsApplication* application, const char* permission,
+	dsHandleAndroidPermissionResultFunction resultFunc, void* userData)
+{
+	DS_UNUSED(application);
+	return SDL_RequestAndroidPermission(permission, resultFunc, userData);
+}
+#endif
 
 uint32_t dsSDLApplication_showMessageBox(dsMessageBoxType type, const char* title,
 	const char* message, const char* const* buttons, uint32_t buttonCount, uint32_t enterButton,
@@ -1147,67 +1583,59 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 		return NULL;
 	}
 
-	// When available, tell SDL we are using an external context. This should be guaranteed to be
-	// available in the pre-built libraries for platforms it's required for.
-#ifdef SDL_HINT_VIDEO_EXTERNAL_CONTEXT
-	SDL_SetHint(SDL_HINT_VIDEO_EXTERNAL_CONTEXT, "1");
-#endif
-
-	uint32_t initFlags = SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC;
-#if SDL_VERSION_ATLEAST(2, 0, 9)
+	uint32_t initFlags = SDL_INIT_GAMEPAD | SDL_INIT_HAPTIC;
 	if (flags & dsSDLApplicationFlags_MotionSensors)
 		initFlags |= SDL_INIT_SENSOR;
-#endif
-	if (SDL_Init(initFlags) != 0)
+	if (!SDL_Init(initFlags))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't initialize SDL: %s", SDL_GetError());
 		return NULL;
 	}
 
-	SDL_SetHint(SDL_HINT_FRAMEBUFFER_ACCELERATION, "1");
 	const char* driver = NULL;
-#if DS_LINUX && !DS_ANDROID
+#if DS_WINDOWS
+	driver = "windows";
+#elif DS_MAC
+	driver = "cocoa";
+#elif DS_IOS
+	driver = "uikit";
+#elif !DS_ANDROID
 	if (renderer->platform == dsGfxPlatform_Wayland)
+	{
+		SDL_SetHint(SDL_HINT_VIDEO_WAYLAND_MODE_SCALING, "aspect");
 		driver = "wayland";
+	}
 	else
 	{
-		setenv("SDL_VIDEO_X11_NODIRECTCOLOR", "1", true);
+		SDL_SetHintWithPriority(SDL_HINT_VIDEO_X11_NODIRECTCOLOR, "1", SDL_HINT_OVERRIDE);
 
 		const char* compositorSetting = flags & dsSDLApplicationFlags_DisableCompositor ? "1" : "0";
-#ifdef SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR
 		SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, compositorSetting);
-#else
-		setenv("SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR", compositorSetting, true);
-#endif
 
 		if (renderer->surfaceConfig)
 		{
 			char visualID[20];
 			snprintf(visualID, sizeof(visualID), "%d", (int)(size_t)renderer->surfaceConfig);
-#ifdef SDL_HINT_VIDEO_X11_WINDOW_VISUALID
-			SDL_SetHint(SDL_HINT_VIDEO_X11_WINDOW_VISUALID, visualID);
-#else
-			setenv("SDL_VIDEO_X11_VISUALID", visualID, true);
-#endif
+			SDL_SetHintWithPriority(
+				SDL_HINT_VIDEO_X11_WINDOW_VISUALID, visualID, SDL_HINT_OVERRIDE);
 		}
 		driver = "x11";
 	}
-#elif DS_WINDOWS
-	SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
-	driver = "windows";
-#elif DS_MAC
-	driver = "cocoa";
 #endif
+
+	if (driver)
+		SDL_SetHintWithPriority(SDL_HINT_VIDEO_DRIVER, driver, SDL_HINT_OVERRIDE);
+
 	// May have already been initialized when setting up renderer options.
 	const char* curDriver = SDL_GetCurrentVideoDriver();
 	bool shouldInitVideo = !curDriver || strcmp(curDriver, driver) != 0;
-	if (shouldInitVideo && SDL_VideoInit(driver) != 0)
+	if (shouldInitVideo && !SDL_InitSubSystem(SDL_INIT_VIDEO))
 	{
-		errno = EPERM;
-		DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't initialize SDL video: %s",
-			SDL_GetError());
+		DS_LOG_ERROR_F(
+			DS_APPLICATION_SDL_LOG_TAG, "Couldn't initialize SDL video: %s", SDL_GetError());
 		SDL_Quit();
+		errno = EPERM;
 		return NULL;
 	}
 	dsRenderer_restoreGlobalState(renderer);
@@ -1217,16 +1645,30 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	{
 		if (!setGLAttributes(renderer))
 		{
-			errno = EINVAL;
 			DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Invalid renderer attributes.");
 			SDL_Quit();
+			errno = EINVAL;
 			return NULL;
 		}
 	}
 
+	int displayCount;
+	SDL_DisplayID* displayIDs = SDL_GetDisplays(&displayCount);
+	if (!displayIDs)
+	{
+		DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't get SDL displays: %s", SDL_GetError());
+		SDL_Quit();
+		errno = EPERM;
+		return NULL;
+	}
+
 	dsSDLApplication* application = DS_ALLOCATE_OBJECT(allocator, dsSDLApplication);
 	if (!application)
+	{
+		SDL_Quit();
+		SDL_free(displayIDs);
 		return NULL;
+	}
 
 	application->useMotionSensors = (flags & dsSDLApplicationFlags_MotionSensors) != 0;
 	application->quit = false;
@@ -1237,94 +1679,48 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	DS_VERIFY(dsApplication_initialize(baseApplication, allocator));
 	baseApplication->renderer = renderer;
 
-	baseApplication->displayCount = SDL_GetNumVideoDisplays();
-	if (baseApplication->displayCount > 0)
+	if (!DS_RESIZEABLE_ARRAY_ADD(allocator, baseApplication->displays,
+			baseApplication->displayCount, baseApplication->displayCapacity, displayCount))
 	{
-		dsDisplayInfo* displays = DS_ALLOCATE_OBJECT_ARRAY(allocator, dsDisplayInfo,
-			baseApplication->displayCount);
-		if (!displays)
+		SDL_free(displayIDs);
+		dsSDLApplication_destroy(baseApplication);
+		return NULL;
+	}
+
+	SDL_DisplayID primaryDisplayID = SDL_GetPrimaryDisplay();
+	for (int i = 0; i < displayCount; ++i)
+	{
+		dsDisplayInfo* display = createDisplay(allocator, displayIDs[i]);
+		if (!display)
 		{
+			SDL_free(displayIDs);
+			baseApplication->displayCount = i;
 			dsSDLApplication_destroy(baseApplication);
 			return NULL;
 		}
 
-		memset(displays, 0, sizeof(dsDisplayInfo)*baseApplication->displayCount);
-		baseApplication->displays = displays;
-		for (uint32_t i = 0; i < baseApplication->displayCount; ++i)
-		{
-			dsDisplayInfo* display = displays + i;
-			display->name = SDL_GetDisplayName(i);
-
-			SDL_DisplayMode defaultMode;
-			DS_VERIFY(SDL_GetDesktopDisplayMode(i, &defaultMode) == 0);
-			uint32_t displayModeTotal = SDL_GetNumDisplayModes(i);
-			uint32_t displayModeCount = 0;
-			for (uint32_t j = 0; j < displayModeTotal; ++j)
-			{
-				SDL_DisplayMode mode;
-				DS_VERIFY(SDL_GetDisplayMode(i, j, &mode) == 0);
-				if (mode.format == defaultMode.format)
-					++displayModeCount;
-			}
-
-			display->displayModeCount = displayModeCount;
-			if (display->displayModeCount > 0)
-			{
-				dsDisplayMode* displayModes = DS_ALLOCATE_OBJECT_ARRAY(
-					allocator, dsDisplayMode, display->displayModeCount);
-				if (!displayModes)
-				{
-					dsSDLApplication_destroy(baseApplication);
-					return NULL;
-				}
-
-				display->displayModes = displayModes;
-				display->defaultMode = displayModeCount;
-				uint32_t curIndex = 0;
-				for (uint32_t j = 0; j < displayModeTotal; ++j)
-				{
-					SDL_DisplayMode mode;
-					DS_VERIFY(SDL_GetDisplayMode(i, j, &mode) == 0);
-					if (mode.format != defaultMode.format)
-						continue;
-
-					dsDisplayMode* displayMode = displayModes + curIndex;
-					displayMode->displayIndex = i;
-					displayMode->width = mode.w;
-					displayMode->height = mode.h;
-					displayMode->refreshRate = (float)mode.refresh_rate;
-
-					if (mode.format == defaultMode.format && mode.w == defaultMode.w &&
-						mode.h == defaultMode.h && mode.refresh_rate == defaultMode.refresh_rate)
-					{
-						display->defaultMode = curIndex;
-					}
-
-					++curIndex;
-				}
-				DS_ASSERT(curIndex == displayModeCount);
-				DS_ASSERT(display->defaultMode < displayModeCount);
-			}
-
-#if SDL_VERSION_ATLEAST(2, 0, 4)
-			if (SDL_GetDisplayDPI(i, NULL, &display->dpi, NULL) != 0)
-#endif
-				display->dpi = DS_DEFAULT_DPI;
-		}
+		baseApplication->displays[i] = display;
+		if (primaryDisplayID == display->id)
+			baseApplication->primaryDisplay = display;
 	}
+	SDL_free(displayIDs);
 
-	application->cursors[dsCursor_Arrow] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
-	application->cursors[dsCursor_IBeam] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_IBEAM);
+	application->cursors[dsCursor_Arrow] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
+	application->cursors[dsCursor_IBeam] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_TEXT);
 	application->cursors[dsCursor_Wait] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_WAIT);
 	application->cursors[dsCursor_Crosshair] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
-	application->cursors[dsCursor_WaitArrow] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_WAITARROW);
-	application->cursors[dsCursor_SizeTLBR] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENWSE);
-	application->cursors[dsCursor_SizeTRBL] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENESW);
-	application->cursors[dsCursor_SizeTB] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENS);
-	application->cursors[dsCursor_SizeLR] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEWE);
-	application->cursors[dsCursor_SizeAll] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEALL);
-	application->cursors[dsCursor_No] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NO);
-	application->cursors[dsCursor_Hand] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+	application->cursors[dsCursor_WaitArrow] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_PROGRESS);
+	application->cursors[dsCursor_SizeTLBR] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NWSE_RESIZE);
+	application->cursors[dsCursor_SizeTRBL] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NESW_RESIZE);
+	application->cursors[dsCursor_SizeTB] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NS_RESIZE);
+	application->cursors[dsCursor_SizeLR] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_EW_RESIZE);
+	application->cursors[dsCursor_SizeT] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_N_RESIZE);
+	application->cursors[dsCursor_SizeB] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_S_RESIZE);
+	application->cursors[dsCursor_SizeL] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_W_RESIZE);
+	application->cursors[dsCursor_SizeR] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_E_RESIZE);
+	application->cursors[dsCursor_Move] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_MOVE);
+	application->cursors[dsCursor_No] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NOT_ALLOWED);
+	application->cursors[dsCursor_Hand] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_POINTER);
 	application->curCursor = dsCursor_Arrow;
 
 	if (!dsSDLGameInput_setup(baseApplication))
@@ -1343,22 +1739,20 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	baseApplication->runFunc = &dsSDLApplication_run;
 	baseApplication->quitFunc = &dsSDLApplication_quit;
 	baseApplication->addCustomEventFunc = &dsSDLApplication_addCustomEvent;
-	baseApplication->getCurrentEventTimeFunc = &dsSDLApplication_getCurrentEventTime;
 	baseApplication->getPowerStateFunc = &dsSDLApplication_getPowerState;
 
-	baseApplication->getDisplayBoundsfunc = &dsSDLApplication_getDisplayBounds;
 	baseApplication->getCursorFunc = &dsSDLApplication_getCursor;
 	baseApplication->setCursorFunc = &dsSDLApplication_setCursor;
 	baseApplication->getCursorHiddenFunc = &dsSDLApplication_getCursorHidden;
 	baseApplication->setCursorHiddenFunc = &dsSDLApplication_setCursorHidden;
 	baseApplication->isKeyPressedFunc = &dsSDLApplication_isKeyPressed;
 	baseApplication->getKeyModifiersFunc = &dsSDLApplication_getKeyModifiers;
-	baseApplication->beginTextInputFunc = &dsSDLApplication_beginTextInput;
-	baseApplication->endTextInputFunc = &dsSDLApplication_endTextInput;
-	baseApplication->setTextInputRectFunc = &dsSDLApplication_setTextInputRect;
 	baseApplication->getMousePositionFunc = &dsSDLApplication_getMousePosition;
 	baseApplication->setMousePositionFunc = &dsSDLApplication_setMousePosition;
 	baseApplication->getPressedMouseButtonsFunc = &dsSDLApplication_getPressedMouseButtons;
+#if DS_ANDROID
+	baseApplication->requestAndroidPermissionFunc = &dsSDLApplication_requestAndroidPermission;
+#endif
 
 	baseApplication->createWindowFunc = &dsSDLWindow_create;
 	baseApplication->destroyWindowFunc = &dsSDLWindow_destroy;
@@ -1367,22 +1761,21 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	baseApplication->setWindowTitleFunc = &dsSDLWindow_setTitle;
 	baseApplication->setWindowDisplayModeFunc = &dsSDLWindow_setDisplayMode;
 	baseApplication->resizeWindowFunc = &dsSDLWindow_resize;
-	baseApplication->getWindowSizeFunc = &dsSDLWindow_getSize;
-	baseApplication->getWindowPixelSizeFunc = &dsSDLWindow_getPixelSize;
 	baseApplication->setWindowStyleFunc = &dsSDLWindow_setStyle;
-	baseApplication->getWindowPositionFunc = &dsSDLWindow_getPosition;
-	baseApplication->getWindowHiddenFunc = &dsSDLWindow_getHidden;
+	baseApplication->setWindowPositionFunc = &dsSDLWindow_setPosition;
+	baseApplication->centerWindowFunc = &dsSDLWindow_center;
 	baseApplication->setWindowHiddenFunc = &dsSDLWindow_setHidden;
-	baseApplication->getWindowMinimizedFunc = &dsSDLWindow_getMinimized;
-	baseApplication->getWindowMaximizedFunc = &dsSDLWindow_getMaximized;
 	baseApplication->minimizeWindowFunc = &dsSDLWindow_minimize;
 	baseApplication->maximizeWindowFunc = &dsSDLWindow_maximize;
 	baseApplication->restoreWindowFunc = &dsSDLWindow_restore;
-	baseApplication->getWindowGrabbedInputFunc = &dsSDLWindow_getGrabbedInput;
 	baseApplication->setWindowGrabbedInputFunc = &dsSDLWindow_setGrabbedInput;
+	baseApplication->setWindowResizableFunc = &dsSDLWindow_setResizable;
 	baseApplication->raiseWindowFunc = &dsSDLWindow_raise;
+	baseApplication->beginTextInputFunc = &dsSDLWindow_beginTextInput;
+	baseApplication->endTextInputFunc = &dsSDLWindow_endTextInput;
+	baseApplication->setTextInputAreaFunc = &dsSDLWindow_setTextInputArea;
 
-	baseApplication->getGameInputBatteryFunc = &dsSDLGameInput_getBattery;
+	baseApplication->getGameInputPowerStateFunc = &dsSDLGameInput_getPowerState;
 	baseApplication->getGameInputAxisFunc = &dsSDLGameInput_getAxis;
 	baseApplication->getGameInputControllerAxisFunc = &dsSDLGameInput_getControllerAxis;
 	baseApplication->isGameInputButtonPressedFunc = &dsSDLGameInput_isButtonPressed;
@@ -1394,6 +1787,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	baseApplication->setGameInputTimedRumbleFunc = &dsSDLGameInput_setTimedRumble;
 	baseApplication->getGameInputTimedRumbleFunc = &dsSDLGameInput_getTimedRumble;
 	baseApplication->setGameInputLEDColorFunc = &dsSDLGameInput_setLEDColor;
+	baseApplication->setGameInputPlayerFunc = &dsSDLGameInput_setPlayer;
 	baseApplication->gameInputHasMotionSensorFunc = &dsSDLGameInput_hasMotionSensor;
 	baseApplication->getGameInputMotionSensorDataFunc = &dsSDLGameInput_getMotionSensorData;
 
@@ -1402,19 +1796,17 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 #if DS_ANDROID
 	DS_UNUSED(orgName);
 	DS_UNUSED(appName);
-	dsResourceStream_setContext(SDL_AndroidGetJNIEnv(), SDL_AndroidGetActivity(), "",
-		SDL_AndroidGetInternalStoragePath(), SDL_AndroidGetExternalStoragePath());
+	dsResourceStream_setContext(SDL_GetAndroidJNIEnv(), SDL_GetAndroidActivity(), "",
+		SDL_GetAndroidInternalStoragePath(), SDL_GetAndroidExternalStoragePath());
 #else
-	char* basePath = SDL_GetBasePath();
+	const char* basePath = SDL_GetBasePath();
 	char* prefPath = SDL_GetPrefPath(orgName, appName);
 	if (!prefPath)
 	{
 		DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Couldn't create preference path.");
-		SDL_free(basePath);
 		basePath = NULL;
 	}
 	dsResourceStream_setContext(NULL, NULL, basePath, basePath, prefPath);
-	SDL_free(basePath);
 	SDL_free(prefPath);
 #endif
 
@@ -1429,19 +1821,16 @@ void dsSDLApplication_destroy(dsApplication* application)
 	if (application->displays)
 	{
 		for (uint32_t i = 0; i < application->displayCount; ++i)
-		{
-			DS_VERIFY(dsAllocator_free(application->allocator,
-				(void*)application->displays[i].displayModes));
-		}
+			DS_VERIFY(dsAllocator_free(application->allocator, application->displays[i]));
 
-		DS_VERIFY(dsAllocator_free(application->allocator, (void*)application->displays));
+		DS_VERIFY(dsAllocator_free(application->allocator, application->displays));
 	}
 
 	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
 	for (int i = 0; i < dsCursor_Count; ++i)
 	{
 		if (sdlApplication->cursors[i])
-			SDL_FreeCursor(sdlApplication->cursors[i]);
+			SDL_DestroyCursor(sdlApplication->cursors[i]);
 	}
 
 	dsSDLGameInput_freeAll(application->gameInputs, application->gameInputCount);
@@ -1449,7 +1838,6 @@ void dsSDLApplication_destroy(dsApplication* application)
 	dsApplication_shutdown(application);
 	dsAllocator_free(application->allocator, application);
 
-	SDL_VideoQuit();
 	SDL_Quit();
 }
 

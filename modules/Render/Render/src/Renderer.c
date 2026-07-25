@@ -378,7 +378,7 @@ dsGfxFormat dsRenderer_optionsDepthFormat(const dsRendererOptions* options)
 
 dsGfxPlatform dsRenderer_resolvePlatform(dsGfxPlatform platform)
 {
-#if DS_LINUX
+#if DS_LINUX && !DS_ANDROID
 	if (platform == dsGfxPlatform_Default)
 	{
 		const char* waylandDisplay = getenv("WAYLAND_DISPLAY");

@@ -58,12 +58,12 @@ varying(vertex, fragment)
 	/**
 	 * @brief The direction to the light.
 	 */
-	vec3 vfLightDirection;
+	flat vec3 vfLightDirection;
 
 	/**
 	 * @brief The color of the light.
 	 */
-	vec3 vfLightColor;
+	flat vec3 vfLightColor;
 
 	/**
 	 * @brief The clip coordinates for the pixel.
@@ -78,8 +78,8 @@ varying(vertex, fragment)
 
 /**
  * @brief Processes the vertex for the deferred directional light.
- * @return The vertex position. DS_ADJUST_DIRECT_CLIP() should be called on this position before the
- *     end of the shader.
+ * @return The vertex position. DS_ADJUST_CLIP() should be called on this position before the end of
+ *     the shader.
  */
 [[vertex]]
 vec4 dsDeferredDirectionalLight_processVertex()
@@ -89,8 +89,9 @@ vec4 dsDeferredDirectionalLight_processVertex()
 
 	vfClipCoords = dsToggleCommonClip(vec4(viPosition, 0.0, 1.0));
 	// Expect texture lookups would be after rotation is applied.
-	vfTexCoords = dsCommonClipToTexCoords(dsViewFramebuffer_rotateFramebufferPosition(viPosition));
-	return vec4(viPosition, 0.0, 1.0);
+	vfTexCoords = dsClipToTexCoords(
+		dsViewFramebuffer_rotateFramebufferPosition(vfClipCoords.xy));
+	return vfClipCoords;
 }
 
 /**
@@ -101,7 +102,7 @@ void dsDeferredDirectionalLight_defaultVertex()
 {
 	gl_Position = dsDeferredDirectionalLight_processVertex();
 	gl_Position.xy = dsViewFramebuffer_rotateFramebufferPosition(gl_Position.xy);
-	gl_Position = DS_ADJUST_DIRECT_CLIP(gl_Position);
+	gl_Position = DS_ADJUST_CLIP(gl_Position);
 }
 
 /**

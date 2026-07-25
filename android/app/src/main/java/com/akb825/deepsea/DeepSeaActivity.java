@@ -35,6 +35,6 @@ public class DeepSeaActivity extends SDLActivity
 		}
 		if (mainLibName == null)
 			mainLibName = "main";
-		return new String[]{"SDL2", mainLibName};
+		return new String[]{"SDL3", mainLibName};
 	}
 }

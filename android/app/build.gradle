@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdk 34
-    ndkVersion "28.0.13004108"
+    compileSdk 37
+    ndkVersion "29.0.14206865"
     defaultConfig {
         applicationId "com.akb825.deepsea"
         minSdkVersion 24
-        targetSdkVersion 34
+        targetSdkVersion 37
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
@@ -16,10 +16,13 @@ android {
             }
         }
     }
+    buildFeatures {
+        resValues true
+    }
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.debug
             debuggable true
             externalNativeBuild {
@@ -40,25 +43,25 @@ android {
     // Only include libraries that aren't referenced directly in CMake.
     tasks.register('copyArm32Libraries', Copy) {
         from("${projectDir}/../../dependencies/libs/android-armeabi-v7a/lib") {
-            include "libSDL2.so"
+            include "libSDL3.so"
         }
         into "${projectDir}/src/main/jniLibs/armeabi-v7a"
     }
     tasks.register('copyArm64Libraries', Copy) {
         from("${projectDir}/../../dependencies/libs/android-arm64-v8a/lib") {
-            include "libSDL2.so"
+            include "libSDL3.so"
         }
         into "${projectDir}/src/main/jniLibs/arm64-v8a"
     }
     tasks.register('copyX86Libraries', Copy) {
         from("${projectDir}/../../dependencies/libs/android-x86/lib") {
-            include "libSDL2.so"
+            include "libSDL3.so"
         }
         into "${projectDir}/src/main/jniLibs/x86"
     }
     tasks.register('copyX86_64Libraries', Copy) {
         from("${projectDir}/../../dependencies/libs/android-x86_64/lib") {
-            include "libSDL2.so"
+            include "libSDL3.so"
         }
         into "${projectDir}/src/main/jniLibs/x86_64"
     }
@@ -196,7 +199,7 @@ preBuild.dependsOn(copyX86Libraries)
 preBuild.dependsOn(copyX86_64Libraries)
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.appcompat:appcompat:1.8.0'
 }
 
 configurations.implementation {

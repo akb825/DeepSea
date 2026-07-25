@@ -142,32 +142,46 @@ static void cycleSpeed(AnimationState* state)
 		state->targetSpeed = IDLE_SPEED;
 }
 
-static bool processEvent(
-	dsApplication* application, dsWindow* window, const dsEvent* event, void* userData)
+static bool processEvent(dsApplication* application, const dsEvent* event, void* userData)
 {
 	TestAnimation* testAnimation = (TestAnimation*)userData;
-	DS_ASSERT(!window || window == testAnimation->window);
 	switch (event->type)
 	{
 		case dsAppEventType_WindowClosed:
-			DS_VERIFY(dsWindow_destroy(window));
+		case dsAppEventType_WindowDestroyed:
+			DS_ASSERT(event->window == testAnimation->window);
+			DS_VERIFY(dsWindow_destroy(testAnimation->window));
 			testAnimation->window = NULL;
 			return false;
+		case dsAppEventType_WindowChanged:
+			DS_ASSERT(event->windowChange.window == testAnimation->window);
+			if (event->windowChange.flags & dsWindowChangeFlags_SurfaceSize)
+			{
+				DS_VERIFY(dsView_setDimensions(testAnimation->view,
+					testAnimation->window->surface->width, testAnimation->window->surface->height,
+					testAnimation->window->surface->rotation));
+
+				// Touch events might be lost, so clear out state to avoid never reaching 0 again.
+				testAnimation->fingerCount = 0;
+				testAnimation->maxFingers = 0;
+			}
+			return true;
 		case dsAppEventType_SurfaceInvalidated:
+			DS_ASSERT(event->window == testAnimation->window);
 			DS_VERIFY(dsView_setSurface(testAnimation->view, "windowColor",
 				testAnimation->window->surface, dsGfxSurfaceType_ColorRenderSurface));
 			DS_VERIFY(dsView_setSurface(testAnimation->view, "windowDepth",
 				testAnimation->window->surface, dsGfxSurfaceType_DepthRenderSurface));
-			// Fall through
-		case dsAppEventType_WindowResized:
 			DS_VERIFY(dsView_setDimensions(testAnimation->view,
 				testAnimation->window->surface->width, testAnimation->window->surface->height,
 				testAnimation->window->surface->rotation));
 			// Need to update the view again if the surfaces have been set.
-			if (event->type == dsAppEventType_SurfaceInvalidated)
-				dsView_update(testAnimation->view);
+			dsView_update(testAnimation->view);
 			return true;
 		case dsAppEventType_KeyDown:
+			if (event->key.window != testAnimation->window)
+				return true;
+
 			switch (event->key.key)
 			{
 				case dsKeyCode_1:
@@ -183,18 +197,22 @@ static bool processEvent(
 						dsRenderer_setVSync(testAnimation->renderer, dsVSync_Disabled);
 					return false;
 				case dsKeyCode_ACBack:
+				case dsKeyCode_ACExit:
 					dsApplication_quit(application, 0);
 					return false;
 				default:
 					return true;
 			}
 		case dsAppEventType_TouchFingerDown:
+			if (event->touch.window != testAnimation->window)
+				return true;
+
 			++testAnimation->fingerCount;
-			testAnimation->maxFingers =
-				dsMax(testAnimation->fingerCount, testAnimation->maxFingers);
-			return true;
+			testAnimation->maxFingers = dsMax(
+				testAnimation->fingerCount, testAnimation->maxFingers);
+			return false;
 		case dsAppEventType_TouchFingerUp:
-			if (testAnimation->fingerCount == 0)
+			if (event->touch.window != testAnimation->window || testAnimation->fingerCount == 0)
 				return true;
 
 			--testAnimation->fingerCount;
@@ -212,7 +230,7 @@ static bool processEvent(
 				}
 				testAnimation->maxFingers = 0;
 			}
-			return true;
+			return false;
 		default:
 			return true;
 	}
@@ -316,23 +334,13 @@ static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAl
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
 	DS_VERIFY(dsApplication_setUpdateFunction(application, &update, testAnimation, NULL));
 
-	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
-	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
-	testAnimation->window = dsWindow_create(application, allocator, "Test Animation", NULL,
-		NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate,
-		dsRenderSurfaceUsage_ClientRotations);
+	uint32_t width = dsApplication_adjustWindowSize(application, NULL, 800);
+	uint32_t height = dsApplication_adjustWindowSize(application, NULL, 600);
+	testAnimation->window = dsWindow_create(application, allocator, "Test Animation", NULL, NULL,
+		width, height, dsWindowFlags_Resizable, dsRenderSurfaceUsage_ClientRotations);
 	if (!testAnimation->window)
 	{
 		DS_LOG_ERROR_F("TestAnimation", "Couldn't create window: %s", dsErrorString(errno));
-		return false;
-	}
-
-	if (DS_ANDROID || DS_IOS)
-		dsWindow_setStyle(testAnimation->window, dsWindowStyle_FullScreen);
-
-	if (!dsWindow_createSurface(testAnimation->window))
-	{
-		DS_LOG_ERROR_F("TestAnimation", "Couldn't create window surface: %s", dsErrorString(errno));
 		return false;
 	}
 
@@ -524,8 +532,8 @@ static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAl
 
 	dsSceneResourceType curType;
 	dsCustomSceneResource* customResource;
-	if (!dsSceneResources_findResource(&curType, (void**)&customResource,
-			testAnimation->baseResources, "idleAnimation") ||
+	if (!dsSceneResources_findResource(
+			&curType, (void**)&customResource, testAnimation->baseResources, "idleAnimation") ||
 		curType != dsSceneResourceType_Custom ||
 		customResource->type != dsSceneKeyframeAnimation_type())
 	{
@@ -534,8 +542,8 @@ static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAl
 	}
 	testAnimation->idleAnimation = (dsKeyframeAnimation*)customResource->resource;
 
-	if (!dsSceneResources_findResource(&curType, (void**)&customResource,
-			testAnimation->baseResources, "walkAnimation") ||
+	if (!dsSceneResources_findResource(
+			&curType, (void**)&customResource, testAnimation->baseResources, "walkAnimation") ||
 		curType != dsSceneResourceType_Custom ||
 		customResource->type != dsSceneKeyframeAnimation_type())
 	{
@@ -544,8 +552,8 @@ static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAl
 	}
 	testAnimation->walkAnimation = (dsKeyframeAnimation*)customResource->resource;
 
-	if (!dsSceneResources_findResource(&curType, (void**)&customResource,
-			testAnimation->baseResources, "runAnimation") ||
+	if (!dsSceneResources_findResource(
+			&curType, (void**)&customResource, testAnimation->baseResources, "runAnimation") ||
 		curType != dsSceneResourceType_Custom ||
 		customResource->type != dsSceneKeyframeAnimation_type())
 	{
@@ -581,8 +589,8 @@ static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAl
 		AnimationState* animationState = testAnimation->characterAnimations + i;
 
 		dsSceneNode* curNode;
-		if (!dsSceneResources_findResource(&curType, (void**)&curNode, testAnimation->sceneGraph,
-				nodeNames[i]) ||
+		if (!dsSceneResources_findResource(
+				&curType, (void**)&curNode, testAnimation->sceneGraph, nodeNames[i]) ||
 			curType != dsSceneResourceType_SceneNode)
 		{
 			DS_LOG_ERROR_F("TestAnimation", "Couldn't find %s.", nodeNames[i]);
@@ -670,13 +678,18 @@ static void shutdown(TestAnimation* testAnimation)
 	DS_VERIFY(dsWindow_destroy(testAnimation->window));
 }
 
-int dsMain(int argc, const char** argv)
+#if DS_ANDROID
+static void startEasyProfilerOnPermission(void* userData, const char* permission, bool granted)
 {
-#if DS_HAS_EASY_PROFILER
-	dsEasyProfiler_start(false);
-	dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+	DS_UNUSED(userData);
+	DS_UNUSED(permission);
+	if (granted)
+		dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+}
 #endif
 
+int dsMain(int argc, const char** argv)
+{
 	dsRendererType rendererType = dsRendererType_Default;
 	const char* deviceName = NULL;
 	float updateFps = 0.0f;
@@ -788,6 +801,16 @@ int dsMain(int argc, const char** argv)
 		dsRenderer_destroy(renderer);
 		return 2;
 	}
+
+#if DS_HAS_EASY_PROFILER
+	dsEasyProfiler_start(false);
+#if DS_ANDROID
+	dsApplication_requestAndroidPermission(application, "android.permission.ACCESS_LOCAL_NETWORK",
+		&startEasyProfilerOnPermission, NULL);
+#else
+	dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+#endif
+#endif
 
 	char assetsPath[DS_PATH_MAX];
 	DS_VERIFY(dsResourceStream_getPath(

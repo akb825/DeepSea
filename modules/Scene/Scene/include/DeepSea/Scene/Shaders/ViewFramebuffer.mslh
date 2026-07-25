@@ -19,6 +19,17 @@
 #include <DeepSea/Render/Shaders/CoordinateHelpers.mslh>
 
 /**
+ * @brief Whether framebuffer rotation is possible on the current platform.
+ *
+ * Currently, client roations are only available on Vulkan.
+ */
+#ifdef SPIRV_VERSION
+#define DS_CAN_HAVE_FRAMEBUFFER_ROTATION 1
+#else
+#define DS_CAN_HAVE_FRAMEBUFFER_ROTATION 0
+#endif
+
+/**
  * @file
  * @brief Uniforms and functions for working with the framebuffer in a view.
  *
@@ -54,8 +65,12 @@ uniform dsViewFramebufferData
  */
 vec2 dsViewFramebuffer_rotateFramebufferPosition(vec2 pos)
 {
+#if DS_CAN_HAVE_FRAMEBUFFER_ROTATION
 	return mat2(INSTANCE(dsViewFramebuffer).framebufferRotation.xy,
 		INSTANCE(dsViewFramebuffer).framebufferRotation.zw)*pos;
+#else
+	return pos;
+#endif
 }
 
 /**
@@ -69,8 +84,38 @@ vec2 dsViewFramebuffer_rotateFramebufferPosition(vec2 pos)
  */
 vec2 dsViewFramebuffer_unrotateFramebufferPosition(vec2 pos)
 {
+	// Client rotations are only on Vulkan.
+#if DS_CAN_HAVE_FRAMEBUFFER_ROTATION
 	return pos*mat2(INSTANCE(dsViewFramebuffer).framebufferRotation.xy,
 		INSTANCE(dsViewFramebuffer).framebufferRotation.zw);
+#else
+	return pos;
+#endif
+}
+
+/**
+ * @brief Applies the client rotation to a projection matrix.
+ *
+ * This allows for a single matrix multiply to both apply the projection (which may also include
+ * model and view transforms) and client rotation.
+ *
+ * @param projection The projection matrix. This may also be combined with model and view matrices
+ *     if desired.
+ * @return The new projection matrix that also applies the client rotation.
+ */
+mat4 dsViewFramebuffer_rotatedProjection(mat4 projection)
+{
+	// Client rotations are only on Vulkan.
+#if DS_CAN_HAVE_FRAMEBUFFER_ROTATION
+	mat4 rotationMatrix = mat4(
+		INSTANCE(dsViewFramebuffer).framebufferRotation.xy, 0.0, 0.0,
+		INSTANCE(dsViewFramebuffer).framebufferRotation.zw, 0.0, 0.0,
+		0.0, 0.0, 1.0, 0.0,
+		0.0, 0.0, 0.0, 1.0);
+	return rotationMatrix*projection;
+#else
+	return projection;
+#endif
 }
 
 /**

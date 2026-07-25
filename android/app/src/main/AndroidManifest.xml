@@ -21,10 +21,10 @@
 
     <!-- Allow access to the vibrator -->
     <uses-permission android:name="android.permission.VIBRATE" />
-    <!-- Allow accessing the network -->
+    <!-- Allow accessing the network for profiler -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Allow accessing the network -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
 
     <!-- if you want to capture audio, uncomment this. -->
     <!-- <uses-permission android:name="android.permission.RECORD_AUDIO" /> -->

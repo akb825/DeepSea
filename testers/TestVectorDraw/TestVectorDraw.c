@@ -27,6 +27,8 @@
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Core/Timer.h>
 
+#include <DeepSea/Geometry/AlignedBox2.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Vector2.h>
@@ -201,25 +203,40 @@ static void prevImage(TestVectorDraw* testVectorDraw)
 	testVectorDraw->updateImage = true;
 }
 
-static bool processEvent(
-	dsApplication* application, dsWindow* window, const dsEvent* event, void* userData)
+static bool processEvent(dsApplication* application, const dsEvent* event, void* userData)
 {
 	DS_UNUSED(application);
 
 	TestVectorDraw* testVectorDraw = (TestVectorDraw*)userData;
-	DS_ASSERT(!window || window == testVectorDraw->window);
 	switch (event->type)
 	{
 		case dsAppEventType_WindowClosed:
-			DS_VERIFY(dsWindow_destroy(window));
+		case dsAppEventType_WindowDestroyed:
+			DS_ASSERT(event->window == testVectorDraw->window);
+			DS_VERIFY(dsWindow_destroy(testVectorDraw->window));
 			testVectorDraw->window = NULL;
 			return false;
-		case dsAppEventType_WindowResized:
+		case dsAppEventType_WindowChanged:
+			DS_ASSERT(event->windowChange.window == testVectorDraw->window);
+			if (event->windowChange.flags & dsWindowChangeFlags_SurfaceSize)
+			{
+				if (!createFramebuffer(testVectorDraw))
+					abort();
+
+				// Touch events might be lost, so clear out state to avoid never reaching 0 again.
+				testVectorDraw->fingerCount = 0;
+				testVectorDraw->maxFingers = 0;
+			}
+			return true;
 		case dsAppEventType_SurfaceInvalidated:
+			DS_ASSERT(event->window == testVectorDraw->window);
 			if (!createFramebuffer(testVectorDraw))
 				abort();
 			return true;
 		case dsAppEventType_KeyDown:
+			if (event->key.window != testVectorDraw->window)
+				return true;
+
 			switch (event->key.key)
 			{
 				case dsKeyCode_Right:
@@ -238,18 +255,22 @@ static bool processEvent(
 						dsRenderer_setVSync(testVectorDraw->renderer, dsVSync_Disabled);
 					return false;
 				case dsKeyCode_ACBack:
+				case dsKeyCode_ACExit:
 					dsApplication_quit(application, 0);
 					return false;
 				default:
 					return true;
 			}
 		case dsAppEventType_TouchFingerDown:
+			if (event->touch.window != testVectorDraw->window)
+				return true;
+
 			++testVectorDraw->fingerCount;
-			testVectorDraw->maxFingers = dsMax(testVectorDraw->fingerCount,
-				testVectorDraw->maxFingers);
-			return true;
+			testVectorDraw->maxFingers = dsMax(
+				testVectorDraw->fingerCount, testVectorDraw->maxFingers);
+			return false;
 		case dsAppEventType_TouchFingerUp:
-			if (testVectorDraw->fingerCount == 0)
+			if (event->touch.window != testVectorDraw->window || testVectorDraw->fingerCount == 0)
 				return true;
 
 			--testVectorDraw->fingerCount;
@@ -271,7 +292,7 @@ static bool processEvent(
 				}
 				testVectorDraw->maxFingers = 0;
 			}
-			return true;
+			return false;
 		default:
 			return true;
 	}
@@ -285,6 +306,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	DS_ASSERT(testVectorDraw->window == window);
 	dsRenderer* renderer = testVectorDraw->renderer;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
+	const dsRenderSurface* surface = window->surface;
 
 	if (testVectorDraw->updateImage)
 	{
@@ -303,9 +325,23 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 
 	dsVectorImage* image = testVectorDraw->vectorImages[testVectorDraw->curVectorImage];
 
+	float windowWidth = (float)window->width;
+	float windowHeight = (float)window->height;
+	float surfaceWidth = (float)surface->width;
+	float surfaceHeight = (float)surface->height;
+	float pixelScale = surfaceWidth/windowWidth;
+	dsAlignedBox2f safeBounds;
+	safeBounds.min.x = (float)window->safeArea.min.x*pixelScale;
+	safeBounds.min.y = (float)window->safeArea.min.y*pixelScale;
+	safeBounds.max.x = (float)window->safeArea.max.x*pixelScale;
+	safeBounds.max.y = (float)window->safeArea.max.y*pixelScale;
+	dsVector2f safeSize;
+	dsAlignedBox2_extents(safeSize, safeBounds);
+
+	// Logical size within the safe area.
 	dsVector2f size;
 	DS_VERIFY(dsVectorImage_getSize(&size, image));
-	float windowAspect = (float)window->surface->width/(float)window->surface->height;
+	float windowAspect = safeSize.x/safeSize.y;
 	float imageAspect = size.x/size.y;
 	float imageToWindowAspect = windowAspect/imageAspect;
 	if (imageToWindowAspect < 1.0f)
@@ -313,11 +349,21 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	else
 		size.x = size.y*windowAspect;
 
-	dsMatrix44f projection, surfaceRotation, modelViewProjection;
-	DS_VERIFY(dsRenderer_makeOrtho(&projection, renderer, 0.0f, size.x, 0.0f, size.y, 0.0f, 1.0f));
+	// Add padding as necessary to encompass the full window outside of the safe area.
+	dsVector2f fullSize;
+	fullSize.x = size.x*surfaceWidth/safeSize.x;
+	fullSize.y = size.y*surfaceHeight/safeSize.y;
+
+	dsMatrix44f temp, projection, surfaceRotation, safeAreaTransform, modelViewProjection;
+	DS_VERIFY(dsRenderer_makeOrtho(
+		&projection, renderer, 0.0f, fullSize.x, 0.0f, fullSize.y, 0.0f, 1.0f));
 	DS_VERIFY(dsRenderSurface_makeRotationMatrix44(
 		&surfaceRotation, testVectorDraw->window->surface->rotation));
-	dsMatrix44f_mul(&modelViewProjection, &surfaceRotation, &projection);
+	// Shift the lower-left to the safe area.
+	dsMatrix44f_makeTranslate(&safeAreaTransform, safeBounds.min.x*fullSize.x/windowWidth,
+		(surfaceHeight - safeBounds.max.y)*fullSize.y/windowHeight, 0.0f);
+	dsMatrix44f_mul(&temp, &projection, &safeAreaTransform);
+	dsMatrix44f_mul(&modelViewProjection, &surfaceRotation, &temp);
 
 	dsVectorShaders* shaders;
 	if (testVectorDraw->wireframe)
@@ -343,26 +389,14 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	dsEventResponder responder = {&processEvent, testVectorDraw, 0, 0};
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
 
-	uint32_t targetWindowSize = dsApplication_adjustWindowSize(application, 0, TARGET_SIZE);
-	float targetImageSize = dsApplication_adjustSize(application, 0, (float)TARGET_SIZE);
+	uint32_t targetWindowSize = dsApplication_adjustWindowSize(application, NULL, TARGET_SIZE);
 	testVectorDraw->window = dsWindow_create(application, allocator, "Test Vector Draw", NULL,
-		NULL, targetWindowSize, targetWindowSize,
-		dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate,
+		NULL, targetWindowSize, targetWindowSize, dsWindowFlags_Resizable,
 		dsRenderSurfaceUsage_ClientRotations);
 	if (!testVectorDraw->window)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create window: %s", dsErrorString(errno));
 		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	if (DS_ANDROID || DS_IOS)
-		dsWindow_setStyle(testVectorDraw->window, dsWindowStyle_FullScreen);
-
-	if (!dsWindow_createSurface(testVectorDraw->window))
-	{
-		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create window surface: %s",
-			dsErrorString(errno));
-		return false;
 	}
 
 	DS_VERIFY(dsWindow_setDrawFunction(testVectorDraw->window, &draw, testVectorDraw, NULL));
@@ -519,7 +553,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	initResources.resources = &testVectorDraw->vectorResources;
 	initResources.resourceCount = 1;
 
-	dsTimer timer = dsTimer_create();
+	float targetImageSize = testVectorDraw->window->contentScale*(float)TARGET_SIZE;
 	dsVector2f targetImageSize2f = {{targetImageSize, targetImageSize}};
 	for (uint32_t i = 0; i < testVectorDraw->vectorImageCount; ++i)
 	{
@@ -544,7 +578,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 		DS_LOG_INFO_F("TestVectorDraw", "Loaded %s in %g s", vectorImageFiles[i],
-			dsTimer_ticksToSeconds(timer, dsTimer_currentTicks() - start));
+			dsTimer_ticksToSeconds(application->timer, dsTimer_currentTicks() - start));
 	}
 
 	dsVectorScratchData_destroy(scratchData);
@@ -572,13 +606,18 @@ static void shutdown(TestVectorDraw* testVectorDraw)
 	DS_VERIFY(dsWindow_destroy(testVectorDraw->window));
 }
 
-int dsMain(int argc, const char** argv)
+#if DS_ANDROID
+static void startEasyProfilerOnPermission(void* userData, const char* permission, bool granted)
 {
-#if DS_HAS_EASY_PROFILER
-	dsEasyProfiler_start(false);
-	dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+	DS_UNUSED(userData);
+	DS_UNUSED(permission);
+	if (granted)
+		dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+}
 #endif
 
+int dsMain(int argc, const char** argv)
+{
 	dsRendererType rendererType = dsRendererType_Default;
 	const char* deviceName = NULL;
 	bool srgb = false;
@@ -693,6 +732,16 @@ int dsMain(int argc, const char** argv)
 		dsRenderer_destroy(renderer);
 		return 2;
 	}
+
+#if DS_HAS_EASY_PROFILER
+	dsEasyProfiler_start(false);
+#if DS_ANDROID
+	dsApplication_requestAndroidPermission(application, "android.permission.ACCESS_LOCAL_NETWORK",
+		&startEasyProfilerOnPermission, NULL);
+#else
+	dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+#endif
+#endif
 
 	TestVectorDraw testVectorDraw;
 	memset(&testVectorDraw, 0, sizeof(testVectorDraw));

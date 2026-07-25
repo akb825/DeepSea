@@ -22,6 +22,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Sort.h>
+#include <DeepSea/Core/Timer.h>
 #include <DeepSea/Core/UniqueNameID.h>
 
 #include <DeepSea/Math/Round.h>
@@ -63,7 +64,7 @@ uint32_t dsApplication_addWindowResponder(
 
 	uint32_t index = application->windowResponderCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(application->allocator, application->windowResponders,
-		application->windowResponderCount, application->windowResponderCapacity, 1))
+			application->windowResponderCount, application->windowResponderCapacity, 1))
 	{
 		return 0;
 	}
@@ -108,7 +109,7 @@ uint32_t dsApplication_addEventResponder(
 
 	uint32_t index = application->eventResponderCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(application->allocator, application->eventResponders,
-		application->eventResponderCount, application->eventResponderCapacity, 1))
+			application->eventResponderCount, application->eventResponderCapacity, 1))
 	{
 		return 0;
 	}
@@ -411,8 +412,7 @@ bool dsApplication_quit(dsApplication* application, int exitCode)
 	return true;
 }
 
-bool dsApplication_addCustomEvent(
-	dsApplication* application, dsWindow* window, const dsCustomEvent* event)
+bool dsApplication_addCustomEvent(dsApplication* application, const dsCustomEvent* event)
 {
 	if (!application || !application->addCustomEventFunc || !event)
 	{
@@ -420,66 +420,55 @@ bool dsApplication_addCustomEvent(
 		return false;
 	}
 
-	return application->addCustomEventFunc(application, window, event);
-}
-
-double dsApplication_getCurrentEventTime(const dsApplication* application)
-{
-	if (!application || !application->getCurrentEventTimeFunc)
-		return 0.0;
-
-	return application->getCurrentEventTimeFunc(application);
+	return application->addCustomEventFunc(application, event);
 }
 
 dsSystemPowerState dsApplication_getPowerState(
 	int* outRemainingTime, int* outBatteryPercent, const dsApplication* application)
 {
 	if (!application || !application->getPowerStateFunc)
+	{
+		if (outRemainingTime)
+			*outRemainingTime = -1;
+		if (outBatteryPercent)
+			*outBatteryPercent = -1;
 		return dsSystemPowerState_Unknown;
+	}
 
 	return application->getPowerStateFunc(outRemainingTime, outBatteryPercent, application);
 }
 
-bool dsApplication_getDisplayBounds(
-	dsAlignedBox2i* outBounds, const dsApplication* application, uint32_t display)
+const dsDisplayInfo* dsApplication_findDisplay(const dsApplication* application, uint64_t displayID)
 {
-	if (!outBounds || !application || !application->getDisplayBoundsfunc)
+	if (!application)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	if (display < application->displayCount)
+	for (uint32_t i = 0; i < application->displayCount; ++i)
 	{
-		errno = EINDEX;
-		return false;
+		const dsDisplayInfo* display = application->displays[i];
+		if (display->id == displayID)
+			return display;
 	}
 
-	application->getDisplayBoundsfunc(outBounds, application, display);
-	return true;
+	errno = ENOTFOUND;
+	return NULL;
 }
 
 uint32_t dsApplication_adjustWindowSize(
-	const dsApplication* application, uint32_t display, uint32_t size)
+	const dsApplication* application, const dsDisplayInfo* display, uint32_t size)
 {
-#if (DS_LINUX && !DS_ANDROID) || DS_WINDOWS
-	if (!application || display >= application->displayCount)
+	if (!application)
 		return size;
 
-	return (uint32_t)dsRoundf((float)size*application->displays[display].dpi/DS_REFERENCE_DPI);
-#else
-	DS_UNUSED(application);
-	DS_UNUSED(display);
-	return size;
-#endif
-}
-
-float dsApplication_adjustSize(const dsApplication* application, uint32_t display, float size)
-{
-	if (!application || display >= application->displayCount)
+	if (!display)
+		display = application->primaryDisplay;
+	if (!display)
 		return size;
 
-	return size*application->displays[display].dpi/DS_REFERENCE_DPI;
+	return (uint32_t)dsRoundf((float)size*display->scale);
 }
 
 dsCursor dsApplication_getCursor(const dsApplication* application)
@@ -536,40 +525,7 @@ dsKeyModifier dsApplication_getKeyModifiers(const dsApplication* application)
 	return application->getKeyModifiersFunc(application);
 }
 
-bool dsApplication_beginTextInput(dsApplication* application)
-{
-	if (!application || !application->beginTextInputFunc || !application->endTextInputFunc)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	return application->beginTextInputFunc(application);
-}
-
-bool dsApplication_endTextInput(dsApplication* application)
-{
-	if (!application || !application->endTextInputFunc)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	return application->endTextInputFunc(application);
-}
-
-bool dsApplication_setTextInputRect(dsApplication* application, const dsAlignedBox2i* rect)
-{
-	if (!application || !application->setTextInputRectFunc || !rect)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	return application->setTextInputRectFunc(application, rect);
-}
-
-bool dsApplication_getMousePosition(dsVector2i* outPosition, const dsApplication* application)
+bool dsApplication_getMousePosition(dsVector2f* outPosition, const dsApplication* application)
 {
 	if (!outPosition || !application || !application->getMousePositionFunc)
 	{
@@ -581,7 +537,7 @@ bool dsApplication_getMousePosition(dsVector2i* outPosition, const dsApplication
 }
 
 bool dsApplication_setMousePosition(
-	dsApplication* application, dsWindow* window, const dsVector2i* position)
+	dsApplication* application, dsWindow* window, const dsVector2f* position)
 {
 	if (!application || !application->setMousePositionFunc || !position)
 	{
@@ -608,8 +564,7 @@ dsWindow* dsApplication_getFocusWindow(const dsApplication* application)
 	return application->getFocusWindowFunc(application);
 }
 
-bool dsApplication_dispatchEvent(
-	dsApplication* application, dsWindow* window, const dsEvent* event)
+bool dsApplication_dispatchEvent(dsApplication* application, const dsEvent* event)
 {
 	if (!application || !event)
 	{
@@ -621,7 +576,7 @@ bool dsApplication_dispatchEvent(
 	{
 		const dsEventResponder* responder = application->eventResponders + i;
 		DS_ASSERT(responder->eventFunc);
-		if (!responder->eventFunc(application, window, event, responder->userData))
+		if (!responder->eventFunc(application, event, responder->userData))
 			break;
 	}
 
@@ -630,6 +585,20 @@ bool dsApplication_dispatchEvent(
 
 	return true;
 }
+
+#if DS_ANDROID
+bool dsApplication_requestAndroidPermission(dsApplication* application,
+	const char* permission, dsHandleAndroidPermissionResultFunction resultFunc, void* userData)
+{
+	if (!application || !application->requestAndroidPermissionFunc || !permission || !resultFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	return application->requestAndroidPermissionFunc(application, permission, resultFunc, userData);
+}
+#endif
 
 bool dsApplication_initialize(dsApplication* application, dsAllocator* allocator)
 {
@@ -641,6 +610,7 @@ bool dsApplication_initialize(dsApplication* application, dsAllocator* allocator
 
 	memset(application, 0, sizeof(*application));
 	application->allocator = dsAllocator_keepPointer(allocator);
+	application->timer = dsTimer_create();
 	if (!dsUniqueNameID_isInitialized())
 	{
 		if (!dsUniqueNameID_initialize(allocator, DS_DEFAULT_INITIAL_UNIQUE_NAME_ID_LIMIT))

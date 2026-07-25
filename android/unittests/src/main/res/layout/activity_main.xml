@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/outputWindow"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".UnitTestActivity">
@@ -19,7 +20,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <HorizontalScrollView
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
             <LinearLayout
@@ -29,8 +30,8 @@
 
                 <TextView
                     android:id="@+id/outputView"
-                    android:layout_width="fill_parent"
-                    android:layout_height="fill_parent"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
                     android:fontFamily="monospace"
                     android:scrollHorizontally="true"
                     android:textColor="?attr/editTextColor"

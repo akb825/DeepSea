@@ -92,12 +92,12 @@ varying(vertex, fragment)
 	/**
 	 * @brief The position of the light and linear falloff factor.
 	 */
-	vec4 vfLightPositionLinearFalloff;
+	flat vec4 vfLightPositionLinearFalloff;
 
 	/**
 	 * @brief The color of the light and quadratic falloff factor.
 	 */
-	vec4 vfLightColorQuadraticFalloff;
+	flat vec4 vfLightColorQuadraticFalloff;
 
 	/**
 	 * @brief The clip coordinates for the pixel.

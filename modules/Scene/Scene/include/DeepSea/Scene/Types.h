@@ -495,7 +495,7 @@ typedef struct dsViewFramebufferInfo
  * @remark Members should be modified outside of the implementation unless otherwise specified.
  * @see View.h
  */
-struct dsView
+typedef struct dsView
 {
 	/**
 	 * @brief The allocator for the view.
@@ -640,7 +640,7 @@ struct dsView
 	 * @brief Lock for modifying globalValues.
 	 */
 	dsSpinlock globalValuesLock;
-};
+} dsView;
 
 /**
  * @brief Struct used to filter for either inclusion or exclusion for specific views.

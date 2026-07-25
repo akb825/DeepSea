@@ -169,7 +169,7 @@ typedef struct dsPhysicsShapePartMaterial
  * @remark None of the members should be modified outside of the implementation.
  * @see PhysicsShape.h
  */
-struct dsPhysicsShape
+typedef struct dsPhysicsShape
 {
 	/**
 	 * @brief The physics engine the shape was created with.
@@ -230,7 +230,7 @@ struct dsPhysicsShape
 	 * This will be automatically called in dsPhysicsShape_freeRef() once refCount hits 0.
 	 */
 	dsDestroyPhysicsShapeFunction destroyFunc;
-};
+} dsPhysicsShape;
 
 /**
  * @brief Struct describing an instance of a  physics shape with a transform.

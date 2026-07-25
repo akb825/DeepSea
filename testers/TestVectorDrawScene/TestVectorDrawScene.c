@@ -129,7 +129,16 @@ static void updateRootTransform(const dsView* view, dsSceneTransformNode* transf
 	DS_VERIFY(dsView_getScreenSize(&screenSize, view));
 
 	dsMatrix44f transform;
-	dsMatrix44f_makeTranslate(&transform, screenSize.x*0.5f, 0.0f, 0.0f);
+	float scale = 1.0f;
+	float yOffset = 0.0f;
+	if (screenSize.y > screenSize.x)
+	{
+		scale = screenSize.x/screenSize.y;
+		yOffset = (screenSize.y - screenSize.x)*0.5f;
+	}
+	dsMatrix44f_makeTranslate(&transform, screenSize.x*0.5f, yOffset, 0.0f);
+	transform.columns[0].x = scale;
+	transform.columns[1].y = scale;
 	DS_VERIFY(dsSceneTransformNode_setTransform(transformNode, &transform));
 }
 
@@ -177,32 +186,48 @@ static void toggleSpelledOutNumber(TestVectorDrawScene* testVectorDrawScene)
 		testVectorDrawScene->substitutionData));
 }
 
-static bool processEvent(
-	dsApplication* application, dsWindow* window, const dsEvent* event, void* userData)
+static bool processEvent(dsApplication* application, const dsEvent* event, void* userData)
 {
 	TestVectorDrawScene* testVectorDrawScene = (TestVectorDrawScene*)userData;
-	DS_ASSERT(!window || window == testVectorDrawScene->window);
 	switch (event->type)
 	{
 		case dsAppEventType_WindowClosed:
-			DS_VERIFY(dsWindow_destroy(window));
+		case dsAppEventType_WindowDestroyed:
+			DS_ASSERT(event->window == testVectorDrawScene->window);
+			DS_VERIFY(dsWindow_destroy(testVectorDrawScene->window));
 			testVectorDrawScene->window = NULL;
 			return false;
+		case dsAppEventType_WindowChanged:
+			DS_ASSERT(event->windowChange.window == testVectorDrawScene->window);
+			if (event->windowChange.flags & dsWindowChangeFlags_SurfaceSize)
+			{
+				DS_VERIFY(dsView_setDimensions(testVectorDrawScene->view,
+					testVectorDrawScene->window->surface->width,
+					testVectorDrawScene->window->surface->height,
+					testVectorDrawScene->window->surface->rotation));
+				updateRootTransform(testVectorDrawScene->view, testVectorDrawScene->rootNode);
+
+				// Touch events might be lost, so clear out state to avoid never reaching 0 again.
+				testVectorDrawScene->fingerCount = 0;
+				testVectorDrawScene->maxFingers = 0;
+			}
+			return true;
 		case dsAppEventType_SurfaceInvalidated:
+			DS_ASSERT(event->window == testVectorDrawScene->window);
 			DS_VERIFY(dsView_setSurface(testVectorDrawScene->view, "windowColor",
 				testVectorDrawScene->window->surface, dsGfxSurfaceType_ColorRenderSurface));
-			// Fall through
-		case dsAppEventType_WindowResized:
 			DS_VERIFY(dsView_setDimensions(testVectorDrawScene->view,
 				testVectorDrawScene->window->surface->width,
 				testVectorDrawScene->window->surface->height,
 				testVectorDrawScene->window->surface->rotation));
 			updateRootTransform(testVectorDrawScene->view, testVectorDrawScene->rootNode);
 			// Need to update the view again if the surfaces have been set.
-			if (event->type == dsAppEventType_SurfaceInvalidated)
-				dsView_update(testVectorDrawScene->view);
+			dsView_update(testVectorDrawScene->view);
 			return true;
 		case dsAppEventType_KeyDown:
+			if (event->key.window != testVectorDrawScene->window)
+				return true;
+
 			switch (event->key.key)
 			{
 				case dsKeyCode_1:
@@ -218,19 +243,26 @@ static bool processEvent(
 						dsRenderer_setVSync(testVectorDrawScene->renderer, dsVSync_Disabled);
 					return false;
 				case dsKeyCode_ACBack:
+				case dsKeyCode_ACExit:
 					dsApplication_quit(application, 0);
 					return false;
 				default:
 					return true;
 			}
 		case dsAppEventType_TouchFingerDown:
+			if (event->touch.window != testVectorDrawScene->window)
+				return true;
+
 			++testVectorDrawScene->fingerCount;
 			testVectorDrawScene->maxFingers = dsMax(
 				testVectorDrawScene->fingerCount, testVectorDrawScene->maxFingers);
-			return true;
+			return false;
 		case dsAppEventType_TouchFingerUp:
-			if (testVectorDrawScene->fingerCount == 0)
+			if (event->touch.window != testVectorDrawScene->window ||
+				testVectorDrawScene->fingerCount == 0)
+			{
 				return true;
+			}
 
 			--testVectorDrawScene->fingerCount;
 			if (testVectorDrawScene->fingerCount == 0)
@@ -248,7 +280,7 @@ static bool processEvent(
 				}
 				testVectorDrawScene->maxFingers = 0;
 			}
-			return true;
+			return false;
 		default:
 			return true;
 	}
@@ -341,24 +373,13 @@ static bool setup(
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
 	DS_VERIFY(dsApplication_setUpdateFunction(application, &update, testVectorDrawScene, NULL));
 
-	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
-	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
-	testVectorDrawScene->window = dsWindow_create(application, allocator, "Test Scene", NULL,
-		NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate,
-		dsRenderSurfaceUsage_ClientRotations);
+	uint32_t width = dsApplication_adjustWindowSize(application, NULL, 800);
+	uint32_t height = dsApplication_adjustWindowSize(application, NULL, 600);
+	testVectorDrawScene->window = dsWindow_create(application, allocator, "Test Scene", NULL, NULL,
+		width, height, dsWindowFlags_Resizable, dsRenderSurfaceUsage_ClientRotations);
 	if (!testVectorDrawScene->window)
 	{
 		DS_LOG_ERROR_F("TestVectorDrawScene", "Couldn't create window: %s", dsErrorString(errno));
-		return false;
-	}
-
-	if (DS_ANDROID || DS_IOS)
-		dsWindow_setStyle(testVectorDrawScene->window, dsWindowStyle_FullScreen);
-
-	if (!dsWindow_createSurface(testVectorDrawScene->window))
-	{
-		DS_LOG_ERROR_F("TestVectorDrawScene", "Couldn't create window surface: %s",
-			dsErrorString(errno));
 		return false;
 	}
 
@@ -561,13 +582,18 @@ static void shutdown(TestVectorDrawScene* testVectorDrawScene)
 	DS_VERIFY(dsWindow_destroy(testVectorDrawScene->window));
 }
 
-int dsMain(int argc, const char** argv)
+#if DS_ANDROID
+static void startEasyProfilerOnPermission(void* userData, const char* permission, bool granted)
 {
-#if DS_HAS_EASY_PROFILER
-	dsEasyProfiler_start(false);
-	dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+	DS_UNUSED(userData);
+	DS_UNUSED(permission);
+	if (granted)
+		dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+}
 #endif
 
+int dsMain(int argc, const char** argv)
+{
 	dsRendererType rendererType = dsRendererType_Default;
 	const char* deviceName = NULL;
 	for (int i = 1; i < argc; ++i)
@@ -660,6 +686,16 @@ int dsMain(int argc, const char** argv)
 		dsRenderer_destroy(renderer);
 		return 2;
 	}
+
+#if DS_HAS_EASY_PROFILER
+	dsEasyProfiler_start(false);
+#if DS_ANDROID
+	dsApplication_requestAndroidPermission(application, "android.permission.ACCESS_LOCAL_NETWORK",
+		&startEasyProfilerOnPermission, NULL);
+#else
+	dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+#endif
+#endif
 
 	TestVectorDrawScene testVectorDrawScene;
 	memset(&testVectorDrawScene, 0, sizeof(testVectorDrawScene));

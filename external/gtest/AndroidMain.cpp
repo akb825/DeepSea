@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,16 @@
 #include <gtest/gtest.h>
 #include <jni.h>
 
+extern int main(int argc, const char** argv);
+
 extern "C"
 {
 
-extern int main(int argc, const char** argv);
 JNIEnv* dsUnitTestJNIEnv;
 jobject dsUnitTestActivity;
 
-JNIEXPORT jstring JNICALL Java_com_akb825_deepsea_unittests_UnitTestActivity_runTests(JNIEnv* env,
-	jobject thiz)
+JNIEXPORT jstring JNICALL Java_com_akb825_deepsea_unittests_UnitTestActivity_runTests(
+	JNIEnv* env, jobject thiz)
 {
 	dsResourceStream_setContext(env, thiz, nullptr, nullptr, nullptr);
 	setenv("TEST_TMPDIR", dsResourceStream_getDynamicDirectory(), true);

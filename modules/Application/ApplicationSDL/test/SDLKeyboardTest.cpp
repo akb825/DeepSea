@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,16 @@ TEST(SDLKeyboardTest, KeyCode)
 		// The following keycodes aren't supported on all versions of SDL.
 		switch (keyCode)
 		{
-			case dsKeyCode_AudioRewind:
-			case dsKeyCode_AudioFastForward:
-			case dsKeyCode_SoftLeft:
-			case dsKeyCode_SoftRight:
-			case dsKeyCode_Call:
-			case dsKeyCode_EndCall:
+			case dsKeyCode_WWW:
+			case dsKeyCode_Mail:
+			case dsKeyCode_Calculator:
+			case dsKeyCode_Computer:
+			case dsKeyCode_BrightnessDown:
+			case dsKeyCode_BrightnessUp:
+			case dsKeyCode_DisplaySwitch:
+			case dsKeyCode_KeyboardIlluminationToggle:
+			case dsKeyCode_KeyboardIlluminationDown:
+			case dsKeyCode_KeyboardIlluminationUp:
 				continue;
 			default:
 				break;

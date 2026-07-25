@@ -34,7 +34,7 @@ jobs:
       run: |-
         ./update.sh -s -t -l linux
         sudo apt-get update
-        sudo apt-get install -y libfreetype6-dev libharfbuzz-dev libsdl2-dev libgl1-mesa-dev
+        sudo apt-get install -y libfreetype6-dev libharfbuzz-dev libgl1-mesa-dev
       working-directory: "${{ github.workspace }}"
     - name: Build debug
       run: |-

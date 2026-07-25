@@ -109,7 +109,7 @@ const char* dsGetVkResultString(VkResult result)
 bool dsHandleVkResult(VkResult result, const char* failMessage, const char* file, unsigned int line,
 	const char* function)
 {
-	if (failMessage && result != VK_SUCCESS)
+	if (failMessage && result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
 	{
 		dsLog_messagef(dsLogLevel_Error, DS_RENDER_VULKAN_LOG_TAG, file, line, function, "%s: %s",
 			failMessage, dsGetVkResultString(result));
@@ -118,6 +118,7 @@ bool dsHandleVkResult(VkResult result, const char* failMessage, const char* file
 	switch (result)
 	{
 		case VK_SUCCESS:
+		case VK_SUBOPTIMAL_KHR:
 			return true;
 		case VK_ERROR_OUT_OF_HOST_MEMORY:
 		case VK_ERROR_OUT_OF_DEVICE_MEMORY:

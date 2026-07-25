@@ -31,6 +31,7 @@ extern "C"
  */
 
 /// @cond
+typedef struct dsWindow dsWindow;
 typedef struct dsGameInput dsGameInput;
 /// @endcond
 
@@ -39,6 +40,11 @@ typedef struct dsGameInput dsGameInput;
  */
 typedef struct dsTouchEvent
 {
+	/**
+	 * @brief The window that the touch was initiated on.
+	 */
+	const dsWindow* window;
+
 	/**
 	 * @brief The game input that the touch is associated with, if any.
 	 */
@@ -77,6 +83,11 @@ typedef struct dsTouchEvent
  */
 typedef struct dsMultiTouchEvent
 {
+	/**
+	 * @brief The window that the touch was initiated on.
+	 */
+	const dsWindow* window;
+
 	/**
 	 * @brief ID for the touch.
 	 */

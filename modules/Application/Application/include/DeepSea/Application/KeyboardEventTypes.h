@@ -127,67 +127,67 @@ typedef enum dsKeyCode
 	dsKeyCode_Up,
 	dsKeyCode_Down,
 	dsKeyCode_NumLock,
-	dsKeyCode_KpDivide,
-	dsKeyCode_KpMultiply,
-	dsKeyCode_KpMinus,
-	dsKeyCode_KpPlus,
-	dsKeyCode_KpEquals,
-	dsKeyCode_KpEqualsAS400,
-	dsKeyCode_KpEnter,
-	dsKeyCode_Kp1,
-	dsKeyCode_Kp2,
-	dsKeyCode_Kp3,
-	dsKeyCode_Kp4,
-	dsKeyCode_Kp5,
-	dsKeyCode_Kp6,
-	dsKeyCode_Kp7,
-	dsKeyCode_Kp8,
-	dsKeyCode_Kp9,
-	dsKeyCode_Kp0,
-	dsKeyCode_Kp00,
-	dsKeyCode_Kp000,
-	dsKeyCode_KpPeriod,
-	dsKeyCode_KpComma,
-	dsKeyCode_KpLeftParen,
-	dsKeyCode_KpRightParen,
-	dsKeyCode_KpLeftBrace,
-	dsKeyCode_KpRightBrace,
-	dsKeyCode_KpTab,
-	dsKeyCode_KpBackspace,
-	dsKeyCode_KpA,
-	dsKeyCode_KpB,
-	dsKeyCode_KpC,
-	dsKeyCode_KpD,
-	dsKeyCode_KpE,
-	dsKeyCode_KpF,
-	dsKeyCode_KpXOr,
-	dsKeyCode_KpPercent,
-	dsKeyCode_KpLess,
-	dsKeyCode_KpGreater,
-	dsKeyCode_KpAmperstand,
-	dsKeyCode_KpDoubleAmperstand,
-	dsKeyCode_KpPipe,
-	dsKeyCode_KpDoublePipe,
-	dsKeyCode_KpColon,
-	dsKeyCode_KpHash,
-	dsKeyCode_KpSpace,
-	dsKeyCode_KpAt,
-	dsKeyCode_KpExclamation,
-	dsKeyCode_KpMemStore,
-	dsKeyCode_KpMemRecall,
-	dsKeyCode_KpMemClear,
-	dsKeyCode_KpMemAdd,
-	dsKeyCode_KpMemSubtract,
-	dsKeyCode_KpMemMultiply,
-	dsKeyCode_KpMemDivide,
-	dsKeyCode_KpPlusMinus,
-	dsKeyCode_KpClear,
-	dsKeyCode_KpClearEntry,
-	dsKeyCode_KpBinary,
-	dsKeyCode_KpOctal,
-	dsKeyCode_KpDecimal,
-	dsKeyCode_KpHex,
-	dsKeyCode_KpPower,
+	dsKeyCode_KeypadDivide,
+	dsKeyCode_KeypadMultiply,
+	dsKeyCode_KeypadMinus,
+	dsKeyCode_KeypadPlus,
+	dsKeyCode_KeypadEquals,
+	dsKeyCode_KeypadEqualsAS400,
+	dsKeyCode_KeypadEnter,
+	dsKeyCode_Keypad1,
+	dsKeyCode_Keypad2,
+	dsKeyCode_Keypad3,
+	dsKeyCode_Keypad4,
+	dsKeyCode_Keypad5,
+	dsKeyCode_Keypad6,
+	dsKeyCode_Keypad7,
+	dsKeyCode_Keypad8,
+	dsKeyCode_Keypad9,
+	dsKeyCode_Keypad0,
+	dsKeyCode_Keypad00,
+	dsKeyCode_Keypad000,
+	dsKeyCode_KeypadPeriod,
+	dsKeyCode_KeypadComma,
+	dsKeyCode_KeypadLeftParen,
+	dsKeyCode_KeypadRightParen,
+	dsKeyCode_KeypadLeftBrace,
+	dsKeyCode_KeypadRightBrace,
+	dsKeyCode_KeypadTab,
+	dsKeyCode_KeypadBackspace,
+	dsKeyCode_KeypadA,
+	dsKeyCode_KeypadB,
+	dsKeyCode_KeypadC,
+	dsKeyCode_KeypadD,
+	dsKeyCode_KeypadE,
+	dsKeyCode_KeypadF,
+	dsKeyCode_KeypadXOr,
+	dsKeyCode_KeypadPercent,
+	dsKeyCode_KeypadLess,
+	dsKeyCode_KeypadGreater,
+	dsKeyCode_KeypadAmperstand,
+	dsKeyCode_KeypadDoubleAmperstand,
+	dsKeyCode_KeypadPipe,
+	dsKeyCode_KeypadDoublePipe,
+	dsKeyCode_KeypadColon,
+	dsKeyCode_KeypadHash,
+	dsKeyCode_KeypadSpace,
+	dsKeyCode_KeypadAt,
+	dsKeyCode_KeypadExclamation,
+	dsKeyCode_KeypadMemStore,
+	dsKeyCode_KeypadMemRecall,
+	dsKeyCode_KeypadMemClear,
+	dsKeyCode_KeypadMemAdd,
+	dsKeyCode_KeypadMemSubtract,
+	dsKeyCode_KeypadMemMultiply,
+	dsKeyCode_KeypadMemDivide,
+	dsKeyCode_KeypadPlusMinus,
+	dsKeyCode_KeypadClear,
+	dsKeyCode_KeypadClearEntry,
+	dsKeyCode_KeypadBinary,
+	dsKeyCode_KeypadOctal,
+	dsKeyCode_KeypadDecimal,
+	dsKeyCode_KeypadHex,
+	dsKeyCode_KeypadPower,
 	dsKeyCode_NonUSBackslash,
 	dsKeyCode_ContextMenu,
 	dsKeyCode_Power,
@@ -248,18 +248,30 @@ typedef enum dsKeyCode
 	dsKeyCode_RAlt,
 	dsKeyCode_RWinCmd,
 	dsKeyCode_Mode,
-	dsKeyCode_AudioNext,
-	dsKeyCode_AudioPrev,
-	dsKeyCode_AudioStop,
-	dsKeyCode_AudioPlay,
-	dsKeyCode_AudioMute,
-	dsKeyCode_AudioRewind,
-	dsKeyCode_AudioFastForward,
+	dsKeyCode_ChannelUp,
+	dsKeyCode_ChannelDown,
+	dsKeyCode_MediaPlay,
+	dsKeyCode_MediaPause,
+	dsKeyCode_MediaPlayPause,
+	dsKeyCode_MediaRecord,
+	dsKeyCode_MediaFastForward,
+	dsKeyCode_MediaRewind,
+	dsKeyCode_MediaNext,
+	dsKeyCode_MediaPrevious,
+	dsKeyCode_MediaStop,
+	dsKeyCode_MediaEject,
 	dsKeyCode_MediaSelect,
 	dsKeyCode_WWW,
 	dsKeyCode_Mail,
 	dsKeyCode_Calculator,
 	dsKeyCode_Computer,
+	dsKeyCode_ACNew,
+	dsKeyCode_ACOpen,
+	dsKeyCode_ACClose,
+	dsKeyCode_ACExit,
+	dsKeyCode_ACSave,
+	dsKeyCode_ACPrint,
+	dsKeyCode_ACProperties,
 	dsKeyCode_ACSearch,
 	dsKeyCode_ACHome,
 	dsKeyCode_ACBack,
@@ -270,13 +282,11 @@ typedef enum dsKeyCode
 	dsKeyCode_BrightnessDown,
 	dsKeyCode_BrightnessUp,
 	dsKeyCode_DisplaySwitch,
-	dsKeyCode_KbdIllumToggle,
-	dsKeyCode_KbdIllumDown,
-	dsKeyCode_KbdIllumUp,
-	dsKeyCode_Eject,
+	dsKeyCode_KeyboardIlluminationToggle,
+	dsKeyCode_KeyboardIlluminationDown,
+	dsKeyCode_KeyboardIlluminationUp,
 	dsKeyCode_Sleep,
-	dsKeyCode_App1,
-	dsKeyCode_App2,
+	dsKeyCode_Wake,
 	dsKeyCode_SoftLeft,
 	dsKeyCode_SoftRight,
 	dsKeyCode_Call,
@@ -310,11 +320,20 @@ typedef enum dsKeyModifier
 	dsKeyModifier_WinCmd = dsKeyModifier_LWinCmd | dsKeyModifier_RWinCmd
 } dsKeyModifier;
 
+/// @cond
+typedef struct dsWindow dsWindow;
+/// @endcond
+
 /**
  * @brief Struct containing information about a key event.
  */
 typedef struct dsKeyEvent
 {
+	/**
+	 * @brief The window the key was pressed in.
+	 */
+	const dsWindow* window;
+
 	/**
 	 * @brief The key that was pressed or released.
 	 */
@@ -340,6 +359,11 @@ typedef struct dsKeyEvent
 typedef struct dsTextEditEvent
 {
 	/**
+	 * @brief The window the text was edited on.
+	 */
+	const dsWindow* window;
+
+	/**
 	 * @brief The cursor position.
 	 */
 	int32_t cursor;
@@ -351,8 +375,10 @@ typedef struct dsTextEditEvent
 
 	/**
 	 * @brief The text being edited.
+	 *
+	 * This should be copied if used beyond this event.
 	 */
-	char text[32];
+	const char* text;
 } dsTextEditEvent;
 
 /**
@@ -363,9 +389,16 @@ typedef struct dsTextEditEvent
 typedef struct dsTextInputEvent
 {
 	/**
-	 * @brief The text that was input.
+	 * @brief The window the text was input on.
 	 */
-	char text[32];
+	const dsWindow* window;
+
+	/**
+	 * @brief The text that was input.
+	 *
+	 * This should be copied if used beyond this event.
+	 */
+	const char* text;
 } dsTextInputEvent;
 
 #ifdef __cplusplus

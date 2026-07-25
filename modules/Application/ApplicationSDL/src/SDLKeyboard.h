@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,7 @@
 #include <DeepSea/Application/Types.h>
 #include <DeepSea/ApplicationSDL/Export.h>
 
-#include <math.h>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #ifdef __cplusplus
 extern "C"

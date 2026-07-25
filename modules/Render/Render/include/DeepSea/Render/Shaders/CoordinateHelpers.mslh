@@ -21,7 +21,7 @@
  * @brief Functions to help with different coordinate transformations.
  */
 
-#if SPIRV_VERSION
+#ifdef SPIRV_VERSION
 /**
  * @brief Multiplier factor from clip coordinates to projected texture coordinates.
  */
@@ -51,7 +51,7 @@
  */
 vec4 dsToggleCommonClip(vec4 clipCoords)
 {
-#if SPIRV_VERSION
+#ifdef SPIRV_VERSION
 	return vec4(clipCoords.x, -clipCoords.y, clipCoords.zw);
 #else
 	return clipCoords;
@@ -81,7 +81,7 @@ vec2 dsCommonClipToTexCoords(vec2 clipCoords)
  */
 vec2 dsClipToTexCoords(vec2 clipCoords)
 {
-#if SPIRV_VERSION
+#ifdef SPIRV_VERSION
 	// Avoid having to call dsToggleCommonClip() and have duplicate operations.
 	return clipCoords*vec2(0.5) + vec2(0.5);
 #else
@@ -96,7 +96,7 @@ vec2 dsClipToTexCoords(vec2 clipCoords)
  */
 float dsDepthToClipZ(float depth)
 {
-#if GLSL_VERSION || GLSLES_VERSION
+#if defined(GLSL_VERSION) || defined(GLSLES_VERSION)
 	// Only OpenGL may potentially have a different clip space.
 	return depth*DS_DEPTH_TO_CLIP_Z_MUL + DS_DEPTH_TO_CLIP_Z_ADD;
 #else
@@ -116,7 +116,7 @@ vec2 dsFramebufferToClip(vec2 framebufferSize)
 	// gl_FragCoord origin follows native texture coordinate origin.
 	vec2 framebufferPos = gl_FragCoord.xy/framebufferSize;
 	framebufferPos = framebufferPos*vec2(2.0) - vec2(1.0);
-#if METAL_VERSION
+#ifdef METAL_VERSION
 	framebufferPos.y = -framebufferPos.y;
 #endif
 	return framebufferPos;

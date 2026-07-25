@@ -161,11 +161,15 @@ typedef enum dsAttachmentUsage
  *
  * In many cases only a single choice is available. This enum will only contain the platforms that
  * can be chosen.
+ *
+ * In situations where both X11 and Wayland are available, X11 will be chosen by default as the
+ * safer general default. dsRenderer_resolvePlatform() may be used to determine Wayland availability
+ * at runtime, in which case Wayland will take priority over X11.
  */
 typedef enum dsGfxPlatform
 {
 	dsGfxPlatform_Default, ///< The default platform.
-	dsGfxPlatform_X11,     ///< X11 windowing platform. This is the default on Linux.
+	dsGfxPlatform_X11,     ///< X11 windowing platform.
 	dsGfxPlatform_Wayland  ///< Wayland windowing platform.
 } dsGfxPlatform;
 
@@ -217,7 +221,7 @@ typedef enum dsRenderSurfaceUsage
 	dsRenderSurfaceUsage_ContinueDepthStencil = 0x20,
 	/**
 	 * Perform rotations client-side. This may increase performance in cases like phones and tablets
-	 * that allow screen rotation. If false, the rotation of the render surface will always be 0
+	 * that allow screen rotation. If unset, the rotation of the render surface will always be 0
 	 * degrees.
 	 */
 	dsRenderSurfaceUsage_ClientRotations = 0x40
@@ -904,7 +908,7 @@ typedef struct dsSubpassDependency
  *
  * @see RenderPass.h
  */
-struct dsRenderPass
+typedef struct dsRenderPass
 {
 	/**
 	 * @brief The renderer this is used with.
@@ -945,7 +949,7 @@ struct dsRenderPass
 	 * @brief The number of subpass dependencies.
 	 */
 	uint32_t subpassDependencyCount;
-};
+} dsRenderPass;
 
 /**
  * @brief Struct for a pool of command buffers.
@@ -1958,7 +1962,7 @@ typedef bool (*dsRenderRestoreGlobalState)(dsRenderer* renderer);
  *
  * @see Renderer.h
  */
-struct dsRenderer
+typedef struct dsRenderer
 {
 	// ----------------------------------- Internal objects ----------------------------------------
 
@@ -2456,7 +2460,7 @@ struct dsRenderer
 	 * @brief Global state restore function.
 	 */
 	dsRenderRestoreGlobalState restoreGlobalStateFunc;
-};
+} dsRenderer;
 
 #ifdef __cplusplus
 }

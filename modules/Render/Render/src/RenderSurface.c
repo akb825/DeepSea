@@ -192,7 +192,7 @@ bool dsRenderSurface_rotateViewport(dsAlignedBox3f* result, const dsAlignedBox3f
 			result->min.x = (float)width - viewport->max.y;
 			result->min.y = tempX;
 			result->min.z = viewport->min.z;
-			tempX = result->max.x;
+			tempX = viewport->max.x;
 			result->max.x = (float)width - tempY;
 			result->max.y = tempX;
 			result->max.z = viewport->max.z;
@@ -250,7 +250,7 @@ bool dsRenderSurface_rotateScissor(dsAlignedBox2f* result, const dsAlignedBox2f*
 			float tempY = scissor->min.y;
 			result->min.x = (float)width - scissor->max.y;
 			result->min.y = tempX;
-			tempX = result->max.x;
+			tempX = scissor->max.x;
 			result->max.x = (float)width - tempY;
 			result->max.y = tempX;
 			return true;

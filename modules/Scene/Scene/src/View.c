@@ -1170,22 +1170,22 @@ bool dsView_update(dsView* view)
 	for (uint32_t i = 0; i < privateView->framebufferCount; ++i)
 	{
 		const dsViewFramebufferInfo* framebufferInfo = privateView->framebufferInfos + i;
+		dsRotatedFramebuffer* viewFramebuffer = privateView->framebuffers + i;
 
-		bool rotated = false;
 		bool outOfRange = false;
 		for (uint32_t j = 0; j < framebufferInfo->surfaceCount; ++j)
 		{
 			dsFramebufferSurface* surface = privateView->tempSurfaces + j;
 			*surface = framebufferInfo->surfaces[j];
 
-			IndexNode* foundNode = (IndexNode*)dsHashTable_find(privateView->surfaceTable,
-				surface->surface);
+			IndexNode* foundNode = (IndexNode*)dsHashTable_find(
+				privateView->surfaceTable, surface->surface);
 			DS_ASSERT(foundNode);
-			DS_ASSERT(privateView->surfaceInfos[foundNode->index].surfaceType ==
-				surface->surfaceType);
+			DS_ASSERT(
+				privateView->surfaceInfos[foundNode->index].surfaceType == surface->surfaceType);
+			DS_ASSERT(privateView->surfaceInfos[foundNode->index].windowFramebuffer ==
+				viewFramebuffer->rotated);
 			surface->surface = privateView->surfaces[foundNode->index];
-			DS_ASSERT(j == 0 || rotated == privateView->surfaceInfos->windowFramebuffer);
-			rotated = privateView->surfaceInfos->windowFramebuffer;
 
 			if (!isLayerInRange(surface, framebufferInfo->layers))
 				outOfRange = true;
@@ -1196,7 +1196,7 @@ bool dsView_update(dsView* view)
 			width = (uint32_t)dsRoundf(framebufferInfo->width);
 		else
 		{
-			width = rotated ? view->preRotateWidth : view->width;
+			width = viewFramebuffer->rotated ? view->preRotateWidth : view->width;
 			width = (uint32_t)dsRoundf(-framebufferInfo->width*(float)width);
 		}
 
@@ -1205,7 +1205,7 @@ bool dsView_update(dsView* view)
 			height = (uint32_t)dsRoundf(framebufferInfo->height);
 		else
 		{
-			height = rotated ? view->preRotateHeight : view->height;
+			height = viewFramebuffer->rotated ? view->preRotateHeight : view->height;
 			height = (uint32_t)dsRoundf(-framebufferInfo->height*(float)height);
 		}
 
@@ -1224,8 +1224,8 @@ bool dsView_update(dsView* view)
 				DS_PROFILE_FUNC_RETURN(false);
 		}
 
-		DS_VERIFY(dsFramebuffer_destroy(privateView->framebuffers[i].framebuffer));
-		privateView->framebuffers[i].framebuffer = framebuffer;
+		DS_VERIFY(dsFramebuffer_destroy(viewFramebuffer->framebuffer));
+		viewFramebuffer->framebuffer = framebuffer;
 	}
 
 	privateView->sizeUpdated = false;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,35 +42,46 @@ extern "C"
  * @param mapping The controller mapping.
  * @return Whether or not the mapping is available.
  */
-DS_APPLICATION_EXPORT bool dsGameInput_hasControllerMapping(const dsGameInput* gameInput,
-	dsGameControllerMap mapping);
+DS_APPLICATION_EXPORT bool dsGameInput_hasControllerMapping(
+	const dsGameInput* gameInput, dsGameControllerMap mapping);
 
 /**
- * @brief Checks whether or not an input is controller mapped.
- * @param gameInput The game input device to find the mapping for.
- * @param method The input method.
- * @param index The index of the input method. (button, axis, or dpad)
- * @return Whether or not the input is controller mapped.
+ * @brief Gets the controller map for an axis.
+ * @param gameInput The game input to get the controller map for.
+ * @param axis The axis to get the controller map for.
+ * @return The controller map for the axis.
  */
-DS_APPLICATION_EXPORT bool dsGameInput_isInputControllerMapped(const dsGameInput* gameInput,
-	dsGameInputMethod method, uint32_t index);
+DS_APPLICATION_EXPORT dsGameControllerMap dsGameInput_getAxisControllerMap(
+	const dsGameInput* gameInput, uint32_t axis);
 
 /**
- * @brief Finds the controller mapping for an input map.
- * @param gameInput The game input device to find the mapping for.
- * @param inputMap The input map to find the controller map for. The D-pad axis members will be
- *     ignored for the compare when not a D-pad input method.
- * @return The controller mapping or dsGameControllerMap_Invalid if not found.
+ * @brief Gets the controller map for a button.
+ * @param gameInput The game input to get the controller map for.
+ * @param button The button to get the controller map for.
+ * @return The controller map for the button.
  */
-DS_APPLICATION_EXPORT dsGameControllerMap dsGameInput_findControllerMapping(
-	const dsGameInput* gameInput, const dsGameInputMap* inputMap);
+DS_APPLICATION_EXPORT dsGameControllerMap dsGameInput_getButtonControllerMap(
+	const dsGameInput* gameInput, uint32_t button);
 
 /**
- * @brief Gets the game input battery level.
+ * @brief Gets the controller map for a dpad direction.
+ * @param gameInput The game input to get the controller map for.
+ * @param dpad The dpad to get the controller map for.
+ * @param direction The direction on the dpad to get the controller map for.
+ * @return The controller map for the dpad.
+ */
+DS_APPLICATION_EXPORT dsGameControllerMap dsGameInput_getDPadControllerMap(
+	const dsGameInput* gameInput, uint32_t dpad, dsGameInputDirection direction);
+
+/**
+ * @brief Gets the game input power state.
+ * @param[out] outBatteryPercent The percent of the battery, or -1 if it cannot be determined.
+ *     This may be NULL ifi not needed.
  * @param gameInput The game input device to get the battery level from.
- * @return The battery level of the device.
+ * @return The power state.
  */
-DS_APPLICATION_EXPORT dsGameInputBattery dsGameInput_getBattery(const dsGameInput* gameInput);
+DS_APPLICATION_EXPORT dsSystemPowerState dsGameInput_getPowerState(
+	int* outBatteryPercent, const dsGameInput* gameInput);
 
 /**
  * @brief Gets the value for a game input axis.
@@ -90,8 +101,8 @@ DS_APPLICATION_EXPORT float dsGameInput_getAxis(const dsGameInput* gameInput, ui
  * @param mapping The controller mapping.
  * @return The axis value.
  */
-DS_APPLICATION_EXPORT float dsGameInput_getControllerAxis(const dsGameInput* gameInput,
-	dsGameControllerMap mapping);
+DS_APPLICATION_EXPORT float dsGameInput_getControllerAxis(
+	const dsGameInput* gameInput, dsGameControllerMap mapping);
 
 /**
  * @brief Gets whether or not a game input button is pressed.
@@ -99,8 +110,8 @@ DS_APPLICATION_EXPORT float dsGameInput_getControllerAxis(const dsGameInput* gam
  * @param button The button to check.
  * @return True if the button is pressed.
  */
-DS_APPLICATION_EXPORT bool dsGameInput_isButtonPressed(const dsGameInput* gameInput,
-	uint32_t button);
+DS_APPLICATION_EXPORT bool dsGameInput_isButtonPressed(
+	const dsGameInput* gameInput, uint32_t button);
 
 /**
  * @brief Gets whether or not a game input button is pressed based on the game controller mapping.
@@ -113,8 +124,8 @@ DS_APPLICATION_EXPORT bool dsGameInput_isButtonPressed(const dsGameInput* gameIn
  * @param mapping The controller mapping.
  * @return True if the button is pressed.
  */
-DS_APPLICATION_EXPORT bool dsGameInput_isControllerButtonPressed(const dsGameInput* gameInput,
-	dsGameControllerMap mapping);
+DS_APPLICATION_EXPORT bool dsGameInput_isControllerButtonPressed(
+	const dsGameInput* gameInput, dsGameControllerMap mapping);
 
 /**
  * @brief Gets the the D-pad direction for a game input.
@@ -124,8 +135,8 @@ DS_APPLICATION_EXPORT bool dsGameInput_isControllerButtonPressed(const dsGameInp
  * @param dpad The D-pad to check.
  * @return False if the D-pad state couldn't be queried.
  */
-DS_APPLICATION_EXPORT bool dsGameInput_getDPadDirection(dsVector2i* outDirection,
-	const dsGameInput* gameInput, uint32_t dpad);
+DS_APPLICATION_EXPORT bool dsGameInput_getDPadDirection(
+	dsVector2i* outDirection, const dsGameInput* gameInput, uint32_t dpad);
 
 /**
  * @brief Sets the baseline rumble on a game input.
@@ -139,8 +150,8 @@ DS_APPLICATION_EXPORT bool dsGameInput_getDPadDirection(dsVector2i* outDirection
  * @param strength The strength of the rumble in the range [0, 1].
  * @return False if the baseline rumble couldn't be set.
  */
-DS_APPLICATION_EXPORT bool dsGameInput_setBaselineRumble(dsGameInput* gameInput,
-	dsGameInputRumble rumble, float strength);
+DS_APPLICATION_EXPORT bool dsGameInput_setBaselineRumble(
+	dsGameInput* gameInput, dsGameInputRumble rumble, float strength);
 
 /**
  * @brief Gets baseline rumble on a game input.
@@ -148,8 +159,8 @@ DS_APPLICATION_EXPORT bool dsGameInput_setBaselineRumble(dsGameInput* gameInput,
  * @param rumble The type of rumble to get.
  * @return The strength of the rumble in the range [0, 1].
  */
-DS_APPLICATION_EXPORT float dsGameInput_getBaselineRumble(const dsGameInput* gameInput,
-	dsGameInputRumble rumble);
+DS_APPLICATION_EXPORT float dsGameInput_getBaselineRumble(
+	const dsGameInput* gameInput, dsGameInputRumble rumble);
 
 /**
  * @brief Sets the timed rumble on a game input.
@@ -164,8 +175,8 @@ DS_APPLICATION_EXPORT float dsGameInput_getBaselineRumble(const dsGameInput* gam
  * @param duration The duration of the rumble in seconds.
  * @return False if rumble couldn't be set.
  */
-DS_APPLICATION_EXPORT bool dsGameInput_setTimedRumble(dsGameInput* gameInput,
-	dsGameInputRumble rumble, float strength, float duration);
+DS_APPLICATION_EXPORT bool dsGameInput_setTimedRumble(
+	dsGameInput* gameInput, dsGameInputRumble rumble, float strength, float duration);
 
 /**
  * @brief Gets the timed rumble on a game input.
@@ -174,8 +185,8 @@ DS_APPLICATION_EXPORT bool dsGameInput_setTimedRumble(dsGameInput* gameInput,
  * @param rumble The type of rumble to get.
  * @return The strength of the rumble.
  */
-DS_APPLICATION_EXPORT float dsGameInput_getTimedRumble(float* outDuration,
-	const dsGameInput* gameInput, dsGameInputRumble rumble);
+DS_APPLICATION_EXPORT float dsGameInput_getTimedRumble(
+	float* outDuration, const dsGameInput* gameInput, dsGameInputRumble rumble);
 
 /**
  * @brief Sets rumble on a game input.
@@ -202,8 +213,8 @@ DS_APPLICATION_EXPORT bool dsGameInput_setRumble(dsGameInput* gameInput, float l
  *     values larger than 1 minute may be ignored.
  * @return False if rumble couldn't be set.
  */
-DS_APPLICATION_EXPORT bool dsGameInput_setTriggerRumble(dsGameInput* gameInput, float leftStrength,
-	float rightStrength, float duration);
+DS_APPLICATION_EXPORT bool dsGameInput_setTriggerRumble(
+	dsGameInput* gameInput, float leftStrength, float rightStrength, float duration);
 
 /**
  * @brief Sets the color of the LED on a game input.
@@ -215,13 +226,22 @@ DS_APPLICATION_EXPORT bool dsGameInput_setTriggerRumble(dsGameInput* gameInput, 
 DS_APPLICATION_EXPORT bool dsGameInput_setLEDColor(dsGameInput* gameInput, dsColor color);
 
 /**
+ * @brief Sets the player index on a game input.
+ * @remark errno will be set on failure.
+ * @param gameInput The game input to set the player index on.
+ * @param player The player index or DS_NO_GAMEPAD_INPUT_PLAYER to clear the associated player.
+ * @return False if the player index couldn't be set.
+ */
+DS_APPLICATION_EXPORT bool dsGameInput_setPlayer(dsGameInput* gameInput, uint32_t player);
+
+/**
  * @brief Gets wwhether or not a game input has a motion sensor.
  * @param gameInput The game input to check.
  * @param type The motion sensor type to check.
  * @return Whether or not the game input has the motion sensor.
  */
-DS_APPLICATION_EXPORT bool dsGameInput_hasMotionSensor(const dsGameInput* gameInput,
-	dsMotionSensorType type);
+DS_APPLICATION_EXPORT bool dsGameInput_hasMotionSensor(
+	const dsGameInput* gameInput, dsMotionSensorType type);
 
 /**
  * @brief Gets the data for a game input motion sensor.
@@ -231,8 +251,8 @@ DS_APPLICATION_EXPORT bool dsGameInput_hasMotionSensor(const dsGameInput* gameIn
  * @param type The type of motion sensor to get the data for.
  * @return False if the data couldn't be retrieved.
  */
-DS_APPLICATION_EXPORT bool dsGameInput_getMotionSensorData(dsVector3f* outData,
-	const dsGameInput* gameInput, dsMotionSensorType type);
+DS_APPLICATION_EXPORT bool dsGameInput_getMotionSensorData(
+	dsVector3f* outData, const dsGameInput* gameInput, dsMotionSensorType type);
 
 #ifdef __cplusplus
 }

@@ -168,30 +168,45 @@ static void toggleRotatingTorch(TestParticles* testParticles)
 		DS_CHECK("TestParticles", dsSceneNode_addChild(rootNode, rotatingTorch));
 }
 
-static bool processEvent(
-	dsApplication* application, dsWindow* window, const dsEvent* event, void* userData)
+static bool processEvent(dsApplication* application, const dsEvent* event, void* userData)
 {
 	TestParticles* testParticles = (TestParticles*)userData;
-	DS_ASSERT(!window || window == testParticles->window);
 	switch (event->type)
 	{
 		case dsAppEventType_WindowClosed:
-			DS_VERIFY(dsWindow_destroy(window));
+		case dsAppEventType_WindowDestroyed:
+			DS_ASSERT(event->window == testParticles->window);
+			DS_VERIFY(dsWindow_destroy(testParticles->window));
 			testParticles->window = NULL;
 			return false;
+			// Fall through
+		case dsAppEventType_WindowChanged:
+			DS_ASSERT(event->windowChange.window == testParticles->window);
+			if (event->windowChange.flags & dsWindowChangeFlags_SurfaceSize)
+			{
+				DS_VERIFY(dsView_setDimensions(testParticles->view,
+					testParticles->window->surface->width, testParticles->window->surface->height,
+					testParticles->window->surface->rotation));
+
+				// Touch events might be lost, so clear out state to avoid never reaching 0 again.
+				testParticles->fingerCount = 0;
+				testParticles->maxFingers = 0;
+			}
+			return true;
 		case dsAppEventType_SurfaceInvalidated:
+			DS_ASSERT(event->window == testParticles->window);
 			DS_VERIFY(dsView_setSurface(testParticles->view, "windowColor",
 				testParticles->window->surface, dsGfxSurfaceType_ColorRenderSurface));
-			// Fall through
-		case dsAppEventType_WindowResized:
 			DS_VERIFY(dsView_setDimensions(testParticles->view,
 				testParticles->window->surface->width, testParticles->window->surface->height,
 				testParticles->window->surface->rotation));
 			// Need to update the view again if the surfaces have been set.
-			if (event->type == dsAppEventType_SurfaceInvalidated)
-				dsView_update(testParticles->view);
+			dsView_update(testParticles->view);
 			return true;
 		case dsAppEventType_KeyDown:
+			if (event->key.window != testParticles->window)
+				return true;
+
 			switch (event->key.key)
 			{
 				case dsKeyCode_Space:
@@ -210,18 +225,22 @@ static bool processEvent(
 						dsRenderer_setVSync(testParticles->renderer, dsVSync_Disabled);
 					return false;
 				case dsKeyCode_ACBack:
+				case dsKeyCode_ACExit:
 					dsApplication_quit(application, 0);
 					return false;
 				default:
 					return true;
 			}
 		case dsAppEventType_TouchFingerDown:
+			if (event->touch.window != testParticles->window)
+				return true;
+
 			++testParticles->fingerCount;
-			testParticles->maxFingers =
-				dsMax(testParticles->fingerCount, testParticles->maxFingers);
-			return true;
+			testParticles->maxFingers = dsMax(
+				testParticles->fingerCount, testParticles->maxFingers);
+			return false;
 		case dsAppEventType_TouchFingerUp:
-			if (testParticles->fingerCount == 0)
+			if (event->touch.window != testParticles->window || testParticles->fingerCount == 0)
 				return true;
 
 			--testParticles->fingerCount;
@@ -243,7 +262,7 @@ static bool processEvent(
 				}
 				testParticles->maxFingers = 0;
 			}
-			return true;
+			return false;
 		default:
 			return true;
 	}
@@ -297,23 +316,13 @@ static bool setup(TestParticles* testParticles, dsApplication* application, dsAl
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
 	DS_VERIFY(dsApplication_setUpdateFunction(application, &update, testParticles, NULL));
 
-	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
-	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
-	testParticles->window = dsWindow_create(application, allocator, "Test Particles", NULL,
-		NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate,
-		dsRenderSurfaceUsage_ClientRotations);
+	uint32_t width = dsApplication_adjustWindowSize(application, NULL, 800);
+	uint32_t height = dsApplication_adjustWindowSize(application, NULL, 600);
+	testParticles->window = dsWindow_create(application, allocator, "Test Particles", NULL, NULL,
+		width, height, dsWindowFlags_Resizable, dsRenderSurfaceUsage_ClientRotations);
 	if (!testParticles->window)
 	{
 		DS_LOG_ERROR_F("TestParticles", "Couldn't create window: %s", dsErrorString(errno));
-		return false;
-	}
-
-	if (DS_ANDROID || DS_IOS)
-		dsWindow_setStyle(testParticles->window, dsWindowStyle_FullScreen);
-
-	if (!dsWindow_createSurface(testParticles->window))
-	{
-		DS_LOG_ERROR_F("TestParticles", "Couldn't create window surface: %s", dsErrorString(errno));
 		return false;
 	}
 
@@ -556,13 +565,18 @@ static void shutdown(TestParticles* testParticles)
 	DS_VERIFY(dsWindow_destroy(testParticles->window));
 }
 
-int dsMain(int argc, const char** argv)
+#if DS_ANDROID
+static void startEasyProfilerOnPermission(void* userData, const char* permission, bool granted)
 {
-#if DS_HAS_EASY_PROFILER
-	dsEasyProfiler_start(false);
-	dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+	DS_UNUSED(userData);
+	DS_UNUSED(permission);
+	if (granted)
+		dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+}
 #endif
 
+int dsMain(int argc, const char** argv)
+{
 	dsRendererType rendererType = dsRendererType_Default;
 	const char* deviceName = NULL;
 	for (int i = 1; i < argc; ++i)
@@ -656,6 +670,16 @@ int dsMain(int argc, const char** argv)
 		dsRenderer_destroy(renderer);
 		return 2;
 	}
+
+#if DS_HAS_EASY_PROFILER
+	dsEasyProfiler_start(false);
+#if DS_ANDROID
+	dsApplication_requestAndroidPermission(application, "android.permission.ACCESS_LOCAL_NETWORK",
+		&startEasyProfilerOnPermission, NULL);
+#else
+	dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+#endif
+#endif
 
 	char assetsPath[DS_PATH_MAX];
 	DS_VERIFY(dsResourceStream_getPath(assetsPath, sizeof(assetsPath), dsFileResourceType_Embedded,

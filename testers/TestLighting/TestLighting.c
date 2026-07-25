@@ -257,30 +257,44 @@ static void nextLightingType(TestLighting* testLighting)
 	}
 }
 
-static bool processEvent(
-	dsApplication* application, dsWindow* window, const dsEvent* event, void* userData)
+static bool processEvent(dsApplication* application, const dsEvent* event, void* userData)
 {
 	TestLighting* testLighting = (TestLighting*)userData;
 	dsRenderer* renderer = testLighting->renderer;
-	DS_ASSERT(!window || window == testLighting->window);
 	switch (event->type)
 	{
 		case dsAppEventType_WindowClosed:
-			DS_VERIFY(dsWindow_destroy(window));
+		case dsAppEventType_WindowDestroyed:
+			DS_ASSERT(event->window == testLighting->window);
+			DS_VERIFY(dsWindow_destroy(testLighting->window));
 			testLighting->window = NULL;
 			return false;
+		case dsAppEventType_WindowChanged:
+			DS_ASSERT(event->windowChange.window == testLighting->window);
+			if (event->windowChange.flags & dsWindowChangeFlags_SurfaceSize)
+			{
+				DS_VERIFY(dsView_setDimensions(testLighting->view,
+					testLighting->window->surface->width, testLighting->window->surface->height,
+					testLighting->window->surface->rotation));
+
+				// Touch events might be lost, so clear out state to avoid never reaching 0 again.
+				testLighting->fingerCount = 0;
+				testLighting->maxFingers = 0;
+			}
+			return true;
 		case dsAppEventType_SurfaceInvalidated:
+			DS_ASSERT(event->window == testLighting->window);
 			DS_VERIFY(dsView_setSurface(testLighting->view, "windowColor",
 				testLighting->window->surface, dsGfxSurfaceType_ColorRenderSurface));
-			// Fall through
-		case dsAppEventType_WindowResized:
 			DS_VERIFY(dsView_setDimensions(testLighting->view, testLighting->window->surface->width,
 				testLighting->window->surface->height, testLighting->window->surface->rotation));
 			// Need to update the view again if the surfaces have been set.
-			if (event->type == dsAppEventType_SurfaceInvalidated)
-				dsView_update(testLighting->view);
+			dsView_update(testLighting->view);
 			return true;
 		case dsAppEventType_KeyDown:
+			if (event->key.window != testLighting->window)
+				return true;
+
 			switch (event->key.key)
 			{
 				case dsKeyCode_Space:
@@ -306,17 +320,21 @@ static bool processEvent(
 						dsRenderer_setVSync(testLighting->renderer, dsVSync_Disabled);
 					return false;
 				case dsKeyCode_ACBack:
+				case dsKeyCode_ACExit:
 					dsApplication_quit(application, 0);
 					return false;
 				default:
 					return true;
 			}
 		case dsAppEventType_TouchFingerDown:
+			if (event->touch.window != testLighting->window)
+				return true;
+
 			++testLighting->fingerCount;
 			testLighting->maxFingers = dsMax(testLighting->fingerCount, testLighting->maxFingers);
-			return true;
+			return false;
 		case dsAppEventType_TouchFingerUp:
-			if (testLighting->fingerCount == 0)
+			if (event->touch.window != testLighting->window || testLighting->fingerCount == 0)
 				return true;
 
 			--testLighting->fingerCount;
@@ -335,7 +353,7 @@ static bool processEvent(
 				}
 				testLighting->maxFingers = 0;
 			}
-			return true;
+			return false;
 		default:
 			return true;
 	}
@@ -416,23 +434,13 @@ static bool setup(TestLighting* testLighting, dsApplication* application, dsAllo
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
 	DS_VERIFY(dsApplication_setUpdateFunction(application, &update, testLighting, NULL));
 
-	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
-	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
-	testLighting->window = dsWindow_create(application, allocator, "Test Lighting", NULL,
-		NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate,
-		dsRenderSurfaceUsage_ClientRotations);
+	uint32_t width = dsApplication_adjustWindowSize(application, NULL, 800);
+	uint32_t height = dsApplication_adjustWindowSize(application, NULL, 600);
+	testLighting->window = dsWindow_create(application, allocator, "Test Lighting", NULL, NULL,
+		width, height, dsWindowFlags_Resizable, dsRenderSurfaceUsage_ClientRotations);
 	if (!testLighting->window)
 	{
 		DS_LOG_ERROR_F("TestLighting", "Couldn't create window: %s", dsErrorString(errno));
-		return false;
-	}
-
-	if (DS_ANDROID || DS_IOS)
-		dsWindow_setStyle(testLighting->window, dsWindowStyle_FullScreen);
-
-	if (!dsWindow_createSurface(testLighting->window))
-	{
-		DS_LOG_ERROR_F("TestLighting", "Couldn't create window surface: %s", dsErrorString(errno));
 		return false;
 	}
 
@@ -673,13 +681,18 @@ static void shutdown(TestLighting* testLighting)
 	DS_VERIFY(dsThreadPool_destroy(testLighting->threadPool));
 }
 
-int dsMain(int argc, const char** argv)
+#if DS_ANDROID
+static void startEasyProfilerOnPermission(void* userData, const char* permission, bool granted)
 {
-#if DS_HAS_EASY_PROFILER
-	dsEasyProfiler_start(false);
-	dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+	DS_UNUSED(userData);
+	DS_UNUSED(permission);
+	if (granted)
+		dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+}
 #endif
 
+int dsMain(int argc, const char** argv)
+{
 	dsRendererType rendererType = dsRendererType_Default;
 	const char* deviceName = NULL;
 	for (int i = 1; i < argc; ++i)
@@ -775,6 +788,16 @@ int dsMain(int argc, const char** argv)
 		dsRenderer_destroy(renderer);
 		return 2;
 	}
+
+#if DS_HAS_EASY_PROFILER
+	dsEasyProfiler_start(false);
+#if DS_ANDROID
+	dsApplication_requestAndroidPermission(application, "android.permission.ACCESS_LOCAL_NETWORK",
+		&startEasyProfilerOnPermission, NULL);
+#else
+	dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+#endif
+#endif
 
 	TestLighting testLighting;
 	memset(&testLighting, 0, sizeof(testLighting));

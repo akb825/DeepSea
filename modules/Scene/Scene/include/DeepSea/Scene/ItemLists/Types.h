@@ -206,7 +206,7 @@ typedef struct dsSceneInstanceDataType
  *
  * @see SceneInstanceData.h
  */
-struct dsSceneInstanceData
+typedef struct dsSceneInstanceData
 {
 	/**
 	 * @brief The allocator the instance data was created with.
@@ -230,7 +230,7 @@ struct dsSceneInstanceData
 	 * instance data starts.
 	 */
 	bool needsCommandBuffer;
-};
+} dsSceneInstanceData;
 
 /**
  * @brief Function for populating the underlying instance data.
@@ -504,7 +504,7 @@ typedef struct dsSceneItemListType
  *
  * @see SceneItemList.h
  */
-struct dsSceneItemList
+typedef struct dsSceneItemList
 {
 	/**
 	 * @brief The allocator this was created with.
@@ -556,7 +556,7 @@ struct dsSceneItemList
 	 * needed.
 	 */
 	bool skipPreRenderPass;
-};
+} dsSceneItemList;
 
 /**
  * @brief Scene item list implementation for drawing models.

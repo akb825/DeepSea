@@ -19,7 +19,7 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Application/Types.h>
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #define DS_GAME_INPUT_RUMBLE_COUNT 4
 
@@ -34,34 +34,32 @@ typedef struct dsSDLGameInput
 {
 	dsGameInput gameInput;
 	SDL_Joystick* joystick;
-	SDL_GameController* controller;
-#if !SDL_VERSION_ATLEAST(2, 0, 9)
-	SDL_Haptic* haptic;
-#endif
+	SDL_Gamepad* controller;
 	dsVector2i* dpadValues;
 	dsSDLRumbleState rumbleState[DS_GAME_INPUT_RUMBLE_COUNT];
 } dsSDLGameInput;
 
 float dsSDLGameInput_getAxisValue(Sint16 value);
+float dsSDLGameInput_getMappedAxisValue(const dsGameInputMap* inputMap, Sint16 value);
 void dsSDLGameInput_convertHatDirection(dsVector2i* outDirection, Sint8 hat);
-dsGameControllerMap dsSDLGameInput_controllerMapForAxis(SDL_GameControllerAxis axis);
-dsGameControllerMap dsSDLGameInput_controllerMapForButton(SDL_GameControllerButton button);
+dsGameControllerMap dsSDLGameInput_controllerMapForAxis(SDL_GamepadAxis axis);
+dsGameControllerMap dsSDLGameInput_controllerMapForButton(SDL_GamepadButton button);
 
 bool dsSDLGameInput_setup(dsApplication* application);
 void dsSDLGameInput_freeAll(dsGameInput** gameInputs, uint32_t gameInputCount);
 
-dsGameInput* dsSDLGameInput_add(dsApplication* application, uint32_t index);
+dsGameInput* dsSDLGameInput_add(dsApplication* application, SDL_JoystickID id);
 bool dsSDLGameInput_remove(dsApplication* application, SDL_JoystickID id);
 dsGameInput* dsSDLGameInput_find(dsApplication* application, SDL_JoystickID id);
 
 void dsSDLGameInput_update(dsGameInput* gameInput, uint64_t elapsedTime);
-void dsSDLGameInput_dispatchControllerDPadEvents(dsGameInput* gameInput, dsApplication* application,
+bool dsSDLGameInput_dispatchControllerDPadEvents(dsGameInput* gameInput, dsApplication* application,
 	dsWindow* window, uint32_t dpad, Sint8 value, uint64_t time);
 
-dsGameInputBattery dsSDLGameInput_getBattery(
-	const dsApplication* application, const dsGameInput* gameInput);
-float dsSDLGameInput_getAxis(const dsApplication* application, const dsGameInput* gameInput,
-	uint32_t axis);
+dsSystemPowerState dsSDLGameInput_getPowerState(
+	int* outBatteryPercent, const dsApplication* application, const dsGameInput* gameInput);
+float dsSDLGameInput_getAxis(
+	const dsApplication* application, const dsGameInput* gameInput, uint32_t axis);
 float dsSDLGameInput_getControllerAxis(
 	const dsApplication* application, const dsGameInput* gameInput, dsGameControllerMap mapping);
 bool dsSDLGameInput_isButtonPressed(
@@ -79,6 +77,7 @@ bool dsSDLGameInput_setTimedRumble(dsApplication* application, dsGameInput* game
 float dsSDLGameInput_getTimedRumble(float* outDuration, dsApplication* application,
 	const dsGameInput* gameInput, dsGameInputRumble rumble);
 bool dsSDLGameInput_setLEDColor(dsApplication* application, dsGameInput* gameInput, dsColor color);
+bool dsSDLGameInput_setPlayer(dsApplication* application, dsGameInput* gameInput, uint32_t player);
 bool dsSDLGameInput_hasMotionSensor(
 	const dsApplication* application, const dsGameInput* gameInput, dsMotionSensorType type);
 bool dsSDLGameInput_getMotionSensorData(dsVector3f* outData, const dsApplication* application,

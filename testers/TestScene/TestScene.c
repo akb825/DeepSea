@@ -100,33 +100,41 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 	return false;
 }
 
-static bool processEvent(
-	dsApplication* application, dsWindow* window, const dsEvent* event, void* userData)
+static bool processEvent(dsApplication* application, const dsEvent* event, void* userData)
 {
 	TestScene* testScene = (TestScene*)userData;
 	dsRenderer* renderer = application->renderer;
-	DS_ASSERT(!window || window == testScene->window);
 	switch (event->type)
 	{
 		case dsAppEventType_WindowClosed:
-			DS_VERIFY(dsWindow_destroy(window));
+		case dsAppEventType_WindowDestroyed:
+			DS_ASSERT(event->window == testScene->window);
+			DS_VERIFY(dsWindow_destroy(testScene->window));
 			testScene->window = NULL;
 			return false;
+		case dsAppEventType_WindowChanged:
+			DS_ASSERT(event->windowChange.window == testScene->window);
+			if (event->windowChange.flags & dsWindowChangeFlags_SurfaceSize)
+			{
+				DS_VERIFY(dsView_setDimensions(testScene->view, testScene->window->surface->width,
+					testScene->window->surface->height, testScene->window->surface->rotation));
+			}
+			return true;
 		case dsAppEventType_SurfaceInvalidated:
 			DS_VERIFY(dsView_setSurface(testScene->view, "windowColor", testScene->window->surface,
 				dsGfxSurfaceType_ColorRenderSurface));
 			DS_VERIFY(dsView_setSurface(testScene->view, "windowDepth", testScene->window->surface,
 				dsGfxSurfaceType_DepthRenderSurface));
 			testScene->invalidatedFrame = renderer->frameNumber;
-			// Fall through
-		case dsAppEventType_WindowResized:
 			DS_VERIFY(dsView_setDimensions(testScene->view, testScene->window->surface->width,
 				testScene->window->surface->height, testScene->window->surface->rotation));
 			// Need to update the view again if the surfaces have been set.
-			if (event->type == dsAppEventType_SurfaceInvalidated)
-				dsView_update(testScene->view);
+			dsView_update(testScene->view);
 			return true;
 		case dsAppEventType_KeyDown:
+			if (event->key.window != testScene->window)
+				return true;
+
 			switch (event->key.key)
 			{
 				case dsKeyCode_Space:
@@ -136,7 +144,7 @@ static bool processEvent(
 				{
 					// The key down will be re-sent when re-creating the window.
 					if (testScene->invalidatedFrame + 2 > renderer->frameNumber)
-						return false;
+						return true;
 
 					uint32_t samples = renderer->surfaceSamples;
 					if (samples == 1)
@@ -176,6 +184,7 @@ static bool processEvent(
 						dsRenderer_setVSync(testScene->renderer, dsVSync_Disabled);
 					return false;
 				case dsKeyCode_ACBack:
+				case dsKeyCode_ACExit:
 					dsApplication_quit(application, 0);
 					return false;
 				default:
@@ -221,23 +230,13 @@ static bool setup(
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
 	DS_VERIFY(dsApplication_setUpdateFunction(application, &update, testScene, NULL));
 
-	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
-	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
-	testScene->window = dsWindow_create(application, allocator, "Test Scene", NULL,
-		NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate,
-		dsRenderSurfaceUsage_ClientRotations);
+	uint32_t width = dsApplication_adjustWindowSize(application, NULL, 800);
+	uint32_t height = dsApplication_adjustWindowSize(application, NULL, 600);
+	testScene->window = dsWindow_create(application, allocator, "Test Scene", NULL, NULL, width,
+		height, dsWindowFlags_Resizable, dsRenderSurfaceUsage_ClientRotations);
 	if (!testScene->window)
 	{
 		DS_LOG_ERROR_F("TestScene", "Couldn't create window: %s", dsErrorString(errno));
-		return false;
-	}
-
-	if (DS_ANDROID || DS_IOS)
-		dsWindow_setStyle(testScene->window, dsWindowStyle_FullScreen);
-
-	if (!dsWindow_createSurface(testScene->window))
-	{
-		DS_LOG_ERROR_F("TestScene", "Couldn't create window surface: %s", dsErrorString(errno));
 		return false;
 	}
 
@@ -372,13 +371,18 @@ static void shutdown(TestScene* testScene)
 	DS_VERIFY(dsWindow_destroy(testScene->window));
 }
 
-int dsMain(int argc, const char** argv)
+#if DS_ANDROID
+static void startEasyProfilerOnPermission(void* userData, const char* permission, bool granted)
 {
-#if DS_HAS_EASY_PROFILER
-	dsEasyProfiler_start(false);
-	dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+	DS_UNUSED(userData);
+	DS_UNUSED(permission);
+	if (granted)
+		dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+}
 #endif
 
+int dsMain(int argc, const char** argv)
+{
 	dsRendererType rendererType = dsRendererType_Default;
 	const char* deviceName = NULL;
 	float updateFps = 0.0f;
@@ -488,6 +492,16 @@ int dsMain(int argc, const char** argv)
 		dsRenderer_destroy(renderer);
 		return 2;
 	}
+
+#if DS_HAS_EASY_PROFILER
+	dsEasyProfiler_start(false);
+#if DS_ANDROID
+	dsApplication_requestAndroidPermission(application, "android.permission.ACCESS_LOCAL_NETWORK",
+		&startEasyProfilerOnPermission, NULL);
+#else
+	dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+#endif
+#endif
 
 	char assetsPath[DS_PATH_MAX];
 	DS_VERIFY(dsResourceStream_getPath(assetsPath, sizeof(assetsPath), dsFileResourceType_Embedded,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ typedef struct dsHashTableNode dsHashTableNode;
  *
  * @see List.h
  */
-struct dsListNode
+typedef struct dsListNode
 {
 	/**
 	 * @brief The previous node in the list.
@@ -58,7 +58,7 @@ struct dsListNode
 	 * @brief The next node in the list.
 	 */
 	dsListNode* next;
-};
+} dsListNode;
 
 /**
  * @brief Structure for a linked list.
@@ -92,7 +92,7 @@ typedef struct dsList
  *
  * @see HashTable.h
  */
-struct dsHashTableNode
+typedef struct dsHashTableNode
 {
 	/**
 	 * @brief The node used to place in the list of all nodes for iteration.
@@ -117,7 +117,7 @@ struct dsHashTableNode
 	 * This will be set when the node is inserted.
 	 */
 	uint32_t hash;
-};
+} dsHashTableNode;
 
 /**
  * @brief Function for getting the hash for a key.

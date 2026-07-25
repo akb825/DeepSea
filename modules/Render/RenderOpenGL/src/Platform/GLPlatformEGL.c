@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -127,7 +127,7 @@ void* dsCreateEGLConfig(dsAllocator* allocator, void* display, const dsRendererO
 		addOption(attr, &optionCount, EGL_SAMPLES, 0);
 	}
 	if (atLeastVersion(1, 5) && options->srgb)
-		addOption(attr, &optionCount, EGL_COLORSPACE, EGL_COLORSPACE_sRGB);
+		addOption(attr, &optionCount, EGL_GL_COLORSPACE, EGL_GL_COLORSPACE_SRGB);
 
 	DS_ASSERT(optionCount < MAX_OPTION_SIZE);
 	attr[optionCount] = EGL_NONE;

@@ -64,8 +64,8 @@ varying(vertex, fragment)
 
 /**
  * @brief Processes the vertex for the deferred ambient light.
- * @return The vertex position. DS_ADJUST_DIRECT_CLIP() should be called on this position before the
- *     end of the shader.
+ * @return The vertex position. DS_ADJUST_CLIP() should be called on this position before the end of
+ *     the shader.
  */
 [[vertex]]
 vec4 dsDeferredAmbientLight_processVertex()
@@ -74,8 +74,9 @@ vec4 dsDeferredAmbientLight_processVertex()
 
 	vfClipCoords = dsToggleCommonClip(vec4(viPosition, 0.0, 1.0));
 	// Expect texture lookups would be after rotation is applied.
-	vfTexCoords = dsCommonClipToTexCoords(dsViewFramebuffer_rotateFramebufferPosition(viPosition));
-	return vec4(viPosition, 0.0, 1.0);
+	vfTexCoords = dsClipToTexCoords(
+		dsViewFramebuffer_rotateFramebufferPosition(vfClipCoords.xy));
+	return vfClipCoords;
 }
 
 /**
@@ -86,7 +87,7 @@ void dsDeferredAmbientLight_defaultVertex()
 {
 	gl_Position = dsDeferredAmbientLight_processVertex();
 	gl_Position.xy = dsViewFramebuffer_rotateFramebufferPosition(gl_Position.xy);
-	gl_Position = DS_ADJUST_DIRECT_CLIP(gl_Position);
+	gl_Position = DS_ADJUST_CLIP(gl_Position);
 }
 
 /**

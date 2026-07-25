@@ -149,17 +149,17 @@ varying(tessellation_evaluation, fragment)
 	/**
 	 * @brief The outline thickness, and anti-alias.
 	 */
-	lowp vec2 vfOutlineAntiAlias;
+	flat lowp vec2 vfOutlineAntiAlias;
 
 	/**
 	 * @brief The opacities of the fill and outline material, outline thickness, and anti-alias.
 	 */
-	vec4 vfMaterialIndicesOpacities;
+	flat vec4 vfMaterialIndicesOpacities;
 
 	/**
 	 * @brief The bounds of the text.
 	 */
-	vec4 vfShapeBounds;
+	flat vec4 vfShapeBounds;
 }
 
 /**
@@ -266,17 +266,17 @@ varying(vertex, fragment)
 	/**
 	 * @brief The outline thickness, and anti-alias.
 	 */
-	lowp vec2 vfOutlineAntiAlias;
+	flat lowp vec2 vfOutlineAntiAlias;
 
 	/**
 	 * @brief The opacities of the fill and outline material, outline thickness, and anti-alias.
 	 */
-	vec4 vfMaterialIndicesOpacities;
+	flat vec4 vfMaterialIndicesOpacities;
 
 	/**
 	 * @brief The bounds of the text.
 	 */
-	vec4 vfShapeBounds;
+	flat vec4 vfShapeBounds;
 }
 
 /**

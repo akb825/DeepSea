@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <DeepSea/Scene/Shaders/ViewFramebuffer.mslh>
-
 /**
  * @file
  * @brief Functions for computing screen-space ambient occlusion.
@@ -47,7 +45,8 @@ uniform RandomOffsets
  * @param viewPosition The view position.
  * @param viewNormal The normal a the point in view space.
  * @param depth The depth value at the current position.
- * @param projection The projection matrix.
+ * @param projection The projection matrix. This should include any framebuffer rotations as needed
+ *     based on the orientation of the depth texture relative to the logical scene orientation.
  * @param depthTexture The depth texture for the scene.
  * @param randomOffsets List of random offsets to sample.
  * @param rotation The vector in screen space used to rotate the sample hemisphere.
@@ -55,8 +54,6 @@ uniform RandomOffsets
  * @param samples The number of samples.
  * @param bias The bias to use when comparing. For example, normal mapping may cause surfaces
  *     to occlude themselves.
- * @param texCoordTransform Values to multiply and add to transform from clip space to texture
- *     coordinate space.
  * @return Occlusion value, where 0 is fully occluded and 1 is unoccluded.
  */
 [[fragment, compute]]

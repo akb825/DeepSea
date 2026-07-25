@@ -344,7 +344,7 @@ typedef struct dsScenePhysicsConstraintReference
  *
  * @see ScenePhysicsConstraintNode.h
  */
-struct dsScenePhysicsConstraintNode
+typedef struct dsScenePhysicsConstraintNode
 {
 	/**
 	 * @brief The base node.
@@ -400,7 +400,7 @@ struct dsScenePhysicsConstraintNode
 	 * @brief Instance ID for the second connected constraint.
 	 */
 	uint32_t secondConnectedConstraintInstanceID;
-};
+} dsScenePhysicsConstraintNode;
 
 #ifdef __cplusplus
 }

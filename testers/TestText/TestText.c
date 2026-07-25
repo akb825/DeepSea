@@ -534,15 +534,20 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 
 static void setPositions(TestText* testText)
 {
-	uint32_t width, height;
-	DS_VERIFY(dsWindow_getPixelSize(&width, &height, testText->window));
+	const dsWindow* window = testText->window;
+	const dsRenderSurface* surface = testText->window->surface;
+
+	float pixelScale = (float)surface->width/(float)window->width;
+	dsVector2f safeOffset = {{(float)window->safeArea.min.x, (float)window->safeArea.min.y}};
+	dsVector2_scale(safeOffset, safeOffset, pixelScale);
 	dsVector2f margin = {{10.0f, 10.0f}};
+	dsVector2_add(margin, margin, safeOffset);
 
 	if (testText->text)
 	{
 		testText->upperLeft = margin;
 		dsVector2_sub(testText->upperLeft, testText->upperLeft, testText->text->bounds.min);
-		testText->upperLeft.y = (float)height - testText->upperLeft.y;
+		testText->upperLeft.y = (float)surface->height - testText->upperLeft.y;
 	}
 
 	if (testText->tessText)
@@ -550,15 +555,15 @@ static void setPositions(TestText* testText)
 		testText->tessUpperLeft = margin;
 		dsVector2_sub(
 			testText->tessUpperLeft, testText->tessUpperLeft, testText->tessText->bounds.min);
-		testText->tessUpperLeft.y += (float)height/2;
-		testText->tessUpperLeft.y = (float)height - testText->tessUpperLeft.y;
+		testText->tessUpperLeft.y += (float)surface->height/2;
+		testText->tessUpperLeft.y = (float)surface->height - testText->tessUpperLeft.y;
 	}
 
 	float wrapWidth = textStrings[testText->curString].maxWidth;
 	if (wrapWidth != DS_TEXT_NO_WRAP)
 	{
 		dsAlignedBox2f bounds = {{{margin.x + wrapWidth, 0.0f}},
-			{{margin.x + wrapWidth + 2.0f, (float)height}}};
+			{{margin.x + wrapWidth + 2.0f, (float)surface->height}}};
 		DS_VERIFY(dsMaterial_setElementData(testText->material, testText->limitBoundsElement,
 			&bounds, dsMaterialType_Vec4, 0, 1));
 	}
@@ -696,25 +701,44 @@ static void prevText(TestText* testText)
 	createText(testText, testText->renderer->mainCommandBuffer);
 }
 
-static bool processEvent(
-	dsApplication* application, dsWindow* window, const dsEvent* event, void* userData)
+static bool processEvent(dsApplication* application, const dsEvent* event, void* userData)
 {
 	DS_UNUSED(application);
 
 	TestText* testText = (TestText*)userData;
-	DS_ASSERT(!window || window == testText->window);
 	switch (event->type)
 	{
 		case dsAppEventType_WindowClosed:
-			DS_VERIFY(dsWindow_destroy(window));
+		case dsAppEventType_WindowDestroyed:
+		{
+			DS_ASSERT(event->window == testText->window);
+			DS_VERIFY(dsWindow_destroy(testText->window));
 			testText->window = NULL;
 			return false;
-		case dsAppEventType_WindowResized:
+		}
+		case dsAppEventType_WindowChanged:
+			DS_ASSERT(event->windowChange.window == testText->window);
+			if (event->windowChange.flags & dsWindowChangeFlags_SurfaceSize)
+			{
+				if (!createFramebuffer(testText))
+					abort();
+
+				// Touch events might be lost, so clear out state to avoid never reaching 0 again.
+				testText->fingerCount = 0;
+				testText->maxFingers = 0;
+			}
+			else if (event->windowChange.flags & dsWindowChangeFlags_SafeArea)
+				setPositions(testText);
+			return true;
 		case dsAppEventType_SurfaceInvalidated:
+			DS_ASSERT(event->window == testText->window);
 			if (!createFramebuffer(testText))
 				abort();
 			return true;
 		case dsAppEventType_KeyDown:
+			if (event->key.window != testText->window)
+				return true;
+
 			switch (event->key.key)
 			{
 				case dsKeyCode_Right:
@@ -730,17 +754,22 @@ static bool processEvent(
 						dsRenderer_setVSync(testText->renderer, dsVSync_Disabled);
 					return false;
 				case dsKeyCode_ACBack:
+				case dsKeyCode_ACExit:
 					dsApplication_quit(application, 0);
 					return false;
 				default:
 					return true;
 			}
 		case dsAppEventType_TouchFingerDown:
+			if (event->touch.window != testText->window)
+				return false;
+
 			++testText->fingerCount;
 			testText->maxFingers = dsMax(testText->fingerCount, testText->maxFingers);
 			return true;
 		case dsAppEventType_TouchFingerUp:
-			if (testText->fingerCount == 0)
+			DS_ASSERT(event->touch.window == testText->window);
+			if (event->touch.window != testText->window || testText->fingerCount == 0)
 				return true;
 
 			--testText->fingerCount;
@@ -759,7 +788,7 @@ static bool processEvent(
 				}
 				testText->maxFingers = 0;
 			}
-			return true;
+			return false;
 		default:
 			return true;
 	}
@@ -1158,8 +1187,8 @@ static bool setupLimit(TestText* testText)
 
 	dsVertexFormat vertexFormat;
 	DS_VERIFY(dsVertexFormat_initialize(&vertexFormat));
-	vertexFormat.elements[dsVertexAttrib_Position].format = dsGfxFormat_decorate(dsGfxFormat_X32Y32,
-		dsGfxFormat_Float);
+	vertexFormat.elements[dsVertexAttrib_Position].format = dsGfxFormat_decorate(
+		dsGfxFormat_X32Y32, dsGfxFormat_Float);
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_Position, true));
 	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexFormat));
 	dsVertexBuffer vertexBuffer = {testText->limitBuffer, 0, 6, vertexFormat};
@@ -1197,24 +1226,14 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	dsEventResponder responder = {&processEvent, testText, 0, 0};
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
 
-	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
-	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
-	testText->window = dsWindow_create(application, allocator, "Test Text", NULL,
-		NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate,
-		dsRenderSurfaceUsage_Standard);
+	uint32_t width = dsApplication_adjustWindowSize(application, NULL, 800);
+	uint32_t height = dsApplication_adjustWindowSize(application, NULL, 600);
+	testText->window = dsWindow_create(application, allocator, "Test Text", NULL, NULL, width,
+		height, dsWindowFlags_Resizable, dsRenderSurfaceUsage_Standard);
 	if (!testText->window)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create window: %s", dsErrorString(errno));
 		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	if (DS_ANDROID || DS_IOS)
-		dsWindow_setStyle(testText->window, dsWindowStyle_FullScreen);
-
-	if (!dsWindow_createSurface(testText->window))
-	{
-		DS_LOG_ERROR_F("TestText", "Couldn't create window surface: %s", dsErrorString(errno));
-		return false;
 	}
 
 	// Adjust the text size based on the DPI.
@@ -1222,21 +1241,17 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	// multiple times.
 	if (!textInitialized)
 	{
-		float dpiScale = application->displays[0].dpi/DS_REFERENCE_DPI;
-#if DS_ANDROID || DS_IOS
-		// This is too large for smaller screens.
-		dpiScale *= 0.5f;
-#endif
+		float scale = testText->window->contentScale;
 		for (uint32_t i = 0; i < DS_ARRAY_SIZE(textStrings); ++i)
 		{
 			TextInfo* text = textStrings + i;
 			if (text->maxWidth != DS_TEXT_NO_WRAP)
-				text->maxWidth *= dpiScale;
-			for (uint32_t j = 0; j < DS_ARRAY_SIZE(textStrings[i].styles); ++j)
+				text->maxWidth *= scale;
+			for (uint32_t j = 0; j < DS_ARRAY_SIZE(text->styles); ++j)
 			{
 				dsTextStyle* style = text->styles + j;
-				style->size *= dpiScale;
-				style->verticalOffset *= dpiScale;
+				style->size *= scale;
+				style->verticalOffset *= scale;
 			}
 		}
 
@@ -1262,24 +1277,19 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!setupShaders(testText))
+	if (!setupShaders(testText) || !setupText(testText, quality, fontPath, resourceCommandBuffer) ||
+		!setupLimit(testText) || !createFramebuffer(testText))
+	{
 		DS_PROFILE_FUNC_RETURN(false);
-
-	if (!setupText(testText, quality, fontPath, resourceCommandBuffer))
-		DS_PROFILE_FUNC_RETURN(false);
-
-	if (!setupLimit(testText))
-		DS_PROFILE_FUNC_RETURN(false);
-
-	if (!createFramebuffer(testText))
-		DS_PROFILE_FUNC_RETURN(false);
+	}
 
 	for (uint32_t i = 0; i < DS_ARRAY_SIZE(textStrings); ++i)
 	{
+		TextInfo* textString = textStrings + i;
 		for (unsigned int j = 0; j < 3; ++j)
 		{
 			DS_VERIFY(dsFont_applyHintingAndAntiAliasing(testText->font,
-				textStrings[i].styles + j, 1.0f, 1.0f));
+				textString->styles + j, 1.0f, 1.0f));
 		}
 	}
 
@@ -1313,13 +1323,18 @@ static void shutdown(TestText* testText)
 	DS_VERIFY(dsWindow_destroy(testText->window));
 }
 
-int dsMain(int argc, const char** argv)
+#if DS_ANDROID
+static void startEasyProfilerOnPermission(void* userData, const char* permission, bool granted)
 {
-#if DS_HAS_EASY_PROFILER
-	dsEasyProfiler_start(true);
-	dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+	DS_UNUSED(userData);
+	DS_UNUSED(permission);
+	if (granted)
+		dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+}
 #endif
 
+int dsMain(int argc, const char** argv)
+{
 	dsRendererType rendererType = dsRendererType_Default;
 	const char* deviceName = NULL;
 	dsTextQuality quality = dsTextQuality_Medium;
@@ -1442,6 +1457,17 @@ int dsMain(int argc, const char** argv)
 		dsRenderer_destroy(renderer);
 		return 2;
 	}
+
+#if DS_HAS_EASY_PROFILER
+	// Start gathering immediately to profile text creation time.
+	dsEasyProfiler_start(true);
+#if DS_ANDROID
+	dsApplication_requestAndroidPermission(application, "android.permission.ACCESS_LOCAL_NETWORK",
+		&startEasyProfilerOnPermission, NULL);
+#else
+	dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+#endif
+#endif
 
 	TestText testText;
 	memset(&testText, 0, sizeof(testText));

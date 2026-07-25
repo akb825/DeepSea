@@ -21,6 +21,8 @@
 #include <DeepSea/Application/Application.h>
 #include <DeepSea/Application/GameInput.h>
 
+#include <DeepSea/ApplicationSDL/Types.h>
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -29,43 +31,105 @@
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Round.h>
 
-static dsTimer timer;
-
-static void setInputMapping(dsGameInputMap* outMapping, SDL_GameControllerButtonBind binding)
+static dsGameInputAxisRange convertAxisRange(int minValue, int maxValue)
 {
-	switch (binding.bindType)
+	if (minValue < 0 && maxValue == 0)
+		return dsGameInputAxisRange_Negative;
+	if (minValue == 0 && maxValue > 0)
+		return dsGameInputAxisRange_Positive;
+	return dsGameInputAxisRange_Full;
+}
+
+static SDL_SensorType toSDLSensorType(dsMotionSensorType type)
+{
+	switch (type)
 	{
-		case SDL_CONTROLLER_BINDTYPE_BUTTON:
+		case dsMotionSensorType_Accelerometer:
+			return SDL_SENSOR_ACCEL;
+		case dsMotionSensorType_Gyroscope:
+			return SDL_SENSOR_GYRO;
+		case dsMotionSensorType_AccelerometerLeft:
+			return SDL_SENSOR_ACCEL_L;
+		case dsMotionSensorType_GyroscopeLeft:
+			return SDL_SENSOR_GYRO_L;
+		case dsMotionSensorType_AccelerometerRight:
+			return SDL_SENSOR_ACCEL_R;
+		case dsMotionSensorType_GyroscopeRight:
+			return SDL_SENSOR_GYRO_R;
+	}
+
+	DS_ASSERT(false);
+	return SDL_SENSOR_UNKNOWN;
+}
+
+static void setInputMapping(dsGameInputMap* outMapping, const SDL_GamepadBinding* binding)
+{
+	switch (binding->input_type)
+	{
+		case SDL_GAMEPAD_BINDTYPE_BUTTON:
 			outMapping->method = dsGameInputMethod_Button;
-			outMapping->index = (uint16_t)binding.value.button;
+			outMapping->index = (uint16_t)binding->input.button;
 			break;
-		case SDL_CONTROLLER_BINDTYPE_AXIS:
+		case SDL_GAMEPAD_BINDTYPE_AXIS:
 			outMapping->method = dsGameInputMethod_Axis;
-			outMapping->index = (uint16_t)binding.value.axis;
+			outMapping->index = (uint16_t)binding->input.axis.axis;
+			if (binding->input.axis.axis_min > binding->input.axis.axis_max)
+			{
+				outMapping->invertAxis = true;
+				outMapping->origAxisRange = (uint8_t)convertAxisRange(
+					binding->input.axis.axis_max, binding->input.axis.axis_min);
+			}
+			else
+			{
+				outMapping->invertAxis = false;
+				outMapping->origAxisRange = (uint8_t)convertAxisRange(
+					binding->input.axis.axis_min, binding->input.axis.axis_max);
+			}
+
+			if (binding->output_type == SDL_GAMEPAD_BINDTYPE_AXIS)
+			{
+				outMapping->mappedAxisRange = (uint8_t)convertAxisRange(
+					binding->output.axis.axis_max, binding->output.axis.axis_min);
+			}
+			else
+			{
+				// If not an axis for the output, assume positive range, such as for a button.
+				outMapping->mappedAxisRange = (uint8_t)dsGameInputAxisRange_Positive;
+			}
 			break;
-		case SDL_CONTROLLER_BINDTYPE_HAT:
+		case SDL_GAMEPAD_BINDTYPE_HAT:
 			outMapping->method = dsGameInputMethod_DPad;
-			outMapping->index = (uint16_t)binding.value.hat.hat;
-			if (binding.value.hat.hat_mask & SDL_HAT_UP)
+			outMapping->index = (uint16_t)binding->input.hat.hat;
+			if (binding->input.hat.hat_mask == SDL_HAT_UP)
+				outMapping->dpadDirection = dsGameInputDirection_Up;
+			else if (binding->input.hat.hat_mask == SDL_HAT_RIGHT)
+				outMapping->dpadDirection = dsGameInputDirection_Right;
+			else if (binding->input.hat.hat_mask == SDL_HAT_DOWN)
+				outMapping->dpadDirection = dsGameInputDirection_Down;
+			else if (binding->input.hat.hat_mask == SDL_HAT_LEFT)
+				outMapping->dpadDirection = dsGameInputDirection_Left;
+			else if (binding->input.hat.hat_mask == (SDL_HAT_LEFT | SDL_HAT_RIGHT))
 			{
-				outMapping->dpadAxis = 1;
-				outMapping->dpadAxisValue = 1;
+				if (binding->output_type == SDL_GAMEPAD_BINDTYPE_AXIS &&
+					binding->output.axis.axis_min > binding->output.axis.axis_max)
+				{
+					outMapping->dpadDirection = dsGameInputDirection_InvXAxis;
+				}
+				else
+					outMapping->dpadDirection = dsGameInputDirection_XAxis;
 			}
-			else if (binding.value.hat.hat_mask & SDL_HAT_RIGHT)
+			else if (binding->input.hat.hat_mask == (SDL_HAT_DOWN | SDL_HAT_UP))
 			{
-				outMapping->dpadAxis = 0;
-				outMapping->dpadAxisValue = 1;
+				if (binding->output_type == SDL_GAMEPAD_BINDTYPE_AXIS &&
+					binding->output.axis.axis_min > binding->output.axis.axis_max)
+				{
+					outMapping->dpadDirection = dsGameInputDirection_InvYAxis;
+				}
+				else
+					outMapping->dpadDirection = dsGameInputDirection_YAxis;
 			}
-			else if (binding.value.hat.hat_mask & SDL_HAT_DOWN)
-			{
-				outMapping->dpadAxis = 1;
-				outMapping->dpadAxisValue = -1;
-			}
-			else if (binding.value.hat.hat_mask & SDL_HAT_LEFT)
-			{
-				outMapping->dpadAxis = 0;
-				outMapping->dpadAxisValue = -1;
-			}
+			else
+				outMapping->method = dsGameInputMethod_Invalid;
 			break;
 		default:
 			outMapping->method = dsGameInputMethod_Invalid;
@@ -73,24 +137,24 @@ static void setInputMapping(dsGameInputMap* outMapping, SDL_GameControllerButton
 	}
 }
 
-static dsGameInput* createGameInput(dsApplication* application, uint32_t index)
+static dsGameInput* createGameInput(dsApplication* application, SDL_JoystickID id)
 {
 	SDL_Joystick* joystick = NULL;
-	SDL_GameController* controller = NULL;
-	if (SDL_IsGameController(index))
+	SDL_Gamepad* controller = NULL;
+	if (SDL_IsGamepad(id))
 	{
-		controller = SDL_GameControllerOpen(index);
+		controller = SDL_OpenGamepad(id);
 		if (!controller)
 		{
 			errno = ENOMEM;
 			return NULL;
 		}
-		joystick = SDL_GameControllerGetJoystick(controller);
+		joystick = SDL_GetGamepadJoystick(controller);
 		DS_ASSERT(joystick);
 	}
 	else
 	{
-		joystick = SDL_JoystickOpen(index);
+		joystick = SDL_OpenJoystick(id);
 		if (!joystick)
 		{
 			errno = ENOMEM;
@@ -98,10 +162,21 @@ static dsGameInput* createGameInput(dsApplication* application, uint32_t index)
 		}
 	}
 
-	uint32_t dpadCount = SDL_JoystickNumHats(joystick);
+	uint32_t axisCount = SDL_GetNumJoystickAxes(joystick);
+	uint32_t buttonCount = SDL_GetNumJoystickButtons(joystick);
+	uint32_t dpadCount = SDL_GetNumJoystickHats(joystick);
+
 	size_t fullSize = sizeof(dsSDLGameInput);
-	if (controller && dpadCount > 0 &&
-		!dsAddAlignedArraySize(&fullSize, sizeof(dsVector2f), dpadCount, DS_ALLOC_ALIGNMENT))
+	dsMemorySize sizes[] =
+	{
+		{sizeof(dsVector2f), dpadCount},
+		{sizeof(dsGameControllerMap), axisCount},
+		{sizeof(dsGameControllerMap), buttonCount},
+		{sizeof(dsGameControllerMap)*4, dpadCount},
+	};
+
+	if (controller &&
+		!dsAccumulateAlignedSizes(&fullSize, sizes, DS_ARRAY_SIZE(sizes), DS_ALLOC_ALIGNMENT))
 	{
 		return NULL;
 	}
@@ -110,9 +185,9 @@ static dsGameInput* createGameInput(dsApplication* application, uint32_t index)
 	if (!buffer)
 	{
 		if (controller)
-			SDL_GameControllerClose(controller);
+			SDL_CloseGamepad(controller);
 		else
-			SDL_JoystickClose(joystick);
+			SDL_CloseJoystick(joystick);
 		return NULL;
 	}
 
@@ -130,9 +205,15 @@ static dsGameInput* createGameInput(dsApplication* application, uint32_t index)
 		dsGameInputMap* inputMap = baseGameInput->controllerMapping + i;
 		inputMap->method = dsGameInputMethod_Invalid;
 		inputMap->index = 0;
-		inputMap->dpadAxis = 0;
-		inputMap->dpadAxisValue = 0;
+		inputMap->origAxisRange = 0;
+		inputMap->mappedAxisRange = 0;
+		inputMap->invertAxis = false;
+		inputMap->dpadDirection = 0;
 	}
+
+	dsGameControllerMap* axisControllerMaps = NULL;
+	dsGameControllerMap* buttonControllerMaps = NULL;
+	dsGameControllerMap* dpadControllerMaps = NULL;
 
 	gameInput->controller = controller;
 	gameInput->joystick = joystick;
@@ -154,140 +235,182 @@ static dsGameInput* createGameInput(dsApplication* application, uint32_t index)
 			for (uint32_t i = 0; i < dpadCount; ++i)
 			{
 				dsSDLGameInput_convertHatDirection(
-					gameInput->dpadValues + i, SDL_JoystickGetHat(joystick, i));
+					gameInput->dpadValues + i, SDL_GetJoystickHat(joystick, i));
 			}
 		}
 
 		baseGameInput->hasControllerMappings = true;
 
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_LeftXAxis,
-			SDL_GameControllerGetBindForAxis(gameInput->controller, SDL_CONTROLLER_AXIS_LEFTX));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_LeftYAxis,
-			SDL_GameControllerGetBindForAxis(gameInput->controller, SDL_CONTROLLER_AXIS_LEFTY));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_RightXAxis,
-			SDL_GameControllerGetBindForAxis(gameInput->controller, SDL_CONTROLLER_AXIS_RIGHTX));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_RightYAxis,
-			SDL_GameControllerGetBindForAxis(gameInput->controller, SDL_CONTROLLER_AXIS_RIGHTY));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_DPadUp,
-			SDL_GameControllerGetBindForButton(
-				gameInput->controller, SDL_CONTROLLER_BUTTON_DPAD_UP));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_DPadDown,
-			SDL_GameControllerGetBindForButton(
-				gameInput->controller, SDL_CONTROLLER_BUTTON_DPAD_DOWN));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_DPadLeft,
-			SDL_GameControllerGetBindForButton(
-				gameInput->controller, SDL_CONTROLLER_BUTTON_DPAD_LEFT));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_DPadRight,
-			SDL_GameControllerGetBindForButton(
-				gameInput->controller, SDL_CONTROLLER_BUTTON_DPAD_RIGHT));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_FaceButton0,
-			SDL_GameControllerGetBindForButton(gameInput->controller, SDL_CONTROLLER_BUTTON_A));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_FaceButton1,
-			SDL_GameControllerGetBindForButton(gameInput->controller, SDL_CONTROLLER_BUTTON_B));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_FaceButton2,
-			SDL_GameControllerGetBindForButton(gameInput->controller, SDL_CONTROLLER_BUTTON_X));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_FaceButton3,
-			SDL_GameControllerGetBindForButton(gameInput->controller, SDL_CONTROLLER_BUTTON_Y));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_Start,
-			SDL_GameControllerGetBindForButton(gameInput->controller, SDL_CONTROLLER_BUTTON_START));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_Select,
-			SDL_GameControllerGetBindForButton(gameInput->controller, SDL_CONTROLLER_BUTTON_BACK));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_Home,
-			SDL_GameControllerGetBindForButton(gameInput->controller, SDL_CONTROLLER_BUTTON_GUIDE));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_LeftStick,
-			SDL_GameControllerGetBindForButton(
-				gameInput->controller, SDL_CONTROLLER_BUTTON_LEFTSTICK));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_RightStick,
-			SDL_GameControllerGetBindForButton(
-				gameInput->controller, SDL_CONTROLLER_BUTTON_RIGHTSTICK));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_LeftShoulder,
-			SDL_GameControllerGetBindForButton(
-				gameInput->controller, SDL_CONTROLLER_BUTTON_LEFTSHOULDER));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_RightShoulder,
-			SDL_GameControllerGetBindForButton(
-				gameInput->controller, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_LeftTrigger,
-			SDL_GameControllerGetBindForAxis(
-				gameInput->controller, SDL_CONTROLLER_AXIS_TRIGGERLEFT));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_RightTrigger,
-			SDL_GameControllerGetBindForAxis(
-				gameInput->controller, SDL_CONTROLLER_AXIS_TRIGGERRIGHT));
-#if SDL_VERSION_ATLEAST(2, 0, 14)
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_Paddle0,
-			SDL_GameControllerGetBindForButton(
-				gameInput->controller, SDL_CONTROLLER_BUTTON_PADDLE1));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_Paddle1,
-			SDL_GameControllerGetBindForButton(
-				gameInput->controller, SDL_CONTROLLER_BUTTON_PADDLE2));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_Paddle2,
-			SDL_GameControllerGetBindForButton(
-				gameInput->controller, SDL_CONTROLLER_BUTTON_PADDLE3));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_Paddle3,
-			SDL_GameControllerGetBindForButton(
-				gameInput->controller, SDL_CONTROLLER_BUTTON_PADDLE4));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_Touchpad,
-			SDL_GameControllerGetBindForButton(
-				gameInput->controller, SDL_CONTROLLER_BUTTON_TOUCHPAD));
-		setInputMapping(baseGameInput->controllerMapping + dsGameControllerMap_MiscButton0,
-			SDL_GameControllerGetBindForButton(
-				gameInput->controller, SDL_CONTROLLER_BUTTON_MISC1));
-#endif
+		if (axisCount > 0)
+		{
+			axisControllerMaps = DS_ALLOCATE_OBJECT_ARRAY(
+				&bufferAlloc, dsGameControllerMap, axisCount);
+			DS_ASSERT(axisControllerMaps);
+			for (uint32_t i = 0; i < axisCount; ++i)
+				axisControllerMaps[i] = dsGameControllerMap_Invalid;
+			baseGameInput->axisControllerMaps = axisControllerMaps;
+		}
+
+		if (buttonCount > 0)
+		{
+			buttonControllerMaps = DS_ALLOCATE_OBJECT_ARRAY(
+				&bufferAlloc, dsGameControllerMap, buttonCount);
+			DS_ASSERT(buttonControllerMaps);
+			for (uint32_t i = 0; i < buttonCount; ++i)
+				buttonControllerMaps[i] = dsGameControllerMap_Invalid;
+			baseGameInput->buttonControllerMaps = buttonControllerMaps;
+		}
+
+		if (dpadCount > 0)
+		{
+			size_t fullCount = (size_t)dpadCount*4;
+			dpadControllerMaps = DS_ALLOCATE_OBJECT_ARRAY(
+				&bufferAlloc, dsGameControllerMap, fullCount);
+			DS_ASSERT(dpadControllerMaps);
+			for (size_t i = 0; i < fullCount*4; ++i)
+				dpadControllerMaps[i] = dsGameControllerMap_Invalid;
+			baseGameInput->dpadControllerMaps = dpadControllerMaps;
+		}
+
+		int bindingCount;
+		SDL_GamepadBinding** bindings = SDL_GetGamepadBindings(
+			gameInput->controller, &bindingCount);
+		if (!bindings)
+		{
+			DS_LOG_ERROR_F(
+				DS_APPLICATION_SDL_LOG_TAG, "Couldn't get gamepad bindings: %s", SDL_GetError());
+			errno = EPERM;
+			return NULL;
+		}
+
+		for (int i = 0; i < bindingCount; ++i)
+		{
+			const SDL_GamepadBinding* binding = bindings[i];
+			DS_ASSERT(binding);
+			dsGameControllerMap controllerMap;
+			switch (binding->output_type)
+			{
+				case SDL_GAMEPAD_BINDTYPE_BUTTON:
+					controllerMap = dsSDLGameInput_controllerMapForButton(binding->output.button);
+					break;
+				case SDL_GAMEPAD_BINDTYPE_AXIS:
+					controllerMap = dsSDLGameInput_controllerMapForAxis(binding->output.axis.axis);
+					break;
+				default:
+					continue;
+			}
+
+			if (controllerMap != dsGameControllerMap_Invalid)
+			{
+				dsGameInputMap* inputMap = baseGameInput->controllerMapping + controllerMap;
+				setInputMapping(inputMap + controllerMap, binding);
+				switch (inputMap->method)
+				{
+					case dsGameInputMethod_Axis:
+						if (inputMap->index < axisCount)
+							axisControllerMaps[inputMap->index] = controllerMap;
+						else
+							inputMap->method = dsGameInputMethod_Invalid;
+						break;
+					case dsGameInputMethod_Button:
+						if (inputMap->index < buttonCount)
+							buttonControllerMaps[inputMap->index] = controllerMap;
+						else
+							inputMap->method = dsGameInputMethod_Invalid;
+						break;
+					case dsGameInputMethod_DPad:
+						if (inputMap->index < dpadCount)
+						{
+							switch (inputMap->dpadDirection)
+							{
+								case dsGameInputDirection_Left:
+								case dsGameInputDirection_Right:
+								case dsGameInputDirection_Down:
+								case dsGameInputDirection_Up:
+								{
+									uint32_t dpadMapIndex =
+										inputMap->index*4 + inputMap->dpadDirection;
+									dpadControllerMaps[dpadMapIndex] = controllerMap;
+									break;
+								}
+								case dsGameInputDirection_XAxis:
+								case dsGameInputDirection_InvXAxis:
+								{
+									uint32_t dpadMapIndex =
+										inputMap->index*4 + dsGameInputDirection_Left;
+									dpadControllerMaps[dpadMapIndex] = controllerMap;
+									dpadMapIndex = inputMap->index*4 + dsGameInputDirection_Right;
+									dpadControllerMaps[dpadMapIndex] = controllerMap;
+									break;
+								}
+								case dsGameInputDirection_YAxis:
+								case dsGameInputDirection_InvYAxis:
+								{
+									uint32_t dpadMapIndex =
+										inputMap->index*4 + dsGameInputDirection_Down;
+									dpadControllerMaps[dpadMapIndex] = controllerMap;
+									dpadMapIndex = inputMap->index*4 + dsGameInputDirection_Up;
+									dpadControllerMaps[dpadMapIndex] = controllerMap;
+									break;
+								}
+							}
+						}
+						else
+							inputMap->method = dsGameInputMethod_Invalid;
+						break;
+					case dsGameInputMethod_Invalid:
+						break;
+				}
+			}
+		}
+
+		SDL_free(bindings);
 	}
 	else
 		baseGameInput->hasControllerMappings = false;
 
-#if !SDL_VERSION_ATLEAST(2, 0, 9)
-	gameInput->haptic = SDL_HapticOpenFromJoystick(gameInput->joystick);
-#endif
-
 	baseGameInput->application = application;
 	baseGameInput->allocator = application->allocator;
-	baseGameInput->name = SDL_JoystickName(gameInput->joystick);
-#if SDL_VERSION_ATLEAST(2, 0, 6)
-	switch (SDL_JoystickGetType(gameInput->joystick))
+	baseGameInput->name = SDL_GetJoystickName(gameInput->joystick);
+	switch (SDL_GetJoystickType(gameInput->joystick))
 	{
-		case SDL_JOYSTICK_TYPE_GAMECONTROLLER:
-#if SDL_VERSION_ATLEAST(2, 0, 12)
-			switch (SDL_GameControllerTypeForIndex(index))
+		case SDL_JOYSTICK_TYPE_GAMEPAD:
+			switch (SDL_GetGamepadTypeForID(id))
 			{
-				case SDL_CONTROLLER_TYPE_XBOX360:
+				case SDL_GAMEPAD_TYPE_XBOX360:
 					baseGameInput->type = dsGameInputType_XBox360Controller;
 					break;
-				case SDL_CONTROLLER_TYPE_XBOXONE:
+				case SDL_GAMEPAD_TYPE_XBOXONE:
 					baseGameInput->type = dsGameInputType_XBoxOneController;
 					break;
-				case SDL_CONTROLLER_TYPE_PS3:
+				case SDL_GAMEPAD_TYPE_PS3:
 					baseGameInput->type = dsGameInputType_PS3Controller;
 					break;
-				case SDL_CONTROLLER_TYPE_PS4:
+				case SDL_GAMEPAD_TYPE_PS4:
 					baseGameInput->type = dsGameInputType_PS4Controller;
 					break;
-				case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_PRO:
-					baseGameInput->type = dsGameInputType_NintendoSwitchController;
-					break;
-#if SDL_VERSION_ATLEAST(2, 0, 14)
-				case SDL_CONTROLLER_TYPE_VIRTUAL:
-					baseGameInput->type = dsGameInputType_VirtualController;
-					break;
-				case SDL_CONTROLLER_TYPE_PS5:
+				case SDL_GAMEPAD_TYPE_PS5:
 					baseGameInput->type = dsGameInputType_PS5Controller;
 					break;
-#endif
-#if SDL_VERSION_ATLEAST(2, 0, 16)
-				case SDL_CONTROLLER_TYPE_AMAZON_LUNA:
-					baseGameInput->type = dsGameInputType_AmazonLunaController;
+				case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_PRO:
+					baseGameInput->type = dsGameInputType_NintendoSwitchProController;
 					break;
-				case SDL_CONTROLLER_TYPE_GOOGLE_STADIA:
-					baseGameInput->type = dsGameInputType_GoogleStadiaController;
+				case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_LEFT:
+					baseGameInput->type = dsGameInputType_NintendoSwitchJoyconLeft;
 					break;
-#endif
+				case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_RIGHT:
+					baseGameInput->type = dsGameInputType_NintendoSwitchJoyconRight;
+					break;
+				case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_PAIR:
+					baseGameInput->type = dsGameInputType_NintendoSwitchJoyconPair;
+					break;
+				case SDL_GAMEPAD_TYPE_GAMECUBE:
+					baseGameInput->type = dsGameInputType_GameCubeController;
+					break;
 				default:
 					baseGameInput->type = dsGameInputType_UnknownController;
 					break;
 			}
-#else
-			baseGameInput->type = dsGameInputType_UnknownController;
-#endif
 			break;
 		case SDL_JOYSTICK_TYPE_WHEEL:
 			baseGameInput->type = dsGameInputType_Wheel;
@@ -317,54 +440,36 @@ static dsGameInput* createGameInput(dsApplication* application, uint32_t index)
 			baseGameInput->type = dsGameInputType_Unknown;
 			break;
 	}
-#else
-	baseGameInput->type = dsGameInputType_Unknown;
-#endif
-	baseGameInput->axisCount = SDL_JoystickNumAxes(gameInput->joystick);
-	baseGameInput->buttonCount = SDL_JoystickNumButtons(gameInput->joystick);
-	baseGameInput->ballCount = SDL_JoystickNumBalls(gameInput->joystick);
+
+	baseGameInput->vendorID = SDL_GetJoystickVendor(gameInput->joystick);
+	baseGameInput->productID = SDL_GetJoystickProduct(gameInput->joystick);
+	baseGameInput->player = SDL_GetJoystickPlayerIndex(gameInput->joystick);
+	baseGameInput->axisCount = axisCount;
+	baseGameInput->buttonCount = buttonCount;
+	baseGameInput->ballCount = SDL_GetNumJoystickBalls(gameInput->joystick);
 	baseGameInput->dpadCount = dpadCount;
-#if SDL_VERSION_ATLEAST(2, 0, 14)
 	if (gameInput->controller)
-		baseGameInput->touchpadCount = SDL_GameControllerGetNumTouchpads(gameInput->controller);
+		baseGameInput->touchpadCount = SDL_GetNumGamepadTouchpads(gameInput->controller);
 	else
-#endif
 		baseGameInput->touchpadCount = 0;
-#if SDL_VERSION_ATLEAST(2, 0, 18)
-	baseGameInput->rumbleSupported = SDL_JoystickHasRumble(gameInput->joystick);
-#elif SDL_VERSION_ATLEAST(2, 0, 9)
-	// Guess as there's no way to query without setting a rumble.
-	baseGameInput->rumbleSupported = baseGameInput->type >= dsGameInputType_UnknownController;
-#else
-	baseGameInput->rumbleSupported = gameInput->haptic &&
-		SDL_HapticRumbleSupported(gameInput->haptic);
-#endif
 
-#if SDL_VERSION_ATLEAST(2, 0, 18)
-	baseGameInput->triggerRumbleSupported = SDL_JoystickHasRumbleTriggers(gameInput->joystick);
-#elif SDL_VERSION_ATLEAST(2, 0, 14)
-	// Guess as there's no way to query without setting a rumble.
-	baseGameInput->triggerRumbleSupported =
-		baseGameInput->type == dsGameInputType_XBoxOneController;
-#else
-	baseGameInput->triggerRumbleSupported = false;
-#endif
+	SDL_PropertiesID properties = SDL_GetJoystickProperties(gameInput->joystick);
+	baseGameInput->rumbleSupported = SDL_GetBooleanProperty(
+		properties, SDL_PROP_JOYSTICK_CAP_RUMBLE_BOOLEAN, false);
+	baseGameInput->triggerRumbleSupported = SDL_GetBooleanProperty(
+		properties, SDL_PROP_JOYSTICK_CAP_TRIGGER_RUMBLE_BOOLEAN, false);
+	baseGameInput->hasLED = SDL_GetBooleanProperty(
+			properties, SDL_PROP_JOYSTICK_CAP_RGB_LED_BOOLEAN, false) ||
+		SDL_GetBooleanProperty(
+			properties, SDL_PROP_JOYSTICK_CAP_MONO_LED_BOOLEAN, false);
 
-#if SDL_VERSION_ATLEAST(2, 0, 14)
-	baseGameInput->hasLED = SDL_JoystickHasLED(gameInput->joystick);
-#else
-	baseGameInput->hasLED = false;
-#endif
-
-#if SDL_VERSION_ATLEAST(2, 0, 14)
 	if (gameInput->controller && dsSDLApplication_useMotionSensors(application))
 	{
-		if (SDL_GameControllerHasSensor(gameInput->controller, SDL_SENSOR_ACCEL))
-			SDL_GameControllerSetSensorEnabled(gameInput->controller, SDL_SENSOR_ACCEL, true);
-		if (SDL_GameControllerHasSensor(gameInput->controller, SDL_SENSOR_GYRO))
-			SDL_GameControllerSetSensorEnabled(gameInput->controller, SDL_SENSOR_GYRO, true);
+		if (SDL_GamepadHasSensor(gameInput->controller, SDL_SENSOR_ACCEL))
+			SDL_SetGamepadSensorEnabled(gameInput->controller, SDL_SENSOR_ACCEL, true);
+		if (SDL_GamepadHasSensor(gameInput->controller, SDL_SENSOR_GYRO))
+			SDL_SetGamepadSensorEnabled(gameInput->controller, SDL_SENSOR_GYRO, true);
 	}
-#endif
 
 	return baseGameInput;
 }
@@ -375,20 +480,11 @@ static void freeGameInput(dsGameInput* gameInput)
 		return;
 
 	dsSDLGameInput* sdlGameInput = (dsSDLGameInput*)gameInput;
-#if !SDL_VERSION_ATLEAST(2, 0, 9)
-	if (sdlGameInput->haptic)
-		SDL_HapticClose(sdlGameInput->haptic);
-#endif
 	if (sdlGameInput->controller)
-		SDL_GameControllerClose(sdlGameInput->controller);
+		SDL_CloseGamepad(sdlGameInput->controller);
 	else
-		SDL_JoystickClose(sdlGameInput->joystick);
+		SDL_CloseJoystick(sdlGameInput->joystick);
 	DS_VERIFY(dsAllocator_free(gameInput->allocator, gameInput));
-}
-
-static bool isAxisPressed(Sint16 value)
-{
-	return value > 16383 || value < -16383;
 }
 
 static void updateRumble(dsSDLGameInput* sdlGameInput)
@@ -401,37 +497,51 @@ static void updateRumble(dsSDLGameInput* sdlGameInput)
 		lowFrequencyState->timedStrength);
 	float highFrequencyStrength = dsMax(highFrequencyState->baselineStrength,
 		highFrequencyState->timedStrength);
-#if SDL_VERSION_ATLEAST(2, 0, 9)
-	SDL_JoystickRumble(sdlGameInput->joystick, (uint16_t)dsRoundf(lowFrequencyStrength*0xFFFF),
+	SDL_RumbleJoystick(sdlGameInput->joystick, (uint16_t)dsRoundf(lowFrequencyStrength*0xFFFF),
 		(uint16_t)dsRoundf(highFrequencyStrength*0xFFFF), 1000);
-#else
-	float strength = (lowFrequencyStrength + highFrequencyStrength) * 0.5f;
-	if (strength == 0)
-		SDL_HapticRumbleStop(((dsSDLGameInput*)gameInput)->haptic);
-	else
-		SDL_HapticRumblePlay(((dsSDLGameInput*)gameInput)->haptic, strength, 1000);
-#endif
 }
 
 static void updateTriggerRumble(dsSDLGameInput* sdlGameInput)
 {
-#if SDL_VERSION_ATLEAST(2, 0, 14)
 	const dsSDLRumbleState* leftState =
 		sdlGameInput->rumbleState + dsGameInputRumble_LeftTrigger;
 	const dsSDLRumbleState* rightState =
 		sdlGameInput->rumbleState + dsGameInputRumble_RightTrigger;
 	float leftStrength = dsMax(leftState->baselineStrength, leftState->timedStrength);
 	float rightStrength = dsMax(rightState->baselineStrength, rightState->timedStrength);
-	SDL_JoystickRumbleTriggers(sdlGameInput->joystick, (uint16_t)dsRoundf(leftStrength*0xFFFF),
+	SDL_RumbleJoystickTriggers(sdlGameInput->joystick, (uint16_t)dsRoundf(leftStrength*0xFFFF),
 		(uint16_t)dsRoundf(rightStrength*0xFFFF), 1000);
-#else
-	DS_UNUSED(sdlGameInput);
-#endif
 }
 
 float dsSDLGameInput_getAxisValue(Sint16 value)
 {
-	return value/32767.0f;
+	value = dsMax(value, -SDL_JOYSTICK_AXIS_MAX);
+	return (float)value/(float)SDL_JOYSTICK_AXIS_MAX;
+}
+
+float dsSDLGameInput_getMappedAxisValue(const dsGameInputMap* inputMap, Sint16 value)
+{
+	DS_ASSERT(inputMap);
+	DS_ASSERT(inputMap->method == dsGameInputMethod_Axis);
+
+	float axisValue = dsSDLGameInput_getAxisValue(value);
+	if (inputMap->origAxisRange == dsGameInputAxisRange_Negative)
+	{
+		axisValue = dsMin(axisValue, 0.0f);
+		axisValue = (axisValue*2.0f) + 1.0f;
+	}
+	else if (inputMap->origAxisRange == dsGameInputAxisRange_Positive)
+	{
+		axisValue = dsMax(axisValue, 0.0f);
+		axisValue = (axisValue*2.0f) - 1.0f;
+	}
+	if (inputMap->invertAxis)
+		axisValue = -axisValue;
+	if (inputMap->mappedAxisRange == dsGameInputAxisRange_Negative)
+		return axisValue*0.5f - 0.5f;
+	if (inputMap->mappedAxisRange == dsGameInputAxisRange_Positive)
+		return axisValue*0.5f - 0.5f;
+	return axisValue;
 }
 
 void dsSDLGameInput_convertHatDirection(dsVector2i* outDirection, Sint8 hat)
@@ -451,75 +561,81 @@ void dsSDLGameInput_convertHatDirection(dsVector2i* outDirection, Sint8 hat)
 		outDirection->y = 0;
 }
 
-dsGameControllerMap dsSDLGameInput_controllerMapForAxis(SDL_GameControllerAxis axis)
+dsGameControllerMap dsSDLGameInput_controllerMapForAxis(SDL_GamepadAxis axis)
 {
 	switch (axis)
 	{
-		case SDL_CONTROLLER_AXIS_LEFTX:
+		case SDL_GAMEPAD_AXIS_LEFTX:
 			return dsGameControllerMap_LeftXAxis;
-		case SDL_CONTROLLER_AXIS_LEFTY:
+		case SDL_GAMEPAD_AXIS_LEFTY:
 			return dsGameControllerMap_LeftYAxis;
-		case SDL_CONTROLLER_AXIS_RIGHTX:
+		case SDL_GAMEPAD_AXIS_RIGHTX:
 			return dsGameControllerMap_RightXAxis;
-		case SDL_CONTROLLER_AXIS_RIGHTY:
+		case SDL_GAMEPAD_AXIS_RIGHTY:
 			return dsGameControllerMap_RightYAxis;
-		case SDL_CONTROLLER_AXIS_TRIGGERLEFT:
+		case SDL_GAMEPAD_AXIS_LEFT_TRIGGER:
 			return dsGameControllerMap_LeftTrigger;
-		case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
+		case SDL_GAMEPAD_AXIS_RIGHT_TRIGGER:
 			return dsGameControllerMap_RightTrigger;
 		default:
 			return dsGameControllerMap_Invalid;
 	}
 }
 
-dsGameControllerMap dsSDLGameInput_controllerMapForButton(SDL_GameControllerButton button)
+dsGameControllerMap dsSDLGameInput_controllerMapForButton(SDL_GamepadButton button)
 {
 	switch (button)
 	{
-		case SDL_CONTROLLER_BUTTON_A:
+		case SDL_GAMEPAD_BUTTON_SOUTH:
 			return dsGameControllerMap_FaceButton0;
-		case SDL_CONTROLLER_BUTTON_B:
+		case SDL_GAMEPAD_BUTTON_EAST:
 			return dsGameControllerMap_FaceButton1;
-		case SDL_CONTROLLER_BUTTON_X:
+		case SDL_GAMEPAD_BUTTON_WEST:
 			return dsGameControllerMap_FaceButton2;
-		case SDL_CONTROLLER_BUTTON_Y:
+		case SDL_GAMEPAD_BUTTON_NORTH:
 			return dsGameControllerMap_FaceButton3;
-		case SDL_CONTROLLER_BUTTON_BACK:
-			return dsGameControllerMap_Select;
-		case SDL_CONTROLLER_BUTTON_GUIDE:
-			return dsGameControllerMap_Home;
-		case SDL_CONTROLLER_BUTTON_START:
+		case SDL_GAMEPAD_BUTTON_BACK:
+			return dsGameControllerMap_Back;
+		case SDL_GAMEPAD_BUTTON_START:
 			return dsGameControllerMap_Start;
-		case SDL_CONTROLLER_BUTTON_LEFTSTICK:
+		case SDL_GAMEPAD_BUTTON_LEFT_STICK:
 			return dsGameControllerMap_LeftStick;
-		case SDL_CONTROLLER_BUTTON_RIGHTSTICK:
+		case SDL_GAMEPAD_BUTTON_RIGHT_STICK:
 			return dsGameControllerMap_RightStick;
-		case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+		case SDL_GAMEPAD_BUTTON_LEFT_SHOULDER:
 			return dsGameControllerMap_LeftShoulder;
-		case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+		case SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER:
 			return dsGameControllerMap_RightShoulder;
-		case SDL_CONTROLLER_BUTTON_DPAD_UP:
+		case SDL_GAMEPAD_BUTTON_DPAD_UP:
 			return dsGameControllerMap_DPadUp;
-		case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+		case SDL_GAMEPAD_BUTTON_DPAD_DOWN:
 			return dsGameControllerMap_DPadDown;
-		case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+		case SDL_GAMEPAD_BUTTON_DPAD_LEFT:
 			return dsGameControllerMap_DPadLeft;
-		case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+		case SDL_GAMEPAD_BUTTON_DPAD_RIGHT:
 			return dsGameControllerMap_DPadRight;
-#if SDL_VERSION_ATLEAST(2, 0, 14)
-		case SDL_CONTROLLER_BUTTON_MISC1:
+		case SDL_GAMEPAD_BUTTON_MISC1:
 			return dsGameControllerMap_MiscButton0;
-		case SDL_CONTROLLER_BUTTON_PADDLE1:
-			return dsGameControllerMap_Paddle0;
-		case SDL_CONTROLLER_BUTTON_PADDLE2:
-			return dsGameControllerMap_Paddle1;
-		case SDL_CONTROLLER_BUTTON_PADDLE3:
-			return dsGameControllerMap_Paddle2;
-		case SDL_CONTROLLER_BUTTON_PADDLE4:
-			return dsGameControllerMap_Paddle3;
-		case SDL_CONTROLLER_BUTTON_TOUCHPAD:
+		case SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1:
+			return dsGameControllerMap_RightPaddle1;
+		case SDL_GAMEPAD_BUTTON_LEFT_PADDLE1:
+			return dsGameControllerMap_LeftPaddle1;
+		case SDL_GAMEPAD_BUTTON_RIGHT_PADDLE2:
+			return dsGameControllerMap_RightPaddle1;
+		case SDL_GAMEPAD_BUTTON_LEFT_PADDLE2:
+			return dsGameControllerMap_LeftPaddle1;
+		case SDL_GAMEPAD_BUTTON_TOUCHPAD:
 			return dsGameControllerMap_Touchpad;
-#endif
+		case SDL_GAMEPAD_BUTTON_MISC2:
+			return dsGameControllerMap_MiscButton1;
+		case SDL_GAMEPAD_BUTTON_MISC3:
+			return dsGameControllerMap_MiscButton2;
+		case SDL_GAMEPAD_BUTTON_MISC4:
+			return dsGameControllerMap_MiscButton3;
+		case SDL_GAMEPAD_BUTTON_MISC5:
+			return dsGameControllerMap_MiscButton4;
+		case SDL_GAMEPAD_BUTTON_MISC6:
+			return dsGameControllerMap_MiscButton5;
 		default:
 			return dsGameControllerMap_Invalid;
 	}
@@ -529,33 +645,48 @@ bool dsSDLGameInput_setup(dsApplication* application)
 {
 	DS_ASSERT(!application->gameInputs);
 	DS_ASSERT(application->gameInputCount == 0);
-	uint32_t gameInputCount = SDL_NumJoysticks();
-	if (gameInputCount == 0)
-		return true;
-
-	dsGameInput** gameInputs = DS_ALLOCATE_OBJECT_ARRAY(application->allocator, dsGameInput*,
-		gameInputCount);
-	if (!gameInputs)
-		return false;
-
-	for (uint32_t i = 0; i < gameInputCount; ++i)
+	int gameInputCount;
+	SDL_JoystickID* joysticks = SDL_GetJoysticks(&gameInputCount);
+	if (!joysticks)
 	{
-		dsGameInput* gameInput = createGameInput(application, i);
+		DS_LOG_ERROR_F(
+			DS_APPLICATION_SDL_LOG_TAG, "Couldn't get joysticks: %s", SDL_GetError());
+		errno = EPERM;
+		return false;
+	}
+
+	if (gameInputCount == 0)
+	{
+		SDL_free(joysticks);
+		return true;
+	}
+
+	dsGameInput** gameInputs = DS_ALLOCATE_OBJECT_ARRAY(
+		application->allocator, dsGameInput*, gameInputCount);
+	if (!gameInputs)
+	{
+		SDL_free(joysticks);
+		return false;
+	}
+
+	for (int i = 0; i < gameInputCount; ++i)
+	{
+		dsGameInput* gameInput = createGameInput(application, joysticks[i]);
 		if (!gameInput)
 		{
 			dsSDLGameInput_freeAll(gameInputs, i);
 			DS_VERIFY(dsAllocator_free(application->allocator, gameInputs));
+			SDL_free(joysticks);
 			return false;
 		}
 
 		gameInputs[i] = gameInput;
 	}
+	SDL_free(joysticks);
 
 	application->gameInputs = gameInputs;
 	application->gameInputCount = gameInputCount;
 	application->gameInputCapacity = gameInputCount;
-
-	timer = dsTimer_create();
 	return true;
 }
 
@@ -568,9 +699,9 @@ void dsSDLGameInput_freeAll(dsGameInput** gameInputs, uint32_t gameInputCount)
 		freeGameInput(gameInputs[i]);
 }
 
-dsGameInput* dsSDLGameInput_add(dsApplication* application, uint32_t index)
+dsGameInput* dsSDLGameInput_add(dsApplication* application, SDL_JoystickID id)
 {
-	dsGameInput* gameInput = createGameInput(application, index);
+	dsGameInput* gameInput = createGameInput(application, id);
 	if (!gameInput)
 		return NULL;
 
@@ -603,7 +734,7 @@ dsGameInput* dsSDLGameInput_find(dsApplication* application, SDL_JoystickID id)
 {
 	for (uint32_t i = 0; i < application->gameInputCount; ++i)
 	{
-		if (SDL_JoystickInstanceID(((dsSDLGameInput*)application->gameInputs[i])->joystick) == id)
+		if (SDL_GetJoystickID(((dsSDLGameInput*)application->gameInputs[i])->joystick) == id)
 			return application->gameInputs[i];
 	}
 
@@ -628,98 +759,137 @@ void dsSDLGameInput_update(dsGameInput* gameInput, uint64_t elapsedTime)
 	updateTriggerRumble(sdlGameInput);
 }
 
-void dsSDLGameInput_dispatchControllerDPadEvents(dsGameInput* gameInput, dsApplication* application,
+bool dsSDLGameInput_dispatchControllerDPadEvents(dsGameInput* gameInput, dsApplication* application,
 	dsWindow* window, uint32_t dpad, Sint8 value, uint64_t time)
 {
+	DS_ASSERT(dpad < gameInput->dpadCount);
+	if (!gameInput->dpadControllerMaps)
+		return false;
+
+	const dsGameControllerMap* directionMappings = gameInput->dpadControllerMaps + dpad*4;
+
+	// Check if all events are mapped. If not, send the dpad event as well.
+	bool allMapped = true;
+	bool anyMapped = false;
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		if (directionMappings[i] == dsGameControllerMap_Invalid)
+			allMapped = false;
+		else
+			anyMapped = true;
+	}
+	if (!anyMapped)
+		return false;
+
 	dsSDLGameInput* sdlGameInput = (dsSDLGameInput*)gameInput;
 	dsVector2i direction;
 	dsSDLGameInput_convertHatDirection(&direction, value);
 	dsVector2i* curDirection = sdlGameInput->dpadValues + dpad;
 
-	dsEvent event;
-	event.time = time;
-	event.gameInputButton.gameInput = gameInput;
-	event.gameInputButton.button = 0;
-	dsGameInputMap inputMap = {dsGameInputMethod_DPad, (uint16_t)dpad};
-
-	// Send up events first.
-	event.type = dsAppEventType_GameInputButtonUp;
 	for (uint8_t i = 0; i < 2; ++i)
 	{
 		int8_t curValue = (int8_t)curDirection->values[i];
-		if (curValue == 0 || curValue == direction.values[i])
+		int8_t newValue = (int8_t)direction.values[i];
+		if (curValue == newValue)
 			continue;
 
-		inputMap.dpadAxis = i;
-		inputMap.dpadAxisValue = curValue;
-		event.gameInputButton.mapping =
-			dsGameInput_findControllerMapping(gameInput, &inputMap);
-		DS_ASSERT(event.gameInputButton.mapping != dsGameControllerMap_Invalid);
-		dsApplication_dispatchEvent(application, window, &event);
+		// Order of left/right down/up, or x -1/+1 and y -1/+1.
+		const dsGameControllerMap* axisMappings = directionMappings + i*2;
 
-		if (direction.values[i] != 0)
+		// Treat as an axis if both directions have the same mapping.
+		if (axisMappings[0] == axisMappings[1])
 		{
-			event.type = dsAppEventType_GameInputButtonDown;
-			inputMap.dpadAxis = i;
-			inputMap.dpadAxisValue = (int8_t)direction.values[i];
-			event.gameInputButton.mapping =
-				dsGameInput_findControllerMapping(gameInput, &inputMap);
-			DS_ASSERT(event.gameInputButton.mapping != dsGameControllerMap_Invalid);
-			dsApplication_dispatchEvent(application, window, &event);
+			dsGameControllerMap mapping = axisMappings[0];
+			const dsGameInputMap* inputMap = gameInput->controllerMapping + mapping;
+			DS_ASSERT(inputMap->method == dsGameInputMethod_DPad);
+
+			dsEvent event;
+			event.time = time;
+			event.type = dsAppEventType_GameInputAxis;
+			event.gameInputAxis.window = window;
+			event.gameInputAxis.gameInput = gameInput;
+			event.gameInputAxis.mapping = mapping;
+			event.gameInputAxis.axis = 0;
+			if (inputMap->dpadDirection == dsGameInputDirection_InvXAxis ||
+				inputMap->dpadDirection == dsGameInputDirection_InvYAxis)
+			{
+				event.gameInputAxis.value = (float)-curValue;
+			}
+			else
+				event.gameInputAxis.value = curValue;
+			dsApplication_dispatchEvent(application, &event);
+			continue;
+		}
+
+		// First send up event.
+		if (curValue != 0)
+		{
+			dsGameControllerMap mapping = axisMappings[curValue > 0];
+			if (mapping != dsGameControllerMap_Invalid)
+			{
+				dsEvent event;
+				event.time = time;
+				event.type = dsAppEventType_GameInputButtonUp;
+				event.gameInputButton.window = window;
+				event.gameInputButton.gameInput = gameInput;
+				event.gameInputButton.mapping = mapping;
+				event.gameInputButton.button = 0;
+				dsApplication_dispatchEvent(application, &event);
+			}
+		}
+
+		// Then send down event.
+		if (newValue != 0)
+		{
+			dsGameControllerMap mapping = axisMappings[newValue > 0];
+			if (mapping != dsGameControllerMap_Invalid)
+			{
+				dsEvent event;
+				event.time = time;
+				event.type = dsAppEventType_GameInputButtonDown;
+				event.gameInputButton.window = window;
+				event.gameInputButton.gameInput = gameInput;
+				event.gameInputButton.mapping = mapping;
+				event.gameInputButton.button = 0;
+				dsApplication_dispatchEvent(application, &event);
+			}
 		}
 	}
 
-	// Then send down events.
-	event.type = dsAppEventType_GameInputButtonDown;
-	for (uint8_t i = 0; i < 2; ++i)
-	{
-		int8_t newValue = (int8_t)direction.values[i];
-		if (newValue == 0 || newValue == curDirection->values[i])
-			continue;
-
-		inputMap.dpadAxis = i;
-		inputMap.dpadAxisValue = newValue;
-		event.gameInputButton.mapping =
-			dsGameInput_findControllerMapping(gameInput, &inputMap);
-		DS_ASSERT(event.gameInputButton.mapping != dsGameControllerMap_Invalid);
-		dsApplication_dispatchEvent(application, window, &event);
-	}
-
 	*curDirection = direction;
+	return allMapped;
 }
 
-dsGameInputBattery dsSDLGameInput_getBattery(const dsApplication* application,
-	const dsGameInput* gameInput)
+dsSystemPowerState dsSDLGameInput_getPowerState(
+	int* outBatteryPercent, const dsApplication* application, const dsGameInput* gameInput)
 {
 	DS_UNUSED(application);
-#if SDL_VERSION_ATLEAST(2, 0, 4)
-	switch (SDL_JoystickCurrentPowerLevel(((const dsSDLGameInput*)gameInput)->joystick))
+	SDL_Joystick* joystick = ((const dsSDLGameInput*)gameInput)->joystick;
+	switch (SDL_GetJoystickPowerInfo(joystick, outBatteryPercent))
 	{
-		case SDL_JOYSTICK_POWER_EMPTY:
-			return dsGameInputBattery_Empty;
-		case SDL_JOYSTICK_POWER_LOW:
-			return dsGameInputBattery_Low;
-		case SDL_JOYSTICK_POWER_MEDIUM:
-			return dsGameInputBattery_Medium;
-		case SDL_JOYSTICK_POWER_FULL:
-			return dsGameInputBattery_Full;
-		case SDL_JOYSTICK_POWER_WIRED:
-			return dsGameInputBattery_Wired;
-		default:
-			return dsGameInputBattery_Unknown;
+		case SDL_POWERSTATE_ERROR:
+		case SDL_POWERSTATE_UNKNOWN:
+			return dsSystemPowerState_Unknown;
+		case SDL_POWERSTATE_ON_BATTERY:
+			return dsSystemPowerState_OnBattery;
+		case SDL_POWERSTATE_NO_BATTERY:
+			return dsSystemPowerState_External;
+		case SDL_POWERSTATE_CHARGING:
+			return dsSystemPowerState_Charging;
+		case SDL_POWERSTATE_CHARGED:
+			return dsSystemPowerState_Charged;
 	}
-#else
-	DS_UNUSED(gameInput);
-	return dsGameInputBattery_Unknown;
-#endif
+
+	DS_ASSERT(false);
+	return dsSystemPowerState_Unknown;
 }
 
-float dsSDLGameInput_getAxis(const dsApplication* application, const dsGameInput* gameInput,
-	uint32_t axis)
+float dsSDLGameInput_getAxis(
+	const dsApplication* application, const dsGameInput* gameInput, uint32_t axis)
 {
 	DS_UNUSED(application);
 	return dsSDLGameInput_getAxisValue(
-		SDL_JoystickGetAxis(((const dsSDLGameInput*)gameInput)->joystick, axis));
+		SDL_GetJoystickAxis(((const dsSDLGameInput*)gameInput)->joystick, axis));
 }
 
 float dsSDLGameInput_getControllerAxis(const dsApplication* application,
@@ -732,15 +902,55 @@ float dsSDLGameInput_getControllerAxis(const dsApplication* application,
 	switch (inputMap->method)
 	{
 		case dsGameInputMethod_Axis:
-			return SDL_JoystickGetAxis(sdlGameInput->joystick, inputMap->index);
+		{
+			float axisValue = dsSDLGameInput_getAxisValue(
+				SDL_GetJoystickAxis(sdlGameInput->joystick, inputMap->index));
+			if (inputMap->origAxisRange == dsGameInputAxisRange_Negative)
+			{
+				axisValue = dsMin(axisValue, 0.0f);
+				axisValue = (axisValue*2.0f) + 1.0f;
+			}
+			else if (inputMap->origAxisRange == dsGameInputAxisRange_Positive)
+			{
+				axisValue = dsMax(axisValue, 0.0f);
+				axisValue = (axisValue*2.0f) - 1.0f;
+			}
+			if (inputMap->invertAxis)
+				axisValue = -axisValue;
+			if (inputMap->mappedAxisRange == dsGameInputAxisRange_Negative)
+				return axisValue*0.5f - 0.5f;
+			if (inputMap->mappedAxisRange == dsGameInputAxisRange_Positive)
+				return axisValue*0.5f - 0.5f;
+			return axisValue;
+		}
 		case dsGameInputMethod_Button:
-			return (float)SDL_JoystickGetButton(sdlGameInput->joystick, inputMap->index);
+			return (float)SDL_GetJoystickButton(sdlGameInput->joystick, inputMap->index);
 		case dsGameInputMethod_DPad:
 		{
 			dsVector2i direction;
 			dsSDLGameInput_convertHatDirection(&direction,
-				SDL_JoystickGetHat(sdlGameInput->joystick, inputMap->index));
-			return (float)(direction.values[inputMap->dpadAxis] == inputMap->dpadAxisValue);
+				SDL_GetJoystickHat(sdlGameInput->joystick, inputMap->index));
+			switch (inputMap->dpadDirection)
+			{
+				case dsGameInputDirection_Left:
+					return (float)(direction.x < 0);
+				case dsGameInputDirection_Right:
+					return (float)(direction.x > 0);
+				case dsGameInputDirection_Down:
+					return (float)(direction.y < 0);
+				case dsGameInputDirection_Up:
+					return (float)(direction.y > 0);
+				case dsGameInputDirection_XAxis:
+					return (float)direction.x;
+				case dsGameInputDirection_InvXAxis:
+					return (float)-direction.x;
+				case dsGameInputDirection_YAxis:
+					return (float)direction.y;
+				case dsGameInputDirection_InvYAxis:
+					return (float)-direction.y;
+			}
+			DS_ASSERT(false);
+			return 0.0;
 		}
 		default:
 			DS_ASSERT(false);
@@ -752,7 +962,7 @@ bool dsSDLGameInput_isButtonPressed(
 	const dsApplication* application, const dsGameInput* gameInput, uint32_t button)
 {
 	DS_UNUSED(application);
-	return SDL_JoystickGetButton(((const dsSDLGameInput*)gameInput)->joystick, button) != 0;
+	return SDL_GetJoystickButton(((const dsSDLGameInput*)gameInput)->joystick, button);
 }
 
 bool dsSDLGameInput_isControllerButtonPressed(
@@ -765,15 +975,37 @@ bool dsSDLGameInput_isControllerButtonPressed(
 	switch (inputMap->method)
 	{
 		case dsGameInputMethod_Axis:
-			return isAxisPressed(SDL_JoystickGetAxis(sdlGameInput->joystick, inputMap->index));
+		{
+			float axisValue = dsSDLGameInput_getMappedAxisValue(
+				inputMap, SDL_GetJoystickAxis(sdlGameInput->joystick, inputMap->index));
+			return axisValue < -0.5f || axisValue > 0.5f;
+		}
 		case dsGameInputMethod_Button:
-			return SDL_JoystickGetButton(sdlGameInput->joystick, inputMap->index);
+			return SDL_GetJoystickButton(sdlGameInput->joystick, inputMap->index);
 		case dsGameInputMethod_DPad:
 		{
 			dsVector2i direction;
 			dsSDLGameInput_convertHatDirection(&direction,
-				SDL_JoystickGetHat(sdlGameInput->joystick, inputMap->index));
-			return direction.values[inputMap->dpadAxis] == inputMap->dpadAxisValue;
+				SDL_GetJoystickHat(sdlGameInput->joystick, inputMap->index));
+			switch (inputMap->dpadDirection)
+			{
+				case dsGameInputDirection_Left:
+					return direction.x < 0;
+				case dsGameInputDirection_Right:
+					return direction.x > 0;
+				case dsGameInputDirection_Down:
+					return direction.y < 0;
+				case dsGameInputDirection_Up:
+					return direction.y > 0;
+				case dsGameInputDirection_XAxis:
+				case dsGameInputDirection_InvXAxis:
+					return direction.x != 0;
+				case dsGameInputDirection_YAxis:
+				case dsGameInputDirection_InvYAxis:
+					return direction.y != 0;
+			}
+			DS_ASSERT(false);
+			return false;
 		}
 		default:
 			DS_ASSERT(false);
@@ -786,7 +1018,7 @@ bool dsSDLGameInput_getDPadDirection(dsVector2i* outDirection, const dsApplicati
 {
 	DS_UNUSED(application);
 	dsSDLGameInput_convertHatDirection(outDirection,
-		SDL_JoystickGetHat(((const dsSDLGameInput*)gameInput)->joystick, dpad));
+		SDL_GetJoystickHat(((const dsSDLGameInput*)gameInput)->joystick, dpad));
 	return true;
 }
 
@@ -833,7 +1065,7 @@ bool dsSDLGameInput_setTimedRumble(dsApplication* application, dsGameInput* game
 	if (duration == 0.0f)
 		strength = 0.0f;
 
-	rumbleState->timedDuration = dsTimer_secondsToTicks(timer, duration);
+	rumbleState->timedDuration = dsTimer_secondsToTicks(application->timer, duration);
 	if (strength == rumbleState->baselineStrength)
 		return true;
 
@@ -861,108 +1093,66 @@ float dsSDLGameInput_getTimedRumble(float* outDuration, dsApplication* applicati
 	const dsSDLGameInput* sdlGameInput = (const dsSDLGameInput*)gameInput;
 	const dsSDLRumbleState* rumbleState = sdlGameInput->rumbleState + rumble;
 	if (outDuration)
-		*outDuration = (float)dsTimer_ticksToSeconds(timer, rumbleState->timedDuration);
+	{
+		*outDuration = (float)dsTimer_ticksToSeconds(
+			application->timer, rumbleState->timedDuration);
+	}
 	return rumbleState->timedStrength;
 }
 
 bool dsSDLGameInput_setLEDColor(dsApplication* application, dsGameInput* gameInput, dsColor color)
 {
 	DS_UNUSED(application);
-
-#if SDL_VERSION_ATLEAST(2, 0, 14)
-	if (SDL_JoystickSetLED(((dsSDLGameInput*)gameInput)->joystick, color.r, color.g, color.b) != 0)
+	if (!SDL_SetJoystickLED(((dsSDLGameInput*)gameInput)->joystick, color.r, color.g, color.b))
 	{
 		errno = EPERM;
 		return false;
 	}
 
 	return true;
-#else
-	DS_UNUSED(gameInput);
-	DS_UNUSED(color);
+}
 
-	errno = EPERM;
-	return false;
-#endif
+bool dsSDLGameInput_setPlayer(dsApplication* application, dsGameInput* gameInput, uint32_t player)
+{
+	DS_UNUSED(application);
+	if (!SDL_SetJoystickPlayerIndex(((dsSDLGameInput*)gameInput)->joystick, player))
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	return true;
 }
 
 bool dsSDLGameInput_hasMotionSensor(
 	const dsApplication* application, const dsGameInput* gameInput, dsMotionSensorType type)
 {
-#if SDL_VERSION_ATLEAST(2, 0, 14)
 	if (!dsSDLApplication_useMotionSensors(application))
 		return false;
 
-	SDL_GameController* controller = ((dsSDLGameInput*)gameInput)->controller;
+	SDL_Gamepad* controller = ((dsSDLGameInput*)gameInput)->controller;
 	if (!controller)
 		return false;
 
-	SDL_SensorType sdlType;
-	switch (type)
-	{
-		case dsMotionSensorType_Accelerometer:
-			sdlType = SDL_SENSOR_ACCEL;
-			break;
-		case dsMotionSensorType_Gyroscope:
-			sdlType = SDL_SENSOR_GYRO;
-			break;
-		default:
-			DS_ASSERT(false);
-			return false;
-	}
-	return SDL_GameControllerHasSensor(controller, sdlType);
-#else
-	DS_UNUSED(application);
-	DS_UNUSED(gameInput);
-	DS_UNUSED(type);
-	return false;
-#endif
+	return SDL_GamepadHasSensor(controller, toSDLSensorType(type));
 }
 
 bool dsSDLGameInput_getMotionSensorData(dsVector3f* outData, const dsApplication* application,
 	const dsGameInput* gameInput, dsMotionSensorType type)
 {
-#if SDL_VERSION_ATLEAST(2, 0, 14)
 	if (!dsSDLApplication_useMotionSensors(application))
 	{
 		errno = EPERM;
 		return false;
 	}
 
-	SDL_GameController* controller = ((dsSDLGameInput*)gameInput)->controller;
-	if (!controller)
-	{
-		errno = EPERM;
-		return false;
-	}
-
-	SDL_SensorType sdlType;
-	switch (type)
-	{
-		case dsMotionSensorType_Accelerometer:
-			sdlType = SDL_SENSOR_ACCEL;
-			break;
-		case dsMotionSensorType_Gyroscope:
-			sdlType = SDL_SENSOR_GYRO;
-			break;
-		default:
-			DS_ASSERT(false);
-			return false;
-	}
-
-	if (SDL_GameControllerGetSensorData(controller, sdlType, (float*)outData, 3) != 0)
+	SDL_Gamepad* controller = ((dsSDLGameInput*)gameInput)->controller;
+	if (!controller ||
+		!SDL_GetGamepadSensorData(controller, toSDLSensorType(type), (float*)outData, 3))
 	{
 		errno = EPERM;
 		return false;
 	}
 
 	return true;
-#else
-	DS_UNUSED(outData);
-	DS_UNUSED(application);
-	DS_UNUSED(gameInput);
-	DS_UNUSED(type);
-	errno = EPERM;
-	return false;
-#endif
 }

@@ -212,7 +212,7 @@ typedef void (*dsCloseRelativePathStreamFunction)(void* userData, dsStream* stre
  *
  * @see Stream.h
  */
-struct dsStream
+typedef struct dsStream
 {
 	/**
 	 * @brief The read function.
@@ -270,7 +270,7 @@ struct dsStream
 	 * This may be NULL if the stream cannot be closed.
 	 */
 	dsStreamCloseFunction closeFunc;
-};
+} dsStream;
 
 /**
  * @brief Structure that defines a file stream.
@@ -447,7 +447,7 @@ typedef void (*dsCloseFileArchiveFunction)(dsFileArchive* archive);
  *
  * @see FileArchive.h
  */
-struct dsFileArchive
+typedef struct dsFileArchive
 {
 	/**
 	 * @brief Function to get the status of a path within the archive.
@@ -478,7 +478,7 @@ struct dsFileArchive
 	 * @brief Function to close the archive.
 	 */
 	dsCloseFileArchiveFunction closeFunc;
-};
+} dsFileArchive;
 
 #if DS_ZIP_ARCHIVE_ENABLED
 
