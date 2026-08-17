@@ -51,6 +51,16 @@ void dsVector2d_lerp(dsVector2d* result, const dsVector2d* a, const dsVector2d* 
 void dsVector2i_lerp(dsVector2i* result, const dsVector2i* a, const dsVector2i* b, float t);
 void dsVector2l_lerp(dsVector2l* result, const dsVector2l* a, const dsVector2l* b, double t);
 
+void dsVector2f_min(dsVector2f* result, const dsVector2f* a, const dsVector2f* b);
+void dsVector2d_min(dsVector2d* result, const dsVector2d* a, const dsVector2d* b);
+void dsVector2i_min(dsVector2i* result, const dsVector2i* a, const dsVector2i* b);
+void dsVector2l_min(dsVector2l* result, const dsVector2l* a, const dsVector2l* b);
+
+void dsVector2f_max(dsVector2f* result, const dsVector2f* a, const dsVector2f* b);
+void dsVector2d_max(dsVector2d* result, const dsVector2d* a, const dsVector2d* b);
+void dsVector2i_max(dsVector2i* result, const dsVector2i* a, const dsVector2i* b);
+void dsVector2l_max(dsVector2l* result, const dsVector2l* a, const dsVector2l* b);
+
 float dsVector2f_dot(const dsVector2f* a, const dsVector2f* b);
 double dsVector2d_dot(const dsVector2d* a, const dsVector2d* b);
 int dsVector2i_dot(const dsVector2i* a, const dsVector2i* b);

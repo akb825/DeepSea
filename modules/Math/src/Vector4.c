@@ -51,6 +51,16 @@ void dsVector4d_lerp(dsVector4d* result, const dsVector4d* a, const dsVector4d* 
 void dsVector4i_lerp(dsVector4i* result, const dsVector4i* a, const dsVector4i* b, float t);
 void dsVector4l_lerp(dsVector4l* result, const dsVector4l* a, const dsVector4l* b, double t);
 
+void dsVector4f_min(dsVector4f* result, const dsVector4f* a, const dsVector4f* b);
+void dsVector4d_min(dsVector4d* result, const dsVector4d* a, const dsVector4d* b);
+void dsVector4i_min(dsVector4i* result, const dsVector4i* a, const dsVector4i* b);
+void dsVector4l_min(dsVector4l* result, const dsVector4l* a, const dsVector4l* b);
+
+void dsVector4f_max(dsVector4f* result, const dsVector4f* a, const dsVector4f* b);
+void dsVector4d_max(dsVector4d* result, const dsVector4d* a, const dsVector4d* b);
+void dsVector4i_max(dsVector4i* result, const dsVector4i* a, const dsVector4i* b);
+void dsVector4l_max(dsVector4l* result, const dsVector4l* a, const dsVector4l* b);
+
 float dsVector4f_dot(const dsVector4f* a, const dsVector4f* b);
 double dsVector4d_dot(const dsVector4d* a, const dsVector4d* b);
 int dsVector4i_dot(const dsVector4i* a, const dsVector4i* b);

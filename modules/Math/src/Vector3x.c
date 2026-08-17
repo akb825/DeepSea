@@ -37,6 +37,12 @@ void dsVector3xd_neg(dsVector3xd* result, const dsVector3xd* a);
 void dsVector3xf_lerp(dsVector3xf* result, const dsVector3xf* a, const dsVector3xf* b, float t);
 void dsVector3xd_lerp(dsVector3xd* result, const dsVector3xd* a, const dsVector3xd* b, double t);
 
+void dsVector3xf_min(dsVector3xf* result, const dsVector3xf* a, const dsVector3xf* b);
+void dsVector3xd_min(dsVector3xd* result, const dsVector3xd* a, const dsVector3xd* b);
+
+void dsVector3xf_max(dsVector3xf* result, const dsVector3xf* a, const dsVector3xf* b);
+void dsVector3xd_max(dsVector3xd* result, const dsVector3xd* a, const dsVector3xd* b);
+
 float dsVector3xf_dot(const dsVector3xf* a, const dsVector3xf* b);
 double dsVector3xd_dot(const dsVector3xd* a, const dsVector3xd* b);
 

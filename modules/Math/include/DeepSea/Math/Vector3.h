@@ -146,6 +146,47 @@ extern "C"
 	} while (0)
 
 /**
+ * @brief Takes the minimum value for each element between two vectors.
+ * @param[out] result The result for the  minimum values.
+ * @param a The first vector.
+ * @param b The second value.
+ */
+#define dsVector3_min(result, a, b) \
+	do \
+	{ \
+		(result).values[0] = dsMin((a).values[0], (b).values[0]); \
+		(result).values[1] = dsMin((a).values[1], (b).values[1]); \
+		(result).values[2] = dsMin((a).values[2], (b).values[2]); \
+	} while (0)
+
+/**
+ * @brief Takes the maximum value for each element between two vectors.
+ * @param[out] result The result for the  maximum values.
+ * @param a The first vector.
+ * @param b The second value.
+ */
+#define dsVector3_max(result, a, b) \
+	do \
+	{ \
+		(result).values[0] = dsMax((a).values[0], (b).values[0]); \
+		(result).values[1] = dsMax((a).values[1], (b).values[1]); \
+		(result).values[2] = dsMax((a).values[2], (b).values[2]); \
+	} while (0)
+
+/**
+ * @brief Takes the maximum value for each element between two vectors.
+ * @param[out] result The result for the  maximum values.
+ * @param a The first vector.
+ * @param b The second value.
+ */
+#define dsVector2_max(result, a, b) \
+	do \
+	{ \
+		(result).values[0] = dsMax((a).values[0], (b).values[0]); \
+		(result).values[1] = dsMax((a).values[1], (b).values[1]); \
+	} while (0)
+
+/**
  * @brief Takes the dot product between two vectors.
  * @param a The first vector.
  * @param b The second vector.
@@ -539,6 +580,86 @@ DS_MATH_EXPORT inline void dsVector3l_lerp(
 	result->values[0] = (long long)dsLerp((double)a->values[0], (double)b->values[0], t);
 	result->values[1] = (long long)dsLerp((double)a->values[1], (double)b->values[1], t);
 	result->values[2] = (long long)dsLerp((double)a->values[2], (double)b->values[2], t);
+}
+
+/** @copydoc dsVector3_min() */
+DS_MATH_EXPORT inline void dsVector3f_min(
+	dsVector3f* result , const dsVector3f* a, const dsVector3f* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_min(*result, *a, *b);
+}
+
+/** @copydoc dsVector3_min() */
+DS_MATH_EXPORT inline void dsVector3d_min(
+	dsVector3d* result , const dsVector3d* a, const dsVector3d* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_min(*result, *a, *b);
+}
+
+/** @copydoc dsVector3_min() */
+DS_MATH_EXPORT inline void dsVector3i_min(
+	dsVector3i* result , const dsVector3i* a, const dsVector3i* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_min(*result, *a, *b);
+}
+
+/** @copydoc dsVector3_min() */
+DS_MATH_EXPORT inline void dsVector3l_min(
+	dsVector3l* result , const dsVector3l* a, const dsVector3l* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_min(*result, *a, *b);
+}
+
+/** @copydoc dsVector3_max() */
+DS_MATH_EXPORT inline void dsVector3f_max(
+	dsVector3f* result , const dsVector3f* a, const dsVector3f* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_max(*result, *a, *b);
+}
+
+/** @copydoc dsVector3_max() */
+DS_MATH_EXPORT inline void dsVector3d_max(
+	dsVector3d* result , const dsVector3d* a, const dsVector3d* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_max(*result, *a, *b);
+}
+
+/** @copydoc dsVector3_max() */
+DS_MATH_EXPORT inline void dsVector3i_max(
+	dsVector3i* result , const dsVector3i* a, const dsVector3i* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_max(*result, *a, *b);
+}
+
+/** @copydoc dsVector3_max() */
+DS_MATH_EXPORT inline void dsVector3l_max(
+	dsVector3l* result , const dsVector3l* a, const dsVector3l* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_max(*result, *a, *b);
 }
 
 /** @copydoc dsVector3_dot() */

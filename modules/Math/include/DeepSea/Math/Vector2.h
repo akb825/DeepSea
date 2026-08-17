@@ -140,6 +140,32 @@ extern "C"
 	} while (0)
 
 /**
+ * @brief Takes the minimum value for each element between two vectors.
+ * @param[out] result The result for the  minimum values.
+ * @param a The first vector.
+ * @param b The second value.
+ */
+#define dsVector2_min(result, a, b) \
+	do \
+	{ \
+		(result).values[0] = dsMin((a).values[0], (b).values[0]); \
+		(result).values[1] = dsMin((a).values[1], (b).values[1]); \
+	} while (0)
+
+/**
+ * @brief Takes the maximum value for each element between two vectors.
+ * @param[out] result The result for the  maximum values.
+ * @param a The first vector.
+ * @param b The second value.
+ */
+#define dsVector2_max(result, a, b) \
+	do \
+	{ \
+		(result).values[0] = dsMax((a).values[0], (b).values[0]); \
+		(result).values[1] = dsMax((a).values[1], (b).values[1]); \
+	} while (0)
+
+/**
  * @brief Takes the dot product between two vectors.
  * @param a The first vector.
  * @param b The second vector.
@@ -548,6 +574,94 @@ DS_MATH_EXPORT inline void dsVector2l_lerp(
 	DS_ASSERT(b);
 	result->values[0] = (long long)dsLerp((double)a->values[0], (double)b->values[0], t);
 	result->values[1] = (long long)dsLerp((double)a->values[1], (double)b->values[1], t);
+}
+
+/** @copydoc dsVector2_min() */
+DS_MATH_EXPORT inline void dsVector2f_min(
+	dsVector2f* result , const dsVector2f* a, const dsVector2f* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector2_min(*result, *a, *b);
+}
+
+/** @copydoc dsVector2_min() */
+DS_MATH_EXPORT inline void dsVector2d_min(
+	dsVector2d* result , const dsVector2d* a, const dsVector2d* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	result->simd = dsSIMD2d_min(a->simd, b->simd);
+#else
+	dsVector2_min(*result, *a, *b);
+#endif
+}
+
+/** @copydoc dsVector2_min() */
+DS_MATH_EXPORT inline void dsVector2i_min(
+	dsVector2i* result , const dsVector2i* a, const dsVector2i* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector2_min(*result, *a, *b);
+}
+
+/** @copydoc dsVector2_min() */
+DS_MATH_EXPORT inline void dsVector2l_min(
+	dsVector2l* result , const dsVector2l* a, const dsVector2l* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector2_min(*result, *a, *b);
+}
+
+/** @copydoc dsVector2_max() */
+DS_MATH_EXPORT inline void dsVector2f_max(
+	dsVector2f* result , const dsVector2f* a, const dsVector2f* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector2_max(*result, *a, *b);
+}
+
+/** @copydoc dsVector2_max() */
+DS_MATH_EXPORT inline void dsVector2d_max(
+	dsVector2d* result , const dsVector2d* a, const dsVector2d* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+#if DS_SIMD_ALWAYS_DOUBLE2
+	result->simd = dsSIMD2d_max(a->simd, b->simd);
+#else
+	dsVector2_max(*result, *a, *b);
+#endif
+}
+
+/** @copydoc dsVector2_max() */
+DS_MATH_EXPORT inline void dsVector2i_max(
+	dsVector2i* result , const dsVector2i* a, const dsVector2i* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector2_max(*result, *a, *b);
+}
+
+/** @copydoc dsVector2_max() */
+DS_MATH_EXPORT inline void dsVector2l_max(
+	dsVector2l* result , const dsVector2l* a, const dsVector2l* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector2_max(*result, *a, *b);
 }
 
 /** @copydoc dsVector2_dot() */

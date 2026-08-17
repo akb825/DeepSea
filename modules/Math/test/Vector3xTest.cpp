@@ -52,174 +52,196 @@ class Vector3xTest : public testing::Test
 using Vector3xTypes = testing::Types<float, double>;
 TYPED_TEST_SUITE(Vector3xTest, Vector3xTypes);
 
-inline void dsVector3x_add(dsVector4f* result, const dsVector4f* a, const dsVector4f* b)
+inline void dsVector3x_add(dsVector3xf* result, const dsVector3xf* a, const dsVector3xf* b)
 {
 	return dsVector3xf_add(result, a, b);
 }
 
-inline void dsVector3x_add(dsVector4d* result, const dsVector4d* a, const dsVector4d* b)
+inline void dsVector3x_add(dsVector3xd* result, const dsVector3xd* a, const dsVector3xd* b)
 {
 	return dsVector3xd_add(result, a, b);
 }
 
-inline void dsVector3x_sub(dsVector4f* result, const dsVector4f* a, const dsVector4f* b)
+inline void dsVector3x_sub(dsVector3xf* result, const dsVector3xf* a, const dsVector3xf* b)
 {
 	return dsVector3xf_sub(result, a, b);
 }
 
-inline void dsVector3x_sub(dsVector4d* result, const dsVector4d* a, const dsVector4d* b)
+inline void dsVector3x_sub(dsVector3xd* result, const dsVector3xd* a, const dsVector3xd* b)
 {
 	return dsVector3xd_sub(result, a, b);
 }
 
-inline void dsVector3x_mul(dsVector4f* result, const dsVector4f* a, const dsVector4f* b)
+inline void dsVector3x_mul(dsVector3xf* result, const dsVector3xf* a, const dsVector3xf* b)
 {
 	return dsVector3xf_mul(result, a, b);
 }
 
-inline void dsVector3x_mul(dsVector4d* result, const dsVector4d* a, const dsVector4d* b)
+inline void dsVector3x_mul(dsVector3xd* result, const dsVector3xd* a, const dsVector3xd* b)
 {
 	return dsVector3xd_mul(result, a, b);
 }
 
-inline void dsVector3x_div(dsVector4f* result, const dsVector4f* a, const dsVector4f* b)
+inline void dsVector3x_div(dsVector3xf* result, const dsVector3xf* a, const dsVector3xf* b)
 {
 	return dsVector3xf_div(result, a, b);
 }
 
-inline void dsVector3x_div(dsVector4d* result, const dsVector4d* a, const dsVector4d* b)
+inline void dsVector3x_div(dsVector3xd* result, const dsVector3xd* a, const dsVector3xd* b)
 {
 	return dsVector3xd_div(result, a, b);
 }
 
-inline void dsVector3x_scale(dsVector4f* result, const dsVector4f* a, float s)
+inline void dsVector3x_scale(dsVector3xf* result, const dsVector3xf* a, float s)
 {
 	return dsVector3xf_scale(result, a, s);
 }
 
-inline void dsVector3x_scale(dsVector4d* result, const dsVector4d* a, double s)
+inline void dsVector3x_scale(dsVector3xd* result, const dsVector3xd* a, double s)
 {
 	return dsVector3xd_scale(result, a, s);
 }
 
-inline void dsVector3x_neg(dsVector4f* result, const dsVector4f* a)
+inline void dsVector3x_neg(dsVector3xf* result, const dsVector3xf* a)
 {
 	dsVector3xf_neg(result, a);
 }
 
-inline void dsVector3x_neg(dsVector4d* result, const dsVector4d* a)
+inline void dsVector3x_neg(dsVector3xd* result, const dsVector3xd* a)
 {
 	dsVector3xd_neg(result, a);
 }
 
-inline void dsVector3x_lerp(dsVector4f* result, const dsVector4f* a, const dsVector4f* b, float t)
+inline void dsVector3x_lerp(
+	dsVector3xf* result, const dsVector3xf* a, const dsVector3xf* b, float t)
 {
-	return dsVector3xf_lerp(result, a, b, t);
+	dsVector3xf_lerp(result, a, b, t);
 }
 
-inline void dsVector3x_lerp(dsVector4d* result, const dsVector4d* a, const dsVector4d* b, double t)
+inline void dsVector3x_lerp(
+	dsVector3xd* result, const dsVector3xd* a, const dsVector3xd* b, double t)
 {
-	return dsVector3xd_lerp(result, a, b, t);
+	dsVector3xd_lerp(result, a, b, t);
 }
 
-inline float dsVector3x_dot(const dsVector4f* a, const dsVector4f* b)
+inline void dsVector3x_min(dsVector3xf* result, const dsVector3xf* a, const dsVector3xf* b)
+{
+	dsVector3xf_min(result, a, b);
+}
+
+inline void dsVector3x_min(dsVector3xd* result, const dsVector3xd* a, const dsVector3xd* b)
+{
+	dsVector3xd_min(result, a, b);
+}
+
+inline void dsVector3x_max(dsVector3xf* result, const dsVector3xf* a, const dsVector3xf* b)
+{
+	dsVector3xf_max(result, a, b);
+}
+
+inline void dsVector3x_max(dsVector3xd* result, const dsVector3xd* a, const dsVector3xd* b)
+{
+	dsVector3xd_max(result, a, b);
+}
+
+inline float dsVector3x_dot(const dsVector3xf* a, const dsVector3xf* b)
 {
 	return dsVector3xf_dot(a, b);
 }
 
-inline double dsVector3x_dot(const dsVector4d* a, const dsVector4d* b)
+inline double dsVector3x_dot(const dsVector3xd* a, const dsVector3xd* b)
 {
 	return dsVector3xd_dot(a, b);
 }
 
-inline void dsVector3x_cross(dsVector4f* result, const dsVector4f* a, const dsVector4f* b)
+inline void dsVector3x_cross(dsVector3xf* result, const dsVector3xf* a, const dsVector3xf* b)
 {
 	return dsVector3xf_cross(result, a, b);
 }
 
-inline void dsVector3x_cross(dsVector4d* result, const dsVector4d* a, const dsVector4d* b)
+inline void dsVector3x_cross(dsVector3xd* result, const dsVector3xd* a, const dsVector3xd* b)
 {
 	return dsVector3xd_cross(result, a, b);
 }
 
-inline float dsVector3x_len2(const dsVector4f* a)
+inline float dsVector3x_len2(const dsVector3xf* a)
 {
 	return dsVector3xf_len2(a);
 }
 
-inline double dsVector3x_len2(const dsVector4d* a)
+inline double dsVector3x_len2(const dsVector3xd* a)
 {
 	return dsVector3xd_len2(a);
 }
 
-inline float dsVector3x_dist2(const dsVector4f* a, const dsVector4f* b)
+inline float dsVector3x_dist2(const dsVector3xf* a, const dsVector3xf* b)
 {
 	return dsVector3xf_dist2(a, b);
 }
 
-inline double dsVector3x_dist2(const dsVector4d* a, const dsVector4d* b)
+inline double dsVector3x_dist2(const dsVector3xd* a, const dsVector3xd* b)
 {
 	return dsVector3xd_dist2(a, b);
 }
 
-inline bool dsVector3x_equal(const dsVector4f* a, const dsVector4f* b)
+inline bool dsVector3x_equal(const dsVector3xf* a, const dsVector3xf* b)
 {
 	return dsVector3xf_equal(a, b);
 }
 
-inline bool dsVector3x_equal(const dsVector4d* a, const dsVector4d* b)
+inline bool dsVector3x_equal(const dsVector3xd* a, const dsVector3xd* b)
 {
 	return dsVector3xd_equal(a, b);
 }
 
-inline float dsVector3x_len(const dsVector4f* a)
+inline float dsVector3x_len(const dsVector3xf* a)
 {
 	return dsVector3xf_len(a);
 }
 
-inline double dsVector3x_len(const dsVector4d* a)
+inline double dsVector3x_len(const dsVector3xd* a)
 {
 	return dsVector3xd_len(a);
 }
 
-inline float dsVector3x_dist(const dsVector4f* a, const dsVector4f* b)
+inline float dsVector3x_dist(const dsVector3xf* a, const dsVector3xf* b)
 {
 	return dsVector3xf_dist(a, b);
 }
 
-inline double dsVector3x_dist(const dsVector4d* a, const dsVector4d* b)
+inline double dsVector3x_dist(const dsVector3xd* a, const dsVector3xd* b)
 {
 	return dsVector3xd_dist(a, b);
 }
 
-inline void dsVector3x_normalize(dsVector4f* result, const dsVector4f* a)
+inline void dsVector3x_normalize(dsVector3xf* result, const dsVector3xf* a)
 {
 	dsVector3xf_normalize(result, a);
 }
 
-inline void dsVector3x_normalize(dsVector4d* result, const dsVector4d* a)
+inline void dsVector3x_normalize(dsVector3xd* result, const dsVector3xd* a)
 {
 	dsVector3xd_normalize(result, a);
 }
 
-inline bool dsVector3x_epsilonEqual(const dsVector4f* a, const dsVector4f* b, float epsilon)
+inline bool dsVector3x_epsilonEqual(const dsVector3xf* a, const dsVector3xf* b, float epsilon)
 {
 	return dsVector3xf_epsilonEqual(a, b, epsilon);
 }
 
-inline bool dsVector3x_epsilonEqual(const dsVector4d* a, const dsVector4d* b, double epsilon)
+inline bool dsVector3x_epsilonEqual(const dsVector3xd* a, const dsVector3xd* b, double epsilon)
 {
 	return dsVector3xd_epsilonEqual(a, b, epsilon);
 }
 
 inline bool dsVector3x_relativeEpsilonEqual(
-	const dsVector4f* a, const dsVector4f* b, float absoluteEps, float relativeEps)
+	const dsVector3xf* a, const dsVector3xf* b, float absoluteEps, float relativeEps)
 {
 	return dsVector3xf_relativeEpsilonEqual(a, b, absoluteEps, relativeEps);
 }
 
 inline bool dsVector3x_relativeEpsilonEqual(
-	const dsVector4d* a, const dsVector4d* b, double absoluteEps, double relativeEps)
+	const dsVector3xd* a, const dsVector3xd* b, double absoluteEps, double relativeEps)
 {
 	return dsVector3xd_relativeEpsilonEqual(a, b, absoluteEps, relativeEps);
 }
@@ -306,6 +328,60 @@ TYPED_TEST(Vector3xTest, Neg)
 	EXPECT_EQ(-a.z, result.z);
 }
 
+TYPED_TEST(Vector3xTest, Lerp)
+{
+	typedef typename Vector3xTypeSelector<TypeParam>::Type Vector3xType;
+	TypeParam epsilon = Vector3xTypeSelector<TypeParam>::epsilon;
+	DS_UNUSED(epsilon);
+
+	Vector3xType a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, 1}};
+	Vector3xType b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6, 2}};
+	Vector3xType result;
+
+	dsVector3x_lerp(&result, &a, &b, (TypeParam)0.3);
+	EXPECT_EQ_DETERMINISTIC(dsLerp(a.x, b.x, (TypeParam)0.3), result.x, epsilon);
+	EXPECT_EQ_DETERMINISTIC(dsLerp(a.y, b.y, (TypeParam)0.3), result.y, epsilon);
+	EXPECT_EQ_DETERMINISTIC(dsLerp(a.z, b.z, (TypeParam)0.3), result.z, epsilon);
+
+	dsVector3x_lerp(&result, &a, &b, (TypeParam)0);
+	EXPECT_EQ(a.x, result.x);
+	EXPECT_EQ(a.y, result.y);
+	EXPECT_EQ(a.z, result.z);
+
+	dsVector3x_lerp(&result, &a, &b, (TypeParam)1);
+	EXPECT_EQ(b.x, result.x);
+	EXPECT_EQ(b.y, result.y);
+	EXPECT_EQ(b.z, result.z);
+}
+
+TYPED_TEST(Vector3xTest, Min)
+{
+	typedef typename Vector3xTypeSelector<TypeParam>::Type Vector3xType;
+
+	Vector3xType a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, 1}};
+	Vector3xType b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6, 2}};
+	Vector3xType result;
+
+	dsVector3x_min(&result, &a, &b);
+	EXPECT_EQ(a.x, result.x);
+	EXPECT_EQ(b.y, result.y);
+	EXPECT_EQ(a.z, result.z);
+}
+
+TYPED_TEST(Vector3xTest, Max)
+{
+	typedef typename Vector3xTypeSelector<TypeParam>::Type Vector3xType;
+
+	Vector3xType a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, 1}};
+	Vector3xType b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6, 2}};
+	Vector3xType result;
+
+	dsVector3x_max(&result, &a, &b);
+	EXPECT_EQ(b.x, result.x);
+	EXPECT_EQ(a.y, result.y);
+	EXPECT_EQ(b.z, result.z);
+}
+
 TYPED_TEST(Vector3xTest, Dot)
 {
 	typedef typename Vector3xTypeSelector<TypeParam>::Type Vector3xType;
@@ -379,32 +455,6 @@ TYPED_TEST(Vector3xTest, Equal)
 	EXPECT_FALSE(dsVector3x_equal(&a, &b));
 	EXPECT_FALSE(dsVector3x_equal(&a, &c));
 	EXPECT_FALSE(dsVector3x_equal(&a, &d));
-}
-
-TYPED_TEST(Vector3xTest, Lerp)
-{
-	typedef typename Vector3xTypeSelector<TypeParam>::Type Vector3xType;
-	TypeParam epsilon = Vector3xTypeSelector<TypeParam>::epsilon;
-	DS_UNUSED(epsilon);
-
-	Vector3xType a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, 1}};
-	Vector3xType b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6, 2}};
-	Vector3xType result;
-
-	dsVector3x_lerp(&result, &a, &b, (TypeParam)0.3);
-	EXPECT_EQ_DETERMINISTIC(dsLerp(a.x, b.x, (TypeParam)0.3), result.x, epsilon);
-	EXPECT_EQ_DETERMINISTIC(dsLerp(a.y, b.y, (TypeParam)0.3), result.y, epsilon);
-	EXPECT_EQ_DETERMINISTIC(dsLerp(a.z, b.z, (TypeParam)0.3), result.z, epsilon);
-
-	dsVector3x_lerp(&result, &a, &b, (TypeParam)0);
-	EXPECT_EQ(a.x, result.x);
-	EXPECT_EQ(a.y, result.y);
-	EXPECT_EQ(a.z, result.z);
-
-	dsVector3x_lerp(&result, &a, &b, (TypeParam)1);
-	EXPECT_EQ(b.x, result.x);
-	EXPECT_EQ(b.y, result.y);
-	EXPECT_EQ(b.z, result.z);
 }
 
 TYPED_TEST(Vector3xTest, Normalize)

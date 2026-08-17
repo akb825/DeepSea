@@ -331,6 +331,84 @@ DS_MATH_EXPORT inline void dsVector3xd_lerp(
 #endif
 }
 
+/** @copydoc dsVector3_min() */
+DS_MATH_EXPORT inline void dsVector3xf_min(
+	dsVector3xf* result, const dsVector3xf* a, const dsVector3xf* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+#if DS_SIMD_ALWAYS_FLOAT4
+	result->simd = dsSIMD4f_min(a->simd, b->simd);
+#else
+	dsVector3_min(*result, *a, *b);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
+#endif
+}
+
+/** @copydoc dsVector3_min() */
+DS_MATH_EXPORT inline void dsVector3xd_min(
+	dsVector3xd* result, const dsVector3xd* a, const dsVector3xd* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+#if DS_SIMD_PREFER_DOUBLE4
+	result->simd = dsSIMD4d_min(a->simd, b->simd);
+#elif DS_SIMD_ALWAYS_DOUBLE2
+	result->simd2[0] = dsSIMD2d_min(a->simd2[0], b->simd2[0]);
+	result->simd2[1] = dsSIMD2d_min(a->simd2[1], b->simd2[1]);
+#else
+	dsVector3_min(*result, *a, *b);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
+#endif
+}
+
+/** @copydoc dsVector3_max() */
+DS_MATH_EXPORT inline void dsVector3xf_max(
+	dsVector3xf* result, const dsVector3xf* a, const dsVector3xf* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+#if DS_SIMD_ALWAYS_FLOAT4
+	result->simd = dsSIMD4f_max(a->simd, b->simd);
+#else
+	dsVector3_max(*result, *a, *b);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
+#endif
+}
+
+/** @copydoc dsVector3_max() */
+DS_MATH_EXPORT inline void dsVector3xd_max(
+	dsVector3xd* result, const dsVector3xd* a, const dsVector3xd* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+#if DS_SIMD_PREFER_DOUBLE4
+	result->simd = dsSIMD4d_max(a->simd, b->simd);
+#elif DS_SIMD_ALWAYS_DOUBLE2
+	result->simd2[0] = dsSIMD2d_max(a->simd2[0], b->simd2[0]);
+	result->simd2[1] = dsSIMD2d_max(a->simd2[1], b->simd2[1]);
+#else
+	dsVector3_max(*result, *a, *b);
+#if DS_HAS_SIMD
+	// Avoid potential subnormal values with uninitialized memory if used by SIMD later.
+	result->w = 0;
+#endif
+#endif
+}
+
 /** @copydoc dsVector3_dot() */
 DS_MATH_EXPORT inline float dsVector3xf_dot(const dsVector3xf* a, const dsVector3xf* b)
 {

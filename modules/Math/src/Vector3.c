@@ -48,8 +48,18 @@ void dsVector3l_neg(dsVector3l* result, const dsVector3l* a);
 
 void dsVector3f_lerp(dsVector3f* result, const dsVector3f* a, const dsVector3f* b, float t);
 void dsVector3d_lerp(dsVector3d* result, const dsVector3d* a, const dsVector3d* b, double t);
-void dsVector3i_lerp(dsVector3i* result, const dsVector3i* a, const dsVector3i* b, float t);;
+void dsVector3i_lerp(dsVector3i* result, const dsVector3i* a, const dsVector3i* b, float t);
 void dsVector3l_lerp(dsVector3l* result, const dsVector3l* a, const dsVector3l* b, double t);
+
+void dsVector3f_min(dsVector3f* result, const dsVector3f* a, const dsVector3f* b);
+void dsVector3d_min(dsVector3d* result, const dsVector3d* a, const dsVector3d* b);
+void dsVector3i_min(dsVector3i* result, const dsVector3i* a, const dsVector3i* b);
+void dsVector3l_min(dsVector3l* result, const dsVector3l* a, const dsVector3l* b);
+
+void dsVector3f_max(dsVector3f* result, const dsVector3f* a, const dsVector3f* b);
+void dsVector3d_max(dsVector3d* result, const dsVector3d* a, const dsVector3d* b);
+void dsVector3i_max(dsVector3i* result, const dsVector3i* a, const dsVector3i* b);
+void dsVector3l_max(dsVector3l* result, const dsVector3l* a, const dsVector3l* b);
 
 float dsVector3f_dot(const dsVector3f* a, const dsVector3f* b);
 double dsVector3d_dot(const dsVector3d* a, const dsVector3d* b);

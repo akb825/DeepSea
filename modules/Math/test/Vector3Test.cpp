@@ -249,6 +249,34 @@ TYPED_TEST(Vector3Test, Neg)
 	EXPECT_EQ(-a.z, result.z);
 }
 
+TYPED_TEST(Vector3Test, Min)
+{
+	typedef typename Vector3TypeSelector<TypeParam>::Type Vector3Type;
+
+	Vector3Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7}};
+	Vector3Type b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6}};
+	Vector3Type result;
+
+	dsVector3_min(result, a, b);
+	EXPECT_EQ(a.x, result.x);
+	EXPECT_EQ(b.y, result.y);
+	EXPECT_EQ(a.z, result.z);
+}
+
+TYPED_TEST(Vector3Test, Max)
+{
+	typedef typename Vector3TypeSelector<TypeParam>::Type Vector3Type;
+
+	Vector3Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7}};
+	Vector3Type b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6}};
+	Vector3Type result;
+
+	dsVector3_max(result, a, b);
+	EXPECT_EQ(b.x, result.x);
+	EXPECT_EQ(a.y, result.y);
+	EXPECT_EQ(b.z, result.z);
+}
+
 TYPED_TEST(Vector3Test, Dot)
 {
 	typedef typename Vector3TypeSelector<TypeParam>::Type Vector3Type;

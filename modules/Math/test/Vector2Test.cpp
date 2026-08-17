@@ -239,6 +239,32 @@ TYPED_TEST(Vector2Test, Neg)
 	EXPECT_EQ(-a.y, result.y);
 }
 
+TYPED_TEST(Vector2Test, Min)
+{
+	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
+
+	Vector2Type a = {{(TypeParam)-2.3, (TypeParam)4.5}};
+	Vector2Type b = {{(TypeParam)3.2, (TypeParam)-5.4}};
+	Vector2Type result;
+
+	dsVector2_min(result, a, b);
+	EXPECT_EQ(a.x, result.x);
+	EXPECT_EQ(b.y, result.y);
+}
+
+TYPED_TEST(Vector2Test, Max)
+{
+	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
+
+	Vector2Type a = {{(TypeParam)-2.3, (TypeParam)4.5}};
+	Vector2Type b = {{(TypeParam)3.2, (TypeParam)-5.4}};
+	Vector2Type result;
+
+	dsVector2_max(result, a, b);
+	EXPECT_EQ(b.x, result.x);
+	EXPECT_EQ(a.y, result.y);
+}
+
 TYPED_TEST(Vector2Test, Dot)
 {
 	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;

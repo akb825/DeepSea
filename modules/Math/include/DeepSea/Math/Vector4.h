@@ -156,6 +156,36 @@ extern "C"
 	} while (0)
 
 /**
+ * @brief Takes the minimum value for each element between two vectors.
+ * @param[out] result The result for the  minimum values.
+ * @param a The first vector.
+ * @param b The second value.
+ */
+#define dsVector4_min(result, a, b) \
+	do \
+	{ \
+		(result).values[0] = dsMin((a).values[0], (b).values[0]); \
+		(result).values[1] = dsMin((a).values[1], (b).values[1]); \
+		(result).values[2] = dsMin((a).values[2], (b).values[2]); \
+		(result).values[3] = dsMin((a).values[3], (b).values[3]); \
+	} while (0)
+
+/**
+ * @brief Takes the maximum value for each element between two vectors.
+ * @param[out] result The result for the  maximum values.
+ * @param a The first vector.
+ * @param b The second value.
+ */
+#define dsVector4_max(result, a, b) \
+	do \
+	{ \
+		(result).values[0] = dsMax((a).values[0], (b).values[0]); \
+		(result).values[1] = dsMax((a).values[1], (b).values[1]); \
+		(result).values[2] = dsMax((a).values[2], (b).values[2]); \
+		(result).values[3] = dsMax((a).values[3], (b).values[3]); \
+	} while (0)
+
+/**
  * @brief Takes the dot product between two vectors.
  * @param a The first vector.
  * @param b The second vector.
@@ -627,6 +657,108 @@ DS_MATH_EXPORT inline void dsVector4l_lerp(
 	result->values[1] = (long long)dsLerp((double)a->values[1], (double)b->values[1], t);
 	result->values[2] = (long long)dsLerp((double)a->values[2], (double)b->values[2], t);
 	result->values[3] = (long long)dsLerp((double)a->values[3], (double)b->values[3], t);
+}
+
+/** @copydoc dsVector4_min() */
+DS_MATH_EXPORT inline void dsVector4f_min(
+	dsVector4f* result , const dsVector4f* a, const dsVector4f* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+#if DS_SIMD_ALWAYS_FLOAT4
+	result->simd = dsSIMD4f_min(a->simd, b->simd);
+#else
+	dsVector4_min(*result, *a, *b);
+#endif
+}
+
+/** @copydoc dsVector4_min() */
+DS_MATH_EXPORT inline void dsVector4d_min(
+	dsVector4d* result , const dsVector4d* a, const dsVector4d* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+#if DS_SIMD_PREFER_DOUBLE4
+	result->simd = dsSIMD4d_min(a->simd, b->simd);
+#elif DS_SIMD_ALWAYS_DOUBLE2
+	result->simd2[0] = dsSIMD2d_min(a->simd2[0], b->simd2[0]);
+	result->simd2[1] = dsSIMD2d_min(a->simd2[1], b->simd2[1]);
+#else
+	dsVector4_min(*result, *a, *b);
+#endif
+}
+
+/** @copydoc dsVector4_min() */
+DS_MATH_EXPORT inline void dsVector4i_min(
+	dsVector4i* result , const dsVector4i* a, const dsVector4i* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector4_min(*result, *a, *b);
+}
+
+/** @copydoc dsVector4_min() */
+DS_MATH_EXPORT inline void dsVector4l_min(
+	dsVector4l* result , const dsVector4l* a, const dsVector4l* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector4_min(*result, *a, *b);
+}
+
+/** @copydoc dsVector4_max() */
+DS_MATH_EXPORT inline void dsVector4f_max(
+	dsVector4f* result , const dsVector4f* a, const dsVector4f* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+#if DS_SIMD_ALWAYS_FLOAT4
+	result->simd = dsSIMD4f_max(a->simd, b->simd);
+#else
+	dsVector4_max(*result, *a, *b);
+#endif
+}
+
+/** @copydoc dsVector4_max() */
+DS_MATH_EXPORT inline void dsVector4d_max(
+	dsVector4d* result , const dsVector4d* a, const dsVector4d* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+#if DS_SIMD_PREFER_DOUBLE4
+	result->simd = dsSIMD4d_max(a->simd, b->simd);
+#elif DS_SIMD_ALWAYS_DOUBLE2
+	result->simd2[0] = dsSIMD2d_max(a->simd2[0], b->simd2[0]);
+	result->simd2[1] = dsSIMD2d_max(a->simd2[1], b->simd2[1]);
+#else
+	dsVector4_max(*result, *a, *b);
+#endif
+}
+
+/** @copydoc dsVector4_max() */
+DS_MATH_EXPORT inline void dsVector4i_max(
+	dsVector4i* result , const dsVector4i* a, const dsVector4i* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector4_max(*result, *a, *b);
+}
+
+/** @copydoc dsVector4_max() */
+DS_MATH_EXPORT inline void dsVector4l_max(
+	dsVector4l* result , const dsVector4l* a, const dsVector4l* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector4_max(*result, *a, *b);
 }
 
 /** @copydoc dsVector4_dot() */
