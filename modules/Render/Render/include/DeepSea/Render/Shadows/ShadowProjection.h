@@ -121,13 +121,14 @@ DS_RENDER_EXPORT bool dsShadowProjection_addPointsFMA(
  * @param shadowProj The shadow projection.
  * @param paddingRatio A ratio of padding to add to the edges of the range computed from
  *     dsShadowProjection_addPoints().
+ * @param minPadding The minimum padding to add in each dimension.
  * @param minDepthRange The minimum distance between the near and far planes for the shadow
  *     projection.
  * @return False if there's no matrix to compute. This can be because either parameter is NULL or
  *     no points were added to the shadow projection.
  */
 DS_RENDER_EXPORT bool dsShadowProjection_computeMatrix(dsMatrix44f* outMatrix,
-	const dsShadowProjection* shadowProj, float paddingRatio, float minDepthRange);
+	const dsShadowProjection* shadowProj, float paddingRatio, float minPadding, float minDepthRange);
 
 #ifdef __cplusplus
 }

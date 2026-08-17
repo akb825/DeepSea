@@ -68,9 +68,11 @@ struct SceneLightShadows FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
     VT_MAXCASCADES = 16,
     VT_MAXFIRSTSPLITDISTANCE = 18,
     VT_CASCADEEXPFACTOR = 20,
-    VT_MINDEPTHRANGES = 22,
-    VT_FADESTARTDISTANCE = 24,
-    VT_MAXDISTANCE = 26
+    VT_PADDINGRATIOS = 22,
+    VT_MINPADDINGS = 24,
+    VT_MINDEPTHRANGES = 26,
+    VT_FADESTARTDISTANCE = 28,
+    VT_MAXDISTANCE = 30
   };
   const ::flatbuffers::String *name() const {
     return GetPointer<const ::flatbuffers::String *>(VT_NAME);
@@ -99,6 +101,12 @@ struct SceneLightShadows FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   float cascadeExpFactor() const {
     return GetField<float>(VT_CASCADEEXPFACTOR, 0.0f);
   }
+  const ::flatbuffers::Vector<float> *paddingRatios() const {
+    return GetPointer<const ::flatbuffers::Vector<float> *>(VT_PADDINGRATIOS);
+  }
+  const ::flatbuffers::Vector<float> *minPaddings() const {
+    return GetPointer<const ::flatbuffers::Vector<float> *>(VT_MINPADDINGS);
+  }
   const ::flatbuffers::Vector<float> *minDepthRanges() const {
     return GetPointer<const ::flatbuffers::Vector<float> *>(VT_MINDEPTHRANGES);
   }
@@ -125,6 +133,10 @@ struct SceneLightShadows FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
            VerifyField<uint32_t>(verifier, VT_MAXCASCADES, 4) &&
            VerifyField<float>(verifier, VT_MAXFIRSTSPLITDISTANCE, 4) &&
            VerifyField<float>(verifier, VT_CASCADEEXPFACTOR, 4) &&
+           VerifyOffset(verifier, VT_PADDINGRATIOS) &&
+           verifier.VerifyVector(paddingRatios()) &&
+           VerifyOffset(verifier, VT_MINPADDINGS) &&
+           verifier.VerifyVector(minPaddings()) &&
            VerifyOffset(verifier, VT_MINDEPTHRANGES) &&
            verifier.VerifyVector(minDepthRanges()) &&
            VerifyField<float>(verifier, VT_FADESTARTDISTANCE, 4) &&
@@ -164,6 +176,12 @@ struct SceneLightShadowsBuilder {
   void add_cascadeExpFactor(float cascadeExpFactor) {
     fbb_.AddElement<float>(SceneLightShadows::VT_CASCADEEXPFACTOR, cascadeExpFactor, 0.0f);
   }
+  void add_paddingRatios(::flatbuffers::Offset<::flatbuffers::Vector<float>> paddingRatios) {
+    fbb_.AddOffset(SceneLightShadows::VT_PADDINGRATIOS, paddingRatios);
+  }
+  void add_minPaddings(::flatbuffers::Offset<::flatbuffers::Vector<float>> minPaddings) {
+    fbb_.AddOffset(SceneLightShadows::VT_MINPADDINGS, minPaddings);
+  }
   void add_minDepthRanges(::flatbuffers::Offset<::flatbuffers::Vector<float>> minDepthRanges) {
     fbb_.AddOffset(SceneLightShadows::VT_MINDEPTHRANGES, minDepthRanges);
   }
@@ -198,6 +216,8 @@ inline ::flatbuffers::Offset<SceneLightShadows> CreateSceneLightShadows(
     uint32_t maxCascades = 0,
     float maxFirstSplitDistance = 0.0f,
     float cascadeExpFactor = 0.0f,
+    ::flatbuffers::Offset<::flatbuffers::Vector<float>> paddingRatios = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<float>> minPaddings = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<float>> minDepthRanges = 0,
     float fadeStartDistance = 0.0f,
     float maxDistance = 0.0f) {
@@ -205,6 +225,8 @@ inline ::flatbuffers::Offset<SceneLightShadows> CreateSceneLightShadows(
   builder_.add_maxDistance(maxDistance);
   builder_.add_fadeStartDistance(fadeStartDistance);
   builder_.add_minDepthRanges(minDepthRanges);
+  builder_.add_minPaddings(minPaddings);
+  builder_.add_paddingRatios(paddingRatios);
   builder_.add_cascadeExpFactor(cascadeExpFactor);
   builder_.add_maxFirstSplitDistance(maxFirstSplitDistance);
   builder_.add_maxCascades(maxCascades);
@@ -228,6 +250,8 @@ inline ::flatbuffers::Offset<SceneLightShadows> CreateSceneLightShadowsDirect(
     uint32_t maxCascades = 0,
     float maxFirstSplitDistance = 0.0f,
     float cascadeExpFactor = 0.0f,
+    const std::vector<float> *paddingRatios = nullptr,
+    const std::vector<float> *minPaddings = nullptr,
     const std::vector<float> *minDepthRanges = nullptr,
     float fadeStartDistance = 0.0f,
     float maxDistance = 0.0f) {
@@ -236,6 +260,8 @@ inline ::flatbuffers::Offset<SceneLightShadows> CreateSceneLightShadowsDirect(
   auto light__ = light ? _fbb.CreateString(light) : 0;
   auto transformGroupDesc__ = transformGroupDesc ? _fbb.CreateString(transformGroupDesc) : 0;
   auto transformGroupName__ = transformGroupName ? _fbb.CreateString(transformGroupName) : 0;
+  auto paddingRatios__ = paddingRatios ? _fbb.CreateVector<float>(*paddingRatios) : 0;
+  auto minPaddings__ = minPaddings ? _fbb.CreateVector<float>(*minPaddings) : 0;
   auto minDepthRanges__ = minDepthRanges ? _fbb.CreateVector<float>(*minDepthRanges) : 0;
   return DeepSeaSceneLighting::CreateSceneLightShadows(
       _fbb,
@@ -248,6 +274,8 @@ inline ::flatbuffers::Offset<SceneLightShadows> CreateSceneLightShadowsDirect(
       maxCascades,
       maxFirstSplitDistance,
       cascadeExpFactor,
+      paddingRatios__,
+      minPaddings__,
       minDepthRanges__,
       fadeStartDistance,
       maxDistance);

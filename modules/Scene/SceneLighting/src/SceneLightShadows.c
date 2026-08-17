@@ -1439,10 +1439,11 @@ bool dsSceneLightShadows_computeSurfaceProjection(dsSceneLightShadows* shadows, 
 		return false;
 	}
 
-	const float paddingRatio = 0.1f;
 	dsMatrix44f* shadowMtx = shadows->projectionMatrices + surface;
 	uint32_t depthRangeIndex = shadows->cascaded ? surface : 0U;
-	if (!dsShadowProjection_computeMatrix(shadowMtx, shadows->projections + surface, paddingRatio,
+	if (!dsShadowProjection_computeMatrix(shadowMtx, shadows->projections + surface,
+			shadows->shadowParams.paddingRatios[depthRangeIndex],
+			shadows->shadowParams.minPaddings[depthRangeIndex],
 			shadows->shadowParams.minDepthRanges[depthRangeIndex]))
 	{
 		dsMatrix44f_identity(shadowMtx);

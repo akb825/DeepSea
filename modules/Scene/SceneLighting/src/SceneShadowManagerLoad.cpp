@@ -134,6 +134,22 @@ void* dsSceneShadowManager_load(const dsSceneLoadContext* loadContext,
 		const char* transformGroupName =
 			fbTransformGroupName ? fbTransformGroupName->c_str() : nullptr;
 
+		float paddingRatios[4] = {};
+		auto fbPaddingRatios = fbLightShadows->paddingRatios();
+		if (fbPaddingRatios)
+		{
+			for (uint32_t i = 0; i < fbPaddingRatios->size() && i < 4; ++i)
+				paddingRatios[i] = (*fbPaddingRatios)[i];
+		}
+
+		float minPaddings[4] = {};
+		auto fbMinPaddings = fbLightShadows->minPaddings();
+		if (fbMinPaddings)
+		{
+			for (uint32_t i = 0; i < fbMinPaddings->size() && i < 4; ++i)
+				minPaddings[i] = (*fbMinPaddings)[i];
+		}
+
 		float minDepthRanges[4] = {};
 		auto fbMinDepthRanges = fbLightShadows->minDepthRanges();
 		if (fbMinDepthRanges)
@@ -147,6 +163,8 @@ void* dsSceneShadowManager_load(const dsSceneLoadContext* loadContext,
 			fbLightShadows->maxCascades(),
 			fbLightShadows->maxFirstSplitDistance(),
 			fbLightShadows->cascadeExpFactor(),
+			{paddingRatios[0], paddingRatios[1], paddingRatios[2], paddingRatios[3]},
+			{minPaddings[0], minPaddings[1], minPaddings[2], minPaddings[3]},
 			{minDepthRanges[0], minDepthRanges[1], minDepthRanges[2], minDepthRanges[3]},
 			fbLightShadows->fadeStartDistance(),
 			fbLightShadows->maxDistance()

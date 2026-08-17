@@ -88,7 +88,7 @@ class SceneLightShadows(object):
         return 0.0
 
     # SceneLightShadows
-    def MinDepthRanges(self, j):
+    def PaddingRatios(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         if o != 0:
             a = self._tab.Vector(o)
@@ -96,40 +96,94 @@ class SceneLightShadows(object):
         return 0
 
     # SceneLightShadows
-    def MinDepthRangesAsNumpy(self):
+    def PaddingRatiosAsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         if o != 0:
             return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Float32Flags, o)
         return 0
 
     # SceneLightShadows
-    def MinDepthRangesLength(self):
+    def PaddingRatiosLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # SceneLightShadows
-    def MinDepthRangesIsNone(self):
+    def PaddingRatiosIsNone(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         return o == 0
 
     # SceneLightShadows
-    def FadeStartDistance(self):
+    def MinPaddings(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
+        return 0
+
+    # SceneLightShadows
+    def MinPaddingsAsNumpy(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
+        if o != 0:
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Float32Flags, o)
+        return 0
+
+    # SceneLightShadows
+    def MinPaddingsLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # SceneLightShadows
+    def MinPaddingsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
+        return o == 0
+
+    # SceneLightShadows
+    def MinDepthRanges(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
+        return 0
+
+    # SceneLightShadows
+    def MinDepthRangesAsNumpy(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
+        if o != 0:
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Float32Flags, o)
+        return 0
+
+    # SceneLightShadows
+    def MinDepthRangesLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # SceneLightShadows
+    def MinDepthRangesIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
+        return o == 0
+
+    # SceneLightShadows
+    def FadeStartDistance(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(28))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
     # SceneLightShadows
     def MaxDistance(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(30))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
 def SceneLightShadowsStart(builder):
-    builder.StartObject(12)
+    builder.StartObject(14)
 
 def Start(builder):
     SceneLightShadowsStart(builder)
@@ -188,8 +242,52 @@ def SceneLightShadowsAddCascadeExpFactor(builder, cascadeExpFactor):
 def AddCascadeExpFactor(builder, cascadeExpFactor):
     SceneLightShadowsAddCascadeExpFactor(builder, cascadeExpFactor)
 
+def SceneLightShadowsAddPaddingRatios(builder, paddingRatios):
+    builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(paddingRatios), 0)
+
+def AddPaddingRatios(builder, paddingRatios):
+    SceneLightShadowsAddPaddingRatios(builder, paddingRatios)
+
+def SceneLightShadowsStartPaddingRatiosVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
+def StartPaddingRatiosVector(builder, numElems):
+    return SceneLightShadowsStartPaddingRatiosVector(builder, numElems)
+
+def SceneLightShadowsCreatePaddingRatiosVector(builder, data):
+    data = list(data)
+    builder.StartVector(4, len(data), 4)
+    for item in reversed(data):
+        builder.PrependFloat32(item)
+    return builder.EndVector()
+
+def CreatePaddingRatiosVector(builder, data):
+    SceneLightShadowsCreatePaddingRatiosVector(builder, data)
+
+def SceneLightShadowsAddMinPaddings(builder, minPaddings):
+    builder.PrependUOffsetTRelativeSlot(10, flatbuffers.number_types.UOffsetTFlags.py_type(minPaddings), 0)
+
+def AddMinPaddings(builder, minPaddings):
+    SceneLightShadowsAddMinPaddings(builder, minPaddings)
+
+def SceneLightShadowsStartMinPaddingsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
+def StartMinPaddingsVector(builder, numElems):
+    return SceneLightShadowsStartMinPaddingsVector(builder, numElems)
+
+def SceneLightShadowsCreateMinPaddingsVector(builder, data):
+    data = list(data)
+    builder.StartVector(4, len(data), 4)
+    for item in reversed(data):
+        builder.PrependFloat32(item)
+    return builder.EndVector()
+
+def CreateMinPaddingsVector(builder, data):
+    SceneLightShadowsCreateMinPaddingsVector(builder, data)
+
 def SceneLightShadowsAddMinDepthRanges(builder, minDepthRanges):
-    builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(minDepthRanges), 0)
+    builder.PrependUOffsetTRelativeSlot(11, flatbuffers.number_types.UOffsetTFlags.py_type(minDepthRanges), 0)
 
 def AddMinDepthRanges(builder, minDepthRanges):
     SceneLightShadowsAddMinDepthRanges(builder, minDepthRanges)
@@ -211,13 +309,13 @@ def CreateMinDepthRangesVector(builder, data):
     SceneLightShadowsCreateMinDepthRangesVector(builder, data)
 
 def SceneLightShadowsAddFadeStartDistance(builder, fadeStartDistance):
-    builder.PrependFloat32Slot(10, fadeStartDistance, 0.0)
+    builder.PrependFloat32Slot(12, fadeStartDistance, 0.0)
 
 def AddFadeStartDistance(builder, fadeStartDistance):
     SceneLightShadowsAddFadeStartDistance(builder, fadeStartDistance)
 
 def SceneLightShadowsAddMaxDistance(builder, maxDistance):
-    builder.PrependFloat32Slot(11, maxDistance, 0.0)
+    builder.PrependFloat32Slot(13, maxDistance, 0.0)
 
 def AddMaxDistance(builder, maxDistance):
     SceneLightShadowsAddMaxDistance(builder, maxDistance)

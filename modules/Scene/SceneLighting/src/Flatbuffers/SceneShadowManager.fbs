@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2024 Aaron Barany
+ * Copyright 2021-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,17 @@ table SceneLightShadows
 	// between the splits and 1 is fully exponential.
 	cascadeExpFactor : float;
 
-	// The min depth ranges for each cascade, or the minimum distance between the near and far
+	// The ratio applied to each dimension to pad the bounds for each cascade. Each plane will be
+	// computed independently, so half the total dimensions will be used for each. Each element
+	// corresponds to a cascade. Point and spot shadows only use the first value.
+	paddingRatios : [float];
+
+	// The minimum padding for each cascade, or minimum to add along each direction to pad the
+	// bounds. Each element corresponds to a cascade. Point and spot shadows only use the first
+	// value.
+	minPaddings : [float];
+
+	// The minimum depth ranges for each cascade, or the minimum distance between the near and far
 	// planes for the shadow map. Each element corresponds to a cascade. Point and spot shadows only
 	// use the first value.
 	minDepthRanges : [float];

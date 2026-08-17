@@ -843,21 +843,27 @@
 				"transformGroupName": "dsShadowTransformData",
 				"maxCascades": 2,
 				"maxFirstSplitDistance": 10,
-				"minDepthRanges": 50
+				"paddingRatio": 0.1,
+				"minPadding": 0.25,
+				"minDepthRange": 50
 			},
 			{
 				"name": "spotShadows",
 				"lightType": "Spot",
 				"light": "mainSpot",
 				"transformGroupDesc": "directionalShadowTransformDesc",
-				"minDepthRanges": 50
+				"paddingRatio": 0.1,
+				"minPadding": 0.5,
+				"minDepthRange": 50
 			},
 			{
 				"name": "pointShadows",
 				"lightType": "Point",
 				"light": "center",
 				"transformGroupDesc": "pointShadowTransformDesc",
-				"minDepthRanges": 50
+				"paddingRatio": 0.1,
+				"minPadding": 0.5,
+				"minDepthRange": 50
 			}
 		]
 	}

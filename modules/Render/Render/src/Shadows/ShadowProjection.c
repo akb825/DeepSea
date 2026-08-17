@@ -221,7 +221,7 @@ bool dsShadowProjection_initialize(dsShadowProjection* shadowProj, const dsRende
 	shadowProj->sinViewLight = dsVector3xf_len(&viewCrossLight);
 	if (shadowProj->sinViewLight <= DS_PARALLEL_THRESHOLD)
 	{
-		// If the view is looking directlyat the light, use the down direction and fall back to
+		// If the view is looking directly at the light, use the down direction and fall back to
 		// uniform shadows.
 		dsVector3xf_cross(
 			shadowProj->shadowSpace.columns, shadowProj->shadowSpace.columns + 1, &viewDown);
@@ -373,7 +373,7 @@ DS_SIMD_END()
 #endif // DS_HAS_SIMD
 
 bool dsShadowProjection_computeMatrix(dsMatrix44f* outMatrix, const dsShadowProjection* shadowProj,
-	float paddingRatio, float minDepthRange)
+	float paddingRatio, float minPadding, float minDepthRange)
 {
 	if (!outMatrix || !shadowProj || !dsAlignedBox3xf_isValid(&shadowProj->pointBounds))
 		return false;
@@ -384,13 +384,20 @@ bool dsShadowProjection_computeMatrix(dsMatrix44f* outMatrix, const dsShadowProj
 	float scale = paddingRatio*0.5f;
 	dsVector3xf offset;
 	dsVector3xf_scale(&offset, &size, scale);
+	dsVector3xf minPadding3 = {{minPadding, minPadding, minPadding}};
+	dsVector3xf_max(&offset, &offset, &minPadding3);
 
-	// Depth is along the Y axis.
+	// Ensure minimum range for depth. Projection matrices are rotated so depth is along the Y axis.
 	float minDepthOffset = (minDepthRange - size.y)*0.5f;
 	offset.y = dsMax(offset.y, minDepthOffset);
 
 	dsVector3xf_sub(&bounds.min, &bounds.min, &offset);
 	dsVector3xf_add(&bounds.max, &bounds.max, &offset);
+
+	// If any dimension is 0 (e.g. one point added, no padding) exit early.
+	dsAlignedBox3xf_extents(&size, &bounds);
+	if (size.x == 0.0f || size.y == 0.0f || size.z == 0.0f)
+		return false;
 
 	// Frustum looks along negative Z axis, so need to invert Z values.
 	float near = -bounds.max.z;
@@ -415,8 +422,8 @@ bool dsShadowProjection_computeMatrix(dsMatrix44f* outMatrix, const dsShadowProj
 
 		float n = (targetNear + dsSqrtf(targetNear*targetFar))/shadowProj->sinViewLight;
 
-		// Take original view point X in shadow space, center Y coordinate. Offset Z to get the desired
-		// near plane. Take into account the fact that the frustum is along negative Z.
+		// Take original view point X in shadow space, center Y coordinate. Offset Z to get the
+		// desired near plane. Take into account the fact that the frustum is along negative Z.
 		dsMatrix44f translate;
 		dsMatrix44f_makeTranslate(&translate, 0.0f, yOffset, -n + zOffset);
 

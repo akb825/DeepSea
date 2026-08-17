@@ -258,7 +258,25 @@ typedef struct dsSceneShadowParams
 	float cascadeExpFactor;
 
 	/**
-	 * @brief The min depth ranges for each cascade.
+	 * @brief The padding ratios for each cascade.
+	 *
+	 * This is a ratio applied to each dimension to pad the bounds. For example, a value of 0.1 will
+	 * add 10% to each dimension. Each direction is taken independently, so half the total
+	 * dimensions will be used to compute each padding. Each element corresponds to a cascade. Point
+	 * and spot shadows only use the first value.
+	 */
+	float paddingRatios[4];
+
+	/**
+	 * @brief The minimum padding to add for each cascade.
+	 *
+	 * This is the minimum amount to add to each direction to pad the bounds. Each element
+	 * corresponds to a cascade. Point and spot shadows only use the first value.
+	 */
+	float minPaddings[4];
+
+	/**
+	 * @brief The minimum depth ranges for each cascade.
 	 *
 	 * This is the minimum distance between the near and far planes for the shadow map. Each element
 	 * corresponds to a cascade. Point and spot shadows only use the first value.

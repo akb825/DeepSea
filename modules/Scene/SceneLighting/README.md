@@ -47,7 +47,12 @@ The following custom scene resource types are provided with the members that are
 		* `maxCascades`: the maximum number of cascades for cascaded directional light shadows. Defaults to 4.
 		* `maxFirstSplitDistance`: maximum distance for the first split for cascaded shadows. Defaults to 100.
 		* `cascadeExpFactor`: exponential factor for cascaded shadows in the range \[0, 1\], where 0 uses linear distances between the splits and 1 is fully exponential. Defaults to 0.5.
-		* `minDepthRanges`: minimum distance between the near and far planes for each cascade. Spot and point light shadows only use the first value. Can either be an array to set the cascade values or a float to set all 4 possible cascade values.
+		* `paddingRatios`: ratio to apply to each dimension to padd the bounds for each cascade. For cascaded shadows, the same value will be used for each cascade.
+		* `paddingRatio`: ratio to apply to each dimension to pad the bounds.
+		* `minPaddings`: the minimum padding to apply to each direction of the bounds for each cascade.
+		* `minPadding`: the minimum padding to apply to each direction of the bounds. For cascaded shadows, the same value will be used for each cascade.
+		* `minDepthRanges`: minimum distance between the near and far planes for each cascade.
+		* `minDepthRange`: minimum distance between the  near and far planes. For cascaded shadows, the same value will be used for each cascade.
 		* `fadeStartDistance`: the distance to start fading out shadows. Defaults to 1000000, which is a large distance less likely to break GPUs that use limited precision floats.
 		* `maxDistance`: the maximum distance to display shadows. Defaults to 1000000, which is a large distance less likely to break GPUs that use limited precision floats.
 
