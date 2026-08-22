@@ -22,6 +22,7 @@
 #include <DeepSea/Application/Window.h>
 #include <DeepSea/ApplicationSDL/SDLApplication.h>
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/SystemAllocator.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
@@ -106,6 +107,10 @@ typedef struct TestAnimation
 	uint32_t maxFingers;
 } TestAnimation;
 
+static dsSystemAllocator renderAllocator;
+static dsSystemAllocator applicationAllocator;
+static dsSystemAllocator testAnimationAllocator;
+
 static void printHelp(const char* programPath)
 {
 	printf("usage: %s [OPTIONS]\n", dsPath_getFileName(programPath));
@@ -130,6 +135,13 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 	DS_LOG_ERROR_F("TestAnimation", "Allocator '%s' has %llu bytes allocated with %u allocations.",
 		name, (unsigned long long)allocator->size, allocator->currentAllocations);
 	return false;
+}
+
+static void validateAllocators(void)
+{
+	validateAllocator((dsAllocator*)&renderAllocator, "render");
+	validateAllocator((dsAllocator*)&applicationAllocator, "application");
+	validateAllocator((dsAllocator*)&testAnimationAllocator, "TestAnimation");
 }
 
 static void cycleSpeed(AnimationState* state)
@@ -322,13 +334,35 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	DS_VERIFY(dsView_draw(testAnimation->view, commandBuffer, NULL));
 }
 
-static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAllocator* allocator,
-	float updateFps)
+static void shutdown(void* userData)
+{
+	TestAnimation* testAnimation = (TestAnimation*)userData;
+	DS_VERIFY(dsView_destroy(testAnimation->view));
+	dsScene_destroy(testAnimation->scene);
+
+	dsSceneResources_freeRef(testAnimation->sceneGraph);
+	dsSceneResources_freeRef(testAnimation->skinMaterials);
+	dsSceneResources_freeRef(testAnimation->materials);
+	dsSceneResources_freeRef(testAnimation->baseResources);
+	dsSceneResources_freeRef(testAnimation->builtinResources);
+	DS_VERIFY(dsWindow_destroy(testAnimation->window));
+	DS_VERIFY(dsRenderer_destroy(testAnimation->renderer));
+	DS_VERIFY(dsAllocator_free(testAnimation->allocator, testAnimation));
+}
+
+static bool setup(dsApplication* application, dsAllocator* allocator, float updateFps)
 {
 	dsRenderer* renderer = application->renderer;
 	dsResourceManager* resourceManager = renderer->resourceManager;
+
+	TestAnimation* testAnimation = DS_ALLOCATE_OBJECT(allocator, TestAnimation);
+	if (!testAnimation)
+		return false;
+
+	memset(testAnimation, 0, sizeof(TestAnimation));
 	testAnimation->allocator = allocator;
 	testAnimation->renderer = renderer;
+	DS_VERIFY(dsApplication_setUserData(application, testAnimation, &shutdown));
 
 	dsEventResponder responder = {&processEvent, testAnimation, 0, 0};
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
@@ -665,19 +699,6 @@ static bool setup(TestAnimation* testAnimation, dsApplication* application, dsAl
 	return true;
 }
 
-static void shutdown(TestAnimation* testAnimation)
-{
-	DS_VERIFY(dsView_destroy(testAnimation->view));
-	dsScene_destroy(testAnimation->scene);
-
-	dsSceneResources_freeRef(testAnimation->sceneGraph);
-	dsSceneResources_freeRef(testAnimation->skinMaterials);
-	dsSceneResources_freeRef(testAnimation->materials);
-	dsSceneResources_freeRef(testAnimation->baseResources);
-	dsSceneResources_freeRef(testAnimation->builtinResources);
-	DS_VERIFY(dsWindow_destroy(testAnimation->window));
-}
-
 #if DS_ANDROID
 static void startEasyProfilerOnPermission(void* userData, const char* permission, bool granted)
 {
@@ -688,7 +709,7 @@ static void startEasyProfilerOnPermission(void* userData, const char* permission
 }
 #endif
 
-int dsMain(int argc, const char** argv)
+dsApplication* dsMain(int argc, const char* const* argv)
 {
 	dsRendererType rendererType = dsRendererType_Default;
 	const char* deviceName = NULL;
@@ -698,7 +719,7 @@ int dsMain(int argc, const char** argv)
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
 			printHelp(argv[0]);
-			return 0;
+			return NULL;
 		}
 		else if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--renderer") == 0)
 		{
@@ -706,14 +727,14 @@ int dsMain(int argc, const char** argv)
 			{
 				printf("--renderer option requires an argument\n");
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 			rendererType = dsRenderBootstrap_rendererTypeFromName(argv[++i]);
 			if (rendererType == dsRendererType_Default)
 			{
 				printf("Unknown renderer type: %s\n", argv[i]);
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 		}
 		else if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--device") == 0)
@@ -722,7 +743,7 @@ int dsMain(int argc, const char** argv)
 			{
 				printf("--device option requires an argument\n");
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 			deviceName = argv[++i];
 		}
@@ -732,7 +753,7 @@ int dsMain(int argc, const char** argv)
 			{
 				printf("--update-fps option requires an argument\n");
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 
 			char* endPtr;
@@ -741,14 +762,14 @@ int dsMain(int argc, const char** argv)
 			{
 				printf("--update-fps option must be a float >= 0\n");
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 		}
 		else if (*argv[i])
 		{
 			printf("Unknown option: %s\n", argv[i]);
 			printHelp(argv[0]);
-			return 1;
+			return NULL;
 		}
 	}
 
@@ -757,11 +778,8 @@ int dsMain(int argc, const char** argv)
 	DS_LOG_INFO("TestAnimation", "Press '2' to cycle animations for the second character.");
 	DS_LOG_INFO("TestAnimation", "Press 'V' to toggle vsync.");
 
-	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));
-	dsSystemAllocator applicationAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&applicationAllocator, DS_ALLOCATOR_NO_LIMIT));
-	dsSystemAllocator testAnimationAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&testAnimationAllocator, DS_ALLOCATOR_NO_LIMIT));
 
 	dsRendererOptions rendererOptions;
@@ -776,7 +794,7 @@ int dsMain(int argc, const char** argv)
 			&rendererOptions, dsRenderBootstrap_rendererID(rendererType)))
 	{
 		DS_LOG_ERROR_F("TestAnimation", "Couldn't setup renderer options.");
-		return 0;
+		return NULL;
 	}
 
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(
@@ -784,7 +802,7 @@ int dsMain(int argc, const char** argv)
 	if (!renderer)
 	{
 		DS_LOG_ERROR_F("TestAnimation", "Couldn't create renderer: %s", dsErrorString(errno));
-		return 2;
+		return NULL;
 	}
 
 	dsRenderer_setVSync(renderer, dsVSync_TripleBuffer);
@@ -799,7 +817,7 @@ int dsMain(int argc, const char** argv)
 	{
 		DS_LOG_ERROR_F("TestAnimation", "Couldn't create application: %s", dsErrorString(errno));
 		dsRenderer_destroy(renderer);
-		return 2;
+		return NULL;
 	}
 
 #if DS_HAS_EASY_PROFILER
@@ -817,26 +835,12 @@ int dsMain(int argc, const char** argv)
 		assetsPath, sizeof(assetsPath), dsFileResourceType_Embedded, "TestAnimation-assets"));
 	dsResourceStream_setEmbeddedDirectory(assetsPath);
 
-	TestAnimation testAnimation;
-	memset(&testAnimation, 0, sizeof(testAnimation));
-	if (!setup(&testAnimation, application, (dsAllocator*)&testAnimationAllocator, updateFps))
+	if (!setup(application, (dsAllocator*)&testAnimationAllocator, updateFps))
 	{
-		shutdown(&testAnimation);
-		return 3;
+		dsApplication_destroy(application);
+		return NULL;
 	}
 
-	int exitCode = dsApplication_run(application);
-
-	shutdown(&testAnimation);
-	dsSDLApplication_destroy(application);
-	dsRenderer_destroy(renderer);
-
-	if (!validateAllocator((dsAllocator*)&renderAllocator, "render"))
-		exitCode = 4;
-	if (!validateAllocator((dsAllocator*)&applicationAllocator, "application"))
-		exitCode = 4;
-	if (!validateAllocator((dsAllocator*)&testAnimationAllocator, "TestAnimation"))
-		exitCode = 4;
-
-	return exitCode;
+	atexit(&validateAllocators);
+	return application;
 }

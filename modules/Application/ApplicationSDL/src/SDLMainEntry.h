@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Application/Types.h>
 #include <DeepSea/ApplicationSDL/Export.h>
 #include <SDL3/SDL.h>
 
@@ -27,8 +28,20 @@ extern "C"
 
 typedef int (SDLCALL *dsMainFunction)(int argc, char* argv[]);
 
+// Callbacks expected by SDL, which should link once everything is brought together.
+DS_APPLICATIONSDL_EXPORT SDL_AppResult SDLCALL SDL_AppIterate(void* appstate);
+DS_APPLICATIONSDL_EXPORT SDL_AppResult SDLCALL SDL_AppEvent(void* appstate, SDL_Event* event);
+DS_APPLICATIONSDL_EXPORT void SDLCALL SDL_AppQuit(void* appstate, SDL_AppResult result);
+
+// Wrapped SDL functions so SDL itself only needs to be linked once.
+DS_APPLICATIONSDL_EXPORT int SDLCALL dsSDL_EnterAppMainCallbacks(int argc, char* argv[],
+	SDL_AppInit_func appinit, SDL_AppIterate_func appiter, SDL_AppEvent_func appevent,
+	SDL_AppQuit_func appquit);
 DS_APPLICATIONSDL_EXPORT int SDLCALL dsSDL_RunApp(
-	int argc, char *argv[], dsMainFunction mainFunction, void *reserved);
+	int argc, char* argv[], dsMainFunction mainFunction, void* reserved);
+
+DS_APPLICATIONSDL_EXPORT SDL_AppResult dsApplicationSDL_initResult(
+	const dsApplication* application);
 
 #ifdef __cplusplus
 }

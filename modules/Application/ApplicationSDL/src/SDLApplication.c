@@ -58,17 +58,6 @@
 #define CACHED_CHANGE_MASK 0xFFFF0000
 #define CACHED_CHANGE_SHIFT 16
 
-typedef struct dsSDLApplication
-{
-	dsApplication application;
-
-	bool useMotionSensors;
-	bool quit;
-	int exitCode;
-	SDL_Cursor* cursors[dsCursor_Count];
-	dsCursor curCursor;
-} dsSDLApplication;
-
 static uint32_t showMessageBoxImpl(SDL_Window* parentWindow, dsMessageBoxType type,
 	const char* title, const char* message, const char* const* buttons, uint32_t buttonCount,
 	uint32_t enterButton, uint32_t escapeButton)
@@ -587,6 +576,40 @@ static void invalidateWindowSurfaces(dsApplication* application)
 }
 #endif
 
+static void initializeFrame(dsApplication* application)
+{
+	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
+	if (sdlApplication->hasFrameEvents)
+		return;
+
+	sdlApplication->hasFrameEvents = true;
+
+	// Reference point to convert timestamps. Expect minor timing differences between calls should
+	// be negligible.
+	sdlApplication->inputTickRef = dsTimer_currentTicks();
+	sdlApplication->inputNSRef = SDL_GetTicksNS();
+
+	DS_VERIFY(dsRenderer_beginFrame(application->renderer));
+
+	DS_PROFILE_SCOPE_START("Process Events");
+
+	// Update the render surfaces before processing any events. This ensures that the size will
+	// be updated even if no events were generated (e.g. different event timing, state
+	// management when the window size doesn't match the pixel size), and window events will be
+	// grouped so inter-dependent changes are processed at the same time.
+	for (uint32_t i = 0; i < application->windowCount; ++i)
+	{
+		dsWindow* window = application->windows[i];
+		if (!window->surface)
+			continue;
+
+		SDL_Window* sdlWindow = ((dsSDLWindow*)window)->sdlWindow;
+		int pixelWidth, pixelHeight;
+		SDL_GetWindowSizeInPixels(sdlWindow, &pixelWidth, &pixelHeight);
+		dsRenderSurface_update(window->surface, pixelWidth, pixelHeight);
+	}
+}
+
 static bool convertEvent(
 	dsEvent* outEvent, dsApplication* application, dsWindow* focusWindow, const SDL_Event* sdlEvent)
 {
@@ -750,8 +773,7 @@ static bool convertEvent(
 			if (!window)
 				return false;
 
-			if (!outEvent->window->closeFunc ||
-				outEvent->window->closeFunc(window, outEvent->window->closeUserData))
+			if (!window->closeFunc || window->closeFunc(window, outEvent->window->closeUserData))
 			{
 				outEvent->type = dsAppEventType_WindowClosed;
 				outEvent->window = window;
@@ -1047,6 +1069,35 @@ static bool convertEvent(
 	}
 }
 
+static void finalizeEvents(dsApplication* application)
+{
+	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
+	DS_ASSERT(sdlApplication->hasFrameEvents);
+
+	// Sanity check for any windows that might have a missing display or render surface size
+	// change didn't get caught by other events.
+	for (uint32_t i = 0; i < application->windowCount; ++i)
+	{
+		dsWindow* window = application->windows[i];
+		dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
+		const dsRenderSurface* surface = window->surface;
+		if (!window->display || (surface && (sdlWindow->curSurfaceWidth != surface->width ||
+			sdlWindow->curSurfaceHeight != surface->height ||
+			sdlWindow->curSurfaceRotation != surface->rotation)))
+		{
+			dsEvent event;
+			event.time = dsTimer_currentTicks();
+			if (updateWindowState(&event, application, window, false))
+				dsApplication_dispatchEvent(application, &event);
+		}
+	}
+
+	DS_PROFILE_SCOPE_END();
+
+	// Clear out for the next frame.
+	sdlApplication->hasFrameEvents = false;
+}
+
 static void updateWindowSamples(dsApplication* application, uint64_t eventTime)
 {
 	if (application->windowCount == 0)
@@ -1160,6 +1211,37 @@ static void updateWindowSamples(dsApplication* application, uint64_t eventTime)
 		dsSDLWindow_raise(application, focusWindow);
 }
 
+static void finishFrame(dsApplication* application)
+{
+	DS_VERIFY(dsRenderer_endFrame(application->renderer));
+}
+
+bool dsSDLApplication_setUpdateRate(dsApplication* application, float updateRate)
+{
+	char buffer[20];
+	const char* value;
+	if (updateRate < 0.0f)
+		value = "waitevent";
+	else if (updateRate == 0.0f)
+		value = NULL;
+	else
+	{
+		int written = snprintf(buffer, sizeof(buffer), "%.9g", updateRate);
+		// Should be guaranteed to succeed, but just to be safe.
+		if ((size_t)written >= sizeof(buffer))
+		{
+			errno = EINVAL;
+			return false;
+		}
+
+		value = buffer;
+	}
+
+	SDL_SetHintWithPriority(SDL_HINT_MAIN_CALLBACK_RATE, value, SDL_HINT_OVERRIDE);
+	application->updateRate = updateRate;
+	return true;
+}
+
 uint32_t dsSDLApplication_showMessageBoxBase(dsApplication* application,
 	dsWindow* parentWindow, dsMessageBoxType type, const char* title, const char* message,
 	const char* const* buttons, uint32_t buttonCount, uint32_t enterButton, uint32_t escapeButton)
@@ -1197,213 +1279,6 @@ bool dsSDLApplication_prepareRendererOptions(dsRendererOptions* options, uint32_
 	options->destroyBackgroundSurfaceFunc = &destroyBackgroundGLWindow;
 	options->getBackgroundSurfaceHandleFunc = &getWaylandGLWindowHandle;
 	return true;
-}
-
-int dsSDLApplication_run(dsApplication* application)
-{
-	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
-	uint64_t lastPreInputTicks = dsTimer_currentTicks();
-	uint64_t lastUpdateTicks = lastPreInputTicks;
-	while (!sdlApplication->quit && application->windowCount > 0)
-	{
-		DS_VERIFY(dsRenderer_beginFrame(application->renderer));
-
-		if (application->preInputUpdateFunc)
-		{
-			uint64_t curTicks = dsTimer_currentTicks();
-			uint64_t lastFrameTicks = curTicks - lastPreInputTicks;
-			DS_PROFILE_SCOPE_START("Pre-Input Update");
-			application->preInputUpdateFunc(
-				application, curTicks, lastFrameTicks, application->preInputUpdateUserData);
-			DS_PROFILE_SCOPE_END();
-		}
-
-		// Frame time for pre-input update doesn't include pre-input update itself to more easily
-		// support use cases such as framerate limiting.
-		lastPreInputTicks = dsTimer_currentTicks();
-
-		// Get the same reference point of time from SDL. May be a few ticks off based on delay
-		// between function calls, but should be a lot more accurate than replacing with the current
-		// time when we process the event.
-		uint64_t lastPreInputNS = SDL_GetTicksNS();
-
-		DS_PROFILE_SCOPE_START("Process Events");
-
-		// Need to pump events to get updated window sizes. Use implicit event pump from event poll
-		// to avoid double-pumping.
-		SDL_Event sdlEvent;
-		bool hasEvent = SDL_PollEvent(&sdlEvent);
-
-		// Update the render surfaces before processing any events. This ensures that the size will
-		// be updated even if no events were generated (e.g. different event timing, state
-		// management when the window size doesn't match the pixel size), and window events will be
-		// grouped so inter-dependent changes are processed at the same time.
-		for (uint32_t i = 0; i < application->windowCount; ++i)
-		{
-			dsWindow* window = application->windows[i];
-			if (!window->surface)
-				continue;
-
-			SDL_Window* sdlWindow = ((dsSDLWindow*)window)->sdlWindow;
-			int pixelWidth, pixelHeight;
-			SDL_GetWindowSizeInPixels(sdlWindow, &pixelWidth, &pixelHeight);
-			dsRenderSurface_update(window->surface, pixelWidth, pixelHeight);
-		}
-
-		dsWindow* focusWindow = dsSDLWindow_getFocusWindow(application);
-		while (hasEvent)
-		{
-			if (sdlEvent.type == SDL_EVENT_QUIT || sdlEvent.type == SDL_EVENT_TERMINATING)
-				return sdlApplication->exitCode;
-
-			dsEvent event;
-
-			// Convert timestamp to ticks.
-			int64_t relativeEventNS = ((SDL_CommonEvent*)&sdlEvent)->timestamp - lastPreInputNS;
-			double relativeEventTime = (double)relativeEventNS*1e-9;
-			event.time = lastPreInputTicks +
-				dsTimer_secondsToTicks(application->timer, relativeEventTime);
-
-			const dsDisplayInfo* prevPrimaryDisplay = application->primaryDisplay;
-			if (!convertEvent(&event, application, focusWindow, &sdlEvent))
-			{
-				hasEvent = SDL_PollEvent(&sdlEvent);
-				continue;
-			}
-
-			dsApplication_dispatchEvent(application, &event);
-
-			// Must dispatch primary display change after the original event.
-			if (application->primaryDisplay != prevPrimaryDisplay)
-			{
-				event.type = dsAppEventType_PrimaryDisplayChanged;
-				event.display = application->primaryDisplay;
-				dsApplication_dispatchEvent(application, &event);
-			}
-
-			// Some events require cleanup.
-			if (sdlEvent.type == SDL_EVENT_DISPLAY_REMOVED)
-			{
-				// Sanity check: clear out any windows that reference the removed display.
-				for (uint32_t i = 0; i < application->windowCount; ++i)
-				{
-					dsWindow* window = application->windows[i];
-					if (window->display && window->display->id == sdlEvent.display.displayID)
-						window->display = NULL;
-				}
-
-				for (uint32_t i = 0; i < application->displayCount; ++i)
-				{
-					dsDisplayInfo* display = application->displays[i];
-					if (display->id == sdlEvent.display.displayID)
-					{
-						// Constant-time removal.
-						application->displays[i] =
-							application->displays[application->displayCount - 1];
-						--application->displayCount;
-						DS_VERIFY(dsAllocator_free(application->allocator, display));
-						break;
-					}
-				}
-			}
-			else if (sdlEvent.type == SDL_EVENT_WINDOW_DESTROYED)
-				dsWindow_destroy(findWindow(application, sdlEvent.window.windowID));
-			else if (sdlEvent.type == SDL_EVENT_JOYSTICK_REMOVED)
-				DS_VERIFY(dsSDLGameInput_remove(application, sdlEvent.jdevice.which));
-			else if (sdlEvent.type == SDL_EVENT_USER && sdlEvent.user.data2)
-			{
-				((dsCustomEventCleanupFunction)sdlEvent.user.data2)(
-					sdlEvent.user.code, sdlEvent.user.data1);
-			}
-
-			hasEvent = SDL_PollEvent(&sdlEvent);
-		}
-
-		// Sanity check for any windows that might have a missing display or render surface size
-		// change didn't get caught by other events.
-		for (uint32_t i = 0; i < application->windowCount; ++i)
-		{
-			dsWindow* window = application->windows[i];
-			dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
-			const dsRenderSurface* surface = window->surface;
-			if (!window->display || (surface && (sdlWindow->curSurfaceWidth != surface->width ||
-				sdlWindow->curSurfaceHeight != surface->height ||
-				sdlWindow->curSurfaceRotation != surface->rotation)))
-			{
-				dsEvent event;
-				event.time = lastPreInputTicks;
-				if (updateWindowState(&event, application, window, false))
-					dsApplication_dispatchEvent(application, &event);
-			}
-		}
-		DS_PROFILE_SCOPE_END();
-
-		// Functions above may block if the app is paused, so get the current time here.
-		uint64_t curTicks = dsTimer_currentTicks();
-		uint64_t lastFrameTicks = curTicks - lastUpdateTicks;
-		lastUpdateTicks = curTicks;
-
-		// Update game inputs, primarily to maintain the rumble state.
-		for (uint32_t i = 0; i < application->gameInputCount; ++i)
-			dsSDLGameInput_update(application->gameInputs[i], lastFrameTicks);
-
-		if (application->updateFunc)
-		{
-			DS_PROFILE_SCOPE_START("Update");
-			application->updateFunc(
-				application, curTicks, lastFrameTicks, application->updateUserData);
-			DS_PROFILE_SCOPE_END();
-		}
-
-		// If the samples have changed, need to re-create the windows. Do between update and draw
-		// since update is most likely to have changed the samples.
-		updateWindowSamples(application, dsTimer_currentTicks());
-
-		DS_PROFILE_SCOPE_START("Draw");
-		uint32_t swapSurfaceCount = 0;
-		dsRenderSurface* swapSurfaces[MAX_SWAP_WINDOWS];
-
-		dsCommandBuffer* commandBuffer = application->renderer->mainCommandBuffer;
-		for (uint32_t i = 0; i < application->windowCount; ++i)
-		{
-			dsWindow* window = application->windows[i];
-			if (!window->drawFunc || !window->surface)
-				continue;
-
-			if (!dsRenderSurface_beginDraw(window->surface, commandBuffer))
-				continue;
-
-			window->drawFunc(application, window, window->drawUserData);
-			dsRenderSurface_endDraw(window->surface, commandBuffer);
-			swapSurfaces[swapSurfaceCount++] = window->surface;
-
-			// Flush between windows. This avoids render commands for multiple windows being batched
-			// together, allowing for render commands to be executed on the GPU sooner.
-			// Force a swap buffers if we've exceeded the maximum number of windows to swap at once.
-			if (swapSurfaceCount >= MAX_SWAP_WINDOWS)
-			{
-				dsRenderSurface_swapBuffers(swapSurfaces, swapSurfaceCount);
-				swapSurfaceCount = 0;
-			}
-			else if (i < application->windowCount - 1)
-				dsRenderer_flush(application->renderer);
-		}
-		DS_PROFILE_SCOPE_END();
-
-		if (application->finishFrameFunc)
-		{
-			DS_PROFILE_SCOPE_START("Finish Frame");
-			application->finishFrameFunc(application, application->finishFrameUserData);
-			DS_PROFILE_SCOPE_END();
-		}
-
-		// Swap the buffers for all the window surfaces at the end.
-		dsRenderSurface_swapBuffers(swapSurfaces, swapSurfaceCount);
-
-		DS_VERIFY(dsRenderer_endFrame(application->renderer));
-	}
-
-	return sdlApplication->exitCode;
 }
 
 void dsSDLApplication_quit(dsApplication* application, int exitCode)
@@ -1547,6 +1422,34 @@ bool dsSDLApplication_requestAndroidPermission(dsApplication* application, const
 }
 #endif
 
+void dsSDLApplication_destroy(dsApplication* application)
+{
+	if (!application)
+		return;
+
+	if (application->displays)
+	{
+		for (uint32_t i = 0; i < application->displayCount; ++i)
+			DS_VERIFY(dsAllocator_free(application->allocator, application->displays[i]));
+
+		DS_VERIFY(dsAllocator_free(application->allocator, application->displays));
+	}
+
+	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
+	for (int i = 0; i < dsCursor_Count; ++i)
+	{
+		if (sdlApplication->cursors[i])
+			SDL_DestroyCursor(sdlApplication->cursors[i]);
+	}
+
+	dsSDLGameInput_freeAll(application->gameInputs, application->gameInputCount);
+	dsSDLMotionSensor_freeAll(application->motionSensors, application->motionSensorCount);
+	dsApplication_shutdown(application);
+	dsAllocator_free(application->allocator, application);
+
+	SDL_Quit();
+}
+
 uint32_t dsSDLApplication_showMessageBox(dsMessageBoxType type, const char* title,
 	const char* message, const char* const* buttons, uint32_t buttonCount, uint32_t enterButton,
 	uint32_t escapeButton)
@@ -1565,7 +1468,7 @@ uint32_t dsSDLApplication_showMessageBox(dsMessageBoxType type, const char* titl
 }
 
 dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* renderer, int argc,
-	const char** argv, const char* orgName, const char* appName, dsSDLApplicationFlags flags)
+	const char* const* argv, const char* orgName, const char* appName, dsSDLApplicationFlags flags)
 {
 	DS_UNUSED(argc);
 	DS_UNUSED(argv);
@@ -1672,8 +1575,12 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 
 	application->useMotionSensors = (flags & dsSDLApplicationFlags_MotionSensors) != 0;
 	application->quit = false;
+	application->hasFrameEvents = false;
 	application->exitCode = 0;
 	memset(application->cursors, 0, sizeof(application->cursors));
+	application->inputTickRef = 0;
+	application->inputNSRef = 0;
+	application->lastFrameTicks = dsTimer_currentTicks();
 
 	dsApplication* baseApplication = (dsApplication*)application;
 	DS_VERIFY(dsApplication_initialize(baseApplication, allocator));
@@ -1735,8 +1642,8 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 		return NULL;
 	}
 
+	baseApplication->setUpdateRateFunc = &dsSDLApplication_setUpdateRate;
 	baseApplication->showMessageBoxFunc = &dsSDLApplication_showMessageBoxBase;
-	baseApplication->runFunc = &dsSDLApplication_run;
 	baseApplication->quitFunc = &dsSDLApplication_quit;
 	baseApplication->addCustomEventFunc = &dsSDLApplication_addCustomEvent;
 	baseApplication->getPowerStateFunc = &dsSDLApplication_getPowerState;
@@ -1753,6 +1660,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 #if DS_ANDROID
 	baseApplication->requestAndroidPermissionFunc = &dsSDLApplication_requestAndroidPermission;
 #endif
+	baseApplication->destroyFunc = &dsSDLApplication_destroy;
 
 	baseApplication->createWindowFunc = &dsSDLWindow_create;
 	baseApplication->destroyWindowFunc = &dsSDLWindow_destroy;
@@ -1813,35 +1721,159 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	return baseApplication;
 }
 
-void dsSDLApplication_destroy(dsApplication* application)
-{
-	if (!application)
-		return;
-
-	if (application->displays)
-	{
-		for (uint32_t i = 0; i < application->displayCount; ++i)
-			DS_VERIFY(dsAllocator_free(application->allocator, application->displays[i]));
-
-		DS_VERIFY(dsAllocator_free(application->allocator, application->displays));
-	}
-
-	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
-	for (int i = 0; i < dsCursor_Count; ++i)
-	{
-		if (sdlApplication->cursors[i])
-			SDL_DestroyCursor(sdlApplication->cursors[i]);
-	}
-
-	dsSDLGameInput_freeAll(application->gameInputs, application->gameInputCount);
-	dsSDLMotionSensor_freeAll(application->motionSensors, application->motionSensorCount);
-	dsApplication_shutdown(application);
-	dsAllocator_free(application->allocator, application);
-
-	SDL_Quit();
-}
-
 bool dsSDLApplication_useMotionSensors(const dsApplication* application)
 {
 	return application && ((const dsSDLApplication*)application)->useMotionSensors;
+}
+
+bool dsSDLApplication_iterate(dsApplication* application)
+{
+	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
+	initializeFrame(application);
+	finalizeEvents(application);
+	if (sdlApplication->quit)
+	{
+		finishFrame(application);
+		return false;
+	}
+
+	// Functions above may block if the app is paused, so get the current time here.
+	uint64_t curTicks = dsTimer_currentTicks();
+	uint64_t frameTicks = curTicks - sdlApplication->lastFrameTicks;
+	sdlApplication->lastFrameTicks = curTicks;
+
+	// Update game inputs, primarily to maintain the rumble state.
+	for (uint32_t i = 0; i < application->gameInputCount; ++i)
+		dsSDLGameInput_update(application->gameInputs[i], frameTicks);
+
+	if (application->updateFunc)
+	{
+		DS_PROFILE_SCOPE_START("Update");
+		application->updateFunc(application, curTicks, frameTicks, application->updateUserData);
+		DS_PROFILE_SCOPE_END();
+	}
+
+	// Quit may have been requested during the update.
+	if (sdlApplication->quit)
+	{
+		finishFrame(application);
+		return false;
+	}
+
+	// If the samples have changed, need to re-create the windows. Do between update and draw
+	// since update is most likely to have changed the samples.
+	updateWindowSamples(application, dsTimer_currentTicks());
+
+	DS_PROFILE_SCOPE_START("Draw");
+	uint32_t swapSurfaceCount = 0;
+	dsRenderSurface* swapSurfaces[MAX_SWAP_WINDOWS];
+
+	dsCommandBuffer* commandBuffer = application->renderer->mainCommandBuffer;
+	for (uint32_t i = 0; i < application->windowCount; ++i)
+	{
+		dsWindow* window = application->windows[i];
+		if (!window->drawFunc || !window->surface)
+			continue;
+
+		if (!dsRenderSurface_beginDraw(window->surface, commandBuffer))
+			continue;
+
+		window->drawFunc(application, window, window->drawUserData);
+		dsRenderSurface_endDraw(window->surface, commandBuffer);
+		swapSurfaces[swapSurfaceCount++] = window->surface;
+
+		// Flush between windows. This avoids render commands for multiple windows being batched
+		// together, allowing for render commands to be executed on the GPU sooner.
+		// Force a swap buffers if we've exceeded the maximum number of windows to swap at once.
+		if (swapSurfaceCount >= MAX_SWAP_WINDOWS)
+		{
+			dsRenderSurface_swapBuffers(swapSurfaces, swapSurfaceCount);
+			swapSurfaceCount = 0;
+		}
+		else if (i < application->windowCount - 1)
+			dsRenderer_flush(application->renderer);
+	}
+	DS_PROFILE_SCOPE_END();
+
+	if (application->finishFrameFunc)
+	{
+		DS_PROFILE_SCOPE_START("Finish Frame");
+		application->finishFrameFunc(application, application->finishFrameUserData);
+		DS_PROFILE_SCOPE_END();
+	}
+
+	// Swap the buffers for all the window surfaces at the end.
+	dsRenderSurface_swapBuffers(swapSurfaces, swapSurfaceCount);
+
+	finishFrame(application);
+	return !sdlApplication->quit;
+}
+
+bool dsSDLApplication_event(dsApplication* application, SDL_Event* sdlEvent)
+{
+	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
+	initializeFrame(application);
+
+	if (sdlEvent->type == SDL_EVENT_QUIT || sdlEvent->type == SDL_EVENT_TERMINATING)
+		return false;
+
+	dsEvent event;
+
+	// Convert timestamp to ticks.
+	int64_t relativeEventNS = ((SDL_CommonEvent*)sdlEvent)->timestamp - sdlApplication->inputNSRef;
+	double relativeEventTime = (double)relativeEventNS*1e-9;
+	event.time = sdlApplication->inputTickRef +
+		dsTimer_secondsToTicks(application->timer, relativeEventTime);
+
+	dsWindow* focusWindow = dsSDLWindow_getFocusWindow(application);
+	const dsDisplayInfo* prevPrimaryDisplay = application->primaryDisplay;
+	if (!convertEvent(&event, application, focusWindow, sdlEvent))
+		return true;
+
+	dsApplication_dispatchEvent(application, &event);
+
+	// Must dispatch primary display change after the original event.
+	if (application->primaryDisplay != prevPrimaryDisplay)
+	{
+		event.type = dsAppEventType_PrimaryDisplayChanged;
+		event.display = application->primaryDisplay;
+		dsApplication_dispatchEvent(application, &event);
+	}
+
+	// Some events require cleanup.
+	if (sdlEvent->type == SDL_EVENT_DISPLAY_REMOVED)
+	{
+		// Sanity check: clear out any windows that reference the removed display.
+		for (uint32_t i = 0; i < application->windowCount; ++i)
+		{
+			dsWindow* window = application->windows[i];
+			if (window->display && window->display->id == sdlEvent->display.displayID)
+				window->display = NULL;
+		}
+
+		for (uint32_t i = 0; i < application->displayCount; ++i)
+		{
+			dsDisplayInfo* display = application->displays[i];
+			if (display->id == sdlEvent->display.displayID)
+			{
+				// Constant-time removal.
+				application->displays[i] =
+					application->displays[application->displayCount - 1];
+				--application->displayCount;
+				DS_VERIFY(dsAllocator_free(application->allocator, display));
+				break;
+			}
+		}
+	}
+	else if (sdlEvent->type == SDL_EVENT_WINDOW_DESTROYED)
+		dsWindow_destroy(findWindow(application, sdlEvent->window.windowID));
+	else if (sdlEvent->type == SDL_EVENT_JOYSTICK_REMOVED)
+		DS_VERIFY(dsSDLGameInput_remove(application, sdlEvent->jdevice.which));
+	else if (sdlEvent->type == SDL_EVENT_USER && sdlEvent->user.data2)
+	{
+		((dsCustomEventCleanupFunction)sdlEvent->user.data2)(
+			sdlEvent->user.code, sdlEvent->user.data1);
+	}
+
+	return !sdlApplication->quit;
 }

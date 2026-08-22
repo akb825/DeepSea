@@ -831,6 +831,14 @@ typedef void (*dsUpdateApplicationFunction)(
 typedef void (*dsFinishApplicationFrameFunction)(dsApplication* application, void* userData);
 
 /**
+ * @brief Function to set the update rate of the application.
+ * @param application The application.
+ * @param updateRate The desired update rate.
+ * @return False if the update rate couldn't be set.
+ */
+typedef bool (*dsSetApplicationUpdateRateFunction)(dsApplication* application, float updateRate);
+
+/**
  * @brief Function to show a message box.
  * @param application The application.
  * @param parentWindow The parent window for the dialog, or NULL to be unparented.
@@ -848,13 +856,6 @@ typedef void (*dsFinishApplicationFrameFunction)(dsApplication* application, voi
 typedef uint32_t (*dsShowApplicationMessageBoxFunction)(dsApplication* application,
 	dsWindow* parentWindow, dsMessageBoxType type, const char* title, const char* message,
 	const char* const* buttons, uint32_t buttonCount, uint32_t enterButton, uint32_t escapeButton);
-
-/**
- * @brief Function for running an application.
- * @param application The application.
- * @return The return code.
- */
-typedef int (*dsRunApplicationFunction)(dsApplication* application);
 
 /**
  * @brief Function for quitting the application.
@@ -984,6 +985,12 @@ typedef bool (*dsSetApplicationMousePositionFunction)(
  * @return A bitmask of the currently pressed mouse buttons.
  */
 typedef uint32_t (*dsGetApplicationPressedMouseButtonsFunction)(const dsApplication* application);
+
+/**
+ * @brief Function to destroy an application.
+ * @param application The application to destroy.
+ */
+typedef void (*dsDestroyApplicationFunction)(dsApplication* application);
 
 /**
  * @brief Function for creating a window.
@@ -1394,6 +1401,11 @@ typedef struct dsWindowResponder
 	void* userData;
 
 	/**
+	 * @brief Function to destroy the user data.
+	 */
+	dsDestroyUserDataFunction destroyUserDataFunc;
+
+	/**
 	 * @brief The ID of the responder.
 	 *
 	 * This will be set when added to the application.
@@ -1415,6 +1427,11 @@ typedef struct dsEventResponder
 	 * @brief User data to be passed to eventFunc.
 	 */
 	void* userData;
+
+	/**
+	 * @brief Function to destroy the user data.
+	 */
+	dsDestroyUserDataFunction destroyUserDataFunc;
 
 	/**
 	 * @brief The priority of the responder.
@@ -1463,6 +1480,15 @@ typedef struct dsApplication
 	 * @brief Whether this was responsible for initializing dsUniqueNameID.
 	 */
 	bool uniqueNameIDInitialized;
+
+	/**
+	 * @brief The desired rate at which to update the application.
+	 *
+	 * A positive value is the number of updates per second to target. A value of 0 indicates to
+	 * update as quickly as possible, and a negative number will only update when events are
+	 * received. Some implementations may not respect this value in all situations.
+	 */
+	float updateRate;
 
 	/**
 	 * @brief The the primary display.
@@ -1560,19 +1586,14 @@ typedef struct dsApplication
 	uint32_t motionSensorCapacity;
 
 	/**
-	 * @brief Function for updating the application before input has been processed.
+	 * @brief User data associated with the application.
 	 */
-	dsUpdateApplicationFunction preInputUpdateFunc;
+	void* userData;
 
 	/**
-	 * @brief User data for the pre-input update function.
+	 * @brief Function to destroy the application user data.
 	 */
-	void* preInputUpdateUserData;
-
-	/**
-	 * @brief Function to destroy the pre-input update user data.
-	 */
-	dsDestroyUserDataFunction destroyPreInputUpdateUserDataFunc;
+	dsDestroyUserDataFunction destroyUserDataFunc;
 
 	/**
 	 * @brief Function for updating the application.
@@ -1605,14 +1626,14 @@ typedef struct dsApplication
 	dsDestroyUserDataFunction destroyFinishFrameUserDataFunc;
 
 	/**
+	 * @brief Function to set the update rate of the application.
+	 */
+	dsSetApplicationUpdateRateFunction setUpdateRateFunc;
+
+	/**
 	 * @brief Function for showing a message box.
 	 */
 	dsShowApplicationMessageBoxFunction showMessageBoxFunc;
-
-	/**
-	 * @brief Function for running the application.
-	 */
-	dsRunApplicationFunction runFunc;
 
 	/**
 	 * @brief Function for quitting the application.
@@ -1680,6 +1701,11 @@ typedef struct dsApplication
 	 */
 	dsRequestAndroidPermissionFunction requestAndroidPermissionFunc;
 #endif
+
+	/**
+	 * @brief Function to destroy the application.
+	 */
+	dsDestroyApplicationFunction destroyFunc;
 
 	/**
 	 * @brief Function for creating a window.

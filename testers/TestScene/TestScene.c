@@ -21,6 +21,7 @@
 #include <DeepSea/Application/Window.h>
 #include <DeepSea/ApplicationSDL/SDLApplication.h>
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/SystemAllocator.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
@@ -76,6 +77,10 @@ typedef struct TestScene
 	float rotation;
 } TestScene;
 
+static dsSystemAllocator renderAllocator;
+static dsSystemAllocator applicationAllocator;
+static dsSystemAllocator testSceneAllocator;
+
 static void printHelp(const char* programPath)
 {
 	printf("usage: %s [OPTIONS]\n", dsPath_getFileName(programPath));
@@ -98,6 +103,13 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 	DS_LOG_ERROR_F("TestScene", "Allocator '%s' has %llu bytes allocated with %u allocations.",
 		name, (unsigned long long)allocator->size, allocator->currentAllocations);
 	return false;
+}
+
+static void validateAllocators(void)
+{
+	validateAllocator((dsAllocator*)&renderAllocator, "render");
+	validateAllocator((dsAllocator*)&applicationAllocator, "application");
+	validateAllocator((dsAllocator*)&testSceneAllocator, "TestScene");
 }
 
 static bool processEvent(dsApplication* application, const dsEvent* event, void* userData)
@@ -219,12 +231,31 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 		testScene->multithreadedRendering ? testScene->threadManager : NULL));
 }
 
-static bool setup(
-	TestScene* testScene, dsApplication* application, dsAllocator* allocator, float updateFps)
+static void shutdown(void* userData)
+{
+	TestScene* testScene = (TestScene*)userData;
+	DS_VERIFY(dsView_destroy(testScene->view));
+	dsScene_destroy(testScene->scene);
+	dsSceneThreadManager_destroy(testScene->threadManager);
+	dsThreadPool_destroy(testScene->threadPool);
+	dsSceneResources_freeRef(testScene->resources);
+	DS_VERIFY(dsWindow_destroy(testScene->window));
+	DS_VERIFY(dsRenderer_destroy(testScene->renderer));
+	DS_VERIFY(dsAllocator_free(testScene->allocator, testScene));
+}
+
+static bool setup(dsApplication* application, dsAllocator* allocator, float updateFps)
 {
 	dsRenderer* renderer = application->renderer;
+
+	TestScene* testScene = DS_ALLOCATE_OBJECT(allocator, TestScene);
+	if (!testScene)
+		return false;
+
+	memset(testScene, 0, sizeof(TestScene));
 	testScene->allocator = allocator;
 	testScene->renderer = renderer;
+	DS_VERIFY(dsApplication_setUserData(application, testScene, &shutdown));
 
 	dsEventResponder responder = {&processEvent, testScene, 0, 0};
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
@@ -361,16 +392,6 @@ static bool setup(
 	return true;
 }
 
-static void shutdown(TestScene* testScene)
-{
-	DS_VERIFY(dsView_destroy(testScene->view));
-	dsScene_destroy(testScene->scene);
-	dsSceneThreadManager_destroy(testScene->threadManager);
-	dsThreadPool_destroy(testScene->threadPool);
-	dsSceneResources_freeRef(testScene->resources);
-	DS_VERIFY(dsWindow_destroy(testScene->window));
-}
-
 #if DS_ANDROID
 static void startEasyProfilerOnPermission(void* userData, const char* permission, bool granted)
 {
@@ -381,7 +402,7 @@ static void startEasyProfilerOnPermission(void* userData, const char* permission
 }
 #endif
 
-int dsMain(int argc, const char** argv)
+dsApplication* dsMain(int argc, const char* const* argv)
 {
 	dsRendererType rendererType = dsRendererType_Default;
 	const char* deviceName = NULL;
@@ -391,7 +412,7 @@ int dsMain(int argc, const char** argv)
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
 			printHelp(argv[0]);
-			return 0;
+			return NULL;
 		}
 		else if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--renderer") == 0)
 		{
@@ -399,14 +420,14 @@ int dsMain(int argc, const char** argv)
 			{
 				printf("--renderer option requires an argument\n");
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 			rendererType = dsRenderBootstrap_rendererTypeFromName(argv[++i]);
 			if (rendererType == dsRendererType_Default)
 			{
 				printf("Unknown renderer type: %s\n", argv[i]);
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 		}
 		else if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--device") == 0)
@@ -415,7 +436,7 @@ int dsMain(int argc, const char** argv)
 			{
 				printf("--device option requires an argument\n");
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 			deviceName = argv[++i];
 		}
@@ -425,7 +446,7 @@ int dsMain(int argc, const char** argv)
 			{
 				printf("--update-fps option requires an argument\n");
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 
 			char* endPtr;
@@ -434,14 +455,14 @@ int dsMain(int argc, const char** argv)
 			{
 				printf("--update-fps option must be a float >= 0\n");
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 		}
 		else if (*argv[i])
 		{
 			printf("Unknown option: %s\n", argv[i]);
 			printHelp(argv[0]);
-			return 1;
+			return NULL;
 		}
 	}
 
@@ -452,11 +473,8 @@ int dsMain(int argc, const char** argv)
 	DS_LOG_INFO("TestScene", "Press '3' to toggle multi-threaded rendering.");
 	DS_LOG_INFO("TestScene", "Press 'V' to toggle vsync.");
 
-	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));
-	dsSystemAllocator applicationAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&applicationAllocator, DS_ALLOCATOR_NO_LIMIT));
-	dsSystemAllocator testSceneAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&testSceneAllocator, DS_ALLOCATOR_NO_LIMIT));
 
 	dsRendererOptions rendererOptions;
@@ -468,7 +486,7 @@ int dsMain(int argc, const char** argv)
 			&rendererOptions, dsRenderBootstrap_rendererID(rendererType)))
 	{
 		DS_LOG_ERROR_F("TestScene", "Couldn't setup renderer options.");
-		return 0;
+		return NULL;
 	}
 
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
@@ -476,7 +494,7 @@ int dsMain(int argc, const char** argv)
 	if (!renderer)
 	{
 		DS_LOG_ERROR_F("TestScene", "Couldn't create renderer: %s", dsErrorString(errno));
-		return 2;
+		return NULL;
 	}
 
 	dsRenderer_setVSync(renderer, dsVSync_TripleBuffer);
@@ -490,7 +508,7 @@ int dsMain(int argc, const char** argv)
 	{
 		DS_LOG_ERROR_F("TestScene", "Couldn't create application: %s", dsErrorString(errno));
 		dsRenderer_destroy(renderer);
-		return 2;
+		return NULL;
 	}
 
 #if DS_HAS_EASY_PROFILER
@@ -508,26 +526,12 @@ int dsMain(int argc, const char** argv)
 		"TestScene-assets"));
 	dsResourceStream_setEmbeddedDirectory(assetsPath);
 
-	TestScene testScene;
-	memset(&testScene, 0, sizeof(testScene));
-	if (!setup(&testScene, application, (dsAllocator*)&testSceneAllocator, updateFps))
+	if (!setup(application, (dsAllocator*)&testSceneAllocator, updateFps))
 	{
-		shutdown(&testScene);
-		return 3;
+		dsApplication_destroy(application);
+		return NULL;
 	}
 
-	int exitCode = dsApplication_run(application);
-
-	shutdown(&testScene);
-	dsSDLApplication_destroy(application);
-	dsRenderer_destroy(renderer);
-
-	if (!validateAllocator((dsAllocator*)&renderAllocator, "render"))
-		exitCode = 4;
-	if (!validateAllocator((dsAllocator*)&applicationAllocator, "application"))
-		exitCode = 4;
-	if (!validateAllocator((dsAllocator*)&testSceneAllocator, "TestScene"))
-		exitCode = 4;
-
-	return exitCode;
+	atexit(&validateAllocators);
+	return application;
 }

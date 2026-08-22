@@ -77,14 +77,8 @@ DS_APPLICATIONSDL_EXPORT bool dsSDLApplication_prepareRendererOptions(
  * @return The application, or NULL if the application couldn't be created.
  */
 DS_APPLICATIONSDL_EXPORT dsApplication* dsSDLApplication_create(dsAllocator* allocator,
-	dsRenderer* renderer, int argc, const char** argv, const char* orgName, const char* appName,
-	dsSDLApplicationFlags flags);
-
-/**
- * @brief Destroys an SDL application.
- * @param application The application to destroy.
- */
-DS_APPLICATIONSDL_EXPORT void dsSDLApplication_destroy(dsApplication* application);
+	dsRenderer* renderer, int argc, const char* const* argv, const char* orgName,
+	const char* appName, dsSDLApplicationFlags flags);
 
 #ifdef __cplusplus
 }

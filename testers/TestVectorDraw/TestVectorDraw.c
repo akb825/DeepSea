@@ -95,7 +95,11 @@ typedef struct TestVectorDraw
 static const char* assetsDir = "TestVectorDraw-assets";
 static char shaderDir[100];
 
-const char* vectorImageFiles[] =
+static dsSystemAllocator renderAllocator;
+static dsSystemAllocator applicationAllocator;
+static dsSystemAllocator testVectorDrawAllocator;
+
+static const char* vectorImageFiles[] =
 {
 	"polygon.dsvi",
 	"line.dsvi",
@@ -160,6 +164,13 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 	DS_LOG_ERROR_F("TestVectorDraw", "Allocator '%s' has %llu bytes allocated with %u allocations.",
 		name, (unsigned long long)allocator->size, allocator->currentAllocations);
 	return false;
+}
+
+static void validateAllocators(void)
+{
+	validateAllocator((dsAllocator*)&renderAllocator, "render");
+	validateAllocator((dsAllocator*)&applicationAllocator, "application");
+	validateAllocator((dsAllocator*)&testVectorDrawAllocator, "TestVectorDraw");
 }
 
 static bool createFramebuffer(TestVectorDraw* testVectorDraw)
@@ -376,15 +387,45 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	DS_VERIFY(dsRenderPass_end(testVectorDraw->renderPass, commandBuffer));
 }
 
-static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
-	dsAllocator* allocator, bool srgb)
+static void shutdown(void* userData)
+{
+	TestVectorDraw* testVectorDraw = (TestVectorDraw*)userData;
+	if (testVectorDraw->vectorImages)
+	{
+		for (uint32_t i = 0; i < testVectorDraw->vectorImageCount; ++i)
+			DS_VERIFY(dsVectorImage_destroy(testVectorDraw->vectorImages[i]));
+		DS_VERIFY(dsAllocator_free(testVectorDraw->allocator, testVectorDraw->vectorImages));
+	}
+	DS_VERIFY(dsVectorResources_destroy(testVectorDraw->vectorResources));
+	dsMaterial_destroy(testVectorDraw->material);
+	DS_VERIFY(dsShader_destroy(testVectorDraw->textureIconShader));
+	DS_VERIFY(dsMaterialDesc_destroy(testVectorDraw->textureIconMaterialDesc));
+	DS_VERIFY(dsShaderVariableGroupDesc_destroy(testVectorDraw->textureIconDataDesc));
+	DS_VERIFY(dsVectorShaders_destroy(testVectorDraw->wireframeShaders));
+	DS_VERIFY(dsVectorShaders_destroy(testVectorDraw->shaders));
+	DS_VERIFY(dsVectorShaderModule_destroy(testVectorDraw->shaderModule));
+	DS_VERIFY(dsRenderPass_destroy(testVectorDraw->renderPass));
+	DS_VERIFY(dsFramebuffer_destroy(testVectorDraw->framebuffer));
+	DS_VERIFY(dsWindow_destroy(testVectorDraw->window));
+	DS_VERIFY(dsRenderer_destroy(testVectorDraw->renderer));
+	DS_VERIFY(dsAllocator_free(testVectorDraw->allocator, testVectorDraw));
+}
+
+static bool setup(dsApplication* application, dsAllocator* allocator, bool srgb)
 {
 	DS_PROFILE_FUNC_START();
 
 	dsRenderer* renderer = application->renderer;
 	dsResourceManager* resourceManager = renderer->resourceManager;
+
+	TestVectorDraw* testVectorDraw = DS_ALLOCATE_OBJECT(allocator, TestVectorDraw);
+	if (!testVectorDraw)
+		DS_PROFILE_FUNC_RETURN(false);
+
+	memset(testVectorDraw, 0, sizeof(TestVectorDraw));
 	testVectorDraw->allocator = allocator;
 	testVectorDraw->renderer = renderer;
+	DS_VERIFY(dsApplication_setUserData(application, testVectorDraw, &shutdown));
 
 	dsEventResponder responder = {&processEvent, testVectorDraw, 0, 0};
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
@@ -585,27 +626,6 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
-static void shutdown(TestVectorDraw* testVectorDraw)
-{
-	if (testVectorDraw->vectorImages)
-	{
-		for (uint32_t i = 0; i < testVectorDraw->vectorImageCount; ++i)
-			DS_VERIFY(dsVectorImage_destroy(testVectorDraw->vectorImages[i]));
-		DS_VERIFY(dsAllocator_free(testVectorDraw->allocator, testVectorDraw->vectorImages));
-	}
-	DS_VERIFY(dsVectorResources_destroy(testVectorDraw->vectorResources));
-	dsMaterial_destroy(testVectorDraw->material);
-	DS_VERIFY(dsShader_destroy(testVectorDraw->textureIconShader));
-	DS_VERIFY(dsMaterialDesc_destroy(testVectorDraw->textureIconMaterialDesc));
-	DS_VERIFY(dsShaderVariableGroupDesc_destroy(testVectorDraw->textureIconDataDesc));
-	DS_VERIFY(dsVectorShaders_destroy(testVectorDraw->wireframeShaders));
-	DS_VERIFY(dsVectorShaders_destroy(testVectorDraw->shaders));
-	DS_VERIFY(dsVectorShaderModule_destroy(testVectorDraw->shaderModule));
-	DS_VERIFY(dsRenderPass_destroy(testVectorDraw->renderPass));
-	DS_VERIFY(dsFramebuffer_destroy(testVectorDraw->framebuffer));
-	DS_VERIFY(dsWindow_destroy(testVectorDraw->window));
-}
-
 #if DS_ANDROID
 static void startEasyProfilerOnPermission(void* userData, const char* permission, bool granted)
 {
@@ -616,7 +636,7 @@ static void startEasyProfilerOnPermission(void* userData, const char* permission
 }
 #endif
 
-int dsMain(int argc, const char** argv)
+dsApplication* dsMain(int argc, const char* const* argv)
 {
 	dsRendererType rendererType = dsRendererType_Default;
 	const char* deviceName = NULL;
@@ -626,7 +646,7 @@ int dsMain(int argc, const char** argv)
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
 			printHelp(argv[0]);
-			return 0;
+			return NULL;
 		}
 		else if (strcmp(argv[i], "--srgb") == 0)
 			srgb = true;
@@ -636,14 +656,14 @@ int dsMain(int argc, const char** argv)
 			{
 				printf("--renderer option requires an argument\n");
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 			rendererType = dsRenderBootstrap_rendererTypeFromName(argv[++i]);
 			if (rendererType == dsRendererType_Default)
 			{
 				printf("Unknown renderer type: %s\n", argv[i]);
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 		}
 		else if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--device") == 0)
@@ -652,7 +672,7 @@ int dsMain(int argc, const char** argv)
 			{
 				printf("--device option requires an argument\n");
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 			deviceName = argv[++i];
 		}
@@ -660,7 +680,7 @@ int dsMain(int argc, const char** argv)
 		{
 			printf("Unknown option: %s\n", argv[i]);
 			printHelp(argv[0]);
-			return 1;
+			return NULL;
 		}
 	}
 
@@ -670,11 +690,8 @@ int dsMain(int argc, const char** argv)
 	DS_LOG_INFO("TestVectorDraw", "Press 'W' to toggle wireframe.");
 	DS_LOG_INFO("TestVectorDraw", "Press 'V' to toggle vsync.");
 
-	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));
-	dsSystemAllocator applicationAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&applicationAllocator, DS_ALLOCATOR_NO_LIMIT));
-	dsSystemAllocator testVectorDrawAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&testVectorDrawAllocator, DS_ALLOCATOR_NO_LIMIT));
 
 	dsRendererOptions rendererOptions;
@@ -687,7 +704,7 @@ int dsMain(int argc, const char** argv)
 			&rendererOptions, dsRenderBootstrap_rendererID(rendererType)))
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't setup renderer options.");
-		return 0;
+		return NULL;
 	}
 
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
@@ -695,7 +712,7 @@ int dsMain(int argc, const char** argv)
 	if (!renderer)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create renderer: %s", dsErrorString(errno));
-		return 2;
+		return NULL;
 	}
 
 	dsRenderer_setVSync(renderer, dsVSync_TripleBuffer);
@@ -707,7 +724,7 @@ int dsMain(int argc, const char** argv)
 		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_SRGB)))
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "sRGB requested but not supported by the current target.");
-		return 2;
+		return NULL;
 	}
 
 	dsShaderVersion shaderVersions[] =
@@ -730,7 +747,7 @@ int dsMain(int argc, const char** argv)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create application: %s", dsErrorString(errno));
 		dsRenderer_destroy(renderer);
-		return 2;
+		return NULL;
 	}
 
 #if DS_HAS_EASY_PROFILER
@@ -743,26 +760,12 @@ int dsMain(int argc, const char** argv)
 #endif
 #endif
 
-	TestVectorDraw testVectorDraw;
-	memset(&testVectorDraw, 0, sizeof(testVectorDraw));
-	if (!setup(&testVectorDraw, application, (dsAllocator*)&testVectorDrawAllocator, srgb))
+	if (!setup(application, (dsAllocator*)&testVectorDrawAllocator, srgb))
 	{
-		shutdown(&testVectorDraw);
-		return 3;
+		dsApplication_destroy(application);
+		return NULL;
 	}
 
-	int exitCode = dsApplication_run(application);
-
-	shutdown(&testVectorDraw);
-	dsSDLApplication_destroy(application);
-	dsRenderer_destroy(renderer);
-
-	if (!validateAllocator((dsAllocator*)&renderAllocator, "render"))
-		exitCode = 4;
-	if (!validateAllocator((dsAllocator*)&applicationAllocator, "application"))
-		exitCode = 4;
-	if (!validateAllocator((dsAllocator*)&testVectorDrawAllocator, "TestVectorDraw"))
-		exitCode = 4;
-
-	return exitCode;
+	atexit(&validateAllocators);
+	return application;
 }

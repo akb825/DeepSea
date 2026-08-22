@@ -17,7 +17,9 @@
 #include <DeepSea/Core/Config.h>
 
 // Wrap SDL functions to ensure we only need to link to SDL once.
+#define SDL_EnterAppMainCallbacks dsSDL_EnterAppMainCallbacks
 #define SDL_RunApp dsSDL_RunApp
+#define SDL_MAIN_USE_CALLBACKS 1
 #include <SDL3/SDL_main.h>
 
 // Make sure the main function is visible on Android.
@@ -32,10 +34,21 @@ __declspec(dllexport) uint32_t NvOptimusEnablement = 1;
 __declspec(dllexport) uint32_t AmdPowerXpressRequestHighPerformance = 1;
 #endif
 
-extern int dsMain(int argc, const char** argv);
+typedef struct dsApplication* dsApplication;
 
-// SDL_main.h will #define main to SDL_main when it needs to be replaced.
-DS_MAIN_EXPORT int main(int argc, char* argv[])
+extern dsApplication* dsMain(int argc, const char* const* argv);
+extern SDL_AppResult dsApplicationSDL_initResult(const dsApplication* application);
+
+// Initial entry point is the only thing that must be defined here in order to call into dsMain().
+// Other functions forward to the application library where it has access to all necessary
+// internals.
+SDL_AppResult SDLCALL SDL_AppInit(void **appstate, int argc, char *argv[])
 {
-	return dsMain(argc, (const char**)argv);
+	dsApplication* application = dsMain(argc, (const char* const*)argv);
+	if (!application)
+		return SDL_APP_FAILURE;
+
+	*appstate = application;
+	// Return result based on whether dsApplication_quit() was called during setup.
+	return dsApplicationSDL_initResult(application);
 }

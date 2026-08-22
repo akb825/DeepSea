@@ -18,6 +18,7 @@
 #include <DeepSea/Application/Window.h>
 #include <DeepSea/ApplicationSDL/SDLApplication.h>
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/SystemAllocator.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Assert.h>
@@ -118,9 +119,6 @@ typedef struct IconInfo
 	const char* name;
 } IconInfo;
 
-static const char* assetsDir = "TestText-assets";
-static char shaderDir[100];
-
 typedef struct StandardVertex
 {
 	dsVector2f position;
@@ -157,6 +155,13 @@ typedef struct TextInfo
 	float lineScale;
 	dsTextStyle styles[3];
 } TextInfo;
+
+static const char* assetsDir = "TestText-assets";
+static char shaderDir[100];
+
+static dsSystemAllocator renderAllocator;
+static dsSystemAllocator applicationAllocator;
+static dsSystemAllocator testTextAllocator;
 
 #define NO_STYLE \
 	{UINT_MAX, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{0, 0, 0, 0}}, {{0, 0, 0, 0}}, 0.0f}
@@ -530,6 +535,13 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 	DS_LOG_ERROR_F("TestText", "Allocator '%s' has %llu bytes allocated with %u allocations.",
 		name, (unsigned long long)allocator->size, allocator->currentAllocations);
 	return false;
+}
+
+static void validateAllocators(void)
+{
+	validateAllocator((dsAllocator*)&renderAllocator, "render");
+	validateAllocator((dsAllocator*)&applicationAllocator, "application");
+	validateAllocator((dsAllocator*)&testTextAllocator, "TestText");
 }
 
 static void setPositions(TestText* testText)
@@ -1205,14 +1217,49 @@ static bool setupLimit(TestText* testText)
 	return true;
 }
 
-static bool setup(TestText* testText, dsApplication* application, dsAllocator* allocator,
-	dsTextQuality quality, const char* fontPath)
+static void shutdown(void* userData)
+{
+	TestText* testText = (TestText*)userData;
+	DS_VERIFY(dsTextRenderBuffer_destroy(testText->tessTextRender));
+	dsTextLayout_destroyLayoutAndText(testText->tessText);
+	DS_VERIFY(dsTextRenderBuffer_destroy(testText->textRender));
+	dsTextLayout_destroyLayoutAndText(testText->text);
+	DS_VERIFY(dsFont_destroy(testText->font));
+	dsFaceGroup_destroy(testText->faceGroup);
+	dsTextIcons_destroy(testText->textIcons);
+	DS_VERIFY(dsShader_destroy(testText->iconShader));
+	DS_VERIFY(dsShader_destroy(testText->tessShader));
+	DS_VERIFY(dsShader_destroy(testText->shader));
+	DS_VERIFY(dsShader_destroy(testText->limitShader));
+	dsMaterial_destroy(testText->material);
+	DS_VERIFY(dsDrawGeometry_destroy(testText->limitGeometry));
+	DS_VERIFY(dsGfxBuffer_destroy(testText->limitBuffer));
+	DS_VERIFY(dsMaterialDesc_destroy(testText->iconMaterialDesc));
+	DS_VERIFY(dsMaterialDesc_destroy(testText->materialDesc));
+	DS_VERIFY(dsShaderVariableGroupDesc_destroy(testText->iconDataDesc));
+	DS_VERIFY(dsShaderModule_destroy(testText->shaderModule));
+	DS_VERIFY(dsRenderPass_destroy(testText->renderPass));
+	DS_VERIFY(dsFramebuffer_destroy(testText->framebuffer));
+	DS_VERIFY(dsWindow_destroy(testText->window));
+	DS_VERIFY(dsRenderer_destroy(testText->renderer));
+	DS_VERIFY(dsAllocator_free(testText->allocator, testText));
+}
+
+static bool setup(
+	dsApplication* application, dsAllocator* allocator, dsTextQuality quality, const char* fontPath)
 {
 	DS_PROFILE_FUNC_START();
 
 	dsRenderer* renderer = application->renderer;
+
+	TestText* testText = DS_ALLOCATE_OBJECT(allocator, TestText);
+	if (!testText)
+		DS_PROFILE_FUNC_RETURN(false);
+
+	memset(testText, 0, sizeof(TestText));
 	testText->allocator = allocator;
 	testText->renderer = renderer;
+	DS_VERIFY(dsApplication_setUserData(application, testText, &shutdown));
 
 	dsCommandBuffer* resourceCommandBuffer =
 		dsResourceManager_getResourceCommandBuffer(renderer->resourceManager);
@@ -1298,31 +1345,6 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
-static void shutdown(TestText* testText)
-{
-	DS_VERIFY(dsTextRenderBuffer_destroy(testText->tessTextRender));
-	dsTextLayout_destroyLayoutAndText(testText->tessText);
-	DS_VERIFY(dsTextRenderBuffer_destroy(testText->textRender));
-	dsTextLayout_destroyLayoutAndText(testText->text);
-	DS_VERIFY(dsFont_destroy(testText->font));
-	dsFaceGroup_destroy(testText->faceGroup);
-	dsTextIcons_destroy(testText->textIcons);
-	DS_VERIFY(dsShader_destroy(testText->iconShader));
-	DS_VERIFY(dsShader_destroy(testText->tessShader));
-	DS_VERIFY(dsShader_destroy(testText->shader));
-	DS_VERIFY(dsShader_destroy(testText->limitShader));
-	dsMaterial_destroy(testText->material);
-	DS_VERIFY(dsDrawGeometry_destroy(testText->limitGeometry));
-	DS_VERIFY(dsGfxBuffer_destroy(testText->limitBuffer));
-	DS_VERIFY(dsMaterialDesc_destroy(testText->iconMaterialDesc));
-	DS_VERIFY(dsMaterialDesc_destroy(testText->materialDesc));
-	DS_VERIFY(dsShaderVariableGroupDesc_destroy(testText->iconDataDesc));
-	DS_VERIFY(dsShaderModule_destroy(testText->shaderModule));
-	DS_VERIFY(dsRenderPass_destroy(testText->renderPass));
-	DS_VERIFY(dsFramebuffer_destroy(testText->framebuffer));
-	DS_VERIFY(dsWindow_destroy(testText->window));
-}
-
 #if DS_ANDROID
 static void startEasyProfilerOnPermission(void* userData, const char* permission, bool granted)
 {
@@ -1333,7 +1355,7 @@ static void startEasyProfilerOnPermission(void* userData, const char* permission
 }
 #endif
 
-int dsMain(int argc, const char** argv)
+dsApplication* dsMain(int argc, const char* const* argv)
 {
 	dsRendererType rendererType = dsRendererType_Default;
 	const char* deviceName = NULL;
@@ -1344,7 +1366,7 @@ int dsMain(int argc, const char** argv)
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
 			printHelp(argv[0]);
-			return 0;
+			return NULL;
 		}
 		else if (strcmp(argv[i], "-f") == 0 || strcmp(argv[i], "--font") == 0)
 		{
@@ -1352,7 +1374,7 @@ int dsMain(int argc, const char** argv)
 			{
 				printf("-f/--font requires an extra argument\n");
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 			fontPath = argv[++i];
 		}
@@ -1370,14 +1392,14 @@ int dsMain(int argc, const char** argv)
 			{
 				printf("--renderer option requires an argument\n");
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 			rendererType = dsRenderBootstrap_rendererTypeFromName(argv[++i]);
 			if (rendererType == dsRendererType_Default)
 			{
 				printf("Unknown renderer type: %s\n", argv[i]);
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 		}
 		else if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--device") == 0)
@@ -1386,7 +1408,7 @@ int dsMain(int argc, const char** argv)
 			{
 				printf("--device option requires an argument\n");
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 			deviceName = argv[++i];
 		}
@@ -1394,7 +1416,7 @@ int dsMain(int argc, const char** argv)
 		{
 			printf("Unknown option: %s\n", argv[i]);
 			printHelp(argv[0]);
-			return 1;
+			return NULL;
 		}
 	}
 
@@ -1402,11 +1424,8 @@ int dsMain(int argc, const char** argv)
 	DS_LOG_INFO("TestText", "Use left and right arrows to cycle through test cases.");
 	DS_LOG_INFO("TestText", "Press 'V' to toggle vsync.");
 
-	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));
-	dsSystemAllocator applicationAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&applicationAllocator, DS_ALLOCATOR_NO_LIMIT));
-	dsSystemAllocator testTextAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&testTextAllocator, DS_ALLOCATOR_NO_LIMIT));
 
 	dsRendererOptions rendererOptions;
@@ -1427,7 +1446,7 @@ int dsMain(int argc, const char** argv)
 	if (!renderer)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create renderer: %s", dsErrorString(errno));
-		return 2;
+		return NULL;
 	}
 
 	dsRenderer_setVSync(renderer, dsVSync_TripleBuffer);
@@ -1455,7 +1474,7 @@ int dsMain(int argc, const char** argv)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create application: %s", dsErrorString(errno));
 		dsRenderer_destroy(renderer);
-		return 2;
+		return NULL;
 	}
 
 #if DS_HAS_EASY_PROFILER
@@ -1469,26 +1488,12 @@ int dsMain(int argc, const char** argv)
 #endif
 #endif
 
-	TestText testText;
-	memset(&testText, 0, sizeof(testText));
-	if (!setup(&testText, application, (dsAllocator*)&testTextAllocator, quality, fontPath))
+	if (!setup(application, (dsAllocator*)&testTextAllocator, quality, fontPath))
 	{
-		shutdown(&testText);
-		return 3;
+		dsApplication_destroy(application);
+		return NULL;
 	}
 
-	int exitCode = dsApplication_run(application);
-
-	shutdown(&testText);
-	dsSDLApplication_destroy(application);
-	dsRenderer_destroy(renderer);
-
-	if (!validateAllocator((dsAllocator*)&renderAllocator, "render"))
-		exitCode = 4;
-	if (!validateAllocator((dsAllocator*)&applicationAllocator, "application"))
-		exitCode = 4;
-	if (!validateAllocator((dsAllocator*)&testTextAllocator, "TestText"))
-		exitCode = 4;
-
-	return exitCode;
+	atexit(&validateAllocators);
+	return application;
 }

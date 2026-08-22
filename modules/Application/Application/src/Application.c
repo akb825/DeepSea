@@ -53,11 +53,32 @@ static int compareEventResponders(const void* left, const void* right)
 	return DS_CMP(((dsEventResponder*)left)->priority, ((dsEventResponder*)right)->priority);
 }
 
+bool dsApplication_setUserData(
+	dsApplication* application, void* userData, dsDestroyUserDataFunction destroyUserDataFunc)
+{
+	if (!application)
+	{
+		if (destroyUserDataFunc)
+			destroyUserDataFunc(userData);
+		errno = EINVAL;
+		return false;
+	}
+
+	if (application->destroyUserDataFunc)
+		application->destroyUserDataFunc(application->userData);
+
+	application->userData = userData;
+	application->destroyUserDataFunc = destroyUserDataFunc;
+	return true;
+}
+
 uint32_t dsApplication_addWindowResponder(
 	dsApplication* application, const dsWindowResponder* responder)
 {
 	if (!application || !responder)
 	{
+		if (responder && responder->destroyUserDataFunc)
+			responder->destroyUserDataFunc(responder->userData);
 		errno = EINVAL;
 		return 0;
 	}
@@ -66,6 +87,8 @@ uint32_t dsApplication_addWindowResponder(
 	if (!DS_RESIZEABLE_ARRAY_ADD(application->allocator, application->windowResponders,
 			application->windowResponderCount, application->windowResponderCapacity, 1))
 	{
+		if (responder->destroyUserDataFunc)
+			responder->destroyUserDataFunc(responder->userData);
 		return 0;
 	}
 
@@ -85,13 +108,17 @@ bool dsApplication_removeWindowResponder(dsApplication* application, uint32_t re
 
 	for (uint32_t i = 0; i < application->windowResponderCount; ++i)
 	{
-		if (application->windowResponders[i].responderID == responderID)
-		{
-			memmove(application->windowResponders + i, application->windowResponders + i + 1,
-				sizeof(dsWindowResponder)*(application->windowResponderCount - i - 1));
-			--application->windowResponderCount;
-			return true;
-		}
+		dsWindowResponder* responder = application->windowResponders + i;
+		if (responder->responderID != responderID)
+			continue;
+
+		if (responder->destroyUserDataFunc)
+			responder->destroyUserDataFunc(responder->userData);
+
+		memmove(application->windowResponders + i, application->windowResponders + i + 1,
+			sizeof(dsWindowResponder)*(application->windowResponderCount - i - 1));
+		--application->windowResponderCount;
+		return true;
 	}
 
 	errno = ENOTFOUND;
@@ -103,6 +130,8 @@ uint32_t dsApplication_addEventResponder(
 {
 	if (!application || !responder || !responder->eventFunc)
 	{
+		if (responder && responder->destroyUserDataFunc)
+			responder->destroyUserDataFunc(responder->userData);
 		errno = EINVAL;
 		return 0;
 	}
@@ -111,6 +140,8 @@ uint32_t dsApplication_addEventResponder(
 	if (!DS_RESIZEABLE_ARRAY_ADD(application->allocator, application->eventResponders,
 			application->eventResponderCount, application->eventResponderCapacity, 1))
 	{
+		if (responder->destroyUserDataFunc)
+			responder->destroyUserDataFunc(responder->userData);
 		return 0;
 	}
 
@@ -133,37 +164,38 @@ bool dsApplication_removeEventResponder(dsApplication* application, uint32_t res
 
 	for (uint32_t i = 0; i < application->eventResponderCount; ++i)
 	{
-		if (application->eventResponders[i].responderID == responderID)
-		{
-			memmove(application->eventResponders + i, application->eventResponders + i + 1,
-				sizeof(dsEventResponder)*(application->eventResponderCount - i - 1));
-			--application->eventResponderCount;
-			return true;
-		}
+		dsEventResponder* responder = application->eventResponders + i;
+		if (responder->responderID != responderID)
+			continue;
+
+		if (responder->destroyUserDataFunc)
+			responder->destroyUserDataFunc(responder->userData);
+
+		memmove(application->eventResponders + i, application->eventResponders + i + 1,
+			sizeof(dsEventResponder)*(application->eventResponderCount - i - 1));
+		--application->eventResponderCount;
+		return true;
 	}
 
 	errno = ENOTFOUND;
 	return false;
 }
 
-bool dsApplication_setPreInputUpdateFunction(dsApplication* application,
-	dsUpdateApplicationFunction function, void* userData,
-	dsDestroyUserDataFunction destroyUserDataFunc)
+bool dsApplication_setUpdateRate(dsApplication* application, float updateRate)
 {
 	if (!application)
 	{
-		if (destroyUserDataFunc)
-			destroyUserDataFunc(userData);
 		errno = EINVAL;
 		return false;
 	}
 
-	if (application->destroyPreInputUpdateUserDataFunc)
-		application->destroyPreInputUpdateUserDataFunc(application->preInputUpdateUserData);
-	application->preInputUpdateFunc = function;
-	application->preInputUpdateUserData = userData;
-	application->destroyPreInputUpdateUserDataFunc = destroyUserDataFunc;
-	return true;
+	if (!application->setUpdateRateFunc)
+	{
+		application->updateRate = updateRate;
+		return true;
+	}
+
+	return application->setUpdateRateFunc(application, updateRate);
 }
 
 bool dsApplication_setUpdateFunction(dsApplication* application,
@@ -271,110 +303,6 @@ bool dsApplication_removeWindow(dsApplication* application, dsWindow* window)
 	return false;
 }
 
-bool dsApplication_addGameInput(dsApplication* application, dsGameInput* gameInput)
-{
-	if (!application || !gameInput || gameInput->application != application)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	for (uint32_t i = 0; i < application->gameInputCount; ++i)
-	{
-		if (application->gameInputs[i] == gameInput)
-		{
-			errno = EINVAL;
-			DS_LOG_ERROR(DS_APPLICATION_LOG_TAG, "GameInput has already been added.");
-			return false;
-		}
-	}
-
-	uint32_t index = application->gameInputCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(application->allocator, application->gameInputs,
-			application->gameInputCount, application->gameInputCapacity, 1))
-	{
-		return false;
-	}
-
-	application->gameInputs[index] = gameInput;
-	return true;
-}
-
-bool dsApplication_removeGameInput(dsApplication* application, dsGameInput* gameInput)
-{
-	if (!application || !gameInput)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	for (uint32_t i = 0; i < application->gameInputCount; ++i)
-	{
-		if (application->gameInputs[i] == gameInput)
-		{
-			memmove(application->gameInputs + i, application->gameInputs + i + 1,
-				sizeof(dsGameInput*)*(application->gameInputCount - i - 1));
-			--application->gameInputCount;
-			return true;
-		}
-	}
-
-	errno = ENOTFOUND;
-	return false;
-}
-
-bool dsApplication_addMotionSensor(dsApplication* application, dsMotionSensor* sensor)
-{
-	if (!application || !sensor || sensor->application != application)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	for (uint32_t i = 0; i < application->motionSensorCount; ++i)
-	{
-		if (application->motionSensors[i] == sensor)
-		{
-			errno = EINVAL;
-			DS_LOG_ERROR(DS_APPLICATION_LOG_TAG, "MotionSensor has already been added.");
-			return false;
-		}
-	}
-
-	uint32_t index = application->motionSensorCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(application->allocator, application->motionSensors,
-			application->motionSensorCount, application->motionSensorCapacity, 1))
-	{
-		return false;
-	}
-
-	application->motionSensors[index] = sensor;
-	return true;
-}
-
-bool dsApplication_removeMotionSensor(dsApplication* application, dsMotionSensor* sensor)
-{
-	if (!application || !sensor)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	for (uint32_t i = 0; i < application->motionSensorCount; ++i)
-	{
-		if (application->motionSensors[i] == sensor)
-		{
-			memmove(application->motionSensors + i, application->motionSensors + i + 1,
-				sizeof(dsMotionSensor*)*(application->motionSensorCount - i - 1));
-			--application->motionSensorCount;
-			return true;
-		}
-	}
-
-	errno = ENOTFOUND;
-	return false;
-}
-
 uint32_t dsApplication_showMessageBox(dsApplication* application, dsWindow* parentWindow,
 	dsMessageBoxType type, const char* title, const char* message, const char* const* buttons,
 	uint32_t buttonCount, uint32_t enterButton, uint32_t escapeButton)
@@ -390,14 +318,6 @@ uint32_t dsApplication_showMessageBox(dsApplication* application, dsWindow* pare
 
 	return application->showMessageBoxFunc(application, parentWindow, type, title, message, buttons,
 		buttonCount, enterButton, escapeButton);
-}
-
-int dsApplication_run(dsApplication* application)
-{
-	if (!application || !application->runFunc)
-		return -1;
-
-	return application->runFunc(application);
 }
 
 bool dsApplication_quit(dsApplication* application, int exitCode)
@@ -600,6 +520,16 @@ bool dsApplication_requestAndroidPermission(dsApplication* application,
 }
 #endif
 
+void dsApplication_destroy(dsApplication* application)
+{
+	if (!application)
+		return;
+
+	// Expected to always be set by the application, otherwise we can't cleanly exit.
+	DS_ASSERT(application->destroyFunc);
+	application->destroyFunc(application);
+}
+
 bool dsApplication_initialize(dsApplication* application, dsAllocator* allocator)
 {
 	if (!application)
@@ -622,23 +552,141 @@ bool dsApplication_initialize(dsApplication* application, dsAllocator* allocator
 	return true;
 }
 
+bool dsApplication_addGameInput(dsApplication* application, dsGameInput* gameInput)
+{
+	if (!application || !gameInput || gameInput->application != application)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	for (uint32_t i = 0; i < application->gameInputCount; ++i)
+	{
+		if (application->gameInputs[i] == gameInput)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_APPLICATION_LOG_TAG, "GameInput has already been added.");
+			return false;
+		}
+	}
+
+	uint32_t index = application->gameInputCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(application->allocator, application->gameInputs,
+			application->gameInputCount, application->gameInputCapacity, 1))
+	{
+		return false;
+	}
+
+	application->gameInputs[index] = gameInput;
+	return true;
+}
+
+bool dsApplication_removeGameInput(dsApplication* application, dsGameInput* gameInput)
+{
+	if (!application || !gameInput)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	for (uint32_t i = 0; i < application->gameInputCount; ++i)
+	{
+		if (application->gameInputs[i] == gameInput)
+		{
+			memmove(application->gameInputs + i, application->gameInputs + i + 1,
+				sizeof(dsGameInput*)*(application->gameInputCount - i - 1));
+			--application->gameInputCount;
+			return true;
+		}
+	}
+
+	errno = ENOTFOUND;
+	return false;
+}
+
+bool dsApplication_addMotionSensor(dsApplication* application, dsMotionSensor* sensor)
+{
+	if (!application || !sensor || sensor->application != application)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	for (uint32_t i = 0; i < application->motionSensorCount; ++i)
+	{
+		if (application->motionSensors[i] == sensor)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_APPLICATION_LOG_TAG, "MotionSensor has already been added.");
+			return false;
+		}
+	}
+
+	uint32_t index = application->motionSensorCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(application->allocator, application->motionSensors,
+			application->motionSensorCount, application->motionSensorCapacity, 1))
+	{
+		return false;
+	}
+
+	application->motionSensors[index] = sensor;
+	return true;
+}
+
+bool dsApplication_removeMotionSensor(dsApplication* application, dsMotionSensor* sensor)
+{
+	if (!application || !sensor)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	for (uint32_t i = 0; i < application->motionSensorCount; ++i)
+	{
+		if (application->motionSensors[i] == sensor)
+		{
+			memmove(application->motionSensors + i, application->motionSensors + i + 1,
+				sizeof(dsMotionSensor*)*(application->motionSensorCount - i - 1));
+			--application->motionSensorCount;
+			return true;
+		}
+	}
+
+	errno = ENOTFOUND;
+	return false;
+}
+
 void dsApplication_shutdown(dsApplication* application)
 {
 	if (!application)
 		return;
+
+	for (uint32_t i = 0; i < application->windowResponderCount; ++i)
+	{
+		dsWindowResponder* responder = application->windowResponders + i;
+		if (responder->destroyUserDataFunc)
+			responder->destroyUserDataFunc(responder->userData);
+	}
+
+	for (uint32_t i = 0; i < application->eventResponderCount; ++i)
+	{
+		dsEventResponder* responder = application->eventResponders + i;
+		if (responder->destroyUserDataFunc)
+			responder->destroyUserDataFunc(responder->userData);
+	}
+
+	if (application->destroyUpdateUserDataFunc)
+		application->destroyUpdateUserDataFunc(application->updateUserData);
+	if (application->destroyFinishFrameUserDataFunc)
+		application->destroyFinishFrameUserDataFunc(application->finishFrameUserData);
+	if (application->destroyUserDataFunc)
+		application->destroyUserDataFunc(application->userData);
 
 	DS_VERIFY(dsAllocator_free(application->allocator, application->windowResponders));
 	DS_VERIFY(dsAllocator_free(application->allocator, application->eventResponders));
 	DS_VERIFY(dsAllocator_free(application->allocator, application->windows));
 	DS_VERIFY(dsAllocator_free(application->allocator, application->gameInputs));
 	DS_VERIFY(dsAllocator_free(application->allocator, application->motionSensors));
-
-	if (application->destroyPreInputUpdateUserDataFunc)
-		application->destroyPreInputUpdateUserDataFunc(application->preInputUpdateUserData);
-	if (application->destroyUpdateUserDataFunc)
-		application->destroyUpdateUserDataFunc(application->updateUserData);
-	if (application->destroyFinishFrameUserDataFunc)
-		application->destroyFinishFrameUserDataFunc(application->finishFrameUserData);
 
 	if (dsLog_getFunction() == &applicationLogWrapper)
 		dsLog_clearFunction();

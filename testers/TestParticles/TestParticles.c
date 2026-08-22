@@ -20,6 +20,7 @@
 #include <DeepSea/Application/Window.h>
 #include <DeepSea/ApplicationSDL/SDLApplication.h>
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/SystemAllocator.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
@@ -84,6 +85,10 @@ typedef struct TestParticles
 	bool stop;
 } TestParticles;
 
+static dsSystemAllocator renderAllocator;
+static dsSystemAllocator applicationAllocator;
+static dsSystemAllocator testParticlesAllocator;
+
 static void printHelp(const char* programPath)
 {
 	printf("usage: %s [OPTIONS]\n", dsPath_getFileName(programPath));
@@ -106,6 +111,13 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 	DS_LOG_ERROR_F("TestParticles", "Allocator '%s' has %llu bytes allocated with %u allocations.",
 		name, (unsigned long long)allocator->size, allocator->currentAllocations);
 	return false;
+}
+
+static void validateAllocators(void)
+{
+	validateAllocator((dsAllocator*)&renderAllocator, "render");
+	validateAllocator((dsAllocator*)&applicationAllocator, "application");
+	validateAllocator((dsAllocator*)&testParticlesAllocator, "TestParticles");
 }
 
 static void toggleStaticTorch(TestParticles* testParticles)
@@ -305,12 +317,40 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	DS_VERIFY(dsView_draw(testParticles->view, commandBuffer, NULL));
 }
 
-static bool setup(TestParticles* testParticles, dsApplication* application, dsAllocator* allocator)
+static void shutdown(void* userData)
+{
+	TestParticles* testParticles = (TestParticles*)userData;
+	DS_VERIFY(dsView_destroy(testParticles->view));
+	dsScene_destroy(testParticles->scene);
+
+	dsSceneNode_freeRef((dsSceneNode*)testParticles->rootNode);
+	for (unsigned int i = 0; i < DS_ARRAY_SIZE(testParticles->rotatingTorches); ++i)
+		dsSceneNode_freeRef((dsSceneNode*)testParticles->rotatingTorches[i]);
+	dsSceneNode_freeRef(testParticles->staticTorch);
+	dsSceneNode_freeRef(testParticles->staticTorchLight);
+
+	dsSceneResources_freeRef(testParticles->sceneGraph);
+	dsSceneResources_freeRef(testParticles->materials);
+	dsSceneResources_freeRef(testParticles->baseResources);
+	dsSceneResources_freeRef(testParticles->builtinResources);
+	DS_VERIFY(dsWindow_destroy(testParticles->window));
+	DS_VERIFY(dsRenderer_destroy(testParticles->renderer));
+	DS_VERIFY(dsAllocator_free(testParticles->allocator, testParticles));
+}
+
+static bool setup(dsApplication* application, dsAllocator* allocator)
 {
 	dsRenderer* renderer = application->renderer;
 	dsResourceManager* resourceManager = renderer->resourceManager;
+
+	TestParticles* testParticles = DS_ALLOCATE_OBJECT(allocator, TestParticles);
+	if (!testParticles)
+		return false;
+
+	memset(testParticles, 0, sizeof(TestParticles));
 	testParticles->allocator = allocator;
 	testParticles->renderer = renderer;
+	DS_VERIFY(dsApplication_setUserData(application, testParticles, &shutdown));
 
 	dsEventResponder responder = {&processEvent, testParticles, 0, 0};
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
@@ -547,24 +587,6 @@ static bool setup(TestParticles* testParticles, dsApplication* application, dsAl
 	return true;
 }
 
-static void shutdown(TestParticles* testParticles)
-{
-	DS_VERIFY(dsView_destroy(testParticles->view));
-	dsScene_destroy(testParticles->scene);
-
-	dsSceneNode_freeRef((dsSceneNode*)testParticles->rootNode);
-	for (unsigned int i = 0; i < DS_ARRAY_SIZE(testParticles->rotatingTorches); ++i)
-		dsSceneNode_freeRef((dsSceneNode*)testParticles->rotatingTorches[i]);
-	dsSceneNode_freeRef(testParticles->staticTorch);
-	dsSceneNode_freeRef(testParticles->staticTorchLight);
-
-	dsSceneResources_freeRef(testParticles->sceneGraph);
-	dsSceneResources_freeRef(testParticles->materials);
-	dsSceneResources_freeRef(testParticles->baseResources);
-	dsSceneResources_freeRef(testParticles->builtinResources);
-	DS_VERIFY(dsWindow_destroy(testParticles->window));
-}
-
 #if DS_ANDROID
 static void startEasyProfilerOnPermission(void* userData, const char* permission, bool granted)
 {
@@ -575,7 +597,7 @@ static void startEasyProfilerOnPermission(void* userData, const char* permission
 }
 #endif
 
-int dsMain(int argc, const char** argv)
+dsApplication* dsMain(int argc, const char* const* argv)
 {
 	dsRendererType rendererType = dsRendererType_Default;
 	const char* deviceName = NULL;
@@ -584,7 +606,7 @@ int dsMain(int argc, const char** argv)
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
 			printHelp(argv[0]);
-			return 0;
+			return NULL;
 		}
 		else if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--renderer") == 0)
 		{
@@ -592,14 +614,14 @@ int dsMain(int argc, const char** argv)
 			{
 				printf("--renderer option requires an argument\n");
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 			rendererType = dsRenderBootstrap_rendererTypeFromName(argv[++i]);
 			if (rendererType == dsRendererType_Default)
 			{
 				printf("Unknown renderer type: %s\n", argv[i]);
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 		}
 		else if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--device") == 0)
@@ -608,7 +630,7 @@ int dsMain(int argc, const char** argv)
 			{
 				printf("--device option requires an argument\n");
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 			deviceName = argv[++i];
 		}
@@ -616,7 +638,7 @@ int dsMain(int argc, const char** argv)
 		{
 			printf("Unknown option: %s\n", argv[i]);
 			printHelp(argv[0]);
-			return 1;
+			return NULL;
 		}
 	}
 
@@ -626,11 +648,8 @@ int dsMain(int argc, const char** argv)
 	DS_LOG_INFO("TestParticles", "Press '2' to toggle one of the moving torches.");
 	DS_LOG_INFO("TestParticles", "Press 'V' to toggle vsync.");
 
-	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));
-	dsSystemAllocator applicationAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&applicationAllocator, DS_ALLOCATOR_NO_LIMIT));
-	dsSystemAllocator testParticlesAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&testParticlesAllocator, DS_ALLOCATOR_NO_LIMIT));
 
 	dsRendererOptions rendererOptions;
@@ -645,7 +664,7 @@ int dsMain(int argc, const char** argv)
 			&rendererOptions, dsRenderBootstrap_rendererID(rendererType)))
 	{
 		DS_LOG_ERROR_F("TestParticles", "Couldn't setup renderer options.");
-		return 0;
+		return NULL;
 	}
 
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
@@ -653,7 +672,7 @@ int dsMain(int argc, const char** argv)
 	if (!renderer)
 	{
 		DS_LOG_ERROR_F("TestParticles", "Couldn't create renderer: %s", dsErrorString(errno));
-		return 2;
+		return NULL;
 	}
 
 	dsRenderer_setVSync(renderer, dsVSync_TripleBuffer);
@@ -668,7 +687,7 @@ int dsMain(int argc, const char** argv)
 	{
 		DS_LOG_ERROR_F("TestParticles", "Couldn't create application: %s", dsErrorString(errno));
 		dsRenderer_destroy(renderer);
-		return 2;
+		return NULL;
 	}
 
 #if DS_HAS_EASY_PROFILER
@@ -682,30 +701,16 @@ int dsMain(int argc, const char** argv)
 #endif
 
 	char assetsPath[DS_PATH_MAX];
-	DS_VERIFY(dsResourceStream_getPath(assetsPath, sizeof(assetsPath), dsFileResourceType_Embedded,
-		"TestParticles-assets"));
+	DS_VERIFY(dsResourceStream_getPath(
+		assetsPath, sizeof(assetsPath), dsFileResourceType_Embedded, "TestParticles-assets"));
 	dsResourceStream_setEmbeddedDirectory(assetsPath);
 
-	TestParticles testParticles;
-	memset(&testParticles, 0, sizeof(testParticles));
-	if (!setup(&testParticles, application, (dsAllocator*)&testParticlesAllocator))
+	if (!setup(application, (dsAllocator*)&testParticlesAllocator))
 	{
-		shutdown(&testParticles);
-		return 3;
+		dsApplication_destroy(application);
+		return NULL;
 	}
 
-	int exitCode = dsApplication_run(application);
-
-	shutdown(&testParticles);
-	dsSDLApplication_destroy(application);
-	dsRenderer_destroy(renderer);
-
-	if (!validateAllocator((dsAllocator*)&renderAllocator, "render"))
-		exitCode = 4;
-	if (!validateAllocator((dsAllocator*)&applicationAllocator, "application"))
-		exitCode = 4;
-	if (!validateAllocator((dsAllocator*)&testParticlesAllocator, "TestParticles"))
-		exitCode = 4;
-
-	return exitCode;
+	atexit(&validateAllocators);
+	return application;
 }

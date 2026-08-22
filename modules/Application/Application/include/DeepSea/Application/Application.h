@@ -37,11 +37,24 @@ extern "C"
  */
 
 /**
+ * @brief Sets common user data for the application.
+ * @remark errno will be set on failure.
+ * @param application The application.
+ * @param userData The user data for the application.
+ * @param destroyUserDataFunc The function to destroy the user data when the application is
+ *     destoyed, the user data is changed, or setting the user data fails.
+ * @return False if the user data couldn't be set.
+ */
+DS_APPLICATION_EXPORT bool dsApplication_setUserData(
+	dsApplication* application, void* userData, dsDestroyUserDataFunction destroyUserDataFunc);
+
+/**
  * @brief Adds a window responder to an application.
  * @remark errno will be set on failure.
  * @param application The application.
- * @param responder The responder to add.
- * @return The ID of the responder, or 0 if an error occurred.
+ * @param responder The responder to add. The destroy user data function will be called as soon
+ *     as the responder is removed, application is destroyed, or addition fails.
+ * @return The ID of the responder or 0 if an error occurred.
  */
 DS_APPLICATION_EXPORT uint32_t dsApplication_addWindowResponder(
 	dsApplication* application, const dsWindowResponder* responder);
@@ -60,8 +73,9 @@ DS_APPLICATION_EXPORT bool dsApplication_removeWindowResponder(
  * @brief Adds an event responder to an application.
  * @remark errno will be set on failure.
  * @param application The application.
- * @param responder The responder to add.
- * @return The ID of the responder, or 0 if an error occurred.
+ * @param responder The responder to add. The destroy user data function will be called as soon
+ *     as the responder is removed, application is destroyed, or addition fails.
+ * @return The ID of the responder or 0 if an error occurred.
  */
 DS_APPLICATION_EXPORT uint32_t dsApplication_addEventResponder(
 	dsApplication* application, const dsEventResponder* responder);
@@ -77,27 +91,16 @@ DS_APPLICATION_EXPORT bool dsApplication_removeEventResponder(
 	dsApplication* application, uint32_t responderID);
 
 /**
- * @brief Sets the pre-input update function for the application.
- *
- * This function will be called before processing input and before the update function. This can be
- * used for potentially expensive operations before input is processed to reduce input latency. Any
- * CPU-based framerate limiting should be done inside this function.
- *
- * The update time passed won't include the previous frame's pre-input update function. When using
- * this to perform CPU-side framerate limiting, this should sleep for the difference between the
- * target frame time and the update time.
- *
+ * @brief Sets the update rate of the application.
  * @remark errno will be set on failure.
  * @param application The application.
- * @param function The udpate function.
- * @param userData The user data to provide to the function.
- * @param destroyUserDataFunc The function to destroy the user data when the application is
- *     destoyed, the pre-input update function is changed, or setting the function fails.
- * @return True if the function was set.
+ * @param updateRate The desired update rate in updates per second. A value of 0 indicates that the
+ *     application should be updated as quickly as possible, while a negative value will only update
+ *     when events are received. Some implementations may not respect this value in all situations.
+ * @return False if the update rate couldn't be set.
  */
-DS_APPLICATION_EXPORT bool dsApplication_setPreInputUpdateFunction(dsApplication* application,
-	dsUpdateApplicationFunction function, void* userData,
-	dsDestroyUserDataFunction destroyUserDataFunc);
+DS_APPLICATION_EXPORT bool dsApplication_setUpdateRate(
+	dsApplication* application, float updateRate);
 
 /**
  * @brief Sets the update function for the application.
@@ -156,58 +159,6 @@ DS_APPLICATION_EXPORT bool dsApplication_addWindow(dsApplication* application, d
 DS_APPLICATION_EXPORT bool dsApplication_removeWindow(dsApplication* application, dsWindow* window);
 
 /**
- * @brief Adds an existing game input to the application.
- *
- * This is usually called by the implementation and not directly.
- *
- * @remark errno will be set on failure.
- * @param application The application.
- * @param gameInput The game input device to add.
- * @return True if the game input that was added.
- */
-DS_APPLICATION_EXPORT bool dsApplication_addGameInput(
-	dsApplication* application, dsGameInput* gameInput);
-
-/**
- * @brief Removes a game input from the application without destroying it.
- *
- * THis is usually called by the implementation and not directly.
- *
- * @remark errno will be set on failure.
- * @param application The application.
- * @param gameInput The game input device to remove.
- * @return True if the game input was removed.
- */
-DS_APPLICATION_EXPORT bool dsApplication_removeGameInput(
-	dsApplication* application, dsGameInput* gameInput);
-
-/**
- * @brief Adds an existing motion sensor to the application.
- *
- * This is usually called by the implementation and not directly.
- *
- * @remark errno will be set on failure.
- * @param application The application.
- * @param sensor The motion sensor device to add.
- * @return True if the motion sensor that was added.
- */
-DS_APPLICATION_EXPORT bool dsApplication_addMotionSensor(
-	dsApplication* application, dsMotionSensor* sensor);
-
-/**
- * @brief Removes a motion sensor from the application without destroying it.
- *
- * THis is usually called by the implementation and not directly.
- *
- * @remark errno will be set on failure.
- * @param application The application.
- * @param sensor The motion sensor to remove.
- * @return True if the motion sensor was removed.
- */
-DS_APPLICATION_EXPORT bool dsApplication_removeMotionSensor(
-	dsApplication* application, dsMotionSensor* sensor);
-
-/**
  * @brief Shows a message box and blocks execution until it's dismissed.
  * @param application The application.
  * @param parentWindow The parent window for the dialog, or NULL to be unparented.
@@ -225,13 +176,6 @@ DS_APPLICATION_EXPORT bool dsApplication_removeMotionSensor(
 DS_APPLICATION_EXPORT uint32_t dsApplication_showMessageBox(dsApplication* application,
 	dsWindow* parentWindow, dsMessageBoxType type, const char* title, const char* message,
 	const char* const* buttons, uint32_t buttonCount, uint32_t enterButton, uint32_t escapeButton);
-
-/**
- * @brief Runs the application.
- * @param application The application.
- * @return The error code of the application. This is intended to be returned from main().
- */
-DS_APPLICATION_EXPORT int dsApplication_run(dsApplication* application);
 
 /**
  * @brief Quits the application.
@@ -423,6 +367,12 @@ DS_APPLICATION_EXPORT bool dsApplication_requestAndroidPermission(dsApplication*
 #endif
 
 /**
+ * @brief Destroys the application.
+ * @param application The application to destroy.
+ */
+DS_APPLICATION_EXPORT void dsApplication_destroy(dsApplication* application);
+
+/**
  * @brief Initializes the members of an application.
  *
  * This will initiialize all members to 0 and set up any internal structures. This is called by the
@@ -437,6 +387,58 @@ DS_APPLICATION_EXPORT bool dsApplication_requestAndroidPermission(dsApplication*
  */
 DS_APPLICATION_EXPORT bool dsApplication_initialize(
 	dsApplication* application, dsAllocator* allocator);
+
+/**
+ * @brief Adds an existing game input to the application.
+ *
+ * This is usually called by the implementation and not directly.
+ *
+ * @remark errno will be set on failure.
+ * @param application The application.
+ * @param gameInput The game input device to add.
+ * @return True if the game input that was added.
+ */
+DS_APPLICATION_EXPORT bool dsApplication_addGameInput(
+	dsApplication* application, dsGameInput* gameInput);
+
+/**
+ * @brief Removes a game input from the application without destroying it.
+ *
+ * This is usually called by the implementation and not directly.
+ *
+ * @remark errno will be set on failure.
+ * @param application The application.
+ * @param gameInput The game input device to remove.
+ * @return True if the game input was removed.
+ */
+DS_APPLICATION_EXPORT bool dsApplication_removeGameInput(
+	dsApplication* application, dsGameInput* gameInput);
+
+/**
+ * @brief Adds an existing motion sensor to the application.
+ *
+ * This is usually called by the implementation and not directly.
+ *
+ * @remark errno will be set on failure.
+ * @param application The application.
+ * @param sensor The motion sensor device to add.
+ * @return True if the motion sensor that was added.
+ */
+DS_APPLICATION_EXPORT bool dsApplication_addMotionSensor(
+	dsApplication* application, dsMotionSensor* sensor);
+
+/**
+ * @brief Removes a motion sensor from the application without destroying it.
+ *
+ * THis is usually called by the implementation and not directly.
+ *
+ * @remark errno will be set on failure.
+ * @param application The application.
+ * @param sensor The motion sensor to remove.
+ * @return True if the motion sensor was removed.
+ */
+DS_APPLICATION_EXPORT bool dsApplication_removeMotionSensor(
+	dsApplication* application, dsMotionSensor* sensor);
 
 /**
  * @brief Destroys the private members of an application.

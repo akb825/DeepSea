@@ -101,6 +101,10 @@ typedef struct TestLighting
 	bool stop;
 } TestLighting;
 
+static dsSystemAllocator renderAllocator;
+static dsSystemAllocator applicationAllocator;
+static dsSystemAllocator testLightingAllocator;
+
 static const char* lightingTypeNames[LightingType_Count] = {"forward", "deferred", "SSAO"};
 
 static void printHelp(const char* programPath)
@@ -125,6 +129,13 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 	DS_LOG_ERROR_F("TestLighting", "Allocator '%s' has %llu bytes allocated with %u allocations.",
 		name, (unsigned long long)allocator->size, allocator->currentAllocations);
 	return false;
+}
+
+static void validateAllocators(void)
+{
+	validateAllocator((dsAllocator*)&renderAllocator, "render");
+	validateAllocator((dsAllocator*)&applicationAllocator, "application");
+	validateAllocator((dsAllocator*)&testLightingAllocator, "TestLighting");
 }
 
 static void setDirectionalShadowBias(dsDynamicRenderStates* outRenderStates,
@@ -413,12 +424,43 @@ static void* loadFileData(
 	return data;
 }
 
-static bool setup(TestLighting* testLighting, dsApplication* application, dsAllocator* allocator)
+static void shutdown(void* userData)
+{
+	TestLighting* testLighting = (TestLighting*)userData;
+	dsSceneLoadContext_destroy(testLighting->loadContext);
+	dsSceneLoadScratchData_destroy(testLighting->scratchData);
+	for (int i = 0; i < LightingType_Count; ++i)
+		DS_VERIFY(dsAllocator_free(testLighting->allocator, testLighting->lightSceneData[i]));
+
+	DS_VERIFY(dsView_destroy(testLighting->view));
+	dsScene_destroy(testLighting->scene);
+
+	dsSceneResources_freeRef(testLighting->sceneGraphResources);
+	dsSceneResources_freeRef(testLighting->lightShaderResources);
+	dsSceneResources_freeRef(testLighting->models);
+	dsSceneResources_freeRef(testLighting->baseResources);
+	dsSceneResources_freeRef(testLighting->builtinResources);
+	DS_VERIFY(dsWindow_destroy(testLighting->window));
+
+	dsSceneThreadManager_destroy(testLighting->threadManager);
+	DS_VERIFY(dsThreadPool_destroy(testLighting->threadPool));
+	DS_VERIFY(dsRenderer_destroy(testLighting->renderer));
+	DS_VERIFY(dsAllocator_free(testLighting->allocator, testLighting));
+}
+
+static bool setup(dsApplication* application, dsAllocator* allocator)
 {
 	dsRenderer* renderer = application->renderer;
 	dsResourceManager* resourceManager = renderer->resourceManager;
+
+	TestLighting* testLighting = DS_ALLOCATE_OBJECT(allocator, TestLighting);
+	if (!testLighting)
+		return false;
+
+	memset(testLighting, 0, sizeof(TestLighting));
 	testLighting->allocator = allocator;
 	testLighting->renderer = renderer;
+	DS_VERIFY(dsApplication_setUserData(application, testLighting, &shutdown));
 
 	testLighting->threadPool = dsResourceManager_createThreadPool(
 		allocator, resourceManager, dsThreadPool_defaultThreadCount(), 0);
@@ -660,27 +702,6 @@ static bool setup(TestLighting* testLighting, dsApplication* application, dsAllo
 	return true;
 }
 
-static void shutdown(TestLighting* testLighting)
-{
-	dsSceneLoadContext_destroy(testLighting->loadContext);
-	dsSceneLoadScratchData_destroy(testLighting->scratchData);
-	for (int i = 0; i < LightingType_Count; ++i)
-		DS_VERIFY(dsAllocator_free(testLighting->allocator, testLighting->lightSceneData[i]));
-
-	DS_VERIFY(dsView_destroy(testLighting->view));
-	dsScene_destroy(testLighting->scene);
-
-	dsSceneResources_freeRef(testLighting->sceneGraphResources);
-	dsSceneResources_freeRef(testLighting->lightShaderResources);
-	dsSceneResources_freeRef(testLighting->models);
-	dsSceneResources_freeRef(testLighting->baseResources);
-	dsSceneResources_freeRef(testLighting->builtinResources);
-	DS_VERIFY(dsWindow_destroy(testLighting->window));
-
-	dsSceneThreadManager_destroy(testLighting->threadManager);
-	DS_VERIFY(dsThreadPool_destroy(testLighting->threadPool));
-}
-
 #if DS_ANDROID
 static void startEasyProfilerOnPermission(void* userData, const char* permission, bool granted)
 {
@@ -691,7 +712,7 @@ static void startEasyProfilerOnPermission(void* userData, const char* permission
 }
 #endif
 
-int dsMain(int argc, const char** argv)
+dsApplication* dsMain(int argc, const char* const* argv)
 {
 	dsRendererType rendererType = dsRendererType_Default;
 	const char* deviceName = NULL;
@@ -700,7 +721,7 @@ int dsMain(int argc, const char** argv)
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
 			printHelp(argv[0]);
-			return 0;
+			return NULL;
 		}
 		else if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--renderer") == 0)
 		{
@@ -708,14 +729,14 @@ int dsMain(int argc, const char** argv)
 			{
 				printf("--renderer option requires an argument\n");
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 			rendererType = dsRenderBootstrap_rendererTypeFromName(argv[++i]);
 			if (rendererType == dsRendererType_Default)
 			{
 				printf("Unknown renderer type: %s\n", argv[i]);
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 		}
 		else if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--device") == 0)
@@ -724,7 +745,7 @@ int dsMain(int argc, const char** argv)
 			{
 				printf("--device option requires an argument\n");
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 			deviceName = argv[++i];
 		}
@@ -732,7 +753,7 @@ int dsMain(int argc, const char** argv)
 		{
 			printf("Unknown option: %s\n", argv[i]);
 			printHelp(argv[0]);
-			return 1;
+			return NULL;
 		}
 	}
 
@@ -742,11 +763,8 @@ int dsMain(int argc, const char** argv)
 	DS_LOG_INFO("TestLighting", "Press '1' to toggle anti-aliasing for forward lighting.");
 	DS_LOG_INFO("TestLighting", "Press 'V' to toggle vsync.");
 
-	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));
-	dsSystemAllocator applicationAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&applicationAllocator, DS_ALLOCATOR_NO_LIMIT));
-	dsSystemAllocator testLightingAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&testLightingAllocator, DS_ALLOCATOR_NO_LIMIT));
 
 	dsRendererOptions rendererOptions;
@@ -771,7 +789,7 @@ int dsMain(int argc, const char** argv)
 	if (!renderer)
 	{
 		DS_LOG_ERROR_F("TestLighting", "Couldn't create renderer: %s", dsErrorString(errno));
-		return 2;
+		return NULL;
 	}
 
 	dsRenderer_setVSync(renderer, dsVSync_TripleBuffer);
@@ -786,7 +804,7 @@ int dsMain(int argc, const char** argv)
 	{
 		DS_LOG_ERROR_F("TestLighting", "Couldn't create application: %s", dsErrorString(errno));
 		dsRenderer_destroy(renderer);
-		return 2;
+		return NULL;
 	}
 
 #if DS_HAS_EASY_PROFILER
@@ -799,26 +817,12 @@ int dsMain(int argc, const char** argv)
 #endif
 #endif
 
-	TestLighting testLighting;
-	memset(&testLighting, 0, sizeof(testLighting));
-	if (!setup(&testLighting, application, (dsAllocator*)&testLightingAllocator))
+	if (!setup(application, (dsAllocator*)&testLightingAllocator))
 	{
-		shutdown(&testLighting);
-		return 3;
+		dsApplication_destroy(application);
+		return NULL;
 	}
 
-	int exitCode = dsApplication_run(application);
-
-	shutdown(&testLighting);
-	dsSDLApplication_destroy(application);
-	dsRenderer_destroy(renderer);
-
-	if (!validateAllocator((dsAllocator*)&renderAllocator, "render"))
-		exitCode = 4;
-	if (!validateAllocator((dsAllocator*)&applicationAllocator, "application"))
-		exitCode = 4;
-	if (!validateAllocator((dsAllocator*)&testLightingAllocator, "TestLighting"))
-		exitCode = 4;
-
-	return exitCode;
+	atexit(&validateAllocators);
+	return application;
 }

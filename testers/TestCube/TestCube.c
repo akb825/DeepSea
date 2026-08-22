@@ -18,6 +18,7 @@
 #include <DeepSea/Application/Window.h>
 #include <DeepSea/ApplicationSDL/SDLApplication.h>
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/SystemAllocator.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Assert.h>
@@ -65,7 +66,6 @@ typedef struct TestCube
 	dsGfxBuffer* drawBuffer;
 	dsDrawGeometry* geometry;
 
-	dsTimer timer;
 	uint64_t invalidatedFrame;
 	uint32_t modelViewProjectionElement;
 	float rotation;
@@ -73,14 +73,18 @@ typedef struct TestCube
 	dsMatrix44f projection;
 } TestCube;
 
-static const char* assetsDir = "TestCube-assets";
-static char shaderDir[100];
-
 typedef struct Vertex
 {
 	dsVector3f position;
 	dsVector2f texCoord;
 } Vertex;
+
+static const char* assetsDir = "TestCube-assets";
+static char shaderDir[100];
+
+static dsSystemAllocator renderAllocator;
+static dsSystemAllocator applicationAllocator;
+static dsSystemAllocator testCubeAllocator;
 
 static Vertex vertices[] =
 {
@@ -170,6 +174,13 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 	DS_LOG_ERROR_F("TestCube", "Allocator '%s' has %llu bytes allocated with %u allocations.",
 		name, (unsigned long long)allocator->size, allocator->currentAllocations);
 	return false;
+}
+
+static void validateAllocators(void)
+{
+	validateAllocator((dsAllocator*)&renderAllocator, "render");
+	validateAllocator((dsAllocator*)&applicationAllocator, "application");
+	validateAllocator((dsAllocator*)&testCubeAllocator, "TestCube");
 }
 
 static bool createFramebuffer(TestCube* testCube)
@@ -290,7 +301,7 @@ static void update(
 
 	// radians/s
 	const float rate = M_PI_2f;
-	testCube->rotation += (float)dsTimer_ticksToSeconds(testCube->timer, lastFrameTime)*rate;
+	testCube->rotation += (float)dsTimer_ticksToSeconds(application->timer, lastFrameTime)*rate;
 	while (testCube->rotation > 2*M_PIf)
 		testCube->rotation = testCube->rotation - 2*M_PIf;
 
@@ -332,13 +343,36 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	DS_VERIFY(dsRenderPass_end(testCube->renderPass, commandBuffer));
 }
 
-static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* allocator)
+static void shutdown(void* userData)
+{
+	TestCube* testCube = (TestCube*)userData;
+	DS_VERIFY(dsDrawGeometry_destroy(testCube->geometry));
+	DS_VERIFY(dsGfxBuffer_destroy(testCube->drawBuffer));
+	DS_VERIFY(dsTexture_destroy(testCube->texture));
+	DS_VERIFY(dsShader_destroy(testCube->shader));
+	dsMaterial_destroy(testCube->material);
+	DS_VERIFY(dsMaterialDesc_destroy(testCube->materialDesc));
+	DS_VERIFY(dsShaderModule_destroy(testCube->shaderModule));
+	DS_VERIFY(dsRenderPass_destroy(testCube->renderPass));
+	DS_VERIFY(dsFramebuffer_destroy(testCube->framebuffer));
+	DS_VERIFY(dsWindow_destroy(testCube->window));
+	DS_VERIFY(dsRenderer_destroy(testCube->renderer));
+	DS_VERIFY(dsAllocator_free(testCube->allocator, testCube));
+}
+
+static bool setup(dsApplication* application, dsAllocator* allocator)
 {
 	dsRenderer* renderer = application->renderer;
 	dsResourceManager* resourceManager = renderer->resourceManager;
+
+	TestCube* testCube = DS_ALLOCATE_OBJECT(allocator, TestCube);
+	if (!testCube)
+		return false;
+
+	memset(testCube, 0, sizeof(TestCube));
 	testCube->allocator = allocator;
 	testCube->renderer = renderer;
-	testCube->timer = dsTimer_create();
+	DS_VERIFY(dsApplication_setUserData(application, testCube, &shutdown));
 
 	dsEventResponder responder = {&processEvent, testCube, 0, 0};
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
@@ -503,21 +537,7 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 	return true;
 }
 
-static void shutdown(TestCube* testCube)
-{
-	DS_VERIFY(dsDrawGeometry_destroy(testCube->geometry));
-	DS_VERIFY(dsGfxBuffer_destroy(testCube->drawBuffer));
-	DS_VERIFY(dsTexture_destroy(testCube->texture));
-	DS_VERIFY(dsShader_destroy(testCube->shader));
-	dsMaterial_destroy(testCube->material);
-	DS_VERIFY(dsMaterialDesc_destroy(testCube->materialDesc));
-	DS_VERIFY(dsShaderModule_destroy(testCube->shaderModule));
-	DS_VERIFY(dsRenderPass_destroy(testCube->renderPass));
-	DS_VERIFY(dsFramebuffer_destroy(testCube->framebuffer));
-	DS_VERIFY(dsWindow_destroy(testCube->window));
-}
-
-int dsMain(int argc, const char** argv)
+dsApplication* dsMain(int argc, const char* const* argv)
 {
 	dsRendererType rendererType = dsRendererType_Default;
 	const char* deviceName = NULL;
@@ -526,7 +546,7 @@ int dsMain(int argc, const char** argv)
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
 			printHelp(argv[0]);
-			return 0;
+			return NULL;
 		}
 		else if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--renderer") == 0)
 		{
@@ -534,14 +554,14 @@ int dsMain(int argc, const char** argv)
 			{
 				printf("--renderer option requires an argument\n");
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 			rendererType = dsRenderBootstrap_rendererTypeFromName(argv[++i]);
 			if (rendererType == dsRendererType_Default)
 			{
 				printf("Unknown renderer type: %s\n", argv[i]);
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 		}
 		else if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--device") == 0)
@@ -550,7 +570,7 @@ int dsMain(int argc, const char** argv)
 			{
 				printf("--device option requires an argument\n");
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 			deviceName = argv[++i];
 		}
@@ -558,7 +578,7 @@ int dsMain(int argc, const char** argv)
 		{
 			printf("Unknown option: %s\n", argv[i]);
 			printHelp(argv[0]);
-			return 1;
+			return NULL;
 		}
 	}
 
@@ -567,11 +587,8 @@ int dsMain(int argc, const char** argv)
 	DS_LOG_INFO("TestCube", "Press '2' to toggle anisotropic filtering.");
 	DS_LOG_INFO("TestCube", "Press 'V' to toggle vsync.");
 
-	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));
-	dsSystemAllocator applicationAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&applicationAllocator, DS_ALLOCATOR_NO_LIMIT));
-	dsSystemAllocator testCubeAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&testCubeAllocator, DS_ALLOCATOR_NO_LIMIT));
 
 	dsRendererOptions rendererOptions;
@@ -582,7 +599,7 @@ int dsMain(int argc, const char** argv)
 			&rendererOptions, dsRenderBootstrap_rendererID(rendererType)))
 	{
 		DS_LOG_ERROR_F("TestCube", "Couldn't setup renderer options.");
-		return 0;
+		return NULL;
 	}
 
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
@@ -590,7 +607,7 @@ int dsMain(int argc, const char** argv)
 	if (!renderer)
 	{
 		DS_LOG_ERROR_F("TestCube", "Couldn't create renderer: %s", dsErrorString(errno));
-		return 2;
+		return NULL;
 	}
 
 	dsRenderer_setVSync(renderer, dsVSync_TripleBuffer);
@@ -616,29 +633,15 @@ int dsMain(int argc, const char** argv)
 	{
 		DS_LOG_ERROR_F("TestCube", "Couldn't create application: %s", dsErrorString(errno));
 		dsRenderer_destroy(renderer);
-		return 2;
+		return NULL;
 	}
 
-	TestCube testCube;
-	memset(&testCube, 0, sizeof(testCube));
-	if (!setup(&testCube, application, (dsAllocator*)&testCubeAllocator))
+	if (!setup(application, (dsAllocator*)&testCubeAllocator))
 	{
-		shutdown(&testCube);
-		return 3;
+		dsApplication_destroy(application);
+		return NULL;
 	}
 
-	int exitCode = dsApplication_run(application);
-
-	shutdown(&testCube);
-	dsSDLApplication_destroy(application);
-	dsRenderer_destroy(renderer);
-
-	if (!validateAllocator((dsAllocator*)&renderAllocator, "render"))
-		exitCode = 4;
-	if (!validateAllocator((dsAllocator*)&applicationAllocator, "application"))
-		exitCode = 4;
-	if (!validateAllocator((dsAllocator*)&testCubeAllocator, "TestCube"))
-		exitCode = 4;
-
-	return exitCode;
+	atexit(&validateAllocators);
+	return application;
 }

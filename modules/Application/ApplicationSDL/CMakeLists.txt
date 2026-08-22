@@ -21,9 +21,7 @@ endif()
 file(GLOB_RECURSE mainSources main/*.c)
 add_library(deepsea_application_sdl_main STATIC ${mainSources})
 ds_setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/main FILES ${mainSources})
-target_link_libraries(deepsea_application_sdl_main PRIVATE SDL3::Headers)
-target_include_directories(deepsea_application_sdl_main
-	PRIVATE ${DEEPSEA_MODULE_DIR}/Core/Core/include)
+target_link_libraries(deepsea_application_sdl_main PRIVATE deepsea_application_sdl SDL3::Headers)
 ds_set_folder(deepsea_application_sdl_main modules)
 
 ds_install_library(TARGET deepsea_application_sdl_main MODULE ApplicationSDLMain)

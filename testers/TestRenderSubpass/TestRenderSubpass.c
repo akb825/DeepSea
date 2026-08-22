@@ -18,6 +18,7 @@
 #include <DeepSea/Application/Window.h>
 #include <DeepSea/ApplicationSDL/SDLApplication.h>
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/SystemAllocator.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Assert.h>
@@ -94,7 +95,6 @@ typedef struct TestRenderSubpass
 	dsDrawGeometry* cubeGeometry;
 	dsDrawGeometry* resolveGeometry;
 
-	dsTimer timer;
 	uint32_t channelRElement;
 	uint32_t channelGElement;
 	uint32_t channelBElement;
@@ -104,14 +104,18 @@ typedef struct TestRenderSubpass
 	dsMatrix44f projection;
 } TestRenderSubpass;
 
-static const char* assetsDir = "TestRenderSubpass-assets";
-static char shaderDir[100];
-
 typedef struct Vertex
 {
 	dsVector3f position;
 	dsVector2f texCoord;
 } Vertex;
+
+static const char* assetsDir = "TestRenderSubpass-assets";
+static char shaderDir[100];
+
+static dsSystemAllocator renderAllocator;
+static dsSystemAllocator applicationAllocator;
+static dsSystemAllocator testRenderSubpassAllocator;
 
 static Vertex vertices[] =
 {
@@ -213,6 +217,13 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 		"Allocator '%s' has %llu bytes allocated with %u allocations.", name,
 		(unsigned long long)allocator->size, allocator->currentAllocations);
 	return false;
+}
+
+static void validateAllocators(void)
+{
+	validateAllocator((dsAllocator*)&renderAllocator, "render");
+	validateAllocator((dsAllocator*)&applicationAllocator, "application");
+	validateAllocator((dsAllocator*)&testRenderSubpassAllocator, "TestRenderSubpass");
 }
 
 static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
@@ -385,7 +396,7 @@ static void update(
 	// radians/s
 	const float rate = M_PI_2f;
 	testRenderSubpass->rotation +=
-		(float)dsTimer_ticksToSeconds(testRenderSubpass->timer, lastFrameTime)*rate;
+		(float)dsTimer_ticksToSeconds(application->timer, lastFrameTime)*rate;
 	while (testRenderSubpass->rotation > 2*M_PIf)
 		testRenderSubpass->rotation = testRenderSubpass->rotation - 2*M_PIf;
 
@@ -507,14 +518,53 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	}
 }
 
-static bool setup(
-	TestRenderSubpass* testRenderSubpass, dsApplication* application, dsAllocator* allocator)
+static void shutdown(void* userData)
+{
+	TestRenderSubpass* testRenderSubpass = (TestRenderSubpass*)userData;
+	DS_VERIFY(dsDrawGeometry_destroy(testRenderSubpass->resolveGeometry));
+	DS_VERIFY(dsDrawGeometry_destroy(testRenderSubpass->cubeGeometry));
+	DS_VERIFY(dsGfxBuffer_destroy(testRenderSubpass->resolveBuffer));
+	DS_VERIFY(dsGfxBuffer_destroy(testRenderSubpass->cubeBuffer));
+	DS_VERIFY(dsRenderbuffer_destroy(testRenderSubpass->combinedColor));
+	DS_VERIFY(dsRenderbuffer_destroy(testRenderSubpass->bDepth));
+	DS_VERIFY(dsTexture_destroy(testRenderSubpass->bColor));
+	DS_VERIFY(dsRenderbuffer_destroy(testRenderSubpass->gDepth));
+	DS_VERIFY(dsTexture_destroy(testRenderSubpass->gColor));
+	DS_VERIFY(dsRenderbuffer_destroy(testRenderSubpass->rDepth));
+	DS_VERIFY(dsTexture_destroy(testRenderSubpass->rColor));
+	DS_VERIFY(dsTexture_destroy(testRenderSubpass->texture));
+	DS_VERIFY(dsShader_destroy(testRenderSubpass->resolveShader));
+	DS_VERIFY(dsShader_destroy(testRenderSubpass->cubeShader));
+	dsMaterial_destroy(testRenderSubpass->resolveMaterial);
+	dsMaterial_destroy(testRenderSubpass->bMaterial);
+	dsMaterial_destroy(testRenderSubpass->gMaterial);
+	dsMaterial_destroy(testRenderSubpass->rMaterial);
+	dsSharedMaterialValues_destroy(testRenderSubpass->sharedValues);
+	DS_VERIFY(dsShaderVariableGroup_destroy(testRenderSubpass->transformGroup));
+	DS_VERIFY(dsMaterialDesc_destroy(testRenderSubpass->resolveMaterialDesc));
+	DS_VERIFY(dsShaderVariableGroupDesc_destroy(testRenderSubpass->transformGroupDesc));
+	DS_VERIFY(dsMaterialDesc_destroy(testRenderSubpass->cubeMaterialDesc));
+	DS_VERIFY(dsShaderModule_destroy(testRenderSubpass->shaderModule));
+	DS_VERIFY(dsRenderPass_destroy(testRenderSubpass->renderPass));
+	DS_VERIFY(dsFramebuffer_destroy(testRenderSubpass->framebuffer));
+	DS_VERIFY(dsWindow_destroy(testRenderSubpass->window));
+	DS_VERIFY(dsRenderer_destroy(testRenderSubpass->renderer));
+	DS_VERIFY(dsAllocator_free(testRenderSubpass->allocator, testRenderSubpass));
+}
+
+static bool setup(dsApplication* application, dsAllocator* allocator)
 {
 	dsRenderer* renderer = application->renderer;
 	dsResourceManager* resourceManager = renderer->resourceManager;
+
+	TestRenderSubpass* testRenderSubpass = DS_ALLOCATE_OBJECT(allocator, TestRenderSubpass);
+	if (!testRenderSubpass)
+		return false;
+
+	memset(testRenderSubpass, 0, sizeof(TestRenderSubpass));
 	testRenderSubpass->allocator = allocator;
 	testRenderSubpass->renderer = renderer;
-	testRenderSubpass->timer = dsTimer_create();
+	DS_VERIFY(dsApplication_setUserData(application, testRenderSubpass, &shutdown));
 
 	dsEventResponder responder = {&processEvent, testRenderSubpass, 0, 0};
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
@@ -850,38 +900,7 @@ static bool setup(
 	return true;
 }
 
-static void shutdown(TestRenderSubpass* testRenderSubpass)
-{
-	DS_VERIFY(dsDrawGeometry_destroy(testRenderSubpass->resolveGeometry));
-	DS_VERIFY(dsDrawGeometry_destroy(testRenderSubpass->cubeGeometry));
-	DS_VERIFY(dsGfxBuffer_destroy(testRenderSubpass->resolveBuffer));
-	DS_VERIFY(dsGfxBuffer_destroy(testRenderSubpass->cubeBuffer));
-	DS_VERIFY(dsRenderbuffer_destroy(testRenderSubpass->combinedColor));
-	DS_VERIFY(dsRenderbuffer_destroy(testRenderSubpass->bDepth));
-	DS_VERIFY(dsTexture_destroy(testRenderSubpass->bColor));
-	DS_VERIFY(dsRenderbuffer_destroy(testRenderSubpass->gDepth));
-	DS_VERIFY(dsTexture_destroy(testRenderSubpass->gColor));
-	DS_VERIFY(dsRenderbuffer_destroy(testRenderSubpass->rDepth));
-	DS_VERIFY(dsTexture_destroy(testRenderSubpass->rColor));
-	DS_VERIFY(dsTexture_destroy(testRenderSubpass->texture));
-	DS_VERIFY(dsShader_destroy(testRenderSubpass->resolveShader));
-	DS_VERIFY(dsShader_destroy(testRenderSubpass->cubeShader));
-	dsMaterial_destroy(testRenderSubpass->resolveMaterial);
-	dsMaterial_destroy(testRenderSubpass->bMaterial);
-	dsMaterial_destroy(testRenderSubpass->gMaterial);
-	dsMaterial_destroy(testRenderSubpass->rMaterial);
-	dsSharedMaterialValues_destroy(testRenderSubpass->sharedValues);
-	DS_VERIFY(dsShaderVariableGroup_destroy(testRenderSubpass->transformGroup));
-	DS_VERIFY(dsMaterialDesc_destroy(testRenderSubpass->resolveMaterialDesc));
-	DS_VERIFY(dsShaderVariableGroupDesc_destroy(testRenderSubpass->transformGroupDesc));
-	DS_VERIFY(dsMaterialDesc_destroy(testRenderSubpass->cubeMaterialDesc));
-	DS_VERIFY(dsShaderModule_destroy(testRenderSubpass->shaderModule));
-	DS_VERIFY(dsRenderPass_destroy(testRenderSubpass->renderPass));
-	DS_VERIFY(dsFramebuffer_destroy(testRenderSubpass->framebuffer));
-	DS_VERIFY(dsWindow_destroy(testRenderSubpass->window));
-}
-
-int dsMain(int argc, const char** argv)
+dsApplication* dsMain(int argc, const char* const* argv)
 {
 	dsRendererType rendererType = dsRendererType_Default;
 	const char* deviceName = NULL;
@@ -890,7 +909,7 @@ int dsMain(int argc, const char** argv)
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
 			printHelp(argv[0]);
-			return 0;
+			return NULL;
 		}
 		else if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--renderer") == 0)
 		{
@@ -898,14 +917,14 @@ int dsMain(int argc, const char** argv)
 			{
 				printf("--renderer option requires an argument\n");
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 			rendererType = dsRenderBootstrap_rendererTypeFromName(argv[++i]);
 			if (rendererType == dsRendererType_Default)
 			{
 				printf("Unknown renderer type: %s\n", argv[i]);
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 		}
 		else if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--device") == 0)
@@ -914,7 +933,7 @@ int dsMain(int argc, const char** argv)
 			{
 				printf("--device option requires an argument\n");
 				printHelp(argv[0]);
-				return 1;
+				return NULL;
 			}
 			deviceName = argv[++i];
 		}
@@ -922,18 +941,15 @@ int dsMain(int argc, const char** argv)
 		{
 			printf("Unknown option: %s\n", argv[i]);
 			printHelp(argv[0]);
-			return 1;
+			return NULL;
 		}
 	}
 
 	DS_LOG_INFO_F("TestRenderSubpass", "Render using %s",
 		dsRenderBootstrap_rendererName(rendererType));
 
-	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));
-	dsSystemAllocator applicationAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&applicationAllocator, DS_ALLOCATOR_NO_LIMIT));
-	dsSystemAllocator testRenderSubpassAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&testRenderSubpassAllocator, DS_ALLOCATOR_NO_LIMIT));
 
 	dsRendererOptions rendererOptions;
@@ -946,7 +962,7 @@ int dsMain(int argc, const char** argv)
 			&rendererOptions, dsRenderBootstrap_rendererID(rendererType)))
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't setup renderer options.");
-		return 0;
+		return NULL;
 	}
 
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
@@ -954,7 +970,7 @@ int dsMain(int argc, const char** argv)
 	if (!renderer)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create renderer: %s", dsErrorString(errno));
-		return 2;
+		return NULL;
 	}
 
 	dsRenderer_setVSync(renderer, dsVSync_TripleBuffer);
@@ -980,29 +996,15 @@ int dsMain(int argc, const char** argv)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create application: %s", dsErrorString(errno));
 		dsRenderer_destroy(renderer);
-		return 2;
+		return NULL;
 	}
 
-	TestRenderSubpass testRenderSubpass;
-	memset(&testRenderSubpass, 0, sizeof(testRenderSubpass));
-	if (!setup(&testRenderSubpass, application, (dsAllocator*)&testRenderSubpassAllocator))
+	if (!setup(application, (dsAllocator*)&testRenderSubpassAllocator))
 	{
-		shutdown(&testRenderSubpass);
-		return 3;
+		dsApplication_destroy(application);
+		return NULL;
 	}
 
-	int exitCode = dsApplication_run(application);
-
-	shutdown(&testRenderSubpass);
-	dsSDLApplication_destroy(application);
-	dsRenderer_destroy(renderer);
-
-	if (!validateAllocator((dsAllocator*)&renderAllocator, "render"))
-		exitCode = 4;
-	if (!validateAllocator((dsAllocator*)&applicationAllocator, "application"))
-		exitCode = 4;
-	if (!validateAllocator((dsAllocator*)&testRenderSubpassAllocator, "TestRenderSubpass"))
-		exitCode = 4;
-
-	return exitCode;
+	atexit(&validateAllocators);
+	return application;
 }
