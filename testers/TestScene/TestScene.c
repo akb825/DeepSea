@@ -105,8 +105,9 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 	return false;
 }
 
-static void validateAllocators(void)
+static void validateAllocators(void* userData)
 {
+	DS_UNUSED(userData);
 	validateAllocator((dsAllocator*)&renderAllocator, "render");
 	validateAllocator((dsAllocator*)&applicationAllocator, "application");
 	validateAllocator((dsAllocator*)&testSceneAllocator, "TestScene");
@@ -240,13 +241,13 @@ static void shutdown(void* userData)
 	dsThreadPool_destroy(testScene->threadPool);
 	dsSceneResources_freeRef(testScene->resources);
 	DS_VERIFY(dsWindow_destroy(testScene->window));
-	DS_VERIFY(dsRenderer_destroy(testScene->renderer));
 	DS_VERIFY(dsAllocator_free(testScene->allocator, testScene));
 }
 
 static bool setup(dsApplication* application, dsAllocator* allocator, float updateFps)
 {
 	dsRenderer* renderer = application->renderer;
+	DS_VERIFY(dsApplication_setFinalizer(application, &validateAllocators, NULL));
 
 	TestScene* testScene = DS_ALLOCATE_OBJECT(allocator, TestScene);
 	if (!testScene)
@@ -507,7 +508,6 @@ dsApplication* dsMain(int argc, const char* const* argv)
 	if (!application)
 	{
 		DS_LOG_ERROR_F("TestScene", "Couldn't create application: %s", dsErrorString(errno));
-		dsRenderer_destroy(renderer);
 		return NULL;
 	}
 
@@ -531,7 +531,5 @@ dsApplication* dsMain(int argc, const char* const* argv)
 		dsApplication_destroy(application);
 		return NULL;
 	}
-
-	atexit(&validateAllocators);
 	return application;
 }

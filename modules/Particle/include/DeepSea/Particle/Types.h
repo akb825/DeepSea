@@ -69,9 +69,6 @@ typedef struct dsParticleVolume
 		 */
 		dsAlignedBox3xf box;
 
-		/**
-		 * @brief The spehre when the type is dsParticleVolumeType_Sphere.
-		 */
 		struct
 		{
 			/**
@@ -83,11 +80,12 @@ typedef struct dsParticleVolume
 			 * @brief The radius of the sphere.
 			 */
 			float radius;
-		} sphere;
-
+		}
 		/**
-		 * @brief The cylinder when the type is dsParticleVolumeType_Cylinder.
+		 * @brief The spehre when the type is dsParticleVolumeType_Sphere.
 		 */
+		sphere;
+
 		struct
 		{
 			/**
@@ -104,7 +102,11 @@ typedef struct dsParticleVolume
 			 * @brief The height of the cylinder along the Z axis.
 			 */
 			float height;
-		} cylinder;
+		}
+		/**
+		 * @brief The cylinder when the type is dsParticleVolumeType_Cylinder.
+		 */
+		cylinder;
 	};
 } dsParticleVolume;
 

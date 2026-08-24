@@ -1596,6 +1596,16 @@ typedef struct dsApplication
 	dsDestroyUserDataFunction destroyUserDataFunc;
 
 	/**
+	 * @brief Function to call once all resources related to the application are destroyed.
+	 */
+	dsDestroyUserDataFunction finalizerFunc;
+
+	/**
+	 * @brief User data to provide to the finalizer function.
+	 */
+	void* finalizerUserData;
+
+	/**
 	 * @brief Function for updating the application.
 	 */
 	dsUpdateApplicationFunction updateFunc;

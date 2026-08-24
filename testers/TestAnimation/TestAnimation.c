@@ -137,8 +137,9 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 	return false;
 }
 
-static void validateAllocators(void)
+static void validateAllocators(void* userData)
 {
+	DS_UNUSED(userData);
 	validateAllocator((dsAllocator*)&renderAllocator, "render");
 	validateAllocator((dsAllocator*)&applicationAllocator, "application");
 	validateAllocator((dsAllocator*)&testAnimationAllocator, "TestAnimation");
@@ -346,7 +347,6 @@ static void shutdown(void* userData)
 	dsSceneResources_freeRef(testAnimation->baseResources);
 	dsSceneResources_freeRef(testAnimation->builtinResources);
 	DS_VERIFY(dsWindow_destroy(testAnimation->window));
-	DS_VERIFY(dsRenderer_destroy(testAnimation->renderer));
 	DS_VERIFY(dsAllocator_free(testAnimation->allocator, testAnimation));
 }
 
@@ -354,6 +354,7 @@ static bool setup(dsApplication* application, dsAllocator* allocator, float upda
 {
 	dsRenderer* renderer = application->renderer;
 	dsResourceManager* resourceManager = renderer->resourceManager;
+	DS_VERIFY(dsApplication_setFinalizer(application, &validateAllocators, NULL));
 
 	TestAnimation* testAnimation = DS_ALLOCATE_OBJECT(allocator, TestAnimation);
 	if (!testAnimation)
@@ -816,7 +817,6 @@ dsApplication* dsMain(int argc, const char* const* argv)
 	if (!application)
 	{
 		DS_LOG_ERROR_F("TestAnimation", "Couldn't create application: %s", dsErrorString(errno));
-		dsRenderer_destroy(renderer);
 		return NULL;
 	}
 
@@ -840,7 +840,5 @@ dsApplication* dsMain(int argc, const char* const* argv)
 		dsApplication_destroy(application);
 		return NULL;
 	}
-
-	atexit(&validateAllocators);
 	return application;
 }

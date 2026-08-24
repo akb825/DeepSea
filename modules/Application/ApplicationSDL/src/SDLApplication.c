@@ -1427,13 +1427,18 @@ void dsSDLApplication_destroy(dsApplication* application)
 	if (!application)
 		return;
 
+	dsDestroyUserDataFunction finalizerFunc = application->finalizerFunc;
+	void* finalizerUserData = application->userData;
+	dsApplication_destroyUserData(application);
+
 	if (application->displays)
 	{
 		for (uint32_t i = 0; i < application->displayCount; ++i)
 			DS_VERIFY(dsAllocator_free(application->allocator, application->displays[i]));
-
-		DS_VERIFY(dsAllocator_free(application->allocator, application->displays));
 	}
+
+	for (uint32_t i = 0; i < application->windowCount; ++i)
+		dsSDLWindow_destroy(application, application->windows[i]);
 
 	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
 	for (int i = 0; i < dsCursor_Count; ++i)
@@ -1445,9 +1450,13 @@ void dsSDLApplication_destroy(dsApplication* application)
 	dsSDLGameInput_freeAll(application->gameInputs, application->gameInputCount);
 	dsSDLMotionSensor_freeAll(application->motionSensors, application->motionSensorCount);
 	dsApplication_shutdown(application);
+	DS_VERIFY(dsRenderer_destroy(application->renderer));
 	dsAllocator_free(application->allocator, application);
 
 	SDL_Quit();
+
+	if (finalizerFunc)
+		finalizerFunc(finalizerUserData);
 }
 
 uint32_t dsSDLApplication_showMessageBox(dsMessageBoxType type, const char* title,
@@ -1474,15 +1483,18 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	DS_UNUSED(argv);
 	if (!allocator || !renderer)
 	{
+		if (renderer)
+			DS_VERIFY(dsRenderer_destroy(renderer));
 		errno = EINVAL;
 		return NULL;
 	}
 
 	if (!allocator->freeFunc)
 	{
-		errno = EINVAL;
 		DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG,
 			"Application allocator must support freeing memory.");
+		DS_VERIFY(dsRenderer_destroy(renderer));
+		errno = EINVAL;
 		return NULL;
 	}
 
@@ -1491,8 +1503,9 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 		initFlags |= SDL_INIT_SENSOR;
 	if (!SDL_Init(initFlags))
 	{
-		errno = EPERM;
 		DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't initialize SDL: %s", SDL_GetError());
+		DS_VERIFY(dsRenderer_destroy(renderer));
+		errno = EPERM;
 		return NULL;
 	}
 
@@ -1537,6 +1550,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	{
 		DS_LOG_ERROR_F(
 			DS_APPLICATION_SDL_LOG_TAG, "Couldn't initialize SDL video: %s", SDL_GetError());
+		DS_VERIFY(dsRenderer_destroy(renderer));
 		SDL_Quit();
 		errno = EPERM;
 		return NULL;
@@ -1549,6 +1563,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 		if (!setGLAttributes(renderer))
 		{
 			DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Invalid renderer attributes.");
+			DS_VERIFY(dsRenderer_destroy(renderer));
 			SDL_Quit();
 			errno = EINVAL;
 			return NULL;
@@ -1560,6 +1575,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	if (!displayIDs)
 	{
 		DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't get SDL displays: %s", SDL_GetError());
+		DS_VERIFY(dsRenderer_destroy(renderer));
 		SDL_Quit();
 		errno = EPERM;
 		return NULL;
@@ -1568,8 +1584,9 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	dsSDLApplication* application = DS_ALLOCATE_OBJECT(allocator, dsSDLApplication);
 	if (!application)
 	{
-		SDL_Quit();
+		DS_VERIFY(dsRenderer_destroy(renderer));
 		SDL_free(displayIDs);
+		SDL_Quit();
 		return NULL;
 	}
 

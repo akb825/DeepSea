@@ -49,6 +49,18 @@ DS_APPLICATION_EXPORT bool dsApplication_setUserData(
 	dsApplication* application, void* userData, dsDestroyUserDataFunction destroyUserDataFunc);
 
 /**
+ * @brief Sets a function to be called after all other resources on the application have been
+ *     destroyed.
+ * @remark errno will be set on failure.
+ * @param application The application.
+ * @param finalizerFunc The function to call after the application is destroyed.
+ * @param userData The user data to provide to the finalizer.
+ * @return False if the user data couldn't be set.
+ */
+DS_APPLICATION_EXPORT bool dsApplication_setFinalizer(
+	dsApplication* application, dsDestroyUserDataFunction finalizerFunc, void* userData);
+
+/**
  * @brief Adds a window responder to an application.
  * @remark errno will be set on failure.
  * @param application The application.
@@ -441,14 +453,25 @@ DS_APPLICATION_EXPORT bool dsApplication_removeMotionSensor(
 	dsApplication* application, dsMotionSensor* sensor);
 
 /**
+ * @brief Destroyes the various pieces of user data for the application.
+ *
+ * This should be called by the implementation before destroying the internal data and
+ * dsApplication_shutdown().
+ *
+ * @param application The application.
+ */
+DS_APPLICATION_EXPORT void dsApplication_destroyUserData(dsApplication* application);
+
+/**
  * @brief Destroys the private members of an application.
  *
- * This is called by the application implementation. The following pointers are freed:
- * - windowResponders
- * - eventResponders
- * - windows
- * - controllers
- * Only the base pointers are destroyed, not the elements within the arrays.
+ * This is called by the application implementation. When destroying the application, the
+ * implementation is expected to:
+ * 1. First call dsApplication_destroyUserData().
+ * 2. Destroy the implementations for displays, windows, controllers, and motion sensors.
+ * 3. Call dsApplication_shutdown().
+ * 4. Free the application memory and any remaining resources for the application subsystem.
+ * 5. Call the finalizer function.
  *
  * @param application The application.
  */

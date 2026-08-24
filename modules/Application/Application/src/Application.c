@@ -72,6 +72,20 @@ bool dsApplication_setUserData(
 	return true;
 }
 
+bool dsApplication_setFinalizer(
+	dsApplication* application, dsDestroyUserDataFunction finalizerFunc, void* userData)
+{
+	if (!application)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	application->finalizerFunc = finalizerFunc;
+	application->finalizerUserData = userData;
+	return true;
+}
+
 uint32_t dsApplication_addWindowResponder(
 	dsApplication* application, const dsWindowResponder* responder)
 {
@@ -656,7 +670,7 @@ bool dsApplication_removeMotionSensor(dsApplication* application, dsMotionSensor
 	return false;
 }
 
-void dsApplication_shutdown(dsApplication* application)
+void dsApplication_destroyUserData(dsApplication* application)
 {
 	if (!application)
 		return;
@@ -681,9 +695,16 @@ void dsApplication_shutdown(dsApplication* application)
 		application->destroyFinishFrameUserDataFunc(application->finishFrameUserData);
 	if (application->destroyUserDataFunc)
 		application->destroyUserDataFunc(application->userData);
+}
+
+void dsApplication_shutdown(dsApplication* application)
+{
+	if (!application)
+		return;
 
 	DS_VERIFY(dsAllocator_free(application->allocator, application->windowResponders));
 	DS_VERIFY(dsAllocator_free(application->allocator, application->eventResponders));
+	DS_VERIFY(dsAllocator_free(application->allocator, application->displays));
 	DS_VERIFY(dsAllocator_free(application->allocator, application->windows));
 	DS_VERIFY(dsAllocator_free(application->allocator, application->gameInputs));
 	DS_VERIFY(dsAllocator_free(application->allocator, application->motionSensors));

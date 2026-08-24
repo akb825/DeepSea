@@ -166,8 +166,9 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 	return false;
 }
 
-static void validateAllocators(void)
+static void validateAllocators(void* userData)
 {
+	DS_UNUSED(userData);
 	validateAllocator((dsAllocator*)&renderAllocator, "render");
 	validateAllocator((dsAllocator*)&applicationAllocator, "application");
 	validateAllocator((dsAllocator*)&testVectorDrawAllocator, "TestVectorDraw");
@@ -407,7 +408,6 @@ static void shutdown(void* userData)
 	DS_VERIFY(dsRenderPass_destroy(testVectorDraw->renderPass));
 	DS_VERIFY(dsFramebuffer_destroy(testVectorDraw->framebuffer));
 	DS_VERIFY(dsWindow_destroy(testVectorDraw->window));
-	DS_VERIFY(dsRenderer_destroy(testVectorDraw->renderer));
 	DS_VERIFY(dsAllocator_free(testVectorDraw->allocator, testVectorDraw));
 }
 
@@ -417,6 +417,7 @@ static bool setup(dsApplication* application, dsAllocator* allocator, bool srgb)
 
 	dsRenderer* renderer = application->renderer;
 	dsResourceManager* resourceManager = renderer->resourceManager;
+	DS_VERIFY(dsApplication_setFinalizer(application, &validateAllocators, NULL));
 
 	TestVectorDraw* testVectorDraw = DS_ALLOCATE_OBJECT(allocator, TestVectorDraw);
 	if (!testVectorDraw)
@@ -746,7 +747,6 @@ dsApplication* dsMain(int argc, const char* const* argv)
 	if (!application)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create application: %s", dsErrorString(errno));
-		dsRenderer_destroy(renderer);
 		return NULL;
 	}
 
@@ -765,7 +765,5 @@ dsApplication* dsMain(int argc, const char* const* argv)
 		dsApplication_destroy(application);
 		return NULL;
 	}
-
-	atexit(&validateAllocators);
 	return application;
 }

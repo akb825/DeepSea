@@ -68,7 +68,8 @@ DS_APPLICATIONSDL_EXPORT bool dsSDLApplication_prepareRendererOptions(
  * @brief Creates an SDL application.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the application with.
- * @param renderer The renderer to use with the application.
+ * @param renderer The renderer to use with the application. This will take ownership of the
+ *     renderer, destroying it when the application is destroyed or creation fails.
  * @param argc The number of command-line arguments.
  * @param argv The vector of command-line arguments.
  * @param orgName The name of the organization that created the application.

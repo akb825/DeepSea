@@ -219,8 +219,9 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 	return false;
 }
 
-static void validateAllocators(void)
+static void validateAllocators(void* userData)
 {
+	DS_UNUSED(userData);
 	validateAllocator((dsAllocator*)&renderAllocator, "render");
 	validateAllocator((dsAllocator*)&applicationAllocator, "application");
 	validateAllocator((dsAllocator*)&testRenderSubpassAllocator, "TestRenderSubpass");
@@ -548,7 +549,6 @@ static void shutdown(void* userData)
 	DS_VERIFY(dsRenderPass_destroy(testRenderSubpass->renderPass));
 	DS_VERIFY(dsFramebuffer_destroy(testRenderSubpass->framebuffer));
 	DS_VERIFY(dsWindow_destroy(testRenderSubpass->window));
-	DS_VERIFY(dsRenderer_destroy(testRenderSubpass->renderer));
 	DS_VERIFY(dsAllocator_free(testRenderSubpass->allocator, testRenderSubpass));
 }
 
@@ -556,6 +556,7 @@ static bool setup(dsApplication* application, dsAllocator* allocator)
 {
 	dsRenderer* renderer = application->renderer;
 	dsResourceManager* resourceManager = renderer->resourceManager;
+	DS_VERIFY(dsApplication_setFinalizer(application, &validateAllocators, NULL));
 
 	TestRenderSubpass* testRenderSubpass = DS_ALLOCATE_OBJECT(allocator, TestRenderSubpass);
 	if (!testRenderSubpass)
@@ -995,7 +996,6 @@ dsApplication* dsMain(int argc, const char* const* argv)
 	if (!application)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create application: %s", dsErrorString(errno));
-		dsRenderer_destroy(renderer);
 		return NULL;
 	}
 
@@ -1004,7 +1004,5 @@ dsApplication* dsMain(int argc, const char* const* argv)
 		dsApplication_destroy(application);
 		return NULL;
 	}
-
-	atexit(&validateAllocators);
 	return application;
 }

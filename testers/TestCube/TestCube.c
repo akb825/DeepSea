@@ -176,8 +176,9 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 	return false;
 }
 
-static void validateAllocators(void)
+static void validateAllocators(void* userData)
 {
+	DS_UNUSED(userData);
 	validateAllocator((dsAllocator*)&renderAllocator, "render");
 	validateAllocator((dsAllocator*)&applicationAllocator, "application");
 	validateAllocator((dsAllocator*)&testCubeAllocator, "TestCube");
@@ -356,7 +357,6 @@ static void shutdown(void* userData)
 	DS_VERIFY(dsRenderPass_destroy(testCube->renderPass));
 	DS_VERIFY(dsFramebuffer_destroy(testCube->framebuffer));
 	DS_VERIFY(dsWindow_destroy(testCube->window));
-	DS_VERIFY(dsRenderer_destroy(testCube->renderer));
 	DS_VERIFY(dsAllocator_free(testCube->allocator, testCube));
 }
 
@@ -364,6 +364,7 @@ static bool setup(dsApplication* application, dsAllocator* allocator)
 {
 	dsRenderer* renderer = application->renderer;
 	dsResourceManager* resourceManager = renderer->resourceManager;
+	DS_VERIFY(dsApplication_setFinalizer(application, &validateAllocators, NULL));
 
 	TestCube* testCube = DS_ALLOCATE_OBJECT(allocator, TestCube);
 	if (!testCube)
@@ -632,7 +633,6 @@ dsApplication* dsMain(int argc, const char* const* argv)
 	if (!application)
 	{
 		DS_LOG_ERROR_F("TestCube", "Couldn't create application: %s", dsErrorString(errno));
-		dsRenderer_destroy(renderer);
 		return NULL;
 	}
 
@@ -641,7 +641,5 @@ dsApplication* dsMain(int argc, const char* const* argv)
 		dsApplication_destroy(application);
 		return NULL;
 	}
-
-	atexit(&validateAllocators);
 	return application;
 }
