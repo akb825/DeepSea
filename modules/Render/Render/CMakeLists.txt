@@ -39,13 +39,13 @@ ds_target_compile_definitions(deepsea_render PUBLIC
 
 # Only need to list MSL as a dependency if static linking.
 if (NOT DEEPSEA_SHARED)
-	set(externalDepends "MSL COMPONENTS Client REQUIRED")
+	set(externalDeps "MSL COMPONENTS Client REQUIRED")
 else()
-	set(externalDepends)
+	set(externalDeps)
 endif()
 
 ds_install_library(TARGET deepsea_render MODULE Render DEPENDS Core Math Geometry
-	EXTERNAL_DEPENDS ${externalDepends}
+	EXTERNAL_DEPENDS ${externalDeps}
 	CONFIG_FILES cmake/CompileShaders.cmake cmake/ConvertTexture.cmake
 	CONFIG_LINES
 		"include(\${CMAKE_CURRENT_LIST_DIR}/CompileShaders.cmake)"

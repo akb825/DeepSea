@@ -70,6 +70,7 @@ if (NOT DEEPSEA_NO_PREBUILT_LIBS)
 				${DEEPSEA_PREBUILT_LIBS_DIR}/lib/*.dylib)
 			file(GLOB prebuiltDlls ${DEEPSEA_PREBUILT_LIBS_DIR}/bin/*.dll)
 			file(GLOB cmakeFolders ${DEEPSEA_PREBUILT_LIBS_DIR}/lib/cmake/*)
+			file(GLOB shareFolders ${DEEPSEA_PREBUILT_LIBS_DIR}/share/*)
 
 			# Exclude gtest libraries as they are only for unit tests.
 			file(GLOB gtestLibs ${DEEPSEA_PREBUILT_LIBS_DIR}/lib/*gtest*
@@ -86,6 +87,7 @@ if (NOT DEEPSEA_NO_PREBUILT_LIBS)
 			install(PROGRAMS ${prebuiltDlls} DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT dev)
 			install(DIRECTORY ${cmakeFolders} DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
 				COMPONENT dev)
+			install(DIRECTORY ${shareFolders} DESTINATION share COMPONENT dev)
 		endif()
 	endif()
 endif()

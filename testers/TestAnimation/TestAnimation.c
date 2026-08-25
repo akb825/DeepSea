@@ -700,7 +700,7 @@ static bool setup(dsApplication* application, dsAllocator* allocator, float upda
 	return true;
 }
 
-#if DS_ANDROID
+#if DS_ANDROID && DS_HAS_EASY_PROFILER
 static void startEasyProfilerOnPermission(void* userData, const char* permission, bool granted)
 {
 	DS_UNUSED(userData);

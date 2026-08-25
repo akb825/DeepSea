@@ -24,8 +24,15 @@ ds_setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/main FILES ${mainSources})
 target_link_libraries(deepsea_application_sdl_main PRIVATE deepsea_application_sdl SDL3::Headers)
 ds_set_folder(deepsea_application_sdl_main modules)
 
-ds_install_library(TARGET deepsea_application_sdl_main MODULE ApplicationSDLMain)
-ds_install_library(TARGET deepsea_application_sdl MODULE ApplicationSDL DEPENDS Application
-	DEPENDS_NOLINK ApplicationSDLMain)
+# Only need to list SDL3 as a dependency if static linking.
+if (NOT DEEPSEA_SHARED)
+	set(externalDeps "SDL3 REQUIRED")
+else()
+	set(externalDeps)
+endif()
+
+ds_install_library(TARGET deepsea_application_sdl_main MODULE ApplicationSDLMain
+	DEPENDS ApplicationSDL EXTERNAL_DEPENDS ${externalDeps})
+ds_install_library(TARGET deepsea_application_sdl MODULE ApplicationSDL DEPENDS Application)
 
 add_subdirectory(test)
