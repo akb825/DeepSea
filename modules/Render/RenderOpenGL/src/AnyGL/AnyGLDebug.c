@@ -1688,6 +1688,10 @@ static PFNANYGLTEXTURESTORAGEMEM1DEXTPROC default_glTextureStorageMem1DEXT;
 static PFNANYGLIMPORTMEMORYFDEXTPROC default_glImportMemoryFdEXT;
 static PFNANYGLIMPORTMEMORYWIN32HANDLEEXTPROC default_glImportMemoryWin32HandleEXT;
 static PFNANYGLIMPORTMEMORYWIN32NAMEEXTPROC default_glImportMemoryWin32NameEXT;
+static PFNANYGLDRAWMESHTASKSEXTPROC default_glDrawMeshTasksEXT;
+static PFNANYGLDRAWMESHTASKSINDIRECTEXTPROC default_glDrawMeshTasksIndirectEXT;
+static PFNANYGLMULTIDRAWMESHTASKSINDIRECTEXTPROC default_glMultiDrawMeshTasksIndirectEXT;
+static PFNANYGLMULTIDRAWMESHTASKSINDIRECTCOUNTEXTPROC default_glMultiDrawMeshTasksIndirectCountEXT;
 static PFNANYGLSAMPLEMASKEXTPROC default_glSampleMaskEXT;
 static PFNANYGLSAMPLEPATTERNEXTPROC default_glSamplePatternEXT;
 static PFNANYGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC default_glFramebufferTexture2DMultisampleEXT;
@@ -3714,6 +3718,22 @@ static const char* getAnyEnumStr(GLenum e)
 		"GL_FRAGMENT_INTERPOLATION_OFFSET_BITS",
 		"GL_MIN_PROGRAM_TEXTURE_GATHER_OFFSET",
 		"GL_MAX_PROGRAM_TEXTURE_GATHER_OFFSET",
+		"GL_MAX_MESH_UNIFORM_BLOCKS_EXT",
+		"GL_MAX_MESH_TEXTURE_IMAGE_UNITS_EXT",
+		"GL_MAX_MESH_IMAGE_UNIFORMS_EXT",
+		"GL_MAX_MESH_UNIFORM_COMPONENTS_EXT",
+		"GL_MAX_MESH_ATOMIC_COUNTER_BUFFERS_EXT",
+		"GL_MAX_MESH_ATOMIC_COUNTERS_EXT",
+		"GL_MAX_MESH_SHADER_STORAGE_BLOCKS_EXT",
+		"GL_MAX_COMBINED_MESH_UNIFORM_COMPONENTS_EXT",
+		"GL_MAX_TASK_UNIFORM_BLOCKS_EXT",
+		"GL_MAX_TASK_TEXTURE_IMAGE_UNITS_EXT",
+		"GL_MAX_TASK_IMAGE_UNIFORMS_EXT",
+		"GL_MAX_TASK_UNIFORM_COMPONENTS_EXT",
+		"GL_MAX_TASK_ATOMIC_COUNTER_BUFFERS_EXT",
+		"GL_MAX_TASK_ATOMIC_COUNTERS_EXT",
+		"GL_MAX_TASK_SHADER_STORAGE_BLOCKS_EXT",
+		"GL_MAX_COMBINED_TASK_UNIFORM_COMPONENTS_EXT",
 		"GL_MAX_TRANSFORM_FEEDBACK_BUFFERS",
 		"GL_MAX_VERTEX_STREAMS",
 		"GL_PATCH_VERTICES",
@@ -4038,6 +4058,7 @@ static const char* getAnyEnumStr(GLenum e)
 		"GL_UNIFORM_ATOMIC_COUNTER_BUFFER_INDEX",
 		"GL_UNSIGNED_INT_ATOMIC_COUNTER",
 		"GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS",
+		"GL_MESH_OUTPUT_PER_VERTEX_GRANULARITY_EXT",
 		"GL_DEBUG_OUTPUT",
 		"GL_UNIFORM",
 		"GL_UNIFORM_BLOCK",
@@ -4199,10 +4220,24 @@ static const char* getAnyEnumStr(GLenum e)
 		"GL_SUBGROUP_SUPPORTED_STAGES_KHR",
 		"GL_SUBGROUP_SUPPORTED_FEATURES_KHR",
 		"GL_SUBGROUP_QUAD_ALL_STAGES_KHR",
+		"GL_MAX_MESH_OUTPUT_VERTICES_EXT",
+		"GL_MESH_WORK_GROUP_SIZE_EXT",
+		"GL_TASK_WORK_GROUP_SIZE_EXT",
+		"GL_MESH_OUTPUT_PER_PRIMITIVE_GRANULARITY_EXT",
 		"GL_SHADER_BINARY_FORMAT_SPIR_V",
 		"GL_SPIR_V_BINARY",
 		"GL_SPIR_V_EXTENSIONS",
 		"GL_NUM_SPIR_V_EXTENSIONS",
+		"GL_MAX_MESH_MULTIVIEW_VIEW_COUNT_EXT",
+		"GL_MESH_SHADER_EXT",
+		"GL_TASK_SHADER_EXT",
+		"GL_MESH_VERTICES_OUT_EXT",
+		"GL_MESH_PRIMITIVES_OUT_EXT",
+		"GL_MESH_OUTPUT_TYPE_EXT",
+		"GL_MESH_SUBROUTINE_EXT",
+		"GL_TASK_SUBROUTINE_EXT",
+		"GL_MESH_SUBROUTINE_UNIFORM_EXT",
+		"GL_TASK_SUBROUTINE_UNIFORM_EXT",
 		"GL_TEXTURE_TILING_EXT",
 		"GL_DEDICATED_MEMORY_OBJECT_EXT",
 		"GL_NUM_TILING_TYPES_EXT",
@@ -4231,6 +4266,12 @@ static const char* getAnyEnumStr(GLenum e)
 		"GL_DEVICE_LUID_EXT",
 		"GL_DEVICE_NODE_MASK_EXT",
 		"GL_PROTECTED_MEMORY_OBJECT_EXT",
+		"GL_UNIFORM_BLOCK_REFERENCED_BY_MESH_SHADER_EXT",
+		"GL_UNIFORM_BLOCK_REFERENCED_BY_TASK_SHADER_EXT",
+		"GL_ATOMIC_COUNTER_BUFFER_REFERENCED_BY_MESH_SHADER_EXT",
+		"GL_ATOMIC_COUNTER_BUFFER_REFERENCED_BY_TASK_SHADER_EXT",
+		"GL_REFERENCED_BY_MESH_SHADER_EXT",
+		"GL_REFERENCED_BY_TASK_SHADER_EXT",
 		"GL_MAX_SHADER_COMBINED_LOCAL_STORAGE_FAST_SIZE_EXT",
 		"GL_MAX_SHADER_COMBINED_LOCAL_STORAGE_SIZE_EXT",
 		"GL_FRAMEBUFFER_INCOMPLETE_INSUFFICIENT_SHADER_COMBINED_LOCAL_STORAGE_EXT",
@@ -4274,6 +4315,34 @@ static const char* getAnyEnumStr(GLenum e)
 		"GL_FRAGMENT_SHADING_RATE_WITH_SHADER_DEPTH_STENCIL_WRITES_SUPPORTED_EXT",
 		"GL_FRAGMENT_SHADING_RATE_WITH_SAMPLE_MASK_SUPPORTED_EXT",
 		"GL_FRAGMENT_SHADING_RATE_ATTACHMENT_WITH_DEFAULT_FRAMEBUFFER_SUPPORTED_EXT",
+		"GL_MAX_TASK_WORK_GROUP_TOTAL_COUNT_EXT",
+		"GL_MAX_MESH_WORK_GROUP_TOTAL_COUNT_EXT",
+		"GL_MAX_TASK_PAYLOAD_SIZE_EXT",
+		"GL_MAX_TASK_SHARED_MEMORY_SIZE_EXT",
+		"GL_MAX_MESH_SHARED_MEMORY_SIZE_EXT",
+		"GL_MAX_TASK_PAYLOAD_AND_SHARED_MEMORY_SIZE_EXT",
+		"GL_MAX_MESH_PAYLOAD_AND_SHARED_MEMORY_SIZE_EXT",
+		"GL_MAX_MESH_OUTPUT_MEMORY_SIZE_EXT",
+		"GL_MAX_MESH_PAYLOAD_AND_OUTPUT_MEMORY_SIZE_EXT",
+		"GL_MAX_MESH_OUTPUT_COMPONENTS_EXT",
+		"GL_MAX_MESH_OUTPUT_LAYERS_EXT",
+		"GL_MAX_PREFERRED_TASK_WORK_GROUP_INVOCATIONS_EXT",
+		"GL_MAX_PREFERRED_MESH_WORK_GROUP_INVOCATIONS_EXT",
+		"GL_MESH_PREFERS_LOCAL_INVOCATION_VERTEX_OUTPUT_EXT",
+		"GL_MESH_PREFERS_LOCAL_INVOCATION_PRIMITIVE_OUTPUT_EXT",
+		"GL_MESH_PREFERS_COMPACT_VERTEX_OUTPUT_EXT",
+		"GL_MESH_PREFERS_COMPACT_PRIMITIVE_OUTPUT_EXT",
+		"GL_MAX_TASK_WORK_GROUP_COUNT_EXT",
+		"GL_MAX_MESH_WORK_GROUP_COUNT_EXT",
+		"GL_TASK_SHADER_INVOCATIONS_EXT",
+		"GL_MESH_SHADER_INVOCATIONS_EXT",
+		"GL_MESH_PRIMITIVES_GENERATED_EXT",
+		"GL_MAX_MESH_OUTPUT_PRIMITIVES_EXT",
+		"GL_MAX_MESH_WORK_GROUP_INVOCATIONS_EXT",
+		"GL_MAX_MESH_WORK_GROUP_SIZE_EXT",
+		"GL_MAX_TASK_WORK_GROUP_INVOCATIONS_EXT",
+		"GL_MAX_TASK_WORK_GROUP_SIZE_EXT",
+		"GL_FRAGMENT_SHADING_RATE_PRIMITIVE_RATE_WITH_MULTI_VIEWPORT_SUPPORTED_EXT",
 		"GL_EVAL_BIT",
 		"GL_LIST_BIT",
 		"GL_TEXTURE_BIT",
@@ -4700,146 +4769,158 @@ static const char* getAnyEnumStr(GLenum e)
 		return enumNames[e - 0x8e2d + 1889];
 	if (e >= 0x8e42 && e <= 0x8e52)
 		return enumNames[e - 0x8e42 + 1892];
-	if (e >= 0x8e59 && e <= 0x8e5f)
+	if (e >= 0x8e59 && e <= 0x8e8a)
 		return enumNames[e - 0x8e59 + 1909];
-	if (e >= 0x8e70 && e <= 0x8e8a)
-		return enumNames[e - 0x8e70 + 1916];
 	if (e >= 0x8e8c && e <= 0x8e8f)
-		return enumNames[e - 0x8e8c + 1943];
+		return enumNames[e - 0x8e8c + 1959];
 	if (e >= 0x8f10 && e <= 0x8f15)
-		return enumNames[e - 0x8f10 + 1947];
+		return enumNames[e - 0x8f10 + 1963];
 	if (e >= 0x8f36 && e <= 0x8f3f)
-		return enumNames[e - 0x8f36 + 1953];
+		return enumNames[e - 0x8f36 + 1969];
 	if (e >= 0x8f43 && e <= 0x8f43)
-		return enumNames[e - 0x8f43 + 1963];
+		return enumNames[e - 0x8f43 + 1979];
 	if (e >= 0x8f46 && e <= 0x8f4f)
-		return enumNames[e - 0x8f46 + 1964];
+		return enumNames[e - 0x8f46 + 1980];
 	if (e >= 0x8f63 && e <= 0x8f64)
-		return enumNames[e - 0x8f63 + 1974];
+		return enumNames[e - 0x8f63 + 1990];
 	if (e >= 0x8f67 && e <= 0x8f67)
-		return enumNames[e - 0x8f67 + 1976];
+		return enumNames[e - 0x8f67 + 1992];
 	if (e >= 0x8f69 && e <= 0x8f69)
-		return enumNames[e - 0x8f69 + 1977];
+		return enumNames[e - 0x8f69 + 1993];
 	if (e >= 0x8f6e && e <= 0x8f6f)
-		return enumNames[e - 0x8f6e + 1978];
+		return enumNames[e - 0x8f6e + 1994];
 	if (e >= 0x8f90 && e <= 0x8f9f)
-		return enumNames[e - 0x8f90 + 1980];
+		return enumNames[e - 0x8f90 + 1996];
 	if (e >= 0x8fbb && e <= 0x8fbb)
-		return enumNames[e - 0x8fbb + 1996];
+		return enumNames[e - 0x8fbb + 2012];
 	if (e >= 0x8fbd && e <= 0x8fbf)
-		return enumNames[e - 0x8fbd + 1997];
+		return enumNames[e - 0x8fbd + 2013];
 	if (e >= 0x8fe9 && e <= 0x8feb)
-		return enumNames[e - 0x8fe9 + 2000];
+		return enumNames[e - 0x8fe9 + 2016];
 	if (e >= 0x8ff5 && e <= 0x8ff7)
-		return enumNames[e - 0x8ff5 + 2003];
+		return enumNames[e - 0x8ff5 + 2019];
 	if (e >= 0x8ffc && e <= 0x8ffe)
-		return enumNames[e - 0x8ffc + 2006];
+		return enumNames[e - 0x8ffc + 2022];
 	if (e >= 0x9009 && e <= 0x901b)
-		return enumNames[e - 0x9009 + 2009];
+		return enumNames[e - 0x9009 + 2025];
 	if (e >= 0x904c && e <= 0x906f)
-		return enumNames[e - 0x904c + 2028];
+		return enumNames[e - 0x904c + 2044];
 	if (e >= 0x90ba && e <= 0x90bc)
-		return enumNames[e - 0x90ba + 2064];
+		return enumNames[e - 0x90ba + 2080];
 	if (e >= 0x90c7 && e <= 0x90cf)
-		return enumNames[e - 0x90c7 + 2067];
+		return enumNames[e - 0x90c7 + 2083];
 	if (e >= 0x90d2 && e <= 0x90df)
-		return enumNames[e - 0x90d2 + 2076];
+		return enumNames[e - 0x90d2 + 2092];
 	if (e >= 0x90e1 && e <= 0x90e1)
-		return enumNames[e - 0x90e1 + 2090];
+		return enumNames[e - 0x90e1 + 2106];
 	if (e >= 0x90ea && e <= 0x90f3)
-		return enumNames[e - 0x90ea + 2091];
+		return enumNames[e - 0x90ea + 2107];
 	if (e >= 0x9100 && e <= 0x911d)
-		return enumNames[e - 0x9100 + 2101];
+		return enumNames[e - 0x9100 + 2117];
 	if (e >= 0x911f && e <= 0x912f)
-		return enumNames[e - 0x911f + 2131];
+		return enumNames[e - 0x911f + 2147];
 	if (e >= 0x9137 && e <= 0x9138)
-		return enumNames[e - 0x9137 + 2148];
+		return enumNames[e - 0x9137 + 2164];
 	if (e >= 0x9143 && e <= 0x9148)
-		return enumNames[e - 0x9143 + 2150];
+		return enumNames[e - 0x9143 + 2166];
 	if (e >= 0x9151 && e <= 0x9151)
-		return enumNames[e - 0x9151 + 2156];
+		return enumNames[e - 0x9151 + 2172];
 	if (e >= 0x9153 && e <= 0x9154)
-		return enumNames[e - 0x9153 + 2157];
+		return enumNames[e - 0x9153 + 2173];
 	if (e >= 0x9192 && e <= 0x919a)
-		return enumNames[e - 0x9192 + 2159];
+		return enumNames[e - 0x9192 + 2175];
 	if (e >= 0x919d && e <= 0x919f)
-		return enumNames[e - 0x919d + 2168];
+		return enumNames[e - 0x919d + 2184];
 	if (e >= 0x91a6 && e <= 0x91aa)
-		return enumNames[e - 0x91a6 + 2171];
+		return enumNames[e - 0x91a6 + 2187];
 	if (e >= 0x91b0 && e <= 0x91b1)
-		return enumNames[e - 0x91b0 + 2176];
+		return enumNames[e - 0x91b0 + 2192];
 	if (e >= 0x91b9 && e <= 0x91b9)
-		return enumNames[e - 0x91b9 + 2178];
+		return enumNames[e - 0x91b9 + 2194];
 	if (e >= 0x91bb && e <= 0x91bf)
-		return enumNames[e - 0x91bb + 2179];
+		return enumNames[e - 0x91bb + 2195];
 	if (e >= 0x9270 && e <= 0x9279)
-		return enumNames[e - 0x9270 + 2184];
+		return enumNames[e - 0x9270 + 2200];
 	if (e >= 0x9285 && e <= 0x9285)
-		return enumNames[e - 0x9285 + 2194];
+		return enumNames[e - 0x9285 + 2210];
 	if (e >= 0x9294 && e <= 0x929c)
-		return enumNames[e - 0x9294 + 2195];
+		return enumNames[e - 0x9294 + 2211];
 	if (e >= 0x929e && e <= 0x929e)
-		return enumNames[e - 0x929e + 2204];
+		return enumNames[e - 0x929e + 2220];
 	if (e >= 0x92a0 && e <= 0x92a0)
-		return enumNames[e - 0x92a0 + 2205];
+		return enumNames[e - 0x92a0 + 2221];
 	if (e >= 0x92ad && e <= 0x92b0)
-		return enumNames[e - 0x92ad + 2206];
+		return enumNames[e - 0x92ad + 2222];
 	if (e >= 0x92be && e <= 0x92be)
-		return enumNames[e - 0x92be + 2210];
+		return enumNames[e - 0x92be + 2226];
 	if (e >= 0x92c0 && e <= 0x92dc)
-		return enumNames[e - 0x92c0 + 2211];
-	if (e >= 0x92e0 && e <= 0x9318)
-		return enumNames[e - 0x92e0 + 2240];
+		return enumNames[e - 0x92c0 + 2227];
+	if (e >= 0x92df && e <= 0x9318)
+		return enumNames[e - 0x92df + 2256];
 	if (e >= 0x9327 && e <= 0x932c)
-		return enumNames[e - 0x9327 + 2297];
+		return enumNames[e - 0x9327 + 2314];
 	if (e >= 0x933d && e <= 0x9345)
-		return enumNames[e - 0x933d + 2303];
+		return enumNames[e - 0x933d + 2320];
 	if (e >= 0x934a && e <= 0x934c)
-		return enumNames[e - 0x934a + 2312];
+		return enumNames[e - 0x934a + 2329];
 	if (e >= 0x935c && e <= 0x935f)
-		return enumNames[e - 0x935c + 2315];
+		return enumNames[e - 0x935c + 2332];
 	if (e >= 0x9365 && e <= 0x9367)
-		return enumNames[e - 0x9365 + 2319];
+		return enumNames[e - 0x9365 + 2336];
 	if (e >= 0x9380 && e <= 0x9395)
-		return enumNames[e - 0x9380 + 2322];
+		return enumNames[e - 0x9380 + 2339];
 	if (e >= 0x93a1 && e <= 0x93a1)
-		return enumNames[e - 0x93a1 + 2344];
+		return enumNames[e - 0x93a1 + 2361];
 	if (e >= 0x93b0 && e <= 0x93bd)
-		return enumNames[e - 0x93b0 + 2345];
+		return enumNames[e - 0x93b0 + 2362];
 	if (e >= 0x93c0 && e <= 0x93c9)
-		return enumNames[e - 0x93c0 + 2359];
+		return enumNames[e - 0x93c0 + 2376];
 	if (e >= 0x93d0 && e <= 0x93dd)
-		return enumNames[e - 0x93d0 + 2369];
+		return enumNames[e - 0x93d0 + 2386];
 	if (e >= 0x93e0 && e <= 0x93e9)
-		return enumNames[e - 0x93e0 + 2383];
+		return enumNames[e - 0x93e0 + 2400];
 	if (e >= 0x93f0 && e <= 0x93f1)
-		return enumNames[e - 0x93f0 + 2393];
+		return enumNames[e - 0x93f0 + 2410];
 	if (e >= 0x9530 && e <= 0x9535)
-		return enumNames[e - 0x9530 + 2395];
+		return enumNames[e - 0x9530 + 2412];
+	if (e >= 0x9538 && e <= 0x9538)
+		return enumNames[e - 0x9538 + 2418];
+	if (e >= 0x953e && e <= 0x953f)
+		return enumNames[e - 0x953e + 2419];
+	if (e >= 0x9543 && e <= 0x9543)
+		return enumNames[e - 0x9543 + 2421];
 	if (e >= 0x9551 && e <= 0x9554)
-		return enumNames[e - 0x9551 + 2401];
-	if (e >= 0x9580 && e <= 0x959b)
-		return enumNames[e - 0x9580 + 2405];
+		return enumNames[e - 0x9551 + 2422];
+	if (e >= 0x9557 && e <= 0x9557)
+		return enumNames[e - 0x9557 + 2426];
+	if (e >= 0x9559 && e <= 0x955a)
+		return enumNames[e - 0x9559 + 2427];
+	if (e >= 0x9579 && e <= 0x95a1)
+		return enumNames[e - 0x9579 + 2429];
 	if (e >= 0x9650 && e <= 0x9652)
-		return enumNames[e - 0x9650 + 2433];
+		return enumNames[e - 0x9650 + 2470];
 	if (e >= 0x96a6 && e <= 0x96ae)
-		return enumNames[e - 0x96a6 + 2436];
+		return enumNames[e - 0x96a6 + 2473];
 	if (e >= 0x96c0 && e <= 0x96c2)
-		return enumNames[e - 0x96c0 + 2445];
+		return enumNames[e - 0x96c0 + 2482];
 	if (e >= 0x96c4 && e <= 0x96df)
-		return enumNames[e - 0x96c4 + 2448];
+		return enumNames[e - 0x96c4 + 2485];
+	if (e >= 0x9740 && e <= 0x975a)
+		return enumNames[e - 0x9740 + 2513];
+	if (e >= 0x9780 && e <= 0x9780)
+		return enumNames[e - 0x9780 + 2540];
 	if (e >= 0x10000 && e <= 0x10000)
-		return enumNames[e - 0x10000 + 2476];
+		return enumNames[e - 0x10000 + 2541];
 	if (e >= 0x20000 && e <= 0x20000)
-		return enumNames[e - 0x20000 + 2477];
+		return enumNames[e - 0x20000 + 2542];
 	if (e >= 0x40000 && e <= 0x40000)
-		return enumNames[e - 0x40000 + 2478];
+		return enumNames[e - 0x40000 + 2543];
 	if (e >= 0x80000 && e <= 0x80000)
-		return enumNames[e - 0x80000 + 2479];
+		return enumNames[e - 0x80000 + 2544];
 	if (e >= 0x20000000 && e <= 0x20000000)
-		return enumNames[e - 0x20000000 + 2480];
+		return enumNames[e - 0x20000000 + 2545];
 	if (e >= 0xffffffff && e == 0xffffffff)
-		return enumNames[e - 0xffffffff + 2481];
+		return enumNames[e - 0xffffffff + 2546];
 	return "INVALID";
 }
 
@@ -5758,6 +5839,31 @@ static const char* getGetPNameEnumStr(GLenum e)
 		"GL_FRAGMENT_SHADING_RATE_WITH_SHADER_DEPTH_STENCIL_WRITES_SUPPORTED_EXT",
 		"GL_FRAGMENT_SHADING_RATE_WITH_SAMPLE_MASK_SUPPORTED_EXT",
 		"GL_FRAGMENT_SHADING_RATE_ATTACHMENT_WITH_DEFAULT_FRAMEBUFFER_SUPPORTED_EXT",
+		"GL_MAX_TASK_WORK_GROUP_TOTAL_COUNT_EXT",
+		"GL_MAX_MESH_WORK_GROUP_TOTAL_COUNT_EXT",
+		"GL_MAX_TASK_PAYLOAD_SIZE_EXT",
+		"GL_MAX_TASK_SHARED_MEMORY_SIZE_EXT",
+		"GL_MAX_MESH_SHARED_MEMORY_SIZE_EXT",
+		"GL_MAX_TASK_PAYLOAD_AND_SHARED_MEMORY_SIZE_EXT",
+		"GL_MAX_MESH_PAYLOAD_AND_SHARED_MEMORY_SIZE_EXT",
+		"GL_MAX_MESH_OUTPUT_MEMORY_SIZE_EXT",
+		"GL_MAX_MESH_PAYLOAD_AND_OUTPUT_MEMORY_SIZE_EXT",
+		"GL_MAX_MESH_OUTPUT_COMPONENTS_EXT",
+		"GL_MAX_MESH_OUTPUT_LAYERS_EXT",
+		"GL_MAX_PREFERRED_TASK_WORK_GROUP_INVOCATIONS_EXT",
+		"GL_MAX_PREFERRED_MESH_WORK_GROUP_INVOCATIONS_EXT",
+		"GL_MESH_PREFERS_LOCAL_INVOCATION_VERTEX_OUTPUT_EXT",
+		"GL_MESH_PREFERS_LOCAL_INVOCATION_PRIMITIVE_OUTPUT_EXT",
+		"GL_MESH_PREFERS_COMPACT_VERTEX_OUTPUT_EXT",
+		"GL_MESH_PREFERS_COMPACT_PRIMITIVE_OUTPUT_EXT",
+		"GL_MAX_TASK_WORK_GROUP_COUNT_EXT",
+		"GL_MAX_MESH_WORK_GROUP_COUNT_EXT",
+		"GL_MAX_MESH_OUTPUT_PRIMITIVES_EXT",
+		"GL_MAX_MESH_WORK_GROUP_INVOCATIONS_EXT",
+		"GL_MAX_MESH_WORK_GROUP_SIZE_EXT",
+		"GL_MAX_TASK_WORK_GROUP_INVOCATIONS_EXT",
+		"GL_MAX_TASK_WORK_GROUP_SIZE_EXT",
+		"GL_FRAGMENT_SHADING_RATE_PRIMITIVE_RATE_WITH_MULTI_VIEWPORT_SUPPORTED_EXT",
 	};
 
 	if (e >= 0xb00 && e <= 0xb09)
@@ -6006,6 +6112,12 @@ static const char* getGetPNameEnumStr(GLenum e)
 		return enumNames[e - 0x96d0 + 441];
 	if (e >= 0x96d7 && e <= 0x96df)
 		return enumNames[e - 0x96d7 + 442];
+	if (e >= 0x9740 && e <= 0x9752)
+		return enumNames[e - 0x9740 + 451];
+	if (e >= 0x9756 && e <= 0x975a)
+		return enumNames[e - 0x9756 + 470];
+	if (e >= 0x9780 && e <= 0x9780)
+		return enumNames[e - 0x9780 + 475];
 	return "INVALID";
 }
 
@@ -7643,6 +7755,14 @@ static const char* getInternalFormatEnumStr(GLenum e)
 		"GL_RGBA16F",
 		"GL_RGB16F",
 		"GL_DEPTH24_STENCIL8",
+		"GL_COMPRESSED_SRGB_PVRTC_2BPPV1_EXT",
+		"GL_COMPRESSED_SRGB_PVRTC_4BPPV1_EXT",
+		"GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT",
+		"GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT",
+		"GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG",
+		"GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG",
+		"GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG",
+		"GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG",
 		"GL_R11F_G11F_B10F",
 		"GL_RGB9_E5",
 		"GL_SRGB",
@@ -7655,6 +7775,10 @@ static const char* getInternalFormatEnumStr(GLenum e)
 		"GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT",
 		"GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT",
 		"GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT",
+		"GL_COMPRESSED_LUMINANCE_LATC1_EXT",
+		"GL_COMPRESSED_SIGNED_LUMINANCE_LATC1_EXT",
+		"GL_COMPRESSED_LUMINANCE_ALPHA_LATC2_EXT",
+		"GL_COMPRESSED_SIGNED_LUMINANCE_ALPHA_LATC2_EXT",
 		"GL_DEPTH_COMPONENT32F",
 		"GL_DEPTH32F_STENCIL8",
 		"GL_STENCIL_INDEX1",
@@ -7718,6 +7842,8 @@ static const char* getInternalFormatEnumStr(GLenum e)
 		"GL_SR8_EXT",
 		"GL_SRG8_EXT",
 		"GL_RGB10_A2UI",
+		"GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG",
+		"GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG",
 		"GL_COMPRESSED_R11_EAC",
 		"GL_COMPRESSED_SIGNED_R11_EAC",
 		"GL_COMPRESSED_RG11_EAC",
@@ -7776,6 +7902,8 @@ static const char* getInternalFormatEnumStr(GLenum e)
 		"GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5x5_OES",
 		"GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6x5_OES",
 		"GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6x6_OES",
+		"GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV2_IMG",
+		"GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV2_IMG",
 	};
 
 	if (e >= 0x1901 && e <= 0x1903)
@@ -7804,46 +7932,56 @@ static const char* getInternalFormatEnumStr(GLenum e)
 		return enumNames[e - 0x881a + 74];
 	if (e >= 0x88f0 && e <= 0x88f0)
 		return enumNames[e - 0x88f0 + 76];
+	if (e >= 0x8a54 && e <= 0x8a57)
+		return enumNames[e - 0x8a54 + 77];
+	if (e >= 0x8c00 && e <= 0x8c03)
+		return enumNames[e - 0x8c00 + 81];
 	if (e >= 0x8c3a && e <= 0x8c3a)
-		return enumNames[e - 0x8c3a + 77];
+		return enumNames[e - 0x8c3a + 85];
 	if (e >= 0x8c3d && e <= 0x8c3d)
-		return enumNames[e - 0x8c3d + 78];
+		return enumNames[e - 0x8c3d + 86];
 	if (e >= 0x8c40 && e <= 0x8c43)
-		return enumNames[e - 0x8c40 + 79];
+		return enumNames[e - 0x8c40 + 87];
 	if (e >= 0x8c48 && e <= 0x8c49)
-		return enumNames[e - 0x8c48 + 83];
+		return enumNames[e - 0x8c48 + 91];
 	if (e >= 0x8c4c && e <= 0x8c4f)
-		return enumNames[e - 0x8c4c + 85];
+		return enumNames[e - 0x8c4c + 93];
+	if (e >= 0x8c70 && e <= 0x8c73)
+		return enumNames[e - 0x8c70 + 97];
 	if (e >= 0x8cac && e <= 0x8cad)
-		return enumNames[e - 0x8cac + 89];
+		return enumNames[e - 0x8cac + 101];
 	if (e >= 0x8d46 && e <= 0x8d49)
-		return enumNames[e - 0x8d46 + 91];
+		return enumNames[e - 0x8d46 + 103];
 	if (e >= 0x8d62 && e <= 0x8d62)
-		return enumNames[e - 0x8d62 + 95];
+		return enumNames[e - 0x8d62 + 107];
 	if (e >= 0x8d64 && e <= 0x8d64)
-		return enumNames[e - 0x8d64 + 96];
+		return enumNames[e - 0x8d64 + 108];
 	if (e >= 0x8d70 && e <= 0x8d93)
-		return enumNames[e - 0x8d70 + 97];
+		return enumNames[e - 0x8d70 + 109];
 	if (e >= 0x8dbb && e <= 0x8dbe)
-		return enumNames[e - 0x8dbb + 133];
+		return enumNames[e - 0x8dbb + 145];
 	if (e >= 0x8e8c && e <= 0x8e8f)
-		return enumNames[e - 0x8e8c + 137];
+		return enumNames[e - 0x8e8c + 149];
 	if (e >= 0x8f94 && e <= 0x8f9b)
-		return enumNames[e - 0x8f94 + 141];
+		return enumNames[e - 0x8f94 + 153];
 	if (e >= 0x8fbd && e <= 0x8fbe)
-		return enumNames[e - 0x8fbd + 149];
+		return enumNames[e - 0x8fbd + 161];
 	if (e >= 0x906f && e <= 0x906f)
-		return enumNames[e - 0x906f + 151];
+		return enumNames[e - 0x906f + 163];
+	if (e >= 0x9137 && e <= 0x9138)
+		return enumNames[e - 0x9137 + 164];
 	if (e >= 0x9270 && e <= 0x9279)
-		return enumNames[e - 0x9270 + 152];
+		return enumNames[e - 0x9270 + 166];
 	if (e >= 0x93b0 && e <= 0x93bd)
-		return enumNames[e - 0x93b0 + 162];
+		return enumNames[e - 0x93b0 + 176];
 	if (e >= 0x93c0 && e <= 0x93c9)
-		return enumNames[e - 0x93c0 + 176];
+		return enumNames[e - 0x93c0 + 190];
 	if (e >= 0x93d0 && e <= 0x93dd)
-		return enumNames[e - 0x93d0 + 186];
+		return enumNames[e - 0x93d0 + 200];
 	if (e >= 0x93e0 && e <= 0x93e9)
-		return enumNames[e - 0x93e0 + 200];
+		return enumNames[e - 0x93e0 + 214];
+	if (e >= 0x93f0 && e <= 0x93f1)
+		return enumNames[e - 0x93f0 + 224];
 	return "INVALID";
 }
 
@@ -8087,6 +8225,14 @@ static const char* getSizedInternalFormatEnumStr(GLenum e)
 		"GL_RGBA16F",
 		"GL_RGB16F",
 		"GL_DEPTH24_STENCIL8",
+		"GL_COMPRESSED_SRGB_PVRTC_2BPPV1_EXT",
+		"GL_COMPRESSED_SRGB_PVRTC_4BPPV1_EXT",
+		"GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT",
+		"GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT",
+		"GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG",
+		"GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG",
+		"GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG",
+		"GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG",
 		"GL_R11F_G11F_B10F",
 		"GL_RGB9_E5",
 		"GL_SRGB8",
@@ -8095,6 +8241,10 @@ static const char* getSizedInternalFormatEnumStr(GLenum e)
 		"GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT",
 		"GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT",
 		"GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT",
+		"GL_COMPRESSED_LUMINANCE_LATC1_EXT",
+		"GL_COMPRESSED_SIGNED_LUMINANCE_LATC1_EXT",
+		"GL_COMPRESSED_LUMINANCE_ALPHA_LATC2_EXT",
+		"GL_COMPRESSED_SIGNED_LUMINANCE_ALPHA_LATC2_EXT",
 		"GL_DEPTH_COMPONENT32F",
 		"GL_DEPTH32F_STENCIL8",
 		"GL_STENCIL_INDEX1",
@@ -8156,6 +8306,8 @@ static const char* getSizedInternalFormatEnumStr(GLenum e)
 		"GL_RGB16_SNORM",
 		"GL_RGBA16_SNORM",
 		"GL_RGB10_A2UI",
+		"GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG",
+		"GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG",
 		"GL_COMPRESSED_R11_EAC",
 		"GL_COMPRESSED_SIGNED_R11_EAC",
 		"GL_COMPRESSED_RG11_EAC",
@@ -8214,6 +8366,8 @@ static const char* getSizedInternalFormatEnumStr(GLenum e)
 		"GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5x5_OES",
 		"GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6x5_OES",
 		"GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6x6_OES",
+		"GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV2_IMG",
+		"GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV2_IMG",
 	};
 
 	if (e >= 0x2a10 && e <= 0x2a10)
@@ -8234,44 +8388,54 @@ static const char* getSizedInternalFormatEnumStr(GLenum e)
 		return enumNames[e - 0x881a + 62];
 	if (e >= 0x88f0 && e <= 0x88f0)
 		return enumNames[e - 0x88f0 + 64];
+	if (e >= 0x8a54 && e <= 0x8a57)
+		return enumNames[e - 0x8a54 + 65];
+	if (e >= 0x8c00 && e <= 0x8c03)
+		return enumNames[e - 0x8c00 + 69];
 	if (e >= 0x8c3a && e <= 0x8c3a)
-		return enumNames[e - 0x8c3a + 65];
+		return enumNames[e - 0x8c3a + 73];
 	if (e >= 0x8c3d && e <= 0x8c3d)
-		return enumNames[e - 0x8c3d + 66];
+		return enumNames[e - 0x8c3d + 74];
 	if (e >= 0x8c41 && e <= 0x8c41)
-		return enumNames[e - 0x8c41 + 67];
+		return enumNames[e - 0x8c41 + 75];
 	if (e >= 0x8c43 && e <= 0x8c43)
-		return enumNames[e - 0x8c43 + 68];
+		return enumNames[e - 0x8c43 + 76];
 	if (e >= 0x8c4c && e <= 0x8c4f)
-		return enumNames[e - 0x8c4c + 69];
+		return enumNames[e - 0x8c4c + 77];
+	if (e >= 0x8c70 && e <= 0x8c73)
+		return enumNames[e - 0x8c70 + 81];
 	if (e >= 0x8cac && e <= 0x8cad)
-		return enumNames[e - 0x8cac + 73];
+		return enumNames[e - 0x8cac + 85];
 	if (e >= 0x8d46 && e <= 0x8d49)
-		return enumNames[e - 0x8d46 + 75];
+		return enumNames[e - 0x8d46 + 87];
 	if (e >= 0x8d62 && e <= 0x8d62)
-		return enumNames[e - 0x8d62 + 79];
+		return enumNames[e - 0x8d62 + 91];
 	if (e >= 0x8d64 && e <= 0x8d64)
-		return enumNames[e - 0x8d64 + 80];
+		return enumNames[e - 0x8d64 + 92];
 	if (e >= 0x8d70 && e <= 0x8d93)
-		return enumNames[e - 0x8d70 + 81];
+		return enumNames[e - 0x8d70 + 93];
 	if (e >= 0x8dbb && e <= 0x8dbe)
-		return enumNames[e - 0x8dbb + 117];
+		return enumNames[e - 0x8dbb + 129];
 	if (e >= 0x8e8c && e <= 0x8e8f)
-		return enumNames[e - 0x8e8c + 121];
+		return enumNames[e - 0x8e8c + 133];
 	if (e >= 0x8f94 && e <= 0x8f9b)
-		return enumNames[e - 0x8f94 + 125];
+		return enumNames[e - 0x8f94 + 137];
 	if (e >= 0x906f && e <= 0x906f)
-		return enumNames[e - 0x906f + 133];
+		return enumNames[e - 0x906f + 145];
+	if (e >= 0x9137 && e <= 0x9138)
+		return enumNames[e - 0x9137 + 146];
 	if (e >= 0x9270 && e <= 0x9279)
-		return enumNames[e - 0x9270 + 134];
+		return enumNames[e - 0x9270 + 148];
 	if (e >= 0x93b0 && e <= 0x93bd)
-		return enumNames[e - 0x93b0 + 144];
+		return enumNames[e - 0x93b0 + 158];
 	if (e >= 0x93c0 && e <= 0x93c9)
-		return enumNames[e - 0x93c0 + 158];
+		return enumNames[e - 0x93c0 + 172];
 	if (e >= 0x93d0 && e <= 0x93dd)
-		return enumNames[e - 0x93d0 + 168];
+		return enumNames[e - 0x93d0 + 182];
 	if (e >= 0x93e0 && e <= 0x93e9)
-		return enumNames[e - 0x93e0 + 182];
+		return enumNames[e - 0x93e0 + 196];
+	if (e >= 0x93f0 && e <= 0x93f1)
+		return enumNames[e - 0x93f0 + 206];
 	return "INVALID";
 }
 
@@ -9063,6 +9227,9 @@ static const char* getQueryTargetEnumStr(GLenum e)
 		"GL_PRIMITIVES_GENERATED",
 		"GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN",
 		"GL_ANY_SAMPLES_PASSED_CONSERVATIVE",
+		"GL_TASK_SHADER_INVOCATIONS_EXT",
+		"GL_MESH_SHADER_INVOCATIONS_EXT",
+		"GL_MESH_PRIMITIVES_GENERATED_EXT",
 	};
 
 	if (e >= 0x82ec && e <= 0x82ec)
@@ -9079,6 +9246,8 @@ static const char* getQueryTargetEnumStr(GLenum e)
 		return enumNames[e - 0x8c87 + 7];
 	if (e >= 0x8d6a && e <= 0x8d6a)
 		return enumNames[e - 0x8d6a + 9];
+	if (e >= 0x9753 && e <= 0x9755)
+		return enumNames[e - 0x9753 + 10];
 	return "INVALID";
 }
 
@@ -9548,30 +9717,6 @@ static const char* getBufferPointerNameARBEnumStr(GLenum e)
 
 	if (e >= 0x88bd && e <= 0x88bd)
 		return enumNames[e - 0x88bd + 0];
-	return "INVALID";
-}
-
-static const char* getVertexBufferObjectUsageEnumStr(GLenum e)
-{
-	static const char* enumNames[] =
-	{
-		"GL_STREAM_DRAW",
-		"GL_STREAM_READ",
-		"GL_STREAM_COPY",
-		"GL_STATIC_DRAW",
-		"GL_STATIC_READ",
-		"GL_STATIC_COPY",
-		"GL_DYNAMIC_DRAW",
-		"GL_DYNAMIC_READ",
-		"GL_DYNAMIC_COPY",
-	};
-
-	if (e >= 0x88e0 && e <= 0x88e2)
-		return enumNames[e - 0x88e0 + 0];
-	if (e >= 0x88e4 && e <= 0x88e6)
-		return enumNames[e - 0x88e4 + 3];
-	if (e >= 0x88e8 && e <= 0x88ea)
-		return enumNames[e - 0x88e8 + 6];
 	return "INVALID";
 }
 
@@ -27117,7 +27262,7 @@ static void APIENTRY debug_glNamedBufferData(GLuint buffer, GLsizeiptr size, con
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glNamedBufferData(%u, %" SIZET_FORMAT "i, %p, %s)", buffer, size, data, getVertexBufferObjectUsageEnumStr(usage));
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glNamedBufferData(%u, %" SIZET_FORMAT "i, %p, %s)", buffer, size, data, getBufferUsageARBEnumStr(usage));
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glNamedBufferData()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -37015,7 +37160,7 @@ static void APIENTRY debug_glNamedBufferDataEXT(GLuint buffer, GLsizeiptr size, 
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glNamedBufferDataEXT(%u, %" SIZET_FORMAT "i, %p, %s)", buffer, size, data, getVertexBufferObjectUsageEnumStr(usage));
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glNamedBufferDataEXT(%u, %" SIZET_FORMAT "i, %p, %s)", buffer, size, data, getBufferUsageARBEnumStr(usage));
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glNamedBufferDataEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -39885,6 +40030,78 @@ static void APIENTRY debug_glImportMemoryWin32NameEXT(GLuint memory, GLuint64 si
 			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glImportMemoryWin32NameEXT(%u, %llu, %s, %p)", memory, (unsigned long long)size, getExternalHandleTypeEnumStr(handleType), name);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glImportMemoryWin32NameEXT()", PRINT_BUFFER_SIZE);
+			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
+		}
+	}
+}
+
+static void APIENTRY debug_glDrawMeshTasksEXT(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z)
+{
+	const CallsiteInfo* _curCallsiteInfo = &callsiteInfo;
+	default_glDrawMeshTasksEXT(num_groups_x, num_groups_y, num_groups_z);
+	if (!_curCallsiteInfo->disableErrorChecks)
+	{
+		GLenum _error = AnyGL_glGetError();
+		if (_error != GL_NO_ERROR)
+		{
+			char _buffer[PRINT_BUFFER_SIZE];
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glDrawMeshTasksEXT(%u, %u, %u)", num_groups_x, num_groups_y, num_groups_z);
+			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
+				strncpy(_buffer, "glDrawMeshTasksEXT()", PRINT_BUFFER_SIZE);
+			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
+		}
+	}
+}
+
+static void APIENTRY debug_glDrawMeshTasksIndirectEXT(GLintptr indirect)
+{
+	const CallsiteInfo* _curCallsiteInfo = &callsiteInfo;
+	default_glDrawMeshTasksIndirectEXT(indirect);
+	if (!_curCallsiteInfo->disableErrorChecks)
+	{
+		GLenum _error = AnyGL_glGetError();
+		if (_error != GL_NO_ERROR)
+		{
+			char _buffer[PRINT_BUFFER_SIZE];
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glDrawMeshTasksIndirectEXT(%" SIZET_FORMAT "i)", indirect);
+			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
+				strncpy(_buffer, "glDrawMeshTasksIndirectEXT()", PRINT_BUFFER_SIZE);
+			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
+		}
+	}
+}
+
+static void APIENTRY debug_glMultiDrawMeshTasksIndirectEXT(GLintptr indirect, GLsizei drawcount, GLsizei stride)
+{
+	const CallsiteInfo* _curCallsiteInfo = &callsiteInfo;
+	default_glMultiDrawMeshTasksIndirectEXT(indirect, drawcount, stride);
+	if (!_curCallsiteInfo->disableErrorChecks)
+	{
+		GLenum _error = AnyGL_glGetError();
+		if (_error != GL_NO_ERROR)
+		{
+			char _buffer[PRINT_BUFFER_SIZE];
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glMultiDrawMeshTasksIndirectEXT(%" SIZET_FORMAT "i, %i, %i)", indirect, drawcount, stride);
+			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
+				strncpy(_buffer, "glMultiDrawMeshTasksIndirectEXT()", PRINT_BUFFER_SIZE);
+			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
+		}
+	}
+}
+
+static void APIENTRY debug_glMultiDrawMeshTasksIndirectCountEXT(GLintptr indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride)
+{
+	const CallsiteInfo* _curCallsiteInfo = &callsiteInfo;
+	default_glMultiDrawMeshTasksIndirectCountEXT(indirect, drawcount, maxdrawcount, stride);
+	if (!_curCallsiteInfo->disableErrorChecks)
+	{
+		GLenum _error = AnyGL_glGetError();
+		if (_error != GL_NO_ERROR)
+		{
+			char _buffer[PRINT_BUFFER_SIZE];
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glMultiDrawMeshTasksIndirectCountEXT(%" SIZET_FORMAT "i, %" SIZET_FORMAT "i, %i, %i)", indirect, drawcount, maxdrawcount, stride);
+			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
+				strncpy(_buffer, "glMultiDrawMeshTasksIndirectCountEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
 		}
 	}
@@ -43446,6 +43663,10 @@ void AnyGL_initDebug(void)
 	default_glImportMemoryFdEXT = AnyGL_glImportMemoryFdEXT;
 	default_glImportMemoryWin32HandleEXT = AnyGL_glImportMemoryWin32HandleEXT;
 	default_glImportMemoryWin32NameEXT = AnyGL_glImportMemoryWin32NameEXT;
+	default_glDrawMeshTasksEXT = AnyGL_glDrawMeshTasksEXT;
+	default_glDrawMeshTasksIndirectEXT = AnyGL_glDrawMeshTasksIndirectEXT;
+	default_glMultiDrawMeshTasksIndirectEXT = AnyGL_glMultiDrawMeshTasksIndirectEXT;
+	default_glMultiDrawMeshTasksIndirectCountEXT = AnyGL_glMultiDrawMeshTasksIndirectCountEXT;
 	default_glSampleMaskEXT = AnyGL_glSampleMaskEXT;
 	default_glSamplePatternEXT = AnyGL_glSamplePatternEXT;
 	default_glFramebufferTexture2DMultisampleEXT = AnyGL_glFramebufferTexture2DMultisampleEXT;
@@ -46864,6 +47085,14 @@ void AnyGL_setDebugEnabled(int enabled)
 			AnyGL_glImportMemoryWin32HandleEXT = &debug_glImportMemoryWin32HandleEXT;
 		if (default_glImportMemoryWin32NameEXT)
 			AnyGL_glImportMemoryWin32NameEXT = &debug_glImportMemoryWin32NameEXT;
+		if (default_glDrawMeshTasksEXT)
+			AnyGL_glDrawMeshTasksEXT = &debug_glDrawMeshTasksEXT;
+		if (default_glDrawMeshTasksIndirectEXT)
+			AnyGL_glDrawMeshTasksIndirectEXT = &debug_glDrawMeshTasksIndirectEXT;
+		if (default_glMultiDrawMeshTasksIndirectEXT)
+			AnyGL_glMultiDrawMeshTasksIndirectEXT = &debug_glMultiDrawMeshTasksIndirectEXT;
+		if (default_glMultiDrawMeshTasksIndirectCountEXT)
+			AnyGL_glMultiDrawMeshTasksIndirectCountEXT = &debug_glMultiDrawMeshTasksIndirectCountEXT;
 		if (default_glSampleMaskEXT)
 			AnyGL_glSampleMaskEXT = &debug_glSampleMaskEXT;
 		if (default_glSamplePatternEXT)
@@ -48724,6 +48953,10 @@ void AnyGL_setDebugEnabled(int enabled)
 		AnyGL_glImportMemoryFdEXT = default_glImportMemoryFdEXT;
 		AnyGL_glImportMemoryWin32HandleEXT = default_glImportMemoryWin32HandleEXT;
 		AnyGL_glImportMemoryWin32NameEXT = default_glImportMemoryWin32NameEXT;
+		AnyGL_glDrawMeshTasksEXT = default_glDrawMeshTasksEXT;
+		AnyGL_glDrawMeshTasksIndirectEXT = default_glDrawMeshTasksIndirectEXT;
+		AnyGL_glMultiDrawMeshTasksIndirectEXT = default_glMultiDrawMeshTasksIndirectEXT;
+		AnyGL_glMultiDrawMeshTasksIndirectCountEXT = default_glMultiDrawMeshTasksIndirectCountEXT;
 		AnyGL_glSampleMaskEXT = default_glSampleMaskEXT;
 		AnyGL_glSamplePatternEXT = default_glSamplePatternEXT;
 		AnyGL_glFramebufferTexture2DMultisampleEXT = default_glFramebufferTexture2DMultisampleEXT;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Aaron Barany
+ * Copyright 2025-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,10 +44,14 @@ bool dsGLPlatform_initialize(dsGLPlatform* platform, int anyglLoad)
 			platform->bindContextFunc = &dsBindCocoaGLContext;
 			platform->getCurrentContextFunc = &dsGetCurrentCocoaGLContext;
 			platform->setVSyncFunc = &dsSetCocoaGLVSync;
+			platform->shutdownFunc = NULL;
 			return true;
 #endif
 #if ANYGL_HAS_EGL
 		case ANYGL_LOAD_EGL:
+			if (!dsEGLInitialize())
+				return false;
+
 			platform->getDisplayFunc = &dsGetEGLDisplay;
 			platform->releaseDisplayFunc = &dsReleaseEGLDisplay;
 			platform->createConfigFunc = &dsCreateEGLConfig;
@@ -64,10 +68,14 @@ bool dsGLPlatform_initialize(dsGLPlatform* platform, int anyglLoad)
 			platform->bindContextFunc = &dsBindEGLContext;
 			platform->getCurrentContextFunc = &dsGetCurrentEGLContext;
 			platform->setVSyncFunc = &dsSetEGLVSync;
+			platform->shutdownFunc = &dsEGLShutdown;
 			return true;
 #endif
 #if ANYGL_HAS_GLX
 		case ANYGL_LOAD_GLX:
+			if (!dsGLXInitialize())
+				return false;
+
 			platform->getDisplayFunc = &dsGetGLXDisplay;
 			platform->releaseDisplayFunc = &dsReleaseGLXDisplay;
 			platform->createConfigFunc = &dsCreateGLXConfig;
@@ -84,6 +92,7 @@ bool dsGLPlatform_initialize(dsGLPlatform* platform, int anyglLoad)
 			platform->bindContextFunc = &dsBindGLXContext;
 			platform->getCurrentContextFunc = &dsGetCurrentGLXContext;
 			platform->setVSyncFunc = &dsSetGLXVSync;
+			platform->shutdownFunc = &dsGLXShutdown;
 			return true;
 #endif
 #if ANYGL_HAS_WGL
@@ -104,10 +113,17 @@ bool dsGLPlatform_initialize(dsGLPlatform* platform, int anyglLoad)
 			platform->bindContextFunc = &dsBindWGLContext;
 			platform->getCurrentContextFunc = &dsGetCurrentWGLContext;
 			platform->setVSyncFunc = &dsSetWGLVSync;
+			platform->shutdownFunc = NULL;
 			return true;
 #endif
 	}
 	return false;
+}
+
+void dsGLPlatform_shutdown(dsGLPlatform* platform)
+{
+	if (platform->shutdownFunc)
+		platform->shutdownFunc();
 }
 
 void* dsGLPlatform_getDisplay(const dsGLPlatform* platform, void* osDisplay)

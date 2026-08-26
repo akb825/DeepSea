@@ -78,6 +78,7 @@ typedef void (*dsDestroyGLSurfaceFunction)(
 typedef bool (*dsBindGLContextFunction)(void* display, void* context, void* surface);
 typedef void* (*dsGetCurrentGLContextFunction)(void* display);
 typedef void (*dsSetGLVSyncFunction)(void* display, void* surface, bool vsync);
+typedef void (*dsShutdownGLPlatformFunction)(void);
 
 typedef struct dsGLPlatform
 {
@@ -97,6 +98,7 @@ typedef struct dsGLPlatform
 	dsBindGLContextFunction bindContextFunc;
 	dsGetCurrentGLContextFunction getCurrentContextFunc;
 	dsSetGLVSyncFunction setVSyncFunc;
+	dsShutdownGLPlatformFunction shutdownFunc;
 } dsGLPlatform;
 
 typedef struct dsGLResource

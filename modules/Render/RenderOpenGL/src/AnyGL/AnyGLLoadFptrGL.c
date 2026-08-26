@@ -3303,6 +3303,10 @@ int AnyGL_FPTR_load(void)
 
 #ifndef ANYGL_OES_EGL_image_external
 	AnyGL_OES_EGL_image_external = AnyGL_queryExtension("GL_OES_EGL_image_external");
+	if (AnyGL_OES_EGL_image_external)
+	{
+		AnyGL_glEGLImageTargetTexture2DOES = (PFNANYGLEGLIMAGETARGETTEXTURE2DOESPROC)&glEGLImageTargetTexture2DOES;
+	}
 #endif /* GL_OES_EGL_image_external */
 
 #ifndef ANYGL_OES_EGL_image_external_essl3
@@ -5072,6 +5076,17 @@ int AnyGL_FPTR_load(void)
 	}
 #endif /* GL_EXT_memory_object_win32 */
 
+#ifndef ANYGL_EXT_mesh_shader
+	AnyGL_EXT_mesh_shader = AnyGL_queryExtension("GL_EXT_mesh_shader");
+	if (AnyGL_EXT_mesh_shader)
+	{
+		AnyGL_glDrawMeshTasksEXT = (PFNANYGLDRAWMESHTASKSEXTPROC)&glDrawMeshTasksEXT;
+		AnyGL_glDrawMeshTasksIndirectEXT = (PFNANYGLDRAWMESHTASKSINDIRECTEXTPROC)&glDrawMeshTasksIndirectEXT;
+		AnyGL_glMultiDrawMeshTasksIndirectEXT = (PFNANYGLMULTIDRAWMESHTASKSINDIRECTEXTPROC)&glMultiDrawMeshTasksIndirectEXT;
+		AnyGL_glMultiDrawMeshTasksIndirectCountEXT = (PFNANYGLMULTIDRAWMESHTASKSINDIRECTCOUNTEXTPROC)&glMultiDrawMeshTasksIndirectCountEXT;
+	}
+#endif /* GL_EXT_mesh_shader */
+
 #ifndef ANYGL_EXT_misc_attribute
 	AnyGL_EXT_misc_attribute = AnyGL_queryExtension("GL_EXT_misc_attribute");
 #endif /* GL_EXT_misc_attribute */
@@ -5545,6 +5560,10 @@ int AnyGL_FPTR_load(void)
 #ifndef ANYGL_EXT_shader_texture_lod
 	AnyGL_EXT_shader_texture_lod = AnyGL_queryExtension("GL_EXT_shader_texture_lod");
 #endif /* GL_EXT_shader_texture_lod */
+
+#ifndef ANYGL_EXT_shader_texture_samples
+	AnyGL_EXT_shader_texture_samples = AnyGL_queryExtension("GL_EXT_shader_texture_samples");
+#endif /* GL_EXT_shader_texture_samples */
 
 #ifndef ANYGL_EXT_shadow_funcs
 	AnyGL_EXT_shadow_funcs = AnyGL_queryExtension("GL_EXT_shadow_funcs");

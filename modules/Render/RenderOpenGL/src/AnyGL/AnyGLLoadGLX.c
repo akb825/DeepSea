@@ -3078,6 +3078,10 @@ int AnyGL_GLX_load(void)
 
 	/* GL_OES_EGL_image_external */
 	AnyGL_OES_EGL_image_external = AnyGL_queryExtension("GL_OES_EGL_image_external");
+	if (AnyGL_OES_EGL_image_external)
+	{
+		AnyGL_glEGLImageTargetTexture2DOES = (PFNANYGLEGLIMAGETARGETTEXTURE2DOESPROC)glXGetProcAddress((const GLubyte*)"glEGLImageTargetTexture2DOES");
+	}
 
 	/* GL_OES_EGL_image_external_essl3 */
 	AnyGL_OES_EGL_image_external_essl3 = AnyGL_queryExtension("GL_OES_EGL_image_external_essl3");
@@ -4702,6 +4706,16 @@ int AnyGL_GLX_load(void)
 		AnyGL_glImportMemoryWin32NameEXT = (PFNANYGLIMPORTMEMORYWIN32NAMEEXTPROC)glXGetProcAddress((const GLubyte*)"glImportMemoryWin32NameEXT");
 	}
 
+	/* GL_EXT_mesh_shader */
+	AnyGL_EXT_mesh_shader = AnyGL_queryExtension("GL_EXT_mesh_shader");
+	if (AnyGL_EXT_mesh_shader)
+	{
+		AnyGL_glDrawMeshTasksEXT = (PFNANYGLDRAWMESHTASKSEXTPROC)glXGetProcAddress((const GLubyte*)"glDrawMeshTasksEXT");
+		AnyGL_glDrawMeshTasksIndirectEXT = (PFNANYGLDRAWMESHTASKSINDIRECTEXTPROC)glXGetProcAddress((const GLubyte*)"glDrawMeshTasksIndirectEXT");
+		AnyGL_glMultiDrawMeshTasksIndirectEXT = (PFNANYGLMULTIDRAWMESHTASKSINDIRECTEXTPROC)glXGetProcAddress((const GLubyte*)"glMultiDrawMeshTasksIndirectEXT");
+		AnyGL_glMultiDrawMeshTasksIndirectCountEXT = (PFNANYGLMULTIDRAWMESHTASKSINDIRECTCOUNTEXTPROC)glXGetProcAddress((const GLubyte*)"glMultiDrawMeshTasksIndirectCountEXT");
+	}
+
 	/* GL_EXT_misc_attribute */
 	AnyGL_EXT_misc_attribute = AnyGL_queryExtension("GL_EXT_misc_attribute");
 
@@ -5121,6 +5135,9 @@ int AnyGL_GLX_load(void)
 
 	/* GL_EXT_shader_texture_lod */
 	AnyGL_EXT_shader_texture_lod = AnyGL_queryExtension("GL_EXT_shader_texture_lod");
+
+	/* GL_EXT_shader_texture_samples */
+	AnyGL_EXT_shader_texture_samples = AnyGL_queryExtension("GL_EXT_shader_texture_samples");
 
 	/* GL_EXT_shadow_funcs */
 	AnyGL_EXT_shadow_funcs = AnyGL_queryExtension("GL_EXT_shadow_funcs");

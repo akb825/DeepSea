@@ -47,6 +47,10 @@
 
 #include <string.h>
 
+#if ANYGL_HAS_GLX
+#include <dlfcn.h>
+#endif
+
 #define DS_SYNC_POOL_COUNT 100
 
 static uint32_t initializeCount;
@@ -58,12 +62,27 @@ static int platformToAnyGL(dsGfxPlatform platform)
 		case dsGfxPlatform_Wayland:
 			return ANYGL_LOAD_EGL;
 		case dsGfxPlatform_X11:
+		{
 #if ANYGL_HAS_GLX
-			return ANYGL_LOAD_GLX;
+			// Check if libGLX is present. Do this only once, and assume it won't be done across
+			// threads.
+			static int hasGLX;
+			if (hasGLX == 0)
+			{
+				void* glxLibrary = dlopen("libGLX.so", RTLD_LAZY);
+				if (glxLibrary)
+				{
+					hasGLX = 1;
+					dlclose(glxLibrary);
+				}
+				else
+					hasGLX = -1;
+			}
+			return hasGLX > 0 ? ANYGL_LOAD_GLX : ANYGL_LOAD_EGL;
 #else
 			return ANYGL_LOAD_EGL;
 #endif
-			break;
+		}
 		default:
 			return ANYGL_LOAD_DEFAULT;
 	}
@@ -157,8 +176,8 @@ static bool hasRequiredFunctions(void)
 	return true;
 }
 
-static void printGLInfo(dsGLRenderer* renderer, uint32_t major, uint32_t minor, uint32_t glslMajor,
-	uint32_t glslMinor)
+static void printGLInfo(
+	dsGLRenderer* renderer, uint32_t major, uint32_t minor, uint32_t glslMajor, uint32_t glslMinor)
 {
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
 	DS_LOG_DEBUG_F(
@@ -308,6 +327,7 @@ bool dsGLRenderer_destroy(dsRenderer* renderer)
 			glRenderer->options.gfxDisplay);
 	}
 
+	dsGLPlatform_shutdown(&glRenderer->platform);
 	DS_VERIFY(dsAllocator_free(renderer->allocator, renderer));
 
 	shutdownGL();

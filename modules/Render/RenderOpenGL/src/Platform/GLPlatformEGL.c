@@ -22,7 +22,13 @@
 #include <string.h>
 
 #if ANYGL_HAS_EGL
+#define EGL_EGL_PROTOTYPES 0
 #include <EGL/egl.h>
+#include <dlfcn.h>
+
+#ifndef EGL_VERSION_1_3
+#error EGL version 1.3 or later required.
+#endif
 
 #ifndef EGL_VERSION_1_5
 #define EGL_CONTEXT_MAJOR_VERSION         0x3098
@@ -45,12 +51,63 @@ typedef struct Config
 	bool srgb;
 } Config;
 
+// Dynamically load EGL to avoid a hard link dependency. AnyGL can't do this for us because the
+// OpenGL registry doesn't include EGL. Function pointer typedefs introduced in later versions of
+// EGL, so need our own.
+typedef EGLDisplay (*eglGetDisplayFunction)(EGLNativeDisplayType);
+typedef EGLint (*eglGetErrorFunction)(void);
+typedef EGLBoolean (*eglInitializeFunction)(EGLDisplay, EGLint*, EGLint*);
+typedef EGLBoolean (*eglTerminateFunction)(EGLDisplay);
+typedef const char* (*eglQueryStringFunction)(EGLDisplay, EGLint);
+typedef EGLSurface (*eglCreatePbufferSurfaceFunction)(EGLDisplay, EGLConfig, const EGLint*);
+typedef EGLSurface (*eglCreatePixmapSurfaceFunction)(
+	EGLDisplay, EGLConfig, EGLNativePixmapType, const EGLint*);
+typedef EGLSurface (*eglCreateWindowSurfaceFunction)(
+	EGLDisplay, EGLConfig, EGLNativeWindowType, const EGLint*);
+typedef EGLBoolean (*eglDestroySurfaceFunction)(EGLDisplay, EGLSurface);
+typedef EGLBoolean (*eglQuerySurfaceFunction)(EGLDisplay, EGLSurface, EGLint, EGLint*);
+typedef EGLBoolean (*eglSwapBuffersFunction)(EGLDisplay, EGLSurface);
+typedef EGLBoolean (*eglSwapIntervalFunction)(EGLDisplay, EGLint);
+typedef EGLBoolean (*eglChooseConfigFunction)(
+	EGLDisplay, const EGLint*, EGLConfig*, EGLint, EGLint *);
+typedef EGLContext (*eglCreateContextFunction)(EGLDisplay, EGLConfig, EGLContext, const EGLint*);
+typedef EGLBoolean (*eglDestroyContextFunction)(EGLDisplay, EGLContext);
+typedef EGLContext (*eglGetCurrentContextFunction)(void);
+typedef EGLBoolean (*eglMakeCurrentFunction)(EGLDisplay, EGLSurface, EGLSurface, EGLContext);
+
+#if !ANYGL_GLES
+typedef EGLBoolean (*eglBindAPIFunction)(EGLenum);
+#endif
+
 static void addOption(GLint* attr, unsigned int* size, GLint option, GLint value)
 {
 	DS_ASSERT(*size + 2 < MAX_OPTION_SIZE);
 	attr[(*size)++] = option;
 	attr[(*size)++] = value;
 }
+
+static void* eglLibrary;
+static eglGetDisplayFunction eglGetDisplayFunc;
+static eglGetErrorFunction eglGetErrorFunc;
+static eglInitializeFunction eglInitializeFunc;
+static eglTerminateFunction eglTerminateFunc;
+static eglQueryStringFunction eglQueryStringFunc;
+static eglCreatePbufferSurfaceFunction eglCreatePbufferSurfaceFunc;
+static eglCreatePixmapSurfaceFunction eglCreatePixmapSurfaceFunc;
+static eglCreateWindowSurfaceFunction eglCreateWindowSurfaceFunc;
+static eglDestroySurfaceFunction eglDestroySurfaceFunc;
+static eglQuerySurfaceFunction eglQuerySurfaceFunc;
+static eglSwapBuffersFunction eglSwapBuffersFunc;
+static eglSwapIntervalFunction eglSwapIntervalFunc;
+static eglChooseConfigFunction eglChooseConfigFunc;
+static eglCreateContextFunction eglCreateContextFunc;
+static eglDestroyContextFunction eglDestroyContextFunc;
+static eglGetCurrentContextFunction eglGetCurrentContextFunc;
+static eglMakeCurrentFunction eglMakeCurrentFunc;
+
+#if !ANYGL_GLES
+static eglBindAPIFunction eglBindAPIFunc;
+#endif
 
 static EGLint eglMajor;
 static EGLint eglMinor;
@@ -69,14 +126,69 @@ static bool atLeastVersion(EGLint major, EGLint minor)
 	return eglMajor > major || (eglMajor == major && eglMinor >= minor);
 }
 
+bool dsEGLInitialize(void)
+{
+	if (eglLibrary)
+		return true;
+
+	eglLibrary = dlopen("libEGL.so", RTLD_LAZY);
+	if (!eglLibrary)
+		return false;
+
+	eglGetDisplayFunc = (eglGetDisplayFunction)dlsym(eglLibrary, "eglGetDisplay");
+	// Sanity check. Don't bother checking every individual function.
+	if (!eglGetDisplayFunc)
+	{
+		dlclose(eglLibrary);
+		eglLibrary = NULL;
+		return false;
+	}
+
+	eglGetErrorFunc = (eglGetErrorFunction)dlsym(eglLibrary, "eglGetError");
+	eglInitializeFunc = (eglInitializeFunction)dlsym(eglLibrary, "eglInitialize");
+	eglTerminateFunc = (eglTerminateFunction)dlsym(eglLibrary, "eglTerminate");
+	eglQueryStringFunc = (eglQueryStringFunction)dlsym(eglLibrary, "eglQueryString");
+	eglCreatePbufferSurfaceFunc = (eglCreatePbufferSurfaceFunction)dlsym(
+		eglLibrary, "eglCreatePbufferSurface");
+	eglCreatePixmapSurfaceFunc = (eglCreatePixmapSurfaceFunction)dlsym(
+		eglLibrary, "eglCreatePixmapSurface");
+	eglCreateWindowSurfaceFunc = (eglCreateWindowSurfaceFunction)dlsym(
+		eglLibrary, "eglCreateWindowSurface");
+	eglDestroySurfaceFunc = (eglDestroySurfaceFunction)dlsym(eglLibrary, "eglDestroySurface");
+	eglQuerySurfaceFunc = (eglQuerySurfaceFunction)dlsym(eglLibrary, "eglQuerySurface");
+	eglSwapBuffersFunc = (eglSwapBuffersFunction)dlsym(eglLibrary, "eglSwapBuffers");
+	eglSwapIntervalFunc = (eglSwapIntervalFunction)dlsym(eglLibrary, "eglSwapInterval");
+	eglChooseConfigFunc = (eglChooseConfigFunction)dlsym(eglLibrary, "eglChooseConfig");
+	eglCreateContextFunc = (eglCreateContextFunction)dlsym(eglLibrary, "eglCreateContext");
+	eglDestroyContextFunc = (eglDestroyContextFunction)dlsym(eglLibrary, "eglDestroyContext");
+	eglGetCurrentContextFunc = (eglGetCurrentContextFunction)dlsym(
+		eglLibrary, "eglGetCurrentContext");
+	eglMakeCurrentFunc = (eglMakeCurrentFunction)dlsym(eglLibrary, "eglMakeCurrent");
+
+#if !ANYGL_GLES
+	eglBindAPIFunc = (eglBindAPIFunction)dlsym(eglLibrary, "eglBindAPI");
+#endif
+
+	return true;
+}
+
+void dsEGLShutdown(void)
+{
+	if (!eglLibrary)
+		return;
+
+	dlclose(eglLibrary);
+	eglLibrary = NULL;
+}
+
 void* dsGetEGLDisplay(void* osDisplay)
 {
-	EGLDisplay display = eglGetDisplay((EGLNativeDisplayType)osDisplay);
+	EGLDisplay display = eglGetDisplayFunc((EGLNativeDisplayType)osDisplay);
 	if (!display)
 		return NULL;
 
-	eglInitialize(display, &eglMajor, &eglMinor);
-	const char* extensions = eglQueryString(display, EGL_EXTENSIONS);
+	eglInitializeFunc(display, &eglMajor, &eglMinor);
+	const char* extensions = eglQueryStringFunc(display, EGL_EXTENSIONS);
 	hasColorspace = strstr(extensions, "EGL_KHR_gl_colorspace") != NULL;
 	return display;
 }
@@ -84,7 +196,7 @@ void* dsGetEGLDisplay(void* osDisplay)
 void dsReleaseEGLDisplay(void* osDisplay, void* gfxDisplay)
 {
 	DS_UNUSED(osDisplay);
-	eglTerminate((EGLDisplay)gfxDisplay);
+	eglTerminateFunc((EGLDisplay)gfxDisplay);
 }
 
 void* dsCreateEGLConfig(dsAllocator* allocator, void* display, const dsRendererOptions* options,
@@ -148,7 +260,7 @@ void* dsCreateEGLConfig(dsAllocator* allocator, void* display, const dsRendererO
 		version = versions[i];
 		attr[1] = version;
 		GLint configCount = 0;
-		if (eglChooseConfig((EGLDisplay)display, attr, &eglConfig, 1, &configCount) &&
+		if (eglChooseConfigFunc((EGLDisplay)display, attr, &eglConfig, 1, &configCount) &&
 			configCount > 0)
 		{
 			break;
@@ -171,7 +283,7 @@ void* dsCreateEGLConfig(dsAllocator* allocator, void* display, const dsRendererO
 	config->major = version == EGL_OPENGL_ES3_BIT ? 3 : 2;
 	config->minor = 0;
 #else
-	if (!eglBindAPI(EGL_OPENGL_API))
+	if (!eglBindAPIFunc(EGL_OPENGL_API))
 	{
 		errno = EPERM;
 		if (config->allocator)
@@ -192,12 +304,12 @@ void* dsCreateEGLConfig(dsAllocator* allocator, void* display, const dsRendererO
 	{
 		contextAttr[1] = glVersions[i][0];
 		contextAttr[3] = glVersions[i][1];
-		EGLContext context = eglCreateContext(display, eglConfig, NULL, contextAttr);
+		EGLContext context = eglCreateContextFunc(display, eglConfig, NULL, contextAttr);
 		if (context)
 		{
 			config->major = glVersions[i][0];
 			config->minor = glVersions[i][1];
-			eglDestroyContext(display, context);
+			eglDestroyContextFunc(display, context);
 			break;
 		}
 	}
@@ -250,7 +362,8 @@ void* dsCreateEGLContext(dsAllocator* allocator, void* display, void* config, vo
 	if (!atLeastVersion(1, 5))
 		attr[6] = EGL_NONE;
 #endif
-	return eglCreateContext((EGLDisplay)display, configPtr->config, (EGLContext)shareContext, attr);
+	return eglCreateContextFunc(
+		(EGLDisplay)display, configPtr->config, (EGLContext)shareContext, attr);
 }
 
 void dsDestroyEGLContext(void* display, void* context)
@@ -258,7 +371,7 @@ void dsDestroyEGLContext(void* display, void* context)
 	if (!context)
 		return;
 
-	eglDestroyContext((EGLDisplay)display, (EGLContext)context);
+	eglDestroyContextFunc((EGLDisplay)display, (EGLContext)context);
 }
 
 void* dsCreateDummyEGLSurface(dsAllocator* allocator, void* display, void* config, void** osSurface)
@@ -270,7 +383,7 @@ void* dsCreateDummyEGLSurface(dsAllocator* allocator, void* display, void* confi
 		return NULL;
 
 	GLint attr[] = {EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE};
-	return eglCreatePbufferSurface((EGLDisplay)display, configPtr->config, attr);
+	return eglCreatePbufferSurfaceFunc((EGLDisplay)display, configPtr->config, attr);
 }
 
 void dsDestroyDummyEGLSurface(void* display, void* surface, void* osSurface)
@@ -279,7 +392,7 @@ void dsDestroyDummyEGLSurface(void* display, void* surface, void* osSurface)
 	if (!surface)
 		return;
 
-	eglDestroySurface((EGLDisplay)display, (EGLSurface)surface);
+	eglDestroySurfaceFunc((EGLDisplay)display, (EGLSurface)surface);
 }
 
 void* dsCreateEGLSurface(dsAllocator* allocator, void* display, void* config,
@@ -298,25 +411,25 @@ void* dsCreateEGLSurface(dsAllocator* allocator, void* display, void* config,
 	{
 		case dsRenderSurfaceType_Window:
 		{
-			void* surface = eglCreateWindowSurface((EGLDisplay)display, configPtr->config,
-				(NativeWindowType)handle, attr);
+			void* surface = eglCreateWindowSurfaceFunc(
+				(EGLDisplay)display, configPtr->config, (NativeWindowType)handle, attr);
 			// NOTE: Some drivers lie about support for EGL_COLORSPACE.
-			if (!surface && attr && eglGetError() == EGL_BAD_ATTRIBUTE)
+			if (!surface && attr && eglGetErrorFunc() == EGL_BAD_ATTRIBUTE)
 			{
-				surface = eglCreateWindowSurface((EGLDisplay)display, configPtr->config,
-					(NativeWindowType)handle, NULL);
+				surface = eglCreateWindowSurfaceFunc(
+					(EGLDisplay)display, configPtr->config, (NativeWindowType)handle, NULL);
 			}
 			return surface;
 		}
 		case dsRenderSurfaceType_Pixmap:
 		{
-			void* surface = eglCreatePixmapSurface((EGLDisplay)display, configPtr->config,
-				(NativePixmapType)handle, attr);
+			void* surface = eglCreatePixmapSurfaceFunc(
+				(EGLDisplay)display, configPtr->config, (NativePixmapType)handle, attr);
 			// NOTE: Some drivers lie about support for EGL_COLORSPACE.
-			if (!surface && attr && eglGetError() == EGL_BAD_ATTRIBUTE)
+			if (!surface && attr && eglGetErrorFunc() == EGL_BAD_ATTRIBUTE)
 			{
-				surface = eglCreatePixmapSurface((EGLDisplay)display, configPtr->config,
-					(NativePixmapType)handle, NULL);
+				surface = eglCreatePixmapSurfaceFunc(
+					(EGLDisplay)display, configPtr->config, (NativePixmapType)handle, NULL);
 			}
 			return surface;
 		}
@@ -333,9 +446,9 @@ bool dsGetEGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
 		return false;
 
 	GLint width, height;
-	if (!eglQuerySurface((EGLDisplay)display, (EGLSurface)surface, EGL_WIDTH, &width))
+	if (!eglQuerySurfaceFunc((EGLDisplay)display, (EGLSurface)surface, EGL_WIDTH, &width))
 		return false;
-	if (!eglQuerySurface((EGLDisplay)display, (EGLSurface)surface, EGL_HEIGHT, &height))
+	if (!eglQuerySurfaceFunc((EGLDisplay)display, (EGLSurface)surface, EGL_HEIGHT, &height))
 		return false;
 
 	*outWidth = width;
@@ -349,7 +462,7 @@ void dsSwapEGLBuffers(void* display, dsRenderSurface** renderSurfaces, uint32_t 
 	for (size_t i = 0; i < count; ++i)
 	{
 		EGLSurface surface = (EGLSurface)((dsGLRenderSurface*)renderSurfaces[i])->glSurface;
-		eglSwapBuffers((EGLDisplay)display, surface);
+		eglSwapBuffersFunc((EGLDisplay)display, surface);
 	}
 }
 
@@ -362,7 +475,7 @@ void dsDestroyEGLSurface(void* display, dsRenderSurfaceType surfaceType, void* s
 	{
 		case dsRenderSurfaceType_Window:
 		case dsRenderSurfaceType_Pixmap:
-			eglDestroySurface((EGLDisplay)display, (EGLSurface)surface);
+			eglDestroySurfaceFunc((EGLDisplay)display, (EGLSurface)surface);
 			break;
 		default:
 			break;
@@ -372,8 +485,8 @@ void dsDestroyEGLSurface(void* display, dsRenderSurfaceType surfaceType, void* s
 bool dsBindEGLContext(void* display, void* context, void* surface)
 {
 	DS_PROFILE_FUNC_START();
-	if (!eglMakeCurrent((EGLDisplay)display, (EGLSurface)surface, (EGLSurface)surface,
-		(EGLContext)context))
+	if (!eglMakeCurrentFunc(
+		(EGLDisplay)display, (EGLSurface)surface, (EGLSurface)surface, (EGLContext)context))
 	{
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't bind GL context.");
 		DS_PROFILE_FUNC_RETURN(false);
@@ -385,13 +498,13 @@ bool dsBindEGLContext(void* display, void* context, void* surface)
 void* dsGetCurrentEGLContext(void* display)
 {
 	DS_UNUSED(display);
-	return eglGetCurrentContext();
+	return eglGetCurrentContextFunc();
 }
 
 void dsSetEGLVSync(void* display, void* surface, bool vsync)
 {
 	DS_UNUSED(surface);
-	eglSwapInterval((EGLDisplay)display, vsync);
+	eglSwapIntervalFunc((EGLDisplay)display, vsync);
 }
 
 #endif // ANYGL_HAS_EGL

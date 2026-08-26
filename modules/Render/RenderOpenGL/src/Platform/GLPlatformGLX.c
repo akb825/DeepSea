@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 
 #if ANYGL_HAS_GLX
 #include "AnyGL/glx.h"
+#include <dlfcn.h>
 
 #define MAX_OPTION_SIZE 32
 
@@ -35,6 +36,20 @@ typedef struct Config
 	GLint major;
 	GLint minor;
 } Config;
+
+typedef int (*X11ErrorHandler)(Display*, XErrorEvent*);
+
+// Dynamically load X11 to avoid a hard link dependency.
+typedef Display* (*XOpenDisplayFunction)(const char*);
+typedef int (*XCloseDisplayFunction)(Display*);
+typedef int (*XFreeFunction)(void*);
+typedef int (*XSyncFunction)(Display*, Bool);
+typedef Colormap (*XCreateColormapFunction)(Display*, Window, Visual*, int);
+typedef int (*XFreeColormapFunction)(Display*, Colormap);
+typedef Window (*XCreateWindowFunction)(Display*, Window, int, int, unsigned int, unsigned int,
+	unsigned int, int, unsigned int, Visual*, unsigned long, XSetWindowAttributes*);
+typedef int (*XDestroyWindowFunction)(Display*, Window);
+typedef XErrorHandler (*XSetErrorHandlerFunction)(XErrorHandler);
 
 static void addOption(GLint* attr, unsigned int* size, GLint option)
 {
@@ -65,13 +80,23 @@ static bool hasExtension(const char* extensions, const char* extension)
 	return false;
 }
 
+static void* xLibrary;
+static XOpenDisplayFunction XOpenDisplayFunc;
+static XCloseDisplayFunction XCloseDisplayFunc;
+static XFreeFunction XFreeFunc;
+static XSyncFunction XSyncFunc;
+static XCreateColormapFunction XCreateColormapFunc;
+static XFreeColormapFunction XFreeColormapFunc;
+static XCreateWindowFunction XCreateWindowFunc;
+static XDestroyWindowFunction XDestroyWindowFunc;
+static XSetErrorHandlerFunction XSetErrorHandlerFunc;
+
 static GLint glVersions[][2] =
 {
 	{4, 6}, {4, 5}, {4, 4}, {4, 3}, {4, 2}, {4, 1}, {4, 0},
 	{3, 3}, {3, 2}, {3, 1}, {3, 0}
 };
 
-typedef int (*X11ErrorHandler)(Display*, XErrorEvent*);
 static bool gX11Error;
 static int emptyErrorHandler(Display* display, XErrorEvent* event)
 {
@@ -81,19 +106,56 @@ static int emptyErrorHandler(Display* display, XErrorEvent* event)
 	return 0;
 }
 
+bool dsGLXInitialize(void)
+{
+	if (xLibrary)
+		return true;
+
+	xLibrary = dlopen("libX11.so", RTLD_LAZY);
+	if (!xLibrary)
+		return false;
+
+	XOpenDisplayFunc = (XOpenDisplayFunction)dlsym(xLibrary, "XOpenDisplay");
+	// Sanity check. Don't bother checking every individual function.
+	if (!XOpenDisplayFunc)
+	{
+		dlclose(xLibrary);
+		xLibrary = NULL;
+		return false;
+	}
+
+	XCloseDisplayFunc = (XCloseDisplayFunction)dlsym(xLibrary, "XCloseDisplay");
+	XFreeFunc = (XFreeFunction)dlsym(xLibrary, "XFree");
+	XSyncFunc = (XSyncFunction)dlsym(xLibrary, "XSync");
+	XCreateColormapFunc = (XCreateColormapFunction)dlsym(xLibrary, "XCreateColormap");
+	XFreeColormapFunc = (XFreeColormapFunction)dlsym(xLibrary, "XFreeColormap");
+	XCreateWindowFunc = (XCreateWindowFunction)dlsym(xLibrary, "XCreateWindow");
+	XDestroyWindowFunc = (XDestroyWindowFunction)dlsym(xLibrary, "XDestroyWindow");
+	XSetErrorHandlerFunc = (XSetErrorHandlerFunction)dlsym(xLibrary, "XSetErrorHandler");
+	return true;
+}
+
+void dsGLXShutdown(void)
+{
+	if (!xLibrary)
+		return;
+
+	dlclose(xLibrary);
+	xLibrary = NULL;
+}
+
 void* dsGetGLXDisplay(void* osDisplay)
 {
-	return XOpenDisplay(osDisplay);
+	return XOpenDisplayFunc(osDisplay);
 }
 
 void dsReleaseGLXDisplay(void* osDisplay, void* gfxDisplay)
 {
 	DS_UNUSED(osDisplay);
-	XCloseDisplay(gfxDisplay);
+	XCloseDisplayFunc(gfxDisplay);
 }
 
-void* dsCreateGLXConfig(
-	dsAllocator* allocator, void* display, const dsRendererOptions* options,
+void* dsCreateGLXConfig(dsAllocator* allocator, void* display, const dsRendererOptions* options,
 	GLContextType contextType)
 {
 	if (!allocator || !display)
@@ -168,7 +230,7 @@ void* dsCreateGLXConfig(
 		{
 			fbConfig = configs[0];
 			visualInfo = glXGetVisualFromFBConfig(display, fbConfig);
-			XFree(configs);
+			XFreeFunc(configs);
 		}
 	}
 	else
@@ -183,7 +245,7 @@ void* dsCreateGLXConfig(
 	Config* config = DS_ALLOCATE_OBJECT(allocator, Config);
 	if (!config)
 	{
-		XFree(visualInfo);
+		XFreeFunc(visualInfo);
 		return NULL;
 	}
 
@@ -206,17 +268,17 @@ void* dsCreateGLXConfig(
 
 		// Set an empty error handler since the implementation may throw an error for unsupported
 		// GL versions. Sync first to ensure any existing X11 calls have gone through.
-		XSync(display, false);
-		X11ErrorHandler prevHandler = XSetErrorHandler(&emptyErrorHandler);
+		XSyncFunc(display, false);
+		X11ErrorHandler prevHandler = XSetErrorHandlerFunc(&emptyErrorHandler);
 		unsigned int versionCount = DS_ARRAY_SIZE(glVersions);
 		for (unsigned int i = 0; i < versionCount; ++i)
 		{
 			contextAttr[1] = glVersions[i][0];
 			contextAttr[3] = glVersions[i][1];
 			gX11Error = false;
-			GLXContext context = glXCreateContextAttribsARB(display, fbConfig, NULL, true,
-				contextAttr);
-			XSync(display, false);
+			GLXContext context = glXCreateContextAttribsARB(
+				display, fbConfig, NULL, true, contextAttr);
+			XSyncFunc(display, false);
 			if (!gX11Error && context)
 			{
 				config->major = glVersions[i][0];
@@ -229,8 +291,8 @@ void* dsCreateGLXConfig(
 				glXDestroyContext(display, context);
 		}
 		// One more sync to make sure the destroy is processed before clearing out the handler.
-		XSync(display, false);
-		XSetErrorHandler(prevHandler);
+		XSyncFunc(display, false);
+		XSetErrorHandlerFunc(prevHandler);
 	}
 
 	return config;
@@ -253,7 +315,7 @@ void dsDestroyGLXConfig(void* display, void* config)
 	if (!configPtr)
 		return;
 
-	XFree(configPtr->visualInfo);
+	XFreeFunc(configPtr->visualInfo);
 	if (configPtr->allocator)
 		dsAllocator_free(configPtr->allocator, configPtr);
 }
@@ -300,10 +362,10 @@ void* dsCreateDummyGLXSurface(dsAllocator* allocator, void* display, void* confi
 
 	Window root = DefaultRootWindow(display);
 	XSetWindowAttributes attr;
-	attr.colormap = XCreateColormap(display, root, configPtr->visualInfo->visual, AllocNone);
-	Window window = XCreateWindow(display, root, 0, 0, 1, 1, 0, configPtr->visualInfo->depth,
+	attr.colormap = XCreateColormapFunc(display, root, configPtr->visualInfo->visual, AllocNone);
+	Window window = XCreateWindowFunc(display, root, 0, 0, 1, 1, 0, configPtr->visualInfo->depth,
 		InputOutput, configPtr->visualInfo->visual, CWColormap, &attr);
-	XFreeColormap(display, attr.colormap);
+	XFreeColormapFunc(display, attr.colormap);
 
 	if (configPtr->config)
 	{
@@ -311,7 +373,7 @@ void* dsCreateDummyGLXSurface(dsAllocator* allocator, void* display, void* confi
 		GLXWindow glxWindow = glXCreateWindow(display, configPtr->config, window, NULL);
 		if (!glxWindow)
 		{
-			XDestroyWindow(display, window);
+			XDestroyWindowFunc(display, window);
 			return NULL;
 		}
 
@@ -334,10 +396,10 @@ void dsDestroyDummyGLXSurface(void* display, void* surface, void* osSurface)
 	{
 		DS_ASSERT(ANYGL_SUPPORTED(glXDestroyWindow));
 		glXDestroyWindow(display, (GLXWindow)surface);
-		XDestroyWindow(display, (Window)osSurface);
+		XDestroyWindowFunc(display, (Window)osSurface);
 	}
 	else
-		XDestroyWindow(display, (Window)surface);
+		XDestroyWindowFunc(display, (Window)surface);
 }
 
 void* dsCreateGLXSurface(dsAllocator* allocator, void* display, void* config,

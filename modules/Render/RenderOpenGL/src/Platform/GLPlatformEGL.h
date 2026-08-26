@@ -22,6 +22,9 @@
 
 #if ANYGL_HAS_EGL
 
+bool dsEGLInitialize(void);
+void dsEGLShutdown(void);
+
 void* dsGetEGLDisplay(void* osDisplay);
 void dsReleaseEGLDisplay(void* osDisplay, void* gfxDisplay);
 void* dsCreateEGLConfig(dsAllocator* allocator, void* display, const dsRendererOptions* options,

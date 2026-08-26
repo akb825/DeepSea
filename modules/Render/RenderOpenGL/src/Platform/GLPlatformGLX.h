@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,9 @@
 #include "GLTypes.h"
 
 #if ANYGL_HAS_GLX
+
+bool dsGLXInitialize(void);
+void dsGLXShutdown(void);
 
 void* dsGetGLXDisplay(void* osDisplay);
 void dsReleaseGLXDisplay(void* osDisplay, void* gfxDisplay);
