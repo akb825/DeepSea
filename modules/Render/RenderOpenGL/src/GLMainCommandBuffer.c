@@ -579,8 +579,8 @@ static void copyTextureData(const dsResourceManager* resourceManager, const dsTe
 				}
 				else
 				{
-					glTexSubImage1D(GL_TEXTURE_1D, position->mipLevel, position->x, width, glFormat,
-						type, data);
+					glTexSubImage1D(GL_TEXTURE_1D, position->mipLevel, position->x, width,
+						glFormat, type, data);
 				}
 			}
 			break;

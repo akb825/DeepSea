@@ -1292,6 +1292,51 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 
 	// Buffers
 	baseResourceManager->supportedBuffers = getSupportedBuffers(baseRenderer->shaderVersion);
+	baseResourceManager->uniformBufferSupportedStages = 0;
+	if (baseResourceManager->supportedBuffers & dsGfxBufferUsage_UniformBuffer)
+	{
+		GLint count;
+		glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &count);
+		if (count > 0)
+			baseResourceManager->uniformBufferSupportedStages |= dsGfxPipelineStage_VertexShader;
+
+		glGetIntegerv(GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS, &count);
+		if (count > 0)
+			baseResourceManager->uniformBufferSupportedStages |= dsGfxPipelineStage_FragmentShader;
+
+		bool hasGeometryShaders =
+			(ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(3, 2, 0)) ||
+			(!ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(3, 2, 0));
+		if (hasGeometryShaders)
+		{
+			glGetIntegerv(GL_MAX_GEOMETRY_SHADER_STORAGE_BLOCKS, &count);
+			if (count > 0)
+			{
+				baseResourceManager->uniformBufferSupportedStages |=
+					dsGfxPipelineStage_GeometryShader;
+			}
+		}
+
+		bool hasTessellationShaders =
+			(ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(3, 2, 0)) ||
+			(!ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(4, 0, 0));
+		if (hasTessellationShaders)
+		{
+			glGetIntegerv(GL_MAX_TESS_CONTROL_SHADER_STORAGE_BLOCKS, &count);
+			if (count > 0)
+			{
+				baseResourceManager->uniformBufferSupportedStages |=
+					dsGfxPipelineStage_TessellationControlShader;
+			}
+
+			glGetIntegerv(GL_MAX_TESS_EVALUATION_SHADER_STORAGE_BLOCKS, &count);
+			if (count > 0)
+			{
+				baseResourceManager->uniformBufferSupportedStages |=
+					dsGfxPipelineStage_TessellationEvaluationShader;
+			}
+		}
+	}
 	baseResourceManager->bufferMapSupport = getBufferMapSupport();
 	baseResourceManager->canCopyBuffers = ANYGL_SUPPORTED(glCopyBufferSubData);
 	baseResourceManager->hasTextureBufferSubrange = ANYGL_SUPPORTED(glTexBufferRange);

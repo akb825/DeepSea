@@ -215,49 +215,35 @@
 	},
 	{
 		"type": "ShaderModule",
-		"name": "shaderModule",
-		"modules": @shaderModule@
+		"name": "commonShaderModule",
+		"modules": @commonShaderModule@
 	},
 	{
 		"type": "Shader",
 		"name": "grassShader",
-		"module": "shaderModule",
+		"module": "commonShaderModule",
 		"pipeline": "Grass",
 		"materialDesc": "grassMaterialDesc"
 	},
 	{
 		"type": "Shader",
 		"name": "woodShader",
-		"module": "shaderModule",
+		"module": "commonShaderModule",
 		"pipeline": "Wood",
 		"materialDesc": "woodMaterialDesc"
 	},
 	{
 		"type": "Shader",
 		"name": "pitchShader",
-		"module": "shaderModule",
+		"module": "commonShaderModule",
 		"pipeline": "Pitch",
 		"materialDesc": "pitchMaterialDesc"
 	},
 	{
 		"type": "Shader",
-		"name": "characterShader",
-		"module": "shaderModule",
-		"pipeline": "Character",
-		"materialDesc": "characterMaterialDesc"
-	},
-	{
-		"type": "Shader",
 		"name": "shadowCastShader",
-		"module": "shaderModule",
+		"module": "commonShaderModule",
 		"pipeline": "ShadowCast",
 		"materialDesc": "shadowCastMaterialDesc"
-	},
-	{
-		"type": "Shader",
-		"name": "characterShadowCastShader",
-		"module": "shaderModule",
-		"pipeline": "CharacterShadowCast",
-		"materialDesc": "characterShadowCastMaterialDesc"
 	}
 ]

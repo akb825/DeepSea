@@ -136,11 +136,14 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->minTextureBufferAlignment = 16;
 	resourceManager->minUniformBlockAlignment = 16;
 	resourceManager->minUniformBufferAlignment = 16;
-	resourceManager->supportedBuffers = (dsGfxBufferUsage)(dsGfxBufferUsage_Index |
-		dsGfxBufferUsage_Vertex | dsGfxBufferUsage_IndirectDraw |
-		dsGfxBufferUsage_IndirectDispatch | dsGfxBufferUsage_UniformBlock |
-		dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_Texture | dsGfxBufferUsage_Image |
-		dsGfxBufferUsage_CopyFrom | dsGfxBufferUsage_CopyTo);
+	resourceManager->supportedBuffers = dsGfxBufferUsage_Index | dsGfxBufferUsage_Vertex |
+		dsGfxBufferUsage_IndirectDraw | dsGfxBufferUsage_IndirectDispatch |
+		dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_Texture |
+		dsGfxBufferUsage_Image | dsGfxBufferUsage_CopyFrom | dsGfxBufferUsage_CopyTo;
+	resourceManager->uniformBufferSupportedStages = dsGfxPipelineStage_VertexShader |
+		dsGfxPipelineStage_TessellationControlShader |
+		dsGfxPipelineStage_TessellationEvaluationShader | dsGfxPipelineStage_GeometryShader |
+		dsGfxPipelineStage_FragmentShader;
 	resourceManager->bufferMapSupport = dsGfxBufferMapSupport_Persistent;
 	resourceManager->canCopyBuffers = true;
 	resourceManager->hasTextureBufferSubrange = true;

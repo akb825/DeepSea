@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -927,6 +927,10 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 		baseResourceManager->minUniformBlockAlignment = 256;
 	baseResourceManager->minUniformBufferAlignment = 16;
 	baseResourceManager->supportedBuffers = getSupportedBuffers(device);
+	baseResourceManager->uniformBufferSupportedStages = dsGfxPipelineStage_VertexShader |
+		dsGfxPipelineStage_TessellationControlShader |
+		dsGfxPipelineStage_TessellationEvaluationShader | dsGfxPipelineStage_GeometryShader |
+		dsGfxPipelineStage_FragmentShader;
 	baseResourceManager->bufferMapSupport = dsGfxBufferMapSupport_Persistent;
 	baseResourceManager->canCopyBuffers = true;
 	baseResourceManager->hasTextureBufferSubrange = true;

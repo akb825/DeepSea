@@ -810,6 +810,10 @@ dsResourceManager* dsVkResourceManager_create(
 		dsGfxBufferUsage_IndirectDraw | dsGfxBufferUsage_IndirectDispatch |
 		dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_Texture |
 		dsGfxBufferUsage_Image | dsGfxBufferUsage_CopyFrom | dsGfxBufferUsage_CopyTo;
+	baseResourceManager->uniformBufferSupportedStages = dsGfxPipelineStage_VertexShader |
+		dsGfxPipelineStage_TessellationControlShader |
+		dsGfxPipelineStage_TessellationEvaluationShader | dsGfxPipelineStage_GeometryShader |
+		dsGfxPipelineStage_FragmentShader;
 	baseResourceManager->bufferMapSupport = dsGfxBufferMapSupport_Persistent;
 	baseResourceManager->canCopyBuffers = true;
 	baseResourceManager->hasTextureBufferSubrange = true;

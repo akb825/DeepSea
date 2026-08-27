@@ -257,8 +257,8 @@ static bool createTextures(dsSceneInstanceData* instanceData, uint32_t textureCo
 	return true;
 }
 
-static void populateTextureInfoData(dsSceneInstanceData* instanceData, uint8_t* bufferData,
-	uint32_t stride)
+static void populateTextureInfoData(
+	dsSceneInstanceData* instanceData, uint8_t* bufferData, uint32_t stride)
 {
 	dsSceneSkinningData* skinningData = (dsSceneSkinningData*)instanceData;
 	size_t offset = 0;
@@ -285,9 +285,8 @@ static bool populateBufferTextureCopyData(dsSceneInstanceData* instanceData,
 		return false;
 
 	// Minimum size for a single element.
-	uint32_t textureInfoStride =
-		dsMax((uint32_t)dsMaterialType_blockSize(dsMaterialType_Vec2, false),
-		resourceManager->minUniformBlockAlignment);
+	uint32_t textureInfoStride = dsMaterialType_blockSize(dsMaterialType_Vec2, false);
+	textureInfoStride = dsMax(textureInfoStride, resourceManager->minUniformBlockAlignment);
 	size_t bufferSize = textureCount*skinningData->textureSize;
 	if (!skinningData->fallbackTextureInfo)
 		bufferSize += textureInfoStride*usedInstanceCount;
@@ -326,15 +325,23 @@ static bool populateBufferTextureCopyData(dsSceneInstanceData* instanceData,
 			{
 				bufferOffset, 0, 0, {dsCubeFace_None, 0, 0, 0, 0}, TEXTURE_SIZE, TEXTURE_SIZE, 1
 			};
-			if (!dsGfxBuffer_copyToTexture(commandBuffer, buffer,
+
+			// Must unmap before copying.
+			if (!dsGfxBuffer_unmap(buffer) || !dsGfxBuffer_copyToTexture(commandBuffer, buffer,
 					skinningData->textures[curTexture], &region, 1))
 			{
-				dsGfxBuffer_unmap(buffer);
 				return false;
 			}
+
+			// Need to re-map the buffer.
+			bufferData = (uint8_t*)dsGfxBuffer_map(
+				buffer, dsGfxBufferMap_Write, 0, DS_MAP_FULL_BUFFER);
+			if (!bufferData)
+				return false;
+
 			++curTexture;
 			bufferOffset += skinningData->textureSize;
-			bufferData += skinningData->textureSize;
+			bufferData += bufferOffset;
 			startOffset = 0;
 			curTextureNodes = animationTree->nodeCount;
 		}
@@ -354,9 +361,8 @@ static bool populateBufferTextureCopyData(dsSceneInstanceData* instanceData,
 	{
 		bufferOffset, 0, 0, {dsCubeFace_None, 0, 0, 0, 0}, TEXTURE_SIZE, TEXTURE_SIZE, 1
 	};
-	bool success = dsGfxBuffer_copyToTexture(
+	return dsGfxBuffer_unmap(buffer) && dsGfxBuffer_copyToTexture(
 		commandBuffer, buffer, skinningData->textures[curTexture], &region, 1);
-	return dsGfxBuffer_unmap(buffer) && success;
 }
 
 static bool populateTextureData(dsSceneInstanceData* instanceData,
@@ -368,11 +374,11 @@ static bool populateTextureData(dsSceneInstanceData* instanceData,
 	if (!createTextures(instanceData, textureCount))
 		return false;
 
-	// Minimum size for a single element.
 	if (!skinningData->fallbackTextureInfo)
 	{
-		uint32_t textureInfoStride =
-			dsMax((uint32_t)sizeof(dsVector4f), resourceManager->minUniformBlockAlignment);
+		// Minimum size for a single element.
+		uint32_t textureInfoStride = dsMaterialType_blockSize(dsMaterialType_Vec2, false);
+		textureInfoStride = dsMax(textureInfoStride, resourceManager->minUniformBlockAlignment);
 		size_t bufferSize = textureInfoStride*usedInstanceCount;
 		dsGfxBuffer* buffer = getBuffer(instanceData, bufferSize);
 		if (!buffer)
@@ -391,6 +397,7 @@ static bool populateTextureData(dsSceneInstanceData* instanceData,
 
 	uint32_t curTexture = 0;
 	uint32_t curTextureNodes = 0;
+	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
 	for (uint32_t i = 0; i < skinningData->instanceCount; ++i)
 	{
 		InstanceData* instance = skinningData->instances + i;
@@ -401,7 +408,6 @@ static bool populateTextureData(dsSceneInstanceData* instanceData,
 		uint32_t startOffset;
 		if (curTextureNodes + animationTree->nodeCount > MAX_TEXTURE_NODES)
 		{
-			dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
 			if (!dsTexture_copyData(skinningData->textures[curTexture], commandBuffer, &position,
 					TEXTURE_SIZE, TEXTURE_SIZE, 1, skinningData->tempTextureData,
 					skinningData->textureSize))
@@ -424,7 +430,6 @@ static bool populateTextureData(dsSceneInstanceData* instanceData,
 	}
 
 	DS_ASSERT(curTexture == skinningData->textureCount - 1);
-	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
 	return dsTexture_copyData(skinningData->textures[curTexture], commandBuffer, &position,
 		TEXTURE_SIZE, TEXTURE_SIZE, 1, skinningData->tempTextureData, skinningData->textureSize);
 }
@@ -442,8 +447,8 @@ static bool dsSceneSkinningData_populateData(dsSceneInstanceData* instanceData, 
 	if (skinningData->instanceCount != 0)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_SCENE_ANIMATION_LOG_TAG, "Attempting to populate scene skinning data before "
-			"calling dsSceneInstanceData_finish() for the last usage.");
+		DS_LOG_ERROR(DS_SCENE_ANIMATION_LOG_TAG, "Attempting to populate scene skinning data "
+			"before calling dsSceneInstanceData_finish() for the last usage.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -534,13 +539,13 @@ static bool dsSceneSkinningData_bindInstance(dsSceneInstanceData* instanceData, 
 		}
 	}
 	else if (!dsSharedMaterialValues_setBufferID(values, skinningData->skinningTextureInfoVar,
-		skinningData->curBuffer, instance->offset,
-		dsMaterialType_blockSize(dsMaterialType_Vec2, false)))
+			skinningData->curBuffer, instance->offset,
+			dsMaterialType_blockSize(dsMaterialType_Vec2, false)))
 	{
 		return false;
 	}
-	return dsSharedMaterialValues_setTextureID(values, skinningData->skinningDataVar,
-		instance->texture);
+	return dsSharedMaterialValues_setTextureID(
+		values, skinningData->skinningDataVar, instance->texture);
 }
 
 static bool dsSceneSkinningData_finish(dsSceneInstanceData* instanceData)
@@ -600,7 +605,9 @@ const dsSceneInstanceDataType* dsSceneSkinningData_type(void)
 
 bool dsSceneSkinningData_useBuffers(dsResourceManager* resourceManager)
 {
-	return resourceManager && (resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBuffer);
+	return resourceManager &&
+		(resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBuffer) &&
+		(resourceManager->uniformBufferSupportedStages & dsGfxPipelineStage_VertexShader);
 }
 
 dsShaderVariableGroupDesc* dsSceneSkinningData_createTextureInfoShaderVariableGroupDesc(

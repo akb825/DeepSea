@@ -16,7 +16,21 @@
 
 #pragma once
 
+/**
+ * @brief Define for whether skinning uses buffers.
+ *
+ * This may be explicitly set, such as for platforms that don't always have vertex uniform buffers
+ * available.
+ */
+#ifndef DS_SKIN_BUFFERS
 #if HAS_BUFFERS
+#define DS_SKIN_BUFFERS 1
+#else
+#define DS_SKIN_BUFFERS 0
+#endif
+#endif
+
+#if DS_SKIN_BUFFERS
 #include <DeepSea/Animation/Shaders/SkinBuffer.mslh>
 #else
 #include <DeepSea/Animation/Shaders/SkinTexture.mslh>
@@ -27,16 +41,16 @@
  * @brief Uniform and function for the default skinning implementation for scenes.
  */
 
-/**
- * @brief Uniform containing the skinning data.
- */
-#if HAS_BUFFERS
+#if DS_SKIN_BUFFERS
 
 /**
  * @brief The type for the bone index vector.
  */
 #define DS_BONE_INDICES_TYPE uvec4
 
+/**
+ * @brief Uniform containing the skinning data.
+ */
 readonly buffer dsSkinningData
 {
 	mat4[] matrices;
@@ -50,12 +64,26 @@ readonly buffer dsSkinningData
 #define DS_BONE_INDICES_TYPE vec4
 #endif
 
+/**
+ * @brief Uniform containing the texture information for skinning.
+ */
 uniform dsSkinningTextureData
 {
 	vec2 instanceOffsetStep;
 } dsSkinningTextureInfo;
 
+/**
+ * @brief Texture containing the skinning data.
+ */
 uniform sampler2D dsSkinningData;
+sampler_state dsSkinningData
+{
+	address_mode_u = clamp_to_edge;
+	address_mode_v = clamp_to_edge;
+	min_filter = nearest;
+	mag_filter = nearest;
+	mip_filter = nearest;
+}
 
 #endif
 
@@ -68,7 +96,7 @@ uniform sampler2D dsSkinningData;
 [[vertex]]
 mat4 dsComputeSkinTransform(DS_BONE_INDICES_TYPE bones, vec4 weights)
 {
-#if HAS_BUFFERS
+#if DS_SKIN_BUFFERS
 	return dsComputeSkinTransformBuffer(bones, weights, dsSkinning.matrices);
 #else
 	return dsComputeSkinTransformTexture(bones, weights, dsSkinningData);

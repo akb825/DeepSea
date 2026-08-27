@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,8 +68,8 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 			case dsMaterialType_Image:
 			case dsMaterialType_SubpassInput:
 			{
-				dsTexture* texture = dsSharedMaterialValues_getTextureID(sharedValues,
-					element->nameID);
+				dsTexture* texture = dsSharedMaterialValues_getTextureID(
+					sharedValues, element->nameID);
 				if (texture && !dsVkTexture_processAndAddResource(texture, commandBuffer))
 					return false;
 
@@ -125,8 +125,8 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 				dsGfxFormat format;
 				size_t offset;
 				size_t count;
-				dsGfxBuffer* buffer = dsSharedMaterialValues_getTextureBufferID(&format, &offset,
-					&count, sharedValues, element->nameID);
+				dsGfxBuffer* buffer = dsSharedMaterialValues_getTextureBufferID(
+					&format, &offset, &count, sharedValues, element->nameID);
 
 				uint32_t index = bindingCounts->texelBuffers;
 				if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, bindingMemory->bufferViews,
@@ -142,8 +142,8 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 						return false;
 
 					dsVkRenderer_processGfxBuffer(commandBuffer->renderer, bufferData);
-					bindingMemory->bufferViews[index] = dsVkGfxBufferData_getBufferView(bufferData,
-						format, offset, count);
+					bindingMemory->bufferViews[index] = dsVkGfxBufferData_getBufferView(
+						bufferData, format, offset, count);
 				}
 				else
 				{
@@ -163,8 +163,8 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 				size_t offset = 0;
 				size_t bindingOffset = 0;
 				size_t size = 0;
-				buffer = dsSharedMaterialValues_getBufferID(&offset, &size, sharedValues,
-					element->nameID);
+				buffer = dsSharedMaterialValues_getBufferID(
+					&offset, &size, sharedValues, element->nameID);
 				if (!buffer)
 				{
 					errno = EPERM;
@@ -267,8 +267,8 @@ static bool setupOffsets(dsVkSharedDescriptorSets* descriptors, dsShader* shader
 				dsGfxBuffer* buffer = NULL;
 				size_t offset = 0;
 				size_t size = 0;
-				buffer = dsSharedMaterialValues_getBufferID(&offset, &size, sharedValues,
-					element->nameID);
+				buffer = dsSharedMaterialValues_getBufferID(
+					&offset, &size, sharedValues, element->nameID);
 				if (!buffer)
 				{
 					errno = EPERM;
@@ -340,8 +340,8 @@ VkDescriptorSet dsVkSharedDescriptorSets_createSet(dsVkSharedDescriptorSets* des
 	uint32_t pointerVersion = dsSharedMaterialValues_getPointerVersion(sharedValues);
 	uint32_t offsetVersion = dsSharedMaterialValues_getOffsetVersion(sharedValues);
 	if (!needNewDescriptor &&
-		!dsVkMaterialDescriptor_shouldCheckPointers(descriptors->lastDescriptor, samplers,
-			sharedValues, pointerVersion))
+		!dsVkMaterialDescriptor_shouldCheckPointers(
+			descriptors->lastDescriptor, samplers, sharedValues, pointerVersion))
 	{
 		if (dsVkMaterialDescriptor_shouldCheckOffsets(descriptors->lastDescriptor, offsetVersion))
 		{
@@ -375,8 +375,8 @@ VkDescriptorSet dsVkSharedDescriptorSets_createSet(dsVkSharedDescriptorSets* des
 	}
 
 	dsVkSharedDescriptorSets_clearLastSet(descriptors, true);
-	dsVkMaterialDesc_initializeBindings(materialDesc, &descriptors->bindingMemory,
-		descriptors->binding);
+	dsVkMaterialDesc_initializeBindings(
+		materialDesc, &descriptors->bindingMemory, descriptors->binding);
 	descriptors->lastDescriptor = dsVkMaterialDesc_createDescriptor(materialDesc,
 		descriptors->allocator, descriptors->binding);
 	if (!descriptors->lastDescriptor)

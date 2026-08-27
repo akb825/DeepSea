@@ -51,5 +51,24 @@
 				"binding": "Instance"
 			}
 		]
+	},
+	{
+		"type": "ShaderModule",
+		"name": "skinShaderModule",
+		"modules": @skinBufferShaderModule@
+	},
+	{
+		"type": "Shader",
+		"name": "characterShader",
+		"module": "skinShaderModule",
+		"pipeline": "Character",
+		"materialDesc": "characterMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "characterShadowCastShader",
+		"module": "skinShaderModule",
+		"pipeline": "CharacterShadowCast",
+		"materialDesc": "characterShadowCastMaterialDesc"
 	}
 ]

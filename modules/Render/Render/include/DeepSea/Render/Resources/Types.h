@@ -143,7 +143,7 @@ typedef enum dsGfxBufferMap
 	dsGfxBufferMap_Read = 0x1,       ///< Read data from the buffer.
 	dsGfxBufferMap_Write = 0x2,      ///< Write data to the buffer.
 	dsGfxBufferMap_Orphan = 0x4,     ///< Orphan the contents of the buffer to replace the data.
-	dsGfxBufferMap_Persistent = 0x8  ///< Allow the buffer to remain locked.
+	dsGfxBufferMap_Persistent = 0x8  ///< Allow the buffer to remain mapped.
 } dsGfxBufferMap;
 
 /**
@@ -432,6 +432,38 @@ typedef enum dsGfxOcclusionQueryState
 	dsGfxOcclusionQueryState_SamplesPassed,   ///< The number of samples that passed the depth test.
 	dsGfxOcclusionQueryState_AnySamplesPassed ///< Non-zero if any samples passed the depth test.
 } dsGfxOcclusionQueryState;
+
+/**
+ * @brief Enum for a stage of the render pipeline.
+ *
+ * This is typically used in conjunction with dsGfxAccess to determine how memory is accessed inside
+ * the GPU stages.
+ */
+typedef enum dsGfxPipelineStage
+{
+	dsGfxPipelineStage_CommandBuffer = 0x1,   ///< Begin/end of the command buffer execution.
+	dsGfxPipelineStage_DrawIndirect = 0x2,    ///< Consume indirect draw parameters.
+	dsGfxPipelineStage_VertexInput = 0x4,     ///< Read vertex attributes and indices.
+	dsGfxPipelineStage_VertexShader = 0x8,    ///< Execution of vertex shader.
+	/// Execution of tessellation control shader.
+	dsGfxPipelineStage_TessellationControlShader = 0x10,
+	/// Execution of tessellation evaluation shader.
+	dsGfxPipelineStage_TessellationEvaluationShader = 0x20,
+	dsGfxPipelineStage_GeometryShader = 0x40, ///< Execution of geometry shader.
+	dsGfxPipelineStage_FragmentShader = 0x80, ///< Execution of fragment shader.
+	/// Tests before running the fragment shader. This includes reading depth values.
+	dsGfxPipelineStage_PreFragmentShaderTests = 0x100,
+	/// Tests after running the fragment shader. This includes writing depth values.
+	dsGfxPipelineStage_PostFragmentShaderTests = 0x200,
+	/// Color output after running the fragment shader. This also handles loads for blending and
+	/// multisample resolve.
+	dsGfxPipelineStage_ColorOutput = 0x400,
+	dsGfxPipelineStage_ComputeShader = 0x800, ///< Execution of compute shader.
+	dsGfxPipelineStage_Copy = 0x1000,         ///< Copy between buffers and textures.
+	dsGfxPipelineStage_HostAccess = 0x2000,   ///< Access of mapped memory on the host.
+	dsGfxPipelineStage_AllGraphics = 0x4000,  ///< All graphics stages.
+	dsGfxPipelineStage_AllCommands = 0x8000,  ///< All graphics and compute stages.
+} dsGfxPipelineStage;
 
 /// @cond
 typedef struct dsCommandBuffer dsCommandBuffer;
@@ -1979,6 +2011,16 @@ typedef struct dsResourceManager
 	dsGfxBufferUsage supportedBuffers;
 
 	/**
+	 * @brief Bitmask for the stages that uniform buffers are supported on.
+	 *
+	 * This should only contain shader stages. The presence of a stage doesn't necessarily imply
+	 * that stage is supported, for example a graphics API that is guaranteed to support uniform
+	 * buffers across all shader stages may have all the bits set, even if specific stages (such as
+	 * geometry shaders) aren't supported on the current device.
+	 */
+	dsGfxPipelineStage uniformBufferSupportedStages;
+
+	/**
 	 * @brief Enum describing how buffers may be mapped.
 	 */
 	dsGfxBufferMapSupport bufferMapSupport;
@@ -2646,4 +2688,5 @@ DS_ENUM_BITMASK_OPERATORS(dsGfxBufferUsage);
 DS_ENUM_BITMASK_OPERATORS(dsTextureUsage);
 DS_ENUM_BITMASK_OPERATORS(dsRenderbufferUsage);
 DS_ENUM_BITMASK_OPERATORS(dsGfxBufferMap);
+DS_ENUM_BITMASK_OPERATORS(dsGfxPipelineStage);
 /// @endcond

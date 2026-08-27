@@ -63,5 +63,24 @@
 				"shaderVariableGroupDesc": "skinningTextureInfoDesc"
 			}
 		]
+	},
+	{
+		"type": "ShaderModule",
+		"name": "skinShaderModule",
+		"modules": @skinTextureShaderModule@
+	},
+	{
+		"type": "Shader",
+		"name": "characterShader",
+		"module": "skinShaderModule",
+		"pipeline": "Character",
+		"materialDesc": "characterMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "characterShadowCastShader",
+		"module": "skinShaderModule",
+		"pipeline": "CharacterShadowCast",
+		"materialDesc": "characterShadowCastMaterialDesc"
 	}
 ]

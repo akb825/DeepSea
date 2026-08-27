@@ -280,38 +280,6 @@ typedef enum dsClearDepthStencil
 } dsClearDepthStencil;
 
 /**
- * @brief Enum for a stage of the render pipeline.
- *
- * This is typically used in conjunction with dsGfxAccess to determine how memory is accessed inside
- * the GPU stages.
- */
-typedef enum dsGfxPipelineStage
-{
-	dsGfxPipelineStage_CommandBuffer = 0x1,   ///< Begin/end of the command buffer execution.
-	dsGfxPipelineStage_DrawIndirect = 0x2,    ///< Consume indirect draw parameters.
-	dsGfxPipelineStage_VertexInput = 0x4,     ///< Read vertex attributes and indices.
-	dsGfxPipelineStage_VertexShader = 0x8,    ///< Execution of vertex shader.
-	/// Execution of tessellation control shader.
-	dsGfxPipelineStage_TessellationControlShader = 0x10,
-	/// Execution of tessellation evaluation shader.
-	dsGfxPipelineStage_TessellationEvaluationShader = 0x20,
-	dsGfxPipelineStage_GeometryShader = 0x40, ///< Execution of geometry shader.
-	dsGfxPipelineStage_FragmentShader = 0x80, ///< Execution of fragment shader.
-	/// Tests before running the fragment shader. This includes reading depth values.
-	dsGfxPipelineStage_PreFragmentShaderTests = 0x100,
-	/// Tests after running the fragment shader. This includes writing depth values.
-	dsGfxPipelineStage_PostFragmentShaderTests = 0x200,
-	/// Color output after running the fragment shader. This also handles loads for blending and
-	/// multisample resolve.
-	dsGfxPipelineStage_ColorOutput = 0x400,
-	dsGfxPipelineStage_ComputeShader = 0x800, ///< Execution of compute shader.
-	dsGfxPipelineStage_Copy = 0x1000,         ///< Copy between buffers and textures.
-	dsGfxPipelineStage_HostAccess = 0x2000,   ///< Access of mapped memory on the host.
-	dsGfxPipelineStage_AllGraphics = 0x4000,  ///< All graphics stages.
-	dsGfxPipelineStage_AllCommands = 0x8000,  ///< All graphics and compute stages.
-} dsGfxPipelineStage;
-
-/**
  * @brief Bitmask enum for determining graphics memory access.
  *
  * This is typically used with dsGfxPipelineStage to determine what rendering stages the access
@@ -2471,6 +2439,5 @@ typedef struct dsRenderer
 DS_ENUM_BITMASK_OPERATORS(dsAttachmentUsage);
 DS_ENUM_BITMASK_OPERATORS(dsRenderSurfaceUsage);
 DS_ENUM_BITMASK_OPERATORS(dsCommandBufferUsage);
-DS_ENUM_BITMASK_OPERATORS(dsGfxPipelineStage);
 DS_ENUM_BITMASK_OPERATORS(dsGfxAccess);
 /// @endcond
