@@ -158,6 +158,14 @@ dsShaderVariableGroupDesc* dsViewTransformData_createShaderVariableGroupDesc(
 		resourceManager, allocator, elements, DS_ARRAY_SIZE(elements));
 }
 
+bool dsViewTransformData_isShaderVariableGroupCompatible(
+	const dsShaderVariableGroupDesc* transformDesc)
+{
+	return transformDesc &&
+		dsShaderVariableGroupDesc_areElementsEqual(elements, DS_ARRAY_SIZE(elements),
+			transformDesc->elements, transformDesc->elementCount);
+}
+
 dsSceneItemList* dsViewTransformData_create(dsAllocator* allocator, const char* name,
 	const dsViewFilter* viewFilter, dsResourceManager* resourceManager,
 	const dsShaderVariableGroupDesc* transformDesc)
@@ -168,13 +176,12 @@ dsSceneItemList* dsViewTransformData_create(dsAllocator* allocator, const char* 
 		return NULL;
 	}
 
-	if (!dsShaderVariableGroup_areElementsEqual(elements, DS_ARRAY_SIZE(elements),
-			transformDesc->elements, transformDesc->elementCount))
+	if (!dsViewTransformData_isShaderVariableGroupCompatible(transformDesc))
 	{
-		errno = EINVAL;
 		DS_LOG_ERROR(DS_SCENE_LOG_TAG,
 			"View transform data's shader variable group description must have been created "
 			"with dsViewTransformData_createShaderVariableGroupDesc().");
+		errno = EINVAL;
 		return NULL;
 	}
 
@@ -211,8 +218,8 @@ dsSceneItemList* dsViewTransformData_create(dsAllocator* allocator, const char* 
 	itemList->needsCommandBuffer = true;
 	itemList->skipPreRenderPass = false;
 
-	viewData->variableGroup = dsShaderVariableGroup_create(resourceManager,
-		(dsAllocator*)&bufferAlloc, allocator, transformDesc);
+	viewData->variableGroup = dsShaderVariableGroup_create(
+		resourceManager, (dsAllocator*)&bufferAlloc, allocator, transformDesc);
 	if (!viewData->variableGroup)
 	{
 		if (allocator->freeFunc)

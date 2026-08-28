@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,14 +32,14 @@ extern "C"
  */
 
 /**
- * @brief Checks if two arrays of elements are equivalent.
+ * @brief Checks if two arrays of shader variable group description elements are equivalent.
  * @param firstElements The first set of elements to check.
  * @param firstElementCount The number of first elements.
  * @param secondElements The second set of elements to check.
  * @param secondElementCount The number of second elements.
  * @return True if the elements are equal.
  */
-DS_RENDER_EXPORT bool dsShaderVariableGroup_areElementsEqual(
+DS_RENDER_EXPORT bool dsShaderVariableGroupDesc_areElementsEqual(
 	const dsShaderVariableElement* firstElements, uint32_t firstElementCount,
 	const dsShaderVariableElement* secondElements, uint32_t secondElementCount);
 

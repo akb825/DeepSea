@@ -48,7 +48,7 @@ static bool hasDuplicates(const dsShaderVariableElement* elements, uint32_t elem
 	return hasDuplicate;
 }
 
-bool dsShaderVariableGroup_areElementsEqual(
+bool dsShaderVariableGroupDesc_areElementsEqual(
 	const dsShaderVariableElement* firstElements, uint32_t firstElementCount,
 	const dsShaderVariableElement* secondElements, uint32_t secondElementCount)
 {

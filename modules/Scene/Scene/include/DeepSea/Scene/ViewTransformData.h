@@ -65,6 +65,14 @@ DS_SCENE_EXPORT dsShaderVariableGroupDesc* dsViewTransformData_createShaderVaria
 	dsResourceManager* resourceManager, dsAllocator* allocator);
 
 /**
+ * @brief Checks whether or not a shader variable group is compatible with dsViewTransformData.
+ * @param transformDesc The shader variable group for the transform.
+ * @return Whether or not transformDesc is compatible.
+ */
+DS_SCENE_EXPORT bool dsViewTransformData_isShaderVariableGroupCompatible(
+	const dsShaderVariableGroupDesc* transformDesc);
+
+/**
  * @brief Creates view trnasform data to use with a dsScene.
  * @param allocator The allocator to create the transform data with.
  * @param name The name of the light set prepare. This will be copied.

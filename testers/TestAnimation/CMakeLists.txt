@@ -67,14 +67,14 @@ ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/Grass.msl
 if (skinTextureShaderConfigs)
 	ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/Character.msl
 		${CMAKE_CURRENT_SOURCE_DIR}/CharacterShadowCast.msl
-		DEFINE DS_SKIN_BUFFERS=0
+		DEFINE DS_SKINNING_METHOD=1
 		OUTPUT SkinTextureShaders.mslb CONFIG ${skinTextureShaderConfigs}
 		OUTPUT_DIR ${shaderDir} INCLUDE ${shaderIncludes})
 endif()
 if (skinBufferShaderConfigs)
 	ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/Character.msl
 		${CMAKE_CURRENT_SOURCE_DIR}/CharacterShadowCast.msl
-		DEFINE DS_SKIN_BUFFERS=1
+		DEFINE DS_SKINNING_METHOD=0
 		OUTPUT SkinBufferShaders.mslb CONFIG ${skinBufferShaderConfigs}
 		OUTPUT_DIR ${shaderDir} INCLUDE ${shaderIncludes})
 endif()

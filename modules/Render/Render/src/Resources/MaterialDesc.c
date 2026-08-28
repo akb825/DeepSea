@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,7 +120,7 @@ static const dsMaterialType materialTypeMap[] =
 	dsMaterialType_Image, // mslType_Image2DArray
 	dsMaterialType_Image, // mslType_Image2DMS
 	dsMaterialType_Image, // mslType_Image2DMSArray
-	dsMaterialType_Image, // mslType_TextureBuffer
+	dsMaterialType_Image, // mslType_ImageBuffer
 	dsMaterialType_Image, // mslType_Image2DRect
 	dsMaterialType_Image, // mslType_IImage1D
 	dsMaterialType_Image, // mslType_IImage2D

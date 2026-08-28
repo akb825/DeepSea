@@ -348,6 +348,30 @@ static bool verifySharedMaterialBufferValue(const dsMaterialElement* element, ds
 	return true;
 }
 
+static bool verifySharedMaterialTextureBufferValue(const dsMaterialElement* element,
+	dsGfxBuffer* buffer, const char* moduleName, const char* pipelineName)
+{
+	if (element->type == dsMaterialType_TextureBuffer &&
+		!(buffer->usage & dsGfxBufferUsage_Texture))
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+			"Buffer '%s' doesn't support being used as a texture buffer for shader '%s.%s'.",
+			element->name, moduleName, pipelineName);
+		return false;
+	}
+
+	if (element->type == dsMaterialType_ImageBuffer &&
+		!(buffer->usage & dsGfxBufferUsage_Image))
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+			"Buffer '%s' doesn't support being used as a image buffer for shader '%s.%s'.",
+			element->name, moduleName, pipelineName);
+		return false;
+	}
+
+	return true;
+}
+
 static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
 	const dsSharedMaterialValues* sharedValues, dsMaterialBinding binding, const char* moduleName,
 	const char* pipelineName)
@@ -372,8 +396,8 @@ static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
 			case dsMaterialType_Image:
 			case dsMaterialType_SubpassInput:
 			{
-				dsTexture* texture = dsSharedMaterialValues_getTextureID(sharedValues,
-					element->nameID);
+				dsTexture* texture = dsSharedMaterialValues_getTextureID(
+					sharedValues, element->nameID);
 				if (!texture)
 				{
 					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
@@ -417,12 +441,12 @@ static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
 				if (!variableGroup)
 				{
 					// Check if there's an explicitly set buffer.
-					dsGfxBuffer* buffer = dsSharedMaterialValues_getBufferID(NULL, NULL,
-						sharedValues, element->nameID);
+					dsGfxBuffer* buffer = dsSharedMaterialValues_getBufferID(
+						NULL, NULL, sharedValues, element->nameID);
 					if (buffer)
 					{
-						if (!verifySharedMaterialBufferValue(element, buffer, moduleName,
-								pipelineName))
+						if (!verifySharedMaterialBufferValue(
+								element, buffer, moduleName, pipelineName))
 						{
 							return false;
 						}
@@ -450,8 +474,8 @@ static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
 			case dsMaterialType_UniformBlock:
 			case dsMaterialType_UniformBuffer:
 			{
-				dsGfxBuffer* buffer = dsSharedMaterialValues_getBufferID(NULL, NULL,
-					sharedValues, element->nameID);
+				dsGfxBuffer* buffer = dsSharedMaterialValues_getBufferID(
+					NULL, NULL, sharedValues, element->nameID);
 				if (!buffer)
 				{
 					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Buffer '%s' not found for shader '%s.%s'.",
@@ -463,9 +487,29 @@ static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
 					return false;
 				break;
 			}
+			case dsMaterialType_TextureBuffer:
+			case dsMaterialType_ImageBuffer:
+			{
+				dsGfxBuffer* buffer = dsSharedMaterialValues_getTextureBufferID(
+					NULL, NULL, NULL, sharedValues, element->nameID);
+				if (!buffer)
+				{
+					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+						"Texture buffer '%s' not found for shader '%s.%s'.", element->name,
+						moduleName, pipelineName);
+					return false;
+				}
+
+				if (!verifySharedMaterialTextureBufferValue(
+						element, buffer, moduleName, pipelineName))
+				{
+					return false;
+				}
+				break;
+			}
 			default:
-				DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Invalid shared material type for shader '%s.%s'.",
-					moduleName, pipelineName);
+				DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+					"Invalid shared material type for shader '%s.%s'.", moduleName, pipelineName);
 				return false;
 		}
 	}

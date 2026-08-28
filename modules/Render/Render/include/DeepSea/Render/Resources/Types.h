@@ -90,7 +90,7 @@ typedef enum dsGfxBufferUsage
 	dsGfxBufferUsage_UniformBlock = 0x010,     ///< Shader uniform block.
 	dsGfxBufferUsage_UniformBuffer = 0x020,    ///< Shader uniform buffer, modifiable by the shader.
 	dsGfxBufferUsage_Texture = 0x040,          ///< Shader texture buffer.
-	dsGfxBufferUsage_Image = 0x080,            ///< Shader image buffer that can be stored to.
+	dsGfxBufferUsage_Image = 0x080,            ///< Shader image buffer that can be written to.
 	dsGfxBufferUsage_CopyFrom = 0x100,         ///< Source for GPU copy operations.
 	dsGfxBufferUsage_CopyTo = 0x200            ///< Destination for GPU and CPU copy operations.
 } dsGfxBufferUsage;

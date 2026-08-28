@@ -14,8 +14,31 @@
 
 import flatbuffers
 
+from .. import SkinningData
+
 def convertSkinningData(convertContext, data, inputDir):
 	"""
-	Converts a SkinningData. The data is ignored.
+	Converts a SkinningData. The data map is expected to contain the following elements:
+	- textureInfoDesc: the name of the shader variable group description when texture buffer or
+	  texture skinning is used. This is ignored when buffers are used, which can be used in
+	  conjunction with conditional loading of materials to support both buffer and texture/texture
+	  buffer skinning with the same configuration.
 	"""
-	return bytearray()
+	try:
+		textureInfoDesc = str(data.get('textureInfoDesc', ''))
+	except (TypeError, ValueError):
+		raise Exception('SkinningData data must be an object.')
+	except KeyError as e:
+		raise Exception('SkinningData data doesn\'t contain element ' + str(e) + '.')
+
+	builder = flatbuffers.Builder(0)
+
+	if textureInfoDesc:
+		textureInfoDescOffset = builder.CreateString(textureInfoDesc)
+	else:
+		textureInfoDescOffset = 0
+
+	SkinningData.Start(builder)
+	SkinningData.AddTextureInfoDesc(builder, textureInfoDescOffset)
+	builder.Finish(SkinningData.End(builder))
+	return builder.Output()

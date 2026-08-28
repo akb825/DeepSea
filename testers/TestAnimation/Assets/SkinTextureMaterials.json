@@ -12,7 +12,7 @@
 			},
 			{
 				"name": "dsSkinningData",
-				"type": "Texture",
+				"type": "TextureBuffer",
 				"binding": "Instance"
 			},
 			{
@@ -53,7 +53,7 @@
 			},
 			{
 				"name": "dsSkinningData",
-				"type": "Texture",
+				"type": "TextureBuffer",
 				"binding": "Instance"
 			},
 			{

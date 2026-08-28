@@ -17,31 +17,54 @@
 #pragma once
 
 /**
- * @brief Define for whether skinning uses buffers.
- *
- * This may be explicitly set, such as for platforms that don't always have vertex uniform buffers
- * available.
- */
-#ifndef DS_SKIN_BUFFERS
-#if HAS_BUFFERS
-#define DS_SKIN_BUFFERS 1
-#else
-#define DS_SKIN_BUFFERS 0
-#endif
-#endif
-
-#if DS_SKIN_BUFFERS
-#include <DeepSea/Animation/Shaders/SkinBuffer.mslh>
-#else
-#include <DeepSea/Animation/Shaders/SkinTexture.mslh>
-#endif
-
-/**
  * @file
  * @brief Uniform and function for the default skinning implementation for scenes.
  */
 
-#if DS_SKIN_BUFFERS
+/**
+ * @brief Constant for skinning using buffers.
+ */
+#define DS_SKIN_BUFFERS 0
+
+/**
+ * @brief Constant for skinning using texture buffers.
+ */
+#define DS_SKIN_TEXTURE_BUFFERS 1
+
+/**
+ * @brief Constant for skinning using basic texture.
+ */
+#define DS_SKIN_TEXTURES 2
+
+/**
+ * @brief Define for which skinning method to use.
+ *
+ * This may be explicitly set, otherwise it will use the best method as detected at compile time.
+ * This will not reflect device support at runtime, however, such as OpenGL ES 3.2 devices that
+ * don't support uniform buffers in vertex shaders.
+ */
+#ifndef DS_SKINNING_METHOD
+#if HAS_BUFFERS
+#define DS_SKINNING_METHOD DS_SKIN_BUFFERS
+#elif (defined(GLSL_VERSION && GLSL_VERSION < 130) || \
+	(defined(GLSLES_VERSION && GLSLES_VERSION < 300)
+#define DS_SKINNING_METHOD DS_SKIN_TEXTURES
+#else
+#define DS_SKINNING_METHOD DS_SKIN_TEXTURE_BUFFERS
+#endif
+#endif
+
+#if DS_SKINNING_METHOD == DS_SKIN_BUFFERS
+#include <DeepSea/Animation/Shaders/SkinBuffer.mslh>
+#elif DS_SKINNING_METHOD == DS_SKIN_TEXTURE_BUFFERS
+#include <DeepSea/Animation/Shaders/SkinTextureBuffer.mslh>
+#elif DS_SKINNING_METHOD == DS_SKIN_TEXTURES
+#include <DeepSea/Animation/Shaders/SkinTexture.mslh>
+#else
+#error Unknown skinning method.
+#endif
+
+#if DS_SKINNING_METHOD == DS_SKIN_BUFFERS
 
 /**
  * @brief The type for the bone index vector.
@@ -56,7 +79,30 @@ readonly buffer dsSkinningData
 	mat4[] matrices;
 } dsSkinning;
 
-#else
+#elif DS_SKINNING_METHOD == DS_SKIN_TEXTURE_BUFFERS
+
+/**
+ * @brief The type for the bone index vector.
+ */
+#define DS_BONE_INDICES_TYPE uvec4
+
+/**
+ * @brief Uniform containing the texture information for skinning.
+ *
+ * This uses the least-common denominator where attaching sub-ranges of buffers aren't supported
+ * on all platforms. The most optimal case is expected to be with buffers.
+ */
+uniform dsSkinningTextureData
+{
+	uint offset;
+} dsSkinningTextureInfo;
+
+/**
+ * @brief Texture containing the skinning data.
+ */
+uniform samplerBuffer dsSkinningData;
+
+#elif DS_SKINNING_METHOD == DS_SKIN_TEXTURES
 
 #if HAS_INTEGERS
 #define DS_BONE_INDICES_TYPE uvec4
@@ -96,9 +142,14 @@ sampler_state dsSkinningData
 [[vertex]]
 mat4 dsComputeSkinTransform(DS_BONE_INDICES_TYPE bones, vec4 weights)
 {
-#if DS_SKIN_BUFFERS
+#if DS_SKINNING_METHOD == DS_SKIN_BUFFERS
 	return dsComputeSkinTransformBuffer(bones, weights, dsSkinning.matrices);
-#else
-	return dsComputeSkinTransformTexture(bones, weights, dsSkinningData);
+#elif DS_SKINNING_METHOD == DS_SKIN_TEXTURE_BUFFERS
+	return dsComputeSkinTransformTextureBuffer(
+		bones, weights, dsSkinningData, INSTANCE(dsSkinningTextureInfo).offset);
+#elif DS_SKINNING_METHOD == DS_SKIN_TEXTURES
+	return dsComputeSkinTransformTexture(bones, weights, dsSkinningData,
+		INSTANCE(dsSkinningTextureInfo).instanceOffsetStep.x,
+		vec2(INSTANCE(dsSkinningTextureInfo).instanceOffsetStep.y));
 #endif
 }

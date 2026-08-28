@@ -83,7 +83,7 @@
 								},
 								{
 									"type": "SkinningData",
-									"variableGroupDesc": "skinningDesc"
+									"textureInfoDesc": "skinningTextureInfoDesc"
 								}
 							],
 							"sortType": "FrontToBack",
@@ -154,7 +154,7 @@
 								},
 								{
 									"type": "SkinningData",
-									"variableGroupDesc": "skinningDesc"
+									"textureInfoDesc": "skinningTextureInfoDesc"
 								}
 							],
 							"sortType": "Material",

@@ -52,14 +52,20 @@ DS_SCENEANIMATION_EXPORT extern const char* const dsSceneSkinningData_textureDat
 DS_SCENEANIMATION_EXPORT const dsSceneInstanceDataType* dsSceneSkinningData_type(void);
 
 /**
- * @brief Checks whether buffers will be used for skinning.
+ * @brief Checks for the expected material type based on host support.
  * @param resourceManager The resource manager.
- * @return True if buffers will be used, false if textures will be used as a fallback.s
+ * @return The material type, as one of either dsMaterialType_UniformBuffer,
+ *     dsMaterialType_TextureBuffer, or dsMaterialType_Texture.
  */
-DS_SCENEANIMATION_EXPORT bool dsSceneSkinningData_useBuffers(dsResourceManager* resourceManager);
+DS_SCENEANIMATION_EXPORT dsMaterialType dsSceneSkinningData_materialType(
+	const dsResourceManager* resourceManager);
 
 /**
  * @brief Creates the shader variable group description used for texture skinning info.
+ *
+ * This is only valid to call if dsSceneSkinningData_materialType() returns either
+ * dsMaterialType_TextureBuffer or dsMaterialType_Texture;
+ *
  * @remark This should be shared among all dsSceneSkinningData instances.
  * @remark errno will be set on failure.
  * @param resourceManager The resource manager.
@@ -68,17 +74,19 @@ DS_SCENEANIMATION_EXPORT bool dsSceneSkinningData_useBuffers(dsResourceManager* 
  * @return The shader variable group description or NULL if an error occurred.
  */
 DS_SCENEANIMATION_EXPORT dsShaderVariableGroupDesc*
-	dsSceneSkinningData_createTextureInfoShaderVariableGroupDesc(dsResourceManager* resourceManager,
-		dsAllocator* allocator);
+	dsSceneSkinningData_createTextureInfoShaderVariableGroupDesc(
+		dsResourceManager* resourceManager, dsAllocator* allocator);
 
 /**
  * @brief Checks whether or not a shader variable group is compatible with texture info for
  *     dsSceneSkinningData.
- * @param textureInfoDesc The shader variable group for the transform.
+ * @param resourceManager The resource manager.
+ * @param textureInfoDesc The shader variable group for the transform. This is expected to be NULL
+ *     if dsSceneSkinningData_materialType() returns dsMaterialType_UniformBuffer().
  * @return Whether or not transformDesc is compatible.
  */
 DS_SCENEANIMATION_EXPORT bool dsSceneSkinningData_isTextureInfoShaderVariableGroupCompatible(
-	const dsShaderVariableGroupDesc* textureInfoDesc);
+	const dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* textureInfoDesc);
 
 /**
  * @brief Creates a scene skinning data to use with a dsSceneItemList.
@@ -86,10 +94,15 @@ DS_SCENEANIMATION_EXPORT bool dsSceneSkinningData_isTextureInfoShaderVariableGro
  * @param allocator The allocator to create the skinning data with. This must support freeing
  *     memory.
  * @param resourceAllocator The allocator for graphics resources. Defaults to allocator if NULL.
+ * @param textureInfoDesc The shader variable group description created from
+ *     dsViewTransformData_createShaderVariableGroupDesc(), or NULL if
+ *     dsSceneSkinningData_materialType() returns dsMaterialType_UniformBuffer. This must remain
+ *     alive at least as long as the instance data object.
  * @return The scene skinning data or NULL if an error occurred.
  */
-DS_SCENEANIMATION_EXPORT dsSceneInstanceData* dsSceneSkinningData_create(dsAllocator* allocator,
-	dsResourceManager* resourceManager, dsAllocator* resourceAllocator);
+DS_SCENEANIMATION_EXPORT dsSceneInstanceData* dsSceneSkinningData_create(
+	dsAllocator* allocator, dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
+	const dsShaderVariableGroupDesc* textureInfoDesc);
 
 #ifdef __cplusplus
 }

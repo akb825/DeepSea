@@ -270,7 +270,7 @@ bool dsViewFramebufferData_isShaderVariableGroupCompatible(
 	const dsShaderVariableGroupDesc* transformDesc)
 {
 	return transformDesc &&
-		dsShaderVariableGroup_areElementsEqual(elements, DS_ARRAY_SIZE(elements),
+		dsShaderVariableGroupDesc_areElementsEqual(elements, DS_ARRAY_SIZE(elements),
 			transformDesc->elements, transformDesc->elementCount);
 }
 

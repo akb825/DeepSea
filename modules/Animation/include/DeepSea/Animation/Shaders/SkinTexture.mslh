@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aaron Barany
+ * Copyright 2023-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,20 +26,21 @@
  * @param bones The bone indices.
  * @param weights The transform weights.
  * @parma matrices The texture containing the matrices.
+ * @param offset The offset into the texture as the number of matrices to skip multiplied by the X
+ *     step.
+ * @param step The difference between each matrix in texture coordinates.
  * @return The skin transform.
  */
-mat4 dsComputeSkinTransformTexture(vec4 bones, vec4 weights, sampler2D matrices)
+mat4 dsComputeSkinTransformTexture(
+	vec4 bones, vec4 weights, sampler2D matrices, float offset, vec2 step)
 {
-	vec4 offset = vec4(INSTANCE(dsSkinningTextureInfo).instanceOffsetStep.x);
-	vec4 step = vec4(INSTANCE(dsSkinningTextureInfo).instanceOffsetStep.y);
-
-	vec4 indexOffsets = step*vec4(0.0, 1.0, 2.0, 3.0);
+	vec4 indexOffsets = step.x*vec4(0.0, 1.0, 2.0, 3.0);
 	// 4 texture elements per bone.
-	vec4 boneOffsets = offset + bones*step*vec4(4.0);
+	vec4 boneOffsets = vec4(offset) + bones*step.x*4.0;
 
 	vec4 curOffsets = vec4(boneOffsets.x) + indexOffsets;
 	vec4 curOffsetsX = fract(curOffsets);
-	vec4 curOffsetsY = floor(curOffsets)*step;
+	vec4 curOffsetsY = floor(curOffsets)*step.y;
 	mat4 bone0Transform = mat4(
 		texture(matrices, vec2(curOffsetsX.x, curOffsetsY.x)),
 		texture(matrices, vec2(curOffsetsX.y, curOffsetsY.y)),
@@ -48,7 +49,7 @@ mat4 dsComputeSkinTransformTexture(vec4 bones, vec4 weights, sampler2D matrices)
 
 	curOffsets = vec4(boneOffsets.y) + indexOffsets;
 	curOffsetsX = fract(curOffsets);
-	curOffsetsY = floor(curOffsets)*step;
+	curOffsetsY = floor(curOffsets)*step.y;
 	mat4 bone1Transform = mat4(
 		texture(matrices, vec2(curOffsetsX.x, curOffsetsY.x)),
 		texture(matrices, vec2(curOffsetsX.y, curOffsetsY.y)),
@@ -57,7 +58,7 @@ mat4 dsComputeSkinTransformTexture(vec4 bones, vec4 weights, sampler2D matrices)
 
 	curOffsets = vec4(boneOffsets.z) + indexOffsets;
 	curOffsetsX = fract(curOffsets);
-	curOffsetsY = floor(curOffsets)*step;
+	curOffsetsY = floor(curOffsets)*step.y;
 	mat4 bone2Transform = mat4(
 		texture(matrices, vec2(curOffsetsX.x, curOffsetsY.x)),
 		texture(matrices, vec2(curOffsetsX.y, curOffsetsY.y)),
@@ -66,7 +67,7 @@ mat4 dsComputeSkinTransformTexture(vec4 bones, vec4 weights, sampler2D matrices)
 
 	curOffsets = vec4(boneOffsets.z) + indexOffsets;
 	curOffsetsX = fract(curOffsets);
-	curOffsetsY = floor(curOffsets)*step;
+	curOffsetsY = floor(curOffsets)*step.y;
 	mat4 bone3Transform = mat4(
 		texture(matrices, vec2(curOffsetsX.x, curOffsetsY.x)),
 		texture(matrices, vec2(curOffsetsX.y, curOffsetsY.y)),

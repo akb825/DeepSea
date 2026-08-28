@@ -453,20 +453,6 @@ static bool setup(dsApplication* application, dsAllocator* allocator, float upda
 	DS_VERIFY(dsSceneResources_addResource(testAnimation->builtinResources,
 		"instanceForwardLightDesc", dsSceneResourceType_ShaderVariableGroupDesc, groupDesc, true));
 
-	groupDesc = dsSceneSkinningData_createTextureInfoShaderVariableGroupDesc(
-		resourceManager, allocator);
-	if (!groupDesc)
-	{
-		DS_LOG_ERROR_F("TestAnimation",
-			"Couldn't create scene skinning data texture info shader variable desc: %s",
-			dsErrorString(errno));
-		dsSceneLoadContext_destroy(loadContext);
-		dsSceneLoadScratchData_destroy(scratchData);
-		return false;
-	}
-	DS_VERIFY(dsSceneResources_addResource(testAnimation->builtinResources,
-		"skinningTextureInfoDesc", dsSceneResourceType_ShaderVariableGroupDesc, groupDesc, true));
-
 	DS_VERIFY(dsSceneLoadScratchData_pushSceneResources(scratchData,
 		&testAnimation->builtinResources, 1));
 
@@ -483,15 +469,37 @@ static bool setup(dsApplication* application, dsAllocator* allocator, float upda
 	DS_VERIFY(dsSceneLoadScratchData_pushSceneResources(
 		scratchData, &testAnimation->baseResources, 1));
 
-	if (dsSceneSkinningData_useBuffers(resourceManager))
+	switch (dsSceneSkinningData_materialType(resourceManager))
 	{
-		testAnimation->skinMaterials = dsSceneResources_loadResource(allocator, NULL, loadContext,
-			scratchData, dsFileResourceType_Embedded, "SkinBufferMaterials.dssr");
-	}
-	else
-	{
-		testAnimation->skinMaterials = dsSceneResources_loadResource(allocator, NULL, loadContext,
-			scratchData, dsFileResourceType_Embedded, "SkinTextureMaterials.dssr");
+		case dsMaterialType_UniformBuffer:
+			testAnimation->skinMaterials = dsSceneResources_loadResource(allocator, NULL,
+				loadContext, scratchData, dsFileResourceType_Embedded, "SkinBufferMaterials.dssr");
+			break;
+		case dsMaterialType_TextureBuffer:
+		{
+			groupDesc = dsSceneSkinningData_createTextureInfoShaderVariableGroupDesc(
+				resourceManager, allocator);
+			if (!groupDesc)
+			{
+				DS_LOG_ERROR_F("TestAnimation",
+					"Couldn't create scene skinning data texture info shader variable desc: %s",
+					dsErrorString(errno));
+				dsSceneLoadContext_destroy(loadContext);
+				dsSceneLoadScratchData_destroy(scratchData);
+				return false;
+			}
+			DS_VERIFY(dsSceneResources_addResource(testAnimation->builtinResources,
+				"skinningTextureInfoDesc", dsSceneResourceType_ShaderVariableGroupDesc,
+				groupDesc, true));
+
+			testAnimation->skinMaterials = dsSceneResources_loadResource(allocator, NULL,
+				loadContext, scratchData, dsFileResourceType_Embedded, "SkinTextureMaterials.dssr");
+			break;
+		}
+		default:
+			DS_LOG_ERROR(
+				"TestAnimation", "Target doesn't support skinning methods used by this tester.");
+			break;
 	}
 	if (!testAnimation->skinMaterials)
 	{

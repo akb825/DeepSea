@@ -115,7 +115,7 @@ bool dsInstanceDiscardBoundsData_isShaderVariableGroupCompatible(
 	const dsShaderVariableGroupDesc* discardBoundsDesc)
 {
 	return discardBoundsDesc &&
-		dsShaderVariableGroup_areElementsEqual(elements, DS_ARRAY_SIZE(elements),
+		dsShaderVariableGroupDesc_areElementsEqual(elements, DS_ARRAY_SIZE(elements),
 			discardBoundsDesc->elements, discardBoundsDesc->elementCount);
 }
 

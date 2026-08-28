@@ -119,8 +119,8 @@ static bool setValue(dsSharedMaterialValues* values, uint32_t nameID, Type type,
 	return true;
 }
 
-static bool canUseTextureBuffer(dsGfxBuffer* buffer, dsGfxFormat format, size_t offset,
-	size_t count)
+static bool canUseTextureBuffer(
+	dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count)
 {
 	if (!buffer)
 		return true;

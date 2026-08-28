@@ -313,7 +313,7 @@ bool dsTextureTextIcons_isShaderVariableGroupCompatible(
 	const dsShaderVariableGroupDesc* transformDesc)
 {
 	return transformDesc &&
-		dsShaderVariableGroup_areElementsEqual(iconDataElements, DS_ARRAY_SIZE(iconDataElements),
+		dsShaderVariableGroupDesc_areElementsEqual(iconDataElements, DS_ARRAY_SIZE(iconDataElements),
 			transformDesc->elements, transformDesc->elementCount);
 }
 

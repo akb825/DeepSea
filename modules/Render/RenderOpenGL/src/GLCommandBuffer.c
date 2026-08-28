@@ -76,7 +76,7 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 				dsGfxFormat format;
 				size_t offset, count;
 				dsGfxBuffer* buffer = dsSharedMaterialValues_getTextureBufferID(
-					&format, &offset, &count, sharedValues, i);
+					&format, &offset, &count, sharedValues, nameID);
 				if (buffer)
 				{
 					dsGLCommandBuffer_setTextureBuffer(commandBuffer, shader, i, buffer,
