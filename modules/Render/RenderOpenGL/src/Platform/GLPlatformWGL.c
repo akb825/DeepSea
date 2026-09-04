@@ -74,6 +74,27 @@ static bool hasExtension(const char* extensions, const char* extension)
 	return false;
 }
 
+bool dsWGLSupportsSRGBSurfaces(const dsRendererOptions* options)
+{
+	if (!ANYGL_SUPPORTED(wglGetExtensionsStringARB))
+		return false;
+
+	DS_ASSERT(options);
+	void* display;
+	if (options->gfxDisplay)
+		display = options->gfxDisplay;
+	else
+		display = GetDC(options->osDisplay);
+	if (!display)
+		return false;
+
+	const char* extensions = wglGetExtensionsStringARB(display);
+	bool hasSRGB = hasExtension(extensions, "WGL_ARB_framebuffer_sRGB");
+	if (!options->gfxDisplay)
+		ReleaseDC(options->osDisplay, display);
+	return hasSRGB;
+}
+
 void* dsGetWGLDisplay(void* osDisplay)
 {
 	return GetDC(osDisplay);
@@ -109,13 +130,14 @@ void* dsCreateWGLConfig(dsAllocator* allocator, void* display, const dsRendererO
 		PFD_DRAW_TO_WINDOW | PFD_DRAW_TO_BITMAP | PFD_SUPPORT_OPENGL | pfdFlags,
 		PFD_TYPE_RGBA,
 		0,
-		options->redBits, 0, options->greenBits, 0, options->blueBits, 0,
-		options->alphaBits,
-		0,
+		options->renderSurfaceHint.redBits, 0,
+		options->renderSurfaceHint.greenBits, 0,
+		options->renderSurfaceHint.blueBits, 0,
+		options->renderSurfaceHint.alphaBits, 0,
 		0,
 		0, 0, 0, 0,
-		options->depthBits,
-		options->stencilBits,
+		options->renderSurfaceHint.depthBits,
+		options->renderSurfaceHint.stencilBits,
 		0,
 		PFD_MAIN_PLANE,
 		0,
@@ -129,12 +151,12 @@ void* dsCreateWGLConfig(dsAllocator* allocator, void* display, const dsRendererO
 		GLint attr[MAX_OPTION_SIZE];
 		addOption(attr, &optionCount, WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB);
 		addOption(attr, &optionCount, WGL_DRAW_TO_WINDOW_ARB, true);
-		addOption(attr, &optionCount, WGL_RED_BITS_ARB, options->redBits);
-		addOption(attr, &optionCount, WGL_GREEN_BITS_ARB, options->greenBits);
-		addOption(attr, &optionCount, WGL_BLUE_BITS_ARB, options->blueBits);
-		addOption(attr, &optionCount, WGL_ALPHA_BITS_ARB, options->alphaBits);
-		addOption(attr, &optionCount, WGL_DEPTH_BITS_ARB, options->depthBits);
-		addOption(attr, &optionCount, WGL_STENCIL_BITS_ARB, options->stencilBits);
+		addOption(attr, &optionCount, WGL_RED_BITS_ARB, options->renderSurfaceHint.redBits);
+		addOption(attr, &optionCount, WGL_GREEN_BITS_ARB, options->renderSurfaceHint.greenBits);
+		addOption(attr, &optionCount, WGL_BLUE_BITS_ARB, options->renderSurfaceHint.blueBits);
+		addOption(attr, &optionCount, WGL_ALPHA_BITS_ARB, options->renderSurfaceHint.alphaBits);
+		addOption(attr, &optionCount, WGL_DEPTH_BITS_ARB, options->renderSurfaceHint.depthBits);
+		addOption(attr, &optionCount, WGL_STENCIL_BITS_ARB, options->renderSurfaceHint.stencilBits);
 		addOption(attr, &optionCount, WGL_DOUBLE_BUFFER_ARB, !options->singleBuffer);
 		addOption(attr, &optionCount, WGL_STEREO_ARB, options->stereoscopic);
 		if (hasExtension(extensions, "WGL_ARB_multisample"))
@@ -151,8 +173,11 @@ void* dsCreateWGLConfig(dsAllocator* allocator, void* display, const dsRendererO
 			}
 		}
 
-		if (options->srgb && hasExtension(extensions, "WGL_ARB_framebuffer_sRGB"))
+		if (options->renderSurfaceHint.colorSpace == dsRenderColorSpace_NonLinearSRGBConverting &&
+			hasExtension(extensions, "WGL_ARB_framebuffer_sRGB"))
+		{
 			addOption(attr, &optionCount, WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, true);
+		}
 
 		DS_ASSERT(optionCount < MAX_OPTION_SIZE);
 		attr[optionCount] = 0;

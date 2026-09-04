@@ -672,8 +672,8 @@ dsApplication* dsMain(int argc, const char* const* argv)
 	dsRendererOptions rendererOptions;
 	dsRenderer_defaultOptions(&rendererOptions, "TestVectorDrawScene", 0);
 	rendererOptions.deviceName = deviceName;
-	rendererOptions.depthBits = 0;
-	rendererOptions.stencilBits = 0;
+	rendererOptions.renderSurfaceHint.depthBits = 0;
+	rendererOptions.renderSurfaceHint.stencilBits = 0;
 	rendererOptions.surfaceSamples = 4;
 	rendererOptions.maxResourceThreads = 1;
 	if (!dsSDLApplication_prepareRendererOptions(

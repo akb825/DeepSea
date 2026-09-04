@@ -24,6 +24,7 @@
 
 bool dsGLXInitialize(void);
 void dsGLXShutdown(void);
+bool dsGLXSupportsSRGBSurfaces(const dsRendererOptions* options);
 
 void* dsGetGLXDisplay(void* osDisplay);
 void dsReleaseGLXDisplay(void* osDisplay, void* gfxDisplay);

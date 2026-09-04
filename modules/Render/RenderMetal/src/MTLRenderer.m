@@ -38,7 +38,10 @@
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Render/Resources/GfxFormat.h>
+#include <DeepSea/Render/RenderSurfaceHint.h>
+
 #include <DeepSea/Math/Core.h>
 
 #include <limits.h>
@@ -163,6 +166,19 @@ static uint32_t hasTessellationShaders(id<MTLDevice> device)
 	//return true;
 	return false;
 #endif
+}
+
+static uint32_t getSupportedColorSpaces(void)
+{
+	uint32_t colorSpaces = (1 << dsRenderColorSpace_NonLinearSRGB) |
+		(1 << dsRenderColorSpace_NonLinearSRGBConverting);
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
+	colorSpaces |= (1 << dsRenderColorSpace_ExtendedLinearSRGB);
+#endif
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 126000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101460
+	colorSpaces |= (1 << dsRenderColorSpace_Rec2100PQ);
+#endif
+	return colorSpaces;
 }
 
 static bool createSharedResources(dsMTLRenderer* renderer, id<MTLDevice> device,
@@ -497,15 +513,41 @@ bool dsMTLRenderer_isSupported(void)
 
 bool dsMTLRenderer_queryDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount)
 {
-	DS_UNUSED(outDevices);
 	if (!outDeviceCount)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	*outDeviceCount = 0;
-	return true;
+	if (*outDeviceCount == 0)
+		return true;
+
+	@autoreleasepool
+	{
+		id<MTLDevice> device = MTLCreateSystemDefaultDevice();
+		if (!device)
+		{
+			*outDeviceCount = 0;
+			return true;
+		}
+
+		*outDeviceCount = 1;
+		if (!outDevices)
+			return true;
+
+		const char* name = device.name.UTF8String;
+		size_t nameLen = strlen(name);
+		nameLen = dsMin(nameLen, DS_RENDER_DEVICE_NAME_SIZE - 1);
+		memcpy(outDevices->name, name, nameLen);
+		outDevices->name[nameLen] = 0;
+		outDevices->vendorID = 0;
+		outDevices->deviceID = 0;
+		outDevices->deviceType = dsRenderDeviceType_Unknown;
+		outDevices->potentialSurfaceColorSpaces = getSupportedColorSpaces();
+		outDevices->isDefault = true;
+		memset(outDevices->deviceUUID, 0, DS_RENDER_DEVICE_UUID_SIZE);
+		return true;
+	}
 }
 
 bool dsMTLRenderer_beginFrame(dsRenderer* renderer)
@@ -777,21 +819,32 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 
 		if (!allocator->freeFunc)
 		{
-			errno = EPERM;
 			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG,
 				"Renderer allocator must support freeing memory.");
+			errno = EPERM;
 			return NULL;
 		}
 
-		dsGfxFormat colorFormat = dsRenderer_optionsColorFormat(options, true, true);
+		dsGfxFormat colorFormat = dsRenderSurfaceHint_colorFormat(
+			&options->renderSurfaceHint, true, true);
 		if (!dsGfxFormat_isValid(colorFormat))
 		{
+			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Invalid surface color format.");
 			errno = EPERM;
-			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Invalid color format.");
 			return NULL;
 		}
 
-		dsGfxFormat depthFormat = dsRenderer_optionsDepthFormat(options);
+		dsRenderColorSpace colorSpace = options->renderSurfaceHint.colorSpace;
+		uint32_t supportedColorSpaces = getSupportedColorSpaces();
+		if (!(supportedColorSpaces & (1 << colorSpace)))
+		{
+			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Can't draw to surface color space.");
+			errno = EPERM;
+			return NULL;
+		}
+
+		dsGfxFormat depthFormat = dsRenderSurfaceHint_depthStencilFormat(
+			&options->renderSurfaceHint);
 
 		id<MTLDevice> device = MTLCreateSystemDefaultDevice();
 		if (!device)
@@ -961,6 +1014,7 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		baseRenderer->maxInputAttachments = baseRenderer->resourceManager->maxSamplers;
 
 		baseRenderer->surfaceColorFormat = colorFormat;
+		baseRenderer->surfaceColorSpace = colorSpace;
 
 		// 16 and 24-bit depth not always supported.
 		// First try 16 bit to fall back to 24 bit. Then try 24 bit to fall back to 32 bit.

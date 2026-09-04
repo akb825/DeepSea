@@ -19,7 +19,8 @@
 #include <DeepSea/Core/Config.h>
 #include "GLTypes.h"
 
-bool dsGLPlatform_initialize(dsGLPlatform* platform, int anyglLoad);
+bool dsGLPlatform_initialize(
+	dsGLPlatform* platform, int anyglLoad, const dsRendererOptions* options);
 void dsGLPlatform_shutdown(dsGLPlatform* platform);
 
 void* dsGLPlatform_getDisplay(const dsGLPlatform* platform, void* osDisplay);

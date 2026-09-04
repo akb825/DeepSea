@@ -49,23 +49,6 @@ DS_RENDER_EXPORT void dsRenderer_defaultOptions(dsRendererOptions* options,
 	const char* applicationName, uint32_t applicationVersion);
 
 /**
- * @brief Gets the color format based on what's defined in the options.
- * @param options The renderer options.
- * @param bgra Use bgra ordering instead of rgba.
- * @param requireAlpha Require an alpha channel.
- * @return The color format.
- */
-DS_RENDER_EXPORT dsGfxFormat dsRenderer_optionsColorFormat(const dsRendererOptions* options,
-	bool bgra, bool requireAlpha);
-
-/**
- * @brief Gets the depth/stencil format based on what's defined in the options.
- * @param options The renderer options.
- * @return The depth/stencil format.
- */
-DS_RENDER_EXPORT dsGfxFormat dsRenderer_optionsDepthFormat(const dsRendererOptions* options);
-
-/**
  * @brief Resolves the platform.
  *
  * When the default platform is passed in, this will resolve to a concrete platform if one is

@@ -99,6 +99,7 @@ typedef struct dsGLPlatform
 	dsGetCurrentGLContextFunction getCurrentContextFunc;
 	dsSetGLVSyncFunction setVSyncFunc;
 	dsShutdownGLPlatformFunction shutdownFunc;
+	bool hasSRGBSurfaces;
 } dsGLPlatform;
 
 typedef struct dsGLResource

@@ -35,6 +35,7 @@
 #include <DeepSea/Render/Resources/DrawGeometry.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
+#include <DeepSea/Render/RenderSurfaceHint.h>
 
 #include <MSL/Client/ModuleC.h>
 #include <stdio.h>
@@ -245,19 +246,11 @@ void dsRenderer_defaultOptions(
 	options->getBackgroundSurfaceHandleFunc = NULL;
 	options->applicationName = applicationName;
 	options->applicationVersion = applicationVersion;
-	options->redBits = 8;
-	options->greenBits = 8;
-	options->blueBits = 8;
-	options->alphaBits = 0;
-	options->depthBits = 24;
-	options->stencilBits = 8;
-	options->forcedColorFormat = dsGfxFormat_Unknown;
-	options->forcedDepthStencilFormat = dsGfxFormat_Unknown;
+	DS_VERIFY(dsRenderSurfaceHint_default(&options->renderSurfaceHint));
 	options->surfaceSamples = 1;
 	options->defaultSamples = 1;
 	options->singleBuffer = false;
 	options->reverseZ = false;
-	options->srgb = false;
 	options->preferHalfDepthRange = false;
 	options->stereoscopic = false;
 #if DS_DEBUG
@@ -282,98 +275,6 @@ void dsRenderer_defaultOptions(
 		else
 			options->debug = true;
 	}
-}
-
-dsGfxFormat dsRenderer_optionsColorFormat(const dsRendererOptions* options, bool bgra,
-	bool requireAlpha)
-{
-	if (options->forcedColorFormat != dsGfxFormat_Unknown)
-		return options->forcedColorFormat;
-
-	if (options->redBits == 8 && options->greenBits == 8 && options->blueBits == 8)
-	{
-		if (options->alphaBits == 8 || requireAlpha)
-		{
-			if (options->srgb)
-			{
-				if (bgra)
-					return dsGfxFormat_decorate(dsGfxFormat_B8G8R8A8, dsGfxFormat_SRGB);
-				else
-					return dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_SRGB);
-			}
-			else
-			{
-				if (bgra)
-					return dsGfxFormat_decorate(dsGfxFormat_B8G8R8A8, dsGfxFormat_UNorm);
-				else
-					return dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
-			}
-		}
-		else
-		{
-			if (options->srgb)
-			{
-				if (bgra)
-					return dsGfxFormat_decorate(dsGfxFormat_B8G8R8, dsGfxFormat_SRGB);
-				else
-					return dsGfxFormat_decorate(dsGfxFormat_R8G8B8, dsGfxFormat_SRGB);
-			}
-			else
-			{
-				if (bgra)
-					return dsGfxFormat_decorate(dsGfxFormat_B8G8R8, dsGfxFormat_UNorm);
-				else
-					return dsGfxFormat_decorate(dsGfxFormat_R8G8B8, dsGfxFormat_UNorm);
-			}
-		}
-	}
-	else if (options->redBits == 10 && options->greenBits == 10 && options->blueBits == 10 &&
-		options->alphaBits == 2)
-	{
-		if (options->srgb)
-			return dsGfxFormat_decorate(dsGfxFormat_A2B10G10R10, dsGfxFormat_SRGB);
-		else
-			return dsGfxFormat_decorate(dsGfxFormat_A2B10G10R10, dsGfxFormat_UNorm);
-	}
-	else if (options->redBits == 16 && options->greenBits == 16 && options->blueBits == 16 &&
-		options->alphaBits == 16)
-	{
-		return dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16, dsGfxFormat_Float);
-	}
-	else if (options->redBits == 5 && options->greenBits == 6 && options->blueBits == 5 &&
-		options->alphaBits == 0 && !options->srgb)
-	{
-		return dsGfxFormat_decorate(dsGfxFormat_R5G6B5, dsGfxFormat_UNorm);
-	}
-
-	return dsGfxFormat_Unknown;
-}
-
-dsGfxFormat dsRenderer_optionsDepthFormat(const dsRendererOptions* options)
-{
-	if (options->depthBits == 32)
-	{
-		if (options->stencilBits == 8)
-			return dsGfxFormat_D32S8_Float;
-		else if (options->stencilBits == 0)
-			return dsGfxFormat_D32_Float;
-	}
-	else if (options->depthBits == 24)
-	{
-		if (options->stencilBits == 8)
-			return dsGfxFormat_D24S8;
-		else if (options->stencilBits == 0)
-			return dsGfxFormat_X8D24;
-	}
-	else if (options->depthBits == 16)
-	{
-		if (options->stencilBits == 8)
-			return dsGfxFormat_D16S8;
-		else if (options->stencilBits == 0)
-			return dsGfxFormat_D16;
-	}
-
-	return dsGfxFormat_Unknown;
 }
 
 dsGfxPlatform dsRenderer_resolvePlatform(dsGfxPlatform platform)

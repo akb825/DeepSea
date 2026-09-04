@@ -22,6 +22,7 @@
 
 #if ANYGL_HAS_WGL
 
+bool dsWGLSupportsSRGBSurfaces(const dsRendererOptions* options);
 void* dsGetWGLDisplay(void* osDisplay);
 void dsReleaseWGLDisplay(void* osDisplay, void* gfxDisplay);
 void* dsCreateWGLConfig(dsAllocator* allocator, void* display, const dsRendererOptions* options,

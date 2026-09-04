@@ -49075,7 +49075,7 @@ void AnyGL_setErrorCheckingEnabled(int enabled)
 	callsiteInfo.disableErrorChecks = !enabled;
 }
 
-void AnyGL_getLastCallsite(const char** file, const char** function,unsigned int* line)
+void AnyGL_getLastCallsite(const char** file, const char** function, unsigned int* line)
 {
 	const CallsiteInfo* curCallsiteInfo = &callsiteInfo;
 	if (file)
@@ -49086,7 +49086,7 @@ void AnyGL_getLastCallsite(const char** file, const char** function,unsigned int
 		*line = curCallsiteInfo->lastLine;
 }
 
-void AnyGL_setLastCallsite(const char* file, const char* function,unsigned int line)
+void AnyGL_setLastCallsite(const char* file, const char* function, unsigned int line)
 {
 	CallsiteInfo* curCallsiteInfo = &callsiteInfo;
 	curCallsiteInfo->lastFile = file;

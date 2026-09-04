@@ -144,6 +144,26 @@ void dsGLXShutdown(void)
 	xLibrary = NULL;
 }
 
+bool dsGLXSupportsSRGBSurfaces(const dsRendererOptions* options)
+{
+	DS_ASSERT(options);
+	Display* display;
+	if (options->gfxDisplay)
+		display = (Display*)options->gfxDisplay;
+	else
+		display = XOpenDisplayFunc(options->osDisplay);
+	if (!display)
+		return false;
+
+	int screen = DefaultScreen(display);
+	const char* extensions = glXQueryExtensionsString(display, screen);
+	DS_ASSERT(extensions);
+	bool hasSRGB = hasExtension(extensions, "GLX_EXT_framebuffer_sRGB");
+	if (!options->gfxDisplay)
+		XCloseDisplayFunc(display);
+	return hasSRGB;
+}
+
 void* dsGetGLXDisplay(void* osDisplay)
 {
 	return XOpenDisplayFunc(osDisplay);
@@ -177,12 +197,12 @@ void* dsCreateGLXConfig(dsAllocator* allocator, void* display, const dsRendererO
 	}
 	else
 		addOption(attr, &optionCount, GLX_RGBA);
-	addOption2(attr, &optionCount, GLX_RED_SIZE, options->redBits);
-	addOption2(attr, &optionCount, GLX_GREEN_SIZE, options->greenBits);
-	addOption2(attr, &optionCount, GLX_BLUE_SIZE, options->blueBits);
-	addOption2(attr, &optionCount, GLX_ALPHA_SIZE, options->alphaBits);
-	addOption2(attr, &optionCount, GLX_DEPTH_SIZE, options->depthBits);
-	addOption2(attr, &optionCount, GLX_STENCIL_SIZE, options->stencilBits);
+	addOption2(attr, &optionCount, GLX_RED_SIZE, options->renderSurfaceHint.redBits);
+	addOption2(attr, &optionCount, GLX_GREEN_SIZE, options->renderSurfaceHint.greenBits);
+	addOption2(attr, &optionCount, GLX_BLUE_SIZE, options->renderSurfaceHint.blueBits);
+	addOption2(attr, &optionCount, GLX_ALPHA_SIZE, options->renderSurfaceHint.alphaBits);
+	addOption2(attr, &optionCount, GLX_DEPTH_SIZE, options->renderSurfaceHint.depthBits);
+	addOption2(attr, &optionCount, GLX_STENCIL_SIZE, options->renderSurfaceHint.stencilBits);
 	if (!options->singleBuffer)
 	{
 		if (ANYGL_SUPPORTED(glXChooseFBConfig))
@@ -215,8 +235,11 @@ void* dsCreateGLXConfig(dsAllocator* allocator, void* display, const dsRendererO
 		}
 	}
 
-	if (options->srgb && hasExtension(extensions, "GLX_EXT_framebuffer_sRGB"))
+	if (options->renderSurfaceHint.colorSpace == dsRenderColorSpace_NonLinearSRGBConverting &&
+		hasExtension(extensions, "GLX_EXT_framebuffer_sRGB"))
+	{
 		addOption2(attr, &optionCount, GLX_FRAMEBUFFER_SRGB_CAPABLE_EXT, true);
+	}
 
 	addOption(attr, &optionCount, None);
 

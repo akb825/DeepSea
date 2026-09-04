@@ -698,8 +698,8 @@ dsApplication* dsMain(int argc, const char* const* argv)
 	dsRendererOptions rendererOptions;
 	dsRenderer_defaultOptions(&rendererOptions, "TestVectorDraw", 0);
 	rendererOptions.deviceName = deviceName;
-	rendererOptions.depthBits = 0;
-	rendererOptions.stencilBits = 0;
+	rendererOptions.renderSurfaceHint.depthBits = 0;
+	rendererOptions.renderSurfaceHint.stencilBits = 0;
 	rendererOptions.surfaceSamples = 4;
 	if (!dsSDLApplication_prepareRendererOptions(
 			&rendererOptions, dsRenderBootstrap_rendererID(rendererType)))

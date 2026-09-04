@@ -64,6 +64,7 @@
 
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
+#include <DeepSea/Render/RenderSurfaceHint.h>
 
 #include <limits.h>
 #include <string.h>
@@ -81,15 +82,15 @@ static size_t fullAllocSize(void)
 		dsConditionVariable_fullAllocSize();
 }
 
-static bool useBGRASurface(const char* deviceName)
+static bool useBGRSurface(const char* deviceName)
 {
 	DS_UNUSED(deviceName);
 
-	// Devices that use RGBA surfaces.
+	// Devices that use RGB surfaces.
 	if (DS_ANDROID)
 		return false;
 
-	// Most devices use BGRA surfaces.
+	// Most devices use BGR surfaces.
 	return true;
 }
 
@@ -2051,8 +2052,8 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 
 	if (!allocator->freeFunc)
 	{
-		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Renderer allocator must support freeing memory.");
+		errno = EPERM;
 		return NULL;
 	}
 
@@ -2179,17 +2180,27 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
-	dsGfxFormat colorFormat = dsRenderer_optionsColorFormat(
-		options, useBGRASurface(baseRenderer->deviceName), true);
+	dsGfxFormat colorFormat = dsRenderSurfaceHint_colorFormat(
+		&options->renderSurfaceHint, useBGRSurface(baseRenderer->deviceName), true);
 	if (!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, colorFormat))
 	{
-		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Can't draw to surface color format.");
 		dsVkRenderer_destroy(baseRenderer);
+		errno = EPERM;
 		return NULL;
 	}
 
-	dsGfxFormat depthFormat = dsRenderer_optionsDepthFormat(options);
+	dsRenderColorSpace colorSpace = options->renderSurfaceHint.colorSpace;
+	if (colorSpace >= dsRenderColorSpace_ExtendedLinearSRGB &&
+		!device->instance.hasColorSpace)
+	{
+		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Can't draw to surface color space.");
+		dsVkRenderer_destroy(baseRenderer);
+		errno = EPERM;
+		return NULL;
+	}
+
+	dsGfxFormat depthFormat = dsRenderSurfaceHint_depthStencilFormat(&options->renderSurfaceHint);
 	// AMD doesn't support 24-bit dpeth.
 	if (depthFormat == dsGfxFormat_D24S8 &&
 		!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, depthFormat))
@@ -2205,14 +2216,15 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	if (depthFormat != dsGfxFormat_Unknown &&
 		!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, depthFormat))
 	{
-		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Can't draw to surface depth format.");
 		dsVkRenderer_destroy(baseRenderer);
+		errno = EPERM;
 		return NULL;
 	}
 
 	baseRenderer->surfaceColorFormat = colorFormat;
-	renderer->colorSurfaceAlpha = options->alphaBits > 0;
+	baseRenderer->surfaceColorSpace = colorSpace;
+	renderer->colorSurfaceAlpha = options->renderSurfaceHint.alphaBits > 0;
 	baseRenderer->surfaceDepthStencilFormat = depthFormat;
 
 	if (!createCommandBuffers(renderer))

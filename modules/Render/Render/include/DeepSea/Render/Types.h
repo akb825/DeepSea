@@ -79,9 +79,14 @@ extern "C"
 #define DS_MAX_ATTACHMENTS 16
 
 /**
- * @brief The size of the UUID that uniquely identifies a device.
+ * The buffer size for the name of a render device.
  */
-#define DS_DEVICE_UUID_SIZE 16
+#define DS_RENDER_DEVICE_NAME_SIZE 1028
+
+/**
+ * @brief The size of the UUID that uniquely identifies a render device.
+ */
+#define DS_RENDER_DEVICE_UUID_SIZE 16
 
 /**
  * @brief Vendor ID for AMD GPUs.
@@ -89,7 +94,7 @@ extern "C"
 #define DS_VENDOR_ID_AMD 0x1002
 
 /**
- * @brief Vendor ID for ImgTec GPUs.
+ * @brief Vendor ID for Imagination Technologies GPUs.
  */
 #define DS_VENDOR_ID_IMGTEC 0x1010
 
@@ -172,6 +177,31 @@ typedef enum dsGfxPlatform
 	dsGfxPlatform_X11,     ///< X11 windowing platform.
 	dsGfxPlatform_Wayland  ///< Wayland windowing platform.
 } dsGfxPlatform;
+
+/**
+ * @brief Enum for the color space used for rendering.
+ *
+ * This is intended to be a subset of the most commonly exposed color spaces for platforms to allow
+ * for SDR and HDR rendering, under the assumption that assets are typically provided in sRGB color
+ * space. The only non-sRGB option exposed is rec 2100 with PQ (Perceptual Quantizer) encoding to
+ * allow for HDR10 rendering to a framebuffer with 32 bits per pixel. In this case, helpers are
+ * provided for color space conversion from extended sRGB inputs.
+ */
+typedef enum dsRenderColorSpace
+{
+	dsRenderColorSpace_NonLinearSRGB, ///< sRGB primaries with gamma applied.
+	/**
+	 * sRGB primaries with gamma applied, where the values are read and written as linear values
+	 * while they are stored as non-linear values.
+	 */
+	dsRenderColorSpace_NonLinearSRGBConverting,
+	/**
+	 * sRGB primaries without any gamma applied. For floating-point targets, this may represent
+	 * values outside of the traditional [0, 1] range for extended gamut and luminosity.
+	 */
+	dsRenderColorSpace_ExtendedLinearSRGB,
+	dsRenderColorSpace_Rec2100PQ ///< rec 2020 primaries with PQ encoding, typical for HDR10.
+} dsRenderColorSpace;
 
 /**
  * @brief Enum for the type of a render surface.
@@ -354,9 +384,9 @@ typedef struct dsRenderDeviceInfo
 	/**
 	 * @brief The name of the device.
 	 *
-	 * This may be NULL if not known. Either vendorName or vendorID should be set.
+	 * This may be an empty string if not known. Either vendorName or vendorID should be set.
 	 */
-	const char* name;
+	char name[DS_RENDER_DEVICE_NAME_SIZE];
 
 	/**
 	 * @brief ID for the vendor that provides the device.
@@ -376,6 +406,19 @@ typedef struct dsRenderDeviceInfo
 	dsRenderDeviceType deviceType;
 
 	/**
+	 * @brief Bitmask for the potentially supported color spaces for render surfaces.
+	 *
+	 * Each bit corresponds to 1 left shifted by the dsRenderColorSpace enum value. The bit shifted
+	 * value can be checked with & or the values may be iterated with the helper functions in
+	 * Bits.h.
+	 *
+	 * It is expected that all targets support dsRenderColorSpace_NonLinearSRGB at a minimum.
+	 * This isn't definitive, as some targets don't allow for checking for support without a window
+	 * handle.
+	 */
+	uint32_t potentialSurfaceColorSpaces;
+
+	/**
 	 * @brief True if the device will be the default.
 	 */
 	bool isDefault;
@@ -383,7 +426,7 @@ typedef struct dsRenderDeviceInfo
 	/**
 	 * @brief UUID uniquely identifying the device.
 	 */
-	uint8_t deviceUUID[DS_DEVICE_UUID_SIZE];
+	uint8_t deviceUUID[DS_RENDER_DEVICE_UUID_SIZE];
 } dsRenderDeviceInfo;
 
 /**
@@ -412,6 +455,62 @@ typedef void (*dsDestroyBackgroundRenderSurfaceFunction)(
  */
 typedef void* (*dsGetBackgroundRenderSurfaceHandleFunction)(
 	void* userData, dsRenderSurfaceType surfaceType, void* surface);
+
+/**
+ * @brief Struct with hints to choose the proper render surface format.
+ * @see RenderSurfaceHint.h
+ */
+typedef struct dsRenderSurfaceHint
+{
+	/**
+	 * @brief The number of bits for the red channel.
+	 */
+	uint8_t redBits;
+
+	/**
+	 * @brief The number of bits for the green channel.
+	 */
+	uint8_t greenBits;
+
+	/**
+	 * @brief The number of bits for the blue channel.
+	 */
+	uint8_t blueBits;
+
+	/**
+	 * @brief The number of bits for the alpha channel.
+	 */
+	uint8_t alphaBits;
+
+	/**
+	 * @brief The number of bits for the depth buffer.
+	 */
+	uint8_t depthBits;
+
+	/**
+	 * @brief The number of bits for the stencil buffer.
+	 */
+	uint8_t stencilBits;
+
+	/**
+	 * @brief The color space used for rendering.
+	 */
+	dsRenderColorSpace colorSpace;
+
+	/**
+	 * @brief The color format to force dsRenderer.surfaceColorFormat to be.
+	 *
+	 * If dsGfxFormat_Unknown, will derive a format from the bit counts.
+	 */
+	dsGfxFormat forcedColorFormat;
+
+	/**
+	 * @brief The color format to force dsRenderer.surfaceDepthStencilFormat to be.
+	 *
+	 * If dsGfxFormat_Unknown, will derive a format from the bit counts.
+	 */
+	dsGfxFormat forcedDepthStencilFormat;
+} dsRenderSurfaceHint;
 
 /**
  * @brief Struct containing the otpions for initializing a renderer.
@@ -474,48 +573,9 @@ typedef struct dsRendererOptions
 	uint32_t applicationVersion;
 
 	/**
-	 * @brief The number of bits for the red channel.
+	 * @brief The hint for the render surface format.
 	 */
-	uint8_t redBits;
-
-	/**
-	 * @brief The number of bits for the green channel.
-	 */
-	uint8_t greenBits;
-
-	/**
-	 * @brief The number of bits for the blue channel.
-	 */
-	uint8_t blueBits;
-
-	/**
-	 * @brief The number of bits for the alpha channel.
-	 */
-	uint8_t alphaBits;
-
-	/**
-	 * @brief The number of bits for the depth buffer.
-	 */
-	uint8_t depthBits;
-
-	/**
-	 * @brief The number of bits for the stencil buffer.
-	 */
-	uint8_t stencilBits;
-
-	/**
-	 * @brief The color format to force dsRenderer.surfaceColorFormat to be.
-	 *
-	 * If dsGfxFormat_Unknown, will derive a format from the bit counts.
-	 */
-	dsGfxFormat forcedColorFormat;
-
-	/**
-	 * @brief The color format to force dsRenderer.surfaceDepthStencilFormat to be.
-	 *
-	 * If dsGfxFormat_Unknown, will derive a format from the bit counts.
-	 */
-	dsGfxFormat forcedDepthStencilFormat;
+	dsRenderSurfaceHint renderSurfaceHint;
 
 	/**
 	 * @brief The default number of anti-alias samples for render surfaces.
@@ -542,11 +602,6 @@ typedef struct dsRendererOptions
 	 * @brief Use reverse Z rendering, inverting the depth range.
 	 */
 	bool reverseZ;
-
-	/**
-	 * @brief True to use sRGB, false to use linear color space.
-	 */
-	bool srgb;
 
 	/**
 	 * @brief True to prefer half depth clip range of [0, 1] rather than [-1, 1].
@@ -588,7 +643,7 @@ typedef struct dsRendererOptions
 	 * If not found, the default will be used. Use ds*Renderer_queryDevices() to get the list of
 	 * devices and UUIDs associated with them.
 	 */
-	uint8_t deviceUUID[DS_DEVICE_UUID_SIZE];
+	uint8_t deviceUUID[DS_RENDER_DEVICE_UUID_SIZE];
 
 	/**
 	 * @brief The name of the device to use.
@@ -2073,6 +2128,11 @@ typedef struct dsRenderer
 	 * @brief The format for color render surfaces.
 	 */
 	dsGfxFormat surfaceColorFormat;
+
+	/**
+	 * @brief The color space for color render surfaces.
+	 */
+	dsRenderColorSpace surfaceColorSpace;
 
 	/**
 	 * @brief The format for depth/stencil render surfaces.

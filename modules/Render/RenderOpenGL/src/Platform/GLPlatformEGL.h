@@ -24,6 +24,7 @@
 
 bool dsEGLInitialize(void);
 void dsEGLShutdown(void);
+bool dsEGLSupportsSRGBSurfaces(const dsRendererOptions* options);
 
 void* dsGetEGLDisplay(void* osDisplay);
 void dsReleaseEGLDisplay(void* osDisplay, void* gfxDisplay);

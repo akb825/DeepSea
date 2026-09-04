@@ -126,6 +126,22 @@ static bool atLeastVersion(EGLint major, EGLint minor)
 	return eglMajor > major || (eglMajor == major && eglMinor >= minor);
 }
 
+static bool hasExtension(const char* extensions, const char* extension)
+{
+	size_t begin = 0, end = 0;
+	while (extensions[begin])
+	{
+		for (end = begin; extensions[end] && extensions[end] != ' '; ++end)
+			; /* empty */
+		if (strncmp(extensions + begin, extension, end - begin) == 0)
+			return true;
+
+		begin = extensions[end] == ' ' ? end + 1 : end;
+	}
+
+	return false;
+}
+
 bool dsEGLInitialize(void)
 {
 	if (eglLibrary)
@@ -181,6 +197,29 @@ void dsEGLShutdown(void)
 	eglLibrary = NULL;
 }
 
+bool dsEGLSupportsSRGBSurfaces(const dsRendererOptions* options)
+{
+	if (eglMajor > 0)
+		return hasColorspace;
+
+	DS_ASSERT(options);
+	EGLDisplay display;
+	if (options->gfxDisplay)
+		display = (EGLDisplay)options->gfxDisplay;
+	else
+		display = eglGetDisplayFunc(options->osDisplay);
+	if (!display)
+		return false;
+
+	GLint dummyMajor, dummyMinor;
+	eglInitializeFunc(display, &dummyMajor, &dummyMinor);
+	const char* extensions = eglQueryStringFunc(display, EGL_EXTENSIONS);
+	bool defaultHasColorspace = hasExtension(extensions, "EGL_KHR_gl_colorspace");
+	if (!options->gfxDisplay)
+		eglTerminateFunc(display);
+	return defaultHasColorspace;
+}
+
 void* dsGetEGLDisplay(void* osDisplay)
 {
 	EGLDisplay display = eglGetDisplayFunc((EGLNativeDisplayType)osDisplay);
@@ -189,7 +228,7 @@ void* dsGetEGLDisplay(void* osDisplay)
 
 	eglInitializeFunc(display, &eglMajor, &eglMinor);
 	const char* extensions = eglQueryStringFunc(display, EGL_EXTENSIONS);
-	hasColorspace = strstr(extensions, "EGL_KHR_gl_colorspace") != NULL;
+	hasColorspace = hasExtension(extensions, "EGL_KHR_gl_colorspace");
 	return display;
 }
 
@@ -222,12 +261,12 @@ void* dsCreateEGLConfig(dsAllocator* allocator, void* display, const dsRendererO
 	if (contextType == GLContextType_SharedDummySurface)
 		surfaces |= EGL_PBUFFER_BIT;
 	addOption(attr, &optionCount, EGL_SURFACE_TYPE, surfaces);
-	addOption(attr, &optionCount, EGL_RED_SIZE, options->redBits);
-	addOption(attr, &optionCount, EGL_GREEN_SIZE, options->greenBits);
-	addOption(attr, &optionCount, EGL_BLUE_SIZE, options->blueBits);
-	addOption(attr, &optionCount, EGL_ALPHA_SIZE, options->alphaBits);
-	addOption(attr, &optionCount, EGL_DEPTH_SIZE, options->depthBits);
-	addOption(attr, &optionCount, EGL_STENCIL_SIZE, options->stencilBits);
+	addOption(attr, &optionCount, EGL_RED_SIZE, options->renderSurfaceHint.redBits);
+	addOption(attr, &optionCount, EGL_GREEN_SIZE, options->renderSurfaceHint.greenBits);
+	addOption(attr, &optionCount, EGL_BLUE_SIZE, options->renderSurfaceHint.blueBits);
+	addOption(attr, &optionCount, EGL_ALPHA_SIZE, options->renderSurfaceHint.alphaBits);
+	addOption(attr, &optionCount, EGL_DEPTH_SIZE, options->renderSurfaceHint.depthBits);
+	addOption(attr, &optionCount, EGL_STENCIL_SIZE, options->renderSurfaceHint.stencilBits);
 	if (contextType == GLContextType_Render && options->surfaceSamples > 1)
 	{
 		addOption(attr, &optionCount, EGL_SAMPLE_BUFFERS, 1);
@@ -238,8 +277,11 @@ void* dsCreateEGLConfig(dsAllocator* allocator, void* display, const dsRendererO
 		addOption(attr, &optionCount, EGL_SAMPLE_BUFFERS, 0);
 		addOption(attr, &optionCount, EGL_SAMPLES, 0);
 	}
-	if (atLeastVersion(1, 5) && options->srgb)
+	if (atLeastVersion(1, 5) &&
+		options->renderSurfaceHint.colorSpace == dsRenderColorSpace_NonLinearSRGBConverting)
+	{
 		addOption(attr, &optionCount, EGL_GL_COLORSPACE, EGL_GL_COLORSPACE_SRGB);
+	}
 
 	DS_ASSERT(optionCount < MAX_OPTION_SIZE);
 	attr[optionCount] = EGL_NONE;
@@ -315,7 +357,8 @@ void* dsCreateEGLConfig(dsAllocator* allocator, void* display, const dsRendererO
 	}
 #endif
 	config->debug = options->debug;
-	config->srgb = options->srgb;
+	config->srgb =
+		options->renderSurfaceHint.colorSpace == dsRenderColorSpace_NonLinearSRGBConverting;
 	return config;
 }
 
@@ -486,7 +529,7 @@ bool dsBindEGLContext(void* display, void* context, void* surface)
 {
 	DS_PROFILE_FUNC_START();
 	if (!eglMakeCurrentFunc(
-		(EGLDisplay)display, (EGLSurface)surface, (EGLSurface)surface, (EGLContext)context))
+			(EGLDisplay)display, (EGLSurface)surface, (EGLSurface)surface, (EGLContext)context))
 	{
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't bind GL context.");
 		DS_PROFILE_FUNC_RETURN(false);

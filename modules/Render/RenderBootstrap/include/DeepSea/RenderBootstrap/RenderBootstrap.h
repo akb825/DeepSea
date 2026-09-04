@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,10 +76,12 @@ DS_RENDERBOOTSTRAP_EXPORT bool dsRenderBootstrap_isSupported(dsRendererType type
  * @param[out] outDeviceCount The number of devices that were set. If outDevices isn't NULL, the
  *     initial value is the capacity of outDevices.
  * @param type The type of renderer to get the devices for.
+ * @param options The renderer options. Some implementations require this for some operations, such
+ *     as creating a background surface for querying device information.
  * @return False if an error occurred.
  */
 DS_RENDERBOOTSTRAP_EXPORT bool dsRenderBootstrap_queryDevices(dsRenderDeviceInfo* outDevices,
-	uint32_t* outDeviceCount, dsRendererType type);
+	uint32_t* outDeviceCount, dsRendererType type, const dsRendererOptions* options);
 
 /**
  * @brief Creates a renderer.
@@ -89,8 +91,8 @@ DS_RENDERBOOTSTRAP_EXPORT bool dsRenderBootstrap_queryDevices(dsRenderDeviceInfo
  * @param options The options for creating the renderer.
  * @return The
  */
-DS_RENDERBOOTSTRAP_EXPORT dsRenderer* dsRenderBootstrap_createRenderer(dsRendererType type,
-	dsAllocator* allocator, const dsRendererOptions* options);
+DS_RENDERBOOTSTRAP_EXPORT dsRenderer* dsRenderBootstrap_createRenderer(
+	dsRendererType type, dsAllocator* allocator, const dsRendererOptions* options);
 
 #ifdef __cplusplus
 }

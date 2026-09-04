@@ -133,7 +133,7 @@
 #define DS_DEPTH_STENCIL_RESOVE_CORE_VERSION VK_API_VERSION_1_2
 #define DS_DEDICATED_ALLOCATION_CORE_VERSION VK_API_VERSION_1_1
 
-_Static_assert(DS_DEVICE_UUID_SIZE == VK_UUID_SIZE, "Unexpected UUID size.");
+_Static_assert(DS_RENDER_DEVICE_UUID_SIZE == VK_UUID_SIZE, "Unexpected UUID size.");
 
 typedef struct InstanceExtensions
 {
@@ -144,6 +144,7 @@ typedef struct InstanceExtensions
 	bool debug;
 	bool oldDebugReport;
 	bool deviceInfo;
+	bool colorSpace;
 	bool xlib;
 	bool wayland;
 	bool win32;
@@ -161,7 +162,7 @@ typedef struct DeviceExtensions
 
 typedef struct ExtraDeviceInfo
 {
-	uint8_t uuid[DS_DEVICE_UUID_SIZE];
+	uint8_t uuid[DS_RENDER_DEVICE_UUID_SIZE];
 	bool supportsGraphics;
 } ExtraDeviceInfo;
 
@@ -174,30 +175,11 @@ static const char* objectValLayerName = "VK_LAYER_LUNARG_object_tracker";
 static const char* coreValLayerName = "VK_LAYER_LUNARG_core_validation";
 static const char* uniqueObjectValLayerName = "VK_LAYER_GOOGLE_unique_objects";
 
-// Instance extensions.
-static const char* swapChainExtensionName = "VK_KHR_swapchain";
-static const char* surfaceExtensionName = "VK_KHR_surface";
+// Platform-specific instance extensions.
 static const char* xlibDisplayExtensionName = "VK_KHR_xlib_surface";
 static const char* waylandDisplayExtensionName = "VK_KHR_wayland_surface";
 static const char* win32DisplayExtensionName = "VK_KHR_win32_surface";
 static const char* androidDisplayExtensionName = "VK_KHR_android_surface";
-static const char* debugExtensionName = "VK_EXT_debug_utils";
-static const char* oldDebugReportExtensionName = "VK_EXT_debug_report";
-static const char* physicalDeviceProperties2ExtensionName =
-	"VK_KHR_get_physical_device_properties2";
-static const char* externalMemoryCapabilitiesExtensionName =
-	"VK_KHR_external_memory_capabilities";
-
-// Device extensions.
-static const char* oldDebugMarkerExtensionName = "VK_EXT_debug_marker";
-static const char* maintenance1ExtensionName = "VK_KHR_maintenance1";
-static const char* maintenance2ExtensionName = "VK_KHR_maintenance2";
-static const char* multiviewExtensionName = "VK_KHR_multiview";
-static const char* createRenderPass2ExtensionName = "VK_KHR_create_renderpass2";
-static const char* depthStencilResolveExtensionName = "VK_KHR_depth_stencil_resolve";
-static const char* pvrtcExtensionName = "VK_IMG_format_pvrtc";
-static const char* getMemoryRequirements2ExtensionName = "VK_KHR_get_memory_requirements2";
-static const char* dedicatedAllocationExtensionName = "VK_KHR_dedicated_allocation";
 
 static InstanceExtensions instanceExtensions;
 static uint32_t physicalDeviceCount;
@@ -385,11 +367,12 @@ static bool queryInstanceExtensions(dsVkInstance* instance)
 		instance->vkEnumerateInstanceLayerProperties(&layerCount, layers);
 		for (uint32_t i = 0; i < layerCount; ++i)
 		{
-			if (strcmp(layers[i].layerName, validationLayerName) == 0)
+			const char* layerName = layers[i].layerName;
+			if (strcmp(layerName, validationLayerName) == 0)
 				instanceExtensions.validation = true;
-			else if (strcmp(layers[i].layerName, standardValidationLayerName) == 0)
+			else if (strcmp(layerName, standardValidationLayerName) == 0)
 				instanceExtensions.standardValidation = true;
-			else if (strcmp(layers[i].layerName, coreValLayerName) == 0)
+			else if (strcmp(layerName, coreValLayerName) == 0)
 				instanceExtensions.oldValidation = true;
 		}
 		free(layers);
@@ -397,34 +380,37 @@ static bool queryInstanceExtensions(dsVkInstance* instance)
 
 	uint32_t extensionCount = 0;
 	instance->vkEnumerateInstanceExtensionProperties(NULL, &extensionCount, NULL);
-	bool hasSurface = false;
 	VkExtensionProperties* extensions =
 		(VkExtensionProperties*)malloc(extensionCount*sizeof(VkExtensionProperties));
 	if (!extensions)
 		return false;
 
+	bool hasSurface = false;
 	bool hasPhysicalDeviceProperties2ExtensionName = false;
 	bool hasExternalMemoryCapabilitiesExtensionName = false;
 	instance->vkEnumerateInstanceExtensionProperties(NULL, &extensionCount, extensions);
 	for (uint32_t i = 0; i < extensionCount; ++i)
 	{
-		if (strcmp(extensions[i].extensionName, surfaceExtensionName) == 0)
+		const char* extensionName = extensions[i].extensionName;
+		if (strcmp(extensionName, VK_KHR_SURFACE_EXTENSION_NAME) == 0)
 			hasSurface = true;
-		else if (strcmp(extensions[i].extensionName, debugExtensionName) == 0)
+		else if (strcmp(extensionName, VK_EXT_DEBUG_UTILS_EXTENSION_NAME) == 0)
 			instanceExtensions.debug = true;
-		else if (strcmp(extensions[i].extensionName, oldDebugReportExtensionName) == 0)
+		else if (strcmp(extensionName, VK_EXT_DEBUG_REPORT_EXTENSION_NAME) == 0)
 			instanceExtensions.oldDebugReport = true;
-		else if (strcmp(extensions[i].extensionName, physicalDeviceProperties2ExtensionName) == 0)
+		else if (strcmp(extensionName, VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME) == 0)
 			hasPhysicalDeviceProperties2ExtensionName = true;
-		else if (strcmp(extensions[i].extensionName, externalMemoryCapabilitiesExtensionName) == 0)
+		else if (strcmp(extensionName, VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME) == 0)
 			hasExternalMemoryCapabilitiesExtensionName = true;
-		else if (strcmp(extensions[i].extensionName, xlibDisplayExtensionName) == 0)
+		else if (strcmp(extensionName, VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME) == 0)
+			instanceExtensions.colorSpace = true;
+		else if (strcmp(extensionName, xlibDisplayExtensionName) == 0)
 			instanceExtensions.xlib = true;
-		else if (strcmp(extensions[i].extensionName, waylandDisplayExtensionName) == 0)
+		else if (strcmp(extensionName, waylandDisplayExtensionName) == 0)
 			instanceExtensions.wayland = true;
-		else if (strcmp(extensions[i].extensionName, win32DisplayExtensionName) == 0)
+		else if (strcmp(extensionName, win32DisplayExtensionName) == 0)
 			instanceExtensions.win32 = true;
-		else if (strcmp(extensions[i].extensionName, androidDisplayExtensionName) == 0)
+		else if (strcmp(extensionName, androidDisplayExtensionName) == 0)
 			instanceExtensions.android = true;
 	}
 	free(extensions);
@@ -466,7 +452,12 @@ static void addLayers(const char** layerNames, uint32_t* layerCount, bool useVal
 static void addInstanceExtensions(const char** extensionNames, uint32_t* extensionCount,
 	const dsRendererOptions* options, uint32_t instanceVersion)
 {
-	DS_ADD_EXTENSION(extensionNames, *extensionCount, surfaceExtensionName);
+	DS_ADD_EXTENSION(extensionNames, *extensionCount, VK_KHR_SURFACE_EXTENSION_NAME);
+	if (instanceExtensions.colorSpace)
+	{
+		DS_ADD_EXTENSION(
+			extensionNames, *extensionCount, VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME);
+	}
 	if (instanceExtensions.xlib)
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, xlibDisplayExtensionName);
 	if (instanceExtensions.wayland)
@@ -477,17 +468,19 @@ static void addInstanceExtensions(const char** extensionNames, uint32_t* extensi
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, androidDisplayExtensionName);
 	if (instanceExtensions.deviceInfo && instanceVersion < DS_DEVICE_INFO_CORE_VERSION)
 	{
-		DS_ADD_EXTENSION(extensionNames, *extensionCount, physicalDeviceProperties2ExtensionName);
-		DS_ADD_EXTENSION(extensionNames, *extensionCount, externalMemoryCapabilitiesExtensionName);
+		DS_ADD_EXTENSION(extensionNames, *extensionCount,
+			VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+		DS_ADD_EXTENSION(
+			extensionNames, *extensionCount, VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME);
 	}
 
 	// NOTE: Push groups use the debug utils extension, so use it if profiling is enabled.
 	if (enableMarkers(enableValidation(options)))
 	{
 		if (instanceExtensions.debug)
-			DS_ADD_EXTENSION(extensionNames, *extensionCount, debugExtensionName);
+			DS_ADD_EXTENSION(extensionNames, *extensionCount, VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 		else if (instanceExtensions.oldDebugReport)
-			DS_ADD_EXTENSION(extensionNames, *extensionCount, oldDebugReportExtensionName);
+			DS_ADD_EXTENSION(extensionNames, *extensionCount, VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 	}
 }
 
@@ -515,15 +508,16 @@ static void findDeviceExtensions(DeviceExtensions* outExtensions, dsVkDevice* de
 		device->physicalDevice, NULL, &extensionCount, extensions);
 	for (uint32_t i = 0; i < extensionCount; ++i)
 	{
-		if (strcmp(extensions[i].extensionName, maintenance1ExtensionName) == 0)
+		const char* extensionName = extensions[i].extensionName;
+		if (strcmp(extensionName, VK_KHR_MAINTENANCE_1_EXTENSION_NAME) == 0)
 			outExtensions->maintenance1 = true;
-		else if (strcmp(extensions[i].extensionName, oldDebugMarkerExtensionName) == 0)
+		else if (strcmp(extensionName, VK_EXT_DEBUG_MARKER_EXTENSION_NAME) == 0)
 			outExtensions->oldDebugMarker = true;
-		else if (strcmp(extensions[i].extensionName, depthStencilResolveExtensionName) == 0)
+		else if (strcmp(extensionName, VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME) == 0)
 			outExtensions->depthStencilResolve = true;
-		else if (strcmp(extensions[i].extensionName, pvrtcExtensionName) == 0)
+		else if (strcmp(extensionName, VK_IMG_FORMAT_PVRTC_EXTENSION_NAME) == 0)
 			outExtensions->pvrtc = true;
-		else if (strcmp(extensions[i].extensionName, dedicatedAllocationExtensionName) == 0)
+		else if (strcmp(extensionName, VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME) == 0)
 			outExtensions->dedicatedAllocation = true;
 	}
 
@@ -536,39 +530,45 @@ static void addDeviceExtensions(dsVkDevice* device,
 {
 	uint32_t apiVersion = device->properties.apiVersion;
 	findDeviceExtensions(extensions, device, allocator);
-	DS_ADD_EXTENSION(extensionNames, *extensionCount, swapChainExtensionName);
+	DS_ADD_EXTENSION(extensionNames, *extensionCount, VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 	if (useMarkers && extensions->maintenance1)
 	{
 		device->hasMaintenance1 = true;
 		if (apiVersion < DS_MAINTENANCE1_CORE_VERSION)
-			DS_ADD_EXTENSION(extensionNames, *extensionCount, maintenance1ExtensionName);
+			DS_ADD_EXTENSION(extensionNames, *extensionCount, VK_KHR_MAINTENANCE_1_EXTENSION_NAME);
 	}
 	if (useMarkers && !instanceExtensions.debug && extensions->oldDebugMarker)
-		DS_ADD_EXTENSION(extensionNames, *extensionCount, oldDebugMarkerExtensionName);
+		DS_ADD_EXTENSION(extensionNames, *extensionCount, VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
 	if (extensions->depthStencilResolve)
 	{
 		device->hasDepthStencilResolve = true;
 		if (apiVersion < DS_CREATE_RENDERPASS2_CORE_VERSION)
 		{
-			DS_ADD_EXTENSION(extensionNames, *extensionCount, maintenance2ExtensionName);
-			DS_ADD_EXTENSION(extensionNames, *extensionCount, multiviewExtensionName);
-			DS_ADD_EXTENSION(extensionNames, *extensionCount, createRenderPass2ExtensionName);
+			DS_ADD_EXTENSION(extensionNames, *extensionCount, VK_KHR_MAINTENANCE_2_EXTENSION_NAME);
+			DS_ADD_EXTENSION(extensionNames, *extensionCount, VK_KHR_MULTIVIEW_EXTENSION_NAME);
+			DS_ADD_EXTENSION(
+				extensionNames, *extensionCount, VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME);
 		}
 		if (apiVersion < DS_DEPTH_STENCIL_RESOVE_CORE_VERSION)
-			DS_ADD_EXTENSION(extensionNames, *extensionCount, depthStencilResolveExtensionName);
+		{
+			DS_ADD_EXTENSION(
+				extensionNames, *extensionCount, VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME);
+		}
 	}
 	if (extensions->pvrtc)
 	{
 		device->hasPVRTC = true;
-		DS_ADD_EXTENSION(extensionNames, *extensionCount, pvrtcExtensionName);
+		DS_ADD_EXTENSION(extensionNames, *extensionCount, VK_IMG_FORMAT_PVRTC_EXTENSION_NAME);
 	}
 	if (extensions->dedicatedAllocation)
 	{
 		device->hasDedicatedAllocation = true;
 		if (apiVersion < DS_DEDICATED_ALLOCATION_CORE_VERSION)
 		{
-			DS_ADD_EXTENSION(extensionNames, *extensionCount, getMemoryRequirements2ExtensionName);
-			DS_ADD_EXTENSION(extensionNames, *extensionCount, dedicatedAllocationExtensionName);
+			DS_ADD_EXTENSION(
+				extensionNames, *extensionCount, VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
+			DS_ADD_EXTENSION(
+				extensionNames, *extensionCount, VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
 		}
 	}
 }
@@ -643,12 +643,12 @@ static VkPhysicalDevice findPhysicalDevice(
 			DS_VK_CALL(instance->vkGetPhysicalDeviceProperties2)(device, &properties2);
 
 			if (memcmp(deviceID.deviceUUID, extraDeviceInfo[defaultPhysicalDevice].uuid,
-					DS_DEVICE_UUID_SIZE) == 0)
+					DS_RENDER_DEVICE_UUID_SIZE) == 0)
 			{
 				defaultDevice = device;
 			}
 
-			if (memcmp(deviceID.deviceUUID, options->deviceUUID, DS_DEVICE_UUID_SIZE) == 0)
+			if (memcmp(deviceID.deviceUUID, options->deviceUUID, DS_RENDER_DEVICE_UUID_SIZE) == 0)
 				explicitDevice = device;
 
 			if (options->deviceName && !namedDevice &&
@@ -801,6 +801,7 @@ bool dsCreateVkInstance(
 	}
 
 	addInstanceExtensions(enabledExtensions, &enabledExtensionCount, options, instanceVersion);
+	instance->hasColorSpace = instanceExtensions.colorSpace;
 
 	// Request the highest version we know of.
 	uint32_t version = force10 ? VK_API_VERSION_1_0 : DS_HIGHEST_KNOWN_VULKAN_VERSOIN;
@@ -839,8 +840,8 @@ bool dsCreateVkInstance(
 	else
 		instance->allocCallbacksPtr = NULL;
 
-	VkResult result = instance->vkCreateInstance(&createInfo, instance->allocCallbacksPtr,
-		&instance->instance);
+	VkResult result = instance->vkCreateInstance(
+		&createInfo, instance->allocCallbacksPtr, &instance->instance);
 	if (handleErrors)
 	{
 		if (!DS_HANDLE_VK_RESULT(result, "Couldn't create Vulkan instance"))
@@ -1009,7 +1010,7 @@ bool dsGatherVkPhysicalDevices(dsVkInstance* instance)
 			properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
 			properties2.pNext = &deviceID;
 			DS_VK_CALL(instance->vkGetPhysicalDeviceProperties2)(device, &properties2);
-			memcpy(deviceInfo->uuid, deviceID.deviceUUID, DS_DEVICE_UUID_SIZE);
+			memcpy(deviceInfo->uuid, deviceID.deviceUUID, DS_RENDER_DEVICE_UUID_SIZE);
 		}
 
 		++i;
@@ -1038,6 +1039,14 @@ bool dsQueryVkDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount)
 	if (*outDeviceCount > graphicsDeviceCount)
 		*outDeviceCount = graphicsDeviceCount;
 
+	uint32_t potentialSurfaceColorSpaces = (1 << dsRenderColorSpace_NonLinearSRGB) |
+		(1 << dsRenderColorSpace_NonLinearSRGBConverting);
+	if (instanceExtensions.colorSpace)
+	{
+		potentialSurfaceColorSpaces |= 1 << dsRenderColorSpace_ExtendedLinearSRGB;
+		potentialSurfaceColorSpaces |= 1 << dsRenderColorSpace_Rec2100PQ;
+	}
+
 	for (uint32_t i = 0, idx = 0; i < physicalDeviceCount && idx < *outDeviceCount; ++i)
 	{
 		if (!extraDeviceInfo[i].supportsGraphics)
@@ -1045,12 +1054,16 @@ bool dsQueryVkDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount)
 
 		VkPhysicalDeviceProperties* physicalDevice = physicalDevices + i;
 		dsRenderDeviceInfo* device = outDevices + idx;
-		device->name = physicalDevice->deviceName;
+		size_t nameLen = strlen(physicalDevice->deviceName);
+		nameLen = dsMin(nameLen, DS_RENDER_DEVICE_NAME_SIZE - 1);
+		memcpy(device->name, physicalDevice->deviceName, nameLen);
+		device->name[nameLen] = 0;
 		device->vendorID = physicalDevice->vendorID;
 		device->deviceID = physicalDevice->deviceID;
 		device->deviceType = convertDeviceType(physicalDevice->deviceType);
+		device->potentialSurfaceColorSpaces = potentialSurfaceColorSpaces;
 		device->isDefault = i == defaultPhysicalDevice;
-		memcpy(device->deviceUUID, extraDeviceInfo[i].uuid, DS_DEVICE_UUID_SIZE);
+		memcpy(device->deviceUUID, extraDeviceInfo[i].uuid, DS_RENDER_DEVICE_UUID_SIZE);
 		++idx;
 	}
 
@@ -1069,12 +1082,15 @@ bool dsGetDefaultVkDevice(dsRenderDeviceInfo* outDevice)
 		return false;
 
 	const VkPhysicalDeviceProperties* physicalDevice = physicalDevices + defaultPhysicalDevice;
-	outDevice->name = physicalDevice->deviceName;
+	size_t nameLen = strlen(physicalDevice->deviceName);
+	nameLen = dsMin(nameLen, DS_RENDER_DEVICE_NAME_SIZE - 1);
+	memcpy(outDevice->name, physicalDevice->deviceName, nameLen);
+	outDevice->name[nameLen] = 0;
 	outDevice->vendorID = physicalDevice->vendorID;
 	outDevice->deviceID = physicalDevice->deviceID;
 	outDevice->deviceType = convertDeviceType(physicalDevice->deviceType);
 	outDevice->isDefault = true;
-	memcpy(outDevice->deviceUUID, extraDeviceInfo->uuid, DS_DEVICE_UUID_SIZE);
+	memcpy(outDevice->deviceUUID, extraDeviceInfo->uuid, DS_RENDER_DEVICE_UUID_SIZE);
 	return true;
 }
 

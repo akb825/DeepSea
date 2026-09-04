@@ -371,9 +371,21 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 
 		MTLPixelFormat format = MTLPixelFormatBGRA8Unorm;
 		if (renderer->surfaceColorFormat ==
-			dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_SRGB))
+			dsGfxFormat_decorate(dsGfxFormat_B8G8R8A8, dsGfxFormat_SRGB))
 		{
 			format = MTLPixelFormatBGRA8Unorm_sRGB;
+		}
+#if DS_IOS || __MAC_OS_X_VERSION_MIN_REQUIRED >= 110000
+		else if (renderer->surfaceColorFormat ==
+			dsGfxFormat_decorate(dsGfxFormat_B5G6R5, dsGfxFormat_UNorm))
+		{
+			format = MTLPixelFormatBGRA8Unorm_sRGB;
+		}
+#endif
+		else if (renderer->surfaceColorFormat ==
+			dsGfxFormat_decorate(dsGfxFormat_A2B10G10R10, dsGfxFormat_UNorm))
+		{
+			format = MTLPixelFormatRGB10A2Unorm;
 		}
 		else if (renderer->surfaceColorFormat ==
 			dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16, dsGfxFormat_Float))
@@ -381,12 +393,47 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 			format = MTLPixelFormatRGBA16Float;
 		}
 
+		CFStringRef colorSpace;
+		bool hdr;
+		switch (renderer->surfaceColorSpace)
+		{
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
+			case dsRenderColorSpace_ExtendedLinearSRGB:
+				if (format == MTLPixelFormatRGBA16Float)
+				{
+					colorSpace = kCGColorSpaceExtendedLinearSRGB;
+					hdr = true;
+				}
+				else
+				{
+					colorSpace = kCGColorSpaceLinearSRGB;
+					hdr = false;
+				}
+				break;
+#endif
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 126000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101460
+			case dsRenderColorSpace_Rec2100PQ:
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 140000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 110000
+				colorSpace = kCGColorSpaceITUR_2100_PQ;
+#else
+				colorSpace = kCGColorSpaceITUR_2020_PQ_EOTF;
+#endif
+				hdr = true;
+				break;
+#endif
+			default:
+				colorSpace = kCGColorSpaceSRGB;
+				hdr = false;
+				break;
+		}
+
 		layer.pixelFormat = format;
+		layer.colorspace = CGColorSpaceCreateWithName(colorSpace);
 #if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
 		layer.displaySyncEnabled = renderer->vsync != dsVSync_Disabled;
 #endif
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101100 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 160000
-		layer.wantsExtendedDynamicRangeContent = format == MTLPixelFormatRGBA16Float;
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 160000
+		layer.wantsExtendedDynamicRangeContent = hdr;
 #endif
 
 		size_t nameLen = strlen(name) + 1;

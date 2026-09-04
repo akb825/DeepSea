@@ -84,6 +84,7 @@ typedef struct dsVkInstance
 	const VkAllocationCallbacks* allocCallbacksPtr;
 	VkInstance instance;
 	uint32_t instanceVersion;
+	bool hasColorSpace;
 } dsVkInstance;
 
 typedef struct dsVkDevice

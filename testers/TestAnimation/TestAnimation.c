@@ -793,8 +793,8 @@ dsApplication* dsMain(int argc, const char* const* argv)
 
 	dsRendererOptions rendererOptions;
 	dsRenderer_defaultOptions(&rendererOptions, "TestAnimation", 0);
-	rendererOptions.depthBits = 24;
-	rendererOptions.stencilBits = 0;
+	rendererOptions.renderSurfaceHint.depthBits = 24;
+	rendererOptions.renderSurfaceHint.stencilBits = 0;
 	rendererOptions.surfaceSamples = 4;
 	rendererOptions.reverseZ = true;
 	rendererOptions.preferHalfDepthRange = true;

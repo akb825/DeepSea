@@ -43,15 +43,18 @@
 #include <DeepSea/Math/Core.h>
 
 #include <DeepSea/Render/Resources/GfxFormat.h>
+#include <DeepSea/Render/RenderSurfaceHint.h>
 #include <DeepSea/Render/Renderer.h>
 
+#include <ctype.h>
 #include <string.h>
 
 #if ANYGL_HAS_GLX
 #include <dlfcn.h>
 #endif
 
-#define DS_SYNC_POOL_COUNT 100
+#define SYNC_POOL_COUNT 100
+#define MAX_TEMP_CONTEXT_SIZE 1024
 
 static uint32_t initializeCount;
 
@@ -86,6 +89,45 @@ static int platformToAnyGL(dsGfxPlatform platform)
 		default:
 			return ANYGL_LOAD_DEFAULT;
 	}
+}
+
+static int strcasencmp(const char* lhs, const char* rhs, size_t n)
+{
+	for (size_t i = 0; i < n; ++i, ++lhs, ++rhs)
+	{
+		int c1 = tolower(*lhs);
+		int c2 = tolower(*rhs);
+		int diff = c1 - c2;
+		if (diff != 0 || (c1 == 0 && c2 == 0))
+			return diff;
+	}
+
+	return 0;
+}
+
+static uint32_t vendorNameToID(const char* vendor)
+{
+	const char* amd = "AMD";
+	const char* ati = "ATI";
+	const char* nvidia = "NVIDIA";
+	const char* intel = "Intel";
+	const char* imgtec = "Imagination Technologies";
+	const char* arm = "ARM";
+	const char* qualcomm = "Qualcomm";
+
+	if (strcasencmp(vendor, amd, strlen(amd)) == 0 || strcasencmp(vendor, ati, strlen(ati)) == 0)
+		return DS_VENDOR_ID_AMD;
+	if (strcasencmp(vendor, nvidia, strlen(nvidia)) == 0)
+		return DS_VENDOR_ID_NVIDIA;
+	if (strcasencmp(vendor, intel, strlen(intel)) == 0)
+		return DS_VENDOR_ID_INTEL;
+	if (strcasencmp(vendor, imgtec, strlen(imgtec)) == 0)
+		return DS_VENDOR_ID_IMGTEC;
+	if (strcasencmp(vendor, arm, strlen(arm)) == 0)
+		return DS_VENDOR_ID_ARM;
+	if (strcasencmp(vendor, qualcomm, strlen(qualcomm)) == 0)
+		return DS_VENDOR_ID_QUALCOMM;
+	return 0;
 }
 
 static bool initializeGL(int anyglLoad)
@@ -488,16 +530,118 @@ bool dsGLRenderer_isSupported(void)
 	return supported;
 }
 
-bool dsGLRenderer_queryDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount)
+bool dsGLRenderer_queryDevices(
+	dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount, const dsRendererOptions* options)
 {
-	DS_UNUSED(outDevices);
-	if (!outDeviceCount)
+	if (!outDeviceCount || !options)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	*outDeviceCount = 0;
+	if (*outDeviceCount == 0)
+		return true;
+
+	int anyglLoad = platformToAnyGL(dsRenderer_resolvePlatform(options->platform));
+	if (!initializeGL(anyglLoad))
+	{
+		*outDeviceCount = 0;
+		return true;
+	}
+
+	dsGLPlatform platform;
+	if (!dsGLPlatform_initialize(&platform, anyglLoad, options))
+	{
+		*outDeviceCount = 0;
+		shutdownGL();
+		return true;
+	}
+
+	uint8_t tempBuffer[MAX_TEMP_CONTEXT_SIZE];
+	dsBufferAllocator tempAllocator;
+	DS_VERIFY(dsBufferAllocator_initialize(&tempAllocator, tempBuffer, MAX_TEMP_CONTEXT_SIZE));
+
+	// Try to create a context.
+	void* display;
+	if (options->gfxDisplay)
+		display = options->gfxDisplay;
+	else
+		display = dsGLPlatform_getDisplay(&platform, options->osDisplay);
+	void* tempConfig = dsGLPlatform_createConfig(
+		&platform, (dsAllocator*)&tempAllocator, display, options, false);
+	if (!tempConfig)
+	{
+		if (!options->gfxDisplay)
+			dsGLPlatform_releaseDisplay(&platform, options->osDisplay, display);
+		dsGLPlatform_shutdown(&platform);
+		shutdownGL();
+		return true;
+	}
+
+	void* tempContext = dsGLPlatform_createContext(
+		&platform, (dsAllocator*)&tempAllocator, display, tempConfig, NULL);
+	if (!tempContext)
+	{
+		dsGLPlatform_destroyConfig(&platform, display, tempConfig);
+		if (!options->gfxDisplay)
+			dsGLPlatform_releaseDisplay(&platform, options->osDisplay, display);
+		dsGLPlatform_shutdown(&platform);
+		shutdownGL();
+	}
+
+	*outDeviceCount = 1;
+	if (!outDevices)
+	{
+		dsGLPlatform_destroyContext(&platform, display, tempContext);
+		dsGLPlatform_destroyConfig(&platform, display, tempConfig);
+		if (!options->gfxDisplay)
+			dsGLPlatform_releaseDisplay(&platform, options->osDisplay, display);
+		dsGLPlatform_shutdown(&platform);
+		shutdownGL();
+		return true;
+	}
+
+	// Try to create a surface to bind the context to get the device name. At least get the info we
+	// can if this fails.
+	const char* name = "OpenGL";
+	uint32_t vendorID = 0;
+
+	void* osDummySurface;
+	void* dummySurface = dsGLPlatform_createDummySurface(&platform, (dsAllocator*)&tempAllocator,
+		display, options, tempConfig, &osDummySurface);
+	if (dummySurface)
+	{
+		if (dsGLPlatform_bindContext(&platform, display, tempContext, dummySurface) &&
+			AnyGL_load())
+		{
+			name = (const char*)glGetString(GL_RENDERER);
+			vendorID = vendorNameToID((const char*)glGetString(GL_VENDOR));
+		}
+		dsGLPlatform_destroyDummySurface(&platform, display, options, dummySurface, osDummySurface);
+	}
+
+	size_t nameLen = strlen(name);
+	nameLen = dsMin(nameLen, DS_RENDER_DEVICE_NAME_SIZE - 1);
+	memcpy(outDevices->name, name, nameLen);
+	outDevices->name[nameLen] = 0;
+	outDevices->vendorID = vendorID;
+	outDevices->deviceID = 0;
+	outDevices->deviceType = dsRenderDeviceType_Unknown;
+	outDevices->potentialSurfaceColorSpaces = 1 << dsRenderColorSpace_NonLinearSRGB;
+	if (platform.hasSRGBSurfaces)
+	{
+		outDevices->potentialSurfaceColorSpaces |=
+			1 << dsRenderColorSpace_NonLinearSRGBConverting;
+	}
+	outDevices->isDefault = true;
+	memset(outDevices->deviceUUID, 0, DS_RENDER_DEVICE_UUID_SIZE);
+
+	dsGLPlatform_destroyContext(&platform, display, tempContext);
+	dsGLPlatform_destroyConfig(&platform, display, tempConfig);
+	if (!options->gfxDisplay)
+		dsGLPlatform_releaseDisplay(&platform, options->osDisplay, display);
+	dsGLPlatform_shutdown(&platform);
+	shutdownGL();
 	return true;
 }
 
@@ -516,22 +660,23 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
-	dsGfxFormat colorFormat = dsRenderer_optionsColorFormat(options, false, false);
+	dsGfxFormat colorFormat = dsRenderSurfaceHint_colorFormat(
+		&options->renderSurfaceHint, false, false);
 	if (!dsGfxFormat_isValid(colorFormat))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Invalid color format.");
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Invalid surface color format.");
 		return NULL;
 	}
 
-	dsGfxFormat depthFormat = dsRenderer_optionsDepthFormat(options);
+	dsGfxFormat depthFormat = dsRenderSurfaceHint_depthStencilFormat(&options->renderSurfaceHint);
 
 	dsGfxPlatform resolvedPlatform = dsRenderer_resolvePlatform(options->platform);
 	int anyglLoad = platformToAnyGL(resolvedPlatform);
 	if (!initializeGL(anyglLoad))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Cannot initialize OpenGL.");
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't initialize OpenGL.");
 		return NULL;
 	}
 
@@ -550,7 +695,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	memset(renderer, 0, sizeof(*renderer));
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
 
-	if (!dsGLPlatform_initialize(&renderer->platform, anyglLoad))
+	if (!dsGLPlatform_initialize(&renderer->platform, anyglLoad, options))
 	{
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "No available OpenGL load library.");
 		shutdownGL();
@@ -580,6 +725,17 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		renderer->options.gfxDisplay = dsGLPlatform_getDisplay(
 			&renderer->platform, renderer->options.osDisplay);
 		renderer->releaseDisplay = true;
+	}
+
+	dsRenderColorSpace colorSpace = options->renderSurfaceHint.colorSpace;
+	if (colorSpace >= dsRenderColorSpace_ExtendedLinearSRGB ||
+		(colorSpace == dsRenderColorSpace_NonLinearSRGBConverting &&
+			!renderer->platform.hasSRGBSurfaces))
+	{
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Can't draw to surface color space.");
+		dsGLRenderer_destroy(baseRenderer);
+		errno = EPERM;
+		return NULL;
 	}
 
 	void* display = renderer->options.gfxDisplay;
@@ -667,6 +823,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->shaderVersion = DS_ENCODE_VERSION(glslMajor, glslMinor, 0);
 	baseRenderer->vendorName = (const char*)glGetString(GL_VENDOR);
 	DS_ASSERT(baseRenderer->vendorName);
+	baseRenderer->vendorID = vendorNameToID(baseRenderer->vendorName);
 	baseRenderer->deviceName = (const char*)glGetString(GL_RENDERER);
 	DS_ASSERT(baseRenderer->deviceName);
 
@@ -750,6 +907,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	}
 
 	baseRenderer->surfaceColorFormat = colorFormat;
+	baseRenderer->surfaceColorSpace = colorSpace;
 	baseRenderer->surfaceDepthStencilFormat = depthFormat;
 	baseRenderer->surfaceConfig = dsGLPlatform_getPublicConfig(
 		&renderer->platform, renderer->options.gfxDisplay, renderer->renderConfig);
@@ -1044,7 +1202,7 @@ dsGLFenceSync* dsGLRenderer_createSync(dsRenderer* renderer, GLsync sync)
 	{
 		pool = (dsAllocator*)addPool(renderer->allocator, &glRenderer->syncPools,
 			&glRenderer->curSyncPools, &glRenderer->maxSyncPools, sizeof(dsGLFenceSync),
-			DS_SYNC_POOL_COUNT);
+			SYNC_POOL_COUNT);
 		if (!pool)
 		{
 			DS_VERIFY(dsSpinlock_unlock(&glRenderer->syncPoolLock));
@@ -1084,7 +1242,7 @@ dsGLFenceSyncRef* dsGLRenderer_createSyncRef(dsRenderer* renderer)
 	{
 		pool = (dsAllocator*)addPool(renderer->allocator, &glRenderer->syncRefPools,
 			&glRenderer->curSyncRefPools, &glRenderer->maxSyncRefPools, sizeof(dsGLFenceSyncRef),
-			DS_SYNC_POOL_COUNT);
+			SYNC_POOL_COUNT);
 		if (!pool)
 		{
 			DS_VERIFY(dsSpinlock_unlock(&glRenderer->syncPoolLock));

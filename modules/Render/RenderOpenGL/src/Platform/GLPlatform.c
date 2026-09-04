@@ -22,8 +22,10 @@
 
 #include <DeepSea/Core/Assert.h>
 
-bool dsGLPlatform_initialize(dsGLPlatform* platform, int anyglLoad)
+bool dsGLPlatform_initialize(
+	dsGLPlatform* platform, int anyglLoad, const dsRendererOptions* options)
 {
+	DS_UNUSED(options);
 	switch (anyglLoad)
 	{
 #if DS_MAC
@@ -45,6 +47,7 @@ bool dsGLPlatform_initialize(dsGLPlatform* platform, int anyglLoad)
 			platform->getCurrentContextFunc = &dsGetCurrentCocoaGLContext;
 			platform->setVSyncFunc = &dsSetCocoaGLVSync;
 			platform->shutdownFunc = NULL;
+			platform->hasSRGBSurfaces = false;
 			return true;
 #endif
 #if ANYGL_HAS_EGL
@@ -69,6 +72,7 @@ bool dsGLPlatform_initialize(dsGLPlatform* platform, int anyglLoad)
 			platform->getCurrentContextFunc = &dsGetCurrentEGLContext;
 			platform->setVSyncFunc = &dsSetEGLVSync;
 			platform->shutdownFunc = &dsEGLShutdown;
+			platform->hasSRGBSurfaces = dsEGLSupportsSRGBSurfaces(options);
 			return true;
 #endif
 #if ANYGL_HAS_GLX
@@ -93,6 +97,7 @@ bool dsGLPlatform_initialize(dsGLPlatform* platform, int anyglLoad)
 			platform->getCurrentContextFunc = &dsGetCurrentGLXContext;
 			platform->setVSyncFunc = &dsSetGLXVSync;
 			platform->shutdownFunc = &dsGLXShutdown;
+			platform->hasSRGBSurfaces = dsGLXSupportsSRGBSurfaces(options);
 			return true;
 #endif
 #if ANYGL_HAS_WGL
@@ -114,6 +119,7 @@ bool dsGLPlatform_initialize(dsGLPlatform* platform, int anyglLoad)
 			platform->getCurrentContextFunc = &dsGetCurrentWGLContext;
 			platform->setVSyncFunc = &dsSetWGLVSync;
 			platform->shutdownFunc = NULL;
+			platform->hasSRGBSurfaces = dsWGLSupportsSRGBSurfaces(options);
 			return true;
 #endif
 	}

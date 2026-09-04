@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -191,8 +191,14 @@ bool dsRenderBootstrap_isSupported(dsRendererType type)
 }
 
 bool dsRenderBootstrap_queryDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount,
-	dsRendererType type)
+	dsRendererType type, const dsRendererOptions* options)
 {
+	if (!outDevices || !options)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
 	if (type == dsRendererType_Default)
 		type = dsRenderBootstrap_defaultRenderer();
 
@@ -218,7 +224,7 @@ bool dsRenderBootstrap_queryDevices(dsRenderDeviceInfo* outDevices, uint32_t* ou
 #endif
 		case dsRendererType_OpenGL:
 #if DS_HAS_RENDER_OPENGL
-			return dsGLRenderer_queryDevices(outDevices, outDeviceCount);
+			return dsGLRenderer_queryDevices(outDevices, outDeviceCount, options);
 #else
 			errno = EPERM;
 			DS_LOG_ERROR(DS_RENDER_BOOTSTRAP_LOG_TAG,
@@ -232,8 +238,8 @@ bool dsRenderBootstrap_queryDevices(dsRenderDeviceInfo* outDevices, uint32_t* ou
 	}
 }
 
-dsRenderer* dsRenderBootstrap_createRenderer(dsRendererType type, dsAllocator* allocator,
-	const dsRendererOptions* options)
+dsRenderer* dsRenderBootstrap_createRenderer(
+	dsRendererType type, dsAllocator* allocator, const dsRendererOptions* options)
 {
 	if (type == dsRendererType_Default)
 		type = dsRenderBootstrap_defaultRenderer();

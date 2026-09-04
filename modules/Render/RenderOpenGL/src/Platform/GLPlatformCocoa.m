@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ void* dsCreateCocoaGLConfig(dsAllocator* allocator, void* display, const dsRende
 	{
 		NSOpenGLPixelFormatAttribute versions[] =
 		{
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 1010
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101000
 			NSOpenGLProfileVersion4_1Core,
 #endif
 			NSOpenGLProfileVersion3_2Core, NSOpenGLProfileVersionLegacy

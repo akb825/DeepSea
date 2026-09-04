@@ -655,8 +655,8 @@ dsApplication* dsMain(int argc, const char* const* argv)
 
 	dsRendererOptions rendererOptions;
 	dsRenderer_defaultOptions(&rendererOptions, "TestParticles", 0);
-	rendererOptions.depthBits = 0;
-	rendererOptions.stencilBits = 0;
+	rendererOptions.renderSurfaceHint.depthBits = 0;
+	rendererOptions.renderSurfaceHint.stencilBits = 0;
 	rendererOptions.surfaceSamples = 1;
 	rendererOptions.reverseZ = true;
 	rendererOptions.preferHalfDepthRange = true;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,16 +44,17 @@ DS_RENDEROPENGL_EXPORT bool dsGLRenderer_isSupported(void);
 
 /**
  * @brief Queries the devices available for use.
- *
- * This will always return an empty set of devices.
- *
  * @remark errno will be set on failure.
- * @param[out] outDevices Output pointer for the devices.
- * @param[inout] outDeviceCount The number of devices. This will be set to 0.
- * @return False if the parameters are invalid.
+ * @param[out] outDevices Output pointer for the devices. This may be NULL to query the total number
+ *     of devices.
+ * @param[out] outDeviceCount The number of devices that were set. If outDevices isn't NULL, the
+ *     initial value is the capacity of outDevices.
+ * @param options The device options. This will be used to attempt to create an OpenGL context to
+ *     query device information.
+ * @return False if an error occurred.
  */
-DS_RENDEROPENGL_EXPORT bool dsGLRenderer_queryDevices(dsRenderDeviceInfo* outDevices,
-	uint32_t* outDeviceCount);
+DS_RENDEROPENGL_EXPORT bool dsGLRenderer_queryDevices(
+	dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount, const dsRendererOptions* options);
 
 /**
  * @brief Creates an OpenGL renderer.
@@ -62,8 +63,8 @@ DS_RENDEROPENGL_EXPORT bool dsGLRenderer_queryDevices(dsRenderDeviceInfo* outDev
  * @param options The options to initialize OpenGL with.
  * @return The created renderer, or NULL if the renderer coulnd't be created.
  */
-DS_RENDEROPENGL_EXPORT dsRenderer* dsGLRenderer_create(dsAllocator* allocator,
-	const dsRendererOptions* options);
+DS_RENDEROPENGL_EXPORT dsRenderer* dsGLRenderer_create(
+	dsAllocator* allocator, const dsRendererOptions* options);
 
 #ifdef __cplusplus
 }

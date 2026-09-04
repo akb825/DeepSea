@@ -48,8 +48,9 @@ static bool hasFormat(const VkSurfaceFormatKHR* surfaceFormats, uint32_t formatC
 {
 	for (uint32_t i = 0; i < formatCount; ++i)
 	{
-		if (surfaceFormats[i].colorSpace == colorSpace && (surfaceFormats[i].format == format ||
-			surfaceFormats[i].format == VK_FORMAT_UNDEFINED))
+		const VkSurfaceFormatKHR* surfaceFormat = surfaceFormats + i;
+		if (surfaceFormat->colorSpace == colorSpace && (surfaceFormat->format == format ||
+			surfaceFormat->format == VK_FORMAT_UNDEFINED))
 		{
 			return true;
 		}
@@ -326,27 +327,42 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 		renderer->surfaceColorFormat);
 	if (!colorFormat)
 	{
-		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Unknown format.");
+		errno = EPERM;
 		return NULL;
 	}
 
 	if (renderer->stereoscopic && surfaceInfo->maxImageArrayLayers < 2)
 	{
-		errno = EPERM;
 		DS_LOG_INFO(DS_RENDER_VULKAN_LOG_TAG,
 			"Window surface doesn't support stereoscopic rendering.");
+		errno = EPERM;
 		return NULL;
 	}
 
-	VkColorSpaceKHR colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
-	if ((renderer->surfaceColorFormat & dsGfxFormat_DecoratorMask) == dsGfxFormat_Float)
-		colorSpace = VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT;
+	VkColorSpaceKHR colorSpace;
+	switch (renderer->surfaceColorSpace)
+	{
+		case dsRenderColorSpace_NonLinearSRGB:
+		case dsRenderColorSpace_NonLinearSRGBConverting:
+			colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+			break;
+		case dsRenderColorSpace_ExtendedLinearSRGB:
+			colorSpace = VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT;
+			break;
+		case dsRenderColorSpace_Rec2100PQ:
+			colorSpace = VK_COLOR_SPACE_HDR10_ST2084_EXT;
+			break;
+		default:
+			DS_ASSERT(false);
+			colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+			break;
+	}
 	if (!supportsFormat(device, surface, colorFormat->vkFormat, colorSpace))
 	{
-		errno = EPERM;
 		DS_LOG_INFO(DS_RENDER_VULKAN_LOG_TAG,
 			"Renderer color format not supported by window surface.");
+		errno = EPERM;
 		return NULL;
 	}
 
