@@ -660,17 +660,6 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
-	dsGfxFormat colorFormat = dsRenderSurfaceHint_colorFormat(
-		&options->renderSurfaceHint, false, false);
-	if (!dsGfxFormat_isValid(colorFormat))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Invalid surface color format.");
-		return NULL;
-	}
-
-	dsGfxFormat depthFormat = dsRenderSurfaceHint_depthStencilFormat(&options->renderSurfaceHint);
-
 	dsGfxPlatform resolvedPlatform = dsRenderer_resolvePlatform(options->platform);
 	int anyglLoad = platformToAnyGL(resolvedPlatform);
 	if (!initializeGL(anyglLoad))
@@ -725,17 +714,6 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		renderer->options.gfxDisplay = dsGLPlatform_getDisplay(
 			&renderer->platform, renderer->options.osDisplay);
 		renderer->releaseDisplay = true;
-	}
-
-	dsRenderColorSpace colorSpace = options->renderSurfaceHint.colorSpace;
-	if (colorSpace >= dsRenderColorSpace_ExtendedLinearSRGB ||
-		(colorSpace == dsRenderColorSpace_NonLinearSRGBConverting &&
-			!renderer->platform.hasSRGBSurfaces))
-	{
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Can't draw to surface color space.");
-		dsGLRenderer_destroy(baseRenderer);
-		errno = EPERM;
-		return NULL;
 	}
 
 	void* display = renderer->options.gfxDisplay;
@@ -903,6 +881,37 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	if (!baseRenderer->mainCommandBuffer)
 	{
 		dsGLRenderer_destroy(baseRenderer);
+		return NULL;
+	}
+
+	dsGfxFormat colorFormat = dsRenderSurfaceHint_colorFormat(
+		&options->renderSurfaceHint, false, true);
+	if (!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, colorFormat))
+	{
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Can't draw to surface color format.");
+		dsGLRenderer_destroy(baseRenderer);
+		errno = EPERM;
+		return NULL;
+	}
+
+	dsRenderColorSpace colorSpace = options->renderSurfaceHint.colorSpace;
+	if (colorSpace >= dsRenderColorSpace_ExtendedLinearSRGB ||
+		(colorSpace == dsRenderColorSpace_NonLinearSRGBConverting &&
+			!renderer->platform.hasSRGBSurfaces))
+	{
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Can't draw to surface color space.");
+		dsGLRenderer_destroy(baseRenderer);
+		errno = EPERM;
+		return NULL;
+	}
+
+	dsGfxFormat depthFormat = dsRenderSurfaceHint_depthStencilFormat(&options->renderSurfaceHint);
+	if (depthFormat != dsGfxFormat_Unknown &&
+		!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, depthFormat))
+	{
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Can't draw to surface depth format.");
+		dsGLRenderer_destroy(baseRenderer);
+		errno = EPERM;
 		return NULL;
 	}
 

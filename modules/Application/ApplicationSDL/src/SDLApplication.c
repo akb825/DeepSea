@@ -134,10 +134,12 @@ static void* createBackgroundGLWindow(void* userData, dsRenderSurfaceType surfac
 static void destroyBackgroundGLWindow(
 	void* userData, dsRenderSurfaceType surfaceType, void* surface)
 {
+	if (!surface)
+		return;
+
 	DS_UNUSED(userData);
 	DS_UNUSED(surfaceType);
 	DS_ASSERT(surfaceType == dsRenderSurfaceType_Window);
-	DS_ASSERT(surface);
 	SDL_DestroyWindow((SDL_Window*)surface);
 }
 

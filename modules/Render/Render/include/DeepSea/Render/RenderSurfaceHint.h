@@ -60,14 +60,22 @@ DS_RENDER_EXPORT bool dsRenderSurfaceHint_fromFormats(dsRenderSurfaceHint* hint,
 	bool explicit);
 
 /**
+ * @brief Checks whether the render surface hint can produce a valid color format.
+ * @param hint The render surface hint.
+ * @return Whether the hint is valid.
+ */
+DS_RENDER_EXPORT bool dsRenderSurfaceHint_isValid(const dsRenderSurfaceHint* hint);
+
+/**
  * @brief Gets the color format based on the provided hint.
  * @param hint The render surface hint.
  * @param bgr Use formats with BGR ordering instead of RGB.
- * @param requireAlpha Require an alpha channel.
+ * @param aligned Whether the values should be aligned, such as needing an alpha channel for 8 bit
+ *     per channel formats.
  * @return The color format.
  */
 DS_RENDER_EXPORT dsGfxFormat dsRenderSurfaceHint_colorFormat(
-	const dsRenderSurfaceHint* hint, bool bgr, bool requireAlpha);
+	const dsRenderSurfaceHint* hint, bool bgr, bool aligned);
 
 /**
  * @brief Gets the depth/stencil format based on the provided hint.

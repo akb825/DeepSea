@@ -200,8 +200,13 @@ bool dsRenderSurfaceHint_fromFormats(dsRenderSurfaceHint* hint,
 	return true;
 }
 
+bool dsRenderSurfaceHint_isValid(const dsRenderSurfaceHint* hint)
+{
+	return dsRenderSurfaceHint_colorFormat(hint, false, false) != dsGfxFormat_Unknown;
+}
+
 dsGfxFormat dsRenderSurfaceHint_colorFormat(
-	const dsRenderSurfaceHint* hint, bool bgr, bool requireAlpha)
+	const dsRenderSurfaceHint* hint, bool bgr, bool aligned)
 {
 	if (!hint)
 		return dsGfxFormat_Unknown;
@@ -222,7 +227,7 @@ dsGfxFormat dsRenderSurfaceHint_colorFormat(
 	{
 		dsGfxFormat decorator = hint->colorSpace == dsRenderColorSpace_NonLinearSRGBConverting ?
 			dsGfxFormat_SRGB : dsGfxFormat_UNorm;
-		if (hint->alphaBits != 0 || requireAlpha)
+		if (hint->alphaBits != 0 || aligned)
 		{
 			if (bgr)
 				return dsGfxFormat_decorate(dsGfxFormat_B8G8R8A8, decorator);
@@ -237,11 +242,11 @@ dsGfxFormat dsRenderSurfaceHint_colorFormat(
 	if (hint->redBits <= 10 && hint->greenBits <= 10 && hint->blueBits <= 10 &&
 		hint->alphaBits <= 2)
 	{
-		dsGfxFormat decorator = hint->colorSpace == dsRenderColorSpace_NonLinearSRGBConverting ?
-			dsGfxFormat_SRGB : dsGfxFormat_UNorm;
+		if (hint->colorSpace == dsRenderColorSpace_NonLinearSRGBConverting)
+			return dsGfxFormat_Unknown;
 		if (bgr)
-			return dsGfxFormat_decorate(dsGfxFormat_A2B10G10R10, decorator);
-		return dsGfxFormat_decorate(dsGfxFormat_A2R10G10B10, decorator);
+			return dsGfxFormat_decorate(dsGfxFormat_A2B10G10R10, dsGfxFormat_UNorm);
+		return dsGfxFormat_decorate(dsGfxFormat_A2R10G10B10, dsGfxFormat_UNorm);
 	}
 
 	if (hint->redBits <= 16 && hint->greenBits <= 16 && hint->blueBits <= 16 &&

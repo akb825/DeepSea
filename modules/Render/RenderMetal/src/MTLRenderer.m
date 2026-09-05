@@ -825,27 +825,6 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 			return NULL;
 		}
 
-		dsGfxFormat colorFormat = dsRenderSurfaceHint_colorFormat(
-			&options->renderSurfaceHint, true, true);
-		if (!dsGfxFormat_isValid(colorFormat))
-		{
-			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Invalid surface color format.");
-			errno = EPERM;
-			return NULL;
-		}
-
-		dsRenderColorSpace colorSpace = options->renderSurfaceHint.colorSpace;
-		uint32_t supportedColorSpaces = getSupportedColorSpaces();
-		if (!(supportedColorSpaces & (1 << colorSpace)))
-		{
-			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Can't draw to surface color space.");
-			errno = EPERM;
-			return NULL;
-		}
-
-		dsGfxFormat depthFormat = dsRenderSurfaceHint_depthStencilFormat(
-			&options->renderSurfaceHint);
-
 		id<MTLDevice> device = MTLCreateSystemDefaultDevice();
 		if (!device)
 		{
@@ -1013,8 +992,28 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		// No native input attachment support, so same limit as max samplers per shader.
 		baseRenderer->maxInputAttachments = baseRenderer->resourceManager->maxSamplers;
 
-		baseRenderer->surfaceColorFormat = colorFormat;
-		baseRenderer->surfaceColorSpace = colorSpace;
+		dsGfxFormat colorFormat = dsRenderSurfaceHint_colorFormat(
+			&options->renderSurfaceHint, true, true);
+		if (!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, colorFormat))
+		{
+			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Can't draw to surface color format.");
+			dsMTLRenderer_destroy(baseRenderer);
+			errno = EPERM;
+			return NULL;
+		}
+
+		dsRenderColorSpace colorSpace = options->renderSurfaceHint.colorSpace;
+		uint32_t supportedColorSpaces = getSupportedColorSpaces();
+		if (!(supportedColorSpaces & (1 << colorSpace)))
+		{
+			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Can't draw to surface color space.");
+			dsMTLRenderer_destroy(baseRenderer);
+			errno = EPERM;
+			return NULL;
+		}
+
+		dsGfxFormat depthFormat = dsRenderSurfaceHint_depthStencilFormat(
+			&options->renderSurfaceHint);
 
 		// 16 and 24-bit depth not always supported.
 		// First try 16 bit to fall back to 24 bit. Then try 24 bit to fall back to 32 bit.
@@ -1043,12 +1042,14 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		if (depthFormat != dsGfxFormat_Unknown &&
 			!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, depthFormat))
 		{
-			errno = EPERM;
 			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Can't draw to surface depth format.");
 			dsMTLRenderer_destroy(baseRenderer);
+			errno = EPERM;
 			return NULL;
 		}
 
+		baseRenderer->surfaceColorFormat = colorFormat;
+		baseRenderer->surfaceColorSpace = colorSpace;
 		baseRenderer->surfaceDepthStencilFormat = depthFormat;
 
 		baseRenderer->destroyFunc = &dsMTLRenderer_destroy;
