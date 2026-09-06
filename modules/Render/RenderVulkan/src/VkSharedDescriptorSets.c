@@ -337,8 +337,8 @@ VkDescriptorSet dsVkSharedDescriptorSets_createSet(dsVkSharedDescriptorSets* des
 	// Early out if the descriptors hasn't been updated.
 	bool needNewDescriptor = !descriptors->lastDescriptor ||
 		descriptors->lastDescriptor->materialDesc != materialDesc;
-	uint32_t pointerVersion = dsSharedMaterialValues_getPointerVersion(sharedValues);
-	uint32_t offsetVersion = dsSharedMaterialValues_getOffsetVersion(sharedValues);
+	uint64_t pointerVersion = dsSharedMaterialValues_getPointerVersion(sharedValues);
+	uint64_t offsetVersion = dsSharedMaterialValues_getOffsetVersion(sharedValues);
 	if (!needNewDescriptor &&
 		!dsVkMaterialDescriptor_shouldCheckPointers(
 			descriptors->lastDescriptor, samplers, sharedValues, pointerVersion))

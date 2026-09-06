@@ -446,8 +446,8 @@ typedef struct dsVkMaterialDescriptor
 
 	const dsVkSamplerList* samplers; // Only used for comparison
 	const void* refObject;
-	uint32_t pointerVersion;
-	uint32_t offsetVersion;
+	uint64_t pointerVersion;
+	uint64_t offsetVersion;
 
 	dsVkBindingCounts counts;
 	dsMaterialBinding binding;

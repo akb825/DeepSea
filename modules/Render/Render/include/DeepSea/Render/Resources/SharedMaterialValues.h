@@ -329,9 +329,9 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_clear(dsSharedMaterialValues* value
  * updates need to be processed without processing individual elements.
  *
  * @param values The shared material values to get the version from.
- * @return False if values is NULL.
+ * @return The pointer version.
  */
-DS_RENDER_EXPORT uint32_t dsSharedMaterialValues_getPointerVersion(
+DS_RENDER_EXPORT uint64_t dsSharedMaterialValues_getPointerVersion(
 	const dsSharedMaterialValues* values);
 
 /**
@@ -342,9 +342,9 @@ DS_RENDER_EXPORT uint32_t dsSharedMaterialValues_getPointerVersion(
  * individual elements.
  *
  * @param values The shared material values to get the version from.
- * @return False if values is NULL.
+ * @return The offset version.
  */
-DS_RENDER_EXPORT uint32_t dsSharedMaterialValues_getOffsetVersion(
+DS_RENDER_EXPORT uint64_t dsSharedMaterialValues_getOffsetVersion(
 	const dsSharedMaterialValues* values);
 
 /**

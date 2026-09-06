@@ -22,15 +22,15 @@
 dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAllocator* allocator,
 	const dsMaterialDesc* materialDesc, const dsVkBindingCounts* counts, dsMaterialBinding binding);
 bool dsVkMaterialDescriptor_shouldCheckPointers(const dsVkMaterialDescriptor* descriptor,
-	const dsVkSamplerList* samplers, const void* refObject, uint32_t pointerVersion);
+	const dsVkSamplerList* samplers, const void* refObject, uint64_t pointerVersion);
 bool dsVkMaterialDescriptor_shouldCheckOffsets(
-	const dsVkMaterialDescriptor* descriptor, uint32_t offsetVersion);
+	const dsVkMaterialDescriptor* descriptor, uint64_t offsetVersion);
 bool dsVkMaterialDescriptor_isUpToDate(
 	const dsVkMaterialDescriptor* descriptor, const dsVkBindingMemory* bindingMemory);
 void dsVkMaterialDescriptor_updateEarlyChecks(dsVkMaterialDescriptor* descriptor,
-	const dsVkSamplerList* samplers, const void* refObject, uint32_t pointerVersion,
-	uint32_t offsetVersion);
+	const dsVkSamplerList* samplers, const void* refObject, uint64_t pointerVersion,
+	uint64_t offsetVersion);
 void dsVkMaterialDescriptor_update(dsVkMaterialDescriptor* descriptor, const dsShader* shader,
 	dsVkBindingMemory* bindingMemory, const dsVkSamplerList* samplers, const void* refObject,
-	uint32_t pointerVersion, uint32_t offsetVersion);
+	uint64_t pointerVersion, uint64_t offsetVersion);
 void dsVkMaterialDescriptor_destroy(dsVkMaterialDescriptor* descriptor);

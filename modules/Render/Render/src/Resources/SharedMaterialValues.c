@@ -55,8 +55,8 @@ struct dsSharedMaterialValues
 	dsAllocator* allocator;
 	dsPoolAllocator entryPool;
 	dsHashTable* hashTable;
-	uint32_t pointerVersion;
-	uint32_t offsetVersion;
+	uint64_t pointerVersion;
+	uint64_t offsetVersion;
 };
 
 static void* getValue(dsGfxFormat* outFormat, size_t* outOffset, size_t* outSize,
@@ -538,7 +538,7 @@ bool dsSharedMaterialValues_clear(dsSharedMaterialValues* values)
 	return true;
 }
 
-uint32_t dsSharedMaterialValues_getPointerVersion(const dsSharedMaterialValues* values)
+uint64_t dsSharedMaterialValues_getPointerVersion(const dsSharedMaterialValues* values)
 {
 	if (!values)
 		return 0;
@@ -546,7 +546,7 @@ uint32_t dsSharedMaterialValues_getPointerVersion(const dsSharedMaterialValues* 
 	return values->pointerVersion;
 }
 
-uint32_t dsSharedMaterialValues_getOffsetVersion(const dsSharedMaterialValues* values)
+uint64_t dsSharedMaterialValues_getOffsetVersion(const dsSharedMaterialValues* values)
 {
 	if (!values)
 		return 0;
