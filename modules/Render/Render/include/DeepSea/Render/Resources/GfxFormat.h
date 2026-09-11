@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,8 +57,8 @@ DS_RENDER_EXPORT unsigned int dsGfxFormat_size(dsGfxFormat format);
  * @param format The format.
  * @return False if the format is invalid or if outX or outY is NULL.
  */
-DS_RENDER_EXPORT bool dsGfxFormat_blockDimensions(unsigned int* outX, unsigned int* outY,
-	dsGfxFormat format);
+DS_RENDER_EXPORT bool dsGfxFormat_blockDimensions(
+	unsigned int* outX, unsigned int* outY, dsGfxFormat format);
 
 /**
  * @brief Gets minimum dimensions for a format.
@@ -70,8 +70,8 @@ DS_RENDER_EXPORT bool dsGfxFormat_blockDimensions(unsigned int* outX, unsigned i
  * @param format The format.
  * @return False if the format is invalid or if outX or outY is NULL.
  */
-DS_RENDER_EXPORT bool dsGfxFormat_minDimensions(unsigned int* outX, unsigned int* outY,
-	dsGfxFormat format);
+DS_RENDER_EXPORT bool dsGfxFormat_minDimensions(
+	unsigned int* outX, unsigned int* outY, dsGfxFormat format);
 
 /**
  * @brief Gets the index of a standard format.
@@ -177,8 +177,8 @@ DS_RENDER_EXPORT inline bool dsGfxFormat_isDepthStencil(dsGfxFormat format);
  * @param format The graphics format to check.
  * @return True if the format can be used for vertices.
  */
-DS_RENDER_EXPORT bool dsGfxFormat_vertexSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format);
+DS_RENDER_EXPORT bool dsGfxFormat_vertexSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format);
 
 /**
  * @brief Checks whether or not a graphics format is supported for textures.
@@ -186,8 +186,8 @@ DS_RENDER_EXPORT bool dsGfxFormat_vertexSupported(const dsResourceManager* resou
  * @param format The graphics format to check.
  * @return True if the format can be used for textures.
  */
-DS_RENDER_EXPORT bool dsGfxFormat_textureSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format);
+DS_RENDER_EXPORT bool dsGfxFormat_textureSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format);
 
 /**
  * @brief Checks whether or not a graphics format is supported for texture buffers.
@@ -195,8 +195,8 @@ DS_RENDER_EXPORT bool dsGfxFormat_textureSupported(const dsResourceManager* reso
  * @param format The graphics format to check.
  * @return True if the format can be used for texture buffers.
  */
-DS_RENDER_EXPORT bool dsGfxFormat_textureBufferSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format);
+DS_RENDER_EXPORT bool dsGfxFormat_textureBufferSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format);
 
 /**
  * @brief Checks whether or not a graphics format is supported for images.
@@ -204,8 +204,8 @@ DS_RENDER_EXPORT bool dsGfxFormat_textureBufferSupported(const dsResourceManager
  * @param format The graphics format to check.
  * @return True if the format can be used for images.
  */
-DS_RENDER_EXPORT bool dsGfxFormat_imageSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format);
+DS_RENDER_EXPORT bool dsGfxFormat_imageSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format);
 
 /**
  * @brief Checks whether or not a graphics format is supported for offscreens and renderbuffers.
@@ -213,8 +213,8 @@ DS_RENDER_EXPORT bool dsGfxFormat_imageSupported(const dsResourceManager* resour
  * @param format The graphics format to check.
  * @return True if the format can be used for offscreens and renderbuffers.
  */
-DS_RENDER_EXPORT bool dsGfxFormat_renderTargetSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format);
+DS_RENDER_EXPORT bool dsGfxFormat_renderTargetSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format);
 
 /**
  * @brief Checks whether or not a format can have mipmaps generated.
@@ -222,8 +222,8 @@ DS_RENDER_EXPORT bool dsGfxFormat_renderTargetSupported(const dsResourceManager*
  * @param format The graphics format to check.
  * @return True if the format can be used for texture buffers.
  */
-DS_RENDER_EXPORT bool dsGfxFormat_generateMipmapsSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format);
+DS_RENDER_EXPORT bool dsGfxFormat_generateMipmapsSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format);
 
 /**
  * @brief Checks whether or not a pair of graphics formats is supported for copying textures.
@@ -233,8 +233,8 @@ DS_RENDER_EXPORT bool dsGfxFormat_generateMipmapsSupported(const dsResourceManag
  * @param dstFormat The graphics format to blit to.
  * @return True if the formats can be used for copying textures.
  */
-DS_RENDER_EXPORT bool dsGfxFormat_textureCopySupported(const dsResourceManager* resourceManager,
-	dsGfxFormat srcFormat, dsGfxFormat dstFormat);
+DS_RENDER_EXPORT bool dsGfxFormat_textureCopySupported(
+	const dsResourceManager* resourceManager, dsGfxFormat srcFormat, dsGfxFormat dstFormat);
 
 /**
  * @brief Checks whether or not a pair of graphics formats are supported for blitting surfaces.
@@ -259,8 +259,8 @@ DS_RENDER_EXPORT bool dsGfxFormat_surfaceBlitSupported(const dsResourceManager* 
  * @param filter The filter to blit with.
  * @return True if the formats can be used for blitting textures.
  */
-DS_RENDER_EXPORT bool dsGfxFormat_standardSurfaceBlitSupported(dsGfxFormat srcFormat,
-	dsGfxFormat dstFormat, dsBlitFilter filter);
+DS_RENDER_EXPORT bool dsGfxFormat_standardSurfaceBlitSupported(
+	dsGfxFormat srcFormat, dsGfxFormat dstFormat, dsBlitFilter filter);
 
 /**
  * @brief Checks whether or not a graphics format can be copied from a buffer to a texture.
@@ -279,6 +279,15 @@ DS_RENDER_EXPORT bool dsGfxFormat_copyBufferToTextureSupported(
  */
 DS_RENDER_EXPORT bool dsGfxFormat_copyTextureToBufferSupported(
 	const dsResourceManager* resourceManager, dsGfxFormat format);
+
+/**
+ * @brief Resolves special alias values into the true format.
+ * @param renderer The renderer.
+ * @param format The format.
+ * @return The resolved format, converting alias values such as dsGfxFormat_SurfaceColor or
+ *     dsGfxFormat_SurfaceDepthStencil into the final formats.
+ */
+DS_RENDER_EXPORT dsGfxFormat dsGfxFormat_resolve(const dsRenderer* renderer, dsGfxFormat format);
 
 inline unsigned int dsGfxFormat_standardIndex(dsGfxFormat format)
 {
@@ -339,7 +348,8 @@ inline dsGfxFormat dsGfxFormat_decorate(dsGfxFormat format, dsGfxFormat decorato
 
 inline bool dsGfxFormat_isDepthStencil(dsGfxFormat format)
 {
-	return format >= dsGfxFormat_D16 && format <= dsGfxFormat_D32S8_Float;
+	return (format >= dsGfxFormat_D16 && format <= dsGfxFormat_D32S8_Float) ||
+		format == dsGfxFormat_SurfaceDepthStencil;
 }
 
 #ifdef __cplusplus

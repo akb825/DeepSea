@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,10 @@
 #include <DeepSea/Core/Config.h>
 #include "GLTypes.h"
 
+dsGfxFormat dsGLRenderer_surfaceColorFormat(const dsRenderSurfaceHint* hint);
+bool dsGLRenderer_canUseRenderSurfaceFormat(const dsRenderer* renderer, dsGfxFormat colorFormat,
+	dsRenderColorSpace colorSpace, dsGfxFormat depthFormat, bool reportErrors);
+
 bool dsGLRenderer_bindSurface(dsRenderer* renderer, void* glSurface);
 void dsGLRenderer_destroySurface(dsRenderer* renderer, void* glSurface);
 
@@ -33,8 +37,8 @@ void dsGLRenderer_restoreFramebuffer(dsRenderer* renderer);
 dsGLFenceSync* dsGLRenderer_createSync(dsRenderer* renderer, GLsync sync);
 dsGLFenceSyncRef* dsGLRenderer_createSyncRef(dsRenderer* renderer);
 
-void dsGLRenderer_bindTexture(dsRenderer* renderer, unsigned int unit, GLenum target,
-	GLuint texture);
+void dsGLRenderer_bindTexture(
+	dsRenderer* renderer, unsigned int unit, GLenum target, GLuint texture);
 void dsGLRenderer_beginTextureOp(dsRenderer* renderer, GLenum target, GLuint texture);
 void dsGLRenderer_endTextureOp(dsRenderer* renderer);
 

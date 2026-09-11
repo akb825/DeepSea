@@ -299,8 +299,8 @@ void dsRenderer_setExtraDebugging(dsRenderer* renderer, bool enable)
 	renderer->setExtraDebuggingFunc(renderer, enable);
 }
 
-const dsShaderVersion* dsRenderer_chooseShaderVersion(const dsRenderer* renderer,
-	const dsShaderVersion* versions, uint32_t versionCount)
+const dsShaderVersion* dsRenderer_chooseShaderVersion(
+	const dsRenderer* renderer, const dsShaderVersion* versions, uint32_t versionCount)
 {
 	if (!renderer || !versions || versionCount == 0)
 		return NULL;
@@ -597,9 +597,12 @@ bool dsRenderer_endFrame(dsRenderer* renderer)
 	return true;
 }
 
-bool dsRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
+bool dsRenderer_setSurfaceFormat(
+	dsRenderer* renderer, const dsRenderSurfaceHint* formatHint, uint32_t samples)
 {
-	if (!renderer || !renderer->setSurfaceSamplesFunc)
+	if (!renderer || !renderer->setSurfaceFormatFunc ||
+		(formatHint &&
+			dsRenderSurfaceHint_colorFormat(formatHint, false, false) == dsGfxFormat_Unknown))
 	{
 		errno = EINVAL;
 		return false;
@@ -619,7 +622,7 @@ bool dsRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 		return false;
 	}
 
-	return renderer->setSurfaceSamplesFunc(renderer, dsMax(samples, 1U));
+	return renderer->setSurfaceFormatFunc(renderer, formatHint, dsMax(samples, 1U));
 }
 
 bool dsRenderer_setDefaultSamples(dsRenderer* renderer, uint32_t samples)
@@ -649,7 +652,7 @@ bool dsRenderer_setDefaultSamples(dsRenderer* renderer, uint32_t samples)
 
 bool dsRenderer_setSamples(dsRenderer* renderer, uint32_t samples)
 {
-	if (!renderer || !renderer->setSurfaceSamplesFunc || !renderer->setDefaultSamplesFunc)
+	if (!renderer || !renderer->setSurfaceFormatFunc || !renderer->setDefaultSamplesFunc)
 	{
 		errno = EINVAL;
 		return false;
@@ -670,7 +673,7 @@ bool dsRenderer_setSamples(dsRenderer* renderer, uint32_t samples)
 	}
 
 	samples = dsMax(samples, 1U);
-	bool success = renderer->setSurfaceSamplesFunc(renderer, samples);
+	bool success = renderer->setSurfaceFormatFunc(renderer, NULL, samples);
 	if (!success)
 		return false;
 	return renderer->setDefaultSamplesFunc(renderer, dsMax(samples, 1U));

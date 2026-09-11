@@ -88,6 +88,48 @@ DS_RENDER_EXPORT bool dsRenderSurface_rotateScissor(dsAlignedBox2f* result,
 	dsRenderSurfaceRotation rotation);
 
 /**
+ * @brief Checks wiether a render surface will be supported with the current default format.
+ *
+ * This will do a best-effort check, but isn't necessarily a 100% guarantee render surface creation
+ * will succeed if this returns true.
+ *
+ * @param renderer The renderer the render surface would be created with.
+ * @param displayHandle The handle to the display the surface is associated with.
+ * @param osHandle The OS handle, such as window handle. This may be NULL to check if the current
+ *     default format will work with any surface, but not all implementations can conclusively
+ *     determine this without a surface to test.
+ * @param type The type of the render surface.
+ * @return 1 if the surface is supported, 0 if the surface is unsupported, or -1 if it can't be
+ *     determined. The most commmon case where -1 would be returned is if a NULL osHandle is
+ *     provided and the implementation can't conclusively whether the format can be used.
+ */
+DS_RENDER_EXPORT int dsRenderSurface_isSupported(
+	const dsRenderer* renderer, void* displayHandle, void* osHandle, dsRenderSurfaceType type);
+
+/**
+ * @brief Checks wiether a render surface will be supported with the a given format format.
+ *
+ * This is intended to check for support for a specific surface format before setting the surface
+ * format on dsRenderer. For example, it can be used to check if HDR is supported before enabling
+ * it. This will do a best-effort check, but isn't necessarily a 100% guarantee render surface
+ * creation will succeed if this returns true.
+ *
+ * @param renderer The renderer the render surface would be created with.
+ * @param displayHandle The handle to the display the surface is associated with.
+ * @param osHandle The OS handle, such as window handle. This may be NULL to indicate any surface,
+ *     but this is not supported by all implementations.
+ * @param type The type of the render surface.
+ * @param formatHint The hint for the render surface format.
+ * @param samples The number of anti-alias samples.
+ * @return 1 if the surface is supported, 0 if the surface is unsupported, or -1 if it can't be
+ *     determined. The most commmon case where -1 would be returned is if a NULL osHandle is
+ *     provided and the implementation can't conclusively whether the format can be used.
+ */
+DS_RENDER_EXPORT int dsRenderSurface_supportsFormat(const dsRenderer* renderer, void* displayHandle,
+	void* osHandle, dsRenderSurfaceType type, const dsRenderSurfaceHint* formatHint,
+	uint32_t samples);
+
+/**
  * @brief Creates a render surface.
  * @remark errno will be set on failure.
  * @param renderer The renderer to use the render surface with.

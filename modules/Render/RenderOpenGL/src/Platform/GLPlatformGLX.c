@@ -49,6 +49,7 @@ typedef int (*XFreeColormapFunction)(Display*, Colormap);
 typedef Window (*XCreateWindowFunction)(Display*, Window, int, int, unsigned int, unsigned int,
 	unsigned int, int, unsigned int, Visual*, unsigned long, XSetWindowAttributes*);
 typedef int (*XDestroyWindowFunction)(Display*, Window);
+typedef Status (*XGetWindowAttributesFunction)(Display*, Window, XWindowAttributes*);
 typedef XErrorHandler (*XSetErrorHandlerFunction)(XErrorHandler);
 
 static void addOption(GLint* attr, unsigned int* size, GLint option)
@@ -89,6 +90,7 @@ static XCreateColormapFunction XCreateColormapFunc;
 static XFreeColormapFunction XFreeColormapFunc;
 static XCreateWindowFunction XCreateWindowFunc;
 static XDestroyWindowFunction XDestroyWindowFunc;
+static XGetWindowAttributesFunction XGetWindowAttributesFunc;
 static XSetErrorHandlerFunction XSetErrorHandlerFunc;
 
 static GLint glVersions[][2] =
@@ -104,6 +106,92 @@ static int emptyErrorHandler(Display* display, XErrorEvent* event)
 	DS_UNUSED(event);
 	gX11Error = true;
 	return 0;
+}
+
+static bool chooseConfig(XVisualInfo** outVisualInfo, GLXFBConfig* outFBConfig,
+	void* display, const dsRendererOptions* options, GLContextType contextType)
+{
+	int screen = DefaultScreen(display);
+	const char* extensions = glXQueryExtensionsString(display, screen);
+	DS_ASSERT(extensions);
+	int major, minor;
+	glXQueryVersion(display, &major, &minor);
+
+	unsigned int optionCount = 0;
+	GLint attr[MAX_OPTION_SIZE];
+	if (ANYGL_SUPPORTED(glXChooseFBConfig))
+	{
+		addOption2(attr, &optionCount, GLX_RENDER_TYPE, GLX_RGBA_BIT);
+		addOption2(attr, &optionCount, GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT);
+	}
+	else
+		addOption(attr, &optionCount, GLX_RGBA);
+	if (contextType == GLContextType_Render)
+	{
+		addOption2(attr, &optionCount, GLX_RED_SIZE, options->renderSurfaceHint.redBits);
+		addOption2(attr, &optionCount, GLX_GREEN_SIZE, options->renderSurfaceHint.greenBits);
+		addOption2(attr, &optionCount, GLX_BLUE_SIZE, options->renderSurfaceHint.blueBits);
+		addOption2(attr, &optionCount, GLX_ALPHA_SIZE, options->renderSurfaceHint.alphaBits);
+		addOption2(attr, &optionCount, GLX_DEPTH_SIZE, options->renderSurfaceHint.depthBits);
+		addOption2(attr, &optionCount, GLX_STENCIL_SIZE, options->renderSurfaceHint.stencilBits);
+
+		if (options->renderSurfaceHint.colorSpace == dsRenderColorSpace_NonLinearSRGBConverting &&
+			hasExtension(extensions, "GLX_EXT_framebuffer_sRGB"))
+		{
+			addOption2(attr, &optionCount, GLX_FRAMEBUFFER_SRGB_CAPABLE_EXT, true);
+		}
+
+		if (options->surfaceSamples > 1 && ((major > 1 || (major == 1 && minor >= 4)) ||
+			hasExtension(extensions, "GLX_ARB_multisample")))
+		{
+			addOption2(attr, &optionCount, GLX_SAMPLE_BUFFERS, 1);
+			addOption2(attr, &optionCount, GLX_SAMPLES, options->surfaceSamples);
+		}
+
+		if (!options->singleBuffer)
+		{
+			if (ANYGL_SUPPORTED(glXChooseFBConfig))
+				addOption2(attr, &optionCount, GLX_DOUBLEBUFFER, true);
+			else
+				addOption(attr, &optionCount, GLX_DOUBLEBUFFER);
+		}
+
+		if (options->stereoscopic)
+		{
+			if (ANYGL_SUPPORTED(glXChooseFBConfig))
+				addOption2(attr, &optionCount, GLX_STEREO, true);
+			else
+				addOption(attr, &optionCount, GLX_STEREO);
+		}
+	}
+	else
+	{
+		addOption2(attr, &optionCount, GLX_RED_SIZE, 0);
+		addOption2(attr, &optionCount, GLX_GREEN_SIZE, 0);
+		addOption2(attr, &optionCount, GLX_BLUE_SIZE, 0);
+		addOption2(attr, &optionCount, GLX_ALPHA_SIZE, 0);
+		addOption2(attr, &optionCount, GLX_DEPTH_SIZE, 0);
+		addOption2(attr, &optionCount, GLX_STENCIL_SIZE, 0);
+	}
+
+	addOption(attr, &optionCount, None);
+
+	*outFBConfig = NULL;
+	*outVisualInfo = NULL;
+	if (ANYGL_SUPPORTED(glXChooseFBConfig))
+	{
+		int configCount = 0;
+		GLXFBConfig* configs = glXChooseFBConfig(display, screen, attr, &configCount);
+		if (configs && configCount > 0)
+		{
+			*outFBConfig = configs[0];
+			*outVisualInfo = glXGetVisualFromFBConfig(display, *outFBConfig);
+			XFreeFunc(configs);
+		}
+	}
+	else
+		*outVisualInfo = glXChooseVisual(display, screen, attr);
+	return *outVisualInfo != NULL;
 }
 
 bool dsGLXInitialize(void)
@@ -131,6 +219,8 @@ bool dsGLXInitialize(void)
 	XFreeColormapFunc = (XFreeColormapFunction)dlsym(xLibrary, "XFreeColormap");
 	XCreateWindowFunc = (XCreateWindowFunction)dlsym(xLibrary, "XCreateWindow");
 	XDestroyWindowFunc = (XDestroyWindowFunction)dlsym(xLibrary, "XDestroyWindow");
+	XGetWindowAttributesFunc = (XGetWindowAttributesFunction)dlsym(
+		xLibrary, "XGetWindowAttributes");
 	XSetErrorHandlerFunc = (XSetErrorHandlerFunction)dlsym(xLibrary, "XSetErrorHandler");
 	return true;
 }
@@ -184,82 +274,9 @@ void* dsCreateGLXConfig(dsAllocator* allocator, void* display, const dsRendererO
 		return NULL;
 	}
 
-	int screen = DefaultScreen(display);
-	const char* extensions = glXQueryExtensionsString(display, screen);
-	DS_ASSERT(extensions);
-
-	unsigned int optionCount = 0;
-	GLint attr[MAX_OPTION_SIZE];
-	if (ANYGL_SUPPORTED(glXChooseFBConfig))
-	{
-		addOption2(attr, &optionCount, GLX_RENDER_TYPE, GLX_RGBA_BIT);
-		addOption2(attr, &optionCount, GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT);
-	}
-	else
-		addOption(attr, &optionCount, GLX_RGBA);
-	addOption2(attr, &optionCount, GLX_RED_SIZE, options->renderSurfaceHint.redBits);
-	addOption2(attr, &optionCount, GLX_GREEN_SIZE, options->renderSurfaceHint.greenBits);
-	addOption2(attr, &optionCount, GLX_BLUE_SIZE, options->renderSurfaceHint.blueBits);
-	addOption2(attr, &optionCount, GLX_ALPHA_SIZE, options->renderSurfaceHint.alphaBits);
-	addOption2(attr, &optionCount, GLX_DEPTH_SIZE, options->renderSurfaceHint.depthBits);
-	addOption2(attr, &optionCount, GLX_STENCIL_SIZE, options->renderSurfaceHint.stencilBits);
-	if (!options->singleBuffer)
-	{
-		if (ANYGL_SUPPORTED(glXChooseFBConfig))
-			addOption2(attr, &optionCount, GLX_DOUBLEBUFFER, true);
-		else
-			addOption(attr, &optionCount, GLX_DOUBLEBUFFER);
-	}
-	if (options->stereoscopic)
-	{
-		if (ANYGL_SUPPORTED(glXChooseFBConfig))
-			addOption2(attr, &optionCount, GLX_STEREO, true);
-		else
-			addOption(attr, &optionCount, GLX_STEREO);
-	}
-
-	int major, minor;
-	glXQueryVersion(display, &major, &minor);
-	if (contextType == GLContextType_Render && ((major > 1 || (major == 1 && minor >= 4)) ||
-		hasExtension(extensions, "GLX_ARB_multisample")))
-	{
-		if (options->surfaceSamples > 1)
-		{
-			addOption2(attr, &optionCount, GLX_SAMPLE_BUFFERS, 1);
-			addOption2(attr, &optionCount, GLX_SAMPLES, options->surfaceSamples);
-		}
-		else
-		{
-			addOption2(attr, &optionCount, GLX_SAMPLE_BUFFERS, 0);
-			addOption2(attr, &optionCount, GLX_SAMPLES, 0);
-		}
-	}
-
-	if (options->renderSurfaceHint.colorSpace == dsRenderColorSpace_NonLinearSRGBConverting &&
-		hasExtension(extensions, "GLX_EXT_framebuffer_sRGB"))
-	{
-		addOption2(attr, &optionCount, GLX_FRAMEBUFFER_SRGB_CAPABLE_EXT, true);
-	}
-
-	addOption(attr, &optionCount, None);
-
-	XVisualInfo* visualInfo = NULL;
-	GLXFBConfig fbConfig = NULL;
-	if (ANYGL_SUPPORTED(glXChooseFBConfig))
-	{
-		int configCount = 0;
-		GLXFBConfig* configs = glXChooseFBConfig(display, screen, attr, &configCount);
-		if (configs && configCount > 0)
-		{
-			fbConfig = configs[0];
-			visualInfo = glXGetVisualFromFBConfig(display, fbConfig);
-			XFreeFunc(configs);
-		}
-	}
-	else
-		visualInfo = glXChooseVisual(display, screen, attr);
-
-	if (!visualInfo)
+	XVisualInfo* visualInfo;
+	GLXFBConfig fbConfig;
+	if (!chooseConfig(&visualInfo, &fbConfig, display, options, contextType))
 	{
 		errno = EPERM;
 		return NULL;
@@ -425,6 +442,50 @@ void dsDestroyDummyGLXSurface(void* display, void* surface, void* osSurface)
 		XDestroyWindowFunc(display, (Window)surface);
 }
 
+
+int dsIsGLXSurfaceValid(
+	void* display, dsRenderSurfaceType surfaceType, void* handle, const dsRendererOptions* options)
+{
+	if (!display)
+		return -1;
+
+	XVisualInfo* visualInfo;
+	GLXFBConfig fbConfig;
+	if (!chooseConfig(&visualInfo, &fbConfig, display, options, GLContextType_Render))
+		return false;
+
+	if (!handle)
+	{
+		XFreeFunc(visualInfo);
+		return true;
+	}
+
+	bool valid = false;
+	switch (surfaceType)
+	{
+		case dsRenderSurfaceType_Direct:
+		{
+			uint32_t visualID;
+			glXQueryDrawable(display, (GLXDrawable)handle, GLX_VISUAL_ID, &visualID);
+			valid = visualID == visualInfo->visualid;
+			break;
+		}
+		case dsRenderSurfaceType_Window:
+		{
+			XWindowAttributes attributes;
+			if (XGetWindowAttributesFunc(display, (Window)handle, &attributes))
+				valid = attributes.visual->visualid == visualInfo->visualid;
+			break;
+		}
+		case dsRenderSurfaceType_Pixmap:
+			valid = true;
+			break;
+	}
+
+	XFreeFunc(visualInfo);
+	return valid;
+}
+
 void* dsCreateGLXSurface(dsAllocator* allocator, void* display, void* config,
 	dsRenderSurfaceType surfaceType, void* handle)
 {
@@ -433,9 +494,12 @@ void* dsCreateGLXSurface(dsAllocator* allocator, void* display, void* config,
 	if (!display || !configPtr || !handle)
 		return NULL;
 
-	GLXDrawable drawable;
+	GLXDrawable drawable = 0;
 	switch (surfaceType)
 	{
+		case dsRenderSurfaceType_Direct:
+			drawable = (GLXDrawable)handle;
+			break;
 		case dsRenderSurfaceType_Window:
 			if (configPtr->config)
 			{
@@ -452,9 +516,6 @@ void* dsCreateGLXSurface(dsAllocator* allocator, void* display, void* config,
 				drawable = glXCreatePixmap(display, configPtr->config, (Pixmap)handle, NULL);
 				break;
 			}
-			drawable = (GLXDrawable)handle;
-			break;
-		default:
 			drawable = (GLXDrawable)handle;
 			break;
 	}

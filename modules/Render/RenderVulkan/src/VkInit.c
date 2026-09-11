@@ -145,6 +145,7 @@ typedef struct InstanceExtensions
 	bool oldDebugReport;
 	bool deviceInfo;
 	bool colorSpace;
+	bool surfacelessQuery;
 	bool xlib;
 	bool wayland;
 	bool win32;
@@ -404,6 +405,8 @@ static bool queryInstanceExtensions(dsVkInstance* instance)
 			hasExternalMemoryCapabilitiesExtensionName = true;
 		else if (strcmp(extensionName, VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME) == 0)
 			instanceExtensions.colorSpace = true;
+		else if (strcmp(extensionName, VK_GOOGLE_SURFACELESS_QUERY_EXTENSION_NAME) == 0)
+			instanceExtensions.surfacelessQuery = true;
 		else if (strcmp(extensionName, xlibDisplayExtensionName) == 0)
 			instanceExtensions.xlib = true;
 		else if (strcmp(extensionName, waylandDisplayExtensionName) == 0)
@@ -457,6 +460,11 @@ static void addInstanceExtensions(const char** extensionNames, uint32_t* extensi
 	{
 		DS_ADD_EXTENSION(
 			extensionNames, *extensionCount, VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME);
+	}
+	if (instanceExtensions.surfacelessQuery)
+	{
+		DS_ADD_EXTENSION(
+			extensionNames, *extensionCount, VK_GOOGLE_SURFACELESS_QUERY_EXTENSION_NAME);
 	}
 	if (instanceExtensions.xlib)
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, xlibDisplayExtensionName);
@@ -802,6 +810,7 @@ bool dsCreateVkInstance(
 
 	addInstanceExtensions(enabledExtensions, &enabledExtensionCount, options, instanceVersion);
 	instance->hasColorSpace = instanceExtensions.colorSpace;
+	instance->hasSurfacelessQuery = instanceExtensions.surfacelessQuery;
 
 	// Request the highest version we know of.
 	uint32_t version = force10 ? VK_API_VERSION_1_0 : DS_HIGHEST_KNOWN_VULKAN_VERSOIN;

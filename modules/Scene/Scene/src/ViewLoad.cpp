@@ -187,7 +187,8 @@ dsView* dsView_loadImpl(dsAllocator* allocator, const char* name, const dsScene*
 		surface->usage = fbSurface->usage();
 		surface->memoryHints = static_cast<dsGfxMemory>(fbSurface->memoryHints());
 		surface->createInfo.format = DeepSeaScene::convert(
-			dsScene_getRenderer(scene), fbSurface->format(), fbSurface->decoration());
+			dsScene_getRenderer(scene)->resourceManager, fbSurface->format(),
+			fbSurface->decoration());
 		surface->createInfo.dimension = DeepSeaScene::convert(fbSurface->dimension());
 		surface->createInfo.width = fbSurface->width();
 		surface->widthRatio = fbSurface->widthRatio();

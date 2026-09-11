@@ -1135,14 +1135,15 @@ bool dsMTLHardwareCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 		for (uint32_t i = 0; i < DS_MAX_ATTACHMENTS; ++i)
 		{
 			colorFormats[i] = MTLPixelFormatInvalid;
+			const dsAttachmentRef* attachment = subpass->colorAttachments + i;
 			if (i >= subpass->colorAttachmentCount ||
-				subpass->colorAttachments[i].attachmentIndex == DS_NO_ATTACHMENT)
+				attachment->attachmentIndex == DS_NO_ATTACHMENT)
 			{
 				continue;
 			}
 
-			dsGfxFormat format =
-				renderPass->attachments[subpass->colorAttachments[i].attachmentIndex].format;
+			dsGfxFormat format = dsGfxFormat_resolve(
+				renderer, renderPass->attachments[attachment->attachmentIndex].format);
 			colorFormats[i] = dsMTLResourceManager_getPixelFormat(resourceManager, format);
 		}
 		MTLPixelFormat depthFormat = MTLPixelFormatInvalid;
@@ -1151,8 +1152,8 @@ bool dsMTLHardwareCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 		bool clearStencil = false;
 		if (subpass->depthStencilAttachment.attachmentIndex != DS_NO_ATTACHMENT)
 		{
-			dsGfxFormat format =
-				renderPass->attachments[subpass->depthStencilAttachment.attachmentIndex].format;
+			dsGfxFormat format = dsGfxFormat_resolve(renderer,
+				renderPass->attachments[subpass->depthStencilAttachment.attachmentIndex].format);
 			depthFormat = dsGetMTLDepthFormat(resourceManager, format);
 			stencilFormat = dsGetMTLDepthFormat(resourceManager, format);
 		}
@@ -1189,7 +1190,8 @@ bool dsMTLHardwareCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 				attachmentIndex =
 					subpass->colorAttachments[clearAttachment->colorAttachment].attachmentIndex;
 
-				dsGfxFormat format = renderPass->attachments[attachmentIndex].format;
+				dsGfxFormat format = dsGfxFormat_resolve(
+					renderer, renderPass->attachments[attachmentIndex].format);
 				colorMask |= 1 << i;
 				switch (format & dsGfxFormat_DecoratorMask)
 				{

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -261,8 +261,8 @@ static dsSceneRenderPass* createRenderPass(dsAllocator* allocator, dsAllocator* 
 
 			dsAttachmentInfo* attachment = attachments + i;
 			attachment->usage = static_cast<dsAttachmentUsage>(fbAttachment->usage());
-			attachment->format = DeepSeaScene::convert(renderer, fbAttachment->format(),
-				fbAttachment->decoration());
+			attachment->format = DeepSeaScene::convert(
+				renderer->resourceManager, fbAttachment->format(), fbAttachment->decoration());
 			attachment->samples = fbAttachment->samples();
 
 			if (auto fbClearColorFloat = fbAttachment->clearValue_as_ClearColorFloat())

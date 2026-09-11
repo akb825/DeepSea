@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,9 @@ extern "C"
  * @param usage How the renderbuffer will be used. This should be a combination of
  *     dsRenderbufferUsage flags.
  * @param format The format of the renderbuffer. This format must be compatible with offscreens.
+ *     This may be dsGfxFormat_SurfaceColor or dsGfxFormat_SurfaceDepthStencil to use the
+ *     corresponding default set on the renderer. The renderbuffer will need to be re-created by the
+ *     caller if the default changes.
  * @param width The width of the renderbuffer.
  * @param height The height of the renderbuffer.
  * @param samples The number of samples to use for multisampling. This may be set to

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -166,8 +166,8 @@ static_assert(
 	DS_ARRAY_SIZE(formatDecorationMap) == static_cast<uint32_t>(FormatDecoration::MAX) + 1,
 	"Invalid format decoration map size.");
 
-dsGfxFormat convert(const dsRenderer* renderer,
-	TextureFormat format, FormatDecoration decoration)
+dsGfxFormat convert(
+	const dsResourceManager* resourceManager, TextureFormat format, FormatDecoration decoration)
 {
 	auto formatIndex = static_cast<uint32_t>(format);
 	auto decorationIndex = static_cast<uint32_t>(decoration);
@@ -178,16 +178,16 @@ dsGfxFormat convert(const dsRenderer* renderer,
 	}
 
 	if (format == TextureFormat::SurfaceColor)
-		return renderer ? renderer->surfaceColorFormat : dsGfxFormat_Unknown;
+		return dsGfxFormat_SurfaceColor;
 	else if (format == TextureFormat::SurfaceDepthStencil)
-		return renderer ? renderer->surfaceDepthStencilFormat : dsGfxFormat_Unknown;
+		return dsGfxFormat_SurfaceDepthStencil;
 
-	dsGfxFormat gfxFormat = dsGfxFormat_decorate(textureFormatMap[formatIndex],
-		formatDecorationMap[decorationIndex]);
+	dsGfxFormat gfxFormat = dsGfxFormat_decorate(
+		textureFormatMap[formatIndex], formatDecorationMap[decorationIndex]);
 
 	// Some platforms support only 24-bit or 32-bit float depth. Treat them as interchangible if
 	// the specific one that's requested isn't supported.
-	if (!dsGfxFormat_renderTargetSupported(renderer->resourceManager, gfxFormat))
+	if (!dsGfxFormat_renderTargetSupported(resourceManager, gfxFormat))
 	{
 		switch (gfxFormat)
 		{

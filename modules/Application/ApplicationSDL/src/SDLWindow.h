@@ -27,6 +27,8 @@ typedef struct dsSDLWindow
 	const char* surfaceName;
 	SDL_Window* sdlWindow;
 	uint32_t samples;
+	dsGfxFormat colorFormat;
+	dsGfxFormat depthStencilFormat;
 	uint32_t curSurfaceWidth;
 	uint32_t curSurfaceHeight;
 	dsRenderSurfaceRotation curSurfaceRotation;

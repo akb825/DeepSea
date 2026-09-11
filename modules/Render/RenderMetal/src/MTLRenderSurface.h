@@ -19,6 +19,9 @@
 #include <DeepSea/Core/Config.h>
 #include "MTLTypes.h"
 
+int dsMTLRenderSurface_supportsFormat(const dsRenderer* renderer, void* displayHandle,
+	void* osHandle, dsRenderSurfaceType type, const dsRenderSurfaceHint* formatHint,
+	uint32_t samples);
 dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
 	const char* name, void* displayHandle, void* osHandle, dsRenderSurfaceType type,
 	dsRenderSurfaceUsage usage, unsigned int widthHint, unsigned int heightHint);

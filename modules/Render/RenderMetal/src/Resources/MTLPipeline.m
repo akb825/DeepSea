@@ -26,6 +26,8 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 
+#include <DeepSea/Render/Resources/GfxFormat.h>
+
 #include <string.h>
 
 #import <Metal/MTLRenderPipeline.h>
@@ -232,7 +234,8 @@ static bool setupVertexState(dsShader* shader, MTLRenderPipelineDescriptor* desc
 static void setupColorAttachments(dsShader* shader, MTLRenderPipelineDescriptor* descriptor,
 	const dsRenderPass* renderPass, uint32_t subpass)
 {
-	dsResourceManager* resourceManager = shader->resourceManager;
+	const dsResourceManager* resourceManager = shader->resourceManager;
+	const dsRenderer* renderer = resourceManager->renderer;
 	dsMTLShader* mtlShader = (dsMTLShader*)shader;
 	const mslBlendState* blendState = &mtlShader->renderState.blendState;
 	const dsRenderSubpassInfo* subpassInfo = renderPass->subpasses + subpass;
@@ -245,10 +248,10 @@ static void setupColorAttachments(dsShader* shader, MTLRenderPipelineDescriptor*
 		DS_ASSERT(i < MSL_MAX_ATTACHMENTS);
 		const mslBlendAttachmentState* attachmentState = blendState->blendAttachments + i;
 		const dsAttachmentInfo* attachment = renderPass->attachments + attachmentIndex;
+		dsGfxFormat format = dsGfxFormat_resolve(renderer, attachment->format);
 		MTLRenderPipelineColorAttachmentDescriptor* colorDescriptor =
 			descriptor.colorAttachments[i];
-		colorDescriptor.pixelFormat = dsMTLResourceManager_getPixelFormat(
-			resourceManager, attachment->format);
+		colorDescriptor.pixelFormat = dsMTLResourceManager_getPixelFormat(resourceManager, format);
 		colorDescriptor.writeMask = convertColorWriteMask(attachmentState->colorWriteMask);
 		colorDescriptor.blendingEnabled = attachmentState->blendEnable == mslBool_True;
 		colorDescriptor.alphaBlendOperation = convertBlendOp(attachmentState->alphaBlendOp);
@@ -274,10 +277,9 @@ static void setupDepthStencilAttachment(dsShader* shader, MTLRenderPipelineDescr
 		return;
 
 	const dsAttachmentInfo* attachment = renderPass->attachments + depthStencilAttachment;
-	descriptor.depthAttachmentPixelFormat =
-		dsGetMTLDepthFormat(resourceManager, attachment->format);
-	descriptor.stencilAttachmentPixelFormat =
-		dsGetMTLStencilFormat(resourceManager, attachment->format);
+	dsGfxFormat format = dsGfxFormat_resolve(resourceManager->renderer, attachment->format);
+	descriptor.depthAttachmentPixelFormat = dsGetMTLDepthFormat(resourceManager, format);
+	descriptor.stencilAttachmentPixelFormat = dsGetMTLStencilFormat(resourceManager, format);
 }
 
 static void setupRasterState(dsShader* shader, MTLRenderPipelineDescriptor* descriptor,

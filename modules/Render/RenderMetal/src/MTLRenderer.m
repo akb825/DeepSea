@@ -562,8 +562,25 @@ bool dsMTLRenderer_endFrame(dsRenderer* renderer)
 	return true;
 }
 
-bool dsMTLRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
+bool dsMTLRenderer_setSurfaceFormat(
+	dsRenderer* renderer, const dsRenderSurfaceHint* formatHint, uint32_t samples)
 {
+	if (formatHint)
+	{
+		dsGfxFormat colorFormat = dsMTLRenderer_surfaceColorFormat(formatHint);
+		dsRenderColorSpace colorSpace = formatHint->colorSpace;
+		dsGfxFormat depthFormat = dsMTLRenderer_surfaceDepthStencilFormat(renderer, formatHint);
+		if (!dsMTLRenderer_canUseRenderSurfaceFormat(
+				renderer, colorFormat, colorSpace, depthFormat, true))
+		{
+			return false;
+		}
+
+		renderer->surfaceColorFormat = colorFormat;
+		renderer->surfaceColorSpace = colorSpace;
+		renderer->surfaceDepthStencilFormat = depthFormat;
+	}
+
 	renderer->surfaceSamples = samples;
 	return true;
 }
@@ -992,59 +1009,14 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		// No native input attachment support, so same limit as max samplers per shader.
 		baseRenderer->maxInputAttachments = baseRenderer->resourceManager->maxSamplers;
 
-		dsGfxFormat colorFormat = dsRenderSurfaceHint_colorFormat(
-			&options->renderSurfaceHint, true, true);
-		if (!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, colorFormat))
-		{
-			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Can't draw to surface color format.");
-			dsMTLRenderer_destroy(baseRenderer);
-			errno = EPERM;
-			return NULL;
-		}
-
+		dsGfxFormat colorFormat = dsMTLRenderer_surfaceColorFormat(&options->renderSurfaceHint);
 		dsRenderColorSpace colorSpace = options->renderSurfaceHint.colorSpace;
-		uint32_t supportedColorSpaces = getSupportedColorSpaces();
-		if (!(supportedColorSpaces & (1 << colorSpace)))
+		dsGfxFormat depthFormat = dsMTLRenderer_surfaceDepthStencilFormat(
+			baseRenderer, &options->renderSurfaceHint);
+		if (!dsMTLRenderer_canUseRenderSurfaceFormat(
+				baseRenderer, colorFormat, colorSpace, depthFormat, true))
 		{
-			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Can't draw to surface color space.");
 			dsMTLRenderer_destroy(baseRenderer);
-			errno = EPERM;
-			return NULL;
-		}
-
-		dsGfxFormat depthFormat = dsRenderSurfaceHint_depthStencilFormat(
-			&options->renderSurfaceHint);
-
-		// 16 and 24-bit depth not always supported.
-		// First try 16 bit to fall back to 24 bit. Then try 24 bit to fall back to 32 bit.
-		if (depthFormat == dsGfxFormat_D16S8 &&
-			!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, depthFormat))
-		{
-			depthFormat = dsGfxFormat_D24S8;
-		}
-		else if (depthFormat == dsGfxFormat_D16 &&
-			!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, depthFormat))
-		{
-			depthFormat = dsGfxFormat_X8D24;
-		}
-
-		if (depthFormat == dsGfxFormat_D24S8 &&
-			!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, depthFormat))
-		{
-			depthFormat = dsGfxFormat_D32S8_Float;
-		}
-		else if (depthFormat == dsGfxFormat_X8D24 &&
-			!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, depthFormat))
-		{
-			depthFormat = dsGfxFormat_D32_Float;
-		}
-
-		if (depthFormat != dsGfxFormat_Unknown &&
-			!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, depthFormat))
-		{
-			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Can't draw to surface depth format.");
-			dsMTLRenderer_destroy(baseRenderer);
-			errno = EPERM;
 			return NULL;
 		}
 
@@ -1055,6 +1027,7 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		baseRenderer->destroyFunc = &dsMTLRenderer_destroy;
 
 		// Render surfaces
+		baseRenderer->renderSurfaceSupportsFormatFunc = &dsMTLRenderSurface_supportsFormat;
 		baseRenderer->createRenderSurfaceFunc = &dsMTLRenderSurface_create;
 		baseRenderer->destroyRenderSurfaceFunc = &dsMTLRenderSurface_destroy;
 		baseRenderer->updateRenderSurfaceFunc = &dsMTLRenderSurface_update;
@@ -1084,7 +1057,7 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		// Rendering functions.
 		baseRenderer->beginFrameFunc = &dsMTLRenderer_beginFrame;
 		baseRenderer->endFrameFunc = &dsMTLRenderer_endFrame;
-		baseRenderer->setSurfaceSamplesFunc = &dsMTLRenderer_setSurfaceSamples;
+		baseRenderer->setSurfaceFormatFunc = &dsMTLRenderer_setSurfaceFormat;
 		baseRenderer->setDefaultSamplesFunc = &dsMTLRenderer_setDefaultSamples;
 		baseRenderer->setVSyncFunc = &dsMTLRenderer_setVSync;
 		baseRenderer->setDefaultAnisotropyFunc = &dsMTLRenderer_setDefaultAnisotropy;
@@ -1106,6 +1079,81 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 
 		return baseRenderer;
 	}
+}
+
+dsGfxFormat dsMTLRenderer_surfaceColorFormat(const dsRenderSurfaceHint* hint)
+{
+	return dsRenderSurfaceHint_colorFormat(hint, true, true);
+}
+
+dsGfxFormat dsMTLRenderer_surfaceDepthStencilFormat(
+	const dsRenderer* renderer, const dsRenderSurfaceHint* hint)
+{
+	dsGfxFormat depthFormat = dsRenderSurfaceHint_depthStencilFormat(hint);
+
+	// 16 and 24-bit depth not always supported.
+	// First try 16 bit to fall back to 24 bit. Then try 24 bit to fall back to 32 bit.
+	if (depthFormat == dsGfxFormat_D16S8 &&
+		!dsGfxFormat_renderTargetSupported(renderer->resourceManager, depthFormat))
+	{
+		depthFormat = dsGfxFormat_D24S8;
+	}
+	else if (depthFormat == dsGfxFormat_D16 &&
+		!dsGfxFormat_renderTargetSupported(renderer->resourceManager, depthFormat))
+	{
+		depthFormat = dsGfxFormat_X8D24;
+	}
+
+	if (depthFormat == dsGfxFormat_D24S8 &&
+		!dsGfxFormat_renderTargetSupported(renderer->resourceManager, depthFormat))
+	{
+		depthFormat = dsGfxFormat_D32S8_Float;
+	}
+	else if (depthFormat == dsGfxFormat_X8D24 &&
+		!dsGfxFormat_renderTargetSupported(renderer->resourceManager, depthFormat))
+	{
+		depthFormat = dsGfxFormat_D32_Float;
+	}
+
+	return depthFormat;
+}
+
+bool dsMTLRenderer_canUseRenderSurfaceFormat(const dsRenderer* renderer, dsGfxFormat colorFormat,
+	dsRenderColorSpace colorSpace, dsGfxFormat depthFormat, bool reportErrors)
+{
+	if (!dsGfxFormat_renderTargetSupported(renderer->resourceManager, colorFormat))
+	{
+		if (reportErrors)
+		{
+			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Can't draw to surface color format.");
+			errno = EPERM;
+		}
+		return false;
+	}
+
+	uint32_t supportedColorSpaces = getSupportedColorSpaces();
+	if (!(supportedColorSpaces & (1 << colorSpace)))
+	{
+		if (reportErrors)
+		{
+			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Can't draw to surface color space.");
+			errno = EPERM;
+		}
+		return false;
+	}
+
+	if (depthFormat != dsGfxFormat_Unknown &&
+		!dsGfxFormat_renderTargetSupported(renderer->resourceManager, depthFormat))
+	{
+		if (reportErrors)
+		{
+			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Can't draw to surface depth format.");
+			errno = EPERM;
+		}
+		return false;
+	}
+
+	return true;
 }
 
 uint64_t dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extraCommands)
@@ -1173,8 +1221,8 @@ uint64_t dsMTLRenderer_getFinishedSubmitCount(const dsRenderer* renderer)
 	return finishedSubmitCount;
 }
 
-dsGfxFenceResult dsMTLRenderer_waitForSubmit(const dsRenderer* renderer, uint64_t submitCount,
-	unsigned int milliseconds)
+dsGfxFenceResult dsMTLRenderer_waitForSubmit(
+	const dsRenderer* renderer, uint64_t submitCount, unsigned int milliseconds)
 {
 	const dsMTLRenderer* mtlRenderer = (const dsMTLRenderer*)renderer;
 	if (dsMTLRenderer_getFinishedSubmitCount(renderer) >= submitCount)

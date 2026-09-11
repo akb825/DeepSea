@@ -59,29 +59,6 @@ static bool hasFormat(const VkSurfaceFormatKHR* surfaceFormats, uint32_t formatC
 	return false;
 }
 
-static bool supportsFormat(
-	dsVkDevice* device, VkSurfaceKHR surface, VkFormat format, VkColorSpaceKHR colorSpace)
-{
-	dsVkInstance* instance = &device->instance;
-
-	uint32_t formatCount = 0;
-	VkResult result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceFormatsKHR)(
-		device->physicalDevice, surface, &formatCount, NULL);
-	if (!DS_HANDLE_VK_RESULT(result, "Couldn't get surface formats"))
-		return false;
-
-	// No practical way for this to be millions of formats, and no way to maliciously force it to be
-	// too large without replacing Vulkan library.
-	VkSurfaceFormatKHR* surfaceFormats = DS_ALLOCATE_STACK_OBJECT_ARRAY(
-		VkSurfaceFormatKHR, formatCount);
-	result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceFormatsKHR)(
-		device->physicalDevice, surface, &formatCount, surfaceFormats);
-	if (!DS_HANDLE_VK_RESULT(result, "Couldn't get surface formats"))
-		return false;
-
-	return hasFormat(surfaceFormats, formatCount, format, colorSpace);
-}
-
 static bool hasPresentMode(
 	const VkPresentModeKHR* presentModes, uint32_t presentModeCount, VkPresentModeKHR mode)
 {
@@ -315,6 +292,31 @@ dsRenderSurfaceRotation dsVkRenderSurfaceData_getRotation(VkSurfaceTransformFlag
 	}
 }
 
+bool dsVkRenderSurfaceData_supportsFormat(
+	const dsRenderer* renderer, VkSurfaceKHR surface, VkFormat format, VkColorSpaceKHR colorSpace)
+{
+	const dsVkRenderer* vkRenderer = (const dsVkRenderer*)renderer;
+	const dsVkDevice* device = &vkRenderer->device;
+	const dsVkInstance* instance = &device->instance;
+
+	uint32_t formatCount = 0;
+	VkResult result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceFormatsKHR)(
+		device->physicalDevice, surface, &formatCount, NULL);
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't get surface formats"))
+		return false;
+
+	// No practical way for this to be millions of formats, and no way to maliciously force it to be
+	// too large without replacing Vulkan library.
+	VkSurfaceFormatKHR* surfaceFormats = DS_ALLOCATE_STACK_OBJECT_ARRAY(
+		VkSurfaceFormatKHR, formatCount);
+	result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceFormatsKHR)(
+		device->physicalDevice, surface, &formatCount, surfaceFormats);
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't get surface formats"))
+		return false;
+
+	return hasFormat(surfaceFormats, formatCount, format, colorSpace);
+}
+
 dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRenderer* renderer,
 	VkSurfaceKHR surface, dsVSync vsync, VkSwapchainKHR prevSwapchain, dsRenderSurfaceUsage usage,
 	const VkSurfaceCapabilitiesKHR* surfaceInfo)
@@ -323,8 +325,8 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	dsVkDevice* device = &vkRenderer->device;
 	dsVkInstance* instance = &device->instance;
 
-	const dsVkFormatInfo* colorFormat = dsVkResourceManager_getFormat(renderer->resourceManager,
-		renderer->surfaceColorFormat);
+	const dsVkFormatInfo* colorFormat = dsVkResourceManager_getFormat(
+		renderer->resourceManager, renderer->surfaceColorFormat);
 	if (!colorFormat)
 	{
 		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Unknown format.");
@@ -340,25 +342,8 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 		return NULL;
 	}
 
-	VkColorSpaceKHR colorSpace;
-	switch (renderer->surfaceColorSpace)
-	{
-		case dsRenderColorSpace_NonLinearSRGB:
-		case dsRenderColorSpace_NonLinearSRGBConverting:
-			colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
-			break;
-		case dsRenderColorSpace_ExtendedLinearSRGB:
-			colorSpace = VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT;
-			break;
-		case dsRenderColorSpace_Rec2100PQ:
-			colorSpace = VK_COLOR_SPACE_HDR10_ST2084_EXT;
-			break;
-		default:
-			DS_ASSERT(false);
-			colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
-			break;
-	}
-	if (!supportsFormat(device, surface, colorFormat->vkFormat, colorSpace))
+	VkColorSpaceKHR colorSpace = dsVkColorSpace(renderer->surfaceColorSpace);
+	if (!dsVkRenderSurfaceData_supportsFormat(renderer, surface, colorFormat->vkFormat, colorSpace))
 	{
 		DS_LOG_INFO(DS_RENDER_VULKAN_LOG_TAG,
 			"Renderer color format not supported by window surface.");

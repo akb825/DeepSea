@@ -39,6 +39,7 @@ bool dsGLPlatform_initialize(
 			platform->destroyContextFunc = &dsDestroyCocoaGLContext;
 			platform->createDummySurfaceFunc = &dsCreateDummyCocoaGLSurface;
 			platform->destroyDummySurfaceFunc = &dsDestroyDummyCocoaGLSurface;
+			platform->isSurfaceValidFunc = &dsIsCocoaGLSurfaceValid;
 			platform->createSurfaceFunc = &dsCreateCocoaGLSurface;
 			platform->getSurfaceSizeFunc = &dsGetCocoaGLSurfaceSize;
 			platform->swapBuffersFunc = &dsSwapCocoaGLBuffers;
@@ -64,6 +65,7 @@ bool dsGLPlatform_initialize(
 			platform->destroyContextFunc = &dsDestroyEGLContext;
 			platform->createDummySurfaceFunc = &dsCreateDummyEGLSurface;
 			platform->destroyDummySurfaceFunc = &dsDestroyDummyEGLSurface;
+			platform->isSurfaceValidFunc = &dsIsEGLSurfaceValid;
 			platform->createSurfaceFunc = &dsCreateEGLSurface;
 			platform->getSurfaceSizeFunc = &dsGetEGLSurfaceSize;
 			platform->swapBuffersFunc = &dsSwapEGLBuffers;
@@ -89,6 +91,7 @@ bool dsGLPlatform_initialize(
 			platform->destroyContextFunc = &dsDestroyGLXContext;
 			platform->createDummySurfaceFunc = &dsCreateDummyGLXSurface;
 			platform->destroyDummySurfaceFunc = &dsDestroyDummyGLXSurface;
+			platform->isSurfaceValidFunc = &dsIsGLXSurfaceValid;
 			platform->createSurfaceFunc = &dsCreateGLXSurface;
 			platform->getSurfaceSizeFunc = &dsGetGLXSurfaceSize;
 			platform->swapBuffersFunc = &dsSwapGLXBuffers;
@@ -111,6 +114,7 @@ bool dsGLPlatform_initialize(
 			platform->destroyContextFunc = &dsDestroyWGLContext;
 			platform->createDummySurfaceFunc = &dsCreateDummyWGLSurface;
 			platform->destroyDummySurfaceFunc = &dsDestroyDummyWGLSurface;
+			platform->isSurfaceValidFunc = &dsIsWGLSurfaceValid;
 			platform->createSurfaceFunc = &dsCreateWGLSurface;
 			platform->getSurfaceSizeFunc = &dsGetWGLSurfaceSize;
 			platform->swapBuffersFunc = &dsSwapWGLBuffers;
@@ -210,6 +214,12 @@ void dsGLPlatform_destroyDummySurface( const dsGLPlatform* platform, void* displ
 	}
 	else
 		platform->destroyDummySurfaceFunc(display, surface, osSurface);
+}
+
+int dsGLPlatform_isSurfaceValid(const dsGLPlatform* platform, void* display,
+	dsRenderSurfaceType surfaceType, void* handle, const dsRendererOptions* options)
+{
+	return platform->isSurfaceValidFunc(display, surfaceType, handle, options);
 }
 
 void* dsGLPlatform_createSurface(const dsGLPlatform* platform, dsAllocator* allocator,

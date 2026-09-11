@@ -645,9 +645,10 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 	for (uint32_t i = 0; i < attachmentCount; ++i)
 	{
 		const dsAttachmentInfo* attachment = attachments + i;
-		if (attachment->format != renderer->surfaceColorFormat &&
-			attachment->format != renderer->surfaceDepthStencilFormat &&
-			!dsGfxFormat_renderTargetSupported(renderer->resourceManager, attachment->format))
+		dsGfxFormat format = dsGfxFormat_resolve(renderer, attachment->format);
+		if (format != renderer->surfaceColorFormat &&
+			format != renderer->surfaceDepthStencilFormat &&
+			!dsGfxFormat_renderTargetSupported(renderer->resourceManager, format))
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attachment format cannot be rendered to.");

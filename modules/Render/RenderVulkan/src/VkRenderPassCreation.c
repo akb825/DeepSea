@@ -240,7 +240,7 @@ static bool createLegacyRenderPass(
 			dsAttachmentUsage usage = attachment->usage;
 
 			const dsVkFormatInfo* format = dsVkResourceManager_getFormat(
-				renderer->resourceManager, attachment->format);
+				renderer->resourceManager, dsGfxFormat_resolve(renderer, attachment->format));
 			if (!format)
 			{
 				errno = EINVAL;
@@ -672,8 +672,8 @@ static bool createRenderPass(
 			VkAttachmentDescription2KHR* vkAttachment = vkAttachments + i;
 			dsAttachmentUsage usage = attachment->usage;
 
-			const dsVkFormatInfo* format = dsVkResourceManager_getFormat(renderer->resourceManager,
-				attachment->format);
+			const dsVkFormatInfo* format = dsVkResourceManager_getFormat(
+				renderer->resourceManager, dsGfxFormat_resolve(renderer, attachment->format));
 			if (!format)
 			{
 				errno = EINVAL;

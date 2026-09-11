@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Render/Types.h>
 
+int dsGLRenderSurface_supportsFormat(const dsRenderer* renderer, void* displayHandle,
+	void* osHandle, dsRenderSurfaceType type, const dsRenderSurfaceHint* formatHint,
+	uint32_t samples);
 dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
 	const char* name, void* displayHandle, void* osHandle, dsRenderSurfaceType type,
 	dsRenderSurfaceUsage usage, unsigned int widthHint, unsigned int heightHint);

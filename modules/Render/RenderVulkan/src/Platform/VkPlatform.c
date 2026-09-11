@@ -86,6 +86,6 @@ VkSurfaceKHR dsVkPlatform_createSurface(dsVkPlatform* platform, void* display, v
 void dsVkPlatform_destroySurface(dsVkPlatform* platform, VkSurfaceKHR surface)
 {
 	dsVkInstance* instance = &platform->device->instance;
-	DS_VK_CALL(instance->vkDestroySurfaceKHR)(instance->instance, surface,
-		instance->allocCallbacksPtr);
+	DS_VK_CALL(instance->vkDestroySurfaceKHR)(
+		instance->instance, surface, instance->allocCallbacksPtr);
 }

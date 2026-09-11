@@ -51,13 +51,13 @@ DS_RENDER_EXPORT bool dsRenderSurfaceHint_default(dsRenderSurfaceHint* hint);
  * @param depthStencilFormat The depth stencil format to use. This may be dsGfxFormat_Unknown to
  *     have no depth-stencil format.
  * @param colorSpace The color space to use.
- * @param explicit Whether to use the provided formats as-is. When false, a similar format may be
- *     chosen based on what is optimal for the implementation.
+ * @param explicitFormats Whether to use the provided formats as-is. When false, a similar format
+ *     may be chosen based on what is optimal for the implementation.
  * @return False if hint is NULL or a format is invalid.
  */
 DS_RENDER_EXPORT bool dsRenderSurfaceHint_fromFormats(dsRenderSurfaceHint* hint,
 	dsGfxFormat colorFormat, dsGfxFormat depthStencilFormat, dsRenderColorSpace colorSpace,
-	bool explicit);
+	bool explicitFormats);
 
 /**
  * @brief Checks whether the render surface hint can produce a valid color format.

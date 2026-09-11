@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Aaron Barany
+ * Copyright 2025-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,8 @@ void* dsCreateDummyEGLSurface(
 	dsAllocator* allocator, void* display, void* config, void** osSurface);
 void dsDestroyDummyEGLSurface(void* display, void* surface, void* osSurface);
 
+int dsIsEGLSurfaceValid(
+	void* display, dsRenderSurfaceType surfaceType, void* handle, const dsRendererOptions* options);
 void* dsCreateEGLSurface(dsAllocator* allocator, void* display, void* config,
 	dsRenderSurfaceType surfaceType, void* handle);
 bool dsGetEGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,

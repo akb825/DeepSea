@@ -271,12 +271,12 @@ TEST_F(RenderPassTest, Create)
 {
 	dsAttachmentInfo attachments[] =
 	{
-		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, renderer->surfaceDepthStencilFormat,
+		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, dsGfxFormat_SurfaceDepthStencil,
 			DS_DEFAULT_ANTIALIAS_SAMPLES},
-		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, renderer->surfaceColorFormat,
+		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, dsGfxFormat_SurfaceColor,
 			DS_DEFAULT_ANTIALIAS_SAMPLES},
-		{dsAttachmentUsage_Clear, renderer->surfaceColorFormat, DS_DEFAULT_ANTIALIAS_SAMPLES},
-		{dsAttachmentUsage_Clear, renderer->surfaceColorFormat, DS_DEFAULT_ANTIALIAS_SAMPLES}
+		{dsAttachmentUsage_Clear, dsGfxFormat_SurfaceColor, DS_DEFAULT_ANTIALIAS_SAMPLES},
+		{dsAttachmentUsage_Clear, dsGfxFormat_SurfaceColor, DS_DEFAULT_ANTIALIAS_SAMPLES}
 	};
 	uint32_t attachmentCount = DS_ARRAY_SIZE(attachments);
 
@@ -393,12 +393,12 @@ TEST_F(RenderPassTest, BeginNextEnd)
 {
 	dsAttachmentInfo attachments[] =
 	{
-		{dsAttachmentUsage_Clear, renderer->surfaceDepthStencilFormat,
+		{dsAttachmentUsage_Clear, dsGfxFormat_SurfaceDepthStencil,
 			renderer->surfaceSamples},
-		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, renderer->surfaceColorFormat,
+		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, dsGfxFormat_SurfaceColor,
 			renderer->surfaceSamples},
-		{dsAttachmentUsage_Clear, renderer->surfaceColorFormat, renderer->surfaceSamples},
-		{dsAttachmentUsage_Clear, renderer->surfaceColorFormat, renderer->surfaceSamples}
+		{dsAttachmentUsage_Clear, dsGfxFormat_SurfaceColor, renderer->surfaceSamples},
+		{dsAttachmentUsage_Clear, dsGfxFormat_SurfaceColor, renderer->surfaceSamples}
 	};
 	uint32_t attachmentCount = DS_ARRAY_SIZE(attachments);
 

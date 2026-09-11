@@ -25,10 +25,8 @@ void RenderPassFixtureBase::SetUp()
 
 	dsAttachmentInfo attachments[] =
 	{
-		{dsAttachmentUsage_Standard, renderer->surfaceDepthStencilFormat,
-			DS_DEFAULT_ANTIALIAS_SAMPLES},
-		{dsAttachmentUsage_KeepAfter, renderer->surfaceColorFormat,
-			DS_DEFAULT_ANTIALIAS_SAMPLES}
+		{dsAttachmentUsage_Standard, dsGfxFormat_SurfaceDepthStencil, DS_DEFAULT_ANTIALIAS_SAMPLES},
+		{dsAttachmentUsage_KeepAfter, dsGfxFormat_SurfaceColor, DS_DEFAULT_ANTIALIAS_SAMPLES}
 	};
 	uint32_t attachmentCount = DS_ARRAY_SIZE(attachments);
 	dsAttachmentRef colorAttachments[] = {{1, true}};

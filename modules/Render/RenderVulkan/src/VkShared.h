@@ -55,6 +55,7 @@ VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
 bool dsVkHeapIsCoherent(const dsVkDevice* device, uint32_t memoryIndex);
 
 VkSampleCountFlagBits dsVkSampleCount(uint32_t sampleCount);
+VkColorSpaceKHR dsVkColorSpace(dsRenderColorSpace colorSpace);
 
 VkAccessFlags dsVkReadBufferAccessFlags(dsGfxBufferUsage usage);
 VkAccessFlags dsVkWriteBufferAccessFlags(dsGfxBufferUsage usage, bool canMapMainBuffer);

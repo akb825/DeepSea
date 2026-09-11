@@ -74,6 +74,89 @@ static bool hasExtension(const char* extensions, const char* extension)
 	return false;
 }
 
+static int choosePixelFormat(PIXELFORMATDESCRIPTOR* outPFD, void* display,
+		const dsRendererOptions* options, GLContextType contextType)
+{
+	const char* extensions = NULL;
+	if (ANYGL_SUPPORTED(wglGetExtensionsStringARB))
+		extensions = wglGetExtensionsStringARB(display);
+
+	GLint redBits, greenBits, blueBits, alphaBits, depthBits, stencilBits;
+	if (contextType == GLContextType_Render)
+	{
+		redBits = options->renderSurfaceHint.redBits;
+		greenBits = options->renderSurfaceHint.greenBits;
+		blueBits = options->renderSurfaceHint.blueBits;
+		alphaBits = options->renderSurfaceHint.alphaBits;
+		depthBits = options->renderSurfaceHint.depthBits;
+		stencilBits = options->renderSurfaceHint.stencilBits;
+	}
+	else
+		redBits = greenBits = blueBits = alphaBits = depthBits = stencilBits = 0;
+
+	unsigned int pfdFlags = 0;
+	if (!options->singleBuffer)
+		pfdFlags |= PFD_DOUBLEBUFFER;
+	if (options->stereoscopic)
+		pfdFlags |= PFD_STEREO;
+
+	memset(outPFD, 0, sizeof(PIXELFORMATDESCRIPTOR));
+	outPFD->nSize = sizeof(PIXELFORMATDESCRIPTOR);
+	outPFD->nVersion = 1;
+	outPFD->dwFlags = PFD_DRAW_TO_WINDOW | PFD_DRAW_TO_BITMAP | PFD_SUPPORT_OPENGL | pfdFlags;
+	outPFD->iPixelType = PFD_TYPE_RGBA;
+	outPFD->cRedBits = redBits;
+	outPFD->cGreenBits = greenBits;
+	outPFD->cBlueBits = blueBits;
+	outPFD->cAlphaBits = alphaBits;
+	outPFD->cDepthBits = depthBits;
+	outPFD->cStencilBits = stencilBits;
+	outPFD->iLayerType = PFD_MAIN_PLANE;
+
+	if (!ANYGL_SUPPORTED(wglChoosePixelFormatARB))
+		return ChoosePixelFormat(display, outPFD);
+
+	unsigned int optionCount = 0;
+	GLint attr[MAX_OPTION_SIZE];
+	addOption(attr, &optionCount, WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB);
+	addOption(attr, &optionCount, WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB);
+	addOption(attr, &optionCount, WGL_DRAW_TO_WINDOW_ARB, true);
+	addOption(attr, &optionCount, WGL_RED_BITS_ARB, redBits);
+	addOption(attr, &optionCount, WGL_GREEN_BITS_ARB, greenBits);
+	addOption(attr, &optionCount, WGL_BLUE_BITS_ARB, blueBits);
+	addOption(attr, &optionCount, WGL_ALPHA_BITS_ARB, alphaBits);
+	addOption(attr, &optionCount, WGL_DEPTH_BITS_ARB, depthBits);
+	addOption(attr, &optionCount, WGL_STENCIL_BITS_ARB, stencilBits);
+
+	if (contextType == GLContextType_Render)
+	{
+		addOption(attr, &optionCount, WGL_DOUBLE_BUFFER_ARB, !options->singleBuffer);
+		addOption(attr, &optionCount, WGL_STEREO_ARB, options->stereoscopic);
+		if (contextType == GLContextType_Render && options->surfaceSamples > 1)
+		{
+			addOption(attr, &optionCount, WGL_SAMPLE_BUFFERS_ARB, 1);
+			addOption(attr, &optionCount, WGL_SAMPLES_ARB, options->surfaceSamples);
+		}
+		if (options->renderSurfaceHint.colorSpace == dsRenderColorSpace_NonLinearSRGBConverting &&
+			hasExtension(extensions, "WGL_ARB_framebuffer_sRGB"))
+		{
+			addOption(attr, &optionCount, WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, true);
+		}
+	}
+
+	DS_ASSERT(optionCount < MAX_OPTION_SIZE);
+	attr[optionCount] = 0;
+
+	int pixelFormat;
+	UINT formatCount;
+	if (!wglChoosePixelFormatARB(display, attr, NULL, 1, &pixelFormat, &formatCount) ||
+		formatCount == 0)
+	{
+		return 0;
+	}
+	return pixelFormat;
+}
+
 bool dsWGLSupportsSRGBSurfaces(const dsRendererOptions* options)
 {
 	if (!ANYGL_SUPPORTED(wglGetExtensionsStringARB))
@@ -114,90 +197,12 @@ void* dsCreateWGLConfig(dsAllocator* allocator, void* display, const dsRendererO
 		return NULL;
 	}
 
-	const char* extensions = NULL;
-	if (ANYGL_SUPPORTED(wglGetExtensionsStringARB))
-		extensions = wglGetExtensionsStringARB(display);
-
-	unsigned int pfdFlags = 0;
-	if (!options->singleBuffer)
-		pfdFlags |= PFD_DOUBLEBUFFER;
-	if (options->stereoscopic)
-		pfdFlags |= PFD_STEREO;
-	PIXELFORMATDESCRIPTOR pfd =
+	PIXELFORMATDESCRIPTOR pfd;
+	int pixelFormat = choosePixelFormat(&pfd, display, options, contextType);
+	if (pixelFormat == 0)
 	{
-		sizeof(PIXELFORMATDESCRIPTOR),
-		1,
-		PFD_DRAW_TO_WINDOW | PFD_DRAW_TO_BITMAP | PFD_SUPPORT_OPENGL | pfdFlags,
-		PFD_TYPE_RGBA,
-		0,
-		options->renderSurfaceHint.redBits, 0,
-		options->renderSurfaceHint.greenBits, 0,
-		options->renderSurfaceHint.blueBits, 0,
-		options->renderSurfaceHint.alphaBits, 0,
-		0,
-		0, 0, 0, 0,
-		options->renderSurfaceHint.depthBits,
-		options->renderSurfaceHint.stencilBits,
-		0,
-		PFD_MAIN_PLANE,
-		0,
-		0, 0, 0
-	};
-
-	int pixelFormat;
-	if (ANYGL_SUPPORTED(wglChoosePixelFormatARB))
-	{
-		unsigned int optionCount = 0;
-		GLint attr[MAX_OPTION_SIZE];
-		addOption(attr, &optionCount, WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB);
-		addOption(attr, &optionCount, WGL_DRAW_TO_WINDOW_ARB, true);
-		addOption(attr, &optionCount, WGL_RED_BITS_ARB, options->renderSurfaceHint.redBits);
-		addOption(attr, &optionCount, WGL_GREEN_BITS_ARB, options->renderSurfaceHint.greenBits);
-		addOption(attr, &optionCount, WGL_BLUE_BITS_ARB, options->renderSurfaceHint.blueBits);
-		addOption(attr, &optionCount, WGL_ALPHA_BITS_ARB, options->renderSurfaceHint.alphaBits);
-		addOption(attr, &optionCount, WGL_DEPTH_BITS_ARB, options->renderSurfaceHint.depthBits);
-		addOption(attr, &optionCount, WGL_STENCIL_BITS_ARB, options->renderSurfaceHint.stencilBits);
-		addOption(attr, &optionCount, WGL_DOUBLE_BUFFER_ARB, !options->singleBuffer);
-		addOption(attr, &optionCount, WGL_STEREO_ARB, options->stereoscopic);
-		if (hasExtension(extensions, "WGL_ARB_multisample"))
-		{
-			if (contextType == GLContextType_Render && options->surfaceSamples > 1)
-			{
-				addOption(attr, &optionCount, WGL_SAMPLE_BUFFERS_ARB, 1);
-				addOption(attr, &optionCount, WGL_SAMPLES_ARB, options->surfaceSamples);
-			}
-			else
-			{
-				addOption(attr, &optionCount, WGL_SAMPLE_BUFFERS_ARB, 0);
-				addOption(attr, &optionCount, WGL_SAMPLES_ARB, 0);
-			}
-		}
-
-		if (options->renderSurfaceHint.colorSpace == dsRenderColorSpace_NonLinearSRGBConverting &&
-			hasExtension(extensions, "WGL_ARB_framebuffer_sRGB"))
-		{
-			addOption(attr, &optionCount, WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, true);
-		}
-
-		DS_ASSERT(optionCount < MAX_OPTION_SIZE);
-		attr[optionCount] = 0;
-
-		UINT formatCount;
-		if (!wglChoosePixelFormatARB(display, attr, NULL, 1, &pixelFormat, &formatCount) ||
-			formatCount == 0)
-		{
-			return NULL;
-			errno = EPERM;
-		}
-	}
-	else
-	{
-		pixelFormat = ChoosePixelFormat(display, &pfd);
-		if (!pixelFormat)
-		{
-			errno = EPERM;
-			return NULL;
-		}
+		errno = EPERM;
+		return NULL;
 	}
 
 	HINSTANCE hinst = GetModuleHandle(NULL);
@@ -334,8 +339,8 @@ void* dsCreateDummyWGLSurface(dsAllocator* allocator, void* display, void* confi
 	if (!display || !configPtr || !osSurface)
 		return NULL;
 
-	HWND window = CreateWindowA(windowClass, "Dummy", 0, 0, 0, 0, 0, NULL, NULL, configPtr->hinst,
-		NULL);
+	HWND window = CreateWindowA(
+		windowClass, "Dummy", 0, 0, 0, 0, 0, NULL, NULL, configPtr->hinst, NULL);
 	if (!window)
 		return NULL;
 
@@ -358,6 +363,18 @@ void dsDestroyDummyWGLSurface(void* display, void* surface, void* osSurface)
 
 	ReleaseDC(osSurface, surface);
 	DestroyWindow(osSurface);
+}
+
+int dsIsWGLSurfaceValid(
+	void* display, dsRenderSurfaceType surfaceType, void* handle, const dsRendererOptions* options)
+{
+	DS_UNUSED(surfaceType);
+	DS_UNUSED(handle);
+	if (!display)
+		return -1;
+
+	PIXELFORMATDESCRIPTOR pfd;
+	return choosePixelFormat(&pfd, display, options, GLContextType_Render) != 0;
 }
 
 void* dsCreateWGLSurface(dsAllocator* allocator, void* display, void* config,

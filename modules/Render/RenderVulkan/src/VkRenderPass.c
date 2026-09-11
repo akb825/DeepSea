@@ -90,7 +90,11 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 	renderPass->scratchAllocator = renderer->allocator;
 	renderPass->surfaceSamples = renderer->surfaceSamples;
 	renderPass->defaultSamples = renderer->defaultSamples;
+	renderPass->surfaceColorFormat = renderer->surfaceColorFormat;
+	renderPass->surfaceDepthStencilFormat = renderer->surfaceDepthStencilFormat;
 	renderPass->usesDefaultSamples = false;
+	renderPass->usesSurfaceColorFormat = false;
+	renderPass->usesSurfaceDepthStencilFormat = false;
 	renderPass->renderPassData = NULL;
 	DS_VERIFY(dsSpinlock_initialize(&renderPass->lock));
 
@@ -100,20 +104,26 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 
 	if (attachmentCount > 0)
 	{
-		baseRenderPass->attachments = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsAttachmentInfo,
-			attachmentCount);
+		baseRenderPass->attachments = DS_ALLOCATE_OBJECT_ARRAY(
+			&bufferAlloc, dsAttachmentInfo, attachmentCount);
 		DS_ASSERT(baseRenderPass->attachments);
 		memcpy((void*)baseRenderPass->attachments, attachments,
 			sizeof(dsAttachmentInfo)*attachmentCount);
 
 		for (uint32_t i = 0; i < attachmentCount; ++i)
 		{
-			if (attachments[i].samples == DS_SURFACE_ANTIALIAS_SAMPLES ||
-				attachments[i].samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+			const dsAttachmentInfo* attachment = attachments + i;
+			if (attachment->samples == DS_SURFACE_ANTIALIAS_SAMPLES ||
+				attachment->samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
 			{
 				renderPass->usesDefaultSamples = true;
-				break;
 			}
+
+			if (attachment->format == dsGfxFormat_SurfaceColor)
+				renderPass->usesSurfaceColorFormat = true;
+
+			if (attachment->format == dsGfxFormat_SurfaceDepthStencil)
+				renderPass->usesSurfaceDepthStencilFormat = true;
 		}
 	}
 	else
@@ -262,6 +272,8 @@ dsVkRenderPassData* dsVkRenderPass_getData(const dsRenderPass* renderPass)
 	uint64_t frame = renderer->frameNumber;
 	uint32_t surfaceSamples = renderer->surfaceSamples;
 	uint32_t defaultSamples = renderer->defaultSamples;
+	dsGfxFormat surfaceColorFormat = renderer->surfaceColorFormat;
+	dsGfxFormat surfaceDepthFormat = renderer->surfaceDepthStencilFormat;
 
 	DS_VERIFY(dsSpinlock_lock(&vkRenderPass->lock));
 	if (vkRenderPass->lastCheckedFrame == frame)
@@ -270,8 +282,12 @@ dsVkRenderPassData* dsVkRenderPass_getData(const dsRenderPass* renderPass)
 		return vkRenderPass->renderPassData;
 	}
 
-	if (vkRenderPass->usesDefaultSamples && (surfaceSamples != vkRenderPass->surfaceSamples ||
-			defaultSamples != vkRenderPass->defaultSamples))
+	if ((vkRenderPass->usesDefaultSamples && (surfaceSamples != vkRenderPass->surfaceSamples ||
+			defaultSamples != vkRenderPass->defaultSamples)) ||
+		(vkRenderPass->usesSurfaceColorFormat &&
+			surfaceColorFormat != vkRenderPass->surfaceColorFormat) ||
+		(vkRenderPass->usesSurfaceDepthStencilFormat &&
+			surfaceDepthFormat != vkRenderPass->surfaceDepthStencilFormat))
 	{
 		dsVkRenderPassData* renderPassData = dsVkRenderPassData_create(
 			vkRenderPass->scratchAllocator, device, renderPass);
@@ -283,6 +299,8 @@ dsVkRenderPassData* dsVkRenderPass_getData(const dsRenderPass* renderPass)
 
 		vkRenderPass->surfaceSamples = surfaceSamples;
 		vkRenderPass->defaultSamples = defaultSamples;
+		vkRenderPass->surfaceColorFormat = surfaceColorFormat;
+		vkRenderPass->surfaceDepthStencilFormat = surfaceDepthFormat;
 	}
 
 	vkRenderPass->lastCheckedFrame = frame;

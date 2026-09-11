@@ -149,6 +149,7 @@ bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, 
 	DS_ASSERT(position);
 	dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
 	dsApplication* application = window->application;
+	dsRenderer* renderer = application->renderer;
 
 	unsigned int sdlFlags = SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
@@ -173,7 +174,7 @@ bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, 
 	if (sdlWindow->sdlWindow)
 	{
 		SDL_DestroyWindow(sdlWindow->sdlWindow);
-		dsRenderer_restoreGlobalState(application->renderer);
+		dsRenderer_restoreGlobalState(renderer);
 		sdlWindow->sdlWindow = NULL;
 	}
 
@@ -207,7 +208,9 @@ bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, 
 
 	DS_ASSERT(!window->surface);
 	sdlWindow->sdlWindow = internalWindow;
-	sdlWindow->samples = application->renderer->surfaceSamples;
+	sdlWindow->samples = renderer->surfaceSamples;
+	sdlWindow->colorFormat = renderer->surfaceColorFormat;
+	sdlWindow->depthStencilFormat = renderer->surfaceDepthStencilFormat;
 
 	// Respect the style if previously set, which should only happen when re-creating the window.
 	// If this is required, we will need to synchronize the window state to query it from SDL.

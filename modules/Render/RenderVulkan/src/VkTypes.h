@@ -85,6 +85,7 @@ typedef struct dsVkInstance
 	VkInstance instance;
 	uint32_t instanceVersion;
 	bool hasColorSpace;
+	bool hasSurfacelessQuery;
 } dsVkInstance;
 
 typedef struct dsVkDevice
@@ -665,7 +666,11 @@ typedef struct dsVkRenderPass
 	uint64_t lastCheckedFrame;
 	uint32_t surfaceSamples;
 	uint32_t defaultSamples;
+	dsGfxFormat surfaceColorFormat;
+	dsGfxFormat surfaceDepthStencilFormat;
 	bool usesDefaultSamples;
+	bool usesSurfaceColorFormat;
+	bool usesSurfaceDepthStencilFormat;
 
 	dsVkRenderPassData* renderPassData;
 	dsSpinlock lock;

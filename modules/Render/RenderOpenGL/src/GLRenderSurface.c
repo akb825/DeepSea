@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,35 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
+
+#include <DeepSea/Render/RenderSurfaceHint.h>
+
 #include <string.h>
+
+int dsGLRenderSurface_supportsFormat(const dsRenderer* renderer, void* displayHandle,
+	void* osHandle, dsRenderSurfaceType type, const dsRenderSurfaceHint* formatHint,
+	uint32_t samples)
+{
+	DS_ASSERT(renderer);
+	DS_ASSERT(formatHint);
+	DS_UNUSED(displayHandle);
+	DS_UNUSED(type);
+
+	dsGfxFormat colorFormat = dsGLRenderer_surfaceColorFormat(formatHint);
+	dsGfxFormat depthFormat = dsRenderSurfaceHint_depthStencilFormat(formatHint);
+	if (!dsGLRenderer_canUseRenderSurfaceFormat(
+			renderer, colorFormat, formatHint->colorSpace, depthFormat, false))
+	{
+		return false;
+	}
+
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	dsRendererOptions options = glRenderer->options;
+	options.renderSurfaceHint = *formatHint;
+	options.surfaceSamples = (uint8_t)samples;
+	return dsGLPlatform_isSurfaceValid(
+		&glRenderer->platform, displayHandle, type, osHandle, &options);
+}
 
 dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
 	const char* name, void* displayHandle, void* osHandle, dsRenderSurfaceType type,

@@ -67,6 +67,8 @@ typedef void (*dsDestroyGLContextFunction)(void* display, void* context);
 typedef void* (*dsCreateDummyGLSurfaceFunction)(
 	dsAllocator* allocator, void* display, void* config, void** osSurface);
 typedef void (*dsDestroyDummyGLSurfaceFunction)(void* display, void* surface, void* osSurface);
+typedef int (*dsIsGLSurfaceValid)(void* display, dsRenderSurfaceType surfaceType, void* handle,
+	const dsRendererOptions* options);
 typedef void* (*dsCreateGLSurfaceFunction)(dsAllocator* allocator, void* display, void* config,
 	dsRenderSurfaceType surfaceType, void* handle);
 typedef bool (*dsGetGLSurfaceSizeFunction)(uint32_t* outWidth, uint32_t* outHeight, void* display,
@@ -91,6 +93,7 @@ typedef struct dsGLPlatform
 	dsDestroyGLContextFunction destroyContextFunc;
 	dsCreateDummyGLSurfaceFunction createDummySurfaceFunc;
 	dsDestroyDummyGLSurfaceFunction destroyDummySurfaceFunc;
+	dsIsGLSurfaceValid isSurfaceValidFunc;
 	dsCreateGLSurfaceFunction createSurfaceFunc;
 	dsGetGLSurfaceSizeFunction getSurfaceSizeFunc;
 	dsSwapGLBuffersFunction swapBuffersFunc;

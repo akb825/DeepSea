@@ -47,6 +47,51 @@ static void addOption2(NSOpenGLPixelFormatAttribute* attr, unsigned int* size,
 	attr[(*size)++] = value;
 }
 
+static NSOpenGLPixelFormat* createPixelFormat(
+	const dsRendererOptions* options, GLContextType contextType)
+{
+	NSOpenGLPixelFormatAttribute versions[] =
+	{
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101000
+		NSOpenGLProfileVersion4_1Core,
+#endif
+		NSOpenGLProfileVersion3_2Core, NSOpenGLProfileVersionLegacy
+	};
+
+	unsigned int optionCount = 0;
+	NSOpenGLPixelFormatAttribute attr[MAX_OPTION_SIZE];
+	addOption2(attr, &optionCount, NSOpenGLPFAOpenGLProfile, 0);
+
+	if (contextType == GLContextType_Render)
+	{
+		addOption2(attr, &optionCount, NSOpenGLPFAColorSize, options->redBits +
+			options->greenBits + options->blueBits);
+		addOption2(attr, &optionCount, NSOpenGLPFAAlphaSize, options->alphaBits);
+		addOption2(attr, &optionCount, NSOpenGLPFADepthSize, options->depthBits);
+		addOption2(attr, &optionCount, NSOpenGLPFAStencilSize, options->stencilBits);
+		if (options->doubleBuffer)
+			addOption(attr, &optionCount, NSOpenGLPFADoubleBuffer);
+		if (options->surfaceSamples > 1)
+		{
+			addOption2(attr, &optionCount, NSOpenGLPFASampleBuffers, 1);
+			addOption2(attr, &optionCount, NSOpenGLPFASamples, options->surfaceSamples);
+		}
+	}
+
+	DS_ASSERT(optionCount < MAX_OPTION_SIZE);
+	attr[optionCount] = 0;
+
+	for (size_t i = 0; i < DS_ARRAY_SIZE(versions); ++i)
+	{
+		attr[1] = versions[i];
+		NSOpenGLPixelFormat* format = [[NSOpenGLPixelFormat alloc] initWithAttributes: attr];
+		if (format)
+			return format;
+	}
+
+	return NULL;
+}
+
 void* dsGetCocoaGLDisplay(void* osDisplay)
 {
 	DS_UNUSED(osDisplay);
@@ -73,50 +118,14 @@ void* dsCreateCocoaGLConfig(dsAllocator* allocator, void* display, const dsRende
 
 	@autoreleasepool
 	{
-		NSOpenGLPixelFormatAttribute versions[] =
+		NSOpenGLPixelFormat* format = createPixelFormat(options, contextType);
+		if (!format)
 		{
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101000
-			NSOpenGLProfileVersion4_1Core,
-#endif
-			NSOpenGLProfileVersion3_2Core, NSOpenGLProfileVersionLegacy
-		};
-
-		unsigned int optionCount = 0;
-		NSOpenGLPixelFormatAttribute attr[MAX_OPTION_SIZE];
-		addOption2(attr, &optionCount, NSOpenGLPFAOpenGLProfile, 0);
-		addOption2(attr, &optionCount, NSOpenGLPFAColorSize, options->redBits +
-			options->greenBits + options->blueBits);
-		addOption2(attr, &optionCount, NSOpenGLPFAAlphaSize, options->alphaBits);
-		addOption2(attr, &optionCount, NSOpenGLPFADepthSize, options->depthBits);
-		addOption2(attr, &optionCount, NSOpenGLPFAStencilSize, options->stencilBits);
-		if (options->doubleBuffer)
-			addOption(attr, &optionCount, NSOpenGLPFADoubleBuffer);
-
-		if (contextType == GLContextType_Render && options->surfaceSamples > 1)
-		{
-			addOption2(attr, &optionCount, NSOpenGLPFASampleBuffers, 1);
-			addOption2(attr, &optionCount, NSOpenGLPFASamples, options->surfaceSamples);
+			errno = EPERM;
+			return NULL;
 		}
-		else
-		{
-			addOption2(attr, &optionCount, NSOpenGLPFASampleBuffers, 0);
-			addOption2(attr, &optionCount, NSOpenGLPFASamples, 0);
-		}
-
-		DS_ASSERT(optionCount < MAX_OPTION_SIZE);
-		attr[optionCount] = 0;
-
-		for (size_t i = 0; i < DS_ARRAY_SIZE(versions); ++i)
-		{
-			attr[1] = versions[i];
-			NSOpenGLPixelFormat* format = [[NSOpenGLPixelFormat alloc] initWithAttributes: attr];
-			if (format)
-				return (void*)CFBridgingRetain(format);
-		}
+		return (void*)CFBridgingRetain(format);
 	}
-
-	errno = EPERM;
-	return NULL;
 }
 
 void* dsGetPublicCocoaGLConfig(void* display, void* config)
@@ -176,6 +185,21 @@ void dsDestroyDummyCocoaGLSurface(void* display, void* surface, void* osSurface)
 	DS_UNUSED(display);
 	DS_UNUSED(surface);
 	DS_UNUSED(osSurface);
+}
+
+int dsIsCocoaGLSurfaceValid(
+	void* display, dsRenderSurfaceType surfaceType, void* handle, const dsRendererOptions* options)
+{
+	DS_UNUSED(display);
+	DS_UNUSED(handle);
+	if (surfaceType == dsRenderSurfaceType_Pixmap)
+		return false;
+
+	@autoreleasepool
+	{
+		NSOpenGLPixelFormat* pixelFormat = createPixelFormat(options, GLContextType_Render);
+		return pixelFormat != NULL;
+	}
 }
 
 void* dsCreateCocoaGLSurface(dsAllocator* allocator, void* display, void* config,

@@ -80,6 +80,8 @@ typedef struct dsViewPrivate
 	uint32_t framebufferCount;
 	uint32_t lastSurfaceSamples;
 	uint32_t lastDefaultSamples;
+	dsGfxFormat lastSurfaceColorFormat;
+	dsGfxFormat lastSurfaceDepthStencilFormat;
 	bool sizeUpdated;
 	bool surfaceSet;
 } dsViewPrivate;
@@ -658,6 +660,8 @@ dsView* dsView_create(dsAllocator* allocator, const char* name, const dsScene* s
 	privateView->maxPipelineFramebuffers = scene->pipelineCount;
 	privateView->lastSurfaceSamples = renderer->surfaceSamples;
 	privateView->lastDefaultSamples = renderer->defaultSamples;
+	privateView->lastSurfaceColorFormat = renderer->surfaceColorFormat;
+	privateView->lastSurfaceDepthStencilFormat = renderer->surfaceDepthStencilFormat;
 	privateView->sizeUpdated = true;
 	privateView->surfaceSet = true;
 
@@ -1090,6 +1094,10 @@ bool dsView_update(dsView* view)
 	bool surfaceSet = privateView->surfaceSet;
 	bool surfaceSamplesChanged = privateView->lastSurfaceSamples != renderer->surfaceSamples;
 	bool defaultSamplesChanged = privateView->lastDefaultSamples != renderer->defaultSamples;
+	bool surfaceColorFormatChanged =
+		privateView->lastSurfaceColorFormat != renderer->surfaceColorFormat;
+	bool surfaceDepthStencilFormatChanged =
+		privateView->lastSurfaceDepthStencilFormat != renderer->surfaceDepthStencilFormat;
 	if (!sizeChanged && !surfaceSet && !surfaceSamplesChanged && !defaultSamplesChanged)
 		DS_PROFILE_FUNC_RETURN(true);
 
@@ -1101,20 +1109,21 @@ bool dsView_update(dsView* view)
 			continue;
 
 		// Check if it would have changed.
+		const dsTextureInfo* createInfo = &surfaceInfo->createInfo;
 		if (privateView->surfaces[i] &&
-			((surfaceInfo->createInfo.width > 0 && surfaceInfo->createInfo.height > 0) ||
-				!sizeChanged) &&
-			(surfaceInfo->createInfo.samples != DS_SURFACE_ANTIALIAS_SAMPLES ||
-				!surfaceSamplesChanged) &&
-			(surfaceInfo->createInfo.samples != DS_DEFAULT_ANTIALIAS_SAMPLES ||
-				!defaultSamplesChanged))
+			((createInfo->width > 0 && createInfo->height > 0) || !sizeChanged) &&
+			(createInfo->samples != DS_SURFACE_ANTIALIAS_SAMPLES || !surfaceSamplesChanged) &&
+			(createInfo->samples != DS_DEFAULT_ANTIALIAS_SAMPLES || !defaultSamplesChanged) &&
+			(createInfo->format != dsGfxFormat_SurfaceColor || !surfaceColorFormatChanged) &&
+			(createInfo->format != dsGfxFormat_SurfaceDepthStencil ||
+				!surfaceDepthStencilFormatChanged))
 		{
 			continue;
 		}
 
 		uint32_t width;
-		if (surfaceInfo->createInfo.width > 0)
-			width = surfaceInfo->createInfo.width;
+		if (createInfo->width > 0)
+			width = createInfo->width;
 		else
 		{
 			width = surfaceInfo->windowFramebuffer ? view->preRotateWidth : view->width;
@@ -1122,8 +1131,8 @@ bool dsView_update(dsView* view)
 		}
 
 		uint32_t height;
-		if (surfaceInfo->createInfo.height > 0)
-			height = surfaceInfo->createInfo.height;
+		if (createInfo->height > 0)
+			height = createInfo->height;
 		else
 		{
 			height = surfaceInfo->windowFramebuffer ? view->preRotateHeight : view->height;
@@ -1150,8 +1159,8 @@ bool dsView_update(dsView* view)
 			case dsGfxSurfaceType_Renderbuffer:
 			{
 				dsRenderbuffer* renderbuffer = dsRenderbuffer_create(resourceManager,
-					view->resourceAllocator, surfaceInfo->usage, surfaceInfo->createInfo.format,
-					width, height, surfaceInfo->createInfo.samples);
+					view->resourceAllocator, surfaceInfo->usage, createInfo->format, width, height,
+					createInfo->samples);
 				if (!renderbuffer)
 					DS_PROFILE_FUNC_RETURN(false);
 
@@ -1232,6 +1241,8 @@ bool dsView_update(dsView* view)
 	privateView->surfaceSet = false;
 	privateView->lastSurfaceSamples = renderer->surfaceSamples;
 	privateView->lastDefaultSamples = renderer->defaultSamples;
+	privateView->lastSurfaceColorFormat = renderer->surfaceColorFormat;
+	privateView->lastSurfaceDepthStencilFormat = renderer->surfaceDepthStencilFormat;
 	DS_PROFILE_FUNC_RETURN(true);
 }
 

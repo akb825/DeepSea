@@ -581,6 +581,7 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
+	const dsRenderer* renderer = resourceManager->renderer;
 	dsTextureInfo texInfo = *info;
 
 	if (!allocator)
@@ -622,6 +623,7 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
+	texInfo.format = dsGfxFormat_resolve(renderer, texInfo.format);
 	if (!dsGfxFormat_renderTargetSupported(resourceManager, texInfo.format))
 	{
 		errno = EINVAL;
@@ -645,7 +647,7 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if (resolve && !resourceManager->renderer->hasDepthStencilMultisampleResolve &&
+	if (resolve && !renderer->hasDepthStencilMultisampleResolve &&
 		dsGfxFormat_isDepthStencil(texInfo.format))
 	{
 		errno = EPERM;
@@ -668,9 +670,9 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 	}
 
 	if (texInfo.samples == DS_SURFACE_ANTIALIAS_SAMPLES)
-		texInfo.samples = resourceManager->renderer->surfaceSamples;
+		texInfo.samples = renderer->surfaceSamples;
 	else if (texInfo.samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
-		texInfo.samples = resourceManager->renderer->defaultSamples;
+		texInfo.samples = renderer->defaultSamples;
 	texInfo.samples = dsMax(1U, texInfo.samples);
 	if (texInfo.samples == 1)
 		resolve = false;
@@ -692,7 +694,7 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if (texInfo.samples > resourceManager->renderer->maxSurfaceSamples)
+	if (texInfo.samples > renderer->maxSurfaceSamples)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Surface samples is above the maximum.");
@@ -713,8 +715,8 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	dsOffscreen* offscreen = resourceManager->createOffscreenFunc(resourceManager, allocator,
-		usage, memoryHints, &texInfo, resolve);
+	dsOffscreen* offscreen = resourceManager->createOffscreenFunc(
+		resourceManager, allocator, usage, memoryHints, &texInfo, resolve);
 	if (offscreen)
 	{
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->textureCount, 1);

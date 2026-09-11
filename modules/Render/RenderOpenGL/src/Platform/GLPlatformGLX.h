@@ -38,6 +38,8 @@ void* dsCreateDummyGLXSurface(
 	dsAllocator* allocator, void* display, void* config, void** osSurface);
 void dsDestroyDummyGLXSurface(void* display, void* surface, void* osSurface);
 
+int dsIsGLXSurfaceValid(
+	void* display, dsRenderSurfaceType surfaceType, void* handle, const dsRendererOptions* options);
 void* dsCreateGLXSurface(dsAllocator* allocator, void* display, void* config,
 	dsRenderSurfaceType surfaceType, void* handle);
 bool dsGetGLXSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,

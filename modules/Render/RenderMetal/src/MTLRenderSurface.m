@@ -312,6 +312,36 @@ static bool createExtraSurfaces(dsRenderer* renderer, dsRenderSurface* renderSur
 	return true;
 }
 
+int dsMTLRenderSurface_supportsFormat(const dsRenderer* renderer, void* displayHandle,
+	void* osHandle, dsRenderSurfaceType type, const dsRenderSurfaceHint* formatHint,
+	uint32_t samples)
+{
+	DS_UNUSED(displayHandle);
+	DS_UNUSED(samples);
+
+	if (type == dsRenderSurfaceType_Pixmap)
+		return false;
+
+	dsGfxFormat colorFormat = dsMTLRenderer_surfaceColorFormat(formatHint);
+	dsRenderColorSpace colorSpace = formatHint->colorSpace;
+	dsGfxFormat depthFormat = dsMTLRenderer_surfaceDepthStencilFormat(renderer, formatHint);
+	if (!dsMTLRenderer_canUseRenderSurfaceFormat(
+			renderer, colorFormat, colorSpace, depthFormat, false))
+	{
+		return false;
+	}
+
+	if (!osHandle)
+		return true;
+
+	@autoreleasepool
+	{
+		NSObject* handleObject = (__bridge NSObject*)osHandle;
+		return [handleObject isKindOfClass: [ViewType class]] ||
+			[handleObject isKindOfClass: [CAMetalLayer class]];
+	}
+}
+
 dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
 	const char* name, void* displayHandle, void* osHandle, dsRenderSurfaceType type,
 	dsRenderSurfaceUsage usage, unsigned int widthHint, unsigned int heightHint)

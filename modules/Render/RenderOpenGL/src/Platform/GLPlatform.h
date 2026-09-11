@@ -38,6 +38,8 @@ void dsGLPlatform_destroyDummySurface(
 	const dsGLPlatform* platform, void* display, const dsRendererOptions* options, void* surface,
 	void* osSurface);
 
+int dsGLPlatform_isSurfaceValid(const dsGLPlatform* platform, void* display,
+	dsRenderSurfaceType surfaceType, void* handle, const dsRendererOptions* options);
 void* dsGLPlatform_createSurface(const dsGLPlatform* platform, dsAllocator* allocator,
 	void* display, void* config, dsRenderSurfaceType surfaceType, void* handle);
 bool dsGLPlatform_getSurfaceSize(uint32_t* outWidth, uint32_t* outHeight,

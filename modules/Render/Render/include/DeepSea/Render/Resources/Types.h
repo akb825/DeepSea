@@ -294,17 +294,31 @@ typedef enum dsGfxFormat
 	dsGfxFormat_CompressedMask = 0xFF000,   ///< Bitmask for compressed formats.
 
 	// Decorators
-	dsGfxFormat_UNorm = 0x100000,        ///< Integer converted to a float in the range [0, 1].
-	dsGfxFormat_SNorm = 0x200000,        ///< Integer converted to a float in the range [-1, 1].
-	dsGfxFormat_UScaled = 0x300000,      ///< Unsigned integer converted to a float.
-	dsGfxFormat_SScaled = 0x400000,      ///< Signed integer converted to a float.
-	dsGfxFormat_UInt = 0x500000,         ///< Unsigned integer.
-	dsGfxFormat_SInt = 0x600000,         ///< Signed integer.
-	dsGfxFormat_Float = 0x700000,        ///< Signed floating point.
-	dsGfxFormat_UFloat = 0x800000,       ///< Unsigned floating point.
-	dsGfxFormat_SRGB = 0x900000,         ///< RGB encoded in gamma space.
-	dsGfxFormat_DecoratorCount = 0xA,    ///< The number of decorators.
-	dsGfxFormat_DecoratorMask = 0xF00000 ///< Bitmask for decorators.
+	dsGfxFormat_UNorm = 0x100000,         ///< Integer converted to a float in the range [0, 1].
+	dsGfxFormat_SNorm = 0x200000,         ///< Integer converted to a float in the range [-1, 1].
+	dsGfxFormat_UScaled = 0x300000,       ///< Unsigned integer converted to a float.
+	dsGfxFormat_SScaled = 0x400000,       ///< Signed integer converted to a float.
+	dsGfxFormat_UInt = 0x500000,          ///< Unsigned integer.
+	dsGfxFormat_SInt = 0x600000,          ///< Signed integer.
+	dsGfxFormat_Float = 0x700000,         ///< Signed floating point.
+	dsGfxFormat_UFloat = 0x800000,        ///< Unsigned floating point.
+	dsGfxFormat_SRGB = 0x900000,          ///< RGB encoded in gamma space.
+	dsGfxFormat_DecoratorCount = 0xA,     ///< The number of decorators.
+	dsGfxFormat_DecoratorMask = 0xF00000, ///< Bitmask for decorators.
+
+	/**
+	 * The color format used by render surfaces. This is considered invalid by default, but may be
+	 * used in select situations. Within the Renderer library, this may be used for offscreen
+	 * textures, renderbuffers, and render pass attachments.
+	 */
+	dsGfxFormat_SurfaceColor = 0x10000000,
+
+	/**
+	 * The depth/stencil format used by render surfaces. This is considered invalid by default, but
+	 * may be used in select situations. Within the Renderer library, this may be used for offscreen
+	 * textures, renderbuffers, and render pass attachments.
+	 */
+	dsGfxFormat_SurfaceDepthStencil = 0x20000000
 } dsGfxFormat;
 
 /**
@@ -673,6 +687,10 @@ typedef struct dsTextureInfo
 {
 	/**
 	 * @brief The format of the texture data.
+	 *
+	 * When creating an offscreen, this may be dsGfxFormat_SurfaceColor or
+	 * dsGfxFormat_SurfaceDepthStencil to use the corresponding default format set on the renderer.
+	 * The texture will need to be re-created by the caller if the default changes.
 	 */
 	dsGfxFormat format;
 
@@ -711,7 +729,7 @@ typedef struct dsTextureInfo
 	 *
 	 * This will only be used for offscreens. This may be set to DS_SURFACE_ANTIALIAS_SAMPLES to use
 	 * the default for render surfaces or DS_DEFAULT_ANTIALIAS_SAMPLES to use the default set on the
-	 * renderer. The renderbuffer will need to be re-created by the caller if the default changes.
+	 * renderer. The texture will need to be re-created by the caller if the default changes.
 	 * When multisampling isn't supported, this will silently fallback to no multisampling for
 	 * resolved surfaces or fail for non-resolved surfaces.
 	 */

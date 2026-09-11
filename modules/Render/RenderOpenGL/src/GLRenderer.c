@@ -404,11 +404,35 @@ bool dsGLRenderer_endFrame(dsRenderer* renderer)
 	return true;
 }
 
-bool dsGLRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
+bool dsGLRenderer_setSurfaceFormat(
+	dsRenderer* renderer, const dsRenderSurfaceHint* formatHint, uint32_t samples)
 {
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
-	if (samples == renderer->surfaceSamples)
+	dsGfxFormat colorFormat, depthFormat;
+	dsRenderColorSpace colorSpace;
+	if (formatHint)
+	{
+		colorFormat = dsGLRenderer_surfaceColorFormat(formatHint);
+		depthFormat = dsRenderSurfaceHint_depthStencilFormat(formatHint);
+		colorSpace = formatHint->colorSpace;
+		if (!dsGLRenderer_canUseRenderSurfaceFormat(
+				renderer, colorFormat, colorSpace, depthFormat, true))
+		{
+			return false;
+		}
+	}
+	else
+	{
+		colorFormat = renderer->surfaceColorFormat;
+		depthFormat = renderer->surfaceDepthStencilFormat;
+		colorSpace = renderer->surfaceColorSpace;
+	}
+
+	if (colorFormat == renderer->surfaceColorFormat && colorSpace == renderer->surfaceColorSpace &&
+		depthFormat == renderer->surfaceDepthStencilFormat && samples == renderer->surfaceSamples)
+	{
 		return true;
+	}
 
 	// Need to re-create the render context.
 	DS_ASSERT(glRenderer->renderContext);
@@ -416,13 +440,15 @@ bool dsGLRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 
 	void* display = glRenderer->options.gfxDisplay;
 	dsRendererOptions newOptions = glRenderer->options;
+	if (formatHint)
+		newOptions.renderSurfaceHint = *formatHint;
 	newOptions.surfaceSamples = (uint8_t)samples;
 	void* newConfig = dsGLPlatform_createConfig(
 		&glRenderer->platform, renderer->allocator, display, &newOptions, true);
 	if (!newConfig)
 	{
-		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't create OpenGL configuration.");
+		errno = EPERM;
 		return false;
 	}
 
@@ -430,9 +456,9 @@ bool dsGLRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 		&glRenderer->platform, renderer->allocator, display, newConfig, glRenderer->sharedContext);
 	if (!newContext)
 	{
-		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't create OpenGL context.");
 		dsGLPlatform_destroyConfig(&glRenderer->platform, display, newConfig);
+		errno = EPERM;
 		return false;
 	}
 
@@ -456,6 +482,9 @@ bool dsGLRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 	glRenderer->tempCopyFramebuffer = 0;
 	memset(glRenderer->boundAttributes, 0, sizeof(glRenderer->boundAttributes));
 
+	renderer->surfaceColorFormat = colorFormat;
+	renderer->surfaceColorSpace = colorSpace;
+	renderer->surfaceDepthStencilFormat = depthFormat;
 	renderer->surfaceSamples = samples;
 
 	return true;
@@ -884,34 +913,13 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
-	dsGfxFormat colorFormat = dsRenderSurfaceHint_colorFormat(
-		&options->renderSurfaceHint, false, true);
-	if (!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, colorFormat))
-	{
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Can't draw to surface color format.");
-		dsGLRenderer_destroy(baseRenderer);
-		errno = EPERM;
-		return NULL;
-	}
-
+	dsGfxFormat colorFormat = dsGLRenderer_surfaceColorFormat(&options->renderSurfaceHint);
 	dsRenderColorSpace colorSpace = options->renderSurfaceHint.colorSpace;
-	if (colorSpace >= dsRenderColorSpace_ExtendedLinearSRGB ||
-		(colorSpace == dsRenderColorSpace_NonLinearSRGBConverting &&
-			!renderer->platform.hasSRGBSurfaces))
-	{
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Can't draw to surface color space.");
-		dsGLRenderer_destroy(baseRenderer);
-		errno = EPERM;
-		return NULL;
-	}
-
 	dsGfxFormat depthFormat = dsRenderSurfaceHint_depthStencilFormat(&options->renderSurfaceHint);
-	if (depthFormat != dsGfxFormat_Unknown &&
-		!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, depthFormat))
+	if (!dsGLRenderer_canUseRenderSurfaceFormat(
+			baseRenderer, colorFormat, colorSpace, depthFormat, true))
 	{
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Can't draw to surface depth format.");
 		dsGLRenderer_destroy(baseRenderer);
-		errno = EPERM;
 		return NULL;
 	}
 
@@ -973,6 +981,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->setExtraDebuggingFunc = &dsGLRenderer_setEnableErrorChecking;
 
 	// Render surfaces
+	baseRenderer->renderSurfaceSupportsFormatFunc = &dsGLRenderSurface_supportsFormat;
 	baseRenderer->createRenderSurfaceFunc = &dsGLRenderSurface_create;
 	baseRenderer->destroyRenderSurfaceFunc = &dsGLRenderSurface_destroy;
 	baseRenderer->updateRenderSurfaceFunc = &dsGLRenderSurface_update;
@@ -1000,7 +1009,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	// Renderer functions
 	baseRenderer->beginFrameFunc = &dsGLRenderer_beginFrame;
 	baseRenderer->endFrameFunc = &dsGLRenderer_endFrame;
-	baseRenderer->setSurfaceSamplesFunc = &dsGLRenderer_setSurfaceSamples;
+	baseRenderer->setSurfaceFormatFunc = &dsGLRenderer_setSurfaceFormat;
 	baseRenderer->setDefaultSamplesFunc = &dsGLRenderer_setDefaultSamples;
 	baseRenderer->setVSyncFunc = &dsGLRenderer_setVSync;
 	baseRenderer->setDefaultAnisotropyFunc = &dsGLRenderer_setDefaultAnisotropy;
@@ -1024,6 +1033,51 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	DS_VERIFY(dsRenderer_initializeResources(baseRenderer));
 
 	return baseRenderer;
+}
+
+dsGfxFormat dsGLRenderer_surfaceColorFormat(const dsRenderSurfaceHint* hint)
+{
+	return dsRenderSurfaceHint_colorFormat(hint, false, true);
+}
+
+bool dsGLRenderer_canUseRenderSurfaceFormat(const dsRenderer* renderer, dsGfxFormat colorFormat,
+	dsRenderColorSpace colorSpace, dsGfxFormat depthFormat, bool reportErrors)
+{
+	const dsGLRenderer* glRenderer = (const dsGLRenderer*)renderer;
+	if (!dsGfxFormat_renderTargetSupported(renderer->resourceManager, colorFormat))
+	{
+		if (reportErrors)
+		{
+			DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Can't draw to surface color format.");
+			errno = EPERM;
+		}
+		return false;
+	}
+
+	if (colorSpace >= dsRenderColorSpace_ExtendedLinearSRGB ||
+		(colorSpace == dsRenderColorSpace_NonLinearSRGBConverting &&
+			!glRenderer->platform.hasSRGBSurfaces))
+	{
+		if (reportErrors)
+		{
+			DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Can't draw to surface color space.");
+			errno = EPERM;
+		}
+		return false;
+	}
+
+	if (depthFormat != dsGfxFormat_Unknown &&
+		!dsGfxFormat_renderTargetSupported(renderer->resourceManager, depthFormat))
+	{
+		if (reportErrors)
+		{
+			DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Can't draw to surface depth format.");
+			errno = EPERM;
+		}
+		return false;
+	}
+
+	return true;
 }
 
 bool dsGLRenderer_bindSurface(dsRenderer* renderer, void* glSurface)
@@ -1269,8 +1323,8 @@ dsGLFenceSyncRef* dsGLRenderer_createSyncRef(dsRenderer* renderer)
 	return fenceSyncRef;
 }
 
-void dsGLRenderer_bindTexture(dsRenderer* renderer, unsigned int unit, GLenum target,
-	GLuint texture)
+void dsGLRenderer_bindTexture(
+	dsRenderer* renderer, unsigned int unit, GLenum target, GLuint texture)
 {
 	glActiveTexture(GL_TEXTURE0 + unit);
 	glBindTexture(target, texture);

@@ -362,7 +362,7 @@ static void updatePrimaryDisplay(dsApplication* application)
 	application->primaryDisplay = findDisplay(application, primaryDisplayID);
 }
 
-static bool setGLAttributes(dsRenderer* renderer)
+static bool setGLAttributes(const dsRenderer* renderer)
 {
 	switch (renderer->surfaceColorFormat & dsGfxFormat_StandardMask)
 	{
@@ -389,6 +389,12 @@ static bool setGLAttributes(dsRenderer* renderer)
 			SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 10);
 			SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 10);
 			SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 2);
+			break;
+		case dsGfxFormat_R16G16B16A16:
+			SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 16);
+			SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 16);
+			SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 16);
+			SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 16);
 			break;
 		default:
 			return false;
@@ -1100,21 +1106,26 @@ static void finalizeEvents(dsApplication* application)
 	sdlApplication->hasFrameEvents = false;
 }
 
-static void updateWindowSamples(dsApplication* application, uint64_t eventTime)
+static void updateWindowFormat(dsApplication* application, uint64_t eventTime)
 {
 	if (application->windowCount == 0)
 		return;
 
-	bool setSamples = false;
+	const dsRenderer* renderer = application->renderer;
+	bool changed = false;
 	for (unsigned int i = 0; i < application->windowCount; ++i)
 	{
 		dsWindow* window = application->windows[i];
 		dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
-		if (sdlWindow->samples != application->renderer->surfaceSamples)
-			setSamples = true;
+		if (sdlWindow->samples != renderer->surfaceSamples ||
+			sdlWindow->colorFormat != renderer->surfaceColorFormat ||
+			sdlWindow->depthStencilFormat != renderer->surfaceDepthStencilFormat)
+		{
+			changed = true;
+		}
 	}
 
-	if (!setSamples)
+	if (!changed)
 		return;
 
 	// Make absolutely sure that the state is fully up to date. Cache the change flags in the window
@@ -1134,15 +1145,10 @@ static void updateWindowSamples(dsApplication* application, uint64_t eventTime)
 			window->flags |= dsWindowFlags_DelaySurfaceCreate;
 	}
 
-	if (application->renderer->surfaceSamples > 1)
+	if (renderer->rendererID == DS_GL_RENDERER_ID ||
+		renderer->rendererID == DS_GLES_RENDERER_ID)
 	{
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, application->renderer->surfaceSamples);
-	}
-	else
-	{
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+		setGLAttributes(renderer);
 	}
 
 	// Need to destroy the SDL windows before restarting video for X11 below.
@@ -1150,7 +1156,6 @@ static void updateWindowSamples(dsApplication* application, uint64_t eventTime)
 		dsSDLWindow_destroyComponents(application->windows[i]);
 
 #if !DS_WINDOWS && !DS_APPLE && !DS_ANDROID
-	dsRenderer* renderer = application->renderer;
 	if (renderer->platform != dsGfxPlatform_Wayland && renderer->surfaceConfig)
 	{
 		// Need to update visual ID.
@@ -1159,6 +1164,8 @@ static void updateWindowSamples(dsApplication* application, uint64_t eventTime)
 		SDL_SetHintWithPriority(SDL_HINT_VIDEO_X11_WINDOW_VISUALID, visualId, SDL_HINT_OVERRIDE);
 	}
 #endif
+
+	// TODO: Change display mode based on color format.
 
 	// Re-create the windows with the new samples.
 	for (unsigned int i = 0; i < application->windowCount; ++i)
@@ -1779,9 +1786,9 @@ bool dsSDLApplication_iterate(dsApplication* application)
 		return false;
 	}
 
-	// If the samples have changed, need to re-create the windows. Do between update and draw
-	// since update is most likely to have changed the samples.
-	updateWindowSamples(application, dsTimer_currentTicks());
+	// If the surface defaults have changed, need to re-create the windows. Do between update and
+	// draw since update is most likely to have changed the format.
+	updateWindowFormat(application, dsTimer_currentTicks());
 
 	DS_PROFILE_SCOPE_START("Draw");
 	uint32_t swapSurfaceCount = 0;

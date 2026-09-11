@@ -17,14 +17,19 @@
 #include <DeepSea/Render/RenderSurface.h>
 
 #include "GPUProfileContext.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Math/Matrix22.h>
 #include <DeepSea/Math/Matrix44.h>
+
+#include <DeepSea/Render/RenderSurfaceHint.h>
+
 #include <stdio.h>
 
 #define SCOPE_SIZE 256
@@ -280,6 +285,38 @@ bool dsRenderSurface_rotateScissor(dsAlignedBox2f* result, const dsAlignedBox2f*
 			errno = EINVAL;
 			return false;
 	}
+}
+
+int dsRenderSurface_isSupported(
+	const dsRenderer* renderer, void* displayHandle, void* osHandle, dsRenderSurfaceType type)
+{
+	if (!renderer)
+		return -1;
+
+	if (!renderer->renderSurfaceSupportsFormatFunc)
+		return true;
+
+	dsRenderSurfaceHint hint;
+	DS_VERIFY(dsRenderSurfaceHint_fromFormats(&hint, renderer->surfaceColorFormat,
+		renderer->surfaceDepthStencilFormat, renderer->surfaceColorSpace, true));
+	return renderer->renderSurfaceSupportsFormatFunc(
+		renderer, displayHandle, osHandle, type, &hint, renderer->surfaceSamples);
+}
+
+int dsRenderSurface_supportsFormat(const dsRenderer* renderer, void* displayHandle, void* osHandle,
+	dsRenderSurfaceType type, const dsRenderSurfaceHint* formatHint, uint32_t samples)
+{
+	if (!renderer || !formatHint)
+		return -1;
+
+	if (samples > renderer->maxSurfaceSamples)
+		return false;
+
+	if (!renderer->renderSurfaceSupportsFormatFunc)
+		return dsRenderSurfaceHint_colorFormat(formatHint, false, false) != dsGfxFormat_Unknown;
+
+	return renderer->renderSurfaceSupportsFormatFunc(
+		renderer, displayHandle, osHandle, type, formatHint, samples);
 }
 
 dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,

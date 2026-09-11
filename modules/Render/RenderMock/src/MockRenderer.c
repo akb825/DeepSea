@@ -63,10 +63,12 @@ bool dsMockRenderer_endFrame(dsRenderer* renderer)
 	return true;
 }
 
-bool dsMockRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
+bool dsMockRenderer_setSurfaceFormat(
+	dsRenderer* renderer, const dsRenderSurfaceHint* formatHint, uint32_t samples)
 {
 	DS_ASSERT(renderer);
 	DS_UNUSED(renderer);
+	DS_UNUSED(formatHint);
 	DS_UNUSED(samples);
 
 	return true;
@@ -460,6 +462,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 
 	renderer->destroyFunc = &dsMockRenderer_destroy;
 
+	renderer->renderSurfaceSupportsFormatFunc = NULL; // Default checks if format enum is valid.
 	renderer->createRenderSurfaceFunc = &dsMockRenderSurface_create;
 	renderer->destroyRenderSurfaceFunc = &dsMockRenderSurface_destroy;
 	renderer->updateRenderSurfaceFunc = &dsMockRenderSurface_update;
@@ -485,7 +488,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 
 	renderer->beginFrameFunc = &dsMockRenderer_beginFrame;
 	renderer->endFrameFunc = &dsMockRenderer_endFrame;
-	renderer->setSurfaceSamplesFunc = &dsMockRenderer_setSurfaceSamples;
+	renderer->setSurfaceFormatFunc = &dsMockRenderer_setSurfaceFormat;
 	renderer->setDefaultSamplesFunc = &dsMockRenderer_setDefaultSamples;
 	renderer->setVSyncFunc = &dsMockRenderer_setVSync;
 	renderer->setDefaultAnisotropyFunc = &dsMockRenderer_setDefaultAnisotropy;

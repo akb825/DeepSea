@@ -15,6 +15,7 @@
  */
 
 #include "Fixtures/AssetFixtureBase.h"
+
 #include <DeepSea/Render/Resources/DrawGeometry.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
@@ -30,6 +31,8 @@
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderPass.h>
 #include <DeepSea/Render/RenderSurface.h>
+#include <DeepSea/Render/RenderSurfaceHint.h>
+
 #include <gtest/gtest.h>
 
 class RendererTest : public AssetFixtureBase
@@ -111,11 +114,18 @@ TEST_F(RendererTest, BeginEndFrame)
 	EXPECT_TRUE(dsRenderer_beginFrame(renderer));
 }
 
-TEST_F(RendererTest, SetSurfaceSamples)
+TEST_F(RendererTest, SetSurfaceFormat)
 {
-	EXPECT_FALSE(dsRenderer_setSurfaceSamples(nullptr, 1));
-	EXPECT_FALSE(dsRenderer_setSurfaceSamples(renderer, renderer->maxSurfaceSamples + 1));
-	EXPECT_TRUE(dsRenderer_setSurfaceSamples(renderer, renderer->maxSurfaceSamples));
+	EXPECT_FALSE(dsRenderer_setSurfaceFormat(nullptr, nullptr, 1));
+	EXPECT_FALSE(dsRenderer_setSurfaceFormat(renderer, nullptr, renderer->maxSurfaceSamples + 1));
+	EXPECT_TRUE(dsRenderer_setSurfaceFormat(renderer, nullptr, renderer->maxSurfaceSamples));
+
+	dsRenderSurfaceHint hint;
+	ASSERT_TRUE(dsRenderSurfaceHint_fromFormats(&hint, renderer->surfaceColorFormat,
+		renderer->surfaceDepthStencilFormat, renderer->surfaceColorSpace, false));
+	EXPECT_TRUE(dsRenderer_setSurfaceFormat(renderer, &hint, 1));
+	hint.redBits = 100;
+	EXPECT_FALSE(dsRenderer_setSurfaceFormat(renderer, &hint, 1));
 }
 
 TEST_F(RendererTest, SetDefaultSamples)

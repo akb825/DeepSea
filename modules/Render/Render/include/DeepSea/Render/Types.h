@@ -767,6 +767,9 @@ typedef struct dsAttachmentInfo
 
 	/**
 	 * @brief The format of the attachment.
+	 *
+	 * This may be dsGfxFormat_SurfaceColor or dsGfxFormat_SurfaceDepthStencil to use the default
+	 * color or depth/stencil format.
 	 */
 	dsGfxFormat format;
 
@@ -1481,8 +1484,8 @@ typedef bool (*dsIsRendererSupportedFunction)(void);
  *     initial value is the capacity of outDevices.
  * @return False if an error occurred.
  */
-typedef bool (*dsQueryRenderDevicesFunction)(dsRenderDeviceInfo* outDevices,
-	uint32_t* outDeviceCount);
+typedef bool (*dsQueryRenderDevicesFunction)(
+	dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount);
 
 /**
  * @brief Function for creating a renderer.
@@ -1493,8 +1496,8 @@ typedef bool (*dsQueryRenderDevicesFunction)(dsRenderDeviceInfo* outDevices,
  * @param options The options for the renderer.
  * @return The renderer, or NULL if an error occurred.
  */
-typedef dsRenderer* (*dsCreateRendererFunction)(dsAllocator* allocator,
-	const dsRendererOptions* options);
+typedef dsRenderer* (*dsCreateRendererFunction)(
+	dsAllocator* allocator, const dsRendererOptions* options);
 
 /**
  * @brief Function for destroying a renderer.
@@ -1511,11 +1514,28 @@ typedef bool (*dsDestroyRendererFunction)(dsRenderer* renderer);
 typedef void (*dsSetExtraRendererDebuggingFunction)(dsRenderer* renderer, bool enable);
 
 /**
+ * @brief Function to check if a render surface will support a given format.
+ * @param renderer The renderer the render surface would be created with.
+ * @param displayHandle The handle to the display the surface is associated with.
+ * @param osHandle The OS handle, such as window handle.
+ * @param type The type of the render surface.
+ * @param formatHint The hint for the render surface format, either currently in use or may be set
+ *     later.
+ * @param samples The number of anit-alias samples used for the render surface.
+ * @return 1 if the surface is supported, 0 if the surface is unsupported, or -1 if it can't be
+ *     determined.
+ */
+typedef int (*dsRenderSurfaceSupportsFormatFunction)(const dsRenderer* renderer,
+	void* displayHandle, void* osHandle, dsRenderSurfaceType type,
+	const dsRenderSurfaceHint* formatHint, uint32_t samples);
+
+/**
  * @brief Function for creating a render surface.
  * @param renderer The renderer to use the render surface with.
  * @param allocator The allocator to create the render surface.
  * @param name The name of the render surface, used for profiling info. Implementations should
  *     copy the string and store it with the render surface.
+ * @param displayHandle The handle to the display the surface is associated with.
  * @param osHandle The OS handle, such as window handle.
  * @param type The type of the render surface.
  * @param usage Flags to determine how the render surface will be used.
@@ -1749,12 +1769,28 @@ typedef bool (*dsBeginFrameFunction)(dsRenderer* renderer);
 typedef bool (*dsEndFrameFunction)(dsRenderer* renderer);
 
 /**
+ * @brief Function for setting the render surface format and number of anti-alias samples.
+ *
+ * This should set the default values on the renderer on success. The implementation is responsible
+ * for making any necessary changse to the render passes when the attachment info is set to use a
+ * render surface color or depth/stencil format or number of samples. The caller is responsible for
+ * re-creating any render surfaces, offscreens, renderbuffers, and framebuffers.
+ *
+ * @param renderer The renderer.
+ * @param formatHint The format hint or NULL to leave unchanged.
+ * @param samples The number of anti-alias samples.
+ * @return False if the surface format or number of samples couldn't be set.
+ */
+typedef bool (*dsSetRenderSurfaceFormatFunction)(
+	dsRenderer* renderer, const dsRenderSurfaceHint* formatHint, uint32_t samples);
+
+/**
  * @brief Function for setting the number of anti-alias samples.
  *
  * This should set the default value on the renderer on success. The implementation is responsible
  * for making any necessary changse to the render passes when the attachment info is set to
- * DS_SURFACE_ANTIALIAS_SAMPLES or DS_DEFAULT_ANTIALIAS_SAMPLES. The caller is responsible for
- * re-creating any render surfaces, offscreens, renderbuffers, and framebuffers.
+ * DS_DEFAULT_ANTIALIAS_SAMPLES. The caller is responsible for re-creating any offscreens,
+ * renderbuffers, and framebuffers.
  *
  * @param renderer The renderer.
  * @param samples The number of anti-alias samples.
@@ -2285,6 +2321,11 @@ typedef struct dsRenderer
 	dsSetExtraRendererDebuggingFunction setExtraDebuggingFunc;
 
 	/**
+	 * @brief Function to check whether a render surface supports a format.
+	 */
+	dsRenderSurfaceSupportsFormatFunction renderSurfaceSupportsFormatFunc;
+
+	/**
 	 * @brief Render surface creation function.
 	 */
 	dsCreateRenderSurfaceFunction createRenderSurfaceFunc;
@@ -2390,9 +2431,9 @@ typedef struct dsRenderer
 	dsEndFrameFunction endFrameFunc;
 
 	/**
-	 * @brief Surface anti-alias sample set function.
+	 * @brief Surface format and anti-alias sample set function.
 	 */
-	dsSetRenderSamplesFunction setSurfaceSamplesFunc;
+	dsSetRenderSurfaceFormatFunction setSurfaceFormatFunc;
 
 	/**
 	 * @brief Default anti-alias sample set function.

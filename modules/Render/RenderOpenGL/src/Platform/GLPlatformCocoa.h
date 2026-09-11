@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2025 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,8 @@ void* dsCreateDummyCocoaGLSurface(
 	dsAllocator* allocator, void* display, void* config, void** osSurface);
 void dsDestroyDummyCocoaGLSurface(void* display, void* surface, void* osSurface);
 
+int dsIsCocoaGLSurfaceValid(
+	void* display, dsRenderSurfaceType surfaceType, void* handle, const dsRendererOptions* options);
 void* dsCreateCocoaGLSurface(dsAllocator* allocator, void* display, void* config,
 	dsRenderSurfaceType surfaceType, void* handle);
 bool dsGetCocoaGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,

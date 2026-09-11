@@ -273,8 +273,8 @@ static MTLRenderPassDescriptor* createRenderPassDescriptor(const dsRenderPass* r
 		const dsFramebufferSurface* surface =
 			framebuffer->surfaces + colorAttachment->attachmentIndex;
 		const dsMTLAttachmentInfo* attachmentInfo = subpassInfo->colorAttachments + i;
-		setAttachmentSurface(colorDescriptor, surface, attachmentInfo, colorAttachment->resolve,
-			false);
+		setAttachmentSurface(
+			colorDescriptor, surface, attachmentInfo, colorAttachment->resolve, false);
 		if (attachmentInfo->loadAction == MTLLoadActionClear)
 		{
 			dsGfxFormat format = dsFramebuffer_getSurfaceFormat(commandBuffer->renderer, surface);

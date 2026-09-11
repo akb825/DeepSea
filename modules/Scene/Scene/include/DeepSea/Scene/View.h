@@ -279,8 +279,8 @@ DS_SCENE_EXPORT bool dsView_setCameraMatrix(dsView* view, const dsMatrix44f* cam
  * @param far The far plane.
  * @return False if the parameters are invalid.
  */
-DS_SCENE_EXPORT bool dsView_setOrthoProjection(dsView* view, float left, float right, float bottom,
-	float top, float near, float far);
+DS_SCENE_EXPORT bool dsView_setOrthoProjection(
+	dsView* view, float left, float right, float bottom, float top, float near, float far);
 
 /**
  * @brief Sets a frustum projection.
@@ -297,8 +297,8 @@ DS_SCENE_EXPORT bool dsView_setOrthoProjection(dsView* view, float left, float r
  * @param far The far plane. This may be INFINITY.
  * @return False if the parameters are invalid.
  */
-DS_SCENE_EXPORT bool dsView_setFrustumProjection(dsView* view, float left, float right,
-	float bottom, float top, float near, float far);
+DS_SCENE_EXPORT bool dsView_setFrustumProjection(
+	dsView* view, float left, float right, float bottom, float top, float near, float far);
 
 /**
  * @brief Sets a perspective projection.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,15 +48,17 @@ dsRenderbuffer* dsRenderbuffer_create(dsResourceManager* resourceManager, dsAllo
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
+	const dsRenderer* renderer = resourceManager->renderer;
 	if (!allocator)
 		allocator = resourceManager->allocator;
 
+	format = dsGfxFormat_resolve(renderer, format);
 	if (samples == DS_SURFACE_ANTIALIAS_SAMPLES)
-		samples = resourceManager->renderer->surfaceSamples;
+		samples = renderer->surfaceSamples;
 	else if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
-		samples = resourceManager->renderer->defaultSamples;
+		samples = renderer->defaultSamples;
 	samples = dsMax(1U, samples);
-	if (samples > resourceManager->renderer->maxSurfaceSamples)
+	if (samples > renderer->maxSurfaceSamples)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Surface samples is above the maximum.");

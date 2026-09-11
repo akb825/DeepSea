@@ -142,6 +142,72 @@ static bool hasExtension(const char* extensions, const char* extension)
 	return false;
 }
 
+static EGLConfig chooseConfig(GLint* outVersion, EGLDisplay* display,
+	const dsRendererOptions* options, GLContextType contextType)
+{
+	unsigned int optionCount = 0;
+	GLint attr[MAX_OPTION_SIZE];
+	addOption(attr, &optionCount, EGL_RENDERABLE_TYPE, 0);
+	GLint surfaces = EGL_WINDOW_BIT;
+	// Use pbuffer as a dummy surface.
+	if (contextType == GLContextType_SharedDummySurface)
+		surfaces |= EGL_PBUFFER_BIT;
+	addOption(attr, &optionCount, EGL_SURFACE_TYPE, surfaces);
+	if (contextType == GLContextType_Render)
+	{
+		addOption(attr, &optionCount, EGL_RED_SIZE, options->renderSurfaceHint.redBits);
+		addOption(attr, &optionCount, EGL_GREEN_SIZE, options->renderSurfaceHint.greenBits);
+		addOption(attr, &optionCount, EGL_BLUE_SIZE, options->renderSurfaceHint.blueBits);
+		addOption(attr, &optionCount, EGL_ALPHA_SIZE, options->renderSurfaceHint.alphaBits);
+		addOption(attr, &optionCount, EGL_DEPTH_SIZE, options->renderSurfaceHint.depthBits);
+		addOption(attr, &optionCount, EGL_STENCIL_SIZE, options->renderSurfaceHint.stencilBits);
+		if (atLeastVersion(1, 5) &&
+			options->renderSurfaceHint.colorSpace == dsRenderColorSpace_NonLinearSRGBConverting)
+		{
+			addOption(attr, &optionCount, EGL_GL_COLORSPACE, EGL_GL_COLORSPACE_SRGB);
+		}
+		if (options->surfaceSamples > 1)
+		{
+			addOption(attr, &optionCount, EGL_SAMPLE_BUFFERS, 1);
+			addOption(attr, &optionCount, EGL_SAMPLES, options->surfaceSamples);
+		}
+	}
+	else
+	{
+		addOption(attr, &optionCount, EGL_RED_SIZE, 0);
+		addOption(attr, &optionCount, EGL_GREEN_SIZE, 0);
+		addOption(attr, &optionCount, EGL_BLUE_SIZE, 0);
+		addOption(attr, &optionCount, EGL_ALPHA_SIZE, 0);
+		addOption(attr, &optionCount, EGL_DEPTH_SIZE, 0);
+		addOption(attr, &optionCount, EGL_STENCIL_SIZE, 0);
+	}
+
+	DS_ASSERT(optionCount < MAX_OPTION_SIZE);
+	attr[optionCount] = EGL_NONE;
+
+#if ANYGL_GLES
+#if ANYGL_GLES_VERSION >= 30
+	GLint versions[] = {EGL_OPENGL_ES3_BIT, EGL_OPENGL_ES2_BIT};
+#else
+	GLint versions[] = {EGL_OPENGL_ES3_BIT};
+#endif
+#else
+	GLint versions[] = {EGL_OPENGL_BIT};
+#endif
+	*outVersion = 0;
+	EGLConfig eglConfig = NULL;
+	for (size_t i = 0; i < DS_ARRAY_SIZE(versions); ++i)
+	{
+		*outVersion = versions[i];
+		attr[1] = *outVersion;
+		GLint configCount = 0;
+		if (eglChooseConfigFunc(display, attr, &eglConfig, 1, &configCount) && configCount > 0)
+			break;
+	}
+
+	return eglConfig;
+}
+
 bool dsEGLInitialize(void)
 {
 	if (eglLibrary)
@@ -253,65 +319,11 @@ void* dsCreateEGLConfig(dsAllocator* allocator, void* display, const dsRendererO
 		return NULL;
 	}
 
-	unsigned int optionCount = 0;
-	GLint attr[MAX_OPTION_SIZE];
-	addOption(attr, &optionCount, EGL_RENDERABLE_TYPE, 0);
-	GLint surfaces = EGL_WINDOW_BIT;
-	// Use pbuffer as a dummy surface.
-	if (contextType == GLContextType_SharedDummySurface)
-		surfaces |= EGL_PBUFFER_BIT;
-	addOption(attr, &optionCount, EGL_SURFACE_TYPE, surfaces);
-	addOption(attr, &optionCount, EGL_RED_SIZE, options->renderSurfaceHint.redBits);
-	addOption(attr, &optionCount, EGL_GREEN_SIZE, options->renderSurfaceHint.greenBits);
-	addOption(attr, &optionCount, EGL_BLUE_SIZE, options->renderSurfaceHint.blueBits);
-	addOption(attr, &optionCount, EGL_ALPHA_SIZE, options->renderSurfaceHint.alphaBits);
-	addOption(attr, &optionCount, EGL_DEPTH_SIZE, options->renderSurfaceHint.depthBits);
-	addOption(attr, &optionCount, EGL_STENCIL_SIZE, options->renderSurfaceHint.stencilBits);
-	if (contextType == GLContextType_Render && options->surfaceSamples > 1)
-	{
-		addOption(attr, &optionCount, EGL_SAMPLE_BUFFERS, 1);
-		addOption(attr, &optionCount, EGL_SAMPLES, options->surfaceSamples);
-	}
-	else
-	{
-		addOption(attr, &optionCount, EGL_SAMPLE_BUFFERS, 0);
-		addOption(attr, &optionCount, EGL_SAMPLES, 0);
-	}
-	if (atLeastVersion(1, 5) &&
-		options->renderSurfaceHint.colorSpace == dsRenderColorSpace_NonLinearSRGBConverting)
-	{
-		addOption(attr, &optionCount, EGL_GL_COLORSPACE, EGL_GL_COLORSPACE_SRGB);
-	}
-
-	DS_ASSERT(optionCount < MAX_OPTION_SIZE);
-	attr[optionCount] = EGL_NONE;
-
-#if ANYGL_GLES
-#if ANYGL_GLES_VERSION >= 30
-	GLint versions[] = {EGL_OPENGL_ES3_BIT, EGL_OPENGL_ES2_BIT};
-#else
-	GLint versions[] = {EGL_OPENGL_ES3_BIT};
-#endif
-#else
-	GLint versions[] = {EGL_OPENGL_BIT};
-#endif
-	GLint version = 0;
-	EGLConfig eglConfig = NULL;
-	for (size_t i = 0; i < DS_ARRAY_SIZE(versions); ++i)
-	{
-		version = versions[i];
-		attr[1] = version;
-		GLint configCount = 0;
-		if (eglChooseConfigFunc((EGLDisplay)display, attr, &eglConfig, 1, &configCount) &&
-			configCount > 0)
-		{
-			break;
-		}
-	}
-
+	GLint version;
+	EGLConfig* eglConfig = chooseConfig(&version, (EGLDisplay)display, options, contextType);
 	if (!eglConfig)
 	{
-		errno = ENOTFOUND;
+		errno = EPERM;
 		return NULL;
 	}
 
@@ -436,6 +448,18 @@ void dsDestroyDummyEGLSurface(void* display, void* surface, void* osSurface)
 		return;
 
 	eglDestroySurfaceFunc((EGLDisplay)display, (EGLSurface)surface);
+}
+
+int dsIsEGLSurfaceValid(
+	void* display, dsRenderSurfaceType surfaceType, void* handle, const dsRendererOptions* options)
+{
+	DS_UNUSED(surfaceType);
+	DS_UNUSED(handle);
+	if (!display)
+		return -1;
+
+	GLint version;
+	return chooseConfig(&version, (EGLDisplay)display, options, GLContextType_Render) != NULL;
 }
 
 void* dsCreateEGLSurface(dsAllocator* allocator, void* display, void* config,

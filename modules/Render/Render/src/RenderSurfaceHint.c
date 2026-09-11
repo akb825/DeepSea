@@ -42,7 +42,7 @@ bool dsRenderSurfaceHint_default(dsRenderSurfaceHint* hint)
 
 bool dsRenderSurfaceHint_fromFormats(dsRenderSurfaceHint* hint,
 	dsGfxFormat colorFormat, dsGfxFormat depthStencilFormat, dsRenderColorSpace colorSpace,
-	bool explicit)
+	bool explicitFormats)
 {
 	if (!hint || colorSpace < dsRenderColorSpace_NonLinearSRGB ||
 		colorSpace > dsRenderColorSpace_Rec2100PQ)
@@ -186,7 +186,7 @@ bool dsRenderSurfaceHint_fromFormats(dsRenderSurfaceHint* hint,
 	}
 
 	hint->colorSpace = colorSpace;
-	if (explicit)
+	if (explicitFormats)
 	{
 		hint->forcedColorFormat = colorFormat;
 		hint->forcedDepthStencilFormat = depthStencilFormat;

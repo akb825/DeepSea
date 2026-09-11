@@ -19,10 +19,16 @@
 #include <DeepSea/Core/Config.h>
 #include "MTLTypes.h"
 
+dsGfxFormat dsMTLRenderer_surfaceColorFormat(const dsRenderSurfaceHint* hint);
+dsGfxFormat dsMTLRenderer_surfaceDepthStencilFormat(
+	const dsRenderer* renderer, const dsRenderSurfaceHint* hint);
+bool dsMTLRenderer_canUseRenderSurfaceFormat(const dsRenderer* renderer, dsGfxFormat colorFormat,
+	dsRenderColorSpace colorSpace, dsGfxFormat depthFormat, bool reportErrors);
+
 uint64_t dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extraCommands);
 uint64_t dsMTLRenderer_getFinishedSubmitCount(const dsRenderer* renderer);
-dsGfxFenceResult dsMTLRenderer_waitForSubmit(const dsRenderer* renderer, uint64_t submitCount,
-	unsigned int milliseconds);
+dsGfxFenceResult dsMTLRenderer_waitForSubmit(
+	const dsRenderer* renderer, uint64_t submitCount, unsigned int milliseconds);
 void dsMTLRenderer_processBuffer(dsRenderer* renderer, dsMTLGfxBufferData* buffer);
 void dsMTLRenderer_processTexture(dsRenderer* renderer, dsTexture* texture);
 id<MTLRenderPipelineState> dsMTLRenderer_getClearPipeline(dsRenderer* renderer,

@@ -1337,8 +1337,25 @@ bool dsVkRenderer_endFrame(dsRenderer* renderer)
 	return true;
 }
 
-bool dsVkRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
+bool dsVkRenderer_setSurfaceFormat(
+	dsRenderer* renderer, const dsRenderSurfaceHint* formatHint, uint32_t samples)
 {
+	if (formatHint)
+	{
+		dsGfxFormat colorFormat = dsVkRenderer_surfaceColorFormat(renderer, formatHint);
+		dsRenderColorSpace colorSpace = formatHint->colorSpace;
+		dsGfxFormat depthFormat = dsVkRenderer_surfaceDepthStencilFormat(renderer, formatHint);
+		if (!dsVkRenderer_canUseRenderSurfaceFormat(
+				renderer, colorFormat, colorSpace, depthFormat, true))
+		{
+			return false;
+		}
+
+		renderer->surfaceColorFormat = colorFormat;
+		renderer->surfaceColorSpace = colorSpace;
+		renderer->surfaceDepthStencilFormat = depthFormat;
+	}
+
 	renderer->surfaceSamples = samples;
 	return true;
 }
@@ -1430,8 +1447,9 @@ bool dsVkRenderer_clearAttachments(dsRenderer* renderer, dsCommandBuffer* comman
 	VkImageAspectFlags depthStencilAspect = 0;
 	if (subpass->depthStencilAttachment.attachmentIndex != DS_NO_ATTACHMENT)
 	{
-		depthStencilAspect = dsVkImageAspectFlags(
-			renderPass->attachments[subpass->depthStencilAttachment.attachmentIndex].format);
+		dsGfxFormat format = dsGfxFormat_resolve(
+			renderer, renderPass->attachments[subpass->depthStencilAttachment.attachmentIndex].format);
+		depthStencilAspect = dsVkImageAspectFlags(format);
 	}
 
 	uint32_t vkAttachmentCount = 0;
@@ -1951,8 +1969,8 @@ bool dsVkRenderer_destroy(dsRenderer* renderer)
 	return true;
 }
 
-bool dsVkRenderer_pushDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const char* name)
+bool dsVkRenderer_pushDebugGroup(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const char* name)
 {
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	dsVkInstance* instance = &device->instance;
@@ -2172,53 +2190,23 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->hasFragmentInputs = false;
 	baseRenderer->strictRenderPassSecondaryCommands = true;
 
-	baseRenderer->resourceManager = dsVkResourceManager_create(allocator, renderer,
-		options->shaderCacheDir);
+	baseRenderer->resourceManager = dsVkResourceManager_create(
+		allocator, renderer, options->shaderCacheDir);
 	if (!baseRenderer->resourceManager)
 	{
 		dsVkRenderer_destroy(baseRenderer);
 		return NULL;
 	}
 
-	dsGfxFormat colorFormat = dsRenderSurfaceHint_colorFormat(
-		&options->renderSurfaceHint, useBGRSurface(baseRenderer->deviceName), true);
-	if (!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, colorFormat))
-	{
-		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Can't draw to surface color format.");
-		dsVkRenderer_destroy(baseRenderer);
-		errno = EPERM;
-		return NULL;
-	}
-
+	dsGfxFormat colorFormat = dsVkRenderer_surfaceColorFormat(
+		baseRenderer, &options->renderSurfaceHint);
 	dsRenderColorSpace colorSpace = options->renderSurfaceHint.colorSpace;
-	if (colorSpace >= dsRenderColorSpace_ExtendedLinearSRGB &&
-		!device->instance.hasColorSpace)
+	dsGfxFormat depthFormat = dsVkRenderer_surfaceDepthStencilFormat(
+		baseRenderer, &options->renderSurfaceHint);
+	if (!dsVkRenderer_canUseRenderSurfaceFormat(
+			baseRenderer, colorFormat, colorSpace, depthFormat, true))
 	{
-		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Can't draw to surface color space.");
 		dsVkRenderer_destroy(baseRenderer);
-		errno = EPERM;
-		return NULL;
-	}
-
-	dsGfxFormat depthFormat = dsRenderSurfaceHint_depthStencilFormat(&options->renderSurfaceHint);
-	// AMD doesn't support 24-bit dpeth.
-	if (depthFormat == dsGfxFormat_D24S8 &&
-		!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, depthFormat))
-	{
-		depthFormat = dsGfxFormat_D32S8_Float;
-	}
-	else if (depthFormat == dsGfxFormat_X8D24 &&
-		!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, depthFormat))
-	{
-		depthFormat = dsGfxFormat_D32_Float;
-	}
-
-	if (depthFormat != dsGfxFormat_Unknown &&
-		!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, depthFormat))
-	{
-		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Can't draw to surface depth format.");
-		dsVkRenderer_destroy(baseRenderer);
-		errno = EPERM;
 		return NULL;
 	}
 
@@ -2243,6 +2231,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->destroyFunc = &dsVkRenderer_destroy;
 
 	// Render surfaces
+	baseRenderer->renderSurfaceSupportsFormatFunc = &dsVkRenderSurface_supportsFormat;
 	baseRenderer->createRenderSurfaceFunc = &dsVkRenderSurface_create;
 	baseRenderer->destroyRenderSurfaceFunc = &dsVkRenderSurface_destroy;
 	baseRenderer->updateRenderSurfaceFunc = &dsVkRenderSurface_update;
@@ -2272,7 +2261,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	// Renderer
 	baseRenderer->beginFrameFunc = &dsVkRenderer_beginFrame;
 	baseRenderer->endFrameFunc = &dsVkRenderer_endFrame;
-	baseRenderer->setSurfaceSamplesFunc = &dsVkRenderer_setSurfaceSamples;
+	baseRenderer->setSurfaceFormatFunc = &dsVkRenderer_setSurfaceFormat;
 	baseRenderer->setDefaultSamplesFunc = &dsVkRenderer_setDefaultSamples;
 	baseRenderer->setVSyncFunc = &dsVkRenderer_setVSync;
 	baseRenderer->setDefaultAnisotropyFunc = &dsVkRenderer_setDefaultAnisotropy;
@@ -2295,6 +2284,70 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	DS_VERIFY(dsRenderer_initializeResources(baseRenderer));
 
 	return baseRenderer;
+}
+
+dsGfxFormat dsVkRenderer_surfaceColorFormat(
+	const dsRenderer* renderer, const dsRenderSurfaceHint* hint)
+{
+	return dsRenderSurfaceHint_colorFormat(hint, useBGRSurface(renderer->deviceName), true);
+}
+
+dsGfxFormat dsVkRenderer_surfaceDepthStencilFormat(
+	const dsRenderer* renderer, const dsRenderSurfaceHint* hint)
+{
+	dsGfxFormat depthFormat = dsRenderSurfaceHint_depthStencilFormat(hint);
+	// AMD doesn't support 24-bit dpeth.
+	if (depthFormat == dsGfxFormat_D24S8 &&
+		!dsGfxFormat_renderTargetSupported(renderer->resourceManager, depthFormat))
+	{
+		return dsGfxFormat_D32S8_Float;
+	}
+	else if (depthFormat == dsGfxFormat_X8D24 &&
+		!dsGfxFormat_renderTargetSupported(renderer->resourceManager, depthFormat))
+	{
+		return dsGfxFormat_D32_Float;
+	}
+
+	return depthFormat;
+}
+
+bool dsVkRenderer_canUseRenderSurfaceFormat(const dsRenderer* renderer, dsGfxFormat colorFormat,
+	dsRenderColorSpace colorSpace, dsGfxFormat depthFormat, bool reportErrors)
+{
+	const dsVkRenderer* vkRenderer = (const dsVkRenderer*)renderer;
+	if (!dsGfxFormat_renderTargetSupported(renderer->resourceManager, colorFormat))
+	{
+		if (reportErrors)
+		{
+			DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Can't draw to surface color format.");
+			errno = EPERM;
+		}
+		return false;
+	}
+
+	if (colorSpace >= dsRenderColorSpace_ExtendedLinearSRGB &&
+		!vkRenderer->device.instance.hasColorSpace)
+	{
+		if (reportErrors)
+		{
+			DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Can't draw to surface color space.");
+			errno = EPERM;
+		}
+		return false;
+	}
+
+	if (depthFormat != dsGfxFormat_Unknown &&
+		!dsGfxFormat_renderTargetSupported(renderer->resourceManager, depthFormat))
+	{
+		if (reportErrors)
+		{
+			DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Can't draw to surface depth format.");
+			errno = EPERM;
+		}
+		return false;
+	}
+
+	return true;
 }
 
 void dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback,

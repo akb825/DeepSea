@@ -34,18 +34,21 @@ TEST_F(GfxFormatTest, IsValid)
 	EXPECT_FALSE(dsGfxFormat_isValid(dsGfxFormat_ETC1));
 	EXPECT_TRUE(dsGfxFormat_isValid(dsGfxFormat_decorate(dsGfxFormat_ETC1, dsGfxFormat_UNorm)));
 
-	EXPECT_FALSE(dsGfxFormat_isValid((dsGfxFormat)(dsGfxFormat_R8G8B8A8 | dsGfxFormat_D16 |
-		dsGfxFormat_UNorm)));
-	EXPECT_FALSE(dsGfxFormat_isValid((dsGfxFormat)(dsGfxFormat_R8G8B8A8 | dsGfxFormat_ETC1 |
-		dsGfxFormat_UNorm)));
-	EXPECT_FALSE(dsGfxFormat_isValid((dsGfxFormat)(dsGfxFormat_D16 | dsGfxFormat_ETC1 |
-		dsGfxFormat_UNorm)));
+	EXPECT_FALSE(dsGfxFormat_isValid(
+		(dsGfxFormat)(dsGfxFormat_R8G8B8A8 | dsGfxFormat_D16 | dsGfxFormat_UNorm)));
+	EXPECT_FALSE(dsGfxFormat_isValid(
+		(dsGfxFormat)(dsGfxFormat_R8G8B8A8 | dsGfxFormat_ETC1 | dsGfxFormat_UNorm)));
+	EXPECT_FALSE(dsGfxFormat_isValid(
+		(dsGfxFormat)(dsGfxFormat_D16 | dsGfxFormat_ETC1 | dsGfxFormat_UNorm)));
+
+	EXPECT_FALSE(dsGfxFormat_isValid(dsGfxFormat_SurfaceColor));
+	EXPECT_FALSE(dsGfxFormat_isValid(dsGfxFormat_SurfaceDepthStencil));
 }
 
 TEST_F(GfxFormatTest, Indices)
 {
-	EXPECT_EQ(6U, dsGfxFormat_standardIndex(dsGfxFormat_decorate(dsGfxFormat_B5G6R5,
-		dsGfxFormat_SInt)));
+	EXPECT_EQ(6U, dsGfxFormat_standardIndex(
+		dsGfxFormat_decorate(dsGfxFormat_B5G6R5, dsGfxFormat_SInt)));
 	EXPECT_EQ(0U, dsGfxFormat_standardIndex(dsGfxFormat_D16));
 	EXPECT_EQ(dsGfxFormat_B5G6R5, dsGfxFormat_standardEnum(6));
 	EXPECT_EQ(dsGfxFormat_Unknown, dsGfxFormat_standardEnum(dsGfxFormat_StandardCount));
@@ -68,10 +71,10 @@ TEST_F(GfxFormatTest, Indices)
 
 TEST_F(GfxFormatTest, Size)
 {
-	EXPECT_EQ(0U, dsGfxFormat_size((dsGfxFormat)(dsGfxFormat_R8G8B8A8 | dsGfxFormat_D16 |
-		dsGfxFormat_UNorm)));
-	EXPECT_EQ(16U, dsGfxFormat_size(dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32W32,
-		dsGfxFormat_Float)));
+	EXPECT_EQ(0U, dsGfxFormat_size(
+		(dsGfxFormat)(dsGfxFormat_R8G8B8A8 | dsGfxFormat_D16 | dsGfxFormat_UNorm)));
+	EXPECT_EQ(16U, dsGfxFormat_size(
+		dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float)));
 	EXPECT_EQ(4U, dsGfxFormat_size(dsGfxFormat_D24S8));
 	EXPECT_EQ(16U, dsGfxFormat_size(dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_SNorm)));
 }
@@ -79,13 +82,13 @@ TEST_F(GfxFormatTest, Size)
 TEST_F(GfxFormatTest, BlockDimensions)
 {
 	unsigned int x, y;
-	EXPECT_FALSE(dsGfxFormat_blockDimensions(&x, &y, (dsGfxFormat)(dsGfxFormat_R8G8B8A8 |
-		dsGfxFormat_D16 | dsGfxFormat_UNorm)));
-	EXPECT_FALSE(dsGfxFormat_blockDimensions(NULL, NULL, dsGfxFormat_decorate(
-		dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float)));
+	EXPECT_FALSE(dsGfxFormat_blockDimensions(
+		&x, &y, (dsGfxFormat)(dsGfxFormat_R8G8B8A8 | dsGfxFormat_D16 | dsGfxFormat_UNorm)));
+	EXPECT_FALSE(dsGfxFormat_blockDimensions(
+		nullptr, nullptr, dsGfxFormat_decorate( dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float)));
 
-	EXPECT_TRUE(dsGfxFormat_blockDimensions(&x, &y, dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32W32,
-		dsGfxFormat_Float)));
+	EXPECT_TRUE(dsGfxFormat_blockDimensions(
+		&x, &y, dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float)));
 	EXPECT_EQ(1U, x);
 	EXPECT_EQ(1U, y);
 
@@ -93,13 +96,13 @@ TEST_F(GfxFormatTest, BlockDimensions)
 	EXPECT_EQ(1U, x);
 	EXPECT_EQ(1U, y);
 
-	EXPECT_TRUE(dsGfxFormat_blockDimensions(&x, &y, dsGfxFormat_decorate(dsGfxFormat_BC3,
-		dsGfxFormat_SNorm)));
+	EXPECT_TRUE(dsGfxFormat_blockDimensions(
+		&x, &y, dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_SNorm)));
 	EXPECT_EQ(4U, x);
 	EXPECT_EQ(4U, y);
 
-	EXPECT_TRUE(dsGfxFormat_blockDimensions(&x, &y, dsGfxFormat_decorate(dsGfxFormat_ASTC_8x5,
-		dsGfxFormat_SNorm)));
+	EXPECT_TRUE(dsGfxFormat_blockDimensions(
+		&x, &y, dsGfxFormat_decorate(dsGfxFormat_ASTC_8x5, dsGfxFormat_SNorm)));
 	EXPECT_EQ(8U, x);
 	EXPECT_EQ(5U, y);
 }
@@ -107,10 +110,10 @@ TEST_F(GfxFormatTest, BlockDimensions)
 TEST_F(GfxFormatTest, MinDimensions)
 {
 	unsigned int x, y;
-	EXPECT_FALSE(dsGfxFormat_minDimensions(&x, &y, (dsGfxFormat)(dsGfxFormat_R8G8B8A8 |
-		dsGfxFormat_D16 | dsGfxFormat_UNorm)));
-	EXPECT_FALSE(dsGfxFormat_minDimensions(NULL, NULL, dsGfxFormat_decorate(
-		dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float)));
+	EXPECT_FALSE(dsGfxFormat_minDimensions(
+		&x, &y, (dsGfxFormat)(dsGfxFormat_R8G8B8A8 | dsGfxFormat_D16 | dsGfxFormat_UNorm)));
+	EXPECT_FALSE(dsGfxFormat_minDimensions(
+		nullptr, nullptr, dsGfxFormat_decorate( dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float)));
 
 	EXPECT_TRUE(dsGfxFormat_minDimensions(&x, &y, dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32W32,
 		dsGfxFormat_Float)));
@@ -121,13 +124,13 @@ TEST_F(GfxFormatTest, MinDimensions)
 	EXPECT_EQ(1U, x);
 	EXPECT_EQ(1U, y);
 
-	EXPECT_TRUE(dsGfxFormat_minDimensions(&x, &y, dsGfxFormat_decorate(dsGfxFormat_BC3,
-		dsGfxFormat_SNorm)));
+	EXPECT_TRUE(dsGfxFormat_minDimensions(
+		&x, &y, dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_SNorm)));
 	EXPECT_EQ(4U, x);
 	EXPECT_EQ(4U, y);
 
-	EXPECT_TRUE(dsGfxFormat_minDimensions(&x, &y, dsGfxFormat_decorate(dsGfxFormat_ASTC_8x5,
-		dsGfxFormat_SNorm)));
+	EXPECT_TRUE(dsGfxFormat_minDimensions(
+		&x, &y, dsGfxFormat_decorate(dsGfxFormat_ASTC_8x5, dsGfxFormat_SNorm)));
 	EXPECT_EQ(8U, x);
 	EXPECT_EQ(5U, y);
 }
@@ -136,8 +139,8 @@ TEST_F(GfxFormatTest, VertexSupported)
 {
 	EXPECT_FALSE(dsGfxFormat_vertexSupported(nullptr, dsGfxFormat_X32));
 	EXPECT_FALSE(dsGfxFormat_vertexSupported(resourceManager, dsGfxFormat_X32));
-	EXPECT_TRUE(dsGfxFormat_vertexSupported(resourceManager, dsGfxFormat_decorate(dsGfxFormat_X32,
-		dsGfxFormat_Float)));
+	EXPECT_TRUE(dsGfxFormat_vertexSupported(
+		resourceManager, dsGfxFormat_decorate(dsGfxFormat_X32, dsGfxFormat_Float)));
 	EXPECT_FALSE(dsGfxFormat_vertexSupported(resourceManager, dsGfxFormat_D16));
 	EXPECT_FALSE(dsGfxFormat_vertexSupported(resourceManager, dsGfxFormat_BC3));
 }
@@ -146,57 +149,57 @@ TEST_F(GfxFormatTest, TextureSupported)
 {
 	EXPECT_FALSE(dsGfxFormat_textureSupported(nullptr, dsGfxFormat_X32));
 	EXPECT_FALSE(dsGfxFormat_textureSupported(resourceManager, dsGfxFormat_X32));
-	EXPECT_TRUE(dsGfxFormat_textureSupported(resourceManager, dsGfxFormat_decorate(dsGfxFormat_X32,
-		dsGfxFormat_Float)));
+	EXPECT_TRUE(dsGfxFormat_textureSupported(
+		resourceManager, dsGfxFormat_decorate(dsGfxFormat_X32, dsGfxFormat_Float)));
 	EXPECT_TRUE(dsGfxFormat_textureSupported(resourceManager, dsGfxFormat_D16));
-	EXPECT_TRUE(dsGfxFormat_textureSupported(resourceManager, dsGfxFormat_decorate(dsGfxFormat_BC3,
-		dsGfxFormat_UNorm)));
+	EXPECT_TRUE(dsGfxFormat_textureSupported(
+		resourceManager, dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm)));
 }
 
 TEST_F(GfxFormatTest, TextureBufferSupported)
 {
 	EXPECT_FALSE(dsGfxFormat_textureBufferSupported(nullptr, dsGfxFormat_X32));
 	EXPECT_FALSE(dsGfxFormat_textureBufferSupported(resourceManager, dsGfxFormat_X32));
-	EXPECT_TRUE(dsGfxFormat_textureBufferSupported(resourceManager,
-		dsGfxFormat_decorate(dsGfxFormat_X32, dsGfxFormat_Float)));
+	EXPECT_TRUE(dsGfxFormat_textureBufferSupported(
+		resourceManager, dsGfxFormat_decorate(dsGfxFormat_X32, dsGfxFormat_Float)));
 	EXPECT_FALSE(dsGfxFormat_textureBufferSupported(resourceManager, dsGfxFormat_D16));
-	EXPECT_FALSE(dsGfxFormat_textureBufferSupported(resourceManager,
-		dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm)));
+	EXPECT_FALSE(dsGfxFormat_textureBufferSupported(
+		resourceManager, dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm)));
 }
 
 TEST_F(GfxFormatTest, ImageSupported)
 {
 	EXPECT_FALSE(dsGfxFormat_imageSupported(nullptr, dsGfxFormat_X32));
 	EXPECT_FALSE(dsGfxFormat_imageSupported(resourceManager, dsGfxFormat_X32));
-	EXPECT_TRUE(dsGfxFormat_imageSupported(resourceManager,
-		dsGfxFormat_decorate(dsGfxFormat_X32, dsGfxFormat_Float)));
+	EXPECT_TRUE(dsGfxFormat_imageSupported(
+		resourceManager, dsGfxFormat_decorate(dsGfxFormat_X32, dsGfxFormat_Float)));
 	EXPECT_TRUE(dsGfxFormat_imageSupported(resourceManager, dsGfxFormat_B10G11R11_UFloat));
 	EXPECT_FALSE(dsGfxFormat_imageSupported(resourceManager, dsGfxFormat_D16));
-	EXPECT_FALSE(dsGfxFormat_imageSupported(resourceManager,
-		dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm)));
+	EXPECT_FALSE(dsGfxFormat_imageSupported(
+		resourceManager, dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm)));
 }
 
 TEST_F(GfxFormatTest, RenderTargetSupported)
 {
 	EXPECT_FALSE(dsGfxFormat_renderTargetSupported(nullptr, dsGfxFormat_X32));
 	EXPECT_FALSE(dsGfxFormat_renderTargetSupported(resourceManager, dsGfxFormat_X32));
-	EXPECT_TRUE(dsGfxFormat_renderTargetSupported(resourceManager,
-		dsGfxFormat_decorate(dsGfxFormat_X32, dsGfxFormat_Float)));
+	EXPECT_TRUE(dsGfxFormat_renderTargetSupported(
+		resourceManager, dsGfxFormat_decorate(dsGfxFormat_X32, dsGfxFormat_Float)));
 	EXPECT_TRUE(dsGfxFormat_renderTargetSupported(resourceManager, dsGfxFormat_D16));
-	EXPECT_FALSE(dsGfxFormat_renderTargetSupported(resourceManager,
-		dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm)));
+	EXPECT_FALSE(dsGfxFormat_renderTargetSupported(
+		resourceManager, dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm)));
 }
 
 TEST_F(GfxFormatTest, TextureCopySupported)
 {
 	EXPECT_FALSE(dsGfxFormat_textureCopySupported(nullptr, dsGfxFormat_X32, dsGfxFormat_X32));
-	EXPECT_FALSE(dsGfxFormat_textureCopySupported(resourceManager,
-		dsGfxFormat_X32, dsGfxFormat_X32));
+	EXPECT_FALSE(dsGfxFormat_textureCopySupported(
+		resourceManager, dsGfxFormat_X32, dsGfxFormat_X32));
 	EXPECT_TRUE(dsGfxFormat_textureCopySupported(resourceManager,
 		dsGfxFormat_decorate(dsGfxFormat_X32, dsGfxFormat_Float),
 		dsGfxFormat_decorate(dsGfxFormat_X32, dsGfxFormat_Float)));
-	EXPECT_TRUE(dsGfxFormat_textureCopySupported(resourceManager, dsGfxFormat_D16,
-		dsGfxFormat_D16));
+	EXPECT_TRUE(dsGfxFormat_textureCopySupported(
+		resourceManager, dsGfxFormat_D16, dsGfxFormat_D16));
 	EXPECT_TRUE(dsGfxFormat_textureCopySupported(resourceManager,
 		dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm),
 		dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm)));
@@ -204,18 +207,18 @@ TEST_F(GfxFormatTest, TextureCopySupported)
 
 TEST_F(GfxFormatTest, TextureBlitSupported)
 {
-	EXPECT_FALSE(dsGfxFormat_surfaceBlitSupported(nullptr, dsGfxFormat_X32, dsGfxFormat_X32,
-	dsBlitFilter_Nearest));
-	EXPECT_FALSE(dsGfxFormat_surfaceBlitSupported(resourceManager,
-		dsGfxFormat_X32, dsGfxFormat_X32, dsBlitFilter_Nearest));
+	EXPECT_FALSE(dsGfxFormat_surfaceBlitSupported(
+		nullptr, dsGfxFormat_X32, dsGfxFormat_X32, dsBlitFilter_Nearest));
+	EXPECT_FALSE(dsGfxFormat_surfaceBlitSupported(
+		resourceManager, dsGfxFormat_X32, dsGfxFormat_X32, dsBlitFilter_Nearest));
 	EXPECT_TRUE(dsGfxFormat_surfaceBlitSupported(resourceManager,
 		dsGfxFormat_decorate(dsGfxFormat_X32, dsGfxFormat_Float),
 		dsGfxFormat_decorate(dsGfxFormat_X32, dsGfxFormat_Float),
 		dsBlitFilter_Nearest));
-	EXPECT_TRUE(dsGfxFormat_surfaceBlitSupported(resourceManager, dsGfxFormat_D16,
-		dsGfxFormat_D16, dsBlitFilter_Nearest));
-	EXPECT_FALSE(dsGfxFormat_surfaceBlitSupported(resourceManager, dsGfxFormat_D16,
-		dsGfxFormat_D16, dsBlitFilter_Linear));
+	EXPECT_TRUE(dsGfxFormat_surfaceBlitSupported(
+		resourceManager, dsGfxFormat_D16, dsGfxFormat_D16, dsBlitFilter_Nearest));
+	EXPECT_FALSE(dsGfxFormat_surfaceBlitSupported(
+		resourceManager, dsGfxFormat_D16, dsGfxFormat_D16, dsBlitFilter_Linear));
 	EXPECT_FALSE(dsGfxFormat_surfaceBlitSupported(resourceManager,
 		dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm),
 		dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm),

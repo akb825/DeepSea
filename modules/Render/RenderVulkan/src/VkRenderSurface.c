@@ -17,6 +17,7 @@
 #include "VkRenderSurface.h"
 
 #include "Platform/VkPlatform.h"
+#include "Resources/VkResourceManager.h"
 #include "VkCommandBuffer.h"
 #include "VkRenderSurfaceData.h"
 #include "VkRendererInternal.h"
@@ -96,6 +97,52 @@ static bool transitionToPresentable(dsCommandBuffer* commandBuffer, dsVkRenderSu
 	return true;
 }
 
+int dsVkRenderSurface_supportsFormat(const dsRenderer* renderer, void* displayHandle,
+	void* osHandle, dsRenderSurfaceType type, const dsRenderSurfaceHint* formatHint,
+	uint32_t samples)
+{
+	DS_UNUSED(samples);
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	dsVkDevice* device = &vkRenderer->device;
+	dsVkInstance* instance = &device->instance;
+
+	dsGfxFormat colorFormat = dsVkRenderer_surfaceColorFormat(renderer, formatHint);
+	dsRenderColorSpace colorSpace = formatHint->colorSpace;
+	dsGfxFormat depthFormat = dsVkRenderer_surfaceDepthStencilFormat(renderer, formatHint);
+	if (!dsVkRenderer_canUseRenderSurfaceFormat(
+			renderer, colorFormat, colorSpace, depthFormat, false))
+	{
+		return false;
+	}
+
+	if (!osHandle && !instance->hasSurfacelessQuery)
+		return -1;
+
+	VkSurfaceKHR surface = 0;
+	if (type == dsRenderSurfaceType_Direct)
+	{
+		// VkSurfaceKHR is a dispatch handle, which typically means a 64-bit integer, even on
+		// 32-bit systems. However, it's generally defined as a pointer to a struct as provided
+		// in vk_icd.h. This is the case for all currently supported platforms.
+		surface = (VkSurfaceKHR)(uintptr_t)osHandle;
+	}
+	else if (osHandle)
+	{
+		surface = dsVkPlatform_createSurface(&vkRenderer->platform, displayHandle, osHandle);
+		if (!surface)
+			return false;
+	}
+
+	const dsVkFormatInfo* colorFormatInfo = dsVkResourceManager_getFormat(
+		renderer->resourceManager, colorFormat);
+	DS_ASSERT(colorFormatInfo);
+	bool supported = dsVkRenderSurfaceData_supportsFormat(
+		renderer, surface, colorFormatInfo->vkFormat, dsVkColorSpace(colorSpace));
+	if (surface)
+		dsVkPlatform_destroySurface(&vkRenderer->platform, surface);
+	return supported;
+}
+
 dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
 	const char* name, void* displayHandle, void* osHandle, dsRenderSurfaceType type,
 	dsRenderSurfaceUsage usage, unsigned int widthHint, unsigned int heightHint)
@@ -104,19 +151,18 @@ dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	dsVkDevice* device = &vkRenderer->device;
 	dsVkInstance* instance = &device->instance;
 	VkSurfaceKHR surface;
-	switch (type)
+	if (type == dsRenderSurfaceType_Direct)
 	{
-		case dsRenderSurfaceType_Direct:
-			// VkSurfaceKHR is a dispatch handle, which typically means a 64-bit integer, even on
-			// 32-bit systems. However, it's generally defined as a pointer to a struct as provided
-			// in vk_icd.h. This is the case for all currently supported platforms.
-			surface = (VkSurfaceKHR)(uintptr_t)osHandle;
-			break;
-		default:
-			surface = dsVkPlatform_createSurface(&vkRenderer->platform, displayHandle, osHandle);
-			if (!surface)
-				return NULL;
-			break;
+		// VkSurfaceKHR is a dispatch handle, which typically means a 64-bit integer, even on
+		// 32-bit systems. However, it's generally defined as a pointer to a struct as provided
+		// in vk_icd.h. This is the case for all currently supported platforms.
+		surface = (VkSurfaceKHR)(uintptr_t)osHandle;
+	}
+	else
+	{
+		surface = dsVkPlatform_createSurface(&vkRenderer->platform, displayHandle, osHandle);
+		if (!surface)
+			return NULL;
 	}
 
 	VkBool32 supported = false;

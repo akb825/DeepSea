@@ -65,15 +65,16 @@ static bool beginFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer
 		// Don't layout transition for resolved depth/stencil images, since you can't resolve
 		// in render subpasses.
 		dsVkTexture* vkTexture = (dsVkTexture*)texture;
-		if (vkTexture->surfaceImage && dsGfxFormat_isDepthStencil(texture->info.format))
+		dsGfxFormat format = texture->info.format;
+		if (vkTexture->surfaceImage && dsGfxFormat_isDepthStencil(format))
 			continue;
 
 		VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
 		if (!imageBarrier)
 			return false;
 
-		VkImageAspectFlags aspectMask = dsVkImageAspectFlags(texture->info.format);
-		bool isDepthStencil = dsGfxFormat_isDepthStencil(texture->info.format);
+		VkImageAspectFlags aspectMask = dsVkImageAspectFlags(format);
+		bool isDepthStencil = dsGfxFormat_isDepthStencil(format);
 		imageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		imageBarrier->pNext = NULL;
 		imageBarrier->srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT |
@@ -272,13 +273,13 @@ dsVkRenderPassData* dsVkRenderPassData_create(
 		for (uint32_t i = 0; i < attachmentCount; ++i)
 		{
 			const dsAttachmentInfo* attachment = renderPass->attachments + i;
-			const dsVkFormatInfo* format = dsVkResourceManager_getFormat(renderer->resourceManager,
-				attachment->format);
+			const dsVkFormatInfo* format = dsVkResourceManager_getFormat(
+				renderer->resourceManager, dsGfxFormat_resolve(renderer, attachment->format));
 			if (!format)
 			{
-				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Unknown format.");
 				dsVkRenderPassData_destroy(renderPassData);
+				errno = EINVAL;
 				return NULL;
 			}
 

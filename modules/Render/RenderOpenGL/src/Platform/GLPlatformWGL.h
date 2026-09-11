@@ -35,6 +35,8 @@ void* dsCreateDummyWGLSurface(
 	dsAllocator* allocator, void* display, void* config, void** osSurface);
 void dsDestroyDummyWGLSurface(void* display, void* surface, void* osSurface);
 
+int dsIsWGLSurfaceValid(
+	void* display, dsRenderSurfaceType surfaceType, void* handle, const dsRendererOptions* options);
 void* dsCreateWGLSurface(dsAllocator* allocator, void* display, void* config,
 	dsRenderSurfaceType surfaceType, void* handle);
 bool dsGetWGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,

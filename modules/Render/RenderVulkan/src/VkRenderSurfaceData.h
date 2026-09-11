@@ -27,6 +27,8 @@ typedef enum dsVkSurfaceResult
 } dsVkSurfaceResult;
 
 dsRenderSurfaceRotation dsVkRenderSurfaceData_getRotation(VkSurfaceTransformFlagBitsKHR rotation);
+bool dsVkRenderSurfaceData_supportsFormat(
+	const dsRenderer* renderer, VkSurfaceKHR surface, VkFormat format, VkColorSpaceKHR colorSpace);
 dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRenderer* renderer,
 	VkSurfaceKHR surface, dsVSync vsync, VkSwapchainKHR prevSwapchain, dsRenderSurfaceUsage usage,
 	const VkSurfaceCapabilitiesKHR* surfaceInfo);

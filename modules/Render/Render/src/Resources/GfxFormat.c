@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,9 @@
  */
 
 #include <DeepSea/Render/Resources/GfxFormat.h>
+
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Render/Types.h>
 
 bool dsGfxFormat_isValid(dsGfxFormat format)
 {
@@ -29,7 +31,8 @@ bool dsGfxFormat_isValid(dsGfxFormat format)
 
 		return true;
 	}
-	else if ((format & dsGfxFormat_SpecialMask))
+
+	if ((format & dsGfxFormat_SpecialMask))
 	{
 		if (format & dsGfxFormat_DecoratorMask)
 			return false;
@@ -39,15 +42,16 @@ bool dsGfxFormat_isValid(dsGfxFormat format)
 
 		return true;
 	}
-	else if (format & dsGfxFormat_CompressedMask)
+
+	if (format & dsGfxFormat_CompressedMask)
 	{
 		if (!(format & dsGfxFormat_DecoratorMask))
 			return false;
 
 		return true;
 	}
-	else
-		return false;
+
+	return false;
 }
 
 unsigned int dsGfxFormat_size(dsGfxFormat format)
@@ -403,8 +407,8 @@ bool dsGfxFormat_textureSupported(const dsResourceManager* resourceManager, dsGf
 	return resourceManager->textureFormatSupportedFunc(resourceManager, format);
 }
 
-bool dsGfxFormat_textureBufferSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format)
+bool dsGfxFormat_textureBufferSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format)
 {
 	if (!resourceManager || !resourceManager->textureBufferFormatSupportedFunc ||
 		!dsGfxFormat_isValid(format))
@@ -437,8 +441,8 @@ bool dsGfxFormat_renderTargetSupported(const dsResourceManager* resourceManager,
 	return resourceManager->renderTargetFormatSupportedFunc(resourceManager, format);
 }
 
-bool dsGfxFormat_generateMipmapsSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format)
+bool dsGfxFormat_generateMipmapsSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format)
 {
 	if (!resourceManager || !resourceManager->generateMipmapFormatSupportedFunc ||
 		!dsGfxFormat_isValid(format))
@@ -449,8 +453,8 @@ bool dsGfxFormat_generateMipmapsSupported(const dsResourceManager* resourceManag
 	return resourceManager->generateMipmapFormatSupportedFunc(resourceManager, format);
 }
 
-bool dsGfxFormat_textureCopySupported(const dsResourceManager* resourceManager,
-	dsGfxFormat srcFormat, dsGfxFormat dstFormat)
+bool dsGfxFormat_textureCopySupported(
+	const dsResourceManager* resourceManager, dsGfxFormat srcFormat, dsGfxFormat dstFormat)
 {
 	if (!resourceManager || !resourceManager->textureCopyFormatsSupportedFunc ||
 		!dsGfxFormat_isValid(srcFormat) || !dsGfxFormat_isValid(dstFormat))
@@ -474,8 +478,8 @@ bool dsGfxFormat_surfaceBlitSupported(const dsResourceManager* resourceManager,
 		filter);
 }
 
-bool dsGfxFormat_standardSurfaceBlitSupported(dsGfxFormat srcFormat, dsGfxFormat dstFormat,
-	dsBlitFilter filter)
+bool dsGfxFormat_standardSurfaceBlitSupported(
+	dsGfxFormat srcFormat, dsGfxFormat dstFormat, dsBlitFilter filter)
 {
 	dsGfxFormat srcDecorator = (dsGfxFormat)(srcFormat & dsGfxFormat_DecoratorMask);
 	dsGfxFormat dstDecorator = (dsGfxFormat)(dstFormat & dsGfxFormat_DecoratorMask);
@@ -498,8 +502,8 @@ bool dsGfxFormat_standardSurfaceBlitSupported(dsGfxFormat srcFormat, dsGfxFormat
 	return true;
 }
 
-bool dsGfxFormat_copyBufferToTextureSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format)
+bool dsGfxFormat_copyBufferToTextureSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format)
 {
 	if (!resourceManager || !resourceManager->copyBufferToTextureSupportedFunc ||
 		!dsGfxFormat_isValid(format))
@@ -510,8 +514,8 @@ bool dsGfxFormat_copyBufferToTextureSupported(const dsResourceManager* resourceM
 	return resourceManager->copyBufferToTextureSupportedFunc(resourceManager, format);
 }
 
-bool dsGfxFormat_copyTextureToBufferSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format)
+bool dsGfxFormat_copyTextureToBufferSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format)
 {
 	if (!resourceManager || !resourceManager->copyTextureToBufferSupportedFunc ||
 		!dsGfxFormat_isValid(format))
@@ -520,6 +524,22 @@ bool dsGfxFormat_copyTextureToBufferSupported(const dsResourceManager* resourceM
 	}
 
 	return resourceManager->copyTextureToBufferSupportedFunc(resourceManager, format);
+}
+
+dsGfxFormat dsGfxFormat_resolve(const dsRenderer* renderer, dsGfxFormat format)
+{
+	if (!renderer)
+		return format;
+
+	switch (format)
+	{
+		case dsGfxFormat_SurfaceColor:
+			return renderer->surfaceColorFormat;
+		case dsGfxFormat_SurfaceDepthStencil:
+			return renderer->surfaceDepthStencilFormat;
+		default:
+			return format;
+	}
 }
 
 unsigned int dsGfxFormat_standardIndex(dsGfxFormat format);

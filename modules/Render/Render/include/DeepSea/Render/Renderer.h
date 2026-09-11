@@ -45,8 +45,8 @@ extern "C"
  * @param applicationName The name of the application.
  * @param applicationVersion The version of the application.
  */
-DS_RENDER_EXPORT void dsRenderer_defaultOptions(dsRendererOptions* options,
-	const char* applicationName, uint32_t applicationVersion);
+DS_RENDER_EXPORT void dsRenderer_defaultOptions(
+	dsRendererOptions* options, const char* applicationName, uint32_t applicationVersion);
 
 /**
  * @brief Resolves the platform.
@@ -71,8 +71,8 @@ DS_RENDER_EXPORT void dsRenderer_setExtraDebugging(dsRenderer* renderer, bool en
  * @param versionCount The number of shader versions.
  * @return The shader version to use, or NULL if no suitable version could be found.
  */
-DS_RENDER_EXPORT const dsShaderVersion* dsRenderer_chooseShaderVersion(const dsRenderer* renderer,
-	const dsShaderVersion* versions, uint32_t versionCount);
+DS_RENDER_EXPORT const dsShaderVersion* dsRenderer_chooseShaderVersion(
+	const dsRenderer* renderer, const dsShaderVersion* versions, uint32_t versionCount);
 
 /**
  * @brief Chooses the shader version to use by name.
@@ -215,20 +215,25 @@ DS_RENDER_EXPORT bool dsRenderer_beginFrame(dsRenderer* renderer);
 DS_RENDER_EXPORT bool dsRenderer_endFrame(dsRenderer* renderer);
 
 /**
- * @brief Sets the number of anti-alias samples for render surfaces.
+ * @brief Sets the render surface format and/or number of anti-alias samples for render surfaces.
  *
- * This value will be used when the DS_SURFACE_ANTIALIAS_SAMPLES constant is used. It is the
- * responsibility of the caller to re-create any render surfaces, offscreens, renderbuffers, and
- * framebuffers to respect this change.
+ * It is the responsibility of the caller to re-create any render surfaces, offscreens,
+ * renderbuffers, and framebuffers to respect this change.
  *
  * @remark This shouldn't be changed in the middle of drawing. Ideally it should be set between
- * frames.
+ *     frames.
  * @remark errno will be set on failure.
  * @param renderer The renderer.
- * @param samples The number of anti-alias samples.
+ * @param formatHint The hint for the render surface format to use. The color format will be used
+ *     for dsGfxFormat_SurfaceColor and depth/stencil format will be used for
+ *     dsGfxFormat_SurfaceDepthStencil. If NULL is passed, the current surface color and
+ *     depth/stencil formats will remain unchanged.
+ * @param samples The number of anti-alias samples. This value will be used when the
+ *     DS_SURFACE_ANTIALIAS_SAMPLES constant is used.
  * @return False if the number of samples couldn't be set.
  */
-DS_RENDER_EXPORT bool dsRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples);
+DS_RENDER_EXPORT bool dsRenderer_setSurfaceFormat(
+	dsRenderer* renderer, const dsRenderSurfaceHint* formatHint, uint32_t samples);
 
 /**
  * @brief Sets the default number of anti-alias samples for offscreens and renderbuffers.
@@ -238,7 +243,7 @@ DS_RENDER_EXPORT bool dsRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_
  * respect this change.
  *
  * @remark This shouldn't be changed in the middle of drawing. Ideally it should be set between
- * frames.
+ *     frames.
  * @remark errno will be set on failure.
  * @param renderer The renderer.
  * @param samples The number of anti-alias samples.
@@ -250,7 +255,7 @@ DS_RENDER_EXPORT bool dsRenderer_setDefaultSamples(dsRenderer* renderer, uint32_
  * @brief Sets the default number of anti-alias samples for render surfaces, offscreens, and
  * renderbuffers.
  *
- * This is the same as calling both dsRenderer_setSurfaceSamples() and
+ * This is the same as calling both dsRenderer_setSurfaceFormat() with formatHint of NULL and
  * dsRenderer_setDefaultSamples() to set both the surface and default samples to the same value
  * at the same time.
  *
@@ -259,7 +264,7 @@ DS_RENDER_EXPORT bool dsRenderer_setDefaultSamples(dsRenderer* renderer, uint32_
  * offscreens, renderbuffers, and framebuffers to respect this change.
  *
  * @remark This shouldn't be changed in the middle of drawing. Ideally it should be set between
- * frames.
+ *     frames.
  * @remark errno will be set on failure.
  * @param renderer The renderer.
  * @param samples The number of anti-alias samples.

@@ -265,11 +265,12 @@ static void clearDrawBuffer(dsGfxFormat format, uint32_t colorIndex,
 	}
 }
 
-static void clearOtherFramebuffer(const dsRenderPass* renderPass, uint32_t subpassIndex,
-	const dsSurfaceClearValue* clearValues)
+static void clearOtherFramebuffer(
+	const dsRenderPass* renderPass, uint32_t subpassIndex, const dsSurfaceClearValue* clearValues)
 {
 	DS_PROFILE_FUNC_START();
 
+	const dsRenderer* renderer = renderPass->renderer;
 	const dsGLRenderPass* glRenderPass = (dsGLRenderPass*)renderPass;
 	const dsRenderSubpassInfo* subpass = renderPass->subpasses + subpassIndex;
 	for (uint32_t i = 0; i < subpass->colorAttachmentCount; ++i)
@@ -278,8 +279,9 @@ static void clearOtherFramebuffer(const dsRenderPass* renderPass, uint32_t subpa
 		if (attachment != DS_NO_ATTACHMENT &&
 			glRenderPass->clearSubpass[attachment] == subpassIndex)
 		{
-			clearDrawBuffer(renderPass->attachments[attachment].format, i,
-				clearValues + attachment, dsClearDepthStencil_Both);
+			dsGfxFormat format = dsGfxFormat_resolve(
+				renderer, renderPass->attachments[attachment].format);
+			clearDrawBuffer(format, i, clearValues + attachment, dsClearDepthStencil_Both);
 		}
 	}
 
@@ -288,8 +290,10 @@ static void clearOtherFramebuffer(const dsRenderPass* renderPass, uint32_t subpa
 	{
 		if (glRenderPass->clearSubpass[depthStencilAttachment] == subpassIndex)
 		{
-			clearDrawBuffer(renderPass->attachments[depthStencilAttachment].format, 0,
-				clearValues + depthStencilAttachment, dsClearDepthStencil_Both);
+			dsGfxFormat format = dsGfxFormat_resolve(
+				renderer, renderPass->attachments[depthStencilAttachment].format);
+			clearDrawBuffer(
+				format, 0, clearValues + depthStencilAttachment, dsClearDepthStencil_Both);
 		}
 	}
 
@@ -302,6 +306,7 @@ static void clearMainFramebuffer(const dsRenderPass* renderPass, uint32_t subpas
 	DS_PROFILE_FUNC_START();
 
 	GLenum clearMask = 0;
+	const dsRenderer* renderer = renderPass->renderer;
 	const dsGLRenderPass* glRenderPass = (dsGLRenderPass*)renderPass;
 	const dsRenderSubpassInfo* subpass = renderPass->subpasses + subpassIndex;
 	for (uint32_t i = 0; i < subpass->colorAttachmentCount; ++i)
@@ -313,8 +318,10 @@ static void clearMainFramebuffer(const dsRenderPass* renderPass, uint32_t subpas
 			continue;
 		}
 
-		clearMask |= getClearMask(renderPass->attachments[attachment].format);
-		setClearValue(renderPass->attachments[attachment].format, clearValues + attachment);
+		dsGfxFormat format = dsGfxFormat_resolve(
+			renderer, renderPass->attachments[attachment].format);
+		clearMask |= getClearMask(format);
+		setClearValue(format, clearValues + attachment);
 	}
 
 	uint32_t depthStencilAttachment = subpass->depthStencilAttachment.attachmentIndex;
@@ -322,9 +329,10 @@ static void clearMainFramebuffer(const dsRenderPass* renderPass, uint32_t subpas
 	{
 		if (glRenderPass->clearSubpass[depthStencilAttachment] == subpassIndex)
 		{
-			clearMask |= getClearMask(renderPass->attachments[depthStencilAttachment].format);
-			setClearValue(renderPass->attachments[depthStencilAttachment].format,
-				clearValues + depthStencilAttachment);
+			dsGfxFormat format = dsGfxFormat_resolve(
+				renderer, renderPass->attachments[depthStencilAttachment].format);
+			clearMask |= getClearMask(format);
+			setClearValue(format, clearValues + depthStencilAttachment);
 		}
 	}
 
@@ -1709,8 +1717,9 @@ bool dsGLMainCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 				}
 
 				DS_ASSERT(attachmentIndex != DS_NO_ATTACHMENT);
-				clearDrawBuffer(attachmentInfos[attachmentIndex].format,
-					attachment->colorAttachment, &attachment->clearValue,
+				dsGfxFormat format = dsGfxFormat_resolve(
+					renderer, attachmentInfos[attachmentIndex].format);
+				clearDrawBuffer(format, attachment->colorAttachment, &attachment->clearValue,
 					attachment->clearDepthStencil);
 			}
 		}
@@ -1746,7 +1755,9 @@ bool dsGLMainCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 				}
 
 				DS_ASSERT(attachmentIndex != DS_NO_ATTACHMENT);
-				setClearValue(attachmentInfos[attachmentIndex].format, &attachment->clearValue);
+				dsGfxFormat format = dsGfxFormat_resolve(
+					renderer, attachmentInfos[attachmentIndex].format);
+				setClearValue(format, &attachment->clearValue);
 			}
 
 			glClear(clearBuffers);

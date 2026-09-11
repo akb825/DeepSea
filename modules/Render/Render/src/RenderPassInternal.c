@@ -18,7 +18,9 @@
 
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Render/Resources/Framebuffer.h>
+#include <DeepSea/Render/Resources/GfxFormat.h>
 
 static uint32_t getSurfaceSamples(dsRenderer* renderer, const dsFramebufferSurface* surface)
 {
@@ -82,8 +84,10 @@ bool dsRenderPass_canUseFramebuffer(const dsRenderPass* renderPass,
 	dsRenderer* renderer = renderPass->renderer;
 	for (uint32_t i = 0; i < framebuffer->surfaceCount; ++i)
 	{
+		dsGfxFormat attachmentFormat = dsGfxFormat_resolve(
+			renderer, renderPass->attachments[i].format);
 		if (dsFramebuffer_getSurfaceFormat(renderer, framebuffer->surfaces + i) !=
-			renderPass->attachments[i].format)
+			attachmentFormat)
 		{
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 				"Framebuffer surface format doesn't match attachment format.");

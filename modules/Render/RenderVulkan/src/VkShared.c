@@ -370,6 +370,24 @@ VkSampleCountFlagBits dsVkSampleCount(uint32_t sampleCount)
 	return VK_SAMPLE_COUNT_64_BIT;
 }
 
+VkColorSpaceKHR dsVkColorSpace(dsRenderColorSpace colorSpace)
+{
+	switch (colorSpace)
+	{
+		case dsRenderColorSpace_NonLinearSRGB:
+		case dsRenderColorSpace_NonLinearSRGBConverting:
+			return VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+		case dsRenderColorSpace_ExtendedLinearSRGB:
+			return VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT;
+		case dsRenderColorSpace_Rec2100PQ:
+			return VK_COLOR_SPACE_HDR10_ST2084_EXT;
+			break;
+	}
+
+	DS_ASSERT(false);
+	return VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+}
+
 VkAccessFlags dsVkReadBufferAccessFlags(dsGfxBufferUsage usage)
 {
 	VkAccessFlags flags = 0;

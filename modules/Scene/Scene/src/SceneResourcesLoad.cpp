@@ -275,8 +275,8 @@ static bool loadTexture(dsSceneResources* resources, dsResourceManager* resource
 	{
 		dsTextureInfo textureInfo =
 		{
-			DeepSeaScene::convert(resourceManager->renderer, fbTextureInfo->format(),
-				fbTextureInfo->decoration()),
+			DeepSeaScene::convert(
+				resourceManager, fbTextureInfo->format(), fbTextureInfo->decoration()),
 			DeepSeaScene::convert(fbTextureInfo->dimension()),
 			fbTextureInfo->width(),
 			fbTextureInfo->height(),
@@ -284,8 +284,8 @@ static bool loadTexture(dsSceneResources* resources, dsResourceManager* resource
 			fbTextureInfo->mipLevels(),
 			1
 		};
-		texture = dsTexture_create(resourceManager, resourceAllocator, usage, memoryHints,
-			&textureInfo, nullptr, 0);
+		texture = dsTexture_create(
+			resourceManager, resourceAllocator, usage, memoryHints, &textureInfo, nullptr, 0);
 	}
 	else
 	{
@@ -597,8 +597,8 @@ static bool loadMaterialTextureBuffer(dsSceneLoadScratchData* scratchData,
 	}
 
 	if (!dsMaterial_setTextureBuffer(material, element, buffer,
-			DeepSeaScene::convert(renderer, materialData->format(), materialData->decoration()),
-			materialData->offset(), materialData->count()))
+			DeepSeaScene::convert(renderer->resourceManager, materialData->format(),
+			materialData->decoration()), materialData->offset(), materialData->count()))
 	{
 		PRINT_FLATBUFFER_MATERIAL_ERROR("Couldn't set texture buffer '%s' on material '%s'",
 			dataName, materialName, fileName);
