@@ -1530,7 +1530,7 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 	const dsRenderSubpassInfo* subpass = renderPass->subpasses + subpassIndex;
 
 	// Get the number of samples based on the attachments.
-	const dsAttachmentInfo* attachments = renderPass->attachments;
+	const dsRenderPassAttachmentInfo* attachments = renderPass->attachments;
 	uint32_t referenceAttachment = DS_NO_ATTACHMENT;
 	for (uint32_t i = 0; i < subpass->colorAttachmentCount; ++i)
 	{

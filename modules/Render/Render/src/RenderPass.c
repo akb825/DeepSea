@@ -351,8 +351,9 @@ static bool canResolveSurface(const dsFramebufferSurface* surface)
 	}
 }
 
-static bool isResolveValid(const dsRenderer* renderer, const dsAttachmentInfo* attachments,
-	const dsFramebuffer* framebuffer, uint32_t attachment)
+static bool isResolveValid(const dsRenderer* renderer,
+	const dsRenderPassAttachmentInfo* attachments, const dsFramebuffer* framebuffer,
+	uint32_t attachment)
 {
 	// Don't check for resolve when no anti-aliasing since offscreens no longer resolve,
 	// which would give a false positive.
@@ -627,7 +628,7 @@ bool dsRenderPass_setDefaultDependencies(dsSubpassDependency* outDependencies,
 }
 
 dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
-	const dsAttachmentInfo* attachments, uint32_t attachmentCount,
+	const dsRenderPassAttachmentInfo* attachments, uint32_t attachmentCount,
 	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
 	const dsSubpassDependency* dependencies, uint32_t dependencyCount)
 {
@@ -644,7 +645,7 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 
 	for (uint32_t i = 0; i < attachmentCount; ++i)
 	{
-		const dsAttachmentInfo* attachment = attachments + i;
+		const dsRenderPassAttachmentInfo* attachment = attachments + i;
 		dsGfxFormat format = dsGfxFormat_resolve(renderer, attachment->format);
 		if (format != renderer->surfaceColorFormat &&
 			format != renderer->surfaceDepthStencilFormat &&
@@ -724,7 +725,7 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 				DS_PROFILE_FUNC_RETURN(NULL);
 			}
 
-			const dsAttachmentInfo* attachment = attachments + attachmentIndex;
+			const dsRenderPassAttachmentInfo* attachment = attachments + attachmentIndex;
 			if (dsGfxFormat_isDepthStencil(attachment->format))
 			{
 				errno = EINVAL;
@@ -752,7 +753,7 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
-		const dsAttachmentRef* depthStencilAttachment = &subpass->depthStencilAttachment;
+		const dsRenderPassAttachmentRef* depthStencilAttachment = &subpass->depthStencilAttachment;
 		if (depthStencilAttachment->attachmentIndex != DS_NO_ATTACHMENT)
 		{
 			if (depthStencilAttachment->attachmentIndex >= attachmentCount)
@@ -919,7 +920,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 			}
 		}
 
-		const dsAttachmentRef* depthStencilAttachment = &subpass->depthStencilAttachment;
+		const dsRenderPassAttachmentRef* depthStencilAttachment = &subpass->depthStencilAttachment;
 		if (!renderer->resourceManager->canMixWithRenderSurface)
 		{
 			SurfaceType surfaceTypes = SurfaceType_Unset;

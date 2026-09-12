@@ -27,7 +27,7 @@ bool dsGLFramebuffer_destroy(dsResourceManager* resourceManager, dsFramebuffer* 
 GLSurfaceType dsGLFramebuffer_getSurfaceType(dsGfxSurfaceType framebufferSurfaceType,
 	const void* surface);
 GLSurfaceType dsGLFramebuffer_bind(const dsFramebuffer* framebuffer,
-	const dsAttachmentRef* colorAttachments, uint32_t colorAttachmentCount,
+	const dsRenderPassAttachmentRef* colorAttachments, uint32_t colorAttachmentCount,
 	uint32_t depthStencilAttachment);
 void dsGLFramebuffer_addInternalRef(dsFramebuffer* framebuffer);
 void dsGLFramebuffer_freeInternalRef(dsFramebuffer* framebuffer);

@@ -25,7 +25,7 @@
 #include <string.h>
 
 dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
-	const dsAttachmentInfo* attachments, uint32_t attachmentCount,
+	const dsRenderPassAttachmentInfo* attachments, uint32_t attachmentCount,
 	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
 	const dsSubpassDependency* dependencies, uint32_t dependencyCount)
 {
@@ -41,7 +41,7 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 	size_t fullSize = sizeof(dsGLRenderPass);
 	dsMemorySize sizes[] =
 	{
-		{sizeof(dsAttachmentInfo), attachmentCount},
+		{sizeof(dsRenderPassAttachmentInfo), attachmentCount},
 		{sizeof(dsRenderSubpassInfo), subpassCount},
 		{sizeof(dsSubpassDependency), finalDependencyCount},
 		{sizeof(uint32_t), attachmentCount}
@@ -55,7 +55,7 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 		dsMemorySize subpassSizes[] =
 		{
 			{sizeof(uint32_t), subpass->inputAttachmentCount},
-			{sizeof(dsAttachmentRef), subpass->colorAttachmentCount},
+			{sizeof(dsRenderPassAttachmentRef), subpass->colorAttachmentCount},
 			{sizeof(char), strlen(subpass->name) + 1}
 		};
 		if (!dsAccumulateAlignedSizes(
@@ -81,10 +81,10 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 	if (attachmentCount > 0)
 	{
 		baseRenderPass->attachments = DS_ALLOCATE_OBJECT_ARRAY(
-			&bufferAlloc, dsAttachmentInfo, attachmentCount);
+			&bufferAlloc, dsRenderPassAttachmentInfo, attachmentCount);
 		DS_ASSERT(baseRenderPass->attachments);
 		memcpy((void*)baseRenderPass->attachments, attachments,
-			sizeof(dsAttachmentInfo)*attachmentCount);
+			sizeof(dsRenderPassAttachmentInfo)*attachmentCount);
 
 		// Find the first subpass that cleared attachments appear in.
 		renderPass->clearSubpass = DS_ALLOCATE_OBJECT_ARRAY(
@@ -99,7 +99,7 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 				if (attachmentIndex == DS_NO_ATTACHMENT)
 					continue;
 
-				const dsAttachmentInfo* attachment = attachments + attachmentIndex;
+				const dsRenderPassAttachmentInfo* attachment = attachments + attachmentIndex;
 				if (!(attachment->usage & dsAttachmentUsage_Clear))
 					continue;
 
@@ -110,7 +110,7 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 			uint32_t depthStencilAttachment = subpass->depthStencilAttachment.attachmentIndex;
 			if (depthStencilAttachment != DS_NO_ATTACHMENT)
 			{
-				const dsAttachmentInfo* attachment = attachments + depthStencilAttachment;
+				const dsRenderPassAttachmentInfo* attachment = attachments + depthStencilAttachment;
 				if ((attachment->usage & dsAttachmentUsage_Clear) &&
 					renderPass->clearSubpass[depthStencilAttachment] == DS_NO_ATTACHMENT)
 				{
@@ -146,10 +146,10 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 		if (subpass->colorAttachmentCount > 0)
 		{
 			subpass->colorAttachments = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc,
-				dsAttachmentRef, subpass->colorAttachmentCount);
+				dsRenderPassAttachmentRef, subpass->colorAttachmentCount);
 			DS_ASSERT(subpass->colorAttachments);
 			memcpy((void*)subpass->colorAttachments, origSubpass->colorAttachments,
-				sizeof(dsAttachmentRef)*subpass->colorAttachmentCount);
+				sizeof(dsRenderPassAttachmentRef)*subpass->colorAttachmentCount);
 		}
 
 		size_t nameLen = strlen(origSubpass->name) + 1;

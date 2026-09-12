@@ -601,7 +601,7 @@ static bool setup(dsApplication* application, dsAllocator* allocator)
 		}
 	}
 
-	dsAttachmentInfo attachments[] =
+	dsRenderPassAttachmentInfo attachments[] =
 	{
 		{dsAttachmentUsage_KeepAfter, renderer->surfaceColorFormat, 1},
 		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter,
@@ -616,13 +616,13 @@ static bool setup(dsApplication* application, dsAllocator* allocator)
 	};
 	uint32_t attachmentCount = DS_ARRAY_SIZE(attachments);
 
-	dsAttachmentRef rColorAttachment = {1, true};
+	dsRenderPassAttachmentRef rColorAttachment = {1, true};
 	uint32_t rDepthStencilAttachment = 2;
-	dsAttachmentRef gColorAttachment = {3, true};
+	dsRenderPassAttachmentRef gColorAttachment = {3, true};
 	uint32_t gDepthStencilAttachment = 4;
-	dsAttachmentRef bColorAttachment = {5, true};
+	dsRenderPassAttachmentRef bColorAttachment = {5, true};
 	uint32_t bDepthStencilAttachment = 6;
-	dsAttachmentRef resolveColorAttachment = {0, false};
+	dsRenderPassAttachmentRef resolveColorAttachment = {0, false};
 	uint32_t inputAttachments[] = {1, 3, 5};
 
 	dsRenderSubpassInfo subpasses[] =

@@ -36,7 +36,7 @@ static size_t fullAllocSize(uint32_t attachmentCount, const dsRenderSubpassInfo*
 	size_t fullSize = sizeof(dsVkRenderPass);
 	dsMemorySize sizes[] =
 	{
-		{sizeof(dsAttachmentInfo), attachmentCount},
+		{sizeof(dsRenderPassAttachmentInfo), attachmentCount},
 		{sizeof(dsSubpassDependency), dependencyCount},
 		{sizeof(VkSubpassDependency), dependencyCount},
 		{sizeof(dsRenderSubpassInfo), subpassCount}
@@ -50,7 +50,7 @@ static size_t fullAllocSize(uint32_t attachmentCount, const dsRenderSubpassInfo*
 		dsMemorySize subpassSizes[] =
 		{
 			{sizeof(uint32_t), subpass->inputAttachmentCount},
-			{sizeof(dsAttachmentRef), subpass->colorAttachmentCount},
+			{sizeof(dsRenderPassAttachmentRef), subpass->colorAttachmentCount},
 			{sizeof(char), strlen(subpass->name) + 1}
 		};
 		if (!dsAccumulateAlignedSizes(
@@ -63,7 +63,7 @@ static size_t fullAllocSize(uint32_t attachmentCount, const dsRenderSubpassInfo*
 }
 
 dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
-	const dsAttachmentInfo* attachments, uint32_t attachmentCount,
+	const dsRenderPassAttachmentInfo* attachments, uint32_t attachmentCount,
 	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
 	const dsSubpassDependency* dependencies, uint32_t dependencyCount)
 {
@@ -105,14 +105,14 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 	if (attachmentCount > 0)
 	{
 		baseRenderPass->attachments = DS_ALLOCATE_OBJECT_ARRAY(
-			&bufferAlloc, dsAttachmentInfo, attachmentCount);
+			&bufferAlloc, dsRenderPassAttachmentInfo, attachmentCount);
 		DS_ASSERT(baseRenderPass->attachments);
 		memcpy((void*)baseRenderPass->attachments, attachments,
-			sizeof(dsAttachmentInfo)*attachmentCount);
+			sizeof(dsRenderPassAttachmentInfo)*attachmentCount);
 
 		for (uint32_t i = 0; i < attachmentCount; ++i)
 		{
-			const dsAttachmentInfo* attachment = attachments + i;
+			const dsRenderPassAttachmentInfo* attachment = attachments + i;
 			if (attachment->samples == DS_SURFACE_ANTIALIAS_SAMPLES ||
 				attachment->samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
 			{
@@ -153,10 +153,10 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 		if (curSubpass->colorAttachmentCount > 0)
 		{
 			curSubpass->colorAttachments = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc,
-				dsAttachmentRef, curSubpass->colorAttachmentCount);
+				dsRenderPassAttachmentRef, curSubpass->colorAttachmentCount);
 			DS_ASSERT(curSubpass->colorAttachments);
 			memcpy((void*)curSubpass->colorAttachments, subpasses[i].colorAttachments,
-				sizeof(dsAttachmentRef)*curSubpass->colorAttachmentCount);
+				sizeof(dsRenderPassAttachmentRef)*curSubpass->colorAttachmentCount);
 		}
 
 		size_t nameLen = strlen(subpasses[i].name) + 1;

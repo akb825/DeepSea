@@ -126,7 +126,7 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* 
 				uint32_t attachmentCount = fbAttachments->size();
 				dsMemorySize attachmentSizes[] =
 				{
-					{sizeof(dsAttachmentInfo), attachmentCount},
+					{sizeof(dsRenderPassAttachmentInfo), attachmentCount},
 					{sizeof(dsSurfaceClearValue), attachmentCount}
 				};
 				if (!dsAccumulateAlignedSizes(&renderPassSize, attachmentSizes,
@@ -173,7 +173,7 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* 
 
 				auto fbColorAttachments = fbSubpass->colorAttachments();
 				if (fbColorAttachments && fbColorAttachments->size() &&
-					!dsAddAlignedArraySize(&renderPassSize, sizeof(dsAttachmentRef),
+					!dsAddAlignedArraySize(&renderPassSize, sizeof(dsRenderPassAttachmentRef),
 						fbColorAttachments->size(), DS_ALLOC_ALIGNMENT))
 				{
 					return 0;
@@ -235,14 +235,15 @@ static dsSceneRenderPass* createRenderPass(dsAllocator* allocator, dsAllocator* 
 	dsAllocator* scratchAllocator, dsRenderer* renderer,
 	const DeepSeaScene::RenderPass& fbRenderPass, const char* fileName)
 {
-	dsAttachmentInfo* attachments = nullptr;
+	dsRenderPassAttachmentInfo* attachments = nullptr;
 	dsSurfaceClearValue* clearValues = nullptr;
 	uint32_t attachmentCount = 0;
 	auto fbAttachments = fbRenderPass.attachments();
 	if (fbAttachments && fbAttachments->size() > 0)
 	{
 		attachmentCount = fbAttachments->size();
-		attachments = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsAttachmentInfo, attachmentCount);
+		attachments = DS_ALLOCATE_OBJECT_ARRAY(
+			scratchAllocator, dsRenderPassAttachmentInfo, attachmentCount);
 		DS_ASSERT(attachments);
 
 		clearValues =
@@ -259,7 +260,7 @@ static dsSceneRenderPass* createRenderPass(dsAllocator* allocator, dsAllocator* 
 				return nullptr;
 			}
 
-			dsAttachmentInfo* attachment = attachments + i;
+			dsRenderPassAttachmentInfo* attachment = attachments + i;
 			attachment->usage = static_cast<dsAttachmentUsage>(fbAttachment->usage());
 			attachment->format = DeepSeaScene::convert(
 				renderer->resourceManager, fbAttachment->format(), fbAttachment->decoration());
@@ -332,12 +333,13 @@ static dsSceneRenderPass* createRenderPass(dsAllocator* allocator, dsAllocator* 
 		if (fbColorAttachments && fbColorAttachments->size() > 0)
 		{
 			subpass->colorAttachmentCount = fbColorAttachments->size();
-			subpass->colorAttachments = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsAttachmentRef,
-				subpass->colorAttachmentCount);
+			subpass->colorAttachments = DS_ALLOCATE_OBJECT_ARRAY(
+				scratchAllocator, dsRenderPassAttachmentRef, subpass->colorAttachmentCount);
 			DS_ASSERT(subpass->colorAttachments);
 			for (uint32_t j = 0; j < subpass->colorAttachmentCount; ++j)
 			{
-				auto attachment = const_cast<dsAttachmentRef*>(subpass->colorAttachments + j);
+				auto attachment = const_cast<dsRenderPassAttachmentRef*>(
+					subpass->colorAttachments + j);
 				auto fbAttachment = (*fbColorAttachments)[j];
 				if (fbAttachment)
 				{

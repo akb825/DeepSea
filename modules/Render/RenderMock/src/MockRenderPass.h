@@ -19,7 +19,7 @@
 #include <DeepSea/Render/Types.h>
 
 dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
-	const dsAttachmentInfo* attachments, uint32_t attachmentCount,
+	const dsRenderPassAttachmentInfo* attachments, uint32_t attachmentCount,
 	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
 	const dsSubpassDependency* dependencies, uint32_t dependencyCount);
 bool dsMockRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,

@@ -105,12 +105,12 @@ struct RenderInfo
 			resourceManager, allocator, "WriteOffscreen", &surface, 1, width, height, 1);
 		ASSERT_TRUE(framebuffer);
 
-		dsAttachmentInfo attachment =
+		dsRenderPassAttachmentInfo attachment =
 		{
 			dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter,
 			surfaceFormat, 1
 		};
-		dsAttachmentRef attachmentRef = {0, true};
+		dsRenderPassAttachmentRef attachmentRef = {0, true};
 		dsRenderSubpassInfo subpass = {"WriteOffscreen", nullptr, &attachmentRef,
 			{DS_NO_ATTACHMENT, false}, 0, 1};
 		renderPass = dsRenderPass_create(renderer, allocator, &attachment, 1, &subpass, 1, nullptr,

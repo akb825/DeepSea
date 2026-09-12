@@ -20,7 +20,7 @@
 #include "VkTypes.h"
 
 dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
-	const dsAttachmentInfo* attachments, uint32_t attachmentCount,
+	const dsRenderPassAttachmentInfo* attachments, uint32_t attachmentCount,
 	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
 	const dsSubpassDependency* dependencies, uint32_t dependencyCount);
 bool dsVkRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,

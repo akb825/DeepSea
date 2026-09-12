@@ -1135,7 +1135,7 @@ bool dsMTLHardwareCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 		for (uint32_t i = 0; i < DS_MAX_ATTACHMENTS; ++i)
 		{
 			colorFormats[i] = MTLPixelFormatInvalid;
-			const dsAttachmentRef* attachment = subpass->colorAttachments + i;
+			const dsRenderPassAttachmentRef* attachment = subpass->colorAttachments + i;
 			if (i >= subpass->colorAttachmentCount ||
 				attachment->attachmentIndex == DS_NO_ATTACHMENT)
 			{

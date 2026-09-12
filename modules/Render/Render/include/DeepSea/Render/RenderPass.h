@@ -115,7 +115,7 @@ DS_RENDER_EXPORT bool dsRenderPass_setDefaultDependencies(dsSubpassDependency* o
  * @return The created render pass, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
-	const dsAttachmentInfo* attachments, uint32_t attachmentCount,
+	const dsRenderPassAttachmentInfo* attachments, uint32_t attachmentCount,
 	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
 	const dsSubpassDependency* dependencies, uint32_t dependencyCount);
 

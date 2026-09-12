@@ -39,7 +39,7 @@ static size_t fullAllocSize(uint32_t attachmentCount, const dsRenderSubpassInfo*
 	size_t fullSize = sizeof(dsMTLRenderPass);
 	dsMemorySize sizes[] =
 	{
-		{sizeof(dsAttachmentInfo), attachmentCount},
+		{sizeof(dsRenderPassAttachmentInfo), attachmentCount},
 		{sizeof(dsRenderSubpassInfo), subpassCount},
 		{sizeof(dsMTLSubpassInfo), subpassCount},
 		{sizeof(dsSubpassDependency), dependencyCount}
@@ -53,7 +53,7 @@ static size_t fullAllocSize(uint32_t attachmentCount, const dsRenderSubpassInfo*
 		dsMemorySize subpassSizes[] =
 		{
 			{sizeof(uint32_t), subpass->inputAttachmentCount},
-			{sizeof(dsAttachmentRef), subpass->colorAttachmentCount},
+			{sizeof(dsRenderPassAttachmentRef), subpass->colorAttachmentCount},
 			{sizeof(dsMTLAttachmentInfo), subpass->colorAttachmentCount},
 			{sizeof(char), strlen(subpass->name) + 1}
 		};
@@ -120,7 +120,7 @@ static bool hasUsageAfter(uint32_t attachment, uint32_t subpass,
 }
 
 static MTLLoadAction getLoadAction(uint32_t attachment, uint32_t subpass,
-	const dsAttachmentInfo* attachments, const dsRenderSubpassInfo* subpasses,
+	const dsRenderPassAttachmentInfo* attachments, const dsRenderSubpassInfo* subpasses,
 	uint32_t subpassCount)
 {
 	if (attachment == DS_NO_ATTACHMENT)
@@ -138,7 +138,7 @@ static MTLLoadAction getLoadAction(uint32_t attachment, uint32_t subpass,
 }
 
 static MTLStoreAction getStoreAction(uint32_t attachment, uint32_t subpass,
-	const dsAttachmentInfo* attachments, const dsRenderSubpassInfo* subpasses,
+	const dsRenderPassAttachmentInfo* attachments, const dsRenderSubpassInfo* subpasses,
 	uint32_t subpassCount)
 {
 	if (attachment == DS_NO_ATTACHMENT)
@@ -262,7 +262,7 @@ static MTLRenderPassDescriptor* createRenderPassDescriptor(const dsRenderPass* r
 	const dsMTLSubpassInfo* subpassInfo = mtlRenderPass->subpassInfos + subpassIndex;
 	for (uint32_t i = 0; i < subpass->colorAttachmentCount; ++i)
 	{
-		const dsAttachmentRef* colorAttachment = subpass->colorAttachments + i;
+		const dsRenderPassAttachmentRef* colorAttachment = subpass->colorAttachments + i;
 		if (colorAttachment->attachmentIndex == DS_NO_ATTACHMENT)
 			continue;
 
@@ -284,7 +284,7 @@ static MTLRenderPassDescriptor* createRenderPassDescriptor(const dsRenderPass* r
 		}
 	}
 
-	const dsAttachmentRef* depthStencilAttachment = &subpass->depthStencilAttachment;
+	const dsRenderPassAttachmentRef* depthStencilAttachment = &subpass->depthStencilAttachment;
 	if (depthStencilAttachment->attachmentIndex != DS_NO_ATTACHMENT)
 	{
 		const dsFramebufferSurface* surface = framebuffer->surfaces +
@@ -362,7 +362,7 @@ static void addReadbackOffscreens(const dsRenderPass* renderPass, uint32_t subpa
 }
 
 dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
-	const dsAttachmentInfo* attachments, uint32_t attachmentCount,
+	const dsRenderPassAttachmentInfo* attachments, uint32_t attachmentCount,
 	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
 	const dsSubpassDependency* dependencies, uint32_t dependencyCount)
 {
@@ -399,11 +399,11 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 
 		if (attachmentCount > 0)
 		{
-			baseRenderPass->attachments = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsAttachmentInfo,
-				attachmentCount);
+			baseRenderPass->attachments = DS_ALLOCATE_OBJECT_ARRAY(
+				&bufferAlloc, dsRenderPassAttachmentInfo, attachmentCount);
 			DS_ASSERT(baseRenderPass->attachments);
 			memcpy((void*)baseRenderPass->attachments, attachments,
-				sizeof(dsAttachmentInfo)*attachmentCount);
+				sizeof(dsRenderPassAttachmentInfo)*attachmentCount);
 		}
 		else
 			baseRenderPass->attachments = NULL;
@@ -432,10 +432,10 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 			if (curSubpass->colorAttachmentCount > 0)
 			{
 				curSubpass->colorAttachments = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc,
-					dsAttachmentRef, curSubpass->colorAttachmentCount);
+					dsRenderPassAttachmentRef, curSubpass->colorAttachmentCount);
 				DS_ASSERT(curSubpass->colorAttachments);
 				memcpy((void*)curSubpass->colorAttachments, subpasses[i].colorAttachments,
-					sizeof(dsAttachmentRef)*curSubpass->colorAttachmentCount);
+					sizeof(dsRenderPassAttachmentRef)*curSubpass->colorAttachmentCount);
 
 				curSubpassInfo->colorAttachments =
 					DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsMTLAttachmentInfo,
@@ -444,7 +444,8 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 				for (uint32_t j = 0; j < curSubpass->colorAttachmentCount; ++j)
 				{
 					dsMTLAttachmentInfo* attachmentInfo = curSubpassInfo->colorAttachments + j;
-					const dsAttachmentRef* colorAttachment = curSubpass->colorAttachments + j;
+					const dsRenderPassAttachmentRef* colorAttachment =
+						curSubpass->colorAttachments + j;
 					attachmentInfo->loadAction = getLoadAction(colorAttachment->attachmentIndex, i,
 						attachments, subpasses, subpassCount);
 					attachmentInfo->storeAction = getStoreAction(colorAttachment->attachmentIndex,
@@ -454,7 +455,8 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 			else
 				curSubpassInfo->colorAttachments = NULL;
 
-			const dsAttachmentRef* depthStencilAttachment = &curSubpass->depthStencilAttachment;
+			const dsRenderPassAttachmentRef* depthStencilAttachment =
+				&curSubpass->depthStencilAttachment;
 			curSubpassInfo->depthStencilAttachment.loadAction = getLoadAction(
 				depthStencilAttachment->attachmentIndex, i, attachments, subpasses, subpassCount);
 			curSubpassInfo->depthStencilAttachment.storeAction = getStoreAction(

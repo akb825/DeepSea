@@ -400,14 +400,14 @@ static bool setup(dsApplication* application, dsAllocator* allocator)
 	if (!createFramebuffer(testCube))
 		return false;
 
-	dsAttachmentInfo attachments[] =
+	dsRenderPassAttachmentInfo attachments[] =
 	{
 		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, renderer->surfaceColorFormat,
 			DS_SURFACE_ANTIALIAS_SAMPLES},
 		{dsAttachmentUsage_Clear, renderer->surfaceDepthStencilFormat, DS_SURFACE_ANTIALIAS_SAMPLES}
 	};
 
-	dsAttachmentRef colorAttachment = {0, true};
+	dsRenderPassAttachmentRef colorAttachment = {0, true};
 	uint32_t depthStencilAttachment = 1;
 	dsRenderSubpassInfo subpass =
 	{

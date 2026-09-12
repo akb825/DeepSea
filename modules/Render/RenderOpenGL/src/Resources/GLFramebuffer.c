@@ -221,7 +221,7 @@ GLSurfaceType dsGLFramebuffer_getSurfaceType(dsGfxSurfaceType framebufferSurface
 }
 
 GLSurfaceType dsGLFramebuffer_bind(const dsFramebuffer* framebuffer,
-	const dsAttachmentRef* colorAttachments, uint32_t colorAttachmentCount,
+	const dsRenderPassAttachmentRef* colorAttachments, uint32_t colorAttachmentCount,
 	uint32_t depthStencilAttachment)
 {
 	dsRenderer* renderer = framebuffer->resourceManager->renderer;

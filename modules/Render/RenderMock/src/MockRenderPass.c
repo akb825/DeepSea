@@ -22,7 +22,7 @@
 #include <string.h>
 
 dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
-	const dsAttachmentInfo* attachments, uint32_t attachmentCount,
+	const dsRenderPassAttachmentInfo* attachments, uint32_t attachmentCount,
 	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
 	const dsSubpassDependency* dependencies, uint32_t dependencyCount)
 {
@@ -42,7 +42,7 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 	size_t totalSize = sizeof(dsRenderPass);
 	dsMemorySize sizes[] =
 	{
-		{sizeof(dsAttachmentInfo), attachmentCount},
+		{sizeof(dsRenderPassAttachmentInfo), attachmentCount},
 		{sizeof(dsRenderSubpassInfo), subpassCount},
 		{sizeof(dsSubpassDependency), finalDependencyCount}
 	};
@@ -55,7 +55,7 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 		dsMemorySize subpassSizes[] =
 		{
 			{sizeof(uint32_t), subpass->inputAttachmentCount},
-			{sizeof(dsAttachmentRef), subpass->colorAttachmentCount},
+			{sizeof(dsRenderPassAttachmentRef), subpass->colorAttachmentCount},
 			{sizeof(char), strlen(subpass->name) + 1}
 		};
 		if (!dsAccumulateAlignedSizes(
@@ -78,11 +78,11 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 
 	if (attachmentCount > 0)
 	{
-		renderPass->attachments = DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator, dsAttachmentInfo,
-			attachmentCount);
+		renderPass->attachments = DS_ALLOCATE_OBJECT_ARRAY(
+			&bufferAllocator, dsRenderPassAttachmentInfo, attachmentCount);
 		DS_ASSERT(renderPass->attachments);
 		memcpy((void*)renderPass->attachments, attachments,
-			sizeof(dsAttachmentInfo)*attachmentCount);
+			sizeof(dsRenderPassAttachmentInfo)*attachmentCount);
 		renderPass->attachmentCount = attachmentCount;
 	}
 	else
@@ -110,10 +110,10 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 		if (curSubpass->colorAttachmentCount > 0)
 		{
 			curSubpass->colorAttachments = DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator,
-				dsAttachmentRef, curSubpass->colorAttachmentCount);
+				dsRenderPassAttachmentRef, curSubpass->colorAttachmentCount);
 			DS_ASSERT(curSubpass->colorAttachments);
 			memcpy((void*)curSubpass->colorAttachments, subpasses[i].colorAttachments,
-				sizeof(dsAttachmentRef)*curSubpass->colorAttachmentCount);
+				sizeof(dsRenderPassAttachmentRef)*curSubpass->colorAttachmentCount);
 		}
 
 		size_t nameLen = strlen(subpasses[i].name) + 1;

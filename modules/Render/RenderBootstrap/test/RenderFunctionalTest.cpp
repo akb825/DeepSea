@@ -140,12 +140,12 @@ private:
 			resourceManager, allocator, "WriteOffscreen", surfaces, surfaceCount, width, height, 1);
 		ASSERT_TRUE(framebuffer);
 
-		dsAttachmentInfo attachments[] =
+		dsRenderPassAttachmentInfo attachments[] =
 		{
 			{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, surfaceFormat, 1},
 			{dsAttachmentUsage_Clear, depthFormat, 1},
 		};
-		dsAttachmentRef attachmentRef = {0, true};
+		dsRenderPassAttachmentRef attachmentRef = {0, true};
 		dsRenderSubpassInfo subpass = {"WriteOffscreen", nullptr, &attachmentRef,
 			{depthBuffer ? 1 : DS_NO_ATTACHMENT, false}, 0, 1};
 		renderPass = dsRenderPass_create(renderer, allocator, attachments, surfaceCount, &subpass,

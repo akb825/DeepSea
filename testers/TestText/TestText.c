@@ -1308,10 +1308,10 @@ static bool setup(
 
 	DS_VERIFY(dsWindow_setDrawFunction(testText->window, &draw, testText, NULL));
 
-	dsAttachmentInfo attachment = {dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter,
+	dsRenderPassAttachmentInfo attachment = {dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter,
 		renderer->surfaceColorFormat, DS_SURFACE_ANTIALIAS_SAMPLES};
 
-	dsAttachmentRef colorAttachment = {0, true};
+	dsRenderPassAttachmentRef colorAttachment = {0, true};
 	uint32_t depthStencilAttachment = DS_NO_ATTACHMENT;
 	dsRenderSubpassInfo subpass =
 	{

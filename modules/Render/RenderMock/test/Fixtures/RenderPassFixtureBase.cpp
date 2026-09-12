@@ -23,13 +23,13 @@ void RenderPassFixtureBase::SetUp()
 {
 	FixtureBase::SetUp();
 
-	dsAttachmentInfo attachments[] =
+	dsRenderPassAttachmentInfo attachments[] =
 	{
 		{dsAttachmentUsage_Standard, dsGfxFormat_SurfaceDepthStencil, DS_DEFAULT_ANTIALIAS_SAMPLES},
 		{dsAttachmentUsage_KeepAfter, dsGfxFormat_SurfaceColor, DS_DEFAULT_ANTIALIAS_SAMPLES}
 	};
 	uint32_t attachmentCount = DS_ARRAY_SIZE(attachments);
-	dsAttachmentRef colorAttachments[] = {{1, true}};
+	dsRenderPassAttachmentRef colorAttachments[] = {{1, true}};
 	dsRenderSubpassInfo subpasses[] =
 	{
 		{"test1", NULL, colorAttachments, {0, false}, 0, DS_ARRAY_SIZE(colorAttachments)}

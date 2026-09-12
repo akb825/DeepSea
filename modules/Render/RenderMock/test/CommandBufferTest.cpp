@@ -44,14 +44,14 @@ TEST_F(CommandBufferTest, BeginEnd)
 
 TEST_F(CommandBufferTest, BeginEndSecondary)
 {
-	dsAttachmentInfo attachments[] =
+	dsRenderPassAttachmentInfo attachments[] =
 	{
 		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, dsGfxFormat_SurfaceColor,
 			DS_SURFACE_ANTIALIAS_SAMPLES}
 	};
 	uint32_t attachmentCount = DS_ARRAY_SIZE(attachments);
 
-	dsAttachmentRef colorAttachments[] = {{0, true}};
+	dsRenderPassAttachmentRef colorAttachments[] = {{0, true}};
 	dsRenderSubpassInfo subpasses[] =
 	{
 		{"test", nullptr, colorAttachments, {DS_NO_ATTACHMENT, false}, 0,

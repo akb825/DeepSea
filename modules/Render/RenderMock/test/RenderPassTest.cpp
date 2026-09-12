@@ -29,23 +29,23 @@ class RenderPassTest : public FixtureBase
 TEST_F(RenderPassTest, DefaultDependencies)
 {
 	// uint32_t input0[] = {};
-	dsAttachmentRef color0[] = {{0, false}, {1, false}};
-	dsAttachmentRef depthStencil0 = {2, false};
+	dsRenderPassAttachmentRef color0[] = {{0, false}, {1, false}};
+	dsRenderPassAttachmentRef depthStencil0 = {2, false};
 	// uint32_t input1[] = {};
-	dsAttachmentRef color1[] = {{3, false}, {4, false}};
-	dsAttachmentRef depthStencil1 = {DS_NO_ATTACHMENT, false};
+	dsRenderPassAttachmentRef color1[] = {{3, false}, {4, false}};
+	dsRenderPassAttachmentRef depthStencil1 = {DS_NO_ATTACHMENT, false};
 	uint32_t input2[] = {1};
-	dsAttachmentRef color2[] = {{0, false}};
-	dsAttachmentRef depthStencil2 = {2, false};
+	dsRenderPassAttachmentRef color2[] = {{0, false}};
+	dsRenderPassAttachmentRef depthStencil2 = {2, false};
 	uint32_t input3[] = {1};
-	dsAttachmentRef color3[] = {{4, false}};
-	dsAttachmentRef depthStencil3 = {DS_NO_ATTACHMENT, false};
+	dsRenderPassAttachmentRef color3[] = {{4, false}};
+	dsRenderPassAttachmentRef depthStencil3 = {DS_NO_ATTACHMENT, false};
 	// uint32_t input4[] = {};
-	dsAttachmentRef color4[] = {{5, true}};
-	dsAttachmentRef depthStencil4 = {6, false};
+	dsRenderPassAttachmentRef color4[] = {{5, true}};
+	dsRenderPassAttachmentRef depthStencil4 = {6, false};
 	uint32_t input5[] = {0, 2, 4};
-	dsAttachmentRef color5[] = {{7, true}};
-	dsAttachmentRef depthStencil5 = {DS_NO_ATTACHMENT, false};
+	dsRenderPassAttachmentRef color5[] = {{7, true}};
+	dsRenderPassAttachmentRef depthStencil5 = {DS_NO_ATTACHMENT, false};
 
 	dsRenderSubpassInfo subpasses[] =
 	{
@@ -269,7 +269,7 @@ TEST_F(RenderPassTest, DefaultDependencies)
 
 TEST_F(RenderPassTest, Create)
 {
-	dsAttachmentInfo attachments[] =
+	dsRenderPassAttachmentInfo attachments[] =
 	{
 		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, dsGfxFormat_SurfaceDepthStencil,
 			DS_DEFAULT_ANTIALIAS_SAMPLES},
@@ -280,10 +280,10 @@ TEST_F(RenderPassTest, Create)
 	};
 	uint32_t attachmentCount = DS_ARRAY_SIZE(attachments);
 
-	dsAttachmentRef pass0ColorAttachments[] = {{2, true}};
-	dsAttachmentRef pass1ColorAttachments[] = {{3, true}};
+	dsRenderPassAttachmentRef pass0ColorAttachments[] = {{2, true}};
+	dsRenderPassAttachmentRef pass1ColorAttachments[] = {{3, true}};
 	uint32_t pass2InputAttachments[] = {2, 3};
-	dsAttachmentRef pass2ColorAttachments[] = {{1, false}};
+	dsRenderPassAttachmentRef pass2ColorAttachments[] = {{1, false}};
 	dsRenderSubpassInfo subpasses[] =
 	{
 		{"test1", nullptr, pass0ColorAttachments, {DS_NO_ATTACHMENT, false}, 0,
@@ -391,7 +391,7 @@ TEST_F(RenderPassTest, Create)
 
 TEST_F(RenderPassTest, BeginNextEnd)
 {
-	dsAttachmentInfo attachments[] =
+	dsRenderPassAttachmentInfo attachments[] =
 	{
 		{dsAttachmentUsage_Clear, dsGfxFormat_SurfaceDepthStencil,
 			renderer->surfaceSamples},
@@ -402,10 +402,10 @@ TEST_F(RenderPassTest, BeginNextEnd)
 	};
 	uint32_t attachmentCount = DS_ARRAY_SIZE(attachments);
 
-	dsAttachmentRef pass0ColorAttachments[] = {{2, true}};
-	dsAttachmentRef pass1ColorAttachments[] = {{3, true}};
+	dsRenderPassAttachmentRef pass0ColorAttachments[] = {{2, true}};
+	dsRenderPassAttachmentRef pass1ColorAttachments[] = {{3, true}};
 	uint32_t pass2InputAttachments[] = {2, 3};
-	dsAttachmentRef pass2ColorAttachments[] = {{1, false}};
+	dsRenderPassAttachmentRef pass2ColorAttachments[] = {{1, false}};
 	dsRenderSubpassInfo subpasses[] =
 	{
 		{"test1", nullptr, pass0ColorAttachments, {DS_NO_ATTACHMENT, false}, 0,

@@ -235,7 +235,7 @@ static bool createLegacyRenderPass(
 		uint32_t resolveIndex = 0;
 		for (uint32_t i = 0; i < renderPassData->attachmentCount; ++i)
 		{
-			const dsAttachmentInfo* attachment = renderPass->attachments + i;
+			const dsRenderPassAttachmentInfo* attachment = renderPass->attachments + i;
 			VkAttachmentDescription* vkAttachment = vkAttachments + i;
 			dsAttachmentUsage usage = attachment->usage;
 
@@ -362,7 +362,7 @@ static bool createLegacyRenderPass(
 			bool hasResolve = false;
 			for (uint32_t j = 0; j < vkSubpass->colorAttachmentCount; ++j)
 			{
-				const dsAttachmentRef* curAttachment = curSubpass->colorAttachments + j;
+				const dsRenderPassAttachmentRef* curAttachment = curSubpass->colorAttachments + j;
 				VkAttachmentReference* colorAttachment = colorAttachments + j;
 				uint32_t attachmentIndex = curAttachment->attachmentIndex;
 				colorAttachment->attachment = attachmentIndex;
@@ -385,7 +385,7 @@ static bool createLegacyRenderPass(
 
 				for (uint32_t j = 0; j < vkSubpass->colorAttachmentCount; ++j)
 				{
-					const dsAttachmentRef* curAttachment = curSubpass->colorAttachments + j;
+					const dsRenderPassAttachmentRef* curAttachment = curSubpass->colorAttachments + j;
 					VkAttachmentReference* resolveAttachment = resolveAttachments + j;
 					uint32_t attachmentIndex = curAttachment->attachmentIndex;
 					if (attachmentIndex != DS_NO_ATTACHMENT && curAttachment->resolve &&
@@ -406,7 +406,8 @@ static bool createLegacyRenderPass(
 			}
 		}
 
-		const dsAttachmentRef* depthStencilAttachment = &curSubpass->depthStencilAttachment;
+		const dsRenderPassAttachmentRef* depthStencilAttachment =
+			&curSubpass->depthStencilAttachment;
 		if (depthStencilAttachment->attachmentIndex != DS_NO_ATTACHMENT)
 		{
 			// Check if the depth is also used as an input, in which case this can be used for
@@ -668,7 +669,7 @@ static bool createRenderPass(
 		uint32_t resolveIndex = 0;
 		for (uint32_t i = 0; i < renderPassData->attachmentCount; ++i)
 		{
-			const dsAttachmentInfo* attachment = renderPass->attachments + i;
+			const dsRenderPassAttachmentInfo* attachment = renderPass->attachments + i;
 			VkAttachmentDescription2KHR* vkAttachment = vkAttachments + i;
 			dsAttachmentUsage usage = attachment->usage;
 
@@ -805,7 +806,7 @@ static bool createRenderPass(
 			for (uint32_t j = 0; j < vkSubpass->colorAttachmentCount; ++j)
 			{
 				VkAttachmentReference2KHR* colorAttachment = colorAttachments + j;
-				const dsAttachmentRef* curAttachment = curSubpass->colorAttachments + j;
+				const dsRenderPassAttachmentRef* curAttachment = curSubpass->colorAttachments + j;
 				uint32_t attachmentIndex = curAttachment->attachmentIndex;
 				colorAttachment->sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2_KHR;
 				colorAttachment->pNext = NULL;
@@ -830,7 +831,7 @@ static bool createRenderPass(
 
 				for (uint32_t j = 0; j < vkSubpass->colorAttachmentCount; ++j)
 				{
-					const dsAttachmentRef* curAttachment = curSubpass->colorAttachments + j;
+					const dsRenderPassAttachmentRef* curAttachment = curSubpass->colorAttachments + j;
 					VkAttachmentReference2KHR* resolveAttachment = resolveAttachments + j;
 					uint32_t attachmentIndex = curAttachment->attachmentIndex;
 					resolveAttachment->sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2_KHR;
@@ -854,7 +855,8 @@ static bool createRenderPass(
 			}
 		}
 
-		const dsAttachmentRef* depthStencilAttachment = &curSubpass->depthStencilAttachment;
+		const dsRenderPassAttachmentRef* depthStencilAttachment =
+			&curSubpass->depthStencilAttachment;
 		if (depthStencilAttachment->attachmentIndex != DS_NO_ATTACHMENT)
 		{
 			// Check if the depth is also used as an input, in which case this can be used for

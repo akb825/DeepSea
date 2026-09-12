@@ -247,7 +247,7 @@ static void setupColorAttachments(dsShader* shader, MTLRenderPipelineDescriptor*
 
 		DS_ASSERT(i < MSL_MAX_ATTACHMENTS);
 		const mslBlendAttachmentState* attachmentState = blendState->blendAttachments + i;
-		const dsAttachmentInfo* attachment = renderPass->attachments + attachmentIndex;
+		const dsRenderPassAttachmentInfo* attachment = renderPass->attachments + attachmentIndex;
 		dsGfxFormat format = dsGfxFormat_resolve(renderer, attachment->format);
 		MTLRenderPipelineColorAttachmentDescriptor* colorDescriptor =
 			descriptor.colorAttachments[i];
@@ -276,7 +276,7 @@ static void setupDepthStencilAttachment(dsShader* shader, MTLRenderPipelineDescr
 	if (depthStencilAttachment == DS_NO_ATTACHMENT)
 		return;
 
-	const dsAttachmentInfo* attachment = renderPass->attachments + depthStencilAttachment;
+	const dsRenderPassAttachmentInfo* attachment = renderPass->attachments + depthStencilAttachment;
 	dsGfxFormat format = dsGfxFormat_resolve(resourceManager->renderer, attachment->format);
 	descriptor.depthAttachmentPixelFormat = dsGetMTLDepthFormat(resourceManager, format);
 	descriptor.stencilAttachmentPixelFormat = dsGetMTLStencilFormat(resourceManager, format);

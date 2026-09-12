@@ -429,7 +429,7 @@ static bool endRenderSubpass(dsGLMainCommandBuffer* commandBuffer,
 		dsGLTexture_unbindFramebuffer(lastTexture, GL_DRAW_FRAMEBUFFER);
 	}
 
-	const dsAttachmentRef* depthStencilAttachment = &subpass->depthStencilAttachment;
+	const dsRenderPassAttachmentRef* depthStencilAttachment = &subpass->depthStencilAttachment;
 	if (depthStencilAttachment->attachmentIndex != DS_NO_ATTACHMENT &&
 		depthStencilAttachment->resolve)
 	{
@@ -1665,7 +1665,7 @@ bool dsGLMainCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 	dsRenderer* renderer = commandBuffer->renderer;
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
 	dsGLMainCommandBuffer* glCommandBuffer = (dsGLMainCommandBuffer*)commandBuffer;
-	const dsAttachmentInfo* attachmentInfos = commandBuffer->boundRenderPass->attachments;
+	const dsRenderPassAttachmentInfo* attachmentInfos = commandBuffer->boundRenderPass->attachments;
 	const dsRenderSubpassInfo* subpass = commandBuffer->boundRenderPass->subpasses +
 		commandBuffer->activeRenderSubpass;
 

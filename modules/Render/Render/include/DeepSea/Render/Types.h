@@ -758,7 +758,7 @@ typedef struct dsRenderSurface
  * This provides information ahead of time that can help improve performance during rendering.
  * @see RenderPass.h
  */
-typedef struct dsAttachmentInfo
+typedef struct dsRenderPassAttachmentInfo
 {
 	/**
 	 * @brief The usage of the attachment.
@@ -779,13 +779,13 @@ typedef struct dsAttachmentInfo
 	 * This may be set to DS_DEFAULT_ANTIALIAS_SAMPLES to use the default set on the renderer.
 	 */
 	uint32_t samples;
-} dsAttachmentInfo;
+} dsRenderPassAttachmentInfo;
 
 /**
  * @brief Reference for an attachment.
  * @see RenderPass.h
  */
-typedef struct dsAttachmentRef
+typedef struct dsRenderPassAttachmentRef
 {
 	/**
 	 * @brief The index to the attachment.
@@ -810,7 +810,7 @@ typedef struct dsAttachmentRef
 	 * @remark This is ignored when the surface doesn't have multisampling.
 	 */
 	bool resolve;
-} dsAttachmentRef;
+} dsRenderPassAttachmentRef;
 
 /**
  * @brief Structure defining what is used for a subpass.
@@ -837,14 +837,14 @@ typedef struct dsRenderSubpassInfo
 	 * @brief List of image attachments to use as inputs as indices to the attachment list for the
 	 * render pass.
 	 */
-	const dsAttachmentRef* colorAttachments;
+	const dsRenderPassAttachmentRef* colorAttachments;
 
 	/**
 	 * @brief The depth stencil attachment as an index to the attachment list for the render pass.
 	 *
 	 * Set to DS_NO_ATTACHMENT to not have a depth attachment.
 	 */
-	dsAttachmentRef depthStencilAttachment;
+	dsRenderPassAttachmentRef depthStencilAttachment;
 
 	/**
 	 * @brief The number of input attachments.
@@ -949,7 +949,7 @@ typedef struct dsRenderPass
 	/**
 	 * @brief The list of image attachments to use with the render pass.
 	 */
-	const dsAttachmentInfo* attachments;
+	const dsRenderPassAttachmentInfo* attachments;
 
 	/**
 	 * @brief The list of subpasses for this render pass.
@@ -1696,7 +1696,7 @@ typedef bool (*dsSubmitCommandBufferFunction)(dsRenderer* renderer, dsCommandBuf
  * @return The created render pass, or NULL if it couldn't be created.
  */
 typedef dsRenderPass* (*dsCreateRenderPassFunction)(dsRenderer* renderer, dsAllocator* allocator,
-	const dsAttachmentInfo* attachments, uint32_t attachmentCount,
+	const dsRenderPassAttachmentInfo* attachments, uint32_t attachmentCount,
 	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
 	const dsSubpassDependency* dependencies, uint32_t dependencyCount);
 

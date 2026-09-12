@@ -272,7 +272,7 @@ dsVkRenderPassData* dsVkRenderPassData_create(
 		uint32_t resolveIndex = 0;
 		for (uint32_t i = 0; i < attachmentCount; ++i)
 		{
-			const dsAttachmentInfo* attachment = renderPass->attachments + i;
+			const dsRenderPassAttachmentInfo* attachment = renderPass->attachments + i;
 			const dsVkFormatInfo* format = dsVkResourceManager_getFormat(
 				renderer->resourceManager, dsGfxFormat_resolve(renderer, attachment->format));
 			if (!format)
