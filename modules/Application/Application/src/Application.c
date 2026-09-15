@@ -27,6 +27,8 @@
 
 #include <DeepSea/Math/Round.h>
 
+#include <DeepSea/Render/RenderSurface.h>
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -344,6 +346,22 @@ bool dsApplication_quit(dsApplication* application, int exitCode)
 
 	application->quitFunc(application, exitCode);
 	return true;
+}
+
+bool dsApplication_supportsSurfaceFormat(
+	const dsApplication* application, const dsRenderSurfaceHint* formatHint, uint32_t samples)
+{
+	if (!application || !formatHint)
+		return false;
+
+	int surfacelessResult = dsRenderSurface_supportsFormat(
+		application->renderer, NULL, NULL, dsRenderSurfaceType_Window, formatHint, samples);
+	if (surfacelessResult >= 0)
+		return (bool)surfacelessResult;
+
+	if (!application->supportsSurfaceFormat)
+		return false;
+	return application->supportsSurfaceFormat(application, formatHint, samples);
 }
 
 bool dsApplication_addCustomEvent(dsApplication* application, const dsCustomEvent* event)

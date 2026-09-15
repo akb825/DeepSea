@@ -202,11 +202,12 @@ bool dsRenderSurfaceHint_fromFormats(dsRenderSurfaceHint* hint,
 
 bool dsRenderSurfaceHint_isValid(const dsRenderSurfaceHint* hint)
 {
-	return dsRenderSurfaceHint_colorFormat(hint, false, false) != dsGfxFormat_Unknown;
+	return dsRenderSurfaceHint_colorFormat(hint, dsGfxFormat_R5G6B5, dsGfxFormat_R8G8B8,
+		dsGfxFormat_R8G8B8A8, dsGfxFormat_A2B10G10R10) != dsGfxFormat_Unknown;
 }
 
-dsGfxFormat dsRenderSurfaceHint_colorFormat(
-	const dsRenderSurfaceHint* hint, bool bgr, bool aligned)
+dsGfxFormat dsRenderSurfaceHint_colorFormat(const dsRenderSurfaceHint* hint, dsGfxFormat r5g6b5,
+	dsGfxFormat r8g8b8, dsGfxFormat r8g8b8a8, dsGfxFormat r10g10b10a2)
 {
 	if (!hint)
 		return dsGfxFormat_Unknown;
@@ -218,25 +219,16 @@ dsGfxFormat dsRenderSurfaceHint_colorFormat(
 	{
 		if (hint->colorSpace == dsRenderColorSpace_NonLinearSRGBConverting)
 			return dsGfxFormat_Unknown;
-		if (bgr)
-			return dsGfxFormat_decorate(dsGfxFormat_B5G6R5, dsGfxFormat_UNorm);
-		return dsGfxFormat_decorate(dsGfxFormat_R5G6B5, dsGfxFormat_UNorm);
+		return dsGfxFormat_decorate(r5g6b5, dsGfxFormat_UNorm);
 	}
 
 	if (hint->redBits <= 8 && hint->greenBits <= 8 && hint->blueBits <= 8 && hint->alphaBits <= 8)
 	{
 		dsGfxFormat decorator = hint->colorSpace == dsRenderColorSpace_NonLinearSRGBConverting ?
 			dsGfxFormat_SRGB : dsGfxFormat_UNorm;
-		if (hint->alphaBits != 0 || aligned)
-		{
-			if (bgr)
-				return dsGfxFormat_decorate(dsGfxFormat_B8G8R8A8, decorator);
-			return dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, decorator);
-		}
-
-		if (bgr)
-			return dsGfxFormat_decorate(dsGfxFormat_B8G8R8, decorator);
-		return dsGfxFormat_decorate(dsGfxFormat_R8G8B8, decorator);
+		if (hint->alphaBits == 0)
+			return dsGfxFormat_decorate(r8g8b8, decorator);
+		return dsGfxFormat_decorate(r8g8b8a8, decorator);
 	}
 
 	if (hint->redBits <= 10 && hint->greenBits <= 10 && hint->blueBits <= 10 &&
@@ -244,9 +236,7 @@ dsGfxFormat dsRenderSurfaceHint_colorFormat(
 	{
 		if (hint->colorSpace == dsRenderColorSpace_NonLinearSRGBConverting)
 			return dsGfxFormat_Unknown;
-		if (bgr)
-			return dsGfxFormat_decorate(dsGfxFormat_A2B10G10R10, dsGfxFormat_UNorm);
-		return dsGfxFormat_decorate(dsGfxFormat_A2R10G10B10, dsGfxFormat_UNorm);
+		return dsGfxFormat_decorate(r10g10b10a2, dsGfxFormat_UNorm);
 	}
 
 	if (hint->redBits <= 16 && hint->greenBits <= 16 && hint->blueBits <= 16 &&

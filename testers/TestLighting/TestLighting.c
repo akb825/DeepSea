@@ -33,9 +33,12 @@
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Trig.h>
 
+#include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderSurface.h>
+#include <DeepSea/Render/RenderSurfaceHint.h>
+
 #include <DeepSea/RenderBootstrap/RenderBootstrap.h>
 
 #include <DeepSea/Scene/ItemLists/InstanceTransformData.h>
@@ -71,6 +74,13 @@ typedef enum LightingType
 	LightingType_Count
 } LightingType;
 
+typedef enum SurfaceFormat
+{
+	SurfaceFormat_SDR,
+	SurfaceFormat_HDR10,
+	SurfaceFormat_HDR16
+} SurfaceFormat;
+
 typedef struct TestLighting
 {
 	dsAllocator* allocator;
@@ -93,6 +103,7 @@ typedef struct TestLighting
 	dsView* view;
 
 	dsSceneTick tick;
+	uint32_t supportedSurfaceFormats;
 	uint32_t aaSamples;
 	LightingType lightingType;
 	float rotation;
@@ -463,6 +474,42 @@ static bool setup(dsApplication* application, dsAllocator* allocator)
 	testLighting->renderer = renderer;
 	DS_VERIFY(dsApplication_setUserData(application, testLighting, &shutdown));
 
+	dsRenderSurfaceHint formatHint;
+	DS_VERIFY(dsRenderSurfaceHint_fromFormats(
+		&formatHint, dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		dsGfxFormat_Unknown, dsRenderColorSpace_NonLinearSRGB, false));
+	if (!dsApplication_supportsSurfaceFormat(application, &formatHint, 1))
+	{
+		DS_LOG_ERROR("TestLighting", "Rendering to standard SDR render surface not supported.");
+		return false;
+	}
+	testLighting->supportedSurfaceFormats = 1 << SurfaceFormat_SDR;
+
+	DS_VERIFY(dsRenderSurfaceHint_fromFormats(
+		&formatHint, dsGfxFormat_decorate(dsGfxFormat_A2R10G10B10, dsGfxFormat_UNorm),
+		dsGfxFormat_Unknown, dsRenderColorSpace_Rec2100PQ, false));
+	const char* supportedStr;
+	if (dsApplication_supportsSurfaceFormat(application, &formatHint, 1))
+	{
+		supportedStr = "supported";
+		testLighting->supportedSurfaceFormats = 1 << SurfaceFormat_HDR10;
+	}
+	else
+		supportedStr = "unsupported";
+	DS_LOG_INFO_F("TestLighting", "HDR10 surfaces: %s", supportedStr);
+
+	DS_VERIFY(dsRenderSurfaceHint_fromFormats(
+		&formatHint, dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16, dsGfxFormat_Float),
+		dsGfxFormat_Unknown, dsRenderColorSpace_ExtendedLinearSRGB, false));
+	if (dsApplication_supportsSurfaceFormat(application, &formatHint, 1))
+	{
+		supportedStr = "supported";
+		testLighting->supportedSurfaceFormats = 1 << SurfaceFormat_HDR16;
+	}
+	else
+		supportedStr = "unsupported";
+	DS_LOG_INFO_F("TestLighting", "16-bit float HDR surfaces: %s", supportedStr);
+
 	testLighting->threadPool = dsResourceManager_createThreadPool(
 		allocator, resourceManager, dsThreadPool_defaultThreadCount(), 0);
 	if (!testLighting->threadPool)
@@ -583,8 +630,8 @@ static bool setup(dsApplication* application, dsAllocator* allocator)
 		return false;
 	}
 
-	testLighting->baseResources = dsSceneResources_loadArchive(allocator, NULL, loadContext,
-		scratchData, archive, "BaseResources.dssr");
+	testLighting->baseResources = dsSceneResources_loadArchive(
+		allocator, NULL, loadContext, scratchData, archive, "BaseResources.dssr");
 	if (!testLighting->baseResources)
 	{
 		DS_LOG_ERROR_F("TestLighting", "Couldn't load base scene resources: %s",

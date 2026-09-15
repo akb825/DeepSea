@@ -200,6 +200,21 @@ DS_APPLICATION_EXPORT uint32_t dsApplication_showMessageBox(dsApplication* appli
 DS_APPLICATION_EXPORT bool dsApplication_quit(dsApplication* application, int exitCode);
 
 /**
+ * @brief Checks if a render surface format is supported by the application.
+ *
+ * This is similar to dsRenderSurface_supportsFormat(), except the caller will not need to provide
+ * an OS handle for a render surface. If the renderer implementation requires an OS surface to
+ * check, a temporary hidden window will be created to check for compatiblity.
+ *
+ * @param application The application.
+ * @param formatHint The hint for the render surface format.
+ * @param samples The number of anti-alias samples.
+ * @return Whether the format is supported.
+ */
+DS_APPLICATION_EXPORT bool dsApplication_supportsSurfaceFormat(
+	const dsApplication* application, const dsRenderSurfaceHint* formatHint, uint32_t samples);
+
+/**
  * @brief Adds a custom event to be placed on the event queue.
  * @remark errno will be set on failure.
  * @param application The application.

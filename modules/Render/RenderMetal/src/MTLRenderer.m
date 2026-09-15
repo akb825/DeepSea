@@ -1083,7 +1083,8 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 
 dsGfxFormat dsMTLRenderer_surfaceColorFormat(const dsRenderSurfaceHint* hint)
 {
-	return dsRenderSurfaceHint_colorFormat(hint, true, true);
+	return dsRenderSurfaceHint_colorFormat(hint, dsGfxFormat_B5G6R5, dsGfxFormat_B8G8R8A8,
+		dsGfxFormat_B8G8R8A8, dsGfxFormat_A2B10G10R10);
 }
 
 dsGfxFormat dsMTLRenderer_surfaceDepthStencilFormat(

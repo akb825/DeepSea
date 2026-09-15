@@ -313,7 +313,10 @@ int dsRenderSurface_supportsFormat(const dsRenderer* renderer, void* displayHand
 		return false;
 
 	if (!renderer->renderSurfaceSupportsFormatFunc)
-		return dsRenderSurfaceHint_colorFormat(formatHint, false, false) != dsGfxFormat_Unknown;
+	{
+		return dsRenderSurfaceHint_colorFormat(formatHint, dsGfxFormat_R5G6B5, dsGfxFormat_R8G8B8,
+			dsGfxFormat_R8G8B8A8, dsGfxFormat_A2B10G10R10) != dsGfxFormat_Unknown;
+	}
 
 	return renderer->renderSurfaceSupportsFormatFunc(
 		renderer, displayHandle, osHandle, type, formatHint, samples);

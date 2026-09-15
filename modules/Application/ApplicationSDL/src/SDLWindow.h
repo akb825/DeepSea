@@ -35,6 +35,11 @@ typedef struct dsSDLWindow
 	dsRenderSurfaceUsage renderSurfaceUsage;
 } dsSDLWindow;
 
+SDL_Window* dsSDLWindow_createInternalWindow(const dsApplication* application, const char* title,
+	const dsVector2i* position, uint32_t width, uint32_t height, dsWindowFlags flags);
+bool dsSDLWindow_getWindowHandle(void** outDisplayHandle, void** outWindowHandle,
+	const dsApplication* application, SDL_Window* internalWindow);
+
 bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, uint32_t width,
 	uint32_t height, dsWindowFlags flags);
 void dsSDLWindow_destroyComponents(dsWindow* window);

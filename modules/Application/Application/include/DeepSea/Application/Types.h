@@ -865,6 +865,19 @@ typedef uint32_t (*dsShowApplicationMessageBoxFunction)(dsApplication* applicati
 typedef void (*dsQuitApplicationFunction)(dsApplication* application, int returnCode);
 
 /**
+ * @brief Function to check whether a render surface is supported by the application.
+ *
+ * This function will only be called if the application can't get a conclusive result without a
+ * display and window handle.
+ *
+ * @param application The application.
+ * @param formatHint The hint for the render surface format.
+ * @param samples The number of anti-alias samples.
+ */
+typedef bool (*dsApplicationSupportsSurfaceFormat)(
+	const dsApplication* application, const dsRenderSurfaceHint* formatHint, uint32_t samples);
+
+/**
  * @brief Function to add a custom event.
  * @param application The application.
  * @param event The custom event to queue.
@@ -1649,6 +1662,11 @@ typedef struct dsApplication
 	 * @brief Function for quitting the application.
 	 */
 	dsQuitApplicationFunction quitFunc;
+
+	/**
+	 * @brief Function to check if a surface format is supported.
+	 */
+	dsApplicationSupportsSurfaceFormat supportsSurfaceFormat;
 
 	/**
 	 * @brief Function for adding a custom event.

@@ -51,7 +51,7 @@ int dsGLRenderSurface_supportsFormat(const dsRenderer* renderer, void* displayHa
 	options.renderSurfaceHint = *formatHint;
 	options.surfaceSamples = (uint8_t)samples;
 	return dsGLPlatform_isSurfaceValid(
-		&glRenderer->platform, displayHandle, type, osHandle, &options);
+		&glRenderer->platform, options.gfxDisplay, type, osHandle, &options);
 }
 
 dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,

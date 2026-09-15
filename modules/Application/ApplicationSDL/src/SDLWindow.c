@@ -143,14 +143,9 @@ static bool findSDLDisplayMode(SDL_DisplayMode* outMode, const dsDisplayMode* di
 	return true;
 }
 
-bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, uint32_t width,
-	uint32_t height, dsWindowFlags flags)
+SDL_Window* dsSDLWindow_createInternalWindow(const dsApplication* application, const char* title,
+	const dsVector2i* position, uint32_t width, uint32_t height, dsWindowFlags flags)
 {
-	DS_ASSERT(position);
-	dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
-	dsApplication* application = window->application;
-	dsRenderer* renderer = application->renderer;
-
 	unsigned int sdlFlags = SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
 	uint32_t platformID = application->renderer->platformID;
@@ -167,6 +162,93 @@ bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, 
 	if (platformID == DS_GLX_RENDERER_PLATFORM_ID)
 		sdlFlags |= SDL_WINDOW_OPENGL;
 
+	SDL_PropertiesID windowProps = SDL_CreateProperties();
+	if (!windowProps)
+		return NULL;
+
+	SDL_SetStringProperty(windowProps, SDL_PROP_WINDOW_CREATE_TITLE_STRING, title);
+	if (position)
+	{
+		SDL_SetNumberProperty(windowProps, SDL_PROP_WINDOW_CREATE_X_NUMBER, position->x);
+		SDL_SetNumberProperty(windowProps, SDL_PROP_WINDOW_CREATE_Y_NUMBER, position->y);
+	}
+	SDL_SetNumberProperty(windowProps, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, width);
+	SDL_SetNumberProperty(windowProps, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, height);
+	SDL_SetNumberProperty(windowProps, SDL_PROP_WINDOW_CREATE_FLAGS_NUMBER, sdlFlags);
+	SDL_SetBooleanProperty(
+		windowProps, SDL_PROP_WINDOW_CREATE_EXTERNAL_GRAPHICS_CONTEXT_BOOLEAN, true);
+	if (platformID == DS_EGL_RENDERER_PLATFORM_ID)
+	{
+		SDL_SetBooleanProperty(
+			windowProps, SDL_PROP_WINDOW_CREATE_WAYLAND_CREATE_EGL_WINDOW_BOOLEAN, true);
+	}
+	SDL_Window* internalWindow = SDL_CreateWindowWithProperties(windowProps);
+	SDL_DestroyProperties(windowProps);
+	return internalWindow;
+}
+
+bool dsSDLWindow_getWindowHandle(void** outDisplayHandle, void** outWindowHandle,
+	const dsApplication* application, SDL_Window* internalWindow)
+{
+	DS_UNUSED(application);
+	SDL_PropertiesID windowProps = SDL_GetWindowProperties(internalWindow);
+	if (!windowProps)
+		return false;
+
+	*outDisplayHandle = NULL;
+	*outWindowHandle = NULL;
+
+#if DS_WINDOWS
+	*outWindowHandle = SDL_GetPointerProperty(
+		windowProps, SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
+#elif DS_IOS
+	*outWindowHandle = dsSDLWindow_getUsableWindowHandle(
+		SDL_GetPointerProperty(windowProps, SDL_PROP_WINDOW_UIKIT_WINDOW_POINTER, NULL));
+#elif DS_MAC
+	*outWindowHandle = dsSDLWindow_getUsableWindowHandle(
+		SDL_GetPointerProperty(windowProps, SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, NULL));
+#elif DS_ANDROID
+	*outWindowHandle = SDL_GetPointerProperty(
+		windowProps, SDL_PROP_WINDOW_ANDROID_WINDOW_POINTER, NULL);
+#else
+	*outDisplayHandle = SDL_GetPointerProperty(
+		windowProps, SDL_PROP_WINDOW_X11_DISPLAY_POINTER, NULL);
+	if (*outDisplayHandle)
+	{
+		*outWindowHandle = (void*)SDL_GetNumberProperty(
+			windowProps, SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0);
+	}
+	else
+	{
+		*outDisplayHandle = SDL_GetPointerProperty(
+			windowProps, SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER, NULL);
+		if (*outDisplayHandle)
+		{
+			if (application->renderer->rendererID == DS_GL_RENDERER_ID ||
+				application->renderer->rendererID == DS_GLES_RENDERER_ID)
+			{
+				*outWindowHandle = SDL_GetPointerProperty(
+					windowProps, SDL_PROP_WINDOW_WAYLAND_EGL_WINDOW_POINTER, NULL);
+			}
+			else
+			{
+				*outWindowHandle = SDL_GetPointerProperty(
+					windowProps, SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER, NULL);
+			}
+		}
+	}
+#endif
+	return *outWindowHandle != NULL;
+}
+
+bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, uint32_t width,
+	uint32_t height, dsWindowFlags flags)
+{
+	DS_ASSERT(position);
+	dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
+	dsApplication* application = window->application;
+	dsRenderer* renderer = application->renderer;
+
 	if (!dsRenderSurface_destroy(window->surface))
 		return false;
 	window->surface = NULL;
@@ -178,27 +260,8 @@ bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, 
 		sdlWindow->sdlWindow = NULL;
 	}
 
-	SDL_Window* internalWindow = NULL;
-	SDL_PropertiesID windowProps = SDL_CreateProperties();
-	if (windowProps)
-	{
-		SDL_SetStringProperty(windowProps, SDL_PROP_WINDOW_CREATE_TITLE_STRING, window->title);
-		SDL_SetNumberProperty(windowProps, SDL_PROP_WINDOW_CREATE_X_NUMBER, position->x);
-		SDL_SetNumberProperty(windowProps, SDL_PROP_WINDOW_CREATE_Y_NUMBER, position->y);
-		SDL_SetNumberProperty(windowProps, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, width);
-		SDL_SetNumberProperty(windowProps, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, height);
-		SDL_SetNumberProperty(windowProps, SDL_PROP_WINDOW_CREATE_FLAGS_NUMBER, sdlFlags);
-		SDL_SetBooleanProperty(
-			windowProps, SDL_PROP_WINDOW_CREATE_EXTERNAL_GRAPHICS_CONTEXT_BOOLEAN, true);
-		if (platformID == DS_EGL_RENDERER_PLATFORM_ID)
-		{
-			SDL_SetBooleanProperty(
-				windowProps, SDL_PROP_WINDOW_CREATE_WAYLAND_CREATE_EGL_WINDOW_BOOLEAN, true);
-		}
-		internalWindow = SDL_CreateWindowWithProperties(windowProps);
-		SDL_DestroyProperties(windowProps);
-	}
-
+	SDL_Window* internalWindow = dsSDLWindow_createInternalWindow(
+		application, window->title, position, width, height, flags);
 	if (!internalWindow)
 	{
 		DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't create window: %s", SDL_GetError());
@@ -265,59 +328,10 @@ bool dsSDLWindow_createSurfaceInternal(dsWindow* window)
 	dsApplication* application = window->application;
 	dsRenderer_restoreGlobalState(application->renderer);
 
-	SDL_PropertiesID windowProps = SDL_GetWindowProperties(sdlWindow->sdlWindow);
-	if (!windowProps)
-	{
-		DS_LOG_ERROR_F(
-			DS_APPLICATION_SDL_LOG_TAG, "Couldn't get window properties: %s", SDL_GetError());
-		errno = EPERM;
-		return false;
-	}
-
-	void* displayHandle = NULL;
-	void* windowHandle = NULL;
-
-#if DS_WINDOWS
-	windowHandle = SDL_GetPointerProperty(
-		windowProps, SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
-#elif DS_IOS
-	windowHandle = dsSDLWindow_getUsableWindowHandle(
-		SDL_GetPointerProperty(windowProps, SDL_PROP_WINDOW_UIKIT_WINDOW_POINTER, NULL));
-#elif DS_MAC
-	windowHandle = dsSDLWindow_getUsableWindowHandle(
-		SDL_GetPointerProperty(windowProps, SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, NULL));
-#elif DS_ANDROID
-	windowHandle = SDL_GetPointerProperty(
-		windowProps, SDL_PROP_WINDOW_ANDROID_WINDOW_POINTER, NULL);
-#else
-	displayHandle = SDL_GetPointerProperty(windowProps, SDL_PROP_WINDOW_X11_DISPLAY_POINTER, NULL);
-	if (displayHandle)
-	{
-		windowHandle = (void*)SDL_GetNumberProperty(
-			windowProps, SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0);
-	}
-	else
-	{
-		displayHandle = SDL_GetPointerProperty(
-			windowProps, SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER, NULL);
-		if (displayHandle)
-		{
-			if (application->renderer->rendererID == DS_GL_RENDERER_ID ||
-				application->renderer->rendererID == DS_GLES_RENDERER_ID)
-			{
-				windowHandle = SDL_GetPointerProperty(
-					windowProps, SDL_PROP_WINDOW_WAYLAND_EGL_WINDOW_POINTER, NULL);
-			}
-			else
-			{
-				windowHandle = SDL_GetPointerProperty(
-					windowProps, SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER, NULL);
-			}
-		}
-	}
-#endif
-
-	if (!windowHandle)
+	void* displayHandle;
+	void* windowHandle;
+	if (!dsSDLWindow_getWindowHandle(
+			&displayHandle, &windowHandle, application, sdlWindow->sdlWindow))
 	{
 		DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Unsupported video driver.");
 		errno = EPERM;

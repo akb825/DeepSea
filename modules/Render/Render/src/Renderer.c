@@ -601,8 +601,9 @@ bool dsRenderer_setSurfaceFormat(
 	dsRenderer* renderer, const dsRenderSurfaceHint* formatHint, uint32_t samples)
 {
 	if (!renderer || !renderer->setSurfaceFormatFunc ||
-		(formatHint &&
-			dsRenderSurfaceHint_colorFormat(formatHint, false, false) == dsGfxFormat_Unknown))
+		(formatHint && dsRenderSurfaceHint_colorFormat(formatHint, dsGfxFormat_R5G6B5,
+			dsGfxFormat_R8G8B8, dsGfxFormat_R8G8B8A8, dsGfxFormat_A2B10G10R10) ==
+				dsGfxFormat_Unknown))
 	{
 		errno = EINVAL;
 		return false;

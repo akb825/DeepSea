@@ -178,9 +178,8 @@ static bool createExtraSurfaces(dsRenderer* renderer, dsRenderSurface* renderSur
 				mtlRenderSurface->resolveSurface = NULL;
 			}
 
-			MTLPixelFormat pixelFormat =
-				dsMTLResourceManager_getPixelFormat(renderer->resourceManager,
-					renderer->surfaceColorFormat);
+			MTLPixelFormat pixelFormat = dsMTLResourceManager_getPixelFormat(
+				renderer->resourceManager, renderer->surfaceColorFormat);
 			MTLTextureDescriptor* descriptor = [MTLTextureDescriptor new];
 			if (!descriptor)
 			{
@@ -216,9 +215,8 @@ static bool createExtraSurfaces(dsRenderer* renderer, dsRenderSurface* renderSur
 		if (!depthSurface || depthSurface.width != renderSurface->width ||
 			depthSurface.height != renderSurface->height)
 		{
-			MTLPixelFormat depthPixelFormat =
-				dsMTLResourceManager_getPixelFormat(renderer->resourceManager,
-					renderer->surfaceDepthStencilFormat);
+			MTLPixelFormat depthPixelFormat = dsMTLResourceManager_getPixelFormat(
+				renderer->resourceManager, renderer->surfaceDepthStencilFormat);
 			MTLPixelFormat stencilPixelFormat = depthPixelFormat;
 			if (depthPixelFormat == MTLPixelFormatInvalid)
 			{
@@ -405,13 +403,6 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 		{
 			format = MTLPixelFormatBGRA8Unorm_sRGB;
 		}
-#if DS_IOS || __MAC_OS_X_VERSION_MIN_REQUIRED >= 110000
-		else if (renderer->surfaceColorFormat ==
-			dsGfxFormat_decorate(dsGfxFormat_B5G6R5, dsGfxFormat_UNorm))
-		{
-			format = MTLPixelFormatBGRA8Unorm_sRGB;
-		}
-#endif
 		else if (renderer->surfaceColorFormat ==
 			dsGfxFormat_decorate(dsGfxFormat_A2B10G10R10, dsGfxFormat_UNorm))
 		{

@@ -82,16 +82,19 @@ static size_t fullAllocSize(void)
 		dsConditionVariable_fullAllocSize();
 }
 
-static bool useBGRSurface(const char* deviceName)
+static void deviceSurfaceFormats(dsGfxFormat* outR5G6B5, dsGfxFormat* outR8G8B8A8,
+	dsGfxFormat* outR10G10B10A2, const char* deviceName)
 {
 	DS_UNUSED(deviceName);
 
-	// Devices that use RGB surfaces.
-	if (DS_ANDROID)
-		return false;
+	*outR5G6B5 = dsGfxFormat_R5G6B5;
+	*outR10G10B10A2 = dsGfxFormat_A2B10G10R10;
 
-	// Most devices use BGR surfaces.
-	return true;
+	// Different devices prefer RGB vs. BGR for 8 bit-per-channel formats.
+	if (DS_ANDROID)
+		*outR8G8B8A8 = dsGfxFormat_R8G8B8A8;
+	else
+		*outR8G8B8A8 = dsGfxFormat_B8G8R8A8;
 }
 
 static bool createCommandBuffers(dsVkRenderer* renderer)
@@ -2289,7 +2292,9 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 dsGfxFormat dsVkRenderer_surfaceColorFormat(
 	const dsRenderer* renderer, const dsRenderSurfaceHint* hint)
 {
-	return dsRenderSurfaceHint_colorFormat(hint, useBGRSurface(renderer->deviceName), true);
+	dsGfxFormat r5g6b5, r8g8b8a8, r10g10b10a2;
+	deviceSurfaceFormats(&r5g6b5, &r8g8b8a8, &r10g10b10a2, renderer->deviceName);
+	return dsRenderSurfaceHint_colorFormat(hint, r5g6b5, r8g8b8a8, r8g8b8a8, r10g10b10a2);
 }
 
 dsGfxFormat dsVkRenderer_surfaceDepthStencilFormat(

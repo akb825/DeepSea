@@ -158,8 +158,8 @@ DS_RENDER_EXPORT dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer,
  * @return True if the render surface was resized. Any framebuffers that use the render surface
  *     should be re-created with the new parameters.
  */
-DS_RENDER_EXPORT bool dsRenderSurface_update(dsRenderSurface* renderSurface, unsigned int widthHint,
-	unsigned int heightHint);
+DS_RENDER_EXPORT bool dsRenderSurface_update(
+	dsRenderSurface* renderSurface, unsigned int widthHint, unsigned int heightHint);
 
 /**
  * @brief Begins drawing to a render surface.
@@ -171,8 +171,8 @@ DS_RENDER_EXPORT bool dsRenderSurface_update(dsRenderSurface* renderSurface, uns
  * @param commandBuffer The command buffer to push the commands on.
  * @return False if the render surface couldn't begin.
  */
-DS_RENDER_EXPORT bool dsRenderSurface_beginDraw(const dsRenderSurface* renderSurface,
-	dsCommandBuffer* commandBuffer);
+DS_RENDER_EXPORT bool dsRenderSurface_beginDraw(
+	const dsRenderSurface* renderSurface, dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Ends drawing to a render surface.
@@ -184,8 +184,8 @@ DS_RENDER_EXPORT bool dsRenderSurface_beginDraw(const dsRenderSurface* renderSur
  * @param commandBuffer The command buffer to push the commands on.
  * @return False if the render surface couldn't end.
  */
-DS_RENDER_EXPORT bool dsRenderSurface_endDraw(const dsRenderSurface* renderSurface,
-	dsCommandBuffer* commandBuffer);
+DS_RENDER_EXPORT bool dsRenderSurface_endDraw(
+	const dsRenderSurface* renderSurface, dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Swaps the front and back buffers for a list of render surfaces.

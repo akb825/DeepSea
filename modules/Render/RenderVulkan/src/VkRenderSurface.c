@@ -28,7 +28,6 @@
 #include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
-#include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Profile.h>
 

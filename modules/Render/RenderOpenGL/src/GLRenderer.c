@@ -1037,7 +1037,8 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 
 dsGfxFormat dsGLRenderer_surfaceColorFormat(const dsRenderSurfaceHint* hint)
 {
-	return dsRenderSurfaceHint_colorFormat(hint, false, true);
+	return dsRenderSurfaceHint_colorFormat(hint, dsGfxFormat_R5G6B5, dsGfxFormat_R8G8B8A8,
+		dsGfxFormat_R8G8B8A8, dsGfxFormat_A2B10G10R10);
 }
 
 bool dsGLRenderer_canUseRenderSurfaceFormat(const dsRenderer* renderer, dsGfxFormat colorFormat,

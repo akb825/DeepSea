@@ -42,6 +42,7 @@
 
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderSurface.h>
+#include <DeepSea/Render/RenderSurfaceHint.h>
 
 #include <SDL3/SDL.h>
 #include <stdio.h>
@@ -362,28 +363,33 @@ static void updatePrimaryDisplay(dsApplication* application)
 	application->primaryDisplay = findDisplay(application, primaryDisplayID);
 }
 
-static bool setGLAttributes(const dsRenderer* renderer)
+static bool setGLAttributes(
+	dsGfxFormat colorFormat, dsGfxFormat depthStencilFormat, uint32_t samples, bool stereoscopic)
 {
-	switch (renderer->surfaceColorFormat & dsGfxFormat_StandardMask)
+	switch (colorFormat & dsGfxFormat_StandardMask)
 	{
 		case dsGfxFormat_R5G6B5:
+		case dsGfxFormat_B5G6R5:
 			SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
 			SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 6);
 			SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
 			SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
 			break;
 		case dsGfxFormat_R8G8B8:
+		case dsGfxFormat_B8G8R8:
 			SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 			SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
 			SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
 			SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
 			break;
 		case dsGfxFormat_R8G8B8A8:
+		case dsGfxFormat_B8G8R8A8:
 			SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 			SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
 			SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
 			SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
 			break;
+		case dsGfxFormat_A2R10G10B10:
 		case dsGfxFormat_A2B10G10R10:
 			SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 10);
 			SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 10);
@@ -401,9 +407,9 @@ static bool setGLAttributes(const dsRenderer* renderer)
 	}
 
 	SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE,
-		(renderer->surfaceColorFormat & dsGfxFormat_DecoratorMask) == dsGfxFormat_SRGB);
+		(colorFormat & dsGfxFormat_DecoratorMask) == dsGfxFormat_SRGB);
 
-	switch (renderer->surfaceDepthStencilFormat)
+	switch (depthStencilFormat)
 	{
 		case dsGfxFormat_Unknown:
 			SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
@@ -429,11 +435,11 @@ static bool setGLAttributes(const dsRenderer* renderer)
 			return false;
 	}
 
-	SDL_GL_SetAttribute(SDL_GL_STEREO, renderer->stereoscopic);
-	if (renderer->surfaceSamples > 1)
+	SDL_GL_SetAttribute(SDL_GL_STEREO, stereoscopic);
+	if (samples > 1)
 	{
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, renderer->surfaceSamples);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, samples);
 	}
 	else
 	{
@@ -442,6 +448,12 @@ static bool setGLAttributes(const dsRenderer* renderer)
 	}
 
 	return true;
+}
+
+inline static bool setDefaultGLAttributes(const dsRenderer* renderer)
+{
+	return setGLAttributes(renderer->surfaceColorFormat, renderer->surfaceDepthStencilFormat,
+		renderer->surfaceSamples, renderer->stereoscopic);
 }
 
 static bool updateWindowState(
@@ -1148,7 +1160,7 @@ static void updateWindowFormat(dsApplication* application, uint64_t eventTime)
 	if (renderer->rendererID == DS_GL_RENDERER_ID ||
 		renderer->rendererID == DS_GLES_RENDERER_ID)
 	{
-		setGLAttributes(renderer);
+		setDefaultGLAttributes(renderer);
 	}
 
 	// Need to destroy the SDL windows before restarting video for X11 below.
@@ -1295,6 +1307,46 @@ void dsSDLApplication_quit(dsApplication* application, int exitCode)
 	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
 	sdlApplication->quit = true;
 	sdlApplication->exitCode = exitCode;
+}
+
+bool dsSDLApplication_supportsSurfaceFormat(
+	const dsApplication* application, const dsRenderSurfaceHint* formatHint, uint32_t samples)
+{
+	const dsRenderer* renderer = application->renderer;
+	bool needsGLAttributes = renderer->rendererID == DS_GL_RENDERER_ID ||
+		renderer->rendererID == DS_GLES_RENDERER_ID;
+	if (needsGLAttributes)
+	{
+		dsGfxFormat colorFormat = dsRenderSurfaceHint_colorFormat(formatHint, dsGfxFormat_R5G6B5,
+			dsGfxFormat_R8G8B8, dsGfxFormat_R8G8B8A8, dsGfxFormat_A2B10G10R10);
+		DS_ASSERT(colorFormat != dsGfxFormat_Unknown);
+		if (!setGLAttributes(colorFormat, dsRenderSurfaceHint_depthStencilFormat(formatHint),
+				samples, renderer->stereoscopic))
+		{
+			// Make sure the state is fully restored on failure.
+			setDefaultGLAttributes(renderer);
+			return false;
+		}
+	}
+
+	SDL_Window* window = dsSDLWindow_createInternalWindow(
+		application, NULL, NULL, 1, 1, dsWindowFlags_Hidden);
+	if (!window)
+	{
+		if (needsGLAttributes)
+			setDefaultGLAttributes(renderer);
+		return false;
+	}
+
+	void* displayHandle;
+	void* windowHandle;
+	bool result = dsSDLWindow_getWindowHandle(&displayHandle, &windowHandle, application, window) &&
+		dsRenderSurface_supportsFormat(renderer, displayHandle, windowHandle,
+			dsRenderSurfaceType_Window, formatHint, samples) > 0;
+
+	if (needsGLAttributes)
+		setDefaultGLAttributes(renderer);
+	return result;
 }
 
 bool dsSDLApplication_addCustomEvent(dsApplication* application, const dsCustomEvent* event)
@@ -1569,7 +1621,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	if (renderer->rendererID == DS_GL_RENDERER_ID ||
 		renderer->rendererID == DS_GLES_RENDERER_ID)
 	{
-		if (!setGLAttributes(renderer))
+		if (!setDefaultGLAttributes(renderer))
 		{
 			DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Invalid renderer attributes.");
 			DS_VERIFY(dsRenderer_destroy(renderer));
@@ -1671,6 +1723,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	baseApplication->setUpdateRateFunc = &dsSDLApplication_setUpdateRate;
 	baseApplication->showMessageBoxFunc = &dsSDLApplication_showMessageBoxBase;
 	baseApplication->quitFunc = &dsSDLApplication_quit;
+	baseApplication->supportsSurfaceFormat = &dsSDLApplication_supportsSurfaceFormat;
 	baseApplication->addCustomEventFunc = &dsSDLApplication_addCustomEvent;
 	baseApplication->getPowerStateFunc = &dsSDLApplication_getPowerState;
 
